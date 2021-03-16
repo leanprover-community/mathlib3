@@ -88,6 +88,9 @@ lemma eq_on_comm : eq_on f₁ f₂ s ↔ eq_on f₂ f₁ s :=
 theorem eq_on.image_eq (heq : eq_on f₁ f₂ s) : f₁ '' s = f₂ '' s :=
 image_congr heq
 
+theorem eq_on.inter_preimage_eq (heq : eq_on f₁ f₂ s) (t : set β) : s ∩ f₁ ⁻¹' t = s ∩ f₂ ⁻¹' t :=
+ext $ λ x, and.congr_right_iff.2 $ λ hx, by rw [mem_preimage, mem_preimage, heq hx]
+
 lemma eq_on.mono (hs : s₁ ⊆ s₂) (hf : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ s₁ :=
 λ x hx, hf (hs hx)
 
@@ -698,6 +701,21 @@ lemma piecewise_mem_pi {δ : α → Type*} {t : set α} {t' : Π i, set (δ i)}
   {f g} (hf : f ∈ pi t t') (hg : g ∈ pi t t') :
   s.piecewise f g ∈ pi t t' :=
 by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
+
+@[simp] lemma pi_piecewise {ι : Type*} {α : ι → Type*} (s s' : set ι)
+  (t t' : Π i, set (α i)) [Π x, decidable (x ∈ s')] :
+  pi s (s'.piecewise t t') = pi (s ∩ s') t ∩ pi (s \ s') t' :=
+begin
+  ext x,
+  simp only [mem_pi, mem_inter_eq, ← forall_and_distrib],
+  refine forall_congr (λ i, _),
+  by_cases hi : i ∈ s'; simp *
+end
+
+lemma univ_pi_piecewise {ι : Type*} {α : ι → Type*} (s : set ι)
+  (t : Π i, set (α i)) [Π x, decidable (x ∈ s)] :
+  pi univ (s.piecewise t (λ _, univ)) = pi s t :=
+by simp
 
 end set
 

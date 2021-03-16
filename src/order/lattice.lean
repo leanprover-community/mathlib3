@@ -219,6 +219,9 @@ by rw [sup_assoc, sup_idem]
 lemma sup_left_comm (a b c : α) : a ⊔ (b ⊔ c) = b ⊔ (a ⊔ c) :=
 by rw [← sup_assoc, ← sup_assoc, @sup_comm α _ a]
 
+lemma sup_right_comm (a b c : α) : a ⊔ b ⊔ c = a ⊔ c ⊔ b :=
+by rw [sup_assoc, sup_assoc, @sup_comm _ _ b]
+
 lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
   by rwa [or_iff_not_imp_left, not_forall],
@@ -368,6 +371,9 @@ instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
 
 lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
 @sup_left_comm (order_dual α) _ a b c
+
+lemma inf_right_comm (a b c : α) : a ⊓ b ⊓ c = a ⊓ c ⊓ b :=
+@sup_right_comm (order_dual α) _ a b c
 
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
 @forall_le_or_exists_lt_sup (order_dual α) _ a

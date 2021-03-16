@@ -5,10 +5,8 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
 import algebra.group.hom
-import algebra.ring.basic
-import data.rat.cast
 import group_theory.group_action.group
-import tactic.nth_rewrite
+import algebra.smul_with_zero
 
 /-!
 # Modules over a ring
@@ -16,7 +14,7 @@ import tactic.nth_rewrite
 In this file we define
 
 * `semimodule R M` : an additive commutative monoid `M` is a `semimodule` over a
-  `semiring` `R` if for `r : R` and `x : M` their "scalar multiplication `r • x : M` is defined, and
+  `semiring R` if for `r : R` and `x : M` their "scalar multiplication `r • x : M` is defined, and
   the operation `•` satisfies some natural associativity and distributivity axioms similar to those
   on a ring.
 
@@ -57,9 +55,16 @@ variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {
 section add_comm_monoid
 variables [semiring R] [add_comm_monoid M] [semimodule R M] (r s : R) (x y : M)
 
+/-- A semimodule over a semiring automatically inherits a `mul_action_with_zero` structure. -/
+@[priority 100] -- see Note [lower instance priority]
+instance semimodule.to_mul_action_with_zero :
+  mul_action_with_zero R M :=
+{ smul_zero := smul_zero,
+  zero_smul := semimodule.zero_smul,
+  ..(infer_instance : mul_action R M) }
+
 theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s x
 variables (R)
-@[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
 
@@ -505,9 +510,15 @@ end nat
 
 end semimodule
 
-section module
+section add_comm_group -- `R` can still be a semiring here
 
-variables [ring R] [add_comm_group M] [module R M]
+variables [semiring R] [add_comm_group M] [semimodule R M]
+
+lemma smul_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
+  function.injective (λ (x : M), c • x) :=
+λ x y h, sub_eq_zero.mp ((smul_eq_zero.mp
+  (calc c • (x - y) = c • x - c • y : smul_sub c x y
+                ... = 0 : sub_eq_zero.mpr h)).resolve_left hc)
 
 section nat
 
@@ -525,7 +536,15 @@ begin
   abel
 end
 
-variables {R}
+end nat
+
+end add_comm_group
+
+section module
+
+section nat
+
+variables {R} [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M] [char_zero R]
 
 lemma ne_neg_of_ne_zero [no_zero_divisors R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
 λ h, have semimodule ℕ R := add_comm_monoid.nat_semimodule, by exactI hv (eq_zero_of_eq_neg R h)

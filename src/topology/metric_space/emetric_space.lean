@@ -119,6 +119,8 @@ iff.intro (assume h, eq_of_edist_eq_zero (h.symm))
 theorem edist_le_zero {x y : α} : (edist x y ≤ 0) ↔ x = y :=
 nonpos_iff_eq_zero.trans edist_eq_zero
 
+@[simp] theorem edist_pos {x y : α} : 0 < edist x y ↔ x ≠ y := by simp [← not_le]
+
 /-- Triangle inequality for the extended distance -/
 theorem edist_triangle_left (x y z : α) : edist x y ≤ edist z x + edist z y :=
 by rw edist_comm z; apply edist_triangle
@@ -589,7 +591,7 @@ theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem is_closed_ball_top : is_closed (ball x ⊤) :=
-is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subset_compl_iff_disjoint.2 $
+is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subset_compl_iff_disjoint.2 $
   ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }⟩
 
 theorem ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
@@ -915,8 +917,7 @@ begin
   cases (mem_union _ _ _).1 ha with h'a h'a; cases (mem_union _ _ _).1 hb with h'b h'b,
   { calc edist a b ≤ diam s : edist_le_diam_of_mem h'a h'b
         ... ≤ diam s + (edist x y + diam t) : le_add_right (le_refl _)
-        ... = diam s + edist x y + diam t :
-          by simp only [add_comm, eq_self_iff_true, add_left_comm] },
+        ... = diam s + edist x y + diam t : (add_assoc _ _ _).symm },
   { exact A a h'a b h'b },
   { have Z := A b h'b a h'a, rwa [edist_comm] at Z },
   { calc edist a b ≤ diam t : edist_le_diam_of_mem h'a h'b

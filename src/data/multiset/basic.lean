@@ -252,6 +252,11 @@ eq_zero_of_forall_not_mem h
 theorem subset_zero {s : multiset α} : s ⊆ 0 ↔ s = 0 :=
 ⟨eq_zero_of_subset_zero, λ xeq, xeq.symm ▸ subset.refl 0⟩
 
+lemma induction_on' {p : multiset α → Prop} (S : multiset α)
+  (h₁ : p ∅) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → p s → p (insert a s)) : p S :=
+@multiset.induction_on α (λ T, T ⊆ S → p T) S (λ _, h₁) (λ a s hps hs,
+  let ⟨hS, sS⟩ := cons_subset.1 hs in h₂ hS sS (hps sS)) (subset.refl S)
+
 end subset
 
 section to_list
@@ -1657,6 +1662,10 @@ by by_cases p a; by_cases q a; simp *
 theorem filter_add_not (s : multiset α) :
   filter p s + filter (λ a, ¬ p a) s = s :=
 by rw [filter_add_filter, filter_eq_self.2, filter_eq_nil.2]; simp [decidable.em]
+
+theorem map_filter (f : β → α) (s : multiset β) :
+  filter p (map f s) = map f (filter (p ∘ f) s) :=
+quot.induction_on s (λ l, by simp [map_filter])
 
 /-! ### Simultaneously filter and map elements of a multiset -/
 

@@ -259,13 +259,13 @@ variables (𝕜 E)
 
 /-- In the trivial model with corners, the associated local equiv is the identity. -/
 @[simp, mfld_simps] lemma model_with_corners_self_local_equiv :
-  (model_with_corners_self 𝕜 E).to_local_equiv = local_equiv.refl E := rfl
+  (𝓘(𝕜, E)).to_local_equiv = local_equiv.refl E := rfl
 
 @[simp, mfld_simps] lemma model_with_corners_self_coe :
-  (model_with_corners_self 𝕜 E : E → E) = id := rfl
+  (𝓘(𝕜, E) : E → E) = id := rfl
 
 @[simp, mfld_simps] lemma model_with_corners_self_coe_symm :
-  ((model_with_corners_self 𝕜 E).symm : E → E) = id := rfl
+  (𝓘(𝕜, E).symm : E → E) = id := rfl
 
 end
 
@@ -308,7 +308,7 @@ as the model to tangent bundles. -/
   {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
   {E : Type v} [normed_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
   (I : model_with_corners 𝕜 E H) : model_with_corners 𝕜 (E × E) (model_prod H E) :=
-I.prod (model_with_corners_self 𝕜 E)
+I.prod (𝓘(𝕜, E))
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
@@ -760,8 +760,8 @@ lemma ext_chart_at_map_nhds_within' {y : M} (hy : y ∈ (ext_chart_at I x).sourc
   map (ext_chart_at I x) (𝓝[s] y) =
     𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x y) :=
 by rw [ext_chart_at_map_nhds_within_eq_image' I x hy, nhds_within_inter,
-  ← nhds_within_ext_chart_target_eq' _ _ hy, ← nhds_within_inter, inter_comm,
-  (ext_chart_at I x).image_inter_source_eq', inter_comm]
+  ← nhds_within_ext_chart_target_eq' _ _ hy, ← nhds_within_inter,
+  (ext_chart_at I x).image_source_inter_eq', inter_comm]
 
 lemma ext_chart_at_map_nhds_within :
   map (ext_chart_at I x) (𝓝[s] x) =

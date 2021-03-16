@@ -47,6 +47,7 @@ le_antisymm
   (λ r ur, let ⟨ε, ε0, h⟩ := (H _).1 ur in
     mem_infi_sets ε $ mem_infi_sets ε0 $ mem_principal_sets.2 $ λ ⟨a, b⟩, h)
 
+/-- `has_edist α` means that `α` is equipped with an extended distance. -/
 class has_edist (α : Type*) := (edist : α → α → ℝ≥0∞)
 export has_edist (edist)
 
@@ -373,7 +374,7 @@ def pseudoemetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseu
 
 /-- The extended pseudometric induced by an injective function taking values in a
 pseudoemetric space. -/
-def pseudo_emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
+def pseudo_emetric_space.induced {α β} (f : α → β)
   (m : pseudo_emetric_space β) : pseudo_emetric_space α :=
 { edist               := λ x y, edist (f x) (f y),
   edist_self          := λ x, edist_self _,
@@ -393,7 +394,7 @@ def pseudo_emetric_space.induced {α β} (f : α → β) (hf : function.injectiv
 
 /-- Pseudoemetric space instance on subsets of pseudoemetric spaces -/
 instance {α : Type*} {p : α → Prop} [t : pseudo_emetric_space α] :
-  pseudo_emetric_space (subtype p) := t.induced coe (λ x y, subtype.ext_iff_val.2)
+  pseudo_emetric_space (subtype p) := t.induced coe
 
 /-- The extended psuedodistance on a subset of a pseudoemetric space is the restriction of
 the original pseudodistance, by definition -/
@@ -454,7 +455,8 @@ instance pseudoemetric_space_pi [∀b, pseudo_emetric_space (π b)] : pseudo_eme
 lemma pseudoedist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
-@[simp] lemma pseudoedist_pi_const [nonempty β] (a b : α) :
+@[priority 1100]
+lemma pseudoedist_pi_const [nonempty β] (a b : α) :
   edist (λ x : β, a) (λ _, b) = edist a b := finset.sup_const univ_nonempty (edist a b)
 
 end pi

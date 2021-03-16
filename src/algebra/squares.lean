@@ -40,8 +40,6 @@ for some `s : R`. -/
 def squares : Type* := subtype (is_square R)
 
 /--  The sums of squares of an `add_comm_monoid R` is the `ℕ`-submodule spanned by the squares. -/
---def sums_of_squares [add_comm_monoid R] : submodule ℕ R :=
---submodule.span ℕ { r : R | is_square R r }
 def sums_of_squares [add_comm_monoid R] : add_submonoid R :=
 add_submonoid.closure { r : R | is_square R r }
 
@@ -60,7 +58,6 @@ def squaring : R → squares R := λ r, ⟨_, mul_self r⟩
 
 /-- The product of an element with itself is a sum of squares. -/
 lemma mul_self_mem [add_comm_monoid R] (a : R) : a * a ∈ sums_of_squares R :=
---submodule.mem_span.mpr (λ r hr, hr (mul_self _))
 begin
   rintro - ⟨H, rfl⟩,
   rintros - ⟨H1, rfl⟩,
@@ -74,13 +71,6 @@ begin
   rintros - ⟨H1, rfl⟩,
   exact H1 a.2,
 end
-/-
-begin
-  refine submodule.mem_span.mpr (λ _ h, _),
-  apply set.mem_of_mem_of_subset _ h,
-  exact a.2,
-end
--/
 
 end is_square
 
@@ -180,12 +170,10 @@ variables [add_comm_monoid R] [monoid R]
 
 /-- Zero is a sum of squares. -/
 @[simp] lemma zero : (0 : R) ∈ sums_of_squares R :=
---submodule.zero_mem _ --??
 add_submonoid.zero_mem _
 
 /-- One is a sum of squares. -/
 @[simp] lemma one : (1 : R) ∈ sums_of_squares R :=
---submodule.mem_span.mpr (λ p hp, hp one)
 begin
   rintros - ⟨H, rfl⟩,
   rintros - ⟨H1, rfl⟩,
@@ -198,7 +186,7 @@ lemma nat {n : ℕ} : n • (1 : R) ∈ sums_of_squares R :=
 begin
   induction n with n hn,
   { simp only [zero_smul, zero] },
-  { simp only [n.succ_eq_add_one, add_smul, hn, add_submonoid.add_mem, one, one_smul] }
+  { simp only [n.succ_eq_add_one, add_smul, hn, (sums_of_squares R).add_mem, one, one_smul] }
 end
 
 lemma sq_mem (a : R) : a ^ 2 ∈ sums_of_squares R :=
@@ -210,13 +198,6 @@ begin
   rintros - ⟨H1, rfl⟩,
   exact H1 a.2,
 end
-/-
-begin
-  refine submodule.mem_span.mpr (λ _ h, _),
-  apply set.mem_of_mem_of_subset _ h,
-  exact a.2,
-end
--/
 
 lemma squares_subset_sums_of_squares {r : R} (hr : is_square R r) :
   r ∈ sums_of_squares R :=
@@ -229,8 +210,7 @@ end
 
 lemma add_mem {a b : R} (ha : a ∈ sums_of_squares R) (hb : b ∈ sums_of_squares R) :
   a + b ∈ sums_of_squares R :=
-add_submonoid.add_mem (sums_of_squares R) ha hb
---submodule.add_mem (sums_of_squares R) ha hb
+(sums_of_squares R).add_mem ha hb
 
 end monoid
 
@@ -250,19 +230,8 @@ begin
   { simp only [zero, forall_const, zero_mul] },
   { intros r s hr hs b,
     rw add_mul,
-    exact add_submonoid.add_mem _ hr hs },
+    exact (sums_of_squares R).add_mem hr hs }
 end
-/-
-begin
-  rcases mem_span_set.mp ha with ⟨d, dsup, rfl⟩,
-  simp_rw [finsupp.sum_mul, ← smul_eq_mul, smul_assoc],
-  refine submodule.sum_mem _ (λ r rd, _),
-  refine submodule.smul_mem _ (d r) _,
-  rcases dsup rd with ⟨r, rfl⟩,
-  rw [smul_eq_mul, smul_eq_mul, mul_mul_mul_comm r r b b],
-  exact mul_self_mem (r * b),
-end
--/
 
 lemma mul_sq_mem (ha : a ∈ sums_of_squares R) :
   a * b ^ 2 ∈ sums_of_squares R :=
@@ -289,20 +258,6 @@ begin
     rw mul_add,
     exact add_submonoid.add_mem _ (hr hb) (hs hb) }
 end
-/-
-begin
-  rcases mem_span_set.mp hb with ⟨c, csup, rfl⟩,
-  conv_lhs
-  { rw finsupp.mul_sum,
-    congr,
-    skip,
-    funext,
-    rw [← smul_eq_mul, smul_comm, smul_eq_mul] },
-  refine submodule.sum_mem (sums_of_squares R) (λ d hd, submodule.smul_mem _ (c d) _),
-  rcases csup hd with ⟨d, rfl⟩,
-  exact mul_mul_self_mem as,
-end
--/
 
 instance : has_mul (sums_of_squares R) := { mul := λ a b, ⟨_, mul_mem a.2 b.2⟩ }
 

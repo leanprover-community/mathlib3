@@ -153,18 +153,6 @@ f.to_multilinear_map.map_update_zero m i
 @[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
 f.to_multilinear_map.map_zero
 
-/-- Make a copy of `m` that when applied is defeq to `f`. -/
-@[simps]
-def copy (m : alternating_map R M N ι) (f : (ι → M) → N) (hf : ⇑m = f) : alternating_map R M N ι :=
-{ to_fun := f,
-  map_add' := λ v i x y, by simp only [←hf, m.map_add],
-  map_smul' := λ v i c x, by simp only [←hf, m.map_smul],
-  map_eq_zero_of_eq' := λ v i j hv hij, by simp only [←hf, m.map_eq_zero_of_eq _ hv hij]}
-
-lemma copy_eq (m : alternating_map R M N ι) (f : (ι → M) → N) {hf : ⇑m = f} :
-  m.copy f hf = m :=
-ext $ _root_.congr_fun hf.symm
-
 /-!
 ### Algebraic structure inherited from `multilinear_map`
 

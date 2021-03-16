@@ -423,7 +423,7 @@ def card : multiset α →+ ℕ :=
 theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
 card.map_add s t
 
-lemma card_smul (s : multiset α) (n : ℕ) :
+lemma card_nsmul (s : multiset α) (n : ℕ) :
   (n •ℕ s).card = n * s.card :=
 by rw [card.map_nsmul s n, nat.nsmul_eq_mul]
 

@@ -66,13 +66,8 @@ variables (A : matrix n n α) (b : n → α)
 def cramer_map (i : n) : α := (A.update_column i b).det
 
 lemma cramer_map_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) :=
-begin
-  split,
-  { intros x y,
-    exact det_update_column_add _ _ _ _ },
-  { intros c x,
-    exact det_update_column_smul _ _ _ _ },
-end
+{ map_add := det_update_column_add _ _,
+  map_smul := det_update_column_smul _ _ }
 
 lemma cramer_is_linear : is_linear_map α (cramer_map A) :=
 begin

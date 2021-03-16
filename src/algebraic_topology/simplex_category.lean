@@ -44,6 +44,11 @@ instance : small_category simplex_category :=
 @[reducible] def mk (n : ℕ) : simplex_category := n
 local notation `[`n`]` := mk n
 
+def len (n : simplex_category) : ℕ := n
+
+@[simp] lemma len_mk (n : ℕ) : [n].len = n := rfl
+@[simp] lemma mk_len (n : simplex_category) : [n.len] = n := rfl
+
 section generators
 /-!
 ## Generating maps for the simplex category
@@ -287,3 +292,14 @@ def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd.{u} simplex_category skele
   eqv := skeletal_functor.is_equivalence }
 
 end simplex_category
+
+@[derive small_category]
+def truncated_simplex_category (n : ℕ) := {a : simplex_category // a.len ≤ n}
+
+namespace truncated_simplex_category
+
+@[derive [full, faithful]]
+def inclusion {n : ℕ} : truncated_simplex_category n ⥤ simplex_category :=
+full_subcategory_inclusion _
+
+end truncated_simplex_category

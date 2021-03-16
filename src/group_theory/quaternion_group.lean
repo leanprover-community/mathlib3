@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Julian Kuelshammer (heavily based on `dihedral` by Shing Tak Lam)
+Authors: Julian Kuelshammer
 -/
 import data.zmod.basic
 import group_theory.order_of_element
@@ -20,6 +20,8 @@ dicyclic groups, with elements `a i` and `xa i` for `i : zmod n`.
 `quaternion_group n`: The (generalised) quaternion group of order `4n`.
 
 ## Implementation notes
+
+This file is heavily based on `dihedral` by Shing Tak Lam.
 
 In mathematics, the name `quaternion_group` is reserved for the cases `n ≥ 2`. Since it would be
 inconvenient to carry around this condition we define `quaternion_group` also for `n = 0` and
@@ -83,7 +85,8 @@ instance : group (quaternion_group n) :=
     rintros (i | i) (j | j) (k | k);
     simp only [mul];
     abel,
-    simp only [neg_mul_eq_neg_mul_symm, one_mul, int.cast_one, gsmul_eq_mul, int.cast_neg, add_right_inj],
+    simp only [neg_mul_eq_neg_mul_symm, one_mul, int.cast_one, gsmul_eq_mul, int.cast_neg,
+               add_right_inj],
     calc -(n : zmod (2 * n)) = 0 - n : by rw zero_sub
       ... = 2 * n - n : by { norm_cast, simp, }
       ... = n : by ring
@@ -166,9 +169,7 @@ If `0 < n`, then `quaternion_group n` has `4n` elements.
 -/
 lemma card [fact (0 < n)] : fintype.card (quaternion_group n) = 4 * n :=
 begin
-  rw ← fintype.card_eq.mpr ⟨fintype_helper⟩,
-  change fintype.card (zmod (2 * n) ⊕ zmod (2 * n)) = 4 * n,
-  rw [fintype.card_sum, zmod.card, two_mul],
+  rw [← fintype.card_eq.mpr ⟨fintype_helper⟩, fintype.card_sum, zmod.card, two_mul],
   ring
 end
 

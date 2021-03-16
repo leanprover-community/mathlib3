@@ -14,10 +14,8 @@ occurring in the exploded proofs.
 -/
 open widget tactic tactic.explode
 
-meta def to_string_coe_not {α β} [has_to_string β] : has_coe β (html α) :=
-⟨html.of_string ∘ to_string⟩
-
-local attribute [instance] to_string_coe_not
+meta instance widget.string_to_list_html {α} : has_coe string (list (html α)) :=
+⟨λ s, [s]⟩
 
 namespace tactic
 namespace explode_widget

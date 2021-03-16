@@ -402,7 +402,7 @@ theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist
 /-- The product of two pseudoemetric spaces, with the max distance, is an extended
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one
 corresponding to the product of uniform spaces, to avoid diamond problems. -/
-instance prod.pseudoemetric_space_max [pseudo_emetric_space β] : pseudo_emetric_space (α × β) :=
+instance prod.pseudo_emetric_space_max [pseudo_emetric_space β] : pseudo_emetric_space (α × β) :=
 { edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
   edist_self := λ x, by simp,
   edist_comm := λ x y, by simp [edist_comm],
@@ -431,7 +431,7 @@ a pseudoemetric space.
 This construction would also work for infinite products, but it would not give rise
 to the product topology. Hence, we only formalize it in the good situation of finitely many
 spaces. -/
-instance pseudoemetric_space_pi [∀b, pseudo_emetric_space (π b)] : pseudo_emetric_space (Πb, π b) :=
+instance pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] : pseudo_emetric_space (Πb, π b) :=
 { edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
   edist_self := assume f, bot_unique $ finset.sup_le $ by simp,
   edist_comm := assume f g, by unfold edist; congr; funext a; exact edist_comm _ _,
@@ -968,7 +968,7 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (γ × β) :=
     have B : x.snd = y.snd := edist_le_zero.1 h₂,
     exact prod.ext_iff.2 ⟨A, B⟩
   end,
-  ..prod.pseudoemetric_space_max }
+  ..prod.pseudo_emetric_space_max }
 
   lemma prod.edist_eq [emetric_space β] (x y : α × β) :
   edist x y = max (edist x.1 y.1) (edist x.2 y.2) :=
@@ -995,7 +995,7 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
     simp only [finset.sup_le_iff] at eq1,
     exact (funext $ assume b, edist_le_zero.1 $ eq1 b $ mem_univ b),
   end,
-  ..pseudoemetric_space_pi }
+  ..pseudo_emetric_space_pi }
 
 lemma edist_pi_def [Π b, emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl

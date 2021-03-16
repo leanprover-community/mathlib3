@@ -1873,29 +1873,13 @@ end nnreal
 section prod
 
 instance prod.metric_space_max [metric_space β] : metric_space (γ × β) :=
-{ dist := λ x y, max (dist x.1 y.1) (dist x.2 y.2),
-  dist_self := λ x, by simp,
-  eq_of_dist_eq_zero := λ x y h, begin
+{ eq_of_dist_eq_zero := λ x y h, begin
     cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
-    exact prod.ext_iff.2 ⟨dist_le_zero.1 h₁, dist_le_zero.1 h₂⟩
+    have A : x.fst = y.fst := dist_le_zero.1 h₁,
+    have B : x.snd = y.snd := dist_le_zero.1 h₂,
+    exact prod.ext_iff.2 ⟨A, B⟩
   end,
-  dist_comm := λ x y, by simp [dist_comm],
-  dist_triangle := λ x y z, max_le
-    (le_trans (dist_triangle _ _ _) (add_le_add (le_max_left _ _) (le_max_left _ _)))
-    (le_trans (dist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
-  edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
-  edist_dist := assume x y, begin
-    have : monotone ennreal.of_real := assume x y h, ennreal.of_real_le_of_real h,
-    rw [edist_dist, edist_dist, ← this.map_max]
-  end,
-  uniformity_dist := begin
-    refine uniformity_prod.trans _,
-    simp only [uniformity_basis_dist.eq_binfi, comap_infi],
-    rw ← infi_inf_eq, congr, funext,
-    rw ← infi_inf_eq, congr, funext,
-    simp [inf_principal, ext_iff, max_lt_iff]
-  end,
-  to_uniform_space := prod.uniform_space }
+  ..prod.pseudo_metric_space_max }
 
 end prod
 
@@ -1905,23 +1889,17 @@ variables {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
 
 /-- A finite product of metric spaces is a metric space, with the sup distance. -/
 instance metric_space_pi : metric_space (Πb, π b) :=
-begin
   /- we construct the instance from the emetric space instance to avoid checking again that the
   uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/
-  refine emetric_space.to_metric_space_of_dist
-    (λf g, ((sup univ (λb, nndist (f b) (g b)) : ℝ≥0) : ℝ)) _ _,
-  show ∀ (x y : Π (b : β), π b), edist x y ≠ ⊤,
-  { assume x y,
-    rw ← lt_top_iff_ne_top,
-    have : (⊥ : ℝ≥0∞) < ⊤ := ennreal.coe_lt_top,
-    simp [edist_pi_def, finset.sup_lt_iff this, edist_lt_top] },
-  show ∀ (x y : Π (b : β), π b), ↑(sup univ (λ (b : β), nndist (x b) (y b))) =
-    ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
-  { assume x y,
-    simp only [edist_nndist],
-    norm_cast }
-end
+{ eq_of_dist_eq_zero := assume f g eq0,
+  begin
+    have eq1 : edist f g = 0 := by simp only [edist_dist, eq0, ennreal.of_real_zero],
+    have eq2 : sup univ (λ (b : β), edist (f b) (g b)) ≤ 0 := le_of_eq eq1,
+    simp only [finset.sup_le_iff] at eq2,
+    exact (funext $ assume b, edist_le_zero.1 $ eq2 b $ mem_univ b)
+  end,
+  ..pseudo_metric_space_pi }
 
 end pi
 

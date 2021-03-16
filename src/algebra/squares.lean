@@ -140,11 +140,7 @@ def squares.to_submonoid : submonoid R :=
   one_mem' := one,
   mul_mem' := λ a b ha hb, mul_mem ha hb }
 
-instance : comm_monoid (squares R) :=
-{ one_mul := λ a, subtype.ext (one_mul _),
-  mul_one := λ a, subtype.ext (mul_one _),
-  ..(infer_instance : comm_semigroup (squares R)),
-  ..(infer_instance : has_one (squares R)) }
+instance : comm_monoid (squares R) := squares.to_submonoid.to_comm_monoid
 
 /--  The squaring map, as a multiplicative homomorphism. -/
 def ring_hom.sq : R →* squares R :=

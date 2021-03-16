@@ -109,14 +109,14 @@ by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.σ_c
 
 variable (C)
 @[derive category]
-def truncated (n : ℕ) := (truncated_simplex_category n)ᵒᵖ ⥤ C
+def truncated (n : ℕ) := (simplex_category.truncated n)ᵒᵖ ⥤ C
 variable {C}
 
 namespace truncated
 
 instance {n} {J : Type v} [small_category J] [has_limits_of_shape J C] :
   has_limits_of_shape J (simplicial_object.truncated C n) :=
-let E : (truncated_simplex_category n)ᵒᵖ ⥤ C ≌ (ulift.{v} (truncated_simplex_category n))ᵒᵖ ⥤ C :=
+let E : (simplex_category.truncated n)ᵒᵖ ⥤ C ≌ (ulift.{v} (simplex_category.truncated n))ᵒᵖ ⥤ C :=
   ulift.equivalence.op.congr_left in
   adjunction.has_limits_of_shape_of_equivalence E.functor
 
@@ -124,7 +124,7 @@ instance {n} [has_limits C] : has_limits (simplicial_object.truncated C n) := �
 
 instance {n} {J : Type v} [small_category J] [has_colimits_of_shape J C] :
   has_colimits_of_shape J (simplicial_object.truncated C n) :=
-let E : (truncated_simplex_category n)ᵒᵖ ⥤ C ≌ (ulift.{v} (truncated_simplex_category n))ᵒᵖ ⥤ C :=
+let E : (simplex_category.truncated n)ᵒᵖ ⥤ C ≌ (ulift.{v} (simplex_category.truncated n))ᵒᵖ ⥤ C :=
   ulift.equivalence.op.congr_left in
   adjunction.has_colimits_of_shape_of_equivalence E.functor
 
@@ -135,7 +135,7 @@ end truncated
 section skeleton
 
 def sk (n : ℕ) : simplicial_object C ⥤ simplicial_object.truncated C n :=
-(whiskering_left _ _ _).obj (truncated_simplex_category.inclusion).op
+(whiskering_left _ _ _).obj (simplex_category.truncated.inclusion).op
 
 end skeleton
 

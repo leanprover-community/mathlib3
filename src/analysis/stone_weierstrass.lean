@@ -22,53 +22,6 @@ variables {R : Type*} [comm_ring R] [topological_space R] [topological_ring R]
 abbreviation subalgebra.separates_points (A : subalgebra R C(X, R)) : Prop :=
 separates_points ((λ f : C(X, R), (f : X → R)) '' (A : set C(X, R)))
 
-
-
-namespace continuous_map
-variables {α : Type*} [topological_space α]
-variables {β : Type*} [topological_space β]
-
-instance partial_order [partial_order β] :
-  partial_order C(α, β) :=
-partial_order.lift (forget_continuity α β) (forget_continuity_injective α β)
-
-lemma le_iff [partial_order β] {f g : C(α, β)} : f ≤ g ↔ ∀ a, f a ≤ g a :=
-iff.refl _
-
-instance has_sup [linear_order β] [order_closed_topology β] : has_sup C(α, β) :=
-{ sup := λ f g, { to_fun := λ a, max (f a) (g a), } }
-
-@[simp] lemma sup_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
-  (f ⊔ g) a = max (f a) (g a) :=
-rfl
-
-instance [linear_order β] [order_closed_topology β] : semilattice_sup C(α, β) :=
-{ le_sup_left := λ f g, le_iff.mpr (by simp [le_refl]),
-  le_sup_right := λ f g, le_iff.mpr (by simp [le_refl]),
-  sup_le := λ f₁ f₂ g w₁ w₂, le_iff.mpr (λ a, by simp [le_iff.mp w₁ a, le_iff.mp w₂ a]),
-  ..continuous_map.partial_order,
-  ..continuous_map.has_sup, }
-
-instance has_inf [linear_order β] [order_closed_topology β] : has_inf C(α, β) :=
-{ inf := λ f g, { to_fun := λ a, min (f a) (g a), } }
-
-@[simp] lemma inf_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
-  (f ⊓ g) a = min (f a) (g a) :=
-rfl
-
-instance [linear_order β] [order_closed_topology β] : semilattice_inf C(α, β) :=
-{ inf_le_left := λ f g, le_iff.mpr (by simp [le_refl]),
-  inf_le_right := λ f g, le_iff.mpr (by simp [le_refl]),
-  le_inf := λ f₁ f₂ g w₁ w₂, le_iff.mpr (λ a, by simp [le_iff.mp w₁ a, le_iff.mp w₂ a]),
-  ..continuous_map.partial_order,
-  ..continuous_map.has_inf, }
-
-instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
-{ ..continuous_map.semilattice_inf,
-  ..continuous_map.semilattice_sup }
-
-end continuous_map
-
 /-- The pointwise absolute value of a continuous function as a continuous function. -/
 def continuous_map.abs
   {R : Type*} [linear_ordered_add_comm_group R] [topological_space R] [order_topology R]

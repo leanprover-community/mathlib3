@@ -6,6 +6,7 @@ Author: Nicolò Cavalleri.
 
 import topology.subset_properties
 import topology.tactic
+import topology.algebra.ordered
 
 /-!
 # Continuous bundled map
@@ -89,5 +90,52 @@ def const (b : β) : C(α, β) := ⟨λ x, b⟩
 
 @[simp] lemma const_coe (b : β) : (const b : α → β) = (λ x, b) := rfl
 lemma const_apply (b : β) (a : α) : const b a = b := rfl
+
+/-!
+We now set up the partial order and lattice structure (given by pointwise min and max)
+on continuous functions.
+-/
+section lattice
+
+instance partial_order [partial_order β] :
+  partial_order C(α, β) :=
+partial_order.lift (forget_continuity α β) (forget_continuity_injective α β)
+
+lemma le_iff [partial_order β] {f g : C(α, β)} : f ≤ g ↔ ∀ a, f a ≤ g a :=
+iff.refl _
+
+instance has_sup [linear_order β] [order_closed_topology β] : has_sup C(α, β) :=
+{ sup := λ f g, { to_fun := λ a, max (f a) (g a), } }
+
+@[simp] lemma sup_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
+  (f ⊔ g) a = max (f a) (g a) :=
+rfl
+
+instance [linear_order β] [order_closed_topology β] : semilattice_sup C(α, β) :=
+{ le_sup_left := λ f g, le_iff.mpr (by simp [le_refl]),
+  le_sup_right := λ f g, le_iff.mpr (by simp [le_refl]),
+  sup_le := λ f₁ f₂ g w₁ w₂, le_iff.mpr (λ a, by simp [le_iff.mp w₁ a, le_iff.mp w₂ a]),
+  ..continuous_map.partial_order,
+  ..continuous_map.has_sup, }
+
+instance has_inf [linear_order β] [order_closed_topology β] : has_inf C(α, β) :=
+{ inf := λ f g, { to_fun := λ a, min (f a) (g a), } }
+
+@[simp] lemma inf_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
+  (f ⊓ g) a = min (f a) (g a) :=
+rfl
+
+instance [linear_order β] [order_closed_topology β] : semilattice_inf C(α, β) :=
+{ inf_le_left := λ f g, le_iff.mpr (by simp [le_refl]),
+  inf_le_right := λ f g, le_iff.mpr (by simp [le_refl]),
+  le_inf := λ f₁ f₂ g w₁ w₂, le_iff.mpr (λ a, by simp [le_iff.mp w₁ a, le_iff.mp w₂ a]),
+  ..continuous_map.partial_order,
+  ..continuous_map.has_inf, }
+
+instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
+{ ..continuous_map.semilattice_inf,
+  ..continuous_map.semilattice_sup }
+
+end lattice
 
 end continuous_map

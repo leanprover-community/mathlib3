@@ -85,6 +85,19 @@ def conj : ℤ√d → ℤ√d
 @[simp] theorem conj_im : ∀ z : ℤ√d, (conj z).im = -z.im
 | ⟨x, y⟩ := rfl
 
+@[simp] lemma conj_zero : conj (0 : ℤ√d) = 0 :=
+by rw [ext, conj_re, conj_im, zero_im, zero_re, neg_zero, and_self]
+
+@[simp] lemma conj_one : conj (1 : ℤ√d) = 1 :=
+by simp only [zsqrtd.ext, zsqrtd.conj_re, zsqrtd.conj_im, zsqrtd.one_im, neg_zero, eq_self_iff_true,
+  and_self]
+
+@[simp] lemma conj_neg (x : ℤ√d) : (-x).conj = -x.conj :=
+by simp only [ext, conj_re, eq_self_iff_true, neg_im, neg_re, and_self, conj_im]
+
+@[simp] lemma conj_conj {d : ℤ} (x : ℤ√d) : x.conj.conj = x :=
+by simp only [ext, true_and, conj_re, eq_self_iff_true, neg_neg, conj_im]
+
 /-- Multiplication in `ℤ√d` -/
 def mul : ℤ√d → ℤ√d → ℤ√d
 | ⟨x, y⟩ ⟨x', y'⟩ := ⟨x * x' + d * y * y', x * y' + y * x'⟩
@@ -266,6 +279,13 @@ by { simp only [norm, mul_im, mul_re], ring }
 
 lemma norm_eq_mul_conj (n : ℤ√d) : (norm n : ℤ√d) = n * n.conj :=
 by cases n; simp [norm, conj, zsqrtd.ext, mul_comm, sub_eq_add_neg]
+
+@[simp] lemma norm_neg (x : ℤ√d) : (-x).norm = x.norm :=
+coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul_eq_neg_mul_symm,
+  mul_neg_eq_neg_mul_symm, neg_neg]
+
+@[simp] lemma norm_conj (x : ℤ√d) : x.conj.norm = x.norm :=
+coe_int_inj $ by simp only [norm_eq_mul_conj, conj_conj, mul_comm]
 
 instance : is_monoid_hom norm :=
 { map_one := norm_one, map_mul := norm_mul }

@@ -907,7 +907,7 @@ separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
 
 /-- If a  `pseudo_emetric_space` is separated, then it is an `emetric_space`. -/
-lemma emetric_space_of_t2_pseudo_emetric_space {α : Type*} [pseudo_emetric_space α]
+def emetric_of_t2_pseudo_emetric_space {α : Type*} [pseudo_emetric_space α]
   (h : separated_space α) : emetric_space α :=
 { eq_of_edist_eq_zero := λ x y hdist,
   begin

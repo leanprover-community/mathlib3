@@ -1747,7 +1747,7 @@ separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
 
 /-- If a  `pseudo_metric_space` is separated, then it is a `metric_space`. -/
-lemma metric_space_of_t2_pseudo_metric_space {α : Type*} [pseudo_metric_space α]
+def of_t2_pseudo_metric_space {α : Type*} [pseudo_metric_space α]
   (h : separated_space α) : metric_space α :=
 { eq_of_dist_eq_zero := λ x y hdist,
   begin

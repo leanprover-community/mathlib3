@@ -123,14 +123,14 @@ def rotate : (triangle C) ⥤ (triangle C) :=
   map := λ _ _ f, f.rotate C,
   map_id' := begin
     intro T₁,
-    simp only [triangulated.triangle_category_to_category_struct_id],
+    simp only [triangle_category_to_category_struct_id],
     unfold triangle_morphism.rotate,
     dsimp,
     ext,
     { refl },
     { refl },
     {
-      simp only [triangulated.triangle_morphism_id_trimor3, (shift C).functor.map_id],
+      simp only [triangle_morphism_id_trimor3, (shift C).functor.map_id],
       refl,
     }
   end,
@@ -153,11 +153,11 @@ def inv_rotate : (triangle C) ⥤ (triangle C) :=
   map := λ _ _ f, f.inv_rotate C,
   map_id' := begin
     intro T₁,
-    simp only [triangulated.triangle_category_to_category_struct_id],
+    simp only [triangle_category_to_category_struct_id],
     ext,
     {
-      simp only [triangulated.triangle_morphism_id_trimor3, triangle_morphism.inv_rotate_trimor1,
-      triangulated.triangle_morphism_id_trimor1],
+      simp only [triangle_morphism_id_trimor3, triangle_morphism.inv_rotate_trimor1,
+      triangle_morphism_id_trimor1],
       dsimp,
       rw (shift C).inverse.map_id,
     },
@@ -169,9 +169,8 @@ def inv_rotate : (triangle C) ⥤ (triangle C) :=
     unfold triangle_morphism.inv_rotate,
     ext,
     {
-      simp only [triangulated.triangle_morphism.comp_trimor3,
-      triangulated.triangle_morphism.comp_trimor1,
-      triangulated.triangle_category_to_category_struct_comp, functor.map_comp],
+      simp only [triangle_morphism.comp_trimor3, triangle_morphism.comp_trimor1,
+      triangle_category_to_category_struct_comp, functor.map_comp],
     },
     { refl },
     { refl }
@@ -263,7 +262,7 @@ def rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :
     dsimp,
     ext,
     {
-      simp only [triangulated.triangle_morphism.comp_trimor1,
+      simp only [triangle_morphism.comp_trimor1,
       triangle_morphism.inv_rotate_trimor1, triangle_morphism.rotate_trimor3],
       dsimp,
       simp only [iso.hom_inv_id_app, assoc, equivalence.inv_fun_map,
@@ -272,16 +271,17 @@ def rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :
       simp only [comp_id],
     },
     {
-      simp only [triangulated.triangle_morphism.comp_trimor2,
+      simp only [triangle_morphism.comp_trimor2,
       triangle_morphism.inv_rotate_trimor2, triangle_morphism.rotate_trimor1,
       comp_id f.trimor2, id_comp f.trimor2],
     },
     {
-      simp only [triangulated.triangle_morphism.comp_trimor3, triangle_morphism.rotate_trimor2, triangle_morphism.inv_rotate_trimor3, comp_id f.trimor3, id_comp f.trimor3],
+      simp only [triangle_morphism.comp_trimor3, triangle_morphism.rotate_trimor2, triangle_morphism.inv_rotate_trimor3, comp_id f.trimor3, id_comp f.trimor3],
     },
   end
 }
 
+@[simps]
 def rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
 {
   hom := rot_comp_inv_rot_hom C,
@@ -289,24 +289,21 @@ def rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
   hom_inv_id' := begin
     ext T,
     {
-      simp only [functor.id_obj, congr_arg_mpr_hom_left,
-      triangulated.triangle_morphism.comp_trimor1,
-      triangulated.triangle_category_to_category_struct_comp, rot_comp_inv_rot_inv_app,
-      rot_comp_inv_rot_hom_app, iso.hom_inv_id_app, triangulated.triangle_morphism.id_comp,
-      nat_trans.id_app, triangulated.triangle_category_to_category_struct_id,
-      triangulated.triangle_morphism_id_trimor1, eq_to_hom_refl, congr_arg_mpr_hom_right,
-      triangulated.triangle_morphism.comp_id, functor.comp_obj, nat_trans.comp_app],
+      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_morphism.comp_trimor1,
+      triangle_category_to_category_struct_comp, rot_comp_inv_rot_inv_app,
+      rot_comp_inv_rot_hom_app, iso.hom_inv_id_app, triangle_morphism.id_comp,
+      nat_trans.id_app, triangle_category_to_category_struct_id,
+      triangle_morphism_id_trimor1, eq_to_hom_refl, congr_arg_mpr_hom_right,
+      triangle_morphism.comp_id, functor.comp_obj, nat_trans.comp_app],
       dsimp,
       refl,
     },
     {
-      simp only [functor.id_obj, congr_arg_mpr_hom_left,
-      triangulated.triangle_category_to_category_struct_comp, rot_comp_inv_rot_inv_app,
-      triangulated.triangle_morphism.comp_trimor2, rot_comp_inv_rot_hom_app,
-      triangulated.triangle_morphism.id_comp, nat_trans.id_app,
-      triangulated.triangle_category_to_category_struct_id,
-      triangulated.triangle_morphism_id_trimor2, eq_to_hom_refl, congr_arg_mpr_hom_right,
-      triangulated.triangle_morphism.comp_id, functor.comp_obj, nat_trans.comp_app],
+      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
+      rot_comp_inv_rot_inv_app, triangle_morphism.comp_trimor2, rot_comp_inv_rot_hom_app,
+      triangle_morphism.id_comp, nat_trans.id_app, triangle_category_to_category_struct_id,
+      triangle_morphism_id_trimor2, eq_to_hom_refl, congr_arg_mpr_hom_right,
+      triangle_morphism.comp_id, functor.comp_obj, nat_trans.comp_app],
       dsimp,
       simp only [comp_id],
     },
@@ -340,7 +337,157 @@ def rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
   end -- (deterministic) timeout when replace simp with squeeze_simp
 }
 
+@[simps]
+def inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C) :=
+{
+  app := begin
+    intro T,
+    rw [functor.id_obj, functor.comp_obj],
+    let f : triangle_morphism ((rotate C).obj((inv_rotate C).obj T)) T :=
+    {
+      trimor1 := 𝟙 T.obj1,
+      trimor2 := 𝟙 T.obj2,
+      trimor3 := (shift C).counit.app T.obj3,
+      comm1 := begin
+        dsimp,
+        simp only [id_comp, comp_id]
+      end,
+      comm2 := begin
+        dsimp ,
+        simp only [iso.inv_hom_id_app, assoc, id_comp],
+        dsimp,
+        simp only [comp_id]
+      end,
+      comm3 := begin
+        dsimp,
+        simp only [equivalence.counit_inv_functor_comp, equivalence.fun_inv_map, assoc,
+        functor.map_comp, (shift C).functor.map_id, comp_id],
+      end
+    },
+    exact f,
+  end,
+  naturality' := begin
+    intros T₁ T₂ f,
+    simp,
+    dsimp,
+    ext,
+    {
+      simp only [triangle_morphism.comp_trimor1, triangle_morphism.inv_rotate_trimor2,
+      triangle_morphism.rotate_trimor1, comp_id f.trimor1, id_comp f.trimor1],
+    },
+    {
+      simp only [triangle_morphism.rotate_trimor2, triangle_morphism.comp_trimor2, triangle_morphism.inv_rotate_trimor3, comp_id f.trimor2, id_comp f.trimor2],
+    },
+    {
+      simp only [triangle_morphism.comp_trimor3, triangle_morphism.inv_rotate_trimor1, triangle_morphism.rotate_trimor3],
+      dsimp,
+      simp only [iso.inv_hom_id_app, equivalence.fun_inv_map, nat_iso.cancel_nat_iso_hom_left, assoc],
+      dsimp,
+      rw comp_id,
+    }
+  end
+}
 
+@[simps]
+def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ (inv_rotate C) ⋙ (rotate C) :=
+{
+  app := begin
+    intro T,
+    rw [functor.id_obj, functor.comp_obj],
+    let f : triangle_morphism T ((rotate C).obj ((inv_rotate C).obj T)) :=
+    {
+      trimor1 := 𝟙 T.obj1,
+      trimor2 := 𝟙 T.obj2,
+      trimor3 := (shift C).counit_inv.app T.obj3,
+      comm1 := begin
+        dsimp,
+        simp only [id_comp, comp_id],
+      end,
+      comm2 := begin
+        dsimp,
+        simp only [id_comp],
+      end,
+      comm3 := begin
+        dsimp,
+        simp only [equivalence.counit_inv_functor_comp, equivalence.fun_inv_map, assoc,
+        iso.inv_hom_id_app_assoc, functor.map_comp, (shift C).functor.map_id],
+      end
+    },
+    exact f
+  end,
+  naturality' := begin
+    intros T₁ T₂ f,
+    simp,
+    dsimp,
+    ext,
+    {
+      simp only [triangle_morphism.comp_trimor1, triangle_morphism.inv_rotate_trimor2,
+      triangle_morphism.rotate_trimor1, id_comp, comp_id],
+    },
+    {
+      simp only [triangle_morphism.rotate_trimor2, triangle_morphism.comp_trimor2,
+      id_comp, comp_id, triangle_morphism.inv_rotate_trimor3],
+    },
+    {
+      simp only [triangle_morphism.comp_trimor3, triangle_morphism.inv_rotate_trimor1, triangle_morphism.rotate_trimor3],
+      dsimp,
+      simp only [equivalence.fun_inv_map, iso.inv_hom_id_app_assoc],
+    }
+  end
+}
+
+@[simps]
+def inv_rot_comp_rot : (inv_rotate C) ⋙ (rotate C) ≅ 𝟭 (triangle C) :=
+{
+  hom := inv_rot_comp_rot_hom C,
+  inv := inv_rot_comp_rot_inv C,
+  hom_inv_id' := begin
+    ext T,
+    {
+      dsimp,
+      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
+      triangle_morphism.id_comp, triangle_category_to_category_struct_id, eq_to_hom_refl,
+      congr_arg_mpr_hom_right, comp_id, triangle_morphism.comp_id, functor.comp_obj],
+    },
+    {
+      dsimp,
+      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
+      triangle_morphism.id_comp, triangle_category_to_category_struct_id, eq_to_hom_refl,
+      congr_arg_mpr_hom_right, comp_id, triangle_morphism.comp_id, functor.comp_obj],
+    },
+    {
+      dsimp,
+      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
+      iso.hom_inv_id_app, triangle_morphism.id_comp, triangle_category_to_category_struct_id,
+      eq_to_hom_refl, congr_arg_mpr_hom_right, triangle_morphism.comp_id, functor.comp_obj],
+      dsimp,
+      refl,
+    }
+  end,
+  inv_hom_id' := begin
+    ext T,
+    {
+      dsimp,
+      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
+      triangle_morphism.id_comp, triangle_category_to_category_struct_id, eq_to_hom_refl,
+      congr_arg_mpr_hom_right, comp_id, triangle_morphism.comp_id, functor.comp_obj],
+    },
+    {
+      dsimp,
+      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
+      triangle_morphism.id_comp, triangle_category_to_category_struct_id, eq_to_hom_refl,
+      congr_arg_mpr_hom_right, comp_id, triangle_morphism.comp_id, functor.comp_obj],
+    },
+    {
+      dsimp,
+      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
+      iso.inv_hom_id_app, triangle_morphism.id_comp, triangle_category_to_category_struct_id,
+      eq_to_hom_refl, congr_arg_mpr_hom_right, triangle_morphism.comp_id, functor.comp_obj],
+      dsimp,
+      refl,
+    }
+  end
+}
 
 /--
 Rotating triangles gives an auto-equivalence on the category of triangles.
@@ -350,7 +497,30 @@ def triangle_rotation : equivalence (triangle C) (triangle C) :=
   functor := rotate C,
   inverse := inv_rotate C,
   unit_iso := rot_comp_inv_rot C,
-  counit_iso := sorry
+  counit_iso := inv_rot_comp_rot C,
+  functor_unit_iso_comp' := begin
+    intro T,
+    ext,
+    {
+      dsimp,
+      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
+      triangle_morphism.id_comp, triangle_category_to_category_struct_id, eq_to_hom_refl,
+      congr_arg_mpr_hom_right, comp_id, triangle_morphism.comp_id, functor.comp_obj]
+    },
+    {
+      dsimp,
+      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
+      triangle_morphism.id_comp, triangle_category_to_category_struct_id, eq_to_hom_refl,
+      congr_arg_mpr_hom_right, comp_id, triangle_morphism.comp_id, functor.comp_obj],
+    },
+    {
+      dsimp,
+      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
+      triangle_morphism.id_comp, triangle_category_to_category_struct_id, eq_to_hom_refl,
+      congr_arg_mpr_hom_right, triangle_morphism.comp_id, functor.comp_obj,
+      equivalence.functor_unit_comp],
+    }
+  end
 }
 
 end category_theory.triangulated

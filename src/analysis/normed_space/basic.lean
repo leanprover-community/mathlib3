@@ -78,12 +78,20 @@ instance : normed_group ℝ :=
 
 lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
 
-lemma real.norm_pow_even (x : ℝ) {p : ℕ} (hp : even p) :
+lemma real.pow_even_norm (x : ℝ) {p : ℕ} (hp : even p) :
   ∥x∥ ^ p = x ^ p :=
 by rw [real.norm_eq_abs, ←abs_pow, abs_pow_even x hp]
 
-@[simp] lemma real.norm_pow_bit0 (x : ℝ) (p : ℕ) :
+lemma real.norm_pow_even (x : ℝ) {p : ℕ} (hp : even p) :
+  ∥x ^ p∥ = x ^ p :=
+by rw [real.norm_eq_abs, abs_pow_even x hp]
+
+@[simp] lemma real.pow_bit0_norm (x : ℝ) (p : ℕ) :
   ∥x∥ ^ bit0 p = x ^ bit0 p :=
+by simp [real.norm_eq_abs, ←abs_pow]
+
+@[simp] lemma real.norm_pow_bit0 (x : ℝ) (p : ℕ) :
+  ∥x ^ bit0 p∥ = x ^ bit0 p :=
 by simp [real.norm_eq_abs, ←abs_pow]
 
 section normed_group

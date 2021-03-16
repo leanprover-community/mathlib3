@@ -1830,11 +1830,9 @@ section prod
 instance prod.metric_space_max [metric_space β] : metric_space (γ × β) :=
 { eq_of_dist_eq_zero := λ x y h, begin
     cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
-    have A : x.fst = y.fst := dist_le_zero.1 h₁,
-    have B : x.snd = y.snd := dist_le_zero.1 h₂,
-    exact prod.ext_iff.2 ⟨A, B⟩
+    exact prod.ext_iff.2 ⟨dist_le_zero.1 h₁, dist_le_zero.1 h₂⟩
   end,
-  ..prod.pseudo_metric_space_max }
+  ..prod.pseudo_metric_space_max, }
 
 end prod
 

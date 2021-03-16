@@ -44,10 +44,11 @@ instance : small_category simplex_category :=
 @[reducible] def mk (n : ℕ) : simplex_category := n
 local notation `[`n`]` := mk n
 
+/-- The length of an object of `simplex_category`. -/
 def len (n : simplex_category) : ℕ := n
 
 @[simp] lemma len_mk (n : ℕ) : [n].len = n := rfl
-@[simp] lemma mk_len (n : simplex_category) : [n.len] = n := rfl
+lemma mk_len (n : simplex_category) : [n.len] = n := rfl
 
 section generators
 /-!
@@ -291,13 +292,20 @@ def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd.{u} simplex_category skele
 { skel := skeletal,
   eqv := skeletal_functor.is_equivalence }
 
+/-- The truncated simplex category. -/
 def truncated (n : ℕ) := {a : simplex_category // a.len ≤ n}
+
+namespace truncated
+
+instance {n} : inhabited (truncated n) := ⟨⟨[0],by simp⟩⟩
 
 -- Derive didn't work for some reason...
 instance {n} : small_category (truncated n) := by {unfold truncated, apply_instance}
 
-namespace truncated
-
+/--
+The fully faithful inclusion of the truncated simplex category into the usual
+simplex category.
+-/
 @[derive [full, faithful]]
 def inclusion {n : ℕ} : simplex_category.truncated n ⥤ simplex_category :=
 full_subcategory_inclusion _

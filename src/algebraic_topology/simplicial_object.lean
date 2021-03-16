@@ -108,7 +108,8 @@ lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
 by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.σ_comp_σ H] }
 
 variable (C)
-@[derive category]
+/-- Truncated simplicial objects. -/
+@[derive category, nolint has_inhabited_instance]
 def truncated (n : ℕ) := (simplex_category.truncated n)ᵒᵖ ⥤ C
 variable {C}
 
@@ -134,6 +135,7 @@ end truncated
 
 section skeleton
 
+/-- The skeleton functor from simplicial objects to truncated simplicial objects. -/
 def sk (n : ℕ) : simplicial_object C ⥤ simplicial_object.truncated C n :=
 (whiskering_left _ _ _).obj (simplex_category.truncated.inclusion).op
 

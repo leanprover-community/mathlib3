@@ -55,6 +55,9 @@ by cases f; cases g; cases h; refl
 section
 variables (α β)
 
+/--
+The continuous functions from `α` to `β` are the same as the plain functions when `α` is discrete.
+-/
 @[simps]
 def equiv_fn_of_discrete [discrete_topology α] : C(α, β) ≃ (α → β) :=
 ⟨(λ f, f), (λ f, ⟨f, continuous_of_discrete_topology⟩),

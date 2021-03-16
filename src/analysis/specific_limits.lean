@@ -611,9 +611,8 @@ variables [normed_group α] {r C : ℝ} {f : ℕ → α}
 lemma dist_partial_sum_le_of_le_geometric (hf : ∀n, ∥f n∥ ≤ C * r^n) (n : ℕ) :
   dist (∑ i in range n, f i) (∑ i in range (n+1), f i) ≤ C * r ^ n :=
 begin
-  rw [sum_range_succ, dist_eq_norm, ← norm_neg],
-  convert hf n,
-  rw [neg_sub, add_sub_cancel]
+  rw [sum_range_succ, dist_eq_norm, ← norm_neg, neg_sub, add_sub_cancel'],
+  exact hf n,
 end
 
 /-- If `∥f n∥ ≤ C * r ^ n` for all `n : ℕ` and some `r < 1`, then the partial sums of `f` form a

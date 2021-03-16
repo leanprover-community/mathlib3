@@ -446,7 +446,7 @@ begin
     have hA : has_sum (λ n, A (n + 2)) (f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))),
     { convert (has_sum_nat_add_iff' 2).2 ((hf.has_sum_sub hy.1).sub (hf.has_sum_sub hy.2)),
       rw [finset.sum_range_succ, finset.sum_range_one, hf.coeff_zero, hf.coeff_zero, sub_self,
-        add_zero, ← subsingleton.pi_single_eq (0 : fin 1) (y.1 - x), pi.single,
+        zero_add, ← subsingleton.pi_single_eq (0 : fin 1) (y.1 - x), pi.single,
         ← subsingleton.pi_single_eq (0 : fin 1) (y.2 - x), pi.single, ← (p 1).map_sub, ← pi.single,
         subsingleton.pi_single_eq, sub_sub_sub_cancel_right] },
     rw [emetric.mem_ball, edist_eq_coe_nnnorm_sub, ennreal.coe_lt_coe] at hy',

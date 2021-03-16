@@ -104,7 +104,7 @@ begin
         (le.intro rfl), add_comm x x_1, nat.add_sub_cancel, mul_assoc, mul_comm, ←smul_eq_mul,
         ←polynomial.smul_monomial], },
     rw [←sum_smul], },
-  rw sum_range_succ,
+  rw [sum_range_succ, add_comm],
   simp only [add_right_eq_self, cast_succ, mul_one, cast_one, cast_add, nat.add_sub_cancel_left,
     choose_succ_self_right, one_smul, bernoulli_zero, sum_singleton, zero_add,
     linear_map.map_add, range_one],
@@ -143,7 +143,7 @@ begin
     nat.sum_antidiagonal_eq_sum_range_succ_mk, sum_range_succ],
   -- last term is zero so kill with `zero_add`
   simp only [ring_hom.map_sub, nat.sub_self, constant_coeff_one, constant_coeff_exp,
-    coeff_zero_eq_constant_coeff, mul_zero, sub_self, zero_add],
+    coeff_zero_eq_constant_coeff, mul_zero, sub_self, add_zero],
   -- Let's multiply both sides by (n+1)! (OK because it's a unit)
   set u : units ℚ := ⟨(n+1)!, (n+1)!⁻¹,
     mul_inv_cancel (by exact_mod_cast factorial_ne_zero (n+1)),

@@ -117,7 +117,7 @@ theorem add_pow_char_of_commute (R : Type u) [semiring R] {p : ℕ} [fact p.prim
   (x + y)^p = x^p + y^p :=
 begin
   rw [commute.add_pow h, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
-  rw [nat.cast_one, mul_one, mul_one], congr' 1,
+  rw [nat.cast_one, mul_one, mul_one, add_comm], congr' 1,
   convert finset.sum_eq_single 0 _ _, { simp },
   swap, { intro h1, contrapose! h1, rw finset.mem_range, apply nat.prime.pos, assumption },
   intros b h1 h2,

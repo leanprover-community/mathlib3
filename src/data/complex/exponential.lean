@@ -108,8 +108,7 @@ begin
   clear hk ji j,
   induction k with k' hi,
   { simp [abv_zero abv] },
-  { dsimp at *,
-    simp only [nat.succ_add, sum_range_succ, sub_eq_add_neg, add_assoc],
+  { simp only [nat.succ_add, sum_range_succ, add_comm, sub_eq_add_neg, add_assoc],
     refine le_trans (abv_add _ _ _) _,
     simp only [sub_eq_add_neg] at hi,
     exact add_le_add (hm _ (le_add_of_nonneg_of_le (nat.zero_le _) (le_max_left _ _))) hi },
@@ -1281,7 +1280,7 @@ calc abs (exp x - 1) = abs (exp x - ∑ m in range 1, x ^ m / m!) :
 lemma abs_exp_sub_one_sub_id_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1 - x) ≤ (abs x)^2 :=
 calc abs (exp x - 1 - x) = abs (exp x - ∑ m in range 2, x ^ m / m!) :
-  by simp [sub_eq_add_neg, sum_range_succ, add_assoc]
+  by simp [sub_eq_add_neg, sum_range_succ, add_assoc, add_comm (-x)]
 ... ≤ (abs x)^2 * (nat.succ 2 * (2! * (2 : ℕ))⁻¹) :
   exp_bound hx dec_trivial
 ... ≤ (abs x)^2 * 1 :

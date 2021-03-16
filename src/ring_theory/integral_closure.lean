@@ -533,7 +533,7 @@ begin
 
   -- Since `q(a) = 0` and `q(a) = q'(a) * a + 1`, we have `a * -q'(a) = 1`.
   -- TODO: we could use a lemma for `polynomial.div_X` here.
-  rw [finset.sum_range_succ, p_monic.coeff_nat_degree, one_mul, nat.sub_self, pow_zero,
+  rw [finset.sum_range_succ, add_comm, p_monic.coeff_nat_degree, one_mul, nat.sub_self, pow_zero,
       add_eq_zero_iff_eq_neg, eq_comm] at hq,
   rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
   convert hq using 2,

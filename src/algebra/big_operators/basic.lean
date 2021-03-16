@@ -649,40 +649,39 @@ begin
 end
 
 lemma sum_range_succ {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
-  (∑ x in range (n + 1), f x) = f n + (∑ x in range n, f x) :=
-by rw [range_succ, sum_insert not_mem_range_self]
+  ∑ x in range (n + 1), f x = ∑ x in range n, f x + f n :=
+by rw [range_succ, sum_insert not_mem_range_self, add_comm]
 
 @[to_additive]
 lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
-  (∏ x in range (n + 1), f x) = f n * (∏ x in range n, f x) :=
-by rw [range_succ, prod_insert not_mem_range_self]
+  ∏ x in range (n + 1), f x = (∏ x in range n, f x) * f n :=
+by rw [range_succ, prod_insert not_mem_range_self, mul_comm]
 
 lemma prod_range_succ' (f : ℕ → β) :
   ∀ n : ℕ, (∏ k in range (n + 1), f k) = (∏ k in range n, f (k+1)) * f 0
-| 0       := (prod_range_succ _ _).trans $ mul_comm _ _
-| (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
-                 exact prod_range_succ _ _
+| 0       := prod_range_succ _ _
+| (n + 1) := by rw [prod_range_succ _ n, mul_right_comm, ← prod_range_succ', prod_range_succ]
 
-lemma prod_range_add (f : ℕ → β) (n : ℕ) (m : ℕ) :
-  (∏ x in range (n + m), f x) =
+lemma prod_range_add (f : ℕ → β) (n m : ℕ) :
+  ∏ x in range (n + m), f x =
   (∏ x in range n, f x) * (∏ x in range m, f (n + x)) :=
 begin
   induction m with m hm,
   { simp },
-  { rw [nat.add_succ, finset.prod_range_succ, hm, finset.prod_range_succ, mul_left_comm _ _ _] },
+  { rw [nat.add_succ, prod_range_succ, hm, prod_range_succ, mul_assoc], },
 end
 
 @[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
- (∏ k in range 0, f k) = 1 :=
+  ∏ k in range 0, f k = 1 :=
 by rw [range_zero, prod_empty]
 
 lemma prod_range_one (f : ℕ → β) :
-  (∏ k in range 1, f k) = f 0 :=
+  ∏ k in range 1, f k = f 0 :=
 by { rw [range_one], apply @prod_singleton ℕ β 0 f }
 
 lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
-  (∑ k in range 1, f k) = f 0 :=
+  ∑ k in range 1, f k = f 0 :=
 @prod_range_one (multiplicative δ) _ f
 
 attribute [to_additive finset.sum_range_one] prod_range_one
@@ -816,17 +815,17 @@ lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b
 | (n+1) := by simp
 
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
-  (∏ x in s, f x ^ n) = (∏ x in s, f x) ^ n :=
+  ∏ x in s, f x ^ n = (∏ x in s, f x) ^ n :=
 by haveI := classical.dec_eq α; exact
 finset.induction_on s (by simp) (by simp [mul_pow] {contextual := tt})
 
 -- `to_additive` fails on this lemma, so we prove it manually below
 lemma prod_flip {n : ℕ} (f : ℕ → β) :
-  (∏ r in range (n + 1), f (n - r)) = (∏ k in range (n + 1), f k) :=
+  ∏ r in range (n + 1), f (n - r) = ∏ k in range (n + 1), f k :=
 begin
   induction n with n ih,
   { rw [prod_range_one, prod_range_one] },
-  { rw [prod_range_succ', prod_range_succ _ (nat.succ n), mul_comm],
+  { rw [prod_range_succ', prod_range_succ _ (nat.succ n)],
     simp [← ih] }
 end
 

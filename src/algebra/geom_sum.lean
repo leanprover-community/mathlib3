@@ -111,11 +111,10 @@ begin
         rw [add_comm (i + 1)] at this,
         rw [← this, nat.add_sub_cancel, add_comm i 1, ← add_assoc,
             nat.add_sub_cancel] },
-    rw [pow_succ (x + y), add_mul, sum_range_succ, f_last, add_mul, add_assoc],
-    rw [(((commute.refl x).add_right h).pow_right n).eq],
+    rw [pow_succ (x + y), add_mul, sum_range_succ, add_mul, add_comm _ (f n.succ n * x), f_last,
+        add_assoc, (((commute.refl x).add_right h).pow_right n).eq],
     congr' 1,
-    rw[sum_congr rfl f_succ, ← mul_sum, pow_succ y],
-    rw[mul_assoc, ← mul_add y, ih] }
+    rw [sum_congr rfl f_succ, ← mul_sum, pow_succ y, mul_assoc, ← mul_add y, ih] }
 end
 
 theorem geom_series₂_self {α : Type*} [comm_ring α] (x : α) (n : ℕ) :

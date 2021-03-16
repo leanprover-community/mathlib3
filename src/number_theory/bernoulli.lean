@@ -80,7 +80,7 @@ by { rw [bernoulli'_def', ← fin.sum_univ_eq_sum_range], refl }
 lemma bernoulli'_spec (n : ℕ) :
   ∑ k in finset.range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli' k = 1 :=
 begin
-  rw [finset.sum_range_succ, bernoulli'_def n, nat.sub_self],
+  rw [finset.sum_range_succ, add_comm, bernoulli'_def n, nat.sub_self],
   conv in (nat.choose _ (_ - _)) { rw choose_symm (le_of_lt (finset.mem_range.1 H)) },
   simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one],
 end

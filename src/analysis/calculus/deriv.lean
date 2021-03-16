@@ -1724,8 +1724,7 @@ begin
       nat.cast_one] },
   { simp only [function.iterate_succ_apply', ihk, finset.prod_range_succ],
     ext x,
-    rw [((has_deriv_at_pow (n - k) x).const_mul _).deriv, nat.cast_mul, mul_left_comm, mul_assoc,
-      nat.succ_eq_add_one, nat.sub_sub] }
+    rw [((has_deriv_at_pow (n - k) x).const_mul _).deriv, nat.cast_mul, mul_assoc, nat.sub_sub] }
 end
 
 lemma iter_deriv_pow {k : ℕ} :
@@ -1826,7 +1825,7 @@ begin
   induction k with k ihk generalizing x hx,
   { simp only [one_mul, finset.prod_range_zero, function.iterate_zero_apply, int.coe_nat_zero,
       sub_zero, int.cast_one] },
-  { rw [function.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc, mul_left_comm,
+  { rw [function.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc,
       int.coe_nat_succ, ← sub_sub, ← ((has_deriv_at_fpow _ hx).const_mul _).deriv],
     exact filter.eventually_eq.deriv_eq (eventually.mono (mem_nhds_sets is_open_ne hx) @ihk) }
 end

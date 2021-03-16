@@ -185,7 +185,17 @@ protected lemma unique_diff : unique_diff_on 𝕜 (range I) := I.unique_diff'
 
 @[continuity] protected lemma continuous : continuous I := I.continuous_to_fun
 
+protected lemma continuous_at {x} : continuous_at I x := I.continuous.continuous_at
+
+protected lemma continuous_within_at {s x} : continuous_within_at I s x :=
+I.continuous_at.continuous_within_at
+
 @[continuity] lemma continuous_symm : continuous I.symm := I.continuous_inv_fun
+
+lemma continuous_at_symm {x} : continuous_at I.symm x := I.continuous_symm.continuous_at
+
+lemma continuous_within_at_symm {s x} : continuous_within_at I.symm s x :=
+I.continuous_symm.continuous_within_at
 
 @[simp, mfld_simps] lemma target_eq : I.target = range (I : H → E) :=
 by { rw [← image_univ, ← I.source_eq], exact (I.to_local_equiv.image_source_eq_target).symm }

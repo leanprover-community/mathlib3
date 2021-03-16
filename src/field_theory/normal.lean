@@ -158,7 +158,7 @@ begin
   haveI : is_scalar_tower F C D := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
   haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
   suffices : nonempty (D →ₐ[C] E),
-  { exact nonempty.map (restrict_base F) this },
+  { exact nonempty.map (alg_hom.restrict_scalars F) this },
   let S : set D := ((p.map (algebra_map F E)).roots.map (algebra_map E D)).to_finset,
   suffices : ⊤ ≤ intermediate_field.adjoin C S,
   { refine intermediate_field.alg_hom_mk_adjoin_splits' (top_le_iff.mp this) (λ y hy, _),
@@ -257,7 +257,7 @@ variables {F} {K} (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_t
 /-- If `E/K/F` is a tower of fields with `E/F` normal then we can lift
   an algebra homomorphism `ϕ : K →ₐ[F] K` to `ϕ.lift_normal E : E →ₐ[F] E`. -/
 noncomputable def alg_hom.lift_normal [h : normal F E] : E →ₐ[F] E :=
-@restrict_base F K E E _ _ _ _ _ _
+@alg_hom.restrict_scalars F K E E _ _ _ _ _ _
   ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _ _ _ _
   (nonempty.some (@intermediate_field.alg_hom_mk_adjoin_splits' K E E _ _ _ _
   ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra ⊤ rfl

@@ -1,689 +1,826 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                                                     %
-% This is a database of documents referenced in mathlib file headers. %
-%                                                                     %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-@book{axler2015,
- Author = {Sheldon Axler},
- Title = {Linear algebra done right. 3rd ed.},
- FJournal = {Undergraduate Texts in Mathematics},
- Journal = {Undergraduate Texts Math.},
- ISSN = {0172-6056; 2197-5604/e},
- Edition = {3rd ed.},
- ISBN = {978-3-319-11079-0/hbk; 978-3-319-11080-6/ebook},
- Pages = {xvii + 340},
- Year = {2015},
- Publisher = {Springer},
+# To normalize:
+# bibtool --preserve.key.case=on --preserve.keys=on --pass.comments=on --print.use.tab=off -s -i docs/references.bib -o docs/references.bib
+
+# https://www.zbmath.org/ and https://mathscinet.ams.org/mathscinet
+# (or the free tool https://mathscinet.ams.org/mrlookup)
+# are good sources of complete bibtex entries for mathematics
+
+# To link to an entry in `references.bib`, use the following formats:
+#   [Author, *Title* (optional location)][bibkey]
+@Article{         ahrens2017,
+  author        = {Benedikt Ahrens and Peter LeFanu Lumsdaine},
+  year          = {2019},
+  title         = {Displayed Categories},
+  journal       = {Logical Methods in Computer Science},
+  volume        = {15},
+  issue         = {1},
+  doi           = {10.23638/LMCS-15(1:20)2019}
 }
 
-@article {MR1167694,
-    AUTHOR = {Blass, Andreas},
-     TITLE = {A game semantics for linear logic},
-   JOURNAL = {Ann. Pure Appl. Logic},
-  FJOURNAL = {Annals of Pure and Applied Logic},
-    VOLUME = {56},
-      YEAR = {1992},
-    NUMBER = {1-3},
-     PAGES = {183--220},
-      ISSN = {0168-0072},
-   MRCLASS = {03B70 (68Q55)},
-  MRNUMBER = {1167694},
-MRREVIEWER = {Fangmin Song},
-       DOI = {10.1016/0168-0072(92)90073-9},
-       URL = {https://doi.org/10.1016/0168-0072(92)90073-9},
+@Book{            aluffi2016,
+  title         = {Algebra: Chapter 0},
+  author        = {Aluffi, Paolo},
+  series        = {Graduate Studies in Mathematics},
+  volume        = {104},
+  year          = {2016},
+  publisher     = {American Mathematical Society},
+  edition       = {Reprinted with corrections by the American Mathematical
+                  Society}
 }
 
-@book {bourbaki1966,
-    AUTHOR = {Bourbaki, Nicolas},
-     TITLE = {Elements of mathematics. {G}eneral topology. {P}art 1},
- PUBLISHER = {Hermann, Paris; Addison-Wesley Publishing Co., Reading,
-              Mass.-London-Don Mills, Ont.},
-      YEAR = {1966},
-     PAGES = {vii+437},
-   MRCLASS = {54.00 (00.00)},
-  MRNUMBER = {0205210},
+@Book{            atiyah-macdonald,
+  author        = {Atiyah, M. F. and Macdonald, I. G.},
+  title         = {Introduction to commutative algebra},
+  publisher     = {Addison-Wesley Publishing Co., Reading, Mass.-London-Don
+                  Mills, Ont.},
+  year          = {1969},
+  pages         = {ix+128},
+  mrclass       = {13.00},
+  mrnumber      = {0242802},
+  mrreviewer    = {J. A. Johnson}
 }
 
-@book {bourbaki1975,
-    AUTHOR = {Bourbaki, Nicolas},
-     TITLE = {Lie groups and {L}ie algebras. {C}hapters 1--3},
-    SERIES = {Elements of Mathematics (Berlin)},
-      NOTE = {Translated from the French,
-              Reprint of the 1989 English translation},
- PUBLISHER = {Springer-Verlag, Berlin},
-      YEAR = {1998},
-     PAGES = {xviii+450},
-      ISBN = {3-540-64242-0},
-   MRCLASS = {17Bxx (00A05 22Exx)},
-  MRNUMBER = {1728312},
+@InProceedings{   avigad-carneiro-hudon2019,
+  author        = {Jeremy Avigad and Mario M. Carneiro and Simon Hudon},
+  editor        = {John Harrison and John O'Leary and Andrew Tolmach},
+  title         = {Data Types as Quotients of Polynomial Functors},
+  booktitle     = {10th International Conference on Interactive Theorem
+                  Proving, {ITP} 2019, September 9-12, 2019, Portland, OR,
+                  {USA}},
+  series        = {LIPIcs},
+  volume        = {141},
+  pages         = {6:1--6:19},
+  publisher     = {Schloss Dagstuhl - Leibniz-Zentrum f{\"{u}}r Informatik},
+  year          = {2019},
+  url           = {https://doi.org/10.4230/LIPIcs.ITP.2019.6},
+  doi           = {10.4230/LIPIcs.ITP.2019.6},
+  timestamp     = {Fri, 27 Sep 2019 15:57:06 +0200},
+  biburl        = {https://dblp.org/rec/conf/itp/AvigadCH19.bib},
+  bibsource     = {dblp computer science bibliography, https://dblp.org}
 }
 
-@book {seligman1967,
-    AUTHOR = {Seligman, G. B.},
-     TITLE = {Modular {L}ie algebras},
-    SERIES = {Ergebnisse der Mathematik und ihrer Grenzgebiete, Band 40},
- PUBLISHER = {Springer-Verlag New York, Inc., New York},
-      YEAR = {1967},
-     PAGES = {ix+165},
-   MRCLASS = {17.30 (22.00)},
-  MRNUMBER = {0245627},
-MRREVIEWER = {R. E. Block},
+@Misc{            avigad_moura_kong-2017,
+  author        = {Jeremy Avigad and Leonardo de Moura and Soonho Kong},
+  title         = {{T}heorem {P}roving in {L}ean},
+  year          = {2017},
+  howpublished  = {\url{https://leanprover.github.io/theorem_proving_in_lean/}}
 }
 
-@book {conway2001,
-    AUTHOR = {Conway, J. H.},
-     TITLE = {On numbers and games},
-   EDITION = {Second},
- PUBLISHER = {A K Peters, Ltd., Natick, MA},
-      YEAR = {2001},
-     PAGES = {xii+242},
-      ISBN = {1-56881-127-6},
-   MRCLASS = {00A08 (05-01 91A05)},
-  MRNUMBER = {1803095},
+@Book{            axler2015,
+  author        = {Sheldon Axler},
+  title         = {Linear algebra done right. 3rd ed.},
+  fjournal      = {Undergraduate Texts in Mathematics},
+  journal       = {Undergraduate Texts Math.},
+  issn          = {0172-6056; 2197-5604/e},
+  edition       = {3rd ed.},
+  isbn          = {978-3-319-11079-0/hbk; 978-3-319-11080-6/ebook},
+  pages         = {xvii + 340},
+  year          = {2015},
+  publisher     = {Springer}
 }
 
-@article {erdosrenyisos,
-    AUTHOR = {P. Erd\"os, A.R\'enyi, and V. S\'os},
-     TITLE = {On a problem of graph theory},
-   JOURNAL = {Studia Sci. Math.},
-    NUMBER = {1},
-      YEAR = {1966},
-     PAGES = {215--235},
-       URL = {https://www.renyi.hu/~p_erdos/1966-06.pdf},
+@Book{            borceux-vol1,
+  title         = {Handbook of Categorical Algebra: Volume 1, Basic Category
+                  Theory},
+  author        = {Borceux, Francis},
+  series        = {Encyclopedia of Mathematics},
+  volume        = {50},
+  year          = {1994},
+  publisher     = {Cambridge University Press}
 }
 
-@book {gouvea1997,
-    AUTHOR = {Gouv\^{e}a, Fernando Q.},
-     TITLE = {{$p$}-adic numbers},
-    SERIES = {Universitext},
-   EDITION = {Second},
-      NOTE = {An introduction},
- PUBLISHER = {Springer-Verlag, Berlin},
-      YEAR = {1997},
-     PAGES = {vi+298},
-      ISBN = {3-540-62911-4},
-   MRCLASS = {11S80 (11-01 12J25)},
-  MRNUMBER = {1488696},
-       DOI = {10.1007/978-3-642-59058-0},
-       URL = {https://doi.org/10.1007/978-3-642-59058-0},
+@Book{            borceux-vol2,
+  title         = {Handbook of Categorical Algebra: Volume 2, Categories and
+                  Structures},
+  author        = {Borceux, Francis},
+  series        = {Encyclopedia of Mathematics},
+  volume        = {51},
+  year          = {1994},
+  publisher     = {Cambridge University Press}
 }
 
-@book{halmos2013measure,
-  title     = {Measure theory},
-  author    = {Halmos, Paul R},
-  volume    = {18},
-  year      = {1950},
-  publisher = {Springer},
-  isbn      = {0-387-90088-8}
+@Book{            bourbaki1966,
+  author        = {Bourbaki, Nicolas},
+  title         = {Elements of mathematics. {G}eneral topology. {P}art 1},
+  publisher     = {Hermann, Paris; Addison-Wesley Publishing Co., Reading,
+                  Mass.-London-Don Mills, Ont.},
+  year          = {1966},
+  pages         = {vii+437},
+  mrclass       = {54.00 (00.00)},
+  mrnumber      = {0205210}
 }
 
-@article {huneke2002,
-    AUTHOR = {Huneke, Craig},
-     TITLE = {The Friendship Theorem},
- PUBLISHER = {Mathematical Association of America},
-      YEAR = {2002},
-     PAGES = {192--194},
-   JOURNAL = {The American Mathematical Monthly},
-      ISSN = {00029890, 19300972},
-    VOLUME = {109},
-    NUMBER = {2},
-       DOI = {10.1080/00029890.2002.11919853},
-       URL = {https://doi.org/10.1080/00029890.2002.11919853},
+@Book{            bourbaki1975,
+  author        = {Bourbaki, Nicolas},
+  title         = {Lie groups and {L}ie algebras. {C}hapters 1--3},
+  series        = {Elements of Mathematics (Berlin)},
+  note          = {Translated from the French, Reprint of the 1989 English
+                  translation},
+  publisher     = {Springer-Verlag, Berlin},
+  year          = {1998},
+  pages         = {xviii+450},
+  isbn          = {3-540-64242-0},
+  mrclass       = {17Bxx (00A05 22Exx)},
+  mrnumber      = {1728312}
 }
 
-@book {james1999,
-    AUTHOR = {James, Ioan},
-     TITLE = {Topologies and uniformities},
-    SERIES = {Springer Undergraduate Mathematics Series},
-      NOTE = {Revised version of {{\i}t Topological and uniform spaces}
-              [Springer, New York, 1987;  MR0884154 (89b:54001)]},
- PUBLISHER = {Springer-Verlag London, Ltd., London},
-      YEAR = {1999},
-     PAGES = {xvi+230},
-      ISBN = {1-85233-061-9},
-   MRCLASS = {54-01 (54A05 54E15)},
-  MRNUMBER = {1687407},
-MRREVIEWER = {Hans-Peter A. K\"{u}nzi},
-       DOI = {10.1007/978-1-4471-3994-2},
-       URL = {https://doi.org/10.1007/978-1-4471-3994-2},
+@Book{            calugareanu,
+  author        = {C\v{a}lug\v{a}reanu, Grigore},
+  year          = {2000},
+  month         = {01},
+  pages         = {},
+  title         = {Lattice Concepts of Module Theory},
+  doi           = {10.1007/978-94-015-9588-9}
 }
 
-@article {joyal1977,
- author = {André Joyal},
- title = {Remarques sur la théorie des jeux à deux personnes},
- journal = {Gazette des Sciences Mathematiques du Québec},
- volume = {1},
- number = {4},
- pages = {46--52},
- year = {1977},
- note = {(English translation at https://bosker.files.wordpress.com/2010/12/joyal-games.pdf)}
+@Misc{            carneiro2018matiyasevic,
+  title         = {A {L}ean formalization of {M}atiyasevi{\v c}'s theorem},
+  author        = {Mario Carneiro},
+  year          = {2018},
+  eprint        = {1802.01795},
+  archiveprefix = {arXiv},
+  primaryclass  = {math.LO}
 }
 
-@inproceedings{lewis2019,
- author = {Lewis, Robert Y.},
- title = {A Formal Proof of {H}ensel's Lemma over the {$p$}-adic Integers},
- booktitle = {Proceedings of the 8th ACM SIGPLAN International Conference on Certified Programs and Proofs},
- series = {CPP 2019},
- year = {2019},
- isbn = {978-1-4503-6222-1},
- location = {Cascais, Portugal},
- pages = {15--26},
- numpages = {12},
- url = {http://doi.acm.org/10.1145/3293880.3294089},
- doi = {10.1145/3293880.3294089},
- acmid = {3294089},
- publisher = {ACM},
- address = {New York, NY, USA},
- keywords = {Hensel's lemma, Lean, formal proof, p-adic},
+@InProceedings{   carneiro2019,
+  author        = {Mario M. Carneiro},
+  editor        = {John Harrison and John O'Leary and Andrew Tolmach},
+  title         = {Formalizing Computability Theory via Partial Recursive
+                  Functions},
+  booktitle     = {10th International Conference on Interactive Theorem
+                  Proving, {ITP} 2019, September 9-12, 2019, Portland, OR,
+                  {USA}},
+  series        = {LIPIcs},
+  volume        = {141},
+  pages         = {12:1--12:17},
+  publisher     = {Schloss Dagstuhl - Leibniz-Zentrum f{\"{u}}r Informatik},
+  year          = {2019},
+  url           = {https://doi.org/10.4230/LIPIcs.ITP.2019.12},
+  doi           = {10.4230/LIPIcs.ITP.2019.12},
+  timestamp     = {Fri, 27 Sep 2019 15:57:06 +0200},
+  biburl        = {https://dblp.org/rec/conf/itp/Carneiro19.bib},
+  bibsource     = {dblp computer science bibliography, https://dblp.org}
 }
 
-@misc{pöschel2017siegelsternberg,
-      title={On the Siegel-Sternberg linearization theorem},
-      author={Jürgen Pöschel},
-      year={2017},
-      eprint={1702.03691},
-      archivePrefix={arXiv},
-      primaryClass={math.DS}
+@Book{            cassels1967algebraic,
+  title         = {Algebraic number theory: proceedings of an instructional
+                  conference},
+  author        = {Cassels, John William Scott and Fr{\"o}lich, Albrecht},
+  year          = {1967},
+  publisher     = {Academic Pr}
 }
 
-@book {riehl2017,
-   AUTHOR = {Riehl, Emily},
-    TITLE = {Category theory in context},
-PUBLISHER = {Dover Publications},
-     YEAR = {2017},
-     ISBN = {048680903X},
-      URL = {http://www.math.jhu.edu/~eriehl/context.pdf},
+@InProceedings{   CL21,
+  author        = {Commelin, Johan and Lewis, Robert Y.},
+  title         = {Formalizing the Ring of Witt Vectors},
+  year          = {2021},
+  isbn          = {9781450382991},
+  publisher     = {Association for Computing Machinery},
+  address       = {New York, NY, USA},
+  url           = {https://doi.org/10.1145/3437992.3439919},
+  doi           = {10.1145/3437992.3439919},
+  abstract      = {The ring of Witt vectors W R over a base ring R is an
+                  important tool in algebraic number theory and lies at the
+                  foundations of modern p-adic Hodge theory. W R has the
+                  interesting property that it constructs a ring of
+                  characteristic 0 out of a ring of characteristic p &gt; 1,
+                  and it can be used more specifically to construct from a
+                  finite field containing ℤ/pℤ the corresponding
+                  unramified field extension of the p-adic numbers ℚp
+                  (which is unique up to isomorphism). We formalize the
+                  notion of a Witt vector in the Lean proof assistant, along
+                  with the corresponding ring operations and other algebraic
+                  structure. We prove in Lean that, for prime p, the ring of
+                  Witt vectors over ℤ/pℤ is isomorphic to the ring of
+                  p-adic integers ℤp. In the process we develop idioms to
+                  cleanly handle calculations of identities between
+                  operations on the ring of Witt vectors. These calculations
+                  are intractable with a naive approach, and require a proof
+                  technique that is usually skimmed over in the informal
+                  literature. Our proofs resemble the informal arguments
+                  while being fully rigorous.},
+  booktitle     = {Proceedings of the 10th ACM SIGPLAN International
+                  Conference on Certified Programs and Proofs},
+  pages         = {264–277},
+  numpages      = {14},
+  keywords      = {ring theory, formal math, proof assistant, Lean, number
+                  theory},
+  location      = {Virtual, Denmark},
+  series        = {CPP 2021}
 }
 
-@book{wall2018analytic,
-  title={Analytic Theory of Continued Fractions},
-  author={Wall, H.S.},
-  isbn={9780486830445},
-  series={Dover Books on Mathematics},
-  year={2018},
-  publisher={Dover Publications}
+@Book{            conway2001,
+  author        = {Conway, J. H.},
+  title         = {On numbers and games},
+  edition       = {Second},
+  publisher     = {A K Peters, Ltd., Natick, MA},
+  year          = {2001},
+  pages         = {xii+242},
+  isbn          = {1-56881-127-6},
+  mrclass       = {00A08 (05-01 91A05)},
+  mrnumber      = {1803095}
 }
 
-@book{hardy2008introduction,
-  title={An Introduction to the Theory of Numbers},
-  author={Hardy, GH and Wright, EM and Heath-Brown, Roger and Silverman, Joseph},
-  year={2008},
-  publisher={Oxford University Press}
+@Book{            EinsiedlerWard2017,
+  author        = {Einsiedler, Manfred and Ward, Thomas},
+  title         = {Functional Analysis, Spectral Theory, and Applications},
+  year          = 2017,
+  publisher     = {Springer},
+  doi           = {10.1007/978-3-319-58540-6}
 }
 
-@article{ahrens2017,
- author = {Benedikt Ahrens and Peter LeFanu Lumsdaine},
-   year = {2019},
-  title = {Displayed Categories},
-journal = {Logical Methods in Computer Science},
- volume = {15},
-  issue = {1},
-    doi = {10.23638/LMCS-15(1:20)2019},
+@Book{            Elephant,
+  title         = {Sketches of an Elephant – A Topos Theory Compendium},
+  author        = {Peter Johnstone},
+  year          = {2002},
+  publisher     = {Oxford University Press}
 }
 
-@Book{HubbardWest-ode,
-author = {John H. Hubbard and Beverly H. West},
-title = {Differential Equations: A Dynamical Systems Approach},
-subtitle = {Ordinary Differential Equations},
-year = {1991},
-publisher = {Springer},
-location = {New York},
-volume = {5},
-isbn = {978-1-4612-8693-6},
-doi = {10.1007/978-1-4612-4192-8},
-pages = {XX, 350},
+@Article{         erdosrenyisos,
+  author        = {P. Erd\"os, A.R\'enyi, and V. S\'os},
+  title         = {On a problem of graph theory},
+  journal       = {Studia Sci. Math.},
+  number        = {1},
+  year          = {1966},
+  pages         = {215--235},
+  url           = {https://www.renyi.hu/~p_erdos/1966-06.pdf}
 }
 
-@book{borceux-vol1,
-  title={Handbook of Categorical Algebra: Volume 1, Basic Category Theory},
-  author={Borceux, Francis},
-  series={Encyclopedia of Mathematics},
-  volume={50},
-  year={1994},
-  publisher={Cambridge University Press}
+@Article{         FennRourke1992,
+  author        = {Fenn, Roger and Rourke, Colin},
+  journal       = {Journal of Knot Theory and its Ramifications},
+  title         = {Racks and links in codimension two},
+  year          = {1992},
+  issn          = {0218-2165},
+  number        = {4},
+  pages         = {343--406},
+  volume        = {1},
+  doi           = {10.1142/S0218216592000203},
+  keywords      = {57M25 (57N10)},
+  mrnumber      = {1194995}
 }
 
-@book{borceux-vol2,
-  title={Handbook of Categorical Algebra: Volume 2, Categories and Structures},
-  author={Borceux, Francis},
-  series={Encyclopedia of Mathematics},
-  volume={51},
-  year={1994},
-  publisher={Cambridge University Press}
-}
-@book {atiyah-macdonald,
-    AUTHOR = {Atiyah, M. F. and Macdonald, I. G.},
-     TITLE = {Introduction to commutative algebra},
- PUBLISHER = {Addison-Wesley Publishing Co., Reading, Mass.-London-Don
-              Mills, Ont.},
-      YEAR = {1969},
-     PAGES = {ix+128},
-   MRCLASS = {13.00},
-  MRNUMBER = {0242802},
-MRREVIEWER = {J. A. Johnson},
-}
-
-@book {soare1987,
-    AUTHOR = {Soare, Robert I.},
-     TITLE = {Recursively enumerable sets and degrees},
-    SERIES = {Perspectives in Mathematical Logic},
-      NOTE = {A study of computable functions and computably generated sets},
- PUBLISHER = {Springer-Verlag, Berlin},
-      YEAR = {1987},
-     PAGES = {xviii+437},
-      ISBN = {3-540-15299-7},
-   MRCLASS = {03-02 (03D20 03D25 03D30)},
-  MRNUMBER = {882921},
-MRREVIEWER = {Peter G. Hinman},
-       DOI = {10.1007/978-3-662-02460-7}
+@InProceedings{   fuerer-lochbihler-schneider-traytel2020,
+  author        = {Basil F{\"{u}}rer and Andreas Lochbihler and Joshua
+                  Schneider and Dmitriy Traytel},
+  editor        = {Nicolas Peltier and Viorica Sofronie{-}Stokkermans},
+  title         = {Quotients of Bounded Natural Functors},
+  booktitle     = {Automated Reasoning - 10th International Joint Conference,
+                  {IJCAR} 2020, Paris, France, July 1-4, 2020, Proceedings,
+                  Part {II}},
+  series        = {Lecture Notes in Computer Science},
+  volume        = {12167},
+  pages         = {58--78},
+  publisher     = {Springer},
+  year          = {2020},
+  url           = {https://doi.org/10.1007/978-3-030-51054-1\_4},
+  doi           = {10.1007/978-3-030-51054-1\_4},
+  timestamp     = {Mon, 06 Jul 2020 09:05:32 +0200},
+  biburl        = {https://dblp.org/rec/conf/cade/FurerLST20.bib},
+  bibsource     = {dblp computer science bibliography, https://dblp.org}
 }
 
-@book {tao2010,
-  author = {Tao, Terence},
-  title = {An Epsilon of Room, I: Real Analysis: Pages from Year Three of a Mathematical Blog},
-  year = 2010,
-  publisher = {American Mathematical Society},
-  url = {https://terrytao.files.wordpress.com/2010/02/epsilon.pdf}
+@Inproceedings{   Gallier2011Notes,
+  title         = {Notes on Differential Geometry and Lie Groups},
+  author        = {J. Gallier and J. Quaintance},
+  year          = {2011},
+  url           = {https://www.cis.upenn.edu/~cis610/diffgeom-n.pdf}
 }
 
-@inproceedings{carneiro2019,
-  author    = {Mario M. Carneiro},
-  editor    = {John Harrison and
-               John O'Leary and
-               Andrew Tolmach},
-  title     = {Formalizing Computability Theory via Partial Recursive Functions},
-  booktitle = {10th International Conference on Interactive Theorem Proving, {ITP}
-               2019, September 9-12, 2019, Portland, OR, {USA}},
-  series    = {LIPIcs},
-  volume    = {141},
-  pages     = {12:1--12:17},
-  publisher = {Schloss Dagstuhl - Leibniz-Zentrum f{\"{u}}r Informatik},
-  year      = {2019},
-  url       = {https://doi.org/10.4230/LIPIcs.ITP.2019.12},
-  doi       = {10.4230/LIPIcs.ITP.2019.12},
-  timestamp = {Fri, 27 Sep 2019 15:57:06 +0200},
-  biburl    = {https://dblp.org/rec/conf/itp/Carneiro19.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
-
-@article{Vaisala_2003,
-author = {Jussi Väisälä},
-title = {A Proof of the Mazur-Ulam Theorem},
-year = 2003,
-journal = {The American Mathematical Monthly},
-volume = 110,
-number = 7,
-publisher = {Taylor & Francis, Ltd. on behalf of the Mathematical Association of America},
-pages = {633-635},
-url = {https://www.jstor.org/stable/3647749},
-doi = {10.2307/3647749}
-}
-
-@book{aluffi2016,
-title={Algebra: Chapter 0},
-author={Aluffi, Paolo},
-series={Graduate Studies in Mathematics},
-volume={104},
-year={2016},
-publisher={American Mathematical Society},
-edition={Reprinted with corrections by the American Mathematical Society}
-}
-
-@Article{ghys87:groupes,
-  author =	 {Étienne Ghys},
-  title =	 {Groupes d'homeomorphismes du cercle et cohomologie
+@Article{         ghys87:groupes,
+  author        = {Étienne Ghys},
+  title         = {Groupes d'homeomorphismes du cercle et cohomologie
                   bornee},
-  journal =	 {Contemporary Mathematics},
-  year =	 1987,
-  volume =	 58,
-  number =	 {III},
-  pages =	 {81-106},
-  doi =		 {10.1090/conm/058.3/893858},
-  language =	 {french}
+  journal       = {Contemporary Mathematics},
+  year          = 1987,
+  volume        = 58,
+  number        = {III},
+  pages         = {81-106},
+  doi           = {10.1090/conm/058.3/893858},
+  language      = {french}
 }
 
-@book{wasserman2003,
-  author = {Wasserman, Larry},
-  title = {All Of Statistics: A Concise Course in Statistical Inference},
-  year = 2004,
-  publisher = {Springer},
+@Book{            gouvea1997,
+  author        = {Gouv\^{e}a, Fernando Q.},
+  title         = {{$p$}-adic numbers},
+  series        = {Universitext},
+  edition       = {Second},
+  note          = {An introduction},
+  publisher     = {Springer-Verlag, Berlin},
+  year          = {1997},
+  pages         = {vi+298},
+  isbn          = {3-540-62911-4},
+  mrclass       = {11S80 (11-01 12J25)},
+  mrnumber      = {1488696},
+  doi           = {10.1007/978-3-642-59058-0},
+  url           = {https://doi.org/10.1007/978-3-642-59058-0}
 }
 
-@misc{wedhorn_adic,
-Author = {Torsten Wedhorn},
-Title = {Adic Spaces},
-Year = {2019},
-Eprint = {arXiv:1910.05934},
+@Article{         Gusakov2021,
+  author        = {Alena Gusakov and Bhavik Mehta and Kyle A. Miller},
+  title         = {Formalizing Hall's Marriage Theorem in Lean},
+  eprint        = {2101.00127},
+  eprintclass   = {math.CO},
+  eprinttype    = {arXiv},
+  keywords      = {math.CO, cs.LO, 05-04 (Primary) 05C70, 68R05 (Secondary)}
 }
 
-@inproceedings{avigad-carneiro-hudon2019,
-  author    = {Jeremy Avigad and
-               Mario M. Carneiro and
-               Simon Hudon},
-  editor    = {John Harrison and
-               John O'Leary and
-               Andrew Tolmach},
-  title     = {Data Types as Quotients of Polynomial Functors},
-  booktitle = {10th International Conference on Interactive Theorem Proving, {ITP}
-               2019, September 9-12, 2019, Portland, OR, {USA}},
-  series    = {LIPIcs},
-  volume    = {141},
-  pages     = {6:1--6:19},
-  publisher = {Schloss Dagstuhl - Leibniz-Zentrum f{\"{u}}r Informatik},
-  year      = {2019},
-  url       = {https://doi.org/10.4230/LIPIcs.ITP.2019.6},
-  doi       = {10.4230/LIPIcs.ITP.2019.6},
-  timestamp = {Fri, 27 Sep 2019 15:57:06 +0200},
-  biburl    = {https://dblp.org/rec/conf/itp/AvigadCH19.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+@Article{         Hall1935,
+  author        = {P. Hall},
+  journal       = {Journal of the London Mathematical Society},
+  title         = {On Representatives of Subsets},
+  year          = {1935},
+  month         = {jan},
+  number        = {1},
+  pages         = {26--30},
+  volume        = {s1-10},
+  doi           = {10.1112/jlms/s1-10.37.26},
+  publisher     = {Wiley}
 }
 
-@inproceedings{fuerer-lochbihler-schneider-traytel2020,
-  author    = {Basil F{\"{u}}rer and
-               Andreas Lochbihler and
-               Joshua Schneider and
-               Dmitriy Traytel},
-  editor    = {Nicolas Peltier and
-               Viorica Sofronie{-}Stokkermans},
-  title     = {Quotients of Bounded Natural Functors},
-  booktitle = {Automated Reasoning - 10th International Joint Conference, {IJCAR}
-               2020, Paris, France, July 1-4, 2020, Proceedings, Part {II}},
-  series    = {Lecture Notes in Computer Science},
-  volume    = {12167},
-  pages     = {58--78},
-  publisher = {Springer},
-  year      = {2020},
-  url       = {https://doi.org/10.1007/978-3-030-51054-1\_4},
-  doi       = {10.1007/978-3-030-51054-1\_4},
-  timestamp = {Mon, 06 Jul 2020 09:05:32 +0200},
-  biburl    = {https://dblp.org/rec/conf/cade/FurerLST20.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+@Book{            halmos1950measure,
+  author        = {Halmos, Paul R},
+  title         = {Measure theory},
+  publisher     = {Springer-Verlag New York},
+  year          = 1950,
+  isbn          = {978-1-4684-9440-2},
+  doi           = {10.1007/978-1-4684-9440-2}
 }
 
-@book{halmos1950measure,
-  author    = {Halmos, Paul R},
-  title     = {Measure theory},
-  publisher = {Springer-Verlag New York},
-  year      = 1950,
-  isbn      = {978-1-4684-9440-2},
-  doi       = {10.1007/978-1-4684-9440-2}
+@Book{            halmos2013measure,
+  title         = {Measure theory},
+  author        = {Halmos, Paul R},
+  volume        = {18},
+  year          = {1950},
+  publisher     = {Springer},
+  isbn          = {0-387-90088-8}
 }
 
-@misc{avigad_moura_kong-2017,
-Author = {Jeremy Avigad and
-          Leonardo de Moura and
-          Soonho Kong},
-Title = {{T}heorem {P}roving in {L}ean},
-Year = {2017},
-howpublished = {\url{https://leanprover.github.io/theorem_proving_in_lean/}},
+@Book{            hardy2008introduction,
+  title         = {An Introduction to the Theory of Numbers},
+  author        = {Hardy, GH and Wright, EM and Heath-Brown, Roger and
+                  Silverman, Joseph},
+  year          = {2008},
+  publisher     = {Oxford University Press}
 }
 
-@book{Hofstadter-1979,
-      author        = "Douglas R Hofstadter",
-      title         = "{{G}ödel, {E}scher, {B}ach: an eternal golden braid}",
-      publisher     = "Basic Books",
-      address       = "New York, NY",
-      series        = "Penguin books",
-      year          = "1979",
+@Article{         Haze09,
+  title         = {Witt vectors. Part 1},
+  isbn          = {9780444532572},
+  issn          = {1570-7954},
+  url           = {http://dx.doi.org/10.1016/S1570-7954(08)00207-6},
+  doi           = {10.1016/s1570-7954(08)00207-6},
+  journal       = {Handbook of Algebra},
+  publisher     = {Elsevier},
+  author        = {Hazewinkel, Michiel},
+  year          = {2009},
+  pages         = {319–472}
 }
 
-@book{marcus1977number,
-  title={Number fields},
-  author={Marcus, Daniel A and Sacco, Emanuele},
-  volume={2},
-  year={1977},
-  publisher={Springer}
+@Book{            Hofstadter-1979,
+  author        = "Douglas R Hofstadter",
+  title         = "{{G}ödel, {E}scher, {B}ach: an eternal golden braid}",
+  publisher     = "Basic Books",
+  address       = "New York, NY",
+  series        = "Penguin books",
+  year          = "1979"
 }
 
-@book{cassels1967algebraic,
-  title={Algebraic number theory: proceedings of an instructional conference},
-  author={Cassels, John William Scott and Fr{\"o}lich, Albrecht},
-  year={1967},
-  publisher={Academic Pr}
+@Book{            HubbardWest-ode,
+  author        = {John H. Hubbard and Beverly H. West},
+  title         = {Differential Equations: A Dynamical Systems Approach},
+  subtitle      = {Ordinary Differential Equations},
+  year          = {1991},
+  publisher     = {Springer},
+  location      = {New York},
+  volume        = {5},
+  isbn          = {978-1-4612-8693-6},
+  doi           = {10.1007/978-1-4612-4192-8},
+  pages         = {XX, 350}
 }
 
-@Article{Joyce1982,
-  author    = {David Joyce},
-  title     = {A classifying invariant of knots, the knot quandle},
-  journal   = {Journal of Pure and Applied Algebra},
-  year      = {1982},
-  volume    = {23},
-  number    = {1},
-  month     = {1},
-  pages     = {37--65},
-  doi       = {10.1016/0022-4049(82)90077-9},
-  publisher = {Elsevier {BV}}
+@Article{         huneke2002,
+  author        = {Huneke, Craig},
+  title         = {The Friendship Theorem},
+  publisher     = {Mathematical Association of America},
+  year          = {2002},
+  pages         = {192--194},
+  journal       = {The American Mathematical Monthly},
+  issn          = {00029890, 19300972},
+  volume        = {109},
+  number        = {2},
+  doi           = {10.1080/00029890.2002.11919853},
+  url           = {https://doi.org/10.1080/00029890.2002.11919853}
 }
 
-@Article{FennRourke1992,
-  author    = {Fenn, Roger and Rourke, Colin},
-  journal   = {Journal of Knot Theory and its Ramifications},
-  title     = {Racks and links in codimension two},
-  year      = {1992},
-  issn      = {0218-2165},
-  number    = {4},
-  pages     = {343--406},
-  volume    = {1},
-  doi       = {10.1142/S0218216592000203},
-  keywords  = {57M25 (57N10)},
-  mrnumber  = {1194995}
+@Book{            james1999,
+  author        = {James, Ioan},
+  title         = {Topologies and uniformities},
+  series        = {Springer Undergraduate Mathematics Series},
+  note          = {Revised version of {{\i}t Topological and uniform spaces}
+                  [Springer, New York, 1987; MR0884154 (89b:54001)]},
+  publisher     = {Springer-Verlag London, Ltd., London},
+  year          = {1999},
+  pages         = {xvi+230},
+  isbn          = {1-85233-061-9},
+  mrclass       = {54-01 (54A05 54E15)},
+  mrnumber      = {1687407},
+  mrreviewer    = {Hans-Peter A. K\"{u}nzi},
+  doi           = {10.1007/978-1-4471-3994-2},
+  url           = {https://doi.org/10.1007/978-1-4471-3994-2}
 }
 
-@book{MM92,
-  title={Sheaves in geometry and logic: A first introduction to topos theory},
-  author={MacLane, Saunders and Moerdijk, Ieke},
-  year={1992},
-  publisher={Springer Science \& Business Media}
+@Article{         joyal1977,
+  author        = {André Joyal},
+  title         = {Remarques sur la théorie des jeux à deux personnes},
+  journal       = {Gazette des Sciences Mathematiques du Québec},
+  volume        = {1},
+  number        = {4},
+  pages         = {46--52},
+  year          = {1977},
+  note          = {(English translation at
+                  https://bosker.files.wordpress.com/2010/12/joyal-games.pdf)}
 }
 
-@inproceedings{mcbride1996,
-  title={Inverting inductively defined relations in {LEGO}},
-  author={McBride, Conor},
-  booktitle={International Workshop on Types for Proofs and Programs},
-  pages={236--253},
-  year={1996},
-  organization={Springer}
+@Article{         Joyce1982,
+  author        = {David Joyce},
+  title         = {A classifying invariant of knots, the knot quandle},
+  journal       = {Journal of Pure and Applied Algebra},
+  year          = {1982},
+  volume        = {23},
+  number        = {1},
+  month         = {1},
+  pages         = {37--65},
+  doi           = {10.1016/0022-4049(82)90077-9},
+  publisher     = {Elsevier {BV}}
 }
 
-@book{rudin2006real,
-  title={Real and Complex Analysis},
-  author={Rudin, Walter},
-  year={1987},
-  publisher={McGraw-Hill Book Company},
-  edition = {Third Edition},
-  isbn = {0-07-100276-6}
+@InProceedings{   lewis2019,
+  author        = {Lewis, Robert Y.},
+  title         = {A Formal Proof of {H}ensel's Lemma over the {$p$}-adic
+                  Integers},
+  booktitle     = {Proceedings of the 8th ACM SIGPLAN International
+                  Conference on Certified Programs and Proofs},
+  series        = {CPP 2019},
+  year          = {2019},
+  isbn          = {978-1-4503-6222-1},
+  location      = {Cascais, Portugal},
+  pages         = {15--26},
+  numpages      = {12},
+  url           = {http://doi.acm.org/10.1145/3293880.3294089},
+  doi           = {10.1145/3293880.3294089},
+  acmid         = {3294089},
+  publisher     = {ACM},
+  address       = {New York, NY, USA},
+  keywords      = {Hensel's lemma, Lean, formal proof, p-adic}
 }
 
-@book {schaefer1966,
-  title={Topological Vector Spaces},
-  author={Schaefer, H.H.},
-  lccn={65024692},
-  series={Graduate Texts in Mathematics},
-  year={1966},
-  publisher={Macmillan}
+@Book{            LurieSAG,
+  title         = {Spectral Algebraic Geometry},
+  author        = {Jacob Lurie},
+  url           = {https://www.math.ias.edu/~lurie/papers/SAG-rootfile.pdf},
+  year          = {last updated 2018}
 }
 
-@book{LurieSAG,
-  title={Spectral Algebraic Geometry},
-  author={Jacob Lurie},
-  url={https://www.math.ias.edu/~lurie/papers/SAG-rootfile.pdf},
-  year={last updated 2018},
+@Book{            marcus1977number,
+  title         = {Number fields},
+  author        = {Marcus, Daniel A and Sacco, Emanuele},
+  volume        = {2},
+  year          = {1977},
+  publisher     = {Springer}
 }
 
-@book{EinsiedlerWard2017,
-  author = {Einsiedler, Manfred and Ward, Thomas},
-  title = {Functional Analysis, Spectral Theory, and Applications},
-  year = 2017,
-  publisher = {Springer},
-  doi = {10.1007/978-3-319-58540-6},
+@InProceedings{   mcbride1996,
+  title         = {Inverting inductively defined relations in {LEGO}},
+  author        = {McBride, Conor},
+  booktitle     = {International Workshop on Types for Proofs and Programs},
+  pages         = {236--253},
+  year          = {1996},
+  organization  = {Springer}
 }
 
-@book{Elephant,
-  title={Sketches of an Elephant – A Topos Theory Compendium},
-  author={Peter Johnstone},
-  year={2002},
-  publisher={Oxford University Press}
+@Book{            MM92,
+  title         = {Sheaves in geometry and logic: A first introduction to
+                  topos theory},
+  author        = {MacLane, Saunders and Moerdijk, Ieke},
+  year          = {1992},
+  publisher     = {Springer Science \& Business Media}
 }
 
-@book {samuel1967,
-    AUTHOR = {Samuel, Pierre},
-     TITLE = {Th\'{e}orie alg\'{e}brique des nombres},
- PUBLISHER = {Hermann, Paris},
-      YEAR = {1967},
-     PAGES = {130},
-   MRCLASS = {10.65 (12.00)},
-  MRNUMBER = {0215808},
+@Article{         MR1167694,
+  author        = {Blass, Andreas},
+  title         = {A game semantics for linear logic},
+  journal       = {Ann. Pure Appl. Logic},
+  fjournal      = {Annals of Pure and Applied Logic},
+  volume        = {56},
+  year          = {1992},
+  number        = {1-3},
+  pages         = {183--220},
+  issn          = {0168-0072},
+  mrclass       = {03B70 (68Q55)},
+  mrnumber      = {1167694},
+  mrreviewer    = {Fangmin Song},
+  doi           = {10.1016/0168-0072(92)90073-9},
+  url           = {https://doi.org/10.1016/0168-0072(92)90073-9}
 }
 
-@misc{scholze2011perfectoid,
-      title={Perfectoid spaces},
-      author={Peter Scholze},
-      year={2011},
-      eprint={1111.4914},
-      archivePrefix={arXiv},
-      primaryClass={math.AG}
+@Book{            MR1237403,
+  author        = {Lidl, R. and Mullen, G. L. and Turnwald, G.},
+  title         = {Dickson polynomials},
+  series        = {Pitman Monographs and Surveys in Pure and Applied
+                  Mathematics},
+  volume        = {65},
+  publisher     = {Longman Scientific \& Technical, Harlow; copublished in
+                  the United States with John Wiley \& Sons, Inc., New York},
+  year          = {1993},
+  pages         = {vi+207},
+  isbn          = {0-582-09119-5},
+  mrclass       = {11T06 (12E05 13B25 33C80 94A60)},
+  mrnumber      = {1237403},
+  mrreviewer    = {S. D. Cohen}
 }
 
-@Article{Hall1935,
-  author    = {P. Hall},
-  journal   = {Journal of the London Mathematical Society},
-  title     = {On Representatives of Subsets},
-  year      = {1935},
-  month     = {jan},
-  number    = {1},
-  pages     = {26--30},
-  volume    = {s1-10},
-  doi       = {10.1112/jlms/s1-10.37.26},
-  publisher = {Wiley}
+@Article{         MR317916,
+  author        = {Davis, Martin},
+  title         = {Hilbert's tenth problem is unsolvable},
+  journal       = {Amer. Math. Monthly},
+  fjournal      = {American Mathematical Monthly},
+  volume        = {80},
+  year          = {1973},
+  pages         = {233--269},
+  issn          = {0002-9890},
+  mrclass       = {02G05 (10B99 10N05)},
+  mrnumber      = {317916},
+  mrreviewer    = {R. L. Goodstein},
+  doi           = {10.2307/2318447},
+  url           = {https://doi.org/10.2307/2318447}
 }
 
-@Article{Gusakov2021,
-  author      = {Alena Gusakov and Bhavik Mehta and Kyle A. Miller},
-  title       = {Formalizing Hall's Marriage Theorem in Lean},
-  eprint      = {2101.00127},
-  eprintclass = {math.CO},
-  eprinttype  = {arXiv},
-  keywords    = {math.CO, cs.LO, 05-04 (Primary) 05C70, 68R05 (Secondary)},
+@Article{         MR32592,
+  author        = {Motzkin, Th.},
+  title         = {The {E}uclidean algorithm},
+  journal       = {Bull. Amer. Math. Soc.},
+  fjournal      = {Bulletin of the American Mathematical Society},
+  volume        = {55},
+  year          = {1949},
+  pages         = {1142--1146},
+  issn          = {0002-9904},
+  mrclass       = {09.1X},
+  mrnumber      = {32592},
+  mrreviewer    = {B. N. Moyls},
+  doi           = {10.1090/S0002-9904-1949-09344-8},
+  url           = {https://doi.org/10.1090/S0002-9904-1949-09344-8}
 }
 
-@book {MR1237403,
-    AUTHOR = {Lidl, R. and Mullen, G. L. and Turnwald, G.},
-     TITLE = {Dickson polynomials},
-    SERIES = {Pitman Monographs and Surveys in Pure and Applied Mathematics},
-    VOLUME = {65},
- PUBLISHER = {Longman Scientific \& Technical, Harlow; copublished in the
-              United States with John Wiley \& Sons, Inc., New York},
-      YEAR = {1993},
-     PAGES = {vi+207},
-      ISBN = {0-582-09119-5},
-   MRCLASS = {11T06 (12E05 13B25 33C80 94A60)},
-  MRNUMBER = {1237403},
-MRREVIEWER = {S. D. Cohen}
+@Article{         MR3790629,
+  author        = {Bell, J. S.},
+  title         = {On the {E}instein {P}odolsky {R}osen paradox},
+  journal       = {Phys. Phys. Fiz.},
+  fjournal      = {Physics Physique Fizika},
+  volume        = {1},
+  year          = {1964},
+  number        = {3},
+  pages         = {195--200},
+  issn          = {0554-128X},
+  mrclass       = {DML},
+  mrnumber      = {3790629},
+  doi           = {10.1103/PhysicsPhysiqueFizika.1.195},
+  url           = {https://doi.org/10.1103/PhysicsPhysiqueFizika.1.195}
 }
 
-@misc{ponton2020chebyshev,
-      title={Roots of {C}hebyshev polynomials: a purely algebraic approach},
-      author={Lionel Ponton},
-      year={2020},
-      eprint={2008.03575},
-      archivePrefix={arXiv},
-      primaryClass={math.NT}
+@Article{         MR399081,
+  author        = {Hiblot, Jean-Jacques},
+  title         = {Des anneaux euclidiens dont le plus petit algorithme n'est
+                  pas \`a valeurs finies},
+  journal       = {C. R. Acad. Sci. Paris S\'{e}r. A-B},
+  fjournal      = {Comptes Rendus Hebdomadaires des S\'{e}ances de
+                  l'Acad\'{e}mie des Sciences. S\'{e}ries A et B},
+  volume        = {281},
+  year          = {1975},
+  number        = {12},
+  pages         = {Ai, A411--A414},
+  issn          = {0151-0509},
+  mrclass       = {13F15 (12A20)},
+  mrnumber      = {399081},
+  mrreviewer    = {N. Sankaran}
 }
 
-@misc{carneiro2018matiyasevic,
-      title = {A {L}ean formalization of {M}atiyasevi{\v c}'s theorem},
-      author = {Mario Carneiro},
-      year = {2018},
-      eprint = {1802.01795},
-      archivePrefix={arXiv},
-      primaryClass={math.LO}
+@InCollection{    MR541021,
+  author        = {Nagata, Masayoshi},
+  title         = {On {E}uclid algorithm},
+  booktitle     = {C. {P}. {R}amanujam---a tribute},
+  series        = {Tata Inst. Fund. Res. Studies in Math.},
+  volume        = {8},
+  pages         = {175--186},
+  publisher     = {Springer, Berlin-New York},
+  year          = {1978},
+  mrclass       = {13F07},
+  mrnumber      = {541021},
+  mrreviewer    = {Daniel Lazard}
 }
 
-@article {MR317916,
-    AUTHOR = {Davis, Martin},
-     TITLE = {Hilbert's tenth problem is unsolvable},
-   JOURNAL = {Amer. Math. Monthly},
-  FJOURNAL = {American Mathematical Monthly},
-    VOLUME = {80},
-      YEAR = {1973},
-     PAGES = {233--269},
-      ISSN = {0002-9890},
-   MRCLASS = {02G05 (10B99 10N05)},
-  MRNUMBER = {317916},
-MRREVIEWER = {R. L. Goodstein},
-       DOI = {10.2307/2318447},
-       URL = {https://doi.org/10.2307/2318447},
+@Article{         MR0236876,
+  title         = {A new proof that metric spaces are paracompact},
+  author        = {Mary Ellen Rudin},
+  year          = 1969,
+  journal       = {Proc. Amer. Math. Soc.},
+  volume        = {20},
+  pages         = {603},
+  mrnumber      = {0236876},
+  doi           = {10.1090/S0002-9939-1969-0236876-3}
 }
 
-@article {MR32592,
-    AUTHOR = {Motzkin, Th.},
-     TITLE = {The {E}uclidean algorithm},
-   JOURNAL = {Bull. Amer. Math. Soc.},
-  FJOURNAL = {Bulletin of the American Mathematical Society},
-    VOLUME = {55},
-      YEAR = {1949},
-     PAGES = {1142--1146},
-      ISSN = {0002-9904},
-   MRCLASS = {09.1X},
-  MRNUMBER = {32592},
-MRREVIEWER = {B. N. Moyls},
-       DOI = {10.1090/S0002-9904-1949-09344-8},
-       URL = {https://doi.org/10.1090/S0002-9904-1949-09344-8},
+@Article{         MR577178,
+  author        = {Cirel\cprime son, B. S.},
+  title         = {Quantum generalizations of {B}ell's inequality},
+  journal       = {Lett. Math. Phys.},
+  fjournal      = {Letters in Mathematical Physics. A Journal for the Rapid
+                  Dissemination of Short Contributions in the Field of
+                  Mathematical Physics},
+  volume        = {4},
+  year          = {1980},
+  number        = {2},
+  pages         = {93--100},
+  issn          = {0377-9017},
+  mrclass       = {81B05},
+  mrnumber      = {577178},
+  doi           = {10.1007/BF00417500},
+  url           = {https://doi.org/10.1007/BF00417500}
 }
 
-@incollection {MR541021,
-    AUTHOR = {Nagata, Masayoshi},
-     TITLE = {On {E}uclid algorithm},
- BOOKTITLE = {C. {P}. {R}amanujam---a tribute},
-    SERIES = {Tata Inst. Fund. Res. Studies in Math.},
-    VOLUME = {8},
-     PAGES = {175--186},
- PUBLISHER = {Springer, Berlin-New York},
-      YEAR = {1978},
-   MRCLASS = {13F07},
-  MRNUMBER = {541021},
-MRREVIEWER = {Daniel Lazard},
+@Misc{            ponton2020chebyshev,
+  title         = {Roots of {C}hebyshev polynomials: a purely algebraic
+                  approach},
+  author        = {Lionel Ponton},
+  year          = {2020},
+  eprint        = {2008.03575},
+  archiveprefix = {arXiv},
+  primaryclass  = {math.NT}
 }
 
-@article {MR399081,
-    AUTHOR = {Hiblot, Jean-Jacques},
-     TITLE = {Des anneaux euclidiens dont le plus petit algorithme n'est pas
-              \`a valeurs finies},
-   JOURNAL = {C. R. Acad. Sci. Paris S\'{e}r. A-B},
-  FJOURNAL = {Comptes Rendus Hebdomadaires des S\'{e}ances de l'Acad\'{e}mie des
-              Sciences. S\'{e}ries A et B},
-    VOLUME = {281},
-      YEAR = {1975},
-    NUMBER = {12},
-     PAGES = {Ai, A411--A414},
-      ISSN = {0151-0509},
-   MRCLASS = {13F15 (12A20)},
-  MRNUMBER = {399081},
-MRREVIEWER = {N. Sankaran},
+@Misc{            pöschel2017siegelsternberg,
+  title         = {On the Siegel-Sternberg linearization theorem},
+  author        = {Jürgen Pöschel},
+  year          = {2017},
+  eprint        = {1702.03691},
+  archiveprefix = {arXiv},
+  primaryclass  = {math.DS}
 }
 
-@book{calugareanu,
-      author = {C\v{a}lug\v{a}reanu, Grigore},
-      year = {2000},
-      month = {01},
-      pages = {},
-      title = {Lattice Concepts of Module Theory},
-      doi = {10.1007/978-94-015-9588-9}
+@Book{            riehl2017,
+  author        = {Riehl, Emily},
+  title         = {Category theory in context},
+  publisher     = {Dover Publications},
+  year          = {2017},
+  isbn          = {048680903X},
+  url           = {http://www.math.jhu.edu/~eriehl/context.pdf}
 }
 
-@Article{Stone1979,
-  author     = {Stone, A. H.},
-  journal    = {General Topology Appl.},
-  title      = {Inverse limits of compact spaces},
-  year       = {1979},
-  issn       = {0016-660X},
-  number     = {2},
-  pages      = {203--211},
-  volume     = {10},
-  doi        = {10.1016/0016-660x(79)90008-4},
-  fjournal   = {General Topology and its Applications},
-  mrclass    = {54B25},
-  mrnumber   = {527845},
-  mrreviewer = {J. Segal}
+@Book{            rudin2006real,
+  title         = {Real and Complex Analysis},
+  author        = {Rudin, Walter},
+  year          = {1987},
+  publisher     = {McGraw-Hill Book Company},
+  edition       = {Third Edition},
+  isbn          = {0-07-100276-6}
+}
+
+@Book{            samuel1967,
+  author        = {Samuel, Pierre},
+  title         = {Th\'{e}orie alg\'{e}brique des nombres},
+  publisher     = {Hermann, Paris},
+  year          = {1967},
+  pages         = {130},
+  mrclass       = {10.65 (12.00)},
+  mrnumber      = {0215808}
+}
+
+@Book{            schaefer1966,
+  title         = {Topological Vector Spaces},
+  author        = {Schaefer, H.H.},
+  lccn          = {65024692},
+  series        = {Graduate Texts in Mathematics},
+  year          = {1966},
+  publisher     = {Macmillan}
+}
+
+@Misc{            scholze2011perfectoid,
+  title         = {Perfectoid spaces},
+  author        = {Peter Scholze},
+  year          = {2011},
+  eprint        = {1111.4914},
+  archiveprefix = {arXiv},
+  primaryclass  = {math.AG}
+}
+
+@Book{            seligman1967,
+  author        = {Seligman, G. B.},
+  title         = {Modular {L}ie algebras},
+  series        = {Ergebnisse der Mathematik und ihrer Grenzgebiete, Band
+                  40},
+  publisher     = {Springer-Verlag New York, Inc., New York},
+  year          = {1967},
+  pages         = {ix+165},
+  mrclass       = {17.30 (22.00)},
+  mrnumber      = {0245627},
+  mrreviewer    = {R. E. Block}
+}
+
+@Book{            soare1987,
+  author        = {Soare, Robert I.},
+  title         = {Recursively enumerable sets and degrees},
+  series        = {Perspectives in Mathematical Logic},
+  note          = {A study of computable functions and computably generated
+                  sets},
+  publisher     = {Springer-Verlag, Berlin},
+  year          = {1987},
+  pages         = {xviii+437},
+  isbn          = {3-540-15299-7},
+  mrclass       = {03-02 (03D20 03D25 03D30)},
+  mrnumber      = {882921},
+  mrreviewer    = {Peter G. Hinman},
+  doi           = {10.1007/978-3-662-02460-7}
+}
+
+@Article{         Stone1979,
+  author        = {Stone, A. H.},
+  journal       = {General Topology Appl.},
+  title         = {Inverse limits of compact spaces},
+  year          = {1979},
+  issn          = {0016-660X},
+  number        = {2},
+  pages         = {203--211},
+  volume        = {10},
+  doi           = {10.1016/0016-660x(79)90008-4},
+  fjournal      = {General Topology and its Applications},
+  mrclass       = {54B25},
+  mrnumber      = {527845},
+  mrreviewer    = {J. Segal}
+}
+
+@Book{            tao2010,
+  author        = {Tao, Terence},
+  title         = {An Epsilon of Room, I: Real Analysis: Pages from Year
+                  Three of a Mathematical Blog},
+  year          = 2010,
+  publisher     = {American Mathematical Society},
+  url           = {https://terrytao.files.wordpress.com/2010/02/epsilon.pdf}
+}
+
+@Article{         Vaisala_2003,
+  author        = {Jussi Väisälä},
+  title         = {A Proof of the Mazur-Ulam Theorem},
+  year          = 2003,
+  journal       = {The American Mathematical Monthly},
+  volume        = 110,
+  number        = 7,
+  publisher     = {Taylor & Francis, Ltd. on behalf of the Mathematical
+                  Association of America},
+  pages         = {633-635},
+  url           = {https://www.jstor.org/stable/3647749},
+  doi           = {10.2307/3647749}
+}
+
+@Book{            wall2018analytic,
+  title         = {Analytic Theory of Continued Fractions},
+  author        = {Wall, H.S.},
+  isbn          = {9780486830445},
+  series        = {Dover Books on Mathematics},
+  year          = {2018},
+  publisher     = {Dover Publications}
+}
+
+@Book{            wasserman2003,
+  author        = {Wasserman, Larry},
+  title         = {All Of Statistics: A Concise Course in Statistical
+                  Inference},
+  year          = 2004,
+  publisher     = {Springer}
+}
+
+@Misc{            wedhorn_adic,
+  author        = {Torsten Wedhorn},
+  title         = {Adic Spaces},
+  year          = {2019},
+  eprint        = {arXiv:1910.05934}
+}
+
+@Article{         zbMATH06785026,
+  author        = {John F. {Clauser} and Michael A. {Horne} and Abner
+                  {Shimony} and Richard A. {Holt}},
+  title         = {{Proposed experiment to test local hidden-variable
+                  theories}},
+  fjournal      = {{Physical Review Letters}},
+  journal       = {{Phys. Rev. Lett.}},
+  issn          = {0031-9007; 1079-7114/e},
+  volume        = {23},
+  pages         = {880--883},
+  year          = {1969},
+  publisher     = {American Physical Society (APS), New York, NY},
+  language      = {English},
+  msc2010       = {81-05},
+  zbl           = {1371.81014},
+  doi           = {10.1103/PhysRevLett.23.880},
+  url           = {https://doi.org/10.1103/PhysRevLett.23.880}
 }

@@ -125,7 +125,7 @@ begin
       specialize hfr x,
       rw ←h at hfr,
       simpa using hfr, },
-    by_cases h₁ : z₁ = x; by_cases h₂ : z₂ = x; simp [h₁, h₂, hfinj, key, key.symm], },
+    by_cases h₁ : z₁ = x; by_cases h₂ : z₂ = x; simp [h₁, h₂, hfinj.eq_iff, key, key.symm], },
   { intro z,
     split_ifs with hz,
     { rwa hz },

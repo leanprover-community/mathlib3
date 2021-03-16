@@ -137,6 +137,11 @@ theorem fst_eq_coprod : fst R M M₂ = coprod linear_map.id 0 := by ext; simp
 
 theorem snd_eq_coprod : snd R M M₂ = coprod 0 linear_map.id := by ext; simp
 
+@[simp] theorem coprod_comp_prod (f : M₂ →ₗ[R] M₄) (g : M₃ →ₗ[R] M₄)
+  (f' : M →ₗ[R] M₂) (g' : M →ₗ[R] M₃) :
+  (f.coprod g).comp (f'.prod g') = f.comp f' + g.comp g' :=
+rfl
+
 /-- Taking the product of two maps with the same codomain is equivalent to taking the product of
 their domains.
 
@@ -232,7 +237,7 @@ by rw [← map_coprod_prod, coprod_inl_inr, map_id]
 
 lemma span_inl_union_inr {s : set M} {t : set M₂} :
   span R (inl R M  M₂ '' s ∪ inr R M M₂ '' t) = (span R s).prod (span R t) :=
-by rw [span_union, prod_eq_sup_map, ← span_image, ← span_image]; refl
+by rw [span_union, prod_eq_sup_map, ← span_image, ← span_image]
 
 @[simp] lemma ker_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
   ker (prod f g) = ker f ⊓ ker g :=

@@ -965,9 +965,9 @@ section model_with_corners
 /-! #### Model with corners -/
 
 lemma model_with_corners.mdifferentiable :
-  mdifferentiable I (model_with_corners_self 𝕜 E) I :=
+  mdifferentiable I (𝓘(𝕜, E)) I :=
 begin
-  simp only [mdifferentiable, mdifferentiable_at] with mfld_simps,
+  simp only [mdifferentiable, mdifferentiable_at],
   assume x,
   refine ⟨I.continuous.continuous_at, _⟩,
   have : differentiable_within_at 𝕜 id (range I) (I x) :=
@@ -978,7 +978,7 @@ begin
 end
 
 lemma model_with_corners.mdifferentiable_on_symm :
-  mdifferentiable_on (model_with_corners_self 𝕜 E) I I.symm (range I) :=
+  mdifferentiable_on (𝓘(𝕜, E)) I I.symm (range I) :=
 begin
   simp only [mdifferentiable_on, mdifferentiable_within_at] with mfld_simps,
   assume x hx,
@@ -1099,21 +1099,21 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {f : E → E'} {s : set E} {x : E}
 
 lemma unique_mdiff_within_at_iff_unique_diff_within_at :
-  unique_mdiff_within_at (model_with_corners_self 𝕜 E) s x ↔ unique_diff_within_at 𝕜 s x :=
+  unique_mdiff_within_at (𝓘(𝕜, E)) s x ↔ unique_diff_within_at 𝕜 s x :=
 by simp only [unique_mdiff_within_at] with mfld_simps
 
 lemma unique_mdiff_on_iff_unique_diff_on :
-  unique_mdiff_on (model_with_corners_self 𝕜 E) s ↔ unique_diff_on 𝕜 s :=
+  unique_mdiff_on (𝓘(𝕜, E)) s ↔ unique_diff_on 𝕜 s :=
 by simp [unique_mdiff_on, unique_diff_on, unique_mdiff_within_at_iff_unique_diff_within_at]
 
 @[simp, mfld_simps] lemma written_in_ext_chart_model_space :
-  written_in_ext_chart_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') x f = f :=
-by { ext y, simp only with mfld_simps }
+  written_in_ext_chart_at (𝓘(𝕜, E)) (𝓘(𝕜, E')) x f = f :=
+rfl
 
 /-- For maps between vector spaces, `mdifferentiable_within_at` and `fdifferentiable_within_at`
 coincide -/
 theorem mdifferentiable_within_at_iff_differentiable_within_at :
-  mdifferentiable_within_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f s x
+  mdifferentiable_within_at (𝓘(𝕜, E)) (𝓘(𝕜, E')) f s x
   ↔ differentiable_within_at 𝕜 f s x :=
 begin
   simp only [mdifferentiable_within_at] with mfld_simps,
@@ -1122,8 +1122,7 @@ end
 
 /-- For maps between vector spaces, `mdifferentiable_at` and `differentiable_at` coincide -/
 theorem mdifferentiable_at_iff_differentiable_at :
-  mdifferentiable_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f x
-  ↔ differentiable_at 𝕜 f x :=
+  mdifferentiable_at (𝓘(𝕜, E)) (𝓘(𝕜, E')) f x ↔ differentiable_at 𝕜 f x :=
 begin
   simp only [mdifferentiable_at, differentiable_within_at_univ] with mfld_simps,
   exact ⟨λH, H.2, λH, ⟨H.continuous_at, H⟩⟩
@@ -1131,37 +1130,29 @@ end
 
 /-- For maps between vector spaces, `mdifferentiable_on` and `differentiable_on` coincide -/
 theorem mdifferentiable_on_iff_differentiable_on :
-  mdifferentiable_on (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f s
-  ↔ differentiable_on 𝕜 f s :=
+  mdifferentiable_on (𝓘(𝕜, E)) (𝓘(𝕜, E')) f s ↔ differentiable_on 𝕜 f s :=
 by simp only [mdifferentiable_on, differentiable_on,
               mdifferentiable_within_at_iff_differentiable_within_at]
 
 /-- For maps between vector spaces, `mdifferentiable` and `differentiable` coincide -/
 theorem mdifferentiable_iff_differentiable :
-  mdifferentiable (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f
-  ↔ differentiable 𝕜 f :=
+  mdifferentiable (𝓘(𝕜, E)) (𝓘(𝕜, E')) f ↔ differentiable 𝕜 f :=
 by simp only [mdifferentiable, differentiable, mdifferentiable_at_iff_differentiable_at]
 
 /-- For maps between vector spaces, `mfderiv_within` and `fderiv_within` coincide -/
 theorem mfderiv_within_eq_fderiv_within :
-  mfderiv_within (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f s x
-  = fderiv_within 𝕜 f s x :=
+  mfderiv_within (𝓘(𝕜, E)) (𝓘(𝕜, E')) f s x = fderiv_within 𝕜 f s x :=
 begin
-  by_cases h :
-    mdifferentiable_within_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f s x,
+  by_cases h : mdifferentiable_within_at (𝓘(𝕜, E)) (𝓘(𝕜, E')) f s x,
   { simp only [mfderiv_within, h, dif_pos] with mfld_simps },
   { simp only [mfderiv_within, h, dif_neg, not_false_iff],
-    rw [mdifferentiable_within_at_iff_differentiable_within_at,
-        differentiable_within_at] at h,
-    change ¬(∃(f' : tangent_space (model_with_corners_self 𝕜 E) x →L[𝕜]
-                    tangent_space (model_with_corners_self 𝕜 E') (f x)),
-            has_fderiv_within_at f f' s x) at h,
-    simp only [fderiv_within, h, dif_neg, not_false_iff] }
+    rw [mdifferentiable_within_at_iff_differentiable_within_at] at h,
+    exact (fderiv_within_zero_of_not_differentiable_within_at h).symm }
 end
 
 /-- For maps between vector spaces, `mfderiv` and `fderiv` coincide -/
 theorem mfderiv_eq_fderiv :
-  mfderiv (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') f x = fderiv 𝕜 f x :=
+  mfderiv (𝓘(𝕜, E)) (𝓘(𝕜, E')) f x = fderiv 𝕜 f x :=
 begin
   rw [← mfderiv_within_univ, ← fderiv_within_univ],
   exact mfderiv_within_eq_fderiv_within
@@ -1392,8 +1383,7 @@ variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 /-- In a smooth fiber bundle constructed from core, the preimage under the projection of a set with
 unique differential in the basis also has unique differential. -/
 lemma unique_mdiff_on.smooth_bundle_preimage (hs : unique_mdiff_on I s) :
-  unique_mdiff_on (I.prod (model_with_corners_self 𝕜 F))
-  (Z.to_topological_fiber_bundle_core.proj ⁻¹' s) :=
+  unique_mdiff_on (I.prod (𝓘(𝕜, F))) (Z.to_topological_fiber_bundle_core.proj ⁻¹' s) :=
 begin
   /- Using a chart (and the fact that unique differentiability is invariant under charts), we
   reduce the situation to the model space, where we can use the fact that products respect
@@ -1403,9 +1393,9 @@ begin
   let e₀ := chart_at H p.1,
   let e := chart_at (model_prod H F) p,
   -- It suffices to prove unique differentiability in a chart
-  suffices h : unique_mdiff_on (I.prod (model_with_corners_self 𝕜 F))
+  suffices h : unique_mdiff_on (I.prod (𝓘(𝕜, F)))
     (e.target ∩ e.symm⁻¹' (Z.to_topological_fiber_bundle_core.proj ⁻¹' s)),
-  { have A : unique_mdiff_on (I.prod (model_with_corners_self 𝕜 F)) (e.symm.target ∩
+  { have A : unique_mdiff_on (I.prod (𝓘(𝕜, F))) (e.symm.target ∩
       e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (Z.to_topological_fiber_bundle_core.proj ⁻¹' s))),
     { apply h.unique_mdiff_on_preimage,
       exact (mdifferentiable_of_mem_atlas _ (chart_mem_atlas _ _)).symm,

@@ -7,7 +7,7 @@ Elegant pairing function.
 -/
 import data.nat.sqrt
 import data.set.lattice
-open prod decidable
+open prod decidable function
 
 namespace nat
 
@@ -48,6 +48,9 @@ begin
     { rw sqrt_add_eq, exact add_le_add_left (le_of_not_gt h) _ },
     simp [unpair, ae, not_lt_zero, add_assoc] }
 end
+
+lemma surjective_unpair : surjective unpair :=
+λ ⟨m, n⟩, ⟨mkpair m n, unpair_mkpair m n⟩
 
 theorem unpair_lt {n : ℕ} (n1 : 1 ≤ n) : (unpair n).1 < n :=
 let s := sqrt n in begin
@@ -103,15 +106,12 @@ begin
 end
 
 end nat
+open nat
 
 namespace set
 
 lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
   (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
-begin
-  ext, simp only [mem_Union, mem_prod], split,
-  { rintro ⟨n, h1n, h2n⟩, exact ⟨⟨_, h1n⟩, _, h2n⟩ },
-  { rintro ⟨⟨n, hn⟩, m, hm⟩, use n.mkpair m, simp [hn, hm] }
-end
+by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
 
 end set

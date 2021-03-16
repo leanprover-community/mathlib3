@@ -766,7 +766,7 @@ begin
   rw orthonormal_iff_ite at ⊢ hv,
   intros i j,
   convert hv (f i) (f j) using 1,
-  simp [hf]
+  simp [hf.eq_iff]
 end
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
@@ -1148,8 +1148,7 @@ begin
     have hx0 : x ≠ 0,
     { intro hx0,
       rw [hx0, inner_zero_left, zero_div] at h,
-      norm_num at h,
-      exact h },
+      norm_num at h, },
     refine and.intro hx0 _,
     set r := ⟪x, y⟫ / (∥x∥ * ∥x∥) with hr,
     use r,

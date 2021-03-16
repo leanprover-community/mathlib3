@@ -2766,32 +2766,28 @@ begin
   exact h.maps_to_tangent_cone.mono (subset.refl _) submodule.subset_span
 end
 
+lemma unique_diff_on.image {f' : E → E →L[𝕜] F} (hs : unique_diff_on 𝕜 s)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hd : ∀ x ∈ s, dense_range (f' x)) :
+  unique_diff_on 𝕜 (f '' s) :=
+ball_image_iff.2 $ λ x hx, (hf' x hx).unique_diff_within_at (hs x hx) (hd x hx)
+
 lemma has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv
   {x : E} (e' : E ≃L[𝕜] F) (h : has_fderiv_within_at f (e' : E →L[𝕜] F) s x)
   (hs : unique_diff_within_at 𝕜 s x) :
   unique_diff_within_at 𝕜 (f '' s) (f x) :=
 h.unique_diff_within_at hs e'.surjective.dense_range
 
-lemma continuous_linear_equiv.unique_diff_on_preimage_iff (e : F ≃L[𝕜] E) :
+lemma continuous_linear_equiv.unique_diff_on_image (e : E ≃L[𝕜] F) (h : unique_diff_on 𝕜 s) :
+  unique_diff_on 𝕜 (e '' s) :=
+h.image (λ x _, e.has_fderiv_within_at) (λ x hx, e.surjective.dense_range)
+
+@[simp] lemma continuous_linear_equiv.unique_diff_on_image_iff (e : E ≃L[𝕜] F) :
+  unique_diff_on 𝕜 (e '' s) ↔ unique_diff_on 𝕜 s :=
+⟨λ h, e.symm_image_image s ▸ e.symm.unique_diff_on_image h, e.unique_diff_on_image⟩
+
+@[simp] lemma continuous_linear_equiv.unique_diff_on_preimage_iff (e : F ≃L[𝕜] E) :
   unique_diff_on 𝕜 (e ⁻¹' s) ↔ unique_diff_on 𝕜 s :=
-begin
-  split,
-  { assume hs x hx,
-    have A : s = e '' (e.symm '' s) :=
-      (equiv.symm_image_image (e.symm.to_linear_equiv.to_equiv) s).symm,
-    have B : e.symm '' s = e⁻¹' s :=
-      equiv.image_eq_preimage e.symm.to_linear_equiv.to_equiv s,
-    rw [A, B, (e.apply_symm_apply x).symm],
-    refine has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv e
-      e.has_fderiv_within_at (hs _ _),
-    rwa [mem_preimage, e.apply_symm_apply x] },
-  { assume hs x hx,
-    have : e ⁻¹' s = e.symm '' s :=
-      (equiv.image_eq_preimage e.symm.to_linear_equiv.to_equiv s).symm,
-    rw [this, (e.symm_apply_apply x).symm],
-    exact has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv e.symm
-      e.symm.has_fderiv_within_at (hs _ hx) },
-end
+by rw [← e.image_symm_eq_preimage, e.symm.unique_diff_on_image_iff]
 
 end tangent_cone
 

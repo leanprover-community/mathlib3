@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import algebra.invertible
+import algebra.char_p.invertible
 import data.mv_polynomial.variables
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.expand
@@ -48,6 +48,11 @@ In this file we use the following notation
 * `R` and `S` are commutative rings
 * `W n` (and `W_ R n` when the ring needs to be explicit) denotes the `n`th Witt polynomial
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 open mv_polynomial

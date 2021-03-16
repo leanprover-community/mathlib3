@@ -149,6 +149,12 @@ instance : semimodule R p :=
 by refine {smul := (•), ..p.to_sub_mul_action.mul_action, ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
 
+instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_divisors R p :=
+⟨λ c x h,
+  have c = 0 ∨ (x : M) = 0,
+  from eq_zero_or_eq_zero_of_smul_eq_zero (congr_arg coe h),
+  this.imp_right (@subtype.ext_iff _ _ x 0).mpr⟩
+
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →ₗ[R] M :=
 by refine {to_fun := coe, ..}; simp [coe_smul]
@@ -192,6 +198,56 @@ instance : add_comm_group p :=
 @[simp, norm_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
 
 end add_comm_group
+
+section ordered_monoid
+
+variables [semiring R]
+
+/-- A submodule of an `ordered_add_comm_monoid` is an `ordered_add_comm_monoid`. -/
+instance to_ordered_add_comm_monoid
+  {M} [ordered_add_comm_monoid M] [semimodule R M] (S : submodule R M) :
+  ordered_add_comm_monoid S :=
+subtype.coe_injective.ordered_add_comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submodule of a `linear_ordered_add_comm_monoid` is a `linear_ordered_add_comm_monoid`. -/
+instance to_linear_ordered_add_comm_monoid
+  {M} [linear_ordered_add_comm_monoid M] [semimodule R M] (S : submodule R M) :
+  linear_ordered_add_comm_monoid S :=
+subtype.coe_injective.linear_ordered_add_comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submodule of an `ordered_cancel_add_comm_monoid` is an `ordered_cancel_add_comm_monoid`. -/
+instance to_ordered_cancel_add_comm_monoid
+  {M} [ordered_cancel_add_comm_monoid M] [semimodule R M] (S : submodule R M) :
+  ordered_cancel_add_comm_monoid S :=
+subtype.coe_injective.ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submodule of a `linear_ordered_cancel_add_comm_monoid` is a
+`linear_ordered_cancel_add_comm_monoid`. -/
+instance to_linear_ordered_cancel_add_comm_monoid
+  {M} [linear_ordered_cancel_add_comm_monoid M] [semimodule R M] (S : submodule R M) :
+  linear_ordered_cancel_add_comm_monoid S :=
+subtype.coe_injective.linear_ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl)
+
+end ordered_monoid
+
+section ordered_group
+
+variables [ring R]
+
+/-- A submodule of an `ordered_add_comm_group` is an `ordered_add_comm_group`. -/
+instance to_ordered_add_comm_group
+  {M} [ordered_add_comm_group M] [semimodule R M] (S : submodule R M) :
+  ordered_add_comm_group S :=
+subtype.coe_injective.ordered_add_comm_group coe rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A submodule of a `linear_ordered_add_comm_group` is a
+`linear_ordered_add_comm_group`. -/
+instance to_linear_ordered_add_comm_group
+  {M} [linear_ordered_add_comm_group M] [semimodule R M] (S : submodule R M) :
+  linear_ordered_add_comm_group S :=
+subtype.coe_injective.linear_ordered_add_comm_group coe rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+end ordered_group
 
 end submodule
 

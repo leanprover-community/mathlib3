@@ -431,7 +431,8 @@ a pseudoemetric space.
 This construction would also work for infinite products, but it would not give rise
 to the product topology. Hence, we only formalize it in the good situation of finitely many
 spaces. -/
-instance pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] : pseudo_emetric_space (Πb, π b) :=
+instance pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] :
+  pseudo_emetric_space (Πb, π b) :=
 { edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
   edist_self := assume f, bot_unique $ finset.sup_le $ by simp,
   edist_comm := assume f g, by unfold edist; congr; funext a; exact edist_comm _ _,

@@ -220,8 +220,7 @@ h (adjugate A).det (calc A.det * (adjugate A).det = (A ⬝ adjugate A).det   : (
 
 lemma adjugate_eq_one_of_card_eq_one {A : matrix n n α} (h : fintype.card n = 1) : adjugate A = 1 :=
 begin
-  obtain ⟨k, heq⟩ := fintype.card_eq_one_iff.mp h,
-  haveI : subsingleton n := subsingleton_of_forall_eq k heq,
+  haveI : subsingleton n := fintype.card_le_one_iff_subsingleton.mp h.le,
   ext i j,
   simp [subsingleton.elim i j, adjugate_apply, det_eq_elem_of_card_eq_one h j],
 end

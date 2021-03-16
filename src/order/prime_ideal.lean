@@ -41,7 +41,7 @@ section preorder
 
 variables [preorder P]
 
-/-- A pair of an `ideal` and a `pfilter` who form a partition of `P`.
+/-- A pair of an `ideal` and a `pfilter` which form a partition of `P`.
 -/
 @[nolint has_inhabited_instance]
 structure prime_pair (P : Type*) [preorder P] :=
@@ -65,11 +65,12 @@ end
 -/
 @[mk_iff] class is_prime (I : ideal P) extends is_proper I : Prop :=
 (compl_filter : is_pfilter ((I : set P)ᶜ))
-/-- Transfer from the predicate is_prime to the structure prime_pair. -/
-def prime_pair.of_is_prime {I : ideal P} (h : is_prime I) : prime_pair P :=
+/-- Create an element of type `order.prime_pair` from an ideal satisfying the predicate
+`order.is_prime`. -/
+def is_prime.to_prime_pair {I : ideal P} (h : is_prime I) : prime_pair P :=
 ⟨I, h.compl_filter.to_pfilter, set.inter_compl_self _, set.union_compl_self _⟩
 
-lemma is_prime.of_prime_pair (IF : prime_pair P) : is_prime IF.I :=
+lemma prime_pair.is_prime (IF : prime_pair P) : is_prime IF.I :=
 { compl_filter := by {rw prime_pair.ideal_compl_eq_pfilter, exact (IF.F).is_pfilter},
   ..IF.ideal_is_proper }
 

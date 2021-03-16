@@ -58,13 +58,14 @@ structure ideal (P) [preorder P] :=
 (directed  : directed_on (≤) carrier)
 (mem_of_le : ∀ {x y : P}, x ≤ y → y ∈ carrier → x ∈ carrier)
 
-/-- A predicate to when a subset of `P` is an ideal. -/
+/-- A predicate for when a subset of `P` is an ideal. -/
 @[mk_iff] structure is_ideal {P} [preorder P] (I : set P) : Prop :=
 (nonempty : I.nonempty)
 (directed : directed_on (≤) I)
 (mem_of_le : ∀ {x y : P}, x ≤ y → y ∈ I → x ∈ I)
 
-/-- Transfer from the predicate is_ideal to the structure ideal. -/
+/-- Create an element of type `order.ideal` from a set satisfying the predicate
+`order.is_ideal`. -/
 def is_ideal.to_ideal [preorder P] {I : set P} (h : is_ideal I) : ideal P :=
 ⟨I, h.1, h.2, h.3⟩
 
@@ -179,25 +180,25 @@ begin
   assumption,
 end
 
-lemma is_proper.of_is_coatom {I : ideal P} (hI : is_coatom I) : is_proper I :=
+lemma is_coatom.is_proper {I : ideal P} (hI : is_coatom I) : is_proper I :=
 is_proper_of_ne_top hI.1
 
 lemma is_proper_iff_ne_top {I : ideal P} : is_proper I ↔ I ≠ ⊤ :=
 ⟨λ h, h.ne_top, λ h, is_proper_of_ne_top h⟩
 
 lemma is_maximal.is_coatom {I : ideal P} (h : is_maximal I) : is_coatom I :=
-⟨is_maximal.to_is_proper.ne_top, λ J _, by { rw [ext'_iff, top_coe],
-exact is_maximal.maximal_proper J ‹_› }⟩
+⟨is_maximal.to_is_proper.ne_top, 
+ λ J _, by { rw [ext'_iff, top_coe], exact is_maximal.maximal_proper J ‹_› }⟩
 
 lemma is_maximal.is_coatom' {I : ideal P} [is_maximal I] : is_coatom I :=
 is_maximal.is_coatom ‹_›
 
-lemma is_maximal.of_is_coatom {I : ideal P} (hI : is_coatom I) : is_maximal I :=
+lemma is_coatom.is_maximal {I : ideal P} (hI : is_coatom I) : is_maximal I :=
 { maximal_proper := λ _ _, by simp [hI.2 _ ‹_›],
-  ..is_proper.of_is_coatom ‹_› }
+  ..is_coatom.is_proper ‹_› }
 
 lemma is_maximal_iff_is_coatom {I : ideal P} : is_maximal I ↔ is_coatom I :=
-⟨λ h, h.is_coatom, λ h, is_maximal.of_is_coatom h⟩
+⟨λ h, h.is_coatom, λ h, h.is_maximal⟩
 
 end order_top
 

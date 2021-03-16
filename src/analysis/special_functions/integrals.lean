@@ -107,9 +107,9 @@ begin
       add_eq_zero_iff, ne.def, zero_add, not_false_iff, one_ne_zero, integral_neg, and_false,
       zero_pow', sub_neg_eq_add, this, integral_const_mul (↑n + 1)],
     simp only [cos_square', sub_mul, mul_sub, one_mul, ← pow_add _ 2 n, add_comm 2 n],
-    rw [integral_sub, mul_sub] },
-  { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
-  { exact ((continuous_pow (n + 2)).comp continuous_sin).interval_integrable 0 π },
+    rw [integral_sub, mul_sub],
+    { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
+    { exact ((continuous_pow (n + 2)).comp continuous_sin).interval_integrable 0 π } },
   { apply continuous.continuous_on, continuity },
   apply continuous.continuous_on, continuity,
 end

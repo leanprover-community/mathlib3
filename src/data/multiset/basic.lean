@@ -1824,7 +1824,7 @@ countp_add _
 instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
 countp.is_add_monoid_hom _
 
-@[simp] theorem count_smul (a : α) (n s) : count a (n •ℕ s) = n * count a s :=
+@[simp] theorem count_nsmul (a : α) (n s) : count a (n •ℕ s) = n * count a s :=
 by induction n; simp [*, succ_nsmul', succ_mul]
 
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=

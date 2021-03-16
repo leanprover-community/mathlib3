@@ -109,6 +109,12 @@ end
 theorem fg_bot : (⊥ : submodule R M).fg :=
 ⟨∅, by rw [finset.coe_empty, span_empty]⟩
 
+theorem fg_span {s : set M} (hs : finite s) : fg (span R s) :=
+⟨hs.to_finset, by rw [hs.coe_to_finset]⟩
+
+theorem fg_span_singleton (x : M) : fg (R ∙ x) :=
+fg_span (finite_singleton x)
+
 theorem fg_sup {N₁ N₂ : submodule R M}
   (hN₁ : N₁.fg) (hN₂ : N₂.fg) : (N₁ ⊔ N₂).fg :=
 let ⟨t₁, ht₁⟩ := fg_def.1 hN₁, ⟨t₂, ht₂⟩ := fg_def.1 hN₂ in

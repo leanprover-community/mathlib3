@@ -317,6 +317,17 @@ begin
   simp only [mem_roots hp, multiset.mem_to_finset, set.mem_set_of_eq, finset.mem_coe]
 end
 
+lemma exists_max_root [linear_order R] (p : polynomial R) (hp : p ≠ 0) :
+  ∃ x₀, ∀ x, p.is_root x → x ≤ x₀ :=
+begin
+  by_cases hroot : set.nonempty {x | is_root p x},
+  { have h : set.finite {x | is_root p x} :=
+      not_not.mp (mt (eq_zero_of_infinite_is_root p) hp),
+    obtain ⟨x₀, H, hx₀⟩ := set.exists_max_image {x | is_root p x} id h hroot,
+    exact ⟨x₀, λ x hx, hx₀ x hx⟩ },
+  { exact ⟨0, λ x hx, absurd (⟨x, hx⟩ : {x : R | p.is_root x}.nonempty) hroot⟩ }
+end
+
 lemma eq_of_infinite_eval_eq {R : Type*} [integral_domain R]
   (p q : polynomial R) (h : set.infinite {x | eval x p = eval x q}) : p = q :=
 begin

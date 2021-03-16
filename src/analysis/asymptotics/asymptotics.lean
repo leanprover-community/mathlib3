@@ -1247,6 +1247,36 @@ end exists_mul_eq
 
 /-! ### Miscellanous lemmas -/
 
+theorem is_O_at_top_of_div_tends_to_finite {α : Type*} [linear_order α] [nonempty α]
+  {f g : α → 𝕜} (hgf : ∀ᶠ x in filter.at_top, g x = 0 → f x = 0) (c : 𝕜)
+  (h : filter.tendsto (f / g) filter.at_top (nhds c)) :
+  is_O f g filter.at_top :=
+begin
+  simp only [is_O_iff, filter.eventually_at_top],
+  use (∥c∥ + 1),
+  rw filter.tendsto_iff_eventually at h,
+  let h' := @h (λ (x : 𝕜), ∥x∥ ≤ ∥c∥ + 1) begin
+    rw filter.eventually_iff_exists_mem,
+    refine ⟨metric.ball c 1, metric.ball_mem_nhds c zero_lt_one, λ y hy, _⟩,
+    exact norm_le_norm_add_const_of_dist_le (le_of_lt hy),
+  end,
+  rw filter.eventually_at_top at h' hgf,
+  obtain ⟨x₀, h⟩ := hgf,
+  obtain ⟨x₀', h'⟩ := h',
+  refine ⟨max x₀ x₀', λ x hx, _⟩,
+  rw [ge_iff_le, max_le_iff] at hx,
+  specialize h x hx.1,
+  specialize h' x hx.2,
+  simp only [pi.div_apply, normed_field.norm_div] at h',
+  by_cases hfx : f x = 0,
+  { have : ∥f x∥ = 0 := trans (congr_arg _ hfx) norm_zero,
+    refine this.symm ▸ mul_nonneg (by simpa [hfx] using h') (norm_nonneg (g x)) },
+  { replace h := (mt h) hfx,
+    rwa div_le_iff _ at h',
+    refine lt_of_le_of_ne (norm_nonneg (g x)) (λ h', h _),
+    refine norm_eq_zero.mp h'.symm }
+end
+
 lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
   {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : is_o u v l) (hv : tendsto v l (𝓝 y)) :
   tendsto u l (𝓝 0) :=

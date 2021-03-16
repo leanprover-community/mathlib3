@@ -25,7 +25,16 @@ open_locale asymptotics topological_space
 
 namespace polynomial
 
-variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] [order_topology 𝕜] (P Q : polynomial 𝕜)
+variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : polynomial 𝕜)
+
+lemma eventually_no_roots (hP : P ≠ 0) : ∀ᶠ x in filter.at_top, ¬ P.is_root x :=
+begin
+  obtain ⟨x₀, hx₀⟩ := polynomial.exists_max_root P hP,
+  refine filter.eventually_at_top.mpr (⟨x₀ + 1, λ x hx h, _⟩),
+  exact absurd (hx₀ x h) (not_le.mpr (lt_of_lt_of_le (lt_add_one x₀) hx)),
+end
+
+variables [order_topology 𝕜]
 
 lemma is_equivalent_at_top_lead :
   (λ x, eval x P) ~[at_top] (λ x, P.leading_coeff * x ^ P.nat_degree) :=
@@ -145,6 +154,23 @@ begin
   { exact tendsto_abs_at_top_at_top.comp (P.div_tendsto_at_top_of_degree_gt Q hdeg hQ h) },
   { push_neg at h,
     exact tendsto_abs_at_bot_at_top.comp (P.div_tendsto_at_bot_of_degree_gt Q hdeg hQ h.le) }
+end
+
+theorem is_O_of_degree_le (h : P.degree ≤ Q.degree) :
+  is_O (λ x, eval x P) (λ x, eval x Q) filter.at_top :=
+begin
+  by_cases hp : P = 0,
+  { simpa [hp] using is_O_zero (λ x, eval x Q) filter.at_top },
+  { have hq : Q ≠ 0 := ne_zero_of_degree_ge_degree h hp,
+    cases le_iff_lt_or_eq.mp h with h h,
+    { have := polynomial.div_tendsto_zero_of_degree_lt P Q h,
+      refine is_O_at_top_of_div_tends_to_finite _ 0 this,
+      refine filter.mem_sets_of_superset (polynomial.eventually_no_roots Q hq) _,
+      exact λ x hx hx', absurd hx' hx },
+    { have := polynomial.div_tendsto_leading_coeff_div_of_degree_eq P Q h,
+      refine is_O_at_top_of_div_tends_to_finite _ _ this,
+      refine filter.mem_sets_of_superset (polynomial.eventually_no_roots Q hq) _,
+      exact λ x hx hx', absurd hx' hx } }
 end
 
 end polynomial

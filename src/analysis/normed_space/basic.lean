@@ -237,12 +237,20 @@ calc
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... ≤ ∥g∥ + r : by { apply add_le_add_left, rw ← dist_eq_norm, exact H }
 
+lemma norm_le_norm_add_const_of_dist_le {a b : α} {c : ℝ} (h : dist a b ≤ c) :
+  ∥a∥ ≤ ∥b∥ + c :=
+norm_le_of_mem_closed_ball h
+
 lemma norm_lt_of_mem_ball {g h : α} {r : ℝ} (H : h ∈ ball g r) :
   ∥h∥ < ∥g∥ + r :=
 calc
   ∥h∥ = ∥g + (h - g)∥ : by rw [add_sub_cancel'_right]
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
+
+lemma norm_lt_norm_add_const_of_dist_lt {a b : α} {c : ℝ} (h : dist a b < c) :
+  ∥a∥ < ∥b∥ + c :=
+norm_lt_of_mem_ball h
 
 @[simp] lemma mem_sphere_iff_norm (v w : α) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
 by simp [dist_eq_norm]

@@ -7,7 +7,7 @@ Authors: Julian Kuelshammer
 import ring_theory.polynomial.chebyshev
 import ring_theory.localization
 import data.zmod.basic
-import algebra.invertible
+import algebra.char_p.invertible
 
 
 /-!

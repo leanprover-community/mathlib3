@@ -7,6 +7,7 @@ import topology.metric_space.closeds
 import set_theory.cardinal
 import topology.metric_space.gromov_hausdorff_realized
 import topology.metric_space.completion
+import topology.metric_space.kuratowski
 
 /-!
 # Gromov-Hausdorff distance

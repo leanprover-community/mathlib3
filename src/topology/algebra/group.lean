@@ -93,6 +93,16 @@ by simpa only [div_eq_mul_inv] using is_open_map_mul_right (a⁻¹)
 lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
 by simpa only [div_eq_mul_inv] using is_closed_map_mul_right (a⁻¹)
 
+@[to_additive]
+lemma discrete_topology_of_open_singleton_one (h : is_open ({1} : set G)) : discrete_topology G :=
+begin
+  rw ← singletons_open_iff_discrete,
+  intro g,
+  suffices : {g} = (λ (x : G), g⁻¹ * x) ⁻¹' {1},
+  { rw this, exact (continuous_mul_left (g⁻¹)).is_open_preimage _ h, },
+  simp only [mul_one, set.preimage_mul_left_singleton, eq_self_iff_true,
+    inv_inv, set.singleton_eq_singleton_iff],
+end
 end continuous_mul_group
 
 section topological_group
@@ -229,6 +239,18 @@ lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
   (h : @nhds G t 1 = @nhds G t' 1) : t = t' :=
 eq_of_nhds_eq_nhds $ λ x, by
   rw [← @nhds_translation_mul_inv G t _ _ x , ← @nhds_translation_mul_inv G t' _ _ x , ← h]
+
+/-- The topological closure of a subgroup as a subgroup. -/
+@[to_additive "The topological closure of an additive subgroup as an additive subgroup."]
+def subgroup.topological_closure (H : subgroup G) : subgroup G :=
+{ carrier := closure H,
+  one_mem' := subset_closure H.one_mem,
+  mul_mem' := λ a b ha hb, H.to_submonoid.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩,
+  inv_mem' := begin
+    change closure (H : set G) ⊆ (λ x : G, x⁻¹) ⁻¹' (closure H),
+    conv_rhs { rw show (H : set G) = (λ x : G, x⁻¹) '' H, by ext ; simp },
+    exact closure_subset_preimage_closure_image (continuous_inv : continuous (λ x : G, _)),
+  end }
 
 @[to_additive]
 lemma topological_group.of_nhds_aux {G : Type*} [group G] [topological_space G]

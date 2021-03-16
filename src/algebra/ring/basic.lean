@@ -1015,6 +1015,18 @@ semiconj_by.add_right
   commute a c → commute b c → commute (a + b) c :=
 semiconj_by.add_left
 
+lemma bit0_right [distrib R] {x y : R} (h : commute x y) : commute x (bit0 y) :=
+h.add_right h
+
+lemma bit0_left [distrib R] {x y : R} (h : commute x y) : commute (bit0 x) y :=
+h.add_left h
+
+lemma bit1_right [semiring R] {x y : R} (h : commute x y) : commute x (bit1 y) :=
+h.bit0_right.add_right (commute.one_right x)
+
+lemma bit1_left [semiring R] {x y : R} (h : commute x y) : commute (bit1 x) y :=
+h.bit0_left.add_left (commute.one_left y)
+
 variables [ring R] {a b c : R}
 
 theorem neg_right : commute a b → commute a (- b) := semiconj_by.neg_right

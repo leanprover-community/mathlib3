@@ -2,8 +2,6 @@
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
-
-Definition of splitting fields, and definition of homomorphism into any field that splits
 -/
 import ring_theory.adjoin_root
 import ring_theory.algebra_tower
@@ -12,6 +10,37 @@ import ring_theory.polynomial
 import field_theory.minpoly
 import linear_algebra.finite_dimensional
 import tactic.field_simp
+
+/-!
+# Splitting fields
+
+Definition of splitting fields, and definition of homomorphism into any field that splits
+
+## Main definitions
+
+* `splits`: A predicate on a polynomial saying that it is zero or all of its irreducible factors
+  have degree `1`.
+* `splitting_field f`: A splitting field of the polynomial `f`.
+* `is_splitting_field`: A predicate on a field to be a splitting field of a polynomial `f`.
+
+## Main statements
+
+* `C_leading_coeff_mul_prod_multiset_X_sub_C`: If a polynomial has as many roots as its degree, it
+  can be written as the product of its leading coefficient with `∏ (X - a)` where `a` ranges through
+  its roots.
+* `lift_of_splits`: If `K` and `L` are field extensions of a field `F` and for some finite subset
+  `S` of `K`, the minimal polynomial of every `x ∈ K` splits as a polynomial with coefficients in
+  `L`, then `algebra.adjoin F S` embeds into `L`.
+* `lift`: An embedding of the splitting field of the polynomial `f` into another field such that `f`
+  splits.
+* `alg_equiv`: Every splitting field of a polynomial `f` is isomorpic to `splitting_field f` and
+  thus, being a splitting field is unique up to isomorphism.
+
+## TODO
+
+* Move `nat_degree_multiset_prod` to another file.
+
+-/
 
 noncomputable theory
 open_locale classical big_operators
@@ -343,7 +372,7 @@ begin
   exact splits_of_splits_id _ h
 end
 
-/-- A monic polynomial `p` that has as much roots as its degree
+/-- A monic polynomial `p` that has as many roots as its degree
 can be written `p = ∏(X - a)`, for `a` in `p.roots`. -/
 lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {p : polynomial α}
   (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
@@ -372,7 +401,7 @@ begin
   exact eq_of_monic_of_associated hprodmonic hmonic hassoc
 end
 
-/-- A polynomial `p` that has as much roots as its degree
+/-- A polynomial `p` that has as many roots as its degree
 can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
 lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α}
   (hroots : p.roots.card = p.nat_degree) :
@@ -395,7 +424,7 @@ begin
     ... = p : by simp only [mul_one, ring_hom.map_one], },
 end
 
-/-- A polynomial splits if and only if it has as much roots as its degree. -/
+/-- A polynomial splits if and only if it has as many roots as its degree. -/
 lemma splits_iff_card_roots {p : polynomial α} :
   splits (ring_hom.id α) p ↔ p.roots.card = p.nat_degree :=
 begin

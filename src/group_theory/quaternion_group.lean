@@ -211,38 +211,19 @@ If `0 < n`, then `xa i` has order 4.
 -/
 @[simp] lemma order_of_xa [fact (0 < n)] (i : zmod (2 * n)) : order_of (xa i) = 4 :=
 begin
-  have h : order_of (xa i) ≤ 4 := order_of_le_of_pow_eq_one (by norm_num) (xa_pow_four i),
-  interval_cases (order_of (xa i)) with hcas,
-  { -- Show that order_of (xa i) is not 0.
-    exfalso,
-    have hpos : order_of (xa i) > 0 := order_of_pos (xa i),
-    linarith },
-  { -- Show that order_of (xa i) is not 1.
-    exfalso,
-    rw order_of_eq_one_iff at hcas,
-    injection hcas },
-  { -- Show that order_of (xa i) is not 2.
-    exfalso,
-    have hcontra : (xa i) ^ 2 = 1,
-      { rw ← hcas,
-        exact pow_order_of_eq_one _ },
-    simp at hcontra,
-    injection hcontra with hcontra',
-    apply_fun zmod.val at hcontra',
-    apply_fun ( / n) at hcontra',
+  change _ = 2^2,
+  apply nat.eq_prime_pow_of_dvd_least_prime_pow nat.prime_two,
+  { rw order_of_dvd_iff_pow_eq_one,
+    intro h,
+    simp at h,
+    injection h with h',
+    apply_fun zmod.val at h',
+    apply_fun ( / n) at h',
     simp only [zmod.val_nat_cast, zmod.val_zero, nat.zero_div, nat.mod_mul_left_div_self,
-               nat.div_self (_inst_1)] at hcontra',
-    norm_num at hcontra' },
-  { -- Show that order_of (xa i) is not 3.
-    exfalso,
-    have : order_of (xa i) ∣ 4,
-      { apply order_of_dvd_of_pow_eq_one,
-        simp },
-    rw hcas at this,
-    norm_num at this, },
-  { -- `order_of (xa i) = 4` is the only possibility left.
-    assumption
-  }
+               nat.div_self (_inst_1)] at h',
+    norm_num at h' },
+  { rw order_of_dvd_iff_pow_eq_one,
+    norm_num },
 end
 
 /-- In the special case `n = 1`, `quaternion 1` is a cyclic group (of order `4`).-/

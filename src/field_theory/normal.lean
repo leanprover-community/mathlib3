@@ -6,8 +6,8 @@ Authors: Kenny Lau
 
 import field_theory.adjoin
 import field_theory.tower
-import ring_theory.power_basis
 import group_theory.solvable
+import ring_theory.power_basis
 
 /-!
 # Normal field extensions
@@ -306,11 +306,9 @@ begin
       (alg_hom.ext (λ x, ϕ.symm_apply_apply x)),
     map_one' := alg_equiv.ext (λ _, rfl),
     map_mul' := λ _ _, alg_equiv.ext (λ _, rfl) },
-  let g : (E ≃ₐ[F] E) →* (K ≃ₐ[F] K) := alg_equiv.restrict_normal_hom K,
-  have key : g.ker ≤ f.range := λ ϕ hϕ, ⟨alg_equiv.mk ϕ ϕ.symm ϕ.symm_apply_apply
-    ϕ.apply_symm_apply ϕ.map_mul ϕ.map_add (λ x, eq.trans (ϕ.restrict_normal_commutes K x).symm
-    (congr_arg (algebra_map K E) (alg_equiv.ext_iff.mp hϕ x))), alg_equiv.ext (λ _, rfl)⟩,
-  exact solvable_of_ker_le_range f g key,
+  refine solvable_of_ker_le_range f (alg_equiv.restrict_normal_hom K)
+    (λ ϕ hϕ, ⟨{commutes' := λ x, _, .. ϕ}, alg_equiv.ext (λ _, rfl)⟩),
+  exact (eq.trans (ϕ.restrict_normal_commutes K x).symm (congr_arg _ (alg_equiv.ext_iff.mp hϕ x))),
 end
 
 end lift

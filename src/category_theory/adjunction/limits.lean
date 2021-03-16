@@ -116,12 +116,12 @@ lemma has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_coli
 ((functor.right_unitor _).symm ≪≫ iso_whisker_left K (E.as_equivalence.unit_iso))
 
 /-- Transport a `has_colimits_of_shape` instance across an equivalence. -/
-def has_colimits_of_shape_of_equivalence (E : C ⥤ D) [is_equivalence E]
+lemma has_colimits_of_shape_of_equivalence (E : C ⥤ D) [is_equivalence E]
   [has_colimits_of_shape J D] : has_colimits_of_shape J C :=
 ⟨λ F, by exactI has_colimit_of_comp_equivalence F E⟩
 
 /-- Transport a `has_colimits` instance across an equivalence. -/
-def has_colimits_of_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimits D] : has_colimits C :=
+lemma has_colimits_of_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimits D] : has_colimits C :=
 ⟨λ J hJ, by exactI has_colimits_of_shape_of_equivalence E⟩
 
 end preservation_colimits
@@ -222,12 +222,12 @@ lemma has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit 
 ((iso_whisker_left K E.as_equivalence.unit_iso.symm) ≪≫ (functor.right_unitor _))
 
 /-- Transport a `has_limits_of_shape` instance across an equivalence. -/
-def has_limits_of_shape_of_equivalence (E : D ⥤ C) [is_equivalence E] [has_limits_of_shape J C] :
+lemma has_limits_of_shape_of_equivalence (E : D ⥤ C) [is_equivalence E] [has_limits_of_shape J C] :
   has_limits_of_shape J D :=
 ⟨λ F, by exactI has_limit_of_comp_equivalence F E⟩
 
 /-- Transport a `has_limits` instance across an equivalence. -/
-def has_limits_of_equivalence (E : D ⥤ C) [is_equivalence E] [has_limits C] : has_limits D :=
+lemma has_limits_of_equivalence (E : D ⥤ C) [is_equivalence E] [has_limits C] : has_limits D :=
 ⟨λ J hJ, by exactI has_limits_of_shape_of_equivalence E⟩
 
 end preservation_limits

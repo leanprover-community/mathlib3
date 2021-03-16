@@ -827,11 +827,11 @@ quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : multiset α → α) :=
 { map_add := sum_add, map_zero := sum_zero }
 
-lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
+lemma prod_nsmul {α : Type*} [comm_monoid α] (m : multiset α) :
   ∀n, (n •ℕ m).prod = m.prod ^ n
 | 0       := rfl
 | (n + 1) :=
-  by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_smul n]
+  by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_nsmul n]
 
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]

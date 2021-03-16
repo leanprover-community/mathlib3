@@ -1487,7 +1487,7 @@ begin
   { rw [to_multiset_zero, multiset.prod_zero, finsupp.prod_zero_index] },
   { assume a n f _ _ ih,
     rw [to_multiset_add, multiset.prod_add, ih, to_multiset_single, finsupp.prod_add_index,
-      finsupp.prod_single_index, multiset.prod_smul, multiset.singleton_eq_singleton,
+      finsupp.prod_single_index, multiset.prod_nsmul, multiset.singleton_eq_singleton,
       multiset.prod_singleton],
     { exact pow_zero a },
     { exact pow_zero },

@@ -182,7 +182,7 @@ calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) : by rw [nat.m
 
 lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
 begin
-by_cases h₁ : 0 < n,
+  by_cases h₁ : 0 < n,
   { apply nat.dvd_of_mod_eq_zero,
     by_contradiction h₂,
     have h₃ : ¬ (0 < n % order_of a ∧ a ^ (n % order_of a) = 1) := order_of_le_of_pow_eq_one'
@@ -219,7 +219,7 @@ variables (a) {n : ℕ}
 lemma order_of_pow' (h : n ≠ 0) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
-apply dvd_antisymm,
+  apply dvd_antisymm,
   { apply order_of_dvd_of_pow_eq_one,
     rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
         nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow] },
@@ -237,7 +237,7 @@ variable (n)
 lemma order_of_pow'' (h : ∃ n, 0 < n ∧ a ^ n = 1) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
-apply dvd_antisymm,
+  apply dvd_antisymm,
   { apply order_of_dvd_of_pow_eq_one,
     rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
         nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow] },

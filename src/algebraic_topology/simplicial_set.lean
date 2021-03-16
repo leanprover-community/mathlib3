@@ -102,4 +102,11 @@ limits.colimit $ limits.parallel_pair
 
 end examples
 
+/-- Truncated simplicial sets. -/
+@[derive [large_category, limits.has_limits, limits.has_colimits]]
+def truncated (n : ℕ) := simplicial_object.truncated (Type u) n
+
+/-- The skeleton functor on simplicial sets. -/
+def sk (n : ℕ) : sSet ⥤ sSet.truncated n := simplicial_object.sk n
+
 end sSet

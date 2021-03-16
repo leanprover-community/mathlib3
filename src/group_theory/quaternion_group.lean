@@ -251,7 +251,7 @@ begin
 end
 
 /--
-If `0 < n`, then `a i` has order `n / gcd n i`
+If `0 < n`, then `a i` has order `(2 * n) / gcd (2 * n) i`
 -/
 lemma order_of_a [fact (0 < n)] (i : zmod (2 * n)) :
   order_of (a i) = (2 * n) / nat.gcd (2 * n) i.val :=

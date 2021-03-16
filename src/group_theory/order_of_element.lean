@@ -25,6 +25,11 @@ This file defines the order of an element of a finite group. For a finite group 
 
 `is_cyclic_of_prime_card` proves that a finite group of prime order is cyclic.
 
+## Implementation details
+
+Both `order_of` and `is_cyclic` are currently only available for multiplicatively written monoids,
+resp. groups.
+
 ## Tags
 
 order of an element, cyclic group

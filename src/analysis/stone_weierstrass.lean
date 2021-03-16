@@ -122,7 +122,7 @@ theorem sup_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f g : A) :
 begin
   rw max_eq',
   refine A.topological_closure.smul_mem
-    (A.topological_closure.sub_mem
+    (A.topological_closure.add_mem
       (A.topological_closure.add_mem (A.subalgebra_topological_closure f.property)
           (A.subalgebra_topological_closure g.property)) _) _,
   exact_mod_cast abs_mem_subalgebra_closure A _,

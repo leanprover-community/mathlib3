@@ -1760,18 +1760,8 @@ def of_t2_pseudo_metric_space {α : Type*} [pseudo_metric_space α]
 /-- A metric space induces an emetric space -/
 @[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_emetric_space : emetric_space γ :=
-{ edist               := edist,
-  edist_self          := by simp [edist_dist],
-  eq_of_edist_eq_zero := assume x y h, by simpa [edist_dist] using h,
-  edist_comm          := by simp only [edist_dist, dist_comm]; simp,
-  edist_triangle      := assume x y z, begin
-    simp only [edist_dist, ← ennreal.of_real_add, dist_nonneg],
-    rw ennreal.of_real_le_of_real_iff _,
-    { exact dist_triangle _ _ _ },
-    { simpa using add_le_add (dist_nonneg : 0 ≤ dist x y) dist_nonneg }
-  end,
-  uniformity_edist    := metric.uniformity_edist,
-  ..‹metric_space γ› }
+{ eq_of_edist_eq_zero := assume x y h, by simpa [edist_dist] using h,
+  ..pseudo_metric_space.to_pseudo_emetric_space, }
 
 end metric
 

@@ -1480,11 +1480,6 @@ theorem subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.inj
   (s : set α) (hs : (f '' s).subsingleton) : s.subsingleton :=
 λ a ha b hb, hf $ hs (mem_image_of_mem _ ha) (mem_image_of_mem _ hb)
 
-/-- `s` is a subsingleton, if its image of an injective function is. -/
-theorem subsingleton_of_image' {α β : Type*} {f : α → β} (hf : function.injective f)
-  (s : set α) : subsingleton (f '' s) → subsingleton s :=
-by simpa only [subsingleton_coe] using subsingleton_of_image hf s
-
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 

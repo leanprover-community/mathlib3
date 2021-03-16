@@ -665,7 +665,7 @@ instance pi.totally_disconnected_space {α : Type*} {β : α → Type*}
 instance subtype.totally_disconnected_space {α : Type*} {p : α → Prop} [topological_space α]
   [totally_disconnected_space α] : totally_disconnected_space (subtype p) :=
 ⟨λ s h1 h2,
-  set.subsingleton_of_image subtype.val_injective s (
+  set.subsingleton_of_image' subtype.val_injective s (
     totally_disconnected_space.is_totally_disconnected_univ (subtype.val '' s) (set.subset_univ _)
       ((is_preconnected.image h2 _) (continuous.continuous_on (@continuous_subtype_val _ _ p))))⟩
 

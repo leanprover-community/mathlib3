@@ -277,7 +277,7 @@ protected def empty : finset α := ⟨0, nodup_zero⟩
 
 instance : has_emptyc (finset α) := ⟨finset.empty⟩
 
-instance : inhabited (finset α) := ⟨∅⟩
+instance inhabited_finset : inhabited (finset α) := ⟨∅⟩
 
 @[simp] theorem empty_val : (∅ : finset α).1 = 0 := rfl
 

@@ -14,6 +14,11 @@ occurring in the exploded proofs.
 -/
 open widget tactic tactic.explode
 
+meta def to_string_coe_not {α β} [has_to_string β] : has_coe β (html α) :=
+⟨html.of_string ∘ to_string⟩
+
+local attribute [instance] to_string_coe_not
+
 namespace tactic
 namespace explode_widget
 open widget_override.interactive_expression
@@ -190,6 +195,7 @@ Search for an entry that has the specified line number.
 meta def lookup_lines : entries → nat → entry
 | ⟨_, []⟩ n := ⟨default _, 0, 0, status.sintro, thm.string "", []⟩
 | ⟨rb, (hd::tl)⟩ n := if hd.line = n then hd else lookup_lines ⟨rb, tl⟩ n
+
 
 /--
 Render a row that shows a goal.

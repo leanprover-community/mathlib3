@@ -202,12 +202,6 @@ submodule.add_mem (sums_of_squares R) ha hb
 
 end monoid
 
-section semiring
-
-variables {R} [semiring R]
-
-end semiring
-
 section comm_semiring
 
 variables [comm_semiring R] {a b : R}
@@ -260,5 +254,6 @@ end comm_semiring
 
 end sums_of_squares
 
+end is_square
 
 end is_square

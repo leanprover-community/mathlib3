@@ -1,8 +1,5 @@
 import algebra.algebra.subalgebra
 import topology.algebra.continuous_functions
-import topology.instances.real
-import topology.algebra.algebra
-import topology.algebra.continuous_functions
 import topology.algebra.polynomial
 import topology.bounded_continuous_function
 
@@ -14,7 +11,7 @@ variables {X : Type*} {Y : Type*}
 /-- A set of functions "separates points"
 if for each pair of points there is a function taking different values on them. -/
 def separates_points (A : set (X → Y)) : Prop :=
-∀ x y : X, ∃ f ∈ A, (f x : Y) ≠ f y
+∀ x y : X, x ≠ y → ∃ f ∈ A, (f x : Y) ≠ f y
 
 variables [topological_space X]
 variables {R : Type*} [comm_ring R] [topological_space R] [topological_ring R]
@@ -101,12 +98,45 @@ theorem continuous_map.subalgebra_separates_points_iff_topological_closure_eq_to
   A.topological_closure = ⊤ ↔ A.separates_points :=
 sorry
 
+/--
+The algebra map from `polynomial R` to continuous functions `C(X, R)`, for any subset `X` of `R`.
+-/
+@[simps]
+def polynomial.as_continuous_map (X : set R) : polynomial R →ₐ[R] C(X, R) :=
+{ to_fun := λ p,
+  { to_fun := λ x, polynomial.aeval (x : R) p,
+    continuous_to_fun :=
+    begin
+      change continuous ((λ x, polynomial.aeval x p) ∘ (λ x: X, (x : R))),
+      continuity,
+    end },
+  map_zero' := by { ext, simp, },
+  map_add' := by { intros, ext, simp, },
+  map_one' := by { ext, simp, },
+  map_mul' := by { intros, ext, simp, },
+  commutes' := by { intros, ext, simp [algebra.algebra_map_eq_smul_one], }, }
 
-def polynomial_functions (X : set R) : subalgebra R C(X, R) := sorry
+-- Injective when `X` is infinite, and `[char_zero R]`?
+
+/--
+The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological ring `R`.
+-/
+def polynomial_functions (X : set R) : subalgebra R C(X, R) :=
+(⊤ : subalgebra R (polynomial R)).map (polynomial.as_continuous_map X)
+
+-- if `f : R → R` is an affine equivalence, then pulling back along `f`
+-- induces an normed algebra isomorphism between `polynomial_functions X` and
+-- `polynomial_functions (f ⁻¹' X)`, intertwining the pullback along `f` of `C(R, R)` to itself.
 
 lemma polynomial_functions_separates_points (X : set R) :
   (polynomial_functions X).separates_points :=
-sorry
+λ x y h,
+begin
+  -- Use `polynomial.X`, then clean up.
+  refine ⟨_, ⟨⟨_, ⟨⟨polynomial.X, ⟨algebra.mem_top, rfl⟩⟩, rfl⟩⟩, _⟩⟩,
+  dsimp, simp only [polynomial.eval_X],
+  exact (λ h', h (subtype.ext h')),
+end
 
 /--
 The Weierstrass approximation theorem:
@@ -115,6 +145,6 @@ polynomials functions on `[a, b] ⊆ ℝ` are dense in `C([a,b],ℝ)`
 theorem polynomial_functions_closure_eq_top (a b : ℝ) :
   (polynomial_functions (set.Icc a b)).topological_closure = ⊤ :=
 begin
-  -- deduce from Stone-Weierstrass
+  -- deduce from Stone-Weierstrass?
   sorry
 end

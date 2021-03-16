@@ -70,8 +70,8 @@ end
 
 end is_square
 
-noncomputable instance squares_inhabited [nontrivial R] : inhabited (squares R) :=
-⟨is_square.squaring (classical.arbitrary R)⟩
+instance squares_inhabited [inhabited R] : inhabited (squares R) :=
+⟨is_square.squaring (default R)⟩
 
 end has_mul
 

@@ -283,7 +283,7 @@ lemma single_left_inj (h : b ≠ 0) :
   and_false, or_false, eq_self_iff_true, and_true] using H,
  λ H, by rw [H]⟩
 
-lemma single_support_ne_bot (i : α) (h : b ≠ 0) :
+lemma support_single_ne_bot (i : α) (h : b ≠ 0) :
   (single i b).support ≠ ⊥ :=
 begin
   have : i ∈ (single i b).support := by simpa using h,
@@ -291,7 +291,7 @@ begin
   simpa [H]
 end
 
-lemma single_support_disjoint {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
+lemma support_single_disjoint {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
   disjoint (single i b).support (single j b').support ↔ i ≠ j :=
 by simpa [support_single_ne_zero, hb, hb'] using ne_comm
 

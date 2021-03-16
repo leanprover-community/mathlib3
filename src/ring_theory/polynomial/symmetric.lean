@@ -186,7 +186,7 @@ begin
   rw [finsupp.support_sum_eq_bUnion, finsupp.support_sum_eq_bUnion] at this,
   { simp only [finsupp.support_single_ne_zero one_ne_zero, bUnion_singleton_eq_self] at this,
     exact absurd this hst.symm },
-  all_goals { intros x y, simp [finsupp.single_support_disjoint] }
+  all_goals { intros x y, simp [finsupp.support_single_disjoint] }
 end
 
 lemma support_esymm' (n : ℕ) [decidable_eq σ] [nontrivial R] :

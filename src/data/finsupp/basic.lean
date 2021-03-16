@@ -289,11 +289,13 @@ begin
 end
 
 lemma single_support_disjoint {b'} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
-  disjoint (single i b).support (single j b).support ↔ i ≠ j :=
+  disjoint (single i b).support (single j b').support ↔ i ≠ j :=
 begin
   split,
   { rintro H rfl,
-    simpa [single_support_ne_bot _ hb, single_support_ne_bot _ hb'] using H },
+    have : i ∈ (single i b).support ⊓ (single i b').support,
+      { simp [hb, hb'] },
+    simpa using H this },
   { intros hne x,
     suffices : i = x → j = x → x ∈ ⊥,
       { simpa [single_apply, hb, hb'] },

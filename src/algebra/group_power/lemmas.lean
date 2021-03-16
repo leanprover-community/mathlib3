@@ -258,6 +258,18 @@ begin
     @and.comm (b ≤ 0 ) _] }
 end
 
+lemma abs_pow_even {α : Type*} [linear_ordered_ring α] (x : α) {p : ℕ} (hp : even p) :
+  abs (x ^ p) = x ^ p :=
+begin
+  obtain ⟨k, rfl⟩ := hp,
+  rw [abs_eq_self, two_mul, pow_add],
+  exact mul_self_nonneg (x ^ k)
+end
+
+@[simp] lemma abs_pow_bit0 {α : Type*} [linear_ordered_ring α] (x : α) (p : ℕ) :
+  abs (x ^ bit0 p) = x ^ bit0 p :=
+abs_pow_even x (even_bit0 _)
+
 end ordered_add_comm_group
 
 section linear_ordered_add_comm_group

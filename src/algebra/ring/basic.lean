@@ -175,6 +175,9 @@ lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
   set.range (λ x : α, 2 * x) = {a | even a} :=
 by { ext x, simp [even, eq_comm] }
 
+@[simp] lemma even_bit0 (a : α) : even (bit0 a) :=
+⟨a, by rw [bit0, two_mul]⟩
+
 /-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
 def odd (a : α) : Prop := ∃ k, a = 2*k + 1
 

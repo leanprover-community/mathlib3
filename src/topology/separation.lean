@@ -493,6 +493,10 @@ instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
     (λ h₁, separated_by_continuous continuous_fst h₁)
     (λ h₂, separated_by_continuous continuous_snd h₂)⟩
 
+lemma embedding.t2_space [topological_space β] [t2_space β] {f : α → β} (hf : embedding f) :
+  t2_space α :=
+⟨λ x y h, separated_by_continuous hf.continuous (hf.inj.ne h)⟩
+
 instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
   [t₂ : topological_space β] [t2_space β] : t2_space (α ⊕ β) :=
 begin

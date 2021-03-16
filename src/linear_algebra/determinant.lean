@@ -9,6 +9,7 @@ import group_theory.perm.sign
 import algebra.algebra.basic
 import tactic.ring
 import linear_algebra.alternating
+import linear_algebra.pi
 
 /-!
 # Determinant of a matrix
@@ -49,6 +50,27 @@ local notation `ε` σ:max := ((sign σ : ℤ ) : R)
 definition det (M : matrix n n R) : R :=
 ∑ σ : perm n, ε σ * ∏ i, M (σ i) i
 
+/-- This is an alternate definition of `det` built up from primitives of `alternating_map`. -/
+def det_row_multilinear' : alternating_map R (n → R) R n :=
+((multilinear_map.mk_pi_algebra R n R).comp_linear_map (linear_map.proj)).alternatization
+
+/-- This is the more useful version of `det_row_multilinear'` that is defeq to `det`. -/
+@[simps]
+def det_row_multilinear : alternating_map R (n → R) R n :=
+(det_row_multilinear' : alternating_map R (n → R) R n).copy det $ begin
+  funext,
+  -- `multilinear_map.alternatization` and `det` use different spellings of multiplication by `ℤ`.
+  have : ∀ (r : R) (z : ℤ), z • r = (z : R) * r := λ r z, by
+    rw [←gsmul_eq_smul, ←smul_eq_mul, ←gsmul_eq_smul_cast],
+  simp only [det_row_multilinear', multilinear_map.alternatization_apply, det,
+    multilinear_map.dom_dom_congr_apply, multilinear_map.comp_linear_map_apply,
+    linear_map.proj_apply, multilinear_map.mk_pi_algebra_apply, this],
+end
+
+lemma det_row_multilinear'_eq :
+  (det_row_multilinear' : alternating_map R (n → R) R n) = det_row_multilinear :=
+eq.symm $ (det_row_multilinear' : alternating_map R (n → R) R n).copy_eq det
+
 @[simp] lemma det_diagonal {d : n → R} : det (diagonal d) = ∏ i, d i :=
 begin
   refine (finset.sum_eq_single 1 _ _).trans _,
@@ -63,8 +85,7 @@ begin
 end
 
 @[simp] lemma det_zero (h : nonempty n) : det (0 : matrix n n R) = 0 :=
-by rw [← diagonal_zero, det_diagonal, finset.prod_const, ← fintype.card,
-  zero_pow (fintype.card_pos_iff.2 h)]
+(det_row_multilinear : alternating_map R (n → R) R n).map_zero
 
 @[simp] lemma det_one : det (1 : matrix n n R) = 1 :=
 by rw [← diagonal_one]; simp [-diagonal_one]
@@ -214,15 +235,7 @@ Prove that a matrix with a repeated column has determinant equal to zero.
 -/
 
 lemma det_eq_zero_of_row_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A i j = 0) : det A = 0 :=
-begin
-  rw [←det_transpose, det],
-  convert @sum_const_zero _ _ (univ : finset (perm n)) _,
-  ext σ,
-  convert mul_zero ↑(sign σ),
-  apply prod_eq_zero (mem_univ i),
-  rw [transpose_apply],
-  apply h
-end
+(det_row_multilinear : alternating_map R (n → R) R n).map_coord_zero i (funext h)
 
 lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (j : n) (h : ∀ i, A i j = 0) : det A = 0 :=
 by { rw ← det_transpose, exact det_eq_zero_of_row_eq_zero j h, }
@@ -231,77 +244,31 @@ variables {M : matrix n n R} {i j : n}
 
 /-- If a matrix has a repeated row, the determinant will be zero. -/
 theorem det_zero_of_row_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
-begin
-  apply finset.sum_involution
-    (λ σ _, swap i j * σ)
-    (λ σ _, _)
-    (λ σ _ _, (not_congr swap_mul_eq_iff).mpr i_ne_j)
-    (λ σ _, finset.mem_univ _)
-    (λ σ _, swap_mul_involutive i j σ),
-  convert add_right_neg (↑↑(sign σ) * ∏ i, M (σ i) i),
-  rw neg_mul_eq_neg_mul,
-  congr,
-  { rw [sign_mul, sign_swap i_ne_j], norm_num },
-  { ext j, rw [perm.mul_apply, apply_swap_eq_self hij], }
-end
+(det_row_multilinear : alternating_map R (n → R) R n).map_eq_zero_of_eq M hij i_ne_j
 
 end det_zero
+
+lemma det_update_row_add (M : matrix n n R) (j : n) (u v : n → R) :
+  det (update_row M j $ u + v) = det (update_row M j u) + det (update_row M j v) :=
+(det_row_multilinear : alternating_map R (n → R) R n).map_add M j u v
 
 lemma det_update_column_add (M : matrix n n R) (j : n) (u v : n → R) :
   det (update_column M j $ u + v) = det (update_column M j u) + det (update_column M j v) :=
 begin
-  simp only [det],
-  have : ∀ σ : perm n, ∏ i, M.update_column j (u + v) (σ i) i =
-                       ∏ i, M.update_column j u (σ i) i + ∏ i, M.update_column j v (σ i) i,
-  { intros σ,
-    simp only [update_column_apply, prod_ite, filter_eq',
-               finset.prod_singleton, finset.mem_univ, if_true, pi.add_apply, add_mul] },
-  rw [← sum_add_distrib],
-  apply sum_congr rfl,
-  intros x _,
-  rw [this, mul_add]
-end
-
-lemma det_update_row_add (M : matrix n n R) (j : n) (u v : n → R) :
-  det (update_row M j $ u + v) = det (update_row M j u) + det (update_row M j v) :=
-begin
-  rw [← det_transpose, ← update_column_transpose, det_update_column_add],
-  simp [update_column_transpose, det_transpose]
-end
-
-lemma det_update_column_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
-  det (update_column M j $ s • u) = s * det (update_column M j u) :=
-begin
-  simp only [det],
-  have : ∀ σ : perm n, ∏ i, M.update_column j (s • u) (σ i) i =
-    s * ∏ i, M.update_column j u (σ i) i,
-  { intros σ,
-    simp only [update_column_apply, prod_ite, filter_eq', finset.prod_singleton, finset.mem_univ,
-               if_true, algebra.id.smul_eq_mul, pi.smul_apply],
-    ring },
-  rw mul_sum,
-  apply sum_congr rfl,
-  intros x _,
-  rw this,
-  ring
+  rw [← det_transpose, ← update_row_transpose, det_update_row_add],
+  simp [update_row_transpose, det_transpose]
 end
 
 lemma det_update_row_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
   det (update_row M j $ s • u) = s * det (update_row M j u) :=
+(det_row_multilinear : alternating_map R (n → R) R n).map_smul M j s u
+
+lemma det_update_column_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
+  det (update_column M j $ s • u) = s * det (update_column M j u) :=
 begin
-  rw [← det_transpose, ← update_column_transpose, det_update_column_smul],
-  simp [update_column_transpose, det_transpose]
+  rw [← det_transpose, ← update_row_transpose, det_update_row_smul],
+  simp [update_row_transpose, det_transpose]
 end
-
-/-- `det` is an alternating multilinear map over the rows of the matrix.
-
-See also `is_basis.det`. -/
-@[simps apply]
-def det_row_multilinear : alternating_map R (n → R) R n:=
-{ to_fun := det,
-  map_add' := det_update_row_add,
-  map_smul' := det_update_row_smul,
-  map_eq_zero_of_eq' := λ M i j h hij, det_zero_of_row_eq hij h }
 
 @[simp] lemma det_block_diagonal {o : Type*} [fintype o] [decidable_eq o] (M : o → matrix n n R) :
   (block_diagonal M).det = ∏ k, (M k).det :=

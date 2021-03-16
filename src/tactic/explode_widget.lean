@@ -5,6 +5,7 @@ Author: Minchao Wu
 -/
 import tactic.explode
 import tactic.interactive_expr
+
 /-!
 # `#explode_widget` command
 
@@ -14,8 +15,8 @@ occurring in the exploded proofs.
 -/
 open widget tactic tactic.explode
 
-meta instance widget.string_to_list_html {α} : has_coe string (list (html α)) :=
-⟨λ s, [s]⟩
+meta instance widget.string_to_html {α} : has_coe string (html α) :=
+⟨λ s, s⟩
 
 namespace tactic
 namespace explode_widget

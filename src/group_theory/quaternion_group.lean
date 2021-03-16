@@ -67,7 +67,7 @@ private def one : quaternion_group n := a 0
 instance : inhabited (quaternion_group n) := ⟨one⟩
 
 /--
-The inverse of a an element of the dihedral group.
+The inverse of an element of the dihedral group.
 -/
 private def inv : quaternion_group n → quaternion_group n
 | (a i) := a (-i)
@@ -82,12 +82,11 @@ instance : group (quaternion_group n) :=
   begin
     rintros (i | i) (j | j) (k | k);
     simp only [mul];
-    ring,
-    simp only [add_left_inj, add_right_inj],
-    calc -(n : zmod (2 * n)) = 0 - (n : zmod (2 * n)) : by rw zero_sub
-      ... = (2 * n : zmod (2 * n)) - (n : zmod (2 * n) ) :
-        by { rw ← zmod.nat_cast_self (2 * n), norm_cast }
-      ... = (n : zmod (2 * n)) : by ring
+    abel,
+    simp only [neg_mul_eq_neg_mul_symm, one_mul, int.cast_one, gsmul_eq_mul, int.cast_neg, add_right_inj],
+    calc -(n : zmod (2 * n)) = 0 - n : by rw zero_sub
+      ... = 2 * n - n : by { norm_cast, simp, }
+      ... = n : by ring
   end,
   one := one,
   one_mul :=
@@ -132,20 +131,14 @@ private def fintype_helper : (zmod (2 * n) ⊕ zmod (2 * n)) ≃ quaternion_grou
 /-- The special case that more or less by definition `quaternion_group 0` is isomorphic to the
 infinite dihedral group. -/
 def quaternion_group_zero_equiv_dihedral_zero : quaternion_group 0 ≃* dihedral 0 :=
-{ to_fun :=  λ i, match i with
-                | (a j) := dihedral.r j
-                | (xa j) := dihedral.sr j
-                end,
+{ to_fun := λ i, quaternion_group.rec_on i dihedral.r dihedral.sr,
   inv_fun := λ i, match i with
                 | (dihedral.r j) := a j
                 | (dihedral.sr j) := xa j
                 end,
   left_inv := by rintro (k | k); refl,
   right_inv := by rintro (k | k); refl,
-  map_mul' := begin rintros (k | k) (l | l); try {refl},
-                    change quaternion_group_zero_equiv_dihedral_zero._match_1 (a (0 + l - k)) = _,
-                    rw zero_add,
-                    refl end }
+  map_mul' := by { rintros (k | k) (l | l); { dsimp, simp, }, } }
 
 /-- Some of the lemmas on `zmod m` require that `m` is positive, as `m = 2 * n` is the case relevant
 in this file but we don't want to write `[fact (0 < 2 * n)]` we make this lemma a local instance. -/
@@ -245,8 +238,7 @@ begin
       { apply order_of_dvd_of_pow_eq_one,
         simp },
     rw hcas at this,
-    norm_num at this,
-  },
+    norm_num at this, },
   { -- `order_of (xa i) = 4` is the only possibility left.
     assumption
   }
@@ -277,7 +269,7 @@ begin
 end
 
 /--
-If `0 < n`, then `i : zmod n` has order `n / gcd n i`
+If `0 < n`, then `a i` has order `n / gcd n i`
 -/
 lemma order_of_a [fact (0 < n)] (i : zmod (2 * n)) :
   order_of (a i) = (2 * n) / nat.gcd (2 * n) i.val :=

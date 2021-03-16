@@ -1772,15 +1772,8 @@ See Note [forgetful inheritance].
 def metric_space.replace_uniformity {γ} [U : uniform_space γ] (m : metric_space γ)
   (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space') :
   metric_space γ :=
-{ dist               := @dist _ m.to_has_dist,
-  dist_self          := dist_self,
-  eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
-  dist_comm          := dist_comm,
-  dist_triangle      := dist_triangle,
-  edist              := edist,
-  edist_dist         := edist_dist,
-  to_uniform_space   := U,
-  uniformity_dist    := H.trans pseudo_metric_space.uniformity_dist }
+{ eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
+  ..pseudo_metric_space.replace_uniformity m.to_pseudo_metric_space H, }
 
   /-- One gets a metric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the

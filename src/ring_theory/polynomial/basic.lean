@@ -389,7 +389,7 @@ def of_polynomial (I : ideal (polynomial R)) : submodule R (polynomial R) :=
 { carrier := I.carrier,
   zero_mem' := I.zero_mem,
   add_mem' := λ _ _, I.add_mem,
-  smul_mem' := λ c x H, by rw [← C_mul']; exact submodule.smul_mem _ _ H }
+  smul_mem' := λ c x H, by { rw [← C_mul'], exact I.mul_mem_left _ H } }
 
 variables {I : ideal (polynomial R)}
 theorem mem_of_polynomial (x) : x ∈ I.of_polynomial ↔ x ∈ I := iff.rfl

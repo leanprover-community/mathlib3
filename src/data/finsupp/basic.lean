@@ -209,6 +209,9 @@ if_neg h
 lemma single_eq_update : ⇑(single a b) = function.update 0 a b :=
 by rw [single_eq_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
 
+lemma single_eq_pi_single : ⇑(single a b) = pi.single a b :=
+single_eq_update
+
 @[simp] lemma single_zero : (single a 0 : α →₀ M) = 0 :=
 coe_fn_injective $ by simpa only [single_eq_update, coe_zero]
   using function.update_eq_self a (0 : α → M)
@@ -288,20 +291,9 @@ begin
   simpa [H]
 end
 
-lemma single_support_disjoint {b'} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
+lemma single_support_disjoint {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
   disjoint (single i b).support (single j b').support ↔ i ≠ j :=
-begin
-  split,
-  { rintro H rfl,
-    have : i ∈ (single i b).support ⊓ (single i b').support,
-      { simp [hb, hb'] },
-    simpa using H this },
-  { intros hne x,
-    suffices : i = x → j = x → x ∈ ⊥,
-      { simpa [single_apply, hb, hb'] },
-    rintro rfl rfl,
-    simpa using hne }
-end
+by simpa [support_single_ne_zero, hb, hb'] using ne_comm
 
 @[simp] lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
 by simp [ext_iff, single_eq_indicator]

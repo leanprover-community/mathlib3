@@ -145,8 +145,8 @@ def quaternion_group_zero_equiv_dihedral_zero : quaternion_group 0 ≃* dihedral
 
 /-- Some of the lemmas on `zmod m` require that `m` is positive, as `m = 2 * n` is the case relevant
 in this file but we don't want to write `[fact (0 < 2 * n)]` we make this lemma a local instance. -/
-private lemma succ_mul_pos {m : ℕ} [fact (0 < n)] : fact (0 < (nat.succ m) * n) :=
-mul_pos (by norm_num) (_inst_1)
+private lemma succ_mul_pos {m : ℕ} [hn : fact (0 < n)] : fact (0 < (nat.succ m) * n) :=
+mul_pos (by norm_num) hn
 
 local attribute [instance] succ_mul_pos
 

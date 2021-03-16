@@ -30,16 +30,13 @@ end
 
 -- # Example 2
 
--- I am working on a refactor that will allow us to just use `finset.sum_range_succ`
-lemma sum_add {n : ℕ} {f : ℕ → ℕ} : ∑ i in range n.succ, f i = ∑ i in range n, f i + f n :=
-by rw [sum_range_succ, add_comm]
-
 -- We can use `simp only [nat.succ_eq_add_one],` at any point if needed for clarity
+-- Should I use for all notation?
 example (n : ℕ) : ∑ i in range (n + 1), 2 * i = n * (n + 1) :=
 begin
   induction n with n ih, { simp },
   suffices : n * (n + 1) + 2 * (n + 1) = (n + 1) * (n + 2),
-  { rw sum_add,
+  { rw sum_range_succ,
     rw ih,
     assumption },
   ring,
@@ -49,9 +46,10 @@ end
 example (n : ℕ) : ∑ i in range (n + 1), 2 * i = n * (n + 1) :=
 begin
   induction n with n ih, { simp },
-  calc ∑ i in range (n + 2), 2 * i = (∑ i in range (n + 1), 2 * i) + 2 * (n + 1) : by rw sum_add
-                               ... = n * (n + 1) + 2 * (n + 1) : by rw ih
-                               ... = (n + 1) * (n + 2) : by ring,
+  calc  ∑ i in range (n + 2), 2 * i
+      = ∑ i in range (n + 1), 2 * i + 2 * (n + 1) : by rw sum_range_succ
+  ... = n * (n + 1) + 2 * (n + 1)                 : by rw ih
+  ... = (n + 1) * (n + 2)                         : by ring,
 end
 
 

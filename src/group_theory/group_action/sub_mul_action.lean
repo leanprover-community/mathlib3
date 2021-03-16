@@ -125,7 +125,6 @@ variables {r : R} {x : M}
 lemma smul_of_tower_mem (s : S) (h : x ∈ p) : s • x ∈ p :=
 by { rw [←one_smul R x, ←smul_assoc], exact p.smul_mem _ h }
 
-@[priority 900]
 instance has_scalar' : has_scalar S p :=
 { smul := λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩ }
 
@@ -139,7 +138,6 @@ instance : is_scalar_tower S R p :=
   p.smul_of_tower_mem u⟩
 
 /-- If the scalar product forms a `mul_action`, then the subset inherits this action -/
-@[priority 900]
 instance mul_action' : mul_action S p :=
 { smul := (•),
   one_smul := λ x, subtype.ext $ one_smul _ x,

@@ -392,19 +392,6 @@ apply_nolint polynomial.eval_sub_factor doc_blame
 apply_nolint polynomial.pow_add_expansion doc_blame
 apply_nolint polynomial.pow_sub_pow_factor doc_blame
 
--- data/rat/basic.lean
-apply_nolint rat.add doc_blame
-apply_nolint rat.inv doc_blame
-apply_nolint rat.mul doc_blame
-apply_nolint rat.neg doc_blame
-apply_nolint rat.num_denom_cases_on doc_blame
-apply_nolint rat.num_denom_cases_on' doc_blame
-apply_nolint rat.repr doc_blame
-
--- data/rat/order.lean
-apply_nolint rat.le doc_blame
-apply_nolint rat.nonneg doc_blame
-
 -- data/real/cau_seq_completion.lean
 apply_nolint cau_seq.completion.Cauchy doc_blame
 apply_nolint cau_seq.completion.field doc_blame

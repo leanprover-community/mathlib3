@@ -339,7 +339,7 @@ lemma trans [algebra A B] [is_scalar_tower R A B] (hfpA : finite_presentation R 
 begin
   obtain ⟨n, I, e, hfg⟩ := iff.1 hfpB,
   letI : is_scalar_tower R A I.quotient := is_scalar_tower.comap,
-  refine equiv (quotient hfg (mv_polynomial_of_finite_presentation hfpA _)) (e.restrict_scalars R)
+  exact equiv (quotient hfg (mv_polynomial_of_finite_presentation hfpA _)) (e.restrict_scalars R)
 end
 
 end finite_presentation

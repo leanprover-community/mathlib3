@@ -36,14 +36,18 @@ lemma coeff_add (p q : polynomial R) (n : ℕ) : coeff (p + q) n = coeff p n + c
 lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) := finsupp.sum_apply
 
+lemma sum_def [add_comm_monoid S] (f : ℕ → R → S) :
+  p.sum f = ∑ n in p.support, f n (p.coeff n) :=
+rfl
+
 @[simp] lemma coeff_smul (p : polynomial R) (r : R) (n : ℕ) :
 coeff (r • p) n = r * coeff p n := finsupp.smul_apply _ _ _
 
-lemma mem_support_iff_coeff_ne_zero : n ∈ p.support ↔ p.coeff n ≠ 0 :=
-by { rw mem_support_to_fun, refl }
+@[simp] lemma mem_support_iff : n ∈ p.support ↔ p.coeff n ≠ 0 :=
+by simp [support, coeff]
 
-lemma not_mem_support_iff_coeff_zero : n ∉ p.support ↔ p.coeff n = 0 :=
-by { rw [mem_support_to_fun, not_not], refl, }
+lemma not_mem_support_iff : n ∉ p.support ↔ p.coeff n = 0 :=
+by simp
 
 variable (R)
 /-- The nth coefficient, as a linear map. -/
@@ -174,7 +178,7 @@ begin
   rw [← f.sum_single] {occs := occurrences.pos [1]},
   refine sum_mem _ (λ i hi, _),
   change monomial i _ ∈ span _ _,
-  rw [← C_mul_X_pow_eq_monomial, ← X_pow_mul],
+  rw [← C_mul_X_pow_eq_monomial, ← X_pow_mul, ← smul_eq_mul],
   exact smul_mem _ _ (subset_span ⟨i, rfl⟩),
 end
 

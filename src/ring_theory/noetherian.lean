@@ -202,8 +202,8 @@ begin
 end
 
 /-- The image of a finitely generated ideal is finitely generated. -/
-lemma map_fg_of_fg {R S : Type*} [comm_ring R] [comm_ring S] (I : ideal R) (h : submodule.fg I)
-  (f : R →+* S) : (I.map f).fg :=
+lemma map_fg_of_fg {R S : Type*} [comm_ring R] [comm_ring S] (I : ideal R) (h : I.fg) (f : R →+* S)
+  : (I.map f).fg :=
 begin
   obtain ⟨X, hXfin, hXgen⟩ := fg_def.1 h,
   apply fg_def.2,

@@ -1430,6 +1430,15 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
 
+lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+  (x : euclidean_space 𝕜 n) : ∥ x ∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
+begin
+  have : (2 : ℝ) = (2 : ℕ) := by norm_num,
+  have h : ∀ (x : ℝ) (n : ℕ), real.rpow x n = monoid.pow x n := by simp,
+  simp_rw [pi_Lp.norm_eq, real.sqrt_eq_rpow, this, ←real.rpow_eq_pow, h],
+  simp
+end
+
 /-! ### Inner product space structure on subspaces -/
 
 /-- Induced inner product on a submodule. -/

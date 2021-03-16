@@ -291,15 +291,17 @@ def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd.{u} simplex_category skele
 { skel := skeletal,
   eqv := skeletal_functor.is_equivalence }
 
-end simplex_category
+def truncated (n : ℕ) := {a : simplex_category // a.len ≤ n}
 
-@[derive small_category]
-def truncated_simplex_category (n : ℕ) := {a : simplex_category // a.len ≤ n}
+-- Derive didn't work for some reason...
+instance {n} : small_category (truncated n) := by {unfold truncated, apply_instance}
 
-namespace truncated_simplex_category
+namespace truncated
 
 @[derive [full, faithful]]
-def inclusion {n : ℕ} : truncated_simplex_category n ⥤ simplex_category :=
+def inclusion {n : ℕ} : simplex_category.truncated n ⥤ simplex_category :=
 full_subcategory_inclusion _
 
-end truncated_simplex_category
+end truncated
+
+end simplex_category

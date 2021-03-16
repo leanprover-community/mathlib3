@@ -55,6 +55,10 @@ instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
   inv_of_mul_self := by rw [← (commute_inv_of m).symm.mul_pow, inv_of_mul_self, one_pow],
   mul_inv_of_self := by rw [← (commute_inv_of m).mul_pow, mul_inv_of_self, one_pow] }
 
+lemma inv_of_pow (m : M) [invertible m] (n : ℕ) [invertible (m ^ n)] :
+  ⅟(m ^ n) = ⅟m ^ n :=
+@invertible_unique M _ (m ^ n) (m ^ n) rfl ‹_› (invertible_pow m n)
+
 lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
 λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
 

@@ -130,7 +130,8 @@ end
 
 instance forget_reflects_iso : reflects_isomorphisms (forget X) :=
 { reflects := λ Y Z f t, by exactI
-  { inv := over.hom_mk t.inv ((as_iso ((forget X).map f)).inv_comp_eq.2 (over.w f).symm) } }
+  ⟨over.hom_mk (inv ((forget X).map f)) ((as_iso ((forget X).map f)).inv_comp_eq.2 (over.w f).symm),
+   by tidy⟩ }
 
 instance forget_faithful : faithful (forget X) := {}.
 

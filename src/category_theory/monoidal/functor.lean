@@ -109,12 +109,15 @@ variables {C D}
 /--
 The unit morphism of a (strong) monoidal functor as an isomorphism.
 -/
+noncomputable
 def monoidal_functor.ε_iso (F : monoidal_functor.{v₁ v₂} C D) :
   tensor_unit D ≅ F.obj (tensor_unit C) :=
 as_iso F.ε
+
 /--
 The tensorator of a (strong) monoidal functor as an isomorphism.
 -/
+noncomputable
 def monoidal_functor.μ_iso (F : monoidal_functor.{v₁ v₂} C D) (X Y : C) :
   (F.obj X) ⊗ (F.obj Y) ≅ F.obj (X ⊗ Y) :=
 as_iso (F.μ X Y)
@@ -164,6 +167,7 @@ begin
 end
 
 /-- The tensorator as a natural isomorphism. -/
+noncomputable
 def μ_nat_iso (F : monoidal_functor.{v₁ v₂} C D) :
   (functor.prod F.to_functor F.to_functor) ⋙ (tensor D) ≅ (tensor C) ⋙ F.to_functor :=
 nat_iso.of_components
@@ -258,6 +262,7 @@ If we have a right adjoint functor `G` to a monoidal functor `F`, then `G` has a
 structure as well.
 -/
 @[simps]
+noncomputable
 def monoidal_adjoint (F : monoidal_functor C D) {G : D ⥤ C} (h : F.to_functor ⊣ G) :
   lax_monoidal_functor D C :=
 { to_functor := G,
@@ -304,6 +309,7 @@ def monoidal_adjoint (F : monoidal_functor C D) {G : D ⥤ C} (h : F.to_functor 
   end }.
 
 /-- If a monoidal functor `F` is an equivalence of categories then its inverse is also monoidal. -/
+noncomputable
 def monoidal_inverse (F : monoidal_functor C D) [is_equivalence F.to_functor] :
   monoidal_functor D C :=
 { to_lax_monoidal_functor := monoidal_adjoint F (as_equivalence _).to_adjunction,

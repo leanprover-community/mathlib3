@@ -93,8 +93,12 @@ instance partial_order [partial_order β] :
   partial_order C(α, β) :=
 partial_order.lift (λ f, f.to_fun) (by tidy)
 
-lemma le_iff [partial_order β] {f g : C(α, β)} : f ≤ g ↔ ∀ a, f a ≤ g a :=
-iff.refl _
+lemma le_def [partial_order β] {f g : C(α, β)} : f ≤ g ↔ ∀ a, f a ≤ g a :=
+pi.le_def
+
+lemma lt_def [partial_order β] {f g : C(α, β)} :
+  f < g ↔ (∀ a, f a ≤ g a) ∧ (∃ a, f a < g a) :=
+pi.lt_def
 
 instance has_sup [linear_order β] [order_closed_topology β] : has_sup C(α, β) :=
 { sup := λ f g, { to_fun := λ a, max (f a) (g a), } }
@@ -104,9 +108,9 @@ instance has_sup [linear_order β] [order_closed_topology β] : has_sup C(α, β
 rfl
 
 instance [linear_order β] [order_closed_topology β] : semilattice_sup C(α, β) :=
-{ le_sup_left := λ f g, le_iff.mpr (by simp [le_refl]),
-  le_sup_right := λ f g, le_iff.mpr (by simp [le_refl]),
-  sup_le := λ f₁ f₂ g w₁ w₂, le_iff.mpr (λ a, by simp [le_iff.mp w₁ a, le_iff.mp w₂ a]),
+{ le_sup_left := λ f g, le_def.mpr (by simp [le_refl]),
+  le_sup_right := λ f g, le_def.mpr (by simp [le_refl]),
+  sup_le := λ f₁ f₂ g w₁ w₂, le_def.mpr (λ a, by simp [le_def.mp w₁ a, le_def.mp w₂ a]),
   ..continuous_map.partial_order,
   ..continuous_map.has_sup, }
 
@@ -118,9 +122,9 @@ instance has_inf [linear_order β] [order_closed_topology β] : has_inf C(α, β
 rfl
 
 instance [linear_order β] [order_closed_topology β] : semilattice_inf C(α, β) :=
-{ inf_le_left := λ f g, le_iff.mpr (by simp [le_refl]),
-  inf_le_right := λ f g, le_iff.mpr (by simp [le_refl]),
-  le_inf := λ f₁ f₂ g w₁ w₂, le_iff.mpr (λ a, by simp [le_iff.mp w₁ a, le_iff.mp w₂ a]),
+{ inf_le_left := λ f g, le_def.mpr (by simp [le_refl]),
+  inf_le_right := λ f g, le_def.mpr (by simp [le_refl]),
+  le_inf := λ f₁ f₂ g w₁ w₂, le_def.mpr (λ a, by simp [le_def.mp w₁ a, le_def.mp w₂ a]),
   ..continuous_map.partial_order,
   ..continuous_map.has_inf, }
 

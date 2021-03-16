@@ -245,6 +245,31 @@ lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 by { ext m, apply pow_apply, }
 
 section
+variables {f' : M →ₗ[R] M}
+
+lemma iterate_succ (n : ℕ) : (f' ^ (n + 1)) = comp (f' ^ n) f' :=
+by rw [pow_succ', mul_eq_comp]
+
+lemma iterate_surj (h : surjective f') : ∀ n : ℕ, surjective ⇑(f' ^ n)
+| 0       := surjective_id
+| (n + 1) := by { rw [iterate_succ], exact surjective.comp (iterate_surj n) h, }
+
+lemma iterate_inj (h : injective f') : ∀ n : ℕ, injective ⇑(f' ^ n)
+| 0       := injective_id
+| (n + 1) := by { rw [iterate_succ], exact injective.comp (iterate_inj n) h, }
+
+lemma iterate_bij (h : bijective f') : ∀ n : ℕ, bijective ⇑(f' ^ n)
+| 0       := bijective_id
+| (n + 1) := by { rw [iterate_succ], exact bijective.comp (iterate_bij n) h, }
+
+lemma inj_of_iterate_inj {n : ℕ} (hn : n ≠ 0) (h : injective ⇑(f' ^ n)) : injective f' :=
+begin
+  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), iterate_succ, ←comp_coe] at h,
+  exact injective.of_comp h,
+end
+end
+
+section
 open_locale classical
 
 /-- A linear map `f` applied to `x : ι → R` can be computed using the image under `f` of elements

@@ -2,10 +2,42 @@ import algebra.algebra.subalgebra
 import topology.algebra.continuous_functions
 import topology.algebra.polynomial
 import topology.bounded_continuous_function
+import tactic.noncomm_ring
 
 noncomputable theory
 
 open continuous_map
+
+section
+variables {R : Type*} [linear_ordered_ring R]
+
+@[simp]
+lemma sub_le_sub_flip {x y : R} : y - x ≤ x - y ↔ y ≤ x :=
+begin
+  rw [sub_le_iff_le_add, sub_add_eq_add_sub, le_sub_iff_add_le],
+  rw [←two_mul, ←two_mul],
+  exact mul_le_mul_left zero_lt_two,
+end
+
+end
+
+section
+variables {R : Type*} [linear_ordered_field R]
+
+lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x - y)) :=
+begin
+  dsimp [min, max, abs],
+  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
+  split_ifs; ring; linarith,
+end
+
+lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
+begin
+  dsimp [min, max, abs],
+  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
+  split_ifs; ring; linarith,
+end
+end
 
 variables {X : Type*} {Y : Type*}
 /-- A set of functions "separates points"
@@ -36,30 +68,16 @@ begin
   sorry
 end
 
-lemma min_eq {x y : ℝ} : min x y = 2⁻¹ * (x + y - abs (x - y)) :=
-begin
-  dsimp [min, max, abs],
-  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring; linarith,
-end
+lemma inf_eq (f g : C(X, ℝ)) : f ⊓ g = (2⁻¹ : ℝ) • (f + g - (f - g).abs) :=
+ext (λ _, min_eq_half_add_sub_abs_sub)
 
-lemma max_eq {x y : ℝ} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
-begin
-  dsimp [min, max, abs],
-  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring; linarith,
-end
-
-lemma min_eq' (f g : C(X, ℝ)) : f ⊓ g = (2⁻¹ : ℝ) • (f + g - (f - g).abs) :=
-ext (λ _, min_eq)
-
-lemma max_eq' (f g : C(X, ℝ)) : f ⊔ g = (2⁻¹ : ℝ) • (f + g + (f - g).abs) :=
-ext (λ _, max_eq)
+lemma sup_eq (f g : C(X, ℝ)) : f ⊔ g = (2⁻¹ : ℝ) • (f + g + (f - g).abs) :=
+ext (λ _, max_eq_half_add_add_abs_sub)
 
 theorem inf_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f g : A) :
   (f : C(X, ℝ)) ⊓ (g : C(X, ℝ)) ∈ A.topological_closure :=
 begin
-  rw min_eq',
+  rw inf_eq,
   refine A.topological_closure.smul_mem
     (A.topological_closure.sub_mem
       (A.topological_closure.add_mem (A.subalgebra_topological_closure f.property)
@@ -70,7 +88,7 @@ end
 theorem sup_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f g : A) :
   (f : C(X, ℝ)) ⊔ (g : C(X, ℝ)) ∈ A.topological_closure :=
 begin
-  rw max_eq',
+  rw sup_eq,
   refine A.topological_closure.smul_mem
     (A.topological_closure.add_mem
       (A.topological_closure.add_mem (A.subalgebra_topological_closure f.property)

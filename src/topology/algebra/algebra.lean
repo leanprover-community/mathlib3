@@ -68,7 +68,7 @@ instance subalgebra.topological_closure_topological_algebra
     continuity,
   end }
 
-lemma subalgebra.subring_topological_closure (s : subalgebra R A) :
+lemma subalgebra.subalgebra_topological_closure (s : subalgebra R A) :
   s ≤ s.topological_closure :=
 subset_closure
 

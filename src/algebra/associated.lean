@@ -316,6 +316,15 @@ lemma prime_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~ᵤ q) (
     ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv, hu.symm]⟩,
       hu ▸ by { simp [units.mul_right_dvd], intros a b, exact hp.div_or_div }⟩⟩
 
+lemma primes_associated_of_dvd {α} [comm_cancel_monoid_with_zero α] {p q: α}
+  (p_prime: prime p) (q_prime: prime q) (dvd: p ∣ q): associated p q :=
+begin
+  cases dvd with c hc,
+  cases ((irreducible_of_prime q_prime).is_unit_or_is_unit hc)
+    .resolve_left p_prime.not_unit with u hu,
+  exact ⟨ u, by rw [hu, hc] ⟩,
+end
+
 lemma prime_iff_of_associated [comm_monoid_with_zero α] {p q : α}
   (h : p ~ᵤ q) : prime p ↔ prime q :=
 ⟨prime_of_associated h, prime_of_associated h.symm⟩

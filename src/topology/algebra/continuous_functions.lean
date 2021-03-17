@@ -410,7 +410,8 @@ namespace continuous_map
 
 section lattice
 variables {α : Type*} [topological_space α]
-variables {β : Type*} [linear_ordered_field β] [topological_space β] [order_topology β] [topological_ring β]
+variables {β : Type*} [linear_ordered_field β] [topological_space β]
+  [order_topology β] [topological_ring β]
 
 example : module β β := by apply_instance
 

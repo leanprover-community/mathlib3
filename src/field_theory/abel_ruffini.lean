@@ -105,7 +105,7 @@ begin
   rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero_iff_eq] at ha,
   have key : ∀ σ : (X ^ n - 1 : polynomial F).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
-    obtain ⟨m, hm⟩ := σ.to_alg_hom.to_ring_hom.map_root_of_unity
+    obtain ⟨m, hm⟩ := σ.to_alg_hom.to_ring_hom.map_root_of_unity_eq_pow_self
       ⟨is_unit.unit (is_unit_of_pow_eq_one a n ha hn'),
       by { ext, rwa [units.coe_pow, is_unit.unit_spec, subtype.coe_mk n hn'] }⟩,
     use m,

@@ -120,6 +120,9 @@ set.ext $ λ x, mem_segment_translate a
 lemma segment_translate_image (a b c: E) : (λx, a + x) '' [b, c] = [a + b, a + c] :=
 segment_translate_preimage a b c ▸ image_preimage_eq _ $ add_left_surjective a
 
+lemma segment_image (f : E →ₗ[ℝ] F) (a b : E) : f '' [a, b] = [f a, f b] :=
+set.ext (λ x, by simp [segment_eq_image])
+
 /-! ### Convexity of sets -/
 
 /-- Convexity of sets. -/
@@ -937,7 +940,7 @@ lemma finset.center_mass_segment'
   (s : finset ι) (t : finset ι') (ws : ι → ℝ) (zs : ι → E) (wt : ι' → ℝ) (zt : ι' → E)
   (hws : ∑ i in s, ws i = 1) (hwt : ∑ i in t, wt i = 1) (a b : ℝ) (hab : a + b = 1) :
   a • s.center_mass ws zs + b • t.center_mass wt zt =
-    (s.image sum.inl ∪ t.image sum.inr).center_mass
+    (s.map function.embedding.inl ∪ t.map function.embedding.inr).center_mass
       (sum.elim (λ i, a * ws i) (λ j, b * wt j))
       (sum.elim zs zt) :=
 begin
@@ -1148,15 +1151,14 @@ begin
     rw [finset.center_mass_segment' _ _ _ _ _ _ hwx₁ hwy₁ _ _ hab],
     refine ⟨_, _, _, _, _, _, _, rfl⟩,
     { rintros i hi,
-      rw [finset.mem_union, finset.mem_image, finset.mem_image] at hi,
+      rw [finset.mem_union, finset.mem_map, finset.mem_map] at hi,
       rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩;
         simp only [sum.elim_inl, sum.elim_inr];
         apply_rules [mul_nonneg, hwx₀, hwy₀] },
     { simp [finset.sum_sum_elim, finset.mul_sum.symm, *] },
     { intros i hi,
-      rw [finset.mem_union, finset.mem_image, finset.mem_image] at hi,
-      rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩;
-        simp only [sum.elim_inl, sum.elim_inr]; apply_rules [hzx, hzy] } },
+      rw [finset.mem_union, finset.mem_map, finset.mem_map] at hi,
+      rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩; apply_rules [hzx, hzy] } },
   { rintros _ ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩,
     exact t.center_mass_mem_convex_hull hw₀ (hw₁.symm ▸ zero_lt_one) hz }
 end

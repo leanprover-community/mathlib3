@@ -69,7 +69,7 @@ begin
       { rw [eq₂, eq₃, eq] },
       rw [pi.cons_same, pi.cons_same] at this,
       exact h this },
-    rw [prod_insert ha, pi_insert ha, ih, sum_mul, sum_bind h₁],
+    rw [prod_insert ha, pi_insert ha, ih, sum_mul, sum_bUnion h₁],
     refine sum_congr rfl (λ b _, _),
     have h₂ : ∀p₁∈pi s t, ∀p₂∈pi s t, pi.cons s a b p₁ = pi.cons s a b p₂ → p₁ = p₂, from
       assume p₁ h₁ p₂ h₂ eq, pi_cons_injective ha eq,
@@ -166,6 +166,34 @@ begin
     rcases finset.mem_image.1 h₂ with ⟨t₃, h₃, H₃₂⟩,
     rw ← H₃₂,
     exact ne_insert_of_not_mem _ _ (not_mem_of_mem_powerset_of_not_mem h₁ h) }
+end
+
+/-- A product over `powerset s` is equal to the double product over
+sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
+lemma prod_powerset [comm_monoid β] (s : finset α) (f : finset α → β) :
+  ∏ t in powerset s, f t = ∏ j in range (card s + 1), ∏ t in powerset_len j s, f t :=
+begin
+  classical,
+  rw [powerset_card_bUnion, prod_bUnion],
+  intros i hi j hj hij,
+  rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
+  intros x hx hc hnc,
+  apply hij,
+  rwa ← hc,
+end
+
+/-- A sum over `powerset s` is equal to the double sum over
+sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
+lemma sum_powerset [add_comm_monoid β] (s : finset α) (f : finset α → β) :
+  ∑ t in powerset s, f t = ∑ j in range (card s + 1), ∑ t in powerset_len j s, f t :=
+begin
+  classical,
+  rw [powerset_card_bUnion, sum_bUnion],
+  intros i hi j hj hij,
+  rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
+  intros x hx hc hnc,
+  apply hij,
+  rwa ← hc,
 end
 
 end finset

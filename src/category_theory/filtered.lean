@@ -176,12 +176,13 @@ begin
       by_cases hf : f = f',
       { subst hf,
         apply coeq_condition, },
-      { rw w' _ _ (by finish), }, },
-    { rw w' _ _ (by finish), }, },
+      { rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
+    { rw @w' _ _ mX' mY' f' (by finish), }, },
 end
 
 /--
-An arbitrary choice of object "to the right" of a finite collection of objects `O` and morphisms `H`,
+An arbitrary choice of object "to the right"
+of a finite collection of objects `O` and morphisms `H`,
 making all the triangles commute.
 -/
 noncomputable
@@ -216,7 +217,7 @@ begin
   classical,
   let O := (finset.univ.image F.obj),
   let H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
-    finset.univ.bind (λ X : J, finset.univ.bind (λ Y : J, finset.univ.image (λ f : X ⟶ Y,
+    finset.univ.bUnion (λ X : J, finset.univ.bUnion (λ Y : J, finset.univ.image (λ f : X ⟶ Y,
       ⟨F.obj X, F.obj Y, by simp, by simp, F.map f⟩))),
   obtain ⟨Z, f, w⟩ := sup_exists O H,
   refine ⟨⟨Z, ⟨λ X, f (by simp), _⟩⟩⟩,
@@ -224,7 +225,7 @@ begin
   dsimp,
   simp only [category.comp_id],
   apply w,
-  simp only [finset.mem_univ, finset.mem_bind, exists_and_distrib_left,
+  simp only [finset.mem_univ, finset.mem_bUnion, exists_and_distrib_left,
     exists_prop_of_true, finset.mem_image],
   exact ⟨j, rfl, j', g, (by simp)⟩,
 end

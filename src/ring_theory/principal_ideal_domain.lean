@@ -84,7 +84,7 @@ lemma to_maximal_ideal [integral_domain R] [is_principal_ideal_ring R] {S : idea
 is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin
   assume T x hST hxS hxT,
   cases (mem_iff_generator_dvd _).1 (hST $ generator_mem S) with z hz,
-  cases hpi.2 (show generator T * z ∈ S, from hz ▸ generator_mem S),
+  cases hpi.mem_or_mem (show generator T * z ∈ S, from hz ▸ generator_mem S),
   { have hTS : T ≤ S, rwa [← span_singleton_generator T, submodule.span_le, singleton_subset_iff],
     exact (hxS $ hTS hxT).elim },
   cases (mem_iff_generator_dvd _).1 h with y hy,
@@ -118,13 +118,13 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
         (ideal.mem_span_singleton.2 $ dvd_add (dvd_mul_right _ _) $
         have (x % (well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h) ∉ {x : R | x ∈ S ∧ x ≠ 0}),
           from λ h₁, well_founded.not_lt_min wf _ h h₁ (mod_lt x hmin.2),
-        have x % well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h = 0, by finish [(mod_mem_iff hmin.1).2 hx],
+        have x % well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h = 0,
+          by finish [(mod_mem_iff hmin.1).2 hx],
         by simp *),
       λ hx, let ⟨y, hy⟩ := ideal.mem_span_singleton.1 hx in hy.symm ▸ S.mul_mem_right _ hmin.1⟩⟩
-    else ⟨0, submodule.ext $ λ a, by rw [← @submodule.bot_coe R R _ _ _, span_eq, submodule.mem_bot]; exact
-      ⟨λ haS, by_contradiction $ λ ha0, h ⟨a, ⟨haS, ha0⟩⟩,
-      λ h₁, h₁.symm ▸ S.zero_mem⟩⟩⟩ }
-
+    else ⟨0, submodule.ext $ λ a,
+           by rw [← @submodule.bot_coe R R _ _ _, span_eq, submodule.mem_bot];
+      exact ⟨λ haS, by_contradiction $ λ ha0, h ⟨a, ⟨haS, ha0⟩⟩, λ h₁, h₁.symm ▸ S.zero_mem⟩⟩⟩ }
 end
 
 namespace principal_ideal_ring
@@ -134,7 +134,7 @@ variables [integral_domain R] [is_principal_ideal_ring R]
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_noetherian_ring : is_noetherian_ring R :=
-⟨assume s : ideal R,
+is_noetherian_ring_iff.2 ⟨assume s : ideal R,
 begin
   rcases (is_principal_ideal_ring.principal s).principal with ⟨a, rfl⟩,
   rw [← finset.coe_singleton],
@@ -143,13 +143,13 @@ end⟩
 
 lemma is_maximal_of_irreducible {p : R} (hp : irreducible p) :
   ideal.is_maximal (span R ({p} : set R)) :=
-⟨mt ideal.span_singleton_eq_top.1 hp.1, λ I hI, begin
+⟨⟨mt ideal.span_singleton_eq_top.1 hp.1, λ I hI, begin
   rcases principal I with ⟨a, rfl⟩,
   erw ideal.span_singleton_eq_top,
   unfreezingI { rcases ideal.span_singleton_le_span_singleton.1 (le_of_lt hI) with ⟨b, rfl⟩ },
   refine (of_irreducible_mul hp).resolve_right (mt (λ hb, _) (not_le_of_lt hI)),
   erw [ideal.span_singleton_le_span_singleton, is_unit.mul_right_dvd hb]
-end⟩
+end⟩⟩
 
 lemma irreducible_iff_prime {p : R} : irreducible p ↔ prime p :=
 ⟨λ hp, (ideal.span_singleton_prime hp.ne_zero).1 $

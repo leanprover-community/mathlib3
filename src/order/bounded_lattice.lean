@@ -1089,6 +1089,39 @@ is_compl.of_eq bot_inf_eq sup_top_eq
 lemma is_compl_top_bot [bounded_lattice α] : is_compl (⊤ : α) ⊥ :=
 is_compl.of_eq inf_bot_eq top_sup_eq
 
+section
+variables [bounded_lattice α] {x : α}
+
+lemma eq_top_of_is_compl_bot (h : is_compl x ⊥) : x = ⊤ :=
+sup_bot_eq.symm.trans h.sup_eq_top
+
+lemma eq_top_of_bot_is_compl (h : is_compl ⊥ x) : x = ⊤ :=
+eq_top_of_is_compl_bot h.symm
+
+lemma eq_bot_of_is_compl_top (h : is_compl x ⊤) : x = ⊥ :=
+eq_top_of_is_compl_bot h.to_order_dual
+
+lemma eq_bot_of_top_is_compl (h : is_compl ⊤ x) : x = ⊥ :=
+eq_top_of_bot_is_compl h.to_order_dual
+
+end
+
+/-- A complemented bounded lattice is one where every element has a
+  (not necessarily unique) complement. -/
+class is_complemented (α) [bounded_lattice α] : Prop :=
+(exists_is_compl : ∀ (a : α), ∃ (b : α), is_compl a b)
+
+export is_complemented (exists_is_compl)
+
+namespace is_complemented
+variables [bounded_lattice α] [is_complemented α]
+
+instance : is_complemented (order_dual α) :=
+⟨λ a, ⟨classical.some (@exists_is_compl α _ _ a),
+  (classical.some_spec (@exists_is_compl α _ _ a)).to_order_dual⟩⟩
+
+end is_complemented
+
 end is_compl
 
 section nontrivial

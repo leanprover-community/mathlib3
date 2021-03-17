@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Isometries of emetric and metric spaces
 Authors: Sébastien Gouëzel
 -/
-import topology.bounded_continuous_function
-import topology.compacts
+import analysis.normed_space.basic
 
 /-!
 # Isometries
@@ -100,6 +99,15 @@ by { rw ← image_univ, exact hf.ediam_image univ }
 lemma isometry_subtype_coe {s : set α} : isometry (coe : s → α) :=
 λx y, rfl
 
+lemma isometry.comp_continuous_on_iff {γ} [topological_space γ] (hf : isometry f)
+  {g : γ → α} {s : set γ} :
+  continuous_on (f ∘ g) s ↔ continuous_on g s :=
+hf.uniform_embedding.to_uniform_inducing.inducing.continuous_on_iff.symm
+
+lemma isometry.comp_continuous_iff {γ} [topological_space γ] (hf : isometry f) {g : γ → α} :
+  continuous (f ∘ g) ↔ continuous g :=
+hf.uniform_embedding.to_uniform_inducing.inducing.continuous_iff.symm
+
 end emetric_isometry --section
 
 /-- An isometry preserves the diameter in metric spaces. -/
@@ -110,6 +118,22 @@ by rw [metric.diam, metric.diam, hf.ediam_image]
 lemma isometry.diam_range [metric_space α] [metric_space β] {f : α → β} (hf : isometry f) :
   metric.diam (range f) = metric.diam (univ : set α) :=
 by { rw ← image_univ, exact hf.diam_image univ }
+
+namespace add_monoid_hom
+
+variables {E F : Type*} [normed_group E] [normed_group F]
+
+lemma isometry_iff_norm (f : E →+ F) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
+begin
+  simp only [isometry_emetric_iff_metric, dist_eq_norm, ← f.map_sub],
+  refine ⟨λ h x, _, λ h x y, h _⟩,
+  simpa using h x 0
+end
+
+lemma isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+f.isometry_iff_norm.2 hf
+
+end add_monoid_hom
 
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
 @[nolint has_inhabited_instance] -- such a bijection need not exist
@@ -129,6 +153,10 @@ lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
 @[simp] lemma coe_to_equiv (h : α ≃ᵢ β) : ⇑h.to_equiv = h := rfl
 
 protected lemma isometry (h : α ≃ᵢ β) : isometry h := h.isometry_to_fun
+
+protected lemma bijective (h : α ≃ᵢ β) : bijective h := h.to_equiv.bijective
+protected lemma injective (h : α ≃ᵢ β) : injective h := h.to_equiv.injective
+protected lemma surjective (h : α ≃ᵢ β) : surjective h := h.to_equiv.surjective
 
 protected lemma edist_eq (h : α ≃ᵢ β) (x y : α) : edist (h x) (h y) = edist x y :=
 h.isometry.edist_eq x y
@@ -196,7 +224,7 @@ lemma self_comp_symm (h : α ≃ᵢ β) : ⇑h ∘ ⇑h.symm = id :=
 funext $ assume a, h.to_equiv.right_inv a
 
 @[simp] lemma range_eq_univ (h : α ≃ᵢ β) : range h = univ :=
-eq_univ_of_forall $ assume b, ⟨h.symm b, congr_fun h.self_comp_symm b⟩
+h.to_equiv.range_eq_univ
 
 lemma image_symm (h : α ≃ᵢ β) : image h.symm = preimage h :=
 image_eq_preimage_of_inverse h.symm.to_equiv.left_inv h.symm.to_equiv.right_inv
@@ -217,7 +245,7 @@ by rw [← image_symm, ediam_image]
 protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 { continuous_to_fun  := h.continuous,
   continuous_inv_fun := h.symm.continuous,
-  .. h }
+  to_equiv := h.to_equiv }
 
 @[simp] lemma coe_to_homeomorph (h : α ≃ᵢ β) : ⇑(h.to_homeomorph) = h := rfl
 
@@ -243,18 +271,18 @@ h.to_homeomorph.comp_continuous_iff'
 /-- The group of isometries. -/
 instance : group (α ≃ᵢ α) :=
   { one := isometric.refl _,
-    mul := λ e₁ e₂, e₁.trans e₂,
+    mul := λ e₁ e₂, e₂.trans e₁,
     inv := isometric.symm,
     mul_assoc := λ e₁ e₂ e₃, rfl,
     one_mul := λ e, ext $ λ _, rfl,
     mul_one := λ e, ext $ λ _, rfl,
-    mul_left_inv := λ e, ext e.apply_symm_apply }
+    mul_left_inv := λ e, ext e.symm_apply_apply }
 
 @[simp] lemma coe_one : ⇑(1 : α ≃ᵢ α) = id := rfl
 
-@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₂ ∘ e₁ := rfl
+@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
 
-lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₂ (e₁ x) := rfl
+lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
 
 @[simp] lemma inv_apply_self (e : α ≃ᵢ α) (x: α) : e⁻¹ (e x) = x := e.symm_apply_apply x
 
@@ -346,90 +374,3 @@ begin
   refine isometry_emetric_iff_metric.2 (λx y, _),
   rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map_eq],
 end
-
-/-- The space of bounded sequences, with its sup norm -/
-@[reducible] def ℓ_infty_ℝ : Type := bounded_continuous_function ℕ ℝ
-open bounded_continuous_function metric topological_space
-
-namespace Kuratowski_embedding
-
-/-! ### In this section, we show that any separable metric space can be embedded isometrically in ℓ^∞(ℝ) -/
-
-variables {f g : ℓ_infty_ℝ} {n : ℕ} {C : ℝ} [metric_space α] (x : ℕ → α) (a b : α)
-
-/-- A metric space can be embedded in `l^∞(ℝ)` via the distances to points in
-a fixed countable set, if this set is dense. This map is given in the next definition,
-without density assumptions. -/
-def embedding_of_subset : ℓ_infty_ℝ :=
-of_normed_group_discrete (λn, dist a (x n) - dist (x 0) (x n)) (dist a (x 0))
-  (λ_, abs_dist_sub_le _ _ _)
-
-lemma embedding_of_subset_coe : embedding_of_subset x a n = dist a (x n) - dist (x 0) (x n) := rfl
-
-/-- The embedding map is always a semi-contraction. -/
-lemma embedding_of_subset_dist_le (a b : α) :
-  dist (embedding_of_subset x a) (embedding_of_subset x b) ≤ dist a b :=
-begin
-  refine (dist_le dist_nonneg).2 (λn, _),
-  simp only [embedding_of_subset_coe, real.dist_eq],
-  convert abs_dist_sub_le a b (x n) using 2,
-  ring
-end
-
-/-- When the reference set is dense, the embedding map is an isometry on its image. -/
-lemma embedding_of_subset_isometry (H : dense_range x) : isometry (embedding_of_subset x) :=
-begin
-  refine isometry_emetric_iff_metric.2 (λa b, _),
-  refine (embedding_of_subset_dist_le x a b).antisymm (le_of_forall_pos_le_add (λe epos, _)),
-  /- First step: find n with dist a (x n) < e -/
-  rcases metric.mem_closure_range_iff.1 (H a) (e/2) (half_pos epos) with ⟨n, hn⟩,
-  /- Second step: use the norm control at index n to conclude -/
-  have C : dist b (x n) - dist a (x n) = embedding_of_subset x b n - embedding_of_subset x a n :=
-    by { simp only [embedding_of_subset_coe, sub_sub_sub_cancel_right] },
-  have := calc
-    dist a b ≤ dist a (x n) + dist (x n) b : dist_triangle _ _ _
-    ...    = 2 * dist a (x n) + (dist b (x n) - dist a (x n)) : by { simp [dist_comm], ring }
-    ...    ≤ 2 * dist a (x n) + abs (dist b (x n) - dist a (x n)) :
-      by apply_rules [add_le_add_left, le_abs_self]
-    ...    ≤ 2 * (e/2) + abs (embedding_of_subset x b n - embedding_of_subset x a n) :
-      begin rw C, apply_rules [add_le_add, mul_le_mul_of_nonneg_left, hn.le, le_refl], norm_num end
-    ...    ≤ 2 * (e/2) + dist (embedding_of_subset x b) (embedding_of_subset x a) :
-      by simp [← real.dist_eq, dist_coe_le_dist]
-    ...    = dist (embedding_of_subset x b) (embedding_of_subset x a) + e : by ring,
-  simpa [dist_comm] using this
-end
-
-/-- Every separable metric space embeds isometrically in ℓ_infty_ℝ. -/
-theorem exists_isometric_embedding (α : Type u) [metric_space α] [separable_space α] :
-  ∃(f : α → ℓ_infty_ℝ), isometry f :=
-begin
-  cases (univ : set α).eq_empty_or_nonempty with h h,
-  { use (λ_, 0), assume x, exact absurd h (nonempty.ne_empty ⟨x, mem_univ x⟩) },
-  { /- We construct a map x : ℕ → α with dense image -/
-    rcases h with ⟨basepoint⟩,
-    haveI : inhabited α := ⟨basepoint⟩,
-    have : ∃s:set α, countable s ∧ dense s := exists_countable_dense α,
-    rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,
-    rcases countable_iff_exists_surjective.1 S_countable with ⟨x, x_range⟩,
-    /- Use embedding_of_subset to construct the desired isometry -/
-    exact ⟨embedding_of_subset x, embedding_of_subset_isometry x (S_dense.mono x_range)⟩ }
-end
-end Kuratowski_embedding
-
-open topological_space Kuratowski_embedding
-
-/-- The Kuratowski embedding is an isometric embedding of a separable metric space in ℓ^∞(ℝ) -/
-def Kuratowski_embedding (α : Type u) [metric_space α] [separable_space α] : α → ℓ_infty_ℝ :=
-  classical.some (Kuratowski_embedding.exists_isometric_embedding α)
-
-/-- The Kuratowski embedding is an isometry -/
-protected lemma Kuratowski_embedding.isometry (α : Type u) [metric_space α] [separable_space α] :
-  isometry (Kuratowski_embedding α) :=
-classical.some_spec (exists_isometric_embedding α)
-
-/-- Version of the Kuratowski embedding for nonempty compacts -/
-def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [compact_space α]
-  [nonempty α] :
-  nonempty_compacts ℓ_infty_ℝ :=
-⟨range (Kuratowski_embedding α), range_nonempty _,
-  compact_range (Kuratowski_embedding.isometry α).continuous⟩

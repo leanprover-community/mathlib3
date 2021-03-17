@@ -73,13 +73,29 @@ end
 
 @[simp] theorem sorted_singleton (a : α) : sorted r [a] := pairwise_singleton _ _
 
-lemma nth_le_of_sorted_of_le [is_refl α r] {l : list α}
-  (h : l.sorted r) {a b : ℕ} {ha : a < l.length} {hb : b < l.length} (hab : a ≤ b) :
+lemma sorted.rel_nth_le_of_lt {l : list α}
+  (h : l.sorted r) {a b : ℕ} (ha : a < l.length) (hb : b < l.length) (hab : a < b) :
+  r (l.nth_le a ha) (l.nth_le b hb) :=
+list.pairwise_iff_nth_le.1 h a b hb hab
+
+lemma sorted.rel_nth_le_of_le [is_refl α r] {l : list α}
+  (h : l.sorted r) {a b : ℕ} (ha : a < l.length) (hb : b < l.length) (hab : a ≤ b) :
   r (l.nth_le a ha) (l.nth_le b hb) :=
 begin
   cases eq_or_lt_of_le hab with H H,
-  { induction H, exact refl _ },
-  { exact list.pairwise_iff_nth_le.1 h a b hb H }
+  { subst H, exact refl _ },
+  { exact h.rel_nth_le_of_lt _ _ H }
+end
+
+lemma sorted.rel_of_mem_take_of_mem_drop {l : list α} (h : list.sorted r l)
+  {k : ℕ} {x y : α} (hx : x ∈ list.take k l) (hy : y ∈ list.drop k l) :
+  r x y :=
+begin
+  obtain ⟨iy, hiy, rfl⟩ := nth_le_of_mem hy,
+  obtain ⟨ix, hix, rfl⟩ := nth_le_of_mem hx,
+  rw [nth_le_take', nth_le_drop'],
+  rw length_take at hix,
+  exact h.rel_nth_le_of_lt _ _ (ix.lt_add_right _ _ (lt_min_iff.mp hix).left)
 end
 
 end sorted

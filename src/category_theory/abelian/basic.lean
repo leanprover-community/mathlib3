@@ -144,7 +144,7 @@ variables {X Y : C} (f : X ⟶ Y)
 local attribute [instance] strong_epi_of_epi
 
 /-- In an abelian category, a monomorphism which is also an epimorphism is an isomorphism. -/
-def is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
+lemma is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
 is_iso_of_mono_of_strong_epi _
 
 end mono_epi_iso
@@ -161,11 +161,7 @@ lemma mono_of_zero_kernel (R : C)
 non_preadditive_abelian.mono_of_zero_kernel _ _ l
 
 lemma mono_of_kernel_ι_eq_zero (h : kernel.ι f = 0) : mono f :=
-begin
-  apply mono_of_zero_kernel _ (kernel f),
-  simp_rw ←h,
-  exact is_limit.of_iso_limit (limit.is_limit (parallel_pair f 0)) (iso_of_ι _)
-end
+mono_of_kernel_zero h
 
 lemma epi_of_zero_cokernel (R : C)
   (l : is_colimit (cokernel_cofork.of_π (0 : Q ⟶ R) (show f ≫ 0 = 0, by simp))) : epi f :=

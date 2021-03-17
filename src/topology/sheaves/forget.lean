@@ -192,7 +192,7 @@ begin
       haveI : is_iso f' := is_limit.hom_is_iso hc hd' f',
       -- A cone morphism is an isomorphism exactly if the morphism between the cone points is,
       -- so we're done!
-      exact { ..((cones.forget _).map_iso (as_iso f')) }, }, },
+      exact is_iso.of_iso ((cones.forget _).map_iso (as_iso f')) }, },
 end
 
 /-!

@@ -18,7 +18,8 @@ Throughout most of this file, `K` denotes a finite field
 and `q` is notation for the cardinality of `K`.
 
 See `ring_theory.integral_domain` for the fact that the unit group of a finite field is a
-cyclic group, as well as the fact that every finite integral domain is a field (`field_of_integral_domain`).
+cyclic group, as well as the fact that every finite integral domain is a field
+(`field_of_integral_domain`).
 
 ## Main results
 
@@ -51,8 +52,8 @@ open polynomial
 
 /-- The cardinality of a field is at most `n` times the cardinality of the image of a degree `n`
   polynomial -/
-lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : polynomial R} (hp : 0 < p.degree) :
-  fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
+lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : polynomial R}
+  (hp : 0 < p.degree) : fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
   (λ a _, calc _ = (p - C a).roots.to_finset.card : congr_arg card
     (by simp [finset.ext_iff, mem_roots_sub_C hp])
@@ -73,7 +74,7 @@ end,
 assume hd : disjoint _ _,
 lt_irrefl (2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-g)))).card) $
 calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-g)))).card
-    ≤ 2 * fintype.card R : nat.mul_le_mul_left _ (finset.card_le_of_subset (subset_univ _))
+    ≤ 2 * fintype.card R : nat.mul_le_mul_left _ (finset.card_le_univ _)
 ... = fintype.card R + fintype.card R : two_mul _
 ... < nat_degree f * (univ.image (λ x : R, eval x f)).card +
       nat_degree (-g) * (univ.image (λ x : R, eval x (-g))).card :
@@ -288,7 +289,7 @@ begin
   have := zmod.pow_totient x',
   apply_fun (coe : units (zmod (n+1)) → zmod (n+1)) at this,
   simpa only [-zmod.pow_totient, nat.succ_eq_add_one, nat.cast_pow, units.coe_one,
-    nat.cast_one, cast_unit_of_coprime, units.coe_pow],
+    nat.cast_one, coe_unit_of_coprime, units.coe_pow],
 end
 
 open finite_field

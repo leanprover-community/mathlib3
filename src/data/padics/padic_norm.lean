@@ -123,7 +123,8 @@ int.to_nat (padic_val_rat p n)
 section padic_val_nat
 
 /--
-`padic_val_nat` is defined as an `int.to_nat` cast; this lemma ensures that the cast is well-behaved.
+`padic_val_nat` is defined as an `int.to_nat` cast;
+this lemma ensures that the cast is well-behaved.
 -/
 lemma zero_le_padic_val_rat_of_nat (p n : ℕ) : 0 ≤ padic_val_rat p n :=
 begin
@@ -136,7 +137,8 @@ end
 /--
 `padic_val_rat` coincides with `padic_val_nat`.
 -/
-@[simp, norm_cast] lemma padic_val_rat_of_nat (p n : ℕ) : ↑(padic_val_nat p n) = padic_val_rat p n :=
+@[simp, norm_cast] lemma padic_val_rat_of_nat (p n : ℕ) :
+  ↑(padic_val_nat p n) = padic_val_rat p n :=
 begin
   unfold padic_val_nat,
   rw int.to_nat_of_nonneg (zero_le_padic_val_rat_of_nat p n),
@@ -147,7 +149,8 @@ A simplification of `padic_val_nat` when one input is prime, by analogy with `pa
 -/
 lemma padic_val_nat_def {p : ℕ} [hp : fact p.prime] {n : ℕ} (hn : n ≠ 0) :
   padic_val_nat p n =
-  (multiplicity p n).get (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp, bot_lt_iff_ne_bot.mpr hn⟩) :=
+  (multiplicity p n).get
+    (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp, bot_lt_iff_ne_bot.mpr hn⟩) :=
 begin
   have n_nonzero : (n : ℚ) ≠ 0, by simpa only [cast_eq_zero, ne.def],
   -- Infinite loop with @simp padic_val_rat_of_nat unless we restrict the available lemmas here,
@@ -159,7 +162,8 @@ begin
     using padic_val_rat_def p n_nonzero,
 end
 
-lemma one_le_padic_val_nat_of_dvd {n p : nat} [prime : fact p.prime] (nonzero : n ≠ 0) (div : p ∣ n) :
+lemma one_le_padic_val_nat_of_dvd
+  {n p : nat} [prime : fact p.prime] (nonzero : n ≠ 0) (div : p ∣ n) :
   1 ≤ padic_val_nat p n :=
 begin
   rw @padic_val_nat_def _ prime _ nonzero,
@@ -393,7 +397,8 @@ begin
   exact lt_irrefl 0 (lt_of_lt_of_le zero_lt_one hp),
 end
 
-lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime] (neq : p ≠ q) :
+lemma padic_val_nat_primes
+  {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime] (neq : p ≠ q) :
   padic_val_nat p q = 0 :=
 @padic_val_nat_of_not_dvd p p_prime q $ (not_congr (iff.symm (prime_dvd_prime_iff_eq p_prime q_prime))).mp neq
 

@@ -8,6 +8,7 @@ import field_theory.finite.basic
 import field_theory.mv_polynomial
 import data.mv_polynomial.expand
 import linear_algebra.basic
+import linear_algebra.finite_dimensional
 
 /-!
 ## Polynomials over finite fields
@@ -162,7 +163,7 @@ calc vector_space.dim K (R σ K) =
     by rw [finsupp.dim_eq, dim_of_field, mul_one]
   ... = cardinal.mk {s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
   begin
-    refine quotient.sound ⟨equiv.subtype_congr finsupp.equiv_fun_on_fintype $ assume f, _⟩,
+    refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_fintype $ assume f, _⟩,
     refine forall_congr (assume n, nat.le_sub_right_iff_add_le _),
     exact fintype.card_pos_iff.2 ⟨0⟩
   end
@@ -177,6 +178,13 @@ calc vector_space.dim K (R σ K) =
   end
   ... = fintype.card (σ → K) : cardinal.fintype_card _
 
+instance : finite_dimensional K (R σ K) :=
+finite_dimensional.finite_dimensional_iff_dim_lt_omega.mpr
+  (by simpa only [dim_R] using cardinal.nat_lt_omega (fintype.card (σ → K)))
+
+lemma findim_R : finite_dimensional.findim K (R σ K) = fintype.card (σ → K) :=
+finite_dimensional.findim_eq_of_dim_eq (dim_R σ K)
+
 def evalᵢ : R σ K →ₗ[K] (σ → K) → K :=
 ((evalₗ K σ).comp (restrict_degree σ K (fintype.card K - 1)).subtype)
 
@@ -188,9 +196,8 @@ end
 
 lemma ker_evalₗ : (evalᵢ σ K).ker = ⊥ :=
 begin
-  refine injective_of_surjective _ _ _ (range_evalᵢ _ _),
-  { rw [dim_R], exact cardinal.nat_lt_omega _ },
-  { rw [dim_R, dim_fun, dim_of_field, mul_one] }
+  refine (ker_eq_bot_iff_range_eq_top_of_findim_eq_findim _).mpr (range_evalᵢ _ _),
+  rw [finite_dimensional.findim_fintype_fun_eq_card, findim_R]
 end
 
 lemma eq_zero_of_eval_eq_zero (p : mv_polynomial σ K)

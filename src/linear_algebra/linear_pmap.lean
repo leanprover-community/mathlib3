@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import linear_algebra.basic
+import linear_algebra.prod
 
 /-!
 # Partially defined linear maps
@@ -280,6 +281,32 @@ begin
   have hy : y = 0, from subtype.eq (h y (hxy ▸ x.2) y.2),
   have hx : x = 0, from subtype.eq (hxy.trans $ congr_arg _ hy),
   simp [*]
+end
+
+section
+
+variables {K : Type*} [division_ring K] [module K E] [module K F]
+
+/-- Extend a `linear_pmap` to `f.domain ⊔ K ∙ x`. -/
+noncomputable def sup_span_singleton (f : linear_pmap K E F) (x : E) (y : F) (hx : x ∉ f.domain) :
+  linear_pmap K E F :=
+f.sup (mk_span_singleton x y (λ h₀, hx $ h₀.symm ▸ f.domain.zero_mem)) $
+  sup_h_of_disjoint _ _ $ by simpa [disjoint_span_singleton]
+
+@[simp] lemma domain_sup_span_singleton (f : linear_pmap K E F) (x : E) (y : F)
+  (hx : x ∉ f.domain) :
+  (f.sup_span_singleton x y hx).domain = f.domain ⊔ K ∙ x := rfl
+
+@[simp] lemma sup_span_singleton_apply_mk (f : linear_pmap K E F) (x : E) (y : F)
+  (hx : x ∉ f.domain) (x' : E) (hx' : x' ∈ f.domain) (c : K) :
+  f.sup_span_singleton x y hx ⟨x' + c • x,
+    mem_sup.2 ⟨x', hx', _, mem_span_singleton.2 ⟨c, rfl⟩, rfl⟩⟩ = f ⟨x', hx'⟩ + c • y :=
+begin
+  erw [sup_apply _ ⟨x', hx'⟩ ⟨c • x, _⟩, mk_span_singleton_apply],
+  refl,
+  exact mem_span_singleton.2 ⟨c, rfl⟩
+end
+
 end
 
 private lemma Sup_aux (c : set (linear_pmap R E F)) (hc : directed_on (≤) c) :

@@ -34,6 +34,10 @@ already appears in the input.
 ## Notations
 
 The main new notation is `![a, b]`, which gets expanded to `vec_cons a (vec_cons b vec_empty)`.
+
+## Examples
+
+Examples of usage can be found in the `test/matrix.lean` file.
 -/
 
 namespace matrix
@@ -138,6 +142,9 @@ cons_val_succ x u 0
 @[simp] lemma cons_val_fin_one (x : α) (u : fin 0 → α) (i : fin 1) :
   vec_cons x u i = x :=
 by { fin_cases i, refl }
+
+lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
+funext (cons_val_fin_one x u)
 
 /-! ### Numeral (`bit0` and `bit1`) indices
 The following definitions and `simp` lemmas are to allow any
@@ -380,7 +387,8 @@ rfl
   mul_vec (vec_cons v A) w = vec_cons (dot_product v w) (mul_vec A w) :=
 by { ext i, refine fin.cases _ _ i; simp [mul_vec] }
 
-@[simp] lemma mul_vec_cons {α} [comm_semiring α] (A : m' → (fin n.succ) → α) (x : α) (v : fin n → α) :
+@[simp] lemma mul_vec_cons {α} [comm_semiring α] (A : m' → (fin n.succ) → α) (x : α)
+  (v : fin n → α) :
   mul_vec A (vec_cons x v) = (x • vec_head ∘ A) + mul_vec (vec_tail ∘ A) v :=
 by { ext i, simp [mul_vec, mul_comm] }
 
@@ -440,7 +448,31 @@ by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
   v + vec_cons y w = vec_cons (vec_head v + y) (vec_tail v + w) :=
 by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
 
+@[simp] lemma head_add (a b : fin n.succ → α) : vec_head (a + b) = vec_head a + vec_head b := rfl
+
+@[simp] lemma tail_add (a b : fin n.succ → α) : vec_tail (a + b) = vec_tail a + vec_tail b := rfl
+
 end add
+
+section sub
+
+variables [has_sub α]
+
+@[simp] lemma empty_sub_empty (v w : fin 0 → α) : v - w = ![] := empty_eq _
+
+@[simp] lemma cons_sub (x : α) (v : fin n → α) (w : fin n.succ → α) :
+  vec_cons x v - w = vec_cons (x - vec_head w) (v - vec_tail w) :=
+by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+
+@[simp] lemma sub_cons (v : fin n.succ → α) (y : α) (w : fin n → α) :
+  v - vec_cons y w = vec_cons (vec_head v - y) (vec_tail v - w) :=
+by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+
+@[simp] lemma head_sub (a b : fin n.succ → α) : vec_head (a - b) = vec_head a - vec_head b := rfl
+
+@[simp] lemma tail_sub (a b : fin n.succ → α) : vec_tail (a - b) = vec_tail a - vec_tail b := rfl
+
+end sub
 
 section zero
 
@@ -479,6 +511,10 @@ variables [has_neg α]
 @[simp] lemma neg_cons (x : α) (v : fin n → α) :
   -(vec_cons x v) = vec_cons (-x) (-v) :=
 by { ext i, refine fin.cases _ _ i; simp }
+
+@[simp] lemma head_neg (a : fin n.succ → α) : vec_head (-a) = -vec_head a := rfl
+
+@[simp] lemma tail_neg (a : fin n.succ → α) : vec_tail (-a) = -vec_tail a := rfl
 
 end neg
 

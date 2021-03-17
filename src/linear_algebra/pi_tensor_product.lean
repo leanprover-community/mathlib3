@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Frédéric Dupuis
+Authors: Frédéric Dupuis, Eric Wieser
 -/
 
 import group_theory.congruence
@@ -25,6 +25,9 @@ binary tensor product in `linear_algebra/tensor_product.lean`.
   function `φ : (R × Π i, s i) → F` with the appropriate properties.
 * `lift φ` with `φ : multilinear_map R s E` is the corresponding linear map
   `(⨂[R] i, s i) →ₗ[R] E`. This is bundled as a linear equivalence.
+* `pi_tensor_product.reindex e` re-indexes the components of `⨂[R] i : ι, M` along `e : ι ≃ ι₂`.
+* `pi_tensor_product.tmul_equiv` equivalence between a `tensor_product` of `pi_tensor_product`s and
+  a single `pi_tensor_product`.
 
 ## Notations
 
@@ -53,15 +56,15 @@ binary tensor product in `linear_algebra/tensor_product.lean`.
 multilinear, tensor, tensor product
 -/
 
-noncomputable theory
-open_locale classical
 open function
 
 section semiring
 
-variables {ι : Type*} {R : Type*} [comm_semiring R]
+variables {ι ι₂ ι₃ : Type*} [decidable_eq ι] [decidable_eq ι₂] [decidable_eq ι₃]
+variables {R : Type*} [comm_semiring R]
 variables {R' : Type*} [comm_semiring R'] [algebra R' R]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
+variables {M : Type*} [add_comm_monoid M] [semimodule R M]
 variables {E : Type*} [add_comm_monoid E] [semimodule R E]
 variables {F : Type*} [add_comm_monoid F]
 
@@ -356,8 +359,142 @@ theorem lift.unique {φ' : (⨂[R] i, s i) →ₗ[R] E} (H : ∀ f, φ' (tprod R
   φ' = lift φ :=
 lift.unique' (multilinear_map.ext H)
 
+@[simp]
+theorem lift_symm (φ' : (⨂[R] i, s i) →ₗ[R] E) : lift.symm φ' = φ'.comp_multilinear_map (tprod R) :=
+rfl
+
+@[simp]
 theorem lift_tprod : lift (tprod R : multilinear_map R s _) = linear_map.id :=
 eq.symm $ lift.unique' rfl
+
+section
+
+variables (R M)
+/-- Re-index the components of the tensor power by `e`.
+
+For simplicity, this is defined only for homogeneously- (rather than dependently-) typed components.
+-/
+def reindex (e : ι ≃ ι₂) : ⨂[R] i : ι, M ≃ₗ[R] ⨂[R] i : ι₂, M :=
+linear_equiv.of_linear
+  ((lift.symm.trans $
+    multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι₂, M) R R e.symm).trans
+      lift (linear_map.id))
+  ((lift.symm.trans $
+    multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι, M) R R e).trans
+      lift (linear_map.id))
+  (by { ext, simp })
+  (by { ext, simp })
+
+end
+
+@[simp] lemma reindex_tprod (e : ι ≃ ι₂) (f : Π i, M) :
+  reindex R M e (tprod R f) = tprod R (λ i, f (e.symm i)) :=
+lift.tprod f
+
+@[simp] lemma reindex_comp_tprod (e : ι ≃ ι₂) :
+  (reindex R M e : ⨂[R] i : ι, M →ₗ[R] ⨂[R] i : ι₂, M).comp_multilinear_map (tprod R) =
+    (tprod R : multilinear_map R (λ i, M) _).dom_dom_congr e.symm :=
+multilinear_map.ext $ reindex_tprod e
+
+@[simp] lemma lift_comp_reindex (e : ι ≃ ι₂) (φ : multilinear_map R (λ _ : ι₂, M) E) :
+  (lift φ).comp ↑(reindex R M e) = lift (φ.dom_dom_congr e.symm) :=
+by { ext, simp, }
+
+@[simp]
+lemma lift_reindex (e : ι ≃ ι₂) (φ : multilinear_map R (λ _, M) E) (x : ⨂[R] i, M) :
+  lift φ (reindex R M e x) = lift (φ.dom_dom_congr e.symm) x :=
+linear_map.congr_fun (lift_comp_reindex e φ) x
+
+@[simp] lemma reindex_trans (e : ι ≃ ι₂) (e' : ι₂ ≃ ι₃) :
+  (reindex R M e).trans (reindex R M e') = reindex R M (e.trans e') :=
+begin
+  apply linear_equiv.injective_to_linear_map,
+  ext f,
+  simp only [linear_equiv.trans_apply, linear_equiv.coe_coe, reindex_tprod,
+    linear_map.coe_comp_multilinear_map, function.comp_app, multilinear_map.dom_dom_congr_apply,
+    reindex_comp_tprod],
+  congr,
+end
+
+@[simp] lemma reindex_symm (e : ι ≃ ι₂) :
+  (reindex R M e).symm = reindex R M e.symm := rfl
+
+@[simp] lemma reindex_refl : reindex R M (equiv.refl ι) = linear_equiv.refl R _ :=
+begin
+  apply linear_equiv.injective_to_linear_map,
+  ext1,
+  rw [reindex_comp_tprod, linear_equiv.refl_to_linear_map, equiv.refl_symm],
+  refl,
+end
+
+/-- The tensor product over an empty set of indices is isomorphic to the base ring -/
+def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
+{ to_fun := lift ⟨λ (_ : pempty → M), (1 : R), λ v, pempty.elim, λ v, pempty.elim⟩,
+  inv_fun := λ r, r • tprod R (λ v, pempty.elim v),
+  left_inv := λ x, by {
+    apply x.induction_on,
+    { intros r f,
+      have : f = (λ i, pempty.elim i) := funext (λ i, pempty.elim i),
+      simp [this], },
+    { simp only,
+      intros x y hx hy,
+      simp [add_smul, hx, hy] }},
+  right_inv := λ t, by simp only [mul_one, algebra.id.smul_eq_mul, multilinear_map.coe_mk,
+    linear_map.map_smul, pi_tensor_product.lift.tprod],
+  map_add' := linear_map.map_add _,
+  map_smul' := linear_map.map_smul _, }
+
+section tmul
+
+/-- Collapse a `tensor_product` of `pi_tensor_product`s. -/
+private def tmul : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) →ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
+tensor_product.lift
+  { to_fun := λ a, pi_tensor_product.lift $ pi_tensor_product.lift
+      (multilinear_map.curry_sum_equiv R _ _ M _ (tprod R)) a,
+    map_add' := λ a b, by simp only [linear_equiv.map_add, linear_map.map_add],
+    map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul], }
+
+private lemma tmul_apply (a : ι → M) (b : ι₂ → M) :
+  tmul ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=
+begin
+  erw [tensor_product.lift.tmul, pi_tensor_product.lift.tprod, pi_tensor_product.lift.tprod],
+  refl
+end
+
+/-- Expand `pi_tensor_product` into a `tensor_product` of two factors. -/
+private def tmul_symm : ⨂[R] i : ι ⊕ ι₂, M →ₗ[R] (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) :=
+-- by using tactic mode, we avoid the need for a lot of `@`s and `_`s
+pi_tensor_product.lift $ by apply multilinear_map.dom_coprod; [exact tprod R, exact tprod R]
+
+private lemma tmul_symm_apply (a : ι ⊕ ι₂ → M) :
+  tmul_symm (⨂ₜ[R] i, a i) = (⨂ₜ[R] i, a (sum.inl i)) ⊗ₜ[R] (⨂ₜ[R] i, a (sum.inr i)) :=
+pi_tensor_product.lift.tprod _
+
+variables (R M)
+
+/-- Equivalence between a `tensor_product` of `pi_tensor_product`s and a single
+`pi_tensor_product` indexed by a `sum` type.
+
+For simplicity, this is defined only for homogeneously- (rather than dependently-) typed components.
+-/
+def tmul_equiv : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) ≃ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
+linear_equiv.of_linear tmul tmul_symm
+  (by { ext x,
+        show tmul (tmul_symm (tprod R x)) = tprod R x, -- Speed up the call to `simp`.
+        simp only [tmul_symm_apply, tmul_apply, sum.elim_comp_inl_inr], })
+  (by { ext x y,
+        show tmul_symm (tmul (tprod R x ⊗ₜ[R] tprod R y)) = tprod R x ⊗ₜ[R] tprod R y,
+        simp only [tmul_apply, tmul_symm_apply, sum.elim_inl, sum.elim_inr], })
+
+@[simp] lemma tmul_equiv_apply (a : ι → M) (b : ι₂ → M) :
+  tmul_equiv R M ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=
+tmul_apply a b
+
+@[simp] lemma tmul_equiv_symm_apply (a : ι ⊕ ι₂ → M) :
+  (tmul_equiv R M).symm (⨂ₜ[R] i, a i) = (⨂ₜ[R] i, a (sum.inl i)) ⊗ₜ[R] (⨂ₜ[R] i, a (sum.inr i)) :=
+tmul_symm_apply a
+
+end tmul
 
 end multilinear
 
@@ -371,7 +508,7 @@ namespace pi_tensor_product
 open pi_tensor_product
 open_locale tensor_product
 
-variables {ι : Type*} {R : Type*} [comm_ring R]
+variables {ι : Type*} [decidable_eq ι] {R : Type*} [comm_ring R]
 variables {s : ι → Type*} [∀ i, add_comm_group (s i)] [∀ i, module R (s i)]
 
 /- Unlike for the binary tensor product, we require `R` to be a `comm_ring` here, otherwise

@@ -26,7 +26,8 @@ requires more unfolding without much obvious benefit.
 
 ## Tags
 
-primitive element, separable field extension, separable extension, intermediate field, adjoin, exists_adjoin_simple_eq_top
+primitive element, separable field extension, separable extension, intermediate field, adjoin,
+exists_adjoin_simple_eq_top
 
 -/
 
@@ -93,10 +94,10 @@ variables [algebra F E]
 lemma primitive_element_inf_aux (F_sep : is_separable F E) :
   ∃ γ : E, F⟮α, β⟯ = F⟮γ⟯ :=
 begin
-  obtain ⟨hα, hf⟩ := F_sep α,
-  obtain ⟨hβ, hg⟩ := F_sep β,
-  let f := minpoly hα,
-  let g := minpoly hβ,
+  have hα := F_sep.is_integral α,
+  have hβ := F_sep.is_integral β,
+  let f := minpoly F α,
+  let g := minpoly F β,
   let ιFE := algebra_map F E,
   let ιEE' := algebra_map E (splitting_field (g.map ιFE)),
   obtain ⟨c, hc⟩ := primitive_element_inf_aux_exists_c (ιEE'.comp ιFE) (ιEE' α) (ιEE' β) f g,
@@ -127,7 +128,7 @@ begin
       simp [mul_sub, coeff_C, mul_div_cancel_left β (mt leading_coeff_eq_zero.mp h_ne_zero)] },
     rw finale,
     exact subtype.mem (-p.coeff 0 / p.coeff 1) },
-  have h_sep : h.separable := separable_gcd_right _ (separable.map hg),
+  have h_sep : h.separable := separable_gcd_right _ (separable.map (F_sep.separable β)),
   have h_root : h.eval β = 0,
   { apply eval_gcd_eq_zero,
     { rw [eval_comp, eval_sub, eval_mul, eval_C, eval_C, eval_X, eval_map, ←aeval_def,

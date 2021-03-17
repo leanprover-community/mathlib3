@@ -92,7 +92,7 @@ f.2 n
 
 lemma coeff_frobenius (f : ring.perfection R p) (n : ℕ) :
   coeff R p (n + 1) (frobenius _ p f) = coeff R p n f :=
-by convert coeff_pow_p f n
+by apply coeff_pow_p f n -- `coeff_pow_p f n` also works but is slow!
 
 lemma coeff_iterate_frobenius (f : ring.perfection R p) (n m : ℕ) :
   coeff R p (n + m) (frobenius _ p ^[m] f) = coeff R p n f :=

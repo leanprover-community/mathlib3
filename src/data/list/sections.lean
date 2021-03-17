@@ -29,7 +29,8 @@ end
 theorem mem_sections_length {L : list (list α)} {f} (h : f ∈ sections L) : length f = length L :=
 forall₂_length_eq (mem_sections.1 h)
 
-lemma rel_sections {r : α → β → Prop} : (forall₂ (forall₂ r) ⇒ forall₂ (forall₂ r)) sections sections
+lemma rel_sections {r : α → β → Prop} :
+  (forall₂ (forall₂ r) ⇒ forall₂ (forall₂ r)) sections sections
 | _ _ forall₂.nil := forall₂.cons forall₂.nil forall₂.nil
 | _ _ (forall₂.cons h₀ h₁) :=
   rel_bind (rel_sections h₁) (assume _ _ hl, rel_map (assume _ _ ha, forall₂.cons ha hl) h₀)

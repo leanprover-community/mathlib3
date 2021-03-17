@@ -163,7 +163,8 @@ lemma series_ratio_test {f : ℕ → β} (n : ℕ) (r : α)
   is_cau_seq abv (λ m, ∑ n in range m, f n) :=
 have har1 : abs r < 1, by rwa abs_of_nonneg hr0,
 begin
-  refine is_cau_series_of_abv_le_cau n.succ _ (is_cau_geo_series_const (abv (f n.succ) * r⁻¹ ^ n.succ) har1),
+  refine is_cau_series_of_abv_le_cau n.succ _
+    (is_cau_geo_series_const (abv (f n.succ) * r⁻¹ ^ n.succ) har1),
   assume m hmn,
   cases classical.em (r = 0) with r_zero r_ne_zero,
   { have m_pos := lt_of_lt_of_le (nat.succ_pos n) hmn,
@@ -542,7 +543,8 @@ lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
-by rw [sinh, ← conj.map_neg, exp_conj, exp_conj, ← conj.map_sub, sinh, conj.map_div, conj_bit0, conj.map_one]
+by rw [sinh, ← conj.map_neg, exp_conj, exp_conj, ← conj.map_sub, sinh, conj.map_div, conj_bit0,
+  conj.map_one]
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
@@ -874,8 +876,15 @@ by rw [exp_add, exp_mul_I]
 lemma exp_eq_exp_re_mul_sin_add_cos : exp x = exp x.re * (cos x.im + sin x.im * I) :=
 by rw [← exp_add_mul_I, re_add_im]
 
+lemma exp_re : (exp x).re = real.exp x.re * real.cos x.im :=
+by { rw [exp_eq_exp_re_mul_sin_add_cos], simp [exp_of_real_re, cos_of_real_re] }
+
+lemma exp_im : (exp x).im = real.exp x.re * real.sin x.im :=
+by { rw [exp_eq_exp_re_mul_sin_add_cos], simp [exp_of_real_re, sin_of_real_re] }
+
 /-- De Moivre's formula -/
-theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) : (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I :=
+theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
+  (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I :=
 begin
   rw [← exp_mul_I, ← exp_mul_I],
   induction n with n ih,
@@ -970,10 +979,7 @@ begin
 end
 
 lemma tan_eq_sin_div_cos : tan x = sin x / cos x :=
-if h : complex.cos x = 0 then by simp [sin, cos, tan, *, complex.tan, div_eq_mul_inv] at *
-else
-  by rw [sin, cos, tan, complex.tan, ← of_real_inj, div_eq_mul_inv, mul_re];
-  simp [norm_sq, (div_div_eq_div_mul _ _ _).symm, div_self h]; refl
+by rw [← of_real_inj, of_real_tan, tan_eq_sin_div_cos, of_real_div, of_real_sin, of_real_cos]
 
 lemma tan_mul_cos {x : ℝ} (hx : cos x ≠ 0) : tan x * cos x = sin x :=
 by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
@@ -1196,9 +1202,11 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
       (by simp at hm; tauto))
     (λ m hm, by rw nat.sub_add_cancel; simp at *; tauto)
     (λ a₁ a₂ ha₁ ha₂ h,
-      by rwa [nat.sub_eq_iff_eq_add, ← nat.sub_add_comm, eq_comm, nat.sub_eq_iff_eq_add, add_left_inj, eq_comm] at h;
+      by rwa [nat.sub_eq_iff_eq_add, ← nat.sub_add_comm, eq_comm, nat.sub_eq_iff_eq_add,
+              add_left_inj, eq_comm] at h;
         simp at *; tauto)
-    (λ b hb, ⟨b + n, mem_filter.2 ⟨mem_range.2 $ nat.add_lt_of_lt_sub_right (mem_range.1 hb), nat.le_add_left _ _⟩,
+    (λ b hb, ⟨b + n,
+      mem_filter.2 ⟨mem_range.2 $ nat.add_lt_of_lt_sub_right (mem_range.1 hb), nat.le_add_left _ _⟩,
       by rw nat.add_sub_cancel⟩)
 ... ≤ ∑ m in range (j - n), (n! * n.succ ^ m)⁻¹ :
   begin

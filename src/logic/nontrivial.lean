@@ -164,7 +164,8 @@ do
   tactic.cases alternative [n, n],
   (solve1 $ do
     reset_instance_cache,
-    interactive.simp none ff lems [`nontriviality] (interactive.loc.ns [none])) <|>
+    apply_instance <|>
+      interactive.simp none none ff lems [`nontriviality] (interactive.loc.ns [none])) <|>
       fail format!"Could not prove goal assuming `subsingleton {α}`",
   reset_instance_cache
 

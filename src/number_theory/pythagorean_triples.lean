@@ -12,8 +12,9 @@ import tactic.field_simp
 
 /-!
 # Pythagorean Triples
-The main result is the classification of pythagorean triples. The final result is for general
-pythagorean triples. It follows from the more interesting relatively prime case. We use the
+
+The main result is the classification of Pythagorean triples. The final result is for general
+Pythagorean triples. It follows from the more interesting relatively prime case. We use the
 "rational parametrization of the circle" method for the proof. The parametrization maps the point
 `(x / z, y / z)` to the slope of the line through `(-1 , 0)` and `(x / z, y / z)`. This quickly
 shows that `(x / z, y / z) = (2 * m * n / (m ^ 2 + n ^ 2), (m ^ 2 - n ^ 2) / (m ^ 2 + n ^ 2))` where
@@ -80,7 +81,8 @@ end
 
 include h
 
-/-- A pythogorean triple `x, y, z` is “classified” if there exist integers `k, m, n` such that either
+/-- A Pythagorean triple `x, y, z` is “classified” if there exist integers `k, m, n` such that
+either
  * `x = k * (m ^ 2 - n ^ 2)` and `y = k * (2 * m * n)`, or
  * `x = k * (2 * m * n)` and `y = k * (m ^ 2 - n ^ 2)`. -/
 @[nolint unused_arguments] def is_classified := ∃ (k m n : ℤ),
@@ -177,8 +179,8 @@ begin
   { apply and.intro _ co, rw one_mul, rw one_mul, tauto }
 end
 
-lemma is_classified_of_normalize_is_primitive_classified (hc : h.normalize.is_primitive_classified) :
-  h.is_classified :=
+lemma is_classified_of_normalize_is_primitive_classified
+  (hc : h.normalize.is_primitive_classified) : h.is_classified :=
 begin
   convert h.normalize.mul_is_classified (int.gcd x y)
     (is_classified_of_is_primitive_classified h.normalize hc);
@@ -281,8 +283,10 @@ begin
   rw ← int.coe_nat_dvd_left at hp1 hp2,
   have h2m : (p : ℤ) ∣ 2 * m ^ 2, { convert dvd_add hp2 hp1, ring },
   have h2n : (p : ℤ) ∣ 2 * n ^ 2, { convert dvd_sub hp2 hp1, ring },
-  have hmc : p = 2 ∨ p ∣ int.nat_abs m, { exact prime_two_or_dvd_of_dvd_two_mul_pow_self_two hp h2m },
-  have hnc : p = 2 ∨ p ∣ int.nat_abs n, { exact prime_two_or_dvd_of_dvd_two_mul_pow_self_two hp h2n },
+  have hmc : p = 2 ∨ p ∣ int.nat_abs m :=
+    prime_two_or_dvd_of_dvd_two_mul_pow_self_two hp h2m,
+  have hnc : p = 2 ∨ p ∣ int.nat_abs n :=
+    prime_two_or_dvd_of_dvd_two_mul_pow_self_two hp h2n,
   by_cases h2 : p = 2,
   { have h3 : (m ^ 2 + n ^ 2) % 2 = 1, { norm_num [pow_two, int.add_mod, int.mul_mod, hm, hn] },
     have h4 : (m ^ 2 + n ^ 2) % 2 = 0, { apply int.mod_eq_zero_of_dvd, rwa h2 at hp2 },
@@ -313,7 +317,7 @@ begin
   cases int.prime.dvd_mul hp hp2 with hp2m hpn,
   { rw int.nat_abs_mul at hp2m,
     cases (nat.prime.dvd_mul hp).mp hp2m with hp2 hpm,
-    { have hp2' : p = 2, { exact le_antisymm (nat.le_of_dvd zero_lt_two hp2) (nat.prime.two_le hp) },
+    { have hp2' : p = 2 := (nat.le_of_dvd zero_lt_two hp2).antisymm hp.two_le,
       revert hp1, rw hp2',
       apply mt int.mod_eq_zero_of_dvd,
       norm_num [pow_two, int.sub_mod, int.mul_mod, hm, hn],
@@ -417,7 +421,9 @@ begin
   { field_simp [hz, pow_two], norm_cast, exact h },
   have hvz : v ≠ 0, { field_simp [hz], exact h0 },
   have hw1 : w ≠ -1,
-  { contrapose! hvz with hw1, rw [hw1, neg_square, one_pow, add_left_eq_self] at hq, exact pow_eq_zero hq, },
+  { contrapose! hvz with hw1,
+    rw [hw1, neg_square, one_pow, add_left_eq_self] at hq,
+    exact pow_eq_zero hq, },
   have hQ : ∀ x : ℚ, 1 + x^2 ≠ 0,
   { intro q, apply ne_of_gt, exact lt_add_of_pos_of_le zero_lt_one (pow_two_nonneg q) },
   have hp : (⟨v, w⟩ : ℚ × ℚ) ∈ {p : ℚ × ℚ | p.1^2 + p.2^2 = 1 ∧ p.2 ≠ -1} := ⟨hq, hw1⟩,

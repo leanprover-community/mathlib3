@@ -40,12 +40,6 @@ lemma fintype.prod_apply {α : Type*} {β : α → Type*} {γ : Type*} [fintype 
   [∀a, comm_monoid (β a)] (a : α) (g : γ → Πa, β a) : (∏ c, g c) a = ∏ c, g c a :=
 finset.prod_apply a finset.univ g
 
-@[simp, to_additive]
-lemma monoid_hom.finset_prod_apply {ι M N : Type*} [monoid M] [comm_monoid N] (f : ι → M →* N)
-  (s : finset ι) (a : M) :
-  (∏ i in s, f i) a = ∏ i in s, f i a :=
-(monoid_hom.eval a).map_prod _ _
-
 @[to_additive prod_mk_sum]
 lemma prod_mk_prod {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
   (f : γ → α) (g : γ → β) : (∏ x in s, f x, ∏ x in s, g x) = ∏ x in s, (f x, g x) :=
@@ -59,25 +53,26 @@ variables [Π i, add_comm_monoid (Z i)]
 -- As we only defined `single` into `add_monoid`, we only prove the `finset.sum` version here.
 lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
   ∑ i, pi.single i (f i) = f :=
-begin
-  ext a,
-  rw [finset.sum_apply, finset.sum_eq_single a],
-  { simp, },
-  { intros b _ h, simp [h.symm], },
-  { intro h, exfalso, simpa using h, },
-end
+by { ext a, simp }
 
-@[ext]
 lemma add_monoid_hom.functions_ext [fintype I] (G : Type*)
   [add_comm_monoid G] (g h : (Π i, Z i) →+ G)
   (w : ∀ (i : I) (x : Z i), g (pi.single i x) = h (pi.single i x)) : g = h :=
 begin
   ext k,
-  rw [←finset.univ_sum_single k, add_monoid_hom.map_sum, add_monoid_hom.map_sum],
-  apply finset.sum_congr rfl,
-  intros,
-  apply w,
+  rw [← finset.univ_sum_single k, g.map_sum, h.map_sum],
+  simp only [w]
 end
+
+/-- This is used as the ext lemma instead of `add_monoid_hom.functions_ext` for reasons explained in
+note [partially-applied ext lemmas]. -/
+@[ext]
+lemma add_monoid_hom.functions_ext' [fintype I] (M : Type*) [add_comm_monoid M]
+  (g h : (Π i, Z i) →+ M)
+  (H : ∀ i, g.comp (add_monoid_hom.single Z i) = h.comp (add_monoid_hom.single Z i)) :
+  g = h :=
+have _ := λ i, add_monoid_hom.congr_fun (H i), -- elab without an expected type
+g.functions_ext M h this
 
 end single
 
@@ -86,15 +81,10 @@ open pi
 variables {I : Type*} [decidable_eq I] {f : I → Type*}
 variables [Π i, semiring (f i)]
 
--- we need `apply`+`convert` because Lean fails to unify different `add_monoid` instances
--- on `Π i, f i`
-@[ext]
-lemma ring_hom.functions_ext [fintype I] (G : Type*) [semiring G] (g h : (Π i, f i) →+* G)
+@[ext] lemma ring_hom.functions_ext [fintype I] (G : Type*) [semiring G] (g h : (Π i, f i) →+* G)
   (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
-begin
-  apply ring_hom.coe_add_monoid_hom_injective,
-  convert add_monoid_hom.functions_ext _ _ _ _; assumption
-end
+ring_hom.coe_add_monoid_hom_injective $
+ add_monoid_hom.functions_ext G (g : (Π i, f i) →+ G) h w
 
 end ring_hom
 

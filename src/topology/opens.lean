@@ -146,7 +146,8 @@ lemma is_basis_iff_nbhd {B : set (opens α)} :
 begin
   split; intro h,
   { rintros ⟨sU, hU⟩ x hx,
-    rcases (mem_nhds_of_is_topological_basis h).mp (mem_nhds_sets hU hx) with ⟨sV, ⟨⟨V, H₁, H₂⟩, hsV⟩⟩,
+    rcases (mem_nhds_of_is_topological_basis h).mp (mem_nhds_sets hU hx)
+      with ⟨sV, ⟨⟨V, H₁, H₂⟩, hsV⟩⟩,
     refine ⟨V, H₁, _⟩,
     cases V, dsimp at H₂, subst H₂, exact hsV },
   { refine is_topological_basis_of_open_of_nhds _ _,

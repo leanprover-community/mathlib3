@@ -43,6 +43,12 @@ lemma C_add : C (a + b) = C a + C b := C.map_add a b
 
 lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
 
+@[simp] lemma C_mul_monomial : C a * monomial n b = monomial n (a * b) :=
+by simp only [←monomial_zero_left, monomial_mul_monomial, zero_add]
+
+@[simp] lemma monomial_mul_C : monomial n a * C b = monomial n (a * b) :=
+by simp only [←monomial_zero_left, monomial_mul_monomial, add_zero]
+
 @[simp]
 lemma C_eq_nat_cast (n : ℕ) : C (n : R) = (n : polynomial R) :=
 C.map_nat_cast n
@@ -56,6 +62,9 @@ lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
 by { convert coeff_monomial using 2, simp [eq_comm], }
 
 @[simp] lemma coeff_C_zero : coeff (C a) 0 = a := coeff_monomial
+
+lemma coeff_C_ne_zero (h : n ≠ 0) : (C a).coeff n = 0 :=
+by rw [coeff_C, if_neg h]
 
 theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
 ⟨⟨0, 1, λ h01 : 0 = 1, h $

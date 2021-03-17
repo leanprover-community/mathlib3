@@ -24,8 +24,8 @@ then `findim (fixed_points G F) F = fintype.card G`.
 
 ## Main Definitions
 
-- `fixed_points G F`, the subfield consisting of elements of `F` fixed_points by every element of `G`, where
-`G` is a group that acts on `F`.
+- `fixed_points G F`, the subfield consisting of elements of `F` fixed_points by every element of
+`G`, where `G` is a group that acts on `F`.
 
 -/
 
@@ -74,7 +74,8 @@ lemma linear_independent_smul_of_linear_independent {s : finset F} :
   linear_independent (fixed_points G F) (λ i : (↑s : set F), (i : F)) →
   linear_independent F (λ i : (↑s : set F), mul_action.to_fun G F i) :=
 begin
-  refine finset.induction_on s (λ _, linear_independent_empty_type $ λ ⟨x⟩, x.2) (λ a s has ih hs, _),
+  refine finset.induction_on s (λ _, linear_independent_empty_type $ λ ⟨x⟩, x.2)
+    (λ a s has ih hs, _),
   rw coe_insert at hs ⊢,
   rw linear_independent_insert (mt mem_coe.1 has) at hs,
   rw linear_independent_insert' (mt mem_coe.1 has), refine ⟨ih hs.1, λ ha, _⟩,
@@ -177,21 +178,21 @@ theorem is_integral : is_integral (fixed_points G F) x :=
 ⟨minpoly G F x, minpoly.monic G F x, minpoly.eval₂ G F x⟩
 
 theorem minpoly_eq_minpoly :
-  minpoly G F x = _root_.minpoly (is_integral G F x) :=
-minpoly.unique' _ (minpoly.irreducible G F x)
+  minpoly G F x = _root_.minpoly (fixed_points G F) x :=
+minpoly.unique' (is_integral G F x) (minpoly.irreducible G F x)
   (minpoly.eval₂ G F x) (minpoly.monic G F x)
 
 instance normal : normal (fixed_points G F) F :=
-λ x, ⟨is_integral G F x, (polynomial.splits_id_iff_splits _).1 $
+⟨λ x, is_integral G F x, λ x, (polynomial.splits_id_iff_splits _).1 $
 by { rw [← minpoly_eq_minpoly, minpoly,
     coe_algebra_map, polynomial.map_to_subring, prod_X_sub_smul],
   exact polynomial.splits_prod _ (λ _ _, polynomial.splits_X_sub_C _) }⟩
 
 instance separable : is_separable (fixed_points G F) F :=
-λ x, ⟨is_integral G F x,
-by { rw [← minpoly_eq_minpoly,
-        ← polynomial.separable_map (is_subring.subtype (fixed_points G F)),
-        minpoly, polynomial.map_to_subring],
+⟨λ x, is_integral G F x,
+ λ x, by {
+  rw [← minpoly_eq_minpoly, ← polynomial.separable_map (is_subring.subtype (fixed_points G F)),
+    minpoly, polynomial.map_to_subring],
   exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
 
 lemma dim_le_card : vector_space.dim (fixed_points G F) F ≤ fintype.card G :=

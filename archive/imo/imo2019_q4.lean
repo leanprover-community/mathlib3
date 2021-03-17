@@ -49,7 +49,7 @@ begin
     { intros, apply sub_le_self, apply pow_nonneg, norm_num } },
   suffices : 2 ^ (n * n) < (n * (n - 1) / 2)!,
   { rw [prod_const, card_range, ← pow_mul], rw [← int.coe_nat_lt_coe_nat_iff] at this,
-    convert this.trans _, norm_cast, rwa [int.coe_nat_lt_coe_nat_iff, factorial_lt],
+    clear h, convert this.trans _, norm_cast, rwa [int.coe_nat_lt_coe_nat_iff, factorial_lt],
     refine nat.div_pos _ (by norm_num),
     refine le_trans _ (mul_le_mul hn (pred_le_pred hn) (zero_le _) (zero_le _)),
     norm_num },

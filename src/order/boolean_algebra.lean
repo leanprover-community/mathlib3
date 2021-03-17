@@ -119,6 +119,13 @@ by rw [sdiff_eq, sdiff_eq]; from inf_le_inf h₁ (compl_le_compl h₂)
 @[simp] lemma sdiff_idem_right : x \ y \ y = x \ y :=
 by rw [sdiff_eq, sdiff_eq, inf_assoc, inf_idem]
 
+namespace boolean_algebra
+
+@[priority 100]
+instance : is_complemented α := ⟨λ x, ⟨xᶜ, is_compl_compl⟩⟩
+
+end boolean_algebra
+
 end boolean_algebra
 
 instance boolean_algebra_Prop : boolean_algebra Prop :=

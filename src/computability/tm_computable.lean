@@ -74,7 +74,7 @@ end fin_tm2
 def init_list (tm : fin_tm2) (s : list (tm.Γ tm.k₀)) : tm.cfg :=
 { l := option.some tm.main,
   var := tm.initial_state,
-  stk := λ k, @dite (k = tm.k₀) (tm.K_decidable_eq k tm.k₀) (list (tm.Γ k))
+  stk := λ k, @dite (list (tm.Γ k)) (k = tm.k₀) (tm.K_decidable_eq k tm.k₀)
                 (λ h, begin rw h, exact s, end)
                 (λ _,[]) }
 
@@ -82,7 +82,7 @@ def init_list (tm : fin_tm2) (s : list (tm.Γ tm.k₀)) : tm.cfg :=
 def halt_list (tm : fin_tm2) (s : list (tm.Γ tm.k₁)) : tm.cfg :=
 { l := option.none,
   var := tm.initial_state,
-  stk := λ k, @dite (k = tm.k₁) (tm.K_decidable_eq k tm.k₁) (list (tm.Γ k))
+  stk := λ k, @dite (list (tm.Γ k)) (k = tm.k₁) (tm.K_decidable_eq k tm.k₁)
                 (λ h, begin rw h, exact s, end)
                 (λ _,[]) }
 

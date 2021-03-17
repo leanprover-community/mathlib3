@@ -142,13 +142,16 @@ at every assumption and the goal using `push_neg at *` or at selected assumption
 using say `push_neg at h h' ⊢` as usual.
 -/
 meta def tactic.interactive.push_neg : parse location → tactic unit
-| (loc.ns loc_l) := loc_l.mmap'
-                      (λ l, match l with
-                            | some h := do push_neg_at_hyp h,
-                                            try `[simp only [push_neg.not_eq] at h { eta := ff }]
-                            | none   := do push_neg_at_goal,
-                                            try `[simp only [push_neg.not_eq] { eta := ff }]
-                            end)
+| (loc.ns loc_l) :=
+  loc_l.mmap'
+    (λ l, match l with
+          | some h := do push_neg_at_hyp h,
+                          try $ interactive.simp_core { eta := ff } failed tt
+                                 [simp_arg_type.expr ``(push_neg.not_eq)] []
+                                 (interactive.loc.ns [some h])
+          | none   := do push_neg_at_goal,
+                          try `[simp only [push_neg.not_eq] { eta := ff }]
+          end)
 | loc.wildcard := do
     push_neg_at_goal,
     local_context >>= mmap' (λ h, push_neg_at_hyp (local_pp_name h)) ,

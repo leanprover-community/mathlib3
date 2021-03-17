@@ -5,7 +5,6 @@ Authors: Chris Hughes, Patrick Stevens
 -/
 import data.nat.choose.basic
 import tactic.linarith
-import tactic.omega
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
 import algebra.big_operators.order
@@ -83,9 +82,17 @@ calc 2 * (∑ i in range (m + 1), choose (2 * m + 1) i) =
     ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) :
   by rw [two_mul, this]
 ... = (∑ i in range (m + 1), choose (2 * m + 1) i) +
-  ∑ i in Ico (m + 1) (2 * m + 2), choose (2 * m + 1) i :
-  by { rw [range_eq_Ico, sum_Ico_reflect], { congr, omega }, omega }
-... = ∑ i in range (2 * m + 2), choose (2 * m + 1) i : sum_range_add_sum_Ico _ (by omega)
+  ∑ i in Ico (m + 1) (2 * m + 2), choose (2 * m + 1) i : begin
+    rw [range_eq_Ico, sum_Ico_reflect],
+    { congr,
+      have A : m + 1 ≤ 2 * m + 1, by linarith,
+      rw [add_comm, nat.add_sub_assoc A, ← add_comm],
+      congr,
+      rw nat.sub_eq_iff_eq_add A,
+      ring, },
+   { linarith }
+  end
+... = ∑ i in range (2 * m + 2), choose (2 * m + 1) i : sum_range_add_sum_Ico _ (by linarith)
 ... = 2^(2 * m + 1) : sum_range_choose (2 * m + 1)
 ... = 2 * 4^m : by { rw [pow_succ, pow_mul], refl }
 

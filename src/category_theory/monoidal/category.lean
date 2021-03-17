@@ -151,10 +151,11 @@ variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
 
 instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] :
   is_iso (f ⊗ g) :=
-{ ..(as_iso f ⊗ as_iso g) }
+is_iso.of_iso (as_iso f ⊗ as_iso g)
 
 @[simp] lemma inv_tensor {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] :
-  inv (f ⊗ g) = inv f ⊗ inv g := rfl
+  inv (f ⊗ g) = inv f ⊗ inv g :=
+by { ext, simp [←tensor_comp], }
 
 variables {U V W X Y Z : C}
 
@@ -374,8 +375,7 @@ lemma pentagon_inv (W X Y Z : C) :
     = (α_ W X (Y ⊗ Z)).inv ≫ (α_ (W ⊗ X) Y Z).inv :=
 begin
   apply category_theory.eq_of_inv_eq_inv,
-  dsimp,
-  rw [category.assoc, monoidal_category.pentagon]
+  simp [monoidal_category.pentagon]
 end
 
 lemma triangle_assoc_comp_left (X Y : C) :
@@ -493,7 +493,7 @@ nat_iso.of_components
 rfl
 @[simp] lemma tensor_left_tensor_inv_app (X Y Z : C) :
   (tensor_left_tensor X Y).inv.app Z = (associator X Y Z).inv :=
-rfl
+by { simp [tensor_left_tensor], }
 
 /-- Tensoring on the right with a fixed object, as a functor. -/
 @[simps]
@@ -538,7 +538,7 @@ nat_iso.of_components
 rfl
 @[simp] lemma tensor_right_tensor_inv_app (X Y Z : C) :
   (tensor_right_tensor X Y).inv.app Z = (associator Z X Y).hom :=
-rfl
+by simp [tensor_right_tensor]
 
 end
 

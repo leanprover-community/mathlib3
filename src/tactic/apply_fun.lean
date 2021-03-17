@@ -22,16 +22,22 @@ do {
       to_expr ``(congr_arg (%%e : %%ltp → %%mv) %%hyp)
   | `(%%l ≤ %%r) := do
        Hmono ← match mono_lem with
-               | some mono_lem :=
-                 tactic.i_to_expr mono_lem
-               | none := do
-                 n ← get_unused_name `mono,
-                 to_expr ``(monotone %%e) >>= assert n,
-                 do { intro_lst [`x, `y, `h], `[dsimp, mono], skip } <|> swap,
-                 get_local n
-               end,
+        | some mono_lem :=
+          tactic.i_to_expr mono_lem
+        | none := do
+          n ← get_unused_name `mono,
+          to_expr ``(monotone %%e) >>= assert n,
+          -- In order to resolve implicit arguments in `%%e`,
+          -- we build (and discard) the expression `%%n %%hyp` before calling the `mono` tactic.
+          swap,
+          n ← get_local n,
+          to_expr ``(%%n %%hyp),
+          swap,
+          do { intro_lst [`x, `y, `h], `[try { dsimp }, mono] } <|> swap,
+          return n
+        end,
        to_expr ``(%%Hmono %%hyp)
-  | _ := fail ("failed to apply " ++ to_string e ++ " at " ++ to_string hyp.local_pp_name)
+  | _ := fail!"failed to apply {e} at {hyp}"
   end,
   clear hyp,
   hyp ← note hyp.local_pp_name none prf,
@@ -39,19 +45,63 @@ do {
   try $ tactic.dsimp_hyp hyp simp_lemmas.mk [] { eta := false, beta := true }
 }
 
+/--
+Attempt to "apply" a function `f` represented by the argument `e : pexpr` to the goal.
+
+If the goal is of the form `a ≠ b`, we obtain the new goal `f a ≠ f b`.
+If the goal is of the form `a = b`, we obtain a new goal `f a = f b`, and a subsidiary goal
+`injective f`.
+(We attempt to discharge this subsidiary goal automatically, or using the optional argument.)
+If the goal is of the form `a ≤ b` (or similarly for `a < b`), and `f` is an `order_iso`,
+we obtain a new goal `f a ≤ f b`.
+-/
+meta def apply_fun_to_goal (e : pexpr) (lem : option pexpr) : tactic unit :=
+do t ← target,
+  match t with
+  | `(%%l ≠ %%r) := to_expr ``(ne_of_apply_ne %%e) >>= apply >> skip
+  | `(¬%%l = %%r) := to_expr ``(ne_of_apply_ne %%e) >>= apply >> skip
+  | `(%%l ≤ %%r) := to_expr ``((order_iso.le_iff_le %%e).mp) >>= apply >> skip
+  | `(%%l < %%r) := to_expr ``((order_iso.lt_iff_lt %%e).mp) >>= apply >> skip
+  | `(%%l = %%r) := focus1 (do
+      to_expr ``(%%e %%l), -- build and discard an application, to fill in implicit arguments
+      n ← get_unused_name `inj,
+      to_expr ``(function.injective %%e) >>= assert n,
+      -- Attempt to discharge the `injective f` goal
+      (focus1 $
+      assumption <|>
+        (to_expr ``(equiv.injective) >>= apply >> done) <|>
+        -- We require that applying the lemma closes the goal, not just makes progress:
+        (lem.mmap (λ l, to_expr l >>= apply) >> done))
+        <|> swap, -- return to the main goal if we couldn't discharge `injective f`.
+      n ← get_local n,
+      apply n,
+      clear n)
+  | _ := fail!"failed to apply {e} to the goal"
+  end
+
 namespace interactive
 
 setup_tactic_parser
 
 
 /--
-Apply a function to some local assumptions which are either equalities
-or inequalities. For instance, if the context contains `h : a = b` and
-some function `f` then `apply_fun f at h` turns `h` into
-`h : f a = f b`. When the assumption is an inequality `h : a ≤ b`, a side
-goal `monotone f` is created, unless this condition is provided using
-`apply_fun f at h using P` where `P : monotone f`, or the `mono` tactic
-can prove it.
+Apply a function to an equality or inequality in either a local hypothesis or the goal.
+
+* If we have `h : a = b`, then `apply_fun f at h` will replace this with `h : f a = f b`.
+* If we have `h : a ≤ b`, then `apply_fun f at h` will replace this with `h : f a ≤ f b`,
+  and create a subsidiary goal `monotone f`.
+  `apply_fun` will automatically attempt to discharge this subsidiary goal using `mono`,
+  or an explicit solution can be provided with `apply_fun f at h using P`, where `P : monotone f`.
+* If the goal is `a ≠ b`, `apply_fun f` will replace this with `f a ≠ f b`.
+* If the goal is `a = b`, `apply_fun f` will replace this with `f a = f b`,
+  and create a subsidiary goal `injective f`.
+  `apply_fun` will automatically attempt to discharge this subsidiary goal using local hypotheses,
+  or if `f` is actually an `equiv`,
+  or an explicit solution can be provided with `apply_fun f using P`, where `P : injective f`.
+* If the goal is `a ≤ b` (or similarly for `a < b`), and `f` is actually an `order_iso`,
+  `apply_fun f` will replace the goal with `f a ≤ f b`.
+  If `f` is anything else (e.g. just a function, or an `equiv`), `apply_fun` will fail.
+
 
 Typical usage is:
 ```lean
@@ -68,10 +118,7 @@ end
  -/
 meta def apply_fun (q : parse texpr) (locs : parse location) (lem : parse (tk "using" *> texpr)?)
   : tactic unit :=
-match locs with
-| (loc.ns l) := l.mmap' $ option.mmap $ λ h, get_local h >>= apply_fun_to_hyp q lem
-| wildcard   := local_context >>= list.mmap' (apply_fun_to_hyp q lem)
-end
+locs.apply (apply_fun_to_hyp q lem) (apply_fun_to_goal q lem)
 
 add_tactic_doc
 { name       := "apply_fun",

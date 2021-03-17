@@ -744,20 +744,14 @@ end
 
 lemma uniformity_has_basis_closed : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α ∧ is_closed V) id :=
 begin
-  rw filter.has_basis_self,
-  intro t,
-  split,
-  { intro h,
-    rcases comp_comp_symm_mem_uniformity_sets h with ⟨w, w_in, w_symm, r⟩,
-    refine ⟨closure w, _,  is_closed_closure, _⟩,
-    apply mem_sets_of_superset w_in subset_closure,
-    refine subset.trans _ r,
-    rw closure_eq_uniformity,
-    apply Inter_subset_of_subset,
-    apply Inter_subset,
-    exact ⟨w_in, w_symm⟩ },
-  { rintros ⟨r, r_in, r_closed, r_sub⟩,
-    exact mem_sets_of_superset r_in r_sub, }
+  refine filter.has_basis_self.2 (λ t h, _),
+  rcases comp_comp_symm_mem_uniformity_sets h with ⟨w, w_in, w_symm, r⟩,
+  refine ⟨closure w, mem_sets_of_superset w_in subset_closure, is_closed_closure, _⟩,
+  refine subset.trans _ r,
+  rw closure_eq_uniformity,
+  apply Inter_subset_of_subset,
+  apply Inter_subset,
+  exact ⟨w_in, w_symm⟩
 end
 
 /-- Closed entourages form a basis of the uniformity filter. -/
@@ -778,7 +772,7 @@ end⟩
 lemma closure_eq_inter_uniformity {t : set (α×α)} :
   closure t = (⋂ d ∈ 𝓤 α, d ○ (t ○ d)) :=
 set.ext $ assume ⟨a, b⟩,
-calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff_cluster_pt
+calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff_nhds_ne_bot
   ... ↔ (((@prod.swap α α) <$> 𝓤 α).lift'
       (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
     by rw [←uniformity_eq_symm, nhds_eq_uniformity_prod]
@@ -794,7 +788,7 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff
   end
   ... ↔ (∀s ∈ 𝓤 α, (set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s} ∩ t).nonempty) :
   begin
-    rw [lift'_inf_principal_eq, ← ne_bot, lift'_ne_bot_iff],
+    rw [lift'_inf_principal_eq, ← ne_bot_iff, lift'_ne_bot_iff],
     exact monotone_inter (monotone_prod monotone_preimage monotone_preimage) monotone_const
   end
   ... ↔ (∀ s ∈ 𝓤 α, (a, b) ∈ s ○ (t ○ s)) :
@@ -849,9 +843,8 @@ end
 
 /-- Open elements of `𝓤 α` form a basis of `𝓤 α`. -/
 lemma uniformity_has_basis_open : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α ∧ is_open V) id :=
-has_basis_self.2 $ λ s,
-  ⟨λ hs, ⟨interior s, interior_mem_uniformity hs, is_open_interior, interior_subset⟩,
-   λ ⟨t, htU, hto, hts⟩, mem_sets_of_superset htU hts⟩
+has_basis_self.2 $ λ s hs,
+  ⟨interior s, interior_mem_uniformity hs, is_open_interior, interior_subset⟩
 
 lemma filter.has_basis.mem_uniformity_iff {p : β → Prop} {s : β → set (α×α)}
   (h : (𝓤 α).has_basis p s) {t : set (α × α)} :
@@ -861,9 +854,8 @@ h.mem_iff.trans $ by simp only [prod.forall, subset_def]
 /-- Symmetric entourages form a basis of `𝓤 α` -/
 lemma uniform_space.has_basis_symmetric :
   (𝓤 α).has_basis (λ s : set (α × α), s ∈ 𝓤 α ∧ symmetric_rel s) id :=
-has_basis_self.2 $ λ t,
-  ⟨λ t_in, ⟨symmetrize_rel t, symmetrize_mem_uniformity t_in, symmetric_symmetrize_rel t,
-    symmetrize_rel_subset_self t⟩, λ ⟨s, s_in, _, hst⟩, mem_sets_of_superset s_in hst⟩
+has_basis_self.2 $ λ t t_in, ⟨symmetrize_rel t, symmetrize_mem_uniformity t_in,
+  symmetric_symmetrize_rel t, symmetrize_rel_subset_self t⟩
 
 /-- Open elements `s : set (α × α)` of `𝓤 α` such that `(x, y) ∈ s ↔ (y, x) ∈ s` form a basis
 of `𝓤 α`. -/

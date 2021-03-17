@@ -573,7 +573,7 @@ theorem option_get_or_else {f : α → option β} {g : α → β}
 theorem subtype_mk {f : α → β} {p : β → Prop} [decidable_pred p] {h : ∀ a, p (f a)}
     (hp : primrec_pred p) (hf : computable f) :
   @computable _ _ _ (primcodable.subtype hp) (λ a, (⟨f a, h a⟩ : subtype p)) :=
-nat.partrec.of_eq hf $ λ n, by cases decode α n; simp [subtype.encode_eq]
+hf
 
 theorem sum_cases
   {f : α → β ⊕ γ} {g : α → β → σ} {h : α → γ → σ}

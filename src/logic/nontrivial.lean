@@ -165,7 +165,7 @@ do
   (solve1 $ do
     reset_instance_cache,
     apply_instance <|>
-      interactive.simp none ff lems [`nontriviality] (interactive.loc.ns [none])) <|>
+      interactive.simp none none ff lems [`nontriviality] (interactive.loc.ns [none])) <|>
       fail format!"Could not prove goal assuming `subsingleton {α}`",
   reset_instance_cache
 

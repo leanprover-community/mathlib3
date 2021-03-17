@@ -56,25 +56,45 @@ preorder, order, partial order, linear order, monotone, strictly monotone
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+@[simp] lemma lt_self_iff_false [preorder α] (a : α) : a < a ↔ false :=
+by simp [lt_irrefl a]
+
+attribute [ext] has_le
+
+@[ext]
+lemma preorder.to_has_le_injective {α : Type*} :
+  function.injective (@preorder.to_has_le α) :=
+λ A B h, begin
+  cases A, cases B,
+  injection h with h_le,
+  have : A_lt = B_lt,
+  { funext a b,
+    dsimp [(≤)] at A_lt_iff_le_not_le B_lt_iff_le_not_le h_le,
+    simp [A_lt_iff_le_not_le, B_lt_iff_le_not_le, h_le], },
+  congr',
+end
+
+@[ext]
+lemma partial_order.to_preorder_injective {α : Type*} :
+  function.injective (@partial_order.to_preorder α) :=
+λ A B h, by { cases A, cases B, injection h, congr' }
+
+@[ext]
+lemma linear_order.to_partial_order_injective {α : Type*} :
+  function.injective (@linear_order.to_partial_order α) :=
+λ A B h, by { cases A, cases B, injection h, congr' }
+
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
-begin
-  casesI A, casesI B, congr,
-  { funext x y, exact propext (H x y) },
-  { funext x y,
-    dsimp [(≤)] at A_lt_iff_le_not_le B_lt_iff_le_not_le H,
-    simp [A_lt_iff_le_not_le, B_lt_iff_le_not_le, H] },
-end
+by { ext x y, exact H x y }
 
 theorem partial_order.ext {α} {A B : partial_order α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
-by { haveI this := preorder.ext H,
-     casesI A, casesI B, injection this, congr' }
+by { ext x y, exact H x y }
 
 theorem linear_order.ext {α} {A B : linear_order α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
-by { haveI this := partial_order.ext H,
-     casesI A, casesI B, injection this, congr' }
+by { ext x y, exact H x y }
 
 /-- Given a relation `R` on `β` and a function `f : α → β`,
   the preimage relation on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
@@ -393,6 +413,10 @@ lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] {x y 
   x ≤ y ↔ ∀ i, x i ≤ y i :=
 iff.rfl
 
+lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] {x y : Π i, α i} :
+  x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
+by simp [lt_iff_le_not_le, pi.le_def] {contextual := tt}
+
 lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
   {x y : Π i, α i} {i : ι} {a : α i} :
   x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
@@ -402,6 +426,11 @@ lemma update_le_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [
   {x y : Π i, α i} {i : ι} {a : α i} :
   function.update x i a ≤ y ↔ a ≤ y i ∧ ∀ j ≠ i, x j ≤ y j :=
 function.forall_update_iff _ (λ j z, z ≤ y j)
+
+lemma update_le_update_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
+  {x y : Π i, α i} {i : ι} {a b : α i} :
+  function.update x i a ≤ function.update y i b ↔ a ≤ b ∧ ∀ j ≠ i, x j ≤ y j :=
+by simp [update_le_iff] {contextual := tt}
 
 instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] :
   partial_order (Πi, α i) :=

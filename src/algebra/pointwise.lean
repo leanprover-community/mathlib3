@@ -420,6 +420,33 @@ by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
 lemma mul_card_le [has_mul α] {s t : finset α} : (s * t).card ≤ s.card * t.card :=
 by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
 
+open_locale classical
+
+/-- A finite set `U` contained in the product of two sets `S * S'` is also contained in the product
+of two finite sets `T * T' ⊆ S * S'`. -/
+@[to_additive]
+lemma subset_mul {M : Type*} [monoid M] {S : set M} {S' : set M} {U : finset M} (f : ↑U ⊆ S * S') :
+  ∃ (T T' : finset M), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ U ⊆ T * T' :=
+begin
+  apply finset.induction_on' U,
+  { use [∅, ∅], simp only [finset.empty_subset, finset.coe_empty, set.empty_subset, and_self], },
+  rintros a s haU hs has ⟨T, T', hS, hS', h⟩,
+  obtain ⟨x, y, hx, hy, ha⟩ := set.mem_mul.1 (f haU),
+  use [insert x T, insert y T'],
+  simp only [finset.coe_insert],
+  repeat { rw [set.insert_subset], },
+  use [hx, hS, hy, hS'],
+  refine finset.insert_subset.mpr ⟨_, _⟩,
+  { rw finset.mem_mul,
+    use [x,y],
+    simpa only [true_and, true_or, eq_self_iff_true, finset.mem_insert], },
+  { suffices g : (s : set M) ⊆ insert x T * insert y T', { norm_cast at g, assumption, },
+    transitivity ↑(T * T'),
+    apply h,
+    rw finset.coe_mul,
+    apply set.mul_subset_mul (set.subset_insert x T) (set.subset_insert y T'), },
+end
+
 end finset
 
 /-! Some lemmas about pointwise multiplication and submonoids. Ideally we put these in
@@ -445,5 +472,19 @@ begin
   rintros ⟨a, b, ha, hb, rfl⟩,
   exact s.mul_mem ha hb
 end
+
+@[to_additive]
+lemma closure_mul_le (S T : set M) : closure (S * T) ≤ closure S ⊔ closure T :=
+Inf_le $ λ x ⟨s, t, hs, ht, hx⟩, hx ▸ (closure S ⊔ closure T).mul_mem
+    (le_def.mp le_sup_left $ subset_closure hs)
+    (le_def.mp le_sup_right $ subset_closure ht)
+
+@[to_additive]
+lemma sup_eq_closure (H K : submonoid M) : H ⊔ K = closure (H * K) :=
+le_antisymm
+  (sup_le
+    (λ h hh, subset_closure ⟨h, 1, hh, K.one_mem, mul_one h⟩)
+    (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
+  (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
 
 end submonoid

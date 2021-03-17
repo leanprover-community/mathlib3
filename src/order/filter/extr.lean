@@ -120,6 +120,14 @@ univ_subset_iff.trans eq_univ_iff_forall
 lemma is_max_on_univ_iff : is_max_on f univ a ↔ ∀ x, f x ≤ f a :=
 univ_subset_iff.trans eq_univ_iff_forall
 
+lemma is_min_filter.tendsto_principal_Ici (h : is_min_filter f l a) :
+  tendsto f l (𝓟 $ Ici (f a)) :=
+tendsto_principal.2 h
+
+lemma is_max_filter.tendsto_principal_Iic (h : is_max_filter f l a) :
+  tendsto f l (𝓟 $ Iic (f a)) :=
+tendsto_principal.2 h
+
 /-! ### Conversion to `is_extr_*` -/
 
 lemma is_min_filter.is_extr : is_min_filter f l a → is_extr_filter f l a := or.inl

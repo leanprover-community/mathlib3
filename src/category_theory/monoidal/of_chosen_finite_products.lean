@@ -71,8 +71,8 @@ has_limit.mk ⟨binary_fan.swap (limit.cone (pair P Q)), (limit.is_limit (pair P
 
 /--
 Given a limit cone over `X` and `Y`, and another limit cone over `Y` and `X`, we can construct
-an isomorphism between the cone points. Relative to some fixed choice of limits cones for every pair,
-these isomorphisms constitute a braiding.
+an isomorphism between the cone points. Relative to some fixed choice of limits cones for every
+pair, these isomorphisms constitute a braiding.
 -/
 def binary_fan.braiding {X Y : C}
   {s : binary_fan X Y} (P : is_limit s) {t : binary_fan Y X} (Q : is_limit t) :
@@ -265,7 +265,8 @@ begin
 end
 
 lemma right_unitor_naturality {X₁ X₂ : C} (f : X₁ ⟶ X₂) :
-  tensor_hom ℬ f (𝟙 𝒯.cone.X) ≫ (binary_fan.right_unitor 𝒯.is_limit (ℬ X₂ 𝒯.cone.X).is_limit).hom =
+  tensor_hom ℬ f (𝟙 𝒯.cone.X) ≫
+    (binary_fan.right_unitor 𝒯.is_limit (ℬ X₂ 𝒯.cone.X).is_limit).hom =
     (binary_fan.right_unitor 𝒯.is_limit (ℬ X₁ 𝒯.cone.X).is_limit).hom ≫ f :=
 begin
   dsimp [tensor_hom],
@@ -274,7 +275,8 @@ end
 
 lemma associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :
   tensor_hom ℬ (tensor_hom ℬ f₁ f₂) f₃ ≫ (binary_fan.associator_of_limit_cone ℬ Y₁ Y₂ Y₃).hom =
-    (binary_fan.associator_of_limit_cone ℬ X₁ X₂ X₃).hom ≫ tensor_hom ℬ f₁ (tensor_hom ℬ f₂ f₃) :=
+    (binary_fan.associator_of_limit_cone ℬ X₁ X₂ X₃).hom ≫
+      tensor_hom ℬ f₁ (tensor_hom ℬ f₂ f₃) :=
 begin
   dsimp [tensor_hom],
   apply is_limit.hom_ext (ℬ _ _).is_limit, rintro ⟨⟩,
@@ -333,8 +335,10 @@ end
 
 lemma hexagon_forward (X Y Z : C) :
   (binary_fan.associator_of_limit_cone ℬ X Y Z).hom ≫
-    (limits.binary_fan.braiding (ℬ X (tensor_obj ℬ Y Z)).is_limit (ℬ (tensor_obj ℬ Y Z) X).is_limit).hom ≫
-        (binary_fan.associator_of_limit_cone ℬ Y Z X).hom =
+    (limits.binary_fan.braiding
+      (ℬ X (tensor_obj ℬ Y Z)).is_limit
+      (ℬ (tensor_obj ℬ Y Z) X).is_limit).hom ≫
+    (binary_fan.associator_of_limit_cone ℬ Y Z X).hom =
     (tensor_hom ℬ (limits.binary_fan.braiding (ℬ X Y).is_limit (ℬ Y X).is_limit).hom (𝟙 Z)) ≫
       (binary_fan.associator_of_limit_cone ℬ Y X Z).hom ≫
         (tensor_hom ℬ (𝟙 Y) (limits.binary_fan.braiding (ℬ X Z).is_limit (ℬ Z X).is_limit).hom) :=
@@ -348,8 +352,10 @@ end
 
 lemma hexagon_reverse (X Y Z : C) :
   (binary_fan.associator_of_limit_cone ℬ X Y Z).inv ≫
-    (limits.binary_fan.braiding (ℬ (tensor_obj ℬ X Y) Z).is_limit (ℬ Z (tensor_obj ℬ X Y)).is_limit).hom ≫
-      (binary_fan.associator_of_limit_cone ℬ Z X Y).inv =
+    (limits.binary_fan.braiding
+      (ℬ (tensor_obj ℬ X Y) Z).is_limit
+      (ℬ Z (tensor_obj ℬ X Y)).is_limit).hom ≫
+    (binary_fan.associator_of_limit_cone ℬ Z X Y).inv =
     (tensor_hom ℬ (𝟙 X) (limits.binary_fan.braiding (ℬ Y Z).is_limit (ℬ Z Y).is_limit).hom) ≫
       (binary_fan.associator_of_limit_cone ℬ X Z Y).inv ≫
         (tensor_hom ℬ (limits.binary_fan.braiding (ℬ X Z).is_limit (ℬ Z X).is_limit).hom (𝟙 Y)) :=

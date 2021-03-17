@@ -252,13 +252,16 @@ end monoid_hom
 namespace mul_equiv
 variables {M N} [monoid M] [monoid N]
 
-/-- The equivalence between `M × N` and `N × M` given by swapping the components is multiplicative. -/
-@[to_additive prod_comm "The equivalence between `M × N` and `N × M` given by swapping the components is
-additive."]
+/-- The equivalence between `M × N` and `N × M` given by swapping the components
+is multiplicative. -/
+@[to_additive prod_comm "The equivalence between `M × N` and `N × M` given by swapping the
+components is additive."]
 def prod_comm : M × N ≃* N × M :=
 { map_mul' := λ ⟨x₁, y₁⟩ ⟨x₂, y₂⟩, rfl, ..equiv.prod_comm M N }
 
-@[simp, to_additive coe_prod_comm] lemma coe_prod_comm : ⇑(prod_comm : M × N ≃* N × M) = prod.swap := rfl
+@[simp, to_additive coe_prod_comm] lemma coe_prod_comm :
+  ⇑(prod_comm : M × N ≃* N × M) = prod.swap := rfl
+
 @[simp, to_additive coe_prod_comm_symm] lemma coe_prod_comm_symm :
   ⇑((prod_comm : M × N ≃* N × M).symm) = prod.swap := rfl
 

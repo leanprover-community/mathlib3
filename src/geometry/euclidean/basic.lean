@@ -424,14 +424,14 @@ lemma eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two {s : affine_subspace ℝ 
   (hpc₂ : dist p c₂ = r₂) : p = p₁ ∨ p = p₂ :=
 begin
   have ho : ⟪c₂ -ᵥ c₁, p₂ -ᵥ p₁⟫ = 0 :=
-    inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
+    inner_vsub_vsub_of_dist_eq_of_dist_eq (hp₁c₁.trans hp₂c₁.symm) (hp₁c₂.trans hp₂c₂.symm),
   have hop : ⟪c₂ -ᵥ c₁, p -ᵥ p₁⟫ = 0 :=
-    inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
+    inner_vsub_vsub_of_dist_eq_of_dist_eq (hp₁c₁.trans hpc₁.symm) (hp₁c₂.trans hpc₂.symm),
   let b : fin 2 → V := ![c₂ -ᵥ c₁, p₂ -ᵥ p₁],
   have hb : linear_independent ℝ b,
   { refine linear_independent_of_ne_zero_of_inner_eq_zero _ _,
     { intro i,
-      fin_cases i; simp [b, hc.symm, hp.symm] },
+      fin_cases i; simp [b, hc.symm, hp.symm], },
     { intros i j hij,
       fin_cases i; fin_cases j; try { exact false.elim (hij rfl) },
       { exact ho },
@@ -726,7 +726,7 @@ lemma dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_proje
     dist p1 (orthogonal_projection s p2) * dist p1 (orthogonal_projection s p2) +
     dist p2 (orthogonal_projection s p2) * dist p2 (orthogonal_projection s p2) :=
 begin
-  rw [metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
+  rw [pseudo_metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
     dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (orthogonal_projection s p2) p2,
     norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero],
   exact submodule.inner_right_of_mem_orthogonal
@@ -805,7 +805,7 @@ rfl
 lemma eq_reflection_of_eq_subspace {s s' : affine_subspace ℝ P} [nonempty s]
   [nonempty s'] [complete_space s.direction] [complete_space s'.direction] (h : s = s') (p : P) :
   (reflection s p : P) = (reflection s' p : P) :=
-by simp [reflection_apply, eq_orthogonal_projection_of_eq_subspace h]
+by unfreezingI { subst h }
 
 /-- Reflection is its own inverse. -/
 @[simp] lemma reflection_symm (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] :

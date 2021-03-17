@@ -410,7 +410,7 @@ begin
 end
 
 instance functor_inclusion_top_is_iso : is_iso ((⊤ : sieve X).functor_inclusion) :=
-{ inv := { app := λ Y a, ⟨a, ⟨⟩⟩ } }
+⟨{ app := λ Y a, ⟨a, ⟨⟩⟩ }, by tidy⟩
 
 end sieve
 end category_theory

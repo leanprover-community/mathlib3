@@ -622,7 +622,7 @@ by rw [← comp_assoc,to_subtype_of_subtype]; simp
 @[simp]
 lemma to_subtype'_of_subtype' {α : typevec n} (r : α ⊗ α ⟹ repeat n Prop) :
   to_subtype' r ⊚ of_subtype' r = id :=
-by ext i x; induction i; dsimp only [id, to_subtype', comp, of_subtype'] at *; simp *
+by ext i x; induction i; dsimp only [id, to_subtype', comp, of_subtype'] at *; simp [subtype.eta, *]
 
 lemma subtype_val_to_subtype' {α : typevec n} (r : α ⊗ α ⟹ repeat n Prop) :
   subtype_val r ⊚ to_subtype' r = λ i x, prod.mk i x.1.fst x.1.snd :=

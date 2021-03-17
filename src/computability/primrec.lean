@@ -218,9 +218,7 @@ theorem option_some_iff {f : α → σ} : primrec (λ a, some (f a)) ↔ primrec
 theorem of_equiv {β} {e : β ≃ α} :
   by haveI := primcodable.of_equiv α e; exact
   primrec e :=
-(primcodable.prim α).of_eq $ λ n,
-show _ = encode (option.map e (option.map _ _)),
-by cases decode α n; simp
+by letI : primcodable β := primcodable.of_equiv α e; exact encode_iff.1 primrec.encode
 
 theorem of_equiv_symm {β} {e : β ≃ α} :
   by haveI := primcodable.of_equiv α e; exact

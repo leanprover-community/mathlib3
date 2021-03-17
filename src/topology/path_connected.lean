@@ -99,9 +99,6 @@ by continuity!
 instance : connected_space I :=
 subtype.connected_space ⟨nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩
 
-instance : compact_space I :=
-compact_iff_compact_space.1 compact_Icc
-
 /-! ### Paths -/
 
 /-- Continuous path connecting two points `x` and `y` in a topological space -/
@@ -168,7 +165,7 @@ begin
   simp only [ mem_range, path.symm, has_coe_to_fun.coe, coe_fn, I_symm, set_coe.exists, comp_app,
               subtype.coe_mk, subtype.val_eq_coe ],
   split; rintros ⟨y, hy, hxy⟩; refine ⟨1-y, Icc_zero_one_symm.mp hy, _⟩; convert hxy,
-  exact sub_sub_cancel _ _
+  simp
 end
 
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
@@ -225,11 +222,11 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
 { to_fun := (λ t : ℝ, if t ≤ 1/2 then γ.extend (2*t) else γ'.extend (2*t-1)) ∘ coe,
   continuous' :=
   begin
-    apply (continuous_if _ _ _).comp continuous_subtype_coe,
-    { norm_num },
+    refine (continuous.if_le _ _ continuous_id continuous_const (by norm_num)).comp
+      continuous_subtype_coe,
     -- TODO: the following are provable by `continuity` but it is too slow
-    { exact γ.continuous_extend.comp (continuous_const.mul continuous_id) },
-    { exact γ'.continuous_extend.comp ((continuous_const.mul continuous_id).sub continuous_const) }
+    exacts [γ.continuous_extend.comp (continuous_const.mul continuous_id),
+      γ'.continuous_extend.comp ((continuous_const.mul continuous_id).sub continuous_const)]
   end,
   source' := by norm_num,
   target' := by norm_num }
@@ -334,18 +331,15 @@ lemma trans_continuous_family {X ι : Type*} [topological_space X] [topological_
 begin
   have h₁' := path.continuous_uncurry_extend_of_continuous_family γ₁ h₁,
   have h₂' := path.continuous_uncurry_extend_of_continuous_family γ₂ h₂,
-  simp [has_uncurry.uncurry, has_coe_to_fun.coe, coe_fn, path.trans],
-  apply continuous_if _ _ _,
-  { rintros st hst,
-    have := frontier_le_subset_eq (continuous_subtype_coe.comp continuous_snd)
-      continuous_const hst,
-    simp only [mem_set_of_eq, comp_app] at this,
-    simp [this, mul_inv_cancel (@two_ne_zero ℝ _ _)] },
+  simp only [has_uncurry.uncurry, has_coe_to_fun.coe, coe_fn, path.trans, (∘)],
+  refine continuous.if_le _ _ (continuous_subtype_coe.comp continuous_snd) continuous_const _,
   { change continuous ((λ p : ι × ℝ, (γ₁ p.1).extend p.2) ∘ (prod.map id (λ x, 2*x : I → ℝ))),
     exact h₁'.comp (continuous_id.prod_map $ continuous_const.mul continuous_subtype_coe) },
   { change continuous ((λ p : ι × ℝ, (γ₂ p.1).extend p.2) ∘ (prod.map id (λ x, 2*x - 1 : I → ℝ))),
     exact h₂'.comp (continuous_id.prod_map $
       (continuous_const.mul continuous_subtype_coe).sub continuous_const) },
+  { rintros st hst,
+    simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
 end
 
 /-! #### Truncating a path -/
@@ -580,7 +574,7 @@ begin
 end
 
 lemma path_component_subset_component (x : X) : path_component x ⊆ connected_component x :=
-λ y h, subset_connected_component (is_connected_range h.some_path.continuous).2
+λ y h, (is_connected_range h.some_path.continuous).subset_connected_component
   ⟨0, by simp⟩ ⟨1, by simp⟩
 
 /-- The path component of `x` in `F` is the set of points that can be joined to `x` in `F`. -/

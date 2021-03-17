@@ -7,6 +7,19 @@ Authors: Johan Commelin, Kenny Lau
 import algebra.geom_sum
 import ring_theory.ideal.basic
 
+/-!
+# Basic results in number theory
+
+This file should contain basic results in number theory. So far, it only contains the essential
+lemma in the construction of the ring of Witt vectors.
+
+## Main statement
+
+`dvd_sub_pow_of_dvd_sub` proves that for elements `a` and `b` in a commutative ring `R` and for
+all natural numbers `p` and `k` if `p` divides `a-b` in `R`, then `p ^ (k + 1)` divides
+`a ^ (p ^ k) - b ^ (p ^ k)`.
+-/
+
 section
 
 open ideal ideal.quotient

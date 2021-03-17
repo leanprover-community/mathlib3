@@ -239,6 +239,25 @@ begin
   exact hi b hk
 end
 
+/-- An induction principle for `pnat`: it takes values in `Sort*`, so it applies also to Types,
+not only to `Prop`. -/
+@[elab_as_eliminator]
+def rec_on (n : pnat) {p : pnat → Sort*} (p1 : p 1) (hp : ∀ n, p n → p (n + 1)) : p n :=
+begin
+  rcases n with ⟨n, h⟩,
+  induction n with n IH,
+  { exact absurd h dec_trivial },
+  { cases n with n,
+    { exact p1 },
+    { exact hp _ (IH n.succ_pos) } }
+end
+
+@[simp] theorem rec_on_one {p} (p1 hp) : @pnat.rec_on 1 p p1 hp = p1 := rfl
+
+@[simp] theorem rec_on_succ (n : pnat) {p : pnat → Sort*} (p1 hp) :
+  @pnat.rec_on (n + 1) p p1 hp = hp n (@pnat.rec_on n p p1 hp) :=
+by { cases n with n h, cases n; [exact absurd h dec_trivial, refl] }
+
 /-- We define `m % k` and `m / k` in the same way as for `ℕ`
   except that when `m = n * k` we take `m % k = k` and
   `m / k = n - 1`.  This ensures that `m % k` is always positive
@@ -291,6 +310,12 @@ end
 
 theorem div_add_mod (m k : ℕ+) : (k * (div m k) + mod m k : ℕ) = m :=
 (add_comm _ _).trans (mod_add_div _ _)
+
+lemma mod_add_div' (m k : ℕ+) : ((mod m k) + (div m k) * k : ℕ) = m :=
+by { rw mul_comm, exact mod_add_div _ _ }
+
+lemma div_add_mod' (m k : ℕ+) : ((div m k) * k + mod m k : ℕ) = m :=
+by { rw mul_comm, exact div_add_mod _ _ }
 
 theorem mod_coe (m k : ℕ+) :
  ((mod m k) : ℕ) = ite ((m : ℕ) % (k : ℕ) = 0) (k : ℕ) ((m : ℕ) % (k : ℕ)) :=
@@ -354,7 +379,7 @@ theorem mul_div_exact {m k : ℕ+} (h : k ∣ m) : k * (div_exact m k) = m :=
 begin
  apply eq, rw [mul_coe],
  change (k : ℕ) * (div m k).succ = m,
- rw [← mod_add_div m k, dvd_iff'.mp h, nat.mul_succ, add_comm],
+ rw [← div_add_mod m k, dvd_iff'.mp h, nat.mul_succ]
 end
 
 theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
@@ -372,3 +397,15 @@ begin
 end
 
 end pnat
+
+section can_lift
+
+instance nat.can_lift_pnat : can_lift ℕ ℕ+ :=
+⟨coe, λ n, 0 < n, λ n hn, ⟨nat.to_pnat' n, pnat.to_pnat'_coe hn⟩⟩
+
+instance int.can_lift_pnat : can_lift ℤ ℕ+ :=
+⟨coe, λ n, 0 < n, λ n hn, ⟨nat.to_pnat' (int.nat_abs n),
+  by rw [coe_coe, nat.to_pnat'_coe, if_pos (int.nat_abs_pos_of_ne_zero (ne_of_gt hn)),
+    int.nat_abs_of_nonneg hn.le]⟩⟩
+
+end can_lift

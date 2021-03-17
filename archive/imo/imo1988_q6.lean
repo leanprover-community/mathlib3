@@ -11,7 +11,7 @@ import tactic.linarith
 import tactic.omega
 
 /-!
-# IMO1988 Q6 and constant descent Vieta jumping
+# IMO 1988 Q6 and constant descent Vieta jumping
 
 Question 6 of IMO1988 is somewhat (in)famous. Several expert problem solvers
 could not tackle the question within the given time limit.
@@ -21,7 +21,6 @@ so called “Vieta jumping”.
 In this file we formalise constant descent Vieta jumping,
 and apply this to prove Q6 of IMO1988.
 To illustrate the technique, we also prove a similar result.
-
 -/
 
 -- open_locale classical

@@ -7,7 +7,8 @@ import category_theory.eq_to_hom
 
 namespace category_theory
 
-universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 
 section
 variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]

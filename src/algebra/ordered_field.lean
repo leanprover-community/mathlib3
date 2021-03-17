@@ -541,6 +541,14 @@ by { rw [div_lt_iff (@zero_lt_two α _ _)], exact lt_mul_of_one_lt_right h one_l
 
 lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
+lemma half_le_self (ha_nonneg : 0 ≤ a) : a / 2 ≤ a :=
+begin
+  by_cases h0 : a = 0,
+  { simp [h0], },
+  { rw ← ne.def at h0,
+    exact (half_lt_self (lt_of_le_of_ne ha_nonneg h0.symm)).le, },
+end
+
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
 lemma add_sub_div_two_lt (h : a < b) : a + (b - a) / 2 < b :=

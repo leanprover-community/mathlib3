@@ -1132,9 +1132,6 @@ apply_nolint continuous_map.induced doc_blame
 -- topology/maps.lean
 apply_nolint inducing doc_blame
 
--- topology/metric_space/emetric_space.lean
-apply_nolint has_edist doc_blame
-
 -- topology/metric_space/gluing.lean
 apply_nolint metric.glue_premetric doc_blame
 apply_nolint metric.glue_space doc_blame

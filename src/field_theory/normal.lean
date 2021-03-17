@@ -5,9 +5,9 @@ Authors: Kenny Lau
 -/
 
 import field_theory.adjoin
-import field_theory.minpoly
-import field_theory.splitting_field
 import field_theory.tower
+import group_theory.solvable
+import ring_theory.power_basis
 
 /-!
 # Normal field extensions
@@ -293,5 +293,22 @@ alg_equiv.ext (λ x, (algebra_map K E).injective
 lemma alg_equiv.restrict_normal_hom_surjective [normal F K] [normal F E] :
   function.surjective (alg_equiv.restrict_normal_hom K : (E ≃ₐ[F] E) → (K ≃ₐ[F] K)) :=
 λ χ, ⟨χ.lift_normal E, χ.restrict_lift_normal E⟩
+
+variables (F) (K) (E)
+
+lemma is_solvable_of_is_scalar_tower [normal F K] [h1 : is_solvable (K ≃ₐ[F] K)]
+  [h2 : is_solvable (E ≃ₐ[K] E)] : is_solvable (E ≃ₐ[F] E) :=
+begin
+  let f : (E ≃ₐ[K] E) →* (E ≃ₐ[F] E) :=
+  { to_fun := λ ϕ, alg_equiv.of_alg_hom (ϕ.to_alg_hom.restrict_scalars F)
+      (ϕ.symm.to_alg_hom.restrict_scalars F)
+      (alg_hom.ext (λ x, ϕ.apply_symm_apply x))
+      (alg_hom.ext (λ x, ϕ.symm_apply_apply x)),
+    map_one' := alg_equiv.ext (λ _, rfl),
+    map_mul' := λ _ _, alg_equiv.ext (λ _, rfl) },
+  refine solvable_of_ker_le_range f (alg_equiv.restrict_normal_hom K)
+    (λ ϕ hϕ, ⟨{commutes' := λ x, _, .. ϕ}, alg_equiv.ext (λ _, rfl)⟩),
+  exact (eq.trans (ϕ.restrict_normal_commutes K x).symm (congr_arg _ (alg_equiv.ext_iff.mp hϕ x))),
+end
 
 end lift

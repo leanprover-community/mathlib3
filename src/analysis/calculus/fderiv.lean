@@ -1223,7 +1223,7 @@ section fst
 
 variables {f₂ : E → F × G} {f₂' : E →L[𝕜] F × G} {p : E × F}
 
-lemma has_strict_fderiv_at_fst : has_strict_fderiv_at prod.fst (fst 𝕜 E F) p :=
+lemma has_strict_fderiv_at_fst : has_strict_fderiv_at (@prod.fst E F) (fst 𝕜 E F) p :=
 (fst 𝕜 E F).has_strict_fderiv_at
 
 protected lemma has_strict_fderiv_at.fst (h : has_strict_fderiv_at f₂ f₂' x) :
@@ -1231,14 +1231,14 @@ protected lemma has_strict_fderiv_at.fst (h : has_strict_fderiv_at f₂ f₂' x)
 has_strict_fderiv_at_fst.comp x h
 
 lemma has_fderiv_at_filter_fst {L : filter (E × F)} :
-  has_fderiv_at_filter prod.fst (fst 𝕜 E F) p L :=
+  has_fderiv_at_filter (@prod.fst E F) (fst 𝕜 E F) p L :=
 (fst 𝕜 E F).has_fderiv_at_filter
 
 protected lemma has_fderiv_at_filter.fst (h : has_fderiv_at_filter f₂ f₂' x L) :
   has_fderiv_at_filter (λ x, (f₂ x).1) ((fst 𝕜 F G).comp f₂') x L :=
 has_fderiv_at_filter_fst.comp x h
 
-lemma has_fderiv_at_fst : has_fderiv_at prod.fst (fst 𝕜 E F) p :=
+lemma has_fderiv_at_fst : has_fderiv_at (@prod.fst E F) (fst 𝕜 E F) p :=
 has_fderiv_at_filter_fst
 
 protected lemma has_fderiv_at.fst (h : has_fderiv_at f₂ f₂' x) :
@@ -1246,7 +1246,7 @@ protected lemma has_fderiv_at.fst (h : has_fderiv_at f₂ f₂' x) :
 h.fst
 
 lemma has_fderiv_within_at_fst {s : set (E × F)} :
-  has_fderiv_within_at prod.fst (fst 𝕜 E F) s p :=
+  has_fderiv_within_at (@prod.fst E F) (fst 𝕜 E F) s p :=
 has_fderiv_at_filter_fst
 
 protected lemma has_fderiv_within_at.fst (h : has_fderiv_within_at f₂ f₂' s x) :
@@ -1301,7 +1301,7 @@ section snd
 
 variables {f₂ : E → F × G} {f₂' : E →L[𝕜] F × G} {p : E × F}
 
-lemma has_strict_fderiv_at_snd : has_strict_fderiv_at prod.snd (snd 𝕜 E F) p :=
+lemma has_strict_fderiv_at_snd : has_strict_fderiv_at (@prod.snd E F) (snd 𝕜 E F) p :=
 (snd 𝕜 E F).has_strict_fderiv_at
 
 protected lemma has_strict_fderiv_at.snd (h : has_strict_fderiv_at f₂ f₂' x) :
@@ -1309,14 +1309,14 @@ protected lemma has_strict_fderiv_at.snd (h : has_strict_fderiv_at f₂ f₂' x)
 has_strict_fderiv_at_snd.comp x h
 
 lemma has_fderiv_at_filter_snd {L : filter (E × F)} :
-  has_fderiv_at_filter prod.snd (snd 𝕜 E F) p L :=
+  has_fderiv_at_filter (@prod.snd E F) (snd 𝕜 E F) p L :=
 (snd 𝕜 E F).has_fderiv_at_filter
 
 protected lemma has_fderiv_at_filter.snd (h : has_fderiv_at_filter f₂ f₂' x L) :
   has_fderiv_at_filter (λ x, (f₂ x).2) ((snd 𝕜 F G).comp f₂') x L :=
 has_fderiv_at_filter_snd.comp x h
 
-lemma has_fderiv_at_snd : has_fderiv_at prod.snd (snd 𝕜 E F) p :=
+lemma has_fderiv_at_snd : has_fderiv_at (@prod.snd E F) (snd 𝕜 E F) p :=
 has_fderiv_at_filter_snd
 
 protected lemma has_fderiv_at.snd (h : has_fderiv_at f₂ f₂' x) :
@@ -1324,7 +1324,7 @@ protected lemma has_fderiv_at.snd (h : has_fderiv_at f₂ f₂' x) :
 h.snd
 
 lemma has_fderiv_within_at_snd {s : set (E × F)} :
-  has_fderiv_within_at prod.snd (snd 𝕜 E F) s p :=
+  has_fderiv_within_at (@prod.snd E F) (snd 𝕜 E F) s p :=
 has_fderiv_at_filter_snd
 
 protected lemma has_fderiv_within_at.snd (h : has_fderiv_within_at f₂ f₂' s x) :

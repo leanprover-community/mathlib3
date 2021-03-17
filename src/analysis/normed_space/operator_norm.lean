@@ -852,7 +852,7 @@ le_antisymm
   (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] })
 
 @[simp] lemma op_norm_lmul_right : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
-(op_norm_flip (lmul 𝕜 𝕜')).trans $ op_norm_lmul _ _
+(op_norm_flip (@lmul 𝕜 _ 𝕜' _ _)).trans (op_norm_lmul _ _)
 
 /-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
 continuous linear maps. -/

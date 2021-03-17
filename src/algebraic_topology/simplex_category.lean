@@ -25,13 +25,18 @@ open category_theory
 * objects are natural numbers `n : ℕ`
 * morphisms from `n` to `m` are monotone functions `fin (n+1) → fin (m+1)`
 -/
-@[derive inhabited]
+@[derive inhabited, irreducible]
 def simplex_category := ulift.{u} ℕ
 
 namespace simplex_category
+
+section
+local attribute [semireducible] simplex_category
+
 /-- Interpet a natural number as an object of the simplex category. -/
-@[reducible, simp] def mk (n : ℕ) : simplex_category := ulift.up n
-local notation `[`n`]` := mk n
+def mk (n : ℕ) : simplex_category := ulift.up n
+
+localized "notation `[`n`]` := mk n" in simplicial
 
 /-- The length of an object of `simplex_category`. -/
 def len (n : simplex_category) : ℕ := n.down
@@ -46,9 +51,34 @@ instance small_category : small_category.{u} simplex_category :=
   id := λ m, ulift.up preorder_hom.id,
   comp := λ _ _ _ f g, ulift.up $ preorder_hom.comp g.down f.down, }
 
+def mk_hom {n m : ℕ} (f : (fin (n+1)) →ₘ (fin (m+1))) : [n] ⟶ [m] :=
+ulift.up.{u} f
+
+@[simp] lemma mk_hom_comp_mk_hom_down
+  {l m n : ℕ} (f : (fin (l+1)) →ₘ (fin (m+1))) (g : (fin (m+1)) →ₘ (fin (n+1))) :
+  (mk_hom f ≫ mk_hom g).down = g.comp f :=
+rfl
+
+@[simp] lemma mk_hom_down {n m : ℕ} (f : (fin (n+1)) →ₘ (fin (m+1))) :
+  (mk_hom f).down = f :=
+rfl
+
+end
+
+open_locale simplicial
+
 instance {a b : simplex_category} : has_coe_to_fun (a ⟶ b) :=
 { F := λ _, fin (a.len + 1) → fin (b.len + 1),
   coe := λ f, (f.down : fin (a.len + 1) → fin (b.len + 1)) }
+
+@[simp] lemma mk_hom_id_coe {n : ℕ} :
+  (𝟙 [n] : fin (n+1) → fin (n+1)) = id :=
+rfl
+
+@[simp] lemma mk_hom_comp_mk_hom_coe
+  {l m n : ℕ} (f : (fin (l+1)) →ₘ (fin (m+1))) (g : (fin (m+1)) →ₘ (fin (n+1))) :
+  (mk_hom f ≫ mk_hom g : fin (l+1) → fin (n+1)) = g.comp f :=
+rfl
 
 @[ext] lemma ext_hom {a b : simplex_category} (f g : a ⟶ b) :
   (∀ i : fin (a.len + 1), f i = g i) → f = g := by tidy
@@ -72,10 +102,10 @@ one given by the following generators and relations.
 
 /-- The `i`-th face map from `[n]` to `[n+1]` -/
 def δ {n} (i : fin (n+2)) : [n] ⟶ [n+1] :=
-ulift.up (fin.succ_above i).to_preorder_hom
+mk_hom (fin.succ_above i).to_preorder_hom
 
 /-- The `i`-th degeneracy map from `[n+1]` to `[n]` -/
-def σ {n} (i : fin (n+1)) : [n+1] ⟶ [n] := ulift.up
+def σ {n} (i : fin (n+1)) : [n+1] ⟶ [n] := mk_hom
 { to_fun := fin.pred_above i,
   monotone' := fin.pred_above_right_monotone i }
 
@@ -268,7 +298,7 @@ instance : faithful skeletal_functor.{u} :=
   end }
 
 instance : ess_surj skeletal_functor.{u} :=
-{ mem_ess_image := λ X, ⟨ulift.up (fintype.card X - 1 : ℕ), ⟨begin
+{ mem_ess_image := λ X, ⟨mk (fintype.card X - 1 : ℕ), ⟨begin
     have aux : fintype.card X = fintype.card X - 1 + 1,
     { exact (nat.succ_pred_eq_of_pos $ fintype.card_pos_iff.mpr ⟨⊥⟩).symm, },
     let f := mono_equiv_of_fin X aux,

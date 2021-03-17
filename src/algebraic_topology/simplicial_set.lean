@@ -47,10 +47,13 @@ localized "notation `Δ[`n`]` := standard_simplex.obj (simplex_category.mk n)" i
 
 instance : inhabited sSet := ⟨standard_simplex.obj (simplex_category.mk 0)⟩
 
+section
+
 /-- The `m`-simplices of the `n`-th standard simplex are
 the monotone maps from `fin (m+1)` to `fin (n+1)`. -/
 def as_preorder_hom {n} {m} (α : Δ[n].obj m) :
   preorder_hom (fin (m.unop.len+1)) (fin (n+1)) := α.down
+end
 
 /-- The boundary `∂Δ[n]` of the `n`-th standard simplex consists of
 all `m`-simplices of `standard_simplex n` that are not surjective

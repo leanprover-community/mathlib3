@@ -984,16 +984,14 @@ instance normed_field.to_normed_space : normed_space α α :=
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 begin
-  classical,
   by_cases h : s = 0,
   { simp [h] },
   { refine le_antisymm (normed_space.norm_smul_le s x) _,
     calc ∥s∥ * ∥x∥ = ∥s∥ * ∥s⁻¹ • s • x∥     : by rw [inv_smul_smul' h]
-               ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) : _
-               ... = ∥s • x∥                 : _,
-    exact mul_le_mul_of_nonneg_left (normed_space.norm_smul_le _ _) (norm_nonneg _),
-    rw [normed_field.norm_inv, ← mul_assoc, mul_inv_cancel, one_mul],
-    rwa [ne.def, norm_eq_zero] }
+               ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) :
+      mul_le_mul_of_nonneg_left (normed_space.norm_smul_le _ _) (norm_nonneg _)
+               ... = ∥s • x∥                 :
+      by rw [normed_field.norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
 end
 
 @[simp] lemma abs_norm_eq_norm (z : β) : abs ∥z∥ = ∥z∥ :=
@@ -1031,6 +1029,12 @@ begin
       (continuous_snd.tendsto p).norm).add
         (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
 end
+
+theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
+  ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=
+have tendsto (λ y, ∥c • (y - x)∥) (𝓝 x) (𝓝 0),
+  from (continuous_const.smul (continuous_id.sub continuous_const)).norm.tendsto' _ _ (by simp),
+this.eventually (gt_mem_nhds h)
 
 theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
   closure (ball x r) = closed_ball x r :=

@@ -277,6 +277,17 @@ lemma of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) (hker : f.t
   (hfp : finite_presentation R A) : finite_presentation R B :=
 equiv (quotient hker hfp) (ideal.quotient_ker_alg_equiv_of_surjective hf)
 
+
+lemma iff : finite_presentation R A ↔
+  ∃ n (I : ideal (_root_.mv_polynomial (fin n) R)) (e : I.quotient ≃ₐ[R] A), I.fg :=
+begin
+  refine ⟨λ h,_, λ h, _⟩,
+  { obtain ⟨n, f, hf⟩ := h,
+    use [n, f.to_ring_hom.ker, ideal.quotient_ker_alg_equiv_of_surjective hf.1, hf.2] },
+  { obtain ⟨n, I, e, hfg⟩ := h,
+    exact equiv (quotient hfg (mv_polynomial R _)) e }
+end
+
 /-- An algebra is finitely presented if and only if it is a quotient of a polynomial ring whose
 variables are indexed by a fintype by a finitely generated ideal. -/
 lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u_2) [fintype ι]
@@ -299,6 +310,26 @@ begin
       submodule.fg_ker_ring_hom_comp _ f _ hf.2 equiv.symm.surjective⟩,
     convert submodule.fg_bot,
     exact ring_hom.ker_coe_equiv (equiv.symm.to_ring_equiv), }
+end
+
+/-- If `A` is a finitely presented `R`-algebra, then `mv_polynomial (fin n) A` is finitely presented
+as `R`-algebra. -/
+lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι : Type*)
+  [fintype ι] : finite_presentation R (_root_.mv_polynomial ι A) :=
+begin
+  obtain ⟨n, e⟩ := fintype.exists_equiv_fin ι,
+  replace e := (mv_polynomial.rename_equiv A (nonempty.some e)).restrict_scalars R,
+  refine equiv _ e.symm,
+  obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
+  refine equiv _ (mv_polynomial.map_alg_equiv (fin n) e),
+  letI : is_scalar_tower R (_root_.mv_polynomial (fin m) R)
+    (@ideal.map _ (_root_.mv_polynomial (fin n) (_root_.mv_polynomial (fin m) R))
+    _ _ mv_polynomial.C I).quotient := is_scalar_tower.comap,
+  refine equiv _ ((@mv_polynomial.quotient_equiv_quotient_mv_polynomial
+    _ (fin n) _ I).restrict_scalars R).symm,
+  refine quotient (submodule.map_fg_of_fg I hfg _) _,
+  refine equiv _ (mv_polynomial.sum_alg_equiv _ _ _),
+  exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R sum_fin_sum_equiv).symm
 end
 
 end finite_presentation

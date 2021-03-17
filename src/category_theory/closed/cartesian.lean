@@ -316,7 +316,7 @@ i.e. any morphism to `I` is an iso.
 This actually shows a slightly stronger version: any morphism to an initial object from an
 exponentiable object is an isomorphism.
 -/
-def strict_initial {I : C} (t : is_initial I) (f : A ⟶ I) : is_iso f :=
+lemma strict_initial {I : C} (t : is_initial I) (f : A ⟶ I) : is_iso f :=
 begin
   haveI : mono (limits.prod.lift (𝟙 A) f ≫ (zero_mul t).hom) := mono_comp _ _,
   rw [zero_mul_hom, prod.lift_snd] at _inst,

@@ -37,8 +37,7 @@ begin
   { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
     { haveI : has_pullbacks C := ⟨by apply_instance⟩,
       exact construct_products.over_binary_product_of_pullback },
-    { split,
-      apply_instance} }
+    { apply_instance, } }
 end
 
 instance has_limits {B : C} [has_wide_pullbacks C] : has_limits (over B) :=
@@ -48,8 +47,7 @@ begin
   { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
     { haveI : has_pullbacks C := ⟨by apply_instance⟩,
       exact construct_products.over_binary_product_of_pullback },
-    { split,
-      apply_instance } }
+    { apply_instance, } }
 end
 
 end category_theory.over

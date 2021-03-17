@@ -131,29 +131,29 @@ end
 lemma nat_mul_inj' {n : ℕ} {a b : R} (h : (n : R) * a = (n : R) * b) (w : n ≠ 0) : a = b :=
 by simpa [w] using nat_mul_inj h
 
-lemma bit0_inj {a b : R} (h : bit0 a = bit0 b) : a = b :=
-begin
+lemma bit0_injective : function.injective (bit0 : R → R) :=
+λ a b h, begin
   dsimp [bit0] at h,
   simp only [(two_mul a).symm, (two_mul b).symm] at h,
   refine nat_mul_inj' _ two_ne_zero,
   exact_mod_cast h,
 end
 
-lemma bit1_inj {a b : R} (h : bit1 a = bit1 b) : a = b :=
-begin
+lemma bit1_injective : function.injective (bit1 : R → R) :=
+λ a b h, begin
   simp only [bit1, add_left_inj] at h,
-  exact bit0_inj h,
+  exact bit0_injective h,
 end
 
 @[simp] lemma bit0_eq_bit0 {a b : R} : bit0 a = bit0 b ↔ a = b :=
-⟨bit0_inj, λ h, by subst h⟩
+⟨λ h, bit0_injective h, λ h, by subst h⟩
 
 @[simp] lemma bit1_eq_bit1 {a b : R} : bit1 a = bit1 b ↔ a = b :=
-⟨bit1_inj, λ h, by subst h⟩
+⟨λ h, bit1_injective h, λ h, by subst h⟩
 
 @[simp]
 lemma bit1_eq_one {a : R} : bit1 a = 1 ↔ a = 0 :=
-⟨λ h, by { rw [show (1 : R) = bit1 0, by simp] at h, exact bit1_inj h, },
+⟨λ h, by { rw [show (1 : R) = bit1 0, by simp] at h, exact bit1_injective h, },
   by { rintro rfl, simp }⟩
 
 @[simp]

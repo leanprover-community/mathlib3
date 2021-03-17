@@ -60,6 +60,11 @@ def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
   algebra_map_mem' := λ r, s.to_subring.subring_topological_closure (s.algebra_map_mem r),
   ..s.to_subring.topological_closure }
 
+-- TODO repeat this for other algebraic structures.
+@[simp] lemma subalgebra.topological_closure_coe (s : subalgebra R A) :
+  (s.topological_closure : set A) = closure (s : set A) :=
+rfl
+
 instance subalgebra.topological_closure_topological_ring (s : subalgebra R A) :
   topological_ring (s.topological_closure) :=
 s.to_subring.topological_closure_topological_ring

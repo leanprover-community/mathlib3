@@ -179,6 +179,11 @@ instance [topological_space H] [group H] [topological_group H] :
   topological_group (G × H) :=
 { continuous_inv := continuous_inv.prod_map continuous_inv }
 
+@[to_additive]
+instance pi.topological_group {C : β → Type*} [∀ b, topological_space (C b)]
+  [∀ b, group (C b)] [∀ b, topological_group (C b)] : topological_group (Π b, C b) :=
+{ continuous_inv := continuous_pi (λ i, (continuous_apply i).inv) }
+
 variable (G)
 
 /-- Inversion in a topological group as a homeomorphism. -/
@@ -652,10 +657,3 @@ instance additive.topological_add_group {G} [h : topological_space G]
 instance multiplicative.topological_group {G} [h : topological_space G]
   [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
 { continuous_inv := @continuous_neg G _ _ _ }
-
-instance Pi.topological_add_group {C : β → Type*}
-  [∀ b, topological_space (C b)] [∀ b, add_group (C b)] [∀ b, topological_add_group (C b)] :
-  topological_add_group (Π b, C b) :=
-{ continuous_add := continuous_pi (λ i, continuous.add
-    ((continuous_apply i).comp continuous_fst) ((continuous_apply i).comp continuous_snd)),
-  continuous_neg := continuous_pi (λ i, continuous.neg (continuous_apply i)) }

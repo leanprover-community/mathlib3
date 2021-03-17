@@ -356,13 +356,7 @@ begin
 end
 
 lemma int.associated_nat_abs (k: ℤ): associated k k.nat_abs :=
-begin
-  apply associated.symm,
-  unfold associated,
-  cases int.nat_abs_eq k with h h,
-  use 1, simp, exact h.symm,
-  use -1, simp, exact h.symm,
-end
+associated_of_dvd_dvd (int.coe_nat_dvd_right.mpr (dvd_refl _)) (int.nat_abs_dvd.mpr (dvd_refl _))
 
 lemma int.prime_iff_nat_abs_prime {k: ℤ}: prime k ↔ nat.prime k.nat_abs :=
 begin
@@ -370,33 +364,31 @@ begin
   rw prime_iff_of_associated (int.associated_nat_abs k),
 end
 
-lemma int.associated_iff (a: ℤ) (b: ℤ): associated a b ↔ (a = b ∨ a = -b) :=
+lemma int.nat_abs_eq_nat_abs_iff {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a = b ∨ a = -b :=
 begin
   split,
-  {
-    intro h,
-    rcases h with ⟨ u, h ⟩,
-    have p₁ := fintype.complete u,
-    cases p₁,
-    left, rw ← mul_one a, rw p₁ at h, exact h,
-    cases p₁,
-    right, rw p₁ at h, simp at h, linarith only [h],
-    exfalso, exact list.not_mem_nil u p₁,
-  },
-  {
-    intro h,
-    cases h,
-    rw h,
-    use -1, simp, linarith [h],
-  },
+  { intro h,
+    apply_fun coe at h,
+    cases int.nat_abs_eq a with ha ha;
+    cases int.nat_abs_eq b with hb hb;
+    rw [ha, hb],
+    { left, exact h },
+    { right, rwa neg_neg },
+    { right, rw h },
+    { left, rw h } },
+  { rintro (rfl|rfl),
+    { refl },
+    { exact int.nat_abs_neg b } },
 end
 
-lemma units_int.values (u: units ℤ): u = 1 ∨ u = -1 :=
+theorem int.associated_iff_nat_abs {a b : ℤ} : associated a b ↔ a.nat_abs = b.nat_abs :=
 begin
-  have p₁ := fintype.complete u,
-  cases p₁,
-  left, exact p₁,
-  cases p₁,
-  right, exact p₁,
-  exfalso, exact list.not_mem_nil u p₁,
+  rw [←dvd_dvd_iff_associated, ←int.nat_abs_dvd_abs_iff, ←int.nat_abs_dvd_abs_iff, dvd_dvd_iff_associated],
+  exact associated_iff_eq,
+end
+
+lemma int.associated_iff (a: ℤ) (b: ℤ): associated a b ↔ (a = b ∨ a = -b) :=
+begin
+  rw int.associated_iff_nat_abs,
+  exact int.nat_abs_eq_nat_abs_iff,
 end

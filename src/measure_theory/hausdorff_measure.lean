@@ -8,29 +8,47 @@ import measure_theory.borel_space
 import analysis.special_functions.pow
 
 /-!
-# Metric (outer) measures and Hausdorff measure
+# Hausdorff measure and metric (outer) measures
 
-We say that an outer measure `μ` is a *metric* outer measure (see
-`measure_theory.outer_measure.is_metric`) if for any two metric separated sets `s` and `t`
-(i.e. sets such that distances between `x ∈ s` and `y ∈ t` are uniformly bounded from below by a
-positive constant) we have `μ (s ∪ t) = μ s + μ t`.
+In this file we define the `d`-dimensional Hausdorff measure on an (extended) metric space `X` and
+the Hausdorff dimension of a set in an (extended) metric space. Let `μ d δ` be the maximal outer
+measure such that `μ d δ s ≤ (emetric.diam s) ^ d` for every set of diameter less than `δ`. Then
+the Hausdorff measure `μH[d] s` of `s` is defined as `⨆ δ > 0, μ d δ s`. By Caratheodory theorem
+`measure_theory.outer_measure.is_metric.borel_le_caratheodory`, this is a Borel measure on `X`.
 
-A theorem due to Caratheodory (see `measure_theory.outer_measure.is_metric.borel_le_caratheodory`)
-says that for a metric outer measure all borel sets are Caratheodory measurable, hence we can turn
-it into a `measure_theory.measure` using `measure_theory.outer_measure.to_measure`.
+For every set `s` for any `d < d'` we have either `μH[d] s = ∞` or `μH[d'] s = 0`, see
+`measure_theory.measure.hausdorff_measure_zero_or_top`. The Hausdorff dimension `dimH s : ℝ≥0∞` of a
+set `s` is the supremum of `d : ℝ≥0` such that `μH[d] s = ∞`. Then `μH[d] s = ∞` for `d < dimH s`
+and `μH[d] s = 0` for `dimH s < d`.
 
-Probably the most well-known metric outer measure is the `d`-dimensional Hausdorff measure, see
-`measure_theory.measure.hausdorff_measure`. In this file we define a more general constructor of
-metric outer measures and prove some basic properties.
+We also define two generalizations of the Hausdorff measure. In one generalization (see
+`measure_theory.measure.mk_metric`) we take any function `m (diam s)` instead of `(diam s) ^ d`. In
+an even more general definition (see `measure_theory.measure.mk_metric'`) we use any function
+of `m : set X → ℝ≥0∞`.
 
-A common way to construct metric measures is to put
-`μ s = ⨆ r > 0, ⨅ (t : ℕ → set α) (hts : s ⊆ ⋃ n, t n)
-  (htr : ∀ n, emetric.diam (t n) < r), f (t n)`,
-where `f : set α → ℝ≥0∞` is a function on sets such that `f ∅ = 0`.
-We formalize this definition as `measure_theory.outer_measure.mk_metric'`. 
+We also define a predicate `measure_theory.outer_measure.is_metric` which says that an outer measure
+is additive on metric separated pairs of sets: `μ (s ∪ t) = μ s + μ t` provided that
+`⨅ (x ∈ s) (y ∈ t), edist x y ≠ 0`. This is the property required for the Caratheodory theorem
+`measure_theory.outer_measure.is_metric.borel_le_caratheodory`, so we prove this theorem for any
+metric outer measure, then prove that outer measures constructed using `mk_metric'` are metric outer
+measures.
 
-If we put `f t = (emetric.diam t) ^ d`, then we get the `d`-dimensional Hausdorff measure.
-TODO
+## Notations
+
+We use the following notation localized in `hausdorff_measure`.
+
+- `μH[d]` : `measure_theory.measure.hausdorff_measure d`
+
+## Implementation notes
+
+There are a few similar constructions called the `d`-dimensional Hausdorff measure. E.g., some
+sources only allow coverings by balls and use `r ^ d` instead of `(diam s) ^ d`. While these
+construction lead to different Hausdorff measures, they lead to the same notion of the Hausdorff
+dimension.
+
+## Tags
+
+Hausdorff measure, Hausdorff dimension, dimension, measure, metric measure
 -/
 
 open_locale nnreal ennreal topological_space big_operators
@@ -44,6 +62,13 @@ variables {ι X Y : Type*} [emetric_space X] [emetric_space Y]
 namespace measure_theory
 
 namespace outer_measure
+
+/-!
+### Metric outer measures
+
+In this section we define metric outer measures and prove Caratheodory theorem: a metric outer
+measure has the Caratheodory property.
+-/
 
 /-- We say that an outer measure `μ` in an (e)metric space is *metric* if `μ (s ∪ t) = μ s + μ t`
 for any two metric separated sets `s`, `t`. -/
@@ -148,6 +173,14 @@ lemma le_caratheodory [measurable_space X] [borel_space X] (hm : is_metric μ) :
 by { rw @borel_space.measurable_eq X _ _, exact hm.borel_le_caratheodory }
 
 end is_metric
+
+/-!
+### Constructors of metric outer measures
+
+In this section we provide constructors `measure_theory.outer_measure.mk_metric'` and
+`measure_theory.outer_measure.mk_metric` and prove that these outer measures are metric outer
+measures. We also prove basic lemmas about `map`/`comap` of these measures.
+-/
 
 /-- Auxiliary definition for `outer_measure.mk_metric'`: given a function on sets
 `m : set X → ℝ≥0∞`, returns the maximal outer measure `μ` such that `μ s ≤ m s`
@@ -314,6 +347,15 @@ end
 
 end outer_measure
 
+/-!
+### Metric measures
+
+In this section we use `measure_theory.outer_measure.to_measure` and theorems about
+`measure_theory.outer_measure.mk_metric'`/`measure_theory.outer_measure.mk_metric` to define
+`measure_theory.measure.mk_metric'`/`measure_theory.measure.mk_metric`. We also restate some lemmas
+about metric outer measures for metric measures.
+-/
+
 namespace measure
 
 variables [measurable_space X] [borel_space X]
@@ -365,10 +407,14 @@ lemma mk_metric_mono {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} (hle : m₁ ≤ᶠ[
   (mk_metric m₁ : measure X) ≤ mk_metric m₂ :=
 by { convert mk_metric_mono_smul ennreal.one_ne_top ennreal.zero_lt_one.ne' _; simp * }
 
+/-!
+### Hausdorff measure and Hausdorff dimension
+-/
+
 /-- Hausdorff measure on an (e)metric space. -/
 def hausdorff_measure (d : ℝ) : measure X := mk_metric (λ r, r ^ d)
 
-local notation `μH[` d `]` := hausdorff_measure d
+localized "notation `μH[` d `]` := measure_theory.measure.hausdorff_measure d" in hausdorff_measure
 
 lemma hausdorff_measure_zero_or_top {d₁ d₂ : ℝ} (h : d₁ < d₂) (s : set X) :
   μH[d₂] s = 0 ∨ μH[d₁] s = ∞ :=

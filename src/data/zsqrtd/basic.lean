@@ -77,27 +77,6 @@ instance : has_neg ℤ√d := ⟨zsqrtd.neg⟩
 @[simp] theorem neg_im : ∀ z : ℤ√d, (-z).im = -z.im
 | ⟨x, y⟩ := rfl
 
-/-- Conjugation in `ℤ√d`. The conjugate of `a + b √d` is `a - b √d`. -/
-def conj : ℤ√d → ℤ√d
-| ⟨x, y⟩ := ⟨x, -y⟩
-@[simp] theorem conj_re : ∀ z : ℤ√d, (conj z).re = z.re
-| ⟨x, y⟩ := rfl
-@[simp] theorem conj_im : ∀ z : ℤ√d, (conj z).im = -z.im
-| ⟨x, y⟩ := rfl
-
-@[simp] lemma conj_zero : conj (0 : ℤ√d) = 0 :=
-by rw [ext, conj_re, conj_im, zero_im, zero_re, neg_zero, and_self]
-
-@[simp] lemma conj_one : conj (1 : ℤ√d) = 1 :=
-by simp only [zsqrtd.ext, zsqrtd.conj_re, zsqrtd.conj_im, zsqrtd.one_im, neg_zero, eq_self_iff_true,
-  and_self]
-
-@[simp] lemma conj_neg (x : ℤ√d) : (-x).conj = -x.conj :=
-by simp only [ext, conj_re, eq_self_iff_true, neg_im, neg_re, and_self, conj_im]
-
-@[simp] lemma conj_conj {d : ℤ} (x : ℤ√d) : x.conj.conj = x :=
-by simp only [ext, true_and, conj_re, eq_self_iff_true, neg_neg, conj_im]
-
 /-- Multiplication in `ℤ√d` -/
 def mul : ℤ√d → ℤ√d → ℤ√d
 | ⟨x, y⟩ ⟨x', y'⟩ := ⟨x * x' + d * y * y', x * y' + y * x'⟩
@@ -128,6 +107,39 @@ instance : comm_semiring ℤ√d      := by apply_instance
 instance : semiring ℤ√d           := by apply_instance
 instance : ring ℤ√d               := by apply_instance
 instance : distrib ℤ√d            := by apply_instance
+
+/-- Conjugation in `ℤ√d`. The conjugate of `a + b √d` is `a - b √d`. -/
+def conj : ℤ√d → ℤ√d
+| ⟨x, y⟩ := ⟨x, -y⟩
+@[simp] theorem conj_re : ∀ z : ℤ√d, (conj z).re = z.re
+| ⟨x, y⟩ := rfl
+@[simp] theorem conj_im : ∀ z : ℤ√d, (conj z).im = -z.im
+| ⟨x, y⟩ := rfl
+
+/-- `conj` as an `add_monoid_hom`. -/
+def conj_hom : ℤ√d →+ ℤ√d :=
+{ to_fun := conj,
+  map_add' := λ ⟨a, ai⟩ ⟨b, bi⟩, ext.mpr ⟨rfl, neg_add _ _⟩,
+  map_zero' := ext.mpr ⟨rfl, neg_zero⟩ }
+
+@[simp] lemma conj_zero : conj (0 : ℤ√d) = 0 :=
+conj_hom.map_zero
+
+@[simp] lemma conj_one : conj (1 : ℤ√d) = 1 :=
+by simp only [zsqrtd.ext, zsqrtd.conj_re, zsqrtd.conj_im, zsqrtd.one_im, neg_zero, eq_self_iff_true,
+  and_self]
+
+@[simp] lemma conj_neg (x : ℤ√d) : (-x).conj = -x.conj :=
+conj_hom.map_neg x
+
+@[simp] lemma conj_add (x y : ℤ√d) : (x + y).conj = x.conj + y.conj :=
+conj_hom.map_add x y
+
+@[simp] lemma conj_sub (x y : ℤ√d) : (x - y).conj = x.conj - y.conj :=
+conj_hom.map_sub x y
+
+@[simp] lemma conj_conj {d : ℤ} (x : ℤ√d) : x.conj.conj = x :=
+by simp only [ext, true_and, conj_re, eq_self_iff_true, neg_neg, conj_im]
 
 instance : nontrivial ℤ√d :=
 ⟨⟨0, 1, dec_trivial⟩⟩

@@ -222,9 +222,8 @@ end
 lemma order_of_eq_prime_pow {a : α} {p k : ℕ} (hprime : nat.prime p)
   (hnot : ¬ a ^ p ^ k = 1) (hfin : a ^ p ^ (k + 1) = 1) : order_of a = p ^ (k + 1) :=
 begin
-  apply nat.eq_prime_pow_of_dvd_least_prime_pow hprime,
-  { rwa order_of_dvd_iff_pow_eq_one },
-  { rwa order_of_dvd_iff_pow_eq_one },
+  apply nat.eq_prime_pow_of_dvd_least_prime_pow hprime;
+  { rwa order_of_dvd_iff_pow_eq_one }
 end
 
 variables (a) {n : ℕ}

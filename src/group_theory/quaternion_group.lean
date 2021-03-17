@@ -148,12 +148,15 @@ def quaternion_group_zero_equiv_dihedral_group_zero : quaternion_group 0 ≃* di
   right_inv := by rintro (k | k); refl,
   map_mul' := by { rintros (k | k) (l | l); { dsimp, simp, }, } }
 
-/-- Some of the lemmas on `zmod m` require that `m` is positive, as `m = 2 * n` is the case relevant
-in this file but we don't want to write `[fact (0 < 2 * n)]` we make this lemma a local instance. -/
-private lemma succ_mul_pos {m : ℕ} [hn : fact (0 < n)] : fact (0 < (nat.succ m) * n) :=
+lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (nat.succ m) * n :=
 mul_pos (nat.succ_pos m) hn
 
-local attribute [instance] succ_mul_pos
+/-- Some of the lemmas on `zmod m` require that `m` is positive, as `m = 2 * n` is the case relevant
+in this file but we don't want to write `[fact (0 < 2 * n)]` we make this lemma a local instance. -/
+private lemma succ_mul_pos_fact {m : ℕ} [hn : fact (0 < n)] : fact (0 < (nat.succ m) * n) :=
+succ_mul_pos m hn
+
+local attribute [instance] succ_mul_pos_fact
 
 /--
 If `0 < n`, then `quaternion_group n` is a finite group.
@@ -233,9 +236,9 @@ end
 /--
 If `0 < n`, then `a 1` has order `2 * n`.
 -/
-@[simp] lemma order_of_a_one [fact (0 < n)] : order_of (a 1 : quaternion_group n) = 2 * n :=
+@[simp] lemma order_of_a_one [hn : fact (0 < n)] : order_of (a 1 : quaternion_group n) = 2 * n :=
 begin
-  cases (nat.le_of_dvd succ_mul_pos
+  cases (nat.le_of_dvd (succ_mul_pos _ hn)
     (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))).lt_or_eq with h h,
   { have h1 : (a 1 : quaternion_group n)^(order_of (a 1)) = 1 := pow_order_of_eq_one _,
     rw a_one_pow at h1,

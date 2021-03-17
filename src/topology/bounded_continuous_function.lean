@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
 import analysis.normed_space.linear_isometry
+import topology.algebra.continuous_functions
 import tactic.equiv_rw
 
 /-!
@@ -805,46 +806,3 @@ rfl
 end normed_algebra
 
 end bounded_continuous_function
-
-/-!
-We now provide formulas for `f ⊓ g` and `f ⊔ g`, where `f g : C(α, β)`,
-in terms of `continuous_map.abs`.
--/
-
-section
-variables {R : Type*} [linear_ordered_field R]
-
--- This lemma (and the next) could go all the way back in `algebra.ordered_field`,
--- except that it is tedious to prove without tactics.
--- Rather than stranding it at some intermediate location,
--- it's here, immediately prior to the point of use.
-lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x - y)) :=
-begin
-  dsimp [min, max, abs],
-  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring; linarith,
-end
-
-lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
-begin
-  dsimp [min, max, abs],
-  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring; linarith,
-end
-end
-
-namespace continuous_map
-
-section lattice
-variables [topological_space α]
-variables [linear_ordered_field β] [topological_space β] [order_topology β]
-
-lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - (f - g).abs) :=
-ext (λ _, min_eq_half_add_sub_abs_sub)
-
-lemma sup_eq (f g : C(α, β)) : f ⊔ g = (2⁻¹ : β) • (f + g + (f - g).abs) :=
-ext (λ _, max_eq_half_add_add_abs_sub)
-
-end lattice
-
-end continuous_map

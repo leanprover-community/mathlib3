@@ -383,7 +383,8 @@ end
 
 theorem int.associated_iff_nat_abs {a b : ℤ} : associated a b ↔ a.nat_abs = b.nat_abs :=
 begin
-  rw [←dvd_dvd_iff_associated, ←int.nat_abs_dvd_abs_iff, ←int.nat_abs_dvd_abs_iff, dvd_dvd_iff_associated],
+  rw [←dvd_dvd_iff_associated, ←int.nat_abs_dvd_abs_iff, ←int.nat_abs_dvd_abs_iff,
+    dvd_dvd_iff_associated],
   exact associated_iff_eq,
 end
 
@@ -391,4 +392,4 @@ lemma int.associated_iff (a: ℤ) (b: ℤ): associated a b ↔ (a = b ∨ a = -b
 begin
   rw int.associated_iff_nat_abs,
   exact int.nat_abs_eq_nat_abs_iff,
-endf
+end

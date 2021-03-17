@@ -566,6 +566,11 @@ def add_equiv_continuous_map_of_compact : (α →ᵇ β) ≃+ C(α, β) :=
 { ..forget_boundedness_add_hom α β,
   ..equiv_continuous_map_of_compact α β, }
 
+@[simp]
+lemma add_equiv_continuous_map_of_compact_to_equiv :
+  (add_equiv_continuous_map_of_compact α β).to_equiv = equiv_continuous_map_of_compact α β :=
+rfl
+
 end
 
 -- TODO at some point we will need lemmas characterising this norm!
@@ -750,12 +755,26 @@ norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _
 show that the space of bounded continuous functions from `α` to `β` is naturally a normed
 module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
+variables (α 𝕜)
+
 @[simps]
 def linear_isometry_continuous_map_of_compact [compact_space α] :
   (α →ᵇ 𝕜) ≃ₗᵢ[𝕜] C(α, 𝕜) :=
 { map_smul' := λ c f, by { ext, simp, },
   norm_map' := λ f, rfl,
   ..add_equiv_continuous_map_of_compact α 𝕜 }
+
+@[simp]
+lemma linear_isometry_continuous_map_of_compact_to_add_equiv [compact_space α] :
+  (linear_isometry_continuous_map_of_compact α 𝕜).to_linear_equiv.to_add_equiv =
+    add_equiv_continuous_map_of_compact α 𝕜 :=
+rfl
+
+@[simp]
+lemma linear_isometry_continuous_map_of_compact_to_equiv [compact_space α] :
+  (linear_isometry_continuous_map_of_compact α 𝕜).to_linear_equiv.to_equiv =
+    equiv_continuous_map_of_compact α 𝕜 :=
+rfl
 
 end normed_algebra
 

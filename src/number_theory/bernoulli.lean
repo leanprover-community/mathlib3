@@ -335,7 +335,7 @@ section faulhaber
 
 /-- Faulhabers' theorem: sum of powers.
 See https://proofwiki.org/wiki/Faulhaber%27s_Formula and [orosi2018faulhaber] -/
-theorem faulhaber (n p : ℕ) :
+theorem sum_range_pow (n p : ℕ) :
     ∑ k in range n, (k : ℚ) ^ p
   = ∑ i in range (p + 1), bernoulli i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1) :=
 begin

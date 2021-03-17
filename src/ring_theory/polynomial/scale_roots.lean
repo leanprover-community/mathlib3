@@ -20,16 +20,15 @@ variables {A K R S : Type*} [integral_domain A] [field K] [comm_ring R] [comm_ri
 variables {M : submonoid A}
 
 open finsupp polynomial
+open_locale big_operators
 
 /-- `scale_roots p s` is a polynomial with root `r * s` for each root `r` of `p`. -/
 noncomputable def scale_roots (p : polynomial R) (s : R) : polynomial R :=
-on_finset p.support
-  (λ i, coeff p i * s ^ (p.nat_degree - i))
-  (λ i h, polynomial.mem_support_iff.mpr (left_ne_zero_of_mul h))
+∑ i in p.support, monomial i (p.coeff i * s ^ (p.nat_degree - i))
 
 @[simp] lemma coeff_scale_roots (p : polynomial R) (s : R) (i : ℕ) :
   (scale_roots p s).coeff i = coeff p i * s ^ (p.nat_degree - i) :=
-rfl
+by simp [scale_roots, coeff_monomial] {contextual := tt}
 
 lemma coeff_scale_roots_nat_degree (p : polynomial R) (s : R) :
   (scale_roots p s).coeff p.nat_degree = p.leading_coeff :=
@@ -90,7 +89,7 @@ lemma scale_roots_eval₂_eq_zero {p : polynomial S} (f : S →+* R)
   eval₂ f (f s * r) (scale_roots p s) = 0 :=
 calc eval₂ f (f s * r) (scale_roots p s) =
   (scale_roots p s).support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) :
-  eval₂_eq_sum
+  by simp [eval₂_eq_sum, sum_def]
 ... = p.support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) :
   finset.sum_subset (support_scale_roots_le p s)
   (λ i hi hi', let this : coeff p i * s ^ (p.nat_degree - i) = 0 :=
@@ -103,7 +102,7 @@ calc eval₂ f (f s * r) (scale_roots p s) =
   (λ i hi, by { rw [mul_assoc, mul_left_comm, nat.sub_add_cancel],
                 exact le_nat_degree_of_ne_zero (polynomial.mem_support_iff.mp hi) })
 ... = f s ^ p.nat_degree * p.support.sum (λ (i : ℕ), (f (p.coeff i) * r ^ i)) : finset.mul_sum.symm
-... = f s ^ p.nat_degree * eval₂ f r p : by { rw [eval₂_eq_sum], refl }
+... = f s ^ p.nat_degree * eval₂ f r p : by { simp [eval₂_eq_sum, sum_def] }
 ... = 0 : by rw [hr, _root_.mul_zero]
 
 lemma scale_roots_aeval_eq_zero [algebra S R] {p : polynomial S}

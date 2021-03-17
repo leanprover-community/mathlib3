@@ -273,11 +273,10 @@ end category_theory.iso
 namespace category_theory
 
 /-- A morphism in `Type u` is an isomorphism if and only if it is bijective. -/
-noncomputable
-def is_iso_equiv_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ≃ function.bijective f :=
-equiv_of_subsingleton_of_subsingleton
-  (λ i, ({ hom := f, .. i } : X ≅ Y).to_equiv.bijective)
-  (λ b, { .. (equiv.of_bijective f b).to_iso })
+lemma is_iso_iff_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ↔ function.bijective f :=
+iff.intro
+  (λ i, (by exactI as_iso f : X ≅ Y).to_equiv.bijective)
+  (λ b, is_iso.of_iso (equiv.of_bijective f b).to_iso)
 
 end category_theory
 

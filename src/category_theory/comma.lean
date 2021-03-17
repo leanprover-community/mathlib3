@@ -141,7 +141,10 @@ def iso_mk {X Y : comma L₁ R₁} (l : X.left ≅ Y.left) (r : X.right ≅ Y.ri
   inv :=
   { left := l.inv,
     right := r.inv,
-    w' := by { erw [L₁.map_inv l.hom, iso.inv_comp_eq, reassoc_of h, ← R₁.map_comp], simp } } }
+    w' := begin
+      rw [←L₁.map_iso_inv l, iso.inv_comp_eq, L₁.map_iso_hom, reassoc_of h, ← R₁.map_comp],
+      simp
+    end, } }
 
 /-- A natural transformation `L₁ ⟶ L₂` induces a functor `comma L₂ R ⥤ comma L₁ R`. -/
 @[simps]

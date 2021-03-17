@@ -369,7 +369,7 @@ lemma ext_iff (p q : mv_polynomial σ R) :
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ R) :
   coeff m (p + q) = coeff m p + coeff m q := add_apply p q m
 
-@[simp] lemma coeff_smul [semiring S₁] [semimodule S₁ R]
+@[simp] lemma coeff_smul {S₁ : Type*} [semiring S₁] [semimodule S₁ R]
   (m : σ →₀ ℕ) (c : S₁) (p : mv_polynomial σ R) :
   coeff m (c • p) = c • coeff m p := smul_apply c p m
 

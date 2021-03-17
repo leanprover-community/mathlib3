@@ -374,6 +374,10 @@ instance {a m} : fin_category (over_trunc a m) :=
   fintype_hom := λ j j',
     fintype.of_injective (λ f, forget.map f) forget.map_injective }
 
+def map {a b : simplex_category} {m} (f : a ⟶ b) : over_trunc a m ⥤ over_trunc b m :=
+{ obj := λ x, ⟨(over.map f).obj (inclusion.obj x), inclusion_len _⟩,
+  map := λ x y g, (over.map f).map g }
+
 end over_trunc
 
 end simplex_category

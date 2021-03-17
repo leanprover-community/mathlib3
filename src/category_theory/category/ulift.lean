@@ -99,6 +99,9 @@ def ulift'.equivalence : D ≌ ulift'.{u2} D :=
   { hom := { app := λ X, _root_.ulift.up (𝟙 _) },
     inv := { app := λ X, _root_.ulift.up (𝟙 _) } } }
 
+def ulift'.map {E : Type*} [small_category E] (F : D ⥤ E) : ulift' D ⥤ ulift' E :=
+ulift'.equivalence.symm.functor ⋙ F ⋙ ulift'.equivalence.functor
+
 end ulift'
 
 end category_theory

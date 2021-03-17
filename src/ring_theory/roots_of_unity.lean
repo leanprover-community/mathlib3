@@ -191,6 +191,10 @@ def ring_equiv.restrict_roots_of_unity (σ : R ≃+* S) (n : ℕ+) :
   ↑(σ.restrict_roots_of_unity k ζ) = σ ↑ζ :=
 rfl
 
+@[simp] lemma ring_equiv.restrict_roots_of_unity_symm (σ : R ≃+* S) :
+  (σ.restrict_roots_of_unity k).symm = σ.symm.restrict_roots_of_unity k :=
+rfl
+
 lemma ring_hom.map_root_of_unity_eq_pow_self (σ : R →+* R) (ζ : roots_of_unity k R) :
   ∃ m : ℕ, σ ζ = ζ ^ m :=
 begin

@@ -1,11 +1,13 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin, Scott Morrison
+Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 
 import order.category.NonemptyFinLinOrd
 import category_theory.skeletal
+import category_theory.fin_category
+import category_theory.over
 import data.finset.sort
 import tactic.linarith
 
@@ -34,6 +36,11 @@ instance small_category : small_category simplex_category :=
 { hom := λ n m, preorder_hom (fin (n+1)) (fin (m+1)),
   id := λ m, preorder_hom.id,
   comp := λ _ _ _ f g, preorder_hom.comp g f, }
+
+noncomputable
+instance {x y : simplex_category} : fintype (x ⟶ y) :=
+let ff : (fin (x+1) →ₘ fin (y+1)) → (fin (x+1) → fin (y+1)) := (λ f, f) in
+fintype.of_injective ff (by tidy)
 
 @[simp] lemma id_apply {n : simplex_category} (i : fin (n+1)) :
   (𝟙 n : fin (n+1) → fin (n+1)) i = i := rfl
@@ -298,6 +305,25 @@ def truncated (n : ℕ) := {a : simplex_category // a.len ≤ n}
 
 namespace truncated
 
+-- Is there a computable version of fintype.of_injective?
+-- Do we care?
+noncomputable instance {n} : fin_category (truncated n) :=
+{ fintype_obj := begin
+    let ff : truncated n → fin (n+1) := λ ⟨a,ha⟩, ⟨a.len, nat.lt_succ_iff.mpr ha⟩,
+    have : function.injective ff, by tidy,
+    apply fintype.of_injective _ this,
+  end,
+  decidable_eq_hom := begin
+    classical, apply_instance
+    --The following is a computable proof, for when/if we make a computable
+    --version of fintype.of_injective to be used above.
+
+    --rintros ⟨a,ha⟩ ⟨b,hb⟩ f g,
+    --have : ((f : fin (a+1) → fin (b+1)) = g) ↔ (f = g) :=
+    --  ⟨λ h, preorder_hom.ext _ _ (λ a, by rw h), λ h, by rw h⟩,
+    --exact decidable_of_decidable_of_iff infer_instance this,
+  end }
+
 instance {n} : inhabited (truncated n) := ⟨⟨[0],by simp⟩⟩
 
 /--
@@ -309,5 +335,39 @@ def inclusion {n : ℕ} : simplex_category.truncated n ⥤ simplex_category :=
 full_subcategory_inclusion _
 
 end truncated
+
+@[derive small_category]
+def over_trunc (a : simplex_category) (m : ℕ) := {x : over a // ((over.forget a).obj x).len ≤ m}
+
+namespace over_trunc
+
+@[derive [full, faithful], simps]
+def inclusion {a m} : over_trunc a m ⥤ over a := full_subcategory_inclusion _
+
+lemma inclusion_len {a : simplex_category} {m : ℕ} (x : over_trunc a m) :
+  ((over.forget a).obj (inclusion.obj x)).len ≤ m := x.2
+
+/-- The inclusion of overr-/
+@[simps]
+def forget_to_truncated {a m} : over_trunc a m ⥤ truncated m :=
+{ obj := λ b, ⟨(over.forget a).obj (inclusion.obj b), inclusion_len b⟩,
+  map := λ x y f, (over.forget a).map (inclusion.map f) }
+
+instance {a m} : faithful (forget_to_truncated : over_trunc a m ⥤ _) := {}
+
+noncomputable
+instance {a m} : fin_category (over_trunc a m) :=
+{ decidable_eq_obj := by {classical, apply_instance},
+  fintype_obj := begin
+    let ff : a.over_trunc m → (Σ (x : truncated m), truncated.inclusion.obj x ⟶ a) :=
+    λ f, ⟨forget_to_truncated.obj f, (inclusion.obj f).hom⟩,
+    have : function.injective ff, by {rintro ⟨⟨x1,x2,x⟩,hx⟩ ⟨⟨y1,y2,y⟩,hy⟩ h, tidy},
+    apply fintype.of_injective _ this,
+  end,
+  decidable_eq_hom := by {classical, apply_instance},
+  fintype_hom := λ j j',
+    fintype.of_injective (λ f, forget_to_truncated.map f) forget_to_truncated.map_injective }
+
+end over_trunc
 
 end simplex_category

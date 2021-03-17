@@ -16,11 +16,12 @@ With these lemmas, many simple integrals can be computed by `simp` or `norm_num`
 This file is still being developed.
 -/
 
-open real set
-variables {a b : ℝ} {f : ℝ → ℝ}
+open real set interval_integral
+variables {a b : ℝ}
 
 namespace interval_integral
 open measure_theory
+variables {f : ℝ → ℝ} {μ : measure ℝ} [locally_finite_measure μ]
 
 @[simp]
 lemma integral_const_mul (c : ℝ) : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
@@ -35,57 +36,57 @@ lemma integral_div (c : ℝ) : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c
 integral_mul_const c⁻¹
 
 @[simp]
-lemma interval_integrable_pow (n : ℕ) : interval_integrable (λ x, x^n) volume a b :=
+lemma interval_integrable_pow (n : ℕ) : interval_integrable (λ x, x^n) μ a b :=
 (continuous_pow n).interval_integrable a b
 
 @[simp]
-lemma interval_integrable_id : interval_integrable (λ x, x) volume a b :=
+lemma interval_integrable_id : interval_integrable (λ x, x) μ a b :=
 continuous_id.interval_integrable a b
 
 @[simp]
-lemma interval_integrable_const (c : ℝ) : interval_integrable (λ x, c) volume a b :=
+lemma interval_integrable_const (c : ℝ) : interval_integrable (λ x, c) μ a b :=
 continuous_const.interval_integrable a b
 
 @[simp]
-lemma interval_integrable.const_mul (c : ℝ) (h : interval_integrable f volume a b) :
-  interval_integrable (λ x, c * f x) volume a b :=
+lemma interval_integrable.const_mul (c : ℝ) (h : interval_integrable f μ a b) :
+  interval_integrable (λ x, c * f x) μ a b :=
 by convert h.smul c
 
 @[simp]
-lemma interval_integrable.mul_const (c : ℝ) (h : interval_integrable f volume a b) :
-  interval_integrable (λ x, f x * c) volume a b :=
+lemma interval_integrable.mul_const (c : ℝ) (h : interval_integrable f μ a b) :
+  interval_integrable (λ x, f x * c) μ a b :=
 by simp only [mul_comm, interval_integrable.const_mul c h]
 
 @[simp]
-lemma interval_integrable.div (c : ℝ) (h : interval_integrable f volume a b) :
-  interval_integrable (λ x, f x / c) volume a b :=
+lemma interval_integrable.div (c : ℝ) (h : interval_integrable f μ a b) :
+  interval_integrable (λ x, f x / c) μ a b :=
 interval_integrable.mul_const c⁻¹ h
 
 lemma interval_integrable_one_div (hf : continuous_on f (interval a b))
   (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0) :
-  interval_integrable (λ x, 1 / f x) volume a b :=
+  interval_integrable (λ x, 1 / f x) μ a b :=
 (continuous_on_const.div hf h).interval_integrable
 
 @[simp]
 lemma interval_integrable_inv (hf : continuous_on f (interval a b))
   (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0) :
-  interval_integrable (λ x, (f x)⁻¹) volume a b :=
+  interval_integrable (λ x, (f x)⁻¹) μ a b :=
 by simpa only [one_div] using interval_integrable_one_div hf h
 
 @[simp]
-lemma interval_integrable_exp : interval_integrable exp volume a b :=
+lemma interval_integrable_exp : interval_integrable exp μ a b :=
 continuous_exp.interval_integrable a b
 
 @[simp]
-lemma interval_integrable_sin : interval_integrable sin volume a b :=
+lemma interval_integrable_sin : interval_integrable sin μ a b :=
 continuous_sin.interval_integrable a b
 
 @[simp]
-lemma interval_integrable_cos : interval_integrable cos volume a b :=
+lemma interval_integrable_cos : interval_integrable cos μ a b :=
 continuous_cos.interval_integrable a b
 
 lemma interval_integrable_one_div_one_add_sq :
-  interval_integrable (λ x:ℝ, 1 / (1 + x^2)) volume a b :=
+  interval_integrable (λ x:ℝ, 1 / (1 + x^2)) μ a b :=
 begin
   refine (continuous_const.div _ (λ x, _)).interval_integrable a b,
   { continuity },
@@ -94,12 +95,10 @@ end
 
 @[simp]
 lemma interval_integrable_inv_one_add_sq :
-  interval_integrable (λ x:ℝ, (1 + x^2)⁻¹) volume a b :=
+  interval_integrable (λ x:ℝ, (1 + x^2)⁻¹) μ a b :=
 by simpa only [one_div] using interval_integrable_one_div_one_add_sq
 
 end interval_integral
-
-open interval_integral
 
 @[simp]
 lemma integral_pow (n : ℕ) : ∫ x in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=

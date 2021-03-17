@@ -42,7 +42,10 @@ begin
   ring,
 end
 
--- Version using `calc`
+
+
+-- # Version using `calc`:
+
 example (n : ℕ) : ∑ i in range (n + 1), 2 * i = n * (n + 1) :=
 begin
   induction n with n ih, { simp },
@@ -51,6 +54,8 @@ begin
   ... = n * (n + 1) + 2 * (n + 1)                 : by rw ih
   ... = (n + 1) * (n + 2)                         : by ring,
 end
+
+
 
 
 -- # Example 3

@@ -333,22 +333,27 @@ end
 
 section faulhaber
 
-/-- Faulhabers' theorem: sum of powers. -/
+/-- Faulhabers' theorem: sum of powers.
+See https://proofwiki.org/wiki/Faulhaber%27s_Formula and [orosi2018faulhaber] -/
 theorem faulhaber (n p : ℕ) :
     ∑ k in range n, (k : ℚ) ^ p
   = ∑ i in range (p + 1), bernoulli i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1) :=
 begin
+  -- trivial fact about cast factorials
   have hne : ∀ m : ℕ, (m! : ℚ) ≠ 0 := λ m, by exact_mod_cast factorial_ne_zero m,
+  -- the cauchy product of two power series
   have h_cauchy : mk (λ p, bernoulli p / ↑p!) * mk (λ q, coeff ℚ (q + 1) (exp ℚ ^ n))
                 = mk (λ p, ∑ i in range (p + 1),
                       bernoulli i * ↑((p + 1).choose i) * ↑n ^ (p + 1 - i) / ↑(p + 1)!),
   { ext q,
     let f := λ a, λ b, bernoulli a / ↑a! * coeff ℚ (b + 1) (exp ℚ ^ n),
+    -- key step: using `coeff_mul` adn then rewriting sums
     simp only [coeff_mul, coeff_mk, cast_mul, nat.sum_antidiagonal_eq_sum_range_succ f],
     refine sum_congr rfl _,
     simp_intros m h only [finset.mem_range],
     simp only [f, exp_pow_eq_rescale_exp, rescale, one_div, coeff_mk, ring_hom.coe_mk, coeff_exp,
               ring_hom.id_apply, cast_mul, rat.algebra_map_rat_rat],
+    -- manipulate factorials and binomials coefficients
     rw [choose_eq_factorial_div_factorial h.le, eq_comm, div_eq_iff (hne q.succ), succ_eq_add_one,
         mul_assoc _ _ ↑q.succ!, mul_comm _ ↑q.succ!, ←mul_assoc, div_mul_eq_mul_div,
         mul_comm (n ^ (q - m + 1) : ℚ), ←mul_assoc _ _ (n ^ (q - m + 1) : ℚ), ←one_div, mul_one_div,
@@ -356,6 +361,7 @@ begin
     { ring },
     { exact factorial_mul_factorial_dvd_factorial h.le },
     { simp [hne] } },
+  -- same as our goal except for pulling out `p!` for convenience
   have hps : ∑ k in range n, ↑k ^ p
           = (∑ i in range (p + 1), bernoulli i * ↑((p + 1).choose i) * ↑n ^ (p + 1 - i) / ↑(p + 1)!)
             * ↑p!,
@@ -365,6 +371,7 @@ begin
     { rw [← div_eq_iff (hne p), div_eq_mul_inv, sum_mul],
       rw power_series.ext_iff at this,
       simpa using this p },
+    -- this power series is non-zero, so that we can apply `mul_right_inj'` on it
     have hexp : exp ℚ - 1 ≠ 0,
     { simp only [exp, power_series.ext_iff, ne, not_forall],
       use 1,
@@ -372,9 +379,11 @@ begin
     have h_r : exp ℚ ^ n - 1 = X * mk (λ p, coeff ℚ (p + 1) (exp ℚ ^ n)),
     { have h_const : C ℚ (constant_coeff ℚ (exp ℚ ^ n)) = 1 := by simp,
       rw [←h_const, sub_const_eq_X_mul_shift] },
+    -- key step: a chain of equalities of power series
     rw [←mul_right_inj' hexp, mul_comm, ←exp_pow_sum, ←geom_series_def, geom_sum_mul, h_r,
         ←bernoulli_power_series_mul_exp_sub_one, bernoulli_power_series, mul_right_comm],
     simp [h_cauchy, mul_comm] },
+  -- the rest is showing that `hps` can be massaged into our goal
   rw [hps, sum_mul],
   refine sum_congr rfl (λ x hx, _),
   field_simp [mul_right_comm _ ↑p!, ←mul_assoc _ _ ↑p!, cast_add_one_ne_zero, hne],

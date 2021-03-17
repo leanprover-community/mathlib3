@@ -322,9 +322,14 @@ begin
   refine equiv _ e.symm,
   obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
   refine equiv _ (mv_polynomial.map_alg_equiv (fin n) e),
-  letI : is_scalar_tower R (_root_.mv_polynomial (fin m) R)
-    (@ideal.map _ (_root_.mv_polynomial (fin n) (_root_.mv_polynomial (fin m) R))
-    _ _ mv_polynomial.C I).quotient := is_scalar_tower.comap,
+  -- typeclass inference seems to struggle to find this path
+  letI : is_scalar_tower R
+    (_root_.mv_polynomial (fin m) R) (_root_.mv_polynomial (fin m) R) :=
+      is_scalar_tower.right,
+  letI : is_scalar_tower R
+    (_root_.mv_polynomial (fin m) R) (_root_.mv_polynomial (fin n) (_root_.mv_polynomial (fin m) R)) :=
+      mv_polynomial.is_scalar_tower,
+
   refine equiv _ ((@mv_polynomial.quotient_equiv_quotient_mv_polynomial
     _ (fin n) _ I).restrict_scalars R).symm,
   refine quotient (submodule.map_fg_of_fg I hfg _) _,

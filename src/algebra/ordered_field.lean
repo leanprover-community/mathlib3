@@ -5,6 +5,7 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.ordered_ring
 import algebra.field
+import algebra.invertible
 import tactic.monotonicity.basic
 
 /-!
@@ -646,3 +647,49 @@ lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
 (abs_hom : monoid_with_zero_hom α α).map_inv' a
 
 end linear_ordered_field
+
+section
+variables {R : Type*} [linear_ordered_ring R] [invertible (2 : R)]
+
+lemma min_eq_half_add_sub_abs_sub' {x y : R} : min x y = (⅟2 : R) * (x + y - abs (x - y)) :=
+begin
+  dsimp [min, max, abs],
+  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
+  split_ifs with h₁ h₂ h₂; noncomm_ring;
+  simp only [int.cast_bit0, int.cast_one, gsmul_eq_mul, mul_inv_of_self_assoc];
+  simp only [sub_le_sub_flip, not_le] at h₁ h₂,
+  { exact le_antisymm h₁ h₂, },
+  { exact false.elim (lt_irrefl _ (h₁.trans h₂)), },
+end
+
+lemma max_eq_half_add_add_abs_sub' {x y : R} : max x y = (⅟2 : R) * (x + y + abs (x - y)) :=
+begin
+  dsimp [min, max, abs],
+  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
+  split_ifs with h₁ h₂ h₂; noncomm_ring;
+  simp only [int.cast_bit0, int.cast_one, gsmul_eq_mul, mul_inv_of_self_assoc];
+  simp only [sub_le_sub_flip, not_le] at h₁ h₂,
+  { exact false.elim (lt_irrefl _ (lt_of_lt_of_le h₂ h₁)), },
+  { exact false.elim (lt_irrefl _ (lt_of_le_of_lt h₂ h₁)), },
+end
+end
+
+section
+variables {R : Type*} [linear_ordered_field R]
+
+lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x - y)) :=
+begin
+  convert min_eq_half_add_sub_abs_sub',
+  swap,
+  refine invertible_of_nonzero two_ne_zero,
+  refl,
+end
+
+lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
+begin
+  convert max_eq_half_add_add_abs_sub',
+  swap,
+  refine invertible_of_nonzero two_ne_zero,
+  refl,
+end
+end

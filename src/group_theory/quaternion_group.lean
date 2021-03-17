@@ -7,7 +7,7 @@ import data.zmod.basic
 import group_theory.order_of_element
 import data.nat.basic
 import tactic.interval_cases
-import group_theory.dihedral
+import group_theory.dihedral_group
 
 /-!
 # Quaternion Groups
@@ -25,7 +25,7 @@ the unit integral quaternions `units (quaternion ℤ)`.
 
 ## Implementation notes
 
-This file is heavily based on `dihedral` by Shing Tak Lam.
+This file is heavily based on `dihedral_group` by Shing Tak Lam.
 
 In mathematics, the name `quaternion_group` is reserved for the cases `n ≥ 2`. Since it would be
 inconvenient to carry around this condition we define `quaternion_group` also for `n = 0` and
@@ -138,11 +138,11 @@ private def fintype_helper : (zmod (2 * n) ⊕ zmod (2 * n)) ≃ quaternion_grou
 
 /-- The special case that more or less by definition `quaternion_group 0` is isomorphic to the
 infinite dihedral group. -/
-def quaternion_group_zero_equiv_dihedral_zero : quaternion_group 0 ≃* dihedral 0 :=
-{ to_fun := λ i, quaternion_group.rec_on i dihedral.r dihedral.sr,
+def quaternion_group_zero_equiv_dihedral_group_zero : quaternion_group 0 ≃* dihedral_group 0 :=
+{ to_fun := λ i, quaternion_group.rec_on i dihedral_group.r dihedral_group.sr,
   inv_fun := λ i, match i with
-                | (dihedral.r j) := a j
-                | (dihedral.sr j) := xa j
+                | (dihedral_group.r j) := a j
+                | (dihedral_group.sr j) := xa j
                 end,
   left_inv := by rintro (k | k); refl,
   right_inv := by rintro (k | k); refl,
@@ -151,7 +151,7 @@ def quaternion_group_zero_equiv_dihedral_zero : quaternion_group 0 ≃* dihedral
 /-- Some of the lemmas on `zmod m` require that `m` is positive, as `m = 2 * n` is the case relevant
 in this file but we don't want to write `[fact (0 < 2 * n)]` we make this lemma a local instance. -/
 private lemma succ_mul_pos {m : ℕ} [hn : fact (0 < n)] : fact (0 < (nat.succ m) * n) :=
-mul_pos (by norm_num) hn
+mul_pos (nat.succ_pos m) hn
 
 local attribute [instance] succ_mul_pos
 

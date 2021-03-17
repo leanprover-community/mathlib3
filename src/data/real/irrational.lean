@@ -32,7 +32,7 @@ by simp only [irrational, rat.forall, cast_mk, not_exists, set.mem_range, cast_c
 /-- A transcendental real number is irrational. -/
 lemma transcendental.irrational {r : ℝ} (tr : transcendental ℚ r) :
   irrational r :=
-by { rintro ⟨a, rfl⟩, exact tr (is_algebraic_of_mem a) }
+by { rintro ⟨a, rfl⟩, exact tr (is_algebraic_algebra_map a) }
 
 /-!
 ### Irrationality of roots of integer and rational numbers

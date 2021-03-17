@@ -27,8 +27,6 @@ end
 
 -- # Example 2
 
---example (n : ℕ) (f : ℕ → ℕ) : ∑ i in range n.succ, f i = ∑ i in range n, f i + f n := by library_search
-
 example (n : ℕ) : ∑ i in range (n + 1), 2 * i = n * (n + 1) :=
 begin
   sorry,

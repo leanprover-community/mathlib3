@@ -525,6 +525,27 @@ lemma finsum_in_sUnion {t : set (set α)} (ht₀ : t.finite)
 by rw [set.sUnion_eq_bUnion, finsum_in_bUnion ht₀ ht₁ (by simpa)];
   exact finsum_in_congr rfl (λ x hx, dif_pos hx)
 
+lemma finsum_subtype_eq_finsum_in (s : set α) : ∑ᶠ j : s, f j.val = ∑ᶠ i in s, f i :=
+begin
+  rw ← finsum_eq_finsum_in_univ,
+  refine finsum_in_eq_of_bij_on subtype.val _ (λ _ _, rfl),
+  exact ⟨λ ⟨x, hx⟩ _, hx, λ _ _ _ _, subtype.eq, λ x hx, ⟨⟨x, hx⟩, set.mem_univ _, rfl⟩⟩,
+end
+
+lemma finsum_in_sUnion' {t : set (set α)} (ht₀ : t.finite)
+  (ht₁ : ∀ x ∈ t, set.finite x) (h : ∀ x ∈ t, ∀ y ∈ t, x ≠ y → disjoint x y):
+  ∑ᶠ i in (⋃₀ t), f i = ∑ᶠ s in t, (∑ᶠ i in s, f i) :=
+begin
+  rw [set.sUnion_eq_bUnion],
+  convert @finsum_in_bUnion α M _ t f set.univ subtype.val
+    (set.univ_finite_iff_nonempty_fintype.mpr ⟨ht₀.fintype⟩)
+    (λ s, ht₁ s.1 s.2)
+    (λ x hx y hy hxy, h x.1 x.2 y.1 y.2 (λ hn, hxy (subtype.val_injective hn)))
+    using 1,
+    refine finsum_in_congr (by {ext, simp}) (by simp),
+    rw [finsum_eq_finsum_in_univ, ← finsum_subtype_eq_finsum_in ]
+end
+
 /-- Given a subset `t` of the set `s`, such that for all elements of `s` not in `t`, `f x = 0`, the
   sum on `t` over `f` equals the sum on `s` over `f`. -/
 lemma finsum_in_eq_finsum_in_of_subset (hst : s ⊆ t)

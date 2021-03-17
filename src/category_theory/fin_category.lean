@@ -42,4 +42,16 @@ instance fin_category_discrete_of_decidable_fintype (J : Type v) [decidable_eq J
   fin_category (discrete J) :=
 { }
 
+/-- 
+If `K` is a finite category, and `F : J ⥤ K` is a faithful functor which is injective on objects, 
+then `J` is a finite category as well.
+-/
+noncomputable
+def fin_category_of_injective_faithful {J K : Type v} [small_category J] [small_category K]
+  (F : J ⥤ K) (inj : function.injective F.obj) [faithful F] [fin_category K] : fin_category J :=
+{ decidable_eq_obj := by {classical, apply_instance},
+  fintype_obj := fintype.of_injective _ inj,
+  decidable_eq_hom := by {classical, apply_instance},
+  fintype_hom := λ j j', fintype.of_injective (λ f : (j ⟶ j'), F.map f) F.map_injective }
+
 end category_theory

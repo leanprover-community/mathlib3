@@ -526,6 +526,66 @@ lemma integral_pos_iff_support_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ}
   0 < ∫ x in a..b, f x ↔ a < b ∧ 0 < volume (function.support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 
+section mono
+
+variables {μ : measure ℝ} {f g : ℝ → ℝ} {a b : ℝ}
+  (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
+  (hab : a ≤ b)
+
+include hf hg hab
+
+lemma integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict (interval a b)] g) :
+  ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+begin
+  rw [integral_of_le hab, integral_of_le hab],
+  rw interval_of_le hab at h,
+  exact set_integral_mono_ae_restrict hf.1 hg.1
+    (h.filter_mono (ae_mono $ measure.restrict_mono Ioc_subset_Icc_self (le_refl μ)))
+end
+
+lemma integral_mono_ae (h : f ≤ᵐ[μ] g) :
+  ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+by simpa only [integral_of_le hab] using set_integral_mono_ae hf.1 hg.1 h
+
+lemma integral_mono_on (h : ∀ x ∈ interval a b, f x ≤ g x) :
+  ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+begin
+  rw [integral_of_le hab, integral_of_le hab],
+  rw interval_of_le hab at h,
+  exact set_integral_mono_on hf.1 hg.1 measurable_set_Ioc (λ x hx, h x (Ioc_subset_Icc_self hx)),
+end
+
+lemma integral_mono (h : f ≤ g) :
+  ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+integral_mono_ae hf hg hab (ae_of_all _ h)
+
+end mono
+
+section nonneg
+
+variables {μ : measure ℝ} {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b)
+
+include hab
+
+lemma integral_nonneg_of_ae_restrict (hf : 0 ≤ᵐ[μ.restrict (interval a b)] f) :
+  (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
+begin
+  rw integral_of_le hab,
+  rw interval_of_le hab at hf,
+  exact set_integral_nonneg_of_ae_restrict
+    (ae_restrict_of_ae_restrict_of_subset (Ioc_subset_Icc_self) hf)
+end
+
+lemma integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) : (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
+integral_nonneg_of_ae_restrict hab (ae_restrict_of_ae hf)
+
+lemma integral_nonneg (hf : ∀ u, u ∈ interval a b → 0 ≤ f u) :
+  (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
+integral_nonneg_of_ae_restrict hab
+  ((ae_restrict_iff' measurable_set_interval).mpr (ae_of_all μ hf))
+
+end nonneg
+
 /-!
 ### Fundamental theorem of calculus, part 1, for any measure
 

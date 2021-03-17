@@ -254,6 +254,27 @@ s.to_subsemiring.no_zero_divisors
 instance {R} [integral_domain R] (s : subring R) : integral_domain s :=
 { .. s.nontrivial, .. s.no_zero_divisors, .. s.to_comm_ring }
 
+/-- A subring of an `ordered_ring` is an `ordered_ring`. -/
+instance to_ordered_ring {R} [ordered_ring R] (s : subring R) : ordered_ring s :=
+subtype.coe_injective.ordered_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subring of an `ordered_comm_ring` is an `ordered_comm_ring`. -/
+instance to_ordered_comm_ring {R} [ordered_comm_ring R] (s : subring R) : ordered_comm_ring s :=
+subtype.coe_injective.ordered_comm_ring coe rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subring of a `linear_ordered_ring` is a `linear_ordered_ring`. -/
+instance to_linear_ordered_ring {R} [linear_ordered_ring R] (s : subring R) :
+  linear_ordered_ring s :=
+subtype.coe_injective.linear_ordered_ring coe rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subring of a `linear_ordered_comm_ring` is a `linear_ordered_comm_ring`. -/
+instance to_linear_ordered_comm_ring {R} [linear_ordered_comm_ring R] (s : subring R) :
+  linear_ordered_comm_ring s :=
+subtype.coe_injective.linear_ordered_comm_ring coe rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
 /-- The natural ring hom from a subring of ring `R` to `R`. -/
 def subtype (s : subring R) : s →+* R :=
 { to_fun := coe,
@@ -427,6 +448,9 @@ instance : complete_lattice (subring R) :=
   le_inf := λ s t₁ t₂ h₁ h₂ x hx, ⟨h₁ hx, h₂ hx⟩,
   .. complete_lattice_of_Inf (subring R)
     (λ s, is_glb.of_image (λ s t, show (s : set R) ≤ t ↔ s ≤ t, from coe_subset_coe) is_glb_binfi)}
+
+lemma eq_top_iff' (A : subring R) : A = ⊤ ↔ ∀ x : R, x ∈ A :=
+eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
 
 /-! # subring closure of a subset -/
 

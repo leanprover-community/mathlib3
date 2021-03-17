@@ -164,7 +164,7 @@ begin
   apply le_antisymm,
   { apply finset.sup_le,
     intros d hd,
-    rw finsupp.mem_support_iff at hd,
+    rw mem_support_iff at hd,
     rw [finsupp.sum, hφ hd], },
   { obtain ⟨d, hd⟩ : ∃ d, coeff d φ ≠ 0 := exists_coeff_ne_zero h,
     simp only [← hφ hd, finsupp.sum],

@@ -820,7 +820,7 @@ variables [has_continuous_add M₂]
 instance : semimodule S (M →L[R] M₂) :=
 { smul_zero := λ _, ext $ λ _, smul_zero _,
   zero_smul := λ _, ext $ λ _, zero_smul _ _,
-  one_smul  := λ _, ext $ λ _, one_smul _ _,
+  one_smul  := λ _, ext $ λ _, by exact one_smul _ _,
   mul_smul  := λ _ _ _, ext $ λ _, mul_smul _ _ _,
   add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
   smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
@@ -1082,6 +1082,11 @@ rfl
 @[simp] theorem symm_trans_apply (e₁ : M₂ ≃L[R] M) (e₂ : M₃ ≃L[R] M₂) (c : M) :
   (e₂.trans e₁).symm c = e₂.symm (e₁.symm c) :=
 rfl
+
+@[simp] theorem symm_image_image (e : M ≃L[R] M₂) (s : set M) : e.symm '' (e '' s) = s :=
+e.to_linear_equiv.to_equiv.symm_image_image s
+@[simp] theorem image_symm_image (e : M ≃L[R] M₂) (s : set M₂) : e '' (e.symm '' s) = s :=
+e.symm.symm_image_image s
 
 @[simp, norm_cast]
 lemma comp_coe (f : M ≃L[R] M₂) (f' : M₂ ≃L[R] M₃) :

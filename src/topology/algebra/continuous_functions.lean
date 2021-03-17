@@ -226,6 +226,10 @@ instance continuous_map_has_scalar
   has_scalar R C(α, M) :=
 ⟨λ r f, ⟨r • f, continuous_const.smul f.continuous⟩⟩
 
+@[simp] lemma continuous_map.smul_apply [semimodule R M] [topological_semimodule R M]
+  (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) :=
+rfl
+
 variables [has_continuous_add M] [semimodule R M] [topological_semimodule R M]
 
 instance continuous_map_semimodule : semimodule R C(α, M) :=
@@ -236,8 +240,6 @@ instance continuous_map_semimodule : semimodule R C(α, M) :=
   one_smul := λ f, by { ext, exact one_smul R (f x) },
   zero_smul := λ f, by { ext, exact zero_smul _ _ },
   smul_zero := λ r, by { ext, exact smul_zero _ } }
-
-@[simp] lemma continuous_map.smul_apply (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) := rfl
 
 end continuous_map
 

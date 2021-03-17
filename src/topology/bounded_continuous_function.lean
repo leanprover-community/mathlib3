@@ -87,6 +87,10 @@ def forget_boundedness : (α →ᵇ β) → C(α, β) :=
 @[simp] lemma forget_boundedness_coe (f : α →ᵇ β) : (forget_boundedness α β f : α → β) = f :=
 rfl
 
+/--
+When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
+equivalent to `C(α, 𝕜)`.
+-/
 @[simps]
 def equiv_continuous_map_of_compact [compact_space α] : (α →ᵇ β) ≃ C(α, β) :=
 ⟨forget_boundedness α β, mk_of_compact, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
@@ -147,13 +151,18 @@ metric_space.induced
   (equiv_continuous_map_of_compact α β).symm.injective
   (by apply_instance)
 
+variables (α β)
+/--
+When `α` is compact, and `β` is a metric space, the bounded continuous maps `α →ᵇ β` are
+isometric to `C(α, β)`.
+-/
 @[simps]
 def isometric_continuous_map_of_compact [compact_space α] :
   (α →ᵇ β) ≃ᵢ C(α, β) :=
 { isometry_to_fun := λ x y, rfl,
   to_equiv := equiv_continuous_map_of_compact α β }
 
-variable (α)
+variable {β}
 
 /-- Constant as a continuous bounded function. -/
 def const (b : β) : α →ᵇ β := ⟨continuous_map.const b, 0, by simp [le_refl]⟩
@@ -550,6 +559,9 @@ sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
 
 variables (α β)
 
+/--
+The additive map forgetting that a bounded continuous function is bounded.
+-/
 @[simps]
 def forget_boundedness_add_hom : (α →ᵇ β) →+ C(α, β) :=
 { to_fun := forget_boundedness α β,
@@ -561,6 +573,10 @@ variables [compact_space α]
 
 section
 
+/--
+When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
+additively equivalent to `C(α, 𝕜)`.
+-/
 @[simps]
 def add_equiv_continuous_map_of_compact : (α →ᵇ β) ≃+ C(α, β) :=
 { ..forget_boundedness_add_hom α β,
@@ -578,7 +594,7 @@ end
 instance : has_norm C(α,β) :=
 { norm := λ x, dist x 0 }
 
-instance [compact_space α] : normed_group C(α,β) :=
+instance : normed_group C(α,β) :=
 { dist_eq := λ x y,
   begin
     change dist x y = dist (x-y) 0,
@@ -757,12 +773,21 @@ module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
 variables (α 𝕜)
 
-@[simps]
+/--
+When `α` is compact and `𝕜` is a normed field, the `𝕜`-algebra of bounded continuous maps `α →ᵇ 𝕜` is
+`𝕜`-linearly isometric to `C(α, 𝕜)`.
+-/
 def linear_isometry_continuous_map_of_compact [compact_space α] :
   (α →ᵇ 𝕜) ≃ₗᵢ[𝕜] C(α, 𝕜) :=
 { map_smul' := λ c f, by { ext, simp, },
   norm_map' := λ f, rfl,
   ..add_equiv_continuous_map_of_compact α 𝕜 }
+
+@[simp]
+lemma isometric_continuous_map_of_compact_to_isometric [compact_space α] :
+  (linear_isometry_continuous_map_of_compact α 𝕜).to_isometric =
+    isometric_continuous_map_of_compact α 𝕜 :=
+rfl
 
 @[simp]
 lemma linear_isometry_continuous_map_of_compact_to_add_equiv [compact_space α] :

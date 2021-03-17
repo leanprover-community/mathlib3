@@ -178,7 +178,7 @@ let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
   ↑(σ.restrict_roots_of_unity k ζ) = σ ↑ζ :=
 rfl
 
-lemma ring_hom.map_root_of_unity (σ : R →+* R) (ζ : roots_of_unity k R) : ∃ m : ℕ, σ ζ = ζ ^ m :=
+lemma ring_hom.map_root_of_unity_eq_pow_self (σ : R →+* R) (ζ : roots_of_unity k R) : ∃ m : ℕ, σ ζ = ζ ^ m :=
 begin
   obtain ⟨m, hm⟩ := (σ.restrict_roots_of_unity k).map_cyclic,
   rw [←σ.restrict_roots_of_unity_coe_apply, hm, gpow_eq_mod_order_of, ←int.to_nat_of_nonneg

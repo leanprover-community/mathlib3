@@ -55,7 +55,7 @@ def triangle.rotate (T : triangle C) : triangle C :=
   obj3 := T.obj1⟦1⟧,
   mor1 := T.mor2,
   mor2 := T.mor3,
-  mor3 := T.mor1⟦1⟧' }
+  mor3 := -T.mor1⟦1⟧' }
 
 /--
 Given a triangle of the form:
@@ -74,7 +74,7 @@ def triangle.inv_rotate (T : triangle C) : triangle C :=
 { obj1 := T.obj3⟦-1⟧,
   obj2 := T.obj1,
   obj3 := T.obj2,
-  mor1 := T.mor3⟦-1⟧' ≫ (shift C).unit_iso.inv.app T.obj1,
+  mor1 := -T.mor3⟦-1⟧' ≫ (shift C).unit_iso.inv.app T.obj1,
   mor2 := T.mor1,
   mor3 := T.mor2 ≫ (shift C).counit_iso.inv.app T.obj3}
 
@@ -115,6 +115,7 @@ def rotate (f : triangle_morphism T₁ T₂)
   comm2 := by exact f.comm3,
   comm3 := begin
     repeat {rw triangle.rotate_mor3},
+    rw [comp_neg,neg_comp],
     repeat {rw ← functor.map_comp},
     rw f.comm1,
   end }
@@ -149,6 +150,7 @@ def inv_rotate (f : triangle_morphism T₁ T₂)
   trimor3 := f.trimor2,
   comm1 := begin
     simp only [triangle.inv_rotate_mor1],
+    rw [comp_neg, neg_comp],
     rw ← assoc,
     dsimp,
     rw ← functor.map_comp (shift C ).inverse,
@@ -240,7 +242,7 @@ def inv_rotate : (triangle C) ⥤ (triangle C) :=
     { refl }
   end
 }
-
+#check category_theory.functor.additive.map_neg
 -- Separated parts of the equivalence to avoid deterministic timeout
 @[simps]
 def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :=
@@ -257,6 +259,8 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :
       comm1 := begin
         rw comp_id,
         dsimp,
+        -- need that (shift C).inverse is an additive functor
+        rw [comp_neg, functor.additive.map_neg (shift C).functor],
         rw ← functor.comp_map,
         rw nat_iso.naturality_2 (shift C).unit_iso T.mor1,
         exact functor.id_map T.mor1,

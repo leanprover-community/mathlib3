@@ -342,7 +342,7 @@ instance decidable_int : decidable_rel (λ a b : ℤ, (multiplicity a b).dom) :=
 
 end multiplicity
 
-lemma induction_on_primes [P: nat → Prop] (h₁: P 0) (h₂: P 1)
+lemma induction_on_primes {P: nat → Prop} (h₁: P 0) (h₂: P 1)
   (h: ∀ p a: ℕ, nat.prime p → P a → P (p * a)): ∀ n: ℕ, P n :=
 begin
   intro n,
@@ -391,4 +391,4 @@ lemma int.associated_iff (a: ℤ) (b: ℤ): associated a b ↔ (a = b ∨ a = -b
 begin
   rw int.associated_iff_nat_abs,
   exact int.nat_abs_eq_nat_abs_iff,
-end
+endf

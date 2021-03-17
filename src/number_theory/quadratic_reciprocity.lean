@@ -162,7 +162,7 @@ begin
       simp only [div_eq_mul_inv, hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hb, not_false_iff,
         val_min_abs_eq_zero, inv_eq_zero, int.nat_abs_eq_zero, ne.def, mul_eq_zero, or_self] },
       { apply lt_succ_of_le, apply nat_abs_val_min_abs_le },
-      { rw cast_nat_abs_val_min_abs,
+      { rw nat_cast_nat_abs_val_min_abs,
         split_ifs,
         { erw [mul_div_cancel' _ hap, val_min_abs_def_pos, val_cast_of_lt (hep hb),
             if_pos (le_of_lt_succ (Ico.mem.1 hb).2), int.nat_abs_of_nat], },
@@ -188,7 +188,7 @@ calc (a ^ (p / 2) * (p / 2)! : zmod p) =
     (if (a * x : zmod p).val ≤ p / 2 then 1 else -1) *
       (a * x : zmod p).val_min_abs.nat_abs) :
   prod_congr rfl $ λ _ _, begin
-    simp only [cast_nat_abs_val_min_abs],
+    simp only [nat_cast_nat_abs_val_min_abs],
     split_ifs; simp
   end
 ... = (-1)^((Ico 1 (p / 2).succ).filter
@@ -233,7 +233,7 @@ calc ((∑ x in Ico 1 (p / 2).succ, a * x : ℕ) : zmod 2)
   by simp only [mod_add_div]
 ... = (∑ x in Ico 1 (p / 2).succ, ((a * x : ℕ) : zmod p).val : ℕ) +
     (∑ x in Ico 1 (p / 2).succ, (a * x) / p : ℕ) :
-  by simp only [val_cast_nat];
+  by simp only [val_nat_cast];
     simp [sum_add_distrib, mul_sum.symm, nat.cast_add, nat.cast_mul, sum_nat_cast, hp2]
 ... = _ : congr_arg2 (+)
   (calc ((∑ x in Ico 1 (p / 2).succ, ((a * x : ℕ) : zmod p).val : ℕ) : zmod 2)

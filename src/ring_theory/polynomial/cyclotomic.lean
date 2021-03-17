@@ -145,7 +145,7 @@ begin
   have hmonic : (X ^ n - C (1 : K)).monic := monic_X_pow_sub_C (1 : K) (ne_of_lt hpos).symm,
   symmetry,
   apply prod_multiset_X_sub_C_of_monic_of_roots_card_eq hmonic,
-  rw [@nat_degree_X_pow_sub_C K _ _ n hpos 1, ← nth_roots],
+  rw [@nat_degree_X_pow_sub_C K _ _ n 1, ← nth_roots],
   exact is_primitive_root.card_nth_roots h
 end
 
@@ -165,7 +165,6 @@ begin
   { simp only [hzero, ring_hom.map_one, splits_zero, pow_zero, sub_self] },
   rw [splits_iff_card_roots, ← nth_roots, is_primitive_root.card_nth_roots h,
     nat_degree_X_pow_sub_C],
-  exact nat.pos_of_ne_zero hzero
 end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then
@@ -609,7 +608,7 @@ begin
   suffices hpow : eval (nat.cast_ring_hom (zmod p) a) (X ^ n - 1 : polynomial (zmod p)) = 0,
   { simp only [eval_X, eval_one, eval_pow, eval_sub, ring_hom.eq_nat_cast] at hpow,
     apply units.coe_eq_one.1,
-    simp only [sub_eq_zero.mp hpow, zmod.cast_unit_of_coprime, units.coe_pow] },
+    simp only [sub_eq_zero.mp hpow, zmod.coe_unit_of_coprime, units.coe_pow] },
   rw [is_root.def] at hroot,
   rw [← prod_cyclotomic_eq_X_pow_sub_one hpos (zmod p),
     nat.divisors_eq_proper_divisors_insert_self_of_pos hpos,
@@ -635,7 +634,7 @@ begin
     { exact dvd_trans hdivm (X_pow_sub_one_dvd_prod_cyclotomic (zmod p) hpos
         (order_of_root_cyclotomic_dvd hpos hroot) hdiff) },
     rw [map_sub, map_X, map_nat_cast, ← C_eq_nat_cast, dvd_iff_is_root, is_root.def, eval_sub,
-      eval_pow, eval_one, eval_X, sub_eq_zero, ← zmod.cast_unit_of_coprime a ha, ← units.coe_pow,
+      eval_pow, eval_one, eval_X, sub_eq_zero, ← zmod.coe_unit_of_coprime a ha, ← units.coe_pow,
       units.coe_eq_one],
     exact pow_order_of_eq_one (zmod.unit_of_coprime a ha) },
   have habs : (map (int.cast_ring_hom (zmod p)) (X - a)) ^ 2 ∣ X ^ n - 1,
@@ -688,7 +687,8 @@ lemma cyclotomic.irreducible {n : ℕ} (hpos : 0 < n) : irreducible (cyclotomic 
 begin
   have h0 := (ne_of_lt hpos).symm,
   rw [cyclotomic_eq_minpoly (is_primitive_root_exp n h0) hpos],
-  exact minpoly.irreducible (is_integral (is_primitive_root_exp n h0) hpos)
+  apply minpoly.irreducible,
+  exact (is_primitive_root_exp n h0).is_integral hpos,
 end
 
 end minpoly

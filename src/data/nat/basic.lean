@@ -94,6 +94,10 @@ instance : canonically_ordered_comm_semiring ℕ :=
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }
 
+instance : canonically_linear_ordered_add_monoid ℕ :=
+{ .. (infer_instance : canonically_ordered_add_monoid ℕ),
+  .. nat.linear_order }
+
 instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
   semilattice_sup_bot s :=
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
@@ -105,9 +109,13 @@ theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
 
 instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
-{ mul_left_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
-  mul_right_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
+{ mul_left_cancel_of_ne_zero :=
+    λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
+  mul_right_cancel_of_ne_zero :=
+    λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
   .. (infer_instance : comm_monoid_with_zero ℕ) }
+
+attribute [simp] nat.not_lt_zero
 
 /-!
 Inject some simple facts into the type class system.
@@ -216,6 +224,9 @@ theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a
 have h3 : a ≤ b, from le_of_lt_succ h1,
 or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
 
+lemma eq_of_le_of_lt_succ {n m : ℕ} (h₁ : n ≤ m) (h₂ : m < n + 1) : m = n :=
+nat.le_antisymm (le_of_succ_le_succ h₂) h₁
+
 theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
 @[simp] lemma succ_pos' {n : ℕ} : 0 < succ n := succ_pos n
@@ -224,6 +235,15 @@ theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
 ⟨succ.inj, congr_arg _⟩
 
 theorem succ_injective : function.injective nat.succ := λ x y, succ.inj
+
+lemma succ_ne_succ {n m : ℕ} : succ n ≠ succ m ↔ n ≠ m :=
+succ_injective.ne_iff
+
+@[simp] lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
+succ_ne_succ.mpr n.succ_ne_zero
+
+@[simp] lemma one_lt_succ_succ (n : ℕ) : 1 < n.succ.succ :=
+succ_lt_succ $ succ_pos n
 
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
@@ -339,6 +359,13 @@ begin
   rw add_assoc,
   exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
 end
+
+-- TODO: generalize to some ordered add_monoids, based on #6145
+lemma le_of_add_le_left {a b c : ℕ} (h : a + b ≤ c) : a ≤ c :=
+by { refine le_trans _ h, simp }
+
+lemma le_of_add_le_right {a b c : ℕ} (h : a + b ≤ c) : b ≤ c :=
+by { refine le_trans _ h, simp }
 
 /-! ### `pred` -/
 
@@ -597,6 +624,12 @@ lemma mul_left_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, x * 
 
 lemma mul_right_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, a * x) :=
 λ _ _, eq_of_mul_eq_mul_left ha
+
+lemma mul_ne_mul_left {a b c : ℕ} (ha : 0 < a) : b * a ≠ c * a ↔ b ≠ c :=
+(mul_left_injective ha).ne_iff
+
+lemma mul_ne_mul_right {a b c : ℕ} (ha : 0 < a) : a * b ≠ a * c ↔ b ≠ c :=
+(mul_right_injective ha).ne_iff
 
 lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
@@ -1153,6 +1186,13 @@ strict_mono.injective (pow_right_strict_mono k)
 lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
 λ _ _ h, pow_lt_pow_of_lt_left h k
 
+lemma mul_lt_mul_pow_succ {n a q : ℕ} (a0 : 0 < a) (q1 : 1 < q) :
+  n * q < a * q ^ (n + 1) :=
+begin
+  rw [pow_succ', ← mul_assoc, mul_lt_mul_right (zero_lt_one.trans q1)],
+  exact lt_mul_of_one_le_of_lt' (nat.succ_le_iff.mpr a0) (nat.lt_pow_self q1 n),
+end
+
 end nat
 
 lemma strict_mono.nat_pow {n : ℕ} (hn : 1 ≤ n) {f : ℕ → ℕ} (hf : strict_mono f) :
@@ -1290,7 +1330,15 @@ by rw [pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
 
 theorem find_le (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
   nat.find hp ≤ nat.find hq :=
-nat.find_min' _ ((h _) (nat.find_spec hq))
+nat.find_min' _ (h _ (nat.find_spec hq))
+
+lemma find_comp_succ (h₁ : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h0 : ¬ p 0) :
+  nat.find h₁ = nat.find h₂ + 1 :=
+begin
+  refine (find_eq_iff _).2 ⟨nat.find_spec h₂, λ n hn, _⟩,
+  cases n with n,
+  exacts [h0, @nat.find_min (λ n, p (n + 1)) _ h₂ _ (succ_lt_succ_iff.1 hn)]
+end
 
 end find
 

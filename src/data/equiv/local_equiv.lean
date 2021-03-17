@@ -56,6 +56,12 @@ an empty type and a nonempty type. Since empty types are not that useful, and si
 needs to talk about equal local equivs, this is not an issue in practice.
 Still, we introduce an equivalence relation `eq_on_source` that captures this right notion of
 equality, and show that many properties are invariant under this equivalence relation.
+
+### Local coding conventions
+
+If a lemma deals with the intersection of a set with either source or target of a `local_equiv`,
+then it should use `e.source ∩ s` or `e.target ∩ t`, not `s ∩ e.source` or `t ∩ e.target`.
+
 -/
 
 mk_simp_attribute mfld_simps "The simpset `mfld_simps` records several simp lemmas that are
@@ -163,22 +169,23 @@ instance : has_coe_to_fun (local_equiv α β) := ⟨_, local_equiv.to_fun⟩
 @[simp, mfld_simps] lemma map_source {x : α} (h : x ∈ e.source) : e x ∈ e.target :=
 e.map_source' h
 
-protected lemma maps_to : maps_to e e.source e.target := λ _, e.map_source
-
 @[simp, mfld_simps] lemma map_target {x : β} (h : x ∈ e.target) : e.symm x ∈ e.source :=
 e.map_target' h
-
-lemma symm_maps_to : maps_to e.symm e.target e.source := e.symm.maps_to
 
 @[simp, mfld_simps] lemma left_inv {x : α} (h : x ∈ e.source) : e.symm (e x) = x :=
 e.left_inv' h
 
-protected lemma left_inv_on : left_inv_on e.symm e e.source := λ _, e.left_inv
-
 @[simp, mfld_simps] lemma right_inv {x : β} (h : x ∈ e.target) : e (e.symm x) = x :=
 e.right_inv' h
 
-protected lemma right_inv_on : right_inv_on e.symm e e.target := λ _, e.right_inv
+protected lemma maps_to : maps_to e e.source e.target := λ x, e.map_source
+lemma symm_maps_to : maps_to e.symm e.target e.source := e.symm.maps_to
+protected lemma left_inv_on : left_inv_on e.symm e e.source := λ x, e.left_inv
+protected lemma right_inv_on : right_inv_on e.symm e e.target := λ x, e.right_inv
+protected lemma inv_on : inv_on e.symm e e.source e.target := ⟨e.left_inv_on, e.right_inv_on⟩
+protected lemma inj_on : inj_on e e.source := e.left_inv_on.inj_on
+protected lemma bij_on : bij_on e e.source e.target := e.inv_on.bij_on e.maps_to e.symm_maps_to
+protected lemma surj_on : surj_on e e.source e.target := e.bij_on.surj_on
 
 /-- Associating to a local_equiv an equiv between the source and the target -/
 protected def to_equiv : equiv (e.source) (e.target) :=
@@ -191,73 +198,48 @@ protected def to_equiv : equiv (e.source) (e.target) :=
 @[simp, mfld_simps] lemma symm_target : e.symm.target = e.source := rfl
 @[simp, mfld_simps] lemma symm_symm : e.symm.symm = e := by { cases e, refl }
 
-/-- A local equiv induces a bijection between its source and target -/
-lemma bij_on_source : bij_on e e.source e.target :=
-inv_on.bij_on ⟨e.left_inv_on, e.right_inv_on⟩ e.maps_to e.symm_maps_to
+lemma image_source_eq_target : e '' e.source = e.target := e.bij_on.image_eq
+
+lemma image_source_inter_eq' (s : set α) :
+  e '' (e.source ∩ s) = e.target ∩ e.symm ⁻¹' s :=
+by rw [inter_comm, e.left_inv_on.image_inter', image_source_eq_target, inter_comm]
+
+lemma image_source_inter_eq (s : set α) :
+  e '' (e.source ∩ s) = e.target ∩ e.symm ⁻¹' (e.source ∩ s) :=
+by rw [inter_comm, e.left_inv_on.image_inter, image_source_eq_target, inter_comm]
 
 lemma image_eq_target_inter_inv_preimage {s : set α} (h : s ⊆ e.source) :
   e '' s = e.target ∩ e.symm ⁻¹' s :=
-begin
-  refine subset.antisymm (λx hx, _) (λx hx, _),
-  { rcases (mem_image _ _ _).1 hx with ⟨y, ys, hy⟩,
-    rw ← hy,
-    split,
-    { apply e.map_source,
-      exact h ys },
-    { rwa [mem_preimage, e.left_inv (h ys)] } },
-  { rw ← e.right_inv hx.1,
-    exact mem_image_of_mem _ hx.2 }
-end
-
-lemma image_inter_source_eq (s : set α) :
-  e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' (s ∩ e.source) :=
-e.image_eq_target_inter_inv_preimage (inter_subset_right _ _)
-
-lemma image_inter_source_eq' (s : set α) :
-  e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' s :=
-begin
-  rw e.image_eq_target_inter_inv_preimage (inter_subset_right _ _),
-  ext x, split; { assume hx, simp at hx, simp [hx] }
-end
+by rw [← e.image_source_inter_eq', inter_eq_self_of_subset_right h]
 
 lemma symm_image_eq_source_inter_preimage {s : set β} (h : s ⊆ e.target) :
   e.symm '' s = e.source ∩ e ⁻¹' s :=
 e.symm.image_eq_target_inter_inv_preimage h
 
-lemma symm_image_inter_target_eq (s : set β) :
-  e.symm '' (s ∩ e.target) = e.source ∩ e ⁻¹' (s ∩ e.target) :=
-e.symm.image_inter_source_eq _
+lemma symm_image_target_inter_eq (s : set β) :
+  e.symm '' (e.target ∩ s) = e.source ∩ e ⁻¹' (e.target ∩ s) :=
+e.symm.image_source_inter_eq _
 
-lemma symm_image_inter_target_eq' (s : set β) :
-  e.symm '' (s ∩ e.target) = e.source ∩ e ⁻¹' s :=
-e.symm.image_inter_source_eq' _
+lemma symm_image_target_inter_eq' (s : set β) :
+  e.symm '' (e.target ∩ s) = e.source ∩ e ⁻¹' s :=
+e.symm.image_source_inter_eq' _
 
 lemma source_inter_preimage_inv_preimage (s : set α) :
   e.source ∩ e ⁻¹' (e.symm ⁻¹' s) = e.source ∩ s :=
-begin
-  ext x, split,
-  { rintros ⟨hx, xs⟩,
-    simp only [mem_preimage, hx, e.left_inv, mem_preimage] at xs,
-    exact ⟨hx, xs⟩ },
-  { rintros ⟨hx, xs⟩,
-    simp [hx, xs] }
-end
+set.ext $ λ x, and.congr_right_iff.2 $ λ hx, by simp only [mem_preimage, e.left_inv hx]
 
 lemma target_inter_inv_preimage_preimage (s : set β) :
   e.target ∩ e.symm ⁻¹' (e ⁻¹' s) = e.target ∩ s :=
 e.symm.source_inter_preimage_inv_preimage _
 
-lemma image_source_eq_target : e '' e.source = e.target :=
-e.bij_on_source.image_eq
-
 lemma source_subset_preimage_target : e.source ⊆ e ⁻¹' e.target :=
-λx hx, e.map_source hx
+e.maps_to
 
-lemma inv_image_target_eq_source : e.symm '' e.target = e.source :=
-e.symm.bij_on_source.image_eq
+lemma symm_image_target_eq_source : e.symm '' e.target = e.source :=
+e.symm.image_source_eq_target
 
 lemma target_subset_preimage_source : e.target ⊆ e.symm ⁻¹' e.source :=
-λx hx, e.map_target hx
+e.symm_maps_to
 
 /-- Two local equivs that have the same `source`, same `to_fun` and same `inv_fun`, coincide. -/
 @[ext]
@@ -366,10 +348,10 @@ lemma trans_source' : (e.trans e').source = e.source ∩ e ⁻¹' (e.target ∩ 
 by mfld_set_tac
 
 lemma trans_source'' : (e.trans e').source = e.symm '' (e.target ∩ e'.source) :=
-by rw [e.trans_source', inter_comm e.target, e.symm_image_inter_target_eq]
+by rw [e.trans_source', e.symm_image_target_inter_eq]
 
 lemma image_trans_source : e '' (e.trans e').source = e.target ∩ e'.source :=
-image_source_eq_target (local_equiv.symm (local_equiv.restr (local_equiv.symm e) (e'.source)))
+(e.symm.restr e'.source).symm.image_source_eq_target
 
 @[simp, mfld_simps] lemma trans_target :
   (e.trans e').target = e'.target ∩ e'.symm ⁻¹' e.target := rfl
@@ -470,15 +452,7 @@ end
 /-- Preimages are respected by equivalence -/
 lemma eq_on_source.source_inter_preimage_eq {e e' : local_equiv α β} (he : e ≈ e') (s : set β) :
   e.source ∩ e ⁻¹' s = e'.source ∩ e' ⁻¹' s :=
-begin
-  ext x,
-  simp only [mem_inter_eq, mem_preimage],
-  split,
-  { assume hx,
-    rwa [← he.2 hx.1, ← he.source_eq] },
-  { assume hx,
-    rwa [← (setoid.symm he).2 hx.1, he.source_eq] }
-end
+by rw [he.eq_on.inter_preimage_eq, he.source_eq]
 
 /-- Composition of a local equiv and its inverse is equivalent to the restriction of the identity
 to the source -/
@@ -545,6 +519,29 @@ by ext x; simp [prod_coe_symm]
 by ext x; simp [ext_iff]; tauto
 
 end prod
+
+section pi
+
+variables {ι : Type*} {αi βi : ι → Type*} (ei : Π i, local_equiv (αi i) (βi i))
+
+/-- The product of a family of local equivs, as a local equiv on the pi type. -/
+@[simps source target] protected def pi : local_equiv (Π i, αi i) (Π i, βi i) :=
+{ to_fun := λ f i, ei i (f i),
+  inv_fun := λ f i, (ei i).symm (f i),
+  source := pi univ (λ i, (ei i).source),
+  target := pi univ (λ i, (ei i).target),
+  map_source' := λ f hf i hi, (ei i).map_source (hf i hi),
+  map_target' := λ f hf i hi, (ei i).map_target (hf i hi),
+  left_inv' := λ f hf, funext $ λ i, (ei i).left_inv (hf i trivial),
+  right_inv' := λ f hf, funext $ λ i, (ei i).right_inv (hf i trivial) }
+
+attribute [mfld_simps] pi_source pi_target
+
+@[simp, mfld_simps] lemma pi_coe : ⇑(local_equiv.pi ei) = λ (f : Π i, αi i) i, ei i (f i) := rfl
+@[simp, mfld_simps] lemma pi_symm :
+  (local_equiv.pi ei).symm = local_equiv.pi (λ i, (ei i).symm) := rfl
+
+end pi
 
 end local_equiv
 

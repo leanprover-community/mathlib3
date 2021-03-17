@@ -27,7 +27,7 @@ open limits
 
 variables {C : Type u₁}
 variables [category.{v₁} C]
-variables {T : C ⥤ C} [monad T] (X : monad.algebra T)
+variables {T : monad C} (X : algebra T)
 
 /-!
 Show that any algebra is a coequalizer of free algebras.
@@ -41,8 +41,8 @@ def free_coequalizer.top_map : (monad.free T).obj (T.obj X.A) ⟶ (monad.free T)
 /-- The bottom map in the coequalizer diagram we will construct. -/
 @[simps]
 def free_coequalizer.bottom_map : (monad.free T).obj (T.obj X.A) ⟶ (monad.free T).obj X.A :=
-{ f := (μ_ T).app X.A,
-  h' := monad.assoc X.A }
+{ f := T.μ.app X.A,
+  h' := T.assoc X.A }
 
 /-- The cofork map in the coequalizer diagram we will construct. -/
 @[simps]
@@ -58,10 +58,10 @@ algebra.hom.ext _ _ X.assoc.symm
 instance : is_reflexive_pair (free_coequalizer.top_map X) (free_coequalizer.bottom_map X) :=
 begin
   apply is_reflexive_pair.mk' _ _ _,
-  apply (free T).map ((η_ T).app X.A),
+  apply (free T).map (T.η.app X.A),
   { ext,
     dsimp,
-    rw [← T.map_comp, X.unit, T.map_id] },
+    rw [← functor.map_comp, X.unit, functor.map_id] },
   { ext,
     apply monad.right_unit }
 end
@@ -81,14 +81,15 @@ free algebras.
 def beck_algebra_coequalizer : is_colimit (beck_algebra_cofork X) :=
 cofork.is_colimit.mk' _ $ λ s,
 begin
-  have h₁ : T.map X.a ≫ s.π.f = (μ_ T).app X.A ≫ s.π.f := congr_arg monad.algebra.hom.f s.condition,
-  have h₂ : T.map s.π.f ≫ s.X.a = (μ_ T).app X.A ≫ s.π.f := s.π.h,
-  refine ⟨⟨(η_ T).app _ ≫ s.π.f, _⟩, _, _⟩,
+  have h₁ : (T : C ⥤ C).map X.a ≫ s.π.f = T.μ.app X.A ≫ s.π.f :=
+    congr_arg monad.algebra.hom.f s.condition,
+  have h₂ : (T : C ⥤ C).map s.π.f ≫ s.X.a = T.μ.app X.A ≫ s.π.f := s.π.h,
+  refine ⟨⟨T.η.app _ ≫ s.π.f, _⟩, _, _⟩,
   { dsimp,
-    rw [T.map_comp, category.assoc, h₂, monad.right_unit_assoc,
-        (show X.a ≫ _ ≫ _ = _, from (η_ T).naturality_assoc _ _), h₁, monad.left_unit_assoc] },
+    rw [functor.map_comp, category.assoc, h₂, monad.right_unit_assoc,
+        (show X.a ≫ _ ≫ _ = _, from T.η.naturality_assoc _ _), h₁, monad.left_unit_assoc] },
   { ext,
-    simpa [← (η_ T).naturality_assoc, monad.left_unit_assoc] using ((η_ T).app (T.obj X.A)) ≫= h₁ },
+    simpa [← T.η.naturality_assoc, T.left_unit_assoc] using T.η.app ((T : C ⥤ C).obj X.A) ≫= h₁ },
   { intros m hm,
     ext,
     dsimp only,
@@ -97,12 +98,12 @@ begin
 end
 
 /-- The Beck cofork is a split coequalizer. -/
-def beck_split_coequalizer : is_split_coequalizer (T.map X.a) ((μ_ T).app _) X.a :=
-⟨(η_ T).app _, (η_ T).app _, X.assoc.symm, X.unit, monad.left_unit _, ((η_ T).naturality _).symm⟩
+def beck_split_coequalizer : is_split_coequalizer (T.map X.a) (T.μ.app _) X.a :=
+⟨T.η.app _, T.η.app _, X.assoc.symm, X.unit, T.left_unit _, (T.η.naturality _).symm⟩
 
 /-- This is the Beck cofork. It is a split coequalizer, in particular a coequalizer. -/
 @[simps]
-def beck_cofork : cofork (T.map X.a) ((μ_ T).app _) :=
+def beck_cofork : cofork (T.map X.a) (T.μ.app _) :=
 (beck_split_coequalizer X).as_cofork
 
 /-- The Beck cofork is a coequalizer. -/

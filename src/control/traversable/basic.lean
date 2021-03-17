@@ -30,7 +30,8 @@ For more on how to use traversable, consider the Haskell tutorial:
 
 ## Main definitions
   * `traversable` type class - exposes the `traverse` function
-  * `sequence` - based on `traverse`, turns a collection of effects into an effect returning a collection
+  * `sequence` - based on `traverse`,
+    turns a collection of effects into an effect returning a collection
   * `is_lawful_traversable` - laws for a traversable functor
   * `applicative_transformation` - the notion of a natural transformation for applicative functors
 

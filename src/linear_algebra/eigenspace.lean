@@ -106,7 +106,7 @@ begin
   { intro a, simp [module.algebra_map_End_apply] },
   { intros p q hp hq, simp [hp, hq, add_smul] },
   { intros n a hna,
-    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_app, mul_comm, hna],
+    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_apply, mul_comm, hna],
     simp [algebra_map_End_apply, mem_eigenspace_iff.1 h.2, smul_smul, mul_comm] }
 end
 
@@ -456,7 +456,7 @@ begin
     have h_dim_add : findim K ER + findim K ES = findim K V,
     { apply linear_map.findim_range_add_findim_ker },
     -- Therefore the dimension `ER` mus be smaller than `findim K V`.
-    have h_dim_ER : findim K ER < n.succ, by omega,
+    have h_dim_ER : findim K ER < n.succ, by linarith,
     -- This allows us to apply the induction hypothesis on `ER`:
     have ih_ER : (⨆ (μ : K) (k : ℕ), f'.generalized_eigenspace μ k) = ⊤,
       from ih (findim K ER) h_dim_ER f' rfl,

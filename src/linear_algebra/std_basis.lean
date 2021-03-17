@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import linear_algebra.basic
 import linear_algebra.basis
+import linear_algebra.pi
 
 /-!
 # The standard basis
@@ -38,10 +39,13 @@ variables (R : Type*) {ι : Type*} [semiring R] (φ : ι → Type*)
   [Π i, add_comm_monoid (φ i)] [Π i, semimodule R (φ i)] [decidable_eq ι]
 
 /-- The standard basis of the product of `φ`. -/
-def std_basis (i : ι) : φ i →ₗ[R] (Πi, φ i) := pi (diag i)
+def std_basis : Π (i : ι), φ i →ₗ[R] (Πi, φ i) := single
 
 lemma std_basis_apply (i : ι) (b : φ i) : std_basis R φ i b = update 0 i b :=
-by ext j; rw [std_basis, pi_apply, diag, update_apply]; refl
+rfl
+
+lemma coe_std_basis (i : ι) : ⇑(std_basis R φ i) = pi.single i :=
+funext $ std_basis_apply R φ i
 
 @[simp] lemma std_basis_same (i : ι) (b : φ i) : std_basis R φ i b i = b :=
 by rw [std_basis_apply, update_same]
@@ -49,13 +53,20 @@ by rw [std_basis_apply, update_same]
 lemma std_basis_ne (i j : ι) (h : j ≠ i) (b : φ i) : std_basis R φ i b j = 0 :=
 by rw [std_basis_apply, update_noteq h]; refl
 
+lemma std_basis_eq_pi_diag (i : ι) : std_basis R φ i = pi (diag i) :=
+begin
+  ext x j,
+  convert (update_apply 0 x i j _).symm,
+  refl,
+end
+
 lemma ker_std_basis (i : ι) : ker (std_basis R φ i) = ⊥ :=
 ker_eq_bot_of_injective $ assume f g hfg,
   have std_basis R φ i f i = std_basis R φ i g i := hfg ▸ rfl,
   by simpa only [std_basis_same]
 
 lemma proj_comp_std_basis (i j : ι) : (proj i).comp (std_basis R φ j) = diag j i :=
-by rw [std_basis, proj_pi]
+by rw [std_basis_eq_pi_diag, proj_pi]
 
 lemma proj_std_basis_same (i : ι) : (proj i).comp (std_basis R φ i) = id :=
 by ext b; simp

@@ -25,6 +25,13 @@ and shows how that polynomial interacts with `mv_polynomial.bind₁`.
 * `witt_vector.coeff_add_of_disjoint`: if `x` and `y` are Witt vectors such that for every `n`
   the `n`-th coefficient of `x` or of `y` is `0`, then the coefficients of `x + y`
   are just `x.coeff n + y.coeff n`.
+
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
+
 -/
 
 variables {p : ℕ} [hp : fact p.prime] (n : ℕ) {R : Type*} [comm_ring R]
@@ -67,8 +74,6 @@ open_locale classical
 noncomputable theory
 
 section
-
-local attribute [semireducible] witt_vector
 
 /-- `witt_vector.select P x`, for a predicate `P : ℕ → Prop` is the Witt vector
 whose `n`-th coefficient is `x.coeff n` if `P n` is true, and `0` otherwise.

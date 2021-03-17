@@ -76,6 +76,9 @@ by simp [compl_eq_univ_sdiff]
 @[simp, norm_cast] lemma coe_compl [decidable_eq α] (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
 set.ext $ λ x, mem_compl
 
+@[simp] theorem union_compl [decidable_eq α] (s : finset α) : s ∪ sᶜ = finset.univ :=
+sup_compl_eq_top
+
 @[simp] lemma compl_filter [decidable_eq α] (p : α → Prop) [decidable_pred p]
   [Π x, decidable (¬p x)] :
   (univ.filter p)ᶜ = univ.filter (λ x, ¬p x) :=
@@ -486,8 +489,22 @@ begin
     simp only [finset.mem_univ, finset.mem_insert, true_iff, finset.mem_image, exists_prop],
     refine or_iff_not_imp_left.mpr _,
     { intro h,
-      use p.pred_above m h,
-      simp only [eq_self_iff_true, fin.succ_above_pred_above, and_self] } },
+      cases n,
+      { have : m = p := by simp,
+        exact absurd this h },
+      use p.cast_pred.pred_above m,
+      { rw fin.pred_above,
+        split_ifs with H,
+        { simp only [fin.coe_cast_succ, true_and, fin.coe_coe_eq_self, coe_coe],
+          rw fin.lt_last_iff_coe_cast_pred at hl,
+          rw fin.succ_above_above,
+          { simp },
+          { simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ] at H,
+            simpa [fin.le_iff_coe_le_coe, ←hl] using nat.le_pred_of_lt H } },
+        { rw fin.succ_above_below,
+          { simp },
+          { simp only [fin.cast_succ_cast_pred hl, not_lt] at H,
+            simpa using lt_of_le_of_ne H h, } } } } },
   { rw fin.succ_above_last,
     exact fin.univ_cast_succ n }
 end
@@ -698,7 +715,7 @@ lemma exists_pair_of_one_lt_card (h : 1 < card α) : ∃ (a b : α), a ≠ b :=
 by { haveI : nontrivial α := one_lt_card_iff_nontrivial.1 h, exact exists_pair_ne α }
 
 lemma card_eq_one_of_forall_eq {i : α} (h : ∀ j, j = i) : card α = 1 :=
-le_antisymm (card_le_one_iff.2 (λ a b, eq.trans (h a) (h b).symm)) (card_pos.2 ⟨i, mem_univ _⟩)
+fintype.card_eq_one_iff.2 ⟨i,h⟩
 
 lemma injective_iff_surjective {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact

@@ -11,19 +11,124 @@ import tactic.nth_rewrite
 /-!
 # Finite sets
 
-mathlib has several different models for finite sets,
-and it can be confusing when you're first getting used to them!
+Terms of type `finset α` are one way of talking about finite subsets of `α` in mathlib.
+Below, `finset α` is defined as a structure with 2 fields:
 
-This file builds the basic theory of `finset α`,
-modelled as a `multiset α` without duplicates.
+  1. `val` is a `multiset α` of elements;
+  2. `nodup` is a proof that `val` has no duplicates.
 
-It's "constructive" in the since that there is an underlying list of elements,
-although this is wrapped in a quotient by permutations,
-so anytime you actually use this list you're obligated to show you didn't depend on the ordering.
+Finsets in Lean are constructive in that they have an underlying `list` that enumerates their
+elements. In particular, any function that uses the data of the underlying list cannot depend on its
+ordering. This is handled on the `multiset` level by multiset API, so in most cases one needn't
+worry about it explicitly.
 
-There's also the typeclass `fintype α`
-(which asserts that there is some `finset α` containing every term of type `α`)
-as well as the predicate `finite` on `s : set α` (which asserts `nonempty (fintype s)`).
+Finsets give a basic foundation for defining finite sums and products over types:
+
+  1. `∑ i in (s : finset α), f i`;
+  2. `∏ i in (s : finset α), f i`.
+
+Lean refers to these operations as `big_operator`s.
+More information can be found in `algebra.big_operators.basic`.
+
+Finsets are directly used to define fintypes in Lean.
+A `fintype α` instance for a type `α` consists of
+a universal `finset α` containing every term of `α`, called `univ`. See `data.fintype.basic`.
+There is also `univ'`, the noncomputable partner to `univ`,
+which is defined to be `α` as a finset if `α` is finite,
+and the empty finset otherwise. See `data.fintype.basic`.
+
+## Main declarations
+
+### Main definitions
+
+* `finset`: Defines a type for the finite subsets of `α`.
+  Constructing a `finset` requires two pieces of data: `val`, a `multiset α` of elements,
+  and `nodup`, a proof that `val` has no duplicates.
+* `finset.has_mem`: Defines membership `a ∈ (s : finset α)`.
+* `finset.has_coe`: Provides a coercion `s : finset α` to `s : set α`.
+* `finset.induction_on`: Induction on finsets. To prove a proposition about an arbitrary `finset α`,
+  it suffices to prove it for the empty finset, and to show that if it holds for some `finset α`,
+  then it holds for the finset obtained by inserting a new element.
+* `finset.choose`: Given a proof `h` of existence and uniqueness of a certain element
+  satisfying a predicate, `choose s h` returns the element of `s` satisfying that predicate.
+* `finset.card`: `card s : ℕ` returns the cardinalilty of `s : finset α`.
+  The API for `card`'s interaction with operations on finsets is extensive.
+  TODO: The noncomputable sister `fincard` is about to be added into mathlib.
+
+### Finset constructions
+
+* `singleton`: Denoted by `{a}`; the finset consisting of one element.
+* `finset.empty`: Denoted by `∅`. The finset associated to any type consisting of no elements.
+* `finset.range`: For any `n : ℕ`, `range n` is equal to `{0, 1, ... , n - 1} ⊆ ℕ`.
+  This convention is consistent with other languages and normalizes `card (range n) = n`.
+  Beware, `n` is not in `range n`.
+* `finset.diag`: Given `s`, `diag s` is the set of pairs `(a, a)` with `a ∈ s`. See also
+  `finset.off_diag`: Given a finite set `s`, the off-diagonal,
+  `s.off_diag` is the set of pairs `(a, b)` with `a ≠ b` for `a, b ∈ s`.
+* `finset.attach`: Given `s : finset α`, `attach s` forms a finset of elements of the subtype
+  `{a // a ∈ s}`; in other words, it attaches elements to a proof of membership in the set.
+
+### Finsets from functions
+
+* `finset.image`: Given a function `f : α → β`, `s.image f` is the image finset in `β`.
+* `finset.map`: Given an embedding `f : α ↪ β`, `s.map f` is the image finset in `β`.
+* `finset.filter`: Given a predicate `p : α → Prop`, `s.filter p` is
+  the finset consisting of those elements in `s` satisfying the predicate `p`.
+
+### The lattice structure on subsets of finsets
+
+There is a natural lattice structure on the subsets of a set.
+In Lean, we use lattice notation to talk about things involving unions and intersections. See
+`order.lattice`. For the lattice structure on finsets, `⊥` is called `bot` with `⊥ = ∅` and `⊤` is
+called `top` with `⊤ = univ`.
+
+* `finset.subset`: Lots of API about lattices, otherwise behaves exactly as one would expect.
+* `finset.union`: Defines `s ∪ t` (or `s ⊔ t`) as the union of `s` and `t`.
+  See `finset.bUnion` for finite unions.
+* `finset.inter`: Defines `s ∩ t` (or `s ⊓ t`) as the intersection of `s` and `t`.
+  TODO: `finset.bInter` for finite intersections.
+* `finset.disj_union`: Given a hypothesis `h` which states that finsets `s` and `t` are disjoint,
+  `s.disj_union t h` is the set such that `a ∈ disj_union s t h` iff `a ∈ s` or `a ∈ t`; this does
+  not require decidable equality on the type `α`.
+
+### Operations on two or more finsets
+
+* `finset.insert` and `finset.cons`: For any `a : α`, `insert s a` returns `s ∪ {a}`. `cons s a h`
+  returns the same except that it requires a hypothesis stating that `a` is not already in `s`.
+  This does not require decidable equality on the type `α`.
+* `finset.union`: see "The lattice structure on subsets of finsets"
+* `finset.inter`: see "The lattice structure on subsets of finsets"
+* `finset.erase`: For any `a : α`, `erase s a` returns `s` with the element `a` removed.
+* `finset.sdiff`: Defines the set difference `s \ t` for finsets `s` and `t`.
+* `finset.prod`: Given finsets of `α` and `β`, defines finsets of `α × β`.
+  For arbitrary dependent products, see `data.finset.pi`.
+* `finset.sigma`: Given finsets of `α` and `β`, defines finsets of the dependent sum type `Σ α, β`
+* `finset.bUnion`: Finite unions of finsets; given an indexing function `f : α → finset β` and a
+  `s : finset α`, `s.bUnion f` is the union of all finsets of the form `f a` for `a ∈ s`.
+* `finset.bInter`: TODO: Implemement finite intersections.
+
+### Maps constructed using finsets
+
+* `finset.piecewise`: Given two functions `f`, `g`, `s.piecewise f g` is a function which is equal
+  to `f` on `s` and `g` on the complement.
+
+### Predicates on finsets
+
+* `disjoint`: defined via the lattice structure on finsets; two sets are disjoint if their
+  intersection is empty.
+* `finset.nonempty`: A finset is nonempty if it has elements.
+  This is equivalent to saying `s ≠ ∅`. TODO: Decide on the simp normal form.
+
+### Equivalences between finsets
+
+* The `data.equiv` files describe a general type of equivalence, so look in there for any lemmas.
+  There is some API for rewriting sums and products from `s` to `t` given that `s ≃ t`.
+  TODO: examples
+
+## Tags
+
+finite sets, finset
+
 -/
 
 open multiset subtype nat function
@@ -172,7 +277,7 @@ protected def empty : finset α := ⟨0, nodup_zero⟩
 
 instance : has_emptyc (finset α) := ⟨finset.empty⟩
 
-instance : inhabited (finset α) := ⟨∅⟩
+instance inhabited_finset : inhabited (finset α) := ⟨∅⟩
 
 @[simp] theorem empty_val : (∅ : finset α).1 = 0 := rfl
 
@@ -1304,6 +1409,12 @@ theorem range_mono : monotone range := λ _ _, range_subset.2
 lemma mem_range_succ_iff {a b : ℕ} : a ∈ finset.range b.succ ↔ a ≤ b :=
 finset.mem_range.trans nat.lt_succ_iff
 
+lemma mem_range_le {n x : ℕ} (hx : x ∈ range n) : x ≤ n :=
+(mem_range.1 hx).le
+
+lemma mem_range_sub_ne_zero {n x : ℕ} (hx : x ∈ range n) : n - x ≠ 0 :=
+ne_of_gt $ nat.sub_pos_of_lt $ mem_range.1 hx
+
 end range
 
 /- useful rules for calculations with quantifiers -/
@@ -1476,6 +1587,10 @@ variables {f : α ↪ β} {s : finset α}
 @[simp] theorem mem_map {b : β} : b ∈ s.map f ↔ ∃ a ∈ s, f a = b :=
 mem_map.trans $ by simp only [exists_prop]; refl
 
+@[simp] theorem mem_map_equiv {f : α ≃ β} {b : β} :
+  b ∈ s.map f.to_embedding ↔ f.symm b ∈ s :=
+by { rw mem_map, exact ⟨by { rintro ⟨a, H, rfl⟩, simpa }, λ h, ⟨_, h, by simp⟩⟩ }
+
 theorem mem_map' (f : α ↪ β) {a} {s : finset α} : f a ∈ s.map f ↔ a ∈ s :=
 mem_map_of_injective f.2
 
@@ -1514,9 +1629,7 @@ def map_embedding (f : α ↪ β) : finset α ↪ finset β := ⟨map f, λ s₁
 
 theorem map_filter {p : β → Prop} [decidable_pred p] :
   (s.map f).filter p = (s.filter (p ∘ f)).map f :=
-ext $ λ b, by simp only [mem_filter, mem_map, exists_prop, and_assoc]; exact
-⟨by rintro ⟨⟨x, h1, rfl⟩, h2⟩; exact ⟨x, h1, h2, rfl⟩,
-by rintro ⟨x, h1, h2, rfl⟩; exact ⟨⟨x, h1, rfl⟩, h2⟩⟩
+eq_of_veq (map_filter _ _ _)
 
 theorem map_union [decidable_eq α] [decidable_eq β]
   {f : α ↪ β} (s₁ s₂ : finset α) : (s₁ ∪ s₂).map f = s₁.map f ∪ s₂.map f :=
@@ -1796,6 +1909,17 @@ theorem card_ne_zero_of_mem {s : finset α} {a : α} (h : a ∈ s) : card s ≠ 
 
 theorem card_eq_one {s : finset α} : s.card = 1 ↔ ∃ a, s = {a} :=
 by cases s; simp only [multiset.card_eq_one, finset.card, ← val_inj, singleton_val]
+
+theorem card_le_one {s : finset α} : s.card ≤ 1 ↔ ∀ (a ∈ s) (b ∈ s), a = b :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl|⟨x, hx⟩, { simp },
+  refine (nat.succ_le_of_lt (card_pos.2 ⟨x, hx⟩)).le_iff_eq.trans (card_eq_one.trans ⟨_, _⟩),
+  { rintro ⟨y, rfl⟩, simp },
+  { exact λ h, ⟨x, eq_singleton_iff_unique_mem.2 ⟨hx, λ y hy, h _ hy _ hx⟩⟩ }
+end
+
+theorem one_lt_card {s : finset α} : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
+by { rw ← not_iff_not, push_neg, exact card_le_one }
 
 @[simp] theorem card_insert_of_not_mem [decidable_eq α]
   {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=
@@ -2114,11 +2238,7 @@ by { rw bUnion_singleton, exact image_id }
 lemma bUnion_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
   (h : ∀ x ∈ s, f x ∈ t) :
   t.bUnion (λa, s.filter $ (λc, f c = a)) = s :=
-begin
-  ext b,
-  suffices : (∃ a ∈ t, b ∈ s ∧ f b = a) ↔ b ∈ s, by simpa,
-  exact ⟨λ ⟨a, ha, hb, hab⟩, hb, λ hb, ⟨f b, h b hb, hb, rfl⟩⟩
-end
+ext $ λ b, by simpa using h b
 
 lemma image_bUnion_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bUnion (λa, s.filter $ (λc, g c = a)) = s :=
@@ -2447,9 +2567,18 @@ protected def finset_congr (e : α ≃ β) : finset α ≃ finset β :=
 @[simp] lemma finset_congr_apply (e : α ≃ β) (s : finset α) :
   e.finset_congr s = s.map e.to_embedding :=
 rfl
-@[simp] lemma finset_congr_symm_apply (e : α ≃ β) (s : finset β) :
-  e.finset_congr.symm s = s.map e.symm.to_embedding :=
+
+@[simp] lemma finset_congr_refl :
+  (equiv.refl α).finset_congr = equiv.refl _ :=
+by { ext, simp }
+
+@[simp] lemma finset_congr_symm (e : α ≃ β) :
+  e.finset_congr.symm = e.symm.finset_congr :=
 rfl
+
+@[simp] lemma finset_congr_trans (e : α ≃ β) (e' : β ≃ γ) :
+  e.finset_congr.trans (e'.finset_congr) = (e.trans e').finset_congr :=
+by { ext, simp [-finset.mem_map, -equiv.trans_to_embedding] }
 
 end equiv
 

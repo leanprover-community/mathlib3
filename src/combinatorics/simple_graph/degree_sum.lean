@@ -7,7 +7,7 @@ import combinatorics.simple_graph.basic
 import algebra.big_operators.basic
 import data.nat.parity
 import data.zmod.parity
-import tactic.omega
+
 /-!
 # Degree-sum formula and handshaking lemma
 
@@ -182,7 +182,7 @@ theorem even_card_odd_degree_vertices [fintype V] [decidable_rel G.adj] :
 begin
   classical,
   have h := congr_arg ((λ n, ↑n) : ℕ → zmod 2) G.sum_degrees_eq_twice_card_edges,
-  simp only [zmod.cast_self, zero_mul, nat.cast_mul] at h,
+  simp only [zmod.nat_cast_self, zero_mul, nat.cast_mul] at h,
   rw [sum_nat_cast, ←sum_filter_ne_zero] at h,
   rw @sum_congr _ (zmod 2) _ _ (λ v, (G.degree v : zmod 2)) (λ v, (1 : zmod 2)) _ rfl at h,
   { simp only [filter_congr_decidable, mul_one, nsmul_eq_mul, sum_const, ne.def] at h,
@@ -215,8 +215,11 @@ begin
   simp only [hc, filter_congr_decidable],
   rw [←filter_filter, filter_ne', card_erase_of_mem],
   { use k - 1,
-    rw [nat.pred_eq_succ_iff, hg, nat.mul_sub_left_distrib],
-    omega, },
+    rw [nat.pred_eq_succ_iff, hg, nat.mul_sub_left_distrib, ← nat.sub_add_comm, eq_comm,
+      ← (nat.sub_eq_iff_eq_add _).symm],
+    { ring },
+    { exact add_le_add_right (zero_le (2 * k)) 2 },
+    { exact nat.mul_le_mul_left _ hk } },
   { simpa only [true_and, mem_filter, mem_univ] },
 end
 

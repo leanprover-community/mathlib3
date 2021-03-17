@@ -35,7 +35,7 @@ other choices can be made, and it is not a priori clear what the best interface 
 ## References
 
 * Paul Halmos (1950), Measure Theory, §53
-* https://en.wikipedia.org/wiki/Content_(measure_theory)
+* <https://en.wikipedia.org/wiki/Content_(measure_theory)>
 -/
 
 universe variables u v w
@@ -84,7 +84,7 @@ lemma inner_content_mono {μ : compacts G → ℝ≥0∞} ⦃U V : set G⦄ (hU 
 supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
 
 lemma inner_content_exists_compact {μ : compacts G → ℝ≥0∞} {U : opens G}
-  (hU : inner_content μ U < ⊤) {ε : ℝ≥0} (hε : 0 < ε) :
+  (hU : inner_content μ U < ∞) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ K : compacts G, K.1 ⊆ U ∧ inner_content μ U ≤ μ K + ε :=
 begin
   have h'ε := ennreal.zero_lt_coe_iff.2 hε,
@@ -208,7 +208,7 @@ lemma of_content_interior_compacts (h3 : ∀ (K₁ K₂ : compacts G), K₁.1 �
 le_trans (le_of_eq $ of_content_opens h2 (opens.interior K.1))
          (inner_content_le h3 _ _ interior_subset)
 
-lemma of_content_exists_compact {U : opens G} (hU : of_content μ h1 U < ⊤) {ε : ℝ≥0}
+lemma of_content_exists_compact {U : opens G} (hU : of_content μ h1 U < ∞) {ε : ℝ≥0}
   (hε : 0 < ε) : ∃ K : compacts G, K.1 ⊆ U ∧ of_content μ h1 U ≤ of_content μ h1 K.1 + ε :=
 begin
   rw [of_content_opens h2] at hU ⊢,
@@ -216,7 +216,7 @@ begin
   exact ⟨K, h1K, le_trans h2K $ add_le_add_right (le_of_content_compacts h2 K) _⟩,
 end
 
-lemma of_content_exists_open {A : set G} (hA : of_content μ h1 A < ⊤) {ε : ℝ≥0} (hε : 0 < ε) :
+lemma of_content_exists_open {A : set G} (hA : of_content μ h1 A < ∞) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ U : opens G, A ⊆ U ∧ of_content μ h1 U ≤ of_content μ h1 A + ε :=
 begin
   rcases induced_outer_measure_exists_set _ _ inner_content_mono hA hε with ⟨U, hU, h2U, h3U⟩,

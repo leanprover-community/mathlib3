@@ -55,7 +55,8 @@ lemma hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g
 instance has_forget_to_Top : has_forget₂ UniformSpace.{u} Top.{u} :=
 { forget₂ :=
   { obj := λ X, Top.of X,
-    map := λ X Y f, { to_fun := f, continuous_to_fun := uniform_continuous.continuous f.property }, }, }
+    map := λ X Y f, { to_fun := f,
+                      continuous_to_fun := uniform_continuous.continuous f.property }, }, }
 
 end UniformSpace
 
@@ -83,7 +84,8 @@ instance separated_space (X : CpltSepUniformSpace) : separated_space ((to_Unifor
 CpltSepUniformSpace.is_separated X
 
 /-- Construct a bundled `UniformSpace` from the underlying type and the appropriate typeclasses. -/
-def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] : CpltSepUniformSpace := ⟨X⟩
+def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] :
+CpltSepUniformSpace := ⟨X⟩
 
 @[simp] lemma coe_of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] :
   (of X : Type u) = X := rfl

@@ -61,7 +61,7 @@ begin
   intros x hx,
   apply measurable_set.of_compl,
   apply generate_measurable.basic,
-  exact is_closed_singleton
+  exact is_closed_singleton.is_open_compl
 end
 
 lemma borel_eq_generate_from_of_subbasis {s : set (set α)}
@@ -190,7 +190,7 @@ lemma measurable_set_of_continuous_at {β} [emetric_space β] (f : α → β) :
 (is_Gδ_set_of_continuous_at f).measurable_set
 
 lemma is_closed.measurable_set (h : is_closed s) : measurable_set s :=
-h.measurable_set.of_compl
+h.is_open_compl.measurable_set.of_compl
 
 lemma is_compact.measurable_set [t2_space α] (h : is_compact s) : measurable_set s :=
 h.is_closed.measurable_set
@@ -465,18 +465,6 @@ lemma ae_measurable_const_smul_iff {α : Type*} [topological_space α]
 ⟨λ h, by simpa only [smul_smul, inv_mul_cancel hc, one_smul] using h.const_smul c⁻¹,
   λ h, h.const_smul c⟩
 
-lemma measurable.const_mul {R : Type*} [topological_space R] [measurable_space R]
-  [borel_space R] [semiring R] [topological_semiring R]
-  {f : δ → R} (hf : measurable f) (c : R) :
-  measurable (λ x, c * f x) :=
-hf.const_smul c
-
-lemma measurable.mul_const {R : Type*} [topological_space R] [measurable_space R]
-  [borel_space R] [semiring R] [topological_semiring R]
-  {f : δ → R} (hf : measurable f) (c : R) :
-  measurable (λ x, f x * c) :=
-(continuous_id.mul continuous_const).measurable.comp hf
-
 end
 
 section borel_space
@@ -547,12 +535,63 @@ lemma measurable_mul_right [has_mul α] [has_continuous_mul α] (x : α) :
 continuous.measurable $ continuous_id.mul continuous_const
 
 @[to_additive]
+lemma measurable.const_mul [has_mul α] [has_continuous_mul α] {f : δ → α} (hf : measurable f)
+  (c : α) :
+  measurable (λ x, c * f x) :=
+(measurable_mul_left _).comp hf
+
+@[to_additive]
+lemma measurable.mul_const [has_mul α] [has_continuous_mul α] {f : δ → α} (hf : measurable f)
+  (c : α) :
+  measurable (λ x, f x * c) :=
+(measurable_mul_right _).comp hf
+
+lemma measurable.sub_const [sub_neg_monoid α] [has_continuous_add α] {f : δ → α} (hf : measurable f)
+  (c : α) :
+  measurable (λ x, f x - c) :=
+by simpa only [sub_eq_add_neg] using hf.add_const (-c)
+
+@[to_additive]
 lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mul α]
   [second_countable_topology α] {f : ι → δ → α} (s : finset ι) (hf : ∀i, measurable (f i)) :
   measurable (λ a, ∏ i in s, f i a) :=
-finset.induction_on s
-  (by simp only [finset.prod_empty, measurable_const])
-  (assume i s his ih, by simpa [his] using (hf i).mul ih)
+begin
+  simp_rw ← finset.prod_apply,
+  exact finset.prod_induction f measurable (λ f g hf' hg', measurable.mul' hf' hg')
+    (@measurable_one α δ _ _ _) (λ i _, hf i),
+end
+
+@[to_additive]
+lemma finset.ae_measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mul α]
+  [second_countable_topology α] {f : ι → δ → α} {μ : measure δ} (s : finset ι)
+  (hf : ∀i, ae_measurable (f i) μ) :
+  ae_measurable (λ a, ∏ i in s, f i a) μ :=
+begin
+  simp_rw ← finset.prod_apply,
+  exact finset.prod_induction f (λ f, ae_measurable f μ)
+    (λ f g hf' hg', ae_measurable.mul hf' hg') (@measurable_one α δ _ _ _).ae_measurable
+    (λ i _, hf i),
+end
+
+lemma measurable.pow {β} [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
+  [measurable_space β] {n : ℕ} {f : β → α} (hf : measurable f) :
+  measurable (λ x : β, (f x) ^ n) :=
+begin
+  simp_rw finset.pow_eq_prod_const,
+  exact finset.measurable_prod _ (λ _, hf),
+end
+
+lemma measurable_pow [comm_monoid α] [has_continuous_mul α] [second_countable_topology α] {n : ℕ} :
+  measurable (λ x : α, x ^ n) :=
+measurable_id.pow
+
+lemma ae_measurable.pow {β} [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
+  [measurable_space β] {n : ℕ} {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
+  ae_measurable (λ x : β, (f x) ^ n) μ :=
+begin
+  simp_rw finset.pow_eq_prod_const,
+  exact finset.ae_measurable_prod _ (λ _, hf),
+end
 
 @[to_additive]
 lemma measurable_inv [group α] [topological_group α] : measurable (has_inv.inv : α → α) :=
@@ -576,6 +615,11 @@ lemma measurable.inv' {α : Type*} [normed_field α] [measurable_space α] [bore
   {f : δ → α} (hf : measurable f) :
   measurable (λ a, (f a)⁻¹) :=
 measurable_inv'.comp hf
+
+lemma measurable.div {α : Type*} [normed_field α] [measurable_space α] [borel_space α]
+  [second_countable_topology α] {f g : δ → α} (hf : measurable f) (hg : measurable g) :
+  measurable (λ a, f a / g a) :=
+hf.mul hg.inv'
 
 @[to_additive]
 lemma measurable.of_inv [group α] [topological_group α] {f : δ → α}
@@ -914,8 +958,8 @@ instance rat.borel_space : borel_space ℚ := ⟨borel_eq_top_of_encodable.symm�
 instance real.measurable_space : measurable_space ℝ := borel ℝ
 instance real.borel_space : borel_space ℝ := ⟨rfl⟩
 
-instance nnreal.measurable_space : measurable_space ℝ≥0 := borel ℝ≥0
-instance nnreal.borel_space : borel_space ℝ≥0 := ⟨rfl⟩
+instance nnreal.measurable_space : measurable_space ℝ≥0 := subtype.measurable_space
+instance nnreal.borel_space : borel_space ℝ≥0 := subtype.borel_space _
 
 instance ennreal.measurable_space : measurable_space ℝ≥0∞ := borel ℝ≥0∞
 instance ennreal.borel_space : borel_space ℝ≥0∞ := ⟨rfl⟩
@@ -1089,7 +1133,7 @@ lemma measurable.ennreal_of_real {f : α → ℝ} (hf : measurable f) :
 ennreal.continuous_of_real.measurable.comp hf
 
 /-- The set of finite `ℝ≥0∞` numbers is `measurable_equiv` to `ℝ≥0`. -/
-def measurable_equiv.ennreal_equiv_nnreal : {r : ℝ≥0∞ | r ≠ ⊤} ≃ᵐ ℝ≥0 :=
+def measurable_equiv.ennreal_equiv_nnreal : {r : ℝ≥0∞ | r ≠ ∞} ≃ᵐ ℝ≥0 :=
 ennreal.ne_top_homeomorph_nnreal.to_measurable_equiv
 
 namespace ennreal
@@ -1099,20 +1143,20 @@ measurable_id.ennreal_coe
 
 lemma measurable_of_measurable_nnreal {f : ℝ≥0∞ → α}
   (h : measurable (λ p : ℝ≥0, f p)) : measurable f :=
-measurable_of_measurable_on_compl_singleton ⊤
+measurable_of_measurable_on_compl_singleton ∞
   (measurable_equiv.ennreal_equiv_nnreal.symm.measurable_coe_iff.1 h)
 
 /-- `ℝ≥0∞` is `measurable_equiv` to `ℝ≥0 ⊕ unit`. -/
 def ennreal_equiv_sum : ℝ≥0∞ ≃ᵐ ℝ≥0 ⊕ unit :=
 { measurable_to_fun  := measurable_of_measurable_nnreal measurable_inl,
-  measurable_inv_fun := measurable_sum measurable_coe (@measurable_const ℝ≥0∞ unit _ _ ⊤),
+  measurable_inv_fun := measurable_sum measurable_coe (@measurable_const ℝ≥0∞ unit _ _ ∞),
   .. equiv.option_equiv_sum_punit ℝ≥0 }
 
 open function (uncurry)
 
 lemma measurable_of_measurable_nnreal_prod [measurable_space β] [measurable_space γ]
   {f : ℝ≥0∞ × β → γ} (H₁ : measurable (λ p : ℝ≥0 × β, f (p.1, p.2)))
-  (H₂ : measurable (λ x, f (⊤, x))) :
+  (H₂ : measurable (λ x, f (∞, x))) :
   measurable f :=
 let e : ℝ≥0∞ × β ≃ᵐ ℝ≥0 × β ⊕ unit × β :=
   (ennreal_equiv_sum.prod_congr (measurable_equiv.refl β)).trans
@@ -1121,7 +1165,7 @@ e.symm.measurable_coe_iff.1 $ measurable_sum H₁ (H₂.comp measurable_id.snd)
 
 lemma measurable_of_measurable_nnreal_nnreal [measurable_space β]
   {f : ℝ≥0∞ × ℝ≥0∞ → β} (h₁ : measurable (λ p : ℝ≥0 × ℝ≥0, f (p.1, p.2)))
-  (h₂ : measurable (λ r : ℝ≥0, f (⊤, r))) (h₃ : measurable (λ r : ℝ≥0, f (r, ⊤))) :
+  (h₂ : measurable (λ r : ℝ≥0, f (∞, r))) (h₃ : measurable (λ r : ℝ≥0, f (r, ∞))) :
   measurable f :=
 measurable_of_measurable_nnreal_prod
   (measurable_swap_iff.1 $ measurable_of_measurable_nnreal_prod (h₁.comp measurable_swap) h₃)
@@ -1190,6 +1234,12 @@ ennreal.measurable_sub.comp (hf.prod_mk hg)
 lemma measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
   measurable (λ x, ∑' i, f i x) :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply measurable_supr, exact λ s, s.measurable_sum h }
+
+lemma ae_measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞} {μ : measure α}
+  (h : ∀ i, ae_measurable (f i) μ) :
+  ae_measurable (λ x, ∑' i, f i x) μ :=
+by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
+  exact λ s, finset.ae_measurable_sum s h }
 
 lemma measurable.ennreal_inv {f : α → ℝ≥0∞} (hf : measurable f) : measurable (λ a, (f a)⁻¹) :=
 ennreal.measurable_inv.comp hf
@@ -1386,7 +1436,7 @@ variables [topological_space α] {μ : measure α}
   - it is outer regular: `μ(A) = inf { μ(U) | A ⊆ U open }` for `A` measurable;
   - it is inner regular: `μ(U) = sup { μ(K) | K ⊆ U compact }` for `U` open. -/
 structure regular (μ : measure α) : Prop :=
-(lt_top_of_is_compact : ∀ {{K : set α}}, is_compact K → μ K < ⊤)
+(lt_top_of_is_compact : ∀ {{K : set α}}, is_compact K → μ K < ∞)
 (outer_regular : ∀ {{A : set α}}, measurable_set A →
   (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) ≤ μ A)
 (inner_regular : ∀ {{U : set α}}, is_open U →
@@ -1429,7 +1479,7 @@ begin
     rw [map_apply hf hK.measurable_set] }
 end
 
-protected lemma smul (hμ : μ.regular) {x : ℝ≥0∞} (hx : x < ⊤) :
+protected lemma smul (hμ : μ.regular) {x : ℝ≥0∞} (hx : x < ∞) :
   (x • μ).regular :=
 begin
   split,
@@ -1460,11 +1510,11 @@ end measure_theory
 
 lemma is_compact.measure_lt_top_of_nhds_within [topological_space α]
   {s : set α} {μ : measure α} (h : is_compact s) (hμ : ∀ x ∈ s, μ.finite_at_filter (𝓝[s] x)) :
-  μ s < ⊤ :=
+  μ s < ∞ :=
 is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt ht)
   (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
 
 lemma is_compact.measure_lt_top [topological_space α] {s : set α} {μ : measure α}
   [locally_finite_measure μ] (h : is_compact s) :
-  μ s < ⊤ :=
+  μ s < ∞ :=
 h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _

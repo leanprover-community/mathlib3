@@ -72,7 +72,7 @@ We also add wrappers around structures which already exist. Here are the main on
 open category_theory filter ultrafilter topological_space category_theory.limits has_finite_inter
 open_locale classical topological_space
 
-local notation `β` := of_type_functor ultrafilter
+local notation `β` := of_type_monad ultrafilter
 
 /-- The type `Compactum` of Compacta, defined as algebras for the ultrafilter monad. -/
 @[derive [category, inhabited]]
@@ -100,14 +100,14 @@ instance : has_limits Compactum := has_limits_of_has_limits_creates_limits forge
 def str (X : Compactum) : ultrafilter X → X := X.a
 
 /-- The monadic join. -/
-def join (X : Compactum) : ultrafilter (ultrafilter X) → ultrafilter X := (μ_ β).app _
+def join (X : Compactum) : ultrafilter (ultrafilter X) → ultrafilter X := β .μ.app _
 
 /-- The inclusion of `X` into `ultrafilter X`. -/
-def incl (X : Compactum) : X → ultrafilter X := (η_ β).app _
+def incl (X : Compactum) : X → ultrafilter X := β .η.app _
 
 @[simp] lemma str_incl (X : Compactum) (x : X) : X.str (X.incl x) = x :=
 begin
-  change ((η_ β).app _ ≫ X.a) _ = _,
+  change (β .η.app _ ≫ X.a) _ = _,
   rw monad.algebra.unit,
   refl,
 end
@@ -123,7 +123,7 @@ end
 @[simp] lemma join_distrib (X : Compactum) (uux : ultrafilter (ultrafilter X)) :
   X.str (X.join uux) = X.str (map X.str uux) :=
 begin
-  change ((μ_ β).app _ ≫ X.a) _ = _,
+  change (β .μ.app _ ≫ X.a) _ = _,
   rw monad.algebra.assoc,
   refl,
 end
@@ -139,6 +139,7 @@ instance {X : Compactum} : topological_space X :=
 theorem is_closed_iff {X : Compactum} (S : set X) : is_closed S ↔
   (∀ F : ultrafilter X, S ∈ F → X.str F ∈ S) :=
 begin
+  rw ← is_open_compl_iff,
   split,
   { intros cond F h,
     by_contradiction c,
@@ -267,7 +268,7 @@ begin
   { intros A hA h,
     by_contradiction H,
     rw le_nhds_iff at cond,
-    specialize cond Aᶜ H hA,
+    specialize cond Aᶜ H hA.is_open_compl,
     rw [ultrafilter.mem_coe, ultrafilter.compl_mem_iff_not_mem] at cond,
     contradiction },
   -- If A ∈ F, then x ∈ cl A.

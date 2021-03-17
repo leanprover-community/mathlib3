@@ -368,8 +368,6 @@ begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from X
   let s : subalgebra R (free_algebra R X) := {
     carrier := C,
-    one_mem' := h_grade0 1,
-    zero_mem' := h_grade0 0,
     mul_mem' := h_mul,
     add_mem' := h_add,
     algebra_map_mem' := h_grade0, },

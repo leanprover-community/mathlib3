@@ -10,6 +10,32 @@ import data.zmod.basic
 import data.fintype.card
 import data.list.rotate
 
+/-!
+# Sylow theorems
+
+The Sylow theorems are the following results for every finite group `G` and every prime number `p`.
+
+* There exists a Sylow `p`-subgroup of `G`.
+* All Sylow `p`-subgroups of `G` are conjugate to each other.
+* Let `nₚ` be the number of Sylow `p`-subgroups of `G`, then `nₚ` divides the index of the Sylow
+  `p`-subgroup, `nₚ ≡ 1 [MOD p]`, and `nₚ` is equal to the index of the normalizer of the Sylow
+  `p`-subgroup in `G`.
+
+In this file, currently only the first of these results is proven.
+
+## Main statements
+
+* `exists_prime_order_of_dvd_card`: For every prime `p` dividing the order of `G` there exists an
+  element of order `p` in `G`. This is known as Cauchy`s theorem.
+* `exists_subgroup_card_pow_prime`: A generalisation of the first of the Sylow theorems: For every
+  prime power `pⁿ` dividing `G`, there exists a subgroup of `G` of order `pⁿ`.
+
+## TODO
+
+* Prove the second and third of the Sylow theorems.
+* Sylow theorems for infinite groups
+-/
+
 open equiv fintype finset mul_action function
 open equiv.perm subgroup list quotient_group
 open_locale big_operators
@@ -163,7 +189,7 @@ have hx : x ≠ list.repeat (1 : G) p, from λ h, by simpa [h, vector.repeat] us
 have ∃ a, x = list.repeat a x.length := by exactI rotate_eq_self_iff_eq_repeat.1 (λ n,
   have list.rotate x (n : zmod p).val = x :=
     subtype.mk.inj (subtype.mk.inj (hx₃ (n : zmod p))),
-  by rwa [zmod.val_cast_nat, ← hx₁, rotate_mod] at this),
+  by rwa [zmod.val_nat_cast, ← hx₁, rotate_mod] at this),
 let ⟨a, ha⟩ := this in
 ⟨a, have hx1 : x.prod = 1 := hx₂,
   have ha1: a ≠ 1, from λ h, hx (ha.symm ▸ h ▸ hx₁ ▸ rfl),
@@ -197,7 +223,8 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : s
   (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm)
   (by intros; refl)
 
-lemma exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} [hp : fact p.prime]
+/-- The first of the Sylow theorems. -/
+theorem exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} [hp : fact p.prime]
   (hdvd : p ^ n ∣ card G), ∃ H : subgroup G, fintype.card H = p ^ n
 | 0 := λ _ _, ⟨(⊥ : subgroup G), by convert card_trivial⟩
 | (n+1) := λ hp hdvd,

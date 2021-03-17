@@ -113,7 +113,7 @@ begin
       intro n, apply measurable_set_generate_from,
       exact ⟨s, t n, hs, h1t n, rfl⟩ },
     { rcases hC with ⟨t, h1t, h2t⟩,
-      rw [← univ_prod, ← h2t, Union_prod],
+      rw [← univ_prod, ← h2t, Union_prod_const],
       apply measurable_set.Union,
       rintro n, apply measurable_set_generate_from,
       exact mem_image2_of_mem (h1t n) hs } },
@@ -339,7 +339,7 @@ begin
   { rcases (exists_measurable_superset_of_null hs0) with ⟨s', hs', h2s', h3s'⟩,
     convert measure_mono (prod_mono hs' (subset_univ _)),
     simp_rw [hs0, prod_prod h2s' measurable_set.univ, h3s', zero_mul] },
-  by_cases hti : ν t = ⊤,
+  by_cases hti : ν t = ∞,
   { convert le_top, simp_rw [hti, ennreal.mul_top, hs0, if_false] },
   rw [measure_eq_infi' μ],
   simp_rw [ennreal.infi_mul hti],
@@ -350,7 +350,7 @@ begin
   { rcases (exists_measurable_superset_of_null ht0) with ⟨t', ht', h2t', h3t'⟩,
     convert measure_mono (prod_mono (subset_univ _) ht'),
     simp_rw [ht0, prod_prod measurable_set.univ h2t', h3t', mul_zero] },
-  by_cases hsi : μ s' = ⊤,
+  by_cases hsi : μ s' = ∞,
   { convert le_top, simp_rw [hsi, ennreal.top_mul, ht0, if_false] },
   rw [measure_eq_infi' ν],
   simp_rw [ennreal.mul_infi hsi],
@@ -361,11 +361,11 @@ begin
 end
 
 lemma ae_measure_lt_top {s : set (α × β)} (hs : measurable_set s)
-  (h2s : (μ.prod ν) s < ⊤) : ∀ᵐ x ∂μ, ν (prod.mk x ⁻¹' s) < ⊤ :=
+  (h2s : (μ.prod ν) s < ∞) : ∀ᵐ x ∂μ, ν (prod.mk x ⁻¹' s) < ∞ :=
 by { simp_rw [prod_apply hs] at h2s, refine ae_lt_top (measurable_measure_prod_mk_left hs) h2s }
 
 lemma integrable_measure_prod_mk_left {s : set (α × β)}
-  (hs : measurable_set s) (h2s : (μ.prod ν) s < ⊤) :
+  (hs : measurable_set s) (h2s : (μ.prod ν) s < ∞) :
   integrable (λ x, (ν (prod.mk x ⁻¹' s)).to_real) μ :=
 begin
   refine ⟨(measurable_measure_prod_mk_left hs).to_real.ae_measurable, _⟩,
@@ -434,7 +434,7 @@ instance prod.sigma_finite : sigma_finite (μ.prod ν) :=
 ⟨⟨(μ.to_finite_spanning_sets_in.prod ν.to_finite_spanning_sets_in (λ _, id) (λ _, id)).mono $
  by { rintro _ ⟨s, t, hs, ht, rfl⟩, exact hs.prod ht }⟩⟩
 
-/-- Measures on a product space are equal the product measure if they are equal on rectangles
+/-- A measure on a product space equals the product measure if they are equal on rectangles
   with as sides sets that generate the corresponding σ-algebras. -/
 lemma prod_eq_generate_from {μ : measure α} {ν : measure β} {C : set (set α)}
   {D : set (set β)} (hC : generate_from C = ‹_›)
@@ -454,7 +454,7 @@ begin
     simp_rw [h₁ s hs t ht, prod_prod (h4C s hs) (h4D t ht)] }
 end
 
-/-- Measures on a product space are equal to the product measure if they are equal on rectangles. -/
+/-- A measure on a product space equals the product measure if they are equal on rectangles. -/
 lemma prod_eq {μν : measure (α × β)}
   (h : ∀ s t, measurable_set s → measurable_set t → μν (s.prod t) = μ s * ν t) : μ.prod ν = μν :=
 prod_eq_generate_from generate_from_measurable_set generate_from_measurable_set
@@ -493,6 +493,14 @@ begin
   refine prod_eq (λ s' t' hs' ht', _),
   simp_rw [restrict_apply (hs'.prod ht'), prod_inter_prod, prod_prod (hs'.inter hs) (ht'.inter ht),
     restrict_apply hs', restrict_apply ht']
+end
+
+lemma restrict_prod_eq_prod_univ {s : set α} (hs : measurable_set s) :
+  (μ.restrict s).prod ν = (μ.prod ν).restrict (s.prod univ) :=
+begin
+  have : ν = ν.restrict set.univ := measure.restrict_univ.symm,
+  rwa [this, measure.prod_restrict, ← this],
+  exact measurable_set.univ,
 end
 
 lemma prod_dirac (y : β) : μ.prod (dirac y) = map (λ x, (x, y)) μ :=
@@ -835,18 +843,19 @@ lemma continuous_integral_integral :
   continuous (λ (f : α × β →₁[μ.prod ν] E), ∫ x, ∫ y, f (x, y) ∂ν ∂μ) :=
 begin
   rw [continuous_iff_continuous_at], intro g,
-  refine tendsto_integral_of_l1 _ g.integrable.integral_prod_left
-    (eventually_of_forall $ λ h, h.integrable.integral_prod_left) _,
+  refine tendsto_integral_of_L1 _ (L1.integrable_coe_fn g).integral_prod_left
+    (eventually_of_forall $ λ h, (L1.integrable_coe_fn h).integral_prod_left) _,
   simp_rw [edist_eq_coe_nnnorm_sub,
-    ← lintegral_fn_integral_sub (λ x, (nnnorm x : ℝ≥0∞)) (l1.integrable _) g.integrable],
+    ← lintegral_fn_integral_sub (λ x, (nnnorm x : ℝ≥0∞)) (L1.integrable_coe_fn _)
+    (L1.integrable_coe_fn g)],
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds _ (λ i, zero_le _) _,
   { exact λ i, ∫⁻ x, ∫⁻ y, nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ },
   swap, { exact λ i, lintegral_mono (λ x, ennnorm_integral_le_lintegral_ennnorm _) },
   show tendsto (λ (i : α × β →₁[μ.prod ν] E),
     ∫⁻ x, ∫⁻ (y : β), nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ) (𝓝 g) (𝓝 0),
   have : ∀ (i : α × β →₁[μ.prod ν] E), measurable (λ z, (nnnorm (i z - g z) : ℝ≥0∞)) :=
-  λ i, (i.measurable.sub g.measurable).ennnorm,
-  simp_rw [← lintegral_prod_of_measurable _ (this _), ← l1.of_real_norm_sub_eq_lintegral,
+  λ i, ((Lp.measurable i).sub (Lp.measurable g)).ennnorm,
+  simp_rw [← lintegral_prod_of_measurable _ (this _), ← L1.of_real_norm_sub_eq_lintegral,
     ← of_real_zero],
   refine (continuous_of_real.tendsto 0).comp _,
   rw [← tendsto_iff_norm_tendsto_zero], exact tendsto_id

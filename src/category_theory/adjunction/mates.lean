@@ -113,7 +113,7 @@ def transfer_nat_trans : (G ⋙ L₂ ⟶ L₁ ⋙ H) ≃ (R₁ ⋙ G ⟶ H ⋙ R
 lemma transfer_nat_trans_counit (f : G ⋙ L₂ ⟶ L₁ ⋙ H) (Y : D) :
   L₂.map ((transfer_nat_trans adj₁ adj₂ f).app _) ≫ adj₂.counit.app _ =
     f.app _ ≫ H.map (adj₁.counit.app Y) :=
-by simp [transfer_nat_trans]
+by { erw functor.map_comp, simp }
 
 lemma unit_transfer_nat_trans (f : G ⋙ L₂ ⟶ L₁ ⋙ H) (X : C) :
   G.map (adj₁.unit.app X) ≫ (transfer_nat_trans adj₁ adj₂ f).app _ =
@@ -213,9 +213,8 @@ The converse is given in `transfer_nat_trans_self_of_iso`.
 -/
 instance transfer_nat_trans_self_iso (f : L₂ ⟶ L₁) [is_iso f] :
   is_iso (transfer_nat_trans_self adj₁ adj₂ f) :=
-{ inv := transfer_nat_trans_self adj₂ adj₁ (inv f),
-  hom_inv_id' := transfer_nat_trans_self_comm _ _ (by simp),
-  inv_hom_id' := transfer_nat_trans_self_comm _ _ (by simp) }
+⟨transfer_nat_trans_self adj₂ adj₁ (inv f),
+  ⟨transfer_nat_trans_self_comm _ _ (by simp), transfer_nat_trans_self_comm _ _ (by simp)⟩⟩
 
 /--
 If `f` is an isomorphism, then the un-transferred natural transformation is an isomorphism.
@@ -223,16 +222,16 @@ The converse is given in `transfer_nat_trans_self_symm_of_iso`.
 -/
 instance transfer_nat_trans_self_symm_iso (f : R₁ ⟶ R₂) [is_iso f] :
   is_iso ((transfer_nat_trans_self adj₁ adj₂).symm f) :=
-{ inv := (transfer_nat_trans_self adj₂ adj₁).symm (inv f),
-  hom_inv_id' := transfer_nat_trans_self_symm_comm _ _ (by simp),
-  inv_hom_id' := transfer_nat_trans_self_symm_comm _ _ (by simp) }
+⟨(transfer_nat_trans_self adj₂ adj₁).symm (inv f),
+  ⟨transfer_nat_trans_self_symm_comm _ _ (by simp),
+   transfer_nat_trans_self_symm_comm _ _ (by simp)⟩⟩
 
 /--
 If `f` is a natural transformation whose transferred natural transformation is an isomorphism,
 then `f` is an isomorphism.
 The converse is given in `transfer_nat_trans_self_iso`.
 -/
-def transfer_nat_trans_self_of_iso (f : L₂ ⟶ L₁) [is_iso (transfer_nat_trans_self adj₁ adj₂ f)] :
+lemma transfer_nat_trans_self_of_iso (f : L₂ ⟶ L₁) [is_iso (transfer_nat_trans_self adj₁ adj₂ f)] :
   is_iso f :=
 begin
   suffices :
@@ -246,7 +245,7 @@ If `f` is a natural transformation whose un-transferred natural transformation i
 then `f` is an isomorphism.
 The converse is given in `transfer_nat_trans_self_symm_iso`.
 -/
-def transfer_nat_trans_self_symm_of_iso (f : R₁ ⟶ R₂)
+lemma transfer_nat_trans_self_symm_of_iso (f : R₁ ⟶ R₂)
   [is_iso ((transfer_nat_trans_self adj₁ adj₂).symm f)] :
   is_iso f :=
 begin

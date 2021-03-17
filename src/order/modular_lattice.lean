@@ -21,8 +21,8 @@ any distributive lattice.
   This corresponds to the diamond (or second) isomorphism theorems of algebra.
 
 ## Main Results
-- `is_modular_lattice_iff_sup_inf_sup_assoc`:
-  Modularity is equivalent to the `sup_inf_sup_assoc`: `(x ⊓ z) ⊔ (y ⊓ z) = ((x ⊓ z) ⊔ y) ⊓ z`
+- `is_modular_lattice_iff_inf_sup_inf_assoc`:
+  Modularity is equivalent to the `inf_sup_inf_assoc`: `(x ⊓ z) ⊔ (y ⊓ z) = ((x ⊓ z) ⊔ y) ⊓ z`
 - `distrib_lattice.is_modular_lattice`: Distributive lattices are modular.
 
 ## To do
@@ -44,7 +44,7 @@ theorem sup_inf_assoc_of_le {x : α} (y : α) {z : α} (h : x ≤ z) :
 le_antisymm (is_modular_lattice.sup_inf_le_assoc_of_le y h)
   (le_inf (sup_le_sup_left inf_le_left _) (sup_le h inf_le_right))
 
-theorem is_modular_lattice.sup_inf_sup_assoc {x y z : α} :
+theorem is_modular_lattice.inf_sup_inf_assoc {x y z : α} :
   (x ⊓ z) ⊔ (y ⊓ z) = ((x ⊓ z) ⊔ y) ⊓ z :=
 (sup_inf_assoc_of_le y inf_le_right).symm
 
@@ -55,6 +55,10 @@ by rw [inf_comm, sup_comm, ← sup_inf_assoc_of_le y h, inf_comm, sup_comm]
 instance : is_modular_lattice (order_dual α) :=
 ⟨λ x y z xz, le_of_eq (by { rw [inf_comm, sup_comm, eq_comm, inf_comm, sup_comm],
   convert sup_inf_assoc_of_le (order_dual.of_dual y) (order_dual.dual_le.2 xz) })⟩
+
+theorem is_modular_lattice.sup_inf_sup_assoc {x y z : α} :
+  (x ⊔ z) ⊓ (y ⊔ z) = ((x ⊔ z) ⊓ y) ⊔ z :=
+@is_modular_lattice.inf_sup_inf_assoc (order_dual α) _ _ _ _ _
 
 /-- The diamond isomorphism between the intervals `[a ⊓ b, a]` and `[b, a ⊔ b]` -/
 def inf_Icc_order_iso_Icc_sup (a b : α) : set.Icc (a ⊓ b) a ≃o set.Icc b (a ⊔ b) :=
@@ -85,9 +89,9 @@ def Iic_order_iso_Ici {a b : α} (h : is_compl a b) : set.Iic a ≃o set.Ici b :
 
 end is_compl
 
-theorem is_modular_lattice_iff_sup_inf_sup_assoc [lattice α] :
+theorem is_modular_lattice_iff_inf_sup_inf_assoc [lattice α] :
   is_modular_lattice α ↔ ∀ (x y z : α), (x ⊓ z) ⊔ (y ⊓ z) = ((x ⊓ z) ⊔ y) ⊓ z :=
-⟨λ h, @is_modular_lattice.sup_inf_sup_assoc _ _ h, λ h, ⟨λ x y z xz, by rw [← inf_eq_left.2 xz, h]⟩⟩
+⟨λ h, @is_modular_lattice.inf_sup_inf_assoc _ _ h, λ h, ⟨λ x y z xz, by rw [← inf_eq_left.2 xz, h]⟩⟩
 
 namespace distrib_lattice
 
@@ -96,6 +100,17 @@ instance [distrib_lattice α] : is_modular_lattice α :=
 ⟨λ x y z xz, by rw [inf_sup_right, inf_eq_left.2 xz]⟩
 
 end distrib_lattice
+
+theorem disjoint.disjoint_sup_right_of_disjoint_sup_left
+  [bounded_lattice α] [is_modular_lattice α] {a b c : α}
+  (h : disjoint a b) (hsup : disjoint (a ⊔ b) c) :
+  disjoint a (b ⊔ c) :=
+begin
+  rw [disjoint, ← h.eq_bot, sup_comm],
+  apply le_inf inf_le_left,
+  apply (inf_le_inf_right (c ⊔ b) le_sup_right).trans,
+  rw [sup_comm, is_modular_lattice.sup_inf_sup_assoc, hsup.eq_bot, bot_sup_eq]
+end
 
 namespace is_modular_lattice
 

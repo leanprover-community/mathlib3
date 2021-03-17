@@ -72,7 +72,7 @@ f.measurable_set_fiber' x
 protected def range (f : α →ₛ β) : finset β := f.finite_range.to_finset
 
 @[simp] theorem mem_range {f : α →ₛ β} {b} : b ∈ f.range ↔ b ∈ range f :=
-finite.mem_to_finset
+finite.mem_to_finset _
 
 theorem mem_range_self (f : α →ₛ β) (x : α) : f x ∈ f.range := mem_range.2 ⟨x, rfl⟩
 
@@ -717,11 +717,11 @@ protected def fin_meas_supp (f : α →ₛ β) (μ : measure α) : Prop :=
 f =ᶠ[μ.cofinite] 0
 
 lemma fin_meas_supp_iff_support {f : α →ₛ β} {μ : measure α} :
-  f.fin_meas_supp μ ↔ μ (support f) < ⊤ :=
+  f.fin_meas_supp μ ↔ μ (support f) < ∞ :=
 iff.rfl
 
 lemma fin_meas_supp_iff {f : α →ₛ β} {μ : measure α} :
-  f.fin_meas_supp μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ⊤ :=
+  f.fin_meas_supp μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞ :=
 begin
   split,
   { refine λ h y hy, lt_of_le_of_lt (measure_mono _) h,
@@ -735,7 +735,7 @@ end
 namespace fin_meas_supp
 
 lemma meas_preimage_singleton_ne_zero {f : α →ₛ β} (h : f.fin_meas_supp μ) {y : β} (hy : y ≠ 0) :
-  μ (f ⁻¹' {y}) < ⊤ :=
+  μ (f ⁻¹' {y}) < ∞ :=
 fin_meas_supp_iff.1 h y hy
 
 protected lemma map {f : α →ₛ β} {g : β → γ} (hf : f.fin_meas_supp μ) (hg : g 0 = 0) :
@@ -771,11 +771,11 @@ protected lemma mul {β} [monoid_with_zero β] {f g : α →ₛ β} (hf : f.fin_
   (f * g).fin_meas_supp μ :=
 by { rw [mul_eq_map₂], exact hf.map₂ hg (zero_mul 0) }
 
-lemma lintegral_lt_top {f : α →ₛ ℝ≥0∞} (hm : f.fin_meas_supp μ) (hf : ∀ᵐ a ∂μ, f a < ⊤) :
-  f.lintegral μ < ⊤ :=
+lemma lintegral_lt_top {f : α →ₛ ℝ≥0∞} (hm : f.fin_meas_supp μ) (hf : ∀ᵐ a ∂μ, f a < ∞) :
+  f.lintegral μ < ∞ :=
 begin
   refine sum_lt_top (λ a ha, _),
-  rcases eq_or_lt_of_le (le_top : a ≤ ⊤) with rfl|ha,
+  rcases eq_or_lt_of_le (le_top : a ≤ ∞) with rfl|ha,
   { simp only [ae_iff, lt_top_iff_ne_top, ne.def, not_not] at hf,
     simp [set.preimage, hf] },
   { by_cases ha0 : a = 0,
@@ -783,13 +783,13 @@ begin
     { exact mul_lt_top ha (fin_meas_supp_iff.1 hm _ ha0) } }
 end
 
-lemma of_lintegral_lt_top {f : α →ₛ ℝ≥0∞} (h : f.lintegral μ < ⊤) : f.fin_meas_supp μ :=
+lemma of_lintegral_lt_top {f : α →ₛ ℝ≥0∞} (h : f.lintegral μ < ∞) : f.fin_meas_supp μ :=
 begin
   refine fin_meas_supp_iff.2 (λ b hb, _),
   rw [lintegral, sum_lt_top_iff] at h,
   by_cases b_mem : b ∈ f.range,
   { rw ennreal.lt_top_iff_ne_top,
-    have h : ¬ _ = ⊤ := ennreal.lt_top_iff_ne_top.1 (h b b_mem),
+    have h : ¬ _ = ∞ := ennreal.lt_top_iff_ne_top.1 (h b b_mem),
     simp only [mul_eq_top, not_or_distrib, not_and_distrib] at h,
     rcases h with ⟨h, h'⟩,
     refine or.elim h (λh, by contradiction) (λh, h) },
@@ -798,8 +798,8 @@ begin
     exact with_top.zero_lt_top }
 end
 
-lemma iff_lintegral_lt_top {f : α →ₛ ℝ≥0∞} (hf : ∀ᵐ a ∂μ, f a < ⊤) :
-  f.fin_meas_supp μ ↔ f.lintegral μ < ⊤ :=
+lemma iff_lintegral_lt_top {f : α →ₛ ℝ≥0∞} (hf : ∀ᵐ a ∂μ, f a < ∞) :
+  f.fin_meas_supp μ ↔ f.lintegral μ < ∞ :=
 ⟨λ h, h.lintegral_lt_top hf, λ h, of_lintegral_lt_top h⟩
 
 end fin_meas_supp
@@ -907,17 +907,17 @@ begin
   refine le_antisymm
     (bsupr_le $ assume φ hφ, _)
     (supr_le_supr2 $ λ φ, ⟨φ.map (coe : ℝ≥0 → ℝ≥0∞), le_refl _⟩),
-  by_cases h : ∀ᵐ a ∂μ, φ a ≠ ⊤,
+  by_cases h : ∀ᵐ a ∂μ, φ a ≠ ∞,
   { let ψ := φ.map ennreal.to_nnreal,
     replace h : ψ.map (coe : ℝ≥0 → ℝ≥0∞) =ᵐ[μ] φ :=
       h.mono (λ a, ennreal.coe_to_nnreal),
     have : ∀ x, ↑(ψ x) ≤ f x := λ x, le_trans ennreal.coe_to_nnreal_le_self (hφ x),
     exact le_supr_of_le (φ.map ennreal.to_nnreal)
       (le_supr_of_le this (ge_of_eq $ lintegral_congr h)) },
-  { have h_meas : μ (φ ⁻¹' {⊤}) ≠ 0, from mt measure_zero_iff_ae_nmem.1 h,
+  { have h_meas : μ (φ ⁻¹' {∞}) ≠ 0, from mt measure_zero_iff_ae_nmem.1 h,
     refine le_trans le_top (ge_of_eq $ (supr_eq_top _).2 $ λ b hb, _),
-    obtain ⟨n, hn⟩ : ∃ n : ℕ, b < n * μ (φ ⁻¹' {⊤}), from exists_nat_mul_gt h_meas (ne_of_lt hb),
-    use (const α (n : ℝ≥0)).restrict (φ ⁻¹' {⊤}),
+    obtain ⟨n, hn⟩ : ∃ n : ℕ, b < n * μ (φ ⁻¹' {∞}), from exists_nat_mul_gt h_meas (ne_of_lt hb),
+    use (const α (n : ℝ≥0)).restrict (φ ⁻¹' {∞}),
     simp only [lt_supr_iff, exists_prop, coe_restrict, φ.measurable_set_preimage, coe_const,
       ennreal.coe_indicator, map_coe_ennreal_restrict, map_const, ennreal.coe_nat,
       restrict_const_lintegral],
@@ -926,7 +926,7 @@ begin
     simp only [hx, le_top] }
 end
 
-lemma exists_simple_func_forall_lintegral_sub_lt_of_pos {f : α → ℝ≥0∞} (h : ∫⁻ x, f x ∂μ < ⊤)
+lemma exists_simple_func_forall_lintegral_sub_lt_of_pos {f : α → ℝ≥0∞} (h : ∫⁻ x, f x ∂μ < ∞)
   {ε : ℝ≥0∞} (hε : 0 < ε) :
   ∃ φ : α →ₛ ℝ≥0, (∀ x, ↑(φ x) ≤ f x) ∧ ∀ ψ : α →ₛ ℝ≥0, (∀ x, ↑(ψ x) ≤ f x) →
     (map coe (ψ - φ)).lintegral μ < ε :=
@@ -937,7 +937,7 @@ begin
   simp_rw [lt_supr_iff, supr_lt_iff, supr_le_iff] at this,
   rcases this with ⟨φ, hle : ∀ x, ↑(φ x) ≤ f x, b, hbφ, hb⟩,
   refine ⟨φ, hle, λ ψ hψ, _⟩,
-  have : (map coe φ).lintegral μ < ⊤, from (le_bsupr φ hle).trans_lt h,
+  have : (map coe φ).lintegral μ < ∞, from (le_bsupr φ hle).trans_lt h,
   rw [← add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
   refine (hb _ (λ x, le_trans _ (max_le (hle x) (hψ x)))).trans_lt hbφ,
   norm_cast,
@@ -1106,7 +1106,7 @@ end
 
 /-- If `f` has finite integral, then `∫⁻ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
 to zero as `μ s` tends to zero. This lemma states states this fact in terms of `ε` and `δ`. -/
-lemma exists_pos_set_lintegral_lt_of_measure_lt {f : α → ℝ≥0∞} (h : ∫⁻ x, f x ∂μ < ⊤)
+lemma exists_pos_set_lintegral_lt_of_measure_lt {f : α → ℝ≥0∞} (h : ∫⁻ x, f x ∂μ < ∞)
   {ε : ℝ≥0∞} (hε : 0 < ε) :
   ∃ δ > 0, ∀ s, μ s < δ → ∫⁻ x in s, f x ∂μ < ε :=
 begin
@@ -1139,7 +1139,7 @@ end
 
 /-- If `f` has finite integral, then `∫⁻ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
 to zero as `μ s` tends to zero. -/
-lemma tendsto_set_lintegral_zero {ι} {f : α → ℝ≥0∞} (h : ∫⁻ x, f x ∂μ < ⊤)
+lemma tendsto_set_lintegral_zero {ι} {f : α → ℝ≥0∞} (h : ∫⁻ x, f x ∂μ < ∞)
   {l : filter ι} {s : ι → set α} (hl : tendsto (μ ∘ s) l (𝓝 0)) :
   tendsto (λ i, ∫⁻ x in s i, f x ∂μ) l (𝓝 0) :=
 begin
@@ -1265,7 +1265,7 @@ begin
   exact canonically_ordered_semiring.mul_le_mul (le_refl _) (hs x)
 end
 
-lemma lintegral_const_mul' (r : ℝ≥0∞) (f : α → ℝ≥0∞) (hr : r ≠ ⊤) :
+lemma lintegral_const_mul' (r : ℝ≥0∞) (f : α → ℝ≥0∞) (hr : r ≠ ∞) :
   (∫⁻ a, r * f a ∂μ) = r * (∫⁻ a, f a ∂μ) :=
 begin
   by_cases h : r = 0,
@@ -1291,7 +1291,7 @@ lemma lintegral_mul_const_le (r : ℝ≥0∞) (f : α → ℝ≥0∞) :
   ∫⁻ a, f a ∂μ * r ≤ ∫⁻ a, f a * r ∂μ :=
 by simp_rw [mul_comm, lintegral_const_mul_le r f]
 
-lemma lintegral_mul_const' (r : ℝ≥0∞) (f : α → ℝ≥0∞) (hr : r ≠ ⊤):
+lemma lintegral_mul_const' (r : ℝ≥0∞) (f : α → ℝ≥0∞) (hr : r ≠ ∞):
   ∫⁻ a, f a * r ∂μ = ∫⁻ a, f a ∂μ * r :=
 by simp_rw [mul_comm, lintegral_const_mul' r f hr]
 
@@ -1340,7 +1340,7 @@ begin
 end
 
 lemma meas_ge_le_lintegral_div {f : α → ℝ≥0∞} (hf : measurable f) {ε : ℝ≥0∞}
-  (hε : ε ≠ 0) (hε' : ε ≠ ⊤) :
+  (hε : ε ≠ 0) (hε' : ε ≠ ∞) :
   μ {x | ε ≤ f x} ≤ (∫⁻ a, f a ∂μ) / ε :=
 (ennreal.le_div_iff_mul_le (or.inl hε) (or.inl hε')).2 $
 by { rw [mul_comm], exact mul_meas_ge_le_lintegral hf ε }
@@ -1404,7 +1404,7 @@ calc
     by simp only [lintegral_congr_ae (g_eq_f.mono $ λ a ha, ha _)]
 
 lemma lintegral_sub {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g)
-  (hg_fin : ∫⁻ a, g a ∂μ < ⊤) (h_le : g ≤ᵐ[μ] f) :
+  (hg_fin : ∫⁻ a, g a ∂μ < ∞) (h_le : g ≤ᵐ[μ] f) :
   ∫⁻ a, f a - g a ∂μ = ∫⁻ a, f a ∂μ - ∫⁻ a, g a ∂μ :=
 begin
   rw [← ennreal.add_left_inj hg_fin,
@@ -1417,7 +1417,7 @@ end
 /-- Monotone convergence theorem for nonincreasing sequences of functions -/
 lemma lintegral_infi_ae
   {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, measurable (f n))
-  (h_mono : ∀n:ℕ, f n.succ ≤ᵐ[μ] f n) (h_fin : ∫⁻ a, f 0 a ∂μ < ⊤) :
+  (h_mono : ∀n:ℕ, f n.succ ≤ᵐ[μ] f n) (h_fin : ∫⁻ a, f 0 a ∂μ < ∞) :
   ∫⁻ a, ⨅n, f n a ∂μ = ⨅n, ∫⁻ a, f n a ∂μ :=
 have fn_le_f0 : ∫⁻ a, ⨅n, f n a ∂μ ≤ ∫⁻ a, f 0 a ∂μ, from
   lintegral_mono (assume a, infi_le_of_le 0 (le_refl _)),
@@ -1429,7 +1429,7 @@ calc
     (lintegral_sub (h_meas 0) (measurable_infi h_meas)
     (calc
       (∫⁻ a, ⨅n, f n a ∂μ)  ≤ ∫⁻ a, f 0 a ∂μ : lintegral_mono (assume a, infi_le _ _)
-          ... < ⊤ : h_fin  )
+          ... < ∞ : h_fin  )
     (ae_of_all _ $ assume a, infi_le _ _)).symm
   ... = ∫⁻ a, ⨆n, f 0 a - f n a ∂μ : congr rfl (funext (assume a, ennreal.sub_infi))
   ... = ⨆n, ∫⁻ a, f 0 a - f n a ∂μ :
@@ -1446,14 +1446,14 @@ calc
     congr rfl (funext $ assume n, lintegral_sub (h_meas _) (h_meas _)
       (calc
         ∫⁻ a, f n a ∂μ ≤ ∫⁻ a, f 0 a ∂μ : lintegral_mono_ae $ h_mono n
-        ... < ⊤ : h_fin)
+        ... < ∞ : h_fin)
         (h_mono n))
   ... = ∫⁻ a, f 0 a ∂μ - ⨅n, ∫⁻ a, f n a ∂μ : ennreal.sub_infi.symm
 
 /-- Monotone convergence theorem for nonincreasing sequences of functions -/
 lemma lintegral_infi
   {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, measurable (f n))
-  (h_mono : ∀ ⦃m n⦄, m ≤ n → f n ≤ f m) (h_fin : ∫⁻ a, f 0 a ∂μ < ⊤) :
+  (h_mono : ∀ ⦃m n⦄, m ≤ n → f n ≤ f m) (h_fin : ∫⁻ a, f 0 a ∂μ < ∞) :
   ∫⁻ a, ⨅n, f n a ∂μ = ⨅n, ∫⁻ a, f n a ∂μ :=
 lintegral_infi_ae h_meas (λ n, ae_of_all _ $ h_mono $ le_of_lt n.lt_succ_self) h_fin
 
@@ -1477,7 +1477,7 @@ lemma lintegral_liminf_le {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, measur
 lintegral_liminf_le' (λ n, (h_meas n).ae_measurable)
 
 lemma limsup_lintegral_le {f : ℕ → α → ℝ≥0∞} {g : α → ℝ≥0∞}
-  (hf_meas : ∀ n, measurable (f n)) (h_bound : ∀n, f n ≤ᵐ[μ] g) (h_fin : ∫⁻ a, g a ∂μ < ⊤) :
+  (hf_meas : ∀ n, measurable (f n)) (h_bound : ∀n, f n ≤ᵐ[μ] g) (h_fin : ∫⁻ a, g a ∂μ < ∞) :
   limsup at_top (λn, ∫⁻ a, f n a ∂μ) ≤ ∫⁻ a, limsup at_top (λn, f n a) ∂μ :=
 calc
   limsup at_top (λn, ∫⁻ a, f n a ∂μ) = ⨅n:ℕ, ⨆i≥n, ∫⁻ a, f i a ∂μ :
@@ -1500,7 +1500,7 @@ calc
 lemma tendsto_lintegral_of_dominated_convergence
   {F : ℕ → α → ℝ≥0∞} {f : α → ℝ≥0∞} (bound : α → ℝ≥0∞)
   (hF_meas : ∀n, measurable (F n)) (h_bound : ∀n, F n ≤ᵐ[μ] bound)
-  (h_fin : ∫⁻ a, bound a ∂μ < ⊤)
+  (h_fin : ∫⁻ a, bound a ∂μ < ∞)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, ∫⁻ a, F n a ∂μ) at_top (𝓝 (∫⁻ a, f a ∂μ)) :=
 tendsto_of_le_liminf_of_limsup_le
@@ -1516,7 +1516,7 @@ measurable. -/
 lemma tendsto_lintegral_of_dominated_convergence'
   {F : ℕ → α → ℝ≥0∞} {f : α → ℝ≥0∞} (bound : α → ℝ≥0∞)
   (hF_meas : ∀n, ae_measurable (F n) μ) (h_bound : ∀n, F n ≤ᵐ[μ] bound)
-  (h_fin : ∫⁻ a, bound a ∂μ < ⊤)
+  (h_fin : ∫⁻ a, bound a ∂μ < ∞)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, ∫⁻ a, F n a ∂μ) at_top (𝓝 (∫⁻ a, f a ∂μ)) :=
 begin
@@ -1543,7 +1543,7 @@ lemma tendsto_lintegral_filter_of_dominated_convergence {ι} {l : filter ι}
   (hl_cb : l.is_countably_generated)
   (hF_meas : ∀ᶠ n in l, measurable (F n))
   (h_bound : ∀ᶠ n in l, ∀ᵐ a ∂μ, F n a ≤ bound a)
-  (h_fin : ∫⁻ a, bound a ∂μ < ⊤)
+  (h_fin : ∫⁻ a, bound a ∂μ < ∞)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) l (𝓝 (f a))) :
   tendsto (λn, ∫⁻ a, F n a ∂μ) l (𝓝 $ ∫⁻ a, f a ∂μ) :=
 begin
@@ -1675,14 +1675,21 @@ begin
   exact funext (λ a, lintegral_dirac a f),
 end
 
-lemma ae_lt_top {f : α → ℝ≥0∞} (hf : measurable f) (h2f : ∫⁻ x, f x ∂μ < ⊤) :
-  ∀ᵐ x ∂μ, f x < ⊤ :=
+lemma ae_lt_top {f : α → ℝ≥0∞} (hf : measurable f) (h2f : ∫⁻ x, f x ∂μ < ∞) :
+  ∀ᵐ x ∂μ, f x < ∞ :=
 begin
   simp_rw [ae_iff, ennreal.not_lt_top], by_contra h, rw [← not_le] at h2f, apply h2f,
-  have : (f ⁻¹' {⊤}).indicator ⊤ ≤ f,
-  { intro x, by_cases hx : x ∈ f ⁻¹' {⊤}; [simpa [hx], simp [hx]] },
+  have : (f ⁻¹' {∞}).indicator ⊤ ≤ f,
+  { intro x, by_cases hx : x ∈ f ⁻¹' {∞}; [simpa [hx], simp [hx]] },
   convert lintegral_mono this,
-  rw [lintegral_indicator _ (hf (measurable_set_singleton ⊤))], simp [ennreal.top_mul, preimage, h]
+  rw [lintegral_indicator _ (hf (measurable_set_singleton ∞))], simp [ennreal.top_mul, preimage, h]
+end
+
+lemma ae_lt_top' {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (h2f : ∫⁻ x, f x ∂μ < ∞) :
+  ∀ᵐ x ∂μ, f x < ∞ :=
+begin
+  have h2f_meas : ∫⁻ x, hf.mk f x ∂μ < ∞, by rwa ←lintegral_congr_ae hf.ae_eq_mk,
+  exact (ae_lt_top hf.measurable_mk h2f_meas).mp (hf.ae_eq_mk.mono (λ x hx h, by rwa hx)),
 end
 
 /-- Given a measure `μ : measure α` and a function `f : α → ℝ≥0∞`, `μ.with_density f` is the

@@ -8,6 +8,7 @@ import algebra.group.basic
 import algebra.group.hom
 import algebra.group.pi
 import algebra.group.prod
+
 /-!
 # The group of permutations (self-equivalences) of a type `α`
 
@@ -22,15 +23,13 @@ variables {α : Type u}
 namespace perm
 
 instance perm_group : group (perm α) :=
-begin
-  refine { mul := λ f g, equiv.trans g f,
-           one := equiv.refl α,
-           inv := equiv.symm,
-           div_eq_mul_inv := λ _ _, rfl,
-           ..};
-  intros; apply equiv.ext; try { apply trans_apply },
-  apply symm_apply_apply
-end
+{ mul := λ f g, equiv.trans g f,
+  one := equiv.refl α,
+  inv := equiv.symm,
+  mul_assoc := λ f g h, (trans_assoc _ _ _).symm,
+  one_mul := trans_refl,
+  mul_one := refl_trans,
+  mul_left_inv := trans_symm }
 
 theorem mul_apply (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
@@ -183,6 +182,9 @@ def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : 
   λ _, by simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk],
   λ _, by simp only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk]⟩
 
+@[simp] lemma subtype_perm_apply (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x))
+  (x : {x // p x}) : subtype_perm f h x = ⟨f x, (h _).1 x.2⟩ := rfl
+
 @[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) :
   @subtype_perm α 1 p h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
@@ -235,6 +237,12 @@ else by simp [h, of_subtype_apply_of_not_mem f h]
   subtype_perm (of_subtype f) (mem_iff_of_subtype_apply_mem f) = f :=
 equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
   simp only [show p x, from hx, dif_pos, subtype.coe_eta] }
+
+instance perm_unique {n : Type*} [unique n] : unique (equiv.perm n) :=
+{ default := 1,
+  uniq := λ σ, equiv.ext (λ i, subsingleton.elim _ _) }
+
+@[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
 
 end perm
 

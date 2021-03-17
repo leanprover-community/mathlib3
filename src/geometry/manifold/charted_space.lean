@@ -108,7 +108,8 @@ composition of local equivs with `≫`.
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical topological_space
+open filter
 universes u
 
 variables {H : Type u} {H' : Type*} {M : Type*} {M' : Type*} {M'' : Type*}
@@ -491,6 +492,31 @@ by simp [atlas, charted_space.atlas]
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
+section
+
+variables (H) [topological_space H] [topological_space M] [charted_space H M]
+
+lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
+(chart_at H x).map_source (mem_chart_source _ _)
+
+/-- If a topological space admits an atlas with locally compact charts, then the space itself
+is locally compact. -/
+lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
+begin
+  have : ∀ (x : M), (𝓝 x).has_basis
+      (λ s, s ∈ 𝓝 (chart_at H x x) ∧ is_compact s ∧ s ⊆ (chart_at H x).target)
+      (λ s, (chart_at H x).symm '' s),
+  { intro x,
+    rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
+    exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
+      (mem_nhds_sets (chart_at H x).open_target (mem_chart_target H x))).map _ },
+  refine locally_compact_space_of_has_basis this _,
+  rintro x s ⟨h₁, h₂, h₃⟩,
+  exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
+end
+
+end
+
 /-- Same thing as `H × H'`. We introduce it for technical reasons: a charted space `M` with model `H`
 is a set of local charts from `M` to `H` covering the space. Every space is registered as a charted
 space over itself, using the only chart `id`, in `manifold_model_space`. You can also define a product
@@ -603,7 +629,7 @@ end
 /-- An element of the atlas in a charted space without topology becomes a local homeomorphism
 for the topology constructed from this atlas. The `local_homeomorph` version is given in this
 definition. -/
-def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
+protected def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
   @local_homeomorph M H c.to_topological_space _ :=
 { open_source := by convert c.open_source' he,
   open_target := by convert c.open_target he,

@@ -24,7 +24,9 @@ variables {a b : R} {bi : K}
 /-- `denoms_clearable` formalizes the property that `b ^ N * f (a / b)`
 does not have denominators, if the inequality `f.nat_degree ≤ N` holds.
 
-In the implementation, we also use provide an inverse in the existential.
+The definition asserts the existence of an element `D` of `R` and an
+element `bi = 1 / i b` of `K` such that clearing the denominators of
+the fraction equals `i D`.
 -/
 def denoms_clearable (a b : R) (N : ℕ) (f : polynomial R) (i : R →+* K) : Prop :=
   ∃ (D : R) (bi : K), bi * i b = 1 ∧ i D = i b ^ N * eval (i a * bi) (f.map i)
@@ -70,3 +72,27 @@ theorem denoms_clearable_nat_degree
 denoms_clearable_of_nat_degree_le f.nat_degree a bu f le_rfl
 
 end denoms_clearable
+
+open ring_hom
+
+/--  Evaluating a polynomial with integer coefficients at a rational number and clearing
+denominators, yields a number greater than or equal to one.  The target can be any
+`linear_ordered_field K`.
+The assumption on `K` could be weakened to `linear_ordered_comm_ring` assuming that the
+image of the denominator is invertible in `K`. -/
+lemma one_le_pow_mul_abs_eval_div {K : Type*} [linear_ordered_field K] {f : polynomial ℤ}
+  {a b : ℤ} (b0 : 0 < b) (fab : eval ((a : K) / b) (f.map (algebra_map ℤ K)) ≠ 0) :
+  (1 : K) ≤ b ^ f.nat_degree * abs (eval ((a : K) / b) (f.map (algebra_map ℤ K))) :=
+begin
+  obtain ⟨ev, bi, bu, hF⟩ := @denoms_clearable_nat_degree _ _ _ _ b _ (algebra_map ℤ K)
+    f a (by { rw [eq_int_cast, one_div_mul_cancel], rw [int.cast_ne_zero], exact (b0.ne.symm) }),
+  obtain Fa := congr_arg abs hF,
+  rw [eq_one_div_of_mul_eq_one_left bu, eq_int_cast, eq_int_cast, abs_mul] at Fa,
+  rw [abs_of_pos (pow_pos (int.cast_pos.mpr b0) _ : 0 < (b : K) ^ _), one_div, eq_int_cast] at Fa,
+  rw [div_eq_mul_inv, ← Fa, ← int.cast_abs, ← int.cast_one, int.cast_le],
+  refine int.le_of_lt_add_one ((lt_add_iff_pos_left 1).mpr (abs_pos.mpr (λ F0, fab _))),
+  rw [eq_one_div_of_mul_eq_one_left bu, F0, one_div, eq_int_cast, int.cast_zero, zero_eq_mul] at hF,
+  cases hF with hF hF,
+  { exact (not_le.mpr b0 (le_of_eq (int.cast_eq_zero.mp (pow_eq_zero hF)))).elim },
+  { exact hF }
+end

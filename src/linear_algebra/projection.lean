@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov
 -/
 import linear_algebra.basic
+import linear_algebra.prod
 
 /-!
 # Projection to a subspace

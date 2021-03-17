@@ -130,8 +130,8 @@ multiset.gcd_singleton
 @[simp] lemma normalize_gcd : normalize (s.gcd f) = s.gcd f := by simp [gcd_def]
 
 lemma gcd_union [decidable_eq β] : (s₁ ∪ s₂).gcd f = gcd_monoid.gcd (s₁.gcd f) (s₂.gcd f) :=
-finset.induction_on s₁ (by rw [empty_union, gcd_empty, gcd_zero_left, normalize_gcd]) $ λ a s has ih,
-  by rw [insert_union, gcd_insert, gcd_insert, ih, gcd_assoc]
+finset.induction_on s₁ (by rw [empty_union, gcd_empty, gcd_zero_left, normalize_gcd]) $
+  λ a s has ih, by rw [insert_union, gcd_insert, gcd_insert, ih, gcd_assoc]
 
 theorem gcd_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a ∈ s₂, f a = g a) :
   s₁.gcd f = s₂.gcd g :=

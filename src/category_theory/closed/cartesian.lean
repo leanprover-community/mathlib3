@@ -316,7 +316,7 @@ i.e. any morphism to `I` is an iso.
 This actually shows a slightly stronger version: any morphism to an initial object from an
 exponentiable object is an isomorphism.
 -/
-def strict_initial {I : C} (t : is_initial I) (f : A ⟶ I) : is_iso f :=
+lemma strict_initial {I : C} (t : is_initial I) (f : A ⟶ I) : is_iso f :=
 begin
   haveI : mono (limits.prod.lift (𝟙 A) f ≫ (zero_mul t).hom) := mono_comp _ _,
   rw [zero_mul_hom, prod.lift_snd] at _inst,
@@ -329,7 +329,12 @@ strict_initial initial_is_initial _
 
 /-- If an initial object `0` exists in a CCC then every morphism from it is monic. -/
 lemma initial_mono {I : C} (B : C) (t : is_initial I) [cartesian_closed C] : mono (t.to B) :=
-⟨λ B g h _, by { haveI := strict_initial t g, haveI := strict_initial t h, exact eq_of_inv_eq_inv (t.hom_ext _ _) }⟩
+⟨λ B g h _,
+begin
+  haveI := strict_initial t g,
+  haveI := strict_initial t h,
+  exact eq_of_inv_eq_inv (t.hom_ext _ _)
+end⟩
 
 instance initial.mono_to [has_initial C] (B : C) [cartesian_closed C] : mono (initial.to B) :=
 initial_mono B initial_is_initial

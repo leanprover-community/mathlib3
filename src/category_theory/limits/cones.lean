@@ -118,8 +118,8 @@ namespace cone
 def equiv (F : J ⥤ C) : cone F ≅ Σ X, F.cones.obj X :=
 { hom := λ c, ⟨op c.X, c.π⟩,
   inv := λ c, { X := unop c.1, π := c.2 },
-  hom_inv_id' := begin ext, cases x, refl, end,
-  inv_hom_id' := begin ext, cases x, refl, end }
+  hom_inv_id' := begin ext1, cases x, refl, end,
+  inv_hom_id' := begin ext1, cases x, refl, end }
 
 /-- A map to the vertex of a cone naturally induces a cone by composition. -/
 @[simp] def extensions (c : cone F) : yoneda.obj c.X ⟶ F.cones :=
@@ -147,8 +147,8 @@ namespace cocone
 def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
 { hom := λ c, ⟨c.X, c.ι⟩,
   inv := λ c, { X := c.1, ι := c.2 },
-  hom_inv_id' := begin ext, cases x, refl, end,
-  inv_hom_id' := begin ext, cases x, refl, end }
+  hom_inv_id' := begin ext1, cases x, refl, end,
+  inv_hom_id' := begin ext1, cases x, refl, end }
 
 /-- A map from the vertex of a cocone naturally induces a cocone by composition. -/
 @[simp] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
@@ -204,11 +204,10 @@ namespace cones
 Given a cone morphism whose object part is an isomorphism, produce an
 isomorphism of cones.
 -/
-def cone_iso_of_hom_iso {K : J ⥤ C} {c d : cone K} (f : c ⟶ d) [i : is_iso f.hom] :
+lemma cone_iso_of_hom_iso {K : J ⥤ C} {c d : cone K} (f : c ⟶ d) [i : is_iso f.hom] :
   is_iso f :=
-{ inv :=
-  { hom := i.inv,
-    w' := λ j, (as_iso f.hom).inv_comp_eq.2 (f.w j).symm } }
+⟨{ hom := inv f.hom,
+   w' := λ j, (as_iso f.hom).inv_comp_eq.2 (f.w j).symm }, by tidy⟩
 
 /--
 Functorially postcompose a cone for `F` by a natural transformation `F ⟶ G` to give a cone for `G`.
@@ -368,11 +367,10 @@ namespace cocones
 Given a cocone morphism whose object part is an isomorphism, produce an
 isomorphism of cocones.
 -/
-def cocone_iso_of_hom_iso {K : J ⥤ C} {c d : cocone K} (f : c ⟶ d) [i : is_iso f.hom] :
+lemma cocone_iso_of_hom_iso {K : J ⥤ C} {c d : cocone K} (f : c ⟶ d) [i : is_iso f.hom] :
   is_iso f :=
-{ inv :=
-  { hom := i.inv,
-    w' := λ j, (as_iso f.hom).comp_inv_eq.2 (f.w j).symm } }
+⟨{ hom := inv f.hom,
+   w' := λ j, (as_iso f.hom).comp_inv_eq.2 (f.w j).symm }, by tidy⟩
 
 /-- Functorially precompose a cocone for `F` by a natural transformation `G ⟶ F` to give a cocone
 for `G`. -/
@@ -487,7 +485,8 @@ let f : (F ⋙ e.functor) ⋙ e.inverse ≅ F :=
     simp only [←equivalence.counit_inv_app_functor, iso.inv_hom_id_app, map_comp,
       equivalence.fun_inv_map, assoc, id_comp, iso.inv_hom_id_app_assoc],
     dsimp, simp, -- See note [dsimp, simp].
-  end) (by tidy), }
+  end)
+  (λ c c' f, by { ext, dsimp, simp, dsimp, simp, }), }
 
 /--
 If `F` reflects isomorphisms, then `cocones.functoriality F` reflects isomorphisms

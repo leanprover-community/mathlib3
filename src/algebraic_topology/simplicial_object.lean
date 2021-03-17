@@ -8,6 +8,7 @@ import category_theory.category.ulift
 import category_theory.limits.functor_category
 import category_theory.opposites
 import category_theory.adjunction.limits
+import category_theory.limits.shapes.finite_limits
 
 /-!
 # Simplicial objects in a category.
@@ -140,6 +141,16 @@ def sk (n : ℕ) : simplicial_object C ⥤ simplicial_object.truncated C n :=
 (whiskering_left _ _ _).obj (simplex_category.truncated.inclusion).op
 
 end skeleton
+
+section coskeleton
+
+def cosk_diagram {n} (X : truncated C n) (a : simplex_category) :
+  (ulift'.{v} (simplex_category.over_trunc a n)ᵒᵖ) ⥤ C :=
+let F := (simplex_category.over_trunc.forget : simplex_category.over_trunc a n ⥤ _).op ⋙ X,
+    G := (ulift'.equivalence : (simplex_category.over_trunc a n)ᵒᵖ ≌ ulift'.{v} _) in
+G.congr_left.functor.obj F
+
+end coskeleton
 
 end simplicial_object
 

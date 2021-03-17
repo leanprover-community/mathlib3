@@ -355,24 +355,24 @@ lemma inclusion_len {a : simplex_category} {m : ℕ} (x : over_trunc a m) :
 
 /-- The forgetful functor from `over_trunc a m` to `truncated m`. -/
 @[simps]
-def forget_to_truncated {a m} : over_trunc a m ⥤ truncated m :=
+def forget {a m} : over_trunc a m ⥤ truncated m :=
 { obj := λ b, ⟨(over.forget a).obj (inclusion.obj b), inclusion_len b⟩,
   map := λ x y f, (over.forget a).map (inclusion.map f) }
 
-instance {a m} : faithful (forget_to_truncated : over_trunc a m ⥤ _) := {}
+instance {a m} : faithful (forget : over_trunc a m ⥤ _) := {}
 
 noncomputable
 instance {a m} : fin_category (over_trunc a m) :=
 { decidable_eq_obj := by {classical, apply_instance},
   fintype_obj := begin
     let ff : a.over_trunc m → (Σ (x : truncated m), truncated.inclusion.obj x ⟶ a) :=
-    λ f, ⟨forget_to_truncated.obj f, (inclusion.obj f).hom⟩,
+    λ f, ⟨forget.obj f, (inclusion.obj f).hom⟩,
     have : function.injective ff, by {rintro ⟨⟨x1,x2,x⟩,hx⟩ ⟨⟨y1,y2,y⟩,hy⟩ h, tidy},
     apply fintype.of_injective _ this,
   end,
   decidable_eq_hom := by {classical, apply_instance},
   fintype_hom := λ j j',
-    fintype.of_injective (λ f, forget_to_truncated.map f) forget_to_truncated.map_injective }
+    fintype.of_injective (λ f, forget.map f) forget.map_injective }
 
 end over_trunc
 

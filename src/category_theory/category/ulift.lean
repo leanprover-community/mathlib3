@@ -89,7 +89,7 @@ def ulift'.down : (ulift'.{u2} D) ⥤ D :=
 
 /-- The categorical equivalence between `C` and `ulift' C`. -/
 @[simps]
-def ulift'.equivalence {D : Type*} [small_category D] : D ≌ ulift'.{u2} D :=
+def ulift'.equivalence : D ≌ ulift'.{u2} D :=
 { functor := ulift'.up,
   inverse := ulift'.down,
   unit_iso :=

@@ -5,6 +5,8 @@ Authors: Scott Morrison
 -/
 import data.fintype.basic
 import category_theory.discrete_category
+import category_theory.opposites
+import category_theory.category.ulift
 
 /-!
 # Finite categories
@@ -53,5 +55,14 @@ def fin_category_of_injective_faithful {J K : Type v} [small_category J] [small_
   fintype_obj := fintype.of_injective _ inj,
   decidable_eq_hom := by {classical, apply_instance},
   fintype_hom := λ j j', fintype.of_injective (λ f : (j ⟶ j'), F.map f) F.map_injective }
+
+noncomputable
+instance {J : Type v} [small_category J] [fin_category J] : fin_category Jᵒᵖ :=
+{ decidable_eq_obj := by {classical, apply_instance},
+  fintype_obj := fintype.of_injective opposite.unop (by tidy),
+  fintype_hom := λ j j', fintype.of_injective (λ f, f.unop) has_hom.hom.unop_inj }
+
+instance {J : Type v} [small_category J] [fin_category J] : fin_category (ulift'.{u} J) :=
+{ fintype_obj := by {unfold ulift', apply_instance} }
 
 end category_theory

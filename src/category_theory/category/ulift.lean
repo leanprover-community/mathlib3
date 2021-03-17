@@ -18,7 +18,8 @@ instance on `ulift C` where `C` is a type with a category instance.
   `C` and `ulift C`.
 -/
 
-universes v u1 u2
+-- The order of the universes matters... yet again.
+universes v u2 u1
 
 namespace category_theory
 
@@ -54,5 +55,39 @@ def ulift.equivalence : C ≌ (ulift.{u2} C) :=
   hom_inv_id' := by {ext, change (𝟙 _) ≫ (𝟙 _) = 𝟙 _, simp},
   inv_hom_id' := by {ext, change (𝟙 _) ≫ (𝟙 _) = 𝟙 _, simp} },
   functor_unit_iso_comp' := λ X, by {change (𝟙 X) ≫ (𝟙 X) = 𝟙 X, simp} }
+
+section ulift'
+
+variables (D : Type u1)
+
+def ulift' [small_category D] := ulift.{u2} D
+
+variables {D} [small_category D]
+
+@[simps]
+instance : small_category (ulift'.{u2} D) :=
+{ hom := λ X Y, ulift $ X.down ⟶ Y.down,
+  id := λ X, _root_.ulift.up $ 𝟙 _,
+  comp := λ X Y Z f g, _root_.ulift.up $ f.down ≫ g.down }
+
+def ulift'.up : D ⥤ (ulift'.{u2} D) :=
+{ obj := _root_.ulift.up,
+  map := λ X Y, _root_.ulift.up }
+
+def ulift'.down : (ulift'.{u2} D) ⥤ D :=
+{ obj := _root_.ulift.down,
+  map := λ X Y, _root_.ulift.down }
+
+def ulift'.equivalence {D : Type*} [small_category D] : D ≌ ulift'.{u2} D :=
+{ functor := ulift'.up,
+  inverse := ulift'.down,
+  unit_iso :=
+  { hom := { app := λ X, 𝟙 _ },
+    inv := { app := λ X, 𝟙 _ } },
+  counit_iso :=
+  { hom := { app := λ X, _root_.ulift.up (𝟙 _) },
+    inv := { app := λ X, _root_.ulift.up (𝟙 _) } } }
+
+end ulift'
 
 end category_theory

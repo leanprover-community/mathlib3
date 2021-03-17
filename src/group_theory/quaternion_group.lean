@@ -34,8 +34,8 @@ inconvenient to carry around this condition we define `quaternion_group` also fo
 
 ## References
 
-https://en.wikipedia.org/wiki/Dicyclic_group
-https://en.wikipedia.org/wiki/Quaternion_group
+* https://en.wikipedia.org/wiki/Dicyclic_group
+* https://en.wikipedia.org/wiki/Quaternion_group
 
 ## TODO
 
@@ -222,7 +222,7 @@ begin
   { norm_num }
 end
 
-/-- In the special case `n = 1`, `quaternion 1` is a cyclic group (of order `4`).-/
+/-- In the special case `n = 1`, `quaternion 1` is a cyclic group (of order `4`). -/
 lemma quaternion_group_one_is_cyclic : is_cyclic (quaternion_group 1) :=
 begin
   apply is_cyclic_of_order_of_eq_card,
@@ -246,7 +246,7 @@ begin
 end
 
 /--
-If `0 < n`, then `a i` has order `(2 * n) / gcd (2 * n) i`
+If `0 < n`, then `a i` has order `(2 * n) / gcd (2 * n) i`.
 -/
 lemma order_of_a [fact (0 < n)] (i : zmod (2 * n)) :
   order_of (a i) = (2 * n) / nat.gcd (2 * n) i.val :=

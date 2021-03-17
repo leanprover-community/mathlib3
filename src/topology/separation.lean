@@ -157,6 +157,14 @@ mem_nhds_sets is_open_compl_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
   closure ({a} : set α) = {a} :=
 is_closed_singleton.closure_eq
 
+lemma set.subsingleton.closure [t1_space α] {s : set α} (hs : s.subsingleton) :
+  (closure s).subsingleton :=
+hs.induction_on (by simp) $ λ x, by simp
+
+@[simp] lemma subsingleton_closure [t1_space α] {s : set α} :
+  (closure s).subsingleton ↔ s.subsingleton :=
+⟨λ h, h.mono subset_closure, λ h, h.closure⟩
+
 lemma is_closed_map_const {α β} [topological_space α] [topological_space β] [t1_space β] {y : β} :
   is_closed_map (function.const α y) :=
 begin
@@ -479,6 +487,10 @@ instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
   or.elim (not_and_distrib.mp (mt prod.ext_iff.mpr h))
     (λ h₁, separated_by_continuous continuous_fst h₁)
     (λ h₂, separated_by_continuous continuous_snd h₂)⟩
+
+lemma embedding.t2_space [topological_space β] [t2_space β] {f : α → β} (hf : embedding f) :
+  t2_space α :=
+⟨λ x y h, separated_by_continuous hf.continuous (hf.inj.ne h)⟩
 
 instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
   [t₂ : topological_space β] [t2_space β] : t2_space (α ⊕ β) :=

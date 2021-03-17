@@ -277,7 +277,7 @@ begin
     contrapose! p,
     rw (q p).1 rfl },
   { intro a,
-    exact ⟨λ z hz, iff_of_false (ne_of_gt (trans hz a)) (ne_of_gt hz), ne_of_gt a⟩ }
+    exact ⟨λ z hz, iff_of_false (ne_of_gt (trans a hz)) (ne_of_gt hz), ne_of_gt a⟩ }
 end
 
 /--

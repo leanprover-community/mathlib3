@@ -19,17 +19,11 @@ is also an inner product space, with inner product defined as `inner f g = ∫ a
   is integrable.
 * `L2.inner_product_space` : `Lp E 2 μ` is an inner product space.
 
-### Notation
-
-* `α →₂[μ] E` : the type `Lp E 2 μ`.
-
 -/
 
 noncomputable theory
 open topological_space measure_theory measure_theory.Lp
 open_locale nnreal ennreal
-
-notation α ` →₂[`:25 μ `] ` E := measure_theory.Lp E 2 μ
 
 namespace measure_theory
 namespace L2

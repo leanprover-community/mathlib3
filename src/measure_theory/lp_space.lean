@@ -15,7 +15,7 @@ denoted by `snorm f p μ` and defined for `p:ℝ≥0∞` as `0` if `p=0`, `(∫ 
 `0 < p < ∞` and `ess_sup ∥f∥ μ` for `p=∞`.
 
 The Prop-valued `mem_ℒp f p μ` states that a function `f : α → E` has finite seminorm.
-The space `Lp α E p μ` is the subtype of elements of `α →ₘ[μ] E` (see ae_eq_fun) such that
+The space `Lp E p μ` is the subtype of elements of `α →ₘ[μ] E` (see ae_eq_fun) such that
 `snorm f p μ` is finite. For `1 ≤ p`, `snorm` defines a norm and `Lp` is a complete metric space.
 
 ## Main definitions
@@ -36,6 +36,11 @@ that it is continuous. In particular,
 * `continuous_linear_map.comp_Lp` defines the action on `Lp` of a continuous linear map.
 * `Lp.pos_part` is the positive part of an `Lp` function.
 * `Lp.neg_part` is the negative part of an `Lp` function.
+
+## Notations
+
+* `α →₁[μ] E` : the type `Lp E 1 μ`.
+* `α →₂[μ] E` : the type `Lp E 2 μ`.
 
 ## Implementation
 
@@ -843,6 +848,7 @@ def Lp {α} (E : Type*) [measurable_space α] [measurable_space E] [normed_group
     by rwa [set.mem_set_of_eq, snorm_congr_ae (ae_eq_fun.coe_fn_neg _), snorm_neg] }
 
 notation α ` →₁[`:25 μ `] ` E := measure_theory.Lp E 1 μ
+notation α ` →₂[`:25 μ `] ` E := measure_theory.Lp E 2 μ
 
 namespace mem_ℒp
 

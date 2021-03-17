@@ -1069,7 +1069,7 @@ noncomputable def left_mul_matrix : S →ₐ[R] matrix m m R :=
                                   algebra_map_matrix_apply, id.map_eq_self] } }
 
 lemma left_mul_matrix_apply (x : S) (i j) :
-  left_mul_matrix hb x i j = linear_map.to_matrix hb hb (lmul R S x) i j := rfl
+  left_mul_matrix hb x = linear_map.to_matrix hb hb (lmul R S x) := rfl
 
 @[simp] lemma to_matrix_lmul_eq (x : S) :
   linear_map.to_matrix hb hb (lmul R S x) = left_mul_matrix hb x :=

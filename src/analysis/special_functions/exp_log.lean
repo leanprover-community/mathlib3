@@ -475,19 +475,25 @@ end
 lemma log_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : log x ≤ 0 :=
 (log_nonpos_iff' hx).2 h'x
 
-lemma log_nonzero_of_ne_one (x: ℝ) (hx_pos: 0 < x) (hx: x ≠ 1): real.log x ≠ 0 :=
+lemma log_nonzero_of_ne_one (x : ℝ) (hx_pos : 0 < x) (hx : x ≠ 1) : real.log x ≠ 0 :=
 begin
-  by_cases (1 < x),
-  exact ne_of_gt (log_pos h),
-  push_neg at h,
-  exact ne_of_lt (log_neg hx_pos (lt_of_le_of_ne h hx)),
+  by_cases h: 1 < x,
+  { exact ne_of_gt (log_pos h), },
+  { push_neg at h,
+   exact ne_of_lt (log_neg hx_pos (lt_of_le_of_ne h hx)), },
 end
 
-lemma log_inj_pos {x y: ℝ} (x_pos: 0 < x) (y_pos: 0 < y):
-  real.log x = real.log y → x = y :=
-λ h, le_antisymm
+lemma log_inj_pos {x y : ℝ} (x_pos : 0 < x) (y_pos : 0 < y)
+  (h: real.log x = real.log y) : x = y :=
+le_antisymm
   ((log_le_log x_pos y_pos).1 $ le_of_eq h)
-  ((log_le_log y_pos x_pos).1 $ le_of_eq $ eq.symm h)
+  ((log_le_log y_pos x_pos).1 $ h.symm.le)
+
+lemma one_of_pos_of_log_eq_zero {x : ℝ} (h₁: 0 < x) (h₂: real.log x = 0) : x = 1 :=
+begin
+  apply log_inj_pos h₁ zero_lt_one,
+  rwa real.log_one,
+end
 
 lemma strict_mono_incr_on_log : strict_mono_incr_on log (set.Ioi 0) :=
 λ x hx y hy hxy, log_lt_log hx hxy

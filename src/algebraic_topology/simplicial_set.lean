@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin, Scott Morrison
+Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 import algebraic_topology.simplicial_object
 import category_theory.yoneda
@@ -43,14 +43,14 @@ namespace sSet
 is the Yoneda embedding of `n`. -/
 def standard_simplex : simplex_category ⥤ sSet := yoneda
 
-localized "notation `Δ[`n`]` := standard_simplex.obj (n : ℕ)" in sSet
+localized "notation `Δ[`n`]` := standard_simplex.obj (simplex_category.mk n)" in sSet
 
-instance : inhabited sSet := ⟨standard_simplex.obj (0 : ℕ)⟩
+instance : inhabited sSet := ⟨standard_simplex.obj (simplex_category.mk 0)⟩
 
 /-- The `m`-simplices of the `n`-th standard simplex are
 the monotone maps from `fin (m+1)` to `fin (n+1)`. -/
 def as_preorder_hom {n} {m} (α : Δ[n].obj m) :
-  preorder_hom (fin (m.unop+1)) (fin (n+1)) := α
+  preorder_hom (fin (m.unop.len+1)) (fin (n+1)) := α.down
 
 /-- The boundary `∂Δ[n]` of the `n`-th standard simplex consists of
 all `m`-simplices of `standard_simplex n` that are not surjective
@@ -109,6 +109,7 @@ def truncated (n : ℕ) := simplicial_object.truncated (Type u) n
 /-- The skeleton functor on simplicial sets. -/
 def sk (n : ℕ) : sSet ⥤ sSet.truncated n := simplicial_object.sk n
 
-instance {n} : inhabited (sSet.truncated n) := ⟨(sk n).obj $ standard_simplex.obj (0 : ℕ)⟩
+instance {n} : inhabited (sSet.truncated n) :=
+  ⟨(sk n).obj $ standard_simplex.obj (simplex_category.mk 0)⟩
 
 end sSet

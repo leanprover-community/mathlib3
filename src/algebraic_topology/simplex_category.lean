@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin, Scott Morrison
+Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 
 import order.category.NonemptyFinLinOrd
@@ -26,29 +26,41 @@ open category_theory
 * morphisms from `n` to `m` are monotone functions `fin (n+1) → fin (m+1)`
 -/
 @[derive inhabited]
-def simplex_category := ℕ
+def simplex_category := ulift.{u} ℕ
 
 namespace simplex_category
-
-instance small_category : small_category simplex_category :=
-{ hom := λ n m, preorder_hom (fin (n+1)) (fin (m+1)),
-  id := λ m, preorder_hom.id,
-  comp := λ _ _ _ f g, preorder_hom.comp g f, }
-
-@[simp] lemma id_apply {n : simplex_category} (i : fin (n+1)) :
-  (𝟙 n : fin (n+1) → fin (n+1)) i = i := rfl
-@[simp] lemma comp_apply {l m n : simplex_category} (f : l ⟶ m) (g : m ⟶ n) (i : fin (l+1)) :
-  (f ≫ g) i = g (f i) := rfl
-
 /-- Interpet a natural number as an object of the simplex category. -/
-@[reducible] def mk (n : ℕ) : simplex_category := n
+@[reducible, simp] def mk (n : ℕ) : simplex_category := ulift.up n
 local notation `[`n`]` := mk n
 
 /-- The length of an object of `simplex_category`. -/
-def len (n : simplex_category) : ℕ := n
+def len (n : simplex_category) : ℕ := n.down
 
 @[simp] lemma len_mk (n : ℕ) : [n].len = n := rfl
-lemma mk_len (n : simplex_category) : [n.len] = n := rfl
+lemma mk_len (n : simplex_category) : [n.len] = n := by {cases n, refl}
+
+@[ext] lemma ext (a b : simplex_category) : a.len = b.len → a = b := ulift.ext a b
+
+instance small_category : small_category.{u} simplex_category :=
+{ hom := λ n m, ulift $ preorder_hom (fin (n.len+1)) (fin (m.len+1)),
+  id := λ m, ulift.up preorder_hom.id,
+  comp := λ _ _ _ f g, ulift.up $ preorder_hom.comp g.down f.down, }
+
+instance {a b : simplex_category} : has_coe_to_fun (a ⟶ b) :=
+{ F := λ _, fin (a.len + 1) → fin (b.len + 1),
+  coe := λ f, (f.down : fin (a.len + 1) → fin (b.len + 1)) }
+
+@[ext] lemma ext_hom {a b : simplex_category} (f g : a ⟶ b) :
+  (∀ i : fin (a.len + 1), f i = g i) → f = g := by tidy
+
+@[simp] lemma apply_eq_down_apply {a b : simplex_category} (f : a ⟶ b)
+  (i : fin (a.len + 1)) : f i = f.down i := rfl
+
+@[simp] lemma id_apply {n : simplex_category} (i : fin (n.len+1)) :
+  (𝟙 n : n ⟶ n).down i = i := rfl
+
+@[simp] lemma comp_apply {l m n : simplex_category} (f : l ⟶ m) (g : m ⟶ n) (i : fin (l.len+1)) :
+  (f ≫ g).down i = g.down (f.down i) := rfl
 
 section generators
 /-!
@@ -60,10 +72,10 @@ one given by the following generators and relations.
 
 /-- The `i`-th face map from `[n]` to `[n+1]` -/
 def δ {n} (i : fin (n+2)) : [n] ⟶ [n+1] :=
-(fin.succ_above i).to_preorder_hom
+ulift.up (fin.succ_above i).to_preorder_hom
 
 /-- The `i`-th degeneracy map from `[n+1]` to `[n]` -/
-def σ {n} (i : fin (n+1)) : [n+1] ⟶ [n] :=
+def σ {n} (i : fin (n+1)) : [n+1] ⟶ [n] := ulift.up
 { to_fun := fin.pred_above i,
   monotone' := fin.pred_above_right_monotone i }
 
@@ -71,7 +83,8 @@ def σ {n} (i : fin (n+1)) : [n+1] ⟶ [n] :=
 lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
   δ i ≫ δ j.succ = δ j ≫ δ i.cast_succ :=
 begin
-  ext k,
+  ext1 k,
+  simp only [apply_eq_down_apply],
   dsimp [δ, fin.succ_above],
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
@@ -98,7 +111,7 @@ begin
     (ite (k < i) (k:ℕ) (k + 1) - 1) (ite (k < i) k (k + 1)) =
       ite ((if h : (j:ℕ) < k
         then k.pred (by { rintro rfl, exact nat.not_lt_zero _ h })
-        else k.cast_lt (by { cases j, cases k, linarith })).cast_succ < i)
+        else k.cast_lt (by { cases j, cases k, simp only [len_mk], linarith })).cast_succ < i)
           (ite (j.cast_succ < k) (k - 1) k) (ite (j.cast_succ < k) (k - 1) k + 1),
   { dsimp [δ, σ, fin.succ_above, fin.pred_above], simpa with push_cast },
   rcases i with ⟨i, _⟩,
@@ -227,14 +240,14 @@ section skeleton
 /-- The functor that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
 def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd.{u} :=
-{ obj := λ n, NonemptyFinLinOrd.of $ ulift (fin (n+1)),
-  map := λ m n f, ⟨λ i, ⟨f i.down⟩, λ ⟨i⟩ ⟨j⟩ h, show f i ≤ f j, from f.monotone h⟩, }
+{ obj := λ n, NonemptyFinLinOrd.of $ ulift (fin (n.len+1)),
+  map := λ m n f, ⟨λ i, ⟨f i.down⟩, λ ⟨i⟩ ⟨j⟩ h, show f i ≤ f j, from f.down.monotone h⟩, }
 
 lemma skeletal : skeletal simplex_category :=
 λ X Y ⟨I⟩,
 begin
-  suffices : fintype.card (fin (X+1)) = fintype.card (fin (Y+1)),
-  { simpa, },
+  suffices : fintype.card (fin (X.len+1)) = fintype.card (fin (Y.len+1)),
+  { ext, simpa },
   { apply fintype.card_congr,
     refine equiv.ulift.symm.trans (((skeletal_functor ⋙ forget _).map_iso I).to_equiv.trans _),
     apply equiv.ulift }
@@ -243,7 +256,7 @@ end
 namespace skeletal_functor
 
 instance : full skeletal_functor.{u} :=
-{ preimage := λ m n f, ⟨λ i, (f ⟨i⟩).down, λ i j h, f.monotone h⟩,
+{ preimage := λ m n f, ulift.up ⟨λ i, ulift.down (f ⟨i⟩), λ i j h, f.monotone h⟩,
   witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, refl } }
 
 instance : faithful skeletal_functor.{u} :=
@@ -255,7 +268,7 @@ instance : faithful skeletal_functor.{u} :=
   end }
 
 instance : ess_surj skeletal_functor.{u} :=
-{ mem_ess_image := λ X, ⟨(fintype.card X - 1 : ℕ), ⟨begin
+{ mem_ess_image := λ X, ⟨ulift.up (fintype.card X - 1 : ℕ), ⟨begin
     have aux : fintype.card X = fintype.card X - 1 + 1,
     { exact (nat.succ_pred_eq_of_pos $ fintype.card_pos_iff.mpr ⟨⊥⟩).symm, },
     let f := mono_equiv_of_fin X aux,

@@ -1880,14 +1880,7 @@ begin
     exact (h i).zero_eq x hx },
   { intros m hm x hx,
     have := has_fderiv_within_at_pi.2 (λ i, (h i).fderiv_within m hm x hx),
-    -- `convert (L m).has_fderiv_at.comp_has_fderiv_within_at x this` no longer works.
-    convert has_fderiv_at.comp_has_fderiv_within_at x _ this,
-    rotate 2,
-    convert linear_isometry_equiv.has_fderiv_at _,
-    rotate 1,
-    convert L m using 1,
-    refl,
-    refl, },
+    convert (L m).has_fderiv_at.comp_has_fderiv_within_at x this },
   { intros m hm,
     have := continuous_on_pi.2 (λ i, (h i).cont m hm),
     convert (L m).continuous.comp_continuous_on this }

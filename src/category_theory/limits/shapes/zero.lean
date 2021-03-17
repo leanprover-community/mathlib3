@@ -292,7 +292,7 @@ the identities on both `X` and `Y` are zero.
 def is_iso_zero_equiv (X Y : C) : is_iso (0 : X ⟶ Y) ≃ (𝟙 X = 0 ∧ 𝟙 Y = 0) :=
 { to_fun := by { introsI i, rw ←is_iso.hom_inv_id (0 : X ⟶ Y),
     rw ←is_iso.inv_hom_id (0 : X ⟶ Y), simp },
-  inv_fun := λ h, { inv := (0 : Y ⟶ X), },
+  inv_fun := λ h, ⟨(0 : Y ⟶ X), by tidy⟩,
   left_inv := by tidy,
   right_inv := by tidy, }
 

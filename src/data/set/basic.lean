@@ -1317,6 +1317,10 @@ lemma nonempty.of_image {f : α → β} {s : set α} : (f '' s).nonempty → s.n
   (f '' s).nonempty ↔ s.nonempty :=
 ⟨nonempty.of_image, λ h, h.image f⟩
 
+lemma nonempty.preimage {s : set β} (hs : s.nonempty) {f : α → β} (hf : surjective f) :
+  (f ⁻¹' s).nonempty :=
+let ⟨y, hy⟩ := hs, ⟨x, hx⟩ := hf y in ⟨x, mem_preimage.2 $ hx.symm ▸ hy⟩
+
 instance (f : α → β) (s : set α) [nonempty s] : nonempty (f '' s) :=
 (set.nonempty.image f nonempty_of_nonempty_subtype).to_subtype
 
@@ -1442,10 +1446,13 @@ lemma subsingleton.eq_singleton_of_mem (hs : s.subsingleton) {x:α} (hx : x ∈ 
   s = {x} :=
 ext $ λ y, ⟨λ hy, (hs hx hy) ▸ mem_singleton _, λ hy, (eq_of_mem_singleton hy).symm ▸ hx⟩
 
-lemma subsingleton_empty : (∅ : set α).subsingleton := λ x, false.elim
+@[simp] lemma subsingleton_empty : (∅ : set α).subsingleton := λ x, false.elim
 
-lemma subsingleton_singleton {a} : ({a} : set α).subsingleton :=
+@[simp] lemma subsingleton_singleton {a} : ({a} : set α).subsingleton :=
 λ x hx y hy, (eq_of_mem_singleton hx).symm ▸ (eq_of_mem_singleton hy).symm ▸ rfl
+
+lemma subsingleton_iff_singleton {x} (hx : x ∈ s) : s.subsingleton ↔ s = {x} :=
+⟨λ h, h.eq_singleton_of_mem hx, λ h,h.symm ▸ subsingleton_singleton⟩
 
 lemma subsingleton.eq_empty_or_singleton (hs : s.subsingleton) :
   s = ∅ ∨ ∃ x, s = {x} :=
@@ -1470,9 +1477,8 @@ end
 
 /-- `s` is a subsingleton, if its image of an injective function is. -/
 theorem subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.injective f)
-  (s : set α) (hs : subsingleton (f '' s)) : subsingleton s :=
-subsingleton.intro $ λ ⟨a, ha⟩ ⟨b, hb⟩, subtype.ext $ hf
-  (by {simpa using @subsingleton.elim _ hs ⟨f a, ⟨a, ha, rfl⟩⟩ ⟨f b, ⟨b, hb, rfl⟩⟩})
+  (s : set α) (hs : (f '' s).subsingleton) : s.subsingleton :=
+λ a ha b hb, hf $ hs (mem_image_of_mem _ ha) (mem_image_of_mem _ hb)
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
@@ -1732,6 +1738,7 @@ begin
 end
 
 end set
+
 open set
 
 namespace function
@@ -1746,6 +1753,10 @@ preimage_image_eq s hf
 
 lemma injective.preimage_surjective (hf : injective f) : surjective (preimage f) :=
 by { intro s, use f '' s, rw hf.preimage_image }
+
+lemma injective.subsingleton_image_iff (hf : injective f) {s : set α} :
+  (f '' s).subsingleton ↔ s.subsingleton :=
+⟨subsingleton_of_image hf s, λ h, h.image f⟩
 
 lemma surjective.image_preimage (hf : surjective f) (s : set β) : f '' (f ⁻¹' s) = s :=
 image_preimage_eq s hf

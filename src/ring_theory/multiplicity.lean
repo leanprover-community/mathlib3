@@ -169,6 +169,20 @@ lemma eq_of_associated_right {a b c : α} (h : associated b c) :
 le_antisymm (multiplicity_le_multiplicity_of_dvd_right (dvd_of_associated h))
   (multiplicity_le_multiplicity_of_dvd_right (dvd_of_associated h.symm))
 
+lemma multiplicity.unit_left {a: α}
+  (u: units α): multiplicity (u: α) a = ⊤ :=
+begin
+  rw ← multiplicity.eq_of_associated_left unit_associated_one,
+  exact multiplicity.one_left a,
+end
+
+lemma multiplicity.unit_right {a: α} (ha: ¬is_unit a)
+  (u: units α): multiplicity a u = 0 :=
+begin
+  rw multiplicity.eq_of_associated_right unit_associated_one,
+  exact multiplicity.one_right ha,
+end
+
 lemma dvd_of_multiplicity_pos {a b : α} (h : (0 : enat) < multiplicity a b) : a ∣ b :=
 by rw [← pow_one a]; exact pow_dvd_of_le_multiplicity (enat.pos_iff_one_le.1 h)
 

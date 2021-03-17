@@ -10,6 +10,7 @@ import ring_theory.polynomial
 import field_theory.minpoly
 import linear_algebra.finite_dimensional
 import tactic.field_simp
+import algebra.polynomial.big_operators
 
 /-!
 # Splitting fields
@@ -41,9 +42,6 @@ if it is the smallest field extension of `K` such that `f` splits.
 * `polynomial.is_splitting_field.alg_equiv`: Every splitting field of a polynomial `f` is isomorpic
   to `splitting_field f` and thus, being a splitting field is unique up to isomorphism.
 
-## TODO
-
-* Move `nat_degree_multiset_prod` to another file.
 -/
 
 noncomputable theory
@@ -283,20 +281,6 @@ begin
   apply polynomial.map_injective _ i.injective,
   rw [eq_prod_roots_of_splits h_splits, h_roots],
   simp,
-end
-
-lemma nat_degree_multiset_prod {R : Type*} [integral_domain R] {s : multiset (polynomial R)}
-  (h : (0 : polynomial R) ∉ s) :
-  nat_degree s.prod = (s.map nat_degree).sum :=
-begin
-  revert h,
-  refine s.induction_on _ _,
-  { simp },
-  intros p s ih h,
-  rw [multiset.mem_cons, not_or_distrib] at h,
-  have hprod : s.prod ≠ 0 := multiset.prod_ne_zero h.2,
-  rw [multiset.prod_cons, nat_degree_mul (ne.symm h.1) hprod, ih h.2,
-    multiset.map_cons, multiset.sum_cons],
 end
 
 lemma nat_degree_eq_card_roots {p : polynomial K} {i : K →+* L}

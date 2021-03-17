@@ -160,9 +160,23 @@ def cosk_diagram (n) (a : simplex_category) :
   map := λ _ _, cosk_diagram_map _ }
 
 @[simps]
-def map_cosk_diagram {n} {a b : simplex_categoryᵒᵖ} {X : truncated C n}
+def map_cosk_diagram {n} {a b : simplex_categoryᵒᵖ} (X : truncated C n)
   (D : (simplex_category.over_trunc a.unop n)ᵒᵖ ⥤ C) (f : a ⟶ b) :
   (simplex_category.over_trunc b.unop n)ᵒᵖ ⥤ C := (simplex_category.over_trunc.map f.unop).op ⋙ D
+
+-- I want to use functor.map_cone for this, but the `ulift'` nonsense is getting in the way :-(
+def map_cosk_cone {n} {a b : simplex_categoryᵒᵖ} {X : truncated C n} (f : a ⟶ b)
+  (D : (a.unop.over_trunc n)ᵒᵖ ⥤ C)
+  (DD : cone (ulift'.equivalence.congr_left.functor.obj D)) :
+  cone (ulift'.equivalence.congr_left.functor.obj (map_cosk_diagram X D f)) := sorry
+
+noncomputable
+def cosk_obj [has_finite_limits C] {n} (X : truncated C n) (a : simplex_category) : C :=
+let D := (cosk_diagram n a).obj X,
+    E := (ulift'.equivalence.congr_left.functor.obj D : ulift'.{v} _ ⥤ _) in limit E
+
+def cosk_map [has_finite_limits C] {n} (X : truncated C n) {a b : simplex_categoryᵒᵖ} (f : a ⟶ b) :
+  cosk_obj X a.unop ⟶ cosk_obj X b.unop := sorry
 
 end coskeleton
 

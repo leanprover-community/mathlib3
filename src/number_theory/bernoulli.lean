@@ -333,7 +333,7 @@ end
 
 section faulhaber
 
-/-- Faulhabers' theorem relating the  sum of of p-th powers to bernoulli numbers.
+/-- Faulhaber's theorem relating the sum of of p-th powers to the Bernoulli numbers.
 See https://proofwiki.org/wiki/Faulhaber%27s_Formula and [orosi2018faulhaber] for
 the proof provided here.-/
 theorem sum_range_pow (n p : ℕ) :
@@ -342,19 +342,19 @@ theorem sum_range_pow (n p : ℕ) :
 begin
   -- trivial fact about cast factorials
   have hne : ∀ m : ℕ, (m! : ℚ) ≠ 0 := λ m, by exact_mod_cast factorial_ne_zero m,
-  -- the cauchy product of two power series
+  -- the Cauchy product of two power series
   have h_cauchy : mk (λ p, bernoulli p / ↑p!) * mk (λ q, coeff ℚ (q + 1) (exp ℚ ^ n))
                 = mk (λ p, ∑ i in range (p + 1),
                       bernoulli i * ↑((p + 1).choose i) * ↑n ^ (p + 1 - i) / ↑(p + 1)!),
   { ext q,
     let f := λ a, λ b, bernoulli a / ↑a! * coeff ℚ (b + 1) (exp ℚ ^ n),
-    -- key step: using `coeff_mul` adn then rewriting sums
+    -- key step: using `power_series.coeff_mul` and then rewriting sums
     simp only [coeff_mul, coeff_mk, cast_mul, nat.sum_antidiagonal_eq_sum_range_succ f],
     refine sum_congr rfl _,
     simp_intros m h only [finset.mem_range],
     simp only [f, exp_pow_eq_rescale_exp, rescale, one_div, coeff_mk, ring_hom.coe_mk, coeff_exp,
               ring_hom.id_apply, cast_mul, rat.algebra_map_rat_rat],
-    -- manipulate factorials and binomials coefficients
+    -- manipulate factorials and binomial coefficients
     rw [choose_eq_factorial_div_factorial h.le, eq_comm, div_eq_iff (hne q.succ), succ_eq_add_one,
         mul_assoc _ _ ↑q.succ!, mul_comm _ ↑q.succ!, ←mul_assoc, div_mul_eq_mul_div,
         mul_comm (n ^ (q - m + 1) : ℚ), ←mul_assoc _ _ (n ^ (q - m + 1) : ℚ), ←one_div, mul_one_div,
@@ -362,7 +362,7 @@ begin
     { ring },
     { exact factorial_mul_factorial_dvd_factorial h.le },
     { simp [hne] } },
-  -- same as our goal except for pulling out `p!` for convenience
+  -- same as our goal except we pull out `p!` for convenience
   have hps : ∑ k in range n, ↑k ^ p
           = (∑ i in range (p + 1), bernoulli i * ↑((p + 1).choose i) * ↑n ^ (p + 1 - i) / ↑(p + 1)!)
             * ↑p!,
@@ -372,7 +372,7 @@ begin
     { rw [← div_eq_iff (hne p), div_eq_mul_inv, sum_mul],
       rw power_series.ext_iff at this,
       simpa using this p },
-    -- this power series is non-zero, so that we can apply `mul_right_inj'` on it
+    -- the power series `exp ℚ - 1` is non-zero, a fact we need in order to use `mul_right_inj'`
     have hexp : exp ℚ - 1 ≠ 0,
     { simp only [exp, power_series.ext_iff, ne, not_forall],
       use 1,

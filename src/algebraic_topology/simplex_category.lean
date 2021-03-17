@@ -336,8 +336,8 @@ full_subcategory_inclusion _
 
 end truncated
 
-/-- 
-The full subcategory of `over a` consisting of morphisms from `[n]` where 
+/--
+The full subcategory of `over a` consisting of morphisms from `[n]` where
 `n` is at most `m`.
 This is used in the definition of the coskeleton functors.
 -/

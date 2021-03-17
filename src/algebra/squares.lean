@@ -41,7 +41,7 @@ def squares : Type* := subtype (is_square R)
 
 /--  The sums of squares of an `add_comm_monoid R` is the `ℕ`-submodule spanned by the squares. -/
 def sums_of_squares [add_comm_monoid R] : add_submonoid R :=
-add_submonoid.closure { r : R | is_square R r }
+add_submonoid.closure (is_square R)
 
 namespace is_square
 
@@ -61,7 +61,7 @@ lemma mul_self_mem [add_comm_monoid R] (a : R) : a * a ∈ sums_of_squares R :=
 begin
   rintro - ⟨H, rfl⟩,
   rintros - ⟨H1, rfl⟩,
-  exact H1 (by simp only [mul_self, set.mem_set_of_eq]),
+  exact H1 (mul_self _),
 end
 
 /-- A square is a sum of squares. -/

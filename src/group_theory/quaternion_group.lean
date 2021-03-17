@@ -84,34 +84,34 @@ The group structure on `quaternion_group n`.
 instance : group (quaternion_group n) :=
 { mul := mul,
   mul_assoc :=
-  begin
-    rintros (i | i) (j | j) (k | k);
-    simp only [mul];
-    abel,
-    simp only [neg_mul_eq_neg_mul_symm, one_mul, int.cast_one, gsmul_eq_mul, int.cast_neg,
-               add_right_inj],
-    calc -(n : zmod (2 * n)) = 0 - n : by rw zero_sub
-      ... = 2 * n - n : by { norm_cast, simp, }
-      ... = n : by ring
-  end,
+    begin
+      rintros (i | i) (j | j) (k | k);
+      simp only [mul];
+      abel,
+      simp only [neg_mul_eq_neg_mul_symm, one_mul, int.cast_one, gsmul_eq_mul, int.cast_neg,
+                 add_right_inj],
+      calc -(n : zmod (2 * n)) = 0 - n : by rw zero_sub
+        ... = 2 * n - n : by { norm_cast, simp, }
+        ... = n : by ring
+    end,
   one := one,
   one_mul :=
-  begin
-    rintros (i | i),
-    exact congr_arg a (zero_add i),
-    exact congr_arg xa (sub_zero i),
-  end,
+    begin
+      rintros (i | i),
+      { exact congr_arg a (zero_add i) },
+      { exact congr_arg xa (sub_zero i) },
+    end,
   mul_one := begin
-    rintros (i | i),
-    exact congr_arg a (add_zero i),
-    exact congr_arg xa (add_zero i),
-  end,
+      rintros (i | i),
+      { exact congr_arg a (add_zero i) },
+      { exact congr_arg xa (add_zero i) },
+    end,
   inv := inv,
   mul_left_inv := begin
-    rintros (i | i),
-    exact congr_arg a (neg_add_self i),
-    exact congr_arg a (sub_self (n + i)),
-  end }
+      rintros (i | i),
+      { exact congr_arg a (neg_add_self i) },
+      { exact congr_arg a (sub_self (n + i)) },
+    end }
 
 variable {n}
 
@@ -205,19 +205,19 @@ end
 /--
 If `0 < n`, then `xa i` has order 4.
 -/
-@[simp] lemma order_of_xa [fact (0 < n)] (i : zmod (2 * n)) : order_of (xa i) = 4 :=
+@[simp] lemma order_of_xa [hpos : fact (0 < n)] (i : zmod (2 * n)) : order_of (xa i) = 4 :=
 begin
   change _ = 2^2,
   apply order_of_eq_prime_pow nat.prime_two,
-    { intro h,
-      simp at h,
-      injection h with h',
-      apply_fun zmod.val at h',
-      apply_fun ( / n) at h',
-      simp only [zmod.val_nat_cast, zmod.val_zero, nat.zero_div, nat.mod_mul_left_div_self,
-               nat.div_self (_inst_1)] at h',
-      norm_num at h' },
-    { norm_num }
+  { intro h,
+    simp only [pow_one, xa_pow_two] at h,
+    injection h with h',
+    apply_fun zmod.val at h',
+    apply_fun ( / n) at h',
+    simp only [zmod.val_nat_cast, zmod.val_zero, nat.zero_div, nat.mod_mul_left_div_self,
+             nat.div_self hpos] at h',
+    norm_num at h' },
+  { norm_num }
 end
 
 /-- In the special case `n = 1`, `quaternion 1` is a cyclic group (of order `4`).-/
@@ -233,14 +233,13 @@ If `0 < n`, then `a 1` has order `2 * n`.
 -/
 @[simp] lemma order_of_a_one [fact (0 < n)] : order_of (a 1 : quaternion_group n) = 2 * n :=
 begin
-  cases lt_or_eq_of_le (nat.le_of_dvd (succ_mul_pos)
-    (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))) with h h,
-  { have h1 : (a 1 : quaternion_group n)^(order_of (a 1)) = 1,
-    { exact pow_order_of_eq_one _ },
+  cases (nat.le_of_dvd succ_mul_pos
+    (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))).lt_or_eq with h h,
+  { have h1 : (a 1 : quaternion_group n)^(order_of (a 1)) = 1 := pow_order_of_eq_one _,
     rw a_one_pow at h1,
     injection h1 with h2,
     rw [← zmod.val_eq_zero, zmod.val_nat_cast, nat.mod_eq_of_lt h] at h2,
-    exact absurd h2.symm (ne_of_lt (order_of_pos _)) },
+    exact absurd h2.symm (order_of_pos _).ne },
   { exact h }
 end
 

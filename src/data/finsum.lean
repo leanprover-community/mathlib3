@@ -419,6 +419,13 @@ begin
   exact finsum_in_congr rfl he₁
 end
 
+lemma finsum_subtype_eq_finsum_in (s : set α) : ∑ᶠ j : s, f j.val = ∑ᶠ i in s, f i :=
+begin
+  rw ← finsum_eq_finsum_in_univ,
+  refine finsum_in_eq_of_bij_on subtype.val _ (λ _ _, rfl),
+  exact ⟨λ ⟨x, hx⟩ _, hx, λ _ _ _ _, subtype.eq, λ x hx, ⟨⟨x, hx⟩, set.mem_univ _, rfl⟩⟩,
+end
+
 /-- Given finite sets `s` and `t`, the sum on `s ∪ t` over the function `f` plus the sum on `s ∩ t`
   over `f` equals the sum on `s` over `f` plus the sum on `t` over `f`. -/
 lemma finsum_in_union_inter (hs : s.finite) (ht : t.finite) :
@@ -518,13 +525,6 @@ begin
     { congr, funext y, simp only [set.Union_pos, set.mem_univ] },
 end
 
-/-- An alternative version of `finsum_in_bUnion` in which `t` is a finite set of `set α`s. -/
-lemma finsum_in_sUnion {t : set (set α)} (ht₀ : t.finite)
-  (ht₁ : ∀ (x : set α), x.finite) (h : ∀ x ∈ t, ∀ y ∈ t, x ≠ y → disjoint x y) :
-  ∑ᶠ i in (⋃₀ t), f i = ∑ᶠ s in t, (∑ᶠ i in s, f i) :=
-by rw [set.sUnion_eq_bUnion, finsum_in_bUnion ht₀ ht₁ (by simpa)];
-  exact finsum_in_congr rfl (λ x hx, dif_pos hx)
-
 lemma finsum_subtype_eq_finsum_in (s : set α) : ∑ᶠ j : s, f j.val = ∑ᶠ i in s, f i :=
 begin
   rw ← finsum_eq_finsum_in_univ,
@@ -532,7 +532,8 @@ begin
   exact ⟨λ ⟨x, hx⟩ _, hx, λ _ _ _ _, subtype.eq, λ x hx, ⟨⟨x, hx⟩, set.mem_univ _, rfl⟩⟩,
 end
 
-lemma finsum_in_sUnion' {t : set (set α)} (ht₀ : t.finite)
+/-- An alternative version of `finsum_in_bUnion` in which `t` is a finite set of `set α`s. -/
+lemma finsum_in_sUnion {t : set (set α)} (ht₀ : t.finite)
   (ht₁ : ∀ x ∈ t, set.finite x) (h : ∀ x ∈ t, ∀ y ∈ t, x ≠ y → disjoint x y):
   ∑ᶠ i in (⋃₀ t), f i = ∑ᶠ s in t, (∑ᶠ i in s, f i) :=
 begin

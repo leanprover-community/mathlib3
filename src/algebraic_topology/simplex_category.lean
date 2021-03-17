@@ -336,18 +336,24 @@ full_subcategory_inclusion _
 
 end truncated
 
+/-- 
+The full subcategory of `over a` consisting of morphisms from `[n]` where 
+`n` is at most `m`.
+This is used in the definition of the coskeleton functors.
+-/
 @[derive small_category]
 def over_trunc (a : simplex_category) (m : ℕ) := {x : over a // ((over.forget a).obj x).len ≤ m}
 
 namespace over_trunc
 
+/-- The fully faithful inclusion of `over_trunc a m` into `over a`. -/
 @[derive [full, faithful], simps]
 def inclusion {a m} : over_trunc a m ⥤ over a := full_subcategory_inclusion _
 
 lemma inclusion_len {a : simplex_category} {m : ℕ} (x : over_trunc a m) :
   ((over.forget a).obj (inclusion.obj x)).len ≤ m := x.2
 
-/-- The inclusion of overr-/
+/-- The forgetful functor from `over_trunc a m` to `truncated m`. -/
 @[simps]
 def forget_to_truncated {a m} : over_trunc a m ⥤ truncated m :=
 { obj := λ b, ⟨(over.forget a).obj (inclusion.obj b), inclusion_len b⟩,

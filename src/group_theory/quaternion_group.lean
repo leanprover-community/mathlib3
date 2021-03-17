@@ -16,8 +16,8 @@ We define the (generalised) quaternion groups `quaternion_group n` of order `4n`
 dicyclic groups, with elements `a i` and `xa i` for `i : zmod n`. The (generalised) quaternion
 groups can be defined by the presentation
 $\langle a, x | a^{2n} = 1, x^2 = a^n, x^{-1}ax=a^{-1}\rangle$. We write `a i` for
-$a^i$ and `xa i` for $xa^i$. For `n=2` the quaternion group `quaternion_group 2` is isomorphic to the
-unit integral quaternions `units (quaternion ℤ)`.
+$a^i$ and `xa i` for $xa^i$. For `n=2` the quaternion group `quaternion_group 2` is isomorphic to
+the unit integral quaternions `units (quaternion ℤ)`.
 
 ## Main definition
 

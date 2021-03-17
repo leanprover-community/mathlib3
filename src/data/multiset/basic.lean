@@ -54,7 +54,7 @@ protected def zero : multiset α := @nil α
 
 instance : has_zero (multiset α)   := ⟨multiset.zero⟩
 instance : has_emptyc (multiset α) := ⟨0⟩
-instance : inhabited (multiset α)  := ⟨0⟩
+instance inhabited_multiset : inhabited (multiset α)  := ⟨0⟩
 
 @[simp] theorem coe_nil_eq_zero : (@nil α : multiset α) = 0 := rfl
 @[simp] theorem empty_eq_zero : (∅ : multiset α) = 0 := rfl

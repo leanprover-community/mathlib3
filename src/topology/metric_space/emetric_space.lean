@@ -106,7 +106,7 @@ namespace, while notions associated to metric spaces are mostly in the root name
 variables [pseudo_emetric_space α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance pseudoe_emetric_space.to_uniform_space' : uniform_space α :=
+instance pseudo_emetric_space.to_uniform_space' : uniform_space α :=
 pseudo_emetric_space.to_uniform_space
 
 export pseudo_emetric_space (edist_self edist_comm edist_triangle)
@@ -362,7 +362,7 @@ This is useful if one wants to construct a pseudoemetric space with a
 specified uniformity. See Note [forgetful inheritance] explaining why having definitionally
 the right uniformity is often important.
 -/
-def pseudoemetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_emetric_space α)
+def pseudo_emetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_emetric_space α)
   (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
   pseudo_emetric_space α :=
 { edist               := @edist _ m.to_has_edist,
@@ -372,8 +372,7 @@ def pseudoemetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseu
   to_uniform_space    := U,
   uniformity_edist    := H.trans (@pseudo_emetric_space.uniformity_edist α _) }
 
-/-- The extended pseudometric induced by an injective function taking values in a
-pseudoemetric space. -/
+/-- The extended pseudometric induced by a function taking values in a pseudoemetric space. -/
 def pseudo_emetric_space.induced {α β} (f : α → β)
   (m : pseudo_emetric_space β) : pseudo_emetric_space α :=
 { edist               := λ x y, edist (f x) (f y),
@@ -403,7 +402,7 @@ theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist
 /-- The product of two pseudoemetric spaces, with the max distance, is an extended
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one
 corresponding to the product of uniform spaces, to avoid diamond problems. -/
-instance prod.pseudoemetric_space_max [pseudo_emetric_space β] : pseudo_emetric_space (α × β) :=
+instance prod.pseudo_emetric_space_max [pseudo_emetric_space β] : pseudo_emetric_space (α × β) :=
 { edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
   edist_self := λ x, by simp,
   edist_comm := λ x y, by simp [edist_comm],
@@ -432,7 +431,8 @@ a pseudoemetric space.
 This construction would also work for infinite products, but it would not give rise
 to the product topology. Hence, we only formalize it in the good situation of finitely many
 spaces. -/
-instance pseudoemetric_space_pi [∀b, pseudo_emetric_space (π b)] : pseudo_emetric_space (Πb, π b) :=
+instance pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] :
+  pseudo_emetric_space (Πb, π b) :=
 { edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
   edist_self := assume f, bot_unique $ finset.sup_le $ by simp,
   edist_comm := assume f g, by unfold edist; congr; funext a; exact edist_comm _ _,
@@ -452,11 +452,11 @@ instance pseudoemetric_space_pi [∀b, pseudo_emetric_space (π b)] : pseudo_eme
     simp [set.ext_iff, εpos]
   end }
 
-lemma pseudoedist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
+lemma pseudo_edist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
 @[priority 1100]
-lemma pseudoedist_pi_const [nonempty β] (a b : α) :
+lemma pseudo_edist_pi_const [nonempty β] (a b : α) :
   edist (λ x : β, a) (λ _, b) = edist a b := finset.sup_const univ_nonempty (edist a b)
 
 end pi
@@ -907,6 +907,17 @@ instance to_separated : separated_space γ :=
 separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
 
+/-- If a  `pseudo_emetric_space` is separated, then it is an `emetric_space`. -/
+def emetric_of_t2_pseudo_emetric_space {α : Type*} [pseudo_emetric_space α]
+  (h : separated_space α) : emetric_space α :=
+{ eq_of_edist_eq_zero := λ x y hdist,
+  begin
+    refine separated_def.1 h x y (λ s hs, _),
+    obtain ⟨ε, hε, H⟩ := mem_uniformity_edist.1 hs,
+    exact H (show edist x y < ε, by rwa [hdist])
+  end
+  ..‹pseudo_emetric_space α› }
+
 /-- Auxiliary function to replace the uniformity on an emetric space with
 a uniformity which is equal to the original one, but maybe not defeq.
 This is useful if one wants to construct an emetric space with a
@@ -958,7 +969,7 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (γ × β) :=
     have B : x.snd = y.snd := edist_le_zero.1 h₂,
     exact prod.ext_iff.2 ⟨A, B⟩
   end,
-  ..prod.pseudoemetric_space_max }
+  ..prod.pseudo_emetric_space_max }
 
   lemma prod.edist_eq [emetric_space β] (x y : α × β) :
   edist x y = max (edist x.1 y.1) (edist x.2 y.2) :=
@@ -985,7 +996,7 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
     simp only [finset.sup_le_iff] at eq1,
     exact (funext $ assume b, edist_le_zero.1 $ eq1 b $ mem_univ b),
   end,
-  ..pseudoemetric_space_pi }
+  ..pseudo_emetric_space_pi }
 
 lemma edist_pi_def [Π b, emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl

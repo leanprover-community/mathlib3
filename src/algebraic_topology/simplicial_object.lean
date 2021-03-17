@@ -107,6 +107,40 @@ lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
   X.σ j ≫ X.σ i.cast_succ = X.σ i ≫ X.σ j.succ :=
 by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.σ_comp_σ H] }
 
+variable (C)
+/-- Truncated simplicial objects. -/
+@[derive category, nolint has_inhabited_instance]
+def truncated (n : ℕ) := (simplex_category.truncated n)ᵒᵖ ⥤ C
+variable {C}
+
+namespace truncated
+
+instance {n} {J : Type v} [small_category J] [has_limits_of_shape J C] :
+  has_limits_of_shape J (simplicial_object.truncated C n) :=
+let E : (simplex_category.truncated n)ᵒᵖ ⥤ C ≌ (ulift.{v} (simplex_category.truncated n))ᵒᵖ ⥤ C :=
+  ulift.equivalence.op.congr_left in
+  adjunction.has_limits_of_shape_of_equivalence E.functor
+
+instance {n} [has_limits C] : has_limits (simplicial_object.truncated C n) := ⟨infer_instance⟩
+
+instance {n} {J : Type v} [small_category J] [has_colimits_of_shape J C] :
+  has_colimits_of_shape J (simplicial_object.truncated C n) :=
+let E : (simplex_category.truncated n)ᵒᵖ ⥤ C ≌ (ulift.{v} (simplex_category.truncated n))ᵒᵖ ⥤ C :=
+  ulift.equivalence.op.congr_left in
+  adjunction.has_colimits_of_shape_of_equivalence E.functor
+
+instance {n} [has_colimits C] : has_colimits (simplicial_object.truncated C n) := ⟨infer_instance⟩
+
+end truncated
+
+section skeleton
+
+/-- The skeleton functor from simplicial objects to truncated simplicial objects. -/
+def sk (n : ℕ) : simplicial_object C ⥤ simplicial_object.truncated C n :=
+(whiskering_left _ _ _).obj (simplex_category.truncated.inclusion).op
+
+end skeleton
+
 end simplicial_object
 
 end category_theory

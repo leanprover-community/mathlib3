@@ -5,6 +5,7 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.ordered_ring
 import algebra.field
+import algebra.invertible
 import tactic.monotonicity.basic
 
 /-!

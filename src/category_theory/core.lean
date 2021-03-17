@@ -39,6 +39,7 @@ variables {G : Type u₂} [groupoid.{v₂} G]
 /-- A functor from a groupoid to a category C factors through the core of C. -/
 -- Note that this function is not functorial
 -- (consider the two functors from [0] to [1], and the natural transformation between them).
+noncomputable
 def functor_to_core (F : G ⥤ C) : G ⥤ core C :=
 { obj := λ X, F.obj X,
   map := λ X Y f, ⟨F.map f, F.map (inv f)⟩ }

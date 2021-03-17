@@ -64,6 +64,7 @@ subtype.ext_val w
 
 end category_of_elements
 
+noncomputable
 instance groupoid_of_elements {G : Type u} [groupoid.{v} G] (F : G ⥤ Type w) :
   groupoid F.elements :=
 { inv := λ p q f, ⟨inv f.val,

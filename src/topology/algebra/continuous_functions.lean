@@ -120,6 +120,12 @@ instance continuous_map_group {α : Type*} {β : Type*} [topological_space α] [
   mul_left_inv := λ a, by ext; exact mul_left_inv _,
   ..continuous_map_monoid }
 
+@[simp, norm_cast, to_additive]
+lemma div_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [group β] [topological_group β] (f g : C(α, β)) :
+  ((f / g : C(α, β)) : α → β) = (f : α → β) / (g : α → β) :=
+by { simp only [div_eq_mul_inv], refl, }
+
 @[to_additive]
 instance continuous_map_comm_group {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_group β] [topological_group β] : comm_group C(α, β) :=
@@ -225,6 +231,10 @@ instance continuous_map_has_scalar
   [semimodule R M] [topological_semimodule R M] :
   has_scalar R C(α, M) :=
 ⟨λ r f, ⟨r • f, continuous_const.smul f.continuous⟩⟩
+
+@[simp] lemma continuous_map.smul_apply [semimodule R M] [topological_semimodule R M]
+  (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) :=
+rfl
 
 variables [has_continuous_add M] [semimodule R M] [topological_semimodule R M]
 
@@ -370,3 +380,49 @@ instance continuous_map_module' {α : Type*} [topological_space α]
 end continuous_map
 
 end module_over_continuous_functions
+
+/-!
+We now provide formulas for `f ⊓ g` and `f ⊔ g`, where `f g : C(α, β)`,
+in terms of `continuous_map.abs`.
+-/
+
+section
+variables {R : Type*} [linear_ordered_field R]
+
+-- This lemma (and the next) could go all the way back in `algebra.ordered_field`,
+-- except that it is tedious to prove without tactics.
+-- Rather than stranding it at some intermediate location,
+-- it's here, immediately prior to the point of use.
+lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x - y)) :=
+begin
+  dsimp [min, max, abs],
+  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
+  split_ifs; ring; linarith,
+end
+
+lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
+begin
+  dsimp [min, max, abs],
+  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
+  split_ifs; ring; linarith,
+end
+end
+
+namespace continuous_map
+
+section lattice
+variables {α : Type*} [topological_space α]
+variables {β : Type*} [linear_ordered_field β] [topological_space β] [order_topology β] [topological_ring β]
+
+example : module β β := by apply_instance
+
+lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - (f - g).abs) :=
+ext (λ x, by simpa using min_eq_half_add_sub_abs_sub)
+
+-- Not sure why this is grosser than `inf_eq`:
+lemma sup_eq (f g : C(α, β)) : f ⊔ g = (2⁻¹ : β) • (f + g + (f - g).abs) :=
+ext (λ x, by simpa [mul_add] using @max_eq_half_add_add_abs_sub _ _ (f x) (g x))
+
+end lattice
+
+end continuous_map

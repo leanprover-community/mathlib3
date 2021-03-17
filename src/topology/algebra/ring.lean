@@ -59,7 +59,6 @@ instance (S : submonoid α) : has_continuous_mul (S.topological_closure) :=
 /-- The product topology on the cartesian product of two topological semirings
   makes the product into a topological semiring. -/
 instance prod_semiring {β : Type*}
-  [semiring α] [topological_space α] [topological_semiring α]
   [semiring β] [topological_space β] [topological_semiring β] : topological_semiring (α × β) :=
 {}
 

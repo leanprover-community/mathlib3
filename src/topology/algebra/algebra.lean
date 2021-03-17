@@ -24,11 +24,11 @@ open classical set topological_space algebra
 open_locale classical
 
 universes u v w
+
+section topological_algebra
 variables (R : Type*) [topological_space R] [comm_ring R] [topological_ring R]
 variables (A : Type u) [topological_space A]
 variables [ring A]
-
-section topological_algebra
 
 /-- A topological algebra over a topological ring `R` is a
 topological ring with a compatible continuous scalar multiplication by elements of `R`. -/
@@ -40,9 +40,14 @@ attribute [continuity] topological_algebra.continuous_algebra_map
 end topological_algebra
 
 section topological_algebra
-variables {R A} [algebra R A] [topological_ring A]
+variables {R : Type*} [comm_ring R]
+variables {A : Type u} [topological_space A]
+variables [ring A]
+variables [algebra R A] [topological_ring A]
 
-instance topological_algebra.to_topological_module [topological_algebra R A] :
+@[priority 200] -- see Note [lower instance priority]
+instance topological_algebra.to_topological_module
+  [topological_space R] [topological_ring R] [topological_algebra R A] :
   topological_semimodule R A :=
 { continuous_smul := begin
     simp_rw algebra.smul_def,
@@ -60,7 +65,7 @@ instance subalgebra.topological_closure_topological_ring (s : subalgebra R A) :
 s.to_subring.topological_closure_topological_ring
 
 instance subalgebra.topological_closure_topological_algebra
-  (s : subalgebra R A) [topological_algebra R A] :
+  [topological_space R] [topological_ring R] [topological_algebra R A] (s : subalgebra R A) :
   topological_algebra R (s.topological_closure) :=
 { continuous_algebra_map :=
   begin

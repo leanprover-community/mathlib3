@@ -30,7 +30,7 @@ def simplex_category := ℕ
 
 namespace simplex_category
 
-instance : small_category simplex_category :=
+instance small_category : small_category simplex_category :=
 { hom := λ n m, preorder_hom (fin (n+1)) (fin (m+1)),
   id := λ m, preorder_hom.id,
   comp := λ _ _ _ f g, preorder_hom.comp g f, }
@@ -43,6 +43,12 @@ instance : small_category simplex_category :=
 /-- Interpet a natural number as an object of the simplex category. -/
 @[reducible] def mk (n : ℕ) : simplex_category := n
 local notation `[`n`]` := mk n
+
+/-- The length of an object of `simplex_category`. -/
+def len (n : simplex_category) : ℕ := n
+
+@[simp] lemma len_mk (n : ℕ) : [n].len = n := rfl
+lemma mk_len (n : simplex_category) : [n.len] = n := rfl
 
 section generators
 /-!
@@ -285,5 +291,23 @@ noncomputable
 def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd.{u} simplex_category skeletal_functor.{u} :=
 { skel := skeletal,
   eqv := skeletal_functor.is_equivalence }
+
+/-- The truncated simplex category. -/
+@[derive small_category]
+def truncated (n : ℕ) := {a : simplex_category // a.len ≤ n}
+
+namespace truncated
+
+instance {n} : inhabited (truncated n) := ⟨⟨[0],by simp⟩⟩
+
+/--
+The fully faithful inclusion of the truncated simplex category into the usual
+simplex category.
+-/
+@[derive [full, faithful]]
+def inclusion {n : ℕ} : simplex_category.truncated n ⥤ simplex_category :=
+full_subcategory_inclusion _
+
+end truncated
 
 end simplex_category

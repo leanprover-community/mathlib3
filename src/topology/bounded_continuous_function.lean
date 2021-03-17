@@ -774,7 +774,8 @@ module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 variables (α 𝕜)
 
 /--
-When `α` is compact and `𝕜` is a normed field, the `𝕜`-algebra of bounded continuous maps `α →ᵇ 𝕜` is
+When `α` is compact and `𝕜` is a normed field,
+the `𝕜`-algebra of bounded continuous maps `α →ᵇ 𝕜` is
 `𝕜`-linearly isometric to `C(α, 𝕜)`.
 -/
 def linear_isometry_continuous_map_of_compact [compact_space α] :

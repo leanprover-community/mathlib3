@@ -46,7 +46,7 @@ integrable, function space, l1
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators ennreal
+open_locale classical topological_space big_operators ennreal measure_theory
 
 open set filter topological_space ennreal emetric measure_theory
 
@@ -515,6 +515,11 @@ lemma mem_ℒp.integrable [borel_space β] {q : ℝ≥0∞} (hq1 : 1 ≤ q) {f :
   (hfq : mem_ℒp f q μ) : integrable f μ :=
 mem_ℒp_one_iff_integrable.mp (hfq.mem_ℒp_of_exponent_le hq1)
 
+lemma lipschitz_with.integrable_comp_iff_of_antilipschitz [complete_space β] [borel_space β]
+  [borel_space γ] {K K'} {f : α → β} {g : β → γ} (hg : lipschitz_with K g)
+  (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
+  integrable (g ∘ f) μ ↔ integrable f μ :=
+by simp [← mem_ℒp_one_iff_integrable, hg.mem_ℒp_comp_iff_of_antilipschitz hg' g0]
 
 section pos_part
 /-! ### Lemmas used for defining the positive part of a `L¹` function -/

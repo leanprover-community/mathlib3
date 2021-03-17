@@ -42,7 +42,7 @@ instance fin_category_discrete_of_decidable_fintype (J : Type v) [decidable_eq J
   fin_category (discrete J) :=
 { }
 
-/-- 
+/--
 If `K` is a finite category, and `F : J ⥤ K` is a faithful functor which is injective on objects, 
 then `J` is a finite category as well.
 -/

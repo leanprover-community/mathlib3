@@ -609,6 +609,9 @@ begin
   simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
 end
 
+theorem num_div_denom (r : ℚ) : (r.num / r.denom : ℚ) = r :=
+by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
+
 lemma exists_eq_mul_div_num_and_eq_mul_div_denom {n d : ℤ} (n_ne_zero : n ≠ 0)
   (d_ne_zero : d ≠ 0) :
   ∃ (c : ℤ), n = c * ((n : ℚ) / d).num ∧ (d : ℤ) = c * ((n : ℚ) / d).denom :=

@@ -144,6 +144,15 @@ f.to_multilinear_map.map_smul' v i r x
   f v = 0 :=
 f.map_eq_zero_of_eq' v i j h hij
 
+lemma map_coord_zero {m : ι → M} (i : ι) (h : m i = 0) : f m = 0 :=
+f.to_multilinear_map.map_coord_zero i h
+
+@[simp] lemma map_update_zero (m : ι → M) (i : ι) : f (update m i 0) = 0 :=
+f.to_multilinear_map.map_update_zero m i
+
+@[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
+f.to_multilinear_map.map_zero
+
 /-!
 ### Algebraic structure inherited from `multilinear_map`
 

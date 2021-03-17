@@ -29,24 +29,24 @@ variables (R : Type u) [integral_domain R]
 
 /-- The definition of the exponential characteristic of a semiring. -/
 class exp_char (R : Type u) [semiring R] (q : ℕ) : Prop :=
-  (exp_char_def : (q = 1 ∧ char_zero R) ∨ (q.prime ∧ char_p R q))
+(exp_char_def : (q = 1 ∧ char_zero R) ∨ (q.prime ∧ char_p R q))
 
 /-- The exponential characteristic is one if the characteristic is zero. -/
-lemma exp_char_one_of_char_zero (q : ℕ) [hp: char_p R 0] [hq : exp_char R q] :
-  q = 1 :=
+lemma exp_char_one_of_char_zero (q : ℕ) [hp : char_p R 0] [hq : exp_char R q] :
+q = 1 :=
 begin
   cases hq.exp_char_def with q_one q_prime,
   { exact q_one.1, },
   { have p_eq_q : 0 = q, { apply char_p.eq R, exact hp, exact q_prime.2,},
     have q_prime : q.prime, { exact  q_prime.1, },
     have : nat.prime 0, { rw p_eq_q, exact q_prime, },
-    have : 0 > 0 := nat.prime.pos this,
+    have : 0 > 0 := this.pos,
     linarith, }
 end
 
 /-- The exponential characteristic is one if the characteristic is zero. -/
-lemma char_zero_of_exp_char_one (p : ℕ) [hp: char_p R p] [hq : exp_char R 1] :
-  p = 0 :=
+lemma char_zero_of_exp_char_one (p : ℕ) [hp : char_p R p] [hq : exp_char R 1] :
+p = 0 :=
 begin
   cases hq.exp_char_def with q_one q_prime,
   { haveI := q_one.2,
@@ -54,7 +54,7 @@ begin
     have p0 : p = 0 := begin apply char_p.eq R hp char0', end,
     tauto, },
   { haveI := q_prime.2,
-    have : 1 ≠ 1, { apply char_p.char_ne_one R 1, },
+    have : 1 ≠ 1 := char_p.char_ne_one R 1,
     tauto, }
 end
 
@@ -63,27 +63,27 @@ lemma char_zero_of_exp_char_one' [hq : exp_char R 1] : char_zero R :=
 begin
   cases hq.exp_char_def,
   { exact h.2, },
-  { haveI := h.2, have : 1 ≠ 1, { apply char_p.char_ne_one R 1, }, tauto, }
+  { haveI := h.2, 
+    have : 1 ≠ 1 := char_p.char_ne_one R 1, 
+    tauto, }
 end
 
 /-- The exponential characteristic is one iff the characteristic is zero. -/
 theorem exp_char_one_iff_char_zero (p q : ℕ) [char_p R p] [exp_char R q] :
-  q = 1 ↔ p = 0 :=
+q = 1 ↔ p = 0 :=
 begin
   split,
   { intro q_1,
-    have : exp_char R 1, { rw ←q_1, assumption, },
-    haveI := this,
+    haveI : exp_char R 1 := by { rw ←q_1, assumption, },
     exact char_zero_of_exp_char_one R p, },
   { intro p_0,
-    have : char_p R 0, { rw ←p_0, assumption, },
-    haveI := this,
+    haveI : char_p R 0 := by { rw ←p_0, assumption, },
     exact exp_char_one_of_char_zero R q, }
 end
 
 /-- The characteristic of a domain equals the exponential characteristic iff the former is prime. -/
-theorem char_eq_exp_char_iff (p q : ℕ) [hp: char_p R p] [hq : exp_char R q] :
-  p = q ↔ p.prime :=
+theorem char_eq_exp_char_iff (p q : ℕ) [hp : char_p R p] [hq : exp_char R q] :
+p = q ↔ p.prime :=
 begin
   cases hq.exp_char_def with q_one q_prime,
   { split,
@@ -94,9 +94,9 @@ begin
     { intro pprime,
       haveI := q_one.2,
       have char0' : char_p R 0, { apply_instance, },
-      have p0 : p = 0 := char_p.eq R hp char0',
-      have : p > 0 := nat.prime.pos pprime, 
-      linarith, }, },
+      have : p = 0 := char_p.eq R hp char0',
+      have : p > 0 := pprime.pos, 
+      linarith, } },
   { split,
     { intro hpq, rw hpq, exact q_prime.1, },
     { intro pprime,
@@ -106,16 +106,16 @@ begin
 end
 
 /-- A helper lemma: the characteristic is prime if it is non-zero. -/
-lemma char_prime_of_ne_zero {p : ℕ} [hp : char_p R p] (p_ne_zero: p ≠ 0) : nat.prime p :=
+lemma char_prime_of_ne_zero {p : ℕ} [hp : char_p R p] (p_ne_zero : p ≠ 0) : nat.prime p :=
 begin
-  cases char_p.char_is_prime_or_zero R p with pprime p0,
+  cases char_p.char_is_prime_or_zero R p,
   { tauto, },
   { tauto, }
 end
 
 /-- The exponential characteristic is a prime number or one. -/
 theorem exp_char_is_prime_or_one (q : ℕ) [hq : exp_char R q] : 
-  nat.prime q ∨ q = 1 :=
+nat.prime q ∨ q = 1 :=
 begin
   by_cases q = 1,
   { exact or.inr h, },
@@ -124,14 +124,13 @@ begin
     have p_ne_zero : p ≠ 0, 
     { by_contra, 
       have p_zero : p = 0, { by_contra, tauto, },
-      rw p_zero at hp,
-      haveI := hp,       
-      have q_one : q = 1, { apply exp_char_one_of_char_zero R q, },
+      haveI : char_p R 0 := by { rw ←p_zero, assumption, },
+      have : q = 1 := exp_char_one_of_char_zero R q,
       tauto, },
     have p_eq_q : p = q, 
     { apply (char_eq_exp_char_iff R p q).mpr,
       exact char_prime_of_ne_zero R p_ne_zero, },
-    cases char_p.char_is_prime_or_zero R p with pprime p0,
+    cases char_p.char_is_prime_or_zero R p with pprime,
     { rw p_eq_q at pprime,
       exact or.inl pprime, },
     tauto, }

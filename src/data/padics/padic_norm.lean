@@ -538,6 +538,17 @@ See also `padic_norm.padic_norm_p` for a version that assumes `1 < p`.
 @[simp] lemma padic_norm_p_of_prime (p : ℕ) [fact p.prime] : padic_norm p p = 1 / p :=
 padic_norm_p $ nat.prime.one_lt ‹_›
 
+/-
+The p-adic norm of `q` is `1` if `q` is another prime than `p`.
+-/
+lemma padic_norm_primes {p q: ℕ} [p_prime: fact (nat.prime p)] [q_prime: fact (nat.prime q)]
+  (neq: p ≠ q): padic_norm p q = 1 :=
+begin
+  have p: padic_val_rat p q = 0,
+  exact_mod_cast @padic_val_nat_primes p q p_prime q_prime neq,
+  simp [padic_norm, p, q_prime.1, nat.prime.ne_zero q_prime],
+end
+
 /--
 The p-adic norm of `p` is less than 1 if `1 < p`.
 

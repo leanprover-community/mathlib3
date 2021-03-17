@@ -335,10 +335,10 @@ section faulhaber
 
 /-- Faulhaber's theorem relating the sum of of p-th powers to the Bernoulli numbers.
 See https://proofwiki.org/wiki/Faulhaber%27s_Formula and [orosi2018faulhaber] for
-the proof provided here.-/
+the proof provided here. -/
 theorem sum_range_pow (n p : ℕ) :
-    ∑ k in range n, (k : ℚ) ^ p
-  = ∑ i in range (p + 1), bernoulli i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1) :=
+  ∑ k in range n, (k : ℚ) ^ p =
+    ∑ i in range (p + 1), bernoulli i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1) :=
 begin
   -- trivial fact about cast factorials
   have hne : ∀ m : ℕ, (m! : ℚ) ≠ 0 := λ m, by exact_mod_cast factorial_ne_zero m,

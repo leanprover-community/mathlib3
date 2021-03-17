@@ -883,55 +883,70 @@ begin
   simpa using h,
 end
 
--- lemma contained_in_facet (S : triangulation s) {X} (hX : X ∈ S.faces) :
---   ∃ Y ∈ S.facets, X ⊆ Y :=
--- begin
---   sorry,
---   -- just keep chucking vertices in, must terminate.
+lemma mwe {α : Type*} {n : ℕ} (X : set (finset α)) (bound : ∀ y ∈ X, finset.card y ≤ n) :
+  ∀ y ∈ X, ∃ x ∈ X, y ⊆ x ∧ ∀ z ∈ X, x ⊆ z → x = z :=
+begin
+  intros y hy,
+  classical,
+  rcases ((finset.range (n+1)).filter $ λ i, ∃ x ∈ X, y ⊆ x ∧ finset.card x = i).exists_maximal
+    ⟨y.card, finset.mem_filter.2 ⟨finset.mem_range_succ_iff.2 $ bound y hy,
+      y, hy, finset.subset.refl _, rfl⟩⟩ with ⟨i, hi1, hi2⟩,
+  rw [finset.mem_filter, finset.mem_range_succ_iff] at hi1,
+  rcases hi1 with ⟨hin, x, hx, hyx, hxi⟩,
+  refine ⟨x, hx, hyx, λ z hz hxz, finset.eq_of_subset_of_card_le hxz _⟩,
+  rw [hxi, ← not_lt],
+  refine hi2 _ _,
+  rw [finset.mem_filter, finset.mem_range_succ_iff],
+  refine ⟨bound z hz, z, hz, finset.subset.trans hyx hxz, rfl⟩
+end
 
---   -- let Z := {Y ∈ S.faces | X ⊆ Y},
---   -- have : X ∈ Z,
---   -- { apply set.mem_sep,
---   --   apply hX,
---   --   apply finset.subset.refl },
---   -- have : ∀ c, c ⊆ Z → zorn.chain (≤) c → ∀ (y ∈ c), (∃ ub ∈ Z, ∀ z ∈ c, z ≤ ub),
---   -- { intros c hc₁ hc₂ y hy,
-
-
---   -- },
---   -- have := zorn.zorn_partial_order₀ Z _ X ‹X ∈ Z›,
--- end
+lemma contained_in_facet (S : triangulation s) {X} (hX : X ∈ S.faces) :
+  ∃ Y ∈ S.facets, X ⊆ Y :=
+begin
+  have : ∀ y ∈ S.faces, finset.card y ≤ m+1,
+  { intros y hy,
+    apply size_bound (S.indep _ hy) },
+  rcases mwe S.faces this X hX with ⟨Y, _, _, h₂⟩,
+  refine ⟨Y, ⟨‹Y ∈ S.faces›, h₂⟩, ‹X ⊆ Y›⟩,
+end
 
 def is_homogeneous {m : ℕ} {s : set (fin m → ℝ)} (n : ℕ) (S : triangulation s) : Prop :=
 ∀ X ∈ S.facets, finset.card X = n
 -- ∀ X ∈ S.faces, ∃ Y ∈ S.faces, X ⊆ Y ∧ finset.card Y = n
 
--- lemma is_homogeneous_induct_down (S : triangulation (std_simplex (fin (m+1))))
---   (hS : is_homogeneous (m+1) S) :
---   is_homogeneous m (induct_down S) :=
--- begin
---   intros X hX,
---   simp only [induct_down, triangulation.facets, flatten_triangulation, lower_triangulation,
---     and_imp, set.mem_sep_eq, set.mem_image, exists_imp_distrib] at hX,
---   rcases hX with ⟨⟨X, ⟨hX₂, hX₄⟩, rfl⟩, hX₃⟩,
---   have hX₁ : ∀ (Y ∈ S.faces), (∀ (i : fin (m+1) → ℝ), i ∈ Y → i 0 = 0) →
---     finset.image matrix.vec_tail X ⊆ finset.image matrix.vec_tail Y →
---     finset.image matrix.vec_tail X = finset.image matrix.vec_tail Y,
---   { intros Y hY₁ hY₂ hY₃,
---     apply hX₃ _ _ hY₁ hY₂ rfl hY₃ },
---   -- have := set.image_subset,
---   -- simp only [induct_down, flatten_triangulation, lower_triangulation, set.mem_image,
---   --   set.mem_sep_eq] at hX,
+lemma is_homogeneous_induct_down (S : triangulation (std_simplex (fin (m+1))))
+  (hS : is_homogeneous (m+1) S) :
+  is_homogeneous m (induct_down S) :=
+begin
+  intros X hX,
+  simp only [induct_down, triangulation.facets, flatten_triangulation, lower_triangulation,
+    and_imp, set.mem_sep_eq, set.mem_image, exists_imp_distrib] at hX,
+  rcases hX with ⟨⟨X, ⟨hX₂, hX₄⟩, rfl⟩, hX₃⟩,
+  have hX₁ : ∀ (Y ∈ S.faces), (∀ (i : fin (m+1) → ℝ), i ∈ Y → i 0 = 0) →
+    finset.image matrix.vec_tail X ⊆ finset.image matrix.vec_tail Y →
+    finset.image matrix.vec_tail X = finset.image matrix.vec_tail Y,
+  { intros Y hY₁ hY₂ hY₃,
+    apply hX₃ _ _ hY₁ hY₂ rfl hY₃ },
+  clear hX₃, -- just a less convenient form of hX₁
+  have : ∀ (x : fin (m+1) → ℝ), x ∉ X → x 0 = 0 → insert x X ∉ S.faces,
+  { intros x hx₁ hx₂ t,
+    have := hX₁ _ t (by simpa [hx₂] using hX₄) (finset.image_subset_image _),
 
---   -- rcases hX with ⟨X, ⟨hX₁, hX₂⟩, rfl⟩,
---   -- rcases hS X hX₁ with ⟨Y, hY₁, hY₂, hY₃⟩,
---   -- -- refine ⟨sorry, _, _⟩,
---   -- simp only [exists_prop, induct_down, flatten_triangulation, lower_triangulation, set.mem_sep_eq,
---   --   set.mem_image, exists_exists_and_eq_and],
 
---   -- -- simp only [induct_down],
+  },
+  -- have := set.image_subset,
+  -- simp only [induct_down, flatten_triangulation, lower_triangulation, set.mem_image,
+  --   set.mem_sep_eq] at hX,
 
--- end
+  -- rcases hX with ⟨X, ⟨hX₁, hX₂⟩, rfl⟩,
+  -- rcases hS X hX₁ with ⟨Y, hY₁, hY₂, hY₃⟩,
+  -- -- refine ⟨sorry, _, _⟩,
+  -- simp only [exists_prop, induct_down, flatten_triangulation, lower_triangulation, set.mem_sep_eq,
+  --   set.mem_image, exists_exists_and_eq_and],
+
+  -- -- simp only [induct_down],
+
+end
 
 lemma subset_iff_eq_or_ssubset {α : Type*} {s t : finset α} :
   s ⊆ t ↔ s = t ∨ s ⊂ t :=
@@ -997,15 +1012,55 @@ begin
   apply finset.sum_const_nat,
   intros X hX,
   simp only [almost_panchromatic_simplices, mem_faces_finset, finset.mem_filter] at hX,
+  rcases hX with ⟨hX₁, hX₂, hX₃⟩,
   dsimp,
   suffices : ((almost_panchromatic_pairs hS f).filter (λ (x : _ × _), x.fst = X)).card =
-    (X.filter (λ x, _)).card,
-  {
-
-  },
-  -- rw finset.card_eq_sum_card_image prod.fst (almost_panchromatic_pairs hS f),
-  -- let g : (finset (fin (m+1) → ℝ) × finset (fin (m+1) → ℝ)) → finset (fin (m+1) → ℝ) := prod.fst,
-  -- have := finset.card_eq_sum_card_fiberwise,
+    (X.filter (λ x, ∃ y ∈ X, x ≠ y ∧ f x = f y)).card,
+  { rw this,
+    apply non_inj_card_two f,
+    rw hX₂,
+    rw hX₃,
+    simp [finset.card_erase_of_mem] },
+  apply (finset.card_congr (λ x hx, (X, X.erase x)) _ _ _).symm,
+  { intros x hx,
+    dsimp,
+    simp only [exists_prop, finset.mem_filter] at hx,
+    simp only [almost_panchromatic_pairs, and_true, eq_self_iff_true, mem_good_pairs,
+      finset.mem_filter, hX₃, true_and, hX₂, hX₁, finset.card_erase_of_mem, hx.1, nat.pred_succ,
+      finset.erase_subset],
+    rw ← hX₃,
+    refine ⟨S.down_closed _ hX₁ _ (finset.erase_subset _ _), _⟩,
+    conv_rhs {rw ←finset.insert_erase hx.1},
+    rw finset.image_insert,
+    rw finset.insert_eq_of_mem,
+    rw finset.mem_image,
+    simp only [exists_prop, finset.mem_erase],
+    simpa [and_assoc, and_comm (_ ∈ X), ←ne.def, ne_comm, eq_comm] using hx.2 },
+  { rintro a b ha hb h,
+    dsimp at h,
+    injection h,
+    apply erase_inj_on _ (finset.filter_subset _ _ ha) ‹X.erase a = X.erase b› },
+  { rintro ⟨X', Y⟩ hX,
+    dsimp [←ne.def],
+    simp only [finset.mem_filter, almost_panchromatic_pairs, mem_good_pairs] at hX,
+    rcases hX with ⟨⟨⟨_, _, _, _, _, _⟩, _⟩, rfl⟩,
+    have : (X' \ Y).nonempty,
+    { rw [←finset.card_pos, finset.card_sdiff ‹Y ⊆ X'›, ‹X'.card = m + 1›, ‹Y.card = m›],
+      simp only [nat.zero_lt_one, nat.add_sub_cancel_left] },
+    rcases this with ⟨z, hz⟩,
+    simp only [finset.mem_sdiff] at hz,
+    rcases hz,
+    simp only [true_and, exists_prop, prod.mk.inj_iff, eq_self_iff_true, finset.mem_filter],
+    refine ⟨z, ⟨‹_›, _⟩, _⟩,
+    { have : f z ∈ Y.image f,
+      { rw [‹Y.image f = _›, ←‹X'.image f = _›],
+        apply finset.mem_image_of_mem f ‹z ∈ X'› },
+      rcases finset.mem_image.1 this with ⟨y, hy₁, hy₂⟩,
+      refine ⟨y, ‹Y ⊆ X'› ‹y ∈ Y›, (ne_of_mem_of_not_mem ‹y ∈ Y› ‹z ∉ Y›).symm, ‹f y = f z›.symm⟩ },
+    { symmetry,
+      apply finset.eq_of_subset_of_card_le,
+      simp only [subset_erase_iff, ‹Y ⊆ X'›, ‹z ∉ Y›, not_false_iff, and_self],
+      rw [finset.card_erase_of_mem ‹_ ∈ _›, ‹X'.card = _›, nat.pred_succ, ‹Y.card = m›] } }
 end
 
 lemma panchromatic_splits {S : triangulation (std_simplex (fin (m+1)))}
@@ -1206,7 +1261,7 @@ begin
 end
 
 theorem strong_sperner (S : triangulation (std_simplex (fin (m+1)))) (hS : S.finite)
-  {f} (hf : is_sperner_colouring S f) :
+  {f} (hf : is_sperner_colouring S f) (hS₂ : is_homogeneous (m+1) S):
   odd ((S.faces_finset hS).filter (panchromatic f)).card :=
 begin
   tactic.unfreeze_local_instances,
@@ -1242,7 +1297,7 @@ begin
     apply ‹f y ≠ i.succ›,
     rw ← q,
     simp },
-  specialize ih (induct_down S) (induct_down_finite _ hS) hf',
+  specialize ih (induct_down S) (induct_down_finite _ hS) _ hf',
 
 
 
@@ -1261,3 +1316,6 @@ begin
 end
 
 end affine
+
+
+-- brb

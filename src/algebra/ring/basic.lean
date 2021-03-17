@@ -116,6 +116,18 @@ class semiring (α : Type u) extends add_comm_monoid α, monoid_with_zero α, di
 section semiring
 variables [semiring α]
 
+@[priority 200] -- see Note [lower instance priority]
+instance semiring.to_non_unital_non_assoc_semiring : non_unital_non_assoc_semiring α :=
+{ ..‹semiring α› }
+
+@[priority 200] -- see Note [lower instance priority]
+instance semiring.non_unital_semiring : non_unital_semiring α :=
+{ ..‹semiring α› }
+
+@[priority 200] -- see Note [lower instance priority]
+instance semiring.non_assoc_semiring : non_assoc_semiring α :=
+{ ..‹semiring α› }
+
 /-- Pullback a `semiring` instance along an injective function. -/
 protected def function.injective.semiring [has_zero β] [has_one β] [has_add β] [has_mul β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)

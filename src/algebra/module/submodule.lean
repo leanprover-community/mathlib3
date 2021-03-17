@@ -96,10 +96,10 @@ variables [semiring S] [semiring R] [add_comm_monoid M]
 -- We can infer the module structure implicitly from the bundled submodule,
 -- rather than via typeclass resolution.
 variables {semimodule_M : semimodule R M}
+variables [has_scalar S R] [semimodule S M] [is_scalar_tower S R M]
 variables {p q : submodule R M}
 variables {r : R} {x y : M}
 
-variables [has_scalar S R] [semimodule S M] [is_scalar_tower S R M]
 
 variables (p)
 @[simp] lemma mem_carrier : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
@@ -145,7 +145,44 @@ variables {p}
 
 @[simp] protected lemma eta (x : p) (hx : (x : M) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
 
-variables (p)
+variables (p q)
+
+section restrict_scalars
+
+variables (S)
+
+/--
+`p.restrict_scalars R` is the `S`-submodule of the `R`-module given by restriction of scalars,
+corresponding to `p`, an `R`-submodule of the original `R`-module.
+-/
+@[simps]
+def restrict_scalars : submodule S M :=
+{ carrier := p.carrier,
+  zero_mem' := p.zero_mem,
+  smul_mem' := λ r x, p.smul_of_tower_mem r,
+  add_mem' := λ x y hx hy, p.add_mem hx hy }
+
+@[simp]
+lemma restrict_scalars_mem (m : M) :
+  m ∈ p.restrict_scalars S ↔ m ∈ p :=
+iff.refl _
+
+
+variables (R S M)
+
+include semimodule_M
+
+lemma restrict_scalars_injective :
+  function.injective (restrict_scalars S : submodule R M → submodule S M) :=
+λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (ext'_iff.1 h); refl
+
+@[simp] lemma restrict_scalars_inj {p q : submodule R M} :
+  p.restrict_scalars S = q.restrict_scalars S ↔ p = q :=
+⟨λ h, restrict_scalars_injective S _ _ h, congr_arg _⟩
+
+end restrict_scalars
+
+variables {S}
 
 instance : add_comm_monoid p :=
 { add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }

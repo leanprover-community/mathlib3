@@ -144,11 +144,26 @@ end skeleton
 
 section coskeleton
 
-def cosk_diagram {n} (X : truncated C n) (a : simplex_category) :
+@[simps]
+def cosk_diagram_obj {n} (a : simplex_category) (X : truncated C n) :
   (ulift'.{v} (simplex_category.over_trunc a n)ᵒᵖ) ⥤ C :=
 let F := (simplex_category.over_trunc.forget : simplex_category.over_trunc a n ⥤ _).op ⋙ X,
     G := (ulift'.equivalence : (simplex_category.over_trunc a n)ᵒᵖ ≌ ulift'.{v} _) in
 G.congr_left.functor.obj F
+
+@[simps]
+def cosk_diagram_map {n} (a : simplex_category) {X Y : truncated C n} (f : X ⟶ Y) :
+  cosk_diagram_obj a X ⟶ cosk_diagram_obj a Y :=
+let F1 := (simplex_category.over_trunc.forget : simplex_category.over_trunc a n ⥤ _).op ⋙ X,
+    F2 := (simplex_category.over_trunc.forget : simplex_category.over_trunc a n ⥤ _).op ⋙ Y,
+    G := (ulift'.equivalence : (simplex_category.over_trunc a n)ᵒᵖ ≌ ulift'.{v} _) in
+G.congr_left.functor.map $ whisker_left _ f
+
+@[simps]
+def cosk_diagram {n} (a : simplex_category) :
+  (truncated C n) ⥤ (ulift'.{v} (simplex_category.over_trunc a n)ᵒᵖ) ⥤ C :=
+{ obj := cosk_diagram_obj _,
+  map := λ _ _, cosk_diagram_map _ }
 
 end coskeleton
 

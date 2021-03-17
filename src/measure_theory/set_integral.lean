@@ -55,7 +55,7 @@ migrated to the new definition.
 
 noncomputable theory
 open set filter topological_space measure_theory function
-open_locale classical topological_space interval big_operators filter ennreal
+open_locale classical topological_space interval big_operators filter ennreal measure_theory
 
 variables {α β E F : Type*} [measurable_space α]
 

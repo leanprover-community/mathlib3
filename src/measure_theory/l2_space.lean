@@ -23,7 +23,7 @@ is also an inner product space, with inner product defined as `inner f g = ∫ a
 
 noncomputable theory
 open topological_space measure_theory measure_theory.Lp
-open_locale nnreal ennreal
+open_locale nnreal ennreal measure_theory
 
 namespace measure_theory
 namespace L2

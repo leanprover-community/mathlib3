@@ -1081,7 +1081,8 @@ lemma left_mul_matrix_injective : function.injective (left_mul_matrix hb) :=
              ... = x' : mul_one x'
 
 lemma smul_left_mul_matrix (x) (i j) (k k') :
-  left_mul_matrix (hb.smul hc) x (i, k) (j, k') = left_mul_matrix hb (left_mul_matrix hc x k k') i j :=
+  left_mul_matrix (hb.smul hc) x (i, k) (j, k') =
+    left_mul_matrix hb (left_mul_matrix hc x k k') i j :=
 by simp only [left_mul_matrix_apply, linear_map.to_matrix_apply, is_basis.equiv_fun_apply, mul_comm,
               is_basis.smul_repr, finsupp.smul_apply, algebra.lmul_apply, id.smul_eq_mul,
               linear_map.map_smul, mul_smul_comm]

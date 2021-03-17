@@ -77,7 +77,7 @@ by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
 variables {R}
 
 /-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
-lemma is_algebraic_of_mem (a : R) : is_algebraic R (algebra_map R A a) :=
+lemma is_algebraic_algebra_map (a : R) : is_algebraic R (algebra_map R A a) :=
 ⟨X - C a, X_sub_C_ne_zero a, by simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self]⟩
 
 end zero_ne_one

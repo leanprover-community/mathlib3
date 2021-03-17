@@ -58,11 +58,16 @@ def ulift.equivalence : C ≌ (ulift.{u2} C) :=
 
 section ulift'
 
-variables (D : Type u1)
+variables (D : Type u1) [small_category D]
 
-def ulift' [small_category D] := ulift.{u2} D
+-- We enforse a small category instance on `D` to be able to use `ulift'`.
+/-- An alias for `ulift D`, used to lift a small category to a small category. -/
+@[nolint nolint unused_arguments]
+def ulift' := ulift.{u2} D
 
-variables {D} [small_category D]
+variables {D}
+
+instance ulift'_inhabited [inhabited D] : inhabited (ulift' D) := by {unfold ulift', apply_instance}
 
 @[simps]
 instance : small_category (ulift'.{u2} D) :=
@@ -70,14 +75,20 @@ instance : small_category (ulift'.{u2} D) :=
   id := λ X, _root_.ulift.up $ 𝟙 _,
   comp := λ X Y Z f g, _root_.ulift.up $ f.down ≫ g.down }
 
+/-- A functorial version of ulift.up. -/
+@[simps]
 def ulift'.up : D ⥤ (ulift'.{u2} D) :=
 { obj := _root_.ulift.up,
   map := λ X Y, _root_.ulift.up }
 
+/-- A functorial version of ulift.down. -/
+@[simps]
 def ulift'.down : (ulift'.{u2} D) ⥤ D :=
 { obj := _root_.ulift.down,
   map := λ X Y, _root_.ulift.down }
 
+/-- The categorical equivalence between `C` and `ulift' C`. -/
+@[simps]
 def ulift'.equivalence {D : Type*} [small_category D] : D ≌ ulift'.{u2} D :=
 { functor := ulift'.up,
   inverse := ulift'.down,

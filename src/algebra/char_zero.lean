@@ -146,10 +146,10 @@ lemma bit1_injective : function.injective (bit1 : R → R) :=
 end
 
 @[simp] lemma bit0_eq_bit0 {a b : R} : bit0 a = bit0 b ↔ a = b :=
-(bit0_injective h).eq_iff
+bit0_injective.eq_iff
 
 @[simp] lemma bit1_eq_bit1 {a b : R} : bit1 a = bit1 b ↔ a = b :=
-(bit1_injective h).eq_iff
+bit1_injective.eq_iff
 
 @[simp]
 lemma bit1_eq_one {a : R} : bit1 a = 1 ↔ a = 0 :=

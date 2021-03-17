@@ -771,6 +771,8 @@ variables {R : Type*} [linear_ordered_field R]
 
 -- This lemma (and the next) could go all the way back in `algebra.ordered_field`,
 -- except that it is tedious to prove without tactics.
+-- Rather than stranding it at some intermediate location,
+-- it's here, immediately prior to the point of use.
 lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x - y)) :=
 begin
   dsimp [min, max, abs],

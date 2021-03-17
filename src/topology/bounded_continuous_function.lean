@@ -668,3 +668,44 @@ module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 end normed_algebra
 
 end bounded_continuous_function
+
+/-!
+We now provide formulas for `f ⊓ g` and `f ⊔ g`, where `f g : C(α, β)`,
+in terms of `continuous_map.abs`.
+-/
+
+section
+variables {R : Type*} [linear_ordered_field R]
+
+-- This lemma (and the next) could go all the way back in `algebra.ordered_field`,
+-- except that it is tedious to prove without tactics.
+lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x - y)) :=
+begin
+  dsimp [min, max, abs],
+  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
+  split_ifs; ring; linarith,
+end
+
+lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
+begin
+  dsimp [min, max, abs],
+  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
+  split_ifs; ring; linarith,
+end
+end
+
+namespace continuous_map
+
+section lattice
+variables [topological_space α]
+variables [linear_ordered_field β] [topological_space β] [order_topology β]
+
+lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - (f - g).abs) :=
+ext (λ _, min_eq_half_add_sub_abs_sub)
+
+lemma sup_eq (f g : C(α, β)) : f ⊔ g = (2⁻¹ : β) • (f + g + (f - g).abs) :=
+ext (λ _, max_eq_half_add_add_abs_sub)
+
+end lattice
+
+end continuous_map

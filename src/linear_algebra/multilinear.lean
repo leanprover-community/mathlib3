@@ -165,6 +165,15 @@ def prod (f : multilinear_map R M₁ M₂) (g : multilinear_map R M₁ M₃) :
   map_add'  := λ m i x y, by simp,
   map_smul' := λ m i c x, by simp }
 
+/-- Combine a family of multilinear maps with the same domain and codomains `M' i` into a
+multilinear map taking values in the space of functions `Π i, M' i`. -/
+@[simps] def pi {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
+  [Π i, semimodule R (M' i)] (f : Π i, multilinear_map R M₁ (M' i)) :
+  multilinear_map R M₁ (Π i, M' i) :=
+{ to_fun := λ m i, f i m,
+  map_add' := λ m i x y, funext $ λ j, (f j).map_add _ _ _ _,
+  map_smul' := λ m i c x, funext $ λ j, (f j).map_smul _ _ _ _ }
+
 /-- Given a multilinear map `f` on `n` variables (parameterized by `fin n`) and a subset `s` of `k`
 of these variables, one gets a new multilinear map on `fin k` by varying these variables, and fixing
 the other ones equal to a given value `z`. It is denoted by `f.restr s hk z`, where `hk` is a

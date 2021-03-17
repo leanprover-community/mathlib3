@@ -19,6 +19,7 @@ These constructions are used to show uniqueness of adjoints (up to natural isomo
 adjunction, opposite, uniqueness
 -/
 
+
 open category_theory
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation

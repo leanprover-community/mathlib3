@@ -504,6 +504,10 @@ lemma measurable.comp {g : β → γ} {f : α → β} (hg : measurable g) (hf : 
   measurable (g ∘ f) :=
 λ t ht, hf (hg ht)
 
+lemma measurable.iterate {f : α → α} (hf : measurable f) : ∀ n, measurable (f^[n])
+| 0 := measurable_id
+| (n+1) := (measurable.iterate n).comp hf
+
 @[nontriviality] lemma subsingleton.measurable [subsingleton α] {f : α → β} : measurable f :=
 λ s hs, @subsingleton.measurable_set α _ _ _
 

@@ -446,6 +446,11 @@ def trans : M ≃ₗ[R] M₃ :=
 
 @[simp] lemma coe_to_add_equiv : ⇑(e.to_add_equiv) = e := rfl
 
+/-- The two paths coercion can take to an `add_monoid_hom` are equivalent -/
+lemma to_add_monoid_hom_commutes :
+  e.to_linear_map.to_add_monoid_hom = e.to_add_equiv.to_add_monoid_hom :=
+rfl
+
 @[simp] theorem trans_apply (c : M) :
   (e₁.trans e₂) c = e₂ (e₁ c) := rfl
 @[simp] theorem apply_symm_apply (c : M₂) : e (e.symm c) = c := e.6 c

@@ -93,6 +93,16 @@ by simpa only [div_eq_mul_inv] using is_open_map_mul_right (a⁻¹)
 lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
 by simpa only [div_eq_mul_inv] using is_closed_map_mul_right (a⁻¹)
 
+@[to_additive]
+lemma discrete_topology_of_open_singleton_one (h : is_open ({1} : set G)) : discrete_topology G :=
+begin
+  rw ← singletons_open_iff_discrete,
+  intro g,
+  suffices : {g} = (λ (x : G), g⁻¹ * x) ⁻¹' {1},
+  { rw this, exact (continuous_mul_left (g⁻¹)).is_open_preimage _ h, },
+  simp only [mul_one, set.preimage_mul_left_singleton, eq_self_iff_true,
+    inv_inv, set.singleton_eq_singleton_iff],
+end
 end continuous_mul_group
 
 section topological_group
@@ -205,6 +215,39 @@ variable {G}
 @[to_additive]
 lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
 (homeomorph.inv G).preimage_closure s
+
+/-- The (topological-space) closure of a subgroup of a space `M` with `has_continuous_mul` is
+itself a subgroup. -/
+@[to_additive "The (topological-space) closure of an additive subgroup of a space `M` with
+`has_continuous_add` is itself an additive subgroup."]
+def subgroup.topological_closure (s : subgroup G) : subgroup G :=
+{ carrier := closure (s : set G),
+  inv_mem' := λ g m, by simpa [←mem_inv, inv_closure] using m,
+  ..s.to_submonoid.topological_closure }
+
+@[to_additive]
+instance subgroup.topological_closure_topological_group (s : subgroup G) :
+  topological_group (s.topological_closure) :=
+{ continuous_inv :=
+  begin
+    apply continuous_induced_rng,
+    change continuous (λ p : s.topological_closure, (p : G)⁻¹),
+    continuity,
+  end
+  ..s.to_submonoid.topological_closure_has_continuous_mul}
+
+lemma subgroup.subgroup_topological_closure (s : subgroup G) :
+  s ≤ s.topological_closure :=
+subset_closure
+
+lemma subgroup.is_closed_topological_closure (s : subgroup G) :
+  is_closed (s.topological_closure : set G) :=
+by convert is_closed_closure
+
+lemma subgroup.topological_closure_minimal
+  (s : subgroup G) {t : subgroup G} (h : s ≤ t) (ht : is_closed (t : set G)) :
+  s.topological_closure ≤ t :=
+closure_minimal h ht
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :

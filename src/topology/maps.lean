@@ -97,6 +97,10 @@ lemma inducing.is_closed_iff {f : α → β} (hf : inducing f) {s : set α} :
   is_closed s ↔ ∃ t, is_closed t ∧ f ⁻¹' t = s :=
 by rw [hf.induced, is_closed_induced_iff]
 
+lemma inducing.is_open_iff {f : α → β} (hf : inducing f) {s : set α} :
+  is_open s ↔ ∃ t, is_open t ∧ f ⁻¹' t = s :=
+by rw [hf.induced, is_open_induced_iff]
+
 end inducing
 
 section embedding

@@ -212,6 +212,8 @@ S.to_subfield.to_field
 @[simp, norm_cast] lemma coe_inv (x : S) : (↑(x⁻¹) : L) = (↑x)⁻¹ := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : S) : L) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : S) : L) = 1 := rfl
+@[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x ^ n) : L) = ↑x ^ n :=
+@nat.rec (λ n, (↑(x ^ n) : L) = ↑x ^ n) rfl (λ _ h, congr_arg (has_mul.mul ↑x) h) n
 
 instance algebra : algebra K S :=
 S.to_subalgebra.algebra

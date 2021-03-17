@@ -40,9 +40,9 @@ def mul_hom.inverse [has_mul M] [has_mul N] (f : mul_hom M N) (g : N → M)
   (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) : mul_hom N M :=
 { to_fun   := g,
   map_mul' := λ x y,
-    calc g (x * y) = g ((f (g x)) * (f (g y))) : by { conv_lhs { rw [←h₂ x, ←h₂ y], }, }
-               ... = g (f ((g x) * (g y))) : by rw f.map_mul
-               ... = (g x) * (g y) : (h₁ _), }
+    calc g (x * y) = g (f (g x) * f (g y)) : by rw [h₂ x, h₂ y]
+               ... = g (f (g x * g y)) : by rw f.map_mul
+               ... = g x * g y : h₁ _, }
 
 set_option old_structure_cmd true
 

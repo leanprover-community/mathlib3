@@ -105,7 +105,7 @@ dif_neg h
 lemma univ'_eq_empty' (h : fintype α → false) : univ' α = ∅ :=
 univ'_eq_empty $ not_nonempty_fintype.2 $ ⟨h⟩
 
-@[simp] lemma mem_univ' [h : fintype α] (x : α) : x ∈ univ' α :=
+lemma mem_univ' [h : fintype α] (x : α) : x ∈ univ' α :=
 (@univ'_eq_univ _ h).symm ▸ mem_univ _
 
 @[simp] lemma mem_univ'' [h : nonempty (fintype α)] (x : α) : x ∈ univ' α :=

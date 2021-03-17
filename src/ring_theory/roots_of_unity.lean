@@ -185,7 +185,7 @@ def ring_equiv.restrict_roots_of_unity (σ : R ≃+* S) (n : ℕ+) :
   inv_fun := σ.symm.to_ring_hom.restrict_roots_of_unity n,
   left_inv := λ ξ, by { ext, exact σ.symm_apply_apply ξ },
   right_inv := λ ξ, by { ext, exact σ.apply_symm_apply ξ },
-  map_mul' := ring_hom.map_mul _ }
+  map_mul' := (σ.to_ring_hom.restrict_roots_of_unity n).map_mul }
 
 @[simp] lemma ring_equiv.restrict_roots_of_unity_coe_apply (σ : R ≃+* S) (ζ : roots_of_unity k R) :
   ↑(σ.restrict_roots_of_unity k ζ) = σ ↑ζ :=

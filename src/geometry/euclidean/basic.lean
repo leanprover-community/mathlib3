@@ -197,7 +197,8 @@ begin
     { rw norm_eq_zero at hy,
       rw [hy, inner_zero_right, zero_mul, neg_zero] } },
   { field_simp [h],
-    ring }
+    rw [mul_assoc ∥x∥ ∥y∥ _, ← mul_assoc ∥y∥ _ _, mul_comm ∥y∥ ∥x∥, mul_assoc ∥x∥ _ _,
+      ← mul_assoc ∥x∥ _ _] }
 end
 
 /-- The angle between two vectors is zero if and only if they are

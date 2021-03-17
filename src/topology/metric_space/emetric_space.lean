@@ -418,7 +418,7 @@ instance prod.pseudo_emetric_space_max [pseudo_emetric_space β] : pseudo_emetri
   end,
   to_uniform_space := prod.uniform_space }
 
-lemma prod.pesudoedist_eq [pseudo_emetric_space β] (x y : α × β) :
+lemma prod.pesudo_edist_eq [pseudo_emetric_space β] (x y : α × β) :
   edist x y = max (edist x.1 y.1) (edist x.2 y.2) :=
 rfl
 

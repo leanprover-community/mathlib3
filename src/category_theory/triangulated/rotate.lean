@@ -37,6 +37,16 @@ variables (X : C)
 
 /--
 If you rotate a triangle, you get another triangle.
+Given a triangle of the form:
+```
+      f       g       h
+  X  ---> Y  ---> Z  ---> X[1]
+```
+applying "rotate" gives a triangle of the form:
+```
+      g        h        f[1]
+  Y  ---> Z  --->  X[1] ---> Y[1]
+```
 -/
 @[simps]
 def triangle.rotate (T : triangle C) : triangle C :=
@@ -47,6 +57,18 @@ def triangle.rotate (T : triangle C) : triangle C :=
   mor2 := T.mor3,
   mor3 := T.mor1⟦1⟧' }
 
+/--
+Given a triangle of the form:
+```
+      f       g       h
+  X  ---> Y  ---> Z  ---> X[1]
+```
+applying "inv_rotate" gives a triangle that can be thought of as:
+```
+        h[-1]     f       g
+  Z[-1]  ---> X  ---> Y  ---> Z
+```
+-/
 @[simps]
 def triangle.inv_rotate (T : triangle C) : triangle C :=
 { obj1 := T.obj3⟦-1⟧,
@@ -82,16 +104,6 @@ applying "rotate" gives a triangle morphism of the form:
   Y' ---> Z' ---> X'[1] ---> Y'[1]
       g'      h'        f'[1]
 ```
-and applying "inv_rotate" gives a triangle morphism of the form:
-```
-        h[-1]     f       g
-  Z[-1]  ---> X  ---> Y  ---> Z
-    |         |       |       |
-    |a        |b      |c      |a[1]
-    V         V       V       V
-  Z'[-1] ---> X' ---> Y' ---> Z'
-        h'[-1]    f'      g'
-```
 -/
 @[simps]
 def rotate (f : triangle_morphism T₁ T₂)
@@ -107,6 +119,28 @@ def rotate (f : triangle_morphism T₁ T₂)
     rw f.comm1,
   end }
 
+/--
+Given a triangle morphism of the form:
+```
+      f       g       h
+  X  ---> Y  ---> Z  ---> X[1]
+  |       |       |        |
+  |a      |b      |c       |a[1]
+  V       V       V        V
+  X' ---> Y' ---> Z' ---> X'[1]
+      f'      g'      h'
+```
+applying "inv_rotate" gives a triangle morphism that can be thought of as:
+```
+        h[-1]     f       g
+  Z[-1]  ---> X  ---> Y  ---> Z
+    |         |       |       |
+    |a        |b      |c      |a[1]
+    V         V       V       V
+  Z'[-1] ---> X' ---> Y' ---> Z'
+        h'[-1]    f'      g'
+```
+-/
 @[simps]
 def inv_rotate (f : triangle_morphism T₁ T₂)
 : triangle_morphism (T₁.inv_rotate C) (T₂.inv_rotate C) :=

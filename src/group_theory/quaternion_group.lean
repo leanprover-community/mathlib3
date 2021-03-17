@@ -14,8 +14,9 @@ import group_theory.dihedral
 
 We define the (generalised) quaternion groups `quaternion_group n` of order `4n`, also known as
 dicyclic groups, with elements `a i` and `xa i` for `i : zmod n`. The (generalised) quaternion
-groups can be defined by the presentation `⟨a, x | a²ⁿ = 1, x² = aⁿ, x⁻¹ax=a⁻¹⟩`. We write `a i` for
-`aⁱ` and `xa i` for `xaⁱ`. For `n=2` the quaternion group `quaternion_group 2` is isomorphic to the
+groups can be defined by the presentation
+$\langle a, x | a^{2n} = 1, x^2 = a^n, x^{-1}ax=a^{-1}\rangle$. We write `a i` for
+$a^i$ and `xa i` for $xa^i$. For `n=2` the quaternion group `quaternion_group 2` is isomorphic to the
 unit integral quaternions `units (quaternion ℤ)`.
 
 ## Main definition
@@ -44,7 +45,8 @@ Show that `quaternion_group 2 ≃* units (quaternion ℤ)`.
 
 /--
 The (generalised) quaternion group `quaternion_group n` of order `4n`. It can be defined by the
-presentation `⟨a, x | a²ⁿ = 1, x² = aⁿ, x⁻¹ax=a⁻¹⟩`. We write `a i` for `aⁱ` and `xa i` for `xaⁱ`.
+presentation $\langle a, x | a^{2n} = 1, x^2 = a^n, x^{-1}ax=a^{-1}\rangle$. We write `a i` for
+$a^i$ and `xa i` for $xa^i$.
 -/
 @[derive decidable_eq]
 inductive quaternion_group (n : ℕ) : Type

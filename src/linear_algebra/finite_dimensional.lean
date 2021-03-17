@@ -499,10 +499,8 @@ begin
   exact_mod_cast this
 end
 
-/-- The vector space of functions on a fintype has finite dimension. -/
-instance finite_dimensional_fintype_fun {ι : Type*} [fintype ι] :
-  finite_dimensional K (ι → K) :=
-by { rw [finite_dimensional_iff_dim_lt_omega, dim_fun'], exact nat_lt_omega _ }
+instance finite_dimensional_self : finite_dimensional K K :=
+by apply_instance
 
 /-- The vector space of functions on a fintype ι has findim equal to the cardinality of ι. -/
 @[simp] lemma findim_fintype_fun_eq_card {ι : Type v} [fintype ι] :

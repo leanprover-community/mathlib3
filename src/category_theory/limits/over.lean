@@ -78,10 +78,9 @@ has_colimit_of_created _ (forget X)
 
 instance has_colimits_of_shape [has_colimits_of_shape J C] :
   has_colimits_of_shape J (over X) :=
-{ has_colimit := λ F, by apply_instance }
+{}
 
-instance has_colimits [has_colimits C] : has_colimits (over X) :=
-{ has_colimits_of_shape := λ J 𝒥, by apply_instance }
+instance has_colimits [has_colimits C] : has_colimits (over X) := {}
 
 -- We can automatically infer that the forgetful functor preserves colimits
 example [has_colimits C] : preserves_colimits (forget X) := infer_instance
@@ -174,10 +173,9 @@ has_limit_of_created F (forget X)
 
 instance has_limits_of_shape [has_limits_of_shape J C] :
   has_limits_of_shape J (under X) :=
-{ has_limit := λ F, by apply_instance }
+{}
 
-instance has_limits [has_limits C] : has_limits (under X) :=
-{ has_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
+instance has_limits [has_limits C] : has_limits (under X) := {}
 
 -- We can automatically infer that the forgetful functor preserves limits
 example [has_limits C] : preserves_limits (forget X) := infer_instance

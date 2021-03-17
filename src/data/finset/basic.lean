@@ -897,7 +897,7 @@ subset_insert_iff.1 $ subset.refl _
 theorem insert_erase_subset (a : α) (s : finset α) : s ⊆ insert a (erase s a) :=
 subset_insert_iff.2 $ subset.refl _
 
-lemma erase_inj_on {α : Type*} [decidable_eq α] {x y : α} (s : finset α) (hx : x ∈ s)
+lemma erase_inj_of_mem {x y : α} (s : finset α) (hx : x ∈ s)
   (h : s.erase x = s.erase y) :
   x = y :=
 begin

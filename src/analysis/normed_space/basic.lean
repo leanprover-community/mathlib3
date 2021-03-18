@@ -604,25 +604,21 @@ def normed_group.of_add_dist [has_norm α] [add_comm_group α] [metric_space α]
 
 /-- A normed group can be built from a norm that satisfies algebraic properties. This is
 formalised in this structure. -/
-structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] : Prop :=
-(norm_eq_zero_iff : ∀ x : α, ∥x∥ = 0 ↔ x = 0)
-(triangle : ∀ x y : α, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
-(norm_neg : ∀ x : α, ∥-x∥ = ∥x∥)
+structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α]
+  extends semi_normed_group.core α : Prop :=
+(norm_eq_zero_if : ∀ x : α, ∥x∥ = 0 → x = 0)
 
 /-- Constructing a normed group from core properties of a norm, i.e., registering the distance and
 the metric space structure from the norm properties. -/
 noncomputable def normed_group.of_core (α : Type*) [add_comm_group α] [has_norm α]
   (C : normed_group.core α) : normed_group α :=
-{ dist := λ x y, ∥x - y∥,
-  dist_eq := assume x y, by refl,
-  dist_self := assume x, (C.norm_eq_zero_iff (x - x)).mpr (show x - x = 0, by simp),
-  eq_of_dist_eq_zero := assume x y h, sub_eq_zero.mp $ (C.norm_eq_zero_iff (x - y)).mp h,
-  dist_triangle := assume x y z,
-    calc ∥x - z∥ = ∥x - y + (y - z)∥ : by rw sub_add_sub_cancel
-            ... ≤ ∥x - y∥ + ∥y - z∥  : C.triangle _ _,
-  dist_comm := assume x y,
-    calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
-             ... = ∥y - x∥ : by { rw [C.norm_neg] } }
+{ eq_of_dist_eq_zero := λ x y h,
+  begin
+    rw [dist_eq_norm] at h,
+    exact sub_eq_zero.mp (C.norm_eq_zero_if _ h)
+  end
+  ..semi_normed_group.of_core α C.to_core
+}
 
 variables [normed_group α] [normed_group β]
 

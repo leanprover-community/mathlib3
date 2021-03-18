@@ -136,7 +136,7 @@ eq_some_iff.2 ⟨dvd_refl _, mt is_unit_iff_dvd_one.2 $ by simpa⟩
 get_eq_iff_eq_some.2 (eq_some_iff.2 ⟨dvd_refl _,
   by simpa [is_unit_iff_dvd_one.symm] using not_unit_of_finite ha⟩)
 
-@[simp] lemma unit_left {a : α} (u : units α) : multiplicity (u : α) a = ⊤ :=
+@[simp] lemma unit_left (a : α) (u : units α) : multiplicity (u : α) a = ⊤ :=
 is_unit_left a (is_unit_unit u)
 
 lemma unit_right {a : α} (ha : ¬is_unit a) (u : units α) : multiplicity a u = 0 :=

@@ -11,7 +11,7 @@ import algebra.algebra.basic
 This files defines non-unital, non-associative algebras together with their morphisms and basic
 lemmas to make them usable.
 
-## Uniticity, associativity and the legacy `algebra` class.
+## Unitality, associativity and the legacy `algebra` class.
 
 The `non_unital_non_assoc_algebra` defined below can serve as a replacement for our older `algebra`
 class (see `non_unital_non_assoc_algebra.to_algebra`). The older algebra class is essentially just

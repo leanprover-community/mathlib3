@@ -182,8 +182,8 @@ def regular_check(lines, path):
                 # Validating names is not a reasonable thing to do,
                 # so we just look for the two common variations:
                 # using ' and ' between names, and a '.' at the end of line.
-                if not line.startswith("Authors: ") or " and " in line or line.endswith("."):
-                    errors += [(ERR_AUT, copy_start_line_nr, path)]
+                if (not line.startswith("Authors: ")) or (" and " in line) or (line[-2] == '.'):
+                    errors += [(ERR_AUT, line_nr, path)]
             if line == "-/\n":
                 if ((not "Copyright" in copy_lines) or
                     (not "Apache" in copy_lines) or

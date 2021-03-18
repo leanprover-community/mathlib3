@@ -36,7 +36,7 @@ local attribute [semireducible] simplex_category
 /-- Interpet a natural number as an object of the simplex category. -/
 def mk (n : ℕ) : simplex_category := ulift.up n
 
-localized "notation `[`n`]` := mk n" in simplicial
+localized "notation `[`n`]` := simplex_category.mk n" in simplicial
 
 /-- The length of an object of `simplex_category`. -/
 def len (n : simplex_category) : ℕ := n.down

@@ -32,6 +32,8 @@ def simplicial_object := simplex_category.{v}ᵒᵖ ⥤ C
 
 namespace simplicial_object
 
+open_locale simplicial
+
 instance {J : Type v} [small_category J] [has_limits_of_shape J C] :
   has_limits_of_shape J (simplicial_object C) := by {dsimp [simplicial_object], apply_instance}
 
@@ -46,18 +48,18 @@ variables {C} (X : simplicial_object C)
 
 /-- Face maps for a simplicial object. -/
 def δ {n} (i : fin (n+2)) :
-  X.obj (op (simplex_category.mk (n+1))) ⟶ X.obj (op (simplex_category.mk n)) :=
+  X.obj (op [n+1]) ⟶ X.obj (op [n]) :=
 X.map (simplex_category.δ i).op
 
 /-- Degeneracy maps for a simplicial object. -/
 def σ {n} (i : fin (n+1)) :
-  X.obj (op (simplex_category.mk n)) ⟶ X.obj (op (simplex_category.mk (n+1))) :=
+  X.obj (op [n]) ⟶ X.obj (op [n+1]) :=
 X.map (simplex_category.σ i).op
 
 
 /-- Isomorphisms from identities in ℕ. -/
 def eq_to_iso {n m : ℕ} (h : n = m) :
-  X.obj (op (simplex_category.mk n)) ≅ X.obj (op (simplex_category.mk m)) :=
+  X.obj (op [n]) ≅ X.obj (op [m]) :=
 X.map_iso (eq_to_iso (by rw h))
 
 @[simp] lemma eq_to_iso_refl {n : ℕ} (h : n = n) : X.eq_to_iso h = iso.refl _ :=

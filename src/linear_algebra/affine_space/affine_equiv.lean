@@ -112,7 +112,7 @@ rfl
 
 @[simp] lemma linear_to_affine_map (e : P₁ ≃ᵃ[k] P₂) : e.to_affine_map.linear = e.linear := rfl
 
-lemma injective_to_affine_map : injective (to_affine_map : (P₁ ≃ᵃ[k] P₂) → (P₁ →ᵃ[k] P₂)) :=
+lemma to_affine_map_injective : injective (to_affine_map : (P₁ ≃ᵃ[k] P₂) → (P₁ →ᵃ[k] P₂)) :=
 begin
   rintros ⟨e, el, h⟩ ⟨e', el', h'⟩ H,
   simp only [to_affine_map_mk, equiv.coe_inj, linear_equiv.to_linear_map_inj] at H,
@@ -122,22 +122,22 @@ end
 
 @[simp] lemma to_affine_map_inj {e e' : P₁ ≃ᵃ[k] P₂} :
   e.to_affine_map = e'.to_affine_map ↔ e = e' :=
-injective_to_affine_map.eq_iff
+to_affine_map_injective.eq_iff
 
 @[ext] lemma ext {e e' : P₁ ≃ᵃ[k] P₂} (h : ∀ x, e x = e' x) : e = e' :=
-injective_to_affine_map $ affine_map.ext h
+to_affine_map_injective $ affine_map.ext h
 
-lemma injective_coe_fn : injective (λ (e : P₁ ≃ᵃ[k] P₂) (x : P₁), e x) :=
+lemma coe_fn_injective : injective (λ (e : P₁ ≃ᵃ[k] P₂) (x : P₁), e x) :=
 λ e e' H, ext $ congr_fun H
 
 @[simp, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : ⇑e = e' ↔ e = e' :=
-injective_coe_fn.eq_iff
+coe_fn_injective.eq_iff
 
-lemma injective_to_equiv : injective (to_equiv : (P₁ ≃ᵃ[k] P₂) → (P₁ ≃ P₂)) :=
+lemma to_equiv_injective : injective (to_equiv : (P₁ ≃ᵃ[k] P₂) → (P₁ ≃ P₂)) :=
 λ e e' H, ext $ equiv.ext_iff.1 H
 
 @[simp] lemma to_equiv_inj {e e' : P₁ ≃ᵃ[k] P₂} : e.to_equiv = e'.to_equiv ↔ e = e' :=
-injective_to_equiv.eq_iff
+to_equiv_injective.eq_iff
 
 /-- Construct an affine equivalence by verifying the relation between the map and its linear part at
 one base point. Namely, this function takes an equivalence `e : P₁ ≃ P₂`, a linear equivalece
@@ -294,7 +294,7 @@ def point_reflection (x : P₁) : P₁ ≃ᵃ[k] P₁ := (const_vsub k x).trans 
 lemma point_reflection_apply (x y : P₁) : point_reflection k x y = x -ᵥ y +ᵥ x := rfl
 
 @[simp] lemma point_reflection_symm (x : P₁) : (point_reflection k x).symm = point_reflection k x :=
-injective_to_equiv $ equiv.point_reflection_symm x
+to_equiv_injective $ equiv.point_reflection_symm x
 
 @[simp] lemma to_equiv_point_reflection (x : P₁) :
   (point_reflection k x).to_equiv = equiv.point_reflection x :=

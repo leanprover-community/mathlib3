@@ -146,7 +146,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
 ... = ∑ τ : perm n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (τ i) * N (τ i) i) :
   sum_bij (λ p h, equiv.of_bijective p (mem_filter.1 h).2) (λ _ _, mem_univ _)
     (λ _ _, rfl) (λ _ _ _ _ h, by injection h)
-    (λ b _, ⟨b, mem_filter.2 ⟨mem_univ _, b.bijective⟩, injective_coe_fn rfl⟩)
+    (λ b _, ⟨b, mem_filter.2 ⟨mem_univ _, b.bijective⟩, coe_fn_injective rfl⟩)
 ... = ∑ σ : perm n, ∑ τ : perm n, (∏ i, N (σ i) i) * ε τ * (∏ j, M (τ j) (σ j)) :
   by simp [mul_sum, det_apply', mul_comm, mul_left_comm, prod_mul_distrib, mul_assoc]
 ... = ∑ σ : perm n, ∑ τ : perm n, (((∏ i, N (σ i) i) * (ε σ * ε τ)) * ∏ i, M (τ i) i) :

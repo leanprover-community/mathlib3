@@ -475,18 +475,6 @@ end
 lemma log_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : log x ≤ 0 :=
 (log_nonpos_iff' hx).2 h'x
 
-lemma log_inj_pos {x y : ℝ} (x_pos : 0 < x) (y_pos : 0 < y)
-  (h : log x = log y) : x = y :=
-le_antisymm
-  ((log_le_log x_pos y_pos).1 $ h.le)
-  ((log_le_log y_pos x_pos).1 $ h.symm.le)
-
-lemma one_of_pos_of_log_eq_zero {x : ℝ} (h₁ : 0 < x) (h₂ : log x = 0) : x = 1 :=
-log_inj_pos h₁ zero_lt_one (h₂.trans real.log_one.symm)
-
-lemma log_nonzero_of_ne_one (x : ℝ) (hx_pos : 0 < x) (hx : x ≠ 1) : log x ≠ 0 :=
-mt (one_of_pos_of_log_eq_zero hx_pos) hx
-
 lemma strict_mono_incr_on_log : strict_mono_incr_on log (set.Ioi 0) :=
 λ x hx y hy hxy, log_lt_log hx hxy
 
@@ -497,6 +485,15 @@ begin
   refine log_lt_log (abs_pos.2 hy.ne) _,
   rwa [abs_of_neg hy, abs_of_neg hx, neg_lt_neg_iff]
 end
+
+lemma log_inj_on_pos : set.inj_on log (set.Ioi 0) :=
+strict_mono_incr_on_log.inj_on
+
+lemma one_of_pos_of_log_eq_zero {x : ℝ} (h₁ : 0 < x) (h₂ : log x = 0) : x = 1 :=
+log_inj_on_pos (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one) (h₂.trans real.log_one.symm)
+
+lemma log_nonzero_of_ne_one (x : ℝ) (hx_pos : 0 < x) (hx : x ≠ 1) : log x ≠ 0 :=
+mt (one_of_pos_of_log_eq_zero hx_pos) hx
 
 /-- The real logarithm function tends to `+∞` at `+∞`. -/
 lemma tendsto_log_at_top : tendsto log at_top at_top :=

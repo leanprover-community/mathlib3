@@ -20,7 +20,7 @@ by radicals, then its minimal polynomial has solvable Galois group.
 
 ## Main results
 
-* `solvable_gal_of_SBR` : the `minpoly` of an element of `SBF F E` has solvabe Galois group
+* `solvable_gal_of_solvable_by_rad` : the `minpoly` of an element of `SBF F E` has solvabe Galois group
 -/
 
 noncomputable theory
@@ -212,48 +212,48 @@ end gal_X_pow_sub_C
 variables (F)
 
 /-- Inductive definition of solvable by radicals -/
-inductive is_SBR : E → Prop
-| base (a : F) : is_SBR (algebra_map F E a)
-| add (a b : E) : is_SBR a → is_SBR b → is_SBR (a + b)
-| neg (α : E) : is_SBR α → is_SBR (-α)
-| mul (α β : E) : is_SBR α → is_SBR β → is_SBR (α * β)
-| inv (α : E) : is_SBR α → is_SBR α⁻¹
-| rad (α : E) (n : ℕ) (hn : n ≠ 0) : is_SBR (α^n) → is_SBR α
+inductive is_solvable_by_rad : E → Prop
+| base (a : F) : is_solvable_by_rad (algebra_map F E a)
+| add (a b : E) : is_solvable_by_rad a → is_solvable_by_rad b → is_solvable_by_rad (a + b)
+| neg (α : E) : is_solvable_by_rad α → is_solvable_by_rad (-α)
+| mul (α β : E) : is_solvable_by_rad α → is_solvable_by_rad β → is_solvable_by_rad (α * β)
+| inv (α : E) : is_solvable_by_rad α → is_solvable_by_rad α⁻¹
+| rad (α : E) (n : ℕ) (hn : n ≠ 0) : is_solvable_by_rad (α^n) → is_solvable_by_rad α
 
 variables (E)
 
 /-- The intermediate field of solvable-by-radicals elements -/
-def SBR : intermediate_field F E :=
-{ carrier := is_SBR F,
-  zero_mem' := by { convert is_SBR.base (0 : F), rw ring_hom.map_zero },
-  add_mem' := is_SBR.add,
-  neg_mem' := is_SBR.neg,
-  one_mem' := by { convert is_SBR.base (1 : F), rw ring_hom.map_one },
-  mul_mem' := is_SBR.mul,
-  inv_mem' := is_SBR.inv,
-  algebra_map_mem' := is_SBR.base }
+def solvable_by_rad : intermediate_field F E :=
+{ carrier := is_solvable_by_rad F,
+  zero_mem' := by { convert is_solvable_by_rad.base (0 : F), rw ring_hom.map_zero },
+  add_mem' := is_solvable_by_rad.add,
+  neg_mem' := is_solvable_by_rad.neg,
+  one_mem' := by { convert is_solvable_by_rad.base (1 : F), rw ring_hom.map_one },
+  mul_mem' := is_solvable_by_rad.mul,
+  inv_mem' := is_solvable_by_rad.inv,
+  algebra_map_mem' := is_solvable_by_rad.base }
 
-namespace SBR
+namespace solvable_by_rad
 
 variables {F} {E} {α : E}
 
-lemma induction (P : SBR F E → Prop)
-(base : ∀ α : F, P (algebra_map F (SBR F E) α))
-(add : ∀ α β : SBR F E, P α → P β → P (α + β))
-(neg : ∀ α : SBR F E, P α → P (-α))
-(mul : ∀ α β : SBR F E, P α → P β → P (α * β))
-(inv : ∀ α : SBR F E, P α → P α⁻¹)
-(rad : ∀ α : SBR F E, ∀ n : ℕ, n ≠ 0 → P (α^n) → P α)
-(α : SBR F E) : P α :=
+lemma induction (P : solvable_by_rad F E → Prop)
+(base : ∀ α : F, P (algebra_map F (solvable_by_rad F E) α))
+(add : ∀ α β : solvable_by_rad F E, P α → P β → P (α + β))
+(neg : ∀ α : solvable_by_rad F E, P α → P (-α))
+(mul : ∀ α β : solvable_by_rad F E, P α → P β → P (α * β))
+(inv : ∀ α : solvable_by_rad F E, P α → P α⁻¹)
+(rad : ∀ α : solvable_by_rad F E, ∀ n : ℕ, n ≠ 0 → P (α^n) → P α)
+(α : solvable_by_rad F E) : P α :=
 begin
   revert α,
-  suffices : ∀ (α : E), is_SBR F α → (∃ β : SBR F E, ↑β = α ∧ P β),
+  suffices : ∀ (α : E), is_solvable_by_rad F α → (∃ β : solvable_by_rad F E, ↑β = α ∧ P β),
   { intro α,
     obtain ⟨α₀, hα₀, Pα⟩ := this α (subtype.mem α),
     convert Pα,
     exact subtype.ext hα₀.symm },
-  apply is_SBR.rec,
-  { exact λ α, ⟨algebra_map F (SBR F E) α, rfl, base α⟩ },
+  apply is_solvable_by_rad.rec,
+  { exact λ α, ⟨algebra_map F (solvable_by_rad F E) α, rfl, base α⟩ },
   { intros α β hα hβ Pα Pβ,
     obtain ⟨⟨α₀, hα₀, Pα⟩, β₀, hβ₀, Pβ⟩ := ⟨Pα, Pβ⟩,
     exact ⟨α₀ + β₀, by {rw [←hα₀, ←hβ₀], refl }, add α₀ β₀ Pα Pβ⟩ },
@@ -268,21 +268,21 @@ begin
     exact ⟨α₀⁻¹, by {rw ←hα₀, refl }, inv α₀ Pα⟩ },
   { intros α n hn hα Pα,
     obtain ⟨α₀, hα₀, Pα⟩ := Pα,
-    refine ⟨⟨α, is_SBR.rad α n hn hα⟩, rfl, rad _ n hn _⟩,
+    refine ⟨⟨α, is_solvable_by_rad.rad α n hn hα⟩, rfl, rad _ n hn _⟩,
     convert Pα,
-    exact subtype.ext (eq.trans ((SBR F E).coe_pow _ n) hα₀.symm) }
+    exact subtype.ext (eq.trans ((solvable_by_rad F E).coe_pow _ n) hα₀.symm) }
 end
 
-theorem is_integral (α : SBR F E) : is_integral F α :=
+theorem is_integral (α : solvable_by_rad F E) : is_integral F α :=
 begin
   revert α,
-  apply SBR.induction,
+  apply solvable_by_rad.induction,
   { exact λ _, is_integral_algebra_map },
   { exact λ _ _, is_integral_add },
   { exact λ _, is_integral_neg },
   { exact λ _ _, is_integral_mul },
-  { exact λ α hα, subalgebra.inv_mem_of_algebraic (integral_closure F (SBR F E))
-      (show is_algebraic F ↑(⟨α, hα⟩ : integral_closure F (SBR F E)),
+  { exact λ α hα, subalgebra.inv_mem_of_algebraic (integral_closure F (solvable_by_rad F E))
+      (show is_algebraic F ↑(⟨α, hα⟩ : integral_closure F (solvable_by_rad F E)),
         by exact (is_algebraic_iff_is_integral F).mpr hα) },
   { intros α n hn hα,
     obtain ⟨p, h1, h2⟩ := (is_algebraic_iff_is_integral F).mpr hα,
@@ -293,9 +293,9 @@ begin
 end
 
 /-- The statement to be proved inductively -/
-def P (α : SBR F E) : Prop := is_solvable (minpoly F α).gal
+def P (α : solvable_by_rad F E) : Prop := is_solvable (minpoly F α).gal
 
-lemma induction3 {α : SBR F E} {n : ℕ} (hn : n ≠ 0) (hα : P (α ^ n)) : P α :=
+lemma induction3 {α : solvable_by_rad F E} {n : ℕ} (hn : n ≠ 0) (hα : P (α ^ n)) : P α :=
 begin
   let p := minpoly F (α ^ n),
   have hp : p.comp (X ^ n) ≠ 0,
@@ -322,7 +322,7 @@ begin
       exact gal_X_pow_sub_C_is_solvable n q } },
 end
 
-lemma induction2 {α β γ : SBR F E} (hγ : γ ∈ F⟮α, β⟯) (hα : P α) (hβ : P β) : P γ :=
+lemma induction2 {α β γ : solvable_by_rad F E} (hγ : γ ∈ F⟮α, β⟯) (hα : P α) (hβ : P β) : P γ :=
 begin
   let p := (minpoly F α),
   let q := (minpoly F β),
@@ -341,7 +341,7 @@ begin
     (normal.is_integral (splitting_field.normal _) _) (minpoly.irreducible (is_integral γ)) begin
       suffices : aeval (⟨γ, hγ⟩ : F ⟮α, β⟯) (minpoly F γ) = 0,
       { rw [aeval_alg_hom_apply, this, alg_hom.map_zero] },
-      apply (algebra_map F⟮α, β⟯ (SBR F E)).injective,
+      apply (algebra_map F⟮α, β⟯ (solvable_by_rad F E)).injective,
       rw [ring_hom.map_zero, is_scalar_tower.algebra_map_aeval],
       exact minpoly.aeval F γ,
     end (minpoly.monic (is_integral γ)),
@@ -350,14 +350,14 @@ begin
     (gal_mul_is_solvable hα hβ),
 end
 
-lemma induction1 {α β : SBR F E} (hβ : β ∈ F⟮α⟯) (hα : P α) : P β :=
+lemma induction1 {α β : solvable_by_rad F E} (hβ : β ∈ F⟮α⟯) (hα : P α) : P β :=
 induction2 (adjoin.mono F _ _ (ge_of_eq (set.pair_eq_singleton α)) hβ) hα hα
 
-theorem solvable_gal_of_SBR (α : SBR F E) :
+theorem is_solvable (α : solvable_by_rad F E) :
   is_solvable (minpoly F α).gal :=
 begin
   revert α,
-  apply SBR.induction,
+  apply solvable_by_rad.induction,
   { exact λ α, by { rw minpoly.eq_X_sub_C, exact gal_X_sub_C_is_solvable α } },
   { exact λ α β, induction2 (add_mem _ (subset_adjoin F _ (set.mem_insert α _))
       (subset_adjoin F _ (set.mem_insert_of_mem α (set.mem_singleton β)))) },
@@ -368,6 +368,6 @@ begin
   { exact λ α n, induction3 },
 end
 
-end SBR
+end solvable_by_rad
 
 end abel_ruffini

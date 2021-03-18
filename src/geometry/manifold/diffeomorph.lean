@@ -116,7 +116,7 @@ to_equiv_injective.eq_iff
 
 /-- Coercion to function `λ h : M ≃ₘ^n⟮I, I'⟯ M', (h : M → M')` is injective. -/
 lemma coe_fn_injective : injective (λ (h : M ≃ₘ^n⟮I, I'⟯ M') (x : M), h x) :=
-equiv.injective_coe_fn.comp to_equiv_injective
+equiv.coe_fn_injective.comp to_equiv_injective
 
 @[ext] lemma ext {h h' : M ≃ₘ^n⟮I, I'⟯ M'} (Heq : ∀ x, h x = h' x) : h = h' :=
 coe_fn_injective $ funext Heq

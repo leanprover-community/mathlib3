@@ -285,7 +285,7 @@ variables (G : C ⥤ D)
 instance functoriality_full [full G] [faithful G] : full (functoriality F G) :=
 { preimage := λ X Y t,
   { hom := G.preimage t.hom,
-    w' := λ j, G.map_injective begin simp [-cone.w, ←t.w j], have := t.w j, dsimp at this, end } }
+    w' := λ j, G.map_injective (by simpa using t.w j) } }
 
 instance functoriality_faithful [faithful G] : faithful (cones.functoriality F G) :=
 { map_injective' := λ X Y f g e, by { ext1, injection e, apply G.map_injective h_1 } }

@@ -171,6 +171,7 @@ section algebra
 
 variables [comm_semiring R] [semiring A]
 
+@[priority 100] -- see Note [lower instance priority]
 instance algebra.to_non_unital_non_assoc_algebra [algebra R A] : non_unital_non_assoc_algebra R A :=
 { smul_mul_assoc' := algebra.smul_mul_assoc,
   mul_smul_comm'  := algebra.mul_smul_comm,

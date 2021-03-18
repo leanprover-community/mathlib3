@@ -125,18 +125,18 @@ rfl
 
 @[simp] lemma map_smul (f : non_unital_non_assoc_algebra_hom R A B) (c : R) (x : A) :
   f (c • x) = c • f x :=
-linear_map.map_smul (f : A →ₗ[R] B) c x
+f.to_linear_map.map_smul c x
 
 @[simp] lemma map_add (f : non_unital_non_assoc_algebra_hom R A B) (x y : A) :
   f (x + y) = (f x) + (f y) :=
-linear_map.map_add (f : A →ₗ[R] B) x y
+f.to_linear_map.map_add x y
 
 @[simp] lemma map_mul (f : non_unital_non_assoc_algebra_hom R A B) (x y : A) :
   f (x * y) = (f x) * (f y) :=
-mul_hom.map_mul (f : mul_hom A B) x y
+f.to_mul_hom.map_mul x y
 
 @[simp] lemma map_zero (f : non_unital_non_assoc_algebra_hom R A B) : f 0 = 0 :=
-(f : A →ₗ[R] B).map_zero
+f.to_linear_map.map_zero
 
 instance : has_zero (non_unital_non_assoc_algebra_hom R A B) :=
 ⟨{ map_mul' := by simp,

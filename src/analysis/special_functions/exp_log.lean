@@ -482,10 +482,7 @@ le_antisymm
   ((log_le_log y_pos x_pos).1 $ h.symm.le)
 
 lemma one_of_pos_of_log_eq_zero {x : ℝ} (h₁: 0 < x) (h₂: real.log x = 0) : x = 1 :=
-begin
-  apply log_inj_pos h₁ zero_lt_one,
-  rwa real.log_one,
-end
+log_inj_pos h₁ zero_lt_one (h₂.trans real.log_one.symm)
 
 lemma log_nonzero_of_ne_one (x : ℝ) (hx_pos : 0 < x) (hx : x ≠ 1) : real.log x ≠ 0 :=
 mt (one_of_pos_of_log_eq_zero hx_pos) hx

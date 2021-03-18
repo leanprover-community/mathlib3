@@ -136,12 +136,10 @@ eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (ha.pow _) _)
 
 @[simp] lemma one_left (b : α) : multiplicity 1 b = ⊤ := by simp [eq_top_iff]
 
-lemma multiplicity.unit_left {a: α}
-  (u: units α): multiplicity (u: α) a = ⊤ :=
+lemma multiplicity.unit_left {a: α} (u: units α): multiplicity (u: α) a = ⊤ :=
 multiplicity_unit a (is_unit_unit u)
 
-lemma multiplicity.unit_right {a: α} (ha: ¬is_unit a)
-  (u: units α): multiplicity a u = 0 :=
+lemma multiplicity.unit_right {a: α} (ha: ¬is_unit a) (u: units α): multiplicity a u = 0 :=
 is_unit_right ha (is_unit_unit u)
 
 lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=

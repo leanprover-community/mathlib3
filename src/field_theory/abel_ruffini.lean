@@ -20,7 +20,8 @@ by radicals, then its minimal polynomial has solvable Galois group.
 
 ## Main results
 
-* `solvable_gal_of_solvable_by_rad` : the `minpoly` of an element of `SBF F E` has solvabe Galois group
+* `solvable_gal_of_solvable_by_rad` : the minimal polynomial of an element of `SBF F E` has
+solvable Galois group
 -/
 
 noncomputable theory

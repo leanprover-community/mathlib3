@@ -1415,7 +1415,7 @@ rfl
 
 lemma pi_Lp.norm_eq_of_L2 {ι : Type*} [fintype ι] {f : ι → Type*}
   [Π i, inner_product_space 𝕜 (f i)] (x : pi_Lp 2 one_le_two f) :
-  ∥ x ∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
+  ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
 by { rw [pi_Lp.norm_eq_of_nat 2]; simp [sqrt_eq_rpow] }
 
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
@@ -1436,7 +1436,7 @@ def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
 
 lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
-  (x : euclidean_space 𝕜 n) : ∥ x ∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
+  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
 pi_Lp.norm_eq_of_L2 x
 
 /-! ### Inner product space structure on subspaces -/

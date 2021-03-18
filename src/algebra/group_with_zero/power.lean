@@ -3,7 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.group_power
+import algebra.group_power.lemmas
 
 /-!
 # Powers of elements of groups with an adjoined zero element
@@ -207,6 +207,17 @@ theorem fpow_bit0' (a : G₀) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
 theorem fpow_bit1' (a : G₀) (n : ℤ) : a ^ bit1 n = (a * a) ^ n * a :=
 by rw [fpow_bit1, (commute.refl a).mul_fpow]
 
+@[simp] lemma fpow_bit0_neg {F : Type*} [field F] (a : F) (n : ℤ) :
+  (-a) ^ bit0 n = a ^ bit0 n :=
+by rw [fpow_bit0', neg_mul_neg, fpow_bit0']
+
+lemma fpow_even_neg {F : Type*} [field F] (a : F) {n : ℤ} (h : even n) :
+  (-a) ^ n = a ^ n :=
+begin
+  obtain ⟨k, rfl⟩ := h,
+  simp [←bit0_eq_two_mul]
+end
+
 lemma fpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, fpow_ne_zero_of_ne_zero hx n h
 
@@ -257,3 +268,20 @@ lemma monoid_with_zero_hom.map_fpow {G₀ G₀' : Type*} [group_with_zero G₀] 
   ∀ n : ℤ, f (x ^ n) = f x ^ n
 | (n : ℕ) := f.to_monoid_hom.map_pow x n
 | -[1+n] := (f.map_inv' _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _
+
+section abs
+
+variables {F : Type*} [linear_ordered_field F]
+
+lemma abs_fpow_even (a : F) {p : ℤ} (hp : even p) :
+  abs a ^ p = a ^ p :=
+begin
+  cases le_or_lt a (-a) with h h;
+  simp [abs, h, max_eq_left_of_lt, fpow_even_neg _ hp]
+end
+
+@[simp] lemma abs_fpow_bit0 (a : F) (p : ℤ) :
+  abs a ^ bit0 p = a ^ bit0 p :=
+abs_fpow_even _ (even_bit0 _)
+
+end abs

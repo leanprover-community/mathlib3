@@ -825,7 +825,8 @@ variables {b : n → M} (hb : is_basis R b)
 
 include hb
 
-/-- `to_lin hb hb A` is a linear_equiv if `is_unit A.det` -/
+/-- Given `hA : is_unit A.det` and `hb : is_basis R b`, `A.to_lin_equiv hb hA` is the `linear_equiv`
+arising from `to_lin hb hb A`. -/
 @[simps apply]
 def to_lin_equiv [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
   M ≃ₗ[R] M :=
@@ -1054,7 +1055,7 @@ by { rw [linear_map.to_matrix_apply', algebra.lsmul_coe, linear_map.map_smul, fi
          hb.repr_self_apply, smul_eq_mul, mul_boole],
      congr' 1; simp only [eq_comm] }
 
-/-- `left_mul_matrix hb x` is the matrix corresponding to the linear map `λ y, x * y`
+/-- `left_mul_matrix hb x` is the matrix corresponding to the linear map `λ y, x * y`.
 
 `left_mul_matrix_eq_repr_mul` gives a formula for the entries of `left_mul_matrix`.
 

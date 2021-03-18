@@ -1068,7 +1068,7 @@ noncomputable def left_mul_matrix : S →ₐ[R] matrix m m R :=
   commutes' := λ r, by { ext, rw [lmul_algebra_map, to_matrix_lsmul,
                                   algebra_map_matrix_apply, id.map_eq_self] } }
 
-lemma left_mul_matrix_apply (x : S) (i j) :
+lemma left_mul_matrix_apply (x : S) :
   left_mul_matrix hb x = linear_map.to_matrix hb hb (lmul R S x) := rfl
 
 @[simp] lemma to_matrix_lmul_eq (x : S) :

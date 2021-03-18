@@ -1,7 +1,7 @@
 /-
 Copyright © 2020 Nicolò Cavalleri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Nicolò Cavalleri.
+Authors: Nicolò Cavalleri, Sebastien Gouezel.
 -/
 
 import topology.topological_fiber_bundle
@@ -23,7 +23,7 @@ To have a topological vector bundle structure on `bundle.total_space E`,
 one should addtionally have the following data:
 
 * `F` should be a topological vector space over a field `𝕜`;
-* There should be a topology on `bundle.total_space E`, for which the projection to `E` is
+* There should be a topology on `bundle.total_space E`, for which the projection to `B` is
 a topological fiber bundle with fiber `F` (in particular, each fiber `E x` is homeomorphic to `F`);
 * For each `x`, the fiber `E x` should be a topological vector space over `𝕜`, and the injection
 from `E x` to `bundle.total_space F E` should be an embedding;
@@ -163,7 +163,6 @@ def trivialization.continuous_linear_equiv_at (e : trivialization 𝕜 F E) (b :
     { exact cast_heq _ _ },
   end }
 
--- [add_comm_group F] [semimodule 𝕜 F]
 
 section
 local attribute [reducible] bundle.trivial

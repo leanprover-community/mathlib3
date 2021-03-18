@@ -897,12 +897,13 @@ subset_insert_iff.1 $ subset.refl _
 theorem insert_erase_subset (a : α) (s : finset α) : s ⊆ insert a (erase s a) :=
 subset_insert_iff.2 $ subset.refl _
 
-lemma erase_inj_of_mem {x y : α} (s : finset α) (hx : x ∈ s)
-  (h : s.erase x = s.erase y) :
-  x = y :=
+lemma erase_inj {x y : α} (s : finset α) (hx : x ∈ s) :
+  s.erase x = s.erase y ↔ x = y :=
 begin
+  refine ⟨λ h, _, congr_arg _⟩,
   rw eq_of_mem_of_not_mem_erase hx,
-  simp [←h],
+  rw ←h,
+  simp,
 end
 
 /-! ### sdiff -/

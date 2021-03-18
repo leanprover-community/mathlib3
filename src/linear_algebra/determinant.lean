@@ -375,7 +375,6 @@ begin
       rw [←ha], exact h a },
     obtain ⟨a, ha⟩ := not_forall.mp h1,
     cases hx : σ (sum.inl a) with a2 b,
-
     { have hn := (not_exists.mp ha) a2,
       exact absurd hx.symm hn },
     { rw [finset.prod_eq_zero (finset.mem_univ (sum.inl a)), mul_zero],

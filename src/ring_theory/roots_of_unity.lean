@@ -178,16 +178,21 @@ let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
   ↑(σ.restrict_roots_of_unity k ζ) = σ ↑ζ :=
 rfl
 
+/-- Restrict a ring isomorphism between integral domains to the nth roots of unity -/
 def ring_equiv.restrict_roots_of_unity (σ : R ≃+* S) (n : ℕ+) :
   roots_of_unity n R ≃* roots_of_unity n S :=
 { to_fun := σ.to_ring_hom.restrict_roots_of_unity n,
   inv_fun := σ.symm.to_ring_hom.restrict_roots_of_unity n,
   left_inv := λ ξ, by { ext, exact σ.symm_apply_apply ξ },
   right_inv := λ ξ, by { ext, exact σ.apply_symm_apply ξ },
-  map_mul' := λ ξ₁ ξ₂, by { ext, exact σ.map_mul ξ₁ ξ₂ } }
+  map_mul' := (σ.to_ring_hom.restrict_roots_of_unity n).map_mul }
 
 @[simp] lemma ring_equiv.restrict_roots_of_unity_coe_apply (σ : R ≃+* S) (ζ : roots_of_unity k R) :
   ↑(σ.restrict_roots_of_unity k ζ) = σ ↑ζ :=
+rfl
+
+@[simp] lemma ring_equiv.restrict_roots_of_unity_symm (σ : R ≃+* S) :
+  (σ.restrict_roots_of_unity k).symm = σ.symm.restrict_roots_of_unity k :=
 rfl
 
 lemma ring_hom.map_root_of_unity_eq_pow_self (σ : R →+* R) (ζ : roots_of_unity k R) :

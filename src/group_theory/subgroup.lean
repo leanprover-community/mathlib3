@@ -567,7 +567,7 @@ le_antisymm ((closure_le $ K).2 h₁) h₂
 is preserved under multiplication and inverse, then `p` holds for all elements of the closure
 of `k`. -/
 @[to_additive "An induction principle for additive closure membership. If `p` holds for `0` and all
-elements of `k`, and is preserved under addition and isvers, then `p` holds for all elements
+elements of `k`, and is preserved under addition and inverses, then `p` holds for all elements
 of the additive closure of `k`."]
 lemma closure_induction {p : G → Prop} {x} (h : x ∈ closure k)
   (Hk : ∀ x ∈ k, p x) (H1 : p 1)

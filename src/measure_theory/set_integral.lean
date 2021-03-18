@@ -55,7 +55,7 @@ migrated to the new definition.
 
 noncomputable theory
 open set filter topological_space measure_theory function
-open_locale classical topological_space interval big_operators filter ennreal
+open_locale classical topological_space interval big_operators filter ennreal measure_theory
 
 variables {α β E F : Type*} [measurable_space α]
 
@@ -756,13 +756,44 @@ begin
   all_goals { assumption }
 end
 
+lemma integral_comp_comm' (L : E →L[ℝ] F) {K} (hL : antilipschitz_with K L) (φ : α → E) :
+  ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+begin
+  by_cases h : integrable φ μ,
+  { exact integral_comp_comm L h },
+  have : ¬ (integrable (L ∘ φ) μ),
+    by rwa lipschitz_with.integrable_comp_iff_of_antilipschitz L.lipschitz hL (L.map_zero),
+  simp [integral_undef, h, this]
+end
+
 lemma integral_comp_L1_comm (L : E →L[ℝ] F) (φ : α →₁[μ] E) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
 L.integral_comp_comm (L1.integrable_coe_fn φ)
 
 end continuous_linear_map
 
+namespace linear_isometry
+
+variables [measurable_space F] [borel_space F] [complete_space E]
+[second_countable_topology F] [complete_space F]
+[borel_space E] [second_countable_topology E]
+
+lemma integral_comp_comm (L : E →ₗᵢ[ℝ] F) (φ : α → E) :
+  ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
+
+end linear_isometry
+
 variables [borel_space E] [second_countable_topology E] [complete_space E]
   [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
+
+@[norm_cast] lemma integral_of_real {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  {f : α → ℝ} :
+  ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
+linear_isometry.integral_comp_comm is_R_or_C.of_real_li f
+
+lemma integral_conj {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜] {f : α → 𝕜} :
+  ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
+linear_isometry.integral_comp_comm is_R_or_C.conj_li f
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=

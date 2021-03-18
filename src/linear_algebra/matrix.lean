@@ -328,6 +328,14 @@ lemma linear_map.to_matrix_mul (f g : M₁ →ₗ[R] M₁) :
 by { rw [show (@has_mul.mul (M₁ →ₗ[R] M₁) _) = linear_map.comp, from rfl,
          linear_map.to_matrix_comp hv₁ hv₁ hv₁ f g] }
 
+lemma linear_map.to_matrix_mul_vec_repr (f : M₁ →ₗ[R] M₂) (x : M₁) :
+  (linear_map.to_matrix hv₁ hv₂ f).mul_vec (hv₁.repr x) = hv₂.repr (f x) :=
+by { ext i,
+     rw [← matrix.to_lin'_apply, linear_map.to_matrix, linear_equiv.trans_apply,
+         matrix.to_lin'_to_matrix', linear_equiv.arrow_congr_apply, hv₂.equiv_fun_apply],
+     congr,
+     exact hv₁.equiv_fun.symm_apply_apply x }
+
 lemma matrix.to_lin_mul [decidable_eq m] (A : matrix l m R) (B : matrix m n R) :
   matrix.to_lin hv₁ hv₃ (A ⬝ B) =
   (matrix.to_lin hv₂ hv₃ A).comp (matrix.to_lin hv₁ hv₂ B) :=
@@ -1077,6 +1085,10 @@ lemma left_mul_matrix_apply (x : S) :
 lemma left_mul_matrix_eq_repr_mul (x : S) (i j) :
   left_mul_matrix hb x i j = hb.repr (x * b j) i :=
 by rw [left_mul_matrix_apply, linear_map.to_matrix_apply, algebra.lmul_apply, hb.equiv_fun_apply]
+
+lemma left_mul_matrix_mul_vec_repr (x y : S) :
+  (left_mul_matrix hb x).mul_vec (hb.repr y) = hb.repr (x * y) :=
+linear_map.to_matrix_mul_vec_repr hb hb (algebra.lmul R S x) y
 
 @[simp] lemma to_matrix_lmul_eq (x : S) :
   linear_map.to_matrix hb hb (lmul R S x) = left_mul_matrix hb x :=

@@ -604,9 +604,16 @@ def normed_group.of_add_dist [has_norm α] [add_comm_group α] [metric_space α]
 
 /-- A normed group can be built from a norm that satisfies algebraic properties. This is
 formalised in this structure. -/
-structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α]
-  extends semi_normed_group.core α : Prop :=
-(norm_eq_zero_if : ∀ x : α, ∥x∥ = 0 → x = 0)
+structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] : Prop :=
+(norm_eq_zero_iff : ∀ x : α, ∥x∥ = 0 ↔ x = 0)
+(triangle : ∀ x y : α, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
+(norm_neg : ∀ x : α, ∥-x∥ = ∥x∥)
+
+def normed_group.core.to_semi_normed_group.core {α : Type*} [add_comm_group α] [has_norm α]
+  (C : normed_group.core α) : semi_normed_group.core α :=
+{ norm_zero := (C.norm_eq_zero_iff 0).2 rfl,
+  triangle := C.triangle,
+  norm_neg := C.norm_neg }
 
 /-- Constructing a normed group from core properties of a norm, i.e., registering the distance and
 the metric space structure from the norm properties. -/
@@ -615,10 +622,9 @@ noncomputable def normed_group.of_core (α : Type*) [add_comm_group α] [has_nor
 { eq_of_dist_eq_zero := λ x y h,
   begin
     rw [dist_eq_norm] at h,
-    exact sub_eq_zero.mp (C.norm_eq_zero_if _ h)
+    exact sub_eq_zero.mp ((C.norm_eq_zero_iff _).1 h)
   end
-  ..semi_normed_group.of_core α C.to_core
-}
+  ..semi_normed_group.of_core α (normed_group.core.to_semi_normed_group.core C) }
 
 variables [normed_group α] [normed_group β]
 

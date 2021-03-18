@@ -121,7 +121,8 @@ instance {n} {J : Type v} [small_category J] [has_limits_of_shape J C] :
 instance {n} [has_limits C] : has_limits (simplicial_object.truncated C n) := ⟨infer_instance⟩
 
 instance {n} {J : Type v} [small_category J] [has_colimits_of_shape J C] :
-  has_colimits_of_shape J (simplicial_object.truncated C n) := by {dsimp [truncated], apply_instance}
+  has_colimits_of_shape J (simplicial_object.truncated C n) :=
+by {dsimp [truncated], apply_instance}
 
 instance {n} [has_colimits C] : has_colimits (simplicial_object.truncated C n) := ⟨infer_instance⟩
 

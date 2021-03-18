@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Paul van Wamelen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Paul van Wamelen.
+Authors: Paul van Wamelen
 -/
 import number_theory.pythagorean_triples
 import ring_theory.coprime

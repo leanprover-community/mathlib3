@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Julian Kuelshammer (heavily based on `Mon.basic` by Scott Morrison)
+Authors: Julian Kuelshammer
 -/
 import category_theory.concrete_category.bundled_hom
 import category_theory.concrete_category.reflects_isomorphisms
@@ -16,6 +16,8 @@ We introduce the bundled categories:
 * `Semigroup`
 * `AddSemigroup`
 along with the relevant forgetful functors between them.
+
+This closely follows `algebra.category.Mon.basic`.
 
 ## TODO
 

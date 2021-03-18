@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Tim Baanen.
+Authors: Tim Baanen
 -/
 import algebra.associated
 import linear_algebra.determinant

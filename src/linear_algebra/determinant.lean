@@ -361,7 +361,7 @@ begin
     { exact h2.left x },
     { exact h2.right x }},
   { intros σ hσ,
-  erw [set.mem_to_finset, monoid_hom.mem_range] at hσ,
+    erw [set.mem_to_finset, monoid_hom.mem_range] at hσ,
     obtain ⟨σ₁₂, hσ₁₂⟩ := hσ,
     use σ₁₂,
     rw ←hσ₁₂,

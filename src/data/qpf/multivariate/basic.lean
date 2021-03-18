@@ -156,7 +156,8 @@ begin
   rw ←hi, apply h'
 end
 
-theorem supp_eq {α : typevec n} {i} (x : F α) : supp x i = { u | ∀ a f, abs ⟨a, f⟩ = x → u ∈ f i '' univ } :=
+theorem supp_eq {α : typevec n} {i} (x : F α) :
+  supp x i = { u | ∀ a f, abs ⟨a, f⟩ = x → u ∈ f i '' univ } :=
 by ext; apply mem_supp
 
 theorem has_good_supp_iff {α : typevec n} (x : F α) :

@@ -277,7 +277,7 @@ protected def empty : finset α := ⟨0, nodup_zero⟩
 
 instance : has_emptyc (finset α) := ⟨finset.empty⟩
 
-instance : inhabited (finset α) := ⟨∅⟩
+instance inhabited_finset : inhabited (finset α) := ⟨∅⟩
 
 @[simp] theorem empty_val : (∅ : finset α).1 = 0 := rfl
 
@@ -1409,6 +1409,12 @@ theorem range_mono : monotone range := λ _ _, range_subset.2
 lemma mem_range_succ_iff {a b : ℕ} : a ∈ finset.range b.succ ↔ a ≤ b :=
 finset.mem_range.trans nat.lt_succ_iff
 
+lemma mem_range_le {n x : ℕ} (hx : x ∈ range n) : x ≤ n :=
+(mem_range.1 hx).le
+
+lemma mem_range_sub_ne_zero {n x : ℕ} (hx : x ∈ range n) : n - x ≠ 0 :=
+ne_of_gt $ nat.sub_pos_of_lt $ mem_range.1 hx
+
 end range
 
 /- useful rules for calculations with quantifiers -/
@@ -1623,9 +1629,7 @@ def map_embedding (f : α ↪ β) : finset α ↪ finset β := ⟨map f, λ s₁
 
 theorem map_filter {p : β → Prop} [decidable_pred p] :
   (s.map f).filter p = (s.filter (p ∘ f)).map f :=
-ext $ λ b, by simp only [mem_filter, mem_map, exists_prop, and_assoc]; exact
-⟨by rintro ⟨⟨x, h1, rfl⟩, h2⟩; exact ⟨x, h1, h2, rfl⟩,
-by rintro ⟨x, h1, h2, rfl⟩; exact ⟨⟨x, h1, rfl⟩, h2⟩⟩
+eq_of_veq (map_filter _ _ _)
 
 theorem map_union [decidable_eq α] [decidable_eq β]
   {f : α ↪ β} (s₁ s₂ : finset α) : (s₁ ∪ s₂).map f = s₁.map f ∪ s₂.map f :=

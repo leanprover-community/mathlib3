@@ -177,7 +177,7 @@ end
 instance separated_regular [separated_space α] : regular_space α :=
 { regular := λs a hs ha,
     have sᶜ ∈ 𝓝 a,
-      from mem_nhds_sets hs ha,
+      from mem_nhds_sets hs.is_open_compl ha,
     have {p : α × α | p.1 = a → p.2 ∈ sᶜ} ∈ 𝓤 α,
       from mem_nhds_uniformity_iff_right.mp this,
     let ⟨d, hd, h⟩ := comp_mem_uniformity_sets this in
@@ -198,7 +198,7 @@ instance separated_regular [separated_space α] : regular_space α :=
     have 𝓝 a ⊓ 𝓟 (closure e)ᶜ = ⊥,
       from (@inf_eq_bot_iff_le_compl _ _ _ (𝓟 (closure e)ᶜ) (𝓟 (closure e))
         (by simp [principal_univ, union_comm]) (by simp)).mpr (by simp [this]),
-    ⟨(closure e)ᶜ, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
+    ⟨(closure e)ᶜ, is_closed_closure.is_open_compl, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
     ..@t2_space.t1_space _ _ (separated_iff_t2.mp ‹_›) }
 
 /-!

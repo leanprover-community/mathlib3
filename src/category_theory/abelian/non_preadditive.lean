@@ -109,7 +109,7 @@ local attribute [instance] strong_epi_of_epi
 
 /-- In a `non_preadditive_abelian` category, a monomorphism which is also an epimorphism is an
     isomorphism. -/
-def is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
+lemma is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
 is_iso_of_mono_of_strong_epi _
 
 end mono_epi_iso
@@ -187,11 +187,13 @@ has_colimit.mk
   (λ s, (cancel_epi a).1 $
     by { rw cokernel_cofork.π_of_π at ha', simp [reassoc_of ha', pushout_cocone.condition s] })
   (λ s, (cancel_epi b).1 $ by { rw cokernel_cofork.π_of_π at hb', simp [reassoc_of hb'] })
-  (λ s m h₁ h₂, (cancel_epi (cokernel.π (coprod.desc f g))).1 $ calc cokernel.π (coprod.desc f g) ≫ m
+  (λ s m h₁ h₂, (cancel_epi (cokernel.π (coprod.desc f g))).1 $
+  calc cokernel.π (coprod.desc f g) ≫ m
         = (a ≫ a') ≫ m : by { congr, exact ha'.symm }
     ... = a ≫ pushout_cocone.inl s : by rw [category.assoc, h₁]
     ... = b ≫ pushout_cocone.inr s : pushout_cocone.condition s
-    ... = cokernel.π (coprod.desc f g) ≫ cokernel.desc (coprod.desc f g) (b ≫ pushout_cocone.inr s) _ :
+    ... = cokernel.π (coprod.desc f g) ≫
+            cokernel.desc (coprod.desc f g) (b ≫ pushout_cocone.inr s) _ :
       by rw cokernel.π_desc) }
 
 section
@@ -554,7 +556,7 @@ is_iso_of_mono_of_epi _
     followed by the inverse of `r`. In the category of modules, using the normal kernels and
     cokernels, this map is equal to the map `(a, b) ↦ a - b`, hence the name `σ` for
     "subtraction". -/
-abbreviation σ {A : C} : A ⨯ A ⟶ A := cokernel.π (diag A) ≫ is_iso.inv (r A)
+abbreviation σ {A : C} : A ⨯ A ⟶ A := cokernel.π (diag A) ≫ inv (r A)
 
 end
 

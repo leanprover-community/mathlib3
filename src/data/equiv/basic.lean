@@ -239,7 +239,7 @@ end
 
 @[simp] theorem cast_symm {α β} (h : α = β) : (equiv.cast h).symm = equiv.cast h.symm := rfl
 
-@[simp] theorem cast_refl {α} : equiv.cast (rfl : α = α) = equiv.refl α := rfl
+@[simp] theorem cast_refl {α} (h : α = α := rfl) : equiv.cast h = equiv.refl α := rfl
 
 @[simp] theorem cast_trans {α β γ} (h : α = β) (h2 : β = γ) :
   (equiv.cast h).trans (equiv.cast h2) = equiv.cast (h.trans h2) :=
@@ -340,8 +340,11 @@ protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
   t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
 by rw [set.image_subset_iff, e.image_eq_preimage]
 
-@[simp] lemma symm_image_image {α β} (f : equiv α β) (s : set α) : f.symm '' (f '' s) = s :=
+@[simp] lemma symm_image_image {α β} (e : α ≃ β) (s : set α) : e.symm '' (e '' s) = s :=
 by { rw [← set.image_comp], simp }
+
+@[simp] lemma image_symm_image {α β} (e : α ≃ β) (s : set β) : e '' (e.symm '' s) = s :=
+e.symm.symm_image_image s
 
 @[simp] lemma image_preimage {α β} (e : α ≃ β) (s : set β) : e '' (e ⁻¹' s) = s :=
 e.surjective.image_preimage s
@@ -1229,14 +1232,29 @@ def subtype_equiv {p : α → Prop} {q : β → Prop}
  λ ⟨x, h⟩, subtype.ext_val $ by simp,
  λ ⟨y, h⟩, subtype.ext_val $ by simp⟩
 
+@[simp] lemma subtype_equiv_refl {p : α → Prop}
+  (h : ∀ a, p a ↔ p (equiv.refl _ a) := λ a, iff.rfl) :
+  (equiv.refl α).subtype_equiv h = equiv.refl {a : α // p a} :=
+by { ext, refl }
+
+@[simp] lemma subtype_equiv_symm {p : α → Prop} {q : β → Prop} (e : α ≃ β)
+  (h : ∀ (a : α), p a ↔ q (e a)) :
+  (e.subtype_equiv h).symm = e.symm.subtype_equiv (λ a, by {
+    convert (h $ e.symm a).symm,
+    exact (e.apply_symm_apply a).symm,
+  }) :=
+rfl
+
+@[simp] lemma subtype_equiv_trans {p : α → Prop} {q : β → Prop} {r : γ → Prop}
+  (e : α ≃ β) (f : β ≃ γ)
+  (h : ∀ (a : α), p a ↔ q (e a)) (h' : ∀ (b : β), q b ↔ r (f b)):
+  (e.subtype_equiv h).trans (f.subtype_equiv h') =
+    (e.trans f).subtype_equiv (λ a, (h a).trans (h' $ e a)) :=
+rfl
+
 @[simp] lemma subtype_equiv_apply {p : α → Prop} {q : β → Prop} (e : α ≃ β)
   (h : ∀ (a : α), p a ↔ q (e a)) (x : {x // p x}) :
   e.subtype_equiv h x = ⟨e x, (h _).1 x.2⟩ :=
-rfl
-
-@[simp] lemma subtype_equiv_symm_apply {p : α → Prop} {q : β → Prop} (e : α ≃ β)
-  (h : ∀ (a : α), p a ↔ q (e a)) (y : {y // q y}) :
-  (e.subtype_equiv h).symm y = ⟨e.symm y, (h _).2 $ (e.apply_symm_apply y).symm ▸ y.2⟩ :=
 rfl
 
 /-- If two predicates `p` and `q` are pointwise equivalent, then `{x // p x}` is equivalent to
@@ -1274,11 +1292,19 @@ def subtype_subtype_equiv_subtype_exists {α : Type u} (p : α → Prop) (q : su
   λ⟨a, ha⟩, ⟨⟨a, ha.cases_on $ assume h _, h⟩, by { cases ha, exact ha_h }⟩,
   assume ⟨⟨a, ha⟩, h⟩, rfl, assume ⟨a, h₁, h₂⟩, rfl⟩
 
+@[simp] lemma subtype_subtype_equiv_subtype_exists_apply {α : Type u} (p : α → Prop)
+  (q : subtype p → Prop) (a) : (subtype_subtype_equiv_subtype_exists p q a : α) = a :=
+by { cases a, cases a_val, refl }
+
 /-- A subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. -/
 def subtype_subtype_equiv_subtype_inter {α : Type u} (p q : α → Prop) :
   {x : subtype p // q x.1} ≃ subtype (λ x, p x ∧ q x) :=
 (subtype_subtype_equiv_subtype_exists p _).trans $
 subtype_equiv_right $ λ x, exists_prop
+
+@[simp] lemma subtype_subtype_equiv_subtype_inter_apply {α : Type u} (p q : α → Prop) (a) :
+  (subtype_subtype_equiv_subtype_inter p q a : α) = a :=
+by { cases a, cases a_val, refl }
 
 /-- If the outer subtype has more restrictive predicate than the inner one,
 then we can drop the latter. -/
@@ -1288,6 +1314,11 @@ def subtype_subtype_equiv_subtype {α : Type u} {p q : α → Prop} (h : ∀ {x}
 subtype_equiv_right $
 assume x,
 ⟨and.right, λ h₁, ⟨h h₁, h₁⟩⟩
+
+@[simp] lemma subtype_subtype_equiv_subtype_apply {α : Type u} {p q : α → Prop} (h : ∀ x, q x → p x)
+  (a : {x : subtype p // q x.1}) :
+  (subtype_subtype_equiv_subtype h a : α) = a :=
+by { cases a, cases a_val, refl }
 
 /-- If a proposition holds for all elements, then the subtype is
 equivalent to the original type. -/

@@ -25,7 +25,7 @@ class reflects_isomorphisms (F : C ⥤ D) :=
 (reflects : Π {A B : C} (f : A ⟶ B) [is_iso (F.map f)], is_iso f)
 
 /-- If `F` reflects isos and `F.map f` is an iso, then `f` is an iso. -/
-def is_iso_of_reflects_iso {A B : C} (f : A ⟶ B) (F : C ⥤ D)
+lemma is_iso_of_reflects_iso {A B : C} (f : A ⟶ B) (F : C ⥤ D)
   [is_iso (F.map f)] [reflects_isomorphisms F] :
   is_iso f :=
 reflects_isomorphisms.reflects F f
@@ -33,9 +33,7 @@ reflects_isomorphisms.reflects F f
 @[priority 100]
 instance of_full_and_faithful (F : C ⥤ D) [full F] [faithful F] : reflects_isomorphisms F :=
 { reflects := λ X Y f i, by exactI
-  { inv := F.preimage (inv (F.map f)),
-    hom_inv_id' := F.map_injective (by simp),
-    inv_hom_id' := F.map_injective (by simp), } }
+  ⟨F.preimage (inv (F.map f)), ⟨F.map_injective (by simp), F.map_injective (by simp)⟩⟩ }
 
 end reflects_iso
 

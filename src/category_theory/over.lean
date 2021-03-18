@@ -87,7 +87,8 @@ Construct an isomorphism in the over category given isomorphisms of the objects 
 direction gives a commutative triangle.
 -/
 @[simps]
-def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) : f ≅ g :=
+def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) :
+  f ≅ g :=
 comma.iso_mk hl (eq_to_iso (subsingleton.elim _ _)) (by simp [hw])
 
 section
@@ -129,7 +130,8 @@ end
 
 instance forget_reflects_iso : reflects_isomorphisms (forget X) :=
 { reflects := λ Y Z f t, by exactI
-  { inv := over.hom_mk t.inv ((as_iso ((forget X).map f)).inv_comp_eq.2 (over.w f).symm) } }
+  ⟨over.hom_mk (inv ((forget X).map f)) ((as_iso ((forget X).map f)).inv_comp_eq.2 (over.w f).symm),
+   by tidy⟩ }
 
 instance forget_faithful : faithful (forget X) := {}.
 

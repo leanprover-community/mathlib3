@@ -102,10 +102,9 @@ end
 If `f.op` is an isomorphism `f` must be too.
 (This cannot be an instance as it would immediately loop!)
 -/
-def is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
-{ inv := (inv (f.op)).unop,
-  hom_inv_id' := has_hom.hom.op_inj (by simp),
-  inv_hom_id' := has_hom.hom.op_inj (by simp) }
+lemma is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
+⟨(inv (f.op)).unop,
+  ⟨has_hom.hom.op_inj (by simp), has_hom.hom.op_inj (by simp)⟩⟩
 
 namespace functor
 
@@ -257,19 +256,15 @@ local attribute [semireducible] has_hom.opposite
 Given a natural transformation `α : F ⟶ G`, for `F G : C ⥤ Dᵒᵖ`,
 taking `unop` of each component gives a natural transformation `G.left_op ⟶ F.left_op`.
 -/
-protected def left_op (α : F ⟶ G) : G.left_op ⟶ F.left_op :=
+@[simps] protected def left_op (α : F ⟶ G) : G.left_op ⟶ F.left_op :=
 { app         := λ X, (α.app (unop X)).unop,
   naturality' := begin tidy, erw α.naturality, refl, end }
-
-@[simp] lemma left_op_app (α : F ⟶ G) (X) :
-  (nat_trans.left_op α).app X = (α.app (unop X)).unop :=
-rfl
 
 /--
 Given a natural transformation `α : F.left_op ⟶ G.left_op`, for `F G : C ⥤ Dᵒᵖ`,
 taking `op` of each component gives a natural transformation `G ⟶ F`.
 -/
-protected def remove_left_op (α : F.left_op ⟶ G.left_op) : G ⟶ F :=
+@[simps] protected def remove_left_op (α : F.left_op ⟶ G.left_op) : G ⟶ F :=
 { app         := λ X, (α.app (op X)).op,
   naturality' :=
   begin
@@ -278,10 +273,6 @@ protected def remove_left_op (α : F.left_op ⟶ G.left_op) : G ⟶ F :=
     dsimp at this,
     erw this
   end }
-
-@[simp] lemma remove_left_op_app (α : F.left_op ⟶ G.left_op) (X) :
-  (nat_trans.remove_left_op α).app X = (α.app (op X)).op :=
-rfl
 
 end
 end nat_trans
@@ -293,14 +284,12 @@ variables {X Y : C}
 /--
 The opposite isomorphism.
 -/
+@[simps]
 protected def op (α : X ≅ Y) : op Y ≅ op X :=
 { hom := α.hom.op,
   inv := α.inv.op,
   hom_inv_id' := has_hom.hom.unop_inj α.inv_hom_id,
   inv_hom_id' := has_hom.hom.unop_inj α.hom_inv_id }
-
-@[simp] lemma op_hom {α : X ≅ Y} : α.op.hom = α.hom.op := rfl
-@[simp] lemma op_inv {α : X ≅ Y} : α.op.inv = α.inv.op := rfl
 
 end iso
 
@@ -311,41 +300,27 @@ variables {F G : C ⥤ D}
 
 /-- The natural isomorphism between opposite functors `G.op ≅ F.op` induced by a natural
 isomorphism between the original functors `F ≅ G`. -/
-protected def op (α : F ≅ G) : G.op ≅ F.op :=
+@[simps] protected def op (α : F ≅ G) : G.op ≅ F.op :=
 { hom := nat_trans.op α.hom,
   inv := nat_trans.op α.inv,
   hom_inv_id' := begin ext, dsimp, rw ←op_comp, rw α.inv_hom_id_app, refl, end,
   inv_hom_id' := begin ext, dsimp, rw ←op_comp, rw α.hom_inv_id_app, refl, end }
 
-@[simp] lemma op_hom (α : F ≅ G) : (nat_iso.op α).hom = nat_trans.op α.hom := rfl
-@[simp] lemma op_inv (α : F ≅ G) : (nat_iso.op α).inv = nat_trans.op α.inv := rfl
-
 /-- The natural isomorphism between functors `G ≅ F` induced by a natural isomorphism
 between the opposite functors `F.op ≅ G.op`. -/
-protected def remove_op (α : F.op ≅ G.op) : G ≅ F :=
+@[simps] protected def remove_op (α : F.op ≅ G.op) : G ≅ F :=
 { hom := nat_trans.remove_op α.hom,
   inv := nat_trans.remove_op α.inv,
   hom_inv_id' := begin ext, dsimp, rw ←unop_comp, rw α.inv_hom_id_app, refl, end,
   inv_hom_id' := begin ext, dsimp, rw ←unop_comp, rw α.hom_inv_id_app, refl, end }
 
-@[simp] lemma remove_op_hom (α : F.op ≅ G.op) :
-  (nat_iso.remove_op α).hom = nat_trans.remove_op α.hom := rfl
-@[simp] lemma remove_op_inv (α : F.op ≅ G.op) :
-  (nat_iso.remove_op α).inv = nat_trans.remove_op α.inv := rfl
-
 /-- The natural isomorphism between functors `G.unop ≅ F.unop` induced by a natural isomorphism
 between the original functors `F ≅ G`. -/
-protected def unop {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ≅ G) : G.unop ≅ F.unop :=
+@[simps] protected def unop {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ≅ G) : G.unop ≅ F.unop :=
 { hom := nat_trans.unop α.hom,
   inv := nat_trans.unop α.inv,
   hom_inv_id' := begin ext, dsimp, rw ←unop_comp, rw α.inv_hom_id_app, refl, end,
   inv_hom_id' := begin ext, dsimp, rw ←unop_comp, rw α.hom_inv_id_app, refl, end }
-
-@[simp] lemma unop_hom {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ≅ G) :
-  (nat_iso.unop α).hom = nat_trans.unop α.hom := rfl
-@[simp] lemma unop_inv {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ≅ G) :
-  (nat_iso.unop α).inv = nat_trans.unop α.inv := rfl
-
 
 end nat_iso
 
@@ -391,20 +366,11 @@ def op_equiv''' (A B : C) : (opposite.op A ⟶ opposite.op B) ≃ (B ⟶ A) :=
 op_equiv _ _
 ```
 -/
-def op_equiv (A B : Cᵒᵖ) : (A ⟶ B) ≃ (B.unop ⟶ A.unop) :=
+@[simps] def op_equiv (A B : Cᵒᵖ) : (A ⟶ B) ≃ (B.unop ⟶ A.unop) :=
 { to_fun := λ f, f.unop,
   inv_fun := λ g, g.op,
   left_inv := λ _, rfl,
   right_inv := λ _, rfl }
-
--- These two are made by hand rather than by simps because simps generates
--- `(op_equiv _ _).to_fun f = ...` rather than the coercion version.
-@[simp]
-lemma op_equiv_apply (A B : Cᵒᵖ) (f : A ⟶ B) : op_equiv _ _ f = f.unop :=
-rfl
-@[simp]
-lemma op_equiv_symm_apply (A B : Cᵒᵖ) (f : B.unop ⟶ A.unop) : (op_equiv _ _).symm f = f.op :=
-rfl
 
 instance subsingleton_of_unop (A B : Cᵒᵖ) [subsingleton (unop B ⟶ unop A)] : subsingleton (A ⟶ B) :=
 (op_equiv A B).subsingleton

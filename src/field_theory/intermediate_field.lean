@@ -147,12 +147,14 @@ lemma multiset_sum_mem (m : multiset L) :
   (∀ a ∈ m, a ∈ S) → m.sum ∈ S :=
 S.to_subfield.multiset_sum_mem m
 
-/-- Product of elements of an intermediate field indexed by a `finset` is in the intermediate_field. -/
+/-- Product of elements of an intermediate field indexed by a `finset` is in the intermediate_field.
+-/
 lemma prod_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c ∈ S) :
   ∏ i in t, f i ∈ S :=
 S.to_subfield.prod_mem h
 
-/-- Sum of elements in a `intermediate_field` indexed by a `finset` is in the `intermediate_field`. -/
+/-- Sum of elements in a `intermediate_field` indexed by a `finset` is in the `intermediate_field`.
+-/
 lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c ∈ S) :
   ∑ i in t, f i ∈ S :=
 S.to_subfield.sum_mem h
@@ -210,6 +212,8 @@ S.to_subfield.to_field
 @[simp, norm_cast] lemma coe_inv (x : S) : (↑(x⁻¹) : L) = (↑x)⁻¹ := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : S) : L) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : S) : L) = 1 := rfl
+@[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x ^ n) : L) = ↑x ^ n :=
+@nat.rec (λ n, (↑(x ^ n) : L) = ↑x ^ n) rfl (λ _ h, congr_arg (has_mul.mul ↑x) h) n
 
 instance algebra : algebra K S :=
 S.to_subalgebra.algebra

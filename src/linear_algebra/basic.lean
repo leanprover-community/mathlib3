@@ -73,6 +73,17 @@ lemma smul_sum {α : Type u} {β : Type v} {R : Type w} {M : Type y}
   c • (v.sum h) = v.sum (λa b, c • h a b) :=
 finset.smul_sum
 
+@[simp]
+lemma sum_smul_index_linear_map' {α : Type u} {R : Type v} {M : Type w} {M₂ : Type x}
+  [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid M₂] [semimodule R M₂]
+  {v : α →₀ M} {c : R} {h : α → M →ₗ[R] M₂} :
+  (c • v).sum (λ a, h a) = c • (v.sum (λ a, h a)) :=
+begin
+  rw [finsupp.sum_smul_index', finsupp.smul_sum],
+  { simp only [linear_map.map_smul], },
+  { intro i, exact (h i).map_zero },
+end
+
 end finsupp
 
 section
@@ -208,8 +219,11 @@ instance : has_mul (M →ₗ[R] M) := ⟨linear_map.comp⟩
 
 lemma mul_eq_comp (f g : M →ₗ[R] M) : f * g = f.comp g := rfl
 
-@[simp] lemma one_app (x : M) : (1 : M →ₗ[R] M) x = x := rfl
-@[simp] lemma mul_app (A B : M →ₗ[R] M) (x : M) : (A * B) x = A (B x) := rfl
+@[simp] lemma one_apply (x : M) : (1 : M →ₗ[R] M) x = x := rfl
+@[simp] lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
+
+lemma coe_one : ⇑(1 : M →ₗ[R] M) = _root_.id := rfl
+lemma coe_mul (f g : M →ₗ[R] M) : ⇑(f * g) = f ∘ g := rfl
 
 @[simp] theorem comp_zero : f.comp (0 : M₃ →ₗ[R] M) = 0 :=
 ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, f.map_zero]
@@ -223,6 +237,18 @@ add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 
 instance : monoid (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..}; { intros, apply linear_map.ext, simp {proj := ff} }
+
+@[simp] lemma pow_apply (f : M →ₗ[R] M) (n : ℕ) (m : M) :
+  (f^n) m = (f^[n] m) :=
+begin
+  induction n with n ih,
+  { refl, },
+  { simp only [function.comp_app, function.iterate_succ, linear_map.mul_apply, pow_succ, ih],
+    exact (function.commute.iterate_self _ _ m).symm, },
+end
+
+lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
+by { ext m, apply pow_apply, }
 
 section
 open_locale classical
@@ -354,7 +380,7 @@ This says that the forgetful functor from `R`-modules to types is representable,
 
 This as an `S`-linear equivalence, under the assumption that `S` acts on `M` commuting with `R`.
 When `R` is commutative, we can take this to be the usual action with `S = R`.
-Otherwise, `S = ℤ` shows that the equivalence is additive.
+Otherwise, `S = ℕ` shows that the equivalence is additive.
 See note [bundled maps over different rings].
 -/
 @[simps]
@@ -416,8 +442,6 @@ instance endomorphism_semiring : semiring (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_monoid, ..};
   { intros, apply linear_map.ext, simp {proj := ff} }
 
-lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
-
 end semiring
 
 section ring
@@ -470,6 +494,8 @@ instance : partial_order (submodule R M) :=
 variables {p p'}
 
 lemma le_def : p ≤ p' ↔ (p : set M) ⊆ p' := iff.rfl
+
+@[simp, norm_cast] lemma coe_subset_coe : (p : set M) ⊆ p' ↔ p ≤ p' := iff.rfl
 
 lemma le_def' : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
 
@@ -689,6 +715,10 @@ image_subset _
 have ∃ (x : M), x ∈ p := ⟨0, p.zero_mem⟩,
 ext $ by simp [this, eq_comm]
 
+lemma range_map_nonempty (N : submodule R M) :
+  (set.range (λ ϕ, submodule.map ϕ N : (M →ₗ[R] M₂) → submodule R M₂)).nonempty :=
+⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩
+
 /-- The pullback of a submodule `p ⊆ M₂` along `f : M → M₂` -/
 def comap (f : M →ₗ[R] M₂) (p : submodule R M₂) : submodule R M :=
 { carrier   := f ⁻¹' p,
@@ -856,6 +886,16 @@ lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (
 have p i ≤ (⨆i, p i) := le_supr p i,
 @this b h
 
+lemma sum_mem_bsupr {ι : Type*} {s : finset ι} {f : ι → M} {p : ι → submodule R M}
+  (h : ∀ i ∈ s, f i ∈ p i) :
+  ∑ i in s, f i ∈ ⨆ i ∈ s, p i :=
+sum_mem _ $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
+
+lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodule R M}
+  (h : ∀ i, f i ∈ p i) :
+  ∑ i, f i ∈ ⨆ i, p i :=
+sum_mem _ $ λ i hi, mem_supr_of_mem i (h i)
+
 lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
   (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
 show s ≤ Sup S, from le_Sup hs
@@ -992,6 +1032,20 @@ span_eq_bot.trans $ by simp
 @[simp] lemma span_image (f : M →ₗ[R] M₂) : span R (f '' s) = map f (span R s) :=
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
 span_le.2 $ image_subset_iff.1 subset_span
+
+lemma apply_mem_span_image_of_mem_span
+   (f : M →ₗ[R] M₂) {x : M} {s : set M} (h : x ∈ submodule.span R s) :
+   f x ∈ submodule.span R (f '' s) :=
+begin
+  rw submodule.span_image,
+  exact submodule.mem_map_of_mem h
+end
+
+/-- `f` is an explicit argument so we can `apply` this theorem and obtain `h` as a new goal. -/
+lemma not_mem_span_of_apply_not_mem_span_image
+   (f : M →ₗ[R] M₂) {x : M} {s : set M} (h : f x ∉ submodule.span R (f '' s)) :
+   x ∉ submodule.span R s :=
+not.imp h (apply_mem_span_image_of_mem_span f)
 
 lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
@@ -1552,6 +1606,15 @@ submodule.map_smul f _ a h
 
 lemma range_smul' (f : V →ₗ[K] V₂) (a : K) : range (a • f) = ⨆(h : a ≠ 0), range f :=
 submodule.map_smul' f _ a
+
+lemma span_singleton_sup_ker_eq_top (f : V →ₗ[K] K) {x : V} (hx : f x ≠ 0) :
+  (K ∙ x) ⊔ f.ker = ⊤ :=
+eq_top_iff.2 (λ y hy, submodule.mem_sup.2 ⟨(f y * (f x)⁻¹) • x,
+  submodule.mem_span_singleton.2 ⟨f y * (f x)⁻¹, rfl⟩,
+    ⟨y - (f y * (f x)⁻¹) • x,
+      by rw [linear_map.mem_ker, f.map_sub, f.map_smul, smul_eq_mul, mul_assoc,
+             inv_mul_cancel hx, mul_one, sub_self],
+      by simp only [add_sub_cancel'_right]⟩⟩)
 
 end field
 

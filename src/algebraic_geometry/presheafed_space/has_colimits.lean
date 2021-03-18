@@ -75,7 +75,7 @@ begin
   cases U,
   dsimp,
   simp only [PresheafedSpace.congr_app (F.map_comp f g)],
-  dsimp, simp,
+  dsimp, simp, dsimp, simp, -- See note [dsimp, simp]
 end
 
 /--

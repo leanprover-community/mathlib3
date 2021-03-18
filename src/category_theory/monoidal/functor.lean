@@ -52,9 +52,9 @@ open monoidal_category
 variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
           (D : Type u₂) [category.{v₂} D] [monoidal_category.{v₂} D]
 
-/-- A lax monoidal functor is a functor `F : C ⥤ D` between monoidal categories, equipped with morphisms
-    `ε : 𝟙 _D ⟶ F.obj (𝟙_ C)` and `μ X Y : F.obj X ⊗ F.obj Y ⟶ F.obj (X ⊗ Y)`, satisfying the
-    the appropriate coherences. -/
+/-- A lax monoidal functor is a functor `F : C ⥤ D` between monoidal categories,
+equipped with morphisms `ε : 𝟙 _D ⟶ F.obj (𝟙_ C)` and `μ X Y : F.obj X ⊗ F.obj Y ⟶ F.obj (X ⊗ Y)`,
+satisfying the appropriate coherences. -/
 structure lax_monoidal_functor extends C ⥤ D :=
 -- unit morphism
 (ε               : 𝟙_ D ⟶ obj (𝟙_ C))
@@ -109,12 +109,15 @@ variables {C D}
 /--
 The unit morphism of a (strong) monoidal functor as an isomorphism.
 -/
+noncomputable
 def monoidal_functor.ε_iso (F : monoidal_functor.{v₁ v₂} C D) :
   tensor_unit D ≅ F.obj (tensor_unit C) :=
 as_iso F.ε
+
 /--
 The tensorator of a (strong) monoidal functor as an isomorphism.
 -/
+noncomputable
 def monoidal_functor.μ_iso (F : monoidal_functor.{v₁ v₂} C D) (X Y : C) :
   (F.obj X) ⊗ (F.obj Y) ≅ F.obj (X ⊗ Y) :=
 as_iso (F.μ X Y)
@@ -164,6 +167,7 @@ begin
 end
 
 /-- The tensorator as a natural isomorphism. -/
+noncomputable
 def μ_nat_iso (F : monoidal_functor.{v₁ v₂} C D) :
   (functor.prod F.to_functor F.to_functor) ⋙ (tensor D) ≅ (tensor C) ⋙ F.to_functor :=
 nat_iso.of_components
@@ -213,8 +217,8 @@ variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{
     rw comp_tensor_id,
     slice_lhs 2 3 { rw [← G.to_functor.map_id, G.μ_natural], },
     rw [category.assoc, category.assoc, category.assoc, category.assoc, category.assoc,
-        ←G.to_functor.map_comp, ←G.to_functor.map_comp, ←G.to_functor.map_comp, ←G.to_functor.map_comp,
-        F.associativity],
+        ←G.to_functor.map_comp, ←G.to_functor.map_comp, ←G.to_functor.map_comp,
+        ←G.to_functor.map_comp, F.associativity],
   end,
   left_unitality'  := λ X,
   begin
@@ -258,6 +262,7 @@ If we have a right adjoint functor `G` to a monoidal functor `F`, then `G` has a
 structure as well.
 -/
 @[simps]
+noncomputable
 def monoidal_adjoint (F : monoidal_functor C D) {G : D ⥤ C} (h : F.to_functor ⊣ G) :
   lax_monoidal_functor D C :=
 { to_functor := G,
@@ -304,6 +309,7 @@ def monoidal_adjoint (F : monoidal_functor C D) {G : D ⥤ C} (h : F.to_functor 
   end }.
 
 /-- If a monoidal functor `F` is an equivalence of categories then its inverse is also monoidal. -/
+noncomputable
 def monoidal_inverse (F : monoidal_functor C D) [is_equivalence F.to_functor] :
   monoidal_functor D C :=
 { to_lax_monoidal_functor := monoidal_adjoint F (as_equivalence _).to_adjunction,

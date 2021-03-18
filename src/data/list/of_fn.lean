@@ -73,7 +73,7 @@ end
 
 theorem of_fn_nth_le : ∀ l : list α, of_fn (λ i, nth_le l i i.2) = l
 | [] := rfl
-| (a::l) := by { rw of_fn_succ, congr, simp only [fin.coe_succ], exact of_fn_nth_le l }
+| (a::l) := by { erw of_fn_succ, congr, simp only [fin.coe_succ], exact of_fn_nth_le l }
 
 -- not registered as a simp lemma, as otherwise it fires before `forall_mem_of_fn_iff` which
 -- is much more useful

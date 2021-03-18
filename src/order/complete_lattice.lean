@@ -764,8 +764,12 @@ by simp
 theorem supr_univ {f : β → α} : (⨆ x ∈ (univ : set β), f x) = (⨆ x, f x) :=
 by simp
 
-theorem infi_union {f : β → α} {s t : set β} : (⨅ x ∈ s ∪ t, f x) = (⨅x∈s, f x) ⊓ (⨅x∈t, f x) :=
-by simp only [← infi_inf_eq, infi_or]
+theorem infi_union {f : β → α} {s t : set β} :
+  (⨅ x ∈ s ∪ t, f x) = (⨅ x ∈ s, f x) ⊓ (⨅ x ∈ t, f x) :=
+begin
+  dsimp [set.mem_union],
+  simp only [← infi_inf_eq, infi_or]
+end
 
 lemma infi_split (f : β → α) (p : β → Prop) :
   (⨅ i, f i) = (⨅ i (h : p i), f i) ⊓ (⨅ i (h : ¬ p i), f i) :=

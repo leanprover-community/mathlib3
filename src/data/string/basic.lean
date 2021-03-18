@@ -36,16 +36,13 @@ by apply_instance -- short-circuit type class inference
   begin
     intros,
     induction s₁ with a s₁ IH generalizing p₁ p₂ s₂;
-      cases s₂ with b s₂; rw ltb; simp [iterator.has_next],
-    { refl, },
-    { exact iff_of_true rfl list.lex.nil },
-    { exact iff_of_false bool.ff_ne_tt (not_lt_of_lt list.lex.nil) },
-    { dsimp [iterator.has_next,
-        iterator.curr, iterator.next],
-      split_ifs,
-      { subst b, exact IH.trans list.lex.cons_iff.symm },
-      { simp, refine ⟨list.lex.rel, λ e, _⟩,
-        cases e, {cases h rfl}, assumption } }
+      cases s₂ with b s₂; rw ltb;
+      dsimp [iterator.has_next, iterator.curr, iterator.next];
+      try {{simp}},
+    split_ifs,
+    { subst b, exact IH.trans list.lex.cons_iff.symm },
+    { simp, refine ⟨list.lex.rel, λ e, _⟩,
+      cases e, {cases h rfl}, assumption }
   end
 
 instance has_le : has_le string := ⟨λ s₁ s₂, ¬ s₂ < s₁⟩

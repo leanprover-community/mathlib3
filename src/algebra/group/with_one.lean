@@ -43,7 +43,7 @@ instance [nonempty α] : nontrivial (with_one α) := option.nontrivial
 instance : has_coe_t α (with_one α) := ⟨some⟩
 
 @[to_additive]
-lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
+lemma some_eq_coe {a : α} : @eq (with_one α) (some a) (↑a) := rfl
 
 @[simp, to_additive]
 lemma coe_ne_one {a : α} : (a : with_one α) ≠ (1 : with_one α) :=

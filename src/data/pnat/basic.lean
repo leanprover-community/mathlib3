@@ -58,7 +58,7 @@ open nat
  subtraction, division and powers.
 -/
 
-instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
+instance : decidable_eq ℕ+ := subtype.decidable_eq
 
 instance : linear_order ℕ+ :=
 subtype.linear_order _
@@ -80,7 +80,7 @@ theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 @[simp] lemma coe_inj {m n : ℕ+} : (m : ℕ) = n ↔ m = n := set_coe.ext_iff
 
 
-@[simp] theorem mk_coe (n h) : ((⟨n, h⟩ : ℕ+) : ℕ) = n := rfl
+@[simp] theorem mk_coe (n h) : ((by exact ⟨n, h⟩ : ℕ+) : ℕ) = n := rfl
 
 instance : add_comm_semigroup ℕ+ :=
 { add       := λ a b, ⟨(a  + b : ℕ), add_pos a.pos b.pos⟩,
@@ -349,6 +349,7 @@ begin
   { exact ⟨nat.mod_le (m : ℕ) (k : ℕ), le_of_lt (nat.mod_lt (m : ℕ) k.pos)⟩ }
 end
 
+-- set_option pp.all  true
 theorem dvd_iff {k m : ℕ+} : k ∣ m ↔ (k : ℕ) ∣ (m : ℕ) :=
 begin
   split; intro h, rcases h with ⟨_, rfl⟩, apply dvd_mul_right,

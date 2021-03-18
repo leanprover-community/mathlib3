@@ -256,7 +256,7 @@ by {unfold_sizeof, apply sizeof_pos}
 @[instance] mutual def equiv.decidable, subset.decidable, mem.decidable [decidable_eq α]
 with equiv.decidable : ∀ l₁ l₂ : lists α, decidable (l₁ ~ l₂)
 | ⟨ff, l₁⟩ ⟨ff, l₂⟩ := decidable_of_iff' (l₁ = l₂) $
-  by cases l₁; refine equiv_atom.trans (by simp [atom])
+  by cases l₁; refine equiv_atom.trans (by dunfold lists; simp [atom])
 | ⟨ff, l₁⟩ ⟨tt, l₂⟩ := is_false $ by rintro ⟨⟩
 | ⟨tt, l₁⟩ ⟨ff, l₂⟩ := is_false $ by rintro ⟨⟩
 | ⟨tt, l₁⟩ ⟨tt, l₂⟩ := begin

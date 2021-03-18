@@ -180,13 +180,8 @@ to_bool (n ≠ 0)
 
 lemma of_nat_le_of_nat {n m : ℕ} (h : n ≤ m) : of_nat n ≤ of_nat m :=
 begin
-  simp [of_nat];
-    cases nat.decidable_eq n 0;
-    cases nat.decidable_eq m 0;
-    simp only [to_bool],
-  { subst m, have h := le_antisymm h (nat.zero_le _),
-    contradiction },
-  { left, refl }
+  by_cases hm : m = 0, { subst m, cases h, refl },
+  by_cases hn : n = 0; simp [hn, hm, of_nat]
 end
 
 lemma to_nat_le_to_nat {b₀ b₁ : bool} (h : b₀ ≤ b₁) : to_nat b₀ ≤ to_nat b₁ :=

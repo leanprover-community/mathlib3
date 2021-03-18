@@ -429,12 +429,12 @@ def prod.mk : Π {n} {α β : typevec.{u} n} (i : fin2 n), α i → β i → (α
 @[simp]
 lemma prod_fst_mk {α β : typevec n} (i : fin2 n) (a : α i) (b : β i) :
   typevec.prod.fst i (prod.mk i a b) = a :=
-by induction i; simp [prod.fst, prod.mk, *] at *
+by induction i; simp [prod.fst, prod.mk, *] at *; dsimp [drop]; simp *
 
 @[simp]
 lemma prod_snd_mk {α β : typevec n} (i : fin2 n) (a : α i) (b : β i) :
   typevec.prod.snd i (prod.mk i a b) = b :=
-by induction i; simp [prod.snd, prod.mk, *] at *
+by induction i; simp [prod.snd, prod.mk, *] at *; dsimp [drop]; simp *
 
 /-- `prod` is functorial -/
 protected def prod.map : Π {n} {α α' β β' : typevec.{u} n}, (α ⟹ β) → (α' ⟹ β') → α ⊗ α' ⟹ β ⊗ β'
@@ -460,7 +460,7 @@ by ext i; induction i; [refl, apply i_ih]
 
 lemma repeat_eq_iff_eq {α : typevec n} {i x y} :
   of_repeat (repeat_eq α i (prod.mk _ x y)) ↔ x = y :=
-by induction i; [refl, erw [repeat_eq,@i_ih (drop α) x y]]
+by induction i; [refl, { dsimp [drop, repeat_eq], erw @i_ih (drop α) x y, refl }]
 
 /-- given a predicate vector `p` over vector `α`, `subtype_ p` is the type of vectors
 that contain an `α` that satisfies `p` -/
@@ -611,7 +611,12 @@ by ext i x; induction i; dsimp only [id, to_subtype, comp, of_subtype] at *; sim
 @[simp]
 lemma subtype_val_to_subtype {α : typevec n} (p : α ⟹ repeat n Prop) :
   subtype_val p ⊚ to_subtype p = λ _, subtype.val :=
-by ext i x; induction i; dsimp only [to_subtype, comp, subtype_val] at *; simp *
+begin
+  ext i x,
+  induction i,
+  { refl },
+  { erw i_ih, refl }
+end
 
 @[simp]
 lemma to_subtype_of_subtype_assoc {α β : typevec n} (p : α ⟹ repeat n Prop)
@@ -626,6 +631,11 @@ by ext i x; induction i; dsimp only [id, to_subtype', comp, of_subtype'] at *; s
 
 lemma subtype_val_to_subtype' {α : typevec n} (r : α ⊗ α ⟹ repeat n Prop) :
   subtype_val r ⊚ to_subtype' r = λ i x, prod.mk i x.1.fst x.1.snd :=
-by ext i x; induction i; dsimp only [id, to_subtype', comp, subtype_val, prod.mk] at *; simp *
+begin
+  ext i x,
+  induction i,
+  { simp [id, to_subtype', comp, subtype_val, prod.mk] },
+  { erw i_ih, refl }
+end
 
 end typevec

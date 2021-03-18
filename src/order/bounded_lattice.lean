@@ -410,6 +410,11 @@ meta instance {α} [has_to_format α] : has_to_format (with_bot α) :=
   | (some x) := to_fmt x
   end }
 
+meta instance {α} [has_reflect α] [reflected α] : has_reflect (with_bot α) :=
+@option.has_reflect _ _ _
+
+instance [decidable_eq α] : decidable_eq (with_bot α) := option.decidable_eq
+
 instance : has_coe_t α (with_bot α) := ⟨some⟩
 instance has_bot : has_bot (with_bot α) := ⟨none⟩
 
@@ -441,11 +446,14 @@ lemma bot_lt_some [has_lt α] (a : α) : (⊥ : with_bot α) < some a :=
 
 lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
 
+instance has_le [has_le α] : has_le (with_bot α) :=
+{ le := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b }
+
 instance [preorder α] : preorder (with_bot α) :=
-{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
+{ le          := (≤),
   lt          := (<),
   lt_iff_le_not_le := by intros; cases a; cases b;
-                         simp [lt_iff_le_not_le]; simp [(<)];
+                         simp [lt_iff_le_not_le]; simp [(<), (≤)];
                          split; refl,
   le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ a ha,
@@ -486,6 +494,7 @@ lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a
 | (some a) b := le_refl a
 | none     b := λ _ h, option.no_confusion h
 
+@[simp] lemma get_or_else_coe (a b : α) : option.get_or_else (b : with_bot α) a = b := rfl
 @[simp] lemma get_or_else_bot (a : α) : option.get_or_else (⊥ : with_bot α) a = a := rfl
 
 lemma get_or_else_bot_le_iff [order_bot α] {a : with_bot α} {b : α} :
@@ -609,6 +618,11 @@ meta instance {α} [has_to_format α] : has_to_format (with_top α) :=
   | none := "⊤"
   | (some x) := to_fmt x
   end }
+
+meta instance {α} [has_reflect α] [reflected α] : has_reflect (with_bot α) :=
+@option.has_reflect _ _ _
+
+instance [decidable_eq α] : decidable_eq (with_top α) := option.decidable_eq
 
 instance : has_coe_t α (with_top α) := ⟨some⟩
 instance has_top : has_top (with_top α) := ⟨none⟩

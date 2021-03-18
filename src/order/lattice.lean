@@ -184,10 +184,12 @@ lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : 
 ⟨λ h, ⟨le_sup_left.trans_lt h, le_sup_right.trans_lt h⟩, λ h, sup_ind b c h.1 h.2⟩
 
 @[simp] lemma le_sup_iff [is_total α (≤)] {a b c : α} : a ≤ b ⊔ c ↔ a ≤ b ∨ a ≤ c :=
-by rw [← not_iff_not]; simp only [not_or_distrib, @sup_lt_iff α, @not_le (as_linear_order α)]
+by rw [← not_iff_not]; simp only [not_or_distrib, @sup_lt_iff α,
+  show ∀ a b : α, ¬ (a ≤ b) ↔ b < a, from @not_le (as_linear_order α) _]
 
 @[simp] lemma lt_sup_iff [is_total α (≤)] {a b c : α} : a < b ⊔ c ↔ a < b ∨ a < c :=
-by { rw ← not_iff_not, simp only [not_or_distrib, @not_lt (as_linear_order α), sup_le_iff] }
+by { rw ← not_iff_not, simp only [not_or_distrib, sup_le_iff,
+  show ∀ a b : α, ¬ (a < b) ↔ b ≤ a, from @not_lt (as_linear_order α) _] }
 
 @[simp] theorem sup_idem : a ⊔ a = a :=
 by apply le_antisymm; simp

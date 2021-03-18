@@ -1466,8 +1466,9 @@ protected def union' {α} {s t : set α}
   left_inv := λ ⟨x, h'⟩, by by_cases p x; simp [union'._match_1, h]; congr,
   right_inv := λ o, begin
     rcases o with ⟨x, h⟩ | ⟨x, h⟩;
-    dsimp [union'._match_1];
-    [simp [hs _ h], simp [ht _ h]]
+    dsimp [union'._match_1],
+    {rw dif_pos (hs _ _), exact h},
+    {rw dif_neg (ht _ _), exact h}
   end }
 
 /-- If sets `s` and `t` are disjoint, then `s ∪ t` is equivalent to `s ⊕ t`. -/

@@ -462,6 +462,7 @@ theorem strict_mono.order_dual [has_lt α] [has_lt β] {f : α → β} (hf : str
 λ x y hxy, hf hxy
 
 /-- Transfer a `preorder` on `β` to a `preorder` on `α` using a function `f : α → β`. -/
+@[reducible]
 def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
 { le := λx y, f x ≤ f y,
   le_refl := λ a, le_refl _,
@@ -471,12 +472,14 @@ def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
 
 /-- Transfer a `partial_order` on `β` to a `partial_order` on `α` using an injective
 function `f : α → β`. -/
+@[reducible]
 def partial_order.lift {α β} [partial_order β] (f : α → β) (inj : injective f) :
   partial_order α :=
 { le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f }
 
 /-- Transfer a `linear_order` on `β` to a `linear_order` on `α` using an injective
 function `f : α → β`. -/
+@[reducible]
 def linear_order.lift {α β} [linear_order β] (f : α → β) (inj : injective f) :
   linear_order α :=
 { le_total := λx y, le_total (f x) (f y),

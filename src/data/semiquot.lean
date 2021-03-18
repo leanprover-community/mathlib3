@@ -127,7 +127,7 @@ instance : is_lawful_monad semiquot :=
 instance : has_le (semiquot α) := ⟨λ s t, s.s ⊆ t.s⟩
 
 instance : partial_order (semiquot α) :=
-{ le := λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t,
+{ le := (≤),
   le_refl := λ s, set.subset.refl _,
   le_trans := λ s t u, set.subset.trans,
   le_antisymm := λ s t h₁ h₂, ext_s.2 (set.subset.antisymm h₁ h₂) }

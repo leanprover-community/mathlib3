@@ -242,7 +242,7 @@ begin
   { rw [max_eq_left], refl, exact bot_le },
   change (coe : α → with_bot α) with some,
   rw [max_comm],
-  simp [max]
+  simp [max], refl
 end
 
 theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimum l) a :=
@@ -257,12 +257,12 @@ theorem minimum_cons (a : α) (l : list α) : minimum (a :: l) = min a (minimum 
 
 theorem maximum_eq_coe_iff {m : α} {l : list α} :
   maximum l = m ↔ m ∈ l ∧ (∀ a ∈ l, a ≤ m) :=
+show argmax id l = some m ↔ _,
 begin
-  unfold_coes,
-  simp only [maximum, argmax_eq_some_iff, id],
+  rw argmax_eq_some_iff,
   split,
-  { simp only [true_and, forall_true_iff] {contextual := tt} },
-  { simp only [true_and, forall_true_iff] {contextual := tt},
+  { simp {contextual := tt} },
+  { simp only [id, true_and, forall_true_iff] {contextual := tt},
     intros h a hal hma,
     rw [le_antisymm hma (h.2 a hal)] }
 end

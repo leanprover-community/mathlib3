@@ -428,7 +428,15 @@ lemma zero_lt_coe [partial_order α] (a : α) : (0 : with_zero α) < a := with_b
 @[simp, norm_cast] lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_zero α) < b ↔ a < b :=
 with_bot.coe_lt_coe
 
-@[simp, norm_cast] lemma coe_le_coe [partial_order α] {a b : α} : (a : with_zero α) ≤ b ↔ a ≤ b :=
+@[simp, norm_cast] lemma coe_le_coe [preorder α] {a b : α} : (a : with_zero α) ≤ b ↔ a ≤ b :=
+with_bot.coe_le_coe
+
+@[simp] lemma some_lt_some [partial_order α] {a b : α} :
+  (by exact some a : with_zero α) < some b ↔ a < b :=
+with_bot.coe_lt_coe
+
+@[simp] lemma some_le_some [preorder α] {a b : α} :
+  (by exact some a : with_zero α) ≤ some b ↔ a ≤ b :=
 with_bot.coe_le_coe
 
 instance [lattice α] : lattice (with_zero α) := with_bot.lattice
@@ -448,7 +456,7 @@ begin
   { apply with_zero.zero_le },
   { exact false.elim (not_lt_of_le h (with_zero.zero_lt_coe a))},
   { apply with_zero.zero_le },
-  { simp_rw [some_eq_coe] at h ⊢,
+  { simp_rw [with_zero.some_eq_coe] at h ⊢,
     norm_cast at h ⊢,
     exact mul_le_mul_left' h c }
 end
@@ -489,6 +497,7 @@ elements are ≤ 1 and then 1 is the top element.
 /--
 If `0` is the least element in `α`, then `with_zero α` is an `ordered_add_comm_monoid`.
 -/
+@[reducible]
 def ordered_add_comm_monoid [ordered_add_comm_monoid α]
   (zero_le : ∀ a : α, 0 ≤ a) : ordered_add_comm_monoid (with_zero α) :=
 begin
@@ -583,11 +592,12 @@ lemma add_eq_coe [has_add α] : ∀ {a b : with_top α} {c : α},
     by simp only [some_eq_coe, ← coe_add, coe_eq_coe, exists_and_distrib_left, exists_eq_left]
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
-{ ..@additive.add_comm_semigroup _ $
+{ add := (+),
+  ..@additive.add_comm_semigroup _ $
     @with_zero.comm_semigroup (multiplicative α) _ }
 
 instance [add_monoid α] : add_monoid (with_top α) :=
-{ zero := some 0,
+{ zero := 0,
   add := (+),
   ..@additive.add_monoid _ $ @monoid_with_zero.to_monoid _ $
     @with_zero.monoid_with_zero (multiplicative α) _ }
@@ -674,10 +684,10 @@ begin
     exact ⟨_, rfl, add_le_add_left h _⟩, }
 end
 
--- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+@[simp, norm_cast]
 lemma coe_zero [has_zero α] : ((0 : α) : with_bot α) = 0 := rfl
 
--- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+@[simp, norm_cast]
 lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
@@ -685,16 +695,17 @@ lemma coe_eq_zero {α : Type*}
   [add_monoid α] {a : α} : (a : with_bot α) = 0 ↔ a = 0 :=
 by norm_cast
 
--- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
-lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := by norm_cast
+@[simp, norm_cast]
+lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b :=
+rfl
 
--- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+@[simp, norm_cast]
 lemma coe_bit0 [add_semigroup α] {a : α} : ((bit0 a : α) : with_bot α) = bit0 a :=
-by norm_cast
+rfl
 
--- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+@[simp, norm_cast]
 lemma coe_bit1 [add_semigroup α] [has_one α] {a : α} : ((bit1 a : α) : with_bot α) = bit1 a :=
-by norm_cast
+rfl
 
 @[simp] lemma bot_add [ordered_add_comm_monoid α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
 
@@ -792,6 +803,7 @@ instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ord
         { exact ⟨_, (add_zero _).symm⟩ },
         { exact ⟨_, rfl⟩ } } }
   end,
+  add := (+),
   bot    := 0,
   bot_le := assume a a' h, option.no_confusion h,
   .. with_zero.ordered_add_comm_monoid zero_le }
@@ -1127,8 +1139,6 @@ lemma with_bot.add_lt_add_iff_left :
     { norm_cast, exact with_bot.bot_lt_coe _ },
     { norm_cast, exact add_lt_add_iff_left _ }
   end
-
-local attribute [reducible] with_zero
 
 lemma with_top.add_lt_add_iff_right
   {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=

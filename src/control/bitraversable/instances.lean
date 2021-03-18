@@ -112,8 +112,9 @@ instance [is_lawful_traversable F]  [is_lawful_traversable G] [is_lawful_bitrave
 begin
   constructor; introsI;
     simp [bitraverse, bicompl.bitraverse, bimap, traverse_id, bitraverse_id_id, comp_bitraverse]
-      with functor_norm,
-  { simp [traverse_eq_map_id',bitraverse_eq_bimap_id], },
+      with functor_norm;
+    try { refl },
+  { simp [traverse_eq_map_id', bitraverse_eq_bimap_id], refl },
   { revert x, dunfold bicompl,
     simp [binaturality,naturality_pf] }
 end
@@ -134,7 +135,8 @@ instance [is_lawful_traversable F] [is_lawful_bitraversable t] :
   is_lawful_bitraversable (bicompr F t) :=
 begin
   constructor; introsI;
-    simp [bitraverse,bicompr.bitraverse,bitraverse_id_id] with functor_norm,
+    simp [bitraverse,bicompr.bitraverse,bitraverse_id_id] with functor_norm;
+    try {refl},
   { simp [bitraverse_eq_bimap_id',traverse_eq_map_id'], refl },
   { revert x, dunfold bicompr, intro,
     simp [naturality,binaturality'] }

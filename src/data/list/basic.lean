@@ -2680,8 +2680,15 @@ end lex
 --Note: this overrides an instance in core lean
 instance has_lt' [has_lt α] : has_lt (list α) := ⟨lex (<)⟩
 
+@[simp]
 theorem nil_lt_cons [has_lt α] (a : α) (l : list α) : [] < a :: l :=
 lex.nil
+
+@[simp] lemma not_cons_lt_nil {α} [has_lt α] {x : α} {xs : list α} : ¬ x :: xs < [].
+
+@[simp] lemma cons_lt_iff {α} [preorder α] {x : α} {xs ys : list α} :
+  x :: xs < x :: ys ↔ xs < ys :=
+list.lex.cons_iff
 
 instance [linear_order α] : linear_order (list α) :=
 linear_order_of_STO' (lex (<))

@@ -175,8 +175,8 @@ instance partition.partial_order : partial_order (subtype (@is_partition α)) :=
   le_refl := λ _, @le_refl (setoid α) _ _,
   le_trans := λ _ _ _, @le_trans (setoid α) _ _ _ _,
   lt_iff_le_not_le := λ _ _, iff.rfl,
-  le_antisymm := λ x y hx hy, let h := @le_antisymm (setoid α) _ _ _ hx hy in by
-    rw [subtype.ext_iff_val, ←classes_mk_classes x.1 x.2, ←classes_mk_classes y.1 y.2, h] }
+  le_antisymm := λ x y hx hy, let h := @le_antisymm (setoid α) _ _ _ hx hy in
+    by erw [subtype.ext_iff_val, ←classes_mk_classes x.1 x.2, ←classes_mk_classes y.1 y.2, h] }
 
 variables (α)
 
@@ -186,7 +186,7 @@ def partition.rel_iso :
 { to_fun := λ r, ⟨r.classes, empty_not_mem_classes, classes_eqv_classes⟩,
   inv_fun := λ x, mk_classes x.1 x.2.2,
   left_inv := mk_classes_classes,
-  right_inv := λ x, by rw [subtype.ext_iff_val, ←classes_mk_classes x.1 x.2],
+  right_inv := λ x, by erw [subtype.ext_iff_val, ←classes_mk_classes x.1 x.2],
   map_rel_iff' := λ x y,
     by { conv_rhs { rw [←mk_classes_classes x, ←mk_classes_classes y] }, refl } }
 

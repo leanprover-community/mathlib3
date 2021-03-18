@@ -101,6 +101,7 @@ begin
 end
 
 /-- Construct a partial order from a `is_strict_order` relation -/
+@[reducible]
 def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
 { le := λ x y, x = y ∨ r x y,
   lt := r,
@@ -129,6 +130,7 @@ def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
   extends is_trichotomous α lt, is_strict_order α lt : Prop.
 
 /-- Construct a linear order from an `is_strict_total_order'` relation -/
+@[reducible]
 def linear_order_of_STO' (r) [is_strict_total_order' α r] [Π x y, decidable (¬ r x y)] :
   linear_order α :=
 { le_total := λ x y,

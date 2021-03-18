@@ -149,6 +149,7 @@ lemma one_le_mul_of_one_le_of_one_le {a b : α} (a1 : 1 ≤ a) (b1 : 1 ≤ b) :
 (mul_one (1 : α)).symm.le.trans (mul_le_mul a1 b1 zero_le_one (zero_le_one.trans a1))
 
 /-- Pullback an `ordered_semiring` under an injective map. -/
+@[reducible]
 def function.injective.ordered_semiring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -1112,7 +1113,8 @@ instance : mul_zero_class (with_top α) :=
   mul_zero := assume a, if_pos $ or.inr rfl }
 
 lemma mul_def {a b : with_top α} :
-  a * b = if a = 0 ∨ b = 0 then 0 else a.bind (λa, b.bind $ λb, ↑(a * b)) := rfl
+  a * b = if a = 0 ∨ b = 0 then 0 else a.bind (λa, b.bind $ λb, (↑(a * b) : with_top α)) :=
+rfl
 
 @[simp] lemma mul_top {a : with_top α} (h : a ≠ 0) : a * ⊤ = ⊤ :=
 by cases a; simp [mul_def, h]; refl

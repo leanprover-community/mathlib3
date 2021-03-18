@@ -482,8 +482,8 @@ seq.destruct_cons _ _
 begin
   refine seq.eq_of_bisim (λs1 s2, flatten (return s2) = s1) _ rfl,
   intros s' s h, rw ←h, simp [flatten],
-  cases seq.destruct s, { simp },
-  { cases val with o s', simp }
+  cases seq.destruct s, { trivial },
+  { cases val with o s', refine ⟨rfl, _⟩, simp }
 end
 
 @[simp] theorem flatten_think (c : computation (wseq α)) : flatten c.think = think (flatten c) :=

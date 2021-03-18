@@ -1976,6 +1976,9 @@ meta def packaged_goal := ℕ × expr
 the result of running different tactics -/
 meta def proof_state := list packaged_goal
 
+meta instance : decidable_eq packaged_goal := prod.decidable_eq
+meta instance : decidable_eq proof_state := list.decidable_eq
+
 meta instance goal.inhabited : inhabited packaged_goal := ⟨(0,var 0)⟩
 meta instance proof_state.inhabited : inhabited proof_state :=
 (infer_instance : inhabited (list packaged_goal))

@@ -127,7 +127,7 @@ lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 lemma eq_mk_iff_coe_eq {k : ℕ} {hk : k < n} : a = ⟨k, hk⟩ ↔ (a : ℕ) = k :=
 fin.eq_iff_veq a ⟨k, hk⟩
 
-@[simp, norm_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
+@[simp, norm_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((by exact ⟨m, h⟩ : fin n) : ℕ) = m := rfl
 
 lemma mk_coe (i : fin n) : (⟨i, i.property⟩ : fin n) = i :=
 fin.eta _ _
@@ -213,7 +213,7 @@ begin
     rintro w,
     apply h,
     simp at w,
-    subst w,
+    subst a_val,
     refl, },
 end
 
@@ -250,7 +250,7 @@ map. In this lemma we state that for each `i : fin n` we have `(e i : ℕ) = (i 
 @[simp] lemma coe_order_iso_apply (e : fin n ≃o fin m) (i : fin n) : (e i : ℕ) = i :=
 begin
   rcases i with ⟨i, hi⟩,
-  rw [subtype.coe_mk],
+  rw [coe_mk],
   induction i using nat.strong_induction_on with i h,
   refine le_antisymm (forall_lt_iff_le.1 $ λ j hj, _) (forall_lt_iff_le.1 $ λ j hj, _),
   { have := e.symm.lt_iff_lt.2 (mk_lt_of_lt_coe hj),
@@ -298,8 +298,8 @@ begin
       induction h with k h IH,
       { exact H _ _ },
       { exact lt_trans (IH (nat.lt_of_succ_lt h')) (H _ _) } },
-    assume i j hij,
-    convert A (i : ℕ) (j : ℕ) hij j.2; ext; simp only [subtype.coe_eta] }
+    rintros ⟨i, hi⟩ ⟨j, hj⟩ hij,
+    exact A _ _ hij _ }
 end
 
 end order
@@ -994,7 +994,7 @@ begin
     swap 3, -- For some reason `simp` doesn't fire fully unless we discharge the third goal.
     { exact lt_of_le_of_ne H (ne.symm h), },
     { simp, },
-    { simp only [subtype.mk_eq_mk, ne.def, fin.cast_succ_mk] at h,
+    { simp only [subtype_mk_eq_mk, ne.def, fin.cast_succ_mk] at h,
       simp only [pred, subtype.mk_lt_mk, not_lt],
       exact nat.le_pred_of_lt (nat.lt_of_le_and_ne H (ne.symm h)), }, },
 end

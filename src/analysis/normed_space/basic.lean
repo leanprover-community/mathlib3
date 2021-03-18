@@ -609,6 +609,7 @@ structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] : Pro
 (triangle : ∀ x y : α, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
 (norm_neg : ∀ x : α, ∥-x∥ = ∥x∥)
 
+/-- The `semi_normed_group.core` induced by a `normed_group.core`. -/
 def normed_group.core.to_semi_normed_group.core {α : Type*} [add_comm_group α] [has_norm α]
   (C : normed_group.core α) : semi_normed_group.core α :=
 { norm_zero := (C.norm_eq_zero_iff 0).2 rfl,

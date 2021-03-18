@@ -235,7 +235,7 @@ If `0 < n`, then `a 1` has order `2 * n`.
 -/
 @[simp] lemma order_of_a_one [hn : fact (0 < n)] : order_of (a 1 : quaternion_group n) = 2 * n :=
 begin
-  cases (nat.le_of_dvd (succ_mul_pos _ hn)
+  cases (nat.le_of_dvd (nat.succ_mul_pos _ hn)
     (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))).lt_or_eq with h h,
   { have h1 : (a 1 : quaternion_group n)^(order_of (a 1)) = 1 := pow_order_of_eq_one _,
     rw a_one_pow at h1,

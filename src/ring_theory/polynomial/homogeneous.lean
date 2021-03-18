@@ -47,8 +47,7 @@ noncomputable def homogeneous_submodule [comm_semiring R] (n : ℕ) :
   submodule R (mv_polynomial σ R) :=
 { carrier := { x | x.is_homogeneous n },
   smul_mem' := λ r a ha c hc, begin
-    have : coeff c (r • a) = r • coeff c a := finsupp.smul_apply _ _ _,
-    rw this at hc,
+    rw coeff_smul at hc,
     apply ha,
     intro h,
     apply hc,

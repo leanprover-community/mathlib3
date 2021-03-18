@@ -1080,7 +1080,9 @@ lemma left_mul_matrix_apply (x : S) :
 
 lemma left_mul_matrix_eq_repr_mul (x : S) (i j) :
   left_mul_matrix hb x i j = hb.repr (x * b j) i :=
-by rw [left_mul_matrix_apply, linear_map.to_matrix_apply, algebra.lmul_apply, hb.equiv_fun_apply]
+-- This is defeq to just `to_matrix_lmul' hb x i j`,
+-- but the unfolding goes a lot faster with this explicit `rw`.
+by rw [left_mul_matrix_apply, to_matrix_lmul' hb x i j]
 
 lemma left_mul_matrix_mul_vec_repr (x y : S) :
   (left_mul_matrix hb x).mul_vec (hb.repr y) = hb.repr (x * y) :=

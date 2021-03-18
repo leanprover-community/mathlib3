@@ -342,7 +342,7 @@ instance decidable_int : decidable_rel (λ a b : ℤ, (multiplicity a b).dom) :=
 
 end multiplicity
 
-lemma induction_on_primes {P : nat → Prop} (h₀ : P 0) (h₁ : P 1)
+lemma induction_on_primes {P : ℕ → Prop} (h₀ : P 0) (h₁ : P 1)
   (h : ∀ p a : ℕ, nat.prime p → P a → P (p * a)) (n : ℕ) : P n :=
 begin
   apply unique_factorization_monoid.induction_on_prime,
@@ -365,19 +365,10 @@ end
 
 lemma int.nat_abs_eq_nat_abs_iff {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a = b ∨ a = -b :=
 begin
-  split,
-  { intro h,
-    apply_fun coe at h,
-    cases int.nat_abs_eq a with ha ha;
-    cases int.nat_abs_eq b with hb hb;
-    rw [ha, hb],
-    { left, exact h },
-    { right, rwa neg_neg },
-    { right, rw h },
-    { left, rw h } },
-  { rintro (rfl|rfl),
-    { refl },
-    { exact int.nat_abs_neg b } },
+  split; intro h,
+  { cases int.nat_abs_eq a with h₁ h₁; cases int.nat_abs_eq b with h₂ h₂;
+    rw [h₁, h₂]; simp [h], },
+  { cases h; rw h, rw int.nat_abs_neg, },
 end
 
 theorem int.associated_iff_nat_abs {a b : ℤ} : associated a b ↔ a.nat_abs = b.nat_abs :=

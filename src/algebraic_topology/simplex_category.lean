@@ -15,6 +15,19 @@ We construct a skeletal model of the simplex category, with objects `ℕ` and th
 morphism `n ⟶ m` being the monotone maps from `fin (n+1)` to `fin (m+1)`.
 
 We show that this category is equivalent to `NonemptyFinLinOrd`.
+
+## Remarks
+
+The definitions `simplex_category` and `simplex_category.hom` are marked as irreducible.
+
+We provide the following functions to work with these objects:
+1. `simplex_category.mk` creates an object of `simplex_category` out of a natural number.
+  Use the notation `[n]` in the `simplicial` locale.
+2. `simplex_category.len` gives the "length" of an object of `simplex_category`, as a natural.
+3. `simplex_category.hom.mk` makes a morphism out of a monotone map between `fin`'s.
+4. `simplex_category.hom.to_preorder_hom` gives the underlying monotone map associated to a
+  term of `simplex_category.hom`.
+
 -/
 
 universe variables u

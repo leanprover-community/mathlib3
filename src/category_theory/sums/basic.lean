@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import category_theory.eq_to_hom
 
 /-!
-# Disjoint unions of categories
+# Binary disjoint unions of categories
 
 We define the category instance on `C ⊕ D` when `C` and `D` are categories.
 

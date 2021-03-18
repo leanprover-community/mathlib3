@@ -258,18 +258,6 @@ begin
     @and.comm (b ≤ 0 ) _] }
 end
 
-lemma abs_pow_even {α : Type*} [linear_ordered_ring α] (x : α) {p : ℕ} (hp : even p) :
-  abs (x ^ p) = x ^ p :=
-begin
-  obtain ⟨k, rfl⟩ := hp,
-  rw [abs_eq_self, two_mul, pow_add],
-  exact mul_self_nonneg (x ^ k)
-end
-
-@[simp] lemma abs_pow_bit0 {α : Type*} [linear_ordered_ring α] (x : α) (p : ℕ) :
-  abs (x ^ bit0 p) = x ^ bit0 p :=
-abs_pow_even x (even_bit0 _)
-
 end ordered_add_comm_group
 
 section linear_ordered_add_comm_group
@@ -458,6 +446,18 @@ variables [linear_ordered_ring R] {a : R} {n : ℕ}
 
 @[simp] lemma abs_pow (a : R) (n : ℕ) : abs (a ^ n) = abs a ^ n :=
 abs_hom.to_monoid_hom.map_pow a n
+
+lemma abs_pow_even (a : R) {p : ℕ} (hp : even p) :
+  abs a ^ p = a ^ p :=
+begin
+  obtain ⟨k, rfl⟩ := hp,
+  rw [←abs_pow, abs_eq_self, two_mul, pow_add],
+  exact mul_self_nonneg (a ^ k)
+end
+
+@[simp] lemma abs_pow_bit0 (a : R) (p : ℕ) :
+  abs a ^ bit0 p = a ^ bit0 p :=
+abs_pow_even _ (even_bit0 _)
 
 @[simp] theorem pow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
 ⟨λ h, not_le.1 $ λ h', not_le.2 h $ pow_nonneg h' _,

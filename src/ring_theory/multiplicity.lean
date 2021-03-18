@@ -120,26 +120,26 @@ lemma eq_top_iff {a b : α} :
 (enat.find_eq_top_iff _).trans $
 by { simp only [not_not], exact ⟨λ h n, nat.cases_on n (one_dvd _) (λ n, h _), λ h n, h _⟩ }
 
-lemma one_right {a : α} (ha : ¬is_unit a) : multiplicity a 1 = 0 :=
-eq_some_iff.2 ⟨dvd_refl _, mt is_unit_iff_dvd_one.2 $ by simpa⟩
-
 @[simp] lemma get_one_right {a : α} (ha : finite a 1) : get (multiplicity a 1) ha = 0 :=
 get_eq_iff_eq_some.2 (eq_some_iff.2 ⟨dvd_refl _,
   by simpa [is_unit_iff_dvd_one.symm] using not_unit_of_finite ha⟩)
+
+@[simp] lemma is_unit_left {a : α} (b : α) (ha : is_unit a) : multiplicity a b = ⊤ :=
+eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (ha.pow _) _)
 
 lemma is_unit_right {a b : α} (ha : ¬is_unit a) (hb : is_unit b) :
   multiplicity a b = 0 :=
 eq_some_iff.2 ⟨by simp, by { rw pow_one, exact λ h, mt (is_unit_of_dvd_unit h) ha hb, }⟩
 
-@[simp] lemma multiplicity_unit {a : α} (b : α) (ha : is_unit a) : multiplicity a b = ⊤ :=
-eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (ha.pow _) _)
-
 @[simp] lemma one_left (b : α) : multiplicity 1 b = ⊤ := by simp [eq_top_iff]
 
-lemma multiplicity.unit_left {a: α} (u: units α): multiplicity (u: α) a = ⊤ :=
-multiplicity_unit a (is_unit_unit u)
+lemma one_right {a : α} (ha : ¬is_unit a) : multiplicity a 1 = 0 :=
+eq_some_iff.2 ⟨dvd_refl _, mt is_unit_iff_dvd_one.2 $ by simpa⟩
 
-lemma multiplicity.unit_right {a: α} (ha: ¬is_unit a) (u: units α): multiplicity a u = 0 :=
+@[simp] lemma unit_left {a: α} (u: units α): multiplicity (u: α) a = ⊤ :=
+is_unit_left a (is_unit_unit u)
+
+lemma unit_right {a: α} (ha: ¬is_unit a) (u: units α): multiplicity a u = 0 :=
 is_unit_right ha (is_unit_unit u)
 
 lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=

@@ -181,6 +181,9 @@ by { ext x, simp [even, eq_comm] }
 /-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
 def odd (a : α) : Prop := ∃ k, a = 2*k + 1
 
+@[simp] lemma odd_bit1 (a : α) : odd (bit1 a) :=
+⟨a, by rw [bit1, bit0, two_mul]⟩
+
 @[simp] lemma range_two_mul_add_one (α : Type*) [semiring α] :
   set.range (λ x : α, 2 * x + 1) = {a | odd a} :=
 by { ext x, simp [odd, eq_comm] }

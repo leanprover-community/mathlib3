@@ -610,7 +610,7 @@ structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] : Pro
 (norm_neg : ∀ x : α, ∥-x∥ = ∥x∥)
 
 /-- The `semi_normed_group.core` induced by a `normed_group.core`. -/
-def normed_group.core.to_semi_normed_group.core {α : Type*} [add_comm_group α] [has_norm α]
+lemma normed_group.core.to_semi_normed_group.core {α : Type*} [add_comm_group α] [has_norm α]
   (C : normed_group.core α) : semi_normed_group.core α :=
 { norm_zero := (C.norm_eq_zero_iff 0).2 rfl,
   triangle := C.triangle,
@@ -1483,3 +1483,5 @@ lemma summable_of_summable_nnnorm {f : ι → α} (hf : summable (λa, nnnorm (f
 summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
 
 end summable
+
+#lint

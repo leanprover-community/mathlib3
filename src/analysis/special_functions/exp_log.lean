@@ -475,8 +475,7 @@ end
 lemma log_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : log x ≤ 0 :=
 (log_nonpos_iff' hx).2 h'x
 
-lemma log_inj_pos {x y : ℝ} (x_pos : 0 < x) (y_pos : 0 < y)
-  (h : log x = log y) : x = y :=
+lemma log_inj_pos {x y : ℝ} (x_pos : 0 < x) (y_pos : 0 < y) (h : log x = log y) : x = y :=
 le_antisymm
   ((log_le_log x_pos y_pos).1 $ h.le)
   ((log_le_log y_pos x_pos).1 $ h.symm.le)

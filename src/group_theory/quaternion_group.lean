@@ -16,7 +16,7 @@ We define the (generalised) quaternion groups `quaternion_group n` of order `4n`
 dicyclic groups, with elements `a i` and `xa i` for `i : zmod n`. The (generalised) quaternion
 groups can be defined by the presentation
 $\langle a, x | a^{2n} = 1, x^2 = a^n, x^{-1}ax=a^{-1}\rangle$. We write `a i` for
-$a^i$ and `xa i` for $xa^i$. For `n=2` the quaternion group `quaternion_group 2` is isomorphic to
+$a^i$ and `xa i` for $x * a^i$. For `n=2` the quaternion group `quaternion_group 2` is isomorphic to
 the unit integral quaternions `units (quaternion ℤ)`.
 
 ## Main definition
@@ -27,7 +27,7 @@ the unit integral quaternions `units (quaternion ℤ)`.
 
 This file is heavily based on `dihedral_group` by Shing Tak Lam.
 
-In mathematics, the name `quaternion_group` is reserved for the cases `n ≥ 2`. Since it would be
+In mathematics, the name "quaternion group" is reserved for the cases `n ≥ 2`. Since it would be
 inconvenient to carry around this condition we define `quaternion_group` also for `n = 0` and
 `n = 1`. `quaternion_group 0` is isomorphic to the infinite dihedral group, while
 `quaternion_group 1` is isomorphic to a cyclic group of order `4`.
@@ -46,7 +46,7 @@ Show that `quaternion_group 2 ≃* units (quaternion ℤ)`.
 /--
 The (generalised) quaternion group `quaternion_group n` of order `4n`. It can be defined by the
 presentation $\langle a, x | a^{2n} = 1, x^2 = a^n, x^{-1}ax=a^{-1}\rangle$. We write `a i` for
-$a^i$ and `xa i` for $xa^i$.
+$a^i$ and `xa i` for $x * a^i$.
 -/
 @[derive decidable_eq]
 inductive quaternion_group (n : ℕ) : Type

@@ -7,7 +7,7 @@ import category_theory.types
 import category_theory.equivalence
 import data.opposite
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
 open opposite

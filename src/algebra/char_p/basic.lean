@@ -300,15 +300,19 @@ absurd (@nat.cast_injective α _ _ this) (not_injective_infinite_fintype coe)
 
 end
 
-section integral_domain
+section semiring
 open nat
 
-variables (α : Type u) [integral_domain α]
+variables (α : Type u) [semiring α]
 
-theorem char_ne_one (p : ℕ) [hc : char_p α p] : p ≠ 1 :=
+theorem char_ne_one [nontrivial α] (p : ℕ) [hc : char_p α p] : p ≠ 1 :=
 assume hp : p = 1,
 have ( 1 : α) = 0, by simpa using (cast_eq_zero_iff α p 1).mpr (hp ▸ dvd_refl p),
 absurd this one_ne_zero
+
+section no_zero_divisors
+
+variable [no_zero_divisors α]
 
 theorem char_is_prime_of_two_le (p : ℕ) [hc : char_p α p] (hp : 2 ≤ p) : nat.prime p :=
 suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
@@ -328,20 +332,35 @@ or.elim (eq_zero_or_eq_zero_of_mul_eq_zero this)
   have d * p = 1 * p, by rw ‹e = p› at hmul; rw [one_mul]; exact eq.symm hmul,
   show d = 1 ∨ d = p, from or.inl (eq_of_mul_eq_mul_right h₀ this))
 
+section nontrivial
+
+variables [nontrivial α]
+
 theorem char_is_prime_or_zero (p : ℕ) [hc : char_p α p] : nat.prime p ∨ p = 0 :=
 match p, hc with
 | 0,     _  := or.inr rfl
-| 1,     hc := absurd (eq.refl (1 : ℕ)) (@char_ne_one α _ (1 : ℕ) hc)
-| (m+2), hc := or.inl (@char_is_prime_of_two_le α _ (m+2) hc (nat.le_add_left 2 m))
+| 1,     hc := absurd (eq.refl (1 : ℕ)) (@char_ne_one α _ _ (1 : ℕ) hc)
+| (m+2), hc := or.inl (@char_is_prime_of_two_le α _ _ (m+2) hc (nat.le_add_left 2 m))
 end
 
 lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p α p] : fact p.prime :=
 (char_p.char_is_prime_or_zero α _).resolve_right (pos_iff_ne_zero.1 h)
 
-theorem char_is_prime [fintype α] (p : ℕ) [char_p α p] : p.prime :=
+end nontrivial
+
+end no_zero_divisors
+
+end semiring
+
+section ring
+
+variables {α : Type*} [ring α] [no_zero_divisors α] [nontrivial α] [fintype α]
+
+theorem char_is_prime (p : ℕ) [char_p α p] :
+  p.prime :=
 or.resolve_right (char_is_prime_or_zero α p) (char_ne_zero_of_fintype α p)
 
-end integral_domain
+end ring
 
 section char_one
 

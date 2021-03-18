@@ -1,9 +1,9 @@
 /-
-  Copyright (c) 2020 Anne Baanen. All rights reserved.
-  Released under Apache 2.0 license as described in the file LICENSE.
-  Author: Anne Baanen.
+Copyright (c) 2020 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Anne Baanen.
 
-  The Special Linear group $SL(n, R)$
+The Special Linear group $SL(n, R)$
 -/
 import linear_algebra.matrix
 import linear_algebra.nonsingular_inverse

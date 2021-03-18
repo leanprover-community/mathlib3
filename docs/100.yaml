@@ -304,7 +304,7 @@
   title  : The Friendship Theorem
   links:
     mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/83_friendship_graphs.lean
-  author: Aaron Anderson, Jalex Stark, Kyle Miller
+  Authors: Aaron Anderson, Jalex Stark, Kyle Miller
 84:
   title  : Morley’s Theorem
 85:

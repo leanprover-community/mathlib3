@@ -38,6 +38,7 @@ ERR_LIN = 3 # line length
 ERR_SAV = 4 # ᾰ
 ERR_RNT = 5 # reserved notation
 ERR_OPT = 6 # set_option
+ERR_AUT = 7 # malformed authors list
 
 exceptions = []
 
@@ -64,6 +65,8 @@ with SCRIPTS_DIR.joinpath("style-exceptions.txt").open(encoding="utf-8") as f:
             exceptions += [(ERR_RNT, path)]
         if errno == "ERR_OPT":
             exceptions += [(ERR_OPT, path)]
+        if errno == "ERR_AUT":
+            exceptions += [(ERR_AUT, path)]
 
 new_exceptions = False
 
@@ -175,10 +178,16 @@ def regular_check(lines, path):
             errors += [(ERR_COP, line_nr, path)]
         if copy_started and not copy_done:
             copy_lines += line
+            if "Author" in line:
+                # Validating names is not a reasonable thing to do,
+                # so we just look for the two common variations:
+                # using ' and ' between names, and a '.' at the end of line.
+                if not line.startswith("Authors: ") or " and " in line or line.endswith("."):
+                    errors += [(ERR_AUT, copy_start_line_nr, path)]
             if line == "-/\n":
                 if ((not "Copyright" in copy_lines) or
                     (not "Apache" in copy_lines) or
-                    (not "Author" in copy_lines)):
+                    (not "Authors: " in copy_lines)):
                     errors += [(ERR_COP, copy_start_line_nr, path)]
                 copy_done = True
             continue
@@ -225,6 +234,8 @@ def format_errors(errors):
             output_message(path, line_nr, "ERR_RNT", "Reserved notation outside tactic.reserved_notation")
         if errno == ERR_OPT:
             output_message(path, line_nr, "ERR_OPT", "Forbidden set_option command")
+        if errno == ERR_AUT:
+            output_message(path, line_nr, "ERR_AUT", "Authors line should look like: 'Authors: Jean Dupont, Иван Иванович Иванов'")
 
 def lint(path):
     with path.open(encoding="utf-8") as f:

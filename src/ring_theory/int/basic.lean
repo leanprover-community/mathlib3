@@ -342,8 +342,8 @@ instance decidable_int : decidable_rel (λ a b : ℤ, (multiplicity a b).dom) :=
 
 end multiplicity
 
-lemma induction_on_primes {P: nat → Prop} (h₁: P 0) (h₂: P 1)
-  (h: ∀ p a: ℕ, nat.prime p → P a → P (p * a)): ∀ n: ℕ, P n :=
+lemma induction_on_primes {P : nat → Prop} (h₁ : P 0) (h₂ : P 1)
+  (h : ∀ p a : ℕ, nat.prime p → P a → P (p * a)) : ∀ n: ℕ, P n :=
 begin
   intro n,
   apply unique_factorization_monoid.induction_on_prime,
@@ -355,10 +355,10 @@ begin
     exact h p a (nat.prime_iff_prime.2 hp) ha, },
 end
 
-lemma int.associated_nat_abs (k: ℤ): associated k k.nat_abs :=
+lemma int.associated_nat_abs (k : ℤ) : associated k k.nat_abs :=
 associated_of_dvd_dvd (int.coe_nat_dvd_right.mpr (dvd_refl _)) (int.nat_abs_dvd.mpr (dvd_refl _))
 
-lemma int.prime_iff_nat_abs_prime {k: ℤ}: prime k ↔ nat.prime k.nat_abs :=
+lemma int.prime_iff_nat_abs_prime {k : ℤ} : prime k ↔ nat.prime k.nat_abs :=
 begin
   rw nat.prime_iff_prime_int,
   rw prime_iff_of_associated (int.associated_nat_abs k),
@@ -388,7 +388,7 @@ begin
   exact associated_iff_eq,
 end
 
-lemma int.associated_iff (a: ℤ) (b: ℤ): associated a b ↔ (a = b ∨ a = -b) :=
+lemma int.associated_iff (a : ℤ) (b : ℤ) : associated a b ↔ (a = b ∨ a = -b) :=
 begin
   rw int.associated_iff_nat_abs,
   exact int.nat_abs_eq_nat_abs_iff,

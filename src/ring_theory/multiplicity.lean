@@ -127,10 +127,22 @@ eq_some_iff.2 ⟨dvd_refl _, mt is_unit_iff_dvd_one.2 $ by simpa⟩
 get_eq_iff_eq_some.2 (eq_some_iff.2 ⟨dvd_refl _,
   by simpa [is_unit_iff_dvd_one.symm] using not_unit_of_finite ha⟩)
 
+lemma is_unit_right {a b : α} (ha : ¬is_unit a) (hb : is_unit b) :
+  multiplicity a b = 0 :=
+eq_some_iff.2 ⟨by simp, by { rw pow_one, exact λ h, mt (is_unit_of_dvd_unit h) ha hb, }⟩
+
 @[simp] lemma multiplicity_unit {a : α} (b : α) (ha : is_unit a) : multiplicity a b = ⊤ :=
 eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (ha.pow _) _)
 
 @[simp] lemma one_left (b : α) : multiplicity 1 b = ⊤ := by simp [eq_top_iff]
+
+lemma multiplicity.unit_left {a: α}
+  (u: units α): multiplicity (u: α) a = ⊤ :=
+multiplicity_unit a (is_unit_unit u)
+
+lemma multiplicity.unit_right {a: α} (ha: ¬is_unit a)
+  (u: units α): multiplicity a u = 0 :=
+is_unit_right ha (is_unit_unit u)
 
 lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=
 eq_some_iff.2 (by simpa)
@@ -168,20 +180,6 @@ lemma eq_of_associated_right {a b c : α} (h : associated b c) :
   multiplicity a b = multiplicity a c :=
 le_antisymm (multiplicity_le_multiplicity_of_dvd_right (dvd_of_associated h))
   (multiplicity_le_multiplicity_of_dvd_right (dvd_of_associated h.symm))
-
-lemma multiplicity.unit_left {a: α}
-  (u: units α): multiplicity (u: α) a = ⊤ :=
-begin
-  rw ← multiplicity.eq_of_associated_left unit_associated_one,
-  exact multiplicity.one_left a,
-end
-
-lemma multiplicity.unit_right {a: α} (ha: ¬is_unit a)
-  (u: units α): multiplicity a u = 0 :=
-begin
-  rw multiplicity.eq_of_associated_right unit_associated_one,
-  exact multiplicity.one_right ha,
-end
 
 lemma dvd_of_multiplicity_pos {a b : α} (h : (0 : enat) < multiplicity a b) : a ∣ b :=
 by rw [← pow_one a]; exact pow_dvd_of_le_multiplicity (enat.pos_iff_one_le.1 h)

@@ -5,6 +5,16 @@ Authors: Bhavik Mehta
 -/
 import category_theory.fully_faithful
 
+/-!
+# Functors which reflect isomorphisms
+
+A functor `F` reflects isomorphisms if whenever `F.map f` is an isomorphism, `f` was too.
+
+It is formalized as a `Prop` valued typeclass `reflects_isomorphisms F`.
+
+Any fully faithful functor reflects isomorphisms.
+-/
+
 open category_theory
 
 namespace category_theory
@@ -21,7 +31,7 @@ Define what it means for a functor `F : C ⥤ D` to reflect isomorphisms: for an
 morphism `f : A ⟶ B`, if `F.map f` is an isomorphism then `f` is as well.
 Note that we do not assume or require that `F` is faithful.
 -/
-class reflects_isomorphisms (F : C ⥤ D) :=
+class reflects_isomorphisms (F : C ⥤ D) : Prop :=
 (reflects : Π {A B : C} (f : A ⟶ B) [is_iso (F.map f)], is_iso f)
 
 /-- If `F` reflects isos and `F.map f` is an iso, then `f` is an iso. -/

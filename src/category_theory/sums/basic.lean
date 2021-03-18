@@ -5,8 +5,18 @@ Authors: Scott Morrison
 -/
 import category_theory.eq_to_hom
 
-/-#
-Disjoint unions of categories, functors, and natural transformations.
+/-!
+# Disjoint unions of categories
+
+We define the category instance on `C ⊕ D` when `C` and `D` are categories.
+
+We define:
+* `inl_`      : the functor `C ⥤ C ⊕ D`
+* `inr_`      : the functor `D ⥤ C ⊕ D`
+* `swap`      : the functor `C ⊕ D ⥤ D ⊕ C`
+    (and the fact this is an equivalence)
+
+We further define sums of functors and natural transformations, written `F.sum G` and `α.sum β`.
 -/
 
 namespace category_theory

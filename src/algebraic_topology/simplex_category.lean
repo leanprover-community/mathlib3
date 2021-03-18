@@ -41,32 +41,75 @@ localized "notation `[`n`]` := mk n" in simplicial
 /-- The length of an object of `simplex_category`. -/
 def len (n : simplex_category) : ℕ := n.down
 
-@[simp] lemma len_mk (n : ℕ) : [n].len = n := rfl
-lemma mk_len (n : simplex_category) : [n.len] = n := by {cases n, refl}
-
 @[ext] lemma ext (a b : simplex_category) : a.len = b.len → a = b := ulift.ext a b
+@[simp] lemma len_mk (n : ℕ) : [n].len = n := rfl
+@[simp] lemma mk_len (n : simplex_category) : [n.len] = n := by {cases n, refl}
 
+@[irreducible]
+protected def hom (a b : simplex_category.{u}) : Type u :=
+ulift (fin (a.len + 1) →ₘ fin (b.len + 1))
+
+namespace hom
+
+local attribute [semireducible] simplex_category.hom
+
+def mk {a b : simplex_category.{u}} (f : fin (a.len + 1) →ₘ fin (b.len + 1)) :
+  simplex_category.hom a b :=
+ulift.up f
+
+def to_preorder_hom {a b : simplex_category.{u}} (f : simplex_category.hom a b) :
+  fin (a.len + 1) →ₘ fin (b.len + 1) :=
+ulift.down f
+
+@[ext] lemma ext {a b : simplex_category.{u}} (f g : simplex_category.hom a b) :
+  f.to_preorder_hom = g.to_preorder_hom → f = g := ulift.ext _ _
+
+@[simp] lemma mk_to_preorder_hom {a b : simplex_category.{u}}
+  (f : simplex_category.hom a b) : mk (f.to_preorder_hom) = f :=
+by {cases f, refl}
+
+@[simp] lemma to_preorder_hom_mk {a b : simplex_category.{u}}
+  (f : fin (a.len + 1) →ₘ fin (b.len + 1)) : (mk f).to_preorder_hom = f :=
+by simp [to_preorder_hom, mk]
+
+lemma mk_to_preorder_hom_apply {a b : simplex_category.{u}}
+  (f : fin (a.len + 1) →ₘ fin (b.len + 1)) (i : fin (a.len + 1)) :
+  (mk f).to_preorder_hom i = f i := rfl
+
+@[simp]
+def id (a : simplex_category.{u}) :
+  simplex_category.hom a a :=
+mk preorder_hom.id
+
+@[simp]
+def comp {a b c : simplex_category.{u}} (f : simplex_category.hom b c)
+  (g : simplex_category.hom a b) : simplex_category.hom a c :=
+mk $ f.to_preorder_hom.comp g.to_preorder_hom
+
+end hom
+
+@[simps]
 instance small_category : small_category.{u} simplex_category :=
-{ hom := λ n m, ulift $ preorder_hom (fin (n.len+1)) (fin (m.len+1)),
-  id := λ m, ulift.up preorder_hom.id,
-  comp := λ _ _ _ f g, ulift.up $ preorder_hom.comp g.down f.down, }
+{ hom := λ n m, simplex_category.hom n m,
+  id := λ m, simplex_category.hom.id _,
+  comp := λ _ _ _ f g, simplex_category.hom.comp g f, }
 
+@[simp]
 def mk_hom {n m : ℕ} (f : (fin (n+1)) →ₘ (fin (m+1))) : [n] ⟶ [m] :=
-ulift.up.{u} f
+simplex_category.hom.mk f
 
-@[simp] lemma mk_hom_comp_mk_hom_down
-  {l m n : ℕ} (f : (fin (l+1)) →ₘ (fin (m+1))) (g : (fin (m+1)) →ₘ (fin (n+1))) :
-  (mk_hom f ≫ mk_hom g).down = g.comp f :=
-rfl
+--@[simp] lemma mk_hom_comp_mk_hom_to_preorder_hom
+--  {l m n : ℕ} (f : (fin (l+1)) →ₘ (fin (m+1))) (g : (fin (m+1)) →ₘ (fin (n+1))) :
+--  (mk_hom f ≫ mk_hom g).to_preorder_hom = g.comp f :=
 
-@[simp] lemma mk_hom_down {n m : ℕ} (f : (fin (n+1)) →ₘ (fin (m+1))) :
-  (mk_hom f).down = f :=
-rfl
+--@[simp] lemma mk_hom_to_preorder_hom {n m : ℕ} (f : (fin (n+1)) →ₘ (fin (m+1))) :
+--  (mk_hom f).to_preorder_hom = f :=
 
 end
 
 open_locale simplicial
 
+/-
 instance {a b : simplex_category} : has_coe_to_fun (a ⟶ b) :=
 { F := λ _, fin (a.len + 1) → fin (b.len + 1),
   coe := λ f, (f.down : fin (a.len + 1) → fin (b.len + 1)) }
@@ -91,6 +134,7 @@ rfl
 
 @[simp] lemma comp_apply {l m n : simplex_category} (f : l ⟶ m) (g : m ⟶ n) (i : fin (l.len+1)) :
   (f ≫ g).down i = g.down (f.down i) := rfl
+-/
 
 section generators
 /-!
@@ -113,9 +157,13 @@ def σ {n} (i : fin (n+1)) : [n+1] ⟶ [n] := mk_hom
 lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
   δ i ≫ δ j.succ = δ j ≫ δ i.cast_succ :=
 begin
-  ext1 k,
-  simp only [apply_eq_down_apply],
+  ext k,
   dsimp [δ, fin.succ_above],
+  simp only [order_embedding.to_preorder_hom_coe,
+    order_embedding.coe_of_strict_mono,
+    function.comp_app,
+    simplex_category.hom.to_preorder_hom_mk,
+    preorder_hom.comp_to_fun],
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
@@ -127,6 +175,11 @@ lemma δ_comp_δ_self {n} {i : fin (n+2)} : δ i ≫ δ i.cast_succ = δ i ≫ �
 begin
   ext j,
   dsimp [δ, fin.succ_above],
+  simp only [order_embedding.to_preorder_hom_coe,
+    order_embedding.coe_of_strict_mono,
+    function.comp_app,
+    simplex_category.hom.to_preorder_hom_mk,
+    preorder_hom.comp_to_fun],
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   split_ifs; { simp at *; linarith },
@@ -143,7 +196,8 @@ begin
         then k.pred (by { rintro rfl, exact nat.not_lt_zero _ h })
         else k.cast_lt (by { cases j, cases k, simp only [len_mk], linarith })).cast_succ < i)
           (ite (j.cast_succ < k) (k - 1) k) (ite (j.cast_succ < k) (k - 1) k + 1),
-  { dsimp [δ, σ, fin.succ_above, fin.pred_above], simpa with push_cast },
+  { dsimp [δ, σ, fin.succ_above, fin.pred_above],
+    simpa [fin.pred_above] with push_cast },
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
@@ -167,7 +221,7 @@ begin
   ext j,
   suffices : ite (fin.cast_succ i < ite (j < i) (fin.cast_succ j) j.succ)
     (ite (j < i) (j:ℕ) (j + 1) - 1) (ite (j < i) j (j + 1)) = j,
-  { dsimp [δ, σ, fin.succ_above, fin.pred_above], simpa with push_cast },
+  { dsimp [δ, σ, fin.succ_above, fin.pred_above], simpa [fin.pred_above] with push_cast },
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   dsimp, simp only [if_congr, subtype.mk_lt_mk],
@@ -182,7 +236,7 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   dsimp [δ, σ, fin.succ_above, fin.pred_above],
-  simp with push_cast,
+  simp [fin.pred_above] with push_cast,
   split_ifs; { simp at *; linarith, },
 end
 
@@ -198,7 +252,7 @@ begin
   simp only [subtype.mk_lt_mk, fin.cast_succ_mk] at H,
   suffices : ite (_ < ite (k < i + 1) _ _) _ _ =
     ite _ (ite (j < k) (k - 1) k) (ite (j < k) (k - 1) k + 1),
-  { simpa [apply_dite fin.cast_succ] with push_cast, },
+  { simpa [apply_dite fin.cast_succ, fin.pred_above] with push_cast, },
   split_ifs,
   -- Most of the goals can now be handled by `linarith`,
   -- but we have to deal with three of them by hand.
@@ -243,7 +297,7 @@ begin
   -- I'm not sure this is actually much more robust that a non-terminal simp.
   suffices : ite (_ < dite (i < k) _ _) _ _ =
     ite (_ < dite (j + 1 < k) _ _) _ _,
-  { simpa with push_cast, },
+  { simpa [fin.pred_above] with push_cast, },
   split_ifs,
   -- `split_ifs` created 12 goals.
   -- Most of them are dealt with `by simp at *; linarith`,
@@ -269,9 +323,9 @@ section skeleton
 
 /-- The functor that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
-def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd.{u} :=
-{ obj := λ n, NonemptyFinLinOrd.of $ ulift (fin (n.len+1)),
-  map := λ m n f, ⟨λ i, ⟨f i.down⟩, λ ⟨i⟩ ⟨j⟩ h, show f i ≤ f j, from f.down.monotone h⟩, }
+def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd :=
+{ obj := λ a, NonemptyFinLinOrd.of $ ulift (fin (a.len + 1)),
+  map := λ a b f, ⟨λ i, ulift.up (f.to_preorder_hom i.down), λ i j h, f.to_preorder_hom.monotone h⟩ }
 
 lemma skeletal : skeletal simplex_category :=
 λ X Y ⟨I⟩,
@@ -285,19 +339,19 @@ end
 
 namespace skeletal_functor
 
-instance : full skeletal_functor.{u} :=
-{ preimage := λ m n f, ulift.up ⟨λ i, ulift.down (f ⟨i⟩), λ i j h, f.monotone h⟩,
+instance : full skeletal_functor :=
+{ preimage := λ a b f, simplex_category.hom.mk $ ⟨λ i, (f (ulift.up i)).down, λ i j h, f.monotone h⟩,
   witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, refl } }
 
-instance : faithful skeletal_functor.{u} :=
+instance : faithful skeletal_functor :=
 { map_injective' := λ m n f g h,
   begin
-    ext1 i, apply ulift.up.inj,
-    show skeletal_functor.map f ⟨i⟩ = skeletal_functor.map g ⟨i⟩,
+    ext1, ext1 i, apply ulift.up.inj,
+    change (skeletal_functor.map f) ⟨i⟩ = (skeletal_functor.map g) ⟨i⟩,
     rw h,
   end }
 
-instance : ess_surj skeletal_functor.{u} :=
+instance : ess_surj skeletal_functor :=
 { mem_ess_image := λ X, ⟨mk (fintype.card X - 1 : ℕ), ⟨begin
     have aux : fintype.card X = fintype.card X - 1 + 1,
     { exact (nat.succ_pred_eq_of_pos $ fintype.card_pos_iff.mpr ⟨⊥⟩).symm, },
@@ -315,15 +369,15 @@ instance : ess_surj skeletal_functor.{u} :=
     { ext1 i, exact f.apply_symm_apply i },
   end⟩⟩,}
 
-noncomputable instance is_equivalence : is_equivalence skeletal_functor.{u} :=
+noncomputable instance is_equivalence : is_equivalence skeletal_functor :=
 equivalence.equivalence_of_fully_faithfully_ess_surj skeletal_functor
 
 end skeletal_functor
 
 /-- The equivalence that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
-noncomputable def skeletal_equivalence : simplex_category ≌ NonemptyFinLinOrd.{u} :=
-functor.as_equivalence skeletal_functor.{u}
+noncomputable def skeletal_equivalence : simplex_category ≌ NonemptyFinLinOrd :=
+functor.as_equivalence skeletal_functor
 
 end skeleton
 
@@ -331,7 +385,7 @@ end skeleton
 `simplex_category` is a skeleton of `NonemptyFinLinOrd`.
 -/
 noncomputable
-def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd.{u} simplex_category skeletal_functor.{u} :=
+def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd simplex_category skeletal_functor :=
 { skel := skeletal,
   eqv := skeletal_functor.is_equivalence }
 

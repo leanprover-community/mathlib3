@@ -52,7 +52,7 @@ section
 /-- The `m`-simplices of the `n`-th standard simplex are
 the monotone maps from `fin (m+1)` to `fin (n+1)`. -/
 def as_preorder_hom {n} {m} (α : Δ[n].obj m) :
-  preorder_hom (fin (m.unop.len+1)) (fin (n+1)) := α.down
+  preorder_hom (fin (m.unop.len+1)) (fin (n+1)) := α.to_preorder_hom
 end
 
 /-- The boundary `∂Δ[n]` of the `n`-th standard simplex consists of

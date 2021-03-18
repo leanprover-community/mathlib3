@@ -295,6 +295,7 @@ end
 /-- The statement to be proved inductively -/
 def P (α : solvable_by_rad F E) : Prop := is_solvable (minpoly F α).gal
 
+/-- An auxiliary induction lemma, which is generalized by `solvable_by_rad.is_solvable`. -/
 lemma induction3 {α : solvable_by_rad F E} {n : ℕ} (hn : n ≠ 0) (hα : P (α ^ n)) : P α :=
 begin
   let p := minpoly F (α ^ n),
@@ -322,6 +323,7 @@ begin
       exact gal_X_pow_sub_C_is_solvable n q } },
 end
 
+/-- An auxiliary induction lemma, which is generalized by `solvable_by_rad.is_solvable`. -/
 lemma induction2 {α β γ : solvable_by_rad F E} (hγ : γ ∈ F⟮α, β⟯) (hα : P α) (hβ : P β) : P γ :=
 begin
   let p := (minpoly F α),
@@ -350,6 +352,7 @@ begin
     (gal_mul_is_solvable hα hβ),
 end
 
+/-- An auxiliary induction lemma, which is generalized by `solvable_by_rad.is_solvable`. -/
 lemma induction1 {α β : solvable_by_rad F E} (hβ : β ∈ F⟮α⟯) (hα : P α) : P β :=
 induction2 (adjoin.mono F _ _ (ge_of_eq (set.pair_eq_singleton α)) hβ) hα hα
 

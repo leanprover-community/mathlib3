@@ -33,11 +33,13 @@ namespace simplex_category
 section
 local attribute [semireducible] simplex_category
 
+-- TODO: Make `mk` irreducible.
 /-- Interpet a natural number as an object of the simplex category. -/
 def mk (n : ℕ) : simplex_category := ulift.up n
 
 localized "notation `[`n`]` := simplex_category.mk n" in simplicial
 
+-- TODO: Make `len` irreducible.
 /-- The length of an object of `simplex_category`. -/
 def len (n : simplex_category) : ℕ := n.down
 
@@ -45,7 +47,8 @@ def len (n : simplex_category) : ℕ := n.down
 @[simp] lemma len_mk (n : ℕ) : [n].len = n := rfl
 @[simp] lemma mk_len (n : simplex_category) : [n.len] = n := by {cases n, refl}
 
-@[irreducible]
+/-- Morphisms in the simplex_category. -/
+@[irreducible, nolint has_inhabited_instance]
 protected def hom (a b : simplex_category.{u}) : Type u :=
 ulift (fin (a.len + 1) →ₘ fin (b.len + 1))
 
@@ -53,10 +56,12 @@ namespace hom
 
 local attribute [semireducible] simplex_category.hom
 
+/-- Make a moprhism in `simplex_category` from a monotone map of fin's. -/
 def mk {a b : simplex_category.{u}} (f : fin (a.len + 1) →ₘ fin (b.len + 1)) :
   simplex_category.hom a b :=
 ulift.up f
 
+/-- Recover the monotone map from a morphism in the simplex category. -/
 def to_preorder_hom {a b : simplex_category.{u}} (f : simplex_category.hom a b) :
   fin (a.len + 1) →ₘ fin (b.len + 1) :=
 ulift.down f
@@ -76,11 +81,13 @@ lemma mk_to_preorder_hom_apply {a b : simplex_category.{u}}
   (f : fin (a.len + 1) →ₘ fin (b.len + 1)) (i : fin (a.len + 1)) :
   (mk f).to_preorder_hom i = f i := rfl
 
+/-- Identity morphisms of `simplex_category`. -/
 @[simp]
 def id (a : simplex_category.{u}) :
   simplex_category.hom a a :=
 mk preorder_hom.id
 
+/-- Composition of morphisms of `simplex_category`. -/
 @[simp]
 def comp {a b c : simplex_category.{u}} (f : simplex_category.hom b c)
   (g : simplex_category.hom a b) : simplex_category.hom a c :=
@@ -94,47 +101,18 @@ instance small_category : small_category.{u} simplex_category :=
   id := λ m, simplex_category.hom.id _,
   comp := λ _ _ _ f g, simplex_category.hom.comp g f, }
 
+/--
+Make a morphism `[n] ⟶ [m]` from a monotone map between fin's.
+This is useful for constructing morphisms beetween `[n]` directly
+without identifying `n` with `[n].len`.
+-/
 @[simp]
 def mk_hom {n m : ℕ} (f : (fin (n+1)) →ₘ (fin (m+1))) : [n] ⟶ [m] :=
 simplex_category.hom.mk f
 
---@[simp] lemma mk_hom_comp_mk_hom_to_preorder_hom
---  {l m n : ℕ} (f : (fin (l+1)) →ₘ (fin (m+1))) (g : (fin (m+1)) →ₘ (fin (n+1))) :
---  (mk_hom f ≫ mk_hom g).to_preorder_hom = g.comp f :=
-
---@[simp] lemma mk_hom_to_preorder_hom {n m : ℕ} (f : (fin (n+1)) →ₘ (fin (m+1))) :
---  (mk_hom f).to_preorder_hom = f :=
-
 end
 
 open_locale simplicial
-
-/-
-instance {a b : simplex_category} : has_coe_to_fun (a ⟶ b) :=
-{ F := λ _, fin (a.len + 1) → fin (b.len + 1),
-  coe := λ f, (f.down : fin (a.len + 1) → fin (b.len + 1)) }
-
-@[simp] lemma mk_hom_id_coe {n : ℕ} :
-  (𝟙 [n] : fin (n+1) → fin (n+1)) = id :=
-rfl
-
-@[simp] lemma mk_hom_comp_mk_hom_coe
-  {l m n : ℕ} (f : (fin (l+1)) →ₘ (fin (m+1))) (g : (fin (m+1)) →ₘ (fin (n+1))) :
-  (mk_hom f ≫ mk_hom g : fin (l+1) → fin (n+1)) = g.comp f :=
-rfl
-
-@[ext] lemma ext_hom {a b : simplex_category} (f g : a ⟶ b) :
-  (∀ i : fin (a.len + 1), f i = g i) → f = g := by tidy
-
-@[simp] lemma apply_eq_down_apply {a b : simplex_category} (f : a ⟶ b)
-  (i : fin (a.len + 1)) : f i = f.down i := rfl
-
-@[simp] lemma id_apply {n : simplex_category} (i : fin (n.len+1)) :
-  (𝟙 n : n ⟶ n).down i = i := rfl
-
-@[simp] lemma comp_apply {l m n : simplex_category} (f : l ⟶ m) (g : m ⟶ n) (i : fin (l.len+1)) :
-  (f ≫ g).down i = g.down (f.down i) := rfl
--/
 
 section generators
 /-!
@@ -325,7 +303,8 @@ section skeleton
 of `NonemptyFinLinOrd` -/
 def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd :=
 { obj := λ a, NonemptyFinLinOrd.of $ ulift (fin (a.len + 1)),
-  map := λ a b f, ⟨λ i, ulift.up (f.to_preorder_hom i.down), λ i j h, f.to_preorder_hom.monotone h⟩ }
+  map := λ a b f,
+    ⟨λ i, ulift.up (f.to_preorder_hom i.down), λ i j h, f.to_preorder_hom.monotone h⟩ }
 
 lemma skeletal : skeletal simplex_category :=
 λ X Y ⟨I⟩,
@@ -340,7 +319,7 @@ end
 namespace skeletal_functor
 
 instance : full skeletal_functor :=
-{ preimage := λ a b f, simplex_category.hom.mk $ ⟨λ i, (f (ulift.up i)).down, λ i j h, f.monotone h⟩,
+{ preimage := λ a b f, simplex_category.hom.mk ⟨λ i, (f (ulift.up i)).down, λ i j h, f.monotone h⟩,
   witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, refl } }
 
 instance : faithful skeletal_functor :=

@@ -352,7 +352,7 @@ end semiring
 
 section ring
 
-variables {R : Type*} [ring R] [no_zero_divisors R] [nontrivial R] [fintype R]
+variables (R : Type*) [ring R] [no_zero_divisors R] [nontrivial R] [fintype R]
 
 theorem char_is_prime (p : ℕ) [char_p R p] :
   p.prime :=

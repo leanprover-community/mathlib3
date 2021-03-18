@@ -80,19 +80,19 @@ lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
 
 lemma real.pow_even_norm (x : ℝ) {p : ℕ} (hp : even p) :
   ∥x∥ ^ p = x ^ p :=
-by rw [real.norm_eq_abs, abs_pow_even x hp]
-
-lemma real.norm_pow_even (x : ℝ) {p : ℕ} (hp : even p) :
-  ∥x ^ p∥ = x ^ p :=
-by rw [real.norm_eq_abs, abs_pow, abs_pow_even x hp]
+by rw [real.norm_eq_abs, pow_even_abs x hp]
 
 @[simp] lemma real.pow_bit0_norm (x : ℝ) (p : ℕ) :
   ∥x∥ ^ bit0 p = x ^ bit0 p :=
 real.pow_even_norm _ (even_bit0 _)
 
-@[simp] lemma real.norm_pow_bit0 (x : ℝ) (p : ℕ) :
-  ∥x ^ bit0 p∥ = x ^ bit0 p :=
-real.norm_pow_even _ (even_bit0 _)
+lemma real.fpow_even_norm (x : ℝ) {p : ℤ} (hp : even p) :
+  ∥x∥ ^ p = x ^ p :=
+by rw [real.norm_eq_abs, fpow_even_abs x hp]
+
+@[simp] lemma real.fpow_bit0_norm (x : ℝ) (p : ℤ) :
+  ∥x∥ ^ bit0 p = x ^ bit0 p :=
+real.fpow_even_norm _ (even_bit0 _)
 
 section normed_group
 variables [normed_group α] [normed_group β]

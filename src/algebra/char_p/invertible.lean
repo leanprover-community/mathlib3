@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Anne Baanen
+Authors: Anne Baanen
 -/
 import algebra.invertible
 import algebra.field

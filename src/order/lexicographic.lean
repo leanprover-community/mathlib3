@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Scott Morrison, Minchao Wu
+Authors: Scott Morrison, Minchao Wu
 
 Lexicographic preorder / partial_order / linear_order / linear_order,
 for pairs and dependent pairs.

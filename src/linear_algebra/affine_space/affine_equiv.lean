@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import linear_algebra.affine_space.affine_map
 import algebra.invertible
@@ -103,7 +103,7 @@ e.map_vadd' p v
 def to_affine_map (e : P₁ ≃ᵃ[k] P₂) : P₁ →ᵃ[k] P₂ := { to_fun := e, .. e }
 
 @[simp] lemma coe_to_affine_map (e : P₁ ≃ᵃ[k] P₂) :
-  (e.to_affine_map : P₁ → P₂) = (e : P₁ → P₂) := 
+  (e.to_affine_map : P₁ → P₂) = (e : P₁ → P₂) :=
 rfl
 
 @[simp] lemma to_affine_map_mk (f : P₁ ≃ P₂) (f' : V₁ ≃ₗ[k] V₂) (h) :

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Andreas Swerdlow, Kexing Ying
+Authors: Andreas Swerdlow, Kexing Ying
 -/
 
 import linear_algebra.matrix

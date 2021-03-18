@@ -163,7 +163,7 @@ src/data/seq/computation.lean : line 11 : ERR_MOD : Module docstring missing, or
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/wseq.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/data/set/basic.lean : line 2439 : ERR_LIN : Line has more than 100 characters
+src/data/set/basic.lean : line 2442 : ERR_LIN : Line has more than 100 characters
 src/data/set/basic.lean : line 897 : ERR_LIN : Line has more than 100 characters
 src/data/set/disjointed.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/set/enumerate.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -543,7 +543,7 @@ src/testing/slim_check/testable.lean : line 741 : ERR_LIN : Line has more than 1
 src/topology/algebra/floor_ring.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/group_completion.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/open_subgroup.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/topology/algebra/ring.lean : line 12 : ERR_MOD : Module docstring missing, or too late
+src/topology/algebra/ring.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/uniform_ring.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/uniform_ring.lean : line 148 : ERR_LIN : Line has more than 100 characters
 src/topology/bases.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -553,9 +553,8 @@ src/topology/homeomorph.lean : line 8 : ERR_MOD : Module docstring missing, or t
 src/topology/instances/real.lean : line 136 : ERR_LIN : Line has more than 100 characters
 src/topology/local_homeomorph.lean : line 567 : ERR_LIN : Line has more than 100 characters
 src/topology/local_homeomorph.lean : line 578 : ERR_LIN : Line has more than 100 characters
-src/topology/metric_space/basic.lean : line 17 : ERR_MOD : Module docstring missing, or too late
+src/topology/metric_space/basic.lean : line 22 : ERR_MOD : Module docstring missing, or too late
 src/topology/metric_space/gromov_hausdorff.lean : line 62 : ERR_LIN : Line has more than 100 characters
-src/topology/metric_space/premetric_space.lean : line 82 : ERR_LIN : Line has more than 100 characters
 src/topology/omega_complete_partial_order.lean : line 85 : ERR_LIN : Line has more than 100 characters
 src/topology/separation.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/topology/sheaves/forget.lean : line 147 : ERR_LIN : Line has more than 100 characters

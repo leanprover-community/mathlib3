@@ -148,13 +148,10 @@ def quaternion_group_zero_equiv_dihedral_group_zero : quaternion_group 0 ≃* di
   right_inv := by rintro (k | k); refl,
   map_mul' := by { rintros (k | k) (l | l); { dsimp, simp, }, } }
 
-lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (nat.succ m) * n :=
-mul_pos (nat.succ_pos m) hn
-
 /-- Some of the lemmas on `zmod m` require that `m` is positive, as `m = 2 * n` is the case relevant
 in this file but we don't want to write `[fact (0 < 2 * n)]` we make this lemma a local instance. -/
 private lemma succ_mul_pos_fact {m : ℕ} [hn : fact (0 < n)] : fact (0 < (nat.succ m) * n) :=
-succ_mul_pos m hn
+nat.succ_mul_pos m hn
 
 local attribute [instance] succ_mul_pos_fact
 

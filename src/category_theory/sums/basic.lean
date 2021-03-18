@@ -11,7 +11,7 @@ Disjoint unions of categories, functors, and natural transformations.
 
 namespace category_theory
 
-universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ u₁ -- morphism levels before object levels. See note [category_theory universes].
 
 open sum
 

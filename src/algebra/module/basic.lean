@@ -5,10 +5,8 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
 import algebra.group.hom
-import algebra.ring.basic
-import data.rat.cast
 import group_theory.group_action.group
-import tactic.nth_rewrite
+import algebra.smul_with_zero
 
 /-!
 # Modules over a ring
@@ -16,7 +14,7 @@ import tactic.nth_rewrite
 In this file we define
 
 * `semimodule R M` : an additive commutative monoid `M` is a `semimodule` over a
-  `semiring` `R` if for `r : R` and `x : M` their "scalar multiplication `r • x : M` is defined, and
+  `semiring R` if for `r : R` and `x : M` their "scalar multiplication `r • x : M` is defined, and
   the operation `•` satisfies some natural associativity and distributivity axioms similar to those
   on a ring.
 
@@ -57,9 +55,16 @@ variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {
 section add_comm_monoid
 variables [semiring R] [add_comm_monoid M] [semimodule R M] (r s : R) (x y : M)
 
+/-- A semimodule over a semiring automatically inherits a `mul_action_with_zero` structure. -/
+@[priority 100] -- see Note [lower instance priority]
+instance semimodule.to_mul_action_with_zero :
+  mul_action_with_zero R M :=
+{ smul_zero := smul_zero,
+  zero_smul := semimodule.zero_smul,
+  ..(infer_instance : mul_action R M) }
+
 theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s x
 variables (R)
-@[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
 

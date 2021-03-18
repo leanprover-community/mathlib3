@@ -47,7 +47,7 @@ lemma coeff_derivative (p : polynomial R) (n : ℕ) :
 begin
   rw [derivative_apply],
   simp only [coeff_X_pow, coeff_sum, coeff_C_mul],
-  rw [finsupp.sum, finset.sum_eq_single (n + 1)],
+  rw [sum_def, finset.sum_eq_single (n + 1)],
   simp only [nat.add_succ_sub_one, add_zero, mul_one, if_true, eq_self_iff_true], norm_cast,
   swap,
   { rw [if_pos (nat.add_sub_cancel _ _).symm, mul_one, nat.cast_add, nat.cast_one, mem_support_iff],
@@ -292,7 +292,7 @@ variables [integral_domain R]
 lemma mem_support_derivative [char_zero R] (p : polynomial R) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
 suffices (¬(coeff p (n + 1) = 0 ∨ ((n + 1:ℕ) : R) = 0)) ↔ coeff p (n + 1) ≠ 0,
-  by simpa only [mem_support_iff_coeff_ne_zero, coeff_derivative, ne.def, mul_eq_zero],
+  by simpa only [mem_support_iff, coeff_derivative, ne.def, mul_eq_zero],
 by { rw [nat.cast_eq_zero], simp only [nat.succ_ne_zero, or_false] }
 
 @[simp] lemma degree_derivative_eq [char_zero R] (p : polynomial R) (hp : 0 < nat_degree p) :

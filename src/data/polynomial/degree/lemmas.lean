@@ -145,7 +145,7 @@ lemma nat_degree_mul_C_eq_of_mul_ne_zero (h : p.leading_coeff * a ≠ 0) :
   (p * C a).nat_degree = p.nat_degree :=
 begin
   refine eq_nat_degree_of_le_mem_support (nat_degree_mul_C_le p a) _,
-  refine mem_support_iff_coeff_ne_zero.mpr _,
+  refine mem_support_iff.mpr _,
   rwa coeff_mul_C,
 end
 
@@ -158,7 +158,7 @@ lemma nat_degree_C_mul_eq_of_mul_ne_zero (h : a * p.leading_coeff ≠ 0) :
   (C a * p).nat_degree = p.nat_degree :=
 begin
   refine eq_nat_degree_of_le_mem_support (nat_degree_C_mul_le a p) _,
-  refine mem_support_iff_coeff_ne_zero.mpr _,
+  refine mem_support_iff.mpr _,
   rwa coeff_C_mul,
 end
 

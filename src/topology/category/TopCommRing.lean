@@ -104,9 +104,8 @@ instance : reflects_isomorphisms (forget₂ TopCommRing Top) :=
 
     -- Putting these together we obtain the isomorphism we're after:
     exact
-    { inv := ⟨e_Ring.symm, i_Top.inv.2⟩,
-      hom_inv_id' := by { ext x, exact e_Ring.left_inv x, },
-      inv_hom_id' := by { ext x, exact e_Ring.right_inv x, }, },
+    ⟨⟨e_Ring.symm, i_Top.inv.2⟩,
+      ⟨by { ext x, exact e_Ring.left_inv x, }, by { ext x, exact e_Ring.right_inv x, }⟩⟩
   end }
 
 end TopCommRing

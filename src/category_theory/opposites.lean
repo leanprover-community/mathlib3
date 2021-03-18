@@ -102,10 +102,9 @@ end
 If `f.op` is an isomorphism `f` must be too.
 (This cannot be an instance as it would immediately loop!)
 -/
-def is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
-{ inv := (inv (f.op)).unop,
-  hom_inv_id' := has_hom.hom.op_inj (by simp),
-  inv_hom_id' := has_hom.hom.op_inj (by simp) }
+lemma is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
+⟨(inv (f.op)).unop,
+  ⟨has_hom.hom.op_inj (by simp), has_hom.hom.op_inj (by simp)⟩⟩
 
 namespace functor
 

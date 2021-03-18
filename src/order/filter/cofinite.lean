@@ -108,3 +108,34 @@ end
 lemma nat.frequently_at_top_iff_infinite {p : ℕ → Prop} :
   (∃ᶠ n in at_top, p n) ↔ set.infinite {n | p n} :=
 by simp only [← nat.cofinite_eq_at_top, frequently_cofinite_iff_infinite]
+
+lemma filter.tendsto.exists_forall_le {α β : Type*} [nonempty α] [linear_order β]
+  {f : α → β} (hf : tendsto f cofinite at_top) :
+  ∃ a₀, ∀ a, f a₀ ≤ f a :=
+begin
+  inhabit α,
+  by_cases not_all_top : ∃ y, ∃ x, f y < x,
+  { -- take the inverse image, `small_vals`, of some bounded nonempty set; it's finite so has a min
+    haveI : nonempty β := ⟨f (default α)⟩,
+    obtain ⟨y, x, hx⟩ := not_all_top,
+    let small_vals : finset α := (filter.eventually_cofinite.mp
+      ((at_top_basis.tendsto_right_iff).1 hf x trivial)).to_finset,
+    have y_in : y ∈ small_vals := by simp [hx],
+    obtain ⟨a₀, -, others_bigger⟩ := small_vals.exists_min_image f ⟨y, y_in⟩,
+    use a₀,
+    intros a,
+    by_cases h : a ∈ small_vals,
+    { exact others_bigger a h },
+    refine le_trans (others_bigger y y_in) (le_trans hx.le _),
+    simpa using h },
+  { -- in this case, f is constant because all values are at top
+    push_neg at not_all_top,
+    use default α,
+    intros a,
+    exact not_all_top a (f $ default α) }
+end
+
+lemma filter.tendsto.exists_forall_ge {α β : Type*} [nonempty α] [linear_order β]
+  {f : α → β} (hf : tendsto f cofinite at_bot) :
+  ∃ a₀, ∀ a, f a ≤ f a₀ :=
+@filter.tendsto.exists_forall_le _ (order_dual β) _ _ _ hf

@@ -815,7 +815,7 @@ def prod_comparison_nat_iso [has_binary_products C] [has_binary_products D]
   (A : C) [∀ B, is_iso (prod_comparison F A B)] :
   prod.functor.obj A ⋙ F ≅ F ⋙ prod.functor.obj (F.obj A) :=
 { hom := prod_comparison_nat_trans F A
-  ..nat_iso.is_iso_of_is_iso_app ⟨_, _⟩ }
+  ..(@as_iso _ _ _ _ _ (nat_iso.is_iso_of_is_iso_app ⟨_, _⟩)) }
 
 end prod_comparison
 

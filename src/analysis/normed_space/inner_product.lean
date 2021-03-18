@@ -1148,8 +1148,7 @@ begin
     have hx0 : x ≠ 0,
     { intro hx0,
       rw [hx0, inner_zero_left, zero_div] at h,
-      norm_num at h,
-      exact h },
+      norm_num at h, },
     refine and.intro hx0 _,
     set r := ⟪x, y⟫ / (∥x∥ * ∥x∥) with hr,
     use r,
@@ -1740,6 +1739,19 @@ lemma measurable.inner [measurable_space α] [measurable_space E] [opens_measura
   {f g : α → E} (hf : measurable f) (hg : measurable g) :
   measurable (λ t, ⟪f t, g t⟫) :=
 continuous.measurable2 continuous_inner hf hg
+
+lemma ae_measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
+  [topological_space.second_countable_topology E] [measurable_space 𝕜] [borel_space 𝕜]
+  {μ : measure_theory.measure α} {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  ae_measurable (λ x, ⟪f x, g x⟫) μ :=
+begin
+  refine ⟨λ x, ⟪hf.mk f x, hg.mk g x⟫, hf.measurable_mk.inner hg.measurable_mk, _⟩,
+  refine hf.ae_eq_mk.mp (hg.ae_eq_mk.mono (λ x hxg hxf, _)),
+  dsimp only,
+  congr,
+  { exact hxf, },
+  { exact hxg, },
+end
 
 variables [topological_space α] {f g : α → E} {x : α} {s : set α}
 

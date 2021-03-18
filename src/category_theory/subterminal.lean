@@ -131,6 +131,10 @@ def subterminal_inclusion : subterminals C ⥤ C := full_subcategory_inclusion _
 instance subterminals_thin (X Y : subterminals C) : subsingleton (X ⟶ Y) :=
 ⟨λ f g, Y.2 f g⟩
 
+/--
+The category of subterminal objects is equivalent to the category of monomorphisms to the terminal
+object (which is in turn equivalent to the subobjects of the terminal object).
+-/
 @[simps]
 def subterminals_equiv_mono_over_terminal [has_terminal C] :
   subterminals C ≌ mono_over (⊤_ C) :=

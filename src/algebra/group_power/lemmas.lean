@@ -447,18 +447,6 @@ variables [linear_ordered_ring R] {a : R} {n : ℕ}
 @[simp] lemma abs_pow (a : R) (n : ℕ) : abs (a ^ n) = abs a ^ n :=
 abs_hom.to_monoid_hom.map_pow a n
 
-lemma abs_pow_even (a : R) {p : ℕ} (hp : even p) :
-  abs a ^ p = a ^ p :=
-begin
-  obtain ⟨k, rfl⟩ := hp,
-  rw [←abs_pow, abs_eq_self, two_mul, pow_add],
-  exact mul_self_nonneg (a ^ k)
-end
-
-@[simp] lemma abs_pow_bit0 (a : R) (p : ℕ) :
-  abs a ^ bit0 p = a ^ bit0 p :=
-abs_pow_even _ (even_bit0 _)
-
 @[simp] theorem pow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
 ⟨λ h, not_le.1 $ λ h', not_le.2 h $ pow_nonneg h' _,
   λ h, mul_neg_of_neg_of_pos h (pow_bit0_pos h.ne _)⟩
@@ -489,6 +477,17 @@ by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonpos_iff.mpr ha
 
 theorem pow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_neg_iff.mpr ha
+
+lemma pow_even_abs (a : R) {p : ℕ} (hp : even p) :
+  abs a ^ p = a ^ p :=
+begin
+  rw [←abs_pow, abs_eq_self],
+  exact pow_even_nonneg _ hp
+end
+
+@[simp] lemma pow_bit0_abs (a : R) (p : ℕ) :
+  abs a ^ bit0 p = a ^ bit0 p :=
+pow_even_abs _ (even_bit0 _)
 
 lemma strict_mono_pow_bit1 (n : ℕ) : strict_mono (λ a : R, a ^ bit1 n) :=
 begin

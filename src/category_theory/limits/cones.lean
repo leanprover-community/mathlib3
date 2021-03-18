@@ -494,7 +494,6 @@ end limits
 
 namespace functor
 
-variables
 variables {F : J ⥤ C} {G : J ⥤ C} (H : C ⥤ D)
 
 open category_theory.limits

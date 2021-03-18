@@ -525,13 +525,6 @@ begin
     { congr, funext y, simp only [set.Union_pos, set.mem_univ] },
 end
 
-lemma finsum_subtype_eq_finsum_in (s : set α) : ∑ᶠ j : s, f j.val = ∑ᶠ i in s, f i :=
-begin
-  rw ← finsum_eq_finsum_in_univ,
-  refine finsum_in_eq_of_bij_on subtype.val _ (λ _ _, rfl),
-  exact ⟨λ ⟨x, hx⟩ _, hx, λ _ _ _ _, subtype.eq, λ x hx, ⟨⟨x, hx⟩, set.mem_univ _, rfl⟩⟩,
-end
-
 /-- An alternative version of `finsum_in_bUnion` in which `t` is a finite set of `set α`s. -/
 lemma finsum_in_sUnion {t : set (set α)} (ht₀ : t.finite)
   (ht₁ : ∀ x ∈ t, set.finite x) (h : ∀ x ∈ t, ∀ y ∈ t, x ≠ y → disjoint x y):

@@ -46,7 +46,7 @@ namespace mv_polynomial
 variables {σ : Type*} {R : Type*}
 variables {τ : Type*} {S : Type*}
 
-/-- A mv_polynomial φ is symmetric if it is invariant under
+/-- A `mv_polynomial φ` is symmetric if it is invariant under
 permutations of its variables by the  `rename` operation -/
 def is_symmetric [comm_semiring R] (φ : mv_polynomial σ R) : Prop :=
 ∀ e : perm σ, rename e φ = φ
@@ -90,7 +90,7 @@ lemma neg (hφ : is_symmetric φ) : is_symmetric (-φ) :=
 λ e, by rw [alg_hom.map_neg, hφ]
 
 lemma sub (hφ : is_symmetric φ) (hψ : is_symmetric ψ) : is_symmetric (φ - ψ) :=
-λ e, by rw [alg_hom.map_sub, hφ, hψ]
+by { rw sub_eq_add_neg, exact hφ.add hψ.neg }
 
 end comm_ring
 
@@ -156,8 +156,7 @@ lemma rename_esymm (n : ℕ) (e : σ ≃ τ) : rename e (esymm σ R n) = esymm �
 begin
   rw [esymm_eq_sum_subtype, esymm_eq_sum_subtype, (rename ⇑e).map_sum],
   let e' : {s : finset σ // s.card = n} ≃ {s : finset τ // s.card = n} :=
-  equiv.subtype_congr (equiv.finset_congr e)
-    (by { intro, rw [equiv.finset_congr_apply, card_map] }),
+    equiv.subtype_equiv (equiv.finset_congr e) (by simp),
   rw ← equiv.sum_comp e'.symm,
   apply fintype.sum_congr,
   intro,

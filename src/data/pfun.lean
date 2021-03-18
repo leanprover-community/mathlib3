@@ -61,8 +61,11 @@ instance : inhabited (roption α) := ⟨none⟩
   function returns `a`. -/
 def some (a : α) : roption α := ⟨true, λ_, a⟩
 
-theorem mem_unique : relator.left_unique ((∈) : α → roption α → Prop)
-| _ ⟨p, f⟩ _ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
+theorem mem_unique : ∀ {a b : α} {o : roption α}, a ∈ o → b ∈ o → a = b
+| _ _ ⟨p, f⟩ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
+
+theorem mem.left_unique : relator.left_unique ((∈) : α → roption α → Prop) :=
+⟨λ a o b, mem_unique⟩
 
 theorem get_eq_of_mem {o : roption α} {a} (h : a ∈ o) (h') : get o h' = a :=
 mem_unique ⟨_, rfl⟩ h

@@ -108,12 +108,12 @@ calc a + n*c ≡ b + n*c [ZMOD n] : int.modeq.modeq_add ha (int.modeq.refl _)
 
 open nat
 lemma mod_coprime {a b : ℕ} (hab : coprime a b) : ∃ y : ℤ, a * y ≡ 1 [ZMOD b] :=
-⟨ gcd_a a b,
+⟨ nat.gcd_a a b,
   have hgcd : nat.gcd a b = 1, from coprime.gcd_eq_one hab,
   calc
-   ↑a * gcd_a a b ≡ ↑a*gcd_a a b + ↑b*gcd_b a b [ZMOD ↑b] : int.modeq.symm $
+   ↑a * nat.gcd_a a b ≡ ↑a * nat.gcd_a a b + ↑b * nat.gcd_b a b [ZMOD ↑b] : int.modeq.symm $
                       modeq_add_fac _ $ int.modeq.refl _
-              ... ≡ 1 [ZMOD ↑b] : by rw [←gcd_eq_gcd_ab, hgcd]; reflexivity ⟩
+              ... ≡ 1 [ZMOD ↑b] : by rw [← nat.gcd_eq_gcd_ab, hgcd]; reflexivity ⟩
 
 lemma exists_unique_equiv (a : ℤ) {b : ℤ} (hb : 0 < b) : ∃ z : ℤ, 0 ≤ z ∧ z < b ∧ z ≡ a [ZMOD b] :=
 ⟨ a % b, int.mod_nonneg _ (ne_of_gt hb),

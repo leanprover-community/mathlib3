@@ -377,6 +377,13 @@ end comm_group
 lemma zero_pow [monoid_with_zero R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
 | (n+1) _ := zero_mul _
 
+lemma zero_pow_eq [monoid_with_zero R] (n : ℕ) : (0 : R)^n = if n = 0 then 1 else 0 :=
+begin
+  split_ifs with h,
+  { rw [h, pow_zero], },
+  { rw [zero_pow (nat.pos_of_ne_zero h)] },
+end
+
 namespace ring_hom
 
 variables [semiring R] [semiring S]
@@ -548,6 +555,22 @@ variable [ordered_semiring R]
 | 0     := zero_le_one
 | (n+1) := mul_nonneg H (pow_nonneg _)
 
+theorem pow_add_pow_le {x y : R} {n : ℕ} (hx : 0 ≤ x) (hy : 0 ≤ y) (hn : n ≠ 0) :
+  x ^ n + y ^ n ≤ (x + y) ^ n :=
+begin
+  rcases nat.exists_eq_succ_of_ne_zero hn with ⟨k, rfl⟩,
+  induction k with k ih, { simp only [pow_one] },
+  let n := k.succ,
+  have h1 := add_nonneg (mul_nonneg hx (pow_nonneg hy n)) (mul_nonneg hy (pow_nonneg hx n)),
+  have h2 := add_nonneg hx hy,
+  calc x^n.succ + y^n.succ ≤ x*x^n + y*y^n + (x*y^n + y*x^n) : le_add_of_nonneg_right h1
+                       ... = (x+y) * (x^n + y^n) : by rw [add_mul, mul_add, mul_add,
+                                                          add_comm (y*x^n), ← add_assoc,
+                                                          ← add_assoc, add_assoc (x*x^n) (x*y^n),
+                                                          add_comm (x*y^n) (y*y^n), ← add_assoc]
+                       ... ≤ (x+y)^n.succ : mul_le_mul_of_nonneg_left (ih (nat.succ_ne_zero k)) h2,
+end
+
 theorem pow_lt_pow_of_lt_left {x y : R} {n : ℕ} (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) :
   x ^ n < y ^ n :=
 begin
@@ -621,6 +644,50 @@ theorem pow_bit0_pos {a : R} (h : a ≠ 0) (n : ℕ) : 0 < a ^ bit0 n :=
 
 theorem pow_two_pos_of_ne_zero (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
 pow_bit0_pos h 1
+
+variables {x y : R}
+
+@[simp] theorem sqr_abs (x : R) : abs x ^ 2 = x ^ 2 :=
+by simpa only [pow_two] using abs_mul_abs_self x
+
+theorem abs_sqr (x : R) : abs (x ^ 2) = x ^ 2 :=
+by simpa only [pow_two] using abs_mul_self x
+
+theorem sqr_lt_sqr (h : abs x < y) : x ^ 2 < y ^ 2 :=
+by simpa only [sqr_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).succ_pos
+
+theorem sqr_lt_sqr' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
+sqr_lt_sqr (abs_lt.mpr ⟨h1, h2⟩)
+
+theorem sqr_le_sqr (h : abs x ≤ y) : x ^ 2 ≤ y ^ 2 :=
+by simpa only [sqr_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
+
+theorem sqr_le_sqr' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
+sqr_le_sqr (abs_le.mpr ⟨h1, h2⟩)
+
+theorem abs_lt_abs_of_sqr_lt_sqr (h : x^2 < y^2) : abs x < abs y :=
+lt_of_pow_lt_pow 2 (abs_nonneg y) $ by rwa [← sqr_abs x, ← sqr_abs y] at h
+
+theorem abs_lt_of_sqr_lt_sqr (h : x^2 < y^2) (hy : 0 ≤ y) : abs x < y :=
+begin
+  rw [← abs_of_nonneg hy],
+  exact abs_lt_abs_of_sqr_lt_sqr h,
+end
+
+theorem abs_lt_of_sqr_lt_sqr' (h : x^2 < y^2) (hy : 0 ≤ y) : -y < x ∧ x < y :=
+abs_lt.mp $ abs_lt_of_sqr_lt_sqr h hy
+
+theorem abs_le_abs_of_sqr_le_sqr (h : x^2 ≤ y^2) : abs x ≤ abs y :=
+le_of_pow_le_pow 2 (abs_nonneg y) (1:ℕ).succ_pos $ by rwa [← sqr_abs x, ← sqr_abs y] at h
+
+theorem abs_le_of_sqr_le_sqr (h : x^2 ≤ y^2) (hy : 0 ≤ y) : abs x ≤ y :=
+begin
+  rw [← abs_of_nonneg hy],
+  exact abs_le_abs_of_sqr_le_sqr h,
+end
+
+theorem abs_le_of_sqr_le_sqr' (h : x^2 ≤ y^2) (hy : 0 ≤ y) : -y ≤ x ∧ x ≤ y :=
+abs_le.mp $ abs_le_of_sqr_le_sqr h hy
 
 end linear_ordered_ring
 

@@ -49,8 +49,6 @@ rfl
 end finset
 
 /--
-## Operator precedence of `∏` and `∑`
-
 There is no established mathematical convention
 for the operator precedence of big operators like `∏` and `∑`.
 We will have to make a choice.
@@ -143,8 +141,9 @@ lemma monoid_hom.finset_prod_apply [monoid β] [comm_monoid γ] (f : α → β �
   (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
 (monoid_hom.eval b).map_prod _ _
 
-namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
+
+namespace finset
 
 section comm_monoid
 variables [comm_monoid β]
@@ -219,6 +218,34 @@ fold_union_inter
 lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) :
   (∏ x in (s₁ ∪ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
+
+end comm_monoid
+
+end finset
+
+section
+variables [fintype α] [decidable_eq α] [comm_monoid β]
+
+@[to_additive]
+lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → β) :
+  (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
+(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+end
+
+namespace finset
+
+section comm_monoid
+variables [comm_monoid β]
+
+@[to_additive]
+lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
+  (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
+is_compl_compl.prod_mul_prod f
+
+@[to_additive]
+lemma prod_compl_mul_prod [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
+  (∏ i in sᶜ, f i) * (∏ i in s, f i) = ∏ i, f i :=
+is_compl_compl.symm.prod_mul_prod f
 
 @[to_additive]
 lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) :
@@ -527,6 +554,16 @@ lemma prod_ite_index (p : Prop) [decidable p] (s t : finset α) (f : α → β) 
   (∏ x in if p then s else t, f x) = if p then ∏ x in s, f x else ∏ x in t, f x :=
 apply_ite (λ s, ∏ x in s, f x) _ _ _
 
+@[simp] lemma sum_pi_single' {ι M : Type*} [decidable_eq ι] [add_comm_monoid M]
+  (i : ι) (x : M) (s : finset ι) :
+  ∑ j in s, pi.single i x j = if i ∈ s then x else 0 :=
+sum_dite_eq' _ _ _
+
+@[simp] lemma sum_pi_single {ι : Type*} {M : ι → Type*}
+  [decidable_eq ι] [Π i, add_comm_monoid (M i)] (i : ι) (f : Π i, M i) (s : finset ι) :
+  ∑ j in s, pi.single j (f j) i = if i ∈ s then f i else 0 :=
+sum_dite_eq _ _ _
+
 /--
   Reorder a product.
 
@@ -626,6 +663,15 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
+lemma prod_range_add (f : ℕ → β) (n : ℕ) (m : ℕ) :
+  (∏ x in range (n + m), f x) =
+  (∏ x in range n, f x) * (∏ x in range m, f (n + x)) :=
+begin
+  induction m with m hm,
+  { simp },
+  { rw [nat.add_succ, finset.prod_range_succ, hm, finset.prod_range_succ, mul_left_comm _ _ _] },
+end
+
 @[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
  (∏ k in range 0, f k) = 1 :=
@@ -661,9 +707,20 @@ begin
   rintro rfl, exact has hx
 end
 
+lemma sum_multiset_map_count [decidable_eq α] (s : multiset α)
+  {M : Type*} [add_comm_monoid M] (f : α → M) :
+  (s.map f).sum = ∑ m in s.to_finset, s.count m •ℕ f m :=
+@prod_multiset_map_count _ _ _ (multiplicative M) _ f
+attribute [to_additive] prod_multiset_map_count
+
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
 by { convert prod_multiset_map_count s id, rw map_id }
+
+lemma sum_multiset_count [decidable_eq α] [add_comm_monoid α] (s : multiset α) :
+  s.sum = ∑ m in s.to_finset, s.count m •ℕ m :=
+@prod_multiset_count (multiplicative α) _ _ s
+attribute [to_additive] prod_multiset_count
 
 /--
 To prove a property of a product, it suffices to prove that
@@ -672,15 +729,21 @@ the property is multiplicative and holds on factors.
 @[to_additive "To prove a property of a sum, it suffices to prove that
 the property is additive and holds on summands."]
 lemma prod_induction {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
-(p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
-p $ ∏ x in s, f x :=
-begin
-  classical,
-  induction s using finset.induction with x hx s hs, simpa,
-  rw finset.prod_insert, swap, assumption,
-  apply p_mul, apply p_s, simp,
-  apply hs, intros a ha, apply p_s, simp [ha],
-end
+  (p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
+  p $ ∏ x in s, f x :=
+multiset.prod_induction _ _ p_mul p_one (multiset.forall_mem_map_iff.mpr p_s)
+
+/--
+To prove a property of a product, it suffices to prove that
+the property is multiplicative and holds on factors.
+-/
+@[to_additive "To prove a property of a sum, it suffices to prove that
+the property is additive and holds on summands."]
+lemma prod_induction_nonempty {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
+  (p_mul : ∀ a b, p a → p b → p (a * b)) (hs_nonempty : s.nonempty) (p_s : ∀ x ∈ s, p $ f x) :
+  p $ ∏ x in s, f x :=
+multiset.prod_induction_nonempty p p_mul (by simp [nonempty_iff_ne_empty.mp hs_nonempty])
+  (multiset.forall_mem_map_iff.mpr p_s)
 
 /--
 For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
@@ -1006,6 +1069,12 @@ lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
   ∀ n : ℕ, (∑ i in range (n + 1), f i) = (∑ i in range n, f (i + 1)) + f 0 :=
 @prod_range_succ' (multiplicative β) _ _
 attribute [to_additive] prod_range_succ'
+
+lemma sum_range_add {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) (m : ℕ) :
+  (∑ x in range (n + m), f x) =
+  (∑ x in range n, f x) + (∑ x in range m, f (n + x)) :=
+@prod_range_add (multiplicative β) _ _ _ _
+attribute [to_additive] prod_range_add
 
 lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
   (∑ i in range (n + 1), f (n - i)) = (∑ i in range (n + 1), f i) :=

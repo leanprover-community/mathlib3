@@ -64,16 +64,19 @@ class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : 
 (preserves_limit : Π {K : J ⥤ C}, preserves_limit K F)
 /-- We say that `F` preserves colimits of shape `J` if `F` preserves colimits for every diagram
     `K : J ⥤ C`, i.e., `F` maps colimit cocones over `K` to colimit cocones. -/
-class preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
+class preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :
+  Type (max u₁ u₂ v) :=
 (preserves_colimit : Π {K : J ⥤ C}, preserves_colimit K F)
 
 /-- We say that `F` preserves limits if it sends limit cones over any diagram to limit cones. -/
 class preserves_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
-(preserves_limits_of_shape : Π {J : Type v} [𝒥 : small_category J], by exactI preserves_limits_of_shape J F)
+(preserves_limits_of_shape : Π {J : Type v} [𝒥 : small_category J],
+  by exactI preserves_limits_of_shape J F)
 /-- We say that `F` preserves colimits if it sends colimit cocones over any diagram to colimit
     cocones.-/
 class preserves_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
-(preserves_colimits_of_shape : Π {J : Type v} [𝒥 : small_category J], by exactI preserves_colimits_of_shape J F)
+(preserves_colimits_of_shape : Π {J : Type v} [𝒥 : small_category J],
+  by exactI preserves_colimits_of_shape J F)
 
 attribute [instance, priority 100] -- see Note [lower instance priority]
   preserves_limits_of_shape.preserves_limit preserves_limits.preserves_limits_of_shape
@@ -96,9 +99,11 @@ def is_colimit_of_preserves (F : C ⥤ D) {c : cocone K} (t : is_colimit c)
   is_colimit (F.map_cocone c) :=
 preserves_colimit.preserves t
 
-instance preserves_limit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (preserves_limit K F) :=
+instance preserves_limit_subsingleton (K : J ⥤ C) (F : C ⥤ D) :
+  subsingleton (preserves_limit K F) :=
 by split; rintros ⟨a⟩ ⟨b⟩; congr
-instance preserves_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (preserves_colimit K F) :=
+instance preserves_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) :
+  subsingleton (preserves_colimit K F) :=
 by split; rintros ⟨a⟩ ⟨b⟩; congr
 
 instance preserves_limits_of_shape_subsingleton (J : Type v) [small_category J] (F : C ⥤ D) :
@@ -118,14 +123,16 @@ instance id_preserves_limits : preserves_limits (𝟭 C) :=
   { preserves_limit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.lift ⟨s.X, λ j, s.π.app j, λ j j' f, s.π.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
-   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
+   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩;
+     exact h.uniq _ m w⟩⟩ } }
 
 instance id_preserves_colimits : preserves_colimits (𝟭 C) :=
 { preserves_colimits_of_shape := λ J 𝒥,
   { preserves_colimit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.desc ⟨s.X, λ j, s.ι.app j, λ j j' f, s.ι.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
-   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
+   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩;
+     exact h.uniq _ m w⟩⟩ } }
 
 section
 variables {E : Type u₃} [ℰ : category.{v} E]
@@ -294,7 +301,8 @@ the cone was already a limit cone in `C`.
 Note that we do not assume a priori that `D` actually has any limits.
 -/
 class reflects_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
-(reflects_limits_of_shape : Π {J : Type v} {𝒥 : small_category J}, by exactI reflects_limits_of_shape J F)
+(reflects_limits_of_shape : Π {J : Type v} {𝒥 : small_category J},
+  by exactI reflects_limits_of_shape J F)
 /--
 A functor `F : C ⥤ D` reflects colimits if
 whenever the image of a cocone over some `K : J ⥤ C` under `F` is a colimit cocone in `D`,
@@ -302,7 +310,8 @@ the cocone was already a colimit cocone in `C`.
 Note that we do not assume a priori that `D` actually has any colimits.
 -/
 class reflects_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
-(reflects_colimits_of_shape : Π {J : Type v} {𝒥 : small_category J}, by exactI reflects_colimits_of_shape J F)
+(reflects_colimits_of_shape : Π {J : Type v} {𝒥 : small_category J},
+  by exactI reflects_colimits_of_shape J F)
 
 /--
 A convenience function for `reflects_limit`, which takes the functor as an explicit argument to
@@ -323,7 +332,8 @@ reflects_colimit.reflects t
 
 instance reflects_limit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (reflects_limit K F) :=
 by split; rintros ⟨a⟩ ⟨b⟩; congr
-instance reflects_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (reflects_colimit K F) :=
+instance reflects_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) :
+  subsingleton (reflects_colimit K F) :=
 by split; rintros ⟨a⟩ ⟨b⟩; congr
 
 instance reflects_limits_of_shape_subsingleton (J : Type v) [small_category J] (F : C ⥤ D) :
@@ -361,14 +371,16 @@ instance id_reflects_limits : reflects_limits (𝟭 C) :=
   { reflects_limit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.lift ⟨s.X, λ j, s.π.app j, λ j j' f, s.π.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
-   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
+   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩;
+     exact h.uniq _ m w⟩⟩ } }
 
 instance id_reflects_colimits : reflects_colimits (𝟭 C) :=
 { reflects_colimits_of_shape := λ J 𝒥,
   { reflects_colimit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.desc ⟨s.X, λ j, s.ι.app j, λ j j' f, s.ι.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
-   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
+   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩;
+     exact h.uniq _ m w⟩⟩ } }
 
 section
 variables {E : Type u₃} [ℰ : category.{v} E]
@@ -569,7 +581,8 @@ def fully_faithful_reflects_colimits [full F] [faithful F] : reflects_colimits F
 { reflects_colimits_of_shape := λ J 𝒥₁, by exactI
   { reflects_colimit := λ K,
     { reflects := λ c t,
-      is_colimit.mk_cocone_morphism (λ s, (cocones.functoriality K F).preimage (t.desc_cocone_morphism _)) $
+      is_colimit.mk_cocone_morphism
+        (λ s, (cocones.functoriality K F).preimage (t.desc_cocone_morphism _)) $
       begin
         apply (λ s m, (cocones.functoriality K F).map_injective _),
         rw [functor.image_preimage],

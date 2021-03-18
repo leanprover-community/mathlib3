@@ -66,7 +66,8 @@ blanks (`default Γ`) to the end of `l₁`. -/
 def blank_extends {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
 ∃ n, l₂ = l₁ ++ list.repeat (default Γ) n
 
-@[refl] theorem blank_extends.refl {Γ} [inhabited Γ] (l : list Γ) : blank_extends l l := ⟨0, by simp⟩
+@[refl] theorem blank_extends.refl {Γ} [inhabited Γ] (l : list Γ) : blank_extends l l :=
+⟨0, by simp⟩
 
 @[trans] theorem blank_extends.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
   blank_extends l₁ l₂ → blank_extends l₂ l₃ → blank_extends l₁ l₃ :=
@@ -100,7 +101,7 @@ begin
   rw [list.append_assoc, ← list.repeat_add, nat.sub_add_cancel],
   apply_fun list.length at e,
   simp only [list.length_append, list.length_repeat] at e,
-  rwa [ge, ← add_le_add_iff_left, e, add_le_add_iff_right]
+  rwa [← add_le_add_iff_left, e, add_le_add_iff_right]
 end
 
 /-- `blank_rel` is the symmetric closure of `blank_extends`, turning it into an equivalence
@@ -606,7 +607,7 @@ trans_gen.head'_iff.trans (trans_gen.head'_iff.trans $ by rw h).symm
 theorem reaches_total {σ} {f : σ → option σ}
   {a b c} : reaches f a b → reaches f a c →
   reaches f b c ∨ reaches f c b :=
-refl_trans_gen.total_of_right_unique $ λ _ _ _, option.mem_unique
+refl_trans_gen.total_of_right_unique ⟨λ _ _ _, option.mem_unique⟩
 
 theorem reaches₁_fwd {σ} {f : σ → option σ}
   {a b c} (h₁ : reaches₁ f a c) (h₂ : b ∈ f a) : reaches f b c :=
@@ -1539,7 +1540,8 @@ begin
   { cases list.length_eq_zero.1 e, refl },
   cases l₂' with b l₂'; injection e with e,
   dunfold write step_aux,
-  convert IH _ _ e, simp only [list_blank.head_cons, list_blank.tail_cons,
+  convert IH _ _ e using 1,
+  simp only [list_blank.head_cons, list_blank.tail_cons,
     list_blank.append, tape.move_right_mk', tape.write_mk']
 end
 

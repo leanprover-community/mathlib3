@@ -3,8 +3,17 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
+
 import algebra.group.defs
 import logic.function.basic
+
+/-!
+# Basic lemmas about semigroups, monoids, and groups
+
+This file lists various basic lemmas about semigroups, monoids, and groups. Most proofs are
+one-liners from the corresponding axioms. For the definitions of semigroups, monoids and groups, see
+`algebra/group/defs.lean`.
+-/
 
 universe u
 
@@ -109,12 +118,12 @@ section left_cancel_monoid
 
 variables {M : Type u} [left_cancel_monoid M] {a b : M}
 
-@[simp, to_additive] lemma mul_eq_left_iff : a * b = a ↔ b = 1 :=
+@[simp, to_additive] lemma mul_right_eq_self : a * b = a ↔ b = 1 :=
 calc a * b = a ↔ a * b = a * 1 : by rw mul_one
            ... ↔ b = 1         : mul_left_cancel_iff
 
-@[simp, to_additive] lemma left_eq_mul_iff : a = a * b ↔ b = 1 :=
-eq_comm.trans mul_eq_left_iff
+@[simp, to_additive] lemma self_eq_mul_right : a = a * b ↔ b = 1 :=
+eq_comm.trans mul_right_eq_self
 
 end left_cancel_monoid
 
@@ -122,12 +131,12 @@ section right_cancel_monoid
 
 variables {M : Type u} [right_cancel_monoid M] {a b : M}
 
-@[simp, to_additive] lemma mul_eq_right_iff : a * b = b ↔ a = 1 :=
+@[simp, to_additive] lemma mul_left_eq_self : a * b = b ↔ a = 1 :=
 calc a * b = b ↔ a * b = 1 * b : by rw one_mul
            ... ↔ a = 1         : mul_right_cancel_iff
 
-@[simp, to_additive] lemma right_eq_mul_iff : b = a * b ↔ a = 1 :=
-eq_comm.trans mul_eq_right_iff
+@[simp, to_additive] lemma self_eq_mul_left : b = a * b ↔ a = 1 :=
+eq_comm.trans mul_left_eq_self
 
 end right_cancel_monoid
 
@@ -238,10 +247,6 @@ by rw [h, mul_inv_cancel_left]
 lemma mul_eq_of_eq_mul_inv (h : a = c * b⁻¹) : a * b = c :=
 by simp [h]
 
-@[to_additive]
-theorem mul_self_iff_eq_one : a * a = a ↔ a = 1 :=
-by have := @mul_right_inj _ _ a a 1; rwa mul_one at this
-
 @[simp, to_additive]
 theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 :=
 by rw [← @inv_inj _ _ a 1, one_inv]
@@ -264,7 +269,7 @@ eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
 
 @[to_additive]
 theorem mul_eq_one_iff_eq_inv : a * b = 1 ↔ a = b⁻¹ :=
-by simpa [mul_left_inv, -mul_left_inj] using @mul_left_inj _ _ b a (b⁻¹)
+⟨eq_inv_of_mul_eq_one, λ h, by rw [h, mul_left_inv]⟩
 
 @[to_additive]
 theorem mul_eq_one_iff_inv_eq : a * b = 1 ↔ a⁻¹ = b :=
@@ -301,14 +306,6 @@ by rw [mul_eq_one_iff_eq_inv, inv_inv]
 @[to_additive]
 theorem inv_mul_eq_one : a⁻¹ * b = 1 ↔ a = b :=
 by rw [mul_eq_one_iff_eq_inv, inv_inj]
-
-@[simp, to_additive]
-lemma mul_left_eq_self : a * b = b ↔ a = 1 :=
-⟨λ h, @mul_right_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩
-
-@[simp, to_additive]
-lemma mul_right_eq_self : a * b = a ↔ b = 1 :=
-⟨λ h, @mul_left_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩
 
 @[to_additive]
 lemma div_left_injective : function.injective (λ a, a / b) :=

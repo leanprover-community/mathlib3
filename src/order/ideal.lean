@@ -23,9 +23,9 @@ structure, such as a bottom element, a top element, or a join-semilattice struct
 
 ## References
 
-- https://en.wikipedia.org/wiki/Ideal_(order_theory)
-- https://en.wikipedia.org/wiki/Cofinal_(mathematics)
-- https://en.wikipedia.org/wiki/Rasiowa–Sikorski_lemma
+- <https://en.wikipedia.org/wiki/Ideal_(order_theory)>
+- <https://en.wikipedia.org/wiki/Cofinal_(mathematics)>
+- <https://en.wikipedia.org/wiki/Rasiowa%E2%80%93Sikorski_lemma>
 
 Note that for the Rasiowa–Sikorski lemma, Wikipedia uses the opposite ordering on `P`,
 in line with most presentations of forcing.
@@ -85,6 +85,17 @@ instance : partial_order (ideal P) := partial_order.lift coe ext
 ⟨λ (h : ∀ {y}, y ≤ x → y ∈ I), h (le_refl x),
  λ h_mem y (h_le : y ≤ x), I.mem_of_le h_le h_mem⟩
 
+/-- A proper ideal is one that is not the whole set.
+    Note that the whole set might not be an ideal. -/
+class proper (I : ideal P) : Prop := (nuniv : (I : set P) ≠ set.univ)
+
+lemma proper_of_not_mem {I : ideal P} {p : P} (nmem : p ∉ I) : proper I :=
+⟨λ hp, begin
+  change p ∉ ↑I at nmem,
+  rw hp at nmem,
+  exact nmem (set.mem_univ p),
+end⟩
+
 end preorder
 
 section order_bot
@@ -102,18 +113,39 @@ instance : order_bot (ideal P) :=
 
 end order_bot
 
+section order_top
+
+variables [order_top P]
+
 /-- There is a top ideal when `P` has a top element. -/
-instance {P} [order_top P] : order_top (ideal P) :=
+instance : order_top (ideal P) :=
 { top := principal ⊤,
   le_top := λ I x h, le_top,
   .. ideal.partial_order }
+
+@[simp] lemma top_carrier : (⊤ : ideal P).carrier = set.univ :=
+set.univ_subset_iff.1 (λ p _, le_top)
+
+lemma top_of_mem_top {I : ideal P} (topmem : ⊤ ∈ I) : I = ⊤ :=
+begin
+  ext,
+  change x ∈ I.carrier ↔ x ∈ (⊤ : ideal P).carrier,
+  split,
+  { simp [top_carrier] },
+  { exact λ _, I.mem_of_le le_top topmem }
+end
+
+lemma proper_of_ne_top {I : ideal P} (ntop : I ≠ ⊤) : proper I :=
+proper_of_not_mem (λ h, ntop (top_of_mem_top h))
+
+end order_top
 
 section semilattice_sup
 variables [semilattice_sup P] {x y : P} {I : ideal P}
 
 /-- A specific witness of `I.directed` when `P` has joins. -/
 lemma sup_mem (x y ∈ I) : x ⊔ y ∈ I :=
-let ⟨z, h_mem, hx, hy⟩ := I.directed x (by assumption) y (by assumption) in
+let ⟨z, h_mem, hx, hy⟩ := I.directed x ‹_› y ‹_› in
 I.mem_of_le (sup_le hx hy) h_mem
 
 @[simp] lemma sup_mem_iff : x ⊔ y ∈ I ↔ x ∈ I ∧ y ∈ I :=
@@ -121,6 +153,53 @@ I.mem_of_le (sup_le hx hy) h_mem
  λ h, sup_mem x y h.left h.right⟩
 
 end semilattice_sup
+
+section semilattice_sup_bot
+variables [semilattice_sup_bot P] (I J K : ideal P)
+
+/-- The intersection of two ideals is an ideal, when `P` has joins and a bottom. -/
+def inf (I J : ideal P) : ideal P :=
+{ carrier   := I ∩ J,
+  nonempty  := ⟨⊥, bot_mem, bot_mem⟩,
+  directed  := λ x ⟨_, _⟩ y ⟨_, _⟩, ⟨x ⊔ y, ⟨sup_mem x y ‹_› ‹_›, sup_mem x y ‹_› ‹_›⟩, by simp⟩,
+  mem_of_le := λ x y h ⟨_, _⟩, ⟨mem_of_le I h ‹_›, mem_of_le J h ‹_›⟩ }
+
+/-- There is a smallest ideal containing two ideals, when `P` has joins and a bottom. -/
+def sup (I J : ideal P) : ideal P :=
+{ carrier   := {x | ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j},
+  nonempty  := ⟨⊥, ⊥, bot_mem, ⊥, bot_mem, bot_le⟩,
+  directed  := λ x ⟨xi, _, xj, _, _⟩ y ⟨yi, _, yj, _, _⟩,
+    ⟨x ⊔ y,
+     ⟨xi ⊔ yi, sup_mem xi yi ‹_› ‹_›,
+      xj ⊔ yj, sup_mem xj yj ‹_› ‹_›,
+      sup_le
+        (calc x ≤ xi ⊔ xj               : ‹_›
+         ...    ≤ (xi ⊔ yi) ⊔ (xj ⊔ yj) : sup_le_sup le_sup_left le_sup_left)
+        (calc y ≤ yi ⊔ yj               : ‹_›
+         ...    ≤ (xi ⊔ yi) ⊔ (xj ⊔ yj) : sup_le_sup le_sup_right le_sup_right)⟩,
+     le_sup_left, le_sup_right⟩,
+  mem_of_le := λ x y _ ⟨yi, _, yj, _, _⟩, ⟨yi, ‹_›, yj, ‹_›, le_trans ‹x ≤ y› ‹_›⟩ }
+
+lemma sup_le : I ≤ K → J ≤ K → sup I J ≤ K :=
+λ hIK hJK x ⟨i, hiI, j, hjJ, hxij⟩,
+K.mem_of_le hxij $ sup_mem i j (mem_of_mem_of_le hiI hIK) (mem_of_mem_of_le hjJ hJK)
+
+instance : lattice (ideal P) :=
+{ sup          := sup,
+  le_sup_left  := λ I J (i ∈ I), ⟨i, ‹_›, ⊥, bot_mem, by simp only [sup_bot_eq]⟩,
+  le_sup_right := λ I J (j ∈ J), ⟨⊥, bot_mem, j, ‹_›, by simp only [bot_sup_eq]⟩,
+  sup_le       := sup_le,
+  inf          := inf,
+  inf_le_left  := λ I J, set.inter_subset_left I J,
+  inf_le_right := λ I J, set.inter_subset_right I J,
+  le_inf       := λ I J K, set.subset_inter,
+  .. ideal.partial_order }
+
+@[simp] lemma mem_inf {x : P} : x ∈ I ⊓ J ↔ x ∈ I ∧ x ∈ J := iff_of_eq rfl
+
+@[simp] lemma mem_sup {x : P} : x ∈ I ⊔ J ↔ ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j := iff_of_eq rfl
+
+end semilattice_sup_bot
 
 end ideal
 

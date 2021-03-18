@@ -52,7 +52,8 @@ def trivial : Mon_ C :=
 { X := 𝟙_ C,
   one := 𝟙 _,
   mul := (λ_ _).hom,
-  mul_assoc' := by simp_rw [triangle_assoc, iso.cancel_iso_hom_right, tensor_right_iff, unitors_equal],
+  mul_assoc' :=
+    by simp_rw [triangle_assoc, iso.cancel_iso_hom_right, tensor_right_iff, unitors_equal],
   mul_one' := by simp [unitors_equal] }
 
 instance : inhabited (Mon_ C) := ⟨trivial C⟩
@@ -117,14 +118,13 @@ instance {A B : Mon_ C} (f : A ⟶ B) [e : is_iso ((forget C).map f)] : is_iso f
 
 /-- The forgetful functor from monoid objects to the ambient category reflects isomorphisms. -/
 instance : reflects_isomorphisms (forget C) :=
-{ reflects := λ X Y f e, by exactI
-  { inv :=
-    { hom := inv f.hom,
-      mul_hom' :=
-      begin
-        simp only [is_iso.comp_inv_eq, hom.mul_hom, category.assoc, ←tensor_comp_assoc,
-          is_iso.inv_hom_id, tensor_id, category.id_comp],
-      end } } }
+{ reflects := λ X Y f e, by exactI ⟨{
+  hom := inv f.hom,
+  mul_hom' :=
+  begin
+    simp only [is_iso.comp_inv_eq, hom.mul_hom, category.assoc, ←tensor_comp_assoc,
+      is_iso.inv_hom_id, tensor_id, category.id_comp],
+  end }, by tidy⟩ }
 
 instance unique_hom_from_trivial (A : Mon_ C) : unique (trivial C ⟶ A) :=
 { default :=

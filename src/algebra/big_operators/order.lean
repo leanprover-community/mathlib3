@@ -22,13 +22,46 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
-lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]
-  (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : finset γ) (g : γ → α) :
-  f (∑ x in s, g x) ≤ ∑ x in s, f (g x) :=
+@[to_additive le_sum_nonempty_of_subadditive_on_pred]
+lemma le_prod_nonempty_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (p : α → Prop) (h_mul : ∀ x y, p x → p y → f (x * y) ≤ f x * f y)
+  (hp_mul : ∀ x y, p x → p y → p (x * y)) (g : γ → α) (s : finset γ) (hs_nonempty : s.nonempty)
+  (hs : ∀ x, x ∈ s → p (g x)) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
 begin
-  refine le_trans (multiset.le_sum_of_subadditive f h_zero h_add _) _,
-  rw [multiset.map_map],
-  refl
+  refine le_trans (multiset.le_prod_nonempty_of_submultiplicative_on_pred f p h_mul hp_mul _ _ _) _,
+  { simp [nonempty_iff_ne_empty.mp hs_nonempty], },
+  { exact multiset.forall_mem_map_iff.mpr hs, },
+  rw multiset.map_map,
+  refl,
+end
+
+@[to_additive le_sum_nonempty_of_subadditive]
+lemma le_prod_nonempty_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) {s : finset γ} (hs : s.nonempty) (g : γ → α) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
+le_prod_nonempty_of_submultiplicative_on_pred f (λ i, true) (by simp [h_mul]) (by simp) g s hs
+  (by simp)
+
+@[to_additive le_sum_of_subadditive_on_pred]
+lemma le_prod_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (p : α → Prop) (h_one : f 1 = 1) (h_mul : ∀ x y, p x → p y → f (x * y) ≤ f x * f y)
+  (hp_mul : ∀ x y, p x → p y → p (x * y)) (g : γ → α) {s : finset γ} (hs : ∀ x, x ∈ s → p (g x)) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
+begin
+  by_cases hs_nonempty : s.nonempty,
+  { exact le_prod_nonempty_of_submultiplicative_on_pred f p h_mul hp_mul g s hs_nonempty hs, },
+  { simp [not_nonempty_iff_eq_empty.mp hs_nonempty, h_one], },
+end
+
+@[to_additive le_sum_of_subadditive]
+lemma le_prod_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_one : f 1 = 1) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) (s : finset γ) (g : γ → α) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
+begin
+  refine le_trans (multiset.le_prod_of_submultiplicative f h_one h_mul _) _,
+  rw multiset.map_map,
+  refl,
 end
 
 lemma abs_sum_le_sum_abs [linear_ordered_field α] {f : β → α} {s : finset β} :
@@ -231,8 +264,9 @@ end
 
 end linear_ordered_cancel_comm_monoid
 
-section linear_ordered_comm_ring
-variables [linear_ordered_comm_ring β]
+section ordered_comm_ring
+
+variables [ordered_comm_ring β]
 open_locale classical
 
 /- this is also true for a ordered commutative multiplicative monoid -/
@@ -240,9 +274,9 @@ lemma prod_nonneg {s : finset α} {f : α → β}
   (h0 : ∀(x ∈ s), 0 ≤ f x) : 0 ≤ (∏ x in s, f x) :=
 prod_induction f (λ x, 0 ≤ x) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
 
-
 /- this is also true for a ordered commutative multiplicative monoid -/
-lemma prod_pos {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) : 0 < (∏ x in s, f x) :=
+lemma prod_pos [nontrivial β] {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) :
+  0 < (∏ x in s, f x) :=
 prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
 
 /- this is also true for a ordered commutative multiplicative monoid -/
@@ -281,7 +315,7 @@ begin
     intros j h1j h2j, refine le_trans (hg j h1j) (hgf j h1j h2j) }
 end
 
-end linear_ordered_comm_ring
+end ordered_comm_ring
 
 section canonically_ordered_comm_semiring
 
@@ -316,6 +350,19 @@ end
 end canonically_ordered_comm_semiring
 
 end finset
+
+namespace fintype
+
+variables [fintype α]
+
+@[mono] lemma sum_mono [ordered_add_comm_monoid β] : monotone (λ f : α → β, ∑ x, f x) :=
+λ f g hfg, finset.sum_le_sum $ λ x _, hfg x
+
+lemma sum_strict_mono [ordered_cancel_add_comm_monoid β] : strict_mono (λ f : α → β, ∑ x, f x) :=
+λ f g hfg, let ⟨hle, i, hlt⟩ := pi.lt_def.mp hfg in
+  finset.sum_lt_sum (λ i _, hle i) ⟨i, finset.mem_univ i, hlt⟩
+
+end fintype
 
 namespace with_top
 open finset

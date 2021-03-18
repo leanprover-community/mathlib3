@@ -152,8 +152,8 @@ begin
     { simp },
     intros m n mpos h,
     rw ← gcd_rec m n at h,
-    conv_rhs { rw ← mod_add_div n m },
-    rwa [mul_comm, gcd_fib_add_mul_self m (n % m) (n / m), gcd_comm (fib m) _] },
+    conv_rhs { rw ← mod_add_div' n m },
+    rwa [gcd_fib_add_mul_self m (n % m) (n / m), gcd_comm (fib m) _] },
   rwa [gcd_comm, gcd_comm (fib m)]
 end
 

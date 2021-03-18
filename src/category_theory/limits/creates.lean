@@ -139,7 +139,8 @@ lemma has_limits_of_has_limits_creates_limits (F : C ⥤ D) [has_limits D] [crea
 /- Interface to the `creates_colimit` class. -/
 
 /-- `lift_colimit t` is the cocone for `K` given by lifting the colimit `t` for `K ⋙ F`. -/
-def lift_colimit {K : J ⥤ C} {F : C ⥤ D} [creates_colimit K F] {c : cocone (K ⋙ F)} (t : is_colimit c) :
+def lift_colimit {K : J ⥤ C} {F : C ⥤ D} [creates_colimit K F] {c : cocone (K ⋙ F)}
+  (t : is_colimit c) :
   cocone K :=
 (creates_colimit.lifts c t).lifted_cocone
 
@@ -258,7 +259,8 @@ instance preserves_limit_of_creates_limit_and_has_limit (K : J ⥤ C) (F : C ⥤
   preserves_limit K F :=
 { preserves := λ c t, is_limit.of_iso_limit (limit.is_limit _)
     ((lifted_limit_maps_to_original (limit.is_limit _)).symm ≪≫
-      ((cones.functoriality K F).map_iso ((lifted_limit_is_limit (limit.is_limit _)).unique_up_to_iso t))) }
+      ((cones.functoriality K F).map_iso
+        ((lifted_limit_is_limit (limit.is_limit _)).unique_up_to_iso t))) }
 
 /-- `F` preserves the limit of shape `J` if it creates these limits and `D` has them. -/
 @[priority 100] -- see Note [lower instance priority]
@@ -269,10 +271,12 @@ instance preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_s
 
 /-- `F` preserves limits if it creates limits and `D` has limits. -/
 @[priority 100] -- see Note [lower instance priority]
-instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [creates_limits F] [has_limits D] :
+instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [creates_limits F]
+  [has_limits D] :
   preserves_limits F :=
 { preserves_limits_of_shape := λ J 𝒥,
-  by exactI category_theory.preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape F }
+  by exactI
+    category_theory.preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape F }
 
 /--
 If `F` reflects isomorphisms and we can lift any limit cocone to a limit cocone,
@@ -287,10 +291,12 @@ def creates_colimit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomor
   { reflects := λ (d : cocone K) (hd : is_colimit (F.map_cocone d)),
     begin
       let d' : cocone K := (h (F.map_cocone d) hd).to_liftable_cocone.lifted_cocone,
-      let i : F.map_cocone d' ≅ F.map_cocone d := (h (F.map_cocone d) hd).to_liftable_cocone.valid_lift,
+      let i : F.map_cocone d' ≅ F.map_cocone d :=
+        (h (F.map_cocone d) hd).to_liftable_cocone.valid_lift,
       let hd' : is_colimit d' := (h (F.map_cocone d) hd).makes_colimit,
       let f : d' ⟶ d := hd'.desc_cocone_morphism d,
-      have : (cocones.functoriality K F).map f = i.hom := (hd.of_iso_colimit i.symm).uniq_cocone_morphism,
+      have : (cocones.functoriality K F).map f = i.hom :=
+        (hd.of_iso_colimit i.symm).uniq_cocone_morphism,
       haveI : is_iso ((cocones.functoriality K F).map f) := (by { rw this, apply_instance }),
       haveI := is_iso_of_reflects_iso f (cocones.functoriality K F),
       exact is_colimit.of_iso_colimit hd' (as_iso f),
@@ -303,18 +309,21 @@ instance preserves_colimit_of_creates_colimit_and_has_colimit (K : J ⥤ C) (F :
   preserves_colimit K F :=
 { preserves := λ c t, is_colimit.of_iso_colimit (colimit.is_colimit _)
     ((lifted_colimit_maps_to_original (colimit.is_colimit _)).symm ≪≫
-      ((cocones.functoriality K F).map_iso ((lifted_colimit_is_colimit (colimit.is_colimit _)).unique_up_to_iso t))) }
+      ((cocones.functoriality K F).map_iso
+        ((lifted_colimit_is_colimit (colimit.is_colimit _)).unique_up_to_iso t))) }
 
 /-- `F` preserves the colimit of shape `J` if it creates these colimits and `D` has them. -/
 @[priority 100] -- see Note [lower instance priority]
-instance preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape (F : C ⥤ D)
-  [creates_colimits_of_shape J F] [has_colimits_of_shape J D] :
+instance preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape
+  (F : C ⥤ D) [creates_colimits_of_shape J F] [has_colimits_of_shape J D] :
   preserves_colimits_of_shape J F :=
-{ preserves_colimit := λ K, category_theory.preserves_colimit_of_creates_colimit_and_has_colimit K F }
+{ preserves_colimit := λ K,
+    category_theory.preserves_colimit_of_creates_colimit_and_has_colimit K F }
 
 /-- `F` preserves limits if it creates limits and `D` has limits. -/
 @[priority 100] -- see Note [lower instance priority]
-instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [creates_colimits F] [has_colimits D] :
+instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [creates_colimits F]
+  [has_colimits D] :
   preserves_colimits F :=
 { preserves_colimits_of_shape := λ J 𝒥,
   by exactI category_theory.preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape F }

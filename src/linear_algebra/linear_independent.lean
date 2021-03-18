@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
 import linear_algebra.finsupp
+import linear_algebra.prod
 import order.zorn
 import data.finset.order
 import data.equiv.fin
@@ -236,6 +237,29 @@ lemma linear_independent_span (hs : linear_independent R v) :
       (λ i : ι, ⟨v i, subset_span (mem_range_self i)⟩) _ _ _ :=
 linear_independent.of_comp (span R (range v)).subtype hs
 
+/-- See `linear_independent.fin_cons` for a family of elements in a vector space. -/
+lemma linear_independent.fin_cons' {m : ℕ} (x : M) (v : fin m → M)
+  (hli : linear_independent R v)
+  (x_ortho : (∀ (c : R) (y : submodule.span R (set.range v)), c • x + y = (0 : M) → c = 0)) :
+  linear_independent R (fin.cons x v : fin m.succ → M) :=
+begin
+  rw fintype.linear_independent_iff at hli ⊢,
+  rintros g total_eq j,
+  have zero_not_mem : (0 : fin m.succ) ∉ finset.univ.image (fin.succ : fin m → fin m.succ),
+  { rw finset.mem_image,
+    rintro ⟨x, hx, succ_eq⟩,
+    exact fin.succ_ne_zero _ succ_eq },
+  simp only [submodule.coe_mk, fin.univ_succ, finset.sum_insert zero_not_mem,
+  fin.cons_zero, fin.cons_succ,
+  forall_true_iff, imp_self, fin.succ_inj, finset.sum_image] at total_eq,
+  have : g 0 = 0,
+  { refine x_ortho (g 0) ⟨∑ (i : fin m), g i.succ • v i, _⟩ total_eq,
+    exact sum_mem _ (λ i _, smul_mem _ _ (subset_span ⟨i, rfl⟩)) },
+  refine fin.cases this (λ j, _) j,
+  apply hli (λ i, g i.succ),
+  simpa only [this, zero_smul, zero_add] using total_eq
+end
+
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
 
@@ -312,7 +336,7 @@ begin
     rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
     rcases hs.finset_le fi.to_finset with ⟨i, hi⟩,
     exact (h i).mono (subset.trans hI $ bUnion_subset $
-      λ j hj, hi j (finite.mem_to_finset.2 hj)) },
+      λ j hj, hi j (fi.mem_to_finset.2 hj)) },
   { refine (linear_independent_empty _ _).mono _,
     rintro _ ⟨_, ⟨i, _⟩, _⟩, exact hη ⟨i⟩ }
 end
@@ -647,7 +671,8 @@ begin
 end
 
 /-- Dedekind's linear independence of characters -/
--- See, for example, Keith Conrad's note <https://kconrad.math.uconn.edu/blurbs/galoistheory/linearchar.pdf>
+-- See, for example, Keith Conrad's note
+--  <https://kconrad.math.uconn.edu/blurbs/galoistheory/linearchar.pdf>
 theorem linear_independent_monoid_hom (G : Type*) [monoid G] (L : Type*) [comm_ring L]
   [no_zero_divisors L] :
   @linear_independent _ L (G → L) (λ f, f : (G →* L) → (G → L)) _ _ _ :=
@@ -664,7 +689,8 @@ exact linear_independent_iff'.2
 -- and it remains to prove that `g` vanishes on `insert a s`.
 
 -- We now make the key calculation:
--- For any character `i` in the original `finset`, we have `g i • i = g i • a` as functions on the monoid `G`.
+-- For any character `i` in the original `finset`, we have `g i • i = g i • a` as functions on the
+-- monoid `G`.
 have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext $ λ x : G,
   -- We prove these expressions are equal by showing
   -- the differences of their values on each monoid element `x` is zero
@@ -707,11 +733,13 @@ have h4 : g a = 0, from calc
   ... = (g a • a : G → L) 1 : by rw ← a.map_one; refl
   ... = (∑ i in insert a s, (g i • i : G → L)) 1 : begin
       rw finset.sum_eq_single a,
-      { intros i his hia, rw finset.mem_insert at his, rw [h3 i (his.resolve_left hia), zero_smul] },
+      { intros i his hia, rw finset.mem_insert at his,
+        rw [h3 i (his.resolve_left hia), zero_smul] },
       { intros haas, exfalso, apply haas, exact finset.mem_insert_self a s }
     end
   ... = 0 : by rw hg; refl,
--- Now we're done; the last two facts together imply that `g` vanishes on every element of `insert a s`.
+-- Now we're done; the last two facts together imply that `g` vanishes on every element
+-- of `insert a s`.
 (finset.forall_mem_insert _ _ _).2 ⟨h4, h3⟩)
 
 lemma le_of_span_le_span [nontrivial R] {s t u: set M}
@@ -837,9 +865,22 @@ lemma linear_independent_fin_cons {n} {v : fin n → V} :
     linear_independent K v ∧ x ∉ submodule.span K (range v) :=
 begin
   rw [← linear_independent_equiv (fin_succ_equiv n).symm, linear_independent_option],
-  simp [(∘), fin_succ_equiv, option.coe_def, fin.cons_succ, *]
+  convert iff.rfl,
+  { ext,
+    -- TODO: why doesn't simp use `fin_succ_equiv_symm_coe` here?
+    rw [comp_app, comp_app, fin_succ_equiv_symm_coe, fin.cons_succ] },
+  { rw [comp_app, fin_succ_equiv_symm_none, fin.cons_zero] },
+  { ext,
+    rw [comp_app, comp_app, fin_succ_equiv_symm_coe, fin.cons_succ] }
 end
 
+lemma linear_independent_fin_snoc {n} {v : fin n → V} :
+  linear_independent K (fin.snoc v x : fin (n + 1) → V) ↔
+    linear_independent K v ∧ x ∉ submodule.span K (range v) :=
+by rw [fin.snoc_eq_cons_rotate, linear_independent_equiv, linear_independent_fin_cons]
+
+/-- See `linear_independent.fin_cons'` for an uglier version that works if you
+only have a semimodule. -/
 lemma linear_independent.fin_cons {n} {v : fin n → V} (hv : linear_independent K v)
   (hx : x ∉ submodule.span K (range v)) :
   linear_independent K (fin.cons x v : fin (n + 1) → V) :=
@@ -849,6 +890,11 @@ lemma linear_independent_fin_succ {n} {v : fin (n + 1) → V} :
   linear_independent K v ↔
     linear_independent K (fin.tail v) ∧ v 0 ∉ submodule.span K (range $ fin.tail v) :=
 by rw [← linear_independent_fin_cons, fin.cons_self_tail]
+
+lemma linear_independent_fin_succ' {n} {v : fin (n + 1) → V} :
+  linear_independent K v ↔
+    linear_independent K (fin.init v) ∧ v (fin.last _) ∉ submodule.span K (range $ fin.init v) :=
+by rw [← linear_independent_fin_snoc, fin.snoc_init_self]
 
 lemma linear_independent_fin2 {f : fin 2 → V} :
   linear_independent K f ↔ f 1 ≠ 0 ∧ ∀ a : K, a • f 1 ≠ f 0 :=
@@ -906,7 +952,8 @@ assume t, finset.induction_on t
         have s ⊆ (span K ↑(insert b₂ s' ∪ t) : submodule K V), from
           assume b₃ hb₃,
           have ↑(s' ∪ insert b₁ t) ⊆ insert b₁ (insert b₂ ↑(s' ∪ t) : set V),
-            by simp [insert_eq, -singleton_union, -union_singleton, union_subset_union, subset.refl, subset_union_right],
+            by simp [insert_eq, -singleton_union, -union_singleton, union_subset_union, subset.refl,
+              subset_union_right],
           have hb₃ : b₃ ∈ span K (insert b₁ (insert b₂ ↑(s' ∪ t) : set V)),
             from span_mono this (hss' hb₃),
           have s ⊆ (span K (insert b₁ ↑(s' ∪ t)) : submodule K V),

@@ -12,6 +12,13 @@ lemma coe_def : (coe : α → option α) = some := rfl
 
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
 
+protected lemma «forall» {p : option α → Prop} : (∀ x, p x) ↔ p none ∧ ∀ x, p (some x) :=
+⟨λ h, ⟨h _, λ x, h _⟩, λ h x, option.cases_on x h.1 h.2⟩
+
+protected lemma «exists» {p : option α → Prop} : (∃ x, p x) ↔ p none ∨ ∃ x, p (some x) :=
+⟨λ ⟨x, hx⟩, (option.cases_on x or.inl $ λ x hx, or.inr ⟨x, hx⟩) hx,
+  λ h, h.elim (λ h, ⟨_, h⟩) (λ ⟨x, hx⟩, ⟨_, hx⟩)⟩
+
 @[simp] theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o
 | (some a) _ := rfl
 
@@ -35,6 +42,9 @@ by cases x; [contradiction, rw get_or_else_some]
 
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
+
+theorem mem.left_unique : relator.left_unique ((∈) : α → option α → Prop) :=
+⟨λ a o b, mem_unique⟩
 
 theorem some_injective (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
@@ -92,6 +102,9 @@ lemma join_eq_some {x : option (option α)} {a : α} : x.join = some a ↔ x = s
 lemma join_ne_none {x : option (option α)} : x.join ≠ none ↔ ∃ z, x = some (some z) := by simp
 
 lemma join_ne_none' {x : option (option α)} : ¬(x.join = none) ↔ ∃ z, x = some (some z) := by simp
+
+lemma join_eq_none {o : option (option α)} : o.join = none ↔ o = none ∨ o = some none :=
+by rcases o with _|_|_; simp
 
 lemma bind_id_eq_join {x : option (option α)} : x >>= id = x.join := by simp
 

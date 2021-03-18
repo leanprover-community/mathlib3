@@ -52,7 +52,7 @@ variables (R ι L M)
 
 /-- The inclusion of each component into a direct sum as a morphism of Lie modules. -/
 def lie_module_of [decidable_eq ι] (j : ι) : M j →ₗ⁅R,L⁆ ⨁ i, M i :=
-{ map_lie := λ x m,
+{ map_lie' := λ x m,
     begin
       ext i, by_cases h : j = i,
       { rw ← h, simp, },
@@ -62,7 +62,7 @@ def lie_module_of [decidable_eq ι] (j : ι) : M j →ₗ⁅R,L⁆ ⨁ i, M i :=
 
 /-- The projection map onto one component, as a morphism of Lie modules. -/
 def lie_module_component (j : ι) : (⨁ i, M i) →ₗ⁅R,L⁆ M j :=
-{ map_lie := λ x m,
+{ map_lie' := λ x m,
     by simp only [component, lapply_apply, lie_module_bracket_apply, linear_map.to_fun_eq_coe],
   ..component R ι M j }
 
@@ -96,7 +96,7 @@ variables (R ι L)
 
 /-- The inclusion of each component into the direct sum as morphism of Lie algebras. -/
 def lie_algebra_of [decidable_eq ι] (j : ι) : L j →ₗ⁅R⁆ ⨁ i, L i :=
-{ map_lie := λ x y, by
+{ map_lie' := λ x y, by
   { ext i, by_cases h : j = i,
     { rw ← h, simp, },
     { simp [lof, single_eq_of_ne h], }, },
@@ -104,7 +104,8 @@ def lie_algebra_of [decidable_eq ι] (j : ι) : L j →ₗ⁅R⁆ ⨁ i, L i :=
 
 /-- The projection map onto one component, as a morphism of Lie algebras. -/
 def lie_algebra_component (j : ι) : (⨁ i, L i) →ₗ⁅R⁆ L j :=
-{ map_lie := λ x y, by simp only [component, bracket_apply, lapply_apply, linear_map.to_fun_eq_coe],
+{ map_lie' := λ x y,
+    by simp only [component, bracket_apply, lapply_apply, linear_map.to_fun_eq_coe],
   ..component R ι L j }
 
 end algebras

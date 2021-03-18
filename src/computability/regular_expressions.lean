@@ -6,7 +6,6 @@ Author: Fox Thomson.
 import data.fintype.basic
 import data.finset.basic
 import tactic.rcases
-import tactic.omega
 import computability.language
 
 /-!
@@ -192,6 +191,10 @@ lemma star_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
   (star P).rmatch x ↔ ∃ S : list (list α), x = S.join ∧ ∀ t ∈ S, t ≠ [] ∧ P.rmatch t
 | x :=
 begin
+  have A : ∀ (m n : ℕ), n < m + n + 1,
+  { assume m n,
+    convert add_lt_add_of_le_of_lt (add_le_add (zero_le m) (le_refl n)) zero_lt_one,
+    simp },
   have IH := λ t (h : list.length t < list.length x), star_rmatch_iff t,
   clear star_rmatch_iff,
   split,
@@ -204,7 +207,7 @@ begin
       rintro ⟨ t, u, hs, ht, hu ⟩,
       have hwf : u.length < (list.cons a x).length,
       { rw [hs, list.length_cons, list.length_append],
-        omega },
+        apply A },
       rw IH _ hwf at hu,
       rcases hu with ⟨ S', hsum, helem ⟩,
       use (a :: t) :: S',
@@ -225,15 +228,15 @@ begin
         { finish },
         refine ⟨ t, U.join, by finish, _, _ ⟩,
         { specialize helem (b :: t) _,
+          { finish },
           rw rmatch at helem,
           convert helem.2,
-          finish,
           finish },
         { have hwf : U.join.length < (list.cons a x).length,
           { rw hsum,
             simp only
               [list.join, list.length_append, list.cons_append, list.length_join, list.length],
-            omega },
+            apply A },
           rw IH _ hwf,
           refine ⟨ U, rfl, λ t h, helem t _ ⟩,
           right,

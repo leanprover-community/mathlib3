@@ -144,6 +144,18 @@ begin
 end
 
 /--
+The degree of a product of polynomials is equal to
+the sum of the degrees, where the degree of the zero polynomial is ⊥.
+-/
+lemma degree_prod [nontrivial R] : (∏ i in s, f i).degree = ∑ i in s, (f i).degree :=
+begin
+  classical,
+  induction s using finset.induction with a s ha hs,
+  { simp },
+  { rw [prod_insert ha, sum_insert ha, degree_mul, hs] },
+end
+
+/--
 The leading coefficient of a product of polynomials is equal to
 the product of the leading coefficients.
 

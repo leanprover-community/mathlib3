@@ -70,7 +70,7 @@ namespace ordnode
 /-! ### delta and ratio -/
 
 theorem not_le_delta {s} (H : 1 ≤ s) : ¬ s ≤ delta * 0 :=
-λ h, by rw mul_zero at h; exact not_lt_of_le h H
+not_le_of_gt H
 
 theorem delta_lt_false {a b : ℕ}
   (h₁ : delta * a < b) (h₂ : delta * b < a) : false :=

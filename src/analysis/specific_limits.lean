@@ -8,7 +8,7 @@ import order.filter.archimedean
 import order.iterate
 import topology.instances.ennreal
 import tactic.ring_exp
-import analysis.asymptotics
+import analysis.asymptotics.asymptotics
 
 /-!
 # A collection of specific limit computations
@@ -17,7 +17,7 @@ import analysis.asymptotics
 noncomputable theory
 open classical set function filter finset metric asymptotics
 
-open_locale classical topological_space nat big_operators uniformity nnreal
+open_locale classical topological_space nat big_operators uniformity nnreal ennreal
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -81,7 +81,8 @@ lemma tendsto_pow_at_top_nhds_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field �
   [topological_space 𝕜] [order_topology 𝕜] {r : 𝕜} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
 h₁.eq_or_lt.elim
-  (assume : 0 = r, (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, ← this, tendsto_const_nhds])
+  (assume : 0 = r,
+    (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, ← this, tendsto_const_nhds])
   (assume : 0 < r,
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (𝓝 0),
       from tendsto_inv_at_top_zero.comp
@@ -188,8 +189,11 @@ metric.mk_uniformity_basis (λ i _, pow_pos h₀ _) $ λ ε ε0,
 lemma geom_lt {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) {n : ℕ} (hn : 0 < n)
   (h : ∀ k < n, c * u k < u (k + 1)) :
   c ^ n * u 0 < u n :=
-(monotone_mul_left_of_nonneg hc).seq_pos_lt_seq_of_le_of_lt hn (by simp)
-  (λ k hk, by simp [pow_succ, mul_assoc]) h
+begin
+  refine (monotone_mul_left_of_nonneg hc).seq_pos_lt_seq_of_le_of_lt hn _ _ h,
+  { simp },
+  { simp [pow_succ, mul_assoc, le_refl] }
+end
 
 lemma geom_le {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) (n : ℕ) (h : ∀ k < n, c * u k ≤ u (k + 1)) :
   c ^ n * u 0 ≤ u n :=
@@ -262,7 +266,7 @@ lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ≥0} (hr : r < 1) :
 nnreal.tendsto_coe.1 $ by simp only [nnreal.coe_pow, nnreal.coe_zero,
   tendsto_pow_at_top_nhds_0_of_lt_1 r.coe_nonneg hr]
 
-lemma ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : ennreal} (hr : r < 1) :
+lemma ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ≥0∞} (hr : r < 1) :
   tendsto (λ n:ℕ, r^n) at_top (𝓝 0) :=
 begin
   rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
@@ -349,7 +353,7 @@ lemma tsum_geometric_nnreal {r : ℝ≥0} (hr : r < 1) : ∑'n:ℕ, r ^ n = (1 -
 
 /-- The series `pow r` converges to `(1-r)⁻¹`. For `r < 1` the RHS is a finite number,
 and for `1 ≤ r` the RHS equals `∞`. -/
-lemma ennreal.tsum_geometric (r : ennreal) : ∑'n:ℕ, r ^ n = (1 - r)⁻¹ :=
+lemma ennreal.tsum_geometric (r : ℝ≥0∞) : ∑'n:ℕ, r ^ n = (1 - r)⁻¹ :=
 begin
   cases lt_or_le r 1 with hr hr,
   { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
@@ -360,7 +364,7 @@ begin
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),
     have : ∀ k:ℕ, 1 ≤ r^k, by simpa using canonically_ordered_semiring.pow_le_pow_of_le_left hr,
-    calc (n:ennreal) = (∑ i in range n, 1) : by rw [sum_const, nsmul_one, card_range]
+    calc (n:ℝ≥0∞) = (∑ i in range n, 1) : by rw [sum_const, nsmul_one, card_range]
     ... ≤ ∑ i in range n, r ^ i : sum_le_sum (λ k _, this k) }
 end
 
@@ -459,7 +463,7 @@ decaying terms.
 -/
 section edist_le_geometric
 
-variables [emetric_space α] (r C : ennreal) (hr : r < 1) (hC : C ≠ ⊤) {f : ℕ → α}
+variables [emetric_space α] (r C : ℝ≥0∞) (hr : r < 1) (hC : C ≠ ⊤) {f : ℕ → α}
   (hu : ∀n, edist (f n) (f (n+1)) ≤ C * r^n)
 
 include hr hC hu
@@ -495,7 +499,7 @@ end edist_le_geometric
 
 section edist_le_geometric_two
 
-variables [emetric_space α] (C : ennreal) (hC : C ≠ ⊤) {f : ℕ → α}
+variables [emetric_space α] (C : ℝ≥0∞) (hC : C ≠ ⊤) {f : ℕ → α}
   (hu : ∀n, edist (f n) (f (n+1)) ≤ C / 2^n) {a : α} (ha : tendsto f at_top (𝓝 a))
 
 include hC hu
@@ -721,8 +725,8 @@ end nnreal
 
 namespace ennreal
 
-theorem exists_pos_sum_of_encodable {ε : ennreal} (hε : 0 < ε) (ι) [encodable ι] :
-  ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ ∑' i, (ε' i : ennreal) < ε :=
+theorem exists_pos_sum_of_encodable {ε : ℝ≥0∞} (hε : 0 < ε) (ι) [encodable ι] :
+  ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ ∑' i, (ε' i : ℝ≥0∞) < ε :=
 begin
   rcases exists_between hε with ⟨r, h0r, hrε⟩,
   rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,

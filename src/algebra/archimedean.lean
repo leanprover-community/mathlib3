@@ -2,11 +2,31 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Archimedean groups and fields.
 -/
+
 import algebra.field_power
 import data.rat
+
+/-!
+# Archimedean groups and fields.
+
+This file defines the archimedean property for ordered groups and proves several results connected
+to this notion. Being archimedean means that for all elements `x` and `y>0` there exists a natural
+number `n` such that `x ≤ n •ℕ y`.
+
+## Main definitions
+
+* `archimedean` is a typeclass for an ordered additive commutative monoid to have the archimedean
+  property.
+* `archimedean.floor_ring` defines a floor function on an archimedean linearly ordered ring making
+  it into a `floor_ring`.
+* `round` defines a function rounding to the nearest integer for a linearly ordered field which is
+  also a floor ring.
+
+## Main statements
+
+* `ℕ`, `ℤ`, and `ℚ` are archimedean.
+-/
 
 variables {α : Type*}
 

@@ -47,7 +47,7 @@ begin
       ... ≤ ya • f a + yx • f x
                 : h_conv.2 (left_mem_Icc.mpr (le_of_lt a_lt_b)) ⟨h_ax, h_xb⟩ (ya_pos)
                     (le_of_lt yx_pos) yax
-      ... < ya • f a + yx • f a       : add_lt_add_left (smul_lt_smul_of_pos fx_lt_fa yx_pos) (ya • f a)
+      ... < ya • f a + yx • f a       : add_lt_add_left (smul_lt_smul_of_pos fx_lt_fa yx_pos) _
       ... = f a                       : by rw [←add_smul, yax, one_smul] },
   by_cases h_xz : x ≤ z,
   { exact not_lt_of_ge (ge_on_nhd x (show x ∈ Icc a z, by exact ⟨h_ax, h_xz⟩)) fx_lt_fa, },
@@ -93,7 +93,8 @@ end
 lemma is_max_on.of_is_local_max_on_of_concave_on {f : E → β} {a : E}
   (a_in_s : a ∈ s) (h_localmax: is_local_max_on f s a) (h_conc : concave_on s f) :
   ∀ x ∈ s, f x ≤ f a :=
-@is_min_on.of_is_local_min_on_of_convex_on _ (order_dual β) _ _ _ _ _ _ _ _ s f a a_in_s h_localmax h_conc
+@is_min_on.of_is_local_min_on_of_convex_on
+  _ (order_dual β) _ _ _ _ _ _ _ _ s f a a_in_s h_localmax h_conc
 
 /-- A local minimum of a convex function is a global minimum. -/
 lemma is_min_on.of_is_local_min_of_convex_univ {f : E → β} {a : E}

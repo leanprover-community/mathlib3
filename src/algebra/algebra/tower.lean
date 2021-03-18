@@ -45,6 +45,10 @@ def lsmul : A →ₐ[R] module.End R M :=
 
 @[simp] lemma lsmul_coe (a : A) : (lsmul R M a : M → M) = (•) a := rfl
 
+@[simp] lemma lmul_algebra_map (x : R) :
+  lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
+linear_map.ext (λ s, by simp [smul_def''])
+
 end algebra
 
 namespace is_scalar_tower

@@ -1049,10 +1049,6 @@ variables {b : m → S} (hb : is_basis R b) {c : n → T} (hc : is_basis S c)
 
 open algebra
 
-@[simp] lemma lmul_algebra_map (x : R) :
-  lmul R S (algebra_map R S x) = algebra.lsmul R S x :=
-linear_map.ext (λ s, by simp [smul_def''])
-
 lemma to_matrix_lmul' (x : S) (i j) :
   linear_map.to_matrix hb hb (lmul R S x) i j = hb.repr (x * b j) i :=
 by rw [linear_map.to_matrix_apply', lmul_apply]

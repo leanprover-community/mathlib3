@@ -31,6 +31,8 @@ universes v u
 
 open category_theory
 
+open_locale simplicial
+
 /-- The category of simplicial sets.
 This is the category of contravariant functors from
 `simplex_category` to `Type u`. -/
@@ -45,7 +47,7 @@ def standard_simplex : simplex_category ⥤ sSet := yoneda
 
 localized "notation `Δ[`n`]` := standard_simplex.obj (simplex_category.mk n)" in sSet
 
-instance : inhabited sSet := ⟨standard_simplex.obj (simplex_category.mk 0)⟩
+instance : inhabited sSet := ⟨Δ[0]⟩
 
 section
 
@@ -112,7 +114,6 @@ def truncated (n : ℕ) := simplicial_object.truncated (Type u) n
 /-- The skeleton functor on simplicial sets. -/
 def sk (n : ℕ) : sSet ⥤ sSet.truncated n := simplicial_object.sk n
 
-instance {n} : inhabited (sSet.truncated n) :=
-  ⟨(sk n).obj $ standard_simplex.obj (simplex_category.mk 0)⟩
+instance {n} : inhabited (sSet.truncated n) := ⟨(sk n).obj $ Δ[0]⟩
 
 end sSet

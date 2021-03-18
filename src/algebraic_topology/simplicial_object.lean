@@ -34,7 +34,8 @@ namespace simplicial_object
 
 -- TODO: find a sensible value for `1000`.
 localized
-  "notation X `_[`:1000 n `]` := (X : simplicial_object _).obj (op (simplex_category.mk n))"
+  "notation X `_[`:1000 n `]` :=
+    (X : simplicial_object _).obj (opposite.op (simplex_category.mk n))"
   in simplicial
 
 instance {J : Type v} [small_category J] [has_limits_of_shape J C] :

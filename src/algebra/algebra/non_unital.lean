@@ -33,24 +33,18 @@ non-unital, non-associative, algebra
 
 universes u₁ u₂ u₃ u₄
 
-variables (R : Type u₁) (A : Type u₂) (B : Type u₃) (C : Type u₄) [semiring R]
+variables (R : Type u₁) (A : Type u₂) (B : Type u₃) (C : Type u₄)
 
 /-- A not-necessarily-unital, not-necessarily-associative algebra. -/
 @[protect_proj]
-class non_unital_non_assoc_algebra [non_unital_non_assoc_semiring A] extends semimodule R A :=
+class non_unital_non_assoc_algebra [semiring R] [non_unital_non_assoc_semiring A]
+  extends semimodule R A :=
 (smul_mul_assoc' : ∀ (t : R) (a b : A), (t • a) * b = t • (a * b))
 (mul_smul_comm' : ∀ (t : R) (a b : A), a * (t • b) = t • (a * b))
 
-@[priority 200] -- see Note [lower instance priority]
-instance algebra.to_non_unital_non_assoc_algebra (R : Type u₁)
-  [comm_semiring R] [semiring A] [algebra R A] : non_unital_non_assoc_algebra R A :=
-{ smul_mul_assoc' := algebra.smul_mul_assoc,
-  mul_smul_comm'  := algebra.mul_smul_comm,
-  ..algebra.to_semimodule }
-
 namespace non_unital_non_assoc_algebra
 
-variables {R A} [non_unital_non_assoc_semiring A] [non_unital_non_assoc_algebra R A]
+variables {R A} [semiring R] [non_unital_non_assoc_semiring A] [non_unital_non_assoc_algebra R A]
 
 lemma smul_mul_assoc (t : R) (a b : A) :
   (t • a) * b = t • (a * b) :=
@@ -66,14 +60,11 @@ def lmul {R : Type u₁} {A : Type u₂}
   A →ₗ[R] module.End R A :=
 linear_map.mk₂ R (*) add_mul smul_mul_assoc mul_add mul_smul_comm
 
-/-- If the underlying `non_unital_non_assoc_semiring` is actually a `semiring` we have an
-`algebra`. -/
-def to_algebra {R : Type u₁} {A : Type u₂}
-  [comm_semiring R] [semiring A] [non_unital_non_assoc_algebra R A] : algebra R A :=
-algebra.of_semimodule smul_mul_assoc mul_smul_comm
-
 end non_unital_non_assoc_algebra
 
+section non_unital_non_assoc_algebra_hom
+
+variables [semiring R]
 variables [non_unital_non_assoc_semiring A] [non_unital_non_assoc_algebra R A]
 variables [non_unital_non_assoc_semiring B] [non_unital_non_assoc_algebra R B]
 variables [non_unital_non_assoc_semiring C] [non_unital_non_assoc_algebra R C]
@@ -89,13 +80,6 @@ attribute [nolint doc_blame] non_unital_non_assoc_algebra_hom.to_mul_hom
 namespace non_unital_non_assoc_algebra_hom
 
 variables {R A B C}
-
-instance {R : Type u₁} {A : Type u₂} {B : Type u₃}
-  [comm_semiring R] [ring A] [ring B] [algebra R A] [algebra R B] :
-  has_coe (A →ₐ[R] B) (non_unital_non_assoc_algebra_hom R A B) :=
-⟨λ f, { to_fun    := f,
-        map_smul' := f.map_smul,
-        ..f, }⟩
 
 instance : has_coe (non_unital_non_assoc_algebra_hom R A B) (A →ₗ[R] B) := ⟨to_linear_map⟩
 
@@ -180,3 +164,27 @@ def inverse (f : non_unital_non_assoc_algebra_hom R A B) (g : B → A)
   ..linear_map.inverse (f : A →ₗ[R] B) g h₁ h₂ }
 
 end non_unital_non_assoc_algebra_hom
+
+end non_unital_non_assoc_algebra_hom
+
+section algebra
+
+variables [comm_semiring R] [semiring A]
+
+instance algebra.to_non_unital_non_assoc_algebra [algebra R A] : non_unital_non_assoc_algebra R A :=
+{ smul_mul_assoc' := algebra.smul_mul_assoc,
+  mul_smul_comm'  := algebra.mul_smul_comm,
+  ..algebra.to_semimodule }
+
+open non_unital_non_assoc_algebra
+
+/-- If the `non_unital_non_assoc_semiring` underlying a `non_unital_non_assoc_algebra` is actually
+a `semiring`, we have an `algebra`. -/
+def non_unital_non_assoc_algebra.to_algebra [non_unital_non_assoc_algebra R A] : algebra R A :=
+algebra.of_semimodule smul_mul_assoc mul_smul_comm
+
+instance [semiring B] [algebra R A] [algebra R B] :
+  has_coe (A →ₐ[R] B) (non_unital_non_assoc_algebra_hom R A B) :=
+⟨λ f, { map_smul' := f.map_smul, ..f, }⟩
+
+end algebra

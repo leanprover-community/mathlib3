@@ -21,7 +21,7 @@ variables {a b : ℝ}
 
 namespace interval_integral
 open measure_theory
-variables {f : ℝ → ℝ} {μ : measure ℝ} [locally_finite_measure μ]
+variables {f : ℝ → ℝ} {μ ν : measure ℝ} [locally_finite_measure μ]
 
 @[simp]
 lemma integral_const_mul (c : ℝ) : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
@@ -48,30 +48,30 @@ lemma interval_integrable_const (c : ℝ) : interval_integrable (λ x, c) μ a b
 continuous_const.interval_integrable a b
 
 @[simp]
-lemma interval_integrable.const_mul (c : ℝ) (h : interval_integrable f μ a b) :
-  interval_integrable (λ x, c * f x) μ a b :=
+lemma interval_integrable.const_mul (c : ℝ) (h : interval_integrable f ν a b) :
+  interval_integrable (λ x, c * f x) ν a b :=
 by convert h.smul c
 
 @[simp]
-lemma interval_integrable.mul_const (c : ℝ) (h : interval_integrable f μ a b) :
-  interval_integrable (λ x, f x * c) μ a b :=
+lemma interval_integrable.mul_const (c : ℝ) (h : interval_integrable f ν a b) :
+  interval_integrable (λ x, f x * c) ν a b :=
 by simp only [mul_comm, interval_integrable.const_mul c h]
 
 @[simp]
-lemma interval_integrable.div (c : ℝ) (h : interval_integrable f μ a b) :
-  interval_integrable (λ x, f x / c) μ a b :=
+lemma interval_integrable.div (c : ℝ) (h : interval_integrable f ν a b) :
+  interval_integrable (λ x, f x / c) ν a b :=
 interval_integrable.mul_const c⁻¹ h
 
-lemma interval_integrable_one_div (hf : continuous_on f (interval a b))
-  (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0) :
+lemma interval_integrable_one_div (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0)
+  (hf : continuous_on f (interval a b)) :
   interval_integrable (λ x, 1 / f x) μ a b :=
 (continuous_on_const.div hf h).interval_integrable
 
 @[simp]
-lemma interval_integrable_inv (hf : continuous_on f (interval a b))
-  (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0) :
+lemma interval_integrable_inv (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0)
+  (hf : continuous_on f (interval a b)) :
   interval_integrable (λ x, (f x)⁻¹) μ a b :=
-by simpa only [one_div] using interval_integrable_one_div hf h
+by simpa only [one_div] using interval_integrable_one_div h hf
 
 @[simp]
 lemma interval_integrable_exp : interval_integrable exp μ a b :=
@@ -85,8 +85,7 @@ continuous_sin.interval_integrable a b
 lemma interval_integrable_cos : interval_integrable cos μ a b :=
 continuous_cos.interval_integrable a b
 
-lemma interval_integrable_one_div_one_add_sq :
-  interval_integrable (λ x:ℝ, 1 / (1 + x^2)) μ a b :=
+lemma interval_integrable_one_div_one_add_sq : interval_integrable (λ x:ℝ, 1 / (1 + x^2)) μ a b :=
 begin
   refine (continuous_const.div _ (λ x, _)).interval_integrable a b,
   { continuity },
@@ -94,8 +93,7 @@ begin
 end
 
 @[simp]
-lemma interval_integrable_inv_one_add_sq :
-  interval_integrable (λ x:ℝ, (1 + x^2)⁻¹) μ a b :=
+lemma interval_integrable_inv_one_add_sq : interval_integrable (λ x:ℝ, (1 + x^2)⁻¹) μ a b :=
 by simpa only [one_div] using interval_integrable_one_div_one_add_sq
 
 end interval_integral

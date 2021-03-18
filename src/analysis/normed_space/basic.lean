@@ -1483,5 +1483,3 @@ lemma summable_of_summable_nnnorm {f : ι → α} (hf : summable (λa, nnnorm (f
 summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
 
 end summable
-
-#lint

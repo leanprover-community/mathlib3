@@ -66,7 +66,8 @@ open category_theory category_theory.category category_theory.functor opposite
 
 namespace category_theory.limits
 
-universes v u u' u'' w -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- morphism levels before object levels. See note [category_theory universes].
+universes v u u' u'' w
 
 variables {J K : Type v} [small_category J] [small_category K]
 variables {C : Type u} [category.{v} C]

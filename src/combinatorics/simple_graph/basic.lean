@@ -174,7 +174,9 @@ fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
-@[symm] lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
+lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
+
+@[symm] lemma edge_symm' {u v : V} (h : G.adj u v) : G.adj v u := G.sym h
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 iff.rfl

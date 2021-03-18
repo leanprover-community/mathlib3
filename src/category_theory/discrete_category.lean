@@ -7,7 +7,7 @@ import category_theory.eq_to_hom
 
 namespace category_theory
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 /--
 A type synonym for promoting any type to a category,

@@ -9,7 +9,7 @@ import category_theory.types
 
 namespace category_theory
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 /-- The core of a category C is the groupoid whose morphisms are all the
 isomorphisms of C. -/

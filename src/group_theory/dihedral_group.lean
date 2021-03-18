@@ -9,31 +9,31 @@ import group_theory.order_of_element
 /-!
 # Dihedral Groups
 
-We define the dihedral groups `dihedral n`, with elements `r i` and `sr i` for `i : zmod n`.
+We define the dihedral groups `dihedral_group n`, with elements `r i` and `sr i` for `i : zmod n`.
 
-For `n ≠ 0`, `dihedral n` represents the symmetry group of the regular `n`-gon. `r i` represents
-the rotations of the `n`-gon by `2πi/n`, and `sr i` represents the reflections of the `n`-gon.
-`dihedral 0` corresponds to the infinite dihedral group.
+For `n ≠ 0`, `dihedral_group n` represents the symmetry group of the regular `n`-gon. `r i`
+represents the rotations of the `n`-gon by `2πi/n`, and `sr i` represents the reflections of the
+`n`-gon. `dihedral_group 0` corresponds to the infinite dihedral group.
 -/
 
 /--
-For `n ≠ 0`, `dihedral n` represents the symmetry group of the regular `n`-gon. `r i` represents
-the rotations of the `n`-gon by `2πi/n`, and `sr i` represents the reflections of the `n`-gon.
-`dihedral 0` corresponds to the infinite dihedral group.
+For `n ≠ 0`, `dihedral_group n` represents the symmetry group of the regular `n`-gon.
+`r i` represents the rotations of the `n`-gon by `2πi/n`, and `sr i` represents the reflections of
+the `n`-gon. `dihedral_group 0` corresponds to the infinite dihedral group.
 -/
 @[derive decidable_eq]
-inductive dihedral (n : ℕ) : Type
-| r : zmod n → dihedral
-| sr : zmod n → dihedral
+inductive dihedral_group (n : ℕ) : Type
+| r : zmod n → dihedral_group
+| sr : zmod n → dihedral_group
 
-namespace dihedral
+namespace dihedral_group
 
 variables {n : ℕ}
 
 /--
 Multiplication of the dihedral group.
 -/
-private def mul : dihedral n → dihedral n → dihedral n
+private def mul : dihedral_group n → dihedral_group n → dihedral_group n
 | (r i) (r j) := r (i + j)
 | (r i) (sr j) := sr (j - i)
 | (sr i) (r j) := sr (i + j)
@@ -42,21 +42,21 @@ private def mul : dihedral n → dihedral n → dihedral n
 /--
 The identity `1` is the rotation by `0`.
 -/
-private def one : dihedral n := r 0
+private def one : dihedral_group n := r 0
 
-instance : inhabited (dihedral n) := ⟨one⟩
+instance : inhabited (dihedral_group n) := ⟨one⟩
 
 /--
 The inverse of a an element of the dihedral group.
 -/
-private def inv : dihedral n → dihedral n
+private def inv : dihedral_group n → dihedral_group n
 | (r i) := r (-i)
 | (sr i) := sr i
 
 /--
-The group structure on `dihedral n`.
+The group structure on `dihedral_group n`.
 -/
-instance : group (dihedral n) :=
+instance : group (dihedral_group n) :=
 { mul := mul,
   mul_assoc :=
   begin
@@ -88,9 +88,9 @@ instance : group (dihedral n) :=
 @[simp] lemma sr_mul_r (i j : zmod n) : sr i * r j = sr (i + j) := rfl
 @[simp] lemma sr_mul_sr (i j : zmod n) : sr i * sr j = r (j - i) := rfl
 
-lemma one_def : (1 : dihedral n) = r 0 := rfl
+lemma one_def : (1 : dihedral_group n) = r 0 := rfl
 
-private def fintype_helper : (zmod n ⊕ zmod n) ≃ dihedral n :=
+private def fintype_helper : (zmod n ⊕ zmod n) ≃ dihedral_group n :=
 { inv_fun := λ i, match i with
                  | (r j) := sum.inl j
                  | (sr j) := sum.inr j
@@ -103,23 +103,19 @@ private def fintype_helper : (zmod n ⊕ zmod n) ≃ dihedral n :=
   right_inv := by rintro (x | x); refl }
 
 /--
-If `0 < n`, then `dihedral n` is a finite group.
+If `0 < n`, then `dihedral_group n` is a finite group.
 -/
-instance [fact (0 < n)] : fintype (dihedral n) := fintype.of_equiv _ fintype_helper
+instance [fact (0 < n)] : fintype (dihedral_group n) := fintype.of_equiv _ fintype_helper
 
-instance : nontrivial (dihedral n) := ⟨⟨r 0, sr 0, dec_trivial⟩⟩
+instance : nontrivial (dihedral_group n) := ⟨⟨r 0, sr 0, dec_trivial⟩⟩
 
 /--
-If `0 < n`, then `dihedral n` has `2n` elements.
+If `0 < n`, then `dihedral_group n` has `2n` elements.
 -/
-lemma card [fact (0 < n)] : fintype.card (dihedral n) = 2 * n :=
-begin
-  rw ←fintype.card_eq.mpr ⟨fintype_helper⟩,
-  change fintype.card (zmod n ⊕ zmod n) = 2 * n,
-  rw [fintype.card_sum, zmod.card, two_mul]
-end
+lemma card [fact (0 < n)] : fintype.card (dihedral_group n) = 2 * n :=
+by rw [← fintype.card_eq.mpr ⟨fintype_helper⟩, fintype.card_sum, zmod.card, two_mul]
 
-@[simp] lemma r_one_pow (k : ℕ) : (r 1 : dihedral n) ^ k = r k :=
+@[simp] lemma r_one_pow (k : ℕ) : (r 1 : dihedral_group n) ^ k = r k :=
 begin
   induction k with k IH,
   { refl },
@@ -154,13 +150,13 @@ end
 /--
 If `0 < n`, then `r 1` has order `n`.
 -/
-@[simp] lemma order_of_r_one : order_of (r 1 : dihedral n) = n :=
+@[simp] lemma order_of_r_one : order_of (r 1 : dihedral_group n) = n :=
 begin
   by_cases hnpos : 0 < n,
   { haveI : fact (0 < n) := hnpos,
     cases lt_or_eq_of_le (nat.le_of_dvd hnpos (order_of_dvd_of_pow_eq_one (@r_one_pow_n n)))
       with h h,
-    { have h1 : (r 1 : dihedral n)^(order_of (r 1)) = 1,
+    { have h1 : (r 1 : dihedral_group n)^(order_of (r 1)) = 1,
       { exact pow_order_of_eq_one _ },
       rw r_one_pow at h1,
       injection h1 with h2,
@@ -195,4 +191,4 @@ begin
   rw [←r_one_pow, order_of_pow, order_of_r_one]
 end
 
-end dihedral
+end dihedral_group

@@ -109,12 +109,34 @@ begin
     exact absurd hy sum.inr_ne_inl},
 end
 
-lemma perm_on_inl_iff_perm_on_inr {m n : Type*} [fintype m] [fintype n] (σ : equiv.perm (m ⊕ n)) :
-  (∀ a1, ∃ a2, sum.inl a2 = σ (sum.inl a1)) ↔ ∀ b1, ∃ b2, sum.inr b2 = σ (sum.inr b1) :=
+lemma mem_sum_congr_hom_range_of_perm_maps_to_inl {m n : Type*} [fintype m] [fintype n]
+  {σ : perm (m ⊕ n)} (h : set.maps_to σ (set.range sum.inl) (set.range sum.inl)) :
+  σ ∈ (sum_congr_hom m n).range :=
 begin
-  have := perm_maps_to_inl_iff_maps_to_inr σ,
-  rw [set.maps_range_to, set.maps_range_to] at this,
-  convert this; simp
+  classical,
+  have h1 : ∀ (x : m ⊕ n), (∃ (a : m), sum.inl a = x) → (∃ (a : m), sum.inl a = σ x),
+  { rintros x ⟨a, ha⟩, apply h, rw ← ha, exact ⟨a, rfl⟩ },
+  have h3 : ∀ (x : m ⊕ n), (∃ (b : n), sum.inr b = x) → (∃ (b : n), sum.inr b = σ x),
+  { rintros x ⟨b, hb⟩,
+    apply (perm_maps_to_inl_iff_maps_to_inr σ).mp h,
+    rw ← hb, exact ⟨b, rfl⟩ },
+  let σ₁' := subtype_perm_of_fintype σ h1,
+  let σ₂' := subtype_perm_of_fintype σ h3,
+  let σ₁ := perm_congr (equiv.set.range (@sum.inl m n) sum.injective_inl).symm σ₁',
+  let σ₂ := perm_congr (equiv.set.range (@sum.inr m n) sum.injective_inr).symm σ₂',
+  rw [monoid_hom.mem_range, prod.exists],
+  use [σ₁, σ₂],
+  rw [perm.sum_congr_hom_apply],
+  ext,
+  cases x with a b,
+  { rw [equiv.sum_congr_apply, sum.map_inl, perm_congr_apply, equiv.symm_symm,
+      set.apply_range_symm (@sum.inl m n)],
+    erw subtype_perm_apply,
+    rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] },
+  { rw [equiv.sum_congr_apply, sum.map_inr, perm_congr_apply, equiv.symm_symm,
+      set.apply_range_symm (@sum.inr m n)],
+    erw subtype_perm_apply,
+    rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] }
 end
 
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,

@@ -132,6 +132,9 @@ le_cInf dist_set_exists (λ C, and.left)
 lemma dist_le (C0 : (0 : ℝ) ≤ C) : dist f g ≤ C ↔ ∀x:α, dist (f x) (g x) ≤ C :=
 ⟨λ h x, le_trans (dist_coe_le_dist x) h, λ H, cInf_le ⟨0, λ C, and.left⟩ ⟨C0, H⟩⟩
 
+lemma dist_lt [compact_space α] (C0 : (0 : ℝ) < C) : dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
+sorry
+
 /-- On an empty space, bounded continuous functions are at distance 0 -/
 lemma dist_zero_of_empty (e : ¬ nonempty α) : dist f g = 0 :=
 le_antisymm ((dist_le (le_refl _)).2 $ λ x, e.elim ⟨x⟩) dist_nonneg'
@@ -734,6 +737,10 @@ instance : algebra 𝕜 (α →ᵇ γ) :=
   smul_def' := λ c f, ext $ λ x, algebra.smul_def' _ _,
   ..bounded_continuous_function.semimodule,
   ..bounded_continuous_function.ring }
+
+@[simp] lemma algebra_map_apply (k : 𝕜) (a : α) :
+  algebra_map 𝕜 (α →ᵇ γ) k a = k • 1 :=
+by { rw algebra.algebra_map_eq_smul_one, refl, }
 
 instance [nonempty α] : normed_algebra 𝕜 (α →ᵇ γ) :=
 { norm_algebra_map_eq := λ c, begin

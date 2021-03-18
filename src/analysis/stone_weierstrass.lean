@@ -2,6 +2,7 @@ import algebra.algebra.subalgebra
 import topology.algebra.continuous_functions
 import topology.algebra.polynomial
 import topology.bounded_continuous_function
+import topology.algebra.affine
 
 noncomputable theory
 
@@ -90,7 +91,7 @@ def polynomial.as_continuous_map (X : set R) : polynomial R →ₐ[R] C(X, R) :=
   map_mul' := by { intros, ext, simp, },
   commutes' := by { intros, ext, simp [algebra.algebra_map_eq_smul_one], }, }
 
--- Injective when `X` is infinite, and `[char_zero R]`?
+-- TODO: when is this injective? When `X` is infinite and `R = ℝ`, at least.
 
 /--
 The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological ring `R`.
@@ -101,7 +102,7 @@ def polynomial_functions (X : set R) : subalgebra R C(X, R) :=
 @[simp]
 lemma polynomial_functions_coe (X : set R) :
   (polynomial_functions X : set C(X, R)) = set.range (polynomial.as_continuous_map X) :=
-sorry
+by { ext, simp [polynomial_functions], }
 
 -- if `f : R → R` is an affine equivalence, then pulling back along `f`
 -- induces an normed algebra isomorphism between `polynomial_functions X` and
@@ -144,11 +145,43 @@ begin
 end
 
 def pullback {X Y : Type*} [topological_space X] [topological_space Y] (f : C(X, Y)) :
-  C(Y, ℝ) →ₐ[ℝ] C(X, ℝ) := sorry
+  C(Y, ℝ) →ₐ[ℝ] C(X, ℝ) :=
+{ to_fun := λ g, g.comp f,
+  map_zero' := by { ext, simp, },
+  map_add' := λ g₁ g₂, by { ext, simp, },
+  map_one' := by { ext, simp, },
+  map_mul' := λ g₁ g₂, by { ext, simp, },
+  commutes' := λ r, by { ext, simp, }, }
 
--- Also, this is continuous.
+lemma pullback_continuous
+  {X Y : Type*} [topological_space X] [compact_space X] [topological_space Y] [compact_space Y]
+  (f : C(X, Y)) :
+  continuous (pullback f) :=
+begin
+  change continuous (λ g : C(Y, ℝ), g.comp f),
+  refine metric.continuous_iff.mpr _,
+  intros g ε ε_pos,
+  refine ⟨ε, ε_pos, λ g' h, _⟩,
+  erw bounded_continuous_function.dist_lt ε_pos at h ⊢,
+  { exact λ x, h (f x), },
+  { assumption, },
+  { assumption, },
+end
 
-def affine (a b c d : ℝ) : C(set.Icc a b, set.Icc c d) := sorry
+def affine_interval_map (a b : ℝ) : C(set.Icc (0 : ℝ) (1 : ℝ), set.Icc a b) :=
+begin
+  let f₁ : ℝ →ᵃ[ℝ] ℝ := affine_map.line_map a b,
+  let f₂ : set.Icc (0 : ℝ) 1 → set.Icc a b :=
+    λ x, ⟨f₁ x, begin rcases x with ⟨x, zero_le, le_one⟩, simp, fsplit, sorry, sorry, end⟩,
+  have c : continuous f₂ :=
+  begin
+    apply continuous_subtype_mk,
+    change continuous (f₁ ∘ subtype.val),
+    continuity,
+  end,
+  exact ⟨f₂, c⟩,
+end
+
 
 /--
 The Weierstrass approximation theorem:
@@ -162,11 +195,11 @@ theorem polynomial_functions_closure_eq_top (a b : ℝ) :
   (polynomial_functions (set.Icc a b)).topological_closure = ⊤ :=
 begin
   let T : ℝ → ℝ := λ x, (b - a) * x + a,
-  let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) := pullback (affine 0 1 a b),
+  let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) := pullback (affine_interval_map a b),
   have p := polynomial_functions_closure_eq_top',
   apply_fun (λ s, s.comap' W) at p,
   simp only [algebra.comap_top] at p,
   -- X.topological_closure.comap' F = (X.comap' F).topological_closure if F is continuous
-  -- (polynomial_functions a b).comap' (pullback_along_affine _ _) = (polynomial_functions 0 1)
+  -- (polynomial_functions a b).comap' (pullback (affine_interval_map a b)) = (polynomial_functions 0 1)
   sorry
 end

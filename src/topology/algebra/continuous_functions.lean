@@ -247,8 +247,6 @@ instance continuous_map_semimodule : semimodule R C(α, M) :=
   zero_smul := λ f, by { ext, exact zero_smul _ _ },
   smul_zero := λ r, by { ext, exact smul_zero _ } }
 
-@[simp] lemma continuous_map.smul_apply (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) := rfl
-
 end continuous_map
 
 end semimodule_structure
@@ -319,6 +317,10 @@ instance continuous_map_algebra : algebra R C(α, A) :=
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
   ..continuous_map_semiring }
+
+@[simp] lemma algebra_map_apply (k : R) (a : α) :
+  algebra_map R C(α, A) k a = k • 1 :=
+by { rw algebra.algebra_map_eq_smul_one, refl, }
 
 end continuous_map
 

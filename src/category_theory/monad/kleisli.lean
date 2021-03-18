@@ -18,7 +18,7 @@ adjunction which gives rise to the monad `(T, η_ T, μ_ T)`.
 -/
 namespace category_theory
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u} [category.{v} C]
 

@@ -38,7 +38,7 @@ noncomputable theory
 
 namespace category_theory.limits
 
-universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u₁ u₂ u₃ -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]

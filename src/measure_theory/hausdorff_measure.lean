@@ -184,7 +184,7 @@ measures. We also prove basic lemmas about `map`/`comap` of these measures.
 
 /-- Auxiliary definition for `outer_measure.mk_metric'`: given a function on sets
 `m : set X → ℝ≥0∞`, returns the maximal outer measure `μ` such that `μ s ≤ m s`
-for any set `s` of diamenter at most `r`.-/
+for any set `s` of diameter at most `r`.-/
 def mk_metric'.pre (m : set X → ℝ≥0∞) (r : ℝ≥0∞) :
   outer_measure X :=
 bounded_by $ extend (λ s (hs : diam s ≤ r), m s)

@@ -356,6 +356,8 @@ by { intro v, simp }
 
 /--
 The minimum degree of all vertices (and `0` if there are no vertices).
+The key properties of this are given in `exists_minimal_degree_vertex`, `min_degree_le_degree`
+and `le_min_degree_of_forall_le_degree`.
 -/
 def min_degree [decidable_rel G.adj] : ℕ :=
 option.get_or_else (univ.image (λ v, G.degree v)).min 0
@@ -397,6 +399,8 @@ end
 
 /--
 The maximum degree of all vertices (and `0` if there are no vertices).
+The key properties of this are given in `exists_maximal_degree_vertex`, `degree_le_max_degree`
+and `max_degree_le_of_forall_degree_le`.
 -/
 def max_degree [decidable_rel G.adj] : ℕ :=
 option.get_or_else (univ.image (λ v, G.degree v)).max 0
@@ -427,7 +431,7 @@ begin
 end
 
 /--
-In a nonempty graph, if `k` is at least the degree of every vertex, then it is at least the maximum
+In a graph, if `k` is at least the degree of every vertex, then it is at least the maximum
 degree.
 -/
 lemma max_degree_le_of_forall_degree_le [decidable_rel G.adj] (k : ℕ)

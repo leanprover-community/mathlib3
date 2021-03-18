@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Aaron Anderson.
+Authors: Aaron Anderson
 -/
 
 import number_theory.arithmetic_function

@@ -168,14 +168,11 @@ begin
   apply bit1_ne_zero
 end
 
-theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
-| (m : ℕ) (n : ℕ) := pow_mul _ _ _
-| (m : ℕ) -[1+ n] := (fpow_neg _ (m * n.succ)).trans $
-  show (a ^ (m * n.succ))⁻¹ = _, by rw pow_mul; refl
-| -[1+ m] (n : ℕ) := (fpow_neg _ (m.succ * n)).trans $
-  show (a ^ (m.succ * n))⁻¹ = _, by rw [pow_mul, ← inv_pow']; refl
-| -[1+ m] -[1+ n] := (pow_mul a m.succ n.succ).trans $
-  show _ = (_⁻¹ ^ _)⁻¹, by rw [inv_pow', inv_inv']
+theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n :=
+begin
+  rintro (_ | _) (_ | _);
+  simp [←int.coe_nat_mul, pow_mul, -int.coe_nat_succ]
+end
 
 theorem fpow_mul' (a : G₀) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, fpow_mul]

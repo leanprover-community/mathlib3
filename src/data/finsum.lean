@@ -46,6 +46,13 @@ Definitions in this file:
 There is no `finprod` right now. This is because `function.support` and `finsupp` etc
 are all focussed on 0, and there are no analogous definitions for 1.
 
+`finsum` is "yet another way of doing finite sums in Lean". However experiments in the wild
+(e.g. with matroids) indicate that it is a helpful approach in settings where the user is
+not interested in computability and wants to do reasoning without running into typeclass
+diamonds caused by the constructive finiteness used in definitions such as `finset` and
+`fintype`. By sticking solely to `set.finite` we avoid these problems. We are aware that
+there are other solutions but for beginner mathematicians this approach is easier in practice.
+
 ## Todo
 
 We did not add `is_finite (X : Type) : Prop`, because it is simply `nonempty (fintype X)`.

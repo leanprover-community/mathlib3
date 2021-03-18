@@ -1056,6 +1056,8 @@ by { rw [linear_map.to_matrix_apply', algebra.lsmul_coe, linear_map.map_smul, fi
 
 /-- `left_mul_matrix hb x` is the matrix corresponding to the linear map `λ y, x * y`
 
+`left_mul_matrix_eq_repr_mul` gives a formula for the entries of `left_mul_matrix`.
+
 This definition is useful for doing (more) explicit computations with `algebra.lmul`,
 such as the trace form or norm map for algebras.
 -/
@@ -1070,6 +1072,10 @@ noncomputable def left_mul_matrix : S →ₐ[R] matrix m m R :=
 
 lemma left_mul_matrix_apply (x : S) :
   left_mul_matrix hb x = linear_map.to_matrix hb hb (lmul R S x) := rfl
+
+lemma left_mul_matrix_eq_repr_mul (x : S) (i j) :
+  left_mul_matrix hb x i j = hb.repr (x * b j) i :=
+by rw [left_mul_matrix_apply, linear_map.to_matrix_apply, algebra.lmul_apply, hb.equiv_fun_apply]
 
 @[simp] lemma to_matrix_lmul_eq (x : S) :
   linear_map.to_matrix hb hb (lmul R S x) = left_mul_matrix hb x :=

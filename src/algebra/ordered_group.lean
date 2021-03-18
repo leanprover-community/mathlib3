@@ -15,7 +15,6 @@ This file develops the basics of ordered groups.
 Unfortunately, the number of `'` appended to lemmas in this file
 may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
-
 -/
 
 set_option old_structure_cmd true
@@ -71,11 +70,18 @@ begin simp [inv_mul_cancel_left] at this, assumption end
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
-  [s : ordered_comm_group α] : ordered_cancel_comm_monoid α :=
+  [s : ordered_comm_group α] :
+  ordered_cancel_comm_monoid α :=
 { mul_left_cancel       := @mul_left_cancel α _,
   mul_right_cancel      := @mul_right_cancel α _,
   le_of_mul_le_mul_left := @ordered_comm_group.le_of_mul_le_mul_left α _,
   ..s }
+
+@[priority 100, to_additive]
+instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
+  [ordered_comm_group α] :
+  has_exists_mul_of_le α :=
+⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
 
 @[to_additive neg_le_neg]
 lemma inv_le_inv' (h : a ≤ b) : b⁻¹ ≤ a⁻¹ :=

@@ -42,6 +42,7 @@ def action_category := (action_as_functor M X).elements
 
 namespace action_category
 
+noncomputable
 instance (G : Type*) [group G] [mul_action G X] : groupoid (action_category G X) :=
 category_theory.groupoid_of_elements _
 

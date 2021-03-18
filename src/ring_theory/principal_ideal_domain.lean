@@ -70,18 +70,12 @@ lemma eq_bot_iff_generator_eq_zero (S : submodule R M) [S.is_principal] :
   S = ⊥ ↔ generator S = 0 :=
 by rw [← @span_singleton_eq_bot R M, span_singleton_generator]
 
-lemma prime_generator_of_prime {α} [comm_ring α] (I: ideal α)
-  [submodule.is_principal I] [is_prime: ideal.is_prime I] (ne_bot: I ≠ ⊥) :
-  prime (submodule.is_principal.generator I) :=
-⟨ by { intro h,
-    rw ← submodule.is_principal.eq_bot_iff_generator_eq_zero I at h,
-    exact ne_bot h, },
-  by { intro h,
-    have p₁: I = ⊤,
-    from ideal.eq_top_of_is_unit_mem I (submodule.is_principal.generator_mem I) h,
-    exact is_prime.ne_top p₁, },
-  by { simp only [← submodule.is_principal.mem_iff_generator_dvd I], exact is_prime.2, }
-⟩
+lemma prime_generator_of_is_prime (S: ideal R) [submodule.is_principal S] [is_prime: S.is_prime]
+  (ne_bot: S ≠ ⊥) :
+  prime (generator S) :=
+⟨λ h, ne_bot ((eq_bot_iff_generator_eq_zero S).2 h),
+ λ h, is_prime.ne_top (S.eq_top_of_is_unit_mem (generator_mem S) h),
+ by simpa only [← mem_iff_generator_dvd S] using is_prime.2⟩
 
 end submodule.is_principal
 

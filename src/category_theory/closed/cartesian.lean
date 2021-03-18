@@ -101,9 +101,6 @@ def coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A :=
 @[simp] lemma exp_adjunction_counit : (exp.adjunction A).counit = ev A := rfl
 @[simp] lemma exp_adjunction_unit : (exp.adjunction A).unit = coev A := rfl
 
-@[simp] lemma exp_adjunction_counit : (exp.adjunction A).counit = ev A := rfl
-@[simp] lemma exp_adjunction_unit : (exp.adjunction A).unit = coev A := rfl
-
 @[simp, reassoc]
 lemma ev_naturality {X Y : C} (f : X ⟶ Y) :
   limits.prod.map (𝟙 A) ((exp A).map f) ≫ (ev A).app Y = (ev A).app X ≫ f :=

@@ -486,7 +486,7 @@ lemma map_mrange (g : N →* P) (f : M →* N) : f.mrange.map g = (g.comp f).mra
 @[to_additive]
 lemma mrange_top_iff_surjective {N} [monoid N] {f : M →* N} :
   f.mrange = (⊤ : submonoid N) ↔ function.surjective f :=
-set_like.ext_iff'.trans $ iff.trans (by rw [coe_mrange, coe_top]) set.range_iff_surjective
+set_like.ext'_iff.trans $ iff.trans (by rw [coe_mrange, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective monoid hom is the whole of the codomain. -/
 @[to_additive "The range of a surjective `add_monoid` hom is the whole of the codomain."]

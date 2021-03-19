@@ -524,7 +524,7 @@ lemma srange_restrict_surjective (f : R →+* S) : function.surjective f.srange_
 
 lemma srange_top_iff_surjective {f : R →+* S} :
   f.srange = (⊤ : subsemiring S) ↔ function.surjective f :=
-set_like.ext_iff'.trans $ iff.trans (by rw [coe_srange, coe_top]) set.range_iff_surjective
+set_like.ext'_iff.trans $ iff.trans (by rw [coe_srange, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective ring homomorphism is the whole of the codomain. -/
 lemma srange_top_of_surjective (f : R →+* S) (hf : function.surjective f) :

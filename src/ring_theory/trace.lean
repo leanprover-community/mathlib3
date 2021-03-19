@@ -33,7 +33,6 @@ For now, the definitions assume `S` is commutative, so the choice doesn't matter
 universes u v w
 
 variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
-variables {A: Type*} [integral_domain A] [algebra A S]
 variables [algebra R S] [algebra R T]
 variables {K L : Type*} [field K] [field L] [algebra K L]
 variables {ι : Type w} [fintype ι]

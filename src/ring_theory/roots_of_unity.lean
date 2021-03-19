@@ -94,7 +94,7 @@ lemma map_roots_of_unity (f : units M →* units N) (k : ℕ+) :
   (roots_of_unity k M).map f ≤ roots_of_unity k N :=
 begin
   rintros _ ⟨ζ, h, rfl⟩,
-  simp only [←monoid_hom.map_pow, *, mem_roots_of_unity, subgroup.mem_coe, monoid_hom.map_one] at *
+  simp only [←monoid_hom.map_pow, *, mem_roots_of_unity, set_like.mem_coe, monoid_hom.map_one] at *
 end
 
 lemma mem_roots_of_unity_iff_mem_nth_roots {ζ : units R} :

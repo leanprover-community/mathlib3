@@ -41,7 +41,12 @@ instance : has_mem A (subalgebra R A) :=
 ⟨λ x S, x ∈ (S : set A)⟩
 
 variables {A}
+@[simp, norm_cast]
 theorem mem_coe {x : A} {s : subalgebra R A} : x ∈ (s : set A) ↔ x ∈ s :=
+iff.rfl
+
+@[simp, norm_cast]
+theorem mem_coe_subsemiring {x : A} {s : subalgebra R A} : x ∈ (s : subsemiring A) ↔ x ∈ s :=
 iff.rfl
 
 @[ext] theorem ext {S T : subalgebra R A}

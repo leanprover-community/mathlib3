@@ -4,18 +4,66 @@ noncomputable theory
 
 namespace continuous_map
 
+open_locale topological_space
+
+lemma frequently_in_nhds_map {X Y : Type*} [topological_space X] [topological_space Y]
+  {P : X → Prop} {Q : Y → Prop} {f : X → Y} {p : X} (c : continuous_at f p) (w : ∀ x, P x → Q (f x))
+  (h : ∃ᶠ x in nhds p, P x) : ∃ᶠ y in nhds (f p), Q y :=
+λ h', h (filter.mem_sets_of_superset (c.preimage_mem_nhds h')
+  (λ x nq, (λ np, nq (w x np))))
+
 variables {X : Type*}
 
 variables [topological_space X] [compact_space X]
 variables {R : Type*} [comm_ring R] [topological_space R] [topological_ring R]
 
+lemma apply_le_norm (f : C(X, ℝ)) (x : X) : f x ≤ ∥f∥ := sorry
+lemma neg_norm_le_apply (f : C(X, ℝ)) (x : X) : -∥f∥ ≤ f x := sorry
+
+def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-∥f∥) (∥f∥)) :=
+{ to_fun := λ x, ⟨f x, ⟨neg_norm_le_apply f x, apply_le_norm f x⟩⟩ }
+
+@[simp] lemma attach_bound_apply_coe (f : C(X, ℝ)) (x : X) : ((attach_bound f) x : ℝ) = f x := rfl
+
+lemma polynomial_comp_attach_bound_mem (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
+  ((polynomial.as_continuous_map (set.Icc (-∥f∥) ∥f∥)) g).comp (f : C(X, ℝ)).attach_bound ∈ A :=
+begin
+  apply polynomial.induction_on' g,
+  { intros p q hp hq,
+    simp only [alg_hom.map_add, continuous_map.add_comp],
+    exact A.add_mem hp hq, },
+  { intros n a,
+    rw polynomial.monomial_eq_smul_X,
+    simp,
+    apply A.smul_mem,
+    apply A.pow_mem,
+    convert f.2,
+    ext, simp, }
+end
+
+theorem foo (A : subalgebra ℝ C(X, ℝ)) (f : A) (p : C(set.Icc (-∥f∥) (∥f∥), ℝ)) :
+  p.comp (attach_bound f) ∈ A.topological_closure :=
+begin
+  have : p ∈ (polynomial_functions (set.Icc (-∥f∥) (∥f∥))).topological_closure :=
+    mem_polynomial_functions_closure _ _ p,
+  have := mem_closure_iff_frequently.mp this,
+  apply mem_closure_iff_frequently.mpr,
+  apply frequently_in_nhds_map
+    ((pullback_as_continuous_map (attach_bound (f : C(X, ℝ)))).continuous_at p) _ this,
+  rintros _ ⟨g, ⟨-,rfl⟩⟩,
+  simp,
+  apply polynomial_comp_attach_bound_mem,
+end
+
 theorem abs_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f : A) :
   (f : C(X, ℝ)).abs ∈ A.topological_closure :=
 begin
-  -- rewrite `f.abs` as `abs ∘ f`,
-  -- then use that `abs` is in the closure of polynomials on `[-M, M]`,
-  -- where `∥f∥ ≤ M`.
-  sorry
+  let M := ∥f∥,
+  let f' := attach_bound (f : C(X, ℝ)),
+  let abs : C(set.Icc (-∥f∥) (∥f∥), ℝ) :=
+  { to_fun := λ x : set.Icc (-∥f∥) (∥f∥), _root_.abs (x : ℝ) },
+  change (abs.comp f') ∈ A.topological_closure,
+  apply foo,
 end
 
 theorem inf_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f g : A) :
@@ -92,7 +140,7 @@ begin
     (subalgebra.separates_points_strongly
       (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
   { simp, },
-  { ext, simp, sorry, },
+  { ext, simp, },
 end
 
 end continuous_map

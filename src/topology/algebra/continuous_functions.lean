@@ -97,6 +97,15 @@ instance continuous_map_semigroup {α : Type*} {β : Type*} [topological_space �
 { mul_assoc := λ a b c, by ext; exact mul_assoc _ _ _,
   ..continuous_map.has_mul}
 
+@[simp, to_additive] lemma continuous_map.mul_comp {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ]
+  [semigroup γ] [has_continuous_mul γ] (f₁ f₂ : C(β, γ)) (g : C(α, β)) :
+  (f₁ * f₂).comp g = f₁.comp g * f₂.comp g :=
+begin
+  ext,
+  simp,
+end
+
 @[to_additive]
 instance continuous_map_monoid {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : monoid C(α, β) :=
@@ -104,6 +113,16 @@ instance continuous_map_monoid {α : Type*} {β : Type*} [topological_space α] 
   mul_one := λ a, by ext; exact mul_one _,
   ..continuous_map_semigroup,
   ..continuous_map.has_one }
+
+@[simp] lemma continuous_map.pow_comp {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ]
+  [monoid γ] [has_continuous_mul γ] (f : C(β, γ)) (n : ℕ) (g : C(α, β)) :
+  (f^n).comp g = (f.comp g)^n :=
+begin
+  induction n with n ih,
+  { ext, simp, },
+  { simp [pow_succ, ih], }
+end
 
 @[to_additive]
 instance continuous_map_comm_monoid {α : Type*} {β : Type*} [topological_space α]
@@ -120,6 +139,14 @@ instance continuous_map_group {α : Type*} {β : Type*} [topological_space α] [
 { inv := λ f, ⟨λ x, (f x)⁻¹, continuous_inv.comp f.continuous⟩,
   mul_left_inv := λ a, by ext; exact mul_left_inv _,
   ..continuous_map_monoid }
+
+@[simp] lemma continuous_map.inv_comp {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ]
+  [group γ] [topological_group γ] (f : C(β, γ)) (g : C(α, β)) :
+  (f⁻¹).comp g = (f.comp g)⁻¹ :=
+begin
+  ext, simp, refl,
+end
 
 @[simp, norm_cast, to_additive]
 lemma div_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
@@ -236,6 +263,14 @@ instance continuous_map_has_scalar
 @[simp] lemma continuous_map.smul_apply [semimodule R M] [topological_semimodule R M]
   (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) :=
 rfl
+
+@[simp] lemma continuous_map.smul_comp {α : Type*} {β : Type*}
+  [topological_space α] [topological_space β]
+   [semimodule R M] [topological_semimodule R M] (r : R) (f : C(β, M)) (g : C(α, β)) :
+  (r • f).comp g = r • (f.comp g) :=
+begin
+  ext, simp,
+end
 
 variables [has_continuous_add M] [semimodule R M] [topological_semimodule R M]
 

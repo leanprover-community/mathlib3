@@ -253,7 +253,7 @@ attribute [to_additive add_order_of_zero] order_of_one
 
 attribute [to_additive add_order_of_eq_one_iff] order_of_eq_one_iff
 
-lemma smul_eq_mod_add_order_of {n : ℕ} : n •ℕ x = (n % add_order_of x) •ℕ x :=
+lemma nsmul_eq_mod_add_order_of {n : ℕ} : n •ℕ x = (n % add_order_of x) •ℕ x :=
 calc n •ℕ x = (n % add_order_of x +  (n / add_order_of x)* add_order_of x) •ℕ x :
         by rw [nat.mod_add_div']
         ... = (n % add_order_of x) •ℕ x :
@@ -263,7 +263,22 @@ lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
 calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) : by rw [nat.mod_add_div]
        ... = a ^ (n % order_of a) : by simp [pow_add, pow_mul, pow_order_of_eq_one]
 
-attribute [to_additive smul_eq_mod_add_order_of] pow_eq_mod_order_of
+attribute [to_additive nsmul_eq_mod_add_order_of] pow_eq_mod_order_of
+
+lemma add_order_of_dvd_of_nsmul_eq_zero {n : ℕ} (h : n •ℕ x = 0) : add_order_of x ∣ n :=
+begin
+  by_cases h₁ : 0 < n,
+  { apply nat.dvd_of_mod_eq_zero,
+    by_contradiction h₂,
+    have h₃ : ¬ (0 < n % add_order_of x ∧ (n % add_order_of x) •ℕ x = 0) :=
+      add_order_of_le_of_nsmul_eq_zero' ( nat.mod_lt _ ( add_order_of_pos' ⟨n, h₁, h⟩)),
+    push_neg at h₃,
+    specialize h₃ (nat.pos_of_ne_zero h₂),
+    rw ← nsmul_eq_mod_add_order_of at h₃,
+    exact h₃ h },
+  { have h₅ : n = 0 := le_antisymm (not_lt.mp h₁) (nat.zero_le n),
+    simp [h₅] }
+end
 
 lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
 begin
@@ -273,22 +288,33 @@ begin
     have h₃ : ¬ (0 < n % order_of a ∧ a ^ (n % order_of a) = 1) := order_of_le_of_pow_eq_one'
       ( nat.mod_lt _ ( order_of_pos' ⟨n, h₁, h⟩)),
     push_neg at h₃,
-    have h₄ : n % order_of a > 0 :=
-        nat.pos_of_ne_zero h₂,
-    specialize h₃ h₄,
+    specialize h₃ (nat.pos_of_ne_zero h₂),
     rw ← pow_eq_mod_order_of at h₃,
     exact h₃ h },
-  { have h₅ : n = 0 :=
-      le_antisymm (not_lt.mp h₁) (nat.zero_le n),
+  { have h₅ : n = 0 := le_antisymm (not_lt.mp h₁) (nat.zero_le n),
     simp [h₅] }
 end
+
+attribute [to_additive add_order_of_dvd_of_nsmul_eq_zero] order_of_dvd_of_pow_eq_one
+
+lemma add_order_of_dvd_iff_nsmul_eq_zero {n : ℕ} : add_order_of x ∣ n ↔ n •ℕ x = 0 :=
+⟨λ h, by rw [nsmul_eq_mod_add_order_of, nat.mod_eq_zero_of_dvd h, zero_nsmul],
+  add_order_of_dvd_of_nsmul_eq_zero⟩
 
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
 ⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
 
+attribute [to_additive add_order_of_dvd_iff_nsmul_eq_zero] order_of_dvd_iff_pow_eq_one
+
+lemma add_order_of_eq_prime {p : ℕ} [hp : fact p.prime]
+(hg : p •ℕ x = 0) (hg1 : x ≠ 0) : add_order_of x = p :=
+(hp.2 _ (add_order_of_dvd_of_nsmul_eq_zero hg)).resolve_left (mt add_order_of_eq_one_iff.1 hg1)
+
 lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
   (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
 (hp.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
+
+attribute [to_additive add_order_of_eq_prime] order_of_eq_prime
 
 open nat
 
@@ -299,14 +325,41 @@ begin
   exact order_of_eq_prime (by { rw pow_two, simp }) (dec_trivial)
 end
 
-lemma order_of_eq_prime_pow {a : α} {p k : ℕ} (hprime : nat.prime p)
+lemma add_order_of_eq_prime_pow {p k : ℕ} (hprime : prime p)
+  (hnot : ¬ (p ^ k) •ℕ x = 0) (hfin : (p ^ (k + 1)) •ℕ x = 0) : add_order_of x = p ^ (k + 1) :=
+begin
+  apply nat.eq_prime_pow_of_dvd_least_prime_pow hprime;
+  { rwa add_order_of_dvd_iff_nsmul_eq_zero }
+end
+
+lemma order_of_eq_prime_pow {p k : ℕ} (hprime : prime p)
   (hnot : ¬ a ^ p ^ k = 1) (hfin : a ^ p ^ (k + 1) = 1) : order_of a = p ^ (k + 1) :=
 begin
   apply nat.eq_prime_pow_of_dvd_least_prime_pow hprime;
   { rwa order_of_dvd_iff_pow_eq_one }
 end
 
-variables (a) {n : ℕ}
+attribute [to_additive add_order_of_eq_prime_pow] order_of_eq_prime_pow
+
+variables (x) {n : ℕ}
+
+lemma add_order_of_nsmul' (h : n ≠ 0) :
+  add_order_of (n •ℕ x) = add_order_of x / gcd (add_order_of x) n :=
+begin
+  apply dvd_antisymm,
+  { apply add_order_of_dvd_of_nsmul_eq_zero,
+    rw [← mul_nsmul, mul_comm, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
+        nat.mul_div_assoc _ (gcd_dvd_right _ _), mul_comm, mul_nsmul, add_order_of_nsmul_eq_zero,
+        nsmul_zero] },
+  { have gcd_pos : 0 < gcd (add_order_of x) n := gcd_pos_of_pos_right _ (nat.pos_of_ne_zero h),
+    apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos),
+    apply dvd_of_mul_dvd_mul_right gcd_pos,
+    rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc, nat.div_mul_cancel (gcd_dvd_right _ _)],
+    apply add_order_of_dvd_of_nsmul_eq_zero,
+    rw [mul_nsmul, add_order_of_nsmul_eq_zero] }
+end
+
+variables (a)
 
 lemma order_of_pow' (h : n ≠ 0) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
@@ -315,16 +368,34 @@ begin
   { apply order_of_dvd_of_pow_eq_one,
     rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
         nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow] },
-  { have gcd_pos : 0 < gcd (order_of a) n, exact gcd_pos_of_pos_right _ (nat.pos_of_ne_zero h),
+  { have gcd_pos : 0 < gcd (order_of a) n := gcd_pos_of_pos_right _ (nat.pos_of_ne_zero h),
     apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos),
     apply dvd_of_mul_dvd_mul_right gcd_pos,
     rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc, nat.div_mul_cancel (gcd_dvd_right _ _),
-    mul_comm],
+        mul_comm],
     apply order_of_dvd_of_pow_eq_one,
     rw [pow_mul, pow_order_of_eq_one] }
 end
 
+attribute [to_additive add_order_of_nsmul'] order_of_pow'
+
 variable (n)
+
+lemma add_order_of_nsmul'' (h : ∃n, 0 < n ∧ n •ℕ x = 0) :
+  add_order_of (n •ℕ x) = add_order_of x / gcd (add_order_of x) n :=
+begin
+    apply dvd_antisymm,
+  { apply add_order_of_dvd_of_nsmul_eq_zero,
+    rw [← mul_nsmul, mul_comm, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
+        nat.mul_div_assoc _ (gcd_dvd_right _ _), mul_comm, mul_nsmul, add_order_of_nsmul_eq_zero,
+        nsmul_zero] },
+  { have gcd_pos : 0 < gcd (add_order_of x) n := gcd_pos_of_pos_left n (add_order_of_pos' h),
+    apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos),
+    apply dvd_of_mul_dvd_mul_right gcd_pos,
+    rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc, nat.div_mul_cancel (gcd_dvd_right _ _)],
+    apply add_order_of_dvd_of_nsmul_eq_zero,
+    rw [mul_nsmul, add_order_of_nsmul_eq_zero] }
+end
 
 lemma order_of_pow'' (h : ∃ n, 0 < n ∧ a ^ n = 1) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
@@ -333,7 +404,7 @@ begin
   { apply order_of_dvd_of_pow_eq_one,
     rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
         nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow] },
-  { have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos' h),
+  { have gcd_pos : 0 < gcd (order_of a) n := gcd_pos_of_pos_left n (order_of_pos' h),
     apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos),
     apply dvd_of_mul_dvd_mul_right gcd_pos,
     rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc,

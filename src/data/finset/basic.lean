@@ -906,6 +906,10 @@ begin
   simp,
 end
 
+lemma erase_inj_on (s : finset α) : set.inj_on finset.erase s
+
+#exit
+
 /-! ### sdiff -/
 
 /-- `s \ t` is the set consisting of the elements of `s` that are not in `t`. -/

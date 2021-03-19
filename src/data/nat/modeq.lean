@@ -100,7 +100,11 @@ theorem modeq_add_cancel_right (h₁ : c ≡ d [MOD n]) (h₂ : a + c ≡ b + d 
 by rw [add_comm a, add_comm b] at h₂; exact modeq_add_cancel_left h₁ h₂
 
 theorem modeq_of_modeq_mul_left (m : ℕ) (h : a ≡ b [MOD m * n]) : a ≡ b [MOD n] :=
-by rw [modeq_iff_dvd] at *; exact dvd.trans (dvd_mul_left (n : ℤ) (m : ℤ)) h
+begin
+  rw modeq_iff_dvd at h ⊢,
+  rw int.coe_nat_mul at h,
+  exact dvd.trans (dvd_mul_left _ _) h
+end
 
 theorem modeq_of_modeq_mul_right (m : ℕ) : a ≡ b [MOD n * m] → a ≡ b [MOD n] :=
 mul_comm m n ▸ modeq_of_modeq_mul_left _

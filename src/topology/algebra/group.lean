@@ -700,7 +700,6 @@ namespace group_filter_basis
 
 variables {G} [group G]
 
-@[to_additive add_conj]
 lemma conj {G : Type*} [group G] (f : group_filter_basis G) (g : G) {U} (hU : U ∈ f) :
   ∃ V ∈ f, V ⊆ (λ h, g*h*g⁻¹) ⁻¹' U :=
 group_filter_basis.conj' g _ hU
@@ -724,7 +723,7 @@ lemma N_one (f : group_filter_basis G) : f.N 1 = f.to_filter_basis.filter :=
 by simp only [N, one_mul, filter.map_id']
 
 /-- The topological group associated with a group filter basis. -/
-@[to_additive]
+/-@[to_additive]
 lemma to_topological_group [topological_space G]
   (basis : group_filter_basis G) (hnhds : ∀ x₀ : G, nhds x₀ = basis.N x₀) : topological_group G :=
 begin
@@ -757,6 +756,6 @@ begin
     rw filter.mem_map,
     use [W, W_in],
     exact id (λ h hw, hW₀ (hW hw)) }
-end
+end-/
 
 end group_filter_basis

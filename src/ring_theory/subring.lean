@@ -86,11 +86,14 @@ def to_submonoid (s : subring R) : submonoid R :=
 { carrier := s.carrier,
   ..s.to_subsemiring.to_submonoid }
 
-instance : has_coe (subring R) (set R) := ⟨subring.carrier⟩
+instance : set_like (subring R) R :=
+⟨subring.carrier, λ p q h, by cases p; cases q; congr'⟩
 
-instance : has_mem R (subring R) := ⟨λ m S, m ∈ (S:set R)⟩
+@[simp]
+lemma mem_carrier {s : subring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
-instance : has_coe_to_sort (subring R) := ⟨Type*, λ S, {x : R // x ∈ S}⟩
+/-- Two subrings are equal if they have the same elements. -/
+@[ext] theorem ext {S T : subring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
 /-- Construct a `subring R` from a set `s`, a submonoid `sm`, and an additive
 subgroup `sa` such that `x ∈ s ↔ x ∈ sm ↔ x ∈ sa`. -/
@@ -116,7 +119,7 @@ iff.rfl
 @[simp] lemma mk'_to_submonoid {s : set R} {sm : submonoid R} (hm : ↑sm = s)
   {sa : add_subgroup R} (ha : ↑sa = s) :
   (subring.mk' s sm sa hm ha).to_submonoid = sm :=
-submonoid.ext' hm.symm
+set_like.coe_injective hm.symm
 
 @[simp] lemma mk'_to_add_subgroup {s : set R} {sm : submonoid R} (hm : ↑sm = s)
   {sa : add_subgroup R} (ha : ↑sa  =s) :
@@ -134,14 +137,6 @@ def set.to_subring (S : set R) [is_subring S] : subring R :=
   add_mem' := λ a b, is_add_submonoid.add_mem,
   neg_mem' := λ a, is_add_subgroup.neg_mem }
 
-protected lemma subring.exists {s : subring R} {p : s → Prop} :
-  (∃ x : s, p x) ↔ ∃ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
-set_coe.exists
-
-protected lemma subring.forall {s : subring R} {p : s → Prop} :
-  (∀ x : s, p x) ↔ ∀ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
-set_coe.forall
-
 /-- A `subsemiring` containing -1 is a `subring`. -/
 def subsemiring.to_subring (s : subsemiring R) (hneg : (-1 : R) ∈ s) : subring R :=
 { neg_mem' := by { rintros x, rw <-neg_one_mul, apply subsemiring.mul_mem, exact hneg, }
@@ -150,17 +145,6 @@ def subsemiring.to_subring (s : subsemiring R) (hneg : (-1 : R) ∈ s) : subring
 namespace subring
 
 variables (s : subring R)
-
-/-- Two subrings are equal if the underlying subsets are equal. -/
-theorem ext' ⦃s t : subring R⦄ (h : (s : set R) = t) : s = t :=
-by { cases s, cases t, congr' }
-
-/-- Two subrings are equal if and only if the underlying subsets are equal. -/
-protected theorem ext'_iff {s t : subring R}  : s = t ↔ (s : set R) = t :=
-⟨λ h, h ▸ rfl, λ h, ext' h⟩
-
-/-- Two subrings are equal if they have the same elements. -/
-@[ext] theorem ext {S T : subring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
 
 /-- A subring contains the ring's 1. -/
 theorem one_mem : (1 : R) ∈ s := s.one_mem'
@@ -290,22 +274,6 @@ s.subtype.map_int_cast n
 
 /-! # Partial order -/
 
-instance : partial_order (subring R) :=
-{ le := λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t,
-  .. partial_order.lift (coe : subring R → set R) ext' }
-
-lemma le_def {s t : subring R} : s ≤ t ↔ ∀ ⦃x : R⦄, x ∈ s → x ∈ t := iff.rfl
-
-@[simp, norm_cast] lemma coe_subset_coe {s t : subring R} : (s : set R) ⊆ t ↔ s ≤ t := iff.rfl
-
-@[simp, norm_cast] lemma coe_ssubset_coe {s t : subring R} : (s : set R) ⊂ t ↔ s < t := iff.rfl
-
-@[simp, norm_cast]
-lemma mem_coe {S : subring R} {m : R} : m ∈ (S : set R) ↔ m ∈ S := iff.rfl
-
-@[simp, norm_cast]
-lemma coe_coe (s : subring R) : ↥(s : set R) = s := rfl
-
 @[simp] lemma mem_to_submonoid {s : subring R} {x : R} : x ∈ s.to_submonoid ↔ x ∈ s := iff.rfl
 @[simp] lemma coe_to_submonoid (s : subring R) : (s.to_submonoid : set R) = s := rfl
 @[simp] lemma mem_to_add_subgroup {s : subring R} {x : R} :
@@ -356,7 +324,7 @@ def map {R : Type u} {S : Type v} [ring R] [ring S]
 set.mem_image_iff_bex
 
 lemma map_map (g : S →+* T) (f : R →+* S) : (s.map f).map g = s.map (g.comp f) :=
-ext' $ set.image_image _ _ _
+set_like.coe_injective $ set.image_image _ _ _
 
 lemma map_le_iff_le_comap {f : R →+* S} {s : subring R} {t : subring S} :
   s.map f ≤ t ↔ s ≤ t.comap f :=
@@ -453,7 +421,8 @@ instance : complete_lattice (subring R) :=
   inf_le_right := λ s t x, and.right,
   le_inf := λ s t₁ t₂ h₁ h₂ x hx, ⟨h₁ hx, h₂ hx⟩,
   .. complete_lattice_of_Inf (subring R)
-    (λ s, is_glb.of_image (λ s t, show (s : set R) ≤ t ↔ s ≤ t, from coe_subset_coe) is_glb_binfi)}
+    (λ s, is_glb.of_image (λ s t,
+      show (s : set R) ≤ t ↔ s ≤ t, from set_like.coe_subset_coe) is_glb_binfi)}
 
 lemma eq_top_iff' (A : subring R) : A = ⊤ ↔ ∀ x : R, x ∈ A :=
 eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
@@ -626,7 +595,7 @@ lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → subring R} (hS :
   {x : R} :
   x ∈ (⨆ i, S i) ↔ ∃ i, x ∈ S i :=
 begin
-  refine ⟨_, λ ⟨i, hi⟩, (le_def.1 $ le_supr S i) hi⟩,
+  refine ⟨_, λ ⟨i, hi⟩, (set_like.le_def.1 $ le_supr S i) hi⟩,
   let U : subring R := subring.mk' (⋃ i, (S i : set R))
     (⨆ i, (S i).to_submonoid) (⨆ i, (S i).to_add_subgroup)
     (submonoid.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id))
@@ -677,7 +646,7 @@ lemma range_restrict_surjective (f : R →+* S) : function.surjective f.range_re
 
 lemma range_top_iff_surjective {f : R →+* S} :
   f.range = (⊤ : subring S) ↔ function.surjective f :=
-subring.ext'_iff.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_surjective
+set_like.coe_set_eq.symm.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective ring homomorphism is the whole of the codomain. -/
 lemma range_top_of_surjective (f : R →+* S) (hf : function.surjective f) :
@@ -704,7 +673,7 @@ eq_of_eq_on_set_top $ hs ▸ eq_on_set_closure h
 
 lemma closure_preimage_le (f : R →+* S) (s : set S) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
-closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
+closure_le.2 $ λ x hx, set_like.mem_coe.2 $ mem_comap.2 $ subset_closure hx
 
 /-- The image under a ring homomorphism of the subring generated by a set equals
 the subring generated by the image of the set. -/
@@ -726,7 +695,7 @@ def inclusion {S T : subring R} (h : S ≤ T) : S →* T :=
 S.subtype.cod_restrict' _ (λ x, h x.2)
 
 @[simp] lemma range_subtype (s : subring R) : s.subtype.range = s :=
-ext' $ (coe_srange _).trans subtype.range_coe
+set_like.coe_injective $ (coe_srange _).trans subtype.range_coe
 
 @[simp]
 lemma range_fst : (fst R S).srange = ⊤ :=
@@ -741,8 +710,8 @@ lemma prod_bot_sup_bot_prod (s : subring R) (t : subring S) :
   (s.prod ⊥) ⊔ (prod ⊥ t) = s.prod t :=
 le_antisymm (sup_le (prod_mono_right s bot_le) (prod_mono_left t bot_le)) $
 assume p hp, prod.fst_mul_snd p ▸ mul_mem _
-  ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, mem_coe.2 $ one_mem ⊥⟩)
-  ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨mem_coe.2 $ one_mem ⊥, hp.2⟩)
+  ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, set_like.mem_coe.2 $ one_mem ⊥⟩)
+  ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨set_like.mem_coe.2 $ one_mem ⊥, hp.2⟩)
 
 end subring
 
@@ -753,7 +722,7 @@ variables {s t : subring R}
 /-- Makes the identity isomorphism from a proof two subrings of a multiplicative
     monoid are equal. -/
 def subring_congr (h : s = t) : s ≃+* t :=
-{ map_mul' :=  λ _ _, rfl, map_add' := λ _ _, rfl, ..equiv.set_congr $ subring.ext'_iff.1 h }
+{ map_mul' :=  λ _ _, rfl, map_add' := λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
 /-- Restrict a ring homomorphism with a left inverse to a ring isomorphism to its
 `ring_hom.range`. -/
@@ -820,7 +789,7 @@ end
 
 lemma closure_preimage_le (f : R →+* S) (s : set S) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
-closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
+closure_le.2 $ λ x hx, set_like.mem_coe.2 $ mem_comap.2 $ subset_closure hx
 
 end subring
 

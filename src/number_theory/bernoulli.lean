@@ -390,4 +390,43 @@ begin
   field_simp [mul_right_comm _ ↑p!, ←mul_assoc _ _ ↑p!, cast_add_one_ne_zero, hne],
 end
 
+/-- Alternate form of Faulhaber's theorem, relating the sum of p-th powers to the Bernoulli numbers.
+Deduced from `sum_range_pow`. -/
+theorem sum_range_pow' (n p : ℕ) :
+  ∑ k in Ico 1 (n + 1), (k : ℚ) ^ p =
+    ∑ i in range (p + 1), bernoulli' i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1) :=
+begin
+  -- dispose of the trivial case
+  cases p, { simp },
+  let f := λ i, bernoulli i * p.succ.succ.choose i * n ^ (p.succ.succ - i) / p.succ.succ,
+  let f' := λ i, bernoulli' i * p.succ.succ.choose i * n ^ (p.succ.succ - i) / p.succ.succ,
+  suffices : ∑ k in Ico 1 n.succ, ↑k ^ p.succ = ∑ i in range p.succ.succ, f' i, { convert this },
+  -- prove some algebraic facts that will make things easier for us later on
+  have hle := le_add_left 1 n,
+  have hne : (p + 1 + 1 : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero p.succ,
+  have h1 : ∀ r : ℚ, r * (p + 1 + 1 : ℚ) * n ^ p.succ / (p + 1 + 1 : ℚ) = r * n ^ p.succ :=
+    λ r, by rw [mul_div_right_comm, mul_div_cancel _ hne],
+  have h2 : f 1 + n ^ p.succ = 1 / 2 * n ^ p.succ,
+  { simp_rw [f, bernoulli_one, choose_one_right, succ_sub_succ_eq_sub, cast_succ, nat.sub_zero, h1],
+    ring },
+  have : ∑ i in range p, bernoulli (i + 2) * ↑((p + 2).choose (i + 2)) * ↑n ^ (p - i) / ↑(p + 2)
+       = ∑ i in range p, bernoulli' (i + 2) * ↑((p + 2).choose (i + 2)) * ↑n ^ (p - i) / ↑(p + 2) :=
+    sum_congr rfl (λ i h, by rw bernoulli_eq_bernoulli'_of_ne_one (succ_succ_ne_one i)),
+  calc  ∑ k in Ico 1 n.succ, ↑k ^ p.succ
+        -- replace sum over `Ico` with sum over `range` and simplify
+      = ∑ k in range n.succ, ↑k ^ p.succ : by simp [sum_Ico_eq_sub _ hle, succ_ne_zero]
+        -- extract the last term of the sum
+  ... = ∑ k in range n, (k : ℚ) ^ p.succ + n ^ p.succ : by rw [sum_range_succ, add_comm]
+        -- apply the key lemma, `sum_range_pow`
+  ... = ∑ i in range p.succ.succ, f i + n ^ p.succ : by simp [f, sum_range_pow]
+        -- extract the first two terms of the sum
+  ... = ∑ i in range p, f i.succ.succ + f 1 + f 0 + n ^ p.succ : by simp_rw [sum_range_succ']
+  ... = ∑ i in range p, f i.succ.succ + (f 1 + n ^ p.succ) + f 0 : by ring
+  ... = ∑ i in range p, f i.succ.succ + 1 / 2 * n ^ p.succ + f 0 : by rw h2
+        -- convert from `bernoulli` to `bernoulli'`
+  ... = ∑ i in range p, f' i.succ.succ + f' 1 + f' 0 : by { simp only [f, f'], simpa [h1] }
+        -- rejoin the first two terms of the sum
+  ... = ∑ i in range p.succ.succ, f' i : by simp_rw [sum_range_succ'],
+end
+
 end faulhaber

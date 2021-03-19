@@ -906,9 +906,8 @@ begin
   simp,
 end
 
-lemma erase_inj_on (s : finset α) : set.inj_on finset.erase s
-
-#exit
+lemma erase_inj_on (s : finset α) : set.inj_on s.erase s :=
+λ _ _ _ _, (erase_inj s ‹_›).mp
 
 /-! ### sdiff -/
 

@@ -51,7 +51,8 @@ lemma polynomial_not_prime {m : ℕ} (h1 : 1 < m) (n : ℕ) : ¬ prime (n^4 + 4*
 have h2 : 1 < (m : ℤ), from coe_nat_lt.mpr h1,
 begin
   refine not_prime_of_int_mul' (left_factor_large (n : ℤ) h2) (right_factor_large (n : ℤ) h2) _,
-  exact_mod_cast factorization
+  rw factorization,
+  norm_cast
 end
 
 /--

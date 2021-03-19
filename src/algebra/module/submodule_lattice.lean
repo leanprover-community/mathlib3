@@ -138,7 +138,7 @@ set.mem_bInter_iff
 
 @[simp] theorem mem_infi {ι} (p : ι → submodule R M) {x} :
   x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=
-by rw [← mem_coe, infi_coe, set.mem_Inter]; refl
+by rw [← set_like.mem_coe, infi_coe, set.mem_Inter]; refl
 
 lemma mem_sup_left {S T : submodule R M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
 show S ≤ S ⊔ T, from le_sup_left

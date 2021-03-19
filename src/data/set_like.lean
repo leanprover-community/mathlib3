@@ -10,6 +10,27 @@ import data.set.basic
 
 This is implemented by subobjects.
 
+A typical subobject should be declared as:
+```
+structure my_subobject (X : Type*) :=
+(carrier : set X)
+(op_mem : ∀ {x : X}, x ∈ carrier → sorry ∈ carrier)
+
+namespace my_subobject
+
+instance : set_like (my_subobject R) M :=
+⟨sub_mul_action.carrier, λ p q h, by cases p; cases q; congr'⟩
+
+@[simp] lemma mem_carrier {p : my_subobject R} : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
+
+@[ext] theorem ext {p q : my_subobject R} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
+
+end my_subobject
+```
+
+This file will then provide a `coe_sort`, a `coe` to set, a `partial_order`, and various
+extensionality and simp lemmas.
+
 -/
 set_option old_structure_cmd true
 

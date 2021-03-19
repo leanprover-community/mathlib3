@@ -52,13 +52,13 @@ variables [comm_ring R] [no_zero_divisors R] {p q : polynomial R}
 
 instance : no_zero_divisors (polynomial R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
-begin
-  intros p q hpq,
-  have : leading_coeff 0 = leading_coeff p * leading_coeff q := hpq ▸ leading_coeff_mul p q,
-  rw [leading_coeff_zero, eq_comm] at this,
-  erw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
-  exact eq_zero_or_eq_zero_of_mul_eq_zero this
-end }
+    begin
+      intros p q hpq,
+      have : leading_coeff 0 = leading_coeff p * leading_coeff q := hpq ▸ leading_coeff_mul p q,
+      rw [leading_coeff_zero, eq_comm] at this,
+      erw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
+      exact eq_zero_or_eq_zero_of_mul_eq_zero this
+    end }
 
 lemma nat_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) : nat_degree (p * q) =
   nat_degree p + nat_degree q :=

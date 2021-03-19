@@ -230,14 +230,16 @@ hp.eq_two_or_odd.elim
       have hpk₁ : ¬ (p : ℤ[i]) ∣ ⟨k, -1⟩ :=
         λ ⟨x, hx⟩, lt_irrefl (p * x : ℤ[i]).norm.nat_abs $
           calc (norm (p * x : ℤ[i])).nat_abs = (norm ⟨k, -1⟩).nat_abs : by rw hx
-          ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, norm] using hkltp
+          ... < (norm (p : ℤ[i])).nat_abs : by { simp [norm, ←int.coe_nat_mul],
+            rwa [←int.coe_nat_one, ←int.coe_nat_add, int.nat_abs_of_nat, add_comm] }
           ... ≤ (norm (p * x : ℤ[i])).nat_abs : norm_le_norm_mul_left _
             (λ hx0, (show (-1 : ℤ) ≠ 0, from dec_trivial) $
               by simpa [hx0] using congr_arg zsqrtd.im hx),
       have hpk₂ : ¬ (p : ℤ[i]) ∣ ⟨k, 1⟩ :=
         λ ⟨x, hx⟩, lt_irrefl (p * x : ℤ[i]).norm.nat_abs $
           calc (norm (p * x : ℤ[i])).nat_abs = (norm ⟨k, 1⟩).nat_abs : by rw hx
-          ... < (norm (p : ℤ[i])).nat_abs : by simpa [add_comm, norm] using hkltp
+          ... < (norm (p : ℤ[i])).nat_abs : by { simp [norm, ←int.coe_nat_mul],
+            rwa [←int.coe_nat_one, ←int.coe_nat_add, int.nat_abs_of_nat, add_comm] }
           ... ≤ (norm (p * x : ℤ[i])).nat_abs : norm_le_norm_mul_left _
             (λ hx0, (show (1 : ℤ) ≠ 0, from dec_trivial) $
                 by simpa [hx0] using congr_arg zsqrtd.im hx),

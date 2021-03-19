@@ -10,7 +10,7 @@ import analysis.special_functions.integrals
 This file contains lemmas which establish bounds on or approximations of `real.pi`. Notably, these
 include `pi_gt_sqrt_two_add_series` and `pi_lt_sqrt_two_add_series`, which bound `π` using series;
 numerical bounds on `π` such as `pi_gt_314`and `pi_lt_315` (more precise versions are given, too);
-and exact formulas of products involving `π` such as `tendsto_sum_pi_div_four`, the Leibniz's
+and exact (infinite) formulas involving `π`, such as `tendsto_sum_pi_div_four`, Leibniz's
 series for `π`, and `tendsto_prod_pi_div_two`, the Wallis product for `π`.
 -/
 

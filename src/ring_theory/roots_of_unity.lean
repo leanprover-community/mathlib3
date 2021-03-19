@@ -554,7 +554,7 @@ h.zmod_equiv_gpowers_symm_apply_pow i
 lemma gpowers_eq {k : ℕ+} {ζ : units R} (h : is_primitive_root ζ k) :
   subgroup.gpowers ζ = roots_of_unity k R :=
 begin
-  apply subgroup.ext',
+  apply set_like.coe_injective,
   haveI : fact (0 < (k : ℕ)) := k.pos,
   haveI F : fintype (subgroup.gpowers ζ) := fintype.of_equiv _ (h.zmod_equiv_gpowers).to_equiv,
   refine @set.eq_of_subset_of_card_le (units R) (subgroup.gpowers ζ) (roots_of_unity k R)

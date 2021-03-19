@@ -170,20 +170,9 @@ protected def copy (K : subgroup G) (s : set G) (hs : s = K) : subgroup G :=
   mul_mem' := hs.symm ▸ K.mul_mem',
   inv_mem' := hs.symm ▸ K.inv_mem' }
 
-/- Two subgroups are equal if the underlying set are the same. -/
-@[to_additive "Two `add_group`s are equal if the underlying subsets are equal."]
-theorem ext' {H K : subgroup G} (h : (H : set G) = K) : H = K :=
-by { cases H, cases K, congr, exact h }
-
-/- Two subgroups are equal if and only if the underlying subsets are equal. -/
-@[to_additive "Two `add_subgroup`s are equal if and only if the underlying subsets are equal."]
-protected theorem ext'_iff {H K : subgroup G} :
-  H = K ↔ (H : set G) = K := ⟨λ h, h ▸ rfl, ext'⟩
-
 /-- Two subgroups are equal if they have the same elements. -/
 @[ext, to_additive "Two `add_subgroup`s are equal if they have the same elements."]
-theorem ext {H K : subgroup G}
-  (h : ∀ x, x ∈ H ↔ x ∈ K) : H = K := ext' $ set.ext h
+theorem ext {H K : subgroup G} (h : ∀ x, x ∈ H ↔ x ∈ K) : H = K := set_like.ext h
 
 attribute [ext] add_subgroup.ext
 
@@ -1104,7 +1093,7 @@ by rw [range_eq_map, range_eq_map]; exact (⊤ : subgroup G).map_map g f
 @[to_additive]
 lemma range_top_iff_surjective {N} [group N] {f : G →* N} :
   f.range = (⊤ : subgroup N) ↔ function.surjective f :=
-subgroup.ext'_iff.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_surjective
+set_like.coe_set_eq.symm.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective monoid homomorphism is the whole of the codomain. -/
 @[to_additive "The range of a surjective `add_monoid` homomorphism is the whole of the codomain."]
@@ -1373,7 +1362,7 @@ variables {H K : subgroup G}
 @[to_additive "Makes the identity additive isomorphism from a proof
 two subgroups of an additive group are equal."]
 def subgroup_congr (h : H = K) : H ≃* K :=
-{ map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ subgroup.ext'_iff.1 h }
+{ map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
 end mul_equiv
 

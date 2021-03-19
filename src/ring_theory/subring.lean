@@ -124,7 +124,7 @@ set_like.coe_injective hm.symm
 @[simp] lemma mk'_to_add_subgroup {s : set R} {sm : submonoid R} (hm : ↑sm = s)
   {sa : add_subgroup R} (ha : ↑sa  =s) :
   (subring.mk' s sm sa hm ha).to_add_subgroup = sa :=
-add_subgroup.ext' ha.symm
+set_like.coe_injective ha.symm
 
 end subring
 

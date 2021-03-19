@@ -57,7 +57,7 @@ variables {p q : submodule R M}
 
 theorem to_add_submonoid_injective :
   injective (to_add_submonoid : submodule R M → add_submonoid M) :=
-λ p q h, set_like.ext'_iff.2 $ add_submonoid.ext'_iff.1 h
+λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)
 
 @[simp] theorem to_add_submonoid_eq : p.to_add_submonoid = q.to_add_submonoid ↔ p = q :=
 to_add_submonoid_injective.eq_iff

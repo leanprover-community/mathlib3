@@ -127,10 +127,9 @@ lemma is_unit_right {a b : α} (ha : ¬is_unit a) (hb : is_unit b) :
   multiplicity a b = 0 :=
 eq_some_iff.2 ⟨by simp, by { rw pow_one, exact λ h, mt (is_unit_of_dvd_unit h) ha hb, }⟩
 
-@[simp] lemma one_left (b : α) : multiplicity 1 b = ⊤ := by simp [eq_top_iff]
+@[simp] lemma one_left (b : α) : multiplicity 1 b = ⊤ := is_unit_left b is_unit_one
 
-lemma one_right {a : α} (ha : ¬is_unit a) : multiplicity a 1 = 0 :=
-eq_some_iff.2 ⟨dvd_refl _, mt is_unit_iff_dvd_one.2 $ by simpa⟩
+lemma one_right {a : α} (ha : ¬is_unit a) : multiplicity a 1 = 0 := is_unit_right ha is_unit_one
 
 @[simp] lemma get_one_right {a : α} (ha : finite a 1) : get (multiplicity a 1) ha = 0 :=
 get_eq_iff_eq_some.2 (eq_some_iff.2 ⟨dvd_refl _,

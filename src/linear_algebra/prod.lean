@@ -369,8 +369,8 @@ lemma range_prod_eq {f : M →ₗ[R] M₂} {g : M →ₗ[R] M₃} (h : ker f ⊔
   range (prod f g) = (range f).prod (range g) :=
 begin
   refine le_antisymm (f.range_prod_le g) _,
-  simp only [le_def', prod_apply, mem_range, mem_coe, mem_prod, exists_imp_distrib, and_imp,
-    prod.forall],
+  simp only [set_like.le_def, prod_apply, mem_range, set_like.mem_coe, mem_prod, exists_imp_distrib,
+    and_imp, prod.forall],
   rintros _ _ x rfl y rfl,
   simp only [prod.mk.inj_iff, ← sub_mem_ker_iff],
   have : y - x ∈ ker f ⊔ ker g, { simp only [h, mem_top] },

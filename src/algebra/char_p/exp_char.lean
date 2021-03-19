@@ -25,7 +25,11 @@ exponential characteristic, characteristic
 -/
 
 universe u
-variables (R : Type u) [integral_domain R]
+variables (R : Type u)
+
+section semiring
+
+variables [semiring R]
 
 /-- The definition of the exponential characteristic of a semiring. -/
 class exp_char (R : Type u) [semiring R] (q : ℕ) : Prop :=
@@ -40,6 +44,27 @@ begin
   { exact false.elim (lt_irrefl _ ((hp.eq R q_prime.2).symm ▸ q_prime.1 : (0 : ℕ).prime).pos) }
 end
 
+/-- The characteristic of a domain equals the exponential characteristic iff the former is prime. -/
+theorem char_eq_exp_char_iff (p q : ℕ) [hp : char_p R p] [hq : exp_char R q] :
+p = q ↔ p.prime :=
+begin
+  unfreezingI {rcases hq.exp_char_def with ⟨rfl,q_one⟩ | q_prime},
+  { split,
+    { unfreezingI {rintro rfl},
+      exact false.elim (one_ne_zero (hp.eq R (char_p.of_char_zero R))) },
+    { intro pprime,
+      rw (char_p.eq R hp infer_instance : p = 0) at pprime,
+      exact false.elim (nat.not_prime_zero pprime) } },
+  { split,
+    { intro hpq, rw hpq, exact q_prime.1, },
+    { intro _,
+      exact char_p.eq R hp q_prime.2 } },
+end
+
+section nontrivial
+
+variables [nontrivial R]
+
 /-- The exponential characteristic is one if the characteristic is zero. -/
 lemma char_zero_of_exp_char_one (p : ℕ) [hp : char_p R p] [hq : exp_char R 1] :
 p = 0 :=
@@ -52,6 +77,7 @@ begin
 end
 
 /-- The exponential characteristic is one if the characteristic is zero. -/
+@[priority 100] -- see Note [lower instance priority]
 instance char_zero_of_exp_char_one' [hq : exp_char R 1] : char_zero R :=
 begin
   cases hq.exp_char_def,
@@ -71,22 +97,9 @@ begin
     exact exp_char_one_of_char_zero R q, }
 end
 
-/-- The characteristic of a domain equals the exponential characteristic iff the former is prime. -/
-theorem char_eq_exp_char_iff (p q : ℕ) [hp : char_p R p] [hq : exp_char R q] :
-p = q ↔ p.prime :=
-begin
-  unfreezingI {rcases hq.exp_char_def with ⟨rfl,q_one⟩ | q_prime},
-  { split,
-    { unfreezingI {rintro rfl},
-      exact false.elim (one_ne_zero (hp.eq R (char_p.of_char_zero R))) },
-    { intro pprime,
-      rw (char_p.eq R hp infer_instance : p = 0) at pprime,
-      exact false.elim (nat.not_prime_zero pprime) } },
-  { split,
-    { intro hpq, rw hpq, exact q_prime.1, },
-    { intro _,
-      exact char_p.eq R hp q_prime.2 } },
-end
+section no_zero_divisors
+
+variable [no_zero_divisors R]
 
 /-- A helper lemma: the characteristic is prime if it is non-zero. -/
 lemma char_prime_of_ne_zero {p : ℕ} [hp : char_p R p] (p_ne_zero : p ≠ 0) : nat.prime p :=
@@ -111,3 +124,9 @@ begin
   { rwa p_eq_q at pprime },
   { contradiction },
 end
+
+end no_zero_divisors
+
+end nontrivial
+
+end semiring

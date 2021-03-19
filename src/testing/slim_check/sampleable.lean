@@ -303,7 +303,9 @@ local attribute [instance, priority 2000] int.has_sizeof
 instance int.sampleable : sampleable ℤ :=
 { wf := _,
   sample := sized $ λ sz,
-          freq [(1, subtype.val <$> choose (-(sz^3 + 1) : ℤ) (sz^3 + 1) (neg_le_self dec_trivial)),
+          freq [(1, subtype.val <$> choose (-(sz^3 + 1) : ℤ) (sz^3 + 1) (neg_le_self
+                  (by { simp [pow_bit1, pow_one, ←int.coe_nat_mul, -int.coe_nat_succ,
+                              int.coe_nat_add_one_out]  }))),
                 (3, subtype.val <$> choose (-(sz + 1)) (sz + 1) (neg_le_self dec_trivial))]
                dec_trivial,
   shrink :=

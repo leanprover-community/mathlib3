@@ -748,7 +748,7 @@ begin
   cases hn with p hp,
   rw lt_iff_le_and_exists at h,
   rcases h with ⟨hle, p2, hp2, hp2s1⟩,
-  rw submodule.lt_iff_le_and_exists,
+  rw set_like.lt_iff_le_and_exists,
   use [direction_le hle, p2 -ᵥ p, vsub_mem_direction hp2 (hle hp)],
   intro hm,
   rw vsub_right_mem_direction_iff_mem hp p2 at hm,
@@ -774,7 +774,7 @@ lemma sup_direction_lt_of_nonempty_of_inter_empty {s1 s2 : affine_subspace k P}
 begin
   cases h1 with p1 hp1,
   cases h2 with p2 hp2,
-  rw submodule.lt_iff_le_and_exists,
+  rw set_like.lt_iff_le_and_exists,
   use [sup_direction_le s1 s2, p2 -ᵥ p1,
        vsub_mem_direction ((le_sup_right : s2 ≤ s1 ⊔ s2) hp2) ((le_sup_left : s1 ≤ s1 ⊔ s2) hp1)],
   intro h,

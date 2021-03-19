@@ -645,7 +645,7 @@ variables {I J : fractional_ideal g} (h : g.codomain →ₐ[R] g'.codomain)
 lemma exists_ne_zero_mem_is_integer [nontrivial R] (hI : I ≠ 0) :
   ∃ x ≠ (0 : R), g.to_map x ∈ I :=
 begin
-  obtain ⟨y, y_mem, y_not_mem⟩ := submodule.exists_of_lt (bot_lt_iff_ne_bot.mpr hI),
+  obtain ⟨y, y_mem, y_not_mem⟩ := set_like.exists_of_lt (bot_lt_iff_ne_bot.mpr hI),
   have y_ne_zero : y ≠ 0 := by simpa using y_not_mem,
   obtain ⟨z, ⟨x, hx⟩⟩ := g.exists_integer_multiple y,
   refine ⟨x, _, _⟩,

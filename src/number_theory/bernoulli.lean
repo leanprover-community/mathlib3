@@ -390,51 +390,43 @@ begin
   field_simp [mul_right_comm _ ↑p!, ←mul_assoc _ _ ↑p!, cast_add_one_ne_zero, hne],
 end
 
-/-- Alternative form of Faulhaber's theorem, relating the sum of p-th powers with Bernoulli numbers.
+/-- Alternate form of Faulhaber's theorem, relating the sum of p-th powers to the Bernoulli numbers.
 Deduced from `sum_range_pow`. -/
 theorem sum_range_pow' (n p : ℕ) :
-  ∑ k in Ico 1 (n + 1), (k : ℚ) ^ p
-    = ∑ i in range (p + 1), bernoulli' i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1) :=
+  ∑ k in Ico 1 (n + 1), (k : ℚ) ^ p =
+    ∑ i in range (p + 1), bernoulli' i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1) :=
 begin
-  -- We extract the first two terms of the sum on the right hand side and then replace instances of
-  -- `bernoulli'` by `bernoulli`, but the sum back together and apply `sum_range_pow`.
-  rw [sum_range_succ'],
-  -- if p is zero, there is no second term, so we make a special case
-  cases p with p hp,
-  { simp, },
-  -- extract the second term of the sum on the right hand side
-  { rw [sum_range_succ', ← bernoulli_eq_bernoulli'_of_ne_one zero_ne_one],
-  have hb1: bernoulli' (0 + 1) = bernoulli (0 + 1) + 1, { norm_num, },
-  -- transform `bernoulli' 1` into `bernoulli 1`
-  rw [hb1, mul_div_assoc, mul_assoc, add_mul, ← mul_assoc, ← mul_div_assoc, ← add_assoc],
-  -- replace `bernoulli'` by `bernoulli` in the remaider of the sum
-  have hsum:  ∑ (i : ℕ) in   range p,  bernoulli' (i + 1 + 1) * ↑((p.succ + 1).choose (i + 1 + 1))
-    * ↑n ^ (p.succ + 1 - (i + 1 + 1)) / (↑(p.succ) + 1)
-      =  ∑ (i : ℕ) in   range p, bernoulli (i + 1 + 1) * ↑((p.succ + 1).choose (i + 1 + 1))
-    * ↑n ^ (p.succ + 1 - (i + 1 + 1)) / (↑(p.succ) + 1),
-    { refine sum_congr rfl _,
-      intros x h,
-      have hx: x + 1 + 1 ≠ 1,
-      { simp only [add_left_eq_self, add_eq_zero_iff, ne.def, not_false_iff, one_ne_zero,
-        and_false], },
-      simp only [bernoulli_eq_bernoulli'_of_ne_one hx], },
-  rw [hsum],
-  let f := (λ i, bernoulli (i + 1) * ↑((p.succ + 1).choose (i + 1))
-    * ↑n ^ (p.succ + 1 - (i + 1)) / (↑(p.succ) + 1)),
-  let g :=  (λ i, bernoulli i * (p.succ + 1).choose i * n ^ (p.succ + 1 - i) / (p.succ + 1)),
-  -- put the sum back together and apply key lemma `sum_range_pow`
-  rw [← sum_range_succ' f, add_assoc, add_comm _ (bernoulli 0 * ↑((p.succ + 1).choose 0)
-    * ↑n ^ (p.succ + 1 - 0) / (↑(p.succ) + 1)), ← add_assoc, ← sum_range_succ' g, ← sum_range_pow],
-  have hn1: 1 ≤ n + 1, { simp only [le_add_iff_nonneg_left 1, nat.zero_le], },
-  -- replace sum over `Ico` by sums over `range` and make massage lhs and rhs to be equal
-  rw [sum_Ico_eq_sub (λ k, (k : ℚ) ^ p.succ) hn1, sum_range_succ, succ_eq_add_one],
-  simp only [one_mul, cast_one, cast_add, sub_zero, succ_add_sub_one, cast_zero, add_eq_zero_iff,
-    ne.def, sum_singleton, not_false_iff, one_ne_zero, and_false, zero_pow', choose_one_right,
-    range_one, cast_id],
-  have hp: (p : ℚ) + 1 + 1 ≠ 0,
-  { norm_cast,
-    simp only [add_eq_zero_iff, not_false_iff, one_ne_zero, and_false], },
-  rw [mul_comm, div_mul_cancel _ hp, add_comm], },
+  -- dispose of the trivial case
+  cases p, { simp },
+  let f := λ i, bernoulli i * p.succ.succ.choose i * n ^ (p.succ.succ - i) / p.succ.succ,
+  let f' := λ i, bernoulli' i * p.succ.succ.choose i * n ^ (p.succ.succ - i) / p.succ.succ,
+  suffices : ∑ k in Ico 1 n.succ, ↑k ^ p.succ = ∑ i in range p.succ.succ, f' i, { convert this },
+  -- prove some algebraic facts that will make things easier for us later on
+  have hle := le_add_left 1 n,
+  have hne : (p + 1 + 1 : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero p.succ,
+  have h1 : ∀ r : ℚ, r * (p + 1 + 1 : ℚ) * n ^ p.succ / (p + 1 + 1 : ℚ) = r * n ^ p.succ :=
+    λ r, by rw [mul_div_right_comm, mul_div_cancel _ hne],
+  have h2 : f 1 + n ^ p.succ = 1 / 2 * n ^ p.succ,
+  { simp_rw [f, bernoulli_one, choose_one_right, succ_sub_succ_eq_sub, cast_succ, nat.sub_zero, h1],
+    ring },
+  have : ∑ i in range p, bernoulli (i + 2) * ↑((p + 2).choose (i + 2)) * ↑n ^ (p - i) / ↑(p + 2)
+       = ∑ i in range p, bernoulli' (i + 2) * ↑((p + 2).choose (i + 2)) * ↑n ^ (p - i) / ↑(p + 2) :=
+    sum_congr rfl (λ i h, by rw bernoulli_eq_bernoulli'_of_ne_one (succ_succ_ne_one i)),
+  calc  ∑ k in Ico 1 n.succ, ↑k ^ p.succ
+        -- replace sum over `Ico` with sum over `range` and simplify
+      = ∑ k in range n.succ, ↑k ^ p.succ : by simp [sum_Ico_eq_sub _ hle, succ_ne_zero]
+        -- extract the last term of the sum
+  ... = ∑ k in range n, (k : ℚ) ^ p.succ + n ^ p.succ : by rw [sum_range_succ, add_comm]
+        -- apply the key lemma, `sum_range_pow`
+  ... = ∑ i in range p.succ.succ, f i + n ^ p.succ : by simp [f, sum_range_pow]
+        -- extract the first two terms of the sum
+  ... = ∑ i in range p, f i.succ.succ + f 1 + f 0 + n ^ p.succ : by simp_rw [sum_range_succ']
+  ... = ∑ i in range p, f i.succ.succ + (f 1 + n ^ p.succ) + f 0 : by ring
+  ... = ∑ i in range p, f i.succ.succ + 1 / 2 * n ^ p.succ + f 0 : by rw h2
+        -- convert from `bernoulli` to `bernoulli'`
+  ... = ∑ i in range p, f' i.succ.succ + f' 1 + f' 0 : by { simp only [f, f'], simpa [h1] }
+        -- rejoin the first two terms of the sum
+  ... = ∑ i in range p.succ.succ, f' i : by simp_rw [sum_range_succ'],
 end
 
 end faulhaber

@@ -204,6 +204,11 @@ by { rw inter_eq_compl_compl_union_compl, exact (h₁.compl.union h₂.compl).co
   measurable_set (s₁ \ s₂) :=
 h₁.inter h₂.compl
 
+@[simp] lemma measurable_set.ite {t s₁ s₂ : set α} (ht : measurable_set t) (h₁ : measurable_set s₁)
+  (h₂ : measurable_set s₂) :
+  measurable_set (t.ite s₁ s₂) :=
+(h₁.inter ht).union (h₂.diff ht)
+
 @[simp] lemma measurable_set.disjointed {f : ℕ → set α} (h : ∀ i, measurable_set (f i)) (n) :
   measurable_set (disjointed f n) :=
 disjointed_induct (h n) (assume t i ht, measurable_set.diff ht $ h _)
@@ -516,8 +521,8 @@ lemma measurable.piecewise {s : set α} {_ : decidable_pred s} {f g : α → β}
   measurable (piecewise s f g) :=
 begin
   intros t ht,
-  simp only [piecewise_preimage],
-  exact (hs.inter $ hf ht).union (hs.compl.inter $ hg ht)
+  rw piecewise_preimage,
+  exact hs.ite (hf ht) (hg ht)
 end
 
 /-- this is slightly different from `measurable.piecewise`. It can be used to show

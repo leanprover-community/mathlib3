@@ -1082,10 +1082,10 @@ nnreal.eq $ real.norm_of_nonneg x.2
 
 end nnreal
 
-@[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
+@[simp] lemma norm_norm [semi_normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
 real.norm_of_nonneg (norm_nonneg _)
 
-@[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
+@[simp] lemma nnnorm_norm [semi_normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
 by simp only [nnnorm, norm_norm]
 
 /-- A restatement of `metric_space.tendsto_at_top` in terms of the norm. -/

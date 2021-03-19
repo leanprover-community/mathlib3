@@ -695,7 +695,7 @@ mem_image_iff_bex
 
 @[to_additive]
 lemma map_map (g : N →* P) (f : G →* N) : (K.map f).map g = K.map (g.comp f) :=
-ext' $ image_image _ _ _
+set_like.coe_injective $ image_image _ _ _
 
 @[to_additive]
 lemma map_le_iff_le_comap {f : G →* N} {K : subgroup G} {H : subgroup N} :
@@ -780,7 +780,7 @@ lemma top_prod_top : (⊤ : subgroup G).prod (⊤ : subgroup N) = ⊤ :=
 (top_prod _).trans $ comap_top _
 
 @[to_additive] lemma bot_prod_bot : (⊥ : subgroup G).prod (⊥ : subgroup N) = ⊥ :=
-ext' $ by simp [coe_prod, prod.one_eq_mk]
+set_like.coe_injective $ by simp [coe_prod, prod.one_eq_mk]
 
 /-- Product of subgroups is isomorphic to their product as groups. -/
 @[to_additive prod_equiv "Product of additive subgroups is isomorphic to their product

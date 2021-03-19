@@ -759,8 +759,11 @@ lemma diagonal_to_lin' (w : n → R) :
   (diagonal w).to_lin' = linear_map.pi (λi, w i • linear_map.proj i) :=
 by ext v j; simp [mul_vec_diagonal]
 
-/-- An invertible matrix yields a linear equivalence from the free module to itself. -/
-def to_linear_equiv (P : matrix n n R) (h : is_unit P) : (n → R) ≃ₗ[R] (n → R) :=
+/-- An invertible matrix yields a linear equivalence from the free module to itself.
+
+See `matrix.to_linear_equiv` for the same map on arbitrary modules.
+-/
+def to_linear_equiv' (P : matrix n n R) (h : is_unit P) : (n → R) ≃ₗ[R] (n → R) :=
 have h' : is_unit P.det := P.is_unit_iff_is_unit_det.mp h,
 { inv_fun   := P⁻¹.to_lin',
   left_inv  := λ v,
@@ -771,11 +774,11 @@ have h' : is_unit P.det := P.is_unit_iff_is_unit_det.mp h,
     by rw [← matrix.to_lin'_mul, P.mul_nonsing_inv h', matrix.to_lin'_one, linear_map.id_apply],
   ..P.to_lin' }
 
-@[simp] lemma to_linear_equiv_apply (P : matrix n n R) (h : is_unit P) :
-  (↑(P.to_linear_equiv h) : module.End R (n → R)) = P.to_lin' := rfl
+@[simp] lemma to_linear_equiv'_apply (P : matrix n n R) (h : is_unit P) :
+  (↑(P.to_linear_equiv' h) : module.End R (n → R)) = P.to_lin' := rfl
 
-@[simp] lemma to_linear_equiv_symm_apply (P : matrix n n R) (h : is_unit P) :
-  (↑(P.to_linear_equiv h).symm : module.End R (n → R)) = P⁻¹.to_lin' := rfl
+@[simp] lemma to_linear_equiv'_symm_apply (P : matrix n n R) (h : is_unit P) :
+  (↑(P.to_linear_equiv' h).symm : module.End R (n → R)) = P⁻¹.to_lin' := rfl
 
 end ring
 
@@ -834,7 +837,10 @@ variables {b : n → M} (hb : is_basis R b)
 include hb
 
 /-- Given `hA : is_unit A.det` and `hb : is_basis R b`, `A.to_linear_equiv hb hA` is
-the `linear_equiv` arising from `to_lin hb hb A`. -/
+the `linear_equiv` arising from `to_lin hb hb A`.
+
+See `matrix.to_linear_equiv'` for this result on `n → R`.
+-/
 @[simps apply]
 def to_linear_equiv [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
   M ≃ₗ[R] M :=

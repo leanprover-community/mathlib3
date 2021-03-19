@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Kenny Lau, Joey van Langen, Casper Putz
+Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
 import data.nat.choose

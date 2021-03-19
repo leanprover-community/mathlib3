@@ -84,17 +84,17 @@ instance : has_coe_to_fun (α ≃ β) :=
 rfl
 
 /-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. -/
-theorem injective_coe_fn : function.injective (λ (e : α ≃ β) (x : α), e x)
+theorem coe_fn_injective : function.injective (λ (e : α ≃ β) (x : α), e x)
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ h :=
   have f₁ = f₂, from h,
   have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),
   by simp *
 
 @[simp, norm_cast] protected lemma coe_inj {e₁ e₂ : α ≃ β} : ⇑e₁ = e₂ ↔ e₁ = e₂ :=
-injective_coe_fn.eq_iff
+coe_fn_injective.eq_iff
 
 @[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g :=
-injective_coe_fn (funext H)
+coe_fn_injective (funext H)
 
 protected lemma congr_arg {f : equiv α β} : Π {x x' : α}, x = x' → f x = f x'
 | _ _ rfl := rfl

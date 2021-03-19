@@ -123,8 +123,8 @@ begin
     apply ha,
     apply derivable.r3,
     change [I,I,I] with repeat I 3,
-    simp only [cons_append, ←repeat_add],
-    convert h₂, },
+    rw [cons_append, ←repeat_add, add_assoc, ←nat.mul_succ],
+    exact h₂, },
 end
 
 /-!

@@ -109,7 +109,7 @@ lemma lsingle_range_le_ker_lapply (s t : set α) (h : disjoint s t) :
   (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) ≤ (⨅a∈t, ker (lapply a)) :=
 begin
   refine supr_le (assume a₁, supr_le $ assume h₁, range_le_iff_comap.2 _),
-  simp only [(ker_comp _ _).symm, eq_top_iff, le_def', mem_ker, comap_infi, mem_infi],
+  simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def', mem_ker, comap_infi, mem_infi],
   assume b hb a₂ h₂,
   have : a₁ ≠ a₂ := assume eq, h ⟨h₁, eq.symm ▸ h₂⟩,
   exact single_eq_of_ne this
@@ -117,13 +117,13 @@ end
 
 lemma infi_ker_lapply_le_bot : (⨅a, ker (lapply a : (α →₀ M) →ₗ[R] M)) ≤ ⊥ :=
 begin
-  simp only [le_def', mem_infi, mem_ker, mem_bot, lapply_apply],
+  simp only [set_like.le_def', mem_infi, mem_ker, mem_bot, lapply_apply],
   exact assume a h, finsupp.ext h
 end
 
 lemma supr_lsingle_range : (⨆a, (lsingle a : M →ₗ[R] (α →₀ M)).range) = ⊤ :=
 begin
-  refine (eq_top_iff.2 $ le_def'.2 $ assume f _, _),
+  refine (eq_top_iff.2 $ set_like.le_def'.2 $ assume f _, _),
   rw [← sum_single f],
   refine sum_mem _ (assume a ha, submodule.mem_supr_of_mem a $ set.mem_image_of_mem _ trivial)
 end
@@ -180,7 +180,7 @@ set.subset.trans support_single_subset (finset.singleton_subset_set_iff.2 h)
 lemma supported_eq_span_single (s : set α) :
   supported R R s = span R ((λ i, single i 1) '' s) :=
 begin
-  refine (span_eq_of_le _ _ (le_def'.2 $ λ l hl, _)).symm,
+  refine (span_eq_of_le _ _ (set_like.le_def'.2 $ λ l hl, _)).symm,
   { rintro _ ⟨_, hp, rfl ⟩ , exact single_mem_supported R 1 hp },
   { rw ← l.sum_single,
     refine sum_mem _ (λ i il, _),
@@ -391,7 +391,7 @@ theorem lmap_domain_disjoint_ker (f : α → α') {s : set α}
   disjoint (supported M R s) (lmap_domain M R f).ker :=
 begin
   rintro l ⟨h₁, h₂⟩,
-  rw [mem_coe, mem_ker, lmap_domain_apply, map_domain] at h₂,
+  rw [set_like.mem_coe, mem_ker, lmap_domain_apply, map_domain] at h₂,
   simp, ext x,
   haveI := classical.dec_pred (λ x, x ∈ s),
   by_cases xs : x ∈ s,
@@ -455,7 +455,7 @@ begin
   { apply span_le.2,
     intros x hx,
     rcases hx with ⟨i, hi⟩,
-    rw [mem_coe, linear_map.mem_range],
+    rw [set_like.mem_coe, linear_map.mem_range],
     use finsupp.single i 1,
     simp [hi] }
 end

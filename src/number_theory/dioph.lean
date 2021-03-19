@@ -658,7 +658,11 @@ dioph_fn_comp2 df dg $ abs_poly_dioph (poly.proj &0 + poly.proj &1)
 localized "infix ` D+ `:80 := dioph.add_dioph" in dioph
 
 theorem mul_dioph : dioph_fn (λv, f v * g v) :=
-dioph_fn_comp2 df dg $ abs_poly_dioph (poly.proj &0 * poly.proj &1)
+dioph_fn_comp2 df dg $
+by { convert abs_poly_dioph (poly.proj &0 * poly.proj &1),
+  { ext, rw poly.mul_eval, simp [←int.coe_nat_mul] },
+  { apply_instance },
+  { apply_instance } }
 localized "infix ` D* `:90 := dioph.mul_dioph" in dioph
 
 theorem le_dioph : dioph (λv, f v ≤ g v) :=

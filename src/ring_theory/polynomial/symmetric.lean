@@ -211,15 +211,13 @@ begin
   classical,
   have : (finsupp.to_multiset ∘ λ (t : finset σ), ∑ (i : σ) in t, finsupp.single i 1) = finset.val,
     { funext, simp [finsupp.to_multiset_sum_single] },
-  have hf : ∀ s : finset (finset σ), (s.sup id).val = s.sup finset.val,
-    { intro s, apply finset.induction_on s,
-      { simpa },
-      { intros x s hx h,
-        simp [h] } },
-  rw [degrees, support_esymm, sup_finset_image, this],
-  convert (hf _).symm,
-  obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hpos.ne',
-  simp [powerset_len_sup _ _ (nat.lt_of_succ_le hn)]
+  rw [degrees, support_esymm, sup_finset_image, this, ←comp_sup_eq_sup_comp],
+  { obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hpos.ne',
+    simpa using powerset_len_sup _ _ (nat.lt_of_succ_le hn) },
+  { intros,
+    simp only [union_val, sup_eq_union],
+    congr },
+  { simpa }
 end
 
 end elementary_symmetric

@@ -66,10 +66,14 @@ theorem coe_injective : function.injective (coe : A → set B) :=
 
 @[simp, norm_cast] theorem coe_set_eq : (p : set B) = q ↔ p = q := coe_injective.eq_iff
 
+theorem ext' (h : (p : set B) = q) : p = q := coe_injective h
+
 theorem ext'_iff : p = q ↔ (p : set B) = q := coe_set_eq.symm
 
-/-- Note: implementers of `set_like` must copy this lemma. -/
+/-- Note: implementers of `set_like` must copy this lemma in order to tag it with `@[ext]`. -/
 theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := coe_injective $ set.ext h
+
+theorem ext_iff : p = q ↔ (∀ x, x ∈ p ↔ x ∈ q) := coe_injective.eq_iff.symm.trans set.ext_iff
 
 @[simp] theorem mem_coe {x : B} : x ∈ (p : set B) ↔ x ∈ p := iff.rfl
 

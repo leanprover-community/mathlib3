@@ -486,7 +486,7 @@ lemma map_mrange (g : N →* P) (f : M →* N) : f.mrange.map g = (g.comp f).mra
 @[to_additive]
 lemma mrange_top_iff_surjective {N} [monoid N] {f : M →* N} :
   f.mrange = (⊤ : submonoid N) ↔ function.surjective f :=
-set_like.coe_set_eq.symm.trans $ iff.trans (by rw [coe_mrange, coe_top]) set.range_iff_surjective
+set_like.ext_iff'.trans $ iff.trans (by rw [coe_mrange, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective monoid hom is the whole of the codomain. -/
 @[to_additive "The range of a surjective `add_monoid` hom is the whole of the codomain."]
@@ -636,6 +636,6 @@ variables {S} {T : submonoid M}
 @[to_additive "Makes the identity additive isomorphism from a proof two
 submonoids of an additive monoid are equal."]
 def submonoid_congr (h : S = T) : S ≃* T :=
-{ map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ set_like.coe_set_eq.mpr h }
+{ map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
 end mul_equiv

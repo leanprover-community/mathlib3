@@ -37,19 +37,13 @@ include R
 instance : has_coe (subalgebra R A) (subsemiring A) :=
 ⟨λ S, { ..S }⟩
 
-instance : has_mem A (subalgebra R A) :=
-⟨λ x S, x ∈ (S : set A)⟩
+instance : set_like (subalgebra R A) A :=
+⟨subalgebra.carrier, λ p q h, by cases p; cases q; congr'⟩
 
-variables {A}
-theorem mem_coe {x : A} {s : subalgebra R A} : x ∈ (s : set A) ↔ x ∈ s :=
-iff.rfl
+@[simp]
+lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
-@[ext] theorem ext {S T : subalgebra R A}
-  (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T :=
-by cases S; cases T; congr; ext x; exact h x
-
-theorem ext_iff {S T : subalgebra R A} : S = T ↔ ∀ x : A, x ∈ S ↔ x ∈ T :=
-⟨λ h x, by rw h, ext⟩
+@[ext] theorem ext {S T : subalgebra R A} (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
 variables (S : subalgebra R A)
 
@@ -66,22 +60,22 @@ theorem range_le : set.range (algebra_map R A) ≤ S :=
 S.range_subset
 
 theorem one_mem : (1 : A) ∈ S :=
-subsemiring.one_mem S
+S.to_subsemiring.one_mem
 
 theorem mul_mem {x y : A} (hx : x ∈ S) (hy : y ∈ S) : x * y ∈ S :=
-subsemiring.mul_mem S hx hy
+S.to_subsemiring.mul_mem hx hy
 
 theorem smul_mem {x : A} (hx : x ∈ S) (r : R) : r • x ∈ S :=
 (algebra.smul_def r x).symm ▸ S.mul_mem (S.algebra_map_mem r) hx
 
 theorem pow_mem {x : A} (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
-subsemiring.pow_mem S hx n
+S.to_subsemiring.pow_mem hx n
 
 theorem zero_mem : (0 : A) ∈ S :=
-subsemiring.zero_mem S
+S.to_subsemiring.zero_mem
 
 theorem add_mem {x y : A} (hx : x ∈ S) (hy : y ∈ S) : x + y ∈ S :=
-subsemiring.add_mem S hx hy
+S.to_subsemiring.add_mem hx hy
 
 theorem neg_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) : -x ∈ S :=
@@ -92,40 +86,40 @@ theorem sub_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
 by simpa only [sub_eq_add_neg] using S.add_mem hx (S.neg_mem hy)
 
 theorem nsmul_mem {x : A} (hx : x ∈ S) (n : ℕ) : n •ℕ x ∈ S :=
-subsemiring.nsmul_mem S hx n
+S.to_subsemiring.nsmul_mem hx n
 
 theorem gsmul_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) (n : ℤ) : n •ℤ x ∈ S :=
 int.cases_on n (λ i, S.nsmul_mem hx i) (λ i, S.neg_mem $ S.nsmul_mem hx _)
 
 theorem coe_nat_mem (n : ℕ) : (n : A) ∈ S :=
-subsemiring.coe_nat_mem S n
+S.to_subsemiring.coe_nat_mem n
 
 theorem coe_int_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) (n : ℤ) : (n : A) ∈ S :=
 int.cases_on n (λ i, S.coe_nat_mem i) (λ i, S.neg_mem $ S.coe_nat_mem $ i + 1)
 
 theorem list_prod_mem {L : list A} (h : ∀ x ∈ L, x ∈ S) : L.prod ∈ S :=
-subsemiring.list_prod_mem S h
+S.to_subsemiring.list_prod_mem h
 
 theorem list_sum_mem {L : list A} (h : ∀ x ∈ L, x ∈ S) : L.sum ∈ S :=
-subsemiring.list_sum_mem S h
+S.to_subsemiring.list_sum_mem h
 
 theorem multiset_prod_mem {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
   [algebra R A] (S : subalgebra R A) {m : multiset A} (h : ∀ x ∈ m, x ∈ S) : m.prod ∈ S :=
-subsemiring.multiset_prod_mem S m h
+S.to_subsemiring.multiset_prod_mem m h
 
 theorem multiset_sum_mem {m : multiset A} (h : ∀ x ∈ m, x ∈ S) : m.sum ∈ S :=
-subsemiring.multiset_sum_mem S m h
+S.to_subsemiring.multiset_sum_mem m h
 
 theorem prod_mem {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
   [algebra R A] (S : subalgebra R A) {ι : Type w} {t : finset ι} {f : ι → A}
   (h : ∀ x ∈ t, f x ∈ S) : ∏ x in t, f x ∈ S :=
-subsemiring.prod_mem S h
+S.to_subsemiring.prod_mem h
 
 theorem sum_mem {ι : Type w} {t : finset ι} {f : ι → A}
   (h : ∀ x ∈ t, f x ∈ S) : ∑ x in t, f x ∈ S :=
-subsemiring.sum_mem S h
+S.to_subsemiring.sum_mem h
 
 instance {R : Type u} {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
   (S : subalgebra R A) : is_add_submonoid (S : set A) :=
@@ -147,7 +141,7 @@ instance {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] (S : sub
   is_subring (S : set A) :=
 { neg_mem := λ _, S.neg_mem }
 
-instance : inhabited S := ⟨0⟩
+instance : inhabited S := ⟨(0 : S.to_subsemiring)⟩
 
 section
 
@@ -171,7 +165,7 @@ instance to_ordered_semiring {R A}
   ordered_semiring S := S.to_subsemiring.to_ordered_semiring
 instance to_ordered_comm_semiring {R A}
   [comm_semiring R] [ordered_comm_semiring A] [algebra R A] (S : subalgebra R A) :
-  ordered_comm_semiring S := subsemiring.to_ordered_comm_semiring S
+  ordered_comm_semiring S := S.to_subsemiring.to_ordered_comm_semiring
 instance to_ordered_ring {R A}
   [comm_ring R] [ordered_ring A] [algebra R A] (S : subalgebra R A) :
   ordered_ring S := S.to_subring.to_ordered_ring
@@ -200,10 +194,10 @@ instance algebra : algebra R S :=
 
 instance to_algebra {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
   [algebra R A] [algebra A B] (A₀ : subalgebra R A) : algebra A₀ B :=
-algebra.of_subsemiring A₀
+algebra.of_subsemiring A₀.to_subsemiring
 
 instance nontrivial [nontrivial A] : nontrivial S :=
-subsemiring.nontrivial S
+S.to_subsemiring.nontrivial
 
 instance no_zero_smul_divisors_bot [no_zero_smul_divisors R A] : no_zero_smul_divisors R S :=
 ⟨λ c x h,
@@ -261,12 +255,6 @@ we define it as a `linear_equiv` to avoid type equalities. -/
 def to_submodule_equiv (S : subalgebra R A) : (S : submodule R A) ≃ₗ[R] S :=
 linear_equiv.of_eq _ _ rfl
 
-instance : partial_order (subalgebra R A) :=
-{ le := λ S T, (S : set A) ⊆ (T : set A),
-  le_refl := λ S, set.subset.refl S,
-  le_trans := λ _ _ _, set.subset.trans,
-  le_antisymm := λ S T hst hts, ext $ λ x, ⟨@hst x, @hts x⟩ }
-
 /-- Reinterpret an `S`-subalgebra as an `R`-subalgebra in `comap R S A`. -/
 def comap {R : Type u} {S : Type v} {A : Type w}
   [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
@@ -303,7 +291,7 @@ set.image_subset_iff
 
 lemma map_injective {S₁ S₂ : subalgebra R A} (f : A →ₐ[R] B)
   (hf : function.injective f) (ih : S₁.map f = S₂.map f) : S₁ = S₂ :=
-ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ ext_iff.1 ih
+ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ set_like.ext ih
 
 lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=

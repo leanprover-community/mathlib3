@@ -1093,7 +1093,7 @@ by rw [range_eq_map, range_eq_map]; exact (⊤ : subgroup G).map_map g f
 @[to_additive]
 lemma range_top_iff_surjective {N} [group N] {f : G →* N} :
   f.range = (⊤ : subgroup N) ↔ function.surjective f :=
-set_like.coe_set_eq.symm.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_surjective
+set_like.ext_iff'.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective monoid homomorphism is the whole of the codomain. -/
 @[to_additive "The range of a surjective `add_monoid` homomorphism is the whole of the codomain."]

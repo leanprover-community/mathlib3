@@ -7,6 +7,7 @@ import data.nat.gcd
 import algebra.ordered_ring
 import ring_theory.int.basic
 import data.real.sqrt
+import linear_algebra.affine_space.affine_subspace
 
 open complex
 open matrix
@@ -359,6 +360,100 @@ begin
   { exact im_pos_of_in_H' },
   { exact norm_sq_pos.mpr (@bottom_nonzero g' z z.2) },
   { exact norm_sq_pos.mpr (@bottom_nonzero g z z.2) },
+end
+
+section
+/-! This is an attempt to do the maximin argument using more abstract existence theory. -/
+
+open filter
+
+instance {α : Type*} [ring α] [topological_space α] {n : Type*} [fintype n] :
+  topological_space (matrix n n α) :=
+Pi.topological_space
+
+/-- method 1 -/
+def line (cd : coprime_ints) : set (matrix (fin 2) (fin 2) ℝ) :=
+  {g | g 1 0 = (cd : ℤ × ℤ).1 ∧ g 1 1 = (cd : ℤ × ℤ).2 ∧ det g = 1}
+
+lemma line_proper (cd : coprime_ints) :
+  map coe (cocompact (line cd)) = cocompact (matrix (fin 2) (fin 2) ℝ) :=
+sorry
+
+-- make `line` an affine subspace of 2x2 matrices, using the following lemma
+lemma line_det (cd : coprime_ints) {g : matrix _ _ ℝ} (hg : g ∈ line cd) :
+  g 0 0 * cd.1.2 - g 0 1 * cd.1.1 = 1 :=
+begin
+  sorry
+end
+
+lemma in_line (cd : coprime_ints) {g : SL(2, ℤ)} (hg : bottom_row g = cd) :
+  ↑(g : SL(2, ℝ)) ∈ line cd :=
+sorry
+
+def to_line (cd : coprime_ints) (g : bottom_row ⁻¹' {cd}) : line cd :=
+⟨↑(g : SL(2, ℝ)), in_line cd g.2⟩
+
+lemma tendsto_line (cd : coprime_ints) : tendsto (to_line cd) cofinite (cocompact _) := sorry
+
+def lattice_intersect {k : ℕ} (A : affine_subspace ℝ (fin k → ℝ)) : set (fin k → ℤ) :=
+(λ p, (coe : ℤ → ℝ) ∘ p) ⁻¹' (A : set (fin k → ℝ))
+
+def lattice_intersect_fun {k : ℕ} (A : affine_subspace ℝ (fin k → ℝ)) :
+  lattice_intersect A → A :=
+λ q, ⟨(coe : ℤ → ℝ) ∘ q, begin
+  cases q with q hq,
+  simpa [lattice_intersect] using hq
+end⟩
+
+/-- lemma about intersection of affine subspaces with integer lattice -/
+lemma tendsto_affine (k : ℕ) (A : affine_subspace ℝ (fin k → ℝ)) :
+  tendsto (lattice_intersect_fun A) cofinite (cocompact _) :=
+begin
+  -- assume rationality of `A` if needed
+end
+
+
+def smul_aux' : (matrix (fin 2) (fin 2) ℝ) → ℂ → ℂ := sorry
+
+lemma tendsto_action (cd : coprime_ints) (z : ℂ) :
+  tendsto (λ g, (smul_aux' ↑g z).re) (cocompact (line cd)) (cocompact ℝ) :=
+begin
+  let g : ℝ → matrix (fin 2) (fin 2) ℝ :=
+
+  sorry
+end
+
+/-- method 2 -/
+def line' (cd : coprime_ints) : set (ℝ × ℝ) :=
+  {ab | ab.1 * (cd : ℤ × ℤ).2 - ab.2 * (cd : ℤ × ℤ).1 = 1}
+
+def in_line' (cd : coprime_ints) {g : SL(2, ℤ)} (hg : bottom_row g = cd) :
+  (↑(g 0 0), ↑(g 0 1)) ∈ line' cd :=
+sorry
+
+def to_line' (cd : coprime_ints) (g : bottom_row ⁻¹' {cd}) : line' cd :=
+⟨(g 0 0, g 0 1), in_line' cd g.2⟩
+
+lemma tendsto_line' (cd : coprime_ints) : tendsto (to_line' cd) cofinite (cocompact _) := sorry
+
+lemma inv_image_eq_line (cd : coprime_ints) :
+  bottom_row ⁻¹' {cd} = (prod.map coe coe : ℤ × ℤ → ℝ × ℝ) ⁻¹' line cd :=
+sorry
+
+end
+
+lemma something' (z:H) (cd : coprime_ints) :
+  tendsto (λ g : bottom_row ⁻¹' {cd}, _root_.abs (((g : SL(2, ℤ)) • z).val.re)) cofinite at_top :=
+begin
+
+end
+
+lemma something (z:H) (cd : coprime_ints) :
+  ∃ g : SL(2,ℤ), bottom_row g = cd ∧ (∀ g' : SL(2,ℤ), bottom_row g = bottom_row g' →
+  _root_.abs ((g • z).val.re) ≤ _root_.abs ((g' • z).val.re)) :=
+begin
+
+  sorry,
 end
 
 variables {g : SL(2,ℤ)} {z : H}

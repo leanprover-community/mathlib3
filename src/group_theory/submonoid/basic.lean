@@ -188,7 +188,8 @@ instance : complete_lattice (submonoid M) :=
   inf_le_left  := λ a b x, and.left,
   inf_le_right := λ a b x, and.right,
   .. complete_lattice_of_Inf (submonoid M) $ λ s,
-    is_glb.of_image (λ S T, show (S : set M) ≤ T ↔ S ≤ T, from set_like.coe_subset_coe) is_glb_binfi }
+    is_glb.of_image (λ S T,
+      show (S : set M) ≤ T ↔ S ≤ T, from set_like.coe_subset_coe) is_glb_binfi }
 
 @[to_additive]
 lemma subsingleton_iff : subsingleton M ↔ subsingleton (submonoid M) :=

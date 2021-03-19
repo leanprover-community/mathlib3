@@ -609,6 +609,11 @@ def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β
 λi, if i ∈ s then f i else g i
 
 /-- A set of functions "separates points"
-if for each pair of points there is a function taking different values on them. -/
+if for each pair of distinct points there is a function taking different values on them. -/
 def separates_points {α β : Type*} (A : set (α → β)) : Prop :=
 ∀ x y : α, x ≠ y → ∃ f ∈ A, (f x : β) ≠ f y
+
+/-- A set of functions "separates points strongly"
+if for each pair of distinct points there is a function specified values on them.  -/
+def separates_points_strongly {α β : Type*} (A : set (α → β)) : Prop :=
+∀ (x y : α), x ≠ y → ∀ (a b : β), ∃ f ∈ A, (f x : β) = a ∧ f y = b

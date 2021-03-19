@@ -311,6 +311,9 @@ def continuous_map.C : R →+* C(α, A) :=
   map_zero' := by ext x; exact (algebra_map R A).map_zero,
   map_add'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_add _ _ }
 
+@[simp] lemma continuous_map.C_apply (r : R) (a : α) : continuous_map.C r a = algebra_map R A r :=
+rfl
+
 variables [topological_space R] [topological_semimodule R A]
 
 instance continuous_map_algebra : algebra R C(α, A) :=
@@ -332,7 +335,44 @@ separates_points ((λ f : C(α, A), (f : α → A)) '' (s : set C(α, A)))
 
 lemma subalgebra.separates_points_monotone :
   monotone (λ s : subalgebra R C(α, A), s.separates_points) :=
-sorry
+λ s s' r h x y n,
+begin
+  obtain ⟨f, m, w⟩ := h x y n,
+  rcases m with ⟨f, ⟨m, rfl⟩⟩,
+  exact ⟨_, ⟨f, ⟨r m, rfl⟩⟩, w⟩,
+end
+
+variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
+
+/--
+Working in continuous functions into a topological field,
+a subalgebra of functions that separates points also separates points strongly.
+
+By the hypothesis, we can find a function `f` so `f x ≠ f y`.
+By an affine transformation in the field we can arrange so that `f x = a` and `f x = b`.
+-/
+lemma subalgebra.separates_points_strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h : s.separates_points) :
+  separates_points_strongly ((λ f : C(α, 𝕜), (f : α → 𝕜)) '' (s : set C(α, 𝕜))) :=
+λ x y n,
+begin
+  obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h x y n,
+  replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
+  intros a b,
+  let f' := ((b - a) * (f x - f y)⁻¹) • (continuous_map.C (f x) - f) + continuous_map.C a,
+  refine ⟨f', _, _, _⟩,
+  { simp only [set.mem_image, coe_coe],
+    refine ⟨f', _, rfl⟩,
+    simp only [f', submodule.mem_coe, subalgebra.mem_to_submodule],
+    -- TODO should there be a tactic for this:
+    apply subalgebra.add_mem,
+    apply subalgebra.smul_mem,
+    apply subalgebra.sub_mem,
+    apply subalgebra.algebra_map_mem,
+    exact m,
+    apply subalgebra.algebra_map_mem, },
+  { simp [f'], },
+  { simp [f', inv_mul_cancel_right' w], },
+end
 
 end continuous_map
 

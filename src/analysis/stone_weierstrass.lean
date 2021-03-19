@@ -62,10 +62,10 @@ end
 
 theorem sublattice_closure_eq_top
   (A : set C(X, ℝ)) (inf_mem : ∀ f g ∈ A, f ⊓ g ∈ A) (sup_mem : ∀ f g ∈ A, f ⊔ g ∈ A)
-  (h : separates_points ((λ f : C(X, ℝ), (f : X → ℝ)) '' A)) :
+  (h : separates_points_strongly ((λ f : C(X, ℝ), (f : X → ℝ)) '' A)) :
   closure A = ⊤ :=
 begin
-  -- Here's the fun part of proving Stone-Weierstrass!
+  -- Here's the fun part of Stone-Weierstrass!
   sorry
 end
 
@@ -78,17 +78,19 @@ is dense if it separates points.
 -/
 theorem subalgebra_topological_closure_eq_top_of_separates_points
   (A : subalgebra ℝ C(X, ℝ)) (w : A.separates_points) :
-  A.topological_closure = ⊤:=
+  A.topological_closure = ⊤ :=
 begin
+  -- The closure of `A` is closed under taking `sup` and `inf`,
+  -- and separates points strongly (since `A` does),
+  -- so we can apply `sublattice_closure_eq_top`.
   apply subalgebra.ext_set,
   let B := A.topological_closure,
-  replace w : B.separates_points :=
-    subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w,
   convert sublattice_closure_eq_top
     (B : set C(X, ℝ))
     (λ f g fm gm, inf_mem_closed_subalgebra B A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (λ f g fm gm, sup_mem_closed_subalgebra B A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
-    w,
+    (subalgebra.separates_points_strongly
+      (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
   { simp, },
   { ext, simp, sorry, },
 end

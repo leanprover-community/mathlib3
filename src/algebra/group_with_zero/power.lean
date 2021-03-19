@@ -214,17 +214,6 @@ theorem fpow_bit0' (a : G₀) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
 theorem fpow_bit1' (a : G₀) (n : ℤ) : a ^ bit1 n = (a * a) ^ n * a :=
 by rw [fpow_bit1, (commute.refl a).mul_fpow]
 
-@[simp] lemma fpow_bit0_neg {F : Type*} [field F] (a : F) (n : ℤ) :
-  (-a) ^ bit0 n = a ^ bit0 n :=
-by rw [fpow_bit0', neg_mul_neg, fpow_bit0']
-
-lemma fpow_even_neg {F : Type*} [field F] (a : F) {n : ℤ} (h : even n) :
-  (-a) ^ n = a ^ n :=
-begin
-  obtain ⟨k, rfl⟩ := h,
-  simp [←bit0_eq_two_mul]
-end
-
 lemma fpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, fpow_ne_zero_of_ne_zero hx n h
 
@@ -249,116 +238,6 @@ by simp only [one_div, inv_fpow]
 @[simp] lemma inv_fpow' {a : G₀} (n : ℤ) :
   (a ⁻¹) ^ n = a ^ (-n) :=
 by { rw [inv_fpow, ← fpow_neg_one, ← fpow_mul], simp }
-
-section field
-
-variables {F : Type*} [linear_ordered_field F] {a : F} {n : ℤ}
-
-lemma fpow_eq_zero_iff (hn : 0 < n) :
-  a ^ n = 0 ↔ a = 0 :=
-begin
-  refine ⟨fpow_eq_zero, _⟩,
-  rintros rfl,
-  exact zero_fpow _ hn.ne'
-end
-
-lemma fpow_nonneg (h : 0 ≤ a) (n : ℤ) : 0 ≤ a ^ n :=
-begin
-  by_cases ha : a = 0,
-  { rw [ha, fzero_pow_eq],
-    split_ifs;
-    simp [le_refl, zero_le_one] },
-  induction n using int.induction_on with n hn n hn,
-  { simpa using zero_le_one },
-  { rw [fpow_add_one ha],
-    exact mul_nonneg hn h },
-  { rw [fpow_sub_one ha],
-    exact mul_nonneg hn (inv_nonneg.mpr h) }
-end
-
-theorem fpow_bit0_nonneg (a : F) (n : ℤ) : 0 ≤ a ^ bit0 n :=
-by { rw fpow_bit0, exact mul_self_nonneg _ }
-
-theorem fpow_two_nonneg (a : F) : 0 ≤ a ^ 2 :=
-pow_bit0_nonneg a 1
-
-theorem fpow_bit0_pos {a : F} (h : a ≠ 0) (n : ℤ) : 0 < a ^ bit0 n :=
-(fpow_bit0_nonneg a n).lt_of_ne (fpow_ne_zero _ h).symm
-
-theorem fpow_two_pos_of_ne_zero (a : F) (h : a ≠ 0) : 0 < a ^ 2 :=
-pow_bit0_pos h 1
-
-@[simp] theorem fpow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
-⟨λ h, not_le.1 $ λ h', not_le.2 h $ fpow_nonneg h' _,
- λ h, by rw [bit1, fpow_add_one h.ne]; exact mul_neg_of_pos_of_neg (fpow_bit0_pos h.ne _) h⟩
-
-@[simp] theorem fpow_bit1_nonneg_iff : 0 ≤ a ^ bit1 n ↔ 0 ≤ a :=
-le_iff_le_iff_lt_iff_lt.2 fpow_bit1_neg_iff
-
-@[simp] theorem fpow_bit1_nonpos_iff : a ^ bit1 n ≤ 0 ↔ a ≤ 0 :=
-begin
-  rw [le_iff_lt_or_eq, fpow_bit1_neg_iff],
-  split,
-  { rintro (h | h),
-    { exact h.le },
-    { exact (fpow_eq_zero h).le } },
-  { intro h,
-    rcases eq_or_lt_of_le h with rfl|h,
-    { exact or.inr (zero_fpow _ (bit1_ne_zero n)) },
-    { exact or.inl h } }
-end
-
-@[simp] theorem fpow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
-lt_iff_lt_of_le_iff_le fpow_bit1_nonpos_iff
-
-lemma fpow_even_nonneg (a : F) {n : ℤ} (hn : even n) :
-  0 ≤ a ^ n :=
-begin
-  cases le_or_lt 0 a with h h,
-  { exact fpow_nonneg h _ },
-  { rw [←fpow_even_neg _ hn],
-    replace h : 0 ≤ -a := neg_nonneg_of_nonpos (le_of_lt h),
-    exact fpow_nonneg h _ }
-end
-
-theorem fpow_even_pos (ha : a ≠ 0) (hn : even n) : 0 < a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit0_pos ha k
-
-theorem fpow_odd_nonneg (ha : 0 ≤ a) (hn : odd n) : 0 ≤ a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_nonneg_iff.mpr ha
-
-theorem fpow_odd_pos (ha : 0 < a) (hn : odd n) : 0 < a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_pos_iff.mpr ha
-
-theorem fpow_odd_nonpos (ha : a ≤ 0) (hn : odd n) : a ^ n ≤ 0:=
-by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_nonpos_iff.mpr ha
-
-theorem fpow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
-by cases hn with k hk; simpa only [hk, two_mul] using fpow_bit1_neg_iff.mpr ha
-
-lemma fpow_even_abs (a : F) {p : ℤ} (hp : even p) :
-  abs a ^ p = a ^ p :=
-begin
-  cases le_or_lt a (-a) with h h;
-  simp [abs, h, max_eq_left_of_lt, fpow_even_neg _ hp]
-end
-
-@[simp] lemma fpow_bit0_abs (a : F) (p : ℤ) :
-  (abs a) ^ bit0 p = a ^ bit0 p :=
-fpow_even_abs _ (even_bit0 _)
-
-lemma abs_fpow_even (a : F) {p : ℤ} (hp : even p) :
-  abs (a ^ p) = a ^ p :=
-begin
-  rw [←fpow_even_abs _ hp, abs_eq_self],
-  exact fpow_even_nonneg _ hp
-end
-
-@[simp] lemma abs_fpow_bit0 (a : F) (p : ℤ) :
-  abs (a ^ bit0 p) = a ^ bit0 p :=
-abs_fpow_even _ (even_bit0 _)
-
-end field
 
 end int_pow
 

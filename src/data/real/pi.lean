@@ -10,7 +10,8 @@ import analysis.special_functions.integrals
 This file contains lemmas which establish bounds on or approximations of `real.pi`. Notably, these
 include `pi_gt_sqrt_two_add_series` and `pi_lt_sqrt_two_add_series`, which bound `π` using series;
 numerical bounds on `π` such as `pi_gt_314`and `pi_lt_315` (more precise versions are given, too);
-and `tendsto_sum_pi_div_four`, Leibniz's series for `π`.
+and exact formulas of products involving `π` such as `tendsto_sum_pi_div_four`, the Leibniz's
+series for `π`, and `tendsto_prod_pi_div_two`, the Wallis product for `π`.
 -/
 
 open_locale real
@@ -277,16 +278,62 @@ end
 
 open finset interval_integral
 
+lemma integral_sin_pow_antimono (n : ℕ) :
+  ∫ (x : ℝ) in 0..π, sin x ^ (n + 1) ≤ ∫ (x : ℝ) in 0..π, sin x ^ n :=
+begin
+  refine integral_mono_on _ _ pi_pos.le (λ x hx, _),
+  { exact ((continuous_pow (n + 1)).comp continuous_sin).interval_integrable 0 π },
+  { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
+  refine pow_le_pow_of_le_one _ (sin_le_one x) (nat.le_add_right n 1),
+  rw interval_of_le pi_pos.le at hx,
+  exact sin_nonneg_of_mem_Icc hx,
+end
+
+lemma integral_sin_pow_div_tendsto_one :
+  tendsto (λ k, (∫ x in 0..π, sin x ^ (2 * k + 1)) / ∫ x in 0..π, sin x ^ (2 * k)) at_top (𝓝 1) :=
+begin
+  have h₃ : ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≤ 1 :=
+    λ n, (div_le_one (integral_sin_pow_pos _)).mpr (integral_sin_pow_antimono _),
+  have h₄ :
+    ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≥ 2 * n / (2 * n + 1),
+  { intro, cases n,
+    { have : 0 ≤ (1 + 1) / π, exact div_nonneg (by norm_num) pi_pos.le,
+      simp [this] },
+    calc (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n.succ) ≥
+      (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n + 1) :
+      by { refine div_le_div (integral_sin_pow_pos _).le (le_refl _) (integral_sin_pow_pos _) _,
+        convert integral_sin_pow_antimono (2 * n + 1) using 1 }
+    ... = 2 * ↑(n.succ) / (2 * ↑(n.succ) + 1) :
+      by { symmetry, rw [eq_div_iff, nat.succ_eq_add_one],
+        convert (integral_sin_pow_succ_succ (2 * n + 1)).symm using 3,
+        simp [mul_add], ring, simp [mul_add], ring,
+        exact norm_num.ne_zero_of_pos  _ (integral_sin_pow_pos (2 * n + 1)) } },
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le _ _ (λ n, (h₄ n).le) (λ n, (h₃ n)),
+  { refine metric.tendsto_at_top.mpr (λ ε hε, ⟨nat_ceil (1 / ε), λ n hn, _⟩),
+    have h : (2:ℝ) * n / (2 * n + 1) - 1 = -1 / (2 * n + 1),
+    { conv_lhs { congr, skip, rw ← @div_self _ _ ((2:ℝ) * n + 1) (by { norm_cast, linarith }), },
+      rw [← sub_div, ← sub_sub, sub_self, zero_sub] },
+    have hpos : (0:ℝ) < 2 * n + 1, { norm_cast, norm_num },
+    rw [real.dist_eq, h, abs_div, abs_neg, abs_one, abs_of_pos hpos, one_div_lt hpos hε],
+    calc 1 / ε ≤ nat_ceil (1 / ε) : le_nat_ceil _
+          ... ≤ n : by exact_mod_cast hn.le
+          ... < 2 * n + 1 : by { norm_cast, linarith } },
+  exact tendsto_const_nhds,
+end
+
 /-- This theorem establishes the Wallis Product for `π`. Our proof is largely about analyzing
   the behavior of the ratio of the integral of `sin x ^ n` as `n → ∞`.
+  See: https://en.wikipedia.org/wiki/Wallis_product
 
-  The proof can be broken down into two pieces. First, we use integration by parts to obtain
-  a recursive formula for `∫ x in 0..π, sin x ^ (n + 2)` in terms of `∫ x in 0..π, sin x ^ n`.
+  The proof can be broken down into two pieces.
+  (Pieces involving general properties of the integral of `sin x ^n` can be found
+  in `analysis.special_functions.integrals`.) First, we use integration by parts to obtain a
+  recursive formula for `∫ x in 0..π, sin x ^ (n + 2)` in terms of `∫ x in 0..π, sin x ^ n`.
   From this we can obtain closed form products of `∫ x in 0..π, sin x ^ (2 * n)` and
   `∫ x in 0..π, sin x ^ (2 * n + 1)` via induction. Next, we study the behavior of the ratio
   `∫ (x : ℝ) in 0..π, sin x ^ (2 * k + 1)) / ∫ (x : ℝ) in 0..π, sin x ^ (2 * k)` and prove that
   it converges to one using the squeeze theorem. The final product for `π` is obtained after some
-  algebraic manipulation.  -/
+  algebraic manipulation. -/
 theorem tendsto_prod_pi_div_two :
   tendsto (λ k, ∏ i in range k,
     (((2:ℝ) * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3))) at_top (𝓝 (π/2)) :=

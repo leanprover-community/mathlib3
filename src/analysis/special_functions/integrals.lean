@@ -11,6 +11,10 @@ import measure_theory.interval_integral
 This file contains proofs of the integrals of various simple functions, including `pow`, `exp`,
 `inv`/`one_div`, `sin`, `cos`, and `λ x, 1 / (1 + x^2)`.
 
+There are also facts about more complicated integrals:
+* `sin x ^ n`: We prove a recursive formula for `sin x ^ (n + 2)` in terms of `sin x ^ n`,
+  along with explicit product formulas for even and odd `n`.
+
 With these lemmas, many simple integrals can be computed by `simp` or `norm_num`. Scroll to the
 bottom of the file for examples.
 
@@ -89,38 +93,36 @@ by simp only [one_div, integral_inv_of_neg ha hb]
 lemma integral_sin : ∫ x in a..b, sin x = cos a - cos b :=
 by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_on_sin]
 
-lemma integral_sin_pow (n : ℕ) : ∫ x in 0..π, sin x ^ (n + 2) =
+lemma integral_sin_pow_aux (n : ℕ) : ∫ x in 0..π, sin x ^ (n + 2) =
   ((n + 1) * ∫ x in 0..π, sin x ^ n) - (n + 1) * ∫ x in 0..π, sin x ^ (n + 2) :=
 begin
-  have h : (λ x, sin x ^ (n + 2)) = λ x, sin x ^ (n + 1) * sin x, { funext, ring },
   have hv : ∀ x ∈ interval 0 π, has_deriv_at (-cos) (sin x) x,
   { intros, convert (has_deriv_at_cos x).neg, rw neg_neg },
   have hu : ∀ x ∈ interval 0 π, has_deriv_at (λ x, sin x ^ (n + 1)) ((n + 1) * cos x * sin x ^ n) x,
   { intros,
     convert (has_deriv_at_pow (n + 1) (sin x)).comp x (has_deriv_at_sin x) using 1,
     simp [mul_right_comm], },
-  have : (λ x, cos x * ((n + 1) * cos x * sin x ^ n)) = λ x, (↑n + 1) * (cos x ^ 2 * sin x ^ n),
-  { funext, ring },
-  conv_lhs { rw h },
-  rw integral_mul_deriv_eq_deriv_mul hu hv _ _,
-  { simp only [neg_mul_eq_neg_mul_symm, sin_zero, sin_pi, zero_mul, pi.neg_apply, sub_zero,
-      add_eq_zero_iff, ne.def, zero_add, not_false_iff, one_ne_zero, integral_neg, and_false,
-      zero_pow', sub_neg_eq_add, this, integral_const_mul (↑n + 1)],
-    simp only [cos_square', sub_mul, mul_sub, one_mul, ← pow_add _ 2 n, add_comm 2 n],
-    rw [integral_sub, mul_sub],
+  calc ∫ (x : ℝ) in 0..π, sin x ^ (n + 2)
+      = ∫ (x : ℝ) in 0..π, sin x ^ (n + 1) * sin x : by { congr, ext, ring }
+  ... = ∫ (x : ℝ) in 0..π, cos x * (λ (x : ℝ), (↑n + 1) * cos x * sin x ^ n) x : by
+  { simp [integral_mul_deriv_eq_deriv_mul hu hv (by continuity : continuous _).continuous_on
+      (by continuity : continuous _).continuous_on] }
+  ... = (↑n + 1) * ∫ (x : ℝ) in 0..π, cos x ^ 2 * sin x ^ n : by
+  { rw ← integral_const_mul, congr, ext, simp only, ring }
+  ... = (↑n + 1) * ∫ (x : ℝ) in 0..π, sin x ^ n - sin x ^ (n + 2) : by
+  { simp [integral_const_mul, cos_square', sub_mul, ← pow_add, add_comm] }
+  ... = _ - _ : by { rw [integral_sub, mul_sub],
     { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
     { exact ((continuous_pow (n + 2)).comp continuous_sin).interval_integrable 0 π } },
-  { apply continuous.continuous_on, continuity },
-  apply continuous.continuous_on, continuity,
 end
 
 lemma integral_sin_pow_succ_succ (n : ℕ) :
   ∫ x in 0..π, sin x ^ (n + 2) = (n + 1) / (n + 2) * ∫ x in 0..π, sin x ^ n :=
 begin
+  have : (n:ℝ) + 2 ≠ 0 := by { norm_cast, norm_num },
   field_simp,
-  have := eq_sub_iff_add_eq.mp (integral_sin_pow n),
-  rwa [eq_div_iff, mul_comm, bit0, ← add_assoc, add_mul, one_mul, add_comm],
-  norm_cast, norm_num,
+  convert eq_sub_iff_add_eq.mp (integral_sin_pow_aux n),
+  ring
 end
 
 theorem integral_sin_pow_odd (n : ℕ) :
@@ -130,7 +132,7 @@ begin
   { norm_num, },
   rw [finset.prod_range_succ, ← mul_assoc, mul_comm (2:ℝ) ((2 * k + 2) / (2 * k + 3)),
     mul_assoc, ← ih],
-  have h₁ : 2 * k.succ + 1 = 2 * k + 1 + 2, { rw nat.succ_eq_add_one k, rw mul_add, rw mul_one },
+  have h₁ : 2 * k.succ + 1 = 2 * k + 1 + 2, { ring },
   have h₂ : (2:ℝ) * k + 1 + 1 = 2 * k + 2, { norm_cast, },
   have h₃ : (2:ℝ) * k + 1 + 2 = 2 * k + 3, { norm_cast, },
   simp [h₁, h₂, h₃, integral_sin_pow_succ_succ (2 * k + 1)]
@@ -147,56 +149,11 @@ end
 
 lemma integral_sin_pow_pos (n : ℕ) : 0 < ∫ x in 0..π, sin x ^ n :=
 begin
-  rcases nat.even_or_odd' n with ⟨k, h, h⟩,
-  { rw [h, integral_sin_pow_even],
-    refine mul_pos pi_pos (finset.prod_pos (λ n hn, div_pos _ _)),
-    norm_cast, linarith, norm_cast, linarith },
-  rw [h, integral_sin_pow_odd],
-  refine mul_pos (by norm_num) (finset.prod_pos (λ n hn, div_pos _ _)),
-  norm_cast, linarith, norm_cast, linarith
-end
-
-lemma integral_sin_pow_anti_mono (n : ℕ) :
-  ∫ (x : ℝ) in 0..π, sin x ^ (n + 1) ≤ ∫ (x : ℝ) in 0..π, sin x ^ n :=
-begin
-  refine integral_mono_on _ _ pi_pos.le (λ x hx, _),
-  { exact ((continuous_pow (n + 1)).comp continuous_sin).interval_integrable 0 π },
-  { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
-  refine pow_le_pow_of_le_one _ (sin_le_one x) (nat.le_add_right n 1),
-  rw interval_of_le pi_pos.le at hx,
-  exact sin_nonneg_of_mem_Icc hx,
-end
-
-lemma integral_sin_pow_div_tendsto_one :
-  tendsto (λ k, (∫ x in 0..π, sin x ^ (2 * k + 1)) / ∫ x in 0..π, sin x ^ (2 * k)) at_top (𝓝 1) :=
-begin
-  have h₃ : ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≤ 1 :=
-    λ n, (div_le_one (integral_sin_pow_pos _)).mpr (integral_sin_pow_anti_mono _),
-  have h₄ :
-    ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≥ 2 * n / (2 * n + 1),
-  { intro, cases n,
-    { have : 0 ≤ (1 + 1) / π, exact div_nonneg (by norm_num) pi_pos.le,
-      simp [this] },
-    calc (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n.succ) ≥
-      (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n + 1) :
-      by { refine div_le_div (integral_sin_pow_pos _).le (le_refl _) (integral_sin_pow_pos _) _,
-        convert integral_sin_pow_anti_mono (2 * n + 1) using 1 }
-    ... = 2 * ↑(n.succ) / (2 * ↑(n.succ) + 1) :
-      by { symmetry, rw [eq_div_iff, nat.succ_eq_add_one],
-        convert (integral_sin_pow_succ_succ (2 * n + 1)).symm using 3,
-        simp [mul_add], ring, simp [mul_add], ring,
-        exact norm_num.ne_zero_of_pos  _ (integral_sin_pow_pos (2 * n + 1)) } },
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le _ _ (λ n, (h₄ n).le) (λ n, (h₃ n)),
-  { refine metric.tendsto_at_top.mpr (λ ε hε, ⟨nat_ceil (1 / ε), λ n hn, _⟩),
-    have h : (2:ℝ) * n / (2 * n + 1) - 1 = -1 / (2 * n + 1),
-    { conv_lhs { congr, skip, rw ← @div_self _ _ ((2:ℝ) * n + 1) (by { norm_cast, linarith }), },
-      rw [← sub_div, ← sub_sub, sub_self, zero_sub] },
-    have hpos : (0:ℝ) < 2 * n + 1, { norm_cast, norm_num },
-    rw [real.dist_eq, h, abs_div, abs_neg, abs_one, abs_of_pos hpos, one_div_lt hpos hε],
-    calc 1 / ε ≤ nat_ceil (1 / ε) : le_nat_ceil _
-          ... ≤ n : by exact_mod_cast hn.le
-          ... < 2 * n + 1 : by { norm_cast, linarith } },
-  exact tendsto_const_nhds,
+  rcases nat.even_or_odd' n with ⟨k, h, h⟩;
+  simp only [h, integral_sin_pow_even, integral_sin_pow_odd];
+  refine mul_pos (by norm_num [pi_pos]) (finset.prod_pos (λ n hn, div_pos _ _));
+  norm_cast;
+  linarith
 end
 
 @[simp]

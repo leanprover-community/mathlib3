@@ -403,6 +403,11 @@ simplex category.
 def inclusion {n : ℕ} : simplex_category.truncated n ⥤ simplex_category :=
 full_subcategory_inclusion _
 
+/-- The length of an object of `truncated n`. -/
+def len {n} : truncated n → ℕ := λ x, (inclusion.obj x).len
+
+lemma len_le {n} {x : truncated n} : x.len ≤ n := x.2
+
 section
 open_locale classical
 noncomputable instance {x} : fin_category (truncated x) :=
@@ -424,12 +429,12 @@ namespace trunc
 @[derive [full, faithful], simps]
 def inclusion {a n} : trunc.{u} a n ⥤ over a := full_subcategory_inclusion _
 
-/-- The forgetful functor from `over_trunc a m` to `truncated m`. -/
-
+/-- The length of an object of trunc. -/
 def len {a n} : trunc a n → ℕ := λ x, ((over.forget a).obj (inclusion.obj x)).len
 
 lemma len_le {a n} (x : trunc a n) : x.len ≤ n := x.2
 
+/-- The forgetful functor from `over_trunc a m` to `truncated m`. -/
 @[simps]
 def forget {a m} : trunc.{u} a m ⥤ truncated.{u} m :=
 { obj := λ b, ⟨(over.forget a).obj (inclusion.obj b), len_le _⟩,

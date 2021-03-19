@@ -303,7 +303,7 @@ begin
   dsimp [is_colimit_whisker_equiv],
   apply P.hom_ext,
   intro j,
-  dsimp, simp,
+  dsimp, simp, dsimp, simp, -- See library note [dsimp, simp].
 end
 
 instance colimit_pre_is_iso [has_colimit G] :

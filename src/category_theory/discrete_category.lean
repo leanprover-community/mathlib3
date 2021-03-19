@@ -7,7 +7,7 @@ import category_theory.eq_to_hom
 
 namespace category_theory
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 /--
 A type synonym for promoting any type to a category,
@@ -46,7 +46,7 @@ lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X = Y := i.down.down
 variables {C : Type u₂} [category.{v₂} C]
 
 instance {I : Type u₁} {i j : discrete I} (f : i ⟶ j) : is_iso f :=
-{ inv := eq_to_hom (eq_of_hom f).symm, }
+⟨eq_to_hom (eq_of_hom f).symm, by tidy⟩
 
 /--
 Any function `I → C` gives a functor `discrete I ⥤ C`.

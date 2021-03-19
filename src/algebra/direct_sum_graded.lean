@@ -5,6 +5,7 @@ Authors: Eric Wieser
 -/
 import algebra.direct_sum
 import algebra.algebra.basic
+import algebra.algebra.operations
 import group_theory.subgroup
 
 /-!
@@ -47,8 +48,7 @@ mapping `⨁ i, A i →+ ⨆ i, A i` can be obtained as
 
 graded ring, filtered ring, direct sum, add_submonoid
 -/
-
-variables {ι : Type*} (A : ι → Type*) [decidable_eq ι]
+variables {ι : Type*} [decidable_eq ι]
 
 namespace direct_sum
 
@@ -56,6 +56,8 @@ open_locale direct_sum
 
 /-! ### Typeclasses -/
 section defs
+
+variables (A : ι → Type*)
 
 /-- A graded version of `has_one`, which must be of grade 0. -/
 class ghas_one [has_zero ι] :=
@@ -83,6 +85,8 @@ end defs
 
 section defs
 
+variables (A : ι → Type*)
+
 local attribute [instance] ghas_one.to_sigma_has_one
 local attribute [instance] ghas_mul.to_sigma_has_mul
 
@@ -102,11 +106,13 @@ end defs
 
 section shorthands
 
+variables {R : Type*}
+
 /-! #### From `add_submonoid`s -/
 
 /-- Build a `ghas_one` instance for a collection of `add_submonoid`s. -/
 @[simps one]
-def ghas_one.of_add_submonoids {R : Type*} [semiring R] [add_monoid ι]
+def ghas_one.of_add_submonoids [semiring R] [add_monoid ι]
   (carriers : ι → add_submonoid R)
   (one_mem : (1 : R) ∈ carriers 0) :
   ghas_one (λ i, carriers i) :=
@@ -114,7 +120,7 @@ def ghas_one.of_add_submonoids {R : Type*} [semiring R] [add_monoid ι]
 
 /-- Build a `ghas_mul` instance for a collection of `add_submonoids`. -/
 @[simps mul]
-def ghas_mul.of_add_submonoids {R : Type*} [semiring R] [add_monoid ι]
+def ghas_mul.of_add_submonoids [semiring R] [add_monoid ι]
   (carriers : ι → add_submonoid R)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
   ghas_mul (λ i, carriers i) :=
@@ -128,7 +134,7 @@ def ghas_mul.of_add_submonoids {R : Type*} [semiring R] [add_monoid ι]
 
 /-- Build a `gmonoid` instance for a collection of `add_submonoid`s. -/
 @[simps to_ghas_one to_ghas_mul]
-def gmonoid.of_add_submonoids {R : Type*} [semiring R] [add_monoid ι]
+def gmonoid.of_add_submonoids [semiring R] [add_monoid ι]
   (carriers : ι → add_submonoid R)
   (one_mem : (1 : R) ∈ carriers 0)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
@@ -142,7 +148,7 @@ def gmonoid.of_add_submonoids {R : Type*} [semiring R] [add_monoid ι]
 
 /-- Build a `gcomm_monoid` instance for a collection of `add_submonoid`s. -/
 @[simps to_gmonoid]
-def gcomm_monoid.of_add_submonoids {R : Type*} [comm_semiring R] [add_comm_monoid ι]
+def gcomm_monoid.of_add_submonoids [comm_semiring R] [add_comm_monoid ι]
   (carriers : ι → add_submonoid R)
   (one_mem : (1 : R) ∈ carriers 0)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
@@ -154,7 +160,7 @@ def gcomm_monoid.of_add_submonoids {R : Type*} [comm_semiring R] [add_comm_monoi
 
 /-- Build a `ghas_one` instance for a collection of `add_subgroup`s. -/
 @[simps one]
-def ghas_one.of_add_subgroups {R : Type*} [ring R] [add_monoid ι]
+def ghas_one.of_add_subgroups [ring R] [add_monoid ι]
   (carriers : ι → add_subgroup R)
   (one_mem : (1 : R) ∈ carriers 0) :
   ghas_one (λ i, carriers i) :=
@@ -162,7 +168,7 @@ ghas_one.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem
 
 /-- Build a `ghas_mul` instance for a collection of `add_subgroup`s. -/
 @[simps mul]
-def ghas_mul.of_add_subgroups {R : Type*} [ring R] [add_monoid ι]
+def ghas_mul.of_add_subgroups [ring R] [add_monoid ι]
   (carriers : ι → add_subgroup R)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
   ghas_mul (λ i, carriers i) :=
@@ -170,7 +176,7 @@ ghas_mul.of_add_submonoids (λ i, (carriers i).to_add_submonoid) mul_mem
 
 /-- Build a `gmonoid` instance for a collection of `add_subgroup`s. -/
 @[simps to_ghas_one to_ghas_mul]
-def gmonoid.of_add_subgroups {R : Type*} [ring R] [add_monoid ι]
+def gmonoid.of_add_subgroups [ring R] [add_monoid ι]
   (carriers : ι → add_subgroup R)
   (one_mem : (1 : R) ∈ carriers 0)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
@@ -179,7 +185,7 @@ gmonoid.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem mul_mem
 
 /-- Build a `gcomm_monoid` instance for a collection of `add_subgroup`s. -/
 @[simps to_gmonoid]
-def gcomm_monoid.of_add_subgroups {R : Type*} [comm_ring R] [add_comm_monoid ι]
+def gcomm_monoid.of_add_subgroups [comm_ring R] [add_comm_monoid ι]
   (carriers : ι → add_subgroup R)
   (one_mem : (1 : R) ∈ carriers 0)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
@@ -188,9 +194,11 @@ gcomm_monoid.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem mul
 
 /-! #### From `submodules`s -/
 
+variables {A : Type*}
+
 /-- Build a `ghas_one` instance for a collection of `submodule`s. -/
 @[simps one]
-def ghas_one.of_submodules {R A : Type*}
+def ghas_one.of_submodules
   [comm_semiring R] [semiring A] [algebra R A] [add_monoid ι]
   (carriers : ι → submodule R A)
   (one_mem : (1 : A) ∈ carriers 0) :
@@ -199,7 +207,7 @@ ghas_one.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem
 
 /-- Build a `ghas_mul` instance for a collection of `submodule`s. -/
 @[simps mul]
-def ghas_mul.of_submodules {R A : Type*}
+def ghas_mul.of_submodules
   [comm_semiring R] [semiring A] [algebra R A] [add_monoid ι]
   (carriers : ι → submodule R A)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : A) ∈ carriers (i + j)) :
@@ -208,7 +216,7 @@ ghas_mul.of_add_submonoids (λ i, (carriers i).to_add_submonoid) mul_mem
 
 /-- Build a `gmonoid` instance for a collection of `submodules`s. -/
 @[simps to_ghas_one to_ghas_mul]
-def gmonoid.of_submodules {R A : Type*}
+def gmonoid.of_submodules
   [comm_semiring R] [semiring A] [algebra R A] [add_monoid ι]
   (carriers : ι → submodule R A)
   (one_mem : (1 : A) ∈ carriers 0)
@@ -218,7 +226,7 @@ gmonoid.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem mul_mem
 
 /-- Build a `gcomm_monoid` instance for a collection of `submodules`s. -/
 @[simps to_gmonoid]
-def gcomm_monoid.of_submodules {R A : Type*}
+def gcomm_monoid.of_submodules
   [comm_semiring R] [comm_semiring A] [algebra R A] [add_comm_monoid ι]
   (carriers : ι → submodule R A)
   (one_mem : (1 : A) ∈ carriers 0)
@@ -229,6 +237,8 @@ gcomm_monoid.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem mul
 end shorthands
 
 /-! ### Instances for `⨁ i, A i` -/
+
+variables (A : ι → Type*)
 
 section one
 variables [has_zero ι] [ghas_one A] [Π i, add_comm_monoid (A i)]
@@ -424,3 +434,26 @@ instance comm_ring : ring (⨁ i, A i) := {
 end comm_ring
 
 end direct_sum
+
+/-! ### Concrete instances -/
+
+namespace submodule
+
+variables {R A : Type*} [comm_semiring R]
+
+/-- A direct sum of powers of a submodule of an algebra has a multiplicative structure. -/
+instance nat_power_direct_sum_gmonoid [semiring A] [algebra R A] (S : submodule R A) :
+  direct_sum.gmonoid (λ i : ℕ, ↥(S ^ i)) :=
+direct_sum.gmonoid.of_submodules _
+  (by { rw [←one_le, pow_zero], exact le_rfl })
+  (λ i j p q, by { rw pow_add, exact submodule.mul_mem_mul p.prop q.prop })
+
+/-- A direct sum of powers of a submodule of a commutative algebra has a commutative multiplicative
+structure. -/
+instance nat_power_direct_sum_gcomm_monoid [comm_semiring A] [algebra R A] (S : submodule R A) :
+  direct_sum.gcomm_monoid (λ i : ℕ, ↥(S ^ i)) :=
+direct_sum.gcomm_monoid.of_submodules _
+  (by { rw [←one_le, pow_zero], exact le_rfl })
+  (λ i j p q, by { rw pow_add, exact submodule.mul_mem_mul p.prop q.prop })
+
+end submodule

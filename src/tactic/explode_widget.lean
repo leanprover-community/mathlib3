@@ -1,22 +1,26 @@
 /-
 Copyright (c) 2020 Minchao Wu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Minchao Wu
+Authors: Minchao Wu
 -/
 import tactic.explode
 import tactic.interactive_expr
+
 /-!
 # `#explode_widget` command
 
-Render a widget that displays an `#explode` proof, providing more 
-interactivity such as jumping to definitions and exploding constants 
+Render a widget that displays an `#explode` proof, providing more
+interactivity such as jumping to definitions and exploding constants
 occurring in the exploded proofs.
 -/
 open widget tactic tactic.explode
 
+meta instance widget.string_to_html {α} : has_coe string (html α) :=
+⟨λ s, s⟩
+
 namespace tactic
 namespace explode_widget
-open widget_override.interactive_expression 
+open widget_override.interactive_expression
 open tagged_format
 open widget.html widget.attr
 
@@ -37,7 +41,7 @@ meta def get_block_attrs {γ}: sf → tactic (sf × list (attr γ))
 
 /-- Explode button for subsequent exploding. -/
 meta def insert_explode {γ} : expr → tactic (list (html (action γ)))
-| (expr.const n _) := (do 
+| (expr.const n _) := (do
     pure $ [h "button" [
       cn "pointer ba br3 mr1",
       on_click (λ _, action.effect $ widget.effect.insert_text ("#explode_widget " ++ n.to_string)),
@@ -48,14 +52,14 @@ meta def insert_explode {γ} : expr → tactic (list (html (action γ)))
 /--
 Render a subexpression as a list of html elements.
 -/
-meta def view {γ} (tooltip_component : tc subexpr (action γ)) 
-  (click_address : option expr.address) 
+meta def view {γ} (tooltip_component : tc subexpr (action γ))
+  (click_address : option expr.address)
   (select_address : option expr.address) :
   subexpr → sf → tactic (list (html (action γ)))
 | ⟨ce, current_address⟩ (sf.tag_expr ea e m) := do
   let new_address := current_address ++ ea,
-  let select_attrs : list (attr (action γ)) := 
-    if some new_address = select_address then 
+  let select_attrs : list (attr (action γ)) :=
+    if some new_address = select_address then
        [className "highlight"] else [],
   click_attrs  : list (attr (action γ)) ←
     if some new_address = click_address then do
@@ -65,18 +69,18 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ))
       epld_btn ← insert_explode e,
       pure [tooltip $ h "div" [] [
           h "div" [cn "fr"] (gd_btn ++ epld_btn ++ [
-            h "button" [cn "pointer ba br3 mr1", on_click 
-                       (λ _, action.effect $ widget.effect.copy_text efmt), 
+            h "button" [cn "pointer ba br3 mr1", on_click
+                       (λ _, action.effect $ widget.effect.copy_text efmt),
                        attr.val "title" "copy expression to clipboard"] ["📋"],
-            h "button" [cn "pointer ba br3", on_click 
-                       (λ _, action.on_close_tooltip), 
+            h "button" [cn "pointer ba br3", on_click
+                       (λ _, action.on_close_tooltip),
                        attr.val "title" "close"] ["×"]
           ]),
           content
       ]]
     else pure [],
   (m, block_attrs) ← get_block_attrs m,
-  let as := [className "expr-boundary", key (ea)] ++ select_attrs ++ 
+  let as := [className "expr-boundary", key (ea)] ++ select_attrs ++
             click_attrs ++ block_attrs,
   inner ← view (e,new_address) m,
   pure [h "span" as inner]
@@ -99,7 +103,7 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ))
 /-- Make an interactive expression. -/
 meta def mk {γ} (tooltip : tc subexpr γ) : tc expr γ :=
 let tooltip_comp :=
-   component.with_should_update 
+   component.with_should_update
    (λ (x y : tactic_state × expr × expr.address), x.2.2 ≠ y.2.2)
    $ component.map_action (action.on_tooltip_action) tooltip in
    component.filter_map_action
@@ -118,8 +122,8 @@ $ tc.mk_simple
     match act with
     | (action.on_mouse_enter ⟨e, ea⟩) := ((ca, some (e, ea)), none)
     | (action.on_mouse_leave_all)     := ((ca, none), none)
-    | (action.on_click ⟨e, ea⟩)       := if some (e,ea) = ca then 
-                                         ((none, sa), none) else 
+    | (action.on_click ⟨e, ea⟩)       := if some (e,ea) = ca then
+                                         ((none, sa), none) else
                                          ((some (e, ea), sa), none)
     | (action.on_tooltip_action g)    := ((none, sa), some $ sum.inl g)
     | (action.on_close_tooltip)       := ((none, sa), none)
@@ -191,20 +195,21 @@ meta def lookup_lines : entries → nat → entry
 | ⟨_, []⟩ n := ⟨default _, 0, 0, status.sintro, thm.string "", []⟩
 | ⟨rb, (hd::tl)⟩ n := if hd.line = n then hd else lookup_lines ⟨rb, tl⟩ n
 
+
 /--
 Render a row that shows a goal.
 -/
-meta def goal_row (e : expr) (show_expr := tt): tactic (list (html empty)) := 
+meta def goal_row (e : expr) (show_expr := tt): tactic (list (html empty)) :=
 do t ← explode_widget.show_type_component e,
-return $ [h "td" [cn "ba bg-dark-green tc"] "Goal", 
-          h "td" [cn "ba tc"] 
+return $ [h "td" [cn "ba bg-dark-green tc"] "Goal",
+          h "td" [cn "ba tc"]
           (if show_expr then [html.of_name e.local_pp_name, " : ", t] else t)]
 
 /--
 Render a row that shows the ID of a goal.
 -/
-meta def id_row {γ} (l : nat): tactic (list (html γ)) := 
-return $ [h "td" [cn "ba bg-dark-green tc"] "ID", 
+meta def id_row {γ} (l : nat): tactic (list (html γ)) :=
+return $ [h "td" [cn "ba bg-dark-green tc"] "ID",
           h "td" [cn "ba tc"] (to_string l)]
 
 /--
@@ -212,20 +217,20 @@ Render a row that shows the rule or theorem being applied.
 -/
 meta def rule_row : thm →  tactic (list (html empty))
 | (thm.expr e) := do t ← explode_widget.show_constant_component e,
-                     return $ [h "td" [cn "ba bg-dark-green tc"] "Rule", 
+                     return $ [h "td" [cn "ba bg-dark-green tc"] "Rule",
                                h "td" [cn "ba tc"] t]
-| t := return $ [h "td" [cn "ba bg-dark-green tc"] "Rule", 
+| t := return $ [h "td" [cn "ba bg-dark-green tc"] "Rule",
                  h "td" [cn "ba tc"] t.to_string]
 
 /--
 Render a row that contains the sub-proofs, i.e., the proofs of the
 arguments.
 -/
-meta def proof_row {γ} (args : list (html γ)): list (html γ) := 
-[h "td" [cn "ba bg-dark-green tc"] "Proofs", h "td" [cn "ba tc"] 
+meta def proof_row {γ} (args : list (html γ)): list (html γ) :=
+[h "td" [cn "ba bg-dark-green tc"] "Proofs", h "td" [cn "ba tc"]
     [h "details" [] $
-        (h "summary" 
-            [attr.style [("color", "orange")]] 
+        (h "summary"
+            [attr.style [("color", "orange")]]
                 "Details")::args]
 ]
 
@@ -233,13 +238,13 @@ meta def proof_row {γ} (args : list (html γ)): list (html γ) :=
 Combine the goal row, id row, rule row and proof row to make them a table.
 -/
 meta def assemble_table {γ} (gr ir rr) : list (html γ) → html γ
-| [] := 
-h "table" [cn "collapse"] 
+| [] :=
+h "table" [cn "collapse"]
     [h "tbody" []
         [h "tr" [] gr, h "tr" [] ir, h "tr" [] rr]
     ]
-| pr := 
-h "table" [cn "collapse"] 
+| pr :=
+h "table" [cn "collapse"]
     [h "tbody" []
         [h "tr" [] gr, h "tr" [] ir, h "tr" [] rr, h "tr" [] pr]
     ]
@@ -254,9 +259,9 @@ meta def assemble (es : entries): entry → tactic (html empty)
 | ⟨e, l, d, status.intro, t, ref⟩ := do
     gr ← goal_row e, ir ← id_row l, rr ← rule_row $ thm.string  "Assumption",
     return $ assemble_table gr ir rr []
-| ⟨e, l, d, st, t, ref⟩ := do 
+| ⟨e, l, d, st, t, ref⟩ := do
     gr ← goal_row e ff, ir ← id_row l, rr ← rule_row t,
-    let el : list entry := list.map (lookup_lines es) ref, 
+    let el : list entry := list.map (lookup_lines es) ref,
     ls ← monad.mapm assemble el,
     let pr := proof_row $ ls.intersperse (h "br" [] []),
     return $ assemble_table gr ir rr pr
@@ -264,7 +269,7 @@ meta def assemble (es : entries): entry → tactic (html empty)
 /--
 Render a widget from given entries.
 -/
-meta def explode_component (es : entries) : tactic (html empty) := 
+meta def explode_component (es : entries) : tactic (html empty) :=
 let concl := lookup_lines es (es.l.length - 1) in assemble es concl
 
 /--

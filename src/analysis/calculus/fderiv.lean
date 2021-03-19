@@ -650,6 +650,10 @@ lemma has_fderiv_within_at.congr (h : has_fderiv_within_at f f' s x) (hs : ∀x 
   (hx : f₁ x = f x) : has_fderiv_within_at f₁ f' s x :=
 h.congr_mono hs hx (subset.refl _)
 
+lemma has_fderiv_within_at.congr' (h : has_fderiv_within_at f f' s x) (hs : ∀x ∈ s, f₁ x = f x)
+  (hx : x ∈ s) : has_fderiv_within_at f₁ f' s x :=
+h.congr hs (hs x hx)
+
 lemma has_fderiv_within_at.congr_of_eventually_eq (h : has_fderiv_within_at f f' s x)
   (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) : has_fderiv_within_at f₁ f' s x :=
 has_fderiv_at_filter.congr_of_eventually_eq h h₁ hx

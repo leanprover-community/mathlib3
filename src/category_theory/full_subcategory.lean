@@ -7,7 +7,7 @@ import category_theory.fully_faithful
 
 namespace category_theory
 
-universes v u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 section induced
 

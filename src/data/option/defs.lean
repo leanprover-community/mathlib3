@@ -38,7 +38,7 @@ decidable_of_decidable_of_iff (bool.decidable_eq _ _) is_none_iff_eq_none
 
 instance decidable_forall_mem {p : α → Prop} [decidable_pred p] :
   ∀ o : option α, decidable (∀ a ∈ o, p a)
-| none     := is_true (by simp)
+| none     := is_true (by simp [false_implies_iff])
 | (some a) := if h : p a
   then is_true $ λ o e, some_inj.1 e ▸ h
   else is_false $ mt (λ H, H _ rfl) h
@@ -144,5 +144,19 @@ def {u v} maybe {m : Type u → Type v} [monad m] {α : Type u} : option (m α) 
 /-- Map a monadic function `f : α → m β` over an `o : option α`, maybe producing a result. -/
 def {u v w} mmap {m : Type u → Type v} [monad m] {α : Type w} {β : Type u} (f : α → m β)
   (o : option α) : m (option β) := (o.map f).maybe
+
+/--
+A monadic analogue of `option.elim`.
+-/
+def melim {α β : Type*} {m : Type* → Type*} [monad m] (x : m (option α)) (y : m β) (z : α → m β) :
+  m β :=
+x >>= λ o, option.elim o y z
+
+/--
+A monadic analogue of `option.get_or_else`.
+-/
+def mget_or_else {α : Type*} {m : Type* → Type*} [monad m] (x : m (option α)) (y : m α) : m α :=
+melim x y pure
+
 
 end option

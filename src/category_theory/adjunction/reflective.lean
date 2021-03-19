@@ -70,7 +70,7 @@ reflection of `A`, with the isomorphism as `η_A`.
 
 (For any `B` in the reflective subcategory, we automatically have that `ε_B` is an iso.)
 -/
-def functor.ess_image.unit_is_iso [reflective i] {A : C} (h : A ∈ i.ess_image) :
+lemma functor.ess_image.unit_is_iso [reflective i] {A : C} (h : A ∈ i.ess_image) :
   is_iso ((adjunction.of_right_adjoint i).unit.app A) :=
 begin
   suffices : (adjunction.of_right_adjoint i).unit.app A =

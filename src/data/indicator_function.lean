@@ -129,12 +129,12 @@ begin
 end
 
 lemma indicator_preimage (s : set α) (f : α → β) (B : set β) :
-  (indicator s f)⁻¹' B = s ∩ f ⁻¹' B ∪ sᶜ ∩ (λa:α, (0:β)) ⁻¹' B :=
+  (indicator s f)⁻¹' B = s.ite (f ⁻¹' B) (0 ⁻¹' B) :=
 piecewise_preimage s f 0 B
 
 lemma indicator_preimage_of_not_mem (s : set α) (f : α → β) {t : set β} (ht : (0:β) ∉ t) :
-  (indicator s f)⁻¹' t = s ∩ f ⁻¹' t :=
-by simp [indicator_preimage, set.preimage_const_of_not_mem ht]
+  (indicator s f)⁻¹' t = f ⁻¹' t ∩ s :=
+by simp [indicator_preimage, pi.zero_def, set.preimage_const_of_not_mem ht]
 
 lemma mem_range_indicator {r : β} {s : set α} {f : α → β} :
   r ∈ range (indicator s f) ↔ (r = 0 ∧ s ≠ univ) ∨ (r ∈ f '' s) :=

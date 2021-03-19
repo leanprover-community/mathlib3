@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Zhangir Azerbayev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Eric Wieser, Zhangir Azerbayev
+Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
 import linear_algebra.multilinear
@@ -143,6 +143,15 @@ f.to_multilinear_map.map_smul' v i r x
 @[simp] lemma map_eq_zero_of_eq (v : ι → M) {i j : ι} (h : v i = v j) (hij : i ≠ j) :
   f v = 0 :=
 f.map_eq_zero_of_eq' v i j h hij
+
+lemma map_coord_zero {m : ι → M} (i : ι) (h : m i = 0) : f m = 0 :=
+f.to_multilinear_map.map_coord_zero i h
+
+@[simp] lemma map_update_zero (m : ι → M) (i : ι) : f (update m i 0) = 0 :=
+f.to_multilinear_map.map_update_zero m i
+
+@[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=
+f.to_multilinear_map.map_zero
 
 /-!
 ### Algebraic structure inherited from `multilinear_map`

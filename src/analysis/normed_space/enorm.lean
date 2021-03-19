@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import analysis.normed_space.basic
 
@@ -48,17 +48,17 @@ variables {𝕜 : Type*} {V : Type*} [normed_field 𝕜] [add_comm_group V] [vec
 
 instance : has_coe_to_fun (enorm 𝕜 V) := ⟨_, enorm.to_fun⟩
 
-lemma injective_coe_fn : function.injective (λ (e : enorm 𝕜 V) (x : V), e x) :=
+lemma coe_fn_injective : function.injective (λ (e : enorm 𝕜 V) (x : V), e x) :=
 λ e₁ e₂ h, by cases e₁; cases e₂; congr; exact h
 
 @[ext] lemma ext {e₁ e₂ : enorm 𝕜 V} (h : ∀ x, e₁ x = e₂ x) : e₁ = e₂ :=
-injective_coe_fn $ funext h
+coe_fn_injective $ funext h
 
 lemma ext_iff {e₁ e₂ : enorm 𝕜 V} : e₁ = e₂ ↔ ∀ x, e₁ x = e₂ x :=
 ⟨λ h x, h ▸ rfl, ext⟩
 
 @[simp, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : ⇑e₁ = e₂ ↔ e₁ = e₂ :=
-injective_coe_fn.eq_iff
+coe_fn_injective.eq_iff
 
 @[simp] lemma map_smul (c : 𝕜) (x : V) : e (c • x) = nnnorm c * e x :=
 le_antisymm (e.map_smul_le' c x) $

@@ -28,15 +28,22 @@ instance : has_coe_to_fun {f : α → β | continuous f} :=  ⟨_, subtype.val�
 end continuous_functions
 
 namespace continuous_map
+variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 
 @[to_additive]
-instance has_mul {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
+instance has_mul [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
 ⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous : _)⟩⟩
 
+@[simp, norm_cast, to_additive]
+lemma mul_coe [has_mul β] [has_continuous_mul β] (f g : C(α, β)) :
+  ((f * g : C(α, β)) : α → β) = (f : α → β) * (g : α → β) := rfl
+
 @[to_additive]
-instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [has_one β] : has_one C(α, β) := ⟨const (1 : β)⟩
+instance [has_one β] : has_one C(α, β) := ⟨const (1 : β)⟩
+
+@[simp, norm_cast, to_additive]
+lemma one_coe [has_one β]  :
+  ((1 : C(α, β)) : α → β) = (1 : α → β) := rfl
 
 end continuous_map
 
@@ -210,19 +217,22 @@ instance continuous_semimodule {α : Type*} [topological_space α]
 end subtype
 
 section continuous_map
-
-instance continuous_map_has_scalar {α : Type*} [topological_space α]
+variables {α : Type*} [topological_space α]
   {R : Type*} [semiring R] [topological_space R]
   {M : Type*} [topological_space M] [add_comm_monoid M]
+
+instance continuous_map_has_scalar
   [semimodule R M] [topological_semimodule R M] :
   has_scalar R C(α, M) :=
 ⟨λ r f, ⟨r • f, continuous_const.smul f.continuous⟩⟩
 
-instance continuous_map_semimodule {α : Type*} [topological_space α]
-{R : Type*} [semiring R] [topological_space R]
-{M : Type*} [topological_space M] [add_comm_monoid M] [has_continuous_add M]
-[semimodule R M] [topological_semimodule R M] :
-  semimodule R C(α, M) :=
+@[simp] lemma continuous_map.smul_apply [semimodule R M] [topological_semimodule R M]
+  (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) :=
+rfl
+
+variables [has_continuous_add M] [semimodule R M] [topological_semimodule R M]
+
+instance continuous_map_semimodule : semimodule R C(α, M) :=
 { smul     := (•),
   smul_add := λ c f g, by { ext, exact smul_add c (f x) (g x) },
   add_smul := λ c₁ c₂ f, by { ext, exact add_smul c₁ c₂ (f x) },

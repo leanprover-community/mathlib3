@@ -155,11 +155,11 @@ lemma union_null (m : outer_measure α) {s₁ s₂ : set α}
   (h₁ : m s₁ = 0) (h₂ : m s₂ = 0) : m (s₁ ∪ s₂) = 0 :=
 by simpa [h₁, h₂] using m.union s₁ s₂
 
-lemma injective_coe_fn : injective (λ (μ : outer_measure α) (s : set α), μ s) :=
+lemma coe_fn_injective : injective (λ (μ : outer_measure α) (s : set α), μ s) :=
 λ μ₁ μ₂ h, by { cases μ₁, cases μ₂, congr, exact h }
 
 @[ext] lemma ext {μ₁ μ₂ : outer_measure α} (h : ∀ s, μ₁ s = μ₂ s) : μ₁ = μ₂ :=
-injective_coe_fn $ funext h
+coe_fn_injective $ funext h
 
 /-- A version of `measure_theory.outer_measure.ext` that assumes `μ₁ s = μ₂ s` on all *nonempty*
 sets `s`, and gets `μ₁ ∅ = μ₂ ∅` from `measure_theory.outer_measure.empty'`. -/
@@ -196,7 +196,7 @@ instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
 { zero      := 0,
   add       := (+),
   .. injective.add_comm_monoid (show outer_measure α → set α → ℝ≥0∞, from coe_fn)
-    injective_coe_fn rfl (λ _ _, rfl) }
+    coe_fn_injective rfl (λ _ _, rfl) }
 
 instance : has_scalar ℝ≥0∞ (outer_measure α) :=
 ⟨λ c m,
@@ -212,7 +212,7 @@ lemma smul_apply (c : ℝ≥0∞) (m : outer_measure α) (s : set α) : (c • m
 instance : semimodule ℝ≥0∞ (outer_measure α) :=
 { smul := (•),
   .. injective.semimodule ℝ≥0∞ ⟨show outer_measure α → set α → ℝ≥0∞, from coe_fn, coe_zero,
-    coe_add⟩ injective_coe_fn coe_smul }
+    coe_add⟩ coe_fn_injective coe_smul }
 
 instance : has_bot (outer_measure α) := ⟨0⟩
 
@@ -274,8 +274,8 @@ def map {β} (f : α → β) : outer_measure α →ₗ[ℝ≥0∞] outer_measure
       mono := λ s t h, m.mono (preimage_mono h),
       Union_nat := λ s, by rw [preimage_Union]; exact
         m.Union_nat (λ i, f ⁻¹' s i) },
-  map_add' := λ m₁ m₂, injective_coe_fn rfl,
-  map_smul' := λ c m, injective_coe_fn rfl }
+  map_add' := λ m₁ m₂, coe_fn_injective rfl,
+  map_smul' := λ c m, coe_fn_injective rfl }
 
 @[simp] theorem map_apply {β} (f : α → β)
   (m : outer_measure α) (s : set β) : map f m s = m (f ⁻¹' s) := rfl

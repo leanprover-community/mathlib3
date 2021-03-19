@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Patrick Massot All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Patrick Massot, Simon Hudon
+Authors: Patrick Massot, Simon Hudon
 
 A tactic pushing negations into an expression
 -/

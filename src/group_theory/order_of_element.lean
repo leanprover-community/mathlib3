@@ -494,7 +494,7 @@ variable (a)
 /-- TODO: Generalise to `submonoid.powers`.-/
 lemma image_range_order_of [decidable_eq α] :
   finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a : set α).to_finset :=
-by { ext x, rw [set.mem_to_finset, mem_coe, mem_gpowers_iff_mem_range_order_of] }
+by { ext x, rw [set.mem_to_finset, set_like.mem_coe, mem_gpowers_iff_mem_range_order_of] }
 
 open nat
 
@@ -547,7 +547,7 @@ lemma is_cyclic_of_order_of_eq_card [fintype α]  (x : α)
 begin
   classical,
   use x,
-  simp_rw ← mem_coe,
+  simp_rw ← set_like.mem_coe,
   rw ← set.eq_univ_iff_forall,
   apply set.eq_of_subset_of_card_le (set.subset_univ _),
   rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers],

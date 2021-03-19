@@ -221,8 +221,9 @@ theorem fixing_subgroup_fixed_field [finite_dimensional F E] :
 begin
   have H_le : H ≤ (fixing_subgroup (fixed_field H)) := (le_iff_le _ _).mp (le_refl _),
   suffices : fintype.card H = fintype.card (fixing_subgroup (fixed_field H)),
-  { exact set_like.coe_injective (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
-    (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
+  { exact set_like.coe_injective
+      (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
+        (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
   apply fintype.card_congr,
   refine (fixed_points.to_alg_hom_equiv H E).trans _,
   refine (alg_equiv_equiv_alg_hom (fixed_field H) E).symm.trans _,

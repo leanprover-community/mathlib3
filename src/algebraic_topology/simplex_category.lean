@@ -6,6 +6,8 @@ Authors: Johan Commelin, Scott Morrison, Adam Topaz
 
 import order.category.NonemptyFinLinOrd
 import category_theory.skeletal
+import category_theory.over
+import category_theory.fin_category
 import data.finset.sort
 import tactic.linarith
 
@@ -113,6 +115,10 @@ instance small_category : small_category.{u} simplex_category :=
 { hom := λ n m, simplex_category.hom n m,
   id := λ m, simplex_category.hom.id _,
   comp := λ _ _ _ f g, simplex_category.hom.comp g f, }
+
+noncomputable instance {x y : simplex_category} : fintype (x ⟶ y) :=
+let ff : (x ⟶ y) → (fin (x.len + 1) → fin (y.len + 1)) := λ f, f.to_preorder_hom in
+fintype.of_injective ff (by tidy)
 
 /--
 Make a morphism `[n] ⟶ [m]` from a monotone map between fin's.
@@ -397,6 +403,56 @@ simplex category.
 def inclusion {n : ℕ} : simplex_category.truncated n ⥤ simplex_category :=
 full_subcategory_inclusion _
 
+section
+open_locale classical
+noncomputable instance {x} : fin_category (truncated x) :=
+{ fintype_obj := begin
+    let ff : truncated x → fin (x+1) := λ ⟨a,ha⟩, ⟨a.len, nat.lt_succ_iff.mpr ha⟩,
+    have : function.injective ff, by tidy,
+    apply fintype.of_injective _ this,
+  end }
+
+end
+
 end truncated
+
+@[derive small_category]
+def trunc (a : simplex_category) (n : ℕ) := {b : over a // ((over.forget a).obj b).len ≤ n}
+
+namespace trunc
+
+@[derive [full, faithful], simps]
+def inclusion {a n} : trunc.{u} a n ⥤ over a := full_subcategory_inclusion _
+
+/-- The forgetful functor from `over_trunc a m` to `truncated m`. -/
+
+def len {a n} : trunc a n → ℕ := λ x, ((over.forget a).obj (inclusion.obj x)).len
+
+lemma len_le {a n} (x : trunc a n) : x.len ≤ n := x.2
+
+@[simps]
+def forget {a m} : trunc.{u} a m ⥤ truncated.{u} m :=
+{ obj := λ b, ⟨(over.forget a).obj (inclusion.obj b), len_le _⟩,
+  map := λ x y f, (over.forget a).map (inclusion.map f) }
+
+instance {a m} : faithful (forget : trunc a m ⥤ _) := {}
+
+section
+
+open_locale classical
+
+noncomputable
+instance {a n} : fin_category.{u} (trunc.{u} a n) :=
+{ fintype_obj := begin
+    let ff : (a.trunc n) → (Σ (x : truncated n), truncated.inclusion.obj x ⟶ a) :=
+      λ f, ⟨forget.obj f, (inclusion.obj f).hom⟩,
+    have : function.injective ff, by {rintro ⟨⟨x1,x2,x⟩,hx⟩ ⟨⟨y1,y2,y⟩,hy⟩ h, tidy},
+    exact fintype.of_injective _ this,
+  end,
+  fintype_hom := λ _ _, fintype.of_injective (λ f, forget.map f) forget.map_injective }
+
+end
+
+end trunc
 
 end simplex_category

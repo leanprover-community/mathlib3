@@ -440,7 +440,7 @@ subtype.coe_lt_coe
 lemma le_iff_mem_closure (x y : prime_spectrum R) :
   x ≤ y ↔ y ∈ closure ({x} : set (prime_spectrum R)) :=
 by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
-    mem_zero_locus, vanishing_ideal_singleton, submodule.le_def]
+    mem_zero_locus, vanishing_ideal_singleton, set_like.le_def]
 
 end order
 

@@ -322,7 +322,7 @@ begin
       rcases hp₀v p hp with ⟨r, rfl⟩,
       use r,
       simp },
-    have hw' := submodule.le_def'.1 hs w hw,
+    have hw' := set_like.le_def.1 hs w hw,
     rwa submodule.mem_span_singleton at hw' }
 end
 

@@ -455,7 +455,7 @@ begin
   have hp1s1 : p1 ∈ (s1 : set P) := set.mem_of_mem_of_subset hp1 h,
   refine vadd_mem_of_mem_direction _ hp1s1,
   have hs : vector_span k s ≤ s1.direction := vector_span_mono k h,
-  rw submodule.le_def at hs,
+  rw set_like.le_def at hs,
   rw ←set_like.mem_coe,
   exact set.mem_of_mem_of_subset hv hs
 end

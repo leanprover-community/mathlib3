@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson, Jalex Stark. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Aaron Anderson, Jalex Stark.
+Authors: Aaron Anderson, Jalex Stark
 -/
 
 import data.matrix.char_p
@@ -58,7 +58,7 @@ variable (M)
 lemma char_poly_sub_diagonal_degree_lt :
 (char_poly M - ∏ (i : n), (X - C (M i i))).degree < ↑(fintype.card n - 1) :=
 begin
-  rw [char_poly, det, ← insert_erase (mem_univ (equiv.refl n)),
+  rw [char_poly, det_apply', ← insert_erase (mem_univ (equiv.refl n)),
     sum_insert (not_mem_erase (equiv.refl n) univ), add_comm],
   simp only [char_matrix_apply_eq, one_mul, equiv.perm.sign_refl, id.def, int.cast_one,
     units.coe_one, add_sub_cancel, equiv.coe_refl],

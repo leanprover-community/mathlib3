@@ -15,7 +15,7 @@ Shows that products in the over category can be derived from wide pullbacks in t
 The main result is `over_product_of_wide_pullback`, which says that if `C` has `J`-indexed wide
 pullbacks, then `over B` has `J`-indexed products.
 -/
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 open category_theory category_theory.limits
 

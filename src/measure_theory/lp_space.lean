@@ -15,7 +15,7 @@ denoted by `snorm f p μ` and defined for `p:ℝ≥0∞` as `0` if `p=0`, `(∫ 
 `0 < p < ∞` and `ess_sup ∥f∥ μ` for `p=∞`.
 
 The Prop-valued `mem_ℒp f p μ` states that a function `f : α → E` has finite seminorm.
-The space `Lp α E p μ` is the subtype of elements of `α →ₘ[μ] E` (see ae_eq_fun) such that
+The space `Lp E p μ` is the subtype of elements of `α →ₘ[μ] E` (see ae_eq_fun) such that
 `snorm f p μ` is finite. For `1 ≤ p`, `snorm` defines a norm and `Lp` is a complete metric space.
 
 ## Main definitions
@@ -36,6 +36,11 @@ that it is continuous. In particular,
 * `continuous_linear_map.comp_Lp` defines the action on `Lp` of a continuous linear map.
 * `Lp.pos_part` is the positive part of an `Lp` function.
 * `Lp.neg_part` is the negative part of an `Lp` function.
+
+## Notations
+
+* `α →₁[μ] E` : the type `Lp E 1 μ`.
+* `α →₂[μ] E` : the type `Lp E 2 μ`.
 
 ## Implementation
 
@@ -321,11 +326,54 @@ lemma snorm_congr_norm_ae {f : α → F} {g : α → G} (hfg : ∀ᵐ x ∂μ, �
 le_antisymm (snorm_mono_ae $ eventually_eq.le hfg)
   (snorm_mono_ae $ (eventually_eq.symm hfg).le)
 
-@[simp] lemma snorm'_norm {f : α → G} : snorm' (λ a, ∥f a∥) q μ = snorm' f q μ :=
+@[simp] lemma snorm'_norm {f : α → F} : snorm' (λ a, ∥f a∥) q μ = snorm' f q μ :=
 by simp [snorm']
 
 @[simp] lemma snorm_norm (f : α → F) : snorm (λ x, ∥f x∥) p μ = snorm f p μ :=
 snorm_congr_norm_ae $ eventually_of_forall $ λ x, norm_norm _
+
+lemma snorm'_norm_rpow (f : α → F) (p q : ℝ) (hq_pos : 0 < q) :
+  snorm' (λ x, ∥f x∥ ^ q) p μ = (snorm' f (p * q) μ) ^ q :=
+begin
+  simp_rw snorm',
+  rw [← ennreal.rpow_mul, ←one_div_mul_one_div],
+  simp_rw one_div,
+  rw [mul_assoc, inv_mul_cancel hq_pos.ne.symm, mul_one],
+  congr,
+  ext1 x,
+  simp_rw ← of_real_norm_eq_coe_nnnorm,
+  rw [real.norm_eq_abs, abs_eq_self.mpr (real.rpow_nonneg_of_nonneg (norm_nonneg _) _),
+    mul_comm, ← ennreal.of_real_rpow_of_nonneg (norm_nonneg _) hq_pos.le, ennreal.rpow_mul],
+end
+
+lemma snorm_norm_rpow (f : α → F) (hq_pos : 0 < q) :
+  snorm (λ x, ∥f x∥ ^ q) p μ = (snorm f (p * ennreal.of_real q) μ) ^ q :=
+begin
+  by_cases h0 : p = 0,
+  { simp [h0, ennreal.zero_rpow_of_pos hq_pos], },
+  by_cases hp_top : p = ∞,
+  { simp only [hp_top, snorm_exponent_top, ennreal.top_mul, hq_pos.not_le, ennreal.of_real_eq_zero,
+      if_false, snorm_exponent_top, snorm_ess_sup],
+    have h_rpow : ess_sup (λ (x : α), (nnnorm (∥f x∥ ^ q) : ℝ≥0∞)) μ
+      = ess_sup (λ (x : α), (↑(nnnorm (f x))) ^ q) μ,
+    { congr,
+      ext1 x,
+      nth_rewrite 1 ← nnnorm_norm,
+      rw [ennreal.coe_rpow_of_nonneg _ hq_pos.le, ennreal.coe_eq_coe],
+      ext,
+      push_cast,
+      rw real.norm_rpow_of_nonneg (norm_nonneg _), },
+    rw h_rpow,
+    have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hq_pos,
+    have h_rpow_surj := (ennreal.rpow_left_bijective hq_pos.ne.symm).2,
+    let iso := h_rpow_mono.order_iso_of_surjective _ h_rpow_surj,
+    exact (iso.ess_sup_apply (λ x, ((nnnorm (f x)) : ℝ≥0∞)) μ).symm, },
+  rw [snorm_eq_snorm' h0 hp_top, snorm_eq_snorm' _ _],
+  swap, { refine mul_ne_zero h0 _, rwa [ne.def, ennreal.of_real_eq_zero, not_le], },
+  swap, { exact ennreal.mul_ne_top hp_top ennreal.of_real_ne_top, },
+  rw [ennreal.to_real_mul, ennreal.to_real_of_real hq_pos.le],
+  exact snorm'_norm_rpow f p.to_real q hq_pos,
+end
 
 lemma snorm_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) : snorm f p μ = snorm g p μ :=
 snorm_congr_norm_ae $ hfg.mono (λ x hx, hx ▸ rfl)
@@ -799,7 +847,8 @@ def Lp {α} (E : Type*) [measurable_space α] [measurable_space E] [normed_group
   neg_mem' := λ f hf,
     by rwa [set.mem_set_of_eq, snorm_congr_ae (ae_eq_fun.coe_fn_neg _), snorm_neg] }
 
-notation α ` →₁[`:25 μ `] ` E := measure_theory.Lp E 1 μ
+localized "notation α ` →₁[`:25 μ `] ` E := measure_theory.Lp E 1 μ" in measure_theory
+localized "notation α ` →₂[`:25 μ `] ` E := measure_theory.Lp E 2 μ" in measure_theory
 
 namespace mem_ℒp
 
@@ -1072,6 +1121,28 @@ variables [second_countable_topology E] [borel_space E]
   {g : E → F} {c : ℝ≥0}
 
 namespace lipschitz_with
+
+lemma mem_ℒp_comp_iff_of_antilipschitz {α E F} {K K'} [measurable_space α] {μ : measure α}
+  [measurable_space E] [measurable_space F] [normed_group E] [normed_group F] [borel_space E]
+  [borel_space F] [complete_space E]
+  {f : α → E} {g : E → F} (hg : lipschitz_with K g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
+  mem_ℒp (g ∘ f) p μ ↔ mem_ℒp f p μ :=
+begin
+  have := ae_measurable_comp_iff_of_closed_embedding g (hg'.closed_embedding hg.uniform_continuous),
+  split,
+  { assume H,
+    have A : ∀ᵐ x ∂μ, ∥f x∥ ≤ K' * ∥g (f x)∥,
+    { apply filter.eventually_of_forall (λ x, _),
+      rw [← dist_zero_right, ← dist_zero_right, ← g0],
+      apply hg'.le_mul_dist },
+    exact H.of_le_mul (this.1 H.ae_measurable) A },
+  { assume H,
+    have A : ∀ᵐ x ∂μ, ∥g (f x)∥ ≤ K * ∥f x∥,
+    { apply filter.eventually_of_forall (λ x, _),
+      rw [← dist_zero_right, ← dist_zero_right, ← g0],
+      apply hg.dist_le_mul },
+    exact H.of_le_mul (this.2 H.ae_measurable) A }
+end
 
 /-- When `g` is a Lipschitz function sending `0` to `0` and `f` is in `Lp`, then `g ∘ f` is well
 defined as an element of `Lp`. -/

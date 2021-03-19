@@ -82,8 +82,6 @@ pushout.desc (𝟙 _) (𝟙 _) rfl
 
 end Gluing
 
-universes v u w
-
 section Products
 
 /-- The countably infinite product of copies of `ℝ`. -/

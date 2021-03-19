@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.epi_mono
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 
 /-!
 # Equalizers and coequalizers
@@ -523,21 +523,21 @@ fork.is_limit.mk _
   (λ s m h, by { convert h zero, exact (category.comp_id _).symm })
 
 /-- Every equalizer of `(f, g)`, where `f = g`, is an isomorphism. -/
-def is_iso_limit_cone_parallel_pair_of_eq (h₀ : f = g) {c : cone (parallel_pair f g)}
+lemma is_iso_limit_cone_parallel_pair_of_eq (h₀ : f = g) {c : cone (parallel_pair f g)}
   (h : is_limit c) : is_iso (c.π.app zero) :=
 is_iso.of_iso $ is_limit.cone_point_unique_up_to_iso h $ is_limit_id_fork h₀
 
 /-- The equalizer of `(f, g)`, where `f = g`, is an isomorphism. -/
-def equalizer.ι_of_eq [has_equalizer f g] (h : f = g) : is_iso (equalizer.ι f g) :=
+lemma equalizer.ι_of_eq [has_equalizer f g] (h : f = g) : is_iso (equalizer.ι f g) :=
 is_iso_limit_cone_parallel_pair_of_eq h $ limit.is_limit _
 
 /-- Every equalizer of `(f, f)` is an isomorphism. -/
-def is_iso_limit_cone_parallel_pair_of_self {c : cone (parallel_pair f f)} (h : is_limit c) :
+lemma is_iso_limit_cone_parallel_pair_of_self {c : cone (parallel_pair f f)} (h : is_limit c) :
   is_iso (c.π.app zero) :=
 is_iso_limit_cone_parallel_pair_of_eq rfl h
 
 /-- An equalizer that is an epimorphism is an isomorphism. -/
-def is_iso_limit_cone_parallel_pair_of_epi {c : cone (parallel_pair f g)}
+lemma is_iso_limit_cone_parallel_pair_of_epi {c : cone (parallel_pair f g)}
   (h : is_limit c) [epi (c.π.app zero)] : is_iso (c.π.app zero) :=
 is_iso_limit_cone_parallel_pair_of_eq ((cancel_epi _).1 (fork.condition c)) h
 
@@ -562,7 +562,7 @@ rfl
 
 @[simp] lemma equalizer.iso_source_of_self_inv :
   (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simp) :=
-rfl
+by { ext, simp [equalizer.iso_source_of_self], }
 
 section
 /--
@@ -656,22 +656,22 @@ cofork.is_colimit.mk _
   (λ s m h, by { convert h one, exact (category.id_comp _).symm })
 
 /-- Every coequalizer of `(f, g)`, where `f = g`, is an isomorphism. -/
-def is_iso_colimit_cocone_parallel_pair_of_eq (h₀ : f = g) {c : cocone (parallel_pair f g)}
+lemma is_iso_colimit_cocone_parallel_pair_of_eq (h₀ : f = g) {c : cocone (parallel_pair f g)}
   (h : is_colimit c) : is_iso (c.ι.app one) :=
 is_iso.of_iso $ is_colimit.cocone_point_unique_up_to_iso (is_colimit_id_cofork h₀) h
 
 /-- The coequalizer of `(f, g)`, where `f = g`, is an isomorphism. -/
-def coequalizer.π_of_eq [has_coequalizer f g] (h : f = g) :
+lemma coequalizer.π_of_eq [has_coequalizer f g] (h : f = g) :
   is_iso (coequalizer.π f g) :=
 is_iso_colimit_cocone_parallel_pair_of_eq h $ colimit.is_colimit _
 
 /-- Every coequalizer of `(f, f)` is an isomorphism. -/
-def is_iso_colimit_cocone_parallel_pair_of_self {c : cocone (parallel_pair f f)}
+lemma is_iso_colimit_cocone_parallel_pair_of_self {c : cocone (parallel_pair f f)}
   (h : is_colimit c) : is_iso (c.ι.app one) :=
 is_iso_colimit_cocone_parallel_pair_of_eq rfl h
 
 /-- A coequalizer that is a monomorphism is an isomorphism. -/
-def is_iso_limit_cocone_parallel_pair_of_epi {c : cocone (parallel_pair f g)}
+lemma is_iso_limit_cocone_parallel_pair_of_epi {c : cocone (parallel_pair f g)}
   (h : is_colimit c) [mono (c.ι.app one)] : is_iso (c.ι.app one) :=
 is_iso_colimit_cocone_parallel_pair_of_eq ((cancel_mono _).1 (cofork.condition c)) h
 
@@ -692,7 +692,7 @@ def coequalizer.iso_target_of_self : coequalizer f f ≅ Y :=
 
 @[simp] lemma coequalizer.iso_target_of_self_hom :
   (coequalizer.iso_target_of_self f).hom = coequalizer.desc (𝟙 Y) (by simp) :=
-rfl
+by { ext, simp [coequalizer.iso_target_of_self], }
 
 @[simp] lemma coequalizer.iso_target_of_self_inv :
   (coequalizer.iso_target_of_self f).inv = coequalizer.π f f :=

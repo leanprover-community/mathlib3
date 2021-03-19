@@ -461,11 +461,20 @@ def map {a b m} (f : a ⟶ b) : trunc a m ⥤ trunc b m :=
 { obj := λ x, ⟨(over.map f).obj x.to_over, len_le _⟩,
   map := λ _ _ g, (over.map f).map g }
 
+@[simps]
+def map_id {a : simplex_category.{u}} {m} : (map (𝟙 a) : a.trunc m ⥤ _) ≅ 𝟭 _ :=
+{ hom :=
+  { app := λ b,
+    { left := 𝟙 _,
+      right := 𝟙 _ } },
+  inv :=
+  { app := λ b,
+    { left := 𝟙 _,
+      right := 𝟙 _ } } }
+
 section
 
 open_locale classical
-
-set_option pp.universes true
 
 noncomputable
 instance {a n} : fin_category.{u} (trunc.{u} a n) :=

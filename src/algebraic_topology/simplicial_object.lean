@@ -8,6 +8,7 @@ import category_theory.category.ulift
 import category_theory.limits.functor_category
 import category_theory.opposites
 import category_theory.adjunction.limits
+import category_theory.limits.shapes.finite_limits
 
 /-!
 # Simplicial objects in a category.
@@ -141,20 +142,34 @@ end skeleton
 
 section coskeleton
 
+@[simps]
 def cosk_diagram {n} (a : simplex_category.{v}) : truncated C n ⥤ (a.trunc n)ᵒᵖ ⥤ C :=
 (whiskering_left _ _ _).obj simplex_category.trunc.forget.op
 
-def map {n} {a b : simplex_categoryᵒᵖ} (f : a ⟶ b) (D : (a.unop.trunc n)ᵒᵖ ⥤ C) :
-  (b.unop.trunc n)ᵒᵖ ⥤ C := (simplex_category.trunc.map f.unop).op ⋙ D
+@[simps]
+def map {n} {a b : simplex_category} (f : b ⟶ a) (D : (a.trunc n)ᵒᵖ ⥤ C) :
+  (b.trunc n)ᵒᵖ ⥤ C := (simplex_category.trunc.map f).op ⋙ D
 
-def map_cone {n} {a b : simplex_category ᵒᵖ} {D : (a.unop.trunc n)ᵒᵖ ⥤ C} (f : a ⟶ b)
+@[simps]
+def map_cone {n} {a b : simplex_category} {D : (a.trunc n)ᵒᵖ ⥤ C} (f : b ⟶ a)
   (E : cone D) : cone (map f D) := E.whisker _
 
+@[simps]
+noncomputable
 def cosk {n} [has_finite_limits C] : truncated C n ⥤ simplicial_object C :=
 { obj := λ T,
   { obj := λ a, limit $ (cosk_diagram a.unop).obj T,
-    map := _,
-    map_id' := _,
+    map := λ a b f, limit.lift _ (map_cone f.unop _),
+    map_id' := begin
+      tidy,
+      congr,
+      have : j = op (j.unop), by simp,
+      nth_rewrite 1 this,
+      congr,
+      simp [simplex_category.trunc.map],
+      -- ⊢ ⟨(over.map (simplex_category.hom.mk preorder_hom.id)).obj (unop j).to_over, _⟩ = unop j
+      sorry
+    end,
     map_comp' := _ },
   map := _,
   map_id' := _,

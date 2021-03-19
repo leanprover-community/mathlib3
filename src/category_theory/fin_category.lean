@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.fintype.basic
+import category_theory.opposites
 import category_theory.discrete_category
 
 /-!
@@ -41,5 +42,19 @@ attribute [instance] fin_category.decidable_eq_obj fin_category.fintype_obj
 instance fin_category_discrete_of_decidable_fintype (J : Type v) [decidable_eq J] [fintype J] :
   fin_category (discrete J) :=
 { }
+
+section
+
+-- TODO: move deccidable eq and fintype instances to opposite file
+local attribute [semireducible] opposite -- cheating a bit.
+
+noncomputable
+instance fin_category_op (J : Type v) [small_category J] [fin_category J] : fin_category Jᵒᵖ :=
+{ decidable_eq_obj := by {unfold opposite, apply_instance},
+  fintype_obj := by {unfold opposite, apply_instance},
+  fintype_hom := λ a b, let ff : (a ⟶ b) → (b.unop ⟶ a.unop) := λ f, f.unop in
+    fintype.of_injective ff has_hom.hom.unop_inj }
+
+end
 
 end category_theory

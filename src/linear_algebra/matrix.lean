@@ -833,10 +833,10 @@ variables {b : n → M} (hb : is_basis R b)
 
 include hb
 
-/-- Given `hA : is_unit A.det` and `hb : is_basis R b`, `A.to_lin_equiv hb hA` is the `linear_equiv`
-arising from `to_lin hb hb A`. -/
+/-- Given `hA : is_unit A.det` and `hb : is_basis R b`, `A.to_linear_equiv hb hA` is
+the `linear_equiv` arising from `to_lin hb hb A`. -/
 @[simps apply]
-def to_lin_equiv [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
+def to_linear_equiv [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
   M ≃ₗ[R] M :=
 begin
   refine ⟨to_lin hb hb A, linear_map.map_add _, linear_map.map_smul _, to_lin hb hb A⁻¹,
@@ -847,11 +847,11 @@ begin
 end
 lemma ker_to_lin_eq_bot [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
   (to_lin hb hb A).ker = ⊥ :=
-ker_eq_bot.mpr (to_lin_equiv hb A hA).injective
+ker_eq_bot.mpr (to_linear_equiv hb A hA).injective
 
 lemma range_to_lin_eq_top [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
   (to_lin hb hb A).range = ⊤ :=
-range_eq_top.mpr (to_lin_equiv hb A hA).surjective
+range_eq_top.mpr (to_linear_equiv hb A hA).surjective
 
 end vector_space
 

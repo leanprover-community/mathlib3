@@ -547,11 +547,11 @@ by { rw measure.prod, exact bind_zero_left _ }
 by simp [measure.prod]
 
 lemma map_prod_map {δ} [measurable_space δ] {f : α → β} {g : γ → δ}
-  {μa : measure α} {μc : measure γ} [sigma_finite (map f μa)]
-  [sigma_finite (map g μc)] (hf : measurable f) (hg : measurable g) :
+  {μa : measure α} {μc : measure γ} (hfa : sigma_finite (map f μa))
+  (hgc : sigma_finite (map g μc)) (hf : measurable f) (hg : measurable g) :
   (map f μa).prod (map g μc) = map (prod.map f g) (μa.prod μc) :=
 begin
-  haveI := sigma_finite_of_map μc hg,
+  haveI := hgc.of_map μc hg,
   refine prod_eq (λ s t hs ht, _),
   rw [map_apply (hf.prod_map hg) (hs.prod ht), map_apply hf hs, map_apply hg ht],
   exact prod_prod (hf hs) (hg ht)

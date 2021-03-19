@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import measure_theory.prod
 
@@ -12,7 +12,18 @@ We say that `f : α → β` is a measure preserving map w.r.t. measures `μ : me
 `ν : measure β` if `f` is measurable and `map f μ = ν`. In this file we define the predicate
 `measure_theory.measure_preserving` and prove its basic properties.
 
-We use the term "measure preserving" because in many applications `α = β` and `μ = ν`. -/
+We use the term "measure preserving" because in many applications `α = β` and `μ = ν`.
+
+## References
+
+Partially based on
+[this](https://www.isa-afp.org/browser_info/current/AFP/Ergodic_Theory/Measure_Preserving_Transformations.html)
+Isabelle formalization.
+
+## Tags
+
+measure preserving map, measure
+-/
 
 variables {α β γ δ : Type*} [measurable_space α] [measurable_space β] [measurable_space γ]
   [measurable_space δ]
@@ -45,13 +56,9 @@ lemma comp {g : β → γ} {f : α → β} (hg : measure_preserving g μb μc)
   measure_preserving (g ∘ f) μa μc :=
 ⟨hg.1.comp hf.1, by rw [← map_map hg.1 hf.1, hf.2, hg.2]⟩
 
-lemma sigma_finite_map {f : α → β} (hf : measure_preserving f μa μb) [sigma_finite μb] :
-  sigma_finite (map f μa) :=
-by rwa hf.map_eq
-
 protected lemma sigma_finite {f : α → β} (hf : measure_preserving f μa μb) [sigma_finite μb] :
   sigma_finite μa :=
-by { haveI := hf.sigma_finite_map, exact sigma_finite_of_map _ hf.1 }
+sigma_finite.of_map μa hf.1 (by rwa hf.map_eq)
 
 lemma measure_preimage {f : α → β} (hf : measure_preserving f μa μb)
   {s : set β} (hs : measurable_set s) :
@@ -93,7 +100,7 @@ begin
     set_lintegral_const, hf.measure_preimage hs, mul_comm]
 end
 
-/-- If `f : α → β` sends measure `μa` to `μb` and `g : γ → δ` sends measure `μc` to `μd`,
+/-- If `f : α → β` sends the measure `μa` to `μb` and `g : γ → δ` sends the measure `μc` to `μd`,
 then `prod.map f g` sends `μa.prod μc` to `μb.prod μd`. -/
 lemma prod [sigma_finite μb] [sigma_finite μd] {f : α → β} {g : γ → δ}
   (hf : measure_preserving f μa μb) (hg : measure_preserving g μc μd) :

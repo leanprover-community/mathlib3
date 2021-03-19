@@ -1868,17 +1868,13 @@ instance add.sigma_finite (μ ν : measure α) [sigma_finite μ] [sigma_finite �
   sigma_finite (μ + ν) :=
 by { rw [← sum_cond], refine @sum.sigma_finite _ _ _ _ _ (bool.rec _ _); simpa }
 
-lemma sigma_finite_of_map (μ : measure α) {f : α → β} (hf : measurable f) [sigma_finite (map f μ)] :
+lemma sigma_finite.of_map (μ : measure α) {f : α → β} (hf : measurable f)
+  (h : sigma_finite (map f μ)) :
   sigma_finite μ :=
 ⟨⟨⟨λ n, f ⁻¹' (spanning_sets (map f μ) n),
    λ n, hf $ measurable_spanning_sets _ _,
    λ n, by simp only [← map_apply hf, measurable_spanning_sets, measure_spanning_sets_lt_top],
    by rw [← preimage_Union, Union_spanning_sets, preimage_univ]⟩⟩⟩
-
-lemma sigma_finite.of_map (μ : measure α) {f : α → β} (hf : measurable f)
-  (h : sigma_finite (map f μ)) :
-  sigma_finite μ :=
-sigma_finite_of_map μ hf
 
 /-- A measure is called locally finite if it is finite in some neighborhood of each point. -/
 class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=

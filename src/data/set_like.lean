@@ -92,4 +92,11 @@ lemma coe_subset_coe {S T : A} : (S : set B) ⊆ T ↔ S ≤ T := iff.rfl
 @[simp, norm_cast]
 lemma coe_ssubset_coe {S T : A} : (S : set B) ⊂ T ↔ S < T := iff.rfl
 
+lemma not_le_iff_exists : ¬(p ≤ q) ↔ ∃ x ∈ p, x ∉ q := set.not_subset
+
+lemma exists_of_lt : p < q → ∃ x ∈ q, x ∉ p := set.exists_of_ssubset
+
+lemma lt_iff_le_and_exists : p < q ↔ p ≤ q ∧ ∃ x ∈ q, x ∉ p :=
+by rw [lt_iff_le_not_le, not_le_iff_exists]
+
 end set_like

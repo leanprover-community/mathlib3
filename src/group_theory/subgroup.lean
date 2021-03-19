@@ -461,7 +461,7 @@ instance : complete_lattice (subgroup G) :=
   inf_le_left  := λ a b x, and.left,
   inf_le_right := λ a b x, and.right,
   .. complete_lattice_of_Inf (subgroup G) $ λ s, is_glb.of_image
-    (λ H K, show (H : set G) ≤ K ↔ H ≤ K, from coe_subset_coe) is_glb_binfi }
+    (λ H K, show (H : set G) ≤ K ↔ H ≤ K, from set_like.coe_subset_coe) is_glb_binfi }
 
 @[to_additive]
 lemma mem_sup_left {S T : subgroup G} : ∀ {x : G}, x ∈ S → x ∈ S ⊔ T :=
@@ -639,7 +639,7 @@ lemma mem_supr_of_directed {ι} [hι : nonempty ι] {K : ι → subgroup G} (hK 
   {x : G} :
   x ∈ (supr K : subgroup G) ↔ ∃ i, x ∈ K i :=
 begin
-  refine ⟨_, λ ⟨i, hi⟩, (le_def.1 $ le_supr K i) hi⟩,
+  refine ⟨_, λ ⟨i, hi⟩, (set_like.le_def.1 $ le_supr K i) hi⟩,
   suffices : x ∈ closure (⋃ i, (K i : set G)) → ∃ i, x ∈ K i,
     by simpa only [closure_Union, closure_eq (K _)] using this,
   refine (λ hx, closure_induction hx (λ _, mem_Union.1) _ _ _),
@@ -1425,8 +1425,8 @@ namespace subgroup
 @[to_additive]
 lemma closure_mul_le (S T : set G) : closure (S * T) ≤ closure S ⊔ closure T :=
 Inf_le $ λ x ⟨s, t, hs, ht, hx⟩, hx ▸ (closure S ⊔ closure T).mul_mem
-    (le_def.mp le_sup_left $ subset_closure hs)
-    (le_def.mp le_sup_right $ subset_closure ht)
+    (set_like.le_def.mp le_sup_left $ subset_closure hs)
+    (set_like.le_def.mp le_sup_right $ subset_closure ht)
 
 @[to_additive]
 lemma sup_eq_closure (H K : subgroup G) : H ⊔ K = closure (H * K) :=

@@ -24,7 +24,9 @@ and `μH[d] s = 0` for `dimH s < d`.
 We also define two generalizations of the Hausdorff measure. In one generalization (see
 `measure_theory.measure.mk_metric`) we take any function `m (diam s)` instead of `(diam s) ^ d`. In
 an even more general definition (see `measure_theory.measure.mk_metric'`) we use any function
-of `m : set X → ℝ≥0∞`.
+of `m : set X → ℝ≥0∞`. Some authors start with a partial function `m` defined only on some sets
+`s : set X` (e.g., only on balls or only on measurable sets). This is equivalent to our definition
+applied to `measure_theory.extend m`.
 
 We also define a predicate `measure_theory.outer_measure.is_metric` which says that an outer measure
 is additive on metric separated pairs of sets: `μ (s ∪ t) = μ s + μ t` provided that
@@ -35,7 +37,7 @@ measures.
 
 ## Notations
 
-We use the following notation localized in `hausdorff_measure`.
+We use the following notation localized in `measure_theory`.
 
 - `μH[d]` : `measure_theory.measure.hausdorff_measure d`
 
@@ -120,9 +122,9 @@ begin
     rw mem_iff_ind_edist_zero_of_closed ht at hxt,
     rcases ennreal.exists_inv_nat_lt hxt with ⟨n, hn⟩,
     exact mem_Union.2 ⟨n, hxs, hn.le⟩ },
-  /- Now we have `∀ n, m (s ∩ t) + m (S n) ≤ m s` and we need to prove
-  `m (s ∩ t) + m (⋃ n, S n) ≤ m s`. We can't pass to the limit because
-  `m` is only an outer measure. -/
+  /- Now we have `∀ n, μ (s ∩ t) + μ (S n) ≤ μ s` and we need to prove
+  `μ (s ∩ t) + μ (⋃ n, S n) ≤ μ s`. We can't pass to the limit because
+  `μ` is only an outer measure. -/
   by_cases htop : μ (s \ t) = ∞,
   { rw [htop, ennreal.add_top, ← htop],
     exact μ.mono (diff_subset _ _) },
@@ -169,7 +171,7 @@ begin
 end
 
 lemma le_caratheodory [measurable_space X] [borel_space X] (hm : is_metric μ) :
-  ‹_› ≤ μ.caratheodory :=
+  ‹measurable_space X› ≤ μ.caratheodory :=
 by { rw @borel_space.measurable_eq X _ _, exact hm.borel_le_caratheodory }
 
 end is_metric
@@ -196,10 +198,10 @@ def mk_metric' (m : set X → ℝ≥0∞) :
   outer_measure X :=
 ⨆ r > 0, mk_metric'.pre m r
 
-/-- Given a function `m : ℝ≥0∞ → ℝ≥0∞`, `mk_metric m = mk_metric' (λ s, m (emetric.diam s))`
-is the supremum of `mk_metric'.pre (λ s, m (emetric.diam s)) r` over `r > 0`. Each
-`mk_metric'.pre (λ s, m (emetric.diam s)) r` is the maximal outer measure `μ` such that
-`μ s ≤ m (emetric.diam s)` for any set of diameter less than `r`. -/
+/-- Given a function `m : ℝ≥0∞ → ℝ≥0∞` and `r > 0`, let `μ r` be the maximal outer measure such that
+`μ s = 0` on subsingletons and `μ s ≤ m (emetric.diam s)` whenever `emetric.diam s < r`. Then
+`mk_metric m = ⨆ r > 0, μ r`. We add `⨆ (hs : ¬s.subsingleton)` to ensure that in the case
+`m x = x ^ d` the definition gives the expected result for `d = 0`. -/
 def mk_metric (m : ℝ≥0∞ → ℝ≥0∞) : outer_measure X :=
 mk_metric' (λ s, ⨆ (hs : ¬s.subsingleton), m (diam s))
 
@@ -386,9 +388,9 @@ lemma outer_measure.coe_mk_metric [measurable_space X] [borel_space X] (m : ℝ�
   ⇑(outer_measure.mk_metric m : outer_measure X) = measure.mk_metric m :=
 by rw [← measure.mk_metric_to_outer_measure, coe_to_outer_measure]
 
-namespace measure
-
 variables [measurable_space X] [borel_space X]
+
+namespace measure
 
 /-- If `c ∉ {0, ∞}` and `m₁ d ≤ c * m₂ d` for `0 < d < ε` for some `ε > 0`
 (we use `≤ᶠ[𝓝[Ioi 0]]` to state this), then `mk_metric m₁ hm₁ ≤ c • mk_metric m₂ hm₂`. -/
@@ -407,6 +409,36 @@ lemma mk_metric_mono {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} (hle : m₁ ≤ᶠ[
   (mk_metric m₁ : measure X) ≤ mk_metric m₂ :=
 by { convert mk_metric_mono_smul ennreal.one_ne_top ennreal.zero_lt_one.ne' _; simp * }
 
+/-- A formula for `measure_theory.measure.mk_metric`. -/
+lemma mk_metric_apply (m : ℝ≥0∞ → ℝ≥0∞) (s : set X) :
+  mk_metric m s = ⨆ (r : ℝ≥0∞) (hr : 0 < r), ⨅ (t : ℕ → set X) (hts : s ⊆ ⋃ n, t n)
+    (ht : ∀ n, diam (t n) ≤ r), ∑' n, ⨆ (ht : ¬(t n).subsingleton), m (diam (t n)) :=
+begin
+  -- We mostly unfold the definitions but we need to switch the order of `∑'` and `⨅`
+  -- and merge `(t n).nonempty` with `¬subsingleton (t n)`
+  classical,
+  simp only [← outer_measure.coe_mk_metric, outer_measure.mk_metric, outer_measure.mk_metric',
+    outer_measure.supr_apply, outer_measure.mk_metric'.pre, outer_measure.bounded_by_apply,
+    extend],
+  refine supr_congr (λ r, r) surjective_id (λ r, supr_congr_Prop iff.rfl $ λ hr,
+    infi_congr _ surjective_id $ λ t, infi_congr_Prop iff.rfl $ λ ht, _),
+  by_cases htr : ∀ n, diam (t n) ≤ r,
+  { rw [infi_eq_if, if_pos htr],
+    congr' 1 with n : 1,
+    simp only [infi_eq_if, htr n, id, if_true, supr_and'],
+    refine supr_congr_Prop (and_iff_right_of_imp $ λ h, _) (λ _, rfl),
+    contrapose! h,
+    rw [not_nonempty_iff_eq_empty.1 h],
+    exact subsingleton_empty },
+  { rw [infi_eq_if, if_neg htr],
+    push_neg at htr, rcases htr with ⟨n, hn⟩,
+    refine ennreal.tsum_eq_top_of_eq_top ⟨n, _⟩,
+    rw [supr_eq_if, if_pos, infi_eq_if, if_neg],
+    exact hn.not_le,
+    rcases diam_pos_iff.1 ((zero_le r).trans_lt hn) with ⟨x, hx, -⟩,
+    exact ⟨x, hx⟩ }
+end
+
 /-!
 ### Hausdorff measure and Hausdorff dimension
 -/
@@ -414,8 +446,32 @@ by { convert mk_metric_mono_smul ennreal.one_ne_top ennreal.zero_lt_one.ne' _; s
 /-- Hausdorff measure on an (e)metric space. -/
 def hausdorff_measure (d : ℝ) : measure X := mk_metric (λ r, r ^ d)
 
-localized "notation `μH[` d `]` := measure_theory.measure.hausdorff_measure d" in hausdorff_measure
+localized "notation `μH[` d `]` := measure_theory.measure.hausdorff_measure d" in measure_theory
 
+/-- A formula for `μH[d] s` that works for all `d`. In case of a positive `d` a simpler formula
+is available as `measure_theory.measure.hausdorff_measure_apply`. -/
+lemma hausdorff_measure_apply' (d : ℝ) (s : set X) :
+  μH[d] s = ⨆ (r : ℝ≥0∞) (hr : 0 < r), ⨅ (t : ℕ → set X) (hts : s ⊆ ⋃ n, t n)
+    (ht : ∀ n, diam (t n) ≤ r), ∑' n, ⨆ (ht : ¬(t n).subsingleton), (diam (t n)) ^ d :=
+mk_metric_apply _ _
+
+/-- A formula for `μH[d] s` that works for all positive `d`. -/
+lemma hausdorff_measure_apply {d : ℝ} (hd : 0 < d) (s : set X) :
+  μH[d] s = ⨆ (r : ℝ≥0∞) (hr : 0 < r), ⨅ (t : ℕ → set X) (hts : s ⊆ ⋃ n, t n)
+    (ht : ∀ n, diam (t n) ≤ r), ∑' n, diam (t n) ^ d :=
+begin
+  classical,
+  rw hausdorff_measure_apply',
+  -- I wish `congr'` was able to generate this
+  refine supr_congr id surjective_id (λ r, supr_congr_Prop iff.rfl $ λ hr,
+    infi_congr id surjective_id $ λ t, infi_congr_Prop iff.rfl $ λ hts,
+    infi_congr_Prop iff.rfl $ λ ht, tsum_congr $ λ n, _),
+  rw [supr_eq_if], split_ifs with ht',
+  { erw [diam_eq_zero_iff.2 ht', ennreal.zero_rpow_of_pos hd, ennreal.bot_eq_zero] },
+  { refl }
+end
+
+/-- If `d₁ < d₂`, then for any set `s` we have either `μH[d₂] s = 0`, or `μH[d₁] s = ∞`. -/
 lemma hausdorff_measure_zero_or_top {d₁ d₂ : ℝ} (h : d₁ < d₂) (s : set X) :
   μH[d₂] s = 0 ∨ μH[d₁] s = ∞ :=
 begin
@@ -439,6 +495,7 @@ begin
   exact le_rfl
 end
 
+/-- Hausdorff measure `μH[d] s` is monotone in `d`. -/
 lemma hausdorff_measure_mono {d₁ d₂ : ℝ} (h : d₁ ≤ d₂) (s : set X) : μH[d₂] s ≤ μH[d₁] s :=
 begin
   rcases h.eq_or_lt with rfl|h, { exact le_rfl },
@@ -447,21 +504,26 @@ begin
   { rw hs, exact le_top }
 end
 
-/-- Hausdorff dimension of a set in an (e)metric space. -/
-def hausdorff_dimension (s : set X) : ℝ≥0∞ := ⨆ (d : ℝ≥0) (hd : μH[d] s = ∞), d
+end measure
 
-lemma hausdorff_measure_of_lt_hausdorff_dimension {s : set X} {d : ℝ≥0}
-  (h : ↑d < hausdorff_dimension s) : μH[d] s = ∞ :=
+open_locale measure_theory
+open measure
+
+/-- Hausdorff dimension of a set in an (e)metric space. -/
+def dimH (s : set X) : ℝ≥0∞ := ⨆ (d : ℝ≥0) (hd : μH[d] s = ∞), d
+
+lemma hausdorff_measure_of_lt_dimH {s : set X} {d : ℝ≥0}
+  (h : ↑d < dimH s) : μH[d] s = ∞ :=
 begin
-  simp only [hausdorff_dimension, lt_supr_iff] at h,
+  simp only [dimH, lt_supr_iff] at h,
   rcases h with ⟨d', hsd', hdd'⟩,
   rw [ennreal.coe_lt_coe, ← nnreal.coe_lt_coe] at hdd',
   refine (hausdorff_measure_zero_or_top hdd' s).resolve_left (λ h, _),
   exact (ennreal.zero_ne_top $ h.symm.trans hsd').elim
 end
 
-lemma hausdorff_measure_of_hausdorff_dimension_lt {s : set X} {d : ℝ≥0}
-  (h : hausdorff_dimension s < d) : μH[d] s = 0 :=
+lemma hausdorff_measure_of_dimH_lt {s : set X} {d : ℝ≥0}
+  (h : dimH s < d) : μH[d] s = 0 :=
 begin
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 h with ⟨d', hsd', hd'd⟩,
   rw [ennreal.coe_lt_coe, ← nnreal.coe_lt_coe] at hd'd,
@@ -469,6 +531,9 @@ begin
     (λ h, hsd'.not_le (le_bsupr d' h))
 end
 
-end measure
+lemma measure_zero_of_dimH_lt {μ : measure X} {d : ℝ≥0}
+  (h : μ ≪ μH[d]) {s : set X} (hd : dimH s < d) :
+  μ s = 0 :=
+h $ hausdorff_measure_of_dimH_lt hd
 
 end measure_theory

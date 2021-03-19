@@ -49,7 +49,7 @@ open_locale classical big_operators
 
 universes u v w
 
-variables {K : Type u} {L : Type v} {F : Type w}
+variables {F : Type u} {K : Type v} {L : Type w}
 
 namespace polynomial
 
@@ -690,15 +690,15 @@ instance splitting_field (f : polynomial K) : is_splitting_field K (splitting_fi
 
 section scalar_tower
 
-variables {K L F} [algebra L F] [algebra K F] [is_scalar_tower K L F]
+variables {K L F} [algebra F K] [algebra F L] [is_scalar_tower F K L]
 
 variables {K}
-instance map (f : polynomial K) [is_splitting_field K F f] :
-  is_splitting_field L F (f.map $ algebra_map K L) :=
-⟨by { rw [splits_map_iff, ← is_scalar_tower.algebra_map_eq], exact splits F f },
- subalgebra.res_inj K $ by { rw [map_map, ← is_scalar_tower.algebra_map_eq, subalgebra.res_top,
-    eq_top_iff, ← adjoin_roots F f, algebra.adjoin_le_iff],
-  exact λ x hx, @algebra.subset_adjoin L _ _ _ _ _ _ hx }⟩
+instance map (f : polynomial F) [is_splitting_field F L f] :
+  is_splitting_field K L (f.map $ algebra_map F K) :=
+⟨by { rw [splits_map_iff, ← is_scalar_tower.algebra_map_eq], exact splits L f },
+ subalgebra.res_inj F $ by { rw [map_map, ← is_scalar_tower.algebra_map_eq, subalgebra.res_top,
+    eq_top_iff, ← adjoin_roots L f, algebra.adjoin_le_iff],
+  exact λ x hx, @algebra.subset_adjoin K _ _ _ _ _ _ hx }⟩
 
 variables {K} (L)
 theorem splits_iff (f : polynomial K) [is_splitting_field K L f] :
@@ -711,16 +711,16 @@ theorem splits_iff (f : polynomial K) [is_splitting_field K L f] :
   ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
   by { rw ring_equiv.to_ring_hom_trans, exact splits_comp_of_splits _ _ (splits L f) }⟩
 
-theorem mul (f g : polynomial K) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field K L f]
-  [is_splitting_field L F (g.map $ algebra_map K L)] :
-  is_splitting_field K F (f * g) :=
-⟨(is_scalar_tower.algebra_map_eq K L F).symm ▸ splits_mul _
-  (splits_comp_of_splits _ _ (splits L f))
-  ((splits_map_iff _ _).1 (splits F $ g.map $ algebra_map K L)),
- by rw [map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map K F) ≠ 0)
+theorem mul (f g : polynomial F) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field F K f]
+  [is_splitting_field K L (g.map $ algebra_map F K)] :
+  is_splitting_field F L (f * g) :=
+⟨(is_scalar_tower.algebra_map_eq F K L).symm ▸ splits_mul _
+  (splits_comp_of_splits _ _ (splits K f))
+  ((splits_map_iff _ _).1 (splits L $ g.map $ algebra_map F K)),
+ by rw [map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map F L) ≠ 0)
         (map_ne_zero hg)), multiset.to_finset_add, finset.coe_union, algebra.adjoin_union,
-      is_scalar_tower.algebra_map_eq K L F, ← map_map,
-      roots_map (algebra_map L F) ((splits_id_iff_splits $ algebra_map K L).2 $ splits L f),
+      is_scalar_tower.algebra_map_eq F K L, ← map_map,
+      roots_map (algebra_map K L) ((splits_id_iff_splits $ algebra_map F K).2 $ splits K f),
       multiset.to_finset_map, finset.coe_image, algebra.adjoin_algebra_map, adjoin_roots,
       algebra.map_top, is_scalar_tower.range_under_adjoin, ← map_map, adjoin_roots,
       subalgebra.res_top]⟩

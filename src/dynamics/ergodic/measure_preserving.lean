@@ -95,10 +95,10 @@ end
 
 /-- If `f : α → β` sends measure `μa` to `μb` and `g : γ → δ` sends measure `μc` to `μd`,
 then `prod.map f g` sends `μa.prod μc` to `μb.prod μd`. -/
-lemma prod [sigma_finite μb] [sigma_finite μd] {f : α → β} {g : γ → δ} (hf : measure_preserving f μa μb)
-  (hg : measure_preserving g μc μd) :
+lemma prod [sigma_finite μb] [sigma_finite μd] {f : α → β} {g : γ → δ}
+  (hf : measure_preserving f μa μb) (hg : measure_preserving g μc μd) :
   measure_preserving (prod.map f g) (μa.prod μc) (μb.prod μd) :=
-have measurable (uncurry $ λ _ : α, g), from (hg.1.comp measurable_snd), 
+have measurable (uncurry $ λ _ : α, g), from (hg.1.comp measurable_snd),
 hf.skew_product this $ filter.eventually_of_forall $ λ _, hg.map_eq
 
 end measure_preserving

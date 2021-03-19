@@ -1875,7 +1875,8 @@ lemma sigma_finite_of_map (μ : measure α) {f : α → β} (hf : measurable f) 
    λ n, by simp only [← map_apply hf, measurable_spanning_sets, measure_spanning_sets_lt_top],
    by rw [← preimage_Union, Union_spanning_sets, preimage_univ]⟩⟩⟩
 
-lemma sigma_finite.of_map (μ : measure α) {f : α → β} (hf : measurable f) (h : sigma_finite (map f μ)) :
+lemma sigma_finite.of_map (μ : measure α) {f : α → β} (hf : measurable f)
+  (h : sigma_finite (map f μ)) :
   sigma_finite μ :=
 sigma_finite_of_map μ hf
 

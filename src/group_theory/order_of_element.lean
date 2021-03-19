@@ -124,13 +124,29 @@ section order_of
 
 section monoid
 variables {α} [monoid α]
+variables {H : Type u} [add_monoid H] {x : H}
 
 open_locale classical
+
+/-- `add_order_of h` is the additive order of the element `x`, i.e. the `n ≥ 1`, s. t. `n •ℕ x = 0`
+if it exists. Otherwise, i.e. if `x` is of infinite order, then `add_order_of x` is `0` by
+convention.-/
+noncomputable def add_order_of (x : H) : ℕ :=
+if h : ∃ n, 0 < n ∧ n •ℕ x = 0 then nat.find h else 0
 
 /-- `order_of a` is the order of the element `a`, i.e. the `n ≥ 1`, s.t. `a ^ n = 1` if it exists.
 Otherwise, i.e. if `a` is of infinite order, then `order_of a` is `0` by convention.-/
 noncomputable def order_of (a : α) : ℕ :=
 if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
+
+attribute [to_additive add_order_of] order_of
+
+lemma add_order_of_pos' {x : H} (h : ∃ n, 0 < n ∧ n •ℕ x = 0) : 0 < add_order_of x :=
+begin
+  rw add_order_of,
+  split_ifs,
+  exact (nat.find_spec h).1
+end
 
 lemma order_of_pos' {a : α} (h : ∃ n, 0 < n ∧ a ^ n = 1) : 0 < order_of a :=
 begin
@@ -139,12 +155,34 @@ begin
   exact (nat.find_spec h).1
 end
 
+attribute [to_additive add_order_of_pos'] order_of_pos'
+
+lemma add_order_of_nsmul_eq_zero (x : H) : (add_order_of x) •ℕ x = 0 :=
+begin
+  rw add_order_of,
+  split_ifs with hfin,
+  { exact (nat.find_spec hfin).2 },
+  { exact zero_nsmul x }
+end
+
 lemma pow_order_of_eq_one (a : α): a ^ order_of a = 1 :=
 begin
   rw order_of,
   split_ifs with hfin,
   { exact (nat.find_spec hfin).2 },
   { exact pow_zero a }
+end
+
+attribute [to_additive add_order_of_nsmul_eq_zero] pow_order_of_eq_one
+
+lemma add_order_of_eq_zero {a : H} (h : ∀n, 0 < n → n •ℕ a ≠ 0) : add_order_of a = 0 :=
+begin
+  rw add_order_of,
+  split_ifs with hx,
+  { exfalso,
+    cases hx with n hn,
+    exact (h n) hn.1 hn.2 },
+  { refl }
 end
 
 lemma order_of_eq_zero {a : α} (h : ∀n, 0 < n → a ^ n ≠ 1) : order_of a = 0 :=
@@ -157,6 +195,16 @@ begin
   { refl }
 end
 
+attribute [to_additive add_order_of_eq_zero] order_of_eq_zero
+
+lemma add_order_of_le_of_nsmul_eq_zero' {m : ℕ} (h : m < add_order_of x) : ¬ (0 < m ∧ m •ℕ x = 0) :=
+begin
+  rw add_order_of at h,
+  split_ifs at h with hfin,
+  { exact nat.find_min hfin h },
+  { exfalso, exact nat.not_lt_zero m h }
+end
+
 lemma order_of_le_of_pow_eq_one' {m : ℕ} (h : m < order_of a) : ¬ (0 < m ∧ a ^ m = 1) :=
 begin
   rw order_of at h,
@@ -165,25 +213,57 @@ begin
   { exfalso, exact nat.not_lt_zero m h }
 end
 
+attribute [to_additive add_order_of_le_of_nsmul_eq_zero'] order_of_le_of_pow_eq_one'
+
+lemma add_order_of_le_of_nsmul_eq_zero {n : ℕ} (hn : 0 < n) (h : n •ℕ x = 0) : add_order_of x ≤ n :=
+begin
+  by_contradiction h',
+  exact (add_order_of_le_of_nsmul_eq_zero' (not_le.mp h')) ⟨hn, h⟩
+end
+
 lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
 begin
   by_contradiction h',
   exact (order_of_le_of_pow_eq_one' (not_le.mp h')) ⟨hn, h⟩
 end
 
+attribute [to_additive add_order_of_le_of_nsmul_eq_zero] order_of_le_of_pow_eq_one
+
+@[simp] lemma add_order_of_zero : add_order_of (0 : H) = 1 :=
+begin
+  apply le_antisymm,
+  { exact add_order_of_le_of_nsmul_eq_zero (nat.one_pos) (nsmul_zero 1) },
+  { exact nat.succ_le_of_lt ( add_order_of_pos' ⟨1, ⟨nat.one_pos, nsmul_zero 1⟩⟩) }
+end
+
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin
-apply le_antisymm,
-{ exact order_of_le_of_pow_eq_one (nat.one_pos) (pow_one 1) },
-{ exact nat.succ_le_of_lt ( order_of_pos' ⟨1, ⟨nat.one_pos, pow_one 1⟩⟩) }
+  apply le_antisymm,
+  { exact order_of_le_of_pow_eq_one (nat.one_pos) (pow_one 1) },
+  { exact nat.succ_le_of_lt ( order_of_pos' ⟨1, ⟨nat.one_pos, pow_one 1⟩⟩) }
 end
+
+attribute [to_additive add_order_of_zero] order_of_one
+
+@[simp] lemma add_order_of_eq_one_iff : add_order_of x = 1 ↔ x = 0 :=
+⟨λ h, by { rw [← one_nsmul x, ← h, add_order_of_nsmul_eq_zero] }, λ h, by simp [h]⟩
 
 @[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
 ⟨λ h, by conv_lhs { rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
 
+attribute [to_additive add_order_of_eq_one_iff] order_of_eq_one_iff
+
+lemma smul_eq_mod_add_order_of {n : ℕ} : n •ℕ x = (n % add_order_of x) •ℕ x :=
+calc n •ℕ x = (n % add_order_of x +  (n / add_order_of x)* add_order_of x) •ℕ x :
+        by rw [nat.mod_add_div']
+        ... = (n % add_order_of x) •ℕ x :
+        by { simp [add_nsmul, mul_nsmul, add_order_of_nsmul_eq_zero] }
+
 lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
 calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) : by rw [nat.mod_add_div]
        ... = a ^ (n % order_of a) : by simp [pow_add, pow_mul, pow_order_of_eq_one]
+
+attribute [to_additive smul_eq_mod_add_order_of] pow_eq_mod_order_of
 
 lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
 begin

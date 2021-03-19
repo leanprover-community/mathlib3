@@ -40,6 +40,29 @@ def to_comonad {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) : comonad D :=
   coassoc' := λ X, by { dsimp, rw ← L.map_comp, simp },
   right_counit' := λ X, by { dsimp, rw ← L.map_comp, simp } }
 
+@[simps {rhs_md := semireducible}]
+def test {L : C ⥤ D} {R₁ R₂ : D ⥤ C} (h₁ : L ⊣ R₁) (h₂ : L ⊣ R₂) :
+  h₁.to_monad ≅ h₂.to_monad :=
+monad_iso.mk
+  (iso_whisker_left L (adjunction.right_adjoint_uniq h₁ h₂))
+  (λ X,
+    begin
+      dsimp [adjunction.right_adjoint_uniq_hom_app],
+      rw [h₂.hom_equiv_unit, ←h₂.unit_naturality_assoc, h₁.hom_equiv_counit, L.map_id,
+        ←R₂.map_comp, id_comp, h₁.left_triangle_components],
+      dsimp,
+      simp,
+    end)
+  (λ X,
+  begin
+    dsimp [adjunction.right_adjoint_uniq_hom_app],
+    simp only [adjunction.hom_equiv_unit, adjunction.hom_equiv_counit],
+    rw [L.map_id, id_comp, L.map_id, id_comp, assoc, assoc, ←R₂.map_comp, ←h₁.counit_naturality,
+      R₂.map_comp, h₂.unit_naturality_assoc, ←R₁.map_comp_assoc, L.map_comp, assoc,
+      h₂.counit_naturality, h₂.left_triangle_components_assoc],
+    refl,
+  end)
+
 end adjunction
 
 /--
@@ -66,7 +89,35 @@ The underlying object of `(monad.comparison R).obj X` is just `R.obj X`.
 def monad.comparison_forget {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) :
   monad.comparison h ⋙ h.to_monad.forget ≅ R :=
 { hom := { app := λ X, 𝟙 _, },
-  inv := { app := λ X, 𝟙 _, } }
+  inv := { app := λ X, 𝟙 _, } }.
+
+def monad.free_comparison {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) :
+  L ⋙ _ ≅ h.to_monad.free :=
+begin
+end
+  -- h.to_monad.free ≅ monad.comparison h ⋙ L
+
+#exit
+lemma monad.comparison_unique_aux {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R}
+  (K' : D ⥤ h.to_monad.algebra) (hK' : K' ⋙ h.to_monad.forget ≅ R)
+  (X : D) :
+  R.map (L.map (hK'.hom.app X)) ≫ R.map (h.counit.app X) = (K'.obj X).a ≫ hK'.hom.app X :=
+begin
+
+end
+
+
+def monad.comparison_unique {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R} (K' : D ⥤ h.to_monad.algebra)
+  (hK' : K' ⋙ h.to_monad.forget ≅ R) :
+  K' ≅ monad.comparison h :=
+nat_iso.of_components
+  (λ X, monad.algebra.iso_mk (hK'.app X) (begin dsimp, extract_goal end))
+  (λ X Y f, by { ext, apply hK'.hom.naturality f })
+
+-- begin
+--   let : Π B : D, R.obj (L.obj (K'.obj B).A) ⟶ (K'.obj B).A := λ B, (K'.obj B).a,
+
+-- end
 
 /--
 Gven any adjunction `L ⊣ R`, there is a comparison functor `category_theory.comonad.comparison L`
@@ -105,6 +156,28 @@ from `C` to the category of Eilenberg-Moore algebras for the adjunction is an eq
 -/
 class comonadic_left_adjoint (L : C ⥤ D) extends is_left_adjoint L :=
 (eqv : is_equivalence (comonad.comparison (adjunction.of_left_adjoint L)))
+
+def monadic_of_iso (R₁ R₂ : D ⥤ C) [monadic_right_adjoint R₁] (i : R₁ ≅ R₂) :
+  monadic_right_adjoint R₂ :=
+{ to_is_right_adjoint := adjunction.right_adjoint_of_nat_iso i,
+  eqv :=
+  begin
+    letI := adjunction.right_adjoint_of_nat_iso i,
+    let z := adjunction.test (adjunction.of_right_adjoint R₁) (adjunction.of_nat_iso_right (adjunction.of_right_adjoint R₁) i),
+    let z₂ : _ ≌ (adjunction.of_right_adjoint R₂).to_monad.algebra := monad.algebra_equiv_of_iso_monads z,
+    let : monad.comparison (adjunction.of_right_adjoint R₂) ≅ monad.comparison (adjunction.of_right_adjoint R₁) ⋙ z₂.functor,
+    { apply nat_iso.of_components _ _,
+      { intro X,
+        refine monad.algebra.iso_mk (i.symm.app X) _,
+        dsimp [adjunction.test, adjunction.right_adjoint_uniq_inv_app],
+        simp,
+      }
+    }
+    -- -- have := z₂.functor,
+  end
+
+}
+
 
 -- TODO: This holds more generally for idempotent adjunctions, not just reflective adjunctions.
 instance μ_iso_of_reflective [reflective R] : is_iso (adjunction.of_right_adjoint R).to_monad.μ :=

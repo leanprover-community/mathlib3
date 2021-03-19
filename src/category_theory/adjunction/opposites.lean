@@ -89,6 +89,26 @@ def right_adjoint_uniq {F : C ⥤ D} {G G' : D ⥤ C}
 nat_iso.remove_op
   (left_adjoint_uniq (op_adjoint_op_of_adjoint _ F adj2) (op_adjoint_op_of_adjoint _ _ adj1))
 
+lemma left_adjoint_uniq_hom_app {F F' : C ⥤ D} {G : D ⥤ C}
+  (adj1 : F ⊣ G) (adj2 : F' ⊣ G) (X) :
+  (left_adjoint_uniq adj1 adj2).hom.app X = (adj1.hom_equiv _ _).symm (adj2.hom_equiv _ _ (𝟙 _)) :=
+rfl
+
+lemma left_adjoint_uniq_inv_app {F F' : C ⥤ D} {G : D ⥤ C}
+  (adj1 : F ⊣ G) (adj2 : F' ⊣ G) (X) :
+  (left_adjoint_uniq adj1 adj2).inv.app X = (adj2.hom_equiv _ _).symm (adj1.hom_equiv _ _ (𝟙 _)) :=
+rfl
+
+lemma right_adjoint_uniq_hom_app {F : C ⥤ D} {G G' : D ⥤ C}
+  (adj1 : F ⊣ G) (adj2 : F ⊣ G') (X) :
+  (right_adjoint_uniq adj1 adj2).hom.app X = adj2.hom_equiv _ _ ((adj1.hom_equiv _ _).symm (𝟙 _)) :=
+rfl
+
+lemma right_adjoint_uniq_inv_app {F : C ⥤ D} {G G' : D ⥤ C}
+  (adj1 : F ⊣ G) (adj2 : F ⊣ G') (X) :
+  (right_adjoint_uniq adj1 adj2).inv.app X = adj1.hom_equiv _ _ ((adj2.hom_equiv _ _).symm (𝟙 _)) :=
+rfl
+
 /--
 Given two adjunctions, if the left adjoints are naturally isomorphic, then so are the right
 adjoints.

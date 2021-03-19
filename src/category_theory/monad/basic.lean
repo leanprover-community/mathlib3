@@ -5,6 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta, Adam Topaz
 -/
 import category_theory.functor_category
 import category_theory.fully_faithful
+import category_theory.reflects_isomorphisms
 
 namespace category_theory
 open category
@@ -112,7 +113,7 @@ structure monad_hom (T₁ T₂ : monad C) extends nat_trans (T₁ : C ⥤ C) T�
 @[ext]
 structure comonad_hom (M N : comonad C) extends nat_trans (M : C ⥤ C) N :=
 (app_ε' : ∀ {X}, app X ≫ N.ε.app X = M.ε.app X . obviously)
-(app_δ' : ∀ {X}, app X ≫ N.δ.app X = M.δ.app X ≫ app (M.obj X) ≫ N.map (app X) . obviously)
+(app_δ' : ∀ {X}, app X ≫ N.δ.app X = M.δ.app X ≫ app _ ≫ (N : C ⥤ C).map (app X) . obviously)
 
 restate_axiom monad_hom.app_η'
 restate_axiom monad_hom.app_μ'
@@ -191,6 +192,79 @@ An isomorphism of comonads gives a natural isomorphism of the underlying functor
 @[simps {rhs_md := semireducible}]
 def comonad_iso.to_nat_iso {M N : comonad C} (h : M ≅ N) : (M : C ⥤ C) ≅ N :=
 (comonad_to_functor C).map_iso h
+
+@[simps hom_to_nat_trans {rhs_md := semireducible}]
+def monad_iso.mk {M N : monad C} (h : (M : C ⥤ C) ≅ N)
+  (app_η : ∀ ⦃X⦄, M.η.app X ≫ h.hom.app X = N.η.app X)
+  (app_μ : ∀ ⦃X⦄, M.μ.app X ≫ h.hom.app X =
+                    ((M : C ⥤ C).map (h.hom.app X) ≫ h.hom.app ((N : C ⥤ C).obj X)) ≫ N.μ.app X) :
+M ≅ N :=
+{ hom := { to_nat_trans := _ },
+  inv :=
+  { to_nat_trans := h.inv,
+    app_η' := λ X, by { simp [←app_η] },
+    app_μ' := λ X, by
+        rw [←is_iso.eq_comp_inv, ←nat_iso.is_iso_inv_app, is_iso.iso.inv_inv, assoc, assoc, app_μ,
+          assoc, nat_trans.naturality_assoc, ← functor.map_comp_assoc, iso.inv_hom_id_app,
+          functor.map_id, id_comp, iso.inv_hom_id_app_assoc] } }
+
+@[simp] lemma monad_iso.mk_inv_to_nat_trans {M N : monad C} (h : (M : C ⥤ C) ≅ N)
+  (app_η : ∀ ⦃X⦄, M.η.app X ≫ h.hom.app X = N.η.app X)
+  (app_μ : ∀ ⦃X⦄, M.μ.app X ≫ h.hom.app X =
+                    ((M : C ⥤ C).map (h.hom.app X) ≫ h.hom.app ((N : C ⥤ C).obj X)) ≫ N.μ.app X) :
+  (monad_iso.mk h app_η app_μ).inv.to_nat_trans = h.inv :=
+rfl
+
+@[simp] lemma monad_iso.mk_to_nat_iso {M N : monad C} (h : (M : C ⥤ C) ≅ N)
+  (app_η : ∀ ⦃X⦄, M.η.app X ≫ h.hom.app X = N.η.app X)
+  (app_μ : ∀ ⦃X⦄, M.μ.app X ≫ h.hom.app X =
+                    ((M : C ⥤ C).map (h.hom.app X) ≫ h.hom.app ((N : C ⥤ C).obj X)) ≫ N.μ.app X) :
+  monad_iso.to_nat_iso (monad_iso.mk h app_η app_μ) = h :=
+by { ext, refl }
+
+instance : reflects_isomorphisms (monad_to_functor C) :=
+{ reflects :=
+  λ M N f i,
+    by exactI is_iso.of_iso
+      (monad_iso.mk (as_iso ((monad_to_functor C).map f)) (λ _, f.app_η) (λ _, f.app_μ)) }
+
+@[simps hom_to_nat_trans {rhs_md := semireducible}]
+def comonad_iso.mk {M N : comonad C} (h : (M : C ⥤ C) ≅ N)
+  (app_ε : ∀ ⦃X⦄, h.hom.app X ≫ N.ε.app X = M.ε.app X)
+  (app_δ : ∀ ⦃X⦄, h.hom.app X ≫ N.δ.app X =
+                    M.δ.app X ≫ h.hom.app ((M : C ⥤ C).obj X) ≫ (N : C ⥤ C).map (h.hom.app X)) :
+M ≅ N :=
+{ hom := { to_nat_trans := _ },
+  inv :=
+  { to_nat_trans := h.inv,
+    app_ε' := λ X, by { simp [←app_ε] },
+    app_δ' := λ X,
+      begin
+        rw [←is_iso.eq_inv_comp, ←nat_iso.is_iso_inv_app, is_iso.iso.inv_inv, ←assoc, app_δ, assoc,
+          assoc, ←nat_trans.naturality_assoc, iso.hom_inv_id_app_assoc, ←functor.map_comp,
+          h.hom_inv_id_app, functor.map_id],
+        apply (comp_id _).symm
+      end } }
+
+@[simp] lemma comonad_iso.mk_inv_to_nat_trans {M N : comonad C} (h : (M : C ⥤ C) ≅ N)
+  (app_ε : ∀ ⦃X⦄, h.hom.app X ≫ N.ε.app X = M.ε.app X)
+  (app_δ : ∀ ⦃X⦄, h.hom.app X ≫ N.δ.app X =
+                    M.δ.app X ≫ h.hom.app ((M : C ⥤ C).obj X) ≫ (N : C ⥤ C).map (h.hom.app X)) :
+  (comonad_iso.mk h app_ε app_δ).inv.to_nat_trans = h.inv :=
+rfl
+
+@[simp] lemma comonad_iso.mk_to_nat_iso {M N : monad C} (h : (M : C ⥤ C) ≅ N)
+  (app_η : ∀ ⦃X⦄, M.η.app X ≫ h.hom.app X = N.η.app X)
+  (app_μ : ∀ ⦃X⦄, M.μ.app X ≫ h.hom.app X =
+                    ((M : C ⥤ C).map (h.hom.app X) ≫ h.hom.app ((N : C ⥤ C).obj X)) ≫ N.μ.app X) :
+  monad_iso.to_nat_iso (monad_iso.mk h app_η app_μ) = h :=
+by { ext, refl }
+
+instance : reflects_isomorphisms (comonad_to_functor C) :=
+{ reflects :=
+  λ M N f i,
+    by exactI is_iso.of_iso
+      (comonad_iso.mk (as_iso ((comonad_to_functor C).map f)) (λ _, f.app_ε) (λ _, f.app_δ)) }
 
 variable (C)
 

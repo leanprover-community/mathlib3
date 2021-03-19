@@ -288,4 +288,85 @@ end
 
 end
 
+instance submodule.is_principal_bot {R M : Type*} [ring R] [add_comm_group M] [module R M] :
+  (⊥ : submodule R M).is_principal :=
+⟨⟨0, submodule.span_zero_singleton.symm⟩⟩
+
+lemma class_group.mk_eq_one_iff [is_dedekind_domain R]
+  {I : units (fractional_ideal f)} :
+  quotient_group.mk' (to_principal_ideal f).range I = 1 ↔
+    (I : submodule R f.codomain).is_principal :=
+begin
+  rw [← (quotient_group.mk' _).map_one, eq_comm, quotient_group.mk'_eq_mk'],
+  simp only [exists_prop, one_mul, exists_eq_right, to_principal_ideal_eq_iff,
+             monoid_hom.mem_range, coe_coe],
+  refine ⟨λ ⟨x, hx⟩, ⟨⟨x, by rw [← hx, coe_span_singleton]⟩⟩, _⟩,
+  unfreezingI { intros hI },
+  obtain ⟨x, hx⟩ := @submodule.is_principal.principal _ _ _ _ _ _ hI,
+  have hx' : (I : fractional_ideal f) = span_singleton x,
+  { apply subtype.coe_injective, rw [hx, coe_span_singleton] },
+  refine ⟨units.mk0 x _, _⟩,
+  { intro x_eq, apply units.ne_zero I, simp [hx', x_eq] },
+  simp [hx']
+end
+
+@[simp] lemma localization_map.to_map_mem_coe_submodule {I : ideal R} {x : R} :
+  f.to_map x ∈ f.coe_submodule I ↔ x ∈ I :=
+(localization_map.mem_coe_submodule _).trans
+  ⟨λ ⟨y, hy, y_eq⟩, by rwa ← f.injective y_eq,
+   λ hx, ⟨x, hx, rfl⟩⟩
+
+@[simp]
+lemma localization_map.coe_submodule_injective : function.injective f.coe_submodule :=
+λ I J h, submodule.ext (λ x, by simp only [← f.to_map_mem_coe_submodule, h])
+
+@[simp]
+lemma localization_map.coe_submodule_le {I : ideal R} {J : submodule R f.codomain} :
+  f.coe_submodule I ≤ J ↔ submodule.map f.lin_coe I ≤ J :=
+iff.rfl
+
+@[simp]
+lemma localization_map.coe_submodule_span_singleton (x : R) :
+  f.coe_submodule (submodule.span R {x}) = submodule.span R {f.to_map x} :=
+by rw [localization_map.coe_submodule, submodule.map_span, set.image_singleton,
+       localization_map.lin_coe_apply]
+
+@[simp]
+lemma localization_map.coe_submodule_is_principal {I : ideal R} :
+  (f.coe_submodule I).is_principal ↔ I.is_principal :=
+begin
+  split;
+    unfreezingI { intros hI };
+    obtain ⟨x, hx⟩ := @submodule.is_principal.principal _ _ _ _ _ _ hI,
+  { have x_mem : x ∈ f.coe_submodule I := hx.symm ▸ submodule.mem_span_singleton_self x,
+    obtain ⟨x, x_mem, rfl⟩ := (localization_map.mem_coe_submodule _).mp x_mem,
+    refine ⟨⟨x, localization_map.coe_submodule_injective f _⟩⟩,
+    rw [hx, localization_map.coe_submodule_span_singleton] },
+  { refine ⟨⟨f.to_map x, _⟩⟩,
+    rw [hx, f.coe_submodule_span_singleton] }
+end
+
+lemma class_group.mk0_eq_one_iff [is_dedekind_domain R]
+  {I : ideal R} (hI : I ≠ 0) :
+  class_group.mk0 f ⟨I, hI⟩ = 1 ↔ I.is_principal :=
+(class_group.mk_eq_one_iff _).trans f.coe_submodule_is_principal
+
+/-- The class number is `1` iff the ring of integers is a UFD. -/
+lemma card_class_group_eq_one_iff [is_dedekind_domain R] [fintype (class_group f)] :
+  fintype.card (class_group f) = 1 ↔ is_principal_ideal_ring R :=
+begin
+  rw fintype.card_eq_one_iff,
+  split,
+  { rintros ⟨I, hI⟩,
+    have eq_one : ∀ J : class_group f, J = 1 := λ J, trans (hI J) (hI 1).symm,
+    refine ⟨λ I, _⟩,
+    by_cases hI : I = ⊥,
+    { rw hI, exact submodule.is_principal_bot },
+    exact (class_group.mk0_eq_one_iff f hI).mp (eq_one _) },
+  { unfreezingI { intros hpid },
+    use 1,
+    rintros ⟨I⟩,
+    exact (class_group.mk_eq_one_iff f).mpr (I : fractional_ideal f).is_principal }
+end
+
 end integral_domain

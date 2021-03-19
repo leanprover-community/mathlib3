@@ -464,6 +464,12 @@ end
 
 end euclidean_domain
 
+section integral_domain
+
+variables {R K : Type*} [integral_domain R] [field K] (f : fraction_map R K)
+
+end integral_domain
+
 end class_group
 
 namespace number_field
@@ -482,6 +488,11 @@ end ring_of_integers
 
 /-- The class number of a number field is the (finite) cardinality of the class group. -/
 noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers.fraction_map K))
+
+/-- The class number of a number field is `1` iff the ring of integers is a PID. -/
+theorem class_number_eq_one_iff :
+  class_number K = 1 ↔ is_principal_ideal_ring (ring_of_integers K) :=
+card_class_group_eq_one_iff _
 
 end number_field
 
@@ -502,5 +513,10 @@ end ring_of_integers
 
 /-- The class number in a function field is the (finite) cardinality of the class group. -/
 noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers.fraction_map f F))
+
+/-- The class number of a function field is `1` iff the ring of integers is a PID. -/
+theorem class_number_eq_one_iff :
+  class_number f F = 1 ↔ is_principal_ideal_ring (ring_of_integers f F) :=
+card_class_group_eq_one_iff _
 
 end function_field_over

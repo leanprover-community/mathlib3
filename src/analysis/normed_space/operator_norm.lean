@@ -591,7 +591,7 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
 }
 
 lemma extend_unique (g : G →L[𝕜] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
-continuous_linear_map.injective_coe_fn $
+continuous_linear_map.coe_fn_injective $
   uniformly_extend_unique h_e h_dense (continuous_linear_map.ext_iff.1 H) g.continuous
 
 @[simp] lemma extend_zero : extend (0 : E →L[𝕜] F) e h_dense h_e = 0 :=

@@ -1479,6 +1479,10 @@ lemma restrict_scalars_mem (V : submodule S M) (m : M) :
   m ∈ V.restrict_scalars R ↔ m ∈ V :=
 iff.refl _
 
+/-- The elements of a restricted submodule are the same type as the elements of the original. -/
+@[simp] lemma restrict_scalars_coe_sort_eq (V : submodule S M) : ↥(V.restrict_scalars R) = V :=
+rfl
+
 variables (R S M)
 
 lemma restrict_scalars_injective :

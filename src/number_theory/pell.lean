@@ -97,10 +97,10 @@ section
 
   theorem dz_val : ↑d = az*az - 1 :=
   have 1 ≤ a*a, from asq_pos,
-  show ↑(a*a - 1) = _, by rw int.coe_nat_sub this; refl
+  show ↑(a*a - 1) = _, by rw [int.coe_nat_sub this, int.coe_nat_mul]; refl
 
-  @[simp] theorem xz_succ (n : ℕ) : xz (n+1) = xz n * az + ↑d * yz n := rfl
-  @[simp] theorem yz_succ (n : ℕ) : yz (n+1) = xz n + yz n * az := rfl
+  @[simp] theorem xz_succ (n : ℕ) : xz (n+1) = xz n * az + ↑d * yz n := by simp [xz, yz, az]
+  @[simp] theorem yz_succ (n : ℕ) : yz (n+1) = xz n + yz n * az := by simp [xz, yz, az]
 
   /-- The Pell sequence can also be viewed as an element of `ℤ√d` -/
   def pell_zd (n : ℕ) : ℤ√d := ⟨xn n, yn n⟩
@@ -112,10 +112,17 @@ section
   def is_pell : ℤ√d → Prop | ⟨x, y⟩ := x*x - d*y*y = 1
 
   theorem is_pell_nat {x y : ℕ} : is_pell ⟨x, y⟩ ↔ x*x - d*y*y = 1 :=
-  ⟨λh, int.coe_nat_inj
-    (by rw int.coe_nat_sub (int.le_of_coe_nat_le_coe_nat $ int.le.intro_sub h); exact h),
-  λh, show ((x*x : ℕ) - (d*y*y:ℕ) : ℤ) = 1,
-    by rw [← int.coe_nat_sub $ le_of_lt $ nat.lt_of_sub_eq_succ h, h]; refl⟩
+  begin
+    split,
+    { simp_rw [is_pell, int.coe_nat_mul_out],
+      intro h,
+      refine int.coe_nat_inj _,
+      rwa int.coe_nat_sub,
+      exact int.le_of_coe_nat_le_coe_nat (int.le.intro_sub h) },
+    { intro h,
+      have := le_of_lt (nat.lt_of_sub_eq_succ h),
+      simp_rw [is_pell, ←int.coe_nat_one, ←h, int.coe_nat_sub this, int.coe_nat_mul] }
+  end
 
   theorem is_pell_norm : Π {b : ℤ√d}, is_pell b ↔ b * b.conj = 1
   | ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell, mul_comm]; ring
@@ -688,10 +695,12 @@ have y < a → a + (y*y + 1) ≤ 2*a*y, begin
     ring }
 end, λk0 yak,
 lt_of_lt_of_le (int.coe_nat_lt_coe_nat_of_lt yak) $
-by rw sub_sub; apply le_sub_right_of_add_le;
-   apply int.coe_nat_le_coe_nat_of_le;
-   have y1 := nat.pow_le_pow_of_le_right ypos k0; simp at y1;
-   exact this (lt_of_le_of_lt y1 yak)
+by { rw sub_sub, apply le_sub_right_of_add_le,
+   rw [int.coe_nat_mul_out, ←int.coe_nat_one, ←int.coe_nat_add, ←int.coe_nat_add,
+       ←int.coe_nat_bit0, int.coe_nat_mul_out, int.coe_nat_mul_out],
+   apply int.coe_nat_le_coe_nat_of_le,
+   have y1 := nat.pow_le_pow_of_le_right ypos k0, simp at y1,
+   exact this (lt_of_le_of_lt y1 yak) }
 
 theorem eq_pow_of_pell {m n k} : (n^k = m ↔
 k = 0 ∧ m = 1 ∨ 0 < k ∧
@@ -777,11 +786,12 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
   have na : n ≤ a, by rw xj; exact
     le_trans (le_trans nw wj) (le_of_lt $ n_lt_xn _ _),
   have te : (t : ℤ) = 2 * ↑a * ↑n - ↑n * ↑n - 1, by
-    rw sub_sub; apply eq_sub_of_add_eq; apply (int.coe_nat_eq_coe_nat_iff _ _).2;
-    exact ta.symm,
+    { rw sub_sub, apply eq_sub_of_add_eq,
+      rw ←int.coe_nat_inj' at ta,
+      simpa using ta.symm },
   have xn a1 k ≡ yn a1 k * (a - n) + n^k [MOD t],
     by have := x_sub_y_dvd_pow a1 n k;
-       rw [← te, ← int.coe_nat_sub na] at this; exact modeq.modeq_of_dvd this,
+       rw [← te, ← int.coe_nat_sub na] at this; simpa [modeq.modeq_iff_dvd],
   have n^k % t = m % t, from
     modeq.modeq_add_cancel_left (modeq.refl _) (this.symm.trans tm),
   by rw ← te at nt;

@@ -1165,8 +1165,10 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E 
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
-instance submodule.normed_space {𝕜 : Type*} [normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : submodule 𝕜 E) : normed_space 𝕜 s :=
+instance submodule.normed_space {𝕜 𝕜' : Type*} [has_scalar 𝕜 𝕜'] [normed_field 𝕜] [ring 𝕜']
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] [semimodule 𝕜' E]
+  [is_scalar_tower 𝕜 𝕜' E] (s : submodule 𝕜' E) :
+  normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
 
 end normed_space

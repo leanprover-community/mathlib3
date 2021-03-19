@@ -647,7 +647,7 @@ pow_bit0_pos h 1
 
 variables {x y : R}
 
-@[simp] theorem sqr_abs (x : R) : abs x ^ 2 = x ^ 2 :=
+theorem sqr_abs (x : R) : abs x ^ 2 = x ^ 2 :=
 by simpa only [pow_two] using abs_mul_abs_self x
 
 theorem abs_sqr (x : R) : abs (x ^ 2) = x ^ 2 :=

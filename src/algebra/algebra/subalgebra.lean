@@ -291,7 +291,7 @@ set.image_subset_iff
 
 lemma map_injective {S₁ S₂ : subalgebra R A} (f : A →ₐ[R] B)
   (hf : function.injective f) (ih : S₁.map f = S₂.map f) : S₁ = S₂ :=
-ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ set_like.ext ih
+ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ set_like.ext_iff.mp ih
 
 lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
@@ -331,7 +331,7 @@ protected def range (φ : A →ₐ[R] B) : subalgebra R B :=
 theorem mem_range_self (φ : A →ₐ[R] B) (x : A) : φ x ∈ φ.range := φ.mem_range.2 ⟨x, rfl⟩
 
 @[simp] lemma coe_range (φ : A →ₐ[R] B) : (φ.range : set B) = set.range φ :=
-by { ext, rw [subalgebra.mem_coe, mem_range], refl }
+by { ext, rw [set_like.mem_coe, mem_range], refl }
 
 /-- Restrict the codomain of an algebra homomorphism. -/
 def cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) : A →ₐ[R] S :=
@@ -432,7 +432,8 @@ variables {R}
 
 protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
 λ s S, ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) subsemiring.subset_closure) H,
-λ H, subsemiring.closure_le.2 $ set.union_subset S.range_subset H⟩
+λ H, show subsemiring.closure (set.range (algebra_map R A) ∪ s) ≤ S,
+     from subsemiring.closure_le.2 $ set.union_subset S.range_subset H⟩
 
 /-- Galois insertion between `adjoin` and `coe`. -/
 protected def gi : galois_insertion (adjoin R : set A → subalgebra R A) coe :=
@@ -448,7 +449,7 @@ instance : inhabited (subalgebra R A) := ⟨⊥⟩
 
 theorem mem_bot {x : A} : x ∈ (⊥ : subalgebra R A) ↔ x ∈ set.range (algebra_map R A) :=
 suffices (of_id R A).range = (⊥ : subalgebra R A),
-by { rw [← this, ← subalgebra.mem_coe, alg_hom.coe_range], refl },
+by { rw [← this, ←set_like.mem_coe, alg_hom.coe_range], refl },
 le_bot_iff.mp (λ x hx, subalgebra.range_le _ ((of_id R A).coe_range ▸ hx))
 
 theorem to_submodule_bot : ((⊥ : subalgebra R A) : submodule R A) = R ∙ 1 :=
@@ -554,7 +555,7 @@ instance : unique (subalgebra R R) :=
   begin
     intro S,
     refine le_antisymm (λ r hr, _) bot_le,
-    simp only [set.mem_range, coe_bot, id.map_eq_self, exists_apply_eq_apply, default],
+    simp only [set.mem_range, mem_bot, id.map_eq_self, exists_apply_eq_apply, default],
   end
   .. algebra.subalgebra.inhabited }
 

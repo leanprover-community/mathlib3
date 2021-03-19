@@ -603,7 +603,7 @@ begin
       have hy' : ∃ (x : L), x ∈ I ∧ f x = y, { simpa [hy], },
       obtain ⟨z₂, hz₂, rfl⟩ := hy',
       obtain ⟨z₁, rfl⟩ := h x,
-      simp only [lie_hom.coe_to_linear_map, submodule.mem_coe, set.mem_image,
+      simp only [lie_hom.coe_to_linear_map, set_like.mem_coe, set.mem_image,
         lie_submodule.mem_coe_submodule, submodule.mem_carrier, submodule.map_coe],
       use ⁅z₁, z₂⁆,
       exact ⟨I.lie_mem hz₂, f.map_lie z₁ z₂⟩,

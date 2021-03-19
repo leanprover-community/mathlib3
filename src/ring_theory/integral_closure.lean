@@ -227,7 +227,7 @@ begin
   have : span S₀ (insert 1 ↑y : set A) = algebra.adjoin S₀ (↑y : set A),
   { refine le_antisymm (span_le.2 $ set.insert_subset.2
         ⟨(algebra.adjoin S₀ ↑y).one_mem, algebra.subset_adjoin⟩) (λ z hz, _),
-    rw [subalgebra.mem_to_submodule, algebra.mem_adjoin_iff] at hz, rw ← submodule.mem_coe,
+    rw [subalgebra.mem_to_submodule, algebra.mem_adjoin_iff] at hz, rw ← set_like.mem_coe,
     refine ring.closure_subset (set.union_subset (set.range_subset_iff.2 $ λ t, _)
       (λ t ht, subset_span $ or.inr ht)) hz,
     rw algebra.algebra_map_eq_smul_one,

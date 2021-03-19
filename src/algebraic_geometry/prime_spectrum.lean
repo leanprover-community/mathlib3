@@ -135,14 +135,14 @@ lemma coe_vanishing_ideal (t : set (prime_spectrum R)) :
   (vanishing_ideal t : set R) = {f : R | ∀ x : prime_spectrum R, x ∈ t → f ∈ x.as_ideal} :=
 begin
   ext f,
-  rw [vanishing_ideal, submodule.mem_coe, submodule.mem_infi],
+  rw [vanishing_ideal, set_like.mem_coe, submodule.mem_infi],
   apply forall_congr, intro x,
   rw [submodule.mem_infi],
 end
 
 lemma mem_vanishing_ideal (t : set (prime_spectrum R)) (f : R) :
   f ∈ vanishing_ideal t ↔ ∀ x : prime_spectrum R, x ∈ t → f ∈ x.as_ideal :=
-by rw [← submodule.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
+by rw [← set_like.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
 
 @[simp] lemma vanishing_ideal_singleton (x : prime_spectrum R) :
   vanishing_ideal ({x} : set (prime_spectrum R)) = x.as_ideal :=

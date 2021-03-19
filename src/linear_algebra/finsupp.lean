@@ -617,7 +617,7 @@ begin
   use s,
   simp only [mem_supr, supr_le_iff],
   assume N hN,
-  rw [finsupp.total_apply, finsupp.sum, ← submodule.mem_coe],
+  rw [finsupp.total_apply, finsupp.sum, ← set_like.mem_coe],
   apply N.sum_mem,
   assume x hx,
   apply submodule.smul_mem,

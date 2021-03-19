@@ -10,13 +10,19 @@ import order.bounded_lattice
 A Boolean algebra is a bounded distributive lattice with a complement operator. Boolean algebras
 generalize the (classical) logic of propositions and the lattice of subsets of a set.
 
-A generalized Boolean algebra less familiar, but it is essentially a Boolean algebra which does not
-necessarily have a top element (`⊤`) (and hence not all elements may have complements). It is
-defined here as a distributive lattice with bottom (`⊥`) admitting a *relative* complement operator,
-written using "set difference" notation as `x \ y`.
+Generalized Boolean algebras may be less familiar, but they are essentially Boolean algebras which
+do not necessarily have a top element (`⊤`) (and hence not all elements may have complements). One
+example in mathlib is `finset α`, the type of all finite subsets of an arbitrary
+(not-necessarily-finite) type `α`.
 
+`generalized_boolean_algebra α` is defined to be a distributive lattice with bottom (`⊥`) admitting
+a *relative* complement operator, written using "set difference" notation as `x \ y` (`sdiff x y`).
 For convenience, the `boolean_algebra` type class is defined to extend `generalized_boolean_algebra`
 so that it is also bundled with a `\` operator.
+
+(A terminological point: `x \ y` is the complement of `y` relative to the interval `[⊥, x]`. We do
+not yet have relative complements for arbitrary intervals, as we do not even have lattice
+intervals.)
 
 ## Main declarations
 
@@ -28,15 +34,31 @@ so that it is also bundled with a `\` operator.
   obtained from one of `boolean_algebra.core` using `boolean_algebra.of_core`.
 * `boolean_algebra_Prop`: the Boolean algebra instance on `Prop`
 
+## Implementation notes
+
+The `sup_inf_sdiff` and `inf_inf_sdiff` axioms for the relative complement operator in
+`generalized_boolean_algebra` are taken from
+[Wikipedia](https://en.wikipedia.org/wiki/Boolean_algebra_(structure)#Generalizations).
+
+[Stone's paper introducing generalized Boolean algebras][Stone1935] does not define a relative
+complement operator `a \ b` for all `a`, `b`. Instead, the postulates there amount to an assumption
+that for all `a, b : α` where `a ≤ b`, the equations `x ⊔ a = b` and `x ⊓ a = ⊥` have a solution
+`x`. `disjoint.sdiff_unique` proves that this `x` is in fact `b \ a`.
+
 ## Notations
 
 * `xᶜ` is notation for `compl x`
 * `x \ y` is notation for `sdiff x y`.
 
+## References
+
+* <https://en.wikipedia.org/wiki/Boolean_algebra_(structure)#Generalizations>
+* [*Postulates for Boolean Algebras and Generalized Boolean Algebras*, M.H. Stone][Stone1935]
+* [*Lattice Theory: Foundation*, George Grätzer][Gratzer2011]
+
 ## Tags
 
 generalized Boolean algebras, Boolean algebras, lattices, sdiff, compl
-
 -/
 set_option old_structure_cmd true
 
@@ -46,18 +68,22 @@ variables {α : Type u} {w x y z : α}
 /-!
 ### Generalized Boolean algebras
 
-Sectionally complemented
+Some of the lemmas in this section are from:
+
+* [*Lattice Theory: Foundation*, George Grätzer][Gratzer2011]
+* <https://ncatlab.org/nlab/show/relative+complement>
+* <https://people.math.gatech.edu/~mccuan/courses/4317/symmetricdifference.pdf>
+
 -/
 
 export has_sdiff (sdiff)
 
-/-- A generalized Boolean algebra is a distributive lattice with `⊥`
-and a set difference operation `\` satisfying `(a ⊓ b) ⊔ (a \ b) = a`
-and `(a ⊓ b) ⊓ (a \ b) = b`, i.e. `a \ b` is the complement of `b` in
-`a`.
+/-- A generalized Boolean algebra is a distributive lattice with `⊥` and a relative complement
+operation `\` (called `sdiff`, after "set difference") satisfying `(a ⊓ b) ⊔ (a \ b) = a` and
+`(a ⊓ b) ⊓ (a \ b) = b`, i.e. `a \ b` is the complement of `b` in `a`.
 
-This is a generalization of Boolean algebras which applies to `finset α`
-for arbitrary (not-necessarily-`fintype`) `α`. -/
+This is a generalization of Boolean algebras which applies to `finset α` for arbitrary
+(not-necessarily-`fintype`) `α`. -/
 class generalized_boolean_algebra (α : Type u) extends semilattice_sup_bot α, semilattice_inf_bot α,
   distrib_lattice α, has_sdiff α :=
 (sup_inf_sdiff : ∀a b:α, (a ⊓ b) ⊔ (a \ b) = a)
@@ -134,9 +160,6 @@ by rw [sup_comm, sup_sdiff_self_right, sup_comm]
 lemma sup_sdiff_symm : x ⊔ (y \ x) = y ⊔ (x \ y) :=
 by rw [sup_sdiff_self_right, sup_sdiff_self_right, sup_comm]
 
-/--
-Grätzer 2011, I.6.1
--/
 lemma sup_sdiff_of_le (h : x ≤ y) : x ⊔ (y \ x) = y :=
 by conv_rhs { rw [←sup_inf_sdiff y x, inf_eq_right.2 h] }
 
@@ -157,9 +180,6 @@ eq.symm $
 
 lemma disjoint_sdiff_sdiff : disjoint (x \ y) (y \ x) := sdiff_inf_sdiff.le
 
-/--
-Cf. <https://ncatlab.org/nlab/show/relative+complement>
--/
 theorem le_sup_sdiff : y ≤ x ⊔ (y \ x) :=
 by { rw [sup_sdiff_self_right], exact le_sup_right }
 
@@ -174,14 +194,9 @@ calc x ⊓ (y \ x) = ((x ⊓ y) ⊔ (x \ y)) ⊓ (y \ x)         : by rw sup_inf
 
 theorem disjoint_sdiff : disjoint x (y \ x) := inf_sdiff_self_right.le
 
-/-- <https://en.wikipedia.org/wiki/Boolean_algebra_(structure)#Generalizations> -/
-theorem exist_rel_complements (h : x ≤ y) : ∃ z, x ⊓ z = ⊥ ∧ x ⊔ z = y :=
-⟨y \ x, ⟨inf_sdiff_self_right, sup_sdiff_of_le h⟩⟩
-
-/-- <https://en.wikipedia.org/wiki/Boolean_algebra_(structure)#Generalizations>
-
-Could potentially make an alternative constructor with this as an axiom if we had a typeclasses for
-distributive lattices with bot? -/
+/- TODO: if we had a typeclass for distributive lattices with `⊥`, we could make an alternative
+constructor for `generalized_boolean_algebra` using `disjoint x (y \ x)` and `x ⊔ (y \ x) = y` as
+axioms. -/
 theorem disjoint.sdiff_eq_of_sup_eq (hi : disjoint x z) (hs : x ⊔ z = y) : y \ x = z :=
 have h : y ⊓ x = x := inf_eq_right.2 $ le_sup_left.trans hs.le,
 sdiff_unique (by rw [h, hs]) (by rw [h, hi.eq_bot])
@@ -191,7 +206,6 @@ h.sdiff_eq_of_sup_eq rfl
 lemma disjoint.sup_sdiff_cancel_right (h : disjoint x y) : (x ⊔ y) \ y = x :=
 h.symm.sdiff_eq_of_sup_eq sup_comm
 
-/-- Cf. <https://ncatlab.org/nlab/show/relative+complement> -/
 protected theorem disjoint.sdiff_unique (hd : disjoint x z) (hz : z ≤ y) (hs : y ≤ x ⊔ z) :
   y \ x = z :=
 sdiff_unique
@@ -315,7 +329,6 @@ le_of_inf_le_sup_le
                     ... ≤ w                 : by rw [sup_comm, sup_inf_sdiff]
                     ... = (w \ z) ⊔ (w ⊓ z) : by rw [sup_comm, sup_inf_sdiff])
 
--- lemma diff_subset_iff {s t u : set α} : s \ t ⊆ u ↔ s ⊆ t ∪ u :=
 lemma sdiff_le_iff : y \ x ≤ z ↔ y ≤ x ⊔ z :=
 ⟨λ h, le_of_inf_le_sup_le
   (le_of_eq
@@ -337,7 +350,6 @@ lemma sdiff_le_iff : y \ x ≤ z ↔ y ≤ x ⊔ z :=
 lemma sdiff_eq_bot_iff : y \ x = ⊥ ↔ y ≤ x :=
 by rw [←le_bot_iff, sdiff_le_iff, sup_bot_eq]
 
--- lemma diff_subset_comm {s t u : set α} : s \ t ⊆ u ↔ s \ u ⊆ t :=
 lemma sdiff_le_comm : x \ y ≤ z ↔ x \ z ≤ y :=
 by rw [sdiff_le_iff, sup_comm, sdiff_le_iff]
 
@@ -373,13 +385,24 @@ lemma sdiff_sdiff_right : x \ (y \ z) = (x \ y) ⊔ (x ⊓ y ⊓ z) :=
 begin
   rw [sup_comm, inf_comm, ←inf_assoc, sup_inf_inf_sdiff],
   apply sdiff_unique,
-  { rw [sup_inf_right, ←sup_assoc, @inf_comm _ _ z, sup_inf_self, sup_sdiff_left, ←sup_assoc,
-      sup_inf_left, sup_sdiff_self_left, inf_sup_right, @sup_comm _ _ y, inf_sdiff_sup_right,
-      @inf_sup_left _ _ x z y, sup_assoc, sup_assoc, sup_inf_sdiff, @sup_comm _ _ (x ⊓ z),
-      sup_inf_self, sup_comm, inf_sup_self], },
-  { rw [inf_sup_left, inf_assoc, ←@inf_assoc _ _ (y \ z), inf_sdiff_self_left, bot_inf_eq,
-      inf_bot_eq, bot_sup_eq, ←inf_sdiff_left, inf_assoc, inf_assoc, inf_sdiff_self_right,
-      inf_bot_eq, inf_bot_eq], }
+  { calc x ⊓ (y \ z) ⊔ (z ⊓ x ⊔ x \ y) =
+          (x ⊔ (z ⊓ x ⊔ x \ y)) ⊓ (y \ z ⊔ (z ⊓ x ⊔ x \ y)) : by rw sup_inf_right
+    ... = (x ⊔ x ⊓ z ⊔ x \ y) ⊓ (y \ z ⊔ (x ⊓ z ⊔ x \ y))   : by ac_refl
+    ... = x ⊓ (y \ z ⊔ x ⊓ z ⊔ x \ y)             : by rw [sup_inf_self, sup_sdiff_left, ←sup_assoc]
+    ... = x ⊓ (y \ z ⊓ (z ⊔ y) ⊔ x ⊓ (z ⊔ y) ⊔ x \ y) :
+                           by rw [sup_inf_left, sup_sdiff_self_left, inf_sup_right, @sup_comm _ _ y]
+    ... = x ⊓ (y \ z ⊔ (x ⊓ z ⊔ x ⊓ y) ⊔ x \ y) :
+                                                by rw [inf_sdiff_sup_right, @inf_sup_left _ _ x z y]
+    ... = x ⊓ (y \ z ⊔ (x ⊓ z ⊔ (x ⊓ y ⊔ x \ y)))           : by ac_refl
+    ... = x ⊓ (y \ z ⊔ (x ⊔ x ⊓ z))                   : by rw [sup_inf_sdiff, @sup_comm _ _ (x ⊓ z)]
+    ... = x                                        : by rw [sup_inf_self, sup_comm, inf_sup_self] },
+  { calc x ⊓ (y \ z) ⊓ (z ⊓ x ⊔ x \ y) =
+          x ⊓ (y \ z) ⊓ (z ⊓ x) ⊔ x ⊓ (y \ z) ⊓ (x \ y) : by rw inf_sup_left
+    ... = x ⊓ (y \ z ⊓ z ⊓ x) ⊔ x ⊓ (y \ z) ⊓ (x \ y)   : by ac_refl
+    ... = x ⊓ (y \ z) ⊓ (x \ y) :    by rw [inf_sdiff_self_left, bot_inf_eq, inf_bot_eq, bot_sup_eq]
+    ... = x ⊓ (y \ z ⊓ y) ⊓ (x \ y)                     : by conv_lhs { rw ←inf_sdiff_left }
+    ... = x ⊓ (y \ z ⊓ (y ⊓ (x \ y)))                   : by ac_refl
+    ... = ⊥                                 : by rw [inf_sdiff_self_right, inf_bot_eq, inf_bot_eq] }
 end
 
 lemma sdiff_sdiff_right' : x \ (y \ z) = (x \ y) ⊔ (x ⊓ z) :=
@@ -410,18 +433,21 @@ by rw [sdiff_sdiff_left, sup_comm, sdiff_sdiff_left]
 @[simp] lemma sdiff_idem : x \ y \ y = x \ y := by rw [sdiff_sdiff_left, sup_idem]
 
 lemma sdiff_sdiff_sup_sdiff : z \ (x \ y ⊔ y \ x) = z ⊓ (z \ x ⊔ y) ⊓ (z \ y ⊔ x) :=
-begin
-  rw [sdiff_sup, sdiff_sdiff_right, sdiff_sdiff_right,
-    sup_inf_left, sup_comm, sup_inf_sdiff,
-    sup_inf_left,  @sup_comm _ _ (z \ y), sup_inf_sdiff,
-    inf_assoc, ←@inf_assoc _ _ (z \ x ⊔ y), @inf_comm _ _ _ z, ←inf_assoc, ←inf_assoc, inf_idem],
-end
+calc z \ (x \ y ⊔ y \ x) = (z \ x ⊔ z ⊓ x ⊓ y) ⊓ (z \ y ⊔ z ⊓ y ⊓ x) :
+                                             by rw [sdiff_sup, sdiff_sdiff_right, sdiff_sdiff_right]
+... = z ⊓ (z \ x ⊔ y) ⊓ (z \ y ⊔ z ⊓ y ⊓ x) : by rw [sup_inf_left, sup_comm, sup_inf_sdiff]
+... = z ⊓ (z \ x ⊔ y) ⊓ (z ⊓ (z \ y ⊔ x)) :
+                                          by rw [sup_inf_left, @sup_comm _ _ (z \ y), sup_inf_sdiff]
+... = z ⊓ z ⊓ (z \ x ⊔ y) ⊓ (z \ y ⊔ x)     : by ac_refl
+... = z ⊓ (z \ x ⊔ y) ⊓ (z \ y ⊔ x)         : by rw inf_idem
 
-lemma sdiff_sdiff_sup_sdiff' : z \ (x \ y ⊔ y \ x) = z ⊓ x ⊓ y ⊔ ((z \ x) ⊓ (z \ y)):=
-begin
-  rw [sdiff_sup, sdiff_sdiff_right, sdiff_sdiff_right, inf_assoc, @inf_comm _ _ x, ←inf_assoc,
-    ←sup_inf_right, sup_comm],
-end
+lemma sdiff_sdiff_sup_sdiff' : z \ (x \ y ⊔ y \ x) = z ⊓ x ⊓ y ⊔ ((z \ x) ⊓ (z \ y)) :=
+calc z \ (x \ y ⊔ y \ x) =
+      z \ (x \ y) ⊓ (z \ (y \ x))               : sdiff_sup
+... = (z \ x ⊔ z ⊓ x ⊓ y) ⊓ (z \ y ⊔ z ⊓ y ⊓ x) : by rw [sdiff_sdiff_right, sdiff_sdiff_right]
+... = (z \ x ⊔ z ⊓ y ⊓ x) ⊓ (z \ y ⊔ z ⊓ y ⊓ x) : by ac_refl
+... = (z \ x) ⊓ (z \ y) ⊔ z ⊓ y ⊓ x             : sup_inf_right.symm
+... = z ⊓ x ⊓ y ⊔ ((z \ x) ⊓ (z \ y))           : by ac_refl
 
 lemma sup_sdiff : (x ⊔ y) \ z = (x \ z) ⊔ (y \ z) :=
 sdiff_unique
@@ -460,7 +486,6 @@ sdiff_unique
         x ⊓ y ⊓ (z ⊓ (x \ z)) ⊓ (y \ z) : by ac_refl
   ... = ⊥                               : by rw [inf_sdiff_self_right, inf_bot_eq, bot_inf_eq])
 
--- theorem inter_diff_assoc (a b c : set α) : (a ∩ b) \ c = a ∩ (b \ c) :=
 lemma inf_sdiff_assoc : (x ⊓ y) \ z = x ⊓ (y \ z) :=
 sdiff_unique
   (calc x ⊓ y ⊓ z ⊔ x ⊓ (y \ z) = x ⊓ (y ⊓ z) ⊔ x ⊓ (y \ z) : by rw inf_assoc
@@ -468,6 +493,14 @@ sdiff_unique
                             ... = x ⊓ y                     : by rw sup_inf_sdiff)
   (calc x ⊓ y ⊓ z ⊓ (x ⊓ (y \ z)) = x ⊓ x ⊓ ((y ⊓ z) ⊓ (y \ z)) : by ac_refl
                               ... = ⊥                           : by rw [inf_inf_sdiff, inf_bot_eq])
+
+lemma sup_eq_sdiff_sup_sdiff_sup_inf : x ⊔ y = (x \ y) ⊔ (y \ x) ⊔ (x ⊓ y) :=
+eq.symm $
+  calc (x \ y) ⊔ (y \ x) ⊔ (x ⊓ y) =
+        ((x \ y) ⊔ (y \ x) ⊔ x) ⊓ ((x \ y) ⊔ (y \ x) ⊔ y)   : by rw sup_inf_left
+  ... = ((x \ y) ⊔ x ⊔ (y \ x)) ⊓ ((x \ y) ⊔ ((y \ x) ⊔ y)) : by ac_refl
+  ... = (x ⊔ (y \ x)) ⊓ ((x \ y) ⊔ y)                     : by rw [sup_sdiff_right, sup_sdiff_right]
+  ... = x ⊔ y                          : by rw [sup_sdiff_self_right, sup_sdiff_self_left, inf_idem]
 
 instance pi.generalized_boolean_algebra {α : Type u} {β : Type v} [generalized_boolean_algebra β] :
   generalized_boolean_algebra (α → β) :=

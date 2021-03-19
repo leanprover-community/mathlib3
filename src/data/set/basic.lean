@@ -990,6 +990,10 @@ lemma mem_diff_singleton_empty {s : set α} {t : set (set α)} :
   s ∈ t \ {∅} ↔ (s ∈ t ∧ s.nonempty) :=
 mem_diff_singleton.trans $ and_congr iff.rfl ne_empty_iff_nonempty
 
+lemma union_eq_sdiff_union_sdiff_union_inter (s t : set α) :
+  s ∪ t = (s \ t) ∪ (t \ s) ∪ (s ∩ t) :=
+sup_eq_sdiff_sup_sdiff_sup_inf
+
 /-! ### Powerset -/
 
 theorem mem_powerset {x s : set α} (h : x ⊆ s) : x ∈ powerset s := h

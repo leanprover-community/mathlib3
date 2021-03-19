@@ -1029,6 +1029,10 @@ sdiff_sdiff_right_self
 lemma sdiff_eq_sdiff_iff_inter_eq_inter {s t₁ t₂ : finset α} : s \ t₁ = s \ t₂ ↔ s ∩ t₁ = s ∩ t₂ :=
 sdiff_eq_sdiff_iff_inf_eq_inf
 
+lemma union_eq_sdiff_union_sdiff_union_inter (s t : finset α) :
+  s ∪ t = (s \ t) ∪ (t \ s) ∪ (s ∩ t) :=
+sup_eq_sdiff_sup_sdiff_sup_inf
+
 end decidable_eq
 
 /-! ### attach -/

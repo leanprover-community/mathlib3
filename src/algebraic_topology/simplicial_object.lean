@@ -14,7 +14,7 @@ import category_theory.adjunction.limits
 
 A simplicial object in a category `C` is a `C`-valued presheaf on `simplex_category`.
 
-Use the notation `X _[n]` in the `simplicial` locacle to obtain the `n`-th term of a
+Use the notation `X _[n]` in the `simplicial` locale to obtain the `n`-th term of a
 simplicial object `X`, where `n` is a natural number.
 
 -/
@@ -36,7 +36,6 @@ def simplicial_object := simplex_category.{v}ᵒᵖ ⥤ C
 
 namespace simplicial_object
 
--- TODO: find a sensible value for `1000`.
 localized
   "notation X `_[`:1000 n `]` :=
     (X : simplicial_object _).obj (opposite.op (simplex_category.mk n))"

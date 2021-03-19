@@ -45,7 +45,7 @@ namespace sSet
 is the Yoneda embedding of `n`. -/
 def standard_simplex : simplex_category ⥤ sSet := yoneda
 
-localized "notation `Δ[`n`]` := standard_simplex.obj (simplex_category.mk n)" in sSet
+localized "notation `Δ[`n`]` := standard_simplex.obj (simplex_category.mk n)" in simplicial
 
 instance : inhabited sSet := ⟨Δ[0]⟩
 
@@ -65,7 +65,7 @@ def boundary (n : ℕ) : sSet :=
   map := λ m₁ m₂ f α, ⟨f.unop ≫ (α : Δ[n].obj m₁),
   by { intro h, apply α.property, exact function.surjective.of_comp h }⟩ }
 
-localized "notation `∂Δ[`n`]` := boundary n" in sSet
+localized "notation `∂Δ[`n`]` := boundary n" in simplicial
 
 /-- The inclusion of the boundary of the `n`-th standard simplex into that standard simplex. -/
 def boundary_inclusion (n : ℕ) :
@@ -88,7 +88,7 @@ def horn (n : ℕ) (i : fin (n+1)) : sSet :=
     exact set.range_comp_subset_range _ _ hj,
   end⟩ }
 
-localized "notation `Λ[`n`, `i`]` := horn (n : ℕ) i" in sSet
+localized "notation `Λ[`n`, `i`]` := horn (n : ℕ) i" in simplicial
 
 /-- The inclusion of the `i`-th horn of the `n`-th standard simplex into that standard simplex. -/
 def horn_inclusion (n : ℕ) (i : fin (n+1)) :
@@ -97,7 +97,7 @@ def horn_inclusion (n : ℕ) (i : fin (n+1)) :
 
 section examples
 
-open_locale sSet
+open_locale simplicial
 
 /-- The simplicial circle. -/
 noncomputable def S1 : sSet :=

@@ -152,7 +152,7 @@ theorem splits_mul_iff {f g : polynomial K} (hf : f ≠ 0) (hg : g ≠ 0) :
   (f * g).splits i ↔ f.splits i ∧ g.splits i :=
 ⟨splits_of_splits_mul i (mul_ne_zero hf hg), λ ⟨hfs, hgs⟩, splits_mul i hfs hgs⟩
 
-theorem splits_prod {ι : Type w} {s : ι → polynomial K} {t : finset ι} :
+theorem splits_prod {ι : Type u} {s : ι → polynomial K} {t : finset ι} :
   (∀ j ∈ t, (s j).splits i) → (∏ x in t, s x).splits i :=
 begin
   refine finset.induction_on t (λ _, splits_one i) (λ a t hat ih ht, _),
@@ -168,7 +168,7 @@ end
 
 lemma splits_X_pow (n : ℕ) : (X ^ n).splits i := splits_pow i (splits_X i) n
 
-theorem splits_prod_iff {ι : Type w} {s : ι → polynomial K} {t : finset ι} :
+theorem splits_prod_iff {ι : Type u} {s : ι → polynomial K} {t : finset ι} :
   (∀ j ∈ t, s j ≠ 0) → ((∏ x in t, s x).splits i ↔ ∀ j ∈ t, (s j).splits i) :=
 begin
   refine finset.induction_on t (λ _, ⟨λ _ _ h, h.elim, λ _, splits_one i⟩) (λ a t hat ih ht, _),

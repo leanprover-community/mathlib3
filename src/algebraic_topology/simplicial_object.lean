@@ -139,6 +139,13 @@ def sk (n : ℕ) : simplicial_object C ⥤ simplicial_object.truncated C n :=
 
 end skeleton
 
+section coskeleton
+
+def cosk_diagram {n} (a : simplex_category.{v}) : truncated C n ⥤ (a.trunc n)ᵒᵖ ⥤ C :=
+(whiskering_left _ _ _).obj simplex_category.trunc.forget.op
+
+end coskeleton
+
 end simplicial_object
 
 end category_theory

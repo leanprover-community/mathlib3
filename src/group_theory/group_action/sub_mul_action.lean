@@ -47,7 +47,8 @@ variables [has_scalar R M]
 instance : set_like (sub_mul_action R M) M :=
 ⟨sub_mul_action.carrier, λ p q h, by cases p; cases q; congr'⟩
 
-@[simp] lemma mem_carrier {p : sub_mul_action R M} {x : M} : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
+@[simp] lemma mem_carrier {p : sub_mul_action R M} {x : M} : x ∈ p.carrier ↔ x ∈ (p : set M) :=
+iff.rfl
 
 @[ext] theorem ext {p q : sub_mul_action R M} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
@@ -60,8 +61,6 @@ section has_scalar
 variables [has_scalar R M]
 variables (p : sub_mul_action R M)
 variables {r : R} {x : M}
-
-@[simp] theorem mem_coe : x ∈ (p : set M) ↔ x ∈ p := iff.rfl
 
 lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
 

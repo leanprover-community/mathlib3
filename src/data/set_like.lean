@@ -75,7 +75,9 @@ theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := coe_injective $ set.ext 
 
 theorem ext_iff : p = q ↔ (∀ x, x ∈ p ↔ x ∈ q) := coe_injective.eq_iff.symm.trans set.ext_iff
 
+variables (p)
 @[simp] theorem mem_coe {x : B} : x ∈ (p : set B) ↔ x ∈ p := iff.rfl
+variables {p}
 
 @[simp, norm_cast] lemma coe_eq_coe {x y : p} : (x : B) = y ↔ x = y := subtype.ext_iff_val.symm
 

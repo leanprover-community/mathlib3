@@ -16,6 +16,12 @@ measure such that `μ d δ s ≤ (emetric.diam s) ^ d` for every set of diameter
 the Hausdorff measure `μH[d] s` of `s` is defined as `⨆ δ > 0, μ d δ s`. By Caratheodory theorem
 `measure_theory.outer_measure.is_metric.borel_le_caratheodory`, this is a Borel measure on `X`.
 
+The value of `μH[d]`, `d > 0`, on a set `s` (measurable or not) is given by
+```
+μH[d] s = ⨆ (r : ℝ≥0∞) (hr : 0 < r), ⨅ (t : ℕ → set X) (hts : s ⊆ ⋃ n, t n)
+    (ht : ∀ n, emetric.diam (t n) ≤ r), ∑' n, emetric.diam (t n) ^ d
+```
+
 For every set `s` for any `d < d'` we have either `μH[d] s = ∞` or `μH[d'] s = 0`, see
 `measure_theory.measure.hausdorff_measure_zero_or_top`. The Hausdorff dimension `dimH s : ℝ≥0∞` of a
 set `s` is the supremum of `d : ℝ≥0` such that `μH[d] s = ∞`. Then `μH[d] s = ∞` for `d < dimH s`
@@ -47,6 +53,10 @@ There are a few similar constructions called the `d`-dimensional Hausdorff measu
 sources only allow coverings by balls and use `r ^ d` instead of `(diam s) ^ d`. While these
 construction lead to different Hausdorff measures, they lead to the same notion of the Hausdorff
 dimension.
+
+## References
+
+* [Herbert Federer, Geometric Measure Theory, Chapter 2.10][Federer1996]
 
 ## Tags
 

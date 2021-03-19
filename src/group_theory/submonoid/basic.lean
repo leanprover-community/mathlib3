@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 Amelia Livingston, Yury Kudryashov
 -/
 import data.set.lattice
+import data.set_like
 
 /-!
 # Submonoids: definition and `complete_lattice` structure
@@ -68,50 +69,16 @@ attribute [to_additive] submonoid
 namespace submonoid
 
 @[to_additive]
-instance : has_coe (submonoid M) (set M) := ⟨submonoid.carrier⟩
-
-
-@[to_additive]
-instance : has_mem M (submonoid M) := ⟨λ m S, m ∈ (S:set M)⟩
-
-@[to_additive]
-instance : has_coe_to_sort (submonoid M) := ⟨Type*, λ S, {x : M // x ∈ S}⟩
+instance : set_like (submonoid M) M :=
+⟨submonoid.carrier, λ p q h, by cases p; cases q; congr'⟩
 
 @[simp, to_additive]
 lemma mem_carrier {s : submonoid M} {x : M} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
-@[simp, norm_cast, to_additive]
-lemma mem_coe {S : submonoid M} {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
-
-@[simp, norm_cast, to_additive]
-lemma coe_coe (s : submonoid M) : ↥(s : set M) = s := rfl
-
-attribute [norm_cast] add_submonoid.mem_coe add_submonoid.coe_coe
-
-@[to_additive]
-protected lemma «exists» {s : submonoid M} {p : s → Prop} :
-  (∃ x : s, p x) ↔ ∃ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
-set_coe.exists
-
-@[to_additive]
-protected lemma «forall» {s : submonoid M} {p : s → Prop} :
-  (∀ x : s, p x) ↔ ∀ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
-set_coe.forall
-
-/-- Two submonoids are equal if the underlying subsets are equal. -/
-@[to_additive "Two `add_submonoid`s are equal if the underlying subsets are equal."]
-theorem ext' ⦃S T : submonoid M⦄ (h : (S : set M) = T) : S = T :=
-by cases S; cases T; congr'
-
-/-- Two submonoids are equal if and only if the underlying subsets are equal. -/
-@[to_additive "Two `add_submonoid`s are equal if and only if the underlying subsets are equal."]
-protected theorem ext'_iff {S T : submonoid M}  : S = T ↔ (S : set M) = T :=
-⟨λ h, h ▸ rfl, λ h, ext' h⟩
-
 /-- Two submonoids are equal if they have the same elements. -/
 @[ext, to_additive "Two `add_submonoid`s are equal if they have the same elements."]
 theorem ext {S T : submonoid M}
-  (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
+  (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
 attribute [ext] add_submonoid.ext
 
@@ -127,7 +94,8 @@ variable {S : submonoid M}
 @[simp, to_additive] lemma coe_copy {s : set M} (hs : s = S) :
   (S.copy s hs : set M) = s := rfl
 
-@[to_additive] lemma copy_eq {s : set M} (hs : s = S) : S.copy s hs = S := ext' hs
+@[to_additive] lemma copy_eq {s : set M} (hs : s = S) : S.copy s hs = S :=
+set_like.coe_injective hs
 
 variable (S)
 
@@ -138,30 +106,6 @@ theorem one_mem : (1 : M) ∈ S := S.one_mem'
 /-- A submonoid is closed under multiplication. -/
 @[to_additive "An `add_submonoid` is closed under addition."]
 theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := submonoid.mul_mem' S
-
-@[to_additive] lemma coe_injective : function.injective (coe : S → M) := subtype.val_injective
-
-@[simp, to_additive] lemma coe_eq_coe (x y : S) : (x : M) = y ↔ x = y := set_coe.ext_iff
-attribute [norm_cast] coe_eq_coe add_submonoid.coe_eq_coe
-
-@[to_additive]
-instance : has_le (submonoid M) := ⟨λ S T, ∀ ⦃x⦄, x ∈ S → x ∈ T⟩
-
-@[to_additive]
-lemma le_def {S T : submonoid M} : S ≤ T ↔ ∀ ⦃x : M⦄, x ∈ S → x ∈ T := iff.rfl
-
-@[simp, norm_cast, to_additive]
-lemma coe_subset_coe {S T : submonoid M} : (S : set M) ⊆ T ↔ S ≤ T := iff.rfl
-
-@[to_additive]
-instance : partial_order (submonoid M) :=
-{ le := λ S T, ∀ ⦃x⦄, x ∈ S → x ∈ T,
-  .. partial_order.lift (coe : submonoid M → set M) ext' }
-
-@[simp, norm_cast, to_additive]
-lemma coe_ssubset_coe {S T : submonoid M} : (S : set M) ⊂ T ↔ S < T := iff.rfl
-
-attribute [norm_cast]  add_submonoid.coe_subset_coe add_submonoid.coe_ssubset_coe
 
 /-- The submonoid `M` of the monoid `M`. -/
 @[to_additive "The additive submonoid `M` of the `add_monoid M`."]
@@ -244,7 +188,7 @@ instance : complete_lattice (submonoid M) :=
   inf_le_left  := λ a b x, and.left,
   inf_le_right := λ a b x, and.right,
   .. complete_lattice_of_Inf (submonoid M) $ λ s,
-    is_glb.of_image (λ S T, show (S : set M) ≤ T ↔ S ≤ T, from coe_subset_coe) is_glb_binfi }
+    is_glb.of_image (λ S T, show (S : set M) ≤ T ↔ S ≤ T, from set_like.coe_subset_coe) is_glb_binfi }
 
 @[to_additive]
 lemma subsingleton_iff : subsingleton M ↔ subsingleton (submonoid M) :=

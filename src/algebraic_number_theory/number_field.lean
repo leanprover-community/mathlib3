@@ -60,7 +60,8 @@ instance char_zero_of_number_field : char_zero K := is_number_field.cz
 
 lemma finite_dimensional_of_number_field : finite_dimensional ℚ K := is_number_field.fd
 
-instance algebra_of_number_field : algebra ℚ K := rat.algebra_rat
+-- Don't need to make this an instance, since `char_zero` implies it already.
+def algebra_of_number_field : algebra ℚ K := rat.algebra_rat
 
 lemma is_algebraic_of_number_field : algebra.is_algebraic ℚ K :=
   @algebra.is_algebraic_of_finite ℚ K _ _ _ (finite_dimensional_of_number_field K)

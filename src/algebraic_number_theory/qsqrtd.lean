@@ -123,17 +123,57 @@ namespace qsqrtd
 
 variables (d : ℤ) [fact (squarefree d)] [fact (¬ is_unit d)]
 
+noncomputable def root : ℚ√ d := adjoin_root.root _
+
+@[simp] lemma adjoin_root_root_eq : adjoin_root.root _ = qsqrtd.root d := rfl
+
+noncomputable instance : comm_ring (ℚ√ d) :=
+adjoin_root.comm_ring _
+
 noncomputable instance : field (ℚ√ d) :=
-adjoin_root.field
+{ .. qsqrtd.comm_ring d, .. adjoin_root.field }
 
 instance : char_zero (ℚ√ d) :=
 adjoin_root.char_zero _ (degree_pos_of_irreducible (x_sq_sub_d_irreducible d))
 
+/-- If `b` and `b'` are the same family of vectors, indexed differently,
+`b` is a basis iff `b'` is. -/
+lemma is_basis.equiv' {R M ι ι' : Type*} [ring R] [add_comm_group M] [module R M]
+  (e : ι' ≃ ι) {b : ι → M} {b' : ι' → M} (h : b ∘ e = b') :
+  is_basis R b' ↔ is_basis R b :=
+and_congr
+  (linear_independent_equiv' e h)
+  (by rw [← h, set.range_comp, e.range_eq_univ, set.image_univ])
+
+/-- If `e` is an equiv, `b` is a basis iff `b ∘ e` is. -/
+lemma is_basis.equiv {R M ι ι' : Type*} [ring R] [add_comm_group M] [module R M]
+  (e : ι' ≃ ι) {b : ι → M} :
+  is_basis R (b ∘ e) ↔ is_basis R b :=
+is_basis.equiv' e rfl
+
+protected noncomputable def power_basis : power_basis ℚ (ℚ√ d) :=
+{ gen := root _,
+  dim := 2,
+  is_basis :=
+    begin
+      rw ← is_basis.equiv (fin.cast (nat_degree_x_sq_sub_d_eq d)).to_equiv,
+      have := (adjoin_root.power_basis (x_sq_sub_ne_zero d)).is_basis,
+      -- The module structures are the same, so this should be transferred easily!
+      sorry
+    end }
+
+@[simp] protected lemma power_basis.gen : (qsqrtd.power_basis d).gen = root d :=
+rfl
+
+@[simp] protected lemma power_basis.dim : (qsqrtd.power_basis d).dim = 2 :=
+rfl
+
 instance : is_number_field (ℚ√ d) :=
 { cz := qsqrtd.char_zero d,
-  fd := power_basis.finite_dimensional
-    (by { convert adjoin_root.power_basis (x_sq_sub_ne_zero d),
-          exact @subsingleton.elim _ rat.algebra_rat_subsingleton _ _ }) }
+  fd := (qsqrtd.power_basis d).finite_dimensional }
+
+@[simp] lemma findim_eq : finite_dimensional.findim ℚ (ℚ√ d) = 2 :=
+by rw [(qsqrtd.power_basis d).findim, qsqrtd.power_basis.dim]
 
 section ring_of_integers
 
@@ -163,12 +203,32 @@ begin
 end
 
 @[simp] lemma trace_eq (x : ℚ√ d) : algebra.trace ℚ _ x = 2 * coeff x 0 :=
-sorry
+begin
+  conv_lhs { rw eq_coeff_add_coeff_sqrt x },
+  rw [linear_map.map_add, linear_map.map_smul, ← (algebra_map ℚ (ℚ√ d)).eq_rat_cast,
+      algebra.trace_algebra_map, findim_eq,
+      algebra.trace_eq_matrix_trace (qsqrtd.power_basis d).is_basis,
+      matrix.trace_apply, fin.univ_succ],
+  simp only [fin.default_eq_zero, algebra.id.smul_eq_mul, fin.zero_eq_one_iff,
+      finset.image_singleton, univ_unique, finset.sum_insert, fin.succ_zero_eq_one, not_false_iff,
+      one_ne_zero, finset.mem_singleton, finset.sum_singleton,
+      matrix.lmul_apply, linear_map.to_matrix_apply, is_basis.equiv_fun_apply,
+      algebra.lmul_apply],
+  rw [fin.coe_zero, pow_zero, fin.coe_one, pow_one, mul_one],
+  -- squeeze_simp [-qsqrtd.power_basis.gen],
+end
 
 @[simp] lemma norm_eq (x : ℚ√ d) :
   algebra.norm (adjoin_root.power_basis (x_sq_sub_ne_zero _)).is_basis x =
     coeff x 0 ^ 2 - coeff x 1 ^ 2 * d :=
 sorry
+
+lemma mul_two_mem_zsqrtd {x : ℚ√ d}
+  (hx : x ∈ number_field.ring_of_integers (ℚ√ d)) :
+  ∃ r s : ℤ, 2 * x = r + s • adjoin_root.root _ :=
+begin
+  
+end
 
 /-- The ring of integers of `ℚ√ d` consists of elements of the form `a + b √ d` -/
 theorem mem_ring_of_integers (h : d % 4 ≠ 1) {x : ℚ√ d} :
@@ -176,6 +236,7 @@ theorem mem_ring_of_integers (h : d % 4 ≠ 1) {x : ℚ√ d} :
 begin
   split,
   { intro hx,
+    obtain ⟨r, s, hrs⟩ := mul_two_mem_zsqrtd hx,
     obtain ⟨p, p_monic, eval_p⟩ := hx,
     rw eq_coeff_add_coeff_sqrt x,
     sorry },

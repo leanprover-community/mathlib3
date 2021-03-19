@@ -142,7 +142,7 @@ begin
   { obtain ⟨c, hc⟩ : p ^ m ∣ j + 1,
     { rw [← h], exact multiplicity.pow_multiplicity_dvd _, },
     obtain ⟨c, rfl⟩ : ∃ k : ℕ, c = k + 1,
-    { apply nat.exists_eq_succ_of_ne_zero, rintro rfl, simpa only using hc },
+    { apply nat.exists_eq_succ_of_ne_zero, rintro rfl, simpa using hc },
     rw [mul_add, mul_one] at hc,
     apply nat.le_of_lt_succ,
     calc m < p ^ m : nat.lt_pow_self hp.one_lt m

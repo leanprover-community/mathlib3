@@ -144,6 +144,22 @@ section coskeleton
 def cosk_diagram {n} (a : simplex_category.{v}) : truncated C n ⥤ (a.trunc n)ᵒᵖ ⥤ C :=
 (whiskering_left _ _ _).obj simplex_category.trunc.forget.op
 
+def map {n} {a b : simplex_categoryᵒᵖ} (f : a ⟶ b) (D : (a.unop.trunc n)ᵒᵖ ⥤ C) :
+  (b.unop.trunc n)ᵒᵖ ⥤ C := (simplex_category.trunc.map f.unop).op ⋙ D
+
+def map_cone {n} {a b : simplex_category ᵒᵖ} {D : (a.unop.trunc n)ᵒᵖ ⥤ C} (f : a ⟶ b)
+  (E : cone D) : cone (map f D) := E.whisker _
+
+def cosk {n} [has_finite_limits C] : truncated C n ⥤ simplicial_object C :=
+{ obj := λ T,
+  { obj := λ a, limit $ (cosk_diagram a.unop).obj T,
+    map := _,
+    map_id' := _,
+    map_comp' := _ },
+  map := _,
+  map_id' := _,
+  map_comp' := _ }
+
 end coskeleton
 
 end simplicial_object

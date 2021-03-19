@@ -429,27 +429,34 @@ namespace trunc
 @[derive [full, faithful], simps]
 def inclusion {a n} : trunc.{u} a n ⥤ over a := full_subcategory_inclusion _
 
+@[simp]
 def to_over {a n} (x : trunc a n) : over a := inclusion.obj x
 
+@[simp]
 def to_sc {a n} (x : trunc a n) : simplex_category := (over.forget a).obj x.to_over
 
+@[simp]
 def to_hom {a n} (x : trunc a n) : x.to_sc ⟶ a := (inclusion.obj x).hom
 
 /-- The length of an object of trunc. -/
+@[simp]
 def len {a n} : trunc a n → ℕ := λ x, x.to_sc.len
 
+@[simp]
 lemma len_le {a n} (x : trunc a n) : x.len ≤ n := x.2
 
+@[simp]
 def to_truncated {a n} (x : trunc a n) : truncated n := ⟨x.to_sc, len_le _⟩
 
 /-- The forgetful functor from `over_trunc a m` to `truncated m`. -/
 @[simps]
-def forget {a m} : trunc.{u} a m ⥤ truncated.{u} m :=
+def forget {a : simplex_category.{u}} {m} : trunc a m ⥤ truncated m :=
 { obj := to_truncated,
   map := λ x y f, (over.forget a).map (inclusion.map f) }
 
-instance {a m} : faithful (forget : trunc a m ⥤ _) := {}
+instance {a : simplex_category.{u}} {m} : faithful (forget : trunc a m ⥤ _) := {}
 
+@[simps]
 def map {a b m} (f : a ⟶ b) : trunc a m ⥤ trunc b m :=
 { obj := λ x, ⟨(over.map f).obj x.to_over, len_le _⟩,
   map := λ _ _ g, (over.map f).map g }
@@ -457,6 +464,8 @@ def map {a b m} (f : a ⟶ b) : trunc a m ⥤ trunc b m :=
 section
 
 open_locale classical
+
+set_option pp.universes true
 
 noncomputable
 instance {a n} : fin_category.{u} (trunc.{u} a n) :=

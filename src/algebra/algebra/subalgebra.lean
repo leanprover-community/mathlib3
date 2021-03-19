@@ -51,6 +51,14 @@ by cases S; cases T; congr; ext x; exact h x
 theorem ext_iff {S T : subalgebra R A} : S = T ↔ ∀ x : A, x ∈ S ↔ x ∈ T :=
 ⟨λ h x, by rw h, ext⟩
 
+-- TODO analogues for other substructures
+theorem ext_set {S T : subalgebra R A} (h : (S : set A) = (T : set A)) : S = T :=
+begin
+  rw set.ext_iff at h,
+  ext x,
+  exact h x,
+end
+
 variables (S : subalgebra R A)
 
 theorem algebra_map_mem (r : R) : algebra_map R A r ∈ S :=

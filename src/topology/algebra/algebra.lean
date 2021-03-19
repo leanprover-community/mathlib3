@@ -91,4 +91,11 @@ lemma subalgebra.topological_closure_minimal
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
+lemma subalgebra.topological_closure_comap'_continuous
+  (s : subalgebra R A)
+  {B : Type*} [topological_space B] [ring B] [topological_ring B] [algebra R B]
+  (f : B →ₐ[R] A) (c : continuous f) :
+  s.topological_closure.comap' f = (s.comap' f).topological_closure :=
+sorry
+
 end topological_algebra

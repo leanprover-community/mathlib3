@@ -607,3 +607,8 @@ end function
 def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β i) [∀j, decidable (j ∈ s)] :
   Πi, β i :=
 λi, if i ∈ s then f i else g i
+
+/-- A set of functions "separates points"
+if for each pair of points there is a function taking different values on them. -/
+def separates_points {α β : Type*} (A : set (α → β)) : Prop :=
+∀ x y : α, x ≠ y → ∃ f ∈ A, (f x : β) ≠ f y

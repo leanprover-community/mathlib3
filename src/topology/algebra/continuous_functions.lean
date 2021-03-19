@@ -5,6 +5,7 @@ Authors: Scott Morrison, Nicolò Cavalleri
 -/
 import topology.algebra.module
 import topology.continuous_map
+import algebra.algebra.subalgebra
 
 /-!
 # Algebraic structures over continuous functions
@@ -321,6 +322,17 @@ instance continuous_map_algebra : algebra R C(α, A) :=
 @[simp] lemma algebra_map_apply (k : R) (a : α) :
   algebra_map R C(α, A) k a = k • 1 :=
 by { rw algebra.algebra_map_eq_smul_one, refl, }
+
+/--
+A version of `separates_points` for subalgebras of the continuous functions,
+used for stating the Stone-Weierstrass theorem.
+-/
+abbreviation subalgebra.separates_points (s : subalgebra R C(α, A)) : Prop :=
+separates_points ((λ f : C(α, A), (f : α → A)) '' (s : set C(α, A)))
+
+lemma subalgebra.separates_points_monotone :
+  monotone (λ s : subalgebra R C(α, A), s.separates_points) :=
+sorry
 
 end continuous_map
 

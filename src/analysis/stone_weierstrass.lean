@@ -2,17 +2,6 @@ import analysis.weierstrass
 
 noncomputable theory
 
-
-lemma filter.tendsto.frequently_map {X Y : Type*} {l₁ : filter X} {l₂ : filter Y}
-  {P : X → Prop} {Q : Y → Prop} (f : X → Y) (c : filter.tendsto f l₁ l₂) (w : ∀ x, P x → Q (f x))
-  (h : ∃ᶠ x in l₁, P x) : ∃ᶠ y in l₂, Q y :=
-c.frequently (h.mono w)
-
-lemma continuous_at.frequently_in_nhds_map {X Y : Type*} [topological_space X] [topological_space Y]
-  {P : X → Prop} {Q : Y → Prop} {f : X → Y} {p : X} (c : continuous_at f p) (w : ∀ x, P x → Q (f x))
-  (h : ∃ᶠ x in nhds p, P x) : ∃ᶠ y in nhds (f p), Q y :=
-c.tendsto.frequently_map f w h
-
 namespace pi
 
 variables {I : Type*} {f : I → Type*} (x : Π i, f i) (i : I)
@@ -117,8 +106,8 @@ begin
   -- we show there are polynomials arbitrarily close.
   apply mem_closure_iff_frequently.mpr,
   -- To show that, we pull back the polynomials close to `p`,
-  refine ((pullback_as_continuous_map (attach_bound (f : C(X, ℝ)))).continuous_at p)
-    .frequently_in_nhds_map _ frequently_mem_polynomials,
+  refine ((pullback_as_continuous_map (attach_bound (f : C(X, ℝ)))).continuous_at p).tendsto
+    .frequently_map _ _ frequently_mem_polynomials,
   -- but need to show that those pullbacks are actually in `A`.
   rintros _ ⟨g, ⟨-,rfl⟩⟩,
   simp,

@@ -2042,6 +2042,11 @@ lemma tendsto.frequently {f : α → β} {l₁ : filter α} {l₂ : filter β} {
   ∃ᶠ y in l₂, p y :=
 mt hf.eventually h
 
+lemma tendsto.frequently_map {l₁ : filter α} {l₂ : filter β} {p : α → Prop} {q : β → Prop}
+  (f : α → β) (c : filter.tendsto f l₁ l₂) (w : ∀ x, p x → q (f x)) (h : ∃ᶠ x in l₁, p x) :
+  ∃ᶠ y in l₂, q y :=
+c.frequently (h.mono w)
+
 @[simp] lemma tendsto_bot {f : α → β} {l : filter β} : tendsto f ⊥ l := by simp [tendsto]
 @[simp] lemma tendsto_top {f : α → β} {l : filter α} : tendsto f l ⊤ := le_top
 
@@ -2462,7 +2467,7 @@ begin
   simp ; tauto,
 end
 
--- this inequality can be strict; see `map_const_principal_coprod_map_id_principal` and 
+-- this inequality can be strict; see `map_const_principal_coprod_map_id_principal` and
 -- `map_prod_map_const_id_principal_coprod_principal` below.
 lemma map_prod_map_coprod_le {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : α₁ → β₁} {m₂ : α₂ → β₂} :

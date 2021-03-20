@@ -106,7 +106,7 @@ begin
   refine metric.continuous_iff.mpr _,
   intros g ε ε_pos,
   refine ⟨ε, ε_pos, λ g' h, _⟩,
-  erw bounded_continuous_function.dist_lt ε_pos at h ⊢,
+  erw bounded_continuous_function.dist_lt_of_compact ε_pos at h ⊢,
   { exact λ x, h (f x), },
   { assumption, },
   { assumption, },
@@ -197,6 +197,23 @@ begin
     { ext x, simp [line_map, mul_comm], }, },
 end
 
+lemma continuous_map.subsingleton_subalgebra_ext [subsingleton X] (s₁ s₂ : subalgebra R C(X, R)) :
+  s₁ = s₂ :=
+begin
+  by_cases n : nonempty X,
+  { obtain ⟨x⟩ := n,
+    ext f,
+    have h : f = algebra_map R C(X, R) (f x),
+    { ext x', simp only [mul_one, algebra.id.smul_eq_mul, algebra_map_apply], congr, },
+    rw h,
+    simp only [subalgebra.algebra_map_mem], },
+  { ext f,
+    have h : f = 0,
+    { ext x', exact false.elim (n ⟨x'⟩), },
+    subst h,
+    simp only [subalgebra.zero_mem], },
+end
+
 /--
 The Weierstrass approximation theorem:
 polynomials functions on `[a, b] ⊆ ℝ` are dense in `C([a,b],ℝ)`
@@ -209,24 +226,29 @@ so we may as well get this done first.)
 theorem polynomial_functions_closure_eq_top (a b : ℝ) :
   (polynomial_functions (set.Icc a b)).topological_closure = ⊤ :=
 begin
-  have h : a < b := sorry, -- otherwise it's easy?
-  -- We can pullback continuous functions to `[a,b]` to continuous functions on `[0,1]`,
-  -- by precomposing with an affine map.
-  let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) := pullback (line_map_Icc a b h),
-  -- This operation is itself continuous
-  -- (with respect to the norm topologies on continuous functions).
-  have Wc : continuous W := pullback_continuous _,
-  -- Thus we take the statement of the Weierstrass approximation theorem for `[0,1]`,
-  have p := polynomial_functions_closure_eq_top',
-  -- and pullback both sides, obtaining an equation between subalgebras of `C([a,b], ℝ)`.
-  apply_fun (λ s, s.comap' W) at p,
-  simp only [algebra.comap_top] at p,
-  -- Since the pullback operation is continuous, it commutes with taking `topological_closure`,
-  rw subalgebra.topological_closure_comap'_continuous _ _ Wc at p,
-  -- and precomposing with an affine map takes polynomial functions to polynomial functions.
-  rw polynomial_functions.comap'_pullback_line_map_Icc at p,
-  -- 🎉
-  exact p
+  by_cases h : a < b, -- (Otherwise it's easy; we'll deal with that later.)
+  { -- We can pullback continuous functions to `[a,b]` to continuous functions on `[0,1]`,
+    -- by precomposing with an affine map.
+    let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) := pullback (line_map_Icc a b h),
+    -- This operation is itself continuous
+    -- (with respect to the norm topologies on continuous functions).
+    have Wc : continuous W := pullback_continuous _,
+    -- Thus we take the statement of the Weierstrass approximation theorem for `[0,1]`,
+    have p := polynomial_functions_closure_eq_top',
+    -- and pullback both sides, obtaining an equation between subalgebras of `C([a,b], ℝ)`.
+    apply_fun (λ s, s.comap' W) at p,
+    simp only [algebra.comap_top] at p,
+    -- Since the pullback operation is continuous, it commutes with taking `topological_closure`,
+    rw subalgebra.topological_closure_comap'_continuous _ _ Wc at p,
+    -- and precomposing with an affine map takes polynomial functions to polynomial functions.
+    rw polynomial_functions.comap'_pullback_line_map_Icc at p,
+    -- 🎉
+    exact p },
+  { -- Otherwise, `b ≤ a`, and the interval is a subsingleton,
+    -- so all subalgebras are the same anyway.
+    haveI : subsingleton (set.Icc a b) := ⟨λ x y, le_antisymm
+      ((x.2.2.trans (not_lt.mp h)).trans y.2.1) ((y.2.2.trans (not_lt.mp h)).trans x.2.1)⟩,
+    apply continuous_map.subsingleton_subalgebra_ext, }
 end
 
 theorem mem_polynomial_functions_closure (a b : ℝ) (f : C(set.Icc a b, ℝ)) :

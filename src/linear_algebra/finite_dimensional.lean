@@ -1183,7 +1183,8 @@ variables {F E : Type*} [field F] [field E] [algebra F E]
 lemma subalgebra.dim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : dim F S = 1 :=
 begin
   rw [← S.to_submodule_equiv.dim_eq, h,
-    (linear_equiv.of_eq ↑(⊥ : subalgebra F E) _ algebra.to_submodule_bot).dim_eq, dim_span_set],
+    (linear_equiv.of_eq (⊥ : subalgebra F E).to_submodule _ algebra.to_submodule_bot).dim_eq,
+    dim_span_set],
   exacts [mk_singleton _, linear_independent_singleton one_ne_zero]
 end
 
@@ -1228,7 +1229,7 @@ begin
   obtain ⟨_, b_spans⟩ := set_is_basis_of_linear_independent_of_card_eq_findim
     b_lin_ind (by simp only [*, set.to_finset_card]),
   intros x hx,
-  rw [set_like.mem_coe, algebra.mem_bot],
+  rw [algebra.mem_bot],
   have x_in_span_b : (⟨x, hx⟩ : S) ∈ submodule.span F b,
   { rw subtype.range_coe at b_spans,
     rw b_spans,

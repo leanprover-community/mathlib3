@@ -221,22 +221,20 @@ def to_submodule : submodule R A :=
   smul_mem' := λ c x hx, (algebra.smul_def c x).symm ▸
     (⟨algebra_map R A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 }
 
-instance coe_to_submodule : has_coe (subalgebra R A) (submodule R A) :=
-⟨to_submodule⟩
-
 instance to_submodule.is_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
-  (S : subalgebra R A) : is_subring ((S : submodule R A) : set A) := S.is_subring
+  (S : subalgebra R A) : is_subring (S.to_submodule : set A) := S.is_subring
 
-@[simp] lemma mem_to_submodule {x} : x ∈ (S : submodule R A) ↔ x ∈ S := iff.rfl
+@[simp] lemma mem_to_submodule {x} : x ∈ S.to_submodule ↔ x ∈ S := iff.rfl
 
-theorem to_submodule_injective {S U : subalgebra R A} (h : (S : submodule R A) = U) : S = U :=
-ext $ λ x, by rw [← mem_to_submodule, ← mem_to_submodule, h]
+theorem to_submodule_injective :
+  function.injective (to_submodule : subalgebra R A → submodule R A) :=
+λ S T h, ext $ λ x, by rw [← mem_to_submodule, ← mem_to_submodule, h]
 
-theorem to_submodule_inj {S U : subalgebra R A} : (S : submodule R A) = U ↔ S = U :=
-⟨to_submodule_injective, congr_arg _⟩
+theorem to_submodule_inj {S U : subalgebra R A} : S.to_submodule = U.to_submodule ↔ S = U :=
+to_submodule_injective.eq_iff
 
 /-- As submodules, subalgebras are idempotent. -/
-@[simp] theorem mul_self : (S : submodule R A) * (S : submodule R A) = (S : submodule R A) :=
+@[simp] theorem mul_self : S.to_submodule * S.to_submodule = S.to_submodule :=
 begin
   apply le_antisymm,
   { rw submodule.mul_le,
@@ -249,7 +247,7 @@ end
 
 /-- Linear equivalence between `S : submodule R A` and `S`. Though these types are equal,
 we define it as a `linear_equiv` to avoid type equalities. -/
-def to_submodule_equiv (S : subalgebra R A) : (S : submodule R A) ≃ₗ[R] S :=
+def to_submodule_equiv (S : subalgebra R A) : S.to_submodule ≃ₗ[R] S :=
 linear_equiv.of_eq _ _ rfl
 
 /-- Reinterpret an `S`-subalgebra as an `R`-subalgebra in `comap R S A`. -/
@@ -449,13 +447,13 @@ suffices (of_id R A).range = (⊥ : subalgebra R A),
 by { rw [← this, ←set_like.mem_coe, alg_hom.coe_range], refl },
 le_bot_iff.mp (λ x hx, subalgebra.range_le _ ((of_id R A).coe_range ▸ hx))
 
-theorem to_submodule_bot : ((⊥ : subalgebra R A) : submodule R A) = R ∙ 1 :=
+theorem to_submodule_bot : (⊥ : subalgebra R A).to_submodule = R ∙ 1 :=
 by { ext x, simp [mem_bot, -set.singleton_one, submodule.mem_span_singleton, algebra.smul_def] }
 
 @[simp] theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
 subsemiring.subset_closure $ or.inr trivial
 
-@[simp] theorem coe_top : ((⊤ : subalgebra R A) : submodule R A) = ⊤ :=
+@[simp] theorem coe_top : (⊤ : subalgebra R A).to_submodule = ⊤ :=
 submodule.ext $ λ x, iff_of_true mem_top trivial
 
 @[simp] theorem coe_bot : ((⊥ : subalgebra R A) : set A) = set.range (algebra_map R A) :=

@@ -1,13 +1,14 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 
 Construction of a good coupling between nonempty compact metric spaces, minimizing
 their Hausdorff distance. This construction is instrumental to study the Gromov-Hausdorff
 distance between nonempty compact metric spaces -/
 import topology.metric_space.gluing
 import topology.metric_space.hausdorff_distance
+import topology.bounded_continuous_function
 
 noncomputable theory
 open_locale classical topological_space nnreal
@@ -56,7 +57,7 @@ def candidates : set (prod_space_fun α β) :=
 
 /-- Version of the set of candidates in bounded_continuous_functions, to apply
 Arzela-Ascoli -/
-private def candidates_b : set (Cb α β) := {f : Cb α β | f.val ∈ candidates α β}
+private def candidates_b : set (Cb α β) := {f : Cb α β | f.to_fun ∈ candidates α β}
 
 end definitions --section
 
@@ -175,7 +176,7 @@ end
 
 /-- candidates give rise to elements of bounded_continuous_functions -/
 def candidates_b_of_candidates (f : prod_space_fun α β) (fA : f ∈ candidates α β) : Cb α β :=
-bounded_continuous_function.mk_of_compact f (candidates_lipschitz fA).continuous
+bounded_continuous_function.mk_of_compact ⟨f, (candidates_lipschitz fA).continuous⟩
 
 lemma candidates_b_of_candidates_mem (f : prod_space_fun α β) (fA : f ∈ candidates α β) :
   candidates_b_of_candidates f fA ∈ candidates_b α β := fA
@@ -417,17 +418,17 @@ let ⟨Z1, Z2⟩ := classical.some_spec (exists_minimizer α β) in Z2 g hg
 /-- With the optimal candidate, construct a premetric space structure on α ⊕ β, on which the
 predistance is given by the candidate. Then, we will identify points at 0 predistance
 to obtain a genuine metric space -/
-def premetric_optimal_GH_dist : premetric_space (α ⊕ β) :=
+def premetric_optimal_GH_dist : pseudo_metric_space (α ⊕ β) :=
 { dist := λp q, optimal_GH_dist α β (p, q),
   dist_self := λx, candidates_refl (optimal_GH_dist_mem_candidates_b α β),
   dist_comm := λx y, candidates_symm (optimal_GH_dist_mem_candidates_b α β),
   dist_triangle := λx y z, candidates_triangle (optimal_GH_dist_mem_candidates_b α β) }
 
-local attribute [instance] premetric_optimal_GH_dist premetric.dist_setoid
+local attribute [instance] premetric_optimal_GH_dist pseudo_metric.dist_setoid
 
 /-- A metric space which realizes the optimal coupling between α and β -/
 @[derive [metric_space]] definition optimal_GH_coupling : Type* :=
-premetric.metric_quot (α ⊕ β)
+pseudo_metric_quot (α ⊕ β)
 
 /-- Injection of α in the optimal coupling between α and β -/
 def optimal_GH_injl (x : α) : optimal_GH_coupling α β := ⟦inl x⟧

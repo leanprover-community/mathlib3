@@ -72,6 +72,10 @@ variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_mono
 section
 variables [semimodule R M] [semimodule R M₂]
 
+/-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
+def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
+{ map_zero' := zero_smul R (0 : M) ▸ zero_smul R (f.to_fun 0) ▸ f.map_smul' 0 0, ..f }
+
 instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
 
 initialize_simps_projections linear_map (to_fun → apply)
@@ -127,7 +131,7 @@ variables (f g)
 @[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.map_smul' c x
 
 @[simp] lemma map_zero : f 0 = 0 :=
-by rw [← zero_smul R, map_smul f 0 0, zero_smul]
+f.to_distrib_mul_action_hom.map_zero
 
 variables (M M₂)
 /--
@@ -165,8 +169,7 @@ def to_add_monoid_hom : M →+ M₂ :=
   map_zero' := f.map_zero,
   map_add' := f.map_add }
 
-@[simp] lemma to_add_monoid_hom_coe :
-  (f.to_add_monoid_hom : M → M₂) = f := rfl
+@[simp] lemma to_add_monoid_hom_coe : ⇑f.to_add_monoid_hom = f := rfl
 
 variable (R)
 
@@ -366,18 +369,18 @@ rfl
 @[nolint doc_blame]
 def to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂ := λ f, f.to_add_equiv.to_equiv
 
-lemma injective_to_equiv : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
+lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
 
 @[simp] lemma to_equiv_inj {e₁ e₂ : M ≃ₗ[R] M₂} : e₁.to_equiv = e₂.to_equiv ↔ e₁ = e₂ :=
-injective_to_equiv.eq_iff
+to_equiv_injective.eq_iff
 
-lemma injective_to_linear_map : function.injective (coe : (M ≃ₗ[R] M₂) → (M →ₗ[R] M₂)) :=
-λ e₁ e₂ H, injective_to_equiv $ equiv.ext $ linear_map.congr_fun H
+lemma to_linear_map_injective : function.injective (coe : (M ≃ₗ[R] M₂) → (M →ₗ[R] M₂)) :=
+λ e₁ e₂ H, to_equiv_injective $ equiv.ext $ linear_map.congr_fun H
 
 @[simp, norm_cast] lemma to_linear_map_inj {e₁ e₂ : M ≃ₗ[R] M₂} :
   (e₁ : M →ₗ[R] M₂) = e₂ ↔ e₁ = e₂ :=
-injective_to_linear_map.eq_iff
+to_linear_map_injective.eq_iff
 
 end
 
@@ -398,7 +401,7 @@ lemma to_linear_map_eq_coe : e.to_linear_map = ↑e := rfl
 section
 variables {e e'}
 @[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
-injective_to_equiv (equiv.ext h)
+to_equiv_injective (equiv.ext h)
 
 protected lemma congr_arg : Π {x x' : M}, x = x' → e x = e x'
 | _ _ rfl := rfl
@@ -443,14 +446,19 @@ def trans : M ≃ₗ[R] M₃ :=
 
 @[simp] lemma coe_to_add_equiv : ⇑(e.to_add_equiv) = e := rfl
 
+/-- The two paths coercion can take to an `add_monoid_hom` are equivalent -/
+lemma to_add_monoid_hom_commutes :
+  e.to_linear_map.to_add_monoid_hom = e.to_add_equiv.to_add_monoid_hom :=
+rfl
+
 @[simp] theorem trans_apply (c : M) :
   (e₁.trans e₂) c = e₂ (e₁ c) := rfl
 @[simp] theorem apply_symm_apply (c : M₂) : e (e.symm c) = c := e.6 c
 @[simp] theorem symm_apply_apply (b : M) : e.symm (e b) = b := e.5 b
 @[simp] lemma symm_trans_apply (c : M₃) : (e₁.trans e₂).symm c = e₁.symm (e₂.symm c) := rfl
 
-@[simp] lemma trans_refl : e.trans (refl R M₂) = e := injective_to_equiv e.to_equiv.trans_refl
-@[simp] lemma refl_trans : (refl R M).trans e = e := injective_to_equiv e.to_equiv.refl_trans
+@[simp] lemma trans_refl : e.trans (refl R M₂) = e := to_equiv_injective e.to_equiv.trans_refl
+@[simp] lemma refl_trans : (refl R M).trans e = e := to_equiv_injective e.to_equiv.refl_trans
 
 lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
 
@@ -473,6 +481,9 @@ lemma comp_coe [semimodule R M] [semimodule R M₂] [semimodule R M₃] (f :  M 
   (f' :  M₂ ≃ₗ[R] M₃) : (f' : M₂ →ₗ[R] M₃).comp (f : M →ₗ[R] M₂) = (f.trans f' : M →ₗ[R] M₃) :=
 rfl
 
+@[simp] lemma mk_coe (h₁ h₂ f h₃ h₄) :
+  (linear_equiv.mk e h₁ h₂ f h₃ h₄ : M ≃ₗ[R] M₂) = e := ext $ λ _, rfl
+
 @[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
 @[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
 @[simp] theorem map_smul (c : R) (x : M) : e (c • x) = c • e x := e.map_smul' c x
@@ -486,6 +497,19 @@ theorem map_ne_zero_iff {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
 e.to_add_equiv.map_ne_zero_iff
 
 @[simp] theorem symm_symm : e.symm.symm = e := by { cases e, refl }
+
+lemma symm_bijective [semimodule R M] [semimodule R M₂] :
+  function.bijective (symm : (M ≃ₗ[R] M₂) → (M₂ ≃ₗ[R] M)) :=
+equiv.bijective ⟨symm, symm, symm_symm, symm_symm⟩
+
+@[simp] lemma mk_coe' (f h₁ h₂ h₃ h₄) :
+  (linear_equiv.mk f h₁ h₂ ⇑e h₃ h₄ : M₂ ≃ₗ[R] M) = e.symm :=
+symm_bijective.injective $ ext $ λ x, rfl
+
+@[simp] theorem symm_mk (f h₁ h₂ h₃ h₄) :
+  (⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₗ[R] M₂).symm =
+  { to_fun := f, inv_fun := e,
+    ..(⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₗ[R] M₂).symm } := rfl
 
 protected lemma bijective : function.bijective e := e.to_equiv.bijective
 protected lemma injective : function.injective e := e.to_equiv.injective

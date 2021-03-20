@@ -141,8 +141,9 @@ lemma monoid_hom.finset_prod_apply [monoid β] [comm_monoid γ] (f : α → β �
   (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
 (monoid_hom.eval b).map_prod _ _
 
-namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
+
+namespace finset
 
 section comm_monoid
 variables [comm_monoid β]
@@ -217,6 +218,34 @@ fold_union_inter
 lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) :
   (∏ x in (s₁ ∪ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
+
+end comm_monoid
+
+end finset
+
+section
+variables [fintype α] [decidable_eq α] [comm_monoid β]
+
+@[to_additive]
+lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → β) :
+  (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
+(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+end
+
+namespace finset
+
+section comm_monoid
+variables [comm_monoid β]
+
+@[to_additive]
+lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
+  (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
+is_compl_compl.prod_mul_prod f
+
+@[to_additive]
+lemma prod_compl_mul_prod [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
+  (∏ i in sᶜ, f i) * (∏ i in s, f i) = ∏ i, f i :=
+is_compl_compl.symm.prod_mul_prod f
 
 @[to_additive]
 lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) :
@@ -634,6 +663,15 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
+lemma prod_range_add (f : ℕ → β) (n : ℕ) (m : ℕ) :
+  (∏ x in range (n + m), f x) =
+  (∏ x in range n, f x) * (∏ x in range m, f (n + x)) :=
+begin
+  induction m with m hm,
+  { simp },
+  { rw [nat.add_succ, finset.prod_range_succ, hm, finset.prod_range_succ, mul_left_comm _ _ _] },
+end
+
 @[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
  (∏ k in range 0, f k) = 1 :=
@@ -669,9 +707,20 @@ begin
   rintro rfl, exact has hx
 end
 
+lemma sum_multiset_map_count [decidable_eq α] (s : multiset α)
+  {M : Type*} [add_comm_monoid M] (f : α → M) :
+  (s.map f).sum = ∑ m in s.to_finset, s.count m •ℕ f m :=
+@prod_multiset_map_count _ _ _ (multiplicative M) _ f
+attribute [to_additive] prod_multiset_map_count
+
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
 by { convert prod_multiset_map_count s id, rw map_id }
+
+lemma sum_multiset_count [decidable_eq α] [add_comm_monoid α] (s : multiset α) :
+  s.sum = ∑ m in s.to_finset, s.count m •ℕ m :=
+@prod_multiset_count (multiplicative α) _ _ s
+attribute [to_additive] prod_multiset_count
 
 /--
 To prove a property of a product, it suffices to prove that
@@ -680,15 +729,21 @@ the property is multiplicative and holds on factors.
 @[to_additive "To prove a property of a sum, it suffices to prove that
 the property is additive and holds on summands."]
 lemma prod_induction {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
-(p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
-p $ ∏ x in s, f x :=
-begin
-  classical,
-  induction s using finset.induction with x hx s hs, simpa,
-  rw finset.prod_insert, swap, assumption,
-  apply p_mul, apply p_s, simp,
-  apply hs, intros a ha, apply p_s, simp [ha],
-end
+  (p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
+  p $ ∏ x in s, f x :=
+multiset.prod_induction _ _ p_mul p_one (multiset.forall_mem_map_iff.mpr p_s)
+
+/--
+To prove a property of a product, it suffices to prove that
+the property is multiplicative and holds on factors.
+-/
+@[to_additive "To prove a property of a sum, it suffices to prove that
+the property is additive and holds on summands."]
+lemma prod_induction_nonempty {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
+  (p_mul : ∀ a b, p a → p b → p (a * b)) (hs_nonempty : s.nonempty) (p_s : ∀ x ∈ s, p $ f x) :
+  p $ ∏ x in s, f x :=
+multiset.prod_induction_nonempty p p_mul (by simp [nonempty_iff_ne_empty.mp hs_nonempty])
+  (multiset.forall_mem_map_iff.mpr p_s)
 
 /--
 For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
@@ -1015,6 +1070,12 @@ lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
 @prod_range_succ' (multiplicative β) _ _
 attribute [to_additive] prod_range_succ'
 
+lemma sum_range_add {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) (m : ℕ) :
+  (∑ x in range (n + m), f x) =
+  (∑ x in range n, f x) + (∑ x in range m, f (n + x)) :=
+@prod_range_add (multiplicative β) _ _ _ _
+attribute [to_additive] prod_range_add
+
 lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
   (∑ i in range (n + 1), f (n - i)) = (∑ i in range (n + 1), f i) :=
 @prod_flip (multiplicative β) _ _ _
@@ -1178,18 +1239,18 @@ lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
   count a (∑ x in s, f x) = ∑ x in s, count a (f x) :=
 by { dunfold finset.sum, rw count_sum }
 
-@[simp] lemma to_finset_sum_count_smul_eq (s : multiset α) :
+@[simp] lemma to_finset_sum_count_nsmul_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a •ℕ (a ::ₘ 0)) = s :=
 begin
   apply ext', intro b,
   rw count_sum',
   have h : count b s = count b (count b s •ℕ (b ::ₘ 0)),
-  { rw [singleton_coe, count_smul, ← singleton_coe, count_singleton, mul_one] },
+  { rw [singleton_coe, count_nsmul, ← singleton_coe, count_singleton, mul_one] },
   rw h, clear h,
   apply finset.sum_eq_single b,
-  { intros c h hcb, rw count_smul, convert mul_zero (count c s),
+  { intros c h hcb, rw count_nsmul, convert mul_zero (count c s),
     apply count_eq_zero.mpr, exact finset.not_mem_singleton.mpr (ne.symm hcb) },
-  { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_smul, zero_mul]}
+  { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_nsmul, zero_mul]}
 end
 
 theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} (h : ∀ (a : α), k ∣ multiset.count a s) :
@@ -1201,7 +1262,7 @@ begin
   { refine congr_arg s.to_finset.sum _,
     apply funext, intro x,
     rw [← mul_nsmul, nat.mul_div_cancel' (h x)] },
-  rw [← finset.sum_nsmul, h₂, to_finset_sum_count_smul_eq]
+  rw [← finset.sum_nsmul, h₂, to_finset_sum_count_nsmul_eq]
 end
 
 end multiset

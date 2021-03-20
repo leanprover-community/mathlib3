@@ -143,6 +143,9 @@ cons_val_succ x u 0
   vec_cons x u i = x :=
 by { fin_cases i, refl }
 
+lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
+funext (cons_val_fin_one x u)
+
 lemma comp_cons {β : Type*} (x : α) (u : (fin n) → α) (f : α → β) :
   f ∘ (vec_cons x u) = vec_cons (f x) (f ∘ u) :=
 funext $ by { apply fin.cases; simp }

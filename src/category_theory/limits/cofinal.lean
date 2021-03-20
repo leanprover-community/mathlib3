@@ -181,7 +181,12 @@ def extend_cone_cocone_to_cone (c : cocone H.right_op) : cone H :=
   π :=
   { app := λ j, (c.ι.app (unop j)).unop,
     naturality' := λ j j' f,
-    begin apply has_hom.hom.op_inj, dsimp, simp only [category.comp_id], exact (c.w f.unop).symm, end }}
+    begin
+      apply has_hom.hom.op_inj,
+      dsimp,
+      simp only [category.comp_id],
+      exact (c.w f.unop).symm,
+    end }}
 
 /--
 Given a cone over `F.op ⋙ H`, we can construct a `cone H` with the same cone point.
@@ -298,7 +303,7 @@ begin
   dsimp [is_colimit_whisker_equiv],
   apply P.hom_ext,
   intro j,
-  dsimp, simp,
+  dsimp, simp, dsimp, simp, -- See library note [dsimp, simp].
 end
 
 instance colimit_pre_is_iso [has_colimit G] :

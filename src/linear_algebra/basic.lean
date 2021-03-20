@@ -7,6 +7,7 @@ import algebra.big_operators.pi
 import algebra.module.pi
 import algebra.module.prod
 import algebra.module.submodule
+import algebra.module.submodule_lattice
 import algebra.group.prod
 import data.finsupp.basic
 import data.dfinsupp
@@ -17,8 +18,7 @@ import order.compactly_generated
 # Linear algebra
 
 This file defines the basics of linear algebra. It sets up the "categorical/lattice structure" of
-modules over a ring, submodules, and linear maps. If `p` and `q` are submodules of a module, `p ≤ q`
-means that `p ⊆ q`.
+modules over a ring, submodules, and linear maps.
 
 Many of the relevant definitions, including `module`, `submodule`, and `linear_map`, are found in
 `src/algebra/module`.
@@ -72,6 +72,17 @@ lemma smul_sum {α : Type u} {β : Type v} {R : Type w} {M : Type y}
   {v : α →₀ β} {c : R} {h : α → β → M} :
   c • (v.sum h) = v.sum (λa b, c • h a b) :=
 finset.smul_sum
+
+@[simp]
+lemma sum_smul_index_linear_map' {α : Type u} {R : Type v} {M : Type w} {M₂ : Type x}
+  [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid M₂] [semimodule R M₂]
+  {v : α →₀ M} {c : R} {h : α → M →ₗ[R] M₂} :
+  (c • v).sum (λ a, h a) = c • (v.sum (λ a, h a)) :=
+begin
+  rw [finsupp.sum_smul_index', finsupp.smul_sum],
+  { simp only [linear_map.map_smul], },
+  { intro i, exact (h i).map_zero },
+end
 
 end finsupp
 
@@ -208,8 +219,11 @@ instance : has_mul (M →ₗ[R] M) := ⟨linear_map.comp⟩
 
 lemma mul_eq_comp (f g : M →ₗ[R] M) : f * g = f.comp g := rfl
 
-@[simp] lemma one_app (x : M) : (1 : M →ₗ[R] M) x = x := rfl
-@[simp] lemma mul_app (A B : M →ₗ[R] M) (x : M) : (A * B) x = A (B x) := rfl
+@[simp] lemma one_apply (x : M) : (1 : M →ₗ[R] M) x = x := rfl
+@[simp] lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
+
+lemma coe_one : ⇑(1 : M →ₗ[R] M) = _root_.id := rfl
+lemma coe_mul (f g : M →ₗ[R] M) : ⇑(f * g) = f ∘ g := rfl
 
 @[simp] theorem comp_zero : f.comp (0 : M₃ →ₗ[R] M) = 0 :=
 ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, f.map_zero]
@@ -223,6 +237,18 @@ add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 
 instance : monoid (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..}; { intros, apply linear_map.ext, simp {proj := ff} }
+
+@[simp] lemma pow_apply (f : M →ₗ[R] M) (n : ℕ) (m : M) :
+  (f^n) m = (f^[n] m) :=
+begin
+  induction n with n ih,
+  { refl, },
+  { simp only [function.comp_app, function.iterate_succ, linear_map.mul_apply, pow_succ, ih],
+    exact (function.commute.iterate_self _ _ m).symm, },
+end
+
+lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
+by { ext m, apply pow_apply, }
 
 section
 open_locale classical
@@ -354,7 +380,7 @@ This says that the forgetful functor from `R`-modules to types is representable,
 
 This as an `S`-linear equivalence, under the assumption that `S` acts on `M` commuting with `R`.
 When `R` is commutative, we can take this to be the usual action with `S = R`.
-Otherwise, `S = ℤ` shows that the equivalence is additive.
+Otherwise, `S = ℕ` shows that the equivalence is additive.
 See note [bundled maps over different rings].
 -/
 @[simps]
@@ -416,8 +442,6 @@ instance endomorphism_semiring : semiring (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_monoid, ..};
   { intros, apply linear_map.ext, simp {proj := ff} }
 
-lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
-
 end semiring
 
 section ring
@@ -463,24 +487,7 @@ variables (p p' : submodule R M) (q q' : submodule R M₂)
 variables {r : R} {x y : M}
 open set
 
-instance : partial_order (submodule R M) :=
-{ le := λ p p', ∀ ⦃x⦄, x ∈ p → x ∈ p',
-  ..partial_order.lift (coe : submodule R M → set M) coe_injective }
-
 variables {p p'}
-
-lemma le_def : p ≤ p' ↔ (p : set M) ⊆ p' := iff.rfl
-
-lemma le_def' : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
-
-lemma lt_def : p < p' ↔ (p : set M) ⊂ p' := iff.rfl
-
-lemma not_le_iff_exists : ¬ (p ≤ p') ↔ ∃ x ∈ p, x ∉ p' := not_subset
-
-lemma exists_of_lt {p p' : submodule R M} : p < p' → ∃ x ∈ p', x ∉ p := exists_of_ssubset
-
-lemma lt_iff_le_and_exists : p < p' ↔ p ≤ p' ∧ ∃ x ∈ p', x ∉ p :=
-by rw [lt_iff_le_not_le, not_le_iff_exists]
 
 /-- If two submodules `p` and `p'` satisfy `p ⊆ p'`, then `of_le p p'` is the linear map version of
 this inclusion. -/
@@ -498,90 +505,6 @@ lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
   q.subtype.comp (of_le h) = p.subtype :=
 by { ext ⟨b, hb⟩, refl }
 
-/-- The set `{0}` is the bottom element of the lattice of submodules. -/
-instance : has_bot (submodule R M) :=
-⟨{ carrier := {0}, smul_mem' := by simp { contextual := tt }, .. (⊥ : add_submonoid M)}⟩
-
-instance inhabited' : inhabited (submodule R M) := ⟨⊥⟩
-
-@[simp] lemma bot_coe : ((⊥ : submodule R M) : set M) = {0} := rfl
-
-section
-variables (R)
-@[simp] lemma mem_bot : x ∈ (⊥ : submodule R M) ↔ x = 0 := mem_singleton_iff
-end
-
-instance unique_bot : unique (⊥ : submodule R M) :=
-⟨infer_instance, λ x, subtype.ext $ (mem_bot R).1 x.mem⟩
-
-lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
-begin
-  have h := (submodule.lt_iff_le_and_exists.1 bot_lt).2,
-  tidy,
-end
-
-instance : order_bot (submodule R M) :=
-{ bot := ⊥,
-  bot_le := λ p x, by simp {contextual := tt},
-  ..submodule.partial_order }
-
-protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0 : M) :=
-⟨ λ h, h.symm ▸ λ x hx, (mem_bot R).mp hx,
-  λ h, eq_bot_iff.mpr (λ x hx, (mem_bot R).mpr (h x hx)) ⟩
-
-protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x ≠ (0 : M) :=
-by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
-
-/-- The universal set is the top element of the lattice of submodules. -/
-instance : has_top (submodule R M) :=
-⟨{ carrier := univ, smul_mem' := λ _ _ _, trivial, .. (⊤ : add_submonoid M)}⟩
-
-@[simp] lemma top_coe : ((⊤ : submodule R M) : set M) = univ := rfl
-
-@[simp] lemma mem_top : x ∈ (⊤ : submodule R M) := trivial
-
-instance : order_top (submodule R M) :=
-{ top := ⊤,
-  le_top := λ p x _, trivial,
-  ..submodule.partial_order }
-
-instance : has_Inf (submodule R M) :=
-⟨λ S, {
-  carrier   := ⋂ s ∈ S, (s : set M),
-  zero_mem' := by simp,
-  add_mem'  := by simp [add_mem] {contextual := tt},
-  smul_mem' := by simp [smul_mem] {contextual := tt} }⟩
-
-private lemma Inf_le' {S : set (submodule R M)} {p} : p ∈ S → Inf S ≤ p :=
-bInter_subset_of_mem
-
-private lemma le_Inf' {S : set (submodule R M)} {p} : (∀p' ∈ S, p ≤ p') → p ≤ Inf S :=
-subset_bInter
-
-instance : has_inf (submodule R M) :=
-⟨λ p p', {
-  carrier   := p ∩ p',
-  zero_mem' := by simp,
-  add_mem'  := by simp [add_mem] {contextual := tt},
-  smul_mem' := by simp [smul_mem] {contextual := tt} }⟩
-
-instance : complete_lattice (submodule R M) :=
-{ sup          := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
-  le_sup_left  := λ a b, le_Inf' $ λ x ⟨ha, hb⟩, ha,
-  le_sup_right := λ a b, le_Inf' $ λ x ⟨ha, hb⟩, hb,
-  sup_le       := λ a b c h₁ h₂, Inf_le' ⟨h₁, h₂⟩,
-  inf          := (⊓),
-  le_inf       := λ a b c, subset_inter,
-  inf_le_left  := λ a b, inter_subset_left _ _,
-  inf_le_right := λ a b, inter_subset_right _ _,
-  Sup          := λtt, Inf {t | ∀t'∈tt, t' ≤ t},
-  le_Sup       := λ s p hs, le_Inf' $ λ p' hp', hp' _ hs,
-  Sup_le       := λ s p hs, Inf_le' hs,
-  Inf          := Inf,
-  le_Inf       := λ s a, le_Inf',
-  Inf_le       := λ s a, Inf_le',
-  ..submodule.order_top,
-  ..submodule.order_bot }
 
 instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 { add := (⊔),
@@ -594,14 +517,7 @@ instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 @[simp] lemma add_eq_sup (p q : submodule R M) : p + q = p ⊔ q := rfl
 @[simp] lemma zero_eq_bot : (0 : submodule R M) = ⊥ := rfl
 
-lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
-eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
-
 variables (R)
-
-@[simp] lemma bot_to_add_submonoid : (⊥ : submodule R M).to_add_submonoid = ⊥ := rfl
-
-@[simp] lemma top_to_add_submonoid : (⊤ : submodule R M).to_add_submonoid = ⊤ := rfl
 
 lemma subsingleton_iff : subsingleton M ↔ subsingleton (submodule R M) :=
 add_submonoid.subsingleton_iff.trans $ begin
@@ -623,25 +539,6 @@ instance unique' [subsingleton R] : unique (submodule R M) :=
 by haveI := semimodule.subsingleton R M; apply_instance
 
 instance [nontrivial M] : nontrivial (submodule R M) := (nontrivial_iff R).mp ‹_›
-
-@[simp] theorem inf_coe : (p ⊓ p' : set M) = p ∩ p' := rfl
-
-@[simp] theorem mem_inf {p p' : submodule R M} :
-  x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' := iff.rfl
-
-@[simp] theorem Inf_coe (P : set (submodule R M)) : (↑(Inf P) : set M) = ⋂ p ∈ P, ↑p := rfl
-
-@[simp] theorem infi_coe {ι} (p : ι → submodule R M) :
-  (↑⨅ i, p i : set M) = ⋂ i, ↑(p i) :=
-by rw [infi, Inf_coe]; ext a; simp; exact
-⟨λ h i, h _ i rfl, λ h i x e, e ▸ h _⟩
-
-@[simp] lemma mem_Inf {S : set (submodule R M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
-set.mem_bInter_iff
-
-@[simp] theorem mem_infi {ι} (p : ι → submodule R M) :
-  x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=
-by rw [← mem_coe, infi_coe, mem_Inter]; refl
 
 theorem disjoint_def {p p' : submodule R M} :
   disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:M) :=
@@ -688,6 +585,10 @@ image_subset _
 @[simp] lemma map_zero : map (0 : M →ₗ[R] M₂) p = ⊥ :=
 have ∃ (x : M), x ∈ p := ⟨0, p.zero_mem⟩,
 ext $ by simp [this, eq_comm]
+
+lemma range_map_nonempty (N : submodule R M) :
+  (set.range (λ ϕ, submodule.map ϕ N : (M →ₗ[R] M₂) → submodule R M₂)).nonempty :=
+⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩
 
 /-- The pullback of a submodule `p ⊆ M₂` along `f : M → M₂` -/
 def comap (f : M →ₗ[R] M₂) (p : submodule R M₂) : submodule R M :=
@@ -845,20 +746,15 @@ begin
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
 
-lemma mem_sup_left {S T : submodule R M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
-show S ≤ S ⊔ T, from le_sup_left
+lemma sum_mem_bsupr {ι : Type*} {s : finset ι} {f : ι → M} {p : ι → submodule R M}
+  (h : ∀ i ∈ s, f i ∈ p i) :
+  ∑ i in s, f i ∈ ⨆ i ∈ s, p i :=
+sum_mem _ $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
 
-lemma mem_sup_right {S T : submodule R M} : ∀ {x : M}, x ∈ T → x ∈ S ⊔ T :=
-show T ≤ S ⊔ T, from le_sup_right
-
-lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (h : b ∈ p i) :
-  b ∈ (⨆i, p i) :=
-have p i ≤ (⨆i, p i) := le_supr p i,
-@this b h
-
-lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
-  (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
-show s ≤ Sup S, from le_Sup hs
+lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodule R M}
+  (h : ∀ i, f i ∈ p i) :
+  ∑ i, f i ∈ ⨆ i, p i :=
+sum_mem _ $ λ i hi, mem_supr_of_mem i (h i)
 
 @[simp] theorem mem_supr_of_directed {ι} [nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) {x} :
@@ -992,6 +888,20 @@ span_eq_bot.trans $ by simp
 @[simp] lemma span_image (f : M →ₗ[R] M₂) : span R (f '' s) = map f (span R s) :=
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
 span_le.2 $ image_subset_iff.1 subset_span
+
+lemma apply_mem_span_image_of_mem_span
+   (f : M →ₗ[R] M₂) {x : M} {s : set M} (h : x ∈ submodule.span R s) :
+   f x ∈ submodule.span R (f '' s) :=
+begin
+  rw submodule.span_image,
+  exact submodule.mem_map_of_mem h
+end
+
+/-- `f` is an explicit argument so we can `apply` this theorem and obtain `h` as a new goal. -/
+lemma not_mem_span_of_apply_not_mem_span_image
+   (f : M →ₗ[R] M₂) {x : M} {s : set M} (h : f x ∉ submodule.span R (f '' s)) :
+   x ∉ submodule.span R s :=
+not.imp h (apply_mem_span_image_of_mem_span f)
 
 lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
@@ -1552,6 +1462,15 @@ submodule.map_smul f _ a h
 
 lemma range_smul' (f : V →ₗ[K] V₂) (a : K) : range (a • f) = ⨆(h : a ≠ 0), range f :=
 submodule.map_smul' f _ a
+
+lemma span_singleton_sup_ker_eq_top (f : V →ₗ[K] K) {x : V} (hx : f x ≠ 0) :
+  (K ∙ x) ⊔ f.ker = ⊤ :=
+eq_top_iff.2 (λ y hy, submodule.mem_sup.2 ⟨(f y * (f x)⁻¹) • x,
+  submodule.mem_span_singleton.2 ⟨f y * (f x)⁻¹, rfl⟩,
+    ⟨y - (f y * (f x)⁻¹) • x,
+      by rw [linear_map.mem_ker, f.map_sub, f.map_smul, smul_eq_mul, mul_assoc,
+             inv_mul_cancel hx, mul_one, sub_self],
+      by simp only [add_sub_cancel'_right]⟩⟩)
 
 end field
 

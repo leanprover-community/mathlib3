@@ -15,11 +15,12 @@ import data.finset.lattice
 
 ## Implementation note
 
-In mathematics, an indicator function or a characteristic function is a function used to indicate
-membership of an element in a set `s`, having the value `1` for all elements of `s` and the value `0`
-otherwise. But since it is usually used to restrict a function to a certain set `s`, we let the
-indicator function take the value `f x` for some function `f`, instead of `1`. If the usual indicator
-function is needed, just set `f` to be the constant function `λx, 1`.
+In mathematics, an indicator function or a characteristic function is a function
+used to indicate membership of an element in a set `s`,
+having the value `1` for all elements of `s` and the value `0` otherwise.
+But since it is usually used to restrict a function to a certain set `s`,
+we let the indicator function take the value `f x` for some function `f`, instead of `1`.
+If the usual indicator function is needed, just set `f` to be the constant function `λx, 1`.
 
 ## Tags
 indicator, characteristic
@@ -128,12 +129,12 @@ begin
 end
 
 lemma indicator_preimage (s : set α) (f : α → β) (B : set β) :
-  (indicator s f)⁻¹' B = s ∩ f ⁻¹' B ∪ sᶜ ∩ (λa:α, (0:β)) ⁻¹' B :=
+  (indicator s f)⁻¹' B = s.ite (f ⁻¹' B) (0 ⁻¹' B) :=
 piecewise_preimage s f 0 B
 
 lemma indicator_preimage_of_not_mem (s : set α) (f : α → β) {t : set β} (ht : (0:β) ∉ t) :
-  (indicator s f)⁻¹' t = s ∩ f ⁻¹' t :=
-by simp [indicator_preimage, set.preimage_const_of_not_mem ht]
+  (indicator s f)⁻¹' t = f ⁻¹' t ∩ s :=
+by simp [indicator_preimage, pi.zero_def, set.preimage_const_of_not_mem ht]
 
 lemma mem_range_indicator {r : β} {s : set α} {f : α → β} :
   r ∈ range (indicator s f) ↔ (r = 0 ∧ s ≠ univ) ∨ (r ∈ f '' s) :=
@@ -257,7 +258,8 @@ show indicator s (f - g) = indicator s f - indicator s g, from is_add_group_hom.
 lemma indicator_compl (s : set α) (f : α → β) : indicator sᶜ f = f - indicator s f :=
 eq_sub_of_add_eq $ s.indicator_compl_add_self f
 
-lemma indicator_finset_sum {β} [add_comm_monoid β] {ι : Type*} (I : finset ι) (s : set α) (f : ι → α → β) :
+lemma indicator_finset_sum
+  {β} [add_comm_monoid β] {ι : Type*} (I : finset ι) (s : set α) (f : ι → α → β) :
   indicator s (∑ i in I, f i) = ∑ i in I, indicator s (f i) :=
 begin
   convert (finset.sum_hom _ _).symm,

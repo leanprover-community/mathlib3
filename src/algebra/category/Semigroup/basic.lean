@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Julian Kuelshammer (heavily based on `Mon.basic` by Scott Morrison)
+Authors: Julian Kuelshammer
 -/
 import category_theory.concrete_category.bundled_hom
 import category_theory.concrete_category.reflects_isomorphisms
@@ -17,10 +17,11 @@ We introduce the bundled categories:
 * `AddSemigroup`
 along with the relevant forgetful functors between them.
 
+This closely follows `algebra.category.Mon.basic`.
+
 ## TODO
 
 * Limits in these categories
-* adjoining a unit adjunction to Mon
 * free/forgetful adjunctions
 -/
 
@@ -169,7 +170,7 @@ instance Magma.forget_reflects_isos : reflects_isomorphisms (forget Magma.{u}) :
     resetI,
     let i := as_iso ((forget Magma).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_Magma_iso },
+    exact is_iso.of_iso e.to_Magma_iso,
   end }
 
 @[to_additive]
@@ -179,7 +180,7 @@ instance Semigroup.forget_reflects_isos : reflects_isomorphisms (forget Semigrou
     resetI,
     let i := as_iso ((forget Semigroup).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_Semigroup_iso },
+    exact is_iso.of_iso e.to_Semigroup_iso,
   end }
 
 /-!

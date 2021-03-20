@@ -72,7 +72,7 @@ f.measurable_set_fiber' x
 protected def range (f : α →ₛ β) : finset β := f.finite_range.to_finset
 
 @[simp] theorem mem_range {f : α →ₛ β} {b} : b ∈ f.range ↔ b ∈ range f :=
-finite.mem_to_finset
+finite.mem_to_finset _
 
 theorem mem_range_self (f : α →ₛ β) (x : α) : f x ∈ f.range := mem_range.2 ⟨x, rfl⟩
 
@@ -412,7 +412,7 @@ by simp only [hs, coe_restrict]
 
 theorem restrict_preimage (f : α →ₛ β) {s : set α} (hs : measurable_set s)
   {t : set β} (ht : (0:β) ∉ t) : restrict f s ⁻¹' t = s ∩ f ⁻¹' t :=
-by simp [hs, indicator_preimage_of_not_mem _ _ ht]
+by simp [hs, indicator_preimage_of_not_mem _ _ ht, inter_comm]
 
 theorem restrict_preimage_singleton (f : α →ₛ β) {s : set α} (hs : measurable_set s)
   {r : β} (hr : r ≠ 0) : restrict f s ⁻¹' {r} = s ∩ f ⁻¹' {r} :=

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 import data.finsupp.basic
 import linear_algebra.basic
@@ -632,3 +632,14 @@ lemma mem_span_finset {s : finset M} {x : M} :
     (show x ∈ span R (id '' (↑s : set M)), by rwa set.image_id) in
   ⟨v, hvx ▸ (finsupp.total_apply_of_mem_supported _ hvs).symm⟩,
 λ ⟨f, hf⟩, hf ▸ sum_mem _ (λ i hi, smul_mem _ _ $ subset_span hi)⟩
+
+/-- An element `m ∈ M` is contained in the `R`-submodule spanned by a set `s ⊆ M`, if and only if
+`m` can be written as a finite `R`-linear combination of elements of `s`.
+The implementation uses `finsupp.sum`. -/
+lemma mem_span_set {m : M} {s : set M} :
+  m ∈ submodule.span R s ↔ ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ c.sum (λ mi r, r • mi) = m :=
+begin
+  conv_lhs { rw ←set.image_id s },
+  simp_rw ←exists_prop,
+  exact finsupp.mem_span_iff_total R,
+end

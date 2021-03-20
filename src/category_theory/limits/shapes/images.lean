@@ -255,7 +255,7 @@ begin
 end
 
 -- This is the proof that `factor_thru_image f` is an epimorphism
--- from https://en.wikipedia.org/wiki/Image_(category_theory), which is in turn taken from:
+-- from https://en.wikipedia.org/wiki/Image_%28category_theory%29, which is in turn taken from:
 -- Mitchell, Barry (1965), Theory of categories, MR 0202787, p.12, Proposition 10.1
 @[ext]
 lemma image.ext {W : C} {g h : image f ⟶ W} [has_limit (parallel_pair g h)]
@@ -314,9 +314,9 @@ image.lift
   e := factor_thru_image f', }.
 
 instance (h : f = f') : is_iso (image.eq_to_hom h) :=
-{ inv := image.eq_to_hom h.symm,
-  hom_inv_id' := (cancel_mono (image.ι f)).1 (by simp [image.eq_to_hom]),
-  inv_hom_id' := (cancel_mono (image.ι f')).1 (by simp [image.eq_to_hom]), }
+⟨image.eq_to_hom h.symm,
+  ⟨(cancel_mono (image.ι f)).1 (by simp [image.eq_to_hom]),
+   (cancel_mono (image.ι f')).1 (by simp [image.eq_to_hom])⟩⟩
 
 /-- An equation between morphisms gives an isomorphism between the images. -/
 def image.eq_to_iso (h : f = f') : image f ≅ image f' := as_iso (image.eq_to_hom h)
@@ -370,12 +370,11 @@ variables [has_equalizers C]
 -/
 instance image.is_iso_precomp_iso (f : X ≅ Y) [has_image g] [has_image (f.hom ≫ g)] :
   is_iso (image.pre_comp f.hom g) :=
-{ inv := image.lift
+⟨image.lift
   { I := image (f.hom ≫ g),
     m := image.ι (f.hom ≫ g),
     e := f.inv ≫ factor_thru_image (f.hom ≫ g) },
-  hom_inv_id' := by { ext, simp [image.pre_comp], },
-  inv_hom_id' := by { ext, simp [image.pre_comp], }, }
+  ⟨by { ext, simp [image.pre_comp], }, by { ext, simp [image.pre_comp], }⟩⟩
 
 -- Note that in general we don't have the other comparison map you might expect
 -- `image f ⟶ image (f ≫ g)`.

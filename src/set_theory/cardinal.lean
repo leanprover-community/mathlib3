@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 import data.set.countable
 import set_theory.schroeder_bernstein
 import data.fintype.card
+import data.nat.enat
 
 /-!
 # Cardinal Numbers
@@ -786,6 +787,10 @@ end
 theorem infinite_iff {α : Type u} : infinite α ↔ omega ≤ mk α :=
 by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_fintype]
 
+lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ mk α = omega :=
+⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,
+ λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
+
 lemma countable_iff (s : set α) : countable s ↔ mk s ≤ omega :=
 begin
   rw [countable_iff_exists_injective], split,
@@ -793,9 +798,105 @@ begin
   rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩
 end
 
-lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ mk α = omega :=
-⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,
- λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
+/-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
+  to 0. -/
+noncomputable def to_nat : zero_hom cardinal ℕ :=
+⟨λ c, if h : c < omega.{v} then classical.some (lt_omega.1 h) else 0,
+  begin
+    have h : 0 < omega := nat_lt_omega 0,
+    rw [dif_pos h, ← cardinal.nat_cast_inj, ← classical.some_spec (lt_omega.1 h), nat.cast_zero],
+  end⟩
+
+lemma to_nat_apply_of_lt_omega {c : cardinal} (h : c < omega) :
+  c.to_nat = classical.some (lt_omega.1 h) :=
+dif_pos h
+
+@[simp]
+lemma to_nat_apply_of_omega_le {c : cardinal} (h : omega ≤ c) :
+  c.to_nat = 0 :=
+dif_neg (not_lt_of_le h)
+
+@[simp]
+lemma cast_to_nat_of_lt_omega {c : cardinal} (h : c < omega) :
+  ↑c.to_nat = c :=
+by rw [to_nat_apply_of_lt_omega h, ← classical.some_spec (lt_omega.1 h)]
+
+@[simp]
+lemma to_nat_cast (n : ℕ) : cardinal.to_nat n = n :=
+begin
+  rw [to_nat_apply_of_lt_omega (nat_lt_omega n), ← nat_cast_inj],
+  exact (classical.some_spec (lt_omega.1 (nat_lt_omega n))).symm,
+end
+
+/-- `to_nat` has a right-inverse: coercion. -/
+lemma to_nat_right_inverse : function.right_inverse (coe : ℕ → cardinal) to_nat := to_nat_cast
+
+lemma to_nat_surjective : surjective to_nat := to_nat_right_inverse.surjective
+
+@[simp]
+lemma mk_to_nat_of_infinite [h : infinite α] : (mk α).to_nat = 0 :=
+dif_neg (not_lt_of_le (infinite_iff.1 h))
+
+@[simp]
+lemma mk_to_nat_eq_card [fintype α] : (mk α).to_nat = fintype.card α :=
+by simp [fintype_card]
+
+@[simp]
+lemma zero_to_nat : cardinal.to_nat 0 = 0 :=
+by rw [← to_nat_cast 0, nat.cast_zero]
+
+@[simp]
+lemma one_to_nat : cardinal.to_nat 1 = 1 :=
+by rw [← to_nat_cast 1, nat.cast_one]
+
+/-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
+  to `⊤`. -/
+noncomputable def to_enat : cardinal →+ enat :=
+{ to_fun := λ c, if c < omega.{v} then c.to_nat else ⊤,
+  map_zero' := by simp [if_pos (lt_trans zero_lt_one one_lt_omega)],
+  map_add' := λ x y, begin
+    by_cases hx : x < omega,
+    { obtain ⟨x0, rfl⟩ := lt_omega.1 hx,
+      by_cases hy : y < omega,
+      { obtain ⟨y0, rfl⟩ := lt_omega.1 hy,
+        simp only [add_lt_omega hx hy, hx, hy, to_nat_cast, if_true],
+        rw [← nat.cast_add, to_nat_cast, enat.coe_add] },
+      { rw [if_neg hy, if_neg, enat.add_top],
+        contrapose! hy,
+        apply lt_of_le_of_lt (le_add_left (le_refl y)) hy } },
+    { rw [if_neg hx, if_neg, enat.top_add],
+      contrapose! hx,
+      apply lt_of_le_of_lt (le_add_right (le_refl x)) hx },
+  end }
+
+@[simp]
+lemma to_enat_apply_of_lt_omega {c : cardinal} (h : c < omega) :
+  c.to_enat = c.to_nat :=
+if_pos h
+
+@[simp]
+lemma to_enat_apply_of_omega_le {c : cardinal} (h : omega ≤ c) :
+  c.to_enat = ⊤ :=
+if_neg (not_lt_of_le h)
+
+@[simp]
+lemma to_enat_cast (n : ℕ) : cardinal.to_enat n = n :=
+by rw [to_enat_apply_of_lt_omega (nat_lt_omega n), to_nat_cast]
+
+@[simp]
+lemma mk_to_enat_of_infinite [h : infinite α] : (mk α).to_enat = ⊤ :=
+to_enat_apply_of_omega_le (infinite_iff.1 h)
+
+lemma to_enat_surjective : surjective to_enat :=
+begin
+  intro x,
+  exact enat.cases_on x ⟨omega, to_enat_apply_of_omega_le (le_refl omega)⟩
+    (λ n, ⟨n, to_enat_cast n⟩),
+end
+
+@[simp]
+lemma mk_to_enat_eq_coe_card [fintype α] : (mk α).to_enat = fintype.card α :=
+by simp [fintype_card]
 
 lemma mk_int : mk ℤ = omega :=
 denumerable_iff.mp ⟨by apply_instance⟩

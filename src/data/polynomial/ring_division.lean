@@ -95,7 +95,8 @@ else by rw [degree_mul, degree_eq_nat_degree hp,
     degree_eq_nat_degree hq];
   exact with_bot.coe_le_coe.2 (nat.le_add_right _ _)
 
-theorem nat_degree_le_of_dvd {p q : polynomial R} (h1 : p ∣ q) (h2 : q ≠ 0) : p.nat_degree ≤ q.nat_degree :=
+theorem nat_degree_le_of_dvd {p q : polynomial R} (h1 : p ∣ q) (h2 : q ≠ 0) :
+  p.nat_degree ≤ q.nat_degree :=
 begin
   rcases h1 with ⟨q, rfl⟩, rw mul_ne_zero_iff at h2,
   rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _
@@ -354,32 +355,23 @@ by rw [count_roots h, count_zero, root_multiplicity_eq_zero not_root]
 roots_C 1
 
 lemma roots_list_prod (L : list (polynomial R)) :
-  (∀ p ∈ L, (p : _) ≠ 0) → L.prod.roots = (L : multiset (polynomial R)).bind roots :=
+  ((0 : polynomial R) ∉ L) → L.prod.roots = (L : multiset (polynomial R)).bind roots :=
 list.rec_on L (λ _, roots_one) $ λ hd tl ih H,
 begin
-  rw list.forall_mem_cons at H,
-  rw [list.prod_cons, roots_mul (mul_ne_zero H.1 $ list.prod_ne_zero H.2),
+  rw [list.mem_cons_iff, not_or_distrib] at H,
+  rw [list.prod_cons, roots_mul (mul_ne_zero (ne.symm H.1) $ list.prod_ne_zero H.2),
       ← multiset.cons_coe, multiset.cons_bind, ih H.2]
 end
 
 lemma roots_multiset_prod (m : multiset (polynomial R)) :
-  (∀ p ∈ m, (p : _) ≠ 0) → m.prod.roots = m.bind roots :=
-multiset.induction_on m (λ _, roots_one) $ λ hd tl ih H,
-begin
-  rw multiset.forall_mem_cons at H,
-  rw [multiset.prod_cons, roots_mul (mul_ne_zero H.1 $ multiset.prod_ne_zero H.2),
-      multiset.cons_bind, ih H.2]
-end
+  (0 : polynomial R) ∉ m → m.prod.roots = m.bind roots :=
+by { rcases m with ⟨L⟩, simpa only [coe_prod, quot_mk_to_coe''] using roots_list_prod L }
 
 lemma roots_prod {ι : Type*} (f : ι → polynomial R) (s : finset ι) :
   s.prod f ≠ 0 → (s.prod f).roots = s.val.bind (λ i, roots (f i)) :=
 begin
-  refine s.induction_on _ _,
-  { intros, exact roots_one },
-  intros i s hi ih ne_zero,
-  rw prod_insert hi at ⊢ ne_zero,
-  rw [roots_mul ne_zero, ih (right_ne_zero_of_mul ne_zero), insert_val,
-      ndinsert_of_not_mem hi, cons_bind]
+  rcases s with ⟨m, hm⟩,
+  simpa [multiset.prod_eq_zero_iff, bind_map] using roots_multiset_prod (m.map f)
 end
 
 lemma roots_prod_X_sub_C (s : finset R) :

@@ -64,9 +64,8 @@ end
 
 lemma disjoint : disjoint (IF.I : set P) IF.F := IF.is_compl_I_F.disjoint
 
-lemma I_union_F : (IF.I : set P) ∪ IF.F = set.univ :=
-by { rw ←compl_I_eq_F, exact sup_compl_eq_top }
-lemma F_union_I : (IF.F : set P) ∪ IF.I = set.univ := by rw [set.union_comm, I_union_F]
+lemma I_union_F : (IF.I : set P) ∪ IF.F = set.univ := IF.is_compl_I_F.sup_eq_top
+lemma F_union_I : (IF.F : set P) ∪ IF.I = set.univ := IF.is_compl_I_F.symm.sup_eq_top
 
 end prime_pair
 

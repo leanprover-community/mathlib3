@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import topology.metric_space.isometry
 
@@ -190,7 +190,19 @@ protected lemma isometry : isometry e := e.to_linear_isometry.isometry
 /-- Reinterpret a `linear_isometry_equiv` as an `isometric`. -/
 def to_isometric : E ≃ᵢ F := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
 
+@[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
+
+/-- Reinterpret a `linear_isometry_equiv` as an `homeomorph`. -/
+def to_homeomorph : E ≃ₜ F := e.to_isometric.to_homeomorph
+
+@[simp] lemma coe_to_homeomorph : ⇑e.to_homeomorph = e := rfl
+
 protected lemma continuous : continuous e := e.isometry.continuous
+protected lemma continuous_at {x} : continuous_at e x := e.continuous.continuous_at
+protected lemma continuous_on {s} : continuous_on e s := e.continuous.continuous_on
+
+protected lemma continuous_within_at {s x} : continuous_within_at e s x :=
+e.continuous.continuous_within_at
 
 variables (R E)
 
@@ -213,7 +225,9 @@ def symm : F ≃ₗᵢ[R] E :=
 @[simp] lemma map_eq_zero_iff {x : E} : e x = 0 ↔ x = 0 := e.to_linear_equiv.map_eq_zero_iff
 @[simp] lemma symm_symm : e.symm.symm = e := ext $ λ x, rfl
 
-@[simp] lemma coe_symm_to_linear_equiv : ⇑e.to_linear_equiv.symm = e.symm := rfl
+@[simp] lemma to_linear_equiv_symm : e.to_linear_equiv.symm = e.symm.to_linear_equiv := rfl
+@[simp] lemma to_isometric_symm : e.to_isometric.symm = e.symm.to_isometric := rfl
+@[simp] lemma to_homeomorph_symm : e.to_homeomorph.symm = e.symm.to_homeomorph := rfl
 
 /-- Composition of `linear_isometry_equiv`s as a `linear_isometry_equiv`. -/
 def trans (e' : F ≃ₗᵢ[R] G) : E ≃ₗᵢ[R] G :=
@@ -247,8 +261,16 @@ instance : group (E ≃ₗᵢ[R] E) :=
 @[simp] lemma coe_inv (e : E ≃ₗᵢ[R] E) : ⇑(e⁻¹) = e.symm := rfl
 
 /-- Reinterpret a `linear_isometry_equiv` as a `continuous_linear_equiv`. -/
-def to_continuous_linear_equiv : E ≃L[R] F :=
-⟨e.to_linear_equiv, e.continuous, e.to_isometric.symm.continuous⟩
+instance : has_coe_t (E ≃ₗᵢ[R] F) (E ≃L[R] F) :=
+⟨λ e, ⟨e.to_linear_equiv, e.continuous, e.to_isometric.symm.continuous⟩⟩
+
+instance : has_coe_t (E ≃ₗᵢ[R] F) (E →L[R] F) := ⟨λ e, ↑(e : E ≃L[R] F)⟩
+
+@[simp] lemma coe_coe : ⇑(e : E ≃L[R] F) = e := rfl
+
+@[simp] lemma coe_coe' : ((e : E ≃L[R] F) : E →L[R] F) = e := rfl
+
+@[simp] lemma coe_coe'' : ⇑(e : E →L[R] F) = e := rfl
 
 @[simp] lemma map_zero : e 0 = 0 := e.1.map_zero
 
@@ -270,7 +292,7 @@ protected lemma bijective : bijective e := e.1.bijective
 protected lemma injective : injective e := e.1.injective
 protected lemma surjective : surjective e := e.1.surjective
 
-lemma map_eq_iff {x y : E} : e x = e y ↔ x = y := e.injective.eq_iff
+@[simp] lemma map_eq_iff {x y : E} : e x = e y ↔ x = y := e.injective.eq_iff
 
 lemma map_ne {x y : E} (h : x ≠ y) : e x ≠ e y := e.injective.ne h
 
@@ -278,10 +300,20 @@ protected lemma lipschitz : lipschitz_with 1 e := e.isometry.lipschitz
 
 protected lemma antilipschitz : antilipschitz_with 1 e := e.isometry.antilipschitz
 
-lemma ediam_image (s : set E) : emetric.diam (e '' s) = emetric.diam s :=
+@[simp] lemma ediam_image (s : set E) : emetric.diam (e '' s) = emetric.diam s :=
 e.isometry.ediam_image s
 
-lemma diam_image (s : set E) : metric.diam (e '' s) = metric.diam s :=
+@[simp] lemma diam_image (s : set E) : metric.diam (e '' s) = metric.diam s :=
 e.isometry.diam_image s
+
+variables {α : Type*} [topological_space α]
+
+@[simp] lemma comp_continuous_on_iff {f : α → E} {s : set α} :
+  continuous_on (e ∘ f) s ↔ continuous_on f s :=
+e.isometry.comp_continuous_on_iff
+
+@[simp] lemma comp_continuous_iff {f : α → E} :
+  continuous (e ∘ f) ↔ continuous f :=
+e.isometry.comp_continuous_iff
 
 end linear_isometry_equiv

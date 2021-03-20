@@ -8,7 +8,15 @@ import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.is_poly
 
 
-/-! ## The Verschiebung operator -/
+/-!
+## The Verschiebung operator
+
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
+-/
 
 namespace witt_vector
 open mv_polynomial
@@ -17,9 +25,6 @@ variables {p : ℕ} {R S : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
 noncomputable theory
-
--- unfortunately, without this attribute, some of the code breaks for reasons I don't understand
-local attribute [semireducible] witt_vector
 
 /--
 `verschiebung_fun x` shifts the coefficients of `x` up by one,

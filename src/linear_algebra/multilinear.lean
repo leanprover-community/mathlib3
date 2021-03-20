@@ -165,6 +165,15 @@ def prod (f : multilinear_map R M₁ M₂) (g : multilinear_map R M₁ M₃) :
   map_add'  := λ m i x y, by simp,
   map_smul' := λ m i c x, by simp }
 
+/-- Combine a family of multilinear maps with the same domain and codomains `M' i` into a
+multilinear map taking values in the space of functions `Π i, M' i`. -/
+@[simps] def pi {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
+  [Π i, semimodule R (M' i)] (f : Π i, multilinear_map R M₁ (M' i)) :
+  multilinear_map R M₁ (Π i, M' i) :=
+{ to_fun := λ m i, f i m,
+  map_add' := λ m i x y, funext $ λ j, (f j).map_add _ _ _ _,
+  map_smul' := λ m i c x, funext $ λ j, (f j).map_smul _ _ _ _ }
+
 /-- Given a multilinear map `f` on `n` variables (parameterized by `fin n`) and a subset `s` of `k`
 of these variables, one gets a new multilinear map on `fin k` by varying these variables, and fixing
 the other ones equal to a given value `z`. It is denoted by `f.restr s hk z`, where `hk` is a
@@ -309,7 +318,7 @@ begin
     { assume i,
       have pos : finset.card (A i) ≠ 0, by simp [finset.card_eq_zero, Ai_empty i],
       have : finset.card (A i) ≤ 1 := Ai_singleton i,
-      exact le_antisymm this (pos_iff_ne_zero.mpr pos), },
+      exact le_antisymm this (nat.succ_le_of_lt (_root_.pos_iff_ne_zero.mpr pos)) },
     have : ∀ (r : Π i, α i), r ∈ pi_finset A → f (λ i, g i (r i)) = f (λ i, ∑ j in A i, g i j),
     { assume r hr,
       unfold_coes,

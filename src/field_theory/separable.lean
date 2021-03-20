@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau.
+Authors: Kenny Lau
 -/
 
 import algebra.polynomial.big_operators
@@ -298,7 +298,7 @@ include hp
 noncomputable def contract (f : polynomial F) : polynomial F :=
 ⟨f.support.preimage (*p) $ λ _ _ _ _, (nat.mul_left_inj hp.1.pos).1,
 λ n, f.coeff (n * p),
-λ n, by { rw [finset.mem_preimage, finsupp.mem_support_iff], refl }⟩
+λ n, by rw [finset.mem_preimage, mem_support_iff]⟩
 
 theorem coeff_contract (f : polynomial F) (n : ℕ) : (contract p f).coeff n = f.coeff (n * p) := rfl
 

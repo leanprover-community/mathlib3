@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury Kudryashov.
+Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury Kudryashov
 -/
 import data.real.sqrt
 import data.rat.sqrt
@@ -9,6 +9,7 @@ import ring_theory.int.basic
 import data.polynomial.eval
 import data.polynomial.degree
 import tactic.interval_cases
+import ring_theory.algebraic
 /-!
 # Irrational real numbers
 
@@ -27,6 +28,11 @@ def irrational (x : ℝ) := x ∉ set.range (coe : ℚ → ℝ)
 lemma irrational_iff_ne_rational (x : ℝ) : irrational x ↔ ∀ a b : ℤ, x ≠ a / b :=
 by simp only [irrational, rat.forall, cast_mk, not_exists, set.mem_range, cast_coe_int, cast_div,
   eq_comm]
+
+/-- A transcendental real number is irrational. -/
+lemma transcendental.irrational {r : ℝ} (tr : transcendental ℚ r) :
+  irrational r :=
+by { rintro ⟨a, rfl⟩, exact tr (is_algebraic_algebra_map a) }
 
 /-!
 ### Irrationality of roots of integer and rational numbers

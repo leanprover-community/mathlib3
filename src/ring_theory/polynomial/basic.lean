@@ -2,7 +2,16 @@
 Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
+-/
 
+import algebra.char_p.basic
+import data.mv_polynomial.comm_ring
+import data.mv_polynomial.equiv
+import data.polynomial.field_division
+import ring_theory.principal_ideal_domain
+import ring_theory.polynomial.content
+
+/-!
 # Ring-theoretic supplement of data.polynomial.
 
 ## Main results
@@ -15,12 +24,6 @@ Authors: Kenny Lau
 * `polynomial.unique_factorization_monoid`:
   If an integral domain is a `unique_factorization_monoid`, then so is its polynomial ring.
 -/
-import algebra.char_p.basic
-import data.mv_polynomial.comm_ring
-import data.mv_polynomial.equiv
-import data.polynomial.field_division
-import ring_theory.principal_ideal_domain
-import ring_theory.polynomial.content
 
 noncomputable theory
 open_locale classical big_operators
@@ -73,7 +76,7 @@ end
 theorem mem_degree_lt {n : ℕ} {f : polynomial R} :
   f ∈ degree_lt R n ↔ degree f < n :=
 by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree,
-    finset.sup_lt_iff (with_bot.bot_lt_coe n), finsupp.mem_support_iff, with_bot.some_eq_coe,
+    finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff, with_bot.some_eq_coe,
     with_bot.coe_lt_coe, lt_iff_not_ge', ne, not_imp_not], refl }
 
 @[mono] theorem degree_lt_mono {m n : ℕ} (H : m ≤ n) :
@@ -249,10 +252,10 @@ begin
       exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
   { intros hf,
     rw ← sum_monomial_eq f,
-    refine (map C I : ideal (polynomial R)).sum_mem (λ n hn, _),
+    refine (I.map C : ideal (polynomial R)).sum_mem (λ n hn, _),
     simp [single_eq_C_mul_X],
     rw mul_comm,
-    exact (map C I : ideal (polynomial R)).smul_mem _ (mem_map_of_mem (hf n)) }
+    exact (I.map C : ideal (polynomial R)).mul_mem_left _ (mem_map_of_mem (hf n)) }
 end
 
 lemma quotient_map_C_eq_zero {I : ideal R} :
@@ -347,7 +350,7 @@ begin
   simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, subring.coe_zero, subtype.val_eq_coe],
   suffices : C (i y) ∈ (I.map (polynomial.map_ring_hom i)),
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
-      (polynomial.map_surjective _ (((quotient.mk I).comp C).surjective_onto_range)) this,
+      (polynomial.map_surjective _ (((quotient.mk I).comp C).range_restrict_surjective)) this,
     refine sub_add_cancel (C y) f ▸ I.add_mem (hi' _ : (C y - f) ∈ I) hf.1,
     rw [ring_hom.mem_ker, ring_hom.map_sub, hf.2, sub_eq_zero_iff_eq, coe_map_ring_hom, map_C] },
   exact hx,
@@ -386,7 +389,7 @@ def of_polynomial (I : ideal (polynomial R)) : submodule R (polynomial R) :=
 { carrier := I.carrier,
   zero_mem' := I.zero_mem,
   add_mem' := λ _ _, I.add_mem,
-  smul_mem' := λ c x H, by rw [← C_mul']; exact submodule.smul_mem _ _ H }
+  smul_mem' := λ c x H, by { rw [← C_mul'], exact I.mul_mem_left _ H } }
 
 variables {I : ideal (polynomial R)}
 theorem mem_of_polynomial (x) : x ∈ I.of_polynomial ↔ x ∈ I := iff.rfl
@@ -612,9 +615,9 @@ begin
   rw submodule.mem_sup,
   rcases hpq with ⟨p', q', hpq'⟩,
   use aeval f (p * p') v,
-  use linear_map.mem_range.2 ⟨aeval f p' v, by simp only [linear_map.mul_app, aeval_mul]⟩,
+  use linear_map.mem_range.2 ⟨aeval f p' v, by simp only [linear_map.mul_apply, aeval_mul]⟩,
   use aeval f (q * q') v,
-  use linear_map.mem_range.2 ⟨aeval f q' v, by simp only [linear_map.mul_app, aeval_mul]⟩,
+  use linear_map.mem_range.2 ⟨aeval f q' v, by simp only [linear_map.mul_apply, aeval_mul]⟩,
   simpa only [mul_comm p p', mul_comm q q', aeval_one, aeval_add]
     using congr_arg (λ p : polynomial R, aeval f p v) hpq'
 end
@@ -664,14 +667,14 @@ lemma is_noetherian_ring_fin_0 [is_noetherian_ring R] :
   is_noetherian_ring (mv_polynomial (fin 0) R) :=
 is_noetherian_ring_of_ring_equiv R
   ((mv_polynomial.pempty_ring_equiv R).symm.trans
-   (mv_polynomial.ring_equiv_of_equiv _ fin_zero_equiv'.symm))
+   (rename_equiv R fin_zero_equiv'.symm).to_ring_equiv)
 
 theorem is_noetherian_ring_fin [is_noetherian_ring R] :
   ∀ {n : ℕ}, is_noetherian_ring (mv_polynomial (fin n) R)
 | 0 := is_noetherian_ring_fin_0
 | (n+1) :=
   @is_noetherian_ring_of_ring_equiv (polynomial (mv_polynomial (fin n) R)) _ _ _
-    (mv_polynomial.fin_succ_equiv _ n).symm
+    (mv_polynomial.fin_succ_equiv _ n).to_ring_equiv.symm
     (@polynomial.is_noetherian_ring (mv_polynomial (fin n) R) _ (is_noetherian_ring_fin))
 
 /-- The multivariate polynomial ring in finitely many variables over a noetherian ring
@@ -680,12 +683,12 @@ instance is_noetherian_ring [fintype σ] [is_noetherian_ring R] :
   is_noetherian_ring (mv_polynomial σ R) :=
 trunc.induction_on (fintype.equiv_fin σ) $ λ e,
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
-  (mv_polynomial.ring_equiv_of_equiv _ e.symm) is_noetherian_ring_fin
+  (rename_equiv R e.symm).to_ring_equiv is_noetherian_ring_fin
 
 lemma is_integral_domain_fin_zero (R : Type u) [comm_ring R] (hR : is_integral_domain R) :
   is_integral_domain (mv_polynomial (fin 0) R) :=
 ring_equiv.is_integral_domain R hR
-  ((ring_equiv_of_equiv R fin_zero_equiv').trans (mv_polynomial.pempty_ring_equiv R))
+  ((rename_equiv R fin_zero_equiv').to_ring_equiv.trans (mv_polynomial.pempty_ring_equiv R))
 
 /-- Auxilliary lemma:
 Multivariate polynomials over an integral domain
@@ -700,14 +703,14 @@ lemma is_integral_domain_fin (R : Type u) [comm_ring R] (hR : is_integral_domain
   ring_equiv.is_integral_domain
     (polynomial (mv_polynomial (fin n) R))
     (is_integral_domain_fin n).polynomial
-    (mv_polynomial.fin_succ_equiv _ n)
+    (mv_polynomial.fin_succ_equiv _ n).to_ring_equiv
 
 lemma is_integral_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [fintype σ]
   (hR : is_integral_domain R) : is_integral_domain (mv_polynomial σ R) :=
 trunc.induction_on (fintype.equiv_fin σ) $ λ e,
 @ring_equiv.is_integral_domain _ (mv_polynomial (fin $ fintype.card σ) R) _ _
   (mv_polynomial.is_integral_domain_fin _ hR _)
-  (ring_equiv_of_equiv R e)
+  (rename_equiv R e).to_ring_equiv
 
 /-- Auxilliary definition:
 Multivariate polynomials in finitely many variables over an integral domain form an integral domain.
@@ -757,6 +760,112 @@ begin
   ext,
   simp only [monomial_eq, ϕ.map_pow, ϕ.map_prod, ϕ.comp_apply, ϕ.map_mul, finsupp.prod_pow],
 end
+
+lemma quotient_map_C_eq_zero {I : ideal R} {i : R} (hi : i ∈ I) :
+  (ideal.quotient.mk (ideal.map C I : ideal (mv_polynomial σ R))).comp C i = 0 :=
+begin
+  simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient.eq_zero_iff_mem],
+  exact ideal.mem_map_of_mem hi
+end
+
+/-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself,
+multivariate version. -/
+lemma mem_ideal_of_coeff_mem_ideal (I : ideal (mv_polynomial σ R)) (p : mv_polynomial σ R)
+  (hcoe : ∀ (m : σ →₀ ℕ), p.coeff m ∈ I.comap C) : p ∈ I :=
+begin
+  rw as_sum p,
+  suffices : ∀ m ∈ p.support, monomial m (mv_polynomial.coeff m p) ∈ I,
+  { exact submodule.sum_mem I this },
+  intros m hm,
+  rw [← mul_one (coeff m p), ← C_mul_monomial],
+  suffices : C (coeff m p) ∈ I,
+  { exact ideal.mul_mem_right I (monomial m 1) this },
+  simpa [ideal.mem_comap] using hcoe m
+end
+
+/-- The push-forward of an ideal `I` of `R` to `mv_polynomial σ R` via inclusion
+ is exactly the set of polynomials whose coefficients are in `I` -/
+theorem mem_map_C_iff {I : ideal R} {f : mv_polynomial σ R} :
+  f ∈ (ideal.map C I : ideal (mv_polynomial σ R)) ↔ ∀ (m : σ →₀ ℕ), f.coeff m ∈ I :=
+begin
+  split,
+  { intros hf,
+    apply submodule.span_induction hf,
+    { intros f hf n,
+      cases (set.mem_image _ _ _).mp hf with x hx,
+      rw [← hx.right, coeff_C],
+      by_cases (n = 0),
+      { simpa [h] using hx.left },
+      { simp [ne.symm h] } },
+    { simp },
+   { exact λ f g hf hg n, by simp [I.add_mem (hf n) (hg n)] },
+    { refine λ f g hg n, _,
+      rw [smul_eq_mul, coeff_mul],
+      exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
+  { intros hf,
+    rw as_sum f,
+    suffices : ∀ m ∈ f.support, monomial m (coeff m f) ∈
+      (ideal.map C I : ideal (mv_polynomial σ R)),
+    { exact submodule.sum_mem _ this },
+    intros m hm,
+    rw [← mul_one (coeff m f), ← C_mul_monomial],
+    suffices : C (coeff m f) ∈ (ideal.map C I : ideal (mv_polynomial σ R)),
+    { exact ideal.mul_mem_right _ _ this },
+    apply ideal.mem_map_of_mem _,
+    exact hf m }
+end
+
+lemma eval₂_C_mk_eq_zero {I : ideal R} {a : mv_polynomial σ R}
+  (ha : a ∈ (ideal.map C I : ideal (mv_polynomial σ R))) :
+  eval₂_hom (C.comp (ideal.quotient.mk I)) X a = 0 :=
+begin
+  rw as_sum a,
+  rw [coe_eval₂_hom, eval₂_sum],
+  refine finset.sum_eq_zero (λ n hn, _),
+  simp only [eval₂_monomial, function.comp_app, ring_hom.coe_comp],
+  refine mul_eq_zero_of_left _ _,
+  suffices : coeff n a ∈ I,
+  { rw [← @ideal.mk_ker R _ I, ring_hom.mem_ker] at this,
+    simp only [this, C_0] },
+  exact mem_map_C_iff.1 ha n
+end
+
+/-- If `I` is an ideal of `R`, then the ring `mv_polynomial σ I.quotient` is isomorphic as an
+`R`-algebra to the quotient of `mv_polynomial σ R` by the ideal generated by `I`. -/
+def quotient_equiv_quotient_mv_polynomial (I : ideal R) :
+  mv_polynomial σ I.quotient ≃ₐ[R] (ideal.map C I : ideal (mv_polynomial σ R)).quotient :=
+{ to_fun := eval₂_hom (ideal.quotient.lift I ((ideal.quotient.mk (ideal.map C I : ideal
+    (mv_polynomial σ R))).comp C) (λ i hi, quotient_map_C_eq_zero hi))
+    (λ i, ideal.quotient.mk (ideal.map C I : ideal (mv_polynomial σ R)) (X i)),
+  inv_fun := ideal.quotient.lift (ideal.map C I : ideal (mv_polynomial σ R))
+    (eval₂_hom (C.comp (ideal.quotient.mk I)) X) (λ a ha, eval₂_C_mk_eq_zero ha),
+  map_mul' := ring_hom.map_mul _,
+  map_add' := ring_hom.map_add _,
+  left_inv := begin
+    intro f,
+    apply induction_on f,
+    { rintro ⟨r⟩,
+      rw [coe_eval₂_hom, eval₂_C],
+      simp only [eval₂_hom_eq_bind₂, submodule.quotient.quot_mk_eq_mk, ideal.quotient.lift_mk,
+        ideal.quotient.mk_eq_mk, bind₂_C_right, ring_hom.coe_comp] },
+    { simp_intros p q hp hq,
+      rw [hp, hq] },
+    { simp_intros p i hp,
+      simp only [hp, eval₂_hom_eq_bind₂, coe_eval₂_hom, ideal.quotient.lift_mk, bind₂_X_right,
+        eval₂_mul, ring_hom.map_mul, eval₂_X] }
+  end,
+  right_inv := begin
+    rintro ⟨f⟩,
+    apply induction_on f,
+    { intros r,
+      simp only [submodule.quotient.quot_mk_eq_mk, ideal.quotient.lift_mk, ideal.quotient.mk_eq_mk,
+        ring_hom.coe_comp, eval₂_hom_C] },
+    { simp_intros p q hp hq,
+      rw [hp, hq] },
+    { simp_intros p i hp,
+      simp only [hp] }
+  end,
+  commutes' := λ r, eval₂_hom_C _ _ (ideal.quotient.mk I r) }
 
 end mv_polynomial
 

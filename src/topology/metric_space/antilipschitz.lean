@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import topology.metric_space.lipschitz
+import topology.uniform_space.complete_separated
 
 /-!
 # Antilipschitz functions
@@ -121,11 +122,49 @@ begin
       rwa mul_comm } }
 end
 
+lemma closed_embedding [complete_space α]
+  (hf : antilipschitz_with K f) (hfc : uniform_continuous f) : closed_embedding f :=
+{ closed_range :=
+  begin
+    apply is_complete.is_closed,
+    rw ← complete_space_iff_is_complete_range (hf.uniform_embedding hfc),
+    apply_instance,
+  end,
+  .. (hf.uniform_embedding hfc).embedding }
+
 lemma subtype_coe (s : set α) : antilipschitz_with 1 (coe : s → α) :=
 antilipschitz_with.id.restrict s
 
 lemma of_subsingleton [subsingleton α] {K : ℝ≥0} : antilipschitz_with K f :=
 λ x y, by simp only [subsingleton.elim x y, edist_self, zero_le]
+
+end antilipschitz_with
+
+namespace antilipschitz_with
+
+open metric
+
+variables [metric_space α] [metric_space β] {K : ℝ≥0} {f : α → β}
+
+lemma bounded_preimage (hf : antilipschitz_with K f)
+  {s : set β} (hs : bounded s) :
+  bounded (f ⁻¹' s) :=
+exists.intro (K * diam s) $ λ x y hx hy,
+calc dist x y ≤ K * dist (f x) (f y) : hf.le_mul_dist x y
+... ≤ K * diam s : mul_le_mul_of_nonneg_left (dist_le_diam_of_mem hs hx hy) K.2
+
+/-- The image of a proper space under an expanding onto map is proper. -/
+protected lemma proper_space [proper_space α] (hK : antilipschitz_with K f) (f_cont : continuous f)
+  (hf : function.surjective f) : proper_space β :=
+begin
+  apply proper_space_of_compact_closed_ball_of_le 0 (λx₀ r hr, _),
+  let K := f ⁻¹' (closed_ball x₀ r),
+  have A : is_closed K := is_closed_ball.preimage f_cont,
+  have B : bounded K := hK.bounded_preimage bounded_closed_ball,
+  have : is_compact K := compact_iff_closed_bounded.2 ⟨A, B⟩,
+  convert this.image f_cont,
+  exact (hf.image_preimage _).symm
+end
 
 end antilipschitz_with
 

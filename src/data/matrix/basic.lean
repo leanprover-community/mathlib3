@@ -77,6 +77,10 @@ instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
 instance [has_sub α] : has_sub (matrix m n α) := pi.has_sub
 instance [add_group α] : add_group (matrix m n α) := pi.add_group
 instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_group
+instance [unique α] : unique (matrix m n α) := pi.unique
+instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
+instance [nonempty m] [nonempty n] [nontrivial α] : nontrivial (matrix m n α) :=
+function.nontrivial
 
 @[simp] theorem zero_apply [has_zero α] (i j) : (0 : matrix m n α) i j = 0 := rfl
 @[simp] theorem neg_apply [has_neg α] (M : matrix m n α) (i j) : (- M) i j = - M i j := rfl
@@ -797,7 +801,7 @@ section star_ring
 variables [decidable_eq n] {R : Type*} [semiring R] [star_ring R]
 
 /--
-When `R` is a *-(semi)ring, `matrix n n R` becomes a *-(semi)ring with
+When `R` is a `*`-(semi)ring, `matrix n n R` becomes a `*`-(semi)ring with
 the star operation given by taking the conjugate, and the star of each entry.
 -/
 instance : star_ring (matrix n n R) :=
@@ -807,6 +811,8 @@ instance : star_ring (matrix n n R) :=
   star_mul := λ M N, by { ext, simp [mul_apply], }, }
 
 @[simp] lemma star_apply (M : matrix n n R) (i j) : star M i j = star (M j i) := rfl
+
+lemma star_mul (M N : matrix n n R) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
 
 end star_ring
 
@@ -979,22 +985,22 @@ rfl
   from_blocks A B C D (sum.inr i) (sum.inr j) = D i j :=
 rfl
 
-/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top left" submatrix. -/
 def to_blocks₁₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n l α :=
 λ i j, M (sum.inl i) (sum.inl j)
 
-/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top right" submatrix. -/
 def to_blocks₁₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n m α :=
 λ i j, M (sum.inl i) (sum.inr j)
 
-/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom left" submatrix. -/
 def to_blocks₂₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o l α :=
 λ i j, M (sum.inr i) (sum.inl j)
 
-/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom right" submatrix. -/
 def to_blocks₂₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o m α :=
 λ i j, M (sum.inr i) (sum.inr j)
@@ -1031,6 +1037,39 @@ lemma from_blocks_transpose
 begin
   ext i j, rcases i; rcases j; simp [from_blocks],
 end
+
+/-- Let `p` pick out certain rows and `q` pick out certain columns of a matrix `M`. Then
+  `to_block M p q` is the corresponding block matrix. -/
+def to_block (M : matrix m n α) (p : m → Prop) [decidable_pred p]
+  (q : n → Prop) [decidable_pred q] : matrix {a // p a} {a // q a} α := M.minor coe coe
+
+@[simp] lemma to_block_apply (M : matrix m n α) (p : m → Prop) [decidable_pred p]
+  (q : n → Prop) [decidable_pred q] (i : {a // p a}) (j : {a // q a}) :
+  to_block M p q i j = M ↑i ↑j := rfl
+
+/-- Let `b` map rows and columns of a square matrix `M` to blocks. Then
+  `to_square_block M b k` is the block `k` matrix. -/
+def to_square_block (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
+  matrix {a // b a = k} {a // b a = k} α := M.minor coe coe
+
+@[simp] lemma to_square_block_def (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
+  to_square_block M b k = λ i j, M ↑i ↑j := rfl
+
+/-- Alternate version with `b : m → nat`. Let `b` map rows and columns of a square matrix `M` to
+  blocks. Then `to_square_block' M b k` is the block `k` matrix. -/
+def to_square_block' (M : matrix m m α) (b : m → nat) (k : nat) :
+  matrix {a // b a = k} {a // b a = k} α := M.minor coe coe
+
+@[simp] lemma to_square_block_def' (M : matrix m m α) (b : m → nat) (k : nat) :
+  to_square_block' M b k = λ i j, M ↑i ↑j := rfl
+
+/-- Let `p` pick out certain rows and columns of a square matrix `M`. Then
+  `to_square_block_prop M p` is the corresponding block matrix. -/
+def to_square_block_prop (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
+  matrix {a // p a} {a // p a} α := M.minor coe coe
+
+@[simp] lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
+  to_square_block_prop M p = λ i j, M ↑i ↑j := rfl
 
 variables [semiring α]
 

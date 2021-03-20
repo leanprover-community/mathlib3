@@ -340,7 +340,7 @@ begin
       lt_add_iff_pos_left, max_lt_iff, lt_min_iff, sub_pos, lt_max_iff, subtype.range_val]
       with mfld_simps at hz,
     have A : 0 ≤ z 0 := hz.2,
-    have B : z 0 + x ≤ y, by { have := hz.1.1.1, linarith },
+    have B : z 0 + x ≤ y, by { dsimp only at hz ⊢, linarith, },
     ext i,
     rw subsingleton.elim i 0,
     simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,

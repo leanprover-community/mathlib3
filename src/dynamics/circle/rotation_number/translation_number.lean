@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import analysis.specific_limits
 import order.iterate
@@ -261,9 +261,10 @@ by rw [← units_coe, ← coe_pow, ← units.coe_pow, translate_pow, units_coe]
 /-!
 ### Commutativity with integer translations
 
-In this section we prove that `f` commutes with translations by an integer number. First we formulate
-these statements (for a natural or an integer number, addition on the left or on the right, addition
-or subtraction) using `function.commute`, then reformulate as `simp` lemmas `map_int_add` etc.
+In this section we prove that `f` commutes with translations by an integer number.
+First we formulate these statements (for a natural or an integer number,
+addition on the left or on the right, addition or subtraction) using `function.commute`,
+then reformulate as `simp` lemmas `map_int_add` etc.
 -/
 
 lemma commute_nat_add (n : ℕ) : function.commute f ((+) n) :=

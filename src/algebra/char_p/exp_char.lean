@@ -10,9 +10,11 @@ import data.nat.prime
 /-!
 # Exponential characteristic
 
-This file defines the exponential characteristic of an integral domain,
-and establishes a few basic facts relating the exponential characteristic to the (ordinary)
-characteristic.
+This file defines the exponential characteristic and establishes a few basic results relating
+it to the (ordinary characteristic).
+The definition is stated for a semiring, but the actual results are for nontrivial rings
+(as far as exponential characteristic one is concerned), respectively a ring without zero-divisors
+(for prime characteristic).
 
 ## Main results
 - `exp_char`: the definition of exponential characteristic
@@ -44,7 +46,7 @@ begin
   { exact false.elim (lt_irrefl _ ((hp.eq R q_prime.2).symm ▸ q_prime.1 : (0 : ℕ).prime).pos) }
 end
 
-/-- The characteristic of a domain equals the exponential characteristic iff the former is prime. -/
+/-- The characteristic equals the exponential characteristic iff the former is prime. -/
 theorem char_eq_exp_char_iff (p q : ℕ) [hp : char_p R p] [hq : exp_char R q] :
 p = q ↔ p.prime :=
 begin

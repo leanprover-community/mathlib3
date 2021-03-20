@@ -84,10 +84,10 @@ end ideal
 
 namespace pfilter
 
-/-- An ideal `I` is prime if its complement is a filter.
+/-- A filter `F` is prime if its complement is an ideal.
 -/
-@[mk_iff] class is_prime (I : pfilter P) : Prop :=
-(compl_ideal : is_ideal ((I : set P)ᶜ))
+@[mk_iff] class is_prime (F : pfilter P) : Prop :=
+(compl_ideal : is_ideal ((F : set P)ᶜ))
 
 /-- Create an element of type `order.ideal.prime_pair` from a filter satisfying the predicate
 `order.pfilter.is_prime`. -/

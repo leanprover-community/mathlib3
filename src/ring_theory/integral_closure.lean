@@ -89,7 +89,7 @@ begin
 end
 
 theorem is_integral_of_submodule_noetherian (S : subalgebra R A)
-  (H : is_noetherian R (S : submodule R A)) (x : A) (hx : x ∈ S) :
+  (H : is_noetherian R S.to_submodule) (x : A) (hx : x ∈ S) :
   is_integral R x :=
 begin
   suffices : is_integral R (show S, from ⟨x, hx⟩),
@@ -150,7 +150,7 @@ end
 end
 
 theorem fg_adjoin_singleton_of_integral (x : A) (hx : is_integral R x) :
-  (algebra.adjoin R ({x} : set A) : submodule R A).fg :=
+  (algebra.adjoin R ({x} : set A)).to_submodule.fg :=
 begin
   rcases hx with ⟨f, hfm, hfx⟩,
   existsi finset.image ((^) x) (finset.range (nat_degree f + 1)),
@@ -187,7 +187,7 @@ set.finite.induction_on hfs (λ _, ⟨{1}, submodule.ext $ λ x,
     (fg_adjoin_singleton_of_integral _ $ his a $ set.mem_insert a s)) his
 
 theorem is_integral_of_mem_of_fg (S : subalgebra R A)
-  (HS : (S : submodule R A).fg) (x : A) (hx : x ∈ S) : is_integral R x :=
+  (HS : S.to_submodule.fg) (x : A) (hx : x ∈ S) : is_integral R x :=
 begin
   cases HS with y hy,
   obtain ⟨lx, hlx1, hlx2⟩ :

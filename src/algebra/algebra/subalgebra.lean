@@ -34,9 +34,6 @@ variables {R : Type u} {A : Type v} {B : Type w}
 variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B]
 include R
 
-instance : has_coe (subalgebra R A) (subsemiring A) :=
-⟨λ S, { ..S }⟩
-
 instance : set_like (subalgebra R A) A :=
 ⟨subalgebra.carrier, λ p q h, by cases p; cases q; congr'⟩
 
@@ -50,7 +47,7 @@ variables (S : subalgebra R A)
 theorem algebra_map_mem (r : R) : algebra_map R A r ∈ S :=
 S.algebra_map_mem' r
 
-theorem srange_le : (algebra_map R A).srange ≤ S :=
+theorem srange_le : (algebra_map R A).srange ≤ S.to_subsemiring :=
 λ x ⟨r, _, hr⟩, hr ▸ S.algebra_map_mem r
 
 theorem range_subset : set.range (algebra_map R A) ⊆ S :=
@@ -190,7 +187,7 @@ instance algebra : algebra R S :=
 { smul := λ (c:R) x, ⟨c • x.1, S.smul_mem x.2 c⟩,
   commutes' := λ c x, subtype.eq $ algebra.commutes _ _,
   smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
-  .. (algebra_map R A).cod_srestrict S $ λ x, S.range_le ⟨x, rfl⟩ }
+  .. (algebra_map R A).cod_srestrict S.to_subsemiring $ λ x, S.range_le ⟨x, rfl⟩ }
 
 instance to_algebra {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
   [algebra R A] [algebra A B] (A₀ : subalgebra R A) : algebra A₀ B :=
@@ -273,13 +270,13 @@ def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
 /-- Transport a subalgebra via an algebra homomorphism. -/
 def map (S : subalgebra R A) (f : A →ₐ[R] B) : subalgebra R B :=
 { algebra_map_mem' := λ r, f.commutes r ▸ set.mem_image_of_mem _ (S.algebra_map_mem r),
-  .. subsemiring.map (f : A →+* B) S,}
+  .. S.to_subsemiring.map (f : A →+* B) }
 
 /-- Preimage of a subalgebra under an algebra homomorphism. -/
 def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
 { algebra_map_mem' := λ r, show f (algebra_map R A r) ∈ S,
     from (f.commutes r).symm ▸ S.algebra_map_mem r,
-  .. subsemiring.comap (f : A →+* B) S,}
+  .. S.to_subsemiring.comap (f : A →+* B) }
 
 lemma map_mono {S₁ S₂ : subalgebra R A} {f : A →ₐ[R] B} :
   S₁ ≤ S₂ → S₁.map f ≤ S₂.map f :=
@@ -336,7 +333,7 @@ by { ext, rw [set_like.mem_coe, mem_range], refl }
 /-- Restrict the codomain of an algebra homomorphism. -/
 def cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) : A →ₐ[R] S :=
 { commutes' := λ r, subtype.eq $ f.commutes r,
-  .. ring_hom.cod_srestrict (f : A →+* B) S hf }
+  .. ring_hom.cod_srestrict (f : A →+* B) S.to_subsemiring hf }
 
 @[simp] lemma val_comp_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) :
   S.val.comp (f.cod_restrict S hf) = f :=
@@ -432,7 +429,7 @@ variables {R}
 
 protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
 λ s S, ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) subsemiring.subset_closure) H,
-λ H, show subsemiring.closure (set.range (algebra_map R A) ∪ s) ≤ S,
+λ H, show subsemiring.closure (set.range (algebra_map R A) ∪ s) ≤ S.to_subsemiring,
      from subsemiring.closure_le.2 $ set.union_subset S.range_subset H⟩
 
 /-- Galois insertion between `adjoin` and `coe`. -/

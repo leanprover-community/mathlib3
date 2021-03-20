@@ -62,12 +62,12 @@ variables {K L} (S : intermediate_field K L)
 namespace intermediate_field
 
 instance : set_like (intermediate_field K L) L :=
-⟨subfield.carrier, λ p q h, by cases p; cases q; congr'⟩
+⟨intermediate_field.carrier, λ p q h, by cases p; cases q; congr'⟩
 
 @[simp]
 lemma mem_carrier {s : intermediate_field K L} {x : L} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
-/-- Two subfields are equal if they have the same elements. -/
+/-- Two intermediate fields are equal if they have the same elements. -/
 @[ext] theorem ext {S T : intermediate_field K L} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T :=
 set_like.ext h
 
@@ -84,10 +84,6 @@ set_like.ext h
 
 @[simp] lemma mem_to_subfield (s : intermediate_field K L) (x : L) :
   x ∈ s.to_subfield ↔ x ∈ s := iff.rfl
-
-/-- Two intermediate fields are equal if they have the same elements. -/
-@[ext] theorem ext {S T : intermediate_field K L} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T :=
-set_like.ext h
 
 /-- An intermediate field contains the image of the smaller field. -/
 theorem algebra_map_mem (x : K) : algebra_map K L x ∈ S :=

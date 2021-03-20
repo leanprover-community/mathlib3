@@ -57,7 +57,8 @@ theorem ext_iff {S T : subalgebra R A} : S = T ↔ ∀ x : A, x ∈ S ↔ x ∈ 
 ⟨λ h x, by rw h, ext⟩
 
 -- TODO analogues for other substructures
-theorem ext_set {S T : subalgebra R A} (h : (S : set A) = (T : set A)) : S = T :=
+theorem ext_set {S T : subalgebra R A}
+  (h : ((S : subsemiring A) : set A) = ((T : subsemiring A) : set A)) : S = T :=
 begin
   rw set.ext_iff at h,
   ext x,
@@ -319,6 +320,14 @@ def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
 { algebra_map_mem' := λ r, show f (algebra_map R A r) ∈ S,
     from (f.commutes r).symm ▸ S.algebra_map_mem r,
   .. subsemiring.comap (f : A →+* B) S,}
+
+@[simp] lemma mem_comap' (S : subalgebra R B) (f : A →ₐ[R] B) (x : A) :
+  x ∈ S.comap' f ↔ f x ∈ S :=
+iff.rfl
+
+@[simp, norm_cast] lemma coe_comap' (S : subalgebra R B) (f : A →ₐ[R] B) :
+  (S.comap' f : subsemiring A) = (S : subsemiring B).comap f :=
+by { ext, simp, }
 
 lemma map_mono {S₁ S₂ : subalgebra R A} {f : A →ₐ[R] B} :
   S₁ ≤ S₂ → S₁.map f ≤ S₂.map f :=

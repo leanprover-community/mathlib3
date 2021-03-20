@@ -66,6 +66,8 @@ def bernstein_approximation (n : ℕ) (f : C(I, ℝ)) : C(I, ℝ) := sorry
 theorem bernstein_approximation_uniform (f : C(I, ℝ)) :
   tendsto (λ n : ℕ, bernstein_approximation n f) at_top (𝓝 f) := sorry
 
+instance : nonempty I := ⟨⟨0, le_refl 0, zero_le_one⟩⟩
+
 /--
 The special case of the Weierstrass approximation theorem for the interval `[0,1]`.
 We do this first, because the Bernstein polynomials are specifically adapted to this interval.
@@ -75,7 +77,7 @@ theorem polynomial_functions_closure_eq_top' :
 begin
   apply eq_top_iff.mpr,
   rintros f -,
-  simp only [subalgebra.topological_closure_coe, polynomial_functions_coe],
+  dsimp,
   refine filter.frequently.mem_closure _,
   refine filter.tendsto.frequently (bernstein_approximation_uniform f) _,
   apply frequently_of_forall,
@@ -222,7 +224,6 @@ polynomials functions on `[a, b] ⊆ ℝ` are dense in `C([a,b],ℝ)`
 our proof of that relies on the fact that `abs` is in the closure of polynomials on `[-M, M]`,
 so we may as well get this done first.)
 -/
--- If `b < a` or `a = b` then its trivially true; remove the hypothesis?
 theorem polynomial_functions_closure_eq_top (a b : ℝ) :
   (polynomial_functions (set.Icc a b)).topological_closure = ⊤ :=
 begin
@@ -230,16 +231,17 @@ begin
   { -- We can pullback continuous functions to `[a,b]` to continuous functions on `[0,1]`,
     -- by precomposing with an affine map.
     let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) := pullback (line_map_Icc a b h),
-    -- This operation is itself continuous
+    -- This operation is itself a homeomorphism
     -- (with respect to the norm topologies on continuous functions).
-    have Wc : continuous W := pullback_continuous _,
+    let W' : C(set.Icc a b, ℝ) ≃ₜ C(I, ℝ) := sorry,
+    have w : (W : C(set.Icc a b, ℝ) → C(I, ℝ)) = W' := sorry,
     -- Thus we take the statement of the Weierstrass approximation theorem for `[0,1]`,
     have p := polynomial_functions_closure_eq_top',
     -- and pullback both sides, obtaining an equation between subalgebras of `C([a,b], ℝ)`.
     apply_fun (λ s, s.comap' W) at p,
     simp only [algebra.comap_top] at p,
     -- Since the pullback operation is continuous, it commutes with taking `topological_closure`,
-    rw subalgebra.topological_closure_comap'_continuous _ _ Wc at p,
+    rw subalgebra.topological_closure_comap'_homeomorph _ W W' w at p,
     -- and precomposing with an affine map takes polynomial functions to polynomial functions.
     rw polynomial_functions.comap'_pullback_line_map_Icc at p,
     -- 🎉

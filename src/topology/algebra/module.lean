@@ -177,6 +177,10 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
   smul_mem' := λ c x hx, s.closure_smul_self_subset ⟨⟨c, x⟩, ⟨set.mem_univ _, hx⟩, rfl⟩,
   ..s.to_add_submonoid.topological_closure }
 
+@[simp] lemma submodule.topological_closure_coe (s : submodule R M) :
+  (s.topological_closure : set M) = closure (s : set M) :=
+rfl
+
 instance submodule.topological_closure_topological_semimodule (s : submodule R M) :
   topological_semimodule R (s.topological_closure) :=
 { continuous_smul :=

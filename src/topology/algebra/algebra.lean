@@ -60,9 +60,13 @@ def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
   algebra_map_mem' := λ r, s.to_subring.subring_topological_closure (s.algebra_map_mem r),
   ..s.to_subring.topological_closure }
 
--- TODO repeat this for other algebraic structures.
-@[simp] lemma subalgebra.topological_closure_coe (s : subalgebra R A) :
-  (s.topological_closure : set A) = closure (s : set A) :=
+@[simp] lemma subalgebra.topological_closure_coe_subsemiring (s : subalgebra R A) :
+  (s.topological_closure : subsemiring A) = (s : subsemiring A).topological_closure :=
+rfl
+
+@[simp] lemma subalgebra.topological_closure_coe_submodule
+  [topological_space R] [topological_ring R] [topological_algebra R A] (s : subalgebra R A) :
+  (s.topological_closure : submodule R A) = (s : submodule R A).topological_closure :=
 rfl
 
 instance subalgebra.topological_closure_topological_ring (s : subalgebra R A) :
@@ -91,11 +95,23 @@ lemma subalgebra.topological_closure_minimal
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
-lemma subalgebra.topological_closure_comap'_continuous
+/--
+This is really a statement about topological algebra isomorphisms, but we don't have those,
+so we use the clunky approach of talking about
+an algebra homomorphism, and a separate homeomorphism, along with
+a witness that as functions they are the same.
+-/
+lemma subalgebra.topological_closure_comap'_homeomorph
   (s : subalgebra R A)
   {B : Type*} [topological_space B] [ring B] [topological_ring B] [algebra R B]
-  (f : B →ₐ[R] A) (c : continuous f) :
+  (f : B →ₐ[R] A) (f' : B ≃ₜ A) (w : (f : B → A) = f') :
   s.topological_closure.comap' f = (s.comap' f).topological_closure :=
-sorry
+begin
+  apply subalgebra.ext_set,
+  simp only [subalgebra.topological_closure_coe_subsemiring, subsemiring.topological_closure_coe],
+  simp only [subalgebra.coe_comap', subsemiring.coe_comap, alg_hom.coe_to_ring_hom],
+  rw [w],
+  exact f'.preimage_closure _,
+end
 
 end topological_algebra

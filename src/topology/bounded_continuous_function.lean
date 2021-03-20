@@ -491,20 +491,23 @@ by simpa using @dist_le _ _ _ _ f 0 _ C0
 
 lemma norm_le_of_nonempty [nonempty α]
   {f : α →ᵇ β} {M : ℝ} : ∥f∥ ≤ M ↔ ∀ x, ∥f x∥ ≤ M :=
-⟨λ w x, le_trans (norm_coe_le_norm f x) w,
-  λ w, (norm_le (le_trans (norm_nonneg _) (w (nonempty.some ‹_›)))).mpr w⟩
+begin
+  simp_rw [norm_def, ←dist_zero_right],
+  exact dist_le_of_nonempty,
+end
 
-lemma norm_lt_of_compact [nonempty α] [compact_space α]
+lemma norm_lt_of_compact [compact_space α]
+  {f : α →ᵇ β} {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
+begin
+  simp_rw [norm_def, ←dist_zero_right],
+  exact dist_lt_of_compact M0,
+end
+
+lemma norm_lt_of_nonempty_compact [nonempty α] [compact_space α]
   {f : α →ᵇ β} {M : ℝ} : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 begin
-  fsplit,
-  { intros w x,
-    exact lt_of_le_of_lt (norm_coe_le_norm f x) w, },
-  { intro w,
-    have c : continuous (λ x, ∥f x∥), { continuity, },
-    obtain ⟨x, -, le⟩ :=
-      is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
-    exact lt_of_le_of_lt (norm_le_of_nonempty.mpr (λ y, le y trivial)) (w x), },
+  simp_rw [norm_def, ←dist_zero_right],
+  exact dist_lt_of_nonempty_compact,
 end
 
 variable (f)

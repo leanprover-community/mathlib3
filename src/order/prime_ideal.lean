@@ -52,7 +52,7 @@ structure prime_pair (P : Type*) [preorder P] :=
 lemma prime_pair.compl_F_eq_I (IF : prime_pair P) : (IF.F : set P)ᶜ = IF.I :=
 by rw [←IF.compl_I_eq_F, compl_compl]
 
-lemma prime_pair.ideal_is_proper (IF : prime_pair P) : is_proper IF.I :=
+lemma prime_pair.I_is_proper (IF : prime_pair P) : is_proper IF.I :=
 begin
   cases IF.F.nonempty,
   apply is_proper_of_not_mem (_ : w ∉ IF.I),
@@ -71,9 +71,9 @@ def is_prime.to_prime_pair {I : ideal P} (h : is_prime I) : prime_pair P :=
   F            := h.compl_filter.to_pfilter,
   compl_I_eq_F := rfl }
 
-lemma prime_pair.is_prime (IF : prime_pair P) : is_prime IF.I :=
+lemma prime_pair.I_is_prime (IF : prime_pair P) : is_prime IF.I :=
 { compl_filter := by { rw IF.compl_I_eq_F, exact IF.F.is_pfilter },
-  ..IF.ideal_is_proper }
+  ..IF.I_is_proper }
 
 end ideal
 
@@ -91,7 +91,7 @@ def is_prime.to_prime_pair {F : pfilter P} (h : is_prime F) : ideal.prime_pair P
   F            := F,
   compl_I_eq_F := compl_compl _ }
 
-lemma _root_.order.ideal.prime_pair.pfilter_is_prime (IF : ideal.prime_pair P) : is_prime IF.2 :=
+lemma _root_.order.ideal.prime_pair.F_is_prime (IF : ideal.prime_pair P) : is_prime IF.F :=
 { compl_ideal := by { rw IF.compl_F_eq_I, exact IF.I.is_ideal } }
 
 end pfilter

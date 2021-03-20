@@ -32,7 +32,7 @@ open category_theory.category
 We work in an additive category C equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [has_shift C] [additive_category C]
-[functor.additive (shift C).functor]
+[functor.additive (shift C).functor] [functor.additive (shift C).inverse]
 variables (X : C)
 
 /--
@@ -213,6 +213,9 @@ def rotate : (triangle C) ⥤ (triangle C) :=
   end
 }
 
+/--
+The inverse rotation of triangles gives an endofunctor on the category of triangles in C.
+-/
 @[simps]
 def inv_rotate : (triangle C) ⥤ (triangle C) :=
 { obj := triangle.inv_rotate C,
@@ -242,10 +245,10 @@ def inv_rotate : (triangle C) ⥤ (triangle C) :=
     { refl }
   end
 }
-#check category_theory.functor.additive.map_neg
+
 -- Separated parts of the equivalence to avoid deterministic timeout
 @[simps]
-def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :=
+lemma rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :=
 {
   app := begin
     intro T,
@@ -259,11 +262,12 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :
       comm1 := begin
         rw comp_id,
         dsimp,
-        -- need that (shift C).inverse is an additive functor
-        rw [comp_neg, functor.additive.map_neg (shift C).functor],
+        rw [comp_neg, functor.additive.map_neg (shift C).inverse],
         rw ← functor.comp_map,
-        rw nat_iso.naturality_2 (shift C).unit_iso T.mor1,
-        exact functor.id_map T.mor1,
+        simp only [neg_comp, comp_neg, functor.comp_map, iso.hom_inv_id_app_assoc,
+        iso.hom_inv_id_app, assoc, equivalence.inv_fun_map, neg_neg],
+        dsimp,
+        simp only [comp_id],
       end,
       comm2 := by {rw [id_comp, comp_id], refl},
       comm3 := begin
@@ -295,7 +299,7 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :
 }
 
 @[simps]
-def rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :=
+lemma rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :=
 {
   app := begin
     intro T,
@@ -307,8 +311,8 @@ def rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :
       trimor3 := 𝟙 T.obj3,
       comm1 := begin
         dsimp,
-        simp only [iso.hom_inv_id_app, assoc, equivalence.inv_fun_map,
-        nat_iso.cancel_nat_iso_inv_left],
+        simp only [neg_comp, iso.hom_inv_id_app, functor.additive.map_neg, assoc,
+        equivalence.inv_fun_map, neg_neg, comp_id, nat_iso.cancel_nat_iso_inv_left],
         dsimp,
         simp only [comp_id],
       end,
@@ -350,7 +354,7 @@ def rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :
 }
 
 @[simps]
-def rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
+lemma rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
 {
   hom := rot_comp_inv_rot_hom C,
   inv := rot_comp_inv_rot_inv C,
@@ -402,7 +406,7 @@ def rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
 }
 
 @[simps]
-def inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C) :=
+lemma inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C) :=
 {
   app := begin
     intro T,
@@ -424,8 +428,9 @@ def inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C) :
       end,
       comm3 := begin
         dsimp,
-        simp only [equivalence.counit_inv_functor_comp, equivalence.fun_inv_map, assoc,
-        functor.map_comp, (shift C).functor.map_id, comp_id],
+        simp only [equivalence.counit_inv_functor_comp, equivalence.fun_inv_map,
+        functor.additive.map_neg, assoc, neg_neg, comp_id,functor.map_comp,
+        (shift C).functor.map_id]
       end
     },
     exact f,
@@ -453,7 +458,7 @@ def inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C) :
 }
 
 @[simps]
-def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ (inv_rotate C) ⋙ (rotate C) :=
+lemma inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ (inv_rotate C) ⋙ (rotate C) :=
 {
   app := begin
     intro T,
@@ -473,8 +478,9 @@ def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ (inv_rotate C) ⋙ (rotate C) :
       end,
       comm3 := begin
         dsimp,
-        simp only [equivalence.counit_inv_functor_comp, equivalence.fun_inv_map, assoc,
-        iso.inv_hom_id_app_assoc, functor.map_comp, (shift C).functor.map_id],
+        simp only [equivalence.counit_inv_functor_comp, equivalence.fun_inv_map,
+        functor.additive.map_neg, assoc, iso.inv_hom_id_app_assoc, neg_neg, functor.map_comp,
+        (shift C).functor.map_id]
       end
     },
     exact f
@@ -501,7 +507,7 @@ def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ (inv_rotate C) ⋙ (rotate C) :
 }
 
 @[simps]
-def inv_rot_comp_rot : (inv_rotate C) ⋙ (rotate C) ≅ 𝟭 (triangle C) :=
+lemma inv_rot_comp_rot : (inv_rotate C) ⋙ (rotate C) ≅ 𝟭 (triangle C) :=
 {
   hom := inv_rot_comp_rot_hom C,
   inv := inv_rot_comp_rot_inv C,
@@ -509,9 +515,10 @@ def inv_rot_comp_rot : (inv_rotate C) ⋙ (rotate C) ≅ 𝟭 (triangle C) :=
     ext T,
     {
       dsimp,
-      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
-      triangle_morphism.id_comp, triangle_category_to_category_struct_id, eq_to_hom_refl,
-      congr_arg_mpr_hom_right, comp_id, triangle_morphism.comp_id, functor.comp_obj],
+      squeeze_simp,
+      -- simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
+      -- triangle_morphism.id_comp, triangle_category_to_category_struct_id, eq_to_hom_refl,
+      -- congr_arg_mpr_hom_right, comp_id, triangle_morphism.comp_id, functor.comp_obj],
     },
     {
       dsimp,
@@ -588,3 +595,4 @@ def triangle_rotation : equivalence (triangle C) (triangle C) :=
 }
 
 end category_theory.triangulated
+#lint

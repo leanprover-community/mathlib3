@@ -246,9 +246,12 @@ def inv_rotate : (triangle C) ⥤ (triangle C) :=
   end
 }
 
--- Separated parts of the equivalence to avoid deterministic timeout
+/--
+There is a natural transformation between the identity functor on triangles,
+and the composition of a rotation with an inverse rotation.
+-/
 @[simps]
-lemma rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :=
+def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :=
 {
   app := begin
     intro T,
@@ -298,8 +301,12 @@ lemma rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C)
   end
 }
 
+/--
+There is a natural transformation between the composition of a rotation with an inverse rotation
+on triangles, and the identity functor.
+-/
 @[simps]
-lemma rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :=
+def rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :=
 {
   app := begin
     intro T,
@@ -353,8 +360,13 @@ lemma rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C)
   end
 }
 
+/--
+The natural transformations between the identity functor on triangles and the composition
+of a rotation with an inverse rotation are natural isomorphisms (they are isomorphisms in the
+category of functors).
+-/
 @[simps]
-lemma rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
+def rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
 {
   hom := rot_comp_inv_rot_hom C,
   inv := rot_comp_inv_rot_inv C,
@@ -405,8 +417,12 @@ lemma rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
   end -- (deterministic) timeout when replace simp with squeeze_simp
 }
 
+/--
+There is a natural transformation between the composition of an inverse rotation with a rotation
+on triangles, and the identity functor.
+-/
 @[simps]
-lemma inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C) :=
+def inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C) :=
 {
   app := begin
     intro T,
@@ -457,8 +473,12 @@ lemma inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C)
   end
 }
 
+/--
+There is a natural transformation between the identity functor on triangles,
+and  the composition of an inverse rotation with a rotation.
+-/
 @[simps]
-lemma inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ (inv_rotate C) ⋙ (rotate C) :=
+def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ (inv_rotate C) ⋙ (rotate C) :=
 {
   app := begin
     intro T,
@@ -506,8 +526,13 @@ lemma inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ (inv_rotate C) ⋙ (rotate C)
   end
 }
 
+/--
+The natural transformations between the composition of a rotation with an inverse rotation
+on triangles, and the identity functor on triangles are natural isomorphisms
+(they are isomorphisms in the category of functors).
+-/
 @[simps]
-lemma inv_rot_comp_rot : (inv_rotate C) ⋙ (rotate C) ≅ 𝟭 (triangle C) :=
+def inv_rot_comp_rot : (inv_rotate C) ⋙ (rotate C) ≅ 𝟭 (triangle C) :=
 {
   hom := inv_rot_comp_rot_hom C,
   inv := inv_rot_comp_rot_inv C,
@@ -515,10 +540,7 @@ lemma inv_rot_comp_rot : (inv_rotate C) ⋙ (rotate C) ≅ 𝟭 (triangle C) :=
     ext T,
     {
       dsimp,
-      squeeze_simp,
-      -- simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
-      -- triangle_morphism.id_comp, triangle_category_to_category_struct_id, eq_to_hom_refl,
-      -- congr_arg_mpr_hom_right, comp_id, triangle_morphism.comp_id, functor.comp_obj],
+      simp
     },
     {
       dsimp,

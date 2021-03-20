@@ -49,15 +49,27 @@ structure prime_pair (P : Type*) [preorder P] :=
 (F            : pfilter P)
 (compl_I_eq_F : (I : set P)ᶜ = F)
 
-lemma prime_pair.compl_F_eq_I (IF : prime_pair P) : (IF.F : set P)ᶜ = IF.I :=
+namespace prime_pair
+variable (IF : prime_pair P)
+
+lemma compl_F_eq_I : (IF.F : set P)ᶜ = IF.I :=
 by rw [←IF.compl_I_eq_F, compl_compl]
 
-lemma prime_pair.I_is_proper (IF : prime_pair P) : is_proper IF.I :=
+lemma I_is_proper : is_proper IF.I :=
 begin
   cases IF.F.nonempty,
   apply is_proper_of_not_mem (_ : w ∉ IF.I),
   rwa ← prime_pair.compl_I_eq_F at h,
 end
+
+lemma disjoint : disjoint (IF.I : set P) IF.F :=
+by { rw ←compl_I_eq_F, exact disjoint_compl_right, }
+
+lemma I_union_F  : (IF.I : set P) ∪ IF.F = set.univ :=
+by { rw ←compl_I_eq_F, exact sup_compl_eq_top }
+lemma F_union_I : (IF.F : set P) ∪ IF.I = set.univ := by rw [set.union_comm, I_union_F]
+
+end prime_pair
 
 /-- An ideal `I` is prime if its complement is a filter.
 -/

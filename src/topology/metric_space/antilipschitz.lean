@@ -123,7 +123,8 @@ begin
 end
 
 lemma closed_embedding {α : Type*} {β : Type*} [emetric_space α] [emetric_space β] {K : ℝ≥0}
-  {f : α → β} [complete_space α] (hf : antilipschitz_with K f) (hfc : uniform_continuous f) : closed_embedding f :=
+  {f : α → β} [complete_space α] (hf : antilipschitz_with K f) (hfc : uniform_continuous f) :
+  closed_embedding f :=
 { closed_range :=
   begin
     apply is_complete.is_closed,

@@ -5,6 +5,7 @@ Authors: Scott Morrison, Nicolò Cavalleri
 -/
 import topology.algebra.module
 import topology.continuous_map
+import algebra.algebra.subalgebra
 
 /-!
 # Algebraic structures over continuous functions
@@ -311,6 +312,54 @@ instance continuous_map_algebra : algebra R C(α, A) :=
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
   ..continuous_map_semiring }
+
+/--
+A version of `separates_points` for subalgebras of the continuous functions,
+used for stating the Stone-Weierstrass theorem.
+-/
+abbreviation subalgebra.separates_points (s : subalgebra R C(α, A)) : Prop :=
+separates_points ((λ f : C(α, A), (f : α → A)) '' (s : set C(α, A)))
+
+lemma subalgebra.separates_points_monotone :
+  monotone (λ s : subalgebra R C(α, A), s.separates_points) :=
+λ s s' r h x y n,
+begin
+  obtain ⟨f, m, w⟩ := h x y n,
+  rcases m with ⟨f, ⟨m, rfl⟩⟩,
+  exact ⟨_, ⟨f, ⟨r m, rfl⟩⟩, w⟩,
+end
+
+variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
+
+/--
+Working in continuous functions into a topological field,
+a subalgebra of functions that separates points also separates points strongly.
+
+By the hypothesis, we can find a function `f` so `f x ≠ f y`.
+By an affine transformation in the field we can arrange so that `f x = a` and `f x = b`.
+-/
+lemma subalgebra.separates_points_strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h : s.separates_points) :
+  separates_points_strongly ((λ f : C(α, 𝕜), (f : α → 𝕜)) '' (s : set C(α, 𝕜))) :=
+λ x y n,
+begin
+  obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h x y n,
+  replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
+  intros a b,
+  let f' := ((b - a) * (f x - f y)⁻¹) • (continuous_map.C (f x) - f) + continuous_map.C a,
+  refine ⟨f', _, _, _⟩,
+  { simp only [set.mem_image, coe_coe],
+    refine ⟨f', _, rfl⟩,
+    simp only [f', submodule.mem_coe, subalgebra.mem_to_submodule],
+    -- TODO should there be a tactic for this?
+    apply subalgebra.add_mem,
+    apply subalgebra.smul_mem,
+    apply subalgebra.sub_mem,
+    apply subalgebra.algebra_map_mem,
+    exact m,
+    apply subalgebra.algebra_map_mem, },
+  { simp [f'], },
+  { simp [f', inv_mul_cancel_right' w], },
+end
 
 end continuous_map
 

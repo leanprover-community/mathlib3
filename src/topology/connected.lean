@@ -303,6 +303,21 @@ lemma eq_univ_of_nonempty_clopen [preconnected_space α] {s : set α}
   (h : s.nonempty) (h' : is_clopen s) : s = univ :=
 by { rw is_clopen_iff at h', finish [h.ne_empty] }
 
+lemma subtype.is_preconnected {s s' : set α} (hss' : s ⊆ s') (hsc : is_preconnected s) :
+  @is_preconnected s' _ (coe ⁻¹' s) :=
+begin
+  intros u v hu hv hs hsu hsv,
+  rw is_open_induced_iff at hu hv,
+  rcases hu with ⟨u, hu, rfl⟩,
+  rcases hv with ⟨v, hv, rfl⟩,
+  rw [← preimage_inter],
+  rw [← preimage_inter, subtype.preimage_coe_nonempty] at hsu hsv ⊢,
+  rw [← inter_assoc, subset_iff_inter_eq_right.1 hss'] at hsu hsv ⊢,
+  refine hsc u v hu hv _ hsu hsv,
+  refine (preimage_subset_preimage_iff _).1 hs,
+  rwa subtype.range_coe,
+end
+
 lemma subtype.preconnected_space {s : set α} (h : is_preconnected s) :
   preconnected_space s :=
 { is_preconnected_univ :=

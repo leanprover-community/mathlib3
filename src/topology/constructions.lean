@@ -600,6 +600,13 @@ lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ (x : α) ∈ closure ((coe : _ → α) '' s) :=
 closure_induced
 
+lemma closure_subtype_closure {s : set γ} {x : closure s} :
+  x ∈ @closure (closure s) _ (coe ⁻¹' s) :=
+begin
+  rw [closure_subtype, subtype.image_preimage_coe, inter_eq_self_of_subset_left subset_closure],
+  exact x.prop,
+end
+
 end subtype
 
 section quotient

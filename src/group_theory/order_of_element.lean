@@ -485,6 +485,22 @@ end group
 
 section finite_monoid
 variables {α} [fintype α] [monoid α]
+variables {H : Type u} [fintype H] [add_monoid H]
+
+lemma sum_card_add_order_of_eq_card_nsmul_eq_zero [decidable_eq H] {n : ℕ} (hn : 0 < n) :
+  ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : H, add_order_of x = m)).card
+  = (finset.univ.filter (λ x : H, n •ℕ x = 0)).card :=
+calc ∑ m in (finset.range n.succ).filter (∣ n),
+        (finset.univ.filter (λ x : H, add_order_of x = m)).card
+    = _ : (finset.card_bUnion (by { intros, apply finset.disjoint_filter.2, cc })).symm
+... = _ : congr_arg finset.card (finset.ext (begin
+  assume x,
+  suffices : add_order_of x ≤ n ∧ add_order_of x ∣ n ↔ n •ℕ x = 0,
+  { simpa [nat.lt_succ_iff], },
+  exact ⟨λ h, let ⟨m, hm⟩ := h.2 in
+                by rw [hm, mul_comm, mul_nsmul, add_order_of_nsmul_eq_zero, nsmul_zero],
+    λ h, ⟨add_order_of_le_of_nsmul_eq_zero hn h, add_order_of_dvd_of_nsmul_eq_zero h⟩⟩
+end))
 
 lemma sum_card_order_of_eq_card_pow_eq_one [decidable_eq α] {n : ℕ} (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
@@ -498,6 +514,9 @@ calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : 
   exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, one_pow],
     λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
 end))
+
+attribute [to_additive sum_card_add_order_of_eq_card_nsmul_eq_zero]
+  sum_card_order_of_eq_card_pow_eq_one
 
 end finite_monoid
 

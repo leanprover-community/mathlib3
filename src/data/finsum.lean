@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying, Kevin Buzzard
 -/
 
-import data.set.finite
-import algebra.big_operators
-import data.support
 import data.finsupp
 
 /-!
@@ -157,18 +154,12 @@ end
 lemma finsum_in_def (s : set α) (f : α → M) :
   ∑ᶠ i in s, f i = finsum (λ x, if x ∈ s then f x else 0) := rfl
 
--- function.support doesn't import data.finsupp and vice versa
--- so the below lemma can't go in either place
-lemma function.support_eq_support {α : Type u} {β : Type v} [has_zero β] (f : α →₀ β) :
-  function.support f = f.support :=
-set.ext $ λ x, finsupp.mem_support_iff.symm
-
 namespace finsupp
 
 variables {β : Type v} [has_zero β]
 
 lemma support_finite (f : α →₀ β) : (function.support f).finite :=
-by { rw function.support_eq_support, exact f.support.finite_to_set }
+by { rw fun_support_eq, exact f.support.finite_to_set }
 
 /-- The natural `finsupp` induced by the function `f` given that it has finite support. -/
 noncomputable def of_support_finite

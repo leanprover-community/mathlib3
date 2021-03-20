@@ -163,8 +163,8 @@ by simp
 instance finsupp.decidable_eq [decidable_eq α] [decidable_eq M] : decidable_eq (α →₀ M) :=
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a)) ext_iff'.symm
 
-lemma finite_supp (f : α →₀ M) : set.finite {a | f a ≠ 0} :=
-⟨fintype.of_finset f.support (λ _, mem_support_iff)⟩
+lemma finite_support (f : α →₀ M) : set.finite (function.support f) :=
+f.fun_support_eq.symm ▸ f.support.finite_to_set
 
 lemma support_subset_iff {s : set α} {f : α →₀ M} :
   ↑f.support ⊆ s ↔ (∀a∉s, f a = 0) :=
@@ -357,12 +357,28 @@ lemma support_on_finset
   (finsupp.on_finset s f hf).support = s.filter (λ a, f a ≠ 0) :=
 rfl
 
+end on_finset
+
+section of_support_finite
+
+variables [has_zero M]
+
+/-- The natural `finsupp` induced by the function `f` given that it has finite support. -/
+noncomputable def of_support_finite
+  (f : α → M) (hf : (function.support f).finite) : α →₀ M :=
+{ support := hf.to_finset,
+  to_fun := f,
+  mem_support_to_fun := λ _, hf.mem_to_finset }
+
+lemma of_support_finite_coe {f : α → M} {hf : (function.support f).finite} :
+  (of_support_finite f hf : α → M) = f := rfl
+
 instance : can_lift (α → M) (α →₀ M) :=
 { coe := coe_fn,
   cond := λ f, (function.support f).finite,
-  prf := λ f hf, ⟨on_finset hf.to_finset f (λ a ha, by simpa), rfl⟩ }
+  prf := λ f hf, ⟨of_support_finite f hf, rfl⟩ }
 
-end on_finset
+end of_support_finite
 
 /-! ### Declarations about `map_range` -/
 

@@ -290,7 +290,7 @@ section basic
 variable [Π i, has_zero (β i)]
 
 omit dec
-lemma finite_supp (f : Π₀ i, β i) : set.finite {i | f i ≠ 0} :=
+lemma finite_support (f : Π₀ i, β i) : set.finite {i | f i ≠ 0} :=
 begin
   classical,
   exact quotient.induction_on f (λ x, x.2.to_finset.finite_to_set.subset (λ i H,

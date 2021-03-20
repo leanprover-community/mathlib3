@@ -177,22 +177,25 @@ set.ext $ λ x, by simp only [support, not_and_distrib, mem_union_eq, mem_set_of
 
 end function
 
-lemma set.image_inter_support_eq {α β M : Type*} {f : α → M} [has_zero M] {s : set β} {g : β → α} :
-  (g '' s ∩ function.support f) = g '' (s ∩ function.support (f ∘ g)) :=
+namespace set
+
+open function
+
+variables {α β M : Type*} [has_zero M] {f : α → M}
+
+lemma image_inter_support_eq {s : set β} {g : β → α} :
+  (g '' s ∩ support f) = g '' (s ∩ support (f ∘ g)) :=
+by rw [support_comp_eq_preimage f g, image_inter_preimage]
+
+lemma image_inter_support_finite_iff {s : set β} {g : β → α} (hg : set.inj_on g s) :
+  (g '' s ∩ support f).finite ↔ (s ∩ support (f ∘ g)).finite :=
 begin
-  ext y, split; intro hy,
-    { rcases hy with ⟨⟨x, hx₀, rfl⟩, hy⟩,
-      exact ⟨x, ⟨hx₀, hy⟩, rfl⟩ },
-    { rcases hy with ⟨y, ⟨hys, hyfg⟩, rfl⟩, exact ⟨⟨y, hys, rfl⟩, hyfg⟩ }
+  rw [image_inter_support_eq, finite_image_iff],
+  exact hg.mono (inter_subset_left s _)
 end
 
-lemma set.image_inter_support_finite_iff {α β M : Type*} {f : α → M} [has_zero M]
-  {s : set β} {g : β → α} (hg : set.inj_on g s) :
-  (g '' s ∩ function.support f).finite ↔ (s ∩ function.support (f ∘ g)).finite :=
-begin
-  rw [set.image_inter_support_eq, set.finite_image_iff],
-  exact set.inj_on.mono (set.inter_subset_left s _) hg
-end
+end set
+
 namespace pi
 variables {A : Type*} {B : Type*} [decidable_eq A] [has_zero B] {a : A} {b : B}
 
@@ -219,8 +222,7 @@ lemma support_single_subset : function.support (pi.single a b) ⊆ {a} :=
 begin
   classical,
   rw support_single,
-  split_ifs;
-  simp
+  split_ifs; simp
 end
 
 end pi

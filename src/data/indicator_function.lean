@@ -89,8 +89,8 @@ indicator_eq_zero
   indicator (range f) g ∘ f = g ∘ f :=
 piecewise_range_comp _ _ _
 
-lemma indicator_congr (h : ∀ a ∈ s, f a = g a) : indicator s f = indicator s g :=
-funext $ λx, by { simp only [indicator], split_ifs, { exact h _ h_1 }, refl }
+lemma indicator_congr (h : eq_on f g s) : indicator s f = indicator s g :=
+funext $ λx, by { simp only [indicator], split_ifs, { exact h h_1 }, refl }
 
 @[simp] lemma indicator_univ (f : α → β) : indicator (univ : set α) f = f :=
 indicator_eq_self.2 $ subset_univ _
@@ -111,6 +111,10 @@ variable {β}
 lemma indicator_indicator (s t : set α) (f : α → β) :
   indicator s (indicator t f) = indicator (s ∩ t) f :=
 funext $ λx, by { simp only [indicator], split_ifs, repeat {simp * at * {contextual := tt}} }
+
+@[simp] lemma indicator_inter_support (s : set α) (f : α → β) :
+  indicator (s ∩ support f) f = indicator s f :=
+by rw [← indicator_indicator, indicator_support]
 
 lemma comp_indicator (h : β → γ) (f : α → β) {s : set α} {x : α} :
   h (s.indicator f x) = s.piecewise (h ∘ f) (const α (h 0)) x :=

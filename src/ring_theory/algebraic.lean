@@ -171,7 +171,7 @@ lemma subalgebra.inv_mem_of_root_of_coeff_zero_ne_zero {x : A} {p : polynomial K
   (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) : (x⁻¹ : L) ∈ A :=
 begin
   have : (x⁻¹ : L) = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)),
-  { rw [aeval_eq, submodule.coe_zero, zero_sub, div_neg],
+  { rw [aeval_eq, subalgebra.coe_zero, zero_sub, div_neg],
     convert inv_eq_of_root_of_coeff_zero_ne_zero _ coeff_zero_ne,
     { rw subalgebra.aeval_coe },
     { simpa using aeval_eq } },
@@ -183,10 +183,7 @@ end
 lemma subalgebra.inv_mem_of_algebraic {x : A} (hx : is_algebraic K (x : L)) : (x⁻¹ : L) ∈ A :=
 begin
   obtain ⟨p, ne_zero, aeval_eq⟩ := hx,
-  replace aeval_eq : aeval x p = 0,
-  { rw ← submodule.coe_eq_zero,
-    convert aeval_eq,
-    exact is_scalar_tower.algebra_map_aeval K A L _ _ },
+  rw [subalgebra.aeval_coe, coe_eq_zero] at aeval_eq,
   revert ne_zero aeval_eq,
   refine p.rec_on_horner _ _ _,
   { intro h,
@@ -198,7 +195,7 @@ begin
     rw [alg_hom.map_mul, aeval_X, mul_eq_zero] at aeval_eq,
     cases aeval_eq with aeval_eq x_eq,
     { exact ih hp aeval_eq },
-    { rw [x_eq, submodule.coe_zero, inv_zero],
+    { rw [x_eq, subalgebra.coe_zero, inv_zero],
       exact A.zero_mem } }
 end
 

@@ -212,6 +212,11 @@ instance no_zero_smul_divisors_bot [no_zero_smul_divisors R A] : no_zero_smul_di
   {S : subalgebra R A} (x y : S) : (↑(x - y) : A) = ↑x - ↑y := rfl
 @[simp, norm_cast] lemma coe_smul (r : R) (x : S) : (↑(r • x) : A) = r • ↑x := rfl
 
+@[simp, norm_cast] lemma coe_eq_zero {x : S} : (x : A) = 0 ↔ x = 0 :=
+(set_like.coe_eq_coe : (x : A) = (0 : S) ↔ x = 0)
+@[simp, norm_cast] lemma coe_eq_one {x : S} : (x : A) = 1 ↔ x = 1 :=
+(set_like.coe_eq_coe : (x : A) = (1 : S) ↔ x = 1)
+
 -- todo: standardize on the names these morphisms
 -- compare with submodule.subtype
 

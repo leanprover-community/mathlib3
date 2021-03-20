@@ -2008,6 +2008,10 @@ begin
   apply inj_on_of_nodup_map this,
 end
 
+theorem card_image_eq_iff_inj_on [decidable_eq β] {f : α → β} {s : finset α} :
+  (s.image f).card = s.card ↔ (∀x∈s, ∀y∈s, f x = f y → x = y) :=
+⟨inj_on_of_card_image_eq, card_image_of_inj_on⟩
+
 theorem card_image_of_injective [decidable_eq β] {f : α → β} (s : finset α)
   (H : injective f) : card (image f s) = card s :=
 card_image_of_inj_on $ λ x _ y _ h, H h

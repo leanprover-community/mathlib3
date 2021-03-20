@@ -224,7 +224,7 @@ begin
     exact mem_image_of_mem ⇑f hx },
   { simp only [set_like.mem_coe, ring_hom.map_zero, mem_preimage, zero_mem] },
   { simp only [set_like.mem_coe, mem_preimage] at hx hy,
-    simp only [ring_hom.map_add, mem_coe, mem_preimage],
+    simp only [ring_hom.map_add, set_like.mem_coe, mem_preimage],
     exact submodule.add_mem _ hx hy },
   { simp only [set_like.mem_coe, mem_preimage] at hx,
     simp only [algebra.id.smul_eq_mul, set_like.mem_coe, mem_preimage, ring_hom.map_mul],

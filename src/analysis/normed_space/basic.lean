@@ -1308,8 +1308,8 @@ instance submodule.semi_normed_space {𝕜 : Type*} [normed_field 𝕜]
 /-- If there is a scalar `c` with `∥c∥>1`, then any element of with norm different from `0` can be
 moved by scalar multiplication to any shell of width `∥c∥`. Also recap information on the norm of
 the rescaling element that shows up in applications. -/
-lemma rescale_to_shell_semi_normed {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : ∥x∥ ≠ 0) :
-  ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
+lemma rescale_to_shell_semi_normed {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E}
+  (hx : ∥x∥ ≠ 0) : ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
 begin
   have xεpos : 0 < ∥x∥/ε := div_pos ((ne.symm hx).le_iff_lt.1 (norm_nonneg x)) εpos,
   rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,

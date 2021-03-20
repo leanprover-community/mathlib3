@@ -318,7 +318,11 @@ by { rw nonempty_iff_ne_empty, exact not_not, }
 theorem eq_empty_or_nonempty (s : finset α) : s = ∅ ∨ s.nonempty :=
 classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 
-@[simp] lemma coe_empty : ((∅ : finset α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_empty : ((∅ : finset α) : set α) = ∅ := rfl
+
+@[simp, norm_cast] lemma coe_eq_empty {s : finset α} :
+  (s : set α) = ∅ ↔ s = ∅ :=
+by rw [← coe_empty, coe_inj]
 
 /-- A `finset` for an empty type is empty. -/
 lemma eq_empty_of_not_nonempty (h : ¬ nonempty α) (s : finset α) : s = ∅ :=

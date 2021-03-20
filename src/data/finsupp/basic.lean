@@ -14,7 +14,6 @@ import data.multiset.antidiagonal
 import data.indicator_function
 
 /-!
-
 # Type of functions with finite support
 
 For any type `α` and a type `M` with zero, we define the type `finsupp α M` (notation: `α →₀ M`)
@@ -106,9 +105,9 @@ instance : has_coe_to_fun (α →₀ M) := ⟨λ _, α → M, to_fun⟩
 @[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
   ⇑(⟨s, f, h⟩ : α →₀ M) = f := rfl
 
-instance : has_zero (α →₀ M) := ⟨⟨∅, (λ _, 0), λ _, ⟨false.elim, λ H, H rfl⟩⟩⟩
+instance : has_zero (α →₀ M) := ⟨⟨∅, 0, λ _, ⟨false.elim, λ H, H rfl⟩⟩⟩
 
-@[simp] lemma coe_zero : ⇑(0 : α →₀ M) = (λ _, (0:M)) := rfl
+@[simp] lemma coe_zero : ⇑(0 : α →₀ M) = 0 := rfl
 lemma zero_apply {a : α} : (0 : α →₀ M) a = 0 := rfl
 @[simp] lemma support_zero : (0 : α →₀ M).support = ∅ := rfl
 
@@ -117,7 +116,7 @@ instance : inhabited (α →₀ M) := ⟨0⟩
 @[simp] lemma mem_support_iff {f : α →₀ M} : ∀{a:α}, a ∈ f.support ↔ f a ≠ 0 :=
 f.mem_support_to_fun
 
-@[simp] lemma fun_support_eq (f : α →₀ M) : function.support f = f.support :=
+@[simp, norm_cast] lemma fun_support_eq (f : α →₀ M) : function.support f = f.support :=
 set.ext $ λ x, mem_support_iff.symm
 
 lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
@@ -130,6 +129,12 @@ lemma coe_fn_injective : @function.injective (α →₀ M) (α → M) coe_fn
     have : s = t, { ext a, exact (hf a).trans (hg a).symm },
     subst this
   end
+
+@[simp, norm_cast] lemma coe_fn_inj {f g : α →₀ M} : (f : α → M) = g ↔ f = g :=
+coe_fn_injective.eq_iff
+
+@[simp, norm_cast] lemma coe_eq_zero {f : α →₀ M} : (f : α → M) = 0 ↔ f = 0 :=
+by rw [← coe_zero, coe_fn_inj]
 
 @[ext] lemma ext {f g : α →₀ M} (h : ∀a, f a = g a) : f = g := coe_fn_injective (funext h)
 
@@ -144,14 +149,13 @@ lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x �
     by rw [hf, hg]⟩
 
 @[simp] lemma support_eq_empty {f : α →₀ M} : f.support = ∅ ↔ f = 0 :=
-⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext_iff.1 h a).1 $
-  mem_support_iff.2 H, by rintro rfl; refl⟩
+by exact_mod_cast @function.support_eq_empty_iff _ _ _ f
 
 lemma support_nonempty_iff {f : α →₀ M} : f.support.nonempty ↔ f ≠ 0 :=
 by simp only [finsupp.support_eq_empty, finset.nonempty_iff_ne_empty, ne.def]
 
 lemma nonzero_iff_exists {f : α →₀ M} : f ≠ 0 ↔ ∃ a : α, f a ≠ 0 :=
-by simp [finsupp.support_eq_empty.symm, finset.eq_empty_iff_forall_not_mem]
+by simp [← finsupp.support_eq_empty, finset.eq_empty_iff_forall_not_mem]
 
 lemma card_support_eq_zero {f : α →₀ M} : card f.support = 0 ↔ f = 0 :=
 by simp
@@ -352,6 +356,11 @@ lemma support_on_finset
   {s : finset α} {f : α → M} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) :
   (finsupp.on_finset s f hf).support = s.filter (λ a, f a ≠ 0) :=
 rfl
+
+instance : can_lift (α → M) (α →₀ M) :=
+{ coe := coe_fn,
+  cond := λ f, (function.support f).finite,
+  prf := λ f hf, ⟨on_finset hf.to_finset f (λ a ha, by simpa), rfl⟩ }
 
 end on_finset
 

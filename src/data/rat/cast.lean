@@ -277,3 +277,45 @@ end
 
 instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
 ⟨ring_hom.ext_rat⟩
+
+/-- Integer values of a morphism `φ` completely determine `φ`. -/
+theorem ext_hom_int {α} [group_with_zero α] (φ₁ φ₂ : monoid_with_zero_hom ℚ α)
+  (same_on_int : ∀ k : ℤ, φ₁ k = φ₂ k) : φ₁ = φ₂ :=
+begin
+  ext x,
+  rw ← @rat.num_denom x,
+  rw rat.mk_eq_div,
+  repeat { rw div_eq_mul_inv, },
+  rw ← coe_coe,
+  rw monoid_with_zero_hom.map_mul φ₁,
+  rw monoid_with_zero_hom.map_inv' φ₁ x.denom,
+  rw monoid_with_zero_hom.map_mul φ₂,
+  rw monoid_with_zero_hom.map_inv' φ₂ x.denom,
+  rw same_on_int x.num,
+  have := same_on_int x.denom, rw ← coe_coe at this,
+  rw this,
+end
+
+/-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
+theorem ext_hom_pnat {α} [group_with_zero α] (φ₁ φ₂ : monoid_with_zero_hom ℚ α)
+  (same_on_neg_one : φ₁ (-1) = φ₂ (-1)) (same_on_pnat : ∀ {n: ℕ}, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
+begin
+  apply ext_hom_int,
+  suffices : ∀ n : ℕ, φ₁ n = φ₂ n,
+  { intro x,
+    induction x,
+    { from this _, },
+    { push_cast,
+      rw neg_eq_neg_one_mul,
+      rw monoid_with_zero_hom.map_mul φ₁,
+      rw monoid_with_zero_hom.map_mul φ₂,
+      rw same_on_neg_one,
+      apply mul_eq_mul_left_iff.2,
+      left,
+      norm_cast,
+      exact this _, }, },
+  intro n,
+  cases n,
+  { simp, },
+  { exact same_on_pnat n.zero_lt_succ, },
+end

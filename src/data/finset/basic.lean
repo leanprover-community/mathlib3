@@ -277,7 +277,7 @@ protected def empty : finset α := ⟨0, nodup_zero⟩
 
 instance : has_emptyc (finset α) := ⟨finset.empty⟩
 
-instance : inhabited (finset α) := ⟨∅⟩
+instance inhabited_finset : inhabited (finset α) := ⟨∅⟩
 
 @[simp] theorem empty_val : (∅ : finset α).1 = 0 := rfl
 
@@ -318,7 +318,11 @@ by { rw nonempty_iff_ne_empty, exact not_not, }
 theorem eq_empty_or_nonempty (s : finset α) : s = ∅ ∨ s.nonempty :=
 classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 
-@[simp] lemma coe_empty : ((∅ : finset α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_empty : ((∅ : finset α) : set α) = ∅ := rfl
+
+@[simp, norm_cast] lemma coe_eq_empty {s : finset α} :
+  (s : set α) = ∅ ↔ s = ∅ :=
+by rw [← coe_empty, coe_inj]
 
 /-- A `finset` for an empty type is empty. -/
 lemma eq_empty_of_not_nonempty (h : ¬ nonempty α) (s : finset α) : s = ∅ :=
@@ -896,6 +900,15 @@ subset_insert_iff.1 $ subset.refl _
 
 theorem insert_erase_subset (a : α) (s : finset α) : s ⊆ insert a (erase s a) :=
 subset_insert_iff.2 $ subset.refl _
+
+lemma erase_inj {x y : α} (s : finset α) (hx : x ∈ s) :
+  s.erase x = s.erase y ↔ x = y :=
+begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw eq_of_mem_of_not_mem_erase hx,
+  rw ←h,
+  simp,
+end
 
 /-! ### sdiff -/
 

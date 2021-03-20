@@ -369,18 +369,18 @@ rfl
 @[nolint doc_blame]
 def to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂ := λ f, f.to_add_equiv.to_equiv
 
-lemma injective_to_equiv : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
+lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
 
 @[simp] lemma to_equiv_inj {e₁ e₂ : M ≃ₗ[R] M₂} : e₁.to_equiv = e₂.to_equiv ↔ e₁ = e₂ :=
-injective_to_equiv.eq_iff
+to_equiv_injective.eq_iff
 
-lemma injective_to_linear_map : function.injective (coe : (M ≃ₗ[R] M₂) → (M →ₗ[R] M₂)) :=
-λ e₁ e₂ H, injective_to_equiv $ equiv.ext $ linear_map.congr_fun H
+lemma to_linear_map_injective : function.injective (coe : (M ≃ₗ[R] M₂) → (M →ₗ[R] M₂)) :=
+λ e₁ e₂ H, to_equiv_injective $ equiv.ext $ linear_map.congr_fun H
 
 @[simp, norm_cast] lemma to_linear_map_inj {e₁ e₂ : M ≃ₗ[R] M₂} :
   (e₁ : M →ₗ[R] M₂) = e₂ ↔ e₁ = e₂ :=
-injective_to_linear_map.eq_iff
+to_linear_map_injective.eq_iff
 
 end
 
@@ -401,7 +401,7 @@ lemma to_linear_map_eq_coe : e.to_linear_map = ↑e := rfl
 section
 variables {e e'}
 @[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
-injective_to_equiv (equiv.ext h)
+to_equiv_injective (equiv.ext h)
 
 protected lemma congr_arg : Π {x x' : M}, x = x' → e x = e x'
 | _ _ rfl := rfl
@@ -457,8 +457,8 @@ rfl
 @[simp] theorem symm_apply_apply (b : M) : e.symm (e b) = b := e.5 b
 @[simp] lemma symm_trans_apply (c : M₃) : (e₁.trans e₂).symm c = e₁.symm (e₂.symm c) := rfl
 
-@[simp] lemma trans_refl : e.trans (refl R M₂) = e := injective_to_equiv e.to_equiv.trans_refl
-@[simp] lemma refl_trans : (refl R M).trans e = e := injective_to_equiv e.to_equiv.refl_trans
+@[simp] lemma trans_refl : e.trans (refl R M₂) = e := to_equiv_injective e.to_equiv.trans_refl
+@[simp] lemma refl_trans : (refl R M).trans e = e := to_equiv_injective e.to_equiv.refl_trans
 
 lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
 

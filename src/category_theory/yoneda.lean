@@ -20,7 +20,7 @@ Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation
 namespace category_theory
 open opposite
 
-universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ u₁ u₂-- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u₁} [category.{v₁} C]
 
@@ -152,7 +152,7 @@ namespace category_theory
 -- For the rest of the file, we are using product categories,
 -- so need to restrict to the case morphisms are in 'Type', not 'Sort'.
 
-universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 open opposite
 

@@ -412,7 +412,7 @@ by simp only [hs, coe_restrict]
 
 theorem restrict_preimage (f : α →ₛ β) {s : set α} (hs : measurable_set s)
   {t : set β} (ht : (0:β) ∉ t) : restrict f s ⁻¹' t = s ∩ f ⁻¹' t :=
-by simp [hs, indicator_preimage_of_not_mem _ _ ht]
+by simp [hs, indicator_preimage_of_not_mem _ _ ht, inter_comm]
 
 theorem restrict_preimage_singleton (f : α →ₛ β) {s : set α} (hs : measurable_set s)
   {r : β} (hr : r ≠ 0) : restrict f s ⁻¹' {r} = s ∩ f ⁻¹' {r} :=

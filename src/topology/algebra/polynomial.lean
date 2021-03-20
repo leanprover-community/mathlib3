@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Robert Y. Lewis
+Authors: Robert Y. Lewis
 -/
 import data.polynomial.algebra_map
 import data.polynomial.div

@@ -1147,9 +1147,6 @@ apply_nolint Gromov_Hausdorff.aux_gluing_struct has_inhabited_instance
 apply_nolint Gromov_Hausdorff.candidates_b_dist doc_blame
 apply_nolint Gromov_Hausdorff.optimal_GH_coupling has_inhabited_instance
 
--- topology/metric_space/premetric_space.lean
-apply_nolint premetric_space doc_blame
-
 -- topology/opens.lean
 apply_nolint topological_space.opens.is_basis doc_blame
 

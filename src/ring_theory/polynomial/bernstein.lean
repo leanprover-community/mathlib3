@@ -297,7 +297,7 @@ begin
       -- but vanishes for everything in the span.
       clear ih,
       simp only [nat.succ_eq_add_one, add_le_add_iff_right] at h,
-      simp only [fin.coe_last, fin.init_lambda],
+      simp only [fin.coe_last, fin.init_def],
       dsimp,
       apply not_mem_span_of_apply_not_mem_span_image ((polynomial.derivative_lhom ℚ)^(n-k)),
       simp only [not_exists, not_and, submodule.mem_map, submodule.span_image],

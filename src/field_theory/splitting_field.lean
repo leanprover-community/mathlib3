@@ -129,6 +129,14 @@ begin
   exact splits_mul i ht.1 (ih ht.2)
 end
 
+lemma splits_pow {f : polynomial α} (hf : f.splits i) (n : ℕ) : (f ^ n).splits i :=
+begin
+  rw [←finset.card_range n, ←finset.prod_const],
+  exact splits_prod i (λ j hj, hf),
+end
+
+lemma splits_X_pow (n : ℕ) : (X ^ n).splits i := splits_pow i (splits_X i) n
+
 theorem splits_prod_iff {ι : Type w} {s : ι → polynomial α} {t : finset ι} :
   (∀ j ∈ t, s j ≠ 0) → ((∏ x in t, s x).splits i ↔ ∀ j ∈ t, (s j).splits i) :=
 begin
@@ -196,10 +204,10 @@ theorem roots_map {f : polynomial α} (hf : f.splits $ ring_hom.id α) :
 if hf0 : f = 0 then by rw [hf0, map_zero, roots_zero, roots_zero, multiset.map_zero] else
 have hmf0 : f.map i ≠ 0 := map_ne_zero hf0,
 let ⟨m, hm⟩ := exists_multiset_of_splits _ hf in
-have h1 : ∀ p ∈ m.map (λ r, X - C r), (p : _) ≠ 0,
-  from multiset.forall_mem_map_iff.2 $ λ _ _, X_sub_C_ne_zero _,
-have h2 : ∀ p ∈ m.map (λ r, X - C (i r)), (p : _) ≠ 0,
-  from multiset.forall_mem_map_iff.2 $ λ _ _, X_sub_C_ne_zero _,
+have h1 : (0 : polynomial α) ∉ m.map (λ r, X - C r),
+  from zero_nmem_multiset_map_X_sub_C _ _,
+have h2 : (0 : polynomial β) ∉ m.map (λ r, X - C (i r)),
+  from zero_nmem_multiset_map_X_sub_C _ _,
 begin
   rw map_id at hm, rw hm at hf0 hmf0 ⊢, rw map_mul at hmf0 ⊢,
   rw [roots_mul hf0, roots_mul hmf0, map_C, roots_C, zero_add, roots_C, zero_add,
@@ -223,10 +231,8 @@ begin
   have prod_ne_zero : C (i p.leading_coeff) * (multiset.map (λ a, X - C a) s).prod ≠ 0 :=
     by rwa hs at map_ne_zero,
 
-  have ne_zero_of_mem : ∀ (p : polynomial β), p ∈ s.map (λ a, X - C a) → p ≠ 0,
-  { intros p mem,
-    obtain ⟨a, _, rfl⟩ := multiset.mem_map.mp mem,
-    apply X_sub_C_ne_zero },
+  have zero_nmem : (0 : polynomial β) ∉ s.map (λ a, X - C a),
+    from zero_nmem_multiset_map_X_sub_C _ _,
   have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots) = s,
   { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
     intros a s ih,
@@ -234,7 +240,7 @@ begin
         multiset.cons_add, zero_add] },
 
   rw [hs, roots_mul prod_ne_zero, roots_C, zero_add,
-      roots_multiset_prod _ ne_zero_of_mem,
+      roots_multiset_prod _ zero_nmem,
       map_bind_roots_eq]
 end
 
@@ -247,17 +253,17 @@ begin
 end
 
 lemma nat_degree_multiset_prod {R : Type*} [integral_domain R] {s : multiset (polynomial R)}
-  (h : ∀ p ∈ s, p ≠ (0 : polynomial R)) :
+  (h : (0 : polynomial R) ∉ s) :
   nat_degree s.prod = (s.map nat_degree).sum :=
 begin
   revert h,
   refine s.induction_on _ _,
   { simp },
   intros p s ih h,
-  have hs : ∀ p ∈ s, p ≠ (0 : polynomial R) := λ p hp, h p (multiset.mem_cons_of_mem hp),
-  have hprod : s.prod ≠ 0 := multiset.prod_ne_zero (λ p hp, hs p hp),
-  rw [multiset.prod_cons, nat_degree_mul (h p (multiset.mem_cons_self _ _)) hprod, ih hs,
-      multiset.map_cons, multiset.sum_cons],
+  rw [multiset.mem_cons, not_or_distrib] at h,
+  have hprod : s.prod ≠ 0 := multiset.prod_ne_zero h.2,
+  rw [multiset.prod_cons, nat_degree_mul (ne.symm h.1) hprod, ih h.2,
+    multiset.map_cons, multiset.sum_cons],
 end
 
 lemma nat_degree_eq_card_roots {p : polynomial α} {i : α →+* β}
@@ -269,10 +275,8 @@ begin
   rw eq_prod_roots_of_splits hsplit at map_ne_zero,
 
   conv_lhs { rw [← nat_degree_map i, eq_prod_roots_of_splits hsplit] },
-  have : ∀ p' ∈ (map i p).roots.map (λ a, X - C a), p' ≠ (0 : polynomial β),
-  { intros p hp,
-    obtain ⟨a, ha, rfl⟩ := multiset.mem_map.mp hp,
-    exact X_sub_C_ne_zero _ },
+  have : (0 : polynomial β) ∉ (map i p).roots.map (λ a, X - C a),
+    from zero_nmem_multiset_map_X_sub_C _ _,
   simp [nat_degree_mul (left_ne_zero_of_mul map_ne_zero) (right_ne_zero_of_mul map_ne_zero),
         nat_degree_multiset_prod this]
 end
@@ -349,13 +353,9 @@ begin
   { simp only [prod_multiset_root_eq_finset_root (ne_zero_of_monic hmonic),
       monic_prod_of_monic, monic_X_sub_C, monic_pow, forall_true_iff] },
   have hdegree : (multiset.map (λ (a : α), X - C a) p.roots).prod.nat_degree = p.nat_degree,
-  { rw [← hroots, nat_degree_multiset_prod],
+  { rw [← hroots, nat_degree_multiset_prod (zero_nmem_multiset_map_X_sub_C _ (λ a : α, a))],
     simp only [eq_self_iff_true, mul_one, nat.cast_id, nsmul_eq_mul, multiset.sum_repeat,
-      multiset.map_const,nat_degree_X_sub_C, function.comp, multiset.map_map],
-    intros x y,
-    simp only [multiset.mem_map] at y,
-    rcases y with ⟨a, ha, rfl⟩,
-    exact X_sub_C_ne_zero a },
+      multiset.map_const,nat_degree_X_sub_C, function.comp, multiset.map_map] },
   obtain ⟨q, hq⟩ := prod_multiset_X_sub_C_dvd p,
   have qzero : q ≠ 0,
   { rintro rfl, apply hmonic.ne_zero, simpa only [mul_zero] using hq },

@@ -44,6 +44,17 @@ lemma C_eq_algebra_map {R : Type*} [comm_ring R] (r : R) :
   C r = algebra_map R (polynomial R) r :=
 rfl
 
+instance [nontrivial A] : nontrivial (subalgebra R (polynomial A)) :=
+⟨⟨⊥, ⊤, begin
+  rw [ne.def, subalgebra.ext_iff, not_forall],
+  refine ⟨X, _⟩,
+  simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top,
+    algebra_map_apply, not_forall],
+  intro x,
+  rw [ext_iff, not_forall],
+  refine ⟨1, _⟩,
+  simp [coeff_C],
+end⟩⟩
 
 @[simp]
 lemma alg_hom_eval₂_algebra_map
@@ -78,19 +89,6 @@ lemma eval₂_algebra_map_int_X {R : Type*} [ring R] (p : polynomial ℤ) (f : p
   eval₂ (algebra_map ℤ R) (f X) p = f p :=
 -- Unfortunately `f.to_int_alg_hom` doesn't work here, as typeclasses don't match up correctly.
 eval₂_algebra_map_X p { commutes' := λ n, by simp, .. f }
-
-section comp
-
-lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
-  eval₂ f x (p.comp q) = eval₂ f (eval₂ f x q) p :=
-by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
-
-lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
-
-instance comp.is_semiring_hom : is_semiring_hom (λ q : polynomial R, q.comp p) :=
-by unfold comp; apply_instance
-
-end comp
 
 end comm_semiring
 
@@ -173,14 +171,15 @@ theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p : polynomial R) :
   aeval (f x) p = f (aeval x p) :=
 alg_hom.ext_iff.1 (aeval_alg_hom f x) p
 
+lemma aeval_algebra_map_apply (x : R) (p : polynomial R) :
+  aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
+aeval_alg_hom_apply (algebra.of_id R A) x p
+
 @[simp] lemma coe_aeval_eq_eval (r : R) :
   (aeval r : polynomial R → R) = eval r := rfl
 
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval 0 p :=
 by simp [coeff_zero_eq_eval_zero]
-
-lemma pow_comp (p q : polynomial R) (k : ℕ) : (p ^ k).comp q = (p.comp q) ^ k :=
-by { unfold comp, rw ← coe_eval₂_ring_hom, apply ring_hom.map_pow }
 
 variables [comm_ring S] {f : R →+* S}
 
@@ -204,7 +203,7 @@ begin
   by_cases hf : f = 0,
   { simp [hf] },
   by_cases hi : i ∈ f.support,
-  { unfold polynomial.eval polynomial.eval₂ finsupp.sum id at dvd_eval,
+  { rw [eval, eval₂, sum_def] at dvd_eval,
     rw [←finset.insert_erase hi, finset.sum_insert (finset.not_mem_erase _ _)] at dvd_eval,
     refine (dvd_add_left _).mp dvd_eval,
     apply finset.dvd_sum,

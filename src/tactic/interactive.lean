@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
+Authors: Mario Carneiro, Simon Hudon, Sébastien Gouëzel, Scott Morrison
 -/
 import tactic.lint
 import tactic.dependencies
@@ -36,7 +36,7 @@ do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
 
 /-- Multiple `subst`. `substs x y z` is the same as `subst x, subst y, subst z`. -/
 meta def substs (l : parse ident*) : tactic unit :=
-l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducible)
+propagate_tags $ l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducible)
 
 add_tactic_doc
 { name       := "substs",

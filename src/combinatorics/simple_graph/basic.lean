@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson, Jalex Stark, Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov
+Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov
 -/
 import data.fintype.basic
 import data.sym2
@@ -174,7 +174,9 @@ fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
-@[symm] lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
+lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
+
+@[symm] lemma edge_symm' {u v : V} (h : G.adj u v) : G.adj v u := G.sym h
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 iff.rfl

@@ -54,6 +54,9 @@ by rw [coe_int_eq_of_int, cast_of_int]
 theorem cast_commute (r : ℚ) (a : α) : commute ↑r a :=
 (r.1.cast_commute a).div_left (r.2.cast_commute a)
 
+theorem cast_comm (r : ℚ) (a : α) : (r : α) * a = a * r :=
+(cast_commute r a).eq
+
 theorem commute_cast (a : α) (r : ℚ) : commute a r :=
 (r.cast_commute a).symm
 

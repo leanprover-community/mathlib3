@@ -12,8 +12,8 @@ import order.directed
 
 open function tactic set auto
 
-universes u v w x y
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {ι' : Sort y}
+universes u v
+variables {α β γ : Type*} {ι ι' ι₂ : Sort*}
 
 namespace set
 
@@ -132,11 +132,17 @@ set.subset_Inter $ λ j, let ⟨i, hi⟩ := h j in Inter_subset_of_subset i hi
 lemma Inter_set_of (P : ι → α → Prop) : (⋂ i, {x : α | P i x }) = {x : α | ∀ i, P i x} :=
 by { ext, simp }
 
-theorem Union_const [nonempty ι] (s : set β) : (⋃ i:ι, s) = s :=
-ext $ by simp
+lemma Union_congr {f : ι → set α} {g : ι₂ → set α} (h : ι → ι₂)
+  (h1 : surjective h) (h2 : ∀ x, g (h x) = f x) : (⋃ x, f x) = ⋃ y, g y :=
+supr_congr h h1 h2
 
-theorem Inter_const [nonempty ι] (s : set β) : (⋂ i:ι, s) = s :=
-ext $ by simp
+lemma Inter_congr {f : ι → set α} {g : ι₂ → set α} (h : ι → ι₂)
+  (h1 : surjective h) (h2 : ∀ x, g (h x) = f x) : (⋂ x, f x) = ⋂ y, g y :=
+infi_congr h h1 h2
+
+theorem Union_const [nonempty ι] (s : set β) : (⋃ i:ι, s) = s := supr_const
+
+theorem Inter_const [nonempty ι] (s : set β) : (⋂ i:ι, s) = s := infi_const
 
 @[simp] -- complete_boolean_algebra
 theorem compl_Union (s : ι → set β) : (⋃ i, s i)ᶜ = (⋂ i, (s i)ᶜ) :=
@@ -203,7 +209,7 @@ theorem diff_Inter (s : set β) (t : ι → set β) :
   s \ (⋂ i, t i) = ⋃ i, s \ t i :=
 by rw [diff_eq, compl_Inter, inter_Union]; refl
 
-lemma directed_on_Union {r} {ι : Sort v} {f : ι → set α} (hd : directed (⊆) f)
+lemma directed_on_Union {r} {f : ι → set α} (hd : directed (⊆) f)
   (h : ∀x, directed_on r (f x)) : directed_on r (⋃x, f x) :=
 by simp only [directed_on, exists_prop, mem_Union, exists_imp_distrib]; exact
 assume a₁ b₁ fb₁ a₂ b₂ fb₂,
@@ -226,7 +232,13 @@ end
 lemma Union_Inter_subset {ι ι' α} {s : ι → ι' → set α} : (⋃ j, ⋂ i, s i j) ⊆ ⋂ i, ⋃ j, s i j :=
 by { rintro x ⟨_, ⟨i, rfl⟩, hx⟩ _ ⟨j, rfl⟩, exact ⟨_, ⟨i, rfl⟩, hx _ ⟨j, rfl⟩⟩ }
 
-/- bounded unions and intersections -/
+lemma Union_option {ι} (s : option ι → set α) : (⋃ o, s o) = s none ∪ ⋃ i, s (some i) :=
+supr_option s
+
+lemma Inter_option {ι} (s : option ι → set α) : (⋂ o, s o) = s none ∩ ⋂ i, s (some i) :=
+infi_option s
+
+/-! ### Bounded unions and intersections -/
 
 theorem mem_bUnion_iff {s : set α} {t : α → set β} {y : β} :
   y ∈ (⋃ x ∈ s, t x) ↔ ∃ x ∈ s, y ∈ t x := by simp
@@ -546,14 +558,14 @@ sUnion_subset $ assume t' ht', subset_sUnion_of_mem $ h ht'
 lemma Union_subset_Union {s t : ι → set α} (h : ∀i, s i ⊆ t i) : (⋃i, s i) ⊆ (⋃i, t i) :=
 @supr_le_supr (set α) ι _ s t h
 
-lemma Union_subset_Union2 {ι₂ : Sort*} {s : ι → set α} {t : ι₂ → set α} (h : ∀i, ∃j, s i ⊆ t j) :
+lemma Union_subset_Union2 {s : ι → set α} {t : ι₂ → set α} (h : ∀i, ∃j, s i ⊆ t j) :
   (⋃i, s i) ⊆ (⋃i, t i) :=
 @supr_le_supr2 (set α) ι ι₂ _ s t h
 
-lemma Union_subset_Union_const {ι₂ : Sort x} {s : set α} (h : ι → ι₂) : (⋃ i:ι, s) ⊆ (⋃ j:ι₂, s) :=
+lemma Union_subset_Union_const {s : set α} (h : ι → ι₂) : (⋃ i:ι, s) ⊆ (⋃ j:ι₂, s) :=
 @supr_le_supr_const (set α) ι ι₂ _ s h
 
-@[simp] lemma Union_of_singleton (α : Type u) : (⋃(x : α), {x}) = @set.univ α :=
+@[simp] lemma Union_of_singleton (α : Type*) : (⋃(x : α), {x}) = @set.univ α :=
 ext $ λ x, ⟨λ h, ⟨⟩, λ h, ⟨{x}, ⟨⟨x, rfl⟩, mem_singleton x⟩⟩⟩
 
 @[simp] lemma Union_of_singleton_coe (s : set α) :
@@ -921,7 +933,7 @@ section preimage
 
 theorem monotone_preimage {f : α → β} : monotone (preimage f) := assume a b h, preimage_mono h
 
-@[simp] theorem preimage_Union {ι : Sort w} {f : α → β} {s : ι → set β} :
+@[simp] theorem preimage_Union {ι : Sort*} {f : α → β} {s : ι → set β} :
   preimage f (⋃i, s i) = (⋃i, preimage f (s i)) :=
 set.ext $ by simp [preimage]
 
@@ -967,16 +979,20 @@ by simp_rw [prod_Union]
 lemma prod_sUnion {s : set α} {C : set (set β)} : s.prod (⋃₀ C) = ⋃₀ ((λ t, s.prod t) '' C) :=
 by { simp only [sUnion_eq_bUnion, prod_bUnion, bUnion_image] }
 
-lemma Union_prod {ι} {s : ι → set α} {t : set β} : (⋃ i, s i).prod t = ⋃ i, (s i).prod t :=
+lemma Union_prod_const {ι} {s : ι → set α} {t : set β} : (⋃ i, s i).prod t = ⋃ i, (s i).prod t :=
 by { ext, simp }
 
-lemma bUnion_prod {ι} {u : set ι} {s : ι → set α} {t : set β} :
+lemma bUnion_prod_const {ι} {u : set ι} {s : ι → set α} {t : set β} :
   (⋃ i ∈ u, s i).prod t = ⋃ i ∈ u, (s i).prod t :=
-by simp_rw [Union_prod]
+by simp_rw [Union_prod_const]
 
-lemma sUnion_prod {C : set (set α)} {t : set β} :
+lemma sUnion_prod_const {C : set (set α)} {t : set β} :
   (⋃₀ C).prod t = ⋃₀ ((λ s : set α, s.prod t) '' C) :=
-by { simp only [sUnion_eq_bUnion, bUnion_prod, bUnion_image] }
+by { simp only [sUnion_eq_bUnion, bUnion_prod_const, bUnion_image] }
+
+lemma Union_prod {ι α β} (s : ι → set α) (t : ι → set β) :
+  (⋃ (x : ι × ι), (s x.1).prod (t x.2)) = (⋃ (i : ι), s i).prod (⋃ (i : ι), t i) :=
+by { ext, simp }
 
 lemma Union_prod_of_monotone [semilattice_sup α] {s : α → set β} {t : α → set γ}
   (hs : monotone s) (ht : monotone t) : (⋃ x, (s x).prod (t x)) = (⋃ x, (s x)).prod (⋃ x, (t x)) :=
@@ -1088,6 +1104,9 @@ lemma pi_def (i : set α) (s : Πa, set (π a)) :
   pi i s = (⋂ a ∈ i, eval a ⁻¹' s a) :=
 by { ext, simp }
 
+lemma univ_pi_eq_Inter (t : Π i, set (π i)) : pi univ t = ⋂ i, eval i ⁻¹' t i :=
+by simp only [pi_def, Inter_pos, mem_univ]
+
 lemma pi_diff_pi_subset (i : set α) (s t : Πa, set (π a)) :
   pi i s \ pi i t ⊆ ⋃ a ∈ i, (eval a ⁻¹' (s a \ t a)) :=
 begin
@@ -1097,9 +1116,27 @@ begin
   exact hx.2 _ ha (hx.1 _ ha)
 end
 
+lemma Union_univ_pi (t : Π i, ι → set (π i)) :
+  (⋃ (x : α → ι), pi univ (λ i, t i (x i))) = pi univ (λ i, ⋃ (j : ι), t i j) :=
+by { ext, simp [classical.skolem] }
+
 end pi
 
 end set
+
+namespace function
+namespace surjective
+
+lemma Union_comp {f : ι → ι₂} (hf : surjective f) (g : ι₂ → set α) :
+  (⋃ x, g (f x)) = ⋃ y, g y :=
+hf.supr_comp g
+
+lemma Inter_comp {f : ι → ι₂} (hf : surjective f) (g : ι₂ → set α) :
+  (⋂ x, g (f x)) = ⋂ y, g y :=
+hf.infi_comp g
+
+end surjective
+end function
 
 /-! ### Disjoint sets -/
 
@@ -1155,6 +1192,14 @@ disjoint_sup_left
 @[simp] theorem disjoint_union_right :
   disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
 disjoint_sup_right
+
+@[simp] theorem disjoint_Union_left {ι : Sort*} {s : ι → set α} :
+  disjoint (⋃ i, s i) t ↔ ∀ i, disjoint (s i) t :=
+supr_disjoint_iff
+
+@[simp] theorem disjoint_Union_right {ι : Sort*} {s : ι → set α} :
+  disjoint t (⋃ i, s i) ↔ ∀ i, disjoint t (s i) :=
+disjoint_supr_iff
 
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)

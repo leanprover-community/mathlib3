@@ -47,7 +47,7 @@ end
 /-- A finite subgroup of the unit group of an integral domain is cyclic. -/
 lemma is_cyclic_of_subgroup_integral_domain (f : G →* R) (hf : injective f) : is_cyclic G :=
 begin
-  haveI := classical.dec_eq G,
+  classical,
   apply is_cyclic_of_card_pow_eq_one_le,
   intros n hn,
   convert (le_trans (card_nth_roots_subgroup_units f hf hn 1) (card_nth_roots n (f 1)))
@@ -107,7 +107,7 @@ lemma sum_hom_units_eq_zero (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :
 begin
   classical,
   obtain ⟨x, hx⟩ : ∃ x : set.range f.to_hom_units, ∀ y : set.range f.to_hom_units, y ∈ powers x,
-    from is_cyclic.exists_monoid_generator (set.range (f.to_hom_units)),
+    from is_cyclic.exists_monoid_generator,
   have hx1 : x ≠ 1,
   { rintro rfl,
     apply hf,

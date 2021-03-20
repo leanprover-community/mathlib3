@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 Finite types.
 -/
@@ -75,6 +75,9 @@ by simp [compl_eq_univ_sdiff]
 
 @[simp, norm_cast] lemma coe_compl [decidable_eq α] (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
 set.ext $ λ x, mem_compl
+
+@[simp] theorem union_compl [decidable_eq α] (s : finset α) : s ∪ sᶜ = finset.univ :=
+sup_compl_eq_top
 
 @[simp] lemma compl_filter [decidable_eq α] (p : α → Prop) [decidable_pred p]
   [Π x, decidable (¬p x)] :

@@ -164,8 +164,6 @@ variables {p : ℕ} {R S : Type u} {σ idx : Type*} [hp : fact p.prime] [comm_ri
 
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
-local attribute [semireducible] witt_vector
-
 open mv_polynomial
 open function (uncurry)
 
@@ -522,12 +520,12 @@ omit hp
 
 /-- Addition of Witt vectors is a polynomial function. -/
 @[is_poly] lemma add_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (+)) :=
-⟨⟨witt_add p, by { introsI, refl }⟩⟩
+⟨⟨witt_add p, by { introsI, dunfold witt_vector.has_add, simp [eval] }⟩⟩
 
 
 /-- Multiplication of Witt vectors is a polynomial function. -/
 @[is_poly] lemma mul_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (*)) :=
-⟨⟨witt_mul p, by { introsI, refl }⟩⟩
+⟨⟨witt_mul p, by { introsI, dunfold witt_vector.has_mul, simp [eval] }⟩⟩
 
 include hp
 

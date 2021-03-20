@@ -328,8 +328,7 @@ by { rw [set_like.ext_iff, set_like.ext'_iff, set.ext_iff], refl }
 
 lemma eq_of_le_of_findim_le [finite_dimensional K L] (h_le : F ≤ E)
   (h_findim : findim K E ≤ findim K F) : F = E :=
-set_like.ext'_iff.mpr (set_like.ext'_iff.mp (eq_of_le_of_findim_le
-  (show F.to_subalgebra.to_submodule ≤ E.to_subalgebra.to_submodule, by exact h_le) h_findim))
+to_subalgebra_injective $ subalgebra.to_submodule_injective $ eq_of_le_of_findim_le h_le h_findim
 
 lemma eq_of_le_of_findim_eq [finite_dimensional K L] (h_le : F ≤ E)
   (h_findim : findim K F = findim K E) : F = E :=

@@ -337,7 +337,7 @@ def hom_of_le : N →ₗ⁅R,L⁆ N' :=
 lemma hom_of_le_apply (m : N) : hom_of_le h m = ⟨m.1, h m.2⟩ := rfl
 
 lemma hom_of_le_injective : function.injective (hom_of_le h) :=
-λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, submodule.coe_eq_coe,
+λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, set_like.coe_eq_coe,
   subtype.val_eq_coe]
 
 end inclusion_maps

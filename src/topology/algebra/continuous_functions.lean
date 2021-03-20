@@ -414,8 +414,6 @@ variables {α : Type*} [topological_space α]
 variables {β : Type*} [linear_ordered_field β] [topological_space β]
   [order_topology β] [topological_ring β]
 
-example : module β β := by apply_instance
-
 lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - (f - g).abs) :=
 ext (λ x, by simpa using min_eq_half_add_sub_abs_sub)
 

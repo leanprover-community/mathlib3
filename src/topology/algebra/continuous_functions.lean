@@ -497,6 +497,7 @@ in terms of `continuous_map.abs`.
 section
 variables {R : Type*} [linear_ordered_field R]
 
+-- TODO:
 -- This lemma (and the next) could go all the way back in `algebra.ordered_field`,
 -- except that it is tedious to prove without tactics.
 -- Rather than stranding it at some intermediate location,
@@ -520,7 +521,8 @@ namespace continuous_map
 
 section lattice
 variables {α : Type*} [topological_space α]
-variables {β : Type*} [linear_ordered_field β] [topological_space β] [order_topology β] [topological_ring β]
+variables {β : Type*} [linear_ordered_field β] [topological_space β]
+  [order_topology β] [topological_ring β]
 
 example : module β β := by apply_instance
 

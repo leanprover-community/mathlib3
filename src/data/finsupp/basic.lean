@@ -1487,7 +1487,7 @@ begin
   { rw [to_multiset_zero, multiset.prod_zero, finsupp.prod_zero_index] },
   { assume a n f _ _ ih,
     rw [to_multiset_add, multiset.prod_add, ih, to_multiset_single, finsupp.prod_add_index,
-      finsupp.prod_single_index, multiset.prod_smul, multiset.singleton_eq_singleton,
+      finsupp.prod_single_index, multiset.prod_nsmul, multiset.singleton_eq_singleton,
       multiset.prod_singleton],
     { exact pow_zero a },
     { exact pow_zero },
@@ -1511,7 +1511,7 @@ end
   f.to_multiset.count a = f a :=
 calc f.to_multiset.count a = f.sum (λx n, (n •ℕ {x} : multiset α).count a) :
     (f.support.sum_hom $ multiset.count a).symm
-  ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_smul]
+  ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_nsmul]
   ... = f.sum (λx n, n * (x ::ₘ 0 : multiset α).count a) : rfl
   ... = f a * (a ::ₘ 0 : multiset α).count a : sum_eq_single _
     (λ a' _ H, by simp only [multiset.count_cons_of_ne (ne.symm H), multiset.count_zero, mul_zero])

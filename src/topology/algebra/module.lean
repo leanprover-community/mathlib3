@@ -294,11 +294,11 @@ by { intros f g H, cases f, cases g, congr' }
   (f : M →ₗ[R] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 
-theorem injective_coe_fn : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
+theorem coe_fn_injective : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
 linear_map.coe_injective.comp coe_injective
 
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
-injective_coe_fn $ funext h
+coe_fn_injective $ funext h
 
 theorem ext_iff {f g : M →L[R] M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩

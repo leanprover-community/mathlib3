@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
 import analysis.normed_space.linear_isometry
-import topology.algebra.continuous_functions
 import tactic.equiv_rw
 
 /-!

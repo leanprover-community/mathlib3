@@ -9,7 +9,7 @@ open category_theory category_theory.category
 
 namespace category_theory.limits
 
-universes v v₂ u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₂ u -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u} [category.{v} C]
 

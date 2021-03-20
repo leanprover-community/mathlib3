@@ -569,6 +569,9 @@ lt_of_succ_lt (lt_pred_iff.1 h)
 
 /-! ### `mul` -/
 
+lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (succ m) * n :=
+mul_pos (succ_pos m) hn
+
 theorem mul_self_le_mul_self {n m : ℕ} (h : n ≤ m) : n * n ≤ m * m :=
 mul_le_mul h h (zero_le _) (zero_le _)
 

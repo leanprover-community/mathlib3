@@ -379,16 +379,16 @@ theorem map_rel_iff (f : r ≃r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map
 
 @[simp] theorem coe_fn_to_equiv (f : r ≃r s) : (f.to_equiv : α → β) = f := rfl
 
-theorem injective_to_equiv : injective (to_equiv : (r ≃r s) → α ≃ β)
+theorem to_equiv_injective : injective (to_equiv : (r ≃r s) → α ≃ β)
 | ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
 
 /-- The map `coe_fn : (r ≃r s) → (α → β)` is injective. Lean fails to parse
 `function.injective (λ e : r ≃r s, (e : α → β))`, so we use a trick to say the same. -/
-theorem injective_coe_fn : function.injective (λ (e : r ≃r s) (x : α), e x) :=
-equiv.injective_coe_fn.comp injective_to_equiv
+theorem coe_fn_injective : function.injective (λ (e : r ≃r s) (x : α), e x) :=
+equiv.coe_fn_injective.comp to_equiv_injective
 
 @[ext] theorem ext ⦃f g : r ≃r s⦄ (h : ∀ x, f x = g x) : f = g :=
-injective_coe_fn (funext h)
+coe_fn_injective (funext h)
 
 theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩

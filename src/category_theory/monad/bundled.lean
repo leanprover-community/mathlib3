@@ -20,7 +20,7 @@ in the sense of `category_theory.(co)monad_hom`. We construct a category instanc
 namespace category_theory
 open category
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 variables (C : Type u) [category.{v} C]
 

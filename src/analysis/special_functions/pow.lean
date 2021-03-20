@@ -1323,6 +1323,9 @@ begin
       simp [coe_rpow_of_ne_zero h, ← coe_inv A, nnreal.rpow_neg] } }
 end
 
+lemma rpow_sub {x : ℝ≥0∞} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y - z) = x ^ y / x ^ z :=
+by rw [sub_eq_add_neg, rpow_add _ _ hx h'x, rpow_neg, div_eq_mul_inv]
+
 lemma rpow_neg_one (x : ℝ≥0∞) : x ^ (-1 : ℝ) = x ⁻¹ :=
 by simp [rpow_neg]
 

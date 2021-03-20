@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.punit
+import category_theory.comma
 import category_theory.limits.functor_category
+import category_theory.limits.shapes.terminal
 
 namespace category_theory
 noncomputable theory
@@ -16,7 +18,8 @@ variables {C : Type v} {C' : Type u₂} {D : Type u₃}
 variables [category.{v} C] [category.{v} C'] [category.{v} D]
 
 @[simps]
-def left_kan_obj (p : C ⥤ C') (F : C ⥤ D) [has_colimits D] :
+def left_kan_obj (p : C ⥤ C') (F : C ⥤ D)
+  [∀ X, has_colimits_of_shape (comma p (functor.from_punit X)) D] :
   C' ⥤ D :=
 { obj := λ c', colimit (comma.fst p (functor.from_punit c') ⋙ F),
   map := λ X Y f,
@@ -30,9 +33,9 @@ def left_kan_obj (p : C ⥤ C') (F : C ⥤ D) [has_colimits D] :
     refine (colimit.is_colimit (comma.map_right p _ ⋙ comma.fst p _ ⋙ F)).uniq
                 (cocone.whisker _ _) _ _,
     rintro ⟨Y, ⟨⟩, g⟩,
-    dsimp only [cocone.whisker_ι, whisker_left_app, colimit.cocone_ι, comma.map_right],
-    convert comp_id _,
-    apply comp_id,
+    dsimp [comma.map_right],
+    convert comp_id _ using 2,
+    simp,
   end,
   map_comp' := λ X Y Z f g,
   begin
@@ -49,7 +52,8 @@ def left_kan_obj (p : C ⥤ C') (F : C ⥤ D) [has_colimits D] :
     rw assoc,
   end }
 
-def left_kan_equiv [has_colimits D] (p : C ⥤ C') (F : C ⥤ D) (G : C' ⥤ D) :
+def left_kan_equiv (p : C ⥤ C') [∀ X, has_colimits_of_shape (comma p (functor.from_punit X)) D]
+  (F : C ⥤ D) (G : C' ⥤ D) :
   (left_kan_obj p F ⟶ G) ≃ (F ⟶ ((whiskering_left _ _ _).obj p).obj G) :=
 { to_fun := λ f,
   { app := λ X,
@@ -121,7 +125,8 @@ def left_kan_equiv [has_colimits D] (p : C ⥤ C') (F : C ⥤ D) (G : C' ⥤ D) 
     simp,
   end }
 
-def left_kan [has_colimits D] (p : C ⥤ C') : (C ⥤ D) ⥤ (C' ⥤ D) :=
+def left_kan (p : C ⥤ C') [∀ X, has_colimits_of_shape (comma p (functor.from_punit X)) D] :
+  (C ⥤ D) ⥤ (C' ⥤ D) :=
 begin
   refine adjunction.left_adjoint_of_equiv (left_kan_equiv p) _,
   intros F G G' f g,
@@ -130,12 +135,14 @@ begin
   rw [assoc],
 end
 
-def left_kan_adjunction [has_colimits D] (p : C ⥤ C') :
+variable (D)
+def left_kan_adjunction (p : C ⥤ C')
+  [∀ X, has_colimits_of_shape (comma p (functor.from_punit X)) D] :
   left_kan p ⊣ (whiskering_left _ _ D).obj p :=
 adjunction.adjunction_of_equiv_left _ _
 
 @[simps]
-def comma.terminal (p : C ⥤ C') (X : _) : comma p (functor.from_punit (p.obj X)) :=
+def comma.terminal (p : C ⥤ C') (X : C) : comma p (functor.from_punit (p.obj X)) :=
 ⟨_, punit.star, 𝟙 _⟩
 
 /--
@@ -161,61 +168,24 @@ def is_terminal (p : C ⥤ C') (X : C) [full p] [faithful p] : is_terminal (comm
     simp,
   end }
 
-def reflective [has_colimits D] (p : C ⥤ C') [full p] [faithful p] :
-  left_kan p ⋙ (whiskering_left _ _ _).obj p ≅ 𝟭 (C ⥤ D) :=
+lemma thingy2 {J : Type v} [small_category J] {C : Type u₁} [category.{v} C]
+  {F : J ⥤ C} [has_colimit F] {c₁ c₂ : cocone F} (t₁ : is_colimit c₁) (t₂ : is_colimit c₂) :
+  is_iso (t₁.desc c₂) :=
 begin
-  refine nat_iso.of_components _ _,
-  intro A,
-  { refine nat_iso.of_components _ _,
-    { intro X,
-      apply (colimit.is_colimit _).cocone_point_unique_up_to_iso
-                (colimit_of_diagram_terminal (is_terminal p _) _) },
-    { intros X Y f,
-      ext1,
-      change colimit.ι (comma.map_right p _ ⋙ comma.fst p _ ⋙ A) _ ≫ colimit.pre _ _ ≫ _ = _,
-      rw colimit.ι_pre_assoc,
-      simp only [cocone_of_diagram_terminal_ι_app, colimit.comp_cocone_point_unique_up_to_iso_hom,
-                functor.comp_map, colimit.comp_cocone_point_unique_up_to_iso_hom_assoc,
-                comma.fst_map],
-      dsimp only [functor.id_obj],
-      rw ← A.map_comp,
-      cases j,
-      congr' 1,
-      dsimp [comma.map_right, is_terminal, is_terminal.from],
-      simp } },
-  { intros A A' α,
-    ext,
-    dsimp [left_kan, adjunction.left_adjoint_of_equiv, left_kan_equiv],
-    rw colimit.ι_desc_assoc,
-    dsimp,
-    rw assoc,
-    rw comp_id,
-    rw assoc,
-
-    -- change α.app _ ≫ colimit.ι (comma.map_right p _ ⋙ (comma.fst p (functor.from_punit (p.obj x)) ⋙ A')) _ ≫ colimit.pre (comma.fst p (functor.from_punit (p.obj x)) ⋙ A') (comma.map_right p ((functor.const (discrete punit)).map j.hom)) ≫ _ = _,
-
-  }
-
+  letI : is_iso (t₁.desc_cocone_morphism c₂) := is_colimit.hom_is_iso t₁ t₂ _,
+  apply category_theory.functor.map_is_iso (cocones.forget F) (t₁.desc_cocone_morphism c₂),
 end
 
--- def reflective [has_colimits D] (p : C ⥤ C') [full p] [faithful p] (A : C ⥤ D) :
---   p ⋙ (left_kan p).obj A ≅ A :=
--- begin
---   refine nat_iso.of_components _ _,
---   intro X,
---   apply (colimit.is_colimit _).cocone_point_unique_up_to_iso
---             (colimit_of_diagram_terminal (is_terminal p _) _),
---   intros X Y f,
---   ext1,
---   change colimit.ι (comma.map_right p _ ⋙ comma.fst p _ ⋙ A) _ ≫ colimit.pre _ _ ≫ _ = _,
---   rw colimit.ι_pre_assoc,
---   simp only [cocone_of_diagram_terminal_ι_app, colimit.comp_cocone_point_unique_up_to_iso_hom,
---              functor.comp_map, colimit.comp_cocone_point_unique_up_to_iso_hom_assoc, comma.fst_map],
---   rw ← A.map_comp,
---   cases j,
---   congr' 1,
---   dsimp [comma.map_right, is_terminal, is_terminal.from],
---   simp,
--- end
+lemma coreflective (p : C ⥤ C') [∀ (X : C'), has_colimits_of_shape (comma p (functor.from_punit X)) D]
+  [full p] [faithful p] : is_iso (left_kan_adjunction D p).unit :=
+begin
+  apply nat_iso.is_iso_of_is_iso_app _,
+  intro F,
+  apply nat_iso.is_iso_of_is_iso_app _,
+  intro Y,
+  dsimp [left_kan_adjunction, left_kan_equiv],
+  rw comp_id,
+  exact thingy2 (colimit_of_diagram_terminal (is_terminal p Y) _) (colimit.is_colimit _),
+end
 
 end category_theory

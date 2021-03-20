@@ -870,14 +870,6 @@ end
 lemma abs_le_one_iff_mul_self_le_one : abs a ≤ 1 ↔ a * a ≤ 1 :=
 by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
 
-@[simp]
-lemma sub_le_sub_flip : a - b ≤ b - a ↔ a ≤ b :=
-begin
-  rw [sub_le_iff_le_add, sub_add_eq_add_sub, le_sub_iff_add_le],
-  rw [←two_mul, ←two_mul],
-  exact mul_le_mul_left zero_lt_two,
-end
-
 /-- Pullback a `linear_ordered_ring` under an injective map. -/
 def function.injective.linear_ordered_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]

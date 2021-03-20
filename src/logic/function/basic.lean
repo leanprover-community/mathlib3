@@ -614,6 +614,6 @@ def separates_points {α β : Type*} (A : set (α → β)) : Prop :=
 ∀ x y : α, x ≠ y → ∃ f ∈ A, (f x : β) ≠ f y
 
 /-- A set of functions "separates points strongly"
-if for each pair of distinct points there is a function specified values on them.  -/
+if for each pair of distinct points there is a function with specified values on them.  -/
 def separates_points_strongly {α β : Type*} (A : set (α → β)) : Prop :=
 ∀ (x y : α), x ≠ y → ∀ (a b : β), ∃ f ∈ A, (f x : β) = a ∧ f y = b

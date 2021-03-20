@@ -133,7 +133,7 @@ noncomputable def finsum (f : α → M) : M :=
 
 /-- Sum of `f x` for `x ∈ s`, if `s ∩ f.support` is finite. Zero if it's infinite.  -/
 noncomputable def finsum_in (s : set α) (f : α → M) : M :=
-finsum (λ x, if x ∈ s then f x else 0)
+finsum $ s.indicator f
 
 localized "notation `∑ᶠ` binders `, ` r:(scoped:67 f, finsum f) := r"
   in big_operators
@@ -204,6 +204,20 @@ begin
   refine finset.sum_subset (λ _ _, finset.mem_univ' _) (λ _ _ hx, _),
     rw set.finite.mem_to_finset at hx,
     exact function.nmem_support.1 (λ h, hx h),
+end
+
+lemma finsum_eq_finsupp_sum_of_ne_zero_mem_finset (f : α → M)
+  {s : finset α} (hs : ∀ x, f x ≠ 0 → x ∈ s) : ∑ᶠ i : α, f i = s.sum f :=
+begin
+  rw finsum_eq_finset_sum,
+  { apply finset.sum_subset,
+    { intros x hx,
+      rw set.finite.mem_to_finset at hx,
+      exact hs _ hx },
+    { intros x _ hx,
+      rw set.finite.mem_to_finset at hx,
+      exact not_not.1 hx } },
+  { exact set.finite.subset (finset.finite_to_set s) (λ x hx, hs _ hx) }
 end
 
 lemma finsum_in_eq_finset_sum (f : α → M) {s : set α}

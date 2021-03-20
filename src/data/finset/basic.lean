@@ -1720,7 +1720,7 @@ theorem image_to_finset [decidable_eq α] {s : multiset α} :
   s.to_finset.image f = (s.map f).to_finset :=
 ext $ λ _, by simp only [mem_image, multiset.mem_to_finset, exists_prop, multiset.mem_map]
 
-theorem image_val_of_inj_on (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : (image f s).1 = s.1.map f :=
+theorem image_val_of_inj_on (H : set.inj_on f s) : (image f s).1 = s.1.map f :=
 multiset.erase_dup_eq_self.2 (nodup_map_on H s.2)
 
 @[simp]
@@ -1991,12 +1991,12 @@ theorem card_image_le [decidable_eq β] {f : α → β} {s : finset α} : card (
 by simpa only [card_map] using (s.1.map f).to_finset_card_le
 
 theorem card_image_of_inj_on [decidable_eq β] {f : α → β} {s : finset α}
-  (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : card (image f s) = card s :=
+  (H : set.inj_on f s) : card (image f s) = card s :=
 by simp only [card, image_val_of_inj_on H, card_map]
 
 theorem inj_on_of_card_image_eq [decidable_eq β] {f : α → β} {s : finset α}
   (H : card (image f s) = card s) :
-∀x∈s, ∀y∈s, f x = f y → x = y :=
+set.inj_on f s :=
 begin
   change (s.1.map f).erase_dup.card = s.1.card at H,
   have : (s.1.map f).erase_dup = s.1.map f,
@@ -2009,7 +2009,7 @@ begin
 end
 
 theorem card_image_eq_iff_inj_on [decidable_eq β] {f : α → β} {s : finset α} :
-  (s.image f).card = s.card ↔ (∀x∈s, ∀y∈s, f x = f y → x = y) :=
+  (s.image f).card = s.card ↔ set.inj_on f s :=
 ⟨inj_on_of_card_image_eq, card_image_of_inj_on⟩
 
 theorem card_image_of_injective [decidable_eq β] {f : α → β} (s : finset α)

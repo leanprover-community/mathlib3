@@ -65,6 +65,12 @@ end multiplicative
 instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul (default α)⟩
 instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add (default α)⟩
 
+instance [nontrivial α] : nontrivial (additive α) :=
+additive.of_mul.injective.nontrivial
+
+instance [nontrivial α] : nontrivial (multiplicative α) :=
+multiplicative.of_add.injective.nontrivial
+
 instance additive.has_add [has_mul α] : has_add (additive α) :=
 { add := λ x y, additive.of_mul (x.to_mul * y.to_mul) }
 
@@ -163,13 +169,43 @@ instance [has_neg α] : has_inv (multiplicative α) := ⟨λ x, additive.of_mul 
 @[simp] lemma to_add_inv [has_neg α] (x : multiplicative α) :
   (x⁻¹).to_add = -x.to_add := rfl
 
+instance additive.has_sub [has_div α] : has_sub (additive α) :=
+{ sub := λ x y, additive.of_mul (x.to_mul / y.to_mul) }
+
+instance multiplicative.has_div [has_sub α] : has_div (multiplicative α) :=
+{ div := λ x y, multiplicative.of_add (x.to_add - y.to_add) }
+
+@[simp] lemma of_add_sub [has_sub α] (x y : α) :
+  multiplicative.of_add (x - y) = multiplicative.of_add x / multiplicative.of_add y :=
+rfl
+
+@[simp] lemma to_add_div [has_sub α] (x y : multiplicative α) :
+  (x / y).to_add = x.to_add - y.to_add :=
+rfl
+
+@[simp] lemma of_mul_div [has_div α] (x y : α) :
+  additive.of_mul (x / y) = additive.of_mul x - additive.of_mul y :=
+rfl
+
+@[simp] lemma to_mul_sub [has_div α] (x y : additive α) :
+  (x - y).to_mul = x.to_mul / y.to_mul :=
+rfl
+
+instance [div_inv_monoid α] : sub_neg_monoid (additive α) :=
+{ sub_eq_add_neg := @div_eq_mul_inv α _,
+  .. additive.has_neg, .. additive.has_sub, .. additive.add_monoid }
+
+instance [sub_neg_monoid α] : div_inv_monoid (multiplicative α) :=
+{ div_eq_mul_inv := @sub_eq_add_neg α _,
+  .. multiplicative.has_inv, .. multiplicative.has_div, .. multiplicative.monoid }
+
 instance [group α] : add_group (additive α) :=
 { add_left_neg := @mul_left_inv α _,
-  .. additive.has_neg, .. additive.add_monoid }
+  .. additive.sub_neg_monoid }
 
 instance [add_group α] : group (multiplicative α) :=
 { mul_left_inv := @add_left_neg α _,
-  .. multiplicative.has_inv, ..multiplicative.monoid }
+  .. multiplicative.div_inv_monoid }
 
 instance [comm_group α] : add_comm_group (additive α) :=
 { .. additive.add_group, .. additive.add_comm_monoid }

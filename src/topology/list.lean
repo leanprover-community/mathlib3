@@ -51,7 +51,7 @@ begin
       exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) } }
 end
 
-lemma nhds_nil : 𝓝 ([] : list α) = pure [] :=
+@[simp] lemma nhds_nil : 𝓝 ([] : list α) = pure [] :=
 by rw [nhds_list, list.traverse_nil _]; apply_instance
 
 lemma nhds_cons (a : α) (l : list α) :
@@ -84,7 +84,8 @@ continuous_iff_continuous_at.mpr $ λ ⟨x, y⟩, continuous_at_fst.cons continu
 
 lemma tendsto_nhds {β : Type*} {f : list α → β} {r : list α → _root_.filter β}
   (h_nil : tendsto f (pure []) (r []))
-  (h_cons : ∀l a, tendsto f (𝓝 l) (r l) → tendsto (λp:α×list α, f (p.1 :: p.2)) (𝓝 a ×ᶠ 𝓝 l) (r (a::l))) :
+  (h_cons : ∀l a, tendsto f (𝓝 l) (r l) →
+    tendsto (λp:α×list α, f (p.1 :: p.2)) (𝓝 a ×ᶠ 𝓝 l) (r (a::l))) :
   ∀l, tendsto f (𝓝 l) (r l)
 | []     := by rwa [nhds_nil]
 | (a::l) := by rw [tendsto_cons_iff]; exact h_cons l a (tendsto_nhds l)
@@ -104,16 +105,12 @@ end
 lemma tendsto_insert_nth' {a : α} : ∀{n : ℕ} {l : list α},
   tendsto (λp:α×list α, insert_nth n p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (insert_nth n a l))
 | 0     l  := tendsto_cons
-| (n+1) [] :=
-  suffices tendsto (λa, []) (𝓝 a) (𝓝 ([] : list α)),
-    by simpa [nhds_nil, tendsto, map_prod, (∘), insert_nth],
-  tendsto_const_nhds
+| (n+1) [] := by simp
 | (n+1) (a'::l) :=
   have 𝓝 a ×ᶠ 𝓝 (a' :: l) =
     (𝓝 a ×ᶠ (𝓝 a' ×ᶠ 𝓝 l)).map (λp:α×α×list α, (p.1, p.2.1 :: p.2.2)),
   begin
-    simp only
-      [nhds_cons, filter.prod_eq, (filter.map_def _ _).symm, (filter.seq_eq_filter_seq _ _).symm],
+    simp only [nhds_cons, filter.prod_eq, ← filter.map_def, ← filter.seq_eq_filter_seq],
     simp [-filter.seq_eq_filter_seq, -filter.map_def, (∘)] with functor_norm
   end,
   begin
@@ -192,7 +189,7 @@ continuous_iff_continuous_at.mpr $ assume ⟨a, l⟩,
 lemma continuous_insert_nth {n : ℕ} {i : fin (n+1)}
   {f : β → α} {g : β → vector α n} (hf : continuous f) (hg : continuous g) :
   continuous (λb, insert_nth (f b) i (g b)) :=
-continuous_insert_nth'.comp (continuous.prod_mk hf hg)
+continuous_insert_nth'.comp (hf.prod_mk hg : _)
 
 lemma continuous_at_remove_nth {n : ℕ} {i : fin (n+1)} :
   ∀{l:vector α (n+1)}, continuous_at (remove_nth i) l

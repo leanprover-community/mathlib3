@@ -66,7 +66,7 @@ end
 
 @[simp, norm_cast] theorem cast_add [add_group α] [has_one α] : ∀ m n, ((m + n : ℤ) : α) = m + n
 | (m : ℕ) (n : ℕ) := nat.cast_add _ _
-| (m : ℕ) -[1+ n] := cast_sub_nat_nat _ _
+| (m : ℕ) -[1+ n] := by simpa only [sub_eq_add_neg] using cast_sub_nat_nat _ _
 | -[1+ m] (n : ℕ) := (cast_sub_nat_nat _ _).trans $ sub_eq_of_eq_add $
   show (n:α) = -(m+1) + n + (m+1),
   by rw [add_assoc, ← cast_succ, ← nat.cast_add, add_comm,
@@ -109,6 +109,9 @@ def cast_ring_hom (α : Type*) [ring α] : ℤ →+* α := ⟨coe, cast_one, cas
 lemma cast_commute [ring α] (m : ℤ) (x : α) : commute ↑m x :=
 int.cases_on m (λ n, n.cast_commute x) (λ n, ((n+1).cast_commute x).neg_left)
 
+lemma cast_comm [ring α] (m : ℤ) (x : α) : (m : α) * x = x * m :=
+(cast_commute m x).eq
+
 lemma commute_cast [ring α] (x : α) (m : ℤ) : commute x m :=
 (m.cast_commute x).symm
 
@@ -125,35 +128,49 @@ by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 lemma cast_two [ring α] : ((2 : ℤ) : α) = 2 := by simp
 
-theorem cast_nonneg [linear_ordered_ring α] : ∀ {n : ℤ}, (0 : α) ≤ n ↔ 0 ≤ n
-| (n : ℕ) := by simp
-| -[1+ n] := by simpa [not_le_of_gt (neg_succ_lt_zero n)] using
-             show -(n:α) < 1, from lt_of_le_of_lt (by simp) zero_lt_one
+theorem cast_mono [ordered_ring α] : monotone (coe : ℤ → α) :=
+begin
+  intros m n h,
+  rw ← sub_nonneg at h,
+  lift n - m to ℕ using h with k,
+  rw [← sub_nonneg, ← cast_sub, ← h_1, cast_coe_nat],
+  exact k.cast_nonneg
+end
 
-@[simp, norm_cast] theorem cast_le [linear_ordered_ring α] {m n : ℤ} : (m : α) ≤ n ↔ m ≤ n :=
+@[simp] theorem cast_nonneg [ordered_ring α] [nontrivial α] : ∀ {n : ℤ}, (0 : α) ≤ n ↔ 0 ≤ n
+| (n : ℕ) := by simp
+| -[1+ n] := have -(n:α) < 1, from lt_of_le_of_lt (by simp) zero_lt_one,
+             by simpa [(neg_succ_lt_zero n).not_le, ← sub_eq_add_neg, le_neg] using this.not_le
+
+@[simp, norm_cast] theorem cast_le [ordered_ring α] [nontrivial α] {m n : ℤ} :
+  (m : α) ≤ n ↔ m ≤ n :=
 by rw [← sub_nonneg, ← cast_sub, cast_nonneg, sub_nonneg]
 
-@[simp, norm_cast] theorem cast_lt [linear_ordered_ring α] {m n : ℤ} : (m : α) < n ↔ m < n :=
-by simpa [-cast_le] using not_congr (@cast_le α _ n m)
+theorem cast_strict_mono [ordered_ring α] [nontrivial α] : strict_mono (coe : ℤ → α) :=
+strict_mono_of_le_iff_le $ λ m n, cast_le.symm
 
-@[simp] theorem cast_nonpos [linear_ordered_ring α] {n : ℤ} : (n : α) ≤ 0 ↔ n ≤ 0 :=
+@[simp, norm_cast] theorem cast_lt [ordered_ring α] [nontrivial α] {m n : ℤ} :
+  (m : α) < n ↔ m < n :=
+cast_strict_mono.lt_iff_lt
+
+@[simp] theorem cast_nonpos [ordered_ring α] [nontrivial α] {n : ℤ} : (n : α) ≤ 0 ↔ n ≤ 0 :=
 by rw [← cast_zero, cast_le]
 
-@[simp] theorem cast_pos [linear_ordered_ring α] {n : ℤ} : (0 : α) < n ↔ 0 < n :=
+@[simp] theorem cast_pos [ordered_ring α] [nontrivial α] {n : ℤ} : (0 : α) < n ↔ 0 < n :=
 by rw [← cast_zero, cast_lt]
 
-@[simp] theorem cast_lt_zero [linear_ordered_ring α] {n : ℤ} : (n : α) < 0 ↔ n < 0 :=
+@[simp] theorem cast_lt_zero [ordered_ring α] [nontrivial α] {n : ℤ} : (n : α) < 0 ↔ n < 0 :=
 by rw [← cast_zero, cast_lt]
 
-@[simp, norm_cast] theorem cast_min [linear_ordered_comm_ring α] {a b : ℤ} :
+@[simp, norm_cast] theorem cast_min [linear_ordered_ring α] {a b : ℤ} :
   (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [h, min]
+monotone.map_min cast_mono
 
-@[simp, norm_cast] theorem cast_max [linear_ordered_comm_ring α] {a b : ℤ} :
+@[simp, norm_cast] theorem cast_max [linear_ordered_ring α] {a b : ℤ} :
   (↑(max a b) : α) = max a b :=
-by by_cases b ≤ a; simp [h, max]
+monotone.map_max cast_mono
 
-@[simp, norm_cast] theorem cast_abs [linear_ordered_comm_ring α] {q : ℤ} :
+@[simp, norm_cast] theorem cast_abs [linear_ordered_ring α] {q : ℤ} :
   ((abs q : ℤ) : α) = abs q :=
 by simp [abs]
 

@@ -7,6 +7,7 @@ import group_theory.group_action.defs
 import algebra.group.units
 import algebra.group_with_zero
 import data.equiv.mul_add
+import group_theory.perm.basic
 
 /-!
 # Group actions applied to various types of group

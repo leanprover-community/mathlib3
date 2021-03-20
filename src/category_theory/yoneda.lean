@@ -20,7 +20,7 @@ Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation
 namespace category_theory
 open opposite
 
-universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ u₁ u₂-- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u₁} [category.{v₁} C]
 
@@ -99,7 +99,7 @@ def ext (X Y : C)
 /--
 If `yoneda.map f` is an isomorphism, so was `f`.
 -/
-def is_iso {X Y : C} (f : X ⟶ Y) [is_iso (yoneda.map f)] : is_iso f :=
+lemma is_iso {X Y : C} (f : X ⟶ Y) [is_iso (yoneda.map f)] : is_iso f :=
 is_iso_of_fully_faithful yoneda f
 
 end yoneda
@@ -124,8 +124,15 @@ instance coyoneda_faithful : faithful (@coyoneda C _) :=
 /--
 If `coyoneda.map f` is an isomorphism, so was `f`.
 -/
-def is_iso {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso (coyoneda.map f)] : is_iso f :=
+lemma is_iso {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso (coyoneda.map f)] : is_iso f :=
 is_iso_of_fully_faithful coyoneda f
+
+-- No need to use Cᵒᵖ here, works with any category
+/-- A Type-valued presheaf `P` is isomorphic to the composition of `P` with the
+  coyoneda functor coming from `punit`. -/
+@[simps] def iso_comp_punit (P : C ⥤ Type v₁) : (P ⋙ coyoneda.obj (op punit.{v₁+1})) ≅ P :=
+{ hom := { app := λ X f, f punit.star},
+  inv := { app := λ X a _, a } }
 
 end coyoneda
 
@@ -145,7 +152,7 @@ namespace category_theory
 -- For the rest of the file, we are using product categories,
 -- so need to restrict to the case morphisms are in 'Type', not 'Sort'.
 
-universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 open opposite
 

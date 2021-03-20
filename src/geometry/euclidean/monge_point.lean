@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import geometry.euclidean.circumcenter
 
@@ -43,9 +43,9 @@ generalization, the Monge point of a simplex.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Altitude_(triangle)
-* https://en.wikipedia.org/wiki/Monge_point
-* https://en.wikipedia.org/wiki/Orthocentric_system
+* <https://en.wikipedia.org/wiki/Altitude_(triangle)>
+* <https://en.wikipedia.org/wiki/Monge_point>
+* <https://en.wikipedia.org/wiki/Orthocentric_system>
 * Małgorzata Buba-Brzozowa, [The Monge Point and the 3(n+1) Point
   Sphere of an
   n-Simplex](https://pdfs.semanticscholar.org/6f8b/0f623459c76dac2e49255737f8f0f4725d16.pdf)
@@ -146,7 +146,7 @@ begin
   { rw [if_pos (mem_univ _), sub_zero, add_zero, card_fin],
     have hn3 : (n + 2 + 1 : ℝ) ≠ 0,
     { exact_mod_cast nat.succ_ne_zero _ },
-    field_simp [hn1, hn3] },
+    field_simp [hn1, hn3, mul_comm] },
   { field_simp [hn1],
     ring }
 end
@@ -253,13 +253,13 @@ This definition is only intended to be used when `i₁ ≠ i₂`. -/
 def monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) (i₁ i₂ : fin (n + 3)) :
   affine_subspace ℝ P :=
 mk' (({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points)
-  (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓
+  (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓
     affine_span ℝ (set.range s.points)
 
 /-- The definition of a Monge plane. -/
 lemma monge_plane_def {n : ℕ} (s : simplex ℝ P (n + 2)) (i₁ i₂ : fin (n + 3)) :
   s.monge_plane i₁ i₂ = mk' (({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points)
-                            (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓
+                            (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓
                           affine_span ℝ (set.range s.points) :=
 rfl
 
@@ -295,7 +295,7 @@ end
 -- useful without that hypothesis.
 /-- The direction of a Monge plane. -/
 lemma direction_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
-  (s.monge_plane i₁ i₂).direction = (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓
+  (s.monge_plane i₁ i₂).direction = (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓
     vector_span ℝ (set.range s.points) :=
 by rw [monge_plane_def, direction_inf_of_mem_inf (s.monge_point_mem_monge_plane h), direction_mk',
        direction_affine_span]
@@ -308,13 +308,13 @@ lemma eq_monge_point_of_forall_mem_monge_plane {n : ℕ} {s : simplex ℝ P (n +
 begin
   rw ←@vsub_eq_zero_iff_eq V,
   have h' : ∀ i₂, i₁ ≠ i₂ → p -ᵥ s.monge_point ∈
-    (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓ vector_span ℝ (set.range s.points),
+    (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓ vector_span ℝ (set.range s.points),
   { intros i₂ hne,
     rw [←s.direction_monge_plane hne,
         vsub_right_mem_direction_iff_mem (s.monge_point_mem_monge_plane hne)],
     exact h i₂ hne },
   have hi : p -ᵥ s.monge_point ∈ ⨅ (i₂ : {i // i₁ ≠ i}),
-    (submodule.span ℝ ({s.points i₁ -ᵥ s.points i₂}: set V)).orthogonal,
+    (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ,
   { rw submodule.mem_infi,
     exact λ i, (submodule.mem_inf.1 (h' i i.property)).1 },
   rw [submodule.infi_orthogonal, ←submodule.span_Union] at hi,
@@ -343,13 +343,13 @@ end
 /-- An altitude of a simplex is the line that passes through a vertex
 and is orthogonal to the opposite face. -/
 def altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) : affine_subspace ℝ P :=
-mk' (s.points i) (affine_span ℝ (s.points '' ↑(univ.erase i))).direction.orthogonal ⊓
+mk' (s.points i) (affine_span ℝ (s.points '' ↑(univ.erase i))).directionᗮ ⊓
   affine_span ℝ (set.range s.points)
 
 /-- The definition of an altitude. -/
 lemma altitude_def {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
   s.altitude i = mk' (s.points i)
-                     (affine_span ℝ (s.points '' ↑(univ.erase i))).direction.orthogonal ⊓
+                     (affine_span ℝ (s.points '' ↑(univ.erase i))).directionᗮ ⊓
     affine_span ℝ (set.range s.points) :=
 rfl
 
@@ -360,7 +360,7 @@ lemma mem_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
 
 /-- The direction of an altitude. -/
 lemma direction_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
-  (s.altitude i).direction = (vector_span ℝ (s.points '' ↑(finset.univ.erase i))).orthogonal ⊓
+  (s.altitude i).direction = (vector_span ℝ (s.points '' ↑(finset.univ.erase i)))ᗮ ⊓
     vector_span ℝ (set.range s.points) :=
 by rw [altitude_def,
        direction_inf_of_mem (self_mem_mk' (s.points i) _)
@@ -371,7 +371,7 @@ by rw [altitude_def,
 orthogonal to an altitude. -/
 lemma vector_span_le_altitude_direction_orthogonal  {n : ℕ} (s : simplex ℝ P (n + 1))
     (i : fin (n + 2)) :
-  vector_span ℝ (s.points '' ↑(finset.univ.erase i)) ≤ (s.altitude i).direction.orthogonal :=
+  vector_span ℝ (s.points '' ↑(finset.univ.erase i)) ≤ (s.altitude i).directionᗮ :=
 begin
   rw direction_altitude,
   exact le_trans
@@ -408,7 +408,7 @@ lemma affine_span_insert_singleton_eq_altitude_iff {n : ℕ} (s : simplex ℝ P 
     (i : fin (n + 2)) (p : P) :
   affine_span ℝ {p, s.points i} = s.altitude i ↔ (p ≠ s.points i ∧
     p ∈ affine_span ℝ (set.range s.points) ∧
-    p -ᵥ s.points i ∈ (affine_span ℝ (s.points '' ↑(finset.univ.erase i))).direction.orthogonal) :=
+    p -ᵥ s.points i ∈ (affine_span ℝ (s.points '' ↑(finset.univ.erase i))).directionᗮ) :=
 begin
   rw [eq_iff_direction_eq_of_mem
         (mem_affine_span ℝ (set.mem_insert_of_mem _ (set.mem_singleton _))) (s.mem_altitude _),
@@ -544,14 +544,11 @@ end
 circumcenter in a side equals the circumradius, variant using a
 `finset`. -/
 lemma dist_orthocenter_reflection_circumcenter_finset (t : triangle ℝ P) {i₁ i₂ : fin 3}
-    (h : i₁ ≠ i₂) :
+  (h : i₁ ≠ i₂) :
   dist t.orthocenter (reflection (affine_span ℝ (t.points '' ↑({i₁, i₂} : finset (fin 3))))
                                  t.circumcenter) =
     t.circumradius :=
-begin
-  convert dist_orthocenter_reflection_circumcenter t h,
-  simp
-end
+by { convert dist_orthocenter_reflection_circumcenter _ h, simp }
 
 /-- The affine span of the orthocenter and a vertex is contained in
 the altitude. -/
@@ -596,8 +593,8 @@ begin
   have hu : finset.univ.erase j₂ = {j₁, j₃}, { clear h₁ h₂ h₃, dec_trivial! },
   rw [hu, finset.coe_insert, finset.coe_singleton, set.image_insert_eq, set.image_singleton,
       h₁, h₃],
-  have hle : (t₁.altitude i₃).direction.orthogonal ≤
-    (affine_span ℝ ({t₁.orthocenter, t₁.points i₃} : set P)).direction.orthogonal :=
+  have hle : (t₁.altitude i₃).directionᗮ ≤
+    (affine_span ℝ ({t₁.orthocenter, t₁.points i₃} : set P)).directionᗮ :=
       submodule.orthogonal_le (direction_le (affine_span_orthocenter_point_le_altitude _ _)),
   refine hle ((t₁.vector_span_le_altitude_direction_orthogonal i₃) _),
   have hui : finset.univ.erase i₃ = {i₁, i₂}, { clear hle h₂ h₃, dec_trivial! },

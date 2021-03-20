@@ -3,7 +3,8 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.basic
+import analysis.normed_space.linear_isometry
+import tactic.equiv_rw
 
 /-!
 # Bounded continuous functions
@@ -14,7 +15,7 @@ the uniform distance.
 -/
 
 noncomputable theory
-open_locale topological_space classical
+open_locale topological_space classical nnreal
 
 open set filter metric
 
@@ -22,32 +23,79 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 /-- The type of bounded continuous functions from a topological space to a metric space -/
-def bounded_continuous_function (α : Type u) (β : Type v) [topological_space α] [metric_space β] :
+structure bounded_continuous_function
+  (α : Type u) (β : Type v) [topological_space α] [metric_space β] extends continuous_map α β :
   Type (max u v) :=
-{f : α → β // continuous f ∧ ∃C, ∀x y:α, dist (f x) (f y) ≤ C}
+(bounded' : ∃C, ∀x y:α, dist (to_fun x) (to_fun y) ≤ C)
 
-local infixr ` →ᵇ `:25 := bounded_continuous_function
+localized "infixr ` →ᵇ `:25 := bounded_continuous_function" in bounded_continuous_function
 
 namespace bounded_continuous_function
 section basics
 variables [topological_space α] [metric_space β] [metric_space γ]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
-instance : has_coe_to_fun (α →ᵇ β) :=  ⟨_, subtype.val⟩
+instance : has_coe_to_fun (α →ᵇ β) :=  ⟨_, λ f, f.to_fun⟩
+
+protected lemma bounded (f : α →ᵇ β) : ∃C, ∀ x y : α, dist (f x) (f y) ≤ C := f.bounded'
+@[continuity]
+protected lemma continuous (f : α →ᵇ β) : continuous f := f.to_continuous_map.continuous
+
+@[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
+by { cases f, cases g, congr, ext, exact H x, }
+
+lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
+⟨λ h, λ x, h ▸ rfl, ext⟩
 
 lemma bounded_range : bounded (range f) :=
-bounded_range_iff.2 f.2.2
+bounded_range_iff.2 f.bounded
 
-/-- If a function is continuous on a compact space, it is automatically bounded,
-and therefore gives rise to an element of the type of bounded continuous functions -/
-def mk_of_compact [compact_space α] (f : α → β) (hf : continuous f) : α →ᵇ β :=
-⟨f, hf, bounded_range_iff.1 $ bounded_of_compact $ compact_range hf⟩
+/-- A continuous function with an explicit bound is a bounded continuous function. -/
+def mk_of_bound (f : C(α, β)) (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
+⟨f, ⟨C, h⟩⟩
+
+@[simp] lemma mk_of_bound_coe {f} {C} {h} : (mk_of_bound f C h : α → β) = (f : α → β) :=
+rfl
+
+/-- A continuous function on a compact space is automatically a bounded continuous function. -/
+def mk_of_compact [compact_space α] (f : C(α, β)) : α →ᵇ β :=
+⟨f, bounded_range_iff.1 $ bounded_of_compact $ compact_range f.continuous⟩
+
+@[simp] lemma mk_of_compact_apply [compact_space α] (f : C(α, β)) (a : α) :
+  mk_of_compact f a = f a :=
+rfl
 
 /-- If a function is bounded on a discrete space, it is automatically continuous,
 and therefore gives rise to an element of the type of bounded continuous functions -/
-def mk_of_discrete [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, dist (f x) (f y) ≤ C) :
-  α →ᵇ β :=
-⟨f, continuous_of_discrete_topology, hf⟩
+def mk_of_discrete [discrete_topology α] (f : α → β)
+  (C : ℝ) (h :  ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
+⟨⟨f, continuous_of_discrete_topology⟩, ⟨C, h⟩⟩
+
+@[simp] lemma mk_of_discrete_apply
+  [discrete_topology α] (f : α → β) (C) (h) (a : α) :
+  mk_of_discrete f C h a = f a :=
+rfl
+
+section
+variables (α β)
+/--
+The map forgetting that a bounded continuous function is bounded.
+-/
+def forget_boundedness : (α →ᵇ β) → C(α, β) :=
+λ f, f.1
+
+@[simp] lemma forget_boundedness_coe (f : α →ᵇ β) : (forget_boundedness α β f : α → β) = f :=
+rfl
+
+/--
+When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
+equivalent to `C(α, 𝕜)`.
+-/
+@[simps]
+def equiv_continuous_map_of_compact [compact_space α] : (α →ᵇ β) ≃ C(α, β) :=
+⟨forget_boundedness α β, mk_of_compact, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
+
+end
 
 /-- The uniform distance between two bounded continuous functions -/
 instance : has_dist (α →ᵇ β) :=
@@ -59,28 +107,23 @@ lemma dist_set_exists : ∃ C, 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C :=
 begin
   refine if h : nonempty α then _ else ⟨0, le_refl _, λ x, h.elim ⟨x⟩⟩,
   cases h with x,
-  rcases f.2 with ⟨_, Cf, hCf⟩, /- hCf : ∀ (x y : α), dist (f.val x) (f.val y) ≤ Cf -/
-  rcases g.2 with ⟨_, Cg, hCg⟩, /- hCg : ∀ (x y : α), dist (g.val x) (g.val y) ≤ Cg -/
+  rcases f.bounded with ⟨Cf, hCf : ∀ x y, dist (f x) (f y) ≤ Cf⟩,
+  rcases g.bounded with ⟨Cg, hCg : ∀ x y, dist (g x) (g y) ≤ Cg⟩,
   let C := max 0 (dist (f x) (g x) + (Cf + Cg)),
-  exact ⟨C, le_max_left _ _, λ y, calc
-    dist (f y) (g y) ≤ dist (f x) (g x) + (dist (f x) (f y) + dist (g x) (g y)) : dist_triangle4_left _ _ _ _
-                ... ≤ dist (f x) (g x) + (Cf + Cg) : add_le_add_left (add_le_add (hCf _ _) (hCg _ _)) _
-                ... ≤ C : le_max_right _ _⟩
+  refine ⟨C, le_max_left _ _, λ y, _⟩,
+  calc dist (f y) (g y) ≤ dist (f x) (g x) + (dist (f x) (f y) + dist (g x) (g y)) :
+    dist_triangle4_left _ _ _ _
+                    ... ≤ dist (f x) (g x) + (Cf + Cg) : by mono*
+                    ... ≤ C : le_max_right _ _
 end
 
-/-- The pointwise distance is controlled by the distance between functions, by definition -/
+/-- The pointwise distance is controlled by the distance between functions, by definition. -/
 lemma dist_coe_le_dist (x : α) : dist (f x) (g x) ≤ dist f g :=
 le_cInf dist_set_exists $ λb hb, hb.2 x
 
-@[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
-subtype.eq $ funext H
-
-lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
-⟨λ h, λ x, h ▸ rfl, ext⟩
-
 /- This lemma will be needed in the proof of the metric space instance, but it will become
-useless afterwards as it will be superceded by the general result that the distance is nonnegative
-is metric spaces. -/
+useless afterwards as it will be superseded by the general result that the distance is nonnegative
+in metric spaces. -/
 private lemma dist_nonneg' : 0 ≤ dist f g :=
 le_cInf dist_set_exists (λ C, and.left)
 
@@ -102,10 +145,27 @@ instance : metric_space (α →ᵇ β) :=
     (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
       le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
 
-variable (α)
+instance [compact_space α] : metric_space C(α,β) :=
+metric_space.induced
+  (equiv_continuous_map_of_compact α β).symm
+  (equiv_continuous_map_of_compact α β).symm.injective
+  (by apply_instance)
+
+variables (α β)
+/--
+When `α` is compact, and `β` is a metric space, the bounded continuous maps `α →ᵇ β` are
+isometric to `C(α, β)`.
+-/
+@[simps]
+def isometric_continuous_map_of_compact [compact_space α] :
+  (α →ᵇ β) ≃ᵢ C(α, β) :=
+{ isometry_to_fun := λ x y, rfl,
+  to_equiv := equiv_continuous_map_of_compact α β }
+
+variable {β}
 
 /-- Constant as a continuous bounded function. -/
-def const (b : β) : α →ᵇ β := ⟨λx, b, continuous_const, 0, by simp [le_refl]⟩
+def const (b : β) : α →ᵇ β := ⟨continuous_map.const b, 0, by simp [le_refl]⟩
 
 variable {α}
 
@@ -119,7 +179,7 @@ instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α (default β)�
 theorem continuous_eval : continuous (λ p : (α →ᵇ β) × α, p.1 p.2) :=
 continuous_iff'.2 $ λ ⟨f, x⟩ ε ε0,
 /- use the continuity of `f` to find a neighborhood of `x` where it varies at most by ε/2 -/
-have Hs : _ := continuous_iff'.1 f.2.1 x (ε/2) (half_pos ε0),
+have Hs : _ := continuous_iff'.1 f.continuous x (ε/2) (half_pos ε0),
 mem_sets_of_superset (prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) Hs) $
 λ ⟨g, y⟩ ⟨hg, hy⟩, calc dist (g y) (f x)
       ≤ dist (g y) (f y) + dist (f y) (f x) : dist_triangle _ _ _
@@ -129,9 +189,6 @@ mem_sets_of_superset (prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) Hs) $
 /-- In particular, when `x` is fixed, `f → f x` is continuous -/
 theorem continuous_evalx {x : α} : continuous (λ f : α →ᵇ β, f x) :=
 continuous_eval.comp (continuous_id.prod_mk continuous_const)
-
-/-- When `f` is fixed, `x → f x` is also continuous, by definition -/
-theorem continuous_evalf {f : α →ᵇ β} : continuous f := f.2.1
 
 /-- Bounded continuous functions taking values in a complete space form a complete space. -/
 instance [complete_space β] : complete_space (α →ᵇ β) :=
@@ -150,19 +207,20 @@ begin
   have fF_bdd : ∀x N, dist (f N x) (F x) ≤ b N :=
     λ x N, le_of_tendsto (tendsto_const_nhds.dist (hF x))
       (filter.eventually_at_top.2 ⟨N, λn hn, f_bdd x N n N (le_refl N) hn⟩),
-  refine ⟨⟨F, _, _⟩, _⟩,
+  refine ⟨⟨⟨F, _⟩, _⟩, _⟩,
   { /- Check that `F` is continuous, as a uniform limit of continuous functions -/
     have : tendsto_uniformly (λn x, f n x) F at_top,
     { refine metric.tendsto_uniformly_iff.2 (λ ε ε0, _),
       refine ((tendsto_order.1 b_lim).2 ε ε0).mono (λ n hn x, _),
       rw dist_comm,
       exact lt_of_le_of_lt (fF_bdd x n) hn },
-    exact this.continuous (λN, (f N).2.1) },
+    exact this.continuous (λN, (f N).continuous) },
   { /- Check that `F` is bounded -/
-    rcases (f 0).2.2 with ⟨C, hC⟩,
-    exact ⟨C + (b 0 + b 0), λ x y, calc
-      dist (F x) (F y) ≤ dist (f 0 x) (f 0 y) + (dist (f 0 x) (F x) + dist (f 0 y) (F y)) : dist_triangle4_left _ _ _ _
-         ... ≤ C + (b 0 + b 0) : add_le_add (hC x y) (add_le_add (fF_bdd x 0) (fF_bdd y 0))⟩ },
+    rcases (f 0).bounded with ⟨C, hC⟩,
+    refine ⟨C + (b 0 + b 0), λ x y, _⟩,
+    calc dist (F x) (F y) ≤ dist (f 0 x) (f 0 y) + (dist (f 0 x) (F x) + dist (f 0 y) (F y)) :
+      dist_triangle4_left _ _ _ _
+                      ... ≤ C + (b 0 + b 0) : by mono* },
   { /- Check that `F` is close to `f N` in distance terms -/
     refine tendsto_iff_dist_tendsto_zero.2 (squeeze_zero (λ _, dist_nonneg) _ b_lim),
     exact λ N, (dist_le (b0 _)).2 (λx, fF_bdd x N) }
@@ -170,17 +228,17 @@ end
 
 /-- Composition (in the target) of a bounded continuous function with a Lipschitz map again
 gives a bounded continuous function -/
-def comp (G : β → γ) {C : nnreal} (H : lipschitz_with C G)
+def comp (G : β → γ) {C : ℝ≥0} (H : lipschitz_with C G)
   (f : α →ᵇ β) : α →ᵇ γ :=
-⟨λx, G (f x), H.continuous.comp f.2.1,
-  let ⟨D, hD⟩ := f.2.2 in
+⟨⟨λx, G (f x), H.continuous.comp f.continuous⟩,
+  let ⟨D, hD⟩ := f.bounded in
   ⟨max C 0 * D, λ x y, calc
     dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : H.dist_le_mul _ _
     ... ≤ max C 0 * dist (f x) (f y) : mul_le_mul_of_nonneg_right (le_max_left C 0) dist_nonneg
     ... ≤ max C 0 * D : mul_le_mul_of_nonneg_left (hD _ _) (le_max_right C 0)⟩⟩
 
 /-- The composition operator (in the target) with a Lipschitz map is Lipschitz -/
-lemma lipschitz_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
+lemma lipschitz_comp {G : β → γ} {C : ℝ≥0} (H : lipschitz_with C G) :
   lipschitz_with C (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
 lipschitz_with.of_dist_le_mul $ λ f g,
 (dist_le (mul_nonneg C.2 dist_nonneg)).2 $ λ x,
@@ -188,18 +246,18 @@ calc dist (G (f x)) (G (g x)) ≤ C * dist (f x) (g x) : H.dist_le_mul _ _
   ... ≤ C * dist f g : mul_le_mul_of_nonneg_left (dist_coe_le_dist _) C.2
 
 /-- The composition operator (in the target) with a Lipschitz map is uniformly continuous -/
-lemma uniform_continuous_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
+lemma uniform_continuous_comp {G : β → γ} {C : ℝ≥0} (H : lipschitz_with C G) :
   uniform_continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
 (lipschitz_comp H).uniform_continuous
 
 /-- The composition operator (in the target) with a Lipschitz map is continuous -/
-lemma continuous_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
+lemma continuous_comp {G : β → γ} {C : ℝ≥0} (H : lipschitz_with C G) :
   continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
 (lipschitz_comp H).continuous
 
 /-- Restriction (in the target) of a bounded continuous function taking values in a subset -/
 def cod_restrict (s : set β) (f : α →ᵇ β) (H : ∀x, f x ∈ s) : α →ᵇ s :=
-⟨s.cod_restrict f H, continuous_subtype_mk _ f.2.1, f.2.2⟩
+⟨⟨s.cod_restrict f H, continuous_subtype_mk _ f.continuous⟩, f.bounded⟩
 
 end basics
 
@@ -321,7 +379,8 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
       refine bex.imp_right (λ U U_set hU y z hy hz f hf, _) (H x (ε/2) (half_pos ε0)),
       rcases metric.mem_closure_iff.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
       replace dist_fg := λ x, lt_of_le_of_lt (dist_coe_le_dist x) dist_fg,
-      calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) : dist_triangle4_right _ _ _ _
+      calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) :
+        dist_triangle4_right _ _ _ _
           ... < ε/2/2 + ε/2/2 + ε/2 :
             add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y z hy hz g gA)
           ... = ε : by rw [add_halves, add_halves]
@@ -363,7 +422,7 @@ variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
 instance : has_zero (α →ᵇ β) := ⟨const α 0⟩
 
-@[simp] lemma coe_zero : (0 : α →ᵇ β) x = 0 := rfl
+@[simp] lemma coe_zero : ((0 : α →ᵇ β) : α → β) = 0 := rfl
 
 instance : has_norm (α →ᵇ β) := ⟨λu, dist u 0⟩
 
@@ -393,7 +452,20 @@ variable {f}
 
 /-- The norm of a function is controlled by the supremum of the pointwise norms -/
 lemma norm_le (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
-by simpa only [coe_zero, dist_zero_right] using @dist_le _ _ _ _ f 0 _ C0
+by simpa using @dist_le _ _ _ _ f 0 _ C0
+
+lemma norm_le_of_nonempty [nonempty α]
+  {f : α →ᵇ β} {M : ℝ} (w : ∀ x, ∥f x∥ ≤ M) : ∥f∥ ≤ M :=
+(bounded_continuous_function.norm_le (le_trans (norm_nonneg _) (w (nonempty.some ‹_›)))).mpr w
+
+lemma norm_lt_of_compact [nonempty α] [compact_space α]
+  {f : α →ᵇ β} {M : ℝ} (h : ∀ x, ∥f x∥ < M) : ∥f∥ < M :=
+begin
+  have c : continuous (λ x, ∥f x∥), { continuity, },
+  obtain ⟨x, -, le⟩ :=
+    is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
+  exact lt_of_le_of_lt (norm_le_of_nonempty (λ y, le y trivial)) (h x),
+end
 
 variable (f)
 
@@ -409,7 +481,7 @@ le_antisymm (norm_const_le b) $ h.elim $ λ x, (const α b).norm_coe_le_norm x
 function taking values in a normed group. -/
 def of_normed_group {α : Type u} {β : Type v} [topological_space α] [normed_group β]
   (f : α  → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) : α →ᵇ β :=
-⟨λn, f n, ⟨Hf, ⟨_, dist_le_two_norm' H⟩⟩⟩
+⟨⟨λn, f n, Hf⟩, ⟨_, dist_le_two_norm' H⟩⟩
 
 lemma norm_of_normed_group_le {f : α → β} (hfc : continuous f) {C : ℝ} (hC : 0 ≤ C)
   (hfC : ∀ x, ∥f x∥ ≤ C) : ∥of_normed_group f hfc C hfC∥ ≤ C :=
@@ -424,13 +496,20 @@ of_normed_group f continuous_of_discrete_topology C H
 
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=
-⟨λf g, of_normed_group (f + g) (f.2.1.add g.2.1) (∥f∥ + ∥g∥) $ λ x,
+⟨λf g, of_normed_group (f + g) (f.continuous.add g.continuous) (∥f∥ + ∥g∥) $ λ x,
   le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) (g.norm_coe_le_norm x))⟩
 
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
-⟨λf, of_normed_group (-f) f.2.1.neg ∥f∥ $ λ x,
+⟨λf, of_normed_group (-f) f.continuous.neg ∥f∥ $ λ x,
   trans_rel_right _ (norm_neg _) (f.norm_coe_le_norm x)⟩
+
+/-- The pointwise difference of two bounded continuous functions is again bounded continuous. -/
+instance : has_sub (α →ᵇ β) :=
+⟨λf g, of_normed_group (f - g) (f.continuous.sub g.continuous) (∥f∥ + ∥g∥) $ λ x,
+  by { simp only [sub_eq_add_neg],
+       exact le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) $
+         trans_rel_right _ (norm_neg _) (g.norm_coe_le_norm x)) }⟩
 
 @[simp] lemma coe_add : ⇑(f + g) = λ x, f x + g x := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
@@ -441,17 +520,33 @@ lemma forall_coe_zero_iff_zero : (∀x, f x = 0) ↔ f = 0 :=
 (@ext_iff _ _ _ _ f 0).symm
 
 instance : add_comm_group (α →ᵇ β) :=
-{ add_assoc    := assume f g h, by ext; simp [add_assoc],
-  zero_add     := assume f, by ext; simp,
-  add_zero     := assume f, by ext; simp,
-  add_left_neg := assume f, by ext; simp,
-  add_comm     := assume f g, by ext; simp [add_comm],
+{ add_assoc      := assume f g h, by ext; simp [add_assoc],
+  zero_add       := assume f, by ext; simp,
+  add_zero       := assume f, by ext; simp,
+  add_left_neg   := assume f, by ext; simp,
+  add_comm       := assume f g, by ext; simp [add_comm],
+  sub_eq_add_neg := assume f g, by { ext, apply sub_eq_add_neg },
   ..bounded_continuous_function.has_add,
   ..bounded_continuous_function.has_neg,
+  ..bounded_continuous_function.has_sub,
   ..bounded_continuous_function.has_zero }
 
 @[simp] lemma coe_sub : ⇑(f - g) = λ x, f x - g x := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
+
+/-- Coercion of a `normed_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/
+@[simps]
+def coe_fn_add_hom : (α →ᵇ β) →+ (α → β) :=
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add}
+
+open_locale big_operators
+@[simp] lemma coe_sum {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) :
+  ⇑(∑ i in s, f i) = (∑ i in s, (f i : α → β)) :=
+(@coe_fn_add_hom α β _ _).map_sum f s
+
+lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) (a : α) :
+  (∑ i in s, f i) a = (∑ i in s, f i a) :=
+by simp
 
 instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
@@ -461,6 +556,57 @@ by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }
 
 lemma coe_le_coe_add_dist {f g : α →ᵇ ℝ} : f x ≤ g x + dist f g :=
 sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
+
+variables (α β)
+
+/--
+The additive map forgetting that a bounded continuous function is bounded.
+-/
+@[simps]
+def forget_boundedness_add_hom : (α →ᵇ β) →+ C(α, β) :=
+{ to_fun := forget_boundedness α β,
+  map_zero' := by { ext, simp, },
+  map_add' := by { intros, ext, simp, }, }
+
+section compact_space
+variables [compact_space α]
+
+section
+
+/--
+When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
+additively equivalent to `C(α, 𝕜)`.
+-/
+@[simps]
+def add_equiv_continuous_map_of_compact : (α →ᵇ β) ≃+ C(α, β) :=
+{ ..forget_boundedness_add_hom α β,
+  ..equiv_continuous_map_of_compact α β, }
+
+@[simp]
+lemma add_equiv_continuous_map_of_compact_to_equiv :
+  (add_equiv_continuous_map_of_compact α β).to_equiv = equiv_continuous_map_of_compact α β :=
+rfl
+
+end
+
+-- TODO at some point we will need lemmas characterising this norm!
+-- At the moment the only way to reason about it is to transfer `f : C(α,β)` back to `α →ᵇ β`.
+instance : has_norm C(α,β) :=
+{ norm := λ x, dist x 0 }
+
+instance : normed_group C(α,β) :=
+{ dist_eq := λ x y,
+  begin
+    change dist x y = dist (x-y) 0,
+     -- it would be nice if `equiv_rw` could rewrite in multiple places at once
+    equiv_rw (equiv_continuous_map_of_compact α β).symm at x,
+    equiv_rw (equiv_continuous_map_of_compact α β).symm at y,
+    have p : dist x y = dist (x-y) 0, { rw dist_eq_norm, rw dist_zero_right, },
+    convert p,
+    exact ((add_equiv_continuous_map_of_compact α β).map_sub _ _).symm,
+  end, }
+
+end compact_space
 
 end normed_group
 
@@ -477,7 +623,7 @@ variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 instance : has_scalar 𝕜 (α →ᵇ β) :=
-⟨λ c f, of_normed_group (c • f) (continuous_const.smul f.2.1) (∥c∥ * ∥f∥) $ λ x,
+⟨λ c f, of_normed_group (c • f) (continuous_const.smul f.continuous) (∥c∥ * ∥f∥) $ λ x,
   trans_rel_right _ (norm_smul _ _)
     (mul_le_mul_of_nonneg_left (f.norm_coe_le_norm _) (norm_nonneg _))⟩
 
@@ -495,6 +641,13 @@ semimodule.of_core $
 instance : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, norm_of_normed_group_le _
   (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
 
+instance [compact_space α] : normed_space 𝕜 C(α,β) :=
+{ norm_smul_le := λ c f,
+  begin
+    equiv_rw (equiv_continuous_map_of_compact α β).symm at f,
+    exact le_of_eq (norm_smul c f),
+  end }
+
 end normed_space
 
 section normed_ring
@@ -509,7 +662,7 @@ variables [topological_space α] {R : Type*} [normed_ring R]
 
 instance : ring (α →ᵇ R) :=
 { one := const α 1,
-  mul := λ f g, of_normed_group (f * g) (f.2.1.mul g.2.1) (∥f∥ * ∥g∥) $ λ x,
+  mul := λ f g, of_normed_group (f * g) (f.continuous.mul g.continuous) (∥f∥ * ∥g∥) $ λ x,
     le_trans (normed_ring.norm_mul (f x) (g x)) $
       mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg _) (norm_nonneg _),
   one_mul := λ f, ext $ λ x, one_mul (f x),
@@ -522,6 +675,15 @@ instance : ring (α →ᵇ R) :=
 instance : normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
   .. bounded_continuous_function.normed_group }
+
+instance [compact_space α] : normed_ring C(α,R) :=
+{ norm_mul := λ f g,
+  begin
+    equiv_rw (equiv_continuous_map_of_compact α R).symm at f,
+    equiv_rw (equiv_continuous_map_of_compact α R).symm at g,
+    exact norm_mul_le f g,
+  end,
+  ..(infer_instance : normed_group C(α,R)) }
 
 end normed_ring
 
@@ -589,7 +751,7 @@ functions from `α` to `𝕜`. -/
 
 instance has_scalar' : has_scalar (α →ᵇ 𝕜) (α →ᵇ β) :=
 ⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_group (λ x, (f x) • (g x))
-(continuous.smul f.2.1 g.2.1) (∥f∥ * ∥g∥) (λ x, calc
+(f.continuous.smul g.continuous) (∥f∥ * ∥g∥) (λ x, calc
   ∥f x • g x∥ ≤ ∥f x∥ * ∥g x∥ : normed_space.norm_smul_le _ _
   ... ≤ ∥f∥ * ∥g∥ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
     (norm_nonneg _)) ⟩
@@ -608,6 +770,37 @@ norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _
 /- TODO: When `normed_module` has been added to `normed_space.basic`, the above facts
 show that the space of bounded continuous functions from `α` to `β` is naturally a normed
 module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
+
+variables (α 𝕜)
+
+/--
+When `α` is compact and `𝕜` is a normed field,
+the `𝕜`-algebra of bounded continuous maps `α →ᵇ 𝕜` is
+`𝕜`-linearly isometric to `C(α, 𝕜)`.
+-/
+def linear_isometry_continuous_map_of_compact [compact_space α] :
+  (α →ᵇ 𝕜) ≃ₗᵢ[𝕜] C(α, 𝕜) :=
+{ map_smul' := λ c f, by { ext, simp, },
+  norm_map' := λ f, rfl,
+  ..add_equiv_continuous_map_of_compact α 𝕜 }
+
+@[simp]
+lemma isometric_continuous_map_of_compact_to_isometric [compact_space α] :
+  (linear_isometry_continuous_map_of_compact α 𝕜).to_isometric =
+    isometric_continuous_map_of_compact α 𝕜 :=
+rfl
+
+@[simp]
+lemma linear_isometry_continuous_map_of_compact_to_add_equiv [compact_space α] :
+  (linear_isometry_continuous_map_of_compact α 𝕜).to_linear_equiv.to_add_equiv =
+    add_equiv_continuous_map_of_compact α 𝕜 :=
+rfl
+
+@[simp]
+lemma linear_isometry_continuous_map_of_compact_to_equiv [compact_space α] :
+  (linear_isometry_continuous_map_of_compact α 𝕜).to_linear_equiv.to_equiv =
+    equiv_continuous_map_of_compact α 𝕜 :=
+rfl
 
 end normed_algebra
 

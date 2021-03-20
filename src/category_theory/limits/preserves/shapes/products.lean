@@ -26,7 +26,7 @@ variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
 
-namespace preserves
+namespace category_theory.limits
 
 variables {J : Type v} (f : J → C)
 
@@ -34,7 +34,7 @@ variables {J : Type v} (f : J → C)
 The map of a fan is a limit iff the fan consisting of the mapped morphisms is a limit. This
 essentially lets us commute `fan.mk` with `functor.map_cone`.
 -/
-def fan_map_cone_limit {P : C} (g : Π j, P ⟶ f j) :
+def is_limit_map_cone_fan_mk_equiv {P : C} (g : Π j, P ⟶ f j) :
   is_limit (G.map_cone (fan.mk P g)) ≃
   is_limit (fan.mk _ (λ j, G.map (g j)) : fan (λ j, G.obj (f j))) :=
 begin
@@ -44,16 +44,16 @@ begin
 end
 
 /-- The property of preserving products expressed in terms of fans. -/
-def map_is_limit_of_preserves_of_is_limit [preserves_limit (discrete.functor f) G]
+def is_limit_fan_mk_obj_of_is_limit [preserves_limit (discrete.functor f) G]
   {P : C} (g : Π j, P ⟶ f j) (t : is_limit (fan.mk _ g)) :
-  is_limit (fan.mk _ (λ j, G.map (g j)) : fan (λ j, G.obj (f j))) :=
-fan_map_cone_limit _ _ _ (preserves_limit.preserves t)
+  is_limit (fan.mk (G.obj P) (λ j, G.map (g j)) : fan (λ j, G.obj (f j))) :=
+is_limit_map_cone_fan_mk_equiv _ _ _ (preserves_limit.preserves t)
 
 /-- The property of reflecting products expressed in terms of fans. -/
-def is_limit_of_reflects_of_map_is_limit [reflects_limit (discrete.functor f) G]
+def is_limit_of_is_limit_fan_mk_obj [reflects_limit (discrete.functor f) G]
   {P : C} (g : Π j, P ⟶ f j) (t : is_limit (fan.mk _ (λ j, G.map (g j)) : fan (λ j, G.obj (f j)))) :
   is_limit (fan.mk P g) :=
-reflects_limit.reflects ((fan_map_cone_limit _ _ _).symm t)
+reflects_limit.reflects ((is_limit_map_cone_fan_mk_equiv _ _ _).symm t)
 
 variables [has_product f]
 
@@ -63,16 +63,16 @@ product is a limit.
 -/
 def is_limit_of_has_product_of_preserves_limit [preserves_limit (discrete.functor f) G] :
   is_limit (fan.mk _ (λ (j : J), G.map (pi.π f j)) : fan (λ j, G.obj (f j))) :=
-map_is_limit_of_preserves_of_is_limit G f _ (product_is_product _)
+is_limit_fan_mk_obj_of_is_limit G f _ (product_is_product _)
 
 variables [has_product (λ (j : J), G.obj (f j))]
 
 /-- If `pi_comparison G f` is an isomorphism, then `G` preserves the limit of `f`. -/
-def preserves_product_of_iso_comparison [i : is_iso (pi_comparison G f)] :
+def preserves_product.of_iso_comparison [i : is_iso (pi_comparison G f)] :
   preserves_limit (discrete.functor f) G :=
 begin
   apply preserves_limit_of_preserves_limit_cone (product_is_product f),
-  apply (fan_map_cone_limit _ _ _).symm _,
+  apply (is_limit_map_cone_fan_mk_equiv _ _ _).symm _,
   apply is_limit.of_point_iso (limit.is_limit (discrete.functor (λ (j : J), G.obj (f j)))),
   apply i,
 end
@@ -83,19 +83,19 @@ variable [preserves_limit (discrete.functor f) G]
 If `G` preserves limits, we have an isomorphism from the image of a product to the product of the
 images.
 -/
-def preserves_products_iso : G.obj (∏ f) ≅ ∏ (λ j, G.obj (f j)) :=
+def preserves_product.iso : G.obj (∏ f) ≅ ∏ (λ j, G.obj (f j)) :=
 is_limit.cone_point_unique_up_to_iso
   (is_limit_of_has_product_of_preserves_limit G f)
   (limit.is_limit _)
 
 @[simp]
-lemma preserves_products_iso_hom : (preserves_products_iso G f).hom = pi_comparison G f :=
+lemma preserves_product.iso_hom : (preserves_product.iso G f).hom = pi_comparison G f :=
 rfl
 
 instance : is_iso (pi_comparison G f) :=
 begin
-  rw ← preserves_products_iso_hom,
+  rw ← preserves_product.iso_hom,
   apply_instance,
 end
 
-end preserves
+end category_theory.limits

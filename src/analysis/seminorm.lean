@@ -83,7 +83,7 @@ begin
   intro x,
   rcases mem_nhds_sets_iff.mp hA with ⟨w, hw₁, hw₂, hw₃⟩,
   have hc : continuous (λ t : 𝕜, t • x), from continuous_id.smul continuous_const,
-  rcases metric.is_open_iff.mp (hc _ hw₂) 0 (by rwa [mem_preimage, zero_smul])
+  rcases metric.is_open_iff.mp (hw₂.preimage hc) 0 (by rwa [mem_preimage, zero_smul])
     with ⟨r, hr₁, hr₂⟩,
   have hr₃, from inv_pos.mpr (half_pos hr₁),
   use [(r/2)⁻¹, hr₃],

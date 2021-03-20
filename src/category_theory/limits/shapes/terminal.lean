@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.pempty
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 
 /-!
 # Initial and terminal objects in a category.
@@ -15,7 +15,7 @@ import category_theory.limits.limits
 
 noncomputable theory
 
-universes v u
+universes v u u₂
 
 open category_theory
 
@@ -226,5 +226,28 @@ is_colimit.cocone_point_unique_up_to_iso
   (colimit_of_diagram_terminal terminal_is_terminal F)
 
 end
+
+section comparison
+variables {C} {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+
+/--
+The comparison morphism from the image of a terminal object to the terminal object in the target
+category.
+-/
+-- TODO: Show this is an isomorphism if and only if `G` preserves terminal objects.
+def terminal_comparison [has_terminal C] [has_terminal D] :
+  G.obj (⊤_ C) ⟶ ⊤_ D :=
+terminal.from _
+
+/--
+The comparison morphism from the initial object in the target category to the image of the initial
+object.
+-/
+-- TODO: Show this is an isomorphism if and only if `G` preserves initial objects.
+def initial_comparison [has_initial C] [has_initial D] :
+  ⊥_ D ⟶ G.obj (⊥_ C) :=
+initial.to _
+
+end comparison
 
 end category_theory.limits

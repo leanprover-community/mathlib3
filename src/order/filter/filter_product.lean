@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Abhimanyu Pallavi Sudhir. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Abhimanyu Pallavi Sudhir
+Authors: Abhimanyu Pallavi Sudhir, Yury Kudryashov
 -/
 import order.filter.ultrafilter
 import order.filter.germ
@@ -19,7 +19,7 @@ ultrafilter, ultraproduct
 -/
 
 universes u v
-variables {α : Type u} {β : Type v} {φ : filter α}
+variables {α : Type u} {β : Type v} {φ : ultrafilter α}
 open_locale classical
 
 namespace filter
@@ -28,141 +28,96 @@ local notation `∀*` binders `, ` r:(scoped p, filter.eventually p φ) := r
 
 namespace germ
 
-local notation `β*` := germ φ β
+open ultrafilter
 
-/-- If `φ` is an ultrafilter then the ultraproduct is a division ring.
-This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected def division_ring [division_ring β] (U : is_ultrafilter φ) : division_ring β* :=
-{ mul_inv_cancel := λ f, induction_on f $ λ f hf, coe_eq.2 $ (U.em (λ y, f y = 0)).elim
+local notation `β*` := germ (φ : filter α) β
+
+/-- If `φ` is an ultrafilter then the ultraproduct is a division ring. -/
+instance [division_ring β] : division_ring β* :=
+{ mul_inv_cancel := λ f, induction_on f $ λ f hf, coe_eq.2 $ (φ.em (λ y, f y = 0)).elim
     (λ H, (hf $ coe_eq.2 H).elim) (λ H, H.mono $ λ x, mul_inv_cancel),
-  inv_mul_cancel := λ f, induction_on f $ λ f hf, coe_eq.2 $ (U.em (λ y, f y = 0)).elim
-    (λ H, (hf $ coe_eq.2 H).elim) (λ H, H.mono $ λ x, inv_mul_cancel),
   inv_zero := coe_eq.2 $ by simp only [(∘), inv_zero],
-  .. germ.ring, .. germ.has_inv, .. @germ.nontrivial _ _ _ _ U.1 }
+  .. germ.ring, .. germ.div_inv_monoid, .. germ.nontrivial }
 
-/-- If `φ` is an ultrafilter then the ultraproduct is a field.
-This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected def field [field β] (U : is_ultrafilter φ) : field β* :=
-{ .. germ.comm_ring, .. germ.division_ring U }
+/-- If `φ` is an ultrafilter then the ultraproduct is a field. -/
+instance [field β] : field β* :=
+{ .. germ.comm_ring, .. germ.division_ring }
 
-/-- If `φ` is an ultrafilter then the ultraproduct is a linear order.
-This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected noncomputable def linear_order [linear_order β] (U : is_ultrafilter φ) :
-  linear_order β* :=
-{ le_total := λ f g, induction_on₂ f g $ λ f g, U.eventually_or.1 $ eventually_of_forall $
+/-- If `φ` is an ultrafilter then the ultraproduct is a linear order. -/
+noncomputable instance [linear_order β] : linear_order β* :=
+{ le_total := λ f g, induction_on₂ f g $ λ f g, eventually_or.1 $ eventually_of_forall $
     λ x, le_total _ _,
   decidable_le := by apply_instance,
   .. germ.partial_order }
 
-@[simp, norm_cast] lemma const_div [division_ring β] (U : is_ultrafilter φ) (x y : β) :
-  (↑(x / y) : β*) = @has_div.div _ (@division_ring_has_div _ (germ.division_ring U)) ↑x ↑y :=
-rfl
+@[simp, norm_cast] lemma const_div [division_ring β] (x y : β) : (↑(x / y) : β*) = ↑x / ↑y := rfl
 
-lemma coe_lt [preorder β] (U : is_ultrafilter φ) {f g : α → β} :
-  (f : β*) < g ↔ ∀* x, f x < g x :=
-by simp only [lt_iff_le_not_le, eventually_and, coe_le, U.eventually_not, eventually_le]
+lemma coe_lt [preorder β] {f g : α → β} : (f : β*) < g ↔ ∀* x, f x < g x :=
+by simp only [lt_iff_le_not_le, eventually_and, coe_le, eventually_not, eventually_le]
 
-lemma coe_pos [preorder β] [has_zero β] (U : is_ultrafilter φ) {f : α → β} :
-  0 < (f : β*) ↔ ∀* x, 0 < f x :=
-coe_lt U
+lemma coe_pos [preorder β] [has_zero β] {f : α → β} : 0 < (f : β*) ↔ ∀* x, 0 < f x :=
+coe_lt
 
-lemma const_lt [preorder β] (U : is_ultrafilter φ) {x y : β} :
-  (↑x : β*) < ↑y ↔ x < y :=
-(coe_lt U).trans $ by haveI := U.1; exact lift_rel_const_iff
+lemma const_lt [preorder β] {x y : β} : (↑x : β*) < ↑y ↔ x < y :=
+coe_lt.trans lift_rel_const_iff
 
-lemma lt_def [preorder β] (U : is_ultrafilter φ) :
-  ((<) : β* → β* → Prop) = lift_rel (<) :=
-by { ext ⟨f⟩ ⟨g⟩, exact coe_lt U }
+lemma lt_def [preorder β] : ((<) : β* → β* → Prop) = lift_rel (<) :=
+by { ext ⟨f⟩ ⟨g⟩, exact coe_lt }
 
-lemma le_def [preorder β] :
-  ((≤) : β* → β* → Prop) = lift_rel (≤) :=
-by { ext ⟨f⟩ ⟨g⟩, exact coe_le }
+/-- If `φ` is an ultrafilter then the ultraproduct is an ordered ring. -/
+instance [ordered_ring β] : ordered_ring β* :=
+{ zero_le_one := const_le zero_le_one,
+  mul_pos := λ x y, induction_on₂ x y $ λ f g hf hg, coe_pos.2 $
+    (coe_pos.1 hg).mp $ (coe_pos.1 hf).mono $ λ x, mul_pos,
+  .. germ.ring, .. germ.ordered_add_comm_group, .. germ.nontrivial }
 
-/-- If `φ` is an ultrafilter then the ultraproduct is an ordered ring.
-This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected def ordered_ring [ordered_ring β] (U : is_ultrafilter φ) : ordered_ring β* :=
-{ zero_le_one := by { rw le_def, show (∀* i, (0 : β) ≤ 1), simp [zero_le_one] },
-  mul_pos := λ x y, induction_on₂ x y $ λ f g hf hg, (coe_pos U).2 $
-    ((coe_pos U).1 hg).mp $ ((coe_pos U).1 hf).mono $ λ x, mul_pos,
-  .. germ.ring, .. germ.ordered_add_comm_group, .. @germ.nontrivial _ _ _ _ U.1 }
+/-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered ring. -/
+noncomputable instance [linear_ordered_ring β] : linear_ordered_ring β* :=
+{ .. germ.ordered_ring, .. germ.linear_order, .. germ.nontrivial }
 
-/-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered ring.
-This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected noncomputable def linear_ordered_ring [linear_ordered_ring β] (U : is_ultrafilter φ) :
-  linear_ordered_ring β* :=
-{ .. germ.ordered_ring U,
-  .. germ.linear_order U,
-  .. nontrivial_of_lt 0 (1 : β*)
-       (by { rw lt_def U, show (∀* i, (0 : β) < 1), simp [zero_lt_one] }) }
+/-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered field. -/
+noncomputable instance [linear_ordered_field β] : linear_ordered_field β* :=
+{ .. germ.linear_ordered_ring, .. germ.field }
 
-/-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered field.
-This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected noncomputable def linear_ordered_field [linear_ordered_field β] (U : is_ultrafilter φ) :
-  linear_ordered_field β* :=
-{ .. germ.linear_ordered_ring U, .. germ.field U }
-
-/-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered commutative ring.
-This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected noncomputable def linear_ordered_comm_ring [linear_ordered_comm_ring β]
-  (U : is_ultrafilter φ) :
+/-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered commutative ring. -/
+noncomputable instance [linear_ordered_comm_ring β] :
   linear_ordered_comm_ring β* :=
-{ .. germ.linear_ordered_ring U, .. germ.comm_monoid }
+{ .. germ.linear_ordered_ring, .. germ.comm_monoid }
 
-/-- If `φ` is an ultrafilter then the ultraproduct is a decidable linear ordered commutative group.
-This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected noncomputable def linear_ordered_add_comm_group
-  [linear_ordered_add_comm_group β] (U : is_ultrafilter φ) :
-  linear_ordered_add_comm_group β* :=
-{ .. germ.ordered_add_comm_group, .. germ.linear_order U }
+/-- If `φ` is an ultrafilter then the ultraproduct is a decidable linear ordered commutative
+group. -/
+noncomputable instance [linear_ordered_add_comm_group β] : linear_ordered_add_comm_group β* :=
+{ .. germ.ordered_add_comm_group, .. germ.linear_order }
 
-lemma max_def [K : linear_order β] (U : is_ultrafilter φ) (x y : β*) :
-  @max β* (germ.linear_order U) x y = map₂ max x y :=
-quotient.induction_on₂' x y $ λ a b, by unfold max;
+lemma max_def [linear_order β] (x y : β*) : max x y = map₂ max x y :=
+induction_on₂ x y $ λ a b,
 begin
-  split_ifs,
-  exact quotient.sound'(by filter_upwards [h] λ i hi, (max_eq_left hi).symm),
-  exact quotient.sound'(by filter_upwards [@le_of_not_le _ (germ.linear_order U) _ _ h]
-    λ i hi, (max_eq_right hi).symm),
+  cases le_total (a : β*) b,
+  { rw [max_eq_right h, map₂_coe, coe_eq], exact h.mono (λ i hi, (max_eq_right hi).symm) },
+  { rw [max_eq_left h, map₂_coe, coe_eq], exact h.mono (λ i hi, (max_eq_left hi).symm) }
 end
 
-lemma min_def [K : linear_order β] (U : is_ultrafilter φ) (x y : β*) :
-  @min β* (germ.linear_order U) x y = map₂ min x y :=
-quotient.induction_on₂' x y $ λ a b, by unfold min;
+lemma min_def [K : linear_order β] (x y : β*) : min x y = map₂ min x y :=
+
+induction_on₂ x y $ λ a b,
 begin
-  split_ifs,
-  exact quotient.sound'(by filter_upwards [h] λ i hi, (min_eq_left hi).symm),
-  exact quotient.sound'(by filter_upwards [@le_of_not_le _ (germ.linear_order U) _ _ h]
-    λ i hi, (min_eq_right hi).symm),
+  cases le_total (a : β*) b,
+  { rw [min_eq_left h, map₂_coe, coe_eq], exact h.mono (λ i hi, (min_eq_left hi).symm) },
+  { rw [min_eq_right h, map₂_coe, coe_eq], exact h.mono (λ i hi, (min_eq_right hi).symm) }
 end
 
-lemma abs_def [linear_ordered_add_comm_group β] (U : is_ultrafilter φ) (x : β*) :
-  @abs _ (germ.linear_ordered_add_comm_group U) x = map abs x :=
-quotient.induction_on' x $ λ a, by unfold abs; rw max_def U;
-exact quotient.sound' (show ∀* i, abs _ = _, by simp)
+lemma abs_def [linear_ordered_add_comm_group β] (x : β*) : abs x = map abs x :=
+induction_on x $ λ a, by rw [abs, ← coe_neg, max_def, map₂_coe]; refl
 
-@[simp] lemma const_max [linear_order β] (U : is_ultrafilter φ) (x y : β) :
-  (↑(max x y : β) : β*) = @max _ (germ.linear_order U) ↑x ↑y :=
-begin
-  haveI := U.1,
-  unfold max, split_ifs,
-  { refl },
-  { exact false.elim (h_1 $ const_le h) },
-  { exact false.elim (h (const_le_iff.mp h_1)) },
-  { refl }
-end
+@[simp] lemma const_max [linear_order β] (x y : β) : (↑(max x y : β) : β*) = max ↑x ↑y :=
+by rw [max_def, map₂_const]
 
-@[simp] lemma const_min [linear_order β] (U : is_ultrafilter φ) (x y : β) :
-  (↑(min x y : β) : β*) = @min _ (germ.linear_order U) ↑x ↑y :=
-begin
-  haveI := U.1,
-  unfold min, split_ifs; try { refl }; apply false.elim,
-  { exact  (h_1 $ const_le h) },
-  { exact (h $ const_le_iff.mp h_1) },
-end
+@[simp] lemma const_min [linear_order β] (x y : β) : (↑(min x y : β) : β*) = min ↑x ↑y :=
+by rw [min_def, map₂_const]
 
-@[simp] lemma const_abs [linear_ordered_add_comm_group β] (U : is_ultrafilter φ) (x : β) :
-  (↑(abs x) : β*) = @abs _ (germ.linear_ordered_add_comm_group U) ↑x :=
-const_max U x (-x)
+@[simp] lemma const_abs [linear_ordered_add_comm_group β] (x : β) :
+  (↑(abs x) : β*) = abs ↑x :=
+const_max x (-x)
 
 end germ
 

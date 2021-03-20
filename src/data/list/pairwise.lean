@@ -27,6 +27,10 @@ theorem pairwise_of_pairwise_cons {a : α} {l : list α}
   (p : pairwise R (a::l)) : pairwise R l :=
 (pairwise_cons.1 p).2
 
+theorem pairwise.tail : ∀ {l : list α} (p : pairwise R l), pairwise R l.tail
+| [] h := h
+| (a :: l) h := pairwise_of_pairwise_cons h
+
 theorem pairwise.imp_of_mem {S : α → α → Prop} {l : list α}
   (H : ∀ {a b}, a ∈ l → b ∈ l → R a b → S a b) (p : pairwise R l) : pairwise S l :=
 begin
@@ -180,6 +184,27 @@ theorem pairwise_filter_of_pairwise (p : α → Prop) [decidable_pred p] {l : li
   : pairwise R l → pairwise R (filter p l) :=
 pairwise_of_sublist (filter_sublist _)
 
+theorem pairwise_pmap {p : β → Prop} {f : Π b, p b → α} {l : list β} (h : ∀ x ∈ l, p x) :
+  pairwise R (l.pmap f h) ↔
+    pairwise (λ b₁ b₂, ∀ (h₁ : p b₁) (h₂ : p b₂), R (f b₁ h₁) (f b₂ h₂)) l :=
+begin
+  induction l with a l ihl, { simp },
+  obtain ⟨ha, hl⟩ : p a ∧ ∀ b, b ∈ l → p b, by simpa using h,
+  simp only [ihl hl, pairwise_cons, bex_imp_distrib, pmap, and.congr_left_iff, mem_pmap],
+  refine λ _, ⟨λ H b hb hpa hpb, H _ _ hb rfl, _⟩,
+  rintro H _ b hb rfl,
+  exact H b hb _ _
+end
+
+theorem pairwise.pmap {l : list α} (hl : pairwise R l)
+  {p : α → Prop} {f : Π a, p a → β} (h : ∀ x ∈ l, p x) {S : β → β → Prop}
+  (hS : ∀ ⦃x⦄ (hx : p x) ⦃y⦄ (hy : p y), R x y → S (f x hx) (f y hy)) :
+  pairwise S (l.pmap f h) :=
+begin
+  refine (pairwise_pmap h).2 (pairwise.imp_of_mem _ hl),
+  intros, apply hS, assumption
+end
+
 theorem pairwise_join {L : list (list α)} : pairwise R (join L) ↔
   (∀ l ∈ L, pairwise R l) ∧ pairwise (λ l₁ l₂, ∀ (x ∈ l₁) (y ∈ l₂), R x y) L :=
 begin
@@ -223,7 +248,8 @@ theorem pairwise_sublists' {R} : ∀ {l : list α}, pairwise R l →
 | _ pairwise.nil := pairwise_singleton _ _
 | _ (@pairwise.cons _ _ a l H₁ H₂) :=
   begin
-    simp only [sublists'_cons, pairwise_append, pairwise_map, mem_sublists', mem_map, exists_imp_distrib, and_imp],
+    simp only [sublists'_cons, pairwise_append, pairwise_map, mem_sublists', mem_map,
+      exists_imp_distrib, and_imp],
     have IH := pairwise_sublists' H₂,
     refine ⟨IH, IH.imp (λ l₁ l₂, lex.cons), _⟩,
     intros l₁ sl₁ x l₂ sl₂ e, subst e,
@@ -248,7 +274,8 @@ variable [decidable_rel R]
 @[simp] theorem pw_filter_cons_of_neg {a : α} {l : list α} (h : ¬ ∀ b ∈ pw_filter R l, R a b) :
   pw_filter R (a::l) = pw_filter R l := if_neg h
 
-theorem pw_filter_map (f : β → α) : Π (l : list β), pw_filter R (map f l) = map f (pw_filter (λ x y, R (f x) (f y)) l)
+theorem pw_filter_map (f : β → α) :
+  Π (l : list β), pw_filter R (map f l) = map f (pw_filter (λ x y, R (f x) (f y)) l)
 | [] := rfl
 | (x :: xs) :=
   if h : ∀ b ∈ pw_filter R (map f xs), R (f x) b

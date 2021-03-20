@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import topology.basic
 import order.omega_complete_partial_order
@@ -68,10 +68,10 @@ begin
   dsimp [is_open] at *,
   apply complete_lattice.Sup_continuous' _,
   introv ht, specialize h₀ { x | t x } _,
-  { simpa using h₀ },
   { simp only [flip, set.mem_image] at *,
     rcases ht with ⟨x,h₀,h₁⟩, subst h₁,
-    simpa, }
+    simpa, },
+  { simpa using h₀ }
 end
 
 end Scott
@@ -127,7 +127,7 @@ lemma Scott_continuous_of_continuous {α β}
   (f : Scott α → Scott β) (hf : continuous f) :
   omega_complete_partial_order.continuous' f :=
 begin
-  dsimp [_root_.continuous, (⁻¹')] at hf,
+  simp only [continuous_def, (⁻¹')] at hf,
   have h : monotone f,
   { intros x y h,
     cases (hf {x | ¬ x ≤ f y} (not_below_is_open _)) with hf hf', clear hf',
@@ -150,6 +150,7 @@ lemma continuous_of_Scott_continuous {α β}
   (f : Scott α → Scott β) (hf : omega_complete_partial_order.continuous' f) :
   continuous f :=
 begin
+  rw continuous_def,
   intros s hs,
   change continuous' (s ∘ f),
   cases hs with hs hs',

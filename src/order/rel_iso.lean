@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 import logic.embedding
 import order.rel_classes
-import data.fin
+import data.set.intervals.basic
 
 open function
 
@@ -79,6 +79,22 @@ end
 protected theorem well_founded : ∀ (f : r →r s) (h : well_founded s), well_founded r
 | f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
 
+lemma map_inf {α β : Type*} [semilattice_inf α] [linear_order β]
+  (a : ((<) : β → β → Prop) →r ((<) : α → α → Prop)) (m n : β) : a (m ⊓ n) = a m ⊓ a n :=
+begin
+  symmetry, cases le_or_lt n m with h,
+  { rw [inf_eq_right.mpr h, inf_eq_right], exact strict_mono.monotone (λ x y, a.map_rel) h, },
+  { rw [inf_eq_left.mpr (le_of_lt h), inf_eq_left], exact le_of_lt (a.map_rel h), },
+end
+
+lemma map_sup {α β : Type*} [semilattice_sup α] [linear_order β]
+  (a : ((>) : β → β → Prop) →r ((>) : α → α → Prop)) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
+begin
+  symmetry, cases le_or_lt m n with h,
+  { rw [sup_eq_right.mpr h, sup_eq_right], exact strict_mono.monotone (λ x y, a.swap.map_rel) h, },
+  { rw [sup_eq_left.mpr (le_of_lt h), sup_eq_left], exact le_of_lt (a.map_rel h), },
+end
+
 end rel_hom
 
 /-- An increasing function is injective -/
@@ -110,7 +126,7 @@ end) (rel_hom.well_founded ⟨f, λ _ _, o.1⟩)
 /-- A relation embedding with respect to a given pair of relations `r` and `s`
 is an embedding `f : α ↪ β` such that `r a b ↔ s (f a) (f b)`. -/
 structure rel_embedding {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ↪ β :=
-(map_rel_iff' : ∀ {a b}, r a b ↔ s (to_embedding a) (to_embedding b))
+(map_rel_iff' : ∀ {a b}, s (to_embedding a) (to_embedding b) ↔ r a b)
 
 infix ` ↪r `:25 := rel_embedding
 
@@ -123,8 +139,8 @@ infix ` ↪o `:25 := order_embedding
 
 /-- The induced relation on a subtype is an embedding under the natural inclusion. -/
 definition subtype.rel_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
-((subtype.val : subtype p → X) ⁻¹'o r) ↪r r :=
-⟨⟨subtype.val,subtype.val_injective⟩,by intros;refl⟩
+  ((subtype.val : subtype p → X) ⁻¹'o r) ↪r r :=
+⟨embedding.subtype p, λ x y, iff.rfl⟩
 
 theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
   (hs : equivalence s) : equivalence (f ⁻¹'o s) :=
@@ -135,7 +151,7 @@ namespace rel_embedding
 /-- A relation embedding is also a relation homomorphism -/
 def to_rel_hom (f : r ↪r s) : (r →r s) :=
 { to_fun := f.to_embedding.to_fun,
-  map_rel' := λ x y, (map_rel_iff' f).mp }
+  map_rel' := λ x y, (map_rel_iff' f).mpr }
 
 instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
 -- see Note [function coercion]
@@ -147,7 +163,7 @@ instance : has_coe_to_fun (r ↪r s) := ⟨λ _, α → β, λ o, o.to_embedding
 
 theorem injective (f : r ↪r s) : injective f := f.inj'
 
-theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.map_rel_iff'
+theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map_rel_iff'
 
 @[simp] theorem coe_fn_mk (f : α ↪ β) (o) :
   (@rel_embedding.mk _ _ r s f o : α → β) = f := rfl
@@ -171,13 +187,15 @@ theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x :=
 
 /-- Composition of two relation embeddings is a relation embedding. -/
 @[trans] protected def trans (f : r ↪r s) (g : s ↪r t) : r ↪r t :=
-⟨f.1.trans g.1, λ a b, by rw [f.2, g.2]; simp⟩
+⟨f.1.trans g.1, λ a b, by simp [f.map_rel_iff, g.map_rel_iff]⟩
 
 instance (r : α → α → Prop) : inhabited (r ↪r r) := ⟨rel_embedding.refl _⟩
 
 @[simp] theorem refl_apply (x : α) : rel_embedding.refl r x = x := rfl
 
-@[simp] theorem trans_apply (f : r ↪r s) (g : s ↪r t) (a : α) : (f.trans g) a = g (f a) := rfl
+theorem trans_apply (f : r ↪r s) (g : s ↪r t) (a : α) : (f.trans g) a = g (f a) := rfl
+
+@[simp] theorem coe_trans (f : r ↪r s) (g : s ↪r t)  : ⇑(f.trans g) = g ∘ f := rfl
 
 /-- A relation embedding is also a relation embedding between dual relations. -/
 protected def swap (f : r ↪r s) : swap r ↪r swap s :=
@@ -188,28 +206,28 @@ protected def swap (f : r ↪r s) : swap r ↪r swap s :=
 def preimage (f : α ↪ β) (s : β → β → Prop) : f ⁻¹'o s ↪r s := ⟨f, λ a b, iff.rfl⟩
 
 theorem eq_preimage (f : r ↪r s) : r = f ⁻¹'o s :=
-by { ext a b, exact f.map_rel_iff }
+by { ext a b, exact f.map_rel_iff.symm }
 
-protected theorem is_irrefl : ∀ (f : r ↪r s) [is_irrefl β s], is_irrefl α r
-| ⟨f, o⟩ ⟨H⟩ := ⟨λ a h, H _ (o.1 h)⟩
+protected theorem is_irrefl (f : r ↪r s) [is_irrefl β s] : is_irrefl α r :=
+⟨λ a, mt f.map_rel_iff.2 (irrefl (f a))⟩
 
-protected theorem is_refl : ∀ (f : r ↪r s) [is_refl β s], is_refl α r
-| ⟨f, o⟩ ⟨H⟩ := ⟨λ a, o.2 (H _)⟩
+protected theorem is_refl (f : r ↪r s) [is_refl β s] : is_refl α r :=
+⟨λ a, f.map_rel_iff.1 $ refl _⟩
 
-protected theorem is_symm : ∀ (f : r ↪r s) [is_symm β s], is_symm α r
-| ⟨f, o⟩ ⟨H⟩ := ⟨λ a b h, o.2 (H _ _ (o.1 h))⟩
+protected theorem is_symm (f : r ↪r s) [is_symm β s] : is_symm α r :=
+⟨λ a b, imp_imp_imp f.map_rel_iff.2 f.map_rel_iff.1 symm⟩
 
-protected theorem is_asymm : ∀ (f : r ↪r s) [is_asymm β s], is_asymm α r
-| ⟨f, o⟩ ⟨H⟩ := ⟨λ a b h₁ h₂, H _ _ (o.1 h₁) (o.1 h₂)⟩
+protected theorem is_asymm (f : r ↪r s) [is_asymm β s] : is_asymm α r :=
+⟨λ a b h₁ h₂, asymm (f.map_rel_iff.2 h₁) (f.map_rel_iff.2 h₂)⟩
 
 protected theorem is_antisymm : ∀ (f : r ↪r s) [is_antisymm β s], is_antisymm α r
-| ⟨f, o⟩ ⟨H⟩ := ⟨λ a b h₁ h₂, f.inj' (H _ _ (o.1 h₁) (o.1 h₂))⟩
+| ⟨f, o⟩ ⟨H⟩ := ⟨λ a b h₁ h₂, f.inj' (H _ _ (o.2 h₁) (o.2 h₂))⟩
 
 protected theorem is_trans : ∀ (f : r ↪r s) [is_trans β s], is_trans α r
-| ⟨f, o⟩ ⟨H⟩ := ⟨λ a b c h₁ h₂, o.2 (H _ _ _ (o.1 h₁) (o.1 h₂))⟩
+| ⟨f, o⟩ ⟨H⟩ := ⟨λ a b c h₁ h₂, o.1 (H _ _ _ (o.2 h₁) (o.2 h₂))⟩
 
 protected theorem is_total : ∀ (f : r ↪r s) [is_total β s], is_total α r
-| ⟨f, o⟩ ⟨H⟩ := ⟨λ a b, (or_congr o o).2 (H _ _)⟩
+| ⟨f, o⟩ ⟨H⟩ := ⟨λ a b, (or_congr o o).1 (H _ _)⟩
 
 protected theorem is_preorder : ∀ (f : r ↪r s) [is_preorder β s], is_preorder α r
 | f H := by exactI {..f.is_refl, ..f.is_trans}
@@ -224,7 +242,7 @@ protected theorem is_strict_order : ∀ (f : r ↪r s) [is_strict_order β s], i
 | f H := by exactI {..f.is_irrefl, ..f.is_trans}
 
 protected theorem is_trichotomous : ∀ (f : r ↪r s) [is_trichotomous β s], is_trichotomous α r
-| ⟨f, o⟩ ⟨H⟩ := ⟨λ a b, (or_congr o (or_congr f.inj'.eq_iff.symm o)).2 (H _ _)⟩
+| ⟨f, o⟩ ⟨H⟩ := ⟨λ a b, (or_congr o (or_congr f.inj'.eq_iff o)).1 (H _ _)⟩
 
 protected theorem is_strict_total_order' :
   ∀ (f : r ↪r s) [is_strict_total_order' β s], is_strict_total_order' α r
@@ -234,7 +252,7 @@ protected theorem acc (f : r ↪r s) (a : α) : acc s (f a) → acc r a :=
 begin
   generalize h : f a = b, intro ac,
   induction ac with _ H IH generalizing a, subst h,
-  exact ⟨_, λ a' h, IH (f a') (f.map_rel_iff.1 h) _ rfl⟩
+  exact ⟨_, λ a' h, IH (f a') (f.map_rel_iff.2 h) _ rfl⟩
 end
 
 protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_founded r
@@ -249,7 +267,7 @@ def of_monotone [is_trichotomous α r] [is_asymm β s] (f : α → β)
   (H : ∀ a b, r a b → s (f a) (f b)) : r ↪r s :=
 begin
   haveI := @is_asymm.is_irrefl β s _,
-  refine ⟨⟨f, λ a b e, _⟩, λ a b, ⟨H _ _, λ h, _⟩⟩,
+  refine ⟨⟨f, λ a b e, _⟩, λ a b, ⟨λ h, _, H _ _⟩⟩,
   { refine ((@trichotomous _ r _ a b).resolve_left _).resolve_right _;
     exact λ h, @irrefl _ s _ _ (by simpa [e] using H _ _ h) },
   { refine (@trichotomous _ r _ a b).resolve_right (or.rec (λ e, _) (λ h', _)),
@@ -264,7 +282,12 @@ end
 def order_embedding_of_lt_embedding [partial_order α] [partial_order β]
   (f : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop)) :
   α ↪o β :=
-{ map_rel_iff' := by { intros, simp [le_iff_lt_or_eq,f.map_rel_iff, f.injective] }, .. f }
+{ map_rel_iff' := by { intros, simp [le_iff_lt_or_eq,f.map_rel_iff, f.injective.eq_iff] }, .. f }
+
+@[simp]
+lemma order_embedding_of_lt_embedding_apply [partial_order α] [partial_order β]
+  {f : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop)} {x : α} :
+  order_embedding_of_lt_embedding f x = f x := rfl
 
 end rel_embedding
 
@@ -274,18 +297,20 @@ variables [preorder α] [preorder β] (f : α ↪o β)
 
 /-- lt is preserved by order embeddings of preorders -/
 def lt_embedding : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop) :=
-{ map_rel_iff' := by intros; simp [lt_iff_le_not_le,f.map_rel_iff], .. f }
+{ map_rel_iff' := by intros; simp [lt_iff_le_not_le, f.map_rel_iff], .. f }
 
 @[simp] lemma lt_embedding_apply (x : α) : f.lt_embedding x = f x := rfl
 
-theorem map_le_iff : ∀ {a b}, a ≤ b ↔ (f a) ≤ (f b) := f.map_rel_iff'
+@[simp] theorem le_iff_le {a b} : (f a) ≤ (f b) ↔ a ≤ b := f.map_rel_iff
 
-theorem map_lt_iff : ∀ {a b}, a < b ↔ (f a) < (f b) :=
-f.lt_embedding.map_rel_iff'
+@[simp] theorem lt_iff_lt {a b} : f a < f b ↔ a < b :=
+f.lt_embedding.map_rel_iff
 
-protected theorem monotone : monotone f := λ x y, f.map_le_iff.1
+@[simp] lemma eq_iff_eq {a b} : f a = f b ↔ a = b := f.injective.eq_iff
 
-protected theorem strict_mono : strict_mono f := λ x y, f.map_lt_iff.1
+protected theorem monotone : monotone f := λ x y, f.le_iff_le.2
+
+protected theorem strict_mono : strict_mono f := λ x y, f.lt_iff_lt.2
 
 protected theorem acc (a : α) : acc (<) (f a) → acc (<) a :=
 f.lt_embedding.acc a
@@ -306,33 +331,22 @@ def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
   (h : strict_mono f) : α ↪o β :=
 { to_fun := f,
   inj' := strict_mono.injective h,
-  map_rel_iff' := begin
-    intros,
-    rcases lt_trichotomy a b with lt | eq | gt,
-    { exact iff_of_true (le_of_lt lt) (le_of_lt (h lt)) },
-    { rw eq, apply iff_of_true, refl, refl },
-    { apply iff_of_false (not_le_of_gt gt) (not_le_of_gt (h gt)) }
-  end }
+  map_rel_iff' := λ a b, h.le_iff_le }
+
+@[simp] lemma coe_of_strict_mono {α β} [linear_order α] [preorder β] {f : α → β}
+  (h : strict_mono f) : ⇑(of_strict_mono f h) = f := rfl
+
+/-- Embedding of a subtype into the ambient type as an `order_embedding`. -/
+def subtype (p : α → Prop) : subtype p ↪o α :=
+⟨embedding.subtype p, λ x y, iff.rfl⟩
+
+@[simp] lemma coe_subtype (p : α → Prop) : ⇑(subtype p) = coe := rfl
 
 end order_embedding
 
-/-- The inclusion map `fin n → ℕ` is a relation embedding. -/
-def fin.val.rel_embedding (n) : (fin n) ↪o ℕ :=
-⟨⟨coe, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
-
-/-- The inclusion map `fin m → fin n` is an order embedding. -/
-def fin_fin.rel_embedding {m n} (h : m ≤ n) : (fin m) ↪o (fin n) :=
-⟨⟨λ ⟨x, h'⟩, ⟨x, lt_of_lt_of_le h' h⟩,
-  λ ⟨a, _⟩ ⟨b, _⟩ h, by congr; injection h⟩,
-  by intros; cases a; cases b; refl⟩
-
-/-- The ordering on `fin n` is a well order. -/
-instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
-(fin.val.rel_embedding n).is_well_order
-
 /-- A relation isomorphism is an equivalence that is also a relation embedding. -/
 structure rel_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=
-(map_rel_iff' : ∀ {a b}, r a b ↔ s (to_equiv a) (to_equiv b))
+(map_rel_iff' : ∀ {a b}, s (to_equiv a) (to_equiv b) ↔ r a b)
 
 infix ` ≃r `:25 := rel_iso
 
@@ -358,26 +372,23 @@ instance : has_coe_to_fun (r ≃r s) := ⟨λ _, α → β, λ f, f⟩
 
 @[simp] lemma coe_coe_fn (f : r ≃r s) : ((f : r ↪r s) : α → β) = f := rfl
 
-theorem map_rel_iff (f : r ≃r s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.map_rel_iff'
+theorem map_rel_iff (f : r ≃r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map_rel_iff'
 
-lemma map_rel_iff'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃r s) {x y : α} :
-    r x y ↔ s ((↑f : r ↪r s) x) ((↑f : r ↪r s) y) := f.map_rel_iff
-
-@[simp] theorem coe_fn_mk (f : α ≃ β) (o : ∀ ⦃a b⦄, r a b ↔ s (f a) (f b)) :
+@[simp] theorem coe_fn_mk (f : α ≃ β) (o : ∀ ⦃a b⦄, s (f a) (f b) ↔ r a b) :
   (rel_iso.mk f o : α → β) = f := rfl
 
 @[simp] theorem coe_fn_to_equiv (f : r ≃r s) : (f.to_equiv : α → β) = f := rfl
 
-theorem injective_to_equiv : injective (to_equiv : (r ≃r s) → α ≃ β)
+theorem to_equiv_injective : injective (to_equiv : (r ≃r s) → α ≃ β)
 | ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
 
 /-- The map `coe_fn : (r ≃r s) → (α → β)` is injective. Lean fails to parse
 `function.injective (λ e : r ≃r s, (e : α → β))`, so we use a trick to say the same. -/
-theorem injective_coe_fn : function.injective (λ (e : r ≃r s) (x : α), e x) :=
-equiv.injective_coe_fn.comp injective_to_equiv
+theorem coe_fn_injective : function.injective (λ (e : r ≃r s) (x : α), e x) :=
+equiv.coe_fn_injective.comp to_equiv_injective
 
 @[ext] theorem ext ⦃f g : r ≃r s⦄ (h : ∀ x, f x = g x) : f = g :=
-injective_coe_fn (funext h)
+coe_fn_injective (funext h)
 
 theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -388,13 +399,15 @@ theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x :=
 
 /-- Inverse map of a relation isomorphism is a relation isomorphism. -/
 @[symm] protected def symm (f : r ≃r s) : s ≃r r :=
-⟨f.to_equiv.symm, λ a b, by cases f with f o; rw o; simp⟩
+⟨f.to_equiv.symm, λ a b, by erw [← f.map_rel_iff, f.1.apply_symm_apply, f.1.apply_symm_apply]⟩
 
 /-- Composition of two relation isomorphisms is a relation isomorphism. -/
 @[trans] protected def trans (f₁ : r ≃r s) (f₂ : s ≃r t) : r ≃r t :=
-⟨f₁.to_equiv.trans f₂.to_equiv, λ a b, f₁.map_rel_iff.trans f₂.map_rel_iff⟩
+⟨f₁.to_equiv.trans f₂.to_equiv, λ a b, f₂.map_rel_iff.trans f₁.map_rel_iff⟩
 
 instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
+
+@[simp] lemma default_def (r : α → α → Prop) : default (r ≃r r) = rel_iso.refl r := rfl
 
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
 protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=
@@ -415,21 +428,26 @@ e.to_equiv.apply_symm_apply x
 e.to_equiv.symm_apply_apply x
 
 theorem rel_symm_apply (e : r ≃r s) {x y} : r x (e.symm y) ↔ s (e x) y :=
-by rw [e.map_rel_iff, e.apply_symm_apply]
+by rw [← e.map_rel_iff, e.apply_symm_apply]
 
 theorem symm_apply_rel (e : r ≃r s) {x y} : r (e.symm x) y ↔ s x (e y) :=
-by rw [e.map_rel_iff, e.apply_symm_apply]
+by rw [← e.map_rel_iff, e.apply_symm_apply]
 
 protected lemma bijective (e : r ≃r s) : bijective e := e.to_equiv.bijective
 protected lemma injective (e : r ≃r s) : injective e := e.to_equiv.injective
 protected lemma surjective (e : r ≃r s) : surjective e := e.to_equiv.surjective
+
+@[simp] lemma range_eq (e : r ≃r s) : set.range e = set.univ := e.surjective.range_eq
+
+@[simp] lemma eq_iff_eq (f : r ≃r s) {a b} : f a = f b ↔ a = b :=
+f.injective.eq_iff
 
 /-- Any equivalence lifts to a relation isomorphism between `s` and its preimage. -/
 protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃r s := ⟨f, λ a b, iff.rfl⟩
 
 /-- A surjective relation embedding is a relation isomorphism. -/
 noncomputable def of_surjective (f : r ↪r s) (H : surjective f) : r ≃r s :=
-⟨equiv.of_bijective f ⟨f.injective, H⟩, by simp [f.map_rel_iff']⟩
+⟨equiv.of_bijective f ⟨f.injective, H⟩, λ a b, f.map_rel_iff⟩
 
 @[simp] theorem of_surjective_coe (f : r ↪r s) (H) : (of_surjective f H : α → β) = f :=
 rfl
@@ -452,21 +470,8 @@ lexicographic orders on the product.
 def prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   (e₁ : @rel_iso α₁ α₂ r₁ r₂) (e₂ : @rel_iso β₁ β₂ s₁ s₂) :
   prod.lex r₁ s₁ ≃r prod.lex r₂ s₂ :=
-⟨equiv.prod_congr e₁.to_equiv e₂.to_equiv,  λ a b, begin
-  cases e₁ with f hf; cases e₂ with g hg,
-  cases a with a₁ a₂; cases b with b₁ b₂,
-  suffices : prod.lex r₁ s₁ (a₁, a₂) (b₁, b₂) ↔
-    prod.lex r₂ s₂ (f a₁, g a₂) (f b₁, g b₂), {simpa [hf, hg]},
-  split,
-  { intro h, cases h with _ _ _ _ h _ _ _ h,
-    { left, exact hf.1 h },
-    { right, exact hg.1 h } },
-  { generalize e : f b₁ = fb₁,
-    intro h, cases h with _ _ _ _ h _ _ _ h,
-    { subst e, left, exact hf.2 h },
-    { have := f.injective e, subst b₁,
-      right, exact hg.2 h } }
-end⟩
+⟨equiv.prod_congr e₁.to_equiv e₂.to_equiv,
+  λ a b, by simp [prod.lex_def, e₁.map_rel_iff, e₂.map_rel_iff]⟩
 
 instance : group (r ≃r r) :=
 { one := rel_iso.refl r,
@@ -491,18 +496,93 @@ end rel_iso
 
 namespace order_iso
 
+section has_le
+
+variables [has_le α] [has_le β] [has_le γ]
+
 /-- Reinterpret an order isomorphism as an order embedding. -/
-def to_order_embedding [has_le α] [has_le β] (e : α ≃o β) : α ↪o β :=
+def to_order_embedding (e : α ≃o β) : α ↪o β :=
 e.to_rel_embedding
 
-@[simp] lemma coe_to_order_embedding [has_le α] [has_le β] (e : α ≃o β) :
+@[simp] lemma coe_to_order_embedding (e : α ≃o β) :
   ⇑(e.to_order_embedding) = e := rfl
 
-variables [preorder α] [preorder β]
+protected lemma bijective (e : α ≃o β) : bijective e := e.to_equiv.bijective
+protected lemma injective (e : α ≃o β) : injective e := e.to_equiv.injective
+protected lemma surjective (e : α ≃o β) : surjective e := e.to_equiv.surjective
+
+@[simp] lemma range_eq (e : α ≃o β) : set.range e = set.univ := e.surjective.range_eq
+
+@[simp] lemma apply_eq_iff_eq (e : α ≃o β) {x y : α} : e x = e y ↔ x = y :=
+e.to_equiv.apply_eq_iff_eq
+
+/-- Inverse of an order isomorphism. -/
+def symm (e : α ≃o β) : β ≃o α := e.symm
+
+@[simp] lemma apply_symm_apply (e : α ≃o β) (x : β) : e (e.symm x) = x :=
+e.to_equiv.apply_symm_apply x
+
+@[simp] lemma symm_apply_apply (e : α ≃o β) (x : α) : e.symm (e x) = x :=
+e.to_equiv.symm_apply_apply x
+
+lemma apply_eq_iff_eq_symm_apply (e : α ≃o β) (x : α) (y : β) : e x = y ↔ x = e.symm y :=
+e.to_equiv.apply_eq_iff_eq_symm_apply
+
+theorem symm_apply_eq (e : α ≃o β) {x : α} {y : β} : e.symm y = x ↔ y = e x :=
+e.to_equiv.symm_apply_eq
+
+@[simp] lemma symm_symm (e : α ≃o β) : e.symm.symm = e := by { ext, refl }
+
+lemma symm_injective : injective (symm : (α ≃o β) → (β ≃o α)) :=
+λ e e' h, by rw [← e.symm_symm, h, e'.symm_symm]
+
+@[simp] lemma to_equiv_symm (e : α ≃o β) : e.to_equiv.symm = e.symm.to_equiv := rfl
+
+/-- Composition of two order isomorphisms is an order isomorphism. -/
+@[trans] def trans (e : α ≃o β) (e' : β ≃o γ) : α ≃o γ := e.trans e'
+
+@[simp] lemma coe_trans (e : α ≃o β) (e' : β ≃o γ) : ⇑(e.trans e') = e' ∘ e := rfl
+
+lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e' (e x) := rfl
+
+end has_le
+
+open set
+
+variables [preorder α] [preorder β] [preorder γ]
 
 protected lemma monotone (e : α ≃o β) : monotone e := e.to_order_embedding.monotone
 
 protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embedding.strict_mono
+
+@[simp] lemma le_iff_le (e : α ≃o β) {x y : α} : e x ≤ e y ↔ x ≤ y := e.map_rel_iff
+
+@[simp] lemma lt_iff_lt (e : α ≃o β) {x y : α} : e x < e y ↔ x < y :=
+e.to_order_embedding.lt_iff_lt
+
+@[simp] lemma preimage_Iic (e : α ≃o β) (b : β) : e ⁻¹' (Iic b) = Iic (e.symm b) :=
+by { ext x, simp [← e.le_iff_le] }
+
+@[simp] lemma preimage_Ici (e : α ≃o β) (b : β) : e ⁻¹' (Ici b) = Ici (e.symm b) :=
+by { ext x, simp [← e.le_iff_le] }
+
+@[simp] lemma preimage_Iio (e : α ≃o β) (b : β) : e ⁻¹' (Iio b) = Iio (e.symm b) :=
+by { ext x, simp [← e.lt_iff_lt] }
+
+@[simp] lemma preimage_Ioi (e : α ≃o β) (b : β) : e ⁻¹' (Ioi b) = Ioi (e.symm b) :=
+by { ext x, simp [← e.lt_iff_lt] }
+
+@[simp] lemma preimage_Icc (e : α ≃o β) (a b : β) : e ⁻¹' (Icc a b) = Icc (e.symm a) (e.symm b) :=
+by simp [← Ici_inter_Iic]
+
+@[simp] lemma preimage_Ico (e : α ≃o β) (a b : β) : e ⁻¹' (Ico a b) = Ico (e.symm a) (e.symm b) :=
+by simp [← Ici_inter_Iio]
+
+@[simp] lemma preimage_Ioc (e : α ≃o β) (a b : β) : e ⁻¹' (Ioc a b) = Ioc (e.symm a) (e.symm b) :=
+by simp [← Ioi_inter_Iic]
+
+@[simp] lemma preimage_Ioo (e : α ≃o β) (a b : β) : e ⁻¹' (Ioo a b) = Ioo (e.symm a) (e.symm b) :=
+by simp [← Ioi_inter_Iio]
 
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
     it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
@@ -513,16 +593,43 @@ have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_
   inv_fun := g,
   left_inv := λ a, (gf a).symm,
   right_inv := by { intro, rw [←cmp_eq_eq_iff, ←h, cmp_self_eq_eq] },
-  map_rel_iff' := by { intros, apply le_iff_le_of_cmp_eq_cmp, convert h _ _, apply gf } }
+  map_rel_iff' := by { intros, apply le_iff_le_of_cmp_eq_cmp, convert (h _ _).symm, apply gf } }
+
+/-- Order isomorphism between two equal sets. -/
+def set_congr (s t : set α) (h : s = t) : s ≃o t :=
+{ to_equiv := equiv.set_congr h,
+  map_rel_iff' := λ x y, iff.rfl }
+
+/-- Order isomorphism between `univ : set α` and `α`. -/
+def set.univ : (set.univ : set α) ≃o α :=
+{ to_equiv := equiv.set.univ α,
+  map_rel_iff' := λ x y, iff.rfl }
 
 end order_iso
 
-/-- A subset `p : set α` embeds into `α` -/
-def set_coe_embedding {α : Type*} (p : set α) : p ↪ α := ⟨subtype.val, @subtype.eq _ _⟩
+/-- If a function `f` is strictly monotone on a set `s`, then it defines an order isomorphism
+between `s` and its image. -/
+protected noncomputable def strict_mono_incr_on.order_iso {α β} [linear_order α] [preorder β]
+  (f : α → β) (s : set α) (hf : strict_mono_incr_on f s) :
+  s ≃o f '' s :=
+{ to_equiv := hf.inj_on.bij_on_image.equiv _,
+  map_rel_iff' := λ x y, hf.le_iff_le x.2 y.2 }
+
+/-- A strictly monotone function from a linear order is an order isomorphism between its domain and
+its range. -/
+protected noncomputable def strict_mono.order_iso {α β} [linear_order α] [preorder β] (f : α → β)
+  (h_mono : strict_mono f) : α ≃o set.range f :=
+{ to_equiv := equiv.set.range f h_mono.injective,
+  map_rel_iff' := λ a b, h_mono.le_iff_le }
+
+/-- A strictly monotone surjective function from a linear order is an order isomorphism. -/
+noncomputable def strict_mono.order_iso_of_surjective {α β} [linear_order α] [preorder β]
+  (f : α → β) (h_mono : strict_mono f) (h_surj : surjective f) : α ≃o β :=
+(h_mono.order_iso f).trans $ (order_iso.set_congr _ _ h_surj.range_eq).trans order_iso.set.univ
 
 /-- `subrel r p` is the inherited relation on a subset. -/
 def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
-@subtype.val _ p ⁻¹'o r
+(coe : p → α) ⁻¹'o r
 
 @[simp] theorem subrel_val (r : α → α → Prop) (p : set α)
   {a b} : subrel r p a b ↔ r a.1 b.1 := iff.rfl
@@ -531,7 +638,7 @@ namespace subrel
 
 /-- The relation embedding from the inherited relation on a subset. -/
 protected def rel_embedding (r : α → α → Prop) (p : set α) :
-  subrel r p ↪r r := ⟨set_coe_embedding _, λ a b, iff.rfl⟩
+  subrel r p ↪r r := ⟨embedding.subtype _, λ a b, iff.rfl⟩
 
 @[simp] theorem rel_embedding_apply (r : α → α → Prop) (p a) :
   subrel.rel_embedding r p a = a.1 := rfl
@@ -555,45 +662,80 @@ protected def order_iso.dual [preorder α] [preorder β] (f : α ≃o β) :
 
 section lattice_isos
 
-lemma order_iso.map_bot [order_bot α] [order_bot β]
-  (f : α ≃o β) :
-  f ⊥ = ⊥ :=
-by { rw [eq_bot_iff, ← f.apply_symm_apply ⊥, ← f.map_rel_iff], apply bot_le, }
+lemma order_iso.map_bot' [partial_order α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+  (hx : ∀ x', x ≤ x') (hy : ∀ y', y ≤ y') : f x = y :=
+by { refine le_antisymm _ (hy _), rw [← f.apply_symm_apply y, f.map_rel_iff], apply hx }
 
-lemma rel_iso.map_top [order_top α] [order_top β]
-  (f : α ≃o β) :
-  f ⊤ = ⊤ :=
-by { rw [eq_top_iff, ← f.apply_symm_apply ⊤, ← f.map_rel_iff], apply le_top, }
+lemma order_iso.map_bot [order_bot α] [order_bot β] (f : α ≃o β) : f ⊥ = ⊥ :=
+f.map_bot' (λ _, bot_le) (λ _, bot_le)
 
-variables {a₁ a₂ : α}
+lemma order_iso.map_top' [partial_order α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
+  (hx : ∀ x', x' ≤ x) (hy : ∀ y', y' ≤ y) : f x = y :=
+f.dual.map_bot' hx hy
 
-lemma rel_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
-  (f : α ↪o β) :
-  f (a₁ ⊓ a₂) ≤ f a₁ ⊓ f a₂ :=
-by simp [← f.map_rel_iff]
+lemma order_iso.map_top [order_top α] [order_top β] (f : α ≃o β) : f ⊤ = ⊤ :=
+f.dual.map_bot
 
-lemma rel_iso.map_inf [semilattice_inf α] [semilattice_inf β]
-  (f : α ≃o β) :
-  f (a₁ ⊓ a₂) = f a₁ ⊓ f a₂ :=
+lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
+  (f : α ↪o β) (x y : α) :
+  f (x ⊓ y) ≤ f x ⊓ f y :=
+f.monotone.map_inf_le x y
+
+lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β]
+  (f : α ≃o β) (x y : α) :
+  f (x ⊓ y) = f x ⊓ f y :=
 begin
-  apply le_antisymm, { apply f.to_rel_embedding.map_inf_le },
-  rw [f.symm.map_rel_iff, rel_iso.symm_apply_apply],
-  convert f.symm.to_rel_embedding.map_inf_le; simp,
+  refine (f.to_order_embedding.map_inf_le x y).antisymm _,
+  simpa [← f.symm.le_iff_le] using f.symm.to_order_embedding.map_inf_le (f x) (f y)
 end
 
-lemma rel_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : α ↪o β) :
-  f a₁ ⊔ f a₂ ≤ f (a₁ ⊔ a₂) :=
-by simp [← f.map_rel_iff]
+lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
+  (f : α ↪o β) (x y : α) :
+  f x ⊔ f y ≤ f (x ⊔ y) :=
+f.monotone.le_map_sup x y
 
+lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
+  (f : α ≃o β) (x y : α) :
+  f (x ⊔ y) = f x ⊔ f y :=
+f.dual.map_inf x y
 
-lemma rel_iso.map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : α ≃o β) :
-  f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
-begin
-  apply le_antisymm, swap, { apply f.to_rel_embedding.le_map_sup },
-  rw [f.symm.map_rel_iff, rel_iso.symm_apply_apply],
-  convert f.symm.to_rel_embedding.le_map_sup; simp,
-end
+/-- Order isomorphism between `Iic (⊤ : α)` and `α` when `α` has a top element -/
+def order_iso.Iic_top [order_top α] : set.Iic (⊤ : α) ≃o α :=
+{ map_rel_iff' := λ x y, by refl,
+  .. (@equiv.subtype_univ_equiv α (set.Iic (⊤ : α)) (λ x, le_top)), }
 
+/-- Order isomorphism between `Ici (⊥ : α)` and `α` when `α` has a bottom element -/
+def order_iso.Ici_bot [order_bot α] : set.Ici (⊥ : α) ≃o α :=
+{ map_rel_iff' := λ x y, by refl,
+  .. (@equiv.subtype_univ_equiv α (set.Ici (⊥ : α)) (λ x, bot_le)) }
+
+section bounded_lattice
+
+variables [bounded_lattice α]  [bounded_lattice β] (f : α ≃o β)
+include f
+
+lemma order_iso.is_compl {x y : α} (h : is_compl x y) : is_compl (f x) (f y) :=
+⟨by { rw [← f.map_bot, ← f.map_inf, f.map_rel_iff], exact h.1 },
+  by { rw [← f.map_top, ← f.map_sup, f.map_rel_iff], exact h.2 }⟩
+
+theorem order_iso.is_compl_iff {x y : α} :
+  is_compl x y ↔ is_compl (f x) (f y) :=
+⟨f.is_compl, λ h, begin
+  rw [← f.symm_apply_apply x, ← f.symm_apply_apply y],
+  exact f.symm.is_compl h,
+end⟩
+
+lemma order_iso.is_complemented
+  [is_complemented α] : is_complemented β :=
+⟨λ x, begin
+  obtain ⟨y, hy⟩ := exists_is_compl (f.symm x),
+  rw ← f.symm_apply_apply y at hy,
+  refine ⟨f y, f.symm.is_compl_iff.2 hy⟩,
+end⟩
+
+theorem order_iso.is_complemented_iff :
+  is_complemented α ↔ is_complemented β :=
+⟨by { introI, exact f.is_complemented }, by { introI, exact f.symm.is_complemented }⟩
+
+end bounded_lattice
 end lattice_isos

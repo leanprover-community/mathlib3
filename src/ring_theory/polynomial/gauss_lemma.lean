@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Aaron Anderson
+Authors: Aaron Anderson
 -/
-import ring_theory.localization
 import ring_theory.int.basic
+import ring_theory.localization
 
 /-!
 # Gauss's Lemma
@@ -48,9 +48,9 @@ end
 lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :
   irreducible f :=
 begin
-  refine ⟨λ h, h_irr.1 (is_unit.map (monoid_hom.of (map φ)) h), _⟩,
+  refine ⟨λ h, h_irr.not_unit (is_unit.map (monoid_hom.of (map φ)) h), _⟩,
   intros a b h,
-  rcases h_irr.2 (map φ a) (map φ b) (by rw [h, map_mul]) with hu | hu,
+  rcases h_irr.is_unit_or_is_unit (by rw [h, map_mul]) with hu | hu,
   { left,
     rwa (hf.is_primitive_of_dvd (dvd.intro _ h.symm)).is_unit_iff_is_unit_map_of_injective hinj },
   right,
@@ -93,12 +93,12 @@ theorem is_primitive.irreducible_iff_irreducible_map_fraction_map
   {p : polynomial R} (hp : p.is_primitive) :
   irreducible p ↔ irreducible (p.map f.to_map) :=
 begin
-  refine ⟨λ hi, ⟨λ h, hi.1 ((hp.is_unit_iff_is_unit_map f).2 h), λ a b hab, _⟩,
+  refine ⟨λ hi, ⟨λ h, hi.not_unit ((hp.is_unit_iff_is_unit_map f).2 h), λ a b hab, _⟩,
     hp.irreducible_of_irreducible_map_of_injective f.injective⟩,
   obtain ⟨⟨c, c0⟩, hc⟩ := @integer_normalization_map_to_map _ _ _ _ _ f a,
   obtain ⟨⟨d, d0⟩, hd⟩ := @integer_normalization_map_to_map _ _ _ _ _ f b,
   rw [algebra.smul_def, ← C_eq_algebra_map, subtype.coe_mk] at hc hd,
-  rw [submonoid.mem_carrier, mem_non_zero_divisors_iff_ne_zero] at c0 d0,
+  rw mem_non_zero_divisors_iff_ne_zero at c0 d0,
   have hcd0 : c * d ≠ 0 := mul_ne_zero c0 d0,
   rw [ne.def, ← C_eq_zero] at hcd0,
   have h1 : C c * C d * p = f.integer_normalization a * f.integer_normalization b,
@@ -107,8 +107,8 @@ begin
     ring },
   obtain ⟨u, hu⟩ : associated (c * d) (content (f.integer_normalization a) *
             content (f.integer_normalization b)),
-  { rw [← dvd_dvd_iff_associated, ← normalize_eq_normalize_iff, monoid_hom.map_mul,
-        monoid_hom.map_mul, normalize_content, normalize_content,
+  { rw [← dvd_dvd_iff_associated, ← normalize_eq_normalize_iff, normalize.map_mul,
+        normalize.map_mul, normalize_content, normalize_content,
         ← mul_one (normalize c * normalize d), ← hp.content_eq_one, ← content_C, ← content_C,
         ← content_mul, ← content_mul, ← content_mul, h1] },
   rw [← ring_hom.map_mul, eq_comm,
@@ -122,7 +122,7 @@ begin
     intro con,
     apply hp.ne_zero (map_injective _ f.injective _),
     simp [con] },
-  rcases hi.2 _ _ (mul_left_cancel' hcd0 h1).symm with h | h,
+  rcases hi.is_unit_or_is_unit (mul_left_cancel' hcd0 h1).symm with h | h,
   { right,
     apply is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part f h0.2
       (is_unit_of_mul_is_unit_right h) },

@@ -1,13 +1,14 @@
 /-
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau.
+Authors: Kenny Lau
 -/
 
 import algebra.polynomial.big_operators
-import field_theory.minimal_polynomial
+import field_theory.minpoly
 import field_theory.splitting_field
 import field_theory.tower
+import algebra.squarefree
 
 /-!
 
@@ -208,7 +209,7 @@ section comm_ring
 variables {R : Type u} [comm_ring R]
 
 lemma separable_X_sub_C {x : R} : separable (X - C x) :=
-by simpa only [C_neg] using separable_X_add_C (-x)
+by simpa only [sub_eq_add_neg, C_neg] using separable_X_add_C (-x)
 
 lemma separable.mul {f g : polynomial R} (hf : f.separable) (hg : g.separable)
   (h : is_coprime f g) : (f * g).separable :=
@@ -216,7 +217,8 @@ by { rw [separable_def, derivative_mul], exact ((hf.mul_right h).add_mul_left_ri
   ((h.symm.mul_right hg).mul_add_right_right _) }
 
 lemma separable_prod' {ι : Sort*} {f : ι → polynomial R} {s : finset ι} :
-  (∀x∈s, ∀y∈s, x ≠ y → is_coprime (f x) (f y)) → (∀x∈s, (f x).separable) → (∏ x in s, f x).separable :=
+  (∀x∈s, ∀y∈s, x ≠ y → is_coprime (f x) (f y)) → (∀x∈s, (f x).separable) →
+  (∏ x in s, f x).separable :=
 finset.induction_on s (λ _ _, separable_one) $ λ a s has ih h1 h2, begin
   simp_rw [finset.forall_mem_insert, forall_and_distrib] at h1 h2, rw prod_insert has,
   exact h2.1.mul (ih h1.2.2 h2.2) (is_coprime.prod_right $ λ i his, h1.1.2 i his $
@@ -278,9 +280,9 @@ variables {F : Type u} [field F] {K : Type v} [field K]
 
 theorem separable_iff_derivative_ne_zero {f : polynomial F} (hf : irreducible f) :
   f.separable ↔ f.derivative ≠ 0 :=
-⟨λ h1 h2, hf.1 $ is_coprime_zero_right.1 $ h2 ▸ h1,
+⟨λ h1 h2, hf.not_unit $ is_coprime_zero_right.1 $ h2 ▸ h1,
 λ h, is_coprime_of_dvd (mt and.right h) $ λ g hg1 hg2 ⟨p, hg3⟩ hg4,
-let ⟨u, hu⟩ := (hf.2 _ _ hg3).resolve_left hg1 in
+let ⟨u, hu⟩ := (hf.is_unit_or_is_unit hg3).resolve_left hg1 in
 have f ∣ f.derivative, by { conv_lhs { rw [hg3, ← hu] }, rwa units.mul_right_dvd },
 not_lt_of_le (nat_degree_le_of_dvd this h) $ nat_degree_derivative_lt h⟩
 
@@ -296,7 +298,7 @@ include hp
 noncomputable def contract (f : polynomial F) : polynomial F :=
 ⟨f.support.preimage (*p) $ λ _ _ _ _, (nat.mul_left_inj hp.pos).1,
 λ n, f.coeff (n * p),
-λ n, by { rw [finset.mem_preimage, finsupp.mem_support_iff], refl }⟩
+λ n, by rw [finset.mem_preimage, mem_support_iff]⟩
 
 theorem coeff_contract (f : polynomial F) (n : ℕ) : (contract p f).coeff n = f.coeff (n * p) := rfl
 
@@ -401,7 +403,8 @@ begin
     { rw is_unit_iff at h, rcases h with ⟨r, hr, rfl⟩,
       simp_rw expand_C at hf, exact absurd (is_unit_C.2 hr) hf.1 },
     { rw [add_zero, pow_zero, expand_one], split; refl } },
-  exact λ g₁ g₂ hg₁ hgf₁ hg₂ hgf₂, let ⟨hn, hg⟩ := this g₂ g₁ hg₂ hgf₂ hg₁ hgf₁ in ⟨hn.symm, hg.symm⟩
+  exact λ g₁ g₂ hg₁ hgf₁ hg₂ hgf₂, let ⟨hn, hg⟩ :=
+    this g₂ g₁ hg₂ hgf₂ hg₁ hgf₁ in ⟨hn.symm, hg.symm⟩
 end
 
 end char_p
@@ -437,7 +440,7 @@ begin
   simpa only [multiset.map_cons, multiset.prod_cons] using mul_dvd_mul_left _ (dvd_mul_right _ _)
 end
 
-lemma multiplicity_le_one_of_seperable {p q : polynomial F} (hq : ¬ is_unit q)
+lemma multiplicity_le_one_of_separable {p q : polynomial F} (hq : ¬ is_unit q)
   (hsep : separable p) : multiplicity q p ≤ 1 :=
 begin
   contrapose! hq,
@@ -447,11 +450,53 @@ begin
   exact_mod_cast (enat.add_one_le_of_lt hq)
 end
 
-lemma root_multiplicity_le_one_of_seperable {p : polynomial F} (hp : p ≠ 0)
+lemma separable.squarefree {p : polynomial F}  (hsep : separable p) : squarefree p :=
+begin
+  rw multiplicity.squarefree_iff_multiplicity_le_one p,
+  intro f,
+  by_cases hunit : is_unit f,
+  { exact or.inr hunit },
+  exact or.inl (multiplicity_le_one_of_separable hunit hsep)
+end
+
+/--If `n ≠ 0` in `F`, then ` X ^ n - a` is separable for any `a ≠ 0`. -/
+lemma separable_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 0) :
+  separable (X ^ n - C a) :=
+begin
+  cases nat.eq_zero_or_pos n with hzero hpos,
+  { exfalso,
+    rw hzero at hn,
+    exact hn (refl 0) },
+  apply (separable_def' (X ^ n - C a)).2,
+  use [-C (a⁻¹), (C ((a⁻¹) * (↑n)⁻¹) *  X)],
+  have mul_pow_sub : X * X ^ (n - 1) = X ^ n,
+  { nth_rewrite 0 [←pow_one X],
+    rw pow_mul_pow_sub X (nat.succ_le_iff.mpr hpos) },
+  rw [derivative_sub, derivative_C, sub_zero, derivative_pow X n, derivative_X, mul_one],
+  have hcalc : C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n)) = C a⁻¹ * (X ^ n),
+  { calc C (a⁻¹ * (↑n)⁻¹) * (↑n * (X ^ n))
+       = C a⁻¹ * C ((↑n)⁻¹) * (C ↑n * (X ^ n)) : by rw [C_mul, C_eq_nat_cast]
+   ... = C a⁻¹ * (C ((↑n)⁻¹) * C ↑n) * (X ^ n) : by ring
+   ... = C a⁻¹ * C ((↑n)⁻¹ * ↑n) * (X ^ n) : by rw [← C_mul]
+   ... = C a⁻¹ * C 1 * (X ^ n) : by field_simp [hn]
+   ... = C a⁻¹ * (X ^ n) : by rw [C_1, mul_one] },
+  calc -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * X * (↑n * X ^ (n - 1))
+      = -C a⁻¹ * (X ^ n - C a) + C (a⁻¹ * (↑n)⁻¹) * (↑n * (X * X ^ (n - 1))) : by ring
+  ... = -C a⁻¹ * (X ^ n - C a) + C a⁻¹ * (X ^ n) : by rw [mul_pow_sub, hcalc]
+  ... = C a⁻¹ * C a : by ring
+  ... = (1 : polynomial F) : by rw [← C_mul, inv_mul_cancel ha, C_1]
+end
+
+/--If `n ≠ 0` in `F`, then ` X ^ n - a` is squarefree for any `a ≠ 0`. -/
+lemma squarefree_X_pow_sub_C {n : ℕ} (a : F) (hn : (n : F) ≠ 0) (ha : a ≠ 0) :
+  squarefree (X ^ n - C a) :=
+(separable_X_pow_sub_C a hn ha).squarefree
+
+lemma root_multiplicity_le_one_of_separable {p : polynomial F} (hp : p ≠ 0)
   (hsep : separable p) (x : F) : root_multiplicity x p ≤ 1 :=
 begin
   rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get],
-  exact multiplicity_le_one_of_seperable (not_unit_X_sub_C _) hsep
+  exact multiplicity_le_one_of_separable (not_unit_X_sub_C _) hsep
 end
 
 lemma count_roots_le_one {p : polynomial F} (hsep : separable p) (x : F) :
@@ -460,7 +505,7 @@ begin
   by_cases hp : p = 0,
   { simp [hp] },
   rw count_roots hp,
-  exact root_multiplicity_le_one_of_seperable hp hsep x
+  exact root_multiplicity_le_one_of_separable hp hsep x
 end
 
 lemma nodup_roots {p : polynomial F} (hsep : separable p) :
@@ -493,38 +538,63 @@ end polynomial
 open polynomial
 
 theorem irreducible.separable {F : Type u} [field F] [char_zero F] {f : polynomial F}
-  (hf : irreducible f) (hf0 : f ≠ 0) : f.separable :=
+  (hf : irreducible f) : f.separable :=
 begin
   rw [separable_iff_derivative_ne_zero hf, ne, ← degree_eq_bot, degree_derivative_eq], rintro ⟨⟩,
-  rw [nat.pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],
-  refine λ hf1, hf.1 _, rw [hf1, is_unit_C, is_unit_iff_ne_zero],
-  intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf0
+  rw [pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],
+  refine λ hf1, hf.not_unit _, rw [hf1, is_unit_C, is_unit_iff_ne_zero],
+  intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf.ne_zero
 end
+
+-- TODO: refactor to allow transcendental extensions?
+-- See: https://en.wikipedia.org/wiki/Separable_extension#Separability_of_transcendental_extensions
 
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
 the minimal polynomial of every `x : K` is separable. -/
-@[class] def is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
-∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable
+class is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
+(is_integral' (x : K) : is_integral F x)
+(separable' (x : K) : (minpoly F x).separable)
+
+theorem is_separable.is_integral {F K} [field F] [field K] [algebra F K] (h : is_separable F K) :
+  ∀ x : K, is_integral F x := is_separable.is_integral'
+
+theorem is_separable.separable {F K} [field F] [field K] [algebra F K] (h : is_separable F K) :
+  ∀ x : K, (minpoly F x).separable := is_separable.separable'
+
+theorem is_separable_iff {F K} [field F] [field K] [algebra F K] : is_separable F K ↔
+  ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
+⟨λ h x, ⟨h.is_integral x, h.separable x⟩, λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
+
+instance is_separable_self (F : Type*) [field F] : is_separable F F :=
+⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩
 
 section is_separable_tower
-variables {F E : Type*} (K : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
+variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
   [algebra K E] [is_scalar_tower F K E]
 
-lemma is_separable_tower_top_of_is_separable (h : is_separable F E) : is_separable K E :=
-λ x, Exists.cases_on (h x) (λ hx hs, ⟨is_integral_of_is_scalar_tower x hx,
-  hs.map.of_dvd (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩)
+lemma is_separable_tower_top_of_is_separable [h : is_separable F E] : is_separable K E :=
+⟨λ x, is_integral_of_is_scalar_tower x (h.is_integral x),
+ λ x, (h.separable x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
 
-lemma is_separable_tower_bot_of_is_separable (h : is_separable F E) : is_separable F K :=
+lemma is_separable_tower_bot_of_is_separable [h : is_separable F E] : is_separable F K :=
+is_separable_iff.2 $ λ x, begin
+  refine (is_separable_iff.1 h (algebra_map K E x)).imp
+    is_integral_tower_bot_of_is_integral_field (λ hs, _),
+  obtain ⟨q, hq⟩ := minpoly.dvd F x
+    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field
+      (minpoly.aeval F ((algebra_map K E) x))),
+  rw hq at hs,
+  exact hs.of_mul_left
+end
+
+variables {E}
+
+lemma is_separable.of_alg_hom (E' : Type*) [field E'] [algebra F E']
+  (f : E →ₐ[F] E') [is_separable F E'] : is_separable F E :=
 begin
-  intro x,
-  obtain ⟨hx, hs⟩ := h (algebra_map K E x),
-  have hx' : is_integral F x := is_integral_tower_bot_of_is_integral_field hx,
-  obtain ⟨q, hq⟩ := minimal_polynomial.dvd hx'
-    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field (minimal_polynomial.aeval hx)),
-  use hx',
-  apply polynomial.separable.of_mul_left,
-  rw ← hq,
-  exact hs,
+  letI : algebra E E' := ring_hom.to_algebra f.to_ring_hom,
+  haveI : is_scalar_tower F E E' := is_scalar_tower.of_algebra_map_eq (λ x, (f.commutes x).symm),
+  exact is_separable_tower_bot_of_is_separable F E E',
 end
 
 end is_separable_tower

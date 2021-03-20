@@ -145,7 +145,7 @@ lemma mono_iff_cancel_zero {Q R : C} (f : Q ⟶ R) :
 
 lemma mono_of_kernel_zero {X Y : C} {f : X ⟶ Y} [has_limit (parallel_pair f 0)]
   (w : kernel.ι f = 0) : mono f :=
-mono_of_cancel_zero f (λ P g h, by rw [←kernel.lift_ι f g h, w, comp_zero])
+mono_of_cancel_zero f (λ P g h, by rw [←kernel.lift_ι f g h, w, limits.comp_zero])
 
 lemma epi_of_cancel_zero {P Q : C} (f : P ⟶ Q) (h : ∀ {R : C} (g : Q ⟶ R), f ≫ g = 0 → g = 0) :
   epi f :=
@@ -157,7 +157,7 @@ lemma epi_iff_cancel_zero {P Q : C} (f : P ⟶ Q) :
 
 lemma epi_of_cokernel_zero {X Y : C} (f : X ⟶ Y) [has_colimit (parallel_pair f 0 )]
   (w : cokernel.π f = 0) : epi f :=
-epi_of_cancel_zero f (λ P g h, by rw [←cokernel.π_desc f g h, w, zero_comp])
+epi_of_cancel_zero f (λ P g h, by rw [←cokernel.π_desc f g h, w, limits.zero_comp])
 
 end preadditive
 

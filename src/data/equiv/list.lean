@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 Additional equiv and encodable instances for lists, finsets, and fintypes.
 -/
@@ -87,6 +87,12 @@ def trunc_encodable_of_fintype (α : Type*) [decidable_eq α] [fintype α] : tru
   finset.univ.1
   (λ l H, trunc.mk $ encodable_of_list l H)
   finset.mem_univ
+
+/-- A noncomputable way to arbitrarily choose an ordering on a finite type.
+  It is not made into a global instance, since it involves an arbitrary choice.
+  This can be locally made into an instance with `local attribute [instance] fintype.encodable`. -/
+noncomputable def fintype.encodable (α : Type*) [fintype α] : encodable α :=
+by { classical, exact (encodable.trunc_encodable_of_fintype α).out }
 
 instance vector [encodable α] {n} : encodable (vector α n) :=
 encodable.subtype

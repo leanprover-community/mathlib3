@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.basic
 import data.sigma.basic
+import algebra.group.defs
 
 /-!
 # Injective functions
@@ -152,11 +153,11 @@ def sum_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ⊕
 rfl
 
 /-- The embedding of `α` into the sum `α ⊕ β`. -/
-def inl {α β : Type*} : α ↪ α ⊕ β :=
+@[simps] def inl {α β : Type*} : α ↪ α ⊕ β :=
 ⟨sum.inl, λ a b, sum.inl.inj⟩
 
 /-- The embedding of `β` into the sum `α ⊕ β`. -/
-def inr {α β : Type*} : β ↪ α ⊕ β :=
+@[simps] def inr {α β : Type*} : β ↪ α ⊕ β :=
 ⟨sum.inr, λ a b, sum.inr.inj⟩
 
 end sum
@@ -204,6 +205,14 @@ open set
 @[simps apply] protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
 ⟨image f, f.2.image_injective⟩
 
+lemma swap_apply {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α ↪ β) (x y z : α) :
+  equiv.swap (f x) (f y) (f z) = f (equiv.swap x y z) :=
+f.injective.swap_apply x y z
+
+lemma swap_comp {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α ↪ β) (x y : α) :
+  equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
+f.injective.swap_comp x y
+
 end embedding
 end function
 
@@ -226,16 +235,18 @@ namespace set
 
 end set
 
+-- TODO: these two definitions probably belong somewhere else, so that we can remove the
+-- `algebra.group.defs` import.
+
 /--
 The embedding of a left cancellative semigroup into itself
 by left multiplication by a fixed element.
  -/
 @[to_additive
   "The embedding of a left cancellative additive semigroup into itself
-   by left translation by a fixed element."]
+   by left translation by a fixed element.", simps]
 def mul_left_embedding {G : Type u} [left_cancel_semigroup G] (g : G) : G ↪ G :=
-{ to_fun := λ h, g * h,
-  inj' := λ h h', (mul_right_inj g).mp, }
+{ to_fun := λ h, g * h, inj' := mul_right_injective g }
 
 /--
 The embedding of a right cancellative semigroup into itself
@@ -243,9 +254,6 @@ by right multiplication by a fixed element.
  -/
 @[to_additive
   "The embedding of a right cancellative additive semigroup into itself
-   by right translation by a fixed element."]
+   by right translation by a fixed element.", simps]
 def mul_right_embedding {G : Type u} [right_cancel_semigroup G] (g : G) : G ↪ G :=
-{ to_fun := λ h, h * g,
-  inj' := λ h h', (mul_left_inj g).mp, }
-
-attribute [simps] mul_left_embedding add_left_embedding mul_right_embedding add_right_embedding
+{ to_fun := λ h, h * g, inj' := mul_left_injective g }

@@ -16,7 +16,7 @@ We also define `root_multiplicity`.
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
+open_locale classical big_operators
 
 open finset
 
@@ -27,44 +27,21 @@ variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ
 section semiring
 variables [semiring R] {p q : polynomial R}
 
-section
-/--
-The coercion turning a `polynomial` into the function which reports the coefficient of a given
-monomial `X^n`
--/
--- TODO we would like to completely remove this, but this requires fixing some proofs
-def coeff_coe_to_fun : has_coe_to_fun (polynomial R) :=
-finsupp.has_coe_to_fun
-
-local attribute [instance] coeff_coe_to_fun
-
-lemma apply_eq_coeff : p n = coeff p n := rfl
-end
-
 /-- `div_X p` return a polynomial `q` such that `q * X + C (p.coeff 0) = p`.
   It can be used in a semiring where the usual division algorithm is not possible -/
 def div_X (p : polynomial R) : polynomial R :=
-{ to_fun := λ n, p.coeff (n + 1),
-  support := ⟨(p.support.filter (> 0)).1.map (λ n, n - 1),
-    multiset.nodup_map_on begin
-        simp only [finset.mem_def.symm, finset.mem_erase, finset.mem_filter],
-        assume x hx y hy hxy,
-        rwa [← @add_right_cancel_iff _ _ 1, nat.sub_add_cancel hx.2,
-          nat.sub_add_cancel hy.2] at hxy
-      end
-      (p.support.filter (> 0)).2⟩,
-  mem_support_to_fun := λ n,
-    suffices (∃ (a : ℕ), (¬coeff p a = 0 ∧ a > 0) ∧ a - 1 = n) ↔
-      ¬coeff p (n + 1) = 0,
-    by simpa [finset.mem_def.symm],
-    ⟨λ ⟨a, ha⟩, by rw [← ha.2, nat.sub_add_cancel ha.1.2]; exact ha.1.1,
-      λ h, ⟨n + 1, ⟨h, nat.succ_pos _⟩, nat.succ_sub_one _⟩⟩ }
+∑ n in Ico 0 p.nat_degree, monomial n (p.coeff (n + 1))
+
+@[simp] lemma coeff_div_X : (div_X p).coeff n = p.coeff (n+1) :=
+begin
+  simp only [div_X, coeff_monomial, true_and, finset_sum_coeff, not_lt,
+    Ico.mem, zero_le, finset.sum_ite_eq', ite_eq_left_iff],
+  intro h,
+  rw coeff_eq_zero_of_nat_degree_lt (nat.lt_succ_of_le h)
+end
 
 lemma div_X_mul_X_add (p : polynomial R) : div_X p * X + C (p.coeff 0) = p :=
-ext $ λ n,
-  nat.cases_on n
-   (by simp)
-   (by simp [coeff_C, nat.succ_ne_zero, coeff_mul_X, div_X])
+ext $ by rintro ⟨_|_⟩; simp [coeff_C, nat.succ_ne_zero, coeff_mul_X]
 
 @[simp] lemma div_X_C (a : R) : div_X (C a) = 0 :=
 ext $ λ n, by cases n; simp [div_X, coeff_C]; simp [coeff]
@@ -74,7 +51,7 @@ lemma div_X_eq_zero_iff : div_X p = 0 ↔ p = C (p.coeff 0) :=
   λ h, by rw [h, div_X_C]⟩
 
 lemma div_X_add : div_X (p + q) = div_X p + div_X q :=
-ext $ by simp [div_X]
+ext $ by simp
 
 lemma degree_div_X_lt (hp0 : p ≠ 0) : (div_X p).degree < p.degree :=
 by haveI := nontrivial.of_polynomial_ne hp0;
@@ -177,9 +154,6 @@ have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one h;
   have hpnr0 : leading_coeff (p ^ (nat_degree q + 1)) * leading_coeff r ≠ 0,
     by simp only [leading_coeff_pow' hpn0', leading_coeff_eq_zero, hpn1,
       one_pow, one_mul, ne.def, hr0]; simp,
-  have hpn0 : p ^ (nat_degree q + 1) ≠ 0,
-    from mt leading_coeff_eq_zero.2 $
-      by rw [leading_coeff_pow' hpn0', show _ = _, from hmp, one_pow]; exact zn0.symm,
   have hnp : 0 < nat_degree p,
     by rw [← with_bot.coe_lt_coe, ← degree_eq_nat_degree hp0];
     exact hp,
@@ -200,9 +174,6 @@ variables [ring R] {p q : polynomial R}
 lemma div_wf_lemma (h : degree q ≤ degree p ∧ p ≠ 0) (hq : monic q) :
   degree (p - C (leading_coeff p) * X ^ (nat_degree p - nat_degree q) * q) < degree p :=
 have hp : leading_coeff p ≠ 0 := mt leading_coeff_eq_zero.1 h.2,
-have hpq : leading_coeff (C (leading_coeff p) * X ^ (nat_degree p - nat_degree q)) *
-    leading_coeff q ≠ 0,
-  by rwa [leading_coeff_monomial, monic.def.1 hq, mul_one],
 if h0 : p - C (leading_coeff p) * X ^ (nat_degree p - nat_degree q) * q = 0
 then h0.symm ▸ (lt_of_not_ge $ mt le_bot_iff.1 (mt degree_eq_bot.1 h.2))
 else
@@ -211,10 +182,10 @@ else
     (by rw [← degree_eq_nat_degree h.2, ← degree_eq_nat_degree hq0];
     exact h.1),
   degree_sub_lt
-  (by rw [degree_mul' hpq, degree_C_mul_X_pow _ hp, degree_eq_nat_degree h.2,
+  (by rw [degree_mul_monic hq, degree_C_mul_X_pow _ hp, degree_eq_nat_degree h.2,
       degree_eq_nat_degree hq0, ← with_bot.coe_add, nat.sub_add_cancel hlt])
   h.2
-  (by rw [leading_coeff_mul' hpq, leading_coeff_monomial, monic.def.1 hq, mul_one])
+  (by rw [leading_coeff_mul_monic hq, leading_coeff_mul_X_pow, leading_coeff_C])
 
 /-- See `div_by_monic`. -/
 noncomputable def div_mod_by_monic_aux : Π (p : polynomial R) {q : polynomial R},
@@ -426,9 +397,9 @@ else
   have h₂ : degree (r - f %ₘ g) = degree (g * (q - f /ₘ g)),
     by simp [h₁],
   have h₄ : degree (r - f %ₘ g) < degree g,
-    from calc degree (r - f %ₘ g) ≤ max (degree r) (degree (-(f %ₘ g))) :
-      degree_add_le _ _
-    ... < degree g : max_lt_iff.2 ⟨h.2, by rw degree_neg; exact degree_mod_by_monic_lt _ hg hg0⟩,
+    from calc degree (r - f %ₘ g) ≤ max (degree r) (degree (f %ₘ g)) :
+      degree_sub_le _ _
+    ... < degree g : max_lt_iff.2 ⟨h.2, degree_mod_by_monic_lt _ hg hg0⟩,
   have h₅ : q - (f /ₘ g) = 0,
     from by_contradiction
       (λ hqf, not_le_of_gt h₄ $

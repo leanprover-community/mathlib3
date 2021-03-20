@@ -38,7 +38,8 @@ begin
     rw [div_mul_eq_mul_div, le_div_iff, mul_assoc, mul_le_mul_left ε_pos, mul_comm],
     exact pow_pos (by norm_num) k, },
   -- Now let's specialize to `ε/2^k`
-  replace H : ∀ k : ℕ, ∀ x', d x' x ≤ 2 * ε ∧ 2^k * ϕ x ≤ ϕ x' → ∃ y, d x' y ≤ ε/2^k ∧ 2 * ϕ x' < ϕ y,
+  replace H : ∀ k : ℕ, ∀ x', d x' x ≤ 2 * ε ∧ 2^k * ϕ x ≤ ϕ x' →
+    ∃ y, d x' y ≤ ε/2^k ∧ 2 * ϕ x' < ϕ y,
   { intros k x',
     push_neg at H,
     simpa [reformulation] using
@@ -62,7 +63,7 @@ begin
   { intro n,
     induction n using nat.case_strong_induction_on with n IH,
     { specialize hu 0,
-      simpa [hu0, mul_nonneg_iff, zero_le_one, ε_pos.le] using hu },
+      simpa [hu0, mul_nonneg_iff, zero_le_one, ε_pos.le, le_refl] using hu },
     have A : d (u (n+1)) x ≤ 2 * ε,
     { rw [dist_comm],
       let r := range (n+1), -- range (n+1) = {0, ..., n}
@@ -76,17 +77,15 @@ begin
       ... ≤ 2*ε                         : mul_le_mul_of_nonneg_right (sum_geometric_two_le _)
                                             (le_of_lt ε_pos), },
     have B : 2^(n+1) * ϕ x ≤ ϕ (u (n + 1)),
-    { apply le_of_lt,
-      exact geom_lt (by norm_num) (λ m hm, (IH _ hm).2), },
+    { refine @geom_le (ϕ ∘ u) _ zero_le_two (n + 1) (λ m hm, _),
+      exact (IH _ $ nat.lt_add_one_iff.1 hm).2.le },
     exact hu (n+1) ⟨A, B⟩, },
   cases forall_and_distrib.mp key with key₁ key₂,
   clear hu key,
   -- Hence u is Cauchy
   have cauchy_u : cauchy_seq u,
-  { apply cauchy_seq_of_le_geometric _ ε (by norm_num : 1/(2:ℝ) < 1),
-    intro n,
-    convert key₁ n,
-    simp },
+  { refine cauchy_seq_of_le_geometric _ ε one_half_lt_one (λ n, _),
+    simpa only [one_div, inv_pow'] using key₁ n },
   -- So u converges to some y
   obtain ⟨y, limy⟩ : ∃ y, tendsto u at_top (𝓝 y),
     from complete_space.complete cauchy_u,
@@ -99,8 +98,8 @@ begin
     { have : 0 ≤ ϕ (u 0) := nonneg x,
       calc 0 ≤ 2 * ϕ (u 0) : by linarith
       ... < ϕ (u (0 + 1)) : key₂ 0 },
-    apply tendsto_at_top_of_geom_lt hv₀ (by norm_num : (1 : ℝ) < 2),
-    exact λ n, key₂ (n+1) },
+    apply tendsto_at_top_of_geom_le hv₀ one_lt_two,
+    exact λ n, (key₂ (n+1)).le },
   -- But ϕ ∘ u also needs to go to ϕ(y)
   have lim : tendsto (ϕ ∘ u) at_top (𝓝 (ϕ y)),
     from tendsto.comp cont.continuous_at limy,

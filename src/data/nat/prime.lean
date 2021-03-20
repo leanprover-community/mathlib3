@@ -593,7 +593,7 @@ def primes := {p : ℕ // p.prime}
 namespace primes
 
 instance : has_repr nat.primes := ⟨λ p, repr p.val⟩
-instance : inhabited primes := ⟨⟨2, prime_two⟩⟩
+instance inhabited_primes : inhabited primes := ⟨⟨2, prime_two⟩⟩
 
 instance coe_nat : has_coe nat.primes ℕ := ⟨subtype.val⟩
 
@@ -624,7 +624,7 @@ def min_fac_helper (n k : ℕ) : Prop :=
 0 < k ∧ bit1 k ≤ nat.min_fac (bit1 n)
 
 theorem min_fac_helper.n_pos {n k : ℕ} (h : min_fac_helper n k) : 0 < n :=
-nat.pos_iff_ne_zero.2 $ λ e,
+pos_iff_ne_zero.2 $ λ e,
 by rw e at h; exact not_le_of_lt (nat.bit1_lt h.1) h.2
 
 lemma min_fac_ne_bit0 {n k : ℕ} : nat.min_fac (bit1 n) ≠ bit0 k :=

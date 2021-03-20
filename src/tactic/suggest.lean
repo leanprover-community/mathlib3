@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Lucas Allen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Lucas Allen and Scott Morrison
+Authors: Lucas Allen, Scott Morrison
 -/
 import data.mllist
 import tactic.solve_by_elim
@@ -419,11 +419,18 @@ add_tactic_doc
 declare_trace silence_library_search
 
 /--
-`library_search` attempts to apply every definition in the library whose head symbol
-matches the goal, and then discharge any new goals using `solve_by_elim`.
+`library_search` is a tactic to identify existing lemmas in the library. It tries to close the
+current goal by applying a lemma from the library, then discharging any new goals using
+`solve_by_elim`.
 
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
+
+Typical usage is:
+```lean
+example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
+by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
+```
 
 By default `library_search` only unfolds `reducible` definitions
 when attempting to match lemmas against the goal.
@@ -478,20 +485,6 @@ Possible reasons why `library_search` failed:
 * If all else fails, ask on https://leanprover.zulipchat.com/,
   and maybe we can improve the library and/or `library_search` for next time."
 
-/--
-`library_search` is a tactic to identify existing lemmas in the library. It tries to close the
-current goal by applying a lemma from the library, then discharging any new goals using
-`solve_by_elim`.
-
-Typical usage is:
-```lean
-example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
-```
-
-`library_search` prints a trace message showing the proof it found, shown above as a comment.
-Typically you will then copy and paste this proof, replacing the call to `library_search`.
--/
 add_tactic_doc
 { name        := "library_search",
   category    := doc_category.tactic,

@@ -59,8 +59,10 @@ meta def add_atom (e : expr) : ring_m ℕ :=
 /-- Lift a tactic into the `ring_m` monad. -/
 @[inline] meta def lift {α} (m : tactic α) : ring_m α := reader_t.lift m
 
-/-- Run a `ring_m` tactic in the tactic monad. -/
-meta def ring_m.run (red : transparency) (e : expr) {α} (m : ring_m α) : tactic α :=
+/-- Run a `ring_m` tactic in the tactic monad. This version of `ring_m.run` uses an external
+atoms ref, so that subexpressions can be named across multiple `ring_m` calls. -/
+meta def ring_m.run' (red : transparency) (atoms : ref (buffer expr))
+  (e : expr) {α} (m : ring_m α) : tactic α :=
 do α ← infer_type e,
    u ← mk_meta_univ,
    infer_type α >>= unify (expr.sort (level.succ u)),
@@ -70,8 +72,11 @@ do α ← infer_type e,
    nc ← mk_instance_cache `(ℕ),
    using_new_ref ic $ λ r,
    using_new_ref nc $ λ nr,
-   using_new_ref mk_buffer $ λ atoms,
    reader_t.run m ⟨α, u, c, red, r, nr, atoms⟩
+
+/-- Run a `ring_m` tactic in the tactic monad. -/
+meta def ring_m.run (red : transparency) (e : expr) {α} (m : ring_m α) : tactic α :=
+using_new_ref mk_buffer $ λ atoms, ring_m.run' red atoms e m
 
 /-- Lift an instance cache tactic (probably from `norm_num`) to the `ring_m` monad. This version
 is abstract over the instance cache in question (either the ring `α`, or `ℕ` for exponents). -/
@@ -432,10 +437,12 @@ lemma subst_into_pow {α} [monoid α] (l r tl tr t)
 by rw [prl, prr, prt]
 
 lemma unfold_sub {α} [add_group α] (a b c : α)
-  (h : a + -b = c) : a - b = c := h
+  (h : a + -b = c) : a - b = c :=
+by rw [sub_eq_add_neg, h]
 
 lemma unfold_div {α} [division_ring α] (a b c : α)
-  (h : a * b⁻¹ = c) : a / b = c := h
+  (h : a * b⁻¹ = c) : a / b = c :=
+by rw [div_eq_mul_inv, h]
 
 /-- Evaluate a ring expression `e` recursively to normal form, together with a proof of
 equality. -/
@@ -453,10 +460,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
       e ← ic_lift $ λ ic, ic.mk_app ``has_add.add [e₁, e₂'],
       (e', p) ← eval e,
       p' ← ic_lift $ λ ic, ic.mk_app ``unfold_sub [e₁, e₂, e', p],
-      return (e',
-        if inst.const_name = `int.has_sub then
-          `(norm_num.int_sub_hack).mk_app [e₁, e₂, e', p']
-        else p'))
+      return (e', p'))
     (eval_atom e)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
@@ -475,7 +479,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
     return (const e' n, p)) <|> eval_atom e
 | e@`(@has_div.div _ %%inst %%e₁ %%e₂) := mcond
   (succeeds (do
-    inst' ← ic_lift $ λ ic, ic.mk_app ``division_ring_has_div [],
+    inst' ← ic_lift $ λ ic, ic.mk_app ``div_inv_monoid.to_has_div [],
     lift $ is_def_eq inst inst'))
   (do
     e₂' ← ic_lift $ λ ic, ic.mk_app ``has_inv.inv [e₂],
@@ -501,8 +505,9 @@ meta def eval : expr → ring_m (horner_expr × expr)
 
 /-- Evaluate a ring expression `e` recursively to normal form, together with a proof of
 equality. -/
-meta def eval' (red : transparency) (e : expr) : tactic (expr × expr) :=
-ring_m.run red e $ do (e', p) ← eval e, return (e', p)
+meta def eval' (red : transparency) (atoms : ref (buffer expr))
+  (e : expr) : tactic (expr × expr) :=
+ring_m.run' red atoms e $ do (e', p) ← eval e, return (e', p)
 
 theorem horner_def' {α} [comm_semiring α] (a x n b) : @horner α _ a x n b = x ^ n * a + b :=
 by simp [horner, mul_comm]
@@ -516,7 +521,7 @@ by simp [pow_add]
 theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) : b * a ^ m * a ^ n = b * a ^ (m + n) :=
 by simp [pow_add, mul_assoc]
 
-theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := rfl
+theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := (sub_eq_add_neg a b).symm
 
 /-- If `ring` fails to close the goal, it falls back on normalizing the expression to a "pretty"
 form so that you can see why it failed. This setting adjusts the resulting form:
@@ -544,7 +549,9 @@ instance : inhabited normalize_mode := ⟨normalize_mode.horner⟩
     This results in terms like `(3 * x ^ 2 * y + 1) * x + y`.
   * `SOP` means sum of products form, expanding everything to monomials.
     This results in terms like `3 * x ^ 3 * y + x + y`. -/
-meta def normalize (red : transparency) (mode := normalize_mode.horner) (e : expr) : tactic (expr × expr) := do
+meta def normalize (red : transparency) (mode := normalize_mode.horner) (e : expr) :
+  tactic (expr × expr) :=
+using_new_ref mk_buffer $ λ atoms, do
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
 let lemmas := match mode with
 | normalize_mode.SOP :=
@@ -560,11 +567,12 @@ lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
 (_, e', pr) ← ext_simplify_core () {}
   simp_lemmas.mk (λ _, failed) (λ _ _ _ _ e, do
     (new_e, pr) ← match mode with
-    | normalize_mode.raw := eval' red
-    | normalize_mode.horner := trans_conv (eval' red) (simplify lemmas [])
+    | normalize_mode.raw := eval' red atoms
+    | normalize_mode.horner := trans_conv (eval' red atoms)
+                                 (λ e, do (e', prf, _) ← simplify lemmas [] e, return (e', prf))
     | normalize_mode.SOP :=
-      trans_conv (eval' red) $
-      trans_conv (simplify lemmas []) $
+      trans_conv (eval' red atoms) $
+      trans_conv (λ e, do (e', prf, _) ← simplify lemmas [] e, return (e', prf)) $
       simp_bottom_up' (λ e, norm_num.derive e <|> pow_lemma.rewrite e)
     end e,
     guard (¬ new_e =ₐ e),

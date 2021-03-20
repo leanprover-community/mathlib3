@@ -195,6 +195,18 @@ end >> try reflexivity
 `assoc_rewrite [h₀,← h₁] at ⊢ h₂` behaves like `rewrite [h₀,← h₁] at ⊢ h₂`
 with the exception that associativity is used implicitly to make rewriting
 possible.
+
+It works for any function `f` for which an `is_associative f` instance can be found.
+
+```
+example {α : Type*} (f : α → α → α) [is_associative α f] (a b c d x : α) :
+  let infix `~` := f in
+  b ~ c = x → (a ~ b ~ c ~ d) = (a ~ x ~ d) :=
+begin
+  intro h,
+  assoc_rw h, 
+end
+```
 -/
 meta def assoc_rewrite (q : parse rw_rules) (l : parse location) : tactic unit :=
 propagate_tags (assoc_rw_core q l)

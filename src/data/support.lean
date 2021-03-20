@@ -7,6 +7,7 @@ import order.conditionally_complete_lattice
 import algebra.big_operators.basic
 import algebra.group.prod
 import algebra.group.pi
+import algebra.module.pi
 
 /-!
 # Support of a function
@@ -29,6 +30,10 @@ lemma nmem_support [has_zero A] {f : α → A} {x : α} :
   x ∉ support f ↔ f x = 0 :=
 not_not
 
+lemma compl_support [has_zero A] {f : α → A} : (support f)ᶜ = {x | f x = 0} :=
+ext $ λ x, nmem_support
+
+@[simp]
 lemma mem_support [has_zero A] {f : α → A} {x : α} :
   x ∈ support f ↔ f x ≠ 0 :=
 iff.rfl
@@ -44,6 +49,12 @@ forall_congr $ λ x, by classical; exact not_imp_comm
 @[simp] lemma support_eq_empty_iff [has_zero A] {f : α → A} :
   support f = ∅ ↔ f = 0 :=
 by { simp_rw [← subset_empty_iff, support_subset_iff', funext_iff], simp }
+
+@[simp] lemma support_zero' [has_zero A] : support (0 : α → A) = ∅ :=
+support_eq_empty_iff.2 rfl
+
+@[simp] lemma support_zero [has_zero A] : support (λ x : α, (0 : A)) = ∅ :=
+support_zero'
 
 lemma support_binop_subset [has_zero A] (op : A → A → A) (op0 : op 0 0 = 0) (f g : α → A) :
   support (λ x, op (f x) (g x)) ⊆ support f ∪ support g :=
@@ -67,6 +78,21 @@ support_binop_subset (has_sub.sub) (sub_self _) f g
   support (λ x, f x * g x) = support f ∩ support g :=
 set.ext $ λ x, by simp only [support, ne.def, mul_eq_zero, mem_set_of_eq,
   mem_inter_iff, not_or_distrib]
+
+lemma support_smul_subset_right [add_monoid A] [monoid B] [distrib_mul_action B A]
+  (b : B) (f : α → A) :
+  support (b • f) ⊆ support f :=
+λ x hbf hf, hbf $ by rw [pi.smul_apply, hf, smul_zero]
+
+lemma support_smul_subset_left {R M} [semiring R] [add_comm_monoid M] [semimodule R M]
+  (f : α → R) (g : α → M) :
+  support (f • g) ⊆ support f :=
+λ x hfg hf, hfg $ by rw [pi.smul_apply', hf, zero_smul]
+
+lemma support_smul {R M} [semiring R] [add_comm_monoid M] [semimodule R M]
+  [no_zero_smul_divisors R M] (f : α → R) (g : α → M) :
+  support (f • g) = support f ∩ support g :=
+ext $ λ x, smul_ne_zero
 
 @[simp] lemma support_inv [division_ring A] (f : α → A) :
   support (λ x, (f x)⁻¹) = support f :=
@@ -140,9 +166,45 @@ lemma support_comp_eq [has_zero A] [has_zero B] (g : A → B) (hg : ∀ {x}, g x
   support (g ∘ f) = support f :=
 set.ext $ λ x, not_congr hg
 
+lemma support_comp_eq_preimage [has_zero B] (g : A → B) (f : α → A) :
+  support (g ∘ f) = f ⁻¹' support g :=
+rfl
+
 lemma support_prod_mk [has_zero A] [has_zero B] (f : α → A) (g : α → B) :
   support (λ x, (f x, g x)) = support f ∪ support g :=
 set.ext $ λ x, by simp only [support, not_and_distrib, mem_union_eq, mem_set_of_eq,
   prod.mk_eq_zero, ne.def]
 
 end function
+
+namespace pi
+variables {A : Type*} {B : Type*} [decidable_eq A] [has_zero B] {a : A} {b : B}
+
+lemma support_single_zero : function.support (pi.single a (0 : B)) = ∅ := by simp
+
+@[simp]
+lemma support_single_of_ne (h : b ≠ 0) :
+  function.support (pi.single a b) = {a} :=
+begin
+  ext,
+  simp only [mem_singleton_iff, ne.def, function.mem_support],
+  split,
+  { contrapose!,
+    exact λ h', single_eq_of_ne h' b },
+  { rintro rfl,
+    rw single_eq_same,
+    exact h }
+end
+
+lemma support_single [decidable_eq B] :
+  function.support (pi.single a b) = if b = 0 then ∅ else {a} := by { split_ifs with h; simp [h] }
+
+lemma support_single_subset : function.support (pi.single a b) ⊆ {a} :=
+begin
+  classical,
+  rw support_single,
+  split_ifs;
+  simp
+end
+
+end pi

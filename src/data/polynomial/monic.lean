@@ -3,9 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.degree
+import data.polynomial.reverse
 import algebra.associated
-import tactic.omega
 
 /-!
 # Theory of monic polynomials
@@ -100,6 +99,39 @@ lemma monic_add_of_right {p q : polynomial R} (hq : monic q) (hpq : degree p < d
   monic (p + q) :=
 by rwa [monic, leading_coeff_add_of_degree_lt hpq]
 
+namespace monic
+
+@[simp]
+lemma degree_eq_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
+  p.nat_degree = 0 ↔ p = 1 :=
+begin
+  split; intro h,
+  swap, { rw h, exact nat_degree_one },
+  have : p = C (p.coeff 0),
+  { rw ← polynomial.degree_le_zero_iff,
+    rwa polynomial.nat_degree_eq_zero_iff_degree_le_zero at h },
+  rw this, convert C_1, rw ← h, apply hp,
+end
+
+lemma nat_degree_mul {p q : polynomial R} (hp : p.monic) (hq : q.monic) :
+  (p * q).nat_degree = p.nat_degree + q.nat_degree :=
+begin
+  nontriviality R,
+  apply nat_degree_mul',
+  simp [hp.leading_coeff, hq.leading_coeff]
+end
+
+lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
+  next_coeff (p * q) = next_coeff p + next_coeff q :=
+begin
+  nontriviality,
+  simp only [← coeff_one_reverse],
+  rw reverse_mul;
+    simp [coeff_mul, nat.antidiagonal, hp.leading_coeff, hq.leading_coeff, add_comm]
+end
+
+end monic
+
 end semiring
 
 section comm_semiring
@@ -140,67 +172,7 @@ have degree p ≤ 0,
 by rw [eq_C_of_degree_le_zero this, ← nat_degree_eq_zero_iff_degree_le_zero.2 this,
     ← leading_coeff, hm.leading_coeff, C_1]
 
-
-end comm_semiring
-
-section comm_ring
-variables [comm_ring R]
-namespace monic
-
-lemma coeff_nat_degree {p : polynomial R} (hp : p.monic) : p.coeff (p.nat_degree) = 1 := hp
-
-@[simp]
-lemma degree_eq_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
-  p.nat_degree = 0 ↔ p = 1 :=
-begin
-  split; intro h,
-  swap, { rw h, exact nat_degree_one },
-  have : p = C (p.coeff 0),
-  { rw ← polynomial.degree_le_zero_iff,
-    rwa polynomial.nat_degree_eq_zero_iff_degree_le_zero at h },
-  rw this, convert C_1, rw ← h, apply hp,
-end
-
-lemma nat_degree_mul [nontrivial R] {p q : polynomial R} (hp : p.monic) (hq : q.monic) :
-(p * q).nat_degree = p.nat_degree + q.nat_degree :=
-by { apply nat_degree_mul', rw [hp.leading_coeff, hq.leading_coeff], simp }
-
-lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
-  next_coeff (p * q) = next_coeff p + next_coeff q :=
-begin
-  classical,
-  nontriviality R,
-  simp only [next_coeff, monic.nat_degree_mul hp hq],
-  simp only [hp, hq, degree_eq_zero_iff_eq_one, add_eq_zero_iff],
-  set dp := p.nat_degree, set dq := q.nat_degree,
-  suffices : p ≠ 1 → q ≠ 1 → (p * q).coeff (dp + dq - 1) = p.coeff (dp - 1) + q.coeff (dq - 1),
-  { by_cases hp0 : p = 1; by_cases hq0 : q = 1; simp [dp, dq, hp0, hq0, this] },
-  intros hp0 hq0,
-  replace hp0 : dp ≠ 0 := mt hp.degree_eq_zero_iff_eq_one.1 hp0,
-  replace hq0 : dq ≠ 0 := mt hq.degree_eq_zero_iff_eq_one.1 hq0,
-  rw coeff_mul,
-  have : {(dp - 1, dq), (dp, dq - 1)} ⊆ nat.antidiagonal (dp + dq - 1),
-  { suffices : dp - 1 + dq = dp + dq - 1 ∧ dp + (dq - 1) = dp + dq - 1,
-      by simpa [insert_subset, singleton_subset_iff],
-    omega },
-  rw [← sum_subset this, sum_pair],
-  { simp [hp, hq] },
-  { suffices : dp - 1 ≠ dp, from mt (congr_arg prod.fst) this,
-    omega },
-  { rintros ⟨x, y⟩ hx hx1,
-    simp only [nat.mem_antidiagonal] at hx,
-    simp only [mem_insert, mem_singleton] at hx1,
-    contrapose! hx1,
-    have hxp : x ≤ dp, from le_nat_degree_of_ne_zero (left_ne_zero_of_mul hx1),
-    have hyq : y ≤ dq, from le_nat_degree_of_ne_zero (right_ne_zero_of_mul hx1),
-    have : dq - 1 ≤ y, omega,
-    by_cases hy : y = dq,
-    { subst y, left, congr, omega },
-    { have : y = dq - 1, by omega, subst y, right, congr, omega } }
-end
-
-lemma next_coeff_prod
-  (s : finset ι) (f : ι → polynomial R) (h : ∀ i ∈ s, monic (f i)) :
+lemma monic.next_coeff_prod (s : finset ι) (f : ι → polynomial R) (h : ∀ i ∈ s, monic (f i)) :
 next_coeff (∏ i in s, f i) = ∑ i in s, next_coeff (f i) :=
 begin
   classical,
@@ -208,27 +180,22 @@ begin
   { simp only [finset.not_mem_empty, forall_prop_of_true, forall_prop_of_false, finset.sum_empty,
   finset.prod_empty, not_false_iff, forall_true_iff],
   rw ← C_1, rw next_coeff_C_eq_zero },
-  { intros a s ha hs monic,
-    rw finset.prod_insert ha,
-    rw finset.sum_insert ha,
-    rw next_coeff_mul (monic a (finset.mem_insert_self a s)), swap,
-    { apply monic_prod_of_monic, intros b bs,
-      apply monic, apply finset.mem_insert_of_mem bs },
-    { refine congr rfl (hs _),
-      intros b bs, apply monic, apply finset.mem_insert_of_mem bs }}
+  { intros a s ha hs H,
+    rw [finset.prod_insert ha, finset.sum_insert ha, monic.next_coeff_mul, hs],
+    exacts [λ i hi, H i (mem_insert_of_mem hi), H a (mem_insert_self _ _),
+      monic_prod_of_monic _ _ (λ b bs, H _ (finset.mem_insert_of_mem bs))] }
 end
 
-end monic
-end comm_ring
+end comm_semiring
 
 section ring
 variables [ring R] {p : polynomial R}
 
 theorem monic_X_sub_C (x : R) : monic (X - C x) :=
-by simpa only [C_neg] using monic_X_add_C (-x)
+by simpa only [sub_eq_add_neg, C_neg] using monic_X_add_C (-x)
 
 theorem monic_X_pow_sub {n : ℕ} (H : degree p ≤ n) : monic (X ^ (n+1) - p) :=
-monic_X_pow_add ((degree_neg p).symm ▸ H)
+by simpa [sub_eq_add_neg] using monic_X_pow_add (show degree (-p) ≤ n, by rwa ←degree_neg p at H)
 
 /-- `X ^ n - a` is monic. -/
 lemma monic_X_pow_sub_C {R : Type u} [ring R] (a : R) {n : ℕ} (h : n ≠ 0) : (X ^ n - C a).monic :=
@@ -237,6 +204,16 @@ begin
   convert monic_X_pow_sub _,
   exact le_trans degree_C_le nat.with_bot.coe_nonneg,
 end
+
+lemma monic_sub_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :
+  monic (p - q) :=
+by { rw sub_eq_add_neg, apply monic_add_of_left hp, rwa degree_neg }
+
+lemma monic_sub_of_right {p q : polynomial R}
+  (hq : q.leading_coeff = -1) (hpq : degree p < degree q) : monic (p - q) :=
+have (-q).coeff (-q).nat_degree = 1 :=
+by rw [nat_degree_neg, coeff_neg, show q.coeff q.nat_degree = -1, from hq, neg_neg],
+by { rw sub_eq_add_neg, apply monic_add_of_right this, rwa degree_neg }
 
 section injective
 open function

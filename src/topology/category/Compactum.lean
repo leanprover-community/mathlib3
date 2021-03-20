@@ -69,10 +69,10 @@ We also add wrappers around structures which already exist. Here are the main on
 
 -/
 
-open category_theory filter topological_space category_theory.limits has_finite_inter
-open_locale classical
+open category_theory filter ultrafilter topological_space category_theory.limits has_finite_inter
+open_locale classical topological_space
 
-local notation `β` := of_type_functor ultrafilter
+local notation `β` := of_type_monad ultrafilter
 
 /-- The type `Compactum` of Compacta, defined as algebras for the ultrafilter monad. -/
 @[derive [category, inhabited]]
@@ -100,20 +100,20 @@ instance : has_limits Compactum := has_limits_of_has_limits_creates_limits forge
 def str (X : Compactum) : ultrafilter X → X := X.a
 
 /-- The monadic join. -/
-def join (X : Compactum) : ultrafilter (ultrafilter X) → ultrafilter X := (μ_ β).app _
+def join (X : Compactum) : ultrafilter (ultrafilter X) → ultrafilter X := β .μ.app _
 
 /-- The inclusion of `X` into `ultrafilter X`. -/
-def incl (X : Compactum) : X → ultrafilter X := (η_ β).app _
+def incl (X : Compactum) : X → ultrafilter X := β .η.app _
 
 @[simp] lemma str_incl (X : Compactum) (x : X) : X.str (X.incl x) = x :=
 begin
-  change ((η_ β).app _ ≫ X.a) _ = _,
+  change (β .η.app _ ≫ X.a) _ = _,
   rw monad.algebra.unit,
   refl,
 end
 
 @[simp] lemma str_hom_commute (X Y : Compactum) (f : X ⟶ Y) (xs : ultrafilter X) :
-  f (X.str xs) = Y.str (ultrafilter.map f xs) :=
+  f (X.str xs) = Y.str (map f xs) :=
 begin
   change (X.a ≫ f.f) _ = _,
   rw ←f.h,
@@ -121,35 +121,34 @@ begin
 end
 
 @[simp] lemma join_distrib (X : Compactum) (uux : ultrafilter (ultrafilter X)) :
-  X.str (X.join uux) = X.str (ultrafilter.map X.str uux) :=
+  X.str (X.join uux) = X.str (map X.str uux) :=
 begin
-  change ((μ_ β).app _ ≫ X.a) _ = _,
+  change (β .μ.app _ ≫ X.a) _ = _,
   rw monad.algebra.assoc,
   refl,
 end
 
 instance {X : Compactum} : topological_space X :=
-{ is_open := { U | ∀ (F : ultrafilter X), X.str F ∈ U → U ∈ F.1 },
+{ is_open := λ U, ∀ (F : ultrafilter X), X.str F ∈ U → U ∈ F,
   is_open_univ := λ _ _, filter.univ_sets _,
   is_open_inter := λ S T h3 h4 h5 h6,
     filter.inter_sets _ (h3 _ h6.1) (h4 _ h6.2),
   is_open_sUnion := λ S h1 F ⟨T,hT,h2⟩,
-    filter.sets_of_superset _ (h1 T hT _ h2) (set.subset_sUnion_of_mem hT) }
+    mem_sets_of_superset (h1 T hT _ h2) (set.subset_sUnion_of_mem hT) }
 
 theorem is_closed_iff {X : Compactum} (S : set X) : is_closed S ↔
-  (∀ F : ultrafilter X, S ∈ F.1 → X.str F ∈ S) :=
+  (∀ F : ultrafilter X, S ∈ F → X.str F ∈ S) :=
 begin
+  rw ← is_open_compl_iff,
   split,
   { intros cond F h,
     by_contradiction c,
     specialize cond F c,
-    cases F with F hF,
-    rw ultrafilter_iff_compl_mem_iff_not_mem at hF,
-    rw hF at cond,
+    rw compl_mem_iff_not_mem at cond,
     contradiction },
   { intros h1 F h2,
     specialize h1 F,
-    cases mem_or_compl_mem_of_ultrafilter F.2 S;
+    cases F.mem_or_compl_mem S;
     finish }
 end
 
@@ -157,15 +156,15 @@ instance {X : Compactum} : compact_space X :=
 begin
   constructor,
   rw compact_iff_ultrafilter_le_nhds,
-  intros F hF h,
-  refine ⟨X.str ⟨F,hF⟩, by tauto, _⟩,
+  intros F h,
+  refine ⟨X.str F, by tauto, _⟩,
   rw le_nhds_iff,
   intros S h1 h2,
-  exact h2 ⟨F,hF⟩ h1,
+  exact h2 F h1
 end
 
 /-- A local definition used only in the proofs. -/
-private def basic {X : Compactum} (A : set X) : set (ultrafilter X) := {F | A ∈ F.1}
+private def basic {X : Compactum} (A : set X) : set (ultrafilter X) := {F | A ∈ F}
 /-- A local definition used only in the proofs. -/
 private def cl {X : Compactum} (A : set X) : set X := X.str '' (basic A)
 
@@ -174,12 +173,10 @@ begin
   ext G,
   split,
   { intro hG,
-    refine ⟨_, _⟩;
-    apply filter.sets_of_superset _ hG;
-    intros x hx;
-    finish },
-  { rintros ⟨h1,h2⟩,
-    exact G.val.inter_sets h1 h2 }
+    split; filter_upwards [hG]; intro x,
+    exacts [and.left, and.right] },
+  { rintros ⟨h1, h2⟩,
+    exact inter_mem_sets h1 h2 }
 end
 
 private lemma subset_cl {X : Compactum} (A : set X) : A ⊆ cl A := λ a ha, ⟨X.incl a, ha,by simp⟩
@@ -191,8 +188,8 @@ begin
   let fsu := finset (set (ultrafilter X)),
   let ssu := set (set (ultrafilter X)),
   let ι : fsu → ssu := coe,
-  let C0 : ssu := {Z | ∃ B ∈ F.1, X.str ⁻¹' B = Z},
-  let AA := {G : ultrafilter X | A ∈ G.1},
+  let C0 : ssu := {Z | ∃ B ∈ F, X.str ⁻¹' B = Z},
+  let AA := {G : ultrafilter X | A ∈ G},
   let C1 := insert AA C0,
   let C2 := finite_inter_closure C1,
   -- C0 is closed under intersections.
@@ -204,36 +201,30 @@ begin
   -- All sets in C0 are nonempty.
   have claim2 : ∀ B ∈ C0, set.nonempty B,
   { rintros B ⟨Q,hQ,rfl⟩,
-    obtain ⟨q⟩ := nonempty_of_mem_ultrafilter F.2 hQ,
+    obtain ⟨q⟩ := nonempty_of_mem hQ,
     use X.incl q,
     simpa, },
   -- The intersection of AA with every set in C0 is nonempty.
   have claim3 : ∀ B ∈ C0, (AA ∩ B).nonempty,
   { rintros B ⟨Q,hQ,rfl⟩,
-    have : (Q ∩ cl A).nonempty,
-    { apply nonempty_of_mem_ultrafilter F.2,
-      exact F.1.inter_sets hQ hF },
+    have : (Q ∩ cl A).nonempty :=
+      nonempty_of_mem_sets (inter_mem_sets hQ hF),
     rcases this with ⟨q,hq1,P,hq2,hq3⟩,
     refine ⟨P,hq2,_⟩,
     rw ←hq3 at hq1,
     simpa },
   -- Suffices to show that the intersection of any finite subcollection of C1 is nonempty.
   suffices : ∀ (T : fsu), ι T ⊆ C1 → (⋂₀ ι T).nonempty,
-  { obtain ⟨G,h1,hG⟩ := exists_ultrafilter_of_finite_inter_nonempty _ this,
-    let GG : ultrafilter (ultrafilter X) := ⟨G, hG⟩,
-    use X.join GG,
-    have : ultrafilter.map X.str GG = F,
-    { suffices : (ultrafilter.map X.str GG).1 ≤ F.1,
-      { ext1,
-        exact is_ultrafilter.unique F.2 (ultrafilter.map X.str GG).2.1 this },
-      intros S hS,
-      refine h1 (or.inr ⟨S, by simpa⟩) },
+  { obtain ⟨G, h1⟩ := exists_ultrafilter_of_finite_inter_nonempty _ this,
+    use X.join G,
+    have : G.map X.str = F :=
+      ultrafilter.coe_le_coe.1 (λ S hS, h1 (or.inr ⟨S, hS, rfl⟩)),
     rw [join_distrib, this],
     exact ⟨h1 (or.inl rfl), rfl⟩ },
   -- C2 is closed under finite intersections (by construction!).
   have claim4 := finite_inter_closure_has_finite_inter C1,
   -- C0 is closed under finite intersections by claim1.
-  have claim5 : has_finite_inter C0 := ⟨⟨set.univ, filter.univ_sets _, by simp⟩, claim1⟩,
+  have claim5 : has_finite_inter C0 := ⟨⟨_, univ_mem_sets, set.preimage_univ⟩, claim1⟩,
   -- Every element of C2 is nonempty.
   have claim6 : ∀ P ∈ C2, (P : set (ultrafilter X)).nonempty,
   { suffices : ∀ P ∈ C2, P ∈ C0 ∨ ∃ Q ∈ C0, P = AA ∩ Q,
@@ -261,33 +252,33 @@ begin
 end
 
 lemma str_eq_of_le_nhds {X : Compactum} (F : ultrafilter X) (x : X) :
-  F.1 ≤ nhds x → X.str F = x :=
+  ↑F ≤ 𝓝 x → X.str F = x :=
 begin
   -- Notation to be used in this proof.
   let fsu := finset (set (ultrafilter X)),
   let ssu := set (set (ultrafilter X)),
   let ι : fsu → ssu := coe,
-  let T0 : ssu := { S | ∃ A ∈ F.1, S = basic A },
+  let T0 : ssu := { S | ∃ A ∈ F, S = basic A },
   let AA := (X.str ⁻¹' {x}),
   let T1 := insert AA T0,
   let T2 := finite_inter_closure T1,
   intro cond,
   -- If F contains a closed set A, then x is contained in A.
-  have claim1 : ∀ (A : set X), is_closed A → A ∈ F.1 → x ∈ A,
+  have claim1 : ∀ (A : set X), is_closed A → A ∈ F → x ∈ A,
   { intros A hA h,
     by_contradiction H,
     rw le_nhds_iff at cond,
-    specialize cond Aᶜ H hA,
-    rw ultrafilter_iff_compl_mem_iff_not_mem.mp F.2 at cond,
+    specialize cond Aᶜ H hA.is_open_compl,
+    rw [ultrafilter.mem_coe, ultrafilter.compl_mem_iff_not_mem] at cond,
     contradiction },
   -- If A ∈ F, then x ∈ cl A.
-  have claim2 : ∀ (A : set X), A ∈ F.1 → x ∈ cl A,
+  have claim2 : ∀ (A : set X), A ∈ F → x ∈ cl A,
   { intros A hA,
-    exact claim1 (cl A) (is_closed_cl A) (F.val.sets_of_superset hA (subset_cl A)) },
+    exact claim1 (cl A) (is_closed_cl A) (mem_sets_of_superset hA (subset_cl A)) },
   -- T0 is closed under intersections.
   have claim3 : ∀ (S1 S2 ∈ T0), S1 ∩ S2 ∈ T0,
   { rintros S1 S2 ⟨S1, hS1, rfl⟩ ⟨S2, hS2, rfl⟩,
-    exact ⟨S1 ∩ S2, F.1.inter_sets hS1 hS2, by simp [basic_inter]⟩ },
+    exact ⟨S1 ∩ S2, inter_mem_sets hS1 hS2, by simp [basic_inter]⟩ },
   -- For every S ∈ T0, the intersection AA ∩ S is nonempty.
   have claim4 : ∀ (S ∈ T0), (AA ∩ S).nonempty,
   { rintros S ⟨S, hS, rfl⟩,
@@ -318,20 +309,11 @@ begin
     { exact hS} },
   -- It suffices to show that the intersection of any finite subset of T1 is nonempty.
   suffices : ∀ (F : fsu), ↑F ⊆ T1 → (⋂₀ ι F).nonempty,
-  { obtain ⟨G,h1,hG⟩ := exists_ultrafilter_of_finite_inter_nonempty _ this,
-    let GG : ultrafilter (ultrafilter X) := ⟨G, hG⟩,
-    have c1 : X.join GG = F,
-    { suffices : (X.join GG).1 ≤ F.1,
-      { ext1,
-        exact is_ultrafilter.unique F.2 (join X GG).2.1 this},
-      intros P hP,
-      exact h1 (or.inr ⟨P, hP, rfl⟩) },
-    have c2 : ultrafilter.map X.str GG = X.incl x,
-    { suffices : (ultrafilter.map X.str GG).1 ≤ (X.incl x).1,
-      { ext1,
-        exact is_ultrafilter.unique (incl X x).2 (ultrafilter.map (str X) GG).2.1 this },
-      intros P hP,
-      apply filter.sets_of_superset _ (h1 (or.inl rfl)),
+  { obtain ⟨G,h1⟩ := ultrafilter.exists_ultrafilter_of_finite_inter_nonempty _ this,
+    have c1 : X.join G = F := ultrafilter.coe_le_coe.1 (λ P hP, h1 (or.inr ⟨P, hP, rfl⟩)),
+    have c2 : G.map X.str = X.incl x,
+    { refine ultrafilter.coe_le_coe.1 (λ P hP, _),
+      apply mem_sets_of_superset (h1 (or.inl rfl)),
       rintros x ⟨rfl⟩,
       exact hP },
     simp [←c1, c2] },
@@ -343,22 +325,20 @@ begin
 end
 
 lemma le_nhds_of_str_eq {X : Compactum} (F : ultrafilter X) (x : X) :
-  X.str F = x → F.1 ≤ nhds x := λ h, le_nhds_iff.mpr (λ s hx hs, hs _ $ by rwa h)
+  X.str F = x → ↑F ≤ 𝓝 x := λ h, le_nhds_iff.mpr (λ s hx hs, hs _ $ by rwa h)
 
 -- All the hard work above boils down to this t2_space instance.
 instance {X : Compactum} : t2_space X :=
 begin
   rw t2_iff_ultrafilter,
-  intros _ _ _ hF hx hy,
-  replace hx := str_eq_of_le_nhds ⟨_, hF⟩ _ hx,
-  replace hy := str_eq_of_le_nhds ⟨_, hF⟩ _ hy,
-  cc,
+  intros _ _ F hx hy,
+  rw [← str_eq_of_le_nhds _ _ hx, ← str_eq_of_le_nhds _ _ hy]
 end
 
 /-- The structure map of a compactum actually computes limits. -/
 lemma Lim_eq_str {X : Compactum} (F : ultrafilter X) : F.Lim = X.str F :=
 begin
-  erw [is_ultrafilter.Lim_eq_iff_le_nhds, le_nhds_iff],
+  rw [ultrafilter.Lim_eq_iff_le_nhds, le_nhds_iff],
   tauto,
 end
 
@@ -377,10 +357,10 @@ end
 lemma continuous_of_hom {X Y : Compactum} (f : X ⟶ Y) : continuous f :=
 begin
   rw continuous_iff_ultrafilter,
-  intros x _ h1 h2,
-  change (ultrafilter.map f ⟨_, h1⟩).1 ≤ _,
+  intros x _ h,
+  rw [tendsto, ← coe_map],
   apply le_nhds_of_str_eq,
-  rw [← str_hom_commute, str_eq_of_le_nhds ⟨_, h1⟩ x h2],
+  rw [← str_hom_commute, str_eq_of_le_nhds _ x h]
 end
 
 /-- Given any compact Hausdorff space, we construct a Compactum. -/
@@ -393,19 +373,19 @@ noncomputable def of_topological_space (X : Type*) [topological_space X]
     ext FF,
     change ultrafilter (ultrafilter X) at FF,
     set x := (ultrafilter.map ultrafilter.Lim FF).Lim with c1,
-    have c2 : ∀ (U : set X) (F : ultrafilter X), F.Lim ∈ U → is_open U → U ∈ F.1,
+    have c2 : ∀ (U : set X) (F : ultrafilter X), F.Lim ∈ U → is_open U → U ∈ F,
     { intros U F h1 hU,
-      exact c1 ▸ is_open_iff_ultrafilter.mp hU _ h1 _ F.2 (is_ultrafilter.le_nhds_Lim _) },
-    have c3 : (ultrafilter.map ultrafilter.Lim FF).1 ≤ nhds x,
+      exact c1 ▸ is_open_iff_ultrafilter.mp hU _ h1 _ (ultrafilter.le_nhds_Lim _) },
+    have c3 : ↑(ultrafilter.map ultrafilter.Lim FF) ≤ 𝓝 x,
     { rw le_nhds_iff,
       intros U hx hU,
-      refine c2 _ _ (by rwa ← c1) hU },
-    have c4 : ∀ (U : set X), x ∈ U → is_open U → { G : ultrafilter X | U ∈ G.1 } ∈ FF.1,
+      exact mem_coe.2 (c2 _ _ (by rwa ← c1) hU) },
+    have c4 : ∀ (U : set X), x ∈ U → is_open U → { G : ultrafilter X | U ∈ G } ∈ FF,
     { intros U hx hU,
-      suffices : ultrafilter.Lim ⁻¹' U ∈ FF.1,
-      { apply filter.sets_of_superset _ this,
+      suffices : ultrafilter.Lim ⁻¹' U ∈ FF,
+      { apply mem_sets_of_superset this,
         intros P hP,
-        exact c2 U P hP hU},
+        exact c2 U P hP hU },
       exact @c3 U (mem_nhds_sets hU hx) },
     apply Lim_eq,
     rw le_nhds_iff,
@@ -418,7 +398,7 @@ def hom_of_continuous {X Y : Compactum} (f : X → Y) (cont : continuous f) : X 
   h' := begin
     rw continuous_iff_ultrafilter at cont,
     ext (F : ultrafilter X),
-    specialize cont (X.str F) F.1 F.2 (le_nhds_of_str_eq F (X.str F) rfl),
+    specialize cont (X.str F) F (le_nhds_of_str_eq F (X.str F) rfl),
     have := str_eq_of_le_nhds (ultrafilter.map f F) _ cont,
     simpa only [←this, types_comp_apply, of_type_functor_map],
   end }
@@ -446,15 +426,15 @@ noncomputable def iso_of_topological_space {D : CompHaus} :
   Compactum_to_CompHaus.obj (Compactum.of_topological_space D) ≅ D :=
 { hom :=
   { to_fun := id,
-    continuous_to_fun := λ _ h, by {rw is_open_iff_ultrafilter' at h, exact h} },
+    continuous_to_fun := continuous_def.2 $ λ _ h, by {rw is_open_iff_ultrafilter' at h, exact h} },
   inv :=
   { to_fun := id,
-    continuous_to_fun := λ _ h1, by {rw is_open_iff_ultrafilter', intros _ h2, exact h1 _ h2} } }
+    continuous_to_fun := continuous_def.2 $
+      λ _ h1, by {rw is_open_iff_ultrafilter', intros _ h2, exact h1 _ h2} } }
 
 /-- The functor Compactum_to_CompHaus is essentially surjective. -/
-noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=
-{ obj_preimage := λ X, Compactum.of_topological_space X,
-  iso' := λ _, iso_of_topological_space }
+lemma ess_surj : ess_surj Compactum_to_CompHaus :=
+{ mem_ess_image := λ X, ⟨Compactum.of_topological_space X, ⟨iso_of_topological_space⟩⟩ }
 
 /-- The functor Compactum_to_CompHaus is an equivalence of categories. -/
 noncomputable def is_equivalence : is_equivalence Compactum_to_CompHaus :=

@@ -59,18 +59,18 @@ def diagram_comp_preserves_limits :
 begin
   fapply nat_iso.of_components,
   rintro ⟨j⟩,
-  exact (preserves.preserves_products_iso _ _),
-  exact (preserves.preserves_products_iso _ _),
+  exact (preserves_product.iso _ _),
+  exact (preserves_product.iso _ _),
   rintros ⟨⟩ ⟨⟩ ⟨⟩,
   { ext, simp, dsimp, simp, }, -- non-terminal `simp`, but `squeeze_simp` fails
   { ext,
     simp only [limit.lift_π, functor.comp_map, map_lift_pi_comparison, fan.mk_π_app,
-               preserves.preserves_products_iso_hom, parallel_pair_map_left, functor.map_comp,
+               preserves_product.iso_hom, parallel_pair_map_left, functor.map_comp,
                category.assoc],
     dsimp, simp, },
   { ext,
     simp only [limit.lift_π, functor.comp_map, parallel_pair_map_right, fan.mk_π_app,
-               preserves.preserves_products_iso_hom, map_lift_pi_comparison, functor.map_comp,
+               preserves_product.iso_hom, map_lift_pi_comparison, functor.map_comp,
                category.assoc],
     dsimp, simp, },
  { ext, simp, dsimp, simp, },
@@ -192,7 +192,7 @@ begin
       haveI : is_iso f' := is_limit.hom_is_iso hc hd' f',
       -- A cone morphism is an isomorphism exactly if the morphism between the cone points is,
       -- so we're done!
-      exact { ..((cones.forget _).map_iso (as_iso f')) }, }, },
+      exact is_iso.of_iso ((cones.forget _).map_iso (as_iso f')) }, },
 end
 
 /-!

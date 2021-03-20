@@ -23,11 +23,14 @@ open_locale classical
 open polynomial
 
 section
-variables (R : Type u) {A : Type v} [comm_ring R] [comm_ring A] [algebra R A]
+variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
 
 /-- An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial. -/
 def is_algebraic (x : A) : Prop :=
 ∃ p : polynomial R, p ≠ 0 ∧ aeval x p = 0
+
+/-- An element of an R-algebra is transcendental over R if it is not algebraic over R. -/
+def transcendental (x : A) : Prop := ¬ is_algebraic R x
 
 variables {R}
 
@@ -65,16 +68,22 @@ end
 end
 
 section zero_ne_one
-variables (R : Type u) {A : Type v} [comm_ring R] [nontrivial R] [comm_ring A] [algebra R A]
+variables (R : Type u) {A : Type v} [comm_ring R] [nontrivial R] [ring A] [algebra R A]
 
 /-- An integral element of an algebra is algebraic.-/
 lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=
 by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
 
+variables {R}
+
+/-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
+lemma is_algebraic_algebra_map (a : R) : is_algebraic R (algebra_map R A a) :=
+⟨X - C a, X_sub_C_ne_zero a, by simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self]⟩
+
 end zero_ne_one
 
 section field
-variables (K : Type u) {A : Type v} [field K] [comm_ring A] [algebra K A]
+variables (K : Type u) {A : Type v} [field K] [ring A] [algebra K A]
 
 /-- An element of an algebra over a field is algebraic if and only if it is integral.-/
 lemma is_algebraic_iff_is_integral {x : A} :
@@ -85,6 +94,11 @@ begin
   refine ⟨_, monic_mul_leading_coeff_inv hp, _⟩,
   rw [← aeval_def, alg_hom.map_mul, hpx, zero_mul],
 end
+
+lemma is_algebraic_iff_is_integral' :
+  algebra.is_algebraic K A ↔ algebra.is_integral K A :=
+⟨λ h x, (is_algebraic_iff_is_integral K).mp (h x),
+  λ h x, (is_algebraic_iff_is_integral K).mpr (h x)⟩
 
 end field
 
@@ -117,14 +131,13 @@ lemma exists_integral_multiple [algebra R S] {z : S} (hz : is_algebraic R z)
     z * y = x :=
 begin
   rcases hz with ⟨p, p_ne_zero, px⟩,
-  set n := p.nat_degree with n_def,
   set a := p.leading_coeff with a_def,
   have a_ne_zero : a ≠ 0 := mt polynomial.leading_coeff_eq_zero.mp p_ne_zero,
   have y_integral : is_integral R (algebra_map R S a) := is_integral_algebra_map,
   have x_integral : is_integral R (z * algebra_map R S a) :=
     ⟨ p.integral_normalization,
       monic_integral_normalization p_ne_zero,
-      integral_normalization_aeval_eq_zero p_ne_zero px inj ⟩,
+      integral_normalization_aeval_eq_zero px inj ⟩,
   refine ⟨⟨_, x_integral⟩, ⟨_, y_integral⟩, _, rfl⟩,
   exact λ h, a_ne_zero (inj _ (subtype.ext_iff_val.mp h))
 end

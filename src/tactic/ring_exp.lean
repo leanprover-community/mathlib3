@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Tim Baanen.
+Authors: Tim Baanen
 
 Solve equations in commutative (semi)rings with exponents.
 -/
@@ -658,6 +658,34 @@ match p.1, q.1 with -- Special case to speed up multiplication with 1.
   pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩
 end
 
+section rewrite
+
+/-! ### `rewrite` section
+
+In this section we deal with rewriting terms to fit in the basic grammar of `eval`.
+For example, `nat.succ n` is rewritten to `n + 1` before it is evaluated further.
+-/
+
+/-- Given a proof that the expressions `ps_o` and `ps'.orig` are equal,
+show that `ps_o` and `ps'.pretty` are equal.
+
+Useful to deal with aliases in `eval`. For instance, `nat.succ p` can be handled
+as an alias of `p + 1` as follows:
+```
+| ps_o@`(nat.succ %%p_o) := do
+  ps' ← eval `(%%p_o + 1),
+  pf ← lift $ mk_app ``nat.succ_eq_add_one [p_o],
+  rewrite ps_o ps' pf
+```
+-/
+meta def rewrite (ps_o : expr) (ps' : ex sum) (pf : expr) : ring_exp_m (ex sum) :=
+do
+  ps'_pf ← ps'.info.proof_term,
+  pf ← lift $ mk_eq_trans pf ps'_pf,
+  pure $ ps'.set_info ps_o pf
+
+end rewrite
+
 /--
 Represents the way in which two products are equal except coefficient.
 
@@ -807,6 +835,7 @@ meta def add : ex sum → ex sum → ring_exp_m (ex sum)
       [qqs.info, pqs.info],
     pure $ pqqs.set_info ppqqs_o pf
   end
+
 end addition
 
 section multiplication
@@ -1305,8 +1334,11 @@ meta def inverse (ps : ex sum) : ring_exp_m (ex sum) := do
   e''_o ← lift $ mk_app ``has_inv.inv [ps.orig],
   pure $ e''.set_info e''_o pf
 
-lemma sub_pf {α} [ring α] {ps qs psqs : α} : ps + -qs = psqs → ps - qs = psqs := id
-lemma div_pf {α} [division_ring α] {ps qs psqs : α} : ps * qs⁻¹ = psqs → ps / qs = psqs := id
+lemma sub_pf {α} [ring α] {ps qs psqs : α} (h : ps + -qs = psqs) : ps - qs = psqs :=
+by rwa sub_eq_add_neg
+
+lemma div_pf {α} [division_ring α] {ps qs psqs : α} (h : ps * qs⁻¹ = psqs) : ps / qs = psqs :=
+by rwa div_eq_mul_inv
 
 end operations
 
@@ -1336,6 +1368,10 @@ meta def eval : expr → ring_exp_m (ex sum)
   ps' ← eval ps,
   qs' ← eval qs,
   add ps' qs'
+| ps_o@`(nat.succ %%p_o) := do
+  ps' ← eval `(%%p_o + 1),
+  pf ← lift $ mk_app ``nat.succ_eq_add_one [p_o],
+  rewrite ps_o ps' pf
 | e@`(%%ps - %%qs) := (do
   ctx ← get_context,
   ri ← match ctx.info_b.ring_instance with

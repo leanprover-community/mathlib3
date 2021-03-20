@@ -43,7 +43,8 @@ inductive rel (r : R → R → Prop) : R → R → Prop
 theorem rel.add_right {r : R → R → Prop} ⦃a b c : R⦄ (h : rel r b c) : rel r (a + b) (a + c) :=
 by { rw [add_comm a b, add_comm a c], exact rel.add_left h }
 
-theorem rel.neg {R : Type u₁} [ring R] {r : R → R → Prop} ⦃a b : R⦄ (h : rel r a b) : rel r (-a) (-b) :=
+theorem rel.neg {R : Type u₁} [ring R] {r : R → R → Prop} ⦃a b : R⦄ (h : rel r a b) :
+  rel r (-a) (-b) :=
 by simp only [neg_eq_neg_one_mul a, neg_eq_neg_one_mul b, rel.mul_right h]
 
 theorem rel.smul {r : A → A → Prop} (k : S) ⦃a b : A⦄ (h : rel r a b) : rel r (k • a) (k • b) :=
@@ -178,7 +179,7 @@ def ring_quot_to_ideal_quotient (r : B → B → Prop) :
   ring_quot r →+* (ideal.of_rel r).quotient :=
 lift
   ⟨ideal.quotient.mk (ideal.of_rel r),
-   λ x y h, quot.sound (submodule.mem_Inf.mpr (λ p w, w ⟨x, y, h, rfl⟩))⟩
+   λ x y h, quot.sound (submodule.mem_Inf.mpr (λ p w, w ⟨x, y, h, sub_add_cancel x y⟩))⟩
 
 @[simp] lemma ring_quot_to_ideal_quotient_apply (r : B → B → Prop) (x : B) :
   ring_quot_to_ideal_quotient r (mk_ring_hom r x) = ideal.quotient.mk _ x := rfl
@@ -188,10 +189,11 @@ def ideal_quotient_to_ring_quot (r : B → B → Prop) :
   (ideal.of_rel r).quotient →+* ring_quot r :=
 ideal.quotient.lift (ideal.of_rel r) (mk_ring_hom r)
 begin
-  intros x h,
-  apply submodule.span_induction h,
-  { rintros - ⟨a,b,h,rfl⟩,
-    rw [ring_hom.map_sub, mk_ring_hom_rel h, sub_self], },
+  refine λ x h, submodule.span_induction h _ _ _ _,
+  { rintro y ⟨a, b, h, su⟩,
+    symmetry' at su,
+    rw ←sub_eq_iff_eq_add at su,
+    rw [ ← su, ring_hom.map_sub, mk_ring_hom_rel h, sub_self], },
   { simp, },
   { intros a b ha hb, simp [ha, hb], },
   { intros a x hx, simp [hx], },
@@ -209,6 +211,21 @@ ring_equiv.of_hom_inv (ring_quot_to_ideal_quotient r) (ideal_quotient_to_ring_qu
   (by { ext, simp, }) (by { ext ⟨x⟩, simp, })
 
 end comm_ring
+
+/-- Transfer a star_ring instance through a quotient, if the quotient is invariant to `star` -/
+def star_ring {R : Type u₁} [semiring R] [star_ring R] (r : R → R → Prop)
+  (hr : ∀ {a b}, r a b → r (star a) (star b)) :
+  star_ring (ring_quot r) :=
+{ star := quot.map star $ λ a b h, begin
+    induction h,
+    { exact rel.of (hr h_h) },
+    { rw [star_add, star_add], exact rel.add_left h_ih, },
+    { rw [star_mul, star_mul], exact rel.mul_right h_ih, },
+    { rw [star_mul, star_mul], exact rel.mul_left h_ih, },
+  end,
+  star_involutive := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (star_star _), },
+  star_mul := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (star_mul _ _), },
+  star_add := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (star_add _ _), } }
 
 section algebra
 
@@ -268,14 +285,15 @@ def lift_alg_hom {s : A → A → Prop} :
       rintros x,
       conv_rhs { rw [algebra.algebra_map_eq_smul_one, ←f.map_one, ←f.map_smul], },
       rw algebra.algebra_map_eq_smul_one,
-      exact quot.lift_beta f f'.prop (x • 1),
+      exact quot.lift_mk f f'.prop (x • 1),
     end, },
   inv_fun := λ F, ⟨F.comp (mk_alg_hom S s), λ _ _ h, by { dsimp, erw mk_alg_hom_rel S h }⟩,
   left_inv := λ f, by { ext, simp, refl },
   right_inv := λ F, by { ext, simp, refl } }
 
 @[simp]
-lemma lift_alg_hom_mk_alg_hom_apply (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ ⦃x y⦄, s x y → f x = f y) (x) :
+lemma lift_alg_hom_mk_alg_hom_apply (f : A →ₐ[S] B) {s : A → A → Prop}
+  (w : ∀ ⦃x y⦄, s x y → f x = f y) (x) :
   (lift_alg_hom S ⟨f, w⟩) ((mk_alg_hom S s) x) = f x :=
 rfl
 

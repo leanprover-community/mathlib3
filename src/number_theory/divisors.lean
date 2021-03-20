@@ -126,6 +126,19 @@ begin
   exact nat.le_of_dvd (nat.succ_pos m),
 end
 
+lemma divisors_subset_of_dvd {m : ℕ} (hzero : n ≠ 0) (h : m ∣ n) : divisors m ⊆ divisors n :=
+finset.subset_iff.2 $ λ x hx, nat.mem_divisors.mpr (⟨dvd.trans (nat.mem_divisors.mp hx).1 h, hzero⟩)
+
+lemma divisors_subset_proper_divisors {m : ℕ} (hzero : n ≠ 0) (h : m ∣ n) (hdiff : m ≠ n) :
+  divisors m ⊆ proper_divisors n :=
+begin
+  apply finset.subset_iff.2,
+  intros x hx,
+  exact nat.mem_proper_divisors.2 (⟨dvd.trans (nat.mem_divisors.1 hx).1 h,
+    lt_of_le_of_lt (divisor_le hx) (lt_of_le_of_ne (divisor_le (nat.mem_divisors.2
+    ⟨h, hzero⟩)) hdiff)⟩)
+end
+
 @[simp]
 lemma divisors_zero : divisors 0 = ∅ := by { ext, simp }
 

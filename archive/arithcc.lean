@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Xi Wang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Xi Wang.
+Authors: Xi Wang
 -/
 
 import tactic.basic
@@ -341,9 +341,9 @@ begin
     have hmap' : ∀ x, read (loc x map) ζ₂ = ξ x,
     { intros,
       calc read (loc x map) ζ₂
-          = read (loc x map) (write t ν₁ η) : by { apply hζ₂, apply ht' }
-      ... = read (loc x map) η              : by { simp, apply if_neg (ne_of_lt (ht _)) }
-      ... = ξ x                             : by apply hmap },
+          = read (loc x map) (write t ν₁ η) : hζ₂ _ (ht' _)
+      ... = read (loc x map) η              : by { simp only [loc] at ht, simp [(ht _).ne] }
+      ... = ξ x                             : hmap x },
 
     have hζ₃ : ζ₃ ≃[t + 1] {ac := ν₂, ..(write t ν₁ η)},
     calc ζ₃

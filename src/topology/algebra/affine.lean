@@ -31,10 +31,12 @@ begin
   split,
   { intro hc,
     rw decomp' f,
-    exact hc.sub continuous_const },
+    have := hc.sub continuous_const,
+    exact this, },
   { intro hc,
     rw decomp f,
-    exact hc.add continuous_const }
+    have := hc.add continuous_const,
+    exact this }
 end
 
 /-- The line map is continuous. -/

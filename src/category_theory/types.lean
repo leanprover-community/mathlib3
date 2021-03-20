@@ -31,7 +31,8 @@ We prove some basic facts about the category `Type`:
 
 namespace category_theory
 
-universes v v' w u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- morphism levels before object levels. See note [category_theory universes].
+universes v v' w u u'
 
 instance types : large_category (Type u) :=
 { hom     := λ a b, (a → b),
@@ -86,7 +87,8 @@ namespace functor_to_types
 variables {C : Type u} [category.{v} C] (F G H : C ⥤ Type w) {X Y Z : C}
 variables (σ : F ⟶ G) (τ : G ⟶ H)
 
-@[simp] lemma map_comp_apply (f : X ⟶ Y) (g : Y ⟶ Z) (a : F.obj X) : (F.map (f ≫ g)) a = (F.map g) ((F.map f) a) :=
+@[simp] lemma map_comp_apply (f : X ⟶ Y) (g : Y ⟶ Z) (a : F.obj X) :
+  (F.map (f ≫ g)) a = (F.map g) ((F.map f) a) :=
 by simp [types_comp]
 
 @[simp] lemma map_id_apply (a : F.obj X) : (F.map (𝟙 X)) a = a :=
@@ -99,7 +101,9 @@ congr_fun (σ.naturality f) x
 
 variables {D : Type u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
 
-@[simp] lemma hcomp (x : (I ⋙ F).obj W) : (ρ ◫ σ).app W x = (G.map (ρ.app W)) (σ.app (I.obj W) x) := rfl
+@[simp] lemma hcomp (x : (I ⋙ F).obj W) :
+  (ρ ◫ σ).app W x = (G.map (ρ.app W)) (σ.app (I.obj W) x) :=
+rfl
 
 @[simp] lemma map_inv_map_hom_apply (f : X ≅ Y) (x : F.obj X) : F.map f.inv (F.map f.hom x) = x :=
 congr_fun (F.map_iso f).hom_inv_id x
@@ -270,26 +274,32 @@ end category_theory.iso
 namespace category_theory
 
 /-- A morphism in `Type u` is an isomorphism if and only if it is bijective. -/
-noncomputable
-def is_iso_equiv_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ≃ function.bijective f :=
-equiv_of_subsingleton_of_subsingleton
-  (λ i, ({ hom := f, .. i } : X ≅ Y).to_equiv.bijective)
-  (λ b, { .. (equiv.of_bijective f b).to_iso })
+lemma is_iso_iff_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ↔ function.bijective f :=
+iff.intro
+  (λ i, (by exactI as_iso f : X ≅ Y).to_equiv.bijective)
+  (λ b, is_iso.of_iso (equiv.of_bijective f b).to_iso)
 
 end category_theory
 
 -- We prove `equiv_iso_iso` and then use that to sneakily construct `equiv_equiv_iso`.
 -- (In this order the proofs are handled by `obviously`.)
 
-/-- equivalences (between types in the same universe) are the same as (isomorphic to) isomorphisms of types -/
+/-- Equivalences (between types in the same universe) are the same as (isomorphic to) isomorphisms
+of types. -/
 @[simps] def equiv_iso_iso {X Y : Type u} : (X ≃ Y) ≅ (X ≅ Y) :=
 { hom := λ e, e.to_iso,
   inv := λ i, i.to_equiv, }
 
-/-- equivalences (between types in the same universe) are the same as (equivalent to) isomorphisms of types -/
--- We leave `X` and `Y` as explicit arguments here, because the coercions from `equiv` to a function won't fire without them.
+/-- Equivalences (between types in the same universe) are the same as (equivalent to) isomorphisms
+of types. -/
+-- We leave `X` and `Y` as explicit arguments here, because the coercions from `equiv` to a function
+-- won't fire without them.
+-- TODO: is it still true?
 def equiv_equiv_iso (X Y : Type u) : (X ≃ Y) ≃ (X ≅ Y) :=
 (equiv_iso_iso).to_equiv
 
-@[simp] lemma equiv_equiv_iso_hom {X Y : Type u} (e : X ≃ Y) : (equiv_equiv_iso X Y) e = e.to_iso := rfl
-@[simp] lemma equiv_equiv_iso_inv {X Y : Type u} (e : X ≅ Y) : (equiv_equiv_iso X Y).symm e = e.to_equiv := rfl
+@[simp] lemma equiv_equiv_iso_hom {X Y : Type u} (e : X ≃ Y) :
+  (equiv_equiv_iso X Y) e = e.to_iso := rfl
+
+@[simp] lemma equiv_equiv_iso_inv {X Y : Type u} (e : X ≅ Y) :
+  (equiv_equiv_iso X Y).symm e = e.to_equiv := rfl

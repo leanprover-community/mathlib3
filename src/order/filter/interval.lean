@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import data.set.intervals.ord_connected
 import order.filter.lift
@@ -132,17 +132,9 @@ tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
 instance tendsto_Ioo_at_bot_at_bot : tendsto_Ixx_class Ioo (at_bot : filter α) at_bot :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Icc_self)
 
-instance tendsto_Icc_Ici_Ici {a : α} : tendsto_Ixx_class Icc (𝓟 (Ici a)) (𝓟 (Ici a)) :=
-tendsto_Ixx_class_principal.2 ord_connected_Ici
-
-instance tendsto_Icc_Iic_Iic {a : α} : tendsto_Ixx_class Icc (𝓟 (Iic a)) (𝓟 (Iic a)) :=
-tendsto_Ixx_class_principal.2 ord_connected_Iic
-
-instance tendsto_Icc_Ioi_Ioi {a : α} : tendsto_Ixx_class Icc (𝓟 (Ioi a)) (𝓟 (Ioi a)) :=
-tendsto_Ixx_class_principal.2 ord_connected_Ioi
-
-instance tendsto_Icc_Iio_Iio {a : α} : tendsto_Ixx_class Icc (𝓟 (Iio a)) (𝓟 (Iio a)) :=
-tendsto_Ixx_class_principal.2 ord_connected_Iio
+instance ord_connected.tendsto_Icc {s : set α} [ord_connected s] :
+  tendsto_Ixx_class Icc (𝓟 s) (𝓟 s) :=
+tendsto_Ixx_class_principal.2 ‹_›
 
 instance tendsto_Ico_Ici_Ici {a : α} : tendsto_Ixx_class Ico (𝓟 (Ici a)) (𝓟 (Ici a)) :=
 tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)

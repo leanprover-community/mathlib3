@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import geometry.euclidean.basic
 import tactic.interval_cases
@@ -91,25 +91,19 @@ by rw [(show 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) =
 lemma angle_sub_eq_angle_sub_rev_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) :
   angle x (x - y) = angle y (y - x) :=
 begin
-  refine real.cos_inj_of_nonneg_of_le_pi (angle_nonneg _ _)
-                                         (angle_le_pi _ _)
-                                         (angle_nonneg _ _)
-                                         (angle_le_pi _ _) _,
+  refine real.inj_on_cos ⟨angle_nonneg _ _, angle_le_pi _ _⟩ ⟨angle_nonneg _ _, angle_le_pi _ _⟩ _,
   rw [cos_angle, cos_angle, h, ←neg_sub, norm_neg, neg_sub,
-      inner_sub_right, inner_sub_right, real_inner_self_eq_norm_square, real_inner_self_eq_norm_square, h,
-      real_inner_comm x y]
+    inner_sub_right, inner_sub_right, real_inner_self_eq_norm_square,
+    real_inner_self_eq_norm_square, h, real_inner_comm x y]
 end
 
 /-- Converse of pons asinorum, vector angle form. -/
 lemma norm_eq_of_angle_sub_eq_angle_sub_rev_of_angle_ne_pi {x y : V}
     (h : angle x (x - y) = angle y (y - x)) (hpi : angle x y ≠ π) : ∥x∥ = ∥y∥ :=
 begin
-  replace h := real.arccos_inj
-    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x (x - y))).1
-    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x (x - y))).2
-    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one y (y - x))).1
-    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one y (y - x))).2
-    h,
+  replace h := real.arccos_inj_on
+    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x (x - y)))
+    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one y (y - x))) h,
   by_cases hxy : x = y,
   { rw hxy },
   { rw [←norm_neg (y - x), neg_sub, mul_comm, mul_comm ∥y∥, div_eq_mul_inv, div_eq_mul_inv,
@@ -301,7 +295,7 @@ include V
 lemma dist_square_eq_dist_square_add_dist_square_iff_angle_eq_pi_div_two (p1 p2 p3 : P) :
   dist p1 p3 * dist p1 p3 = dist p1 p2 * dist p1 p2 + dist p3 p2 * dist p3 p2 ↔
     ∠ p1 p2 p3 = π / 2 :=
-by erw [metric_space.dist_comm p3 p2, dist_eq_norm_vsub V p1 p3, dist_eq_norm_vsub V p1 p2,
+by erw [pseudo_metric_space.dist_comm p3 p2, dist_eq_norm_vsub V p1 p3, dist_eq_norm_vsub V p1 p2,
         dist_eq_norm_vsub V p2 p3,
         ←norm_sub_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two,
         vsub_sub_vsub_cancel_right p1, ←neg_vsub_eq_vsub_rev p2 p3, norm_neg]

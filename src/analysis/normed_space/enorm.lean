@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import analysis.normed_space.basic
 
@@ -31,11 +31,12 @@ normed space, extended norm
 -/
 
 local attribute [instance, priority 1001] classical.prop_decidable
+open_locale ennreal
 
 /-- Extended norm on a vector space. As in the case of normed spaces, we require only
 `∥c • x∥ ≤ ∥c∥ * ∥x∥` in the definition, then prove an equality in `map_smul`. -/
 structure enorm (𝕜 : Type*) (V : Type*) [normed_field 𝕜] [add_comm_group V] [vector_space 𝕜 V] :=
-(to_fun : V → ennreal)
+(to_fun : V → ℝ≥0∞)
 (eq_zero' : ∀ x, to_fun x = 0 → x = 0)
 (map_add_le' : ∀ x y : V, to_fun (x + y) ≤ to_fun x + to_fun y)
 (map_smul_le' : ∀ (c : 𝕜) (x : V), to_fun (c • x) ≤ nnnorm c * to_fun x)
@@ -47,23 +48,23 @@ variables {𝕜 : Type*} {V : Type*} [normed_field 𝕜] [add_comm_group V] [vec
 
 instance : has_coe_to_fun (enorm 𝕜 V) := ⟨_, enorm.to_fun⟩
 
-lemma injective_coe_fn : function.injective (λ (e : enorm 𝕜 V) (x : V), e x) :=
+lemma coe_fn_injective : function.injective (λ (e : enorm 𝕜 V) (x : V), e x) :=
 λ e₁ e₂ h, by cases e₁; cases e₂; congr; exact h
 
 @[ext] lemma ext {e₁ e₂ : enorm 𝕜 V} (h : ∀ x, e₁ x = e₂ x) : e₁ = e₂ :=
-injective_coe_fn $ funext h
+coe_fn_injective $ funext h
 
 lemma ext_iff {e₁ e₂ : enorm 𝕜 V} : e₁ = e₂ ↔ ∀ x, e₁ x = e₂ x :=
 ⟨λ h x, h ▸ rfl, ext⟩
 
 @[simp, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : ⇑e₁ = e₂ ↔ e₁ = e₂ :=
-injective_coe_fn.eq_iff
+coe_fn_injective.eq_iff
 
 @[simp] lemma map_smul (c : 𝕜) (x : V) : e (c • x) = nnnorm c * e x :=
 le_antisymm (e.map_smul_le' c x) $
 begin
   by_cases hc : c = 0, { simp [hc] },
-  calc (nnnorm c : ennreal) * e x = nnnorm c * e (c⁻¹ • c • x) : by rw [inv_smul_smul' hc]
+  calc (nnnorm c : ℝ≥0∞) * e x = nnnorm c * e (c⁻¹ • c • x) : by rw [inv_smul_smul' hc]
   ... ≤ nnnorm c * (nnnorm (c⁻¹) * e (c • x)) : _
   ... = e (c • x) : _,
   { exact ennreal.mul_le_mul (le_refl _) (e.map_smul_le' _ _) },
@@ -87,7 +88,8 @@ by rw [← neg_sub, e.map_neg]
 lemma map_add_le (x y : V) : e (x + y) ≤ e x + e y := e.map_add_le' x y
 
 lemma map_sub_le (x y : V) : e (x - y) ≤ e x + e y :=
-calc e (x - y) ≤ e x + e (-y) : e.map_add_le x (-y)
+calc e (x - y) = e (x + -y)   : by rw sub_eq_add_neg
+           ... ≤ e x + e (-y) : e.map_add_le x (-y)
            ... = e x + e y    : by rw [e.map_neg]
 
 instance : partial_order (enorm 𝕜 V) :=
@@ -184,6 +186,6 @@ lemma finite_norm_eq (x : e.finite_subspace) : ∥x∥ = (e x).to_real := rfl
 
 /-- Normed space instance on `e.finite_subspace`. -/
 instance : normed_space 𝕜 e.finite_subspace :=
-{ norm_smul_le := λ c x, le_of_eq $ by simp [finite_norm_eq, ← ennreal.to_real_mul_to_real] }
+{ norm_smul_le := λ c x, le_of_eq $ by simp [finite_norm_eq, ennreal.to_real_mul] }
 
 end enorm

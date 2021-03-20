@@ -56,7 +56,7 @@ In the case where `ℰ = Cᵒᵖ ⥤ Type u` and `A = yoneda`, this functor is i
 
 Defined as in [MM92], Chapter I, Section 5, Theorem 2.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def restricted_yoneda : ℰ ⥤ (Cᵒᵖ ⥤ Type u₁) :=
 yoneda ⋙ (whiskering_left _ _ (Type u₁)).obj (functor.op A)
 
@@ -309,13 +309,23 @@ def unique_extension_along_yoneda (L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) (hL : yo
 nat_iso_of_nat_iso_on_representables _ _ (hL ≪≫ (is_extension_along_yoneda _).symm)
 
 /--
-If `L` preserves colimits and `ℰ` has them, then it is a left adjoint. Note this is a (partial)
-converse to `left_adjoint_preserves_colimits`.
+If `L` preserves colimits and `ℰ` has them, then it is a left adjoint. This is a special case of
+`is_left_adjoint_of_preserves_colimits` used to prove that.
 -/
-def is_left_adjoint_of_preserves_colimits (L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) [preserves_colimits L] :
+def is_left_adjoint_of_preserves_colimits_aux (L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) [preserves_colimits L] :
   is_left_adjoint L :=
 { right := restricted_yoneda (yoneda ⋙ L),
   adj := (yoneda_adjunction _).of_nat_iso_left
-              (unique_extension_along_yoneda _ L (iso.refl _)).symm }
+            ((unique_extension_along_yoneda _ L (iso.refl _)).symm) }
+
+/--
+If `L` preserves colimits and `ℰ` has them, then it is a left adjoint. Note this is a (partial)
+converse to `left_adjoint_preserves_colimits`.
+-/
+def is_left_adjoint_of_preserves_colimits (L : (C ⥤ Type u₁) ⥤ ℰ) [preserves_colimits L] :
+  is_left_adjoint L :=
+let e : (_ ⥤ Type u₁) ≌ (_ ⥤ Type u₁) := (op_op_equivalence C).congr_left,
+    t := is_left_adjoint_of_preserves_colimits_aux (e.functor ⋙ L : _)
+in by exactI adjunction.left_adjoint_of_nat_iso (e.inv_fun_id_assoc _)
 
 end category_theory

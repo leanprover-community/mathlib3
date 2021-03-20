@@ -26,8 +26,8 @@ namespace rat
 variables (a b c : ℚ)
 open_locale rat
 
-protected def nonneg : ℚ → Prop
-| ⟨n, d, h, c⟩ := 0 ≤ n
+/-- A rational number is called nonnegative if its numerator is nonnegative. -/
+protected def nonneg (r : ℚ) : Prop := 0 ≤ r.num
 
 @[simp] theorem mk_nonneg (a : ℤ) {b : ℤ} (h : 0 < b) : (a /. b).nonneg ↔ 0 ≤ a :=
 begin
@@ -77,6 +77,8 @@ or.imp_right neg_nonneg_of_nonpos (le_total 0 n)
 instance decidable_nonneg : decidable (rat.nonneg a) :=
 by cases a; unfold rat.nonneg; apply_instance
 
+/-- Relation `a ≤ b` on `ℚ` defined as `a ≤ b ↔ rat.nonneg (b - a)`. Use `a ≤ b` instead of
+`rat.le a b`. -/
 protected def le (a b : ℚ) := rat.nonneg (b - a)
 
 instance : has_le ℚ := ⟨rat.le⟩
@@ -99,8 +101,8 @@ protected theorem le_total : a ≤ b ∨ b ≤ a :=
 by have := rat.nonneg_total (b - a); rwa neg_sub at this
 
 protected theorem le_antisymm {a b : ℚ} (hab : a ≤ b) (hba : b ≤ a) : a = b :=
-by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simpa);
-   rwa neg_neg at this
+by { have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by rwa [← sub_eq_add_neg, neg_sub]),
+   rwa neg_neg at this }
 
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
 have rat.nonneg (b - a + (c - b)), from rat.nonneg_add hab hbc,

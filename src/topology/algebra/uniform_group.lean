@@ -36,7 +36,8 @@ class uniform_add_group (α : Type*) [uniform_space α] [add_group α] : Prop :=
 theorem uniform_add_group.mk' {α} [uniform_space α] [add_group α]
   (h₁ : uniform_continuous (λp:α×α, p.1 + p.2))
   (h₂ : uniform_continuous (λp:α, -p)) : uniform_add_group α :=
-⟨h₁.comp (uniform_continuous_fst.prod_mk (h₂.comp uniform_continuous_snd))⟩
+⟨by simpa only [sub_eq_add_neg] using
+  h₁.comp (uniform_continuous_fst.prod_mk (h₂.comp uniform_continuous_snd))⟩
 
 variables [uniform_space α] [add_group α] [uniform_add_group α]
 
@@ -99,12 +100,14 @@ begin
   rw [nhds_eq_comap_uniformity, filter.comap_comap],
   refine le_antisymm (filter.map_le_iff_le_comap.1 _) _,
   { assume s hs,
-    rcases mem_uniformity_of_uniform_continuous_invariant uniform_continuous_sub hs with ⟨t, ht, hts⟩,
+    rcases mem_uniformity_of_uniform_continuous_invariant uniform_continuous_sub hs
+      with ⟨t, ht, hts⟩,
     refine mem_map.2 (mem_sets_of_superset ht _),
     rintros ⟨a, b⟩,
     simpa [subset_def] using hts a b a },
   { assume s hs,
-    rcases mem_uniformity_of_uniform_continuous_invariant uniform_continuous_add hs with ⟨t, ht, hts⟩,
+    rcases mem_uniformity_of_uniform_continuous_invariant uniform_continuous_add hs
+      with ⟨t, ht, hts⟩,
     refine ⟨_, ht, _⟩,
     rintros ⟨a, b⟩, simpa [subset_def] using hts 0 (b - a) a }
 end
@@ -167,7 +170,8 @@ def topological_add_group.to_uniform_space : uniform_space G :=
       have H : (λp:G×G, p.2 - p.1) ⁻¹' V ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
         by existsi [V, V_nhds] ; refl,
       existsi H,
-      have comp_rel_sub : comp_rel ((λp:G×G, p.2 - p.1) ⁻¹' V) ((λp:G×G, p.2 - p.1) ⁻¹' V) ⊆ (λp:G×G, p.2 - p.1) ⁻¹' U,
+      have comp_rel_sub :
+        comp_rel ((λp:G×G, p.2 - p.1) ⁻¹' V) ((λp, p.2 - p.1) ⁻¹' V) ⊆ (λp:G×G, p.2 - p.1) ⁻¹' U,
       begin
         intros p p_comp_rel,
         rcases p_comp_rel with ⟨z, ⟨Hz1, Hz2⟩⟩,
@@ -211,12 +215,13 @@ begin
 end
 end
 
-lemma to_uniform_space_eq {α : Type*} [u : uniform_space α] [add_comm_group α] [uniform_add_group α]:
-  topological_add_group.to_uniform_space α = u :=
+lemma to_uniform_space_eq {G : Type*} [u : uniform_space G] [add_comm_group G]
+  [uniform_add_group G] :
+  topological_add_group.to_uniform_space G = u :=
 begin
   ext : 1,
-  show @uniformity α (topological_add_group.to_uniform_space α) = 𝓤 α,
-  rw [uniformity_eq_comap_nhds_zero' α, uniformity_eq_comap_nhds_zero α]
+  show @uniformity G (topological_add_group.to_uniform_space G) = 𝓤 G,
+  rw [uniformity_eq_comap_nhds_zero' G, uniformity_eq_comap_nhds_zero G]
 end
 
 end topological_add_comm_group
@@ -247,9 +252,8 @@ instance is_Z_bilin.comp_swap : is_Z_bilin (f ∘ prod.swap) :=
 lemma is_Z_bilin.zero_left : ∀ b, f (0, b) = 0 :=
 begin
   intro b,
-  apply add_self_iff_eq_zero.1,
-  rw ←is_Z_bilin.add_left f,
-  simp
+  apply add_right_eq_self.1,
+  rw [ ←is_Z_bilin.add_left f, zero_add]
 end
 
 lemma is_Z_bilin.zero_right : ∀ a, f (a, 0) = 0 :=
@@ -324,7 +328,7 @@ begin
     change e t.2 - e t.1 = e (t.2 - t.1),
     rwa ← is_add_group_hom.map_sub e t.2 t.1 },
   have lim : tendsto (λ x : α × α, x.2-x.1) (𝓝 (x₀, x₀)) (𝓝 (e 0)),
-    { have := (continuous_sub.comp continuous_swap).tendsto (x₀, x₀),
+    { have := (continuous_sub.comp (@continuous_swap α α _ _)).tendsto (x₀, x₀),
       simpa [-sub_eq_add_neg, sub_self, eq.symm (is_add_group_hom.map_zero e)] using this },
   have := de.tendsto_comap_nhds_nhds lim comm,
   simp [-sub_eq_add_neg, this]
@@ -341,7 +345,8 @@ variables [topological_space α] [add_comm_group α] [topological_add_group α]
 variables [topological_space β] [add_comm_group β] [topological_add_group β]
 variables [topological_space γ] [add_comm_group γ] [topological_add_group γ]
 variables [topological_space δ] [add_comm_group δ] [topological_add_group δ]
-variables [uniform_space G] [add_comm_group G] [uniform_add_group G] [separated_space G] [complete_space G]
+variables [uniform_space G] [add_comm_group G] [uniform_add_group G] [separated_space G]
+  [complete_space G]
 variables {e : β → α} [is_add_group_hom e] (de : dense_inducing e)
 variables {f : δ → γ} [is_add_group_hom f] (df : dense_inducing f)
 variables {φ : β × δ → G} (hφ : continuous φ) [bilin : is_Z_bilin φ]
@@ -358,7 +363,8 @@ begin
   let ee := λ u : β × β, (e u.1, e u.2),
 
   have lim1 : tendsto (λ a : β × β, (a.2 - a.1, y₁)) (comap e Nx ×ᶠ comap e Nx) (𝓝 (0, y₁)),
-  { have := tendsto.prod_mk (tendsto_sub_comap_self de x₀) (tendsto_const_nhds : tendsto (λ (p : β × β), y₁) (comap ee $ 𝓝 (x₀, x₀)) (𝓝 y₁)),
+  { have := tendsto.prod_mk (tendsto_sub_comap_self de x₀)
+      (tendsto_const_nhds : tendsto (λ (p : β × β), y₁) (comap ee $ 𝓝 (x₀, x₀)) (𝓝 y₁)),
     rw [nhds_prod_eq, prod_comap_comap_eq, ←nhds_prod_eq],
     exact (this : _) },
 
@@ -417,7 +423,8 @@ begin
             V₁ ∩ V₂, inter_mem_sets V₁_nhd V₂_nhd],
 
   rintros x x' ⟨xU₁, xU₂⟩ ⟨x'U₁, x'U₂⟩ y y' ⟨yV₁, yV₂⟩ ⟨y'V₁, y'V₂⟩,
-  have key_formula : φ(x', y') - φ(x, y) = φ(x' - x, y₁) + φ(x' - x, y' - y₁) + φ(x₁, y' - y) + φ(x - x₁, y' - y),
+  have key_formula : φ(x', y') - φ(x, y) =
+    φ(x' - x, y₁) + φ(x' - x, y' - y₁) + φ(x₁, y' - y) + φ(x - x₁, y' - y),
   { repeat { rw is_Z_bilin.sub_left φ },
     repeat { rw is_Z_bilin.sub_right φ },
     apply eq_of_sub_eq_zero,

@@ -28,7 +28,7 @@ variables {α} [topological_ring α]
 @[norm_cast]
 lemma coe_mul (a b : α) : ((a * b : α) : completion α) = a * b :=
 ((dense_inducing_coe.prod dense_inducing_coe).extend_eq
-  ((continuous_coe α).comp continuous_mul) (a, b)).symm
+  ((continuous_coe α).comp (@continuous_mul α _ _ _)) (a, b)).symm
 
 variables [uniform_add_group α]
 
@@ -53,7 +53,7 @@ end
 
 lemma continuous.mul {β : Type*} [topological_space β] {f g : β → completion α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, f b * g b) :=
-continuous_mul.comp (continuous.prod_mk hf hg)
+continuous_mul.comp (hf.prod_mk hg : _)
 
 instance : ring (completion α) :=
 { one_mul       := assume a, completion.induction_on a

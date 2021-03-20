@@ -49,7 +49,7 @@ open filter metric
 private lemma comp_tendsto_lim {p : ℕ} [fact p.prime] {F : polynomial ℤ_[p]}
   (ncs : cau_seq ℤ_[p] norm) :
   tendsto (λ i, F.eval (ncs i)) at_top (𝓝 (F.eval ncs.lim)) :=
-(F.continuous_eval.tendsto _).comp ncs.tendsto_limit
+F.continuous_at.tendsto.comp ncs.tendsto_limit
 
 section
 parameters {p : ℕ} [fact p.prime] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]} {a : ℤ_[p]}
@@ -170,7 +170,7 @@ have F.derivative.eval z * (-z1) = -F.eval z, from calc
 ... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) : by simp [subtype.ext_iff_val]
 ... = -(⟨↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)), this⟩) : subtype.ext_iff_val.2 $ by simp
 ... = -(F.eval z) : by simp [mul_div_cancel' _ hdzne'],
-have heq : F.eval z' = q * z1^2, by simpa [this, hz'] using hq,
+have heq : F.eval z' = q * z1^2, by simpa [sub_eq_add_neg, this, hz'] using hq,
 ⟨q, heq⟩
 
 private def calc_eval_z'_norm {z z' z1 : ℤ_[p]} {n} (hz : ih n z) {q}

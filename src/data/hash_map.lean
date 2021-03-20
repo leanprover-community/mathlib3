@@ -193,9 +193,9 @@ theorem valid.as_list_nodup {n} {bkts : bucket_array α β n} {sz : nat} (v : va
   (bkts.as_list.map sigma.fst).nodup :=
 begin
   suffices : (bkts.to_list.map (list.map sigma.fst)).pairwise list.disjoint,
-  { simp [bucket_array.as_list, list.nodup_join, this],
-    change ∀ l s, array.mem s bkts → list.map sigma.fst s = l → l.nodup,
-    introv m e, subst e, cases m with i e, subst e,
+  { suffices : ∀ l, array.mem l bkts → (l.map sigma.fst).nodup,
+      by simpa [bucket_array.as_list, list.nodup_join, *],
+    rintros l ⟨i, rfl⟩,
     apply v.nodup },
   rw [← list.enum_map_snd bkts.to_list, list.pairwise_map, list.pairwise_map],
   have : (bkts.to_list.enum.map prod.fst).nodup := by simp [list.nodup_range],

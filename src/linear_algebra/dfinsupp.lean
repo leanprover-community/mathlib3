@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Kenny Lau
+Authors: Johannes Hölzl, Kenny Lau
 -/
 import data.dfinsupp
 import linear_algebra.basic
@@ -32,7 +32,7 @@ much more developed, but many lemmas in that file should be eligible to copy ove
 function with finite support, semimodule, linear algebra
 -/
 
-variables {ι : Type*} {R : Type*} {M : ι → Type*} {N : Type*}
+variables {ι : Type*} {R : Type*} {S : Type*} {M : ι → Type*} {N : Type*}
 
 variables [dec_ι : decidable_eq ι]
 variables [semiring R] [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
@@ -58,9 +58,8 @@ linear_map.to_add_monoid_hom_injective $ add_hom_ext h
 
 /-- Two `R`-linear maps from `Π₀ i, M i` which agree on each `single i x` agree everywhere.
 
-We formulate this fact using equality of linear maps `φ.comp (lsingle a)` and `ψ.comp (lsingle a)`
-so that the `ext` tactic can apply a type-specific extensionality lemma to prove equality of these
-maps. E.g., if `M = R`, then it suffices to verify `φ (single a 1) = ψ (single a 1)`. -/
+See note [partially-applied ext lemmas].
+After apply this lemma, if `M = R` then it suffices to verify `φ (single a 1) = ψ (single a 1)`. -/
 @[ext] lemma lhom_ext' ⦃φ ψ : (Π₀ i, M i) →ₗ[R] N⦄
   (h : ∀ i, φ.comp (lsingle i) = ψ.comp (lsingle i)) :
   φ = ψ :=
@@ -84,11 +83,34 @@ omit dec_ι
 
 @[simp] lemma lapply_apply (i : ι) (f : Π₀ i, M i) : (lapply i : _ →ₗ[R] _) f = f i := rfl
 
+section lsum
+
+/-- Typeclass inference can't find `dfinsupp.add_comm_monoid` without help for this case.
+This instance allows it to be found where it is needed on the LHS of the colon in
+`dfinsupp.semimodule_of_linear_map`. -/
+instance add_comm_monoid_of_linear_map : add_comm_monoid (Π₀ (i : ι), M i →ₗ[R] N) :=
+@dfinsupp.add_comm_monoid _ (λ i, M i →ₗ[R] N) _
+
+/-- Typeclass inference can't find `dfinsupp.semimodule` without help for this case.
+This is needed to define `dfinsupp.lsum` below.
+
+The cause seems to be an inability to unify the `Π i, add_comm_monoid (M i →ₗ[R] N)` instance that
+we have with the `Π i, has_zero (M i →ₗ[R] N)` instance which appears as a parameter to the
+`dfinsupp` type. -/
+instance semimodule_of_linear_map [semiring S] [semimodule S N] [smul_comm_class R S N] :
+  semimodule S (Π₀ (i : ι), M i →ₗ[R] N) :=
+@dfinsupp.semimodule _ (λ i, M i →ₗ[R] N) _ _ _ _
+
+variables (S)
+
 include dec_ι
 
-/-- The `dfinsupp` version of `finsupp.lsum`. -/
+/-- The `dfinsupp` version of `finsupp.lsum`.
+
+See note [bundled maps over different rings] for why separate `R` and `S` semirings are used. -/
 @[simps apply symm_apply]
-def lsum : (Π i, M i →ₗ[R] N) ≃+ ((Π₀ i, M i) →ₗ[R] N) :=
+def lsum [semiring S] [semimodule S N] [smul_comm_class R S N] :
+  (Π i, M i →ₗ[R] N) ≃ₗ[S] ((Π₀ i, M i) →ₗ[R] N) :=
 { to_fun := λ F, {
     to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
     map_add' := (lift_add_hom (λ i, (F i).to_add_monoid_hom)).map_add,
@@ -102,6 +124,9 @@ def lsum : (Π i, M i →ₗ[R] N) ≃+ ((Π₀ i, M i) →ₗ[R] N) :=
   inv_fun := λ F i, F.comp (lsingle i),
   left_inv := λ F, by { ext x y, simp },
   right_inv := λ F, by { ext x y, simp },
-  map_add' := λ F G, by { ext x y, simp } }
+  map_add' := λ F G, by { ext x y, simp },
+  map_smul' := λ c F, by { ext, simp } }
+
+end lsum
 
 end dfinsupp

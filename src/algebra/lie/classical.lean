@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.invertible
-import algebra.lie.basic
-import linear_algebra.matrix
+import algebra.lie.skew_adjoint
+import algebra.lie.abelian
 
 /-!
 # Classical Lie algebras
@@ -44,7 +44,7 @@ For the algebras of type `B` and `D`, there are two natural definitions. For exa
 the `2l × 2l` matrix:
 $$
   J = \left[\begin{array}{cc}
-              0_l & 1_l\\\\
+              0_l & 1_l\\
               1_l & 0_l
             \end{array}\right]
 $$
@@ -81,7 +81,7 @@ namespace special_linear
 
 /-- The special linear Lie algebra: square matrices of trace zero. -/
 def sl : lie_subalgebra R (matrix n n R) :=
-{ lie_mem := λ X Y _ _, linear_map.mem_ker.2 $ matrix_trace_commutator_zero _ _ _ _,
+{ lie_mem' := λ X Y _ _, linear_map.mem_ker.2 $ matrix_trace_commutator_zero _ _ _ _,
   ..linear_map.ker (matrix.trace n R R) }
 
 lemma sl_bracket (A B : sl n R) : ⁅A, B⁆.val = A.val ⬝ B.val - B.val ⬝ A.val := rfl
@@ -115,13 +115,13 @@ def Eb (h : j ≠ i) : sl n R :=
 
 end elementary_basis
 
-lemma sl_non_abelian [nontrivial R] (h : 1 < fintype.card n) : ¬lie_algebra.is_abelian ↥(sl n R) :=
+lemma sl_non_abelian [nontrivial R] (h : 1 < fintype.card n) : ¬is_lie_abelian ↥(sl n R) :=
 begin
   rcases fintype.exists_pair_of_one_lt_card h with ⟨j, i, hij⟩,
   let A := Eb R i j hij,
   let B := Eb R j i hij.symm,
   intros c,
-  have c' : A.val ⬝ B.val = B.val ⬝ A.val := by { rw [←sub_eq_zero, ←sl_bracket, c.abelian], refl, },
+  have c' : A.val ⬝ B.val = B.val ⬝ A.val, by { rw [← sub_eq_zero, ← sl_bracket, c.trivial], refl },
   have : (1 : R) = 0 := by simpa [matrix.mul_apply, hij] using (congr_fun (congr_fun c' i) i),
   exact one_ne_zero this,
 end
@@ -207,20 +207,21 @@ noncomputable def so_indefinite_equiv {i : R} (hi : i*i = -1) : so' p q R ≃ₗ
 begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv
     (indefinite_diagonal p q R) (Pso p q R i) (is_unit_Pso p q R hi)).trans,
-  apply lie_algebra.equiv.of_eq,
+  apply lie_equiv.of_eq,
   ext A, rw indefinite_diagonal_transform p q R hi, refl,
 end
 
 lemma so_indefinite_equiv_apply {i : R} (hi : i*i = -1) (A : so' p q R) :
-  (so_indefinite_equiv p q R hi A : matrix (p ⊕ q) (p ⊕ q) R) = (Pso p q R i)⁻¹ ⬝ (A : matrix (p ⊕ q) (p ⊕ q) R) ⬝ (Pso p q R i) :=
-by erw [lie_algebra.equiv.trans_apply, lie_algebra.equiv.of_eq_apply,
+  (so_indefinite_equiv p q R hi A : matrix (p ⊕ q) (p ⊕ q) R) =
+    (Pso p q R i)⁻¹ ⬝ (A : matrix (p ⊕ q) (p ⊕ q) R) ⬝ (Pso p q R i) :=
+by erw [lie_equiv.trans_apply, lie_equiv.of_eq_apply,
         skew_adjoint_matrices_lie_subalgebra_equiv_apply]
 
 /-- A matrix defining a canonical even-rank symmetric bilinear form.
 
 It looks like this as a `2l x 2l` matrix of `l x l` blocks:
 
-   [ 0 1 ]  
+   [ 0 1 ]
    [ 1 0 ]
 -/
 def JD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 1 1 0
@@ -234,7 +235,7 @@ diagonal matrix.
 
 It looks like this as a `2l x 2l` matrix of `l x l` blocks:
 
-   [ 1 -1 ]  
+   [ 1 -1 ]
    [ 1  1 ]
 -/
 def PD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 1 (-1) 1 1
@@ -277,7 +278,7 @@ noncomputable def type_D_equiv_so' [invertible (2 : R)] :
   type_D l R ≃ₗ⁅R⁆ so' l l R :=
 begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv (JD l R) (PD l R) (is_unit_PD l R)).trans,
-  apply lie_algebra.equiv.of_eq,
+  apply lie_equiv.of_eq,
   ext A,
   rw [JD_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe,
       mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
@@ -288,14 +289,14 @@ end
 
 It looks like this as a `(2l+1) x (2l+1)` matrix of blocks:
 
-   [ 2 0 0 ]  
-   [ 0 0 1 ]  
+   [ 2 0 0 ]
+   [ 0 0 1 ]
    [ 0 1 0 ]
 
 where sizes of the blocks are:
 
-   [`1 x 1` `1 x l` `1 x l`]  
-   [`l x 1` `l x l` `l x l`]  
+   [`1 x 1` `1 x l` `1 x l`]
+   [`l x 1` `l x l` `l x l`]
    [`l x 1` `l x l` `l x l`]
 -/
 def JB := matrix.from_blocks ((2 : R) • 1 : matrix unit unit R) 0 0 (JD l R)
@@ -309,14 +310,14 @@ almost-split-signature diagonal matrix.
 
 It looks like this as a `(2l+1) x (2l+1)` matrix of blocks:
 
-   [ 1 0  0 ]  
-   [ 0 1 -1 ]  
+   [ 1 0  0 ]
+   [ 0 1 -1 ]
    [ 0 1  1 ]
 
 where sizes of the blocks are:
 
-   [`1 x 1` `1 x l` `1 x l`]  
-   [`l x 1` `l x l` `l x l`]  
+   [`1 x 1` `1 x l` `1 x l`]
+   [`l x 1` `l x l` `l x l`]
    [`l x 1` `l x l` `l x l`]
 -/
 def PB := matrix.from_blocks (1 : matrix unit unit R) 0 0 (PD l R)
@@ -358,10 +359,10 @@ begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv_transpose
     (indefinite_diagonal (unit ⊕ l) l R)
     (matrix.reindex_alg_equiv (equiv.sum_assoc punit l l)) (matrix.reindex_transpose _ _)).trans,
-  apply lie_algebra.equiv.of_eq,
+  apply lie_equiv.of_eq,
   ext A,
-  rw [JB_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe, lie_subalgebra.mem_coe,
-      mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
+  rw [JB_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe,
+      lie_subalgebra.mem_coe, mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
   simpa [indefinite_diagonal_assoc],
 end
 

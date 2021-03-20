@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import data.list.sigma
 import testing.slim_check.sampleable
@@ -77,7 +77,8 @@ Creates a string for a given `finmap` and output, `x₀ ↦ y₀, .. xₙ ↦ y�
 for each of the entries. The brackets are provided by the calling function.
 -/
 def repr_aux {α : Type u} [has_repr α] {β : Type v} [has_repr β] (m : list (Σ _ : α, β)) : string :=
-string.join $ list.qsort (λ x y, x < y) (m.map $ λ x, sformat!"{repr $ sigma.fst x} ↦ {repr $ sigma.snd x}, ")
+string.join $ list.qsort (λ x y, x < y)
+  (m.map $ λ x, sformat!"{repr $ sigma.fst x} ↦ {repr $ sigma.snd x}, ")
 
 /--
 Produce a string for a given `total_function`.
@@ -110,7 +111,8 @@ variables [decidable_eq α]
 /-- Shrink a total function by shrinking the lists that represent it. -/
 protected def shrink : shrink_fn (total_function α β)
 | ⟨m, x⟩ := (sampleable.shrink (m, x)).map $ λ ⟨⟨m', x'⟩, h⟩, ⟨⟨list.erase_dupkeys m', x'⟩,
-            lt_of_le_of_lt (by unfold_wf; refine @list.sizeof_erase_dupkeys _ _ _ (@sampleable.wf _ _) _) h ⟩
+            lt_of_le_of_lt
+              (by unfold_wf; refine @list.sizeof_erase_dupkeys _ _ _ (@sampleable.wf _ _) _) h ⟩
 
 variables
  [has_repr α] [has_repr β]
@@ -130,14 +132,16 @@ section sampleable_ext
 open sampleable_ext
 
 @[priority 2000]
-instance pi_pred.sampleable_ext {α : Type u} [sampleable_ext (α → bool)] : sampleable_ext.{u+1} (α → Prop) :=
+instance pi_pred.sampleable_ext {α : Type u} [sampleable_ext (α → bool)] :
+  sampleable_ext.{u+1} (α → Prop) :=
 { proxy_repr := proxy_repr (α → bool),
   interp := λ m x, interp (α → bool) m x,
   sample := sample (α → bool),
   shrink := shrink }
 
 @[priority 2000]
-instance pi_uncurry.sampleable_ext {α : Type u} {β : Type v} {γ : Sort w} [sampleable_ext (α × β → γ)] : sampleable_ext.{(imax (u+1) (v+1) w)} (α → β → γ) :=
+instance pi_uncurry.sampleable_ext {α : Type u} {β : Type v} {γ : Sort w}
+  [sampleable_ext (α × β → γ)] : sampleable_ext.{(imax (u+1) (v+1) w)} (α → β → γ) :=
 { proxy_repr := proxy_repr (α × β → γ),
   interp := λ m x y, interp (α × β → γ) m (x, y),
   sample := sample (α × β → γ),
@@ -159,7 +163,8 @@ We use `Σ` to encode mappings instead of `×` because we
 rely on the association list API defined in `data.list.sigma`.
 -/
 inductive injective_function (α : Type u) : Type u
-| map_to_self (xs : list (Σ _ : α, α)) : xs.map sigma.fst ~ xs.map sigma.snd → list.nodup (xs.map sigma.snd) → injective_function
+| map_to_self (xs : list (Σ _ : α, α)) :
+    xs.map sigma.fst ~ xs.map sigma.snd → list.nodup (xs.map sigma.snd) → injective_function
 
 instance {α} : inhabited (injective_function α) :=
 ⟨ ⟨ [], list.perm.nil, list.nodup_nil ⟩ ⟩
@@ -208,7 +213,8 @@ begin
     { injection h₂ with h₀ h₁, subst h₀,
       cases ys,
       { cases h₁ },
-      { simp only [list.apply_id, to_sigma, option.get_or_else_some, nth, lookup_cons_eq, zip_cons_cons, list.map], } },
+      { simp only [list.apply_id, to_sigma, option.get_or_else_some, nth, lookup_cons_eq,
+                   zip_cons_cons, list.map], } },
     { cases ys,
       { cases h₁ },
       { cases h₀ with _ _ h₀ h₁,
@@ -260,15 +266,14 @@ begin
   intro h,
   dsimp [list.apply_id],
   rw lookup_eq_none.2, refl,
-  simp only [keys, not_exists, to_sigma, exists_and_distrib_right, exists_eq_right, mem_map, comp_app,
-             map_map, prod.exists],
+  simp only [keys, not_exists, to_sigma, exists_and_distrib_right, exists_eq_right, mem_map,
+             comp_app, map_map, prod.exists],
   intros y hy,
   exact h (mem_zip hy).1,
 end
 
-lemma apply_id_injective {α : Type u} [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs) (h₁ : xs ~ ys) :
-  injective.{u+1 u+1}
-    (list.apply_id (xs.zip ys)) :=
+lemma apply_id_injective {α : Type u} [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs)
+  (h₁ : xs ~ ys) : injective.{u+1 u+1} (list.apply_id (xs.zip ys)) :=
 begin
   intros x y h,
   by_cases hx : x ∈ xs;
@@ -304,7 +309,8 @@ open sampleable
 Remove a slice of length `m` at index `n` in a list and a permutation, maintaining the property
 that it is a permutation.
 -/
-def perm.slice {α} [decidable_eq α] (n m : ℕ) : (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup) → (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup)
+def perm.slice {α} [decidable_eq α] (n m : ℕ) :
+  (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup) → (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup)
 | ⟨xs, ys, h, h'⟩ :=
   let xs' := list.slice n m xs in
   have h₀ : xs' ~ ys.inter xs',
@@ -329,7 +335,8 @@ The sizes of the slice being removed start at `n` (with `n` the length
 of the list) and then `n / 2`, then `n / 4`, etc down to 1. The slices
 will be taken at index `0`, `n / k`, `2n / k`, `3n / k`, etc.
 -/
-protected def shrink_perm {α} [decidable_eq α] [has_sizeof α] : shrink_fn (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup)
+protected def shrink_perm {α} [decidable_eq α] [has_sizeof α] :
+  shrink_fn (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup)
 | xs := do
   let k := xs.1.length,
   n ← slice_sizes k,
@@ -398,8 +405,10 @@ instance pi_injective.sampleable_ext : sampleable_ext { f : ℤ → ℤ // funct
   sample := gen.sized $ λ sz, do {
     let xs' := int.range (-(2*sz+2)) (2*sz + 2),
     ys ← gen.permutation_of xs',
-    have Hinj : injective (λ (r : ℕ), -(2*sz + 2 : ℤ) + ↑r), from λ x y h, int.coe_nat_inj (add_right_injective _ h),
-    let r : injective_function ℤ := injective_function.mk.{0} xs' ys.1 ys.2 (ys.2.nodup_iff.1 $ nodup_map Hinj (nodup_range _)) in
+    have Hinj : injective (λ (r : ℕ), -(2*sz + 2 : ℤ) + ↑r),
+      from λ x y h, int.coe_nat_inj (add_right_injective _ h),
+    let r : injective_function ℤ :=
+      injective_function.mk.{0} xs' ys.1 ys.2 (ys.2.nodup_iff.1 $ nodup_map Hinj (nodup_range _)) in
     pure r },
   shrink := @injective_function.shrink ℤ _ _ }
 
@@ -408,11 +417,13 @@ end injective_function
 open function
 
 instance injective.testable {α β} (f : α → β)
-  [I : testable (named_binder "x" $ ∀ x : α, named_binder "y" $ ∀ y : α, named_binder "H" $ f x = f y → x = y)] :
+  [I : testable (named_binder "x" $
+    ∀ x : α, named_binder "y" $ ∀ y : α, named_binder "H" $ f x = f y → x = y)] :
   testable (injective f) := I
 
 instance monotone.testable {α β} [preorder α] [preorder β] (f : α → β)
-  [I : testable (named_binder "x" $ ∀ x : α, named_binder "y" $ ∀ y : α, named_binder "H" $ x ≤ y → f x ≤ f y)] :
+  [I : testable (named_binder "x" $
+    ∀ x : α, named_binder "y" $ ∀ y : α, named_binder "H" $ x ≤ y → f x ≤ f y)] :
   testable (monotone f) := I
 
 end slim_check

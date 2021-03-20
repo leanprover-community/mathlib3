@@ -2,17 +2,22 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
-
-Integer power operation on fields.
 -/
-import algebra.group_with_zero_power
+import algebra.group_with_zero.power
 import tactic.linarith
+
+/-!
+# Integer power operation on fields and division rings
+
+This file collects basic facts about the operation of raising an element of a `division_ring` to an
+integer power. More specialised results are provided in the case of a linearly ordered field.
+-/
 
 universe u
 
 @[simp] lemma ring_hom.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K →+* L) :
   ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
-f.to_monoid_hom.map_fpow f.map_zero
+f.to_monoid_with_zero_hom.map_fpow
 
 @[simp] lemma neg_fpow_bit0 {K : Type*} [division_ring K] (x : K) (n : ℤ) :
   (-x) ^ (bit0 n) = x ^ bit0 n :=

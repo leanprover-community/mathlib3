@@ -1,10 +1,10 @@
 /-
 Copyright © 2020 Nicolò Cavalleri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Nicolò Cavalleri.
+Authors: Nicolò Cavalleri
 -/
 
-import algebra.lie.basic
+import algebra.lie.of_associative
 import ring_theory.algebra_tower
 
 /-!
@@ -71,8 +71,7 @@ coe_injective $ funext H
 @[simp] lemma map_one_eq_zero : D 1 = 0 :=
 begin
   have h : D 1 = D (1 * 1) := by rw mul_one,
-  rw [leibniz D 1 1, one_smul] at h,
-  exact eq_zero_of_left_cancel_add_self h,
+  rwa [leibniz D 1 1, one_smul, self_eq_add_right] at h
 end
 
 @[simp] lemma map_algebra_map : D (algebra_map R A r) = 0 :=
@@ -141,8 +140,13 @@ variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 instance : add_comm_group (derivation R A M) :=
 { neg := λ D, ⟨-D, λ a b, by simp only [linear_map.neg_apply, smul_neg, neg_add_rev, leibniz,
     linear_map.to_fun_eq_coe, coe_fn_coe, add_comm]⟩,
+  sub := λ D1 D2, ⟨D1 - D2, λ a b, by { simp only [linear_map.to_fun_eq_coe, linear_map.sub_apply,
+    leibniz, coe_fn_coe, smul_sub], abel }⟩,
+  sub_eq_add_neg := λ D1 D2, ext (λ i, sub_eq_add_neg _ _),
   add_left_neg := λ D, ext $ λ a, add_left_neg _,
   ..derivation.add_comm_monoid }
+
+@[simp] lemma sub_apply : (D1 - D2) a = D1 a - D2 a := rfl
 
 end
 
@@ -152,24 +156,26 @@ section lie_structures
 
 variables (D : derivation R A A) {D1 D2 : derivation R A A} (r : R) (a b : A)
 
-open ring_commutator
-
 /-- The commutator of derivations is again a derivation. -/
 def commutator (D1 D2 : derivation R A A) : derivation R A A :=
-⟨⁅D1, D2⁆, λ a b, by {simp only [commutator, map_add, id.smul_eq_mul, linear_map.mul_app,
-  leibniz, linear_map.to_fun_eq_coe, coe_fn_coe, linear_map.sub_apply], ring }⟩
+{ leibniz' := λ a b, by
+  { simp only [ring.lie_def, map_add, id.smul_eq_mul, linear_map.mul_apply, leibniz,
+               linear_map.to_fun_eq_coe, coe_fn_coe, linear_map.sub_apply], ring, },
+  ..⁅(D1 : module.End R A), (D2 : module.End R A)⁆, }
 
-instance : has_bracket (derivation R A A) := ⟨derivation.commutator⟩
+instance : has_bracket (derivation R A A) (derivation R A A) := ⟨derivation.commutator⟩
 
-@[simp] lemma commutator_coe_linear_map : ↑⁅D1, D2⁆ = (⁅D1, D2⁆ : A →ₗ[R] A) := rfl
+@[simp] lemma commutator_coe_linear_map :
+  ↑⁅D1, D2⁆ = ⁅(D1 : module.End R A), (D2 : module.End R A)⁆ := rfl
 
 lemma commutator_apply : ⁅D1, D2⁆ a = D1 (D2 a) - D2 (D1 a) := rfl
 
 instance : lie_ring (derivation R A A) :=
-{ add_lie := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring },
-  lie_add := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring },
-  lie_self := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring },
-  jacobi := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_sub], ring } }
+{ add_lie     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
+  lie_add     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
+  lie_self    := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
+  leibniz_lie := λ d e f,
+    by { ext a, simp only [commutator_apply, add_apply, sub_apply, map_sub], ring, } }
 
 instance : lie_algebra R (derivation R A A) :=
 { lie_smul := λ r d e, by { ext a, simp only [commutator_apply, map_smul, smul_sub, Rsmul_apply]},
@@ -196,7 +202,8 @@ def comp_der (f : M →ₗ[A] N) (D : derivation R A M) : derivation R A N :=
 { to_fun := λ a, f (D a),
   map_add' := λ a1 a2, by rw [D.map_add, f.map_add],
   map_smul' := λ r a, by rw [derivation.map_smul, map_smul_of_tower],
-  leibniz' := λ a b, by simp only [derivation.leibniz, linear_map.map_smul, linear_map.map_add, add_comm] }
+  leibniz' := λ a b, by simp only [derivation.leibniz, linear_map.map_smul, linear_map.map_add,
+                                   add_comm] }
 
 @[simp] lemma comp_der_apply (f : M →ₗ[A] N) (D : derivation R A M) (a : A) :
   f.comp_der D a = f (D a) := rfl

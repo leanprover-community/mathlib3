@@ -250,19 +250,19 @@ variables {f' : M →ₗ[R] M}
 lemma iterate_succ (n : ℕ) : (f' ^ (n + 1)) = comp (f' ^ n) f' :=
 by rw [pow_succ', mul_eq_comp]
 
-lemma iterate_surj (h : surjective f') : ∀ n : ℕ, surjective ⇑(f' ^ n)
+lemma iterate_surjective (h : surjective f') : ∀ n : ℕ, surjective ⇑(f' ^ n)
 | 0       := surjective_id
-| (n + 1) := by { rw [iterate_succ], exact surjective.comp (iterate_surj n) h, }
+| (n + 1) := by { rw [iterate_succ], exact surjective.comp (iterate_surjective n) h, }
 
-lemma iterate_inj (h : injective f') : ∀ n : ℕ, injective ⇑(f' ^ n)
+lemma iterate_injective (h : injective f') : ∀ n : ℕ, injective ⇑(f' ^ n)
 | 0       := injective_id
-| (n + 1) := by { rw [iterate_succ], exact injective.comp (iterate_inj n) h, }
+| (n + 1) := by { rw [iterate_succ], exact injective.comp (iterate_injective n) h, }
 
-lemma iterate_bij (h : bijective f') : ∀ n : ℕ, bijective ⇑(f' ^ n)
+lemma iterate_bijective (h : bijective f') : ∀ n : ℕ, bijective ⇑(f' ^ n)
 | 0       := bijective_id
-| (n + 1) := by { rw [iterate_succ], exact bijective.comp (iterate_bij n) h, }
+| (n + 1) := by { rw [iterate_succ], exact bijective.comp (iterate_bijective n) h, }
 
-lemma inj_of_iterate_inj {n : ℕ} (hn : n ≠ 0) (h : injective ⇑(f' ^ n)) : injective f' :=
+lemma injective_of_iterate_injective {n : ℕ} (hn : n ≠ 0) (h : injective ⇑(f' ^ n)) : injective f' :=
 begin
   rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), iterate_succ, ←comp_coe] at h,
   exact injective.of_comp h,

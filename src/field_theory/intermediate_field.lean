@@ -345,7 +345,7 @@ by { rw [subalgebra.ext_iff, intermediate_field.ext'_iff, set.ext_iff], refl }
 
 lemma eq_of_le_of_findim_le [finite_dimensional K L] (h_le : F ≤ E)
   (h_findim : findim K E ≤ findim K F) : F = E :=
-intermediate_field.ext'_iff.mpr (submodule.ext'_iff.mp (eq_of_le_of_findim_le
+intermediate_field.ext'_iff.mpr (set_like.ext'_iff.mp (eq_of_le_of_findim_le
   (show F.to_subalgebra.to_submodule ≤ E.to_subalgebra.to_submodule, by exact h_le) h_findim))
 
 lemma eq_of_le_of_findim_eq [finite_dimensional K L] (h_le : F ≤ E)

@@ -175,7 +175,7 @@ begin
     convert inv_eq_of_root_of_coeff_zero_ne_zero _ coeff_zero_ne,
     { rw subalgebra.aeval_coe },
     { simpa using aeval_eq } },
-  rw [this, div_eq_mul_inv, aeval_eq, submodule.coe_zero, zero_sub, ← ring_hom.map_neg,
+  rw [this, div_eq_mul_inv, aeval_eq, subalgebra.coe_zero, zero_sub, ← ring_hom.map_neg,
       ← ring_hom.map_inv],
   exact A.mul_mem (aeval x p.div_X).2 (A.algebra_map_mem _),
 end
@@ -183,7 +183,7 @@ end
 lemma subalgebra.inv_mem_of_algebraic {x : A} (hx : is_algebraic K (x : L)) : (x⁻¹ : L) ∈ A :=
 begin
   obtain ⟨p, ne_zero, aeval_eq⟩ := hx,
-  rw [subalgebra.aeval_coe, coe_eq_zero] at aeval_eq,
+  rw [subalgebra.aeval_coe, subalgebra.coe_eq_zero] at aeval_eq,
   revert ne_zero aeval_eq,
   refine p.rec_on_horner _ _ _,
   { intro h,
@@ -203,7 +203,7 @@ end
 lemma subalgebra.is_field_of_algebraic (hKL : algebra.is_algebraic K L) : is_field A :=
 { mul_inv_cancel := λ a ha, ⟨
         ⟨a⁻¹, A.inv_mem_of_algebraic (hKL a)⟩,
-        subtype.ext (mul_inv_cancel (mt submodule.coe_eq_zero.mp ha))⟩,
+        subtype.ext (mul_inv_cancel (mt (subalgebra.coe_eq_zero _).mp ha))⟩,
   .. subalgebra.integral_domain A }
 
 end field

@@ -413,22 +413,45 @@ begin
     rw [pow_mul, pow_order_of_eq_one] }
 end
 
+attribute [to_additive add_order_of_nsmul''] order_of_pow''
+
 end monoid
 
 section cancel_monoid
 variables {α} [left_cancel_monoid α] (a)
+variables {H : Type u} [add_left_cancel_monoid H] (x : H)
+
+/-- TODO: Why is it not possible to mark this lemma as the additive version of the next? It is
+possible if the private is removed though.-/
+private lemma nsmul_injective_aux {n m : ℕ} (h : n ≤ m)
+  (hn : n < add_order_of x) (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=
+by_contradiction $ assume ne : n ≠ m,
+  have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
+  have h₂ : m = n + (m - n) := (nat.add_sub_of_le h).symm,
+  have h₃ : (m - n) •ℕ x = 0,
+    by { rw [h₂, add_nsmul] at eq, apply add_left_cancel, convert eq.symm, exact add_zero _ },
+  have le : add_order_of x ≤ m - n := add_order_of_le_of_nsmul_eq_zero h₁ h₃,
+  have lt : m - n < add_order_of x,
+    from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
+  lt_irrefl _ (lt_of_le_of_lt le lt)
 
 private lemma pow_injective_aux {n m : ℕ} (h : n ≤ m)
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 by_contradiction $ assume ne : n ≠ m,
   have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
-  have h₃ : m = n + (m - n), begin exact (nat.add_sub_of_le h).symm end,
-  have h₂ : a ^ (m - n) = 1,
-    by { rw [h₃, pow_add] at eq, apply mul_left_cancel, convert eq.symm, exact mul_one (a ^ n) },
-  have le : order_of a ≤ m - n, from order_of_le_of_pow_eq_one h₁ h₂,
+  have h₂ : m = n + (m - n) := (nat.add_sub_of_le h).symm,
+  have h₃ : a ^ (m - n) = 1,
+    by { rw [h₂, pow_add] at eq, apply mul_left_cancel, convert eq.symm, exact mul_one (a ^ n) },
+  have le : order_of a ≤ m - n, from order_of_le_of_pow_eq_one h₁ h₃,
   have lt : m - n < order_of a,
     from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
   lt_irrefl _ (lt_of_le_of_lt le lt)
+
+lemma nsmul_injective_of_lt_add_order_of {n m : ℕ}
+  (hn : n < add_order_of x) (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=
+(le_total n m).elim
+  (assume h, nsmul_injective_aux x h hn hm eq)
+  (assume h, (nsmul_injective_aux x h hm hn eq.symm).symm)
 
 lemma pow_injective_of_lt_order_of {n m : ℕ}
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
@@ -436,16 +459,27 @@ lemma pow_injective_of_lt_order_of {n m : ℕ}
   (assume h, pow_injective_aux a h hn hm eq)
   (assume h, (pow_injective_aux a h hm hn eq.symm).symm)
 
+attribute [to_additive nsmul_injective_of_lt_add_order_of] pow_injective_of_lt_order_of
+
 end cancel_monoid
 
 section group
 variables {α} [group α] {a}
+variables {H : Type u} [add_group H] {x : H}
+
+lemma gsmul_eq_mod_order_of {i : ℤ} : i •ℤ x = (i % add_order_of x) •ℤ x :=
+calc i •ℤ x = (i / add_order_of x * add_order_of x + i % add_order_of x) •ℤ x :
+    by rw [int.div_add_mod']
+        ... = (i % add_order_of x) •ℤ x :
+    by { simp [add_gsmul, gsmul_mul, add_order_of_nsmul_eq_zero] }
 
 lemma gpow_eq_mod_order_of {i : ℤ} : a ^ i = a ^ (i % order_of a) :=
 calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
     by rw [int.mod_add_div]
-  ... = a ^ (i % order_of a) :
+       ... = a ^ (i % order_of a) :
     by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
+
+attribute [to_additive gsmul_eq_mod_order_of] gpow_eq_mod_order_of
 
 end group
 

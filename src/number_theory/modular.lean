@@ -377,39 +377,136 @@ def line (cd : coprime_ints) : set (matrix (fin 2) (fin 2) ℝ) :=
 
 lemma line_proper (cd : coprime_ints) :
   map coe (cocompact (line cd)) = cocompact (matrix (fin 2) (fin 2) ℝ) :=
-sorry
+begin
+
+  sorry
+end
 
 -- make `line` an affine subspace of 2x2 matrices, using the following lemma
 lemma line_det (cd : coprime_ints) {g : matrix _ _ ℝ} (hg : g ∈ line cd) :
   g 0 0 * cd.1.2 - g 0 1 * cd.1.1 = 1 :=
 begin
-  sorry
+  convert hg.2.2,
+  rw [det2, hg.1, hg.2.1],
+  ring,
 end
 
 lemma in_line (cd : coprime_ints) {g : SL(2, ℤ)} (hg : bottom_row g = cd) :
   ↑(g : SL(2, ℝ)) ∈ line cd :=
-sorry
+begin
+  rw line,
+  rw set.mem_set_of_eq,
+  rw bottom_row at hg,
+  simp only [subtype.val_eq_coe] at hg,
+  split,
+  simp [hg],
+  sorry,
+  split,
+  simp [hg],
+  sorry,
+  exact (g: SL(2,ℝ)).2,
+end
 
 def to_line (cd : coprime_ints) (g : bottom_row ⁻¹' {cd}) : line cd :=
 ⟨↑(g : SL(2, ℝ)), in_line cd g.2⟩
 
-lemma tendsto_line (cd : coprime_ints) : tendsto (to_line cd) cofinite (cocompact _) := sorry
+lemma tendsto_line (cd : coprime_ints) : tendsto (to_line cd) cofinite (cocompact _) :=
+begin
 
-def lattice_intersect {k : ℕ} (A : affine_subspace ℝ (fin k → ℝ)) : set (fin k → ℤ) :=
+  sorry
+end
+
+def lattice_intersect {k : ℕ} (A : set (fin k → ℝ)) : set (fin k → ℤ) :=
 (λ p, (coe : ℤ → ℝ) ∘ p) ⁻¹' (A : set (fin k → ℝ))
 
-def lattice_intersect_fun {k : ℕ} (A : affine_subspace ℝ (fin k → ℝ)) :
+def lattice_intersect_fun {k : ℕ} (A : set (fin k → ℝ)) :
   lattice_intersect A → A :=
 λ q, ⟨(coe : ℤ → ℝ) ∘ q, begin
   cases q with q hq,
   simpa [lattice_intersect] using hq
 end⟩
 
+/-
+lemma subsomething {k : ℕ} (A : affine_subspace ℝ (fin k → ℝ)) (S : set A)
+  (h : is_compact S) : ∃ (T : set (fin k → ℝ)), ∀ p ∈ S, (p: (fin k → ℝ)) ∈ T :=
+begin
+--  use S,
+  sorry,
+end
+-/
+
+lemma cocompact_ℝ_to_cofinite_ℤ (k : ℕ) :
+tendsto ((λ (p : (fin k) → ℤ), (coe : ℤ → ℝ) ∘ p)) cofinite (cocompact ((fin k) → ℝ))
+:=
+begin
+  rw tendsto_def,
+  intros s h,
+  rw mem_cofinite,
+  rw mem_cocompact' at h,
+  obtain ⟨t, ht1, ht2⟩ := h,
+  have scbdd := metric.bounded.subset ht2 (is_compact.bounded ht1),
+  refine finite_of_is_compact_of_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ) _,
+  have scclosed := is_closed_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
+  have scbdd_coe : metric.bounded (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
+  {
+    simp [scbdd],
+    ----- Help???
+    sorry,
+  },
+  refine metric.compact_iff_closed_bounded.mpr _,
+  split,
+  exact scclosed,
+  exact scbdd_coe,
+end
+
+
 /-- lemma about intersection of affine subspaces with integer lattice -/
-lemma tendsto_affine (k : ℕ) (A : affine_subspace ℝ (fin k → ℝ)) :
+lemma tendsto_affine (k : ℕ) (A : set (fin k → ℝ)) :
   tendsto (lattice_intersect_fun A) cofinite (cocompact _) :=
 begin
+--  rw tendsto_def,
+  intros s h,
+  rw mem_cocompact' at h,
+  obtain ⟨t, ht1, ht2⟩ := h,
+  let t1 := (coe : A → (fin k → ℝ)) '' t,
+  have t1cpt : t1ᶜ ∈ cocompact (fin k → ℝ),
+  { have : is_compact t1,
+    { refine (embedding.compact_iff_compact_image _).mp ht1,
+      exact embedding_subtype_coe },
+    rw mem_cocompact',
+    use t1,
+    split,
+    exact this,
+    rw compl_compl },
+  have scomplInt1 : (coe : A → (fin k) → ℝ) '' (sᶜ) ⊆ t1 := set.image_subset coe ht2,
+  have := cocompact_ℝ_to_cofinite_ℤ k,
+  rw tendsto_def at this,
+  have := this t1ᶜ t1cpt,
+  simp [cofinite],
+  simp [cofinite] at this,
+
+  have := set.finite.image coe this,
+  simp [t1] at this,
+
+  rw lattice_intersect_fun,
+  simp,
+
+/-
+  have : (function.comp coe ⁻¹' (coe '' t)) = t,
+  {
+
+    sorry,
+  },
+  -- {x : ↥(lattice_intersect A) | lattice_intersect_fun A x ∈ s}
+-/
+  -- pullback of finite set under injective is finite
+
+--  refine this.subset _,
+
+
   -- assume rationality of `A` if needed
+
+  repeat {sorry},
 end
 
 

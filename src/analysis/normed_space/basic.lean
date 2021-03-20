@@ -1305,6 +1305,33 @@ instance submodule.semi_normed_space {𝕜 : Type*} [normed_field 𝕜]
   semi_normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
 
+/-- If there is a scalar `c` with `∥c∥>1`, then any element of with norm different from `0` can be
+moved by scalar multiplication to any shell of width `∥c∥`. Also recap information on the norm of
+the rescaling element that shows up in applications. -/
+lemma rescale_to_shell_semi_normed {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : ∥x∥ ≠ 0) :
+  ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
+begin
+  have xεpos : 0 < ∥x∥/ε := div_pos ((ne.symm hx).le_iff_lt.1 (norm_nonneg x)) εpos,
+  rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,
+  have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
+  have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_fpow, exact lt_trans xεpos hn.2 },
+  refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
+  show (c ^ (n + 1))⁻¹  ≠ 0,
+    by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
+  show ∥(c ^ (n + 1))⁻¹ • x∥ < ε,
+  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_fpow],
+    exact (div_lt_iff εpos).1 (hn.2) },
+  show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
+  { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
+        fpow_one, mul_inv_rev', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
+    exact (le_div_iff εpos).1 hn.1 },
+  show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
+  { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
+    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), fpow_one, this, ← div_eq_inv_mul],
+    exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
+end
+
 end semi_normed_space
 
 section normed_space
@@ -1348,27 +1375,7 @@ any shell of width `∥c∥`. Also recap information on the norm of the rescalin
 up in applications. -/
 lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
   ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
-begin
-  have xεpos : 0 < ∥x∥/ε := div_pos (norm_pos_iff.2 hx) εpos,
-  rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,
-  have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
-  have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_fpow, exact lt_trans xεpos hn.2 },
-  refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
-  show (c ^ (n + 1))⁻¹  ≠ 0,
-    by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
-  show ∥(c ^ (n + 1))⁻¹ • x∥ < ε,
-  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_fpow],
-    exact (div_lt_iff εpos).1 (hn.2) },
-  show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
-  { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
-        fpow_one, mul_inv_rev', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
-        one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
-    exact (le_div_iff εpos).1 hn.1 },
-  show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
-  { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), fpow_one, this, ← div_eq_inv_mul],
-    exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
-end
+rescale_to_shell_semi_normed hc εpos (ne_of_lt (norm_pos_iff.2 hx)).symm
 
 /-- The product of two normed spaces is a normed space, with the sup norm. -/
 instance : normed_space α (E × F) := { norm_smul_le := semi_normed_space.norm_smul_le }

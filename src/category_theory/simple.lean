@@ -7,6 +7,24 @@ import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
 import category_theory.abelian.basic
 
+/-!
+# Simple objects
+
+We define simple objects in any category with zero morphisms.
+A simple object is an object `Y` such that any monomorphism `f : X ⟶ Y`
+is either an isomorphism or zero (but not both).
+
+This is formalized as a `Prop` valued typeclass `simple X`.
+
+If a morphism `f` out of a simple object is nonzero and has a kernel, then that kernel is zero.
+(We state this as `kernel.ι f = 0`, but should add `kernel f ≅ 0`.)
+
+When the category is abelian, being simple is the same as being cosimple (although we do not
+state a separate typeclass for this).
+As a consequence, any nonzero epimorphism out of a simple object is an isomorphism,
+and any nonzero morphism into a simple object has trivial cokernel.
+-/
+
 noncomputable theory
 
 open category_theory.limits

@@ -271,6 +271,10 @@
   title  : Fourier Series
 77:
   title  : Sum of kth powers
+  decls  :
+    - sum_range_pow
+    - sum_range_pow'
+  author : mathlib (Moritz Firsching, Fabian Kruse, Ashvni Narayanan)
 78:
   title  : The Cauchy-Schwarz Inequality
   decls  :
@@ -300,9 +304,9 @@
   author : Floris van Doorn
 83:
   title  : The Friendship Theorem
-  links:
+  links  :
     mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/83_friendship_graphs.lean
-  author: Aaron Anderson, Jalex Stark, Kyle Miller
+  author : Aaron Anderson, Jalex Stark, Kyle Miller
 84:
   title  : Morley’s Theorem
 85:

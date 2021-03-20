@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import topology.metric_space.lipschitz
+import topology.uniform_space.complete_separated
 
 /-!
 # Antilipschitz functions
@@ -55,8 +56,8 @@ if `K` is given by a long formula, and we want to reuse this value. -/
 @[nolint unused_arguments] -- uses neither `f` nor `hf`
 protected def K (hf : antilipschitz_with K f) : ℝ≥0 := K
 
-protected lemma injective {α : Type*} {β : Type*} [emetric_space α] [emetric_space β] {K : ℝ≥0}
-  {f : α → β} (hf : antilipschitz_with K f) : function.injective f :=
+protected lemma injective {α : Type*} {β : Type*} [emetric_space α] [pseudo_emetric_space β]
+  {K : ℝ≥0} {f : α → β} (hf : antilipschitz_with K f) : function.injective f :=
 λ x y h, by simpa only [h, edist_self, mul_zero, edist_le_zero] using hf x y
 
 lemma mul_le_edist (hf : antilipschitz_with K f) (x y : α) :
@@ -107,7 +108,7 @@ begin
   rwa [hg x, hg y] at this
 end
 
-lemma uniform_embedding {α : Type*} {β : Type*} [emetric_space α] [emetric_space β] {K : ℝ≥0}
+lemma uniform_embedding {α : Type*} {β : Type*} [emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
   {f : α → β} (hf : antilipschitz_with K f) (hfc : uniform_continuous f) : uniform_embedding f :=
 begin
   refine emetric.uniform_embedding_iff.2 ⟨hf.injective, hfc, λ δ δ0, _⟩,
@@ -120,6 +121,17 @@ begin
       have := ennreal.mul_lt_of_lt_div hxy,
       rwa mul_comm } }
 end
+
+lemma closed_embedding {α : Type*} {β : Type*} [emetric_space α] [emetric_space β] {K : ℝ≥0}
+  {f : α → β} [complete_space α] (hf : antilipschitz_with K f) (hfc : uniform_continuous f) :
+  closed_embedding f :=
+{ closed_range :=
+  begin
+    apply is_complete.is_closed,
+    rw ← complete_space_iff_is_complete_range (hf.uniform_embedding hfc),
+    apply_instance,
+  end,
+  .. (hf.uniform_embedding hfc).embedding }
 
 lemma subtype_coe (s : set α) : antilipschitz_with 1 (coe : s → α) :=
 antilipschitz_with.id.restrict s

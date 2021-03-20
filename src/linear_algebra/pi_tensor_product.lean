@@ -408,7 +408,7 @@ linear_map.congr_fun (lift_comp_reindex e φ) x
 @[simp] lemma reindex_trans (e : ι ≃ ι₂) (e' : ι₂ ≃ ι₃) :
   (reindex R M e).trans (reindex R M e') = reindex R M (e.trans e') :=
 begin
-  apply linear_equiv.injective_to_linear_map,
+  apply linear_equiv.to_linear_map_injective,
   ext f,
   simp only [linear_equiv.trans_apply, linear_equiv.coe_coe, reindex_tprod,
     linear_map.coe_comp_multilinear_map, function.comp_app, multilinear_map.dom_dom_congr_apply,
@@ -421,7 +421,7 @@ end
 
 @[simp] lemma reindex_refl : reindex R M (equiv.refl ι) = linear_equiv.refl R _ :=
 begin
-  apply linear_equiv.injective_to_linear_map,
+  apply linear_equiv.to_linear_map_injective,
   ext1,
   rw [reindex_comp_tprod, linear_equiv.refl_to_linear_map, equiv.refl_symm],
   refl,

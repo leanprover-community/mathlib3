@@ -15,11 +15,11 @@ import order.pfilter
 Throughout this file, `P` is at least a preorder, but some sections require more
 structure, such as a bottom element, a top element, or a join-semilattice structure.
 
-- `prime_pair`: A pair of an `ideal` and a `pfilter` which form a partition of `P`.
-                This is useful as giving the data of a prime ideal is the same
-                as giving the data of a prime pfilter.
-- `is_prime`: a predicate for prime ideals.
-              Dual to the notion of a prime filter.
+- `order.ideal.prime_pair`: A pair of an `ideal` and a `pfilter` which form a partition of `P`.
+  This is useful as giving the data of a prime ideal is the same as giving the data of a prime
+  filter.
+- `order.ideal.is_prime`: a predicate for prime ideals. Dual to the notion of a prime filter.
+- `order.pfilter.is_prime`: a predicate for prime filters. Dual to the notion of a prime ideal.
 
 ## References
 
@@ -35,11 +35,11 @@ namespace order
 
 variables {P : Type*}
 
-namespace ideal
-
 section preorder
 
 variables [preorder P]
+
+namespace ideal
 
 /-- A pair of an `ideal` and a `pfilter` which form a partition of `P`.
 -/
@@ -50,9 +50,11 @@ structure prime_pair (P : Type*) [preorder P] :=
 (disjoint : (I : set P) ∩ F = ∅)
 (cover    : (I : set P) ∪ F = set.univ)
 
-lemma prime_pair.ideal_compl_eq_pfilter {IF : prime_pair P} : (IF.I : set P)ᶜ = IF.F :=
-set.subset.antisymm (set.compl_subset_iff_union.2 IF.cover)
-(set.subset_compl_comm.mp (set.subset_compl_iff_disjoint.2 IF.disjoint))
+lemma prime_pair.ideal_compl_eq_pfilter (IF : prime_pair P) : (IF.I : set P)ᶜ = IF.F :=
+compl_unique IF.disjoint IF.cover
+
+lemma prime_pair.pfilter_compl_eq_ideal (IF : prime_pair P) : (IF.F : set P)ᶜ = IF.I :=
+compl_unique (by { rw inf_comm, exact IF.disjoint }) (by { rw sup_comm, exact IF.cover })
 
 lemma prime_pair.ideal_is_proper (IF : prime_pair P) : is_proper IF.I :=
 begin
@@ -65,17 +67,41 @@ end
 -/
 @[mk_iff] class is_prime (I : ideal P) extends is_proper I : Prop :=
 (compl_filter : is_pfilter ((I : set P)ᶜ))
-/-- Create an element of type `order.prime_pair` from an ideal satisfying the predicate
-`order.is_prime`. -/
+
+/-- Create an element of type `order.ideal.prime_pair` from an ideal satisfying the predicate
+`order.ideal.is_prime`. -/
 def is_prime.to_prime_pair {I : ideal P} (h : is_prime I) : prime_pair P :=
-⟨I, h.compl_filter.to_pfilter, set.inter_compl_self _, set.union_compl_self _⟩
+{ I        := I,
+  F        := h.compl_filter.to_pfilter,
+  disjoint := set.inter_compl_self _,
+  cover    := set.union_compl_self _ }
 
 lemma prime_pair.is_prime (IF : prime_pair P) : is_prime IF.I :=
-{ compl_filter := by {rw prime_pair.ideal_compl_eq_pfilter, exact (IF.F).is_pfilter},
+{ compl_filter := by { rw IF.ideal_compl_eq_pfilter, exact (IF.F).is_pfilter },
   ..IF.ideal_is_proper }
 
-end preorder
-
 end ideal
+
+namespace pfilter
+
+/-- An ideal `I` is prime if its complement is a filter.
+-/
+@[mk_iff] class is_prime (I : pfilter P) : Prop :=
+(compl_ideal : is_ideal ((I : set P)ᶜ))
+
+/-- Create an element of type `order.ideal.prime_pair` from a filter satisfying the predicate
+`order.pfilter.is_prime`. -/
+def is_prime.to_prime_pair {F : pfilter P} (h : is_prime F) : ideal.prime_pair P :=
+{ I        := h.compl_ideal.to_ideal,
+  F        := F,
+  disjoint := set.compl_inter_self _,
+  cover    := set.compl_union_self _ }
+
+lemma _root_.order.ideal.prime_pair.pfilter_is_prime (IF : ideal.prime_pair P) : is_prime IF.2 :=
+{ compl_ideal := by { rw IF.pfilter_compl_eq_ideal, exact IF.I.is_ideal } }
+
+end pfilter
+
+end preorder
 
 end order

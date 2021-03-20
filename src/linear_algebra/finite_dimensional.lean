@@ -1074,7 +1074,7 @@ begin
 
   -- To show `b i ∈ span (b '' (univ \ {i}))`, we use that it's a weighted sum
   -- of the other `b j`s.
-  rw [j_eq, mem_coe, show b i = -((g i)⁻¹ • (s.erase i).sum (λ j, g j • b j)), from _],
+  rw [j_eq, set_like.mem_coe, show b i = -((g i)⁻¹ • (s.erase i).sum (λ j, g j • b j)), from _],
   { refine submodule.neg_mem _ (smul_mem _ _ (sum_mem _ (λ k hk, _))),
     obtain ⟨k_ne_i, k_mem⟩ := finset.mem_erase.mp hk,
     refine smul_mem _ _ (subset_span ⟨k, _, rfl⟩),
@@ -1228,7 +1228,7 @@ begin
   obtain ⟨_, b_spans⟩ := set_is_basis_of_linear_independent_of_card_eq_findim
     b_lin_ind (by simp only [*, set.to_finset_card]),
   intros x hx,
-  rw [subalgebra.mem_coe, algebra.mem_bot],
+  rw [set_like.mem_coe, algebra.mem_bot],
   have x_in_span_b : (⟨x, hx⟩ : S) ∈ submodule.span F b,
   { rw subtype.range_coe at b_spans,
     rw b_spans,

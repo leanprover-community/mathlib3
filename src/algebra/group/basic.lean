@@ -269,7 +269,7 @@ eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
 
 @[to_additive]
 theorem mul_eq_one_iff_eq_inv : a * b = 1 ↔ a = b⁻¹ :=
-by simpa [mul_left_inv, -mul_left_inj] using @mul_left_inj _ _ b a (b⁻¹)
+⟨eq_inv_of_mul_eq_one, λ h, by rw [h, mul_left_inv]⟩
 
 @[to_additive]
 theorem mul_eq_one_iff_inv_eq : a * b = 1 ↔ a⁻¹ = b :=

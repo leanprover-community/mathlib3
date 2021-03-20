@@ -178,7 +178,7 @@ begin
   rw [← f.sum_single] {occs := occurrences.pos [1]},
   refine sum_mem _ (λ i hi, _),
   change monomial i _ ∈ span _ _,
-  rw [← C_mul_X_pow_eq_monomial, ← X_pow_mul],
+  rw [← C_mul_X_pow_eq_monomial, ← X_pow_mul, ← smul_eq_mul],
   exact smul_mem _ _ (subset_span ⟨i, rfl⟩),
 end
 

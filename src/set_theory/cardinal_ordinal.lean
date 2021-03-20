@@ -338,7 +338,7 @@ begin
     rcases ha with rfl|rfl|⟨⟨n, rfl⟩, ⟨m, rfl⟩⟩, contradiction, contradiction,
     rw [← ne] at h2a, rw [← one_le_iff_ne_zero] at h2a hb, norm_cast at h2a hb h ⊢,
     apply le_antisymm _ hb, rw [← not_lt], intro h2b,
-    apply ne_of_gt _ h, rw [gt], conv_lhs { rw [← mul_one n] },
+    apply ne_of_gt _ h, conv_lhs { rw [← mul_one n] },
     rwa [mul_lt_mul_left], apply nat.lt_of_succ_le h2a },
   { rintro (⟨⟨ha, hab⟩, hb⟩|rfl|rfl),
     { rw [mul_eq_max_of_omega_le_left ha hb, max_eq_left hab] },

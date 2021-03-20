@@ -274,7 +274,7 @@ def linear_equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g
   (linear_equiv_of_is_basis hv hv' e).trans (linear_equiv_of_is_basis hv' hv'' f) =
   linear_equiv_of_is_basis hv hv'' (e.trans f) :=
 begin
-  apply linear_equiv.injective_to_linear_map,
+  apply linear_equiv.to_linear_map_injective,
   apply hv.ext,
   intros i,
   simp [linear_equiv_of_is_basis]
@@ -283,7 +283,7 @@ end
 @[simp] lemma linear_equiv_of_is_basis_refl :
   linear_equiv_of_is_basis hv hv (equiv.refl ι) = linear_equiv.refl R M :=
 begin
-  apply linear_equiv.injective_to_linear_map,
+  apply linear_equiv.to_linear_map_injective,
   apply hv.ext,
   intros i,
   simp [linear_equiv_of_is_basis]

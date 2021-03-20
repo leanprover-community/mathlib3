@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
+Authors: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import order.filter.basic
 import data.set.countable

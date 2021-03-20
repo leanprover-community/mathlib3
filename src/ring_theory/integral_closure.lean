@@ -224,7 +224,7 @@ begin
     zero_mem := (span S₀ (insert 1 ↑y : set A)).zero_mem,
     add_mem := λ _ _, (span S₀ (insert 1 ↑y : set A)).add_mem,
     neg_mem := λ _, (span S₀ (insert 1 ↑y : set A)).neg_mem },
-  have : span S₀ (insert 1 ↑y : set A) = algebra.adjoin S₀ (↑y : set A),
+  have : span S₀ (insert 1 ↑y : set A) = (algebra.adjoin S₀ (↑y : set A)).to_submodule,
   { refine le_antisymm (span_le.2 $ set.insert_subset.2
         ⟨(algebra.adjoin S₀ ↑y).one_mem, algebra.subset_adjoin⟩) (λ z hz, _),
     rw [subalgebra.mem_to_submodule, algebra.mem_adjoin_iff] at hz, rw ← set_like.mem_coe,

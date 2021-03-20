@@ -68,6 +68,8 @@ applying "inv_rotate" gives a triangle that can be thought of as:
         h[-1]     f       g
   Z[-1]  ---> X  ---> Y  ---> Z
 ```
+(note that this diagram doesn't technically fit the definition of triangle, as `Z[-1][1]` is
+not necessarily equal to `Z`, but it is isomorphic, by the counit_iso of (shift C))
 -/
 @[simps]
 def triangle.inv_rotate (T : triangle C) : triangle C :=
@@ -141,6 +143,8 @@ applying "inv_rotate" gives a triangle morphism that can be thought of as:
   Z'[-1] ---> X' ---> Y' ---> Z'
         h'[-1]    f'      g'
 ```
+(note that this diagram doesn't technically fit the definition of triangle morphism,
+as `Z[-1][1]` is not necessarily equal to `Z`, and `Z'[-1][1]` is not necessarily equal to `Z'`, but they are isomorphic, by the counit_iso of (shift C))
 -/
 @[simps]
 def inv_rotate (f : triangle_morphism T₁ T₂)
@@ -617,4 +621,3 @@ def triangle_rotation : equivalence (triangle C) (triangle C) :=
 }
 
 end category_theory.triangulated
-#lint

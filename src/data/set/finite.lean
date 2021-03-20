@@ -258,6 +258,12 @@ by rw ← inter_eq_self_of_subset_right h; apply_instance
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
 | ⟨hs⟩ t h := ⟨@set.fintype_subset _ _ _ hs (classical.dec_pred t) h⟩
 
+theorem finite.inter_of_left {s : set α} (h : finite s) (t : set α) : finite (s ∩ t) :=
+h.subset (inter_subset_left _ _)
+
+theorem finite.inter_of_rightt {s : set α} (h : finite s) (t : set α) : finite (t ∩ s) :=
+h.subset (inter_subset_right _ _)
+
 theorem infinite_mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
 mt (λ ht, ht.subset h)
 

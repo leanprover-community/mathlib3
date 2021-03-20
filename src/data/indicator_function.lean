@@ -38,7 +38,6 @@ section has_zero
 variables [has_zero β] {s t : set α} {f g : α → β} {a : α}
 
 /-- `indicator s f a` is `f a` if `a ∈ s`, `0` otherwise.  -/
-@[reducible]
 def indicator (s : set α) (f : α → β) : α → β := λ x, if x ∈ s then f x else 0
 
 @[simp] lemma piecewise_eq_indicator {s : set α} : s.piecewise f 0 = s.indicator f := rfl
@@ -183,15 +182,21 @@ end has_zero
 section add_monoid
 variables [add_monoid β] {s t : set α} {f g : α → β} {a : α}
 
+lemma indicator_union_add_inter_apply (f : α → β) (s t : set α) (a : α) :
+  indicator (s ∪ t) f a + indicator (s ∩ t) f a = indicator s f a + indicator t f a :=
+by by_cases hs : a ∈ s; by_cases ht : a ∈ t; simp *
+
+lemma indicator_union_add_inter (f : α → β) (s t : set α) :
+  indicator (s ∪ t) f + indicator (s ∩ t) f = indicator s f + indicator t f :=
+funext $ indicator_union_add_inter_apply f s t
+
 lemma indicator_union_of_not_mem_inter (h : a ∉ s ∩ t) (f : α → β) :
   indicator (s ∪ t) f a = indicator s f a + indicator t f a :=
-by { simp only [indicator], split_ifs, repeat {simp * at * {contextual := tt}} }
+by rw [← indicator_union_add_inter_apply f s t, indicator_of_not_mem h, add_zero]
 
 lemma indicator_union_of_disjoint (h : disjoint s t) (f : α → β) :
   indicator (s ∪ t) f = λa, indicator s f a + indicator t f a :=
-funext $ λa, indicator_union_of_not_mem_inter
-  (by { convert not_mem_empty a, have := disjoint.eq_bot h, assumption })
-  _
+funext $ λa, indicator_union_of_not_mem_inter (λ ha, h ha) _
 
 lemma indicator_add (s : set α) (f g : α → β) :
   indicator s (λa, f a + g a) = λa, indicator s f a + indicator s g a :=

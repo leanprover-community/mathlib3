@@ -132,8 +132,19 @@ le_cInf dist_set_exists (λ C, and.left)
 lemma dist_le (C0 : (0 : ℝ) ≤ C) : dist f g ≤ C ↔ ∀x:α, dist (f x) (g x) ≤ C :=
 ⟨λ h x, le_trans (dist_coe_le_dist x) h, λ H, cInf_le ⟨0, λ C, and.left⟩ ⟨C0, H⟩⟩
 
-lemma dist_lt [compact_space α] (C0 : (0 : ℝ) < C) : dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
-sorry
+lemma dist_le_of_nonempty [nonempty α]
+  (w : ∀ x, dist (f x) (g x) ≤ C) : dist f g ≤ C :=
+(dist_le (le_trans dist_nonneg (w (nonempty.some ‹_›)))).mpr w
+
+lemma dist_lt_of_compact
+  [nonempty α] [compact_space α] (h : ∀x:α, dist (f x) (g x) < C) :
+  dist f g < C :=
+begin
+  have c : continuous (λ x, dist (f x) (g x)), { continuity, },
+  obtain ⟨x, -, le⟩ :=
+    is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
+  exact lt_of_le_of_lt (dist_le_of_nonempty (λ y, le y trivial)) (h x),
+end
 
 /-- On an empty space, bounded continuous functions are at distance 0 -/
 lemma dist_zero_of_empty (e : ¬ nonempty α) : dist f g = 0 :=
@@ -460,7 +471,7 @@ by simpa using @dist_le _ _ _ _ f 0 _ C0
 
 lemma norm_le_of_nonempty [nonempty α]
   {f : α →ᵇ β} {M : ℝ} (w : ∀ x, ∥f x∥ ≤ M) : ∥f∥ ≤ M :=
-(bounded_continuous_function.norm_le (le_trans (norm_nonneg _) (w (nonempty.some ‹_›)))).mpr w
+(norm_le (le_trans (norm_nonneg _) (w (nonempty.some ‹_›)))).mpr w
 
 lemma norm_lt_of_compact [nonempty α] [compact_space α]
   {f : α →ᵇ β} {M : ℝ} (h : ∀ x, ∥f x∥ < M) : ∥f∥ < M :=

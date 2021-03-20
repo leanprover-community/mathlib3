@@ -118,6 +118,17 @@ theorem coe_int_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) (n : ℤ) : (n : A) ∈ S :=
 int.cases_on n (λ i, S.coe_nat_mem i) (λ i, S.neg_mem $ S.coe_nat_mem $ i + 1)
 
+@[simp, norm_cast] lemma coe_one : ((1 : S) : A) = (1 : A) := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : S) : A) = (0 : A) := rfl
+@[simp, norm_cast] lemma coe_add (x y : S) : ((x + y : S) : A) = (x + y : A) := rfl
+@[simp, norm_cast] lemma coe_mul (x y : S) : ((x * y : S) : A) = (x * y : A) := rfl
+@[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : ((x^n : S) : A) = (x^n : A) :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
+
 theorem list_prod_mem {L : list A} (h : ∀ x ∈ L, x ∈ S) : L.prod ∈ S :=
 subsemiring.list_prod_mem S h
 
@@ -210,6 +221,9 @@ instance algebra : algebra R S :=
   commutes' := λ c x, subtype.eq $ algebra.commutes _ _,
   smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
   .. (algebra_map R A).cod_srestrict S $ λ x, S.range_le ⟨x, rfl⟩ }
+
+@[simp, norm_cast] lemma coe_algebra_map (r : R) : (algebra_map R S r : A) = algebra_map R A r :=
+rfl
 
 instance to_algebra {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
   [algebra R A] [algebra A B] (A₀ : subalgebra R A) : algebra A₀ B :=

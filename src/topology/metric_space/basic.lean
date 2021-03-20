@@ -1125,9 +1125,11 @@ theorem uniform_continuous.dist [uniform_space β] {f g : β → α}
   uniform_continuous (λb, dist (f b) (g b)) :=
 uniform_continuous_dist.comp (hf.prod_mk hg)
 
+@[continuity]
 theorem continuous_dist : continuous (λp:α×α, dist p.1 p.2) :=
 uniform_continuous_dist.continuous
 
+@[continuity]
 theorem continuous.dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
 continuous_dist.comp (hf.prod_mk hg : _)

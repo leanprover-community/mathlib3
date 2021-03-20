@@ -2,22 +2,48 @@ import analysis.weierstrass
 
 noncomputable theory
 
+
+lemma filter.tendsto.frequently_map {X Y : Type*} {l₁ : filter X} {l₂ : filter Y}
+  {P : X → Prop} {Q : Y → Prop} (f : X → Y) (c : filter.tendsto f l₁ l₂) (w : ∀ x, P x → Q (f x))
+  (h : ∃ᶠ x in l₁, P x) : ∃ᶠ y in l₂, Q y :=
+c.frequently (h.mono w)
+
+lemma continuous_at.frequently_in_nhds_map {X Y : Type*} [topological_space X] [topological_space Y]
+  {P : X → Prop} {Q : Y → Prop} {f : X → Y} {p : X} (c : continuous_at f p) (w : ∀ x, P x → Q (f x))
+  (h : ∃ᶠ x in nhds p, P x) : ∃ᶠ y in nhds (f p), Q y :=
+c.tendsto.frequently_map f w h
+
+namespace pi
+
+variables {I : Type*} {f : I → Type*} (x : Π i, f i) (i : I)
+
+-- Where does this belong?
+-- This doesn't work as a `@[simp]` lemma as there is nothing to index on.
+lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
+
+end pi
+
 namespace continuous_map
 
 open_locale topological_space
-
-lemma frequently_in_nhds_map {X Y : Type*} [topological_space X] [topological_space Y]
-  {P : X → Prop} {Q : Y → Prop} {f : X → Y} {p : X} (c : continuous_at f p) (w : ∀ x, P x → Q (f x))
-  (h : ∃ᶠ x in nhds p, P x) : ∃ᶠ y in nhds (f p), Q y :=
-λ h', h (filter.mem_sets_of_superset (c.preimage_mem_nhds h')
-  (λ x nq, (λ np, nq (w x np))))
 
 variables {X : Type*}
 
 variables [topological_space X] [compact_space X]
 variables {R : Type*} [comm_ring R] [topological_space R] [topological_ring R]
 
-lemma apply_le_norm (f : C(X, ℝ)) (x : X) : f x ≤ ∥f∥ := sorry
+lemma apply_le_norm (f : C(X, ℝ)) (x : X) : f x ≤ ∥f∥ :=
+begin
+  -- transitivity,
+  -- swap,
+  -- apply bounded_continuous_function.norm_coe_le_norm f x,
+  sorry,
+end
 lemma neg_norm_le_apply (f : C(X, ℝ)) (x : X) : -∥f∥ ≤ f x := sorry
 
 def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-∥f∥) (∥f∥)) :=
@@ -25,31 +51,75 @@ def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-∥f∥) (∥f∥)) :=
 
 @[simp] lemma attach_bound_apply_coe (f : C(X, ℝ)) (x : X) : ((attach_bound f) x : ℝ) = f x := rfl
 
+attribute [simp] polynomial.aeval_monomial
+
+
+
+@[simp] lemma polynomial.aeval_fn_apply (g : polynomial ℝ)
+  (f : X → ℝ)
+  (x : X) :
+  ((polynomial.aeval f) g) x = g.eval (f x) :=
+begin
+  apply polynomial.induction_on' g,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n a, simp [pi.pow_apply f x n], },
+end
+
+@[simp] lemma polynomial.aeval_continuous_map_apply (g : polynomial ℝ)
+  (f : C(X, ℝ))
+  (x : X) :
+  ((polynomial.aeval f) g) x = g.eval (f x) :=
+begin
+  apply polynomial.induction_on' g,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n a, simp [pi.pow_apply f x n], },
+end
+
+@[simp, norm_cast] lemma polynomial.aeval_subalgebra_coe
+  (g : polynomial R) {A : Type*} [semiring A] [algebra R A] (s : subalgebra R A) (f : s) :
+  (polynomial.aeval f g : A) = polynomial.aeval (f : A) g :=
+begin
+  apply polynomial.induction_on' g,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n a, simp, },
+end
+
+lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
+  ((polynomial.as_continuous_map (set.Icc (-∥f∥) ∥f∥)) g).comp (f : C(X, ℝ)).attach_bound =
+    polynomial.aeval f g :=
+by { ext, simp, }
+
+/--
+Given a continuous function `f` in a subalgebra of `C(X, ℝ)`, postcomposing by a polynomial
+gives another function in `A`.
+
+This lemma proves something slightly more subtle than this:
+we take `f`, and think of it as a function into the restricted target `set.Icc (-∥f∥) ∥f∥)`,
+and then postcompose with a polynomial function on that interval.
+This is in fact the same situation as above, and so also gives a function in `A`.
+-/
 lemma polynomial_comp_attach_bound_mem (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
   ((polynomial.as_continuous_map (set.Icc (-∥f∥) ∥f∥)) g).comp (f : C(X, ℝ)).attach_bound ∈ A :=
 begin
-  apply polynomial.induction_on' g,
-  { intros p q hp hq,
-    simp only [alg_hom.map_add, continuous_map.add_comp],
-    exact A.add_mem hp hq, },
-  { intros n a,
-    rw polynomial.monomial_eq_smul_X,
-    simp,
-    apply A.smul_mem,
-    apply A.pow_mem,
-    convert f.2,
-    ext, simp, }
+  rw polynomial_comp_attach_bound,
+  apply submodule.coe_mem,
 end
 
-theorem foo (A : subalgebra ℝ C(X, ℝ)) (f : A) (p : C(set.Icc (-∥f∥) (∥f∥), ℝ)) :
+theorem comp_attach_bound_mem_closure (A : subalgebra ℝ C(X, ℝ)) (f : A) (p : C(set.Icc (-∥f∥) (∥f∥), ℝ)) :
   p.comp (attach_bound f) ∈ A.topological_closure :=
 begin
-  have : p ∈ (polynomial_functions (set.Icc (-∥f∥) (∥f∥))).topological_closure :=
+  -- `p` itself is in the closure of polynomials, by the Weierstrass theorem,
+  have mem_closure : p ∈ (polynomial_functions (set.Icc (-∥f∥) (∥f∥))).topological_closure :=
     mem_polynomial_functions_closure _ _ p,
-  have := mem_closure_iff_frequently.mp this,
+  -- and so there are polynomials arbitrarily close.
+  have frequently_mem_polynomials := mem_closure_iff_frequently.mp mem_closure,
+  -- To prove `p.comp (attached_bound f)` is in the closure of polynomials,
+  -- we show there are polynomials arbitrarily close.
   apply mem_closure_iff_frequently.mpr,
-  apply frequently_in_nhds_map
-    ((pullback_as_continuous_map (attach_bound (f : C(X, ℝ)))).continuous_at p) _ this,
+  -- To show that, we pull back the polynomials close to `p`,
+  refine ((pullback_as_continuous_map (attach_bound (f : C(X, ℝ)))).continuous_at p)
+    .frequently_in_nhds_map _ frequently_mem_polynomials,
+  -- but need to show that those pullbacks are actually in `A`.
   rintros _ ⟨g, ⟨-,rfl⟩⟩,
   simp,
   apply polynomial_comp_attach_bound_mem,
@@ -63,7 +133,7 @@ begin
   let abs : C(set.Icc (-∥f∥) (∥f∥), ℝ) :=
   { to_fun := λ x : set.Icc (-∥f∥) (∥f∥), _root_.abs (x : ℝ) },
   change (abs.comp f') ∈ A.topological_closure,
-  apply foo,
+  apply comp_attach_bound_mem_closure,
 end
 
 theorem inf_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f g : A) :

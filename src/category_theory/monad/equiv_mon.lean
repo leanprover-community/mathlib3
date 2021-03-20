@@ -26,7 +26,7 @@ A monad "is just" a monoid in the category of endofunctors.
 namespace category_theory
 open category
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 variables {C : Type u} [category.{v} C]
 
 namespace Monad

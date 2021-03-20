@@ -122,8 +122,8 @@ begin
     rw ← hb, exact ⟨b, rfl⟩ },
   let σ₁' := subtype_perm_of_fintype σ h1,
   let σ₂' := subtype_perm_of_fintype σ h3,
-  let σ₁ := perm_congr (equiv.set.range (@sum.inl m n) sum.injective_inl).symm σ₁',
-  let σ₂ := perm_congr (equiv.set.range (@sum.inr m n) sum.injective_inr).symm σ₂',
+  let σ₁ := perm_congr (equiv.set.range (@sum.inl m n) sum.inl_injective).symm σ₁',
+  let σ₂ := perm_congr (equiv.set.range (@sum.inr m n) sum.inr_injective).symm σ₂',
   rw [monoid_hom.mem_range, prod.exists],
   use [σ₁, σ₂],
   rw [perm.sum_congr_hom_apply],
@@ -740,11 +740,11 @@ begin
   { apply σa.swap_induction_on _ (λ σa' a₁ a₂ ha ih, _),
     { simp },
     { rw [←one_mul (1 : perm β), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_swap_one,
-          sign_swap ha, sign_swap (sum.injective_inl.ne_iff.mpr ha)], }, },
+          sign_swap ha, sign_swap (sum.inl_injective.ne_iff.mpr ha)], }, },
   { apply σb.swap_induction_on _ (λ σb' b₁ b₂ hb ih, _),
     { simp },
     { rw [←one_mul (1 : perm α), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_one_swap,
-          sign_swap hb, sign_swap (sum.injective_inr.ne_iff.mpr hb)], }, }
+          sign_swap hb, sign_swap (sum.inr_injective.ne_iff.mpr hb)], }, }
 end
 
 @[simp] lemma sign_subtype_congr {p : α → Prop} [decidable_pred p]

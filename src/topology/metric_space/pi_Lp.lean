@@ -229,6 +229,11 @@ lemma norm_eq {p : ℝ} {hp : 1 ≤ p} {α : ι → Type*}
   [∀i, normed_group (α i)] (f : pi_Lp p hp α) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ p) ^ (1/p) := rfl
 
+lemma norm_eq_of_nat {p : ℝ} {hp : 1 ≤ p} {α : ι → Type*}
+  [∀i, normed_group (α i)] (n : ℕ) (h : p = n) (f : pi_Lp p hp α) :
+  ∥f∥ = (∑ (i : ι), ∥f i∥ ^ n) ^ (1/(n : ℝ)) :=
+by simp [norm_eq, h, real.sqrt_eq_rpow, ←real.rpow_nat_cast]
+
 variables (𝕜 : Type*) [normed_field 𝕜]
 
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/

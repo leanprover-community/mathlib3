@@ -47,25 +47,24 @@ namespace ideal
 structure prime_pair (P : Type*) [preorder P] :=
 (I            : ideal P)
 (F            : pfilter P)
-(compl_I_eq_F : (I : set P)ᶜ = F)
+(is_compl_I_F : is_compl (I : set P) F)
 
 namespace prime_pair
 variable (IF : prime_pair P)
 
-lemma compl_F_eq_I : (IF.F : set P)ᶜ = IF.I :=
-by rw [←IF.compl_I_eq_F, compl_compl]
+lemma compl_I_eq_F : (IF.I : set P)ᶜ = IF.F := IF.is_compl_I_F.compl_eq
+lemma compl_F_eq_I : (IF.F : set P)ᶜ = IF.I := IF.is_compl_I_F.eq_compl.symm
 
 lemma I_is_proper : is_proper IF.I :=
 begin
   cases IF.F.nonempty,
   apply is_proper_of_not_mem (_ : w ∉ IF.I),
-  rwa ← prime_pair.compl_I_eq_F at h,
+  rwa ← IF.compl_I_eq_F at h,
 end
 
-lemma disjoint : disjoint (IF.I : set P) IF.F :=
-by { rw ←compl_I_eq_F, exact disjoint_compl_right, }
+lemma disjoint : disjoint (IF.I : set P) IF.F := IF.is_compl_I_F.disjoint
 
-lemma I_union_F  : (IF.I : set P) ∪ IF.F = set.univ :=
+lemma I_union_F : (IF.I : set P) ∪ IF.F = set.univ :=
 by { rw ←compl_I_eq_F, exact sup_compl_eq_top }
 lemma F_union_I : (IF.F : set P) ∪ IF.I = set.univ := by rw [set.union_comm, I_union_F]
 
@@ -81,7 +80,7 @@ end prime_pair
 def is_prime.to_prime_pair {I : ideal P} (h : is_prime I) : prime_pair P :=
 { I            := I,
   F            := h.compl_filter.to_pfilter,
-  compl_I_eq_F := rfl }
+  is_compl_I_F := is_compl_compl }
 
 lemma prime_pair.I_is_prime (IF : prime_pair P) : is_prime IF.I :=
 { compl_filter := by { rw IF.compl_I_eq_F, exact IF.F.is_pfilter },
@@ -101,7 +100,7 @@ namespace pfilter
 def is_prime.to_prime_pair {F : pfilter P} (h : is_prime F) : ideal.prime_pair P :=
 { I            := h.compl_ideal.to_ideal,
   F            := F,
-  compl_I_eq_F := compl_compl _ }
+  is_compl_I_F := is_compl_compl.symm }
 
 lemma _root_.order.ideal.prime_pair.F_is_prime (IF : ideal.prime_pair P) : is_prime IF.F :=
 { compl_ideal := by { rw IF.compl_F_eq_I, exact IF.I.is_ideal } }

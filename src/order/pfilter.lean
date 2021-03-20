@@ -14,10 +14,10 @@ Throughout this file, `P` is at least a preorder, but some sections
 require more structure, such as a bottom element, a top element, or
 a join-semilattice structure.
 
-- `pfilter P`: The type of nonempty, downward directed, upward closed
+- `order.pfilter P`: The type of nonempty, downward directed, upward closed
                subsets of `P`. This is dual to `order.ideal`, so it
                simply wraps `order.ideal (order_dual P)`.
-- `is_pfilter P`: a predicate for when a `set P` is a filter.
+- `order.is_pfilter P`: a predicate for when a `set P` is a filter.
 
 
 Note the relation between `order/filter` and `order/pfilter`: for any
@@ -57,7 +57,7 @@ def is_pfilter.to_pfilter [preorder P] {F : set P} (h : is_pfilter F) : pfilter 
 namespace pfilter
 
 section preorder
-variables [preorder P] {x y : P} {F G : pfilter P}
+variables [preorder P] {x y : P} (F : pfilter P)
 
 /-- A filter on `P` is a subset of `P`. -/
 instance : has_coe (pfilter P) (set P) := ⟨λ F, F.dual.carrier⟩
@@ -72,7 +72,7 @@ lemma nonempty : (F : set P).nonempty := F.dual.nonempty
 
 lemma directed : directed_on (≥) (F : set P) := F.dual.directed
 
-lemma mem_of_le : x ≤ y → x ∈ F → y ∈ F := λ h, F.dual.mem_of_le h
+lemma mem_of_le {F : pfilter P} : x ≤ y → x ∈ F → y ∈ F := λ h, F.dual.mem_of_le h
 
 /-- The smallest filter containing a given element. -/
 def principal (p : P) : pfilter P := ⟨ideal.principal p⟩
@@ -86,10 +86,10 @@ instance [inhabited P] : inhabited (pfilter P) := ⟨⟨default _⟩⟩
 /-- The partial ordering by subset inclusion, inherited from `set P`. -/
 instance : partial_order (pfilter P) := partial_order.lift coe ext
 
-@[trans] lemma mem_of_mem_of_le : x ∈ F → F ≤ G → x ∈ G :=
+@[trans] lemma mem_of_mem_of_le {F G : pfilter P} : x ∈ F → F ≤ G → x ∈ G :=
 ideal.mem_of_mem_of_le
 
-@[simp] lemma principal_le_iff : principal x ≤ F ↔ x ∈ F :=
+@[simp] lemma principal_le_iff {F : pfilter P} : principal x ≤ F ↔ x ∈ F :=
 ideal.principal_le_iff
 
 end preorder

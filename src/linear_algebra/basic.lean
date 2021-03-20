@@ -262,7 +262,8 @@ lemma iterate_bijective (h : bijective f') : ∀ n : ℕ, bijective ⇑(f' ^ n)
 | 0       := bijective_id
 | (n + 1) := by { rw [iterate_succ], exact bijective.comp (iterate_bijective n) h, }
 
-lemma injective_of_iterate_injective {n : ℕ} (hn : n ≠ 0) (h : injective ⇑(f' ^ n)) : injective f' :=
+lemma injective_of_iterate_injective {n : ℕ} (hn : n ≠ 0) (h : injective ⇑(f' ^ n)) :
+  injective f' :=
 begin
   rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), iterate_succ, ←comp_coe] at h,
   exact injective.of_comp h,

@@ -151,11 +151,13 @@ def subterminals_equiv_mono_over_terminal [has_terminal C] :
   { hom := { app := λ X, over.hom_mk (𝟙 _) },
     inv := { app := λ X, over.hom_mk (𝟙 _) } } }
 
+@[simp]
 lemma subterminals_to_mono_over_terminal_comp_forget [has_terminal C] :
   (subterminals_equiv_mono_over_terminal C).functor ⋙ mono_over.forget _ ⋙ over.forget _ =
     subterminal_inclusion C :=
 rfl
 
+@[simp]
 lemma mono_over_terminal_to_subterminals_comp [has_terminal C] :
   (subterminals_equiv_mono_over_terminal C).inverse ⋙ subterminal_inclusion C =
     mono_over.forget _ ⋙ over.forget _ :=

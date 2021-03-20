@@ -338,7 +338,7 @@ def hom_of_le : K →ₗ⁅R⁆ K' :=
 lemma hom_of_le_apply (x : K) : hom_of_le h x = ⟨x.1, h x.2⟩ := rfl
 
 lemma hom_of_le_injective : function.injective (hom_of_le h) :=
-λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, submodule.coe_eq_coe,
+λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, set_like.coe_eq_coe,
   subtype.val_eq_coe]
 
 /-- Given two nested Lie subalgebras `K ⊆ K'`, we can view `K` as a Lie subalgebra of `K'`,

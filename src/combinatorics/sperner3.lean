@@ -48,9 +48,14 @@ def interior (X : finset E) : set E :=
 convex_hull X \ boundary X
 
 lemma disjoint_interiors {S : simplicial_complex m} {X Y : finset E}
-  (hX : X ∈ S.faces) (hY : Y ∈ S.faces) :
-  disjoint (interior X) (interior Y) :=
+  (hX : X ∈ S.faces) (hY : Y ∈ S.faces) (x : E) :
+  x ∈ interior X ∩ interior Y → X = Y :=
 sorry
+
+lemma disjoint_interiors_aux {S : simplicial_complex m} {X Y : finset E}
+  (hX : X ∈ S.faces) (hY : Y ∈ S.faces) (h : X ≠ Y) :
+  disjoint (interior X) (interior Y) :=
+λ x hx, h (disjoint_interiors hX hY _ hx)
 
 lemma interiors_cover {S : simplicial_complex m} :
   S.space = ⋃ X ∈ S.faces, interior X :=

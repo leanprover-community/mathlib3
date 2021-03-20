@@ -219,15 +219,15 @@ begin
   rw [submodule.span_le, image_subset_iff],
   intros i hi,
   refine submodule.span_induction hi (λ x hx, _) _ (λ x y hx hy, _) (λ r x hx, _),
-  { simp only [mem_coe, mem_preimage],
+  { simp only [set_like.mem_coe, mem_preimage],
     suffices : f x ∈ f '' X, { exact ideal.subset_span this },
     exact mem_image_of_mem ⇑f hx },
-  { simp only [mem_coe, ring_hom.map_zero, mem_preimage, zero_mem] },
-  { simp only [mem_coe, mem_preimage] at hx hy,
+  { simp only [set_like.mem_coe, ring_hom.map_zero, mem_preimage, zero_mem] },
+  { simp only [set_like.mem_coe, mem_preimage] at hx hy,
     simp only [ring_hom.map_add, mem_coe, mem_preimage],
     exact submodule.add_mem _ hx hy },
-  { simp only [mem_coe, mem_preimage] at hx,
-    simp only [algebra.id.smul_eq_mul, mem_coe, mem_preimage, ring_hom.map_mul],
+  { simp only [set_like.mem_coe, mem_preimage] at hx,
+    simp only [algebra.id.smul_eq_mul, set_like.mem_coe, mem_preimage, ring_hom.map_mul],
     exact submodule.smul_mem _ _ hx }
 end
 

@@ -127,6 +127,23 @@ theorem nodup_map_on {f : α → β} {l : list α} (H : ∀x∈l, ∀y∈l, f x 
   (d : nodup l) : nodup (map f l) :=
 pairwise_map_of_pairwise _ (by exact λ a b ⟨ma, mb, n⟩ e, n (H a ma b mb e)) (pairwise.and_mem.1 d)
 
+theorem inj_on_of_nodup_map {f : α → β} {l : list α} (d : nodup (map f l)) :
+  ∀ (x ∈ l) (y ∈ l), f x = f y → x = y :=
+begin
+  induction l with hd tl ih,
+  { simp },
+  { simp only [map, nodup_cons, mem_map, not_exists, not_and, ←ne.def] at d,
+    rintro _ (rfl | h₁) _ (rfl | h₂) h₃,
+    { refl },
+    { apply (d.1 _ h₂ h₃.symm).elim },
+    { apply (d.1 _ h₁ h₃).elim },
+    { apply ih d.2 _ h₁ _ h₂ h₃ } }
+end
+
+theorem nodup_map_iff_inj_on {f : α → β} {l : list α} (d : nodup l) :
+  nodup (map f l) ↔ (∀ (x ∈ l) (y ∈ l), f x = f y → x = y) :=
+⟨inj_on_of_nodup_map, λ h, nodup_map_on h d⟩
+
 theorem nodup_map {f : α → β} {l : list α} (hf : injective f) : nodup l → nodup (map f l) :=
 nodup_map_on (assume x _ y _ h, hf h)
 

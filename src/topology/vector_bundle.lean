@@ -72,6 +72,19 @@ structure topological_vector_bundle.trivialization extends bundle_trivialization
 instance : has_coe_to_fun (topological_vector_bundle.trivialization 𝕜 F E) :=
 ⟨λ _, (total_space E → B × F), λ e, e.to_bundle_trivialization⟩
 
+instance : has_coe (topological_vector_bundle.trivialization 𝕜 F E)
+  (bundle_trivialization F (proj E)) :=
+⟨topological_vector_bundle.trivialization.to_bundle_trivialization⟩
+
+namespace topological_vector_bundle
+
+variables {𝕜 F E}
+
+lemma trivialization.mem_source (e : trivialization 𝕜 F E)
+  {x : total_space E} : x ∈ e.source ↔ proj E x ∈ e.base_set := bundle_trivialization.mem_source e
+
+end topological_vector_bundle
+
 end
 
 variables [∀ x, topological_space (E x)]
@@ -100,6 +113,8 @@ classical.some_spec (topological_vector_bundle.locally_trivial 𝕜 F E b)
 @[simp, mfld_simps] lemma mem_source_trivialization_at (z : total_space E) :
   z ∈ (trivialization_at 𝕜 F E z.1).source :=
 by { rw bundle_trivialization.mem_source, apply mem_base_set_trivialization_at }
+
+variables {𝕜 F E}
 
 /-- In a topological vector bundle, a trivialization in the fiber (which is a priori only linear)
 is in fact a continuous linear equiv between the fibers and the model fiber. -/
@@ -163,6 +178,13 @@ def trivialization.continuous_linear_equiv_at (e : trivialization 𝕜 F E) (b :
     { exact cast_heq _ _ },
   end }
 
+@[simp] lemma trivialization.continuous_linear_equiv_at_apply (e : trivialization 𝕜 F E) (b : B)
+  (hb : b ∈ e.base_set) (y : E b) : e.continuous_linear_equiv_at b hb y = (e ⟨b, y⟩).2 := rfl
+
+@[simp] lemma trivialization.continuous_linear_equiv_at_apply' (e : trivialization 𝕜 F E)
+  (x : total_space E) (hx : x ∈ e.source) :
+  e.continuous_linear_equiv_at (proj E x) (e.mem_source.1 hx) x.2 = (e x).2 :=
+by { cases x, refl }
 
 section
 local attribute [reducible] bundle.trivial

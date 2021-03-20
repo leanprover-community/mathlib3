@@ -418,12 +418,11 @@ begin
     refine ⟨f', _, rfl⟩,
     simp only [f', submodule.mem_coe, subalgebra.mem_to_submodule],
     -- TODO should there be a tactic for this?
-    apply subalgebra.add_mem,
-    apply subalgebra.smul_mem,
-    apply subalgebra.sub_mem,
-    apply subalgebra.algebra_map_mem,
-    exact m,
-    apply subalgebra.algebra_map_mem, },
+    -- We could add an attribute `@[subobject_mem]`, and a tactic
+    -- ``def subobject_mem := `[solve_by_elim with subobject_mem { max_depth := 10 }]``
+    solve_by_elim
+      [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
+      { max_depth := 6 }, },
   { simp [f'], },
   { simp [f', inv_mul_cancel_right' w], },
 end

@@ -20,8 +20,8 @@ With these lemmas, many simple integrals can be computed by `simp` or `norm_num`
 This file is still being developed.
 -/
 
-open real set interval_integral filter
-open_locale real big_operators topological_space
+open real set
+open_locale real big_operators
 variables {a b : ℝ}
 
 namespace interval_integral
@@ -100,6 +100,10 @@ end
 @[simp]
 lemma interval_integrable_inv_one_add_sq : interval_integrable (λ x:ℝ, (1 + x^2)⁻¹) μ a b :=
 by simpa only [one_div] using interval_integrable_one_div_one_add_sq
+
+end interval_integral
+
+open interval_integral
 
 @[simp]
 lemma integral_pow (n : ℕ) : ∫ x in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=
@@ -180,30 +184,30 @@ end
 lemma integral_sin_pow_succ_succ (n : ℕ) :
   ∫ x in 0..π, sin x ^ (n + 2) = (n + 1) / (n + 2) * ∫ x in 0..π, sin x ^ n :=
 begin
-  have : (n:ℝ) + 2 ≠ 0 := by { norm_cast, norm_num },
+  have : (n:ℝ) + 2 ≠ 0 := by exact_mod_cast nat.succ_ne_zero n.succ,
   field_simp,
   convert eq_sub_iff_add_eq.mp (integral_sin_pow_aux n),
-  ring
+  ring,
 end
 
 theorem integral_sin_pow_odd (n : ℕ) :
   ∫ x in 0..π, sin x ^ (2 * n + 1) = 2 * ∏ i in finset.range n, (2 * i + 2) / (2 * i + 3) :=
 begin
   induction n with k ih,
-  { norm_num, },
+  { norm_num },
   rw [finset.prod_range_succ, ← mul_assoc, mul_comm (2:ℝ) ((2 * k + 2) / (2 * k + 3)),
     mul_assoc, ← ih],
   have h₁ : 2 * k.succ + 1 = 2 * k + 1 + 2, { ring },
-  have h₂ : (2:ℝ) * k + 1 + 1 = 2 * k + 2, { norm_cast, },
-  have h₃ : (2:ℝ) * k + 1 + 2 = 2 * k + 3, { norm_cast, },
-  simp [h₁, h₂, h₃, integral_sin_pow_succ_succ (2 * k + 1)]
+  have h₂ : (2:ℝ) * k + 1 + 1 = 2 * k + 2, { norm_cast },
+  have h₃ : (2:ℝ) * k + 1 + 2 = 2 * k + 3, { norm_cast },
+  simp [h₁, h₂, h₃, integral_sin_pow_succ_succ (2 * k + 1)],
 end
 
 theorem integral_sin_pow_even (n : ℕ) :
   ∫ x in 0..π, sin x ^ (2 * n) = π * ∏ i in finset.range n, (2 * i + 1) / (2 * i + 2) :=
 begin
   induction n with k ih,
-  { norm_num, },
+  { norm_num },
   rw [finset.prod_range_succ, ← mul_assoc, mul_comm π ((2 * k + 1) / (2 * k + 2)), mul_assoc, ← ih],
   simp [nat.succ_eq_add_one, mul_add, mul_one, integral_sin_pow_succ_succ _],
 end
@@ -214,7 +218,7 @@ begin
   simp only [h, integral_sin_pow_even, integral_sin_pow_odd];
   refine mul_pos (by norm_num [pi_pos]) (finset.prod_pos (λ n hn, div_pos _ _));
   norm_cast;
-  linarith
+  linarith,
 end
 
 @[simp]
@@ -234,5 +238,3 @@ end
 
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp
-
-end interval_integral

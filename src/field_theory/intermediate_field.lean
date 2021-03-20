@@ -341,7 +341,7 @@ right K F L
 variables {F} {E}
 
 @[simp] lemma to_subalgebra_eq_iff : F.to_subalgebra = E.to_subalgebra ↔ F = E :=
-by { rw [subalgebra.ext_iff, intermediate_field.ext'_iff, set.ext_iff], refl }
+by { rw [set_like.ext_iff, intermediate_field.ext'_iff, set.ext_iff], refl }
 
 lemma eq_of_le_of_findim_le [finite_dimensional K L] (h_le : F ≤ E)
   (h_findim : findim K E ≤ findim K F) : F = E :=

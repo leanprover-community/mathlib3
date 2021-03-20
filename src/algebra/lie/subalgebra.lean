@@ -114,7 +114,7 @@ lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
 
 lemma to_submodule_injective :
   function.injective (coe : lie_subalgebra R L → submodule R L) :=
-λ L₁' L₂' h, by { rw submodule.ext'_iff at h, rw ← coe_set_eq, exact h, }
+λ L₁' L₂' h, by { rw set_like.ext'_iff at h, rw ← coe_set_eq, exact h, }
 
 @[simp] lemma coe_to_submodule_eq_iff (L₁' L₂' : lie_subalgebra R L) :
   (L₁' : submodule R L) = (L₂' : submodule R L) ↔ L₁' = L₂' :=

@@ -92,27 +92,38 @@ def monad.comparison_forget {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) :
   inv := { app := λ X, 𝟙 _, } }.
 
 def monad.free_comparison {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) :
-  L ⋙ _ ≅ h.to_monad.free :=
+  L ⋙ monad.comparison h ≅ h.to_monad.free :=
+{ hom := { app := λ X, { f := 𝟙 _ } },
+  inv := { app := λ X, { f := 𝟙 _ } } }
+
+-- lemma monad.free_comparison_forget {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) :
+--   iso_whisker_right (monad.free_comparison h) h.to_monad.forget = _ :=
+-- begin
+-- end
+
+lemma monad.comparison_unique_aux {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R}
+  (K : D ⥤ h.to_monad.algebra)
+  (hK₁ : K ⋙ h.to_monad.forget ≅ R)
+  (hK₂ : L ⋙ K ≅ h.to_monad.free)
+  (hK : ∀ X, (hK₂.hom.app X).f = hK₁.hom.app (L.obj X)) -- compatibility between hK₁ and hK₂
+  (X : D) :
+  R.map (L.map (hK₁.hom.app X)) ≫ R.map (h.counit.app X) = (K.obj X).a ≫ hK₁.hom.app X :=
 begin
+  have : ∀ Y, R.map (L.map (hK₂.hom.app Y).f) ≫ R.map (h.counit.app (L.obj Y))
+            = (K.obj _).a ≫ (hK₂.hom.app _).f := λ Y, (hK₂.app Y).hom.h,
+  simp_rw [hK] at this,
+  have := this (R.obj X) =≫ R.map (h.counit.app X),
+  rw [assoc, ←R.map_comp, ←R.map_comp] at this,
 end
-  -- h.to_monad.free ≅ monad.comparison h ⋙ L
 
 #exit
-lemma monad.comparison_unique_aux {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R}
-  (K' : D ⥤ h.to_monad.algebra) (hK' : K' ⋙ h.to_monad.forget ≅ R)
-  (X : D) :
-  R.map (L.map (hK'.hom.app X)) ≫ R.map (h.counit.app X) = (K'.obj X).a ≫ hK'.hom.app X :=
-begin
 
-end
-
-
-def monad.comparison_unique {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R} (K' : D ⥤ h.to_monad.algebra)
-  (hK' : K' ⋙ h.to_monad.forget ≅ R) :
-  K' ≅ monad.comparison h :=
+def monad.comparison_unique {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R} (K : D ⥤ h.to_monad.algebra)
+  (hK' : K ⋙ h.to_monad.forget ≅ R) :
+  K ≅ monad.comparison h :=
 nat_iso.of_components
-  (λ X, monad.algebra.iso_mk (hK'.app X) (begin dsimp, extract_goal end))
-  (λ X Y f, by { ext, apply hK'.hom.naturality f })
+  (λ X, monad.algebra.iso_mk (hK.app X) (begin dsimp, extract_goal end))
+  (λ X Y f, by { ext, apply hK.hom.naturality f })
 
 -- begin
 --   let : Π B : D, R.obj (L.obj (K'.obj B).A) ⟶ (K'.obj B).A := λ B, (K'.obj B).a,

@@ -61,7 +61,7 @@ lemma interiors_cover {S : simplicial_complex m} :
   S.space = ⋃ X ∈ S.faces, interior X :=
 sorry
 
--- The previous two lemmas show that the interiors form a disjoint partition of the underlying space
+-- The previous lemmas show that the interiors form a disjoint partition of the underlying space
 
 variables {s : set E}
 

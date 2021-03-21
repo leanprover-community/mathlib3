@@ -365,7 +365,7 @@ lemma integral_smul_measure (c : ℝ≥0∞) :
   ∫ x in a..b, f x ∂(c • μ) = c.to_real • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, measure.restrict_smul, integral_smul_measure, smul_sub]
 
-lemma integral_comp_add_right (a b c : ℝ) (f : ℝ → E) (hfm : ae_measurable f) :
+lemma integral_comp_add_right {a b : ℝ} (c : ℝ) {f : ℝ → E} (hfm : ae_measurable f) :
   ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x :=
 have A : ae_measurable f (measure.map (λ x, x + c) volume), by rwa [real.map_volume_add_right],
 calc ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x ∂(measure.map (λ x, x + c) volume) :
@@ -373,7 +373,7 @@ calc ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x ∂(measure.map (λ x, x 
     preimage_add_const_Ioc, add_sub_cancel]
 ... = ∫ x in a+c..b+c, f x : by rw [real.map_volume_add_right]
 
-lemma integral_comp_mul_right {c : ℝ} (hc : 0 < c) (a b : ℝ) (f : ℝ → E) (hfm : ae_measurable f) :
+lemma integral_comp_mul_right {a b c : ℝ} {f : ℝ → E} (hc : 0 < c) (hfm : ae_measurable f) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
 begin
   have A : ae_measurable f (measure.map (λ (x : ℝ), x*c) volume),
@@ -385,7 +385,11 @@ begin
     ennreal.to_real_of_real (le_of_lt hc), inv_smul_smul' (ne_of_gt hc)],
 end
 
-lemma integral_comp_neg (a b : ℝ) (f : ℝ → E) (hfm : ae_measurable f) :
+lemma integral_comp_mul_left {a b c : ℝ} {f : ℝ → E} (hc : 0 < c) (hfm : ae_measurable f) :
+  ∫ x in a..b, f (c * x) = c⁻¹ • ∫ x in c*a..c*b, f x :=
+by simpa only [mul_comm c] using integral_comp_mul_right hc hfm
+
+lemma integral_comp_neg {a b : ℝ} {f : ℝ → E} (hfm : ae_measurable f) :
   ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=
 begin
   have A : ae_measurable f (measure.map (λ (x : ℝ), -x) volume), by rwa real.map_volume_neg,

@@ -7,6 +7,7 @@ import category_theory.punit
 import category_theory.comma
 import category_theory.limits.functor_category
 import category_theory.limits.shapes.terminal
+import tactic
 
 namespace category_theory
 noncomputable theory
@@ -23,6 +24,20 @@ abbreviation Ran_index (p : C ⥤ C') (c' : C') := comma (functor.from_punit c')
 
 abbreviation Ran_index_map (p : C ⥤ C') {c' c'' : C'} (f : c'' ⟶ c') :
   Ran_index p c' ⥤ Ran_index p c'' := comma.map_left _ ((functor.const _).map f)
+
+def Ran_index.mk {p : C ⥤ C'} {c' : C'} {X : C} (f : c' ⟶ p.obj X) : Ran_index p c' := ⟨⟨⟩, X, f⟩
+
+lemma Ran_index.mk_hom_eq {p : C ⥤ C'} {c' : C'} {X : C} {f : c' ⟶ p.obj X} : (Ran_index.mk f).hom = f := rfl
+
+def Ran_index.mk_hom {p : C ⥤ C'} {c' : C'} {X Y : C} (f : c' ⟶ p.obj X) (g : X ⟶ Y) :
+  Ran_index.mk f ⟶ Ran_index.mk (f ≫ p.map g) :=
+{ left := 𝟙 _,
+  right := g,
+  w' := by simpa }
+
+@[simp]
+lemma Ran_index_map_mk (p : C ⥤ C') {c' c'' : C'} {X : C} (f : c' ⟶ p.obj X) (g : c'' ⟶ c') :
+  (Ran_index_map p g).obj (Ran_index.mk f) = Ran_index.mk (g ≫ f) := rfl
 
 @[simp]
 lemma Ran_index_map_id (p : C ⥤ C') {c' : C'} (j : Ran_index p c') :
@@ -46,6 +61,22 @@ end
 abbreviation Ran_diagram (p : C ⥤ C') (F : C ⥤ D) (c' : C') : Ran_index p c' ⥤ D :=
   comma.snd (functor.from_punit c') p ⋙ F
 
+def Ran_cone (p : C ⥤ C') (F : C ⥤ D) (G : C' ⥤ D) (X : C') (f : p ⋙ G ⟶ F) :
+  cone (Ran_diagram p F X) :=
+{ X := G.obj X,
+  π :=
+  { app := λ i, G.map i.hom ≫ f.app i.right,
+    naturality' := begin
+      rintro ⟨xl,xr,x⟩ ⟨yl,yr,y⟩ ⟨fl,fr,ff⟩,
+      dsimp at *,
+      simp only [assoc, id_comp] at *,
+      rw ff,
+      have := f.naturality,
+      tidy,
+    end
+    } }
+
+@[simps]
 def right_kan_obj (p : C ⥤ C') (F : C ⥤ D)
   [∀ X, has_limits_of_shape (Ran_index p X) D] :
   C' ⥤ D :=
@@ -65,6 +96,71 @@ def right_kan_obj (p : C ⥤ C') (F : C ⥤ D)
     congr' 1,
     simp,
   end }
+
+@[simps]
+def right_kan_equiv (p : C ⥤ C') [∀ X, has_limits_of_shape (Ran_index p X) D]
+  (F : C ⥤ D) (G : C' ⥤ D) :
+  (G ⟶ right_kan_obj p F) ≃ (((whiskering_left _ _ _).obj p).obj G ⟶ F) :=
+{ to_fun := λ f,
+  { app := λ X, f.app _ ≫ limit.π (Ran_diagram p F (p.obj X)) (Ran_index.mk (𝟙 _)),
+    naturality' := begin
+      intros X Y ff,
+      dsimp at *,
+      simp only [assoc, nat_trans.naturality_assoc, right_kan_obj_map] at *,
+      congr' 1,
+      erw [limit.pre_π, limit.w (Ran_diagram p F _) (Ran_index.mk_hom (𝟙 _) ff)],
+      congr,
+      simp,
+    end },
+  inv_fun := λ f,
+  { app := λ X, limit.lift (Ran_diagram p F X) (Ran_cone _ _ _ _ f),
+    naturality' := begin
+      intros X Y ff,
+      ext k,
+      erw [limit.lift_pre, limit.lift_π, assoc, limit.lift_π (Ran_cone p F G Y f) k],
+      delta Ran_cone,
+      dsimp,
+      simp,
+    end },
+  left_inv := begin
+    intros x,
+    ext k j,
+    dsimp,
+    erw limit.lift_π,
+    delta Ran_cone Ran_diagram,
+    dsimp,
+    have := x.naturality,
+    dsimp at *,
+    simp at *,
+    congr' 1,
+    erw limit.pre_π,
+    cases j,
+    delta Ran_diagram,
+    dsimp,
+    congr,
+    tidy,
+  end,
+  right_inv := begin
+    intros x,
+    dsimp,
+    ext,
+    dsimp,
+    erw limit.lift_π,
+    delta Ran_cone,
+    dsimp,
+    simp [Ran_index.mk_hom_eq],
+    congr,
+  end }.
+
+def Ran (p : C ⥤ C') [∀ X, has_limits_of_shape (Ran_index p X) D] : (C ⥤ D) ⥤ C' ⥤ D :=
+begin
+  refine adjunction.right_adjoint_of_equiv (λ F G, (right_kan_equiv p G F).symm) _,
+  intros X Y Z f g,
+  ext _ ⟨jl,jr,j⟩,
+  dsimp [right_kan_equiv],
+  delta Ran_cone,
+  tidy,
+end
 
 end Ran
 

@@ -776,6 +776,12 @@ have μ.to_outer_measure ≤ Inf (to_outer_measure '' m) :=
   le_Inf $ ball_image_of_ball $ assume μ hμ, to_outer_measure_le.2 $ h _ hμ,
 assume s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
 
+instance : complete_semilattice_Inf (measure α) :=
+{ Inf_le := λ s a, measure_Inf_le,
+  le_Inf := λ s a, measure_le_Inf,
+  ..(by apply_instance : partial_order (measure α)),
+  ..(by apply_instance : has_Inf (measure α)), }
+
 instance : complete_lattice (measure α) :=
 { bot := 0,
   bot_le := assume a s hs, by exact bot_le,
@@ -786,7 +792,7 @@ instance : complete_lattice (measure α) :=
     by cases s.eq_empty_or_nonempty with h  h;
       simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
 -/
-  .. complete_lattice_of_Inf (measure α) (λ ms, ⟨λ _, measure_Inf_le, λ _, measure_le_Inf⟩) }
+  .. complete_lattice_of_complete_semilattice_Inf (measure α) }
 
 end Inf
 
@@ -2050,9 +2056,9 @@ begin
         ennreal.sub_add_cancel_of_le (h₂ t h_t_measurable_set)] },
     have h_measure_sub_eq : (μ - ν) = measure_sub,
     { rw measure_theory.measure.sub_def, apply le_antisymm,
-      { apply @Inf_le (measure α) (measure.complete_lattice), simp [le_refl, add_comm,
+      { apply @Inf_le (measure α) (measure.complete_semilattice_Inf), simp [le_refl, add_comm,
           h_measure_sub_add] },
-      apply @le_Inf (measure α) (measure.complete_lattice),
+      apply @le_Inf (measure α) (measure.complete_semilattice_Inf),
       intros d h_d, rw [← h_measure_sub_add, mem_set_of_eq, add_comm d] at h_d,
       apply measure.le_of_add_le_add_left h_d },
     rw h_measure_sub_eq,

@@ -193,7 +193,7 @@ begin
     transitivity (1 - a) ^ 2 * (a * (2 ^ 2 * ∥y∥ ^ 2 + 4 * (1 - a) ^ 2)),
     { congr,
       nlinarith },
-    ring },
+    ring_nf },
   -- deduce the result
   convert congr_arg2 has_add.add (congr_arg (λ t, t • (y:E)) h₁) (congr_arg (λ t, t • v) h₂)
     using 1,

@@ -233,7 +233,7 @@ begin
                   nat.cast_one, nat.cast_mul],
         rw [← mul_assoc, @div_mul_cancel _ _ _ (2*(i:ℝ)+1) (by { norm_cast, linarith }),
             pow_mul x 2 i, ← mul_pow (-1) (x^2) i],
-        ring } },
+        ring_nf } },
     convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),
     have g_sum := @geom_sum _ _ (-x^2) (by linarith [neg_nonpos.mpr (pow_two_nonneg x)]) k,
     simp only [geom_series, f'] at g_sum ⊢,

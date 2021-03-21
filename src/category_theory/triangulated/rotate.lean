@@ -359,7 +359,8 @@ def rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :
       comp_id f.trimor2, id_comp f.trimor2],
     },
     {
-      simp only [triangle_morphism.comp_trimor3, triangle_morphism.rotate_trimor2, triangle_morphism.inv_rotate_trimor3, comp_id f.trimor3, id_comp f.trimor3],
+      simp only [triangle_morphism.comp_trimor3, triangle_morphism.rotate_trimor2,
+      triangle_morphism.inv_rotate_trimor3, comp_id f.trimor3, id_comp f.trimor3],
     },
   end
 }
@@ -465,12 +466,15 @@ def inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C) :
       triangle_morphism.rotate_trimor1, comp_id f.trimor1, id_comp f.trimor1],
     },
     {
-      simp only [triangle_morphism.rotate_trimor2, triangle_morphism.comp_trimor2, triangle_morphism.inv_rotate_trimor3, comp_id f.trimor2, id_comp f.trimor2],
+      simp only [triangle_morphism.rotate_trimor2, triangle_morphism.comp_trimor2,
+      triangle_morphism.inv_rotate_trimor3, comp_id f.trimor2, id_comp f.trimor2],
     },
     {
-      simp only [triangle_morphism.comp_trimor3, triangle_morphism.inv_rotate_trimor1, triangle_morphism.rotate_trimor3],
+      simp only [triangle_morphism.comp_trimor3, triangle_morphism.inv_rotate_trimor1,
+      triangle_morphism.rotate_trimor3],
       dsimp,
-      simp only [iso.inv_hom_id_app, equivalence.fun_inv_map, nat_iso.cancel_nat_iso_hom_left, assoc],
+      simp only [iso.inv_hom_id_app, equivalence.fun_inv_map, nat_iso.cancel_nat_iso_hom_left,
+      assoc],
       dsimp,
       rw comp_id,
     }
@@ -523,7 +527,8 @@ def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ (inv_rotate C) ⋙ (rotate C) :
       id_comp, comp_id, triangle_morphism.inv_rotate_trimor3],
     },
     {
-      simp only [triangle_morphism.comp_trimor3, triangle_morphism.inv_rotate_trimor1, triangle_morphism.rotate_trimor3],
+      simp only [triangle_morphism.comp_trimor3, triangle_morphism.inv_rotate_trimor1,
+      triangle_morphism.rotate_trimor3],
       dsimp,
       simp only [equivalence.fun_inv_map, iso.inv_hom_id_app_assoc],
     }

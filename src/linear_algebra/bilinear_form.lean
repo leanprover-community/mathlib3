@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Andreas Swerdlow, Kexing Ying
+Authors: Andreas Swerdlow, Kexing Ying
 -/
 
 import linear_algebra.matrix
@@ -35,7 +35,7 @@ In this file we use the following type variables:
  - `M₁`, `M₁'`, ... are modules over the ring `R₁`,
  - `M₂`, `M₂'`, ... are semimodules over the commutative semiring `R₂`,
  - `M₃`, `M₃'`, ... are modules over the commutative ring `R₃`,
- - `V`, ... is a semimodule over the field `K`.
+ - `V`, ... is a vector space over the field `K`.
 
 ## References
 
@@ -146,6 +146,9 @@ instance : add_comm_group (bilin_form R₁ M₁) :=
 
 @[simp]
 lemma add_apply (x y : M) : (B + D) x y = B x y + D x y := rfl
+
+@[simp]
+lemma zero_apply (x y : M) : (0 : bilin_form R M) x y = 0 := rfl
 
 @[simp]
 lemma neg_apply (x y : M₁) : (-B₁) x y = -(B₁ x y) := rfl
@@ -1220,7 +1223,7 @@ lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
 
 end
 
-/-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of 
+/-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of
 the span of a singleton is also non-degenerate. -/
 lemma restrict_orthogonal_span_singleton_nondegenerate (B : bilin_form K V)
   (hB₁ : nondegenerate B) (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :

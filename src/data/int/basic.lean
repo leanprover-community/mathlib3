@@ -1098,6 +1098,9 @@ lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 @[simp] lemma units_coe_mul_self (u : units ℤ) : (u * u : ℤ) = 1 :=
 by rw [←units.coe_mul, units_mul_self, units.coe_one]
 
+@[simp] lemma neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n ≠ 0 :=
+pow_ne_zero _ (abs_pos.mp trivial)
+
 /-! ### bitwise ops -/
 
 @[simp] lemma bodd_zero : bodd 0 = ff := rfl

@@ -595,7 +595,7 @@ def primes := {p : ℕ // p.prime}
 namespace primes
 
 instance : has_repr nat.primes := ⟨λ p, repr p.val⟩
-instance : inhabited primes := ⟨⟨2, prime_two⟩⟩
+instance inhabited_primes : inhabited primes := ⟨⟨2, prime_two⟩⟩
 
 instance coe_nat : has_coe nat.primes ℕ := ⟨subtype.val⟩
 

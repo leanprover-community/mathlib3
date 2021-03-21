@@ -156,6 +156,11 @@ protected def symm : local_equiv β α :=
 
 instance : has_coe_to_fun (local_equiv α β) := ⟨_, local_equiv.to_fun⟩
 
+/-- See Note [custom simps projection] -/
+def simps.inv_fun (e : local_equiv α β) : β → α := e.symm
+
+initialize_simps_projections local_equiv (to_fun → apply, inv_fun → symm_apply)
+
 @[simp, mfld_simps] theorem coe_mk (f : α → β) (g s t ml mr il ir) :
   (local_equiv.mk f g s t ml mr il ir : α → β) = f := rfl
 
@@ -199,6 +204,97 @@ protected def to_equiv : equiv (e.source) (e.target) :=
 @[simp, mfld_simps] lemma symm_symm : e.symm.symm = e := by { cases e, refl }
 
 lemma image_source_eq_target : e '' e.source = e.target := e.bij_on.image_eq
+
+/-- We say that `t : set β` is an image of `s : set α` under a local equivalence if
+any of the following equivalent conditions hold:
+
+* `e '' (e.source ∩ s) = e.target ∩ t`;
+* `e.source ∩ e ⁻¹ t = e.source ∩ s`;
+* `∀ x ∈ e.source, e x ∈ t ↔ x ∈ s` (this one is used in the definition).
+-/
+def is_image (s : set α) (t : set β) : Prop := ∀ ⦃x⦄, x ∈ e.source → (e x ∈ t ↔ x ∈ s)
+
+namespace is_image
+
+variables {e} {s : set α} {t : set β} {x : α} {y : β}
+
+lemma apply_mem_iff (h : e.is_image s t) (hx : x ∈ e.source) : e x ∈ t ↔ x ∈ s := h hx
+
+lemma symm_apply_mem_iff (h : e.is_image s t) : ∀ ⦃y⦄, y ∈ e.target → (e.symm y ∈ s ↔ y ∈ t) :=
+by { rw [← e.image_source_eq_target, ball_image_iff], intros x hx, rw [e.left_inv hx, h hx] }
+
+protected lemma symm (h : e.is_image s t) : e.symm.is_image t s := h.symm_apply_mem_iff
+
+@[simp] lemma symm_iff : e.symm.is_image t s ↔ e.is_image s t := ⟨λ h, h.symm, λ h, h.symm⟩
+
+protected lemma maps_to (h : e.is_image s t) : maps_to e (e.source ∩ s) (e.target ∩ t) :=
+λ x hx, ⟨e.maps_to hx.1, (h hx.1).2 hx.2⟩
+
+lemma symm_maps_to (h : e.is_image s t) : maps_to e.symm (e.target ∩ t) (e.source ∩ s) :=
+h.symm.maps_to
+
+/-- Restrict a `local_equiv` to a pair of corresponding sets. -/
+@[simps] def restr (h : e.is_image s t) : local_equiv α β :=
+{ to_fun := e,
+  inv_fun := e.symm,
+  source := e.source ∩ s,
+  target := e.target ∩ t,
+  map_source' := h.maps_to,
+  map_target' := h.symm_maps_to,
+  left_inv' := e.left_inv_on.mono (inter_subset_left _ _),
+  right_inv' := e.right_inv_on.mono (inter_subset_left _ _) }
+
+lemma image_eq (h : e.is_image s t) : e '' (e.source ∩ s) = e.target ∩ t :=
+h.restr.image_source_eq_target
+
+lemma symm_image_eq (h : e.is_image s t) : e.symm '' (e.target ∩ t) = e.source ∩ s :=
+h.symm.image_eq
+
+lemma iff_preimage_eq : e.is_image s t ↔ e.source ∩ e ⁻¹' t = e.source ∩ s :=
+by simp only [is_image, set.ext_iff, mem_inter_eq, and.congr_right_iff, mem_preimage]
+
+alias iff_preimage_eq ↔ local_equiv.is_image.preimage_eq local_equiv.is_image.of_preimage_eq
+
+lemma iff_symm_preimage_eq : e.is_image s t ↔ e.target ∩ e.symm ⁻¹' s = e.target ∩ t :=
+symm_iff.symm.trans iff_preimage_eq
+
+alias iff_symm_preimage_eq ↔ local_equiv.is_image.symm_preimage_eq
+  local_equiv.is_image.of_symm_preimage_eq
+
+lemma of_image_eq (h : e '' (e.source ∩ s) = e.target ∩ t) : e.is_image s t :=
+of_symm_preimage_eq $ eq.trans (of_symm_preimage_eq rfl).image_eq.symm h
+
+lemma of_symm_image_eq (h : e.symm '' (e.target ∩ t) = e.source ∩ s) : e.is_image s t :=
+of_preimage_eq $ eq.trans (of_preimage_eq rfl).symm_image_eq.symm h
+
+protected lemma compl (h : e.is_image s t) : e.is_image sᶜ tᶜ :=
+λ x hx, not_congr (h hx)
+
+protected lemma inter {s' t'} (h : e.is_image s t) (h' : e.is_image s' t') :
+  e.is_image (s ∩ s') (t ∩ t') :=
+λ x hx, and_congr (h hx) (h' hx)
+
+protected lemma union {s' t'} (h : e.is_image s t) (h' : e.is_image s' t') :
+  e.is_image (s ∪ s') (t ∪ t') :=
+λ x hx, or_congr (h hx) (h' hx)
+
+protected lemma diff {s' t'} (h : e.is_image s t) (h' : e.is_image s' t') :
+  e.is_image (s \ s') (t \ t') :=
+h.inter h'.compl
+
+lemma left_inv_on_piecewise {e' : local_equiv α β} [∀ i, decidable (i ∈ s)] [∀ i, decidable (i ∈ t)]
+  (h : e.is_image s t) (h' : e'.is_image s t) :
+  left_inv_on (t.piecewise e.symm e'.symm) (s.piecewise e e') (s.ite e.source e'.source) :=
+begin
+  rintro x (⟨he, hs⟩|⟨he, hs : x ∉ s⟩),
+  { rw [piecewise_eq_of_mem _ _ _ hs, piecewise_eq_of_mem _ _ _ ((h he).2 hs), e.left_inv he], },
+  { rw [piecewise_eq_of_not_mem _ _ _ hs, piecewise_eq_of_not_mem _ _ _ ((h'.compl he).2 hs),
+      e'.left_inv he] }
+end
+
+end is_image
+
+lemma is_image_source_target : e.is_image e.source e.target := λ x hx, by simp [hx]
 
 lemma image_source_inter_eq' (s : set α) :
   e '' (e.source ∩ s) = e.target ∩ e.symm ⁻¹' s :=
@@ -257,20 +353,7 @@ end
 
 /-- Restricting a local equivalence to e.source ∩ s -/
 protected def restr (s : set α) : local_equiv α β :=
-{ to_fun  := e,
-  inv_fun := e.symm,
-  source  := e.source ∩ s,
-  target  := e.target ∩ e.symm⁻¹' s,
-  map_source'  := λx hx, begin
-    simp only with mfld_simps at hx,
-    simp only [hx] with mfld_simps,
-  end,
-  map_target' := λy hy, begin
-    simp only with mfld_simps at hy,
-    simp only [hy] with mfld_simps,
-  end,
-  left_inv'  := λx hx, e.left_inv hx.1,
-  right_inv' := λy hy, e.right_inv hy.1 }
+(@is_image.of_symm_preimage_eq α β e s _ rfl).restr
 
 @[simp, mfld_simps] lemma restr_coe (s : set α) : (e.restr s : α → β) = e := rfl
 @[simp, mfld_simps] lemma restr_coe_symm (s : set α) : ((e.restr s).symm : β → α) = e.symm := rfl
@@ -519,6 +602,85 @@ by ext x; simp [prod_coe_symm]
 by ext x; simp [ext_iff]; tauto
 
 end prod
+
+/-- Combine two `local_equiv`s using `set.piecewise`. The source of the new `local_equiv` is
+`s.ite e.source e'.source = e.source ∩ s ∪ e'.source \ s`, and similarly for target.  The function
+sends `e.source ∩ s` to `e.target ∩ t` using `e` and `e'.source \ s` to `e'.target \ t` using `e'`,
+and similarly for the inverse function. The definition assumes `e.is_image s t` and
+`e'.is_image s t`. -/
+@[simps] def piecewise (e e' : local_equiv α β) (s : set α) (t : set β)
+  [∀ x, decidable (x ∈ s)] [∀ y, decidable (y ∈ t)] (H : e.is_image s t) (H' : e'.is_image s t) :
+  local_equiv α β :=
+{ to_fun := s.piecewise e e',
+  inv_fun := t.piecewise e.symm e'.symm,
+  source := s.ite e.source e'.source,
+  target := t.ite e.target e'.target,
+  map_source' := H.maps_to.piecewise_ite H'.compl.maps_to,
+  map_target' := H.symm.maps_to.piecewise_ite H'.symm.compl.maps_to,
+  left_inv' := H.left_inv_on_piecewise H',
+  right_inv' := H.symm.left_inv_on_piecewise H'.symm }
+
+lemma symm_piecewise (e e' : local_equiv α β) {s : set α} {t : set β}
+  [∀ x, decidable (x ∈ s)] [∀ y, decidable (y ∈ t)]
+  (H : e.is_image s t) (H' : e'.is_image s t) :
+  (e.piecewise e' s t H H').symm = e.symm.piecewise e'.symm t s H.symm H'.symm :=
+rfl
+
+/-- Combine two `local_equiv`s with disjoint sources and disjoint targets. We do not reuse
+`local_equiv.piecewise` here to provide better formulas for `source` and `target`. -/
+@[simps] def disjoint_union (e e' : local_equiv α β) (hs : disjoint e.source e'.source)
+  (ht : disjoint e.target e'.target) [∀ x, decidable (x ∈ e.source)]
+  [∀ y, decidable (y ∈ e.target)] :
+  local_equiv α β :=
+{ to_fun := e.source.piecewise e e',
+  inv_fun := e.target.piecewise e.symm e'.symm,
+  source := e.source ∪ e'.source,
+  target := e.target ∪ e'.target,
+  map_source' := λ x,
+    have x ∈ e'.source → x ∉ e.source, from λ h' h, hs ⟨h, h'⟩,
+    by rintro (he|he'); simp *,
+  map_target' := λ y,
+    have y ∈ e'.target → y ∉ e.target, from λ h' h, ht ⟨h, h'⟩,
+    by rintro (he|he'); simp *,
+  left_inv' := λ x,
+    begin
+      rintro (he|he'),
+      { simp * },
+      { have : x ∉ e.source ∧ e' x ∉ e.target,
+          from ⟨λ h, hs ⟨h, he'⟩, λ h, ht ⟨h, e'.map_source he'⟩⟩,
+        simp * }
+    end,
+  right_inv' := λ y,
+    begin
+      rintro (he|he'),
+      { simp * },
+      { have : y ∉ e.target ∧ e'.symm y ∉ e.source,
+          from ⟨λ h, ht ⟨h, he'⟩, λ h, hs ⟨h, e'.map_target he'⟩⟩,
+        simp * }
+    end }
+
+section pi
+
+variables {ι : Type*} {αi βi : ι → Type*} (ei : Π i, local_equiv (αi i) (βi i))
+
+/-- The product of a family of local equivs, as a local equiv on the pi type. -/
+@[simps source target] protected def pi : local_equiv (Π i, αi i) (Π i, βi i) :=
+{ to_fun := λ f i, ei i (f i),
+  inv_fun := λ f i, (ei i).symm (f i),
+  source := pi univ (λ i, (ei i).source),
+  target := pi univ (λ i, (ei i).target),
+  map_source' := λ f hf i hi, (ei i).map_source (hf i hi),
+  map_target' := λ f hf i hi, (ei i).map_target (hf i hi),
+  left_inv' := λ f hf, funext $ λ i, (ei i).left_inv (hf i trivial),
+  right_inv' := λ f hf, funext $ λ i, (ei i).right_inv (hf i trivial) }
+
+attribute [mfld_simps] pi_source pi_target
+
+@[simp, mfld_simps] lemma pi_coe : ⇑(local_equiv.pi ei) = λ (f : Π i, αi i) i, ei i (f i) := rfl
+@[simp, mfld_simps] lemma pi_symm :
+  (local_equiv.pi ei).symm = local_equiv.pi (λ i, (ei i).symm) := rfl
+
+end pi
 
 end local_equiv
 

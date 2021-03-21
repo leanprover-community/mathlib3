@@ -277,7 +277,7 @@ protected def empty : finset α := ⟨0, nodup_zero⟩
 
 instance : has_emptyc (finset α) := ⟨finset.empty⟩
 
-instance : inhabited (finset α) := ⟨∅⟩
+instance inhabited_finset : inhabited (finset α) := ⟨∅⟩
 
 @[simp] theorem empty_val : (∅ : finset α).1 = 0 := rfl
 
@@ -896,6 +896,18 @@ subset_insert_iff.1 $ subset.refl _
 
 theorem insert_erase_subset (a : α) (s : finset α) : s ⊆ insert a (erase s a) :=
 subset_insert_iff.2 $ subset.refl _
+
+lemma erase_inj {x y : α} (s : finset α) (hx : x ∈ s) :
+  s.erase x = s.erase y ↔ x = y :=
+begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw eq_of_mem_of_not_mem_erase hx,
+  rw ←h,
+  simp,
+end
+
+lemma erase_inj_on (s : finset α) : set.inj_on s.erase s :=
+λ _ _ _ _, (erase_inj s ‹_›).mp
 
 /-! ### sdiff -/
 

@@ -9,7 +9,7 @@ import category_theory.adjunction
 namespace category_theory
 open category
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 variables (L : C ⥤ D) (R : D ⥤ C)
@@ -117,17 +117,14 @@ namespace reflective
 
 instance [reflective R] (X : (adjunction.of_right_adjoint R).to_monad.algebra) :
   is_iso ((adjunction.of_right_adjoint R).unit.app X.A) :=
-{ inv := X.a,
-  hom_inv_id' := X.unit,
-  inv_hom_id' :=
-  begin
+⟨X.a, ⟨X.unit, begin
     dsimp only [functor.id_obj],
     rw ← (adjunction.of_right_adjoint R).unit_naturality,
     dsimp only [functor.comp_obj, adjunction.to_monad_coe],
     rw [unit_obj_eq_map_unit, ←functor.map_comp, ←functor.map_comp],
     erw X.unit,
     simp,
-  end }
+  end⟩⟩
 
 instance comparison_ess_surj [reflective R] :
   ess_surj (monad.comparison (adjunction.of_right_adjoint R)) :=

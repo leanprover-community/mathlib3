@@ -78,6 +78,9 @@ example : nat.prime 1277 := by norm_num
 example : nat.min_fac 221 = 13 := by norm_num
 
 example (h : (5 : ℤ) ∣ 2) : false := by norm_num at h
+example (h : false) : false := by norm_num at h
+example : true := by norm_num
+example : true ∧ true := by { split, norm_num, norm_num }
 
 example : 10 + 2 = 1 + 11 := by norm_num
 

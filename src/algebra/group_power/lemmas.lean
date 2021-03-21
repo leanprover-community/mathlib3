@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.group_power.basic
+import algebra.invertible
 import algebra.opposites
 import data.list.basic
 import data.int.cast
@@ -54,13 +55,37 @@ end
 @[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
+instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
+{ inv_of := ⅟ m ^ n,
+  inv_of_mul_self := by rw [← (commute_inv_of m).symm.mul_pow, inv_of_mul_self, one_pow],
+  mul_inv_of_self := by rw [← (commute_inv_of m).mul_pow, mul_inv_of_self, one_pow] }
+
+lemma inv_of_pow (m : M) [invertible m] (n : ℕ) [invertible (m ^ n)] :
+  ⅟(m ^ n) = ⅟m ^ n :=
+@invertible_unique M _ (m ^ n) (m ^ n) rfl ‹_› (invertible_pow m n)
+
+lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
+λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
+
+/-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
+def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :
+  invertible x :=
+⟨x ^ n, (pow_succ' x n).symm.trans hx, (pow_succ x n).symm.trans hx⟩
+
+/-- If `x ^ n = 1` then `x` has an inverse, `x^(n - 1)`. -/
+def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+  invertible x :=
+begin
+  apply invertible_of_pow_succ_eq_one x (n - 1),
+  convert hx,
+  exact nat.sub_add_cancel (nat.succ_le_of_lt hn),
+end
+
 lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
   is_unit x :=
 begin
-  cases n, { exact (nat.not_lt_zero _ hn).elim },
-  refine ⟨⟨x, x ^ n, _, _⟩, rfl⟩,
-  { rwa [pow_succ] at hx },
-  { rwa [pow_succ'] at hx }
+  haveI := invertible_of_pow_eq_one x n hx hn,
+  exact is_unit_of_invertible x
 end
 
 end monoid

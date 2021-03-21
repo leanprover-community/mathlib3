@@ -673,10 +673,10 @@ lemma tanh_mul_I : tanh (x * I) = tan x * I :=
 by rw [tanh_eq_sinh_div_cosh, cosh_mul_I, sinh_mul_I, mul_div_right_comm, tan]
 
 lemma cos_mul_I : cos (x * I) = cosh x :=
-by rw ← cosh_mul_I; ring; simp
+by rw ← cosh_mul_I; ring_nf; simp
 
 lemma sin_mul_I : sin (x * I) = sinh x * I :=
-have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring, simp },
+have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring_nf, simp },
 by simpa only [neg_mul_eq_neg_mul_symm, div_I, neg_neg]
   using cancel_factors.cancel_factors_eq_div h I_ne_zero
 

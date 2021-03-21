@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
 import category_theory.subobject.factor_thru
+import category_theory.subobject.well_powered
 
 /-!
 # The lattice of subobjects
@@ -174,77 +175,6 @@ begin
 end
 
 end sup
-
-section Inf
--- FIXME We want this to work in large categories, too.
--- but ...?
-variables {C' : Type u₁} [small_category C']
-
-variables [has_wide_pullbacks C']
-
-def wide_cospan {A : C'} (s : set (mono_over A)) : wide_pullback_shape s ⥤ C' :=
-@wide_pullback_shape.wide_cospan s _ _ A (λ j : s, ((j : mono_over A) : C')) (λ j : s, (j : mono_over A).arrow)
-
-def wide_pullback {A : C'} (s : set (mono_over A)) : C' :=
-limits.limit (wide_cospan s)
-
-def wide_pullback_ι {A : C'} (s : set (mono_over A)) :
-  wide_pullback s ⟶ A :=
-limits.limit.π (wide_cospan s) none
-
-instance wide_pullback_ι_mono {A : C'} (s : set (mono_over A)) :
-  mono (wide_pullback_ι s) :=
-⟨λ W u v h, limit.hom_ext (λ j, begin
-  cases j,
-  sorry,
-  { apply (cancel_mono (j : mono_over A).arrow).1,
-    sorry },
-end)⟩
-
-/--
-When `[has_wide_pullbacks C]`, `mono_over A` has arbitrary "intersections".
-
-As `mono_over A` is only a preorder, this doesn't satisfy the axioms of `complete_semilattice_Inf`,
-but we reuse all the names from `complete_semilattice_Inf` because they will be used to construct
-`complete_semilattice_Inf (subobject A)` shortly.
--/
-@[simps]
-def Inf {A : C'} (s : set (mono_over A)) : mono_over A :=
-mono_over.mk' (wide_pullback_ι s)
-
-/-- A morphism from the "infimum" of a set of objects in `mono_over A` to one of the objects. -/
-def Inf_le {A : C'} (s : set (mono_over A)) (f ∈ s) :
-  Inf s ⟶ f :=
-sorry
-
-/-- A morphism version of the `le_Inf` axiom. -/
-def le_Inf {A : C'} (s : set (mono_over A)) (f : mono_over A) (k : Π (g ∈ s), f ⟶ g) :
-  f ⟶ Inf s :=
-sorry
-
-end Inf
-
-section Sup
-variables {C' : Type u₁} [small_category C']
-
-variables [has_images C'] [has_coproducts C']
-
-/-- When `[has_images C] [has_coproducts C]`, `mono_over A` has a `Sup` construction,
-and which on `subobject A` will induce a `complete_semilattice_Sup`. -/
-def Sup {A : C'} (s : set (mono_over A)) : mono_over A :=
-mono_over.mk' (limits.sigma.desc (λ j : s, (j : mono_over A).arrow))
-
-/-- A morphism version of `le_Sup`. -/
-def le_Sup {A : C'} (s : set (mono_over A)) (f ∈ s)  :
-  f ⟶ Sup s :=
-sorry
-
-/-- A morphism version of `Sup_le`. -/
-def Sup_le {A : C'} (s : set (mono_over A)) (f : mono_over A) (k : Π (g ∈ s), g ⟶ f) :
-  Sup s ⟶ f :=
-sorry
-
-end Sup
 
 end mono_over
 
@@ -533,6 +463,79 @@ end
 end
 
 end semilattice_sup
+
+section Inf
+
+variables [well_powered C] [has_wide_pullbacks C]
+
+def wide_cospan {A : C} (s : set (subobject A)) :
+  wide_pullback_shape (subobject_equiv A '' s) ⥤ C :=
+@wide_pullback_shape.wide_cospan (subobject_equiv A '' s) _ _ A
+  (λ j, (((subobject_equiv A).symm j) : C))
+  (λ j, ((subobject_equiv A).symm j).arrow)
+
+def wide_pullback {A : C} (s : set (subobject A)) : C :=
+limits.limit (wide_cospan s)
+
+def wide_pullback_ι {A : C} (s : set (subobject A)) :
+  wide_pullback s ⟶ A :=
+limits.limit.π (wide_cospan s) none
+
+instance wide_pullback_ι_mono {A : C} (s : set (subobject A)) :
+  mono (wide_pullback_ι s) :=
+⟨λ W u v h, limit.hom_ext (λ j, begin
+  cases j,
+  sorry,
+  { apply (cancel_mono ((subobject_equiv A).symm j).arrow).1,
+    sorry },
+end)⟩
+
+/--
+When `[has_wide_pullbacks C]`, `mono_over A` has arbitrary "intersections".
+
+As `mono_over A` is only a preorder, this doesn't satisfy the axioms of `complete_semilattice_Inf`,
+but we reuse all the names from `complete_semilattice_Inf` because they will be used to construct
+`complete_semilattice_Inf (subobject A)` shortly.
+-/
+def Inf {A : C} (s : set (subobject A)) : subobject A :=
+subobject.mk (wide_pullback_ι s)
+
+/-- A morphism from the "infimum" of a set of objects in `mono_over A` to one of the objects. -/
+def Inf_le {A : C} (s : set (subobject A)) (f ∈ s) :
+  Inf s ⟶ f :=
+sorry
+
+/-- A morphism version of the `le_Inf` axiom. -/
+def le_Inf {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ⟶ g) :
+  f ⟶ Inf s :=
+sorry
+
+end Inf
+
+section Sup
+
+variables [well_powered C] [has_images C] [has_coproducts C]
+
+instance {A : C} (s : set (subobject A)) :
+  mono (limits.sigma.desc (λ j, ((subobject_equiv A).symm j).arrow)) :=
+sorry
+
+/-- When `[has_images C] [has_coproducts C]`, `subobject A` has a `Sup` construction,
+which will induce a `complete_semilattice_Sup`. -/
+def Sup {A : C} (s : set (subobject A)) : subobject A :=
+subobject.mk (limits.sigma.desc (λ j, ((subobject_equiv A).symm j).arrow))
+
+/-- A morphism version of `le_Sup`. -/
+def le_Sup {A : C} (s : set (subobject A)) (f ∈ s)  :
+  f ⟶ Sup s :=
+sorry
+
+/-- A morphism version of `Sup_le`. -/
+def Sup_le {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), g ⟶ f) :
+  Sup s ⟶ f :=
+sorry
+
+end Sup
 
 section lattice
 variables [has_pullbacks C] [has_images C] [has_binary_coproducts C]

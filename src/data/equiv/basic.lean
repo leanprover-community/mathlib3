@@ -2045,6 +2045,7 @@ def equiv_of_subsingleton_of_subsingleton [subsingleton α] [subsingleton β]
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
 
+/-- A nonempty subsingleton type is (noncomputably) equivalent to `punit`. -/
 noncomputable
 def equiv.punit_of_nonempty_of_subsingleton {α : Sort*} [h : nonempty α] [subsingleton α] :
   α ≃ punit.{v} :=

@@ -92,6 +92,9 @@ noncomputable def skeleton_is_skeleton : is_skeleton_of C (skeleton C) (from_ske
 section
 variables {C D}
 
+/--
+Two categories which are categorically equivalent have skeletons with equivalent objects.
+-/
 noncomputable
 def equivalence.skeleton_equiv (e : C ≌ D) : skeleton C ≃ skeleton D :=
 let f := ((from_skeleton C).as_equivalence.trans e).trans (from_skeleton D).as_equivalence.symm in

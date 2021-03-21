@@ -613,6 +613,38 @@ theorem le_bounded_by' {μ : outer_measure α} :
   μ ≤ bounded_by m ↔ ∀ s : set α, s.nonempty → μ s ≤ m s :=
 by { rw [le_bounded_by, forall_congr], intro s, cases s.eq_empty_or_nonempty with h h; simp [h] }
 
+lemma smul_bounded_by {c : ℝ≥0∞} (hc : c ≠ ∞) : c • bounded_by m = bounded_by (c • m) :=
+begin
+  simp only [bounded_by, smul_of_function hc],
+  congr' 1 with s : 1,
+  rcases s.eq_empty_or_nonempty with rfl|hs; simp *
+end
+
+lemma comap_bounded_by {β} (f : β → α)
+  (h : monotone (λ s : {s : set α // s.nonempty}, m s) ∨ surjective f) :
+  comap f (bounded_by m) = bounded_by (λ s, m (f '' s)) :=
+begin
+  refine (comap_of_function _ _).trans _,
+  { refine h.imp (λ H s t hst, supr_le $ λ hs, _) id,
+    have ht : t.nonempty := hs.mono hst,
+    exact (@H ⟨s, hs⟩ ⟨t, ht⟩ hst).trans (le_supr (λ h : t.nonempty, m t) ht) },
+  { dunfold bounded_by,
+    congr' with s : 1,
+    rw nonempty_image_iff }
+end
+
+/-- If `m u = ∞` for any set `u` that has nonempty intersection both with `s` and `t`, then
+`μ (s ∪ t) = μ s + μ t`, where `μ = measure_theory.outer_measure.bounded_by m`.
+
+E.g., if `α` is an (e)metric space and `m u = ∞` on any set of diameter `≥ r`, then this lemma
+implies that `μ (s ∪ t) = μ s + μ t` on any two sets such that `r ≤ edist x y` for all `x ∈ s`
+and `y ∈ t`.  -/
+lemma bounded_by_union_of_top_of_nonempty_inter {s t : set α}
+  (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → m u = ∞) :
+  bounded_by m (s ∪ t) = bounded_by m s + bounded_by m t :=
+of_function_union_of_top_of_nonempty_inter $ λ u hs ht,
+  top_unique $ (h u hs ht).ge.trans $ le_supr (λ h, m u) (hs.mono $ inter_subset_right s u)
+
 end bounded_by
 
 section caratheodory_measurable

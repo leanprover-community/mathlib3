@@ -1247,6 +1247,33 @@ end exists_mul_eq
 
 /-! ### Miscellanous lemmas -/
 
+theorem is_O_of_div_is_bounded_under {α : Type*} {l : filter α}
+  {f g : α → 𝕜} (hgf : ∀ᶠ x in l, g x = 0 → f x = 0)
+  (h : is_bounded_under (≤) l (λ x, ∥f x / g x∥)) :
+  is_O f g l :=
+begin
+  obtain ⟨c, hc⟩ := h,
+  rw filter.eventually_iff at hgf hc,
+  simp only [mem_set_of_eq, mem_map, normed_field.norm_div] at hc,
+  refine is_O_iff.mpr ⟨c, filter.eventually_of_mem (inter_mem_sets hgf hc) (λ x hx, _)⟩,
+  by_cases hgx : g x = 0,
+  { simp [hx.1 hgx, hgx] },
+  { refine (div_le_iff (norm_pos_iff.mpr hgx)).mp hx.2 },
+end
+
+lemma is_bounded_under_of_tends_to_nhds {α : Type*} {l : filter α}
+  {f : α → 𝕜} (c : 𝕜) (h : filter.tendsto f l (𝓝 c)) :
+  is_bounded_under (≤) l (λ x, ∥f x∥) :=
+⟨∥c∥ + 1, @tendsto.eventually α 𝕜 f _ _ (λ k, ∥k∥ ≤ ∥c∥ + 1) h (filter.eventually_iff_exists_mem.mpr
+  ⟨metric.closed_ball c 1, metric.closed_ball_mem_nhds c zero_lt_one,
+    λ y hy, norm_le_norm_add_const_of_dist_le hy⟩)⟩
+
+theorem is_O_of_div_tends_to_nhds {α : Type*} {l : filter α}
+  {f g : α → 𝕜} (hgf : ∀ᶠ x in l, g x = 0 → f x = 0)
+  (c : 𝕜) (H : filter.tendsto (f / g) l (𝓝 c)) :
+  is_O f g l :=
+is_O_of_div_is_bounded_under hgf $ is_bounded_under_of_tends_to_nhds c H
+
 theorem is_O_at_top_of_div_tends_to_finite {α : Type*} [linear_order α] [nonempty α]
   {f g : α → 𝕜} (hgf : ∀ᶠ x in filter.at_top, g x = 0 → f x = 0) (c : 𝕜)
   (H : filter.tendsto (f / g) filter.at_top (𝓝 c)) :

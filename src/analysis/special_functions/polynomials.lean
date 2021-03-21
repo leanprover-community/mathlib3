@@ -163,12 +163,10 @@ begin
   { simpa [hp] using is_O_zero (λ x, eval x Q) filter.at_top },
   { have hq : Q ≠ 0 := ne_zero_of_degree_ge_degree h hp,
     cases le_iff_lt_or_eq.mp h with h h,
-    { have := polynomial.div_tendsto_zero_of_degree_lt P Q h,
-      refine is_O_at_top_of_div_tends_to_finite _ 0 this,
+    { refine is_O_of_div_tends_to_nhds _ 0 (div_tendsto_zero_of_degree_lt P Q h),
       refine filter.mem_sets_of_superset (polynomial.eventually_no_roots Q hq) _,
       exact λ x hx hx', absurd hx' hx },
-    { have := polynomial.div_tendsto_leading_coeff_div_of_degree_eq P Q h,
-      refine is_O_at_top_of_div_tends_to_finite _ _ this,
+    { refine is_O_of_div_tends_to_nhds _ _ (div_tendsto_leading_coeff_div_of_degree_eq P Q h),
       refine filter.mem_sets_of_superset (polynomial.eventually_no_roots Q hq) _,
       exact λ x hx hx', absurd hx' hx } }
 end

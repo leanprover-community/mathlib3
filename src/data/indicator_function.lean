@@ -442,7 +442,8 @@ variables [canonically_ordered_monoid M]
   mul_indicator s f ≤ f :=
 mul_indicator_le_self' $ λ _ _, one_le _
 
-@[to_additive] lemma mul_indicator_apply_le {a : α} {s : set α} {f g : α → M} (hfg : a ∈ s → f a ≤ g a) :
+@[to_additive] lemma mul_indicator_apply_le {a : α} {s : set α} {f g : α → M}
+  (hfg : a ∈ s → f a ≤ g a) :
   mul_indicator s f a ≤ g a :=
 mul_indicator_apply_le' hfg $ λ _, one_le _
 

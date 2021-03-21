@@ -103,7 +103,8 @@ mul_indicator_eq_self.2 subset.rfl
   mul_indicator (range f) g ∘ f = g ∘ f :=
 piecewise_range_comp _ _ _
 
-@[to_additive] lemma mul_indicator_congr (h : eq_on f g s) : mul_indicator s f = mul_indicator s g :=
+@[to_additive] lemma mul_indicator_congr (h : eq_on f g s) :
+  mul_indicator s f = mul_indicator s g :=
 funext $ λx, by { simp only [mul_indicator], split_ifs, { exact h h_1 }, refl }
 
 @[simp, to_additive] lemma mul_indicator_univ (f : α → M) : mul_indicator (univ : set α) f = f :=
@@ -401,12 +402,14 @@ mul_indicator_apply_le' h (λ _, le_rfl)
   mul_indicator s f a ≤ 1 :=
 mul_indicator_apply_le_one (h a)
 
-@[to_additive] lemma mul_indicator_le_mul_indicator (h : f a ≤ g a) : mul_indicator s f a ≤ mul_indicator s g a :=
+@[to_additive] lemma mul_indicator_le_mul_indicator (h : f a ≤ g a) :
+  mul_indicator s f a ≤ mul_indicator s g a :=
 mul_indicator_rel_mul_indicator (le_refl _) (λ _, h)
 
 attribute [mono] mul_indicator_le_mul_indicator indicator_le_indicator
 
-@[to_additive] lemma mul_indicator_le_mul_indicator_of_subset (h : s ⊆ t) (hf : ∀ a, 1 ≤ f a) (a : α) :
+@[to_additive] lemma mul_indicator_le_mul_indicator_of_subset (h : s ⊆ t) (hf : ∀ a, 1 ≤ f a)
+  (a : α) :
   mul_indicator s f a ≤ mul_indicator t f a :=
 mul_indicator_apply_le' (λ ha, le_mul_indicator_apply (λ _, le_rfl) (λ hat, (hat $ h ha).elim))
   (λ ha, one_le_mul_indicator_apply (λ _, hf _))

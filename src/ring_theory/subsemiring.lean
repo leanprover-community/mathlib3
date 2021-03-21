@@ -159,6 +159,17 @@ instance to_semiring : semiring s :=
   left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
   .. s.to_submonoid.to_monoid, .. s.to_add_submonoid.to_add_comm_monoid }
 
+@[simp, norm_cast] lemma coe_one : ((1 : s) : R) = (1 : R) := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = (0 : R) := rfl
+@[simp, norm_cast] lemma coe_add (x y : s) : ((x + y : s) : R) = (x + y : R) := rfl
+@[simp, norm_cast] lemma coe_mul (x y : s) : ((x * y : s) : R) = (x * y : R) := rfl
+@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : ((x^n : s) : R) = (x^n : R) :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
+
 instance nontrivial [nontrivial R] : nontrivial s :=
 nontrivial_of_ne 0 1 $ λ H, zero_ne_one (congr_arg subtype.val H)
 

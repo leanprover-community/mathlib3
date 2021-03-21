@@ -499,14 +499,14 @@ lemma norm_lt_iff_of_compact [compact_space α]
   {f : α →ᵇ β} {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 begin
   simp_rw [norm_def, ←dist_zero_right],
-  exact dist_lt_of_compact M0,
+  exact dist_lt_iff_of_compact M0,
 end
 
 lemma norm_lt_iff_of_nonempty_compact [nonempty α] [compact_space α]
   {f : α →ᵇ β} {M : ℝ} : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 begin
   simp_rw [norm_def, ←dist_zero_right],
-  exact dist_lt_of_nonempty_compact,
+  exact dist_lt_iff_of_nonempty_compact,
 end
 
 variable (f)

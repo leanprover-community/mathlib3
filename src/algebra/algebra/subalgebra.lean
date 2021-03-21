@@ -105,17 +105,6 @@ theorem coe_int_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) (n : ℤ) : (n : A) ∈ S :=
 int.cases_on n (λ i, S.coe_nat_mem i) (λ i, S.neg_mem $ S.coe_nat_mem $ i + 1)
 
-@[simp, norm_cast] lemma coe_one : ((1 : S) : A) = (1 : A) := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : S) : A) = (0 : A) := rfl
-@[simp, norm_cast] lemma coe_add (x y : S) : ((x + y : S) : A) = (x + y : A) := rfl
-@[simp, norm_cast] lemma coe_mul (x y : S) : ((x * y : S) : A) = (x * y : A) := rfl
-@[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : ((x^n : S) : A) = (x^n : A) :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
-end
-
 theorem list_prod_mem {L : list A} (h : ∀ x ∈ L, x ∈ S) : L.prod ∈ S :=
 subsemiring.list_prod_mem S h
 
@@ -201,9 +190,6 @@ instance to_linear_ordered_comm_ring {R A}
   [comm_ring R] [linear_ordered_comm_ring A] [algebra R A] (S : subalgebra R A) :
   linear_ordered_comm_ring S := S.to_subring.to_linear_ordered_comm_ring
 
-@[simp, norm_cast] lemma coe_neg {R : Type u} {A : Type v} [comm_ring R] [ring A]
-  [algebra R A] (S : subalgebra R A) (x : S) : ((-x : S) : A) = (-x :A) := rfl
-
 end
 
 instance algebra : algebra R S :=
@@ -211,11 +197,6 @@ instance algebra : algebra R S :=
   commutes' := λ c x, subtype.eq $ algebra.commutes _ _,
   smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
   .. (algebra_map R A).cod_srestrict S $ λ x, S.range_le ⟨x, rfl⟩ }
-
-@[simp, norm_cast] lemma coe_smul (r : R) (x : S) : ((r • x : S) : A) = r • x :=
-rfl
-@[simp, norm_cast] lemma coe_algebra_map (r : R) : (algebra_map R S r : A) = algebra_map R A r :=
-rfl
 
 instance to_algebra {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
   [algebra R A] [algebra A B] (A₀ : subalgebra R A) : algebra A₀ B :=
@@ -229,6 +210,30 @@ instance no_zero_smul_divisors_bot [no_zero_smul_divisors R A] : no_zero_smul_di
   have c = 0 ∨ (x : A) = 0,
   from eq_zero_or_eq_zero_of_smul_eq_zero (congr_arg coe h),
   this.imp_right (@subtype.ext_iff _ _ x 0).mpr⟩
+
+@[simp, norm_cast] lemma coe_add (x y : S) : (↑(x + y) : A) = ↑x + ↑y := rfl
+@[simp, norm_cast] lemma coe_mul (x y : S) : (↑(x * y) : A) = ↑x * ↑y := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : S) : A) = 0 := rfl
+@[simp, norm_cast] lemma coe_one : ((1 : S) : A) = 1 := rfl
+@[simp, norm_cast] lemma coe_neg {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
+  {S : subalgebra R A} (x : S) : (↑(-x) : A) = -↑x := rfl
+@[simp, norm_cast] lemma coe_sub {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
+  {S : subalgebra R A} (x y : S) : (↑(x - y) : A) = ↑x - ↑y := rfl
+@[simp, norm_cast] lemma coe_smul (r : R) (x : S) : (↑(r • x) : A) = r • ↑x := rfl
+@[simp, norm_cast] lemma coe_algebra_map (r : R) : ↑(algebra_map R S r) = algebra_map R A r :=
+rfl
+
+@[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x^n) : A) = (↑x)^n :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
+
+@[simp, norm_cast] lemma coe_eq_zero {x : S} : (x : A) = 0 ↔ x = 0 :=
+(subtype.ext_iff.symm : (x : A) = (0 : S) ↔ x = 0)
+@[simp, norm_cast] lemma coe_eq_one {x : S} : (x : A) = 1 ↔ x = 1 :=
+(subtype.ext_iff.symm : (x : A) = (1 : S) ↔ x = 1)
 
 -- todo: standardize on the names these morphisms
 -- compare with submodule.subtype

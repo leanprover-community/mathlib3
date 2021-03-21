@@ -197,7 +197,7 @@ begin
   { norm_num },
   rw [finset.prod_range_succ, ← mul_assoc, mul_comm (2:ℝ) ((2 * k + 2) / (2 * k + 3)),
     mul_assoc, ← ih],
-  have h₁ : 2 * k.succ + 1 = 2 * k + 1 + 2, { ring },
+  have h₁ : 2 * (k + 1) + 1 = 2 * k + 1 + 2, { ring },
   have h₂ : (2:ℝ) * k + 1 + 1 = 2 * k + 2, { norm_cast },
   have h₃ : (2:ℝ) * k + 1 + 2 = 2 * k + 3, { norm_cast },
   simp [h₁, h₂, h₃, integral_sin_pow_succ_succ (2 * k + 1)],

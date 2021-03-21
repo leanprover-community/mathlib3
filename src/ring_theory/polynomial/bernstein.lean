@@ -3,10 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.nat.choose.sum
 import data.polynomial.derivative
 import data.polynomial.algebra_map
-import data.mv_polynomial.pderiv
 import linear_algebra.basis
 import ring_theory.polynomial.pochhammer
 import tactic.omega
@@ -14,12 +12,12 @@ import tactic.omega
 /-!
 # Bernstein polynomials
 
-We define the Bernstein polynomials
+The definition of the Bernstein polynomials
 ```
 bernstein_polynomial (R : Type*) [comm_ring R] (n ν : ℕ) : polynomial R :=
 (choose n ν) * X^ν * (1 - X)^(n - ν)
 ```
-and show that for `ν : fin (n+1)` these are linearly independent over `ℚ`.
+and the fact that for `ν : fin (n+1)` these are linearly independent over `ℚ`.
 
 We prove the basic identities
 * `(finset.range (n + 1)).sum (λ ν, bernstein_polynomial R n ν) = 1`
@@ -34,13 +32,6 @@ This will give a constructive proof of Weierstrass' theorem that
 polynomials are dense in `C([0,1], ℝ)`.
 -/
 
-lemma polynomial.nat_smul {R : Type*} [semiring R] (n : ℕ) (p : polynomial R) : n • p = n * p :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [ih, nat.succ_eq_add_one, add_smul, add_mul], },
-end
-
 noncomputable theory
 
 
@@ -50,7 +41,7 @@ open polynomial (X)
 variables (R : Type*) [comm_ring R]
 
 /--
-`bernstein_polynomial R n ν` is `(choose n ν) * X^ν * (1 - X)^(n - ν)`
+`bernstein_polynomial R n ν` is `(choose n ν) * X^ν * (1 - X)^(n - ν)`.
 
 Although the coefficients are integers, it is convenient to work over an arbitrary commutative ring.
 -/
@@ -75,7 +66,6 @@ variables {R} {S : Type*} [comm_ring S]
 by simp [bernstein_polynomial]
 
 end
-
 
 lemma flip (n ν : ℕ) (h : ν ≤ n) :
   (bernstein_polynomial R n ν).comp (1-X) = bernstein_polynomial R n (n-ν) :=
@@ -184,7 +174,7 @@ iterate_derivative_at_0_eq_zero_of_lt R n (lt_add_one ν)
 
 open polynomial
 
-/-- A Pochhammer identity that will be useful in a moment. -/
+/-- A Pochhammer identity that is useful for `bernstein_polynomial.iterate_derivative_at_0_aux₂`. -/
 lemma iterate_derivative_at_0_aux₁ (n k : ℕ) :
   k * polynomial.eval (k-n) (pochhammer ℕ n) = (k-n) * polynomial.eval (k-n+1) (pochhammer ℕ n) :=
 begin
@@ -251,7 +241,7 @@ begin
     omega, },
 end
 
-/--
+/-!
 Rather than redoing the work of evaluating the derivatives at 1,
 we use the symmetry of the Bernstein polynomials.
 -/
@@ -308,7 +298,7 @@ begin
       -- but vanishes for everything in the span.
       clear ih,
       simp only [nat.succ_eq_add_one, add_le_add_iff_right] at h,
-      simp only [fin.coe_last, fin.init_lambda],
+      simp only [fin.coe_last, fin.init_def],
       dsimp,
       apply not_mem_span_of_apply_not_mem_span_image ((polynomial.derivative_lhom ℚ)^(n-k)),
       simp only [not_exists, not_and, submodule.mem_map, submodule.span_image],
@@ -399,7 +389,7 @@ begin
   conv at h {
     to_rhs,
     rw [pderiv_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
-    simp [e, ←polynomial.nat_smul], },
+    simp [e, polynomial.nat_mul], },
   exact h,
 end
 
@@ -456,7 +446,7 @@ begin
     to_rhs,
     simp only [pderiv_one, pderiv_mul, pderiv_pow, pderiv_nat_cast, (pderiv tt).map_add,
       pderiv_tt_x, pderiv_tt_y],
-    simp [e, ←polynomial.nat_smul, smul_smul],
+    simp [e, polynomial.nat_mul, smul_smul],
   },
   exact h,
 end

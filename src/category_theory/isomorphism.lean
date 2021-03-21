@@ -31,7 +31,7 @@ This file defines isomorphisms between objects of a category.
 category, category theory, isomorphism
 -/
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
 open category

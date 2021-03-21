@@ -24,7 +24,7 @@ cofree functors, respectively from and to the original category.
 namespace category_theory
 open category
 
-universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ u₁ -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u₁} [category.{v₁} C]
 

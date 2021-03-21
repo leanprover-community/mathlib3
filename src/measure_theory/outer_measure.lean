@@ -155,11 +155,11 @@ lemma union_null (m : outer_measure α) {s₁ s₂ : set α}
   (h₁ : m s₁ = 0) (h₂ : m s₂ = 0) : m (s₁ ∪ s₂) = 0 :=
 by simpa [h₁, h₂] using m.union s₁ s₂
 
-lemma injective_coe_fn : injective (λ (μ : outer_measure α) (s : set α), μ s) :=
+lemma coe_fn_injective : injective (λ (μ : outer_measure α) (s : set α), μ s) :=
 λ μ₁ μ₂ h, by { cases μ₁, cases μ₂, congr, exact h }
 
 @[ext] lemma ext {μ₁ μ₂ : outer_measure α} (h : ∀ s, μ₁ s = μ₂ s) : μ₁ = μ₂ :=
-injective_coe_fn $ funext h
+coe_fn_injective $ funext h
 
 /-- A version of `measure_theory.outer_measure.ext` that assumes `μ₁ s = μ₂ s` on all *nonempty*
 sets `s`, and gets `μ₁ ∅ = μ₂ ∅` from `measure_theory.outer_measure.empty'`. -/
@@ -196,7 +196,7 @@ instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
 { zero      := 0,
   add       := (+),
   .. injective.add_comm_monoid (show outer_measure α → set α → ℝ≥0∞, from coe_fn)
-    injective_coe_fn rfl (λ _ _, rfl) }
+    coe_fn_injective rfl (λ _ _, rfl) }
 
 instance : has_scalar ℝ≥0∞ (outer_measure α) :=
 ⟨λ c m,
@@ -212,7 +212,7 @@ lemma smul_apply (c : ℝ≥0∞) (m : outer_measure α) (s : set α) : (c • m
 instance : semimodule ℝ≥0∞ (outer_measure α) :=
 { smul := (•),
   .. injective.semimodule ℝ≥0∞ ⟨show outer_measure α → set α → ℝ≥0∞, from coe_fn, coe_zero,
-    coe_add⟩ injective_coe_fn coe_smul }
+    coe_add⟩ coe_fn_injective coe_smul }
 
 instance : has_bot (outer_measure α) := ⟨0⟩
 
@@ -274,8 +274,8 @@ def map {β} (f : α → β) : outer_measure α →ₗ[ℝ≥0∞] outer_measure
       mono := λ s t h, m.mono (preimage_mono h),
       Union_nat := λ s, by rw [preimage_Union]; exact
         m.Union_nat (λ i, f ⁻¹' s i) },
-  map_add' := λ m₁ m₂, injective_coe_fn rfl,
-  map_smul' := λ c m, injective_coe_fn rfl }
+  map_add' := λ m₁ m₂, coe_fn_injective rfl,
+  map_smul' := λ c m, coe_fn_injective rfl }
 
 @[simp] theorem map_apply {β} (f : α → β)
   (m : outer_measure α) (s : set β) : map f m s = m (f ⁻¹' s) := rfl
@@ -612,6 +612,38 @@ end
 theorem le_bounded_by' {μ : outer_measure α} :
   μ ≤ bounded_by m ↔ ∀ s : set α, s.nonempty → μ s ≤ m s :=
 by { rw [le_bounded_by, forall_congr], intro s, cases s.eq_empty_or_nonempty with h h; simp [h] }
+
+lemma smul_bounded_by {c : ℝ≥0∞} (hc : c ≠ ∞) : c • bounded_by m = bounded_by (c • m) :=
+begin
+  simp only [bounded_by, smul_of_function hc],
+  congr' 1 with s : 1,
+  rcases s.eq_empty_or_nonempty with rfl|hs; simp *
+end
+
+lemma comap_bounded_by {β} (f : β → α)
+  (h : monotone (λ s : {s : set α // s.nonempty}, m s) ∨ surjective f) :
+  comap f (bounded_by m) = bounded_by (λ s, m (f '' s)) :=
+begin
+  refine (comap_of_function _ _).trans _,
+  { refine h.imp (λ H s t hst, supr_le $ λ hs, _) id,
+    have ht : t.nonempty := hs.mono hst,
+    exact (@H ⟨s, hs⟩ ⟨t, ht⟩ hst).trans (le_supr (λ h : t.nonempty, m t) ht) },
+  { dunfold bounded_by,
+    congr' with s : 1,
+    rw nonempty_image_iff }
+end
+
+/-- If `m u = ∞` for any set `u` that has nonempty intersection both with `s` and `t`, then
+`μ (s ∪ t) = μ s + μ t`, where `μ = measure_theory.outer_measure.bounded_by m`.
+
+E.g., if `α` is an (e)metric space and `m u = ∞` on any set of diameter `≥ r`, then this lemma
+implies that `μ (s ∪ t) = μ s + μ t` on any two sets such that `r ≤ edist x y` for all `x ∈ s`
+and `y ∈ t`.  -/
+lemma bounded_by_union_of_top_of_nonempty_inter {s t : set α}
+  (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → m u = ∞) :
+  bounded_by m (s ∪ t) = bounded_by m s + bounded_by m t :=
+of_function_union_of_top_of_nonempty_inter $ λ u hs ht,
+  top_unique $ (h u hs ht).ge.trans $ le_supr (λ h, m u) (hs.mono $ inter_subset_right s u)
 
 end bounded_by
 

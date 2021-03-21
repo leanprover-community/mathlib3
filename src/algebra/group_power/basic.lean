@@ -719,6 +719,14 @@ end
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]
 
+lemma sub_pow_two {R} [comm_ring R] (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
+by rw [sub_eq_add_neg, add_pow_two, neg_square, mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg]
+
+/-- Arithmetic mean-geometric mean (AM-GM) inequality for linearly ordered commutative rings. -/
+lemma two_mul_le_add_pow_two {R} [linear_ordered_comm_ring R] (a b : R) :
+  2 * a * b ≤ a ^ 2 + b ^ 2 :=
+sub_nonneg.mp ((sub_add_eq_add_sub _ _ _).subst ((sub_pow_two a b).subst (pow_two_nonneg _)))
+
 lemma of_add_nsmul [add_monoid A] (x : A) (n : ℕ) :
   multiplicative.of_add (n •ℕ x) = (multiplicative.of_add x)^n := rfl
 

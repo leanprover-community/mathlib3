@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Rémy Degenne
+Authors: Rémy Degenne
 -/
 import measure_theory.measure_space
 import measure_theory.pi_system

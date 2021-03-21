@@ -380,7 +380,7 @@ by { rw [finsum_in_insert, finsum_in_singleton], exacts [h, finite_singleton b] 
 
 /-- The sum on the image `g '' s` over the function `f` equals the sum on `s` over `f ∘ g` given `g`
   is injective on `s ∩ support (f ∘ g)`. -/
-@[simp] lemma finsum_in_image' {β} {s : set β} {g : β → α} (hg : set.inj_on g (s ∩ support (f ∘ g))) :
+@[simp] lemma finsum_in_image' {s : set β} {g : β → α} (hg : set.inj_on g (s ∩ support (f ∘ g))) :
   ∑ᶠ i in (g '' s), f i = ∑ᶠ j in s, f (g j) :=
 begin
   by_cases hs : finite (s ∩ support (f ∘ g)),

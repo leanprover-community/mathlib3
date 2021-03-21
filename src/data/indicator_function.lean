@@ -53,27 +53,11 @@ lemma indicator_eq_zero_or_self (s : set α) (f : α → β) (a : α) :
   indicator s f a = 0 ∨ indicator s f a = f a :=
 if h : a ∈ s then or.inr (indicator_of_mem h f) else or.inl (indicator_of_not_mem h f)
 
-/-- If an indicator function is nonzero at a point, that
-point is in the set. -/
-lemma mem_of_indicator_ne_zero (h : indicator s f a ≠ 0) : a ∈ s :=
-not_imp_comm.1 (λ hn, indicator_of_not_mem hn f) h
-
-lemma eq_on_indicator : eq_on (indicator s f) f s := λ x hx, indicator_of_mem hx f
-
-@[simp] lemma support_indicator : function.support (s.indicator f) = s ∩ function.support f :=
-ext $ λ x, by simp [function.mem_support]
-
-lemma support_indicator_subset : function.support (s.indicator f) ⊆ s :=
-λ x hx, hx.imp_symm (λ h, indicator_of_not_mem h f)
-
 @[simp] lemma indicator_apply_eq_self : s.indicator f a = f a ↔ (a ∉ s → f a = 0) :=
 ite_eq_left_iff.trans $ by rw [@eq_comm _ (f a)]
 
 @[simp] lemma indicator_eq_self : s.indicator f = f ↔ support f ⊆ s :=
 by simp only [funext_iff, subset_def, mem_support, indicator_apply_eq_self, not_imp_comm]
-
-@[simp] lemma indicator_support : (support f).indicator f = f :=
-indicator_eq_self.2 $ subset.refl _
 
 @[simp] lemma indicator_apply_eq_zero : indicator s f a = 0 ↔ (a ∈ s → f a = 0) :=
 ite_eq_right_iff
@@ -83,6 +67,22 @@ by simp only [funext_iff, indicator_apply_eq_zero, set.disjoint_left, mem_suppor
 
 @[simp] lemma indicator_eq_zero' : indicator s f = 0 ↔ disjoint (support f) s :=
 indicator_eq_zero
+
+@[simp] lemma support_indicator : function.support (s.indicator f) = s ∩ function.support f :=
+ext $ λ x, by simp [function.mem_support, indicator_apply_eq_zero]
+
+/-- If an indicator function is nonzero at a point, that
+point is in the set. -/
+lemma mem_of_indicator_ne_zero (h : indicator s f a ≠ 0) : a ∈ s :=
+not_imp_comm.1 (λ hn, indicator_of_not_mem hn f) h
+
+lemma eq_on_indicator : eq_on (indicator s f) f s := λ x hx, indicator_of_mem hx f
+
+lemma support_indicator_subset : function.support (s.indicator f) ⊆ s :=
+λ x hx, hx.imp_symm (λ h, indicator_of_not_mem h f)
+
+@[simp] lemma indicator_support : (support f).indicator f = f :=
+indicator_eq_self.2 $ subset.refl _
 
 @[simp] lemma indicator_range_comp {ι : Sort*} (f : ι → α) (g : α → β) :
   indicator (range f) g ∘ f = g ∘ f :=

@@ -465,18 +465,17 @@ begin
     (n^2 • X^2) * (finset.range (n+1)).sum (λ ν, bernstein_polynomial R n ν) = _ := rfl,
   conv at p { to_lhs,
     rw [finset.mul_sum, finset.mul_sum, ←finset.sum_add_distrib, ←finset.sum_add_distrib],
-    simp only [polynomial.nat_smul],
+    simp only [←nat_cast_mul],
     simp only [←mul_assoc],
     simp only [←add_mul], },
   conv at p { to_rhs,
-    rw [sum, sum_smul, sum_mul_smul],
-    simp only [polynomial.nat_smul], },
+    rw [sum, sum_smul, sum_mul_smul, ←nat_cast_mul], },
   calc _ = _ : finset.sum_congr rfl (λ k m, _)
      ... = _ : p
      ... = _ : _,
-  { congr' 1 ,simp only [polynomial.nat_smul] with push_cast,
+  { congr' 1, simp only [←nat_cast_mul] with push_cast,
     cases k; { simp, ring, }, },
-  { simp only [polynomial.nat_smul] with push_cast,
+  { simp only [←nat_cast_mul] with push_cast,
     cases n; { simp, ring, }, },
 end
 

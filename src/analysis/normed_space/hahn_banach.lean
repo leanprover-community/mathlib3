@@ -82,7 +82,6 @@ begin
   letI : module ℝ F := restrict_scalars.semimodule ℝ 𝕜 F,
   letI : is_scalar_tower ℝ 𝕜 F := restrict_scalars.is_scalar_tower _ _ _,
   letI : normed_space ℝ F := normed_space.restrict_scalars _ 𝕜 _,
-  letI : normed_space ℝ p := (by apply_instance : normed_space ℝ (submodule.restrict_scalars ℝ p)),
   -- Let `fr: p →L[ℝ] ℝ` be the real part of `f`.
   let fr := re_clm.comp (f.restrict_scalars ℝ),
   have fr_apply : ∀ x, fr x = re (f x) := λ x, rfl,

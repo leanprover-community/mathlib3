@@ -110,6 +110,7 @@ General algebra:
     splitting field: 'polynomial.splitting_field'
     perfect closure: 'perfect_closure'
     Galois correspondence: 'is_galois.intermediate_field_equiv_subgroup'
+    Abel-Ruffini theorem (one direction): 'solvable_by_rad.is_solvable'
 
   Homological algebra:
     chain complex: 'chain_complex'

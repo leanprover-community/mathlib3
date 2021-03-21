@@ -1,12 +1,14 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Patrick Massot, Casper Putz
+Authors: Johannes Hölzl, Patrick Massot, Casper Putz
 -/
 import linear_algebra.finite_dimensional
 import linear_algebra.nonsingular_inverse
 import linear_algebra.multilinear
 import linear_algebra.dual
+import ring_theory.algebra_tower
+import ring_theory.matrix_algebra
 
 /-!
 # Linear maps and matrices
@@ -299,6 +301,9 @@ begin
   simp [linear_map.to_matrix_apply, is_basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
 end
 
+lemma linear_map.to_matrix_one : linear_map.to_matrix hv₁ hv₁ 1 = 1 :=
+linear_map.to_matrix_id hv₁
+
 @[simp]
 lemma matrix.to_lin_one : matrix.to_lin hv₁ hv₁ 1 = id :=
 by rw [← linear_map.to_matrix_id hv₁, matrix.to_lin_to_matrix]
@@ -322,6 +327,14 @@ lemma linear_map.to_matrix_mul (f g : M₁ →ₗ[R] M₁) :
     linear_map.to_matrix hv₁ hv₁ f ⬝ linear_map.to_matrix hv₁ hv₁ g :=
 by { rw [show (@has_mul.mul (M₁ →ₗ[R] M₁) _) = linear_map.comp, from rfl,
          linear_map.to_matrix_comp hv₁ hv₁ hv₁ f g] }
+
+lemma linear_map.to_matrix_mul_vec_repr (f : M₁ →ₗ[R] M₂) (x : M₁) :
+  (linear_map.to_matrix hv₁ hv₂ f).mul_vec (hv₁.repr x) = hv₂.repr (f x) :=
+by { ext i,
+     rw [← matrix.to_lin'_apply, linear_map.to_matrix, linear_equiv.trans_apply,
+         matrix.to_lin'_to_matrix', linear_equiv.arrow_congr_apply, hv₂.equiv_fun_apply],
+     congr,
+     exact hv₁.equiv_fun.symm_apply_apply x }
 
 lemma matrix.to_lin_mul [decidable_eq m] (A : matrix l m R) (B : matrix m n R) :
   matrix.to_lin hv₁ hv₃ (A ⬝ B) =
@@ -704,6 +717,8 @@ variables {n} {R} {M}
 
 @[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = ∑ i, diag n R M A i := rfl
 
+lemma trace_apply (A : matrix n n M) : trace n R M A = ∑ i, A i i := rfl
+
 @[simp] lemma trace_one [decidable_eq n] :
   trace n R R 1 = fintype.card n :=
 have h : trace n R R 1 = ∑ i, diag n R R 1 i := rfl,
@@ -744,8 +759,11 @@ lemma diagonal_to_lin' (w : n → R) :
   (diagonal w).to_lin' = linear_map.pi (λi, w i • linear_map.proj i) :=
 by ext v j; simp [mul_vec_diagonal]
 
-/-- An invertible matrix yields a linear equivalence from the free module to itself. -/
-def to_linear_equiv (P : matrix n n R) (h : is_unit P) : (n → R) ≃ₗ[R] (n → R) :=
+/-- An invertible matrix yields a linear equivalence from the free module to itself.
+
+See `matrix.to_linear_equiv` for the same map on arbitrary modules.
+-/
+def to_linear_equiv' (P : matrix n n R) (h : is_unit P) : (n → R) ≃ₗ[R] (n → R) :=
 have h' : is_unit P.det := P.is_unit_iff_is_unit_det.mp h,
 { inv_fun   := P⁻¹.to_lin',
   left_inv  := λ v,
@@ -756,11 +774,11 @@ have h' : is_unit P.det := P.is_unit_iff_is_unit_det.mp h,
     by rw [← matrix.to_lin'_mul, P.mul_nonsing_inv h', matrix.to_lin'_one, linear_map.id_apply],
   ..P.to_lin' }
 
-@[simp] lemma to_linear_equiv_apply (P : matrix n n R) (h : is_unit P) :
-  (↑(P.to_linear_equiv h) : module.End R (n → R)) = P.to_lin' := rfl
+@[simp] lemma to_linear_equiv'_apply (P : matrix n n R) (h : is_unit P) :
+  (↑(P.to_linear_equiv' h) : module.End R (n → R)) = P.to_lin' := rfl
 
-@[simp] lemma to_linear_equiv_symm_apply (P : matrix n n R) (h : is_unit P) :
-  (↑(P.to_linear_equiv h).symm : module.End R (n → R)) = P⁻¹.to_lin' := rfl
+@[simp] lemma to_linear_equiv'_symm_apply (P : matrix n n R) (h : is_unit P) :
+  (↑(P.to_linear_equiv' h).symm : module.End R (n → R)) = P⁻¹.to_lin' := rfl
 
 end ring
 
@@ -812,6 +830,34 @@ begin
   apply linear_equiv.dim_eq,
   apply h₂,
 end
+
+variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+variables {b : n → M} (hb : is_basis R b)
+
+include hb
+
+/-- Given `hA : is_unit A.det` and `hb : is_basis R b`, `A.to_linear_equiv hb hA` is
+the `linear_equiv` arising from `to_lin hb hb A`.
+
+See `matrix.to_linear_equiv'` for this result on `n → R`.
+-/
+@[simps apply]
+def to_linear_equiv [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
+  M ≃ₗ[R] M :=
+begin
+  refine ⟨to_lin hb hb A, linear_map.map_add _, linear_map.map_smul _, to_lin hb hb A⁻¹,
+          λ x, _, λ x, _⟩;
+  simp only [← linear_map.comp_apply, ← to_lin_mul,
+             matrix.nonsing_inv_mul _ hA, matrix.mul_nonsing_inv _ hA,
+             to_lin_one, linear_map.id_apply]
+end
+lemma ker_to_lin_eq_bot [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
+  (to_lin hb hb A).ker = ⊥ :=
+ker_eq_bot.mpr (to_linear_equiv hb A hA).injective
+
+lemma range_to_lin_eq_top [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
+  (to_lin hb hb A).range = ⊤ :=
+range_eq_top.mpr (to_linear_equiv hb A hA).surjective
 
 end vector_space
 
@@ -998,6 +1044,92 @@ end reindexing
 
 end matrix
 
+namespace algebra
+
+section lmul
+
+variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
+variables {m n : Type*} [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
+variables {b : m → S} (hb : is_basis R b) {c : n → T} (hc : is_basis S c)
+
+open algebra
+
+lemma to_matrix_lmul' (x : S) (i j) :
+  linear_map.to_matrix hb hb (lmul R S x) i j = hb.repr (x * b j) i :=
+by rw [linear_map.to_matrix_apply', lmul_apply]
+
+@[simp] lemma to_matrix_lsmul (x : R) (i j) :
+  linear_map.to_matrix hb hb (algebra.lsmul R S x) i j = if i = j then x else 0 :=
+by { rw [linear_map.to_matrix_apply', algebra.lsmul_coe, linear_map.map_smul, finsupp.smul_apply,
+         hb.repr_self_apply, smul_eq_mul, mul_boole],
+     congr' 1; simp only [eq_comm] }
+
+/-- `left_mul_matrix hb x` is the matrix corresponding to the linear map `λ y, x * y`.
+
+`left_mul_matrix_eq_repr_mul` gives a formula for the entries of `left_mul_matrix`.
+
+This definition is useful for doing (more) explicit computations with `algebra.lmul`,
+such as the trace form or norm map for algebras.
+-/
+noncomputable def left_mul_matrix : S →ₐ[R] matrix m m R :=
+{ to_fun := λ x, linear_map.to_matrix hb hb (algebra.lmul R S x),
+  map_zero' := by rw [alg_hom.map_zero, linear_equiv.map_zero],
+  map_one' := by rw [alg_hom.map_one, linear_map.to_matrix_one],
+  map_add' := λ x y, by rw [alg_hom.map_add, linear_equiv.map_add],
+  map_mul' := λ x y, by rw [alg_hom.map_mul, linear_map.to_matrix_mul, matrix.mul_eq_mul],
+  commutes' := λ r, by { ext, rw [lmul_algebra_map, to_matrix_lsmul,
+                                  algebra_map_matrix_apply, id.map_eq_self] } }
+
+lemma left_mul_matrix_apply (x : S) :
+  left_mul_matrix hb x = linear_map.to_matrix hb hb (lmul R S x) := rfl
+
+lemma left_mul_matrix_eq_repr_mul (x : S) (i j) :
+  left_mul_matrix hb x i j = hb.repr (x * b j) i :=
+-- This is defeq to just `to_matrix_lmul' hb x i j`,
+-- but the unfolding goes a lot faster with this explicit `rw`.
+by rw [left_mul_matrix_apply, to_matrix_lmul' hb x i j]
+
+lemma left_mul_matrix_mul_vec_repr (x y : S) :
+  (left_mul_matrix hb x).mul_vec (hb.repr y) = hb.repr (x * y) :=
+linear_map.to_matrix_mul_vec_repr hb hb (algebra.lmul R S x) y
+
+@[simp] lemma to_matrix_lmul_eq (x : S) :
+  linear_map.to_matrix hb hb (lmul R S x) = left_mul_matrix hb x :=
+rfl
+
+lemma left_mul_matrix_injective : function.injective (left_mul_matrix hb) :=
+λ x x' h, calc x = algebra.lmul R S x 1 : (mul_one x).symm
+             ... = algebra.lmul R S x' 1 : by rw (linear_map.to_matrix hb hb).injective h
+             ... = x' : mul_one x'
+
+lemma smul_left_mul_matrix (x) (i j) (k k') :
+  left_mul_matrix (hb.smul hc) x (i, k) (j, k') =
+    left_mul_matrix hb (left_mul_matrix hc x k k') i j :=
+by simp only [left_mul_matrix_apply, linear_map.to_matrix_apply, is_basis.equiv_fun_apply, mul_comm,
+              is_basis.smul_repr, finsupp.smul_apply, algebra.lmul_apply, id.smul_eq_mul,
+              linear_map.map_smul, mul_smul_comm]
+
+lemma smul_left_mul_matrix_algebra_map (x : S) :
+  left_mul_matrix (hb.smul hc) (algebra_map _ _ x) = block_diagonal (λ k, left_mul_matrix hb x) :=
+begin
+  ext ⟨i, k⟩ ⟨j, k'⟩,
+  rw [smul_left_mul_matrix, alg_hom.commutes, block_diagonal_apply, algebra_map_matrix_apply],
+  split_ifs with h; simp [h],
+end
+
+lemma smul_left_mul_matrix_algebra_map_eq (x : S) (i j k) :
+  left_mul_matrix (hb.smul hc) (algebra_map _ _ x) (i, k) (j, k) = left_mul_matrix hb x i j :=
+by rw [smul_left_mul_matrix_algebra_map, block_diagonal_apply_eq]
+
+lemma smul_left_mul_matrix_algebra_map_ne (x : S) (i j) {k k'}
+  (h : k ≠ k') : left_mul_matrix (hb.smul hc) (algebra_map _ _ x) (i, k) (j, k') = 0 :=
+by rw [smul_left_mul_matrix_algebra_map, block_diagonal_apply_ne _ _ _ h]
+
+end lmul
+
+end algebra
+
 namespace linear_map
 
 open_locale matrix
@@ -1008,7 +1140,8 @@ def trace_aux (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module
   (M →ₗ[R] M) →ₗ[R] R :=
 (matrix.trace ι R R).comp $ linear_map.to_matrix hb hb
 
-@[simp] lemma trace_aux_def (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+-- Can't be `simp` because it would cause a loop.
+lemma trace_aux_def (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
   {ι : Type w} [decidable_eq ι] [fintype ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
   trace_aux R hb f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
 rfl
@@ -1066,7 +1199,8 @@ else 0
 
 theorem trace_eq_matrix_trace (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M]
   [module R M] {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b)
-  (f : M →ₗ[R] M) : trace R M f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
+  (f : M →ₗ[R] M) :
+  trace R M f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
 have ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M),
 from ⟨finset.univ.image b,
   by { rw [finset.coe_image, finset.coe_univ, set.image_univ], exact hb.range }⟩,

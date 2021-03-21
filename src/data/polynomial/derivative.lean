@@ -291,9 +291,7 @@ variables [comm_ring R]
 
 lemma derivative_comp_one_sub_X (p : polynomial R) :
   (p.comp (1-X)).derivative = -p.derivative.comp (1-X) :=
-begin
-  simp [derivative_comp],
-end
+by simp [derivative_comp]
 
 @[simp]
 lemma iterate_derivative_comp_one_sub_X (p : polynomial R) (k : ℕ) :

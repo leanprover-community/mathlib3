@@ -98,6 +98,9 @@ measure.of_measurable
   ∀{s : set α}, measurable_set s → join m s = ∫⁻ μ, μ s ∂m :=
 measure.of_measurable_apply
 
+@[simp] lemma join_zero : (0 : measure (measure α)).join = 0 :=
+by { ext1 s hs, simp [hs] }
+
 lemma measurable_join : measurable (join : measure (measure α) → measure α) :=
 measurable_of_measurable_coe _ $ assume s hs,
   by simp only [join_apply hs]; exact measurable_lintegral (measurable_coe hs)
@@ -151,6 +154,22 @@ end
 /-- Monadic bind on `measure`, only works in the category of measurable spaces and measurable
 functions. When the function `f` is not measurable the result is not well defined. -/
 def bind (m : measure α) (f : α → measure β) : measure β := join (map f m)
+
+@[simp] lemma bind_zero_left (f : α → measure β) : bind 0 f = 0 :=
+by simp [bind]
+
+@[simp] lemma bind_zero_right (m : measure α) :
+  bind m (0 : α → measure β) = 0 :=
+begin
+  ext1 s hs,
+  simp only [bind, hs, join_apply, coe_zero, pi.zero_apply],
+  rw [lintegral_map (measurable_coe hs) measurable_zero],
+  simp
+end
+
+@[simp] lemma bind_zero_right' (m : measure α) :
+  bind m (λ _, 0 : α → measure β) = 0 :=
+bind_zero_right m
 
 @[simp] lemma bind_apply {m : measure α} {f : α → measure β} {s : set β}
   (hs : measurable_set s) (hf : measurable f) :

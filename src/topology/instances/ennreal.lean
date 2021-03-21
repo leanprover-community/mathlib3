@@ -409,7 +409,7 @@ lemma finset_sum_supr_nat {α} {ι} [semilattice_sup ι] {s : finset α} {f : α
 begin
   refine finset.induction_on s _ _,
   { simp,
-    exact (bot_unique $ supr_le $ assume i, le_refl ⊥).symm },
+    exact (@bot_unique ℝ≥0∞ _ _ $ supr_le $ assume i, le_refl ⊥).symm },
   { assume a s has ih,
     simp only [finset.sum_insert has],
     rw [ih, supr_add_supr_of_monotone (hf a)],

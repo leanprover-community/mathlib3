@@ -209,22 +209,22 @@ classical.by_cases (λ ha : a ∈ s, by simp [ha]) (λ ha, by simp [ha])
   mul_indicator s f * mul_indicator sᶜ f = f :=
 funext $ mul_indicator_self_mul_compl_apply s f
 
-@[to_additive] lemma mul_indicator_mul_eq_left (f g : α → M) (h : ∀ x, f x = 1 ∨ g x = 1) :
-  (f ⁻¹' {1})ᶜ.mul_indicator (f * g) = f :=
+@[to_additive] lemma mul_indicator_mul_eq_left {f g : α → M}
+  (h : disjoint (mul_support f) (mul_support g)) :
+  (mul_support f).mul_indicator (f * g) = f :=
 begin
-  ext x, by_cases hx : x ∈ (f ⁻¹' {1})ᶜ,
-  { have : g x = 1, from (h x).resolve_left hx,
-    simp [hx, this] },
-  { simp * at * }
+  refine (mul_indicator_congr $ λ x hx, _).trans mul_indicator_mul_support,
+  have : g x = 1, from nmem_mul_support.1 (disjoint_left.1 h hx),
+  rw [pi.mul_apply, this, mul_one]
 end
 
-@[to_additive] lemma mul_indicator_mul_eq_right {f g : α → M} (h : ∀ x, f x = 1 ∨ g x = 1) :
-  (g ⁻¹' {1})ᶜ.mul_indicator (f * g) = g :=
+@[to_additive] lemma mul_indicator_mul_eq_right {f g : α → M}
+  (h : disjoint (mul_support f) (mul_support g)) :
+  (mul_support g).mul_indicator (f * g) = g :=
 begin
-  ext x, by_cases hx : x ∈ (g ⁻¹' {1})ᶜ,
-  { have : f x = 1, from (h x).resolve_right hx,
-    simp [hx, this] },
-  { simp * at * }
+  refine (mul_indicator_congr $ λ x hx, _).trans mul_indicator_mul_support,
+  have : f x = 1, from nmem_mul_support.1 (disjoint_right.1 h hx),
+  rw [pi.mul_apply, this, one_mul]
 end
 
 /-- `set.mul_indicator` as a `monoid_hom`. -/
@@ -441,6 +441,10 @@ variables [canonically_ordered_monoid M]
 @[to_additive] lemma mul_indicator_le_self (s : set α) (f : α → M) :
   mul_indicator s f ≤ f :=
 mul_indicator_le_self' $ λ _ _, one_le _
+
+@[to_additive] lemma mul_indicator_apply_le {a : α} {s : set α} {f g : α → M} (hfg : a ∈ s → f a ≤ g a) :
+  mul_indicator s f a ≤ g a :=
+mul_indicator_apply_le' hfg $ λ _, one_le _
 
 @[to_additive] lemma mul_indicator_le {s : set α} {f g : α → M} (hfg : ∀ a ∈ s, f a ≤ g a) :
   mul_indicator s f ≤ g :=

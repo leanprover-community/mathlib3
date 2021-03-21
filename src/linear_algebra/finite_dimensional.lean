@@ -1229,7 +1229,7 @@ begin
   obtain ⟨_, b_spans⟩ := set_is_basis_of_linear_independent_of_card_eq_findim
     b_lin_ind (by simp only [*, set.to_finset_card]),
   intros x hx,
-  rw [subalgebra.mem_coe, algebra.mem_bot],
+  rw [algebra.mem_bot],
   have x_in_span_b : (⟨x, hx⟩ : S) ∈ submodule.span F b,
   { rw subtype.range_coe at b_spans,
     rw b_spans,

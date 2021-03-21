@@ -20,8 +20,8 @@ With these lemmas, many simple integrals can be computed by `simp` or `norm_num`
 This file is still being developed.
 -/
 
-open real set interval_integral filter
-open_locale real big_operators topological_space
+open real set
+open_locale real big_operators
 variables {a b : ℝ}
 
 namespace interval_integral
@@ -100,6 +100,10 @@ end
 @[simp]
 lemma interval_integrable_inv_one_add_sq : interval_integrable (λ x:ℝ, (1 + x^2)⁻¹) μ a b :=
 by simpa only [one_div] using interval_integrable_one_div_one_add_sq
+
+end interval_integral
+
+open interval_integral
 
 @[simp]
 lemma integral_pow (n : ℕ) : ∫ x in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=
@@ -235,4 +239,22 @@ end
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp
 
-end interval_integral
+@[simp]
+lemma ae_measurable_sin : ae_measurable sin := measurable_sin.ae_measurable
+
+@[simp]
+lemma ae_measurable_cos : ae_measurable cos := measurable_cos.ae_measurable
+
+@[simp]
+lemma ae_measurable_pow (n : ℕ) : ae_measurable (λ x:ℝ, x^n) := measurable_pow.ae_measurable
+
+example : ∫ x in a..b, sin (x * 2) = 2⁻¹ * (cos (a*2) - cos (b*2)) :=
+by norm_num [integral_comp_mul_right]
+
+example : ∫ x:ℝ in 0..2, 3*(x + 1)^2 = 26 :=
+begin
+  norm_num [integral_comp_add_right _ _ _ _ (measurable_id.ae_measurable.add ae_measurable_const).pow],
+end
+
+#check ae_measurable.pow
+#check measurable_id.ae_measurable.add

@@ -10,24 +10,22 @@ import algebra.big_operators
 import data.indicator_function
 
 /-!
-# Finite sums over types and sets
+# Finite products and sums over types and sets
 
-We define sums over types and subsets of types, with no finiteness hypotheses. All infinite
-sums are defined to be junk values (i.e. zero). This approach is sometimes easier to use
-than `finset.sum` when issues arise with `finset` and `fintype` being data.
+We define products sums over types and subsets of types, with no finiteness hypotheses. All infinite
+product and sums are defined to be junk values (i.e. one or zero). This approach is sometimes easier
+to use than `finset.sum` when issues arise with `finset` and `fintype` being data.
 
 ## Main definitions
 
-Variables:
+We use the following variables:
 
-`(α : Type u)`
-`(s : set α)`
-`(M : Type v) [add_comm_monoid M]`
-`(f : α → M)`
+* `α`, `β` - types with no structure;
+* `s`, `t` - sets
+* `M`, `N` - additive or multiplicative commutative monoids
+* `f`, `g` - functions
 
 Definitions in this file:
-
-* `univ' α : finset α` : `α` as a finset if `α` is finite, and the empty finset otherwise
 
 * `finsum f : M` : the sum of `f x` as `x` ranges over the support of `f`, if it's finite.
    Zero otherwise.
@@ -35,23 +33,34 @@ Definitions in this file:
 * `finsum_in s f : M` : the sum of `f x` as `x` ranges over the elements of `s` for which `f x ≠ 0`,
   if this is a finite sum. Zero otherwise.
 
+* `finprod f : M` : the product of `f x` as `x` ranges over the multiplicative support of `f`, if
+   it's finite. One otherwise.
+
+* `finprod_in s f : M` : the product of `f x` as `x` ranges over the elements of `s` for which
+  `f x ≠ 1`, if this is a finite sum. One otherwise.
+
 ## Notation
 
 * `∑ᶠ i, f i` and `∑ᶠ i : α, f i` for `finsum f`
 
 * `∑ᶠ i in s, f i` for `finsum_in s f`
 
+* `∏ᶠ i, f i` and `∑ᶠ i : α, f i` for `finprod f`
+
+* `∏ᶠ i in s, f i` for `finprod_in s f`
+
 ## Implementation notes
 
-There is no `finprod` right now. This is because `function.support` and `finsupp` etc
-are all focussed on 0, and there are no analogous definitions for 1.
+`finsum` and `finprod` is "yet another way of doing finite sums and products in Lean". However
+experiments in the wild (e.g. with matroids) indicate that it is a helpful approach in settings
+where the user is not interested in computability and wants to do reasoning without running into
+typeclass diamonds caused by the constructive finiteness used in definitions such as `finset` and
+`fintype`. By sticking solely to `set.finite` we avoid these problems. We are aware that there are
+other solutions but for beginner mathematicians this approach is easier in practice.
 
-`finsum` is "yet another way of doing finite sums in Lean". However experiments in the wild
-(e.g. with matroids) indicate that it is a helpful approach in settings where the user is
-not interested in computability and wants to do reasoning without running into typeclass
-diamonds caused by the constructive finiteness used in definitions such as `finset` and
-`fintype`. By sticking solely to `set.finite` we avoid these problems. We are aware that
-there are other solutions but for beginner mathematicians this approach is easier in practice.
+Another application is the construction of a partition of unity from a collection of “bump”
+function. In this case the finite set depends on the point and it's convenient to have a definition
+that does not mention the set explicitly.
 
 ## Todo
 
@@ -59,19 +68,16 @@ We did not add `is_finite (X : Type) : Prop`, because it is simply `nonempty (fi
 There is work on `fincard` in the pipeline, which returns the cardinality of `X` if it
 is finite, and 0 otherwise.
 
-If there were a multiplicative version of `function.support`, returning the terms which
-were not mapped to `1`, then this could be refactored into a multiplicative version.
-
 ## Tags
 
-finsum, finsum_in, univ', finiteness
+finsum, finsum_in, finprod, finprod_in, finite sum, finite product
 -/
 
 open_locale classical
 open function set
 
 /-!
-### Definition and relation to `finset.sum` and `finsupp.sum`
+### Definition and relation to `finset.sum` and `finset.prod`
 -/
 
 section finsum
@@ -85,9 +91,20 @@ open_locale big_operators
 @[irreducible] noncomputable def finsum (f : α → M) : M :=
 if h : finite (support f) then ∑ i in h.to_finset, f i else 0
 
-/-- Sum of `f x` for `x ∈ s`, if `s ∩ f.support` is finite. Zero if it's infinite.  -/
+/-- Sum of `f x` over `x ∈ s` such that `f x ≠ 0`, if this set is finite. Zero otherwise. -/
 noncomputable def finsum_in (s : set α) (f : α → M) : M :=
 finsum (s.indicator f)
+
+/-- Product of `f x` as `x` ranges over the elements of the multiplicative support of `f`, if it's
+finite. One otherwise. -/
+@[irreducible, to_additive finsum]
+noncomputable def finprod {M : Type*} [comm_monoid M] (f : α → M) : M :=
+if h : finite (mul_support f) then ∏ i in h.to_finset, f i else 1
+
+/-- Product of `f x` over `x ∈ s` such that `f x ≠ 1`, if this set is finite. One otherwise. -/
+@[to_additive]
+noncomputable def finprod_in {M : Type*} [comm_monoid M] (s : set α) (f : α → M) : M :=
+finprod (s.indicator f)
 
 localized "notation `∑ᶠ` binders `, ` r:(scoped:67 f, finsum f) := r"
   in big_operators

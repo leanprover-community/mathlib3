@@ -178,9 +178,6 @@ instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
   or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ subtype.ext_iff.mp h)
     (λ h, or.inl $ subtype.eq h) (λ h, or.inr $ subtype.eq h) }
 
-@[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
-@[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
-
 /-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
 instance to_comm_semiring {R} [comm_semiring R] (s : subsemiring R) : comm_semiring s :=
 { mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..s.to_semiring}

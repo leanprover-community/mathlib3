@@ -232,18 +232,11 @@ namespace set
 
 open function
 
-variables {α β M : Type*} [has_zero M] {f : α → M}
+variables {α β M : Type*} [has_one M] {f : α → M}
 
-lemma image_inter_support_eq {s : set β} {g : β → α} :
-  (g '' s ∩ support f) = g '' (s ∩ support (f ∘ g)) :=
-by rw [support_comp_eq_preimage f g, image_inter_preimage]
-
-lemma image_inter_support_finite_iff {s : set β} {g : β → α} (hg : set.inj_on g s) :
-  (g '' s ∩ support f).finite ↔ (s ∩ support (f ∘ g)).finite :=
-begin
-  rw [image_inter_support_eq, finite_image_iff],
-  exact hg.mono (inter_subset_left s _)
-end
+@[to_additive] lemma image_inter_mul_support_eq {s : set β} {g : β → α} :
+  (g '' s ∩ mul_support f) = g '' (s ∩ mul_support (f ∘ g)) :=
+by rw [mul_support_comp_eq_preimage f g, image_inter_preimage]
 
 end set
 

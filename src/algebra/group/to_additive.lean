@@ -87,27 +87,29 @@ meta def add_comm_prefix : bool → string → string
 
 /-- Dictionary used by `to_additive.guess_name` to autogenerate names. -/
 meta def tr : bool → list string → list string
-| is_comm ("one" :: "le" :: s) := add_comm_prefix is_comm "nonneg" :: tr ff s
-| is_comm ("one" :: "lt" :: s) := add_comm_prefix is_comm "pos"    :: tr ff s
-| is_comm ("le" :: "one" :: s) := add_comm_prefix is_comm "nonpos" :: tr ff s
-| is_comm ("lt" :: "one" :: s) := add_comm_prefix is_comm "neg"    :: tr ff s
-| is_comm ("mul" :: "support" :: s) := add_comm_prefix is_comm "support" :: tr ff s
+| is_comm ("one" :: "le" :: s)        := add_comm_prefix is_comm "nonneg"    :: tr ff s
+| is_comm ("one" :: "lt" :: s)        := add_comm_prefix is_comm "pos"       :: tr ff s
+| is_comm ("le" :: "one" :: s)        := add_comm_prefix is_comm "nonpos"    :: tr ff s
+| is_comm ("lt" :: "one" :: s)        := add_comm_prefix is_comm "neg"       :: tr ff s
+| is_comm ("mul" :: "support" :: s)   := add_comm_prefix is_comm "support"   :: tr ff s
 | is_comm ("mul" :: "indicator" :: s) := add_comm_prefix is_comm "indicator" :: tr ff s
-| is_comm ("mul" :: s)         := add_comm_prefix is_comm "add"    :: tr ff s
-| is_comm ("inv" :: s)         := add_comm_prefix is_comm "neg"    :: tr ff s
-| is_comm ("div" :: s)         := add_comm_prefix is_comm "sub"    :: tr ff s
-| is_comm ("one" :: s)         := add_comm_prefix is_comm "zero"   :: tr ff s
-| is_comm ("prod" :: s)        := add_comm_prefix is_comm "sum"    :: tr ff s
+| is_comm ("mul" :: s)                := add_comm_prefix is_comm "add"       :: tr ff s
+| is_comm ("inv" :: s)                := add_comm_prefix is_comm "neg"       :: tr ff s
+| is_comm ("div" :: s)                := add_comm_prefix is_comm "sub"       :: tr ff s
+| is_comm ("one" :: s)                := add_comm_prefix is_comm "zero"      :: tr ff s
+| is_comm ("prod" :: "mk" :: s)       := add_comm_prefix is_comm "prod"      :: tr ff s
+| is_comm ("prod" :: s)               := add_comm_prefix is_comm "sum"       :: tr ff s
+| is_comm ("finprod" :: s)            := add_comm_prefix is_comm "finsum"    :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
 | is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
 | is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s
 | is_comm ("subgroup" :: s)    := ("add_" ++ add_comm_prefix is_comm "subgroup")  :: tr ff s
 | is_comm ("semigroup" :: s)   := ("add_" ++ add_comm_prefix is_comm "semigroup") :: tr ff s
-| is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma") :: tr ff s
+| is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma")     :: tr ff s
 | is_comm ("comm" :: s)        := tr tt s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
-| tt []                   := ["comm"]
-| ff []                   := []
+| tt []                        := ["comm"]
+| ff []                        := []
 
 /-- Autogenerate target name for `to_additive`. -/
 meta def guess_name : string → string :=

@@ -638,7 +638,7 @@ and Assia Mahboubi.
 -/
 meta def ring (red : parse (tk "!")?) : tactic unit :=
 ring1 red <|>
-(ring_nf red normalize_mode.horner (loc.ns [none]) >> trace "Try this: ring_nf")
+(ring_nf red normalize_mode.horner (loc.ns [none]) >> fail "Try this: ring_nf")
 
 add_hint_tactic "ring"
 
@@ -673,7 +673,7 @@ Normalises expressions in commutative (semi-)rings inside of a `conv` block usin
 meta def ring (red : parse (lean.parser.tk "!")?) : conv unit :=
 let transp := if red.is_some then semireducible else reducible in
 discharge_eq_lhs (ring1 red)
-<|> (replace_lhs (normalize transp normalize_mode.horner) >> trace "Try this: ring_nf")
+<|> (replace_lhs (normalize transp normalize_mode.horner) >> fail "Try this: ring_nf")
 <|> fail "ring failed to simplify"
 
 end conv.interactive

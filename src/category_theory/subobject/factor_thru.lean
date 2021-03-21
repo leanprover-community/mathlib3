@@ -27,8 +27,22 @@ variables {D : Type u₂} [category.{v₂} D]
 
 namespace category_theory
 
-namespace subobject
+namespace mono_over
 
+/-- When `f : X ⟶ Y` and `P : mono_over Y`,
+`P.factors f` expresses that there exists a factorisation of `f` through `P`.
+Given `h : P.factors f`, you can recover the morphism as `P.factor_thru f h`.
+-/
+def factors {X Y : C} (P : mono_over Y) (f : X ⟶ Y) : Prop := ∃ g : X ⟶ P.val.left, g ≫ P.arrow = f
+
+/-- `P.factor_thru f h` provides a factorisation of `f : X ⟶ Y` through some `P : mono_over Y`,
+given the evidence `h : P.factors f` that such a factorisation exists. -/
+def factor_thru {X Y : C} (P : mono_over Y) (f : X ⟶ Y) (h : factors P f) : X ⟶ P.val.left :=
+classical.some h
+
+end mono_over
+
+namespace subobject
 
 /-- When `f : X ⟶ Y` and `P : subobject Y`,
 `P.factors f` expresses that there exists a factorisation of `f` through `P`.

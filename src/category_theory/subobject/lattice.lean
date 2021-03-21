@@ -23,6 +23,160 @@ variables {D : Type u₂} [category.{v₂} D]
 
 namespace category_theory
 
+namespace mono_over
+
+section has_top
+
+instance {X : C} : has_top (mono_over X) :=
+{ top := mk' (𝟙 _) }
+
+instance {X : C} : inhabited (mono_over X) := ⟨⊤⟩
+
+/-- The morphism to the top object in `mono_over X`. -/
+def le_top (f : mono_over X) : f ⟶ ⊤ :=
+hom_mk f.arrow (comp_id _)
+
+@[simp] lemma top_left (X : C) : ((⊤ : mono_over X) : C) = X := rfl
+@[simp] lemma top_arrow (X : C) : (⊤ : mono_over X).arrow = 𝟙 X := rfl
+
+/-- `map f` sends `⊤ : mono_over X` to `⟨X, f⟩ : mono_over Y`. -/
+def map_top (f : X ⟶ Y) [mono f] : (map f).obj ⊤ ≅ mk' f :=
+iso_of_both_ways (hom_mk (𝟙 _) rfl) (hom_mk (𝟙 _) (by simp [id_comp f]))
+
+section
+variable [has_pullbacks C]
+
+/-- The pullback of the top object in `mono_over Y`
+is (isomorphic to) the top object in `mono_over X`. -/
+def pullback_top (f : X ⟶ Y) : (pullback f).obj ⊤ ≅ ⊤ :=
+iso_of_both_ways (le_top _) (hom_mk (pullback.lift f (𝟙 _) (by tidy)) (pullback.lift_snd _ _ _))
+
+/-- There is a morphism from `⊤ : mono_over A` to the pullback of a monomorphism along itself;
+as the category is thin this is an isomorphism. -/
+def top_le_pullback_self {A B : C} (f : A ⟶ B) [mono f] :
+  (⊤ : mono_over A) ⟶ (pullback f).obj (mk' f) :=
+hom_mk _ (pullback.lift_snd _ _ rfl)
+
+/-- The pullback of a monomorphism along itself is isomorphic to the top object. -/
+def pullback_self {A B : C} (f : A ⟶ B) [mono f] :
+  (pullback f).obj (mk' f) ≅ ⊤ :=
+iso_of_both_ways (le_top _) (top_le_pullback_self _)
+
+end
+
+end has_top
+
+section has_bot
+variables [has_zero_morphisms C] [has_zero_object C]
+local attribute [instance] has_zero_object.has_zero
+
+instance {X : C} : has_bot (mono_over X) :=
+{ bot := mk' (0 : 0 ⟶ X) }
+
+@[simp] lemma bot_left (X : C) : ((⊥ : mono_over X) : C) = 0 := rfl
+@[simp] lemma bot_arrow {X : C} : (⊥ : mono_over X).arrow = 0 :=
+by ext
+
+/-- The (unique) morphism from `⊥ : mono_over X` to any other `f : mono_over X`. -/
+def bot_le {X : C} (f : mono_over X) : ⊥ ⟶ f :=
+hom_mk 0 (by simp)
+
+/-- `map f` sends `⊥ : mono_over X` to `⊥ : mono_over Y`. -/
+def map_bot (f : X ⟶ Y) [mono f] : (map f).obj ⊥ ≅ ⊥ :=
+iso_of_both_ways (hom_mk 0 (by simp)) (hom_mk (𝟙 _) (by simp [id_comp f]))
+
+end has_bot
+
+section inf
+variables [has_pullbacks C]
+
+/--
+When `[has_pullbacks C]`, `mono_over A` has "intersections", functorial in both arguments.
+
+As `mono_over A` is only a preorder, this doesn't satisfy the axioms of `semilattice_inf`,
+but we reuse all the names from `semilattice_inf` because they will be used to construct
+`semilattice_inf (subobject A)` shortly.
+-/
+@[simps]
+def inf {A : C} : mono_over A ⥤ mono_over A ⥤ mono_over A :=
+{ obj := λ f, pullback f.arrow ⋙ map f.arrow,
+  map := λ f₁ f₂ k,
+  { app := λ g,
+    begin
+      apply hom_mk _ _,
+      apply pullback.lift pullback.fst (pullback.snd ≫ k.left) _,
+      rw [pullback.condition, assoc, w k],
+      dsimp,
+      rw [pullback.lift_snd_assoc, assoc, w k],
+    end } }.
+
+/-- A morphism from the "infimum" of two objects in `mono_over A` to the first object. -/
+def inf_le_left {A : C} (f g : mono_over A) :
+  (inf.obj f).obj g ⟶ f :=
+hom_mk _ rfl
+
+/-- A morphism from the "infimum" of two objects in `mono_over A` to the second object. -/
+def inf_le_right {A : C} (f g : mono_over A) :
+  (inf.obj f).obj g ⟶ g :=
+hom_mk _ pullback.condition
+
+/-- A morphism version of the `le_inf` axiom. -/
+def le_inf {A : C} (f g h : mono_over A) :
+  (h ⟶ f) → (h ⟶ g) → (h ⟶ (inf.obj f).obj g) :=
+begin
+  intros k₁ k₂,
+  refine hom_mk (pullback.lift k₂.left k₁.left _) _,
+  rw [w k₁, w k₂],
+  erw [pullback.lift_snd_assoc, w k₁],
+end
+
+end inf
+
+section sup
+variables [has_images C] [has_binary_coproducts C]
+
+/-- When `[has_images C] [has_binary_coproducts C]`, `mono_over A` has a `sup` construction,
+which is functorial in both arguments,
+and which on `subobject A` will induce a `semilattice_sup`. -/
+def sup  {A : C} : mono_over A ⥤ mono_over A ⥤ mono_over A :=
+curry_obj ((forget A).prod (forget A) ⋙ uncurry.obj over.coprod ⋙ image)
+
+/-- A morphism version of `le_sup_left`. -/
+def le_sup_left {A : C} (f g : mono_over A) :
+  f ⟶ (sup.obj f).obj g :=
+begin
+  refine hom_mk (coprod.inl ≫ factor_thru_image _) _,
+  erw [category.assoc, image.fac, coprod.inl_desc],
+  refl,
+end
+
+/-- A morphism version of `le_sup_right`. -/
+def le_sup_right {A : C} (f g : mono_over A) :
+  g ⟶ (sup.obj f).obj g :=
+begin
+  refine hom_mk (coprod.inr ≫ factor_thru_image _) _,
+  erw [category.assoc, image.fac, coprod.inr_desc],
+  refl,
+end
+
+/-- A morphism version of `sup_le`. -/
+def sup_le {A : C} (f g h : mono_over A) :
+  (f ⟶ h) → (g ⟶ h) → ((sup.obj f).obj g ⟶ h) :=
+begin
+  intros k₁ k₂,
+  refine hom_mk _ _,
+  apply image.lift ⟨_, h.arrow, coprod.desc k₁.left k₂.left, _⟩,
+  { dsimp,
+    ext1,
+    { simp [w k₁] },
+    { simp [w k₂] } },
+  { apply image.lift_fac }
+end
+
+end sup
+
+end mono_over
+
 namespace subobject
 
 section order_top

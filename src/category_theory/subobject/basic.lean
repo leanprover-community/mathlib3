@@ -7,7 +7,7 @@ import category_theory.subobject.mono_over
 import category_theory.skeletal
 
 /-!
-# The lattice of subobjects
+# Subobjects
 
 We define `subobject X` as the quotient (by isomorphisms) of
 `mono_over X := {f : over X // mono f.hom}`.
@@ -26,6 +26,13 @@ We provide
 and prove their basic properties and relationships.
 These are all easy consequences of the earlier development
 of the corresponding functors for `mono_over`.
+
+See also
+
+* `category_theory.subobject.factor_thru` :
+  an API describing factorization of morphisms through subobjects.
+* `category_theory.subobject.lattice` :
+  the lattice structures on subobjects.
 
 ## Notes
 

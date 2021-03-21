@@ -96,7 +96,7 @@ inductive path {V} (G : quiver.{v u} V) (a : V) : V → Sort (max (u+1) v)
 | cons : Π {b c : V}, path b → G.arrow b c → path c
 
 /-- The length of a path is the number of arrows it uses. -/
-@[simp] def path.length {V} {G : quiver V} {a : V} : Π {b}, G.path a b → ℕ
+def path.length {V} {G : quiver V} {a : V} : Π {b}, G.path a b → ℕ
 | _ path.nil        := 0
 | _ (path.cons p _) := p.length + 1
 

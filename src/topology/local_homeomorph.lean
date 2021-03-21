@@ -122,6 +122,20 @@ protected lemma inj_on : inj_on e e.source := e.left_inv_on.inj_on
 protected lemma bij_on : bij_on e e.source e.target := e.inv_on.bij_on e.maps_to e.symm_maps_to
 protected lemma surj_on : surj_on e e.source e.target := e.bij_on.surj_on
 
+/-- Replace `to_local_equiv` field to provide better definitional equalities. -/
+def replace_equiv (e : local_homeomorph α β) (e' : local_equiv α β) (h : e.to_local_equiv = e') :
+  local_homeomorph α β :=
+{ to_local_equiv := e',
+  open_source := h ▸ e.open_source,
+  open_target := h ▸ e.open_target,
+  continuous_to_fun := h ▸ e.continuous_to_fun,
+  continuous_inv_fun := h ▸ e.continuous_inv_fun }
+
+lemma replace_equiv_eq_self (e : local_homeomorph α β) (e' : local_equiv α β)
+  (h : e.to_local_equiv = e') :
+  e.replace_equiv e' h = e :=
+by { cases e, subst e', refl }
+
 lemma source_preimage_target : e.source ⊆ e ⁻¹' e.target := e.maps_to
 
 lemma eq_of_local_equiv_eq {e e' : local_homeomorph α β}
@@ -371,6 +385,14 @@ lemma is_open_iff (h : e.is_image s t) :
   continuous_inv_fun := e.symm.continuous_on.mono (inter_subset_left _ _) }
 
 end is_image
+
+lemma is_image_source_target : e.is_image e.source e.target :=
+e.to_local_equiv.is_image_source_target
+
+lemma is_image_source_target_of_disjoint (e' : local_homeomorph α β) (hs : disjoint e.source e'.source)
+  (ht : disjoint e.target e'.target) :
+  e.is_image e'.source e'.target :=
+e.to_local_equiv.is_image_source_target_of_disjoint e'.to_local_equiv hs ht
 
 /-- Preimage of interior or interior of preimage coincide for local homeomorphisms, when restricted
 to the source. -/
@@ -716,8 +738,14 @@ end prod
 
 section piecewise
 
-/-- Combine two `local_homeomorph`s using `set.piecewise`. The definition assumes
-`e '' (s ∩ e.source) = t ∩ e.target` -/
+/-- Combine two `local_homeomorph`s using `set.piecewise`. The source of the new `local_equiv` is
+`s.ite e.source e'.source = e.source ∩ s ∪ e'.source \ s`, and similarly for target.  The function
+sends `e.source ∩ s` to `e.target ∩ t` using `e` and `e'.source \ s` to `e'.target \ t` using `e'`,
+and similarly for the inverse function. To ensure that the maps `to_fun` and `inv_fun` are inverse
+of each other on the new `source` and `target`, the definition assumes that sets `s` and `t` are
+related both by `e.is_image` and `e'.is_image`. To ensure that the new maps are continuous on
+`source`/`target`, it also assumes that `e.source` and `e'.source` meet `frontier s` on the same set
+and `e x = e' x` on this intersection. -/
 def piecewise (e e' : local_homeomorph α β) (s : set α) (t : set β)
   [∀ x, decidable (x ∈ s)] [∀ y, decidable (y ∈ t)] (H : e.is_image s t) (H' : e'.is_image s t)
   (Hs : e.source ∩ frontier s = e'.source ∩ frontier s)
@@ -757,37 +785,18 @@ rfl
       (H.frontier.symm_eq_on_of_inter_eq_of_eq_on H'.frontier Hs Heq) :=
 rfl
 
+/-- Combine two `local_homeomorph`s with disjoint sources and disjoint targets. We do not reuse
+`local_homeomorph.piecewise` here to provide better formulas for `source` and `target`. -/
 def disjoint_union (e e' : local_homeomorph α β)
   [∀ x, decidable (x ∈ e.source)] [∀ y, decidable (y ∈ e.target)]
   (Hs : disjoint e.source e'.source) (Ht : disjoint e.target e'.target) :
   local_homeomorph α β :=
-{ to_local_equiv := e.to_local_equiv.disjoint_union e'.to_local_equiv Hs Ht,
-  open_source := is_open_union e.open_source e'.open_source,
-  open_target := is_open_union e.open_target e'.open_target,
-  continuous_to_fun :=
-    begin
-      rintro x (he|he'),
-      { have : e.source.piecewise e e' =ᶠ[𝓝 x] e,
-          from (piecewise_eq_on e.source e e').eventually_eq_of_mem
-            (mem_nhds_sets e.open_source he),
-        exact ((e.continuous_at he).congr this.symm).continuous_within_at },
-      { have : e.source.piecewise e e' =ᶠ[𝓝 x] e',
-          from (piecewise_eq_on_compl e.source e e').eventually_eq_of_mem
-            (mem_nhds_sets_iff.2 ⟨e'.source, λ _, disjoint_right.1 Hs, e'.open_source, he'⟩),
-        exact ((e'.continuous_at he').congr this.symm).continuous_within_at }
-    end,
-  continuous_inv_fun :=
-    begin
-      rintro x (he|he'),
-      { have : e.target.piecewise e.symm e'.symm =ᶠ[𝓝 x] e.symm,
-          from (piecewise_eq_on e.target e.symm e'.symm).eventually_eq_of_mem
-            (mem_nhds_sets e.open_target he),
-        exact ((e.continuous_at_symm he).congr this.symm).continuous_within_at },
-      { have : e.target.piecewise e.symm e'.symm =ᶠ[𝓝 x] e'.symm,
-          from (piecewise_eq_on_compl e.target e.symm e'.symm).eventually_eq_of_mem
-            (mem_nhds_sets_iff.2 ⟨e'.target, λ _, disjoint_right.1 Ht, e'.open_target, he'⟩),
-        exact ((e'.continuous_at_symm he').congr this.symm).continuous_within_at }
-    end }
+(e.piecewise e' e.source e.target e.is_image_source_target
+  (e'.is_image_source_target_of_disjoint e Hs.symm Ht.symm)
+  (by rw [e.open_source.inter_frontier_eq, e'.open_source.inter_frontier_eq_empty_of_disjoint Hs])
+  (by { rw e.open_source.inter_frontier_eq, exact eq_on_empty _ _ })).replace_equiv
+    (e.to_local_equiv.disjoint_union e'.to_local_equiv Hs Ht)
+    (local_equiv.disjoint_union_eq_piecewise _ _ _ _).symm
 
 end piecewise
 

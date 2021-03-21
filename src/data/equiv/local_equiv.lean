@@ -192,6 +192,24 @@ protected lemma inj_on : inj_on e e.source := e.left_inv_on.inj_on
 protected lemma bij_on : bij_on e e.source e.target := e.inv_on.bij_on e.maps_to e.symm_maps_to
 protected lemma surj_on : surj_on e e.source e.target := e.bij_on.surj_on
 
+/-- Create a copy of a `local_equiv` providing better definitional equalities. -/
+@[simps] def copy (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α) (hg : ⇑e.symm = g)
+  (s : set α) (hs : e.source = s) (t : set β) (ht : e.target = t) :
+  local_equiv α β :=
+{ to_fun := f,
+  inv_fun := g,
+  source := s,
+  target := t,
+  map_source' := λ x, ht ▸ hs ▸ hf ▸ e.map_source,
+  map_target' := λ y, hs ▸ ht ▸ hg ▸ e.map_target,
+  left_inv' := λ x, hs ▸ hf ▸ hg ▸ e.left_inv,
+  right_inv' := λ x, ht ▸ hf ▸ hg ▸ e.right_inv }
+
+lemma copy_eq_self (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α) (hg : ⇑e.symm = g)
+  (s : set α) (hs : e.source = s) (t : set β) (ht : e.target = t) :
+  e.copy f hf g hg s hs t ht = e :=
+by { subst f, subst g, subst s, subst t, cases e, refl }
+
 /-- Associating to a local_equiv an equiv between the source and the target -/
 protected def to_equiv : equiv (e.source) (e.target) :=
 { to_fun    := λ x, ⟨e x, e.map_source x.mem⟩,
@@ -295,6 +313,14 @@ end
 end is_image
 
 lemma is_image_source_target : e.is_image e.source e.target := λ x hx, by simp [hx]
+
+lemma is_image_source_target_of_disjoint (e' : local_equiv α β) (hs : disjoint e.source e'.source)
+  (ht : disjoint e.target e'.target) :
+  e.is_image e'.source e'.target :=
+assume x hx,
+have x ∉ e'.source, from λ hx', hs ⟨hx, hx'⟩,
+have e x ∉ e'.target, from λ hx', ht ⟨e.maps_to hx, hx'⟩,
+by simp only *
 
 lemma image_source_inter_eq' (s : set α) :
   e '' (e.source ∩ s) = e.target ∩ e.symm ⁻¹' s :=
@@ -632,32 +658,16 @@ rfl
   (ht : disjoint e.target e'.target) [∀ x, decidable (x ∈ e.source)]
   [∀ y, decidable (y ∈ e.target)] :
   local_equiv α β :=
-{ to_fun := e.source.piecewise e e',
-  inv_fun := e.target.piecewise e.symm e'.symm,
-  source := e.source ∪ e'.source,
-  target := e.target ∪ e'.target,
-  map_source' := λ x,
-    have x ∈ e'.source → x ∉ e.source, from λ h' h, hs ⟨h, h'⟩,
-    by rintro (he|he'); simp *,
-  map_target' := λ y,
-    have y ∈ e'.target → y ∉ e.target, from λ h' h, ht ⟨h, h'⟩,
-    by rintro (he|he'); simp *,
-  left_inv' := λ x,
-    begin
-      rintro (he|he'),
-      { simp * },
-      { have : x ∉ e.source ∧ e' x ∉ e.target,
-          from ⟨λ h, hs ⟨h, he'⟩, λ h, ht ⟨h, e'.map_source he'⟩⟩,
-        simp * }
-    end,
-  right_inv' := λ y,
-    begin
-      rintro (he|he'),
-      { simp * },
-      { have : y ∉ e.target ∧ e'.symm y ∉ e.source,
-          from ⟨λ h, ht ⟨h, he'⟩, λ h, hs ⟨h, e'.map_target he'⟩⟩,
-        simp * }
-    end }
+(e.piecewise e' e.source e.target e.is_image_source_target $
+  e'.is_image_source_target_of_disjoint _ hs.symm ht.symm).copy
+  _ rfl _ rfl (e.source ∪ e'.source) (ite_left _ _) (e.target ∪ e'.target) (ite_left _ _)
+
+lemma disjoint_union_eq_piecewise (e e' : local_equiv α β) (hs : disjoint e.source e'.source)
+  (ht : disjoint e.target e'.target) [∀ x, decidable (x ∈ e.source)]
+  [∀ y, decidable (y ∈ e.target)] :
+  e.disjoint_union e' hs ht = e.piecewise e' e.source e.target e.is_image_source_target
+    (e'.is_image_source_target_of_disjoint _ hs.symm ht.symm) :=
+copy_eq_self _ _ _ _ _ _ _ _ _
 
 section pi
 

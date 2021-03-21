@@ -12,12 +12,12 @@ universes v u₁ u₂ u₃
 
 variables {S : Type v} {L : Type u₂} {D : Type u₃}
 variables [category.{v} S] [category.{v} L] [category.{v} D]
+variables (ι : S ⥤ L)
 
 namespace Ran
 
 local attribute [simp] comma.snd comma.map_left
 
-variables (ι : S ⥤ L)
 
 @[simp, derive category]
 def index (l : L) := comma (functor.from_punit l) ι
@@ -57,6 +57,7 @@ def diagram (F : S ⥤ D) (x : L) : index ι x ⥤ D :=
   comma.snd (functor.from_punit x) ι ⋙ F
 variable {ι}
 
+@[simp]
 def cone {F : S ⥤ D} {G : L ⥤ D} (x : L) (f : ι ⋙ G ⟶ F) :
   cone (diagram ι F x) :=
 { X := G.obj x,
@@ -91,6 +92,66 @@ def obj_aux (F : S ⥤ D) [∀ x, has_limits_of_shape (index ι x) D] : L ⥤ D 
     congr' 1,
     tidy,
   end }
+
+@[simps]
+def equiv [∀ x, has_limits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
+  (G ⟶ obj_aux ι F) ≃ (ι ⋙ G ⟶ F) :=
+{ to_fun := λ f,
+  { app := λ x, f.app _ ≫ limit.π (diagram ι F (ι.obj x)) (index.mk (𝟙 _)),
+  naturality' := begin
+    intros x y ff,
+    simp only [functor.comp_map, nat_trans.naturality_assoc, obj_aux_map, category.assoc],
+    congr' 1,
+    erw [limit.pre_π, limit.w (diagram ι F _) (index.mk_hom (𝟙 _) ff)],
+    congr,
+    tidy,
+  end },
+  inv_fun := λ f,
+  { app := λ x, limit.lift (diagram ι F x) (cone _ f),
+    naturality' := begin
+      intros x y ff,
+      ext j,
+      erw [limit.lift_pre, limit.lift_π, category.assoc, limit.lift_π (cone _ f) j],
+      delta cone index_map,
+      tidy,
+    end },
+  left_inv := begin
+    intro x,
+    ext k j,
+    dsimp only,
+    erw limit.lift_π,
+    delta cone diagram,
+    dsimp only,
+    simp only [nat_trans.naturality_assoc, obj_aux_map],
+    congr' 1,
+    erw limit.pre_π,
+    congr,
+    cases j,
+    tidy,
+  end,
+  right_inv := by tidy }
+
+@[simps]
+def equiv' [∀ x, has_limits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
+  (G ⟶ obj_aux ι F) ≃ (((whiskering_left _ _ _).obj ι).obj G ⟶ F) := equiv _ _ _
+
+end Ran
+
+def Ran [∀ X, has_limits_of_shape (Ran.index ι X) D] : (S ⥤ D) ⥤ L ⥤ D :=
+adjunction.right_adjoint_of_equiv (λ F G, (Ran.equiv' ι G F).symm)
+begin
+  intros x y z f g,
+  ext _ ⟨jl, jr, j⟩,
+  dsimp [Ran.equiv'],
+  tidy,
+end
+
+namespace Ran
+
+variable (D)
+def adjunction [∀ X, has_limits_of_shape (Ran.index ι X) D] :
+  (whiskering_left _ _ D).obj ι ⊣ Ran ι :=
+adjunction.adjunction_of_equiv_right _ _
 
 end Ran
 

@@ -1274,31 +1274,6 @@ theorem is_O_of_div_tends_to_nhds {α : Type*} {l : filter α}
   is_O f g l :=
 is_O_of_div_is_bounded_under hgf $ is_bounded_under_of_tends_to_nhds c H
 
-theorem is_O_at_top_of_div_tends_to_finite {α : Type*} [linear_order α] [nonempty α]
-  {f g : α → 𝕜} (hgf : ∀ᶠ x in filter.at_top, g x = 0 → f x = 0) (c : 𝕜)
-  (H : filter.tendsto (f / g) filter.at_top (𝓝 c)) :
-  is_O f g filter.at_top :=
-begin
-  simp only [is_O_iff, filter.eventually_at_top],
-  rw filter.tendsto_iff_eventually at H,
-  have : ∀ᶠ (x : 𝕜) in 𝓝 c, ∥x∥ ≤ ∥c∥ + 1,
-  { rw filter.eventually_iff_exists_mem,
-    refine ⟨metric.ball c 1, metric.ball_mem_nhds c zero_lt_one,
-      λ y hy, norm_le_norm_add_const_of_dist_le (le_of_lt hy)⟩ },
-  obtain ⟨x₀, h⟩ := filter.eventually_at_top.mp hgf,
-  obtain ⟨x₀', h'⟩ := filter.eventually_at_top.mp (H this),
-  refine ⟨∥c∥ + 1, max x₀ x₀', λ x hx, _⟩,
-  rw [ge_iff_le, max_le_iff] at hx,
-  specialize h x hx.1,
-  specialize h' x hx.2,
-  simp only [pi.div_apply, normed_field.norm_div] at h',
-  by_cases hfx : f x = 0,
-  { have : ∥f x∥ = 0 := trans (congr_arg _ hfx) norm_zero,
-    exact this.symm ▸ mul_nonneg (by simpa [hfx] using h') (norm_nonneg (g x)) },
-  { rwa div_le_iff _ at h',
-    exact lt_of_le_of_ne (norm_nonneg (g x)) (λ h', ((mt h) hfx) (norm_eq_zero.mp h'.symm)) }
-end
-
 lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
   {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : is_o u v l) (hv : tendsto v l (𝓝 y)) :
   tendsto u l (𝓝 0) :=

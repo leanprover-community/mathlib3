@@ -482,7 +482,7 @@ as well as a few other identities trivially equivalent to this one. We also prov
 section order_closed_topology
 
 variables [topological_space α] [order_closed_topology α] [opens_measurable_space α]
-{a b c d : α} {f g : α → E} {μ : measure α}
+  {a b c d : α} {f g : α → E} {μ : measure α}
 
 /-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
 lemma integral_congr {a b : α} {f g : α → E} (h : eq_on f g (interval a b)) :

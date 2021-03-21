@@ -347,7 +347,7 @@ lemma inter_eq_of_inter_eq_of_eq_on {e' : local_homeomorph α β} (h : e.is_imag
 by rw [← h.image_eq, ← h'.image_eq, ← hs, Heq.image_eq]
 
 lemma symm_eq_on_of_inter_eq_of_eq_on {e' : local_homeomorph α β} (h : e.is_image s t)
-  (h' : e'.is_image s t) (hs : e.source ∩ s = e'.source ∩ s) (Heq : eq_on e e' (e.source ∩ s)) :
+  (hs : e.source ∩ s = e'.source ∩ s) (Heq : eq_on e e' (e.source ∩ s)) :
   eq_on e.symm e'.symm (e.target ∩ t) :=
 begin
   rw [← h.image_eq],
@@ -758,7 +758,7 @@ def piecewise (e e' : local_homeomorph α β) (s : set α) (t : set β)
   continuous_to_fun := continuous_on_piecewise_ite e.continuous_on e'.continuous_on Hs Heq,
   continuous_inv_fun := continuous_on_piecewise_ite e.continuous_on_symm e'.continuous_on_symm
     (H.frontier.inter_eq_of_inter_eq_of_eq_on H'.frontier Hs Heq)
-    (H.frontier.symm_eq_on_of_inter_eq_of_eq_on H'.frontier Hs Heq) }
+    (H.frontier.symm_eq_on_of_inter_eq_of_eq_on Hs Heq) }
 
 @[simp] lemma piecewise_to_local_equiv (e e' : local_homeomorph α β) {s : set α} {t : set β}
   [∀ x, decidable (x ∈ s)] [∀ y, decidable (y ∈ t)] (H : e.is_image s t) (H' : e'.is_image s t)

@@ -26,9 +26,9 @@ A simplicial complex in `R^m`. TODO: generalise to normed affine spaces `E`, so 
 -/
 structure simplicial_complex (m : ℕ) :=
 (faces : set (finset (fin m → ℝ)))
-(indep : ∀ (X ∈ faces), affine_independent ℝ (λ p, p : (X : set (fin m → ℝ)) → (fin m → ℝ)))
-(down_closed : ∀ (X ∈ faces) Y, Y ⊆ X → Y ∈ faces)
-(disjoint : ∀ (X Y ∈ faces), convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set (fin m → ℝ)))
+(indep : ∀ {X}, X ∈ faces → affine_independent ℝ (λ p, p : (X : set (fin m → ℝ)) → (fin m → ℝ)))
+(down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces)
+(disjoint : ∀ {X Y}, X ∈ faces -> Y ∈ faces → convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set (fin m → ℝ)))
 
 variables {m : ℕ} {S : simplicial_complex m}
 local notation `E` := fin m → ℝ
@@ -48,10 +48,44 @@ interior of the underlying space.
 def interior (X : finset E) : set E :=
 convex_hull X \ boundary X
 
+lemma convex_hull_eq_interior_union_boundary (X : finset E) : convex_hull ↑X = interior X ∪ boundary X :=
+begin
+  ext x,
+  split,
+  {
+    rintro hx,
+    cases em (x ∈ boundary X) with hxin hxout,
+    { right, exact hxin},
+    { left, exact ⟨hx, hxout⟩}
+  },
+  {
+    rintro (⟨hx, _⟩ | ⟨_, ⟨Y, rfl⟩, hX⟩),
+    exact hx,
+    simp at hX,
+    exact convex_hull_mono hX.1.1 hX.2,
+  }
+end
+
 lemma disjoint_interiors {S : simplicial_complex m} {X Y : finset E}
   (hX : X ∈ S.faces) (hY : Y ∈ S.faces) (x : E) :
   x ∈ interior X ∩ interior Y → X = Y :=
-sorry
+begin
+  rintro ⟨⟨hxX, hXbound⟩, ⟨hyY, hYbound⟩⟩,
+  by_contra,
+  have hXY : X ∩ Y ⊂ X,
+  {
+    use finset.inter_subset_left X Y,
+    intro H,
+    apply hYbound,
+    apply set.mem_bUnion _ _,
+    exact X,
+    exact ⟨subset.trans H (finset.inter_subset_right X Y),
+      (λ H2, h (finset.subset.antisymm (subset.trans H (finset.inter_subset_right X Y)) H2))⟩,
+    exact hxX,
+  },
+  refine hXbound (mem_bUnion hXY _),
+  exact_mod_cast S.disjoint hX hY ⟨hxX, hyY⟩,
+end
 
 lemma disjoint_interiors_aux {S : simplicial_complex m} {X Y : finset E}
   (hX : X ∈ S.faces) (hY : Y ∈ S.faces) (h : X ≠ Y) :
@@ -83,13 +117,61 @@ begin
   { apply bUnion_subset,
     intros X hX,
     rw simplex_interior_covers,
-    exact Union_subset (λ Y, Union_subset (λ YX, subset_bUnion_of_mem (S.down_closed X hX Y YX)))},
+    exact Union_subset (λ Y, Union_subset (λ YX, subset_bUnion_of_mem (S.down_closed hX YX)))},
   { apply bUnion_subset,
     intros Y hY,
     exact subset.trans (diff_subset _ _) (subset_bUnion_of_mem hY) }
 end
+-- The previous lemmas show that the interiors form a disjoint partition of the underlying spaceiff_subset _ _) (subset_bUnion_of_mem hY) }
 
--- The previous lemmas show that the interiors form a disjoint partition of the underlying space
+-- Now, topology
+def geometric_realisation (S : simplicial_complex m) :
+  topological_space S.space := topological_space.of_closed
+  {F | ∀ X ∈ S.faces, is_closed(subtype.val '' F ∩ convex_hull (X : set E))}
+  begin
+    rintro X hX, simp,
+  end
+  begin
+    rintro A hA X hX,
+    sorry
+  end
+  begin
+    rintro T U hT hU X hX,
+    have : subtype.val '' (T ∪ U) ∩ convex_hull ↑X =
+      (subtype.val '' T ∩ convex_hull ↑X) ∪ (subtype.val '' U ∩ convex_hull ↑X),
+    {
+      have : subtype.val '' (T ∪ U) = subtype.val '' T ∪ subtype.val '' U,
+      {
+        sorry
+      },
+      rw [this, union_inter_distrib_right],
+    },
+    rw this,
+    exact is_closed_union (hT X hX) (hU X hX),
+  end
+
+--Is that a usable definition?
+def polytope {A : set(fin m → ℝ)} (P : topological_space A) : Prop := ∃ S : simplicial_complex m, S.space = A ∧ P == geometric_realisation S
+
+def locally_finite_complex (S : simplicial_complex m) : Prop := ∀ x : fin m → ℝ, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set(fin m → ℝ))}
+
+
+lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m) (hS : locally_finite_complex S) :
+  locally_compact_space S.space :=
+  {local_compact_nhds := begin
+    rintro x X hx,
+    sorry
+  end}
+
+def skeleton (k : ℕ) (S : simplicial_complex m) : simplicial_complex m :=
+{faces := {X ∈ S.faces | finset.card X ≤ k},
+indep := λ X hX, S.indep hX.1,
+down_closed := λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩,
+disjoint := λ X Y hX hY, S.disjoint hX.1 hY.1}
+
+
+
+
 
 variables {s : set E}
 

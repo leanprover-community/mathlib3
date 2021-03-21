@@ -92,7 +92,7 @@ lemma disjoint_interiors_aux {S : simplicial_complex m} {X Y : finset E}
   disjoint (interior X) (interior Y) :=
 λ x hx, h (disjoint_interiors hX hY _ hx)
 
-lemma simplex_interior_covers {X : finset E} :
+lemma simplex_interior_covers (X : finset E) :
   convex_hull ↑X = ⋃ (Y ⊆ X), interior Y :=
 begin
   apply subset.antisymm _ _,
@@ -110,7 +110,7 @@ begin
   { exact bUnion_subset (λ Y hY, subset.trans (diff_subset _ _) (convex_hull_mono hY)) },
 end
 
-lemma interiors_cover {S : simplicial_complex m} :
+lemma interiors_cover (S : simplicial_complex m) :
   S.space = ⋃ X ∈ S.faces, interior X :=
 begin
   apply subset.antisymm _ _,
@@ -122,7 +122,16 @@ begin
     intros Y hY,
     exact subset.trans (diff_subset _ _) (subset_bUnion_of_mem hY) }
 end
--- The previous lemmas show that the interiors form a disjoint partition of the underlying spaceiff_subset _ _) (subset_bUnion_of_mem hY) }
+
+/- The simplices interiors form a partition of the underlying space (except that they contain the empty set) -/
+lemma interiors_partition {S : simplicial_complex m} : ∀ x ∈ S.space, exists_unique (λ X, X ∈ S.faces ∧ x ∈ interior X) :=
+begin
+  rintro x hx,
+  rw interiors_cover S at hx,
+  simp only [exists_prop, set.mem_Union] at hx,
+  obtain ⟨X, hX, hxX⟩ := hx,
+  exact ⟨X, ⟨⟨hX, hxX⟩, (λ Y ⟨hY, hxY⟩, disjoint_interiors hY hX x ⟨hxY, hxX⟩)⟩⟩,
+end
 
 -- Now, topology
 def geometric_realisation (S : simplicial_complex m) :
@@ -163,11 +172,20 @@ lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m) (
     sorry
   end}
 
+/- interior X is the topo-/
+--lemma interiors_agree_of_high_dimension {S : simplicial_complex m} : X ∈ S.faces → interior X = (geometric_realisation S).interior
+--begin
+
+--end
+
 def skeleton (k : ℕ) (S : simplicial_complex m) : simplicial_complex m :=
 {faces := {X ∈ S.faces | finset.card X ≤ k},
 indep := λ X hX, S.indep hX.1,
 down_closed := λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩,
 disjoint := λ X Y hX hY, S.disjoint hX.1 hY.1}
+
+lemma skeleton_subcomplex_self (k : ℕ) (S : simplicial_complex m) :
+  (skeleton k S).faces ⊆ S.faces := (λ X ⟨hX, _⟩, hX)
 
 
 

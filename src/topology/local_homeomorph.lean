@@ -782,7 +782,7 @@ rfl
   (e.piecewise e' s t H H' Hs Heq).symm =
     e.symm.piecewise e'.symm t s H.symm H'.symm
       (H.frontier.inter_eq_of_inter_eq_of_eq_on H'.frontier Hs Heq)
-      (H.frontier.symm_eq_on_of_inter_eq_of_eq_on H'.frontier Hs Heq) :=
+      (H.frontier.symm_eq_on_of_inter_eq_of_eq_on Hs Heq) :=
 rfl
 
 /-- Combine two `local_homeomorph`s with disjoint sources and disjoint targets. We do not reuse

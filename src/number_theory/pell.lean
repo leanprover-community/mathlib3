@@ -118,7 +118,7 @@ section
     by rw [← int.coe_nat_sub $ le_of_lt $ nat.lt_of_sub_eq_succ h, h]; refl⟩
 
   theorem is_pell_norm : Π {b : ℤ√d}, is_pell b ↔ b * b.conj = 1
-  | ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell, mul_comm]; ring
+  | ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell, mul_comm]; ring_nf
 
   theorem is_pell_mul {b c : ℤ√d} (hb : is_pell b) (hc : is_pell c) : is_pell (b * c) :=
   is_pell_norm.2 (by simp [mul_comm, mul_left_comm,

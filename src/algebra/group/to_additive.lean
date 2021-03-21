@@ -97,7 +97,6 @@ meta def tr : bool → list string → list string
 | is_comm ("inv" :: s)                := add_comm_prefix is_comm "neg"       :: tr ff s
 | is_comm ("div" :: s)                := add_comm_prefix is_comm "sub"       :: tr ff s
 | is_comm ("one" :: s)                := add_comm_prefix is_comm "zero"      :: tr ff s
-| is_comm ("prod" :: "mk" :: s)       := add_comm_prefix is_comm "prod"      :: tr ff s
 | is_comm ("prod" :: s)               := add_comm_prefix is_comm "sum"       :: tr ff s
 | is_comm ("finprod" :: s)            := add_comm_prefix is_comm "finsum"    :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s

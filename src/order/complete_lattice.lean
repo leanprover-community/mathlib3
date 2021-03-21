@@ -433,10 +433,9 @@ by { convert h1.supr_comp g, exact (funext h2).symm }
 @[congr] theorem supr_congr_Prop {α : Type*} [has_Sup α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
 begin
-  have : f₁ ∘ pq.mpr = f₂ := funext f,
-  rw [← this],
-  refine (function.surjective.supr_comp (λ h, ⟨pq.1 h, _⟩) f₁).symm,
-  refl
+  have := propext pq, subst this,
+  congr' with x,
+  apply f
 end
 
 theorem infi_le (s : ι → α) (i : ι) : infi s ≤ s i :=

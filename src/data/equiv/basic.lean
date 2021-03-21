@@ -2015,6 +2015,9 @@ funext $ λ z, hf.swap_apply _ _ _
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
 instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton
 
+instance {α} [unique α] : unique (ulift α) := equiv.ulift.unique
+instance {α} [unique α] : unique (plift α) := equiv.plift.unique
+
 instance {α} [decidable_eq α] : decidable_eq (ulift α) := equiv.ulift.decidable_eq
 instance {α} [decidable_eq α] : decidable_eq (plift α) := equiv.plift.decidable_eq
 

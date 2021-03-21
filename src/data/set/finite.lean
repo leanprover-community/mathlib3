@@ -291,6 +291,10 @@ begin
   simp only [set_coe.exists, subtype.coe_mk, eq_comm],
 end
 
+theorem finite.of_preimage {f : α → β} {s : set β} (h : finite (f ⁻¹' s)) (hf : surjective f) :
+  finite s :=
+hf.image_preimage s ▸ h.image _
+
 instance fintype_map {α β} [decidable_eq β] :
   ∀ (s : set α) (f : α → β) [fintype s], fintype (f <$> s) := set.fintype_image
 

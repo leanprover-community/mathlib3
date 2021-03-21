@@ -17,6 +17,7 @@ end
 
 open_locale classical affine
 
+open set
 namespace affine
 
 /--
@@ -57,9 +58,36 @@ lemma disjoint_interiors_aux {S : simplicial_complex m} {X Y : finset E}
   disjoint (interior X) (interior Y) :=
 λ x hx, h (disjoint_interiors hX hY _ hx)
 
+lemma simplex_interior_covers {X : finset E} :
+  convex_hull ↑X = ⋃ (Y ⊆ X), interior Y :=
+begin
+  apply subset.antisymm _ _,
+  { apply X.strong_induction_on,
+    intros s ih x hx,
+    by_cases x ∈ boundary s,
+    { rw [boundary] at h,
+      simp only [exists_prop, set.mem_Union] at h,
+      rcases h with ⟨t, st, ht⟩,
+      specialize ih _ st ht,
+      simp only [exists_prop, set.mem_Union] at ⊢ ih,
+      rcases ih with ⟨Z, Zt, hZ⟩,
+      exact ⟨_, subset.trans Zt st.1, hZ⟩ },
+    { exact subset_bUnion_of_mem (λ _ t, t) ⟨hx, h⟩ } },
+  { exact bUnion_subset (λ Y hY, subset.trans (diff_subset _ _) (convex_hull_mono hY)) },
+end
+
 lemma interiors_cover {S : simplicial_complex m} :
   S.space = ⋃ X ∈ S.faces, interior X :=
-sorry
+begin
+  apply subset.antisymm _ _,
+  { apply bUnion_subset,
+    intros X hX,
+    rw simplex_interior_covers,
+    exact Union_subset (λ Y, Union_subset (λ YX, subset_bUnion_of_mem (S.down_closed X hX Y YX)))},
+  { apply bUnion_subset,
+    intros Y hY,
+    exact subset.trans (diff_subset _ _) (subset_bUnion_of_mem hY) }
+end
 
 -- The previous lemmas show that the interiors form a disjoint partition of the underlying space
 

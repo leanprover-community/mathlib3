@@ -3,14 +3,8 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
-import category_theory.opposites
-import category_theory.full_subcategory
-import category_theory.skeletal
 import category_theory.currying
-import category_theory.limits.lattice
 import category_theory.limits.over
-import category_theory.limits.shapes.images
-import category_theory.limits.shapes.kernels
 import category_theory.monad.adjunction
 
 /-!

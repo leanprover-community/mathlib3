@@ -118,10 +118,8 @@ def equiv [∀ x, has_limits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ D
   left_inv := begin
     intro x,
     ext k j,
-    dsimp only,
-    erw limit.lift_π,
-    delta cone diagram,
-    dsimp only,
+    dsimp only [cone, diagram],
+    rw limit.lift_π,
     simp only [nat_trans.naturality_assoc, obj_aux_map],
     congr' 1,
     erw limit.pre_π,

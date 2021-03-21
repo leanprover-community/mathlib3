@@ -394,11 +394,15 @@ def rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
       simp only [comp_id],
     },
     {
-      simp,
+      simp only [functor.id_obj, congr_arg_mpr_hom_left, triangle_category_to_category_struct_comp,
+      rot_comp_inv_rot_inv_app, triangle_morphism.comp_trimor3, rot_comp_inv_rot_hom_app,
+      triangle_morphism.id_comp, nat_trans.id_app, triangle_category_to_category_struct_id,
+      triangle_morphism_id_trimor3, eq_to_hom_refl, congr_arg_mpr_hom_right,
+      triangle_morphism.comp_id, functor.comp_obj, nat_trans.comp_app],
       dsimp,
       simp only [comp_id],
     }
-  end, -- (deterministic) timeout when replace simp with squeeze_simp
+  end,
   inv_hom_id' := begin
     ext T,
     {

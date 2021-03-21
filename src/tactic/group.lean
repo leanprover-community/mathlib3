@@ -77,7 +77,7 @@ meta def aux_group₁ (locat : loc) : tactic unit :=
 
 /-- Auxilliary tactic for the `group` tactic. Calls `ring` to normalize exponents. -/
 meta def aux_group₂ (locat : loc) : tactic unit :=
-ring none tactic.ring.normalize_mode.raw locat
+ring_nf none tactic.ring.normalize_mode.raw locat
 end tactic
 
 namespace tactic.interactive

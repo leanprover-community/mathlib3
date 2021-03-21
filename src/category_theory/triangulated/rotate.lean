@@ -144,7 +144,8 @@ applying "inv_rotate" gives a triangle morphism that can be thought of as:
         h'[-1]    f'      g'
 ```
 (note that this diagram doesn't technically fit the definition of triangle morphism,
-as `Z[-1][1]` is not necessarily equal to `Z`, and `Z'[-1][1]` is not necessarily equal to `Z'`, but they are isomorphic, by the counit_iso of (shift C))
+as `Z[-1][1]` is not necessarily equal to `Z`, and `Z'[-1][1]` is not necessarily equal to `Z'`,
+but they are isomorphic, by the counit_iso of (shift C))
 -/
 @[simps]
 def inv_rotate (f : triangle_morphism T₁ T₂)
@@ -161,13 +162,15 @@ def inv_rotate (f : triangle_morphism T₁ T₂)
     rw ← f.comm3,
     rw functor.map_comp,
     repeat {rw assoc},
-    suffices h : (shift C).unit_iso.inv.app T₁.obj1 ≫ f.trimor1 = (shift C).inverse.map ((shift C).functor.map f.trimor1) ≫ (shift C).unit_iso.inv.app T₂.obj1,
+    suffices h : (shift C).unit_iso.inv.app T₁.obj1 ≫ f.trimor1 =
+    (shift C).inverse.map ((shift C).functor.map f.trimor1) ≫ (shift C).unit_iso.inv.app T₂.obj1,
     {
       rw h,
       refl,
     },
     {
-      simp only [iso.hom_inv_id_app, assoc, equivalence.inv_fun_map, nat_iso.cancel_nat_iso_inv_left],
+      simp only [iso.hom_inv_id_app, assoc, equivalence.inv_fun_map,
+      nat_iso.cancel_nat_iso_inv_left],
       exact (category.comp_id f.trimor1).symm,
     }
   end,

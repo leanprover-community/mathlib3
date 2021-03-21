@@ -151,7 +151,7 @@ section
     have n*n + 1 = a*a, by rw ← h; exact nat.succ_pred_eq_of_pos (asq_pos a1),
     have na : n < a, from nat.mul_self_lt_mul_self_iff.2 (by rw ← this; exact nat.lt_succ_self _),
     have (n+1)*(n+1) ≤ n*n + 1, by rw this; exact nat.mul_self_le_mul_self na,
-    have n+n ≤ 0, from @nat.le_of_add_le_add_right (n*n + 1) _ _ (by ring at this ⊢; assumption),
+    have n+n ≤ 0, from @nat.le_of_add_le_add_right (n*n + 1) _ _ (by ring_nf at this ⊢; assumption),
     ne_of_gt d_pos $ by rwa nat.eq_zero_of_le_zero ((nat.le_add_left _ _).trans this) at h⟩
 
   theorem xn_ge_a_pow : ∀ (n : ℕ), a^n ≤ xn n

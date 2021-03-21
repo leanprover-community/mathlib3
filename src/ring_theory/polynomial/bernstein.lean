@@ -32,13 +32,6 @@ This will give a constructive proof of Weierstrass' theorem that
 polynomials are dense in `C([0,1], ℝ)`.
 -/
 
-lemma polynomial.nat_smul {R : Type*} [semiring R] (n : ℕ) (p : polynomial R) : n • p = n * p :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [ih, nat.succ_eq_add_one, add_smul, add_mul], },
-end
-
 noncomputable theory
 
 
@@ -74,10 +67,6 @@ by simp [bernstein_polynomial]
 
 end
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/master
 lemma flip (n ν : ℕ) (h : ν ≤ n) :
   (bernstein_polynomial R n ν).comp (1-X) = bernstein_polynomial R n (n-ν) :=
 begin
@@ -400,7 +389,7 @@ begin
   conv at h {
     to_rhs,
     rw [pderiv_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
-    simp [e, ←polynomial.nat_smul], },
+    simp [e, polynomial.nat_mul], },
   exact h,
 end
 
@@ -457,7 +446,7 @@ begin
     to_rhs,
     simp only [pderiv_one, pderiv_mul, pderiv_pow, pderiv_nat_cast, (pderiv tt).map_add,
       pderiv_tt_x, pderiv_tt_y],
-    simp [e, ←polynomial.nat_smul, smul_smul],
+    simp [e, polynomial.nat_mul, smul_smul],
   },
   exact h,
 end

@@ -44,7 +44,7 @@ Given a triangle of the form:
 ```
 applying "rotate" gives a triangle of the form:
 ```
-      g        h        f[1]
+      g        h       -f[1]
   Y  ---> Z  --->  X[1] ---> Y[1]
 ```
 -/
@@ -65,8 +65,8 @@ Given a triangle of the form:
 ```
 applying "inv_rotate" gives a triangle that can be thought of as:
 ```
-        h[-1]     f       g
-  Z[-1]  ---> X  ---> Y  ---> Z
+        -h[-1]     f       g
+  Z[-1]  --->  X  ---> Y  ---> Z
 ```
 (note that this diagram doesn't technically fit the definition of triangle, as `Z[-1][1]` is
 not necessarily equal to `Z`, but it is isomorphic, by the counit_iso of (shift C))
@@ -98,13 +98,13 @@ Given a triangle morphism of the form:
 ```
 applying "rotate" gives a triangle morphism of the form:
 ```
-      g        h        f[1]
+      g        h       -f[1]
   Y  ---> Z  --->  X[1] ---> Y[1]
   |       |         |         |
   |b      |c        |a[1]     |b[1]
   V       V         V         V
   Y' ---> Z' ---> X'[1] ---> Y'[1]
-      g'      h'        f'[1]
+      g'      h'       -f'[1]
 ```
 -/
 @[simps]
@@ -117,7 +117,7 @@ def rotate (f : triangle_morphism T₁ T₂)
   comm2 := by exact f.comm3,
   comm3 := begin
     repeat {rw triangle.rotate_mor3},
-    rw [comp_neg,neg_comp],
+    rw [comp_neg, neg_comp],
     repeat {rw ← functor.map_comp},
     rw f.comm1,
   end }
@@ -135,13 +135,13 @@ Given a triangle morphism of the form:
 ```
 applying "inv_rotate" gives a triangle morphism that can be thought of as:
 ```
-        h[-1]     f       g
-  Z[-1]  ---> X  ---> Y  ---> Z
-    |         |       |       |
-    |a        |b      |c      |a[1]
-    V         V       V       V
-  Z'[-1] ---> X' ---> Y' ---> Z'
-        h'[-1]    f'      g'
+        -h[-1]      f         g
+  Z[-1]  --->  X   --->  Y   --->  Z
+    |          |         |         |
+    |a         |b        |c        |a[1]
+    V          V         V         V
+  Z'[-1] --->  X'  --->  Y'  --->  Z'
+        -h'[-1]     f'        g'
 ```
 (note that this diagram doesn't technically fit the definition of triangle morphism,
 as `Z[-1][1]` is not necessarily equal to `Z`, and `Z'[-1][1]` is not necessarily equal to `Z'`,
@@ -155,12 +155,9 @@ def inv_rotate (f : triangle_morphism T₁ T₂)
   trimor3 := f.trimor2,
   comm1 := begin
     simp only [triangle.inv_rotate_mor1],
-    rw [comp_neg, neg_comp],
-    rw ← assoc,
+    rw [comp_neg, neg_comp, ← assoc],
     dsimp,
-    rw ← functor.map_comp (shift C ).inverse,
-    rw ← f.comm3,
-    rw functor.map_comp,
+    rw [← functor.map_comp (shift C ).inverse, ← f.comm3, functor.map_comp],
     repeat {rw assoc},
     suffices h : (shift C).unit_iso.inv.app T₁.obj1 ≫ f.trimor1 =
     (shift C).inverse.map ((shift C).functor.map f.trimor1) ≫ (shift C).unit_iso.inv.app T₂.obj1,
@@ -178,8 +175,7 @@ def inv_rotate (f : triangle_morphism T₁ T₂)
   comm3 := begin
     have h := f.comm2,
     repeat {rw triangle.inv_rotate_mor3},
-    rw ← assoc f.trimor2 _,
-    rw ← f.comm2,
+    rw [← assoc f.trimor2 _, ← f.comm2],
     dsimp,
     repeat {rw assoc},
     simp only [equivalence.fun_inv_map, iso.inv_hom_id_app_assoc],
@@ -262,8 +258,7 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :
 {
   app := begin
     intro T,
-    rw functor.id_obj,
-    rw functor.comp_obj,
+    rw [functor.id_obj, functor.comp_obj],
     let f : triangle_morphism T ((inv_rotate C).obj ((rotate C).obj T)) :=
     {
       trimor1 := (shift C).unit.app T.obj1,
@@ -272,8 +267,7 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :
       comm1 := begin
         rw comp_id,
         dsimp,
-        rw [comp_neg, functor.additive.map_neg (shift C).inverse],
-        rw ← functor.comp_map,
+        rw [comp_neg, functor.additive.map_neg (shift C).inverse, ← functor.comp_map],
         simp only [neg_comp, comp_neg, functor.comp_map, iso.hom_inv_id_app_assoc,
         iso.hom_inv_id_app, assoc, equivalence.inv_fun_map, neg_neg],
         dsimp,

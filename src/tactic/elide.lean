@@ -3,8 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon
 -/
-
-import logic.basic tactic.core
+import tactic.core
 
 namespace tactic
 namespace elide
@@ -83,7 +82,7 @@ add_tactic_doc
 { name        := "elide / unelide",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.elide, `tactic.interactive.unelide],
-  tags        := [] }
+  tags        := ["goal management", "context management", "rewriting"] }
 
 end interactive
 

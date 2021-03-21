@@ -5,7 +5,7 @@ Authors: Leonardo de Moura
 
 Converter monad for building simplifiers.
 -/
-import category.basic
+import control.basic
 open tactic
 
 meta structure old_conv_result (α : Type) :=

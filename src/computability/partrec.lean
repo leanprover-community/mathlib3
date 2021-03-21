@@ -1,14 +1,24 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
+-/
+import computability.primrec
+import data.nat.psub
+import data.pfun
+
+/-!
+# The partial recursive functions
 
 The partial recursive functions are defined similarly to the primitive
 recursive functions, but now all functions are partial, implemented
 using the `roption` monad, and there is an additional operation, called
 μ-recursion, which performs unbounded minimization.
+
+## References
+
+* [Mario Carneiro, *Formalizing computability theory via partial recursive functions*][carneiro2019]
 -/
-import computability.primrec data.pfun
 
 open encodable denumerable roption
 
@@ -137,8 +147,8 @@ end⟩
 inductive partrec : (ℕ →. ℕ) → Prop
 | zero : partrec (pure 0)
 | succ : partrec succ
-| left : partrec (λ n, n.unpair.1)
-| right : partrec (λ n, n.unpair.2)
+| left : partrec ↑(λ n : ℕ, n.unpair.1)
+| right : partrec ↑(λ n : ℕ, n.unpair.2)
 | pair {f g} : partrec f → partrec g → partrec (λ n, mkpair <$> f n <*> g n)
 | comp {f g} : partrec f → partrec g → partrec (λ n, g n >>= f)
 | prec {f g} : partrec f → partrec g → partrec (unpaired (λ a n,
@@ -554,6 +564,17 @@ theorem option_map {f : α → option β} {g : α → β → σ}
   (hf : computable f) (hg : computable₂ g) : computable (λ a, (f a).map (g a)) :=
 option_bind hf (option_some.comp₂ hg)
 
+theorem option_get_or_else {f : α → option β} {g : α → β}
+  (hf : computable f) (hg : computable g) :
+  computable (λ a, (f a).get_or_else (g a)) :=
+(computable.option_cases hf hg (show computable₂ (λ a b, b), from computable.snd)).of_eq $
+λ a, by cases f a; refl
+
+theorem subtype_mk {f : α → β} {p : β → Prop} [decidable_pred p] {h : ∀ a, p (f a)}
+    (hp : primrec_pred p) (hf : computable f) :
+  @computable _ _ _ (primcodable.subtype hp) (λ a, (⟨f a, h a⟩ : subtype p)) :=
+hf
+
 theorem sum_cases
   {f : α → β ⊕ γ} {g : α → β → σ} {h : α → γ → σ}
   (hf : computable f) (hg : computable₂ g) (hh : computable₂ h) :
@@ -580,7 +601,7 @@ option_some_iff.1 $
     (to₂ $ list_concat.comp (snd.comp fst) snd))).of_eq $
 λ a, begin
   simp, induction a.2 with n IH, {refl},
-  simp [IH, H, list.range_concat]
+  simp [IH, H, list.range_succ]
 end
 
 theorem list_of_fn : ∀ {n} {f : fin n → α → σ},

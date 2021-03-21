@@ -8,20 +8,17 @@ Facts about epimorphisms and monomorphisms.
 The definitions of `epi` and `mono` are in `category_theory.category`,
 since they are used by some lemmas for `iso`, which is used everywhere.
 -/
-
 import category_theory.adjunction.basic
-import category_theory.fully_faithful
+import category_theory.opposites
 
 universes v₁ v₂ u₁ u₂
 
 namespace category_theory
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-include 𝒞
+variables {C : Type u₁} [category.{v₁} C]
 
 section
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒟
+variables {D : Type u₂} [category.{v₂} D]
 
 lemma left_adjoint_preserves_epi {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
   {X Y : C} {f : X ⟶ Y} (hf : epi f) : epi (F.map f) :=
@@ -45,12 +42,12 @@ end
 
 lemma faithful_reflects_epi (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
   (hf : epi (F.map f)) : epi f :=
-⟨λ Z g h H, F.injectivity $
+⟨λ Z g h H, F.map_injective $
   by rw [←cancel_epi (F.map f), ←F.map_comp, ←F.map_comp, H]⟩
 
 lemma faithful_reflects_mono (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
   (hf : mono (F.map f)) : mono f :=
-⟨λ Z g h H, F.injectivity $
+⟨λ Z g h H, F.map_injective $
   by rw [←cancel_mono (F.map f), ←F.map_comp, ←F.map_comp, H]⟩
 end
 
@@ -76,33 +73,43 @@ class split_epi {X Y : C} (f : X ⟶ Y) :=
 (id' : section_ ≫ f = 𝟙 Y . obviously)
 
 /-- The chosen retraction of a split monomorphism. -/
-def retraction {X Y : C} (f : X ⟶ Y) [split_mono f] : Y ⟶ X := split_mono.retraction.{v₁} f
+def retraction {X Y : C} (f : X ⟶ Y) [split_mono f] : Y ⟶ X := split_mono.retraction f
 @[simp, reassoc]
 lemma split_mono.id {X Y : C} (f : X ⟶ Y) [split_mono f] : f ≫ retraction f = 𝟙 X :=
-split_mono.id' f
+split_mono.id'
 /-- The retraction of a split monomorphism is itself a split epimorphism. -/
 instance retraction_split_epi {X Y : C} (f : X ⟶ Y) [split_mono f] : split_epi (retraction f) :=
 { section_ := f }
+
+/-- A split mono which is epi is an iso. -/
+lemma is_iso_of_epi_of_split_mono {X Y : C} (f : X ⟶ Y) [split_mono f] [epi f] : is_iso f :=
+⟨retraction f, ⟨by simp, by simp [← cancel_epi f]⟩⟩
 
 /--
 The chosen section of a split epimorphism.
 (Note that `section` is a reserved keyword, so we append an underscore.)
 -/
-def section_ {X Y : C} (f : X ⟶ Y) [split_epi f] : Y ⟶ X := split_epi.section_.{v₁} f
+def section_ {X Y : C} (f : X ⟶ Y) [split_epi f] : Y ⟶ X := split_epi.section_ f
 @[simp, reassoc]
 lemma split_epi.id {X Y : C} (f : X ⟶ Y) [split_epi f] : section_ f ≫ f = 𝟙 Y :=
-split_epi.id' f
+split_epi.id'
 /-- The section of a split epimorphism is itself a split monomorphism. -/
 instance section_split_mono {X Y : C} (f : X ⟶ Y) [split_epi f] : split_mono (section_ f) :=
 { retraction := f }
 
+/-- A split epi which is mono is an iso. -/
+lemma is_iso_of_mono_of_split_epi {X Y : C} (f : X ⟶ Y) [mono f] [split_epi f] : is_iso f :=
+⟨section_ f, ⟨by simp [← cancel_mono f], by simp⟩⟩
+
 /-- Every iso is a split mono. -/
 @[priority 100]
+noncomputable
 instance split_mono.of_iso {X Y : C} (f : X ⟶ Y) [is_iso f] : split_mono f :=
 { retraction := inv f }
 
 /-- Every iso is a split epi. -/
 @[priority 100]
+noncomputable
 instance split_epi.of_iso {X Y : C} (f : X ⟶ Y) [is_iso f] : split_epi f :=
 { section_ := inv f }
 
@@ -116,9 +123,30 @@ instance split_mono.mono {X Y : C} (f : X ⟶ Y) [split_mono f] : mono f :=
 instance split_epi.epi {X Y : C} (f : X ⟶ Y) [split_epi f] : epi f :=
 { left_cancellation := λ Z g h w, begin replace w := section_ f ≫= w, simpa using w, end }
 
+/-- Every split mono whose retraction is mono is an iso. -/
+lemma is_iso.of_mono_retraction {X Y : C} {f : X ⟶ Y} [split_mono f] [mono $ retraction f]
+  : is_iso f :=
+⟨retraction f, ⟨by simp, (cancel_mono_id $ retraction f).mp (by simp)⟩⟩
+
+/-- Every split epi whose section is epi is an iso. -/
+lemma is_iso.of_epi_section {X Y : C} {f : X ⟶ Y} [split_epi f] [epi $ section_ f]
+  : is_iso f :=
+⟨section_ f, ⟨(cancel_epi_id $ section_ f).mp (by simp), by simp⟩⟩
+
+instance unop_mono_of_epi {A B : Cᵒᵖ} (f : A ⟶ B) [epi f] : mono f.unop :=
+⟨λ Z g h eq, has_hom.hom.op_inj ((cancel_epi f).1 (has_hom.hom.unop_inj eq))⟩
+
+instance unop_epi_of_mono {A B : Cᵒᵖ} (f : A ⟶ B) [mono f] : epi f.unop :=
+⟨λ Z g h eq, has_hom.hom.op_inj ((cancel_mono f).1 (has_hom.hom.unop_inj eq))⟩
+
+instance op_mono_of_epi {A B : C} (f : A ⟶ B) [epi f] : mono f.op :=
+⟨λ Z g h eq, has_hom.hom.unop_inj ((cancel_epi f).1 (has_hom.hom.op_inj eq))⟩
+
+instance op_epi_of_mono {A B : C} (f : A ⟶ B) [mono f] : epi f.op :=
+⟨λ Z g h eq, has_hom.hom.unop_inj ((cancel_mono f).1 (has_hom.hom.op_inj eq))⟩
+
 section
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒟
+variables {D : Type u₂} [category.{v₂} D]
 
 /-- Split monomorphisms are also absolute monomorphisms. -/
 instance {X Y : C} (f : X ⟶ Y) [split_mono f] (F : C ⥤ D) : split_mono (F.map f) :=

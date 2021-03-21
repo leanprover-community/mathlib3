@@ -6,21 +6,22 @@ Authors: Jeremy Avigad
 Extends `tendsto` to relations and partial functions.
 -/
 import order.filter.basic
-import data.pfun
 
 universes u v w
 namespace filter
 variables {α : Type u} {β : Type v} {γ : Type w}
+
+open_locale filter
 
 /-
 Relations.
 -/
 
 def rmap (r : rel α β) (f : filter α) : filter β :=
-{ sets             := r.core ⁻¹' f.sets,
-  univ_sets        := by { simp [rel.core], apply univ_mem_sets },
+{ sets             := {s | r.core s ∈ f},
+  univ_sets        := by simp,
   sets_of_superset := assume s t hs st, mem_sets_of_superset hs $ rel.core_mono _ st,
-  inter_sets       := by { simp [set.preimage, rel.core_inter], exact λ s t, inter_mem_sets } }
+  inter_sets       := λ s t hs ht, by simp [rel.core_inter, inter_mem_sets hs ht] }
 
 theorem rmap_sets (r : rel α β) (f : filter α) : (rmap r f).sets = r.core ⁻¹' f.sets := rfl
 
@@ -162,7 +163,7 @@ theorem ptendsto_iff_rtendsto (l₁ : filter α) (l₂ : filter β) (f : α →.
 iff.rfl
 
 theorem pmap_res (l : filter α) (s : set α) (f : α → β) :
-  pmap (pfun.res f s) l = map f (l ⊓ principal s) :=
+  pmap (pfun.res f s) l = map f (l ⊓ 𝓟 s) :=
 filter_eq $
 begin
   apply set.ext, intro t, simp [pfun.core_res], split,
@@ -174,7 +175,7 @@ begin
 end
 
 theorem tendsto_iff_ptendsto (l₁ : filter α) (l₂ : filter β) (s : set α) (f : α → β) :
-  tendsto f (l₁ ⊓ principal s) l₂ ↔ ptendsto (pfun.res f s) l₁ l₂ :=
+  tendsto f (l₁ ⊓ 𝓟 s) l₂ ↔ ptendsto (pfun.res f s) l₁ l₂ :=
 by simp only [tendsto, ptendsto, pmap_res]
 
 theorem tendsto_iff_ptendsto_univ (l₁ : filter α) (l₂ : filter β) (f : α → β) :

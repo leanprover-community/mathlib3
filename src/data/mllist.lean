@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Keeley Hoek, Simon Hudon, Scott Morrison
+Authors: Mario Carneiro, Keeley Hoek, Simon Hudon, Scott Morrison
 
 Monadic lazy lists.
 
@@ -16,7 +16,7 @@ universes u v
 namespace tactic -- We hide this away in the tactic namespace, just because it's all meta.
 
 meta inductive mllist (m : Type u → Type u) (α : Type u) : Type u
-| nil {} : mllist
+| nil : mllist
 | cons : m (option α × mllist) → mllist
 
 namespace mllist

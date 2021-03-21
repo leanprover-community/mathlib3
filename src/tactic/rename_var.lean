@@ -3,7 +3,6 @@ Copyright (c) 2019 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-
 import tactic.interactive
 
 /-!
@@ -58,9 +57,12 @@ setup_tactic_parser
 /--
 `rename_var old new` renames all bound variables named `old` to `new` in the goal.
 `rename_var old new at h` does the same in hypothesis `h`.
+-/
+meta def rename_var (old : parse ident) (new : parse ident) (l : parse location) : tactic unit :=
+l.apply (rename_var_at_hyp old new) (rename_var_at_goal old new)
+end tactic.interactive
 
----
-
+/--
 `rename_var old new` renames all bound variables named `old` to `new` in the goal.
 `rename_var old new at h` does the same in hypothesis `h`.
 This is meant for teaching bound variables only. Such a renaming should never be relevant to Lean.
@@ -74,10 +76,6 @@ begin
 end
 ```
 -/
-meta def rename_var (old : parse ident) (new : parse ident) (l : parse location) : tactic unit :=
-l.apply (rename_var_at_hyp old new) (rename_var_at_goal old new)
-end tactic.interactive
-
 add_tactic_doc
 { name       := "rename_var",
   category   := doc_category.tactic,

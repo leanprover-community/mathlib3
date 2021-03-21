@@ -7,8 +7,7 @@ Authors: Johan Commelin, Reid Barton, Simon Hudon
 Tactic for proving the equivalence of a set of proposition
 using various implications between them.
 -/
-
-import tactic.interactive data.list.basic tactic.doc_commands
+import data.list.tfae
 import tactic.scc
 
 open expr tactic lean lean.parser
@@ -72,9 +71,27 @@ meta def tfae_have
 
 /-- Finds all implications and equivalences in the context
 to prove a goal of the form `tfae [...]`.
+-/
+meta def tfae_finish : tactic unit :=
+applyc ``tfae_nil <|>
+closure.with_new_closure (λ cl,
+do impl_graph.mk_scc cl,
+   `(tfae %%l) ← target,
+   l ← parse_list l,
+   (_,r,_) ← cl.root l.head,
+   refine ``(tfae_of_forall %%r _ _),
+   thm ← mk_const ``forall_mem_cons,
+   l.mmap' (λ e,
+     do rewrite_target thm, split,
+        (_,r',p) ← cl.root e,
+        tactic.exact p ),
+   applyc ``forall_mem_nil,
+   pure ())
 
----
+end interactive
+end tactic
 
+/--
 The `tfae` tactic suite is a set of tactics that help with proving that certain
 propositions are equivalent.
 In `data/list/basic.lean` there is a section devoted to propositions of the
@@ -123,25 +140,6 @@ begin
 end
 ```
 -/
-meta def tfae_finish : tactic unit :=
-applyc ``tfae_nil <|>
-closure.with_new_closure (λ cl,
-do impl_graph.mk_scc cl,
-   `(tfae %%l) ← target,
-   l ← parse_list l,
-   (_,r,_) ← cl.root l.head,
-   refine ``(tfae_of_forall %%r _ _),
-   thm ← mk_const ``forall_mem_cons,
-   l.mmap' (λ e,
-     do rewrite_target thm, split,
-        (_,r',p) ← cl.root e,
-        tactic.exact p ),
-   applyc ``forall_mem_nil,
-   pure ())
-
-end interactive
-end tactic
-
 add_tactic_doc
 { name := "tfae",
   category                 := doc_category.tactic,

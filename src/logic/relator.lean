@@ -6,10 +6,10 @@ Authors: Johannes Hölzl
 Relator for functions, pairs, sums, and lists.
 -/
 
+import tactic.reserved_notation
+
 namespace relator
 universe variables u₁ u₂ v₁ v₂
-
-reserve infixr ` ⇒ `:40
 
 /- TODO(johoelzl):
  * should we introduce relators of datatypes as recursive function or as inductive
@@ -33,39 +33,47 @@ end
 section
 variables {α : Type u₁} {β : out_param $ Type u₂} (R : out_param $ α → β → Prop)
 
-@[class] def right_total := ∀b, ∃a, R a b
-@[class] def left_total := ∀a, ∃b, R a b
-@[class] def bi_total := left_total R ∧ right_total R
+class right_total : Prop := (right : ∀b, ∃a, R a b)
+class left_total : Prop := (left : ∀a, ∃b, R a b)
+class bi_total extends left_total R, right_total R : Prop
 
 end
 
 section
 variables {α : Type u₁} {β : Type u₂} (R : α → β → Prop)
 
-@[class] def left_unique := ∀{a b c}, R a b → R c b → a = c
-@[class] def right_unique := ∀{a b c}, R a b → R a c → b = c
+class left_unique : Prop := (left : ∀{a b c}, R a b → R c b → a = c)
+class right_unique : Prop := (right : ∀{a b c}, R a b → R a c → b = c)
 
-lemma rel_forall_of_right_total [t : right_total R] : ((R ⇒ implies) ⇒ implies) (λp, ∀i, p i) (λq, ∀i, q i) :=
-assume p q Hrel H b, exists.elim (t b) (assume a Rab, Hrel Rab (H _))
+lemma left_unique.unique {R : α → β → Prop} (h : left_unique R) {a b c} :
+  R a b → R c b → a = c := left_unique.left β
 
-lemma rel_exists_of_left_total [t : left_total R] : ((R ⇒ implies) ⇒ implies) (λp, ∃i, p i) (λq, ∃i, q i) :=
-assume p q Hrel ⟨a, pa⟩, let ⟨b, Rab⟩ := t a in ⟨b, Hrel Rab pa⟩
+lemma right_unique.unique {R : α → β → Prop} (h : right_unique R) {a b c} :
+  R a b → R a c → b = c := right_unique.right α
 
-lemma rel_forall_of_total [t : bi_total R] : ((R ⇒ iff) ⇒ iff) (λp, ∀i, p i) (λq, ∀i, q i) :=
+lemma rel_forall_of_right_total [right_total R] :
+  ((R ⇒ implies) ⇒ implies) (λp, ∀i, p i) (λq, ∀i, q i) :=
+assume p q Hrel H b, exists.elim (right_total.right b) (assume a Rab, Hrel Rab (H _))
+
+lemma rel_exists_of_left_total [left_total R] :
+  ((R ⇒ implies) ⇒ implies) (λp, ∃i, p i) (λq, ∃i, q i) :=
+assume p q Hrel ⟨a, pa⟩, let ⟨b, Rab⟩ := left_total.left a in ⟨b, Hrel Rab pa⟩
+
+lemma rel_forall_of_total [bi_total R] : ((R ⇒ iff) ⇒ iff) (λp, ∀i, p i) (λq, ∀i, q i) :=
 assume p q Hrel,
-  ⟨assume H b, exists.elim (t.right b) (assume a Rab, (Hrel Rab).mp (H _)),
-    assume H a, exists.elim (t.left a) (assume b Rab, (Hrel Rab).mpr (H _))⟩
+  ⟨assume H b, exists.elim (right_total.right b) (assume a Rab, (Hrel Rab).mp (H _)),
+    assume H a, exists.elim (left_total.left a) (assume b Rab, (Hrel Rab).mpr (H _))⟩
 
-lemma rel_exists_of_total [t : bi_total R] : ((R ⇒ iff) ⇒ iff) (λp, ∃i, p i) (λq, ∃i, q i) :=
+lemma rel_exists_of_total [bi_total R] : ((R ⇒ iff) ⇒ iff) (λp, ∃i, p i) (λq, ∃i, q i) :=
 assume p q Hrel,
-  ⟨assume ⟨a, pa⟩, let ⟨b, Rab⟩ := t.left a in ⟨b, (Hrel Rab).1 pa⟩,
-    assume ⟨b, qb⟩, let ⟨a, Rab⟩ := t.right b in ⟨a, (Hrel Rab).2 qb⟩⟩
+  ⟨assume ⟨a, pa⟩, let ⟨b, Rab⟩ := left_total.left a in ⟨b, (Hrel Rab).1 pa⟩,
+    assume ⟨b, qb⟩, let ⟨a, Rab⟩ := right_total.right b in ⟨a, (Hrel Rab).2 qb⟩⟩
 
-lemma left_unique_of_rel_eq {eq' : β → β → Prop} (he : (R ⇒ (R ⇒ iff)) eq eq') : left_unique R
-| a b c (ab : R a b) (cb : R c b) :=
+lemma left_unique_of_rel_eq {eq' : β → β → Prop} (he : (R ⇒ (R ⇒ iff)) eq eq') : left_unique R :=
+⟨λ a b c (ab : R a b) (cb : R c b),
 have eq' b b,
   from iff.mp (he ab ab) rfl,
-iff.mpr (he ab cb) this
+iff.mpr (he ab cb) this⟩
 
 end
 
@@ -78,15 +86,15 @@ assume p q h, not_congr h
 @[priority 100] -- see Note [lower instance priority]
 -- (this is an instance is always applies, since the relation is an out-param)
 instance bi_total_eq {α : Type u₁} : relator.bi_total (@eq α) :=
-⟨assume a, ⟨a, rfl⟩, assume a, ⟨a, rfl⟩⟩
+{ left := λ a, ⟨a, rfl⟩, right := λ a, ⟨a, rfl⟩ }
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables {r : α → β → Prop} {p : β → γ → Prop} {q : γ → δ → Prop}
 
-def bi_unique (r : α → β → Prop) : Prop := left_unique r ∧ right_unique r
+class bi_unique (r : α → β → Prop) extends left_unique r, right_unique r : Prop
 
-lemma left_unique_flip (h : left_unique r) : right_unique (flip r)
-| a b c h₁ h₂ := h h₁ h₂
+lemma left_unique_flip : left_unique r → right_unique (flip r)
+| ⟨h⟩ := ⟨λ a b c h₁ h₂, h h₁ h₂⟩
 
 lemma rel_and : ((↔) ⇒ (↔) ⇒ (↔)) (∧) (∧) :=
 assume a b h₁ c d h₂, and_congr h₁ h₂
@@ -100,7 +108,7 @@ assume a b h₁ c d h₂, iff_congr h₁ h₂
 lemma rel_eq {r : α → β → Prop} (hr : bi_unique r) : (r ⇒ r ⇒ (↔)) (=) (=) :=
 assume a b h₁ c d h₂,
 iff.intro
-  begin intro h, subst h, exact hr.right h₁ h₂ end
-  begin intro h, subst h, exact hr.left h₁ h₂ end
+  begin intro h, subst h, exact right_unique.right α h₁ h₂ end
+  begin intro h, subst h, exact left_unique.left β h₁ h₂ end
 
 end relator

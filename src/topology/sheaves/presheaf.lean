@@ -4,7 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Mario Carneiro, Reid Barton
 -/
 import topology.category.Top.opens
-import category_theory.whiskering
+
+/-!
+# Presheaves on a topological space
+
+We define `presheaf C X` simply as `(opens X)ᵒᵖ ⥤ C`,
+and inherit the category structure with natural transformations as morphisms.
+
+We define
+* `pushforward_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C`
+with notation `f _* ℱ`
+and for `ℱ : X.presheaf C` provide the natural isomorphisms
+* `pushforward.id : (𝟙 X) _* ℱ ≅ ℱ``
+* `pushforward.comp : (f ≫ g) _* ℱ ≅ g _* (f _* ℱ)`
+along with their `@[simp]` lemmas.
+-/
 
 universes v u
 
@@ -12,27 +26,48 @@ open category_theory
 open topological_space
 open opposite
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 namespace Top
 
+@[derive category]
 def presheaf (X : Top.{v}) := (opens X)ᵒᵖ ⥤ C
 
-instance category_presheaf (X : Top.{v}) : category (X.presheaf C) :=
-by dsimp [presheaf]; apply_instance
-
-namespace presheaf
 variables {C}
 
-def pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C :=
+namespace presheaf
+
+/-- Pushforward a presheaf on `X` along a continuous map `f : X ⟶ Y`, obtaining a presheaf on `Y`. -/
+def pushforward_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C :=
 (opens.map f).op ⋙ ℱ
 
-infix ` _* `: 80 := pushforward
+infix ` _* `: 80 := pushforward_obj
+
+@[simp] lemma pushforward_obj_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U : (opens Y)ᵒᵖ) :
+  (f _* ℱ).obj U = ℱ.obj ((opens.map f).op.obj U) := rfl
+
+@[simp] lemma pushforward_obj_map {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C)
+  {U V : (opens Y)ᵒᵖ} (i : U ⟶ V) :
+  (f _* ℱ).map i = ℱ.map ((opens.map f).op.map i) := rfl
 
 def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) :
   f _* ℱ ≅ g _* ℱ :=
 iso_whisker_right (nat_iso.op (opens.map_iso f g h).symm) ℱ
+
+@[simp] lemma pushforward_eq_hom_app
+  {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
+  (pushforward_eq h ℱ).hom.app U =
+    ℱ.map (begin dsimp [functor.op], apply has_hom.hom.op, apply eq_to_hom, rw h, end) :=
+by simp [pushforward_eq]
+
+@[simp]
+lemma pushforward_eq_rfl {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U) :
+  (pushforward_eq (rfl : f = f) ℱ).hom.app (op U) = 𝟙 _ :=
+begin
+  dsimp [pushforward_eq],
+  simp,
+end
+
 lemma pushforward_eq_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h₁ h₂ : f = g) (ℱ : X.presheaf C) :
   ℱ.pushforward_eq h₁ = ℱ.pushforward_eq h₂ :=
 rfl
@@ -59,18 +94,20 @@ def comp {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g) _* ℱ ≅ g _*
 iso_whisker_right (nat_iso.op (opens.map_comp f g).symm) ℱ
 
 @[simp] lemma comp_hom_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).hom.app U = 𝟙 _ :=
-begin
-  dsimp [pushforward, comp],
-  tidy,
-end
+by { dsimp [comp], tidy, }
 
 @[simp] lemma comp_inv_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).inv.app U = 𝟙 _ :=
-begin
-  dsimp [pushforward, comp],
-  tidy,
-end
+by { dsimp [comp], tidy, }
 
 end pushforward
+
+/--
+A morphism of presheaves gives rise to a morphisms of the pushforwards of those presheaves.
+-/
+@[simps]
+def pushforward_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : X.presheaf C} (α : ℱ ⟶ 𝒢) : f _* ℱ ⟶ f _* 𝒢 :=
+{ app := λ U, α.app _,
+  naturality' := λ U V i, by { erw α.naturality, refl, } }
 
 end presheaf
 

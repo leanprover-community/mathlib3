@@ -3,8 +3,6 @@ Copyright (c) 2019 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-
-import topology.uniform_space.cauchy
 import topology.uniform_space.uniform_embedding
 
 /-!
@@ -57,7 +55,7 @@ structure abstract_completion (α : Type u) [uniform_space α] :=
 (coe : α → space)
 (uniform_struct : uniform_space space)
 (complete : complete_space space)
-(separation : separated space)
+(separation : separated_space space)
 (uniform_inducing : uniform_inducing coe)
 (dense : dense_range coe)
 
@@ -69,7 +67,7 @@ variables {α : Type*} [uniform_space α] (pkg : abstract_completion α)
 local notation `hatα` := pkg.space
 local notation `ι` := pkg.coe
 
-lemma dense' : closure (range ι) = univ :=
+lemma closure_range : closure (range ι) = univ :=
 pkg.dense.closure_range
 
 lemma dense_inducing : dense_inducing ι :=
@@ -98,7 +96,7 @@ protected def extend (f : α → β) : hatα → β :=
 if uniform_continuous f then
   pkg.dense_inducing.extend f
 else
-  λ x, f (classical.inhabited_of_nonempty $ pkg.dense.nonempty.2 ⟨x⟩).default
+  λ x, f (pkg.dense.some x)
 
 variables {f : α → β}
 
@@ -109,10 +107,10 @@ lemma extend_coe [t2_space β] (hf : uniform_continuous f) (a : α) :
 (pkg.extend f) (ι a) = f a :=
 begin
   rw pkg.extend_def hf,
-  exact pkg.dense_inducing.extend_eq_of_cont hf.continuous a
+  exact pkg.dense_inducing.extend_eq hf.continuous a
 end
 
-variables [complete_space β] [separated β]
+variables [complete_space β] [separated_space β]
 
 lemma uniform_continuous_extend : uniform_continuous (pkg.extend f) :=
 begin
@@ -180,7 +178,7 @@ pkg.map_unique pkg uniform_continuous_id (assume a, rfl)
 
 variables {γ : Type*} [uniform_space γ]
 
-lemma extend_map [complete_space γ] [separated γ] {f : β → γ} {g : α → β}
+lemma extend_map [complete_space γ] [separated_space γ] {f : β → γ} {g : α → β}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   pkg'.extend f ∘ map g = pkg.extend (f ∘ g) :=
 pkg.funext (pkg'.continuous_extend.comp (pkg.continuous_map pkg' _)) pkg.continuous_extend $ λ a,
@@ -247,7 +245,7 @@ protected def prod : abstract_completion (α × β) :=
   complete := by apply_instance,
   separation := by apply_instance,
   uniform_inducing := uniform_inducing.prod pkg.uniform_inducing pkg'.uniform_inducing,
-  dense := pkg.dense.prod pkg'.dense }
+  dense := pkg.dense.prod_map pkg'.dense }
 end prod
 
 
@@ -263,20 +261,20 @@ open function
 
 /-- Extend two variable map to completions. -/
 protected def extend₂ (f : α → β → γ) : hatα → hatβ → γ :=
-curry $ (pkg.prod pkg').extend (uncurry' f)
+curry $ (pkg.prod pkg').extend (uncurry f)
 
-variables [separated γ] {f : α → β → γ}
+variables [separated_space γ] {f : α → β → γ}
 
-lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry' f) (a : α) (b : β) :
+lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry f) (a : α) (b : β) :
   pkg.extend₂ pkg' f (ι a) (ι' b) = f a b :=
-show (pkg.prod pkg').extend (uncurry' f) ((pkg.prod pkg').coe (a, b)) = uncurry' f (a, b),
+show (pkg.prod pkg').extend (uncurry f) ((pkg.prod pkg').coe (a, b)) = uncurry f (a, b),
   from (pkg.prod pkg').extend_coe hf _
 
 variables [complete_space γ] (f)
 
 lemma uniform_continuous_extension₂ : uniform_continuous₂ (pkg.extend₂ pkg' f) :=
 begin
-  rw [uniform_continuous₂_def, abstract_completion.extend₂, uncurry'_curry],
+  rw [uniform_continuous₂_def, abstract_completion.extend₂, uncurry_curry],
   apply uniform_continuous_extend
 end
 
@@ -297,7 +295,7 @@ local notation f `∘₂` g := bicompr f g
 protected def map₂ (f : α → β → γ) : hatα → hatβ → hatγ :=
 pkg.extend₂ pkg' (pkg''.coe ∘₂ f)
 
-lemma uniform_continuous_map₂ (f : α → β → γ) : uniform_continuous (uncurry' $ pkg.map₂ pkg' pkg'' f) :=
+lemma uniform_continuous_map₂ (f : α → β → γ) : uniform_continuous₂ (pkg.map₂ pkg' pkg'' f) :=
 pkg.uniform_continuous_extension₂ pkg' _
 
 lemma continuous_map₂ {δ} [topological_space δ] {f : α → β → γ}

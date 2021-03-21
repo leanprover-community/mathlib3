@@ -1,12 +1,12 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 
 Enumerate elements of a set with a select function.
 -/
-
-import data.set.lattice tactic.wlog
+import data.set.lattice
+import tactic.wlog
 noncomputable theory
 
 open function set
@@ -18,7 +18,7 @@ parameters {α : Type*} (sel : set α → option α)
 
 def enumerate : set α → ℕ → option α
 | s 0       := sel s
-| s (n + 1) := do a ← sel s, enumerate (s - {a}) n
+| s (n + 1) := do a ← sel s, enumerate (s \ {a}) n
 
 lemma enumerate_eq_none_of_sel {s : set α} (h : sel s = none) : ∀{n}, enumerate s n = none
 | 0       := by simp [h, enumerate]; refl
@@ -49,8 +49,8 @@ lemma enumerate_mem (h_sel : ∀s a, sel s = some a → a ∈ s) :
     case none { simp [enumerate_eq_none_of_sel, h] },
     case some : a' {
       simp [enumerate, h],
-      exact assume h' : enumerate _ (s - {a'}) n = some a,
-        have a ∈ s - {a'}, from enumerate_mem h',
+      exact assume h' : enumerate _ (s \ {a'}) n = some a,
+        have a ∈ s \ {a'}, from enumerate_mem h',
         this.left }
   end
 
@@ -64,7 +64,7 @@ begin
       cases m,
       case nat.zero { refl },
       case nat.succ : m {
-        have : enumerate sel (s - {a}) m = some a, { simp [enumerate, *] at * },
+        have : enumerate sel (s \ {a}) m = some a, { simp [enumerate, *] at * },
         have : a ∈ s \ {a}, from enumerate_mem _ h_sel this,
         by simpa } },
     case nat.succ { cases h : sel s; simp [enumerate, nat.add_succ, add_comm, *] at *; tauto } }

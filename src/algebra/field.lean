@@ -1,267 +1,352 @@
 /-
-Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro
+Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.ring logic.basic
+import algebra.ring.basic
+import algebra.group_with_zero
+
+/-!
+# Fields and division rings
+
+This file introduces fields and division rings (also known as skewfields) and proves some basic
+statements about them. For a more extensive theory of fields, see the `field_theory` folder.
+
+## Main definitions
+
+* `division_ring`: introduces the notion of a division ring as a `ring` such that `0 ≠ 1` and
+  `a * a⁻¹ = 1` for `a ≠ 0`
+* `field`: a division ring which is also a commutative ring.
+* `is_field`: a predicate on a ring that it is a field, i.e. that the multiplication is commutative,
+  that it has more than one element and that all non-zero elements have a multiplicative inverse.
+  In contrast to `field`, which contains the data of a function associating to an element of the
+  field its multiplicative inverse, this predicate only assumes the existence and can therefore more
+  easily be used to e.g. transfer along ring isomorphisms.
+
+## Implementation details
+
+By convention `0⁻¹ = 0` in a field or division ring. This is due to the fact that working with total
+functions has the advantage of not constantly having to check that `x ≠ 0` when writing `x⁻¹`. With
+this convention in place, some statements like `(a + b) * c⁻¹ = a * c⁻¹ + b * c⁻¹` still remain
+true, while others like the defining property `a * a⁻¹ = 1` need the assumption `a ≠ 0`. If you are
+a beginner in using Lean and are confused by that, you can read more about why this convention is
+taken in Kevin Buzzard's
+[blogpost](https://xenaproject.wordpress.com/2020/07/05/division-by-zero-in-type-theory-a-faq/)
+
+A division ring or field is an example of a `group_with_zero`. If you cannot find
+a division ring / field lemma that does not involve `+`, you can try looking for
+a `group_with_zero` lemma instead.
+
+## Tags
+
+field, division ring, skew field, skew-field, skewfield
+-/
+
 open set
 
+set_option old_structure_cmd true
+
 universe u
-variables {α : Type u}
+variables {K : Type u}
 
-@[priority 100] -- see Note [lower instance priority]
-instance division_ring.to_domain [s : division_ring α] : domain α :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
-    classical.by_contradiction $ λ hn,
-      division_ring.mul_ne_zero (mt or.inl hn) (mt or.inr hn) h
-  ..s }
-
-@[simp] theorem inv_one [division_ring α] : (1⁻¹ : α) = 1 := by rw [inv_eq_one_div, one_div_one]
-
-attribute [simp] inv_inv'
-
-lemma inv_inv'' [division_ring α] (x : α) : x⁻¹⁻¹ = x :=
-inv_inv'
-
-lemma inv_involutive' [division_ring α] : function.involutive (has_inv.inv : α → α) :=
-@inv_inv' _ _
-
-namespace units
-variables [division_ring α] {a b : α}
-
-/-- Embed an element of a division ring into the unit group.
-  By combining this function with the operations on units,
-  or the `/ₚ` operation, it is possible to write a division
-  as a partial function with three arguments. -/
-def mk0 (a : α) (ha : a ≠ 0) : units α :=
-⟨a, a⁻¹, mul_inv_cancel ha, inv_mul_cancel ha⟩
-
-@[simp] theorem inv_eq_inv (u : units α) : (↑u⁻¹ : α) = u⁻¹ :=
-(mul_left_inj u).1 $ by rw [units.mul_inv, mul_inv_cancel]; apply units.ne_zero
-
-@[simp] theorem mk0_val (ha : a ≠ 0) : (mk0 a ha : α) = a := rfl
-
-@[simp] lemma mk0_coe (u : units α) (h : (u : α) ≠ 0) : mk0 (u : α) h = u :=
-units.ext rfl
-
-@[simp] lemma mk0_inj {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) :
-  units.mk0 a ha = units.mk0 b hb ↔ a = b :=
-⟨λ h, by injection h, λ h, units.ext h⟩
-
-end units
+/-- A `division_ring` is a `ring` with multiplicative inverses for nonzero elements -/
+@[protect_proj, ancestor ring has_inv]
+class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K :=
+(mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
+(inv_zero : (0 : K)⁻¹ = 0)
 
 section division_ring
-variables [s : division_ring α] {a b c : α}
-include s
+variables [division_ring K] {a b : K}
 
-lemma div_eq_mul_inv : a / b = a * b⁻¹ := rfl
+/-- Every division ring is a `group_with_zero`. -/
+@[priority 100] -- see Note [lower instance priority]
+instance division_ring.to_group_with_zero :
+  group_with_zero K :=
+{ .. ‹division_ring K›,
+  .. (infer_instance : semiring K) }
 
-attribute [simp] div_one zero_div div_self
+lemma inverse_eq_has_inv : (ring.inverse : K → K) = has_inv.inv :=
+begin
+  ext x,
+  by_cases hx : x = 0,
+  { simp [hx] },
+  { exact ring.inverse_unit (units.mk0 x hx) }
+end
 
-theorem divp_eq_div (a : α) (u : units α) : a /ₚ u = a / u :=
-congr_arg _ $ units.inv_eq_inv _
+attribute [field_simps] inv_eq_one_div
 
-@[simp] theorem divp_mk0 (a : α) {b : α} (hb : b ≠ 0) :
-  a /ₚ units.mk0 b hb = a / b :=
-divp_eq_div _ _
+local attribute [simp]
+  division_def mul_comm mul_assoc
+  mul_left_comm mul_inv_cancel inv_mul_cancel
 
-lemma inv_div : (a / b)⁻¹ = b / a :=
-(mul_inv' _ _).trans (by rw inv_inv'; refl)
+lemma one_div_neg_one_eq_neg_one : (1:K) / (-1) = -1 :=
+have (-1) * (-1) = (1:K), by rw [neg_mul_neg, one_mul],
+eq.symm (eq_one_div_of_mul_eq_one this)
 
-lemma inv_div_left : a⁻¹ / b = (b * a)⁻¹ :=
-(mul_inv' _ _).symm
+lemma one_div_neg_eq_neg_one_div (a : K) : 1 / (- a) = - (1 / a) :=
+calc
+  1 / (- a) = 1 / ((-1) * a)        : by rw neg_eq_neg_one_mul
+        ... = (1 / a) * (1 / (- 1)) : by rw one_div_mul_one_div_rev
+        ... = (1 / a) * (-1)        : by rw one_div_neg_one_eq_neg_one
+        ... = - (1 / a)             : by rw [mul_neg_eq_neg_mul_symm, mul_one]
+
+lemma div_neg_eq_neg_div (a b : K) : b / (- a) = - (b / a) :=
+calc
+  b / (- a) = b * (1 / (- a)) : by rw [← inv_eq_one_div, division_def]
+        ... = b * -(1 / a)    : by rw one_div_neg_eq_neg_one_div
+        ... = -(b * (1 / a))  : by rw neg_mul_eq_mul_neg
+        ... = - (b / a)       : by rw mul_one_div
+
+lemma neg_div (a b : K) : (-b) / a = - (b / a) :=
+by rw [neg_eq_neg_one_mul, mul_div_assoc, ← neg_eq_neg_one_mul]
+
+@[field_simps] lemma neg_div' {K : Type*} [division_ring K] (a b : K) : - (b / a) = (-b) / a :=
+by simp [neg_div]
+
+lemma neg_div_neg_eq (a b : K) : (-a) / (-b) = a / b :=
+by rw [div_neg_eq_neg_div, neg_div, neg_neg]
+
+@[field_simps] lemma div_add_div_same (a b c : K) : a / c + b / c = (a + b) / c :=
+by simpa only [div_eq_mul_inv] using (right_distrib a b (c⁻¹)).symm
+
+lemma same_add_div {a b : K} (h : b ≠ 0) : (b + a) / b = 1 + a / b :=
+by simpa only [← @div_self _ _ b h] using (div_add_div_same b a b).symm
+
+lemma one_add_div {a b : K} (h : b ≠ 0 ) : 1 + a / b = (b + a) / b := (same_add_div h).symm
+
+lemma div_add_same {a b : K} (h : b ≠ 0) : (a + b) / b = a / b + 1 :=
+by simpa only [← @div_self _ _ b h] using (div_add_div_same a b b).symm
+
+lemma div_add_one {a b : K} (h : b ≠ 0) : a / b + 1 = (a + b) / b := (div_add_same h).symm
+
+lemma div_sub_div_same (a b c : K) : (a / c) - (b / c) = (a - b) / c :=
+by rw [sub_eq_add_neg, ← neg_div, div_add_div_same, sub_eq_add_neg]
+
+lemma same_sub_div {a b : K} (h : b ≠ 0) : (b - a) / b = 1 - a / b :=
+by simpa only [← @div_self _ _ b h] using (div_sub_div_same b a b).symm
+
+lemma one_sub_div {a b : K} (h : b ≠ 0) : 1 - a / b = (b - a) / b := (same_sub_div h).symm
+
+lemma div_sub_same {a b : K} (h : b ≠ 0) : (a - b) / b = a / b - 1 :=
+by simpa only [← @div_self _ _ b h] using (div_sub_div_same a b b).symm
+
+lemma div_sub_one {a b : K} (h : b ≠ 0) : a / b - 1 = (a - b) / b := (div_sub_same h).symm
 
 lemma neg_inv : - a⁻¹ = (- a)⁻¹ :=
 by rw [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
 
-lemma division_ring.inv_comm_of_comm (h : a ≠ 0) (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
-begin
-  have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=
-    congr_arg (λ x:α, a⁻¹ * x * a⁻¹) H.symm,
-  rwa [mul_assoc, mul_assoc, mul_inv_cancel, mul_one,
-       ← mul_assoc, inv_mul_cancel, one_mul] at this; exact h
-end
-
-lemma div_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a / b ≠ 0 :=
-division_ring.mul_ne_zero ha (inv_ne_zero hb)
-
-lemma div_ne_zero_iff (hb : b ≠ 0) : a / b ≠ 0 ↔ a ≠ 0 :=
-⟨mt (λ h, by rw [h, zero_div]), λ ha, div_ne_zero ha hb⟩
-
-lemma div_eq_zero_iff (hb : b ≠ 0) : a / b = 0 ↔ a = 0 :=
-by haveI := classical.prop_decidable; exact
-not_iff_not.1 (div_ne_zero_iff hb)
-
-lemma add_div (a b c : α) : (a + b) / c = a / c + b / c :=
+lemma add_div (a b c : K) : (a + b) / c = a / c + b / c :=
 (div_add_div_same _ _ _).symm
 
-lemma div_right_inj (hc : c ≠ 0) : a / c = b / c ↔ a = b :=
-by rw [← divp_mk0 _ hc, ← divp_mk0 _ hc, divp_right_inj]
-
-lemma sub_div (a b c : α) : (a - b) / c = a / c - b / c :=
+lemma sub_div (a b c : K) : (a - b) / c = a / c - b / c :=
 (div_sub_div_same _ _ _).symm
 
-lemma division_ring.inv_inj : a⁻¹ = b⁻¹ ↔ a = b :=
-⟨λ h, by rw [← inv_inv'' a, h, inv_inv''], congr_arg (λx,x⁻¹)⟩
-
-lemma division_ring.inv_eq_iff  : a⁻¹ = b ↔ b⁻¹ = a :=
-by rw [← division_ring.inv_inj, eq_comm, inv_inv'']
-
-lemma div_neg (a : α) : a / -b = -(a / b) :=
+lemma div_neg (a : K) : a / -b = -(a / b) :=
 by rw [← div_neg_eq_neg_div]
 
-lemma div_eq_iff_mul_eq (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
-⟨λ h, by rw [← h, div_mul_cancel _ hb],
- λ h, by rw [← h, mul_div_cancel _ hb]⟩
+lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
+by rw neg_inv
+
+lemma one_div_mul_add_mul_one_div_eq_one_div_add_one_div (ha : a ≠ 0) (hb : b ≠ 0) :
+          (1 / a) * (a + b) * (1 / b) = 1 / a + 1 / b :=
+by rw [(left_distrib (1 / a)), (one_div_mul_cancel ha), right_distrib, one_mul,
+       mul_assoc, (mul_one_div_cancel hb), mul_one, add_comm]
+
+lemma one_div_mul_sub_mul_one_div_eq_one_div_add_one_div (ha : a ≠ 0) (hb : b ≠ 0) :
+          (1 / a) * (b - a) * (1 / b) = 1 / a - 1 / b :=
+by rw [(mul_sub_left_distrib (1 / a)), (one_div_mul_cancel ha), mul_sub_right_distrib,
+       one_mul, mul_assoc, (mul_one_div_cancel hb), mul_one]
+
+lemma add_div_eq_mul_add_div (a b : K) {c : K} (hc : c ≠ 0) : a + b / c = (a * c + b) / c :=
+(eq_div_iff_mul_eq hc).2 $ by rw [right_distrib, (div_mul_cancel _ hc)]
+
+@[priority 100] -- see Note [lower instance priority]
+instance division_ring.to_domain : domain K :=
+{ ..‹division_ring K›, ..(by apply_instance : semiring K),
+  ..(by apply_instance : no_zero_divisors K) }
 
 end division_ring
 
+/-- A `field` is a `comm_ring` with multiplicative inverses for nonzero elements -/
+@[protect_proj, ancestor division_ring comm_ring]
+class field (K : Type u) extends comm_ring K, has_inv K, nontrivial K :=
+(mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
+(inv_zero : (0 : K)⁻¹ = 0)
+
+section field
+
+variable [field K]
+
 @[priority 100] -- see Note [lower instance priority]
-instance field.to_integral_domain [F : field α] : integral_domain α :=
-{ ..F, ..division_ring.to_domain }
+instance field.to_division_ring : division_ring K :=
+{ ..show field K, by apply_instance }
 
-section
-variables [field α] {a b c d : α}
+/-- Every field is a `comm_group_with_zero`. -/
+@[priority 100] -- see Note [lower instance priority]
+instance field.to_comm_group_with_zero :
+  comm_group_with_zero K :=
+{ .. (_ : group_with_zero K), .. ‹field K› }
 
-lemma div_eq_inv_mul : a / b = b⁻¹ * a := mul_comm _ _
+lemma one_div_add_one_div {a b : K} (ha : a ≠ 0) (hb : b ≠ 0) : 1 / a + 1 / b = (a + b) / (a * b) :=
+by rw [add_comm, ← div_mul_left ha, ← div_mul_right _ hb,
+       division_def, division_def, division_def, ← right_distrib, mul_comm a]
 
-lemma inv_add_inv {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ + b⁻¹ = (a + b) / (a * b) :=
+local attribute [simp] mul_assoc mul_comm mul_left_comm
+
+lemma div_add_div (a : K) {b : K} (c : K) {d : K} (hb : b ≠ 0) (hd : d ≠ 0) :
+      (a / b) + (c / d) = ((a * d) + (b * c)) / (b * d) :=
+by rw [← mul_div_mul_right _ b hd, ← mul_div_mul_left c d hb, div_add_div_same]
+
+@[field_simps] lemma div_sub_div (a : K) {b : K} (c : K) {d : K} (hb : b ≠ 0) (hd : d ≠ 0) :
+  (a / b) - (c / d) = ((a * d) - (b * c)) / (b * d) :=
+begin
+  simp [sub_eq_add_neg],
+  rw [neg_eq_neg_one_mul, ← mul_div_assoc, div_add_div _ _ hb hd,
+      ← mul_assoc, mul_comm b, mul_assoc, ← neg_eq_neg_one_mul]
+end
+
+lemma inv_add_inv {a b : K} (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ + b⁻¹ = (a + b) / (a * b) :=
 by rw [inv_eq_one_div, inv_eq_one_div, one_div_add_one_div ha hb]
 
-lemma inv_sub_inv {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ - b⁻¹ = (b - a) / (a * b) :=
+lemma inv_sub_inv {a b : K} (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ - b⁻¹ = (b - a) / (a * b) :=
 by rw [inv_eq_one_div, inv_eq_one_div, div_sub_div _ _ ha hb, one_mul, mul_one]
 
-lemma mul_div_right_comm (a b c : α) : (a * b) / c = (a / c) * b :=
-(div_mul_eq_mul_div _ _ _).symm
-
-lemma mul_comm_div (a b c : α) : (a / b) * c = a * (c / b) :=
-by rw [← mul_div_assoc, mul_div_right_comm]
-
-lemma div_mul_comm (a b c : α) : (a / b) * c = (c / b) * a :=
-by rw [div_mul_eq_mul_div, mul_comm, mul_div_right_comm]
-
-lemma mul_div_comm (a b c : α) : a * (b / c) = b * (a / c) :=
-by rw [← mul_div_assoc, mul_comm, mul_div_assoc]
-
-lemma field.div_right_comm (a : α) : (a / b) / c = (a / c) / b :=
-by rw [div_div_eq_div_mul, div_div_eq_div_mul, mul_comm]
-
-lemma field.div_div_div_cancel_right (a : α) (hc : c ≠ 0) : (a / c) / (b / c) = a / b :=
-by rw [div_div_eq_mul_div, div_mul_cancel _ hc]
-
-lemma div_mul_div_cancel (a : α) (hc : c ≠ 0) : (a / c) * (c / b) = a / b :=
-by rw [← mul_div_assoc, div_mul_cancel _ hc]
-
-lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
-(domain.mul_right_inj (mul_ne_zero' hb hd)).symm.trans $
-by rw [← mul_assoc, div_mul_cancel _ hb,
-       ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
-
-lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
-by simpa using @div_eq_div_iff _ _ a b c 1 hb one_ne_zero
-
-lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
-by simpa using @div_eq_div_iff _ _ c 1 a b one_ne_zero hb
-
-lemma field.div_div_cancel (ha : a ≠ 0) : a / (a / b) = b :=
-by rw [div_eq_mul_inv, inv_div, mul_div_cancel' _ ha]
-
-lemma add_div' (a b c : α) (hc : c ≠ 0) :
-  b + a / c = (b * c + a) / c :=
+@[field_simps] lemma add_div' (a b c : K) (hc : c ≠ 0) : b + a / c = (b * c + a) / c :=
 by simpa using div_add_div b a one_ne_zero hc
 
-lemma sub_div' (a b c : α) (hc : c ≠ 0) :
-  b - a / c = (b * c - a) / c :=
+@[field_simps] lemma sub_div' (a b c : K) (hc : c ≠ 0) : b - a / c = (b * c - a) / c :=
 by simpa using div_sub_div b a one_ne_zero hc
 
-lemma div_add' (a b c : α) (hc : c ≠ 0) :
-  a / c + b = (a + b * c) / c :=
+@[field_simps] lemma div_add' (a b c : K) (hc : c ≠ 0) : a / c + b = (a + b * c) / c :=
 by rwa [add_comm, add_div', add_comm]
 
-lemma div_sub' (a b c : α) (hc : c ≠ 0) :
-  a / c - b = (a - c * b) / c :=
+@[field_simps] lemma div_sub' (a b c : K) (hc : c ≠ 0) : a / c - b = (a - c * b) / c :=
 by simpa using div_sub_div a b hc one_ne_zero
 
+@[priority 100] -- see Note [lower instance priority]
+instance field.to_integral_domain : integral_domain K :=
+{ ..‹field K›, ..division_ring.to_domain }
+
+end field
+
+section is_field
+
+/-- A predicate to express that a ring is a field.
+
+This is mainly useful because such a predicate does not contain data,
+and can therefore be easily transported along ring isomorphisms.
+Additionaly, this is useful when trying to prove that
+a particular ring structure extends to a field. -/
+structure is_field (R : Type u) [ring R] : Prop :=
+(exists_pair_ne : ∃ (x y : R), x ≠ y)
+(mul_comm : ∀ (x y : R), x * y = y * x)
+(mul_inv_cancel : ∀ {a : R}, a ≠ 0 → ∃ b, a * b = 1)
+
+/-- Transferring from field to is_field -/
+lemma field.to_is_field (R : Type u) [field R] : is_field R :=
+{ mul_inv_cancel := λ a ha, ⟨a⁻¹, field.mul_inv_cancel ha⟩,
+  ..‹field R› }
+
+open_locale classical
+
+/-- Transferring from is_field to field -/
+noncomputable def is_field.to_field (R : Type u) [ring R] (h : is_field R) : field R :=
+{ inv := λ a, if ha : a = 0 then 0 else classical.some (is_field.mul_inv_cancel h ha),
+  inv_zero := dif_pos rfl,
+  mul_inv_cancel := λ a ha,
+    begin
+      convert classical.some_spec (is_field.mul_inv_cancel h ha),
+      exact dif_neg ha
+    end,
+  .. ‹ring R›, ..h }
+
+/-- For each field, and for each nonzero element of said field, there is a unique inverse.
+Since `is_field` doesn't remember the data of an `inv` function and as such,
+a lemma that there is a unique inverse could be useful.
+-/
+lemma uniq_inv_of_is_field (R : Type u) [ring R] (hf : is_field R) :
+  ∀ (x : R), x ≠ 0 → ∃! (y : R), x * y = 1 :=
+begin
+  intros x hx,
+  apply exists_unique_of_exists_of_unique,
+  { exact hf.mul_inv_cancel hx },
+  { intros y z hxy hxz,
+    calc y = y * (x * z) : by rw [hxz, mul_one]
+       ... = (x * y) * z : by rw [← mul_assoc, hf.mul_comm y x]
+       ... = z           : by rw [hxy, one_mul] }
 end
 
-section
-variables [field α] {a b c : α}
-
-attribute [simp] inv_zero div_zero
-
-@[simp] lemma inv_eq_zero {a : α} : a⁻¹ = 0 ↔ a = 0 :=
-classical.by_cases (assume : a = 0, by simp [*])(assume : a ≠ 0, by simp [*, inv_ne_zero])
-
-end
+end is_field
 
 namespace ring_hom
 
 section
 
-variables {β : Type*} [division_ring α] [division_ring β] (f : α →+* β) {x y : α}
+variables {R : Type*} [semiring R] [division_ring K] (f : R →+* K)
 
-lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 :=
-⟨mt $ λ h, h.symm ▸ f.map_zero,
- λ x0 h, one_ne_zero $ by rw [← f.map_one, ← mul_inv_cancel x0, f.map_mul, h, zero_mul]⟩
+@[simp] lemma map_units_inv (u : units R) :
+  f ↑u⁻¹ = (f ↑u)⁻¹ :=
+(f : R →* K).map_units_inv u
 
-lemma map_eq_zero : f x = 0 ↔ x = 0 :=
-by haveI := classical.dec; exact not_iff_not.1 f.map_ne_zero
-
-lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
-begin
-  classical, by_cases h : x = 0, by simp [h],
-  apply (domain.mul_left_inj (f.map_ne_zero.2 h)).1,
-  rw [mul_inv_cancel (f.map_ne_zero.2 h), ← f.map_mul, mul_inv_cancel h, f.map_one]
 end
 
-lemma map_div : f (x / y) = f x / f y :=
-(f.map_mul _ _).trans $ congr_arg _ $ f.map_inv
+section
 
-lemma injective : function.injective f :=
-f.injective_iff.2
-  (λ a ha, classical.by_contradiction $ λ ha0,
-    by simpa [ha, f.map_mul, f.map_one, zero_ne_one]
-        using congr_arg f (mul_inv_cancel ha0))
+variables {R K' : Type*} [division_ring K] [semiring R] [nontrivial R] [division_ring K']
+  (f : K →+* R) (g : K →+* K') {x y : K}
+
+lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := f.to_monoid_with_zero_hom.map_ne_zero
+
+@[simp] lemma map_eq_zero : f x = 0 ↔ x = 0 := f.to_monoid_with_zero_hom.map_eq_zero
+
+variables (x y)
+
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv' x
+
+lemma map_div : g (x / y) = g x / g y := g.to_monoid_with_zero_hom.map_div x y
+
+protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
 
 end
 
 end ring_hom
 
-namespace is_ring_hom
-open ring_hom (of)
+section noncomputable_defs
 
-section
-variables {β : Type*} [division_ring α] [division_ring β]
-variables (f : α → β) [is_ring_hom f] {x y : α}
+variables {R : Type*} [nontrivial R]
 
-@[simp] lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (of f).map_ne_zero
+/-- Constructs a `division_ring` structure on a `ring` consisting only of units and 0. -/
+noncomputable def division_ring_of_is_unit_or_eq_zero [hR : ring R]
+  (h : ∀ (a : R), is_unit a ∨ a = 0) : division_ring R :=
+{ .. (group_with_zero_of_is_unit_or_eq_zero h), .. hR }
 
-@[simp] lemma map_eq_zero : f x = 0 ↔ x = 0 := (of f).map_eq_zero
+/-- Constructs a `field` structure on a `comm_ring` consisting only of units and 0. -/
+noncomputable def field_of_is_unit_or_eq_zero [hR : comm_ring R]
+  (h : ∀ (a : R), is_unit a ∨ a = 0) : field R :=
+{ .. (group_with_zero_of_is_unit_or_eq_zero h), .. hR }
 
-lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv
+end noncomputable_defs
 
-lemma map_div : f (x / y) = f x / f y := (of f).map_div
+/-- Pullback a `division_ring` along an injective function. -/
+protected def function.injective.division_ring [division_ring K] {K'}
+  [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
+  [has_div K']
+  (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
+  division_ring K' :=
+{ .. hf.group_with_zero_div f zero one mul inv div,
+  .. hf.ring_sub f zero one add mul neg sub }
 
-lemma injective : function.injective f := (of f).injective
-
-end
-
-end is_ring_hom
-
-section field_simp
-
-mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
-reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
-division-free."
-
-lemma mul_div_assoc' {α : Type*} [division_ring α] (a b c : α) : a * (b / c) = (a * b) / c :=
-by simp [mul_div_assoc]
-
-lemma neg_div' {α : Type*} [division_ring α] (a b : α) : - (b / a) = (-b) / a :=
-by simp [neg_div]
-
-attribute [field_simps] div_add_div_same inv_eq_one_div div_mul_eq_mul_div div_add' add_div'
-div_div_eq_div_mul mul_div_assoc' div_eq_div_iff div_eq_iff eq_div_iff mul_ne_zero'
-div_div_eq_mul_div neg_div' two_ne_zero div_sub_div div_sub' sub_div'
-
-end field_simp
+/-- Pullback a `field` along an injective function. -/
+protected def function.injective.field [field K] {K'}
+  [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
+  [has_div K']
+  (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
+  field K' :=
+{ .. hf.comm_group_with_zero_div f zero one mul inv div,
+  .. hf.comm_ring_sub f zero one add mul neg sub }

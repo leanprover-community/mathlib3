@@ -3,18 +3,16 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-
 import category_theory.endomorphism
-import category_theory.groupoid
 import category_theory.category.Cat
-import data.equiv.mul_add
 import algebra.category.Mon.basic
 
 /-!
 # Single-object category
 
-Single object category with a given monoid of endomorphisms.  It is defined to facilitate transfering
-some definitions and lemmas (e.g., conjugacy etc.) from category theory to monoids and groups.
+Single object category with a given monoid of endomorphisms.
+It is defined to facilitate transfering some definitions and lemmas (e.g., conjugacy etc.)
+from category theory to monoids and groups.
 
 ## Main definitions
 
@@ -40,6 +38,7 @@ universes u v w
 
 namespace category_theory
 /-- Type tag on `unit` used to define single-object categories and groupoids. -/
+@[nolint unused_arguments has_inhabited_instance]
 def single_obj (α : Type u) : Type := unit
 
 namespace single_obj
@@ -58,12 +57,17 @@ instance category [monoid α] : category (single_obj α) :=
   id_comp' := λ _ _, mul_one,
   assoc' := λ _ _ _ _ x y z, (mul_assoc z y x).symm }
 
-/-- Groupoid structure on `single_obj α` -/
+/--
+Groupoid structure on `single_obj α`.
+
+See https://stacks.math.columbia.edu/tag/0019.
+-/
 instance groupoid [group α] : groupoid (single_obj α) :=
 { inv := λ _ _ x, x⁻¹,
   inv_comp' := λ _ _, mul_right_inv,
   comp_inv' := λ _ _, mul_left_inv }
 
+/-- The single object in `single_obj α`. -/
 protected def star : single_obj α := unit.star
 
 /-- The endomorphisms monoid of the only object in `single_obj α` is equivalent to the original
@@ -76,7 +80,11 @@ lemma to_End_def [monoid α] (x : α) : to_End α x = x := rfl
 
 /-- There is a 1-1 correspondence between monoid homomorphisms `α → β` and functors between the
     corresponding single-object categories. It means that `single_obj` is a fully faithful
-    functor. -/
+    functor.
+
+See https://stacks.math.columbia.edu/tag/001F --
+although we do not characterize when the functor is full or faithful.
+-/
 def map_hom (α : Type u) (β : Type v) [monoid α] [monoid β] :
   (α →* β) ≃ (single_obj α) ⥤ (single_obj β) :=
 { to_fun := λ f,
@@ -151,6 +159,6 @@ instance to_Cat_full : full to_Cat :=
   witness' := λ x y, by apply equiv.right_inv }
 
 instance to_Cat_faithful : faithful to_Cat :=
-{ injectivity' := λ x y, by apply equiv.injective }
+{ map_injective' := λ x y, by apply equiv.injective }
 
 end Mon

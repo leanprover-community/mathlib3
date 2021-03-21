@@ -1,27 +1,57 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Mario Carneiro
+Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
-
-import data.set.countable data.quot logic.function set_theory.schroeder_bernstein
+import data.set.countable
+import set_theory.schroeder_bernstein
 import data.fintype.card
+import data.nat.enat
 
 /-!
 # Cardinal Numbers
 
 We define cardinal numbers as a quotient of types under the equivalence relation of equinumerity.
-We define the order on cardinal numbers, define omega, and do basic cardinal arithmetic:
-  addition, multiplication, power, cardinal successor, minimum, supremum,
-    infinitary sums and products
+
+## Main definitions
+
+* `cardinal` the type of cardinal numbers (in a given universe).
+* `cardinal.mk α` or `#α` is the cardinality of `α`. The notation `#` lives in the locale
+  `cardinal`.
+* There is an instance that `cardinal` forms a `canonically_ordered_comm_semiring`.
+* Addition `c₁ + c₂` is defined by `cardinal.add_def α β : #α + #β = #(α ⊕ β)`.
+* Multiplication `c₁ * c₂` is defined by `cardinal.mul_def : #α * #β = #(α * β)`.
+* The order `c₁ ≤ c₂` is defined by `cardinal.le_def α β : #α ≤ #β ↔ nonempty (α ↪ β)`.
+* Exponentiation `c₁ ^ c₂` is defined by `cardinal.power_def α β : #α ^ #β = #(β → α)`.
+* `cardinal.omega` the cardinality of `ℕ`. This definition is universe polymorphic:
+  `cardinal.omega.{u} : cardinal.{u}`
+  (contrast with `ℕ : Type`, which lives in a specific universe).
+  In some cases the universe level has to be given explicitly.
+* `cardinal.min (I : nonempty ι) (c : ι → cardinal)` is the minimal cardinal in the range of `c`.
+* `cardinal.succ c` is the successor cardinal, the smallest cardinal larger than `c`.
+* `cardinal.sum` is the sum of a collection of cardinals.
+* `cardinal.sup` is the supremum of a collection of cardinals.
+* `cardinal.powerlt c₁ c₂` or `c₁ ^< c₂` is defined as `sup_{γ < β} α^γ`.
+
+## Main Statements
+
+* Cantor's theorem: `cardinal.cantor c : c < 2 ^ c`.
+* König's theorem: `cardinal.sum_lt_prod`
 
 ## Implementation notes
 
-* There is a type of cardinal numbers in every universe level: `cardinal.{u} : Type (u + 1)`
-  is the quotient of types in `Type u`.
-  There is a lift operation lifting cardinal numbers to a higher level.
+* There is a type of cardinal numbers in every universe level:
+  `cardinal.{u} : Type (u + 1)` is the quotient of types in `Type u`.
+  The operation `cardinal.lift` lifts cardinal numbers to a higher level.
 * Cardinal arithmetic specifically for infinite cardinals (like `κ * κ = κ`) is in the file
-  `set_theory/ordinal.lean`, because concepts from that file are used in the proof.
+  `set_theory/cardinal_ordinal.lean`.
+* There is an instance `has_pow cardinal`, but this will only fire if Lean already knows that both
+  the base and the exponent live in the same universe. As a workaround, you can add
+  ```
+    local infixr ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
+  ```
+  to a file. This notation will work even if Lean doesn't know yet that the base and the exponent
+  live in the same universe (but no exponents in other types can be used).
 
 ## References
 
@@ -29,7 +59,8 @@ We define the order on cardinal numbers, define omega, and do basic cardinal ari
 
 ## Tags
 
-cardinal number, cardinal arithmetic, cardinal exponentiation, omega
+cardinal number, cardinal arithmetic, cardinal exponentiation, omega,
+Cantor's theorem, König's theorem
 -/
 
 open function set
@@ -73,11 +104,14 @@ instance : has_le cardinal.{u} :=
   assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
     propext ⟨assume ⟨e⟩, ⟨e.congr e₁ e₂⟩, assume ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
 
+theorem le_def (α β : Type u) : mk α ≤ mk β ↔ nonempty (α ↪ β) :=
+iff.rfl
+
 theorem mk_le_of_injective {α β : Type u} {f : α → β} (hf : injective f) : mk α ≤ mk β :=
 ⟨⟨f, hf⟩⟩
 
 theorem mk_le_of_surjective {α β : Type u} {f : α → β} (hf : surjective f) : mk β ≤ mk α :=
-⟨embedding.of_surjective hf⟩
+⟨embedding.of_surjective f hf⟩
 
 theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
   c ≤ mk α ↔ ∃ p : set α, mk p = c :=
@@ -88,14 +122,16 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
-instance : linear_order cardinal.{u} :=
+protected lemma eq_congr : α ≃ β → # α = # β :=
+λ h, quot.sound ⟨h⟩
+
+noncomputable instance : linear_order cardinal.{u} :=
 { le          := (≤),
   le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
   le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
   le_antisymm := by rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩; exact quotient.sound (e₁.antisymm e₂),
-  le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total }
-
-noncomputable instance : decidable_linear_order cardinal.{u} := classical.DLO _
+  le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total,
+  decidable_le := classical.dec_rel _ }
 
 noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance -- short-circuit type class inference
 
@@ -110,13 +146,15 @@ not_iff_comm.1
 
 instance : has_one cardinal.{u} := ⟨⟦punit⟧⟩
 
-instance : zero_ne_one_class cardinal.{u} :=
-{ zero := 0, one := 1, zero_ne_one :=
-  ne.symm $ ne_zero_iff_nonempty.2 ⟨punit.star⟩ }
+instance : nontrivial cardinal.{u} :=
+⟨⟨1, 0, ne_zero_iff_nonempty.2 ⟨punit.star⟩⟩⟩
 
 theorem le_one_iff_subsingleton {α : Type u} : mk α ≤ 1 ↔ subsingleton α :=
-⟨λ ⟨f⟩, ⟨λ a b, f.inj (subsingleton.elim _ _)⟩,
+⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,
  λ ⟨h⟩, ⟨⟨λ a, punit.star, λ a b _, h _ _⟩⟩⟩
+
+theorem one_lt_iff_nontrivial {α : Type u} : 1 < mk α ↔ nontrivial α :=
+by { rw [← not_iff_not, not_nontrivial_iff_subsingleton, ← le_one_iff_subsingleton], simp }
 
 instance : has_add cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α ⊕ β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
@@ -147,6 +185,18 @@ quotient.induction_on a $ assume α, quotient.sound ⟨equiv.punit_prod α⟩
 
 private theorem left_distrib (a b c : cardinal.{u}) : a * (b + c) = a * b + a * c :=
 quotient.induction_on₃ a b c $ assume α β γ, quotient.sound ⟨equiv.prod_sum_distrib α β γ⟩
+
+protected theorem eq_zero_or_eq_zero_of_mul_eq_zero  {a b : cardinal.{u}} :
+  a * b = 0 → a = 0 ∨ b = 0 :=
+begin
+  refine quotient.induction_on b _,
+  refine quotient.induction_on a _,
+  intros a b h,
+  contrapose h,
+  simp_rw [not_or_distrib, ← ne.def] at h,
+  have := @prod.nonempty a b (ne_zero_iff_nonempty.mp h.1) (ne_zero_iff_nonempty.mp h.2),
+  exact ne_zero_iff_nonempty.mpr this
+end
 
 instance : comm_semiring cardinal.{u} :=
 { zero          := 0,
@@ -225,44 +275,44 @@ from (quotient.induction_on₃ a b c $ assume α β γ,
 section order_properties
 open sum
 
-theorem zero_le : ∀(a : cardinal), 0 ≤ a :=
+protected theorem zero_le : ∀(a : cardinal), 0 ≤ a :=
 by rintro ⟨α⟩; exact ⟨embedding.of_not_nonempty $ λ ⟨a⟩, a.elim⟩
 
-theorem le_zero (a : cardinal) : a ≤ 0 ↔ a = 0 :=
-by simp [le_antisymm_iff, zero_le]
+protected theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
+by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩
 
-theorem pos_iff_ne_zero {o : cardinal} : 0 < o ↔ o ≠ 0 :=
-by simp [lt_iff_le_and_ne, eq_comm, zero_le]
+protected theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
+cardinal.add_le_add (le_refl _)
 
-theorem zero_lt_one : (0 : cardinal) < 1 :=
+
+protected theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
+⟨quotient.induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
+  have (α ⊕ ((range f)ᶜ : set β)) ≃ β, from
+    (equiv.sum_congr (equiv.set.range f hf) (equiv.refl _)).trans $
+    (equiv.set.sum_compl (range f)),
+  ⟨⟦↥(range f)ᶜ⟧, quotient.sound ⟨this.symm⟩⟩,
+ λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ cardinal.add_le_add_left _ (cardinal.zero_le _)⟩
+
+instance : order_bot cardinal.{u} :=
+{ bot := 0, bot_le := cardinal.zero_le, ..cardinal.linear_order }
+
+instance : canonically_ordered_comm_semiring cardinal.{u} :=
+{ add_le_add_left       := λ a b h c, cardinal.add_le_add_left _ h,
+  lt_of_add_lt_add_left := λ a b c, lt_imp_lt_of_le_imp_le (cardinal.add_le_add_left _),
+  le_iff_exists_add     := @cardinal.le_iff_exists_add,
+  eq_zero_or_eq_zero_of_mul_eq_zero := @cardinal.eq_zero_or_eq_zero_of_mul_eq_zero,
+  ..cardinal.order_bot,
+  ..cardinal.comm_semiring, ..cardinal.linear_order }
+
+noncomputable instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
+{ .. (infer_instance : canonically_ordered_add_monoid cardinal.{u}),
+  .. cardinal.linear_order }
+
+@[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
 
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
-
-theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
-by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨embedding.sum_congr e₁ e₂⟩
-
-theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
-add_le_add (le_refl _)
-
-theorem add_le_add_right {a b : cardinal} (c) (h : a ≤ b) : a + c ≤ b + c :=
-add_le_add h (le_refl _)
-
-theorem le_add_right (a b : cardinal) : a ≤ a + b :=
-by simpa using add_le_add_left a (zero_le b)
-
-theorem le_add_left (a b : cardinal) : a ≤ b + a :=
-by simpa using add_le_add_right a (zero_le b)
-
-theorem mul_le_mul : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a * c ≤ b * d :=
-by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨embedding.prod_congr e₁ e₂⟩
-
-theorem mul_le_mul_left (a) {b c : cardinal} : b ≤ c → a * b ≤ a * c :=
-mul_le_mul (le_refl _)
-
-theorem mul_le_mul_right {a b : cardinal} (c) (h : a ≤ b) : a * c ≤ b * c :=
-mul_le_mul h (le_refl _)
 
 theorem power_le_power_left : ∀{a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ hα ⟨e⟩; exact
@@ -279,25 +329,9 @@ end
 theorem power_le_power_right {a b c : cardinal} : a ≤ b → a ^ c ≤ b ^ c :=
 quotient.induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_congr_left e⟩
 
-theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
-⟨quotient.induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
-  have (α ⊕ ↥-range f) ≃ β, from
-    (equiv.sum_congr (equiv.set.range f hf) (equiv.refl _)).trans $
-    (equiv.set.sum_compl (range f)),
-  ⟨⟦(-range f : set β)⟧, quotient.sound ⟨this.symm⟩⟩,
- λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ add_le_add_left _ (zero_le _)⟩
-
 end order_properties
 
-instance : order_bot cardinal.{u} :=
-{ bot := 0, bot_le := zero_le, ..cardinal.linear_order }
 
-instance : canonically_ordered_monoid cardinal.{u} :=
-{ add_le_add_left       := λ a b h c, add_le_add_left _ h,
-  lt_of_add_lt_add_left := λ a b c, lt_imp_lt_of_le_imp_le (add_le_add_left _),
-  le_iff_exists_add     := @le_iff_exists_add,
-  ..cardinal.order_bot,
-  ..cardinal.comm_semiring, ..cardinal.linear_order }
 
 theorem cantor : ∀(a : cardinal.{u}), a < 2 ^ a :=
 by rw ← prop_eq_two; rintros ⟨a⟩; exact ⟨
@@ -312,7 +346,7 @@ instance : no_top_order cardinal.{u} :=
   of which is provided by `injective_min`). -/
 noncomputable def min {ι} (I : nonempty ι) (f : ι → cardinal) : cardinal :=
 f $ classical.some $
-@embedding.injective_min _ (λ i, (f i).out) I
+@embedding.min_injective _ (λ i, (f i).out) I
 
 theorem min_eq {ι} (I) (f : ι → cardinal) : ∃ i, min I f = f i :=
 ⟨_, rfl⟩
@@ -320,7 +354,7 @@ theorem min_eq {ι} (I) (f : ι → cardinal) : ∃ i, min I f = f i :=
 theorem min_le {ι I} (f : ι → cardinal) (i) : min I f ≤ f i :=
 by rw [← mk_out (min I f), ← mk_out (f i)]; exact
 let ⟨g⟩ := classical.some_spec
-  (@embedding.injective_min _ (λ i, (f i).out) I) in
+  (@embedding.min_injective _ (λ i, (f i).out) I) in
 ⟨g i⟩
 
 theorem le_min {ι I} {f : ι → cardinal} {a} : a ≤ min I f ↔ ∀ i, a ≤ f i :=
@@ -361,12 +395,12 @@ begin
   refine quot.induction_on (succ (quot.mk setoid.r α)) (λ β h, _),
   cases h.left with f,
   have : ¬ surjective f := λ hn,
-    ne_of_lt h (quotient.sound ⟨equiv.of_bijective ⟨f.inj, hn⟩⟩),
-  cases classical.not_forall.1 this with b nex,
+    ne_of_lt h (quotient.sound ⟨equiv.of_bijective f ⟨f.injective, hn⟩⟩),
+  cases not_forall.1 this with b nex,
   refine ⟨⟨sum.rec (by exact f) _, _⟩⟩,
   { exact λ _, b },
   { intros a b h, rcases a with a|⟨⟨⟨⟩⟩⟩; rcases b with b|⟨⟨⟨⟩⟩⟩,
-    { rw f.inj h },
+    { rw f.injective h },
     { exact nex.elim ⟨_, h⟩ },
     { exact nex.elim ⟨_, h.symm⟩ },
     { refl } }
@@ -392,7 +426,7 @@ quotient.induction_on a $ λ α, by simp; exact
   quotient.sound ⟨equiv.sigma_equiv_prod _ _⟩
 
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
-⟨embedding.sigma_congr_right $ λ i, classical.choice $
+⟨(embedding.refl _).sigma_map $ λ i, classical.choice $
   by have := H i; rwa [← quot.out_eq (f i), ← quot.out_eq (g i)] at this⟩
 
 /-- The indexed supremum of cardinals is the smallest cardinal above
@@ -417,7 +451,7 @@ theorem sum_le_sup {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ mk ι * s
 by rw ← sum_const; exact sum_le_sum _ _ (le_sup _)
 
 theorem sup_eq_zero {ι} {f : ι → cardinal} (h : ι → false) : sup f = 0 :=
-by { rw [←le_zero, sup_le], intro x, exfalso, exact h x }
+by { rw [← nonpos_iff_eq_zero, sup_le], intro x, exfalso, exact h x }
 
 /-- The indexed product of cardinals is the cardinality of the Pi type
   (dependent product). -/
@@ -436,9 +470,9 @@ theorem prod_le_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : pro
 
 theorem prod_ne_zero {ι} (f : ι → cardinal) : prod f ≠ 0 ↔ ∀ i, f i ≠ 0 :=
 begin
-  conv in (f _) {rw ← mk_out (f i)},
-  simp [prod, ne_zero_iff_nonempty, -mk_out, -ne.def],
-  exact ⟨λ ⟨F⟩ i, ⟨F i⟩, λ h, ⟨λ i, classical.choice (h i)⟩⟩,
+  suffices : nonempty (Π i, (f i).out) ↔ ∀ i, nonempty (f i).out,
+  { simpa [← ne_zero_iff_nonempty, prod] },
+  exact classical.nonempty_pi
 end
 
 theorem prod_eq_zero {ι} (f : ι → cardinal) : prod f = 0 ↔ ∃ i, f i = 0 :=
@@ -607,34 +641,39 @@ begin
   rw [cardinal.fintype_card, fintype.card_coe]
 end
 
-@[simp, move_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
-by induction n; simp [nat.pow_succ, -_root_.add_comm, power_add, *]
+@[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+by induction n; simp [pow_succ', -_root_.add_comm, power_add, *]
 
-@[simp, elim_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
+@[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 by rw [← lift_mk_fin, ← lift_mk_fin, lift_le]; exact
-⟨λ ⟨⟨f, hf⟩⟩, begin
-  have : _ = fintype.card _ := finset.card_image_of_injective finset.univ hf,
-  simp at this,
-  rw [← fintype.card_fin n, ← this],
-  exact finset.card_le_of_subset (finset.subset_univ _)
-end,
-λ h, ⟨⟨λ i, ⟨i.1, lt_of_lt_of_le i.2 h⟩, λ a b h,
-  have _, from fin.veq_of_eq h, fin.eq_of_veq this⟩⟩⟩
+⟨λ ⟨⟨f, hf⟩⟩, by simpa only [fintype.card_fin] using fintype.card_le_of_injective f hf,
+  λ h, ⟨(fin.cast_le h).to_embedding⟩⟩
 
-@[simp, elim_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
+@[simp, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
 by simp [lt_iff_le_not_le, -not_le]
 
-@[simp, elim_cast] theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n :=
+@[simp, norm_cast] theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n :=
 by simp [le_antisymm_iff]
 
-@[simp, elim_cast] theorem nat_succ (n : ℕ) : succ n = n.succ :=
-le_antisymm (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _) (add_one_le_succ _)
+@[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
+le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _)
 
 @[simp] theorem succ_zero : succ 0 = 1 :=
-by simpa using nat_succ 0
+by norm_cast
+
+theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) :
+  # α ≤ n :=
+begin
+  refine lt_succ.1 (lt_of_not_ge $ λ hn, _),
+  rw [← cardinal.nat_succ, ← cardinal.lift_mk_fin n.succ] at hn,
+  cases hn with f,
+  refine not_lt_of_le (H $ finset.univ.map f) _,
+  rw [finset.card_map, ← fintype.card, fintype.card_ulift, fintype.card_fin],
+  exact n.lt_succ_self
+end
 
 theorem cantor' (a) {b : cardinal} (hb : 1 < b) : a < b ^ a :=
-by rw [← succ_le, (by simpa using nat_succ 1 : succ 1 = 2)] at hb;
+by rw [← succ_le, (by norm_cast : succ 1 = 2)] at hb;
    exact lt_of_lt_of_le (cantor _) (power_le_power_right hb)
 
 theorem one_le_iff_pos {c : cardinal} : 1 ≤ c ↔ 0 < c :=
@@ -644,10 +683,10 @@ theorem one_le_iff_ne_zero {c : cardinal} : 1 ≤ c ↔ c ≠ 0 :=
 by rw [one_le_iff_pos, pos_iff_ne_zero]
 
 theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
-succ_le.1 $ by rw [nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
-⟨⟨fin.val, λ a b, fin.eq_of_veq⟩⟩
+succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
+⟨⟨coe, λ a b, fin.ext⟩⟩
 
-theorem one_lt_omega : 1 < omega :=
+@[simp] theorem one_lt_omega : 1 < omega :=
 by simpa using nat_lt_omega 1
 
 theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
@@ -662,7 +701,7 @@ theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
   have P : ∀ (n : ℕ) (IH : ∀ i<n, S), ∃ a : S, ¬ ∃ y h, IH y h = a :=
     λ n IH,
     let g : {i | i < n} → S := λ ⟨i, h⟩, IH i h in
-    classical.not_forall.1 (λ h, nf
+    not_forall.1 (λ h, nf
       ⟨fintype.of_surjective g (λ a, subtype.exists.2 (h a))⟩),
   let F : ℕ → S := nat.lt_wf.fix (λ n IH, classical.some (P n IH)),
   refine not_le_of_lt h' ⟨⟨F, _⟩⟩,
@@ -705,7 +744,7 @@ match a, b, lt_omega.1 ha, lt_omega.1 hb with
 end
 
 lemma add_lt_omega_iff {a b : cardinal} : a + b < omega ↔ a < omega ∧ b < omega :=
-⟨λ h, ⟨lt_of_le_of_lt (le_add_right _ _) h, lt_of_le_of_lt (le_add_left _ _) h⟩,
+⟨λ h, ⟨lt_of_le_of_lt (self_le_add_right _ _) h, lt_of_le_of_lt (self_le_add_left _ _) h⟩,
   λ⟨h1, h2⟩, add_lt_omega h1 h2⟩
 
 theorem mul_lt_omega {a b : cardinal} (ha : a < omega) (hb : b < omega) : a * b < omega :=
@@ -719,8 +758,10 @@ begin
   { intro h, by_cases ha : a = 0, { left, exact ha },
     right, by_cases hb : b = 0, { left, exact hb },
     right, rw [← ne, ← one_le_iff_ne_zero] at ha hb, split,
-    { rw [← mul_one a], refine lt_of_le_of_lt (mul_le_mul (le_refl a) hb) h },
-    { rw [← _root_.one_mul b], refine lt_of_le_of_lt (mul_le_mul ha (le_refl b)) h }},
+    { rw [← mul_one a],
+      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul (le_refl a) hb) h },
+    { rw [← _root_.one_mul b],
+      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul ha (le_refl b)) h }},
   rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_omega, omega_pos, _root_.zero_mul, mul_zero]
 end
 
@@ -746,6 +787,10 @@ end
 theorem infinite_iff {α : Type u} : infinite α ↔ omega ≤ mk α :=
 by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_fintype]
 
+lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ mk α = omega :=
+⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,
+ λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
+
 lemma countable_iff (s : set α) : countable s ↔ mk s ≤ omega :=
 begin
   rw [countable_iff_exists_injective], split,
@@ -753,9 +798,105 @@ begin
   rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩
 end
 
-lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ mk α = omega :=
-⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,
- λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
+/-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
+  to 0. -/
+noncomputable def to_nat : zero_hom cardinal ℕ :=
+⟨λ c, if h : c < omega.{v} then classical.some (lt_omega.1 h) else 0,
+  begin
+    have h : 0 < omega := nat_lt_omega 0,
+    rw [dif_pos h, ← cardinal.nat_cast_inj, ← classical.some_spec (lt_omega.1 h), nat.cast_zero],
+  end⟩
+
+lemma to_nat_apply_of_lt_omega {c : cardinal} (h : c < omega) :
+  c.to_nat = classical.some (lt_omega.1 h) :=
+dif_pos h
+
+@[simp]
+lemma to_nat_apply_of_omega_le {c : cardinal} (h : omega ≤ c) :
+  c.to_nat = 0 :=
+dif_neg (not_lt_of_le h)
+
+@[simp]
+lemma cast_to_nat_of_lt_omega {c : cardinal} (h : c < omega) :
+  ↑c.to_nat = c :=
+by rw [to_nat_apply_of_lt_omega h, ← classical.some_spec (lt_omega.1 h)]
+
+@[simp]
+lemma to_nat_cast (n : ℕ) : cardinal.to_nat n = n :=
+begin
+  rw [to_nat_apply_of_lt_omega (nat_lt_omega n), ← nat_cast_inj],
+  exact (classical.some_spec (lt_omega.1 (nat_lt_omega n))).symm,
+end
+
+/-- `to_nat` has a right-inverse: coercion. -/
+lemma to_nat_right_inverse : function.right_inverse (coe : ℕ → cardinal) to_nat := to_nat_cast
+
+lemma to_nat_surjective : surjective to_nat := to_nat_right_inverse.surjective
+
+@[simp]
+lemma mk_to_nat_of_infinite [h : infinite α] : (mk α).to_nat = 0 :=
+dif_neg (not_lt_of_le (infinite_iff.1 h))
+
+@[simp]
+lemma mk_to_nat_eq_card [fintype α] : (mk α).to_nat = fintype.card α :=
+by simp [fintype_card]
+
+@[simp]
+lemma zero_to_nat : cardinal.to_nat 0 = 0 :=
+by rw [← to_nat_cast 0, nat.cast_zero]
+
+@[simp]
+lemma one_to_nat : cardinal.to_nat 1 = 1 :=
+by rw [← to_nat_cast 1, nat.cast_one]
+
+/-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
+  to `⊤`. -/
+noncomputable def to_enat : cardinal →+ enat :=
+{ to_fun := λ c, if c < omega.{v} then c.to_nat else ⊤,
+  map_zero' := by simp [if_pos (lt_trans zero_lt_one one_lt_omega)],
+  map_add' := λ x y, begin
+    by_cases hx : x < omega,
+    { obtain ⟨x0, rfl⟩ := lt_omega.1 hx,
+      by_cases hy : y < omega,
+      { obtain ⟨y0, rfl⟩ := lt_omega.1 hy,
+        simp only [add_lt_omega hx hy, hx, hy, to_nat_cast, if_true],
+        rw [← nat.cast_add, to_nat_cast, enat.coe_add] },
+      { rw [if_neg hy, if_neg, enat.add_top],
+        contrapose! hy,
+        apply lt_of_le_of_lt (le_add_left (le_refl y)) hy } },
+    { rw [if_neg hx, if_neg, enat.top_add],
+      contrapose! hx,
+      apply lt_of_le_of_lt (le_add_right (le_refl x)) hx },
+  end }
+
+@[simp]
+lemma to_enat_apply_of_lt_omega {c : cardinal} (h : c < omega) :
+  c.to_enat = c.to_nat :=
+if_pos h
+
+@[simp]
+lemma to_enat_apply_of_omega_le {c : cardinal} (h : omega ≤ c) :
+  c.to_enat = ⊤ :=
+if_neg (not_lt_of_le h)
+
+@[simp]
+lemma to_enat_cast (n : ℕ) : cardinal.to_enat n = n :=
+by rw [to_enat_apply_of_lt_omega (nat_lt_omega n), to_nat_cast]
+
+@[simp]
+lemma mk_to_enat_of_infinite [h : infinite α] : (mk α).to_enat = ⊤ :=
+to_enat_apply_of_omega_le (infinite_iff.1 h)
+
+lemma to_enat_surjective : surjective to_enat :=
+begin
+  intro x,
+  exact enat.cases_on x ⟨omega, to_enat_apply_of_omega_le (le_refl omega)⟩
+    (λ n, ⟨n, to_enat_cast n⟩),
+end
+
+@[simp]
+lemma mk_to_enat_eq_coe_card [fintype α] : (mk α).to_enat = fintype.card α :=
+by simp [fintype_card]
 
 lemma mk_int : mk ℤ = omega :=
 denumerable_iff.mp ⟨by apply_instance⟩
@@ -768,7 +909,7 @@ begin
   split,
   { rintro ⟨f⟩, refine ⟨f $ sum.inl ⟨⟩, f $ sum.inr ⟨⟩, _⟩, intro h, cases f.2 h },
   { rintro ⟨x, y, h⟩, by_contra h',
-    rw [not_le, ←nat.cast_two, ←nat_succ, lt_succ, nat.cast_one, le_one_iff_subsingleton] at h',
+    rw [not_le, ←nat.cast_two, nat_succ, lt_succ, nat.cast_one, le_one_iff_subsingleton] at h',
     apply h, exactI subsingleton.elim _ _ }
 end
 
@@ -792,10 +933,10 @@ lt_of_not_ge $ λ ⟨F⟩, begin
   have sG : surjective G := inv_fun_surjective F.2,
   choose C hc using show ∀ i, ∃ b, ∀ a, G ⟨i, a⟩ i ≠ b,
   { assume i,
-    simp only [- not_exists, not_exists.symm, classical.not_forall.symm],
+    simp only [- not_exists, not_exists.symm, not_forall.symm],
     refine λ h, not_le_of_lt (H i) _,
     rw [← mk_out (f i), ← mk_out (g i)],
-    exact ⟨embedding.of_surjective h⟩ },
+    exact ⟨embedding.of_surjective _ h⟩ },
   exact (let ⟨⟨i, a⟩, h⟩ := sG C in hc i a (congr_fun h _))
 end
 
@@ -826,6 +967,12 @@ quotient.sound ⟨equiv.bool_equiv_punit_sum_punit⟩
 @[simp] theorem mk_Prop : mk Prop = 2 :=
 (quotient.sound ⟨equiv.Prop_equiv_bool⟩ : mk Prop = mk bool).trans mk_bool
 
+@[simp] theorem mk_set {α : Type u} : mk (set α) = 2 ^ mk α :=
+begin
+  rw [← prop_eq_two, cardinal.power_def (ulift Prop) α, cardinal.eq],
+  exact ⟨equiv.arrow_congr (equiv.refl _) equiv.ulift.symm⟩,
+end
+
 @[simp] theorem mk_option {α : Type u} : mk (option α) = mk α + 1 :=
 quotient.sound ⟨equiv.option_equiv_sum_punit α⟩
 
@@ -854,6 +1001,17 @@ theorem mk_subtype_le_of_subset {α : Type u} {p q : α → Prop} (h : ∀ ⦃x�
 @[simp] theorem mk_emptyc (α : Type u) : mk (∅ : set α) = 0 :=
 quotient.sound ⟨equiv.set.pempty α⟩
 
+lemma mk_emptyc_iff {α : Type u} {s : set α} : mk s = 0 ↔ s = ∅ :=
+begin
+  split,
+  { intro h,
+    have h2 : cardinal.mk s = cardinal.mk pempty, by simp [h],
+    refine set.eq_empty_iff_forall_not_mem.mpr (λ _ hx, _),
+    rcases cardinal.eq.mp h2 with ⟨f, _⟩,
+    cases f ⟨_, hx⟩ },
+  { intro, convert mk_emptyc _ }
+end
+
 theorem mk_univ {α : Type u} : mk (@univ α) = mk α :=
 quotient.sound ⟨equiv.set.univ α⟩
 
@@ -862,7 +1020,7 @@ mk_le_of_surjective surjective_onto_image
 
 theorem mk_image_le_lift {α : Type u} {β : Type v} {f : α → β} {s : set α} :
   lift.{v u} (mk (f '' s)) ≤ lift.{u v} (mk s) :=
-lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective surjective_onto_image⟩
+lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
 
 theorem mk_range_le {α β : Type u} {f : α → β} : mk (range f) ≤ mk α :=
 mk_le_of_surjective surjective_onto_range
@@ -870,7 +1028,7 @@ mk_le_of_surjective surjective_onto_range
 lemma mk_range_eq (f : α → β) (h : injective f) : mk (range f) = mk α :=
 quotient.sound ⟨(equiv.set.range f h).symm⟩
 
-lemma mk_range_eq_of_inj {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
+lemma mk_range_eq_of_injective {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
   lift.{v u} (mk (range f)) = lift.{u v} (mk α) :=
 begin
   have := (@lift_mk_eq.{v u max u v} (range f) α).2 ⟨(equiv.set.range f hf).symm⟩,
@@ -887,7 +1045,7 @@ theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injectiv
 quotient.sound ⟨(equiv.set.image f s hf).symm⟩
 
 theorem mk_Union_le_sum_mk {α ι : Type u} {f : ι → set α} : mk (⋃ i, f i) ≤ sum (λ i, mk (f i)) :=
-calc mk (⋃ i, f i) ≤ mk (Σ i, f i) : mk_le_of_surjective (set.surjective_sigma_to_Union f)
+calc mk (⋃ i, f i) ≤ mk (Σ i, f i) : mk_le_of_surjective (set.sigma_to_Union_surjective f)
   ... = sum (λ i, mk (f i)) : (sum_mk _).symm
 
 theorem mk_Union_eq_sum_mk {α ι : Type u} {f : ι → set α} (h : ∀i j, i ≠ j → disjoint (f i) (f j)) :
@@ -913,20 +1071,27 @@ by rw [fintype_card, nat_cast_inj, fintype.card_coe]
 lemma finset_card_lt_omega (s : finset α) : mk (↑s : set α) < omega :=
 by { rw [lt_omega_iff_fintype], exact ⟨finset.subtype.fintype s⟩ }
 
-theorem mk_union_add_mk_inter {α : Type u} {S T : set α} : mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
+theorem mk_union_add_mk_inter {α : Type u} {S T : set α} :
+  mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
 quot.sound ⟨equiv.set.union_sum_inter S T⟩
 
-theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) : mk (S ∪ T : set α) = mk S + mk T :=
-quot.sound ⟨equiv.set.union (disjoint_iff.1 H)⟩
+/-- The cardinality of a union is at most the sum of the cardinalities
+of the two sets. -/
+lemma mk_union_le {α : Type u} (S T : set α) : mk (S ∪ T : set α) ≤ mk S + mk T :=
+@mk_union_add_mk_inter α S T ▸ self_le_add_right (mk (S ∪ T : set α)) (mk (S ∩ T : set α))
 
-lemma mk_sum_compl {α} (s : set α) : #s + #(-s : set α) = #α :=
+theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
+  mk (S ∪ T : set α) = mk S + mk T :=
+quot.sound ⟨equiv.set.union H⟩
+
+lemma mk_sum_compl {α} (s : set α) : #s + #(sᶜ : set α) = #α :=
 quotient.sound ⟨equiv.set.sum_compl s⟩
 
 lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : mk s ≤ mk t :=
-⟨ set.embedding_of_subset h ⟩
+⟨set.embedding_of_subset s t h⟩
 
 lemma mk_subtype_mono {p q : α → Prop} (h : ∀x, p x → q x) : mk {x // p x} ≤ mk {x // q x} :=
-⟨embedding_of_subset h⟩
+⟨embedding_of_subset _ _ h⟩
 
 lemma mk_set_le (s : set α) : mk s ≤ mk α :=
 mk_subtype_le s
@@ -943,9 +1108,9 @@ lemma mk_image_eq_of_inj_on {α β : Type u} (f : α → β) (s : set α) (h : i
   mk (f '' s) = mk s :=
 quotient.sound ⟨(equiv.set.image_of_inj_on f s h).symm⟩
 
-lemma mk_subtype_of_equiv {α β : Type u} (p : α → Prop) (e : α ≃ β) :
-  mk {a : α // p a} = mk {b : β // p (e.symm b)} :=
-quotient.sound ⟨equiv.subtype_equiv_of_subtype' e⟩
+lemma mk_subtype_of_equiv {α β : Type u} (p : β → Prop) (e : α ≃ β) :
+  mk {a : α // p (e a)} = mk {b : β // p b} :=
+quotient.sound ⟨equiv.subtype_equiv_of_subtype e⟩
 
 lemma mk_sep (s : set α) (t : α → Prop) : mk ({ x ∈ s | t x } : set α) = mk { x : s | t x.1 } :=
 quotient.sound ⟨equiv.set.sep s t⟩
@@ -954,7 +1119,7 @@ lemma mk_preimage_of_injective_lift {α : Type u} {β : Type v} (f : α → β) 
   (h : injective f) : lift.{u v} (mk (f ⁻¹' s)) ≤ lift.{v u} (mk s) :=
 begin
   rw lift_mk_le.{u v 0}, use subtype.coind (λ x, f x.1) (λ x, x.2),
-  apply subtype.coind_injective, exact injective_comp h subtype.val_injective
+  apply subtype.coind_injective, exact h.comp subtype.val_injective
 end
 
 lemma mk_preimage_of_subset_range_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)
@@ -1052,3 +1217,6 @@ lemma powerlt_zero {a : cardinal} : a ^< 0 = 0 :=
 by { apply sup_eq_zero, rintro ⟨x, hx⟩, rw [←not_le] at hx, apply hx, apply zero_le }
 
 end cardinal
+
+lemma equiv.cardinal_eq {α β} : α ≃ β → cardinal.mk α = cardinal.mk β :=
+cardinal.eq_congr

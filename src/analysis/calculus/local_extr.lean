@@ -3,10 +3,11 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import topology.local_extr
+import analysis.calculus.deriv
 
-import topology.local_extr analysis.calculus.deriv
-
-/-! # Local extrema of smooth functions
+/-!
+# Local extrema of smooth functions
 
 ## Main definitions
 
@@ -18,7 +19,8 @@ This set is used in the proof of Fermat's Theorem (see below), and can be used t
 
 ## Main statements
 
-For each theorem name listed below, we also prove similar theorems for `min`, `extr` (if applicable)`,
+For each theorem name listed below,
+we also prove similar theorems for `min`, `extr` (if applicable)`,
 and `(f)deriv` instead of `has_fderiv`.
 
 * `is_local_max_on.has_fderiv_within_at_nonpos` : `f' y ≤ 0` whenever `a` is a local maximum
@@ -85,32 +87,26 @@ lemma mem_pos_tangent_cone_at_of_segment_subset {s : set E} {x y : E} (h : segme
 begin
   let c := λn:ℕ, (2:ℝ)^n,
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
-  refine ⟨c, d, filter.univ_mem_sets' (λn, h _), _, _⟩,
+  refine ⟨c, d, filter.univ_mem_sets' (λn, h _),
+    tendsto_pow_at_top_at_top_of_one_lt one_lt_two, _⟩,
   show x + d n ∈ segment x y,
-  { rw segment_eq_image,
-    refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
-    { rw inv_nonneg, apply pow_nonneg, norm_num },
-    { apply inv_le_one, apply one_le_pow_of_one_le, norm_num },
-    { simp only [d, sub_smul, smul_sub, one_smul], abel } },
-  show tendsto c at_top at_top,
-  { exact tendsto_pow_at_top_at_top_of_gt_1 one_lt_two },
-  show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
-  { have : (λ (n : ℕ), c n • d n) = (λn, y - x),
-    { ext n,
-      simp only [d, smul_smul],
-      rw [mul_inv_cancel, one_smul],
-      exact pow_ne_zero _ (by norm_num) },
-    rw this,
-    apply tendsto_const_nhds }
+  { rw segment_eq_image',
+    refine ⟨(c n)⁻¹, ⟨_, _⟩, rfl⟩,
+    exacts [inv_nonneg.2 (pow_nonneg zero_le_two _),
+      inv_le_one (one_le_pow_of_one_le one_le_two _)] },
+  show tendsto (λ n, c n • d n) at_top (𝓝 (y - x)),
+  { convert tendsto_const_nhds, ext n,
+    simp only [d, smul_smul],
+    rw [mul_inv_cancel, one_smul],
+    exact pow_ne_zero _ two_ne_zero }
 end
 
+lemma mem_pos_tangent_cone_at_of_segment_subset' {s : set E} {x y : E} (h : segment x (x + y) ⊆ s) :
+  y ∈ pos_tangent_cone_at s x :=
+by simpa only [add_sub_cancel'] using mem_pos_tangent_cone_at_of_segment_subset h
+
 lemma pos_tangent_cone_at_univ : pos_tangent_cone_at univ a = univ :=
-eq_univ_iff_forall.2
-begin
-  assume x,
-  rw [← add_sub_cancel x a],
-  exact mem_pos_tangent_cone_at_of_segment_subset (subset_univ _)
-end
+eq_univ_of_forall $ λ x, mem_pos_tangent_cone_at_of_segment_subset' (subset_univ _)
 
 /-- If `f` has a local max on `s` at `a`, `f'` is the derivative of `f` at `a` within `s`, and
 `y` belongs to the positive tangent cone of `s` at `a`, then `f' y ≤ 0`. -/
@@ -120,16 +116,16 @@ lemma is_local_max_on.has_fderiv_within_at_nonpos {s : set E} (h : is_local_max_
 begin
   rcases hy with ⟨c, d, hd, hc, hcd⟩,
   have hc' : tendsto (λ n, ∥c n∥) at_top at_top,
-    from tendsto_at_top_mono _ (λ n, le_abs_self _) hc,
-  refine le_of_tendsto at_top_ne_bot (hf.lim at_top hd hc' hcd) _,
-  replace hd : tendsto (λ n, a + d n) at_top (nhds_within (a + 0) s),
+    from tendsto_at_top_mono (λ n, le_abs_self _) hc,
+  refine le_of_tendsto (hf.lim at_top hd hc' hcd) _,
+  replace hd : tendsto (λ n, a + d n) at_top (𝓝[s] (a + 0)),
   from tendsto_inf.2 ⟨tendsto_const_nhds.add (tangent_cone_at.lim_zero _ hc' hcd),
     by rwa tendsto_principal⟩,
   rw [add_zero] at hd,
   replace h : ∀ᶠ n in at_top, f (a + d n) ≤ f a, from mem_map.1 (hd h),
   replace hc : ∀ᶠ n in at_top, 0 ≤ c n, from mem_map.1 (hc (mem_at_top (0:ℝ))),
   filter_upwards [h, hc],
-  simp only [mem_set_of_eq, smul_eq_mul, mem_preimage, subset_def],
+  simp only [smul_eq_mul, mem_preimage, subset_def],
   assume n hnf hn,
   exact mul_nonpos_of_nonneg_of_nonpos hn (sub_nonpos.2 hnf)
 end
@@ -267,13 +263,12 @@ end real
 
 section Rolle
 
-variables (f f' : ℝ → ℝ) {a b : ℝ} (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b)
-
-include hab hfc hfI
+variables (f f' : ℝ → ℝ) {a b : ℝ}
 
 /-- A continuous function on a closed interval with `f a = f b` takes either its maximum
 or its minimum value at a point in the interior of the interval. -/
-lemma exists_Ioo_extr_on_Icc : ∃ c ∈ Ioo a b, is_extr_on f (Icc a b) c :=
+lemma exists_Ioo_extr_on_Icc (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b) :
+  ∃ c ∈ Ioo a b, is_extr_on f (Icc a b) c :=
 begin
   have ne : (Icc a b).nonempty, from nonempty_Icc.2 (le_of_lt hab),
   -- Consider absolute min and max points
@@ -286,7 +281,7 @@ begin
     { have : ∀ x ∈ Icc a b, f x = f a,
         from λ x hx, le_antisymm (hC ▸ Cge x hx) (hc ▸ cle x hx),
       -- `f` is a constant, so we can take any point in `Ioo a b`
-      rcases dense hab with ⟨c', hc'⟩,
+      rcases exists_between hab with ⟨c', hc'⟩,
       refine ⟨c', hc', or.inl _⟩,
       assume x hx,
       rw [mem_set_of_eq, this x hx, ← hC],
@@ -299,19 +294,59 @@ end
 
 /-- A continuous function on a closed interval with `f a = f b` has a local extremum at some
 point of the corresponding open interval. -/
-lemma exists_local_extr_Ioo : ∃ c ∈ Ioo a b, is_local_extr f c :=
+lemma exists_local_extr_Ioo (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b) :
+  ∃ c ∈ Ioo a b, is_local_extr f c :=
 let ⟨c, cmem, hc⟩ := exists_Ioo_extr_on_Icc f hab hfc hfI
-in ⟨c, cmem, hc.is_local_extr $ mem_nhds_sets_iff.2 ⟨Ioo a b, Ioo_subset_Icc_self, is_open_Ioo, cmem⟩⟩
+in ⟨c, cmem, hc.is_local_extr $ Icc_mem_nhds cmem.1 cmem.2⟩
 
 /-- Rolle's Theorem `has_deriv_at` version -/
-lemma exists_has_deriv_at_eq_zero (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
+lemma exists_has_deriv_at_eq_zero (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b)
+  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
   ∃ c ∈ Ioo a b, f' c = 0 :=
 let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
   ⟨c, cmem, hc.has_deriv_at_eq_zero $ hff' c cmem⟩
 
 /-- Rolle's Theorem `deriv` version -/
-lemma exists_deriv_eq_zero : ∃ c ∈ Ioo a b, deriv f c = 0 :=
+lemma exists_deriv_eq_zero (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b) :
+  ∃ c ∈ Ioo a b, deriv f c = 0 :=
 let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
   ⟨c, cmem, hc.deriv_eq_zero⟩
+
+variables {f f'} {l : ℝ}
+
+/-- Rolle's Theorem, a version for a function on an open interval: if `f` has derivative `f'`
+on `(a, b)` and has the same limit `l` at `𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `f' c = 0`
+for some `c ∈ (a, b)`.  -/
+lemma exists_has_deriv_at_eq_zero' (hab : a < b)
+  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l))
+  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
+  ∃ c ∈ Ioo a b, f' c = 0 :=
+begin
+  have : continuous_on f (Ioo a b) := λ x hx, (hff' x hx).continuous_at.continuous_within_at,
+  have hcont := continuous_on_Icc_extend_from_Ioo hab this hfa hfb,
+  obtain ⟨c, hc, hcextr⟩ : ∃ c ∈ Ioo a b, is_local_extr (extend_from (Ioo a b) f) c,
+  { apply exists_local_extr_Ioo _ hab hcont,
+    rw eq_lim_at_right_extend_from_Ioo hab hfb,
+    exact eq_lim_at_left_extend_from_Ioo hab hfa },
+  use [c, hc],
+  apply (hcextr.congr _).has_deriv_at_eq_zero (hff' c hc),
+  rw eventually_eq_iff_exists_mem,
+  exact ⟨Ioo a b, Ioo_mem_nhds hc.1 hc.2, extend_from_extends this⟩
+end
+
+/-- Rolle's Theorem, a version for a function on an open interval: if `f` has the same limit `l` at
+`𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `deriv f c = 0` for some `c ∈ (a, b)`. This version does not
+require differentiability of `f` because we define `deriv f c = 0` whenever `f` is not
+differentiable at `c`. -/
+lemma exists_deriv_eq_zero' (hab : a < b)
+  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l)) :
+  ∃ c ∈ Ioo a b, deriv f c = 0 :=
+classical.by_cases
+  (assume h : ∀ x ∈ Ioo a b, differentiable_at ℝ f x,
+    show ∃ c ∈ Ioo a b, deriv f c = 0,
+      from exists_has_deriv_at_eq_zero' hab hfa hfb (λ x hx, (h x hx).has_deriv_at))
+  (assume h : ¬∀ x ∈ Ioo a b, differentiable_at ℝ f x,
+    have h : ∃ x, x ∈ Ioo a b ∧ ¬differentiable_at ℝ f x, by { push_neg at h, exact h },
+      let ⟨c, hc, hcdiff⟩ := h in ⟨c, hc, deriv_zero_of_not_differentiable_at hcdiff⟩)
 
 end Rolle

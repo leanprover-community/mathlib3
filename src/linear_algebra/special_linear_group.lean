@@ -1,14 +1,12 @@
 /-
-  Copyright (c) 2020 Anne Baanen. All rights reserved.
-  Released under Apache 2.0 license as described in the file LICENSE.
-  Author: Anne Baanen.
+Copyright (c) 2020 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Anne Baanen
 
-  The Special Linear group $SL(n, R)$
+The Special Linear group $SL(n, R)$
 -/
-import linear_algebra.basic
 import linear_algebra.matrix
 import linear_algebra.nonsingular_inverse
-import tactic.norm_cast
 
 /-!
 # The Special Linear group $SL(n, R)$
@@ -47,20 +45,20 @@ universes u v
 open_locale matrix
 open linear_map
 
-set_option class.instance_max_depth 60
 
 section
 
-variables (n : Type u) [fintype n] [decidable_eq n] (R : Type v) [comm_ring R]
+variables (n : Type u) [decidable_eq n] [fintype n] (R : Type v) [comm_ring R]
 
-/-- `special_linear_group n R` is the group of `n` by `n` `R`-matrices with determinant equal to 1. -/
+/-- `special_linear_group n R` is the group of `n` by `n` `R`-matrices with determinant equal to 1.
+-/
 def special_linear_group := { A : matrix n n R // A.det = 1 }
 
 end
 
 namespace special_linear_group
 
-variables {n : Type u} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
+variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 
 instance coe_matrix : has_coe (special_linear_group n R) (matrix n n R) :=
 ⟨λ A, A.val⟩
@@ -70,15 +68,15 @@ instance coe_fun : has_coe_to_fun (special_linear_group n R) :=
   coe := λ A, A.val }
 
 /--
-  `to_lin A` is matrix multiplication of vectors by `A`, as a linear map.
+  `to_lin' A` is matrix multiplication of vectors by `A`, as a linear map.
 
   After the group structure on `special_linear_group n R` is defined,
   we show in `to_linear_equiv` that this gives a linear equivalence.
 -/
-def to_lin (A : special_linear_group n R) := matrix.to_lin A
+def to_lin' (A : special_linear_group n R) := matrix.to_lin' A
 
 lemma ext_iff (A B : special_linear_group n R) : A = B ↔ (∀ i j, A i j = B i j) :=
-iff.trans subtype.ext ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix.ext⟩
+iff.trans subtype.ext_iff_val ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix.ext⟩
 
 @[ext] lemma ext (A B : special_linear_group n R) : (∀ i j, A i j = B i j) → A = B :=
 (special_linear_group.ext_iff A B).mpr
@@ -114,9 +112,13 @@ variables (A B : special_linear_group n R)
 
 lemma det_coe_fun : det ⇑A = 1 := A.2
 
-@[simp] lemma to_lin_mul : to_lin (A * B) = (to_lin A).comp (to_lin B) := matrix.mul_to_lin A B
+@[simp] lemma to_lin'_mul :
+  to_lin' (A * B) = (to_lin' A).comp (to_lin' B) :=
+matrix.to_lin'_mul A B
 
-@[simp] lemma to_lin_one : to_lin (1 : special_linear_group n R) = linear_map.id := matrix.to_lin_one
+@[simp] lemma to_lin'_one :
+  to_lin' (1 : special_linear_group n R) = linear_map.id :=
+matrix.to_lin'_one
 
 end coe_lemmas
 
@@ -131,33 +133,33 @@ instance group : group (special_linear_group n R) :=
 
 /-- `to_linear_equiv A` is matrix multiplication of vectors by `A`, as a linear equivalence. -/
 def to_linear_equiv (A : special_linear_group n R) : (n → R) ≃ₗ[R] (n → R) :=
-{ inv_fun := A⁻¹.to_lin,
+{ inv_fun := A⁻¹.to_lin',
   left_inv := λ x, calc
-    A⁻¹.to_lin.comp A.to_lin x
-        = (A⁻¹ * A).to_lin x : by rw [←to_lin_mul]
-    ... = x : by rw [mul_left_inv, to_lin_one, id_apply],
+    A⁻¹.to_lin'.comp A.to_lin' x
+        = (A⁻¹ * A).to_lin' x : by rw [←to_lin'_mul]
+    ... = x : by rw [mul_left_inv, to_lin'_one, id_apply],
   right_inv := λ x, calc
-    A.to_lin.comp A⁻¹.to_lin x
-        = (A * A⁻¹).to_lin x : by rw [←to_lin_mul]
-    ... = x : by rw [mul_right_inv, to_lin_one, id_apply],
-  ..matrix.to_lin A }
+    A.to_lin'.comp A⁻¹.to_lin' x
+        = (A * A⁻¹).to_lin' x : by rw [←to_lin'_mul]
+    ... = x : by rw [mul_right_inv, to_lin'_one, id_apply],
+  ..matrix.to_lin' A }
 
 /-- `to_GL` is the map from the special linear group to the general linear group -/
 def to_GL (A : special_linear_group n R) : general_linear_group R (n → R) :=
 general_linear_group.of_linear_equiv (to_linear_equiv A)
 
 lemma coe_to_GL (A : special_linear_group n R) :
-  (@coe (units _) _ _ (to_GL A)) = A.to_lin :=
+  (@coe (units _) _ _ (to_GL A)) = A.to_lin' :=
 rfl
 
 @[simp]
 lemma to_GL_one : to_GL (1 : special_linear_group n R) = 1 :=
-by { ext v i, rw [coe_to_GL, to_lin_one], refl }
+by { ext v i, rw [coe_to_GL, to_lin'_one], refl }
 
 @[simp]
 lemma to_GL_mul (A B : special_linear_group n R) :
   to_GL (A * B) = to_GL A * to_GL B :=
-by { ext v i, rw [coe_to_GL, to_lin_mul], refl }
+by { ext v i, rw [coe_to_GL, to_lin'_mul], refl }
 
 /-- `special_linear_group.embedding_GL` is the embedding from `special_linear_group n R`
   to `general_linear_group n R`. -/

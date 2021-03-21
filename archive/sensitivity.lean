@@ -1,8 +1,8 @@
 /-
-Copyright (c) 2019 Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, and
+Copyright (c) 2019 Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis,
 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, and Patrick Massot
+Authors: Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, Patrick Massot
 -/
 
 import tactic.fin_cases
@@ -10,6 +10,7 @@ import tactic.apply_fun
 import linear_algebra.finite_dimensional
 import linear_algebra.dual
 import analysis.normed_space.basic
+import data.real.sqrt
 
 /-!
 # Huang's sensitivity theorem
@@ -28,8 +29,8 @@ by Leonardo de Moura at Microsoft Research, and his collaborators
 and using Lean's user maintained mathematics library
 (https://github.com/leanprover-community/mathlib).
 
-The project was developed at https://github.com/leanprover-community/lean-sensitivity
-and is now archived at https://github.com/leanprover-community/mathlib/blob/master/archive/sensitivity.lean
+The project was developed at https://github.com/leanprover-community/lean-sensitivity and is now
+archived at https://github.com/leanprover-community/mathlib/blob/master/archive/sensitivity.lean
 -/
 
 /-! The next two lines assert we do not want to give a constructive proof,
@@ -37,12 +38,16 @@ but rather use classical logic. -/
 noncomputable theory
 open_locale classical
 
+/-! We also want to use the notation `∑` for sums. -/
+open_locale big_operators
+
 notation `|`x`|` := abs x
 notation `√` := real.sqrt
 
 open function bool linear_map fintype finite_dimensional dual_pair
 
-/-! ### The hypercube
+/-!
+### The hypercube
 
 Notations:
 - `ℕ` denotes natural numbers (including zero).
@@ -161,19 +166,7 @@ by { induction n ; { dunfold V, resetI, apply_instance } }
 
 instance : vector_space ℝ (V n) :=
 by { induction n ; { dunfold V, resetI, apply_instance } }
-
-/-! The next five definitions are short circuits helping Lean to quickly find
-relevant structures on `V n`. -/
-def module : module ℝ (V n) := by apply_instance
-def add_comm_semigroup : add_comm_semigroup (V n) := by apply_instance
-def add_comm_monoid : add_comm_monoid (V n) := by apply_instance
-def has_scalar : has_scalar ℝ (V n) := by apply_instance
-def has_add : has_add (V n) := by apply_instance
-
 end V
-
-local attribute [instance, priority 100000]
-  V.module V.add_comm_semigroup V.add_comm_monoid V.has_scalar V.has_add
 
 /-- The basis of `V` indexed by the hypercube, defined inductively. -/
 noncomputable def e : Π {n}, Q n → V n
@@ -185,7 +178,8 @@ noncomputable def e : Π {n}, Q n → V n
 /-- The dual basis to `e`, defined inductively. -/
 noncomputable def ε : Π {n : ℕ} (p : Q n), V n →ₗ[ℝ] ℝ
 | 0 _ := linear_map.id
-| (n+1) p := cond (p 0) ((ε $ π p).comp $ linear_map.fst _ _ _) ((ε $ π p).comp $ linear_map.snd _ _ _)
+| (n+1) p := cond (p 0) ((ε $ π p).comp $ linear_map.fst _ _ _)
+               ((ε $ π p).comp $ linear_map.snd _ _ _)
 
 variable {n : ℕ}
 
@@ -214,12 +208,13 @@ begin
   induction n with n ih,
   { dsimp [ε] at h, exact h (λ _, tt) },
   { cases v with v₁ v₂,
-    ext ; change _ = (0 : V n) ; simp only [] ; apply ih ; intro p ;
+    ext ; change _ = (0 : V n) ; simp only ; apply ih ; intro p ;
     [ let q : Q (n+1) := λ i, if h : i = 0 then tt else p (i.pred h),
       let q : Q (n+1) := λ i, if h : i = 0 then ff else p (i.pred h)],
     all_goals {
       specialize h q,
-      rw [ε, show q 0 = tt, from rfl, cond_tt] at h <|> rw [ε, show q 0 = ff, from rfl, cond_ff] at h,
+      rw [ε, show q 0 = tt, from rfl, cond_tt] at h <|>
+        rw [ε, show q 0 = ff, from rfl, cond_ff] at h,
       rwa show p = π q, by { ext, simp [q, fin.succ_ne_zero, π] } } }
 end
 
@@ -233,12 +228,12 @@ def dual_pair_e_ε (n : ℕ) : dual_pair (@e n) (@ε n) :=
 since this cardinal is finite, as a natural number in `findim_V` -/
 
 lemma dim_V : vector_space.dim ℝ (V n) = 2^n :=
-have vector_space.dim ℝ (V n) = ↑(2^n : ℕ),
+have vector_space.dim ℝ (V n) = (2^n : ℕ),
   by { rw [dim_eq_card_basis (dual_pair_e_ε _).is_basis, Q.card]; apply_instance },
 by assumption_mod_cast
 
 instance : finite_dimensional ℝ (V n) :=
-finite_dimensional.of_finite_basis (dual_pair_e_ε _).is_basis
+finite_dimensional.of_fintype_basis (dual_pair_e_ε _).is_basis
 
 lemma findim_V : findim ℝ (V n) = 2^n :=
 have _ := @dim_V n,
@@ -261,7 +256,7 @@ The next two lemmas unbury them. -/
 @[simp] lemma f_zero : f 0 = 0 := rfl
 
 lemma f_succ_apply (v : V (n+1)) :
-  (f (n+1) : V (n+1) → V (n+1)) v = (f n v.1 + v.2, v.1 - f n v.2) :=
+  f (n+1) v = (f n v.1 + v.2, v.1 - f n v.2) :=
 begin
   cases v,
   rw f,
@@ -278,7 +273,7 @@ lemma f_squared : ∀ v : V n, (f n) (f n v) = (n : ℝ) • v :=
 begin
   induction n with n IH; intro,
   { simpa only [nat.cast_zero, zero_smul] },
-  { cases v, simp [f_succ_apply, IH, add_smul], abel }
+  { cases v, simp [f_succ_apply, IH, add_smul, add_assoc], abel }
 end
 
 /-! We now compute the matrix of `f` in the `e` basis (`p` is the line index,
@@ -299,8 +294,7 @@ begin
     all_goals
     { repeat {rw cond_tt}, repeat {rw cond_ff},
       simp [f_map_zero, hp, hq, IH, duality, abs_of_nonneg ite_nonneg, Q.adj_iff_proj_eq,
-            Q.adj_iff_proj_adj],
-      congr' 1 } }
+            Q.adj_iff_proj_adj] } }
 end
 
 /-- The linear operator $g_m$ corresponding to Knuth's matrix $B_m$. -/
@@ -323,7 +317,7 @@ begin
 end
 
 lemma f_image_g (w : V (m + 1)) (hv : ∃ v, g m v = w) :
-  (f (m + 1) : _) w = √(m + 1) • w :=
+  f (m + 1) w = √(m + 1) • w :=
 begin
   rcases hv with ⟨v, rfl⟩,
   have : √(m+1) * √(m+1) = m+1 :=
@@ -370,19 +364,19 @@ begin
     apply dim_V },
   have dim_add : dim (W ⊔ img) + dim (W ⊓ img) = dim W + 2^m,
   { convert ← dim_sup_add_dim_inf_eq W img,
-    rw ← dim_eq_injective (g m) g_injective,
+    rw ← dim_eq_of_injective (g m) g_injective,
     apply dim_V },
   have dimW : dim W = card H,
-  { have li : linear_independent ℝ (restrict e H) :=
+  { have li : linear_independent ℝ (set.restrict e H) :=
       linear_independent.comp (dual_pair_e_ε _).is_basis.1 _ subtype.val_injective,
     have hdW := dim_span li,
     rw set.range_restrict at hdW,
     convert hdW,
-    rw [cardinal.mk_image_eq ((dual_pair_e_ε _).is_basis.injective zero_ne_one), cardinal.fintype_card] },
+    rw [cardinal.mk_image_eq (dual_pair_e_ε _).is_basis.injective, cardinal.fintype_card] },
   rw ← findim_eq_dim ℝ at ⊢ dim_le dim_add dimW,
   rw [← findim_eq_dim ℝ, ← findim_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,
-  rw nat.pow_succ at dim_le,
+  rw pow_succ' at dim_le,
   rw set.to_finset_card at hH,
   linarith
 end
@@ -401,30 +395,39 @@ begin
   have H_q_pos : 0 < |ε q y|,
   { contrapose! y_ne,
     exact epsilon_total (λ p, abs_nonpos_iff.mp (le_trans (H_max p) y_ne)) },
-  refine ⟨q, (dual_pair_e_ε _).mem_of_mem_span y_mem_H q (abs_pos_iff.mp H_q_pos), _⟩,
+  refine ⟨q, (dual_pair_e_ε _).mem_of_mem_span y_mem_H q (abs_pos.mp H_q_pos), _⟩,
   let s := √(m+1),
   suffices : s * |ε q y| ≤ ↑(_) * |ε q y|,
     from (mul_le_mul_right H_q_pos).mp ‹_›,
 
   let coeffs := (dual_pair_e_ε (m+1)).coeffs,
-  let φ : V (m+1) → V (m+1) := f (m+1),
   calc
-    s * (abs (ε q y))
-        = abs (ε q (s • y)) : by rw [map_smul, smul_eq_mul, abs_mul, abs_of_nonneg (real.sqrt_nonneg _)]
-    ... = abs (ε q (φ y)) : by rw [← f_image_g y (by simpa using y_mem_g)]
-    ... = abs (ε q (φ (lc _ (coeffs y)))) : by rw (dual_pair_e_ε _).decomposition y
-    ... = abs ((coeffs y).sum (λ (i : Q (m + 1)) (a : ℝ), a • ((ε q) ∘ (f (m + 1)) ∘ λ (i : Q (m + 1)), e i) i)): by
-                  { dsimp only [φ],
-                    erw [(f $ m+1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply] ; apply_instance }
-    ... ≤ (coeffs y).support.sum (λ p,
-           |(coeffs y p) * (ε q $ φ $ e p)| ) : norm_sum_le _ $ λ p, coeffs y p * _
-    ... = (coeffs y).support.sum (λ p, |coeffs y p| * ite (q.adjacent p) 1 0) : by simp only [abs_mul, f_matrix]
-    ... = ((coeffs y).support.filter (Q.adjacent q)).sum (λ p, |coeffs y p| ) : by simp [finset.sum_filter]
-    ... ≤ ((coeffs y).support.filter (Q.adjacent q)).sum (λ p, |coeffs y q| ) : finset.sum_le_sum (λ p _, H_max p)
-    ... = (finset.card ((coeffs y).support.filter (Q.adjacent q)): ℝ) * |coeffs y q| : by rw [← smul_eq_mul, ← finset.sum_const']
-    ... = (finset.card ((coeffs y).support ∩ (Q.adjacent q).to_finset): ℝ) * |coeffs y q| : by {congr, ext, simp, refl}
+    s * |ε q y|
+        = |ε q (s • y)| :
+      by rw [map_smul, smul_eq_mul, abs_mul, abs_of_nonneg (real.sqrt_nonneg _)]
+    ... = |ε q (f (m+1) y)| : by rw [← f_image_g y (by simpa using y_mem_g)]
+    ... = |ε q (f (m+1) (lc _ (coeffs y)))| : by rw (dual_pair_e_ε _).decomposition y
+    ... = |(coeffs y).sum (λ (i : Q (m + 1)) (a : ℝ), a • ((ε q) ∘ (f (m + 1)) ∘
+            λ (i : Q (m + 1)), e i) i)| :
+      by erw [(f $ m + 1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply]
+    ... ≤ ∑ p in (coeffs y).support, |(coeffs y p) * (ε q $ f (m+1) $ e p)| :
+      norm_sum_le _ $ λ p, coeffs y p * _
+    ... = ∑ p in (coeffs y).support, |coeffs y p| * ite (q.adjacent p) 1 0 :
+      by simp only [abs_mul, f_matrix]
+    ... = ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y p| :
+      by simp [finset.sum_filter]
+    ... ≤ ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y q| :
+      finset.sum_le_sum (λ p _, H_max p)
+    ... = (((coeffs y).support.filter (Q.adjacent q)).card : ℝ) * |coeffs y q| :
+      by rw [finset.sum_const, nsmul_eq_mul]
+    ... = (((coeffs y).support ∩ (Q.adjacent q).to_finset).card : ℝ) * |coeffs y q| :
+      by { congr' with x, simp, refl }
     ... ≤ (finset.card ((H ∩ Q.adjacent q).to_finset )) * |ε q y| :
-     (mul_le_mul_right H_q_pos).mpr (by {
-             norm_cast,
-             exact finset.card_le_of_subset (by rw set.to_finset_inter; apply finset.inter_subset_inter_right coeffs_support) })
+      begin
+        refine (mul_le_mul_right H_q_pos).2 _,
+        norm_cast,
+        apply finset.card_le_of_subset,
+        rw set.to_finset_inter,
+        convert finset.inter_subset_inter_right coeffs_support
+      end
 end

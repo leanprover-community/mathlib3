@@ -19,18 +19,42 @@ local postfix *:9001 := many
 
 namespace tactic
 /-- Reset the instance cache for the main goal. -/
-meta def reset_instance_cache : tactic unit := unfreeze_local_instances
+meta def reset_instance_cache : tactic unit := do
+unfreeze_local_instances,
+freeze_local_instances
+
+/-- Unfreeze the local instances while executing `tac` on the main goal. -/
+meta def unfreezing {α} (tac : tactic α) : tactic α :=
+focus1 $ unfreeze_local_instances *> tac <* all_goals freeze_local_instances
+
+/--
+Unfreeze local instances while executing `tac`,
+if the passed expression is amongst the frozen instances.
+-/
+meta def unfreezing_hyp (h : expr) (tac : tactic unit) : tactic unit :=
+do frozen ← frozen_local_instances,
+   if h ∈ frozen.get_or_else [] then unfreezing tac else tac
 
 namespace interactive
 open interactive interactive.types
 
-/-- Unfreeze local instances, which allows us to revert
-instances in the context. -/
-meta def unfreezeI := tactic.unfreeze_local_instances
+/--
+`unfreezingI { tac }` executes tac while temporarily unfreezing the instance cache.
+-/
+meta def unfreezingI (tac : itactic) :=
+unfreezing tac
 
 /-- Reset the instance cache. This allows any new instances
 added to the context to be used in typeclass inference. -/
 meta def resetI := reset_instance_cache
+
+/-- Like `subst`, but can also substitute in instance arguments. -/
+meta def substI (q : parse texpr) : tactic unit :=
+unfreezingI (subst q)
+
+/-- Like `cases`, but can also be used with instance arguments. -/
+meta def casesI (p : parse cases_arg_p) (q : parse with_ident_list) : tactic unit :=
+unfreezingI (cases p q)
 
 /-- Like `intro`, but uses the introduced variable
 in typeclass inference. -/
@@ -67,7 +91,7 @@ do h ← match h with
   | some a := return a
   end,
   «let» (some h) q₁ q₂,
-  match q₁ with
+  match q₂ with
   | none    := swap >> reset_instance_cache >> swap
   | some p₂ := reset_instance_cache
   end
@@ -101,11 +125,14 @@ by its variant `haveI` described below.
 * `resetI`: Reset the instance cache. This allows any instances
   currently in the context to be used in typeclass inference.
 
-* `unfreezeI`: Unfreeze local instances, which allows us to revert
-  instances in the context
+* `unfreezingI { tac }`: Unfreeze local instances while executing the tactic `tac`.
 
 * `introI`/`introsI`: `intro`/`intros` followed by `resetI`. Like
   `intro`/`intros`, but uses the introduced variable in typeclass inference.
+
+* `casesI`: like `cases`, but can also be used with instance arguments.
+
+* `substI`: like `subst`, but can also substitute in type-class arguments
 
 * `haveI`/`letI`: `have`/`let` followed by `resetI`. Used to add typeclasses
   to the context so that they can be used in typeclass inference. The syntax
@@ -119,11 +146,9 @@ by its variant `haveI` described below.
 add_tactic_doc
 { name        := "Instance cache tactics",
   category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.unfreezeI, `tactic.interactive.resetI,
-                  `tactic.interactive.introI, `tactic.interactive.introsI,
-                  `tactic.interactive.haveI, `tactic.interactive.letI,
-                  `tactic.interactive.exactI],
-  tags        := ["type classes"] }
+  decl_names  := [``resetI, ``unfreezingI, ``casesI, ``substI, ``introI, ``introsI, ``haveI, ``letI,
+                  ``exactI],
+  tags        := ["type class", "context management"] }
 
 end interactive
 end tactic

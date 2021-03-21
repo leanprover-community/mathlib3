@@ -3,58 +3,81 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-
 import tactic.core
 
 open lean.parser
 
 namespace tactic
 
+section performance -- see Note [user attribute parameters]
+
+local attribute [semireducible] reflected
+
+local attribute [instance, priority 9000]
+private meta def reflect_name_list : has_reflect (list name) | ns :=
+`(id %%(expr.mk_app `(Prop) $ ns.map (flip expr.const [])) : list name)
+
+private meta def parse_name_list (e : expr) : list name :=
+e.app_arg.get_app_args.map expr.const_name
+
+/-- The `ancestor` attributes is used to record the names of structures which appear in the
+extends clause of a `structure` or `class` declared with `old_structure_cmd` set to true.
+
+As an example:
+```
+set_option old_structure_cmd true
+
+structure base_one := (one : ℕ)
+
+structure base_two (α : Type*) := (two : ℕ)
+
+@[ancestor base_one base_two]
+structure bar extends base_one, base_two α
+```
+
+The list of ancestors should be in the order they appear in the `extends` clause, and should
+contain only the names of the ancestor structures, without any arguments.
+-/
 @[user_attribute]
 meta def ancestor_attr : user_attribute unit (list name) :=
 { name := `ancestor,
   descr := "ancestor of old structures",
   parser := many ident }
 
+add_tactic_doc
+{ name := "ancestor",
+  category := doc_category.attr,
+  decl_names := [`tactic.ancestor_attr],
+  tags := ["transport", "environment"] }
+
+end performance
+
+/--
+Returns the parents of a structure added via the `ancestor` attribute.
+
+On failure, the empty list is returned.
+-/
+meta def get_tagged_ancestors (cl : name) : tactic (list name) :=
+parse_name_list <$> ancestor_attr.get_param_untyped cl <|> pure []
+
+/--
+Returns the parents of a structure added via the `ancestor` attribute, as well as subobjects.
+
+On failure, the empty list is returned.
+-/
 meta def get_ancestors (cl : name) : tactic (list name) :=
 (++) <$> (prod.fst <$> subobject_names cl <|> pure [])
-     <*> (user_attribute.get_param ancestor_attr cl <|> pure [])
+     <*> get_tagged_ancestors cl
 
+/--
+Returns the (transitive) ancestors of a structure added via the `ancestor`
+attribute (or reachable via subobjects).
+
+On failure, the empty list is returned.
+-/
 meta def find_ancestors : name → expr → tactic (list expr) | cl arg :=
 do cs ← get_ancestors cl,
    r ← cs.mmap $ λ c, list.ret <$> (mk_app c [arg] >>= mk_instance) <|> find_ancestors c arg,
    return r.join
 
 end tactic
-
-attribute [ancestor has_mul] semigroup
-attribute [ancestor semigroup] comm_semigroup
-attribute [ancestor semigroup has_one] monoid
-attribute [ancestor monoid comm_semigroup] comm_monoid
-attribute [ancestor monoid has_inv] group
-attribute [ancestor group comm_monoid] comm_group
-attribute [ancestor has_add] add_semigroup
-attribute [ancestor add_semigroup] add_comm_semigroup
-attribute [ancestor add_semigroup has_zero] add_monoid
-attribute [ancestor add_monoid add_comm_semigroup] add_comm_monoid
-attribute [ancestor add_monoid has_neg] add_group
-attribute [ancestor add_group add_comm_monoid] add_comm_group
-
-attribute [ancestor semigroup] left_cancel_semigroup
-attribute [ancestor semigroup] right_cancel_semigroup
-attribute [ancestor add_semigroup] add_left_cancel_semigroup
-attribute [ancestor add_semigroup] add_right_cancel_semigroup
-
-attribute [ancestor ring has_inv zero_ne_one_class] division_ring
-attribute [ancestor division_ring comm_ring] field
-
-attribute [ancestor has_mul has_add] distrib
-attribute [ancestor has_mul has_zero] mul_zero_class
-attribute [ancestor has_zero has_one] zero_ne_one_class
-attribute [ancestor add_comm_monoid monoid distrib mul_zero_class] semiring
-attribute [ancestor semiring comm_monoid] comm_semiring
-attribute [ancestor add_comm_group monoid distrib] ring
-
-attribute [ancestor ring comm_semigroup] comm_ring
-attribute [ancestor has_mul has_zero] no_zero_divisors
-attribute [ancestor comm_ring no_zero_divisors zero_ne_one_class] integral_domain

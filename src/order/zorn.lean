@@ -104,15 +104,15 @@ private lemma chain_closure_succ_total_aux (hc₁ : chain_closure c₁) (hc₂ :
   c₁ ⊆ c₂ ∨ succ_chain c₂ ⊆ c₁ :=
 begin
   induction hc₁,
-  case _root_.zorn.chain_closure.succ : c₃ hc₃ ih {
+  case succ : c₃ hc₃ ih {
     cases ih with ih ih,
     { have h := h hc₃ ih,
       cases h with h h,
       { exact or.inr (h ▸ subset.refl _) },
       { exact or.inl h } },
     { exact or.inr (subset.trans ih succ_increasing) } },
-  case _root_.zorn.chain_closure.union : s hs ih {
-    refine (classical.or_iff_not_imp_right.2 $ λ hn, sUnion_subset $ λ a ha, _),
+  case union : s hs ih {
+    refine (or_iff_not_imp_right.2 $ λ hn, sUnion_subset $ λ a ha, _),
     apply (ih a ha).resolve_right,
     apply mt (λ h, _) hn,
     exact subset.trans h (subset_sUnion_of_mem ha) }
@@ -122,7 +122,7 @@ private lemma chain_closure_succ_total (hc₁ : chain_closure c₁) (hc₂ : cha
   c₂ = c₁ ∨ succ_chain c₁ ⊆ c₂ :=
 begin
   induction hc₂ generalizing c₁ hc₁ h,
-  case _root_.zorn.chain_closure.succ : c₂ hc₂ ih {
+  case succ : c₂ hc₂ ih {
     have h₁ : c₁ ⊆ c₂ ∨ @succ_chain α r c₂ ⊆ c₁ :=
       (chain_closure_succ_total_aux hc₁ hc₂ $ assume c₁, ih),
     cases h₁ with h₁ h₁,
@@ -131,10 +131,10 @@ begin
       { exact (or.inr $ h₂ ▸ subset.refl _) },
       { exact (or.inr $ subset.trans h₂ succ_increasing) } },
     { exact (or.inl $ subset.antisymm h₁ h) } },
-  case _root_.zorn.chain_closure.union : s hs ih {
+  case union : s hs ih {
     apply or.imp_left (assume h', subset.antisymm h' h),
     apply classical.by_contradiction,
-    simp [not_or_distrib, sUnion_subset_iff, classical.not_forall],
+    simp [not_or_distrib, sUnion_subset_iff, not_forall],
     intros c₃ hc₃ h₁ h₂,
     have h := chain_closure_succ_total_aux hc₁ (hs c₃ hc₃) (assume c₄, ih _ hc₃),
     cases h with h h,
@@ -154,10 +154,10 @@ theorem chain_closure_succ_fixpoint (hc₁ : chain_closure c₁) (hc₂ : chain_
   (h_eq : succ_chain c₂ = c₂) : c₁ ⊆ c₂ :=
 begin
   induction hc₁,
-  case _root_.zorn.chain_closure.succ : c₁ hc₁ h {
+  case succ : c₁ hc₁ h {
     exact or.elim (chain_closure_succ_total hc₁ hc₂ h)
       (assume h, h ▸ h_eq.symm ▸ subset.refl c₂) id },
-  case _root_.zorn.chain_closure.union : s hs ih {
+  case union : s hs ih {
     exact (sUnion_subset $ assume c₁ hc₁, ih c₁ hc₁) }
 end
 
@@ -176,9 +176,9 @@ theorem chain_closure_succ_fixpoint_iff (hc : chain_closure c) :
 theorem chain_chain_closure (hc : chain_closure c) : chain c :=
 begin
   induction hc,
-  case _root_.zorn.chain_closure.succ : c hc h {
+  case succ : c hc h {
     exact chain_succ h },
-  case _root_.zorn.chain_closure.union : s hs h {
+  case union : s hs h {
     have h : ∀c∈s, zorn.chain c := h,
     exact assume c₁ ⟨t₁, ht₁, (hc₁ : c₁ ∈ t₁)⟩ c₂ ⟨t₂, ht₂, (hc₂ : c₂ ∈ t₂)⟩ hneq,
       have t₁ ⊆ t₂ ∨ t₂ ⊆ t₁, from chain_closure_total (hs _ ht₁) (hs _ ht₂),
@@ -222,12 +222,32 @@ let ⟨ub, (hub : ∀a∈max_chain, a ≺ ub)⟩ := this in
     max_chain_spec.right $ ⟨insert a max_chain, this, ssubset_insert h⟩,
   hub a this⟩
 
+/--
+If every nonempty chain of a nonempty type has an upper bound, then there is a maximal element.
+(A variant of Zorn's lemma.)
+-/
+theorem exists_maximal_of_nonempty_chains_bounded [nonempty α]
+  (h : ∀c, chain c → c.nonempty → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
+  ∃m, ∀a, m ≺ a → a ≺ m :=
+exists_maximal_of_chains_bounded
+  (λ c hc,
+    (eq_empty_or_nonempty c).elim
+      (λ h, ⟨classical.arbitrary α, λ x hx, (h ▸ hx : x ∈ (∅ : set α)).elim⟩)
+      (h c hc))
+  (λ a b c, trans)
+
 end chain
 
 theorem zorn_partial_order {α : Type u} [partial_order α]
   (h : ∀c:set α, chain (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
 let ⟨m, hm⟩ := @exists_maximal_of_chains_bounded α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
+
+theorem zorn_nonempty_partial_order {α : Type u} [partial_order α] [nonempty α]
+  (h : ∀ (c : set α), chain (≤) c → c.nonempty → ∃ub, ∀ a ∈ c, a ≤ ub) :
+  ∃ (m : α), ∀ a, m ≤ a → a = m :=
+let ⟨m, hm⟩ := @exists_maximal_of_nonempty_chains_bounded α (≤) _ h (λ a b c, le_trans) in
+⟨m, λ a ha, le_antisymm (hm a ha) ha⟩
 
 theorem zorn_partial_order₀ {α : Type u} [partial_order α] (s : set α)
   (ih : ∀ c ⊆ s, chain (≤) c → ∀ y ∈ c, ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub)
@@ -245,7 +265,7 @@ theorem zorn_subset {α : Type u} (S : set (set α))
   (h : ∀c ⊆ S, chain (⊆) c → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) :
   ∃ m ∈ S, ∀a ∈ S, m ⊆ a → a = m :=
 begin
-  letI : partial_order S := partial_order.lift subtype.val (λ _ _, subtype.eq') (by apply_instance),
+  letI : partial_order S := partial_order.lift subtype.val (λ _ _, subtype.ext_val),
   have : ∀c:set S, @chain S (≤) c → ∃ub, ∀a∈c, a ≤ ub,
   { intros c hc,
     rcases h (subtype.val '' c) (image_subset_iff.2 _) _ with ⟨s, sS, hs⟩,
@@ -287,3 +307,13 @@ theorem chain.image {α β : Type*} (r : α → α → Prop)
     (or.inl ∘ h _ _) (or.inr ∘ h _ _)
 
 end zorn
+
+theorem directed_of_chain {α β r} [is_refl β r] {f : α → β} {c : set α}
+  (h : zorn.chain (f ⁻¹'o r) c) :
+  directed r (λx:{a:α // a ∈ c}, f x) :=
+assume ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
+  (assume : a = b, by simp only [this, exists_prop, and_self, subtype.exists];
+    exact ⟨b, hb, refl _⟩)
+  (assume : a ≠ b, (h a ha b hb this).elim
+    (λ h : r (f a) (f b), ⟨⟨b, hb⟩, h, refl _⟩)
+    (λ h : r (f b) (f a), ⟨⟨a, ha⟩, refl _, h⟩))

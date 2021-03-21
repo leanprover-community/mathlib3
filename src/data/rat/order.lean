@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.basic
+
 /-!
 # Order for Rational Numbers
 
@@ -25,8 +26,8 @@ namespace rat
 variables (a b c : ℚ)
 open_locale rat
 
-protected def nonneg : ℚ → Prop
-| ⟨n, d, h, c⟩ := 0 ≤ n
+/-- A rational number is called nonnegative if its numerator is nonnegative. -/
+protected def nonneg (r : ℚ) : Prop := 0 ≤ r.num
 
 @[simp] theorem mk_nonneg (a : ℤ) {b : ℤ} (h : 0 < b) : (a /. b).nonneg ↔ 0 ≤ a :=
 begin
@@ -47,7 +48,7 @@ num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
   have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
   have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos' d₁0 d₂0],
+  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
   intros n₁0 n₂0,
   apply add_nonneg; apply mul_nonneg; {assumption <|> apply int.coe_zero_le},
 end
@@ -58,8 +59,7 @@ num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
   have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
   have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos' d₁0 d₂0],
-  exact mul_nonneg
+  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0, mul_nonneg] { contextual := tt }
 end
 
 protected lemma nonneg_antisymm {a} : rat.nonneg a → rat.nonneg (-a) → a = 0 :=
@@ -77,6 +77,8 @@ or.imp_right neg_nonneg_of_nonpos (le_total 0 n)
 instance decidable_nonneg : decidable (rat.nonneg a) :=
 by cases a; unfold rat.nonneg; apply_instance
 
+/-- Relation `a ≤ b` on `ℚ` defined as `a ≤ b ↔ rat.nonneg (b - a)`. Use `a ≤ b` instead of
+`rat.le a b`. -/
 protected def le (a b : ℚ) := rat.nonneg (b - a)
 
 instance : has_le ℚ := ⟨rat.le⟩
@@ -89,7 +91,7 @@ protected theorem le_def {a b c d : ℤ} (b0 : 0 < b) (d0 : 0 < d) :
 begin
   show rat.nonneg _ ↔ _,
   rw ← sub_nonneg,
-  simp [sub_eq_add_neg, ne_of_gt b0, ne_of_gt d0, mul_pos' d0 b0]
+  simp [sub_eq_add_neg, ne_of_gt b0, ne_of_gt d0, mul_pos d0 b0]
 end
 
 protected theorem le_refl : a ≤ a :=
@@ -99,14 +101,14 @@ protected theorem le_total : a ≤ b ∨ b ≤ a :=
 by have := rat.nonneg_total (b - a); rwa neg_sub at this
 
 protected theorem le_antisymm {a b : ℚ} (hab : a ≤ b) (hba : b ≤ a) : a = b :=
-by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simpa);
-   rwa neg_neg at this
+by { have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by rwa [← sub_eq_add_neg, neg_sub]),
+   rwa neg_neg at this }
 
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
 have rat.nonneg (b - a + (c - b)), from rat.nonneg_add hab hbc,
 by simpa [sub_eq_add_neg, add_comm, add_left_comm]
 
-instance : decidable_linear_order ℚ :=
+instance : linear_order ℚ :=
 { le              := rat.le,
   le_refl         := rat.le_refl,
   le_trans        := @rat.le_trans,
@@ -123,7 +125,6 @@ instance : semilattice_inf ℚ := by apply_instance
 instance : semilattice_sup ℚ := by apply_instance
 instance : has_inf ℚ         := by apply_instance
 instance : has_sup ℚ         := by apply_instance
-instance : linear_order ℚ    := by apply_instance
 instance : partial_order ℚ   := by apply_instance
 instance : preorder ℚ        := by apply_instance
 
@@ -156,30 +157,26 @@ by unfold has_le.le rat.le; rw add_sub_add_left_eq_sub
 protected theorem mul_nonneg {a b : ℚ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
 by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
 
-instance : discrete_linear_ordered_field ℚ :=
-{ zero_lt_one     := dec_trivial,
+instance : linear_ordered_field ℚ :=
+{ zero_le_one     := dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
-  add_lt_add_left := assume a b ab c, lt_of_not_ge $ λ ba,
-    not_le_of_lt ab $ rat.add_le_add_left.1 ba,
-  mul_nonneg      := @rat.mul_nonneg,
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
-  ..rat.field, ..rat.decidable_linear_order }
+  ..rat.field,
+  ..rat.linear_order,
+  ..rat.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : linear_ordered_field ℚ                := by apply_instance
-instance : decidable_linear_ordered_comm_ring ℚ  := by apply_instance
-instance : linear_ordered_comm_ring ℚ            := by apply_instance
-instance : linear_ordered_ring ℚ                 := by apply_instance
-instance : ordered_ring ℚ                        := by apply_instance
-instance : decidable_linear_ordered_semiring ℚ   := by apply_instance
-instance : linear_ordered_semiring ℚ             := by apply_instance
-instance : ordered_semiring ℚ                    := by apply_instance
-instance : decidable_linear_ordered_comm_group ℚ := by apply_instance
-instance : ordered_comm_group ℚ                  := by apply_instance
-instance : ordered_cancel_comm_monoid ℚ          := by apply_instance
-instance : ordered_comm_monoid ℚ                 := by apply_instance
+instance : linear_ordered_comm_ring ℚ       := by apply_instance
+instance : linear_ordered_ring ℚ            := by apply_instance
+instance : ordered_ring ℚ                   := by apply_instance
+instance : linear_ordered_semiring ℚ        := by apply_instance
+instance : ordered_semiring ℚ               := by apply_instance
+instance : linear_ordered_add_comm_group ℚ  := by apply_instance
+instance : ordered_add_comm_group ℚ         := by apply_instance
+instance : ordered_cancel_add_comm_monoid ℚ := by apply_instance
+instance : ordered_add_comm_monoid ℚ        := by apply_instance
 
 attribute [irreducible] rat.le
 
@@ -223,20 +220,4 @@ begin
     rw [int.nat_abs_of_nonneg hq, num_denom] }
 end
 
-section sqrt
-
-def sqrt (q : ℚ) : ℚ := rat.mk (int.sqrt q.num) (nat.sqrt q.denom)
-
-theorem sqrt_eq (q : ℚ) : rat.sqrt (q*q) = abs q :=
-by rw [sqrt, mul_self_num, mul_self_denom, int.sqrt_eq, nat.sqrt_eq, abs_def]
-
-theorem exists_mul_self (x : ℚ) : (∃ q, q * q = x) ↔ rat.sqrt x * rat.sqrt x = x :=
-⟨λ ⟨n, hn⟩, by rw [← hn, sqrt_eq, abs_mul_abs_self],
-λ h, ⟨rat.sqrt x, h⟩⟩
-
-theorem sqrt_nonneg (q : ℚ) : 0 ≤ rat.sqrt q :=
-nonneg_iff_zero_le.1 $ (mk_nonneg _ $ int.coe_nat_pos.2 $
-nat.pos_of_ne_zero $ λ H, nat.pos_iff_ne_zero.1 q.pos $ nat.sqrt_eq_zero.1 H).2 trivial
-
-end sqrt
 end rat

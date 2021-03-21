@@ -7,7 +7,7 @@ import category_theory.fully_faithful
 
 namespace category_theory
 
-universes v u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 section induced
 
@@ -38,11 +38,16 @@ form of D. This is used to set up several algebraic categories like
   -- even though `Mon = bundled monoid`!
 -/
 
-variables {C : Type u₁} (D : Type u₂) [𝒟 : category.{v} D]
-include 𝒟
+variables {C : Type u₁} (D : Type u₂) [category.{v} D]
 variables (F : C → D)
 include F
 
+/--
+`induced_category D F`, where `F : C → D`, is a typeclass synonym for `C`,
+which provides a category structure so that the morphisms `X ⟶ Y` are the morphisms
+in `D` from `F X` to `F Y`.
+-/
+@[nolint has_inhabited_instance unused_arguments]
 def induced_category : Type u₁ := C
 
 variables {D}
@@ -56,11 +61,12 @@ instance induced_category.category : category.{v} (induced_category D F) :=
   id   := λ X, 𝟙 (F X),
   comp := λ _ _ _ f g, f ≫ g }
 
-def induced_functor : induced_category D F ⥤ D :=
+/--
+The forgetful functor from an induced category to the original category,
+forgetting the extra data.
+-/
+@[simps] def induced_functor : induced_category D F ⥤ D :=
 { obj := F, map := λ x y f, f }
-
-@[simp] lemma induced_functor.obj {X} : (induced_functor F).obj X = F X := rfl
-@[simp] lemma induced_functor.hom {X Y} {f : X ⟶ Y} : (induced_functor F).map f = f := rfl
 
 instance induced_category.full : full (induced_functor F) :=
 { preimage := λ x y f, f }
@@ -68,16 +74,25 @@ instance induced_category.faithful : faithful (induced_functor F) := {}
 
 end induced
 
+
 section full_subcategory
 /- A full subcategory is the special case of an induced category with F = subtype.val. -/
 
-variables {C : Type u₂} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u₂} [category.{v} C]
 variables (Z : C → Prop)
 
+/--
+The category structure on a subtype; morphisms just ignore the property.
+
+See https://stacks.math.columbia.edu/tag/001D. We do not define 'strictly full' subcategories.
+-/
 instance full_subcategory : category.{v} {X : C // Z X} :=
 induced_category.category subtype.val
 
+/--
+The forgetful functor from a full subcategory into the original category
+("forgetting" the condition).
+-/
 def full_subcategory_inclusion : {X : C // Z X} ⥤ C :=
 induced_functor subtype.val
 
@@ -86,7 +101,7 @@ induced_functor subtype.val
 @[simp] lemma full_subcategory_inclusion.map {X Y} {f : X ⟶ Y} :
   (full_subcategory_inclusion Z).map f = f := rfl
 
-instance full_subcategory.ful : full (full_subcategory_inclusion Z) :=
+instance full_subcategory.full : full (full_subcategory_inclusion Z) :=
 induced_category.full subtype.val
 instance full_subcategory.faithful : faithful (full_subcategory_inclusion Z) :=
 induced_category.faithful subtype.val

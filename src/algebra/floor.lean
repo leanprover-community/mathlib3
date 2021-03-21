@@ -3,8 +3,11 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Kappelmann
 -/
-import data.int.basic
-import tactic.linarith tactic.abel
+import tactic.linarith
+import tactic.abel
+import algebra.ordered_group
+import data.set.intervals.basic
+
 /-!
 # Floor and Ceil
 
@@ -31,6 +34,8 @@ rounding
 -/
 
 variables {α : Type*}
+
+open_locale classical
 
 /--
 A `floor_ring` is a linear ordered ring over `α` with a function
@@ -86,9 +91,9 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
   ← sub_le_iff_le_add, ← sub_le_iff_le_add, le_floor, int.cast_sub]
 
 theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
-eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
+eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (floor_add_int _ _)
 
-lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [decidable_linear_ordered_comm_ring α]
+lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α]
   [floor_ring α] {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=
 begin
   have : x < ⌊x⌋ + 1         := lt_floor_add_one x,
@@ -111,6 +116,12 @@ begin
   suffices : (⌊v⌋ : α) ≤ v ∧ v < ⌊v⌋ + 1, by rwa [floor_eq_iff],
   exact ⟨floor_le v, lt_floor_add_one v⟩
 end
+
+lemma floor_eq_on_Ico (n : ℤ) : ∀ x ∈ (set.Ico n (n+1) : set α), floor x = n :=
+λ x ⟨h₀, h₁⟩, floor_eq_iff.mpr ⟨h₀, h₁⟩
+
+lemma floor_eq_on_Ico' (n : ℤ) : ∀ x ∈ (set.Ico n (n+1) : set α), (floor x : α) = n :=
+λ x hx, by exact_mod_cast floor_eq_on_Ico n x hx
 
 /-- The fractional part fract r of r is just r - ⌊r⌋ -/
 def fract (r : α) : α := r - ⌊r⌋
@@ -146,7 +157,7 @@ theorem fract_eq_iff {r s : α} : fract r = s ↔ 0 ≤ s ∧ s < 1 ∧ ∃ z : 
     rw [eq_sub_iff_add_eq, add_comm, ←eq_sub_iff_add_eq],
     rcases h with ⟨hge, hlt, ⟨z, hz⟩⟩,
     rw [hz, int.cast_inj, floor_eq_iff, ←hz],
-    clear hz, split; simpa [sub_eq_add_neg]
+    clear hz, split; simpa [sub_eq_add_neg, add_assoc]
   end⟩
 
 theorem fract_eq_fract {r s : α} : fract r = fract s ↔ ∃ z : ℤ, r - s = z :=
@@ -160,11 +171,11 @@ theorem fract_eq_fract {r s : α} : fract r = fract s ↔ ∃ z : ℤ, r - s = z
   split, exact fract_lt_one _,
   use z + ⌊s⌋,
   rw [eq_add_of_sub_eq hz, int.cast_add],
-  unfold fract, simp [sub_eq_add_neg]
+  unfold fract, simp [sub_eq_add_neg, add_assoc]
 end⟩
 
 @[simp] lemma fract_fract (r : α) : fract (fract r) = fract r :=
-by rw fract_eq_fract; exact ⟨-⌊r⌋, by simp [sub_eq_add_neg, fract]⟩
+by rw fract_eq_fract; exact ⟨-⌊r⌋, by simp [sub_eq_add_neg, add_assoc, fract]⟩
 
 theorem fract_add (r s : α) : ∃ z : ℤ, fract (r + s) - fract r - fract s = z :=
 ⟨⌊r⌋ + ⌊s⌋ - ⌊r + s⌋, by unfold fract; simp [sub_eq_add_neg]; abel⟩
@@ -208,7 +219,7 @@ ceil_le.2 (le_trans h (le_ceil _))
 by rw [ceil, neg_add', floor_sub_int, neg_sub, sub_eq_neg_add]; refl
 
 theorem ceil_sub_int (x : α) (z : ℤ) : ⌈x - z⌉ = ⌈x⌉ - z :=
-eq.trans (by rw [int.cast_neg]; refl) (ceil_add_int _ _)
+eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)
 
 theorem ceil_lt_add_one (x : α) : (⌈x⌉ : α) < x + 1 :=
 by rw [← lt_ceil, ← int.cast_one, ceil_add_int]; apply lt_add_one
@@ -221,9 +232,20 @@ lemma ceil_pos {a : α} : 0 < ⌈a⌉ ↔ 0 < a :=
 
 @[simp] theorem ceil_zero : ⌈(0 : α)⌉ = 0 := by simp [ceil]
 
-lemma ceil_nonneg [decidable_rel ((<) : α → α → Prop)] {q : α} (hq : 0 ≤ q) : 0 ≤ ⌈q⌉ :=
+lemma ceil_nonneg {q : α} (hq : 0 ≤ q) : 0 ≤ ⌈q⌉ :=
 if h : q > 0 then le_of_lt $ ceil_pos.2 h
 else by rw [le_antisymm (le_of_not_lt h) hq, ceil_zero]; trivial
+
+lemma ceil_eq_iff {r : α} {z : ℤ} :
+  ⌈r⌉ = z ↔ ↑z-1 < r ∧ r ≤ z :=
+by rw [←ceil_le, ←int.cast_one, ←int.cast_sub, ←lt_ceil,
+int.sub_one_lt_iff, le_antisymm_iff, and.comm]
+
+lemma ceil_eq_on_Ioc (n : ℤ) : ∀ x ∈ (set.Ioc (n-1) n : set α), ceil x = n :=
+λ x ⟨h₀, h₁⟩, ceil_eq_iff.mpr ⟨h₀, h₁⟩
+
+lemma ceil_eq_on_Ioc' (n : ℤ) : ∀ x ∈ (set.Ioc (n-1) n : set α), (ceil x : α) = n :=
+λ x hx, by exact_mod_cast ceil_eq_on_Ioc n x hx
 
 /--
 `nat_ceil x` is the smallest nonnegative integer `n` with `x ≤ n`.
@@ -234,7 +256,7 @@ def nat_ceil (a : α) : ℕ := int.to_nat (⌈a⌉)
 theorem nat_ceil_le {a : α} {n : ℕ} : nat_ceil a ≤ n ↔ a ≤ n :=
 by rw [nat_ceil, int.to_nat_le, ceil_le]; refl
 
-theorem lt_nat_ceil {a : α} {n : ℕ} [decidable ((n : α) < a)] : n < nat_ceil a ↔ (n : α) < a :=
+theorem lt_nat_ceil {a : α} {n : ℕ} : n < nat_ceil a ↔ (n : α) < a :=
 not_iff_not.1 $ by rw [not_lt, not_lt, nat_ceil_le]
 
 theorem le_nat_ceil (a : α) : a ≤ nat_ceil a := nat_ceil_le.1 (le_refl _)
@@ -257,7 +279,7 @@ begin
   refl
 end
 
-theorem nat_ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) [decidable ((nat_ceil a : α) < a + 1)] :
+theorem nat_ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) :
   (nat_ceil a : α) < a + 1 :=
 lt_nat_ceil.1 $ by rw (
   show nat_ceil (a + 1) = nat_ceil a + 1, by exact_mod_cast (nat_ceil_add_nat a_nonneg 1));
@@ -268,3 +290,35 @@ lt_of_le_of_lt (le_nat_ceil x) (by exact_mod_cast h)
 
 lemma le_of_nat_ceil_le {x : α} {n : ℕ} (h : nat_ceil x ≤ n) : x ≤ n :=
 le_trans (le_nat_ceil x) (by exact_mod_cast h)
+
+namespace int
+
+@[simp] lemma preimage_Ioo {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ioo x y)) = set.Ioo (floor x) (ceil y) :=
+by { ext, simp [floor_lt, lt_ceil] }
+
+@[simp] lemma preimage_Ico {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ico x y)) = set.Ico (ceil x) (ceil y) :=
+by { ext, simp [ceil_le, lt_ceil] }
+
+@[simp] lemma preimage_Ioc {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ioc x y)) = set.Ioc (floor x) (floor y) :=
+by { ext, simp [floor_lt, le_floor] }
+
+@[simp] lemma preimage_Icc {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Icc x y)) = set.Icc (ceil x) (floor y) :=
+by { ext, simp [ceil_le, le_floor] }
+
+@[simp] lemma preimage_Ioi {x : α} : ((coe : ℤ → α) ⁻¹' (set.Ioi x)) = set.Ioi (floor x) :=
+by { ext, simp [floor_lt] }
+
+@[simp] lemma preimage_Ici {x : α} : ((coe : ℤ → α) ⁻¹' (set.Ici x)) = set.Ici (ceil x) :=
+by { ext, simp [ceil_le] }
+
+@[simp] lemma preimage_Iio {x : α} : ((coe : ℤ → α) ⁻¹' (set.Iio x)) = set.Iio (ceil x) :=
+by { ext, simp [lt_ceil] }
+
+@[simp] lemma preimage_Iic {x : α} : ((coe : ℤ → α) ⁻¹' (set.Iic x)) = set.Iic (floor x) :=
+by { ext, simp [le_floor] }
+
+end int

@@ -2,11 +2,12 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Implementation of floating-point numbers (experimental).
 -/
-
-import data.rat data.semiquot
+import data.rat
+import data.semiquot
+/-!
+# Implementation of floating-point numbers (experimental).
+-/
 
 def int.shift2 (a b : ℕ) : ℤ → ℕ × ℕ
 | (int.of_nat e) := (a.shiftl e, b)
@@ -58,9 +59,15 @@ theorem float.zero.valid : valid_finite emin 0 :=
   apply sub_nonneg_of_le,
   apply int.coe_nat_le_coe_nat_of_le,
   exact C.prec_pos
-end, by simpa [add_comm, add_left_comm, sub_eq_add_neg, emin] using
-  show (prec : ℤ) ≤ emax + float_cfg.emax,
-  from le_trans (int.coe_nat_le.2 C.prec_max) (le_add_of_nonneg_left (int.coe_zero_le _)),
+end,
+suffices prec ≤ 2 * emax,
+begin
+  rw ← int.coe_nat_le at this,
+  rw ← sub_nonneg at *,
+  simp only [emin, emax] at *,
+  ring,
+  assumption
+end, le_trans C.prec_max (nat.le_mul_of_pos_left dec_trivial),
 by rw max_eq_right; simp [sub_eq_add_neg]⟩
 
 def float.zero (s : bool) : float :=

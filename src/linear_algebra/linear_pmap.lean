@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import linear_algebra.basic
+import linear_algebra.prod
 
 /-!
 # Partially defined linear maps
@@ -24,8 +25,6 @@ is bounded above.
 
 Another possible use (not yet in `mathlib`) would be the theory of unbounded linear operators.
 -/
-
-lemma subtype.coe_prop {α : Type*} {p : α → Prop} (x : subtype p) : p x := x.2
 
 open set
 
@@ -68,7 +67,7 @@ f.to_fun.map_smul c x
 @[simp] lemma mk_apply (p : submodule R E) (f : p →ₗ[R] F) (x : p) :
   mk p f x = f x := rfl
 
-/-- The unique `linear_pmap` on `span R {x}` that sends `x` to `y`. This version works for modules
+/-- The unique `linear_pmap` on `R ∙ x` that sends `x` to `y`. This version works for modules
 over rings, and requires a proof of `∀ c, c • x = 0 → c • y = 0`. -/
 noncomputable def mk_span_singleton' (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
   linear_pmap R E F :=
@@ -77,8 +76,8 @@ begin
   { intros c₁ c₂ h,
     rw [← sub_eq_zero, ← sub_smul] at h ⊢,
     exact H _ h },
-  refine ⟨span R {x}, λ z, _, _, _⟩,
-  { exact (classical.some (mem_span_singleton.1 z.coe_prop) • y) },
+  refine ⟨R ∙ x, λ z, _, _, _⟩,
+  { exact (classical.some (mem_span_singleton.1 z.prop) • y) },
   { intros z₁ z₂,
     rw [← add_smul],
     apply H,
@@ -92,7 +91,7 @@ begin
 end
 
 @[simp] lemma domain_mk_span_singleton (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
-  (mk_span_singleton' x y H).domain = span R {x} := rfl
+  (mk_span_singleton' x y H).domain = R ∙ x := rfl
 
 @[simp] lemma mk_span_singleton_apply (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0)
   (c : R) (h) :
@@ -151,13 +150,12 @@ end
 /-- Given two partial linear maps `f`, `g`, the set of points `x` such that
 both `f` and `g` are defined at `x` and `f x = g x` form a submodule. -/
 def eq_locus (f g : linear_pmap R E F) : submodule R E :=
-{ carrier := {x | ∃ (hf : x ∈ f.domain) (hg : x ∈ g.domain), f ⟨x, hf⟩ = g ⟨x, hg⟩},
-      zero := ⟨zero_mem _, zero_mem _, f.map_zero.trans g.map_zero.symm⟩,
-      add := λ x y ⟨hfx, hgx, hx⟩ ⟨hfy, hgy, hy⟩,
-        ⟨add_mem _ hfx hfy, add_mem _ hgx hgy,
-          by erw [f.map_add ⟨x, hfx⟩ ⟨y, hfy⟩, g.map_add ⟨x, hgx⟩ ⟨y, hgy⟩, hx, hy]⟩,
-      smul := λ c x ⟨hfx, hgx, hx⟩, ⟨smul_mem _ c hfx, smul_mem _ c hgx,
-        by erw [f.map_smul c ⟨x, hfx⟩, g.map_smul c ⟨x, hgx⟩, hx]⟩ }
+{ carrier   := {x | ∃ (hf : x ∈ f.domain) (hg : x ∈ g.domain), f ⟨x, hf⟩ = g ⟨x, hg⟩},
+  zero_mem' := ⟨zero_mem _, zero_mem _, f.map_zero.trans g.map_zero.symm⟩,
+  add_mem'  := λ x y ⟨hfx, hgx, hx⟩ ⟨hfy, hgy, hy⟩, ⟨add_mem _ hfx hfy, add_mem _ hgx hgy,
+    by erw [f.map_add ⟨x, hfx⟩ ⟨y, hfy⟩, g.map_add ⟨x, hgx⟩ ⟨y, hgy⟩, hx, hy]⟩,
+  smul_mem' := λ c x ⟨hfx, hgx, hx⟩, ⟨smul_mem _ c hfx, smul_mem _ c hgx,
+    by erw [f.map_smul c ⟨x, hfx⟩, g.map_smul c ⟨x, hgx⟩, hx]⟩ }
 
 instance : has_inf (linear_pmap R E F) :=
 ⟨λ f g, ⟨f.eq_locus g, f.to_fun.comp $ of_le $ λ x hx, hx.fst⟩⟩
@@ -204,7 +202,7 @@ private lemma sup_aux (f g : linear_pmap R E F)
     ∀ (x : f.domain) (y : g.domain) (z),
       (x:E) + y = ↑z → fg z = f x + g y :=
 begin
-  choose x hx y hy hxy using λ z : f.domain ⊔ g.domain, mem_sup.1 z.coe_prop,
+  choose x hx y hy hxy using λ z : f.domain ⊔ g.domain, mem_sup.1 z.prop,
   set fg := λ z, f ⟨x z, hx z⟩ + g ⟨y z, hy z⟩,
   have fg_eq : ∀ (x' : f.domain) (y' : g.domain) (z' : f.domain ⊔ g.domain) (H : (x':E) + y' = z'),
     fg z' = f x' + g y',
@@ -220,7 +218,7 @@ begin
     rw [← add_assoc, add_right_comm (f _), ← map_add, add_assoc, ← map_add],
     apply fg_eq,
     simp only [coe_add, coe_mk, ← add_assoc],
-    rw [add_right_comm (x _), hxy, add_assoc, hxy] },
+    rw [add_right_comm (x _), hxy, add_assoc, hxy, coe_mk, coe_mk] },
   { intros c z,
     rw [smul_add, ← map_smul, ← map_smul],
     apply fg_eq,
@@ -266,7 +264,7 @@ begin
   simpa
 end
 
-protected lemma sup_le {f g h : linear_pmap R E F} 
+protected lemma sup_le {f g h : linear_pmap R E F}
   (H : ∀ (x : f.domain) (y : g.domain), (x:E) = y → f x = g y)
   (fh : f ≤ h) (gh : g ≤ h) :
   f.sup g H ≤ h :=
@@ -285,12 +283,38 @@ begin
   simp [*]
 end
 
+section
+
+variables {K : Type*} [division_ring K] [module K E] [module K F]
+
+/-- Extend a `linear_pmap` to `f.domain ⊔ K ∙ x`. -/
+noncomputable def sup_span_singleton (f : linear_pmap K E F) (x : E) (y : F) (hx : x ∉ f.domain) :
+  linear_pmap K E F :=
+f.sup (mk_span_singleton x y (λ h₀, hx $ h₀.symm ▸ f.domain.zero_mem)) $
+  sup_h_of_disjoint _ _ $ by simpa [disjoint_span_singleton]
+
+@[simp] lemma domain_sup_span_singleton (f : linear_pmap K E F) (x : E) (y : F)
+  (hx : x ∉ f.domain) :
+  (f.sup_span_singleton x y hx).domain = f.domain ⊔ K ∙ x := rfl
+
+@[simp] lemma sup_span_singleton_apply_mk (f : linear_pmap K E F) (x : E) (y : F)
+  (hx : x ∉ f.domain) (x' : E) (hx' : x' ∈ f.domain) (c : K) :
+  f.sup_span_singleton x y hx ⟨x' + c • x,
+    mem_sup.2 ⟨x', hx', _, mem_span_singleton.2 ⟨c, rfl⟩, rfl⟩⟩ = f ⟨x', hx'⟩ + c • y :=
+begin
+  erw [sup_apply _ ⟨x', hx'⟩ ⟨c • x, _⟩, mk_span_singleton_apply],
+  refl,
+  exact mem_span_singleton.2 ⟨c, rfl⟩
+end
+
+end
+
 private lemma Sup_aux (c : set (linear_pmap R E F)) (hc : directed_on (≤) c) :
   ∃ f : ↥(Sup (domain '' c)) →ₗ[R] F, (⟨_, f⟩ : linear_pmap R E F) ∈ upper_bounds c :=
 begin
   cases c.eq_empty_or_nonempty with ceq cne, { subst c, simp },
   have hdir : directed_on (≤) (domain '' c),
-    from (directed_on_image _).2 (hc.mono _ domain_mono.monotone),
+    from directed_on_image.2 (hc.mono domain_mono.monotone),
   have P : Π x : Sup (domain '' c), {p : c // (x : E) ∈ p.val.domain },
   { rintros x,
     apply classical.indefinite_description,

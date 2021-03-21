@@ -10,7 +10,7 @@ element of `S`. This can be used to model nondeterministic functions,
 which return something in a range of values (represented by the
 predicate `S`) but are not completely determined.
 -/
-import data.set.lattice data.quot
+import data.set.lattice
 
 /-- A member of `semiquot α` is classically a nonempty `set α`,
   and in the VM is represented by an element of `α`; the relation
@@ -36,7 +36,7 @@ theorem ext_s {q₁ q₂ : semiquot α} : q₁ = q₂ ↔ q₁.s = q₂.s :=
  λ h, by cases q₁; cases q₂; congr; exact h⟩
 
 theorem ext {q₁ q₂ : semiquot α} : q₁ = q₂ ↔ ∀ a, a ∈ q₁ ↔ a ∈ q₂ :=
-ext_s.trans (set.ext_iff _ _)
+ext_s.trans set.ext_iff
 
 theorem exists_mem (q : semiquot α) : ∃ a, a ∈ q :=
 let ⟨⟨a, h⟩, h₂⟩ := q.2.exists_rep in ⟨a, h⟩
@@ -103,6 +103,9 @@ instance : monad semiquot :=
 { pure := @semiquot.pure,
   map := @semiquot.map,
   bind := @semiquot.bind }
+
+@[simp] lemma map_def {β} : ((<$>) : (α → β) → semiquot α → semiquot β) = map := rfl
+@[simp] lemma bind_def {β} : ((>>=) : semiquot α → (α → semiquot β) → semiquot β) = bind := rfl
 
 @[simp] theorem mem_pure {a b : α} : a ∈ (pure b : semiquot α) ↔ a = b :=
 set.mem_singleton_iff

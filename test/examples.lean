@@ -1,10 +1,23 @@
-import tactic data.stream.basic data.set.basic data.finset data.multiset
-       category.traversable.derive meta.coinductive_predicates
+import tactic
+
+/-!
+## Miscellaneous examples
+
+Please don't add further content to this file;
+it too easily becomes a grab bag of forgotten arcana.
+
+Tactics should have their own file in the `test/` directory.
+
+Examples verifying correct behaviour of simp sets or instances
+belong in `src/` near the definitions.
+
+TODO: remove or move the remaining content of this file.
+-/
 
 open tactic
 
 universe u
-variable {α : Type}
+variable {α : Type u}
 
 example (s t u : set ℕ) (h : s ⊆ t ∩ u) (h' : u ⊆ s) : u ⊆ s → true :=
 begin
@@ -45,115 +58,6 @@ end
 
 @[simp] theorem mem_set_of {a : α} {p : α → Prop} : a ∈ {a | p a} = p a := rfl
 
--- TODO: write a tactic to unfold specific instances of generic notation?
-theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl
-theorem union_def {s₁ s₂ : set α} : s₁ ∪ s₂ = {a | a ∈ s₁ ∨ a ∈ s₂} := rfl
-theorem inter_def {s₁ s₂ : set α} : s₁ ∩ s₂ = {a | a ∈ s₁ ∧ a ∈ s₂} := rfl
-
-theorem union_subset {s t r : set α} (sr : s ⊆ r) (tr : t ⊆ r) : s ∪ t ⊆ r :=
-begin
-  dsimp [subset_def, union_def] at *,
-  intros x h,
-  cases h; back_chaining_using_hs
-end
-
-theorem subset_inter {s t r : set α} (rs : r ⊆ s) (rt : r ⊆ t) : r ⊆ s ∩ t :=
-begin
-  dsimp [subset_def, inter_def] at *,
-  intros x h,
-  split; back_chaining_using_hs
-end
-
-/- extensionality -/
-
-example : true :=
-begin
-  have : ∀ (s₀ s₁ : set ℤ), s₀ = s₁,
-  { intros, ext1,
-    guard_target x ∈ s₀ ↔ x ∈ s₁,
-    admit },
-  have : ∀ (s₀ s₁ : finset ℕ), s₀ = s₁,
-  { intros, ext1,
-    guard_target a ∈ s₀ ↔ a ∈ s₁,
-    admit },
-  have : ∀ (s₀ s₁ : multiset ℕ), s₀ = s₁,
-  { intros, ext1,
-    guard_target multiset.count a s₀ = multiset.count a s₁,
-    admit },
-  have : ∀ (s₀ s₁ : list ℕ), s₀ = s₁,
-  { intros, ext1,
-    guard_target list.nth s₀ n = list.nth s₁ n,
-    admit },
-  have : ∀ (s₀ s₁ : stream ℕ), s₀ = s₁,
-  { intros, ext1,
-    guard_target stream.nth n s₀ = stream.nth n s₁,
-    admit },
-  have : ∀ n (s₀ s₁ : array n ℕ), s₀ = s₁,
-  { intros, ext1,
-    guard_target array.read s₀ i = array.read s₁ i,
-    admit },
-  trivial
-end
-
-/- choice -/
-example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
-begin
-  choose i j h using h,
-  guard_hyp i := ℕ → ℕ → ℕ,
-  guard_hyp j := ℕ → ℕ → ℕ,
-  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
-  trivial
-end
-
-example (h : ∀n m : ℕ, ∃i, ∀n:ℕ, ∃j, m = n + i ∨ m + j = n) : true :=
-begin
-  choose i j h using h,
-  guard_hyp i := ℕ → ℕ → ℕ,
-  guard_hyp j := ℕ → ℕ → ℕ → ℕ,
-  guard_hyp h := ∀ (n m k : ℕ), m = k + i n m ∨ m + j n m k = k,
-  trivial
-end
-
--- Test `simp only [exists_prop]` gets applied after choosing.
--- Because of this simp, we need a non-rfl goal
-example (h : ∀ n, ∃ k ≥ 0, n = k) : ∀ x : ℕ, 1 = 1 :=
-begin
-  choose u hu using h,
-  guard_hyp hu := ∀ n, u n ≥ 0 ∧ n = u n,
-  intro, refl
-end
-
-/- refine_struct -/
-section refine_struct
-
-variables {α} [_inst : monoid α]
-include _inst
-
-example : true :=
-begin
-  have : group α,
-  { refine_struct { .._inst },
-    guard_tags _field inv group, admit,
-    guard_tags _field mul_left_inv group, admit, },
-  trivial
-end
-
-end refine_struct
-
-meta example : true :=
-begin
-   success_if_fail { let := compact_relation },
-   trivial
-end
-
-import_private compact_relation from tactic.coinduction
-
-meta example : true :=
-begin
-  let := compact_relation,
-  trivial
-end
-
 meta example : true :=
 begin
    success_if_fail { let := elim_gen_sum_aux },
@@ -168,76 +72,8 @@ begin
   trivial
 end
 
-/- traversable -/
-open tactic.interactive
-
-run_cmd do
-lawful_traversable_derive_handler' `test ``(is_lawful_traversable) ``list
--- the above creates local instances of `traversable` and `is_lawful_traversable`
--- for `list`
--- do not put in instances because they are not universe polymorphic
-
-@[derive [traversable, is_lawful_traversable]]
-structure my_struct (α : Type) :=
-  (y : ℤ)
-
-@[derive [traversable, is_lawful_traversable]]
-inductive either (α : Type u)
-| left : α → ℤ → either
-| right : α → either
-
-@[derive [traversable, is_lawful_traversable]]
-structure my_struct2 (α : Type u) : Type u :=
-  (x : α)
-  (y : ℤ)
-  (η : list α)
-  (k : list (list α))
-
-@[derive [traversable, is_lawful_traversable]]
-inductive rec_data3 (α : Type u) : Type u
-| nil : rec_data3
-| cons : ℕ → α → rec_data3 → rec_data3 → rec_data3
-
-@[derive traversable]
-meta structure meta_struct (α : Type u) : Type u :=
-  (x : α)
-  (y : ℤ)
-  (z : list α)
-  (k : list (list α))
-  (w : expr)
-
-@[derive [traversable,is_lawful_traversable]]
-inductive my_tree (α : Type)
-| leaf {} : my_tree
-| node : my_tree → my_tree → α → my_tree
-
-section
-open my_tree (hiding traverse)
-
-def x : my_tree (list nat) :=
-node
-  leaf
-  (node
-    (node leaf leaf [1,2,3])
-    leaf
-    [3,2])
-  [1]
-
-/-- demonstrate the nested use of `traverse`. It traverses each node of the tree and
-in each node, traverses each list. For each `ℕ` visited, apply an action `ℕ -> state (list ℕ) unit`
-which adds its argument to the state. -/
-def ex : state (list ℕ) (my_tree $ list unit) :=
-do xs ← traverse (traverse $ λ a, modify $ list.cons a) x,
-   pure xs
-
-example : (ex.run []).1 = node leaf (node (node leaf leaf [(), (), ()]) leaf [(), ()]) [()] := rfl
-example : (ex.run []).2 = [1, 2, 3, 3, 2, 1] := rfl
-example : is_lawful_traversable my_tree := my_tree.is_lawful_traversable
-
-end
 
 /- tests of has_sep on finset -/
-
 
 example {α} (s : finset α) (p : α → Prop) [decidable_pred p] : {x ∈ s | p x} = s.filter p :=
 by simp

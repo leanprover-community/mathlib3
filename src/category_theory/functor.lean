@@ -12,12 +12,13 @@ Introduces notations
   `C ⥤ D` for the type of all functors from `C` to `D`.
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
 -/
-
-import category_theory.category tactic.reassoc_axiom
+import tactic.reassoc_axiom
+import tactic.monotonicity
 
 namespace category_theory
 
-universes v v₁ v₂ v₃ u u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₁ v₂ v₃ u u₁ u₂ u₃
 
 /--
 `functor C D` represents a functor between categories `C` and `D`.
@@ -26,10 +27,12 @@ To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map 
 
 The axiom `map_id` expresses preservation of identities, and
 `map_comp` expresses functoriality.
+
+See https://stacks.math.columbia.edu/tag/001B.
 -/
 structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :
   Type (max v₁ v₂ u₁ u₂) :=
-(obj       : C → D)
+(obj []    : C → D)
 (map       : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
 (map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
 (map_comp' : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = (map f) ≫ (map g) . obviously)
@@ -46,15 +49,16 @@ attribute [reassoc, simp] functor.map_comp
 namespace functor
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-include 𝒞
+variables (C : Type u₁) [category.{v₁} C]
 
 /-- `𝟭 C` is the identity functor on a category `C`. -/
 protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
 
-notation `𝟭` := functor.id
+notation `𝟭` := functor.id -- Type this as `\sb1`
+
+instance : inhabited (C ⥤ C) := ⟨functor.id C⟩
 
 variable {C}
 
@@ -63,10 +67,9 @@ variable {C}
 end
 
 section
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-          {D : Type u₂} [𝒟 : category.{v₂} D]
-          {E : Type u₃} [ℰ : category.{v₃} E]
-include 𝒞 𝒟 ℰ
+variables {C : Type u₁} [category.{v₁} C]
+          {D : Type u₂} [category.{v₂} D]
+          {E : Type u₃} [category.{v₃} E]
 
 /--
 `F ⋙ G` is the composition of a functor `F` and a functor `G` (`F` first, then `G`).
@@ -81,8 +84,6 @@ infixr ` ⋙ `:80 := comp
 @[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) {X Y : C} (f : X ⟶ Y) :
   (F ⋙ G).map f = G.map (F.map f) := rfl
 
-omit ℰ
-
 -- These are not simp lemmas because rewriting along equalities between functors
 -- is not necessarily a good idea.
 -- Natural isomorphisms are also provided in `whiskering.lean`.
@@ -91,19 +92,9 @@ protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
 
 end
 
-section
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-include 𝒞
-
-@[simp] def ulift_down : (ulift.{u₂} C) ⥤ C :=
-{ obj := λ X, X.down,
-  map := λ X Y f, f }
-
-@[simp] def ulift_up : C ⥤ (ulift.{u₂} C) :=
-{ obj := λ X, ⟨ X ⟩,
-  map := λ X Y f, f }
-
-end
+@[mono] lemma monotone {α β : Type*} [preorder α] [preorder β] (F : α ⥤ β) :
+  monotone F.obj :=
+λ a b h, le_of_hom (F.map (hom_of_le h))
 
 end functor
 

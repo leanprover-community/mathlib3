@@ -5,7 +5,8 @@ Authors: Johannes Hölzl
 
 Transitive reflexive as well as reflexive closure of relations.
 -/
-import tactic.basic logic.relator
+import tactic.basic
+
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 namespace relation
@@ -13,6 +14,11 @@ namespace relation
 section comp
 variables {r : α → β → Prop} {p : β → γ → Prop} {q : γ → δ → Prop}
 
+/--
+The composition of two relations, yielding a new relation.  The result
+relates a term of `α` and a term of `γ` if there is an intermediate
+term of `β` related to both.
+-/
 def comp (r : α → β → Prop) (p : β → γ → Prop) (a : α) (c : γ) : Prop := ∃b, r a b ∧ p b c
 
 local infixr ` ∘r ` : 80 := relation.comp
@@ -53,33 +59,34 @@ end
 
 end comp
 
+/--
+The map of a relation `r` through a pair of functions pushes the
+relation to the codomains of the functions.  The resulting relation is
+defined by having pairs of terms related if they have preimages
+related by `r`.
+-/
 protected def map (r : α → β → Prop) (f : α → γ) (g : β → δ) : γ → δ → Prop :=
 λc d, ∃a b, r a b ∧ f a = c ∧ g b = d
 
 variables {r : α → α → Prop} {a b c d : α}
 
 /-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
+@[mk_iff relation.refl_trans_gen.cases_tail_iff]
 inductive refl_trans_gen (r : α → α → Prop) (a : α) : α → Prop
-| refl {} : refl_trans_gen a
+| refl : refl_trans_gen a
 | tail {b c} : refl_trans_gen b → r b c → refl_trans_gen c
 
 attribute [refl] refl_trans_gen.refl
 
-run_cmd tactic.mk_iff_of_inductive_prop `relation.refl_trans_gen `relation.refl_trans_gen.cases_tail_iff
-
 /-- `refl_gen r`: reflexive closure of `r` -/
-inductive refl_gen (r : α → α → Prop) (a : α) : α → Prop
-| refl {} : refl_gen a
+@[mk_iff] inductive refl_gen (r : α → α → Prop) (a : α) : α → Prop
+| refl : refl_gen a
 | single {b} : r a b → refl_gen b
 
-run_cmd tactic.mk_iff_of_inductive_prop `relation.refl_gen `relation.refl_gen_iff
-
 /-- `trans_gen r`: transitive closure of `r` -/
-inductive trans_gen (r : α → α → Prop) (a : α) : α → Prop
+@[mk_iff] inductive trans_gen (r : α → α → Prop) (a : α) : α → Prop
 | single {b} : r a b → trans_gen b
 | tail {b c} : trans_gen b → r b c → trans_gen c
-
-run_cmd tactic.mk_iff_of_inductive_prop `relation.trans_gen `relation.trans_gen_iff
 
 attribute [refl] refl_gen.refl
 
@@ -89,7 +96,8 @@ lemma refl_gen.to_refl_trans_gen : ∀{a b}, refl_gen r a b → refl_trans_gen r
 
 namespace refl_trans_gen
 
-@[trans] lemma trans (hab : refl_trans_gen r a b) (hbc : refl_trans_gen r b c) : refl_trans_gen r a c :=
+@[trans]
+lemma trans (hab : refl_trans_gen r a b) (hbc : refl_trans_gen r b c) : refl_trans_gen r a c :=
 begin
   induction hbc,
   case refl_trans_gen.refl { assumption },
@@ -117,6 +125,7 @@ end
 lemma cases_tail : refl_trans_gen r a b → b = a ∨ (∃c, refl_trans_gen r a c ∧ r c b) :=
 (cases_tail_iff r a b).1
 
+@[elab_as_eliminator]
 lemma head_induction_on
   {P : ∀(a:α), refl_trans_gen r a b → Prop}
   {a : α} (h : refl_trans_gen r a b)
@@ -129,16 +138,18 @@ begin
   case refl_trans_gen.tail : b c hab hbc ih {
     apply ih,
     show P b _, from head hbc _ refl,
-    show ∀a a', r a a' → refl_trans_gen r a' b → P a' _ → P a _, from assume a a' hab hbc, head hab _
-  }
+    show ∀a a', r a a' → refl_trans_gen r a' b → P a' _ → P a _,
+      from assume a a' hab hbc, head hab _ }
 end
 
+@[elab_as_eliminator]
 lemma trans_induction_on
   {P : ∀{a b : α}, refl_trans_gen r a b → Prop}
   {a b : α} (h : refl_trans_gen r a b)
   (ih₁ : ∀a, @P a a refl)
   (ih₂ : ∀{a b} (h : r a b), P (single h))
-  (ih₃ : ∀{a b c} (h₁ : refl_trans_gen r a b) (h₂ : refl_trans_gen r b c), P h₁ → P h₂ → P (h₁.trans h₂)) :
+  (ih₃ : ∀{a b c} (h₁ : refl_trans_gen r a b) (h₂ : refl_trans_gen r b c),
+    P h₁ → P h₂ → P (h₁.trans h₂)) :
   P h :=
 begin
   induction h,
@@ -172,7 +183,7 @@ begin
   { rcases IH with IH | IH,
     { rcases cases_head IH with rfl | ⟨e, be, ec⟩,
       { exact or.inr (single bd) },
-      { cases U bd be, exact or.inl ec } },
+      { cases U.unique bd be, exact or.inl ec } },
     { exact or.inr (IH.tail bd) } }
 end
 
@@ -190,7 +201,7 @@ end
 @[trans] lemma trans_left (hab : trans_gen r a b) (hbc : refl_trans_gen r b c) : trans_gen r a c :=
 begin
   induction hbc,
-  case refl_trans_gen.refl : c hab { assumption },
+  case refl_trans_gen.refl : { assumption },
   case refl_trans_gen.tail : c d hbc hcd hac { exact hac.tail hcd }
 end
 
@@ -234,6 +245,40 @@ begin
     rcases IH with ⟨d, had, hdb⟩, exact ⟨_, had, hdb.tail hbc⟩ }
 end
 
+lemma trans_gen_eq_self (trans : transitive r) :
+  trans_gen r = r :=
+funext $ λ a, funext $ λ b, propext $
+⟨λ h, begin
+  induction h,
+  case trans_gen.single : c hc { exact hc },
+  case trans_gen.tail : c d hac hcd hac { exact trans hac hcd }
+end,
+trans_gen.single⟩
+
+lemma transitive_trans_gen : transitive (trans_gen r) :=
+assume a b c, trans
+
+lemma trans_gen_idem :
+  trans_gen (trans_gen r) = trans_gen r :=
+trans_gen_eq_self transitive_trans_gen
+
+lemma trans_gen_lift {p : β → β → Prop} {a b : α} (f : α → β)
+  (h : ∀a b, r a b → p (f a) (f b)) (hab : trans_gen r a b) : trans_gen p (f a) (f b) :=
+begin
+  induction hab,
+  case trans_gen.single : c hac { exact trans_gen.single (h a c hac) },
+  case trans_gen.tail : c d hac hcd hac { exact trans_gen.tail hac (h c d hcd) }
+end
+
+lemma trans_gen_lift' {p : β → β → Prop} {a b : α} (f : α → β)
+  (h : ∀ a b, r a b → trans_gen p (f a) (f b))
+  (hab : trans_gen r a b) : trans_gen p (f a) (f b) :=
+by simpa [trans_gen_idem] using trans_gen_lift f h hab
+
+lemma trans_gen_closed {p : α → α → Prop} :
+  (∀ a b, r a b → trans_gen p a b) → trans_gen r a b → trans_gen p a b :=
+trans_gen_lift' id
+
 end trans_gen
 
 section refl_trans_gen
@@ -254,7 +299,8 @@ end
 
 lemma refl_trans_gen_lift {p : β → β → Prop} {a b : α} (f : α → β)
   (h : ∀a b, r a b → p (f a) (f b)) (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
-hab.trans_induction_on (assume a, refl) (assume a b, refl_trans_gen.single ∘ h _ _) (assume a b c _ _, trans)
+refl_trans_gen.trans_induction_on hab (assume a, refl)
+  (assume a b, refl_trans_gen.single ∘ h _ _) (assume a b c _ _, trans)
 
 lemma refl_trans_gen_mono {p : α → α → Prop} :
   (∀a b, r a b → p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
@@ -279,7 +325,8 @@ lemma refl_trans_gen_idem :
 refl_trans_gen_eq_self reflexive_refl_trans_gen transitive_refl_trans_gen
 
 lemma refl_trans_gen_lift' {p : β → β → Prop} {a b : α} (f : α → β)
-  (h : ∀a b, r a b → refl_trans_gen p (f a) (f b)) (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
+  (h : ∀a b, r a b → refl_trans_gen p (f a) (f b))
+  (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
 by simpa [refl_trans_gen_idem] using refl_trans_gen_lift f h hab
 
 lemma refl_trans_gen_closed {p : α → α → Prop} :
@@ -288,6 +335,14 @@ refl_trans_gen_lift' id
 
 end refl_trans_gen
 
+/--
+The join of a relation on a single type is a new relation for which
+pairs of terms are related if there is a third term they are both
+related to.  For example, if `r` is a relation representing rewrites
+in a term rewriting system, then *confluence* is the property that if
+`a` rewrites to both `b` and `c`, then `join r` relates `b` and `c`
+(see `relation.church_rosser`).
+-/
 def join (r : α → α → Prop) : α → α → Prop := λa b, ∃c, r a c ∧ r b c
 
 section join
@@ -331,7 +386,8 @@ assume a b c ⟨x, hax, hbx⟩ ⟨y, hby, hcy⟩,
 let ⟨z, hxz, hyz⟩ := h b x y hbx hby in
 ⟨z, ht hax hxz, ht hcy hyz⟩
 
-lemma equivalence_join (hr : reflexive r)  (ht : transitive r) (h : ∀a b c, r a b → r a c → join r b c) :
+lemma equivalence_join (hr : reflexive r) (ht : transitive r)
+  (h : ∀a b c, r a b → r a c → join r b c) :
   equivalence (join r) :=
 ⟨reflexive_join hr, symmetric_join, transitive_join ht h⟩
 
@@ -344,8 +400,9 @@ lemma join_of_equivalence {r' : α → α → Prop} (hr : equivalence r)
   (h : ∀a b, r' a b → r a b) : join r' a b → r a b
 | ⟨c, hac, hbc⟩ := hr.2.2 (h _ _ hac) (hr.2.1 $ h _ _ hbc)
 
-lemma refl_trans_gen_of_transitive_reflexive {r' : α → α → Prop} (hr : reflexive r) (ht : transitive r)
-  (h : ∀a b, r' a b → r a b) (h' : refl_trans_gen r' a b) : r a b :=
+lemma refl_trans_gen_of_transitive_reflexive {r' : α → α → Prop} (hr : reflexive r)
+  (ht : transitive r) (h : ∀a b, r' a b → r a b) (h' : refl_trans_gen r' a b) :
+  r a b :=
 begin
   induction h' with b c hab hbc ih,
   { exact hr _ },

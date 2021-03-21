@@ -491,11 +491,7 @@ instance wide_pullback_ι_mono {A : C} (s : set (subobject A)) :
 end)⟩
 
 /--
-When `[has_wide_pullbacks C]`, `mono_over A` has arbitrary "intersections".
-
-As `mono_over A` is only a preorder, this doesn't satisfy the axioms of `complete_semilattice_Inf`,
-but we reuse all the names from `complete_semilattice_Inf` because they will be used to construct
-`complete_semilattice_Inf (subobject A)` shortly.
+When `[has_wide_pullbacks C]`, `subobject A` has arbitrary "intersections".
 -/
 def Inf {A : C} (s : set (subobject A)) : subobject A :=
 subobject.mk (wide_pullback_ι s)
@@ -503,7 +499,14 @@ subobject.mk (wide_pullback_ι s)
 /-- A morphism from the "infimum" of a set of objects in `mono_over A` to one of the objects. -/
 def Inf_le {A : C} (s : set (subobject A)) (f ∈ s) :
   Inf s ⟶ f :=
-sorry
+  begin
+    fsplit,
+    fsplit,
+    apply le_of_comm,
+    swap,
+    -- apply nonempty.intro,
+exact limits.limit.π (wide_cospan s) (some ⟨subobject_equiv A f, set.mem_image_of_mem ⇑(subobject_equiv A) H⟩)
+  end
 
 /-- A morphism version of the `le_Inf` axiom. -/
 def le_Inf {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ⟶ g) :

@@ -77,15 +77,30 @@ instance : ess_surj (from_skeleton C) :=
 noncomputable instance : is_equivalence (from_skeleton C) :=
 equivalence.equivalence_of_fully_faithfully_ess_surj (from_skeleton C)
 
+lemma skeleton_skeletal : skeletal (skeleton C) :=
+begin
+  rintro X Y ⟨h⟩,
+  have : X.out ≈ Y.out := ⟨(from_skeleton C).map_iso h⟩,
+  simpa using quotient.sound this,
+end
+
 /-- The `skeleton` of `C` given by choice is a skeleton of `C`. -/
 noncomputable def skeleton_is_skeleton : is_skeleton_of C (skeleton C) (from_skeleton C) :=
-{ skel :=
-  begin
-    rintro X Y ⟨h⟩,
-    have : X.out ≈ Y.out := ⟨(from_skeleton C).map_iso h⟩,
-    simpa using quotient.sound this,
-  end,
+{ skel := skeleton_skeletal C,
   eqv := from_skeleton.is_equivalence C }
+
+section
+variables {C D}
+
+noncomputable
+def equivalence.skeleton_equiv (e : C ≌ D) : skeleton C ≃ skeleton D :=
+let f := ((from_skeleton C).as_equivalence.trans e).trans (from_skeleton D).as_equivalence.symm in
+{ to_fun := f.functor.obj,
+  inv_fun := f.inverse.obj,
+  left_inv := λ X, skeleton_skeletal C ⟨(f.unit_iso.app X).symm⟩,
+  right_inv := λ Y, skeleton_skeletal D ⟨(f.counit_iso.app Y)⟩, }
+
+end
 
 /--
 Construct the skeleton category by taking the quotient of objects. This construction gives a

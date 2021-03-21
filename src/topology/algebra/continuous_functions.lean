@@ -49,10 +49,7 @@ lemma one_coe [has_one β]  :
   [topological_space α] [topological_space β] [topological_space γ]
   [semigroup γ] [has_continuous_mul γ] (f₁ f₂ : C(β, γ)) (g : C(α, β)) :
   (f₁ * f₂).comp g = f₁.comp g * f₂.comp g :=
-begin
-  ext,
-  simp,
-end
+by { ext, simp, }
 
 end continuous_map
 

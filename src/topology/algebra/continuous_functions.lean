@@ -436,3 +436,49 @@ instance continuous_map_module' {α : Type*} [topological_space α]
 end continuous_map
 
 end module_over_continuous_functions
+
+/-!
+We now provide formulas for `f ⊓ g` and `f ⊔ g`, where `f g : C(α, β)`,
+in terms of `continuous_map.abs`.
+-/
+
+section
+variables {R : Type*} [linear_ordered_field R]
+
+-- TODO:
+-- This lemma (and the next) could go all the way back in `algebra.ordered_field`,
+-- except that it is tedious to prove without tactics.
+-- Rather than stranding it at some intermediate location,
+-- it's here, immediately prior to the point of use.
+lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x - y)) :=
+begin
+  dsimp [min, max, abs],
+  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
+  split_ifs; ring; linarith,
+end
+
+lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
+begin
+  dsimp [min, max, abs],
+  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
+  split_ifs; ring; linarith,
+end
+end
+
+namespace continuous_map
+
+section lattice
+variables {α : Type*} [topological_space α]
+variables {β : Type*} [linear_ordered_field β] [topological_space β]
+  [order_topology β] [topological_ring β]
+
+lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - (f - g).abs) :=
+ext (λ x, by simpa using min_eq_half_add_sub_abs_sub)
+
+-- Not sure why this is grosser than `inf_eq`:
+lemma sup_eq (f g : C(α, β)) : f ⊔ g = (2⁻¹ : β) • (f + g + (f - g).abs) :=
+ext (λ x, by simpa [mul_add] using @max_eq_half_add_add_abs_sub _ _ (f x) (g x))
+
+end lattice
+
+end continuous_map

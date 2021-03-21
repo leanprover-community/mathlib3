@@ -145,7 +145,7 @@ begin
   exact lt_of_le_of_lt (dist_le_of_nonempty.mpr (λ y, le y trivial)) (w x),
 end
 
-lemma dist_lt_of_compact [compact_space α] (C0 : (0 : ℝ) < C) :
+lemma dist_lt_iff_of_compact [compact_space α] (C0 : (0 : ℝ) < C) :
   dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
 begin
   fsplit,
@@ -161,7 +161,7 @@ begin
       exact cInf_le ⟨0, λ C, and.left⟩ ⟨le_refl _, λ x, false.elim (h (nonempty.intro x))⟩, }, },
 end
 
-lemma dist_lt_of_nonempty_compact [nonempty α] [compact_space α] :
+lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
   dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
 ⟨λ w x, lt_of_le_of_lt (dist_coe_le_dist x) w, dist_lt_of_compact_aux⟩
 
@@ -495,14 +495,14 @@ begin
   exact dist_le_of_nonempty,
 end
 
-lemma norm_lt_of_compact [compact_space α]
+lemma norm_lt_iff_of_compact [compact_space α]
   {f : α →ᵇ β} {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 begin
   simp_rw [norm_def, ←dist_zero_right],
   exact dist_lt_of_compact M0,
 end
 
-lemma norm_lt_of_nonempty_compact [nonempty α] [compact_space α]
+lemma norm_lt_iff_of_nonempty_compact [nonempty α] [compact_space α]
   {f : α →ᵇ β} {M : ℝ} : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 begin
   simp_rw [norm_def, ←dist_zero_right],

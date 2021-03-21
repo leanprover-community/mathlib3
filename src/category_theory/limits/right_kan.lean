@@ -17,6 +17,57 @@ universes v u₁ u₂ u₃
 variables {C : Type v} {C' : Type u₂} {D : Type u₃}
 variables [category.{v} C] [category.{v} C'] [category.{v} D]
 
+section Ran
+
+abbreviation Ran_index (p : C ⥤ C') (c' : C') := comma (functor.from_punit c') p
+
+abbreviation Ran_index_map (p : C ⥤ C') {c' c'' : C'} (f : c'' ⟶ c') :
+  Ran_index p c' ⥤ Ran_index p c'' := comma.map_left _ ((functor.const _).map f)
+
+@[simp]
+lemma Ran_index_map_id (p : C ⥤ C') {c' : C'} (j : Ran_index p c') :
+  (Ran_index_map p (𝟙 c')).obj j = j :=
+begin
+  cases j,
+  delta Ran_index_map comma.map_left,
+  tidy,
+end
+
+@[simp]
+lemma Ran_index_map_comp_apply (p : C ⥤ C') {c' c'' c''' : C'} (f : c''' ⟶ c'') (g : c'' ⟶ c')
+  (j : Ran_index p c') :
+  (Ran_index_map p (f ≫ g)).obj j = (Ran_index_map p f).obj ((Ran_index_map p g).obj j) :=
+begin
+  cases j,
+  delta Ran_index_map comma.map_left,
+  tidy,
+end
+
+abbreviation Ran_diagram (p : C ⥤ C') (F : C ⥤ D) (c' : C') : Ran_index p c' ⥤ D :=
+  comma.snd (functor.from_punit c') p ⋙ F
+
+def right_kan_obj (p : C ⥤ C') (F : C ⥤ D)
+  [∀ X, has_limits_of_shape (Ran_index p X) D] :
+  C' ⥤ D :=
+{ obj := λ c', limit (Ran_diagram p F c'),
+  map := λ X Y f, limit.pre (Ran_diagram _ _ _) (Ran_index_map _ f),
+  map_id' := begin
+    intro X,
+    ext j,
+    simp only [limit.pre_π, id_comp],
+    congr' 1,
+    simp,
+  end,
+  map_comp' := begin
+    intros X Y Z f g,
+    ext j,
+    erw [limit.pre_pre, limit.pre_π, limit.pre_π],
+    congr' 1,
+    simp,
+  end }
+
+end Ran
+
 @[simps]
 def left_kan_obj (p : C ⥤ C') (F : C ⥤ D)
   [∀ X, has_colimits_of_shape (comma p (functor.from_punit X)) D] :
@@ -56,8 +107,10 @@ def left_kan_equiv (p : C ⥤ C') [∀ X, has_colimits_of_shape (comma p (functo
   (F : C ⥤ D) (G : C' ⥤ D) :
   (left_kan_obj p F ⟶ G) ≃ (F ⟶ ((whiskering_left _ _ _).obj p).obj G) :=
 { to_fun := λ f,
-  { app := λ X,
-      by apply colimit.ι (comma.fst p (functor.from_punit (p.obj X)) ⋙ F) ⟨X, ⟨⟩, 𝟙 _⟩ ≫ f.app _,
+  { app := λ X, begin
+        refine _ ≫ f.app _,
+        refine colimit.ι (comma.fst p (functor.from_punit (p.obj X)) ⋙ F) ⟨X, ⟨⟩, 𝟙 _⟩,
+      end,
     naturality' := λ X Y g,
     begin
       dsimp only [whiskering_left_obj_obj, functor.comp_map],

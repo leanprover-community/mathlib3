@@ -49,19 +49,19 @@ def boundary (X : finset E) : set E :=
 The interior of a simplex as a subspace. Note this is *not* the same thing as the topological
 interior of the underlying space.
 -/
-def interior (X : finset E) : set E :=
+def combi_interior (X : finset E) : set E :=
 convex_hull X \ boundary X
 
 lemma boundary_subset_convex_hull {X : finset E} : boundary X ⊆ convex_hull X :=
 bUnion_subset (λ Y hY, convex_hull_mono hY.1)
 
 lemma convex_hull_eq_interior_union_boundary (X : finset E) :
-  convex_hull ↑X = interior X ∪ boundary X :=
+  convex_hull ↑X = combi_interior X ∪ boundary X :=
 (sdiff_union_of_subset boundary_subset_convex_hull).symm
 
 lemma disjoint_interiors {S : simplicial_complex m} {X Y : finset E}
   (hX : X ∈ S.faces) (hY : Y ∈ S.faces) (x : E) :
-  x ∈ interior X ∩ interior Y → X = Y :=
+  x ∈ combi_interior X ∩ combi_interior Y → X = Y :=
 begin
   rintro ⟨⟨hxX, hXbound⟩, ⟨hyY, hYbound⟩⟩,
   by_contra,
@@ -82,11 +82,11 @@ end
 
 lemma disjoint_interiors_aux {S : simplicial_complex m} {X Y : finset E}
   (hX : X ∈ S.faces) (hY : Y ∈ S.faces) (h : X ≠ Y) :
-  disjoint (interior X) (interior Y) :=
+  disjoint (combi_interior X) (combi_interior Y) :=
 λ x hx, h (disjoint_interiors hX hY _ hx)
 
 lemma simplex_interior_covers (X : finset E) :
-  convex_hull ↑X = ⋃ (Y ⊆ X), interior Y :=
+  convex_hull ↑X = ⋃ (Y ⊆ X), combi_interior Y :=
 begin
   apply subset.antisymm _ _,
   { apply X.strong_induction_on,
@@ -104,7 +104,7 @@ begin
 end
 
 lemma interiors_cover (S : simplicial_complex m) :
-  S.space = ⋃ X ∈ S.faces, interior X :=
+  S.space = ⋃ X ∈ S.faces, combi_interior X :=
 begin
   apply subset.antisymm _ _,
   { apply bUnion_subset,
@@ -117,7 +117,8 @@ begin
 end
 
 /- The simplices interiors form a partition of the underlying space (except that they contain the empty set) -/
-lemma interiors_partition {S : simplicial_complex m} : ∀ x ∈ S.space, exists_unique (λ X, X ∈ S.faces ∧ x ∈ interior X) :=
+lemma combi_interiors_partition {S : simplicial_complex m} :
+  ∀ x ∈ S.space, exists_unique (λ X, X ∈ S.faces ∧ x ∈ combi_interior X) :=
 begin
   rintro x hx,
   rw interiors_cover S at hx,
@@ -126,36 +127,44 @@ begin
   exact ⟨X, ⟨⟨hX, hxX⟩, (λ Y ⟨hY, hxY⟩, disjoint_interiors hY hX x ⟨hxY, hxX⟩)⟩⟩,
 end
 
--- Now, topology
-def geometric_realisation (S : simplicial_complex m) :
-  topological_space S.space := topological_space.of_closed
-  {F | ∀ X ∈ S.faces, is_closed(subtype.val '' F ∩ convex_hull (X : set E))}
-  begin
-    rintro X hX, simp,
-  end
-  begin
-    rintro A hA X hX,
-    sorry
-  end
-  begin
-    rintro T U hT hU X hX,
-    have : subtype.val '' (T ∪ U) ∩ convex_hull ↑X =
-      (subtype.val '' T ∩ convex_hull ↑X) ∪ (subtype.val '' U ∩ convex_hull ↑X),
+/- interior X is the topological interior iff X is of dimension d -/
+lemma interiors_agree_of_high_dimension {S : simplicial_complex m} :
+  ∀ X ∈ S.faces, finset.card X = m ↔ combi_interior X = interior X :=
+begin
+  rintro X hX,
+  split,
+  {
+    intro hXdim,
+    ext x,
+    split,
     {
-      have : subtype.val '' (T ∪ U) = subtype.val '' T ∪ subtype.val '' U,
+      intro hx,
+      unfold interior,
+      sorry
+    },
+    {
+      intro hx,
+      split,
       {
         sorry
       },
-      rw [this, union_inter_distrib_right],
-    },
-    rw this,
-    exact is_closed_union (hT X hX) (hU X hX),
-  end
+      {
+        intro hxbound,
+        sorry
+      }
+    }
+  },
+  {
+    intro hint,
+    sorry
+  }
+end
 
---Is that a usable definition?
+--TODO: Make this definition usable and remove the hated ==
 def polytope {A : set E} : Prop := ∃ S : simplicial_complex m, S.space = A
 
-def locally_finite_complex (S : simplicial_complex m) : Prop := ∀ x : fin m → ℝ, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set(fin m → ℝ))}
+def locally_finite_complex (S : simplicial_complex m) : Prop :=
+  ∀ x : fin m → ℝ, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set(fin m → ℝ))}
 
 lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m) (hS : locally_finite_complex S) :
   locally_compact_space S.space :=
@@ -164,24 +173,61 @@ lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m) (
     sorry
   end}
 
-/- interior X is the topological interior if X is of dimension d -/
-lemma interiors_agree_of_high_dimension {S : simplicial_complex m} : ∀ X ∈ S.faces, finset.card X = m → interior X = interior X :=
-begin
-sorry
-end
-
-def skeleton (k : ℕ) (S : simplicial_complex m) : simplicial_complex m :=
+def skeleton (S : simplicial_complex m) (k : ℕ) : simplicial_complex m :=
 {faces := {X ∈ S.faces | finset.card X ≤ k},
 indep := λ X hX, S.indep hX.1,
 down_closed := λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩,
 disjoint := λ X Y hX hY, S.disjoint hX.1 hY.1}
 
-lemma skeleton_subcomplex_self (k : ℕ) (S : simplicial_complex m) :
-  (skeleton k S).faces ⊆ S.faces := (λ X ⟨hX, _⟩, hX)
+--Is this lemma useful?
+lemma skeleton_subcomplex_self (S : simplicial_complex m) (k : ℕ) :
+  (skeleton S k).faces ⊆ S.faces := (λ X ⟨hX, _⟩, hX)
 
+--To golf down
+lemma size_bound {X : finset (fin m → ℝ)} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
+  X.card ≤ m+1 :=
+begin
+  cases X.eq_empty_or_nonempty,
+  { simp [h] },
+  rcases h with ⟨y, hy⟩,
+  have y_mem : y ∈ (X : set (fin m → ℝ)) := hy,
+  have Xy : (↑X \ {y}) = ((↑(X.erase y)) : set (fin m → ℝ)),
+  { simp },
+  have := hX,
+  rw @affine_independent_set_iff_linear_independent_vsub ℝ _ _ _ _ _ _ ↑X y y_mem at this,
+  letI q : fintype ↥((λ (p : fin m → ℝ), p -ᵥ y) '' (↑X \ {y})),
+  { apply set.fintype_image _ _,
+    { apply_instance },
+    rw Xy,
+    exact finset_coe.fintype _ },
+  sorry
+  /-
+  have := finite_dimensional.fintype_card_le_findim_of_linear_independent this,
+  simp only [vsub_eq_sub, finite_dimensional.findim_fin_fun, fintype.card_of_finset] at this,
+  rw finset.card_image_of_injective at this,
+  simp only [set.to_finset_card] at this,
+  rw fintype.card_of_finset' (X.erase y) at this,
+  rw finset.card_erase_of_mem hy at this,
+  rw nat.pred_le_iff at this,
+  exact this,
+  simp [and_comm],
+  intros p q h,
+  simpa using h,-/
+end
+
+--Refinement of `size_bound`
+lemma simplex_dimension_le_space_dimension {S : simplicial_complex m} {X : finset E} :
+  X ∈ S.faces → finset.card X ≤ m + 1 :=
+begin
+  intro hX,
+  have := S.indep hX,
+  sorry,
+end
+
+/- S₁ ≤ S₂ iff all faces of S₁ are contained in faces of-/
 def subdivision_order : partial_order (simplicial_complex m) :=
-  {le := (λ S₁ S₂, S₁.space = S₂.space ∧ ∀ X₁ ∈ S₁.faces, ∃ X₂ ∈ S₂.faces, X₁ ⊆ X₂),
-  le_refl := (λ S, ⟨rfl, (λ X hX, ⟨X, hX, subset.refl X⟩)⟩),
+  {le := (λ S₁ S₂, S₁.space = S₂.space ∧ ∀ X₁ ∈ S₁.faces, ∃ X₂ ∈ S₂.faces, convex_hull (X₁ : set(fin m → ℝ)) ⊆ convex_hull (X₂ : set(fin m → ℝ))),
+  le_refl := (λ S, ⟨rfl, (λ X hX, ⟨X, hX, subset.refl _⟩)⟩),
   le_trans := begin
     rintro S₁ S₂ S₃ h₁₂ h₂₃,
     use eq.trans h₁₂.1 h₂₃.1,
@@ -193,18 +239,60 @@ def subdivision_order : partial_order (simplicial_complex m) :=
   le_antisymm := begin
     rintro S₁ S₂ h₁ h₂,
     ext X,
+    --induction on k = m - finset.card X
     split,
     {
       intro hX,
       obtain ⟨Y, hY, hXY⟩ := h₁.2 X hX,
-      exact S₂.down_closed hY hXY,
+      obtain ⟨Z, hZ, hYZ⟩ := h₂.2 Y hY,
+      have := subset.trans (inter_subset_inter_right (convex_hull ↑X) (subset.trans hXY hYZ)) (S₁.disjoint hX hZ),
+      rw inter_self at this,
+      have := subset.antisymm (convex_hull_mono (inter_subset_left ↑X ↑Z)) this,
+      sorry
     },
     {
-      intro hX,
-      obtain ⟨Y, hY, hXY⟩ := h₂.2 X hX,
-      exact S₁.down_closed hY hXY,
+      sorry
     }
   end}
+
+def closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
+  simplicial_complex m :=
+  {faces := {X | ∃ X' ∈ A, X ⊆ X'},
+  indep := λ X ⟨X', hX', hX⟩, S.indep (S.down_closed (hA hX') hX),
+  down_closed := λ X Y ⟨X', hX', hX⟩ hY, ⟨X', hX', subset.trans hY hX⟩,
+  disjoint := λ X Y ⟨X', hX', hX⟩ ⟨Y', hY', hY⟩,
+    S.disjoint (S.down_closed (hA hX') hX) (S.down_closed (hA hY') hY),}
+
+lemma closure_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
+  (closure hA).faces ⊆ S.faces := λ X ⟨X', hX', hX⟩, S.down_closed (hA hX') hX
+
+def star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
+  set (finset (fin m → ℝ)) :=
+  ⋃ (X : finset (fin m → ℝ)) (H : X ∈ A), {Y | X ⊆ Y}
+
+lemma star_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
+  star hA ⊆ S.faces :=
+  begin
+    unfold star,
+    rintro X ⟨_, ⟨Y, rfl⟩, hX⟩,
+    simp at hX,
+    sorry
+  end
+
+def Star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
+  simplicial_complex m := closure (star_subset_complex hA)
+
+lemma Star_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
+  (Star hA).faces ⊆ S.faces := λ X ⟨X', hX', hX⟩, S.down_closed ((star_subset_complex hA) hX') hX
+
+def link {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
+  simplicial_complex m :=
+  {faces := (Star hA).faces \ star (closure_subset_complex hA),
+  indep := λ X hX,S.indep (closure_subset_complex (star_subset_complex hA) hX.1),
+  down_closed := sorry,
+  disjoint := λ X Y hX hY, S.disjoint
+    (closure_subset_complex (star_subset_complex hA) hX.1) (closure_subset_complex (star_subset_complex hA) hY.1) }
+
 
 
 
@@ -1033,35 +1121,6 @@ end
 lemma test {n m : ℕ} (h : n.pred ≤ m) : n ≤ m + 1 :=
 begin
   exact nat.pred_le_iff.mp h,
-end
-
-lemma size_bound {X : finset (fin m → ℝ)} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
-  X.card ≤ m+1 :=
-begin
-  cases X.eq_empty_or_nonempty,
-  { simp [h] },
-  rcases h with ⟨y, hy⟩,
-  have y_mem : y ∈ (X : set (fin m → ℝ)) := hy,
-  have Xy : (↑X \ {y}) = ((↑(X.erase y)) : set (fin m → ℝ)),
-  { simp },
-  have := hX,
-  rw @affine_independent_set_iff_linear_independent_vsub ℝ _ _ _ _ _ _ ↑X y y_mem at this,
-  letI q : fintype ↥((λ (p : fin m → ℝ), p -ᵥ y) '' (↑X \ {y})),
-  { apply set.fintype_image _ _,
-    { apply_instance },
-    rw Xy,
-    exact finset_coe.fintype _ },
-  have := finite_dimensional.fintype_card_le_findim_of_linear_independent this,
-  simp only [vsub_eq_sub, finite_dimensional.findim_fin_fun, fintype.card_of_finset] at this,
-  rw finset.card_image_of_injective at this,
-  simp only [set.to_finset_card] at this,
-  rw fintype.card_of_finset' (X.erase y) at this,
-  rw finset.card_erase_of_mem hy at this,
-  rw nat.pred_le_iff at this,
-  exact this,
-  simp [and_comm],
-  intros p q h,
-  simpa using h,
 end
 
 lemma mwe {α : Type*} {n : ℕ} (X : set (finset α)) (bound : ∀ y ∈ X, finset.card y ≤ n) :

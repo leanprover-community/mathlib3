@@ -136,7 +136,7 @@ lemma dist_le_of_nonempty [nonempty α] :
 ⟨λ h x, le_trans (dist_coe_le_dist x) h,
  λ w, (dist_le (le_trans dist_nonneg (w (nonempty.some ‹_›)))).mpr w⟩
 
-lemma dist_lt_of_compact_aux [nonempty α] [compact_space α]
+lemma dist_lt_of_nonempty_compact [nonempty α] [compact_space α]
   (w : ∀x:α, dist (f x) (g x) < C) : dist f g < C :=
 begin
   have c : continuous (λ x, dist (f x) (g x)), { continuity, },
@@ -153,7 +153,7 @@ begin
     exact lt_of_le_of_lt (dist_coe_le_dist x) w, },
   { by_cases h : nonempty α,
     { resetI,
-      exact dist_lt_of_compact_aux, },
+      exact dist_lt_of_nonempty_compact, },
     { rintro -,
       convert C0,
       apply le_antisymm _ dist_nonneg',
@@ -163,7 +163,7 @@ end
 
 lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
   dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
-⟨λ w x, lt_of_le_of_lt (dist_coe_le_dist x) w, dist_lt_of_compact_aux⟩
+⟨λ w x, lt_of_le_of_lt (dist_coe_le_dist x) w, dist_lt_of_nonempty_compact⟩
 
 /-- On an empty space, bounded continuous functions are at distance 0 -/
 lemma dist_zero_of_empty (e : ¬ nonempty α) : dist f g = 0 :=

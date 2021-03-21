@@ -24,12 +24,10 @@ We prove the basic identities
 * `(finset.range (n + 1)).sum (λ ν, ν • bernstein_polynomial R n ν) = n • X`
 * `(finset.range (n + 1)).sum (λ ν, (ν * (ν-1)) • bernstein_polynomial R n ν) = (n * (n-1)) • X^2`
 
-## Future work
+## Notes
 
-The fact that the Bernstein approximations
-of a continuous function `f` on `[0,1]` converge uniformly.
-This will give a constructive proof of Weierstrass' theorem that
-polynomials are dense in `C([0,1], ℝ)`.
+See also `analysis.special_functions.bernstein`, which defines the Bernstein approximations
+of a continuous function `f : C([0,1], ℝ)`, and shows that these converge uniformly to `f`.
 -/
 
 noncomputable theory

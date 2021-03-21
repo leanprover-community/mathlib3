@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
+Authors: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import order.filter.basic
 import data.set.countable
@@ -223,6 +223,9 @@ lemma has_basis_iff : l.has_basis p s ↔ ∀ t, t ∈ l ↔ ∃ i (hi : p i), s
 
 lemma has_basis.ex_mem (h : l.has_basis p s) : ∃ i, p i :=
 let ⟨i, pi, h⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, pi⟩
+
+protected lemma has_basis.nonempty (h : l.has_basis p s) : nonempty ι :=
+nonempty_of_exists h.ex_mem
 
 protected lemma is_basis.has_basis (h : is_basis p s) : has_basis h.filter p s :=
 ⟨λ t, by simp only [h.mem_filter_iff, exists_prop]⟩

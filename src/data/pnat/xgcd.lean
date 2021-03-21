@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Neil Strickland.  All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Neil Strickland
+Authors: Neil Strickland
 
 This file sets up a version of the Euclidean algorithm that works
 only with natural numbers.  Given a, b > 0, it computes the unique

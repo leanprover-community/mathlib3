@@ -32,6 +32,7 @@ We work in an additive category C equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [has_shift C] [additive_category C]
 [functor.additive (shift C).functor]
+
 variables (X : C)
 
 /--
@@ -56,6 +57,7 @@ instance [has_zero_object C] : inhabited (triangle C) :=
   mor2 := 0,
   mor3 := 0 }⟩
 
+
 /--
 For each object in C, there is a triangle of the form (X,X,0,𝟙_X,0,0)
 -/
@@ -66,6 +68,7 @@ def contractible_triangle (X : C) : triangle C :=
   mor1 := 𝟙 X,
   mor2 := 0,
   mor3 := 0 }
+
 
 variable {C}
 

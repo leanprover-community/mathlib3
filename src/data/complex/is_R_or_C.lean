@@ -144,24 +144,18 @@ end
 ext_iff.2 $ by simp
 @[simp, norm_cast, priority 900] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : K) = r * s :=
 ext_iff.2 $ by simp
+@[simp, norm_cast] lemma of_real_smul (r x : ℝ) : r • (x : K) = (r : K) * (x : K) :=
+by { simp_rw [← smul_eq_mul, of_real_alg r], simp, }
+
 lemma of_real_mul_re (r : ℝ) (z : K) : re (↑r * z) = r * re z :=
 by simp only [mul_re, of_real_im, zero_mul, of_real_re, sub_zero]
-
-lemma smul_re (r : ℝ) (z : K) : re (↑r * z) = r * (re z) :=
-by simp only [of_real_im, zero_mul, of_real_re, sub_zero, mul_re]
-lemma smul_im (r : ℝ) (z : K) : im (↑r * z) = r * (im z) :=
+lemma of_real_mul_im (r : ℝ) (z : K) : im (↑r * z) = r * (im z) :=
 by simp only [add_zero, of_real_im, zero_mul, of_real_re, mul_im]
 
-lemma smul_re' : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
-λ r z, by { rw algebra.smul_def, apply smul_re }
-lemma smul_im' : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
-λ r z, by { rw algebra.smul_def, apply smul_im }
-
-/-- The real part in a `is_R_or_C` field, as a linear map. -/
-noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
-{ map_smul' := smul_re',  .. re }
-
-@[simp] lemma re_lm_coe : (re_lm : K → ℝ) = re := rfl
+lemma smul_re : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
+λ r z, by { rw algebra.smul_def, apply of_real_mul_re }
+lemma smul_im : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
+λ r z, by { rw algebra.smul_def, apply of_real_mul_im }
 
 /-! ### The imaginary unit, `I` -/
 
@@ -197,6 +191,17 @@ lemma conj_inj (z w : K) : conj z = conj w ↔ z = w := conj_bijective.1.eq_iff
 
 lemma conj_eq_zero {z : K} : conj z = 0 ↔ z = 0 :=
 ring_hom.map_eq_zero conj
+
+lemma conj_eq_re_sub_im (z : K) : conj z = re z - (im z) * I := by { rw ext_iff, simp, }
+
+lemma conj_smul (r : ℝ) (z : K) : conj (r • z) = r • conj z :=
+begin
+  simp_rw conj_eq_re_sub_im,
+  simp only [smul_re, smul_im, of_real_mul],
+  rw smul_sub,
+  simp_rw of_real_alg,
+  simp,
+end
 
 lemma eq_conj_iff_real {z : K} : conj z = z ↔ ∃ r : ℝ, z = (r : K) :=
 begin
@@ -566,21 +571,6 @@ begin
   simp [of_real_im, mul_im, conj_im, conj_re, mul_comm],
 end
 
-/-- The real part in a `is_R_or_C` field, as a continuous linear map. -/
-noncomputable def re_clm : K →L[ℝ] ℝ :=
-re_lm.mk_continuous 1 $ by { simp only [norm_eq_abs, re_lm_coe, one_mul], exact abs_re_le_abs }
-
-@[simp] lemma norm_re_clm : ∥(re_clm : K →L[ℝ] ℝ)∥ = 1 :=
-begin
-  apply le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _),
-  convert continuous_linear_map.ratio_le_op_norm _ (1 : K),
-  simp,
-end
-
-@[simp, norm_cast] lemma re_clm_coe : ((re_clm : K →L[ℝ] ℝ) : K →ₗ[ℝ] ℝ) = re_lm := rfl
-
-@[simp] lemma re_clm_apply : ((re_clm : K →L[ℝ] ℝ) : K → ℝ) = re := rfl
-
 /-! ### Cauchy sequences -/
 
 theorem is_cau_seq_re (f : cau_seq K abs) : is_cau_seq abs' (λ n, re (f n)) :=
@@ -709,6 +699,100 @@ by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 @[simp] lemma coe_real_eq_id : @coe ℝ ℝ _ = id := rfl
 
 end cleanup_lemmas
+
+section linear_maps
+
+variables {K : Type*} [is_R_or_C K]
+
+/-- The real part in a `is_R_or_C` field, as a linear map. -/
+noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
+{ map_smul' := smul_re,  .. re }
+
+@[simp] lemma re_lm_coe : (re_lm : K → ℝ) = re := rfl
+
+/-- The real part in a `is_R_or_C` field, as a continuous linear map. -/
+noncomputable def re_clm : K →L[ℝ] ℝ :=
+re_lm.mk_continuous 1 $ by
+{ simp only [norm_eq_abs, re_lm_coe, one_mul, abs_to_real], exact abs_re_le_abs, }
+
+@[simp] lemma re_clm_norm : ∥(re_clm : K →L[ℝ] ℝ)∥ = 1 :=
+begin
+  apply le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _),
+  convert continuous_linear_map.ratio_le_op_norm _ (1 : K),
+  simp,
+end
+
+@[simp, norm_cast] lemma re_clm_coe : ((re_clm : K →L[ℝ] ℝ) : K →ₗ[ℝ] ℝ) = re_lm := rfl
+
+@[simp] lemma re_clm_apply : ((re_clm : K →L[ℝ] ℝ) : K → ℝ) = re := rfl
+
+@[continuity] lemma continuous_re : continuous (re : K → ℝ) := re_clm.continuous
+
+/-- The imaginary part in a `is_R_or_C` field, as a linear map. -/
+noncomputable def im_lm : K →ₗ[ℝ] ℝ :=
+{ map_smul' := smul_im,  .. im }
+
+@[simp] lemma im_lm_coe : (im_lm : K → ℝ) = im := rfl
+
+/-- The imaginary part in a `is_R_or_C` field, as a continuous linear map. -/
+noncomputable def im_clm : K →L[ℝ] ℝ :=
+im_lm.mk_continuous 1 $ by
+{ simp only [norm_eq_abs, re_lm_coe, one_mul, abs_to_real], exact abs_im_le_abs, }
+
+@[simp, norm_cast] lemma im_clm_coe : ((im_clm : K →L[ℝ] ℝ) : K →ₗ[ℝ] ℝ) = im_lm := rfl
+
+@[simp] lemma im_clm_apply : ((im_clm : K →L[ℝ] ℝ) : K → ℝ) = im := rfl
+
+@[continuity] lemma continuous_im : continuous (im : K → ℝ) := im_clm.continuous
+
+/-- Conjugate as a linear map -/
+noncomputable def conj_lm : K →ₗ[ℝ] K :=
+{ to_fun := λ x, conj x, map_add' := by simp, map_smul' := conj_smul, }
+
+@[simp] lemma conj_lm_coe : (conj_lm : K → K) = conj := rfl
+
+/-- Conjugate as a linear isometry -/
+noncomputable def conj_li : K →ₗᵢ[ℝ] K :=
+{ to_linear_map := conj_lm, norm_map' := by simp [norm_eq_abs] }
+
+@[simp] lemma conj_li_apply : (conj_li : K → K) = conj := rfl
+
+/-- Conjugate as a continuous linear map -/
+noncomputable def conj_clm : K →L[ℝ] K := conj_li.to_continuous_linear_map
+
+@[simp] lemma conj_clm_coe : ((conj_clm  : K →L[ℝ] K) : K →ₗ[ℝ] K) = conj_lm := rfl
+
+@[simp] lemma conj_clm_apply : (conj_clm : K → K) = conj := rfl
+
+@[simp] lemma conj_clm_norm : ∥(conj_clm : K →L[ℝ] K)∥ = 1 := conj_li.norm_to_continuous_linear_map
+
+@[continuity] lemma continuous_conj : continuous (conj : K → K) := conj_li.continuous
+
+/-- The `ℝ → K` coercion, as a linear map -/
+noncomputable def of_real_lm : ℝ →ₗ[ℝ] K :=
+{ to_fun := λ x, (x : K), map_add' := by simp, map_smul' := by simp, }
+
+@[simp] lemma of_real_lm_coe : (of_real_lm : ℝ → K) = coe := rfl
+
+/-- The ℝ → K coercion, as a linear isometry -/
+noncomputable def of_real_li : ℝ →ₗᵢ[ℝ] K :=
+{ to_linear_map := of_real_lm, norm_map' := by simp [norm_eq_abs] }
+
+@[simp] lemma of_real_li_apply : ((of_real_li : ℝ →ₗᵢ[ℝ] K) : ℝ → K) = coe := rfl
+
+/-- The `ℝ → K` coercion, as a continuous linear map -/
+noncomputable def of_real_clm : ℝ →L[ℝ] K := of_real_li.to_continuous_linear_map
+
+@[simp] lemma of_real_clm_coe : ((of_real_clm  : ℝ →L[ℝ] K) : ℝ →ₗ[ℝ] K) = of_real_lm := rfl
+
+@[simp] lemma of_real_clm_apply : (of_real_clm : ℝ → K) = coe := rfl
+
+@[simp] lemma of_real_clm_norm : ∥(of_real_clm : ℝ →L[ℝ] K)∥ = 1 :=
+of_real_li.norm_to_continuous_linear_map
+
+@[continuity] lemma continuous_of_real : continuous (coe : ℝ → K) := of_real_li.continuous
+
+end linear_maps
 
 end is_R_or_C
 

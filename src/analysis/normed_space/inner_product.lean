@@ -1148,8 +1148,7 @@ begin
     have hx0 : x ≠ 0,
     { intro hx0,
       rw [hx0, inner_zero_left, zero_div] at h,
-      norm_num at h,
-      exact h },
+      norm_num at h, },
     refine and.intro hx0 _,
     set r := ⟪x, y⟫ / (∥x∥ * ∥x∥) with hr,
     use r,
@@ -1414,6 +1413,11 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
 rfl
 
+lemma pi_Lp.norm_eq_of_L2 {ι : Type*} [fintype ι] {f : ι → Type*}
+  [Π i, inner_product_space 𝕜 (f i)] (x : pi_Lp 2 one_le_two f) :
+  ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
+by { rw [pi_Lp.norm_eq_of_nat 2]; simp [sqrt_eq_rpow] }
+
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 { inner := (λ x y, (conj x) * y),
@@ -1430,6 +1434,10 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 @[reducible, nolint unused_arguments]
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
+
+lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
+pi_Lp.norm_eq_of_L2 x
 
 /-! ### Inner product space structure on subspaces -/
 
@@ -1740,6 +1748,19 @@ lemma measurable.inner [measurable_space α] [measurable_space E] [opens_measura
   {f g : α → E} (hf : measurable f) (hg : measurable g) :
   measurable (λ t, ⟪f t, g t⟫) :=
 continuous.measurable2 continuous_inner hf hg
+
+lemma ae_measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
+  [topological_space.second_countable_topology E] [measurable_space 𝕜] [borel_space 𝕜]
+  {μ : measure_theory.measure α} {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  ae_measurable (λ x, ⟪f x, g x⟫) μ :=
+begin
+  refine ⟨λ x, ⟪hf.mk f x, hg.mk g x⟫, hf.measurable_mk.inner hg.measurable_mk, _⟩,
+  refine hf.ae_eq_mk.mp (hg.ae_eq_mk.mono (λ x hxg hxf, _)),
+  dsimp only,
+  congr,
+  { exact hxf, },
+  { exact hxg, },
+end
 
 variables [topological_space α] {f g : α → E} {x : α} {s : set α}
 

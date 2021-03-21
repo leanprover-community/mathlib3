@@ -38,7 +38,12 @@ theorem for a locally finite measure `μ` and a function `f` continuous at a poi
 
 ## Notation
 
-`∫ a in s, f a` is `measure_theory.integral (s.indicator f)`
+We provide the following notations for expressing the integral of a function on a set :
+* `∫ a in s, f a ∂μ` is `measure_theory.integral (μ.restrict s) f`
+* `∫ a in s, f a` is `∫ a in s, f a ∂volume`
+
+Note that the set notations are defined in the file `measure_theory/bochner_integration`,
+but we reference them here because all theorems about set integrals are in this file.
 
 ## TODO
 
@@ -50,7 +55,7 @@ migrated to the new definition.
 
 noncomputable theory
 open set filter topological_space measure_theory function
-open_locale classical topological_space interval big_operators filter ennreal
+open_locale classical topological_space interval big_operators filter ennreal measure_theory
 
 variables {α β E F : Type*} [measurable_space α]
 
@@ -426,7 +431,7 @@ lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E}
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
 begin
   rw [measure.restrict_map hg hs, integral_map hg (hf.mono_measure _)],
-  exact measure.map_mono hg measure.restrict_le_self
+  exact measure.map_mono g measure.restrict_le_self
 end
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
@@ -483,6 +488,47 @@ begin
 end
 
 end normed_group
+
+section mono
+
+variables {μ : measure α} {f g : α → ℝ} {s : set α}
+  (hf : integrable_on f s μ) (hg : integrable_on g s μ)
+
+lemma set_integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict s] g) :
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+integral_mono_ae hf hg h
+
+lemma set_integral_mono_ae (h : f ≤ᵐ[μ] g) :
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+set_integral_mono_ae_restrict hf hg (ae_restrict_of_ae h)
+
+lemma set_integral_mono_on (hs : measurable_set s) (h : ∀ x ∈ s, f x ≤ g x) :
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+set_integral_mono_ae_restrict hf hg
+  (by simp [hs, eventually_le, eventually_inf_principal, ae_of_all _ h])
+
+lemma set_integral_mono (h : f ≤ g) :
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+integral_mono hf hg h
+
+end mono
+
+section nonneg
+
+variables {μ : measure α} {f : α → ℝ} {s : set α}
+
+lemma set_integral_nonneg_of_ae_restrict (hf : 0 ≤ᵐ[μ.restrict s] f) :
+  (0:ℝ) ≤ (∫ a in s, f a ∂μ) :=
+integral_nonneg_of_ae hf
+
+lemma set_integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) : (0:ℝ) ≤ (∫ a in s, f a ∂μ) :=
+set_integral_nonneg_of_ae_restrict (ae_restrict_of_ae hf)
+
+lemma set_integral_nonneg (hs : measurable_set s) (hf : ∀ a, a ∈ s → 0 ≤ f a) :
+  (0:ℝ) ≤ (∫ a in s, f a ∂μ) :=
+set_integral_nonneg_of_ae_restrict ((ae_restrict_iff' hs).mpr (ae_of_all μ hf))
+
+end nonneg
 
 end measure_theory
 
@@ -586,8 +632,8 @@ begin
   assume t ht,
   obtain ⟨u, u_open, hu⟩ : ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=
     _root_.continuous_on_iff'.1 hf t ht,
-  rw [indicator_preimage, inter_comm, hu],
-  exact (u_open.measurable_set.inter hs).union (hs.compl.inter (measurable_const ht.measurable_set))
+  rw [indicator_preimage, set.ite, hu],
+  exact (u_open.measurable_set.inter hs).union ((measurable_zero ht.measurable_set).diff hs)
 end
 
 lemma continuous_on.integrable_at_nhds_within
@@ -710,13 +756,44 @@ begin
   all_goals { assumption }
 end
 
+lemma integral_comp_comm' (L : E →L[ℝ] F) {K} (hL : antilipschitz_with K L) (φ : α → E) :
+  ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+begin
+  by_cases h : integrable φ μ,
+  { exact integral_comp_comm L h },
+  have : ¬ (integrable (L ∘ φ) μ),
+    by rwa lipschitz_with.integrable_comp_iff_of_antilipschitz L.lipschitz hL (L.map_zero),
+  simp [integral_undef, h, this]
+end
+
 lemma integral_comp_L1_comm (L : E →L[ℝ] F) (φ : α →₁[μ] E) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
 L.integral_comp_comm (L1.integrable_coe_fn φ)
 
 end continuous_linear_map
 
+namespace linear_isometry
+
+variables [measurable_space F] [borel_space F] [complete_space E]
+[second_countable_topology F] [complete_space F]
+[borel_space E] [second_countable_topology E]
+
+lemma integral_comp_comm (L : E →ₗᵢ[ℝ] F) (φ : α → E) :
+  ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
+
+end linear_isometry
+
 variables [borel_space E] [second_countable_topology E] [complete_space E]
   [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
+
+@[norm_cast] lemma integral_of_real {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  {f : α → ℝ} :
+  ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
+linear_isometry.integral_comp_comm is_R_or_C.of_real_li f
+
+lemma integral_conj {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜] {f : α → 𝕜} :
+  ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
+linear_isometry.integral_comp_comm is_R_or_C.conj_li f
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=

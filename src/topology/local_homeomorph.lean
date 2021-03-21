@@ -122,7 +122,7 @@ protected lemma inj_on : inj_on e e.source := e.left_inv_on.inj_on
 protected lemma bij_on : bij_on e e.source e.target := e.inv_on.bij_on e.maps_to e.symm_maps_to
 protected lemma surj_on : surj_on e e.source e.target := e.bij_on.surj_on
 
-lemma source_preimage_target : e.source ⊆ e ⁻¹' e.target := λ _ h, map_source e h
+lemma source_preimage_target : e.source ⊆ e ⁻¹' e.target := e.maps_to
 
 lemma eq_of_local_equiv_eq {e e' : local_homeomorph α β}
   (h : e.to_local_equiv = e'.to_local_equiv) : e = e' :=
@@ -208,20 +208,19 @@ protected lemma continuous_at {x : α} (h : x ∈ e.source) : continuous_at e x 
 lemma continuous_at_symm {x : β} (h : x ∈ e.target) : continuous_at e.symm x :=
 e.symm.continuous_at h
 
-lemma tendsto_symm (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
+lemma tendsto_symm {x} (hx : x ∈ e.source) :
   tendsto e.symm (𝓝 (e x)) (𝓝 x) :=
 by simpa only [continuous_at, e.left_inv hx] using e.continuous_at_symm (e.map_source hx)
 
-lemma map_nhds_eq (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
-  map e (𝓝 x) = 𝓝 (e x) :=
+lemma map_nhds_eq {x} (hx : x ∈ e.source) : map e (𝓝 x) = 𝓝 (e x) :=
 le_antisymm (e.continuous_at hx) $
   le_map_of_right_inverse (e.eventually_right_inverse' hx) (e.tendsto_symm hx)
 
-lemma symm_map_nhds_eq (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
+lemma symm_map_nhds_eq {x} (hx : x ∈ e.source) :
   map e.symm (𝓝 (e x)) = 𝓝 x :=
 (e.symm.map_nhds_eq $ e.map_source hx).trans $ by rw e.left_inv hx
 
-lemma image_mem_nhds (e : local_homeomorph α β) {x} (hx : x ∈ e.source) {s : set α} (hs : s ∈ 𝓝 x) :
+lemma image_mem_nhds {x} (hx : x ∈ e.source) {s : set α} (hs : s ∈ 𝓝 x) :
   e '' s ∈ 𝓝 (e x) :=
 e.map_nhds_eq hx ▸ filter.image_mem_map hs
 
@@ -239,38 +238,156 @@ lemma map_nhds_within_preimage_eq (e : local_homeomorph α β) {x} (hx : x ∈ e
 by rw [e.map_nhds_within_eq hx, e.image_source_inter_eq', e.target_inter_inv_preimage_preimage,
   e.nhds_within_target_inter (e.map_source hx)]
 
+lemma preimage_open_of_open {s : set β} (hs : is_open s) : is_open (e.source ∩ e ⁻¹' s) :=
+e.continuous_on.preimage_open_of_open e.open_source hs
+
+/-- We say that `t : set β` is an image of `s : set α` under a local homeomorphism `e` if any of the
+following equivalent conditions hold:
+
+* `e '' (e.source ∩ s) = e.target ∩ t`;
+* `e.source ∩ e ⁻¹ t = e.source ∩ s`;
+* `∀ x ∈ e.source, e x ∈ t ↔ x ∈ s` (this one is used in the definition).
+-/
+def is_image (s : set α) (t : set β) : Prop := ∀ ⦃x⦄, x ∈ e.source → (e x ∈ t ↔ x ∈ s)
+
+namespace is_image
+
+variables {e} {s : set α} {t : set β} {x : α} {y : β}
+
+lemma to_local_equiv (h : e.is_image s t) : e.to_local_equiv.is_image s t := h
+
+lemma apply_mem_iff (h : e.is_image s t) (hx : x ∈ e.source) : e x ∈ t ↔ x ∈ s := h hx
+
+protected lemma symm (h : e.is_image s t) : e.symm.is_image t s := h.to_local_equiv.symm
+
+lemma symm_apply_mem_iff (h : e.is_image s t) (hy : y ∈ e.target) : (e.symm y ∈ s ↔ y ∈ t) :=
+h.symm hy
+
+@[simp] lemma symm_iff : e.symm.is_image t s ↔ e.is_image s t := ⟨λ h, h.symm, λ h, h.symm⟩
+
+protected lemma maps_to (h : e.is_image s t) : maps_to e (e.source ∩ s) (e.target ∩ t) :=
+h.to_local_equiv.maps_to
+
+lemma symm_maps_to (h : e.is_image s t) : maps_to e.symm (e.target ∩ t) (e.source ∩ s) :=
+h.symm.maps_to
+
+lemma image_eq (h : e.is_image s t) : e '' (e.source ∩ s) = e.target ∩ t :=
+h.to_local_equiv.image_eq
+
+lemma symm_image_eq (h : e.is_image s t) : e.symm '' (e.target ∩ t) = e.source ∩ s :=
+h.symm.image_eq
+
+lemma iff_preimage_eq : e.is_image s t ↔ e.source ∩ e ⁻¹' t = e.source ∩ s :=
+local_equiv.is_image.iff_preimage_eq
+
+alias iff_preimage_eq ↔ local_homeomorph.is_image.preimage_eq
+  local_homeomorph.is_image.of_preimage_eq
+
+lemma iff_symm_preimage_eq : e.is_image s t ↔ e.target ∩ e.symm ⁻¹' s = e.target ∩ t :=
+symm_iff.symm.trans iff_preimage_eq
+
+alias iff_symm_preimage_eq ↔ local_homeomorph.is_image.symm_preimage_eq
+  local_homeomorph.is_image.of_symm_preimage_eq
+
+lemma iff_symm_preimage_eq' : e.is_image s t ↔ e.target ∩ e.symm ⁻¹' (e.source ∩ s) = e.target ∩ t :=
+by rw [iff_symm_preimage_eq, ← image_source_inter_eq, ← image_source_inter_eq']
+
+alias iff_symm_preimage_eq' ↔ local_homeomorph.is_image.symm_preimage_eq'
+  local_homeomorph.is_image.of_symm_preimage_eq'
+
+lemma iff_preimage_eq' : e.is_image s t ↔ e.source ∩ e ⁻¹' (e.target ∩ t) = e.source ∩ s :=
+symm_iff.symm.trans iff_symm_preimage_eq'
+
+alias iff_preimage_eq' ↔ local_homeomorph.is_image.preimage_eq'
+  local_homeomorph.is_image.of_preimage_eq'
+
+lemma of_image_eq (h : e '' (e.source ∩ s) = e.target ∩ t) : e.is_image s t :=
+local_equiv.is_image.of_image_eq h
+
+lemma of_symm_image_eq (h : e.symm '' (e.target ∩ t) = e.source ∩ s) : e.is_image s t :=
+local_equiv.is_image.of_symm_image_eq h
+
+protected lemma compl (h : e.is_image s t) : e.is_image sᶜ tᶜ :=
+λ x hx, not_congr (h hx)
+
+protected lemma inter {s' t'} (h : e.is_image s t) (h' : e.is_image s' t') :
+  e.is_image (s ∩ s') (t ∩ t') :=
+λ x hx, and_congr (h hx) (h' hx)
+
+protected lemma union {s' t'} (h : e.is_image s t) (h' : e.is_image s' t') :
+  e.is_image (s ∪ s') (t ∪ t') :=
+λ x hx, or_congr (h hx) (h' hx)
+
+protected lemma diff {s' t'} (h : e.is_image s t) (h' : e.is_image s' t') :
+  e.is_image (s \ s') (t \ t') :=
+h.inter h'.compl
+
+lemma left_inv_on_piecewise {e' : local_homeomorph α β} [∀ i, decidable (i ∈ s)]
+  [∀ i, decidable (i ∈ t)] (h : e.is_image s t) (h' : e'.is_image s t) :
+  left_inv_on (t.piecewise e.symm e'.symm) (s.piecewise e e') (s.ite e.source e'.source) :=
+h.to_local_equiv.left_inv_on_piecewise h'
+
+lemma inter_eq_of_inter_eq_of_eq_on {e' : local_homeomorph α β} (h : e.is_image s t)
+  (h' : e'.is_image s t) (hs : e.source ∩ s = e'.source ∩ s) (Heq : eq_on e e' (e.source ∩ s)) :
+  e.target ∩ t = e'.target ∩ t :=
+by rw [← h.image_eq, ← h'.image_eq, ← hs, Heq.image_eq]
+
+lemma symm_eq_on_of_inter_eq_of_eq_on {e' : local_homeomorph α β} (h : e.is_image s t)
+  (h' : e'.is_image s t) (hs : e.source ∩ s = e'.source ∩ s) (Heq : eq_on e e' (e.source ∩ s)) :
+  eq_on e.symm e'.symm (e.target ∩ t) :=
+begin
+  rw [← h.image_eq],
+  rintros y ⟨x, hx, rfl⟩,
+  have hx' := hx, rw hs at hx',
+  rw [e.left_inv hx.1, Heq hx, e'.left_inv hx'.1]
+end
+
+lemma map_nhds_within_eq (h : e.is_image s t) (hx : x ∈ e.source) :
+  map e (𝓝[s] x) = 𝓝[t] (e x) :=
+by rw [e.map_nhds_within_eq hx, h.image_eq, e.nhds_within_target_inter (e.map_source hx)]
+
+protected lemma closure (h : e.is_image s t) : e.is_image (closure s) (closure t) :=
+λ x hx, by simp only [mem_closure_iff_nhds_within_ne_bot, ← h.map_nhds_within_eq hx, map_ne_bot_iff]
+
+protected lemma interior (h : e.is_image s t) : e.is_image (interior s) (interior t) :=
+by simpa only [closure_compl, compl_compl] using h.compl.closure.compl
+
+protected lemma frontier (h : e.is_image s t) :
+  e.is_image (frontier s) (frontier t) :=
+h.closure.diff h.interior
+
+lemma is_open_iff (h : e.is_image s t) :
+  is_open (e.source ∩ s) ↔ is_open (e.target ∩ t) :=
+⟨λ hs, h.symm_preimage_eq' ▸ e.symm.preimage_open_of_open hs,
+  λ hs, h.preimage_eq' ▸ e.preimage_open_of_open hs⟩
+
+/-- Restrict a `local_homeomorph` to a pair of corresponding open sets. -/
+@[simps to_local_equiv] def restr (h : e.is_image s t) (hs : is_open (e.source ∩ s)) :
+  local_homeomorph α β :=
+{ to_local_equiv := h.to_local_equiv.restr,
+  open_source := hs,
+  open_target := h.is_open_iff.1 hs,
+  continuous_to_fun := e.continuous_on.mono (inter_subset_left _ _),
+  continuous_inv_fun := e.symm.continuous_on.mono (inter_subset_left _ _) }
+
+end is_image
+
 /-- Preimage of interior or interior of preimage coincide for local homeomorphisms, when restricted
 to the source. -/
 lemma preimage_interior (s : set β) :
   e.source ∩ e ⁻¹' (interior s) = e.source ∩ interior (e ⁻¹' s) :=
-begin
-  refine set.ext (λ x, and.congr_right_iff.2 $ λ hx, _),
-  rw [mem_interior_iff_mem_nhds, mem_preimage, mem_interior_iff_mem_nhds, ← e.map_nhds_eq hx,
-    mem_map, preimage]
-end
+(is_image.of_preimage_eq rfl).interior.preimage_eq
 
 lemma preimage_closure (s : set β) :
   e.source ∩ e ⁻¹' (closure s) = e.source ∩ closure (e ⁻¹' s) :=
-begin
-  refine set.ext (λ x, and.congr_right_iff.2 $ λ hx, _),
-  rw [mem_closure_iff_nhds_within_ne_bot, mem_preimage, mem_closure_iff_nhds_within_ne_bot,
-    ← map_ne_bot_iff e.symm, e.symm.map_nhds_within_eq (e.map_source hx), e.left_inv hx,
-    e.symm.image_source_inter_eq', symm_symm, nhds_within_inter_of_mem],
-  exact mem_nhds_within_of_mem_nhds (mem_nhds_sets e.open_source hx)
-end
+(is_image.of_preimage_eq rfl).closure.preimage_eq
 
 lemma preimage_frontier (s : set β) :
   e.source ∩ e ⁻¹' (frontier s) = e.source ∩ frontier (e ⁻¹' s) :=
-begin
-  rw [frontier_eq_closure_inter_closure, frontier_eq_closure_inter_closure],
-  have := @preimage_compl _ _ e s,
-  convert congr_arg2 (∩) (e.preimage_closure s) (e.preimage_closure sᶜ) using 1; mfld_set_tac
-end
+(is_image.of_preimage_eq rfl).frontier.preimage_eq
 
-lemma preimage_open_of_open {s : set β} (hs : is_open s) : is_open (e.source ∩ e ⁻¹' s) :=
-e.continuous_on.preimage_open_of_open e.open_source hs
-
-lemma preimage_open_of_open_symm {s : set α} (hs : is_open s) : is_open (e.target ∩ e.symm ⁻¹' s) :=
+lemma preimage_open_of_open_symm {s : set α} (hs : is_open s) :
+  is_open (e.target ∩ e.symm ⁻¹' s) :=
 e.symm.continuous_on.preimage_open_of_open e.open_target hs
 
 /-- The image of an open set in the source is open. -/
@@ -308,11 +425,8 @@ to use because of the openness assumption, but it has the advantage that when it
 be used then its local_equiv is defeq to local_equiv.restr -/
 protected def restr_open (s : set α) (hs : is_open s) :
   local_homeomorph α β :=
-{ open_source := is_open_inter e.open_source hs,
-  open_target := (continuous_on_open_iff e.open_target).1 e.continuous_inv_fun s hs,
-  continuous_to_fun  := e.continuous_to_fun.mono (inter_subset_left _ _),
-  continuous_inv_fun := e.continuous_inv_fun.mono (inter_subset_left _ _),
-  ..e.to_local_equiv.restr s}
+(@is_image.of_symm_preimage_eq α β _ _ e s _ rfl).restr
+  (is_open_inter e.open_source hs)
 
 @[simp, mfld_simps] lemma restr_open_to_local_equiv (s : set α) (hs : is_open s) :
   (e.restr_open s hs).to_local_equiv = e.to_local_equiv.restr s := rfl
@@ -349,8 +463,7 @@ begin
   apply eq_of_local_equiv_eq,
   rw restr_to_local_equiv,
   apply local_equiv.restr_eq_of_source_subset,
-  have := interior_mono h,
-  rwa e.open_source.interior_eq at this
+  exact interior_maximal h e.open_source
 end
 
 @[simp, mfld_simps] lemma restr_univ {e : local_homeomorph α β} : e.restr univ = e :=
@@ -359,8 +472,7 @@ restr_eq_of_source_subset (subset_univ _)
 lemma restr_source_inter (s : set α) : e.restr (e.source ∩ s) = e.restr s :=
 begin
   refine local_homeomorph.ext _ _ (λx, rfl) (λx, rfl) _,
-  simp [e.open_source.interior_eq],
-  rw [← inter_assoc, inter_self]
+  simp [e.open_source.interior_eq, ← inter_assoc]
 end
 
 /-- The identity on the whole space as a local homeomorphism. -/
@@ -564,18 +676,16 @@ eq_of_local_equiv_eq $ local_equiv.eq_of_eq_on_source_univ _ _ h s t
 section prod
 
 /-- The product of two local homeomorphisms, as a local homeomorphism on the product space. -/
-def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) : local_homeomorph (α × γ) (β × δ) :=
+def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
+  local_homeomorph (α × γ) (β × δ) :=
 { open_source := e.open_source.prod e'.open_source,
   open_target := e.open_target.prod e'.open_target,
-  continuous_to_fun := continuous_on.prod
-    (e.continuous_to_fun.comp continuous_fst.continuous_on (prod_subset_preimage_fst _ _))
-    (e'.continuous_to_fun.comp continuous_snd.continuous_on (prod_subset_preimage_snd _ _)),
-  continuous_inv_fun := continuous_on.prod
-    (e.continuous_inv_fun.comp continuous_fst.continuous_on (prod_subset_preimage_fst _ _))
-    (e'.continuous_inv_fun.comp continuous_snd.continuous_on (prod_subset_preimage_snd _ _)),
+  continuous_to_fun := e.continuous_on.prod_map e'.continuous_on,
+  continuous_inv_fun := e.continuous_on_symm.prod_map e'.continuous_on_symm,
   to_local_equiv := e.to_local_equiv.prod e'.to_local_equiv }
 
-@[simp, mfld_simps] lemma prod_to_local_equiv (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
+@[simp, mfld_simps]
+lemma prod_to_local_equiv (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').to_local_equiv = e.to_local_equiv.prod e'.to_local_equiv := rfl
 
 lemma prod_source (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
@@ -603,6 +713,83 @@ local_homeomorph.eq_of_local_equiv_eq $
   by dsimp only [trans_to_local_equiv, prod_to_local_equiv]; apply local_equiv.prod_trans
 
 end prod
+
+section piecewise
+
+/-- Combine two `local_homeomorph`s using `set.piecewise`. The definition assumes
+`e '' (s ∩ e.source) = t ∩ e.target` -/
+def piecewise (e e' : local_homeomorph α β) (s : set α) (t : set β)
+  [∀ x, decidable (x ∈ s)] [∀ y, decidable (y ∈ t)] (H : e.is_image s t) (H' : e'.is_image s t)
+  (Hs : e.source ∩ frontier s = e'.source ∩ frontier s)
+  (Heq : eq_on e e' (e.source ∩ frontier s)) :
+  local_homeomorph α β :=
+{ to_local_equiv := e.to_local_equiv.piecewise e'.to_local_equiv s t H H',
+  open_source := e.open_source.ite e'.open_source Hs,
+  open_target := e.open_target.ite e'.open_target $
+    H.frontier.inter_eq_of_inter_eq_of_eq_on H'.frontier Hs Heq,
+  continuous_to_fun := continuous_on_piecewise_ite e.continuous_on e'.continuous_on Hs Heq,
+  continuous_inv_fun := continuous_on_piecewise_ite e.continuous_on_symm e'.continuous_on_symm
+    (H.frontier.inter_eq_of_inter_eq_of_eq_on H'.frontier Hs Heq)
+    (H.frontier.symm_eq_on_of_inter_eq_of_eq_on H'.frontier Hs Heq) }
+
+@[simp] lemma piecewise_to_local_equiv (e e' : local_homeomorph α β) {s : set α} {t : set β}
+  [∀ x, decidable (x ∈ s)] [∀ y, decidable (y ∈ t)] (H : e.is_image s t) (H' : e'.is_image s t)
+  (Hs : e.source ∩ frontier s = e'.source ∩ frontier s)
+  (Heq : eq_on e e' (e.source ∩ frontier s)) :
+  (e.piecewise e' s t H H' Hs Heq).to_local_equiv =
+    e.to_local_equiv.piecewise e'.to_local_equiv s t H H' :=
+rfl
+
+@[simp] lemma piecewise_coe (e e' : local_homeomorph α β) {s : set α} {t : set β}
+  [∀ x, decidable (x ∈ s)] [∀ y, decidable (y ∈ t)] (H : e.is_image s t) (H' : e'.is_image s t)
+  (Hs : e.source ∩ frontier s = e'.source ∩ frontier s)
+  (Heq : eq_on e e' (e.source ∩ frontier s)) :
+  ⇑(e.piecewise e' s t H H' Hs Heq) = s.piecewise e e' :=
+rfl
+
+@[simp] lemma symm_piecewise (e e' : local_homeomorph α β) {s : set α} {t : set β}
+  [∀ x, decidable (x ∈ s)] [∀ y, decidable (y ∈ t)] (H : e.is_image s t) (H' : e'.is_image s t)
+  (Hs : e.source ∩ frontier s = e'.source ∩ frontier s)
+  (Heq : eq_on e e' (e.source ∩ frontier s)) :
+  (e.piecewise e' s t H H' Hs Heq).symm =
+    e.symm.piecewise e'.symm t s H.symm H'.symm
+      (H.frontier.inter_eq_of_inter_eq_of_eq_on H'.frontier Hs Heq)
+      (H.frontier.symm_eq_on_of_inter_eq_of_eq_on H'.frontier Hs Heq) :=
+rfl
+
+def disjoint_union (e e' : local_homeomorph α β)
+  [∀ x, decidable (x ∈ e.source)] [∀ y, decidable (y ∈ e.target)]
+  (Hs : disjoint e.source e'.source) (Ht : disjoint e.target e'.target) :
+  local_homeomorph α β :=
+{ to_local_equiv := e.to_local_equiv.disjoint_union e'.to_local_equiv Hs Ht,
+  open_source := is_open_union e.open_source e'.open_source,
+  open_target := is_open_union e.open_target e'.open_target,
+  continuous_to_fun :=
+    begin
+      rintro x (he|he'),
+      { have : e.source.piecewise e e' =ᶠ[𝓝 x] e,
+          from (piecewise_eq_on e.source e e').eventually_eq_of_mem
+            (mem_nhds_sets e.open_source he),
+        exact ((e.continuous_at he).congr this.symm).continuous_within_at },
+      { have : e.source.piecewise e e' =ᶠ[𝓝 x] e',
+          from (piecewise_eq_on_compl e.source e e').eventually_eq_of_mem
+            (mem_nhds_sets_iff.2 ⟨e'.source, λ _, disjoint_right.1 Hs, e'.open_source, he'⟩),
+        exact ((e'.continuous_at he').congr this.symm).continuous_within_at }
+    end,
+  continuous_inv_fun :=
+    begin
+      rintro x (he|he'),
+      { have : e.target.piecewise e.symm e'.symm =ᶠ[𝓝 x] e.symm,
+          from (piecewise_eq_on e.target e.symm e'.symm).eventually_eq_of_mem
+            (mem_nhds_sets e.open_target he),
+        exact ((e.continuous_at_symm he).congr this.symm).continuous_within_at },
+      { have : e.target.piecewise e.symm e'.symm =ᶠ[𝓝 x] e'.symm,
+          from (piecewise_eq_on_compl e.target e.symm e'.symm).eventually_eq_of_mem
+            (mem_nhds_sets_iff.2 ⟨e'.target, λ _, disjoint_right.1 Ht, e'.open_target, he'⟩),
+        exact ((e'.continuous_at_symm he').congr this.symm).continuous_within_at }
+    end }
+
+end piecewise
 
 section pi
 

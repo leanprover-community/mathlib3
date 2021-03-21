@@ -5,6 +5,8 @@ Authors: Scott Morrison
 -/
 import data.polynomial.derivative
 import data.polynomial.algebra_map
+import data.mv_polynomial.pderiv
+import data.nat.choose.sum
 import linear_algebra.basis
 import ring_theory.polynomial.pochhammer
 import tactic.omega
@@ -373,7 +375,7 @@ begin
   { rintro (_|k),
     { simp, },
     { dsimp [bernstein_polynomial],
-      simp only [nat_smul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
+      simp only [←nat_cast_mul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
       push_cast,
       ring, }, },
 
@@ -387,7 +389,7 @@ begin
   conv at h {
     to_rhs,
     rw [pderiv_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
-    simp [e, polynomial.nat_mul], },
+    simp [e, nat_cast_mul], },
   exact h,
 end
 
@@ -427,7 +429,7 @@ begin
     { rcases k with (_|k),
       { simp, },
       { dsimp [bernstein_polynomial],
-        simp only [nat_smul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
+        simp only [←nat_cast_mul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
         push_cast,
         ring, }, }, },
 
@@ -444,7 +446,7 @@ begin
     to_rhs,
     simp only [pderiv_one, pderiv_mul, pderiv_pow, pderiv_nat_cast, (pderiv tt).map_add,
       pderiv_tt_x, pderiv_tt_y],
-    simp [e, polynomial.nat_mul, smul_smul],
+    simp [e, nat_cast_mul, smul_smul],
   },
   exact h,
 end

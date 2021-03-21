@@ -45,6 +45,12 @@ instance [has_one β] : has_one C(α, β) := ⟨const (1 : β)⟩
 lemma one_coe [has_one β]  :
   ((1 : C(α, β)) : α → β) = (1 : α → β) := rfl
 
+@[simp, to_additive] lemma mul_comp {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ]
+  [semigroup γ] [has_continuous_mul γ] (f₁ f₂ : C(β, γ)) (g : C(α, β)) :
+  (f₁ * f₂).comp g = f₁.comp g * f₂.comp g :=
+by { ext, simp, }
+
 end continuous_map
 
 section group_structure
@@ -104,6 +110,27 @@ instance continuous_map_monoid {α : Type*} {β : Type*} [topological_space α] 
   ..continuous_map_semigroup,
   ..continuous_map.has_one }
 
+@[simp, norm_cast]
+lemma pow_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
+  ((f^n : C(α, β)) : α → β) = (f : α → β)^n :=
+begin
+  ext x,
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
+
+@[simp] lemma continuous_map.pow_comp {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ]
+  [monoid γ] [has_continuous_mul γ] (f : C(β, γ)) (n : ℕ) (g : C(α, β)) :
+  (f^n).comp g = (f.comp g)^n :=
+begin
+  induction n with n ih,
+  { ext, simp, },
+  { simp [pow_succ, ih], }
+end
+
 @[to_additive]
 instance continuous_map_comm_monoid {α : Type*} {β : Type*} [topological_space α]
 [topological_space β] [comm_monoid β] [has_continuous_mul β] : comm_monoid C(α, β) :=
@@ -121,10 +148,28 @@ instance continuous_map_group {α : Type*} {β : Type*} [topological_space α] [
   ..continuous_map_monoid }
 
 @[simp, norm_cast, to_additive]
+lemma inv_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [group β] [topological_group β] (f : C(α, β)) :
+  ((f⁻¹ : C(α, β)) : α → β) = (f⁻¹ : α → β) :=
+rfl
+
+@[simp, norm_cast, to_additive]
 lemma div_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] (f g : C(α, β)) :
   ((f / g : C(α, β)) : α → β) = (f : α → β) / (g : α → β) :=
 by { simp only [div_eq_mul_inv], refl, }
+
+@[simp, to_additive] lemma continuous_map.inv_comp {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ]
+  [group γ] [topological_group γ] (f : C(β, γ)) (g : C(α, β)) :
+  (f⁻¹).comp g = (f.comp g)⁻¹ :=
+by { ext, simp, }
+
+@[simp, to_additive] lemma continuous_map.div_comp {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ]
+  [group γ] [topological_group γ] (f g : C(β, γ)) (h : C(α, β)) :
+  (f / g).comp h = (f.comp h) / (g.comp h) :=
+by { ext, simp, }
 
 @[to_additive]
 instance continuous_map_comm_group {α : Type*} {β : Type*} [topological_space α]
@@ -236,6 +281,12 @@ instance continuous_map_has_scalar
   (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) :=
 rfl
 
+@[simp] lemma continuous_map.smul_comp {α : Type*} {β : Type*}
+  [topological_space α] [topological_space β]
+   [semimodule R M] [topological_semimodule R M] (r : R) (f : C(β, M)) (g : C(α, β)) :
+  (r • f).comp g = r • (f.comp g) :=
+by { ext, simp, }
+
 variables [has_continuous_add M] [semimodule R M] [topological_semimodule R M]
 
 instance continuous_map_semimodule : semimodule R C(α, M) :=
@@ -310,6 +361,9 @@ def continuous_map.C : R →+* C(α, A) :=
   map_zero' := by ext x; exact (algebra_map R A).map_zero,
   map_add'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_add _ _ }
 
+@[simp] lemma continuous_map.C_apply (r : R) (a : α) : continuous_map.C r a = algebra_map R A r :=
+rfl
+
 variables [topological_space R] [topological_semimodule R A]
 
 instance continuous_map_algebra : algebra R C(α, A) :=
@@ -317,6 +371,10 @@ instance continuous_map_algebra : algebra R C(α, A) :=
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
   ..continuous_map_semiring }
+
+@[simp] lemma algebra_map_apply (k : R) (a : α) :
+  algebra_map R C(α, A) k a = k • 1 :=
+by { rw algebra.algebra_map_eq_smul_one, refl, }
 
 end continuous_map
 

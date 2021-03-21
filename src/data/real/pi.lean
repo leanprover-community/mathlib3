@@ -269,7 +269,7 @@ begin
   have mvt2 :=
     norm_image_sub_le_of_norm_deriv_le_segment' hderiv2 hbound2 _ (right_mem_Icc.mpr hU2),
   -- The following algebra is enough to complete the proof
-  calc |f 1 - f 0| = |(f 1 - f U) + (f U - f 0)| : by ring
+  calc |f 1 - f 0| = |(f 1 - f U) + (f U - f 0)| : by ring_nf
                ... ≤ 1 * (1-U) + U^(2*k) * (U - 0) : le_trans (abs_add (f 1 - f U) (f U - f 0))
                                                       (add_le_add mvt1 mvt2)
                ... = 1 - U + U^(2*k) * U : by ring

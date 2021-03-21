@@ -162,6 +162,13 @@ lemma underlying_iso_arrow {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).inv ≫ (subobject.mk f).arrow = f :=
 over.w _
 
+@[simp] lemma mk_arrow {X Y : C} (f : X ⟶ Y) [mono f] :
+  (mk f).arrow = (underlying_iso f).hom ≫ f :=
+begin
+  conv_rhs { congr, skip, rw [←underlying_iso_arrow f], },
+  rw [←assoc, iso.hom_inv_id, id_comp],
+end
+
 /-- Two morphisms into a subobject are equal exactly if
 the morphisms into the ambient object are equal -/
 @[ext]

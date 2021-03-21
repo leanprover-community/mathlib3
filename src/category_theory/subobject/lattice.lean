@@ -238,7 +238,7 @@ instance order_bot {X : C} : order_bot (subobject X) :=
     refine quotient.ind' (λ f, _),
     exact ⟨mono_over.bot_le f⟩,
   end,
-  ..subobject.partial_order X}
+  ..subobject.partial_order X }
 
 lemma bot_eq_zero {B : C} : (⊥ : subobject B) = subobject.mk (0 : 0 ⟶ B) := rfl
 
@@ -469,10 +469,15 @@ section Inf
 variables [well_powered C] [has_wide_pullbacks C]
 
 def wide_cospan {A : C} (s : set (subobject A)) :
-  wide_pullback_shape (subobject_equiv A '' s) ⥤ C :=
-@wide_pullback_shape.wide_cospan (subobject_equiv A '' s) _ _ A
-  (λ j, (((subobject_equiv A).symm j) : C))
-  (λ j, ((subobject_equiv A).symm j).arrow)
+  wide_pullback_shape (equiv_shrink _ '' s) ⥤ C :=
+@wide_pullback_shape.wide_cospan (equiv_shrink _ '' s) _ _ A
+  (λ j, (((equiv_shrink (subobject A)).symm j) : C))
+  (λ j, ((equiv_shrink (subobject A)).symm j).arrow)
+
+@[simp] lemma wide_cospan_map_term {A : C} (s : set (subobject A)) (j) :
+  (wide_cospan s).map (wide_pullback_shape.hom.term j) =
+    ((equiv_shrink (subobject A)).symm j).arrow :=
+rfl
 
 def wide_pullback {A : C} (s : set (subobject A)) : C :=
 limits.limit (wide_cospan s)
@@ -485,33 +490,71 @@ instance wide_pullback_ι_mono {A : C} (s : set (subobject A)) :
   mono (wide_pullback_ι s) :=
 ⟨λ W u v h, limit.hom_ext (λ j, begin
   cases j,
-  sorry,
-  { apply (cancel_mono ((subobject_equiv A).symm j).arrow).1,
-    sorry },
+  { exact h, },
+  { apply (cancel_mono ((equiv_shrink (subobject A)).symm j).arrow).1,
+    rw [assoc, assoc],
+    erw limit.w (wide_cospan s) (wide_pullback_shape.hom.term j),
+    exact h, },
 end)⟩
 
 /--
-When `[has_wide_pullbacks C]`, `subobject A` has arbitrary "intersections".
+When `[well_powered C]` and `[has_wide_pullbacks C]`, `subobject A` has arbitrary infimums.
 -/
 def Inf {A : C} (s : set (subobject A)) : subobject A :=
 subobject.mk (wide_pullback_ι s)
 
-/-- A morphism from the "infimum" of a set of objects in `mono_over A` to one of the objects. -/
-def Inf_le {A : C} (s : set (subobject A)) (f ∈ s) :
-  Inf s ⟶ f :=
-  begin
-    fsplit,
-    fsplit,
-    apply le_of_comm,
-    swap,
-    -- apply nonempty.intro,
-exact limits.limit.π (wide_cospan s) (some ⟨subobject_equiv A f, set.mem_image_of_mem ⇑(subobject_equiv A) H⟩)
-  end
+@[simp]
+lemma arrow_congr {A : C} (X Y : subobject A) (h : X = Y) :
+  eq_to_hom (congr_arg (λ X : subobject A, (X : C)) h) ≫ Y.arrow = X.arrow :=
+by { induction h, simp, }
 
-/-- A morphism version of the `le_Inf` axiom. -/
-def le_Inf {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ⟶ g) :
-  f ⟶ Inf s :=
-sorry
+lemma Inf_le {A : C} (s : set (subobject A)) (f ∈ s) :
+  Inf s ≤ f :=
+begin
+  fapply le_of_comm,
+  { refine (underlying_iso _).hom ≫
+      (limits.limit.π
+        (wide_cospan s)
+        (some ⟨equiv_shrink _ f, set.mem_image_of_mem (equiv_shrink (subobject A)) H⟩)) ≫ _,
+    apply eq_to_hom,
+    apply (congr_arg (λ X : subobject A, (X : C))),
+    exact (equiv.symm_apply_apply _ _), },
+  { dsimp [Inf],
+    simp only [category.comp_id, category.assoc, subobject.mk_arrow, subobject.arrow_congr,
+      congr_arg_mpr_hom_left, iso.cancel_iso_hom_left],
+    convert limit.w (wide_cospan s) (wide_pullback_shape.hom.term _), },
+end.
+
+/-- Auxilliary construction of a cone for `le_Inf`. -/
+def le_Inf_cone {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ≤ g) :
+  cone (wide_cospan s) :=
+{ X := (f : C),
+  π :=
+  { app := λ j, match j with
+      | none := f.arrow
+      | (some j) := underlying.map (hom_of_le (k _ (by { rcases j with ⟨-, ⟨g, ⟨m, rfl⟩⟩⟩, simpa using m, })))
+      end,
+    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp, }, }, }
+
+@[simp] lemma le_Inf_cone_π_app_none
+  {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ≤ g) :
+  (le_Inf_cone s f k).π.app none = f.arrow :=
+rfl
+
+lemma le_Inf {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ≤ g) :
+  f ≤ Inf s :=
+begin
+  fapply le_of_comm,
+  { exact limits.limit.lift _ (le_Inf_cone s f k) ≫ (underlying_iso _).inv, },
+  { dsimp [Inf, wide_pullback_ι],
+    simp, },
+end
+
+instance {B : C} : complete_semilattice_Inf (subobject B) :=
+{ Inf := Inf,
+  Inf_le := λ s a m, Inf_le s a m,
+  le_Inf := λ s f k, le_Inf s f k ,
+  ..subobject.partial_order B }
 
 end Inf
 
@@ -519,14 +562,17 @@ section Sup
 
 variables [well_powered C] [has_images C] [has_coproducts C]
 
+def small_coproduct_desc {A : C} (s : set (subobject A)) :=
+limits.sigma.desc (λ j, ((equiv_shrink (subobject A)).symm j).arrow)
+
 instance {A : C} (s : set (subobject A)) :
-  mono (limits.sigma.desc (λ j, ((subobject_equiv A).symm j).arrow)) :=
+  mono (small_coproduct_desc s) :=
 sorry
 
 /-- When `[has_images C] [has_coproducts C]`, `subobject A` has a `Sup` construction,
 which will induce a `complete_semilattice_Sup`. -/
 def Sup {A : C} (s : set (subobject A)) : subobject A :=
-subobject.mk (limits.sigma.desc (λ j, ((subobject_equiv A).symm j).arrow))
+subobject.mk (small_coproduct_desc s)
 
 /-- A morphism version of `le_Sup`. -/
 def le_Sup {A : C} (s : set (subobject A)) (f ∈ s)  :

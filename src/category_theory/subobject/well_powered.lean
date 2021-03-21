@@ -18,10 +18,10 @@ but automatic for small categories.)
 
 This is equivalent to the category `mono_over X` being `essentially_small.{v}` for all `X : C`.
 
-When a category is well-powered, we provide nonconstructive witnesses as
-`subobject_index_type X : Type V`
+When a category is well-powered, you can obtain nonconstructive witnesses as
+`shrink (subobject X) : Type V`
 and
-`subobject_equiv X : subobject X ≃ subobject_index_type X`.
+`equiv_shrink (subobject X) : subobject X ≃ shrink (subobject X)`.
 -/
 
 universes v u
@@ -39,8 +39,11 @@ that this is the case if and only if `mono_over X` is `v`-essentially small for 
 class well_powered : Prop :=
 (subobject_small : ∀ X : C, small.{v} (subobject X))
 
+instance small_subobject [well_powered C] (X : C) : small.{v} (subobject X) :=
+well_powered.subobject_small X
+
 instance well_powered_of_small_category (C : Type u) [small_category C] : well_powered C :=
-{ subobject_small := λ X Y, small_self _, }
+{ subobject_small := λ X, small_self _, }
 
 theorem essentially_small_mono_over_iff_small_subobject {C : Type u} [category.{v} C] (X : C) :
   essentially_small.{v} (mono_over X) ↔ small.{v} (subobject X) :=
@@ -59,19 +62,5 @@ variables {C} [well_powered C]
 theorem mono_over_essentially_small [well_powered C] (X : C) :
   essentially_small.{v} (mono_over X) :=
 (essentially_small_mono_over_iff_small_subobject X).mpr (well_powered.subobject_small X)
-
-/--
-An arbitrarily chosen (small) indexing type for the subobjects of `X`.
--/
-def subobject_index_type (X : C) : Type v :=
-classical.some (well_powered.subobject_small X)
-
-/--
-The equivalence between `subobject X` and the arbitrarily chosen small indexing type,
-guaranteed by the category being well-powered.
--/
-noncomputable
-def subobject_equiv (X : C) : subobject X ≃ subobject_index_type X :=
-classical.some (classical.some_spec (well_powered.subobject_small X))
 
 end category_theory

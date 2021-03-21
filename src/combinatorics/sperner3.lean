@@ -15,6 +15,10 @@ begin
   apply h
 end
 
+-- TODO: move to mathlib
+theorem sdiff_union_of_subset {α : Type*} {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
+set.ext $ λ x, by simpa [em, or_comm, or_and_distrib_left] using or_iff_right_of_imp (@h x)
+
 open_locale classical affine
 
 open set
@@ -28,7 +32,7 @@ structure simplicial_complex (m : ℕ) :=
 (faces : set (finset (fin m → ℝ)))
 (indep : ∀ {X}, X ∈ faces → affine_independent ℝ (λ p, p : (X : set (fin m → ℝ)) → (fin m → ℝ)))
 (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces)
-(disjoint : ∀ {X Y}, X ∈ faces -> Y ∈ faces → convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set (fin m → ℝ)))
+(disjoint : ∀ {X Y}, X ∈ faces → Y ∈ faces → convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set (fin m → ℝ)))
 
 variables {m : ℕ} {S : simplicial_complex m}
 local notation `E` := fin m → ℝ
@@ -48,23 +52,12 @@ interior of the underlying space.
 def interior (X : finset E) : set E :=
 convex_hull X \ boundary X
 
-lemma convex_hull_eq_interior_union_boundary (X : finset E) : convex_hull ↑X = interior X ∪ boundary X :=
-begin
-  ext x,
-  split,
-  {
-    rintro hx,
-    cases em (x ∈ boundary X) with hxin hxout,
-    { right, exact hxin},
-    { left, exact ⟨hx, hxout⟩}
-  },
-  {
-    rintro (⟨hx, _⟩ | ⟨_, ⟨Y, rfl⟩, hX⟩),
-    exact hx,
-    simp at hX,
-    exact convex_hull_mono hX.1.1 hX.2,
-  }
-end
+lemma boundary_subset_convex_hull {X : finset E} : boundary X ⊆ convex_hull X :=
+bUnion_subset (λ Y hY, convex_hull_mono hY.1)
+
+lemma convex_hull_eq_interior_union_boundary (X : finset E) :
+  convex_hull ↑X = interior X ∪ boundary X :=
+(sdiff_union_of_subset boundary_subset_convex_hull).symm
 
 lemma disjoint_interiors {S : simplicial_complex m} {X Y : finset E}
   (hX : X ∈ S.faces) (hY : Y ∈ S.faces) (x : E) :
@@ -160,10 +153,9 @@ def geometric_realisation (S : simplicial_complex m) :
   end
 
 --Is that a usable definition?
-def polytope {A : set(fin m → ℝ)} (P : topological_space A) : Prop := ∃ S : simplicial_complex m, S.space = A ∧ P == geometric_realisation S
+def polytope {A : set E} : Prop := ∃ S : simplicial_complex m, S.space = A
 
 def locally_finite_complex (S : simplicial_complex m) : Prop := ∀ x : fin m → ℝ, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set(fin m → ℝ))}
-
 
 lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m) (hS : locally_finite_complex S) :
   locally_compact_space S.space :=

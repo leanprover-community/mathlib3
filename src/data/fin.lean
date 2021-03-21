@@ -1105,6 +1105,9 @@ variables {α : fin (n+1) → Type u} (x : α 0) (q : Πi, α i) (p : Π(i : fin
 /-- The tail of an `n+1` tuple, i.e., its last `n` entries. -/
 def tail (q : Πi, α i) : (Π(i : fin n), α (i.succ)) := λ i, q i.succ
 
+lemma tail_def {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
+  tail (λ k : fin (n+1), q k) = (λ k : fin n, q k.succ) := rfl
+
 /-- Adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple. -/
 def cons (x : α 0) (p : Π(i : fin n), α (i.succ)) : Πi, α i :=
 λ j, fin.cases x p j
@@ -1194,6 +1197,22 @@ lemma cons_le [Π i, preorder (α i)] {x : α 0} {q : Π i, α i} {p : Π i : fi
   cons x p ≤ q ↔ x ≤ q 0 ∧ p ≤ tail q :=
 @le_cons  _ (λ i, order_dual (α i)) _ x q p
 
+@[simp]
+lemma range_cons {α : Type*} {n : ℕ} (x : α) (b : fin n → α) :
+  set.range (fin.cons x b : fin n.succ → α) = insert x (set.range b) :=
+begin
+  ext y,
+  simp only [set.mem_range, set.mem_insert_iff],
+  split,
+  { rintros ⟨i, rfl⟩,
+    refine cases (or.inl (cons_zero _ _)) (λ i, or.inr ⟨i, _⟩) i,
+    rw cons_succ },
+  { rintros (rfl | ⟨i, hi⟩),
+    { exact ⟨0, fin.cons_zero _ _⟩ },
+    { refine ⟨i.succ, _⟩,
+      rw [cons_succ, hi] } }
+end
+
 /-- `fin.append ho u v` appends two vectors of lengths `m` and `n` to produce
 one of length `o = m + n`.  `ho` provides control of definitional equality
 for the vector length. -/
@@ -1221,6 +1240,9 @@ variables {α : fin (n+1) → Type u} (x : α (last n)) (q : Πi, α i) (p : Π(
 /-- The beginning of an `n+1` tuple, i.e., its first `n` entries -/
 def init (q : Πi, α i) (i : fin n) : α i.cast_succ :=
 q i.cast_succ
+
+lemma init_def {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
+  init (λ k : fin (n+1), q k) = (λ k : fin n, q k.cast_succ) := rfl
 
 /-- Adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc` comes from
 `cons` (i.e., adding an element to the left of a tuple) read in reverse order. -/

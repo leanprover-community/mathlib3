@@ -402,7 +402,7 @@ have (legendre_sym a p : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
   by rw [legendre_sym_eq_pow, gauss_lemma_aux₂ p ha0]; simp,
 begin
   cases legendre_sym_eq_one_or_neg_one a p ha0;
-  cases @neg_one_pow_eq_or ℤ _  ((Ico 1 (p / 2).succ).filter
+  cases neg_one_pow_eq_or ℤ ((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card;
   simp [*, ne_neg_self p one_ne_zero, (ne_neg_self p one_ne_zero).symm] at *
 end

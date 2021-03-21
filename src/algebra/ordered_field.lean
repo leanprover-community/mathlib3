@@ -540,6 +540,14 @@ by { rw [div_lt_iff (@zero_lt_two α _ _)], exact lt_mul_of_one_lt_right h one_l
 
 lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
+lemma half_le_self (ha_nonneg : 0 ≤ a) : a / 2 ≤ a :=
+begin
+  by_cases h0 : a = 0,
+  { simp [h0], },
+  { rw ← ne.def at h0,
+    exact (half_lt_self (lt_of_le_of_ne ha_nonneg h0.symm)).le, },
+end
+
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
 lemma add_sub_div_two_lt (h : a < b) : a + (b - a) / 2 < b :=
@@ -552,6 +560,18 @@ end
 /-!
 ### Miscellaneous lemmas
 -/
+
+/-- Pullback a `linear_ordered_field` under an injective map. -/
+def function.injective.linear_ordered_field {β : Type*}
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_inv β] [has_div β]
+  [nontrivial β]
+  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
+  linear_ordered_field β :=
+{ ..hf.linear_ordered_ring f zero one add mul neg sub,
+  ..hf.field f zero one add mul neg sub inv div}
 
 lemma mul_sub_mul_div_mul_neg_iff (hc : c ≠ 0) (hd : d ≠ 0) :
   (a * d - b * c) / (c * d) < 0 ↔ a / c < b / d :=

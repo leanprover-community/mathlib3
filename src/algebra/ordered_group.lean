@@ -15,7 +15,6 @@ This file develops the basics of ordered groups.
 Unfortunately, the number of `'` appended to lemmas in this file
 may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
-
 -/
 
 set_option old_structure_cmd true
@@ -71,11 +70,18 @@ begin simp [inv_mul_cancel_left] at this, assumption end
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
-  [s : ordered_comm_group α] : ordered_cancel_comm_monoid α :=
+  [s : ordered_comm_group α] :
+  ordered_cancel_comm_monoid α :=
 { mul_left_cancel       := @mul_left_cancel α _,
   mul_right_cancel      := @mul_right_cancel α _,
   le_of_mul_le_mul_left := @ordered_comm_group.le_of_mul_le_mul_left α _,
   ..s }
+
+@[priority 100, to_additive]
+instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
+  [ordered_comm_group α] :
+  has_exists_mul_of_le α :=
+⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
 
 @[to_additive neg_le_neg]
 lemma inv_le_inv' (h : a ≤ b) : b⁻¹ ≤ a⁻¹ :=
@@ -407,6 +413,20 @@ by simp [div_eq_mul_inv]
 @[simp, to_additive] lemma div_lt_self_iff (a : α) {b : α} : a / b < a ↔ 1 < b :=
 by simp [div_eq_mul_inv]
 
+/-- Pullback an `ordered_comm_group` under an injective map. -/
+@[to_additive function.injective.ordered_add_comm_group
+"Pullback an `ordered_add_comm_group` under an injective map."]
+def function.injective.ordered_comm_group {β : Type*}
+  [has_one β] [has_mul β] [has_inv β] [has_div β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
+  (div : ∀ x y, f (x / y) = f x / f y) :
+  ordered_comm_group β :=
+{ ..partial_order.lift f hf,
+  ..hf.ordered_comm_monoid f one mul,
+  ..hf.comm_group_div f one mul inv div }
+
 end ordered_comm_group
 
 section ordered_add_comm_group
@@ -570,6 +590,19 @@ instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
   mul_right_cancel := λ x y z, mul_right_cancel,
   ..‹linear_ordered_comm_group α› }
 
+/-- Pullback a `linear_ordered_comm_group` under an injective map. -/
+@[to_additive function.injective.linear_ordered_add_comm_group
+"Pullback a `linear_ordered_add_comm_group` under an injective map."]
+def function.injective.linear_ordered_comm_group {β : Type*}
+  [has_one β] [has_mul β] [has_inv β] [has_div β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
+  (div : ∀ x y, f (x / y) = f x / f y)  :
+  linear_ordered_comm_group β :=
+{ ..linear_order.lift f hf,
+  ..hf.ordered_comm_group f one mul inv div }
+
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
 lemma linear_ordered_comm_group.mul_lt_mul_left'
   (a b : α) (h : a < b) (c : α) : c * a < c * b :=
@@ -649,6 +682,20 @@ end linear_ordered_comm_group
 section linear_ordered_add_comm_group
 
 variables [linear_ordered_add_comm_group α] {a b c : α}
+
+@[simp]
+lemma sub_le_sub_flip : a - b ≤ b - a ↔ a ≤ b :=
+begin
+  rw [sub_le_iff_le_add, sub_add_eq_add_sub, le_sub_iff_add_le],
+  split,
+  { intro h,
+    by_contra H,
+    rw not_le at H,
+    apply not_lt.2 h,
+    exact add_lt_add H H, },
+  { intro h,
+    exact add_le_add h h, }
+end
 
 lemma le_of_forall_pos_le_add [densely_ordered α] (h : ∀ ε : α, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ λ c hc,
@@ -914,5 +961,13 @@ instance [ordered_add_comm_group α] : ordered_comm_group (multiplicative α) :=
 instance [ordered_comm_group α] : ordered_add_comm_group (additive α) :=
 { ..additive.add_comm_group,
   ..additive.ordered_add_comm_monoid }
+
+instance [linear_ordered_add_comm_group α] : linear_ordered_comm_group (multiplicative α) :=
+{ ..multiplicative.linear_order,
+  ..multiplicative.ordered_comm_group }
+
+instance [linear_ordered_comm_group α] : linear_ordered_add_comm_group (additive α) :=
+{ ..additive.linear_order,
+  ..additive.ordered_add_comm_group }
 
 end type_tags

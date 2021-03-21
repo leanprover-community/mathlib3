@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.finset.fold
 import data.multiset.lattice
@@ -59,6 +59,10 @@ sup_le_iff.2
 
 lemma le_sup {b : β} (hb : b ∈ s) : f b ≤ s.sup f :=
 sup_le_iff.1 (le_refl _) _ hb
+
+@[simp] lemma map_sup (f : γ ↪ β) (g : β → α) (s : finset γ) :
+  (s.map f).sup g = s.sup (g ∘ f) :=
+by simp [finset.sup]
 
 lemma sup_mono_fun {g : β → α} (h : ∀b∈s, f b ≤ g b) : s.sup f ≤ s.sup g :=
 sup_le (λ b hb, le_trans (h b hb) (le_sup hb))
@@ -202,6 +206,10 @@ le_inf_iff.1 (le_refl _) _ hb
 
 lemma le_inf {a : α} : (∀b ∈ s, a ≤ f b) → a ≤ s.inf f :=
 le_inf_iff.2
+
+@[simp] lemma map_inf (f : γ ↪ β) (g : β → α) (s : finset γ) :
+  (s.map f).inf g = s.inf (g ∘ f) :=
+by simp [finset.inf]
 
 lemma inf_mono_fun {g : β → α} (h : ∀b∈s, f b ≤ g b) : s.inf f ≤ s.inf g :=
 le_inf (λ b hb, le_trans (inf_le hb) (h b hb))

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors : Anne Baanen
+Authors: Anne Baanen
 -/
 
 import algebra.algebra.basic
@@ -197,6 +197,12 @@ instance : has_inv s := ⟨λ x, ⟨x⁻¹, s.inv_mem x.2⟩⟩
 /-- A subfield inherits a field structure -/
 instance to_field : field s :=
 subtype.coe_injective.field coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subfield of a `linear_ordered_field` is a `linear_ordered_field`. -/
+instance to_linear_ordered_field {K} [linear_ordered_field K] (s : subfield K) :
+  linear_ordered_field s :=
+subtype.coe_injective.linear_ordered_field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl

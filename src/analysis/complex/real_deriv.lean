@@ -24,14 +24,12 @@ differentiable at this point, with a derivative equal to the real part of the co
 theorem has_strict_deriv_at.real_of_complex (h : has_strict_deriv_at e e' z) :
   has_strict_deriv_at (λx:ℝ, (e x).re) e'.re z :=
 begin
-  have A : has_strict_fderiv_at (coe : ℝ → ℂ) continuous_linear_map.of_real z :=
-    continuous_linear_map.of_real.has_strict_fderiv_at,
+  have A : has_strict_fderiv_at (coe : ℝ → ℂ) of_real_clm z := of_real_clm.has_strict_fderiv_at,
   have B : has_strict_fderiv_at e
     ((continuous_linear_map.smul_right 1 e' : ℂ →L[ℂ] ℂ).restrict_scalars ℝ)
-    (continuous_linear_map.of_real z) :=
+    (of_real_clm z) :=
     h.has_strict_fderiv_at.restrict_scalars ℝ,
-  have C : has_strict_fderiv_at re continuous_linear_map.re (e (continuous_linear_map.of_real z)) :=
-    continuous_linear_map.re.has_strict_fderiv_at,
+  have C : has_strict_fderiv_at re re_clm (e (of_real_clm z)) := re_clm.has_strict_fderiv_at,
   simpa using (C.comp z (B.comp z A)).has_strict_deriv_at
 end
 
@@ -40,13 +38,11 @@ differentiable at this point, with a derivative equal to the real part of the co
 theorem has_deriv_at.real_of_complex (h : has_deriv_at e e' z) :
   has_deriv_at (λx:ℝ, (e x).re) e'.re z :=
 begin
-  have A : has_fderiv_at (coe : ℝ → ℂ) continuous_linear_map.of_real z :=
-    continuous_linear_map.of_real.has_fderiv_at,
+  have A : has_fderiv_at (coe : ℝ → ℂ) of_real_clm z := of_real_clm.has_fderiv_at,
   have B : has_fderiv_at e ((continuous_linear_map.smul_right 1 e' : ℂ →L[ℂ] ℂ).restrict_scalars ℝ)
-    (continuous_linear_map.of_real z) :=
+    (of_real_clm z) :=
     h.has_fderiv_at.restrict_scalars ℝ,
-  have C : has_fderiv_at re continuous_linear_map.re (e (continuous_linear_map.of_real z)) :=
-    continuous_linear_map.re.has_fderiv_at,
+  have C : has_fderiv_at re re_clm (e (of_real_clm z)) := re_clm.has_fderiv_at,
   simpa using (C.comp z (B.comp z A)).has_deriv_at
 end
 
@@ -54,10 +50,9 @@ theorem times_cont_diff_at.real_of_complex {n : with_top ℕ} (h : times_cont_di
   times_cont_diff_at ℝ n (λ x : ℝ, (e x).re) z :=
 begin
   have A : times_cont_diff_at ℝ n (coe : ℝ → ℂ) z,
-    from continuous_linear_map.of_real.times_cont_diff.times_cont_diff_at,
+    from of_real_clm.times_cont_diff.times_cont_diff_at,
   have B : times_cont_diff_at ℝ n e z := h.restrict_scalars ℝ,
-  have C : times_cont_diff_at ℝ n re (e z),
-    from continuous_linear_map.re.times_cont_diff.times_cont_diff_at,
+  have C : times_cont_diff_at ℝ n re (e z), from re_clm.times_cont_diff.times_cont_diff_at,
   exact C.comp z (B.comp z A)
 end
 

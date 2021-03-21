@@ -508,7 +508,8 @@ function.left_inverse.injective (length_repeat a)
 @[simp] theorem bind_eq_bind {α β} (f : α → list β) (l : list α) :
   l >>= f = l.bind f := rfl
 
-@[simp] theorem bind_append (f : α → list β) (l₁ l₂ : list α) :
+-- TODO: duplicate of a lemma in core
+theorem bind_append (f : α → list β) (l₁ l₂ : list α) :
   (l₁ ++ l₂).bind f = l₁.bind f ++ l₂.bind f :=
 append_bind _ _ _
 
@@ -3184,7 +3185,8 @@ variable (p)
 theorem filter_sublist_filter {l₁ l₂} (s : l₁ <+ l₂) : filter p l₁ <+ filter p l₂ :=
 filter_map_eq_filter p ▸ s.filter_map _
 
-theorem filter_of_map (f : β → α) (l) : filter p (map f l) = map f (filter (p ∘ f) l) :=
+theorem map_filter (f : β → α) (l : list β) :
+  filter p (map f l) = map f (filter (p ∘ f) l) :=
 by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 
 @[simp] theorem filter_filter (q) [decidable_pred q] : ∀ l,

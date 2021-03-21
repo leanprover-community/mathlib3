@@ -61,7 +61,7 @@ begin
   intros x hx,
   apply measurable_set.of_compl,
   apply generate_measurable.basic,
-  exact is_closed_singleton
+  exact is_closed_singleton.is_open_compl
 end
 
 lemma borel_eq_generate_from_of_subbasis {s : set (set α)}
@@ -89,6 +89,14 @@ le_antisymm
 
 lemma is_pi_system_is_open [topological_space α] : is_pi_system (is_open : set α → Prop) :=
 λ s t hs ht hst, is_open_inter hs ht
+
+lemma borel_eq_generate_from_is_closed [topological_space α] :
+  borel α = generate_from {s | is_closed s} :=
+le_antisymm
+  (generate_from_le $ λ t ht, @measurable_set.of_compl α _ (generate_from {s | is_closed s})
+    (generate_measurable.basic _ $ is_closed_compl_iff.2 ht))
+  (generate_from_le $ λ t ht, @measurable_set.of_compl α _ (borel α)
+    (generate_measurable.basic _ $ is_open_compl_iff.2 ht))
 
 section order_topology
 
@@ -190,7 +198,7 @@ lemma measurable_set_of_continuous_at {β} [emetric_space β] (f : α → β) :
 (is_Gδ_set_of_continuous_at f).measurable_set
 
 lemma is_closed.measurable_set (h : is_closed s) : measurable_set s :=
-h.measurable_set.of_compl
+h.is_open_compl.measurable_set.of_compl
 
 lemma is_compact.measurable_set [t2_space α] (h : is_compact s) : measurable_set s :=
 h.is_closed.measurable_set
@@ -555,18 +563,43 @@ by simpa only [sub_eq_add_neg] using hf.add_const (-c)
 lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mul α]
   [second_countable_topology α] {f : ι → δ → α} (s : finset ι) (hf : ∀i, measurable (f i)) :
   measurable (λ a, ∏ i in s, f i a) :=
-finset.induction_on s
-  (by simp only [finset.prod_empty, measurable_const])
-  (assume i s his ih, by simpa [his] using (hf i).mul ih)
+begin
+  simp_rw ← finset.prod_apply,
+  exact finset.prod_induction f measurable (λ f g hf' hg', measurable.mul' hf' hg')
+    (@measurable_one α δ _ _ _) (λ i _, hf i),
+end
 
 @[to_additive]
 lemma finset.ae_measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mul α]
   [second_countable_topology α] {f : ι → δ → α} {μ : measure δ} (s : finset ι)
   (hf : ∀i, ae_measurable (f i) μ) :
   ae_measurable (λ a, ∏ i in s, f i a) μ :=
-finset.induction_on s
-  (by simp only [finset.prod_empty, ae_measurable_const])
-  (assume i s his ih, by simpa [his] using (hf i).mul ih)
+begin
+  simp_rw ← finset.prod_apply,
+  exact finset.prod_induction f (λ f, ae_measurable f μ)
+    (λ f g hf' hg', ae_measurable.mul hf' hg') (@measurable_one α δ _ _ _).ae_measurable
+    (λ i _, hf i),
+end
+
+lemma measurable.pow {β} [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
+  [measurable_space β] {n : ℕ} {f : β → α} (hf : measurable f) :
+  measurable (λ x : β, (f x) ^ n) :=
+begin
+  simp_rw finset.pow_eq_prod_const,
+  exact finset.measurable_prod _ (λ _, hf),
+end
+
+lemma measurable_pow [comm_monoid α] [has_continuous_mul α] [second_countable_topology α] {n : ℕ} :
+  measurable (λ x : α, x ^ n) :=
+measurable_id.pow
+
+lemma ae_measurable.pow {β} [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
+  [measurable_space β] {n : ℕ} {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
+  ae_measurable (λ x : β, (f x) ^ n) μ :=
+begin
+  simp_rw finset.pow_eq_prod_const,
+  exact finset.ae_measurable_prod _ (λ _, hf),
+end
 
 @[to_additive]
 lemma measurable_inv [group α] [topological_group α] : measurable (has_inv.inv : α → α) :=

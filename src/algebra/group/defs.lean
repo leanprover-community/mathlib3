@@ -191,14 +191,12 @@ class add_zero_class (M : Type u) extends has_zero M, has_add M :=
 attribute [to_additive] mul_one_class
 
 /-- A `monoid` is a `semigroup` with an element `1` such that `1 * a = a * 1 = a`. -/
-@[ancestor semigroup has_one]
-class monoid (M : Type u) extends semigroup M, has_one M :=
-(one_mul : ∀ a : M, 1 * a = a) (mul_one : ∀ a : M, a * 1 = a)
+@[ancestor semigroup has_one mul_one_class]
+class monoid (M : Type u) extends semigroup M, has_one M, mul_one_class M
 
 /-- An `add_monoid` is an `add_semigroup` with an element `0` such that `0 + a = a + 0 = a`. -/
-@[ancestor add_semigroup has_zero]
-class add_monoid (M : Type u) extends add_semigroup M, has_zero M :=
-(zero_add : ∀ a : M, 0 + a = a) (add_zero : ∀ a : M, a + 0 = a)
+@[ancestor add_semigroup has_zero add_zero_class]
+class add_monoid (M : Type u) extends add_semigroup M, has_zero M, add_zero_class M
 
 attribute [to_additive] monoid
 

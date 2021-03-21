@@ -49,8 +49,8 @@ variables {X Y : Type*} [topological_space X]
   .. locally_constant.semigroup }
 
 @[to_additive] instance [monoid Y] : monoid (locally_constant X Y) :=
-{ one_mul := by { intros, ext, simp only [mul_apply, one_apply, one_mul] },
-  mul_one := by { intros, ext, simp only [mul_apply, one_apply, mul_one] },
+{ one_mul := by { intros, ext, rw [mul_apply, one_apply, one_mul], },
+  mul_one := by { intros, ext, rw [mul_apply, one_apply, mul_one], },
   .. locally_constant.semigroup, .. locally_constant.has_one }
 
 @[to_additive] instance [comm_monoid Y] : comm_monoid (locally_constant X Y) :=

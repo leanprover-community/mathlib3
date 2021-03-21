@@ -133,8 +133,8 @@ protected def comm_semigroup [comm_semigroup β] : comm_semigroup α :=
 /-- Transfer `monoid` across an `equiv` -/
 @[to_additive "Transfer `add_monoid` across an `equiv`"]
 protected def monoid [monoid β] : monoid α :=
-{ one_mul := by simp [mul_def, one_def],
-  mul_one := by simp [mul_def, one_def],
+{ one_mul := λ a, by rw [mul_def, one_def, apply_symm_apply, one_mul, symm_apply_apply],
+  mul_one := λ a, by rw [mul_def, one_def, apply_symm_apply, mul_one, symm_apply_apply],
   ..equiv.semigroup e,
   ..equiv.has_one e }
 

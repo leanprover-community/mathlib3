@@ -28,7 +28,7 @@ namespace affine
 A simplicial complex in `R^m`. TODO: generalise to normed affine spaces `E`, so this is
 `simplicial_complex E`.
 -/
-structure simplicial_complex (m : ℕ) :=
+@[ext] structure simplicial_complex (m : ℕ) :=
 (faces : set (finset (fin m → ℝ)))
 (indep : ∀ {X}, X ∈ faces → affine_independent ℝ (λ p, p : (X : set (fin m → ℝ)) → (fin m → ℝ)))
 (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces)
@@ -164,11 +164,11 @@ lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m) (
     sorry
   end}
 
-/- interior X is the topo-/
---lemma interiors_agree_of_high_dimension {S : simplicial_complex m} : X ∈ S.faces → interior X = (geometric_realisation S).interior
---begin
-
---end
+/- interior X is the topological interior if X is of dimension d -/
+lemma interiors_agree_of_high_dimension {S : simplicial_complex m} : ∀ X ∈ S.faces, finset.card X = m → interior X = interior X :=
+begin
+sorry
+end
 
 def skeleton (k : ℕ) (S : simplicial_complex m) : simplicial_complex m :=
 {faces := {X ∈ S.faces | finset.card X ≤ k},
@@ -178,6 +178,33 @@ disjoint := λ X Y hX hY, S.disjoint hX.1 hY.1}
 
 lemma skeleton_subcomplex_self (k : ℕ) (S : simplicial_complex m) :
   (skeleton k S).faces ⊆ S.faces := (λ X ⟨hX, _⟩, hX)
+
+def subdivision_order : partial_order (simplicial_complex m) :=
+  {le := (λ S₁ S₂, S₁.space = S₂.space ∧ ∀ X₁ ∈ S₁.faces, ∃ X₂ ∈ S₂.faces, X₁ ⊆ X₂),
+  le_refl := (λ S, ⟨rfl, (λ X hX, ⟨X, hX, subset.refl X⟩)⟩),
+  le_trans := begin
+    rintro S₁ S₂ S₃ h₁₂ h₂₃,
+    use eq.trans h₁₂.1 h₂₃.1,
+    rintro X₁ hX₁,
+    obtain ⟨X₂, hX₂, hX₁₂⟩ := h₁₂.2 X₁ hX₁,
+    obtain ⟨X₃, hX₃, hX₂₃⟩ := h₂₃.2 X₂ hX₂,
+    exact ⟨X₃, hX₃, subset.trans hX₁₂ hX₂₃⟩,
+  end,
+  le_antisymm := begin
+    rintro S₁ S₂ h₁ h₂,
+    ext X,
+    split,
+    {
+      intro hX,
+      obtain ⟨Y, hY, hXY⟩ := h₁.2 X hX,
+      exact S₂.down_closed hY hXY,
+    },
+    {
+      intro hX,
+      obtain ⟨Y, hY, hXY⟩ := h₂.2 X hX,
+      exact S₁.down_closed hY hXY,
+    }
+  end}
 
 
 

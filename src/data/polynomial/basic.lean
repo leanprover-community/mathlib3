@@ -84,12 +84,7 @@ add_monoid_algebra.single_mul_single
 @[simp]
 lemma monomial_pow (n : ℕ) (r : R) (k : ℕ) :
   (monomial n r)^k = monomial (n*k) (r^k) :=
-begin
-  rw mul_comm,
-  convert add_monoid_algebra.single_pow k,
-  simp only [nat.cast_id, nsmul_eq_mul],
-  refl,
-end
+by simp [mul_comm, monomial_def, add_monoid_algebra.single_pow]
 
 lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :
   a • monomial n b = monomial n (a • b) :=

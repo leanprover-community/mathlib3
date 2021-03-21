@@ -162,6 +162,12 @@ begin
   tidy,
 end
 
+variable (D)
+def Ran_adjunction (p : C ⥤ C')
+  [∀ X, has_limits_of_shape (Ran_index p X) D] :
+  (whiskering_left _ _ D).obj p ⊣ Ran p :=
+adjunction.adjunction_of_equiv_right _ _
+
 end Ran
 
 @[simps]

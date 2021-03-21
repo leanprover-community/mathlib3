@@ -523,12 +523,36 @@ end finite_monoid
 section finite_cancel_monoid
 /-- TODO: Of course everything also works for right_cancel_monoids. -/
 variables {α} [fintype α] [left_cancel_monoid α]
+variables {H : Type u} [fintype H] [add_left_cancel_monoid H]
+
+lemma exists_nsmul_eq_zero (x : H) : ∃i, 0 < i ∧ i •ℕ x = 0 :=
+begin
+  have h : ¬ injective (λ i : ℕ, i •ℕ x) := not_injective_infinite_fintype _,
+  have h' : ∃(i j : ℕ), i •ℕ x = j •ℕ x ∧ i ≠ j,
+  { rw injective at h,
+    simp only [not_forall, exists_prop] at h,
+    exact h },
+  rcases h' with ⟨i, j, x_eq, ne⟩,
+  wlog h'' : j ≤ i,
+  have h''' : (i - j) •ℕ x = 0,
+  { rw [(nat.add_sub_of_le h'').symm, add_nsmul, ← add_zero (j •ℕ x), add_assoc] at x_eq,
+    convert add_left_cancel x_eq,
+    rw zero_add },
+  use (i - j),
+  split,
+  { apply lt_of_le_of_ne (zero_le (i - j)),
+    by_contradiction,
+    rw not_not at h,
+    apply ne,
+    rw [(nat.add_sub_of_le h'').symm, ← h, add_zero] },
+  { exact h''' }
+end
+
 
 /-- TODO: Use this to show that a finite left cancellative monoid is a group.-/
 lemma exists_pow_eq_one (a : α) : ∃i, 0 < i ∧ a ^ i = 1 :=
 begin
-  have h :  ¬ injective (λi:ℕ, a^i),
-    from not_injective_infinite_fintype _,
+  have h :  ¬ injective (λi:ℕ, a^i) := not_injective_infinite_fintype _,
   have h' : ∃(i j : ℕ), a ^ i = a ^ j ∧ i ≠ j,
   { rw injective at h,
     simp only [not_forall, exists_prop] at h,
@@ -549,10 +573,31 @@ begin
   { exact h''' },
 end
 
-lemma order_of_le_card_univ {a : α}: order_of a ≤ fintype.card α :=
+attribute [to_additive exists_nsmul_eq_zero] exists_pow_eq_one
+
+lemma add_order_of_le_card_univ {x : H} : add_order_of x ≤ fintype.card H :=
+finset.le_card_of_inj_on_range (•ℕ x)
+  (assume n _, finset.mem_univ _)
+  (assume i hi j hj, nsmul_injective_of_lt_add_order_of x hi hj)
+
+
+lemma order_of_le_card_univ {a : α} : order_of a ≤ fintype.card α :=
 finset.le_card_of_inj_on_range ((^) a)
   (assume n _, finset.mem_univ _)
   (assume i hi j hj, pow_injective_of_lt_order_of a hi hj)
+
+attribute [to_additive add_order_of_le_card_univ] order_of_le_card_univ
+
+/-- This is the same as `add_order_of_pos' but with one fewer explicit assumption since this is
+  automatic in case of a finite cancellative additive monoid.-/
+
+lemma add_order_of_pos (x : H) : 0 < add_order_of x :=
+begin
+  apply add_order_of_pos',
+  cases exists_nsmul_eq_zero x with w hw,
+  cases hw with hw1 hw2,
+  exact ⟨w, hw1, hw2⟩,
+end
 
 /-- This is the same as `order_of_pos' but with one fewer explicit assumption since this is
   automatic in case of a finite cancellative monoid.-/
@@ -564,12 +609,26 @@ begin
   exact ⟨w, hw1, hw2⟩,
 end
 
+attribute [to_additive add_order_of_pos] order_of_pos
+
 variables {n : ℕ}
 
 open nat
 
+/-- This is the same as `add_order_of_nsmul'` and `add_order_of_nsmul` but with one assumption less
+which is automatic in the case of a finite cancellative additive monoid. -/
+
+lemma add_order_of_nsmul (x : H) :
+  add_order_of (n •ℕ x) = add_order_of x / gcd (add_order_of x) n :=
+begin
+  apply add_order_of_nsmul'',
+  cases exists_nsmul_eq_zero x with w hw,
+  cases hw with hw1 hw2,
+  exact ⟨w, hw1, hw2⟩,
+end
+
 /-- This is the same as `order_of_pow'` and `order_of_pow''` but with one assumption less which is
-automatic in the case of a finite cancellative group.-/
+automatic in the case of a finite cancellative monoid.-/
 lemma order_of_pow (a : α) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
@@ -579,10 +638,28 @@ begin
   exact ⟨w, hw1, hw2⟩
 end
 
+attribute [to_additive add_order_of_nsmul] order_of_pow
+
+lemma mem_multiples_iff_mem_range_add_order_of [decidable_eq H] {x x' : H} :
+  x' ∈ add_submonoid.multiples x ↔
+  x' ∈ (finset.range (add_order_of x)).image ((•ℕ x) : ℕ → H)  :=
+finset.mem_range_iff_mem_finset_range_of_mod_eq' (add_order_of_pos x)
+  (assume i, nsmul_eq_mod_add_order_of.symm)
+
 lemma mem_powers_iff_mem_range_order_of [decidable_eq α] {a a' : α} :
   a' ∈ submonoid.powers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq' (order_of_pos a)
   (assume i, pow_eq_mod_order_of.symm)
+
+attribute [to_additive mem_multiples_iff_mem_range_add_order_of] mem_powers_iff_mem_range_order_of
+
+noncomputable instance decidable_multiples [decidable_eq H] {x : H} :
+  decidable_pred (add_submonoid.multiples x : set H) :=
+begin
+  assume x',
+  apply decidable_of_iff' (x' ∈ (finset.range (add_order_of x)).image (•ℕ x)),
+  exact mem_multiples_iff_mem_range_add_order_of,
+end
 
 noncomputable instance decidable_powers [decidable_eq α] :
   decidable_pred (submonoid.powers a : set α) :=
@@ -593,17 +670,34 @@ begin
   exact mem_powers_iff_mem_range_order_of
 end
 
-lemma order_eq_card_powers [decidable_eq α] {a : α} :
-order_of a = fintype.card (submonoid.powers a : set α) :=
+attribute [to_additive decidable_multiples] decidable_powers
+
+lemma add_order_of_eq_card_multiples [decidable_eq H] {x : H} :
+  add_order_of x = fintype.card (add_submonoid.multiples x : set H) :=
 begin
   refine (finset.card_eq_of_bijective _ _ _ _).symm,
-  { exact λn hn, ⟨pow a n, ⟨n, rfl⟩⟩ },
+  { exact λn hn, ⟨n •ℕ x, ⟨n, rfl⟩⟩ },
+  { rintros ⟨_, i, rfl⟩ _,
+    exact ⟨i % add_order_of x, mod_lt i (add_order_of_pos x),
+      subtype.eq nsmul_eq_mod_add_order_of.symm⟩ },
+  { intros, exact finset.mem_univ _ },
+  { intros i j hi hj eq,
+    exact nsmul_injective_of_lt_add_order_of x hi hj ( by simpa using eq ) },
+end
+
+lemma order_eq_card_powers [decidable_eq α] {a : α} :
+  order_of a = fintype.card (submonoid.powers a : set α) :=
+begin
+  refine (finset.card_eq_of_bijective _ _ _ _).symm,
+  { exact λn hn, ⟨a ^ n, ⟨n, rfl⟩⟩ },
   { rintros ⟨_, i, rfl⟩ _,
     exact ⟨i % order_of a, mod_lt i (order_of_pos a), subtype.eq pow_eq_mod_order_of.symm⟩ },
   { intros, exact finset.mem_univ _ },
   { intros i j hi hj eq,
     exact pow_injective_of_lt_order_of a hi hj ( by simpa using eq ) }
 end
+
+attribute [to_additive add_order_of_eq_card_multiples] order_eq_card_powers
 
 end finite_cancel_monoid
 

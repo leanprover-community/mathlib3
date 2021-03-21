@@ -379,7 +379,7 @@ end
 
 /-- Restricting a local equivalence to e.source ∩ s -/
 protected def restr (s : set α) : local_equiv α β :=
-(@is_image.of_symm_preimage_eq α β e s _ rfl).restr
+(@is_image.of_symm_preimage_eq α β e s (e.symm ⁻¹' s) rfl).restr
 
 @[simp, mfld_simps] lemma restr_coe (s : set α) : (e.restr s : α → β) = e := rfl
 @[simp, mfld_simps] lemma restr_coe_symm (s : set α) : ((e.restr s).symm : β → α) = e.symm := rfl

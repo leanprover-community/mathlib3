@@ -447,7 +447,7 @@ to use because of the openness assumption, but it has the advantage that when it
 be used then its local_equiv is defeq to local_equiv.restr -/
 protected def restr_open (s : set α) (hs : is_open s) :
   local_homeomorph α β :=
-(@is_image.of_symm_preimage_eq α β _ _ e s _ rfl).restr
+(@is_image.of_symm_preimage_eq α β _ _ e s (e.symm ⁻¹' s) rfl).restr
   (is_open_inter e.open_source hs)
 
 @[simp, mfld_simps] lemma restr_open_to_local_equiv (s : set α) (hs : is_open s) :

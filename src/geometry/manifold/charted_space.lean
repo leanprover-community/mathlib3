@@ -433,6 +433,7 @@ begin
     rintros e ⟨s, hs, hes⟩,
     refine G.eq_on_source _ hes,
     convert closed_under_restriction' G.id_mem hs,
+    change s = _ ∩ _,
     rw hs.interior_eq,
     simp only with mfld_simps },
   { intros h,

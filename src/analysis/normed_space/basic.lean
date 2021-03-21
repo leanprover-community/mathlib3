@@ -412,6 +412,7 @@ rfl
 rfl
 
 /-- seminormed group instance on the product of two seminormed groups, using the sup norm. -/
+@[priority 100]
 instance prod.semi_normed_group : semi_normed_group (α × β) :=
 { norm := λx, max ∥x.1∥ ∥x.2∥,
   dist_eq := assume (x y : α × β),
@@ -434,6 +435,7 @@ max_le_iff
 
 /-- seminormed group instance on the product of finitely many seminormed groups,
 using the sup norm. -/
+@[priority 100]
 instance pi.semi_normed_group {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] :
   semi_normed_group (Πi, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : ℝ≥0) : ℝ),
@@ -671,6 +673,7 @@ instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
   dist_eq := λx y, dist_eq_norm _ _ }
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
+@[priority 100]
 instance prod.normed_group : normed_group (α × β) :=
 { norm := λx, max ∥x.1∥ ∥x.2∥,
   dist_eq := assume (x y : α × β),
@@ -692,6 +695,7 @@ lemma norm_prod_le_iff {x : α × β} {r : ℝ} :
 max_le_iff
 
 /-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
+@[priority 100]
 instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
   normed_group (Πi, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : ℝ≥0) : ℝ),

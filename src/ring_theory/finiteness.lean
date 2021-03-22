@@ -251,11 +251,7 @@ end
 
 /-- `R` is finitely presented as `R`-algebra. -/
 lemma self : finite_presentation R R :=
-begin
-  letI hempty := mv_polynomial R pempty,
-  exact @equiv R (_root_.mv_polynomial pempty R) R _ _ _ _ _ hempty
-    (mv_polynomial.pempty_alg_equiv R)
-end
+equiv (mv_polynomial R pempty) (mv_polynomial.pempty_alg_equiv R)
 
 variable {R}
 

@@ -257,6 +257,10 @@ lemma measure_Union_null_iff [encodable ι] {s : ι → set α} :
   μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
 ⟨λ h i, measure_mono_null (subset_Union _ _) h, measure_Union_null⟩
 
+lemma measure_bUnion_null_iff {s : set ι} (hs : countable s) {t : ι → set α} :
+  μ (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, μ (t i) = 0 :=
+by { haveI := hs.to_encodable, rw [← Union_subtype, measure_Union_null_iff, set_coe.forall], refl }
+
 theorem measure_union_le (s₁ s₂ : set α) : μ (s₁ ∪ s₂) ≤ μ s₁ + μ s₂ :=
 μ.to_outer_measure.union _ _
 
@@ -431,6 +435,12 @@ lemma sum_measure_preimage_singleton (s : finset β) {f : α → β}
   ∑ b in s, μ (f ⁻¹' {b}) = μ (f ⁻¹' ↑s) :=
 by simp only [← measure_bUnion_finset (pairwise_on_disjoint_fiber _ _) hf,
   finset.set_bUnion_preimage_singleton]
+
+lemma measure_diff_null' (h : μ (s₁ ∩ s₂) = 0) : μ (s₁ \ s₂) = μ s₁ :=
+measure_congr $ diff_ae_eq_self.2 h
+
+lemma measure_diff_null (h : μ s₂ = 0) : μ (s₁ \ s₂) = μ s₁ :=
+measure_diff_null' $ measure_mono_null (inter_subset_right _ _) h
 
 lemma measure_diff (h : s₂ ⊆ s₁) (h₁ : measurable_set s₁) (h₂ : measurable_set s₂)
   (h_fin : μ s₂ < ∞) :

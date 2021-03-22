@@ -716,6 +716,8 @@ eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩
 theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
 ⟨xs, px⟩
 
+theorem sep_def {s : set α} {p : α → Prop} : {x ∈ s | p x} = s ∩ {x | p x} := rfl
+
 @[simp] theorem sep_mem_eq {s t : set α} : {x ∈ s | x ∈ t} = s ∩ t := rfl
 
 @[simp] theorem mem_sep_eq {s : set α} {p : α → Prop} {x : α} :

@@ -793,7 +793,9 @@ lemma ealg_mul_apply {m n : ℕ} (f : fin m → M) (g : fin n → M) :
 begin
   rw ←ealg.mul_def,
   erw [submodule.liftq_apply, linear_map.comp_apply],
-  congr,
+  -- Amelia -- congr was taking forever here (making CI fail on your branch);
+  -- I did some `show_term` stuff to find out what it was actually doing
+  refine congr (congr_arg coe_fn (eq.refl (ealg_ker R M).mkq)) _,
   rw [mul_def, mul_apply]
 end
 

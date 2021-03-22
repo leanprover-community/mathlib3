@@ -119,7 +119,8 @@ calc ∏ a in s, (f a + g a)
 end
 
 /-- `∏ i, (f i + g i) = (∏ i, f i) + ∑ i, g i * (∏ j < i, f j + g j) * (∏ j > i, f j)`. -/
-lemma prod_add_ordered {ι R : Type*} [comm_ring R] [linear_order ι] (s : finset ι) (f g : ι → R) :
+lemma prod_add_ordered {ι R : Type*} [comm_semiring R] [linear_order ι] (s : finset ι)
+  (f g : ι → R) :
   (∏ i in s, (f i + g i)) = (∏ i in s, f i) +
     ∑ i in s, g i * (∏ j in s.filter (< i), (f j + g j)) * ∏ j in s.filter (λ j, i < j), f j :=
 begin

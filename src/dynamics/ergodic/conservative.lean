@@ -129,6 +129,29 @@ begin
   simp
 end
 
+lemma inter_frequently_image_mem_ae_eq (hf : conservative f μ) (hs : measurable_set s) :
+  (s ∩ {x | ∃ᶠ n in at_top, f^[n] x ∈ s} : set α) =ᵐ[μ] s :=
+inter_eventually_eq_left.2 $ hf.ae_mem_imp_frequently_image_mem hs
+
+lemma measure_inter_frequently_image_mem_eq (hf : conservative f μ) (hs : measurable_set s) :
+  μ (s ∩ {x | ∃ᶠ n in at_top, f^[n] x ∈ s}) = μ s :=
+measure_congr (hf.inter_frequently_image_mem_ae_eq hs)
+
+/-- Poincaré recurrence theorem: if `f` is a conservative dynamical system and `s` is a measurable
+set, then for `μ`-a.e. `x`, if the orbit of `x` visits `s` at least once, then it visits `s`
+infinitely many times.  -/
+lemma ae_forall_image_mem_imp_frequently_image_mem (hf : conservative f μ) (hs : measurable_set s) :
+  ∀ᵐ x ∂μ, ∀ k, f^[k] x ∈ s → ∃ᶠ n in at_top, (f^[n] x) ∈ s :=
+begin
+  refine ae_all_iff.2 (λ k, _),
+  refine (hf.ae_mem_imp_frequently_image_mem (hf.measurable.iterate k hs)).mono (λ x hx hk, _),
+  rw [← map_add_at_top_eq_nat k, frequently_map],
+  refine (hx hk).mono (λ n hn, _),
+  rwa [add_comm, iterate_add_apply]
+end
+
+/-- If `f` is a conservative self-map and `s` is a measurable set of positive measure, then
+`μ.ae`-frequently we have `x ∈ s` and `s` returns to `s` under infinitely many iterations of `f`. -/
 lemma frequently_ae_mem_and_frequently_image_mem (hf : conservative f μ) (hs : measurable_set s)
   (h0 : μ s ≠ 0) :
   ∃ᵐ x ∂μ, x ∈ s ∧ ∃ᶠ n in at_top, (f^[n] x) ∈ s :=
@@ -154,9 +177,12 @@ end
 /-- Iteration of a conservative system is a conservative system. -/
 protected lemma iterate (hf : conservative f μ) (n : ℕ) : conservative (f^[n]) μ :=
 begin
-  cases n, { exact conservative.id μ },
+  cases n, { exact conservative.id μ }, -- Discharge the trivial case `n = 0`
   refine ⟨hf.1.iterate _, λ s hs hs0, _⟩,
   rcases (hf.frequently_ae_mem_and_frequently_image_mem hs hs0).exists with ⟨x, hxs, hx⟩,
+  /- We take a point `x ∈ s` such that `f^[k] x ∈ s` for infinitely many values of `k`,
+  then we choose two of these values `k < l` such that `k ≡ l [MOD (n + 1)]`.
+  Then `f^[k] x ∈ s` and `(f^[n + 1])^[(l - k) / (n + 1)] (f^[k] x) = f^[l] x ∈ s`. -/
   rw nat.frequently_at_top_iff_infinite at hx,
   rcases exists_lt_modeq_of_infinite_nat hx n.succ_pos with ⟨k, hk, l, hl, hkl, hn⟩,
   set m := (l - k) / (n + 1),

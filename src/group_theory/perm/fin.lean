@@ -165,6 +165,15 @@ lemma cycle_range_self {n : ℕ} (i : fin n.succ) :
   cycle_range i i = 0 :=
 cycle_range_of_eq rfl
 
+lemma cycle_range_apply {n : ℕ} (i j : fin n.succ) :
+  cycle_range i j = if j < i then j + 1 else if j = i then 0 else j :=
+begin
+  split_ifs with h₁ h₂,
+  { exact cycle_range_of_lt h₁ },
+  { exact cycle_range_of_eq h₂ },
+  { exact cycle_range_of_gt (lt_of_le_of_ne (le_of_not_gt h₁) (ne.symm h₂)) },
+end
+
 @[simp] lemma sign_cycle_range {n : ℕ} (i : fin n.succ) :
   perm.sign (cycle_range i) = (-1) ^ (i : ℕ) :=
 begin

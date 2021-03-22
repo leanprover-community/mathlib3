@@ -181,8 +181,8 @@ Build an isomorphism in the category `Module R` from a `linear_equiv` between `m
 This version is better than `linear_equiv_to_Module_iso` when applicable, because Lean can't see
 `Module.of R M` is defeq to `M` when `M : Module R`. -/
 @[simps]
-def linear_equiv.to_Module_iso'_right {g₁ : add_comm_group X₁} {m₁ : module R X₁} {X₂ : Module.{v} R}
-  (e : X₁ ≃ₗ[R] X₂) : Module.of R X₁ ≅ X₂ :=
+def linear_equiv.to_Module_iso'_right {g₁ : add_comm_group X₁} {m₁ : module R X₁}
+  {X₂ : Module.{v} R} (e : X₁ ≃ₗ[R] X₂) : Module.of R X₁ ≅ X₂ :=
 { hom := (e : X₁ →ₗ[R] X₂),
   inv := (e.symm : X₂ →ₗ[R] X₁),
   hom_inv_id' := linear_map.ext $ λ x, by simp,

@@ -577,7 +577,7 @@ linear_map.lcomp_apply f g x
   (linear_map.id : M₁ →ₗ[R] M₁).dual_map = linear_map.id :=
 by { ext, refl }
 
-lemma linear_map.dual_map_dual_map {M₃ : Type*} [add_comm_group M₃] [module R M₃]
+lemma linear_map.dual_map_comp_dual_map {M₃ : Type*} [add_comm_group M₃] [module R M₃]
   (f : M₁ →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) :
   f.dual_map.comp g.dual_map = (g.comp f).dual_map :=
 rfl

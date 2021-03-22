@@ -156,13 +156,13 @@ begin
 end
 
 variables {p : ℕ} [fact p.prime]
-#where
+
 -- the following is a nasty case bash that I (DT) abstracted from the lemma below
 -- a pre-existing comment asked "maybe it can be proven more... algebraically?"
-lemma mat_poly_equiv_eq_X_pow_sub_C {K : Type*} (p k : ℕ) [field K] (M : matrix n n K) :
+lemma mat_poly_equiv_eq_X_pow_sub_C {K : Type*} (k : ℕ) [field K] (M : matrix n n K) :
   mat_poly_equiv
-      (((expand K (p ^ k) : polynomial K →+* polynomial K).map_matrix) (char_matrix (M ^ p ^ k))) =
-    X ^ p ^ k - C (M ^ p ^ k) :=
+      ((expand K (k) : polynomial K →+* polynomial K).map_matrix (char_matrix (M ^ k))) =
+    X ^ k - C (M ^ k) :=
 begin
   ext m,
   rw [coeff_sub, coeff_C, mat_poly_equiv_coeff_apply, ring_hom.map_matrix_apply, matrix.map_apply,
@@ -195,7 +195,7 @@ begin
     apply mat_poly_equiv.injective, swap, { apply_instance },
     rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
           mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
-    { exact mat_poly_equiv_eq_X_pow_sub_C p k M },
+    { exact mat_poly_equiv_eq_X_pow_sub_C (p ^ k) M },
     { exact (C M).commute_X } },
   { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
 end

@@ -564,9 +564,6 @@ instance : measurable_space ℕ := ⊤
 instance : measurable_space ℤ := ⊤
 instance : measurable_space ℚ := ⊤
 
-instance : measurable_singleton_class ℕ := ⟨λ x, trivial⟩
-instance : measurable_singleton_class ℤ := ⟨λ x, trivial⟩
-
 lemma measurable_to_encodable [encodable α] {f : β → α} (h : ∀ y, measurable_set (f ⁻¹' {f y})) :
   measurable f :=
 begin

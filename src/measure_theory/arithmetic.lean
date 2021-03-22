@@ -117,6 +117,7 @@ export has_measurable_pow (measurable_pow)
 instance has_measurable_mul.has_measurable_pow (M : Type*) [monoid M] [measurable_space M]
   [has_measurable_mul₂ M] :
   has_measurable_pow M ℕ :=
+by haveI : measurable_singleton_class ℕ := ⟨λ _, trivial⟩; exact
 ⟨measurable_from_prod_encodable $ λ n, nat.rec_on n measurable_one $
   λ n, measurable_id.mul⟩
 
@@ -277,12 +278,14 @@ end inv
 instance has_measurable_gpow (G : Type*) [group G] [measurable_space G]
   [has_measurable_mul₂ G] [has_measurable_inv G] :
   has_measurable_pow G ℤ :=
+by haveI : measurable_singleton_class ℤ := ⟨λ _, trivial⟩; exact
 ⟨measurable_from_prod_encodable $
   λ n, int.cases_on n measurable_id.pow_const (λ n, (measurable_id.pow_const (n + 1)).inv)⟩
 
 instance has_measurable_fpow (G₀ : Type*) [group_with_zero G₀] [measurable_space G₀]
   [has_measurable_mul₂ G₀] [has_measurable_inv G₀] :
   has_measurable_pow G₀ ℤ :=
+by haveI : measurable_singleton_class ℤ := ⟨λ _, trivial⟩; exact
 ⟨measurable_from_prod_encodable $
   λ n, int.cases_on n measurable_id.pow_const (λ n, (measurable_id.pow_const (n + 1)).inv)⟩
 

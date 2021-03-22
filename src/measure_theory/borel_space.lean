@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.ae_measurable_sequence
-import measure_theory.arithmetic
 import analysis.complex.basic
 import analysis.normed_space.finite_dimension
 import topology.G_delta

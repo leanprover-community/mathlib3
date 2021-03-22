@@ -89,15 +89,14 @@ begin
     have h_measM_g := h_meas_Mg h_measMg_g,
     simp_rw [pi.add_apply, left_distrib],
     rw [lintegral_add h_measM_f' h_measM_g,
-        lintegral_add (measurable.mul h_measM_f h_measM_f')
-          (measurable.mul h_measM_f h_measM_g),
+        lintegral_add (h_measM_f.mul h_measM_f') (h_measM_f.mul h_measM_g),
         left_distrib, h_ind_f', h_ind_g'] },
   { intros f' h_meas_f' h_mono_f' h_ind_f',
     have h_measM_f' := λ n, h_meas_Mg (h_meas_f' n),
     simp_rw [ennreal.mul_supr],
     rw [lintegral_supr, lintegral_supr h_measM_f' h_mono_f', ennreal.mul_supr],
     { simp_rw [← h_ind_f'] },
-    { apply λ (n : ℕ), measurable.mul h_measM_f (h_measM_f' n) },
+    { apply λ (n : ℕ), h_measM_f.mul (h_measM_f' n) },
     { apply λ (n : ℕ) (m : ℕ) (h_le : n ≤ m) a, ennreal.mul_le_mul le_rfl
       (h_mono_f' h_le a) } }
 end

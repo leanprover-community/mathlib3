@@ -43,7 +43,8 @@ namespace is_projective
 variables {R : Type u} [ring R] {M : Type v} [add_comm_group M] [module R M]
   {A : Type*} [add_comm_group A] [module R A] {B : Type*} [add_comm_group B] [module R B]
 
-theorem universal_property (h : is_projective R M) (f : A →ₗ[R] B) (g : M →ₗ[R] B) -- the R-linear maps
+/-- A projective R-module has the property that maps from it lift along surjections. -/
+theorem universal_property (h : is_projective R M) (f : A →ₗ[R] B) (g : M →ₗ[R] B)
 (hf : function.surjective f) : ∃ (h : M →ₗ[R] A), f.comp h = g :=
 begin
   /-

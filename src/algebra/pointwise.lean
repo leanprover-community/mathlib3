@@ -132,6 +132,10 @@ instance [semigroup α] : semigroup (set α) :=
 
 @[to_additive set.add_monoid]
 instance [monoid α] : monoid (set α) :=
+-- It's unfortunate that we need both `rw` and `simp_only` here.
+-- If we try to do `singleton_one` or `mul_singleton` using `simp only`,
+-- we get terms with an explicit `semigroup.mul`, and the later lemmas no longer match.
+-- We can't do `mul_one` with `rw`, because it needs to work under a binder.
 { mul_one := λ s, by { rw [← singleton_one, mul_singleton], simp only [mul_one, image_id'], },
   one_mul := λ s, by { rw [← singleton_one, singleton_mul], simp only [one_mul, image_id'], },
   ..set.semigroup,

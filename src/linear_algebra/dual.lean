@@ -617,7 +617,7 @@ rfl
 
 namespace linear_map
 
-variable {f : M₁ →ₗ[R] M₂}
+variable (f : M₁ →ₗ[R] M₂)
 
 lemma ker_dual_map_eq_dual_annihilator_range :
   f.dual_map.ker = f.range.dual_annihilator :=
@@ -646,11 +646,12 @@ section finite_dimensional
 
 variables {K : Type*} [field K] {V₁ : Type*} {V₂ : Type*}
 variables [add_comm_group V₁] [vector_space K V₁] [add_comm_group V₂] [vector_space K V₂]
-variables [finite_dimensional K V₂]
 
 open finite_dimensional
 
-lemma findim_range_dual_map_eq_findim_range {f : V₁ →ₗ[K] V₂} :
+variable [finite_dimensional K V₂]
+
+lemma findim_range_dual_map_eq_findim_range (f : V₁ →ₗ[K] V₂) :
   findim K f.dual_map.range = findim K f.range :=
 begin
   have := submodule.findim_quotient_add_findim f.range,
@@ -662,10 +663,10 @@ begin
   rw [findim_range_add_findim_ker f.dual_map, add_comm, this],
 end
 
-lemma range_dual_map_eq_dual_annihilator_ker [finite_dimensional K V₁] {f : V₁ →ₗ[K] V₂} :
+lemma range_dual_map_eq_dual_annihilator_ker [finite_dimensional K V₁] (f : V₁ →ₗ[K] V₂) :
   f.dual_map.range = f.ker.dual_annihilator :=
 begin
-  refine eq_of_le_of_findim_eq range_dual_map_le_dual_annihilator_ker _,
+  refine eq_of_le_of_findim_eq f.range_dual_map_le_dual_annihilator_ker _,
   have := submodule.findim_quotient_add_findim f.ker,
   rw (subspace.quot_equiv_annihilator f.ker).findim_eq at this,
   refine add_left_injective (findim K f.ker) _,

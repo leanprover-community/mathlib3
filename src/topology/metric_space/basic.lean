@@ -1172,7 +1172,7 @@ begin
   { assume x y,
     rw ← lt_top_iff_ne_top,
     have : (⊥ : ℝ≥0∞) < ⊤ := ennreal.coe_lt_top,
-    simp [pseudo_edist_pi_def, finset.sup_lt_iff this, edist_lt_top] },
+    simp [edist_pi_def, finset.sup_lt_iff this, edist_lt_top] },
   show ∀ (x y : Π (b : β), π b), ↑(sup univ (λ (b : β), nndist (x b) (y b))) =
     ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
   { assume x y,

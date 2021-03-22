@@ -418,7 +418,7 @@ instance prod.pseudo_emetric_space_max [pseudo_emetric_space β] : pseudo_emetri
   end,
   to_uniform_space := prod.uniform_space }
 
-lemma prod.pesudo_edist_eq [pseudo_emetric_space β] (x y : α × β) :
+lemma prod.edist_eq [pseudo_emetric_space β] (x y : α × β) :
   edist x y = max (edist x.1 y.1) (edist x.2 y.2) :=
 rfl
 
@@ -452,11 +452,11 @@ instance pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] :
     simp [set.ext_iff, εpos]
   end }
 
-lemma pseudo_edist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
+lemma edist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
-@[priority 1100]
-lemma pseudo_edist_pi_const [nonempty β] (a b : α) :
+@[simp]
+lemma edist_pi_const [nonempty β] (a b : α) :
   edist (λ x : β, a) (λ _, b) = edist a b := finset.sup_const univ_nonempty (edist a b)
 
 end pi
@@ -971,10 +971,6 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (γ × β) :=
   end,
   ..prod.pseudo_emetric_space_max }
 
-  lemma prod.edist_eq [emetric_space β] (x y : α × β) :
-  edist x y = max (edist x.1 y.1) (edist x.2 y.2) :=
-rfl
-
 /-- Reformulation of the uniform structure in terms of the extended distance -/
 theorem uniformity_edist :
   𝓤 γ = ⨅ ε>0, 𝓟 {p:γ×γ | edist p.1 p.2 < ε} :=
@@ -997,12 +993,6 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
     exact (funext $ assume b, edist_le_zero.1 $ eq1 b $ mem_univ b),
   end,
   ..pseudo_emetric_space_pi }
-
-lemma edist_pi_def [Π b, emetric_space (π b)] (f g : Π b, π b) :
-  edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
-
-@[simp] lemma edist_pi_const [nonempty β] (a b : α) : edist (λ x : β, a) (λ _, b) = edist a b :=
-finset.sup_const univ_nonempty (edist a b)
 
 end pi
 

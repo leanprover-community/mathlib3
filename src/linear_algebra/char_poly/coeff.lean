@@ -156,6 +156,27 @@ begin
 end
 
 variables {p : ℕ} [fact p.prime]
+#where
+-- the following is a nasty case bash that I (DT) abstracted from the lemma below
+-- a pre-existing comment asked "maybe it can be proven more... algebraically?"
+lemma mat_poly_equiv_eq_X_pow_sub_C {K : Type*} (p k : ℕ) [field K] (M : matrix n n K) :
+  mat_poly_equiv
+      (((expand K (p ^ k) : polynomial K →+* polynomial K).map_matrix) (char_matrix (M ^ p ^ k))) =
+    X ^ p ^ k - C (M ^ p ^ k) :=
+begin
+  ext m,
+  rw [coeff_sub, coeff_C, mat_poly_equiv_coeff_apply, ring_hom.map_matrix_apply, matrix.map_apply,
+    alg_hom.coe_to_ring_hom, matrix.sub_apply, coeff_X_pow],
+  by_cases hij : i = j,
+  { rw [hij, char_matrix_apply_eq, alg_hom.map_sub, expand_C, expand_X, coeff_sub, coeff_X_pow,
+     coeff_C],
+    split_ifs with mp m0;
+    simp only [matrix.one_apply_eq, matrix.zero_apply] },
+  { rw [char_matrix_apply_ne _ _ _ hij, alg_hom.map_neg, expand_C, coeff_neg, coeff_C],
+    split_ifs with m0 mp;
+    simp only [hij, zero_sub, matrix.zero_apply, sub_zero, neg_zero, matrix.one_apply_ne, ne.def,
+      not_false_iff] }
+end
 
 @[simp] lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
   char_poly (M ^ (fintype.card K)) = char_poly M :=
@@ -174,12 +195,8 @@ begin
     apply mat_poly_equiv.injective, swap, { apply_instance },
     rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
           mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
-    swap, { apply polynomial.commute_X },
-    -- the following is a nasty case bash that should be abstracted as a lemma
-    -- (and maybe it can be proven more... algebraically?)
-    ext, rw [coeff_sub, coeff_C],
-    by_cases hij : i = j; simp [char_matrix, hij, coeff_X_pow];
-    simp only [coeff_C]; split_ifs; simp *, },
+    { exact mat_poly_equiv_eq_X_pow_sub_C p k M },
+    { exact (C M).commute_X } },
   { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
 end
 

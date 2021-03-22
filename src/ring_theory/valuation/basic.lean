@@ -56,8 +56,6 @@ noncomputable theory
 
 open function ideal
 
--- universes u u₀ u₁ u₂ -- v is used for valuations
-
 variables {R : Type*} -- This will be a ring, assumed commutative in some sections
 
 set_option old_structure_cmd true

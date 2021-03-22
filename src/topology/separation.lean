@@ -157,6 +157,14 @@ mem_nhds_sets is_open_compl_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
   closure ({a} : set α) = {a} :=
 is_closed_singleton.closure_eq
 
+lemma set.subsingleton.closure [t1_space α] {s : set α} (hs : s.subsingleton) :
+  (closure s).subsingleton :=
+hs.induction_on (by simp) $ λ x, by simp
+
+@[simp] lemma subsingleton_closure [t1_space α] {s : set α} :
+  (closure s).subsingleton ↔ s.subsingleton :=
+⟨λ h, h.mono subset_closure, λ h, h.closure⟩
+
 lemma is_closed_map_const {α β} [topological_space α] [topological_space β] [t1_space β] {y : β} :
   is_closed_map (function.const α y) :=
 begin
@@ -372,6 +380,11 @@ eq_of_nhds_ne_bot $ ne_bot_of_le $ le_inf ha hb
 lemma tendsto_nhds_unique' [t2_space α] {f : β → α} {l : filter β} {a b : α}
   (hl : ne_bot l) (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
 eq_of_nhds_ne_bot $ ne_bot_of_le $ le_inf ha hb
+
+lemma tendsto_nhds_unique_of_eventually_eq [t2_space α] {f g : β → α} {l : filter β} {a b : α}
+  [ne_bot l] (ha : tendsto f l (𝓝 a)) (hb : tendsto g l (𝓝 b)) (hfg : f =ᶠ[l] g) :
+  a = b :=
+tendsto_nhds_unique (ha.congr' hfg) hb
 
 section lim
 variables [t2_space α] {f : filter α}

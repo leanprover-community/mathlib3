@@ -6,7 +6,15 @@ Authors: Scott Morrison, Bhavik Mehta
 import category_theory.const
 import category_theory.discrete_category
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+/-!
+# The category `discrete punit`
+
+We define `star : C ⥤ discrete punit` sending everything to `punit.star`,
+show that any two functors to `discrete punit` are naturally isomorphic,
+and construct the equivalence `(discrete punit ⥤ C) ≌ C`.
+-/
+
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
 

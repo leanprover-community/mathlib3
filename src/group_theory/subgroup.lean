@@ -228,6 +228,10 @@ by simpa only [div_eq_mul_inv] using H.mul_mem' hx (H.inv_mem' hy)
 @[simp, to_additive] theorem inv_mem_iff {x : G} : x⁻¹ ∈ H ↔ x ∈ H :=
 ⟨λ h, inv_inv x ▸ H.inv_mem h, H.inv_mem⟩
 
+@[simp, to_additive]
+theorem inv_coe_set : (H : set G)⁻¹ = H :=
+by { ext, simp, }
+
 @[to_additive]
 lemma mul_mem_cancel_right {x y : G} (h : x ∈ H) : y * x ∈ H ↔ y ∈ H :=
 ⟨λ hba, by simpa using H.mul_mem hba (H.inv_mem h), λ hb, H.mul_mem hb h⟩
@@ -563,7 +567,7 @@ le_antisymm ((closure_le $ K).2 h₁) h₂
 is preserved under multiplication and inverse, then `p` holds for all elements of the closure
 of `k`. -/
 @[to_additive "An induction principle for additive closure membership. If `p` holds for `0` and all
-elements of `k`, and is preserved under addition and isvers, then `p` holds for all elements
+elements of `k`, and is preserved under addition and inverses, then `p` holds for all elements
 of the additive closure of `k`."]
 lemma closure_induction {p : G → Prop} {x} (h : x ∈ closure k)
   (Hk : ∀ x ∈ k, p x) (H1 : p 1)

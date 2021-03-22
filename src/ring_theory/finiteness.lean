@@ -327,7 +327,8 @@ begin
     (_root_.mv_polynomial (fin m) R) (_root_.mv_polynomial (fin m) R) :=
       is_scalar_tower.right,
   letI : is_scalar_tower R
-    (_root_.mv_polynomial (fin m) R) (_root_.mv_polynomial (fin n) (_root_.mv_polynomial (fin m) R)) :=
+    (_root_.mv_polynomial (fin m) R) (_root_.mv_polynomial (fin n)
+      (_root_.mv_polynomial (fin m) R)) :=
       mv_polynomial.is_scalar_tower,
 
   refine equiv _ ((@mv_polynomial.quotient_equiv_quotient_mv_polynomial

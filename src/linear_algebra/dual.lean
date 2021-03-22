@@ -610,7 +610,7 @@ namespace linear_map
 
 variable {f : M₁ →ₗ[R] M₂}
 
-lemma ker_dual_map_eq_range_dual_annihilator :
+lemma ker_dual_map_eq_dual_annihilator_range :
   f.dual_map.ker = f.range.dual_annihilator :=
 begin
   ext φ, split; intro hφ,
@@ -646,7 +646,7 @@ lemma findim_range_dual_map_eq_findim_range {f : V₁ →ₗ[K] V₂} :
 begin
   have := submodule.findim_quotient_add_findim f.range,
   rw [(subspace.quot_equiv_annihilator f.range).findim_eq,
-      ← ker_dual_map_eq_range_dual_annihilator] at this,
+      ← ker_dual_map_eq_dual_annihilator_range] at this,
   conv_rhs at this { rw ← subspace.dual_findim_eq },
   refine add_left_injective (findim K f.dual_map.ker) _,
   change _ + _ = _ + _,

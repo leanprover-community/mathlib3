@@ -90,7 +90,7 @@ def obj_aux (F : S ⥤ D) [∀ x, has_limits_of_shape (index ι x) D] : L ⥤ D 
     erw [limit.pre_pre, limit.pre_π, limit.pre_π],
     congr' 1,
     tidy,
-  end }
+  end }.
 
 @[simps]
 def equiv [∀ x, has_limits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
@@ -126,7 +126,7 @@ def equiv [∀ x, has_limits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ D
     cases j,
     tidy,
   end,
-  right_inv := by tidy }
+  right_inv := by tidy }.
 
 @[simps]
 def equiv' [∀ x, has_limits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
@@ -233,7 +233,49 @@ def obj_aux (F : S ⥤ D) [∀ x, has_colimits_of_shape (index ι x) D] : L ⥤ 
     rw [colimit.ι_pre, colimit.ι_pre],
     congr' 1,
     simp only [index_map_comp, functor.comp_obj],
-  end }
+  end }.
+
+@[simps]
+def equiv [∀ x, has_colimits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
+  (obj_aux ι F ⟶ G) ≃ (F ⟶ ι ⋙ G ) :=
+{ to_fun := λ f,
+  { app := λ x, by apply colimit.ι (diagram ι F (ι.obj x)) (index.mk (𝟙 _)) ≫ f.app _, -- sigh
+  naturality' := begin
+    intros x y ff,
+    simp,
+    erw [← f.naturality (ι.map ff)],
+    delta obj_aux,
+    erw [← category.assoc, ← category.assoc],
+    erw colimit.ι_pre (diagram ι F (ι.obj y)) (index_map (ι.map ff)) (index.mk (𝟙 _)),
+    congr' 1,
+    have := colimit.w (diagram ι F (ι.obj y)) (index.mk_hom (𝟙 _) ff),
+    convert this,
+    rw index_map_mk,
+    simp [index_map_mk],
+  end },
+  inv_fun := λ f,
+  { app := λ x, colimit.desc (diagram ι F x) (cocone _ f),
+    naturality' := begin
+      intros x y ff,
+      ext j,
+      erw [colimit.pre_desc, ← category.assoc, colimit.ι_desc, colimit.ι_desc],
+      tidy,
+    end },
+  left_inv := begin
+    intro x,
+    ext k j,
+    rw colimit.ι_desc,
+    dsimp only [cocone],
+    rw [category.assoc, ← x.naturality j.hom, ← category.assoc],
+    congr' 1,
+    dsimp only [obj_aux, index_map],
+    change colimit.ι _ _ ≫ colimit.pre (diagram ι F k) (index_map _) = _,
+    rw colimit.ι_pre,
+    congr,
+    cases j,
+    tidy,
+  end,
+  right_inv := by tidy }.
 
 end Lan
 

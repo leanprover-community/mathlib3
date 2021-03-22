@@ -42,6 +42,7 @@ class well_powered : Prop :=
 instance small_subobject [well_powered C] (X : C) : small.{v} (subobject X) :=
 well_powered.subobject_small X
 
+@[priority 100]
 instance well_powered_of_small_category (C : Type u) [small_category C] : well_powered C :=
 { subobject_small := λ X, small_self _, }
 
@@ -59,7 +60,7 @@ theorem well_powered_of_mono_over_essentially_small
 
 variables {C} [well_powered C]
 
-theorem mono_over_essentially_small [well_powered C] (X : C) :
+theorem mono_over_essentially_small (X : C) :
   essentially_small.{v} (mono_over X) :=
 (essentially_small_mono_over_iff_small_subobject X).mpr (well_powered.subobject_small X)
 

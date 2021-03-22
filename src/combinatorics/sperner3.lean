@@ -34,7 +34,7 @@ A simplicial complex in `R^m`. TODO: generalise to normed affine spaces `E`, so 
 (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces)
 (disjoint : ∀ {X Y}, X ∈ faces → Y ∈ faces → convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set (fin m → ℝ)))
 
-variables {m : ℕ} {S : simplicial_complex m}
+variables {m n : ℕ} {S : simplicial_complex m}
 local notation `E` := fin m → ℝ
 
 /-- The underlying space of a simplicial complex. -/
@@ -202,13 +202,12 @@ begin
 end
 
 --probably belongs in the mathlib file of convex hulls
-/-lemma subset_of_convex_hull_subset_convex_hull_of_linearly_independent {X Y : finset E} :
-  affine_independent ℝ (λ (p : (X : set(fin m → ℝ))), ↑p) → convex_hull ↑X ⊆ convex_hull (Y : set(fin m → ℝ)) → X ⊆ Y :=
+lemma subset_of_convex_hull_subset_convex_hull_of_linearly_independent {X Y : finset E} :
+  affine_independent ℝ (λ p, p : (X : set E) → E) → convex_hull ↑X ⊆ convex_hull (Y : set(fin m → ℝ)) → X ⊆ Y :=
 begin
-  intro hX,
-  have := S.indep hX,
+  rintro hX h x hx,
   sorry,
-end-/
+end
 
 /- S₁ ≤ S₂ iff all faces of S₁ are contained in faces of S₂-/
 def subdivision_order : partial_order (simplicial_complex m) :=
@@ -277,24 +276,28 @@ begin
 end
 
 /- An m-dimensional simplicial complex is pure iff all faces are subfaces of some m-dimensional face-/
-def simplicial_complex.pure (S : simplicial_complex m) : Prop := (∀ X ∈ S.faces, ∃ Y ∈ S.faces, finset.card Y = m + 1 ∧ X ⊆ Y)
+def simplicial_complex.pure (S : simplicial_complex m) (n : ℕ) : Prop :=
+  (∀ X ∈ S.faces, ∃ Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y)
 
 --Is that good?
-@[ext] structure polytope (m : ℕ) :=
+@[ext] structure polytope (m n : ℕ) :=
   (space : set (fin m → ℝ))
-  (realisable : ∃ (S : simplicial_complex m), S.pure ∧ space = S.space)
+  (realisable : ∃ (S : simplicial_complex m), S.pure n ∧ space = S.space)
 
-def polytope.faces (P : polytope m) : set (finset (fin m → ℝ)) :=
+def polytope.vertices (P : polytope m n) : set (fin m → ℝ) :=
+  ⋂ (S : simplicial_complex m) (H : P.space = S.space), {x | {x} ∈ S.faces}
+
+def polytope.faces (P : polytope m n) : set (finset (fin m → ℝ)) :=
   ⋂ (S : simplicial_complex m) (H : P.space = S.space), S.faces
 
 /- Every convex polytope can be realised by a simplicial complex with the same vertices-/
-lemma triangulable_of_convex {P : polytope m} :
-  convex P.space → ∃ (S : simplicial_complex m), P.space = S.space ∧ ∀ X ∈ S.faces, finset.card X = 1 → X ∈ P.faces :=
+lemma triangulable_of_convex {P : polytope m n} :
+  convex P.space → ∃ (S : simplicial_complex m), P.space = S.space ∧ ∀ x, {x} ∈ S.faces → x ∈ P.vertices :=
 begin
   sorry
 end
 
-def polytope.some_triangulation {P : polytope m} (hP : convex P.space) : simplicial_complex m := sorry
+def polytope.some_triangulation {P : polytope m n} (hP : convex P.space) : simplicial_complex m := sorry
 
 def locally_finite_complex (S : simplicial_complex m) : Prop :=
   ∀ x : fin m → ℝ, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set(fin m → ℝ))}

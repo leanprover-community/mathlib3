@@ -201,6 +201,8 @@ mul_one_class.one_mul
 lemma mul_one : ∀ a : M, a * 1 = a :=
 mul_one_class.mul_one
 
+attribute [ematch] add_zero zero_add -- TODO(Mario): Make to_additive transfer this
+
 end mul_one_class
 
 /-- A `monoid` is a `semigroup` with an element `1` such that `1 * a = a * 1 = a`. -/
@@ -215,8 +217,6 @@ attribute [to_additive] monoid
 
 section monoid
 variables {M : Type u} [monoid M]
-
-attribute [ematch] add_zero zero_add -- TODO(Mario): Make to_additive transfer this
 
 @[to_additive]
 instance monoid_to_is_left_id : is_left_id M (*) 1 :=

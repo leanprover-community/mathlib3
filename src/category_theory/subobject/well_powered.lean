@@ -46,7 +46,9 @@ well_powered.subobject_small X
 instance well_powered_of_small_category (C : Type u) [small_category C] : well_powered C :=
 { subobject_small := λ X, small_self _, }
 
-theorem essentially_small_mono_over_iff_small_subobject {C : Type u} [category.{v} C] (X : C) :
+variables {C}
+
+theorem essentially_small_mono_over_iff_small_subobject (X : C) :
   essentially_small.{v} (mono_over X) ↔ small.{v} (subobject X) :=
 begin
   rw essentially_small_iff_of_thin (mono_over.is_thin),
@@ -58,7 +60,7 @@ theorem well_powered_of_mono_over_essentially_small
   well_powered C :=
 { subobject_small := λ X, (essentially_small_mono_over_iff_small_subobject X).mp (h X), }
 
-variables {C} [well_powered C]
+variables [well_powered C]
 
 theorem mono_over_essentially_small (X : C) :
   essentially_small.{v} (mono_over X) :=

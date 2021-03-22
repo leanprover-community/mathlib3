@@ -241,7 +241,7 @@ lemma to_dual_map_isometry : isometry (@to_dual_map F _) :=
 add_monoid_hom.isometry_of_norm _ norm_to_dual_map_apply
 
 lemma to_dual_map_injective : function.injective (@to_dual_map F _) :=
-to_dual_map_isometry.injective
+(@to_dual_map_isometry F _).injective
 
 @[simp] lemma ker_to_dual_map : (@to_dual_map F _).ker = ⊥ :=
 linear_map.ker_eq_bot.mpr to_dual_map_injective

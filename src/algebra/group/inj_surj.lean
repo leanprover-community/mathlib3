@@ -81,6 +81,18 @@ protected def right_cancel_semigroup [right_cancel_semigroup M₂] (f : M₁ →
 
 variables [has_one M₁]
 
+/-- A type endowed with `1` and `*` is a mul_one_class,
+if it admits an injective map that preserves `1` and `*` to a mul_one_class. -/
+@[to_additive
+"A type endowed with `0` and `+` is an add_zero_class,
+if it admits an injective map that preserves `0` and `+` to an add_zero_class."]
+protected def mul_one_class [mul_one_class M₂] (f : M₁ → M₂) (hf : injective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) :
+  mul_one_class M₁ :=
+{ one_mul := λ x, hf $ by erw [mul, one, one_mul],
+  mul_one := λ x, hf $ by erw [mul, one, mul_one],
+  ..‹has_one M₁›, ..‹has_mul M₁› }
+
 /-- A type endowed with `1` and `*` is a monoid,
 if it admits an injective map that preserves `1` and `*` to a monoid. -/
 @[to_additive
@@ -89,9 +101,7 @@ if it admits an injective map that preserves `0` and `+` to an additive monoid."
 protected def monoid [monoid M₂] (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) :
   monoid M₁ :=
-{ one_mul := λ x, hf $ by erw [mul, one, one_mul],
-  mul_one := λ x, hf $ by erw [mul, one, mul_one],
-  .. hf.semigroup f mul, ..‹has_one M₁› }
+{ .. hf.semigroup f mul, .. hf.mul_one_class f one mul }
 
 /-- A type endowed with `1` and `*` is a left cancel monoid,
 if it admits an injective map that preserves `1` and `*` to a left cancel monoid. -/

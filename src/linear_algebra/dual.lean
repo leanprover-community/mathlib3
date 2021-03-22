@@ -440,6 +440,21 @@ lemma dual_restrict_ker_eq_dual_annihilator (W : submodule R M) :
   W.dual_restrict.ker = W.dual_annihilator :=
 rfl
 
+lemma dual_annihilator_sup_eq_inf_dual_annihilator (U V : submodule R M) :
+  (U ⊔ V).dual_annihilator = U.dual_annihilator ⊓ V.dual_annihilator :=
+begin
+  ext φ,
+  rw [mem_inf, mem_dual_annihilator, mem_dual_annihilator, mem_dual_annihilator],
+  split; intro h,
+  { refine ⟨_, _⟩;
+    intros x hx,
+    refine h x (mem_sup.2 ⟨x, hx, 0, zero_mem _, add_zero _⟩),
+    refine h x (mem_sup.2 ⟨0, zero_mem _, x, hx, zero_add _⟩) },
+  { simp_rw mem_sup,
+    rintro _ ⟨x, hx, y, hy, rfl⟩,
+    rw [linear_map.map_add, h.1 _ hx, h.2 _ hy, add_zero] }
+end
+
 end submodule
 
 namespace subspace

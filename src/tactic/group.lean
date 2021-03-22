@@ -75,7 +75,7 @@ meta def aux_group₁ (locat : loc) : tactic unit :=
   expr ``(tactic.ring.horner)]
   [] locat >> skip
 
-/-- Auxilliary tactic for the `group` tactic. Calls `ring` to normalize exponents. -/
+/-- Auxilliary tactic for the `group` tactic. Calls `ring_nf` to normalize exponents. -/
 meta def aux_group₂ (locat : loc) : tactic unit :=
 ring_nf none tactic.ring.normalize_mode.raw locat
 end tactic

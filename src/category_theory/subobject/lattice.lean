@@ -464,10 +464,30 @@ end
 
 end semilattice_sup
 
+section lattice
+variables [has_pullbacks C] [has_images C] [has_binary_coproducts C]
+
+instance {B : C} : lattice (subobject B) :=
+{ ..subobject.semilattice_inf_top,
+  ..subobject.semilattice_sup }
+
+variables [has_zero_morphisms C] [has_zero_object C]
+
+instance {B : C} : bounded_lattice (subobject B) :=
+{ ..subobject.semilattice_inf_top,
+  ..subobject.semilattice_sup_bot }
+
+end lattice
+
 section Inf
 
 variables [well_powered C] [has_wide_pullbacks C]
 
+/--
+The "wide cospan" diagram, with a small indexing type, constructed from a set of subobjects.
+(This is just the diagram of all the subobjects pasted together, but using `well_powered C`
+to make the diagram small.)
+-/
 def wide_cospan {A : C} (s : set (subobject A)) :
   wide_pullback_shape (equiv_shrink _ '' s) ⥤ C :=
 @wide_pullback_shape.wide_cospan (equiv_shrink _ '' s) _ _ A
@@ -479,9 +499,15 @@ def wide_cospan {A : C} (s : set (subobject A)) :
     ((equiv_shrink (subobject A)).symm j).arrow :=
 rfl
 
+/--
+The limit of `wide_cospan s`. (This will be the supremum of the set of subobjects.)
+-/
 def wide_pullback {A : C} (s : set (subobject A)) : C :=
 limits.limit (wide_cospan s)
 
+/--
+The inclusion map from `wide_pullback s` to `A`
+-/
 def wide_pullback_ι {A : C} (s : set (subobject A)) :
   wide_pullback s ⟶ A :=
 limits.limit.π (wide_cospan s) none
@@ -502,11 +528,6 @@ When `[well_powered C]` and `[has_wide_pullbacks C]`, `subobject A` has arbitrar
 -/
 def Inf {A : C} (s : set (subobject A)) : subobject A :=
 subobject.mk (wide_pullback_ι s)
-
-@[simp]
-lemma arrow_congr {A : C} (X Y : subobject A) (h : X = Y) :
-  eq_to_hom (congr_arg (λ X : subobject A, (X : C)) h) ≫ Y.arrow = X.arrow :=
-by { induction h, simp, }
 
 lemma Inf_le {A : C} (s : set (subobject A)) (f ∈ s) :
   Inf s ≤ f :=
@@ -552,8 +573,8 @@ end
 
 instance {B : C} : complete_semilattice_Inf (subobject B) :=
 { Inf := Inf,
-  Inf_le := λ s a m, Inf_le s a m,
-  le_Inf := λ s f k, le_Inf s f k ,
+  Inf_le := Inf_le,
+  le_Inf := le_Inf,
   ..subobject.partial_order B }
 
 end Inf
@@ -562,44 +583,59 @@ section Sup
 
 variables [well_powered C] [has_images C] [has_coproducts C]
 
-def small_coproduct_desc {A : C} (s : set (subobject A)) :=
+def small_coproduct_desc {A : C} (s : set (subobject A)) : _ ⟶ A :=
 limits.sigma.desc (λ j, ((equiv_shrink (subobject A)).symm j).arrow)
 
-instance {A : C} (s : set (subobject A)) :
-  mono (small_coproduct_desc s) :=
-sorry
-
-/-- When `[has_images C] [has_coproducts C]`, `subobject A` has a `Sup` construction,
-which will induce a `complete_semilattice_Sup`. -/
+/-- When `[well_powered C] [has_images C] [has_coproducts C]`,
+`subobject A` has arbitrary supremums. -/
 def Sup {A : C} (s : set (subobject A)) : subobject A :=
-subobject.mk (small_coproduct_desc s)
+subobject.mk (image.ι (small_coproduct_desc s))
 
-/-- A morphism version of `le_Sup`. -/
-def le_Sup {A : C} (s : set (subobject A)) (f ∈ s)  :
-  f ⟶ Sup s :=
-sorry
+lemma le_Sup {A : C} (s : set (subobject A)) (f ∈ s)  :
+  f ≤ Sup s :=
+begin
+  fapply le_of_comm,
+  { dsimp [Sup],
+    refine _ ≫ (underlying_iso _).inv,
+    refine _ ≫ factor_thru_image _,
+    refine _ ≫ sigma.ι _ (equiv_shrink _ f),
+    apply eq_to_hom,
+    apply (congr_arg (λ X : subobject A, (X : C))),
+    exact (equiv.symm_apply_apply _ _).symm, },
+  { dsimp [Sup, small_coproduct_desc],
+    simp, },
+end
 
-/-- A morphism version of `Sup_le`. -/
-def Sup_le {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), g ⟶ f) :
-  Sup s ⟶ f :=
-sorry
+lemma Sup_le {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), g ≤ f) :
+  Sup s ≤ f :=
+begin
+  fapply le_of_comm,
+  { dsimp [Sup],
+    refine (underlying_iso _).hom ≫ _,
+    -- err, I can't work out what to do here...
+    sorry, },
+  { sorry, },
+end
+
+instance {B : C} : complete_semilattice_Sup (subobject B) :=
+{ Sup := Sup,
+  le_Sup := le_Sup,
+  Sup_le := Sup_le,
+  ..subobject.partial_order B }
 
 end Sup
 
-section lattice
-variables [has_pullbacks C] [has_images C] [has_binary_coproducts C]
+section complete_lattice
+variables [well_powered C] [has_wide_pullbacks C] [has_images C] [has_coproducts C]
+  [has_zero_morphisms C] [has_zero_object C]
 
-instance {B : C} : lattice (subobject B) :=
+instance {B : C} : complete_lattice (subobject B) :=
 { ..subobject.semilattice_inf_top,
-  ..subobject.semilattice_sup }
+  ..subobject.semilattice_sup_bot,
+  ..subobject.complete_semilattice_Inf,
+  ..subobject.complete_semilattice_Sup, }
 
-variables [has_zero_morphisms C] [has_zero_object C]
-
-instance {B : C} : bounded_lattice (subobject B) :=
-{ ..subobject.semilattice_inf_top,
-  ..subobject.semilattice_sup_bot }
-
-end lattice
+end complete_lattice
 
 end subobject
 

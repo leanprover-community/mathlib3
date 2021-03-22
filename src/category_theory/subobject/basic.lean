@@ -143,6 +143,11 @@ instance arrow_mono {X : C} (Y : subobject X) : mono (Y.arrow) :=
 (representative.obj Y).property
 
 @[simp]
+lemma arrow_congr {A : C} (X Y : subobject A) (h : X = Y) :
+  eq_to_hom (congr_arg (λ X : subobject A, (X : C)) h) ≫ Y.arrow = X.arrow :=
+by { induction h, simp, }
+
+@[simp]
 lemma representative_coe (Y : subobject X) :
   (representative.obj Y : C) = (Y : C) :=
 rfl

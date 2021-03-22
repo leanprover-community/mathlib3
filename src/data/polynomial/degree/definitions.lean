@@ -126,7 +126,7 @@ end
 
 lemma le_nat_degree_of_mem_supp (a : ℕ) :
   a ∈ p.support → a ≤ nat_degree p:=
-le_nat_degree_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
+le_nat_degree_of_ne_zero ∘ mem_support_iff.mp
 
 lemma supp_subset_range (h : nat_degree p < m) : p.support ⊆ finset.range m :=
 λ n hn, mem_range.2 $ (le_nat_degree_of_mem_supp _ hn).trans_lt h
@@ -315,7 +315,7 @@ end
 
 lemma le_degree_of_mem_supp (a : ℕ) :
   a ∈ p.support → ↑a ≤ degree p :=
-le_degree_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
+le_degree_of_ne_zero ∘ mem_support_iff.mp
 
 lemma nonempty_support_iff : p.support.nonempty ↔ p ≠ 0 :=
 by rw [ne.def, nonempty_iff_ne_empty, ne.def, ← support_eq_empty]
@@ -873,6 +873,15 @@ begin
   { rw [hn, pow_zero, ←C_1, ←ring_hom.map_sub, nat_degree_C] },
   { exact nat_degree_eq_of_degree_eq_some (degree_X_pow_sub_C (pos_iff_ne_zero.mpr hn) r) },
 end
+
+@[simp] lemma leading_coeff_X_pow_sub_C {n : ℕ} (hn : 0 < n) {r : R} :
+  (X ^ n - C r).leading_coeff = 1 :=
+by rw [leading_coeff, nat_degree_X_pow_sub_C, coeff_sub, coeff_X_pow_self,
+  coeff_C, if_neg (pos_iff_ne_zero.mp hn), sub_zero]
+
+@[simp] lemma leading_coeff_X_pow_sub_one {n : ℕ} (hn : 0 < n) :
+  (X ^ n - 1 : polynomial R).leading_coeff = 1 :=
+leading_coeff_X_pow_sub_C hn
 
 end nonzero_ring
 

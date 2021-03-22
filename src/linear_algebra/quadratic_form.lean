@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Anne Baanen
+Authors: Anne Baanen
 -/
 
 import algebra.invertible
@@ -414,67 +414,79 @@ end bilin_form
 namespace quadratic_form
 open bilin_form sym_bilin_form
 
-section associated
-variables [invertible (2 : R₁)] {B₁ : bilin_form R₁ M}
+section associated_hom
+variables (S) [comm_semiring S] [algebra S R]
+variables [invertible (2 : R)] {B₁ : bilin_form R M}
 
-/-- `associated` is the linear map that sends a quadratic form to its associated
-symmetric bilinear form -/
-def associated : quadratic_form R₁ M →ₗ[R₁] bilin_form R₁ M :=
+/-- `associated_hom` is the map that sends a quadratic form on a module `M` over `R` to its
+associated symmetric bilinear form.  As provided here, this has the structure of an `S`-linear map
+where `S` is a commutative subring of `R`.
+
+Over a commutative ring, use `associated`, which gives an `R`-linear map.  Over a general ring with
+no nontrivial distinguished commutative subring, use `associated'`, which gives an additive
+homomorphism (or more precisely a `ℤ`-linear map.) -/
+def associated_hom : quadratic_form R M →ₗ[S] bilin_form R M :=
 { to_fun := λ Q,
   { bilin := λ x y, ⅟2 * polar Q x y,
     bilin_add_left := λ x y z, by rw [← mul_add, polar_add_left],
-    bilin_smul_left := λ x y z, by rw [← mul_left_comm, polar_smul_left],
+    bilin_smul_left := λ x y z, begin
+      have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_of_right,
+      simp [polar_smul_left, ← mul_assoc, htwo]
+    end,
     bilin_add_right := λ x y z, by rw [← mul_add, polar_add_right],
-    bilin_smul_right := λ x y z, by rw [← mul_left_comm, polar_smul_right] },
+    bilin_smul_right := λ x y z, begin
+      have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_of_right,
+      simp [polar_smul_left, ← mul_assoc, htwo]
+    end },
   map_add' := λ Q Q', by { ext, simp [bilin_form.add_apply, polar_add, mul_add] },
-  map_smul' := λ a Q, by { ext, simp [bilin_form.smul_apply, polar_smul, mul_left_comm] } }
+  map_smul' := λ s Q, by { ext, simp [polar_smul, algebra.mul_smul_comm] } }
 
-variables {Q : quadratic_form R₁ M}
+variables {Q : quadratic_form R M} {S}
 
 @[simp] lemma associated_apply (x y : M) :
-  associated Q x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
+  associated_hom S Q x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
 
-lemma associated_is_sym : is_sym Q.associated :=
+lemma associated_is_sym : is_sym (associated_hom S Q) :=
 λ x y, by simp only [associated_apply, add_comm, add_left_comm, sub_eq_add_neg]
 
-@[simp] lemma associated_comp {N : Type v} [add_comm_group N] [module R₁ N] (f : N →ₗ[R₁] M) :
-  (Q.comp f).associated = Q.associated.comp f f :=
+@[simp] lemma associated_comp {N : Type v} [add_comm_group N] [module R N] (f : N →ₗ[R] M) :
+  associated_hom S (Q.comp f) = (associated_hom S Q).comp f f :=
 by { ext, simp }
 
-@[simp] lemma associated_lin_mul_lin (f g : M →ₗ[R₁] R₁) :
-  (lin_mul_lin f g).associated =
-    ⅟(2 : R₁) • (bilin_form.lin_mul_lin f g + bilin_form.lin_mul_lin g f) :=
-by { ext, simp [bilin_form.add_apply, bilin_form.smul_apply], ring }
-
-lemma associated_to_quadratic_form (B : bilin_form R₁ M) (x y : M) :
-  associated B.to_quadratic_form x y = ⅟2 * (B x y + B y x) :=
+lemma associated_to_quadratic_form (B : bilin_form R M) (x y : M) :
+  associated_hom S B.to_quadratic_form x y = ⅟2 * (B x y + B y x) :=
 by simp [associated_apply, ←polar_to_quadratic_form, polar]
 
 lemma associated_left_inverse (h : is_sym B₁) :
-  B₁.to_quadratic_form.associated = B₁ :=
+  associated_hom S (B₁.to_quadratic_form) = B₁ :=
 bilin_form.ext $ λ x y,
 by rw [associated_to_quadratic_form, sym h x y, ←two_mul, ←mul_assoc, inv_of_mul_self, one_mul]
 
-lemma associated_right_inverse : Q.associated.to_quadratic_form = Q :=
+lemma associated_right_inverse : (associated_hom S Q).to_quadratic_form = Q :=
 quadratic_form.ext $ λ x,
-  calc  Q.associated.to_quadratic_form x
+  calc (associated_hom S Q).to_quadratic_form x
       = ⅟2 * (Q x + Q x) : by simp [map_add_self, bit0, add_mul, add_assoc]
   ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
 
-lemma associated_eq_self_apply (x : M) : associated Q x x = Q x :=
+lemma associated_eq_self_apply (x : M) : associated_hom S Q x x = Q x :=
 begin
   rw [associated_apply, map_add_self],
-  suffices : 2 * Q x * ⅟ 2 = Q x,
-    { ring, assumption },
-  rw [mul_right_comm, mul_inv_of_self, one_mul],
+  suffices : (⅟2) * (2 * Q x) = Q x,
+  { convert this,
+    simp only [bit0, add_mul, one_mul],
+    abel },
+  simp [← mul_assoc],
 end
 
--- Change to module over rings once #6585 is merged
+/-- `associated'` is the `ℤ`-linear map that sends a quadratic form on a module `M` over `R` to its
+associated symmetric bilinear form. -/
+abbreviation associated' : quadratic_form R M →ₗ[ℤ] bilin_form R M :=
+associated_hom ℤ
 
 /-- There exists a non-null vector with respect to any quadratic form `Q` whose associated
 bilinear form is non-degenerate, i.e. there exists `x` such that `Q x ≠ 0`. -/
 lemma exists_quadratic_form_neq_zero [nontrivial M]
-  {Q : quadratic_form R₁ M} (hB₁ : Q.associated.nondegenerate) :
+  {Q : quadratic_form R M} (hB₁ : Q.associated'.nondegenerate) :
   ∃ x, Q x ≠ 0 :=
 begin
   rw nondegenerate at hB₁,
@@ -484,6 +496,24 @@ begin
   have : Q = 0 := quadratic_form.ext hB₁,
   simp [this]
 end
+
+end associated_hom
+
+section associated
+variables [invertible (2 : R₁)]
+
+-- Note:  When possible, rather than writing lemmas about `associated`, write a lemma applying to
+-- the more general `associated_hom` and place it in the previous section.
+
+/-- `associated` is the linear map that sends a quadratic form over a commutative ring to its
+associated symmetric bilinear form. -/
+abbreviation associated : quadratic_form R₁ M →ₗ[R₁] bilin_form R₁ M :=
+associated_hom R₁
+
+@[simp] lemma associated_lin_mul_lin (f g : M →ₗ[R₁] R₁) :
+  (lin_mul_lin f g).associated =
+    ⅟(2 : R₁) • (bilin_form.lin_mul_lin f g + bilin_form.lin_mul_lin g f) :=
+by { ext, simp [bilin_form.add_apply, bilin_form.smul_apply], ring }
 
 end associated
 
@@ -495,6 +525,16 @@ def anisotropic (Q : quadratic_form R M) : Prop := ∀ x, Q x = 0 → x = 0
 lemma not_anisotropic_iff_exists (Q : quadratic_form R M) :
   ¬anisotropic Q ↔ ∃ x ≠ 0, Q x = 0 :=
 by simp only [anisotropic, not_forall, exists_prop, and_comm]
+
+/-- The associated bilinear form of an anisotropic quadratic form is nondegenerate. -/
+lemma nondegenerate_of_anisotropic [invertible (2 : R)] (Q : quadratic_form R M)
+  (hB : Q.anisotropic) : Q.associated'.nondegenerate :=
+begin
+  intros x hx,
+  refine hB _ _,
+  rw ← hx x,
+  exact (associated_eq_self_apply x).symm,
+end
 
 end anisotropic
 
@@ -705,15 +745,20 @@ end quadratic_form
 
 namespace bilin_form
 
+/-- A bilinear form is nondegenerate if the quadratic form it is associated with is anisotropic. -/
+lemma nondegenerate_of_anisotropic
+  {B : bilin_form R M} (hB : B.to_quadratic_form.anisotropic) : B.nondegenerate :=
+λ x hx, hB _ (hx x)
+
 /-- There exists a non-null vector with respect to any symmetric, nondegenerate bilinear form `B`
-on a nontrivial module `M` over the commring `R` with invertible `2`, i.e. there exists some
+on a nontrivial module `M` over a ring `R` with invertible `2`, i.e. there exists some
 `x : M` such that `B x x ≠ 0`. -/
-lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R₁)] [nontrivial M]
-  {B : bilin_form R₁ M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
+lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
+  {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ x, ¬ B.is_ortho x x :=
 begin
-  have : B.to_quadratic_form.associated.nondegenerate,
-    refine (quadratic_form.associated_left_inverse hB₂).symm ▸ hB₁,
+  have : B.to_quadratic_form.associated'.nondegenerate,
+  { simpa [quadratic_form.associated_left_inverse hB₂] using hB₁ },
   obtain ⟨x, hx⟩ := quadratic_form.exists_quadratic_form_neq_zero this,
   refine ⟨x, λ h, hx (B.to_quadratic_form_apply x ▸ h)⟩,
 end

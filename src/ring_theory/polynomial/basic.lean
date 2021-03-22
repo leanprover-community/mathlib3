@@ -76,7 +76,7 @@ end
 theorem mem_degree_lt {n : ℕ} {f : polynomial R} :
   f ∈ degree_lt R n ↔ degree f < n :=
 by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree,
-    finset.sup_lt_iff (with_bot.bot_lt_coe n), finsupp.mem_support_iff, with_bot.some_eq_coe,
+    finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff, with_bot.some_eq_coe,
     with_bot.coe_lt_coe, lt_iff_not_ge', ne, not_imp_not], refl }
 
 @[mono] theorem degree_lt_mono {m n : ℕ} (H : m ≤ n) :
@@ -252,10 +252,10 @@ begin
       exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
   { intros hf,
     rw ← sum_monomial_eq f,
-    refine (map C I : ideal (polynomial R)).sum_mem (λ n hn, _),
+    refine (I.map C : ideal (polynomial R)).sum_mem (λ n hn, _),
     simp [single_eq_C_mul_X],
     rw mul_comm,
-    exact (map C I : ideal (polynomial R)).smul_mem _ (mem_map_of_mem (hf n)) }
+    exact (I.map C : ideal (polynomial R)).mul_mem_left _ (mem_map_of_mem (hf n)) }
 end
 
 lemma quotient_map_C_eq_zero {I : ideal R} :
@@ -389,7 +389,7 @@ def of_polynomial (I : ideal (polynomial R)) : submodule R (polynomial R) :=
 { carrier := I.carrier,
   zero_mem' := I.zero_mem,
   add_mem' := λ _ _, I.add_mem,
-  smul_mem' := λ c x H, by rw [← C_mul']; exact submodule.smul_mem _ _ H }
+  smul_mem' := λ c x H, by { rw [← C_mul'], exact I.mul_mem_left _ H } }
 
 variables {I : ideal (polynomial R)}
 theorem mem_of_polynomial (x) : x ∈ I.of_polynomial ↔ x ∈ I := iff.rfl

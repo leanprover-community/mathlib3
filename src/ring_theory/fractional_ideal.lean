@@ -323,7 +323,7 @@ lemma coe_add (I J : fractional_ideal f) : (↑(I + J) : submodule R f.codomain)
 lemma fractional_mul (I J : fractional_ideal f) : is_fractional f (I.1 * J.1) :=
 begin
   rcases I with ⟨I, aI, haI, hI⟩,
-  rcases J with ⟨I, aJ, haJ, hJ⟩,
+  rcases J with ⟨J, aJ, haJ, hJ⟩,
   use aI * aJ,
   use S.mul_mem haI haJ,
   intros b hb,

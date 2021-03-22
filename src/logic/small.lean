@@ -45,11 +45,16 @@ noncomputable
 def equiv_shrink (α : Type v) [small.{w} α] : α ≃ shrink α :=
 classical.some (classical.some_spec (@small.equiv_small α _))
 
-lemma small_self (α : Type v) : small.{v} α :=
+@[priority 100]
+instance small_self (α : Type v) : small.{v} α :=
 small.mk' (equiv.refl _)
 
-lemma small_max (α : Type v) : small.{max w v} α :=
+@[priority 100]
+instance small_max (α : Type v) : small.{max w v} α :=
 small.mk' equiv.ulift.{w}.symm
+
+instance small_ulift (α : Type v) : small.{v} (ulift.{w} α) :=
+small.mk' equiv.ulift
 
 section
 open_locale classical

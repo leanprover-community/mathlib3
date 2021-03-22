@@ -573,6 +573,10 @@ linear_map.lcomp R R f
   f.dual_map g x = g (f x) :=
 linear_map.lcomp_apply f g x
 
+@[simp] lemma linear_map.dual_map_id :
+  (linear_map.id : M₁ →ₗ[R] M₁).dual_map = linear_map.id :=
+by { ext, refl }
+
 /-- The `linear_equiv` version of `linear_map.dual_map`. -/
 def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual R M₁ :=
 { inv_fun := f.symm.to_linear_map.dual_map,

@@ -74,7 +74,6 @@ begin
   simp [φ, finsupp.total_apply, function.surj_inv_eq hf],
 end
 
-set_option pp.universes true
 /-- A module which satisfies the universal property is projective. Note that this result
 only has one universe variable. -/
 theorem of_universal_property {R : Type u} [ring R] {M : Type u} [add_comm_group M] [module R M]
@@ -88,10 +87,11 @@ theorem of_universal_property {R : Type u} [ring R] {M : Type u} [add_comm_group
   -- then M is projective.
   is_projective R M :=
 begin
-  -- let s be the universal map (M →₀ R) →ₗ[R] M coming from the identity map
+  -- let `s` be the universal map `(M →₀ R) →ₗ[R] M` coming from the identity map `M →ₗ[R] M`.
   obtain ⟨s, hs⟩ : ∃ (s : M →ₗ[R] M →₀ R),
     (finsupp.total M M R id).comp s = linear_map.id :=
     huniv (finsupp.total M M R (id : M → M)) (linear_map.id : M →ₗ[R] M) _,
+  -- This `s` works.
   { use s,
     rwa linear_map.ext_iff at hs },
   { intro m,

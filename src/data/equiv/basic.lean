@@ -1668,21 +1668,34 @@ begin
   simp [equiv.set.image, equiv.set.image_of_inj_on, hf.eq_iff, this],
 end
 
+/-- If `f` has a left-inverse when `α` is nonempty, then `α` is computably equivalent to the range
+of `f`.
+
+While awkward, the `nonempty α` hypothesis on `f_inv` and `hf` allows this to be used when `α` is
+empty too. This hypothesis is absent on analogous definitions on stronger `equiv`s like
+`linear_equiv.of_left_inverse` and `ring_equiv.of_left_inverse` as their typeclass assumptions
+are already sufficient to ensure non-emptiness. -/
+@[simps]
+def range_of_left_inverse {α β : Sort*}
+  (f : α → β) (f_inv : nonempty α → β → α)
+  (hf : Π h : nonempty α, function.left_inverse (f_inv h) f) :
+  α ≃ set.range f :=
+{ to_fun := λ a, ⟨f a, a, rfl⟩,
+  inv_fun := λ b, f_inv (let ⟨a, _⟩ := b.2 in ⟨a⟩) b,
+  left_inv := λ a, hf ⟨a⟩ a,
+  right_inv := λ ⟨b, a, ha⟩, subtype.eq $ show f (f_inv ⟨a⟩ b) = b,
+    from eq.trans (congr_arg f $ by exact ha ▸ (hf _ a)) ha }
+
 /-- If `f : α → β` is an injective function, then `α` is equivalent to the range of `f`. -/
 @[simps apply]
 protected noncomputable def range {α β} (f : α → β) (H : injective f) :
   α ≃ range f :=
-{ to_fun := λ x, ⟨f x, mem_range_self _⟩,
-  inv_fun := λ x, classical.some x.2,
-  left_inv := λ x, H (classical.some_spec (show f x ∈ range f, from mem_range_self _)),
-  right_inv := λ x, subtype.eq $ classical.some_spec x.2 }
+equiv.set.range_of_left_inverse f
+  (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun H)
 
 theorem apply_range_symm {α β} (f : α → β) (H : injective f) (b : range f) :
   f ((set.range f H).symm b) = b :=
-begin
-  conv_rhs { rw ←((set.range f H).right_inv b), },
-  simp,
-end
+subtype.ext_iff.1 $ (set.range f H).apply_symm_apply b
 
 /-- If `α` is equivalent to `β`, then `set α` is equivalent to `set β`. -/
 @[simps]

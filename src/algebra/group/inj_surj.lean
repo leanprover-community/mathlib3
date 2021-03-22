@@ -228,6 +228,18 @@ protected def comm_semigroup [comm_semigroup M₁] (f : M₁ → M₂) (hf : sur
 
 variables [has_one M₂]
 
+/-- A type endowed with `1` and `*` is a mul_one_class,
+if it admits a surjective map that preserves `1` and `*` from a mul_one_class. -/
+@[to_additive
+"A type endowed with `0` and `+` is an add_zero_class,
+if it admits a surjective map that preserves `0` and `+` to an add_zero_class."]
+protected def mul_one_class [mul_one_class M₁] (f : M₁ → M₂) (hf : surjective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) :
+  mul_one_class M₂ :=
+{ one_mul := hf.forall.2 $ λ x, by erw [← one, ← mul, one_mul],
+  mul_one := hf.forall.2 $ λ x, by erw [← one, ← mul, mul_one],
+  ..‹has_one M₂›, ..‹has_mul M₂› }
+
 /-- A type endowed with `1` and `*` is a monoid,
 if it admits a surjective map that preserves `1` and `*` from a monoid. -/
 @[to_additive
@@ -236,9 +248,7 @@ if it admits a surjective map that preserves `0` and `+` to an additive monoid."
 protected def monoid [monoid M₁] (f : M₁ → M₂) (hf : surjective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) :
   monoid M₂ :=
-{ one_mul := hf.forall.2 $ λ x, by erw [← one, ← mul, one_mul],
-  mul_one := hf.forall.2 $ λ x, by erw [← one, ← mul, mul_one],
-  ..‹has_one M₂›, .. hf.semigroup f mul }
+{ .. hf.semigroup f mul, .. hf.mul_one_class f one mul }
 
 /-- A type endowed with `1` and `*` is a commutative monoid,
 if it admits a surjective map that preserves `1` and `*` from a commutative monoid. -/

@@ -603,8 +603,17 @@ def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual
   f.dual_map g x = g (f x) :=
 linear_map.lcomp_apply f g x
 
+@[simp] lemma linear_equiv.dual_map_refl :
+  (linear_equiv.refl R M₁).dual_map = linear_equiv.refl R (dual R M₁) :=
+by { ext, refl }
+
 @[simp] lemma linear_equiv.dual_map_symm {f : M₁ ≃ₗ[R] M₂} :
   (linear_equiv.dual_map f).symm = linear_equiv.dual_map f.symm := rfl
+
+lemma linear_equiv.dual_map_trans {M₃ : Type*} [add_comm_group M₃] [module R M₃]
+  (f : M₁ ≃ₗ[R] M₂) (g : M₂ ≃ₗ[R] M₃) :
+  g.dual_map.trans f.dual_map = (f.trans g).dual_map :=
+rfl
 
 namespace linear_map
 

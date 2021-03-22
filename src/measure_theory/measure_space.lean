@@ -2435,7 +2435,7 @@ lemma measurable.ae_measurable (h : measurable f) : ae_measurable f μ :=
 @[nontriviality] lemma subsingleton.ae_measurable [subsingleton α] : ae_measurable f μ :=
 subsingleton.measurable.ae_measurable
 
-@[simp] lemma ae_measurable_zero : ae_measurable f 0 :=
+@[simp] lemma ae_measurable_zero_measure : ae_measurable f 0 :=
 begin
   nontriviality α, inhabit α,
   exact ⟨λ x, f (default α), measurable_const, rfl⟩
@@ -2529,7 +2529,7 @@ lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
 ⟨λ a, (hf.mk f a, hg.mk g a), hf.measurable_mk.prod_mk hg.measurable_mk,
   eventually_eq.prod_mk hf.ae_eq_mk hg.ae_eq_mk⟩
 
-lemma null_measurable_set (h : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
+protected lemma null_measurable_set (h : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
   null_measurable_set μ (f ⁻¹' s) :=
 begin
   apply null_measurable_set_iff_ae.2,
@@ -2555,6 +2555,9 @@ lemma ae_measurable_congr (h : f =ᵐ[μ] g) :
 @[simp] lemma ae_measurable_const {b : β} : ae_measurable (λ a : α, b) μ :=
 measurable_const.ae_measurable
 
+@[simp, to_additive] lemma ae_measurable_one [has_one β] : ae_measurable (λ a : α, (1 : β)) μ :=
+measurable_one.ae_measurable
+
 @[simp] lemma ae_measurable_smul_measure_iff {c : ℝ≥0∞} (hc : c ≠ 0) :
   ae_measurable f (c • μ) ↔ ae_measurable f μ :=
 ⟨λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).1 h.ae_eq_mk⟩,
@@ -2563,13 +2566,6 @@ measurable_const.ae_measurable
 lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
   (hg : measurable g) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
 ⟨g ∘ hf.mk f, hg.comp hf.measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk _⟩
-
-lemma ae_measurable_of_zero_measure {f : α → β} : ae_measurable f 0 :=
-begin
-  by_cases h : nonempty α,
-  { exact (@ae_measurable_const _ _ _ _ _ (f h.some)).congr rfl },
-  { exact (measurable_of_not_nonempty h f).ae_measurable }
-end
 
 end
 

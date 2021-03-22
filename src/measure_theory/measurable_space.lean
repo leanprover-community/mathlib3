@@ -564,6 +564,9 @@ instance : measurable_space ℕ := ⊤
 instance : measurable_space ℤ := ⊤
 instance : measurable_space ℚ := ⊤
 
+instance : measurable_singleton_class ℕ := ⟨λ x, trivial⟩
+instance : measurable_singleton_class ℤ := ⟨λ x, trivial⟩
+
 lemma measurable_to_encodable [encodable α] {f : β → α} (h : ∀ y, measurable_set (f ⁻¹' {f y})) :
   measurable f :=
 begin
@@ -739,6 +742,18 @@ end
 lemma measurable_set_swap_iff {s : set (α × β)} :
   measurable_set (prod.swap ⁻¹' s) ↔ measurable_set s :=
 ⟨λ hs, by { convert measurable_swap hs, ext ⟨x, y⟩, refl }, λ hs, measurable_swap hs⟩
+
+lemma measurable_from_prod_encodable [encodable β] [measurable_singleton_class β]
+  {f : α × β → γ} (hf : ∀ y, measurable (λ x, f (x, y))) :
+  measurable f :=
+begin
+  intros s hs,
+  have : f ⁻¹' s = ⋃ y, ((λ x, f (x, y)) ⁻¹' s).prod {y},
+  { ext1 ⟨x, y⟩,
+    simp [and_assoc, and.left_comm] },
+  rw this,
+  exact measurable_set.Union (λ y, (hf y hs).prod (measurable_set_singleton y))
+end
 
 end prod
 

@@ -154,7 +154,7 @@ begin
     exact measurable_const.indicator hs },
   { intros t ht h2t,
     simp_rw [preimage_compl, measure_compl (measurable_prod_mk_left ht) (measure_lt_top ν _)],
-    exact measurable_const.ennreal_sub h2t },
+    exact h2t.const_sub _ },
   { intros f h1f h2f h3f, simp_rw [preimage_Union],
     have : ∀ b, ν (⋃ i, prod.mk b ⁻¹' f i) = ∑' i, ν (prod.mk b ⁻¹' f i) :=
       λ b, measure_Union (λ i j hij, disjoint.preimage _ (h1f i j hij))
@@ -205,7 +205,7 @@ begin
   { intros c s hs, simp only [← indicator_comp_right],
     suffices : measurable (λ x, c * ν (prod.mk x ⁻¹' s)),
     { simpa [lintegral_indicator _ (m hs)] },
-    exact measurable_const.ennreal_mul (measurable_measure_prod_mk_left hs) },
+    exact (measurable_measure_prod_mk_left hs).const_mul _ },
   { rintro f g - hf hg h2f h2g, simp_rw [pi.add_apply, lintegral_add (hf.comp m) (hg.comp m)],
     exact h2f.add h2g },
   { intros f hf h2f h3f,
@@ -261,8 +261,8 @@ begin
     { intros x, refine finset.subset.trans (finset.filter_subset _ _) _, intro y,
       simp_rw [simple_func.mem_range], rintro ⟨z, rfl⟩, exact ⟨(x, z), rfl⟩ },
     simp only [simple_func.integral_eq_sum_of_subset (this _)],
-    refine finset.measurable_sum _ _, intro x,
-    refine (measurable.to_real _).smul measurable_const,
+    refine finset.measurable_sum _ (λ x _, _),
+    refine (measurable.to_real _).smul_const _,
     simp only [simple_func.coe_comp, preimage_comp] {single_pass := tt},
     apply measurable_measure_prod_mk_left,
     exact (s n).measurable_set_fiber x },
@@ -679,7 +679,7 @@ lemma lintegral_lintegral_swap [sigma_finite μ] ⦃f : α → β → ℝ≥0∞
 lemma lintegral_prod_mul {f : α → ℝ≥0∞} {g : β → ℝ≥0∞}
   (hf : ae_measurable f μ) (hg : ae_measurable g ν) :
   ∫⁻ z, f z.1 * g z.2 ∂(μ.prod ν) = ∫⁻ x, f x ∂μ * ∫⁻ y, g y ∂ν :=
-by simp [lintegral_prod _ (hf.fst.ennreal_mul hg.snd), lintegral_lintegral_mul hf hg]
+by simp [lintegral_prod _ (hf.fst.mul hg.snd), lintegral_lintegral_mul hf hg]
 
 /-! ### Integrability on a product -/
 section

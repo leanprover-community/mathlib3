@@ -1218,14 +1218,14 @@ by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
 @[simp] lemma lintegral_zero_measure (f : α → ℝ≥0∞) : ∫⁻ a, f a ∂0 = 0 :=
 bot_unique $ by simp [lintegral]
 
-lemma lintegral_finset_sum (s : finset β) {f : β → α → ℝ≥0∞} (hf : ∀b, measurable (f b)) :
+lemma lintegral_finset_sum (s : finset β) {f : β → α → ℝ≥0∞} (hf : ∀ b ∈ s, measurable (f b)) :
   (∫⁻ a, ∑ b in s, f b a ∂μ) = ∑ b in s, ∫⁻ a, f b a ∂μ :=
 begin
-  refine finset.induction_on s _ _,
+  induction s using finset.induction_on with a s has ih,
   { simp },
-  { assume a s has ih,
-    simp only [finset.sum_insert has],
-    rw [lintegral_add (hf _) (s.measurable_sum hf), ih] }
+  { simp only [finset.sum_insert has],
+    rw [finset.forall_mem_insert] at hf,
+    rw [lintegral_add hf.1 (s.measurable_sum hf.2), ih hf.2] }
 end
 
 @[simp] lemma lintegral_const_mul (r : ℝ≥0∞) {f : α → ℝ≥0∞} (hf : measurable f) :
@@ -1409,7 +1409,7 @@ lemma lintegral_sub {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurab
 begin
   rw [← ennreal.add_left_inj hg_fin,
         ennreal.sub_add_cancel_of_le (lintegral_mono_ae h_le),
-      ← lintegral_add (hf.ennreal_sub hg) hg],
+      ← lintegral_add (hf.sub hg) hg],
   refine lintegral_congr_ae (h_le.mono $ λ x hx, _),
   exact ennreal.sub_add_cancel_of_le hx
 end
@@ -1434,7 +1434,7 @@ calc
   ... = ∫⁻ a, ⨆n, f 0 a - f n a ∂μ : congr rfl (funext (assume a, ennreal.sub_infi))
   ... = ⨆n, ∫⁻ a, f 0 a - f n a ∂μ :
     lintegral_supr_ae
-      (assume n, (h_meas 0).ennreal_sub (h_meas n))
+      (assume n, (h_meas 0).sub (h_meas n))
       (assume n, (h_mono n).mono $ assume a ha, ennreal.sub_le_sub (le_refl _) ha)
   ... = ⨆n, ∫⁻ a, f 0 a ∂μ - ∫⁻ a, f n a ∂μ :
     have h_mono : ∀ᵐ a ∂μ, ∀n:ℕ, f n.succ a ≤ f n a := ae_all_iff.2 h_mono,
@@ -1601,8 +1601,8 @@ lemma lintegral_tsum [encodable β] {f : β → α → ℝ≥0∞} (hf : ∀i, m
 begin
   simp only [ennreal.tsum_eq_supr_sum],
   rw [lintegral_supr_directed],
-  { simp [lintegral_finset_sum _ hf] },
-  { assume b, exact finset.measurable_sum _ hf },
+  { simp [lintegral_finset_sum _ (λ i _, hf i)] },
+  { assume b, exact finset.measurable_sum _ (λ i _, hf i) },
   { assume s t,
     use [s ∪ t],
     split,
@@ -1748,10 +1748,10 @@ begin
   { intros c s h_ms,
     simp [*, mul_comm _ c] },
   { intros g h h_univ h_mea_g h_mea_h h_ind_g h_ind_h,
-    simp [mul_add, *, measurable.ennreal_mul] },
+    simp [mul_add, *, measurable.mul] },
   { intros g h_mea_g h_mono_g h_ind,
     have : monotone (λ n a, f a * g n a) := λ m n hmn x, ennreal.mul_le_mul le_rfl (h_mono_g hmn x),
-    simp [lintegral_supr, ennreal.mul_supr, h_mf.ennreal_mul (h_mea_g _), *] }
+    simp [lintegral_supr, ennreal.mul_supr, h_mf.mul (h_mea_g _), *] }
 end
 
 end measure_theory

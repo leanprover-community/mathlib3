@@ -20,19 +20,23 @@ The main construction is to endow the type of normed group homs between two give
 with a group structure and a norm, giving rise to a normed group structure.
 
 Some easy other constructions are related to subgroups of normed groups.
+
+Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
+theory of `semi_normed_group_hom` and we specialize to `normed_group_hom` when needed.
 -/
+
 noncomputable theory
 open_locale nnreal big_operators
 
-/-- A morphism of normed abelian groups is a bounded group homomorphism. -/
-structure normed_group_hom (V W : Type*) [normed_group V] [normed_group W] :=
+/-- A morphism of seminormed abelian groups is a bounded group homomorphism. -/
+structure normed_group_hom (V W : Type*) [semi_normed_group V] [semi_normed_group W] :=
 (to_fun : V → W)
 (map_add' : ∀ v₁ v₂, to_fun (v₁ + v₂) = to_fun v₁ + to_fun v₂)
 (bound' : ∃ C, ∀ v, ∥to_fun v∥ ≤ C * ∥v∥)
 
 namespace add_monoid_hom
 
-variables {V W : Type*} [normed_group V] [normed_group W] {f g : normed_group_hom V W}
+variables {V W : Type*} [semi_normed_group V] [semi_normed_group W] {f g : normed_group_hom V W}
 
 /-- Associate to a group homomorphism a bounded group homomorphism under a norm control condition.
 
@@ -50,7 +54,7 @@ def mk_normed_group_hom' (f : V →+ W) (C : ℝ≥0) (hC : ∀ x, nnnorm (f x) 
 
 end add_monoid_hom
 
-lemma exists_pos_bound_of_bound {V W : Type*} [normed_group V] [normed_group W]
+lemma exists_pos_bound_of_bound {V W : Type*} [semi_normed_group V] [semi_normed_group W]
   {f : V → W} (M : ℝ) (h : ∀x, ∥f x∥ ≤ M * ∥x∥) :
   ∃ N, 0 < N ∧ ∀x, ∥f x∥ ≤ N * ∥x∥ :=
 ⟨max M 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _), λx, calc
@@ -60,7 +64,7 @@ lemma exists_pos_bound_of_bound {V W : Type*} [normed_group V] [normed_group W]
 namespace normed_group_hom
 
 variables {V V₁ V₂ V₃ : Type*}
-variables [normed_group V] [normed_group V₁] [normed_group V₂] [normed_group V₃]
+variables [semi_normed_group V] [semi_normed_group V₁] [semi_normed_group V₂] [semi_normed_group V₃]
 variables {f g : normed_group_hom V₁ V₂}
 
 instance : has_coe_to_fun (normed_group_hom V₁ V₂) := ⟨_, normed_group_hom.to_fun⟩
@@ -148,7 +152,7 @@ f.uniform_continuous.continuous
 
 /-! ### The operator norm -/
 
-/-- The operator norm of a normed group homomorphism is the inf of all its bounds. -/
+/-- The operator norm of a seminormed group homomorphism is the inf of all its bounds. -/
 def op_norm (f : normed_group_hom V₁ V₂) := Inf {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥}
 instance has_op_norm : has_norm (normed_group_hom V₁ V₂) := ⟨op_norm⟩
 
@@ -169,11 +173,15 @@ real.lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
 /-- The fundamental property of the operator norm: `∥f x∥ ≤ ∥f∥ * ∥x∥`. -/
 theorem le_op_norm (x : V₁) : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
-classical.by_cases
-  (λ heq : x = 0, by { rw heq, simp })
-  (λ hne, have hlt : 0 < ∥x∥, from norm_pos_iff.2 hne,
-    (div_le_iff hlt).mp ((real.le_Inf _ bounds_nonempty bounds_bdd_below).2
-    (λ c ⟨_, hc⟩, (div_le_iff hlt).mpr $ by { apply hc })))
+begin
+  obtain ⟨C, Cpos, hC⟩ := f.bound,
+  replace hC := hC x,
+  by_cases h : ∥x∥ = 0,
+  { rwa [h, mul_zero] at ⊢ hC },
+  have hlt : 0 < ∥x∥ := lt_of_le_of_ne (norm_nonneg x) (ne.symm h),
+  exact  (div_le_iff hlt).mp ((real.le_Inf _ bounds_nonempty bounds_bdd_below).2 (λ c ⟨_, hc⟩,
+    (div_le_iff hlt).mpr $ by { apply hc })),
+end
 
 theorem le_op_norm_of_le {c : ℝ} {x} (h : ∥x∥ ≤ c) : ∥f x∥ ≤ ∥f∥ * c :=
 le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
@@ -250,15 +258,20 @@ instance : has_zero (normed_group_hom V₁ V₂) :=
 
 instance : inhabited (normed_group_hom V₁ V₂) := ⟨0⟩
 
-/-- An operator is zero iff its norm vanishes. -/
-theorem op_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
+/-- The norm of the `0` operator is `0`. -/
+theorem op_norm_zero : ∥(0 : normed_group_hom V₁ V₂)∥ = 0 :=
+le_antisymm (real.Inf_le _ bounds_bdd_below
+    ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul], exact norm_zero })⟩)
+    (op_norm_nonneg _)
+
+/-- For normed groups, an operator is zero iff its norm vanishes. -/
+theorem op_norm_zero_iff {V₁ V₂ : Type*} [normed_group V₁] [normed_group V₂]
+  {f : normed_group_hom V₁ V₂} : ∥f∥ = 0 ↔ f = 0 :=
 iff.intro
   (λ hn, ext (λ x, norm_le_zero_iff.1
     (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
      ...     = _ : by rw [hn, zero_mul])))
-  (λ hf, le_antisymm (real.Inf_le _ bounds_bdd_below
-    ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
-    (op_norm_nonneg _))
+  (λ hf, by rw [hf, op_norm_zero] )
 
 -- see Note [addition on function coercions]
 @[simp] lemma coe_zero : ⇑(0 : normed_group_hom V₁ V₂) = (0 : V₁ → V₂) := rfl
@@ -273,16 +286,26 @@ variables {f g}
 def id : normed_group_hom V V :=
 (add_monoid_hom.id V).mk_normed_group_hom 1 (by simp [le_refl])
 
-/-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
-where it is `0`. It means that one can not do better than an inequality in general. -/
+/-- The norm of the identity is at most `1`. It is in fact `1`, except when the norm of every
+element vanishes, where it is `0`. (Since we are working with seminorms this can happen even if the
+space is non-trivial.) It means that one can not do better than an inequality in general. -/
 lemma norm_id_le : ∥(id : normed_group_hom V V)∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
 
-/-- If a space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id [nontrivial V] : ∥(id : normed_group_hom V V)∥ = 1 :=
-le_antisymm norm_id_le $ let ⟨x, hx⟩ := exists_ne (0 : V) in
+/-- If the is an element with norm different from `0`, then the norm of the identity equals `1`.
+(Since we are working with seminorms supposing that the space is non-trivial is not enough.) -/
+lemma norm_id_of_nontrivial_seminorm (h : ∃ (x : V), ∥x∥ ≠ 0 ) : ∥(id : normed_group_hom V V)∥ = 1 :=
+le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
 have _ := (id : normed_group_hom V V).ratio_le_op_norm x,
-by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
+by rwa [id_apply, div_self hx] at this
+
+/-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
+lemma norm_id {V : Type*} [normed_group V] [nontrivial V] : ∥(id : normed_group_hom V V)∥ = 1 :=
+begin
+  refine norm_id_of_nontrivial_seminorm _,
+  obtain ⟨x, hx⟩ := exists_ne (0 : V),
+  exact ⟨x, ne_of_gt (norm_pos_iff.2 hx)⟩,
+end
 
 /-! ### The negation of a normed group hom -/
 
@@ -321,10 +344,16 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
 instance : add_comm_group (normed_group_hom V₁ V₂) :=
 coe_injective.add_comm_group_sub _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 
+/-- Normed group homomorphisms themselves form a seminormed group with respect to
+    the operator norm. -/
+instance to_semi_normed_group : semi_normed_group (normed_group_hom V₁ V₂) :=
+semi_normed_group.of_core _ ⟨op_norm_zero, op_norm_add_le, op_norm_neg⟩
+
 /-- Normed group homomorphisms themselves form a normed group with respect to
     the operator norm. -/
-instance to_normed_group : normed_group (normed_group_hom V₁ V₂) :=
-normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
+instance to_normed_group {V₁ V₂ : Type*} [normed_group V₁] [normed_group V₂] :
+  normed_group (normed_group_hom V₁ V₂) :=
+normed_group.of_core _ ⟨λ f, op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
 /-- Coercion of a `normed_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/
 @[simps]
@@ -372,8 +401,8 @@ end normed_group_hom
 namespace normed_group_hom
 
 variables {V W V₁ V₂ V₃ : Type*}
-variables [normed_group V] [normed_group W] [normed_group V₁] [normed_group V₂] [normed_group V₃]
-
+variables [semi_normed_group V] [semi_normed_group W] [semi_normed_group V₁] [semi_normed_group V₂]
+[semi_normed_group V₃]
 
 /-- The inclusion of an `add_subgroup`, as bounded group homomorphism. -/
 @[simps] def incl (s : add_subgroup V) : normed_group_hom s V :=
@@ -385,7 +414,8 @@ variables [normed_group V] [normed_group W] [normed_group V₁] [normed_group V�
 section kernels
 variables (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃)
 
-/-- The kernel of a bounded group homomorphism. Naturally endowed with a `normed_group` instance. -/
+/-- The kernel of a bounded group homomorphism. Naturally endowed with a
+`semi_normed_group` instance. -/
 def ker : add_subgroup V₁ := f.to_add_monoid_hom.ker
 
 lemma mem_ker (v : V₁) : v ∈ f.ker ↔ f v = 0 :=
@@ -410,7 +440,8 @@ section range
 
 variables (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃)
 
-/-- The image of a bounded group homomorphism. Naturally endowed with a `normed_group` instance. -/
+/-- The image of a bounded group homomorphism. Naturally endowed with a
+`semi_normed_group` instance. -/
 def range : add_subgroup V₂ := f.to_add_monoid_hom.range
 
 lemma mem_range (v : V₂) : v ∈ f.range ↔ ∃ w, f w = v :=

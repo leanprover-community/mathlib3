@@ -27,6 +27,8 @@ variables {R : Type*} [comm_ring R]
 open_locale big_operators
 open_locale matrix
 
+open equiv
+
 namespace matrix
 
 /-- `vandermonde v` is the square matrix with `i`th row equal to `1, v i, v i ^ 2, v i ^ 3, ...`.
@@ -57,24 +59,53 @@ begin
   simp only [fin.tail]
 end
 
-lemma det_succ_row {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
-  det A = ∑ j : fin n.succ, (-1) ^ (j : ℕ) * A 0 j *
-    det (λ (i' j' : fin n), A i'.succ (j.succ_above j')) :=
+lemma succ_above_cycle_range {n : ℕ} (i j : fin n) :
+  i.succ.succ_above (i.cycle_range j) = swap 0 i.succ j.succ :=
+begin
+  cases n,
+  { rcases j with ⟨_, ⟨⟩⟩ },
+  rcases lt_trichotomy j i with hlt | heq | hgt,
+  { rw [fin.cycle_range_of_lt hlt, fin.succ_above_below, swap_apply_of_ne_of_ne],
+    { ext, simp [fin.fin.coe_add_one (lt_of_lt_of_le hlt (nat.lt_succ_iff.mp i.2))] },
+    { apply fin.succ_ne_zero },
+    { exact (fin.succ_injective _).ne hlt.ne },
+    { rw fin.lt_iff_coe_lt_coe,
+      simpa [fin.fin.coe_add_one (lt_of_lt_of_le hlt (nat.lt_succ_iff.mp i.2))] using hlt } },
+  { rw [heq, fin.cycle_range_self, fin.succ_above_below, swap_apply_right, fin.cast_succ_zero],
+    { rw fin.cast_succ_zero, apply fin.succ_pos } },
+  { rw [fin.cycle_range_of_gt hgt, fin.succ_above_above, swap_apply_of_ne_of_ne],
+    { apply fin.succ_ne_zero },
+    { apply (fin.succ_injective _).ne hgt.ne.symm },
+    { simpa [fin.le_iff_coe_le_coe] using hgt } },
+end
+
+lemma det_succ {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
+  det A = ∑ i : fin n.succ, (-1) ^ (i : ℕ) * A i 0 *
+    det (λ (i' j' : fin n), A (i.succ_above i') j'.succ) :=
 begin
   rw [matrix.det_apply, finset.univ_perm_fin_succ, ← finset.univ_product_univ],
   simp only [finset.sum_map, equiv.to_embedding_apply, finset.sum_product],
-  refine finset.sum_congr rfl (λ j _, _),
-  simp only [fin.prod_univ_succ, matrix.det_apply, finset.mul_sum],
-  refine fin.cases _ (λ j, _) j,
-  { simp only [equiv.perm.decompose_fin_symm_apply_zero, fin.coe_zero, one_mul,
+  refine finset.sum_congr rfl (λ i _, fin.cases _ (λ i, _) i),
+  { simp only [fin.prod_univ_succ, matrix.det_apply, finset.mul_sum,
+        equiv.perm.decompose_fin_symm_apply_zero, fin.coe_zero, one_mul,
         equiv.perm.decompose_fin.symm_sign, equiv.swap_self, if_true, id.def, eq_self_iff_true,
         equiv.perm.decompose_fin_symm_apply_succ, fin.succ_above_zero, equiv.coe_refl, pow_zero,
         algebra.mul_smul_comm] },
-  { simp only [fin.succ_ne_zero j, pow_succ, neg_mul_eq_neg_mul_symm,
-         equiv.perm.decompose_fin_symm_apply_zero, one_mul, equiv.perm.decompose_fin.symm_sign,
-         fin.coe_succ, units.neg_mul, if_false, neg_inj, equiv.perm.decompose_fin_symm_apply_succ,
-         finset.sum_neg_distrib, int.cast_neg, units.coe_neg],
-    sorry }
+  -- `univ_perm_fin_succ` gives a different embedding of `fin n` into `fin n.succ`,
+  -- permute `A` so that we get the correct one.
+  have : (-1 : R) ^ (i : ℕ) = i.cycle_range.sign,
+  { simp [fin.sign_cycle_range] },
+  rw [fin.coe_succ, pow_succ, this, mul_assoc, mul_assoc, mul_left_comm ↑(equiv.perm.sign _),
+      ← det_permute, matrix.det_apply, finset.mul_sum, finset.mul_sum],
+  refine finset.sum_congr rfl (λ σ _, _),
+  rw [equiv.perm.decompose_fin.symm_sign, if_neg (fin.succ_ne_zero i)],
+  calc ((-1) * σ.sign : ℤ) • ∏ i', A (equiv.perm.decompose_fin.symm (fin.succ i, σ) i') i'
+      = ((-1) * σ.sign : ℤ) • (A (fin.succ i) 0 *
+        ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) : _
+  ... = (-1) * (A (fin.succ i) 0 * (σ.sign : ℤ) •
+        ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) : by simp,
+  simp only [fin.prod_univ_succ, succ_above_cycle_range,
+    equiv.perm.decompose_fin_symm_apply_zero, equiv.perm.decompose_fin_symm_apply_succ]
 end
 
 lemma det_vandermonde {n : ℕ} (v : fin n → R) :

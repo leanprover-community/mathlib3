@@ -342,7 +342,7 @@ match p, hc with
 end
 
 lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p R p] : fact p.prime :=
-⟨(char_p.char_is_prime_or_zero α _).resolve_right (pos_iff_ne_zero.1 h.1)⟩
+⟨(char_p.char_is_prime_or_zero R _).resolve_right (pos_iff_ne_zero.1 h.1)⟩
 
 end nontrivial
 

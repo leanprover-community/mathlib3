@@ -210,9 +210,7 @@ lemma nat_cast_zmod_val {n : ℕ} [fact (0 < n)] (a : zmod n) : (a.val : zmod n)
 begin
   casesI n,
   { exfalso, exact nat.not_lt_zero 0 (fact.out _) },
-  { change fin (n + 1) at i,
-    refine ⟨i, _⟩,
-    rw [fin.ext_iff, fin.coe_coe_eq_self] }
+  { apply fin.coe_coe_eq_self }
 end
 
 lemma nat_cast_right_inverse [fact (0 < n)] : function.right_inverse val (coe : ℕ → zmod n) :=

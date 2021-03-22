@@ -286,7 +286,7 @@ end
 
 /-- The restriction homomorphism from the Galois group of a homomorphism -/
 def restrict_comp (hq : q.nat_degree ≠ 0) : (p.comp q).gal →* p.gal :=
-@restrict F _ p _ _ _ (splits_in_splitting_field_of_comp p q hq)
+@restrict F _ p _ _ _ ⟨splits_in_splitting_field_of_comp p q hq⟩
 
 lemma restrict_comp_surjective (hq : q.nat_degree ≠ 0) :
   function.surjective (restrict_comp p q hq) :=

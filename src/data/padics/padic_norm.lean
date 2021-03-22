@@ -150,7 +150,7 @@ A simplification of `padic_val_nat` when one input is prime, by analogy with `pa
 lemma padic_val_nat_def {p : ℕ} [hp : fact p.prime] {n : ℕ} (hn : n ≠ 0) :
   padic_val_nat p n =
   (multiplicity p n).get
-    (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp, bot_lt_iff_ne_bot.mpr hn⟩) :=
+    (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp.1, bot_lt_iff_ne_bot.mpr hn⟩) :=
 begin
   have n_nonzero : (n : ℚ) ≠ 0, by simpa only [cast_eq_zero, ne.def],
   -- Infinite loop with @simp padic_val_rat_of_nat unless we restrict the available lemmas here,
@@ -545,7 +545,7 @@ lemma padic_norm_of_prime_of_ne {p q : ℕ} [p_prime : fact p.prime] [q_prime : 
 begin
   have p : padic_val_rat p q = 0,
   { exact_mod_cast @padic_val_nat_primes p q p_prime q_prime neq },
-  simp [padic_norm, p, q_prime.1, q_prime.ne_zero],
+  simp [padic_norm, p, q_prime.1.1, q_prime.1.ne_zero],
 end
 
 /--

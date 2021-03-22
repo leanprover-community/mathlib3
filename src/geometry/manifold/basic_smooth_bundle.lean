@@ -510,7 +510,7 @@ instance : smooth_manifold_with_corners I.tangent (tangent_bundle I M) :=
 local attribute [reducible] tangent_space
 variables {M} (x : M)
 
-instance : topological_module 𝕜 (tangent_space I x) := by apply_instance
+instance : has_continuous_smul 𝕜 (tangent_space I x) := by apply_instance
 instance : topological_space (tangent_space I x) := by apply_instance
 instance : add_comm_group (tangent_space I x) := by apply_instance
 instance : topological_add_group (tangent_space I x) := by apply_instance

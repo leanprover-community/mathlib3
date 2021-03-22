@@ -75,7 +75,7 @@ end
 /-!
 Properties of balanced and absorbing sets in a topological vector space:
 -/
-variables [topological_space E] [topological_vector_space 𝕜 E]
+variables [topological_space E] [has_continuous_smul 𝕜 E]
 
 /-- Every neighbourhood of the origin is absorbent. -/
 lemma absorbent_nhds_zero (hA : A ∈ 𝓝 (0 : E)) : absorbent 𝕜 A :=

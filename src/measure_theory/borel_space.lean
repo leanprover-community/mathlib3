@@ -431,27 +431,27 @@ h.measurable.comp_ae_measurable (hf.prod_mk hg)
 
 lemma measurable.smul [semiring α] [second_countable_topology α]
   [add_comm_monoid γ] [second_countable_topology γ]
-  [semimodule α γ] [topological_semimodule α γ]
+  [semimodule α γ] [has_continuous_smul α γ]
   {f : δ → α} {g : δ → γ} (hf : measurable f) (hg : measurable g) :
   measurable (λ c, f c • g c) :=
 continuous_smul.measurable2 hf hg
 
 lemma ae_measurable.smul [semiring α] [second_countable_topology α]
   [add_comm_monoid γ] [second_countable_topology γ]
-  [semimodule α γ] [topological_semimodule α γ]
+  [semimodule α γ] [has_continuous_smul α γ]
   {f : δ → α} {g : δ → γ} {μ : measure δ} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
   ae_measurable (λ c, f c • g c) μ :=
 continuous_smul.ae_measurable2 hf hg
 
 lemma measurable.const_smul {R M : Type*} [topological_space R] [semiring R]
-  [add_comm_monoid M] [semimodule R M] [topological_space M] [topological_semimodule R M]
+  [add_comm_monoid M] [semimodule R M] [topological_space M] [has_continuous_smul R M]
   [measurable_space M] [borel_space M]
   {f : δ → M} (hf : measurable f) (c : R) :
   measurable (λ x, c • f x) :=
 (continuous_const.smul continuous_id).measurable.comp hf
 
 lemma ae_measurable.const_smul {R M : Type*} [topological_space R] [semiring R]
-  [add_comm_monoid M] [semimodule R M] [topological_space M] [topological_semimodule R M]
+  [add_comm_monoid M] [semimodule R M] [topological_space M] [has_continuous_smul R M]
   [measurable_space M] [borel_space M]
   {f : δ → M} {μ : measure δ} (hf : ae_measurable f μ) (c : R) :
   ae_measurable (λ x, c • f x) μ :=
@@ -459,7 +459,7 @@ lemma ae_measurable.const_smul {R M : Type*} [topological_space R] [semiring R]
 
 lemma measurable_const_smul_iff {α : Type*} [topological_space α]
   [division_ring α] [add_comm_monoid γ]
-  [semimodule α γ] [topological_semimodule α γ]
+  [semimodule α γ] [has_continuous_smul α γ]
   {f : δ → γ} {c : α} (hc : c ≠ 0) :
   measurable (λ x, c • f x) ↔ measurable f :=
 ⟨λ h, by simpa only [smul_smul, inv_mul_cancel hc, one_smul] using h.const_smul c⁻¹,
@@ -467,7 +467,7 @@ lemma measurable_const_smul_iff {α : Type*} [topological_space α]
 
 lemma ae_measurable_const_smul_iff {α : Type*} [topological_space α]
   [division_ring α] [add_comm_monoid γ]
-  [semimodule α γ] [topological_semimodule α γ]
+  [semimodule α γ] [has_continuous_smul α γ]
   {f : δ → γ} {μ : measure δ} {c : α} (hc : c ≠ 0) :
   ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
 ⟨λ h, by simpa only [smul_smul, inv_mul_cancel hc, one_smul] using h.const_smul c⁻¹,

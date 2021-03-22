@@ -72,10 +72,10 @@ end std_simplex
 
 /-! ### Topological vector space -/
 
-section topological_vector_space
+section has_continuous_smul
 
 variables [add_comm_group E] [vector_space ℝ E] [topological_space E]
-  [topological_add_group E] [topological_vector_space ℝ E]
+  [topological_add_group E] [has_continuous_smul ℝ E]
 
 /-- In a topological vector space, the interior of a convex set is convex. -/
 lemma convex.interior {s : set E} (hs : convex s) : convex (interior s) :=
@@ -118,7 +118,7 @@ lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : finite s) 
   is_closed (convex_hull s) :=
 hs.compact_convex_hull.is_closed
 
-end topological_vector_space
+end has_continuous_smul
 
 /-! ### Normed vector space -/
 

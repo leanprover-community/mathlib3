@@ -356,6 +356,8 @@ def to_units {G} [group G] : G ≃* units G :=
   right_inv := λ u, units.ext rfl,
   map_mul' := λ x y, units.ext rfl }
 
+lemma is_unit_all {G} [group G] (x : G) : is_unit x := ⟨to_units x, rfl⟩
+
 namespace units
 
 variables [monoid M] [monoid N] [monoid P]

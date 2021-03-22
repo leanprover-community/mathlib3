@@ -1875,10 +1875,10 @@ end
 linear_map.ker_eq_bot_of_injective e.to_equiv.injective
 
 @[simp] theorem range_comp : (h.comp (e : M →ₗ[R] M₂)).range = h.range :=
-linear_map.range_comp_of_range_eq_top _ $ linear_equiv.range _
+linear_map.range_comp_of_range_eq_top _ e.range
 
 @[simp] theorem ker_comp : ((e : M →ₗ[R] M₂).comp l).ker = l.ker :=
-linear_map.ker_comp_of_ker_eq_bot _ $ linear_equiv.ker _
+linear_map.ker_comp_of_ker_eq_bot _ e.ker
 
 variables {f g}
 

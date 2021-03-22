@@ -113,26 +113,16 @@ lemma filter.tendsto.exists_forall_le {α β : Type*} [nonempty α] [linear_orde
   {f : α → β} (hf : tendsto f cofinite at_top) :
   ∃ a₀, ∀ a, f a₀ ≤ f a :=
 begin
-  inhabit α,
-  by_cases not_all_top : ∃ y, ∃ x, f y < x,
+  rcases em (∃ y, ∃ x, f y < x) with ⟨y, x, hx⟩|not_all_top,
   { -- take the inverse image, `small_vals`, of some bounded nonempty set; it's finite so has a min
-    haveI : nonempty β := ⟨f (default α)⟩,
-    obtain ⟨y, x, hx⟩ := not_all_top,
-    let small_vals : finset α := (filter.eventually_cofinite.mp
-      ((at_top_basis.tendsto_right_iff).1 hf x trivial)).to_finset,
-    have y_in : y ∈ small_vals := by simp [hx],
-    obtain ⟨a₀, -, others_bigger⟩ := small_vals.exists_min_image f ⟨y, y_in⟩,
-    use a₀,
-    intros a,
-    by_cases h : a ∈ small_vals,
-    { exact others_bigger a h },
-    refine le_trans (others_bigger y y_in) (le_trans hx.le _),
-    simpa using h },
+    have : finite {y | ¬x ≤ f y} := (filter.eventually_cofinite.mp (tendsto_at_top.1 hf x)),
+    simp only [not_le] at this,
+    obtain ⟨a₀, ha₀ : f a₀ < x, others_bigger⟩ := exists_min_image _ f this ⟨y, hx⟩,
+    exact ⟨a₀, λ a, (lt_or_le (f a) x).elim (others_bigger _) (le_trans ha₀.le)⟩ },
   { -- in this case, f is constant because all values are at top
     push_neg at not_all_top,
-    use default α,
-    intros a,
-    exact not_all_top a (f $ default α) }
+    inhabit α,
+    exact ⟨default α, λ a, not_all_top a (f $ default α)⟩ }
 end
 
 lemma filter.tendsto.exists_forall_ge {α β : Type*} [nonempty α] [linear_order β]

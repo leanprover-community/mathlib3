@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import dynamics.ergodic.measure_preserving
+import data.nat.modeq
 
 /-!
 # Conservative systems
@@ -56,6 +57,12 @@ protected lemma measure_preserving.conservative [finite_measure μ] (h : measure
 ⟨h.quasi_measure_preserving, λ s hsm h0, h.exists_mem_image_mem hsm h0⟩
 
 namespace conservative
+
+/-- The identity map is conservative w.r.t. any measure. -/
+protected lemma id (μ : measure α) : conservative id μ :=
+{ to_quasi_measure_preserving := quasi_measure_preserving.id μ,
+  exists_mem_image_mem := λ s hs h0, let ⟨x, hx⟩ := nonempty_of_measure_ne_zero h0 in
+    ⟨x, hx, 1, one_ne_zero, hx⟩ }
 
 /-- If `f` is a conservative map and `s` is a measurable set of nonzero measure, then
 for infinitely many values of `m` a positive measure of points `x ∈ s` returns back to `s`
@@ -122,6 +129,12 @@ begin
   simp
 end
 
+lemma frequently_ae_mem_and_frequently_image_mem (hf : conservative f μ) (hs : measurable_set s)
+  (h0 : μ s ≠ 0) :
+  ∃ᵐ x ∂μ, x ∈ s ∧ ∃ᶠ n in at_top, (f^[n] x) ∈ s :=
+((frequently_ae_mem_iff.2 h0).and_eventually (hf.ae_mem_imp_frequently_image_mem hs)).mono $ λ x hx,
+  ⟨hx.1, hx.2 hx.1⟩
+
 /-- Poincaré recurrence theorem. Let `f : α → α` be a conservative dynamical system on a topological
 space with second countable topology and measurable open sets. Then almost every point `x : α`
 is recurrent: it visits every neighborhood `s ∈ 𝓝 x` infinitely many times. -/
@@ -136,6 +149,26 @@ begin
   refine ((ae_ball_iff hSc).2 this).mono (λ x hx s hs, _),
   rcases (mem_nhds_of_is_topological_basis hSb).1 hs with ⟨o, hoS, hxo, hos⟩,
   exact (hx o hoS hxo).mono (λ n hn, hos hn)
+end
+
+/-- Iteration of a conservative system is a conservative system. -/
+protected lemma iterate (hf : conservative f μ) (n : ℕ) : conservative (f^[n]) μ :=
+begin
+  cases n, { exact conservative.id μ },
+  refine ⟨hf.1.iterate _, λ s hs hs0, _⟩,
+  rcases (hf.frequently_ae_mem_and_frequently_image_mem hs hs0).exists with ⟨x, hxs, hx⟩,
+  rw nat.frequently_at_top_iff_infinite at hx,
+  rcases exists_lt_modeq_of_infinite_nat hx n.succ_pos with ⟨k, hk, l, hl, hkl, hn⟩,
+  set m := (l - k) / (n + 1),
+  have : (n + 1) * m = l - k,
+  { apply nat.mul_div_cancel',
+    exact (nat.modeq.modeq_iff_dvd' hkl.le).1 hn },
+  refine ⟨f^[k] x, hk, m, _, _⟩,
+  { intro hm,
+    rw [hm, mul_zero, eq_comm, nat.sub_eq_zero_iff_le] at this,
+    exact this.not_lt hkl },
+  { rwa [← iterate_mul, this, ← iterate_add_apply, nat.sub_add_cancel],
+    exact hkl.le }
 end
 
 end conservative

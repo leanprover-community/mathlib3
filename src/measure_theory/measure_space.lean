@@ -282,6 +282,7 @@ def measure.ae (μ : measure α) : filter α :=
   sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
 
 notation `∀ᵐ` binders ` ∂` μ `, ` r:(scoped P, filter.eventually P (measure.ae μ)) := r
+notation `∃ᵐ` binders ` ∂` μ `, ` r:(scoped P, filter.frequently P (measure.ae μ)) := r
 notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[measure.ae μ] g
 notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[measure.ae μ] g
 
@@ -290,6 +291,12 @@ lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
 lemma ae_iff {p : α → Prop} : (∀ᵐ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
 
 lemma compl_mem_ae_iff {s : set α} : sᶜ ∈ μ.ae ↔ μ s = 0 := by simp only [mem_ae_iff, compl_compl]
+
+lemma frequently_ae_iff {p : α → Prop} : (∃ᵐ a ∂μ, p a) ↔ μ {a | p a} ≠ 0 :=
+not_congr compl_mem_ae_iff
+
+lemma frequently_ae_mem_iff {s : set α} : (∃ᵐ a ∂μ, a ∈ s) ↔ μ s ≠ 0 :=
+not_congr compl_mem_ae_iff
 
 lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ᵐ a ∂ μ, a ∉ s :=
 compl_mem_ae_iff.symm
@@ -374,6 +381,9 @@ add_decl_doc volume
 section measure_space
 
 notation `∀ᵐ` binders `, ` r:(scoped P, filter.eventually P
+  (measure_theory.measure.ae measure_theory.measure_space.volume)) := r
+
+notation `∃ᵐ` binders `, ` r:(scoped P, filter.frequently P
   (measure_theory.measure.ae measure_theory.measure_space.volume)) := r
 
 /-- The tactic `exact volume`, to be used in optional (`auto_param`) arguments. -/

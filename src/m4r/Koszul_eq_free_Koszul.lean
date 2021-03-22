@@ -17,17 +17,6 @@ noncomputable def alternating_map.comp_linear_map {M N : Type u} (P : Type u)
     end,
   .. F.to_multilinear_map.comp_linear_map (λ i, f) }
 
-noncomputable def linear_map.comp_alternating_map {M N : Type u} (P : Type u)
-  (ι : Type v) [add_comm_group M]
-  [add_comm_group N] [add_comm_group P] [module R M] [module R N] [module R P]
-  (f : N →ₗ[R] P) (F : alternating_map R M N ι) : alternating_map R M P ι :=
-{ map_eq_zero_of_eq' := λ v i j hv hij,
-    begin
-      dsimp,
-      rw [F.map_eq_zero_of_eq _ hv hij, linear_map.map_zero]
-    end,
-  .. f.comp_multilinear_map F.to_multilinear_map }
-
 variables {R}
 
 @[simp] lemma alternating_map.comp_linear_map_apply {M N P : Type u} {ι : Type v} [add_comm_group M]
@@ -378,7 +367,7 @@ begin
   rw submodule.ker_mkq at h,
   refine @submodule.span_induction R _ _ _ _
     ((tpow.mk' R (fin n.succ → R) i.succ) (λ (j : fin i.succ), fin.snoc (v j) 0))
-    ((tpow.mk' R (fin n.succ → R) i.succ) '' exists_same (fin n.succ → R) i.succ)
+    ((tpow.mk' R (fin n.succ → R) i.succ) '' tuple.exists_same (fin n.succ → R) i.succ)
     (λ p, ∀ (w : fin i.succ → fin n → R), p = ((tpow.mk' R (fin n.succ → R) i.succ)
       (λ (j : fin i.succ), fin.snoc (w j) 0))
     → (epow.mk R (fin n → R) i.succ w = 0)) h _ _ _ _ v rfl,

@@ -428,7 +428,9 @@ nat.rec_on n (λ x, category_theory.iso.refl _) $ λ n fn x,
     erw linear_equiv.trans_symm,
     show (direct_sum.lof R (int_pair 0) _ _).comp (direct_sum.component R (int_pair 0) _ _) = _,
     ext1 i,
-    ext1 X Y,
+    refine tensor_product.ext _,
+    intros X Y,
+    simp only [dfinsupp.lsingle_apply, Module.id_apply, linear_map.comp_apply],
     rcases classical.em (i = int_pair_mk 0 0 0 (zero_add _)) with ⟨rfl, h⟩,
     { erw [direct_sum.component.lof_self],
       refl },
@@ -500,37 +502,36 @@ def equiv_of_eq_rk (i j : ℕ) (h : i = j) :
       refl,
     end, }
 
-def free_Koszul_prod {n : ℕ} (i : ℕ) (x : fin n.succ.succ → R) :
-  (free_Koszul R n.succ x).X i.succ ≃ₗ[R]
-  ((free_Koszul R n (fin.init x)).X i.succ × (free_Koszul R n (fin.init x)).X i) :=
-{ to_fun := @linear_map.prod R ((free_Koszul R n.succ x).X i.succ)
-    ((free_Koszul R n (fin.init x)).X i.succ) ((free_Koszul R n (fin.init x)).X i) _ _ _ _ _ _ _
-  ((tensor_product.lid R _).to_linear_map.comp (direct_sum.component R (int_pair i.succ) _
-    (int_pair_mk i.succ 0 i.succ $ zero_add _) : (free_Koszul R n.succ x).X i.succ
-      →ₗ[R] tensor_product R (Module.of R R) ((free_Koszul R n (fin.init x)).X i.succ)))
-  ((tensor_product.lid R _).to_linear_map.comp (direct_sum.component R _ _
-    (int_pair_mk i.succ 1 i $ add_comm _ _))),
+def smul_cx_prod (F : cochain_complex (Module R)) (x : R) (i : ℤ) :
+  (cochain_complex.tensor_product R (smul_cx R x) F).X i ≃ₗ[R] F.X i × (shift F 1).X i :=
+{ to_fun := @linear_map.prod R ((cochain_complex.tensor_product R (smul_cx R x) F).X i)
+      (F.X i) ((shift F 1).X i) _ _ _ _ _ _ _ ((tensor_product.lid R _).to_linear_map.comp
+    (direct_sum.component R (int_pair i) _ (int_pair_mk i 0 i $ zero_add _) :
+      (cochain_complex.tensor_product R (smul_cx R x) F).X i →ₗ[R] tensor_product R
+        (Module.of R R) (F.X i)))
+    ((tensor_product.lid R _).to_linear_map.comp (direct_sum.component R _ _ (int_pair_mk i 1 (i-1)
+      $ add_sub_cancel'_right _ _))),
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _,
-  inv_fun := @linear_map.coprod R ((free_Koszul R n (fin.init x)).X i.succ)
-     ((free_Koszul R n (fin.init x)).X i) ((free_Koszul R n.succ x).X i.succ) _ _ _ _ _ _ _
-   ((direct_sum.lof R (int_pair i.succ) _ (int_pair_mk i.succ 0 i.succ $ zero_add _)).comp
-     (tensor_product.lid R ((free_Koszul R n (fin.init x)).X i.succ)).symm.to_linear_map)
-   ((direct_sum.lof R (int_pair i.succ) _ (int_pair_mk i.succ 1 i $ add_comm _ _)).comp
-     (tensor_product.lid R ((free_Koszul R n (fin.init x)).X i)).symm.to_linear_map),
+  inv_fun := @linear_map.coprod R (F.X i) ((shift F 1).X i)
+      ((cochain_complex.tensor_product R (smul_cx R x) F).X i) _ _ _ _ _ _ _
+    ((direct_sum.lof R (int_pair i) _ (int_pair_mk i 0 i $ zero_add _)).comp
+      (tensor_product.lid R (F.X i)).symm.to_linear_map)
+    ((direct_sum.lof R (int_pair i) _ (int_pair_mk i 1 (i-1) $ add_sub_cancel'_right _ _)).comp
+      (tensor_product.lid R ((shift F 1).X i)).symm.to_linear_map),
   left_inv := λ y,
     begin
       refine direct_sum.linduction_on R y _ _ _,
       { simp only [linear_map.map_zero] },
       { intros j z,
         dsimp,
-        rcases classical.em (j = int_pair_mk i.succ 0 i.succ (zero_add _)) with ⟨rfl, _⟩,
+        rcases classical.em (j = int_pair_mk i 0 i (zero_add _)) with ⟨rfl, _⟩,
         { convert add_zero _,
           { convert linear_map.map_zero _,
             convert tensor_product.tmul_zero _ _ },
           { rw [linear_equiv.symm_apply_apply],
             erw direct_sum.component.lof_self }},
-        { rcases classical.em (j = int_pair_mk i.succ 1 i (add_comm _ _)) with ⟨rfl, _⟩,
+        { rcases classical.em (j = int_pair_mk i 1 (i-1) (add_sub_cancel'_right _ _)) with ⟨rfl, _⟩,
           { convert zero_add _,
             { convert linear_map.map_zero _,
               convert tensor_product.tmul_zero _ _, },
@@ -569,6 +570,12 @@ def free_Koszul_prod {n : ℕ} (i : ℕ) (x : fin n.succ.succ → R) :
       erw direct_sum.component.lof_ne,
       exact (λ H, zero_ne_one (int_pair_ext_iff_fst.1 H)) }
   end }
+
+def free_Koszul_prod {n : ℕ} (i : ℕ) (x : fin n.succ.succ → R) :
+  (free_Koszul R n.succ x).X i.succ ≃ₗ[R]
+  ((free_Koszul R n (fin.init x)).X i.succ × (free_Koszul R n (fin.init x)).X i) :=
+(smul_cx_prod R (free_Koszul R n (fin.init x)) (x n.succ) i.succ).trans
+$ linear_equiv.prod (linear_equiv.refl _ _) (cx_cast _ (i.succ - 1) i $ by norm_num).to_linear_equiv
 
 def rk_free_prod_eq_add (i j : ℕ) :
   ((fin i → R) × (fin j → R)) ≃ₗ[R] (fin (i + j) → R) :=

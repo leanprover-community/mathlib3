@@ -69,15 +69,19 @@ begin
 end
 
 #exit
-lemma Koszul_reg_one (x : R) (hx : ¬(is_unit x)) :
-  nonempty (reg_seq (⊤ : submodule R R) (λ i : fin 1, x)) ↔
+def cohomology_alt (F : cochain_complex (Module R)) (i : ℤ) :=
+((F.d i).cod_restrict (cochain_complex.range_le_ker i)).range.quotient
+
 theorem seventeen_point_one [local_ring R] (s : fin 2 → R)
   (hx : set.range s ⊆ local_ring.maximal_ideal R) :
   nonempty (reg_seq (⊤ : submodule R (fin 2 → R)) s) ↔
-    ((cochain_complex.cohomology _ 1).obj (free_Koszul R 1 s) = Module.of R punit) :=
+    (subsingleton (cohomology_alt F 1)) :=
+--cochain_complex.cohomology giving me issues
 begin
   split,
-  { sorry },
+  { rintro ⟨H⟩ x,
+    sorry,
+     },
   { sorry },
 end
 

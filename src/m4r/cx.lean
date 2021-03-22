@@ -8,6 +8,23 @@ variables (R : Type u) [comm_ring R] {M : Type u} [add_comm_group M] [module R M
 
 open_locale classical
 
+lemma cochain_complex.range_le_ker {R : Type u} [comm_ring R]
+  {F : cochain_complex (Module R)} (i : ℤ) :
+  (F.d i).range ≤ (F.d (i + 1)).ker :=
+begin
+  rintro x ⟨y, hym, hy⟩,
+  rw [linear_map.mem_ker, ←hy],
+  exact linear_map.ext_iff.1 (F.d_squared i) _,
+end
+
+lemma chain_complex.range_le_ker {F : chain_complex (Module R)} (i : ℤ) :
+  (F.d i).range ≤ (F.d (i - 1)).ker :=
+begin
+  rintro x ⟨y, hym, hy⟩,
+  rw [linear_map.mem_ker, ←hy],
+  exact linear_map.ext_iff.1 (F.d_squared i) _,
+end
+
 def wedge_d (n : ℕ) : epow R M n →ₗ[R] epow R M n.succ :=
 epow_lift R $
 { to_fun := λ f, epow.mk R M n.succ $ fin.cons x f,

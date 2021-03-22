@@ -838,7 +838,10 @@ begin
     submodule.liftq_apply (ealg_ker R M) (ealg_ker R M).mkq],
   rw [mul_def, mul_def, talg.mul_assoc],
   refl,
-  all_goals {rw submodule.ker_mkq, exact le_refl _},
+  { rw submodule.ker_mkq,
+    exact le_refl _ },
+  { rw submodule.ker_mkq,
+    exact le_refl _ },
 end
 
 lemma ealg.mul_one (x : ealg R M) : x * 1 = x :=

@@ -23,7 +23,7 @@ if it is the smallest field extension of `K` such that `f` splits.
 
 ## Main definitions
 
-* `polynomial.splits i f`: A predicate on a field homomorphism `f : K → L` and a polynomial saying
+* `polynomial.splits i f`: A predicate on a field homomorphism `i : K → L` and a polynomial `f` saying
   that `f` is zero or all of its irreducible factors over `L` have degree `1`.
 * `polynomial.splitting_field f`: A fixed splitting field of the polynomial `f`.
 * `polynomial.is_splitting_field`: A predicate on a field to be a splitting field of a polynomial

@@ -735,9 +735,8 @@ class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 
 /-- A normed ring is a seminormed ring. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_ring_of_normed_ring [normed_ring α] : semi_normed_ring α :=
-{ dist_eq := normed_ring.dist_eq,
-  norm_mul := normed_ring.norm_mul }
+instance normed_ring.to_semi_normed_ring [β : normed_ring α] : semi_normed_ring α :=
+{ ..β }
 
 /-- A seminormed commutative ring is a commutative ring endowed with a seminorm which satisfies
 the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
@@ -751,8 +750,8 @@ class normed_comm_ring (α : Type*) extends normed_ring α :=
 
 /-- A normed commutative ring is a seminormed commutative ring. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_comm_ring_of_normed_comm_ring [normed_comm_ring α] : semi_normed_comm_ring α :=
-{ mul_comm := normed_comm_ring.mul_comm }
+instance normed_comm_ring.to_semi_normed_comm_ring [β : normed_comm_ring α] :
+  semi_normed_comm_ring α := { ..β }
 
 /-- A mixin class with the axiom `∥1∥ = 1`. Many `normed_ring`s and all `normed_field`s satisfy this
 axiom. -/
@@ -775,6 +774,10 @@ instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := 
 @[priority 100] -- see Note [lower instance priority]
 instance semi_normed_ring.to_semi_normed_group [β : semi_normed_ring α] :
   semi_normed_group α := { ..β }
+
+lemma test (α : Type*) [β : normed_ring α] : @normed_group.to_semi_normed_group α
+  (@normed_ring.to_normed_group α β) =
+  @semi_normed_ring.to_semi_normed_group α (@normed_ring.to_semi_normed_ring α β) := rfl
 
 instance prod.norm_one_class [normed_group α] [has_one α] [norm_one_class α]
   [normed_group β] [has_one β] [norm_one_class β] :

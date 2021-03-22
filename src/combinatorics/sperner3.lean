@@ -276,16 +276,25 @@ begin
   }
 end
 
-/- An m-dimensional simplicial complex is pure iff all faces are subfaces of some m-dimensional face-/
-def simplicial_complex.pure (S : simplicial_complex m) : Prop := (∀ X ∈ S.faces, ∃ Y ∈ S.faces, finset.card Y = m + 1 ∧ X ⊆ Y)
+/-
+An m-dimensional simplicial complex is pure of dimension n iff all faces are subfaces of some
+n-dimensional face
+-/
+def simplicial_complex.pure (S : simplicial_complex m) (n : ℕ) : Prop :=
+∀ X ∈ S.faces, ∃ Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y
 
---Is that good?
-@[ext] structure polytope (m : ℕ) :=
-  (space : set (fin m → ℝ))
-  (realisable : ∃ (S : simplicial_complex m), S.pure ∧ space = S.space)
+/--
+A polytope of dimension `n` in `R^m` is a subset for which there exists a simplicial complex which
+is pure of dimension `n` and has the same underlying space.
+-/
+@[ext] structure polytope (m n : ℕ) :=
+(space : set (fin m → ℝ))
+(realisable : ∃ (S : simplicial_complex m), S.pure n ∧ space = S.space)
 
-def polytope.faces (P : polytope m) : set (finset (fin m → ℝ)) :=
-  ⋂ (S : simplicial_complex m) (H : P.space = S.space), S.faces
+def polytope.faces {n : ℕ} (P : polytope m n) : set (finset (fin m → ℝ)) :=
+(classical.some P.realisable).faces
+
+  -- ⋂ (S : simplicial_complex m) (H : P.space = S.space), S.faces
 
 /- Every convex polytope can be realised by a simplicial complex with the same vertices-/
 lemma triangulable_of_convex {P : polytope m} :
@@ -310,11 +319,11 @@ lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m) (
 --instead of inputting the sets themselves. Is there any workaround? Maybe with typeclass inference?
 def closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
   simplicial_complex m :=
-  {faces := {X | ∃ X' ∈ A, X ⊆ X'},
+{ faces := {X | ∃ X' ∈ A, X ⊆ X'},
   indep := λ X ⟨X', hX', hX⟩, S.indep (S.down_closed (hA hX') hX),
   down_closed := λ X Y ⟨X', hX', hX⟩ hY, ⟨X', hX', subset.trans hY hX⟩,
   disjoint := λ X Y ⟨X', hX', hX⟩ ⟨Y', hY', hY⟩,
-    S.disjoint (S.down_closed (hA hX') hX) (S.down_closed (hA hY') hY),}
+    S.disjoint (S.down_closed (hA hX') hX) (S.down_closed (hA hY') hY) }
 
 lemma closure_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
   (closure hA).faces ⊆ S.faces := λ X ⟨X', hX', hX⟩, S.down_closed (hA hX') hX

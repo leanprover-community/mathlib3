@@ -133,8 +133,8 @@ instance [semigroup α] : semigroup (set α) :=
 @[to_additive set.add_monoid]
 instance [monoid α] : monoid (set α) :=
 { mul := (*),
-  mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'], },
-  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'], },
+  mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
+  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
   ..set.semigroup,
   ..set.has_one }
 

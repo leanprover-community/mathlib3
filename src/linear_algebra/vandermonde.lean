@@ -61,15 +61,15 @@ lemma det_succ_row {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
   det A = ∑ j : fin n.succ, (-1) ^ (j : ℕ) * A 0 j *
     det (λ (i' j' : fin n), A i'.succ (j.succ_above j')) :=
 begin
-  rw [matrix.det, finset.univ_perm_fin_succ, ← finset.univ_product_univ],
+  rw [matrix.det_apply, finset.univ_perm_fin_succ, ← finset.univ_product_univ],
   simp only [finset.sum_map, equiv.to_embedding_apply, finset.sum_product],
   refine finset.sum_congr rfl (λ j _, _),
-  simp only [fin.prod_univ_succ, matrix.det, finset.mul_sum],
+  simp only [fin.prod_univ_succ, matrix.det_apply, finset.mul_sum],
   refine fin.cases _ (λ j, _) j,
   { simp only [equiv.perm.decompose_fin_symm_apply_zero, fin.coe_zero, one_mul,
         equiv.perm.decompose_fin.symm_sign, equiv.swap_self, if_true, id.def, eq_self_iff_true,
         equiv.perm.decompose_fin_symm_apply_succ, fin.succ_above_zero, equiv.coe_refl, pow_zero,
-        mul_left_comm] },
+        algebra.mul_smul_comm] },
   { simp only [fin.succ_ne_zero j, pow_succ, neg_mul_eq_neg_mul_symm,
          equiv.perm.decompose_fin_symm_apply_zero, one_mul, equiv.perm.decompose_fin.symm_sign,
          fin.coe_succ, units.neg_mul, if_false, neg_inj, equiv.perm.decompose_fin_symm_apply_succ,

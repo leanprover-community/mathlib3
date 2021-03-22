@@ -93,7 +93,8 @@ end
 
 /-- A module which satisfies the universal property is projective. Note that this result
 only has one universe variable. -/
-theorem of_lifting_property {R : Type u} [semiring R] {M : Type u} [add_comm_monoid M] [semimodule R M]
+theorem of_lifting_property {R : Type u} [semiring R]
+  {M : Type u} [add_comm_monoid M] [semimodule R M]
   -- If for all surjections of R-modules A →ₗ B, all maps M →ₗ B lift to M →ₗ A,
   (huniv : ∀ {A B : Type u} [add_comm_monoid A] [add_comm_monoid B],
     by exactI

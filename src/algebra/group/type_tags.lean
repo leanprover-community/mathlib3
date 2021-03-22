@@ -139,14 +139,16 @@ instance [has_zero α] : has_one (multiplicative α) := ⟨multiplicative.of_add
 
 instance [monoid α] : add_monoid (additive α) :=
 { zero     := 0,
-  zero_add := @one_mul _ _,
-  add_zero := @mul_one _ _,
+  add      := (+),
+  zero_add := one_mul,
+  add_zero := mul_one,
   ..additive.add_semigroup }
 
 instance [add_monoid α] : monoid (multiplicative α) :=
 { one     := 1,
-  one_mul := @zero_add _ _,
-  mul_one := @add_zero _ _,
+  mul     := (*),
+  one_mul := zero_add,
+  mul_one := add_zero,
   ..multiplicative.semigroup }
 
 instance [comm_monoid α] : add_comm_monoid (additive α) :=

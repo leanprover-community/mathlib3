@@ -23,8 +23,8 @@ if it is the smallest field extension of `K` such that `f` splits.
 
 ## Main definitions
 
-* `polynomial.splits i f`: A predicate on a field homomorphism `i : K → L` and a polynomial `f` saying
-  that `f` is zero or all of its irreducible factors over `L` have degree `1`.
+* `polynomial.splits i f`: A predicate on a field homomorphism `i : K → L` and a polynomial `f`
+  saying that `f` is zero or all of its irreducible factors over `L` have degree `1`.
 * `polynomial.splitting_field f`: A fixed splitting field of the polynomial `f`.
 * `polynomial.is_splitting_field`: A predicate on a field to be a splitting field of a polynomial
   `f`.
@@ -295,7 +295,7 @@ begin
   have : (0 : polynomial L) ∉ (map i p).roots.map (λ a, X - C a),
     from zero_nmem_multiset_map_X_sub_C _ _,
   simp [nat_degree_mul (left_ne_zero_of_mul map_ne_zero) (right_ne_zero_of_mul map_ne_zero),
-        nat_degree_multiset_prod this]
+        nat_degree_multiset_prod _ this]
 end
 
 lemma degree_eq_card_roots {p : polynomial K} {i : K →+* L} (p_ne_zero : p ≠ 0)
@@ -370,7 +370,7 @@ begin
   { simp only [prod_multiset_root_eq_finset_root (ne_zero_of_monic hmonic),
       monic_prod_of_monic, monic_X_sub_C, monic_pow, forall_true_iff] },
   have hdegree : (multiset.map (λ (a : K), X - C a) p.roots).prod.nat_degree = p.nat_degree,
-  { rw [← hroots, nat_degree_multiset_prod (zero_nmem_multiset_map_X_sub_C _ (λ a : K, a))],
+  { rw [← hroots, nat_degree_multiset_prod _ (zero_nmem_multiset_map_X_sub_C _ (λ a : K, a))],
     simp only [eq_self_iff_true, mul_one, nat.cast_id, nsmul_eq_mul, multiset.sum_repeat,
       multiset.map_const,nat_degree_X_sub_C, function.comp, multiset.map_map] },
   obtain ⟨q, hq⟩ := prod_multiset_X_sub_C_dvd p,

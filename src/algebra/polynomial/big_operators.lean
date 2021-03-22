@@ -144,7 +144,7 @@ begin
   intros x hx, simp [h x hx]
 end
 
-lemma nat_degree_multiset_prod [nontrivial R] {s : multiset (polynomial R)}
+lemma nat_degree_multiset_prod [nontrivial R] (s : multiset (polynomial R))
   (h : (0 : polynomial R) ∉ s) :
   nat_degree s.prod = (s.map nat_degree).sum :=
 begin

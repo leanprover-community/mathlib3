@@ -61,5 +61,5 @@ well_powered_of_mono_over_essentially_small
 /--
 For `α : Type u`, `subobject α` is order isomorphic to `set α`.
 -/
-def types.subobject_equiv_set (α : Type u) : subobject α ≃o set α :=
+noncomputable def types.subobject_equiv_set (α : Type u) : subobject α ≃o set α :=
 (types.mono_over_equivalence_set α).thin_skeleton_order_iso

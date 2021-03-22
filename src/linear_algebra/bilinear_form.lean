@@ -273,14 +273,12 @@ abbreviation to_lin' : bilin_form R M →ₗ[ℕ] M →ₗ[ℕ] M →ₗ[R] R :=
 @[simp]
 lemma map_sum_left {α} (t : finset α) (g : α → M) (w : M) :
   B (∑ i in t, g i) w = ∑ i in t, B (g i) w :=
-show bilin_form.to_lin' B (∑ i in t, g i) w = ∑ i in t, bilin_form.to_lin' B (g i) w,
-by rw [linear_map.map_sum, linear_map.coe_fn_sum, finset.sum_apply]
+(bilin_form.to_lin' B).map_sum₂ t g w
 
 @[simp]
 lemma map_sum_right {α} (t : finset α) (w : M) (g : α → M) :
   B w (∑ i in t, g i) = ∑ i in t, B w (g i) :=
-show bilin_form.to_lin' B w (∑ i in t, g i) = ∑ i in t, bilin_form.to_lin' B w (g i),
-from linear_map.map_sum _
+(bilin_form.to_lin' B w).map_sum
 
 variables (R₂)
 

@@ -174,7 +174,7 @@ begin
   { exact cycle_range_of_gt (lt_of_le_of_ne (le_of_not_gt h₁) (ne.symm h₂)) },
 end
 
-@[simp] lemma sign_cycle_range {n : ℕ} (i : fin n.succ) :
+@[simp] lemma sign_cycle_range {n : ℕ} (i : fin n) :
   perm.sign (cycle_range i) = (-1) ^ (i : ℕ) :=
 begin
   obtain ⟨i, hi⟩ := i,

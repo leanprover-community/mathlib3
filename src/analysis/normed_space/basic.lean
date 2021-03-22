@@ -1405,7 +1405,7 @@ class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_
 
 /-- A normed algebra is a seminormed algebra. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_algebra_of_normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
+instance normed_algebra.to_semi_normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
   [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] : semi_normed_algebra 𝕜 𝕜' :=
 { norm_algebra_map_eq := normed_algebra.norm_algebra_map_eq }
 

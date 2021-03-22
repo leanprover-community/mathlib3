@@ -85,7 +85,7 @@ mul_indicator_eq_one
   function.mul_support (s.mul_indicator f) = s ∩ function.mul_support f :=
 ext $ λ x, by simp [function.mem_mul_support, mul_indicator_apply_eq_one]
 
-/-- If a multiplicative indicator function is non equal to one at a point, then that
+/-- If a multiplicative indicator function is not equal to one at a point, then that
 point is in the set. -/
 @[to_additive] lemma mem_of_mul_indicator_ne_one (h : mul_indicator s f a ≠ 1) : a ∈ s :=
 not_imp_comm.1 (λ hn, mul_indicator_of_not_mem hn f) h

@@ -20,7 +20,15 @@ proof that all free modules are projective.
 
 Let `R` be a ring and let `M` be an `R`-module.
 
-`is_projective R M` -- the proposition saying that `M` is a projective `R`-module.
+* `is_projective R M` -- the proposition saying that `M` is a projective `R`-module.
+
+# Main theorems
+
+* `universal_property` -- a map from a projective module can be lifted along
+  a surjection
+
+* `of_universal_property` -- If for all R-module surjections `A →ₗ B`, all
+  maps `M →ₗ B`lift to `M →ₗ A`, then `M` is projective.
 
 ## Implementation details
 
@@ -28,6 +36,7 @@ The actual definition of projective we use is that the natural R-module map
 from the free R-module on the type M down to M splits. This is more convenient
 than certain other definitions which involve quantifying over universes.
 
+`of_universal_property` is not universe polymorphic.
 -/
 
 universes u v
@@ -64,6 +73,7 @@ begin
   simp [φ, finsupp.total_apply, function.surj_inv_eq hf],
 end
 
+set_option pp.universes true
 /-- A module which satisfies the universal property is projective. Note that this result
 only has one universe variable. -/
 theorem of_universal_property {R : Type u} [ring R] {M : Type u} [add_comm_group M] [module R M]
@@ -78,7 +88,8 @@ theorem of_universal_property {R : Type u} [ring R] {M : Type u} [add_comm_group
   is_projective R M :=
 begin
   -- let s be the universal map (M →₀ R) →ₗ[R] M coming from the identity map
-  obtain ⟨s, hs⟩ : ∃ (s : M →ₗ[R] M →₀ R), (finsupp.total M M R id).comp s = linear_map.id :=
+  obtain ⟨s, hs⟩ : ∃ (s : M →ₗ[R] M →₀ R),
+    (finsupp.total M M R id).comp s = linear_map.id :=
     huniv (finsupp.total M M R (id : M → M)) (linear_map.id : M →ₗ[R] M) _,
   { use s,
     rwa linear_map.ext_iff at hs },
@@ -90,8 +101,13 @@ end
 /-- Free modules are projective -/
 theorem of_free {ι : Type*} {b : ι → M} (hb : is_basis R b) : is_projective R M :=
 begin
-
+  -- need M →ₗ[R] (M →₀ R) for definition of projective.
+  -- get it from `ι → (M →₀ R)` coming from `b`.
+  use hb.constr (λ i, finsupp.single (b i) 1),
+  intro m,
+  simp only [hb.constr_apply, mul_one, id.def, finsupp.smul_single', finsupp.total_single,
+    linear_map.map_finsupp_sum],
+  exact hb.total_repr m,
 end
-
 
 end is_projective

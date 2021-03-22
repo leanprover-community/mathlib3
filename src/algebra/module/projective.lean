@@ -72,7 +72,7 @@ begin
   Recall that `X →₀ R` is Lean's way of talking about the free `R`-module
   on a type `X`. The universal property `finsupp.total` says that to a map
   `X → A` from a type to an `R`-module, we get an associated R-module map
-  `(X →₀ R) →ₗ A`. Apply this to a (noncomputable) map `M → A` coming the map
+  `(X →₀ R) →ₗ A`. Apply this to a (noncomputable) map `M → A` coming from the map
   `M → B` and a random splitting of the surjection `A → B`, and we get
   a map `φ : (M →₀ R) →ₗ A`.
   -/

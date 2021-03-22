@@ -5,6 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import topology.instances.nnreal
 import topology.algebra.module
+import topology.algebra.algebra
 import topology.metric_space.antilipschitz
 
 /-!
@@ -294,7 +295,7 @@ lipschitz_on_with_iff_norm_sub_le.mp h x x_in y y_in
 /-- A homomorphism `f` of normed groups is continuous, if there exists a constant `C` such that for
 all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
 The analogous condition for a linear map of normed spaces is in `normed_space.operator_norm`. -/
-lemma add_monoid_hom.continuous_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+lemma add_monoid_hom.continuous_of_bound (f : α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   continuous f :=
 (f.lipschitz_of_bound C h).continuous
 
@@ -1165,8 +1166,10 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E 
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
-instance submodule.normed_space {𝕜 : Type*} [normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : submodule 𝕜 E) : normed_space 𝕜 s :=
+instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] [semimodule R E]
+  [is_scalar_tower 𝕜 R E] (s : submodule R E) :
+  normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
 
 end normed_space
@@ -1185,6 +1188,21 @@ normed_algebra.norm_algebra_map_eq _
 
 variables (𝕜 : Type*) [normed_field 𝕜]
 variables (𝕜' : Type*) [normed_ring 𝕜']
+
+-- This could also be proved via `linear_map.continuous_of_bound`,
+-- but this is further up the import tree in `normed_space.operator_norm`, so not yet available.
+@[continuity] lemma normed_algebra.algebra_map_continuous
+  [normed_algebra 𝕜 𝕜'] :
+  continuous (algebra_map 𝕜 𝕜') :=
+begin
+  change continuous (algebra_map 𝕜 𝕜').to_add_monoid_hom,
+  exact add_monoid_hom.continuous_of_bound _ 1 (λ x, by simp),
+end
+
+@[priority 100]
+instance normed_algebra.to_topological_algebra [normed_algebra 𝕜 𝕜'] :
+  topological_algebra 𝕜 𝕜' :=
+⟨by continuity⟩
 
 @[priority 100]
 instance normed_algebra.to_normed_space [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=

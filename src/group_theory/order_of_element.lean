@@ -467,7 +467,7 @@ section group
 variables {α} [group α] {a}
 variables {H : Type u} [add_group H] {x : H}
 
-lemma gsmul_eq_mod_order_of {i : ℤ} : i •ℤ x = (i % add_order_of x) •ℤ x :=
+lemma gsmul_eq_mod_add_order_of {i : ℤ} : i •ℤ x = (i % add_order_of x) •ℤ x :=
 calc i •ℤ x = (i / add_order_of x * add_order_of x + i % add_order_of x) •ℤ x :
     by rw [int.div_add_mod']
         ... = (i % add_order_of x) •ℤ x :
@@ -479,7 +479,7 @@ calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
        ... = a ^ (i % order_of a) :
     by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
 
-attribute [to_additive gsmul_eq_mod_order_of] gpow_eq_mod_order_of
+attribute [to_additive gsmul_eq_mod_add_order_of] gpow_eq_mod_order_of
 
 end group
 
@@ -703,6 +703,16 @@ end finite_cancel_monoid
 
 section finite_group
 variables {α} [fintype α] [group α]
+variables {H : Type u} [fintype H] [add_group H]
+
+lemma exists_gsmul_eq_zero (x : H) : ∃ i ≠ 0, i •ℤ x = 0 :=
+begin
+  rcases exists_nsmul_eq_zero x with ⟨w, hw1, hw2⟩,
+  use w,
+  split,
+  { exact_mod_cast ne_of_gt hw1 },
+  { exact_mod_cast hw2 }
+end
 
 lemma exists_gpow_eq_one (a : α) : ∃ i ≠ 0, a ^ (i : ℤ) = 1 :=
 begin
@@ -713,6 +723,16 @@ begin
   { exact_mod_cast hw2 }
 end
 
+attribute [to_additive exists_gsmul_eq_zero] exists_gpow_eq_one
+
+lemma mem_multiples_iff_mem_gmultiples {x y : H} :
+  y ∈ add_submonoid.multiples x ↔ y ∈ add_subgroup.gmultiples x :=
+⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩, λ ⟨i, hi⟩, ⟨(i % add_order_of x).nat_abs,
+  by { simp only at hi ⊢,
+       rwa  [ ← gsmul_coe_nat,
+       int.nat_abs_of_nonneg (int.mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2
+          (add_order_of_pos x))), ← gsmul_eq_mod_add_order_of] } ⟩⟩
+
 open subgroup
 
 lemma mem_powers_iff_mem_gpowers {a x : α} : x ∈ submonoid.powers a ↔ x ∈ gpowers a :=
@@ -722,14 +742,38 @@ lemma mem_powers_iff_mem_gpowers {a x : α} : x ∈ submonoid.powers a ↔ x ∈
     (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos a))),
     ← gpow_eq_mod_order_of]⟩⟩
 
+attribute [to_additive mem_multiples_iff_mem_gmultiples] mem_powers_iff_mem_gpowers
+
+lemma multiples_eq_gmultiples (x : H) :
+  (add_submonoid.multiples x : set H) = add_subgroup.gmultiples x :=
+set.ext $ λ y, mem_multiples_iff_mem_gmultiples
+
 lemma powers_eq_gpowers (a : α) : (submonoid.powers a : set α) = gpowers a :=
 set.ext $ λ x, mem_powers_iff_mem_gpowers
+
+attribute [to_additive multiples_eq_gmultiples] powers_eq_gpowers
+
+lemma mem_gmultiples_iff_mem_range_add_order_of [decidable_eq H] {x x' : H} :
+  x' ∈ add_subgroup.gmultiples x ↔ x' ∈ (finset.range (add_order_of x)).image (•ℕ x) :=
+begin
+  rw ← mem_multiples_iff_mem_gmultiples,
+  exact mem_multiples_iff_mem_range_add_order_of,
+end
 
 lemma mem_gpowers_iff_mem_range_order_of [decidable_eq α] {a a' : α} :
   a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 begin
   rw ← mem_powers_iff_mem_gpowers,
   exact mem_powers_iff_mem_range_order_of,
+end
+
+attribute [to_additive mem_gmultiples_iff_mem_range_add_order_of] mem_gpowers_iff_mem_range_order_of
+
+noncomputable instance decidable_gmultiples [decidable_eq H] {x : H}:
+  decidable_pred (add_subgroup.gmultiples x : set H) :=
+begin
+  rw ← multiples_eq_gmultiples,
+  exact decidable_multiples,
 end
 
 noncomputable instance decidable_gpowers [decidable_eq α] :
@@ -739,22 +783,38 @@ begin
   exact decidable_powers,
 end
 
-lemma order_eq_card_gpowers [decidable_eq α] {a : α} :
-order_of a = fintype.card (subgroup.gpowers a : set α) :=
+attribute [to_additive decidable_gmultiples] decidable_gpowers
+
+lemma add_order_eq_card_gmultiples [decidable_eq H] {x : H} :
+  add_order_of x = fintype.card (add_subgroup.gmultiples x : set H) :=
 begin
   refine (finset.card_eq_of_bijective _ _ _ _).symm,
-  { exact λn hn, ⟨gpow a n, ⟨n, rfl⟩⟩ },
+  { exact λn hn, ⟨n •ℤ x, ⟨n, rfl⟩⟩ },
   { exact assume ⟨_, i, rfl⟩ _,
-    have pos: (0:int) < order_of a,
-      from int.coe_nat_lt.mpr $ order_of_pos a,
-    have 0 ≤ i % (order_of a),
-      from int.mod_nonneg _ $ ne_of_gt pos,
+    have pos : (0 : ℤ) < add_order_of x := int.coe_nat_lt.mpr $ add_order_of_pos x,
+    have 0 ≤ i % (add_order_of x) := int.mod_nonneg _ $ ne_of_gt pos,
+    ⟨int.to_nat (i % add_order_of x), by rw [← int.coe_nat_lt, int.to_nat_of_nonneg this];
+      exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gsmul_eq_mod_add_order_of.symm⟩⟩ },
+  { intros, exact finset.mem_univ _ },
+  { exact assume i j hi hj eq, nsmul_injective_of_lt_add_order_of x hi hj $ by simpa using eq }
+end
+
+lemma order_eq_card_gpowers [decidable_eq α] {a : α} :
+  order_of a = fintype.card (subgroup.gpowers a : set α) :=
+begin
+  refine (finset.card_eq_of_bijective _ _ _ _).symm,
+  { exact λn hn, ⟨a ^ (n : ℤ), ⟨n, rfl⟩⟩ },
+  { exact assume ⟨_, i, rfl⟩ _,
+    have pos : (0 : ℤ) < order_of a := int.coe_nat_lt.mpr $ order_of_pos a,
+    have 0 ≤ i % (order_of a) := int.mod_nonneg _ $ ne_of_gt pos,
     ⟨int.to_nat (i % order_of a),
       by rw [← int.coe_nat_lt, int.to_nat_of_nonneg this];
         exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gpow_eq_mod_order_of.symm⟩⟩ },
   { intros, exact finset.mem_univ _ },
   { exact assume i j hi hj eq, pow_injective_of_lt_order_of a hi hj $ by simpa using eq }
 end
+
+attribute [to_additive add_order_eq_card_gmultiples] order_eq_card_gpowers
 
 open quotient_group subgroup
 

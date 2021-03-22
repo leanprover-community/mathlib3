@@ -337,12 +337,6 @@ have 0 + b = b, by rw zero_add,
 have (a - b) + b = b, by rwa h,
 by rwa [sub_eq_add_neg, neg_add_cancel_right] at this
 
-lemma sub_eq_zero_of_eq (h : a = b) : a - b = 0 :=
-by rw [h, sub_self]
-
-lemma sub_eq_zero_iff_eq : a - b = 0 ↔ a = b :=
-⟨eq_of_sub_eq_zero, sub_eq_zero_of_eq⟩
-
 @[simp] lemma sub_zero (a : G) : a - 0 = a :=
 by rw [sub_eq_add_neg, neg_zero, add_zero]
 
@@ -401,8 +395,13 @@ by simp
 theorem sub_eq_zero : a - b = 0 ↔ a = b :=
 ⟨eq_of_sub_eq_zero, λ h, by rw [h, sub_self]⟩
 
+alias sub_eq_zero ↔ eq_of_sub_eq_zero sub_eq_zero_of_eq
+
 theorem sub_ne_zero : a - b ≠ 0 ↔ a ≠ b :=
 not_congr sub_eq_zero
+
+@[simp] theorem sub_eq_self : a - b = a ↔ b = 0 :=
+by rw [sub_eq_add_neg, add_right_eq_self, neg_eq_zero]
 
 theorem eq_sub_iff_add_eq : a = b - c ↔ a + c = b :=
 by rw [sub_eq_add_neg, eq_add_neg_iff_add_eq]

@@ -559,8 +559,6 @@ end
 
 end subspace
 
-namespace linear_map
-
 variables {R : Type*} [comm_ring R] {M₁ : Type*} {M₂ : Type*}
 variables [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂]
 
@@ -568,12 +566,35 @@ open module
 
 /-- Given a linear map `f : M₁ →ₗ[R] M₂`, `f.dual_map` is the linear map between the dual of
 `M₂` and `M₁` such that it maps the functional `φ` to `φ ∘ f`. -/
-def dual_map (f : M₁ →ₗ[R] M₂) : dual R M₂ →ₗ[R] dual R M₁ :=
-lcomp R R f
+def linear_map.dual_map (f : M₁ →ₗ[R] M₂) : dual R M₂ →ₗ[R] dual R M₁ :=
+linear_map.lcomp R R f
 
-@[simp] lemma dual_map_apply (f : M₁ →ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
+@[simp] lemma linear_map.dual_map_apply (f : M₁ →ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
   f.dual_map g x = g (f x) :=
-lcomp_apply f g x
+linear_map.lcomp_apply f g x
+
+/-- The `linear_equiv` version of `linear_map.dual_map`. -/
+def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual R M₁ :=
+{ inv_fun := f.symm.to_linear_map.dual_map,
+  left_inv :=
+    begin
+      intro φ, ext x,
+      simp only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
+                 linear_map.to_fun_eq_coe, linear_equiv.apply_symm_apply]
+    end,
+  right_inv :=
+    begin
+      intro φ, ext x,
+      simp only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
+                 linear_map.to_fun_eq_coe, linear_equiv.symm_apply_apply]
+    end,
+  .. f.to_linear_map.dual_map }
+
+@[simp] lemma linear_equiv.dual_map_apply (f : M₁ ≃ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
+  f.dual_map g x = g (f x) :=
+linear_map.lcomp_apply f g x
+
+namespace linear_map
 
 variable {f : M₁ →ₗ[R] M₂}
 

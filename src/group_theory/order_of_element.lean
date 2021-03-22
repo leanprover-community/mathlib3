@@ -816,6 +816,31 @@ end
 
 attribute [to_additive add_order_eq_card_gmultiples] order_eq_card_gpowers
 
+lemma add_order_of_dvd_card_univ {x : H} : add_order_of x ∣ fintype.card H :=
+begin
+  classical,
+  have ft_prod :
+    fintype (quotient_add_group.quotient (add_subgroup.gmultiples x) × (add_subgroup.gmultiples x)),
+    from fintype.of_equiv H add_subgroup.add_group_equiv_quotient_times_add_subgroup,
+  have ft_s : fintype (add_subgroup.gmultiples x),
+    from @fintype.fintype_prod_right _ _ _ ft_prod _,
+  have ft_cosets : fintype (quotient_add_group.quotient (add_subgroup.gmultiples x)),
+    from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨0, (add_subgroup.gmultiples x).zero_mem⟩⟩,
+  have eq₁ : fintype.card H = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
+    from calc fintype.card H = @fintype.card _ ft_prod :
+        @fintype.card_congr _ _ _ ft_prod add_subgroup.add_group_equiv_quotient_times_add_subgroup
+      ... = @fintype.card _ (@prod.fintype _ _ ft_cosets ft_s) :
+        congr_arg (@fintype.card _) $ subsingleton.elim _ _
+      ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :
+        @fintype.card_prod _ _ ft_cosets ft_s,
+  have eq₂ : add_order_of x = @fintype.card _ ft_s,
+    from calc add_order_of x = _ : add_order_eq_card_gmultiples
+      ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
+  exact dvd.intro
+    (@fintype.card (quotient_add_group.quotient (add_subgroup.gmultiples x)) ft_cosets)
+    (by rw [eq₁, eq₂, mul_comm])
+end
+
 open quotient_group subgroup
 
 /- TODO: use cardinal theory, introduce `card : set α → ℕ`, or setup decidability for cosets -/
@@ -842,17 +867,31 @@ begin
           (by rw [eq₁, eq₂, mul_comm])
 end
 
+attribute [to_additive add_order_of_dvd_card_univ] order_of_dvd_card_univ
+
+@[simp] lemma card_nsmul_eq_zero {x : H} : fintype.card H •ℕ x = 0 :=
+let ⟨m, hm⟩ := @add_order_of_dvd_card_univ _ _ _ x in
+by { simp [hm, mul_comm, mul_nsmul, add_order_of_nsmul_eq_zero]}
+
 @[simp] lemma pow_card_eq_one {a : α} : a ^ fintype.card α = 1 :=
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
+attribute [to_additive card_nsmul_eq_zero] pow_card_eq_one
 
 variable (a)
+
+lemma image_range_add_order_of [decidable_eq H] {x : H} :
+  finset.image (λ i, i •ℕ x) (finset.range (add_order_of x)) =
+  (add_subgroup.gmultiples x : set H).to_finset :=
+by {ext x, rw [set.mem_to_finset, add_subgroup.mem_coe, mem_gmultiples_iff_mem_range_add_order_of] }
 
 /-- TODO: Generalise to `submonoid.powers`.-/
 lemma image_range_order_of [decidable_eq α] :
   finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a : set α).to_finset :=
 by { ext x, rw [set.mem_to_finset, mem_coe, mem_gpowers_iff_mem_range_order_of] }
+
+attribute [to_additive image_range_add_order_of] image_range_order_of
 
 open nat
 

@@ -266,4 +266,20 @@ adjunction.mk_of_unit_counit
 
 end thin_skeleton
 
+open thin_skeleton
+
+section
+variables {C} {α : Type*} [partial_order α]
+
+/--
+When `e : C ≌ α` is a categorical equivalence from a thin category `C` to some partial order `α`,
+the `thin_skeleton C` is order isomorphic to `α`.
+-/
+noncomputable
+def equivalence.thin_skeleton_order_iso
+  [∀ X Y : C, subsingleton (X ⟶ Y)] (e : C ≌ α) : thin_skeleton C ≃o α :=
+((from_thin_skeleton C).as_equivalence.trans e).to_order_iso
+
+end
+
 end category_theory

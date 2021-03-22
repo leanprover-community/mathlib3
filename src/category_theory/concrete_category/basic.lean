@@ -86,7 +86,7 @@ def concrete_category.has_coe_to_fun {X Y : C} : has_coe_to_fun (X ⟶ Y) :=
 local attribute [instance] concrete_category.has_coe_to_fun
 
 /-- In any concrete category, we can test equality of morphisms by pointwise evaluations.-/
-lemma concrete_category.hom_ext {X Y : C} (f g : X ⟶ Y) (w : ∀ x : X, f x  = g x) : f = g :=
+lemma concrete_category.hom_ext {X Y : C} (f g : X ⟶ Y) (w : ∀ x : X, f x = g x) : f = g :=
 begin
   apply faithful.map_injective (forget C),
   ext,
@@ -94,6 +94,13 @@ begin
 end
 
 @[simp] lemma forget_map_eq_coe {X Y : C} (f : X ⟶ Y) : (forget C).map f = f := rfl
+
+/--
+Analogue of `congr_fun h x`,
+when `h : f = g` is an equality between morphisms in a concrete category.
+-/
+def congr_hom {X Y : C} {f g : X ⟶ Y} (h : f = g) (x : X) : f x = g x :=
+congr_fun (congr_arg (λ k : X ⟶ Y, (k : X → Y)) h) x
 
 @[simp] lemma coe_id {X : C} (x : X) : ((𝟙 X) : X → X) x = x :=
 congr_fun ((forget _).map_id X) x

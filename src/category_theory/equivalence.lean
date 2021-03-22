@@ -548,4 +548,23 @@ equivalence_of_fully_faithfully_ess_surj _
 
 end equivalence
 
+section partial_order
+variables {α β : Type*} [partial_order α] [partial_order β]
+
+/--
+A categorical equivalence between partial orders is just an order isomorphism.
+-/
+@[simps]
+def equivalence.to_order_iso (e : α ≌ β) : α ≃o β :=
+{ to_fun := e.functor.obj,
+  inv_fun := e.inverse.obj,
+  left_inv := λ a, (e.unit_iso.app a).to_eq.symm,
+  right_inv := λ b, (e.counit_iso.app b).to_eq,
+  map_rel_iff' := λ a a',
+    ⟨λ h, le_of_hom
+      ((equivalence.unit e).app a ≫ e.inverse.map (hom_of_le h) ≫ (equivalence.unit_inv e).app a'),
+     λ (h : a ≤ a'), le_of_hom (e.functor.map (hom_of_le h))⟩, }
+
+end partial_order
+
 end category_theory

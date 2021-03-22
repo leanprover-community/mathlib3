@@ -190,6 +190,19 @@ class add_zero_class (M : Type u) extends has_zero M, has_add M :=
 
 attribute [to_additive] mul_one_class
 
+section mul_one_class
+variables {M : Type u} [mul_one_class M]
+
+@[ematch, simp, to_additive]
+lemma one_mul : ∀ a : M, 1 * a = a :=
+mul_one_class.one_mul
+
+@[ematch, simp, to_additive]
+lemma mul_one : ∀ a : M, a * 1 = a :=
+mul_one_class.mul_one
+
+end mul_one_class
+
 /-- A `monoid` is a `semigroup` with an element `1` such that `1 * a = a * 1 = a`. -/
 @[ancestor semigroup mul_one_class]
 class monoid (M : Type u) extends semigroup M, mul_one_class M
@@ -202,14 +215,6 @@ attribute [to_additive] monoid
 
 section monoid
 variables {M : Type u} [monoid M]
-
-@[ematch, simp, to_additive]
-lemma one_mul : ∀ a : M, 1 * a = a :=
-monoid.one_mul
-
-@[ematch, simp, to_additive]
-lemma mul_one : ∀ a : M, a * 1 = a :=
-monoid.mul_one
 
 attribute [ematch] add_zero zero_add -- TODO(Mario): Make to_additive transfer this
 

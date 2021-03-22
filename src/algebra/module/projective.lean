@@ -25,7 +25,7 @@ Let `R` be a ring and let `M` be an `R`-module.
 ## Main theorems
 
 * `lifting_property` : a map from a projective module can be lifted along
-  a surjection
+  a surjection.
 
 * `of_lifting_property` : If for all R-module surjections `A →ₗ B`, all
   maps `M →ₗ B` lift to `M →ₗ A`, then `M` is projective.

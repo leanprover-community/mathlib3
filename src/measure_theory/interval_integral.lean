@@ -424,7 +424,7 @@ calc ∫ x in a..b, f (x + d) = ∫ x in a+d..b+d, f x ∂(measure.map (λ x, x 
     preimage_add_const_Ioc, add_sub_cancel]
 ... = ∫ x in a+d..b+d, f x : by rw [real.map_volume_add_right]
 
-lemma integral_comp_mul_add (hc : c ≠ 0) (d : ℝ) (hfm : ae_measurable f) :
+@[simp] lemma integral_comp_mul_add (hc : c ≠ 0) (d : ℝ) (hfm : ae_measurable f) :
   ∫ x in a..b, f (c * x + d) = c⁻¹ • ∫ x in c*a+d..c*b+d, f x :=
 by rw [← integral_comp_add_right d hfm, ← integral_comp_mul_left hc $
   hfm.comp_measurable' (measurable_add_right d) $ by rwa real.map_volume_add_right]

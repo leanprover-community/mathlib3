@@ -239,22 +239,58 @@ end
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp
 
-@[simp]
-lemma ae_measurable_sin : ae_measurable sin := measurable_sin.ae_measurable
+@[simp] lemma ae_measurable_exp : ae_measurable exp := measurable_exp.ae_measurable
 
-@[simp]
-lemma ae_measurable_cos : ae_measurable cos := measurable_cos.ae_measurable
+@[simp] lemma ae_measurable_sin : ae_measurable sin := measurable_sin.ae_measurable
 
-@[simp]
-lemma ae_measurable_pow (n : ℕ) : ae_measurable (λ x:ℝ, x^n) := measurable_pow.ae_measurable
+@[simp] lemma ae_measurable_cos : ae_measurable cos := measurable_cos.ae_measurable
+
+@[simp] lemma ae_measurable_pow (n : ℕ) : ae_measurable (λ x:ℝ, x^n) := measurable_pow.ae_measurable
+
+@[simp] lemma ae_measurable_inv' : ae_measurable (λ x:ℝ, x⁻¹) := measurable_inv'.ae_measurable
+
+@[simp] lemma ae_measurable.inv' {f : ℝ → ℝ} {μ : measure_theory.measure ℝ}
+  (hf : ae_measurable f μ) : ae_measurable (λ a, (f a)⁻¹) μ :=
+measurable_inv'.comp_ae_measurable hf
+
+lemma ae_measurable_one_div : ae_measurable (λ x:ℝ, 1/x) :=
+by simp only [one_div, ae_measurable_inv']
+
+@[simp] lemma ae_measurable_one_add_sq : ae_measurable (λ x:ℝ, 1 + x^2) :=
+ae_measurable_const.add $ ae_measurable_pow 2
+
+@[simp] lemma ae_measurable_inv_one_add_sq : ae_measurable (λ x:ℝ, (1 + x^2)⁻¹) :=
+ae_measurable_one_add_sq.inv'
+
+lemma ae_measurable_one_div_one_add_sq : ae_measurable (λ x:ℝ, 1 / (1 + x^2)) :=
+by simp only [one_div, ae_measurable_inv_one_add_sq]
+
+lemma integral_sin_add_two_pi : ∫ x in a+2*π..b+2*π, sin x = ∫ x in a..b, sin x :=
+by simp [integral_comp_add_right, cos_add_two_pi]
+
+lemma integral_cos_add_two_pi : ∫ x in a+2*π..b+2*π, cos x = ∫ x in a..b, cos x :=
+by simp [integral_comp_add_right, sin_add_two_pi]
 
 example : ∫ x in a..b, sin (x * 2) = 2⁻¹ * (cos (a*2) - cos (b*2)) :=
 by norm_num [integral_comp_mul_right]
 
 example : ∫ x:ℝ in 0..2, 3*(x + 1)^2 = 26 :=
 begin
-  norm_num [integral_comp_add_right _ _ _ _ (measurable_id.ae_measurable.add ae_measurable_const).pow],
+  norm_num [integral_comp_add_right _ (ae_measurable_pow 2)],
 end
 
-#check ae_measurable.pow
-#check measurable_id.ae_measurable.add
+example : ∫ x in 0..2, -exp (-x) = exp (-2) - 1 :=
+by norm_num [integral_comp_neg]
+
+example {ω Φ : ℝ} (h : ω ≠ 0) : ∫ θ in 0..2*π, sin (ω*θ + Φ) = ω⁻¹ * (cos Φ - cos (2*π*ω + Φ)) :=
+by simp [h, mul_comm]
+
+example {L : ℝ} (h : L ≠ 0) : ∫ x in 0..2/L*π, sin (L/2 * x) = 4 / L :=
+begin
+  norm_num [integral_comp_mul_left, div_ne_zero h, ← mul_assoc],
+  field_simp [h, mul_div_cancel],
+  norm_num,
+end
+
+example : ∫ x:ℝ in -1..0, (1 + (x+1)^2)⁻¹ = π/4 :=
+by simp [integral_comp_add_right 1 ae_measurable_inv_one_add_sq]

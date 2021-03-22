@@ -170,13 +170,22 @@ set.subset.antisymm s.closure_smul_self_subset
 
 variables [has_continuous_add M]
 
-/-- The (topological-space) closure of a submodle of a topological `R`-semimodule `M` is itself
+/-- The (topological-space) closure of a submodule of a topological `R`-semimodule `M` is itself
 a submodule. -/
 def submodule.topological_closure (s : submodule R M) : submodule R M :=
 { carrier := closure (s : set M),
-  zero_mem' := subset_closure s.zero_mem,
-  add_mem' := λ a b ha hb, s.to_add_submonoid.top_closure_add_self_subset ⟨a, b, ha, hb, rfl⟩,
-  smul_mem' := λ c x hx, s.closure_smul_self_subset ⟨⟨c, x⟩, ⟨set.mem_univ _, hx⟩, rfl⟩ }
+  smul_mem' := λ c x hx, s.closure_smul_self_subset ⟨⟨c, x⟩, ⟨set.mem_univ _, hx⟩, rfl⟩,
+  ..s.to_add_submonoid.topological_closure }
+
+instance submodule.topological_closure_topological_semimodule (s : submodule R M) :
+  topological_semimodule R (s.topological_closure) :=
+{ continuous_smul :=
+  begin
+    apply continuous_induced_rng,
+    change continuous (λ p : R × s.topological_closure, p.1 • (p.2 : M)),
+    continuity,
+  end,
+  ..s.to_add_submonoid.topological_closure_has_continuous_add }
 
 lemma submodule.submodule_topological_closure (s : submodule R M) :
   s ≤ s.topological_closure :=
@@ -281,11 +290,11 @@ by { intros f g H, cases f, cases g, congr' }
   (f : M →ₗ[R] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 
-theorem injective_coe_fn : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
+theorem coe_fn_injective : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
 linear_map.coe_injective.comp coe_injective
 
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
-injective_coe_fn $ funext h
+coe_fn_injective $ funext h
 
 theorem ext_iff {f g : M →L[R] M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩

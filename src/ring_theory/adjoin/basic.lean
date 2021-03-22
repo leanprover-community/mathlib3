@@ -38,20 +38,20 @@ variables [algebra R A] [algebra R B] {s t : set A}
 open subsemiring
 
 theorem subset_adjoin : s ⊆ adjoin R s :=
-set.subset.trans (set.subset_union_right _ _) subset_closure
+algebra.gc.le_u_l s
 
 theorem adjoin_le {S : subalgebra R A} (H : s ⊆ S) : adjoin R s ≤ S :=
-closure_le.2 $ set.union_subset S.range_le H
+algebra.gc.l_le H
 
 theorem adjoin_le_iff {S : subalgebra R A} : adjoin R s ≤ S ↔ s ⊆ S:=
-⟨set.subset.trans subset_adjoin, adjoin_le⟩
+algebra.gc _ _
 
 theorem adjoin_mono (H : s ⊆ t) : adjoin R s ≤ adjoin R t :=
-closure_le.2 (set.subset.trans (set.union_subset_union_right _ H) subset_closure)
+algebra.gc.monotone_l H
 
 variables (R A)
 @[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
-eq_bot_iff.2 $ adjoin_le $ set.empty_subset _
+show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }
 
 variables (R) {A} (s)
 theorem adjoin_eq_span : (adjoin R s : submodule R A) = span R (monoid.closure s) :=

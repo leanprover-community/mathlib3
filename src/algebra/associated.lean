@@ -316,6 +316,14 @@ lemma prime_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~ᵤ q) (
     ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv, hu.symm]⟩,
       hu ▸ by { simp [units.mul_right_dvd], intros a b, exact hp.div_or_div }⟩⟩
 
+lemma associated_of_irreducible_of_dvd [comm_cancel_monoid_with_zero α] {p q : α}
+  (p_irr : irreducible p) (q_irr : irreducible q) (dvd : p ∣ q) : associated p q :=
+associated_of_dvd_dvd dvd (dvd_symm_of_irreducible p_irr q_irr dvd)
+
+lemma associated_of_prime_of_dvd [comm_cancel_monoid_with_zero α] {p q : α}
+  (p_prime : prime p) (q_prime : prime q) (dvd : p ∣ q) : associated p q :=
+associated_of_irreducible_of_dvd (irreducible_of_prime p_prime) (irreducible_of_prime q_prime) dvd
+
 lemma prime_iff_of_associated [comm_monoid_with_zero α] {p q : α}
   (h : p ~ᵤ q) : prime p ↔ prime q :=
 ⟨prime_of_associated h, prime_of_associated h.symm⟩

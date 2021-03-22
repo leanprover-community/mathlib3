@@ -13,30 +13,42 @@ import linear_algebra.basis
 # Projective modules
 
 This file contains a definition of a projective module, the proof that
-our definition is equivalent to a universal lifting property, and the
+our definition is equivalent to a lifting property, and the
 proof that all free modules are projective.
 
-# Main definitions
+## Main definitions
 
 Let `R` be a ring and let `M` be an `R`-module.
 
-* `is_projective R M` -- the proposition saying that `M` is a projective `R`-module.
+* `is_projective R M` : the proposition saying that `M` is a projective `R`-module.
 
-# Main theorems
+## Main theorems
 
-* `universal_property` -- a map from a projective module can be lifted along
+* `lifting_property` : a map from a projective module can be lifted along
   a surjection
 
-* `of_universal_property` -- If for all R-module surjections `A →ₗ B`, all
-  maps `M →ₗ B`lift to `M →ₗ A`, then `M` is projective.
+* `of_lifting_property` : If for all R-module surjections `A →ₗ B`, all
+  maps `M →ₗ B` lift to `M →ₗ A`, then `M` is projective.
 
-## Implementation details
+* `of_free` : Free modules are projective.
+
+## Implementation notes
 
 The actual definition of projective we use is that the natural R-module map
 from the free R-module on the type M down to M splits. This is more convenient
-than certain other definitions which involve quantifying over universes.
+than certain other definitions which involve quantifying over universes,
+and also universe-polymorphic (the ring and module can be in different universes).
 
-`of_universal_property` is not universe polymorphic.
+`of_lifting_property` is not universe polymorphic.
+
+## References
+
+https://en.wikipedia.org/wiki/Projective_module
+
+## Tags
+
+projective module
+
 -/
 
 universes u v
@@ -53,7 +65,7 @@ variables {R : Type u} [ring R] {M : Type v} [add_comm_group M] [module R M]
   {A : Type*} [add_comm_group A] [module R A] {B : Type*} [add_comm_group B] [module R B]
 
 /-- A projective R-module has the property that maps from it lift along surjections. -/
-theorem universal_property (h : is_projective R M) (f : A →ₗ[R] B) (g : M →ₗ[R] B)
+theorem lifting_property (h : is_projective R M) (f : A →ₗ[R] B) (g : M →ₗ[R] B)
 (hf : function.surjective f) : ∃ (h : M →ₗ[R] A), f.comp h = g :=
 begin
   /-
@@ -76,7 +88,7 @@ end
 
 /-- A module which satisfies the universal property is projective. Note that this result
 only has one universe variable. -/
-theorem of_universal_property {R : Type u} [ring R] {M : Type u} [add_comm_group M] [module R M]
+theorem of_lifting_property {R : Type u} [ring R] {M : Type u} [add_comm_group M] [module R M]
   -- If for all surjections of R-modules A →ₗ B, all maps M →ₗ B lift to M →ₗ A,
   (huniv : ∀ {A B : Type u} [add_comm_group A] [add_comm_group B],
     by exactI

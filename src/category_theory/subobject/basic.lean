@@ -27,6 +27,11 @@ and prove their basic properties and relationships.
 These are all easy consequences of the earlier development
 of the corresponding functors for `mono_over`.
 
+The subobjects of `X` form a preorder making them into a category. We have `X ≤ Y` if and only if
+`X.arrow` factors through `Y.arrow`: see `of_le`/`of_le_mk`/`of_mk_le`/`of_mk_le_mk` and
+`le_of_comm`. Similarly, to show that two subobjects are equal, we can supply an isomorphism between
+the underlying objects that commutes with the arrows (`eq_of_comm`).
+
 See also
 
 * `category_theory.subobject.factor_thru` :
@@ -162,6 +167,11 @@ lemma underlying_iso_arrow {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).inv ≫ (subobject.mk f).arrow = f :=
 over.w _
 
+@[simp]
+lemma underlying_iso_hom_comp_eq_mk {X Y : C} (f : X ⟶ Y) [mono f] :
+  (underlying_iso f).hom ≫ f = (mk f).arrow :=
+(iso.eq_inv_comp _).1 (underlying_iso_arrow f).symm
+
 /-- Two morphisms into a subobject are equal exactly if
 the morphisms into the ambient object are equal -/
 @[ext]
@@ -184,6 +194,62 @@ begin
   dsimp,
   simp only [category.comp_id],
 end
+
+/-- To show that two subobjects are equal, it suffices to exhibit an isomorphism commuting with
+    the arrows. -/
+lemma eq_of_comm {B : C} {X Y : subobject B} (f : (X : C) ≅ (Y : C))
+  (w : f.hom ≫ Y.arrow = X.arrow) : X = Y :=
+le_antisymm (le_of_comm f.hom w) $ le_of_comm f.inv $ f.inv_comp_eq.2 w.symm
+
+/-- To show that two subobjects are equal, it suffices to exhibit an isomorphism commuting with
+    the arrows. -/
+lemma eq_mk_of_comm {B A : C} {X : subobject B} (f : A ⟶ B) [mono f] (i : (X : C) ≅ A)
+  (w : i.hom ≫ f = X.arrow) : X = mk f :=
+eq_of_comm (i.trans (underlying_iso f).symm) $ by simp [w]
+
+/-- To show that two subobjects are equal, it suffices to exhibit an isomorphism commuting with
+    the arrows. -/
+lemma mk_eq_of_comm {B A : C} {X : subobject B} (f : A ⟶ B) [mono f] (i : A ≅ (X : C))
+  (w : i.hom ≫ X.arrow = f) : mk f = X :=
+eq.symm $ eq_mk_of_comm _ i.symm $ by rw [iso.symm_hom, iso.inv_comp_eq, w]
+
+/-- To show that two subobjects are equal, it suffices to exhibit an isomorphism commuting with
+    the arrows. -/
+lemma mk_eq_mk_of_comm {B A₁ A₂ : C} (f : A₁ ⟶ B) (g : A₂ ⟶ B) [mono f] [mono g] (i : A₁ ≅ A₂)
+  (w : i.hom ≫ g = f) : mk f = mk g :=
+eq_mk_of_comm _ ((underlying_iso f).trans i) $ by simp [w]
+
+/-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
+def of_le {B : C} {X Y : subobject B} (h : X ≤ Y) : (X : C) ⟶ (Y : C) :=
+underlying.map $ hom_of_le h
+
+@[simp] lemma of_le_arrow {B : C} {X Y : subobject B} (h : X ≤ Y) : of_le h ≫ Y.arrow = X.arrow :=
+underlying_arrow _
+
+/-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
+def of_le_mk {B A : C} {X : subobject B} {f : A ⟶ B} [mono f] (h : X ≤ mk f) : (X : C) ⟶ A :=
+of_le h ≫ (underlying_iso f).hom
+
+@[simp] lemma of_le_mk_comp {B A : C} {X : subobject B} {f : A ⟶ B} [mono f] (h : X ≤ mk f) :
+  of_le_mk h ≫ f = X.arrow :=
+by simp [of_le_mk]
+
+/-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
+def of_mk_le {B A : C} {f : A ⟶ B} [mono f] {X : subobject B} (h : mk f ≤ X) : A ⟶ (X : C) :=
+(underlying_iso f).inv ≫ of_le h
+
+@[simp] lemma of_mk_le_comp {B A : C} {f : A ⟶ B} [mono f] {X : subobject B} (h : mk f ≤ X) :
+  of_mk_le h ≫ X.arrow = f :=
+by simp [of_mk_le]
+
+/-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
+def of_mk_le_mk {B A₁ A₂ : C} {f : A₁ ⟶ B} {g : A₂ ⟶ B} [mono f] [mono g] (h : mk f ≤ mk g) :
+  A₁ ⟶ A₂ :=
+(underlying_iso f).inv ≫ of_le h ≫ (underlying_iso g).hom
+
+@[simp] lemma of_mk_le_mk_comp {B A₁ A₂ : C} {f : A₁ ⟶ B} {g : A₂ ⟶ B} [mono f] [mono g]
+  (h : mk f ≤ mk g) : of_mk_le_mk h ≫ g = f :=
+by simp [of_mk_le_mk]
 
 end subobject
 

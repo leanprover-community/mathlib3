@@ -134,18 +134,15 @@ def equiv' [∀ x, has_limits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ 
 
 end Ran
 
+@[simps]
 def Ran [∀ X, has_limits_of_shape (Ran.index ι X) D] : (S ⥤ D) ⥤ L ⥤ D :=
-adjunction.right_adjoint_of_equiv (λ F G, (Ran.equiv' ι G F).symm)
-begin
-  intros x y z f g,
-  ext _ ⟨jl, jr, j⟩,
-  dsimp [Ran.equiv'],
-  tidy,
-end
+adjunction.right_adjoint_of_equiv (λ F G, (Ran.equiv' ι G F).symm) (by tidy)
 
 namespace Ran
 
 variable (D)
+
+@[simps]
 def adjunction [∀ X, has_limits_of_shape (Ran.index ι X) D] :
   (whiskering_left _ _ D).obj ι ⊣ Ran ι :=
 adjunction.adjunction_of_equiv_right _ _
@@ -276,6 +273,25 @@ def equiv [∀ x, has_colimits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤
     tidy,
   end,
   right_inv := by tidy }.
+
+@[simps]
+def equiv' [∀ x, has_colimits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
+  (obj_aux ι F ⟶ G) ≃ (F ⟶ ((whiskering_left _ _ _).obj ι).obj G) := equiv _ _ _
+
+end Lan
+
+@[simps]
+def Lan [∀ X, has_colimits_of_shape (Lan.index ι X) D] : (S ⥤ D) ⥤ L ⥤ D :=
+adjunction.left_adjoint_of_equiv (Lan.equiv' ι) (by tidy)
+
+namespace Lan
+
+variable (D)
+
+@[simps]
+def adjunction [∀ X, has_colimits_of_shape (Lan.index ι X) D] :
+  Lan ι ⊣ (whiskering_left _ _ D).obj ι :=
+adjunction.adjunction_of_equiv_left _ _
 
 end Lan
 

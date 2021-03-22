@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Leonardo de Moura, Mario Carneiro
+Authors: Leonardo de Moura, Mario Carneiro
 
 Type class for encodable Types.
 Note that every encodable Type is countable.

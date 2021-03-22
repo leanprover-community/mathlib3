@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2018 Mario Carneiro and Kevin Buzzard. All rights reserved.
+Copyright (c) 2018 Mario Carneiro, Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
@@ -109,6 +109,12 @@ end
 theorem fg_bot : (⊥ : submodule R M).fg :=
 ⟨∅, by rw [finset.coe_empty, span_empty]⟩
 
+theorem fg_span {s : set M} (hs : finite s) : fg (span R s) :=
+⟨hs.to_finset, by rw [hs.coe_to_finset]⟩
+
+theorem fg_span_singleton (x : M) : fg (R ∙ x) :=
+fg_span (finite_singleton x)
+
 theorem fg_sup {N₁ N₂ : submodule R M}
   (hN₁ : N₁.fg) (hN₂ : N₂.fg) : (N₁ ⊔ N₂).fg :=
 let ⟨t₁, ht₁⟩ := fg_def.1 hN₁, ⟨t₂, ht₂⟩ := fg_def.1 hN₂ in
@@ -199,6 +205,30 @@ begin
     unfold id,
     rw [f.map_smul, (hg y (hl1 hy)).2],
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
+end
+
+/-- The image of a finitely generated ideal is finitely generated. -/
+lemma map_fg_of_fg {R S : Type*} [comm_ring R] [comm_ring S] (I : ideal R) (h : I.fg) (f : R →+* S)
+  : (I.map f).fg :=
+begin
+  obtain ⟨X, hXfin, hXgen⟩ := fg_def.1 h,
+  apply fg_def.2,
+  refine ⟨set.image f X, finite.image ⇑f hXfin, _⟩,
+  rw [ideal.map, ideal.span, ← hXgen],
+  refine le_antisymm (submodule.span_mono (image_subset _ ideal.subset_span)) _,
+  rw [submodule.span_le, image_subset_iff],
+  intros i hi,
+  refine submodule.span_induction hi (λ x hx, _) _ (λ x y hx hy, _) (λ r x hx, _),
+  { simp only [mem_coe, mem_preimage],
+    suffices : f x ∈ f '' X, { exact ideal.subset_span this },
+    exact mem_image_of_mem ⇑f hx },
+  { simp only [mem_coe, ring_hom.map_zero, mem_preimage, zero_mem] },
+  { simp only [mem_coe, mem_preimage] at hx hy,
+    simp only [ring_hom.map_add, mem_coe, mem_preimage],
+    exact submodule.add_mem _ hx hy },
+  { simp only [mem_coe, mem_preimage] at hx,
+    simp only [algebra.id.smul_eq_mul, mem_coe, mem_preimage, ring_hom.map_mul],
+    exact submodule.smul_mem _ _ hx }
 end
 
 /-- The kernel of the composition of two linear maps is finitely generated if both kernels are and

@@ -196,6 +196,10 @@ def coe_embedding (n) : (fin n) ↪o ℕ :=
 instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
 (coe_embedding n).is_well_order
 
+/-- Use the ordering on `fin n` for checking recursive definitions. -/
+instance {n : ℕ} : has_well_founded (fin n) :=
+⟨_, measure_wf coe⟩
+
 @[simp] lemma coe_zero {n : ℕ} : ((0 : fin (n+1)) : ℕ) = 0 := rfl
 attribute [simp] val_zero
 @[simp] lemma val_zero' (n) : (0 : fin (n+1)).val = 0 := rfl
@@ -344,6 +348,16 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = (a + b) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+lemma fin.coe_add_one {n : ℕ} {i : fin n.succ} (h : (i : ℕ) < n) :
+  (↑(i + 1) : ℕ) = i + 1 :=
+begin
+  -- First show that `((1 : fin n.succ) : ℕ) = 1`, because `n.succ` is at least 2.
+  cases n,
+  { cases h },
+  -- Then just unfold the definitions.
+  rw [fin.coe_add, fin.coe_one, nat.mod_eq_of_lt (nat.succ_lt_succ h)]
+end
 
 section bit
 

@@ -14,7 +14,7 @@ import group_theory.order_of_element
 
 universes u v
 
-variables(R : Type u)
+variables (R : Type u)
 
 /-- The generator of the kernel of the unique homomorphism ℕ → R for a semiring R -/
 class char_p [add_monoid R] [has_one R] (p : ℕ) : Prop :=
@@ -353,7 +353,7 @@ end semiring
 
 section ring
 
-variables {R} [ring R] [no_zero_divisors R] [nontrivial R] [fintype R]
+variables (R) [ring R] [no_zero_divisors R] [nontrivial R] [fintype R]
 
 theorem char_is_prime (p : ℕ) [char_p R p] :
   p.prime :=

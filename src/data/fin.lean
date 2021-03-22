@@ -349,7 +349,7 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = (a + b) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-lemma fin.coe_add_one {n : ℕ} {i : fin n.succ} (h : (i : ℕ) < n) :
+lemma coe_add_one {n : ℕ} {i : fin n.succ} (h : (i : ℕ) < n) :
   (↑(i + 1) : ℕ) = i + 1 :=
 begin
   -- First show that `((1 : fin n.succ) : ℕ) = 1`, because `n.succ` is at least 2.

@@ -108,10 +108,10 @@ begin
   rwa [hg x, hg y] at this
 end
 
-lemma uniform_embedding {α : Type*} {β : Type*} [emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
-  {f : α → β} (hf : antilipschitz_with K f) (hfc : uniform_continuous f) : uniform_embedding f :=
+lemma uniform_embedding_of_injective (hfinj : function.injective f) (hf : antilipschitz_with K f)
+  (hfc : uniform_continuous f) : uniform_embedding f :=
 begin
-  refine emetric.uniform_embedding_iff.2 ⟨hf.injective, hfc, λ δ δ0, _⟩,
+  refine emetric.uniform_embedding_iff.2 ⟨hfinj, hfc, λ δ δ0, _⟩,
   by_cases hK : K = 0,
   { refine ⟨1, ennreal.zero_lt_one, λ x y _, lt_of_le_of_lt _ δ0⟩,
     simpa only [hK, ennreal.coe_zero, zero_mul] using hf x y },
@@ -121,6 +121,10 @@ begin
       have := ennreal.mul_lt_of_lt_div hxy,
       rwa mul_comm } }
 end
+
+lemma uniform_embedding {α : Type*} {β : Type*} [emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
+  {f : α → β} (hf : antilipschitz_with K f) (hfc : uniform_continuous f) : uniform_embedding f :=
+uniform_embedding_of_injective hf.injective hf hfc
 
 lemma closed_embedding {α : Type*} {β : Type*} [emetric_space α] [emetric_space β] {K : ℝ≥0}
   {f : α → β} [complete_space α] (hf : antilipschitz_with K f) (hfc : uniform_continuous f) :

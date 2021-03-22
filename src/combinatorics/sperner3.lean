@@ -41,6 +41,10 @@ local notation `E` := fin m → ℝ
 def simplicial_complex.space (S : simplicial_complex m) : set E :=
 ⋃ X ∈ S.faces, convex_hull (X : set E)
 
+/-The dimension of a simplicial complex is the maximal dimension of its faces-/
+/-def simplicial_complex.dimension (S : simplicial_complex m) : ℕ :=
+ Sup {finset.card (X : set E) | X ∈ S.faces}-/
+
 /-- The boundary of a simplex as a subspace. -/
 def boundary (X : finset E) : set E :=
 ⋃ Y ⊂ X, convex_hull Y
@@ -202,8 +206,9 @@ begin
 end
 
 --probably belongs in the mathlib file of convex hulls
-lemma subset_of_convex_hull_subset_convex_hull_of_linearly_independent {X Y : finset E} :
-  affine_independent ℝ (λ p, p : (X : set E) → E) → convex_hull ↑X ⊆ convex_hull (Y : set(fin m → ℝ)) → X ⊆ Y :=
+lemma subset_of_convex_hull_eq_convex_hull_of_linearly_independent {X Y : finset E} :
+  affine_independent ℝ (λ p, p : (X : set E) → E)
+  → convex_hull ↑X = convex_hull (Y : set(fin m → ℝ)) → X ⊆ Y :=
 begin
   rintro hX h x hx,
   sorry,
@@ -211,7 +216,8 @@ end
 
 /- S₁ ≤ S₂ iff all faces of S₁ are contained in faces of S₂-/
 def subdivision_order : partial_order (simplicial_complex m) :=
-  {le := (λ S₁ S₂, S₁.space = S₂.space ∧ ∀ X₁ ∈ S₁.faces, ∃ X₂ ∈ S₂.faces, convex_hull (X₁ : set(fin m → ℝ)) ⊆ convex_hull (X₂ : set(fin m → ℝ))),
+  {le := (λ S₁ S₂, S₁.space = S₂.space ∧ ∀ X₁ ∈ S₁.faces, ∃ X₂ ∈ S₂.faces,
+    convex_hull (X₁ : set(fin m → ℝ)) ⊆ convex_hull (X₂ : set(fin m → ℝ))),
   le_refl := (λ S, ⟨rfl, (λ X hX, ⟨X, hX, subset.refl _⟩)⟩),
   le_trans := begin
     rintro S₁ S₂ S₃ h₁₂ h₂₃,
@@ -268,6 +274,7 @@ lemma connected_iff_one_skeleton_connected {S : simplicial_complex m} :
 begin
   split,
   {
+
     sorry --trivial
   },
   {
@@ -281,6 +288,10 @@ n-dimensional face
 -/
 def simplicial_complex.pure (S : simplicial_complex m) (n : ℕ) : Prop :=
 ∀ X ∈ S.faces, ∃ Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y
+--I wanted to do something like this to avoid passing X as an explicit argument
+--def simplicial_complex.pure (S : simplicial_complex m) (n : ℕ) {X : finset E} : Prop :=
+--X ∈ S.faces → ∃ Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y
+--but then I don't know what type my expression should be. Isn't implication of type Prop too?
 
 /-
 A polytope of dimension `n` in `R^m` is a subset for which there exists a simplicial complex which
@@ -290,30 +301,33 @@ is pure of dimension `n` and has the same underlying space.
 (space : set (fin m → ℝ))
 (realisable : ∃ (S : simplicial_complex m), S.pure n ∧ space = S.space)
 
+def polytope.vertices (P : polytope m n) : set (fin m → ℝ) :=
+  ⋂ (S : simplicial_complex m) (H : P.space = S.space), {x | {x} ∈ S.faces}
+
+noncomputable def polytope.triangulation {P : polytope m n} (hP : convex P.space) :
+  simplicial_complex m := classical.some P.realisable
+
 def polytope.faces {n : ℕ} (P : polytope m n) : set (finset (fin m → ℝ)) :=
 (classical.some P.realisable).faces
 
 /- Every convex polytope can be realised by a simplicial complex with the same vertices-/
-lemma triangulable_of_convex {P : polytope m n} :
-  convex P.space → ∃ (S : simplicial_complex m), P.space = S.space ∧ ∀ x, {x} ∈ S.faces → x ∈ P.vertices :=
+lemma triangulable_of_convex {P : polytope m n} : convex P.space → ∃ (S : simplicial_complex m),
+  P.space = S.space ∧ ∀ x, {x} ∈ S.faces → x ∈ P.vertices :=
 begin
   sorry
 end
 
-def polytope.some_triangulation {P : polytope m n} (hP : convex P.space) : simplicial_complex m := sorry
-
 def locally_finite_complex (S : simplicial_complex m) : Prop :=
   ∀ x : fin m → ℝ, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set(fin m → ℝ))}
 
-lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m) (hS : locally_finite_complex S) :
-  locally_compact_space S.space :=
+lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m)
+  (hS : locally_finite_complex S) : locally_compact_space S.space :=
   {local_compact_nhds := begin
     rintro x X hx,
     sorry
   end}
 
---I find it really annoying that I have to input the hypotheses that the sets are included in S.faces
---instead of inputting the sets themselves. Is there any workaround? Maybe with typeclass inference?
+/-The closure of a set of faces is the set of their subfaces-/
 def closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
   simplicial_complex m :=
 { faces := {X | ∃ X' ∈ A, X ⊆ X'},
@@ -322,29 +336,30 @@ def closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : 
   disjoint := λ X Y ⟨X', hX', hX⟩ ⟨Y', hY', hY⟩,
     S.disjoint (S.down_closed (hA hX') hX) (S.down_closed (hA hY') hY) }
 
-lemma closure_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  (closure hA).faces ⊆ S.faces := λ X ⟨X', hX', hX⟩, S.down_closed (hA hX') hX
+lemma closure_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hA : A ⊆ S.faces) : (closure hA).faces ⊆ S.faces := λ X ⟨X', hX', hX⟩, S.down_closed (hA hX') hX
 
-lemma self_subset_closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  A ⊆ (closure hA).faces := λ X hX, ⟨X, hX, subset.refl _⟩
+lemma self_subset_closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hA : A ⊆ S.faces) : A ⊆ (closure hA).faces := λ X hX, ⟨X, hX, subset.refl _⟩
 
-lemma closure_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))} (hB : B ⊆ S.faces) (hAB : A ⊆ B) :
-  (closure (subset.trans hAB hB)).faces ⊆ (closure hB).faces := λ X ⟨Y, hY, hX⟩, ⟨Y, hAB hY, hX⟩
+lemma closure_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))} (hB : B ⊆ S.faces)
+  (hAB : A ⊆ B) : (closure (subset.trans hAB hB)).faces ⊆ (closure hB).faces :=
+  λ X ⟨Y, hY, hX⟩, ⟨Y, hAB hY, hX⟩
 
+/-The open star of a set of faces is the s-/
 def star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  set (finset (fin m → ℝ)) :=
-  ⋃ (X : finset (fin m → ℝ)) (H : X ∈ A), {Y | Y ∈ S.faces ∧ X ⊆ Y}
+  set (finset (fin m → ℝ)) := ⋃ (X : finset (fin m → ℝ)) (H : X ∈ A), {Y | Y ∈ S.faces ∧ X ⊆ Y}
 
-lemma star_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  star hA ⊆ S.faces :=
+lemma star_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hA : A ⊆ S.faces) : star hA ⊆ S.faces :=
 begin
   rintro Y ⟨_, ⟨X, rfl⟩, hX⟩,
   simp at hX,
   exact hX.2.1,
 end
 
-lemma self_subset_star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  A ⊆ star hA :=
+lemma self_subset_star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hA : A ⊆ S.faces) : A ⊆ star hA :=
 begin
   rintro X hX,
   unfold star,
@@ -352,8 +367,8 @@ begin
   exact ⟨X, hX, hA hX, subset.refl _⟩, --golfable?
 end
 
-lemma star_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))} (hB : B ⊆ S.faces) (hAB : A ⊆ B) :
-  star (subset.trans hAB hB) ⊆ star hB :=
+lemma star_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))} (hB : B ⊆ S.faces)
+  (hAB : A ⊆ B) : star (subset.trans hAB hB) ⊆ star hB :=
 begin
   rintro X hX,
   unfold star at hX ⊢,
@@ -362,8 +377,9 @@ begin
   exact ⟨Y, hAB hY, hX⟩,
 end
 
-lemma star_up_closed {S : simplicial_complex m} {X Y : finset (fin m → ℝ)} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  X ∈ S.faces → Y ∈ star hA → Y ⊆ X → X ∈ star hA :=
+lemma star_up_closed {S : simplicial_complex m} {X Y : finset (fin m → ℝ)}
+  {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) : X ∈ S.faces → Y ∈ star hA → Y ⊆ X
+  → X ∈ star hA :=
 begin
   rintro hX hY hXY,
   unfold star at hY ⊢,
@@ -372,20 +388,62 @@ begin
   exact ⟨Z, hZ, hX, subset.trans hY.2 hXY⟩,
 end
 
+--Ughh, how do I prove stuff on the fly?
+/-lemma star_eq_Inter_star {S : simplicial_complex m} {X : finset (fin m → ℝ)} (hX : X ∈ S.faces) :
+  star hX = ⋂ x ∈ X, star {x} :=
+begin
+end-/
+
+/-The closed star of a set is the closure of its open star-/
 def Star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
   simplicial_complex m := closure (star_subset_complex hA)
 
-lemma Star_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  (Star hA).faces ⊆ S.faces := λ X ⟨X', hX', hX⟩, S.down_closed ((star_subset_complex hA) hX') hX
+lemma Star_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hA : A ⊆ S.faces) : (Star hA).faces ⊆ S.faces := λ X ⟨X', hX', hX⟩, S.down_closed
+  ((star_subset_complex hA) hX') hX
 
-lemma self_subset_Star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  A ⊆ (Star hA).faces := subset.trans (self_subset_star hA) (self_subset_closure (star_subset_complex hA))
+lemma self_subset_Star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hA : A ⊆ S.faces) : A ⊆ (Star hA).faces :=
+  subset.trans (self_subset_star hA) (self_subset_closure (star_subset_complex hA))
 
-lemma Star_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))} (hB : B ⊆ S.faces) (hAB : A ⊆ B) :
-  (Star (subset.trans hAB hB)).faces ⊆ (Star hB).faces :=
+lemma star_subset_Star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hA : A ⊆ S.faces) : star hA ⊆ (Star hA).faces := self_subset_closure (star_subset_complex hA)
+
+lemma Star_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))} (hB : B ⊆ S.faces)
+  (hAB : A ⊆ B) : (Star (subset.trans hAB hB)).faces ⊆ (Star hB).faces :=
 begin
   apply closure_mono,
   apply star_mono,
+end
+
+lemma mem_Star_iff {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces)
+  {X : finset (fin m → ℝ)} : X ∈ (Star hA).faces ↔ ∃ Y ∈ A, ∃ Z ∈ S.faces, X ⊆ Z ∧ Y ⊆ Z :=
+begin --golfable?
+  split,
+  {
+    rintro ⟨Z, hZ, hXZ⟩,
+    unfold star at hZ,
+    obtain ⟨Y, hY, hZ, hYZ⟩ := mem_bUnion_iff.mp hZ,
+    exact ⟨Y, hY, Z, hZ, hXZ, hYZ⟩,
+  },
+  {
+    rintro ⟨Y, hY, Z, hZ, hXZ, hYZ⟩,
+    unfold Star closure,
+    simp,
+    unfold star,
+    simp,
+    exact ⟨Z, ⟨Y, hY, hZ, hYZ⟩, hXZ⟩,
+  }
+end
+
+lemma pure_Star_of_pure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hA : A ⊆ S.faces) {n : ℕ} : S.pure n → (Star hA).pure n :=
+begin
+  rintro hS X hX,
+  obtain ⟨Y, hY, Z, hZ, hXZ, hYZ⟩ := (mem_Star_iff hA).mp hX,
+  obtain ⟨W, hW, hWcard, hZW⟩ := hS Z hZ,
+  exact ⟨W, star_subset_Star hA (star_up_closed hA hW (self_subset_star hA hY)
+    (subset.trans hYZ hZW)), hWcard, subset.trans hXZ hZW⟩,
 end
 
 def link {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
@@ -406,9 +464,51 @@ def link {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A �
   disjoint := λ X Y hX hY, S.disjoint (closure_subset_complex (star_subset_complex hA) hX.1)
     (closure_subset_complex (star_subset_complex hA) hY.1) }
 
-lemma link_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  (link hA).faces ⊆ S.faces := λ X hX, Star_subset_complex hA hX.1
+lemma link_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hA : A ⊆ S.faces) : (link hA).faces ⊆ S.faces := λ X hX, Star_subset_complex hA hX.1
 
+/-lemma pure_link_of_pure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hA : A ⊆ S.faces) {n : ℕ} : S.pure n → (link hA).pure (n - finset.card  :=
+begin
+  rintro hS X hX,
+end-/
+
+--Rename to pyramid?
+def simplicial_complex.cone (S : simplicial_complex m)
+  (hS : ∀ X ∈ S.faces, finset.card X ≤ m) (v : fin m → ℝ) (hv : v ∉ convex_hull S.space) :
+  simplicial_complex m :=
+ {faces := {X' | ∃ X ∈ S.faces, X' ⊆ X ∪ {v}},
+  indep := begin
+    rintro X' ⟨X, hX, hX'X⟩,
+    sorry
+  end,
+  down_closed := begin
+    rintro X' Y ⟨X, hX, hX'X⟩ hYX',
+    simp,
+    exact ⟨X, hX, subset.trans hYX' hX'X⟩,
+  end,
+  disjoint := begin
+    rintro X' Y' ⟨X, hX, hX'X⟩ ⟨Y, hY, hY'Y⟩,
+    sorry
+  end}
+
+--Bad name?
+lemma simplicial_complex.subset_cone (S : simplicial_complex m)
+  (hS : ∀ X ∈ S.faces, finset.card X ≤ m) (v : fin m → ℝ) (hv : v ∉ convex_hull S.space) :
+  S.faces ⊆ (S.cone hS v hv).faces := λ X hX, ⟨X, hX, finset.subset_union_left X {v}⟩
+
+def simplicial_complex.boundary (S : simplicial_complex m) (hS : S.pure n) :
+  simplicial_complex m :=
+ {faces := {X | ∃ (Y : finset (fin m → ℝ)), X ⊆ Y ∧ finset.card Y = n ∧ ∃! Z ∈ S.faces, Y ⊆ Z},
+  indep := begin
+    sorry
+  end,
+  down_closed := begin
+    sorry
+  end,
+  disjoint := begin
+    sorry
+  end}
 
 
 

@@ -19,7 +19,7 @@ but automatic for small categories.)
 This is equivalent to the category `mono_over X` being `essentially_small.{v}` for all `X : C`.
 
 When a category is well-powered, you can obtain nonconstructive witnesses as
-`shrink (subobject X) : Type V`
+`shrink (subobject X) : Type v`
 and
 `equiv_shrink (subobject X) : subobject X ≃ shrink (subobject X)`.
 -/

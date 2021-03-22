@@ -1,4 +1,30 @@
+/-
+Copyright (c) 2021 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import measure_theory.measure_space
+
+/-!
+# Typeclasses for measurability of operations
+
+In this file we define classes `has_measurable_mul` etc and prove dot-style lemmas
+(`measurable.mul`, `ae_measurable.mul` etc). For binary operations we define two typeclasses:
+
+- `has_measurable_mul` says that both left and right multiplication are measurable;
+- `has_measurable_mul₂` says that `λ p : α × α, p.1 * p.2` is measurable,
+
+and similarly for other binary operations. The reason for introducing these classes is that in case
+of topological space `α` equipped with the Borel `Σ`-algebra, instances for `has_measurable_mul₂`
+etc require `α` to have a second countable topology.
+
+The only exception is scalar multiplication. In this case we define `has_measurable_const_smul` and
+`has_measurable_smul`. We define separate classes for `has_measurable_div`/`has_measurable_sub`
+because on some types (e.g., `ℕ`, `ℝ≥0∞`) division and/or subtraction are not defined as `a * b⁻¹` /
+`a + (-b)`.
+
+For instances relating, e.g., `has_continuous_mul` to `has_measurable_mul` see file
+`measure_theory.borel_space`. -/
 
 open_locale big_operators
 open measure_theory

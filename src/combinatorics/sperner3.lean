@@ -160,29 +160,6 @@ begin
   }
 end
 
---TODO: Make this definition usable and remove the hated ==
-def polytope {A : set E} : Prop := ∃ S : simplicial_complex m, S.space = A
-
-def locally_finite_complex (S : simplicial_complex m) : Prop :=
-  ∀ x : fin m → ℝ, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set(fin m → ℝ))}
-
-lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m) (hS : locally_finite_complex S) :
-  locally_compact_space S.space :=
-  {local_compact_nhds := begin
-    rintro x X hx,
-    sorry
-  end}
-
-def skeleton (S : simplicial_complex m) (k : ℕ) : simplicial_complex m :=
-{faces := {X ∈ S.faces | finset.card X ≤ k},
-indep := λ X hX, S.indep hX.1,
-down_closed := λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩,
-disjoint := λ X Y hX hY, S.disjoint hX.1 hY.1}
-
---Is this lemma useful?
-lemma skeleton_subcomplex_self (S : simplicial_complex m) (k : ℕ) :
-  (skeleton S k).faces ⊆ S.faces := (λ X ⟨hX, _⟩, hX)
-
 --To golf down
 lemma size_bound {X : finset (fin m → ℝ)} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
   X.card ≤ m+1 :=
@@ -271,6 +248,62 @@ def subdivision_order : partial_order (simplicial_complex m) :=
     {
       sorry --mutatis mutandis
     }-/
+  end}
+
+/-A simplicial complex is connected iff its space is-/
+def simplicial_complex.connected (S : simplicial_complex m) : Prop := connected_space S.space
+
+def simplicial_complex.skeleton (S : simplicial_complex m) (k : ℕ) : simplicial_complex m :=
+{faces := {X ∈ S.faces | finset.card X ≤ k},
+indep := λ X hX, S.indep hX.1,
+down_closed := λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩,
+disjoint := λ X Y hX hY, S.disjoint hX.1 hY.1}
+
+--Is this lemma useful?
+lemma skeleton_subcomplex_self (S : simplicial_complex m) (k : ℕ) :
+  (S.skeleton k).faces ⊆ S.faces := (λ X ⟨hX, _⟩, hX)
+
+/-A simplicial complex is connected iff its 1-skeleton is-/
+lemma connected_iff_one_skeleton_connected {S : simplicial_complex m} :
+  S.connected ↔ (S.skeleton 1).connected :=
+begin
+  split,
+  {
+    sorry --trivial
+  },
+  {
+    sorry --harder
+  }
+end
+
+/- An m-dimensional simplicial complex is pure iff all faces are subfaces of some m-dimensional face-/
+def simplicial_complex.pure (S : simplicial_complex m) : Prop := (∀ X ∈ S.faces, ∃ Y ∈ S.faces, finset.card Y = m + 1 ∧ X ⊆ Y)
+
+--Is that good?
+@[ext] structure polytope (m : ℕ) :=
+  (space : set (fin m → ℝ))
+  (realisable : ∃ (S : simplicial_complex m), S.pure ∧ space = S.space)
+
+def polytope.faces (P : polytope m) : set (finset (fin m → ℝ)) :=
+  ⋂ (S : simplicial_complex m) (H : P.space = S.space), S.faces
+
+/- Every convex polytope can be realised by a simplicial complex with the same vertices-/
+lemma triangulable_of_convex {P : polytope m} :
+  convex P.space → ∃ (S : simplicial_complex m), P.space = S.space ∧ ∀ X ∈ S.faces, finset.card X = 1 → X ∈ P.faces :=
+begin
+  sorry
+end
+
+def polytope.some_triangulation {P : polytope m} (hP : convex P.space) : simplicial_complex m := sorry
+
+def locally_finite_complex (S : simplicial_complex m) : Prop :=
+  ∀ x : fin m → ℝ, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set(fin m → ℝ))}
+
+lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m) (hS : locally_finite_complex S) :
+  locally_compact_space S.space :=
+  {local_compact_nhds := begin
+    rintro x X hx,
+    sorry
   end}
 
 --I find it really annoying that I have to input the hypotheses that the sets are included in S.faces
@@ -413,6 +446,17 @@ begin
 end
 
 #exit
+
+
+
+
+
+
+
+
+
+
+
 
 -- lemma of_affine_independent_set (X : set E) (hX : affine_independent ℝ (λ p, p : X → E)) :
 --   ∀ (s : finset E) (w : E → ℝ), ∑ i in s, w i = 0 → s.weighted_vsub _ w = (0 : E) → ∀ i ∈ s, w i = 0 :=

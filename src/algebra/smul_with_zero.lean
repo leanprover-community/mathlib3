@@ -21,9 +21,9 @@ Thus, the action is required to be compatible with
 * the zero of the monoid_with_zero, acting as zero;
 * associativity of the monoid.
 
-We also add `instances`:
+We also add an `instance`:
 
-* any `monoid_with_zero` has a `mul_action_with_zero R R` acting on itself;
+* any `monoid_with_zero` has a `mul_action_with_zero R R` acting on itself.
 -/
 
 variables (R M : Type*)
@@ -32,7 +32,7 @@ section has_zero
 
 variable [has_zero M]
 
-/--  `smul_with_zero` is a class consisting of a Type `R` with `0 : R` and a scalar multiplication
+/--  `smul_with_zero` is a class consisting of a Type `R` with `0 ∈ R` and a scalar multiplication
 of `R` on a Type `M` with `0`, such that the equality `r • m = 0` holds if at least one among `r`
 or `m` equals `0`. -/
 class smul_with_zero [has_zero R] extends has_scalar R M :=
@@ -51,9 +51,9 @@ section monoid_with_zero
 
 variable [monoid_with_zero R]
 
-/--  An action of a monoid with zero `R` on a Type `M`, also with `0`, compatible with `0`
-(both in `R` and in `M`), with `1 ∈ R`, and with associativity of multiplication on the
-monoid `M`. -/
+/--  An action of a monoid with zero `R` on a Type `M`, also with `0`, extends `mul_action` and
+is compatible with `0` (both in `R` and in `M`), with `1 ∈ R`, and with associativity of
+multiplication on the monoid `M`. -/
 class mul_action_with_zero extends mul_action R M :=
 -- these fields are copied from `smul_with_zero`, as `extends` behaves poorly
 (smul_zero : ∀ r : R, r • (0 : M) = 0)

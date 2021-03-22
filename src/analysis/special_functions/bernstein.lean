@@ -190,7 +190,7 @@ begin
   conv_rhs { rw div_mul_cancel _ h', },
   have := bernstein_polynomial.variance ℝ n,
   apply_fun (λ p, polynomial.aeval (x : ℝ) p) at this,
-  simp [alg_hom.map_sum, finset.sum_range, polynomial.nat_smul] at this,
+  simp [alg_hom.map_sum, finset.sum_range, ←polynomial.nat_cast_mul] at this,
   convert this using 1,
   { congr' 1, funext k,
     rw [mul_comm _ (n : ℝ), mul_comm _ (n : ℝ), ←mul_assoc, ←mul_assoc],

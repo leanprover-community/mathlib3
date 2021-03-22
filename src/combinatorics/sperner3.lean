@@ -224,7 +224,16 @@ begin
   sorry,
 end
 
-/- S₁ ≤ S₂ iff all faces of S₁ are contained in faces of-/
+--probably belongs in the mathlib file of convex hulls
+/-lemma subset_of_convex_hull_subset_convex_hull_of_linearly_independent {X Y : finset E} :
+  affine_independent ℝ (λ (p : (X : set(fin m → ℝ))), ↑p) → convex_hull ↑X ⊆ convex_hull (Y : set(fin m → ℝ)) → X ⊆ Y :=
+begin
+  intro hX,
+  have := S.indep hX,
+  sorry,
+end-/
+
+/- S₁ ≤ S₂ iff all faces of S₁ are contained in faces of S₂-/
 def subdivision_order : partial_order (simplicial_complex m) :=
   {le := (λ S₁ S₂, S₁.space = S₂.space ∧ ∀ X₁ ∈ S₁.faces, ∃ X₂ ∈ S₂.faces, convex_hull (X₁ : set(fin m → ℝ)) ⊆ convex_hull (X₂ : set(fin m → ℝ))),
   le_refl := (λ S, ⟨rfl, (λ X hX, ⟨X, hX, subset.refl _⟩)⟩),
@@ -239,22 +248,33 @@ def subdivision_order : partial_order (simplicial_complex m) :=
   le_antisymm := begin
     rintro S₁ S₂ h₁ h₂,
     ext X,
-    --induction on k = m - finset.card X
-    split,
+    set k := m + 1 - X.card,
+    sorry
+    /-wlog : X ∈ S₁.faces → X ∈ S₂.faces using [S₁ S₂],
+    induction k with k hk,
     {
-      intro hX,
-      obtain ⟨Y, hY, hXY⟩ := h₁.2 X hX,
-      obtain ⟨Z, hZ, hYZ⟩ := h₂.2 Y hY,
-      have := subset.trans (inter_subset_inter_right (convex_hull ↑X) (subset.trans hXY hYZ)) (S₁.disjoint hX hZ),
-      rw inter_self at this,
-      have := subset.antisymm (convex_hull_mono (inter_subset_left ↑X ↑Z)) this,
-      sorry
+      --What the hell is this goal? HEEEELP
+      split,
+      {
+        intro hX,
+        obtain ⟨Y, hY, hXY⟩ := h₁.2 X hX,
+        obtain ⟨Z, hZ, hYZ⟩ := h₂.2 Y hY,
+        have := subset.trans (inter_subset_inter_right (convex_hull ↑X) (subset.trans hXY hYZ)) (S₁.disjoint hX hZ),
+        rw inter_self at this,
+        have := subset.antisymm (convex_hull_mono (inter_subset_left ↑X ↑Z)) this,
+        sorry
+      },
+      {
+        sorry --mutatis mutandis
+      }
     },
     {
-      sorry
-    }
+      sorry --mutatis mutandis
+    }-/
   end}
 
+--I find it really annoying that I have to input the hypotheses that the sets are included in S.faces
+--instead of inputting the sets themselves. Is there any workaround? Maybe with typeclass inference?
 def closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
   simplicial_complex m :=
   {faces := {X | ∃ X' ∈ A, X ⊆ X'},
@@ -266,18 +286,52 @@ def closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : 
 lemma closure_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
   (closure hA).faces ⊆ S.faces := λ X ⟨X', hX', hX⟩, S.down_closed (hA hX') hX
 
+lemma self_subset_closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
+  A ⊆ (closure hA).faces := λ X hX, ⟨X, hX, subset.refl _⟩
+
+lemma closure_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))} (hB : B ⊆ S.faces) (hAB : A ⊆ B) :
+  (closure (subset.trans hAB hB)).faces ⊆ (closure hB).faces := λ X ⟨Y, hY, hX⟩, ⟨Y, hAB hY, hX⟩
+
 def star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
   set (finset (fin m → ℝ)) :=
-  ⋃ (X : finset (fin m → ℝ)) (H : X ∈ A), {Y | X ⊆ Y}
+  ⋃ (X : finset (fin m → ℝ)) (H : X ∈ A), {Y | Y ∈ S.faces ∧ X ⊆ Y}
 
 lemma star_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
   star hA ⊆ S.faces :=
-  begin
-    unfold star,
-    rintro X ⟨_, ⟨Y, rfl⟩, hX⟩,
-    simp at hX,
-    sorry
-  end
+begin
+  rintro Y ⟨_, ⟨X, rfl⟩, hX⟩,
+  simp at hX,
+  exact hX.2.1,
+end
+
+lemma self_subset_star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
+  A ⊆ star hA :=
+begin
+  rintro X hX,
+  unfold star,
+  rw mem_bUnion_iff,
+  exact ⟨X, hX, hA hX, subset.refl _⟩, --golfable?
+end
+
+lemma star_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))} (hB : B ⊆ S.faces) (hAB : A ⊆ B) :
+  star (subset.trans hAB hB) ⊆ star hB :=
+begin
+  rintro X hX,
+  unfold star at hX ⊢,
+  rw mem_bUnion_iff at hX ⊢,
+  obtain ⟨Y, hY, hX⟩ := hX,
+  exact ⟨Y, hAB hY, hX⟩,
+end
+
+lemma star_up_closed {S : simplicial_complex m} {X Y : finset (fin m → ℝ)} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
+  X ∈ S.faces → Y ∈ star hA → Y ⊆ X → X ∈ star hA :=
+begin
+  rintro hX hY hXY,
+  unfold star at hY ⊢,
+  rw mem_bUnion_iff at hY ⊢,
+  obtain ⟨Z, hZ, hY⟩ := hY,
+  exact ⟨Z, hZ, hX, subset.trans hY.2 hXY⟩,
+end
 
 def Star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
   simplicial_complex m := closure (star_subset_complex hA)
@@ -285,13 +339,36 @@ def Star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A �
 lemma Star_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
   (Star hA).faces ⊆ S.faces := λ X ⟨X', hX', hX⟩, S.down_closed ((star_subset_complex hA) hX') hX
 
+lemma self_subset_Star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
+  A ⊆ (Star hA).faces := subset.trans (self_subset_star hA) (self_subset_closure (star_subset_complex hA))
+
+lemma Star_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))} (hB : B ⊆ S.faces) (hAB : A ⊆ B) :
+  (Star (subset.trans hAB hB)).faces ⊆ (Star hB).faces :=
+begin
+  apply closure_mono,
+  apply star_mono,
+end
+
 def link {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
   simplicial_complex m :=
   {faces := (Star hA).faces \ star (closure_subset_complex hA),
   indep := λ X hX,S.indep (closure_subset_complex (star_subset_complex hA) hX.1),
-  down_closed := sorry,
-  disjoint := λ X Y hX hY, S.disjoint
-    (closure_subset_complex (star_subset_complex hA) hX.1) (closure_subset_complex (star_subset_complex hA) hY.1) }
+  down_closed := begin
+    rintro X Y hX hXY,
+    split,
+    { exact (Star hA).down_closed hX.1 hXY},
+    {
+      rintro ⟨_, ⟨Z, rfl⟩, hZ⟩,
+      simp at hZ,
+      exact hX.2 (star_up_closed (closure_subset_complex hA) (Star_subset_complex hA hX.1)
+        (self_subset_star (closure_subset_complex hA) hZ.1) (subset.trans hZ.2.2 hXY)),
+    }
+  end,
+  disjoint := λ X Y hX hY, S.disjoint (closure_subset_complex (star_subset_complex hA) hX.1)
+    (closure_subset_complex (star_subset_complex hA) hY.1) }
+
+lemma link_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
+  (link hA).faces ⊆ S.faces := λ X hX, Star_subset_complex hA hX.1
 
 
 

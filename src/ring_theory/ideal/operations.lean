@@ -1474,11 +1474,11 @@ f.to_add_monoid_hom.lift_of_right_inverse_comp_apply f_inv hf ⟨g.to_add_monoid
 
 /-- `lift_of_right_inverse f hf g hg` is the unique ring homomorphism `φ`
 
-* such that `φ.comp f = g` (`lift_of_right_inverse_comp`),
-* where `f : A →+* B` is right_inverse (`hf`),
+* such that `φ.comp f = g` (`ring_hom.lift_of_right_inverse_comp`),
+* where `f : A →+* B` is has a right_inverse `f_inv` (`hf`),
 * and `g : B →+* C` satisfies `hg : f.ker ≤ g.ker`.
 
-See `lift_of_right_inverse_eq` for the uniqueness lemma.
+See `ring_hom.eq_lift_of_right_inverse` for the uniqueness lemma.
 
 ```
    A .
@@ -1496,13 +1496,14 @@ def lift_of_right_inverse
   inv_fun := λ φ, ⟨φ.comp f, λ x hx, (mem_ker _).mpr $ by simp [(mem_ker _).mp hx]⟩,
   left_inv := λ g, by {
     ext,
-    simp only [comp_apply, lift_of_right_inverse_aux_comp_apply, subtype.coe_mk, subtype.val_eq_coe], },
+    simp only [comp_apply, lift_of_right_inverse_aux_comp_apply, subtype.coe_mk,
+      subtype.val_eq_coe], },
   right_inv := λ φ, by {
     ext b,
     simp [lift_of_right_inverse_aux, hf b], } }
 
-/-- A non-computable version of `lift_of_right_inverse` for when no computable right inverse is
-available, that uses `function.surj_inv`. -/
+/-- A non-computable version of `ring_hom.lift_of_right_inverse` for when no computable right
+inverse is available, that uses `function.surj_inv`. -/
 @[simp]
 noncomputable abbreviation lift_of_surjective
   (hf : function.surjective f) : {g : A →+* C // f.ker ≤ g.ker} ≃ (B →+* C) :=
@@ -1513,12 +1514,13 @@ lemma lift_of_right_inverse_comp_apply
   (f.lift_of_right_inverse f_inv hf g) (f x) = g x :=
 f.lift_of_right_inverse_aux_comp_apply f_inv hf g.1 g.2 x
 
-lemma lift_of_right_inverse_comp (hf : function.right_inverse f_inv f) (g : {g : A →+* C // f.ker ≤ g.ker}) :
+lemma lift_of_right_inverse_comp (hf : function.right_inverse f_inv f)
+  (g : {g : A →+* C // f.ker ≤ g.ker}) :
   (f.lift_of_right_inverse f_inv hf g).comp f = g :=
 ring_hom.ext $ f.lift_of_right_inverse_comp_apply f_inv hf g
 
-lemma eq_lift_of_right_inverse (hf : function.right_inverse f_inv f) (g : A →+* C) (hg : f.ker ≤ g.ker)
-  (h : B →+* C) (hh : h.comp f = g) :
+lemma eq_lift_of_right_inverse (hf : function.right_inverse f_inv f) (g : A →+* C)
+  (hg : f.ker ≤ g.ker) (h : B →+* C) (hh : h.comp f = g) :
   h = (f.lift_of_right_inverse f_inv hf ⟨g, hg⟩) :=
 begin
   simp_rw ←hh,

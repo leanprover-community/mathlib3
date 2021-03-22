@@ -1284,11 +1284,11 @@ end
 
 /-- `lift_of_right_inverse f hf g hg` is the unique group homomorphism `φ`
 
-* such that `φ.comp f = g` (`lift_of_right_inverse_comp`),
-* where `f : G₁ →+* G₂` is right_inverse (`hf`),
+* such that `φ.comp f = g` (`monoid_hom.lift_of_right_inverse_comp`),
+* where `f : G₁ →+* G₂` has a right_inverse `f_inv` (`hf`),
 * and `g : G₂ →+* G₃` satisfies `hg : f.ker ≤ g.ker`.
 
-See `lift_of_right_inverse_eq` for the uniqueness lemma.
+See `monoid_hom.eq_lift_of_right_inverse` for the uniqueness lemma.
 
 ```
    G₁.
@@ -1302,11 +1302,11 @@ See `lift_of_right_inverse_eq` for the uniqueness lemma.
  -/
 @[to_additive "`lift_of_right_inverse f f_inv hf g hg` is the unique additive group homomorphism `φ`
 
-* such that `φ.comp f = g` (`lift_of_right_inverse_comp`),
-* where `f : G₁ →+* G₂` has right_inverse `f_inv` (`hf`),
-* and `g : G₂ →+* G₃` satisfies `hg : f.ker ≤ g.ker`.
+* such that `φ.comp f = g` (`add_monoid_hom.lift_of_right_inverse_comp`),
+* where `f : G₁ →+ G₂` has a right_inverse `f_inv` (`hf`),
+* and `g : G₂ →+ G₃` satisfies `hg : f.ker ≤ g.ker`.
 
-See `lift_of_right_inverse_eq` for the uniqueness lemma.
+See `add_monoid_hom.eq_lift_of_right_inverse` for the uniqueness lemma.
 
 ```
    G₁.
@@ -1323,15 +1323,16 @@ def lift_of_right_inverse
   inv_fun := λ φ, ⟨φ.comp f, λ x hx, (mem_ker _).mpr $ by simp [(mem_ker _).mp hx]⟩,
   left_inv := λ g, by {
     ext,
-    simp only [comp_apply, lift_of_right_inverse_aux_comp_apply, subtype.coe_mk, subtype.val_eq_coe], },
+    simp only [comp_apply, lift_of_right_inverse_aux_comp_apply, subtype.coe_mk,
+      subtype.val_eq_coe], },
   right_inv := λ φ, by {
     ext b,
     simp [lift_of_right_inverse_aux, hf b], } }
 
-/-- A non-computable version of `lift_of_right_inverse` for when no computable right inverse is
-available, that uses `function.surj_inv`. -/
-@[simp, to_additive "A non-computable version of `lift_of_right_inverse` for when no computable right
-inverse is available."]
+/-- A non-computable version of `monoid_hom.lift_of_right_inverse` for when no computable right
+inverse is available, that uses `function.surj_inv`. -/
+@[simp, to_additive "A non-computable version of `add_monoid_hom.lift_of_right_inverse` for when no
+computable right inverse is available."]
 noncomputable abbreviation lift_of_surjective
   (hf : function.surjective f) : {g : G₁ →* G₃ // f.ker ≤ g.ker} ≃ (G₂ →* G₃) :=
 f.lift_of_right_inverse (function.surj_inv hf) (function.right_inverse_surj_inv hf)
@@ -1343,13 +1344,14 @@ lemma lift_of_right_inverse_comp_apply
 f.lift_of_right_inverse_aux_comp_apply f_inv hf g.1 g.2 x
 
 @[simp, to_additive]
-lemma lift_of_right_inverse_comp (hf : function.right_inverse f_inv f) (g : {g : G₁ →* G₃ // f.ker ≤ g.ker}) :
+lemma lift_of_right_inverse_comp (hf : function.right_inverse f_inv f)
+  (g : {g : G₁ →* G₃ // f.ker ≤ g.ker}) :
   (f.lift_of_right_inverse f_inv hf g).comp f = g :=
 monoid_hom.ext $ f.lift_of_right_inverse_comp_apply f_inv hf g
 
 @[to_additive]
-lemma eq_lift_of_right_inverse (hf : function.right_inverse f_inv f) (g : G₁ →* G₃) (hg : f.ker ≤ g.ker)
-  (h : G₂ →* G₃) (hh : h.comp f = g) :
+lemma eq_lift_of_right_inverse (hf : function.right_inverse f_inv f) (g : G₁ →* G₃)
+  (hg : f.ker ≤ g.ker) (h : G₂ →* G₃) (hh : h.comp f = g) :
   h = (f.lift_of_right_inverse f_inv hf ⟨g, hg⟩) :=
 begin
   simp_rw ←hh,

@@ -284,6 +284,12 @@ we define it as a `linear_equiv` to avoid type equalities. -/
 def to_submodule_equiv (S : subalgebra R A) : S.to_submodule ≃ₗ[R] S :=
 linear_equiv.of_eq _ _ rfl
 
+instance : partial_order (subalgebra R A) :=
+{ le := λ p q, ∀ ⦃x⦄, x ∈ p → x ∈ q,
+  ..partial_order.lift (coe : subalgebra R A → set A) coe_injective }
+
+lemma le_def {p q : subalgebra R A} : p ≤ q ↔ (p : set A) ⊆ q := iff.rfl
+
 /-- Reinterpret an `S`-subalgebra as an `R`-subalgebra in `comap R S A`. -/
 def comap {R : Type u} {S : Type v} {A : Type w}
   [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
@@ -298,12 +304,6 @@ def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
   (T : subalgebra S A) : subalgebra R A :=
 { algebra_map_mem' := λ r, T.algebra_map_mem ⟨algebra_map R A r, S.algebra_map_mem r⟩,
   .. T }
-
-instance : partial_order (subalgebra R A) :=
-{ le := λ p q, ∀ ⦃x⦄, x ∈ p → x ∈ q,
-  ..partial_order.lift (coe : subalgebra R A → set A) coe_injective }
-
-lemma le_def {p q : subalgebra R A} : p ≤ q ↔ (p : set A) ⊆ q := iff.rfl
 
 /-- Transport a subalgebra via an algebra homomorphism. -/
 def map (S : subalgebra R A) (f : A →ₐ[R] B) : subalgebra R B :=

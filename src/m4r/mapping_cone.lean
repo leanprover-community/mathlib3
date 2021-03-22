@@ -36,7 +36,7 @@ def right_mapping_cone_hom (x : R) :
   comm' := sorry }
 
 theorem left_mapping_cone_hom_inj {x : R} {n : ℤ} :
-  ((left_mapping_cone_hom R F x).f n).ker = ⊥ :=
+((left_mapping_cone_hom R F x).f n).ker = ⊥ :=
 sorry ---linear_map.inr_injective
 
 theorem right_mapping_cone_hom_surj {x : R} {n : ℤ} :

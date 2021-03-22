@@ -106,16 +106,12 @@ lemma balanced_zero_union_interior (hA : balanced 𝕜 A) :
 begin
   intros a ha, by_cases a = 0,
   { rw [h, zero_smul_set],
-    apply subset_union_left _,
-    exact union_nonempty.mpr (or.intro_left _ $ singleton_nonempty _) },
-  { rw [←image_smul, image_union, union_subset_iff], split,
-    { rw [image_singleton, smul_zero], exact subset_union_left _ _ },
-    { apply subset_union_of_subset_right,
-      apply interior_maximal,
-      rw image_subset_iff,
-      calc _ ⊆ A : interior_subset
-      ...    ⊆ _ : by { rw ←image_subset_iff, exact hA _ ha},
-      exact is_open_map_smul_of_ne_zero h _ is_open_interior }},
+    exacts [subset_union_left _ _, ⟨0, or.inl rfl⟩] },
+  { rw [←image_smul, image_union],
+    apply union_subset_union,
+    { rw [image_singleton, smul_zero] },
+    { calc a • interior A ⊆ interior (a • A) : (is_open_map_smul' h).image_interior_subset A
+                      ... ⊆ interior A       : interior_mono (hA _ ha) } }
 end
 
 /-- The interior of a balanced set is balanced if it contains the origin. -/
@@ -129,14 +125,9 @@ end
 
 /-- The closure of a balanced set is balanced. -/
 lemma balanced.closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
-begin
-  intros a ha,
-  calc _ ⊆ closure (a • A) :
-  by { simp_rw ←image_smul,
-       exact image_closure_subset_closure_image
-               (continuous_const.smul continuous_id) }
-  ...    ⊆ _ : closure_mono (hA _ ha),
-end
+assume a ha,
+calc _ ⊆ closure (a • A) : image_closure_subset_closure_image (continuous_id.const_smul _)
+...    ⊆ _ : closure_mono (hA _ ha)
 
 end
 

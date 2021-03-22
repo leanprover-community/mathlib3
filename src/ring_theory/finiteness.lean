@@ -277,7 +277,6 @@ lemma of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) (hker : f.t
   (hfp : finite_presentation R A) : finite_presentation R B :=
 equiv (quotient hker hfp) (ideal.quotient_ker_alg_equiv_of_surjective hf)
 
-
 lemma iff : finite_presentation R A ↔
   ∃ n (I : ideal (_root_.mv_polynomial (fin n) R)) (e : I.quotient ≃ₐ[R] A), I.fg :=
 begin
@@ -345,8 +344,6 @@ lemma trans [algebra A B] [is_scalar_tower R A B] (hfpA : finite_presentation R 
   (hfpB : finite_presentation A B) : finite_presentation R B :=
 begin
   obtain ⟨n, I, e, hfg⟩ := iff.1 hfpB,
-  -- note that this unfolds `algebra.comap` from the last argument of `is_scalar_tower`
-  letI : is_scalar_tower R A I.quotient := is_scalar_tower.comap,
   exact equiv (quotient hfg (mv_polynomial_of_finite_presentation hfpA _)) (e.restrict_scalars R)
 end
 

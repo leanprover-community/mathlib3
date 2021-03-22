@@ -75,7 +75,7 @@ def exists_same2 (n i : ℕ) : set (fin i → fin n) :=
 { v | ∃ (j k : fin i) (h : v j = v k), j ≠ k }
 
 lemma exists_same2_mem (n i : ℕ) (v : exists_same2 n i) :
-  (λ j, function.update 0 j 1) ∘ v.1 ∈ tuple.exists_same (fin n → R) i :=
+  (λ j, function.update 0 j 1) ∘ v.1 ∈ exists_same (fin n → R) i :=
 begin
   rcases v.2 with ⟨j, k, hv, hjk⟩,
   refine ⟨j, k, _, hjk⟩,
@@ -148,13 +148,13 @@ end
 lemma tpow_exists_same2_compl (n i : ℕ) :
   submodule.span R ((λ (j : fin i → fin n), tpow.mk R (fin n → R) i
     (λ (k : fin i), (finsupp.single (j k) 1 : fin n → R))) '' (exists_same2 n i)ᶜ) =
-  submodule.span R (tpow.mk R (fin n → R) i '' (tuple.exists_same (fin n → R) i)ᶜ) :=
+  submodule.span R (tpow.mk R (fin n → R) i '' (exists_same (fin n → R) i)ᶜ) :=
 sorry
 
 lemma disjoint_epow_ker_compl (n i : ℕ) :
   disjoint (epow_ker R (fin n → R) i)
   (submodule.span R
-    (tpow.mk R (fin n → R) i '' (tuple.exists_same (fin n → R) i)ᶜ)) :=
+    (tpow.mk R (fin n → R) i '' (exists_same (fin n → R) i)ᶜ)) :=
 begin
   have := @linear_independent.disjoint_span_image (fin i → fin n) R
     (tpow R (fin n → R) i) (λ (j : fin i → fin n), tpow.mk R (fin n → R) i
@@ -202,7 +202,7 @@ lemma nth_le_inj_of_mem_sublists_fin_range (n i : ℕ) (l : list (fin n))
 lemma not_mem_exists_same_of_mem_sublists_len [nontrivial R] (n i : ℕ) (l : list (fin n))
   (h : l ∈ list.sublists_len i (list.fin_range n)) :
   (λ j : fin i, (finsupp.single (l.nth_le j ((list.length_of_sublists_len h).symm ▸ j.2)) 1 : fin n → R))
-    ∉ tuple.exists_same (fin n → R) i :=
+    ∉ exists_same (fin n → R) i :=
 begin
   rintro ⟨j, k, hf, hjk⟩,
   dsimp at hf,
@@ -217,7 +217,7 @@ end
 
 theorem epow_eq_zero_iff (n i : ℕ) (f : fin i → fin n) :
   epow.mk R (fin n → R) i (λ j, function.update 0 (f j) 1) = 0 ↔
-  (λ j, function.update 0 (f j) 1) ∈ tuple.exists_same (fin n → R) i :=
+  (λ j, function.update 0 (f j) 1) ∈ exists_same (fin n → R) i :=
 begin
   sorry
 end

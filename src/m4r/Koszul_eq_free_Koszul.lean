@@ -367,7 +367,7 @@ begin
   rw submodule.ker_mkq at h,
   refine @submodule.span_induction R _ _ _ _
     ((tpow.mk' R (fin n.succ → R) i.succ) (λ (j : fin i.succ), fin.snoc (v j) 0))
-    ((tpow.mk' R (fin n.succ → R) i.succ) '' tuple.exists_same (fin n.succ → R) i.succ)
+    ((tpow.mk' R (fin n.succ → R) i.succ) '' exists_same (fin n.succ → R) i.succ)
     (λ p, ∀ (w : fin i.succ → fin n → R), p = ((tpow.mk' R (fin n.succ → R) i.succ)
       (λ (j : fin i.succ), fin.snoc (w j) 0))
     → (epow.mk R (fin n → R) i.succ w = 0)) h _ _ _ _ v rfl,

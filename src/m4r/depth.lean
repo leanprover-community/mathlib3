@@ -68,18 +68,20 @@ begin
       end }⟩}
 end
 
-#exit
-def cohomology_alt (F : cochain_complex (Module R)) (i : ℤ) :=
-((F.d i).cod_restrict (cochain_complex.range_le_ker i)).range.quotient
+def cohomology_alt (F : cochain_complex.{u u+1} (Module.{u} R)) (i : ℤ) : Type u :=
+((F.d i).cod_restrict (F.d (i + 1)).ker (λ x, linear_map.mem_ker.2 $ linear_map.ext_iff.1
+  (F.d_squared i) _)).range.quotient
 
 theorem seventeen_point_one [local_ring R] (s : fin 2 → R)
-  (hx : set.range s ⊆ local_ring.maximal_ideal R) :
+  (hs : set.range s ⊆ local_ring.maximal_ideal R) :
   nonempty (reg_seq (⊤ : submodule R (fin 2 → R)) s) ↔
-    (subsingleton (cohomology_alt F 1)) :=
+    (subsingleton (cohomology_alt (free_Koszul R 1 s) 1)) :=
 --cochain_complex.cohomology giving me issues
 begin
   split,
-  { rintro ⟨H⟩ x,
+  { rintro ⟨H⟩,
+    constructor,
+    intros x y,
     sorry,
      },
   { sorry },

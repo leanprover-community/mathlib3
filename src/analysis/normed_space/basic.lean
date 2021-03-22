@@ -480,6 +480,12 @@ lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=
 by { convert tendsto_iff_dist_tendsto_zero, simp [dist_eq_norm] }
 
+lemma is_bounded_under_of_tendsto {l : filter ι} {f : ι → α} {c : α}
+  (h : filter.tendsto f l (𝓝 c)) : is_bounded_under (≤) l (λ x, ∥f x∥) :=
+⟨∥c∥ + 1, @tendsto.eventually ι α f _ _ (λ k, ∥k∥ ≤ ∥c∥ + 1) h (filter.eventually_iff_exists_mem.mpr
+  ⟨metric.closed_ball c 1, metric.closed_ball_mem_nhds c zero_lt_one,
+    λ y hy, norm_le_norm_add_const_of_dist_le hy⟩)⟩
+
 lemma tendsto_zero_iff_norm_tendsto_zero {f : γ → β} {a : filter γ} :
   tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥f e∥) a (𝓝 0) :=
 by { rw [tendsto_iff_norm_tendsto_zero], simp only [sub_zero] }

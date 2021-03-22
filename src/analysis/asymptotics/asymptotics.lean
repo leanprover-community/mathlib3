@@ -1261,18 +1261,11 @@ begin
   { refine (div_le_iff (norm_pos_iff.mpr hgx)).mp hx.2 },
 end
 
-lemma is_bounded_under_of_tends_to_nhds {α : Type*} {l : filter α}
-  {f : α → 𝕜} (c : 𝕜) (h : filter.tendsto f l (𝓝 c)) :
-  is_bounded_under (≤) l (λ x, ∥f x∥) :=
-⟨∥c∥ + 1, @tendsto.eventually α 𝕜 f _ _ (λ k, ∥k∥ ≤ ∥c∥ + 1) h (filter.eventually_iff_exists_mem.mpr
-  ⟨metric.closed_ball c 1, metric.closed_ball_mem_nhds c zero_lt_one,
-    λ y hy, norm_le_norm_add_const_of_dist_le hy⟩)⟩
-
-theorem is_O_of_div_tends_to_nhds {α : Type*} {l : filter α}
+theorem is_O_of_div_tendsto_nhds {α : Type*} {l : filter α}
   {f g : α → 𝕜} (hgf : ∀ᶠ x in l, g x = 0 → f x = 0)
   (c : 𝕜) (H : filter.tendsto (f / g) l (𝓝 c)) :
   is_O f g l :=
-is_O_of_div_is_bounded_under hgf $ is_bounded_under_of_tends_to_nhds c H
+is_O_of_div_is_bounded_under hgf $ is_bounded_under_of_tendsto H
 
 lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
   {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : is_o u v l) (hv : tendsto v l (𝓝 y)) :

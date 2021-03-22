@@ -175,7 +175,7 @@ protected lemma prod {f : α → β} {Kf : ℝ≥0} (hf : lipschitz_with Kf f)
   lipschitz_with (max Kf Kg) (λ x, (f x, g x)) :=
 begin
   assume x y,
-  rw [ennreal.coe_mono.map_max, prod.pesudo_edist_eq, ennreal.max_mul],
+  rw [ennreal.coe_mono.map_max, prod.edist_eq, ennreal.max_mul],
   exact max_le_max (hf x y) (hg x y)
 end
 

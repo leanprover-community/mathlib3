@@ -413,7 +413,6 @@ rfl
 rfl
 
 /-- seminormed group instance on the product of two seminormed groups, using the sup norm. -/
-@[priority 100]
 instance prod.semi_normed_group : semi_normed_group (α × β) :=
 { norm := λx, max ∥x.1∥ ∥x.2∥,
   dist_eq := assume (x y : α × β),
@@ -436,7 +435,6 @@ max_le_iff
 
 /-- seminormed group instance on the product of finitely many seminormed groups,
 using the sup norm. -/
-@[priority 100]
 instance pi.semi_normed_group {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] :
   semi_normed_group (Πi, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : ℝ≥0) : ℝ),
@@ -662,23 +660,17 @@ by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
 /-- A subgroup of a normed group is also a normed group, with the restriction of the norm. -/
 instance add_subgroup.normed_group {E : Type*} [normed_group E] (s : add_subgroup E) :
   normed_group s :=
-{ norm := λx, norm (x : E),
-  dist_eq := λx y, dist_eq_norm _ _ }
+{ ..add_subgroup.semi_normed_group s }
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
 
 See note [implicit instance arguments]. -/
 instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
   {E : Type*} [normed_group E] {_ : module 𝕜 E} (s : submodule 𝕜 E) : normed_group s :=
-{ norm := λx, norm (x : E),
-  dist_eq := λx y, dist_eq_norm _ _ }
+{ ..submodule.semi_normed_group s }
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
-@[priority 100]
-instance prod.normed_group : normed_group (α × β) :=
-{ norm := λx, max ∥x.1∥ ∥x.2∥,
-  dist_eq := assume (x y : α × β),
-    show max (dist x.1 y.1) (dist x.2 y.2) = (max ∥(x - y).1∥ ∥(x - y).2∥), by simp [dist_eq_norm] }
+instance prod.normed_group : normed_group (α × β) := { ..prod.semi_normed_group }
 
 lemma prod.norm_def (x : α × β) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
 
@@ -696,13 +688,8 @@ lemma norm_prod_le_iff {x : α × β} {r : ℝ} :
 max_le_iff
 
 /-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
-@[priority 100]
 instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
-  normed_group (Πi, π i) :=
-{ norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : ℝ≥0) : ℝ),
-  dist_eq := assume x y,
-    congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
-    show nndist (x a) (y a) = nnnorm (x a - y a), from nndist_eq_nnnorm _ _ }
+  normed_group (Πi, π i) := { ..pi.semi_normed_group }
 
 /-- The norm of an element in a product space is `≤ r` if and only if the norm of each
 component is. -/

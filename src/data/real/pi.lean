@@ -302,12 +302,14 @@ begin
     calc (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n.succ) ≥
       (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n + 1) :
       by { refine div_le_div (integral_sin_pow_pos _).le (le_refl _) (integral_sin_pow_pos _) _,
-        convert integral_sin_pow_antimono (2 * n + 1) using 1 }
+        rw nat.mul_succ,
+        exact integral_sin_pow_antimono (2 * n + 1) }
     ... = 2 * ↑(n.succ) / (2 * ↑(n.succ) + 1) :
-      by { symmetry, rw [eq_div_iff, nat.succ_eq_add_one],
-        convert (integral_sin_pow_succ_succ (2 * n + 1)).symm using 3,
-        simp [mul_add], ring, simp [mul_add], ring,
-        exact norm_num.ne_zero_of_pos  _ (integral_sin_pow_pos (2 * n + 1)) } },
+      by { symmetry, rw [eq_div_iff (integral_sin_pow_pos _).ne', nat.mul_succ,
+           integral_sin_pow_succ_succ, mul_eq_mul_right_iff],
+           refine or.inl _,
+           simp [mul_add, add_comm, add_assoc, add_left_comm],
+           ring } },
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le _ _ (λ n, (h₄ n).le) (λ n, (h₃ n)),
   { refine metric.tendsto_at_top.mpr (λ ε hε, ⟨nat_ceil (1 / ε), λ n hn, _⟩),
     have h : (2:ℝ) * n / (2 * n + 1) - 1 = -1 / (2 * n + 1),

@@ -229,7 +229,7 @@ lemma flip_flip [algebra R₂ R] :
 by { ext A x y, simp }
 
 /-- The flip of a bilinear form over a ring, obtained by exchanging the left and right arguments,
-here considered as an `ℕ`-linear map, i.e. an additive homomorphism. -/
+here considered as an `ℕ`-linear equivalence, i.e. an additive equivalence. -/
 abbreviation flip' : bilin_form R M ≃ₗ[ℕ] bilin_form R M := flip_hom ℕ
 
 /-- The `flip` of a bilinear form over a commutative ring, obtained by exchanging the left and

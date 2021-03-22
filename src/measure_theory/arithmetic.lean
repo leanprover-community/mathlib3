@@ -20,7 +20,8 @@ For a typeclass assuming measurability of `((+) c)` and `(+ c)` see `has_measura
 class has_measurable_add₂ (M : Type*) [measurable_space M] [has_add M] : Prop :=
 (measurable_add : measurable (λ p : M × M, p.1 + p.2))
 
-export has_measurable_add₂ (measurable_add) has_measurable_add (measurable_const_add measurable_add_const)
+export has_measurable_add₂ (measurable_add)
+  has_measurable_add (measurable_const_add measurable_add_const)
 
 /-- We say that a type `has_measurable_mul` if `((*) c)` and `(* c)` are measurable functions.
 For a typeclass assuming measurability of `uncurry (*)` see `has_measurable_mul₂`. -/
@@ -35,7 +36,8 @@ For a typeclass assuming measurability of `((*) c)` and `(* c)` see `has_measura
 class has_measurable_mul₂ (M : Type*) [measurable_space M] [has_mul M] : Prop :=
 (measurable_mul : measurable (λ p : M × M, p.1 * p.2))
 
-export has_measurable_mul₂ (measurable_mul) has_measurable_mul (measurable_const_mul measurable_mul_const)
+export has_measurable_mul₂ (measurable_mul)
+  has_measurable_mul (measurable_const_mul measurable_mul_const)
 
 section mul
 
@@ -101,7 +103,8 @@ lemma measurable.pow {f : α → β} {g : α → γ} (hf : measurable f) (hg : m
   measurable (λ x, f x ^ g x) :=
 measurable_pow.comp (hf.prod_mk hg)
 
-lemma ae_measurable.pow {μ : measure α} {f : α → β} {g : α → γ} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+lemma ae_measurable.pow {μ : measure α} {f : α → β} {g : α → γ} (hf : ae_measurable f μ)
+  (hg : ae_measurable g μ) :
   ae_measurable (λ x, f x ^ g x) μ :=
 measurable_pow.comp_ae_measurable (hf.prod_mk hg)
 
@@ -248,12 +251,14 @@ end inv
 instance has_measurable_gpow (G : Type*) [group G] [measurable_space G]
   [has_measurable_mul₂ G] [has_measurable_inv G] :
   has_measurable_pow G ℤ :=
-⟨measurable_from_prod_encodable $ λ n, int.cases_on n measurable_id.pow_const (λ n, (measurable_id.pow_const (n + 1)).inv)⟩
+⟨measurable_from_prod_encodable $
+  λ n, int.cases_on n measurable_id.pow_const (λ n, (measurable_id.pow_const (n + 1)).inv)⟩
 
 instance has_measurable_fpow (G₀ : Type*) [group_with_zero G₀] [measurable_space G₀]
   [has_measurable_mul₂ G₀] [has_measurable_inv G₀] :
   has_measurable_pow G₀ ℤ :=
-⟨measurable_from_prod_encodable $ λ n, int.cases_on n measurable_id.pow_const (λ n, (measurable_id.pow_const (n + 1)).inv)⟩
+⟨measurable_from_prod_encodable $
+  λ n, int.cases_on n measurable_id.pow_const (λ n, (measurable_id.pow_const (n + 1)).inv)⟩
 
 @[priority 100, to_additive]
 instance has_measurable_div₂_of_mul_inv (G : Type*) [measurable_space G]
@@ -359,7 +364,8 @@ lemma measurable_const_smul_iff {G₀ β : Type*} [measurable_space β] [group_w
 (is_unit.mk0 c hc).measurable_const_smul_iff
 
 lemma ae_measurable_const_smul_iff {G₀ β : Type*} [measurable_space β] [group_with_zero G₀]
-  [mul_action G₀ β] [has_measurable_const_smul G₀ β] {c : G₀} (hc : c ≠ 0) {f : α → β} {μ : measure α} :
+  [mul_action G₀ β] [has_measurable_const_smul G₀ β] {c : G₀} (hc : c ≠ 0) {f : α → β}
+  {μ : measure α} :
   ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
 (is_unit.mk0 c hc).ae_measurable_const_smul_iff
 
@@ -381,8 +387,8 @@ begin
 end
 
 @[to_additive]
-lemma list.ae_measurable_prod' {M : Type*} [monoid M] [measurable_space M] [has_measurable_mul₂ M] {μ : measure α}
-  (l : list (α → M)) (hl : ∀ f ∈ l, ae_measurable f μ) :
+lemma list.ae_measurable_prod' {M : Type*} [monoid M] [measurable_space M] [has_measurable_mul₂ M]
+  {μ : measure α} (l : list (α → M)) (hl : ∀ f ∈ l, ae_measurable f μ) :
   ae_measurable l.prod μ :=
 begin
   induction l with f l ihl, { exact ae_measurable_one },
@@ -398,8 +404,8 @@ lemma list.measurable_prod {M : Type*} [monoid M] [measurable_space M] [has_meas
 by simpa only [← pi.list_prod_apply] using l.measurable_prod' hl
 
 @[to_additive]
-lemma list.ae_measurable_prod {M : Type*} [monoid M] [measurable_space M] [has_measurable_mul₂ M] {μ : measure α}
-  (l : list (α → M)) (hl : ∀ f ∈ l, ae_measurable f μ) :
+lemma list.ae_measurable_prod {M : Type*} [monoid M] [measurable_space M] [has_measurable_mul₂ M]
+  {μ : measure α} (l : list (α → M)) (hl : ∀ f ∈ l, ae_measurable f μ) :
   ae_measurable (λ x, (l.map (λ f : α → M, f x)).prod) μ :=
 by simpa only [← pi.list_prod_apply] using l.ae_measurable_prod' hl
 
@@ -449,6 +455,7 @@ multiset.ae_measurable_prod' _ $
 
 @[to_additive]
 lemma finset.ae_measurable_prod {ι M : Type*} [comm_monoid M] [measurable_space M]
-  [has_measurable_mul₂ M] {f : ι → α → M} {μ : measure α} (s : finset ι) (hf : ∀i ∈ s, ae_measurable (f i) μ) :
+  [has_measurable_mul₂ M] {f : ι → α → M} {μ : measure α} (s : finset ι)
+  (hf : ∀i ∈ s, ae_measurable (f i) μ) :
   ae_measurable (λ a, ∏ i in s, f i a) μ :=
 by simpa only [← finset.prod_apply] using s.ae_measurable_prod' hf

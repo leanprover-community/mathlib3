@@ -455,7 +455,8 @@ lemma continuous.ae_measurable2 [second_countable_topology α] [second_countable
 h.measurable.comp_ae_measurable (hf.prod_mk hg)
 
 @[priority 100]
-instance has_continuous_inv'.has_measurable_inv [group_with_zero γ] [t1_space γ] [has_continuous_inv' γ] :
+instance has_continuous_inv'.has_measurable_inv [group_with_zero γ] [t1_space γ]
+  [has_continuous_inv' γ] :
   has_measurable_inv γ :=
 ⟨measurable_of_continuous_on_compl_singleton 0 continuous_on_inv'⟩
 

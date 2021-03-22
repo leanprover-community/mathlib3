@@ -567,7 +567,7 @@ variables [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R 
 open module
 
 /-- Given a linear map `f : M₁ →ₗ[R] M₂`, `f.dual_map` is the linear map between the dual of
-`M₂` and `M₁` such that it maps the function `φ` to `φ ∘ f`. -/
+`M₂` and `M₁` such that it maps the functional `φ` to `φ ∘ f`. -/
 def dual_map (f : M₁ →ₗ[R] M₂) : dual R M₂ →ₗ[R] dual R M₁ :=
 lcomp R R f
 

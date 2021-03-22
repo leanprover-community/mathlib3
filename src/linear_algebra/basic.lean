@@ -1808,7 +1808,8 @@ protected def uncurry :
 end uncurry
 
 section
-variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂} {semimodule_M₃ : semimodule R M₃}
+variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
+  {semimodule_M₃ : semimodule R M₃}
 variables (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M) (e : M ≃ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) (l : M₃ →ₗ[R] M)
 
 variables (p q : submodule R M)

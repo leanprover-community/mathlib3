@@ -620,7 +620,7 @@ begin
   have h₂ : 0 < z - y := by linarith,
   have h₃ : 0 < z - x := by linarith,
   suffices : f y / (y - x) + f y / (z - y) ≤ f x / (y - x) + f z / (z - y),
-    by { ring at this ⊢, linarith },
+    by { ring_nf at this ⊢, linarith },
   set a := (z - y) / (z - x),
   set b := (y - x) / (z - x),
   have heqz : a • x + b • z = y, by { field_simp, rw div_eq_iff; [ring, linarith], },

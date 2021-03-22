@@ -40,7 +40,7 @@ class normed_group (α : Type*) extends has_norm α, add_comm_group α, metric_s
 
 /-- A normed group is a seminormed group. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_group_of_normed_group [β : normed_group α] : semi_normed_group α :=
+instance normed_group.to_semi_normed_group [β : normed_group α] : semi_normed_group α :=
 { ..β }
 
 /-- Construct a seminormed group from a translation invariant pseudodistance -/

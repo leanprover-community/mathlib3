@@ -6,6 +6,7 @@ Authors: Bhavik Mehta, Adam Topaz
 import category_theory.punit
 import category_theory.comma
 import category_theory.limits.functor_category
+import category_theory.limits.shapes.terminal
 
 /-!
 
@@ -76,6 +77,20 @@ lemma index.map_id {x : L} {j : index ι x} :
 lemma index.map_comp {x y z : L} (f : z ⟶ y) (g : y ⟶ x) (j : index ι x) :
   (index.map (f ≫ g)).obj j = (index.map f).obj ((index.map g).obj j) :=
 by {cases j, tidy}
+
+-- TODO: Use this to prove that `Ran.adjunction` is reflective
+-- when `ι` is fully faithful.
+/-- `index.mk (𝟙 (ι.obj y))` is initial when `ι` is fully faithful. -/
+def index.mk_id_initial [full ι] [faithful ι] {y : S} : is_initial (index.mk (𝟙 (ι.obj y))) :=
+{ desc := λ T, ⟨eq_to_hom (by simp), ι.preimage T.X.hom, by tidy⟩,
+  --fac' := _,
+  uniq' := begin
+    intros T m w,
+    ext j,
+    apply ι.map_injective,
+    have := m.w,
+    tidy,
+  end }
 
 variable (ι)
 
@@ -220,6 +235,22 @@ lemma index.map_comp {x y z : L} (f : x ⟶ y) (g : y ⟶ z) (j : index ι x) :
   (index.map (f ≫ g)).obj j = (index.map g).obj ((index.map f).obj j) :=
 by {cases j, tidy}
 variable (ι)
+
+-- TODO: Use this to prove that `Lan.adjunction` is coreflective
+-- when `ι` is fully faithful.
+/-- `index.mk (𝟙 (ι.obj y))` is terminal when `ι` is fully faithful. -/
+def index.mk_id_terminal [full ι] [faithful ι] {y : S} : is_terminal (index.mk (𝟙 (ι.obj y))) :=
+{ lift := λ T, ⟨ι.preimage T.X.hom, eq_to_hom (by simp), by tidy⟩,
+  uniq' := begin
+    intros T m w,
+    ext j,
+    { apply ι.map_injective,
+      have := m.w,
+      change _ ≫ 𝟙 _ = _ ≫ 𝟙 _ at this,
+      rw [category.comp_id, category.comp_id] at this,
+      simpa },
+    { tidy }
+  end }
 
 /-- The diagram indexed by `Ran.index ι x` used to define `Ran`. -/
 @[simp]

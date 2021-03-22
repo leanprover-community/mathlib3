@@ -448,8 +448,8 @@ begin
   split; intro h,
   { refine ⟨_, _⟩;
     intros x hx,
-    refine h x (mem_sup.2 ⟨x, hx, 0, zero_mem _, add_zero _⟩),
-    refine h x (mem_sup.2 ⟨0, zero_mem _, x, hx, zero_add _⟩) },
+    exact h x (mem_sup.2 ⟨x, hx, 0, zero_mem _, add_zero _⟩),
+    exact h x (mem_sup.2 ⟨0, zero_mem _, x, hx, zero_add _⟩) },
   { simp_rw mem_sup,
     rintro _ ⟨x, hx, y, hy, rfl⟩,
     rw [linear_map.map_add, h.1 _ hx, h.2 _ hy, add_zero] }

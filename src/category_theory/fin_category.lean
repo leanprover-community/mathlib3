@@ -42,4 +42,9 @@ instance fin_category_discrete_of_decidable_fintype (J : Type v) [decidable_eq J
   fin_category (discrete J) :=
 { }
 
+noncomputable instance {J : Type v} [small_category J] [fin_category J] : fin_category Jᵒᵖ :=
+{ decidable_eq_obj := by {classical, apply_instance},
+  fintype_obj := fintype.of_injective opposite.unop opposite.unop_injective,
+  fintype_hom := λ a b, fintype.of_injective (λ f, f.unop) has_hom.hom.unop_inj }
+
 end category_theory

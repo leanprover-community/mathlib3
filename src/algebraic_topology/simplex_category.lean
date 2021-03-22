@@ -8,6 +8,8 @@ import order.category.NonemptyFinLinOrd
 import category_theory.skeletal
 import data.finset.sort
 import tactic.linarith
+import category_theory.fin_category
+import category_theory.limits.kan_extension
 
 /-! # The simplex category
 
@@ -113,6 +115,10 @@ instance small_category : small_category.{u} simplex_category :=
 { hom := λ n m, simplex_category.hom n m,
   id := λ m, simplex_category.hom.id _,
   comp := λ _ _ _ f g, simplex_category.hom.comp g f, }
+
+noncomputable instance {x y : simplex_category} : fintype (x ⟶ y) :=
+let ff : (x ⟶ y) → (fin (x.len + 1) → fin (y.len + 1)) := λ f, f.to_preorder_hom in
+fintype.of_injective ff (by tidy)
 
 /--
 Make a morphism `[n] ⟶ [m]` from a monotone map between fin's.
@@ -397,6 +403,46 @@ simplex category.
 def inclusion {n : ℕ} : simplex_category.truncated n ⥤ simplex_category :=
 full_subcategory_inclusion _
 
+section
+
+open_locale classical
+
+noncomputable instance {n} : fin_category (truncated n) :=
+{ fintype_obj := let ff : truncated n → fin (n+1) := λ x, ⟨x.1.len, by linarith [x.2]⟩ in
+    fintype.of_injective ff (by tidy) }
+
+end
+
 end truncated
+
+section
+
+open_locale classical
+open opposite
+
+noncomputable instance {n : ℕ} {x : simplex_category.{u}ᵒᵖ} :
+  fin_category (Ran.index (truncated.inclusion.op : (truncated n)ᵒᵖ ⥤ _) x) :=
+{ fintype_obj :=
+  begin
+    let ff : Ran.index (truncated.inclusion.op : (truncated n)ᵒᵖ ⥤ _) x →
+      (Σ (y : (truncated n)ᵒᵖ), truncated.inclusion.obj y.unop ⟶ x.unop) :=
+      λ tt, ⟨tt.right, tt.hom.unop⟩,
+    refine fintype.of_injective ff _,
+    rintros ⟨fl,fr,f⟩ ⟨gl,gr,g⟩ h,
+    simp only [sigma.mk.inj_iff] at h,
+    cases h with hl hr,
+    subst hl,
+    simp only [heq_iff_eq] at hr,
+    replace hr := has_hom.hom.unop_inj hr,
+    tidy,
+  end,
+  fintype_hom := begin
+    intros a b,
+    let ff : (a ⟶ b) → (a.right ⟶ b.right) := λ f, f.right,
+    refine fintype.of_injective ff _,
+    tidy,
+  end }
+
+end
 
 end simplex_category

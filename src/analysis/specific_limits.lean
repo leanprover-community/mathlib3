@@ -211,7 +211,8 @@ begin
   suffices : is_O _ (λ n : ℕ, (r' ^ k) ^ n) at_top,
     from this.trans_is_o (is_o_pow_pow_of_lt_left (pow_nonneg h0 _) hr'),
   conv in ((r' ^ _) ^ _) { rw [← pow_mul, mul_comm, pow_mul] },
-  suffices : ∀ n : ℕ, ∥(n : R)∥ ≤ (r' - 1)⁻¹ * ∥(1 : R)∥ * ∥r' ^ n∥, from (is_O_of_le' _ this).pow _,
+  suffices : ∀ n : ℕ, ∥(n : R)∥ ≤ (r' - 1)⁻¹ * ∥(1 : R)∥ * ∥r' ^ n∥,
+    from (is_O_of_le' _ this).pow _,
   intro n, rw mul_right_comm,
   refine n.norm_cast_le.trans (mul_le_mul_of_nonneg_right _ (norm_nonneg _)),
   simpa [div_eq_inv_mul, real.norm_eq_abs, abs_of_nonneg h0] using n.cast_le_pow_div_sub h1

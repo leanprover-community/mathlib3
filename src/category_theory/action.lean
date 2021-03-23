@@ -118,7 +118,6 @@ variables {G : Type*} [group G] [mul_action G X]
 noncomputable instance : groupoid (action_category G X) :=
 category_theory.groupoid_of_elements _
 
-<<<<<<< HEAD
 /-- Any subgroup of `G` is a vertex group in its action groupoid. -/
 def End_mul_equiv_subgroup (H : subgroup G) :
   End (obj_equiv G (quotient_group.quotient H) ↑(1 : G)) ≃* H :=
@@ -174,16 +173,6 @@ have F_map_eq : ∀ {a b} {f : a ⟶ b}, F.map f = (F.map (hom_of_pair b.back f.
   end }
 
 end group
-=======
-@[simp] protected lemma id_val (x : action_category M X) : subtype.val (𝟙 x) = 1 := rfl
-
-@[simp] protected lemma comp_val {x y z : action_category M X}
-  (f : x ⟶ y) (g : y ⟶ z) : (f ≫ g).val = g.val * f.val := rfl
-
-protected def cases {P : Π ⦃a b : action_category M X⦄, (a ⟶ b) → Sort*}
-  (hyp : ∀ x m, P (lift_to_hom x m)) ⦃a b⦄ (f : a ⟶ b) : P f :=
-eq.mp (by tidy) (hyp a.snd f.val)
->>>>>>> .
 
 end action_category
 end category_theory

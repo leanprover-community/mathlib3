@@ -141,7 +141,8 @@ if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
 
 attribute [to_additive add_order_of] order_of
 
-@[simp] lemma add_order_of_of_mul_eq_order_of (a : α) : add_order_of (additive.of_mul a) = order_of a :=
+@[simp] lemma add_order_of_of_mul_eq_order_of (a : α) :
+  add_order_of (additive.of_mul a) = order_of a :=
 begin
   rw add_order_of,
   rw order_of,

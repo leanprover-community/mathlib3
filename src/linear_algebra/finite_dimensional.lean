@@ -541,6 +541,10 @@ begin
   rw h, norm_cast
 end
 
+lemma findim_eq_zero_of_not_exists_basis
+  (h : ¬ ∃ s : finset V, is_basis K (λ x, x : (↑s : set V) → V)) : findim K V = 0 :=
+dif_neg (mt (λ h, @exists_is_basis_finset K V _ _ _ (finite_dimensional_iff_dim_lt_omega.mpr h)) h)
+
 variables (K V)
 
 lemma finite_dimensional_bot : finite_dimensional K (⊥ : submodule K V) :=

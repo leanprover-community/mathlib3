@@ -146,6 +146,10 @@ instance decidable_exists_fintype {p : α → Prop} [decidable_pred p] [fintype 
   decidable (∃ a, p a) :=
 decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
 
+instance decidable_mem_range_fintype [fintype α] [decidable_eq β] (f : α → β) :
+  decidable_pred (∈ set.range f) :=
+λ x, fintype.decidable_exists_fintype
+
 instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ≃ β) :=
 λ a b, decidable_of_iff (a.1 = b.1) ⟨λ h, equiv.ext (congr_fun h), congr_arg _⟩

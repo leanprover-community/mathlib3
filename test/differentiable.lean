@@ -74,12 +74,12 @@ example : (3 + X : polynomial R).derivative = 1 :=
 by conv_lhs { simp }
 
 example : (2 * X ^ 2 : polynomial R).derivative = 4 * X :=
-by conv_lhs { simp, ring, }
+by conv_lhs { simp, ring_nf, }
 
 example : (X ^ 2 : polynomial R).derivative = 2 * X :=
 by conv_lhs { simp }
 
 example : ((C 2 * X ^ 3).derivative : polynomial R) = 6 * X ^ 2 :=
-by conv_lhs { simp, ring, }
+by conv_lhs { simp, ring_nf, }
 
 end polynomial

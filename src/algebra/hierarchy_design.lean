@@ -30,6 +30,8 @@ def surjective.Z [Z M₁] (f : M₁ → M₂) (hf : surjective f)
   `def equiv.Z_equiv (e : α ≃ β) [Z β] : by { letI := equiv.Z e, exact α ≃Z β } := ...`
   (when there is a new notion of `Z`-equiv) (see examples in `data.equiv.transfer_instance`)
 
+[[ Notes about stuff that is currently missing: e.g. all of `algebra.ring.inj_surj`. ]]
+
 [[ Talk about morphisms? ]]
 [[ Talk about equivalences? ]]
 [[ Talk about subobjects? ]]

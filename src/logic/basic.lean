@@ -640,10 +640,15 @@ lemma eq_rec_constant {α : Sort*} {a a' : α} {β : Sort*} (y : β) (h : a = a'
 by { cases h, refl, }
 
 @[simp]
-lemma eq_mp_rfl {α : Sort*} {a : α} : eq.mp (eq.refl α) a = a := rfl
+lemma eq_mp_eq_cast {α β : Sort*} (h : α = β) : eq.mp h = cast h := rfl
 
 @[simp]
-lemma eq_mpr_rfl {α : Sort*} {a : α} : eq.mpr (eq.refl α) a = a := rfl
+lemma eq_mpr_eq_cast {α β : Sort*} (h : α = β) : eq.mpr h = cast h.symm := rfl
+
+@[simp]
+lemma cast_cast : ∀ {α β γ : Sort*} (ha : α = β) (hb : β = γ) (a : α),
+  cast hb (cast ha a) = cast (ha.trans hb) a
+| _ _ _ rfl rfl a := rfl
 
 @[simp] lemma congr_refl_left {α β : Sort*} (f : α → β) {a b : α} (h : a = b) :
   congr (eq.refl f) h = congr_arg f h :=

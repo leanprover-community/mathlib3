@@ -623,21 +623,14 @@ eq_rec_on_bijective h.symm
 lemma cast_bijective {α β : Sort*} (h : α = β) : function.bijective (cast h) :=
 eq_rec_on_bijective h
 
--- this one interferes with the machinery of `simp` itself if marked @[simp]
-lemma eq_rec_inj {α : Sort*} {a a' : α} (h : a = a') {C : α → Sort*} (x y : C a) :
+/-! Note these lemmas apply to `Type*` not `Sort*`, as the latter interferes with `simp`, and
+is trivial anyway.-/
+
+@[simp]
+lemma eq_rec_inj {α : Sort*} {a a' : α} (h : a = a') {C : α → Type*} (x y : C a) :
   (eq.rec x h : C a') = eq.rec y h ↔ x = y :=
 (eq_rec_on_bijective h).injective.eq_iff
 
 @[simp]
-lemma eq_mpr_inj {α β : Sort*} (h : α = β) (x y : β) :
-  (eq.mpr h x) = eq.mpr h y ↔ x = y :=
-(eq_mpr_bijective h).injective.eq_iff
-
-@[simp]
-lemma eq_mp_inj {α β : Sort*} (h : α = β) (x y : α) :
-  (eq.mp h x) = eq.mp h y ↔ x = y :=
-(eq_mp_bijective h).injective.eq_iff
-
-@[simp]
-lemma cast_inj {α β : Sort*} (h : α = β) {x y : α} : cast h x = cast h y ↔ x = y :=
+lemma cast_inj {α β : Type*} (h : α = β) {x y : α} : cast h x = cast h y ↔ x = y :=
 (cast_bijective h).injective.eq_iff

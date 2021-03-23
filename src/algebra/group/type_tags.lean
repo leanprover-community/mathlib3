@@ -149,6 +149,18 @@ instance [add_monoid α] : monoid (multiplicative α) :=
   mul_one := @add_zero _ _,
   ..multiplicative.semigroup }
 
+instance [left_cancel_monoid α] : add_left_cancel_monoid (additive α) :=
+{ .. additive.add_monoid, .. additive.add_left_cancel_semigroup }
+
+instance [add_left_cancel_monoid α] : left_cancel_monoid (multiplicative α) :=
+{ .. multiplicative.monoid, .. multiplicative.left_cancel_semigroup }
+
+instance [right_cancel_monoid α] : add_right_cancel_monoid (additive α) :=
+{ .. additive.add_monoid, .. additive.add_right_cancel_semigroup }
+
+instance [add_right_cancel_monoid α] : right_cancel_monoid (multiplicative α) :=
+{ .. multiplicative.monoid, .. multiplicative.right_cancel_semigroup }
+
 instance [comm_monoid α] : add_comm_monoid (additive α) :=
 { .. additive.add_monoid, .. additive.add_comm_semigroup }
 

@@ -141,7 +141,7 @@ if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
 
 attribute [to_additive add_order_of] order_of
 
-lemma add_order_of_of_mul_eq_order_of (a : α) : add_order_of (additive.of_mul a) = order_of a :=
+@[simp] lemma add_order_of_of_mul_eq_order_of (a : α) : add_order_of (additive.of_mul a) = order_of a :=
 begin
   rw add_order_of,
   rw order_of,
@@ -149,7 +149,7 @@ begin
   refl
 end
 
-lemma order_of_of_add_eq_add_order_of (x : H) :
+@[simp] lemma order_of_of_add_eq_add_order_of (x : H) :
   order_of (multiplicative.of_add x) = add_order_of x :=
 begin
   rw add_order_of,
@@ -174,20 +174,19 @@ end
 
 attribute [to_additive add_order_of_pos'] order_of_pos'
 
-lemma add_order_of_nsmul_eq_zero (x : H) : (add_order_of x) •ℕ x = 0 :=
-begin
-  rw add_order_of,
-  split_ifs with hfin,
-  { exact (nat.find_spec hfin).2 },
-  { exact zero_nsmul x }
-end
-
 lemma pow_order_of_eq_one (a : α): a ^ order_of a = 1 :=
 begin
   rw order_of,
   split_ifs with hfin,
   { exact (nat.find_spec hfin).2 },
   { exact pow_zero a }
+end
+
+lemma add_order_of_nsmul_eq_zero (x : H) : (add_order_of x) •ℕ x = 0 :=
+begin
+  apply multiplicative.of_add.injective,
+  rw of_add_nsmul,
+  exact pow_order_of_eq_one _,
 end
 
 attribute [to_additive add_order_of_nsmul_eq_zero] pow_order_of_eq_one
@@ -246,12 +245,7 @@ end
 
 attribute [to_additive add_order_of_le_of_nsmul_eq_zero] order_of_le_of_pow_eq_one
 
-@[simp] lemma add_order_of_zero : add_order_of (0 : H) = 1 :=
-begin
-  apply le_antisymm,
-  { exact add_order_of_le_of_nsmul_eq_zero (nat.one_pos) (nsmul_zero 1) },
-  { exact nat.succ_le_of_lt ( add_order_of_pos' ⟨1, ⟨nat.one_pos, nsmul_zero 1⟩⟩) }
-end
+
 
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin
@@ -260,42 +254,36 @@ begin
   { exact nat.succ_le_of_lt ( order_of_pos' ⟨1, ⟨nat.one_pos, pow_one 1⟩⟩) }
 end
 
-attribute [to_additive add_order_of_zero] order_of_one
+@[simp] lemma add_order_of_zero : add_order_of (0 : H) = 1 :=
+begin
+  rw ← order_of_of_add_eq_add_order_of,
+  exact order_of_one,
+end
 
-@[simp] lemma add_order_of_eq_one_iff : add_order_of x = 1 ↔ x = 0 :=
-⟨λ h, by { rw [← one_nsmul x, ← h, add_order_of_nsmul_eq_zero] }, λ h, by simp [h]⟩
+attribute [to_additive add_order_of_zero] order_of_one
 
 @[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
 ⟨λ h, by conv_lhs { rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
 
-attribute [to_additive add_order_of_eq_one_iff] order_of_eq_one_iff
+@[simp] lemma add_order_of_eq_one_iff : add_order_of x = 1 ↔ x = 0 :=
+begin
+  rw ← order_of_of_add_eq_add_order_of,
+  exact order_of_eq_one_iff,
+end
 
-lemma nsmul_eq_mod_add_order_of {n : ℕ} : n •ℕ x = (n % add_order_of x) •ℕ x :=
-calc n •ℕ x = (n % add_order_of x +  (n / add_order_of x)* add_order_of x) •ℕ x :
-        by rw [nat.mod_add_div']
-        ... = (n % add_order_of x) •ℕ x :
-        by { simp [add_nsmul, mul_nsmul, add_order_of_nsmul_eq_zero] }
+attribute [to_additive add_order_of_eq_one_iff] order_of_eq_one_iff
 
 lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
 calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) : by rw [nat.mod_add_div]
        ... = a ^ (n % order_of a) : by simp [pow_add, pow_mul, pow_order_of_eq_one]
 
-attribute [to_additive nsmul_eq_mod_add_order_of] pow_eq_mod_order_of
-
-lemma add_order_of_dvd_of_nsmul_eq_zero {n : ℕ} (h : n •ℕ x = 0) : add_order_of x ∣ n :=
+lemma nsmul_eq_mod_add_order_of {n : ℕ} : n •ℕ x = (n % add_order_of x) •ℕ x :=
 begin
-  by_cases h₁ : 0 < n,
-  { apply nat.dvd_of_mod_eq_zero,
-    by_contradiction h₂,
-    have h₃ : ¬ (0 < n % add_order_of x ∧ (n % add_order_of x) •ℕ x = 0) :=
-      add_order_of_le_of_nsmul_eq_zero' ( nat.mod_lt _ ( add_order_of_pos' ⟨n, h₁, h⟩)),
-    push_neg at h₃,
-    specialize h₃ (nat.pos_of_ne_zero h₂),
-    rw ← nsmul_eq_mod_add_order_of at h₃,
-    exact h₃ h },
-  { have h₅ : n = 0 := le_antisymm (not_lt.mp h₁) (nat.zero_le n),
-    simp [h₅] }
+  apply multiplicative.of_add.injective,
+  rw [← order_of_of_add_eq_add_order_of, of_add_nsmul, of_add_nsmul, pow_eq_mod_order_of],
 end
+
+attribute [to_additive nsmul_eq_mod_add_order_of] pow_eq_mod_order_of
 
 lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
 begin
@@ -310,6 +298,14 @@ begin
     exact h₃ h },
   { have h₅ : n = 0 := le_antisymm (not_lt.mp h₁) (nat.zero_le n),
     simp [h₅] }
+end
+
+lemma add_order_of_dvd_of_nsmul_eq_zero {n : ℕ} (h : n •ℕ x = 0) : add_order_of x ∣ n :=
+begin
+  apply_fun multiplicative.of_add at h,
+  rw ← order_of_of_add_eq_add_order_of,
+  rw of_add_nsmul at h,
+  exact order_of_dvd_of_pow_eq_one h,
 end
 
 attribute [to_additive add_order_of_dvd_of_nsmul_eq_zero] order_of_dvd_of_pow_eq_one
@@ -358,25 +354,7 @@ end
 
 attribute [to_additive add_order_of_eq_prime_pow] order_of_eq_prime_pow
 
-variables (x) {n : ℕ}
-
-lemma add_order_of_nsmul' (h : n ≠ 0) :
-  add_order_of (n •ℕ x) = add_order_of x / gcd (add_order_of x) n :=
-begin
-  apply dvd_antisymm,
-  { apply add_order_of_dvd_of_nsmul_eq_zero,
-    rw [← mul_nsmul, mul_comm, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
-        nat.mul_div_assoc _ (gcd_dvd_right _ _), mul_comm, mul_nsmul, add_order_of_nsmul_eq_zero,
-        nsmul_zero] },
-  { have gcd_pos : 0 < gcd (add_order_of x) n := gcd_pos_of_pos_right _ (nat.pos_of_ne_zero h),
-    apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos),
-    apply dvd_of_mul_dvd_mul_right gcd_pos,
-    rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc, nat.div_mul_cancel (gcd_dvd_right _ _)],
-    apply add_order_of_dvd_of_nsmul_eq_zero,
-    rw [mul_nsmul, add_order_of_nsmul_eq_zero] }
-end
-
-variables (a)
+variables (a) {n : ℕ}
 
 lemma order_of_pow' (h : n ≠ 0) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
@@ -394,25 +372,18 @@ begin
     rw [pow_mul, pow_order_of_eq_one] }
 end
 
+variables (x)
+
+lemma add_order_of_nsmul' (h : n ≠ 0) :
+  add_order_of (n •ℕ x) = add_order_of x / gcd (add_order_of x) n :=
+begin
+  repeat {rw ← order_of_of_add_eq_add_order_of},
+  rwa [of_add_nsmul, order_of_pow'],
+end
+
 attribute [to_additive add_order_of_nsmul'] order_of_pow'
 
 variable (n)
-
-lemma add_order_of_nsmul'' (h : ∃n, 0 < n ∧ n •ℕ x = 0) :
-  add_order_of (n •ℕ x) = add_order_of x / gcd (add_order_of x) n :=
-begin
-    apply dvd_antisymm,
-  { apply add_order_of_dvd_of_nsmul_eq_zero,
-    rw [← mul_nsmul, mul_comm, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
-        nat.mul_div_assoc _ (gcd_dvd_right _ _), mul_comm, mul_nsmul, add_order_of_nsmul_eq_zero,
-        nsmul_zero] },
-  { have gcd_pos : 0 < gcd (add_order_of x) n := gcd_pos_of_pos_left n (add_order_of_pos' h),
-    apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos),
-    apply dvd_of_mul_dvd_mul_right gcd_pos,
-    rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc, nat.div_mul_cancel (gcd_dvd_right _ _)],
-    apply add_order_of_dvd_of_nsmul_eq_zero,
-    rw [mul_nsmul, add_order_of_nsmul_eq_zero] }
-end
 
 lemma order_of_pow'' (h : ∃ n, 0 < n ∧ a ^ n = 1) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
@@ -430,6 +401,13 @@ begin
     rw [pow_mul, pow_order_of_eq_one] }
 end
 
+lemma add_order_of_nsmul'' (h : ∃n, 0 < n ∧ n •ℕ x = 0) :
+  add_order_of (n •ℕ x) = add_order_of x / gcd (add_order_of x) n :=
+begin
+  repeat {rw ← order_of_of_add_eq_add_order_of},
+  rwa [of_add_nsmul, order_of_pow''],
+end
+
 attribute [to_additive add_order_of_nsmul''] order_of_pow''
 
 end monoid
@@ -437,20 +415,6 @@ end monoid
 section cancel_monoid
 variables {α} [left_cancel_monoid α] (a)
 variables {H : Type u} [add_left_cancel_monoid H] (x : H)
-
-/-- TODO: Why is it not possible to mark this lemma as the additive version of the next? It is
-possible if the private is removed though.-/
-private lemma nsmul_injective_aux {n m : ℕ} (h : n ≤ m)
-  (hn : n < add_order_of x) (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=
-by_contradiction $ assume ne : n ≠ m,
-  have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
-  have h₂ : m = n + (m - n) := (nat.add_sub_of_le h).symm,
-  have h₃ : (m - n) •ℕ x = 0,
-    by { rw [h₂, add_nsmul] at eq, apply add_left_cancel, convert eq.symm, exact add_zero _ },
-  have le : add_order_of x ≤ m - n := add_order_of_le_of_nsmul_eq_zero h₁ h₃,
-  have lt : m - n < add_order_of x,
-    from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
-  lt_irrefl _ (lt_of_le_of_lt le lt)
 
 private lemma pow_injective_aux {n m : ℕ} (h : n ≤ m)
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
@@ -463,6 +427,17 @@ by_contradiction $ assume ne : n ≠ m,
   have lt : m - n < order_of a,
     from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
   lt_irrefl _ (lt_of_le_of_lt le lt)
+
+/-- TODO: Why is it not possible to mark this lemma as the additive version of the next? It is
+possible if the private is removed though.-/
+private lemma nsmul_injective_aux {n m : ℕ} (h : n ≤ m)
+  (hn : n < add_order_of x) (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=
+begin
+  apply_fun multiplicative.of_add at eq,
+  rw [of_add_nsmul, of_add_nsmul] at eq,
+  rw ← order_of_of_add_eq_add_order_of at hn hm,
+  exact pow_injective_aux (multiplicative.of_add x) h hn hm eq,
+end
 
 lemma nsmul_injective_of_lt_add_order_of {n m : ℕ}
   (hn : n < add_order_of x) (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=

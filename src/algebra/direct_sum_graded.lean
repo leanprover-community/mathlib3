@@ -236,9 +236,118 @@ gcomm_monoid.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem mul
 
 end shorthands
 
+variables (A : ι → Type*)
+
+/-! ### Instances for `A 0` -/
+
+namespace grade_zero
+
+section one
+variables [has_zero ι] [ghas_one A]
+
+instance has_one : has_one (A 0) :=
+⟨ghas_one.one⟩
+
+end one
+
+section mul
+variables [add_monoid ι] [Π i, add_comm_monoid (A i)] [ghas_mul A]
+
+
+def cast_indexed {ι : Sort*} {A : ι → Sort*} {i j : ι} (h : i = j) : A i → A j :=
+cast (congr_arg A h)
+
+@[simp]
+lemma cast_indexed_pi {ι : Sort*} {A : ι → Sort*} :
+  ∀ {i j : ι} (h : i = j) (f : Π i, A i), cast_indexed h (f i) = f j
+| _ _ rfl f := rfl
+
+instance has_mul : has_mul (A 0) :=
+{ mul := λ x y, cast_indexed (zero_add (0 : ι)) (ghas_mul.mul x y)}
+
+instance mul_zero_class : mul_zero_class (A 0) :=
+{ mul := (*),
+  zero := 0,
+  zero_mul := λ a, by {
+    simp [has_mul.mul],
+    exact cast_indexed_pi (zero_add 0) (λ i : ι, (0 : A i)), },
+  mul_zero := λ a, by {
+    simp [has_mul.mul],
+    exact cast_indexed_pi (add_zero 0) (λ i : ι, (0 : A i)), }, }
+
+instance distrib : distrib (A 0) :=
+{ mul := (*),
+  add := (+),
+  left_distrib := λ a b c, by { unfold has_mul.mul, sorry },
+  right_distrib := λ a b c, by { unfold has_mul.mul, sorry } }
+
+end mul
+
+section semiring
+variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gmonoid A]
+
+/-- The `semiring` structure derived from `gmonoid A`. -/
+instance semiring : semiring (A 0) := {
+  one := 1,
+  mul := (*),
+  zero := 0,
+  add := (+),
+  one_mul := sorry,
+  mul_one := sorry,
+  mul_assoc := sorry,
+  ..direct_sum.grade_zero.mul_zero_class A,
+  ..direct_sum.grade_zero.distrib A,
+  ..(by apply_instance : add_comm_monoid (A 0)), }
+
+end semiring
+
+section comm_semiring
+
+variables [Π i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_monoid A]
+
+/-- The `comm_semiring` structure derived from `gcomm_monoid A`. -/
+instance comm_semiring : comm_semiring (A 0) := {
+  one := 1,
+  mul := (*),
+  zero := 0,
+  add := (+),
+  mul_comm := sorry,
+  ..direct_sum.grade_zero.semiring _, }
+
+end comm_semiring
+
+section ring
+variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gmonoid A]
+
+/-- The `ring` derived from `gmonoid A`. -/
+instance ring : ring (A 0) := {
+  one := 1,
+  mul := (*),
+  zero := 0,
+  add := (+),
+  neg := has_neg.neg,
+  ..(direct_sum.grade_zero.semiring _),
+  ..(by apply_instance : add_comm_group (A 0)), }
+
+end ring
+
+section comm_ring
+variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_monoid A]
+
+/-- The `comm_ring` derived from `gcomm_monoid A`. -/
+instance comm_ring : comm_ring (A 0) := {
+  one := 1,
+  mul := (*),
+  zero := 0,
+  add := (+),
+  neg := has_neg.neg,
+  ..(direct_sum.grade_zero.ring _),
+  ..(direct_sum.grade_zero.comm_semiring _), }
+
+end comm_ring
+
 /-! ### Instances for `⨁ i, A i` -/
 
-variables (A : ι → Type*)
 
 section one
 variables [has_zero ι] [ghas_one A] [Π i, add_comm_monoid (A i)]

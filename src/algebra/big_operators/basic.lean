@@ -428,7 +428,7 @@ from classical.by_cases
       prod_const_one.trans (h₁ this).symm)
 
 @[to_additive]
-lemma prod_eq_double' {s : finset α} {f : α → β} (a b : α) (ha : a ∈ s) (hb : b ∈ s) (hn : a ≠ b)
+lemma prod_eq_mul' {s : finset α} {f : α → β} (a b : α) (ha : a ∈ s) (hb : b ∈ s) (hn : a ≠ b)
   (h₀ : ∀ c ∈ s, c ≠ a ∧ c ≠ b → f c = 1) : (∏ x in s, f x) = (f a) * (f b) :=
 begin
   haveI := classical.dec_eq α;
@@ -443,13 +443,13 @@ begin
 end
 
 @[to_additive]
-lemma prod_eq_double {s : finset α} {f : α → β} (a b : α) (hn : a ≠ b)
+lemma prod_eq_mul {s : finset α} {f : α → β} (a b : α) (hn : a ≠ b)
   (h₀ : ∀ c ∈ s, c ≠ a ∧ c ≠ b → f c = 1) (h₁ : ∀ (c : α), c ∉ s → f c = 1) :
   (∏ x in s, f x) = (f a) * (f b) :=
 begin
   haveI := classical.dec_eq α;
   by_cases ha : a ∈ s; by_cases hb : b ∈ s,
-  { exact prod_eq_double' a b ha hb hn h₀ },
+  { exact prod_eq_mul' a b ha hb hn h₀ },
   { rw [h₁ b hb, mul_one],
     apply prod_eq_single' a ha,
     exact λ c hc hca, h₀ c hc ⟨hca, ne_of_mem_of_not_mem hc hb⟩ },

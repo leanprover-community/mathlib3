@@ -185,17 +185,16 @@ def rotate : (triangle C) ⥤ (triangle C) :=
   map_id' := begin
     intro T₁,
     simp only [triangle_category_to_category_struct_id],
-    unfold triangle_morphism.rotate,
-    dsimp,
     ext,
     { refl },
     { refl },
-    { simp only [triangle_morphism_id_hom₃, (shift C).functor.map_id],
-      refl }
+    { simp only [triangulated.triangle_morphism_id_hom₃,
+      triangulated.triangle_morphism_id_hom₁, triangle_morphism.rotate_hom₃],
+      dsimp,
+      rw (shift C).functor.map_id }
   end,
   map_comp' := begin
     intros T₁ T₂ T₃ f g,
-    unfold triangle_morphism.rotate,
     ext,
     { refl },
     { refl },
@@ -224,10 +223,9 @@ def inv_rotate : (triangle C) ⥤ (triangle C) :=
   end,
   map_comp' := begin
     intros T₁ T₂ T₃ f g,
-    unfold triangle_morphism.inv_rotate,
     ext,
-    { simp only [triangle_morphism.comp_hom₃, triangle_morphism.comp_hom₁,
-        triangle_category_to_category_struct_comp, functor.map_comp] },
+    { simp only [triangle_morphism.comp_hom₃, triangle_morphism.comp_hom₁, functor.map_comp,
+        triangle_morphism.inv_rotate_hom₁, triangle_category_to_category_struct_comp] },
     { refl },
     { refl }
   end

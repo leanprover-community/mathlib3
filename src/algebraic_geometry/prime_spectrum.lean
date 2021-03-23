@@ -183,7 +183,7 @@ lemma le_vanishing_ideal_zero_locus (I : ideal R) :
   I ≤ vanishing_ideal (zero_locus I) :=
 (gc R).le_u_l I
 
-lemma vanishing_ideal_zero_locus_eq_radical (I : ideal R) :
+@[simp] lemma vanishing_ideal_zero_locus_eq_radical (I : ideal R) :
   vanishing_ideal (zero_locus (I : set R)) = I.radical :=
 begin
   ext f,

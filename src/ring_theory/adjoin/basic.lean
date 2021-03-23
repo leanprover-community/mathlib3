@@ -54,7 +54,7 @@ variables (R A)
 show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }
 
 variables (R) {A} (s)
-theorem adjoin_eq_span : (adjoin R s).to_submodule = span R (monoid.closure s) :=
+theorem adjoin_eq_span : (adjoin R s : submodule R A) = span R (monoid.closure s) :=
 begin
   apply le_antisymm,
   { intros r hr, rcases mem_closure_iff_exists_list.1 hr with ⟨L, HL, rfl⟩, clear hr,
@@ -83,7 +83,7 @@ le_antisymm (adjoin_le $ set.image_subset _ subset_adjoin) $
 subalgebra.map_le.2 $ adjoin_le $ set.image_subset_iff.1 subset_adjoin
 
 @[simp] lemma adjoin_insert_adjoin (x : A) :
-  adjoin R (insert x ↑(adjoin R s)) = adjoin R (insert x s) :=
+  adjoin R (insert x ↑(adjoin R s : submodule R A)) = adjoin R (insert x s) :=
 le_antisymm
   (adjoin_le (set.insert_subset.mpr
     ⟨subset_adjoin (set.mem_insert _ _), adjoin_mono (set.subset_insert _ _)⟩))
@@ -113,9 +113,9 @@ le_antisymm
   (λ x ⟨p, _, (hp : mv_polynomial.aeval coe p = x)⟩, hp ▸ mv_polynomial.induction_on p
     (λ r, by { rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C],
                exact (adjoin R s).algebra_map_mem r })
-    (λ p q hp hq, by rw alg_hom.map_add; exact subalgebra.add_mem _ hp hq)
+    (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
     (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ (mv_polynomial.X _),
-      mv_polynomial.eval₂_X]; exact subalgebra.mul_mem _ hp (subset_adjoin hn)))
+      mv_polynomial.eval₂_X]; exact is_submonoid.mul_mem hp (subset_adjoin hn)))
 
 theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval x).range :=
 le_antisymm
@@ -123,16 +123,16 @@ le_antisymm
   (λ y ⟨p, _, (hp : polynomial.aeval x p = y)⟩, hp ▸ polynomial.induction_on p
     (λ r, by { rw [polynomial.aeval_def, polynomial.eval₂_C],
                exact (adjoin R _).algebra_map_mem r })
-    (λ p q hp hq, by rw alg_hom.map_add; exact subalgebra.add_mem _ hp hq)
+    (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
     (λ n r ih, by { rw [pow_succ', ← mul_assoc, alg_hom.map_mul,
       polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],
-      exact subalgebra.mul_mem _ ih (subset_adjoin rfl) }))
+      exact is_submonoid.mul_mem ih (subset_adjoin rfl) }))
 
 lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
-eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ subalgebra.mem_coe.2 $ subalgebra.one_mem ⊥
+eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ subalgebra.one_mem ⊥
 
-theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
-  (adjoin R s).to_submodule * (adjoin R t).to_submodule :=
+theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
+  (adjoin R s) * (adjoin R t) :=
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
   congr' 1 with z, simp [monoid.mem_closure_union_iff, set.mem_mul],
@@ -147,7 +147,7 @@ variables {R s t}
 open ring
 
 theorem adjoin_int (s : set R) : adjoin ℤ s = subalgebra_of_is_subring (closure s) :=
-le_antisymm (adjoin_le subset_closure) (closure_subset subset_adjoin : closure s ≤ adjoin ℤ s)
+le_antisymm (adjoin_le subset_closure) (closure_subset subset_adjoin)
 
 theorem mem_adjoin_iff {s : set A} {x : A} :
   x ∈ adjoin R s ↔ x ∈ closure (set.range (algebra_map R A) ∪ s) :=
@@ -169,9 +169,9 @@ variables [algebra R A] {s t : set A}
 variables {R s t}
 open ring
 
-theorem fg_trans (h1 : (adjoin R s).to_submodule.fg)
-  (h2 : (adjoin (adjoin R s) t).to_submodule.fg) :
-  (adjoin R (s ∪ t)).to_submodule.fg :=
+theorem fg_trans (h1 : (adjoin R s : submodule R A).fg)
+  (h2 : (adjoin (adjoin R s) t : submodule (adjoin R s) A).fg) :
+  (adjoin R (s ∪ t) : submodule R A).fg :=
 begin
   rcases fg_def.1 h1 with ⟨p, hp, hp'⟩,
   rcases fg_def.1 h2 with ⟨q, hq, hq'⟩,
@@ -180,16 +180,16 @@ begin
     rintros _ ⟨x, y, hx, hy, rfl⟩,
     change x * y ∈ _,
     refine is_submonoid.mul_mem _ _,
-    { have : x ∈ (adjoin R s).to_submodule,
+    { have : x ∈ (adjoin R s : submodule R A),
       { rw ← hp', exact subset_span hx },
       exact adjoin_mono (set.subset_union_left _ _) this },
-    have : y ∈ (adjoin (adjoin R s) t).to_submodule,
+    have : y ∈ (adjoin (adjoin R s) t : submodule (adjoin R s) A),
     { rw ← hq', exact subset_span hy },
     change y ∈ adjoin R (s ∪ t), rwa adjoin_union },
   { intros r hr,
     change r ∈ adjoin R (s ∪ t) at hr,
     rw adjoin_union at hr,
-    change r ∈ (adjoin (adjoin R s) t).to_submodule at hr,
+    change r ∈ (adjoin (adjoin R s) t : submodule (adjoin R s) A) at hr,
     haveI := classical.dec_eq A,
     haveI := classical.dec_eq R,
     rw [← hq', ← set.image_id q, finsupp.mem_span_iff_total (adjoin R s)] at hr,
@@ -198,7 +198,7 @@ begin
     rw [this, finsupp.sum],
     refine sum_mem _ _,
     intros z hz, change (l z).1 * _ ∈ _,
-    have : (l z).1 ∈ (adjoin R s).to_submodule := (l z).2,
+    have : (l z).1 ∈ (adjoin R s : submodule R A) := (l z).2,
     rw [← hp', ← set.image_id p, finsupp.mem_span_iff_total R] at this,
     rcases this with ⟨l2, hlp, hl⟩,
     have := @finsupp.total_apply A A R,
@@ -233,16 +233,15 @@ theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ a
 theorem fg_bot : (⊥ : subalgebra R A).fg :=
 ⟨∅, algebra.adjoin_empty R A⟩
 
-theorem fg_of_fg_to_submodule {S : subalgebra R A} : S.to_submodule.fg → S.fg :=
+theorem fg_of_fg_to_submodule {S : subalgebra R A} : (S : submodule R A).fg → S.fg :=
 λ ⟨t, ht⟩, ⟨t, le_antisymm
-  (algebra.adjoin_le (λ x hx, show x ∈ S.to_submodule, from ht ▸ subset_span hx)) $
-  show S.to_submodule ≤ (algebra.adjoin R ↑t).to_submodule,
-  from (λ x hx, span_le.mpr
+  (algebra.adjoin_le (λ x hx, show x ∈ (S : submodule R A), from ht ▸ subset_span hx))
+  (λ x (hx : x ∈ (S : submodule R A)), span_le.mpr
     (λ x hx, algebra.subset_adjoin hx)
       (show x ∈ span R ↑t, by { rw ht, exact hx }))⟩
 
 theorem fg_of_noetherian [is_noetherian R A] (S : subalgebra R A) : S.fg :=
-fg_of_fg_to_submodule (is_noetherian.noetherian S.to_submodule)
+fg_of_fg_to_submodule (is_noetherian.noetherian S)
 
 lemma fg_of_submodule_fg (h : (⊤ : submodule R A).fg) : (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := h in ⟨s, to_submodule_injective $
@@ -274,7 +273,7 @@ begin
   { simpa using base },
   intros x t hxt h,
   convert ih _ x h using 1,
-  rw [finset.coe_insert, algebra.adjoin_insert_adjoin]
+  rw [finset.coe_insert, coe_coe, algebra.adjoin_insert_adjoin]
 end
 
 end subalgebra

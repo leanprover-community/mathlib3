@@ -27,11 +27,13 @@ instance non_unital_non_assoc_semiring [∀ i, non_unital_non_assoc_semiring $ f
 by refine_struct { zero := (0 : Π i, f i), add := (+), mul := (*), .. };
   tactic.pi_instance_derive_field
 
-instance non_unital_semiring [∀ i, non_unital_semiring $ f i] : non_unital_semiring (Π i : I, f i) :=
+instance non_unital_semiring [∀ i, non_unital_semiring $ f i] :
+  non_unital_semiring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), add := (+), mul := (*), .. };
   tactic.pi_instance_derive_field
 
-instance non_assoc_semiring [∀ i, non_assoc_semiring $ f i] : non_assoc_semiring (Π i : I, f i) :=
+instance non_assoc_semiring [∀ i, non_assoc_semiring $ f i] :
+  non_assoc_semiring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*), .. };
   tactic.pi_instance_derive_field
 

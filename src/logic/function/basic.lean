@@ -623,7 +623,7 @@ eq_rec_on_bijective h.symm
 lemma cast_bijective {α β : Sort*} (h : α = β) : function.bijective (cast h) :=
 eq_rec_on_bijective h
 
-@[simp]
+-- this one interferes with the machinery of `simp` itself if marked @[simp]
 lemma eq_rec_inj {α : Sort*} {a a' : α} (h : a = a') {C : α → Sort*} (x y : C a) :
   (eq.rec x h : C a') = eq.rec y h ↔ x = y :=
 (eq_rec_on_bijective h).injective.eq_iff

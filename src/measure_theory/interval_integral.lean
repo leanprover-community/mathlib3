@@ -383,7 +383,8 @@ begin
     ennreal.to_real_of_real (le_of_lt hc), inv_smul_smul' (ne_of_gt hc)],
 end
 
-@[simp] lemma integral_comp_neg (hfm : ae_measurable f) : ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=
+@[simp] lemma integral_comp_neg (hfm : ae_measurable f) :
+  ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=
 begin
   have A : ae_measurable f (measure.map (λ (x : ℝ), -x) volume), by rwa real.map_volume_neg,
   conv_rhs { rw ← real.map_volume_neg },

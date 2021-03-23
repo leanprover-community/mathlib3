@@ -1166,8 +1166,10 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E 
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
-instance submodule.normed_space {𝕜 : Type*} [normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : submodule 𝕜 E) : normed_space 𝕜 s :=
+instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] [semimodule R E]
+  [is_scalar_tower 𝕜 R E] (s : submodule R E) :
+  normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
 
 end normed_space
@@ -1187,6 +1189,8 @@ normed_algebra.norm_algebra_map_eq _
 variables (𝕜 : Type*) [normed_field 𝕜]
 variables (𝕜' : Type*) [normed_ring 𝕜']
 
+-- This could also be proved via `linear_map.continuous_of_bound`,
+-- but this is further up the import tree in `normed_space.operator_norm`, so not yet available.
 @[continuity] lemma normed_algebra.algebra_map_continuous
   [normed_algebra 𝕜 𝕜'] :
   continuous (algebra_map 𝕜 𝕜') :=

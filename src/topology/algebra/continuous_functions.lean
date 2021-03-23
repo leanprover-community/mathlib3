@@ -50,10 +50,7 @@ lemma one_coe [has_one β]  :
   [topological_space α] [topological_space β] [topological_space γ]
   [semigroup γ] [has_continuous_mul γ] (f₁ f₂ : C(β, γ)) (g : C(α, β)) :
   (f₁ * f₂).comp g = f₁.comp g * f₂.comp g :=
-begin
-  ext,
-  simp,
-end
+by { ext, simp, }
 
 end continuous_map
 
@@ -505,14 +502,14 @@ lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x
 begin
   dsimp [min, max, abs],
   simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring; linarith,
+  split_ifs; ring_nf; linarith,
 end
 
 lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
 begin
   dsimp [min, max, abs],
   simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring; linarith,
+  split_ifs; ring_nf; linarith,
 end
 end
 
@@ -522,8 +519,6 @@ section lattice
 variables {α : Type*} [topological_space α]
 variables {β : Type*} [linear_ordered_field β] [topological_space β]
   [order_topology β] [topological_ring β]
-
-example : module β β := by apply_instance
 
 lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - (f - g).abs) :=
 ext (λ x, by simpa using min_eq_half_add_sub_abs_sub)

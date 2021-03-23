@@ -596,7 +596,7 @@ begin
   cases h with t ht,
   use t,
   rw [neg_mul_eq_neg_mul_symm, neg_mul_eq_neg_mul_symm, ht],
-  ring,
+  ring_nf,
 end⟩
 
 instance : has_zero (localization M) :=

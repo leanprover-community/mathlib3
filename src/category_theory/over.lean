@@ -269,7 +269,7 @@ Construct an isomorphism in the over category given isomorphisms of the objects 
 direction gives a commutative triangle.
 -/
 def iso_mk {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom ≫ hr.hom = g.hom) : f ≅ g :=
-costructured_arrow.iso_mk hr hw
+structured_arrow.iso_mk hr hw
 
 @[simp]
 lemma iso_mk_hom_right {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom ≫ hr.hom = g.hom) :

@@ -106,12 +106,6 @@ variables [semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R
 variables (f g : M →ₗ[R] M₂)
 include R
 
-@[simp] theorem comp_id : f.comp id = f :=
-linear_map.ext $ λ x, rfl
-
-@[simp] theorem id_comp : id.comp f = f :=
-linear_map.ext $ λ x, rfl
-
 theorem comp_assoc (g : M₂ →ₗ[R] M₃) (h : M₃ →ₗ[R] M₄) : (h.comp g).comp f = h.comp (g.comp f) :=
 rfl
 
@@ -249,6 +243,32 @@ end
 
 lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 by { ext m, apply pow_apply, }
+
+section
+variables {f' : M →ₗ[R] M}
+
+lemma iterate_succ (n : ℕ) : (f' ^ (n + 1)) = comp (f' ^ n) f' :=
+by rw [pow_succ', mul_eq_comp]
+
+lemma iterate_surjective (h : surjective f') : ∀ n : ℕ, surjective ⇑(f' ^ n)
+| 0       := surjective_id
+| (n + 1) := by { rw [iterate_succ], exact surjective.comp (iterate_surjective n) h, }
+
+lemma iterate_injective (h : injective f') : ∀ n : ℕ, injective ⇑(f' ^ n)
+| 0       := injective_id
+| (n + 1) := by { rw [iterate_succ], exact injective.comp (iterate_injective n) h, }
+
+lemma iterate_bijective (h : bijective f') : ∀ n : ℕ, bijective ⇑(f' ^ n)
+| 0       := bijective_id
+| (n + 1) := by { rw [iterate_succ], exact bijective.comp (iterate_bijective n) h, }
+
+lemma injective_of_iterate_injective {n : ℕ} (hn : n ≠ 0) (h : injective ⇑(f' ^ n)) :
+  injective f' :=
+begin
+  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), iterate_succ, ←comp_coe] at h,
+  exact injective.of_comp h,
+end
+end
 
 section
 open_locale classical
@@ -1681,15 +1701,11 @@ end ring
 end submodule
 
 namespace linear_map
-variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
-variables [module R M] [module R M₂] [module R M₃]
 
-lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
-linear_map.ext $ λ x, by simp
+section semiring
 
-lemma ker_le_range_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} :
-  g.ker ≤ f.range ↔ f.range.mkq.comp g.ker.subtype = 0 :=
-by rw [←range_le_ker_iff, submodule.ker_mkq, submodule.range_subtype]
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 
 /-- A monomorphism is injective. -/
 lemma ker_eq_bot_of_cancel {f : M →ₗ[R] M₂}
@@ -1700,6 +1716,28 @@ begin
   exact range_zero
 end
 
+lemma range_comp_of_range_eq_top {f : M →ₗ[R] M₂} (g : M₂ →ₗ[R] M₃) (hf : range f = ⊤) :
+  range (g.comp f) = range g :=
+by rw [range_comp, hf, submodule.map_top]
+
+lemma ker_comp_of_ker_eq_bot (f : M →ₗ[R] M₂) {g : M₂ →ₗ[R] M₃} (hg : ker g = ⊥) :
+  ker (g.comp f) = ker f :=
+by rw [ker_comp, hg, submodule.comap_bot]
+
+end semiring
+
+section ring
+
+variables [ring R] [add_comm_monoid M] [add_comm_group M₂] [add_comm_monoid M₃]
+variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
+
+lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
+linear_map.ext $ λ x, by simp
+
+lemma ker_le_range_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} :
+  g.ker ≤ f.range ↔ f.range.mkq.comp g.ker.subtype = 0 :=
+by rw [←range_le_ker_iff, submodule.ker_mkq, submodule.range_subtype]
+
 /-- An epimorphism is surjective. -/
 lemma range_eq_top_of_cancel {f : M →ₗ[R] M₂}
   (h : ∀ (u v : M₂ →ₗ[R] f.range.quotient), u.comp f = v.comp f → u = v) : f.range = ⊤ :=
@@ -1708,6 +1746,8 @@ begin
   rw [←submodule.ker_mkq f.range, ←h 0 f.range.mkq (eq.trans h₁ (range_mkq_comp _).symm)],
   exact ker_zero
 end
+
+end ring
 
 end linear_map
 
@@ -1769,7 +1809,8 @@ end uncurry
 
 section
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
-variables (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M) (e : M ≃ₗ[R] M₂)
+  {semimodule_M₃ : semimodule R M₃}
+variables (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M) (e : M ≃ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) (l : M₃ →ₗ[R] M)
 
 variables (p q : submodule R M)
 
@@ -1832,6 +1873,12 @@ end
 
 @[simp] protected theorem ker : (e : M →ₗ[R] M₂).ker = ⊥ :=
 linear_map.ker_eq_bot_of_injective e.to_equiv.injective
+
+@[simp] theorem range_comp : (h.comp (e : M →ₗ[R] M₂)).range = h.range :=
+linear_map.range_comp_of_range_eq_top _ e.range
+
+@[simp] theorem ker_comp : ((e : M →ₗ[R] M₂).comp l).ker = l.ker :=
+linear_map.ker_comp_of_ker_eq_bot _ e.ker
 
 variables {f g}
 

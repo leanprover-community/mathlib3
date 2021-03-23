@@ -58,7 +58,7 @@ product measure, Fubini's theorem, Tonelli's theorem, Fubini-Tonelli theorem
 -/
 
 noncomputable theory
-open_locale classical topological_space ennreal
+open_locale classical topological_space ennreal measure_theory
 open set function real ennreal
 open measure_theory measurable_space measure_theory.measure
 open topological_space (hiding generate_from)
@@ -539,6 +539,23 @@ by { refine prod_eq (λ s t hs ht, _), simp_rw [add_apply, prod_prod hs ht, left
 
 lemma add_prod (μ' : measure α) [sigma_finite μ'] : (μ + μ').prod ν = μ.prod ν + μ'.prod ν :=
 by { refine prod_eq (λ s t hs ht, _), simp_rw [add_apply, prod_prod hs ht, right_distrib] }
+
+@[simp] lemma zero_prod (ν : measure β) : (0 : measure α).prod ν = 0 :=
+by { rw measure.prod, exact bind_zero_left _ }
+
+@[simp] lemma prod_zero (μ : measure α) : μ.prod (0 : measure β) = 0 :=
+by simp [measure.prod]
+
+lemma map_prod_map {δ} [measurable_space δ] {f : α → β} {g : γ → δ}
+  {μa : measure α} {μc : measure γ} (hfa : sigma_finite (map f μa))
+  (hgc : sigma_finite (map g μc)) (hf : measurable f) (hg : measurable g) :
+  (map f μa).prod (map g μc) = map (prod.map f g) (μa.prod μc) :=
+begin
+  haveI := hgc.of_map μc hg,
+  refine prod_eq (λ s t hs ht, _),
+  rw [map_apply (hf.prod_map hg) (hs.prod ht), map_apply hf hs, map_apply hg ht],
+  exact prod_prod (hf hs) (hg ht)
+end
 
 end measure
 end measure_theory

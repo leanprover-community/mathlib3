@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import topology.metric_space.lipschitz
+import topology.uniform_space.complete_separated
 
 /-!
 # Antilipschitz functions
@@ -120,6 +121,16 @@ begin
       have := ennreal.mul_lt_of_lt_div hxy,
       rwa mul_comm } }
 end
+
+lemma closed_embedding [complete_space α]
+  (hf : antilipschitz_with K f) (hfc : uniform_continuous f) : closed_embedding f :=
+{ closed_range :=
+  begin
+    apply is_complete.is_closed,
+    rw ← complete_space_iff_is_complete_range (hf.uniform_embedding hfc),
+    apply_instance,
+  end,
+  .. (hf.uniform_embedding hfc).embedding }
 
 lemma subtype_coe (s : set α) : antilipschitz_with 1 (coe : s → α) :=
 antilipschitz_with.id.restrict s

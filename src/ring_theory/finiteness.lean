@@ -332,6 +332,18 @@ begin
   exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R sum_fin_sum_equiv).symm
 end
 
+
+/-- If `A` is an `R`-algebra and `S` is an `A`-algebra, both finitely presented, then `S` is
+  finitely presented as `R`-algebra. -/
+lemma trans [algebra A B] [is_scalar_tower R A B] (hfpA : finite_presentation R A)
+  (hfpB : finite_presentation A B) : finite_presentation R B :=
+begin
+  obtain ⟨n, I, e, hfg⟩ := iff.1 hfpB,
+  -- note that this unfolds `algebra.comap` from the last argument of `is_scalar_tower`
+  letI : is_scalar_tower R A I.quotient := is_scalar_tower.comap,
+  exact equiv (quotient hfg (mv_polynomial_of_finite_presentation hfpA _)) (e.restrict_scalars R)
+end
+
 end finite_presentation
 
 end algebra
@@ -432,6 +444,15 @@ by { rw ← f.comp_id, exact (id A).comp_surjective hf hker}
 lemma of_finite_type [is_noetherian_ring A] {f : A →+* B} : f.finite_type ↔ f.finite_presentation :=
 @algebra.finite_presentation.of_finite_type A B _ _ f.to_algebra _
 
+lemma comp {g : B →+* C} {f : A →+* B} (hg : g.finite_presentation) (hf : f.finite_presentation) :
+  (g.comp f).finite_presentation :=
+@algebra.finite_presentation.trans A B C _ _ f.to_algebra _ (g.comp f).to_algebra g.to_algebra
+{ smul_assoc := λ a b c, begin
+    simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc],
+    refl
+  end }
+hf hg
+
 end finite_presentation
 
 end ring_hom
@@ -504,6 +525,10 @@ variables (R A)
 lemma id : finite_presentation (alg_hom.id R A) := ring_hom.finite_presentation.id A
 
 variables {R A}
+
+lemma comp {g : B →ₐ[R] C} {f : A →ₐ[R] B} (hg : g.finite_presentation)
+  (hf : f.finite_presentation) : (g.comp f).finite_presentation :=
+ring_hom.finite_presentation.comp hg hf
 
 lemma comp_surjective {f : A →ₐ[R] B} {g : B →ₐ[R] C} (hf : f.finite_presentation)
   (hg : surjective g) (hker : g.to_ring_hom.ker.fg) : (g.comp f).finite_presentation :=

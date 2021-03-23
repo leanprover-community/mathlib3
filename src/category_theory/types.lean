@@ -31,7 +31,8 @@ We prove some basic facts about the category `Type`:
 
 namespace category_theory
 
-universes v v' w u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- morphism levels before object levels. See note [category_theory universes].
+universes v v' w u u'
 
 instance types : large_category (Type u) :=
 { hom     := λ a b, (a → b),

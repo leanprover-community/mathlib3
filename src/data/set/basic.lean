@@ -894,7 +894,7 @@ by finish [ext_iff]
 eq_empty_of_subset_empty $ assume x ⟨hx, _⟩, hx
 
 theorem diff_eq_empty {s t : set α} : s \ t = ∅ ↔ s ⊆ t :=
-⟨assume h x hx, classical.by_contradiction $ assume : x ∉ t, show x ∈ (∅ : set α), from h ▸ ⟨hx, this⟩,
+⟨assume h x hx, by_contradiction $ assume : x ∉ t, show x ∈ (∅ : set α), from h ▸ ⟨hx, this⟩,
   assume h, eq_empty_of_subset_empty $ assume x ⟨hx, hnx⟩, hnx $ h hx⟩
 
 @[simp] theorem diff_empty {s : set α} : s \ ∅ = s :=
@@ -1044,6 +1044,12 @@ ite_inter_compl_self t s s'
 by simp [set.ite]
 
 @[simp] lemma ite_univ (s s' : set α) : set.ite univ s s' = s :=
+by simp [set.ite]
+
+@[simp] lemma ite_empty_left (t s : set α) : t.ite ∅ s = s \ t :=
+by simp [set.ite]
+
+@[simp] lemma ite_empty_right (t s : set α) : t.ite s ∅ = s ∩ t :=
 by simp [set.ite]
 
 lemma ite_mono (t : set α) {s₁ s₁' s₂ s₂' : set α} (h : s₁ ⊆ s₂) (h' : s₁' ⊆ s₂') :
@@ -1965,6 +1971,10 @@ lemma prod_preimage_left {f : γ → α} : (f ⁻¹' s).prod t = (λp, (f p.1, p
 
 lemma prod_preimage_right {g : δ → β} : s.prod (g ⁻¹' t) = (λp, (p.1, g p.2)) ⁻¹' (s.prod t) := rfl
 
+lemma preimage_prod_map_prod (f : α → β) (g : γ → δ) (s : set β) (t : set δ) :
+  prod.map f g ⁻¹' (s.prod t) = (f ⁻¹' s).prod (g ⁻¹' t) :=
+rfl
+
 lemma mk_preimage_prod (f : γ → α) (g : γ → β) :
   (λ x, (f x, g x)) ⁻¹' s.prod t = f ⁻¹' s ∩ g ⁻¹' t := rfl
 
@@ -2008,7 +2018,7 @@ theorem image_swap_prod : prod.swap '' t.prod s = s.prod t :=
 by rw [image_swap_eq_preimage_swap, preimage_swap_prod]
 
 theorem prod_image_image_eq {m₁ : α → γ} {m₂ : β → δ} :
-  (image m₁ s).prod (image m₂ t) = image (λp:α×β, (m₁ p.1, m₂ p.2)) (s.prod t) :=
+  (m₁ '' s).prod (m₂ '' t) = image (λp:α×β, (m₁ p.1, m₂ p.2)) (s.prod t) :=
 ext $ by simp [-exists_and_distrib_right, exists_and_distrib_right.symm, and.left_comm,
   and.assoc, and.comm]
 
@@ -2439,7 +2449,7 @@ iff.rfl
 @[congr] lemma image3_congr (h : ∀ (a ∈ s) (b ∈ t) (c ∈ u), g a b c = g' a b c) :
   image3 g s t u = image3 g' s t u :=
 by { ext x,
-     split; rintro ⟨a, b, c, ha, hb, hc, rfl⟩; refine ⟨a, b, c, ha, hb, hc, by rw h a ha b hb c hc⟩ }
+     split; rintro ⟨a, b, c, ha, hb, hc, rfl⟩; exact ⟨a, b, c, ha, hb, hc, by rw h a ha b hb c hc⟩ }
 
 /-- A common special case of `image3_congr` -/
 lemma image3_congr' (h : ∀ a b c, g a b c = g' a b c) : image3 g s t u = image3 g' s t u :=

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 
 Construction of a good coupling between nonempty compact metric spaces, minimizing
 their Hausdorff distance. This construction is instrumental to study the Gromov-Hausdorff

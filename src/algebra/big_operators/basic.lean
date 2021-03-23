@@ -404,21 +404,65 @@ calc (∏ a in s.filter p, f a) = ∏ a in s.filter p, if p a then f a else 1 :
     end
 
 @[to_additive]
-lemma prod_eq_single {s : finset α} {f : α → β} (a : α)
-  (h₀ : ∀b∈s, b ≠ a → f b = 1) (h₁ : a ∉ s → f a = 1) : (∏ x in s, f x) = f a :=
-by haveI := classical.dec_eq α;
-from classical.by_cases
-  (assume : a ∈ s,
-    calc (∏ x in s, f x) = ∏ x in {a}, f x :
+lemma prod_eq_single' {s : finset α} {f : α → β} (a : α) (h : a ∈ s)
+  (h₀ : ∀b∈s, b ≠ a → f b = 1) : (∏ x in s, f x) = f a :=
+begin
+  haveI := classical.dec_eq α;
+  calc (∏ x in s, f x) = ∏ x in {a}, f x :
       begin
         refine (prod_subset _ _).symm,
         { intros _ H, rwa mem_singleton.1 H },
         { simpa only [mem_singleton] }
       end
-      ... = f a : prod_singleton)
+      ... = f a : prod_singleton
+end
+
+@[to_additive]
+lemma prod_eq_single {s : finset α} {f : α → β} (a : α)
+  (h₀ : ∀b∈s, b ≠ a → f b = 1) (h₁ : a ∉ s → f a = 1) : (∏ x in s, f x) = f a :=
+by haveI := classical.dec_eq α;
+from classical.by_cases
+  (assume : a ∈ s, prod_eq_single' a this h₀)
   (assume : a ∉ s,
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
       prod_const_one.trans (h₁ this).symm)
+
+@[to_additive]
+lemma prod_eq_double' {s : finset α} {f : α → β} (a b : α) (ha : a ∈ s) (hb : b ∈ s) (hn : a ≠ b)
+  (h₀ : ∀ c ∈ s, c ≠ a ∧ c ≠ b → f c = 1) : (∏ x in s, f x) = (f a) * (f b) :=
+begin
+  haveI := classical.dec_eq α;
+  let s' := ({a, b} : finset α),
+  have hu : s' ⊆ s,
+  { refine insert_subset.mpr _, apply and.intro ha, apply singleton_subset_iff.mpr hb },
+  have hf : ∀ c ∈ s, c ∉ s' → f c = 1,
+  { intros c hc hcs, apply h₀ c hc, apply not_or_distrib.mp, intro hab,
+    apply hcs, apply mem_insert.mpr, rw mem_singleton, exact hab },
+  rw ←prod_subset hu hf,
+  exact finset.prod_pair hn
+end
+
+@[to_additive]
+lemma prod_eq_double {s : finset α} {f : α → β} (a b : α) (hn : a ≠ b)
+  (h₀ : ∀ c ∈ s, c ≠ a ∧ c ≠ b → f c = 1) (h₁ : ∀ (c : α), c ∉ s → f c = 1) :
+  (∏ x in s, f x) = (f a) * (f b) :=
+begin
+  haveI := classical.dec_eq α;
+  by_cases ha : a ∈ s; by_cases hb : b ∈ s,
+  { exact prod_eq_double' a b ha hb hn h₀ },
+  { rw [h₁ b hb, mul_one],
+    apply prod_eq_single' a ha,
+    exact λ c hc hca, h₀ c hc ⟨hca, ne_of_mem_of_not_mem hc hb⟩ },
+  { rw [h₁ a ha, one_mul],
+    apply prod_eq_single' b hb,
+    exact λ c hc hcb, h₀ c hc ⟨ne_of_mem_of_not_mem hc ha, hcb⟩ },
+  { rw [h₁ a ha, h₁ b hb, mul_one],
+    convert prod_const_one,
+    ext c,
+    by_cases hc : c ∈ s,
+    { apply h₀ c hc, exact ⟨ne_of_mem_of_not_mem hc ha, ne_of_mem_of_not_mem hc hb⟩ },
+    { exact h₁ c hc }}
+end
 
 @[to_additive]
 lemma prod_attach {f : α → β} : (∏ x in s.attach, f x) = (∏ x in s, f x) :=

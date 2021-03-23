@@ -18,13 +18,13 @@ and similarly for other binary operations. The reason for introducing these clas
 of topological space `α` equipped with the Borel `Σ`-algebra, instances for `has_measurable_mul₂`
 etc require `α` to have a second countable topology.
 
-The only exception is scalar multiplication. In this case we define `has_measurable_const_smul` and
-`has_measurable_smul`. We define separate classes for `has_measurable_div`/`has_measurable_sub`
+We define separate classes for `has_measurable_div`/`has_measurable_sub`
 because on some types (e.g., `ℕ`, `ℝ≥0∞`) division and/or subtraction are not defined as `a * b⁻¹` /
 `a + (-b)`.
 
 For instances relating, e.g., `has_continuous_mul` to `has_measurable_mul` see file
-`measure_theory.borel_space`. -/
+`measure_theory.borel_space`.
+-/
 
 open_locale big_operators
 open measure_theory
@@ -109,6 +109,7 @@ lemma ae_measurable.mul_const [has_measurable_mul M] {f : α → M} {μ : measur
 
 end mul
 
+/-- This class assumes that the map `β × γ → β` given by `(x, y) ↦ x ^ y` is measurable. -/
 class has_measurable_pow (β γ : Type*) [measurable_space β] [measurable_space γ] [has_pow β γ] :=
 (measurable_pow : measurable (λ p : β × γ, p.1 ^ p.2))
 
@@ -224,9 +225,11 @@ lemma ae_measurable.div_const [has_measurable_div G] {f : α → G} {μ : measur
 
 end div
 
+/-- We say that a type `has_measurable_neg` if `x ↦ -x` is a measurable function. -/
 class has_measurable_neg (G : Type*) [has_neg G] [measurable_space G] : Prop :=
 (measurable_neg : measurable (has_neg.neg : G → G))
 
+/-- We say that a type `has_measurable_inv` if `x ↦ x⁻¹` is a measurable function. -/
 @[to_additive]
 class has_measurable_inv (G : Type*) [has_inv G] [measurable_space G] : Prop :=
 (measurable_inv : measurable (has_inv.inv : G → G))
@@ -295,9 +298,13 @@ instance has_measurable_div₂_of_mul_inv (G : Type*) [measurable_space G]
   has_measurable_div₂ G :=
 ⟨by { simp only [div_eq_mul_inv], exact measurable_fst.mul measurable_snd.inv }⟩
 
+/-- We say that the action of `M` on `α` `has_measurable_const_smul` if for each `c` the map
+`x ↦ c • x` is a measurable function. -/
 class has_measurable_const_smul (M α : Type*) [has_scalar M α] [measurable_space α] : Prop :=
 (measurable_const_smul : ∀ (c : M), measurable ((•) c : α → α))
 
+/-- We say that the action of `M` on `α` `has_measurable__smul` if the map
+`(c, x) ↦ c • x` is a measurable function. -/
 class has_measurable_smul (M α : Type*) [has_scalar M α] [measurable_space M]
   [measurable_space α] : Prop :=
 (measurable_smul : measurable (function.uncurry (•) : M × α → α))

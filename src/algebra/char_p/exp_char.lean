@@ -34,23 +34,25 @@ section semiring
 variables [semiring R]
 
 /-- The definition of the exponential characteristic of a semiring. -/
-class exp_char (R : Type u) [semiring R] (q : ℕ) : Prop :=
-(exp_char_def : (q = 1 ∧ char_zero R) ∨ (q.prime ∧ char_p R q))
+class inductive exp_char (R : Type u) [semiring R] : ℕ → Prop
+| zero [char_zero R] : exp_char 1
+| prime {q : ℕ} (hprime : q.prime) [hchar : char_p R q] : exp_char q
 
 /-- The exponential characteristic is one if the characteristic is zero. -/
 lemma exp_char_one_of_char_zero (q : ℕ) [hp : char_p R 0] [hq : exp_char R q] :
 q = 1 :=
 begin
-  cases hq.exp_char_def with q_one q_prime,
-  { exact q_one.1, },
-  { exact false.elim (lt_irrefl _ ((hp.eq R q_prime.2).symm ▸ q_prime.1 : (0 : ℕ).prime).pos) }
+  casesI hq,
+  { refl },
+  { exact false.elim (lt_irrefl _ ((hp.eq R hq_hchar).symm ▸ hq_hprime : (0 : ℕ).prime).pos) }
 end
 
 /-- The characteristic equals the exponential characteristic iff the former is prime. -/
 theorem char_eq_exp_char_iff (p q : ℕ) [hp : char_p R p] [hq : exp_char R q] :
 p = q ↔ p.prime :=
 begin
-  unfreezingI {rcases hq.exp_char_def with ⟨rfl,q_one⟩ | q_prime},
+  casesI hq,
+  --unfreezingI {rcases hq.exp_char_def with ⟨rfl,q_one⟩ | q_prime},
   { split,
     { unfreezingI {rintro rfl},
       exact false.elim (one_ne_zero (hp.eq R (char_p.of_char_zero R))) },
@@ -58,9 +60,9 @@ begin
       rw (char_p.eq R hp infer_instance : p = 0) at pprime,
       exact false.elim (nat.not_prime_zero pprime) } },
   { split,
-    { intro hpq, rw hpq, exact q_prime.1, },
+    { intro hpq, rw hpq, exact hq_hprime, },
     { intro _,
-      exact char_p.eq R hp q_prime.2 } },
+      exact char_p.eq R hp hq_hchar } },
 end
 
 section nontrivial
@@ -71,21 +73,18 @@ variables [nontrivial R]
 lemma char_zero_of_exp_char_one (p : ℕ) [hp : char_p R p] [hq : exp_char R 1] :
 p = 0 :=
 begin
-  cases hq.exp_char_def with q_one q_prime,
-  { haveI := q_one.2,
-    exact char_p.eq R hp infer_instance, },
-  { haveI := q_prime.2,
-    exact false.elim (char_p.char_ne_one R 1 rfl), }
+  casesI hq,
+  { exact char_p.eq R hp infer_instance, },
+  { exact false.elim (char_p.char_ne_one R 1 rfl), }
 end
 
 /-- The exponential characteristic is one if the characteristic is zero. -/
 @[priority 100] -- see Note [lower instance priority]
 instance char_zero_of_exp_char_one' [hq : exp_char R 1] : char_zero R :=
 begin
-  cases hq.exp_char_def,
-  { exact h.2, },
-  { haveI := h.2,
-    exact false.elim (char_p.char_ne_one R 1 rfl), }
+  casesI hq,
+  { assumption, },
+  { exact false.elim (char_p.char_ne_one R 1 rfl), }
 end
 
 /-- The exponential characteristic is one iff the characteristic is zero. -/

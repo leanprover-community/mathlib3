@@ -5,6 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import topology.instances.nnreal
 import topology.algebra.module
+import topology.algebra.algebra
 import topology.metric_space.antilipschitz
 
 /-!
@@ -294,7 +295,7 @@ lipschitz_on_with_iff_norm_sub_le.mp h x x_in y y_in
 /-- A homomorphism `f` of normed groups is continuous, if there exists a constant `C` such that for
 all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
 The analogous condition for a linear map of normed spaces is in `normed_space.operator_norm`. -/
-lemma add_monoid_hom.continuous_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+lemma add_monoid_hom.continuous_of_bound (f : α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   continuous f :=
 (f.lipschitz_of_bound C h).continuous
 
@@ -920,6 +921,22 @@ real.norm_of_nonneg (norm_nonneg _)
 @[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
 by simp only [nnnorm, norm_norm]
 
+/-- A restatement of `metric_space.tendsto_at_top` in terms of the norm. -/
+lemma normed_group.tendsto_at_top [nonempty α] [semilattice_sup α] {β : Type*} [normed_group β]
+  {f : α → β} {b : β} :
+  tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N ≤ n → ∥f n - b∥ < ε :=
+(at_top_basis.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])
+
+/--
+A variant of `normed_group.tendsto_at_top` that
+uses `∃ N, ∀ n > N, ...` rather than `∃ N, ∀ n ≥ N, ...`
+-/
+lemma normed_group.tendsto_at_top' [nonempty α] [semilattice_sup α] [no_top_order α]
+  {β : Type*} [normed_group β]
+  {f : α → β} {b : β} :
+  tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N < n → ∥f n - b∥ < ε :=
+(at_top_basis_Ioi.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])
+
 instance : normed_comm_ring ℤ :=
 { norm := λ n, ∥(n : ℝ)∥,
   norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
@@ -967,16 +984,14 @@ instance normed_field.to_normed_space : normed_space α α :=
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 begin
-  classical,
   by_cases h : s = 0,
   { simp [h] },
   { refine le_antisymm (normed_space.norm_smul_le s x) _,
     calc ∥s∥ * ∥x∥ = ∥s∥ * ∥s⁻¹ • s • x∥     : by rw [inv_smul_smul' h]
-               ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) : _
-               ... = ∥s • x∥                 : _,
-    exact mul_le_mul_of_nonneg_left (normed_space.norm_smul_le _ _) (norm_nonneg _),
-    rw [normed_field.norm_inv, ← mul_assoc, mul_inv_cancel, one_mul],
-    rwa [ne.def, norm_eq_zero] }
+               ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) :
+      mul_le_mul_of_nonneg_left (normed_space.norm_smul_le _ _) (norm_nonneg _)
+               ... = ∥s • x∥                 :
+      by rw [normed_field.norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
 end
 
 @[simp] lemma abs_norm_eq_norm (z : β) : abs ∥z∥ = ∥z∥ :=
@@ -1014,6 +1029,12 @@ begin
       (continuous_snd.tendsto p).norm).add
         (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
 end
+
+theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
+  ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=
+have tendsto (λ y, ∥c • (y - x)∥) (𝓝 x) (𝓝 0),
+  from (continuous_const.smul (continuous_id.sub continuous_const)).norm.tendsto' _ _ (by simp),
+this.eventually (gt_mem_nhds h)
 
 theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
   closure (ball x r) = closed_ball x r :=
@@ -1145,8 +1166,10 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E 
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
-instance submodule.normed_space {𝕜 : Type*} [normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : submodule 𝕜 E) : normed_space 𝕜 s :=
+instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] [semimodule R E]
+  [is_scalar_tower 𝕜 R E] (s : submodule R E) :
+  normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
 
 end normed_space
@@ -1165,6 +1188,21 @@ normed_algebra.norm_algebra_map_eq _
 
 variables (𝕜 : Type*) [normed_field 𝕜]
 variables (𝕜' : Type*) [normed_ring 𝕜']
+
+-- This could also be proved via `linear_map.continuous_of_bound`,
+-- but this is further up the import tree in `normed_space.operator_norm`, so not yet available.
+@[continuity] lemma normed_algebra.algebra_map_continuous
+  [normed_algebra 𝕜 𝕜'] :
+  continuous (algebra_map 𝕜 𝕜') :=
+begin
+  change continuous (algebra_map 𝕜 𝕜').to_add_monoid_hom,
+  exact add_monoid_hom.continuous_of_bound _ 1 (λ x, by simp),
+end
+
+@[priority 100]
+instance normed_algebra.to_topological_algebra [normed_algebra 𝕜 𝕜'] :
+  topological_algebra 𝕜 𝕜' :=
+⟨by continuity⟩
 
 @[priority 100]
 instance normed_algebra.to_normed_space [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=

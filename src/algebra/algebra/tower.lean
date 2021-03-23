@@ -45,6 +45,10 @@ def lsmul : A →ₐ[R] module.End R M :=
 
 @[simp] lemma lsmul_coe (a : A) : (lsmul R M a : M → M) = (•) a := rfl
 
+@[simp] lemma lmul_algebra_map (x : R) :
+  lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
+eq.symm $ linear_map.ext $ smul_def'' x
+
 end algebra
 
 namespace is_scalar_tower
@@ -309,3 +313,18 @@ le_antisymm (span_le.2 $ λ x hx, let ⟨p, q, hps, hqt, hpqx⟩ := set.mem_smul
 end submodule
 
 end semiring
+
+section ring
+
+namespace algebra
+
+variables [comm_semiring R] [ring A] [algebra R A]
+variables [add_comm_group M] [module A M] [semimodule R M] [is_scalar_tower R A M]
+
+lemma lsmul_injective [no_zero_smul_divisors A M] {x : A} (hx : x ≠ 0) :
+  function.injective (lsmul R M x) :=
+smul_injective hx
+
+end algebra
+
+end ring

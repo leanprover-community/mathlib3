@@ -1239,18 +1239,18 @@ lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
   count a (∑ x in s, f x) = ∑ x in s, count a (f x) :=
 by { dunfold finset.sum, rw count_sum }
 
-@[simp] lemma to_finset_sum_count_smul_eq (s : multiset α) :
+@[simp] lemma to_finset_sum_count_nsmul_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a •ℕ (a ::ₘ 0)) = s :=
 begin
   apply ext', intro b,
   rw count_sum',
   have h : count b s = count b (count b s •ℕ (b ::ₘ 0)),
-  { rw [singleton_coe, count_smul, ← singleton_coe, count_singleton, mul_one] },
+  { rw [singleton_coe, count_nsmul, ← singleton_coe, count_singleton, mul_one] },
   rw h, clear h,
   apply finset.sum_eq_single b,
-  { intros c h hcb, rw count_smul, convert mul_zero (count c s),
+  { intros c h hcb, rw count_nsmul, convert mul_zero (count c s),
     apply count_eq_zero.mpr, exact finset.not_mem_singleton.mpr (ne.symm hcb) },
-  { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_smul, zero_mul]}
+  { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_nsmul, zero_mul]}
 end
 
 theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} (h : ∀ (a : α), k ∣ multiset.count a s) :
@@ -1262,7 +1262,7 @@ begin
   { refine congr_arg s.to_finset.sum _,
     apply funext, intro x,
     rw [← mul_nsmul, nat.mul_div_cancel' (h x)] },
-  rw [← finset.sum_nsmul, h₂, to_finset_sum_count_smul_eq]
+  rw [← finset.sum_nsmul, h₂, to_finset_sum_count_nsmul_eq]
 end
 
 end multiset

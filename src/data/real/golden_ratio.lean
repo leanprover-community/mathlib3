@@ -183,7 +183,7 @@ begin
     { simp },
     { simp only [golden_ratio, golden_conj], ring_exp, rw mul_inv_cancel; norm_num } },
   { exact fib_is_sol_fib_rec },
-  { ring,
+  { ring_nf,
     exact (@fib_rec ℝ _).sol_space.sub_mem
             (submodule.smul_mem fib_rec.sol_space (real.sqrt 5)⁻¹ geom_gold_is_sol_fib_rec)
             (submodule.smul_mem fib_rec.sol_space (real.sqrt 5)⁻¹ geom_gold_conj_is_sol_fib_rec) }

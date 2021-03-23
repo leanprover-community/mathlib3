@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Chris Hughes
+Authors: Chris Hughes
 -/
 
 import data.int.modeq
@@ -706,7 +706,7 @@ begin
   conv_lhs { congr, rw [← nat.mod_add_div n 2, int.coe_nat_add, int.coe_nat_mul,
     int.coe_nat_bit0, int.coe_nat_one] },
   suffices : ((n % 2 : ℕ) + (n / 2) : ℤ) ≤ (val x),
-  { rw ← sub_nonneg at this ⊢, apply le_trans this (le_of_eq _), ring },
+  { rw ← sub_nonneg at this ⊢, apply le_trans this (le_of_eq _), ring_nf, ring },
   norm_cast,
   calc (n : ℕ) % 2 + n / 2 ≤ 1 + n / 2 :
     nat.add_le_add_right (nat.le_of_lt_succ (nat.mod_lt _ dec_trivial)) _

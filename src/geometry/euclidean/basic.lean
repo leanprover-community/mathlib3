@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import analysis.normed_space.inner_product
 import algebra.quadratic_discriminant
@@ -197,7 +197,7 @@ begin
     { rw norm_eq_zero at hy,
       rw [hy, inner_zero_right, zero_mul, neg_zero] } },
   { field_simp [h],
-    ring }
+    ring_nf }
 end
 
 /-- The angle between two vectors is zero if and only if they are
@@ -726,7 +726,7 @@ lemma dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_proje
     dist p1 (orthogonal_projection s p2) * dist p1 (orthogonal_projection s p2) +
     dist p2 (orthogonal_projection s p2) * dist p2 (orthogonal_projection s p2) :=
 begin
-  rw [metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
+  rw [pseudo_metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
     dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (orthogonal_projection s p2) p2,
     norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero],
   exact submodule.inner_right_of_mem_orthogonal

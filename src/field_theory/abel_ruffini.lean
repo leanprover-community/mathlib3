@@ -103,7 +103,7 @@ begin
   apply is_solvable_of_comm,
   intros σ τ,
   ext a ha,
-  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero_iff_eq] at ha,
+  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
   have key : ∀ σ : (X ^ n - 1 : polynomial F).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
     obtain ⟨m, hm⟩ := σ.to_alg_hom.to_ring_hom.map_root_of_unity_eq_pow_self
@@ -136,11 +136,11 @@ begin
   have mem_range : ∀ {c}, c ^ n = 1 → ∃ d, algebra_map F (X ^ n - C a).splitting_field d = c :=
     λ c hc, ring_hom.mem_range.mp (minpoly.mem_range_of_degree_eq_one F c (or.resolve_left h hn'''
       (minpoly.irreducible ((splitting_field.normal (X ^ n - C a)).is_integral c)) (minpoly.dvd F c
-      (by rwa [map_id, alg_hom.map_sub, sub_eq_zero_iff_eq, aeval_X_pow, aeval_one])))),
+      (by rwa [map_id, alg_hom.map_sub, sub_eq_zero, aeval_X_pow, aeval_one])))),
   apply is_solvable_of_comm,
   intros σ τ,
   ext b hb,
-  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_C, sub_eq_zero_iff_eq] at hb,
+  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_C, sub_eq_zero] at hb,
   have hb' : b ≠ 0,
   { intro hb',
     rw [hb', zero_pow hn'] at hb,
@@ -168,7 +168,7 @@ begin
   have hn'' : (X ^ n - C a).degree ≠ 0 :=
     ne_of_eq_of_ne (degree_X_pow_sub_C hn' a) (mt with_bot.coe_eq_coe.mp hn),
   obtain ⟨b, hb⟩ := exists_root_of_splits i h hn'',
-  rw [eval₂_sub, eval₂_X_pow, eval₂_C, sub_eq_zero_iff_eq] at hb,
+  rw [eval₂_sub, eval₂_X_pow, eval₂_C, sub_eq_zero] at hb,
   have hb' : b ≠ 0,
   { intro hb',
     rw [hb', zero_pow hn'] at hb,

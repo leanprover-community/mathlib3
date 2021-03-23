@@ -706,7 +706,7 @@ begin
   conv_lhs { congr, rw [← nat.mod_add_div n 2, int.coe_nat_add, int.coe_nat_mul,
     int.coe_nat_bit0, int.coe_nat_one] },
   suffices : ((n % 2 : ℕ) + (n / 2) : ℤ) ≤ (val x),
-  { rw ← sub_nonneg at this ⊢, apply le_trans this (le_of_eq _), ring },
+  { rw ← sub_nonneg at this ⊢, apply le_trans this (le_of_eq _), ring_nf, ring },
   norm_cast,
   calc (n : ℕ) % 2 + n / 2 ≤ 1 + n / 2 :
     nat.add_le_add_right (nat.le_of_lt_succ (nat.mod_lt _ dec_trivial)) _
@@ -835,8 +835,10 @@ lemma ring_hom_surjective [ring R] (f : R →+* (zmod n)) : function.surjective 
 
 lemma ring_hom_eq_of_ker_eq [comm_ring R] (f g : R →+* (zmod n))
   (h : f.ker = g.ker) : f = g :=
-by rw [← f.lift_of_surjective_comp (zmod.ring_hom_surjective f) g (le_of_eq h),
-      ring_hom.ext_zmod (f.lift_of_surjective _ _ _) (ring_hom.id _),
-      ring_hom.id_comp]
+begin
+  have := f.lift_of_right_inverse_comp _ (zmod.ring_hom_right_inverse f) ⟨g, le_of_eq h⟩,
+  rw subtype.coe_mk at this,
+  rw [←this, ring_hom.ext_zmod (f.lift_of_right_inverse _ _ _) (ring_hom.id _), ring_hom.id_comp],
+end
 
 end zmod

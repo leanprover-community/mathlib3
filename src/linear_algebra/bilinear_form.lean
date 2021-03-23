@@ -344,13 +344,6 @@ linear_map.to_bilin.symm_symm
 @[simp, norm_cast]
 lemma bilin_form.to_lin_apply (x : M₂) : ⇑(bilin_form.to_lin B₂ x) = B₂ x := rfl
 
-/-- Bilinear forms are linearly equivalent to maps with two arguments that are linear in both,
-"arguments-reversed" version. -/
-def bilin_form.to_lin_flip : bilin_form R₂ M₂ ≃ₗ[R₂] M₂ →ₗ[R₂] M₂ →ₗ[R₂] R₂ :=
-bilin_form.flip.trans bilin_form.to_lin
-
-@[simp] lemma bilin_form.to_lin_flip_eq_flip : B₂.to_lin_flip = B₂.to_lin.flip := rfl
-
 end equiv_lin
 
 namespace bilin_form

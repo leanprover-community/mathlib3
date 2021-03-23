@@ -3,7 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.equiv.basic
+import data.equiv.encodable.basic
 import data.fintype.basic
 
 /-!
@@ -69,11 +69,29 @@ begin
     exact small.mk' (e.trans f), },
 end
 
+instance small_subtype (α : Type v) [small.{w} α] (P : α → Prop) : small.{w} { x // P x } :=
+begin
+  rw small_congr (equiv_shrink α).subtype_equiv_of_subtype',
+  apply_instance,
+end
+
+@[priority 100]
 instance small_of_fintype (α : Type v) [fintype α] : small.{w} α :=
 begin
-  obtain ⟨n, ⟨e⟩⟩  := fintype.exists_equiv_fin α,
+  obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin α,
   rw small_congr e,
   apply_instance,
 end
+
+theorem small_of_injective {α : Type*} {β : Type*} [small.{w} β]
+  (f : α → β) (hf : function.injective f) : small.{w} α :=
+begin
+  rw small_congr (equiv.set.range f hf),
+  apply_instance,
+end
+
+@[priority 100]
+instance small_of_encodable (α : Type v) [encodable α] : small.{w} α :=
+small_of_injective _ (encodable.encode_injective)
 
 end

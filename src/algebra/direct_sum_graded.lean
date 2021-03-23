@@ -253,33 +253,51 @@ end one
 section mul
 variables [add_monoid ι] [Π i, add_comm_monoid (A i)] [ghas_mul A]
 
+/-! Some missing api for `eq.rec`. -/
+section to_move
 
-def cast_indexed {ι : Sort*} {A : ι → Sort*} {i j : ι} (h : i = j) : A i → A j :=
-cast (congr_arg A h)
-
-@[simp]
-lemma cast_indexed_pi {ι : Sort*} {A : ι → Sort*} :
-  ∀ {i j : ι} (h : i = j) (f : Π i, A i), cast_indexed h (f i) = f j
+lemma rec_pi {ι : Sort*} {A : ι → Sort*} :
+  ∀ {i j : ι} (h : i = j) (f : Π i, A i), h.rec (f i) = f j
 | _ _ rfl f := rfl
 
+lemma rec_apply {ι : Sort*} {A B : ι → Sort*} : ∀ {i j : ι} (h : i = j)
+  (f : Π i, A i → B i) (x : A i),
+  h.rec (f i x) = f j (h.rec x)
+| _ _ rfl f x := rfl
+
+lemma rec_apply₂ {ι : Sort*} {A B C: ι → Sort*} : ∀ {i j : ι} (h : i = j)
+  (f : Π i, A i → B i → C i) (x : A i) (y : B i),
+  h.rec (f i x y) = f j (h.rec x) (h.rec y)
+| _ _ rfl f x y := rfl
+
+end to_move
+
 instance has_mul : has_mul (A 0) :=
-{ mul := λ x y, cast_indexed (zero_add (0 : ι)) (ghas_mul.mul x y)}
+{ mul := λ x y, (zero_add (0 : ι)).rec (ghas_mul.mul x y)}
 
 instance mul_zero_class : mul_zero_class (A 0) :=
 { mul := (*),
   zero := 0,
   zero_mul := λ a, by {
-    simp [has_mul.mul],
-    exact cast_indexed_pi (zero_add 0) (λ i : ι, (0 : A i)), },
+    simp only [has_mul.mul, add_monoid_hom.zero_apply, add_monoid_hom.map_zero],
+    exact rec_pi (zero_add 0) (λ i : ι, (0 : A i)), },
   mul_zero := λ a, by {
-    simp [has_mul.mul],
-    exact cast_indexed_pi (add_zero 0) (λ i : ι, (0 : A i)), }, }
+    simp only [has_mul.mul, add_monoid_hom.zero_apply, add_monoid_hom.map_zero],
+    exact rec_pi (add_zero 0) (λ i : ι, (0 : A i)), }, }
 
 instance distrib : distrib (A 0) :=
 { mul := (*),
   add := (+),
-  left_distrib := λ a b c, by { unfold has_mul.mul, sorry },
-  right_distrib := λ a b c, by { unfold has_mul.mul, sorry } }
+  left_distrib := λ a b c, by {
+    unfold has_mul.mul,
+    simp only [add_monoid_hom.map_add],
+    exact rec_apply₂ has_mul._proof_1
+      (λ (i : ι), (@has_add.add (A $ i) _)) (ghas_mul.mul a b) (ghas_mul.mul a c), },
+  right_distrib := λ a b c, by {
+    unfold has_mul.mul,
+    simp only [add_monoid_hom.map_add],
+    exact rec_apply₂ has_mul._proof_1
+      (λ (i : ι), (@has_add.add (A $ i) _)) (ghas_mul.mul a c) (ghas_mul.mul b c), }, }
 
 end mul
 
@@ -292,9 +310,29 @@ instance semiring : semiring (A 0) := {
   mul := (*),
   zero := 0,
   add := (+),
-  one_mul := sorry,
-  mul_one := sorry,
-  mul_assoc := sorry,
+  one_mul := λ a, by {
+    have : (⟨_, ghas_mul.mul ghas_one.one a⟩ : Σ i, A i) = ⟨_, a⟩ := gmonoid.one_mul ⟨_, a⟩,
+    rw sigma.ext_iff at this,
+    dsimp at this,
+    simp only [has_mul.mul, has_one.one],
+    sorry,
+  },
+  mul_one := λ a, by {
+    have : (⟨_, ghas_mul.mul a ghas_one.one⟩ : Σ i, A i) = ⟨_, a⟩ := gmonoid.mul_one ⟨_, a⟩,
+    rw sigma.ext_iff at this,
+    dsimp at this,
+    simp only [has_mul.mul, has_one.one],
+    sorry,
+  },
+  mul_assoc := λ a b c, by {
+    have :
+      (⟨_, ghas_mul.mul (ghas_mul.mul a b) c⟩ : Σ i, A i) = ⟨_, ghas_mul.mul a (ghas_mul.mul b c)⟩ :=
+        gmonoid.mul_assoc ⟨_, a⟩ ⟨_, b⟩ ⟨_, c⟩,
+    rw sigma.ext_iff at this,
+    dsimp at this,
+    simp only [has_mul.mul, has_one.one],
+    sorry,
+  },
   ..direct_sum.grade_zero.mul_zero_class A,
   ..direct_sum.grade_zero.distrib A,
   ..(by apply_instance : add_comm_monoid (A 0)), }
@@ -311,7 +349,14 @@ instance comm_semiring : comm_semiring (A 0) := {
   mul := (*),
   zero := 0,
   add := (+),
-  mul_comm := sorry,
+  mul_comm := λ a b, by {
+    have : (⟨_, ghas_mul.mul a b⟩ : Σ i, A i) = ⟨_, ghas_mul.mul b a⟩ :=
+      gcomm_monoid.mul_comm ⟨_, a⟩ ⟨_, b⟩,
+    rw sigma.ext_iff at this,
+    dsimp at this,
+    simp only [has_mul.mul, has_one.one],
+    sorry,
+  },
   ..direct_sum.grade_zero.semiring _, }
 
 end comm_semiring
@@ -345,6 +390,8 @@ instance comm_ring : comm_ring (A 0) := {
   ..(direct_sum.grade_zero.comm_semiring _), }
 
 end comm_ring
+
+#exit
 
 /-! ### Instances for `⨁ i, A i` -/
 
@@ -474,6 +521,12 @@ instance semiring : semiring (⨁ i, A i) := {
   ..direct_sum.mul_zero_class A,
   ..direct_sum.distrib A,
   ..direct_sum.add_comm_monoid _ _, }
+
+def of_zero_ring_hom : A 0 →+* (⨁ i, A i) :=
+{ map_one' := rfl,
+  map_mul' := λ a b, sorry,
+  ..(of _ 0)}
+
 
 end semiring
 

@@ -284,9 +284,9 @@ lemma map_map {π : P →+* R} (m : perfection_map p π) {σ : Q →+* S} (n : p
 ring_hom.ext_iff.1 (comp_map p m n φ) x
 
 -- Why is this slow?
-lemma map_eq_map (φ : R →+* S) : @map p _inst_1 R _inst_2 _inst_3 (ring.perfection R p)
-    _ _ _ S _ _ _ _ _ _ _ (of p R) _ (of p S) φ =
-  @perfection.map R _inst_2 p _inst_1 _inst_3 S _inst_7 _inst_8 φ :=
+lemma map_eq_map (φ : R →+* S) :
+  @map p _ R _ _ (ring.perfection R p) _ _ _ S _ _ _ _ _ _ _ (of p R) _ (of p S) φ =
+  @perfection.map R _ p _ _ S _ _ φ :=
 hom_ext _ (of p S) $ λ f, by rw [map_map, perfection.coeff_map]
 
 end perfection_map

@@ -1,13 +1,14 @@
 /-
 Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin
+Authors: Johan Commelin, Eric Wieser
 -/
 
 import data.mv_polynomial
 import algebra.algebra.operations
 import data.fintype.card
 import algebra.direct_sum_graded
+import linear_algebra.direct_sum_module
 
 /-!
 # Homogeneous polynomials
@@ -223,6 +224,63 @@ section
 noncomputable theory
 open_locale classical
 open finset
+
+open_locale direct_sum
+
+def homogeneous_component' [comm_semiring R] (n : ℕ) :
+  mv_polynomial σ R →ₗ[R] homogeneous_submodule σ R n :=
+let f := finsupp.restrict_dom R R {d : σ →₀ ℕ | ∑ i in d.support, d i = n} in
+(submodule.of_le $ (homogenous_submodule_eq_finsupp_supported _ _ _).symm.le).comp f
+
+/-- Split a polynomial into a direct sum of homogenous components.
+
+TODO: Promote this to an `alg_equiv`. -/
+def to_homogeneous_components [comm_semiring R] :
+  mv_polynomial σ R →ₗ[R] (⨁ i, homogeneous_submodule σ R i) :=
+begin
+  -- we fight the elaborator a lot less if we build this up in tactic mode
+  refine finsupp.lsum R (λ d : σ →₀ ℕ, _),
+  let n := ∑ i in d.support, d i,
+  refine (direct_sum.lof R ℕ _ n).comp ((homogeneous_component' n).comp _),
+  exact {
+    to_fun := monomial d,
+    map_add' := λ a b, monomial_add.symm,
+    map_smul' := λ r a, (finsupp.smul_single _ _ _).symm }
+end
+
+/-- Assemble a polynomial from a direct sum of homogenous components.
+
+TODO: Promote this to the inverse of `to_homogeneous_components`. -/
+def of_homogeneous_components [comm_semiring R] :
+  (⨁ i, homogeneous_submodule σ R i) →ₗ[R] mv_polynomial σ R :=
+direct_sum.to_module R _ _ $ λ i, submodule.subtype _
+
+/-- `of_*` is the left-inverse of `to_*` -/
+lemma of_to_homogeneous_components [comm_semiring R] :
+  of_homogeneous_components.comp to_homogeneous_components =
+    (linear_map.id : mv_polynomial σ R →ₗ[R] _) :=
+begin
+  ext : 2,
+  -- multiple stages of simp is hopefully faster?
+  simp,
+  simp [to_homogeneous_components, of_homogeneous_components],
+  simp [homogeneous_component'],
+  exact finsupp.filter_single_of_pos _ rfl,
+end
+
+/-- `of_*` is the left-inverse of `to_*` -/
+lemma to_of_homogeneous_components [comm_semiring R] :
+  to_homogeneous_components.comp of_homogeneous_components =
+    (linear_map.id : (⨁ i, homogeneous_submodule σ R i) →ₗ[R] _) :=
+begin
+  ext : 3,
+  -- multiple stages of simp is hopefully faster?
+  simp,
+  simp [to_homogeneous_components, of_homogeneous_components],
+  simp [homogeneous_component', direct_sum.to_module,
+  linear_map.finsupp_sum_apply],
+  -- exact finsupp.filter_single_of_pos _ rfl,
+end
 
 /-- `homogeneous_component n φ` is the part of `φ` that is homogeneous of degree `n`.
 See `sum_homogeneous_component` for the statement that `φ` is equal to the sum

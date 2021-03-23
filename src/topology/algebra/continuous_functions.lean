@@ -402,7 +402,7 @@ a subalgebra of functions that separates points also separates points strongly.
 By the hypothesis, we can find a function `f` so `f x ≠ f y`.
 By an affine transformation in the field we can arrange so that `f x = a` and `f x = b`.
 -/
-lemma subalgebra.separates_points_strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h : s.separates_points) :
+lemma subalgebra.separates_points.strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h : s.separates_points) :
   separates_points_strongly ((λ f : C(α, 𝕜), (f : α → 𝕜)) '' (s : set C(α, 𝕜))) :=
 λ x y n,
 begin

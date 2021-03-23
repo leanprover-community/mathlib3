@@ -52,7 +52,10 @@ This is often called 'finitely cocomplete'.
 class has_finite_colimits : Prop :=
 (out (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥] : @has_colimits_of_shape J 𝒥 C _)
 
-attribute [instance, priority 100] has_finite_colimits.out
+@[priority 100]
+instance has_limits_of_shape_of_has_finite_colimits
+  (J : Type v) [small_category J] [fin_category J] [has_finite_colimits C] :
+  has_colimits_of_shape J C := has_finite_colimits.out J
 
 /-- If `C` has all colimits, it has finite colimits. -/
 lemma has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=

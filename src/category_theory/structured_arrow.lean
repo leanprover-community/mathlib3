@@ -157,7 +157,7 @@ by { rw eq_mk h, simp, }
 open category_theory.limits
 
 /-- The identity costructured arrow is terminal. -/
-def mk_id_initial [full S] [faithful S] : is_terminal (mk (𝟙 (S.obj Y))) :=
+def mk_id_terminal [full S] [faithful S] : is_terminal (mk (𝟙 (S.obj Y))) :=
 { lift := λ c, mk_hom (S.preimage c.X.hom) (by { dsimp, simp, }),
   uniq' := begin
     rintros c m -,

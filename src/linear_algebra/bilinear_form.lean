@@ -245,7 +245,7 @@ variables (R₂) [algebra R₂ R] [semimodule R₂ M] [is_scalar_tower R₂ R M]
 /-- The linear map obtained from a `bilin_form` by fixing the left co-ordinate and evaluating in
 the right.
 This is the most general version of the construction; it is `R₂`-linear for some distinguished
-commutative subsemiring `R₂` of the scalar ring.  Over semiring with no particular distinguished
+commutative subsemiring `R₂` of the scalar ring.  Over a semiring with no particular distinguished
 such subsemiring, use `to_lin'`, which is `ℕ`-linear.  Over a commutative semiring, use `to_lin`,
 which is linear. -/
 def to_lin_hom : bilin_form R M →ₗ[R₂] M →ₗ[R₂] M →ₗ[R] R :=

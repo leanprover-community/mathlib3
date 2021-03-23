@@ -47,7 +47,7 @@ follow definitionally the setup of local invariant properties. Still, we recast 
 in terms of extended charts in `times_cont_mdiff_on_iff` and `times_cont_mdiff_iff`.
 -/
 
-open set filter charted_space smooth_manifold_with_corners
+open set function filter charted_space smooth_manifold_with_corners
 open_locale topological_space manifold
 
 /-! ### Definition of smooth functions between manifolds -/
@@ -603,7 +603,13 @@ lemma smooth_within_at.smooth_at
   smooth_at I I' f x :=
 times_cont_mdiff_within_at.times_cont_mdiff_at h ht
 
-include Is I's
+include Is
+
+lemma times_cont_mdiff_on_ext_chart_at :
+  times_cont_mdiff_on I 𝓘(𝕜, E) n (ext_chart_at I x) (chart_at H x).source :=
+λ x' hx', (times_cont_mdiff_at_ext_chart_at' hx').times_cont_mdiff_within_at
+
+include I's
 
 /-- A function is `C^n` within a set at a point, for `n : ℕ`, if and only if it is `C^n` on
 a neighborhood of this point. -/
@@ -929,6 +935,17 @@ lemma smooth_within_at_const : smooth_within_at I I' (λ (x : M), c) s x :=
 times_cont_mdiff_within_at_const
 
 end id
+
+lemma times_cont_mdiff_of_support {f : M → F}
+  (hf : ∀ x ∈ closure (support f), times_cont_mdiff_at I 𝓘(𝕜, F) n f x) :
+  times_cont_mdiff I 𝓘(𝕜, F) n f :=
+begin
+  intro x,
+  by_cases hx : x ∈ closure (support f),
+  { exact hf x hx },
+  { refine times_cont_mdiff_at.congr_of_eventually_eq _ (eventually_eq_zero_nhds.2 hx),
+    exact times_cont_mdiff_at_const }
+end
 
 /-! ### Equivalence with the basic definition for functions between vector spaces -/
 
@@ -1829,15 +1846,19 @@ variables {V : Type*} [normed_group V] [normed_space 𝕜 V]
 
 /-- On any vector space, multiplication by a scalar is a smooth operation. -/
 lemma smooth_smul : smooth (𝓘(𝕜).prod 𝓘(𝕜, V)) 𝓘(𝕜, V) (λp : 𝕜 × V, p.1 • p.2) :=
-begin
-  rw smooth_iff,
-  refine ⟨continuous_smul, λ x y, _⟩,
-  simp only [prod.mk.eta] with mfld_simps,
-  rw times_cont_diff_on_univ,
-  exact times_cont_diff_smul,
-end
+smooth_iff.2 ⟨continuous_smul, λ x y, times_cont_diff_smul.times_cont_diff_on⟩
 
 lemma smooth.smul {N : Type*} [topological_space N] [charted_space H N]
   {f : N → 𝕜} {g : N → V} (hf : smooth I 𝓘(𝕜) f) (hg : smooth I 𝓘(𝕜, V) g) :
   smooth I 𝓘(𝕜, V) (λ p, f p • g p) :=
 smooth_smul.comp (hf.prod_mk hg)
+
+lemma smooth_on.smul {N : Type*} [topological_space N] [charted_space H N]
+  {f : N → 𝕜} {g : N → V} {s : set N} (hf : smooth_on I 𝓘(𝕜) f s) (hg : smooth_on I 𝓘(𝕜, V) g s) :
+  smooth_on I 𝓘(𝕜, V) (λ p, f p • g p) s :=
+smooth_smul.comp_smooth_on (hf.prod_mk hg)
+
+lemma smooth_at.smul {N : Type*} [topological_space N] [charted_space H N]
+  {f : N → 𝕜} {g : N → V} {x : N} (hf : smooth_at I 𝓘(𝕜) f x) (hg : smooth_at I 𝓘(𝕜, V) g x) :
+  smooth_at I 𝓘(𝕜, V) (λ p, f p • g p) x :=
+smooth_smul.smooth_at.comp _ (hf.prod_mk hg)

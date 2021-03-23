@@ -895,12 +895,20 @@ attribute [to_additive image_range_add_order_of] image_range_order_of
 
 open nat
 
+lemma gcd_nsmul_card_eq_zero_iff {x : H} {n : ℕ} :
+  n •ℕ x = 0 ↔ (gcd n (fintype.card H)) •ℕ x = 0 :=
+⟨λ h, gcd_nsmul_eq_zero _ h $ card_nsmul_eq_zero,
+  λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card H) in
+    by rw [hm, mul_comm, mul_nsmul, h, nsmul_zero]⟩
+
 /-- TODO: Generalise to `finite_cancel_monoid`. -/
 lemma pow_gcd_card_eq_one_iff {n : ℕ} :
   a ^ n = 1 ↔ a ^ (gcd n (fintype.card α)) = 1 :=
 ⟨λ h, pow_gcd_eq_one _ h $ pow_card_eq_one,
   λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card α) in
     by rw [hm, pow_mul, h, one_pow]⟩
+
+attribute [to_additive gcd_nsmul_card_eq_zero_iff] pow_gcd_card_eq_one_iff
 
 end finite_group
 

@@ -42,7 +42,7 @@ Given a triangle of the form:
       f       g       h
   X  ---> Y  ---> Z  ---> X[1]
 ```
-applying "rotate" gives a triangle of the form:
+applying `rotate` gives a triangle of the form:
 ```
       g        h       -f[1]
   Y  ---> Z  --->  X[1] ---> Y[1]
@@ -63,7 +63,7 @@ Given a triangle of the form:
       f       g       h
   X  ---> Y  ---> Z  ---> X[1]
 ```
-applying "inv_rotate" gives a triangle that can be thought of as:
+applying `inv_rotate` gives a triangle that can be thought of as:
 ```
         -h[-1]     f       g
   Z[-1]  --->  X  ---> Y  ---> Z
@@ -96,7 +96,7 @@ Given a triangle morphism of the form:
   X' ---> Y' ---> Z' ---> X'[1]
       f'      g'      h'
 ```
-applying "rotate" gives a triangle morphism of the form:
+applying `rotate` gives a triangle morphism of the form:
 ```
       g        h       -f[1]
   Y  ---> Z  --->  X[1] ---> Y[1]
@@ -108,8 +108,8 @@ applying "rotate" gives a triangle morphism of the form:
 ```
 -/
 @[simps]
-def rotate (f : triangle_morphism T₁ T₂)
-: triangle_morphism (T₁.rotate C) (T₂.rotate C):=
+def rotate (f : triangle_morphism T₁ T₂) :
+  triangle_morphism (T₁.rotate C) (T₂.rotate C):=
 { hom₁ := f.hom₂,
   hom₂ := f.hom₃,
   hom₃ := f.hom₁⟦1⟧',
@@ -131,7 +131,7 @@ Given a triangle morphism of the form:
   X' ---> Y' ---> Z' ---> X'[1]
       f'      g'      h'
 ```
-applying "inv_rotate" gives a triangle morphism that can be thought of as:
+applying `inv_rotate` gives a triangle morphism that can be thought of as:
 ```
         -h[-1]      f         g
   Z[-1]  --->  X   --->  Y   --->  Z
@@ -143,11 +143,11 @@ applying "inv_rotate" gives a triangle morphism that can be thought of as:
 ```
 (note that this diagram doesn't technically fit the definition of triangle morphism,
 as `Z[-1][1]` is not necessarily equal to `Z`, and `Z'[-1][1]` is not necessarily equal to `Z'`,
-but they are isomorphic, by the counit_iso of (shift C))
+but they are isomorphic, by the `counit_iso` of `shift C`)
 -/
 @[simps]
-def inv_rotate (f : triangle_morphism T₁ T₂)
-: triangle_morphism (T₁.inv_rotate C) (T₂.inv_rotate C) :=
+def inv_rotate (f : triangle_morphism T₁ T₂) :
+  triangle_morphism (T₁.inv_rotate C) (T₂.inv_rotate C) :=
 { hom₁ := f.hom₃⟦-1⟧',
   hom₂ := f.hom₁,
   hom₃ := f.hom₂,
@@ -205,7 +205,7 @@ def rotate : (triangle C) ⥤ (triangle C) :=
 }
 
 /--
-The inverse rotation of triangles gives an endofunctor on the category of triangles in C.
+The inverse rotation of triangles gives an endofunctor on the category of triangles in `C`.
 -/
 @[simps]
 def inv_rotate : (triangle C) ⥤ (triangle C) :=
@@ -250,7 +250,7 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :
         rw comp_id,
         dsimp,
         rw [comp_neg, functor.additive.map_neg (shift C).inverse, ← functor.comp_map],
-          simp only [neg_comp, comp_neg, functor.comp_map, iso.hom_inv_id_app_assoc,
+        simp only [neg_comp, comp_neg, functor.comp_map, iso.hom_inv_id_app_assoc,
           iso.hom_inv_id_app, assoc, equivalence.inv_fun_map, neg_neg],
         dsimp,
         simp only [comp_id],
@@ -311,9 +311,8 @@ def rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :
         nat_iso.cancel_nat_iso_inv_left],
       dsimp,
       simp only [comp_id] },
-    { simp only [triangle_morphism.comp_hom₂,
-        triangle_morphism.inv_rotate_hom₂, triangle_morphism.rotate_hom₁,
-        comp_id f.hom₂, id_comp f.hom₂] },
+    { simp only [triangle_morphism.comp_hom₂, triangle_morphism.inv_rotate_hom₂,
+        triangle_morphism.rotate_hom₁, comp_id f.hom₂, id_comp f.hom₂] },
     { simp only [triangle_morphism.comp_hom₃, triangle_morphism.rotate_hom₂,
         triangle_morphism.inv_rotate_hom₃, comp_id f.hom₃, id_comp f.hom₃] }
   end
@@ -325,7 +324,7 @@ of a rotation with an inverse rotation are natural isomorphisms (they are isomor
 category of functors).
 -/
 @[simps]
-def rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
+def rot_comp_inv_rot : 𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
 { hom := rot_comp_inv_rot_hom C,
   inv := rot_comp_inv_rot_inv C,
   hom_inv_id' := begin
@@ -358,13 +357,10 @@ def rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
   inv_hom_id' := begin
     ext T,
     { simp,
-      dsimp,
       refl },
     { simp,
-      dsimp,
       refl },
     { simp,
-      dsimp,
       refl }
   end -- (deterministic) timeout when replace simp with squeeze_simp
 }

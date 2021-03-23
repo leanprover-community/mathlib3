@@ -2135,3 +2135,42 @@ begin
       by { contrapose! h, have : (e j : α) ∈ s := (e j).2, rwa ← h at this },
     simp [h, this] }
 end
+
+-- TODO: move these!
+lemma trans_perm_congr_apply {α β γ : Type*} (e₁ : α ≃ β) (e₂ : β ≃ γ) (σ) :
+  (e₁.trans e₂).perm_congr σ = e₂.perm_congr (e₁.perm_congr σ) :=
+by { ext, simp }
+
+@[simp] lemma trans_perm_congr {α β γ : Type*} (e₁ : α ≃ β) (e₂ : β ≃ γ) :
+  (e₁.trans e₂).perm_congr = e₁.perm_congr.trans (e₂.perm_congr) :=
+equiv.ext (trans_perm_congr_apply e₁ e₂)
+
+@[simp] lemma perm_congr_one {α β : Type*} (e : α ≃ β) :
+  e.perm_congr 1 = 1 :=
+by { ext, simp }
+
+@[simp] lemma perm_congr_mul {α β : Type*} (e : α ≃ β) (σ τ : perm α) :
+  e.perm_congr (σ * τ) = e.perm_congr σ * e.perm_congr τ :=
+by { ext, simp }
+
+@[simp] lemma perm_congr_swap {α β : Type*} [decidable_eq α] [decidable_eq β]
+  (e : α ≃ β) (x y : α) :
+  e.perm_congr (swap x y) = swap (e x) (e y) :=
+by { ext, simp only [perm_congr_apply, swap_apply_def, e.symm_apply_eq],
+     split_ifs; simp }
+
+lemma perm_congr_subtype_congr {α β : Type*} (e : α ≃ β) (p : α → Prop) [decidable_pred p]
+  (σ : perm {a // p a}) (τ : perm {a // ¬ p a}) :
+  e.perm_congr (perm.subtype_congr σ τ) =
+    perm.subtype_congr
+      ((@equiv.subtype_equiv _ _ p (λ x, p (e.symm x)) e
+        (λ x, show p x ↔ p (e.symm (e x)), by rw e.symm_apply_apply)).perm_congr σ)
+      ((@equiv.subtype_equiv _ _ (λ x, ¬ p x) (λ x, ¬ p (e.symm x)) e
+        (λ x, show ¬p x ↔ ¬p (e.symm (e x)), by rw e.symm_apply_apply)).perm_congr τ) :=
+begin
+  ext,
+  simp only [perm_congr_apply, perm.subtype_congr.apply],
+  split_ifs with h,
+  { simp },
+  { simp },
+end

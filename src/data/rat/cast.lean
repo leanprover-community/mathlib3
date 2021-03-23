@@ -279,9 +279,12 @@ instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ 
 ⟨ring_hom.ext_rat⟩
 
 /-- Integer values of a morphism `φ` completely determine `φ`. -/
-theorem ext_hom_int {α} [group_with_zero α] (φ₁ φ₂ : monoid_with_zero_hom ℚ α)
-  (same_on_int : ∀ k : ℤ, φ₁ k = φ₂ k) : φ₁ = φ₂ :=
+theorem ext_hom_int {α} [group_with_zero α] {φ₁ φ₂ : monoid_with_zero_hom ℚ α}
+  (same_on_int : φ₁.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom =
+    φ₂.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom) : φ₁ = φ₂ :=
 begin
+  have same_on_int' : ∀ k : ℤ, φ₁ k = φ₂ k,
+  from monoid_with_zero_hom.congr_fun same_on_int,
   ext x,
   rw ← @rat.num_denom x,
   rw rat.mk_eq_div,
@@ -291,21 +294,20 @@ begin
   rw monoid_with_zero_hom.map_inv' φ₁ x.denom,
   rw monoid_with_zero_hom.map_mul φ₂,
   rw monoid_with_zero_hom.map_inv' φ₂ x.denom,
-  rw same_on_int x.num,
-  have := same_on_int x.denom, rw ← coe_coe at this,
+  rw same_on_int' x.num,
+  have := same_on_int' x.denom, rw ← coe_coe at this,
   rw this,
 end
 
-/-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
-theorem ext_hom_pnat {α} [group_with_zero α] (φ₁ φ₂ : monoid_with_zero_hom ℚ α)
+theorem ext_hom_pnat {α} [group_with_zero α] {φ₁ φ₂ : monoid_with_zero_hom ℤ α}
   (same_on_neg_one : φ₁ (-1) = φ₂ (-1)) (same_on_pnat : ∀ {n: ℕ}, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
 begin
-  apply ext_hom_int,
+  ext x, revert x,
   suffices : ∀ n : ℕ, φ₁ n = φ₂ n,
   { intro x,
     induction x,
     { from this _, },
-    { push_cast,
+    { rw int.neg_succ_of_nat_eq,
       rw neg_eq_neg_one_mul,
       rw monoid_with_zero_hom.map_mul φ₁,
       rw monoid_with_zero_hom.map_mul φ₂,
@@ -319,3 +321,8 @@ begin
   { simp, },
   { exact same_on_pnat n.zero_lt_succ, },
 end
+
+/-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
+theorem ext_rat_hom_pnat {α} [group_with_zero α] {φ₁ φ₂ : monoid_with_zero_hom ℚ α}
+  (same_on_neg_one : φ₁ (-1) = φ₂ (-1)) (same_on_pnat : ∀ (n: ℕ), 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
+ext_hom_int $ ext_hom_pnat same_on_neg_one same_on_pnat

@@ -1,4 +1,20 @@
+/-
+Copyright (c) 2021 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import analysis.normed_space.inner_product
+
+/-!
+# Euclidean distance on a finite dimensional space
+
+When we define a smooth bump function on a normed space, it is useful to have a smooth distance on
+the space. Since the default distance is not guaranteed to be smooth, we define `to_euclidean` to be
+an equivalence between a finite dimensional normed space and the standard Euclidean space of the
+same dimension. Then we define `euclidean.dist x y = dist (to_euclidean x) (to_euclidean y)` and
+provide some definitions (`euclidean.ball`, `euclidean.closed_ball`) and simple lemmas about this
+distance. This way we hide the usage of `to_euclidean` behind an API.
+-/
 
 open_locale topological_space
 open set

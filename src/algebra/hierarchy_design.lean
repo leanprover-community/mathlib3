@@ -13,24 +13,43 @@ When adding new typeclasses `Z` to the algebraic hierarchy
 one should attempt to add the following constructions and results,
 when applicable:
 
-* `instance prod.Z [Z M] [Z N] : Z (M × N) := ...` (see examples in `algebra.group.prod`)
-* `instance pi.Z [∀ i, Z $ f i] : Z (Π i : I, f i) := ...` (see examples in `algebra.group.pi`)
-*
-```
-def function.injective.Z [Z M₂] (f : M₁ → M₂) (hf : injective f)
-  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) : Z M₁ := ...
+* Instances tranferred elementwise to products, like `prod.monoid`.
+  See `algebra.group.prod` for more examples.
+  ```
+  instance prod.Z [Z M] [Z N] : Z (M × N) := ...
+  ```
+* Instances tranferred elementwise to pi types, like `pi.monoid`.
+  See `algebra.group.pi` for more examples.
+  ```
+  instance pi.Z [∀ i, Z $ f i] : Z (Π i : I, f i) := ...`
+  ```
+* Definitions for transferring the proof fields of instances along injective and surjective functions that agree
+  on the data fields, like `function.injective.monoid` and `function.surjective.monoid`.
+  See ``algebra.group.inj_surj` for more examples
+  ```
+  def function.injective.Z [Z M₂] (f : M₁ → M₂) (hf : injective f)
+    (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) : Z M₁ := ...
 
-def function.surjective.Z [Z M₁] (f : M₁ → M₂) (hf : surjective f)
-  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) : Z M₂ :=
-```
-(see examples in `algebra.group.inj_surj`)
-* `instance finsupp.Z [Z β] : Z (α →₀ β) := ...` (see examples in `data.finsupp.pointwise`)
-* `instance set.Z [Z α] : Z (set α) := ...` (see examples in `algebra.pointwise`)
-* `def equiv.Z (e : α ≃ β) [Z β] : Z α := ...` and
-  `def equiv.Z_equiv (e : α ≃ β) [Z β] : by { letI := equiv.Z e, exact α ≃Z β } := ...`
-  (when there is a new notion of `Z`-equiv) (see examples in `data.equiv.transfer_instance`)
-
-[[ Notes about stuff that is currently missing: e.g. all of `algebra.ring.inj_surj`. ]]
+  def function.surjective.Z [Z M₁] (f : M₁ → M₂) (hf : surjective f)
+    (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) : Z M₂ :=
+  ```
+* Instances tranferred elementwise to `finsupp`s, like `finsupp.semigroup`.
+  See `data.finsupp.pointwise` for more examples.
+  ```
+  instance finsupp.Z [Z β] : Z (α →₀ β) := ...
+  ```
+* Instances tranferred elementwise to `set`s, like `set.monoid`.
+  See `algebra.pointwise` for more examples.
+  ```
+  instance set.Z [Z α] : Z (set α) := ...
+  ```
+* Definitions for transferring the entire structure across an equivalence, like `equiv.monoid`.
+  See `data.equiv.transfer_instance` for more examples.
+  ```
+  def equiv.Z (e : α ≃ β) [Z β] : Z α := ...` and
+  /- when there is a new notion of `Z`-equiv -/
+  def equiv.Z_equiv (e : α ≃ β) [Z β] : by { letI := equiv.Z e, exact α ≃Z β } := ...
+  ```
 
 [[ Talk about morphisms? ]]
 [[ Talk about equivalences? ]]

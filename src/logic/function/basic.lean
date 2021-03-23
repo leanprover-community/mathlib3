@@ -607,3 +607,37 @@ end function
 def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β i) [∀j, decidable (j ∈ s)] :
   Πi, β i :=
 λi, if i ∈ s then f i else g i
+
+/-! ### Bijectivity of `eq.rec`, `eq.mp`, `eq.mpr`, and `cast` -/
+
+lemma eq_rec_on_bijective {α : Sort*} {C : α → Sort*} :
+  ∀ {a a' : α} (h : a = a'), function.bijective (@eq.rec_on _ _ C _ h)
+| _ _ rfl := ⟨λ x y, id, λ x, ⟨x, rfl⟩⟩
+
+lemma eq_mp_bijective {α β : Sort*} (h : α = β) : function.bijective (eq.mp h) :=
+eq_rec_on_bijective h
+
+lemma eq_mpr_bijective {α β : Sort*} (h : α = β) : function.bijective (eq.mpr h) :=
+eq_rec_on_bijective h.symm
+
+lemma cast_bijective {α β : Sort*} (h : α = β) : function.bijective (cast h) :=
+eq_rec_on_bijective h
+
+@[simp]
+lemma eq_rec_inj {α : Sort*} {a a' : α} (h : a = a') {C : α → Sort*} (x y : C a) :
+  (eq.rec x h : C a') = eq.rec y h ↔ x = y :=
+(eq_rec_on_bijective h).injective.eq_iff
+
+@[simp]
+lemma eq_mpr_inj {α β : Sort*} (h : α = β) (x y : β) :
+  (eq.mpr h x) = eq.mpr h y ↔ x = y :=
+(eq_mpr_bijective h).injective.eq_iff
+
+@[simp]
+lemma eq_mp_inj {α β : Sort*} (h : α = β) (x y : α) :
+  (eq.mp h x) = eq.mp h y ↔ x = y :=
+(eq_mp_bijective h).injective.eq_iff
+
+@[simp]
+lemma cast_inj {α β : Sort*} (h : α = β) {x y : α} : cast h x = cast h y ↔ x = y :=
+(cast_bijective h).injective.eq_iff

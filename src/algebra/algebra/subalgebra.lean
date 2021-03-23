@@ -34,6 +34,9 @@ variables {R : Type u} {A : Type v} {B : Type w}
 variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B]
 include R
 
+/- While we could add coercion aliases for `to_subsemiring` and `to_submodule`, they're not needed
+very often, harder to use than the projections themselves, and none of the other subobjects define
+that type of coercion. -/
 instance : has_coe_t (subalgebra R A) (set A) := ⟨λ s, s.carrier⟩
 instance : has_mem A (subalgebra R A) := ⟨λ x p, x ∈ (p : set A)⟩
 instance : has_coe_to_sort (subalgebra R A) := ⟨_, λ p, {x : A // x ∈ p}⟩

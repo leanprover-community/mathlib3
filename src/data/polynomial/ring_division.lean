@@ -47,33 +47,21 @@ eval₂_mod_by_monic_eq_self_of_root hq hx
 
 end comm_ring
 
-section integral_domain
-variables [integral_domain R] {p q : polynomial R}
+section no_zero_divisors
+variables [comm_ring R] [no_zero_divisors R] {p q : polynomial R}
 
-instance : integral_domain (polynomial R) :=
+instance : no_zero_divisors (polynomial R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h, begin
-    have : leading_coeff 0 = leading_coeff a * leading_coeff b := h ▸ leading_coeff_mul a b,
-    rw [leading_coeff_zero, eq_comm] at this,
-    erw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
-    exact eq_zero_or_eq_zero_of_mul_eq_zero this
-  end,
-  ..polynomial.nontrivial,
-  ..polynomial.comm_ring }
+    rw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
+    refine eq_zero_or_eq_zero_of_mul_eq_zero _,
+    rw [← leading_coeff_zero, ← leading_coeff_mul, h],
+  end }
 
 lemma nat_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) : nat_degree (p * q) =
   nat_degree p + nat_degree q :=
 by rw [← with_bot.coe_eq_coe, ← degree_eq_nat_degree (mul_ne_zero hp hq),
     with_bot.coe_add, ← degree_eq_nat_degree hp,
     ← degree_eq_nat_degree hq, degree_mul]
-
-lemma nat_trailing_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) :
-  (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=
-begin
-  simp only [←nat.sub_eq_of_eq_add (nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree _)],
-  rw [reverse_mul_of_domain, nat_degree_mul hp hq, nat_degree_mul (mt reverse_eq_zero.mp hp)
-    (mt reverse_eq_zero.mp hq), reverse_nat_degree, reverse_nat_degree, ←nat.sub_sub, nat.add_comm,
-    nat.add_sub_assoc (nat.sub_le _ _), add_comm, nat.add_sub_assoc (nat.sub_le _ _)],
-end
 
 @[simp] lemma nat_degree_pow (p : polynomial R) (n : ℕ) :
   nat_degree (p ^ n) = n * nat_degree p :=
@@ -100,6 +88,25 @@ theorem nat_degree_le_of_dvd {p q : polynomial R} (h1 : p ∣ q) (h2 : q ≠ 0) 
 begin
   rcases h1 with ⟨q, rfl⟩, rw mul_ne_zero_iff at h2,
   rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _
+end
+
+end no_zero_divisors
+
+section integral_domain
+variables [integral_domain R] {p q : polynomial R}
+
+instance : integral_domain (polynomial R) :=
+{ ..polynomial.no_zero_divisors,
+  ..polynomial.nontrivial,
+  ..polynomial.comm_ring }
+
+lemma nat_trailing_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) :
+  (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=
+begin
+  simp only [←nat.sub_eq_of_eq_add (nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree _)],
+  rw [reverse_mul_of_domain, nat_degree_mul hp hq, nat_degree_mul (mt reverse_eq_zero.mp hp)
+    (mt reverse_eq_zero.mp hq), reverse_nat_degree, reverse_nat_degree, ←nat.sub_sub, nat.add_comm,
+    nat.add_sub_assoc (nat.sub_le _ _), add_comm, nat.add_sub_assoc (nat.sub_le _ _)],
 end
 
 section roots

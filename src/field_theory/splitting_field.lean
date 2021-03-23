@@ -434,9 +434,11 @@ alg_equiv.symm $ alg_equiv.of_bijective
 
 open finset
 
--- Speed up the following proof.
-local attribute [irreducible] minpoly
--- TODO: Why is this so slow?
+/-- If a `subalgebra` is finite_dimensional as a submodule then it is `finite_dimensional`. -/
+lemma finite_dimensional.of_subalgebra_to_submodule
+  {K V : Type*} [field K] [ring V] [algebra K V] {s : subalgebra K V}
+  (h : finite_dimensional K s.to_submodule) : finite_dimensional K s := h
+
 /-- If `K` and `L` are field extensions of `F` and we have `s : finset K` such that
 the minimal polynomial of each `x ∈ s` splits in `L` then `algebra.adjoin F s` embeds in `L`. -/
 theorem lift_of_splits {F K L : Type*} [field F] [field K] [field L]
@@ -451,8 +453,9 @@ begin
   choose H3 H4 using H3,
   rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union],
   letI := (f : algebra.adjoin F (↑s : set K) →+* L).to_algebra,
-  haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) :=
-    (submodule.fg_iff_finite_dimensional _).1 (fg_adjoin_of_finite (set.finite_mem_finset s) H3),
+  haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) := (
+    (submodule.fg_iff_finite_dimensional _).1
+      (fg_adjoin_of_finite (set.finite_mem_finset s) H3)).of_subalgebra_to_submodule,
   letI := field_of_finite_dimensional F (algebra.adjoin F (↑s : set K)),
   have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower a H1,
   have H6 : (minpoly (algebra.adjoin F (↑s : set K)) a).splits
@@ -689,7 +692,7 @@ theorem splits_iff (f : polynomial α) [is_splitting_field α β f] :
 ⟨λ h, eq_bot_iff.2 $ adjoin_roots β f ▸ (roots_map (algebra_map α β) h).symm ▸
   algebra.adjoin_le_iff.2 (λ y hy,
     let ⟨x, hxs, hxy⟩ := finset.mem_image.1 (by rwa multiset.to_finset_map at hy) in
-    hxy ▸ subalgebra.algebra_map_mem _ _),
+    hxy ▸ subalgebra.mem_coe.2 $ subalgebra.algebra_map_mem _ _),
  λ h, @ring_equiv.to_ring_hom_refl α _ ▸
   ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
   by { rw ring_equiv.to_ring_hom_trans, exact splits_comp_of_splits _ _ (splits β f) }⟩

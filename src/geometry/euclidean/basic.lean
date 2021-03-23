@@ -197,7 +197,7 @@ begin
     { rw norm_eq_zero at hy,
       rw [hy, inner_zero_right, zero_mul, neg_zero] } },
   { field_simp [h],
-    ring }
+    ring_nf }
 end
 
 /-- The angle between two vectors is zero if and only if they are

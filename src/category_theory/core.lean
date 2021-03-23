@@ -7,6 +7,18 @@ import category_theory.groupoid
 import control.equiv_functor
 import category_theory.types
 
+/-!
+# The core of a category
+
+The core of a category `C` is the (non-full) subcategory of `C` consisting of all objects,
+and all isomorphisms. We construct it as a `groupoid`.
+
+`core.inclusion : core C ⥤ C` gives the faithful inclusion into the original category.
+
+Any functor `F` from a groupoid `G` into `C` factors through `core C`,
+but this is not functorial with respect to `F`.
+-/
+
 namespace category_theory
 
 universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
@@ -29,12 +41,16 @@ namespace core
 @[simp] lemma comp_hom {X Y Z : core C} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g).hom = f.hom ≫ g.hom :=
 rfl
 
+variables (C)
+
 /-- The core of a category is naturally included in the category. -/
 def inclusion : core C ⥤ C :=
 { obj := id,
   map := λ X Y f, f.hom }
 
-variables {G : Type u₂} [groupoid.{v₂} G]
+instance : faithful (inclusion C) := {}
+
+variables {C} {G : Type u₂} [groupoid.{v₂} G]
 
 /-- A functor from a groupoid to a category C factors through the core of C. -/
 -- Note that this function is not functorial
@@ -48,7 +64,7 @@ def functor_to_core (F : G ⥤ C) : G ⥤ core C :=
 We can functorially associate to any functor from a groupoid to the core of a category `C`,
 a functor from the groupoid to `C`, simply by composing with the embedding `core C ⥤ C`.
 -/
-def forget_functor_to_core : (G ⥤ core C) ⥤ (G ⥤ C) := (whiskering_right _ _ _).obj inclusion
+def forget_functor_to_core : (G ⥤ core C) ⥤ (G ⥤ C) := (whiskering_right _ _ _).obj (inclusion C)
 end core
 
 /--

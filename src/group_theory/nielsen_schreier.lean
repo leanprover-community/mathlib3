@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import category_theory.action
-  group_theory.free_group
-  group_theory.semidirect_product
-  combinatorics.quiver
-
+import group_theory.free_group
+import group_theory.semidirect_product
+import combinatorics.quiver
 /-!
 # The Nielsen-Schreier theorem
 

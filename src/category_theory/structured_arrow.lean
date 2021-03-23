@@ -96,4 +96,78 @@ def mk_id_initial [full T] [faithful T] : is_initial (mk (𝟙 (T.obj Y))) :=
 
 end structured_arrow
 
+
+/--
+The category of `S`-costructured arrows with target `T : D` (here `S : C ⥤ D`),
+has as its objects `D`-morphisms of the form `S Y ⟶ T`, for some `Y : C`,
+and morphisms `C`-morphisms `Y ⟶ Y'` making the obvious triangle commute.
+-/
+@[derive category, nolint has_inhabited_instance]
+def costructured_arrow (S : C ⥤ D) (T : D) := comma S (functor.from_punit T)
+
+namespace costructured_arrow
+
+variables {T T' T'' : D} {Y Y' : C} {S : C ⥤ D}
+
+/-- Construct a costructured arrow from a morphism. -/
+def mk (f : S.obj Y ⟶ T) : costructured_arrow S T := ⟨Y, ⟨⟩, f⟩
+
+@[simp] lemma mk_left (f : S.obj Y ⟶ T) : (mk f).left = Y := rfl
+@[simp] lemma mk_right (f : S.obj Y ⟶ T) : (mk f).right = punit.star := rfl
+@[simp] lemma mk_hom_eq_self (f : S.obj Y ⟶ T) : (mk f).hom = f := rfl
+
+lemma eq_mk (f : costructured_arrow S T) : f = mk (f.hom) :=
+by { cases f, congr, ext, }
+
+/--
+To construct a morphism of costructured arrows,
+we need a morphism of the objects underlying the source,
+and to check that the triangle commutes.
+-/
+@[simps]
+def mk_hom {f f' : costructured_arrow S T} (g : f.left ⟶ f'.left) (w : S.map g ≫ f'.hom = f.hom) :
+  f ⟶ f' :=
+{ left := g,
+  right := eq_to_hom (by ext),
+  w' := by { dsimp, simpa using w, }, }
+
+/--
+A morphism between target objects `T ⟶ T'`
+covariantly induces a functor between costructured arrows,
+`costructured_arrow S T ⥤ costructured_arrow S T'`.
+
+Ideally this would be described as a 2-functor from `D`
+(promoted to a 2-category with equations as 2-morphisms)
+to `Cat`.
+-/
+@[simps]
+def map (f : T ⟶ T') : costructured_arrow S T ⥤ costructured_arrow S T' :=
+comma.map_right _ ((functor.const _).map f)
+
+@[simp] lemma map_mk {f : S.obj Y ⟶ T} (g : T ⟶ T') :
+  (map g).obj (mk f) = mk (f ≫ g) := rfl
+
+@[simp] lemma map_id {f : costructured_arrow S T} : (map (𝟙 T)).obj f = f :=
+by { rw eq_mk f, simp, }
+
+@[simp] lemma map_comp {f : T ⟶ T'} {f' : T' ⟶ T''} {h : costructured_arrow S T} :
+  (map (f ≫ f')).obj h = (map f').obj ((map f).obj h) :=
+by { rw eq_mk h, simp, }
+
+open category_theory.limits
+
+/-- The identity costructured arrow is terminal. -/
+def mk_id_initial [full S] [faithful S] : is_terminal (mk (𝟙 (S.obj Y))) :=
+{ lift := λ c, mk_hom (S.preimage c.X.hom) (by { dsimp, simp, }),
+  uniq' := begin
+    rintros c m -,
+    ext,
+    apply S.map_injective,
+    have := m.w,
+    dsimp at this,
+    simpa using this,
+  end }
+
+end costructured_arrow
+
 end category_theory

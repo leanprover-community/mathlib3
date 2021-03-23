@@ -60,7 +60,8 @@ tendsto_const_nhds.smul hf
 
 variables [topological_space β] {f : β → M} {g : β → α} {b : β} {s : set β}
 
-lemma continuous_within_at.smul (hf : continuous_within_at f s b) (hg : continuous_within_at g s b) :
+lemma continuous_within_at.smul (hf : continuous_within_at f s b)
+  (hg : continuous_within_at g s b) :
   continuous_within_at (λ x, f x • g x) s b :=
 hf.smul hg
 

@@ -72,7 +72,7 @@ f.measurable_set_fiber' x
 protected def range (f : α →ₛ β) : finset β := f.finite_range.to_finset
 
 @[simp] theorem mem_range {f : α →ₛ β} {b} : b ∈ f.range ↔ b ∈ range f :=
-finite.mem_to_finset
+finite.mem_to_finset _
 
 theorem mem_range_self (f : α →ₛ β) (x : α) : f x ∈ f.range := mem_range.2 ⟨x, rfl⟩
 
@@ -412,7 +412,7 @@ by simp only [hs, coe_restrict]
 
 theorem restrict_preimage (f : α →ₛ β) {s : set α} (hs : measurable_set s)
   {t : set β} (ht : (0:β) ∉ t) : restrict f s ⁻¹' t = s ∩ f ⁻¹' t :=
-by simp [hs, indicator_preimage_of_not_mem _ _ ht]
+by simp [hs, indicator_preimage_of_not_mem _ _ ht, inter_comm]
 
 theorem restrict_preimage_singleton (f : α →ₛ β) {s : set α} (hs : measurable_set s)
   {r : β} (hr : r ≠ 0) : restrict f s ⁻¹' {r} = s ∩ f ⁻¹' {r} :=
@@ -1683,6 +1683,13 @@ begin
   { intro x, by_cases hx : x ∈ f ⁻¹' {∞}; [simpa [hx], simp [hx]] },
   convert lintegral_mono this,
   rw [lintegral_indicator _ (hf (measurable_set_singleton ∞))], simp [ennreal.top_mul, preimage, h]
+end
+
+lemma ae_lt_top' {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (h2f : ∫⁻ x, f x ∂μ < ∞) :
+  ∀ᵐ x ∂μ, f x < ∞ :=
+begin
+  have h2f_meas : ∫⁻ x, hf.mk f x ∂μ < ∞, by rwa ←lintegral_congr_ae hf.ae_eq_mk,
+  exact (ae_lt_top hf.measurable_mk h2f_meas).mp (hf.ae_eq_mk.mono (λ x hx h, by rwa hx)),
 end
 
 /-- Given a measure `μ : measure α` and a function `f : α → ℝ≥0∞`, `μ.with_density f` is the

@@ -65,6 +65,12 @@ end multiplicative
 instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul (default α)⟩
 instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add (default α)⟩
 
+instance [nontrivial α] : nontrivial (additive α) :=
+additive.of_mul.injective.nontrivial
+
+instance [nontrivial α] : nontrivial (multiplicative α) :=
+multiplicative.of_add.injective.nontrivial
+
 instance additive.has_add [has_mul α] : has_add (additive α) :=
 { add := λ x y, additive.of_mul (x.to_mul * y.to_mul) }
 
@@ -236,3 +242,23 @@ def add_monoid_hom.to_multiplicative'' [add_monoid α] [monoid β] :
 def monoid_hom.to_additive'' [add_monoid α] [monoid β] :
   (multiplicative α →* β) ≃ (α →+ additive β) :=
 add_monoid_hom.to_multiplicative''.symm
+
+/-- If `α` has some multiplicative structure and coerces to a function,
+then `additive α` should also coerce to the same function.
+
+This allows `additive` to be used on bundled function types with a multiplicative structure, which
+is often used for composition, without affecting the behavior of the function itself.
+-/
+instance additive.has_coe_to_fun {α : Type*} [has_coe_to_fun α] :
+  has_coe_to_fun (additive α) :=
+⟨λ a, has_coe_to_fun.F a.to_mul, λ a, coe_fn a.to_mul⟩
+
+/-- If `α` has some additive structure and coerces to a function,
+then `multiplicative α` should also coerce to the same function.
+
+This allows `multiplicative` to be used on bundled function types with an additive structure, which
+is often used for composition, without affecting the behavior of the function itself.
+-/
+instance multiplicative.has_coe_to_fun {α : Type*} [has_coe_to_fun α] :
+  has_coe_to_fun (multiplicative α) :=
+⟨λ a, has_coe_to_fun.F a.to_add, λ a, coe_fn a.to_add⟩

@@ -5,7 +5,21 @@ Authors: Robert Y. Lewis, Chris Hughes
 -/
 import algebra.associated
 import algebra.big_operators.basic
-import data.nat.enat
+import ring_theory.valuation.basic
+
+/-!
+# Multiplicity of a divisor
+
+For a commutative monoid, this file introduces the notion of multiplicity of a divisor and proves
+several basic results on it.
+
+## Main definitions
+
+* `multiplicity a b`: for two elements `a` and `b` of a commutative monoid returns the largest
+  number `n` such that `a ^ n ∣ b` or infinity, written `⊤`, if `a ^ n ∣ b` for all natural numbers
+  `n`.
+* `multiplicity.finite a b`: a predicate denoting that the multiplicity of `a` in `b` is finite.
+-/
 
 variables {α : Type*}
 
@@ -106,17 +120,26 @@ lemma eq_top_iff {a b : α} :
 (enat.find_eq_top_iff _).trans $
 by { simp only [not_not], exact ⟨λ h n, nat.cases_on n (one_dvd _) (λ n, h _), λ h n, h _⟩ }
 
-lemma one_right {a : α} (ha : ¬is_unit a) : multiplicity a 1 = 0 :=
-eq_some_iff.2 ⟨dvd_refl _, mt is_unit_iff_dvd_one.2 $ by simpa⟩
+@[simp] lemma is_unit_left {a : α} (b : α) (ha : is_unit a) : multiplicity a b = ⊤ :=
+eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (ha.pow _) _)
+
+lemma is_unit_right {a b : α} (ha : ¬is_unit a) (hb : is_unit b) :
+  multiplicity a b = 0 :=
+eq_some_iff.2 ⟨by simp, by { rw pow_one, exact λ h, mt (is_unit_of_dvd_unit h) ha hb, }⟩
+
+@[simp] lemma one_left (b : α) : multiplicity 1 b = ⊤ := is_unit_left b is_unit_one
+
+lemma one_right {a : α} (ha : ¬is_unit a) : multiplicity a 1 = 0 := is_unit_right ha is_unit_one
 
 @[simp] lemma get_one_right {a : α} (ha : finite a 1) : get (multiplicity a 1) ha = 0 :=
 get_eq_iff_eq_some.2 (eq_some_iff.2 ⟨dvd_refl _,
   by simpa [is_unit_iff_dvd_one.symm] using not_unit_of_finite ha⟩)
 
-@[simp] lemma multiplicity_unit {a : α} (b : α) (ha : is_unit a) : multiplicity a b = ⊤ :=
-eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (ha.pow _) _)
+@[simp] lemma unit_left (a : α) (u : units α) : multiplicity (u : α) a = ⊤ :=
+is_unit_left a (is_unit_unit u)
 
-@[simp] lemma one_left (b : α) : multiplicity 1 b = ⊤ := by simp [eq_top_iff]
+lemma unit_right {a : α} (ha : ¬is_unit a) (u : units α) : multiplicity a u = 0 :=
+is_unit_right ha (is_unit_unit u)
 
 lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=
 eq_some_iff.2 (by simpa)
@@ -137,9 +160,23 @@ lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ mul
     by rw [eq_top_iff_not_finite.2 hab, eq_top_iff_not_finite.2
       (not_finite_iff_forall.2 this)]⟩
 
-lemma multiplicity_le_multiplicity_of_dvd {a b c : α} (hdvd : a ∣ b) :
+lemma multiplicity_le_multiplicity_of_dvd_left {a b c : α} (hdvd : a ∣ b) :
   multiplicity b c ≤ multiplicity a c :=
 multiplicity_le_multiplicity_iff.2 $ λ n h, dvd_trans (pow_dvd_pow_of_dvd hdvd n) h
+
+lemma eq_of_associated_left {a b c : α} (h : associated a b) :
+  multiplicity b c = multiplicity a c :=
+le_antisymm (multiplicity_le_multiplicity_of_dvd_left (dvd_of_associated h))
+  (multiplicity_le_multiplicity_of_dvd_left (dvd_of_associated h.symm))
+
+lemma multiplicity_le_multiplicity_of_dvd_right {a b c : α} (h : b ∣ c) :
+  multiplicity a b ≤ multiplicity a c :=
+multiplicity_le_multiplicity_iff.2 $ λ n hb, dvd.trans hb h
+
+lemma eq_of_associated_right {a b c : α} (h : associated b c) :
+  multiplicity a b = multiplicity a c :=
+le_antisymm (multiplicity_le_multiplicity_of_dvd_right (dvd_of_associated h))
+  (multiplicity_le_multiplicity_of_dvd_right (dvd_of_associated h.symm))
 
 lemma dvd_of_multiplicity_pos {a b : α} (h : (0 : enat) < multiplicity a b) : a ∣ b :=
 by rw [← pow_one a]; exact pow_dvd_of_le_multiplicity (enat.pos_iff_one_le.1 h)
@@ -310,8 +347,10 @@ protected lemma mul' {p a b : α} (hp : prime p)
   get (multiplicity p (a * b)) h =
   get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
   get (multiplicity p b) ((finite_mul_iff hp).1 h).2 :=
-have hdiva : p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 ∣ a, from pow_multiplicity_dvd _,
-have hdivb : p ^ get (multiplicity p b) ((finite_mul_iff hp).1 h).2 ∣ b, from pow_multiplicity_dvd _,
+have hdiva : p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 ∣ a,
+  from pow_multiplicity_dvd _,
+have hdivb : p ^ get (multiplicity p b) ((finite_mul_iff hp).1 h).2 ∣ b,
+  from pow_multiplicity_dvd _,
 have hpoweq : p ^ (get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
     get (multiplicity p b) ((finite_mul_iff hp).1 h).2) =
     p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 *
@@ -373,6 +412,20 @@ multiplicity_pow_self hp.ne_zero hp.not_unit n
 
 
 end comm_cancel_monoid_with_zero
+
+section valuation
+
+variables {R : Type*} [integral_domain R] {p : R} [decidable_rel (has_dvd.dvd : R → R → Prop)]
+
+/-- `multiplicity` of a prime inan integral domain as an additive valuation to `enat`. -/
+noncomputable def add_valuation (hp : prime p) : add_valuation R enat :=
+add_valuation.of (multiplicity p) (multiplicity.zero _) (one_right hp.not_unit)
+  (λ _ _, min_le_multiplicity_add) (λ a b, multiplicity.mul hp)
+
+@[simp]
+lemma add_valuation_apply {hp : prime p} {r : R} : add_valuation hp r = multiplicity p r := rfl
+
+end valuation
 
 end multiplicity
 

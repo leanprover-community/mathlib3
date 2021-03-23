@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.closeds
 import set_theory.cardinal
 import topology.metric_space.gromov_hausdorff_realized
 import topology.metric_space.completion
+import topology.metric_space.kuratowski
 
 /-!
 # Gromov-Hausdorff distance

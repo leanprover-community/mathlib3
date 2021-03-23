@@ -15,8 +15,10 @@ It contains theorems relating these to each other, as well as to `linear_map.ker
 ## Main definitions
 
 - pi types in the codomain:
-  - `linear_map.proj`
   - `linear_map.pi`
+  - `linear_map.single`
+- pi types in the domain:
+  - `linear_map.proj`
 - `linear_map.diag`
 
 -/
@@ -25,10 +27,10 @@ universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
 variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
 
-namespace linear_map
+open function submodule
+open_locale big_operators
 
-open function
-open submodule
+namespace linear_map
 
 universe i
 variables [semiring R] [add_comm_monoid M₂] [semimodule R M₂] [add_comm_monoid M₃] [semimodule R M₃]
@@ -69,6 +71,66 @@ begin
   simp only [mem_infi, mem_ker, proj_apply] at h,
   exact (mem_bot _).2 (funext $ assume i, h i)
 end
+
+lemma apply_single [add_comm_monoid M] [semimodule R M] [decidable_eq ι]
+  (f : Π i, φ i →ₗ[R] M) (i j : ι) (x : φ i) :
+  f j (pi.single i x j) = pi.single i (f i x) j :=
+pi.apply_single (λ i, f i) (λ i, (f i).map_zero) _ _ _
+
+/-- The `linear_map` version of `add_monoid_hom.single` and `pi.single`. -/
+def single [decidable_eq ι] (i : ι) : φ i →ₗ[R] (Πi, φ i) :=
+{ to_fun := pi.single i,
+  map_smul' := pi.single_smul i,
+  .. add_monoid_hom.single φ i}
+
+@[simp] lemma coe_single [decidable_eq ι] (i : ι) :
+  ⇑(single i : φ i →ₗ[R] (Π i, φ i)) = pi.single i := rfl
+
+variables (R φ)
+
+/-- The linear equivalence between linear functions on a finite product of modules and
+families of functions on these modules. See note [bundled maps over different rings]. -/
+def lsum (S) [add_comm_monoid M] [semimodule R M] [fintype ι] [decidable_eq ι]
+  [semiring S] [semimodule S M]  [smul_comm_class R S M] :
+  (Π i, φ i →ₗ[R] M) ≃ₗ[S] ((Π i, φ i) →ₗ[R] M) :=
+{ to_fun := λ f, ∑ i : ι, (f i).comp (proj i),
+  inv_fun := λ f i, f.comp (single i),
+  map_add' := λ f g, by simp only [pi.add_apply, add_comp, finset.sum_add_distrib],
+  map_smul' := λ c f, by simp only [pi.smul_apply, smul_comp, finset.smul_sum],
+  left_inv := λ f, by { ext i x, simp [apply_single] },
+  right_inv := λ f,
+    begin
+      ext,
+      suffices : f (∑ j, pi.single j (x j)) = f x, by simpa [apply_single],
+      rw finset.univ_sum_single
+    end }
+
+variables {R φ}
+
+section ext
+
+variables [fintype ι] [decidable_eq ι] [add_comm_monoid M] [semimodule R M]
+  {f g : (Π i, φ i) →ₗ[R] M}
+
+lemma pi_ext (h : ∀ i x, f (pi.single i x) = g (pi.single i x)) :
+  f = g :=
+to_add_monoid_hom_injective $ add_monoid_hom.functions_ext _ _ _ h
+
+lemma pi_ext_iff : f = g ↔ ∀ i x, f (pi.single i x) = g (pi.single i x) :=
+⟨λ h i x, h ▸ rfl, pi_ext⟩
+
+/-- This is used as the ext lemma instead of `linear_map.pi_ext` for reasons explained in
+note [partially-applied ext lemmas]. -/
+@[ext] lemma pi_ext' (h : ∀ i, f.comp (single i) = g.comp (single i)) : f = g :=
+begin
+  refine pi_ext (λ i x, _),
+  convert linear_map.congr_fun (h i) x
+end
+
+lemma pi_ext'_iff : f = g ↔ ∀ i, f.comp (single i) = g.comp (single i) :=
+⟨λ h i, h ▸ rfl, pi_ext'⟩
+
+end ext
 
 section
 variables (R φ)
@@ -119,3 +181,83 @@ end
 end
 
 end linear_map
+
+namespace submodule
+
+variables [semiring R] {φ : ι → Type*} [∀ i, add_comm_monoid (φ i)] [∀ i, semimodule R (φ i)]
+
+open linear_map
+
+/-- A version of `set.pi` for submodules. Given an index set `I` and a family of submodules
+`p : Π i, submodule R (φ i)`, `pi I s` is the submodule of dependent functions `f : Π i, φ i`
+such that `f i` belongs to `p a` whenever `i ∈ I`. -/
+def pi (I : set ι) (p : Π i, submodule R (φ i)) : submodule R (Π i, φ i) :=
+{ carrier := set.pi I (λ i, p i),
+  zero_mem' := λ i hi, (p i).zero_mem,
+  add_mem' := λ x y hx hy i hi, (p i).add_mem (hx i hi) (hy i hi),
+  smul_mem' := λ c x hx i hi, (p i).smul_mem c (hx i hi) }
+
+variables {I : set ι} {p : Π i, submodule R (φ i)} {x : Π i, φ i}
+
+@[simp] lemma mem_pi : x ∈ pi I p ↔ ∀ i ∈ I, x i ∈ p i := iff.rfl
+
+@[simp, norm_cast] lemma coe_pi : (pi I p : set (Π i, φ i)) = set.pi I (λ i, p i) := rfl
+
+lemma binfi_comap_proj : (⨅ i ∈ I, comap (proj i) (p i)) = pi I p :=
+by { ext x, simp }
+
+lemma infi_comap_proj : (⨅ i, comap (proj i) (p i)) = pi set.univ p :=
+by { ext x, simp }
+
+lemma supr_map_single [decidable_eq ι] [fintype ι] :
+  (⨆ i, map (linear_map.single i) (p i)) = pi set.univ p :=
+begin
+  refine (supr_le $ λ i, _).antisymm _,
+  { rintro _ ⟨x, hx : x ∈ p i, rfl⟩ j -,
+    rcases em (j = i) with rfl|hj; simp * },
+  { intros x hx,
+    rw [← finset.univ_sum_single x],
+    exact sum_mem_supr (λ i, mem_map_of_mem (hx i trivial)) }
+end
+
+end submodule
+
+namespace linear_equiv
+
+variables [semiring R] {φ ψ : ι → Type*} [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
+  [∀i, add_comm_monoid (ψ i)] [∀i, semimodule R (ψ i)]
+
+/-- Combine a family of linear equivalences into a linear equivalence of `pi`-types. -/
+@[simps] def pi (e : Π i, φ i ≃ₗ[R] ψ i) : (Π i, φ i) ≃ₗ[R] (Π i, ψ i) :=
+{ to_fun := λ f i, e i (f i),
+  inv_fun := λ f i, (e i).symm (f i),
+  map_add' := λ f g, by { ext, simp },
+  map_smul' := λ c f, by { ext, simp },
+  left_inv := λ f, by { ext, simp },
+  right_inv := λ f, by { ext, simp } }
+
+variables (ι R M) (S : Type*) [fintype ι] [decidable_eq ι] [semiring S]
+  [add_comm_monoid M] [semimodule R M] [semimodule S M] [smul_comm_class R S M]
+
+/-- Linear equivalence between linear functions `Rⁿ → M` and `Mⁿ`. The spaces `Rⁿ` and `Mⁿ`
+are represented as `ι → R` and `ι → M`, respectively, where `ι` is a finite type.
+
+This as an `S`-linear equivalence, under the assumption that `S` acts on `M` commuting with `R`.
+When `R` is commutative, we can take this to be the usual action with `S = R`.
+Otherwise, `S = ℕ` shows that the equivalence is additive.
+See note [bundled maps over different rings]. -/
+def pi_ring : ((ι → R) →ₗ[R] M) ≃ₗ[S] (ι → M) :=
+(linear_map.lsum R (λ i : ι, R) S).symm.trans
+  (pi $ λ i, linear_map.ring_lmap_equiv_self R M S)
+
+variables {ι R M}
+
+@[simp] lemma pi_ring_apply (f : (ι → R) →ₗ[R] M) (i : ι) :
+  pi_ring R M ι S f i = f (pi.single i 1) :=
+rfl
+
+@[simp] lemma pi_ring_symm_apply (f : ι → M) (g : ι → R) :
+  (pi_ring R M ι S).symm f g = ∑ i, g i • f i :=
+by simp [pi_ring, linear_map.lsum]
+
+end linear_equiv

@@ -84,7 +84,7 @@ instance : semigroup ℝ          := by apply_instance
 instance : has_sub ℝ := by apply_instance
 instance : inhabited ℝ := ⟨0⟩
 
-/-- The real numbers are a *-ring, with the trivial *-structure. -/
+/-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
 instance : star_ring ℝ          := star_ring_of_comm
 
 /-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
@@ -217,6 +217,10 @@ noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
 noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : domain ℝ                     :=
 { .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.to_domain }
+
+/-- The real numbers are an ordered `*`-ring, with the trivial `*`-structure. -/
+instance : star_ordered_ring ℝ :=
+{ star_mul_self_nonneg := λ r, mul_self_nonneg r, }
 
 @[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
 noncomputable instance : has_inv ℝ := ⟨inv'⟩
@@ -451,7 +455,6 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
     assume (s : set ℝ) (a : ℝ) (_ : s.nonempty) (H : ∀b∈s, a ≤ b),
     show a ≤ Inf s,
       from lb_le_Inf s ‹s.nonempty› H,
-  decidable_le := classical.dec_rel _,
  ..real.linear_order, ..real.lattice}
 
 theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp

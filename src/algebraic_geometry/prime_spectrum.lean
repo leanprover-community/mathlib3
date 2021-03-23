@@ -144,6 +144,10 @@ lemma mem_vanishing_ideal (t : set (prime_spectrum R)) (f : R) :
   f ∈ vanishing_ideal t ↔ ∀ x : prime_spectrum R, x ∈ t → f ∈ x.as_ideal :=
 by rw [← submodule.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
 
+@[simp] lemma vanishing_ideal_singleton (x : prime_spectrum R) :
+  vanishing_ideal ({x} : set (prime_spectrum R)) = x.as_ideal :=
+by simp [vanishing_ideal]
+
 lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (prime_spectrum R)) (I : ideal R) :
   t ⊆ zero_locus I ↔ I ≤ vanishing_ideal t :=
 ⟨λ h f k, (mem_vanishing_ideal _ _).mpr (λ x j, (mem_zero_locus _ _).mpr (h j) k), λ h,
@@ -319,7 +323,7 @@ by simp only [@eq_comm _ Uᶜ]; refl
 
 lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
   is_closed Z ↔ ∃ s, Z = zero_locus s :=
-by rw [is_closed, is_open_iff, compl_compl]
+by rw [← is_open_compl_iff, is_open_iff, compl_compl]
 
 lemma is_closed_zero_locus (s : set R) :
   is_closed (zero_locus s) :=
@@ -410,5 +414,34 @@ lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum
 (basic_open a).property
 
 end basic_open
+
+section order
+
+/-!
+## The specialization order
+
+We endow `prime_spectrum R` with a partial order,
+where `x ≤ y` if and only if `y ∈ closure {x}`.
+
+TODO: maybe define sober topological spaces, and generalise this instance to those
+-/
+
+instance : partial_order (prime_spectrum R) :=
+subtype.partial_order _
+
+@[simp] lemma as_ideal_le_as_ideal (x y : prime_spectrum R) :
+  x.as_ideal ≤ y.as_ideal ↔ x ≤ y :=
+subtype.coe_le_coe
+
+@[simp] lemma as_ideal_lt_as_ideal (x y : prime_spectrum R) :
+  x.as_ideal < y.as_ideal ↔ x < y :=
+subtype.coe_lt_coe
+
+lemma le_iff_mem_closure (x y : prime_spectrum R) :
+  x ≤ y ↔ y ∈ closure ({x} : set (prime_spectrum R)) :=
+by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
+    mem_zero_locus, vanishing_ideal_singleton, submodule.le_def]
+
+end order
 
 end prime_spectrum

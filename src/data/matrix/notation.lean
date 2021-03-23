@@ -34,6 +34,10 @@ already appears in the input.
 ## Notations
 
 The main new notation is `![a, b]`, which gets expanded to `vec_cons a (vec_cons b vec_empty)`.
+
+## Examples
+
+Examples of usage can be found in the `test/matrix.lean` file.
 -/
 
 namespace matrix
@@ -138,6 +142,9 @@ cons_val_succ x u 0
 @[simp] lemma cons_val_fin_one (x : α) (u : fin 0 → α) (i : fin 1) :
   vec_cons x u i = x :=
 by { fin_cases i, refl }
+
+lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
+funext (cons_val_fin_one x u)
 
 /-! ### Numeral (`bit0` and `bit1`) indices
 The following definitions and `simp` lemmas are to allow any

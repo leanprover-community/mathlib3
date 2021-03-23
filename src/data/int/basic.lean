@@ -60,6 +60,8 @@ instance : linear_ordered_comm_ring int :=
 instance : linear_ordered_add_comm_group int :=
 by apply_instance
 
+@[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
+
 theorem abs_eq_nat_abs : ∀ a : ℤ, abs a = nat_abs a
 | (n : ℕ) := abs_of_nonneg $ coe_zero_le _
 | -[1+ n] := abs_of_nonpos $ le_of_lt $ neg_succ_lt_zero _
@@ -81,6 +83,13 @@ attribute [simp] int.of_nat_eq_coe int.bodd
 @[simp] theorem add_def {a b : ℤ} : int.add a b = a + b := rfl
 @[simp] theorem mul_def {a b : ℤ} : int.mul a b = a * b := rfl
 
+@[simp] lemma neg_succ_not_nonneg (n : ℕ) : 0 ≤ -[1+ n] ↔ false :=
+by { simp only [not_le, iff_false], exact int.neg_succ_lt_zero n, }
+
+@[simp] lemma neg_succ_not_pos (n : ℕ) : 0 < -[1+ n] ↔ false :=
+by simp only [not_lt, iff_false]
+
+@[simp] lemma neg_succ_sub_one (n : ℕ) : -[1+ n] - 1 = -[1+ (n+1)] := rfl
 @[simp] theorem coe_nat_mul_neg_succ (m n : ℕ) : (m : ℤ) * -[1+ n] = -(m * succ n) := rfl
 @[simp] theorem neg_succ_mul_coe_nat (m n : ℕ) : -[1+ m] * n = -(succ m * n) := rfl
 @[simp] theorem neg_succ_mul_neg_succ (m n : ℕ) : -[1+ m] * -[1+ n] = succ m * succ n := rfl
@@ -153,6 +162,12 @@ theorem add_one_le_iff {a b : ℤ} : a + 1 ≤ b ↔ a < b := iff.rfl
 
 theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
 @add_le_add_iff_right _ _ a b 1
+
+@[simp] lemma succ_coe_nat_pos (n : ℕ) : 0 < (n : ℤ) + 1 :=
+lt_add_one_iff.mpr (by simp)
+
+@[norm_cast] lemma coe_pred_of_pos (n : ℕ) (h : 0 < n) : ((n - 1 : ℕ) : ℤ) = (n : ℤ) - 1 :=
+by { cases n, cases h, simp, }
 
 lemma le_add_one {a b : ℤ} (h : a ≤ b) : a ≤ b + 1 :=
 le_of_lt (int.lt_add_one_iff.mpr h)
@@ -1012,6 +1027,16 @@ end
 lemma to_nat_add_one {a : ℤ} (h : 0 ≤ a) : (a + 1).to_nat = a.to_nat + 1 :=
 to_nat_add h (zero_le_one)
 
+@[simp]
+lemma pred_to_nat : ∀ (i : ℤ), (i - 1).to_nat = i.to_nat - 1
+| (0:ℕ)   := rfl
+| (n+1:ℕ) := by simp
+| -[1+ n] := rfl
+
+@[simp]
+lemma to_nat_pred_coe_of_pos {i : ℤ} (h : 0 < i) : ((i.to_nat - 1 : ℕ) : ℤ) = i - 1 :=
+by simp [h, le_of_lt h] with push_cast
+
 /-- If `n : ℕ`, then `int.to_nat' n = some n`, if `n : ℤ` is negative, then `int.to_nat' n = none`.
 -/
 def to_nat' : ℤ → option ℕ
@@ -1045,6 +1070,9 @@ lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 -- `units.coe_mul` is a "wrong turn" for the simplifier, this undoes it and simplifies further
 @[simp] lemma units_coe_mul_self (u : units ℤ) : (u * u : ℤ) = 1 :=
 by rw [←units.coe_mul, units_mul_self, units.coe_one]
+
+@[simp] lemma neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n ≠ 0 :=
+pow_ne_zero _ (abs_pos.mp trivial)
 
 /-! ### bitwise ops -/
 

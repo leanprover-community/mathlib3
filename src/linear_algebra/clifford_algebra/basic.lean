@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Eric Wieser, Utensil Song.
+Authors: Eric Wieser, Utensil Song
 -/
 
 import algebra.ring_quot
@@ -154,6 +154,37 @@ begin
   apply (lift Q).symm.injective,
   rw [lift_symm_apply, lift_symm_apply],
   simp only [h],
+end
+
+/-- If `C` holds for the `algebra_map` of `r : R` into `clifford_algebra Q`, the `ι` of `x : M`,
+and is preserved under addition and muliplication, then it holds for all of `clifford_algebra Q`.
+-/
+-- This proof closely follows `tensor_algebra.induction`
+@[elab_as_eliminator]
+lemma induction {C : clifford_algebra Q → Prop}
+  (h_grade0 : ∀ r, C (algebra_map R (clifford_algebra Q) r))
+  (h_grade1 : ∀ x, C (ι Q x))
+  (h_mul : ∀ a b, C a → C b → C (a * b))
+  (h_add : ∀ a b, C a → C b → C (a + b))
+  (a : clifford_algebra Q) :
+  C a :=
+begin
+  -- the arguments are enough to construct a subalgebra, and a mapping into it from M
+  let s : subalgebra R (clifford_algebra Q) := {
+    carrier := C,
+    mul_mem' := h_mul,
+    add_mem' := h_add,
+    algebra_map_mem' := h_grade0, },
+  let of : { f : M →ₗ[R] s // ∀ m, f m * f m = algebra_map _ _ (Q m) } :=
+  ⟨(ι Q).cod_restrict s.to_submodule h_grade1,
+    λ m, subtype.eq $ ι_square_scalar Q m ⟩,
+  -- the mapping through the subalgebra is the identity
+  have of_id : alg_hom.id R (clifford_algebra Q) = s.val.comp (lift Q of),
+  { ext,
+    simp [of], },
+  -- finding a proof is finding an element of the subalgebra
+  convert subtype.prop (lift Q of a),
+  exact alg_hom.congr_fun of_id a,
 end
 
 /-- A Clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/

@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 import category_theory.discrete_category
 
 noncomputable theory
@@ -52,13 +52,13 @@ abbreviation has_products_of_shape (β : Type v) := has_limits_of_shape.{v} (dis
 abbreviation has_coproducts_of_shape (β : Type v) := has_colimits_of_shape.{v} (discrete β)
 end
 
-/-- `pi_obj f` computes the product of a family of elements `f`. (It is defined as an abbreviation
-   for `limit (discrete.functor f)`, so for most facts about `pi_obj f`, you will just use general facts
-   about limits.) -/
+/-- `pi_obj f` computes the product of a family of elements `f`.
+(It is defined as an abbreviation for `limit (discrete.functor f)`,
+so for most facts about `pi_obj f`, you will just use general facts about limits.) -/
 abbreviation pi_obj (f : β → C) [has_product f] := limit (discrete.functor f)
-/-- `sigma_obj f` computes the coproduct of a family of elements `f`. (It is defined as an abbreviation
-   for `colimit (discrete.functor f)`, so for most facts about `sigma_obj f`, you will just use general facts
-   about colimits.) -/
+/-- `sigma_obj f` computes the coproduct of a family of elements `f`.
+(It is defined as an abbreviation for `colimit (discrete.functor f)`,
+so for most facts about `sigma_obj f`, you will just use general facts about colimits.) -/
 abbreviation sigma_obj (f : β → C) [has_coproduct f] := colimit (discrete.functor f)
 
 notation `∏ ` f:20 := pi_obj f

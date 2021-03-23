@@ -2,13 +2,13 @@
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
-
 -/
+
 import algebra.gcd_monoid
 import ring_theory.integral_domain
 import ring_theory.noetherian
 
-/--
+/-!
 
 # Unique factorization
 
@@ -108,7 +108,8 @@ end wf_dvd_monoid
 
 theorem wf_dvd_monoid.of_well_founded_associates [comm_cancel_monoid_with_zero α]
   (h : well_founded ((<) : associates α → associates α → Prop)) : wf_dvd_monoid α :=
-wf_dvd_monoid.of_wf_dvd_monoid_associates ⟨by { convert h, ext, exact associates.dvd_not_unit_iff_lt }⟩
+wf_dvd_monoid.of_wf_dvd_monoid_associates
+  ⟨by { convert h, ext, exact associates.dvd_not_unit_iff_lt }⟩
 
 theorem wf_dvd_monoid.iff_well_founded_associates [comm_cancel_monoid_with_zero α] :
   wf_dvd_monoid α ↔ well_founded ((<) : associates α → associates α → Prop) :=
@@ -133,8 +134,8 @@ To define a UFD using the definition in terms of multisets
 of prime factors, use the definition `of_exists_prime_factors`
 
 -/
-class unique_factorization_monoid (α : Type*) [comm_cancel_monoid_with_zero α] extends wf_dvd_monoid α :
-  Prop :=
+class unique_factorization_monoid (α : Type*) [comm_cancel_monoid_with_zero α]
+  extends wf_dvd_monoid α : Prop :=
 (irreducible_iff_prime : ∀ {a : α}, irreducible a ↔ prime a)
 
 instance ufm_of_gcd_of_wf_dvd_monoid [nontrivial α] [comm_cancel_monoid_with_zero α]
@@ -310,7 +311,8 @@ theorem unique_factorization_monoid.iff_exists_prime_factors [comm_cancel_monoid
 theorem irreducible_iff_prime_of_exists_unique_irreducible_factors [comm_cancel_monoid_with_zero α]
   (eif : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, irreducible b) ∧ f.prod ~ᵤ a)
   (uif : ∀ (f g : multiset α),
-  (∀ x ∈ f, irreducible x) → (∀ x ∈ g, irreducible x) → f.prod ~ᵤ g.prod → multiset.rel associated f g)
+  (∀ x ∈ f, irreducible x) → (∀ x ∈ g, irreducible x) → f.prod ~ᵤ g.prod →
+    multiset.rel associated f g)
   (p : α) : irreducible p ↔ prime p :=
 ⟨by letI := classical.dec_eq α; exact λ hpi,
     ⟨hpi.ne_zero, hpi.1,
@@ -352,7 +354,8 @@ theorem unique_factorization_monoid.of_exists_unique_irreducible_factors
   [comm_cancel_monoid_with_zero α]
   (eif : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, irreducible b) ∧ f.prod ~ᵤ a)
   (uif : ∀ (f g : multiset α),
-  (∀ x ∈ f, irreducible x) → (∀ x ∈ g, irreducible x) → f.prod ~ᵤ g.prod → multiset.rel associated f g) :
+  (∀ x ∈ f, irreducible x) → (∀ x ∈ g, irreducible x) → f.prod ~ᵤ g.prod →
+    multiset.rel associated f g) :
   unique_factorization_monoid α :=
 unique_factorization_monoid.of_exists_prime_factors (by
   { convert eif,
@@ -725,7 +728,8 @@ def bfactor_set_mem : {a : associates α // irreducible a} → (factor_set α) �
 
 include dec_irr
 
-/-- `factor_set_mem p s` is the predicate that the irreducible `p` is a member of `s : factor_set α`.
+/-- `factor_set_mem p s` is the predicate that the irreducible `p` is a member of
+`s : factor_set α`.
 
 If `p` is not irreducible, `p` is not a member of any `factor_set`. -/
 def factor_set_mem (p : associates α) (s : factor_set α) : Prop :=

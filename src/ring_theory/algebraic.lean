@@ -29,6 +29,9 @@ variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
 def is_algebraic (x : A) : Prop :=
 ∃ p : polynomial R, p ≠ 0 ∧ aeval x p = 0
 
+/-- An element of an R-algebra is transcendental over R if it is not algebraic over R. -/
+def transcendental (x : A) : Prop := ¬ is_algebraic R x
+
 variables {R}
 
 /-- A subalgebra is algebraic if all its elements are algebraic. -/
@@ -70,6 +73,12 @@ variables (R : Type u) {A : Type v} [comm_ring R] [nontrivial R] [ring A] [algeb
 /-- An integral element of an algebra is algebraic.-/
 lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=
 by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
+
+variables {R}
+
+/-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
+lemma is_algebraic_algebra_map (a : R) : is_algebraic R (algebra_map R A a) :=
+⟨X - C a, X_sub_C_ne_zero a, by simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self]⟩
 
 end zero_ne_one
 
@@ -128,7 +137,7 @@ begin
   have x_integral : is_integral R (z * algebra_map R S a) :=
     ⟨ p.integral_normalization,
       monic_integral_normalization p_ne_zero,
-      integral_normalization_aeval_eq_zero p_ne_zero px inj ⟩,
+      integral_normalization_aeval_eq_zero px inj ⟩,
   refine ⟨⟨_, x_integral⟩, ⟨_, y_integral⟩, _, rfl⟩,
   exact λ h, a_ne_zero (inj _ (subtype.ext_iff_val.mp h))
 end

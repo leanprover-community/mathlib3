@@ -82,9 +82,8 @@ instance retraction_split_epi {X Y : C} (f : X ⟶ Y) [split_mono f] : split_epi
 { section_ := f }
 
 /-- A split mono which is epi is an iso. -/
-def is_iso_of_epi_of_split_mono {X Y : C} (f : X ⟶ Y) [split_mono f] (hf : epi f) : is_iso f :=
-{ inv := retraction f,
-  inv_hom_id' := by simp [← cancel_epi hf] }
+lemma is_iso_of_epi_of_split_mono {X Y : C} (f : X ⟶ Y) [split_mono f] [epi f] : is_iso f :=
+⟨retraction f, ⟨by simp, by simp [← cancel_epi f]⟩⟩
 
 /--
 The chosen section of a split epimorphism.
@@ -99,17 +98,18 @@ instance section_split_mono {X Y : C} (f : X ⟶ Y) [split_epi f] : split_mono (
 { retraction := f }
 
 /-- A split epi which is mono is an iso. -/
-def is_iso_of_mono_of_split_epi {X Y : C} (f : X ⟶ Y) (hf : mono f) [split_epi f] : is_iso f :=
-{ inv := section_ f,
-  hom_inv_id' := by simp [← cancel_mono hf] }
+lemma is_iso_of_mono_of_split_epi {X Y : C} (f : X ⟶ Y) [mono f] [split_epi f] : is_iso f :=
+⟨section_ f, ⟨by simp [← cancel_mono f], by simp⟩⟩
 
 /-- Every iso is a split mono. -/
 @[priority 100]
+noncomputable
 instance split_mono.of_iso {X Y : C} (f : X ⟶ Y) [is_iso f] : split_mono f :=
 { retraction := inv f }
 
 /-- Every iso is a split epi. -/
 @[priority 100]
+noncomputable
 instance split_epi.of_iso {X Y : C} (f : X ⟶ Y) [is_iso f] : split_epi f :=
 { section_ := inv f }
 
@@ -122,16 +122,14 @@ lemma split_epi.epi {X Y : C} (f : X ⟶ Y) [split_epi f] : epi f :=
 { left_cancellation := λ Z g h w, begin replace w := section_ f ≫= w, simpa using w, end }
 
 /-- Every split mono whose retraction is mono is an iso. -/
-def is_iso.of_mono_retraction {X Y : C} {f : X ⟶ Y} [split_mono f] (w : mono $ retraction f)
+lemma is_iso.of_mono_retraction {X Y : C} {f : X ⟶ Y} [split_mono f] [mono $ retraction f]
   : is_iso f :=
-{ inv := retraction f,
-  inv_hom_id' := (cancel_mono_id w).mp (by simp) }
+⟨retraction f, ⟨by simp, (cancel_mono_id $ retraction f).mp (by simp)⟩⟩
 
 /-- Every split epi whose section is epi is an iso. -/
-def is_iso.of_epi_section {X Y : C} {f : X ⟶ Y} [split_epi f] (w : epi $ section_ f)
+lemma is_iso.of_epi_section {X Y : C} {f : X ⟶ Y} [split_epi f] [epi $ section_ f]
   : is_iso f :=
-{ inv := section_ f,
-  hom_inv_id' := (cancel_epi_id w).mp (by simp) }
+⟨section_ f, ⟨(cancel_epi_id $ section_ f).mp (by simp), by simp⟩⟩
 
 lemma unop_mono_of_epi {A B : Cᵒᵖ} (f : A ⟶ B) (w : epi f) : mono f.unop :=
 ⟨λ Z g h eq, has_hom.hom.op_inj ((cancel_epi w).mp (has_hom.hom.unop_inj eq))⟩

@@ -6,6 +6,7 @@ Authors: Hanting Zhang, Johan Commelin
 import tactic
 import data.mv_polynomial.rename
 import data.mv_polynomial.comm_ring
+import algebra.algebra.subalgebra
 
 /-!
 # Symmetric Polynomials and Elementary Symmetric Polynomials
@@ -16,6 +17,8 @@ We also prove some basic facts about them.
 ## Main declarations
 
 * `mv_polynomial.is_symmetric`
+
+* `mv_polynomial.symmetric_subalgebra`
 
 * `mv_polynomial.esymm`
 
@@ -51,6 +54,20 @@ permutations of its variables by the  `rename` operation -/
 def is_symmetric [comm_semiring R] (φ : mv_polynomial σ R) : Prop :=
 ∀ e : perm σ, rename e φ = φ
 
+variables (σ R)
+
+/-- The subalgebra of symmetric `mv_polynomial`s. -/
+def symmetric_subalgebra [comm_semiring R] : subalgebra R (mv_polynomial σ R) :=
+{ carrier := set_of is_symmetric,
+  algebra_map_mem' := λ r e, rename_C e r,
+  mul_mem' := λ a b ha hb e, by rw [alg_hom.map_mul, ha, hb],
+  add_mem' := λ a b ha hb e, by rw [alg_hom.map_add, ha, hb] }
+
+variables {σ R}
+
+@[simp] lemma mem_symmetric_subalgebra [comm_semiring R] (p : mv_polynomial σ R) :
+  p ∈ symmetric_subalgebra σ R ↔ p.is_symmetric := iff.rfl
+
 namespace is_symmetric
 
 section comm_semiring
@@ -58,24 +75,24 @@ variables [comm_semiring R] [comm_semiring S] {φ ψ : mv_polynomial σ R}
 
 @[simp]
 lemma C (r : R) : is_symmetric (C r : mv_polynomial σ R) :=
-λ e, rename_C e r
+(symmetric_subalgebra σ R).algebra_map_mem r
 
 @[simp]
 lemma zero : is_symmetric (0 : mv_polynomial σ R) :=
-by { rw [← C_0], exact is_symmetric.C 0 }
+(symmetric_subalgebra σ R).zero_mem
 
 @[simp]
 lemma one : is_symmetric (1 : mv_polynomial σ R) :=
-by { rw [← C_1], exact is_symmetric.C 1 }
+(symmetric_subalgebra σ R).one_mem
 
 lemma add (hφ : is_symmetric φ) (hψ : is_symmetric ψ) : is_symmetric (φ + ψ) :=
-λ e, by rw [alg_hom.map_add, hφ, hψ]
+(symmetric_subalgebra σ R).add_mem hφ hψ
 
 lemma mul (hφ : is_symmetric φ) (hψ : is_symmetric ψ) : is_symmetric (φ * ψ) :=
-λ e, by rw [alg_hom.map_mul, hφ, hψ]
+(symmetric_subalgebra σ R).mul_mem hφ hψ
 
 lemma smul (r : R) (hφ : is_symmetric φ) : is_symmetric (r • φ) :=
-λ e, by rw [alg_hom.map_smul, hφ]
+(symmetric_subalgebra σ R).smul_mem hφ r
 
 @[simp]
 lemma map (hφ : is_symmetric φ) (f : R →+* S) : is_symmetric (map f φ) :=
@@ -87,10 +104,10 @@ section comm_ring
 variables [comm_ring R] {φ ψ : mv_polynomial σ R}
 
 lemma neg (hφ : is_symmetric φ) : is_symmetric (-φ) :=
-λ e, by rw [alg_hom.map_neg, hφ]
+(symmetric_subalgebra σ R).neg_mem hφ
 
 lemma sub (hφ : is_symmetric φ) (hψ : is_symmetric ψ) : is_symmetric (φ - ψ) :=
-by { rw sub_eq_add_neg, exact hφ.add hψ.neg }
+(symmetric_subalgebra σ R).sub_mem hφ hψ
 
 end comm_ring
 
@@ -156,8 +173,7 @@ lemma rename_esymm (n : ℕ) (e : σ ≃ τ) : rename e (esymm σ R n) = esymm �
 begin
   rw [esymm_eq_sum_subtype, esymm_eq_sum_subtype, (rename ⇑e).map_sum],
   let e' : {s : finset σ // s.card = n} ≃ {s : finset τ // s.card = n} :=
-    equiv.subtype_equiv (equiv.finset_congr e)
-    (by { intro, rw [equiv.finset_congr_apply, card_map] }),
+    equiv.subtype_equiv (equiv.finset_congr e) (by simp),
   rw ← equiv.sum_comp e'.symm,
   apply fintype.sum_congr,
   intro,

@@ -266,13 +266,14 @@ lemma ae_measurable_one_div_one_add_sq : ae_measurable (λ x:ℝ, 1 / (1 + x^2))
 by simp only [one_div, ae_measurable_inv_one_add_sq]
 
 lemma integral_sin_add_two_pi : ∫ x in a+2*π..b+2*π, sin x = ∫ x in a..b, sin x :=
-by simp [integral_comp_add_right, cos_add_two_pi]
+by simp [cos_add_two_pi]
 
 lemma integral_cos_add_two_pi : ∫ x in a+2*π..b+2*π, cos x = ∫ x in a..b, cos x :=
-by simp [integral_comp_add_right, sin_add_two_pi]
+by simp [sin_add_two_pi]
 
-example : ∫ x in a..b, sin (x * 2) = 2⁻¹ * (cos (a*2) - cos (b*2)) :=
-by norm_num
+example : ∫ x in a..b, sin (x * 2) = 2⁻¹ * (cos (a*2) - cos (b*2)) := by norm_num
+
+example : ∫ x in 0..π/4, sin (2*x) = 1/2 := by norm_num [mul_div_comm, mul_one_div]
 
 example : ∫ x in 0..2, -exp (-x) = exp (-2) - 1 := by norm_num
 

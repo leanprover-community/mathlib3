@@ -197,26 +197,26 @@ end
 
 /-- To show that two subobjects are equal, it suffices to exhibit an isomorphism commuting with
     the arrows. -/
-lemma eq_of_comm {B : C} {X Y : subobject B} (f : (X : C) ≅ (Y : C))
+@[ext] lemma eq_of_comm {B : C} {X Y : subobject B} (f : (X : C) ≅ (Y : C))
   (w : f.hom ≫ Y.arrow = X.arrow) : X = Y :=
 le_antisymm (le_of_comm f.hom w) $ le_of_comm f.inv $ f.inv_comp_eq.2 w.symm
 
 /-- To show that two subobjects are equal, it suffices to exhibit an isomorphism commuting with
     the arrows. -/
-lemma eq_mk_of_comm {B A : C} {X : subobject B} (f : A ⟶ B) [mono f] (i : (X : C) ≅ A)
+@[ext] lemma eq_mk_of_comm {B A : C} {X : subobject B} (f : A ⟶ B) [mono f] (i : (X : C) ≅ A)
   (w : i.hom ≫ f = X.arrow) : X = mk f :=
 eq_of_comm (i.trans (underlying_iso f).symm) $ by simp [w]
 
 /-- To show that two subobjects are equal, it suffices to exhibit an isomorphism commuting with
     the arrows. -/
-lemma mk_eq_of_comm {B A : C} {X : subobject B} (f : A ⟶ B) [mono f] (i : A ≅ (X : C))
+@[ext] lemma mk_eq_of_comm {B A : C} {X : subobject B} (f : A ⟶ B) [mono f] (i : A ≅ (X : C))
   (w : i.hom ≫ X.arrow = f) : mk f = X :=
 eq.symm $ eq_mk_of_comm _ i.symm $ by rw [iso.symm_hom, iso.inv_comp_eq, w]
 
 /-- To show that two subobjects are equal, it suffices to exhibit an isomorphism commuting with
     the arrows. -/
-lemma mk_eq_mk_of_comm {B A₁ A₂ : C} (f : A₁ ⟶ B) (g : A₂ ⟶ B) [mono f] [mono g] (i : A₁ ≅ A₂)
-  (w : i.hom ≫ g = f) : mk f = mk g :=
+@[ext] lemma mk_eq_mk_of_comm {B A₁ A₂ : C} (f : A₁ ⟶ B) (g : A₂ ⟶ B) [mono f] [mono g]
+  (i : A₁ ≅ A₂) (w : i.hom ≫ g = f) : mk f = mk g :=
 eq_mk_of_comm _ ((underlying_iso f).trans i) $ by simp [w]
 
 /-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
@@ -238,7 +238,7 @@ by simp [of_le_mk]
 def of_mk_le {B A : C} {f : A ⟶ B} [mono f] {X : subobject B} (h : mk f ≤ X) : A ⟶ (X : C) :=
 (underlying_iso f).inv ≫ of_le h
 
-@[simp] lemma of_mk_le_comp {B A : C} {f : A ⟶ B} [mono f] {X : subobject B} (h : mk f ≤ X) :
+@[simp] lemma of_mk_le_arrow {B A : C} {f : A ⟶ B} [mono f] {X : subobject B} (h : mk f ≤ X) :
   of_mk_le h ≫ X.arrow = f :=
 by simp [of_mk_le]
 

@@ -22,10 +22,22 @@ additively-graded ring. The typeclasses are:
 
 Respectively, these imbue the direct sum `⨁ i, A i` with:
 
-* `has_one`
-* `mul_zero_class`, `distrib`
-* `semiring`, `ring`
-* `comm_semiring`, `comm_ring`
+* `direct_sum.has_one`
+* `direct_sum.mul_zero_class`, `direct_sum.distrib`
+* `direct_sum.semiring`, `direct_sum.ring`
+* `direct_sum.comm_semiring`, `direct_sum.comm_ring`
+
+and the base ring `A 0` with:
+
+* `direct_sum.grade_zero.has_one`
+* `direct_sum.grade_zero.mul_zero_class`, `direct_sum.grade_zero.distrib`
+* `direct_sum.grade_zero.semiring`, `direct_sum.grade_zero.ring`
+* `direct_sum.grade_zero.comm_semiring`, `direct_sum.grade_zero.comm_ring`
+
+`direct_sum.of_zero_ring_hom : A 0 →+ ⨁ i, A i` provides `direct_sum.of A 0` as a ring
+homomorphism.
+
+## Direct sums of subobjects
 
 Additionally, this module provides helper functions to construct `gmonoid` and `gcomm_monoid`
 instances for:

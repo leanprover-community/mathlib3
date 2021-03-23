@@ -226,28 +226,31 @@ begin
 end
 
 /- S₁ ≤ S₂ iff all faces of S₁ are contained in faces of S₂-/
+instance : has_le (simplicial_complex m) := ⟨λ S₁ S₂, S₁.space = S₂.space ∧
+  ∀ {X₁ : finset (fin m → ℝ)}, X₁ ∈ S₁.faces → ∃ X₂ ∈ S₂.faces,
+  convex_hull (X₁ : set(fin m → ℝ)) ⊆ convex_hull (X₂ : set(fin m → ℝ))⟩
+
 def subdivision_order : partial_order (simplicial_complex m) :=
-  {le := (λ S₁ S₂, S₁.space = S₂.space ∧ ∀ X₁ ∈ S₁.faces, ∃ X₂ ∈ S₂.faces,
-    convex_hull (X₁ : set(fin m → ℝ)) ⊆ convex_hull (X₂ : set(fin m → ℝ))),
+  {le := λ S₁ S₂, S₁ ≤ S₂,
   le_refl := (λ S, ⟨rfl, (λ X hX, ⟨X, hX, subset.refl _⟩)⟩),
   le_trans := begin
     rintro S₁ S₂ S₃ h₁₂ h₂₃,
     use eq.trans h₁₂.1 h₂₃.1,
     rintro X₁ hX₁,
-    obtain ⟨X₂, hX₂, hX₁₂⟩ := h₁₂.2 X₁ hX₁,
-    obtain ⟨X₃, hX₃, hX₂₃⟩ := h₂₃.2 X₂ hX₂,
+    obtain ⟨X₂, hX₂, hX₁₂⟩ := h₁₂.2 hX₁,
+    obtain ⟨X₃, hX₃, hX₂₃⟩ := h₂₃.2 hX₂,
     exact ⟨X₃, hX₃, subset.trans hX₁₂ hX₂₃⟩,
   end,
   le_antisymm := begin
-    rintro S₁ S₂ h₁ h₂,
-    have aux_lemma : ∀ k : ℕ, ∀ X ∈ S₁.faces, m + 1 = finset.card X + k → X ∈ S₂.faces,
+    have aux_lemma : ∀ {S₁ S₂ : simplicial_complex m}, S₁ ≤ S₂ → S₂ ≤ S₁ → ∀ k : ℕ, ∀ X ∈ S₁.faces,
+      m + 1 = finset.card X + k → X ∈ S₂.faces,
     {
-      rintro k,
+      rintro S₁ S₂ h₁ h₂ k,
       apply nat.strong_induction_on k,
       {
         rintro n h X hX hXcard,
-        obtain ⟨Y, hY, hXYhull⟩ := h₁.2 X hX,
-        obtain ⟨Z, hZ, hYZhull⟩ := h₂.2 Y hY,
+        obtain ⟨Y, hY, hXYhull⟩ := h₁.2 hX,
+        obtain ⟨Z, hZ, hYZhull⟩ := h₂.2 hY,
         have hXZhull := subset.trans (inter_subset_inter_right (convex_hull ↑X)
           (subset.trans hXYhull hYZhull)) (S₁.disjoint hX hZ),
         rw inter_self at hXZhull,
@@ -273,15 +276,12 @@ def subdivision_order : partial_order (simplicial_complex m) :=
         }
       }
     },
+    rintro S₁ S₂ h₁ h₂,
     ext X,
-    split,
-    {
-      exact λ hX, aux_lemma (m + 1 - X.card) X hX ((nat.add_sub_cancel'
-        (simplex_dimension_le_space_dimension hX)).symm),
-    },
-    {
-      sorry --mutatis mutandis using aux_lemma
-    }
+    exact ⟨λ hX, aux_lemma h₁ h₂ (m + 1 - X.card) X hX ((nat.add_sub_cancel'
+      (simplex_dimension_le_space_dimension hX)).symm),
+          λ hX, aux_lemma h₂ h₁ (m + 1 - X.card) X hX ((nat.add_sub_cancel'
+      (simplex_dimension_le_space_dimension hX)).symm)⟩,
   end}
 
 /-A simplicial complex is connected iff its space is-/
@@ -317,7 +317,7 @@ An m-dimensional simplicial complex is pure of dimension n iff all faces are sub
 n-dimensional face
 -/
 def simplicial_complex.pure (S : simplicial_complex m) (n : ℕ) : Prop :=
-∀ X ∈ S.faces, ∃ Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y
+∀ {X : finset (fin m → ℝ)}, X ∈ S.faces → ∃ Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y
 --I wanted to do something like this to avoid passing X as an explicit argument
 --def simplicial_complex.pure (S : simplicial_complex m) (n : ℕ) {X : finset E} : Prop :=
 --X ∈ S.faces → ∃ Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y
@@ -474,7 +474,7 @@ lemma pure_Star_of_pure {S : simplicial_complex m} {A : set (finset (fin m → �
 begin
   rintro hS X hX,
   obtain ⟨Y, hY, Z, hZ, hXZ, hYZ⟩ := (mem_Star_iff hA).mp hX,
-  obtain ⟨W, hW, hWcard, hZW⟩ := hS Z hZ,
+  obtain ⟨W, hW, hWcard, hZW⟩ := hS hZ,
   exact ⟨W, star_subset_Star hA (star_up_closed hA hW (self_subset_star hA hY)
     (subset.trans hYZ hZW)), hWcard, subset.trans hXZ hZW⟩,
 end
@@ -507,8 +507,8 @@ begin
 end-/
 
 --What's best? Pyramid, or cone?
-def simplicial_complex.pyramid (S : simplicial_complex m)
-  (hS : ∀ X ∈ S.faces, finset.card X ≤ m) (v : fin m → ℝ) (hv : v ∉ convex_hull S.space) :
+def pyramid {S : simplicial_complex m}
+  (hS : ∀ X ∈ S.faces, finset.card X ≤ m) {v : fin m → ℝ} (hv : v ∉ convex_hull S.space) :
   simplicial_complex m :=
  {faces := {X' | ∃ X ∈ S.faces, X' ⊆ X ∪ {v}},
    --an alternative is S.faces ∪ S.faces.image (insert v)
@@ -528,22 +528,56 @@ def simplicial_complex.pyramid (S : simplicial_complex m)
   end}
 
 --Bad name?
-lemma simplicial_complex.subset_pyramid (S : simplicial_complex m)
-  (hS : ∀ X ∈ S.faces, finset.card X ≤ m) (v : fin m → ℝ) (hv : v ∉ convex_hull S.space) :
-  S.faces ⊆ (S.pyramid hS v hv).faces := λ X hX, ⟨X, hX, finset.subset_union_left X {v}⟩
+lemma faces_subset_pyramid  {S : simplicial_complex m} {v : fin m → ℝ}
+  (hS : ∀ X ∈ S.faces, finset.card X ≤ m) (hv : v ∉ convex_hull S.space) :
+  S.faces ⊆ (pyramid hS hv).faces := λ X hX, ⟨X, hX, finset.subset_union_left X {v}⟩
 
-def simplicial_complex.boundary (S : simplicial_complex m) (hS : S.pure n) :
-  simplicial_complex m :=
- {faces := {X | ∃ (Y : finset (fin m → ℝ)), X ⊆ Y ∧ finset.card Y = n ∧ ∃! Z ∈ S.faces, Y ⊆ Z},
-  indep := begin
+--S₁ ≤ S₂ → S₁.space = S₂.space so maybe we can get rid of hv₂?
+lemma pyramid_mono {S₁ S₂ : simplicial_complex m} {v : fin m → ℝ}
+  (hS₁ : ∀ X ∈ S₁.faces, finset.card X ≤ m) (hS₂ : ∀ X ∈ S₂.faces, finset.card X ≤ m)
+  (hv₁ : v ∉ convex_hull S₁.space) (hv₂ : v ∉ convex_hull S₂.space) :
+  S₁ ≤ S₂ → pyramid hS₁ hv₁ ≤ pyramid hS₂ hv₂ :=
+begin
+  rintro h,
+  split,
+  {
     sorry
+  },
+  {
+    rintro X ⟨Y, hY, hXY⟩,
+    obtain ⟨Z, hZ, hYZhull⟩ := h.2 hY,
+    use Z ∪ {v},
+    split,
+    {
+      exact ⟨Z, hZ, subset.refl _⟩,
+    },
+    sorry,
+  }
+end
+
+def simplicial_complex.facets (S : simplicial_complex m) (hS : S.pure n) : set (finset (fin m → ℝ))
+  := {X | ∃! Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y}
+
+/-lemma facets_subset_faces (S : simplicial_complex m) (hS : S.pure n) : S.facets hS ⊆ S.faces
+  := begin
+
+end-/
+
+/-def simplicial_complex.boundary (S : simplicial_complex m) (hS : S.pure n) :
+  simplicial_complex m :=
+ {faces := {X | ∃! Y ∈ facets S hS, X ⊆ Y},
+  indep := begin
+    rintro X ⟨Y, hXY, hYcard, Z, ⟨hZ, hYZ⟩, _⟩,
+    simp at hYZ,
+    exact S.indep (S.down_closed hZ (finset.subset.trans hXY hYZ)),
   end,
   down_closed := begin
-    sorry
+    rintro X Y ⟨Z, hXZ, hZcard, W, ⟨hW, hZW⟩, hWunique⟩ hYX,
+    simp at ⊢ hWunique hZW,
   end,
   disjoint := begin
     sorry
-  end}
+  end}-/
 
 
 

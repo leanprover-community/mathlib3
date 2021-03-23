@@ -48,17 +48,21 @@ begin
 end
 end
 
-instance [semiring β] : semigroup (α →₀ β) :=
+instance [semigroup_with_zero β] : semigroup (α →₀ β) :=
 { mul       := (*),
   mul_assoc := λ f g h, by { ext, simp only [mul_apply, mul_assoc], }, }
 
-instance [semiring β] : distrib (α →₀ β) :=
-{ left_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, left_distrib] {proj := ff} },
+instance [non_unital_non_assoc_semiring β] : non_unital_non_assoc_semiring (α →₀ β) :=
+{ zero_mul := λ f, by { ext, simp [mul_apply, zero_apply] {proj := ff}, },
+  mul_zero := λ f, by { ext, simp [mul_apply, zero_apply] {proj := ff}, },
+  left_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, left_distrib] {proj := ff} },
   right_distrib := λ f g h,
     by { ext, simp only [mul_apply, add_apply, right_distrib] {proj := ff} },
-  ..(infer_instance : semigroup (α →₀ β)),
+  ..(infer_instance : has_mul (α →₀ β)),
   ..(infer_instance : add_comm_monoid (α →₀ β)) }
 
--- If `non_unital_semiring` existed in the algebraic hierarchy, we could produce one here.
+instance [non_unital_semiring β] : non_unital_semiring (α →₀ β) :=
+{ ..(infer_instance : semigroup (α →₀ β)),
+  ..(infer_instance : non_unital_non_assoc_semiring (α →₀ β)) }
 
 end finsupp

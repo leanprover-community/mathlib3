@@ -23,13 +23,13 @@ universes w v
 A type is `small.{w}` if there exists an equivalence to some `S : Type w`.
 -/
 class small (α : Type v) : Prop :=
-(equiv_small : ∃ (S : Type w) (e : α ≃ S), true)
+(equiv_small : ∃ (S : Type w), nonempty (α ≃ S))
 
 /--
 Constructor for `small α` from an explicit witness type and equivalence.
 -/
 lemma small.mk' {α : Type v} {S : Type w} (e : α ≃ S) : small.{w} α :=
-⟨⟨S, e, trivial⟩⟩
+⟨⟨S, ⟨e⟩⟩⟩
 
 /--
 An arbitrarily chosen model in `Type w` for a `w`-small type.
@@ -43,7 +43,7 @@ The noncomputable equivalence between a `w`-small type and a model.
 -/
 noncomputable
 def equiv_shrink (α : Type v) [small.{w} α] : α ≃ shrink α :=
-classical.some (classical.some_spec (@small.equiv_small α _))
+nonempty.some (classical.some_spec (@small.equiv_small α _))
 
 @[priority 100]
 instance small_self (α : Type v) : small.{v} α :=
@@ -69,8 +69,8 @@ end
 theorem small_congr {α : Type*} {β : Type*} (e : α ≃ β) : small.{w} α ↔ small.{w} β :=
 begin
   fsplit,
-  { rintro ⟨S, f, -⟩,
+  { rintro ⟨S, ⟨f⟩⟩,
     exact small.mk' (e.symm.trans f), },
-  { rintro ⟨S, f, -⟩,
+  { rintro ⟨S, ⟨f⟩⟩,
     exact small.mk' (e.trans f), },
 end

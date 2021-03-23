@@ -261,7 +261,7 @@ theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → 
 theorem finite.inter_of_left {s : set α} (h : finite s) (t : set α) : finite (s ∩ t) :=
 h.subset (inter_subset_left _ _)
 
-theorem finite.inter_of_rightt {s : set α} (h : finite s) (t : set α) : finite (t ∩ s) :=
+theorem finite.inter_of_right {s : set α} (h : finite s) (t : set α) : finite (t ∩ s) :=
 h.subset (inter_subset_right _ _)
 
 theorem infinite_mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=

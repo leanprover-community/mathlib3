@@ -3,7 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.group.defs
+import algebra.group_with_zero.defs
 import logic.function.basic
 
 /-!
@@ -43,6 +43,16 @@ protected def semigroup [semigroup M₂] (f : M₁ → M₂) (hf : injective f)
   semigroup M₁ :=
 { mul_assoc := λ x y z, hf $ by erw [mul, mul, mul, mul, mul_assoc],
   ..‹has_mul M₁› }
+
+/-- A type endowed with `0` and `*` is a `semigroup_with_zero`,
+if it admits an injective map that preserves `0` and `*` to a `semigroup_with_zero`. -/
+protected def semigroup_with_zero
+  [has_zero M₁] [semigroup_with_zero M₂] (f : M₁ → M₂) (hf : injective f)
+  (zero : f 0 = 0) (mul : ∀ x y, f (x * y) = f x * f y) :
+  semigroup_with_zero M₁ :=
+{ zero_mul := λ x, hf $ by erw [mul, zero, zero_mul],
+  mul_zero := λ x, hf $ by erw [mul, zero, mul_zero],
+  ..‹has_zero M₁›, .. hf.semigroup f mul }
 
 /-- A type endowed with `*` is a commutative semigroup,
 if it admits an injective map that preserves `*` to a commutative semigroup. -/
@@ -214,6 +224,16 @@ protected def semigroup [semigroup M₁] (f : M₁ → M₂) (hf : surjective f)
   semigroup M₂ :=
 { mul_assoc := hf.forall₃.2 $ λ x y z, by simp only [← mul, mul_assoc],
   ..‹has_mul M₂› }
+
+/-- A type endowed with `0` and `*`is a `semigroup_with_zero`,
+if it admits a surjective map that preserves `0` and `*` from a `semigroup_with_zero`. -/
+protected def semigroup_with_zero
+  [semigroup_with_zero M₁] [has_zero M₂] (f : M₁ → M₂) (hf : surjective f)
+  (zero : f 0 = 0) (mul : ∀ x y, f (x * y) = f x * f y) :
+  semigroup_with_zero M₂ :=
+{ zero_mul := hf.forall.2 $ λ x, by erw [← zero, ← mul, zero_mul],
+  mul_zero := hf.forall.2 $ λ x, by erw [← zero, ← mul, mul_zero],
+  ..‹has_zero M₂›, .. hf.semigroup f mul }
 
 /-- A type endowed with `*` is a commutative semigroup,
 if it admits a surjective map that preserves `*` from a commutative semigroup. -/

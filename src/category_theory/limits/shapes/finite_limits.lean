@@ -34,7 +34,10 @@ This is often called 'finitely complete'.
 class has_finite_limits : Prop :=
 (out (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥] : @has_limits_of_shape J 𝒥 C _)
 
-attribute [instance, priority 100] has_finite_limits.out
+@[priority 100]
+instance has_limits_of_shape_of_has_finite_limits
+  (J : Type v) [small_category J] [fin_category J] [has_finite_limits C] :
+  has_limits_of_shape J C := has_finite_limits.out J
 
 /-- If `C` has all limits, it has finite limits. -/
 lemma has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=

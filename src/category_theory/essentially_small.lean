@@ -195,7 +195,7 @@ end
 /--
 Any thin category is locally small.
 -/
-lemma locally_small_of_thin {C : Type u} [category.{v} C] (h : ∀ X Y : C, subsingleton (X ⟶ Y)) :
+lemma locally_small_of_thin {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
   locally_small.{w} C :=
 { hom_small := λ X Y, small_of_subsingleton (X ⟶ Y), }
 
@@ -203,8 +203,8 @@ lemma locally_small_of_thin {C : Type u} [category.{v} C] (h : ∀ X Y : C, subs
 A thin category is essentially small if and only if the underlying type of its skeleton is small.
 -/
 theorem essentially_small_iff_of_thin
-  {C : Type u} [category.{v} C] (h : ∀ X Y : C, subsingleton (X ⟶ Y)) :
+  {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
   essentially_small.{w} C ↔ small.{w} (skeleton C) :=
-by simp [essentially_small_iff, locally_small_of_thin h]
+by simp [essentially_small_iff, locally_small_of_thin]
 
 end category_theory

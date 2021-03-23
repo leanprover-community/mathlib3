@@ -94,7 +94,7 @@ def map {F₁ F₂ : C ⥤ Type w} (α : F₁ ⟶ F₂) : F₁.elements ⥤ F₂
 /-- The forward direction of the equivalence `F.elements ≅ (*, F)`. -/
 def to_structured_arrow : F.elements ⥤ structured_arrow punit F :=
 { obj := λ X, structured_arrow.mk (λ _, X.2),
-  map := λ X Y f, structured_arrow.mk_hom f.val (by tidy) }
+  map := λ X Y f, structured_arrow.hom_mk f.val (by tidy) }
 
 @[simp] lemma to_structured_arrow_obj (X) :
   (to_structured_arrow F).obj X = { left := punit.star, right := X.1, hom := λ _, X.2 } := rfl

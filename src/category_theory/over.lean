@@ -80,7 +80,7 @@ end
 @[simps]
 def hom_mk {U V : over X} (f : U.left ⟶ V.left) (w : f ≫ V.hom = U.hom . obviously) :
   U ⟶ V :=
-costructured_arrow.mk_hom f w
+costructured_arrow.hom_mk f w
 
 /--
 Construct an isomorphism in the over category given isomorphisms of the objects whose forward
@@ -89,7 +89,7 @@ direction gives a commutative triangle.
 @[simps]
 def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) :
   f ≅ g :=
-comma.iso_mk hl (eq_to_iso (subsingleton.elim _ _)) (by simp [hw])
+costructured_arrow.iso_mk hl hw
 
 section
 variable (X)
@@ -262,14 +262,14 @@ structured_arrow.mk f
 @[simps]
 def hom_mk {U V : under X} (f : U.right ⟶ V.right) (w : U.hom ≫ f = V.hom . obviously) :
   U ⟶ V :=
-structured_arrow.mk_hom f w
+structured_arrow.hom_mk f w
 
 /--
 Construct an isomorphism in the over category given isomorphisms of the objects whose forward
 direction gives a commutative triangle.
 -/
 def iso_mk {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom ≫ hr.hom = g.hom) : f ≅ g :=
-comma.iso_mk (eq_to_iso (subsingleton.elim _ _)) hr (by simp [hw])
+costructured_arrow.iso_mk hr hw
 
 @[simp]
 lemma iso_mk_hom_right {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom ≫ hr.hom = g.hom) :

@@ -51,11 +51,21 @@ we need a morphism of the objects underlying the target,
 and to check that the triangle commutes.
 -/
 @[simps]
-def mk_hom {f f' : structured_arrow S T} (g : f.right ⟶ f'.right) (w : f.hom ≫ T.map g = f'.hom) :
+def hom_mk {f f' : structured_arrow S T} (g : f.right ⟶ f'.right) (w : f.hom ≫ T.map g = f'.hom) :
   f ⟶ f' :=
 { left := eq_to_hom (by ext),
   right := g,
   w' := by { dsimp, simpa using w.symm, }, }
+
+/--
+To construct an isomorphism of structured arrows,
+we need an isomorphism of the objects underlying the target,
+and to check that the triangle commutes.
+-/
+@[simps]
+def iso_mk {f f' : structured_arrow S T} (g : f.right ≅ f'.right)
+  (w : f.hom ≫ T.map g.hom = f'.hom) : f ≅ f' :=
+comma.iso_mk (eq_to_iso (by ext)) g (by simpa using w.symm)
 
 /--
 A morphism between source objects `S ⟶ S'`
@@ -84,7 +94,7 @@ open category_theory.limits
 
 /-- The identity structured arrow is initial. -/
 def mk_id_initial [full T] [faithful T] : is_initial (mk (𝟙 (T.obj Y))) :=
-{ desc := λ c, mk_hom (T.preimage c.X.hom) (by { dsimp, simp, }),
+{ desc := λ c, hom_mk (T.preimage c.X.hom) (by { dsimp, simp, }),
   uniq' := begin
     rintros c m -,
     ext,
@@ -125,11 +135,21 @@ we need a morphism of the objects underlying the source,
 and to check that the triangle commutes.
 -/
 @[simps]
-def mk_hom {f f' : costructured_arrow S T} (g : f.left ⟶ f'.left) (w : S.map g ≫ f'.hom = f.hom) :
+def hom_mk {f f' : costructured_arrow S T} (g : f.left ⟶ f'.left) (w : S.map g ≫ f'.hom = f.hom) :
   f ⟶ f' :=
 { left := g,
   right := eq_to_hom (by ext),
-  w' := by { dsimp, simpa using w, }, }
+  w' := by simpa using w, }
+
+/--
+To construct an isomorphism of costructured arrows,
+we need an isomorphism of the objects underlying the source,
+and to check that the triangle commutes.
+-/
+@[simps]
+def iso_mk {f f' : costructured_arrow S T} (g : f.left ≅ f'.left)
+  (w : S.map g.hom ≫ f'.hom = f.hom) : f ≅ f' :=
+comma.iso_mk g (eq_to_iso (by ext)) (by simpa using w)
 
 /--
 A morphism between target objects `T ⟶ T'`
@@ -158,7 +178,7 @@ open category_theory.limits
 
 /-- The identity costructured arrow is terminal. -/
 def mk_id_terminal [full S] [faithful S] : is_terminal (mk (𝟙 (S.obj Y))) :=
-{ lift := λ c, mk_hom (S.preimage c.X.hom) (by { dsimp, simp, }),
+{ lift := λ c, hom_mk (S.preimage c.X.hom) (by { dsimp, simp, }),
   uniq' := begin
     rintros c m -,
     ext,

@@ -99,7 +99,7 @@ end
 Analogue of `congr_fun h x`,
 when `h : f = g` is an equality between morphisms in a concrete category.
 -/
-def congr_hom {X Y : C} {f g : X ⟶ Y} (h : f = g) (x : X) : f x = g x :=
+lemma congr_hom {X Y : C} {f g : X ⟶ Y} (h : f = g) (x : X) : f x = g x :=
 congr_fun (congr_arg (λ k : X ⟶ Y, (k : X → Y)) h) x
 
 @[simp] lemma coe_id {X : C} (x : X) : ((𝟙 X) : X → X) x = x :=

@@ -272,25 +272,24 @@ lemma integral_cos_add_two_pi : ∫ x in a+2*π..b+2*π, cos x = ∫ x in a..b, 
 by simp [integral_comp_add_right, sin_add_two_pi]
 
 example : ∫ x in a..b, sin (x * 2) = 2⁻¹ * (cos (a*2) - cos (b*2)) :=
-by norm_num [integral_comp_mul_right]
+by norm_num
 
-example : ∫ x:ℝ in 0..2, 3*(x + 1)^2 = 26 :=
-begin
-  norm_num [integral_comp_add_right _ (ae_measurable_pow 2)],
-end
+example : ∫ x in 0..2, -exp (-x) = exp (-2) - 1 := by norm_num
 
-example : ∫ x in 0..2, -exp (-x) = exp (-2) - 1 :=
-by norm_num [integral_comp_neg]
+example : ∫ x in 1..2, exp (5*x - 5) = 1/5 * (exp 5 - 1) := by norm_num
 
 example {ω Φ : ℝ} (h : ω ≠ 0) : ∫ θ in 0..2*π, sin (ω*θ + Φ) = ω⁻¹ * (cos Φ - cos (2*π*ω + Φ)) :=
 by simp [h, mul_comm]
 
 example {L : ℝ} (h : L ≠ 0) : ∫ x in 0..2/L*π, sin (L/2 * x) = 4 / L :=
 begin
-  norm_num [integral_comp_mul_left, div_ne_zero h, ← mul_assoc],
+  norm_num [div_ne_zero h, ← mul_assoc],
   field_simp [h, mul_div_cancel],
   norm_num,
 end
+
+example : ∫ x:ℝ in 0..2, 3*(x + 1)^2 = 26 :=
+by norm_num [integral_comp_add_right _ (ae_measurable_pow 2)]
 
 example : ∫ x:ℝ in -1..0, (1 + (x+1)^2)⁻¹ = π/4 :=
 by simp [integral_comp_add_right 1 ae_measurable_inv_one_add_sq]

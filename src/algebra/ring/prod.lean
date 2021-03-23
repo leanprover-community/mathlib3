@@ -24,13 +24,28 @@ variables {R : Type*} {R' : Type*} {S : Type*} {S' : Type*} {T : Type*} {T' : Ty
 
 namespace prod
 
-/-- Product of two semirings is a semiring. -/
-instance [semiring R] [semiring S] : semiring (R × S) :=
+/-- Product of two `non_unital_non_assoc_semiring`s is a `non_unital_non_assoc_semiring`. -/
+instance [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S] :
+  non_unital_non_assoc_semiring (R × S) :=
 { zero_mul := λ a, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
   mul_zero := λ a, mk.inj_iff.mpr ⟨mul_zero _, mul_zero _⟩,
   left_distrib := λ a b c, mk.inj_iff.mpr ⟨left_distrib _ _ _, left_distrib _ _ _⟩,
   right_distrib := λ a b c, mk.inj_iff.mpr ⟨right_distrib _ _ _, right_distrib _ _ _⟩,
-  .. prod.add_comm_monoid, .. prod.monoid }
+  .. prod.add_comm_monoid, .. prod.has_mul }
+
+/-- Product of two `non_unital_semiring`s is a `non_unital_semiring`. -/
+instance [non_unital_semiring R] [non_unital_semiring S] :
+  non_unital_semiring (R × S) :=
+{ .. prod.non_unital_non_assoc_semiring, .. prod.semigroup }
+
+/-- Product of two `non_assoc_semiring`s is a `non_assoc_semiring`. -/
+instance [non_assoc_semiring R] [non_assoc_semiring S] :
+  non_assoc_semiring (R × S) :=
+{ .. prod.non_unital_non_assoc_semiring, .. prod.mul_one_class }
+
+/-- Product of two semirings is a semiring. -/
+instance [semiring R] [semiring S] : semiring (R × S) :=
+{ .. prod.non_unital_semiring, .. prod.non_assoc_semiring }
 
 /-- Product of two commutative semirings is a commutative semiring. -/
 instance [comm_semiring R] [comm_semiring S] : comm_semiring (R × S) :=

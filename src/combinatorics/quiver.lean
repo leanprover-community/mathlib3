@@ -147,7 +147,7 @@ instance {V} (T : quiver V) [arborescence T] (b : V) : unique (T.path T.root b) 
 arborescence.unique_path b
 
 /-- An `L`-labelling of a quiver assigns to every arrow an element of `L`. -/
-def labelling {V} (G : quiver V) (L) := Π a b, G.arrow a b → L
+def labelling {V} (G : quiver V) (L) := Π ⦃a b⦄, G.arrow a b → L
 
 instance {V} (G : quiver V) (L) [inhabited L] : inhabited (G.labelling L) :=
 ⟨λ a b e, default L⟩

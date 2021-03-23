@@ -32,14 +32,51 @@ A simplicial complex in `R^m`. TODO: generalise to normed affine spaces `E`, so 
 (faces : set (finset (fin m → ℝ)))
 (indep : ∀ {X}, X ∈ faces → affine_independent ℝ (λ p, p : (X : set (fin m → ℝ)) → (fin m → ℝ)))
 (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces)
-(disjoint : ∀ {X Y}, X ∈ faces → Y ∈ faces → convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set (fin m → ℝ)))
+(disjoint : ∀ {X Y}, X ∈ faces → Y ∈ faces →
+  convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set (fin m → ℝ)))
 
 variables {m n : ℕ} {S : simplicial_complex m}
 local notation `E` := fin m → ℝ
 
+/--
+A constructor for simplicial complexes by specifying an surcomplex and showing the set of faces
+is downward closed
+-/
+def simplicial_complex.of_surcomplex {m : ℕ} {S : simplicial_complex m}
+  (faces : set (finset (fin m → ℝ))) (subset_surcomplex : faces ⊆ S.faces)
+  (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces) : simplicial_complex m := {
+  faces := faces,
+  indep := λ X hX, S.indep (subset_surcomplex hX),
+  down_closed := λ X Y hX hYX, down_closed hX hYX,
+  disjoint := λ X Y hX hY, S.disjoint (subset_surcomplex hX) (subset_surcomplex hY) }
+
 /-- The underlying space of a simplicial complex. -/
 def simplicial_complex.space (S : simplicial_complex m) : set E :=
 ⋃ X ∈ S.faces, convex_hull (X : set E)
+
+def empty_simplicial_complex (m : ℕ) : simplicial_complex m := {
+  faces := ∅,
+  indep := begin
+    rintro X hX,
+    exfalso,
+    exact not_mem_empty X hX,
+  end,
+  down_closed := begin
+    rintro X _ hX,
+    exfalso,
+    exact not_mem_empty X hX,
+  end,
+  disjoint := begin
+    rintro X _ hX,
+    exfalso,
+    exact not_mem_empty X hX,
+  end, }
+
+lemma empty_space_of_empty_simplicial_complex (m : ℕ) : (empty_simplicial_complex m).space = ∅ :=
+  set.bUnion_empty _
+
+/-def simplicial_complex.dimension (S : simplicial_complex m) {X : finset (fin m → ℝ)} : ℕ :=
+  Sup {X.card - 1 | X ∈ S.faces}-/
 
 /-The dimension of a simplicial complex is the maximal dimension of its faces-/
 /-def simplicial_complex.dimension (S : simplicial_complex m) : ℕ :=
@@ -94,7 +131,7 @@ lemma simplex_interior_covers (X : finset E) :
 begin
   apply subset.antisymm _ _,
   { apply X.strong_induction_on,
-    intros s ih x hx,
+    rintro s ih x hx,
     by_cases x ∈ boundary s,
     { rw [boundary] at h,
       simp only [exists_prop, set.mem_Union] at h,
@@ -112,11 +149,11 @@ lemma interiors_cover (S : simplicial_complex m) :
 begin
   apply subset.antisymm _ _,
   { apply bUnion_subset,
-    intros X hX,
+    rintro X hX,
     rw simplex_interior_covers,
     exact Union_subset (λ Y, Union_subset (λ YX, subset_bUnion_of_mem (S.down_closed hX YX)))},
   { apply bUnion_subset,
-    intros Y hY,
+    rintro Y hY,
     exact subset.trans (diff_subset _ _) (subset_bUnion_of_mem hY) }
 end
 
@@ -131,36 +168,29 @@ begin
   exact ⟨X, ⟨⟨hX, hxX⟩, (λ Y ⟨hY, hxY⟩, disjoint_interiors hY hX x ⟨hxY, hxX⟩)⟩⟩,
 end
 
-/- interior X is the topological interior iff X is of dimension d -/
+/- interior X is the topological interior iff X is of dimension m -/
 lemma interiors_agree_of_high_dimension {S : simplicial_complex m} :
-  ∀ X ∈ S.faces, finset.card X = m ↔ combi_interior X = interior X :=
+  ∀ X ∈ S.faces, finset.card X = m → combi_interior X = interior X :=
 begin
-  rintro X hX,
+  rintro X hX hXdim,
+  ext x,
   split,
   {
-    intro hXdim,
-    ext x,
+    rintro ⟨hxhull, hxbound⟩,
+    unfold convex_hull at hxhull,
+    unfold interior,
+    sorry
+  },
+  {
+    intro hx,
     split,
     {
-      intro hx,
-      unfold interior,
       sorry
     },
     {
-      intro hx,
-      split,
-      {
-        sorry
-      },
-      {
-        intro hxbound,
-        sorry
-      }
+      intro hxbound,
+      sorry
     }
-  },
-  {
-    intro hint,
-    sorry
   }
 end
 
@@ -170,12 +200,12 @@ lemma size_bound {X : finset (fin m → ℝ)} (hX : affine_independent ℝ (λ p
 begin
   cases X.eq_empty_or_nonempty,
   { simp [h] },
-  rcases h with ⟨y, hy⟩,
+  obtain ⟨y, hy⟩ := h,
   have y_mem : y ∈ (X : set (fin m → ℝ)) := hy,
   have Xy : (↑X \ {y}) = ((↑(X.erase y)) : set (fin m → ℝ)),
   { simp },
-  have := hX,
-  rw @affine_independent_set_iff_linear_independent_vsub ℝ _ _ _ _ _ _ ↑X y y_mem at this,
+  have hX' := hX,
+  rw @affine_independent_set_iff_linear_independent_vsub ℝ _ _ _ _ _ _ ↑X y y_mem at hX',
   letI q : fintype ↥((λ (p : fin m → ℝ), p -ᵥ y) '' (↑X \ {y})),
   { apply set.fintype_image _ _,
     { apply_instance },
@@ -192,18 +222,63 @@ begin
   rw nat.pred_le_iff at this,
   exact this,
   simp [and_comm],
-  intros p q h,
+  rintro p q h,
   simpa using h,-/
 end
 
 --Refinement of `size_bound`
 lemma simplex_dimension_le_space_dimension {S : simplicial_complex m} {X : finset E} :
-  X ∈ S.faces → finset.card X ≤ m + 1 :=
+  X ∈ S.faces → finset.card X ≤ m + 1 := λ hX, size_bound (S.indep hX)
+
+def is_extreme (s : set E) (x : E) : Prop :=
+x ∈ s ∧ ∀ (x₁ x₂ ∈ s), x ∈ segment x₁ x₂ → x = x₁ ∨ x = x₂
+
+lemma convex_remove_iff_is_extreme {s : set E} {x : E} (hs : convex s) (hx : x ∈ s) :
+  convex (s \ {x}) ↔ is_extreme s x :=
 begin
-  intro hX,
-  have := S.indep hX,
-  sorry,
+  split,
+  { rintro hsx,
+    use hx,
+    rintro y₁ y₂ hy₁ hy₂ hxy,
+    by_contra,
+    push_neg at h,
+    rw convex_iff_segment_subset at hsx,
+    exact (hsx ⟨hy₁, h.1.symm⟩ ⟨hy₂, h.2.symm⟩ hxy).2 rfl },
+  { rintro hsx,
+    rw convex_iff_segment_subset,
+    rintro y₁ y₂ ⟨hy₁, y₁x : _ ≠ _⟩ ⟨hy₂, y₂x : _ ≠ _⟩,
+    rintro z hz,
+    split,
+    exact hs.segment_subset hy₁ hy₂ hz,
+    rintro t,
+    simp only [set.mem_singleton_iff] at t,
+    subst t,
+    rcases hsx.2 _ _ hy₁ hy₂ hz with (rfl | rfl),
+    { apply y₁x, refl },
+    { apply y₂x, refl } }
 end
+
+lemma is_extreme_of_affine_independent {X : finset E} {x : E} (hx : x ∈ X)
+  (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
+  is_extreme (convex_hull ↑X) x :=
+begin
+  use subset_convex_hull X hx,
+  rintro y z hy hz hxyz,
+  rw finset.convex_hull_eq at hy hz,
+  obtain ⟨a, b, ha, hb, hab, hxsum⟩ := hxyz,
+  obtain ⟨v, hv₀, hv₁, hy⟩ := hy,
+  obtain ⟨w, hw₀, hw₁, hz⟩ := hz,
+  unfold affine_independent at hX,
+  simp at *,
+  sorry
+
+  --rw ← convex_remove_iff_is_extreme (convex_convex_hull _) (subset_convex_hull (s : set E) hx),
+  --rintro y z hy hz a b ha hb hab,
+end
+
+--Accurate name?
+lemma mem_of_is_extreme_to_convex_hull {X : finset E} {x : E} (hx : is_extreme (convex_hull ↑X) x) :
+  x ∈ X := sorry
 
 --probably belongs in the mathlib file of convex hulls
 lemma subset_of_convex_hull_eq_convex_hull_of_linearly_independent {X Y : finset E} :
@@ -211,7 +286,9 @@ lemma subset_of_convex_hull_eq_convex_hull_of_linearly_independent {X Y : finset
   → convex_hull ↑X = convex_hull (Y : set(fin m → ℝ)) → X ⊆ Y :=
 begin
   rintro hX h x hx,
-  sorry,
+  have hxextreme := is_extreme_of_affine_independent hx hX,
+  rw h at hxextreme,
+  exact mem_of_is_extreme_to_convex_hull hxextreme,
 end
 
 --Keep two linearly_independent in the name?
@@ -288,10 +365,8 @@ def subdivision_order : partial_order (simplicial_complex m) :=
 def simplicial_complex.connected (S : simplicial_complex m) : Prop := connected_space S.space
 
 def simplicial_complex.skeleton (S : simplicial_complex m) (k : ℕ) : simplicial_complex m :=
-{faces := {X ∈ S.faces | finset.card X ≤ k},
-indep := λ X hX, S.indep hX.1,
-down_closed := λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩,
-disjoint := λ X Y hX hY, S.disjoint hX.1 hY.1}
+  simplicial_complex.of_surcomplex {X ∈ S.faces | finset.card X ≤ k + 1} (λ X ⟨hX, _⟩, hX)
+  (λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩)
 
 --Is this lemma useful?
 lemma skeleton_subcomplex_self (S : simplicial_complex m) (k : ℕ) :
@@ -305,10 +380,10 @@ begin
   {
     intro h,
     unfold simplicial_complex.connected,
-    sorry --trivial
+    sorry
   },
   {
-    sorry --harder
+    sorry
   }
 end
 
@@ -318,37 +393,6 @@ n-dimensional face
 -/
 def simplicial_complex.pure (S : simplicial_complex m) (n : ℕ) : Prop :=
 ∀ {X : finset (fin m → ℝ)}, X ∈ S.faces → ∃ Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y
---I wanted to do something like this to avoid passing X as an explicit argument
---def simplicial_complex.pure (S : simplicial_complex m) (n : ℕ) {X : finset E} : Prop :=
---X ∈ S.faces → ∃ Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y
---but then I don't know what type my expression should be. Isn't implication of type Prop too?
-
-/-
-A polytope of dimension `n` in `R^m` is a subset for which there exists a simplicial complex which
-is pure of dimension `n` and has the same underlying space.
--/
-@[ext] structure polytope (m n : ℕ) :=
-(space : set (fin m → ℝ))
-(realisable : ∃ (S : simplicial_complex m), S.pure n ∧ space = S.space)
-
-def polytope.vertices (P : polytope m n) : set (fin m → ℝ) :=
-  ⋂ (S : simplicial_complex m) (H : P.space = S.space), {x | {x} ∈ S.faces}
-
-noncomputable def polytope.realisation (P : polytope m n) :
-  simplicial_complex m := classical.some P.realisable
-
-def polytope.faces {n : ℕ} (P : polytope m n) : set (finset (fin m → ℝ)) :=
-  P.realisation.faces
-
-/- Every convex polytope can be realised by a simplicial complex with the same vertices-/
-lemma polytope.triangulable_of_convex {P : polytope m n} : convex P.space
-  → ∃ (S : simplicial_complex m), P.space = S.space ∧ ∀ x, {x} ∈ S.faces → x ∈ P.vertices :=
-begin
-  sorry
-end
-
-noncomputable def polytope.triangulation_of_convex {P : polytope m n} (hP : convex P.space) :
-  simplicial_complex m := classical.some (polytope.triangulable_of_convex hP)
 
 def simplicial_complex.locally_finite (S : simplicial_complex m) : Prop :=
   ∀ x : fin m → ℝ, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set(fin m → ℝ))}
@@ -362,12 +406,9 @@ lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m)
 
 /-The closure of a set of faces is the set of their subfaces-/
 def closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  simplicial_complex m :=
-{ faces := {X | ∃ X' ∈ A, X ⊆ X'},
-  indep := λ X ⟨X', hX', hX⟩, S.indep (S.down_closed (hA hX') hX),
-  down_closed := λ X Y ⟨X', hX', hX⟩ hY, ⟨X', hX', subset.trans hY hX⟩,
-  disjoint := λ X Y ⟨X', hX', hX⟩ ⟨Y', hY', hY⟩,
-    S.disjoint (S.down_closed (hA hX') hX) (S.down_closed (hA hY') hY) }
+  simplicial_complex m := simplicial_complex.of_surcomplex {X | ∃ X' ∈ A, X ⊆ X'}
+  (λ X ⟨X', hX', hX⟩, S.down_closed (hA hX') hX)
+  (λ X Y ⟨X', hX', hX⟩ hY, ⟨X', hX', subset.trans hY hX⟩)
 
 lemma closure_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
   (hA : A ⊆ S.faces) : (closure hA).faces ⊆ S.faces := λ X ⟨X', hX', hX⟩, S.down_closed (hA hX') hX
@@ -480,10 +521,9 @@ begin
 end
 
 def link {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  simplicial_complex m :=
-  {faces := (Star hA).faces \ star (closure_subset_complex hA),
-  indep := λ X hX,S.indep (closure_subset_complex (star_subset_complex hA) hX.1),
-  down_closed := begin
+  simplicial_complex m := simplicial_complex.of_surcomplex
+  ((Star hA).faces \ star (closure_subset_complex hA)) (λ X hX, Star_subset_complex hA hX.1)
+  begin
     rintro X Y hX hXY,
     split,
     { exact (Star hA).down_closed hX.1 hXY},
@@ -493,9 +533,7 @@ def link {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A �
       exact hX.2 (star_up_closed (closure_subset_complex hA) (Star_subset_complex hA hX.1)
         (self_subset_star (closure_subset_complex hA) hZ.1) (subset.trans hZ.2.2 hXY)),
     }
-  end,
-  disjoint := λ X Y hX hY, S.disjoint (closure_subset_complex (star_subset_complex hA) hX.1)
-    (closure_subset_complex (star_subset_complex hA) hY.1) }
+  end
 
 lemma link_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
   (hA : A ⊆ S.faces) : (link hA).faces ⊆ S.faces := λ X hX, Star_subset_complex hA hX.1
@@ -505,6 +543,14 @@ lemma link_subset_complex {S : simplicial_complex m} {A : set (finset (fin m →
 begin
   rintro hS X hX,
 end-/
+
+--made up name, don't know if that actually exists or is useful for something else than
+--proving pure_polytope_realisation
+def simplicial_complex.erasure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hA : A ⊆ S.faces) : simplicial_complex m := simplicial_complex.of_surcomplex
+  {X | X ∈ S.faces ∧ ∀ {Y}, Y ∈ A → disjoint X Y} (λ X hX, hX.1)
+  (λ X Y ⟨hX, hXA⟩ hYX, ⟨S.down_closed hX hYX, λ Z hZ, finset.disjoint_of_subset_left hYX (hXA hZ)⟩)
+
 
 --What's best? Pyramid, or cone?
 def pyramid {S : simplicial_complex m}
@@ -555,29 +601,63 @@ begin
   }
 end
 
-def simplicial_complex.facets (S : simplicial_complex m) (hS : S.pure n) : set (finset (fin m → ℝ))
-  := {X | ∃! Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y}
+def simplicial_complex.facets (S : simplicial_complex m) : set (finset (fin m → ℝ))
+  := {X | X ∈ S.faces ∧ (∀ Y ∈ S.faces, ¬X ⊂ Y)}
 
-/-lemma facets_subset_faces (S : simplicial_complex m) (hS : S.pure n) : S.facets hS ⊆ S.faces
-  := begin
+lemma facets_subset_faces (S : simplicial_complex m) : S.facets ⊆ S.faces := λ X hX, hX.1
 
-end-/
+def simplicial_complex.boundary (S : simplicial_complex m) : simplicial_complex m :=
+  simplicial_complex.of_surcomplex {X | ∃ Y ∈ S.faces, X ⊆ Y ∧ ∃! Z ∈ S.facets, Y ⊆ Z}
+  (λ X ⟨Y, hY, hXY, _⟩, (S.down_closed hY hXY))
+(λ X W ⟨Y, hY, hXY, ⟨Z, hZ⟩⟩ hWX, ⟨Y, hY, subset.trans hWX hXY, Z, hZ⟩)
 
-/-def simplicial_complex.boundary (S : simplicial_complex m) (hS : S.pure n) :
-  simplicial_complex m :=
- {faces := {X | ∃! Y ∈ facets S hS, X ⊆ Y},
-  indep := begin
-    rintro X ⟨Y, hXY, hYcard, Z, ⟨hZ, hYZ⟩, _⟩,
-    simp at hYZ,
-    exact S.indep (S.down_closed hZ (finset.subset.trans hXY hYZ)),
-  end,
-  down_closed := begin
-    rintro X Y ⟨Z, hXZ, hZcard, W, ⟨hW, hZW⟩, hWunique⟩ hYX,
-    simp at ⊢ hWunique hZW,
-  end,
-  disjoint := begin
-    sorry
-  end}-/
+/-
+A polytope of dimension `n` in `R^m` is a subset for which there exists a simplicial complex which
+is pure of dimension `n` and has the same underlying space.
+-/
+@[ext] structure polytope (m n : ℕ) :=
+(space : set (fin m → ℝ))
+(realisable : ∃ (S : simplicial_complex m), S.pure n ∧ space = S.space)
+
+def polytope.vertices (P : polytope m n) : set (fin m → ℝ) :=
+  ⋂ (S : simplicial_complex m) (H : P.space = S.space), {x | {x} ∈ S.faces}
+
+def polytope.edges (P : polytope m n) : set (finset (fin m → ℝ)) :=
+  ⋂ (S : simplicial_complex m) (H : P.space = S.space), {X | X ∈ S.faces ∧ X.card = 2}
+
+noncomputable def polytope.realisation (P : polytope m n) :
+  simplicial_complex m := classical.some P.realisable
+
+lemma pure_polytope_realisation (P : polytope m n) : P.realisation.pure n :=
+begin
+  sorry --trivial by definition but I don't know how to do it
+end
+--def polytope.faces {n : ℕ} (P : polytope m n) : set (finset (fin m → ℝ)) :=
+--  P.realisation.boundary.faces
+
+/- Every convex polytope can be realised by a simplicial complex with the same vertices-/
+lemma polytope.triangulable_of_convex {P : polytope m n} : convex P.space
+  → ∃ (S : simplicial_complex m), P.space = S.space ∧ ∀ x, {x} ∈ S.faces → x ∈ P.vertices :=
+begin
+  rintro hPconvex,
+  cases P.space.eq_empty_or_nonempty with hPempty hPnonempty,
+  {
+    use empty_simplicial_complex m,
+    rw empty_space_of_empty_simplicial_complex m,
+    use hPempty,
+    rintro X hX,
+    exfalso,
+    exact not_mem_empty X hX,
+  },
+  obtain ⟨x, hx⟩ := hPnonempty,
+  --consider the boundary of some realisation of P and remove it x,
+  --have := P.realisation.boundary.erasure {x},
+  --then add it back by taking the pyramid of this monster with x
+  sorry
+end
+
+noncomputable def polytope.triangulation_of_convex {P : polytope m n} (hP : convex P.space) :
+  simplicial_complex m := classical.some (polytope.triangulable_of_convex hP)
 
 
 
@@ -651,7 +731,7 @@ end
 --   ∀ (t : finset ι) (w : ι → k) (z : ι → P), ∑ i in t, w i = 0 → (∀ i ∈ t, z i ∈ s) →
 --   t.weighted_vsub z w = (0:V) → ∀ i ∈ t, w i = 0 :=
 -- begin
---   intros t w z hw₁ hz hw₂,
+--   rintro t w z hw₁ hz hw₂,
 --   rw affine_independent_def at hp,
 --   let s' : finset s := t.attach.image (λ i, ⟨z i, hz _ i.2⟩),
 --   let w' : s → k,
@@ -664,7 +744,7 @@ end
 --       rw finset.sum_attach,
 --       rw hw₁ },
 --     simp only [finset.mem_attach, subtype.mk_eq_mk, forall_true_left, subtype.coe_mk],
---     intros c,
+--     rintro c,
 --     have : finset.filter (λ (c' : {x // x ∈ t}), z ↑c' = z ↑c) t.attach = _,
 --     { exact filter_attach t (λ c', z c' = z c) },
 --     simp only [finset.filter_congr_decidable],
@@ -749,7 +829,7 @@ begin
   simp only [finset.mem_univ, set_coe.forall, forall_true_left] at hX,
   rw finset.convex_hull_eq,
   have t₁ : ∀ x, x ∈ Y₁ → x ∉ Y₂ → w₁ x = 0,
-  { intros x hx₁ hx₂,
+  { rintro x hx₁ hx₂,
     have : ite (x ∈ Y₁) (w₁ x) 0 - ite (x ∈ Y₂) (w₂ x) 0 = 0 := hX x _,
     rw if_pos hx₁ at this,
     rw if_neg hx₂ at this,
@@ -760,20 +840,20 @@ begin
     apply hx₁ },
   have h₄w₁ : ∑ (y : fin m → ℝ) in Y₁ ∩ Y₂, w₁ y = 1,
   { rw [finset.sum_subset (finset.inter_subset_left Y₁ Y₂), h₂w₁],
-    simp_intros x hx₁ hx₂,
+    simp_rintro x hx₁ hx₂,
     specialize hx₂ hx₁,
     apply t₁,
     apply hx₁,
     apply hx₂ },
   refine ⟨w₁, _, h₄w₁, _⟩,
   { simp only [and_imp, finset.mem_inter],
-    intros y hy₁ hy₂,
+    rintro y hy₁ hy₂,
     apply h₁w₁,
     apply hy₁ },
   { rw finset.center_mass_eq_of_sum_1 _ _ h₄w₁,
     dsimp only [id.def],
     rw [finset.sum_subset (finset.inter_subset_left Y₁ Y₂), h₃w₁],
-    simp_intros x hx₁ hx₂,
+    simp_rintro x hx₁ hx₂,
     left,
     apply t₁,
     apply hx₁,
@@ -802,10 +882,10 @@ def of_facets (S : set (finset E)) (hS₁ : ∀ X ∈ S, affine_independent ℝ 
     simp only [exists_prop, set.mem_Union, set.mem_set_of_eq],
     split,
     { simp only [and_imp, exists_imp_distrib],
-      intros X hX hx,
+      rintro X hX hx,
       refine ⟨X, ⟨X, hX, set.subset.refl _⟩, hx⟩ },
     { simp only [and_imp, exists_imp_distrib],
-      intros X Y YS XY hx,
+      rintro X Y YS XY hx,
       refine ⟨Y, YS, convex_hull_mono XY hx⟩ }
   end,
   down_closed :=
@@ -869,7 +949,7 @@ begin
     simp },
   rw ← this,
   apply linear_independent.comp linear_indep g _,
-  intros i j hi,
+  rintro i j hi,
   ext1,
   exact fin.pred_inj.1 hi,
 end
@@ -899,7 +979,7 @@ of_facets
     convert rfl,
   end)
   (begin
-    simp_intros X Y hX hY,
+    simp_rintro X Y hX hY,
     substs X Y,
     simp,
     exact set.subset.refl _,
@@ -922,14 +1002,14 @@ def triangulation.points (S : triangulation s) : set E :=
 
 lemma convex_hull_face_subset (X) (hX : X ∈ S.faces) : convex_hull ↑X ⊆ s :=
 begin
-  intros x hx,
+  rintro x hx,
   rw S.covering,
   apply set.mem_bUnion hX hx,
 end
 
 lemma face_subset {X} (hX : X ∈ S.faces) : ↑X ⊆ s :=
 begin
-  intros x hx,
+  rintro x hx,
   rw S.covering,
   apply set.mem_bUnion hX,
   apply subset_convex_hull,
@@ -938,7 +1018,7 @@ end
 
 lemma points_subset : S.points ⊆ s :=
 begin
-  intros x hx,
+  rintro x hx,
   rw S.covering,
   rw triangulation.points at hx,
   rw set.mem_bUnion_iff at hx,
@@ -983,17 +1063,17 @@ begin
   rw finset.sum_apply 0 t (λ i, w i • z i) at x_zero,
   dsimp at x_zero,
   have : ∀ (x : ι), x ∈ t → 0 ≤ w x * z x 0,
-  { intros y hy,
+  { rintro y hy,
     exact mul_nonneg (hw₀ y hy) (hX (z y) (hz y hy)) },
   rw finset.sum_eq_zero_iff_of_nonneg this at x_zero,
   dsimp only at x_zero,
   rw convex_hull_eq.{37},
   refine ⟨ι, t.filter (λ i, w i ≠ 0), w, z, _, _, _, _⟩,
-  { simp_intros i hi only [finset.mem_filter],
+  { simp_rintro i hi only [finset.mem_filter],
     apply hw₀ _ hi.1 },
   { rw ←hw₁,
     exact finset.sum_filter_ne_zero },
-  { simp_intros i hi only [finset.mem_filter, set.mem_set_of_eq],
+  { simp_rintro i hi only [finset.mem_filter, set.mem_set_of_eq],
     refine ⟨hz i hi.1, _⟩,
     have := x_zero i hi.1,
     simp only [mul_eq_zero] at this,
@@ -1007,16 +1087,16 @@ def lower_triangulation (S : triangulation (std_simplex (fin (m+1)))) :
 { faces := {X ∈ S.faces | ∀ (x : fin (m+1) → ℝ), x ∈ X → x 0 = 0 },
   indep :=
   begin
-    intros X hX,
+    rintro X hX,
     simp only [set.mem_sep_eq] at hX,
     apply S.indep _ hX.1,
   end,
   down_closed :=
   begin
-    intros X hX Y YX,
+    rintro X hX Y YX,
     simp only [set.mem_sep_eq] at hX ⊢,
     refine ⟨S.down_closed X hX.left Y YX, _⟩,
-    intros x hx,
+    rintro x hx,
     apply hX.2,
     apply YX,
     apply hx
@@ -1041,7 +1121,7 @@ def lower_triangulation (S : triangulation (std_simplex (fin (m+1)))) :
           simp only [finset.mem_coe, finset.coe_filter],
           ext x,
           simp } },
-      intros y hy,
+      rintro y hy,
       have : y ∈ std_simplex (fin (m+1)),
       { apply face_subset hX hy },
       rw std_simplex_eq_inter at this,
@@ -1053,9 +1133,9 @@ def lower_triangulation (S : triangulation (std_simplex (fin (m+1)))) :
       refine ⟨convex_hull_face_subset X hX₁.1 hX₂, _⟩,
       have : convex_hull ↑X ⊆ {x : fin (m+1) → ℝ | x 0 = 0},
       { apply convex_hull_min,
-        { intros x hx,
+        { rintro x hx,
           exact hX₁.2 x hx },
-        intros x₁ x₂ hx₁ hx₂ a b ha hb q,
+        rintro x₁ x₂ hx₁ hx₂ a b ha hb q,
         simp only [set.mem_set_of_eq] at hx₁ hx₂ ⊢,
         simp [hx₁, hx₂] },
       apply this,
@@ -1063,7 +1143,7 @@ def lower_triangulation (S : triangulation (std_simplex (fin (m+1)))) :
   end,
   disjoint :=
   begin
-    intros X Y hX hY,
+    rintro X Y hX hY,
     apply S.disjoint _ _ hX.1 hY.1,
   end }
 
@@ -1110,10 +1190,10 @@ lemma strong_sperner_zero_aux (S : triangulation (std_simplex (fin 1))) :
   S.faces = {∅, { ![1]}} :=
 begin
   have X_subs : ∀ X ∈ S.faces, X ⊆ { ![(1:ℝ)]},
-  { intros X hX,
+  { rintro X hX,
     have := face_subset hX,
     rw std_simplex_one at this,
-    intros x hx,
+    rintro x hx,
     simpa using this hx },
   have : ∃ X ∈ S.faces, X = { ![(1:ℝ)]},
   { have std_eq := S.covering,
@@ -1172,7 +1252,7 @@ end
 --   affine_independent ℝ (f ∘ p) :=
 -- begin
 --   rw affine_independent_def,
---   intros s w hw hs i hi,
+--   rintro s w hw hs i hi,
 --   rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin m → ℝ) at hs,
 --   rw finset.weighted_vsub_of_point_apply at hs,
 --   simp only [vsub_eq_sub, function.comp_app, sub_zero] at hs,
@@ -1202,7 +1282,7 @@ lemma affine_independent_proj {n : ℕ} {ι : Type*}
   affine_independent ℝ (matrix.vec_tail ∘ p) :=
 begin
   rw affine_independent_def,
-  intros s w hw hs i hi,
+  rintro s w hw hs i hi,
   rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → ℝ) at hs,
   rw finset.weighted_vsub_of_point_apply at hs,
   simp only [vsub_eq_sub, function.comp_app, sub_zero] at hs,
@@ -1244,18 +1324,18 @@ begin
   rw ←finset.sum_erase finset.univ this,
   symmetry,
   apply finset.sum_bij _ _ _ _ _,
-  { intros a _,
+  { rintro a _,
     apply a.succ },
-  { intros a ha,
+  { rintro a ha,
     simp only [and_true, finset.mem_univ, finset.mem_erase],
     apply fin.succ_ne_zero },
-  { intros a ha,
+  { rintro a ha,
     symmetry,
     apply fin.cases_succ },
   { rintro a₁ a₂ _ _ h,
     apply fin.succ_injective,
     apply h },
-  { intros b hb,
+  { rintro b hb,
     simp only [and_true, finset.mem_univ, finset.mem_erase] at hb,
     refine ⟨b.pred hb, by simp, _⟩,
     simp }
@@ -1294,7 +1374,7 @@ def flatten_triangulation (S : triangulation (edge_of_std_simplex m)) :
 { faces := finset.image matrix.vec_tail '' S.faces,
   indep :=
   begin
-    intros X hX,
+    rintro X hX,
     simp only [set.mem_image] at hX,
     rcases hX with ⟨X, hX, rfl⟩,
     let f : ((finset.image matrix.vec_tail X : set (fin m → ℝ))) → (X : set (fin (m+1) → ℝ)),
@@ -1327,7 +1407,7 @@ def flatten_triangulation (S : triangulation (edge_of_std_simplex m)) :
     refine ⟨Y.image (matrix.vec_cons 0), _, _⟩,
     { apply S.down_closed _ hX,
       rw finset.image_subset_iff,
-      intros y hY,
+      rintro y hY,
       have := YX hY,
       simp only [exists_prop, finset.mem_image] at this,
       rcases this with ⟨x, hx, rfl⟩,
@@ -1385,7 +1465,7 @@ def flatten_triangulation (S : triangulation (edge_of_std_simplex m)) :
     apply convex_hull_mono,
     apply set.image_inter_subset,
     apply is_linear_map_matrix_vec_tail,
-    { intros x hx y hy h,
+    { rintro x hx y hy h,
       rw ← matrix.cons_head_tail x,
       rw ← matrix.cons_head_tail y,
       rw h,
@@ -1422,7 +1502,7 @@ end
 lemma mwe {α : Type*} {n : ℕ} (X : set (finset α)) (bound : ∀ y ∈ X, finset.card y ≤ n) :
   ∀ y ∈ X, ∃ x ∈ X, y ⊆ x ∧ ∀ z ∈ X, x ⊆ z → x = z :=
 begin
-  intros y hy,
+  rintro y hy,
   classical,
   rcases ((finset.range (n+1)).filter $ λ i, ∃ x ∈ X, y ⊆ x ∧ finset.card x = i).exists_maximal
     ⟨y.card, finset.mem_filter.2 ⟨finset.mem_range_succ_iff.2 $ bound y hy,
@@ -1440,7 +1520,7 @@ lemma contained_in_facet (S : triangulation s) {X} (hX : X ∈ S.faces) :
   ∃ Y ∈ S.facets, X ⊆ Y :=
 begin
   have : ∀ y ∈ S.faces, finset.card y ≤ m+1,
-  { intros y hy,
+  { rintro y hy,
     apply size_bound (S.indep _ hy) },
   rcases mwe S.faces this X hX with ⟨Y, _, _, h₂⟩,
   refine ⟨Y, ⟨‹Y ∈ S.faces›, h₂⟩, ‹X ⊆ Y›⟩,
@@ -1454,18 +1534,18 @@ lemma is_homogeneous_induct_down (S : triangulation (std_simplex (fin (m+1))))
   (hS : is_homogeneous (m+1) S) :
   is_homogeneous m (induct_down S) :=
 begin
-  intros X hX,
+  rintro X hX,
   simp only [induct_down, triangulation.facets, flatten_triangulation, lower_triangulation,
     and_imp, set.mem_sep_eq, set.mem_image, exists_imp_distrib] at hX,
   rcases hX with ⟨⟨X, ⟨hX₂, hX₄⟩, rfl⟩, hX₃⟩,
   have hX₁ : ∀ (Y ∈ S.faces), (∀ (i : fin (m+1) → ℝ), i ∈ Y → i 0 = 0) →
     finset.image matrix.vec_tail X ⊆ finset.image matrix.vec_tail Y →
     finset.image matrix.vec_tail X = finset.image matrix.vec_tail Y,
-  { intros Y hY₁ hY₂ hY₃,
+  { rintro Y hY₁ hY₂ hY₃,
     apply hX₃ _ _ hY₁ hY₂ rfl hY₃ },
   clear hX₃, -- just a less convenient form of hX₁
   have : ∀ (x : fin (m+1) → ℝ), x ∉ X → x 0 = 0 → insert x X ∉ S.faces,
-  { intros x hx₁ hx₂ t,
+  { rintro x hx₁ hx₂ t,
     have := hX₁ _ t (by simpa [hx₂] using hX₄) (finset.image_subset_image _),
 
 
@@ -1546,7 +1626,7 @@ begin
     tauto },
   rw finset.card_eq_sum_card_fiberwise H,
   apply finset.sum_const_nat,
-  intros X hX,
+  rintro X hX,
   simp only [almost_panchromatic_simplices, mem_faces_finset, finset.mem_filter] at hX,
   rcases hX with ⟨hX₁, hX₂, hX₃⟩,
   dsimp,
@@ -1558,7 +1638,7 @@ begin
     rw hX₃,
     simp [finset.card_erase_of_mem] },
   apply (finset.card_congr (λ x hx, (X, X.erase x)) _ _ _).symm,
-  { intros x hx,
+  { rintro x hx,
     dsimp,
     simp only [exists_prop, finset.mem_filter] at hx,
     simp only [almost_panchromatic_pairs, and_true, eq_self_iff_true, mem_good_pairs,
@@ -1646,7 +1726,7 @@ end
 --   [decidable_eq α] [decidable_eq β] (s t : finset α)
 --   {f : α → β} : s.image f ⊆ t.image f → s ⊆ t :=
 -- begin
---   intros h x hx,
+--   rintro h x hx,
 --   have : f x ∈ t.image f,
 --   sorry,
 --   simp at this,
@@ -1696,7 +1776,7 @@ begin
     { rw this,
       apply affine_subspace.mem_top },
     have : (X : set E) ≤ (↑plane : set E),
-    { intros x hx,
+    { rintro x hx,
       rw affine_subspace.mem_coe,
       apply (hX₂ _ hx).2 },
     rw ←((affine_subspace.gi ℝ (fin m → ℝ) (fin m → ℝ)).gc (X : set E) plane) at this,
@@ -1732,7 +1812,7 @@ lemma panchromatic_pairs_card_eq_panchromatic_card {S : triangulation (std_simpl
   (panchromatic_pairs hS f).card = ((S.faces_finset hS).filter (panchromatic f)).card :=
 begin
   apply finset.card_congr _ _ _ _,
-  { intros X hX,
+  { rintro X hX,
     apply X.1 },
   { rintro ⟨X, Y⟩ hX,
     simp only [panchromatic_pairs, mem_good_pairs, finset.mem_filter] at hX,
@@ -1770,7 +1850,7 @@ begin
     { apply finset.eq_of_subset_of_card_le ‹Y₂ ⊆ X₁.erase x›,
       simp [finset.card_erase_of_mem ‹x ∈ X₁›, ‹X₁.card = m+1›, ‹Y₂.card = m›] },
     rw [‹Y₁ = X₁.erase x›, ‹Y₂ = X₁.erase x›] },
-  { simp_intros X hX only [finset.mem_filter, mem_faces_finset],
+  { simp_rintro X hX only [finset.mem_filter, mem_faces_finset],
     have : ∃ x ∈ X, f x = 0,
     { suffices : (0 : fin (m+1)) ∈ X.image f,
       { simpa using this },
@@ -1807,7 +1887,7 @@ begin
   { intro x,
     apply fin.pred_above 0 (f (matrix.vec_cons 0 x)) },
   have hf' : is_sperner_colouring (induct_down S) f',
-  { intros x i hx hi,
+  { rintro x i hx hi,
     simp only [induct_down, flatten_triangulation, lower_triangulation, triangulation.points,
       set.mem_bUnion_iff, exists_prop, set.mem_sep_eq, finset.mem_image, set.mem_image,
       finset.mem_coe, finset.mem_image, exists_exists_and_eq_and] at hx,

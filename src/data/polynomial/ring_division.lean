@@ -395,7 +395,7 @@ roots ((X : polynomial R) ^ n - C a)
 @[simp] lemma mem_nth_roots {n : ℕ} (hn : 0 < n) {a x : R} :
   x ∈ nth_roots n a ↔ x ^ n = a :=
 by rw [nth_roots, mem_roots (X_pow_sub_C_ne_zero hn a),
-  is_root.def, eval_sub, eval_C, eval_pow, eval_X, sub_eq_zero_iff_eq]
+  is_root.def, eval_sub, eval_C, eval_pow, eval_X, sub_eq_zero]
 
 @[simp] lemma nth_roots_zero (r : R) : nth_roots 0 r = 0 :=
 by simp only [empty_eq_zero, pow_zero, nth_roots, ← C_1, ← C_sub, roots_C]

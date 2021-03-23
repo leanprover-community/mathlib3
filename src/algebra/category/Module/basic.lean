@@ -37,6 +37,11 @@ in the category of `R`-modules, we have to take care not to inadvertently end up
 Similarly, given `f : M ≃ₗ[R] N`, use `to_Module_iso`, `to_Module_iso'_left`, `to_Module_iso'_right`
 or `to_Module_iso'`, respectively.
 
+The arrow notations are localized, so you may have to `open_locale Module` to use them. Note that
+the notation for `as_hom_left` clashes with the notation used to promote functions between types to
+morphisms in the category `Type`, so to avoid confusion, it is probably a good idea to avoid having
+the locales `Module` and `category_theory.Type` open at the same time.
+
 If you get an error when trying to apply a theorem and the `convert` tactic produces goals of the
 form `M = of R M`, then you probably used an incorrect variant of `as_hom` or `to_Module_iso`.
 
@@ -125,19 +130,19 @@ variables {X₁ X₂ : Type v}
 def Module.as_hom [add_comm_group X₁] [module R X₁] [add_comm_group X₂] [module R X₂] :
   (X₁ →ₗ[R] X₂) → (Module.of R X₁ ⟶ Module.of R X₂) := id
 
-notation `↟` f : 1024 := Module.as_hom f
+localized "notation `↟` f : 1024 := Module.as_hom f" in Module
 
 /-- Reinterpreting a linear map in the category of `R`-modules. -/
 def Module.as_hom_right [add_comm_group X₁] [module R X₁] {X₂ : Module.{v} R} :
   (X₁ →ₗ[R] X₂) → (Module.of R X₁ ⟶ X₂) := id
 
-notation `↾` f : 1024 := Module.as_hom_right f
+localized "notation `↾` f : 1024 := Module.as_hom_right f" in Module
 
 /-- Reinterpreting a linear map in the category of `R`-modules. -/
 def Module.as_hom_left {X₁ : Module.{v} R} [add_comm_group X₂] [module R X₂] :
   (X₁ →ₗ[R] X₂) → (X₁ ⟶ Module.of R X₂) := id
 
-notation `↿` f : 1024 := Module.as_hom_left f
+localized "notation `↿` f : 1024 := Module.as_hom_left f" in Module
 
 /-- Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s. -/
 @[simps]

@@ -6,7 +6,7 @@ Authors: Damiano Testa
 import algebra.algebra.basic
 import linear_algebra.finsupp
 import algebra.algebra.tower
-
+import algebra.add_submonoid_closure
 /-!
 #  Squares
 
@@ -22,19 +22,56 @@ Progressively assuming more of the type `R` we
 * prove an instance of `comm_monoid` for `squares R`, if `R` is a `comm_monoid`;
 * prove an instance of `comm_semiring` for `sums_of_square R`, if `R` is a `comm_semiring`.
 -/
-variables {R : Type*}
+variables (R : Type*)
 
 section is_square
 
 section has_mul
 
-variables (R) [has_mul R]
+variables [has_mul R]
 
 /--  The predicate `is_square` on `r : R` is the assertion that there exists an element
 `s : R` such that `r = s * s`. -/
 def is_square (r : R) : Prop :=
 ∃ s : R, r = s * s
 
+/-- The product of an element with itself is a square. -/
+@[simp] lemma mul_self {R : Type*} [has_mul R] (r : R) : is_square R (r * r) :=
+⟨_, rfl⟩
+
+end has_mul
+
+section comm_monoid
+
+variables [comm_monoid R]
+
+/-- The squares in a `comm_monoid` form a submonoid. -/
+def squares : submonoid R :=
+{ carrier := is_square R,
+  one_mem' := ⟨_, (mul_one _).symm⟩,
+  mul_mem' := λ a b as bs, begin
+      rcases as with ⟨a, rfl⟩,
+      rcases bs with ⟨b, rfl⟩,
+      rw [mul_mul_mul_comm a a b b],
+      exact mul_self _,
+    end }
+
+end comm_monoid
+
+section comm_semiring
+
+variables [comm_semiring R]
+
+/-- The sums of squares in a `comm_semiring` are the additive closure of the squares. -/
+def sums_of_squares : add_submonoid R := add_submonoid.closure (squares R)
+
+/-- The submonoid of sums of squares in a `comm_semiring` inherits a `comm_semiring` structure. -/
+instance : comm_semiring (sums_of_squares R) := (squares R).to_subsemiring.to_comm_semiring
+
+end comm_semiring
+
+
+#exit
 /--  The squares of a Type `R` with `has_mul` is the subtype of the elements of the form `s * s`,
 for some `s : R`. -/
 def squares : Type* := subtype (is_square R)

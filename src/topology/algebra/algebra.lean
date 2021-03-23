@@ -27,7 +27,7 @@ open_locale classical
 universes u v w
 
 section topological_algebra
-variables (R : Type*) [topological_space R] [comm_semiring R] [topological_semiring R]
+variables (R : Type*) [topological_space R] [comm_semiring R]
 variables (A : Type u) [topological_space A]
 variables [semiring A]
 
@@ -68,7 +68,7 @@ instance subalgebra.topological_closure_topological_semiring (s : subalgebra R A
 s.to_subsemiring.topological_closure_topological_semiring
 
 instance subalgebra.topological_closure_topological_algebra
-  [topological_space R] [topological_semiring R] [has_continuous_smul R A] (s : subalgebra R A) :
+  [topological_space R] [has_continuous_smul R A] (s : subalgebra R A) :
   has_continuous_smul R (s.topological_closure) :=
 s.to_submodule.topological_closure_has_continuous_smul
 

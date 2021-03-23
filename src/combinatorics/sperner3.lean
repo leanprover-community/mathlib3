@@ -214,6 +214,17 @@ begin
   sorry,
 end
 
+--Keep two linearly_independent in the name?
+lemma eq_of_convex_hull_eq_convex_hull_of_linearly_independent_of_linearly_independent {X Y : finset E} :
+  affine_independent ℝ (λ p, p : (X : set E) → E) → affine_independent ℝ (λ p, p : (Y : set E) → E)
+  → convex_hull ↑X = convex_hull (Y : set(fin m → ℝ)) → X = Y :=
+begin
+  rintro hX hY h,
+  have := subset.antisymm (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hX h)
+    (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hY h.symm),
+  sorry --not hard, but don't know the technical details
+end
+
 /- S₁ ≤ S₂ iff all faces of S₁ are contained in faces of S₂-/
 def subdivision_order : partial_order (simplicial_complex m) :=
   {le := (λ S₁ S₂, S₁.space = S₂.space ∧ ∀ X₁ ∈ S₁.faces, ∃ X₂ ∈ S₂.faces,
@@ -229,30 +240,48 @@ def subdivision_order : partial_order (simplicial_complex m) :=
   end,
   le_antisymm := begin
     rintro S₁ S₂ h₁ h₂,
-    ext X,
-    set k := m + 1 - X.card,
-    sorry
-    /-wlog : X ∈ S₁.faces → X ∈ S₂.faces using [S₁ S₂],
-    induction k with k hk,
+    have aux_lemma : ∀ k : ℕ, ∀ X ∈ S₁.faces, m + 1 = finset.card X + k → X ∈ S₂.faces,
     {
-      --What the hell is this goal? HEEEELP
-      split,
+      rintro k,
+      apply nat.strong_induction_on k,
       {
-        intro hX,
-        obtain ⟨Y, hY, hXY⟩ := h₁.2 X hX,
-        obtain ⟨Z, hZ, hYZ⟩ := h₂.2 Y hY,
-        have := subset.trans (inter_subset_inter_right (convex_hull ↑X) (subset.trans hXY hYZ)) (S₁.disjoint hX hZ),
-        rw inter_self at this,
-        have := subset.antisymm (convex_hull_mono (inter_subset_left ↑X ↑Z)) this,
-        sorry
-      },
-      {
-        sorry --mutatis mutandis
+        rintro n h X hX hXcard,
+        obtain ⟨Y, hY, hXYhull⟩ := h₁.2 X hX,
+        obtain ⟨Z, hZ, hYZhull⟩ := h₂.2 Y hY,
+        have hXZhull := subset.trans (inter_subset_inter_right (convex_hull ↑X)
+          (subset.trans hXYhull hYZhull)) (S₁.disjoint hX hZ),
+        rw inter_self at hXZhull,
+        norm_cast at hXZhull,
+        have hXZ : X ⊆ Z := subset.trans
+          (subset_of_convex_hull_eq_convex_hull_of_linearly_independent (S₁.indep hX)
+          (subset.antisymm hXZhull (convex_hull_mono (finset.inter_subset_left X Z))))
+          (finset.inter_subset_right _ _),
+        by_cases hZX : Z ⊆ X,
+        {
+          rw finset.subset.antisymm hZX hXZ at hYZhull,
+          rw eq_of_convex_hull_eq_convex_hull_of_linearly_independent_of_linearly_independent
+            (S₁.indep hX) (S₂.indep hY) (subset.antisymm hXYhull hYZhull),
+          exact hY,
+        },
+        {
+          apply S₂.down_closed (h (m + 1 - Z.card) _ Z hZ
+            ((nat.add_sub_cancel' (simplex_dimension_le_space_dimension hZ)).symm)) hXZ,
+          rw nat.sub_lt_left_iff_lt_add,
+          { rw hXcard,
+            exact add_lt_add_right (finset.card_lt_card ⟨hXZ, hZX⟩) n },
+          { exact (simplex_dimension_le_space_dimension hZ) }
+        }
       }
     },
+    ext X,
+    split,
     {
-      sorry --mutatis mutandis
-    }-/
+      exact λ hX, aux_lemma (m + 1 - X.card) X hX ((nat.add_sub_cancel'
+        (simplex_dimension_le_space_dimension hX)).symm),
+    },
+    {
+      sorry --mutatis mutandis using aux_lemma
+    }
   end}
 
 /-A simplicial complex is connected iff its space is-/
@@ -274,7 +303,8 @@ lemma connected_iff_one_skeleton_connected {S : simplicial_complex m} :
 begin
   split,
   {
-
+    intro h,
+    unfold simplicial_complex.connected,
     sorry --trivial
   },
   {
@@ -304,26 +334,29 @@ is pure of dimension `n` and has the same underlying space.
 def polytope.vertices (P : polytope m n) : set (fin m → ℝ) :=
   ⋂ (S : simplicial_complex m) (H : P.space = S.space), {x | {x} ∈ S.faces}
 
-noncomputable def polytope.triangulation {P : polytope m n} (hP : convex P.space) :
+noncomputable def polytope.realisation (P : polytope m n) :
   simplicial_complex m := classical.some P.realisable
 
 def polytope.faces {n : ℕ} (P : polytope m n) : set (finset (fin m → ℝ)) :=
-(classical.some P.realisable).faces
+  P.realisation.faces
 
 /- Every convex polytope can be realised by a simplicial complex with the same vertices-/
-lemma triangulable_of_convex {P : polytope m n} : convex P.space → ∃ (S : simplicial_complex m),
-  P.space = S.space ∧ ∀ x, {x} ∈ S.faces → x ∈ P.vertices :=
+lemma polytope.triangulable_of_convex {P : polytope m n} : convex P.space
+  → ∃ (S : simplicial_complex m), P.space = S.space ∧ ∀ x, {x} ∈ S.faces → x ∈ P.vertices :=
 begin
   sorry
 end
 
-def locally_finite_complex (S : simplicial_complex m) : Prop :=
+noncomputable def polytope.triangulation_of_convex {P : polytope m n} (hP : convex P.space) :
+  simplicial_complex m := classical.some (polytope.triangulable_of_convex hP)
+
+def simplicial_complex.locally_finite (S : simplicial_complex m) : Prop :=
   ∀ x : fin m → ℝ, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set(fin m → ℝ))}
 
 lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m)
-  (hS : locally_finite_complex S) : locally_compact_space S.space :=
+  (hS : S.locally_finite) : locally_compact_space S.space :=
   {local_compact_nhds := begin
-    rintro x X hx,
+    rintro x X hX,
     sorry
   end}
 
@@ -473,11 +506,13 @@ begin
   rintro hS X hX,
 end-/
 
---Rename to pyramid?
-def simplicial_complex.cone (S : simplicial_complex m)
+--What's best? Pyramid, or cone?
+def simplicial_complex.pyramid (S : simplicial_complex m)
   (hS : ∀ X ∈ S.faces, finset.card X ≤ m) (v : fin m → ℝ) (hv : v ∉ convex_hull S.space) :
   simplicial_complex m :=
  {faces := {X' | ∃ X ∈ S.faces, X' ⊆ X ∪ {v}},
+   --an alternative is S.faces ∪ S.faces.image (insert v)
+   --a problem is that S.faces = ∅ should output (S.pyramid hS v hv).faces = {v} but this def doesn't
   indep := begin
     rintro X' ⟨X, hX, hX'X⟩,
     sorry
@@ -493,9 +528,9 @@ def simplicial_complex.cone (S : simplicial_complex m)
   end}
 
 --Bad name?
-lemma simplicial_complex.subset_cone (S : simplicial_complex m)
+lemma simplicial_complex.subset_pyramid (S : simplicial_complex m)
   (hS : ∀ X ∈ S.faces, finset.card X ≤ m) (v : fin m → ℝ) (hv : v ∉ convex_hull S.space) :
-  S.faces ⊆ (S.cone hS v hv).faces := λ X hX, ⟨X, hX, finset.subset_union_left X {v}⟩
+  S.faces ⊆ (S.pyramid hS v hv).faces := λ X hX, ⟨X, hX, finset.subset_union_left X {v}⟩
 
 def simplicial_complex.boundary (S : simplicial_complex m) (hS : S.pure n) :
   simplicial_complex m :=

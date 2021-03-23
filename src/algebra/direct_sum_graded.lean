@@ -238,7 +238,11 @@ end shorthands
 
 variables (A : ι → Type*)
 
-/-! ### Instances for `A 0` -/
+/-! ### Instances for `A 0`
+
+The various `g*` instances are enough to promote the `add_comm_monoid (A 0)` structure to various
+types of multiplicative structure.
+-/
 
 namespace grade_zero
 
@@ -270,12 +274,21 @@ lemma rec_apply₂ {ι : Sort*} {A B C: ι → Sort*} : ∀ {i j : ι} (h : i = 
   h.rec (f i x y) = f j (h.rec x) (h.rec y)
 | _ _ rfl f x y := rfl
 
+lemma rec_eq_of_sigma_eq {ι : Sort*} {A : ι → Sort*} :
+  ∀ {i j} {a : A i} {b : A j} (h : (⟨i, a⟩ : Σ i, A i) = ⟨_, b⟩),
+  (((sigma.ext_iff.mp h).1 : i = j).rec a : A j) = b
+| _ _ _ _ rfl := rfl
+
+lemma rec_on_bijective {α : Sort*} {C : α → Sort*} :
+  ∀ {a a' : α} (h : a = a'), function.bijective (@eq.rec_on _ _ C _ h)
+| _ _ rfl := ⟨λ x y, id, λ x, ⟨x, rfl⟩⟩
+
 end to_move
 
-instance has_mul : has_mul (A 0) :=
+instance : has_mul (A 0) :=
 { mul := λ x y, (zero_add (0 : ι)).rec (ghas_mul.mul x y)}
 
-instance mul_zero_class : mul_zero_class (A 0) :=
+instance : mul_zero_class (A 0) :=
 { mul := (*),
   zero := 0,
   zero_mul := λ a, by {
@@ -285,7 +298,7 @@ instance mul_zero_class : mul_zero_class (A 0) :=
     simp only [has_mul.mul, add_monoid_hom.zero_apply, add_monoid_hom.map_zero],
     exact rec_pi (add_zero 0) (λ i : ι, (0 : A i)), }, }
 
-instance distrib : distrib (A 0) :=
+instance : distrib (A 0) :=
 { mul := (*),
   add := (+),
   left_distrib := λ a b c, by {
@@ -305,33 +318,24 @@ section semiring
 variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gmonoid A]
 
 /-- The `semiring` structure derived from `gmonoid A`. -/
-instance semiring : semiring (A 0) := {
+instance : semiring (A 0) := {
   one := 1,
   mul := (*),
   zero := 0,
   add := (+),
-  one_mul := λ a, by {
-    have : (⟨_, ghas_mul.mul ghas_one.one a⟩ : Σ i, A i) = ⟨_, a⟩ := gmonoid.one_mul ⟨_, a⟩,
-    rw sigma.ext_iff at this,
-    dsimp at this,
-    simp only [has_mul.mul, has_one.one],
-    sorry,
-  },
-  mul_one := λ a, by {
-    have : (⟨_, ghas_mul.mul a ghas_one.one⟩ : Σ i, A i) = ⟨_, a⟩ := gmonoid.mul_one ⟨_, a⟩,
-    rw sigma.ext_iff at this,
-    dsimp at this,
-    simp only [has_mul.mul, has_one.one],
-    sorry,
-  },
+  one_mul := λ a, rec_eq_of_sigma_eq (gmonoid.one_mul ⟨_, a⟩),
+  mul_one := λ a, rec_eq_of_sigma_eq (gmonoid.mul_one ⟨_, a⟩),
   mul_assoc := λ a b c, by {
-    have :
-      (⟨_, ghas_mul.mul (ghas_mul.mul a b) c⟩ : Σ i, A i) = ⟨_, ghas_mul.mul a (ghas_mul.mul b c)⟩ :=
-        gmonoid.mul_assoc ⟨_, a⟩ ⟨_, b⟩ ⟨_, c⟩,
-    rw sigma.ext_iff at this,
-    dsimp at this,
-    simp only [has_mul.mul, has_one.one],
-    sorry,
+    unfold has_mul.mul semigroup.mul,
+    congr' 1,
+    have ha := rec_apply has_mul._proof_1
+      (λ (i : ι) (bc : A i), ghas_mul.mul a bc) ((ghas_mul.mul b) c),
+    have hc := rec_apply has_mul._proof_1
+      (λ (i : ι) (ab : A i), ghas_mul.mul ab c) ((ghas_mul.mul a) b),
+    refine (hc.symm.trans _).trans ha,
+    congr' 1,
+    { ext, rw [add_zero, zero_add] },
+    { exact (sigma.ext_iff.mp (gmonoid.mul_assoc ⟨_, a⟩ ⟨_, b⟩ ⟨_, c⟩)).2 }
   },
   ..direct_sum.grade_zero.mul_zero_class A,
   ..direct_sum.grade_zero.distrib A,
@@ -344,18 +348,16 @@ section comm_semiring
 variables [Π i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_monoid A]
 
 /-- The `comm_semiring` structure derived from `gcomm_monoid A`. -/
-instance comm_semiring : comm_semiring (A 0) := {
+instance : comm_semiring (A 0) := {
   one := 1,
   mul := (*),
   zero := 0,
   add := (+),
   mul_comm := λ a b, by {
-    have : (⟨_, ghas_mul.mul a b⟩ : Σ i, A i) = ⟨_, ghas_mul.mul b a⟩ :=
-      gcomm_monoid.mul_comm ⟨_, a⟩ ⟨_, b⟩,
-    rw sigma.ext_iff at this,
-    dsimp at this,
-    simp only [has_mul.mul, has_one.one],
-    sorry,
+    unfold has_mul.mul semigroup.mul,
+    congr' 1,
+    have := sigma.ext_iff.mp (gcomm_monoid.mul_comm ⟨_, a⟩ ⟨_, b⟩),
+    apply eq_of_heq this.2,
   },
   ..direct_sum.grade_zero.semiring _, }
 
@@ -365,7 +367,7 @@ section ring
 variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gmonoid A]
 
 /-- The `ring` derived from `gmonoid A`. -/
-instance ring : ring (A 0) := {
+instance : ring (A 0) := {
   one := 1,
   mul := (*),
   zero := 0,
@@ -380,7 +382,7 @@ section comm_ring
 variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_monoid A]
 
 /-- The `comm_ring` derived from `gcomm_monoid A`. -/
-instance comm_ring : comm_ring (A 0) := {
+instance : comm_ring (A 0) := {
   one := 1,
   mul := (*),
   zero := 0,
@@ -391,7 +393,7 @@ instance comm_ring : comm_ring (A 0) := {
 
 end comm_ring
 
-#exit
+end grade_zero
 
 /-! ### Instances for `⨁ i, A i` -/
 
@@ -522,11 +524,17 @@ instance semiring : semiring (⨁ i, A i) := {
   ..direct_sum.distrib A,
   ..direct_sum.add_comm_monoid _ _, }
 
+/-- `of A 0` is a `ring_hom`, using the `direct_sum.grade_zero.semiring` structure. -/
 def of_zero_ring_hom : A 0 →+* (⨁ i, A i) :=
 { map_one' := rfl,
-  map_mul' := λ a b, sorry,
+  map_mul' := λ a b, begin
+    simp only [add_monoid_hom.to_fun_eq_coe, of_mul_of],
+    apply dfinsupp.single_eq_of_sigma_eq,
+    congr',
+    { rw zero_add },
+    { apply eq_rec_heq }
+  end,
   ..(of _ 0)}
-
 
 end semiring
 

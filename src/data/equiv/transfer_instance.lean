@@ -124,11 +124,26 @@ protected def semigroup [semigroup β] : semigroup α :=
 { mul_assoc := by simp [mul_def, mul_assoc],
   ..equiv.has_mul e }
 
+/-- Transfer `semigroup_with_zero` across an `equiv` -/
+protected def semigroup_with_zero [semigroup_with_zero β] : semigroup_with_zero α :=
+{ zero_mul := by simp [mul_def, zero_def],
+  mul_zero := by simp [mul_def, zero_def],
+  ..equiv.has_zero e,
+  ..equiv.has_mul e,
+  ..equiv.semigroup e }
+
 /-- Transfer `comm_semigroup` across an `equiv` -/
 @[to_additive "Transfer `add_comm_semigroup` across an `equiv`"]
 protected def comm_semigroup [comm_semigroup β] : comm_semigroup α :=
 { mul_comm := by simp [mul_def, mul_comm],
   ..equiv.semigroup e }
+
+/-- Transfer `mul_zero_class` across an `equiv` -/
+protected def mul_zero_class [mul_zero_class β] : mul_zero_class α :=
+{ zero_mul := by simp [mul_def, zero_def],
+  mul_zero := by simp [mul_def, zero_def],
+  ..equiv.has_mul e,
+  ..equiv.has_zero e }
 
 /-- Transfer `mul_one_class` across an `equiv` -/
 @[to_additive "Transfer `add_zero_class` across an `equiv`"]
@@ -169,17 +184,31 @@ protected def comm_group [comm_group β] : comm_group α :=
 { ..equiv.group e,
   ..equiv.comm_semigroup e }
 
-/-- Transfer `semiring` across an `equiv` -/
-protected def semiring [semiring β] : semiring α :=
+/-- Transfer `non_unital_non_assoc_semiring` across an `equiv` -/
+protected def non_unital_non_assoc_semiring [non_unital_non_assoc_semiring β] :
+  non_unital_non_assoc_semiring α :=
 { right_distrib := by simp [mul_def, add_def, add_mul],
   left_distrib := by simp [mul_def, add_def, mul_add],
-  zero_mul := by simp [mul_def, zero_def],
-  mul_zero := by simp [mul_def, zero_def],
   ..equiv.has_zero e,
   ..equiv.has_mul e,
   ..equiv.has_add e,
-  ..equiv.monoid e,
+  ..equiv.mul_zero_class e,
   ..equiv.add_comm_monoid e }
+
+/-- Transfer `non_unital_semiring` across an `equiv` -/
+protected def non_unital_semiring [non_unital_semiring β] :  non_unital_semiring α :=
+{ ..equiv.semigroup_with_zero e,
+  ..equiv.non_unital_non_assoc_semiring e }
+
+/-- Transfer `non_assoc_semiring` across an `equiv` -/
+protected def non_assoc_semiring [non_assoc_semiring β] : non_assoc_semiring α :=
+{ ..equiv.mul_one_class e,
+  ..equiv.non_unital_non_assoc_semiring e }
+
+/-- Transfer `semiring` across an `equiv` -/
+protected def semiring [semiring β] : semiring α :=
+{ ..equiv.non_unital_semiring e,
+  ..equiv.non_assoc_semiring e }
 
 /-- Transfer `comm_semiring` across an `equiv` -/
 protected def comm_semiring [comm_semiring β] : comm_semiring α :=

@@ -32,7 +32,7 @@ open category_theory.category
 We work in an additive category C equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [has_shift C] [additive_category C]
-[functor.additive (shift C).functor] [functor.additive (shift C).inverse]
+  [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
 variables (X : C)
 
 /--
@@ -158,7 +158,7 @@ def inv_rotate (f : triangle_morphism T₁ T₂) :
     rw [← functor.map_comp (shift C ).inverse, ← f.comm₃, functor.map_comp],
     repeat {rw assoc},
     suffices h : (shift C).unit_iso.inv.app T₁.obj₁ ≫ f.hom₁ =
-    (shift C).inverse.map ((shift C).functor.map f.hom₁) ≫ (shift C).unit_iso.inv.app T₂.obj₁,
+      (shift C).inverse.map ((shift C).functor.map f.hom₁) ≫ (shift C).unit_iso.inv.app T₂.obj₁,
     { rw h },
     { simp only [iso.hom_inv_id_app, assoc, equivalence.inv_fun_map,
         nat_iso.cancel_nat_iso_inv_left],

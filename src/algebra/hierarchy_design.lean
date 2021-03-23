@@ -24,9 +24,9 @@ def surjective.Z [Z M₁] (f : M₁ → M₂) (hf : surjective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) : Z M₂ :=
 ```
 (see examples in `algebra.group.inj_surj`)
-* `instance finsupp.Z [Z β] : semigroup (α →₀ β) := ...` (see examples in `data.finsupp.pointwise`)
+* `instance finsupp.Z [Z β] : Z (α →₀ β) := ...` (see examples in `data.finsupp.pointwise`)
 * `instance set.Z [Z α] : Z (set α) := ...` (see examples in `algebra.pointwise`)
-* `def equiv.monoid (e : α ≃ β) [monoid β] : monoid α := ...` and
+* `def equiv.Z (e : α ≃ β) [Z β] : Z α := ...` and
   `def equiv.Z_equiv (e : α ≃ β) [Z β] : by { letI := equiv.Z e, exact α ≃Z β } := ...`
   (when there is a new notion of `Z`-equiv) (see examples in `data.equiv.transfer_instance`)
 

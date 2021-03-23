@@ -1105,6 +1105,9 @@ variables {α : fin (n+1) → Type u} (x : α 0) (q : Πi, α i) (p : Π(i : fin
 /-- The tail of an `n+1` tuple, i.e., its last `n` entries. -/
 def tail (q : Πi, α i) : (Π(i : fin n), α (i.succ)) := λ i, q i.succ
 
+lemma tail_def {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
+  tail (λ k : fin (n+1), q k) = (λ k : fin n, q k.succ) := rfl
+
 /-- Adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple. -/
 def cons (x : α 0) (p : Π(i : fin n), α (i.succ)) : Πi, α i :=
 λ j, fin.cases x p j
@@ -1237,6 +1240,9 @@ variables {α : fin (n+1) → Type u} (x : α (last n)) (q : Πi, α i) (p : Π(
 /-- The beginning of an `n+1` tuple, i.e., its first `n` entries -/
 def init (q : Πi, α i) (i : fin n) : α i.cast_succ :=
 q i.cast_succ
+
+lemma init_def {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
+  init (λ k : fin (n+1), q k) = (λ k : fin n, q k.cast_succ) := rfl
 
 /-- Adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc` comes from
 `cons` (i.e., adding an element to the left of a tuple) read in reverse order. -/

@@ -223,7 +223,7 @@ begin
       split_ifs at h with h2,
       { rw h2 at hlt, exfalso, exact lt_irrefl _ hlt, },
       have hn : (n! : ℚ) ≠ 0, { simp [factorial_ne_zero], },
-      rw [←mul_div_assoc, sub_eq_zero_iff_eq, div_eq_iff hn, div_mul_cancel _ hn,
+      rw [←mul_div_assoc, sub_eq_zero, div_eq_iff hn, div_mul_cancel _ hn,
         neg_one_pow_of_odd h_odd, neg_mul_eq_neg_mul_symm, one_mul] at h,
       exact eq_zero_of_neg_eq h.symm, },
     { exfalso,

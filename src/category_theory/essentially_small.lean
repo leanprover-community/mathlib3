@@ -29,12 +29,12 @@ namespace category_theory
 /-- A category is `essentially_small.{w}` if there exists
 an equivalence to some `S : Type w` with `[small_category w]`. -/
 class essentially_small (C : Type u) [category.{v} C] : Prop :=
-(equiv_small_category : ∃ (S : Type w) [small_category S], by exactI ∃ (e : C ≌ S), true)
+(equiv_small_category : ∃ (S : Type w) [small_category S], by exactI nonempty (C ≌ S))
 
 /-- Constructor for `essentially_small C` from an explicit small category witness. -/
 lemma essentially_small.mk' {C : Type u} [category.{v} C] {S : Type w} [small_category S]
   (e : C ≌ S) : essentially_small.{w} C :=
-⟨⟨S, _, e, trivial⟩⟩
+⟨⟨S, _, ⟨e⟩⟩⟩
 
 /--
 An arbitrarily chosen small model for an essentially small category.
@@ -54,17 +54,17 @@ an essentially small category and its small model.
 -/
 noncomputable
 def equiv_small_model (C : Type u) [category.{v} C] [essentially_small.{w} C] : C ≌ small_model C :=
-classical.some (classical.some_spec (classical.some_spec
+nonempty.some (classical.some_spec (classical.some_spec
   (@essentially_small.equiv_small_category C _ _)))
 
 lemma essentially_small_congr {C : Type u} [category.{v} C] {D : Type u'} [category.{v'} D]
   (e : C ≌ D) : essentially_small.{w} C ↔ essentially_small.{w} D :=
 begin
   fsplit,
-  { rintro ⟨S, 𝒮, f, -⟩,
+  { rintro ⟨S, 𝒮, ⟨f⟩⟩,
     resetI,
     exact essentially_small.mk' (e.symm.trans f), },
-  { rintro ⟨S, 𝒮, f, -⟩,
+  { rintro ⟨S, 𝒮, ⟨f⟩⟩,
     resetI,
     exact essentially_small.mk' (e.trans f), },
 end
@@ -75,7 +75,7 @@ A category is `w` locally small if every hom set is `w` small.
 See `shrinks_hom C` for a category instance where every hom set has been replaced by a small model.
 -/
 class locally_small (C : Type u) [category.{v} C] : Prop :=
-(hom_small : ∀ X Y : C, small.{w} (X ⟶ Y))
+(hom_small : ∀ X Y : C, small.{w} (X ⟶ Y) . tactic.apply_instance)
 
 instance (C : Type u) [category.{v} C] [locally_small.{w} C] (X Y : C) :
   small (X ⟶ Y) :=
@@ -99,13 +99,13 @@ begin
     exact equiv_of_fully_faithful e.functor, },
 end
 
-lemma locally_small_self (C : Type u) [category.{v} C] : locally_small.{v} C :=
-{ hom_small := λ X Y, small_self _, }
+@[priority 100]
+instance locally_small_self (C : Type u) [category.{v} C] : locally_small.{v} C := {}
 
 @[priority 100]
 instance locally_small_of_essentially_small
   (C : Type u) [category.{v} C] [essentially_small.{w} C] : locally_small.{w} C :=
-(locally_small_congr (equiv_small_model C)).mpr (locally_small_self _)
+(locally_small_congr (equiv_small_model C)).mpr (category_theory.locally_small_self _)
 
 /--
 We define a type alias `shrink_homs C` for `C`. When we have `locally_small.{w} C`,
@@ -177,15 +177,15 @@ begin
   fsplit,
   { intro h,
     fsplit,
-    { rcases h with ⟨S, 𝒮, e , -⟩,
+    { rcases h with ⟨S, 𝒮, ⟨e⟩⟩,
       resetI,
-      refine ⟨⟨skeleton S, _, trivial⟩⟩,
+      refine ⟨⟨skeleton S, ⟨_⟩⟩⟩,
       exact e.skeleton_equiv, },
     { resetI, apply_instance, }, },
-  { rintro ⟨⟨S, e, -⟩, L⟩,
+  { rintro ⟨⟨S, ⟨e⟩⟩, L⟩,
     resetI,
     let e' := (shrink_homs.equivalence C).skeleton_equiv.symm,
-    refine ⟨⟨S, _, _, trivial⟩⟩,
+    refine ⟨⟨S, _, ⟨_⟩⟩⟩,
     apply induced_category.category (e'.trans e).symm,
     refine (shrink_homs.equivalence C).trans
       ((from_skeleton _).as_equivalence.symm.trans
@@ -195,16 +195,15 @@ end
 /--
 Any thin category is locally small.
 -/
-lemma locally_small_of_thin {C : Type u} [category.{v} C] (h : ∀ X Y : C, subsingleton (X ⟶ Y)) :
-  locally_small.{w} C :=
-{ hom_small := λ X Y, small_of_subsingleton (X ⟶ Y), }
+instance locally_small_of_thin {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
+  locally_small.{w} C := {}
 
 /--
 A thin category is essentially small if and only if the underlying type of its skeleton is small.
 -/
 theorem essentially_small_iff_of_thin
-  {C : Type u} [category.{v} C] (h : ∀ X Y : C, subsingleton (X ⟶ Y)) :
+  {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
   essentially_small.{w} C ↔ small.{w} (skeleton C) :=
-by simp [essentially_small_iff, locally_small_of_thin h]
+by simp [essentially_small_iff, category_theory.locally_small_of_thin]
 
 end category_theory

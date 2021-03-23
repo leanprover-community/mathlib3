@@ -363,7 +363,7 @@ lemma decomposition (v : V) : dual_pair.lc e (h.coeffs v) = v :=
 begin
   refine eq_of_sub_eq_zero (h.total _),
   intros i,
-  simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero_iff_eq]
+  simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero]
 end
 
 lemma mem_of_mem_span {H : set ι} {x : V} (hmem : x ∈ submodule.span K (e '' H)) :
@@ -439,6 +439,21 @@ end
 lemma dual_restrict_ker_eq_dual_annihilator (W : submodule R M) :
   W.dual_restrict.ker = W.dual_annihilator :=
 rfl
+
+lemma dual_annihilator_sup_eq_inf_dual_annihilator (U V : submodule R M) :
+  (U ⊔ V).dual_annihilator = U.dual_annihilator ⊓ V.dual_annihilator :=
+begin
+  ext φ,
+  rw [mem_inf, mem_dual_annihilator, mem_dual_annihilator, mem_dual_annihilator],
+  split; intro h,
+  { refine ⟨_, _⟩;
+    intros x hx,
+    exact h x (mem_sup.2 ⟨x, hx, 0, zero_mem _, add_zero _⟩),
+    exact h x (mem_sup.2 ⟨0, zero_mem _, x, hx, zero_add _⟩) },
+  { simp_rw mem_sup,
+    rintro _ ⟨x, hx, y, hy, rfl⟩,
+    rw [linear_map.map_add, h.1 _ hx, h.2 _ hy, add_zero] }
+end
 
 end submodule
 

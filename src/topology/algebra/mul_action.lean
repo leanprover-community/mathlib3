@@ -1,6 +1,34 @@
+/-
+Copyright (c) 2021 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import topology.algebra.monoid
 import algebra.module.prod
 import topology.homeomorph
+
+/-!
+# Continuous monoid action
+
+In this file we define class `has_continuous_smul`. We say `has_continuous_smul M α` if `M` acts on
+`α` and the map `(c, x) ↦ c • x` is continuous on `M × α`. We reuse this class for topological
+(semi)modules, vector spaces and algebras.
+
+## Main definitions
+
+* `has_continuous_smul M α` : typeclass saying that the map `(c, x) ↦ c • x` is continuous
+  on `M × α`;
+* `homeomorph.smul_of_unit`: scalar multiplication by a unit of `M` as a homeomorphism of `α`;
+* `homeomorph.smul_of_ne_zero`: if a group with zero `G₀` (e.g., a field) acts on `α` and `c : G₀`
+  is a nonzero element of `G₀`, then scalar multiplication by `c` is a homeomorphism of `α`;
+* `homeomorph.smul`: scalar multiplication by an element of a group `G` acting on `α`
+  is a homeomorphism of `α`.
+
+## Main results
+
+Besides homeomorphisms mentioned above, in this file we provide lemmas like `continuous.smul`
+or `filter.tendsto.smul` that provide dot-syntax access to `continuous_smul`.
+-/
 
 open_locale topological_space
 open filter
@@ -142,7 +170,7 @@ lemma continuous_const_smul_iff' (hc : c ≠ 0) :
 
 /-- Scalar multiplication by a non-zero element of a group with zero acting on `α` is a
 homeomorphism from `α` onto itself. -/
-protected def homeomorph.smul_of_ne_zero {c : G₀} (hc : c ≠ 0) : α ≃ₜ α :=
+protected def homeomorph.smul_of_ne_zero (c : G₀) (hc : c ≠ 0) : α ≃ₜ α :=
 homeomorph.smul_of_unit (units.mk0 c hc)
 
 lemma is_open_map_smul' {c : G₀} (hc : c ≠ 0) : is_open_map (λ x : α, c • x) :=

@@ -75,7 +75,7 @@ A category is `w` locally small if every hom set is `w` small.
 See `shrinks_hom C` for a category instance where every hom set has been replaced by a small model.
 -/
 class locally_small (C : Type u) [category.{v} C] : Prop :=
-(hom_small : ∀ X Y : C, small.{w} (X ⟶ Y))
+(hom_small : ∀ X Y : C, small.{w} (X ⟶ Y) . tactic.apply_instance)
 
 instance (C : Type u) [category.{v} C] [locally_small.{w} C] (X Y : C) :
   small (X ⟶ Y) :=
@@ -99,13 +99,13 @@ begin
     exact equiv_of_fully_faithful e.functor, },
 end
 
-lemma locally_small_self (C : Type u) [category.{v} C] : locally_small.{v} C :=
-{ hom_small := λ X Y, small_self _, }
+@[priority 100]
+instance locally_small_self (C : Type u) [category.{v} C] : locally_small.{v} C := {}
 
 @[priority 100]
 instance locally_small_of_essentially_small
   (C : Type u) [category.{v} C] [essentially_small.{w} C] : locally_small.{w} C :=
-(locally_small_congr (equiv_small_model C)).mpr (locally_small_self _)
+(locally_small_congr (equiv_small_model C)).mpr (category_theory.locally_small_self _)
 
 /--
 We define a type alias `shrink_homs C` for `C`. When we have `locally_small.{w} C`,
@@ -195,9 +195,8 @@ end
 /--
 Any thin category is locally small.
 -/
-lemma locally_small_of_thin {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
-  locally_small.{w} C :=
-{ hom_small := λ X Y, small_of_subsingleton (X ⟶ Y), }
+instance locally_small_of_thin {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
+  locally_small.{w} C := {}
 
 /--
 A thin category is essentially small if and only if the underlying type of its skeleton is small.
@@ -205,6 +204,6 @@ A thin category is essentially small if and only if the underlying type of its s
 theorem essentially_small_iff_of_thin
   {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
   essentially_small.{w} C ↔ small.{w} (skeleton C) :=
-by simp [essentially_small_iff, locally_small_of_thin]
+by simp [essentially_small_iff, category_theory.locally_small_of_thin]
 
 end category_theory

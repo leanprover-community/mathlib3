@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.equiv.basic
+import data.fintype.basic
 
 /-!
 # Small types
@@ -59,13 +60,6 @@ small.mk' equiv.ulift
 section
 open_locale classical
 
-lemma small_of_subsingleton (α : Type v) [subsingleton α] : small.{w} α :=
-if w : nonempty α then
-  by exactI small.mk' equiv.punit_of_nonempty_of_subsingleton
-else
-  small.mk' (equiv.pempty_of_not_nonempty w)
-end
-
 theorem small_congr {α : Type*} {β : Type*} (e : α ≃ β) : small.{w} α ↔ small.{w} β :=
 begin
   fsplit,
@@ -73,4 +67,13 @@ begin
     exact small.mk' (e.symm.trans f), },
   { rintro ⟨S, ⟨f⟩⟩,
     exact small.mk' (e.trans f), },
+end
+
+instance small_of_fintype (α : Type v) [fintype α] : small.{w} α :=
+begin
+  obtain ⟨n, ⟨e⟩⟩  := fintype.exists_equiv_fin α,
+  rw small_congr e,
+  apply_instance,
+end
+
 end

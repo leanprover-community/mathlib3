@@ -50,6 +50,15 @@ when applicable:
   /- when there is a new notion of `Z`-equiv -/
   def equiv.Z_equiv (e : α ≃ β) [Z β] : by { letI := equiv.Z e, exact α ≃Z β } := ...
   ```
+* When `Z` adds only new proof fields to an existing structure `Y`, instances transferring
+  `Z α` to `Z (sub_Y α)`, like `submonoid.to_comm_monoid`.
+  Typically this is done using the `function.injective.Z` definition mentioned above.
+  ```
+  instance sub_Y.to_Z [Z α] : Z (sub_Y α) :=
+  coe_injective.Z coe ...
+  ```
+* When `Z` adds new data fields too, a new `sub_Z` `structure` with a `carrier` field.
+  If `Z` extends `Y`, then `sub_Z` should usually extend `sub_Y`.
 
 [[ Talk about morphisms? ]]
 [[ Talk about equivalences? ]]

@@ -300,6 +300,10 @@ def is_subordinate {s : set M} (f : smooth_bump_covering I s) (U : M → set M) 
 
 variable (I)
 
+/-- Let `M` be a smooth manifold with corners modelled on a finite dimensional real vector space.
+Suppose also that `M` is a Hausdorff `Σ`-compact topological space. Let `s` be a closed set
+in `M` and `U : M → set M` be a collection of sets such that `U x ∈ 𝓝 x` for every `x ∈ s`.
+Then there exists a smooth bump covering of `s` that is subordinate to `U`. -/
 lemma exists_is_subordinate [t2_space M] [sigma_compact_space M] (hs : is_closed s)
   (hU : ∀ x ∈ s, U x ∈ 𝓝 x) :
   ∃ f : smooth_bump_covering I s, f.is_subordinate U :=

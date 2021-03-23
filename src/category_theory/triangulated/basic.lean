@@ -31,7 +31,11 @@ open category_theory.category
 We work in an additive category C equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [additive_category C]
-  [has_shift C] [functor.additive (shift C).functor]
+  [has_shift C] [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
+/-
+Eventually can remove conditions on shift functor and inverse, as all equivalences of additive
+categories are additive functors
+-/
 
 /--
 A triangle in C is a sextuple (X,Y,Z,f,g,h) where X,Y,Z are objects of C,

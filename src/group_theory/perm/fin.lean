@@ -189,3 +189,42 @@ end
 end fin
 
 end cycle_range
+
+section cycle_all
+
+namespace fin
+
+/-- `fin.cycle_all` is the cycle `(0 1 2 ... fin.last n)`. -/
+def cycle_all : Π (n : ℕ), perm (fin n)
+| 0 := 1
+| (nat.succ n) := cycle_range (last n)
+
+@[simp] lemma cycle_all_zero : cycle_all 0 = 1 := rfl
+
+@[simp] lemma cycle_all_one : cycle_all 1 = 1 :=
+subsingleton.elim _ _
+
+lemma cycle_all_succ_apply {n : ℕ} (i : fin n.succ) :
+  cycle_all n.succ i = if i = fin.last n then 0 else i + 1 :=
+cycle_range_of_le (le_last _)
+
+lemma coe_cycle_all {n : ℕ} (i : fin n.succ) :
+  (cycle_all n.succ i : ℕ) = if i = fin.last n then 0 else i + 1 :=
+begin
+  rw cycle_all_succ_apply,
+  split_ifs with h,
+  { simp },
+  have : (i : ℕ) < n := lt_of_le_of_ne (nat.succ_le_succ_iff.mp i.2) (coe_injective.ne h),
+  exact coe_add_one this
+end
+
+lemma cycle_all_succ {n : ℕ} :
+  cycle_all n.succ.succ = swap 0 (last n.succ) * cycle_range (cast_succ (last n)) :=
+cycle_range_succ_aux _
+
+@[simp] lemma sign_cycle_all {n : ℕ} : (cycle_all n.succ).sign = (-1) ^ n :=
+sign_cycle_range _
+
+end fin
+
+end cycle_all

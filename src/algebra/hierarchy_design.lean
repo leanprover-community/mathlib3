@@ -17,10 +17,10 @@ when applicable:
 * `instance pi.Z [∀ i, Z $ f i] : Z (Π i : I, f i) := ...` (see examples in `algebra.group.pi`)
 *
 ```
-def injective.Z [Z M₂] (f : M₁ → M₂) (hf : Z f)
+def function.injective.Z [Z M₂] (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) : Z M₁ := ...
 
-def surjective.Z [Z M₁] (f : M₁ → M₂) (hf : surjective f)
+def function.surjective.Z [Z M₁] (f : M₁ → M₂) (hf : surjective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) : Z M₂ :=
 ```
 (see examples in `algebra.group.inj_surj`)

@@ -202,12 +202,11 @@ end
 
 /- The simplices interiors form a partition of the underlying space (except that they contain the
 empty set) -/
-lemma combi_interiors_partition {S : simplicial_complex m} :
-  ∀ x ∈ S.space, exists_unique (λ X, X ∈ S.faces ∧ x ∈ combi_interior X) :=
+lemma combi_interiors_partition {S : simplicial_complex m} {x} (hx : x ∈ S.space) :
+  ∃! X, X ∈ S.faces ∧ x ∈ combi_interior X :=
 begin
-  rintro x hx,
   rw interiors_cover S at hx,
-  simp only [exists_prop, set.mem_Union] at hx,
+  simp only [set.mem_bUnion_iff] at hx,
   obtain ⟨X, hX, hxX⟩ := hx,
   exact ⟨X, ⟨⟨hX, hxX⟩, (λ Y ⟨hY, hxY⟩, disjoint_interiors hY hX x ⟨hxY, hxX⟩)⟩⟩,
 end
@@ -248,7 +247,7 @@ begin
   { simp [h] },
   rcases h with ⟨y, hy⟩,
   have y_mem : y ∈ (X : set (fin m → ℝ)) := hy,
-  have Xy : (↑X \ {y}) = ((↑(X.erase y)) : set (fin m → ℝ)),
+  have Xy : (↑X \ {y}) = (↑(X.erase y) : set (fin m → ℝ)),
   { simp },
   have := hX,
   rw @affine_independent_set_iff_linear_independent_vsub ℝ _ _ _ _ _ _ ↑X y y_mem at this,
@@ -257,15 +256,13 @@ begin
     { apply_instance },
     rw Xy,
     exact finset_coe.fintype _ },
-  have := finite_dimensional.fintype_card_le_findim_of_linear_independent this,
-  simp only [vsub_eq_sub, finite_dimensional.findim_fin_fun, fintype.card_of_finset] at this,
-  rw finset.card_image_of_injective at this,
-  simp only [set.to_finset_card] at this,
-  rw fintype.card_of_finset' (X.erase y) at this,
-  rw finset.card_erase_of_mem hy at this,
-  rw nat.pred_le_iff at this,
-  exact this,
-  simp [and_comm],
+  have hX := finite_dimensional.fintype_card_le_findim_of_linear_independent this,
+  simp only [vsub_eq_sub, finite_dimensional.findim_fin_fun, fintype.card_of_finset] at hX,
+  rw finset.card_image_of_injective at hX,
+  { simp only [set.to_finset_card] at hX,
+    rw fintype.card_of_finset' (X.erase y) at hX,
+    { rwa [finset.card_erase_of_mem hy, nat.pred_le_iff] at hX },
+    { simp [and_comm] } },
   intros p q h,
   simpa using h,
 end
@@ -281,21 +278,15 @@ lemma convex_remove_iff_is_extreme {s : set E} {x : E} (hs : convex s) (hx : x �
   convex (s \ {x}) ↔ is_extreme s x :=
 begin
   split,
-  { rintro hsx,
-    use hx,
-    rintro y₁ y₂ hy₁ hy₂ hxy,
+  { refine λ hsx, ⟨hx, λ y₁ y₂ hy₁ hy₂ hxy, _⟩,
     by_contra,
     push_neg at h,
     rw convex_iff_segment_subset at hsx,
     exact (hsx ⟨hy₁, h.1.symm⟩ ⟨hy₂, h.2.symm⟩ hxy).2 rfl },
-  { rintro hsx,
+  { intro hsx,
     rw convex_iff_segment_subset,
-    rintro y₁ y₂ ⟨hy₁, y₁x : _ ≠ _⟩ ⟨hy₂, y₂x : _ ≠ _⟩,
-    rintro z hz,
-    split,
-    exact hs.segment_subset hy₁ hy₂ hz,
-    rintro t,
-    simp only [set.mem_singleton_iff] at t,
+    rintro y₁ y₂ ⟨hy₁, y₁x : _ ≠ _⟩ ⟨hy₂, y₂x : _ ≠ _⟩ z hz,
+    refine ⟨hs.segment_subset hy₁ hy₂ hz, λ (t : z = x), _⟩,
     subst t,
     rcases hsx.2 _ _ hy₁ hy₂ hz with (rfl | rfl),
     { apply y₁x, refl },

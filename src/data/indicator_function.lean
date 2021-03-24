@@ -73,6 +73,9 @@ ite_eq_left_iff.trans $ by rw [@eq_comm _ (f a)]
 @[simp] lemma indicator_eq_self : s.indicator f = f ↔ support f ⊆ s :=
 by simp only [funext_iff, subset_def, mem_support, indicator_apply_eq_self, not_imp_comm]
 
+lemma indicator_eq_self_of_superset (h1 : s.indicator f = f) (h2 : s ⊆ t) : t.indicator f = f :=
+by { rw indicator_eq_self at h1 ⊢, exact subset.trans h1 h2 }
+
 @[simp] lemma indicator_support : (support f).indicator f = f :=
 indicator_eq_self.2 $ subset.refl _
 

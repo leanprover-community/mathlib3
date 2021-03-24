@@ -38,7 +38,7 @@ namespace simplicial_object
 
 localized
   "notation X `_[`:1000 n `]` :=
-    (X : simplicial_object _).obj (opposite.op (simplex_category.mk n))"
+    (X : category_theory.simplicial_object _).obj (opposite.op (simplex_category.mk n))"
   in simplicial
 
 instance {J : Type v} [small_category J] [has_limits_of_shape J C] :

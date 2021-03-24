@@ -68,19 +68,16 @@ is connected.
 
 See https://stacks.math.columbia.edu/tag/04E6
 -/
-def cofinal (F : C ⥤ D) : Prop :=
-∀ (d : D), is_connected (structured_arrow d F)
+class cofinal (F : C ⥤ D) : Prop :=
+(out (d : D) : is_connected (structured_arrow d F)
 
-attribute [class] cofinal
-
-instance (F : C ⥤ D) [ℱ : cofinal F] (d : D) : is_connected (structured_arrow d F) :=
-ℱ d
+attribute [instance] cofinal.out
 
 namespace cofinal
 
 variables (F : C ⥤ D) [cofinal F]
 
-instance (d : D) : nonempty (structured_arrow d F) := (‹cofinal F› d).is_nonempty
+instance (d : D) : nonempty (structured_arrow d F) := is_connected.is_nonempty
 
 variables {E : Type u} [category.{v} E] (G : D ⥤ E)
 
@@ -447,8 +444,7 @@ If `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit` for all `d : D`, then `F` is 
 -/
 lemma cofinal_of_colimit_comp_coyoneda_iso_punit
   (I : Π d, colimit (F ⋙ coyoneda.obj (op d)) ≅ punit) : cofinal F :=
-λ d,
-begin
+⟨λ d, begin
   haveI : nonempty (structured_arrow d F) := by
   { have := (I d).inv punit.star,
     obtain ⟨j, y, rfl⟩ := limits.types.jointly_surjective' this,
@@ -463,7 +459,7 @@ begin
   have t := types.colimit_eq e,
   clear e y₁ y₂,
   exact zigzag_of_eqv_gen_quot_rel t,
-end
+end⟩
 
 end cofinal
 

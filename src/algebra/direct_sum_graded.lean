@@ -22,10 +22,22 @@ additively-graded ring. The typeclasses are:
 
 Respectively, these imbue the direct sum `⨁ i, A i` with:
 
-* `has_one`
-* `mul_zero_class`, `distrib`
-* `semiring`, `ring`
-* `comm_semiring`, `comm_ring`
+* `direct_sum.has_one`
+* `direct_sum.mul_zero_class`, `direct_sum.distrib`
+* `direct_sum.semiring`, `direct_sum.ring`
+* `direct_sum.comm_semiring`, `direct_sum.comm_ring`
+
+and the base ring `A 0` with:
+
+* `direct_sum.grade_zero.has_one`
+* `direct_sum.grade_zero.mul_zero_class`, `direct_sum.grade_zero.distrib`
+* `direct_sum.grade_zero.semiring`, `direct_sum.grade_zero.ring`
+* `direct_sum.grade_zero.comm_semiring`, `direct_sum.grade_zero.comm_ring`
+
+`direct_sum.of_zero_ring_hom : A 0 →+* ⨁ i, A i` provides `direct_sum.of A 0` as a ring
+homomorphism.
+
+## Direct sums of subobjects
 
 Additionally, this module provides helper functions to construct `gmonoid` and `gcomm_monoid`
 instances for:
@@ -236,9 +248,10 @@ gcomm_monoid.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem mul
 
 end shorthands
 
+variables (A : ι → Type*)
+
 /-! ### Instances for `⨁ i, A i` -/
 
-variables (A : ι → Type*)
 
 section one
 variables [has_zero ι] [ghas_one A] [Π i, add_comm_monoid (A i)]
@@ -432,6 +445,106 @@ instance comm_ring : comm_ring (⨁ i, A i) := {
   ..(direct_sum.comm_semiring _), }
 
 end comm_ring
+
+
+/-! ### Instances for `A 0`
+
+The various `g*` instances are enough to promote the `add_comm_monoid (A 0)` structure to various
+types of multiplicative structure.
+-/
+
+namespace grade_zero
+
+section one
+variables [has_zero ι] [ghas_one A] [Π i, add_comm_monoid (A i)]
+
+/-- `1 : A 0` is the value provided in `direct_sum.ghas_one.one`. -/
+@[nolint unused_arguments]
+instance has_one : has_one (A 0) :=
+⟨ghas_one.one⟩
+
+lemma of_zero_one : of _ 0 (1 : A 0) = 1 := rfl
+
+end one
+
+section mul
+variables [add_monoid ι] [Π i, add_comm_monoid (A i)] [ghas_mul A]
+
+/-- `(*) : A 0 → A 0 → A 0` is the value provided in `direct_sum.ghas_mul.mul`, composed with
+an `eq.rec` to turn `A (0 + 0)` into `A 0`.
+-/
+-- Note we use `add_zero` instead of `zero_add` because `nat.add_zero` is true by `rfl`, which might
+-- be useful
+instance : has_mul (A 0) :=
+{ mul := λ x y, (add_zero (0 : ι)).rec (ghas_mul.mul x y)}
+
+lemma of_zero_mul (a b : A 0) : of _ 0 (a * b) = of _ 0 a * of _ 0 b:=
+begin
+  rw of_mul_of,
+  dsimp [has_mul.mul, direct_sum.of, dfinsupp.single_add_hom_apply],
+  congr' 1,
+  rw zero_add,
+  apply eq_rec_heq,
+end
+
+instance : mul_zero_class (A 0) :=
+function.injective.mul_zero_class (of A 0) dfinsupp.single_injective
+  (add_monoid_hom.map_zero _) (of_zero_mul A)
+
+instance : distrib (A 0) :=
+function.injective.distrib (of A 0) dfinsupp.single_injective
+  (add_monoid_hom.map_add _) (of_zero_mul A)
+
+end mul
+
+section semiring
+variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gmonoid A]
+
+/-- The `semiring` structure derived from `gmonoid A`. -/
+instance : semiring (A 0) :=
+function.injective.semiring (of A 0) dfinsupp.single_injective
+  (add_monoid_hom.map_zero _) (of_zero_one A) (add_monoid_hom.map_add _) (of_zero_mul A)
+
+/-- `of A 0` is a `ring_hom`, using the `direct_sum.grade_zero.semiring` structure. -/
+def of_zero_ring_hom : A 0 →+* (⨁ i, A i) :=
+{ map_one' := of_zero_one A, map_mul' := of_zero_mul A, ..(of _ 0)}
+
+end semiring
+
+section comm_semiring
+
+variables [Π i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_monoid A]
+
+/-- The `comm_semiring` structure derived from `gcomm_monoid A`. -/
+instance : comm_semiring (A 0) :=
+function.injective.comm_semiring (of A 0) dfinsupp.single_injective
+  (add_monoid_hom.map_zero _) (of_zero_one A) (add_monoid_hom.map_add _) (of_zero_mul A)
+
+end comm_semiring
+
+section ring
+variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gmonoid A]
+
+/-- The `ring` derived from `gmonoid A`. -/
+instance : ring (A 0) :=
+function.injective.ring_sub (of A 0) dfinsupp.single_injective
+  (add_monoid_hom.map_zero _) (of_zero_one A) (add_monoid_hom.map_add _) (of_zero_mul A)
+  (add_monoid_hom.map_neg _) (add_monoid_hom.map_sub _)
+
+end ring
+
+section comm_ring
+variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_monoid A]
+
+/-- The `comm_ring` derived from `gcomm_monoid A`. -/
+instance : comm_ring (A 0) :=
+function.injective.comm_ring_sub (of A 0) dfinsupp.single_injective
+  (add_monoid_hom.map_zero _) (of_zero_one A) (add_monoid_hom.map_add _) (of_zero_mul A)
+  (add_monoid_hom.map_neg _) (add_monoid_hom.map_sub _)
+
+end comm_ring
+
+end grade_zero
 
 end direct_sum
 

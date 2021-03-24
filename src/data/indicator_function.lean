@@ -68,6 +68,10 @@ ite_eq_left_iff.trans $ by rw [@eq_comm _ (f a)]
 @[simp, to_additive] lemma mul_indicator_eq_self : s.mul_indicator f = f ↔ mul_support f ⊆ s :=
 by simp only [funext_iff, subset_def, mem_mul_support, mul_indicator_apply_eq_self, not_imp_comm]
 
+@[to_additive] lemma mul_indicator_eq_self_of_superset (h1 : s.mul_indicator f = f) (h2 : s ⊆ t) :
+  t.indicator f = f :=
+by { rw indicator_eq_self at h1 ⊢, exact subset.trans h1 h2 }
+
 @[simp, to_additive] lemma mul_indicator_apply_eq_one :
   mul_indicator s f a = 1 ↔ (a ∈ s → f a = 1) :=
 ite_eq_right_iff

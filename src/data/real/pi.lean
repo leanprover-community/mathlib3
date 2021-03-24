@@ -233,7 +233,7 @@ begin
                   nat.cast_one, nat.cast_mul],
         rw [← mul_assoc, @div_mul_cancel _ _ _ (2*(i:ℝ)+1) (by { norm_cast, linarith }),
             pow_mul x 2 i, ← mul_pow (-1) (x^2) i],
-        ring } },
+        ring_nf } },
     convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),
     have g_sum := @geom_sum _ _ (-x^2) (by linarith [neg_nonpos.mpr (pow_two_nonneg x)]) k,
     simp only [geom_series, f'] at g_sum ⊢,
@@ -269,7 +269,7 @@ begin
   have mvt2 :=
     norm_image_sub_le_of_norm_deriv_le_segment' hderiv2 hbound2 _ (right_mem_Icc.mpr hU2),
   -- The following algebra is enough to complete the proof
-  calc |f 1 - f 0| = |(f 1 - f U) + (f U - f 0)| : by ring
+  calc |f 1 - f 0| = |(f 1 - f U) + (f U - f 0)| : by ring_nf
                ... ≤ 1 * (1-U) + U^(2*k) * (U - 0) : le_trans (abs_add (f 1 - f U) (f U - f 0))
                                                       (add_le_add mvt1 mvt2)
                ... = 1 - U + U^(2*k) * U : by ring

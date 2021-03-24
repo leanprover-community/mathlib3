@@ -114,10 +114,10 @@ instance lie_algebra_self_module : lie_module R L L :=
   lie_smul := by apply lie_algebra.lie_smul, }
 
 @[simp] lemma neg_lie : ⁅-x, m⁆ = -⁅x, m⁆ :=
-by { rw [←sub_eq_zero_iff_eq, sub_neg_eq_add, ←add_lie], simp, }
+by { rw [←sub_eq_zero, sub_neg_eq_add, ←add_lie], simp, }
 
 @[simp] lemma lie_neg : ⁅x, -m⁆ = -⁅x, m⁆ :=
-by { rw [←sub_eq_zero_iff_eq, sub_neg_eq_add, ←lie_add], simp, }
+by { rw [←sub_eq_zero, sub_neg_eq_add, ←lie_add], simp, }
 
 @[simp] lemma gsmul_lie (a : ℤ) : ⁅a • x, m⁆ = a • ⁅x, m⁆ :=
 add_monoid_hom.map_gsmul ⟨λ (x : L), ⁅x, m⁆, zero_lie m, λ _ _, add_lie _ _ _⟩ _ _

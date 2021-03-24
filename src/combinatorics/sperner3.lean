@@ -24,6 +24,47 @@ open_locale classical affine
 open set
 namespace affine
 
+-- TODO: find in mathlib or move to mathlib
+lemma finset.strong_downward_induction_on {α : Type*} {p : finset α → Prop} {A : set (finset α)}
+  {n : ℕ} (hA : ∀ {X}, X ∈ A → (X : finset α).card ≤ n) {X : finset α} (hX : X ∈ A) :
+  (∀ {Y}, Y ∈ A → (∀ {Z}, Z ∈ A → Y ⊂ Z → p Z) → p Y) → p X := sorry
+-- Extract the proof from this proof:
+/-
+have aux_lemma : ∀ {S₁ S₂ : simplicial_complex m}, S₁ ≤ S₂ → S₂ ≤ S₁ → ∀ k : ℕ, ∀ X ∈ S₁.faces,
+  m + 1 = finset.card X + k → X ∈ S₂.faces,
+{
+  rintro S₁ S₂ h₁ h₂ k,
+  apply nat.strong_induction_on k,
+  {
+    rintro n h X hX hXcard,
+    obtain ⟨Y, hY, hXYhull⟩ := h₁.2 hX,
+    obtain ⟨Z, hZ, hYZhull⟩ := h₂.2 hY,
+    have hXZhull := subset.trans (inter_subset_inter_right (convex_hull ↑X)
+      (subset.trans hXYhull hYZhull)) (S₁.disjoint hX hZ),
+    rw inter_self at hXZhull,
+    norm_cast at hXZhull,
+    have hXZ : X ⊆ Z := subset.trans
+      (subset_of_convex_hull_eq_convex_hull_of_linearly_independent (S₁.indep hX)
+      (subset.antisymm hXZhull (convex_hull_mono (finset.inter_subset_left X Z))))
+      (finset.inter_subset_right _ _),
+    by_cases hZX : Z ⊆ X,
+    {
+      rw finset.subset.antisymm hZX hXZ at hYZhull,
+      rw eq_of_convex_hull_eq_convex_hull_of_linearly_independent_of_linearly_independent
+        (S₁.indep hX) (S₂.indep hY) (subset.antisymm hXYhull hYZhull),
+      exact hY,
+    },
+    {
+      apply S₂.down_closed (h (m + 1 - Z.card) _ Z hZ
+        ((nat.add_sub_cancel' (simplex_dimension_le_space_dimension hZ)).symm)) hXZ,
+      rw nat.sub_lt_left_iff_lt_add,
+      { rw hXcard,
+        exact add_lt_add_right (finset.card_lt_card ⟨hXZ, hZX⟩) n },
+      { exact (simplex_dimension_le_space_dimension hZ) }
+    }
+  }
+},-/
+
 /--
 A simplicial complex in `R^m`. TODO: generalise to normed affine spaces `E`, so this is
 `simplicial_complex E`.
@@ -412,13 +453,14 @@ def subdivision_order : partial_order (simplicial_complex m) :=
     exact ⟨X₃, hX₃, subset.trans hX₁₂ hX₂₃⟩,
   end,
   le_antisymm := begin
-    have aux_lemma : ∀ {S₁ S₂ : simplicial_complex m}, S₁ ≤ S₂ → S₂ ≤ S₁ → ∀ k : ℕ, ∀ X ∈ S₁.faces,
-      m + 1 = finset.card X + k → X ∈ S₂.faces,
+    have aux_lemma : ∀ {S₁ S₂ : simplicial_complex m}, S₁ ≤ S₂ → S₂ ≤ S₁ → ∀ {X},
+      X ∈ S₁.faces → X ∈ S₂.faces,
     {
-      rintro S₁ S₂ h₁ h₂ k,
-      apply nat.strong_induction_on k,
+      rintro S₁ S₂ h₁ h₂ W hW,
+      apply finset.strong_downward_induction_on (λ X hX, simplex_dimension_le_space_dimension hX)
+        hW,
       {
-        rintro n h X hX hXcard,
+        rintro X hX h,
         obtain ⟨Y, hY, hXYhull⟩ := h₁.2 hX,
         obtain ⟨Z, hZ, hYZhull⟩ := h₂.2 hY,
         have hXZhull := subset.trans (inter_subset_inter_right (convex_hull ↑X)
@@ -436,74 +478,111 @@ def subdivision_order : partial_order (simplicial_complex m) :=
             (S₁.indep hX) (S₂.indep hY) (subset.antisymm hXYhull hYZhull),
           exact hY,
         },
-        {
-          apply S₂.down_closed (h (m + 1 - Z.card) _ Z hZ
-            ((nat.add_sub_cancel' (simplex_dimension_le_space_dimension hZ)).symm)) hXZ,
-          rw nat.sub_lt_left_iff_lt_add,
-          { rw hXcard,
-            exact add_lt_add_right (finset.card_lt_card ⟨hXZ, hZX⟩) n },
-          { exact (simplex_dimension_le_space_dimension hZ) }
-        }
+        { exact S₂.down_closed (h hZ ⟨hXZ, hZX⟩) hXZ }
       }
     },
     rintro S₁ S₂ h₁ h₂,
     ext X,
-    exact ⟨λ hX, aux_lemma h₁ h₂ (m + 1 - X.card) X hX ((nat.add_sub_cancel'
-      (simplex_dimension_le_space_dimension hX)).symm),
-          λ hX, aux_lemma h₂ h₁ (m + 1 - X.card) X hX ((nat.add_sub_cancel'
-      (simplex_dimension_le_space_dimension hX)).symm)⟩,
+    exact ⟨λ hX, aux_lemma h₁ h₂ hX, λ hX, aux_lemma h₂ h₁ hX⟩,
   end}
-
-/-A simplicial complex is connected iff its space is-/
-def simplicial_complex.connected (S : simplicial_complex m) : Prop := connected_space S.space
-
-def simplicial_complex.skeleton (S : simplicial_complex m) (k : ℕ) : simplicial_complex m :=
-  simplicial_complex.of_surcomplex {X ∈ S.faces | finset.card X ≤ k + 1} (λ X ⟨hX, _⟩, hX)
-  (λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩)
-
---Is this lemma useful?
-lemma skeleton_subcomplex_self (S : simplicial_complex m) (k : ℕ) :
-  (S.skeleton k).faces ⊆ S.faces := (λ X ⟨hX, _⟩, hX)
-
-/-A simplicial complex is connected iff its 1-skeleton is-/
-lemma connected_iff_one_skeleton_connected {S : simplicial_complex m} :
-  S.connected ↔ (S.skeleton 1).connected :=
-begin
-  split,
-  {
-    rintro h,
-    unfold simplicial_complex.connected,
-    sorry
-  },
-  {
-    sorry
-  }
-end
 
 def simplicial_complex.facets (S : simplicial_complex m) : set (finset (fin m → ℝ))
   := {X | X ∈ S.faces ∧ (∀ {Y}, Y ∈ S.faces → X ⊆ Y → X = Y)}
 
-lemma facets_subset_faces (S : simplicial_complex m) : S.facets ⊆ S.faces := λ X hX, hX.1
+lemma facets_subset_faces {S : simplicial_complex m} : S.facets ⊆ S.faces := λ X hX, hX.1
 
-/-
+lemma not_facet_iff_subface {S : simplicial_complex m} {X : finset (fin m → ℝ)} :
+  X ∈ S.faces → (X ∉ S.facets ↔ ∃ {Y}, Y ∈ S.faces ∧ X ⊂ Y) :=
+begin
+  rintro hX,
+  split,
+  {
+    rintro (hX' : ¬(X ∈ S.faces ∧ (∀ {Y}, Y ∈ S.faces → X ⊆ Y → X = Y))),
+    push_neg at hX',
+    obtain ⟨Y, hY⟩ := hX' hX,
+    exact ⟨Y, hY.1, ⟨hY.2.1, (λ hYX, hY.2.2 (finset.subset.antisymm hY.2.1 hYX))⟩⟩,
+  },
+  {
+    rintro ⟨Y, hY⟩ ⟨hX, hX'⟩,
+    have := hX' hY.1 hY.2.1,
+    rw this at hY,
+    exact hY.2.2 (subset.refl Y),
+  }
+end
+
+lemma subface_of_facet {S : simplicial_complex m} {X : finset (fin m → ℝ)} :
+  X ∈ S.faces → ∃ {Y}, Y ∈ S.facets ∧ X ⊆ Y :=
+begin
+  rintro hX,
+  apply finset.strong_downward_induction_on (λ Y hY, simplex_dimension_le_space_dimension hY) hX,
+  rintro Y hY h,
+  by_cases hYfacet : Y ∈ S.facets,
+  { exact ⟨Y, hYfacet, finset.subset.refl _⟩, },
+  {
+    obtain ⟨Z, hZ⟩ := (not_facet_iff_subface hY).mp hYfacet,
+    obtain ⟨W, hW⟩ := h hZ.1 hZ.2,
+    exact ⟨W, hW.1, finset.subset.trans hZ.2.1 hW.2⟩,
+  }
+end
+
+/--
 A simplicial complex is pure iff all its facets have the same dimension
 -/
-def simplicial_complex.pure (S : simplicial_complex m) : Prop := ∃ n : ℕ, ∀ X ∈ S.facets,
+def simplicial_complex.pure (S : simplicial_complex m) : Prop := ∃ n : ℕ, ∀ {X}, X ∈ S.facets →
   (X : finset _).card = n + 1
 
 noncomputable def pureness {S : simplicial_complex m} (hS : S.pure) : ℕ := classical.some hS
 
-/-A simplicial complex is pure iff there exists n such that all faces are subfaces of some
-n-dimensional face-/
+lemma pureness_def {S : simplicial_complex m} (hS : S.pure) : ∀ {X}, X ∈ S.facets →
+  (X : finset _).card = pureness hS + 1 := sorry --@Bhavik, easy but I can't
+
+lemma simplex_dimension_le_pureness {S : simplicial_complex m} (hS : S.pure) {X : finset (fin m → ℝ)} :
+  X ∈ S.faces → X.card ≤ pureness hS + 1 :=
+begin
+  rintro hX,
+  obtain ⟨Y, hY, hXY⟩ := subface_of_facet hX,
+  rw ← pureness_def hS hY,
+  exact finset.card_le_of_subset hXY,
+end
+
+lemma pureness_le_space_dimension {S : simplicial_complex m} (hS : S.pure) {X : finset (fin m → ℝ)} :
+  X ∈ S.faces → X.card ≤ pureness hS + 1 :=
+begin
+  rintro hX,
+  obtain ⟨n, hS⟩ := hS,
+  sorry
+end
+
+lemma facet_iff_dimension_eq_pureness {S : simplicial_complex m} (hS : S.pure)
+  {X : finset (fin m → ℝ)} : X ∈ S.faces → (X ∈ S.facets ↔ X.card = pureness hS + 1) :=
+begin
+  rintro hX,
+  split,
+  { exact pureness_def hS },
+  {
+    rintro hXcard,
+    use hX,
+    rintro Y hY hXY,
+    apply finset.eq_of_subset_of_card_le hXY,
+    rw hXcard,
+    exact pureness_le_space_dimension hS hY,
+  }
+end
+
+/--
+A simplicial complex is pure iff there exists n such that all faces are subfaces of some
+n-dimensional face
+-/
 lemma pure_iff {S : simplicial_complex m} : S.pure ↔ ∃ n : ℕ, ∀ {X}, X ∈ S.faces →
-  ∃ Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y :=
+  ∃ {Y}, Y ∈ S.faces ∧ finset.card Y = n + 1 ∧ X ⊆ Y :=
 begin
   split,
   {
-    rintro ⟨n, hS⟩,
-    use n,
+    rintro hS,
+    use pureness hS,
     rintro X hX,
-    sorry --Lean timeouts when I do by_contra
+    obtain ⟨Y, hY, hXY⟩ := subface_of_facet hX,
+    exact ⟨Y, facets_subset_faces hY, pureness_def hS hY, hXY⟩,
   },
   {
     rintro ⟨n, hS⟩,
@@ -523,6 +602,37 @@ lemma cells_subset_facets {S : simplicial_complex m} : S.cells ⊆ S.facets :=
 begin
   rintro X ⟨hX, hXcard⟩,
   sorry
+end
+
+/-A simplicial complex is connected iff its space is-/
+def simplicial_complex.connected (S : simplicial_complex m) : Prop := connected_space S.space
+
+def simplicial_complex.skeleton (S : simplicial_complex m) (k : ℕ) : simplicial_complex m :=
+  simplicial_complex.of_surcomplex {X ∈ S.faces | finset.card X ≤ k + 1} (λ X ⟨hX, _⟩, hX)
+  (λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩)
+
+--Is this lemma useful?
+lemma skeleton_subcomplex_self {S : simplicial_complex m} {k : ℕ} :
+  (S.skeleton k).faces ⊆ S.faces := (λ X ⟨hX, _⟩, hX)
+
+lemma pure_skeleton_of_pure {S : simplicial_complex m} {k : ℕ} : S.pure → (S.skeleton k).pure :=
+begin
+  sorry
+end
+
+/-A simplicial complex is connected iff its 1-skeleton is-/
+lemma connected_iff_one_skeleton_connected {S : simplicial_complex m} :
+  S.connected ↔ (S.skeleton 1).connected :=
+begin
+  split,
+  {
+    rintro h,
+    unfold simplicial_complex.connected,
+    sorry
+  },
+  {
+    sorry
+  }
 end
 
 /-A simplex is locally finite iff each face belongs to finitely many faces-/
@@ -643,9 +753,14 @@ begin --golfable?
 end
 
 lemma pure_Star_of_pure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
-  (hA : A ⊆ S.faces) {n : ℕ} : S.pure → (Star hA).pure :=
+  (hA : A ⊆ S.faces) : S.pure → (Star hA).pure :=
 begin
-  /-rintro hS X hX,
+  rintro ⟨n, hS⟩,
+  use n,
+  rintro X ⟨hX, hXmax⟩,
+  apply hS,
+  /-
+  exact hS (Star_subset_complex hA hX),
   obtain ⟨Y, hY, Z, hZ, hXZ, hYZ⟩ := (mem_Star_iff hA).mp hX,
   obtain ⟨W, hW, hWcard, hZW⟩ := hS hZ,
   exact ⟨W, star_subset_Star hA (star_up_closed hA hW (self_subset_star hA hY)

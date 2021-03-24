@@ -238,36 +238,36 @@ begin
   }
 end
 
+local attribute [-instance] real.ring
 
 --To golf down
 lemma size_bound {X : finset (fin m → ℝ)} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
   X.card ≤ m+1 :=
 begin
-  sorry
-  -- cases X.eq_empty_or_nonempty,
-  -- { simp [h] },
-  -- rcases h with ⟨y, hy⟩,
-  -- have y_mem : y ∈ (X : set (fin m → ℝ)) := hy,
-  -- have Xy : (↑X \ {y}) = ((↑(X.erase y)) : set (fin m → ℝ)),
-  -- { simp },
-  -- have := hX,
-  -- rw @affine_independent_set_iff_linear_independent_vsub ℝ _ _ _ _ _ _ ↑X y y_mem at this,
-  -- letI q : fintype ↥((λ (p : fin m → ℝ), p -ᵥ y) '' (↑X \ {y})),
-  -- { apply set.fintype_image _ _,
-  --   { apply_instance },
-  --   rw Xy,
-  --   exact finset_coe.fintype _ },
-  -- have := finite_dimensional.fintype_card_le_findim_of_linear_independent this,
-  -- simp only [vsub_eq_sub, finite_dimensional.findim_fin_fun, fintype.card_of_finset] at this,
-  -- rw finset.card_image_of_injective at this,
-  -- simp only [set.to_finset_card] at this,
-  -- rw fintype.card_of_finset' (X.erase y) at this,
-  -- rw finset.card_erase_of_mem hy at this,
-  -- rw nat.pred_le_iff at this,
-  -- exact this,
-  -- simp [and_comm],
-  -- intros p q h,
-  -- simpa using h,
+  cases X.eq_empty_or_nonempty,
+  { simp [h] },
+  rcases h with ⟨y, hy⟩,
+  have y_mem : y ∈ (X : set (fin m → ℝ)) := hy,
+  have Xy : (↑X \ {y}) = ((↑(X.erase y)) : set (fin m → ℝ)),
+  { simp },
+  have := hX,
+  rw @affine_independent_set_iff_linear_independent_vsub ℝ _ _ _ _ _ _ ↑X y y_mem at this,
+  letI q : fintype ↥((λ (p : fin m → ℝ), p -ᵥ y) '' (↑X \ {y})),
+  { apply set.fintype_image _ _,
+    { apply_instance },
+    rw Xy,
+    exact finset_coe.fintype _ },
+  have := finite_dimensional.fintype_card_le_findim_of_linear_independent this,
+  simp only [vsub_eq_sub, finite_dimensional.findim_fin_fun, fintype.card_of_finset] at this,
+  rw finset.card_image_of_injective at this,
+  simp only [set.to_finset_card] at this,
+  rw fintype.card_of_finset' (X.erase y) at this,
+  rw finset.card_erase_of_mem hy at this,
+  rw nat.pred_le_iff at this,
+  exact this,
+  simp [and_comm],
+  intros p q h,
+  simpa using h,
 end
 
 --Refinement of `size_bound`

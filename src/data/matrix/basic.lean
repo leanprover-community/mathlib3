@@ -10,6 +10,7 @@ import algebra.big_operators.ring
 import algebra.star.basic
 import data.equiv.ring
 import data.fintype.card
+import data.matrix.dmatrix
 
 /-!
 # Matrices
@@ -17,6 +18,7 @@ import data.fintype.card
 universes u u' v w
 
 open_locale big_operators
+open dmatrix
 
 /-- `matrix m n` is the type of matrices whose rows are indexed by the fintype `m`
     and whose columns are indexed by the fintype `n`. -/
@@ -81,15 +83,6 @@ instance [unique α] : unique (matrix m n α) := pi.unique
 instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
 instance [nonempty m] [nonempty n] [nontrivial α] : nontrivial (matrix m n α) :=
 function.nontrivial
-
-@[simp] theorem zero_apply [has_zero α] (i j) : (0 : matrix m n α) i j = 0 := rfl
-@[simp] theorem neg_apply [has_neg α] (M : matrix m n α) (i j) : (- M) i j = - M i j := rfl
-@[simp] theorem add_apply [has_add α] (M N : matrix m n α) (i j) :
-  (M + N) i j = M i j + N i j :=
-rfl
-@[simp] theorem sub_apply [has_sub α] (M N : matrix m n α) (i j) :
-  (M - N) i j = M i j - N i j :=
-rfl
 
 @[simp] lemma map_zero [has_zero α] {β : Type w} [has_zero β] {f : α → β} (h : f 0 = 0) :
   (0 : matrix m n α).map f = 0 :=

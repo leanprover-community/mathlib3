@@ -626,26 +626,40 @@ lemma skeleton_subcomplex_self {S : simplicial_complex m} {k : ℕ} :
 lemma pure_skeleton_of_pure {S : simplicial_complex m} (k : ℕ) : S.pure → (S.skeleton k).pure :=
 begin
   rintro ⟨n, hS⟩,
-  by_cases hmin : n ≤ k + 1,
+  cases le_or_gt (n + 1) (k + 1) with hmin hmin,
   {
     use n,
-    rintro X hX,
-    obtain ⟨Y, hY, hXY⟩ := subfacet (skeleton_subcomplex_self (facets_subset_faces hX)),
-    have : Y ∈ (S.skeleton k).faces,
+    rintro X hXskel,
+    obtain ⟨Y, hY, hXY⟩ := subfacet (skeleton_subcomplex_self (facets_subset_faces hXskel)),
+    have hYskel : Y ∈ (S.skeleton k).faces,
     {
-      --exact le_trans,
-      sorry
-    }
-    sorry
+      use facets_subset_faces hY,
+      simp,
+      rw hS hY,
+      exact hmin,
+    },
+    rw hXskel.2 hYskel hXY,
+    exact hS hY,
   },
   {
-    use k + 1,
-    sorry
+    use k,
+    rintro X ⟨⟨hX, hXcard⟩, hXmax⟩,
+    obtain ⟨Y, hY, hXY⟩ := subfacet hX,
+    have : k + 1 - X.card + X.card ≤ Y.card,
+    {
+      rw hS hY,
+      rw nat.sub_add_cancel hXcard,
+      exact le_of_lt hmin,
+    },
+    obtain ⟨Z, hXZ, hZY, hZcard⟩ := finset.exists_intermediate_set (k + 1 - X.card) this hXY,
+      rw nat.sub_add_cancel hXcard at hZcard,
+    rw hXmax ⟨S.down_closed (facets_subset_faces hY) hZY, le_of_eq hZcard⟩ hXZ,
+    exact hZcard,
   }
 end
 
 lemma skeleton_pureness_eq_min_pureness_dimension {S : simplicial_complex m} {k : ℕ} (hS : S.pure) :
-  pureness (pure_skeleton_of_pure k hS) = min (pureness hS) (k + 1) := sorry
+  pureness (pure_skeleton_of_pure k hS) = min (pureness hS) k := sorry
 
 /-A simplicial complex is connected iff its 1-skeleton is-/
 lemma connected_iff_one_skeleton_connected {S : simplicial_complex m} :
@@ -848,6 +862,14 @@ lemma boundary_subset_complex {S : simplicial_complex m} : S.boundary.faces ⊆ 
 
 lemma pure_boundary_of_pure {S : simplicial_complex m} : S.pure → S.boundary.pure :=
 begin
+  rintro ⟨n, hS⟩,
+  cases n with n,
+  {
+    sorry
+  },
+  use n,
+  rintro X ⟨⟨Y, hY, hXY, ⟨Z, ⟨hZ, hYZ⟩, hZunique⟩⟩, hX⟩,
+  simp at *,
   --rintro hS X ⟨Y, hY, hXY, ⟨Z, ⟨hZ, hYZ⟩, hZunique⟩⟩,
   --simp at *,
   /-rintro hS X hX,

@@ -546,7 +546,7 @@ lemma gpowers_eq {k : ℕ+} {ζ : units R} (h : is_primitive_root ζ k) :
   subgroup.gpowers ζ = roots_of_unity k R :=
 begin
   apply subgroup.ext',
-  haveI : fact (0 < (k : ℕ)) := k.pos,
+  haveI : fact (0 < (k : ℕ)) := ⟨k.pos⟩,
   haveI F : fintype (subgroup.gpowers ζ) := fintype.of_equiv _ (h.zmod_equiv_gpowers).to_equiv,
   refine @set.eq_of_subset_of_card_le (units R) (subgroup.gpowers ζ) (roots_of_unity k R)
     F (roots_of_unity.fintype R k)
@@ -611,7 +611,7 @@ end
 lemma card_roots_of_unity' {n : ℕ+} (h : is_primitive_root ζ n) :
   fintype.card (roots_of_unity n R) = n :=
 begin
-  haveI : fact (0 < ↑n) := n.pos,
+  haveI : fact (0 < ↑n) := ⟨n.pos⟩,
   let e := h.zmod_equiv_gpowers,
   haveI F : fintype (subgroup.gpowers ζ) := fintype.of_equiv _ e.to_equiv,
   calc fintype.card (roots_of_unity n R)
@@ -838,10 +838,10 @@ begin
   set Q := minpoly ℤ (μ ^ p),
   have hfrob : map (int.cast_ring_hom (zmod p)) Q ^ p =
     map (int.cast_ring_hom (zmod p)) (expand ℤ p Q),
-  by rw [← zmod.expand_card, map_expand (nat.prime.pos hprime)],
+  by rw [← zmod.expand_card, map_expand hprime.1.pos],
   rw [hfrob],
   apply ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))),
-  exact minpoly_dvd_expand h hpos hprime hdiv
+  exact minpoly_dvd_expand h hpos hprime.1 hdiv
 end
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
@@ -850,7 +850,7 @@ lemma minpoly_dvd_mod_p {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
   map (int.cast_ring_hom (zmod p)) (minpoly ℤ μ) ∣
   map (int.cast_ring_hom (zmod p)) (minpoly ℤ (μ ^ p)) :=
 (unique_factorization_monoid.dvd_pow_iff_dvd_of_squarefree (squarefree_minpoly_mod h
-  hpos hdiv) (nat.prime.ne_zero hprime)).1 (minpoly_dvd_pow_mod h hpos hdiv)
+  hpos hdiv) hprime.1.ne_zero).1 (minpoly_dvd_pow_mod h hpos hdiv)
 
 /-- If `p` is a prime that does not divide `n`,
 then the minimal polynomials of a primitive `n`-th root of unity `μ`
@@ -862,9 +862,10 @@ begin
   set P := minpoly ℤ μ,
   set Q := minpoly ℤ (μ ^ p),
   have Pmonic : P.monic := minpoly.monic (h.is_integral hpos),
-  have Qmonic : Q.monic := minpoly.monic ((h.pow_of_prime hprime hdiv).is_integral hpos),
+  have Qmonic : Q.monic := minpoly.monic ((h.pow_of_prime hprime.1 hdiv).is_integral hpos),
   have Pirr : irreducible P := minpoly.irreducible (h.is_integral hpos),
-  have Qirr : irreducible Q := minpoly.irreducible ((h.pow_of_prime hprime hdiv).is_integral hpos),
+  have Qirr : irreducible Q :=
+    minpoly.irreducible ((h.pow_of_prime hprime.1 hdiv).is_integral hpos),
   have PQprim : is_primitive (P * Q) := Pmonic.is_primitive.mul Qmonic.is_primitive,
   have prod : P * Q ∣ X ^ n - 1,
   { apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
@@ -880,7 +881,7 @@ begin
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic).2,
       exact minpoly_dvd_X_pow_sub_one h hpos },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Qmonic).2,
-      exact minpoly_dvd_X_pow_sub_one (pow_of_prime h hprime hdiv) hpos } },
+      exact minpoly_dvd_X_pow_sub_one (pow_of_prime h hprime.1 hdiv) hpos } },
   replace prod := ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))) prod,
   rw [ring_hom.coe_of, map_mul, map_sub, map_one, map_pow, map_X] at prod,
   obtain ⟨R, hR⟩ := minpoly_dvd_mod_p h hpos hdiv,
@@ -921,7 +922,7 @@ begin
     rw hind (nat.coprime.coprime_mul_left hcop) h hpos, clear hind,
     replace hprime := nat.prime_iff_prime.2 hprime,
     have hdiv := (nat.prime.coprime_iff_not_dvd hprime).1 (nat.coprime.coprime_mul_right hcop),
-    letI : fact p.prime := hprime,
+    haveI := fact.mk hprime,
     rw [minpoly_eq_pow
       (h.pow_of_coprime a (nat.coprime.coprime_mul_left hcop)) hpos hdiv],
     congr' 1,

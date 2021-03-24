@@ -370,7 +370,7 @@ theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β �
      ... ≃ β : (trunc.out (equiv_fin β)).symm⟩,
 λ ⟨f⟩, card_congr f⟩
 
-/-- Any subsingleton type with a witness is a fintype (with one terms). -/
+/-- Any subsingleton type with a witness is a fintype (with one term). -/
 def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 ⟨{a}, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
 

@@ -27,7 +27,7 @@ variables (C : Type u) [category.{v} C]
 namespace category_theory
 
 /-- A category is `essentially_small.{w}` if there exists
-an equivalence to some `S : Type w` with `[small_category w]`. -/
+an equivalence to some `S : Type w` with `[small_category S]`. -/
 class essentially_small (C : Type u) [category.{v} C] : Prop :=
 (equiv_small_category : ∃ (S : Type w) [small_category S], by exactI nonempty (C ≌ S))
 
@@ -70,9 +70,9 @@ begin
 end
 
 /--
-A category is `w` locally small if every hom set is `w` small.
+A category is `w`-locally small if every hom set is `w`-small.
 
-See `shrinks_hom C` for a category instance where every hom set has been replaced by a small model.
+See `shrink_homs C` for a category instance where every hom set has been replaced by a small model.
 -/
 class locally_small (C : Type u) [category.{v} C] : Prop :=
 (hom_small : ∀ X Y : C, small.{w} (X ⟶ Y) . tactic.apply_instance)

@@ -166,14 +166,13 @@ begin
   exact (nat.find_spec h).1
 end
 
+@[to_additive add_order_of_pos']
 lemma order_of_pos' {a : α} (h : ∃ n, 0 < n ∧ a ^ n = 1) : 0 < order_of a :=
 begin
   rw order_of,
   split_ifs,
   exact (nat.find_spec h).1
 end
-
-attribute [to_additive add_order_of_pos'] order_of_pos'
 
 lemma pow_order_of_eq_one (a : α): a ^ order_of a = 1 :=
 begin

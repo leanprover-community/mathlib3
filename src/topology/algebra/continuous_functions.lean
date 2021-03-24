@@ -5,6 +5,7 @@ Authors: Scott Morrison, Nicolò Cavalleri
 -/
 import topology.algebra.module
 import topology.continuous_map
+import algebra.algebra.subalgebra
 
 /-!
 # Algebraic structures over continuous functions
@@ -372,9 +373,56 @@ instance continuous_map_algebra : algebra R C(α, A) :=
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
   ..continuous_map_semiring }
 
+/--
+A version of `separates_points` for subalgebras of the continuous functions,
+used for stating the Stone-Weierstrass theorem.
+-/
+abbreviation subalgebra.separates_points (s : subalgebra R C(α, A)) : Prop :=
+separates_points ((λ f : C(α, A), (f : α → A)) '' (s : set C(α, A)))
+
+lemma subalgebra.separates_points_monotone :
+  monotone (λ s : subalgebra R C(α, A), s.separates_points) :=
+λ s s' r h x y n,
+begin
+  obtain ⟨f, m, w⟩ := h n,
+  rcases m with ⟨f, ⟨m, rfl⟩⟩,
+  exact ⟨_, ⟨f, ⟨r m, rfl⟩⟩, w⟩,
+end
+
 @[simp] lemma algebra_map_apply (k : R) (a : α) :
   algebra_map R C(α, A) k a = k • 1 :=
 by { rw algebra.algebra_map_eq_smul_one, refl, }
+
+variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
+
+/--
+Working in continuous functions into a topological field,
+a subalgebra of functions that separates points also separates points strongly.
+
+By the hypothesis, we can find a function `f` so `f x ≠ f y`.
+By an affine transformation in the field we can arrange so that `f x = a` and `f x = b`.
+-/
+lemma subalgebra.separates_points.strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h : s.separates_points) :
+  separates_points_strongly ((λ f : C(α, 𝕜), (f : α → 𝕜)) '' (s : set C(α, 𝕜))) :=
+λ x y n,
+begin
+  obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
+  replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
+  intros a b,
+  let f' := ((b - a) * (f x - f y)⁻¹) • (continuous_map.C (f x) - f) + continuous_map.C a,
+  refine ⟨f', _, _, _⟩,
+  { simp only [set.mem_image, coe_coe],
+    refine ⟨f', _, rfl⟩,
+    simp only [f', submodule.mem_coe, subalgebra.mem_to_submodule],
+    -- TODO should there be a tactic for this?
+    -- We could add an attribute `@[subobject_mem]`, and a tactic
+    -- ``def subobject_mem := `[solve_by_elim with subobject_mem { max_depth := 10 }]``
+    solve_by_elim
+      [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
+      { max_depth := 6 }, },
+  { simp [f'], },
+  { simp [f', inv_mul_cancel_right' w], },
+end
 
 end continuous_map
 
@@ -454,14 +502,14 @@ lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x
 begin
   dsimp [min, max, abs],
   simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring; linarith,
+  split_ifs; ring_nf; linarith,
 end
 
 lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
 begin
   dsimp [min, max, abs],
   simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring; linarith,
+  split_ifs; ring_nf; linarith,
 end
 end
 

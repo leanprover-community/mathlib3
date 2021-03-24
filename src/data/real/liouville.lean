@@ -51,7 +51,7 @@ begin
        ← int.cast_sub, ← int.cast_abs, ← int.cast_mul, int.cast_lt] at a1,
   -- At a0, clear denominators...
   replace a0 : ¬a * q - ↑b * p = 0, by
-    rwa [ne.def, div_eq_div_iff b0 (ne_of_gt qR0), mul_comm ↑p, ← sub_eq_zero_iff_eq,
+    rwa [ne.def, div_eq_div_iff b0 (ne_of_gt qR0), mul_comm ↑p, ← sub_eq_zero,
       -- ... and revert to integers
       ← int.cast_coe_nat, ← int.cast_mul, ← int.cast_mul, ← int.cast_sub, int.cast_eq_zero] at a0,
   -- Actually, `q` is a natural number

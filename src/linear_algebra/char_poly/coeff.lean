@@ -157,8 +157,6 @@ end
 
 variables {p : ℕ} [fact p.prime]
 
--- the following is a nasty case bash that I (DT) abstracted from the lemma below
--- a pre-existing comment asked "maybe it can be proven more... algebraically?"
 lemma mat_poly_equiv_eq_X_pow_sub_C {K : Type*} (k : ℕ) [field K] (M : matrix n n K) :
   mat_poly_equiv
       ((expand K (k) : polynomial K →+* polynomial K).map_matrix (char_matrix (M ^ k))) =

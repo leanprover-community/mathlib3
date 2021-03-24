@@ -141,23 +141,23 @@ if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
 
 attribute [to_additive add_order_of] order_of
 
+lemma of_mul_pow {A : Type*} [monoid A] (x : A) (n : ℕ) :
+  additive.of_mul (x ^ n) = n •ℕ (additive.of_mul x) :=
+(congr_arg additive.of_mul (of_add_nsmul (additive.of_mul x) n)).symm
+
+@[simp] lemma of_mul_eq_zero {A : Type*} [monoid A] {x : A} :
+  additive.of_mul x = 0 ↔ x = 1 := iff.rfl
+
+@[simp] lemma of_add_eq_one {A : Type*} [add_monoid A] {x : A} :
+  multiplicative.of_add x = 1 ↔ x = 0 := iff.rfl
+
 @[simp] lemma add_order_of_of_mul_eq_order_of (a : α) :
   add_order_of (additive.of_mul a) = order_of a :=
-begin
-  rw add_order_of,
-  rw order_of,
-  split_ifs;
-  refl
-end
+by simp [add_order_of, order_of, ←of_mul_pow]
 
 @[simp] lemma order_of_of_add_eq_add_order_of (x : H) :
   order_of (multiplicative.of_add x) = add_order_of x :=
-begin
-  rw add_order_of,
-  rw order_of,
-  split_ifs;
-  refl,
-end
+by simp [add_order_of, order_of, ←of_add_nsmul]
 
 lemma add_order_of_pos' {x : H} (h : ∃ n, 0 < n ∧ n •ℕ x = 0) : 0 < add_order_of x :=
 begin

@@ -5,6 +5,7 @@ Authors: Eric Wieser
 -/
 import group_theory.perm.option
 import data.equiv.fin
+import data.zmod.basic
 
 /-!
 # Permutations of `fin n`
@@ -80,39 +81,8 @@ namespace fin
 def cycle_all : Π (n : ℕ), perm (fin n)
 | 0 := 1
 | (nat.succ n) :=
-{ to_fun := λ i, if hi : i = fin.last n then 0 else
-    ⟨i + 1, nat.succ_lt_succ (lt_of_le_of_ne (nat.lt_succ_iff.mp i.2) (coe_injective.ne hi))⟩,
-  inv_fun := λ i, if i = 0 then fin.last n else
-    ⟨i - 1, lt_of_le_of_lt (nat.sub_le _ _) i.2⟩,
-  left_inv := λ i, begin
-    simp only,
-    split_ifs with h₁ h₂,
-    { rw h₁ },
-    { cases h₂ },
-    { simp },
-  end,
-  right_inv := λ i, begin
-    simp only,
-    split_ifs with h₁,
-    { simp only at h₁,
-      split_ifs at h₁ with h₂,
-      { rw h₂ },
-      { -- We have n = i - 1 ≤ i < n.succ so we want to conclude i = n = 0.
-        -- TODO: this is a bit awkward, can we make it easier?
-        have i_lt_n : (i : ℕ) < n.succ := i.2,
-        cases i with i hi,
-        have eq_n : i - 1 = n := congr_arg coe h₁,
-        rw [coe_mk, ← eq_n] at i_lt_n,
-        cases i,
-        { refl },
-        { simpa using i_lt_n } } },
-    { simp only [if_pos h] at h₁,
-      cases h₁ rfl },
-    { ext,
-      simpa only [coe_mk]
-        using nat.sub_add_cancel (nat.succ_le_of_lt
-          (nat.pos_of_ne_zero (coe_injective.ne h))) }
-  end }
+  have n := fin.comm_ring (n.succ) in by exactI
+  equiv.add_right 1
 
 @[simp] lemma cycle_all_zero : cycle_all 0 = 1 := rfl
 

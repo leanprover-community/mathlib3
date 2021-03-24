@@ -81,7 +81,7 @@ def boundary_inclusion (n : ℕ) :
 It consists of all `m`-simplices `α` of `Δ[n]`
 for which the union of `{i}` and the range of `α` is not all of `n`
 (when viewing `α` as monotone function `m → n`). -/
-def horn (n : ℕ) (i : fin (n+1)) : sSet :=
+def horn (n) (i) : sSet :=
 { obj := λ m,
   { α : Δ[n].obj m // set.range (as_preorder_hom _ _ α) ∪ {i} ≠ set.univ },
   map := λ m₁ m₂ f α, ⟨f.unop ≫ (α : Δ[n].obj m₁),
@@ -93,14 +93,14 @@ def horn (n : ℕ) (i : fin (n+1)) : sSet :=
     exact set.range_comp_subset_range _ _ hj,
   end⟩ }
 
-localized "notation `Λ[`n`, `i`]` := sSet.horn (n : ℕ) i" in simplicial
+localized "notation `Λ[`n`, `i`]` := sSet.horn n i" in simplicial
 
-def horn_face (n : ℕ) (i j : fin (n+2)) (h: i ≠ j) : Λ[n+1,i].obj (opposite.op [n]) :=
+def horn_face {n} {i j} (h: i ≠ j) : Λ[n+1,i].obj (opposite.op [n]) :=
 ⟨simplex_category.δ j,
   begin
     erw preorder_hom_of_mk_hom_of_preorder_hom,
     simp only [order_embedding.to_preorder_hom_coe, ne.def, set.union_singleton],
-    erw [fin.range_succ_above j, set.eq_univ_iff_forall, not_forall],
+    rw [fin.range_succ_above j, set.eq_univ_iff_forall, not_forall],
     use j,
     rw set.mem_insert_iff,
     apply not_or,
@@ -108,15 +108,18 @@ def horn_face (n : ℕ) (i j : fin (n+2)) (h: i ≠ j) : Λ[n+1,i].obj (opposite
     { simp }
   end ⟩
 
-def simplices_of_horn_hom {S : sSet} {n : ℕ} {i : fin (n+2)} (f : Λ[n+1,i] ⟶ S) :
-  set.range (fin.succ_above i) → S _[n] :=
+def simplices_of_horn_hom {S} {n} {i} (f : Λ[n+1,i] ⟶ S) :
+  set.range i.succ_above → S _[n] :=
 begin
-  intros x,
-  have r := f.app (opposite.op [n-1]) (simplex_category.δ x),
+  intro j,
+  rw fin.range_succ_above i at j,
+  have h := j.property,
+  simp only [ne.def, set.mem_set_of_eq, subtype.val_eq_coe] at h,
+  exact f.app _ (horn_face (ne.symm h)),
 end
 
 /-- The inclusion of the `i`-th horn of the `n`-th standard simplex into that standard simplex. -/
-def horn_inclusion (n : ℕ) (i : fin (n+1)) :
+def horn_inclusion (n) (i) :
   Λ[n, i] ⟶ Δ[n] :=
 { app := λ m (α : {α : Δ[n].obj m // _}), α }
 
@@ -148,8 +151,10 @@ class fibration {S T : sSet} (f : S ⟶ T) : Prop :=
   ∃ g : Δ[n] ⟶ S, g ≫ f = b ∧ horn_inclusion n i ≫ g = a)
 
 lemma is_fibration_iff {S T : sSet} (f : S ⟶ T) :
-  fibration f ↔ ∀ (n : ℕ) (k : fin (n+1)) (x : (set.range fin.succ_above k) → S _[n])
-  (h : ∀ i : fin n, i < j ∧ j ≠ k):=
+  fibration f ↔ ∀ ∀ n (k : fin (n+3)) (x : (set.range k.succ_above) → S _[n+1])
+    (h1 : ∀ (i j : set.range k.succ_above), i < j → S.δ i (x j) = S.δ (j-1) (x i))
+    (h2 : ∃ y, ∀ (i : set.range k.succ_above), T.δ i y = f.app _ (x i) ),
+:= begin end
 
 instance (S : sSet) : fibration (nat_trans.id S) :=
 ⟨begin

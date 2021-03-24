@@ -192,21 +192,14 @@ and the composition of a rotation with an inverse rotation.
 -/
 @[simps]
 def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :=
-{ app := begin
-    intro T,
-    rw [functor.id_obj, functor.comp_obj],
-    let f : triangle_morphism T ((inv_rotate C).obj ((rotate C).obj T)) :=
-    { hom₁ := (shift C).unit.app T.obj₁,
-      hom₂ := 𝟙 T.obj₂,
-      hom₃ := 𝟙 T.obj₃,
-      comm₃' := begin
-        rw id_comp,
-        dsimp,
-        rw equivalence.counit_inv_app_functor,
-      end
-      },
-    exact f,
-  end
+{ app := λ T,
+  { hom₁ := (shift C).unit.app T.obj₁,
+    hom₂ := 𝟙 T.obj₂,
+    hom₃ := 𝟙 T.obj₃,
+    comm₃' := begin
+      dsimp,
+      rw [id_comp, equivalence.counit_inv_app_functor],
+    end }
 }
 
 /--
@@ -215,16 +208,11 @@ on triangles, and the identity functor.
 -/
 @[simps]
 def rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :=
-{ app := begin
-    intro T,
-    rw [functor.id_obj, functor.comp_obj],
-    let f : triangle_morphism ((inv_rotate C).obj ((rotate C).obj T)) T :=
-    { hom₁ := (shift C).unit_inv.app T.obj₁,
-      hom₂ := 𝟙 T.obj₂,
-      hom₃ := 𝟙 T.obj₃
-    },
-    exact f
-  end
+{ app := λ T,
+  { hom₁ := (shift C).unit_inv.app T.obj₁,
+    hom₂ := 𝟙 T.obj₂,
+    hom₃ := 𝟙 T.obj₃
+  }
 }
 
 /--
@@ -243,15 +231,10 @@ on triangles, and the identity functor.
 -/
 @[simps]
 def inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C) :=
-{ app := begin
-    intro T,
-    rw [functor.id_obj, functor.comp_obj],
-    let f : triangle_morphism ((rotate C).obj((inv_rotate C).obj T)) T :=
-    { hom₁ := 𝟙 T.obj₁,
-      hom₂ := 𝟙 T.obj₂,
-      hom₃ := (shift C).counit.app T.obj₃ },
-    exact f
-  end
+{ app := λ T,
+  { hom₁ := 𝟙 T.obj₁,
+    hom₂ := 𝟙 T.obj₂,
+    hom₃ := (shift C).counit.app T.obj₃ },
 }
 
 /--
@@ -260,15 +243,10 @@ and  the composition of an inverse rotation with a rotation.
 -/
 @[simps]
 def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ (inv_rotate C) ⋙ (rotate C) :=
-{ app := begin
-    intro T,
-    rw [functor.id_obj, functor.comp_obj],
-    let f : triangle_morphism T ((rotate C).obj ((inv_rotate C).obj T)) :=
-    { hom₁ := 𝟙 T.obj₁,
-      hom₂ := 𝟙 T.obj₂,
-      hom₃ := (shift C).counit_inv.app T.obj₃ },
-    exact f
-  end
+{ app := λ T,
+  { hom₁ := 𝟙 T.obj₁,
+    hom₂ := 𝟙 T.obj₂,
+    hom₃ := (shift C).counit_inv.app T.obj₃ }
 }
 
 /--

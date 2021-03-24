@@ -560,8 +560,8 @@ begin
     apply (congr_arg (λ X : subobject A, (X : C))),
     exact (equiv.symm_apply_apply _ _), },
   { dsimp [Inf],
-    simp only [category.comp_id, category.assoc, subobject.mk_arrow, subobject.arrow_congr,
-      congr_arg_mpr_hom_left, iso.cancel_iso_hom_left],
+    simp only [category.comp_id, category.assoc, ←underlying_iso_hom_comp_eq_mk,
+      subobject.arrow_congr, congr_arg_mpr_hom_left, iso.cancel_iso_hom_left],
     convert limit.w (wide_cospan s) (wide_pullback_shape.hom.term _), },
 end.
 

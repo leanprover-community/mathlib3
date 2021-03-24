@@ -2,6 +2,7 @@ import data.real.basic
 import linear_algebra.affine_space.independent
 import linear_algebra.std_basis
 import linear_algebra.affine_space.finite_dimensional
+import linear_algebra.affine_space.combination
 import linear_algebra.finite_dimensional
 import analysis.convex.basic
 -- import data.nat.parity
@@ -293,22 +294,129 @@ begin
     { apply y₂x, refl } }
 end
 
-lemma is_extreme_to_convex_hull_of_affine_independent {X : finset E} {x : E} (hx : x ∈ X)
-  (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
-  is_extreme (convex_hull ↑X) x :=
-begin
-  use subset_convex_hull X hx,
-  rintro y z hy hz hxyz,
-  rw finset.convex_hull_eq at hy hz,
-  obtain ⟨a, b, ha, hb, hab, hxsum⟩ := hxyz,
-  obtain ⟨v, hv₀, hv₁, hy⟩ := hy,
-  obtain ⟨w, hw₀, hw₁, hz⟩ := hz,
-  unfold affine_independent at hX,
-  simp at *,
-  sorry
+-- example {a b c d : ℝ} (ha : 0 < a) (hb : 0 ≤ b) (hc : 0 < c) (hd : 0 ≤ d) (h : a * b + c * d = 0) :
+--   b = 0 ∧ d = 0 :=
+-- begin
+--   rw add_eq_zero_iff' at h,
+--   rw mul_eq_zero at h,
+--   rw mul_eq_zero at h,
 
-  --rw ← convex_remove_iff_is_extreme (convex_convex_hull _) (subset_convex_hull (s : set E) hx),
-  --rintro y z hy hz a b ha hb hab,
+-- end
+
+open_locale big_operators
+
+lemma coe_sum {α β : Type*} [add_comm_monoid β] (s : finset α) (f : α → β) :
+  ∑ (i : (s : set α)), f i = ∑ i in s, f i :=
+finset.sum_bij (λ a _, a) (λ a _, a.prop)
+  (λ _ _, rfl)
+  (λ _ _ _ _, subtype.ext)
+  (λ a ha, ⟨⟨_, ha⟩, finset.mem_univ _, (subtype.coe_mk _ _).symm⟩)
+
+lemma is_extreme_convex_hull_of_affine_independent {s : finset E} {x : E} (hx : x ∈ s)
+  (hs : affine_independent ℝ (λ p, p : (s : set E) → E)) :
+  is_extreme (convex_hull ↑s) x :=
+begin
+  -- have := convex_independent_of_affine_independent hs _ hx,
+
+  -- rw ←convex_remove_iff_is_extreme (convex_convex_hull s) (subset_convex_hull _ hx),
+  refine ⟨subset_convex_hull _ hx, _⟩,
+  intros y y' hy hy' t,
+  rw finset.convex_hull_eq at hy hy',
+  rcases hy with ⟨w, hw₀, hw₁, hy⟩,
+  rcases hy' with ⟨w', hw'₀, hw'₁, hy'⟩,
+  -- rcases hy with ⟨ι, q, w, z, hw₀, hw₁ : q.sum w = 1, hz, _⟩,
+  -- rcases hy' with ⟨ι', q', w', z', hw'₀, hw'₁ : q'.sum w' = 1, hz', rfl⟩,
+  rw segment_eq_image at t,
+  rcases t with ⟨θ, hθ₁, hθ₂ : _ + _ = _⟩,
+  rw finset.center_mass_eq_of_sum_1 _ _ hw₁ at hy,
+  rw finset.center_mass_eq_of_sum_1 _ _ hw'₁ at hy',
+  change s.sum (λ i, w i • i) = y at hy,
+  change s.sum (λ i, w' i • i) = y' at hy',
+  let w'' : E → ℝ := λ t, (1 - θ) * w t + θ * w' t - if t = x then 1 else 0,
+  have hw''₁ : s.sum w'' = 0,
+  { rw [finset.sum_sub_distrib, finset.sum_add_distrib, ← finset.mul_sum, ← finset.mul_sum, hw₁,
+      hw'₁, finset.sum_ite_eq' s, if_pos hx],
+    simp },
+  have hw''₂ : s.sum (λ i, w'' i • i) = 0,
+  { simp only [sub_smul, add_smul, finset.sum_add_distrib, finset.sum_sub_distrib],
+    simp only [mul_smul, ←finset.smul_sum, hy, hy'],
+    simp only [ite_smul, zero_smul, one_smul, finset.sum_ite_eq', if_pos hx, hθ₂, sub_self] },
+  by_contra t,
+  push_neg at t,
+  suffices hw''₃ : ∀ q ∈ s, w'' q = 0,
+  { have : θ = 0 ∨ θ = 1,
+    { by_contra hθ,
+      push_neg at hθ,
+      have : 0 < θ ∧ 0 < 1 - θ,
+      { split,
+        { apply lt_of_le_of_ne hθ₁.1 hθ.1.symm },
+        { rw sub_pos,
+          apply lt_of_le_of_ne hθ₁.2 hθ.2 } },
+      have both_zero : ∀ q ∈ s, q ≠ x → w q = 0 ∧ w' q = 0,
+      { intros q hq₁ hq₂,
+        specialize hw''₃ q hq₁,
+        change _ + _ = _ at hw''₃,
+        rw if_neg hq₂ at hw''₃,
+        simp only [add_zero, neg_zero] at hw''₃,
+        rw add_eq_zero_iff' at hw''₃,
+        apply and.imp _ _ hw''₃,
+        rw mul_eq_zero,
+        intro t,
+        exact or.resolve_left t (ne_of_gt this.2),
+        rw mul_eq_zero,
+        intro t,
+        exact or.resolve_left t (ne_of_gt this.1),
+        apply mul_nonneg (le_of_lt this.2),
+        exact hw₀ q hq₁,
+        apply mul_nonneg,
+        apply le_of_lt this.1,
+        apply hw'₀,
+        apply hq₁ },
+      have : (1 - θ) * w x + θ * w' x = 1,
+      { specialize hw''₃ _ hx,
+        change (1 - θ) * w x + θ * w' x - ite _ _ _ = 0 at hw''₃,
+        rw if_pos rfl at hw''₃,
+        rwa sub_eq_zero at hw''₃ },
+      rw finset.sum_eq_single x at hw₁,
+      { rw finset.sum_eq_single x at hy,
+        { rw hw₁ at hy,
+          apply t.1,
+          simpa using hy },
+        { intros q hq₁ hq₂,
+          rw (both_zero q hq₁ hq₂).1,
+          simp },
+        { intro t,
+          exfalso,
+          apply t,
+          apply hx } },
+      { intros q hq₁ hq₂,
+        apply (both_zero q hq₁ hq₂).1 },
+      { intro t,
+        exfalso,
+        apply t,
+        apply hx } },
+    rcases this with (rfl | rfl),
+    simp at hθ₂,
+    apply t.1,
+    symmetry,
+    assumption,
+    simp at hθ₂,
+    apply t.2,
+    symmetry,
+    assumption },
+  rw affine_independent_iff_of_fintype at hs,
+  let w''' : (s : set E) → ℝ := λ t, w'' (t : E),
+  have hw''' : finset.univ.sum w''' = 0,
+  { rw coe_sum,
+    apply hw''₁ },
+  specialize hs w''' hw''' _,
+  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw''' (0 : E),
+    rw finset.weighted_vsub_of_point_apply,
+    simp only [vsub_eq_sub, sub_zero],
+    rw coe_sum _ (λ i, w'' i • i),
+    apply hw''₂ },
+  intros q hq,
+  apply hs ⟨q, hq⟩,
 end
 
 --Accurate name?
@@ -333,7 +441,7 @@ lemma subset_of_convex_hull_eq_convex_hull_of_linearly_independent {X Y : finset
   X ⊆ Y :=
 begin
   intros x hx,
-  have hxextreme := is_extreme_to_convex_hull_of_affine_independent hx hX,
+  have hxextreme := is_extreme_convex_hull_of_affine_independent hx hX,
   rw h at hxextreme,
   exact mem_of_is_extreme_to_convex_hull hxextreme,
 end
@@ -357,86 +465,6 @@ begin
   sorry
 end
 
--- lemma is_extreme_of_affine_independent (s : finset E) (x : E) (hx : x ∈ s)
---   (hs : affine_independent ℝ (λ p, p : (s : set E) → E)) :
---   is_extreme (convex_hull ↑s) x :=
--- begin
---   -- have := convex_independent_of_affine_independent hs _ hx,
-
---   -- rw ←convex_remove_iff_is_extreme (convex_convex_hull s) (subset_convex_hull _ hx),
---   refine ⟨subset_convex_hull _ hx, _⟩,
---   intros y y' hy hy' t,
---   rw finset.convex_hull_eq at hy hy',
---   rcases hy with ⟨w, hw₀, hw₁, hy⟩,
---   rcases hy' with ⟨w', hw'₀, hw'₁, hy'⟩,
---   -- rcases hy with ⟨ι, q, w, z, hw₀, hw₁ : q.sum w = 1, hz, _⟩,
---   -- rcases hy' with ⟨ι', q', w', z', hw'₀, hw'₁ : q'.sum w' = 1, hz', rfl⟩,
---   rw segment_eq_image at t,
---   rcases t with ⟨θ, hθ₁, hθ₂ : _ + _ = _⟩,
---   rw finset.center_mass_eq_of_sum_1 _ _ hw₁ at hy,
---   rw finset.center_mass_eq_of_sum_1 _ _ hw'₁ at hy',
---   change s.sum (λ i, w i • i) = y at hy,
---   change s.sum (λ i, w' i • i) = y' at hy',
---   let w'' : E → ℝ := λ t, (1 - θ) * w t + θ * w' t - if t = x then 1 else 0,
---   have : s.sum w'' = 0,
---   { rw [finset.sum_sub_distrib, finset.sum_add_distrib, ← finset.mul_sum, ← finset.mul_sum, hw₁,
---       hw'₁, finset.sum_ite_eq' s, if_pos hx],
---     simp },
---   have : s.sum (λ i, w'' i • i) = 0,
---   { simp only [sub_smul, add_smul, finset.sum_add_distrib, finset.sum_sub_distrib],
---     simp only [mul_smul, ←finset.smul_sum, hy, hy'],
---     simp only [ite_smul, zero_smul, one_smul, finset.sum_ite_eq', if_pos hx, hθ₂, sub_self] },
---   suffices : ∀ q ∈ s, w'' q = 0,
---   { have : θ = 0 ∨ θ = 1,
---     { by_contra hθ,
---       push_neg at hθ,
---       have : 0 < θ ∧ 0 < 1 - θ,
---       { split,
---         apply lt_of_le_of_ne hθ₁.1 hθ.1.symm,
---         rw sub_pos,
---         apply lt_of_le_of_ne hθ₁.2 hθ.2 },
-
---     }
-
---   },
-
---   -- rw [←hy, ←hy'] at hθ₂,
---   -- rw finset.smul_sum at hθ₂,
---   -- rw finset.smul_sum at hθ₂,
---   -- simp only [smul_smul] at hθ₂,
---   -- rw ←finset.sum_add_distrib at hθ₂,
---   -- simp only [←add_smul] at hθ₂,
---   -- have : s.sum (λ i, (1 - θ) * w i + θ * w' i) = 1,
---   -- { rw finset.sum_add_distrib,
---   --   rw ←finset.mul_sum,
---   --   rw ←finset.mul_sum,
---   --   rw hw₁,
---   --   rw hw'₁,
---   --   simp },
-
-
---   -- have : s.sum (λ x, )
---   -- -- simp only [smul_add] at hθ₂,
-
---   -- change _ • q.sum (λ i, w i • z i) + _ • q'.sum (λ i, w' i • z' i) = x at hθ₂,
---   -- { exact convex_convex_hull s hy₁.1 hy₂.1 ha hb h },
-
---   -- intro q,
---   -- simp only [mem_singleton_iff] at q,
---   -- apply this,
-
---   -- have : convex_hull s \ {x} ⊆ convex_hull (s \ {x}),
---   -- { rintros t ⟨_, _⟩,
-
-
-
---   -- }
-
---   -- rw segment_eq_image at hx',
---   -- rcases hx' with ⟨θ, hθ, q⟩,
---   -- dsimp at q,
-
--- end
 
 /- S₁ ≤ S₂ (S₁ is a subdivision of S₂) iff their underlying space is the same and each face of S₁
 is contained in some face of S₂-/

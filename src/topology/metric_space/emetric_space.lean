@@ -741,7 +741,7 @@ begin
 end
 
 /-- For a set `s` in a pseudo emetric space, if for every `ε > 0` there exists a countable
-`ε`-net in `s`, then there exists a countable subset `t ⊆ s` that is dense in `s`. -/
+`ε`-dense set in `s`, then there exists a countable subset `t ⊆ s` that is dense in `s`. -/
 lemma subset_countable_closure_of_almost_dense_set (s : set α)
   (hs : ∀ ε > 0, ∃ t ⊆ s, countable t ∧ s ⊆ ⋃ x ∈ t, closed_ball x ε) :
   ∃ t ⊆ s, (countable t ∧ s ⊆ closure t) :=

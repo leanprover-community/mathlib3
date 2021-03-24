@@ -12,10 +12,10 @@ import data.equiv.basic
 In this section we set up the theory so that Lean's types and functions between them
 can be viewed as a `large_category` in our framework.
 
-Lean can not transparently view a function as a morphism in this category,
-and needs a hint in order to be able to type check.
-We provide the abbreviation `as_hom f` to guide type checking,
-as well as a corresponding notation `↾ f`. (Entered as `\upr `.)
+Lean can not transparently view a function as a morphism in this category, and needs a hint in
+order to be able to type check. We provide the abbreviation `as_hom f` to guide type checking,
+as well as a corresponding notation `↾ f`. (Entered as `\upr `.) The notation is enabled using
+`open_locale category_theory.Type`.
 
 We provide various simplification lemmas for functors and natural transformations valued in `Type`.
 
@@ -59,7 +59,7 @@ congr_fun f.inv_hom_id y
 -- Unfortunately without this wrapper we can't use `category_theory` idioms, such as `is_iso f`.
 abbreviation as_hom {α β : Type u} (f : α → β) : α ⟶ β := f
 -- If you don't mind some notation you can use fewer keystrokes:
-notation  `↾` f : 200 := as_hom f -- type as \upr in VScode
+localized "notation  `↾` f : 200 := as_hom f" in category_theory.Type -- type as \upr in VScode
 
 section -- We verify the expected type checking behaviour of `as_hom`.
 variables (α β γ : Type u) (f : α → β) (g : β → γ)

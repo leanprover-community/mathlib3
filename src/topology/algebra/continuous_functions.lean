@@ -384,7 +384,7 @@ lemma subalgebra.separates_points_monotone :
   monotone (λ s : subalgebra R C(α, A), s.separates_points) :=
 λ s s' r h x y n,
 begin
-  obtain ⟨f, m, w⟩ := h x y n,
+  obtain ⟨f, m, w⟩ := h n,
   rcases m with ⟨f, ⟨m, rfl⟩⟩,
   exact ⟨_, ⟨f, ⟨r m, rfl⟩⟩, w⟩,
 end
@@ -406,7 +406,7 @@ lemma subalgebra.separates_points.strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h 
   separates_points_strongly ((λ f : C(α, 𝕜), (f : α → 𝕜)) '' (s : set C(α, 𝕜))) :=
 λ x y n,
 begin
-  obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h x y n,
+  obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
   replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
   intros a b,
   let f' := ((b - a) * (f x - f y)⁻¹) • (continuous_map.C (f x) - f) + continuous_map.C a,

@@ -141,10 +141,6 @@ if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
 
 attribute [to_additive add_order_of] order_of
 
-lemma of_mul_pow {A : Type*} [monoid A] (x : A) (n : ℕ) :
-  additive.of_mul (x ^ n) = n •ℕ (additive.of_mul x) :=
-(congr_arg additive.of_mul (of_add_nsmul (additive.of_mul x) n)).symm
-
 @[simp] lemma of_mul_eq_zero {A : Type*} [monoid A] {x : A} :
   additive.of_mul x = 0 ↔ x = 1 := iff.rfl
 

@@ -66,7 +66,8 @@ def row {α : n → Type v} (v : Π j, α j) : dmatrix unit n (λ i j, α j)
 instance [∀ i j, inhabited (α i j)] : inhabited (dmatrix m n α) := pi.inhabited _
 instance [∀ i j, has_add (α i j)] : has_add (dmatrix m n α) := pi.has_add
 instance [∀ i j, add_semigroup (α i j)] : add_semigroup (dmatrix m n α) := pi.add_semigroup
-instance [∀ i j, add_comm_semigroup (α i j)] : add_comm_semigroup (dmatrix m n α) := pi.add_comm_semigroup
+instance [∀ i j, add_comm_semigroup (α i j)] : add_comm_semigroup (dmatrix m n α) :=
+pi.add_comm_semigroup
 instance [∀ i j, has_zero (α i j)] : has_zero (dmatrix m n α) := pi.has_zero
 instance [∀ i j, add_monoid (α i j)] : add_monoid (dmatrix m n α) := pi.add_monoid
 instance [∀ i j, add_comm_monoid (α i j)] : add_comm_monoid (dmatrix m n α) := pi.add_comm_monoid

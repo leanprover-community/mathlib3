@@ -510,7 +510,7 @@ begin
   }
 end
 
-lemma subface_of_facet {S : simplicial_complex m} {X : finset (fin m → ℝ)} :
+lemma subfacet {S : simplicial_complex m} {X : finset (fin m → ℝ)} :
   X ∈ S.faces → ∃ {Y}, Y ∈ S.facets ∧ X ⊆ Y :=
 begin
   rintro hX,
@@ -540,7 +540,7 @@ lemma simplex_dimension_le_pureness {S : simplicial_complex m} (hS : S.pure) {X 
   X ∈ S.faces → X.card ≤ pureness hS + 1 :=
 begin
   rintro hX,
-  obtain ⟨Y, hY, hXY⟩ := subface_of_facet hX,
+  obtain ⟨Y, hY, hXY⟩ := subfacet hX,
   rw ← pureness_def hS hY,
   exact finset.card_le_of_subset hXY,
 end
@@ -581,7 +581,7 @@ begin
     rintro hS,
     use pureness hS,
     rintro X hX,
-    obtain ⟨Y, hY, hXY⟩ := subface_of_facet hX,
+    obtain ⟨Y, hY, hXY⟩ := subfacet hX,
     exact ⟨Y, facets_subset_faces hY, pureness_def hS hY, hXY⟩,
   },
   {
@@ -601,7 +601,11 @@ def simplicial_complex.cells (S : simplicial_complex m) : set (finset (fin m →
 lemma cells_subset_facets {S : simplicial_complex m} : S.cells ⊆ S.facets :=
 begin
   rintro X ⟨hX, hXcard⟩,
-  sorry
+  by_contra,
+  obtain ⟨Y, hY, hXY⟩ := (not_facet_iff_subface hX).mp h,
+  have := finset.card_lt_card hXY,
+  have := simplex_dimension_le_space_dimension hY,
+  linarith,
 end
 
 /-A simplicial complex is connected iff its space is-/
@@ -615,10 +619,29 @@ def simplicial_complex.skeleton (S : simplicial_complex m) (k : ℕ) : simplicia
 lemma skeleton_subcomplex_self {S : simplicial_complex m} {k : ℕ} :
   (S.skeleton k).faces ⊆ S.faces := (λ X ⟨hX, _⟩, hX)
 
-lemma pure_skeleton_of_pure {S : simplicial_complex m} {k : ℕ} : S.pure → (S.skeleton k).pure :=
+lemma pure_skeleton_of_pure {S : simplicial_complex m} (k : ℕ) : S.pure → (S.skeleton k).pure :=
 begin
-  sorry
+  rintro ⟨n, hS⟩,
+  by_cases hmin : n ≤ k + 1,
+  {
+    use n,
+    rintro X hX,
+    obtain ⟨Y, hY, hXY⟩ := subfacet (skeleton_subcomplex_self (facets_subset_faces hX)),
+    have : Y ∈ (S.skeleton k).faces,
+    {
+      --exact le_trans,
+      sorry
+    }
+    sorry
+  },
+  {
+    use k + 1,
+    sorry
+  }
 end
+
+lemma skeleton_pureness_eq_min_pureness_dimension {S : simplicial_complex m} {k : ℕ} (hS : S.pure) :
+  pureness (pure_skeleton_of_pure k hS) = min (pureness hS) (k + 1) := sorry
 
 /-A simplicial complex is connected iff its 1-skeleton is-/
 lemma connected_iff_one_skeleton_connected {S : simplicial_complex m} :

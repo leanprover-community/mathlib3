@@ -509,7 +509,7 @@ if hq : q = 0 then by simp [hq, padic_norm]
 else
   begin
     unfold padic_norm; split_ifs,
-    apply fpow_nonneg_of_nonneg,
+    apply fpow_nonneg,
     exact_mod_cast nat.zero_le _
   end
 

@@ -1201,8 +1201,6 @@ instance normed_algebra.id : normed_algebra 𝕜 𝕜 :=
 { norm_algebra_map_eq := by simp,
 .. algebra.id 𝕜}
 
--- This could also be proved via `linear_map.continuous_of_bound`,
--- but this is further up the import tree in `normed_space.operator_norm`, so not yet available.
 @[continuity] lemma normed_algebra.algebra_map_continuous
   [normed_algebra 𝕜 𝕜'] :
   continuous (algebra_map 𝕜 𝕜') :=

@@ -126,7 +126,7 @@ by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
 
 @[simp] lemma coe_top_eq_top (K : intermediate_field F E) :
   ↑(⊤ : intermediate_field K E) = (⊤ : intermediate_field F E) :=
-set.ext'_iff.mpr (set.ext_iff.mpr (λ _, iff_of_true mem_top mem_top))
+set_like.ext'_iff.mpr (set.ext_iff.mpr (λ _, iff_of_true mem_top mem_top))
 
 end lattice
 

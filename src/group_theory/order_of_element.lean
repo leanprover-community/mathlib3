@@ -201,6 +201,7 @@ begin
   { refl }
 end
 
+@[to_additive add_order_of_eq_zero]
 lemma order_of_eq_zero {a : α} (h : ∀n, 0 < n → a ^ n ≠ 1) : order_of a = 0 :=
 begin
   rw order_of,
@@ -211,8 +212,6 @@ begin
   { refl }
 end
 
-attribute [to_additive add_order_of_eq_zero] order_of_eq_zero
-
 lemma add_order_of_le_of_nsmul_eq_zero' {m : ℕ} (h : m < add_order_of x) : ¬ (0 < m ∧ m •ℕ x = 0) :=
 begin
   rw add_order_of at h,
@@ -221,6 +220,7 @@ begin
   { exfalso, exact nat.not_lt_zero m h }
 end
 
+@[to_additive add_order_of_le_of_nsmul_eq_zero']
 lemma order_of_le_of_pow_eq_one' {m : ℕ} (h : m < order_of a) : ¬ (0 < m ∧ a ^ m = 1) :=
 begin
   rw order_of at h,
@@ -229,23 +229,18 @@ begin
   { exfalso, exact nat.not_lt_zero m h }
 end
 
-attribute [to_additive add_order_of_le_of_nsmul_eq_zero'] order_of_le_of_pow_eq_one'
-
 lemma add_order_of_le_of_nsmul_eq_zero {n : ℕ} (hn : 0 < n) (h : n •ℕ x = 0) : add_order_of x ≤ n :=
 begin
   by_contradiction h',
   exact (add_order_of_le_of_nsmul_eq_zero' (not_le.mp h')) ⟨hn, h⟩
 end
 
+@[to_additive add_order_of_le_of_nsmul_eq_zero]
 lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
 begin
   by_contradiction h',
   exact (order_of_le_of_pow_eq_one' (not_le.mp h')) ⟨hn, h⟩
 end
-
-attribute [to_additive add_order_of_le_of_nsmul_eq_zero] order_of_le_of_pow_eq_one
-
-
 
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin
@@ -314,20 +309,18 @@ lemma add_order_of_dvd_iff_nsmul_eq_zero {n : ℕ} : add_order_of x ∣ n ↔ n 
 ⟨λ h, by rw [nsmul_eq_mod_add_order_of, nat.mod_eq_zero_of_dvd h, zero_nsmul],
   add_order_of_dvd_of_nsmul_eq_zero⟩
 
+@[to_additive add_order_of_dvd_iff_nsmul_eq_zero]
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
 ⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
-
-attribute [to_additive add_order_of_dvd_iff_nsmul_eq_zero] order_of_dvd_iff_pow_eq_one
 
 lemma add_order_of_eq_prime {p : ℕ} [hp : fact p.prime]
 (hg : p •ℕ x = 0) (hg1 : x ≠ 0) : add_order_of x = p :=
 (hp.2 _ (add_order_of_dvd_of_nsmul_eq_zero hg)).resolve_left (mt add_order_of_eq_one_iff.1 hg1)
 
+@[to_additive add_order_of_eq_prime]
 lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
   (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
 (hp.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
-
-attribute [to_additive add_order_of_eq_prime] order_of_eq_prime
 
 open nat
 
@@ -345,14 +338,13 @@ begin
   { rwa add_order_of_dvd_iff_nsmul_eq_zero }
 end
 
+@[to_additive add_order_of_eq_prime_pow]
 lemma order_of_eq_prime_pow {p k : ℕ} (hprime : prime p)
   (hnot : ¬ a ^ p ^ k = 1) (hfin : a ^ p ^ (k + 1) = 1) : order_of a = p ^ (k + 1) :=
 begin
   apply nat.eq_prime_pow_of_dvd_least_prime_pow hprime;
   { rwa order_of_dvd_iff_pow_eq_one }
 end
-
-attribute [to_additive add_order_of_eq_prime_pow] order_of_eq_prime_pow
 
 variables (a) {n : ℕ}
 

@@ -163,8 +163,7 @@ def inv_rotate (f : triangle_morphism T₁ T₂) :
     { simp only [iso.hom_inv_id_app, assoc, equivalence.inv_fun_map,
         nat_iso.cancel_nat_iso_inv_left],
       exact (category.comp_id f.hom₁).symm }
-  end
-}
+  end }
 
 end triangle_morphism
 
@@ -174,8 +173,7 @@ Rotating triangles gives an endofunctor on the category of triangles in C.
 @[simps]
 def rotate : (triangle C) ⥤ (triangle C) :=
 { obj := triangle.rotate C,
-  map := λ _ _ f, f.rotate C
-}
+  map := λ _ _ f, f.rotate C }
 
 /--
 The inverse rotation of triangles gives an endofunctor on the category of triangles in `C`.
@@ -183,8 +181,7 @@ The inverse rotation of triangles gives an endofunctor on the category of triang
 @[simps]
 def inv_rotate : (triangle C) ⥤ (triangle C) :=
 { obj := triangle.inv_rotate C,
-  map := λ _ _ f, f.inv_rotate C
-}
+  map := λ _ _ f, f.inv_rotate C }
 
 /--
 There is a natural transformation between the identity functor on triangles,
@@ -199,8 +196,7 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :
     comm₃' := begin
       dsimp,
       rw [id_comp, equivalence.counit_inv_app_functor],
-    end }
-}
+    end } }
 
 /--
 There is a natural transformation between the composition of a rotation with an inverse rotation
@@ -211,9 +207,7 @@ def rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :
 { app := λ T,
   { hom₁ := (shift C).unit_inv.app T.obj₁,
     hom₂ := 𝟙 T.obj₂,
-    hom₃ := 𝟙 T.obj₃
-  }
-}
+    hom₃ := 𝟙 T.obj₃ } }
 
 /--
 The natural transformations between the identity functor on triangles and the composition
@@ -234,8 +228,7 @@ def inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C) :
 { app := λ T,
   { hom₁ := 𝟙 T.obj₁,
     hom₂ := 𝟙 T.obj₂,
-    hom₃ := (shift C).counit.app T.obj₃ },
-}
+    hom₃ := (shift C).counit.app T.obj₃ } }
 
 /--
 There is a natural transformation between the identity functor on triangles,
@@ -246,8 +239,7 @@ def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ (inv_rotate C) ⋙ (rotate C) :
 { app := λ T,
   { hom₁ := 𝟙 T.obj₁,
     hom₂ := 𝟙 T.obj₂,
-    hom₃ := (shift C).counit_inv.app T.obj₃ }
-}
+    hom₃ := (shift C).counit_inv.app T.obj₃ } }
 
 /--
 The natural transformations between the composition of a rotation with an inverse rotation
@@ -256,10 +248,8 @@ on triangles, and the identity functor on triangles are natural isomorphisms
 -/
 @[simps]
 def inv_rot_comp_rot : (inv_rotate C) ⋙ (rotate C) ≅ 𝟭 (triangle C) :=
-{
-  hom := inv_rot_comp_rot_hom C,
-  inv := inv_rot_comp_rot_inv C
-}
+{ hom := inv_rot_comp_rot_hom C,
+  inv := inv_rot_comp_rot_inv C }
 
 /--
 Rotating triangles gives an auto-equivalence on the category of triangles.
@@ -268,7 +258,6 @@ def triangle_rotation : equivalence (triangle C) (triangle C) :=
 { functor := rotate C,
   inverse := inv_rotate C,
   unit_iso := rot_comp_inv_rot C,
-  counit_iso := inv_rot_comp_rot C
-}
+  counit_iso := inv_rot_comp_rot C }
 
 end category_theory.triangulated

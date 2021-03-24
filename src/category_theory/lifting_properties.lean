@@ -11,17 +11,19 @@ import category_theory.limits.preserves.shapes.terminal
 /-!
 # Lifting properties
 
-This file defines the lifting property of two arrows in a category and show basic properties of this notion.
-We also construct the subcategory consisting of those morphisms which have the right lifting property with
-respect to arrows in a given diagram.
+This file defines the lifting property of two arrows in a category and show basic properties of 
+this notion. 
+We also construct the subcategory consisting of those morphisms which have the right lifting 
+property with respect to arrows in a given diagram.
 
 ## Main results
 - `has_lifting_property`: the definition of the lifting property
 - `iso_has_right_lifting_property`: any isomorphism satisfies the right lifting property (rlp)
 - `id_has_right_lifting_property`: any identity has the rlp
-- `right_lifting_property_initial_iff`: spells out the rlp against a map whose source is an initial object
-- `right_lifting_subcat`: given a functor F : D ⥤ arrow C, we construct the subcategory of those morphisms p in C
-that satisfy the rlp w.r.t. F(i), for any object i in D.
+- `right_lifting_property_initial_iff`: spells out the rlp against a map whose source is an 
+initial object
+- `right_lifting_subcat`: given a functor F : D ⥤ arrow C, we construct the subcategory of those 
+morphisms p in C that satisfy the rlp w.r.t. F(i), for any object i in D.
 
 ## Tags
 lifting property
@@ -43,7 +45,8 @@ A    → X
 ↓i    ↓p≅
 B    → Y
 -/
-lemma iso_has_right_lifting_property (i : arrow C) (p : X ≅ Y) : has_lifting_property i (arrow.mk p.hom) :=
+lemma iso_has_right_lifting_property (i : arrow C) (p : X ≅ Y) : 
+has_lifting_property i (arrow.mk p.hom) :=
 begin
   intro sq,
   fconstructor,
@@ -67,7 +70,8 @@ end
 ↓   ↓
 B → Y has a lifting iff there is a map B → X making the right part commute.
 -/
-lemma right_lifting_property_initial_iff (i p : arrow C) (h : category_theory.limits.is_initial i.left) :
+lemma right_lifting_property_initial_iff (i p : arrow C) 
+(h : category_theory.limits.is_initial i.left) :
 has_lifting_property i p ↔ ∀ {e : i.right ⟶ p.right}, ∃ l : i.right ⟶ p.left, l ≫ p.hom = e :=
 begin
   split,
@@ -88,7 +92,8 @@ begin
     { exact he } }
 end
 
-/- A helper construction: given a square between i and f ≫ g, produce a square between i and g, whose top leg uses f:
+/- A helper construction: given a square between i and f ≫ g, produce a square between i and g, 
+whose top leg uses f:
 A  → X  
      ↓f
 ↓i   Y             --> A → Y 
@@ -165,16 +170,19 @@ end
 /- Right lifting conditions relative to a diagram of arrows in C. -/
 variable {F : D ⥤ arrow C}
 
-def right_lifting_property_rel (p : X ⟶ Y) : Prop := ∀ i : D, has_lifting_property ((F.obj) i) (arrow.mk p)
+def right_lifting_property_rel (p : X ⟶ Y) : Prop := 
+∀ i : D, has_lifting_property ((F.obj) i) (arrow.mk p)
 
-lemma id_has_right_lifting_property' (X : C) :  ∀ i : D, has_lifting_property ((F.obj) i) (arrow.mk (𝟙 X)) :=
+lemma id_has_right_lifting_property' (X : C) :  
+∀ i : D, has_lifting_property ((F.obj) i) (arrow.mk (𝟙 X)) :=
 begin
   intro i,
   exact id_has_right_lifting_property ((F.obj) i),
 end
 
-lemma has_right_lifting_property_comp' {f : X ⟶ Y} (hf : ∀ i : D, has_lifting_property ((F.obj) i) (arrow.mk f))
- {g : Y ⟶ Z} (hg : ∀ i : D, has_lifting_property ((F.obj) i) (arrow.mk g)) :
+lemma has_right_lifting_property_comp' 
+{f : X ⟶ Y} (hf : ∀ i : D, has_lifting_property ((F.obj) i) (arrow.mk f))
+{g : Y ⟶ Z} (hg : ∀ i : D, has_lifting_property ((F.obj) i) (arrow.mk g)) :
 ∀ i : D,  has_lifting_property ((F.obj) i) (arrow.mk (f ≫ g)) :=
 begin
   intro i,
@@ -191,7 +199,8 @@ instance : category (right_lifting_subcat F) :=
 { hom := λ X Y, { p : X.X ⟶ Y.X // 
     ∀ {i : D}, has_lifting_property ((F.obj) i) (arrow.mk p) },
   id := λ X, ⟨ 𝟙 X, id_has_right_lifting_property' X, ⟩,
-  comp := λ X Y Z f g, ⟨f.val ≫ g.val, begin intro i, apply has_right_lifting_property_comp' f.property g.property end ⟩,
+  comp := λ X Y Z f g, ⟨f.val ≫ g.val, 
+    begin intro i, apply has_right_lifting_property_comp' f.property g.property end ⟩,
   id_comp' := λ X Y f, begin tidy, apply category.id_comp, end, 
   comp_id' := λ _ _ _, begin tidy, apply category.comp_id, end,
   assoc' := λ _ _ _ _ _ _ _, begin tidy, end }

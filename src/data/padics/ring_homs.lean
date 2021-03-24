@@ -267,7 +267,7 @@ begin
   dsimp [to_zmod, to_zmod_hom],
   unfreezingI { rcases (exists_eq_add_of_lt (hp_prime.pos)) with ⟨p', rfl⟩ },
   change ↑(zmod.val _) = _,
-  simp only [zmod.val_nat_cast, add_zero, add_def, cast_inj, zero_add],
+  simp only [zmod.val_nat_cast, add_zero, add_def, nat.cast_inj, zero_add],
   apply mod_eq_of_lt,
   simpa only [zero_add] using zmod_repr_lt_p z,
 end

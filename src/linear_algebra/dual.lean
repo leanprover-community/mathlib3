@@ -363,7 +363,7 @@ lemma decomposition (v : V) : dual_pair.lc e (h.coeffs v) = v :=
 begin
   refine eq_of_sub_eq_zero (h.total _),
   intros i,
-  simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero_iff_eq]
+  simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero]
 end
 
 lemma mem_of_mem_span {H : set ι} {x : V} (hmem : x ∈ submodule.span K (e '' H)) :

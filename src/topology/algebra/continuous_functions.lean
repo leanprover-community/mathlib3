@@ -502,14 +502,14 @@ lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x
 begin
   dsimp [min, max, abs],
   simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring; linarith,
+  split_ifs; ring_nf; linarith,
 end
 
 lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
 begin
   dsimp [min, max, abs],
   simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
-  split_ifs; ring; linarith,
+  split_ifs; ring_nf; linarith,
 end
 end
 

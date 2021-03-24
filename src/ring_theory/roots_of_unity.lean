@@ -488,44 +488,35 @@ h.pow_eq_one
 and the powers of a primitive root of unity `ζ`. -/
 def zmod_equiv_gpowers (h : is_primitive_root ζ k) : zmod k ≃+ additive (subgroup.gpowers ζ) :=
 add_equiv.of_bijective
-(add_monoid_hom.lift_of_surjective (int.cast_add_hom _)
-  zmod.int_cast_surjective
-  { to_fun := λ i, additive.of_mul (⟨_, i, rfl⟩ : subgroup.gpowers ζ),
-    map_zero' := by { simp only [gpow_zero], refl },
-    map_add' := by { intros i j, simp only [gpow_add], refl } }
-  (λ i hi,
+  (add_monoid_hom.lift_of_right_inverse (int.cast_add_hom $ zmod k) _ zmod.int_cast_right_inverse
+    ⟨{ to_fun := λ i, additive.of_mul (⟨_, i, rfl⟩ : subgroup.gpowers ζ),
+      map_zero' := by { simp only [gpow_zero], refl },
+      map_add' := by { intros i j, simp only [gpow_add], refl } },
+    (λ i hi,
+    begin
+      simp only [add_monoid_hom.mem_ker, char_p.int_cast_eq_zero_iff (zmod k) k,
+        add_monoid_hom.coe_mk, int.coe_cast_add_hom] at hi ⊢,
+      obtain ⟨i, rfl⟩ := hi,
+      simp only [gpow_mul, h.pow_eq_one, one_gpow, gpow_coe_nat],
+      refl
+    end)⟩)
   begin
-    simp only [add_monoid_hom.mem_ker, char_p.int_cast_eq_zero_iff (zmod k) k,
-      add_monoid_hom.coe_mk, int.coe_cast_add_hom] at hi ⊢,
-    obtain ⟨i, rfl⟩ := hi,
-    simp only [gpow_mul, h.pow_eq_one, one_gpow, gpow_coe_nat],
-    refl
-  end)) $
-begin
-  split,
-  { rw add_monoid_hom.injective_iff,
-    intros i hi,
-    rw subtype.ext_iff at hi,
-    have := (h.gpow_eq_one_iff_dvd _).mp hi,
-    rw [← (char_p.int_cast_eq_zero_iff (zmod k) k _).mpr this, eq_comm],
-    exact classical.some_spec (zmod.int_cast_surjective i) },
-  { rintro ⟨ξ, i, rfl⟩,
-    refine ⟨int.cast_add_hom _ i, _⟩,
-    rw [add_monoid_hom.lift_of_surjective_comp_apply],
-    refl }
-end
+    split,
+    { rw add_monoid_hom.injective_iff,
+      intros i hi,
+      rw subtype.ext_iff at hi,
+      have := (h.gpow_eq_one_iff_dvd _).mp hi,
+      rw [← (char_p.int_cast_eq_zero_iff (zmod k) k _).mpr this, eq_comm],
+      exact zmod.int_cast_right_inverse i },
+    { rintro ⟨ξ, i, rfl⟩,
+      refine ⟨int.cast_add_hom _ i, _⟩,
+      rw [add_monoid_hom.lift_of_right_inverse_comp_apply],
+      refl }
+  end
 
 @[simp] lemma zmod_equiv_gpowers_apply_coe_int (i : ℤ) :
   h.zmod_equiv_gpowers i = additive.of_mul (⟨ζ ^ i, i, rfl⟩ : subgroup.gpowers ζ) :=
-begin
-  apply add_monoid_hom.lift_of_surjective_comp_apply,
-  intros j hj,
-  simp only [add_monoid_hom.mem_ker, char_p.int_cast_eq_zero_iff (zmod k) k,
-    add_monoid_hom.coe_mk, int.coe_cast_add_hom] at hj ⊢,
-  obtain ⟨j, rfl⟩ := hj,
-  simp only [gpow_mul, h.pow_eq_one, one_gpow, gpow_coe_nat],
-  refl
-end
+add_monoid_hom.lift_of_right_inverse_comp_apply _ _ zmod.int_cast_right_inverse _ _
 
 @[simp] lemma zmod_equiv_gpowers_apply_coe_nat (i : ℕ) :
   h.zmod_equiv_gpowers i = additive.of_mul (⟨ζ ^ i, i, rfl⟩ : subgroup.gpowers ζ) :=

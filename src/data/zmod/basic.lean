@@ -96,6 +96,18 @@ def comm_ring (n : ℕ) : comm_ring (fin (n+1)) :=
   mul_one := fin.mul_one,
   left_distrib := left_distrib_aux n,
   right_distrib := λ a b c, by rw [mul_comm, left_distrib_aux, mul_comm _ b, mul_comm]; refl,
+  sub_eq_add_neg := λ ⟨a, ha⟩ ⟨b, hb⟩, subtype.eq $
+    show (a + (n + 1 - b)) % (n + 1) = (a + nat_mod (-b : ℤ) _) % (n + 1),
+    from int.coe_nat_inj
+    begin
+      have npos : 0 < n+1 := lt_of_le_of_lt (nat.zero_le _) ha,
+      have hn : ((n+1 : _) : ℤ) ≠ 0 := (ne_of_lt (int.coe_nat_lt.2 npos)).symm,
+      rw [int.coe_nat_mod, int.coe_nat_mod, int.coe_nat_add a, int.coe_nat_add a,
+        int.mod_add_cancel_left, int.nat_mod, to_nat_of_nonneg (int.mod_nonneg (-b : ℤ) hn),
+        int.coe_nat_sub hb.le, sub_eq_add_neg],
+      simp,
+    end,
+  sub := fin.sub,
   ..fin.has_one,
   ..fin.has_neg (n+1),
   ..fin.add_comm_monoid n,

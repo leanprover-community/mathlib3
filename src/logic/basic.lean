@@ -260,6 +260,18 @@ You can check if a lemma uses the axiom of choice by using `#print axioms foo` a
 -/
 library_note "decidable namespace"
 
+/--
+As mathlib is primarily classical,
+if the type signature of a `def` or `lemma` does not require any `decidable` instances to state,
+it is preferable not to introduce any `decidable` instances that are needed in the proof
+as arguments, but rather to use the `classical` tactic as needed.
+
+In the other direction, when `decidable` instances do appear in the type signature,
+it is better to use explicitly introduced ones rather than allowing Lean to automatically infer
+classical ones, as these may cause instance mismatch errors later.
+-/
+library_note "decidable arguments"
+
 -- See Note [decidable namespace]
 protected theorem decidable.not_not [decidable a] : ¬¬a ↔ a :=
 iff.intro decidable.by_contradiction not_not_intro

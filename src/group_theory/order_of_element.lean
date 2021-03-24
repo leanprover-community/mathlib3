@@ -376,10 +376,7 @@ variables (x)
 
 lemma add_order_of_nsmul' (h : n ≠ 0) :
   add_order_of (n •ℕ x) = add_order_of x / gcd (add_order_of x) n :=
-begin
-  repeat {rw ← order_of_of_add_eq_add_order_of},
-  rwa [of_add_nsmul, order_of_pow'],
-end
+by simpa [← order_of_of_add_eq_add_order_of, of_add_nsmul] using order_of_pow' _ h
 
 attribute [to_additive add_order_of_nsmul'] order_of_pow'
 

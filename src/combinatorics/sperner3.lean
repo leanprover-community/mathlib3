@@ -39,7 +39,7 @@ variables {m n : ℕ} {S : simplicial_complex m}
 local notation `E` := fin m → ℝ
 
 /--
-A constructor for simplicial complexes by specifying an surcomplex and showing the set of faces
+A constructor for simplicial complexes by specifying a surcomplex and showing the set of faces
 is downward closed
 -/
 def simplicial_complex.of_surcomplex {m : ℕ} {S : simplicial_complex m}
@@ -54,6 +54,7 @@ def simplicial_complex.of_surcomplex {m : ℕ} {S : simplicial_complex m}
 def simplicial_complex.space (S : simplicial_complex m) : set E :=
 ⋃ X ∈ S.faces, convex_hull (X : set E)
 
+--I think we should take faces := {∅} instead of faces := ∅
 def empty_simplicial_complex (m : ℕ) : simplicial_complex m := {
   faces := ∅,
   indep := begin
@@ -135,10 +136,10 @@ begin
     by_cases x ∈ boundary s,
     { rw [boundary] at h,
       simp only [exists_prop, set.mem_Union] at h,
-      rcases h with ⟨t, st, ht⟩,
+      obtain ⟨t, st, ht⟩ := h,
       specialize ih _ st ht,
       simp only [exists_prop, set.mem_Union] at ⊢ ih,
-      rcases ih with ⟨Z, Zt, hZ⟩,
+      obtain ⟨Z, Zt, hZ⟩ := ih,
       exact ⟨_, subset.trans Zt st.1, hZ⟩ },
     { exact subset_bUnion_of_mem (λ _ t, t) ⟨hx, h⟩ } },
   { exact bUnion_subset (λ Y hY, subset.trans (diff_subset _ _) (convex_hull_mono hY)) },
@@ -157,7 +158,8 @@ begin
     exact subset.trans (diff_subset _ _) (subset_bUnion_of_mem hY) }
 end
 
-/- The simplices interiors form a partition of the underlying space (except that they contain the empty set) -/
+/- The simplices interiors form a partition of the underlying space (except that they contain the
+empty set) -/
 lemma combi_interiors_partition {S : simplicial_complex m} :
   ∀ x ∈ S.space, exists_unique (λ X, X ∈ S.faces ∧ x ∈ combi_interior X) :=
 begin
@@ -258,7 +260,7 @@ begin
     { apply y₂x, refl } }
 end
 
-lemma is_extreme_of_affine_independent {X : finset E} {x : E} (hx : x ∈ X)
+lemma is_extreme_to_convex_hull_of_affine_independent {X : finset E} {x : E} (hx : x ∈ X)
   (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
   is_extreme (convex_hull ↑X) x :=
 begin
@@ -286,15 +288,16 @@ lemma subset_of_convex_hull_eq_convex_hull_of_linearly_independent {X Y : finset
   → convex_hull ↑X = convex_hull (Y : set(fin m → ℝ)) → X ⊆ Y :=
 begin
   rintro hX h x hx,
-  have hxextreme := is_extreme_of_affine_independent hx hX,
+  have hxextreme := is_extreme_to_convex_hull_of_affine_independent hx hX,
   rw h at hxextreme,
   exact mem_of_is_extreme_to_convex_hull hxextreme,
 end
 
 --Keep two linearly_independent in the name?
-lemma eq_of_convex_hull_eq_convex_hull_of_linearly_independent_of_linearly_independent {X Y : finset E} :
-  affine_independent ℝ (λ p, p : (X : set E) → E) → affine_independent ℝ (λ p, p : (Y : set E) → E)
-  → convex_hull ↑X = convex_hull (Y : set(fin m → ℝ)) → X = Y :=
+lemma eq_of_convex_hull_eq_convex_hull_of_linearly_independent_of_linearly_independent
+  {X Y : finset E} : affine_independent ℝ (λ p, p : (X : set E) → E) →
+  affine_independent ℝ (λ p, p : (Y : set E) → E) →
+  convex_hull ↑X = convex_hull (Y : set(fin m → ℝ)) → X = Y :=
 begin
   rintro hX hY h,
   have := subset.antisymm (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hX h)
@@ -391,7 +394,8 @@ end
 
 -- end
 
-/- S₁ ≤ S₂ iff all faces of S₁ are contained in faces of S₂-/
+/- S₁ ≤ S₂ (S₁ is a subdivision of S₂) iff their underlying space is the same and each face of S₁
+is contained in some face of S₂-/
 instance : has_le (simplicial_complex m) := ⟨λ S₁ S₂, S₁.space = S₂.space ∧
   ∀ {X₁ : finset (fin m → ℝ)}, X₁ ∈ S₁.faces → ∃ X₂ ∈ S₂.faces,
   convex_hull (X₁ : set(fin m → ℝ)) ⊆ convex_hull (X₂ : set(fin m → ℝ))⟩
@@ -467,7 +471,7 @@ lemma connected_iff_one_skeleton_connected {S : simplicial_complex m} :
 begin
   split,
   {
-    intro h,
+    rintro h,
     unfold simplicial_complex.connected,
     sorry
   },
@@ -476,13 +480,52 @@ begin
   }
 end
 
-/-
-An m-dimensional simplicial complex is pure of dimension n iff all faces are subfaces of some
-n-dimensional face
--/
-def simplicial_complex.pure (S : simplicial_complex m) (n : ℕ) : Prop :=
-∀ {X : finset (fin m → ℝ)}, X ∈ S.faces → ∃ Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y
+def simplicial_complex.facets (S : simplicial_complex m) : set (finset (fin m → ℝ))
+  := {X | X ∈ S.faces ∧ (∀ {Y}, Y ∈ S.faces → X ⊆ Y → X = Y)}
 
+lemma facets_subset_faces (S : simplicial_complex m) : S.facets ⊆ S.faces := λ X hX, hX.1
+
+/-
+A simplicial complex is pure iff all its facets have the same dimension
+-/
+def simplicial_complex.pure (S : simplicial_complex m) : Prop := ∃ n : ℕ, ∀ X ∈ S.facets,
+  (X : finset _).card = n + 1
+
+noncomputable def pureness {S : simplicial_complex m} (hS : S.pure) : ℕ := classical.some hS
+
+/-A simplicial complex is pure iff there exists n such that all faces are subfaces of some
+n-dimensional face-/
+lemma pure_iff {S : simplicial_complex m} : S.pure ↔ ∃ n : ℕ, ∀ {X}, X ∈ S.faces →
+  ∃ Y ∈ S.faces, finset.card Y = n + 1 ∧ X ⊆ Y :=
+begin
+  split,
+  {
+    rintro ⟨n, hS⟩,
+    use n,
+    rintro X hX,
+    sorry --Lean timeouts when I do by_contra
+  },
+  {
+    rintro ⟨n, hS⟩,
+    use n,
+    rintro X ⟨hX, hXmax⟩,
+    obtain ⟨Y, hY, hYcard, hXY⟩ := hS hX,
+    rw hXmax hY hXY,
+    exact hYcard,
+  }
+end
+
+/-The cells of a simplicial complex are its simplices whose dimension matches the one of the space-/
+def simplicial_complex.cells (S : simplicial_complex m) : set (finset (fin m → ℝ))
+  := {X | X ∈ S.faces ∧ X.card = m + 1}
+
+lemma cells_subset_facets {S : simplicial_complex m} : S.cells ⊆ S.facets :=
+begin
+  rintro X ⟨hX, hXcard⟩,
+  sorry
+end
+
+/-A simplex is locally finite iff each face belongs to finitely many faces-/
 def simplicial_complex.locally_finite (S : simplicial_complex m) : Prop :=
   ∀ x : fin m → ℝ, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set(fin m → ℝ))}
 
@@ -600,13 +643,14 @@ begin --golfable?
 end
 
 lemma pure_Star_of_pure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
-  (hA : A ⊆ S.faces) {n : ℕ} : S.pure n → (Star hA).pure n :=
+  (hA : A ⊆ S.faces) {n : ℕ} : S.pure → (Star hA).pure :=
 begin
-  rintro hS X hX,
+  /-rintro hS X hX,
   obtain ⟨Y, hY, Z, hZ, hXZ, hYZ⟩ := (mem_Star_iff hA).mp hX,
   obtain ⟨W, hW, hWcard, hZW⟩ := hS hZ,
   exact ⟨W, star_subset_Star hA (star_up_closed hA hW (self_subset_star hA hY)
-    (subset.trans hYZ hZW)), hWcard, subset.trans hXZ hZW⟩,
+    (subset.trans hYZ hZW)), hWcard, subset.trans hXZ hZW⟩,-/
+    sorry
 end
 
 def link {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
@@ -624,11 +668,16 @@ def link {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A �
     }
   end
 
+-- @Bhavik, how should I do to define the link/star/Star of a single face? Lean doesn't seem to
+-- handle well polymorphism
+def link_singleton {S : simplicial_complex m} {X : finset (fin m → ℝ)} (hX : X ∈ S.faces) :
+  simplicial_complex m := sorry
+
 lemma link_subset_complex {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
   (hA : A ⊆ S.faces) : (link hA).faces ⊆ S.faces := λ X hX, Star_subset_complex hA hX.1
 
 /-lemma pure_link_of_pure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
-  (hA : A ⊆ S.faces) {n : ℕ} : S.pure n → (link hA).pure (n - finset.card  :=
+  (hA : A ⊆ S.faces) {n : ℕ} : S.pure → (link hA).pure (n - finset.card  :=
 begin
   rintro hS X hX,
 end-/
@@ -640,30 +689,52 @@ def simplicial_complex.erasure {S : simplicial_complex m} {A : set (finset (fin 
   {X | X ∈ S.faces ∧ ∀ {Y}, Y ∈ A → disjoint X Y} (λ X hX, hX.1)
   (λ X Y ⟨hX, hXA⟩ hYX, ⟨S.down_closed hX hYX, λ Z hZ, finset.disjoint_of_subset_left hYX (hXA hZ)⟩)
 
+/-lemma link_eq_erasure_Star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hA : A ⊆ S.faces) :-/
 
---What's best? Pyramid, or cone?
+def simplicial_complex.boundary (S : simplicial_complex m) : simplicial_complex m :=
+  simplicial_complex.of_surcomplex {X | ∃ Y ∈ S.faces, X ⊆ Y ∧ ∃! Z ∈ S.facets, Y ⊆ Z}
+  (λ X ⟨Y, hY, hXY, _⟩, S.down_closed hY hXY)
+(λ X W ⟨Y, hY, hXY, ⟨Z, hZ⟩⟩ hWX, ⟨Y, hY, subset.trans hWX hXY, Z, hZ⟩)
+
+lemma boundary_subset_complex {S : simplicial_complex m} : S.boundary.faces ⊆ S.faces :=
+  λ X ⟨Y, hY, hXY, _⟩, S.down_closed hY hXY
+
+lemma pure_boundary_of_pure {S : simplicial_complex m} : S.pure → S.boundary.pure :=
+begin
+  --rintro hS X ⟨Y, hY, hXY, ⟨Z, ⟨hZ, hYZ⟩, hZunique⟩⟩,
+  --simp at *,
+  /-rintro hS X hX,
+  obtain ⟨Y, hY, hYcard, hXY⟩ := hS (boundary_subset_complex hX),
+  by_cases hYX : Y ⊆ X,
+  {
+    sorry
+  },-/
+  sorry
+end
+
+/-The pyramid of a vertex v with respect to a simplicial complex S is the surcomplex consisting of
+all faces of S along with all faces of S with v added -/
 def pyramid {S : simplicial_complex m}
   (hS : ∀ X ∈ S.faces, finset.card X ≤ m) {v : fin m → ℝ} (hv : v ∉ convex_hull S.space) :
   simplicial_complex m :=
  {faces := {X' | ∃ X ∈ S.faces, X' ⊆ X ∪ {v}},
    --an alternative is S.faces ∪ S.faces.image (insert v)
    --a problem is that S.faces = ∅ should output (S.pyramid hS v hv).faces = {v} but this def doesn't
+   --as said in the definition of empty_simplicial_complex, a solution is to define faces = {∅}
+   --instead of faces = ∅.
   indep := begin
     rintro X' ⟨X, hX, hX'X⟩,
     sorry
   end,
-  down_closed := begin
-    rintro X' Y ⟨X, hX, hX'X⟩ hYX',
-    simp,
-    exact ⟨X, hX, subset.trans hYX' hX'X⟩,
-  end,
+  down_closed := λ X' Y ⟨X, hX, hX'X⟩ hYX', ⟨X, hX, subset.trans hYX' hX'X⟩,
   disjoint := begin
     rintro X' Y' ⟨X, hX, hX'X⟩ ⟨Y, hY, hY'Y⟩,
     sorry
   end}
 
 --Bad name?
-lemma faces_subset_pyramid  {S : simplicial_complex m} {v : fin m → ℝ}
+lemma faces_subset_pyramid {S : simplicial_complex m} {v : fin m → ℝ}
   (hS : ∀ X ∈ S.faces, finset.card X ≤ m) (hv : v ∉ convex_hull S.space) :
   S.faces ⊆ (pyramid hS hv).faces := λ X hX, ⟨X, hX, finset.subset_union_left X {v}⟩
 
@@ -679,26 +750,21 @@ begin
     sorry
   },
   {
-    rintro X ⟨Y, hY, hXY⟩,
+    rintro X ⟨Y, hY, hXYv⟩,
     obtain ⟨Z, hZ, hYZhull⟩ := h.2 hY,
     use Z ∪ {v},
     split,
     {
       exact ⟨Z, hZ, subset.refl _⟩,
     },
-    sorry,
+    have hXYvhull : convex_hull ↑X ⊆ convex_hull ↑(Y ∪ {v}) := convex_hull_mono hXYv,
+    have hYvZvhull : convex_hull ↑(Y ∪ {v}) ⊆ convex_hull ↑(Z ∪ {v}),
+    {
+      sorry
+    },
+    exact subset.trans hXYvhull hYvZvhull,
   }
 end
-
-def simplicial_complex.facets (S : simplicial_complex m) : set (finset (fin m → ℝ))
-  := {X | X ∈ S.faces ∧ (∀ Y ∈ S.faces, ¬X ⊂ Y)}
-
-lemma facets_subset_faces (S : simplicial_complex m) : S.facets ⊆ S.faces := λ X hX, hX.1
-
-def simplicial_complex.boundary (S : simplicial_complex m) : simplicial_complex m :=
-  simplicial_complex.of_surcomplex {X | ∃ Y ∈ S.faces, X ⊆ Y ∧ ∃! Z ∈ S.facets, Y ⊆ Z}
-  (λ X ⟨Y, hY, hXY, _⟩, (S.down_closed hY hXY))
-(λ X W ⟨Y, hY, hXY, ⟨Z, hZ⟩⟩ hWX, ⟨Y, hY, subset.trans hWX hXY, Z, hZ⟩)
 
 /-
 A polytope of dimension `n` in `R^m` is a subset for which there exists a simplicial complex which
@@ -706,7 +772,7 @@ is pure of dimension `n` and has the same underlying space.
 -/
 @[ext] structure polytope (m n : ℕ) :=
 (space : set (fin m → ℝ))
-(realisable : ∃ (S : simplicial_complex m), S.pure n ∧ space = S.space)
+(realisable : ∃ (S : simplicial_complex m), S.pure ∧ space = S.space)
 
 def polytope.vertices (P : polytope m n) : set (fin m → ℝ) :=
   ⋂ (S : simplicial_complex m) (H : P.space = S.space), {x | {x} ∈ S.faces}
@@ -717,10 +783,11 @@ def polytope.edges (P : polytope m n) : set (finset (fin m → ℝ)) :=
 noncomputable def polytope.realisation (P : polytope m n) :
   simplicial_complex m := classical.some P.realisable
 
-lemma pure_polytope_realisation (P : polytope m n) : P.realisation.pure n :=
+lemma pure_polytope_realisation (P : polytope m n) : P.realisation.pure :=
 begin
   sorry --trivial by definition but I don't know how to do it
 end
+
 --def polytope.faces {n : ℕ} (P : polytope m n) : set (finset (fin m → ℝ)) :=
 --  P.realisation.boundary.faces
 

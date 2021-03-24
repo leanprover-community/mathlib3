@@ -199,7 +199,7 @@ def Icc_left_chart (x y : ℝ) [fact (x < y)] :
 { source      := {z : Icc x y | z.val < y},
   target      := {z : euclidean_half_space 1 | z.val 0 < y - x},
   to_fun      := λ(z : Icc x y), ⟨λi, z.val - x, sub_nonneg.mpr z.property.1⟩,
-  inv_fun     := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.prop, le_of_lt ‹x < y›]⟩,
+  inv_fun     := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.prop, le_of_lt (fact.out (x < y))]⟩,
   map_source' := by simp only [imp_self, sub_lt_sub_iff_right, mem_set_of_eq, forall_true_iff],
   map_target' :=
     by { simp only [min_lt_iff, mem_set_of_eq], assume z hz, left,
@@ -254,7 +254,7 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   target      := {z : euclidean_half_space 1 | z.val 0 < y - x},
   to_fun      := λ(z : Icc x y), ⟨λi, y - z.val, sub_nonneg.mpr z.property.2⟩,
   inv_fun     := λz,
-    ⟨max (y - z.val 0) x, by simp [le_refl, z.prop, le_of_lt ‹x < y›, sub_eq_add_neg]⟩,
+    ⟨max (y - z.val 0) x, by simp [le_refl, z.prop, le_of_lt (fact.out (x < y)), sub_eq_add_neg]⟩,
   map_source' := by simp only [imp_self, mem_set_of_eq, sub_lt_sub_iff_left, forall_true_iff],
   map_target' :=
     by { simp only [lt_max_iff, mem_set_of_eq], assume z hz, left,
@@ -311,7 +311,7 @@ instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half
     { simp only [h', if_true],
       exact h' },
     { simp only [h', if_false],
-      apply lt_of_lt_of_le ‹x < y›,
+      apply lt_of_lt_of_le (fact.out (x < y)),
       simpa only [not_lt] using h'}
   end,
   chart_mem_atlas := λz, by { by_cases h' : z.val < y; simp [h'] } }
@@ -366,7 +366,7 @@ end
 /-! Register the manifold structure on `Icc 0 1`, and also its zero and one. -/
 section
 
-lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := zero_lt_one
+lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := ⟨zero_lt_one⟩
 
 local attribute [instance] fact_zero_lt_one
 

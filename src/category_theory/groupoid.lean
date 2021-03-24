@@ -37,7 +37,7 @@ variables {C : Type u} [groupoid.{v} C] {X Y : C}
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f :=
-⟨groupoid.inv f, by simp⟩
+⟨⟨groupoid.inv f, by simp⟩⟩
 
 variables (X Y)
 

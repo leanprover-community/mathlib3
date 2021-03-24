@@ -657,7 +657,7 @@ begin
   simp only [nhds_eq_order, infi_subtype'],
   refine ((has_basis_infi_principal_finite _).inf
     (has_basis_infi_principal_finite _)).tendsto_Ixx_class (λ s hs, _),
-  refine (ord_connected_bInter _).inter (ord_connected_bInter _); intros _ _,
+  refine ((ord_connected_bInter _).inter (ord_connected_bInter _)).out; intros _ _,
   exacts [ord_connected_Ioi, ord_connected_Iio]
 end
 
@@ -798,7 +798,7 @@ begin
       revert hx,
       contrapose!,
       -- here we use the `ord_connected` hypothesis
-      exact λ hx, ht y.2 a.2 ⟨le_of_not_gt hx, le_of_lt h⟩ },
+      exact λ hx, ht.out y.2 a.2 ⟨le_of_not_gt hx, le_of_lt h⟩ },
     { refine le_infi (λ x, le_infi $ λ h, le_principal_iff.2 _),
       by_cases hx : x ∈ t,
       { refine mem_infi_sets (Iio ⟨x, hx⟩) (mem_infi_sets ⟨h, ⟨⟨x, hx⟩, or.inr rfl⟩⟩ _),
@@ -811,7 +811,7 @@ begin
       revert hx,
       contrapose!,
       -- here we use the `ord_connected` hypothesis
-      exact λ hx, ht a.2 y.2 ⟨le_of_lt h, le_of_not_gt hx⟩ } }
+      exact λ hx, ht.out a.2 y.2 ⟨le_of_lt h, le_of_not_gt hx⟩ } }
 end
 
 lemma nhds_top_order [topological_space α] [order_top α] [order_topology α] :
@@ -2375,7 +2375,7 @@ lemma is_preconnected_interval : is_preconnected (interval a b) := is_preconnect
 
 lemma is_preconnected_iff_ord_connected {s : set α} :
   is_preconnected s ↔ ord_connected s :=
-⟨λ h x hx y hy, h.Icc_subset hx hy, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
+⟨λ h, ⟨λ x hx y hy, h.Icc_subset hx hy⟩, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
   ⟨interval x y, h.interval_subset hx hy, left_mem_interval, right_mem_interval,
     is_preconnected_interval⟩⟩
 

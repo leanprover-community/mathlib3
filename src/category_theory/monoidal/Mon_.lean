@@ -118,13 +118,13 @@ instance {A B : Mon_ C} (f : A ⟶ B) [e : is_iso ((forget C).map f)] : is_iso f
 
 /-- The forgetful functor from monoid objects to the ambient category reflects isomorphisms. -/
 instance : reflects_isomorphisms (forget C) :=
-{ reflects := λ X Y f e, by exactI ⟨{
+{ reflects := λ X Y f e, by exactI ⟨⟨{
   hom := inv f.hom,
   mul_hom' :=
   begin
     simp only [is_iso.comp_inv_eq, hom.mul_hom, category.assoc, ←tensor_comp_assoc,
       is_iso.inv_hom_id, tensor_id, category.id_comp],
-  end }, by tidy⟩ }
+  end }, by tidy⟩⟩ }
 
 instance unique_hom_from_trivial (A : Mon_ C) : unique (trivial C ⟶ A) :=
 { default :=

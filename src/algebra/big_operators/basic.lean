@@ -136,6 +136,7 @@ lemma monoid_hom.coe_prod [monoid β] [comm_monoid γ] (f : α → β →* γ) (
   ⇑(∏ x in s, f x) = ∏ x in s, f x :=
 (monoid_hom.coe_fn β γ).map_prod _ _
 
+-- This lemma is strictly weaker than `finset.prod_apply`, and should be removed.
 @[simp, to_additive]
 lemma monoid_hom.finset_prod_apply [monoid β] [comm_monoid γ] (f : α → β →* γ) (s : finset α)
   (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
@@ -553,6 +554,11 @@ prod_dite_eq' s a (λ x _, b x)
 lemma prod_ite_index (p : Prop) [decidable p] (s t : finset α) (f : α → β) :
   (∏ x in if p then s else t, f x) = if p then ∏ x in s, f x else ∏ x in t, f x :=
 apply_ite (λ s, ∏ x in s, f x) _ _ _
+
+@[simp, to_additive]
+lemma prod_dite_irrel (p : Prop) [decidable p] (s : finset α) (f : p → α → β) (g : ¬p → α → β):
+  (∏ x in s, if h : p then f h x else g h x) = if h : p then ∏ x in s, f h x else ∏ x in s, g h x :=
+by { split_ifs with h; refl }
 
 @[simp] lemma sum_pi_single' {ι M : Type*} [decidable_eq ι] [add_comm_monoid M]
   (i : ι) (x : M) (s : finset ι) :

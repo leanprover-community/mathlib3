@@ -280,6 +280,42 @@ begin
   { simp, },
 end
 
+/--
+Convert a (dependently typed) matrix to a morphism of biproducts.
+-/
+def biproduct.matrix [fintype J] {K : Type v} [fintype K] [decidable_eq K] {f : J → C} {g : K → C}
+  [has_finite_biproducts C] (m : Π j k, f j ⟶ g k) : ⨁ f ⟶ ⨁ g :=
+biproduct.desc (λ j, biproduct.lift (λ k, m j k))
+
+@[simp, reassoc]
+lemma biproduct.matrix_π [fintype J] {K : Type v} [fintype K] [decidable_eq K] {f : J → C} {g : K → C}
+  [has_finite_biproducts C] (m : Π j k, f j ⟶ g k) (k : K) :
+  biproduct.matrix m ≫ biproduct.π g k = biproduct.desc (λ j, m j k) :=
+by { ext, simp [biproduct.matrix], }
+
+@[simp, reassoc]
+lemma biproduct.ι_matrix [fintype J] {K : Type v} [fintype K] [decidable_eq K] {f : J → C} {g : K → C}
+  [has_finite_biproducts C] (m : Π j k, f j ⟶ g k) (j : J) :
+  biproduct.ι f j ≫ biproduct.matrix m = biproduct.lift (λ k, m j k) :=
+by { ext, simp [biproduct.matrix], }
+
+/--
+Extract the matrix components from a morphism of biproducts.
+-/
+def biproduct.components [fintype J] {K : Type v} [fintype K] [decidable_eq K] {f : J → C} {g : K → C}
+  [has_finite_biproducts C] (m : ⨁ f ⟶ ⨁ g) (j : J) (k : K) : f j ⟶ g k :=
+biproduct.ι f j ≫ m ≫ biproduct.π g k
+
+@[simp] lemma biproduct.matrix_components [fintype J] {K : Type v} [fintype K] [decidable_eq K] {f : J → C} {g : K → C}
+  [has_finite_biproducts C] (m : Π j k, f j ⟶ g k) (j : J) (k : K) :
+  biproduct.components (biproduct.matrix m) j k = m j k :=
+by simp [biproduct.components]
+
+@[simp] lemma biproduct.components_matrix [fintype J] {K : Type v} [fintype K] [decidable_eq K] {f : J → C} {g : K → C}
+  [has_finite_biproducts C] (m : ⨁ f ⟶ ⨁ g) :
+  biproduct.matrix (λ j k, biproduct.components m j k) = m :=
+by { ext, simp [biproduct.components], }
+
 instance biproduct.ι_mono (f : J → C) [has_biproduct f]
   (b : J) : split_mono (biproduct.ι f b) :=
 { retraction := biproduct.desc $

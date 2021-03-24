@@ -47,7 +47,7 @@ variables {C D : Type*} [category C] [category D] [preadditive C]
 
 namespace functor
 
-/-- `F.add_map` is an additive homomorphism whose underlying function is `F.map`. -/
+/-- `F.map_add_hom` is an additive homomorphism whose underlying function is `F.map`. -/
 @[simps]
 def map_add_hom {X Y : C} : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y) :=
 { to_fun := λ f, F.map f,
@@ -63,6 +63,13 @@ F.map_add_hom.map_neg _
 @[simp]
 lemma additive.map_sub {X Y : C} {f g : X ⟶ Y} : F.map (f - g) = F.map f - F.map g :=
 F.map_add_hom.map_sub _ _
+
+open_locale big_operators
+
+@[simp]
+lemma additive.map_sum {X Y : C} {α : Type*} (f : α → (X ⟶ Y)) (s : finset α) :
+  F.map (∑ a in s, f a) = ∑ a in s, F.map (f a) :=
+(F.map_add_hom : (X ⟶ Y) →+ _).map_sum f s
 
 end functor
 end preadditive

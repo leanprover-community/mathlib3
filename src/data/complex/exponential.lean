@@ -673,10 +673,10 @@ lemma tanh_mul_I : tanh (x * I) = tan x * I :=
 by rw [tanh_eq_sinh_div_cosh, cosh_mul_I, sinh_mul_I, mul_div_right_comm, tan]
 
 lemma cos_mul_I : cos (x * I) = cosh x :=
-by rw ← cosh_mul_I; ring; simp
+by rw ← cosh_mul_I; ring_nf; simp
 
 lemma sin_mul_I : sin (x * I) = sinh x * I :=
-have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring, simp },
+have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring_nf, simp },
 by simpa only [neg_mul_eq_neg_mul_symm, div_I, neg_neg]
   using cancel_factors.cancel_factors_eq_div h I_ne_zero
 
@@ -1202,9 +1202,11 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
       (by simp at hm; tauto))
     (λ m hm, by rw nat.sub_add_cancel; simp at *; tauto)
     (λ a₁ a₂ ha₁ ha₂ h,
-      by rwa [nat.sub_eq_iff_eq_add, ← nat.sub_add_comm, eq_comm, nat.sub_eq_iff_eq_add, add_left_inj, eq_comm] at h;
+      by rwa [nat.sub_eq_iff_eq_add, ← nat.sub_add_comm, eq_comm, nat.sub_eq_iff_eq_add,
+              add_left_inj, eq_comm] at h;
         simp at *; tauto)
-    (λ b hb, ⟨b + n, mem_filter.2 ⟨mem_range.2 $ nat.add_lt_of_lt_sub_right (mem_range.1 hb), nat.le_add_left _ _⟩,
+    (λ b hb, ⟨b + n,
+      mem_filter.2 ⟨mem_range.2 $ nat.add_lt_of_lt_sub_right (mem_range.1 hb), nat.le_add_left _ _⟩,
       by rw nat.add_sub_cancel⟩)
 ... ≤ ∑ m in range (j - n), (n! * n.succ ^ m)⁻¹ :
   begin

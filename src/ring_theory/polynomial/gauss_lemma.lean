@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Aaron Anderson
+Authors: Aaron Anderson
 -/
-import ring_theory.localization
 import ring_theory.int.basic
+import ring_theory.localization
 
 /-!
 # Gauss's Lemma

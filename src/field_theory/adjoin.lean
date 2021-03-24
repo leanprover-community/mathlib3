@@ -1,12 +1,14 @@
 /-
-Copyright (c) 2020 Thomas Browning and Patrick Lutz. All rights reserved.
+Copyright (c) 2020 Thomas Browning, Patrick Lutz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Thomas Browning and Patrick Lutz
+Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.intermediate_field
 import field_theory.splitting_field
 import field_theory.separable
+import ring_theory.adjoin_root
+import ring_theory.power_basis
 
 /-!
 # Adjoining Elements to Fields
@@ -312,7 +314,7 @@ begin
   rw mul_inv_cancel (mt (λ key, _) h),
   rw ← ϕ.map_zero at key,
   change ↑(⟨x, hx⟩ : algebra.adjoin F {α}) = _,
-  rw [ϕ.injective key, submodule.coe_zero]
+  rw [ϕ.injective key, subalgebra.coe_zero]
 end
 
 end adjoin_simple
@@ -701,3 +703,85 @@ end
 end alg_hom_mk_adjoin_splits
 
 end intermediate_field
+
+section power_basis
+
+variables {K L : Type*} [field K] [field L] [algebra K L]
+
+namespace intermediate_field
+
+lemma power_basis_is_basis {x : L} (hx : is_integral K x) :
+  is_basis K (λ (i : fin (minpoly K x).nat_degree), (adjoin_simple.gen K x ^ (i : ℕ))) :=
+begin
+  let ϕ := (adjoin_root_equiv_adjoin K hx).to_linear_equiv,
+  have key : ϕ (adjoin_root.root (minpoly K x)) = adjoin_simple.gen K x,
+  { exact intermediate_field.adjoin_root_equiv_adjoin_apply_root K hx },
+  suffices : ϕ ∘ (λ (i : fin (minpoly K x).nat_degree),
+    adjoin_root.root (minpoly K x) ^ (i.val)) =
+      (λ (i : fin (minpoly K x).nat_degree),
+        (adjoin_simple.gen K x) ^ ↑i),
+  { rw ← this, exact linear_equiv.is_basis
+    (adjoin_root.power_basis_is_basis (minpoly.ne_zero hx)) ϕ },
+  ext y,
+  rw [function.comp_app, fin.val_eq_coe, alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow],
+  rw intermediate_field.adjoin_root_equiv_adjoin_apply_root K hx,
+end
+
+/-- The power basis `1, x, ..., x ^ (d - 1)` for `K⟮x⟯`,
+where `d` is the degree of the minimal polynomial of `x`. -/
+noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
+  power_basis K K⟮x⟯ :=
+{ gen := adjoin_simple.gen K x,
+  dim := (minpoly K x).nat_degree,
+  is_basis := power_basis_is_basis hx }
+
+@[simp] lemma adjoin.power_basis.gen_eq {x : L} (hx : is_integral K x) :
+  (adjoin.power_basis hx).gen = adjoin_simple.gen K x := rfl
+
+lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
+power_basis.finite_dimensional (adjoin.power_basis hx)
+
+lemma adjoin.findim {x : L} (hx : is_integral K x) :
+  finite_dimensional.findim K K⟮x⟯ = (minpoly K x).nat_degree :=
+begin
+  rw power_basis.findim (adjoin.power_basis hx),
+  refl,
+end
+
+end intermediate_field
+
+namespace power_basis
+
+open intermediate_field
+
+/-- `pb.equiv_adjoin_simple` is the equivalence between `K⟮pb.gen⟯` and `L` itself. -/
+noncomputable def equiv_adjoin_simple (pb : power_basis K L) :
+  K⟮pb.gen⟯ ≃ₐ[K] L :=
+(adjoin.power_basis pb.is_integral_gen).equiv pb
+  (minpoly.eq_of_algebra_map_eq (algebra_map K⟮pb.gen⟯ L).injective
+    (adjoin.power_basis pb.is_integral_gen).is_integral_gen
+    (by rw [adjoin.power_basis.gen_eq, adjoin_simple.algebra_map_gen]))
+
+@[simp]
+lemma equiv_adjoin_simple_aeval (pb : power_basis K L) (f : polynomial K) :
+  pb.equiv_adjoin_simple (aeval (adjoin_simple.gen K pb.gen) f) = aeval pb.gen f :=
+equiv_aeval _ pb _ f
+
+@[simp]
+lemma equiv_adjoin_simple_gen (pb : power_basis K L) :
+  pb.equiv_adjoin_simple (adjoin_simple.gen K pb.gen) = pb.gen :=
+equiv_gen _ pb _
+
+@[simp]
+lemma equiv_adjoin_simple_symm_aeval (pb : power_basis K L) (f : polynomial K) :
+  pb.equiv_adjoin_simple.symm (aeval pb.gen f) = aeval (adjoin_simple.gen K pb.gen) f :=
+by rw [equiv_adjoin_simple, equiv_symm, equiv_aeval, adjoin.power_basis.gen_eq]
+
+@[simp]
+lemma equiv_adjoin_simple_symm_gen (pb : power_basis K L) :
+  pb.equiv_adjoin_simple.symm pb.gen = (adjoin_simple.gen K pb.gen) :=
+by rw [equiv_adjoin_simple, equiv_symm, equiv_gen, adjoin.power_basis.gen_eq]
+
+end power_basis
+
+end power_basis

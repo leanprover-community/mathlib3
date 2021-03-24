@@ -175,14 +175,15 @@ end
 lemma supp_mk_tt' {α} (x : α) : qpf.supp' (foo.mk tt x) = {x} :=
 begin
   dsimp [qpf.supp'], ext, simp, dsimp [qpf.box], split; intro h,
-  { specialize h {x} _, { simp at h, assumption },
-    clear h, introv hfg, simp, rw hfg, simp },
+  { specialize h {x} _,
+    { clear h, introv hfg, simp, rw hfg, simp },
+    { simp at h, assumption }, },
   { introv hfg, subst x_1, classical,
     let f : α → α ⊕ bool := λ x, if x ∈ i then sum.inl x else sum.inr tt,
     let g : α → α ⊕ bool := λ x, if x ∈ i then sum.inl x else sum.inr ff,
     specialize hfg _ f g _,
+    { intros, simp [*,f,g,if_pos] },
     { simp [f,g] at hfg, split_ifs at hfg,
-      assumption, cases hfg },
-    { intros, simp [*,f,g,if_pos] } }
+      assumption, cases hfg } }
 end
 end ex

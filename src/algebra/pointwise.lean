@@ -209,7 +209,7 @@ begin
 end
 
 /-! ### Properties about inversion -/
-@[to_additive set.has_neg'] -- todo: remove prime once name becomes available
+@[to_additive set.has_neg]
 instance [has_inv α] : has_inv (set α) :=
 ⟨preimage has_inv.inv⟩
 
@@ -472,5 +472,19 @@ begin
   rintros ⟨a, b, ha, hb, rfl⟩,
   exact s.mul_mem ha hb
 end
+
+@[to_additive]
+lemma closure_mul_le (S T : set M) : closure (S * T) ≤ closure S ⊔ closure T :=
+Inf_le $ λ x ⟨s, t, hs, ht, hx⟩, hx ▸ (closure S ⊔ closure T).mul_mem
+    (le_def.mp le_sup_left $ subset_closure hs)
+    (le_def.mp le_sup_right $ subset_closure ht)
+
+@[to_additive]
+lemma sup_eq_closure (H K : submonoid M) : H ⊔ K = closure (H * K) :=
+le_antisymm
+  (sup_le
+    (λ h hh, subset_closure ⟨h, 1, hh, K.one_mem, mul_one h⟩)
+    (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
+  (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
 
 end submonoid

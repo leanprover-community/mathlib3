@@ -130,7 +130,8 @@ This is a more convenient formulation to show that a `kernel_fork` constructed u
 def is_limit.of_ι {W : C} (g : W ⟶ X) (eq : g ≫ f = 0)
   (lift : Π {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0), W' ⟶ W)
   (fac : ∀ {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0), lift g' eq' ≫ g = g')
-  (uniq : ∀ {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0) (m : W' ⟶ W) (w : m ≫ g = g'), m = lift g' eq') :
+  (uniq :
+    ∀ {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0) (m : W' ⟶ W) (w : m ≫ g = g'), m = lift g' eq') :
   is_limit (kernel_fork.of_ι g eq) :=
 is_limit_aux _ (λ s, lift s.ι s.condition) (λ s, fac s.ι s.condition) (λ s, uniq s.ι s.condition)
 
@@ -191,7 +192,8 @@ equalizer.iso_source_of_self 0
   kernel_zero_iso_source.hom = kernel.ι (0 : X ⟶ Y) := rfl
 
 @[simp] lemma kernel_zero_iso_source_inv :
-  kernel_zero_iso_source.inv = kernel.lift (0 : X ⟶ Y) (𝟙 X) (by simp) := rfl
+  kernel_zero_iso_source.inv = kernel.lift (0 : X ⟶ Y) (𝟙 X) (by simp) :=
+by { ext, simp [kernel_zero_iso_source], }
 
 /-- If two morphisms are known to be equal, then their kernels are isomorphic. -/
 def kernel_iso_of_eq {f g : X ⟶ Y} [has_kernel f] [has_kernel g] (h : f = g) :
@@ -327,7 +329,7 @@ section
 variables (X Y)
 
 /-- The kernel morphism of a zero morphism is an isomorphism -/
-def kernel.ι_of_zero : is_iso (kernel.ι (0 : X ⟶ Y)) :=
+lemma kernel.ι_of_zero : is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
 
 end
@@ -386,7 +388,8 @@ This is a more convenient formulation to show that a `cokernel_cofork` construct
 def is_colimit.of_π {Z : C} (g : Y ⟶ Z) (eq : f ≫ g = 0)
   (desc : Π {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0), Z ⟶ Z')
   (fac : ∀ {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0), g ≫ desc g' eq' = g')
-  (uniq : ∀ {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0) (m : Z ⟶ Z') (w : g ≫ m = g'), m = desc g' eq') :
+  (uniq :
+    ∀ {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0) (m : Z ⟶ Z') (w : g ≫ m = g'), m = desc g' eq') :
   is_colimit (cokernel_cofork.of_π g eq) :=
 is_colimit_aux _ (λ s, desc s.π s.condition) (λ s, fac s.π s.condition) (λ s, uniq s.π s.condition)
 
@@ -420,7 +423,8 @@ colimit.ι_desc _ _
 lemma cokernel.desc_zero {W : C} {h} : cokernel.desc f (0 : Y ⟶ W) h = 0 :=
 by { ext, simp, }
 
-instance cokernel.desc_epi {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) [epi k] : epi (cokernel.desc f k h) :=
+instance cokernel.desc_epi
+  {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) [epi k] : epi (cokernel.desc f k h) :=
 ⟨λ Z g g' w,
 begin
   replace w := cokernel.π f ≫= w,
@@ -447,7 +451,8 @@ def cokernel_zero_iso_target : cokernel (0 : X ⟶ Y) ≅ Y :=
 coequalizer.iso_target_of_self 0
 
 @[simp] lemma cokernel_zero_iso_target_hom :
-  cokernel_zero_iso_target.hom = cokernel.desc (0 : X ⟶ Y) (𝟙 Y) (by simp) := rfl
+  cokernel_zero_iso_target.hom = cokernel.desc (0 : X ⟶ Y) (𝟙 Y) (by simp) :=
+by { ext, simp [cokernel_zero_iso_target], }
 
 @[simp] lemma cokernel_zero_iso_target_inv :
   cokernel_zero_iso_target.inv = cokernel.π (0 : X ⟶ Y) := rfl
@@ -564,7 +569,8 @@ def cokernel_image_ι {X Y : C} (f : X ⟶ Y)
   begin
     have w := cokernel.condition f,
     conv at w { to_lhs, congr, rw ←image.fac f, },
-    rw [←has_zero_morphisms.comp_zero (limits.factor_thru_image f), category.assoc, cancel_epi] at w,
+    rw [←has_zero_morphisms.comp_zero (limits.factor_thru_image f), category.assoc, cancel_epi]
+      at w,
     exact w,
   end,
   inv := cokernel.desc _ (cokernel.π _)
@@ -579,7 +585,7 @@ section
 variables (X Y)
 
 /-- The cokernel of a zero morphism is an isomorphism -/
-def cokernel.π_of_zero :
+lemma cokernel.π_of_zero :
   is_iso (cokernel.π (0 : X ⟶ Y)) :=
 coequalizer.π_of_self _
 
@@ -647,20 +653,20 @@ variables [has_zero_morphisms C]
 
 /-- `has_kernels` represents the existence of kernels for every morphism. -/
 class has_kernels : Prop :=
-(has_limit : Π {X Y : C} (f : X ⟶ Y), has_kernel f)
+(has_limit : Π {X Y : C} (f : X ⟶ Y), has_kernel f . tactic.apply_instance)
 
 /-- `has_cokernels` represents the existence of cokernels for every morphism. -/
 class has_cokernels : Prop :=
-(has_colimit : Π {X Y : C} (f : X ⟶ Y), has_cokernel f)
+(has_colimit : Π {X Y : C} (f : X ⟶ Y), has_cokernel f . tactic.apply_instance)
 
 attribute [instance, priority 100] has_kernels.has_limit has_cokernels.has_colimit
 
 @[priority 100]
 instance has_kernels_of_has_equalizers [has_equalizers C] : has_kernels C :=
-{ has_limit := by apply_instance }
+{}
 
 @[priority 100]
 instance has_cokernels_of_has_coequalizers [has_coequalizers C] : has_cokernels C :=
-{ has_colimit := by apply_instance }
+{}
 
 end category_theory.limits

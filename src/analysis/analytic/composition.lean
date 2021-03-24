@@ -457,7 +457,7 @@ begin
     ... ≤ Cq : hCq _,
     have B,
     calc ((∏ i, nnnorm (p (c.blocks_fun i))) * rp ^ n)
-        ≤ ∏ i, nnnorm (p (c.blocks_fun i)) * rp ^ c.blocks_fun i :
+        = ∏ i, nnnorm (p (c.blocks_fun i)) * rp ^ c.blocks_fun i :
       by simp only [finset.prod_mul_distrib, finset.prod_pow_eq_pow_sum, c.sum_blocks_fun]
     ... ≤ ∏ i : fin c.length, Cp : finset.prod_le_prod' (λ i _, hCp _)
     ... = Cp ^ c.length : by simp
@@ -590,8 +590,8 @@ end
 power series, here given a a finset.
 See also `comp_partial_sum`. -/
 def comp_partial_sum_target (m M N : ℕ) : finset (Σ n, composition n) :=
-set.finite.to_finset $ (finset.finite_to_set _).dependent_image
-  (comp_partial_sum_target_subset_image_comp_partial_sum_source m M N)
+set.finite.to_finset $ ((finset.finite_to_set _).dependent_image _).subset $
+  comp_partial_sum_target_subset_image_comp_partial_sum_source m M N
 
 @[simp] lemma mem_comp_partial_sum_target_iff {m M N : ℕ} {a : Σ n, composition n} :
   a ∈ comp_partial_sum_target m M N ↔
@@ -605,7 +605,8 @@ that it is a bijection is not directly possible, but the consequence on sums can
 more easily. -/
 lemma comp_change_of_variables_sum {α : Type*} [add_comm_monoid α] (m M N : ℕ)
   (f : (Σ (n : ℕ), fin n → ℕ) → α) (g : (Σ n, composition n) → α)
-  (h : ∀ e (he : e ∈ comp_partial_sum_source m M N), f e = g (comp_change_of_variables m M N e he)) :
+  (h : ∀ e (he : e ∈ comp_partial_sum_source m M N),
+    f e = g (comp_change_of_variables m M N e he)) :
   ∑ e in comp_partial_sum_source m M N, f e = ∑ e in comp_partial_sum_target m M N, g e :=
 begin
   apply finset.sum_bij (comp_change_of_variables m M N),
@@ -819,7 +820,7 @@ let ⟨q, hq⟩ := hg, ⟨p, hp⟩ := hf in (hq.comp hp).analytic_at
 /-!
 ### Associativity of the composition of formal multilinear series
 
-In this paragraph, we us prove the associativity of the composition of formal power series.
+In this paragraph, we prove the associativity of the composition of formal power series.
 By definition,
 ```
 (r.comp q).comp p n v

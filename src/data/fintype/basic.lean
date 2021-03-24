@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 Finite types.
 -/
@@ -76,6 +76,9 @@ by simp [compl_eq_univ_sdiff]
 @[simp, norm_cast] lemma coe_compl [decidable_eq α] (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
 set.ext $ λ x, mem_compl
 
+@[simp] theorem union_compl [decidable_eq α] (s : finset α) : s ∪ sᶜ = finset.univ :=
+sup_compl_eq_top
+
 @[simp] lemma compl_filter [decidable_eq α] (p : α → Prop) [decidable_pred p]
   [Π x, decidable (¬p x)] :
   (univ.filter p)ᶜ = univ.filter (λ x, ¬p x) :=
@@ -142,6 +145,10 @@ decidable_of_iff (∀ a ∈ @univ α _, p a) (by simp)
 instance decidable_exists_fintype {p : α → Prop} [decidable_pred p] [fintype α] :
   decidable (∃ a, p a) :=
 decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
+
+instance decidable_mem_range_fintype [fintype α] [decidable_eq β] (f : α → β) :
+  decidable_pred (∈ set.range f) :=
+λ x, fintype.decidable_exists_fintype
 
 instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ≃ β) :=
@@ -486,8 +493,22 @@ begin
     simp only [finset.mem_univ, finset.mem_insert, true_iff, finset.mem_image, exists_prop],
     refine or_iff_not_imp_left.mpr _,
     { intro h,
-      use p.pred_above m h,
-      simp only [eq_self_iff_true, fin.succ_above_pred_above, and_self] } },
+      cases n,
+      { have : m = p := by simp,
+        exact absurd this h },
+      use p.cast_pred.pred_above m,
+      { rw fin.pred_above,
+        split_ifs with H,
+        { simp only [fin.coe_cast_succ, true_and, fin.coe_coe_eq_self, coe_coe],
+          rw fin.lt_last_iff_coe_cast_pred at hl,
+          rw fin.succ_above_above,
+          { simp },
+          { simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ] at H,
+            simpa [fin.le_iff_coe_le_coe, ←hl] using nat.le_pred_of_lt H } },
+        { rw fin.succ_above_below,
+          { simp },
+          { simp only [fin.cast_succ_cast_pred hl, not_lt] at H,
+            simpa using lt_of_le_of_ne H h, } } } } },
   { rw fin.succ_above_last,
     exact fin.univ_cast_succ n }
 end

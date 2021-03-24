@@ -47,18 +47,15 @@ eval₂_mod_by_monic_eq_self_of_root hq hx
 
 end comm_ring
 
-section integral_domain
-variables [integral_domain R] {p q : polynomial R}
+section no_zero_divisors
+variables [comm_ring R] [no_zero_divisors R] {p q : polynomial R}
 
-instance : integral_domain (polynomial R) :=
+instance : no_zero_divisors (polynomial R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h, begin
-    have : leading_coeff 0 = leading_coeff a * leading_coeff b := h ▸ leading_coeff_mul a b,
-    rw [leading_coeff_zero, eq_comm] at this,
-    erw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
-    exact eq_zero_or_eq_zero_of_mul_eq_zero this
-  end,
-  ..polynomial.nontrivial,
-  ..polynomial.comm_ring }
+    rw [← leading_coeff_eq_zero, ← leading_coeff_eq_zero],
+    refine eq_zero_or_eq_zero_of_mul_eq_zero _,
+    rw [← leading_coeff_zero, ← leading_coeff_mul, h],
+  end }
 
 lemma nat_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) : nat_degree (p * q) =
   nat_degree p + nat_degree q :=
@@ -86,10 +83,30 @@ else by rw [degree_mul, degree_eq_nat_degree hp,
     degree_eq_nat_degree hq];
   exact with_bot.coe_le_coe.2 (nat.le_add_right _ _)
 
-theorem nat_degree_le_of_dvd {p q : polynomial R} (h1 : p ∣ q) (h2 : q ≠ 0) : p.nat_degree ≤ q.nat_degree :=
+theorem nat_degree_le_of_dvd {p q : polynomial R} (h1 : p ∣ q) (h2 : q ≠ 0) :
+  p.nat_degree ≤ q.nat_degree :=
 begin
   rcases h1 with ⟨q, rfl⟩, rw mul_ne_zero_iff at h2,
   rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _
+end
+
+end no_zero_divisors
+
+section integral_domain
+variables [integral_domain R] {p q : polynomial R}
+
+instance : integral_domain (polynomial R) :=
+{ ..polynomial.no_zero_divisors,
+  ..polynomial.nontrivial,
+  ..polynomial.comm_ring }
+
+lemma nat_trailing_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) :
+  (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=
+begin
+  simp only [←nat.sub_eq_of_eq_add (nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree _)],
+  rw [reverse_mul_of_domain, nat_degree_mul hp hq, nat_degree_mul (mt reverse_eq_zero.mp hp)
+    (mt reverse_eq_zero.mp hq), reverse_nat_degree, reverse_nat_degree, ←nat.sub_sub, nat.add_comm,
+    nat.add_sub_assoc (nat.sub_le _ _), add_comm, nat.add_sub_assoc (nat.sub_le _ _)],
 end
 
 section roots
@@ -345,32 +362,23 @@ by rw [count_roots h, count_zero, root_multiplicity_eq_zero not_root]
 roots_C 1
 
 lemma roots_list_prod (L : list (polynomial R)) :
-  (∀ p ∈ L, (p : _) ≠ 0) → L.prod.roots = (L : multiset (polynomial R)).bind roots :=
+  ((0 : polynomial R) ∉ L) → L.prod.roots = (L : multiset (polynomial R)).bind roots :=
 list.rec_on L (λ _, roots_one) $ λ hd tl ih H,
 begin
-  rw list.forall_mem_cons at H,
-  rw [list.prod_cons, roots_mul (mul_ne_zero H.1 $ list.prod_ne_zero H.2),
+  rw [list.mem_cons_iff, not_or_distrib] at H,
+  rw [list.prod_cons, roots_mul (mul_ne_zero (ne.symm H.1) $ list.prod_ne_zero H.2),
       ← multiset.cons_coe, multiset.cons_bind, ih H.2]
 end
 
 lemma roots_multiset_prod (m : multiset (polynomial R)) :
-  (∀ p ∈ m, (p : _) ≠ 0) → m.prod.roots = m.bind roots :=
-multiset.induction_on m (λ _, roots_one) $ λ hd tl ih H,
-begin
-  rw multiset.forall_mem_cons at H,
-  rw [multiset.prod_cons, roots_mul (mul_ne_zero H.1 $ multiset.prod_ne_zero H.2),
-      multiset.cons_bind, ih H.2]
-end
+  (0 : polynomial R) ∉ m → m.prod.roots = m.bind roots :=
+by { rcases m with ⟨L⟩, simpa only [coe_prod, quot_mk_to_coe''] using roots_list_prod L }
 
 lemma roots_prod {ι : Type*} (f : ι → polynomial R) (s : finset ι) :
   s.prod f ≠ 0 → (s.prod f).roots = s.val.bind (λ i, roots (f i)) :=
 begin
-  refine s.induction_on _ _,
-  { intros, exact roots_one },
-  intros i s hi ih ne_zero,
-  rw prod_insert hi at ⊢ ne_zero,
-  rw [roots_mul ne_zero, ih (right_ne_zero_of_mul ne_zero), insert_val,
-      ndinsert_of_not_mem hi, cons_bind]
+  rcases s with ⟨m, hm⟩,
+  simpa [multiset.prod_eq_zero_iff, bind_map] using roots_multiset_prod (m.map f)
 end
 
 lemma roots_prod_X_sub_C (s : finset R) :
@@ -394,7 +402,7 @@ roots ((X : polynomial R) ^ n - C a)
 @[simp] lemma mem_nth_roots {n : ℕ} (hn : 0 < n) {a x : R} :
   x ∈ nth_roots n a ↔ x ^ n = a :=
 by rw [nth_roots, mem_roots (X_pow_sub_C_ne_zero hn a),
-  is_root.def, eval_sub, eval_C, eval_pow, eval_X, sub_eq_zero_iff_eq]
+  is_root.def, eval_sub, eval_C, eval_pow, eval_X, sub_eq_zero]
 
 @[simp] lemma nth_roots_zero (r : R) : nth_roots 0 r = 0 :=
 by simp only [empty_eq_zero, pow_zero, nth_roots, ← C_1, ← C_sub, roots_C]

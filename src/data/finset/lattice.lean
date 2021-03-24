@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.finset.fold
 import data.multiset.lattice
@@ -59,6 +59,10 @@ sup_le_iff.2
 
 lemma le_sup {b : β} (hb : b ∈ s) : f b ≤ s.sup f :=
 sup_le_iff.1 (le_refl _) _ hb
+
+@[simp] lemma map_sup (f : γ ↪ β) (g : β → α) (s : finset γ) :
+  (s.map f).sup g = s.sup (g ∘ f) :=
+by simp [finset.sup]
 
 lemma sup_mono_fun {g : β → α} (h : ∀b∈s, f b ≤ g b) : s.sup f ≤ s.sup g :=
 sup_le (λ b hb, le_trans (h b hb) (le_sup hb))
@@ -150,6 +154,24 @@ le_antisymm
 lemma sup_eq_Sup [complete_lattice α] (s : finset α) : s.sup id = Sup s :=
 by simp [Sup_eq_supr, sup_eq_supr]
 
+lemma exists_mem_eq_sup [complete_linear_order β] (s : finset α) (h : s.nonempty) (f : α → β) :
+  ∃ a, a ∈ s ∧ s.sup f = f a :=
+begin
+  classical,
+  induction s using finset.induction_on with x xs hxm ih,
+  { exact (not_nonempty_empty h).elim, },
+  { rw sup_insert,
+    by_cases hx : xs.sup f ≤ f x,
+    { refine ⟨x, mem_insert_self _ _, sup_eq_left.mpr hx⟩, },
+    by_cases hxs : xs.nonempty,
+    { obtain ⟨a, ham, ha⟩ := ih hxs,
+      refine ⟨a, mem_insert_of_mem ham, _⟩,
+      simpa only [ha, sup_eq_right] using le_of_not_le hx, },
+    { rw not_nonempty_iff_eq_empty.mp hxs,
+      refine ⟨x, mem_singleton_self _, _⟩,
+      simp, } }
+end
+
 /-! ### inf -/
 section inf
 variables [semilattice_inf_top α]
@@ -185,6 +207,10 @@ le_inf_iff.1 (le_refl _) _ hb
 lemma le_inf {a : α} : (∀b ∈ s, a ≤ f b) → a ≤ s.inf f :=
 le_inf_iff.2
 
+@[simp] lemma map_inf (f : γ ↪ β) (g : β → α) (s : finset γ) :
+  (s.map f).inf g = s.inf (g ∘ f) :=
+by simp [finset.inf]
+
 lemma inf_mono_fun {g : β → α} (h : ∀b∈s, f b ≤ g b) : s.inf f ≤ s.inf g :=
 le_inf (λ b hb, le_trans (inf_le hb) (h b hb))
 
@@ -217,6 +243,10 @@ lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf 
 
 lemma inf_eq_Inf [complete_lattice α] (s : finset α) : s.inf id = Inf s :=
 by simp [Inf_eq_infi, inf_eq_infi]
+
+lemma exists_mem_eq_inf [complete_linear_order β] (s : finset α) (h : s.nonempty) (f : α → β) :
+  ∃ a, a ∈ s ∧ s.inf f = f a :=
+@exists_mem_eq_sup _ (order_dual β) _ _ h _
 
 /-! ### max and min of finite sets -/
 section max_min
@@ -296,16 +326,7 @@ theorem min_eq_none {s : finset α} : s.min = none ↔ s = ∅ :=
   λ h, h.symm ▸ min_empty⟩
 
 theorem mem_of_min {s : finset α} : ∀ {a : α}, a ∈ s.min → a ∈ s :=
-finset.induction_on s (λ _ H, by cases H) $
-  λ b s _ (ih : ∀ {a}, a ∈ s.min → a ∈ s) a (h : a ∈ (insert b s).min),
-  begin
-    by_cases p : b = a,
-    { induction p, exact mem_insert_self b s },
-    { cases option.lift_or_get_choice min_choice (some b) s.min with q q;
-      rw [min_insert, q] at h,
-      { cases h, cases p rfl },
-      { exact mem_insert_of_mem (ih h) } }
-  end
+@mem_of_max (order_dual α) _ s
 
 theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : a ∈ s.min) : a ≤ b :=
 by rcases @inf_le (with_top α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
@@ -416,6 +437,40 @@ lemma min'_insert (a : α) (s : finset α) (H : s.nonempty) :
   (insert a s).min' (s.insert_nonempty a) = min (s.min' H) a :=
 (is_least_min' _ _).unique $
   by { rw [coe_insert, min_comm], exact (is_least_min' _ _).insert _ }
+
+/-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
+`s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` strictly greater than all elements of `s`, `p s`
+  implies `p (insert a s)`. -/
+@[elab_as_eliminator]
+lemma induction_on_max {p : finset α → Prop} (s : finset α) (h0 : p ∅)
+  (step : ∀ a s, (∀ x ∈ s, x < a) → p s → p (insert a s)) : p s :=
+begin
+  induction hn : s.card with n ihn generalizing s,
+  { rwa [card_eq_zero.1 hn] },
+  { have A : s.nonempty, from card_pos.1 (hn.symm ▸ n.succ_pos),
+    have B : s.max' A ∈ s, from max'_mem s A,
+    rw [← insert_erase B],
+    refine step _ _ (λ x hx, _) (ihn _ _),
+    { rw [mem_erase] at hx, exact (le_max' s x hx.2).lt_of_ne hx.1 },
+    { rw [card_erase_of_mem B, hn, nat.pred_succ] } }
+end
+
+/-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
+`s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` strictly less than all elements of `s`, `p s`
+  implies `p (insert a s)`. -/
+@[elab_as_eliminator]
+lemma induction_on_min {p : finset α → Prop} (s : finset α) (h0 : p ∅)
+  (step : ∀ a s, (∀ x ∈ s, a < x) → p s → p (insert a s)) : p s :=
+begin
+  refine @induction_on_max (order_dual α) _ _ s h0 (λ a s has hs, _),
+  convert step a s has hs
+end
 
 end max_min
 

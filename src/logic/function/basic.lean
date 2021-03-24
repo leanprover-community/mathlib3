@@ -53,7 +53,10 @@ end
 lemma funext_iff {β : α → Sort*} {f₁ f₂ : Π (x : α), β x} : f₁ = f₂ ↔ (∀a, f₁ a = f₂ a) :=
 iff.intro (assume h a, h ▸ rfl) funext
 
-@[simp] theorem injective.eq_iff (I : injective f) {a b : α} :
+protected lemma bijective.injective {f : α → β} (hf : bijective f) : injective f := hf.1
+protected lemma bijective.surjective {f : α → β} (hf : bijective f) : surjective f := hf.2
+
+theorem injective.eq_iff (I : injective f) {a b : α} :
   f a = f b ↔ a = b :=
 ⟨@I _ _, congr_arg f⟩
 
@@ -79,6 +82,16 @@ def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
 lemma injective.of_comp {g : γ → α} (I : injective (f ∘ g)) : injective g :=
 λ x y h, I $ show f (g x) = f (g y), from congr_arg f h
 
+lemma injective.of_comp_iff {f : α → β} (hf : injective f) (g : γ → α) :
+  injective (f ∘ g) ↔ injective g :=
+⟨injective.of_comp, hf.comp⟩
+
+lemma injective.of_comp_iff' (f : α → β) {g : γ → α} (hg : bijective g) :
+  injective (f ∘ g) ↔ injective f :=
+⟨ λ h x y, let ⟨x', hx⟩ := hg.surjective x, ⟨y', hy⟩ := hg.surjective y in
+    hx ▸ hy ▸ λ hf, h hf ▸ rfl,
+  λ h, h.comp hg.injective⟩
+
 lemma injective.dite (p : α → Prop) [decidable_pred p]
   {f : {a : α // p a} → β} {f' : {a : α // ¬ p a} → β}
   (hf : injective f) (hf' : injective f')
@@ -95,6 +108,14 @@ end
 
 lemma surjective.of_comp {g : γ → α} (S : surjective (f ∘ g)) : surjective f :=
 λ y, let ⟨x, h⟩ := S y in ⟨g x, h⟩
+
+lemma surjective.of_comp_iff (f : α → β) {g : γ → α} (hg : surjective g) :
+  surjective (f ∘ g) ↔ surjective f :=
+⟨surjective.of_comp, λ h, h.comp hg⟩
+
+lemma surjective.of_comp_iff' {f : α → β} (hf : bijective f) (g : γ → α) :
+  surjective (f ∘ g) ↔ surjective g :=
+⟨λ h x, let ⟨x', hx'⟩ := h (f x) in ⟨x', hf.injective hx'⟩, hf.surjective.comp⟩
 
 instance decidable_eq_pfun (p : Prop) [decidable p] (α : p → Type*)
   [Π hp, decidable_eq (α hp)] : decidable_eq (Π hp, α hp)
@@ -124,9 +145,6 @@ theorem surjective.exists₃ {f : α → β} (hf : surjective f) {p : β → β 
   (∃ y₁ y₂ y₃, p y₁ y₂ y₃) ↔ ∃ x₁ x₂ x₃, p (f x₁) (f x₂) (f x₃) :=
 hf.exists.trans $ exists_congr $ λ x, hf.exists₂
 
-protected lemma bijective.injective {f : α → β} (hf : bijective f) : injective f := hf.1
-protected lemma bijective.surjective {f : α → β} (hf : bijective f) : surjective f := hf.2
-
 lemma bijective_iff_exists_unique (f : α → β) : bijective f ↔
   ∀ b : β, ∃! (a : α), f a = b :=
 ⟨ λ hf b, let ⟨a, ha⟩ := hf.surjective b in ⟨a, ha, λ a' ha', hf.injective (ha'.trans ha.symm)⟩,
@@ -137,6 +155,14 @@ lemma bijective_iff_exists_unique (f : α → β) : bijective f ↔
 /-- Shorthand for using projection notation with `function.bijective_iff_exists_unique`. -/
 lemma bijective.exists_unique {f : α → β} (hf : bijective f) (b : β) : ∃! (a : α), f a = b :=
 (bijective_iff_exists_unique f).mp hf b
+
+lemma bijective.of_comp_iff (f : α → β) {g : γ → α} (hg : bijective g) :
+  bijective (f ∘ g) ↔ bijective f :=
+and_congr (injective.of_comp_iff' _ hg) (surjective.of_comp_iff _ hg.surjective)
+
+lemma bijective.of_comp_iff' {f : α → β} (hf : bijective f) (g : γ → α) :
+  function.bijective (f ∘ g) ↔ function.bijective g :=
+and_congr (injective.of_comp_iff hf.injective _) (surjective.of_comp_iff' hf _)
 
 /-- Cantor's diagonal argument implies that there are no surjective functions from `α`
 to `set α`. -/
@@ -349,7 +375,8 @@ dif_pos rfl
 lemma update_injective (f : Πa, β a) (a' : α) : injective (update f a') :=
 λ v v' h, have _ := congr_fun h a', by rwa [update_same, update_same] at this
 
-@[simp] lemma update_noteq {a a' : α} (h : a ≠ a') (v : β a') (f : Πa, β a) : update f a' v a = f a :=
+@[simp] lemma update_noteq {a a' : α} (h : a ≠ a') (v : β a') (f : Πa, β a) :
+  update f a' v a = f a :=
 dif_neg h
 
 lemma forall_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a → Prop) :
@@ -538,7 +565,7 @@ by rw [apply_ite f, h, ite_not]
 end involutive
 
 /-- The property of a binary function `f : α → β → γ` being injective.
-  Mathematically this should be thought of as the corresponding function `α × β → γ` being injective.
+Mathematically this should be thought of as the corresponding function `α × β → γ` being injective.
 -/
 @[reducible] def injective2 {α β γ} (f : α → β → γ) : Prop :=
 ∀ ⦃a₁ a₂ b₁ b₂⦄, f a₁ b₁ = f a₂ b₂ → a₁ = a₂ ∧ b₁ = b₂
@@ -578,6 +605,17 @@ end sometimes
 end function
 
 /-- `s.piecewise f g` is the function equal to `f` on the set `s`, and to `g` on its complement. -/
-def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β i) [∀j, decidable (j ∈ s)] :
+def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β i)
+  [∀j, decidable (j ∈ s)] :
   Πi, β i :=
 λi, if i ∈ s then f i else g i
+
+/-- A set of functions "separates points"
+if for each pair of distinct points there is a function taking different values on them. -/
+def separates_points {α β : Type*} (A : set (α → β)) : Prop :=
+∀ ⦃x y : α⦄, x ≠ y → ∃ f ∈ A, (f x : β) ≠ f y
+
+/-- A set of functions "separates points strongly"
+if for each pair of distinct points there is a function with specified values on them.  -/
+def separates_points_strongly {α β : Type*} (A : set (α → β)) : Prop :=
+∀ (x y : α), x ≠ y → ∀ (a b : β), ∃ f ∈ A, (f x : β) = a ∧ f y = b

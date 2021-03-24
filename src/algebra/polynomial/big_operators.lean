@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Aaron Anderson, Jalex Stark.
+Authors: Aaron Anderson, Jalex Stark
 -/
 import data.polynomial.monic
+import data.polynomial.ring_division
 import tactic.linarith
 /-!
 # Lemmas for the interaction between polynomials and `∑` and `∏`.
@@ -140,7 +141,21 @@ lemma nat_degree_prod [nontrivial R] (h : ∀ i ∈ s, f i ≠ 0) :
 begin
   apply nat_degree_prod',
   rw prod_ne_zero_iff,
-  intros x hx, simp [h x hx],
+  intros x hx, simp [h x hx]
+end
+
+lemma nat_degree_multiset_prod [nontrivial R] (s : multiset (polynomial R))
+  (h : (0 : polynomial R) ∉ s) :
+  nat_degree s.prod = (s.map nat_degree).sum :=
+begin
+  revert h,
+  refine s.induction_on _ _,
+  { simp },
+  intros p s ih h,
+  rw [multiset.mem_cons, not_or_distrib] at h,
+  have hprod : s.prod ≠ 0 := multiset.prod_ne_zero h.2,
+  rw [multiset.prod_cons, nat_degree_mul (ne.symm h.1) hprod, ih h.2,
+    multiset.map_cons, multiset.sum_cons]
 end
 
 /--

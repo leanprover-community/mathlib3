@@ -479,7 +479,7 @@ theorem of_injective [directed_system G (λ i j h, f' i j h)]
   function.injective (of G (λ i j h, f' i j h) i) :=
 begin
   suffices : ∀ x, of G (λ i j h, f' i j h) i x = 0 → x = 0,
-  { intros x y hxy, rw ← sub_eq_zero_iff_eq, apply this,
+  { intros x y hxy, rw ← sub_eq_zero, apply this,
     rw [(of G _ i).map_sub, hxy, sub_self] },
   intros x hx, rcases of.zero_exact hx with ⟨j, hij, hfx⟩,
   apply hf i j hij, rw [hfx, (f' i j hij).map_zero]
@@ -498,7 +498,7 @@ that respect the directed system structure (i.e. make some diagram commute) give
 to a unique map out of the direct limit.
 -/
 def lift : direct_limit G f →+* P :=
-ideal.quotient.lift _ (free_comm_ring.lift $ λ x, g x.1 x.2) begin
+ideal.quotient.lift _ (free_comm_ring.lift $ λ (x : Σ i, G i), g x.1 x.2) begin
   suffices : ideal.span _ ≤
     ideal.comap (free_comm_ring.lift (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
   { intros x hx, exact (mem_bot P).1 (this hx) },

@@ -392,19 +392,6 @@ apply_nolint polynomial.eval_sub_factor doc_blame
 apply_nolint polynomial.pow_add_expansion doc_blame
 apply_nolint polynomial.pow_sub_pow_factor doc_blame
 
--- data/rat/basic.lean
-apply_nolint rat.add doc_blame
-apply_nolint rat.inv doc_blame
-apply_nolint rat.mul doc_blame
-apply_nolint rat.neg doc_blame
-apply_nolint rat.num_denom_cases_on doc_blame
-apply_nolint rat.num_denom_cases_on' doc_blame
-apply_nolint rat.repr doc_blame
-
--- data/rat/order.lean
-apply_nolint rat.le doc_blame
-apply_nolint rat.nonneg doc_blame
-
 -- data/real/cau_seq_completion.lean
 apply_nolint cau_seq.completion.Cauchy doc_blame
 apply_nolint cau_seq.completion.field doc_blame
@@ -509,15 +496,6 @@ apply_nolint mv_polynomial.R doc_blame unused_arguments
 apply_nolint mv_polynomial.evalᵢ doc_blame
 apply_nolint mv_polynomial.evalₗ doc_blame unused_arguments
 apply_nolint mv_polynomial.indicator doc_blame
-
--- field_theory/mv_polynomial.lean
-apply_nolint mv_polynomial.restrict_degree doc_blame
-apply_nolint mv_polynomial.restrict_total_degree doc_blame
-
--- group_theory/free_abelian_group.lean
-apply_nolint free_abelian_group doc_blame
-apply_nolint free_abelian_group.lift doc_blame
-apply_nolint free_abelian_group.of doc_blame
 
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
@@ -1154,9 +1132,6 @@ apply_nolint continuous_map.induced doc_blame
 -- topology/maps.lean
 apply_nolint inducing doc_blame
 
--- topology/metric_space/emetric_space.lean
-apply_nolint has_edist doc_blame
-
 -- topology/metric_space/gluing.lean
 apply_nolint metric.glue_premetric doc_blame
 apply_nolint metric.glue_space doc_blame
@@ -1171,9 +1146,6 @@ apply_nolint Gromov_Hausdorff.aux_gluing_struct has_inhabited_instance
 -- topology/metric_space/gromov_hausdorff_realized.lean
 apply_nolint Gromov_Hausdorff.candidates_b_dist doc_blame
 apply_nolint Gromov_Hausdorff.optimal_GH_coupling has_inhabited_instance
-
--- topology/metric_space/premetric_space.lean
-apply_nolint premetric_space doc_blame
 
 -- topology/opens.lean
 apply_nolint topological_space.opens.is_basis doc_blame

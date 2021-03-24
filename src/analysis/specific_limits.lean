@@ -81,7 +81,8 @@ lemma tendsto_pow_at_top_nhds_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field �
   [topological_space 𝕜] [order_topology 𝕜] {r : 𝕜} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
 h₁.eq_or_lt.elim
-  (assume : 0 = r, (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, ← this, tendsto_const_nhds])
+  (assume : 0 = r,
+    (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, ← this, tendsto_const_nhds])
   (assume : 0 < r,
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (𝓝 0),
       from tendsto_inv_at_top_zero.comp
@@ -210,7 +211,8 @@ begin
   suffices : is_O _ (λ n : ℕ, (r' ^ k) ^ n) at_top,
     from this.trans_is_o (is_o_pow_pow_of_lt_left (pow_nonneg h0 _) hr'),
   conv in ((r' ^ _) ^ _) { rw [← pow_mul, mul_comm, pow_mul] },
-  suffices : ∀ n : ℕ, ∥(n : R)∥ ≤ (r' - 1)⁻¹ * ∥(1 : R)∥ * ∥r' ^ n∥, from (is_O_of_le' _ this).pow _,
+  suffices : ∀ n : ℕ, ∥(n : R)∥ ≤ (r' - 1)⁻¹ * ∥(1 : R)∥ * ∥r' ^ n∥,
+    from (is_O_of_le' _ this).pow _,
   intro n, rw mul_right_comm,
   refine n.norm_cast_le.trans (mul_le_mul_of_nonneg_right _ (norm_nonneg _)),
   simpa [div_eq_inv_mul, real.norm_eq_abs, abs_of_nonneg h0] using n.cast_le_pow_div_sub h1

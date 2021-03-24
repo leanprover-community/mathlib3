@@ -44,7 +44,7 @@ theorem char_zero_of_inj_zero {R : Type*} [add_left_cancel_monoid R] [has_one R]
    assume h,
    wlog hle : m ≤ n,
    rcases nat.le.dest hle with ⟨k, rfl⟩,
-   rw [nat.cast_add, eq_comm, add_eq_left_iff] at h,
+   rw [nat.cast_add, eq_comm, add_right_eq_self] at h,
    rw [H k h, add_zero]
  end⟩
 
@@ -108,10 +108,57 @@ end
 section
 variables {R : Type*} [semiring R] [no_zero_divisors R] [char_zero R]
 
+@[simp]
 lemma add_self_eq_zero {a : R} : a + a = 0 ↔ a = 0 :=
 by simp only [(two_mul a).symm, mul_eq_zero, two_ne_zero', false_or]
 
+@[simp]
 lemma bit0_eq_zero {a : R} : bit0 a = 0 ↔ a = 0 := add_self_eq_zero
+@[simp]
+lemma zero_eq_bit0 {a : R} : 0 = bit0 a ↔ a = 0 :=
+by { rw [eq_comm], exact bit0_eq_zero }
+end
+
+section
+variables {R : Type*} [ring R] [no_zero_divisors R] [char_zero R]
+
+lemma nat_mul_inj {n : ℕ} {a b : R} (h : (n : R) * a = (n : R) * b) : n = 0 ∨ a = b :=
+begin
+  rw [←sub_eq_zero, ←mul_sub, mul_eq_zero, sub_eq_zero] at h,
+  exact_mod_cast h,
+end
+
+lemma nat_mul_inj' {n : ℕ} {a b : R} (h : (n : R) * a = (n : R) * b) (w : n ≠ 0) : a = b :=
+by simpa [w] using nat_mul_inj h
+
+lemma bit0_injective : function.injective (bit0 : R → R) :=
+λ a b h, begin
+  dsimp [bit0] at h,
+  simp only [(two_mul a).symm, (two_mul b).symm] at h,
+  refine nat_mul_inj' _ two_ne_zero,
+  exact_mod_cast h,
+end
+
+lemma bit1_injective : function.injective (bit1 : R → R) :=
+λ a b h, begin
+  simp only [bit1, add_left_inj] at h,
+  exact bit0_injective h,
+end
+
+@[simp] lemma bit0_eq_bit0 {a b : R} : bit0 a = bit0 b ↔ a = b :=
+bit0_injective.eq_iff
+
+@[simp] lemma bit1_eq_bit1 {a b : R} : bit1 a = bit1 b ↔ a = b :=
+bit1_injective.eq_iff
+
+@[simp]
+lemma bit1_eq_one {a : R} : bit1 a = 1 ↔ a = 0 :=
+by rw [show (1 : R) = bit1 0, by simp, bit1_eq_bit1]
+
+@[simp]
+lemma one_eq_bit1 {a : R} : 1 = bit1 a ↔ a = 0 :=
+by { rw [eq_comm], exact bit1_eq_one }
+
 end
 
 section

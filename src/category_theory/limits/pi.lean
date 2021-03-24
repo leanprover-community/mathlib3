@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.pi.basic
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 
 /-!
 # Limits in the category of indexed families of objects.
@@ -55,7 +55,8 @@ def cone_of_cone_comp_eval (c : Π i, cone (F ⋙ pi.eval C i)) : cone F :=
     naturality' := λ j j' f, by { ext i, exact (c i).π.naturality f, } } }
 
 /--
-Given a family of cocones over the `F ⋙ pi.eval C i`, we can assemble these together as a `cocone F`.
+Given a family of cocones over the `F ⋙ pi.eval C i`,
+we can assemble these together as a `cocone F`.
 -/
 def cocone_of_cocone_comp_eval (c : Π i, cocone (F ⋙ pi.eval C i)) : cocone F :=
 { X := λ i, (c i).X,
@@ -85,7 +86,8 @@ def cone_of_cone_eval_is_limit {c : Π i, cone (F ⋙ pi.eval C i)} (P : Π i, i
 Given a family of colimit cocones over the `F ⋙ pi.eval C i`,
 assembling them together as a `cocone F` produces a colimit cocone.
 -/
-def cocone_of_cocone_eval_is_colimit {c : Π i, cocone (F ⋙ pi.eval C i)} (P : Π i, is_colimit (c i)) :
+def cocone_of_cocone_eval_is_colimit
+  {c : Π i, cocone (F ⋙ pi.eval C i)} (P : Π i, is_colimit (c i)) :
   is_colimit (cocone_of_cocone_comp_eval c) :=
 { desc := λ s i, (P i).desc (cocone_comp_eval s i),
   fac' := λ s j,

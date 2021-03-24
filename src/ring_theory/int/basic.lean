@@ -189,6 +189,16 @@ end
 lemma sqr_of_coprime {a b c : ℤ} (h : is_coprime a b) (heq : a * b = c ^ 2) :
   ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) := sqr_of_gcd_eq_one (gcd_eq_one_iff_coprime.mpr h) heq
 
+lemma nat_abs_euclidean_domain_gcd (a b : ℤ) :
+  int.nat_abs (euclidean_domain.gcd a b) = int.gcd a b :=
+begin
+  apply nat.dvd_antisymm; rw ← int.coe_nat_dvd,
+  { rw int.nat_abs_dvd,
+    exact int.dvd_gcd (euclidean_domain.gcd_dvd_left _ _) (euclidean_domain.gcd_dvd_right _ _) },
+  { rw int.dvd_nat_abs,
+    exact euclidean_domain.dvd_gcd (int.gcd_dvd_left _ _) (int.gcd_dvd_right _ _) }
+end
+
 end int
 
 theorem irreducible_iff_nat_prime : ∀(a : ℕ), irreducible a ↔ nat.prime a

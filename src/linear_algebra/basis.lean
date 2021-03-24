@@ -91,7 +91,8 @@ lemma is_basis.injective [nontrivial R] (hv : is_basis R v) : injective v :=
   λ x y h, linear_independent.injective hv.1 h
 
 lemma is_basis.range (hv : is_basis R v) : is_basis R (λ x, x : range v → M) :=
-⟨hv.1.to_subtype_range, by { convert hv.2, ext i, exact ⟨λ ⟨p, hp⟩, hp ▸ p.2, λ hi, ⟨⟨i, hi⟩, rfl⟩⟩ }⟩
+⟨hv.1.to_subtype_range,
+  by { convert hv.2, ext i, exact ⟨λ ⟨p, hp⟩, hp ▸ p.2, λ hi, ⟨⟨i, hi⟩, rfl⟩⟩ }⟩
 
 /-- Given a basis, any vector can be written as a linear combination of the basis vectors. They are
 given by this linear map. This is one direction of `module_equiv_finsupp`. -/
@@ -178,7 +179,7 @@ begin
   { intro i,
     ext j,
     haveI : nontrivial R := ⟨⟨0, 1, H⟩⟩,
-    simp [hv.range_repr_self, finsupp.single_apply, hv.injective] }
+    simp [hv.range_repr_self, finsupp.single_apply, hv.injective.eq_iff] }
 end
 
 /-- Construct a linear map given the value at the basis. -/
@@ -273,7 +274,7 @@ def linear_equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g
   (linear_equiv_of_is_basis hv hv' e).trans (linear_equiv_of_is_basis hv' hv'' f) =
   linear_equiv_of_is_basis hv hv'' (e.trans f) :=
 begin
-  apply linear_equiv.injective_to_linear_map,
+  apply linear_equiv.to_linear_map_injective,
   apply hv.ext,
   intros i,
   simp [linear_equiv_of_is_basis]
@@ -282,18 +283,20 @@ end
 @[simp] lemma linear_equiv_of_is_basis_refl :
   linear_equiv_of_is_basis hv hv (equiv.refl ι) = linear_equiv.refl R M :=
 begin
-  apply linear_equiv.injective_to_linear_map,
+  apply linear_equiv.to_linear_map_injective,
   apply hv.ext,
   intros i,
   simp [linear_equiv_of_is_basis]
 end
 
 lemma linear_equiv_of_is_basis_trans_symm (e : ι ≃ ι') {v' : ι' → M'} (hv' : is_basis R v') :
-  (linear_equiv_of_is_basis hv hv' e).trans (linear_equiv_of_is_basis hv' hv e.symm) = linear_equiv.refl R M :=
+  (linear_equiv_of_is_basis hv hv' e).trans (linear_equiv_of_is_basis hv' hv e.symm) =
+  linear_equiv.refl R M :=
 by simp
 
 lemma linear_equiv_of_is_basis_symm_trans (e : ι ≃ ι') {v' : ι' → M'} (hv' : is_basis R v') :
-  (linear_equiv_of_is_basis hv' hv e.symm).trans (linear_equiv_of_is_basis hv hv' e) = linear_equiv.refl R M' :=
+  (linear_equiv_of_is_basis hv' hv e.symm).trans (linear_equiv_of_is_basis hv hv' e) =
+  linear_equiv.refl R M' :=
 by simp
 
 lemma is_basis_inl_union_inr {v : ι → M} {v' : ι' → M'}
@@ -306,6 +309,35 @@ begin
       set.range_comp, span_image (inl R M M'), hv.2,  map_top,
       set.range_comp, span_image (inr R M M'), hv'.2, map_top],
   exact linear_map.sup_range_inl_inr
+end
+
+@[simp] lemma is_basis.repr_eq_zero {x : M} :
+  hv.repr x = 0 ↔ x = 0 :=
+⟨λ h, (hv.total_repr x).symm.trans (h.symm ▸ (finsupp.total _ _ _ _).map_zero),
+ λ h, h.symm ▸ hv.repr.map_zero⟩
+
+lemma is_basis.ext_elem {x y : M}
+  (h : ∀ i, hv.repr x i = hv.repr y i) : x = y :=
+by { rw [← hv.total_repr x, ← hv.total_repr y], congr' 1, ext i, exact h i }
+
+section
+
+include hv
+
+-- Can't be an instance because the basis can't be inferred.
+lemma is_basis.no_zero_smul_divisors [no_zero_divisors R] :
+  no_zero_smul_divisors R M :=
+⟨λ c x hcx, or_iff_not_imp_right.mpr (λ hx, begin
+  rw [← hv.total_repr x, ← linear_map.map_smul] at hcx,
+  have := linear_independent_iff.mp hv.1 (c • hv.repr x) hcx,
+  rw smul_eq_zero at this,
+  exact this.resolve_right (λ hr, hx (hv.repr_eq_zero.mp hr))
+end)⟩
+
+lemma is_basis.smul_eq_zero [no_zero_divisors R] {c : R} {x : M} :
+  c • x = 0 ↔ c = 0 ∨ x = 0 :=
+@smul_eq_zero _ _ _ _ _ hv.no_zero_smul_divisors _ _
+
 end
 
 end is_basis
@@ -350,18 +382,12 @@ split,
   exact hy₁ }
 end
 
-lemma is_basis_empty (h_empty : ¬ nonempty ι) (h : ∀x:M, x = 0) : is_basis R (λ x : ι, (0 : M)) :=
-⟨ linear_independent_empty_type h_empty,
-  eq_top_iff'.2 $ assume x, (h x).symm ▸ submodule.zero_mem _ ⟩
+variables (M)
 
-lemma is_basis_empty_bot (h_empty : ¬ nonempty ι) :
-  is_basis R (λ _ : ι, (0 : (⊥ : submodule R M))) :=
-begin
-  apply is_basis_empty h_empty,
-  intro x,
-  apply subtype.ext_iff_val.2,
-  exact (submodule.mem_bot R).1 (subtype.mem x),
-end
+lemma is_basis_empty [subsingleton M] (h_empty : ¬ nonempty ι) : is_basis R (λ x : ι, (0 : M)) :=
+⟨ linear_independent_empty_type h_empty, subsingleton.elim _ _ ⟩
+
+variables {M}
 
 open fintype
 variables [fintype ι] (h : is_basis R v)
@@ -370,9 +396,9 @@ variables [fintype ι] (h : is_basis R v)
 -/
 def is_basis.equiv_fun : M ≃ₗ[R] (ι → R) :=
 linear_equiv.trans (module_equiv_finsupp h)
-  { to_fun := finsupp.to_fun,
-    map_add' := λ x y, by ext; exact finsupp.add_apply,
-    map_smul' := λ x y, by ext; exact finsupp.smul_apply,
+  { to_fun := coe_fn,
+    map_add' := finsupp.coe_add,
+    map_smul' := finsupp.coe_smul,
     ..finsupp.equiv_fun_on_fintype }
 
 /-- A module over a finite ring that admits a finite basis is finite. -/

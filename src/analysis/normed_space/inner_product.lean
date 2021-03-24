@@ -8,6 +8,7 @@ import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 import topology.metric_space.pi_Lp
 import data.complex.is_R_or_C
+import analysis.special_functions.sqrt
 
 /-!
 # Inner Product Space
@@ -765,7 +766,7 @@ begin
   rw orthonormal_iff_ite at ⊢ hv,
   intros i j,
   convert hv (f i) (f j) using 1,
-  simp [hf]
+  simp [hf.eq_iff]
 end
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
@@ -1147,8 +1148,7 @@ begin
     have hx0 : x ≠ 0,
     { intro hx0,
       rw [hx0, inner_zero_left, zero_div] at h,
-      norm_num at h,
-      exact h },
+      norm_num at h, },
     refine and.intro hx0 _,
     set r := ⟪x, y⟫ / (∥x∥ * ∥x∥) with hr,
     use r,
@@ -1413,6 +1413,11 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
 rfl
 
+lemma pi_Lp.norm_eq_of_L2 {ι : Type*} [fintype ι] {f : ι → Type*}
+  [Π i, inner_product_space 𝕜 (f i)] (x : pi_Lp 2 one_le_two f) :
+  ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
+by { rw [pi_Lp.norm_eq_of_nat 2]; simp [sqrt_eq_rpow] }
+
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 { inner := (λ x y, (conj x) * y),
@@ -1429,6 +1434,10 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 @[reducible, nolint unused_arguments]
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
+
+lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
+pi_Lp.norm_eq_of_L2 x
 
 /-! ### Inner product space structure on subspaces -/
 
@@ -1613,25 +1622,101 @@ lemma times_cont_diff_at.norm_square (hf : times_cont_diff_at ℝ n f x) :
   times_cont_diff_at ℝ n (λ y, ∥f y∥ ^ 2) x :=
 hf.norm_square
 
+lemma times_cont_diff_at_norm {x : E} (hx : x ≠ 0) : times_cont_diff_at ℝ n norm x :=
+have ∥id x∥ ^ 2 ≠ 0, from pow_ne_zero _ (norm_pos_iff.2 hx).ne',
+by simpa only [id, sqrt_sqr, norm_nonneg] using times_cont_diff_at_id.norm_square.sqrt this
+
+lemma times_cont_diff_at.norm (hf : times_cont_diff_at ℝ n f x) (h0 : f x ≠ 0) :
+  times_cont_diff_at ℝ n (λ y, ∥f y∥) x :=
+(times_cont_diff_at_norm h0).comp x hf
+
+lemma times_cont_diff_at.dist (hf : times_cont_diff_at ℝ n f x) (hg : times_cont_diff_at ℝ n g x)
+  (hne : f x ≠ g x) :
+  times_cont_diff_at ℝ n (λ y, dist (f y) (g y)) x :=
+by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
+
+lemma times_cont_diff_within_at.norm (hf : times_cont_diff_within_at ℝ n f s x) (h0 : f x ≠ 0) :
+  times_cont_diff_within_at ℝ n (λ y, ∥f y∥) s x :=
+(times_cont_diff_at_norm h0).comp_times_cont_diff_within_at x hf
+
+lemma times_cont_diff_within_at.dist (hf : times_cont_diff_within_at ℝ n f s x)
+  (hg : times_cont_diff_within_at ℝ n g s x) (hne : f x ≠ g x) :
+  times_cont_diff_within_at ℝ n (λ y, dist (f y) (g y)) s x :=
+by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
+
 lemma times_cont_diff_on.norm_square (hf : times_cont_diff_on ℝ n f s) :
   times_cont_diff_on ℝ n (λ y, ∥f y∥ ^ 2) s :=
 (λ x hx, (hf x hx).norm_square)
 
+lemma times_cont_diff_on.norm (hf : times_cont_diff_on ℝ n f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
+  times_cont_diff_on ℝ n (λ y, ∥f y∥) s :=
+λ x hx, (hf x hx).norm (h0 x hx)
+
+lemma times_cont_diff_on.dist (hf : times_cont_diff_on ℝ n f s)
+  (hg : times_cont_diff_on ℝ n g s) (hne : ∀ x ∈ s, f x ≠ g x) :
+  times_cont_diff_on ℝ n (λ y, dist (f y) (g y)) s :=
+λ x hx, (hf x hx).dist (hg x hx) (hne x hx)
+
+lemma times_cont_diff.norm (hf : times_cont_diff ℝ n f) (h0 : ∀ x, f x ≠ 0) :
+  times_cont_diff ℝ n (λ y, ∥f y∥) :=
+times_cont_diff_iff_times_cont_diff_at.2 $ λ x, hf.times_cont_diff_at.norm (h0 x)
+
+lemma times_cont_diff.dist (hf : times_cont_diff ℝ n f) (hg : times_cont_diff ℝ n g)
+  (hne : ∀ x, f x ≠ g x) :
+  times_cont_diff ℝ n (λ y, dist (f y) (g y)) :=
+times_cont_diff_iff_times_cont_diff_at.2 $
+  λ x, hf.times_cont_diff_at.dist hg.times_cont_diff_at (hne x)
+
 lemma differentiable_at.norm_square (hf : differentiable_at ℝ f x) :
   differentiable_at ℝ (λ y, ∥f y∥ ^ 2) x :=
-(times_cont_diff_norm_square.differentiable le_rfl).differentiable_at.comp x hf
+(times_cont_diff_at_id.norm_square.differentiable_at le_rfl).comp x hf
+
+lemma differentiable_at.norm (hf : differentiable_at ℝ f x) (h0 : f x ≠ 0) :
+  differentiable_at ℝ (λ y, ∥f y∥) x :=
+((times_cont_diff_at_norm h0).differentiable_at le_rfl).comp x hf
+
+lemma differentiable_at.dist (hf : differentiable_at ℝ f x) (hg : differentiable_at ℝ g x)
+  (hne : f x ≠ g x) :
+  differentiable_at ℝ (λ y, dist (f y) (g y)) x :=
+by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
 lemma differentiable.norm_square (hf : differentiable ℝ f) : differentiable ℝ (λ y, ∥f y∥ ^ 2) :=
 λ x, (hf x).norm_square
 
+lemma differentiable.norm (hf : differentiable ℝ f) (h0 : ∀ x, f x ≠ 0) :
+  differentiable ℝ (λ y, ∥f y∥) :=
+λ x, (hf x).norm (h0 x)
+
+lemma differentiable.dist (hf : differentiable ℝ f) (hg : differentiable ℝ g)
+  (hne : ∀ x, f x ≠ g x) :
+  differentiable ℝ (λ y, dist (f y) (g y)) :=
+λ x, (hf x).dist (hg x) (hne x)
+
 lemma differentiable_within_at.norm_square (hf : differentiable_within_at ℝ f s x) :
   differentiable_within_at ℝ (λ y, ∥f y∥ ^ 2) s x :=
-(times_cont_diff_norm_square.differentiable le_rfl).differentiable_at.comp_differentiable_within_at
-  x hf
+(times_cont_diff_at_id.norm_square.differentiable_at le_rfl).comp_differentiable_within_at x hf
+
+lemma differentiable_within_at.norm (hf : differentiable_within_at ℝ f s x) (h0 : f x ≠ 0) :
+  differentiable_within_at ℝ (λ y, ∥f y∥) s x :=
+((times_cont_diff_at_id.norm h0).differentiable_at le_rfl).comp_differentiable_within_at x hf
+
+lemma differentiable_within_at.dist (hf : differentiable_within_at ℝ f s x)
+  (hg : differentiable_within_at ℝ g s x) (hne : f x ≠ g x) :
+  differentiable_within_at ℝ (λ y, dist (f y) (g y)) s x :=
+by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
 lemma differentiable_on.norm_square (hf : differentiable_on ℝ f s) :
   differentiable_on ℝ (λ y, ∥f y∥ ^ 2) s :=
 λ x hx, (hf x hx).norm_square
+
+lemma differentiable_on.norm (hf : differentiable_on ℝ f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
+  differentiable_on ℝ (λ y, ∥f y∥) s :=
+λ x hx, (hf x hx).norm (h0 x hx)
+
+lemma differentiable_on.dist (hf : differentiable_on ℝ f s) (hg : differentiable_on ℝ g s)
+  (hne : ∀ x ∈ s, f x ≠ g x) :
+  differentiable_on ℝ (λ y, dist (f y) (g y)) s :=
+λ x hx, (hf x hx).dist (hg x hx) (hne x hx)
 
 end deriv
 
@@ -1663,6 +1748,19 @@ lemma measurable.inner [measurable_space α] [measurable_space E] [opens_measura
   {f g : α → E} (hf : measurable f) (hg : measurable g) :
   measurable (λ t, ⟪f t, g t⟫) :=
 continuous.measurable2 continuous_inner hf hg
+
+lemma ae_measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
+  [topological_space.second_countable_topology E] [measurable_space 𝕜] [borel_space 𝕜]
+  {μ : measure_theory.measure α} {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  ae_measurable (λ x, ⟪f x, g x⟫) μ :=
+begin
+  refine ⟨λ x, ⟪hf.mk f x, hg.mk g x⟫, hf.measurable_mk.inner hg.measurable_mk, _⟩,
+  refine hf.ae_eq_mk.mp (hg.ae_eq_mk.mono (λ x hxg hxf, _)),
+  dsimp only,
+  congr,
+  { exact hxf, },
+  { exact hxg, },
+end
 
 variables [topological_space α] {f g : α → E} {x : α} {s : set α}
 
@@ -2692,7 +2790,7 @@ local attribute [instance] finite_dimensional_of_findim_eq_succ
 space, there exists an isometry from the orthogonal complement of a nonzero singleton to
 `euclidean_space 𝕜 (fin n)`. -/
 def linear_isometry_equiv.from_orthogonal_span_singleton
-  {n : ℕ} [fact (findim 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
+  (n : ℕ) [fact (findim 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
 linear_isometry_equiv.of_inner_product_space (findim_orthogonal_span_singleton hv)
 

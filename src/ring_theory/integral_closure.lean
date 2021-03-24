@@ -3,8 +3,9 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import ring_theory.algebra_tower
+import ring_theory.adjoin.basic
 import ring_theory.polynomial.scale_roots
+import ring_theory.polynomial.tower
 
 /-!
 # Integral closure of a subring.
@@ -88,22 +89,17 @@ begin
 end
 
 theorem is_integral_of_submodule_noetherian (S : subalgebra R A)
-  (H : is_noetherian R (S : submodule R A)) (x : A) (hx : x ∈ S) :
+  (H : is_noetherian R S.to_submodule) (x : A) (hx : x ∈ S) :
   is_integral R x :=
 begin
-  letI : algebra R S := S.algebra,
-  letI : ring S := S.ring R A,
-  suffices : is_integral R (⟨x, hx⟩ : S),
+  suffices : is_integral R (show S, from ⟨x, hx⟩),
   { rcases this with ⟨p, hpm, hpx⟩,
-    replace hpx := congr_arg subtype.val hpx,
+    replace hpx := congr_arg S.val hpx,
     refine ⟨p, hpm, eq.trans _ hpx⟩,
     simp only [aeval_def, eval₂, finsupp.sum],
-    rw ← p.support.sum_hom subtype.val,
-    { refine finset.sum_congr rfl (λ n hn, _),
-      change _ = _ * _,
-      rw is_monoid_hom.map_pow coe, refl,
-      split; intros; refl },
-    refine { map_add := _, map_zero := _ }; intros; refl },
+    rw S.val.map_sum,
+    refine finset.sum_congr rfl (λ n hn, _),
+    rw [S.val.map_mul, S.val.map_pow, S.val.commutes, S.val_apply, subtype.coe_mk], },
   refine is_integral_of_noetherian H ⟨x, hx⟩
 end
 
@@ -115,12 +111,14 @@ variables [comm_ring R] [comm_ring A] [comm_ring B] [comm_ring S]
 variables [algebra R A] [algebra R B] (f : R →+* S)
 
 theorem is_integral_alg_hom (f : A →ₐ[R] B) {x : A} (hx : is_integral R x) : is_integral R (f x) :=
-let ⟨p, hp, hpx⟩ := hx in ⟨p, hp, by rw [← aeval_def, aeval_alg_hom_apply, aeval_def, hpx, f.map_zero]⟩
+let ⟨p, hp, hpx⟩ :=
+hx in ⟨p, hp, by rw [← aeval_def, aeval_alg_hom_apply, aeval_def, hpx, f.map_zero]⟩
 
 theorem is_integral_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B]
   (x : B) (hx : is_integral R x) : is_integral A x :=
 let ⟨p, hp, hpx⟩ := hx in
-⟨p.map $ algebra_map R A, monic_map _ hp, by rw [← aeval_def, ← is_scalar_tower.aeval_apply, aeval_def, hpx]⟩
+⟨p.map $ algebra_map R A, monic_map _ hp,
+  by rw [← aeval_def, ← is_scalar_tower.aeval_apply, aeval_def, hpx]⟩
 
 section
 local attribute [instance] subset.comm_ring algebra.of_is_subring
@@ -152,7 +150,7 @@ end
 end
 
 theorem fg_adjoin_singleton_of_integral (x : A) (hx : is_integral R x) :
-  (algebra.adjoin R ({x} : set A) : submodule R A).fg :=
+  (algebra.adjoin R ({x} : set A)).to_submodule.fg :=
 begin
   rcases hx with ⟨f, hfm, hfx⟩,
   existsi finset.image ((^) x) (finset.range (nat_degree f + 1)),
@@ -180,7 +178,7 @@ begin
 end
 
 theorem fg_adjoin_of_finite {s : set A} (hfs : s.finite)
-  (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s : submodule R A).fg :=
+  (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s).to_submodule.fg :=
 set.finite.induction_on hfs (λ _, ⟨{1}, submodule.ext $ λ x,
   by { erw [algebra.adjoin_empty, finset.coe_singleton, ← one_eq_span, one_eq_map_top,
       map_top, linear_map.mem_range, algebra.mem_bot], refl }⟩)
@@ -189,15 +187,15 @@ set.finite.induction_on hfs (λ _, ⟨{1}, submodule.ext $ λ x,
     (fg_adjoin_singleton_of_integral _ $ his a $ set.mem_insert a s)) his
 
 theorem is_integral_of_mem_of_fg (S : subalgebra R A)
-  (HS : (S : submodule R A).fg) (x : A) (hx : x ∈ S) : is_integral R x :=
+  (HS : S.to_submodule.fg) (x : A) (hx : x ∈ S) : is_integral R x :=
 begin
   cases HS with y hy,
   obtain ⟨lx, hlx1, hlx2⟩ :
     ∃ (l : A →₀ R) (H : l ∈ finsupp.supported R R ↑y), (finsupp.total A A R id) l = x,
   { rwa [←(@finsupp.mem_span_iff_total A A R _ _ _ id ↑y x), set.image_id ↑y, hy] },
-  have hyS : ∀ {p}, p ∈ y → p ∈ S := λ p hp, show p ∈ (S : submodule R A),
+  have hyS : ∀ {p}, p ∈ y → p ∈ S := λ p hp, show p ∈ S.to_submodule,
     by { rw ← hy, exact subset_span hp },
-  have : ∀ (jk : (↑(y.product y) : set (A × A))), jk.1.1 * jk.1.2 ∈ (S : submodule R A) :=
+  have : ∀ (jk : (↑(y.product y) : set (A × A))), jk.1.1 * jk.1.2 ∈ S.to_submodule :=
     λ jk, S.mul_mem (hyS (finset.mem_product.1 jk.2).1) (hyS (finset.mem_product.1 jk.2).2),
   rw [← hy, ← set.image_id ↑y] at this, simp only [finsupp.mem_span_iff_total] at this,
   choose ly hly1 hly2,
@@ -205,7 +203,8 @@ begin
   refine is_integral_of_subring S₀ _,
   letI : comm_ring S₀ := @subtype.comm_ring _ _ _ ring.closure.is_subring,
   letI : algebra S₀ A := algebra.of_is_subring _,
-  have : span S₀ (insert 1 ↑y : set A) * span S₀ (insert 1 ↑y : set A) ≤ span S₀ (insert 1 ↑y : set A),
+  have :
+    span S₀ (insert 1 ↑y : set A) * span S₀ (insert 1 ↑y : set A) ≤ span S₀ (insert 1 ↑y : set A),
   { rw span_mul_span, refine span_le.2 (λ z hz, _),
     rcases set.mem_mul.1 hz with ⟨p, q, rfl | hp, hq, rfl⟩,
     { rw one_mul, exact subset_span hq },
@@ -225,7 +224,7 @@ begin
     zero_mem := (span S₀ (insert 1 ↑y : set A)).zero_mem,
     add_mem := λ _ _, (span S₀ (insert 1 ↑y : set A)).add_mem,
     neg_mem := λ _, (span S₀ (insert 1 ↑y : set A)).neg_mem },
-  have : span S₀ (insert 1 ↑y : set A) = algebra.adjoin S₀ (↑y : set A),
+  have : span S₀ (insert 1 ↑y : set A) = (algebra.adjoin S₀ (↑y : set A)).to_submodule,
   { refine le_antisymm (span_le.2 $ set.insert_subset.2
         ⟨(algebra.adjoin S₀ ↑y).one_mem, algebra.subset_adjoin⟩) (λ z hz, _),
     rw [subalgebra.mem_to_submodule, algebra.mem_adjoin_iff] at hz, rw ← submodule.mem_coe,
@@ -322,7 +321,7 @@ def integral_closure : subalgebra R A :=
   algebra_map_mem' := λ x, is_integral_algebra_map }
 
 theorem mem_integral_closure_iff_mem_fg {r : A} :
-  r ∈ integral_closure R A ↔ ∃ M : subalgebra R A, (M : submodule R A).fg ∧ r ∈ M :=
+  r ∈ integral_closure R A ↔ ∃ M : subalgebra R A, M.to_submodule.fg ∧ r ∈ M :=
 ⟨λ hr, ⟨algebra.adjoin R {r}, fg_adjoin_singleton_of_integral _ hr, algebra.subset_adjoin rfl⟩,
 λ ⟨M, Hf, hrM⟩, is_integral_of_mem_of_fg M Hf _ hrM⟩
 
@@ -450,7 +449,8 @@ end
 
 lemma ring_hom.is_integral_tower_bot_of_is_integral (hg : function.injective g)
   (hfg : (g.comp f).is_integral) : f.is_integral :=
-λ x, @is_integral_tower_bot_of_is_integral R S T _ _ _ g.to_algebra (g.comp f).to_algebra f.to_algebra
+λ x,
+  @is_integral_tower_bot_of_is_integral R S T _ _ _ g.to_algebra (g.comp f).to_algebra f.to_algebra
   (@is_scalar_tower.of_algebra_map_eq R S T _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra
   (ring_hom.comp_apply g f))  hg x (hfg (g x))
 
@@ -557,9 +557,6 @@ section integral_domain
 variables {R S : Type*} [comm_ring R] [integral_domain S] [algebra R S]
 
 instance : integral_domain (integral_closure R S) :=
-{ exists_pair_ne := ⟨0, 1, mt subtype.ext_iff_val.mp zero_ne_one⟩,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨a, ha⟩ ⟨b, hb⟩ h,
-    or.imp subtype.ext_iff_val.mpr subtype.ext_iff_val.mpr (eq_zero_or_eq_zero_of_mul_eq_zero (subtype.ext_iff_val.mp h)),
-  ..(integral_closure R S).comm_ring R S }
+infer_instance
 
 end integral_domain

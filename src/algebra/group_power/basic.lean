@@ -377,6 +377,13 @@ end comm_group
 lemma zero_pow [monoid_with_zero R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
 | (n+1) _ := zero_mul _
 
+lemma zero_pow_eq [monoid_with_zero R] (n : ℕ) : (0 : R)^n = if n = 0 then 1 else 0 :=
+begin
+  split_ifs with h,
+  { rw [h, pow_zero], },
+  { rw [zero_pow (nat.pos_of_ne_zero h)] },
+end
+
 namespace ring_hom
 
 variables [semiring R] [semiring S]
@@ -387,11 +394,24 @@ f.to_monoid_hom.map_pow a
 
 end ring_hom
 
+section
+variables (R)
+
 theorem neg_one_pow_eq_or [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := or.inl rfl
 | (n+1) := (neg_one_pow_eq_or n).swap.imp
   (λ h, by rw [pow_succ, h, neg_one_mul, neg_neg])
   (λ h, by rw [pow_succ, h, mul_one])
+
+end
+
+@[simp]
+lemma neg_one_pow_mul_eq_zero_iff [ring R] {n : ℕ} {r : R} : (-1)^n * r = 0 ↔ r = 0 :=
+by rcases neg_one_pow_eq_or R n; simp [h]
+
+@[simp]
+lemma mul_neg_one_pow_eq_zero_iff [ring R] {n : ℕ} {r : R} : r * (-1)^n = 0 ↔ r = 0 :=
+by rcases neg_one_pow_eq_or R n; simp [h]
 
 lemma pow_dvd_pow [monoid R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, nat.sub_add_cancel h]⟩
@@ -640,10 +660,10 @@ pow_bit0_pos h 1
 
 variables {x y : R}
 
-@[simp] theorem sqr_abs : abs x ^ 2 = x ^ 2 :=
+@[simp] theorem sqr_abs (x : R) : abs x ^ 2 = x ^ 2 :=
 by simpa only [pow_two] using abs_mul_abs_self x
 
-theorem abs_sqr : abs (x ^ 2) = x ^ 2 :=
+theorem abs_sqr (x : R) : abs (x ^ 2) = x ^ 2 :=
 by simpa only [pow_two] using abs_mul_self x
 
 theorem sqr_lt_sqr (h : abs x < y) : x ^ 2 < y ^ 2 :=
@@ -657,6 +677,30 @@ by simpa only [sqr_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
 
 theorem sqr_le_sqr' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
 sqr_le_sqr (abs_le.mpr ⟨h1, h2⟩)
+
+theorem abs_lt_abs_of_sqr_lt_sqr (h : x^2 < y^2) : abs x < abs y :=
+lt_of_pow_lt_pow 2 (abs_nonneg y) $ by rwa [← sqr_abs x, ← sqr_abs y] at h
+
+theorem abs_lt_of_sqr_lt_sqr (h : x^2 < y^2) (hy : 0 ≤ y) : abs x < y :=
+begin
+  rw [← abs_of_nonneg hy],
+  exact abs_lt_abs_of_sqr_lt_sqr h,
+end
+
+theorem abs_lt_of_sqr_lt_sqr' (h : x^2 < y^2) (hy : 0 ≤ y) : -y < x ∧ x < y :=
+abs_lt.mp $ abs_lt_of_sqr_lt_sqr h hy
+
+theorem abs_le_abs_of_sqr_le_sqr (h : x^2 ≤ y^2) : abs x ≤ abs y :=
+le_of_pow_le_pow 2 (abs_nonneg y) (1:ℕ).succ_pos $ by rwa [← sqr_abs x, ← sqr_abs y] at h
+
+theorem abs_le_of_sqr_le_sqr (h : x^2 ≤ y^2) (hy : 0 ≤ y) : abs x ≤ y :=
+begin
+  rw [← abs_of_nonneg hy],
+  exact abs_le_abs_of_sqr_le_sqr h,
+end
+
+theorem abs_le_of_sqr_le_sqr' (h : x^2 ≤ y^2) (hy : 0 ≤ y) : -y ≤ x ∧ x ≤ y :=
+abs_le.mp $ abs_le_of_sqr_le_sqr h hy
 
 end linear_ordered_ring
 
@@ -674,6 +718,14 @@ end
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]
+
+lemma sub_pow_two {R} [comm_ring R] (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
+by rw [sub_eq_add_neg, add_pow_two, neg_square, mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg]
+
+/-- Arithmetic mean-geometric mean (AM-GM) inequality for linearly ordered commutative rings. -/
+lemma two_mul_le_add_pow_two {R} [linear_ordered_comm_ring R] (a b : R) :
+  2 * a * b ≤ a ^ 2 + b ^ 2 :=
+sub_nonneg.mp ((sub_add_eq_add_sub _ _ _).subst ((sub_pow_two a b).subst (pow_two_nonneg _)))
 
 lemma of_add_nsmul [add_monoid A] (x : A) (n : ℕ) :
   multiplicative.of_add (n •ℕ x) = (multiplicative.of_add x)^n := rfl

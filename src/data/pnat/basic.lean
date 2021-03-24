@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Neil Strickland
+Authors: Mario Carneiro, Neil Strickland
 -/
 import data.nat.basic
 
@@ -238,6 +238,25 @@ begin
   simp only [lt_add_one_iff] at hk,
   exact hi b hk
 end
+
+/-- An induction principle for `pnat`: it takes values in `Sort*`, so it applies also to Types,
+not only to `Prop`. -/
+@[elab_as_eliminator]
+def rec_on (n : pnat) {p : pnat → Sort*} (p1 : p 1) (hp : ∀ n, p n → p (n + 1)) : p n :=
+begin
+  rcases n with ⟨n, h⟩,
+  induction n with n IH,
+  { exact absurd h dec_trivial },
+  { cases n with n,
+    { exact p1 },
+    { exact hp _ (IH n.succ_pos) } }
+end
+
+@[simp] theorem rec_on_one {p} (p1 hp) : @pnat.rec_on 1 p p1 hp = p1 := rfl
+
+@[simp] theorem rec_on_succ (n : pnat) {p : pnat → Sort*} (p1 hp) :
+  @pnat.rec_on (n + 1) p p1 hp = hp n (@pnat.rec_on n p p1 hp) :=
+by { cases n with n h, cases n; [exact absurd h dec_trivial, refl] }
 
 /-- We define `m % k` and `m / k` in the same way as for `ℕ`
   except that when `m = n * k` we take `m % k = k` and

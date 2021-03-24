@@ -7,6 +7,7 @@ import algebra.associated
 import linear_algebra.basic
 import order.zorn
 import order.atoms
+import order.compactly_generated
 /-!
 
 # Ideals over a ring
@@ -54,7 +55,8 @@ end ideal
 
 variables {a b : α}
 
--- A separate namespace definition is needed because the variables were historically in a different order
+-- A separate namespace definition is needed because the variables were historically in a different
+-- order.
 namespace ideal
 variables [comm_semiring α] (I : ideal α)
 
@@ -237,24 +239,32 @@ end⟩
 instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime :=
 is_maximal.is_prime
 
+instance : is_coatomic (ideal α) :=
+begin
+  apply complete_lattice.coatomic_of_top_compact,
+  rw ←span_singleton_one,
+  exact submodule.singleton_span_is_compact_element 1,
+end
+
 /-- Krull's theorem: if `I` is an ideal that is not the whole ring, then it is included in some
     maximal ideal. -/
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
-begin
-  rcases zorn.zorn_partial_order₀ { J : ideal α | J ≠ ⊤ } _ I hI with ⟨M, M0, IM, h⟩,
-  { refine ⟨M, ⟨⟨M0, λ J hJ, by_contradiction $ λ J0, _⟩⟩, IM⟩,
-    cases h J J0 (le_of_lt hJ), exact lt_irrefl _ hJ },
-  { intros S SC cC I IS,
-    refine ⟨Sup S, λ H, _, λ _, le_Sup⟩,
-    obtain ⟨J, JS, J0⟩ : ∃ J ∈ S, (1 : α) ∈ J,
-      from (submodule.mem_Sup_of_directed ⟨I, IS⟩ cC.directed_on).1 ((eq_top_iff_one _).1 H),
-    exact SC JS ((eq_top_iff_one _).2 J0) }
-end
+let ⟨m, hm⟩ := (eq_top_or_exists_le_coatom I).resolve_left hI in ⟨m, ⟨⟨hm.1⟩, hm.2⟩⟩
+
+variables (α)
 
 /-- Krull's theorem: a nontrivial ring has a maximal ideal. -/
 theorem exists_maximal [nontrivial α] : ∃ M : ideal α, M.is_maximal :=
-let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) submodule.bot_ne_top in ⟨I, hI⟩
+let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) bot_ne_top in ⟨I, hI⟩
+
+variables {α}
+
+instance [nontrivial α] : nontrivial (ideal α) :=
+begin
+  rcases @exists_maximal α _ _ with ⟨M, hM, _⟩,
+  exact nontrivial_of_ne M ⊤ hM
+end
 
 /-- If P is not properly contained in any maximal ideal then it is not properly contained
   in any proper ideal -/

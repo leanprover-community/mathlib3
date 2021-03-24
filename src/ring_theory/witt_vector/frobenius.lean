@@ -38,14 +38,17 @@ that `witt_vector.frobenius_fun` is equal to `witt_vector.map (frobenius R p)`.
 TODO: Show that `witt_vector.frobenius_fun` is a ring homomorphism,
 and bundle it into `witt_vector.frobenius`.
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 namespace witt_vector
 
 variables {p : ℕ} {R S : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 local notation `𝕎` := witt_vector p -- type as `\bbW`
-
-local attribute [semireducible] witt_vector
 
 noncomputable theory
 open mv_polynomial finset
@@ -200,7 +203,7 @@ lemma frobenius_poly_zmod (n : ℕ) :
   mv_polynomial.map (int.cast_ring_hom (zmod p)) (frobenius_poly p n) = X n ^ p :=
 begin
   rw [frobenius_poly, ring_hom.map_add, ring_hom.map_pow, ring_hom.map_mul, map_X, map_C],
-  simp only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.cast_self, zero_mul, C_0],
+  simp only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.nat_cast_self, zero_mul, C_0],
 end
 
 @[simp]

@@ -57,6 +57,7 @@ General algebra:
     Chinese remainder theorem: 'ideal.quotient_inf_ring_equiv_pi_quotient'
     localization: 'localization'
     fractional ideal: 'ring.fractional_ideal'
+    first isomorphism theorem for commutative rings: 'ring_hom.quotient_ker_equiv_of_surjective'
 
   Divisibility in integral domains:
     irreducible element: 'irreducible'
@@ -109,6 +110,7 @@ General algebra:
     splitting field: 'polynomial.splitting_field'
     perfect closure: 'perfect_closure'
     Galois correspondence: 'is_galois.intermediate_field_equiv_subgroup'
+    Abel-Ruffini theorem (one direction): 'solvable_by_rad.is_solvable'
 
   Homological algebra:
     chain complex: 'chain_complex'
@@ -153,7 +155,7 @@ Linear algebra:
     determinant: 'matrix.det'
     invertibility: 'matrix.nonsing_inv'
   Endomorphism polynomials:
-    minimal polynomial: 'minimal_polynomial'
+    minimal polynomial: 'minpoly'
     characteristic polynomial: 'char_poly'
     Cayley-Hamilton theorem: 'aeval_self_char_poly'
   Structure theory of endomorphisms:
@@ -283,7 +285,7 @@ Analysis:
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'
     Fatou's lemma: 'measure_theory.lintegral_liminf_le'
     vector-valued integrable function (Bochner integral): 'measure_theory.integrable'
-    $L^1$ space: 'measure_theory.l1'
+    $L^p$ space: 'measure_theory.Lp'
     Bochner integral: 'measure_theory.integral'
     dominated convergence theorem: 'measure_theory.tendsto_integral_of_dominated_convergence'
     fundamental theorem of calculus, part 1: 'interval_integral.integral_has_fderiv_at_of_tendsto_ae'
@@ -307,12 +309,14 @@ Geometry:
     tangent bundle: 'tangent_bundle'
     tangent map: 'tangent_map'
     Lie group: 'lie_group'
+    sphere: 'metric.sphere.smooth_manifold_with_corners'
 
   Algebraic geometry:
     prime spectrum: 'prime_spectrum'
     Zariski topology: 'prime_spectrum.zariski_topology'
     locally ringed space: 'algebraic_geometry.LocallyRingedSpace'
     scheme: 'algebraic_geometry.Scheme'
+    Nullstellensatz : 'mv_polynomial.vanishing_ideal_zero_locus_eq_radical'
 
 Combinatorics:
   Graph theory:
@@ -324,6 +328,8 @@ Combinatorics:
     finite: 'fintype.exists_ne_map_eq_of_card_lt'
     infinite: 'fintype.exists_infinite_fiber'
     strong pigeonhole principle: 'fintype.exists_lt_card_fiber_of_mul_lt_card'
+  Transversals:
+    Hall's marriage theorem: 'finset.all_card_le_bUnion_card_iff_exists_injective'
 
 Dynamics:
   Circle dynamics:

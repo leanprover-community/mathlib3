@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import tactic.monotonicity.basic
 import control.traversable
@@ -526,7 +526,7 @@ meta def mono (many : parse (tk "*")?)
   tactic unit :=
 do hyps ← hyps.mmap (λ p, to_expr p >>= mk_meta_var),
    hyps.mmap' (λ pr, do h ← get_unused_name `h, note h none pr),
-   when (¬ simp_rules.empty) (simp_core { } failed tt simp_rules [] (loc.ns [none])),
+   when (¬ simp_rules.empty) (simp_core { } failed tt simp_rules [] (loc.ns [none]) >> skip),
    if many.is_some
      then repeat $ mono_aux dir
      else mono_aux dir,

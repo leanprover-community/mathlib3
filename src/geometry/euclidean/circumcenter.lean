@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import geometry.euclidean.basic
 import linear_algebra.affine_space.finite_dimensional
@@ -570,7 +570,7 @@ begin
              fs.subset_univ
              (λ i, zero_smul ℝ _),
            set.indicator_apply],
-  rcongr
+  congr, funext, congr' 2
 end
 
 omit V
@@ -587,8 +587,7 @@ def circumcenter_weights_with_circumcenter (n : ℕ) : points_with_circumcenter_
 begin
   convert sum_ite_eq' univ circumcenter_index (function.const _ (1 : ℝ)),
   { ext ⟨j⟩ ; simp [circumcenter_weights_with_circumcenter] },
-  { simp },
-  { exact classical.dec_eq _ }
+  { simp }
 end
 
 include V

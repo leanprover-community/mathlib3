@@ -139,6 +139,10 @@ theorem mul_right_injective (a : G) : function.injective ((*) a) :=
 theorem mul_right_inj (a : G) {b c : G} : a * b = a * c ↔ b = c :=
 (mul_right_injective a).eq_iff
 
+@[to_additive]
+theorem mul_ne_mul_right (a : G) {b c : G} : a * b ≠ a * c ↔ b ≠ c :=
+(mul_right_injective a).ne_iff
+
 end left_cancel_semigroup
 
 /-- A `right_cancel_semigroup` is a semigroup such that `a * b = c * b` implies `a = c`. -/
@@ -171,6 +175,10 @@ theorem mul_left_injective (a : G) : function.injective (λ x, x * a) :=
 @[simp, to_additive]
 theorem mul_left_inj (a : G) {b c : G} : b * a = c * a ↔ b = c :=
 (mul_left_injective a).eq_iff
+
+@[to_additive]
+theorem mul_ne_mul_left (a : G) {b c : G} : b * a ≠ c * a ↔ b ≠ c :=
+(mul_left_injective a).ne_iff
 
 end right_cancel_semigroup
 
@@ -285,7 +293,7 @@ class add_cancel_comm_monoid (M : Type u)
   extends add_left_cancel_comm_monoid M, add_right_cancel_comm_monoid M
 
 /-- Commutative version of cancel_monoid. -/
-@[protect_proj, ancestor right_cancel_comm_monoid left_cancel_comm_monoid,
+@[protect_proj, ancestor left_cancel_comm_monoid right_cancel_comm_monoid,
   to_additive add_cancel_comm_monoid]
 class cancel_comm_monoid (M : Type u) extends left_cancel_comm_monoid M, right_cancel_comm_monoid M
 

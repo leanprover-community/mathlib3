@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 import topology.instances.nnreal
 /-!
@@ -16,24 +16,24 @@ open_locale classical topological_space ennreal nnreal big_operators filter
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 namespace ennreal
-variables {a b c d : ennreal} {r p q : ℝ≥0}
-variables {x y z : ennreal} {ε ε₁ ε₂ : ennreal} {s : set ennreal}
+variables {a b c d : ℝ≥0∞} {r p q : ℝ≥0}
+variables {x y z : ℝ≥0∞} {ε ε₁ ε₂ : ℝ≥0∞} {s : set ℝ≥0∞}
 
 section topological_space
 open topological_space
 
-/-- Topology on `ennreal`.
+/-- Topology on `ℝ≥0∞`.
 
 Note: this is different from the `emetric_space` topology. The `emetric_space` topology has
 `is_open {⊤}`, while this topology doesn't have singleton elements. -/
-instance : topological_space ennreal := preorder.topology ennreal
+instance : topological_space ℝ≥0∞ := preorder.topology ℝ≥0∞
 
-instance : order_topology ennreal := ⟨rfl⟩
+instance : order_topology ℝ≥0∞ := ⟨rfl⟩
 
-instance : t2_space ennreal := by apply_instance -- short-circuit type class inference
+instance : t2_space ℝ≥0∞ := by apply_instance -- short-circuit type class inference
 
-instance : second_countable_topology ennreal :=
-⟨⟨⋃q ≥ (0:ℚ), {{a : ennreal | a < nnreal.of_real q}, {a : ennreal | ↑(nnreal.of_real q) < a}},
+instance : second_countable_topology ℝ≥0∞ :=
+⟨⟨⋃q ≥ (0:ℚ), {{a : ℝ≥0∞ | a < nnreal.of_real q}, {a : ℝ≥0∞ | ↑(nnreal.of_real q) < a}},
   (countable_encodable _).bUnion $ assume a ha, (countable_singleton _).insert _,
   le_antisymm
     (le_generate_from $ by simp [or_imp_distrib, is_open_lt', is_open_gt'] {contextual := tt})
@@ -49,10 +49,10 @@ instance : second_countable_topology ennreal :=
         exact generate_open.basic _ (mem_bUnion hq.1 $ by simp) }
     end)⟩⟩
 
-lemma embedding_coe : embedding (coe : ℝ≥0 → ennreal) :=
+lemma embedding_coe : embedding (coe : ℝ≥0 → ℝ≥0∞) :=
 ⟨⟨begin
   refine le_antisymm _ _,
-  { rw [@order_topology.topology_eq_generate_intervals ennreal _,
+  { rw [@order_topology.topology_eq_generate_intervals ℝ≥0∞ _,
       ← coinduced_le_iff_le_induced],
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
@@ -68,36 +68,33 @@ lemma embedding_coe : embedding (coe : ℝ≥0 → ennreal) :=
   end⟩,
   assume a b, coe_eq_coe.1⟩
 
-lemma is_open_ne_top : is_open {a : ennreal | a ≠ ⊤} := is_open_ne
+lemma is_open_ne_top : is_open {a : ℝ≥0∞ | a ≠ ⊤} := is_open_ne
 
 lemma is_open_Ico_zero : is_open (Ico 0 b) := by { rw ennreal.Ico_eq_Iio, exact is_open_Iio}
 
-lemma coe_range_mem_nhds : range (coe : ℝ≥0 → ennreal) ∈ 𝓝 (r : ennreal) :=
-have {a : ennreal | a ≠ ⊤} = range (coe : ℝ≥0 → ennreal),
-  from set.ext $ assume a, by cases a; simp [none_eq_top, some_eq_coe],
-this ▸ mem_nhds_sets is_open_ne_top coe_ne_top
+lemma open_embedding_coe : open_embedding (coe : ℝ≥0 → ℝ≥0∞) :=
+⟨embedding_coe, by { convert is_open_ne_top, ext (x|_); simp [none_eq_top, some_eq_coe] }⟩
+
+lemma coe_range_mem_nhds : range (coe : ℝ≥0 → ℝ≥0∞) ∈ 𝓝 (r : ℝ≥0∞) :=
+mem_nhds_sets open_embedding_coe.open_range $ mem_range_self _
 
 @[norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} {a : ℝ≥0} :
-  tendsto (λa, (m a : ennreal)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
+  tendsto (λa, (m a : ℝ≥0∞)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
 embedding_coe.tendsto_nhds_iff.symm
 
-lemma continuous_coe : continuous (coe : ℝ≥0 → ennreal) :=
+lemma continuous_coe : continuous (coe : ℝ≥0 → ℝ≥0∞) :=
 embedding_coe.continuous
 
 lemma continuous_coe_iff  {α} [topological_space α] {f : α → ℝ≥0} :
-  continuous (λa, (f a : ennreal)) ↔ continuous f :=
+  continuous (λa, (f a : ℝ≥0∞)) ↔ continuous f :=
 embedding_coe.continuous_iff.symm
 
-lemma nhds_coe {r : ℝ≥0} : 𝓝 (r : ennreal) = (𝓝 r).map coe :=
-by rw [embedding_coe.induced, map_nhds_induced_eq coe_range_mem_nhds]
+lemma nhds_coe {r : ℝ≥0} : 𝓝 (r : ℝ≥0∞) = (𝓝 r).map coe :=
+(open_embedding_coe.map_nhds_eq r).symm
 
-lemma nhds_coe_coe {r p : ℝ≥0} : 𝓝 ((r : ennreal), (p : ennreal)) =
-  (𝓝 (r, p)).map (λp:ℝ≥0×ℝ≥0, (p.1, p.2)) :=
-begin
-  rw [(embedding_coe.prod_mk embedding_coe).map_nhds_eq],
-  rw [← prod_range_range_eq],
-  exact prod_mem_nhds_sets coe_range_mem_nhds coe_range_mem_nhds
-end
+lemma nhds_coe_coe {r p : ℝ≥0} :
+  𝓝 ((r : ℝ≥0∞), (p : ℝ≥0∞)) = (𝓝 (r, p)).map (λp:ℝ≥0×ℝ≥0, (p.1, p.2)) :=
+((open_embedding_coe.prod open_embedding_coe).map_nhds_eq (r, p)).symm
 
 lemma continuous_of_real : continuous ennreal.of_real :=
 (continuous_coe_iff.2 continuous_id).comp nnreal.continuous_of_real
@@ -106,28 +103,27 @@ lemma tendsto_of_real {f : filter α} {m : α → ℝ} {a : ℝ} (h : tendsto m 
   tendsto (λa, ennreal.of_real (m a)) f (𝓝 (ennreal.of_real a)) :=
 tendsto.comp (continuous.tendsto continuous_of_real _) h
 
-lemma tendsto_to_nnreal {a : ennreal} : a ≠ ⊤ →
-  tendsto (ennreal.to_nnreal) (𝓝 a) (𝓝 a.to_nnreal) :=
+lemma tendsto_to_nnreal {a : ℝ≥0∞} (ha : a ≠ ⊤) :
+  tendsto ennreal.to_nnreal (𝓝 a) (𝓝 a.to_nnreal) :=
 begin
-  cases a; simp [some_eq_coe, none_eq_top, nhds_coe, tendsto_map'_iff, (∘)],
+  lift a to ℝ≥0 using ha,
+  rw [nhds_coe, tendsto_map'_iff],
   exact tendsto_id
 end
 
 lemma continuous_on_to_nnreal : continuous_on ennreal.to_nnreal {a | a ≠ ∞}  :=
-continuous_on_iff_continuous_restrict.2 $ continuous_iff_continuous_at.2 $ λ x,
-  (tendsto_to_nnreal x.2).comp continuous_at_subtype_coe
+λ a ha, continuous_at.continuous_within_at (tendsto_to_nnreal ha)
 
-lemma tendsto_to_real {a : ennreal} : a ≠ ⊤ → tendsto (ennreal.to_real) (𝓝 a) (𝓝 a.to_real) :=
-λ ha, tendsto.comp ((@nnreal.tendsto_coe _ (𝓝 a.to_nnreal) id (a.to_nnreal)).2 tendsto_id)
-  (tendsto_to_nnreal ha)
+lemma tendsto_to_real {a : ℝ≥0∞} (ha : a ≠ ⊤) : tendsto ennreal.to_real (𝓝 a) (𝓝 a.to_real) :=
+nnreal.tendsto_coe.2 $ tendsto_to_nnreal ha
 
-/-- The set of finite `ennreal` numbers is homeomorphic to `ℝ≥0`. -/
+/-- The set of finite `ℝ≥0∞` numbers is homeomorphic to `ℝ≥0`. -/
 def ne_top_homeomorph_nnreal : {a | a ≠ ∞} ≃ₜ ℝ≥0 :=
 { continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_nnreal,
   continuous_inv_fun := continuous_subtype_mk _ continuous_coe,
   .. ne_top_equiv_nnreal }
 
-/-- The set of finite `ennreal` numbers is homeomorphic to `ℝ≥0`. -/
+/-- The set of finite `ℝ≥0∞` numbers is homeomorphic to `ℝ≥0`. -/
 def lt_top_homeomorph_nnreal : {a | a < ∞} ≃ₜ ℝ≥0 :=
 by refine (homeomorph.set_congr $ set.ext $ λ x, _).trans ne_top_homeomorph_nnreal;
   simp only [mem_set_of_eq, lt_top_iff_ne_top]
@@ -138,17 +134,17 @@ nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
 lemma nhds_top' : 𝓝 ∞ = ⨅ r : ℝ≥0, 𝓟 (Ioi r) :=
 nhds_top.trans $ infi_ne_top _
 
-lemma tendsto_nhds_top_iff_nnreal {m : α → ennreal} {f : filter α} :
+lemma tendsto_nhds_top_iff_nnreal {m : α → ℝ≥0∞} {f : filter α} :
   tendsto m f (𝓝 ⊤) ↔ ∀ x : ℝ≥0, ∀ᶠ a in f, ↑x < m a :=
 by simp only [nhds_top', tendsto_infi, tendsto_principal, mem_Ioi]
 
-lemma tendsto_nhds_top_iff_nat {m : α → ennreal} {f : filter α} :
+lemma tendsto_nhds_top_iff_nat {m : α → ℝ≥0∞} {f : filter α} :
   tendsto m f (𝓝 ⊤) ↔ ∀ n : ℕ, ∀ᶠ a in f, ↑n < m a :=
 tendsto_nhds_top_iff_nnreal.trans ⟨λ h n, by simpa only [ennreal.coe_nat] using h n,
   λ h x, let ⟨n, hn⟩ := exists_nat_gt x in
     (h n).mono (λ y, lt_trans $ by rwa [← ennreal.coe_nat, coe_lt_coe])⟩
 
-lemma tendsto_nhds_top {m : α → ennreal} {f : filter α}
+lemma tendsto_nhds_top {m : α → ℝ≥0∞} {f : filter α}
   (h : ∀ n : ℕ, ∀ᶠ a in f, ↑n < m a) : tendsto m f (𝓝 ⊤) :=
 tendsto_nhds_top_iff_nat.2 h
 
@@ -157,12 +153,18 @@ tendsto_nhds_top $ λ n, mem_at_top_sets.2
   ⟨n+1, λ m hm, ennreal.coe_nat_lt_coe_nat.2 $ nat.lt_of_succ_le hm⟩
 
 @[simp, norm_cast] lemma tendsto_coe_nhds_top {f : α → ℝ≥0} {l : filter α} :
-  tendsto (λ x, (f x : ennreal)) l (𝓝 ∞) ↔ tendsto f l at_top :=
+  tendsto (λ x, (f x : ℝ≥0∞)) l (𝓝 ∞) ↔ tendsto f l at_top :=
 by rw [tendsto_nhds_top_iff_nnreal, at_top_basis_Ioi.tendsto_right_iff];
   [simp, apply_instance, apply_instance]
 
-lemma nhds_zero : 𝓝 (0 : ennreal) = ⨅a ≠ 0, 𝓟 (Iio a) :=
+lemma nhds_zero : 𝓝 (0 : ℝ≥0∞) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
+
+@[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[Ioi r] (r : ℝ≥0∞)).ne_bot :=
+nhds_within_Ioi_self_ne_bot' ennreal.coe_lt_top
+
+@[instance] lemma nhds_within_Ioi_zero_ne_bot : (𝓝[Ioi 0] (0 : ℝ≥0∞)).ne_bot :=
+nhds_within_Ioi_coe_ne_bot
 
 -- using Icc because
 -- • don't have 'Ioo (x - ε) (x + ε) ∈ 𝓝 x' unless x > 0
@@ -203,17 +205,17 @@ begin
     assume y, rintros ⟨h₁, h₂⟩, rw xbx at h₂, calc y ≤ b : h₂ ... < a : ba },
 end
 
-/-- Characterization of neighborhoods for `ennreal` numbers. See also `tendsto_order`
+/-- Characterization of neighborhoods for `ℝ≥0∞` numbers. See also `tendsto_order`
 for a version with strict inequalities. -/
-protected theorem tendsto_nhds {f : filter α} {u : α → ennreal} {a : ennreal} (ha : a ≠ ⊤) :
+protected theorem tendsto_nhds {f : filter α} {u : α → ℝ≥0∞} {a : ℝ≥0∞} (ha : a ≠ ⊤) :
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, (u x) ∈ Icc (a - ε) (a + ε) :=
 by simp only [nhds_of_ne_top ha, tendsto_infi, tendsto_principal, mem_Icc]
 
-protected lemma tendsto_at_top [nonempty β] [semilattice_sup β] {f : β → ennreal} {a : ennreal}
+protected lemma tendsto_at_top [nonempty β] [semilattice_sup β] {f : β → ℝ≥0∞} {a : ℝ≥0∞}
   (ha : a ≠ ⊤) : tendsto f at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, (f n) ∈ Icc (a - ε) (a + ε) :=
 by simp only [ennreal.tendsto_nhds ha, mem_at_top_sets, mem_set_of_eq, filter.eventually]
 
-instance : has_continuous_add ennreal :=
+instance : has_continuous_add ℝ≥0∞ :=
 begin
   refine ⟨continuous_iff_continuous_at.2 _⟩,
   rintro ⟨(_|a), b⟩,
@@ -224,9 +226,17 @@ begin
     tendsto_coe, tendsto_add]
 end
 
+protected lemma tendsto_at_top_zero [hβ : nonempty β] [semilattice_sup β] {f : β → ℝ≥0∞} :
+  filter.at_top.tendsto f (𝓝 0) ↔ ∀ ε > 0, ∃ N, ∀ n ≥ N, f n ≤ ε :=
+begin
+  rw ennreal.tendsto_at_top zero_ne_top,
+  { simp_rw [set.mem_Icc, zero_add, zero_sub, zero_le _, true_and], },
+  { exact hβ, },
+end
+
 protected lemma tendsto_mul (ha : a ≠ 0 ∨ b ≠ ⊤) (hb : b ≠ 0 ∨ a ≠ ⊤) :
-  tendsto (λp:ennreal×ennreal, p.1 * p.2) (𝓝 (a, b)) (𝓝 (a * b)) :=
-have ht : ∀b:ennreal, b ≠ 0 → tendsto (λp:ennreal×ennreal, p.1 * p.2) (𝓝 ((⊤:ennreal), b)) (𝓝 ⊤),
+  tendsto (λp:ℝ≥0∞×ℝ≥0∞, p.1 * p.2) (𝓝 (a, b)) (𝓝 (a * b)) :=
+have ht : ∀b:ℝ≥0∞, b ≠ 0 → tendsto (λp:ℝ≥0∞×ℝ≥0∞, p.1 * p.2) (𝓝 ((⊤:ℝ≥0∞), b)) (𝓝 ⊤),
 begin
   refine assume b hb, tendsto_nhds_top_iff_nnreal.2 $ assume n, _,
   rcases lt_iff_exists_nnreal_btwn.1 (pos_iff_ne_zero.2 hb) with ⟨ε, hε, hεb⟩,
@@ -241,53 +251,53 @@ begin
   cases a, {simp [none_eq_top] at hb, simp [none_eq_top, ht b hb, top_mul, hb] },
   cases b, {
     simp [none_eq_top] at ha,
-    simp [*, nhds_swap (a : ennreal) ⊤, none_eq_top, some_eq_coe, top_mul, tendsto_map'_iff, (∘),
+    simp [*, nhds_swap (a : ℝ≥0∞) ⊤, none_eq_top, some_eq_coe, top_mul, tendsto_map'_iff, (∘),
       mul_comm] },
   simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
   simp only [coe_mul.symm, tendsto_coe, tendsto_mul]
 end
 
-protected lemma tendsto.mul {f : filter α} {ma : α → ennreal} {mb : α → ennreal} {a b : ennreal}
+protected lemma tendsto.mul {f : filter α} {ma : α → ℝ≥0∞} {mb : α → ℝ≥0∞} {a b : ℝ≥0∞}
   (hma : tendsto ma f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ ⊤) (hmb : tendsto mb f (𝓝 b)) (hb : b ≠ 0 ∨ a ≠ ⊤) :
   tendsto (λa, ma a * mb a) f (𝓝 (a * b)) :=
-show tendsto ((λp:ennreal×ennreal, p.1 * p.2) ∘ (λa, (ma a, mb a))) f (𝓝 (a * b)), from
+show tendsto ((λp:ℝ≥0∞×ℝ≥0∞, p.1 * p.2) ∘ (λa, (ma a, mb a))) f (𝓝 (a * b)), from
 tendsto.comp (ennreal.tendsto_mul ha hb) (hma.prod_mk_nhds hmb)
 
-protected lemma tendsto.const_mul {f : filter α} {m : α → ennreal} {a b : ennreal}
+protected lemma tendsto.const_mul {f : filter α} {m : α → ℝ≥0∞} {a b : ℝ≥0∞}
   (hm : tendsto m f (𝓝 b)) (hb : b ≠ 0 ∨ a ≠ ⊤) : tendsto (λb, a * m b) f (𝓝 (a * b)) :=
 by_cases
   (assume : a = 0, by simp [this, tendsto_const_nhds])
   (assume ha : a ≠ 0, ennreal.tendsto.mul tendsto_const_nhds (or.inl ha) hm hb)
 
-protected lemma tendsto.mul_const {f : filter α} {m : α → ennreal} {a b : ennreal}
+protected lemma tendsto.mul_const {f : filter α} {m : α → ℝ≥0∞} {a b : ℝ≥0∞}
   (hm : tendsto m f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ ⊤) : tendsto (λx, m x * b) f (𝓝 (a * b)) :=
 by simpa only [mul_comm] using ennreal.tendsto.const_mul hm ha
 
-protected lemma continuous_at_const_mul {a b : ennreal} (h : a ≠ ⊤ ∨ b ≠ 0) :
+protected lemma continuous_at_const_mul {a b : ℝ≥0∞} (h : a ≠ ⊤ ∨ b ≠ 0) :
   continuous_at ((*) a) b :=
 tendsto.const_mul tendsto_id h.symm
 
-protected lemma continuous_at_mul_const {a b : ennreal} (h : a ≠ ⊤ ∨ b ≠ 0) :
+protected lemma continuous_at_mul_const {a b : ℝ≥0∞} (h : a ≠ ⊤ ∨ b ≠ 0) :
   continuous_at (λ x, x * a) b :=
 tendsto.mul_const tendsto_id h.symm
 
-protected lemma continuous_const_mul {a : ennreal} (ha : a ≠ ⊤) : continuous ((*) a) :=
+protected lemma continuous_const_mul {a : ℝ≥0∞} (ha : a ≠ ⊤) : continuous ((*) a) :=
 continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_const_mul (or.inl ha)
 
-protected lemma continuous_mul_const {a : ennreal} (ha : a ≠ ⊤) : continuous (λ x, x * a) :=
+protected lemma continuous_mul_const {a : ℝ≥0∞} (ha : a ≠ ⊤) : continuous (λ x, x * a) :=
 continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_mul_const (or.inl ha)
 
-lemma le_of_forall_lt_one_mul_le {x y : ennreal} (h : ∀ a < 1, a * x ≤ y) : x ≤ y :=
+lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0∞} (h : ∀ a < 1, a * x ≤ y) : x ≤ y :=
 begin
   have : tendsto (* x) (𝓝[Iio 1] 1) (𝓝 (1 * x)) :=
     (ennreal.continuous_at_mul_const (or.inr one_ne_zero)).mono_left inf_le_left,
   rw one_mul at this,
-  haveI : (𝓝[Iio 1] (1 : ennreal)).ne_bot := nhds_within_Iio_self_ne_bot' ennreal.zero_lt_one,
+  haveI : (𝓝[Iio 1] (1 : ℝ≥0∞)).ne_bot := nhds_within_Iio_self_ne_bot' ennreal.zero_lt_one,
   exact le_of_tendsto this (eventually_nhds_within_iff.2 $ eventually_of_forall h)
 end
 
-lemma infi_mul_left {ι} [nonempty ι] {f : ι → ennreal} {a : ennreal}
-  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
+lemma infi_mul_left' {ι} {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) (h0 : a = 0 → nonempty ι) :
   (⨅ i, a * f i) = a * ⨅ i, f i :=
 begin
   by_cases H : a = ⊤ ∧ (⨅ i, f i) = 0,
@@ -295,16 +305,30 @@ begin
     rw [H.2, mul_zero, ← bot_eq_zero, infi_eq_bot],
     exact λ b hb, ⟨i, by rwa [hi, mul_zero, ← bot_eq_zero]⟩ },
   { rw not_and_distrib at H,
-    exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
-      ennreal.mul_left_mono).symm }
+    by_cases hι : nonempty ι,
+    { resetI,
+      exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
+        ennreal.mul_left_mono).symm },
+    { rw [infi_of_empty hι, infi_of_empty hι, mul_top, if_neg],
+      exact mt h0 hι } }
 end
 
-lemma infi_mul_right {ι} [nonempty ι] {f : ι → ennreal} {a : ennreal}
+lemma infi_mul_left {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
+  (⨅ i, a * f i) = a * ⨅ i, f i :=
+infi_mul_left' h (λ _, ‹nonempty ι›)
+
+lemma infi_mul_right' {ι} {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) (h0 : a = 0 → nonempty ι) :
+  (⨅ i, f i * a) = (⨅ i, f i) * a :=
+by simpa only [mul_comm a] using infi_mul_left' h h0
+
+lemma infi_mul_right {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
   (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
   (⨅ i, f i * a) = (⨅ i, f i) * a :=
-by simpa only [mul_comm a] using infi_mul_left h
+infi_mul_right' h (λ _, ‹nonempty ι›)
 
-protected lemma continuous_inv : continuous (has_inv.inv : ennreal → ennreal) :=
+protected lemma continuous_inv : continuous (has_inv.inv : ℝ≥0∞ → ℝ≥0∞) :=
 continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
 ⟨begin
   assume b hb,
@@ -317,51 +341,51 @@ begin
   exact lt_mem_nhds (ennreal.inv_lt_iff_inv_lt.1 hb)
 end⟩
 
-@[simp] protected lemma tendsto_inv_iff {f : filter α} {m : α → ennreal} {a : ennreal} :
+@[simp] protected lemma tendsto_inv_iff {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} :
   tendsto (λ x, (m x)⁻¹) f (𝓝 a⁻¹) ↔ tendsto m f (𝓝 a) :=
 ⟨λ h, by simpa only [function.comp, ennreal.inv_inv]
   using (ennreal.continuous_inv.tendsto a⁻¹).comp h,
   (ennreal.continuous_inv.tendsto a).comp⟩
 
-protected lemma tendsto.div {f : filter α} {ma : α → ennreal} {mb : α → ennreal} {a b : ennreal}
+protected lemma tendsto.div {f : filter α} {ma : α → ℝ≥0∞} {mb : α → ℝ≥0∞} {a b : ℝ≥0∞}
   (hma : tendsto ma f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ 0) (hmb : tendsto mb f (𝓝 b)) (hb : b ≠ ⊤ ∨ a ≠ ⊤) :
   tendsto (λa, ma a / mb a) f (𝓝 (a / b)) :=
 by { apply tendsto.mul hma _ (ennreal.tendsto_inv_iff.2 hmb) _; simp [ha, hb] }
 
-protected lemma tendsto.const_div {f : filter α} {m : α → ennreal} {a b : ennreal}
+protected lemma tendsto.const_div {f : filter α} {m : α → ℝ≥0∞} {a b : ℝ≥0∞}
   (hm : tendsto m f (𝓝 b)) (hb : b ≠ ⊤ ∨ a ≠ ⊤) : tendsto (λb, a / m b) f (𝓝 (a / b)) :=
 by { apply tendsto.const_mul (ennreal.tendsto_inv_iff.2 hm), simp [hb] }
 
-protected lemma tendsto.div_const {f : filter α} {m : α → ennreal} {a b : ennreal}
+protected lemma tendsto.div_const {f : filter α} {m : α → ℝ≥0∞} {a b : ℝ≥0∞}
   (hm : tendsto m f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ 0) : tendsto (λx, m x / b) f (𝓝 (a / b)) :=
 by { apply tendsto.mul_const hm, simp [ha] }
 
-protected lemma tendsto_inv_nat_nhds_zero : tendsto (λ n : ℕ, (n : ennreal)⁻¹) at_top (𝓝 0) :=
+protected lemma tendsto_inv_nat_nhds_zero : tendsto (λ n : ℕ, (n : ℝ≥0∞)⁻¹) at_top (𝓝 0) :=
 ennreal.inv_top ▸ ennreal.tendsto_inv_iff.2 tendsto_nat_nhds_top
 
-lemma bsupr_add {ι} {s : set ι} (hs : s.nonempty) {f : ι → ennreal} :
+lemma bsupr_add {ι} {s : set ι} (hs : s.nonempty) {f : ι → ℝ≥0∞} :
   (⨆ i ∈ s, f i) + a = ⨆ i ∈ s, f i + a :=
 begin
   simp only [← Sup_image], symmetry,
   rw [image_comp (+ a)],
-  refine is_lub.Sup_eq (is_lub_of_is_lub_of_tendsto _ (is_lub_Sup _) (hs.image _) _),
+  refine is_lub.Sup_eq ((is_lub_Sup $ f '' s).is_lub_of_tendsto _ (hs.image _) _),
   exacts [λ x _ y _ hxy, add_le_add hxy le_rfl,
     tendsto.add (tendsto_id' inf_le_left) tendsto_const_nhds]
 end
 
-lemma Sup_add {s : set ennreal} (hs : s.nonempty) : Sup s + a = ⨆b∈s, b + a :=
+lemma Sup_add {s : set ℝ≥0∞} (hs : s.nonempty) : Sup s + a = ⨆b∈s, b + a :=
 by rw [Sup_eq_supr, bsupr_add hs]
 
-lemma supr_add {ι : Sort*} {s : ι → ennreal} [h : nonempty ι] : supr s + a = ⨆b, s b + a :=
+lemma supr_add {ι : Sort*} {s : ι → ℝ≥0∞} [h : nonempty ι] : supr s + a = ⨆b, s b + a :=
 let ⟨x⟩ := h in
 calc supr s + a = Sup (range s) + a : by rw Sup_range
   ... = (⨆b∈range s, b + a) : Sup_add ⟨s x, x, rfl⟩
   ... = _ : supr_range
 
-lemma add_supr {ι : Sort*} {s : ι → ennreal} [h : nonempty ι] : a + supr s = ⨆b, a + s b :=
+lemma add_supr {ι : Sort*} {s : ι → ℝ≥0∞} [h : nonempty ι] : a + supr s = ⨆b, a + s b :=
 by rw [add_comm, supr_add]; simp [add_comm]
 
-lemma supr_add_supr {ι : Sort*} {f g : ι → ennreal} (h : ∀i j, ∃k, f i + g j ≤ f k + g k) :
+lemma supr_add_supr {ι : Sort*} {f g : ι → ℝ≥0∞} (h : ∀i j, ∃k, f i + g j ≤ f k + g k) :
   supr f + supr g = (⨆ a, f a + g a) :=
 begin
   by_cases hι : nonempty ι,
@@ -370,16 +394,16 @@ begin
     simpa [add_supr, supr_add] using
       λ i j:ι, show f i + g j ≤ ⨆ a, f a + g a, from
       let ⟨k, hk⟩ := h i j in le_supr_of_le k hk },
-  { have : ∀f:ι → ennreal, (⨆i, f i) = 0 := λ f, bot_unique (supr_le $ assume i, (hι ⟨i⟩).elim),
+  { have : ∀f:ι → ℝ≥0∞, (⨆i, f i) = 0 := λ f, bot_unique (supr_le $ assume i, (hι ⟨i⟩).elim),
     rw [this, this, this, zero_add] }
 end
 
 lemma supr_add_supr_of_monotone {ι : Sort*} [semilattice_sup ι]
-  {f g : ι → ennreal} (hf : monotone f) (hg : monotone g) :
+  {f g : ι → ℝ≥0∞} (hf : monotone f) (hg : monotone g) :
   supr f + supr g = (⨆ a, f a + g a) :=
 supr_add_supr $ assume i j, ⟨i ⊔ j, add_le_add (hf $ le_sup_left) (hg $ le_sup_right)⟩
 
-lemma finset_sum_supr_nat {α} {ι} [semilattice_sup ι] {s : finset α} {f : α → ι → ennreal}
+lemma finset_sum_supr_nat {α} {ι} [semilattice_sup ι] {s : finset α} {f : α → ι → ℝ≥0∞}
   (hf : ∀a, monotone (f a)) :
   ∑ a in s, supr (f a) = (⨆ n, ∑ a in s, f a n) :=
 begin
@@ -393,9 +417,9 @@ begin
     exact (finset.sum_le_sum $ assume a ha, hf a h) }
 end
 
-lemma mul_Sup {s : set ennreal} {a : ennreal} : a * Sup s = ⨆i∈s, a * i :=
+lemma mul_Sup {s : set ℝ≥0∞} {a : ℝ≥0∞} : a * Sup s = ⨆i∈s, a * i :=
 begin
-  by_cases hs : ∀x∈s, x = (0:ennreal),
+  by_cases hs : ∀x∈s, x = (0:ℝ≥0∞),
   { have h₁ : Sup s = 0 := (bot_unique $ Sup_le $ assume a ha, (hs a ha).symm ▸ le_refl 0),
     have h₂ : (⨆i ∈ s, a * i) = 0 :=
       (bot_unique $ supr_le $ assume a, supr_le $ assume ha, by simp [hs a ha]),
@@ -405,21 +429,20 @@ begin
     have s₁ : Sup s ≠ 0 :=
       pos_iff_ne_zero.1 (lt_of_lt_of_le (pos_iff_ne_zero.2 hx0) (le_Sup hx)),
     have : Sup ((λb, a * b) '' s) = a * Sup s :=
-      is_lub.Sup_eq (is_lub_of_is_lub_of_tendsto
+      is_lub.Sup_eq ((is_lub_Sup s).is_lub_of_tendsto
         (assume x _ y _ h, canonically_ordered_semiring.mul_le_mul (le_refl _) h)
-        (is_lub_Sup _)
         ⟨x, hx⟩
         (ennreal.tendsto.const_mul (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
 end
 
-lemma mul_supr {ι : Sort*} {f : ι → ennreal} {a : ennreal} : a * supr f = ⨆i, a * f i :=
+lemma mul_supr {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : a * supr f = ⨆i, a * f i :=
 by rw [← Sup_range, mul_Sup, supr_range]
 
-lemma supr_mul {ι : Sort*} {f : ι → ennreal} {a : ennreal} : supr f * a = ⨆i, f i * a :=
+lemma supr_mul {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : supr f * a = ⨆i, f i * a :=
 by rw [mul_comm, mul_supr]; congr; funext; rw [mul_comm]
 
-protected lemma tendsto_coe_sub : ∀{b:ennreal}, tendsto (λb:ennreal, ↑r - b) (𝓝 b) (𝓝 (↑r - b)) :=
+protected lemma tendsto_coe_sub : ∀{b:ℝ≥0∞}, tendsto (λb:ℝ≥0∞, ↑r - b) (𝓝 b) (𝓝 (↑r - b)) :=
 begin
   refine (forall_ennreal.2 $ and.intro (assume a, _) _),
   { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, coe_sub.symm],
@@ -429,37 +452,32 @@ begin
     by simp [le_of_lt] {contextual := tt})) tendsto_const_nhds
 end
 
-lemma sub_supr {ι : Sort*} [hι : nonempty ι] {b : ι → ennreal} (hr : a < ⊤) :
+lemma sub_supr {ι : Sort*} [nonempty ι] {b : ι → ℝ≥0∞} (hr : a < ⊤) :
   a - (⨆i, b i) = (⨅i, a - b i) :=
-let ⟨i⟩ := hι in
 let ⟨r, eq, _⟩ := lt_iff_exists_coe.mp hr in
 have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
-  from is_glb.Inf_eq $ is_glb_of_is_lub_of_tendsto
+  from is_glb.Inf_eq $ is_lub_supr.is_glb_of_tendsto
     (assume x _ y _, sub_le_sub (le_refl _))
-    is_lub_supr
-    ⟨_, i, rfl⟩
-    (tendsto.comp ennreal.tendsto_coe_sub (tendsto_id' inf_le_left)),
+    (range_nonempty _)
+    (ennreal.tendsto_coe_sub.comp (tendsto_id' inf_le_left)),
 by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_refl _
-
-lemma supr_eq_zero {ι : Sort*} {f : ι → ennreal} : (⨆ i, f i) = 0 ↔ ∀ i, f i = 0 :=
-by simp_rw [← nonpos_iff_eq_zero, supr_le_iff]
 
 end topological_space
 
 section tsum
 
-variables {f g : α → ennreal}
+variables {f g : α → ℝ≥0∞}
 
 @[norm_cast] protected lemma has_sum_coe {f : α → ℝ≥0} {r : ℝ≥0} :
-  has_sum (λa, (f a : ennreal)) ↑r ↔ has_sum f r :=
-have (λs:finset α, ∑ a in s, ↑(f a)) = (coe : ℝ≥0 → ennreal) ∘ (λs:finset α, ∑ a in s, f a),
+  has_sum (λa, (f a : ℝ≥0∞)) ↑r ↔ has_sum f r :=
+have (λs:finset α, ∑ a in s, ↑(f a)) = (coe : ℝ≥0 → ℝ≥0∞) ∘ (λs:finset α, ∑ a in s, f a),
   from funext $ assume s, ennreal.coe_finset_sum.symm,
 by unfold has_sum; rw [this, tendsto_coe]
 
-protected lemma tsum_coe_eq {f : α → ℝ≥0} (h : has_sum f r) : ∑'a, (f a : ennreal) = r :=
+protected lemma tsum_coe_eq {f : α → ℝ≥0} (h : has_sum f r) : ∑'a, (f a : ℝ≥0∞) = r :=
 (ennreal.has_sum_coe.2 h).tsum_eq
 
-protected lemma coe_tsum {f : α → ℝ≥0} : summable f → ↑(tsum f) = ∑'a, (f a : ennreal)
+protected lemma coe_tsum {f : α → ℝ≥0} : summable f → ↑(tsum f) = ∑'a, (f a : ℝ≥0∞)
 | ⟨r, hr⟩ := by rw [hr.tsum_eq, ennreal.tsum_coe_eq hr]
 
 protected lemma has_sum : has_sum f (⨆s:finset α, ∑ a in s, f a) :=
@@ -468,10 +486,10 @@ tendsto_at_top_supr $ λ s t, finset.sum_le_sum_of_subset
 @[simp] protected lemma summable : summable f := ⟨_, ennreal.has_sum⟩
 
 lemma tsum_coe_ne_top_iff_summable {f : β → ℝ≥0} :
-  ∑' b, (f b:ennreal) ≠ ∞ ↔ summable f :=
+  ∑' b, (f b:ℝ≥0∞) ≠ ∞ ↔ summable f :=
 begin
   refine ⟨λ h, _, λ h, ennreal.coe_tsum h ▸ ennreal.coe_ne_top⟩,
-  lift (∑' b, (f b:ennreal)) to ℝ≥0 using h with a ha,
+  lift (∑' b, (f b:ℝ≥0∞)) to ℝ≥0 using h with a ha,
   refine ⟨a, ennreal.has_sum_coe.1 _⟩,
   rw ha,
   exact ennreal.summable.has_sum
@@ -489,18 +507,18 @@ begin
   exact (finset.sum_mono_set f).supr_comp_eq hs
 end
 
-protected lemma tsum_sigma {β : α → Type*} (f : Πa, β a → ennreal) :
+protected lemma tsum_sigma {β : α → Type*} (f : Πa, β a → ℝ≥0∞) :
   ∑'p:Σa, β a, f p.1 p.2 = ∑'a b, f a b :=
 tsum_sigma' (assume b, ennreal.summable) ennreal.summable
 
-protected lemma tsum_sigma' {β : α → Type*} (f : (Σ a, β a) → ennreal) :
+protected lemma tsum_sigma' {β : α → Type*} (f : (Σ a, β a) → ℝ≥0∞) :
   ∑'p:(Σa, β a), f p = ∑'a b, f ⟨a, b⟩ :=
 tsum_sigma' (assume b, ennreal.summable) ennreal.summable
 
-protected lemma tsum_prod {f : α → β → ennreal} : ∑'p:α×β, f p.1 p.2 = ∑'a, ∑'b, f a b :=
+protected lemma tsum_prod {f : α → β → ℝ≥0∞} : ∑'p:α×β, f p.1 p.2 = ∑'a, ∑'b, f a b :=
 tsum_prod' ennreal.summable $ λ _, ennreal.summable
 
-protected lemma tsum_comm {f : α → β → ennreal} : ∑'a, ∑'b, f a b = ∑'b, ∑'a, f a b :=
+protected lemma tsum_comm {f : α → β → ℝ≥0∞} : ∑'a, ∑'b, f a b = ∑'b, ∑'a, f a b :=
 tsum_comm' ennreal.summable (λ _, ennreal.summable) (λ _, ennreal.summable)
 
 protected lemma tsum_add : ∑'a, (f a + g a) = (∑'a, f a) + (∑'a, g a) :=
@@ -509,25 +527,40 @@ tsum_add ennreal.summable ennreal.summable
 protected lemma tsum_le_tsum (h : ∀a, f a ≤ g a) : ∑'a, f a ≤ ∑'a, g a :=
 tsum_le_tsum h ennreal.summable ennreal.summable
 
-protected lemma sum_le_tsum {f : α → ennreal} (s : finset α) : ∑ x in s, f x ≤ ∑' x, f x :=
+protected lemma sum_le_tsum {f : α → ℝ≥0∞} (s : finset α) : ∑ x in s, f x ≤ ∑' x, f x :=
 sum_le_tsum s (λ x hx, zero_le _) ennreal.summable
 
-protected lemma tsum_eq_supr_nat' {f : ℕ → ennreal} {N : ℕ → ℕ} (hN : tendsto N at_top at_top) :
+protected lemma tsum_eq_supr_nat' {f : ℕ → ℝ≥0∞} {N : ℕ → ℕ} (hN : tendsto N at_top at_top) :
   ∑'i:ℕ, f i = (⨆i:ℕ, ∑ a in finset.range (N i), f a) :=
 ennreal.tsum_eq_supr_sum' _ $ λ t,
   let ⟨n, hn⟩    := t.exists_nat_subset_range,
       ⟨k, _, hk⟩ := exists_le_of_tendsto_at_top hN 0 n in
   ⟨k, finset.subset.trans hn (finset.range_mono hk)⟩
 
-protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
+protected lemma tsum_eq_supr_nat {f : ℕ → ℝ≥0∞} :
   ∑'i:ℕ, f i = (⨆i:ℕ, ∑ a in finset.range i, f a) :=
 ennreal.tsum_eq_supr_sum' _ finset.exists_nat_subset_range
+
+protected lemma tsum_eq_liminf_sum_nat {f : ℕ → ℝ≥0∞} :
+  ∑' i, f i = filter.at_top.liminf (λ n, ∑ i in finset.range n, f i) :=
+begin
+  rw [ennreal.tsum_eq_supr_nat, filter.liminf_eq_supr_infi_of_nat],
+  congr,
+  refine funext (λ n, le_antisymm _ _),
+  { refine le_binfi (λ i hi, finset.sum_le_sum_of_subset_of_nonneg _ (λ _ _ _, zero_le _)),
+    simpa only [finset.range_subset, add_le_add_iff_right] using hi, },
+  { refine le_trans (infi_le _ n) _,
+    simp [le_refl n, le_refl ((finset.range n).sum f)], },
+end
 
 protected lemma le_tsum (a : α) : f a ≤ ∑'a, f a :=
 le_tsum' ennreal.summable a
 
 protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → ∑' a, f a = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
+
+@[simp] protected lemma tsum_top [nonempty α] : ∑' a : α, ∞ = ∞ :=
+let ⟨a⟩ := ‹nonempty α› in ennreal.tsum_eq_top_of_eq_top ⟨a, rfl⟩
 
 protected lemma ne_top_of_tsum_ne_top (h : ∑' a, f a ≠ ∞) (a : α) : f a ≠ ∞ :=
 λ ha, h $ ennreal.tsum_eq_top_of_eq_top ⟨a, ha⟩
@@ -547,7 +580,7 @@ has_sum.tsum_eq this
 protected lemma tsum_mul_right : (∑'i, f i * a) = (∑'i, f i) * a :=
 by simp [mul_comm, ennreal.tsum_mul_left]
 
-@[simp] lemma tsum_supr_eq {α : Type*} (a : α) {f : α → ennreal} :
+@[simp] lemma tsum_supr_eq {α : Type*} (a : α) {f : α → ℝ≥0∞} :
   ∑'b:α, (⨆ (h : a = b), f b) = f a :=
 le_antisymm
   (by rw [ennreal.tsum_eq_supr_sum]; exact supr_le (assume s,
@@ -560,7 +593,7 @@ le_antisymm
   (calc f a ≤ (⨆ (h : a = a), f a) : le_supr (λh:a=a, f a) rfl
     ... ≤ (∑'b:α, ⨆ (h : a = b), f b) : ennreal.le_tsum _)
 
-lemma has_sum_iff_tendsto_nat {f : ℕ → ennreal} (r : ennreal) :
+lemma has_sum_iff_tendsto_nat {f : ℕ → ℝ≥0∞} (r : ℝ≥0∞) :
   has_sum f r ↔ tendsto (λn:ℕ, ∑ i in finset.range n, f i) at_top (𝓝 r) :=
 begin
   refine ⟨has_sum.tendsto_sum_nat, assume h, _⟩,
@@ -569,19 +602,33 @@ begin
   { exact assume s t hst, finset.sum_le_sum_of_subset (finset.range_subset.2 hst) }
 end
 
-lemma to_nnreal_apply_of_tsum_ne_top {α : Type*} {f : α → ennreal} (hf : ∑' i, f i ≠ ∞) (x : α) :
-  (((ennreal.to_nnreal ∘ f) x : ℝ≥0) : ennreal) = f x :=
+lemma to_nnreal_apply_of_tsum_ne_top {α : Type*} {f : α → ℝ≥0∞} (hf : ∑' i, f i ≠ ∞) (x : α) :
+  (((ennreal.to_nnreal ∘ f) x : ℝ≥0) : ℝ≥0∞) = f x :=
 coe_to_nnreal $ ennreal.ne_top_of_tsum_ne_top hf _
 
-lemma summable_to_nnreal_of_tsum_ne_top {α : Type*} {f : α → ennreal} (hf : ∑' i, f i ≠ ∞) :
+lemma summable_to_nnreal_of_tsum_ne_top {α : Type*} {f : α → ℝ≥0∞} (hf : ∑' i, f i ≠ ∞) :
   summable (ennreal.to_nnreal ∘ f) :=
 by simpa only [←tsum_coe_ne_top_iff_summable, to_nnreal_apply_of_tsum_ne_top hf] using hf
 
-protected lemma tsum_apply {ι α : Type*} {f : ι → α → ennreal} {x : α} :
+lemma tendsto_cofinite_zero_of_tsum_lt_top {α} {f : α → ℝ≥0∞} (hf : ∑' x, f x < ∞) :
+  tendsto f cofinite (𝓝 0) :=
+begin
+  have f_ne_top : ∀ n, f n ≠ ∞, from ennreal.ne_top_of_tsum_ne_top hf.ne,
+  have h_f_coe : f = λ n, ((f n).to_nnreal : ennreal),
+    from funext (λ n, (coe_to_nnreal (f_ne_top n)).symm),
+  rw [h_f_coe, ←@coe_zero, tendsto_coe],
+  exact nnreal.tendsto_cofinite_zero_of_summable (summable_to_nnreal_of_tsum_ne_top hf.ne),
+end
+
+lemma tendsto_at_top_zero_of_tsum_lt_top {f : ℕ → ℝ≥0∞} (hf : ∑' x, f x < ∞) :
+  tendsto f at_top (𝓝 0) :=
+by { rw ←nat.cofinite_eq_at_top, exact tendsto_cofinite_zero_of_tsum_lt_top hf }
+
+protected lemma tsum_apply {ι α : Type*} {f : ι → α → ℝ≥0∞} {x : α} :
   (∑' i, f i) x = ∑' i, f i x :=
 tsum_apply $ pi.summable.mpr $ λ _, ennreal.summable
 
-lemma tsum_sub {f : ℕ → ennreal} {g : ℕ → ennreal} (h₁ : ∑' i, g i < ∞) (h₂ : g ≤ f) :
+lemma tsum_sub {f : ℕ → ℝ≥0∞} {g : ℕ → ℝ≥0∞} (h₁ : ∑' i, g i < ∞) (h₂ : g ≤ f) :
   ∑' i, (f i - g i) = (∑' i, f i) - (∑' i, g i) :=
 begin
   have h₃: ∑' i, (f i - g i) = ∑' i, (f i - g i + g i) - ∑' i, g i,
@@ -602,7 +649,7 @@ open_locale nnreal
 /-- Comparison test of convergence of `ℝ≥0`-valued series. -/
 lemma exists_le_has_sum_of_le {f g : β → ℝ≥0} {r : ℝ≥0}
   (hgf : ∀b, g b ≤ f b) (hfr : has_sum f r) : ∃p≤r, has_sum g p :=
-have ∑'b, (g b : ennreal) ≤ r,
+have ∑'b, (g b : ℝ≥0∞) ≤ r,
 begin
   refine has_sum_le (assume b, _) ennreal.summable.has_sum (ennreal.has_sum_coe.2 hfr),
   exact ennreal.coe_le_coe.2 (hgf _)
@@ -666,6 +713,21 @@ begin
       using h₂ }
 end
 
+lemma indicator_summable {f : α → ℝ≥0} (hf : summable f) (s : set α) :
+  summable (s.indicator f) :=
+begin
+  refine nnreal.summable_of_le (λ a, le_trans (le_of_eq (s.indicator_apply f a)) _) hf,
+  split_ifs,
+  exact le_refl (f a),
+  exact zero_le_coe,
+end
+
+lemma tsum_indicator_ne_zero {f : α → ℝ≥0} (hf : summable f) {s : set α} (h : ∃ a ∈ s, f a ≠ 0) :
+  ∑' x, (s.indicator f) x ≠ 0 :=
+λ h', let ⟨a, ha, hap⟩ := h in
+  hap (trans (set.indicator_apply_eq_self.mpr (absurd ha)).symm
+    (((tsum_eq_zero_iff (indicator_summable hf s)).1 h') a))
+
 open finset
 
 /-- For `f : ℕ → ℝ≥0`, then `∑' k, f (k + i)` tends to zero. This does not require a summability
@@ -681,10 +743,10 @@ end nnreal
 
 namespace ennreal
 
-lemma tendsto_sum_nat_add (f : ℕ → ennreal) (hf : ∑' i, f i ≠ ∞) :
+lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0∞) (hf : ∑' i, f i ≠ ∞) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
-  have : ∀ i, ∑' k, (((ennreal.to_nnreal ∘ f) (k + i) : ℝ≥0) : ennreal) =
+  have : ∀ i, ∑' k, (((ennreal.to_nnreal ∘ f) (k + i) : ℝ≥0) : ℝ≥0∞) =
     (∑' k, (ennreal.to_nnreal ∘ f) (k + i) : ℝ≥0) :=
     λ i, (ennreal.coe_tsum
       (nnreal.summable_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf) _)).symm,
@@ -724,6 +786,10 @@ begin
   exact exists_congr (λ hr, nnreal.has_sum_iff_tendsto_nat)
 end
 
+lemma ennreal.of_real_tsum_of_nonneg {f : α → ℝ} (hf_nonneg : ∀ n, 0 ≤ f n) (hf : summable f) :
+  ennreal.of_real (∑' n, f n) = ∑' n, ennreal.of_real (f n) :=
+by simp_rw [ennreal.of_real, ennreal.tsum_coe_eq (nnreal.has_sum_of_real_of_nonneg hf_nonneg hf)]
+
 lemma not_summable_iff_tendsto_nat_at_top_of_nonneg {f : ℕ → ℝ} (hf : ∀ n, 0 ≤ f n) :
   ¬ summable f ↔ tendsto (λ n : ℕ, ∑ i in finset.range n, f i) at_top at_top :=
 begin
@@ -752,12 +818,20 @@ lemma tsum_le_of_sum_range_le {f : ℕ → ℝ} {c : ℝ} (hf : ∀ n, 0 ≤ f n
 le_of_tendsto' ((has_sum_iff_tendsto_nat_of_nonneg hf _).1
   (summable_of_sum_range_le hf h).has_sum) h
 
+/-- If a sequence `f` with non-negative terms is dominated by a sequence `g` with summable
+series and at least one term of `f` is strictly smaller than the corresponding term in `g`,
+then the series of `f` is strictly smaller than the series of `g`. -/
+lemma tsum_lt_tsum_of_nonneg {i : ℕ} {f g : ℕ → ℝ}
+  (h0 : ∀ (b : ℕ), 0 ≤ f b) (h : ∀ (b : ℕ), f b ≤ g b) (hi : f i < g i) (hg : summable g) :
+  ∑' n, f n < ∑' n, g n :=
+tsum_lt_tsum h hi (summable_of_nonneg_of_le h0 h hg) hg
+
 section
 variables [emetric_space β]
 open ennreal filter emetric
 
 /-- In an emetric ball, the distance between points is everywhere finite -/
-lemma edist_ne_top_of_mem_ball {a : β} {r : ennreal} (x y : ball a r) : edist x.1 y.1 ≠ ⊤ :=
+lemma edist_ne_top_of_mem_ball {a : β} {r : ℝ≥0∞} (x y : ball a r) : edist x.1 y.1 ≠ ⊤ :=
 lt_top_iff_ne_top.1 $
 calc edist x y ≤ edist a x + edist a y : edist_triangle_left x.1 y.1 a
   ... < r + r : by rw [edist_comm a x, edist_comm a y]; exact add_lt_add x.2 y.2
@@ -765,12 +839,12 @@ calc edist x y ≤ edist a x + edist a y : edist_triangle_left x.1 y.1 a
 
 /-- Each ball in an extended metric space gives us a metric space, as the edist
 is everywhere finite. -/
-def metric_space_emetric_ball (a : β) (r : ennreal) : metric_space (ball a r) :=
+def metric_space_emetric_ball (a : β) (r : ℝ≥0∞) : metric_space (ball a r) :=
 emetric_space.to_metric_space edist_ne_top_of_mem_ball
 
 local attribute [instance] metric_space_emetric_ball
 
-lemma nhds_eq_nhds_emetric_ball (a x : β) (r : ennreal) (h : x ∈ ball a r) :
+lemma nhds_eq_nhds_emetric_ball (a x : β) (r : ℝ≥0∞) (h : x ∈ ball a r) :
   𝓝 x = map (coe : ball a r → β) (𝓝 ⟨x, h⟩) :=
 (map_nhds_subtype_coe_eq _ $ mem_nhds_sets emetric.is_open_ball h).symm
 end
@@ -782,12 +856,12 @@ open emetric
 lemma tendsto_iff_edist_tendsto_0 {l : filter β} {f : β → α} {y : α} :
   tendsto f l (𝓝 y) ↔ tendsto (λ x, edist (f x) y) l (𝓝 0) :=
 by simp only [emetric.nhds_basis_eball.tendsto_right_iff, emetric.mem_ball,
-  @tendsto_order ennreal β _ _, forall_prop_of_false ennreal.not_lt_zero, forall_const, true_and]
+  @tendsto_order ℝ≥0∞ β _ _, forall_prop_of_false ennreal.not_lt_zero, forall_const, true_and]
 
 /-- Yet another metric characterization of Cauchy sequences on integers. This one is often the
 most efficient. -/
 lemma emetric.cauchy_seq_iff_le_tendsto_0 [nonempty β] [semilattice_sup β] {s : β → α} :
-  cauchy_seq s ↔ (∃ (b: β → ennreal), (∀ n m N : β, N ≤ n → N ≤ m → edist (s n) (s m) ≤ b N)
+  cauchy_seq s ↔ (∃ (b: β → ℝ≥0∞), (∀ n m N : β, N ≤ n → N ≤ m → edist (s n) (s m) ≤ b N)
                     ∧ (tendsto b at_top (𝓝 0))) :=
 ⟨begin
   assume hs,
@@ -829,7 +903,7 @@ begin
     ... < ε : (hN _ (le_refl N)) ⟩
 end⟩
 
-lemma continuous_of_le_add_edist {f : α → ennreal} (C : ennreal)
+lemma continuous_of_le_add_edist {f : α → ℝ≥0∞} (C : ℝ≥0∞)
   (hC : C ≠ ⊤) (h : ∀x y, f x ≤ f y + C * edist x y) : continuous f :=
 begin
   refine continuous_iff_continuous_at.2 (λx, tendsto_order.2 ⟨_, _⟩),
@@ -906,7 +980,7 @@ theorem filter.tendsto.edist {f g : β → α} {x : filter β} {a b : α}
   tendsto (λx, edist (f x) (g x)) x (𝓝 (edist a b)) :=
 (continuous_edist.tendsto (a, b)).comp (hf.prod_mk_nhds hg)
 
-lemma cauchy_seq_of_edist_le_of_tsum_ne_top {f : ℕ → α} (d : ℕ → ennreal)
+lemma cauchy_seq_of_edist_le_of_tsum_ne_top {f : ℕ → α} (d : ℕ → ℝ≥0∞)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : tsum d ≠ ∞) :
   cauchy_seq f :=
 begin
@@ -915,12 +989,20 @@ begin
   exact cauchy_seq_of_edist_le_of_summable d hf hd
 end
 
-lemma emetric.is_closed_ball {a : α} {r : ennreal} : is_closed (closed_ball a r) :=
+lemma emetric.is_closed_ball {a : α} {r : ℝ≥0∞} : is_closed (closed_ball a r) :=
 is_closed_le (continuous_id.edist continuous_const) continuous_const
 
-/-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ennreal`,
+@[simp] lemma emetric.diam_closure (s : set α) : diam (closure s) = diam s :=
+begin
+  refine le_antisymm (diam_le_of_forall_edist_le $ λ x hx y hy, _) (diam_mono subset_closure),
+  have : edist x y ∈ closure (Iic (diam s)),
+    from  map_mem_closure2 (@continuous_edist α _) hx hy (λ _ _, edist_le_diam_of_mem),
+  rwa closure_Iic at this
+end
+
+/-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ℝ≥0∞`,
 then the distance from `f n` to the limit is bounded by `∑'_{k=n}^∞ d k`. -/
-lemma edist_le_tsum_of_edist_le_of_tendsto {f : ℕ → α} (d : ℕ → ennreal)
+lemma edist_le_tsum_of_edist_le_of_tendsto {f : ℕ → α} (d : ℕ → ℝ≥0∞)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n)
   {a : α} (ha : tendsto f at_top (𝓝 a)) (n : ℕ) :
   edist (f n) a ≤ ∑' m, d (n + m) :=
@@ -932,9 +1014,9 @@ begin
   exact sum_le_tsum _ (λ _ _, zero_le _) ennreal.summable
 end
 
-/-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ennreal`,
+/-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ℝ≥0∞`,
 then the distance from `f 0` to the limit is bounded by `∑'_{k=0}^∞ d k`. -/
-lemma edist_le_tsum_of_edist_le_of_tendsto₀ {f : ℕ → α} (d : ℕ → ennreal)
+lemma edist_le_tsum_of_edist_le_of_tendsto₀ {f : ℕ → α} (d : ℕ → ℝ≥0∞)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n)
   {a : α} (ha : tendsto f at_top (𝓝 a)) :
   edist (f 0) a ≤ ∑' m, d m :=

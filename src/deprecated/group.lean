@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import algebra.group.type_tags
 import algebra.group.units_hom
@@ -38,8 +38,8 @@ is_group_hom, is_monoid_hom, monoid_hom
 
 /--
 We have lemmas stating that the composition of two morphisms is again a morphism.
-Since composition is reducible, type class inference will always succeed in applying these instances.
-For example when the goal is just `⊢ is_mul_hom f` the instance `is_mul_hom.comp`
+Since composition is reducible, type class inference will always succeed in applying these
+instances. For example when the goal is just `⊢ is_mul_hom f` the instance `is_mul_hom.comp`
 will still succeed, unifying `f` with `f ∘ (λ x, x)`.  This causes type class inference to loop.
 To avoid this, we do not make these lemmas instances.
 -/
@@ -155,7 +155,7 @@ end is_monoid_hom
 @[to_additive]
 theorem is_monoid_hom.of_mul [monoid α] [group β] (f : α → β) [is_mul_hom f] :
   is_monoid_hom f :=
-{ map_one := mul_self_iff_eq_one.1 $ by rw [← is_mul_hom.map_mul f, one_mul] }
+{ map_one := mul_right_eq_self.1 $ by rw [← is_mul_hom.map_mul f, one_mul] }
 
 namespace is_monoid_hom
 variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
@@ -290,7 +290,7 @@ end
 end ring_hom
 
 /-- Inversion is a group homomorphism if the group is commutative. -/
-@[instance, to_additive neg.is_add_group_hom 
+@[instance, to_additive neg.is_add_group_hom
 "Negation is an `add_group` homomorphism if the `add_group` is commutative."]
 lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=
 { map_mul := mul_inv }

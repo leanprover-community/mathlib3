@@ -70,7 +70,8 @@ local attribute [instance] subtype.group subtype.add_group
 lemma is_subgroup.coe_inv {s : set G} [is_subgroup s] (a : s) : ((a⁻¹ : s) : G) = a⁻¹ := rfl
 attribute [norm_cast] is_add_subgroup.coe_neg
 
-@[simp, norm_cast] lemma is_subgroup.coe_gpow {s : set G} [is_subgroup s] (a : s) (n : ℤ) : ((a ^ n : s) : G) = a ^ n :=
+@[simp, norm_cast] lemma is_subgroup.coe_gpow {s : set G} [is_subgroup s] (a : s) (n : ℤ) :
+  ((a ^ n : s) : G) = a ^ n :=
 by induction n; simp [is_submonoid.coe_pow a]
 
 @[simp, norm_cast] lemma is_add_subgroup.gsmul_coe {s : set A} [is_add_subgroup s] (a : s) (n : ℤ) :
@@ -137,7 +138,8 @@ lemma is_subgroup.gpow_mem {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : �
 | (n : ℕ) := is_submonoid.pow_mem h
 | -[1+ n] := is_subgroup.inv_mem (is_submonoid.pow_mem h)
 
-lemma is_add_subgroup.gsmul_mem {a : A} {s : set A} [is_add_subgroup s] : a ∈ s → ∀{i:ℤ}, gsmul i a ∈ s :=
+lemma is_add_subgroup.gsmul_mem {a : A} {s : set A} [is_add_subgroup s] :
+  a ∈ s → ∀{i:ℤ}, gsmul i a ∈ s :=
 @is_subgroup.gpow_mem (multiplicative A) _ _ _ (multiplicative.is_subgroup _)
 
 lemma gpowers_subset {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : gpowers a ⊆ s :=
@@ -552,12 +554,14 @@ theorem closure_eq_mclosure {s : set G} : closure s = monoid.closure (s ∪ has_
 set.subset.antisymm
   (@closure_subset _ _ _ (monoid.closure (s ∪ has_inv.inv ⁻¹' s))
     { inv_mem := λ x hx, monoid.in_closure.rec_on hx
-      (λ x hx, or.cases_on hx (λ hx, monoid.subset_closure $ or.inr $ show x⁻¹⁻¹ ∈ s, from (inv_inv x).symm ▸ hx)
+      (λ x hx, or.cases_on hx (λ hx, monoid.subset_closure $ or.inr $
+        show x⁻¹⁻¹ ∈ s, from (inv_inv x).symm ▸ hx)
         (λ hx, monoid.subset_closure $ or.inl hx))
       ((@one_inv G _).symm ▸ is_submonoid.one_mem)
       (λ x y hx hy ihx ihy, (mul_inv_rev x y).symm ▸ is_submonoid.mul_mem ihy ihx) }
     (set.subset.trans (set.subset_union_left _ _) monoid.subset_closure))
-  (monoid.closure_subset $ set.union_subset subset_closure $ λ x hx, inv_inv x ▸ (is_subgroup.inv_mem $ subset_closure hx))
+  (monoid.closure_subset $ set.union_subset subset_closure $
+    λ x hx, inv_inv x ▸ (is_subgroup.inv_mem $ subset_closure hx))
 
 @[to_additive]
 theorem mem_closure_union_iff {G : Type*} [comm_group G] {s t : set G} {x : G} :
@@ -676,7 +680,8 @@ instance additive.simple_add_group [group G] [simple_group G] :
 theorem multiplicative.simple_group_iff [add_group A] :
   simple_group (multiplicative A) ↔ simple_add_group A :=
 ⟨λ hs, ⟨λ N h, @simple_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.2 h)⟩,
-  λ hs, ⟨λ N h, @simple_add_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.1 h)⟩⟩
+  λ hs, ⟨λ N h,
+          @simple_add_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.1 h)⟩⟩
 
 instance multiplicative.simple_group [add_group A] [simple_add_group A] :
 simple_group (multiplicative A) := multiplicative.simple_group_iff.2 (by apply_instance)

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 Finite types.
 -/
@@ -76,8 +76,19 @@ by simp [compl_eq_univ_sdiff]
 @[simp, norm_cast] lemma coe_compl [decidable_eq α] (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
 set.ext $ λ x, mem_compl
 
+@[simp] theorem union_compl [decidable_eq α] (s : finset α) : s ∪ sᶜ = finset.univ :=
+sup_compl_eq_top
+
+@[simp] lemma compl_filter [decidable_eq α] (p : α → Prop) [decidable_pred p]
+  [Π x, decidable (¬p x)] :
+  (univ.filter p)ᶜ = univ.filter (λ x, ¬p x) :=
+(filter_not _ _).symm
+
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext_iff]
+
+lemma compl_ne_univ_iff_nonempty [decidable_eq α] (s : finset α) : sᶜ ≠ univ ↔ s.nonempty :=
+by simp [eq_univ_iff_forall, finset.nonempty]
 
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
   univ ∩ s = s := ext $ λ a, by simp
@@ -105,6 +116,17 @@ begin
   simp,
 end
 
+@[simp] lemma univ_filter_exists (f : α → β) [fintype β]
+  [decidable_pred (λ y, ∃ x, f x = y)] [decidable_eq β] :
+  finset.univ.filter (λ y, ∃ x, f x = y) = finset.univ.image f :=
+by { ext, simp }
+
+/-- Note this is a special case of `(finset.image_preimage f univ _).symm`. -/
+lemma univ_filter_mem_range (f : α → β) [fintype β]
+  [decidable_pred (λ y, y ∈ set.range f)] [decidable_eq β] :
+  finset.univ.filter (λ y, y ∈ set.range f) = finset.univ.image f :=
+univ_filter_exists f
+
 end finset
 
 open finset function
@@ -123,6 +145,10 @@ decidable_of_iff (∀ a ∈ @univ α _, p a) (by simp)
 instance decidable_exists_fintype {p : α → Prop} [decidable_pred p] [fintype α] :
   decidable (∃ a, p a) :=
 decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
+
+instance decidable_mem_range_fintype [fintype α] [decidable_eq β] (f : α → β) :
+  decidable_pred (∈ set.range f) :=
+λ x, fintype.decidable_exists_fintype
 
 instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ≃ β) :=
@@ -229,6 +255,95 @@ def of_surjective [decidable_eq β] [fintype α] (f : α → β) (H : function.s
   fintype β :=
 ⟨univ.image f, λ b, let ⟨a, e⟩ := H b in e ▸ mem_image_of_mem _ (mem_univ _)⟩
 
+end fintype
+
+section inv
+
+namespace function
+
+variables [fintype α] [decidable_eq β]
+
+namespace injective
+
+variables {f : α → β} (hf : function.injective f)
+
+/--
+The inverse of an `hf : injective` function `f : α → β`, of the type `↥(set.range f) → α`.
+This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`,
+or the function version of applying `(equiv.set.range f hf).symm`.
+This function should not usually be used for actual computation because for most cases,
+an explicit inverse can be stated that has better computational properties.
+This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
+`N = fintype.card α`.
+-/
+def inv_of_mem_range : set.range f → α :=
+λ b, finset.choose (λ a, f a = b) finset.univ ((exists_unique_congr (by simp)).mp
+  (hf.exists_unique_of_mem_range b.property))
+
+lemma left_inv_of_inv_of_mem_range (b : set.range f) :
+  f (hf.inv_of_mem_range b) = b :=
+(finset.choose_spec (λ a, f a = b) _ _).right
+
+@[simp] lemma right_inv_of_inv_of_mem_range (a : α) :
+  hf.inv_of_mem_range (⟨f a, set.mem_range_self a⟩) = a :=
+hf (finset.choose_spec (λ a', f a' = f a) _ _).right
+
+lemma inv_fun_restrict [nonempty α] :
+  (set.range f).restrict (inv_fun f) = hf.inv_of_mem_range :=
+begin
+  ext ⟨b, h⟩,
+  apply hf,
+  simp [hf.left_inv_of_inv_of_mem_range, @inv_fun_eq _ _ _ f b (set.mem_range.mp h)]
+end
+
+lemma inv_of_mem_range_surjective : function.surjective hf.inv_of_mem_range :=
+λ a, ⟨⟨f a, set.mem_range_self a⟩, by simp⟩
+
+end injective
+
+namespace embedding
+
+variables (f : α ↪ β) (b : set.range f)
+
+/--
+The inverse of an embedding `f : α ↪ β`, of the type `↥(set.range f) → α`.
+This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`,
+or the function version of applying `(equiv.set.range f f.injective).symm`.
+This function should not usually be used for actual computation because for most cases,
+an explicit inverse can be stated that has better computational properties.
+This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
+`N = fintype.card α`.
+-/
+def inv_of_mem_range : α :=
+f.injective.inv_of_mem_range b
+
+@[simp] lemma left_inv_of_inv_of_mem_range :
+  f (f.inv_of_mem_range b) = b :=
+f.injective.left_inv_of_inv_of_mem_range b
+
+@[simp] lemma right_inv_of_inv_of_mem_range (a : α) :
+  f.inv_of_mem_range ⟨f a, set.mem_range_self a⟩ = a :=
+f.injective.right_inv_of_inv_of_mem_range a
+
+lemma inv_fun_restrict [nonempty α] :
+  (set.range f).restrict (inv_fun f) = f.inv_of_mem_range :=
+begin
+  ext ⟨b, h⟩,
+  apply f.injective,
+  simp [f.left_inv_of_inv_of_mem_range, @inv_fun_eq _ _ _ f b (set.mem_range.mp h)]
+end
+
+lemma inv_of_mem_range_surjective : function.surjective f.inv_of_mem_range :=
+λ a, ⟨⟨f a, set.mem_range_self a⟩, by simp⟩
+
+end embedding
+
+end function
+
+end inv
+
+namespace fintype
+
 /-- Given an injective function to a fintype, the domain is also a
 fintype. This is noncomputable because injectivity alone cannot be
 used to construct preimages. -/
@@ -237,9 +352,6 @@ by letI := classical.dec; exact
 if hα : nonempty α then by letI := classical.inhabited_of_nonempty hα;
   exact of_surjective (inv_fun f) (inv_fun_surjective H)
 else ⟨∅, λ x, (hα ⟨x⟩).elim⟩
-
-noncomputable instance subtype_of_fintype [fintype α] (p : α → Prop) : fintype (subtype p) :=
-fintype.of_injective coe subtype.coe_injective
 
 /-- If `f : α ≃ β` and `α` is a fintype, then `β` is also a fintype. -/
 def of_equiv (α : Type*) [fintype α] (f : α ≃ β) : fintype β := of_bijective _ f.bijective
@@ -306,9 +418,25 @@ lemma finset.eq_univ_of_card [fintype α] (s : finset α) (hs : s.card = fintype
   s = univ :=
 eq_of_subset_of_card_le (subset_univ _) $ by rw [hs, finset.card_univ]
 
+lemma finset.card_eq_iff_eq_univ [fintype α] (s : finset α) :
+  s.card = fintype.card α ↔ s = finset.univ :=
+⟨s.eq_univ_of_card, by { rintro rfl, exact finset.card_univ, }⟩
+
 lemma finset.card_le_univ [fintype α] (s : finset α) :
   s.card ≤ fintype.card α :=
 card_le_of_subset (subset_univ s)
+
+lemma finset.card_lt_univ_of_not_mem [fintype α] {s : finset α} {x : α} (hx : x ∉ s) :
+  s.card < fintype.card α :=
+card_lt_card ⟨subset_univ s, not_forall.2 ⟨x, λ hx', hx (hx' $ mem_univ x)⟩⟩
+
+lemma finset.card_lt_iff_ne_univ [fintype α] (s : finset α) :
+  s.card < fintype.card α ↔ s ≠ finset.univ :=
+s.card_le_univ.lt_iff_ne.trans (not_iff_not_of_iff s.card_eq_iff_eq_univ)
+
+lemma finset.card_compl_lt_iff_nonempty [fintype α] [decidable_eq α] (s : finset α) :
+  sᶜ.card < fintype.card α ↔ s.nonempty :=
+sᶜ.card_lt_iff_ne_univ.trans s.compl_ne_univ_iff_nonempty
 
 lemma finset.card_univ_diff [decidable_eq α] [fintype α] (s : finset α) :
   (finset.univ \ s).card = fintype.card α - s.card :=
@@ -365,8 +493,22 @@ begin
     simp only [finset.mem_univ, finset.mem_insert, true_iff, finset.mem_image, exists_prop],
     refine or_iff_not_imp_left.mpr _,
     { intro h,
-      use p.pred_above m h,
-      simp only [eq_self_iff_true, fin.succ_above_pred_above, and_self] } },
+      cases n,
+      { have : m = p := by simp,
+        exact absurd this h },
+      use p.cast_pred.pred_above m,
+      { rw fin.pred_above,
+        split_ifs with H,
+        { simp only [fin.coe_cast_succ, true_and, fin.coe_coe_eq_self, coe_coe],
+          rw fin.lt_last_iff_coe_cast_pred at hl,
+          rw fin.succ_above_above,
+          { simp },
+          { simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ] at H,
+            simpa [fin.le_iff_coe_le_coe, ←hl] using nat.le_pred_of_lt H } },
+        { rw fin.succ_above_below,
+          { simp },
+          { simp only [fin.cast_succ_cast_pred hl, not_lt] at H,
+            simpa using lt_of_le_of_ne H h, } } } } },
   { rw fin.succ_above_last,
     exact fin.univ_cast_succ n }
 end
@@ -475,6 +617,13 @@ fintype.of_equiv _ equiv.ulift.symm
   fintype.card (ulift α) = fintype.card α :=
 fintype.of_equiv_card _
 
+lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] [fintype (α ⊕ β)] [decidable_eq (α ⊕ β)] :
+  (univ : finset (α ⊕ β)) = map function.embedding.inl univ ∪ map function.embedding.inr univ :=
+begin
+  rw [eq_comm, eq_univ_iff_forall], simp only [mem_union, mem_map, exists_prop, mem_univ, true_and],
+  rintro (x|y), exacts [or.inl ⟨x, rfl⟩, or.inr ⟨y, rfl⟩]
+end
+
 instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕ β) :=
 @fintype.of_equiv _ _ (@sigma.fintype _
     (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) _
@@ -487,6 +636,18 @@ variables [fintype α] [fintype β]
 
 lemma card_le_of_injective (f : α → β) (hf : function.injective f) : card α ≤ card β :=
 finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
+
+lemma card_le_of_embedding (f : α ↪ β) : card α ≤ card β := card_le_of_injective f f.2
+
+lemma card_lt_of_injective_of_not_mem (f : α → β) (h : function.injective f)
+  {b : β} (w : b ∉ set.range f) : fintype.card α < fintype.card β :=
+calc card α = (univ.map ⟨f, h⟩).card : (card_map _).symm
+... < card β : finset.card_lt_univ_of_not_mem $
+                 by rwa [← mem_coe, coe_map, coe_univ, set.image_univ]
+
+lemma card_lt_of_injective_not_surjective (f : α → β) (h : function.injective f)
+  (h' : ¬function.surjective f) : fintype.card α < fintype.card β :=
+let ⟨y, hy⟩ := not_forall.1 h' in card_lt_of_injective_of_not_mem f h hy
 
 /--
 The pigeonhole principle for finitely many pigeons and pigeonholes.
@@ -556,6 +717,9 @@ by { haveI : nontrivial α := one_lt_card_iff_nontrivial.1 h, exact exists_ne a 
 
 lemma exists_pair_of_one_lt_card (h : 1 < card α) : ∃ (a b : α), a ≠ b :=
 by { haveI : nontrivial α := one_lt_card_iff_nontrivial.1 h, exact exists_pair_ne α }
+
+lemma card_eq_one_of_forall_eq {i : α} (h : ∀ j, j = i) : card α = 1 :=
+fintype.card_eq_one_iff.2 ⟨i,h⟩
 
 lemma injective_iff_surjective {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
@@ -782,12 +946,11 @@ by { ext, simp only [set.mem_empty_eq, set.mem_to_finset, not_mem_empty] }
 
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=
-by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)
+fintype.card_le_of_embedding (function.embedding.subtype _)
 
 theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p]
   {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
-by rw [fintype.subtype_card]; exact finset.card_lt_card
-  ⟨subset_univ _, not_forall.2 ⟨x, by simp [hx]⟩⟩
+fintype.card_lt_of_injective_of_not_mem coe subtype.coe_injective $ by rwa subtype.range_coe_subtype
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
@@ -826,20 +989,6 @@ lemma mem_image_univ_iff_mem_range
   {α β : Type*} [fintype α] [decidable_eq β] {f : α → β} {b : β} :
   b ∈ univ.image f ↔ b ∈ set.range f :=
 by simp
-
-lemma card_lt_card_of_injective_of_not_mem
-  {α β : Type*} [fintype α] [fintype β] (f : α → β) (h : function.injective f)
-  {b : β} (w : b ∉ set.range f) : fintype.card α < fintype.card β :=
-begin
-  classical,
-  calc
-    fintype.card α = (univ : finset α).card : rfl
-  ... = (image f univ).card : (card_image_of_injective univ h).symm
-  ... < (insert b (image f univ)).card :
-          card_lt_card (ssubset_insert (mt mem_image_univ_iff_mem_range.mp w))
-  ... ≤ (univ : finset β).card : card_le_of_subset (subset_univ _)
-  ... = fintype.card β : rfl
-end
 
 /-- An auxiliary function for `quotient.fin_choice`.  Given a
 collection of setoids indexed by a type `ι`, a (finite) list `l` of
@@ -1043,7 +1192,7 @@ fintype.card_congr (equiv_congr (equiv.refl α) e) ▸ fintype.card_perm
 lemma univ_eq_singleton_of_card_one {α} [fintype α] (x : α) (h : fintype.card α = 1) :
   (univ : finset α) = {x} :=
 begin
-  apply symm,
+  symmetry,
   apply eq_of_subset_of_card_le (subset_univ ({x})),
   apply le_of_eq,
   simp [h, finset.card_univ]
@@ -1232,7 +1381,7 @@ begin
     exact classical.choice hf,
   end,
   let key : fintype α :=
-  { elems := univ.bind (λ (y : β), (f ⁻¹' {y}).to_finset),
+  { elems := univ.bUnion (λ (y : β), (f ⁻¹' {y}).to_finset),
     complete := by simp },
   exact infinite.not_fintype key,
 end

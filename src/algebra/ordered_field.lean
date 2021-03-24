@@ -5,15 +5,19 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.ordered_ring
 import algebra.field
-/-!
-  ### Linear ordered fields
-  A linear ordered field is a field equipped with a linear order such that
-  * addition respects the order: `a ≤ b → c + a ≤ c + b`;
-  * multiplication of positives is positive: `0 < a → 0 < b → 0 < a * b`;
-  * `0 < 1`.
+import tactic.monotonicity.basic
 
-  ### Main Definitions
-  * `linear_ordered_field`: the class of linear ordered fields.
+/-!
+# Linear ordered fields
+
+A linear ordered field is a field equipped with a linear order such that
+* addition respects the order: `a ≤ b → c + a ≤ c + b`;
+* multiplication of positives is positive: `0 < a → 0 < b → 0 < a * b`;
+* `0 < 1`.
+
+## Main Definitions
+
+* `linear_ordered_field`: the class of linear ordered fields.
 -/
 
 set_option old_structure_cmd true
@@ -203,8 +207,11 @@ lemma lt_div_iff_of_neg' (hc : c < 0) : a < b / c ↔ b < c * a :=
 by rw [mul_comm, lt_div_iff_of_neg hc]
 
 /-- One direction of `div_le_iff` where `b` is allowed to be `0` (but `c` must be nonnegative) -/
-lemma div_le_iff_of_nonneg_of_le (hb : 0 ≤ b) (hc : 0 ≤ c) (h : a ≤ c * b) : a / b ≤ c :=
+lemma div_le_of_nonneg_of_le_mul (hb : 0 ≤ b) (hc : 0 ≤ c) (h : a ≤ c * b) : a / b ≤ c :=
 by { rcases eq_or_lt_of_le hb with rfl|hb', simp [hc], rwa [div_le_iff hb'] }
+
+lemma div_le_one_of_le (h : a ≤ b) (hb : 0 ≤ b) : a / b ≤ 1 :=
+div_le_of_nonneg_of_le_mul hb zero_le_one $ by rwa one_mul
 
 /-!
 ### Bi-implications of inequalities using inversions
@@ -289,20 +296,20 @@ lemma one_le_inv_iff : 1 ≤ a⁻¹ ↔ 0 < a ∧ a ≤ 1 :=
 ### Relating two divisions.
 -/
 
-lemma div_le_div_of_le (hc : 0 ≤ c) (h : a ≤ b) : a / c ≤ b / c :=
+@[mono] lemma div_le_div_of_le (hc : 0 ≤ c) (h : a ≤ b) : a / c ≤ b / c :=
 begin
   rw [div_eq_mul_one_div a c, div_eq_mul_one_div b c],
   exact mul_le_mul_of_nonneg_right h (one_div_nonneg.2 hc)
 end
 
-lemma div_le_div_of_le_left (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ b) : a / b ≤ a / c :=
+@[mono] lemma div_le_div_of_le_left (ha : 0 ≤ a) (hc : 0 < c) (h : c ≤ b) : a / b ≤ a / c :=
 begin
   rw [div_eq_mul_inv, div_eq_mul_inv],
   exact mul_le_mul_of_nonneg_left ((inv_le_inv (hc.trans_le h) hc).mpr h) ha
 end
 
 lemma div_le_div_of_le_of_nonneg (hab : a ≤ b) (hc : 0 ≤ c) : a / c ≤ b / c :=
-by simpa only [div_eq_mul_inv] using mul_le_mul_of_nonneg_right hab (inv_nonneg.2 hc)
+div_le_div_of_le hc hab
 
 lemma div_le_div_of_nonpos_of_le (hc : c ≤ 0) (h : b ≤ a) : a / c ≤ b / c :=
 begin
@@ -347,7 +354,7 @@ by rw [lt_div_iff d0, div_mul_eq_mul_div, div_lt_iff b0]
 lemma div_le_div_iff (b0 : 0 < b) (d0 : 0 < d) : a / b ≤ c / d ↔ a * d ≤ c * b :=
 by rw [le_div_iff d0, div_mul_eq_mul_div, div_le_iff b0]
 
-lemma div_le_div (hc : 0 ≤ c) (hac : a ≤ c) (hd : 0 < d) (hbd : d ≤ b) : a / b ≤ c / d :=
+@[mono] lemma div_le_div (hc : 0 ≤ c) (hac : a ≤ c) (hd : 0 < d) (hbd : d ≤ b) : a / b ≤ c / d :=
 by { rw div_le_div_iff (hd.trans_le hbd) hd, exact mul_le_mul hac hbd hd.le hc }
 
 lemma div_lt_div (hac : a < c) (hbd : d ≤ b) (c0 : 0 ≤ c) (d0 : 0 < d) :
@@ -533,6 +540,14 @@ by { rw [div_lt_iff (@zero_lt_two α _ _)], exact lt_mul_of_one_lt_right h one_l
 
 lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
+lemma half_le_self (ha_nonneg : 0 ≤ a) : a / 2 ≤ a :=
+begin
+  by_cases h0 : a = 0,
+  { simp [h0], },
+  { rw ← ne.def at h0,
+    exact (half_lt_self (lt_of_le_of_ne ha_nonneg h0.symm)).le, },
+end
+
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
 lemma add_sub_div_two_lt (h : a < b) : a + (b - a) / 2 < b :=
@@ -545,6 +560,18 @@ end
 /-!
 ### Miscellaneous lemmas
 -/
+
+/-- Pullback a `linear_ordered_field` under an injective map. -/
+def function.injective.linear_ordered_field {β : Type*}
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_inv β] [has_div β]
+  [nontrivial β]
+  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
+  linear_ordered_field β :=
+{ ..hf.linear_ordered_ring f zero one add mul neg sub,
+  ..hf.field f zero one add mul neg sub inv div}
 
 lemma mul_sub_mul_div_mul_neg_iff (hc : c ≠ 0) (hd : d ≠ 0) :
   (a * d - b * c) / (c * d) < 0 ↔ a / c < b / d :=

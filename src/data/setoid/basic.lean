@@ -223,7 +223,7 @@ theorem lift_unique {r : setoid α} {f : α → β} (H : r ≤ ker f) (g : quoti
   (Hg : f = g ∘ quotient.mk) : quotient.lift f H = g :=
 begin
   ext ⟨x⟩,
-  erw [quotient.lift_beta f H, Hg],
+  erw [quotient.lift_mk f H, Hg],
   refl
 end
 
@@ -249,7 +249,7 @@ noncomputable def quotient_ker_equiv_range :
 equiv.of_bijective (@quotient.lift _ (set.range f) (ker f)
   (λ x, ⟨f x, set.mem_range_self x⟩) $ λ _ _ h, subtype.ext_val h)
   ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
-   λ ⟨w, z, hz⟩, ⟨@quotient.mk _ (ker f) z, by rw quotient.lift_beta; exact subtype.ext_iff_val.2 hz⟩⟩
+   λ ⟨w, z, hz⟩, ⟨@quotient.mk _ (ker f) z, by rw quotient.lift_mk; exact subtype.ext_iff_val.2 hz⟩⟩
 
 /-- The quotient of α by the kernel of a surjective function f bijects with f's codomain. -/
 noncomputable def quotient_ker_equiv_of_surjective (hf : surjective f) :

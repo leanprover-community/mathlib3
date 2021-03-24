@@ -2,12 +2,61 @@
 Copyright (c) 2018 Louis Carlin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Louis Carlin, Mario Carneiro
-
-Euclidean domains and Euclidean algorithm (extended to come)
-A lot is based on pre-existing code in mathlib for natural number gcds
 -/
+
 import data.int.basic
 import algebra.field
+
+/-!
+# Euclidean domains
+
+This file introduces Euclidean domains and provides the extended Euclidean algorithm. To be precise,
+a slightly more general version is provided which is sometimes called a transfinite Euclidean domain
+and differs in the fact that the degree function need not take values in `ℕ` but can take values in
+any well-ordered set. Transfinite Euclidean domains were introduced by Motzkin and examples which
+don't satisfy the classical notion were provided independently by Hiblot and Nagata.
+
+## Main definitions
+
+* `euclidean_domain`: Defines Euclidean domain with functions `quotient` and `remainder`. Instances
+  of `has_div` and `has_mod` are provided, so that one can write `a = b * (a / b) + a % b`.
+* `gcd`: defines the greatest common divisors of two elements of a Euclidean domain.
+* `xgcd`: given two elements `a b : R`, `xgcd a b` defines the pair `(x, y)` such that
+  `x * a + y * b = gcd a b`.
+* `lcm`: defines the lowest common multiple of two elements `a` and `b` of a Euclidean domain as
+  `a * b / (gcd a b)`
+
+## Main statements
+
+* `gcd_eq_gcd_ab`: states Bézout's lemma for Euclidean domains.
+* `int.euclidean_domain`: shows that `ℤ` is a Euclidean domain.
+* `field.to_euclidean_domain`: shows that any field is a Euclidean domain.
+
+## Notation
+
+`≺` denotes the well founded relation on the Euclidean domain, e.g. in the example of the polynomial
+ring over a field, `p ≺ q` for polynomials `p` and `q` if and only if the degree of `p` is less than
+the degree of `q`.
+
+## Implementation details
+
+Instead of working with a valuation, `euclidean_domain` is implemented with the existence of a well
+founded relation `r` on the integral domain `R`, which in the example of `ℤ` would correspond to
+setting `i ≺ j` for integers `i` and `j` if the absolute value of `i` is smaller than the absolute
+value of `j`.
+
+## References
+
+* [Th. Motzkin, *The Euclidean algorithm*][MR32592]
+* [J.-J. Hiblot, *Des anneaux euclidiens dont le plus petit algorithme n'est pas à valeurs finies*]
+  [MR399081]
+* [M. Nagata, *On Euclid algorithm*][MR541021]
+
+
+## Tags
+
+Euclidean domain, transfinite Euclidean domain, Bézout's lemma
+-/
 
 universe u
 
@@ -23,8 +72,6 @@ class euclidean_domain (R : Type u) extends comm_ring R, nontrivial R :=
 (quotient : R → R → R)
 (quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : R → R → R)
- -- This could be changed to the same order as int.mod_add_div.
- -- We normally write `qb+r` rather than `r + qb` though.
 (quotient_mul_add_remainder_eq : ∀ a b, b * quotient a b + remainder a b = a)
 (r : R → R → Prop)
 (r_well_founded : well_founded r)
@@ -46,6 +93,15 @@ instance : has_mod R := ⟨euclidean_domain.remainder⟩
 
 theorem div_add_mod (a b : R) : b * (a / b) + a % b = a :=
 euclidean_domain.quotient_mul_add_remainder_eq _ _
+
+lemma mod_add_div (a b : R) : a % b + b * (a / b) = a :=
+(add_comm _ _).trans (div_add_mod _ _)
+
+lemma mod_add_div' (m k : R) : m % k + (m / k) * k = m :=
+by { rw mul_comm, exact mod_add_div _ _ }
+
+lemma div_add_mod' (m k : R) : (m / k) * k + m % k = m :=
+by { rw mul_comm, exact div_add_mod _ _ }
 
 lemma mod_eq_sub_mul_div {R : Type*} [euclidean_domain R] (a b : R) :
   a % b = a - b * (a / b) :=
@@ -230,6 +286,12 @@ def gcd_a (x y : R) : R := (xgcd x y).1
 /-- The extended GCD `b` value in the equation `gcd x y = x * a + y * b`. -/
 def gcd_b (x y : R) : R := (xgcd x y).2
 
+@[simp] theorem gcd_a_zero_left {s : R} : gcd_a 0 s = 0 :=
+by { unfold gcd_a, rw [xgcd, xgcd_zero_left] }
+
+@[simp] theorem gcd_b_zero_left {s : R} : gcd_b 0 s = 1 :=
+by { unfold gcd_b, rw [xgcd, xgcd_zero_left] }
+
 @[simp] theorem xgcd_aux_fst (x y : R) : ∀ s t s' t',
   (xgcd_aux x s t y s' t').1 = gcd x y :=
 gcd.induction x y (by intros; rw [xgcd_zero_left, gcd_zero_left])
@@ -252,6 +314,7 @@ gcd.induction r r' (by intros; simpa only [xgcd_zero_left]) $ λ x y h IH s t s'
     mod_eq_sub_mul_div]
 end
 
+/-- An explicit version of Bézout's lemma for Euclidean domains. -/
 theorem gcd_eq_gcd_ab (a b : R) : (gcd a b : R) = a * gcd_a a b + b * gcd_b a b :=
 by have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1
   (by rw [P, mul_one, mul_zero, add_zero]) (by rw [P, mul_one, mul_zero, zero_add]);
@@ -349,7 +412,7 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
   quotient := (/),
   quotient_zero := int.div_zero,
   remainder := (%),
-  quotient_mul_add_remainder_eq := λ a b, by rw add_comm; exact int.mod_add_div _ _,
+  quotient_mul_add_remainder_eq := λ a b, int.div_add_mod _ _,
   r := λ a b, a.nat_abs < b.nat_abs,
   r_well_founded := measure_wf (λ a, int.nat_abs a),
   remainder_lt := λ a b b0, int.coe_nat_lt.1 $

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Robert Y. Lewis
+Authors: Robert Y. Lewis
 -/
 import data.option.defs
 import data.list.defs
@@ -181,10 +181,6 @@ s.fold (pure mk_name_set) (λ a m,
   do x ← m,
      b ← f a,
      (pure $ x.insert b))
-
-/-- `union s t` returns an rb_set containing every element that appears in either `s` or `t`. -/
-meta def union (s t : name_set) : name_set :=
-s.fold t (λ a t, t.insert a)
 
 /-- `insert_list s l` inserts every element of `l` into `s`. -/
 meta def insert_list (s : name_set) (l : list name) : name_set :=

@@ -108,13 +108,9 @@ def inverse_obj (A : Algebra.{u} R) : Mon_ (Module.{u} R) :=
   end,
   mul_assoc' :=
   begin
-    ext xy z,
+    ext x y z,
     dsimp,
-    apply tensor_product.induction_on xy,
-    { simp only [linear_map.map_zero, tensor_product.zero_tmul], },
-    { intros x y, dsimp, simp only [mul_assoc, algebra.lmul'_apply], },
-    { intros x y hx hy, dsimp,
-      simp only [tensor_product.add_tmul, hx, hy, map_add], },
+    simp only [mul_assoc, algebra.lmul'_apply],
   end }
 
 /--

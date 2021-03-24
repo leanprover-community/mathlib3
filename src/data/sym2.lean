@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Kyle Miller All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Kyle Miller.
+Authors: Kyle Miller
 -/
 import tactic.linarith
 import data.sym
@@ -174,13 +174,7 @@ begin
 end
 
 instance mem.decidable [decidable_eq α] (x : α) (z : sym2 α) : decidable (x ∈ z) :=
-begin
-  refine quotient.rec_on_subsingleton z (λ w, _),
-  cases w with y₁ y₂,
-  by_cases h₁ : x = y₁, subst x, exact is_true (mk_has_mem _ _),
-  by_cases h₂ : x = y₂, subst x, exact is_true (mk_has_mem_right _ _),
-  apply is_false, intro h, rw mem_iff at h, cases h, exact h₁ h, exact h₂ h,
-end
+quotient.rec_on_subsingleton z (λ ⟨y₁, y₂⟩, decidable_of_iff' _ mem_iff)
 
 end membership
 
@@ -230,11 +224,11 @@ Symmetric relations define a set on `sym2 α` by taking all those pairs
 of elements that are related.
 -/
 def from_rel (sym : symmetric r) : set (sym2 α) :=
-{z | quotient.rec_on z (λ z, r z.1 z.2) (by { rintros _ _ ⟨_,_⟩, tidy })}
+quotient.lift (uncurry r) (by { rintros _ _ ⟨_, _⟩, tidy })
 
 @[simp]
 lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} :
-  ⟦z⟧ ∈ from_rel sym ↔ r z.1 z.2 := by tidy
+  ⟦z⟧ ∈ from_rel sym ↔ r z.1 z.2 := iff.rfl
 
 @[simp]
 lemma from_rel_prop {sym : symmetric r} {a b : α} :
@@ -250,15 +244,9 @@ lemma mem_from_rel_irrefl_other_ne {sym : symmetric r} (irrefl : irreflexive r)
   {a : α} {z : sym2 α} (hz : z ∈ from_rel sym) (h : a ∈ z) : h.other ≠ a :=
 mem_other_ne (from_rel_irreflexive.mp irrefl hz) h
 
-instance from_rel.decidable_as_set (sym : symmetric r) [h : decidable_rel r] :
-  decidable_pred (λ x, x ∈ sym2.from_rel sym) :=
-λ (x : sym2 α), quotient.rec_on x
-  (λ x', by { simp_rw from_rel_proj_prop, apply_instance })
-  (by tidy)
-
 instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] :
   decidable_pred (sym2.from_rel sym) :=
-by { change decidable_pred (λ x, x ∈ sym2.from_rel sym), apply_instance }
+λ z, quotient.rec_on_subsingleton z (λ x, h _ _)
 
 end relations
 
@@ -285,12 +273,12 @@ def sym2_equiv_sym' {α : Type*} : equiv (sym2 α) (sym' α 2) :=
     (by { rintros _ _ ⟨_⟩, { refl }, apply list.perm.swap', refl }),
   inv_fun := quotient.map from_vector (begin
     rintros ⟨x, hx⟩ ⟨y, hy⟩ h,
-    cases x with _ x, { simp at hx; tauto },
-    cases x with _ x, { simp at hx; norm_num at hx },
-    cases x with _ x, swap, { exfalso, simp at hx; linarith [hx] },
-    cases y with _ y, { simp at hy; tauto },
-    cases y with _ y, { simp at hy; norm_num at hy },
-    cases y with _ y, swap, { exfalso, simp at hy; linarith [hy] },
+    cases x with _ x, { simpa using hx, },
+    cases x with _ x, { simpa using hx, },
+    cases x with _ x, swap, { exfalso, simp at hx, linarith [hx] },
+    cases y with _ y, { simpa using hy, },
+    cases y with _ y, { simpa using hy, },
+    cases y with _ y, swap, { exfalso, simp at hy, linarith [hy] },
     rcases perm_card_two_iff.mp h with ⟨rfl,rfl⟩|⟨rfl,rfl⟩, { refl },
     apply sym2.rel.swap,
   end),
@@ -298,9 +286,9 @@ def sym2_equiv_sym' {α : Type*} : equiv (sym2 α) (sym' α 2) :=
   right_inv := λ x, begin
     refine quotient.rec_on_subsingleton x (λ x, _),
     { cases x with x hx,
-      cases x with _ x, { simp at hx; tauto },
-      cases x with _ x, { simp at hx; norm_num at hx },
-      cases x with _ x, swap, { exfalso, simp at hx; linarith [hx] },
+      cases x with _ x, { simpa using hx, },
+      cases x with _ x, { simpa using hx, },
+      cases x with _ x, swap, { exfalso, simp at hx, linarith [hx] },
       refl },
   end }
 

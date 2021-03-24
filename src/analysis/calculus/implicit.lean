@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov.
+Authors: Yury Kudryashov
 -/
 import analysis.calculus.inverse
 import analysis.normed_space.complemented
@@ -165,6 +165,10 @@ lemma implicit_function_apply_image :
   ∀ᶠ x in 𝓝 φ.pt, φ.implicit_function (φ.left_fun x) (φ.right_fun x) = x :=
 φ.has_strict_fderiv_at.eventually_left_inverse
 
+lemma map_nhds_eq : map φ.left_fun (𝓝 φ.pt) = 𝓝 (φ.left_fun φ.pt) :=
+show map (prod.fst ∘ φ.prod_fun) (𝓝 φ.pt) = 𝓝 (φ.prod_fun φ.pt).1,
+by rw [← map_map, φ.has_strict_fderiv_at.map_nhds_eq_of_equiv, map_fst_nhds]
+
 lemma implicit_function_has_strict_fderiv_at
   (g'inv : G →L[𝕜] E) (hg'inv : φ.right_deriv.comp g'inv = continuous_linear_map.id 𝕜 G)
   (hg'invf : φ.left_deriv.comp g'inv = 0) :
@@ -293,6 +297,15 @@ lemma eq_implicit_function_of_complemented (hf : has_strict_fderiv_at f f' a)
     (hf.implicit_to_local_homeomorph_of_complemented f f' hf' hker x).snd = x :=
 (implicit_function_data_of_complemented f f' hf hf' hker).implicit_function_apply_image
 
+@[simp] lemma implicit_function_of_complemented_apply_image (hf : has_strict_fderiv_at f f' a)
+  (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
+  hf.implicit_function_of_complemented f f' hf' hker (f a) 0 = a :=
+begin
+  convert (hf.implicit_to_local_homeomorph_of_complemented f f' hf' hker).left_inv
+    (hf.mem_implicit_to_local_homeomorph_of_complemented_source hf' hker),
+  exact congr_arg prod.snd (hf.implicit_to_local_homeomorph_of_complemented_self hf' hker).symm
+end
+
 lemma to_implicit_function_of_complemented (hf : has_strict_fderiv_at f f' a)
   (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
   has_strict_fderiv_at (hf.implicit_function_of_complemented f f' hf' hker (f a))
@@ -367,10 +380,28 @@ lemma mem_implicit_to_local_homeomorph_target (hf : has_strict_fderiv_at f f' a)
   (f a, (0 : f'.ker)) ∈ (hf.implicit_to_local_homeomorph f f' hf').target :=
 by apply mem_implicit_to_local_homeomorph_of_complemented_target
 
+lemma tendsto_implicit_function (hf : has_strict_fderiv_at f f' a)
+  (hf' : f'.range = ⊤) {α : Type*} {l : filter α} {g₁ : α → F} {g₂ : α → f'.ker}
+  (h₁ : tendsto g₁ l (𝓝 $ f a)) (h₂ : tendsto g₂ l (𝓝 0)) :
+  tendsto (λ t, hf.implicit_function f f' hf' (g₁ t) (g₂ t)) l (𝓝 a) :=
+begin
+  refine ((hf.implicit_to_local_homeomorph f f' hf').tendsto_symm
+    (hf.mem_implicit_to_local_homeomorph_source hf')).comp _,
+  rw [implicit_to_local_homeomorph_self],
+  exact h₁.prod_mk_nhds h₂
+end
+
+alias tendsto_implicit_function ← filter.tendsto.implicit_function
+
 /-- `implicit_function` sends `(z, y)` to a point in `f ⁻¹' z`. -/
 lemma map_implicit_function_eq (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :
   ∀ᶠ (p : F × f'.ker) in 𝓝 (f a, 0), f (hf.implicit_function f f' hf' p.1 p.2) = p.1 :=
 by apply map_implicit_function_of_complemented_eq
+
+@[simp] lemma implicit_function_apply_image (hf : has_strict_fderiv_at f f' a)
+  (hf' : f'.range = ⊤) :
+  hf.implicit_function f f' hf' (f a) 0 = a :=
+by apply implicit_function_of_complemented_apply_image
 
 /-- Any point in some neighborhood of `a` can be represented as `implicit_function`
 of some point. -/

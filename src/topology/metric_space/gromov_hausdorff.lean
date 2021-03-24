@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.closeds
 import set_theory.cardinal
 import topology.metric_space.gromov_hausdorff_realized
 import topology.metric_space.completion
+import topology.metric_space.kuratowski
 
 /-!
 # Gromov-Hausdorff distance
@@ -93,7 +94,7 @@ begin
     use λx, f x,
     split,
     { apply isometry_subtype_coe.comp f.isometry },
-    { rw [range_comp, f.range_coe, set.image_univ, subtype.range_coe] } },
+    { rw [range_comp, f.range_eq_univ, set.image_univ, subtype.range_coe] } },
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
     have f := ((Kuratowski_embedding.isometry α).isometric_on_range.symm.trans
                isomΨ.isometric_on_range).symm,
@@ -304,7 +305,7 @@ begin
     have : Hausdorff_dist (range (optimal_GH_injl α β)) (range (optimal_GH_injr α β)) ≤ HD Fb :=
       Hausdorff_dist_optimal_le_HD _ _ (candidates_b_of_candidates_mem F Fgood),
     refine le_trans this (le_of_forall_le_of_dense (λr hr, _)),
-    have I1 : ∀x : α, infi (λy:β, Fb (inl x, inr y)) ≤ r,
+    have I1 : ∀x : α, (⨅ y, Fb (inl x, inr y)) ≤ r,
     { assume x,
       have : f (inl x) ∈ p.val, by { rw [← Φrange], apply mem_range_self },
       rcases exists_dist_lt_of_Hausdorff_dist_lt this hr
@@ -312,12 +313,12 @@ begin
         with ⟨z, zq, hz⟩,
       have : z ∈ range Ψ, by rwa [← Ψrange] at zq,
       rcases mem_range.1 this with ⟨y, hy⟩,
-      calc infi (λy:β, Fb (inl x, inr y)) ≤ Fb (inl x, inr y) :
+      calc (⨅ y, Fb (inl x, inr y)) ≤ Fb (inl x, inr y) :
           cinfi_le (by simpa using HD_below_aux1 0) y
         ... = dist (Φ x) (Ψ y) : rfl
         ... = dist (f (inl x)) z : by rw hy
         ... ≤ r : le_of_lt hz },
-    have I2 : ∀y : β, infi (λx:α, Fb (inl x, inr y)) ≤ r,
+    have I2 : ∀y : β, (⨅ x, Fb (inl x, inr y)) ≤ r,
     { assume y,
       have : f (inr y) ∈ q.val, by { rw [← Ψrange], apply mem_range_self },
       rcases exists_dist_lt_of_Hausdorff_dist_lt' this hr
@@ -325,7 +326,7 @@ begin
         with ⟨z, zq, hz⟩,
       have : z ∈ range Φ, by rwa [← Φrange] at zq,
       rcases mem_range.1 this with ⟨x, hx⟩,
-      calc infi (λx:α, Fb (inl x, inr y)) ≤ Fb (inl x, inr y) :
+      calc (⨅ x, Fb (inl x, inr y)) ≤ Fb (inl x, inr y) :
           cinfi_le (by simpa using HD_below_aux2 0) x
         ... = dist (Φ x) (Ψ y) : rfl
         ... = dist z (f (inr y)) : by rw hx
@@ -531,7 +532,7 @@ theorem GH_dist_le_of_approx_subsets {s : set α} (Φ : s → β) {ε₁ ε₂ �
   (H : ∀x y : s, abs (dist x y - dist (Φ x) (Φ y)) ≤ ε₂) :
   GH_dist α β ≤ ε₁ + ε₂ / 2 + ε₃ :=
 begin
-  refine real.le_of_forall_epsilon_le (λδ δ0, _),
+  refine le_of_forall_pos_le_add (λδ δ0, _),
   rcases exists_mem_of_nonempty α with ⟨xα, _⟩,
   rcases hs xα with ⟨xs, hxs, Dxs⟩,
   have sne : s.nonempty := ⟨xs, hxs⟩,

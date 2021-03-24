@@ -27,7 +27,7 @@ of convergence, and some properties of the map sending a contracting map to its 
 contracting map, fixed point, Banach fixed point theorem
 -/
 
-open_locale nnreal topological_space classical
+open_locale nnreal topological_space classical ennreal
 open filter function
 
 variables {α : Type*}
@@ -44,12 +44,12 @@ open emetric set
 
 lemma to_lipschitz_with (hf : contracting_with K f) : lipschitz_with K f := hf.2
 
-lemma one_sub_K_pos' (hf : contracting_with K f) : (0:ennreal) < 1 - K := by simp [hf.1]
+lemma one_sub_K_pos' (hf : contracting_with K f) : (0:ℝ≥0∞) < 1 - K := by simp [hf.1]
 
-lemma one_sub_K_ne_zero (hf : contracting_with K f) : (1:ennreal) - K ≠ 0 :=
+lemma one_sub_K_ne_zero (hf : contracting_with K f) : (1:ℝ≥0∞) - K ≠ 0 :=
 ne_of_gt hf.one_sub_K_pos'
 
-lemma one_sub_K_ne_top : (1:ennreal) - K ≠ ⊤ :=
+lemma one_sub_K_ne_top : (1:ℝ≥0∞) - K ≠ ⊤ :=
 by { norm_cast, exact ennreal.coe_ne_top }
 
 lemma edist_inequality (hf : contracting_with K f) {x y} (h : edist x y < ⊤) :

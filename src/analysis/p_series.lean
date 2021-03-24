@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import analysis.special_functions.pow
 
@@ -89,7 +89,7 @@ end finset
 
 namespace ennreal
 
-variable {f : ℕ → ennreal}
+variable {f : ℕ → ℝ≥0∞}
 
 lemma le_tsum_condensed (hf : ∀ ⦃m n⦄, 0 < m → m ≤ n → f n ≤ f m) :
   ∑' k, f k ≤ f 0 + ∑' k : ℕ, (2 ^ k) * f (2 ^ k) :=
@@ -120,10 +120,10 @@ begin
   simp only [← ennreal.tsum_coe_ne_top_iff_summable, ne.def, not_iff_not, ennreal.coe_mul,
     ennreal.coe_pow, ennreal.coe_two],
   split; intro h,
-  { replace hf : ∀ m n, 1 < m → m ≤ n → (f n : ennreal) ≤ f m :=
+  { replace hf : ∀ m n, 1 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
       λ m n hm hmn, ennreal.coe_le_coe.2 (hf (zero_lt_one.trans hm) hmn),
     simpa [h, ennreal.add_eq_top] using (ennreal.tsum_condensed_le hf) },
-  { replace hf : ∀ m n, 0 < m → m ≤ n → (f n : ennreal) ≤ f m :=
+  { replace hf : ∀ m n, 0 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
       λ m n hm hmn, ennreal.coe_le_coe.2 (hf hm hmn),
     simpa [h, ennreal.add_eq_top] using (ennreal.le_tsum_condensed hf) }
 end

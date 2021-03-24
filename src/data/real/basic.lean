@@ -13,17 +13,57 @@ import algebra.star.basic
 
 /-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
 numbers. -/
-def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
+structure real := of_cauchy ::
+(cauchy : @cau_seq.completion.Cauchy ℚ _ _ _ abs _)
 notation `ℝ` := real
+
+attribute [pp_using_anonymous_constructor] real
 
 namespace real
 open cau_seq cau_seq.completion
 
 variables {x y : ℝ}
 
-def comm_ring_aux : comm_ring ℝ := Cauchy.comm_ring
+lemma ext_cauchy_iff : ∀ {x y : real}, x = y ↔ x.cauchy = y.cauchy
+| ⟨a⟩ ⟨b⟩ := by split; cc
 
-instance : comm_ring ℝ := { ..comm_ring_aux }
+lemma ext_cauchy {x y : real} : x.cauchy = y.cauchy → x = y :=
+ext_cauchy_iff.2
+
+/-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
+def equiv_Cauchy : ℝ ≃ cau_seq.completion.Cauchy :=
+⟨real.cauchy, real.of_cauchy, λ ⟨_⟩, rfl, λ _, rfl⟩
+
+-- irreducible doesn't work for instances: https://github.com/leanprover-community/lean/issues/511
+@[irreducible] private def zero : ℝ := ⟨0⟩
+@[irreducible] private def one : ℝ := ⟨1⟩
+@[irreducible] private def add : ℝ → ℝ → ℝ | ⟨a⟩ ⟨b⟩ := ⟨a + b⟩
+@[irreducible] private def neg : ℝ → ℝ | ⟨a⟩ := ⟨-a⟩
+@[irreducible] private def mul : ℝ → ℝ → ℝ | ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
+
+instance : has_zero ℝ := ⟨zero⟩
+instance : has_one ℝ := ⟨one⟩
+instance : has_add ℝ := ⟨add⟩
+instance : has_neg ℝ := ⟨neg⟩
+instance : has_mul ℝ := ⟨mul⟩
+
+lemma zero_cauchy : (⟨0⟩ : ℝ) = 0 := show _ = zero, by rw zero
+lemma one_cauchy : (⟨1⟩ : ℝ) = 1 := show _ = one, by rw one
+lemma add_cauchy {a b} : (⟨a⟩ + ⟨b⟩ : ℝ) = ⟨a + b⟩ := show add _ _ = _, by rw add
+lemma neg_cauchy {a} : (-⟨a⟩ : ℝ) = ⟨-a⟩ := show neg _ = _, by rw neg
+lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : ℝ) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
+
+instance : comm_ring ℝ :=
+begin
+  refine_struct { zero := 0, one := 1, mul := (*),
+    add := (+), neg := @has_neg.neg ℝ _, sub := λ a b, a + (-b) },
+  all_goals {
+    repeat { rintro ⟨_⟩, },
+    simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy],
+    apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
+      apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
+  },
+end
 
 /- Extra instances to short-circuit type class resolution -/
 instance : ring ℝ               := by apply_instance
@@ -41,71 +81,112 @@ instance : comm_monoid ℝ        := by apply_instance
 instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
+instance : has_sub ℝ := by apply_instance
 instance : inhabited ℝ := ⟨0⟩
 
-/-- The real numbers are a *-ring, with the trivial *-structure. -/
+/-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
 instance : star_ring ℝ          := star_ring_of_comm
 
 /-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
 is `cau_seq.completion.of_rat`, not `rat.cast`. -/
-def of_rat : ℚ →+* ℝ := ⟨of_rat, rfl, of_rat_mul, rfl, of_rat_add⟩
+def of_rat : ℚ →+* ℝ :=
+by refine_struct { to_fun := of_cauchy ∘ of_rat };
+  simp [of_rat_one, of_rat_zero, of_rat_mul, of_rat_add,
+    one_cauchy, zero_cauchy, ← mul_cauchy, ← add_cauchy]
+
+lemma of_rat_apply (x : ℚ) : of_rat x = of_cauchy (cau_seq.completion.of_rat x) := rfl
 
 /-- Make a real number from a Cauchy sequence of rationals (by taking the equivalence class). -/
-def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
+def mk (x : cau_seq ℚ abs) : ℝ := ⟨cau_seq.completion.mk x⟩
 
-theorem of_rat_sub (x y : ℚ) : of_rat (x - y) = of_rat x - of_rat y :=
-congr_arg mk (const_sub _ _)
+theorem mk_eq {f g : cau_seq ℚ abs} : mk f = mk g ↔ f ≈ g :=
+ext_cauchy_iff.trans mk_eq
 
-instance : has_lt ℝ :=
-⟨λ x y, quotient.lift_on₂ x y (<) $
+@[irreducible]
+private def lt : ℝ → ℝ → Prop | ⟨x⟩ ⟨y⟩ :=
+quotient.lift_on₂ x y (<) $
   λ f₁ g₁ f₂ g₂ hf hg, propext $
   ⟨λ h, lt_of_eq_of_lt (setoid.symm hf) (lt_of_lt_of_eq h hg),
-   λ h, lt_of_eq_of_lt hf (lt_of_lt_of_eq h (setoid.symm hg))⟩⟩
+   λ h, lt_of_eq_of_lt hf (lt_of_lt_of_eq h (setoid.symm hg))⟩
 
-@[simp] theorem mk_lt {f g : cau_seq ℚ abs} : mk f < mk g ↔ f < g := iff.rfl
+instance : has_lt ℝ := ⟨lt⟩
 
-theorem mk_eq {f g : cau_seq ℚ abs} : mk f = mk g ↔ f ≈ g := mk_eq
+lemma lt_cauchy {f g} : (⟨⟦f⟧⟩ : ℝ) < ⟨⟦g⟧⟩ ↔ f < g := show lt _ _ ↔ _, by rw lt; refl
 
-theorem quotient_mk_eq_mk (f : cau_seq ℚ abs) : ⟦f⟧ = mk f := rfl
+@[simp] theorem mk_lt {f g : cau_seq ℚ abs} : mk f < mk g ↔ f < g :=
+lt_cauchy
 
-theorem mk_eq_mk {f : cau_seq ℚ abs} : cau_seq.completion.mk f = mk f := rfl
+lemma mk_zero : mk 0 = 0 := by rw ← zero_cauchy; refl
+lemma mk_one : mk 1 = 1 := by rw ← one_cauchy; refl
+lemma mk_add {f g : cau_seq ℚ abs} : mk (f + g) = mk f + mk g := by simp [mk, add_cauchy]
+lemma mk_mul {f g : cau_seq ℚ abs} : mk (f * g) = mk f * mk g := by simp [mk, mul_cauchy]
+lemma mk_neg {f : cau_seq ℚ abs} : mk (-f) = -mk f := by simp [mk, neg_cauchy]
 
 @[simp] theorem mk_pos {f : cau_seq ℚ abs} : 0 < mk f ↔ pos f :=
-iff_of_eq (congr_arg pos (sub_zero f))
+by rw [← mk_zero, mk_lt]; exact iff_of_eq (congr_arg pos (sub_zero f))
 
-protected def le (x y : ℝ) : Prop := x < y ∨ x = y
-instance : has_le ℝ := ⟨real.le⟩
+@[irreducible] private def le (x y : ℝ) : Prop := x < y ∨ x = y
+instance : has_le ℝ := ⟨le⟩
+private lemma le_def {x y : ℝ} : x ≤ y ↔ x < y ∨ x = y := show le _ _ ↔ _, by rw le
 
 @[simp] theorem mk_le {f g : cau_seq ℚ abs} : mk f ≤ mk g ↔ f ≤ g :=
-or_congr iff.rfl quotient.eq
+by simp [le_def, mk_eq]; refl
+
+@[elab_as_eliminator]
+protected lemma ind_mk {C : real → Prop} (x : real) (h : ∀ y, C (mk y)) : C x :=
+begin
+  cases x with x,
+  induction x using quot.induction_on with x,
+  exact h x
+end
 
 theorem add_lt_add_iff_left {a b : ℝ} (c : ℝ) : c + a < c + b ↔ a < b :=
-quotient.induction_on₃ a b c (λ f g h,
-  iff_of_eq (congr_arg pos $ by rw add_sub_add_left_eq_sub))
+begin
+  induction a using real.ind_mk,
+  induction b using real.ind_mk,
+  induction c using real.ind_mk,
+  simp only [mk_lt, ← mk_add],
+  show pos _ ↔ pos _, rw add_sub_add_left_eq_sub
+end
 
 instance : partial_order ℝ :=
 { le := (≤), lt := (<),
-  le_refl := λ a, or.inr rfl,
-  le_trans := λ a b c, quotient.induction_on₃ a b c $
-    λ f g h, by simpa [quotient_mk_eq_mk] using le_trans,
-  lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
-    λ f g, by simpa [quotient_mk_eq_mk] using lt_iff_le_not_le,
-  le_antisymm := λ a b, quotient.induction_on₂ a b $
-    λ f g, by simpa [mk_eq, quotient_mk_eq_mk] using @cau_seq.le_antisymm _ _ f g }
+  lt_iff_le_not_le := λ a b, real.ind_mk a $ λ a, real.ind_mk b $ λ b,
+    by simpa using lt_iff_le_not_le,
+  le_refl := λ a, a.ind_mk (by intro a; rw mk_le),
+  le_trans := λ a b c, real.ind_mk a $ λ a, real.ind_mk b $ λ b, real.ind_mk c $ λ c,
+    by simpa using le_trans,
+  lt_iff_le_not_le := λ a b, real.ind_mk a $ λ a, real.ind_mk b $ λ b,
+    by simpa using lt_iff_le_not_le,
+  le_antisymm := λ a b, real.ind_mk a $ λ a, real.ind_mk b $ λ b,
+    by simpa [mk_eq] using @cau_seq.le_antisymm _ _ a b }
 
 instance : preorder ℝ := by apply_instance
 
-theorem of_rat_lt {x y : ℚ} : of_rat x < of_rat y ↔ x < y := const_lt
+theorem of_rat_lt {x y : ℚ} : of_rat x < of_rat y ↔ x < y :=
+begin
+  rw [mk_lt] {md := tactic.transparency.semireducible},
+  exact const_lt
+end
 
-protected theorem zero_lt_one : (0 : ℝ) < 1 := of_rat_lt.2 zero_lt_one
+protected theorem zero_lt_one : (0 : ℝ) < 1 :=
+by convert of_rat_lt.2 zero_lt_one; simp
 
 protected theorem mul_pos {a b : ℝ} : 0 < a → 0 < b → 0 < a * b :=
-quotient.induction_on₂ a b $ λ f g,
-  show pos (f - 0) → pos (g - 0) → pos (f * g - 0),
-  by simpa using cau_seq.mul_pos
+begin
+  induction a using real.ind_mk with a,
+  induction b using real.ind_mk with b,
+  simpa only [mk_lt, mk_pos, ← mk_mul] using cau_seq.mul_pos
+end
 
 instance : ordered_ring ℝ :=
-{ add_le_add_left := λ a b h c, h.imp (real.add_lt_add_iff_left c).2 (λ h, h ▸ rfl),
+{ add_le_add_left :=
+  begin
+    simp only [le_iff_eq_or_lt],
+    rintros a b ⟨rfl, h⟩,
+    { simp },
+    { exact λ c, or.inr ((add_lt_add_iff_left c).2 ‹_›) }
+  end,
   zero_le_one := le_of_lt real.zero_lt_one,
   mul_pos     := @real.mul_pos,
   .. real.comm_ring, .. real.partial_order, .. real.semiring }
@@ -114,18 +195,17 @@ instance : ordered_semiring ℝ           := by apply_instance
 instance : ordered_add_comm_group ℝ     := by apply_instance
 instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
 instance : ordered_add_comm_monoid ℝ    := by apply_instance
-instance : has_one ℝ                    := by apply_instance
-instance : has_zero ℝ                   := by apply_instance
-instance : has_mul ℝ                    := by apply_instance
-instance : has_add ℝ                    := by apply_instance
-instance : has_sub ℝ                    := by apply_instance
 instance : nontrivial ℝ := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
 
 open_locale classical
 
 noncomputable instance : linear_order ℝ :=
-{ le_total := λ a b, quotient.induction_on₂ a b $
-    λ f g, by simpa [quotient_mk_eq_mk] using le_total f g,
+{ le_total := begin
+    intros a b,
+    induction a using real.ind_mk with a,
+    induction b using real.ind_mk with b,
+    simpa using le_total a b,
+  end,
   decidable_le := by apply_instance,
   .. real.partial_order }
 
@@ -138,18 +218,25 @@ noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : domain ℝ                     :=
 { .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.to_domain }
 
-noncomputable instance : has_inv ℝ := Cauchy.has_inv
+/-- The real numbers are an ordered `*`-ring, with the trivial `*`-structure. -/
+instance : star_ordered_ring ℝ :=
+{ star_mul_self_nonneg := λ r, mul_self_nonneg r, }
 
-noncomputable instance : has_div ℝ := ⟨λ a b, a * b⁻¹⟩
-
-noncomputable instance field : field ℝ :=
-{ inv := has_inv.inv,
-  div := has_div.div,
-  .. cau_seq.completion.field }
+@[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
+noncomputable instance : has_inv ℝ := ⟨inv'⟩
+lemma inv_cauchy {f} : (⟨f⟩ : ℝ)⁻¹ = ⟨f⁻¹⟩ := show inv' _ = _, by rw inv'
 
 noncomputable instance : linear_ordered_field ℝ :=
-{ ..real.linear_ordered_comm_ring,
-  ..real.field }
+{ inv := has_inv.inv,
+  mul_inv_cancel := begin
+    rintros ⟨a⟩ h,
+    rw mul_comm,
+    simp only [inv_cauchy, mul_cauchy, ← one_cauchy, ← zero_cauchy, ne.def] at *,
+    exact cau_seq.completion.inv_mul_cancel h,
+  end,
+  inv_zero := by simp [← zero_cauchy, inv_cauchy],
+  ..real.linear_ordered_comm_ring,
+  ..real.domain }
 
 /- Extra instances to short-circuit type class resolution -/
 
@@ -166,11 +253,6 @@ noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_
 noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
 noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
 
-lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
-le_of_forall_le_of_dense $ assume x hxb,
-calc  a ≤ b + (x - b) : h (x-b) $ sub_pos.2 hxb
-    ... = x : by rw [add_comm]; simp
-
 open rat
 
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
@@ -178,23 +260,30 @@ of_rat.eq_rat_cast
 
 theorem le_mk_of_forall_le {f : cau_seq ℚ abs} :
   (∃ i, ∀ j ≥ i, x ≤ f j) → x ≤ mk f :=
-quotient.induction_on x $ λ g h, le_of_not_lt $
-λ ⟨K, K0, hK⟩,
-let ⟨i, H⟩ := exists_forall_ge_and h $
-  exists_forall_ge_and hK (f.cauchy₃ $ half_pos K0) in
 begin
+  intro h,
+  induction x using real.ind_mk with x,
+  apply le_of_not_lt,
+  rw mk_lt,
+  rintro ⟨K, K0, hK⟩,
+  obtain ⟨i, H⟩ := exists_forall_ge_and h
+    (exists_forall_ge_and hK (f.cauchy₃ $ half_pos K0)),
   apply not_lt_of_le (H _ (le_refl _)).1,
   rw ← of_rat_eq_cast,
+  rw [mk_lt] {md := tactic.transparency.semireducible},
   refine ⟨_, half_pos K0, i, λ j ij, _⟩,
   have := add_le_add (H _ ij).2.1
     (le_of_lt (abs_lt.1 $ (H _ (le_refl _)).2.2 _ ij).1),
   rwa [← sub_eq_add_neg, sub_self_div_two, sub_apply, sub_add_sub_cancel] at this
 end
 
-theorem mk_le_of_forall_le {f : cau_seq ℚ abs} {x : ℝ} :
-  (∃ i, ∀ j ≥ i, (f j : ℝ) ≤ x) → mk f ≤ x
-| ⟨i, H⟩ := by rw [← neg_le_neg_iff, ← mk_eq_mk, mk_neg]; exact
-  le_mk_of_forall_le ⟨i, λ j ij, by simp [H _ ij]⟩
+theorem mk_le_of_forall_le {f : cau_seq ℚ abs} {x : ℝ}
+  (h : ∃ i, ∀ j ≥ i, (f j : ℝ) ≤ x) : mk f ≤ x :=
+begin
+  cases h with i H,
+  rw [← neg_le_neg_iff, ← mk_neg],
+  exact le_mk_of_forall_le ⟨i, λ j ij, by simp [H _ ij]⟩
+end
 
 theorem mk_near_of_forall_near {f : cau_seq ℚ abs} {x : ℝ} {ε : ℝ}
   (H : ∃ i, ∀ j ≥ i, abs ((f j : ℝ) - x) ≤ ε) : abs (mk f - x) ≤ ε :=
@@ -205,19 +294,10 @@ abs_sub_le_iff.2
     H.imp $ λ i h j ij, sub_le.1 (abs_sub_le_iff.1 $ h j ij).2⟩
 
 instance : archimedean ℝ :=
-archimedean_iff_rat_le.2 $ λ x, quotient.induction_on x $ λ f,
+archimedean_iff_rat_le.2 $ λ x, real.ind_mk x $ λ f,
 let ⟨M, M0, H⟩ := f.bounded' 0 in
 ⟨M, mk_le_of_forall_le ⟨0, λ i _,
   rat.cast_le.2 $ le_of_lt (abs_lt.1 (H i)).2⟩⟩
-
-/- mark `real` irreducible in order to prevent `auto_cases` unfolding reals,
-since users rarely want to consider real numbers as Cauchy sequences.
-Marking `comm_ring_aux` `irreducible` is done to ensure that there are no problems
-with non definitionally equal instances, caused by making `real` irreducible-/
-attribute [irreducible] real comm_ring_aux
-
--- Make sure that we didn't break defeq `a / b = a * b⁻¹` by our irreducibility settings
-example (a b : ℝ) : a / b = a * b⁻¹ := rfl
 
 noncomputable instance : floor_ring ℝ := archimedean.floor_ring _
 
@@ -311,13 +391,9 @@ theorem Sup_le (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S,
 by simp [Sup_def, h₁, h₂]; exact
 classical.some_spec (exists_sup S h₁ h₂) y
 
-section
--- this proof times out without this
-local attribute [instance, priority 1000] classical.prop_decidable
 theorem lt_Sup (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
   {y} : y < Sup S ↔ ∃ z ∈ S, y < z :=
 by simpa [not_forall] using not_congr (@Sup_le S h₁ h₂ y)
-end
 
 theorem le_Sup (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x) {x} (xS : x ∈ S) : x ≤ Sup S :=
 (Sup_le S ⟨_, xS⟩ h₂).1 (le_refl _) _ xS
@@ -378,7 +454,6 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
     assume (s : set ℝ) (a : ℝ) (_ : s.nonempty) (H : ∀b∈s, a ≤ b),
     show a ≤ Inf s,
       from lb_le_Inf s ‹s.nonempty› H,
-  decidable_le := classical.dec_rel _,
  ..real.linear_order, ..real.lattice}
 
 theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
@@ -424,7 +499,5 @@ begin
 end
 
 noncomputable instance : cau_seq.is_complete ℝ abs := ⟨cau_seq_converges⟩
-
-attribute [irreducible] real.le
 
 end real

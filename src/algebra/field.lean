@@ -5,6 +5,43 @@ Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.ring.basic
 import algebra.group_with_zero
+
+/-!
+# Fields and division rings
+
+This file introduces fields and division rings (also known as skewfields) and proves some basic
+statements about them. For a more extensive theory of fields, see the `field_theory` folder.
+
+## Main definitions
+
+* `division_ring`: introduces the notion of a division ring as a `ring` such that `0 ≠ 1` and
+  `a * a⁻¹ = 1` for `a ≠ 0`
+* `field`: a division ring which is also a commutative ring.
+* `is_field`: a predicate on a ring that it is a field, i.e. that the multiplication is commutative,
+  that it has more than one element and that all non-zero elements have a multiplicative inverse.
+  In contrast to `field`, which contains the data of a function associating to an element of the
+  field its multiplicative inverse, this predicate only assumes the existence and can therefore more
+  easily be used to e.g. transfer along ring isomorphisms.
+
+## Implementation details
+
+By convention `0⁻¹ = 0` in a field or division ring. This is due to the fact that working with total
+functions has the advantage of not constantly having to check that `x ≠ 0` when writing `x⁻¹`. With
+this convention in place, some statements like `(a + b) * c⁻¹ = a * c⁻¹ + b * c⁻¹` still remain
+true, while others like the defining property `a * a⁻¹ = 1` need the assumption `a ≠ 0`. If you are
+a beginner in using Lean and are confused by that, you can read more about why this convention is
+taken in Kevin Buzzard's
+[blogpost](https://xenaproject.wordpress.com/2020/07/05/division-by-zero-in-type-theory-a-faq/)
+
+A division ring or field is an example of a `group_with_zero`. If you cannot find
+a division ring / field lemma that does not involve `+`, you can try looking for
+a `group_with_zero` lemma instead.
+
+## Tags
+
+field, division ring, skew field, skew-field, skewfield
+-/
+
 open set
 
 set_option old_structure_cmd true
@@ -288,3 +325,27 @@ noncomputable def field_of_is_unit_or_eq_zero [hR : comm_ring R]
 { .. (group_with_zero_of_is_unit_or_eq_zero h), .. hR }
 
 end noncomputable_defs
+
+/-- Pullback a `division_ring` along an injective function. -/
+protected def function.injective.division_ring [division_ring K] {K'}
+  [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
+  [has_div K']
+  (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
+  division_ring K' :=
+{ .. hf.group_with_zero_div f zero one mul inv div,
+  .. hf.ring_sub f zero one add mul neg sub }
+
+/-- Pullback a `field` along an injective function. -/
+protected def function.injective.field [field K] {K'}
+  [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
+  [has_div K']
+  (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
+  field K' :=
+{ .. hf.comm_group_with_zero_div f zero one mul inv div,
+  .. hf.comm_ring_sub f zero one add mul neg sub }

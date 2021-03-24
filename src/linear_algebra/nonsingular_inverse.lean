@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Tim Baanen.
+Authors: Tim Baanen
 -/
 import algebra.associated
 import linear_algebra.determinant
@@ -66,31 +66,8 @@ variables (A : matrix n n α) (b : n → α)
 def cramer_map (i : n) : α := (A.update_column i b).det
 
 lemma cramer_map_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) :=
-begin
-  have : Π {f : n → n} {i : n} (x : n → α),
-    (∏ i' : n, (update_column A i x) (f i') i')
-    = (∏ i' : n, if i' = i then x (f i') else A (f i') i'),
-  { intros, congr' with i', apply update_column_apply, },
-  split,
-  { intros x y,
-    repeat { rw [cramer_map, det] },
-    rw [←sum_add_distrib],
-    congr' with σ,
-    rw [←mul_add ↑↑(sign σ)],
-    congr,
-    repeat { erw [this, finset.prod_ite] },
-    erw [finset.filter_eq', if_pos (mem_univ i), prod_singleton, prod_singleton,
-      prod_singleton, ←add_mul],
-    refl },
-  { intros c x,
-    repeat { rw [cramer_map, det] },
-    rw [smul_eq_mul, mul_sum],
-    congr' with σ,
-    rw [←mul_assoc, mul_comm c, mul_assoc], congr,
-    repeat { erw [this, finset.prod_ite] },
-    erw [finset.filter_eq', if_pos (mem_univ i),
-      prod_singleton, prod_singleton, mul_assoc], }
-end
+{ map_add := det_update_column_add _ _,
+  map_smul := det_update_column_smul _ _ }
 
 lemma cramer_is_linear : is_linear_map α (cramer_map A) :=
 begin
@@ -171,6 +148,7 @@ lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ)
 begin
   ext i j,
   rw [transpose_apply, adjugate_apply, adjugate_apply, update_row_transpose, det_transpose],
+  rw [det_apply', det_apply'],
   apply finset.sum_congr rfl,
   intros σ _,
   congr' 1,
@@ -242,13 +220,9 @@ h (adjugate A).det (calc A.det * (adjugate A).det = (A ⬝ adjugate A).det   : (
 
 lemma adjugate_eq_one_of_card_eq_one {A : matrix n n α} (h : fintype.card n = 1) : adjugate A = 1 :=
 begin
+  haveI : subsingleton n := fintype.card_le_one_iff_subsingleton.mp h.le,
   ext i j,
-  have univ_eq_i := univ_eq_singleton_of_card_one i h,
-  have univ_eq_j := univ_eq_singleton_of_card_one j h,
-  have i_eq_j : i = j := singleton_inj.mp (by rw [←univ_eq_i, univ_eq_j]),
-  have perm_eq : (univ : finset (perm n)) = {1} :=
-    univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
-  simp [adjugate_apply, det, univ_eq_i, perm_eq, i_eq_j]
+  simp [subsingleton.elim i j, adjugate_apply, det_eq_elem_of_card_eq_one h j],
 end
 
 @[simp] lemma adjugate_zero (h : 1 < fintype.card n) : adjugate (0 : matrix n n α) = 0 :=

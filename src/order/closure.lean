@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Bhavik Mehta
+Authors: Bhavik Mehta
 -/
 import order.basic
 import order.preorder_hom
@@ -61,6 +61,15 @@ variables {α} (c : closure_operator α)
   ∀ (c₁ c₂ : closure_operator α), (c₁ : α → α) = (c₂ : α → α) → c₁ = c₂
 | ⟨⟨c₁, _⟩, _, _⟩ ⟨⟨c₂, _⟩, _, _⟩ h := by { congr, exact h }
 
+/-- Constructor for a closure operator using the weaker idempotency axiom: `f (f x) ≤ f x`. -/
+@[simps]
+def mk' (f : α → α) (hf₁ : monotone f) (hf₂ : ∀ x, x ≤ f x) (hf₃ : ∀ x, f (f x) ≤ f x) :
+  closure_operator α :=
+{ to_fun := f,
+  monotone' := hf₁,
+  le_closure' := hf₂,
+  idempotent' := λ x, le_antisymm (hf₃ x) (hf₁ (hf₂ x)) }
+
 @[mono] lemma monotone : monotone c := c.monotone'
 /--
 Every element is less than its closure. This property is sometimes referred to as extensivity or
@@ -77,11 +86,11 @@ le_antisymm le_top (c.le_closure _)
 
 lemma closure_inter_le {α : Type u} [semilattice_inf α] (c : closure_operator α) (x y : α) :
   c (x ⊓ y) ≤ c x ⊓ c y :=
-le_inf (c.monotone inf_le_left) (c.monotone inf_le_right)
+c.monotone.map_inf_le _ _
 
 lemma closure_union_closure_le {α : Type u} [semilattice_sup α] (c : closure_operator α) (x y : α) :
   c x ⊔ c y ≤ c (x ⊔ y) :=
-sup_le (c.monotone le_sup_left) (c.monotone le_sup_right)
+c.monotone.le_map_sup _ _
 
 /-- An element `x` is closed for the closure operator `c` if it is a fixed point for it. -/
 def closed : set α := λ x, c x = x
@@ -106,7 +115,7 @@ c.closure_top
 lemma closure_le_closed_iff_le {x y : α} (hy : c.closed y) : x ≤ y ↔ c x ≤ y :=
 by rw [← c.closure_eq_self_of_mem_closed hy, le_closure_iff]
 
-/-- The set of closed elements has a galois insertion to the underlying type. -/
+/-- The set of closed elements has a Galois insertion to the underlying type. -/
 def gi : galois_insertion c.to_closed coe :=
 { choice := λ x hx, ⟨x, le_antisymm hx (c.le_closure x)⟩,
   gc := λ x y, (c.closure_le_closed_iff_le y.2).symm,
@@ -114,3 +123,28 @@ def gi : galois_insertion c.to_closed coe :=
   choice_eq := λ x hx, le_antisymm (c.le_closure x) hx }
 
 end closure_operator
+
+variables {α} (c : closure_operator α)
+
+/--
+Every Galois connection induces a closure operator given by the composition. This is the partial
+order version of the statement that every adjunction induces a monad.
+-/
+@[simps]
+def galois_connection.closure_operator {β : Type u} [preorder β]
+  {l : α → β} {u : β → α} (gc : galois_connection l u) :
+  closure_operator α :=
+{ to_fun := λ x, u (l x),
+  monotone' := λ x y h, gc.monotone_u (gc.monotone_l h),
+  le_closure' := gc.le_u_l,
+  idempotent' := λ x, le_antisymm (gc.monotone_u (gc.l_u_le _)) (gc.le_u_l _) }
+
+/--
+The Galois insertion associated to a closure operator can be used to reconstruct the closure
+operator.
+
+Note that the inverse in the opposite direction does not hold in general.
+-/
+@[simp]
+lemma closure_operator_gi_self : c.gi.gc.closure_operator = c :=
+by { ext x, refl }

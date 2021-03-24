@@ -276,7 +276,7 @@ h.le_nhds_Lim
 lemma is_closed.is_complete [complete_space α] {s : set α}
   (h : is_closed s) : is_complete s :=
 λ f cf fs, let ⟨x, hx⟩ := complete_space.complete cf in
-⟨x, is_closed_iff_cluster_pt.mp h x (ne_bot_of_le_ne_bot cf.left (le_inf hx fs)), hx⟩
+⟨x, is_closed_iff_cluster_pt.mp h x (cf.left.mono (le_inf hx fs)), hx⟩
 
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
   set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/
@@ -388,7 +388,7 @@ begin
     set ys := ⋃ y' ∈ ({y} : finset α), {x | (x, y') ∈ d},
     have : m ⊆ ys, by simpa [ys] using λ x hx, hmd (mk_mem_prod hx hym),
     have : c ≤ 𝓟 (s \ ys) := hcf.trans (infi_le_of_le {y} le_rfl),
-    refine hc.1 (empty_in_sets_eq_bot.mp _),
+    refine hc.1.ne (empty_in_sets_eq_bot.mp _),
     filter_upwards [le_principal_iff.1 this, hm],
     refine λ x hx hxm, hx.2 _,
     simpa [ys] using hmd (mk_mem_prod hxm hym) }
@@ -411,6 +411,12 @@ lemma compact_iff_totally_bounded_complete {s : set α} :
     ⟨a, as, le_nhds_of_cauchy_adhp fc fa⟩⟩,
  λ ⟨ht, hc⟩, compact_iff_ultrafilter_le_nhds.2
    (λf hf, hc _ (totally_bounded_iff_ultrafilter.1 ht f hf) hf)⟩
+
+lemma is_compact.totally_bounded {s : set α} (h : is_compact s) : totally_bounded s :=
+(compact_iff_totally_bounded_complete.1 h).1
+
+lemma is_compact.is_complete {s : set α} (h : is_compact s) : is_complete s :=
+(compact_iff_totally_bounded_complete.1 h).2
 
 @[priority 100] -- see Note [lower instance priority]
 instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α] : complete_space α :=
@@ -568,4 +574,3 @@ begin
 end
 
 end uniform_space
-

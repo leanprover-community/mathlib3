@@ -47,7 +47,7 @@ are equivalent on `ℝ^n` for abstract (norm equivalence) reasons. Instead, we g
 -/
 
 open real set filter
-open_locale big_operators uniformity topological_space nnreal
+open_locale big_operators uniformity topological_space nnreal ennreal
 
 noncomputable theory
 
@@ -136,7 +136,7 @@ begin
   ... ≤ (∑ (i : ι), edist (x i) (y i) ^ p) ^ (1 / p) :
   begin
     apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 $ le_of_lt pos),
-    exact finset.single_le_sum (λ i hi, (bot_le : (0 : ennreal) ≤ _)) (finset.mem_univ i)
+    exact finset.single_le_sum (λ i hi, (bot_le : (0 : ℝ≥0∞) ≤ _)) (finset.mem_univ i)
   end
 end
 
@@ -161,7 +161,7 @@ begin
   begin
     simp only [nsmul_eq_mul, finset.card_univ, ennreal.rpow_one, finset.sum_const,
       ennreal.mul_rpow_of_nonneg _ _ nonneg, ←ennreal.rpow_mul, cancel],
-    have : (fintype.card ι : ennreal) = (fintype.card ι : ℝ≥0) :=
+    have : (fintype.card ι : ℝ≥0∞) = (fintype.card ι : ℝ≥0) :=
       (ennreal.coe_nat (fintype.card ι)).symm,
     rw [this, ennreal.coe_rpow_of_nonneg _ nonneg]
   end
@@ -228,6 +228,11 @@ instance normed_group [∀i, normed_group (α i)] : normed_group (pi_Lp p hp α)
 lemma norm_eq {p : ℝ} {hp : 1 ≤ p} {α : ι → Type*}
   [∀i, normed_group (α i)] (f : pi_Lp p hp α) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ p) ^ (1/p) := rfl
+
+lemma norm_eq_of_nat {p : ℝ} {hp : 1 ≤ p} {α : ι → Type*}
+  [∀i, normed_group (α i)] (n : ℕ) (h : p = n) (f : pi_Lp p hp α) :
+  ∥f∥ = (∑ (i : ι), ∥f i∥ ^ n) ^ (1/(n : ℝ)) :=
+by simp [norm_eq, h, real.sqrt_eq_rpow, ←real.rpow_nat_cast]
 
 variables (𝕜 : Type*) [normed_field 𝕜]
 

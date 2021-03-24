@@ -1,16 +1,17 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.hausdorff_distance
+import topology.compacts
 import analysis.specific_limits
 
 /-!
 # Closed subsets
 
-This file defines the metric and emetric space structure on the types of closed subsets and nonempty compact
-subsets of a metric or emetric space.
+This file defines the metric and emetric space structure on the types of closed subsets and nonempty
+compact subsets of a metric or emetric space.
 
 The Hausdorff distance induces an emetric space structure on the type of closed subsets
 of an emetric space, called `closeds`. Its completeness, resp. compactness, resp.
@@ -22,8 +23,7 @@ always finite in this context.
 -/
 
 noncomputable theory
-open_locale classical
-open_locale topological_space
+open_locale classical topological_space ennreal
 
 universe u
 open classical set function topological_space filter
@@ -89,8 +89,8 @@ begin
   `edist (s n) (s (n+1)) < 2^{-n}`, then it converges. This is enough to guarantee
   completeness, by a standard completeness criterion.
   We use the shorthand `B n = 2^{-n}` in ennreal. -/
-  let B : ℕ → ennreal := λ n, (2⁻¹)^n,
-  have B_pos : ∀ n, (0:ennreal) < B n,
+  let B : ℕ → ℝ≥0∞ := λ n, (2⁻¹)^n,
+  have B_pos : ∀ n, (0:ℝ≥0∞) < B n,
     by simp [B, ennreal.pow_pos],
   have B_ne_top : ∀ n, B n ≠ ⊤,
     by simp [B, ennreal.pow_ne_top],
@@ -135,7 +135,8 @@ begin
     -- First, we check it belongs to `t0`.
     have : y ∈ t0 := mem_Inter.2 (λk, mem_closure_of_tendsto y_lim
     begin
-      simp only [exists_prop, set.mem_Union, filter.eventually_at_top, set.mem_preimage, set.preimage_Union],
+      simp only [exists_prop, set.mem_Union, filter.eventually_at_top, set.mem_preimage,
+        set.preimage_Union],
       exact ⟨k, λ m hm, ⟨n+m, zero_add k ▸ add_le_add (zero_le n) hm, (z m).2⟩⟩
     end),
     use this,
@@ -185,10 +186,11 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     i.e., for all ε>0, there is a finite set which is ε-dense.
     start from a set `s` which is ε-dense in α. Then the subsets of `s`
     are finitely many, and ε-dense for the Hausdorff distance. -/
-  refine compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _)) is_closed_univ,
+  refine compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _))
+    is_closed_univ,
   rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
-  rcases emetric.totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos
-    with ⟨s, fs, hs⟩,
+  rcases emetric.totally_bounded_iff.1
+    (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos with ⟨s, fs, hs⟩,
   -- s : set α,  fs : finite s,  hs : univ ⊆ ⋃ (y : α) (H : y ∈ s), eball y δ
   -- we first show that any set is well approximated by a subset of `s`.
   have main : ∀ u : set α, ∃v ⊆ s, Hausdorff_edist u v ≤ δ,
@@ -262,8 +264,8 @@ begin
     -- pick a nonempty compact set t at distance at most ε/2 of s
     rcases mem_closure_iff.1 hs (ε/2) (ennreal.half_pos εpos) with ⟨t, ht, Dst⟩,
     -- cover this space with finitely many balls of radius ε/2
-    rcases totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 ht.2).1 (ε/2) (ennreal.half_pos εpos)
-      with ⟨u, fu, ut⟩,
+    rcases totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 ht.2).1 (ε/2)
+      (ennreal.half_pos εpos) with ⟨u, fu, ut⟩,
     refine ⟨u, ⟨fu, λx hx, _⟩⟩,
     -- u : set α,  fu : finite u,  ut : t.val ⊆ ⋃ (y : α) (H : y ∈ u), eball y (ε / 2)
     -- then s is covered by the union of the balls centered at u of radius ε

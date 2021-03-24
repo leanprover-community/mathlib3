@@ -41,12 +41,30 @@ def cofinite : filter α :=
   (∀ᶠ x in cofinite, p x) ↔ finite {x | ¬p x} := iff.rfl
 
 instance cofinite_ne_bot [infinite α] : ne_bot (@cofinite α) :=
-mt empty_in_sets_eq_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }
+⟨mt empty_in_sets_eq_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }⟩
 
 lemma frequently_cofinite_iff_infinite {p : α → Prop} :
   (∃ᶠ x in cofinite, p x) ↔ set.infinite {x | p x} :=
 by simp only [filter.frequently, filter.eventually, mem_cofinite, compl_set_of, not_not,
   set.infinite]
+
+/-- The coproduct of the cofinite filters on two types is the cofinite filter on their product. -/
+lemma coprod_cofinite {β : Type*} :
+  (cofinite : filter α).coprod (cofinite : filter β) = cofinite :=
+begin
+  ext S,
+  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, mem_cofinite],
+  split,
+  { rintro ⟨⟨A, hAf, hAS⟩, B, hBf, hBS⟩,
+    rw [← compl_subset_compl, ← preimage_compl] at hAS hBS,
+    exact (hAf.prod hBf).subset (subset_inter hAS hBS) },
+  { intro hS,
+    refine ⟨⟨(prod.fst '' Sᶜ)ᶜ, _, _⟩, ⟨(prod.snd '' Sᶜ)ᶜ, _, _⟩⟩,
+    { simpa using hS.image prod.fst },
+    { simpa [compl_subset_comm] using subset_preimage_image prod.fst Sᶜ },
+    { simpa using hS.image prod.snd },
+    { simpa [compl_subset_comm] using subset_preimage_image prod.snd Sᶜ } },
+end
 
 end filter
 
@@ -78,7 +96,7 @@ begin
     use (hs.to_finset.sup id) + 1,
     assume b hb,
     by_contradiction hbs,
-    have := hs.to_finset.subset_range_sup_succ (finite.mem_to_finset.2 hbs),
+    have := hs.to_finset.subset_range_sup_succ (hs.mem_to_finset.2 hbs),
     exact not_lt_of_le hb (finset.mem_range.1 this) },
   { rintros ⟨N, hN⟩,
     apply (finite_lt_nat N).subset,
@@ -90,3 +108,34 @@ end
 lemma nat.frequently_at_top_iff_infinite {p : ℕ → Prop} :
   (∃ᶠ n in at_top, p n) ↔ set.infinite {n | p n} :=
 by simp only [← nat.cofinite_eq_at_top, frequently_cofinite_iff_infinite]
+
+lemma filter.tendsto.exists_forall_le {α β : Type*} [nonempty α] [linear_order β]
+  {f : α → β} (hf : tendsto f cofinite at_top) :
+  ∃ a₀, ∀ a, f a₀ ≤ f a :=
+begin
+  inhabit α,
+  by_cases not_all_top : ∃ y, ∃ x, f y < x,
+  { -- take the inverse image, `small_vals`, of some bounded nonempty set; it's finite so has a min
+    haveI : nonempty β := ⟨f (default α)⟩,
+    obtain ⟨y, x, hx⟩ := not_all_top,
+    let small_vals : finset α := (filter.eventually_cofinite.mp
+      ((at_top_basis.tendsto_right_iff).1 hf x trivial)).to_finset,
+    have y_in : y ∈ small_vals := by simp [hx],
+    obtain ⟨a₀, -, others_bigger⟩ := small_vals.exists_min_image f ⟨y, y_in⟩,
+    use a₀,
+    intros a,
+    by_cases h : a ∈ small_vals,
+    { exact others_bigger a h },
+    refine le_trans (others_bigger y y_in) (le_trans hx.le _),
+    simpa using h },
+  { -- in this case, f is constant because all values are at top
+    push_neg at not_all_top,
+    use default α,
+    intros a,
+    exact not_all_top a (f $ default α) }
+end
+
+lemma filter.tendsto.exists_forall_ge {α β : Type*} [nonempty α] [linear_order β]
+  {f : α → β} (hf : tendsto f cofinite at_bot) :
+  ∃ a₀, ∀ a, f a ≤ f a₀ :=
+@filter.tendsto.exists_forall_le _ (order_dual β) _ _ _ hf

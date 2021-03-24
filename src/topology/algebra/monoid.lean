@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.continuous_on
-import group_theory.submonoid.basic
+import group_theory.submonoid.operations
 import algebra.group.prod
 import algebra.pointwise
 
@@ -76,12 +76,12 @@ lemma filter.tendsto.mul {f : α → M} {g : α → M} {x : filter α} {a b : M}
 tendsto_mul.comp (hf.prod_mk_nhds hg)
 
 @[to_additive]
-lemma tendsto.const_mul (b : M) {c : M} {f : α → M} {l : filter α}
+lemma filter.tendsto.const_mul (b : M) {c : M} {f : α → M} {l : filter α}
   (h : tendsto (λ (k:α), f k) l (𝓝 c)) : tendsto (λ (k:α), b * f k) l (𝓝 (b * c)) :=
 tendsto_const_nhds.mul h
 
 @[to_additive]
-lemma tendsto.mul_const (b : M) {c : M} {f : α → M} {l : filter α}
+lemma filter.tendsto.mul_const (b : M) {c : M} {f : α → M} {l : filter α}
   (h : tendsto (λ (k:α), f k) l (𝓝 c)) : tendsto (λ (k:α), f k * b) l (𝓝 (c * b)) :=
 h.mul tendsto_const_nhds
 
@@ -101,6 +101,12 @@ hf.mul hg
 instance [topological_space N] [has_mul N] [has_continuous_mul N] : has_continuous_mul (M × N) :=
 ⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
  ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
+
+@[to_additive]
+instance pi.has_continuous_mul {C : β → Type*} [∀ b, topological_space (C b)]
+  [∀ b, has_mul (C b)] [∀ b, has_continuous_mul (C b)] : has_continuous_mul (Π b, C b) :=
+{ continuous_mul := continuous_pi (λ i, continuous.mul
+    ((continuous_apply i).comp continuous_fst) ((continuous_apply i).comp continuous_snd)) }
 
 @[priority 100, to_additive]
 instance has_continuous_mul_of_discrete_topology [topological_space N]
@@ -148,6 +154,55 @@ end has_continuous_mul
 section has_continuous_mul
 
 variables [topological_space M] [monoid M] [has_continuous_mul M]
+
+@[to_additive]
+lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
+  (closure (s : set M)) * closure (s : set M) ⊆ closure (s : set M) :=
+calc
+(closure (s : set M)) * closure (s : set M)
+    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M).prod s)) : by simp [closure_prod_eq]
+... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M).prod s)) :
+  image_closure_subset_closure_image continuous_mul
+... = closure s : by simp [s.coe_mul_self_eq]
+
+@[to_additive]
+lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :
+  (closure (s : set M)) * closure (s : set M) = closure (s : set M) :=
+subset.antisymm
+  s.top_closure_mul_self_subset
+  (λ x hx, ⟨x, 1, hx, subset_closure s.one_mem, mul_one _⟩)
+
+/-- The (topological-space) closure of a submonoid of a space `M` with `has_continuous_mul` is
+itself a submonoid. -/
+@[to_additive "The (topological-space) closure of an additive submonoid of a space `M` with
+`has_continuous_add` is itself an additive submonoid."]
+def submonoid.topological_closure (s : submonoid M) : submonoid M :=
+{ carrier := closure (s : set M),
+  one_mem' := subset_closure s.one_mem,
+  mul_mem' := λ a b ha hb, s.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩ }
+
+@[to_additive]
+instance submonoid.topological_closure_has_continuous_mul (s : submonoid M) :
+  has_continuous_mul (s.topological_closure) :=
+{ continuous_mul :=
+  begin
+    apply continuous_induced_rng,
+    change continuous (λ p : s.topological_closure × s.topological_closure, (p.1 : M) * (p.2 : M)),
+    continuity,
+  end }
+
+lemma submonoid.submonoid_topological_closure (s : submonoid M) :
+  s ≤ s.topological_closure :=
+subset_closure
+
+lemma submonoid.is_closed_topological_closure (s : submonoid M) :
+  is_closed (s.topological_closure : set M) :=
+by convert is_closed_closure
+
+lemma submonoid.topological_closure_minimal
+  (s : submonoid M) {t : submonoid M} (h : s ≤ t) (ht : is_closed (t : set M)) :
+  s.topological_closure ≤ t :=
+closure_minimal h ht
 
 @[to_additive exists_open_nhds_zero_half]
 lemma exists_open_nhds_one_split {s : set M} (hs : s ∈ 𝓝 (1 : M)) :

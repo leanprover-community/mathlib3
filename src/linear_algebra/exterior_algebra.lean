@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Zhangir Azerbayev, Adam Topaz, Eric Wieser.
+Authors: Zhangir Azerbayev, Adam Topaz, Eric Wieser
 -/
 
 import algebra.ring_quot
@@ -162,6 +162,37 @@ begin
   simp only [h],
 end
 
+/-- If `C` holds for the `algebra_map` of `r : R` into `exterior_algebra R M`, the `ι` of `x : M`,
+and is preserved under addition and muliplication, then it holds for all of `exterior_algebra R M`.
+-/
+-- This proof closely follows `tensor_algebra.induction`
+@[elab_as_eliminator]
+lemma induction {C : exterior_algebra R M → Prop}
+  (h_grade0 : ∀ r, C (algebra_map R (exterior_algebra R M) r))
+  (h_grade1 : ∀ x, C (ι R x))
+  (h_mul : ∀ a b, C a → C b → C (a * b))
+  (h_add : ∀ a b, C a → C b → C (a + b))
+  (a : exterior_algebra R M) :
+  C a :=
+begin
+  -- the arguments are enough to construct a subalgebra, and a mapping into it from M
+  let s : subalgebra R (exterior_algebra R M) := {
+    carrier := C,
+    mul_mem' := h_mul,
+    add_mem' := h_add,
+    algebra_map_mem' := h_grade0, },
+  let of : { f : M →ₗ[R] s // ∀ m, f m * f m = 0 } :=
+  ⟨(ι R).cod_restrict s.to_submodule h_grade1,
+    λ m, subtype.eq $ ι_square_zero m ⟩,
+  -- the mapping through the subalgebra is the identity
+  have of_id : alg_hom.id R (exterior_algebra R M) = s.val.comp (lift R of),
+  { ext,
+    simp [of], },
+  -- finding a proof is finding an element of the subalgebra
+  convert subtype.prop (lift R of a),
+  exact alg_hom.congr_fun of_id a,
+end
+
 /-- The left-inverse of `algebra_map`. -/
 def algebra_map_inv : exterior_algebra R M →ₐ[R] R :=
 exterior_algebra.lift R ⟨(0 : M →ₗ[R] R), λ m, by simp⟩
@@ -236,3 +267,17 @@ lemma ι_multi_apply {n : ℕ} (v : fin n → M) :
   ι_multi R n v = (list.of_fn $ λ i, ι R (v i)).prod := rfl
 
 end exterior_algebra
+
+namespace tensor_algebra
+
+variables {R M}
+
+/-- The canonical image of the `tensor_algebra` in the `exterior_algebra`, which maps
+`tensor_algebra.ι R x` to `exterior_algebra.ι R x`. -/
+def to_exterior : tensor_algebra R M →ₐ[R] exterior_algebra R M :=
+tensor_algebra.lift R (exterior_algebra.ι R)
+
+@[simp] lemma to_exterior_ι (m : M) : (tensor_algebra.ι R m).to_exterior = exterior_algebra.ι R m :=
+by simp [to_exterior]
+
+end tensor_algebra

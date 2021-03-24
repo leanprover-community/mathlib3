@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Yury Kudryashov.
+Authors: Mario Carneiro, Yury Kudryashov
 -/
 import tactic.transform_decl
 import tactic.algebra
@@ -91,6 +91,7 @@ meta def tr : bool → list string → list string
 | is_comm ("one" :: "lt" :: s) := add_comm_prefix is_comm "pos"    :: tr ff s
 | is_comm ("le" :: "one" :: s) := add_comm_prefix is_comm "nonpos" :: tr ff s
 | is_comm ("lt" :: "one" :: s) := add_comm_prefix is_comm "neg"    :: tr ff s
+| is_comm ("mul" :: "support" :: s) := add_comm_prefix is_comm "support" :: tr ff s
 | is_comm ("mul" :: s)         := add_comm_prefix is_comm "add"    :: tr ff s
 | is_comm ("inv" :: s)         := add_comm_prefix is_comm "neg"    :: tr ff s
 | is_comm ("div" :: s)         := add_comm_prefix is_comm "sub"    :: tr ff s
@@ -252,7 +253,10 @@ inductive types.
 
 For new structures this means that `to_additive` automatically handles
 coercions, and for old structures it does the same, if ancestry
-information is present in `@[ancestor]` attributes.
+information is present in `@[ancestor]` attributes. The `ancestor`
+attribute must come before the `to_additive` attribute, and it is
+essential that the order of the base structures passed to `ancestor` matches
+between the multiplicative and additive versions of the structure.
 
 ### Name generation
 

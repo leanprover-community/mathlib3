@@ -115,7 +115,8 @@ eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
 | (n+1) := (cast_add _ _).trans $
 show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mul_one]
 
-@[simp] theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) : ((m / n : ℕ) : α) = m / n :=
+@[simp] theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) :
+  ((m / n : ℕ) : α) = m / n :=
 begin
   rcases n_dvd with ⟨k, rfl⟩,
   have : n ≠ 0, {rintro rfl, simpa using n_nonzero},
@@ -134,6 +135,9 @@ def cast_ring_hom (α : Type*) [semiring α] : ℕ →+* α :=
 
 lemma cast_commute [semiring α] (n : ℕ) (x : α) : commute ↑n x :=
 nat.rec_on n (commute.zero_left x) $ λ n ihn, ihn.add_left $ commute.one_left x
+
+lemma cast_comm [semiring α] (n : ℕ) (x : α) : (n : α) * x = x * n :=
+(cast_commute n x).eq
 
 lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm

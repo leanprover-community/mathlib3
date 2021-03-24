@@ -29,7 +29,7 @@ universes u v
 The norm of `x` as an element of `𝕜` (a normed algebra over `ℝ`). This is needed in particular to
 state equalities of the form `g x = norm' 𝕜 x` when `g` is a linear function.
 
-For the concrete cases of `ℝ` and `𝕜`, this is just `∥x∥` and `↑∥x∥`, respectively.
+For the concrete cases of `ℝ` and `ℂ`, this is just `∥x∥` and `↑∥x∥`, respectively.
 -/
 noncomputable def norm' (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
   {E : Type*} [normed_group E] (x : E) : 𝕜 :=
@@ -82,7 +82,6 @@ begin
   letI : module ℝ F := restrict_scalars.semimodule ℝ 𝕜 F,
   letI : is_scalar_tower ℝ 𝕜 F := restrict_scalars.is_scalar_tower _ _ _,
   letI : normed_space ℝ F := normed_space.restrict_scalars _ 𝕜 _,
-  letI : normed_space ℝ p := (by apply_instance : normed_space ℝ (submodule.restrict_scalars ℝ p)),
   -- Let `fr: p →L[ℝ] ℝ` be the real part of `f`.
   let fr := re_clm.comp (f.restrict_scalars ℝ),
   have fr_apply : ∀ x, fr x = re (f x) := λ x, rfl,
@@ -94,8 +93,7 @@ begin
   -- It is an extension of `f`.
   have h : ∀ x : p, g.extend_to_𝕜 x = f x,
   { assume x,
-    change (g (x : F) : 𝕜) - (I : 𝕜) * g ((((I : 𝕜) • x) : p) : F) = f x,
-    rw [hextends, hextends],
+    rw [continuous_linear_map.extend_to_𝕜_apply, ←submodule.coe_smul, hextends, hextends],
     change (re (f x) : 𝕜) - (I : 𝕜) * (re (f ((I : 𝕜) • x))) = f x,
     apply ext,
     { simp only [add_zero, algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add,
@@ -111,7 +109,7 @@ begin
         ≤ ∥g∥ : g.extend_to_𝕜.op_norm_le_bound g.op_norm_nonneg (norm_bound _)
     ... = ∥fr∥ : hnormeq
     ... ≤ ∥re_clm∥ * ∥f∥ : continuous_linear_map.op_norm_comp_le _ _
-    ... = ∥f∥ : by rw [norm_re_clm, one_mul] },
+    ... = ∥f∥ : by rw [re_clm_norm, one_mul] },
   { exact f.op_norm_le_bound g.extend_to_𝕜.op_norm_nonneg (λ x, h x ▸ g.extend_to_𝕜.le_op_norm x) },
 end
 
@@ -138,7 +136,7 @@ begin
   { rw [hg.2, coord_norm'] },
   { calc g x = g (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw coe_mk
     ... = (norm' 𝕜 x • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw ← hg.1
-    ... = norm' 𝕜 x : by simp [coord_self] }
+    ... = norm' 𝕜 x : by simp }
 end
 
 /-- Variant of Hahn-Banach, eliminating the hypothesis that `x` be nonzero, and choosing

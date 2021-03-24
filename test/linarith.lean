@@ -57,7 +57,7 @@ example (ε : ℚ) (h1 : ε > 0) : ε / 3 + ε / 3 + ε / 3 = ε :=
 by linarith
 
 example (a b c : ℚ)  (h2 : b + 2 > 3 + b) : false :=
-by linarith {discharger := `[ring SOP]}
+by linarith {discharger := `[ring]}
 
 example (a b c : ℚ)  (h2 : b + 2 > 3 + b) : false :=
 by linarith

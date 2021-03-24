@@ -183,23 +183,14 @@ lemma is_complete_image_iff {m : α → β} {s : set α} (hm : uniform_embedding
 begin
   refine ⟨is_complete_of_complete_image hm.to_uniform_inducing, λ c f hf fs, _⟩,
   rw filter.le_principal_iff at fs,
+  have hfm : range m ∈ f, from mem_sets_of_superset fs (image_subset_range _ _),
   let f' := comap m f,
-  have cf' : cauchy f',
-  { haveI : ne_bot (comap m f) := by
-    { refine comap_ne_bot (λt ht, _),
-      have A : t ∩ m '' s ∈ f := filter.inter_mem_sets ht fs,
-      obtain ⟨x, ⟨xt, ⟨y, ys, rfl⟩⟩⟩ : (t ∩ m '' s).nonempty,
-        from hf.1.nonempty_of_mem A,
-      exact ⟨y, xt⟩ },
-    exact hf.comap (le_of_eq hm.comap_uniformity) },
+  have cf' : cauchy f' := hf.comap' hm.comap_uniformity.le (ne_bot.comap_of_range_mem hf.1 hfm),
   have : f' ≤ 𝓟 s := by simp [f']; exact
     ⟨m '' s, by simpa using fs, by simp [preimage_image_eq s hm.inj]⟩,
   rcases c f' cf' this with ⟨x, xs, hx⟩,
   existsi [m x, mem_image_of_mem m xs],
-  rw [(uniform_embedding.embedding hm).induced, nhds_induced] at hx,
-  calc f = map m f' : (map_comap $ filter.mem_sets_of_superset fs $ image_subset_range _ _).symm
-    ... ≤ map m (comap m (𝓝 (m x))) : map_mono hx
-    ... ≤ 𝓝 (m x) : map_comap_le
+  rwa [(uniform_embedding.embedding hm).to_inducing.nhds_eq_comap, comap_le_comap_iff hfm] at hx
 end
 
 lemma complete_space_iff_is_complete_range {f : α → β} (hf : uniform_embedding f) :
@@ -345,7 +336,8 @@ have ue' : uniform_embedding (dense_embedding.subtype_emb p e),
   from uniform_embedding_subtype_emb _ he de,
 have b ∈ closure (e '' {x | p x}),
   from (closure_mono $ monotone_image $ hp) (mem_of_nhds hb),
-let ⟨c, (hc : tendsto (f ∘ subtype.val) (comap (dense_embedding.subtype_emb p e) (𝓝 ⟨b, this⟩)) (𝓝 c))⟩ :=
+let ⟨c, (hc : tendsto (f ∘ subtype.val)
+     (comap (dense_embedding.subtype_emb p e) (𝓝 ⟨b, this⟩)) (𝓝 c))⟩ :=
   uniformly_extend_exists ue'.to_uniform_inducing de'.dense hf _ in
 begin
   rw [nhds_subtype_eq_comap] at hc,
@@ -356,12 +348,10 @@ begin
   exact ⟨_, hb, assume x,
     begin
       change e x ∈ (closure (e '' s)) → x ∈ range subtype.val,
-      rw [←closure_induced, mem_closure_iff_cluster_pt, cluster_pt, ne_bot,
-          (≠), nhds_induced, ← de.to_dense_inducing.nhds_eq_comap],
-      change x ∈ {y | cluster_pt y (𝓟 s)} → x ∈ range subtype.val,
-      rw [←closure_eq_cluster_pts, hs.closure_eq],
+      rw [← closure_induced, mem_closure_iff_cluster_pt, cluster_pt, ne_bot_iff,
+          nhds_induced, ← de.to_dense_inducing.nhds_eq_comap,
+          ← mem_closure_iff_nhds_ne_bot, hs.closure_eq],
       exact assume hxs, ⟨⟨x, hp x hxs⟩, rfl⟩,
-      exact de.inj
     end⟩
 end
 
@@ -392,14 +382,16 @@ end
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] : uniform_continuous ψ :=
 assume d hd,
 let ⟨s, hs, hs_comp⟩ := (mem_lift'_sets $
-  monotone_comp_rel monotone_id $ monotone_comp_rel monotone_id monotone_id).mp (comp_le_uniformity3 hd) in
+  monotone_comp_rel monotone_id $ monotone_comp_rel monotone_id monotone_id).mp
+    (comp_le_uniformity3 hd) in
 have h_pnt : ∀{a m}, m ∈ 𝓝 a → ∃c, c ∈ f '' preimage e m ∧ (c, ψ a) ∈ s ∧ (ψ a, c) ∈ s,
   from assume a m hm,
   have nb : ne_bot (map f (comap e (𝓝 a))),
     from ((h_e.dense_inducing h_dense).comap_nhds_ne_bot _).map _,
   have (f '' preimage e m) ∩ ({c | (c, ψ a) ∈ s } ∩ {c | (ψ a, c) ∈ s }) ∈ map f (comap e (𝓝 a)),
     from inter_mem_sets (image_mem_map $ preimage_mem_comap $ hm)
-      (uniformly_extend_spec h_e h_dense h_f _ (inter_mem_sets (mem_nhds_right _ hs) (mem_nhds_left _ hs))),
+      (uniformly_extend_spec h_e h_dense h_f _
+        (inter_mem_sets (mem_nhds_right _ hs) (mem_nhds_left _ hs))),
   nb.nonempty_of_mem this,
 have preimage (λp:β×β, (f p.1, f p.2)) s ∈ 𝓤 β,
   from h_f hs,

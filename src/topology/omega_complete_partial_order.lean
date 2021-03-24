@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import topology.basic
 import order.omega_complete_partial_order
@@ -68,10 +68,10 @@ begin
   dsimp [is_open] at *,
   apply complete_lattice.Sup_continuous' _,
   introv ht, specialize h₀ { x | t x } _,
-  { simpa using h₀ },
   { simp only [flip, set.mem_image] at *,
     rcases ht with ⟨x,h₀,h₁⟩, subst h₁,
-    simpa, }
+    simpa, },
+  { simpa using h₀ }
 end
 
 end Scott

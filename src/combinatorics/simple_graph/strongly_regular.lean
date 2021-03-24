@@ -27,8 +27,6 @@ import data.set.finite
   then the adj matrix A of SRG obeys relation A^2 = kI + lA + m(J - I - A)
 -/
 
--- CR : depends on
-
 universes u
 
 namespace simple_graph
@@ -57,6 +55,8 @@ lemma complete_strongly_regular :
   adj_common := λ v w h,
     begin
       unfold common_neighbors,
+      simp,
+
       sorry,
     end,
   nadj_common := sorry }

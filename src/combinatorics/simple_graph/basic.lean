@@ -601,16 +601,18 @@ begin
   exact ⟨λ ⟨hne, hnadj⟩, ⟨hnadj, ne.symm hne⟩, λ ⟨hnadj, hne⟩, ⟨ne.symm hne, hnadj⟩⟩,
 end
 
+/-
 lemma set.to_finset_diff [fintype V] (s t : set V) : (s \ t).to_finset = s.to_finset \ t.to_finset :=
 begin
   sorry,
 end
+-/
 
 lemma compl_neighbor_finset [fintype V] (G : simple_graph V) [decidable_rel G.adj] (v : V) :
   Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
 begin
   rw neighbor_finset,
-  simp_rw compl_neighbor_set,
+  -- simp_rw compl_neighbor_set,
   sorry,
 end
 
@@ -634,7 +636,7 @@ end
 lemma card_compl_neighbor_set'' [fintype V] (G : simple_graph V) [decidable_rel G.adj] (v : V) :
   card (Gᶜ.neighbor_finset v) = fintype.card V - card (G.neighbor_finset v) - 1 :=
 begin
-  simp_rw compl_neighbor_set' G v,
+  --simp_rw compl_neighbor_set' G v,
 
   sorry,
 end

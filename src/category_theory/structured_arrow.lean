@@ -42,7 +42,7 @@ def mk (f : S ⟶ T.obj Y) : structured_arrow S T := ⟨⟨⟩, Y, f⟩
 @[simp] lemma mk_right (f : S ⟶ T.obj Y) : (mk f).right = Y := rfl
 @[simp] lemma mk_hom_eq_self (f : S ⟶ T.obj Y) : (mk f).hom = f := rfl
 
-lemma eq_mk (f : structured_arrow S T) : f = mk (f.hom) :=
+lemma eq_mk (f : structured_arrow S T) : f = mk f.hom :=
 by { cases f, congr, ext, }
 
 /--

@@ -145,6 +145,10 @@ lemma of_mul_pow {A : Type*} [monoid A] (x : A) (n : ℕ) :
   additive.of_mul (x ^ n) = n •ℕ (additive.of_mul x) :=
 (congr_arg additive.of_mul (of_add_nsmul (additive.of_mul x) n)).symm
 
+lemma of_add_nsmul {A : Type*} [add_monoid A] (x : A) (n : ℕ) :
+  multiplicative.of_add (n •ℕ x) = (multiplicative.of_add x) ^ n :=
+(congr_arg multiplicative.of_add (of_mul_pow (multiplicative.of_add x) n)).symm
+
 @[simp] lemma of_mul_eq_zero {A : Type*} [monoid A] {x : A} :
   additive.of_mul x = 0 ↔ x = 1 := iff.rfl
 
@@ -153,11 +157,11 @@ lemma of_mul_pow {A : Type*} [monoid A] (x : A) (n : ℕ) :
 
 @[simp] lemma add_order_of_of_mul_eq_order_of (a : α) :
   add_order_of (additive.of_mul a) = order_of a :=
-by simp [add_order_of, order_of, ←of_mul_pow]
+by simp [add_order_of, order_of, ← of_mul_pow]
 
 @[simp] lemma order_of_of_add_eq_add_order_of (x : H) :
   order_of (multiplicative.of_add x) = add_order_of x :=
-by simp [add_order_of, order_of, ←of_add_nsmul]
+by simp [add_order_of, order_of, ← of_add_nsmul]
 
 lemma add_order_of_pos' {x : H} (h : ∃ n, 0 < n ∧ n •ℕ x = 0) : 0 < add_order_of x :=
 begin

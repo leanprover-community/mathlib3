@@ -160,21 +160,20 @@ by { erw [inv_eq_inv α.symm β, eq_comm], refl }
 end iso
 
 /-- `is_iso` typeclass expressing that a morphism is invertible. -/
-def is_iso (f : X ⟶ Y) : Prop := ∃ inv : Y ⟶ X, f ≫ inv = 𝟙 X ∧ inv ≫ f = 𝟙 Y
-
-attribute [class] is_iso
+class is_iso (f : X ⟶ Y) : Prop :=
+(out : ∃ inv : Y ⟶ X, f ≫ inv = 𝟙 X ∧ inv ≫ f = 𝟙 Y)
 
 /--
 The inverse of a morphism `f` when we have `[is_iso f]`.
 -/
-noncomputable def inv (f : X ⟶ Y) [I : is_iso f] := classical.some I
+noncomputable def inv (f : X ⟶ Y) [I : is_iso f] := classical.some I.1
 
 namespace is_iso
 
 @[simp, reassoc] lemma hom_inv_id (f : X ⟶ Y) [I : is_iso f] : f ≫ inv f = 𝟙 X :=
-(classical.some_spec I).left
+(classical.some_spec I.1).left
 @[simp, reassoc] lemma inv_hom_id (f : X ⟶ Y) [I : is_iso f] : inv f ≫ f = 𝟙 Y :=
-(classical.some_spec I).right
+(classical.some_spec I.1).right
 
 end is_iso
 
@@ -224,10 +223,10 @@ lemma eq_inv_of_inv_hom_id {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
 
 
 instance id (X : C) : is_iso (𝟙 X) :=
-⟨𝟙 X, by simp⟩
+⟨⟨𝟙 X, by simp⟩⟩
 
 instance of_iso (f : X ≅ Y) : is_iso f.hom :=
-⟨f.inv, by simp⟩
+⟨⟨f.inv, by simp⟩⟩
 
 instance of_iso_inv (f : X ≅ Y) : is_iso f.inv :=
 is_iso.of_iso f.symm

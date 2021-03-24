@@ -140,8 +140,8 @@ def of_components
 by simp [of_components]
 
 instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
-is_iso.of_iso
-  (of_components (λ X, as_iso (α.app X)) (λ X Y f, α.to_nat_trans.naturality f) α.unit α.tensor)
+⟨(is_iso.of_iso (of_components (λ X, as_iso (α.app X))
+  (λ X Y f, α.to_nat_trans.naturality f) α.unit α.tensor)).1⟩
 
 end monoidal_nat_iso
 

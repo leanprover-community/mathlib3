@@ -684,6 +684,26 @@ begin
           (measurable_of_not_nonempty H f).ae_measurable] }
 end
 
+lemma ae_measurable_comp_right_iff_of_closed_embedding {g : α → β} {μ : measure α}
+  {f : β → γ} (hg : closed_embedding g) :
+  ae_measurable (f ∘ g) μ ↔ ae_measurable f (measure.map g μ) :=
+begin
+  refine ⟨λ h, _, λ h, h.comp_measurable hg.continuous.measurable⟩,
+  by_cases hα : nonempty α,
+  swap, { simp [measure.eq_zero_of_not_nonempty hα μ] },
+  resetI,
+  refine ⟨(h.mk _) ∘ (function.inv_fun g), h.measurable_mk.comp hg.measurable_inv_fun, _⟩,
+  have : μ = measure.map (function.inv_fun g) (measure.map g μ),
+    by rw [measure.map_map hg.measurable_inv_fun hg.continuous.measurable,
+           (function.left_inverse_inv_fun hg.to_embedding.inj).comp_eq_id, measure.map_id],
+  rw this at h,
+  filter_upwards [ae_of_ae_map hg.measurable_inv_fun h.ae_eq_mk,
+    ae_map_mem_range g hg.closed_range.measurable_set μ],
+  assume x hx₁ hx₂,
+  convert hx₁,
+  exact ((function.left_inverse_inv_fun hg.to_embedding.inj).right_inv_on_range hx₂).symm,
+end
+
 section linear_order
 
 variables [linear_order α] [order_topology α] [second_countable_topology α]

@@ -141,12 +141,6 @@ if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
 
 attribute [to_additive add_order_of] order_of
 
-@[simp] lemma of_mul_eq_zero {A : Type*} [monoid A] {x : A} :
-  additive.of_mul x = 0 ↔ x = 1 := iff.rfl
-
-@[simp] lemma of_add_eq_one {A : Type*} [add_monoid A] {x : A} :
-  multiplicative.of_add x = 1 ↔ x = 0 := iff.rfl
-
 @[simp] lemma add_order_of_of_mul_eq_order_of (a : α) :
   add_order_of (additive.of_mul a) = order_of a :=
 by simp [add_order_of, order_of, ← of_mul_pow]

@@ -129,11 +129,17 @@ instance [has_one α] : has_zero (additive α) := ⟨additive.of_mul 1⟩
 
 @[simp] lemma of_mul_one [has_one α] : @additive.of_mul α 1 = 0 := rfl
 
+@[simp] lemma of_mul_eq_zero {A : Type*} [has_one A] {x : A} :
+  additive.of_mul x = 0 ↔ x = 1 := iff.rfl
+
 @[simp] lemma to_mul_zero [has_one α] : (0 : additive α).to_mul = 1 := rfl
 
 instance [has_zero α] : has_one (multiplicative α) := ⟨multiplicative.of_add 0⟩
 
 @[simp] lemma of_add_zero [has_zero α] : @multiplicative.of_add α 0 = 1 := rfl
+
+@[simp] lemma of_add_eq_one {A : Type*} [has_zero A] {x : A} :
+  multiplicative.of_add x = 1 ↔ x = 0 := iff.rfl
 
 @[simp] lemma to_add_one [has_zero α] : (1 : multiplicative α).to_add = 0 := rfl
 

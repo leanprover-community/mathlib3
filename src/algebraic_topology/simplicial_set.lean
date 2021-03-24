@@ -6,6 +6,7 @@ Authors: Johan Commelin, Scott Morrison, Adam Topaz
 import algebraic_topology.simplicial_object
 import category_theory.yoneda
 import category_theory.limits.types
+import topology.basic
 
 /-!
 A simplicial set is just a simplicial object in `Type`,
@@ -17,7 +18,7 @@ homotopy type theory.)
 
 We define the standard simplices `Δ[n]` as simplicial sets,
 and their boundaries `∂Δ[n]` and horns `Λ[n, i]`.
-(The notations are available via `open_locale sSet`.)
+(The notations are available via `open_locale simplicial`.)
 
 ## Future work
 
@@ -45,7 +46,7 @@ namespace sSet
 is the Yoneda embedding of `n`. -/
 def standard_simplex : simplex_category ⥤ sSet := yoneda
 
-localized "notation `Δ[`n`]` := standard_simplex.obj (simplex_category.mk n)" in simplicial
+localized "notation `Δ[`n`]` := sSet.standard_simplex.obj (simplex_category.mk n)" in simplicial
 
 instance : inhabited sSet := ⟨Δ[0]⟩
 
@@ -53,19 +54,23 @@ section
 
 /-- The `m`-simplices of the `n`-th standard simplex are
 the monotone maps from `fin (m+1)` to `fin (n+1)`. -/
-def as_preorder_hom {n} {m} (α : Δ[n].obj m) :
+def as_preorder_hom (n) (m) (α : Δ[n].obj m) :
   preorder_hom (fin (m.unop.len+1)) (fin (n+1)) := α.to_preorder_hom
 end
+
+@[simp]
+lemma preorder_hom_of_mk_hom_of_preorder_hom {n m} {f : (fin (n+1)) →ₘ (fin (m+1))} :
+  as_preorder_hom m (opposite.op [n]) (simplex_category.mk_hom f) = f := rfl
 
 /-- The boundary `∂Δ[n]` of the `n`-th standard simplex consists of
 all `m`-simplices of `standard_simplex n` that are not surjective
 (when viewed as monotone function `m → n`). -/
 def boundary (n : ℕ) : sSet :=
-{ obj := λ m, {α : Δ[n].obj m // ¬ function.surjective (as_preorder_hom α)},
+{ obj := λ m, {α : Δ[n].obj m // ¬ function.surjective (as_preorder_hom _ _ α)},
   map := λ m₁ m₂ f α, ⟨f.unop ≫ (α : Δ[n].obj m₁),
   by { intro h, apply α.property, exact function.surjective.of_comp h }⟩ }
 
-localized "notation `∂Δ[`n`]` := boundary n" in simplicial
+localized "notation `∂Δ[`n`]` := sSet.boundary n" in simplicial
 
 /-- The inclusion of the boundary of the `n`-th standard simplex into that standard simplex. -/
 def boundary_inclusion (n : ℕ) :
@@ -78,7 +83,7 @@ for which the union of `{i}` and the range of `α` is not all of `n`
 (when viewing `α` as monotone function `m → n`). -/
 def horn (n : ℕ) (i : fin (n+1)) : sSet :=
 { obj := λ m,
-  { α : Δ[n].obj m // set.range (as_preorder_hom α) ∪ {i} ≠ set.univ },
+  { α : Δ[n].obj m // set.range (as_preorder_hom _ _ α) ∪ {i} ≠ set.univ },
   map := λ m₁ m₂ f α, ⟨f.unop ≫ (α : Δ[n].obj m₁),
   begin
     intro h, apply α.property,
@@ -88,7 +93,27 @@ def horn (n : ℕ) (i : fin (n+1)) : sSet :=
     exact set.range_comp_subset_range _ _ hj,
   end⟩ }
 
-localized "notation `Λ[`n`, `i`]` := horn (n : ℕ) i" in simplicial
+localized "notation `Λ[`n`, `i`]` := sSet.horn (n : ℕ) i" in simplicial
+
+def horn_face (n : ℕ) (i j : fin (n+2)) (h: i ≠ j) : Λ[n+1,i].obj (opposite.op [n]) :=
+⟨simplex_category.δ j,
+  begin
+    erw preorder_hom_of_mk_hom_of_preorder_hom,
+    simp only [order_embedding.to_preorder_hom_coe, ne.def, set.union_singleton],
+    erw [fin.range_succ_above j, set.eq_univ_iff_forall, not_forall],
+    use j,
+    rw set.mem_insert_iff,
+    apply not_or,
+    { exact (ne.symm h).elim },
+    { simp }
+  end ⟩
+
+def simplices_of_horn_hom {S : sSet} {n : ℕ} {i : fin (n+2)} (f : Λ[n+1,i] ⟶ S) :
+  set.range (fin.succ_above i) → S _[n] :=
+begin
+  intros x,
+  have r := f.app (opposite.op [n-1]) (simplex_category.δ x),
+end
 
 /-- The inclusion of the `i`-th horn of the `n`-th standard simplex into that standard simplex. -/
 def horn_inclusion (n : ℕ) (i : fin (n+1)) :
@@ -115,5 +140,24 @@ def truncated (n : ℕ) := simplicial_object.truncated (Type u) n
 def sk (n : ℕ) : sSet ⥤ sSet.truncated n := simplicial_object.sk n
 
 instance {n} : inhabited (sSet.truncated n) := ⟨(sk n).obj $ Δ[0]⟩
+
+class fibration {S T : sSet} (f : S ⟶ T) : Prop :=
+(lifting :
+  ∀ (n : ℕ) (i : fin (n+1)) (a : Λ[n,i] ⟶ S)
+    (b : Δ[n] ⟶ T) (h : a ≫ f = horn_inclusion n i ≫ b),
+  ∃ g : Δ[n] ⟶ S, g ≫ f = b ∧ horn_inclusion n i ≫ g = a)
+
+lemma is_fibration_iff {S T : sSet} (f : S ⟶ T) :
+  fibration f ↔ ∀ (n : ℕ) (k : fin (n+1)) (x : (set.range fin.succ_above k) → S _[n])
+  (h : ∀ i : fin n, i < j ∧ j ≠ k):=
+
+instance (S : sSet) : fibration (nat_trans.id S) :=
+⟨begin
+  intros n i a b h,
+  use b,
+  split,
+  { ext, simp },
+  { rw ← h, ext, simp }
+end⟩
 
 end sSet

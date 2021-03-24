@@ -95,16 +95,43 @@ inductive path {V} (G : quiver.{v u} V) (a : V) : V → Sort (max (u+1) v)
 | nil  : path a
 | cons : Π {b c : V}, path b → G.arrow b c → path c
 
+/-- An arrow viewed as a path of length one. -/
+def arrow.to_path {V} {G : quiver V} {a b} : G.arrow a b → G.path a b :=
+λ e, path.nil.cons e
+
+namespace path
+
+variables {V : Type*} {G : quiver V}
+
 /-- The length of a path is the number of arrows it uses. -/
-def path.length {V} {G : quiver V} {a : V} : Π {b}, G.path a b → ℕ
+def length {a : V} : Π {b}, G.path a b → ℕ
 | _ path.nil        := 0
 | _ (path.cons p _) := p.length + 1
 
-@[simp] lemma path.length_nil {V} {G : quiver V} {a : V} :
+@[simp] lemma length_nil {a : V} :
   (path.nil : G.path a a).length = 0 := rfl
 
-@[simp] lemma path.length_cons {V} {G : quiver V} (a b c : V) (p : G.path a b)
+@[simp] lemma length_cons (a b c : V) (p : G.path a b)
   (e : G.arrow b c) : (p.cons e).length = p.length + 1 := rfl
+
+/-- Composition of paths. -/
+def comp {a b} : Π {c}, G.path a b → G.path b c → G.path a c
+| _ p (path.nil) := p
+| _ p (path.cons q e) := (p.comp q).cons e
+
+@[simp] lemma comp_cons {a b c d} (p : G.path a b) (q : G.path b c) (e : G.arrow c d) :
+  p.comp (q.cons e) = (p.comp q).cons e := rfl
+@[simp] lemma comp_nil {a b} (p : G.path a b) : p.comp path.nil = p := rfl
+@[simp] lemma nil_comp {a} : ∀ {b} (p : G.path a b), path.nil.comp p = p
+| a path.nil := rfl
+| b (path.cons p e) := by rw [comp_cons, nil_comp]
+@[simp] lemma comp_assoc {a b c} : ∀ {d}
+  (p : G.path a b) (q : G.path b c) (r : G.path c d),
+    (p.comp q).comp r = p.comp (q.comp r)
+| c p q path.nil := rfl
+| d p q (path.cons r e) := by rw [comp_cons, comp_cons, comp_cons, comp_assoc]
+
+end path
 
 /-- A quiver is an arborescence when there is a unique path from the default vertex
     to every other vertex. -/
@@ -165,6 +192,8 @@ class rooted_connected {V} (G : quiver V) (r : V) : Prop :=
 
 attribute [instance] rooted_connected.nonempty_path
 
+section geodesic_subtree
+
 variables {V : Type*} (G : quiver.{v+1} V) (r : V) [G.rooted_connected r]
 
 /-- A path from `r` of minimal length. -/
@@ -188,5 +217,56 @@ arborescence_mk _ r (λ a, (G.shortest_path r a).length)
 (by { intro b, have : ∃ p, G.shortest_path r b = p := ⟨_, rfl⟩,
   rcases this with ⟨p, hp⟩, cases p with a _ p e,
   { exact or.inl rfl }, { exact or.inr ⟨a, ⟨⟨e, p, hp⟩⟩⟩ } })
+
+end geodesic_subtree
+
+variables {V : Type*} (G : quiver V)
+
+/-- A quiver `has_reverse` if we can reverse an arrow `p` from `a` to `b` to get an arrow
+    `p.reverse` from `b` to `a`.-/
+class has_reverse :=
+(reverse' : Π {a b}, G.arrow a b → G.arrow b a)
+
+variables {G} [has_reverse G]
+
+/-- Reverse the direction of an arrow. -/
+def arrow.reverse {a b} : G.arrow a b → G.arrow b a := has_reverse.reverse'
+
+/-- Reverse the direction of a path. -/
+def path.reverse {a} : Π {b}, G.path a b → G.path b a
+| a path.nil := path.nil
+| b (path.cons p e) := e.reverse.to_path.comp p.reverse
+
+variable (H : quiver.{v+1} V)
+
+instance : has_reverse H.symmetrify := ⟨λ a b e, e.swap⟩
+
+/-- Two vertices are related in the zigzag setoid if there is a
+    zigzag of arrows from one to the other. -/
+def zigzag_setoid : setoid V :=
+⟨ λ a b, nonempty (H.symmetrify.path a b),
+  λ a, ⟨path.nil⟩,
+  λ a b ⟨p⟩, ⟨p.reverse⟩,
+  λ a b c ⟨p⟩ ⟨q⟩, ⟨p.comp q⟩ ⟩
+
+/-- The type of weakly connected components of a directed graph. Two vertices are
+    in the same weakly connected component if there is a zigzag of arrows from one
+    to the other. -/
+def weakly_connected_component : Type* := quotient H.zigzag_setoid
+
+namespace weakly_connected_component
+variable {H}
+
+/-- The weakly connected component corresponding to a vertex. -/
+protected def mk : V → H.weakly_connected_component := quotient.mk'
+
+instance : has_coe_t V H.weakly_connected_component := ⟨weakly_connected_component.mk⟩
+instance [inhabited V] : inhabited H.weakly_connected_component := ⟨↑(default V)⟩
+
+protected lemma eq (a b : V) :
+  (a : H.weakly_connected_component) = b ↔ nonempty (H.symmetrify.path a b) :=
+quotient.eq'
+
+end weakly_connected_component
 
 end quiver

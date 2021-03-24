@@ -121,6 +121,8 @@ variables {R} {M N U : Module.{v} R}
 @[simp] lemma coe_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g ∘ f := rfl
 
+lemma comp_def (f : M ⟶ N) (g : N ⟶ U) : f ≫ g = g.comp f := rfl
+
 end Module
 
 variables {R}

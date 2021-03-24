@@ -740,37 +740,31 @@ begin
     exact not_lt.1 (λ hlt, Hgt I.1 hlt I.2 hI.some_spec) }
 end
 
-/-- A compact set in an preemetric space is separable, i.e., it is a subset of the closure of
-a countable set.  -/
+/-- For a set `s` in a pseudo emetric space, if for every `ε > 0` there exists a countable
+`ε`-net in `s`, then there exists a countable subset `t ⊆ s` that is dense in `s`. -/
+lemma subset_countable_closure_of_almost_dense_set (s : set α)
+  (hs : ∀ ε > 0, ∃ t ⊆ s, countable t ∧ s ⊆ ⋃ x ∈ t, closed_ball x ε) :
+  ∃ t ⊆ s, (countable t ∧ s ⊆ closure t) :=
+begin
+  choose! T hTs hTc hsT using hs,
+  have hpos : ∀ n : ℕ, (0 : ℝ≥0∞) < n⁻¹, from λ n, by simp,
+  refine ⟨⋃ n : ℕ, T n⁻¹, Union_subset $ λ n, hTs _ (hpos n),
+    countable_Union $ λ n, hTc _ (hpos n), _⟩,
+  refine λ x hx, mem_closure_iff.2 (λ ε ε0, _),
+  rcases ennreal.exists_inv_nat_lt ε0.lt.ne' with ⟨n, hn⟩,
+  rcases mem_bUnion_iff.1 (hsT _ (hpos n) hx) with ⟨y, hyn, hyx⟩,
+  exact ⟨y, mem_Union.2 ⟨n, hyn⟩, lt_of_le_of_lt hyx hn⟩
+end
+
+/-- A compact set in a pseudo emetric space is separable, i.e., it is a subset of the closure of a
+countable set.  -/
 lemma subset_countable_closure_of_compact {s : set α} (hs : is_compact s) :
   ∃ t ⊆ s, (countable t ∧ s ⊆ closure t) :=
 begin
-  have A : ∀ (e:ℝ≥0∞), e > 0 → ∃ t ⊆ s, (finite t ∧ s ⊆ (⋃x∈t, ball x e)) :=
-    totally_bounded_iff'.1 (compact_iff_totally_bounded_complete.1 hs).1,
---    assume e, finite_cover_balls_of_compact hs,
-  have B : ∀ (e:ℝ≥0∞), ∃ t ⊆ s, finite t ∧ (e > 0 → s ⊆ (⋃x∈t, ball x e)),
-  { intro e,
-    cases le_or_gt e 0 with h,
-    { exact ⟨∅, by finish⟩ },
-    { rcases A e h with ⟨s, ⟨finite_s, closure_s⟩⟩, existsi s, finish }},
-  /-The desired countable set is obtained by taking for each `n` the centers of a finite cover
-  by balls of radius `1/n`, and then the union over `n`. -/
-  choose T T_in_s finite_T s_subset using B,
-  let t := ⋃n:ℕ, T n⁻¹,
-  refine ⟨t, Union_subset (λ _, T_in_s _), countable_Union (λ n, (finite_T _).countable), _⟩,
-  guard_target s ⊆ closure t,
-  intros x x_in_s,
-  apply emetric.mem_closure_iff.2,
-  intros ε εpos,
-  rcases ennreal.exists_inv_nat_lt (bot_lt_iff_ne_bot.1 εpos) with ⟨n, hn⟩,
-  have inv_n_pos : (0 : ℝ≥0∞) < (n : ℕ)⁻¹ := by simp [ennreal.bot_lt_iff_ne_bot],
-  have C : x ∈ (⋃y∈ T (n : ℕ)⁻¹, ball y (n : ℕ)⁻¹) :=
-    mem_of_mem_of_subset x_in_s (s_subset (n : ℕ)⁻¹ inv_n_pos),
-  rcases mem_Union.1 C with ⟨y, _, ⟨y_in_T, rfl⟩, Dxy⟩,
-  simp only at Dxy,  -- Dxy : edist x y < 1 / ↑n
-  have : y ∈ t := mem_of_mem_of_subset y_in_T (by apply subset_Union (λ (n:ℕ), T (n : ℕ)⁻¹)),
-  have : edist x y < ε := lt_trans Dxy hn,
-  exact ⟨y, ‹y ∈ t›, ‹edist x y < ε›⟩
+  refine subset_countable_closure_of_almost_dense_set s (λ ε hε, _),
+  rcases totally_bounded_iff'.1 hs.totally_bounded ε hε with ⟨t, hts, htf, hst⟩,
+  exact ⟨t, hts, htf.countable,
+    subset.trans hst (bUnion_subset_bUnion_right $ λ _ _, ball_subset_closed_ball)⟩
 end
 
 end compact
@@ -797,16 +791,30 @@ lemma second_countable_of_separable [separable_space α] :
   second_countable_topology α :=
 uniform_space.second_countable_of_separable uniformity_has_countable_basis
 
-/-- A compact set in an emetric space is separable, i.e., it is the closure of a countable set -/
+/-- A sigma compact pseudo emetric space has second countable topology. -/
 lemma second_countable_of_sigma_compact [sigma_compact_space α] :
-  topological_space.second_countable_topology α :=
+  second_countable_topology α :=
 begin
-  suffices : topological_space.separable_space α, by exactI second_countable_of_separable α,
+  suffices : separable_space α, by exactI second_countable_of_separable α,
   choose T hTsub hTc hsubT
     using λ n, subset_countable_closure_of_compact (is_compact_compact_covering α n),
   refine ⟨⟨⋃ n, T n, countable_Union hTc, λ x, _⟩⟩,
   rcases Union_eq_univ_iff.1 (Union_compact_covering α) x with ⟨n, hn⟩,
   exact closure_mono (subset_Union _ n) (hsubT _ hn)
+end
+
+variable {α}
+
+lemma second_countable_of_almost_dense_set
+  (hs : ∀ ε > 0, ∃ t : set α, countable t ∧ (⋃ x ∈ t, closed_ball x ε) = univ) :
+  second_countable_topology α :=
+begin
+  suffices : separable_space α, by exactI second_countable_of_separable α,
+  rcases subset_countable_closure_of_almost_dense_set (univ : set α) (λ ε ε0, _)
+    with ⟨t, -, htc, ht⟩,
+  { exact ⟨⟨t, htc, λ x, ht (mem_univ x)⟩⟩ },
+  { rcases hs ε ε0 with ⟨t, htc, ht⟩,
+    exact ⟨t, subset_univ t, htc, univ_subset_iff.2 ht⟩ }
 end
 
 end second_countable
@@ -819,6 +827,10 @@ def diam (s : set α) := ⨆ (x ∈ s) (y ∈ s), edist x y
 lemma diam_le_iff {d : ℝ≥0∞} :
   diam s ≤ d ↔ ∀ (x ∈ s) (y ∈ s), edist x y ≤ d :=
 by simp only [diam, supr_le_iff]
+
+lemma diam_image_le_iff {d : ℝ≥0∞} {f : β → α} {s : set β} :
+  diam (f '' s) ≤ d ↔ ∀ (x ∈ s) (y ∈ s), edist (f x) (f y) ≤ d :=
+by simp only [diam_le_iff, ball_image_iff]
 
 lemma edist_le_of_diam_le {d} (hx : x ∈ s) (hy : y ∈ s) (hd : diam s ≤ d) : edist x y ≤ d :=
 diam_le_iff.1 hd x hx y hy

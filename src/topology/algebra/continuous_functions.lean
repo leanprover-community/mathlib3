@@ -5,6 +5,7 @@ Authors: Scott Morrison, Nicolò Cavalleri
 -/
 import topology.algebra.module
 import topology.continuous_map
+import algebra.algebra.subalgebra
 
 /-!
 # Algebraic structures over continuous functions
@@ -44,6 +45,12 @@ instance [has_one β] : has_one C(α, β) := ⟨const (1 : β)⟩
 @[simp, norm_cast, to_additive]
 lemma one_coe [has_one β]  :
   ((1 : C(α, β)) : α → β) = (1 : α → β) := rfl
+
+@[simp, to_additive] lemma mul_comp {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ]
+  [semigroup γ] [has_continuous_mul γ] (f₁ f₂ : C(β, γ)) (g : C(α, β)) :
+  (f₁ * f₂).comp g = f₁.comp g * f₂.comp g :=
+by { ext, simp, }
 
 end continuous_map
 
@@ -104,6 +111,27 @@ instance continuous_map_monoid {α : Type*} {β : Type*} [topological_space α] 
   ..continuous_map_semigroup,
   ..continuous_map.has_one }
 
+@[simp, norm_cast]
+lemma pow_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
+  ((f^n : C(α, β)) : α → β) = (f : α → β)^n :=
+begin
+  ext x,
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
+
+@[simp] lemma continuous_map.pow_comp {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ]
+  [monoid γ] [has_continuous_mul γ] (f : C(β, γ)) (n : ℕ) (g : C(α, β)) :
+  (f^n).comp g = (f.comp g)^n :=
+begin
+  induction n with n ih,
+  { ext, simp, },
+  { simp [pow_succ, ih], }
+end
+
 @[to_additive]
 instance continuous_map_comm_monoid {α : Type*} {β : Type*} [topological_space α]
 [topological_space β] [comm_monoid β] [has_continuous_mul β] : comm_monoid C(α, β) :=
@@ -119,6 +147,30 @@ instance continuous_map_group {α : Type*} {β : Type*} [topological_space α] [
 { inv := λ f, ⟨λ x, (f x)⁻¹, continuous_inv.comp f.continuous⟩,
   mul_left_inv := λ a, by ext; exact mul_left_inv _,
   ..continuous_map_monoid }
+
+@[simp, norm_cast, to_additive]
+lemma inv_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [group β] [topological_group β] (f : C(α, β)) :
+  ((f⁻¹ : C(α, β)) : α → β) = (f⁻¹ : α → β) :=
+rfl
+
+@[simp, norm_cast, to_additive]
+lemma div_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [group β] [topological_group β] (f g : C(α, β)) :
+  ((f / g : C(α, β)) : α → β) = (f : α → β) / (g : α → β) :=
+by { simp only [div_eq_mul_inv], refl, }
+
+@[simp, to_additive] lemma continuous_map.inv_comp {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ]
+  [group γ] [topological_group γ] (f : C(β, γ)) (g : C(α, β)) :
+  (f⁻¹).comp g = (f.comp g)⁻¹ :=
+by { ext, simp, }
+
+@[simp, to_additive] lemma continuous_map.div_comp {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ]
+  [group γ] [topological_group γ] (f g : C(β, γ)) (h : C(α, β)) :
+  (f / g).comp h = (f.comp h) / (g.comp h) :=
+by { ext, simp, }
 
 @[to_additive]
 instance continuous_map_comm_group {α : Type*} {β : Type*} [topological_space α]
@@ -230,6 +282,12 @@ instance continuous_map_has_scalar
   (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) :=
 rfl
 
+@[simp] lemma continuous_map.smul_comp {α : Type*} {β : Type*}
+  [topological_space α] [topological_space β]
+   [semimodule R M] [topological_semimodule R M] (r : R) (f : C(β, M)) (g : C(α, β)) :
+  (r • f).comp g = r • (f.comp g) :=
+by { ext, simp, }
+
 variables [has_continuous_add M] [semimodule R M] [topological_semimodule R M]
 
 instance continuous_map_semimodule : semimodule R C(α, M) :=
@@ -304,6 +362,9 @@ def continuous_map.C : R →+* C(α, A) :=
   map_zero' := by ext x; exact (algebra_map R A).map_zero,
   map_add'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_add _ _ }
 
+@[simp] lemma continuous_map.C_apply (r : R) (a : α) : continuous_map.C r a = algebra_map R A r :=
+rfl
+
 variables [topological_space R] [topological_semimodule R A]
 
 instance continuous_map_algebra : algebra R C(α, A) :=
@@ -311,6 +372,57 @@ instance continuous_map_algebra : algebra R C(α, A) :=
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
   ..continuous_map_semiring }
+
+/--
+A version of `separates_points` for subalgebras of the continuous functions,
+used for stating the Stone-Weierstrass theorem.
+-/
+abbreviation subalgebra.separates_points (s : subalgebra R C(α, A)) : Prop :=
+separates_points ((λ f : C(α, A), (f : α → A)) '' (s : set C(α, A)))
+
+lemma subalgebra.separates_points_monotone :
+  monotone (λ s : subalgebra R C(α, A), s.separates_points) :=
+λ s s' r h x y n,
+begin
+  obtain ⟨f, m, w⟩ := h n,
+  rcases m with ⟨f, ⟨m, rfl⟩⟩,
+  exact ⟨_, ⟨f, ⟨r m, rfl⟩⟩, w⟩,
+end
+
+@[simp] lemma algebra_map_apply (k : R) (a : α) :
+  algebra_map R C(α, A) k a = k • 1 :=
+by { rw algebra.algebra_map_eq_smul_one, refl, }
+
+variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
+
+/--
+Working in continuous functions into a topological field,
+a subalgebra of functions that separates points also separates points strongly.
+
+By the hypothesis, we can find a function `f` so `f x ≠ f y`.
+By an affine transformation in the field we can arrange so that `f x = a` and `f x = b`.
+-/
+lemma subalgebra.separates_points.strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h : s.separates_points) :
+  separates_points_strongly ((λ f : C(α, 𝕜), (f : α → 𝕜)) '' (s : set C(α, 𝕜))) :=
+λ x y n,
+begin
+  obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
+  replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
+  intros a b,
+  let f' := ((b - a) * (f x - f y)⁻¹) • (continuous_map.C (f x) - f) + continuous_map.C a,
+  refine ⟨f', _, _, _⟩,
+  { simp only [set.mem_image, coe_coe],
+    refine ⟨f', _, rfl⟩,
+    simp only [f', submodule.mem_coe, subalgebra.mem_to_submodule],
+    -- TODO should there be a tactic for this?
+    -- We could add an attribute `@[subobject_mem]`, and a tactic
+    -- ``def subobject_mem := `[solve_by_elim with subobject_mem { max_depth := 10 }]``
+    solve_by_elim
+      [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
+      { max_depth := 6 }, },
+  { simp [f'], },
+  { simp [f', inv_mul_cancel_right' w], },
+end
 
 end continuous_map
 
@@ -372,3 +484,49 @@ instance continuous_map_module' {α : Type*} [topological_space α]
 end continuous_map
 
 end module_over_continuous_functions
+
+/-!
+We now provide formulas for `f ⊓ g` and `f ⊔ g`, where `f g : C(α, β)`,
+in terms of `continuous_map.abs`.
+-/
+
+section
+variables {R : Type*} [linear_ordered_field R]
+
+-- TODO:
+-- This lemma (and the next) could go all the way back in `algebra.ordered_field`,
+-- except that it is tedious to prove without tactics.
+-- Rather than stranding it at some intermediate location,
+-- it's here, immediately prior to the point of use.
+lemma min_eq_half_add_sub_abs_sub {x y : R} : min x y = 2⁻¹ * (x + y - abs (x - y)) :=
+begin
+  dsimp [min, max, abs],
+  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
+  split_ifs; ring_nf; linarith,
+end
+
+lemma max_eq_half_add_add_abs_sub {x y : R} : max x y = 2⁻¹ * (x + y + abs (x - y)) :=
+begin
+  dsimp [min, max, abs],
+  simp only [neg_le_self_iff, if_congr, sub_nonneg, neg_sub],
+  split_ifs; ring_nf; linarith,
+end
+end
+
+namespace continuous_map
+
+section lattice
+variables {α : Type*} [topological_space α]
+variables {β : Type*} [linear_ordered_field β] [topological_space β]
+  [order_topology β] [topological_ring β]
+
+lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - (f - g).abs) :=
+ext (λ x, by simpa using min_eq_half_add_sub_abs_sub)
+
+-- Not sure why this is grosser than `inf_eq`:
+lemma sup_eq (f g : C(α, β)) : f ⊔ g = (2⁻¹ : β) • (f + g + (f - g).abs) :=
+ext (λ x, by simpa [mul_add] using @max_eq_half_add_add_abs_sub _ _ (f x) (g x))
+
+end lattice
+
+end continuous_map

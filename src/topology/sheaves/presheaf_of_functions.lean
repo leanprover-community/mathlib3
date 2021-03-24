@@ -12,7 +12,7 @@ import topology.algebra.continuous_functions
 # Presheaves of functions
 
 We construct some simple examples of presheaves of functions on a topological space.
-* `presheaf_to_Type X f`, where `f : X → Type`,
+* `presheaf_to_Types X T`, where `T : X → Type`,
   is the presheaf of dependently-typed (not-necessarily continuous) functions
 * `presheaf_to_Type X T`, where `T : Type`,
   is the presheaf of (not-necessarily-continuous) functions to a fixed target type `T`
@@ -36,7 +36,7 @@ namespace Top
 variables (X : Top.{v})
 
 /--
-The presheaf of dependently typed functions on `X`, with fibres given by a type family `f`.
+The presheaf of dependently typed functions on `X`, with fibres given by a type family `T`.
 There is no requirement that the functions are continuous, here.
 -/
 def presheaf_to_Types (T : X → Type v) : X.presheaf (Type v) :=

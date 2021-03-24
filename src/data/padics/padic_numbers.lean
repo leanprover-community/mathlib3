@@ -687,7 +687,7 @@ begin
   intros j hj,
   suffices :
     padic_norm_e ((↑(lim_seq f j) - f (max N N2)) + (f (max N N2) - lim_seq f (max N N2))) < ε,
-  { ring at this ⊢,
+  { ring_nf at this ⊢,
     rw [← padic_norm_e.eq_padic_norm', ← padic.cast_eq_of_rat],
     exact_mod_cast this },
   { apply lt_of_le_of_lt,
@@ -725,7 +725,7 @@ theorem complete' : ∃ q : ℚ_[p], ∀ ε > 0, ∃ N, ∀ i ≥ N, padic_norm_
     existsi max N N2,
     intros i hi,
     suffices : padic_norm_e ((lim f - lim' f i) + (lim' f i - f i)) < ε,
-    { ring at this; exact this },
+    { ring_nf at this; exact this },
     { apply lt_of_le_of_lt,
       { apply padic_norm_e.add },
       { have : ε = ε / 2 + ε / 2, by rw ←(add_self_div_two ε); simp,

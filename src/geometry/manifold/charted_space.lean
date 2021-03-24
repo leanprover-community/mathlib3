@@ -518,14 +518,15 @@ end
 
 end
 
-/-- Same thing as `H × H'`. We introduce it for technical reasons: a charted space `M` with model `H`
-is a set of local charts from `M` to `H` covering the space. Every space is registered as a charted
-space over itself, using the only chart `id`, in `manifold_model_space`. You can also define a product
-of charted space `M` and `M'` (with model space `H × H'`) by taking the products of the charts. Now,
-on `H × H'`, there are two charted space structures with model space `H × H'` itself, the one coming
-from `manifold_model_space`, and the one coming from the product of the two `manifold_model_space` on
-each component. They are equal, but not defeq (because the product of `id` and `id` is not defeq to
-`id`), which is bad as we know. This expedient of renaming `H × H'` solves this problem. -/
+/-- Same thing as `H × H'`. We introduce it for technical reasons: a charted space `M` with model
+`H` is a set of local charts from `M` to `H` covering the space. Every space is registered as a
+charted space over itself, using the only chart `id`, in `manifold_model_space`. You can also define
+a product of charted space `M` and `M'` (with model space `H × H'`) by taking the products of the
+charts. Now, on `H × H'`, there are two charted space structures with model space `H × H'` itself,
+the one coming from `manifold_model_space`, and the one coming from the product of the two
+`manifold_model_space` on each component. They are equal, but not defeq (because the product of `id`
+and `id` is not defeq to `id`), which is bad as we know. This expedient of renaming `H × H'` solves
+this problem. -/
 def model_prod (H : Type*) (H' : Type*) := H × H'
 
 section

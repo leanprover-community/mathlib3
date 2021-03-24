@@ -15,8 +15,8 @@ or with boundary or with corners. As a concrete example, we construct explicitly
 boundary structure on the real interval `[x, y]`.
 
 More specifically, we introduce
-* `model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n)` for the model space used
-  to define `n`-dimensional real manifolds with boundary
+* `model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n)` for the model space
+  used to define `n`-dimensional real manifolds with boundary
 * `model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_quadrant n)` for the model space used
   to define `n`-dimensional real manifolds with corners
 
@@ -76,8 +76,8 @@ by simp
 end
 
 /--
-Definition of the model with corners `(euclidean_space ℝ (fin n), euclidean_half_space n)`, used as a
-model for manifolds with boundary. In the locale `manifold`, use the shortcut `𝓡∂ n`.
+Definition of the model with corners `(euclidean_space ℝ (fin n), euclidean_half_space n)`, used as
+a model for manifolds with boundary. In the locale `manifold`, use the shortcut `𝓡∂ n`.
 -/
 def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
   model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n) :=
@@ -300,7 +300,8 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   end }
 
 /--
-Charted space structure on `[x, y]`, using only two charts taking values in `euclidean_half_space 1`.
+Charted space structure on `[x, y]`, using only two charts taking values in
+`euclidean_half_space 1`.
 -/
 instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half_space 1) (Icc x y) :=
 { atlas := {Icc_left_chart x y, Icc_right_chart x y},

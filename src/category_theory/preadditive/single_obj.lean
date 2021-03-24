@@ -11,15 +11,15 @@ import category_theory.single_obj
 
 -/
 
-universes v u
-
 namespace category_theory
 
 variables {α : Type*} [ring α]
 
+instance (X Y : single_obj α) : add_comm_group (X ⟶ Y) :=
+by { change add_comm_group α, apply_instance, }
+
 instance : preadditive (single_obj α) :=
-{ hom_group := λ _ _, by { change add_comm_group α, apply_instance, },
-  add_comp' := λ _ _ _ f f' g, mul_add g f f',
+{ add_comp' := λ _ _ _ f f' g, mul_add g f f',
   comp_add' := λ _ _ _ f g g', add_mul g g' f, }
 
 -- TODO once we have preadditive functors, define `PreAdditiveCat`, and `Ring ⥤ PreAdditiveCat`.

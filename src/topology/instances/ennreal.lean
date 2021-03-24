@@ -994,7 +994,7 @@ is_closed_le (continuous_id.edist continuous_const) continuous_const
 
 @[simp] lemma emetric.diam_closure (s : set α) : diam (closure s) = diam s :=
 begin
-  refine le_antisymm (diam_le_of $ λ x hx y hy, _) (diam_mono subset_closure),
+  refine le_antisymm (diam_le $ λ x hx y hy, _) (diam_mono subset_closure),
   have : edist x y ∈ closure (Iic (diam s)),
     from  map_mem_closure2 (@continuous_edist α _) hx hy (λ _ _, edist_le_diam_of_mem),
   rwa closure_Iic at this

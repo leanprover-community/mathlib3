@@ -115,7 +115,11 @@ instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
     λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
   .. (infer_instance : comm_monoid_with_zero ℕ) }
 
-attribute [simp] nat.not_lt_zero
+attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
+  nat.zero_ne_one nat.one_ne_zero
+  nat.zero_ne_bit1 nat.bit1_ne_zero
+  nat.bit0_ne_one nat.one_ne_bit0
+  nat.bit0_ne_bit1 nat.bit1_ne_bit0
 
 /-!
 Inject some simple facts into the type class system.
@@ -1433,6 +1437,23 @@ by unfold bodd div2; cases bodd_div2 n; refl
 @[simp] lemma div2_bit1 (n) : div2 (bit1 n) = n := div2_bit tt n
 
 /-! ### `bit0` and `bit1` -/
+
+-- There is no need to prove `bit0_eq_zero : bit0 n = 0 ↔ n = 0`
+-- as this is true for any `[semiring R] [no_zero_divisors R] [char_zero R]`
+
+-- However the lemmas `bit0_eq_bit0`, `bit1_eq_bit1`, `bit1_eq_one`, `one_eq_bit1`
+-- need `[ring R] [no_zero_divisors R] [char_zero R]` in general,
+-- so we prove `ℕ` specialized versions here.
+@[simp] lemma bit0_eq_bit0 {m n : ℕ} : bit0 m = bit0 n ↔ m = n :=
+⟨nat.bit0_inj, λ h, by subst h⟩
+
+@[simp] lemma bit1_eq_bit1 {m n : ℕ} : bit1 m = bit1 n ↔ m = n :=
+⟨nat.bit1_inj, λ h, by subst h⟩
+
+@[simp] lemma bit1_eq_one {n : ℕ} : bit1 n = 1 ↔ n = 0 :=
+⟨@nat.bit1_inj n 0, λ h, by subst h⟩
+@[simp] lemma one_eq_bit1 {n : ℕ} : 1 = bit1 n ↔ n = 0 :=
+⟨λ h, (@nat.bit1_inj 0 n h).symm, λ h, by subst h⟩
 
 protected theorem bit0_le {n m : ℕ} (h : n ≤ m) : bit0 n ≤ bit0 m :=
 add_le_add h h

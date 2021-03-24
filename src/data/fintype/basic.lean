@@ -384,8 +384,8 @@ open_locale classical
 variables (α)
 
 /-- Any subsingleton type is (noncomputably) a fintype (with zero or one terms). -/
-noncomputable
-instance of_subsingleton' [subsingleton α] : fintype α :=
+@[priority 100]
+noncomputable instance of_subsingleton' [subsingleton α] : fintype α :=
 if h : nonempty α then
   of_subsingleton (nonempty.some h)
 else

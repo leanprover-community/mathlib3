@@ -200,6 +200,18 @@ begin
   simp only [category.comp_id],
 end
 
+lemma le_mk_of_comm {B A : C} {X : subobject B} {f : A ⟶ B} [mono f] (g : (X : C) ⟶ A)
+  (w : g ≫ f = X.arrow) : X ≤ mk f :=
+le_of_comm (g ≫ (underlying_iso f).inv) $ by simp [w]
+
+lemma mk_le_of_comm {B A : C} {X : subobject B} {f : A ⟶ B} [mono f] (g : A ⟶ (X : C))
+  (w : g ≫ X.arrow = f) : mk f ≤ X :=
+le_of_comm ((underlying_iso f).hom ≫ g) $ by simp [w]
+
+lemma mk_le_mk_of_comm {B A₁ A₂ : C} {f₁ : A₁ ⟶ B} {f₂ : A₂ ⟶ B} [mono f₁] [mono f₂] (g : A₁ ⟶ A₂)
+  (w : g ≫ f₂ = f₁) : mk f₁ ≤ mk f₂ :=
+le_mk_of_comm ((underlying_iso f₁).hom ≫ g) $ by simp [w]
+
 /-- To show that two subobjects are equal, it suffices to exhibit an isomorphism commuting with
     the arrows. -/
 @[ext] lemma eq_of_comm {B : C} {X Y : subobject B} (f : (X : C) ≅ (Y : C))

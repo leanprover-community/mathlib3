@@ -195,6 +195,7 @@ end
 /--
 Any thin category is locally small.
 -/
+@[priority 100]
 instance locally_small_of_thin {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
   locally_small.{w} C := {}
 

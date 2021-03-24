@@ -303,7 +303,8 @@ symm_iff.symm.trans iff_preimage_eq
 alias iff_symm_preimage_eq ↔ local_homeomorph.is_image.symm_preimage_eq
   local_homeomorph.is_image.of_symm_preimage_eq
 
-lemma iff_symm_preimage_eq' : e.is_image s t ↔ e.target ∩ e.symm ⁻¹' (e.source ∩ s) = e.target ∩ t :=
+lemma iff_symm_preimage_eq' :
+  e.is_image s t ↔ e.target ∩ e.symm ⁻¹' (e.source ∩ s) = e.target ∩ t :=
 by rw [iff_symm_preimage_eq, ← image_source_inter_eq, ← image_source_inter_eq']
 
 alias iff_symm_preimage_eq' ↔ local_homeomorph.is_image.symm_preimage_eq'
@@ -389,8 +390,8 @@ end is_image
 lemma is_image_source_target : e.is_image e.source e.target :=
 e.to_local_equiv.is_image_source_target
 
-lemma is_image_source_target_of_disjoint (e' : local_homeomorph α β) (hs : disjoint e.source e'.source)
-  (ht : disjoint e.target e'.target) :
+lemma is_image_source_target_of_disjoint (e' : local_homeomorph α β)
+  (hs : disjoint e.source e'.source) (ht : disjoint e.target e'.target) :
   e.is_image e'.source e'.target :=
 e.to_local_equiv.is_image_source_target_of_disjoint e'.to_local_equiv hs ht
 

@@ -11,7 +11,7 @@ import data.matrix.dmatrix
 /-!
 # Matrices over a category.
 
-When `C` is a preadditive category, `Mat C` is the preadditive categories
+When `C` is a preadditive category, `Mat C` is the preadditive categoriy
 whose objects are finite tuples of objects in `C`, and
 whose morphisms are matrices of morphisms from `C`.
 

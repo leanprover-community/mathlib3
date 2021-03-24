@@ -692,7 +692,7 @@ begin
 end
 
 lemma ae_measurable_comp_right_iff_of_closed_embedding {g : α → β} {μ : measure α}
-  {f : β → γ} (hg : closed_embedding g) :
+  {f : β → δ} (hg : closed_embedding g) :
   ae_measurable (f ∘ g) μ ↔ ae_measurable f (measure.map g μ) :=
 begin
   refine ⟨λ h, _, λ h, h.comp_measurable hg.measurable⟩,

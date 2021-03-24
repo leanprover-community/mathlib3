@@ -1201,11 +1201,6 @@ instance normed_algebra.id : normed_algebra 𝕜 𝕜 :=
 { norm_algebra_map_eq := by simp,
 .. algebra.id 𝕜}
 
-@[continuity] lemma normed_algebra.algebra_map_continuous
-  [normed_algebra 𝕜 𝕜'] :
-  continuous (algebra_map 𝕜 𝕜') :=
-continuous_algebra_map _ _
-
 variables (𝕜') [normed_algebra 𝕜 𝕜']
 include 𝕜
 

@@ -545,8 +545,9 @@ def simplicial_complex.pure (S : simplicial_complex m) : Prop := ∃ n : ℕ, �
 
 noncomputable def pureness {S : simplicial_complex m} (hS : S.pure) : ℕ := classical.some hS
 
-lemma pureness_def {S : simplicial_complex m} (hS : S.pure) : ∀ {X}, X ∈ S.facets →
-  (X : finset _).card = pureness hS + 1 := sorry --@Bhavik, easy but I can't
+lemma pureness_def {S : simplicial_complex m} (hS : S.pure) {X : finset E} (hX : X ∈ S.facets) :
+  X.card = pureness hS + 1 :=
+classical.some_spec hS hX
 
 lemma simplex_dimension_le_pureness {S : simplicial_complex m} (hS : S.pure) {X : finset (fin m → ℝ)} :
   X ∈ S.faces → X.card ≤ pureness hS + 1 :=

@@ -208,7 +208,7 @@ protected lemma surj_on : surj_on e e.source e.target := e.bij_on.surj_on
 lemma copy_eq_self (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α) (hg : ⇑e.symm = g)
   (s : set α) (hs : e.source = s) (t : set β) (ht : e.target = t) :
   e.copy f hf g hg s hs t ht = e :=
-by { subst f, subst g, subst s, subst t, cases e, refl }
+by { substs f g s t, cases e, refl }
 
 /-- Associating to a local_equiv an equiv between the source and the target -/
 protected def to_equiv : equiv (e.source) (e.target) :=

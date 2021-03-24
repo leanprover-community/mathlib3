@@ -145,10 +145,6 @@ lemma of_mul_pow {A : Type*} [monoid A] (x : A) (n : ℕ) :
   additive.of_mul (x ^ n) = n •ℕ (additive.of_mul x) :=
 (congr_arg additive.of_mul (of_add_nsmul (additive.of_mul x) n)).symm
 
-lemma of_add_nsmul {A : Type*} [add_monoid A] (x : A) (n : ℕ) :
-  multiplicative.of_add (n •ℕ x) = (multiplicative.of_add x) ^ n :=
-(congr_arg multiplicative.of_add (of_mul_pow (multiplicative.of_add x) n)).symm
-
 @[simp] lemma of_mul_eq_zero {A : Type*} [monoid A] {x : A} :
   additive.of_mul x = 0 ↔ x = 1 := iff.rfl
 

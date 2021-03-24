@@ -1668,8 +1668,8 @@ begin
   simp [equiv.set.image, equiv.set.image_of_inj_on, hf.eq_iff, this],
 end
 
-/-- If `f` has a left-inverse when `α` is nonempty, then `α` is computably equivalent to the range
-of `f`.
+/-- If `f : α → β` has a left-inverse when `α` is nonempty, then `α` is computably equivalent to the
+range of `f`.
 
 While awkward, the `nonempty α` hypothesis on `f_inv` and `hf` allows this to be used when `α` is
 empty too. This hypothesis is absent on analogous definitions on stronger `equiv`s like
@@ -1677,14 +1677,22 @@ empty too. This hypothesis is absent on analogous definitions on stronger `equiv
 are already sufficient to ensure non-emptiness. -/
 @[simps]
 def range_of_left_inverse {α β : Sort*}
-  (f : α → β) (f_inv : nonempty α → β → α)
-  (hf : Π h : nonempty α, function.left_inverse (f_inv h) f) :
+  (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
   α ≃ set.range f :=
 { to_fun := λ a, ⟨f a, a, rfl⟩,
   inv_fun := λ b, f_inv (let ⟨a, _⟩ := b.2 in ⟨a⟩) b,
   left_inv := λ a, hf ⟨a⟩ a,
   right_inv := λ ⟨b, a, ha⟩, subtype.eq $ show f (f_inv ⟨a⟩ b) = b,
     from eq.trans (congr_arg f $ by exact ha ▸ (hf _ a)) ha }
+
+/-- If `f : α → β` has a left-inverse, then `α` is computably equivalent to the range of `f`.
+
+Note that if `α` is empty, no such `f_inv` exists and so this definition can't be used, unlike
+the stronger but less convenient `equiv.set.range_of_left_inverse`. -/
+abbreviation range_of_left_inverse' {α β : Sort*}
+  (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
+  α ≃ set.range f :=
+range_of_left_inverse f (λ _, f_inv) (λ _, hf)
 
 /-- If `f : α → β` is an injective function, then `α` is equivalent to the range of `f`. -/
 @[simps apply]

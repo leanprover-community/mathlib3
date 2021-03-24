@@ -835,8 +835,10 @@ lemma ring_hom_surjective [ring R] (f : R →+* (zmod n)) : function.surjective 
 
 lemma ring_hom_eq_of_ker_eq [comm_ring R] (f g : R →+* (zmod n))
   (h : f.ker = g.ker) : f = g :=
-by rw [← f.lift_of_surjective_comp (zmod.ring_hom_surjective f) g (le_of_eq h),
-      ring_hom.ext_zmod (f.lift_of_surjective _ _ _) (ring_hom.id _),
-      ring_hom.id_comp]
+begin
+  have := f.lift_of_right_inverse_comp _ (zmod.ring_hom_right_inverse f) ⟨g, le_of_eq h⟩,
+  rw subtype.coe_mk at this,
+  rw [←this, ring_hom.ext_zmod (f.lift_of_right_inverse _ _ _) (ring_hom.id _), ring_hom.id_comp],
+end
 
 end zmod

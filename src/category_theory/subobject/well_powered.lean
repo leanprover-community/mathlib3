@@ -50,11 +50,7 @@ variables {C}
 
 theorem essentially_small_mono_over_iff_small_subobject (X : C) :
   essentially_small.{v} (mono_over X) ↔ small.{v} (subobject X) :=
-begin
-  haveI := mono_over.is_thin,
-  rw essentially_small_iff_of_thin,
-  exact iff.rfl,
-end
+essentially_small_iff_of_thin
 
 theorem well_powered_of_mono_over_essentially_small
   (h : ∀ X : C, essentially_small.{v} (mono_over X)) :

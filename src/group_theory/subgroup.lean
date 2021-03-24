@@ -1207,15 +1207,43 @@ end subgroup
 namespace monoid_hom
 
 variables {G₁ G₂ G₃ : Type*} [group G₁] [group G₂] [group G₃]
-variables (f : G₁ →* G₂)
+variables (f : G₁ →* G₂) (f_inv : G₂ → G₁)
 
-/-- `lift_of_surjective f hf g hg` is the unique group homomorphism `φ`
+/-- Auxiliary definition used to define `lift_of_right_inverse` -/
+@[to_additive "Auxiliary definition used to define `lift_of_right_inverse`"]
+def lift_of_right_inverse_aux
+  (hf : function.right_inverse f_inv f) (g : G₁ →* G₃) (hg : f.ker ≤ g.ker) :
+  G₂ →* G₃ :=
+{ to_fun := λ b, g (f_inv b),
+  map_one' := hg (hf 1),
+  map_mul' :=
+  begin
+    intros x y,
+    rw [← g.map_mul, ← mul_inv_eq_one, ← g.map_inv, ← g.map_mul, ← g.mem_ker],
+    apply hg,
+    rw [f.mem_ker, f.map_mul, f.map_inv, mul_inv_eq_one, f.map_mul],
+    simp only [hf _],
+  end }
 
-* such that `φ.comp f = g` (`lift_of_surjective_comp`),
-* where `f : G₁ →+* G₂` is surjective (`hf`),
+@[simp, to_additive]
+lemma lift_of_right_inverse_aux_comp_apply
+  (hf : function.right_inverse f_inv f) (g : G₁ →* G₃) (hg : f.ker ≤ g.ker) (x : G₁) :
+  (f.lift_of_right_inverse_aux f_inv hf g hg) (f x) = g x :=
+begin
+  dsimp [lift_of_right_inverse_aux],
+  rw [← mul_inv_eq_one, ← g.map_inv, ← g.map_mul, ← g.mem_ker],
+  apply hg,
+  rw [f.mem_ker, f.map_mul, f.map_inv, mul_inv_eq_one],
+  simp only [hf _],
+end
+
+/-- `lift_of_right_inverse f hf g hg` is the unique group homomorphism `φ`
+
+* such that `φ.comp f = g` (`monoid_hom.lift_of_right_inverse_comp`),
+* where `f : G₁ →+* G₂` has a right_inverse `f_inv` (`hf`),
 * and `g : G₂ →+* G₃` satisfies `hg : f.ker ≤ g.ker`.
 
-See `lift_of_surjective_eq` for the uniqueness lemma.
+See `monoid_hom.eq_lift_of_right_inverse` for the uniqueness lemma.
 
 ```
    G₁.
@@ -1227,13 +1255,13 @@ See `lift_of_surjective_eq` for the uniqueness lemma.
       ∃!φ
 ```
  -/
-@[to_additive "`lift_of_surjective f hf g hg` is the unique additive group homomorphism `φ`
+@[to_additive "`lift_of_right_inverse f f_inv hf g hg` is the unique additive group homomorphism `φ`
 
-* such that `φ.comp f = g` (`lift_of_surjective_comp`),
-* where `f : G₁ →+* G₂` is surjective (`hf`),
-* and `g : G₂ →+* G₃` satisfies `hg : f.ker ≤ g.ker`.
+* such that `φ.comp f = g` (`add_monoid_hom.lift_of_right_inverse_comp`),
+* where `f : G₁ →+ G₂` has a right_inverse `f_inv` (`hf`),
+* and `g : G₂ →+ G₃` satisfies `hg : f.ker ≤ g.ker`.
 
-See `lift_of_surjective_eq` for the uniqueness lemma.
+See `add_monoid_hom.eq_lift_of_right_inverse` for the uniqueness lemma.
 
 ```
    G₁.
@@ -1244,44 +1272,45 @@ See `lift_of_surjective_eq` for the uniqueness lemma.
    G₂----> G₃
       ∃!φ
 ```"]
-noncomputable def lift_of_surjective
-  (hf : function.surjective f) (g : G₁ →* G₃) (hg : f.ker ≤ g.ker) :
-  G₂ →* G₃ :=
-{ to_fun := λ b, g (classical.some (hf b)),
-  map_one' := hg (classical.some_spec (hf 1)),
-  map_mul' :=
-  begin
-    intros x y,
-    rw [← g.map_mul, ← mul_inv_eq_one, ← g.map_inv, ← g.map_mul, ← g.mem_ker],
-    apply hg,
-    rw [f.mem_ker, f.map_mul, f.map_inv, mul_inv_eq_one, f.map_mul],
-    simp only [classical.some_spec (hf _)],
-  end }
+def lift_of_right_inverse
+  (hf : function.right_inverse f_inv f) : {g : G₁ →* G₃ // f.ker ≤ g.ker} ≃ (G₂ →* G₃) :=
+{ to_fun := λ g, f.lift_of_right_inverse_aux f_inv hf g.1 g.2,
+  inv_fun := λ φ, ⟨φ.comp f, λ x hx, (mem_ker _).mpr $ by simp [(mem_ker _).mp hx]⟩,
+  left_inv := λ g, by {
+    ext,
+    simp only [comp_apply, lift_of_right_inverse_aux_comp_apply, subtype.coe_mk,
+      subtype.val_eq_coe], },
+  right_inv := λ φ, by {
+    ext b,
+    simp [lift_of_right_inverse_aux, hf b], } }
+
+/-- A non-computable version of `monoid_hom.lift_of_right_inverse` for when no computable right
+inverse is available, that uses `function.surj_inv`. -/
+@[simp, to_additive "A non-computable version of `add_monoid_hom.lift_of_right_inverse` for when no
+computable right inverse is available."]
+noncomputable abbreviation lift_of_surjective
+  (hf : function.surjective f) : {g : G₁ →* G₃ // f.ker ≤ g.ker} ≃ (G₂ →* G₃) :=
+f.lift_of_right_inverse (function.surj_inv hf) (function.right_inverse_surj_inv hf)
 
 @[simp, to_additive]
-lemma lift_of_surjective_comp_apply
-  (hf : function.surjective f) (g : G₁ →* G₃) (hg : f.ker ≤ g.ker) (x : G₁) :
-  (f.lift_of_surjective hf g hg) (f x) = g x :=
-begin
-  dsimp [lift_of_surjective],
-  rw [← mul_inv_eq_one, ← g.map_inv, ← g.map_mul, ← g.mem_ker],
-  apply hg,
-  rw [f.mem_ker, f.map_mul, f.map_inv, mul_inv_eq_one],
-  simp only [classical.some_spec (hf _)],
-end
+lemma lift_of_right_inverse_comp_apply
+  (hf : function.right_inverse f_inv f) (g : {g : G₁ →* G₃ // f.ker ≤ g.ker}) (x : G₁) :
+  (f.lift_of_right_inverse f_inv hf g) (f x) = g x :=
+f.lift_of_right_inverse_aux_comp_apply f_inv hf g.1 g.2 x
 
 @[simp, to_additive]
-lemma lift_of_surjective_comp (hf : function.surjective f) (g : G₁ →* G₃) (hg : f.ker ≤ g.ker) :
-  (f.lift_of_surjective hf g hg).comp f = g :=
-by { ext, simp only [comp_apply, lift_of_surjective_comp_apply] }
+lemma lift_of_right_inverse_comp (hf : function.right_inverse f_inv f)
+  (g : {g : G₁ →* G₃ // f.ker ≤ g.ker}) :
+  (f.lift_of_right_inverse f_inv hf g).comp f = g :=
+monoid_hom.ext $ f.lift_of_right_inverse_comp_apply f_inv hf g
 
 @[to_additive]
-lemma eq_lift_of_surjective (hf : function.surjective f) (g : G₁ →* G₃) (hg : f.ker ≤ g.ker)
-  (h : G₂ →* G₃) (hh : h.comp f = g) :
-  h = (f.lift_of_surjective hf g hg) :=
+lemma eq_lift_of_right_inverse (hf : function.right_inverse f_inv f) (g : G₁ →* G₃)
+  (hg : f.ker ≤ g.ker) (h : G₂ →* G₃) (hh : h.comp f = g) :
+  h = (f.lift_of_right_inverse f_inv hf ⟨g, hg⟩) :=
 begin
-  ext b, rcases hf b with ⟨a, rfl⟩,
-  simp only [← comp_apply, hh, f.lift_of_surjective_comp],
+  simp_rw ←hh,
+  exact ((f.lift_of_right_inverse f_inv hf).apply_symm_apply _).symm,
 end
 
 end monoid_hom

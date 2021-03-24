@@ -211,11 +211,20 @@ instance no_zero_smul_divisors_bot [no_zero_smul_divisors R A] : no_zero_smul_di
 @[simp, norm_cast] lemma coe_sub {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
   {S : subalgebra R A} (x y : S) : (↑(x - y) : A) = ↑x - ↑y := rfl
 @[simp, norm_cast] lemma coe_smul (r : R) (x : S) : (↑(r • x) : A) = r • ↑x := rfl
+@[simp, norm_cast] lemma coe_algebra_map (r : R) : ↑(algebra_map R S r) = algebra_map R A r :=
+rfl
+
+@[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x^n) : A) = (↑x)^n :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
 
 @[simp, norm_cast] lemma coe_eq_zero {x : S} : (x : A) = 0 ↔ x = 0 :=
-(set_like.coe_eq_coe : (x : A) = (0 : S) ↔ x = 0)
+(subtype.ext_iff.symm : (x : A) = (0 : S) ↔ x = 0)
 @[simp, norm_cast] lemma coe_eq_one {x : S} : (x : A) = 1 ↔ x = 1 :=
-(set_like.coe_eq_coe : (x : A) = (1 : S) ↔ x = 1)
+(subtype.ext_iff.symm : (x : A) = (1 : S) ↔ x = 1)
 
 -- todo: standardize on the names these morphisms
 -- compare with submodule.subtype

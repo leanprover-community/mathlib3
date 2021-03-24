@@ -990,11 +990,11 @@ end
 
 /-- The function `x ^ (1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_div : tendsto (λ x, x ^ ((1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring }
+by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring_nf }
 
 /-- The function `x ^ (-1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_neg_div : tendsto (λ x, x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring }
+by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring_nf }
 
 end limits
 
@@ -1322,6 +1322,9 @@ begin
     { have A : x ^ y ≠ 0, by simp [h],
       simp [coe_rpow_of_ne_zero h, ← coe_inv A, nnreal.rpow_neg] } }
 end
+
+lemma rpow_sub {x : ℝ≥0∞} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y - z) = x ^ y / x ^ z :=
+by rw [sub_eq_add_neg, rpow_add _ _ hx h'x, rpow_neg, div_eq_mul_inv]
 
 lemma rpow_neg_one (x : ℝ≥0∞) : x ^ (-1 : ℝ) = x ⁻¹ :=
 by simp [rpow_neg]

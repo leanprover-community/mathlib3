@@ -90,6 +90,14 @@ le_antisymm
 lemma is_pi_system_is_open [topological_space α] : is_pi_system (is_open : set α → Prop) :=
 λ s t hs ht hst, is_open_inter hs ht
 
+lemma borel_eq_generate_from_is_closed [topological_space α] :
+  borel α = generate_from {s | is_closed s} :=
+le_antisymm
+  (generate_from_le $ λ t ht, @measurable_set.of_compl α _ (generate_from {s | is_closed s})
+    (generate_measurable.basic _ $ is_closed_compl_iff.2 ht))
+  (generate_from_le $ λ t ht, @measurable_set.of_compl α _ (borel α)
+    (generate_measurable.basic _ $ is_open_compl_iff.2 ht))
+
 section order_topology
 
 variable (α)

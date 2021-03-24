@@ -394,11 +394,24 @@ f.to_monoid_hom.map_pow a
 
 end ring_hom
 
+section
+variables (R)
+
 theorem neg_one_pow_eq_or [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := or.inl rfl
 | (n+1) := (neg_one_pow_eq_or n).swap.imp
   (λ h, by rw [pow_succ, h, neg_one_mul, neg_neg])
   (λ h, by rw [pow_succ, h, mul_one])
+
+end
+
+@[simp]
+lemma neg_one_pow_mul_eq_zero_iff [ring R] {n : ℕ} {r : R} : (-1)^n * r = 0 ↔ r = 0 :=
+by rcases neg_one_pow_eq_or R n; simp [h]
+
+@[simp]
+lemma mul_neg_one_pow_eq_zero_iff [ring R] {n : ℕ} {r : R} : r * (-1)^n = 0 ↔ r = 0 :=
+by rcases neg_one_pow_eq_or R n; simp [h]
 
 lemma pow_dvd_pow [monoid R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, nat.sub_add_cancel h]⟩

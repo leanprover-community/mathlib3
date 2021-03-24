@@ -1084,7 +1084,7 @@ begin
     rcases hv1 with ⟨r, rfl⟩,
     use [r, v2 +ᵥ p1, vadd_mem_of_mem_direction hv2 hp1],
     symmetry' at hp,
-    rw [←sub_eq_zero_iff_eq, ←vsub_vadd_eq_vsub_sub, vsub_eq_zero_iff_eq] at hp,
+    rw [←sub_eq_zero, ←vsub_vadd_eq_vsub_sub, vsub_eq_zero_iff_eq] at hp,
     rw [hp, vadd_assoc] },
   { rintros ⟨r, p3, hp3, rfl⟩,
     use [r • (p2 -ᵥ p1), submodule.mem_span_singleton.2 ⟨r, rfl⟩, p3 -ᵥ p1,

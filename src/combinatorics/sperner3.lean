@@ -80,13 +80,14 @@ variables {m n : ℕ} {S : simplicial_complex m}
 local notation `E` := fin m → ℝ
 
 /--
-A constructor for simplicial complexes by specifying a surcomplex and showing the set of faces
-is downward closed
+A constructor for simplicial complexes by specifying a supercomplex and making the set of faces
+downward closed.
 -/
-def simplicial_complex.of_surcomplex {m : ℕ} {S : simplicial_complex m}
+def simplicial_complex.of_supercomplex {m : ℕ} {S : simplicial_complex m}
   (faces : set (finset (fin m → ℝ))) (subset_surcomplex : faces ⊆ S.faces)
-  (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces) : simplicial_complex m := {
-  faces := faces,
+  (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces) :
+  simplicial_complex m :=
+{ faces := faces,
   indep := λ X hX, S.indep (subset_surcomplex hX),
   down_closed := λ X Y hX hYX, down_closed hX hYX,
   disjoint := λ X Y hX hY, S.disjoint (subset_surcomplex hX) (subset_surcomplex hY) }
@@ -237,36 +238,36 @@ begin
   }
 end
 
+
 --To golf down
 lemma size_bound {X : finset (fin m → ℝ)} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
   X.card ≤ m+1 :=
 begin
-  cases X.eq_empty_or_nonempty,
-  { simp [h] },
-  obtain ⟨y, hy⟩ := h,
-  have y_mem : y ∈ (X : set (fin m → ℝ)) := hy,
-  have Xy : (↑X \ {y}) = ((↑(X.erase y)) : set (fin m → ℝ)),
-  { simp },
-  have hX' := hX,
-  rw @affine_independent_set_iff_linear_independent_vsub ℝ _ _ _ _ _ _ ↑X y y_mem at hX',
-  letI q : fintype ↥((λ (p : fin m → ℝ), p -ᵥ y) '' (↑X \ {y})),
-  { apply set.fintype_image _ _,
-    { apply_instance },
-    rw Xy,
-    exact finset_coe.fintype _ },
   sorry
-  /-
-  have := finite_dimensional.fintype_card_le_findim_of_linear_independent this,
-  simp only [vsub_eq_sub, finite_dimensional.findim_fin_fun, fintype.card_of_finset] at this,
-  rw finset.card_image_of_injective at this,
-  simp only [set.to_finset_card] at this,
-  rw fintype.card_of_finset' (X.erase y) at this,
-  rw finset.card_erase_of_mem hy at this,
-  rw nat.pred_le_iff at this,
-  exact this,
-  simp [and_comm],
-  rintro p q h,
-  simpa using h,-/
+  -- cases X.eq_empty_or_nonempty,
+  -- { simp [h] },
+  -- rcases h with ⟨y, hy⟩,
+  -- have y_mem : y ∈ (X : set (fin m → ℝ)) := hy,
+  -- have Xy : (↑X \ {y}) = ((↑(X.erase y)) : set (fin m → ℝ)),
+  -- { simp },
+  -- have := hX,
+  -- rw @affine_independent_set_iff_linear_independent_vsub ℝ _ _ _ _ _ _ ↑X y y_mem at this,
+  -- letI q : fintype ↥((λ (p : fin m → ℝ), p -ᵥ y) '' (↑X \ {y})),
+  -- { apply set.fintype_image _ _,
+  --   { apply_instance },
+  --   rw Xy,
+  --   exact finset_coe.fintype _ },
+  -- have := finite_dimensional.fintype_card_le_findim_of_linear_independent this,
+  -- simp only [vsub_eq_sub, finite_dimensional.findim_fin_fun, fintype.card_of_finset] at this,
+  -- rw finset.card_image_of_injective at this,
+  -- simp only [set.to_finset_card] at this,
+  -- rw fintype.card_of_finset' (X.erase y) at this,
+  -- rw finset.card_erase_of_mem hy at this,
+  -- rw nat.pred_le_iff at this,
+  -- exact this,
+  -- simp [and_comm],
+  -- intros p q h,
+  -- simpa using h,
 end
 
 --Refinement of `size_bound`
@@ -320,15 +321,27 @@ begin
 end
 
 --Accurate name?
-lemma mem_of_is_extreme_to_convex_hull {X : finset E} {x : E} (hx : is_extreme (convex_hull ↑X) x) :
-  x ∈ X := sorry
+lemma mem_of_is_extreme_to_convex_hull {X : set E} {x : E} (hx : is_extreme (convex_hull X) x) :
+  x ∈ X :=
+begin
+  have : x ∈ convex_hull (X : set E) := hx.1,
+  rw ←convex_remove_iff_is_extreme (convex_convex_hull _) this at hx,
+  by_contra,
+  have : convex_hull X ⊆ convex_hull X \ {x},
+  { apply convex_hull_min _ hx,
+    rw subset_diff,
+    exact ⟨subset_convex_hull _, disjoint_singleton_right.2 h⟩ },
+  rw [subset_diff, disjoint_singleton_right] at this,
+  apply this.2 ‹x ∈ convex_hull X›,
+end
 
 --probably belongs in the mathlib file of convex hulls
-lemma subset_of_convex_hull_eq_convex_hull_of_linearly_independent {X Y : finset E} :
-  affine_independent ℝ (λ p, p : (X : set E) → E)
-  → convex_hull ↑X = convex_hull (Y : set(fin m → ℝ)) → X ⊆ Y :=
+lemma subset_of_convex_hull_eq_convex_hull_of_linearly_independent {X Y : finset E}
+  (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
+  (h : convex_hull ↑X = convex_hull (Y : set E)) :
+  X ⊆ Y :=
 begin
-  rintro hX h x hx,
+  intros x hx,
   have hxextreme := is_extreme_to_convex_hull_of_affine_independent hx hX,
   rw h at hxextreme,
   exact mem_of_is_extreme_to_convex_hull hxextreme,
@@ -336,15 +349,14 @@ end
 
 --Keep two linearly_independent in the name?
 lemma eq_of_convex_hull_eq_convex_hull_of_linearly_independent_of_linearly_independent
-  {X Y : finset E} : affine_independent ℝ (λ p, p : (X : set E) → E) →
-  affine_independent ℝ (λ p, p : (Y : set E) → E) →
-  convex_hull ↑X = convex_hull (Y : set(fin m → ℝ)) → X = Y :=
-begin
-  rintro hX hY h,
-  have := subset.antisymm (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hX h)
-    (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hY h.symm),
-  sorry --not hard, but don't know the technical details
-end
+  {X Y : finset E}
+  (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
+  (hY : affine_independent ℝ (λ p, p : (Y : set E) → E))
+  (h : convex_hull (X : set E) = convex_hull (Y : set E)) :
+  X = Y :=
+finset.subset.antisymm
+  (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hX h)
+  (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hY h.symm)
 
 def convex_independent (s : set E) : Prop := ∀ x ∈ s, x ∉ convex_hull (s \ {x})
 
@@ -608,7 +620,7 @@ end
 def simplicial_complex.connected (S : simplicial_complex m) : Prop := connected_space S.space
 
 def simplicial_complex.skeleton (S : simplicial_complex m) (k : ℕ) : simplicial_complex m :=
-  simplicial_complex.of_surcomplex {X ∈ S.faces | finset.card X ≤ k + 1} (λ X ⟨hX, _⟩, hX)
+  simplicial_complex.of_supercomplex {X ∈ S.faces | finset.card X ≤ k + 1} (λ X ⟨hX, _⟩, hX)
   (λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩)
 
 --Is this lemma useful?
@@ -648,7 +660,7 @@ lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m)
 
 /-The closure of a set of faces is the set of their subfaces-/
 def closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  simplicial_complex m := simplicial_complex.of_surcomplex {X | ∃ X' ∈ A, X ⊆ X'}
+  simplicial_complex m := simplicial_complex.of_supercomplex {X | ∃ X' ∈ A, X ⊆ X'}
   (λ X ⟨X', hX', hX⟩, S.down_closed (hA hX') hX)
   (λ X Y ⟨X', hX', hX⟩ hY, ⟨X', hX', subset.trans hY hX⟩)
 
@@ -769,7 +781,7 @@ begin
 end
 
 def link {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  simplicial_complex m := simplicial_complex.of_surcomplex
+  simplicial_complex m := simplicial_complex.of_supercomplex
   ((Star hA).faces \ star (closure_subset_complex hA)) (λ X hX, Star_subset_complex hA hX.1)
   begin
     rintro X Y hX hXY,
@@ -800,17 +812,21 @@ end-/
 --made up name, don't know if that actually exists or is useful for something else than
 --proving pure_polytope_realisation
 def simplicial_complex.erasure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
-  (hA : A ⊆ S.faces) : simplicial_complex m := simplicial_complex.of_surcomplex
-  {X | X ∈ S.faces ∧ ∀ {Y}, Y ∈ A → disjoint X Y} (λ X hX, hX.1)
+  (hA : A ⊆ S.faces) :
+  simplicial_complex m :=
+simplicial_complex.of_supercomplex
+  {X | X ∈ S.faces ∧ ∀ {Y}, Y ∈ A → disjoint X Y}
+  (λ X hX, hX.1)
   (λ X Y ⟨hX, hXA⟩ hYX, ⟨S.down_closed hX hYX, λ Z hZ, finset.disjoint_of_subset_left hYX (hXA hZ)⟩)
 
 /-lemma link_eq_erasure_Star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
   (hA : A ⊆ S.faces) :-/
 
 def simplicial_complex.boundary (S : simplicial_complex m) : simplicial_complex m :=
-  simplicial_complex.of_surcomplex {X | ∃ Y ∈ S.faces, X ⊆ Y ∧ ∃! Z ∈ S.facets, Y ⊆ Z}
+simplicial_complex.of_supercomplex
+  {X | ∃ Y ∈ S.faces, X ⊆ Y ∧ ∃! Z ∈ S.facets, Y ⊆ Z}
   (λ X ⟨Y, hY, hXY, _⟩, S.down_closed hY hXY)
-(λ X W ⟨Y, hY, hXY, ⟨Z, hZ⟩⟩ hWX, ⟨Y, hY, subset.trans hWX hXY, Z, hZ⟩)
+  (λ X W ⟨Y, hY, hXY, ⟨Z, hZ⟩⟩ hWX, ⟨Y, hY, subset.trans hWX hXY, Z, hZ⟩)
 
 lemma boundary_subset_complex {S : simplicial_complex m} : S.boundary.faces ⊆ S.faces :=
   λ X ⟨Y, hY, hXY, _⟩, S.down_closed hY hXY

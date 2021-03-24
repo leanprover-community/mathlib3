@@ -114,7 +114,7 @@ assume x y, le_trans (hf x y) $ ennreal.mul_right_mono (ennreal.coe_le_coe.2 h)
 lemma ediam_image_le (hf : lipschitz_with K f) (s : set α) :
   emetric.diam (f '' s) ≤ K * emetric.diam s :=
 begin
-  apply emetric.diam_le_of_forall_edist_le,
+  apply emetric.diam_le,
   rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
   calc edist (f x) (f y) ≤ ↑K * edist x y : hf.edist_le_mul x y
                      ... ≤ ↑K * emetric.diam s :

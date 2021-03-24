@@ -19,7 +19,7 @@ import topology.shrinking_lemma
 import topology.algebra.ordered
 import data.fintype.intervals
 
-open set filter classical topological_space
+open set filter topological_space
 noncomputable theory
 
 open_locale uniformity topological_space big_operators filter nnreal ennreal
@@ -1254,6 +1254,21 @@ open metric
 class proper_space (α : Type u) [pseudo_metric_space α] : Prop :=
 (compact_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
 
+/-- A proper metric space is separable, and therefore second countable. Indeed, any ball is
+compact, and therefore admits a countable dense subset. Taking a countable union over the balls
+centered at a fixed point and with integer radius, one obtains a countable set which is
+dense in the whole space. -/
+@[priority 100] -- see Note [lower instance priority]
+instance second_countable_of_proper [proper_space α] :
+  second_countable_topology α :=
+begin
+  suffices : sigma_compact_space α, by exactI emetric.second_countable_of_sigma_compact α,
+  rcases em (nonempty α) with ⟨⟨x⟩⟩|hn,
+  { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.compact_ball _ _,
+      Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)⟩⟩ },
+  { exact ⟨⟨λ n, ∅, λ n, compact_empty, Union_eq_univ_iff.2 $ λ x, (hn ⟨x⟩).elim⟩⟩ }
+end
+
 lemma tendsto_dist_right_cocompact_at_top [proper_space α] (x : α) :
   tendsto (λ y, dist y x) (cocompact α) at_top :=
 (has_basis_cocompact.tendsto_iff at_top_basis).2 $ λ r hr,
@@ -1299,13 +1314,11 @@ instance complete_of_proper [proper_space α] : complete_space α :=
   intros f hf,
   /- We want to show that the Cauchy filter `f` is converging. It suffices to find a closed
   ball (therefore compact by properness) where it is nontrivial. -/
-  have A : ∃ t ∈ f, ∀ x y ∈ t, dist x y < 1 := (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
-  rcases A with ⟨t, ⟨t_fset, ht⟩⟩,
+  obtain ⟨t, t_fset, ht⟩ : ∃ t ∈ f, ∀ x y ∈ t, dist x y < 1 := (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
   rcases hf.1.nonempty_of_mem t_fset with ⟨x, xt⟩,
-  have : t ⊆ closed_ball x 1 := by intros y yt; simp [dist_comm]; apply le_of_lt (ht x y xt yt),
-  have : closed_ball x 1 ∈ f := f.sets_of_superset t_fset this,
+  have : closed_ball x 1 ∈ f := mem_sets_of_superset t_fset (λ y yt, (ht y x yt xt).le),
   rcases (compact_iff_totally_bounded_complete.1 (proper_space.compact_ball x 1)).2 f hf
-    (le_principal_iff.2 this) with ⟨y, _, hy⟩,
+    (le_principal_iff.2 this) with ⟨y, -, hy⟩,
   exact ⟨y, hy⟩
 end⟩
 
@@ -1563,7 +1576,7 @@ end
 then `ennreal.of_real C`  bounds the emetric diameter of this set. -/
 lemma ediam_le_of_forall_dist_le {C : ℝ} (h : ∀ (x ∈ s) (y ∈ s), dist x y ≤ C) :
   emetric.diam s ≤ ennreal.of_real C :=
-emetric.diam_le_of_forall_edist_le $
+emetric.diam_le $
 λ x hx y hy, (edist_dist x y).symm ▸ ennreal.of_real_le_of_real (h x hx y hy)
 
 /-- If the distance between any two points in a set is bounded by some non-negative constant,
@@ -1857,37 +1870,6 @@ instance metric_space_pi : metric_space (Πb, π b) :=
   ..pseudo_metric_space_pi }
 
 end pi
-
-/-- A proper metric space is separable, and therefore second countable. Indeed, any ball is
-compact, and therefore admits a countable dense subset. Taking a countable union over the balls
-centered at a fixed point and with integer radius, one obtains a countable set which is
-dense in the whole space. -/
-@[priority 100] -- see Note [lower instance priority]
-instance second_countable_of_proper [proper_space γ] :
-  second_countable_topology γ :=
-begin
-  /- It suffices to show that `γ` admits a countable dense subset. -/
-  suffices : separable_space γ,
-  { resetI, apply emetric.second_countable_of_separable },
-  constructor,
-  /- We show that the space admits a countable dense subset. The case where the space is empty
-  is special, and trivial. -/
-  rcases _root_.em (nonempty γ) with (⟨⟨x⟩⟩|hγ), swap,
-  { exact ⟨∅, countable_empty, λ x, (hγ ⟨x⟩).elim⟩ },
-  /- When the space is not empty, we take a point `x` in the space, and then a countable set
-    `T r` which is dense in the closed ball `closed_ball x r` for each `r`. Then the set
-    `t = ⋃ T n` (where the union is over all integers `n`) is countable, as a countable union
-    of countable sets, and dense in the space by construction. -/
-  choose T T_sub T_count T_closure using
-    show ∀ (r:ℝ), ∃ t ⊆ closed_ball x r, (countable (t : set γ) ∧ closed_ball x r = closure t),
-      from assume r, emetric.countable_closure_of_compact (proper_space.compact_ball _ _),
-  use [⋃n:ℕ, T (n : ℝ), countable_Union (λ n, T_count n)],
-  intro y,
-  rcases exists_nat_gt (dist y x) with ⟨n, n_large⟩,
-  have h : y ∈ closed_ball x (n : ℝ) := n_large.le,
-  rw [T_closure] at h,
-  exact closure_mono (subset_Union _ _) h
-end
 
 section proper_space
 

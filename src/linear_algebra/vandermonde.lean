@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Anne Baanen
+Authors: Anne Baanen
 -/
 
 import group_theory.perm.fin
 import linear_algebra.determinant
+import tactic.ring_exp
 
 /-!
 # Vandermonde matrix
@@ -33,8 +34,8 @@ namespace matrix
 
 /-- `vandermonde v` is the square matrix with `i`th row equal to `1, v i, v i ^ 2, v i ^ 3, ...`.
 -/
-def vandermonde {n : ℕ} (v : fin n → R) : matrix (fin n) (fin n) R
-| i j := v i ^ (j : ℕ)
+def vandermonde {n : ℕ} (v : fin n → R) : matrix (fin n) (fin n) R :=
+λ i j, v i ^ (j : ℕ)
 
 @[simp] lemma vandermonde_apply {n : ℕ} (v : fin n → R) (i j) :
   vandermonde v i j = v i ^ (j : ℕ) :=
@@ -66,11 +67,11 @@ begin
   { rcases j with ⟨_, ⟨⟩⟩ },
   rcases lt_trichotomy j i with hlt | heq | hgt,
   { rw [fin.cycle_range_of_lt hlt, fin.succ_above_below, swap_apply_of_ne_of_ne],
-    { ext, simp [fin.fin.coe_add_one (lt_of_lt_of_le hlt (nat.lt_succ_iff.mp i.2))] },
+    { ext, simp [fin.coe_add_one (lt_of_lt_of_le hlt (nat.lt_succ_iff.mp i.2))] },
     { apply fin.succ_ne_zero },
     { exact (fin.succ_injective _).ne hlt.ne },
     { rw fin.lt_iff_coe_lt_coe,
-      simpa [fin.fin.coe_add_one (lt_of_lt_of_le hlt (nat.lt_succ_iff.mp i.2))] using hlt } },
+      simpa [fin.coe_add_one (lt_of_lt_of_le hlt (nat.lt_succ_iff.mp i.2))] using hlt } },
   { rw [heq, fin.cycle_range_self, fin.succ_above_below, swap_apply_right, fin.cast_succ_zero],
     { rw fin.cast_succ_zero, apply fin.succ_pos } },
   { rw [fin.cycle_range_of_gt hgt, fin.succ_above_above, swap_apply_of_ne_of_ne],
@@ -79,7 +80,8 @@ begin
     { simpa [fin.le_iff_coe_le_coe] using hgt } },
 end
 
-lemma det_succ {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
+/-- Develop the determinant of an `n+1 × n+1` matrix along the first row. -/
+lemma det_succ_row {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
   det A = ∑ i : fin n.succ, (-1) ^ (i : ℕ) * A i 0 *
     det (λ (i' j' : fin n), A (i.succ_above i') j'.succ) :=
 begin
@@ -91,12 +93,14 @@ begin
         equiv.perm.decompose_fin.symm_sign, equiv.swap_self, if_true, id.def, eq_self_iff_true,
         equiv.perm.decompose_fin_symm_apply_succ, fin.succ_above_zero, equiv.coe_refl, pow_zero,
         algebra.mul_smul_comm] },
-  -- `univ_perm_fin_succ` gives a different embedding of `fin n` into `fin n.succ`,
+  -- `univ_perm_fin_succ` gives a different embedding of `perm (fin n)` into
+  -- `perm (fin n.succ)` than the determinant of the submatrix we want,
   -- permute `A` so that we get the correct one.
   have : (-1 : R) ^ (i : ℕ) = i.cycle_range.sign,
   { simp [fin.sign_cycle_range] },
   rw [fin.coe_succ, pow_succ, this, mul_assoc, mul_assoc, mul_left_comm ↑(equiv.perm.sign _),
       ← det_permute, matrix.det_apply, finset.mul_sum, finset.mul_sum],
+  -- now we just need to move the crresponding parts to the same place
   refine finset.sum_congr rfl (λ σ _, _),
   rw [equiv.perm.decompose_fin.symm_sign, if_neg (fin.succ_ne_zero i)],
   calc ((-1) * σ.sign : ℤ) • ∏ i', A (equiv.perm.decompose_fin.symm (fin.succ i, σ) i') i'
@@ -108,33 +112,153 @@ begin
     equiv.perm.decompose_fin_symm_apply_zero, equiv.perm.decompose_fin_symm_apply_succ]
 end
 
+/-- Develop the determinant of an `n+1 × n+1` matrix along the first column -/
+lemma det_succ_column {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
+  det A = ∑ j : fin n.succ, (-1) ^ (j : ℕ) * A 0 j *
+    det (λ (i' j' : fin n), A i'.succ (j.succ_above j')) :=
+by { rw [← det_transpose A, det_succ_row],
+     refine finset.sum_congr rfl (λ i _, _),
+     rw [← det_transpose],
+     simp only [matrix.transpose_apply],
+     refl }
+
+lemma det_mul_row {n : Type*} [fintype n] [decidable_eq n] (v : n → R) (A : matrix n n R) :
+  det (λ i j, v j * A i j) = (∏ i, v i) * det A :=
+calc det (λ i j, v j * A i j) = det (A ⬝ diagonal v) :
+  congr_arg det $ by { ext, simp [mul_comm] }
+... = (∏ i, v i) * det A : by rw [det_mul, det_diagonal, mul_comm]
+
+lemma det_mul_column {n : Type*} [fintype n] [decidable_eq n] (v : n → R) (A : matrix n n R) :
+  det (λ i j, v i * A i j) = (∏ i, v i) * det A :=
+calc det (λ i j, v i * A i j) = det (diagonal v ⬝ A) :
+  congr_arg det $ by { ext, simp }
+... = (∏ i, v i) * det A : by rw [det_mul, det_diagonal]
+
+@[simp]
+lemma fin.univ_filter_zero_lt {n : ℕ} :
+  (finset.univ : finset (fin n.succ)).filter (λ i, 0 < i) =
+    finset.univ.map ⟨fin.succ, fin.succ_injective _⟩ :=
+begin
+  ext i,
+  simp only [finset.mem_filter, finset.mem_map, finset.mem_univ, true_and,
+    function.embedding.coe_fn_mk, exists_true_left],
+  split,
+  { refine fin.cases _ _ i,
+    { rintro ⟨⟨⟩⟩ },
+    { intros i _, exact ⟨i, finset.mem_univ _, rfl⟩ } },
+  { rintro ⟨i, _, rfl⟩,
+    exact fin.succ_pos _ },
+end
+
+@[simp]
+lemma fin.univ_filter_succ_lt {n : ℕ} (j : fin n) :
+  (finset.univ : finset (fin n.succ)).filter (λ i, j.succ < i) =
+    (finset.univ.filter (λ i, j < i)).map ⟨fin.succ, fin.succ_injective _⟩ :=
+begin
+  ext i,
+  simp only [finset.mem_filter, finset.mem_map, finset.mem_univ, true_and,
+      function.embedding.coe_fn_mk, exists_true_left],
+  split,
+  { refine fin.cases _ _ i,
+    { rintro ⟨⟨⟩⟩ },
+    { intros i hi,
+      exact ⟨i, finset.mem_filter.mpr ⟨finset.mem_univ _, fin.succ_lt_succ_iff.mp hi⟩, rfl⟩ } },
+  { rintro ⟨i, hi, rfl⟩,
+    exact fin.succ_lt_succ_iff.mpr (finset.mem_filter.mp hi).2 },
+end
+
+-- TODO: can't be `@[to_additive]` because of the `0` appearing in the statement
+lemma prod_filter_zero_lt {M : Type*} [comm_monoid M] {n : ℕ} {v : fin n.succ → M} :
+  ∏ i in finset.univ.filter (λ (i : fin n.succ), 0 < i), v i = ∏ (j : fin n), v j.succ :=
+by rw [fin.univ_filter_zero_lt, finset.prod_map, function.embedding.coe_fn_mk]
+
+lemma prod_filter_succ_lt {M : Type*} [comm_monoid M] {n : ℕ} (j : fin n) (v : fin n.succ → M) :
+  ∏ i in finset.univ.filter (λ i, j.succ < i), v i =
+    ∏ j in finset.univ.filter (λ i, j < i), v j.succ :=
+by rw [fin.univ_filter_succ_lt, finset.prod_map, function.embedding.coe_fn_mk]
+
+/-- The "remarkable product" giving the differnece of two powers. -/
+lemma sub_mul_sum_pow (a b : R) (n : ℕ) :
+  (a - b) * ∑ i in finset.range (n + 1), a ^ i * b ^ (n - i) = a ^ (n + 1) - b ^ (n + 1) :=
+begin
+  induction n with n ih,
+  { simp },
+  calc (a - b) * ∑ (i : ℕ) in finset.range (n + 2), a ^ i * b ^ (n + 1 - i)
+      = a * ((a - b) * (∑ (x : ℕ) in finset.range (n + 1), a ^ x * b ^ (n - x))) +
+        (a - b) * (b * b ^ n) :
+    by simp [finset.sum_range_succ', pow_succ, mul_assoc, ← finset.mul_sum, mul_add, mul_left_comm]
+  ... = a * (a ^ (n + 1) - b ^ (n + 1)) + (a - b) * (b * b ^ n) : by rw ih
+  ... = a ^ (n + 2) - b ^ (n + 2) : by ring_exp
+end
+
+lemma det_eq_of_eq_mul_det_one {n : Type*} [fintype n] [decidable_eq n] {A B : matrix n n R}
+  (C : matrix n n R) (hC : det C = 1) (hA : A = B ⬝ C) : det A = det B :=
+calc det A = det (B ⬝ C) : congr_arg _ hA
+... = det B * det C : det_mul _ _
+... = det B : by rw [hC, mul_one]
+
+lemma det_eq_of_eq_det_one_mul {n : Type*} [fintype n] [decidable_eq n] {A B : matrix n n R}
+  (C : matrix n n R) (hC : det C = 1) (hA : A = C ⬝ B) : det A = det B :=
+calc det A = det (C ⬝ B) : congr_arg _ hA
+... = det C * det B : det_mul _ _
+... = det B : by rw [hC, one_mul]
+
+lemma det_eq_of_linear_combination_row_aux {n : Type*} [fintype n] [decidable_eq n]
+  {A B : matrix n n R} {s : finset n} : ∀ (c : n → R) (hs : ∀ i, c i ≠ 0 → i ∈ s)
+  (k : n) (hk : k ∉ s) (A_eq : ∀ i j, A i j = B i j + c i * A k j),
+  det A = det B :=
+begin
+  refine s.induction_on _ _,
+  { intros c hs k hk A_eq,
+    have : ∀ i, c i = 0,
+    { intros i,
+      specialize hs i,
+      contrapose! hs,
+      simp [hs] },
+    congr,
+    ext i j,
+    rw [A_eq, this, zero_mul, add_zero], },
+  { intros a s ha ih c hs k hk A_eq, }
+end
+
+lemma det_eq_of_linear_combination_row {n : Type*} [fintype n] [decidable_eq n]
+  {A B : matrix n n R} (c : n → R) (k : n) (hk : c k = 0)
+  (A_eq : ∀ i j, A i j = B i j + c i * A k j) :
+  det A = det B :=
+det_eq_of_linear_combination_row_aux c
+  (λ i hi, finset.mem_erase.mpr
+    ⟨mt (λ (h : i = k), show c i = 0, from h.symm ▸ hk) hi, finset.mem_univ i⟩)
+  k (finset.not_mem_erase k finset.univ) A_eq
+
 lemma det_vandermonde {n : ℕ} (v : fin n → R) :
   det (vandermonde v) = ∏ i : fin n, ∏ j in finset.univ.filter (λ j, i < j), (v j - v i) :=
 begin
+  -- TODO: un-transpose the proof?
+  rw ← det_transpose,
+  change det (λ (i j : fin n), v j ^ ↑i) = _,
+
   induction n with n ih,
   { exact det_eq_one_of_card_eq_zero (fintype.card_fin 0) },
 
-  rw vandermonde_succ,
-
   calc det (λ (i j : fin n.succ), v j ^ (i : ℕ))
-      = det (λ i, fin.cons (v 0 ^ (i : ℕ)) (λ j, v j.succ ^ (i : ℕ) - v 0 ^ (i : ℕ))) :
-        det_eq_of_column_eq_add_zero _ _ (λ _, 1) _ _
+      = det (λ i, fin.cons (v 0 ^ (i : ℕ)) (λ j, v (fin.succ j) ^ (i : ℕ) - v 0 ^ (i : ℕ))) :
+    det_eq_of_linear_combination_row (λ i, fin.cons 0 (-1)) _ _ _
   ... = det (λ (i j : fin n), @fin.cons _ (λ _, R)
               (v 0 ^ (i.succ : ℕ))
-              (λ (j : fin n), v j.succ ^ (i.succ : ℕ) - v 0 ^ (i.succ : ℕ))
+              (λ (j : fin n), v (fin.succ j) ^ (i.succ : ℕ) - v 0 ^ (i.succ : ℕ))
               (fin.succ_above 0 j)) :
     by simp_rw [det_succ_column, fin.sum_univ_succ, fin.cons_zero, fin.cons_succ, fin.coe_zero,
-                pow_zero, sub_self, one_mul, mul_zero, zero_mul, finset.sum_const_zero, add_zero]
-  ... = det (λ (i j : fin n), (v j.succ - v 0) *
+                pow_zero, one_mul, sub_self, mul_zero, zero_mul, finset.sum_const_zero, add_zero]
+  ... = det (λ (i j : fin n), (v (fin.succ j) - v 0) *
               (∑ k in finset.range (i + 1 : ℕ), v j.succ ^ k * v 0 ^ (i - k : ℕ))) :
     by { congr, ext i j, rw [fin.succ_above_zero, fin.cons_succ, fin.coe_succ, sub_mul_sum_pow] }
-  ... = (∏ (j : fin n), (v j.succ - v 0)) * det (λ (i j : fin n),
+  ... = (∏ (j : fin n), (v (fin.succ j) - v 0)) * det (λ (i j : fin n),
     (∑ k in finset.range (i + 1 : ℕ), v j.succ ^ k * v 0 ^ (i - k : ℕ))) :
-    det_row_mul (λ j, v j.succ - v 0) _
-  ... = (∏ (j : fin n), (v j.succ - v 0)) * det (λ (i j : fin n), v j.succ ^ (i : ℕ)) :
+    det_mul_row (λ j, v (fin.succ j) - v 0) _
+  ... = (∏ (j : fin n), (v (fin.succ j) - v 0)) * det (λ (i j : fin n), v (fin.succ j) ^ (i : ℕ)) :
     congr_arg ((*) _) _
   ... = ∏ i : fin n.succ, ∏ j in finset.univ.filter (λ j, i < j), (v j - v i) :
-    by { simp_rw [ih, fin.prod_univ_succ, prod_filter_zero_lt, prod_filter_succ_lt] },
+    by { simp_rw [ih (v ∘ fin.succ), fin.prod_univ_succ, prod_filter_zero_lt, prod_filter_succ_lt] },
   { intro i, rw fin.cons_zero },
   { intros i j, rw [fin.cons_succ, one_mul, sub_add_cancel] },
   { cases n,

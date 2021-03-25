@@ -76,7 +76,7 @@ variables [semimodule R M] [semimodule R M₂]
 def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
 { map_zero' := zero_smul R (0 : M) ▸ zero_smul R (f.to_fun 0) ▸ f.map_smul' 0 0, ..f }
 
-instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (M →ₗ[R] M₂) (λ _, M → M₂) := ⟨to_fun⟩
 
 initialize_simps_projections linear_map (to_fun → apply)
 
@@ -365,7 +365,7 @@ include R
 
 instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 -- see Note [function coercion]
-instance : has_coe_to_fun (M ≃ₗ[R] M₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (M ≃ₗ[R] M₂) (λ _, M → M₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_mk {to_fun inv_fun map_add map_smul left_inv right_inv } :
   ⇑(⟨to_fun, map_add, map_smul, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂) = to_fun :=

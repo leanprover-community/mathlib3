@@ -63,7 +63,7 @@ variables {V V₁ V₂ V₃ : Type*}
 variables [normed_group V] [normed_group V₁] [normed_group V₂] [normed_group V₃]
 variables {f g : normed_group_hom V₁ V₂}
 
-instance : has_coe_to_fun (normed_group_hom V₁ V₂) := ⟨_, normed_group_hom.to_fun⟩
+instance : has_coe_to_fun (normed_group_hom V₁ V₂) (λ _, V₁ → V₂) := ⟨normed_group_hom.to_fun⟩
 
 initialize_simps_projections normed_group_hom (to_fun → apply)
 

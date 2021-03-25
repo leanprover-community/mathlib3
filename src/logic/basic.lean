@@ -76,16 +76,16 @@ lemma subsingleton_iff_forall_eq {α : Sort*} (x : α) : subsingleton α ↔ ∀
   (a : α) : (a : γ) = (a : β) := rfl
 
 theorem coe_fn_coe_trans
-  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ]
-  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
+  {α β γ δ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ δ]
+  (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 @[simp] theorem coe_fn_coe_base
-  {α β} [has_coe α β] [has_coe_to_fun β]
-  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
+  {α β γ} [has_coe α β] [has_coe_to_fun β γ]
+  (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 theorem coe_sort_coe_trans
-  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ]
-  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
+  {α β γ δ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ δ]
+  (x : α) : @coe_sort α _ _ x = @coe_sort β _ _ x := rfl
 
 /--
 Many structures such as bundled morphisms coerce to functions so that you can
@@ -115,8 +115,8 @@ often causes loops in the simplifier.)
 library_note "function coercion"
 
 @[simp] theorem coe_sort_coe_base
-  {α β} [has_coe α β] [has_coe_to_sort β]
-  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
+  {α β γ} [has_coe α β] [has_coe_to_sort β γ]
+  (x : α) : @coe_sort α _ _ x = @coe_sort β _ _ x := rfl
 
 /-- `pempty` is the universe-polymorphic analogue of `empty`. -/
 @[derive decidable_eq]

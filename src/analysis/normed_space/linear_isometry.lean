@@ -31,7 +31,7 @@ namespace linear_isometry
 
 variables (f : E →ₗᵢ[R] F)
 
-instance : has_coe_to_fun (E →ₗᵢ[R] F) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (E →ₗᵢ[R] F) (λ _, E → F) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_to_linear_map : ⇑f.to_linear_map = f := rfl
 
@@ -161,7 +161,7 @@ namespace linear_isometry_equiv
 
 variables (e : E ≃ₗᵢ[R] F)
 
-instance : has_coe_to_fun (E ≃ₗᵢ[R] F) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (E ≃ₗᵢ[R] F) (λ _, E → F) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_mk (e : E ≃ₗ[R] F) (he : ∀ x, ∥e x∥ = ∥x∥) :
   ⇑(mk e he) = e :=

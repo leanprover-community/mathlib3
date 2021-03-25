@@ -255,8 +255,7 @@ end rack
 namespace shelf_hom
 variables {S₁ : Type*} {S₂ : Type*} {S₃ : Type*} [shelf S₁] [shelf S₂] [shelf S₃]
 
-instance : has_coe_to_fun (S₁ →◃ S₂) :=
-⟨_, shelf_hom.to_fun⟩
+instance : has_coe_to_fun (S₁ →◃ S₂) (λ _, S₁ → S₂) := ⟨shelf_hom.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : S₁ →◃ S₂) : f.to_fun = f := rfl
 

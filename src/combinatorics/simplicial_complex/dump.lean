@@ -28,6 +28,11 @@ begin
   apply h
 end
 
+lemma finset.exists_of_ssubset {α : Type*} {s t : finset α} (h : s ⊂ t) : (∃x∈t, x ∉ s) :=
+set.exists_of_ssubset h
+
+-- not_subset.1 h.
+
 -- TODO: move to mathlib
 theorem sdiff_union_of_subset {α : Type*} {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
 set.ext $ λ x, by simpa [em, or_comm, or_and_distrib_left] using or_iff_right_of_imp (@h x)
@@ -195,8 +200,6 @@ begin
   rintro p q h,
   simpa using h,
 end
-
-
 
 #exit
 /-

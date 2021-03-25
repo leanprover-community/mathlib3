@@ -30,6 +30,56 @@ The boundary of a simplex as a subspace.
 def boundary (X : finset E) : set E :=
 ⋃ Y ⊂ X, convex_hull Y
 
+lemma boundary_eq (X : finset E) :
+  boundary X =
+    {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ X, 0 ≤ w y) (hw₁ : ∑ y in X, w y = 1)
+        (hw₂ : ∃ y ∈ X, w y = 0), X.center_mass w id = x} :=
+begin
+  ext x,
+  simp_rw [boundary, mem_Union, set.mem_set_of_eq],
+  split,
+  { simp only [and_imp, exists_prop, exists_imp_distrib],
+    intros Y YX hx,
+    rw [finset.convex_hull_eq, set.mem_set_of_eq] at hx,
+    rcases hx with ⟨w, hw₀, hw₁, hx⟩,
+    rcases finset.exists_of_ssubset YX with ⟨y, hyX, hyY⟩,
+    let w' := λ z, if z ∈ Y then w z else 0,
+    have hw'₁ : X.sum w' = 1,
+    { rwa [←finset.sum_subset YX.1, finset.sum_extend_by_zero],
+      simp only [ite_eq_right_iff],
+      tauto },
+    refine ⟨w', _, hw'₁, ⟨_, ‹y ∈ X›, _⟩, _⟩,
+    { intros y hy,
+      change 0 ≤ ite (y ∈ Y) (w y) 0,
+      split_ifs,
+      { apply hw₀ y ‹_› },
+      { refl } },
+    { apply if_neg ‹y ∉ Y› },
+    rw ← finset.center_mass_subset id YX.1,
+    { rw [finset.center_mass_eq_of_sum_1],
+      { rw finset.center_mass_eq_of_sum_1 _ _ hw₁ at hx,
+        rw ← hx,
+        apply finset.sum_congr rfl,
+        intros x hx,
+        change ite _ _ _ • _ = _,
+        rw if_pos hx },
+      rwa finset.sum_extend_by_zero },
+    intros i _ hi,
+    apply if_neg hi },
+  { simp only [and_imp, exists_prop, exists_imp_distrib],
+    intros w hw₁ hw₂ y hy₁ hy₂ hy₃,
+    refine ⟨X.erase y, finset.erase_ssubset hy₁, _⟩,
+    rw [finset.convex_hull_eq, set.mem_set_of_eq],
+    refine ⟨w, λ z hz, hw₁ z (X.erase_subset _ hz), _, _⟩,
+    rw finset.sum_erase _ hy₂,
+    apply hw₂,
+    rwa finset.center_mass_subset _ (X.erase_subset _),
+    intros i hi₁ hi₂,
+    simp only [hi₁, and_true, not_not, finset.mem_erase] at hi₂,
+    subst hi₂,
+    apply hy₂ }
+end
+
 lemma boundaries_agree_of_high_dimension {X : finset E} (hXcard : X.card = m + 1) :
   boundary X = frontier (convex_hull X) :=
 begin
@@ -59,6 +109,28 @@ interior of the underlying space.
 -/
 def combi_interior (X : finset E) : set E :=
 convex_hull X \ boundary X
+
+example {p q : Prop} : (p → ¬q) → q → ¬p :=
+function.swap
+
+lemma combi_interior_eq (X : finset E) :
+  combi_interior X =
+    {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ X, 0 < w y) (hw₁ : ∑ y in X, w y = 1),
+      X.center_mass w id = x} :=
+begin
+  rw [combi_interior, finset.convex_hull_eq, boundary_eq],
+  ext x,
+  split,
+  { simp only [not_exists, and_imp, not_and, mem_set_of_eq, mem_diff, exists_imp_distrib],
+    rintro w hw₁ hw₂ hw₃ q,
+    refine ⟨w, λ y hy, _, hw₂, hw₃⟩,
+    exact lt_of_le_of_ne (hw₁ _ hy) (ne.symm (λ t, q w hw₁ hw₂ y hy t hw₃)) },
+  { simp only [not_exists, and_imp, not_and, mem_set_of_eq, mem_diff, exists_imp_distrib],
+    intros w hw₁ hw₂ hw₃,
+    refine ⟨⟨w, λ y hy, le_of_lt (hw₁ y hy), hw₂, hw₃⟩, _⟩,
+    intros w' hw'₁ hw'₂ y hy₁ hy₂,
+    sorry }
+end
 
 lemma boundary_subset_convex_hull {X : finset E} : boundary X ⊆ convex_hull X :=
 bUnion_subset (λ Y hY, convex_hull_mono hY.1)

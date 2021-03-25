@@ -2102,9 +2102,46 @@ end
 
 end field
 
+/-- Given `f : M₁ ≃ₗ[R] M₂` and `U` a submodule of `M₂`, `f.comap U` is the
+induced `linear_equiv` from `U.comap f.to_linear_map` to `U`. -/
+def comap [ring R] [add_comm_group M] [module R M]
+  [add_comm_group M₂] [module R M₂] (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
+  U.comap f.to_linear_map ≃ₗ[R] U := f.of_submodules _ _
+begin
+  ext x,
+  simp_rw [submodule.mem_map, submodule.mem_comap],
+  split; intro hx,
+  { rcases hx with ⟨y, hy, rfl⟩,
+    exact hy },
+  { refine ⟨f.inv_fun x, _⟩,
+    simpa }
+end
+
 end linear_equiv
 
 namespace submodule
+
+/-- Given `p` a submodule of the module `M` and `q` a submodule of `p`, `p.equiv_subtype_map q`
+is the natural `linear_equiv` between `q` and `q.map p.subtype`. -/
+noncomputable def equiv_subtype_map [ring R] [add_comm_group M] [module R M]
+  (p : submodule R M) (q : submodule R p) : q ≃ₗ[R] q.map p.subtype :=
+linear_equiv.of_bijective ((p.subtype.dom_restrict q).cod_restrict _
+  begin
+    rintro ⟨x, hx⟩,
+    refine ⟨x, hx, rfl⟩,
+  end)
+  begin
+    rw linear_map.ker_eq_bot,
+    rintro ⟨⟨_, _⟩, _⟩ ⟨⟨_, _⟩, _⟩ hxy,
+    rw [subtype.mk_eq_mk, subtype.mk_eq_mk],
+    injections with hxy,
+  end
+  begin
+    rw linear_map.range_eq_top,
+    rintro ⟨x, hx⟩,
+    rcases hx with ⟨y, hy, rfl⟩,
+    refine ⟨⟨y, hy⟩, rfl⟩,
+  end
 
 section semimodule
 

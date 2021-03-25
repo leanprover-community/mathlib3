@@ -330,7 +330,7 @@ begin
     _ (fin n) _ I).restrict_scalars R).symm,
   refine quotient (submodule.map_fg_of_fg I hfg _) _,
   refine equiv _ (mv_polynomial.sum_alg_equiv _ _ _),
-  exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R sum_fin_sum_equiv).symm
+  exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R fin_sum_fin_equiv).symm
 end
 
 

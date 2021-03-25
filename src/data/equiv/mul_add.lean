@@ -112,11 +112,7 @@ instance : inhabited (M ≃* M) := ⟨refl M⟩
 /-- The inverse of an isomorphism is an isomorphism. -/
 @[symm, to_additive "The inverse of an isomorphism is an isomorphism."]
 def symm (h : M ≃* N) : N ≃* M :=
-{ map_mul' := λ n₁ n₂, h.injective $
-    begin
-      have : ∀ x, h (h.to_equiv.symm.to_fun x) = x := h.to_equiv.apply_symm_apply,
-      simp only [this, h.map_mul]
-    end,
+{ map_mul' := (h.to_mul_hom.inverse h.to_equiv.symm h.left_inv h.right_inv).map_mul,
   .. h.to_equiv.symm}
 
 /-- See Note [custom simps projection] -/

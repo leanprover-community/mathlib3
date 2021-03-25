@@ -531,7 +531,7 @@ instance : add_comm_group (α →ᵇ β) :=
   ..bounded_continuous_function.has_sub,
   ..bounded_continuous_function.has_zero }
 
-@[simp] lemma coe_sub : ⇑(f - g) = (⇑f : α → β) - (⇑g : α → β) := rfl
+@[simp] lemma coe_sub : ⇑(f - g) = f - g := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
 
 /-- Coercion of a `normed_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/

@@ -62,6 +62,26 @@ instance right_cancel_semigroup [∀ i, right_cancel_semigroup $ f i] :
   right_cancel_semigroup (Π i : I, f i) :=
 by refine_struct { mul := (*) }; tactic.pi_instance_derive_field
 
+@[to_additive add_left_cancel_monoid]
+instance left_cancel_monoid [∀ i, left_cancel_monoid $ f i] :
+  left_cancel_monoid (Π i : I, f i) :=
+by refine_struct { mul := (*) }; tactic.pi_instance_derive_field
+
+@[to_additive add_right_cancel_monoid]
+instance right_cancel_monoid [∀ i, right_cancel_monoid $ f i] :
+  right_cancel_monoid (Π i : I, f i) :=
+by refine_struct { mul := (*) }; tactic.pi_instance_derive_field
+
+@[to_additive add_cancel_monoid]
+instance cancel_monoid [∀ i, cancel_monoid $ f i] :
+  cancel_monoid (Π i : I, f i) :=
+by refine_struct { mul := (*) }; tactic.pi_instance_derive_field
+
+@[to_additive add_cancel_comm_monoid]
+instance cancel_comm_monoid [∀ i, cancel_comm_monoid $ f i] :
+  cancel_comm_monoid (Π i : I, f i) :=
+by refine_struct { mul := (*) }; tactic.pi_instance_derive_field
+
 instance mul_zero_class [∀ i, mul_zero_class $ f i] :
   mul_zero_class (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field

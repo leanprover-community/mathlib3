@@ -16,6 +16,7 @@ There are also facts about more complicated integrals:
   along with explicit product formulas for even and odd `n`.
 
 With these lemmas, many simple integrals can be computed by `simp` or `norm_num`.
+See `test/integration.lean` for specific examples.
 
 This file is still being developed.
 -/

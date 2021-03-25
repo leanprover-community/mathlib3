@@ -344,7 +344,8 @@ def additive_obj_iso_biproduct (F : Mat_ C ⥤ D) [functor.additive F] (M : Mat_
 @[reassoc] lemma additive_obj_iso_biproduct_naturality (F : Mat_ C ⥤ D) [functor.additive F]
   {M N : Mat_ C} (f : M ⟶ N) :
   F.map f ≫ (additive_obj_iso_biproduct F N).hom =
-    (additive_obj_iso_biproduct F M).hom ≫ biproduct.matrix (λ i j, F.map ((embedding C).map (f i j))) :=
+    (additive_obj_iso_biproduct F M).hom ≫
+      biproduct.matrix (λ i j, F.map ((embedding C).map (f i j))) :=
 begin
   -- This is disappointingly tedious.
   ext,

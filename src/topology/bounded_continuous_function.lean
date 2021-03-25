@@ -513,7 +513,7 @@ instance : has_sub (α →ᵇ β) :=
 
 @[simp] lemma coe_add : ⇑(f + g) = (⇑f : α → β) + (⇑g : α → β) := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
-@[simp] lemma coe_neg : ⇑(-f) = λ x, - f x := rfl
+@[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 lemma neg_apply : (-f) x = -f x := rfl
 
 lemma forall_coe_zero_iff_zero : (∀x, f x = 0) ↔ f = 0 :=

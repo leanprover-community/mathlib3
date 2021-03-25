@@ -61,8 +61,7 @@ S.to_subsemiring.to_semiring
 elements of the subsemiring closure of `S`. -/
 lemma clss : (add_submonoid.closure (S : set R)).carrier = subsemiring.closure (S : set R) :=
 begin
-  ext x,
-  refine ⟨λ hx, _, λ hx, _⟩,
+  refine set.ext (λ x, ⟨λ hx, _, λ hx, _⟩),
   { refine subsemiring.mem_coe.mpr _,
     rintros - ⟨H1, rfl⟩,
     rintros - ⟨H2, rfl⟩,

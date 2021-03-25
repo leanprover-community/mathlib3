@@ -478,6 +478,17 @@ by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonpos_iff.mpr ha
 theorem pow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_neg_iff.mpr ha
 
+lemma pow_even_abs (a : R) {p : ℕ} (hp : even p) :
+  abs a ^ p = a ^ p :=
+begin
+  rw [←abs_pow, abs_eq_self],
+  exact pow_even_nonneg _ hp
+end
+
+@[simp] lemma pow_bit0_abs (a : R) (p : ℕ) :
+  abs a ^ bit0 p = a ^ bit0 p :=
+pow_even_abs _ (even_bit0 _)
+
 lemma strict_mono_pow_bit1 (n : ℕ) : strict_mono (λ a : R, a ^ bit1 n) :=
 begin
   intros a b hab,

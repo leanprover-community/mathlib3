@@ -96,7 +96,7 @@ single_op (λ i : I, ((•) r : f i → f i)) (λ j, smul_zero _) _ _
 lemma single_smul' {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_monoid (g i)]
   [Π i, distrib_mul_action (f i) (g i)] [decidable_eq I] (i : I) (r : f i) (x : g i) :
   single i (r • x) = single i r • single i x :=
-single_binop (λ i : I, ((•) : f i → g i → g i)) (λ j, smul_zero _) _ _ _
+single_op₂ (λ i : I, ((•) : f i → g i → g i)) (λ j, smul_zero _) _ _ _
 
 variables (I f)
 

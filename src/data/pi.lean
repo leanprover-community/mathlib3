@@ -78,8 +78,8 @@ lemma apply_single₂ (f' : Π i, f i → g i → h i) (hf' : ∀ i, f' i 0 0 = 
   f' j (single i x j) (single i y j) = single i (f' i x y) j :=
 begin
   by_cases h : j = i,
-  { subst h, simp only [single_eq_same], },
-  { simp only [h, single_eq_of_ne, ne.def, not_false_iff, hf'], },
+  { subst h, simp only [single_eq_same] },
+  { simp only [single_eq_of_ne h, hf'] },
 end
 
 lemma single_op {g : I → Type*} [Π i, has_zero (g i)] (op : Π i, f i → g i) (h : ∀ i, op i 0 = 0)
@@ -87,7 +87,7 @@ lemma single_op {g : I → Type*} [Π i, has_zero (g i)] (op : Π i, f i → g i
   single i (op i x) = λ j, op j (single i x j) :=
 eq.symm $ funext $ apply_single op h i x
 
-lemma single_binop {g₁ g₂ : I → Type*} [Π i, has_zero (g₁ i)] [Π i, has_zero (g₂ i)]
+lemma single_op₂ {g₁ g₂ : I → Type*} [Π i, has_zero (g₁ i)] [Π i, has_zero (g₂ i)]
   (op : Π i, g₁ i → g₂ i → f i) (h : ∀ i, op i 0 0 = 0) (i : I) (x₁ : g₁ i) (x₂ : g₂ i) :
   single i (op i x₁ x₂) = λ j, op j (single i x₁ j) (single i x₂ j) :=
 eq.symm $ funext $ apply_single₂ op h i x₁ x₂

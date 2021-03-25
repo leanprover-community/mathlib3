@@ -141,7 +141,7 @@ into a dependent family of additive monoids, as functions supported at a point.
 This is the `add_monoid_hom` version of `pi.single`. -/
 @[simps] def add_monoid_hom.single [Π i, add_monoid $ f i] (i : I) : f i →+ Π i, f i :=
 { to_fun := single i,
-  map_add' := single_binop (λ _, (+)) (λ _, zero_add _) _,
+  map_add' := single_op₂ (λ _, (+)) (λ _, zero_add _) _,
   .. (zero_hom.single f i) }
 
 /-- The multiplicative homomorphism including a single `monoid_with_zero`
@@ -150,7 +150,7 @@ into a dependent family of monoid_with_zeros, as functions supported at a point.
 This is the `mul_hom` version of `pi.single`. -/
 @[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=
 { to_fun := single i,
-  map_mul' := single_binop (λ _, (*)) (λ _, zero_mul _) _, }
+  map_mul' := single_op₂ (λ _, (*)) (λ _, zero_mul _) _, }
 
 variables {f}
 

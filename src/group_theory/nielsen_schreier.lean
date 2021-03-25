@@ -40,6 +40,8 @@ but we work directly with groupoids instead of spaces. The main steps are as fol
 This finishes the proof, modulo finding an appropriate rooted subtree.
 -/
 
+noncomputable theory
+open_locale classical
 universes v u
 
 open category_theory opposite category_theory.action_category semidirect_product
@@ -103,11 +105,13 @@ end is_free_group
 class is_free_groupoid (G) [groupoid.{v} G] :=
 (generators : quiver.{v+1} G)
 (of : Π ⦃a b⦄, generators.arrow a b → (a ⟶ b))
-(unique_lift : ∀ X [group.{v} X] (f : generators.labelling X),
+(unique_lift : ∀ {X} [group.{v} X] (f : generators.labelling X),
                 ∃! F : G ⥤ single_obj X, ∀ a b (g : generators.arrow a b),
                   F.map (of g) = f g)
 
-namespace is_free_groupoid.covering
+namespace is_free_groupoid
+
+namespace covering
 
 instance {G A X : Type*} [monoid G] [mul_action G A] : mul_action Gᵒᵖ (A → X) :=
 { smul := λ g' F a, F (g'.unop • a),
@@ -156,14 +160,14 @@ have F_map_eq : ∀ {a b} {f : a ⟶ b}, F.map f = (F.map (hom_of_pair a.snd f.v
     rw [op_eq_iff_eq_unop, unop_one],
     congr, funext,
     rw [pi.one_apply, op_eq_iff_eq_unop, unop_one],
-    exact (F_map_eq.congr rfl).mp (F.map_id a),
+    exact F_map_eq.symm.trans (F.map_id a),
   end,
   map_mul' := begin
     intros g h,
     rw [op_eq_iff_eq_unop, ←op_mul, unop_op],
     congr, funext,
     rw [op_eq_iff_eq_unop, pi.mul_apply, unop_mul, unop_op],
-    exact (F_map_eq.congr rfl).mp (F.map_comp (hom_of_pair a h) (hom_of_pair (h • a) g)),
+    exact F_map_eq.symm.trans (F.map_comp (hom_of_pair a h) (hom_of_pair (h • a) g)),
   end }
 
 /-- Given `G` acting on `A`, a group homomorphism `φ : G →* G ⋉ (A → X)` can be uncurried to
@@ -183,21 +187,21 @@ def uncurry {G A X} [group G] [mul_action G A] [group X]
         mul_left, pi.mul_apply, mul_aut_of_action_apply, sane],
     refl } }
 
-open is_free_group
+open is_free_group as fgp
 
 noncomputable instance {G A} [group G] [is_free_group G] [mul_action G A] :
   is_free_groupoid (action_category G A) :=
-{ generators := ⟨λ a b, { e : generators G // (of e • a.snd : A) = b.snd }⟩,
-  of := λ a b e, ⟨of e, e.property⟩,
+{ generators := ⟨λ a b, { e : fgp.generators G // (fgp.of e • a.snd : A) = b.snd }⟩,
+  of := λ a b e, ⟨fgp.of e, e.property⟩,
   unique_lift := begin
     introsI X _ f,
     let X' := ((A → Xᵒᵖ) ⋊[mul_aut_of_action G A Xᵒᵖ] Gᵒᵖ)ᵒᵖ,
-    let f' : generators G → X' := λ e, op ⟨λ a, op (@f a (_ : A) ⟨e, rfl⟩), op (of e)⟩,
-    rcases unique_lift f' with ⟨F', hF', uF'⟩,
+    let f' : fgp.generators G → X' := λ e, op ⟨λ a, op (@f a (_ : A) ⟨e, rfl⟩), op (fgp.of e)⟩,
+    rcases fgp.unique_lift f' with ⟨F', hF', uF'⟩,
     let F : action_category G A ⥤ single_obj X := uncurry F' _,
     refine ⟨F, _, _⟩,
-    { rintros ⟨⟨⟩, a : A⟩ ⟨⟨⟩, b⟩ ⟨e, h : of e • a = b⟩,
-      change ((F' (of _)).unop.left _).unop = _,
+    { rintros ⟨⟨⟩, a : A⟩ ⟨⟨⟩, b⟩ ⟨e, h : fgp.of e • a = b⟩,
+      change ((F' (fgp.of _)).unop.left _).unop = _,
       rw hF', cases h, refl },
     { intros E hE,
       let E' := curry E,
@@ -214,8 +218,114 @@ noncomputable instance {G A} [group G] [is_free_group G] [mul_action G A] :
       { refine action_category.cases _, intros,
         change _ == ((F' _).unop.left _).unop,
         rw ←this, refl } },
-    { apply end_is_id ((hom_op_equiv_op_hom (right_hom : _ →* Gᵒᵖ)).comp F'),
+    { apply fgp.end_is_id ((hom_op_equiv_op_hom (right_hom : _ →* Gᵒᵖ)).comp F'),
       intro, rw [monoid_hom.comp_apply, hF'], refl }
   end }
 
-end is_free_groupoid.covering
+end covering
+
+section retract
+open quiver
+
+variables {G : Type u} [groupoid.{u} G] [is_free_groupoid G]
+  (T : wide_subquiver (generators.symmetrify : quiver G))
+
+-- an abbreviation for taking the quiver corresponding to a subquiver
+local notation T `♯` :10000 := T.quiver
+
+variable [arborescence T♯]
+
+/-- A path in the tree gives a hom, by composition. -/
+noncomputable def hom_of_path : Π {a : G}, T♯.path T♯.root a → (T♯.root ⟶ a)
+| _ path.nil := 𝟙 _
+| a (path.cons p ⟨sum.inl e, h⟩) := hom_of_path p ≫ of e
+| a (path.cons p ⟨sum.inr e, h⟩) := hom_of_path p ≫ inv (of e)
+
+/-- For every vertex `a`, there is a canonical hom from the root, given by the
+    path in the tree. -/
+def tree_hom (a : G) : T♯.root ⟶ a := hom_of_path T (default _)
+
+lemma tree_hom_eq {a : G} (p q : T♯.path T♯.root a) : hom_of_path T p = hom_of_path T q :=
+by congr
+
+@[simp] lemma tree_hom_root : tree_hom T T♯.root = 𝟙 _ :=
+(tree_hom_eq T _ path.nil).trans rfl
+
+/-- Any hom in `G` can be made into a loop, by conjugating with `tree_hom`s. -/
+@[simp] def loop_of_hom {a b : G} (p : a ⟶ b) : End T♯.root :=
+tree_hom T a ≫ p ≫ inv (tree_hom T b)
+
+lemma loop_of_hom_eq_id {a b : G} {e : generators.arrow a b} :
+  (sum.inl e) ∈ T a b ∨ (sum.inr e) ∈ T b a
+    → loop_of_hom T (of e) = 𝟙 _ :=
+begin
+  rw [loop_of_hom, ←category.assoc, is_iso.comp_inv_eq, category.id_comp, tree_hom, tree_hom],
+  rintro (h | h),
+  { refine eq.trans _ (tree_hom_eq T (path.cons (default _) ⟨sum.inl e, h⟩) _),
+    rw hom_of_path },
+  { rw tree_hom_eq T (default _) (path.cons (default _) ⟨sum.inr e, h⟩),
+    simp only [hom_of_path, is_iso.inv_hom_id, category.comp_id, category.assoc] }
+end
+
+/-- Since a hom gives a loop, a homomorphism from the vertex group at the root
+    extends to a functor on the whole groupoid. -/
+def functor_of_monoid_hom {X} [monoid X] (f : End T♯.root →* X) :
+  G ⥤ single_obj X :=
+{ obj := λ _, (),
+  map := λ a b p, f (loop_of_hom T p),
+  map_id' := begin intro a, convert f.map_one, simp end,
+  map_comp' := by { intros, rw [single_obj.comp_as_mul, ←f.map_mul],
+    simp only [is_iso.inv_hom_id_assoc, loop_of_hom, End.mul_def, category.assoc] } }
+
+@[simp] lemma functor_of_monoid_hom.apply {X} [monoid X] (f : End T♯.root →* X)
+  {a b : G} (p : a ⟶ b) : (functor_of_monoid_hom T f).map p = f (loop_of_hom T p) := rfl
+
+/-- Given a free groupoid and an arborescence of its generating quiver, the vertex
+    group at the root is freely generated by loops coming from generating arrows
+    in the complement of the tree. -/
+def End_is_free_group_of_arborescence : is_free_group (End T♯.root) :=
+{ generators := set.compl (wide_subquiver_equiv_set_total $ wide_subquiver_symmetrify T),
+  of := λ e, loop_of_hom T (of e.val.arrow),
+  unique_lift := begin
+    introsI X _ f,
+    let f' : Π ⦃a b : G⦄, generators.arrow a b → X := λ a b e,
+      if h : sum.inl e ∈ T a b ∨ sum.inr e ∈ T b a then 1
+      else f ⟨⟨a, b, e⟩, h⟩,
+    rcases unique_lift f' with ⟨F', hF', uF'⟩,
+    let F : End T♯.root →* X := F'.map_End _,
+    have sane : ∀ {a b} (p : a ⟶ b), (functor_of_monoid_hom T F).map p = F'.map p,
+    { intros a b p,
+      change F'.map _ = _,
+      suffices : ∀ {a} (p : T♯.path T♯.root a), F'.map (hom_of_path T p) = 1,
+      { simp [this, tree_hom, single_obj.comp_as_mul, single_obj.inv_as_inv] },
+      intros a p, induction p with b c p e ih,
+      { apply F'.map_id },
+      rcases e with ⟨e | e, eT⟩,
+      { have : f' e = 1 := dif_pos (or.inl eT),
+        simp only [hom_of_path, ih, hF', this, single_obj.comp_as_mul, mul_one, F'.map_comp] },
+      { have : f' e = 1 := dif_pos (or.inr eT),
+        simp [hom_of_path, ih, hF', this, single_obj.comp_as_mul, single_obj.inv_as_inv] } },
+    refine ⟨F, _, _⟩,
+    { intro e,
+      convert sane _,
+      rw hF',
+      change _ = dite _ _ _,
+      convert (dif_neg e.property).symm,
+      apply congr_arg, ext; refl },
+    { intros E hE,
+      have : functor_of_monoid_hom T E = F',
+      { apply uF',
+        intros a b e,
+        change E (loop_of_hom T _) = dite _ _ _,
+        split_ifs,
+        { rw loop_of_hom_eq_id T h, apply E.map_one },
+        exact hE ⟨⟨a, b, e⟩, h⟩ },
+      ext,
+      have : (functor_of_monoid_hom T E).map x = (functor_of_monoid_hom T F).map x,
+      { rw [this, sane] },
+      simpa using this }
+  end }
+
+end retract
+
+end is_free_groupoid

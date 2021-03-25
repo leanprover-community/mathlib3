@@ -23,7 +23,7 @@ structure quiver (V : Type u) :=
 
 /-- A wide subquiver `H` of `G` picks out a set `H a b` of arrows from `a` to `b`
     for every pair of vertices `a b`. -/
-def wide_subquiver {V} (G : quiver V) :=
+def wide_subquiver {V} (G : quiver.{v+1} V) :=
 Π a b : V, set (G.arrow a b)
 
 /-- A wide subquiver viewed as a quiver on its own. -/
@@ -49,7 +49,7 @@ protected def opposite {V} (G : quiver V) : quiver V :=
 ⟨flip G.arrow⟩
 
 /-- `G.symmetrify` adds to `G` the reversal of all arrows of `G`. -/
-def symmetrify {V} (G : quiver V) : quiver V :=
+def symmetrify {V} (G : quiver.{v+1} V) : quiver V :=
 G.sum G.opposite
 
 @[simp] lemma empty_arrow {V} (a b : V) : (quiver.empty V).arrow a b = pempty := rfl
@@ -78,12 +78,12 @@ instance {V} [inhabited V] {G : quiver V} [inhabited (G.arrow (default V) (defau
 
 /-- A wide subquiver `H` of `G.symmetrify` determines a wide subquiver of `G`, containing an
     an arrow `e` if either `e` or its reversal is in `H`. -/
-def wide_subquiver_symmetrify {V} {G : quiver V} :
+def wide_subquiver_symmetrify {V} {G : quiver.{v+1} V} :
   wide_subquiver G.symmetrify → wide_subquiver G :=
 λ H a b, { e | sum.inl e ∈ H a b ∨ sum.inr e ∈ H b a }
 
 /-- A wide subquiver of `G` can equivalently be viewed as a total set of arrows. -/
-def wide_subquiver_equiv_set_total {V} {G : quiver V} :
+def wide_subquiver_equiv_set_total {V} {G : quiver.{v+1} V} :
   wide_subquiver G ≃ set G.total :=
 { to_fun := λ H, { e | e.arrow ∈ H e.source e.target },
   inv_fun := λ S a b, { e | total.mk a b e ∈ S },

@@ -199,19 +199,19 @@ variables [topological_space β] {f : β → α} {b : β}  {s : set β}
 
 lemma continuous_within_at_const_smul_iff (c : G) :
   continuous_within_at (λ x, c • f x) s b ↔ continuous_within_at f s b :=
-(is_unit_all c).tendsto_const_smul_iff
+(group.is_unit c).tendsto_const_smul_iff
 
 lemma continuous_on_const_smul_iff (c : G) :
   continuous_on (λ x, c • f x) s ↔ continuous_on f s :=
-(is_unit_all c).continuous_on_const_smul_iff
+(group.is_unit c).continuous_on_const_smul_iff
 
 lemma continuous_at_const_smul_iff (c : G) :
   continuous_at (λ x, c • f x) b ↔ continuous_at f b :=
-(is_unit_all c).continuous_at_const_smul_iff
+(group.is_unit c).continuous_at_const_smul_iff
 
 lemma continuous_const_smul_iff (c : G) :
   continuous (λ x, c • f x) ↔ continuous f :=
-(is_unit_all c).continuous_const_smul_iff
+(group.is_unit c).continuous_const_smul_iff
 
 /-- Scalar multiplication by a unit of a monoid `M` acting on `α` is a homeomorphism from `α`
 to itself. -/

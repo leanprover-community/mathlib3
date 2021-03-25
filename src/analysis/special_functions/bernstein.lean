@@ -54,6 +54,17 @@ open_locale classical
 open_locale big_operators
 open_locale bounded_continuous_function
 
+namespace continuous_map
+variables {α : Type*} [topological_space α] [compact_space α]
+variables {β : Type*} [normed_group β]
+variables (f : C(α, β))
+
+/-- Distance between the images of any two points is at most twice the norm of the function. -/
+lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ∥f∥ :=
+((bounded_continuous_function.equiv_continuous_map_of_compact α β).symm f).dist_le_two_norm x y
+
+end continuous_map
+
 -- FIXME find a home for this
 lemma mul_unit_interval_le {α : Type*} [ordered_semiring α] {a b c : α}
   (h₁ : 0 ≤ c) (h₂ : a ≤ c) (h₃ : 0 ≤ b) (h₄ : b ≤ 1) : a * b ≤ c :=
@@ -98,7 +109,7 @@ instance : nonempty I := ⟨0⟩
 -- Should they become part of a public API, or remain hidden here?
 -- They really belong on `C(α,β)` rather than `α →ᵇ β`.
 
-namespace bounded_continuous_function
+namespace continuous_map
 variables {α β : Type*} [metric_space α] [compact_space α] [metric_space β]
 
 /-!
@@ -106,7 +117,7 @@ We now set up some abbreviations for the various components of
 uniform continuity for a continuous function on a compact metric space.
 -/
 lemma uniform_continuity
-  (f : α →ᵇ β) (ε : ℝ) (h : 0 < ε) :
+  (f : C(α, β)) (ε : ℝ) (h : 0 < ε) :
   ∃ δ > 0, ∀ {x y}, dist x y < δ → dist (f x) (f y) < ε :=
 metric.uniform_continuous_iff.mp
   (compact_space.uniform_continuous_of_continuous f.continuous) ε h
@@ -114,26 +125,25 @@ metric.uniform_continuous_iff.mp
 /--
 The (noncomputable) modulus of uniform continuity for a given function `f` and `ε > 0`.
 -/
-def modulus (f : α →ᵇ β) (ε : ℝ) (h : 0 < ε) : ℝ :=
+def modulus (f : C(α, β)) (ε : ℝ) (h : 0 < ε) : ℝ :=
 classical.some (uniform_continuity f ε h)
 
-lemma modulus_pos (f : α →ᵇ β) {ε : ℝ} {h : 0 < ε} : 0 < f.modulus ε h :=
+lemma modulus_pos (f : C(α, β)) {ε : ℝ} {h : 0 < ε} : 0 < f.modulus ε h :=
 classical.some (classical.some_spec (uniform_continuity f ε h))
 
 lemma dist_lt_of_dist_lt_modulus
-  (f : α →ᵇ β) (ε : ℝ) (h : 0 < ε) {a b : α} (w : dist a b < f.modulus ε h) :
+  (f : C(α, β)) (ε : ℝ) (h : 0 < ε) {a b : α} (w : dist a b < f.modulus ε h) :
   dist (f a) (f b) < ε :=
 classical.some_spec (classical.some_spec (uniform_continuity f ε h)) w
 
-end bounded_continuous_function
+end continuous_map
 
 
 /--
-The Bernstein polynomials, as bounded continuous functions on `[0,1]`.
+The Bernstein polynomials, as continuous functions on `[0,1]`.
 -/
-def bernstein (n ν : ℕ) : I →ᵇ ℝ :=
-bounded_continuous_function.mk_of_compact
-  ⟨λ x, bernstein' n ν x, by continuity⟩
+def bernstein (n ν : ℕ) : C(I, ℝ) :=
+⟨λ x : I, bernstein' n ν x, by continuity⟩
 
 @[simp] lemma bernstein_apply (n ν : ℕ) (x : I) :
   bernstein n ν x = n.choose ν * x^ν * (1-x)^(n-ν) :=
@@ -211,26 +221,26 @@ local notation `|`x`|` := abs x
 The `n`-th approximation of a continuous function on `[0,1]` by Bernstein polynomials,
 given by `∑ k, f (k/n) * bernstein n k x`.
 -/
-def bernstein_approximation (n : ℕ) (f : I →ᵇ ℝ) : I →ᵇ ℝ :=
+def bernstein_approximation (n : ℕ) (f : C(I, ℝ)) : C(I, ℝ) :=
 ∑ k : fin (n+1), f k/ₙ • bernstein n k
 
 namespace bernstein_approximation
 
-@[simp] lemma apply (n : ℕ) (f : I →ᵇ ℝ) (x : I) :
+@[simp] lemma apply (n : ℕ) (f : C(I, ℝ)) (x : I) :
   bernstein_approximation n f x = ∑ k : fin (n+1), f k/ₙ * bernstein n k x :=
 by simp [bernstein_approximation]
 
 /--
 The set of points `k` so `k/n` is within `δ` of `x`.
 -/
-def S (f : I →ᵇ ℝ) (ε : ℝ) (h : 0 < ε) (n : ℕ) (x : I) : finset (fin (n+1)) :=
+def S (f : C(I, ℝ)) (ε : ℝ) (h : 0 < ε) (n : ℕ) (x : I) : finset (fin (n+1)) :=
 { k : fin (n+1) | dist k/ₙ x < f.modulus (ε/2) (half_pos h) }.to_finset
 
 /--
 If `k ∈ S`, then `f(k/n)` is close to `f x`.
 -/
 lemma lt_of_mem_S
-  {f : I →ᵇ ℝ} {ε : ℝ} {h : 0 < ε} {n : ℕ} {x : I} {k : fin (n+1)} (m : k ∈ S f ε h n x) :
+  {f : C(I, ℝ)} {ε : ℝ} {h : 0 < ε} {n : ℕ} {x : I} {k : fin (n+1)} (m : k ∈ S f ε h n x) :
   |f k/ₙ - f x| < ε/2 :=
 begin
   apply f.dist_lt_of_dist_lt_modulus (ε/2) (half_pos h),
@@ -242,7 +252,7 @@ If `k ∉ S`, then as `δ ≤ |x - k/n|`, we have the inequality `1 ≤ δ^-2 * 
 This particular formulation will be helpful later.
 -/
 lemma le_of_mem_S_compl
-  {f : I →ᵇ ℝ} {ε : ℝ} {h : 0 < ε} {n : ℕ} {x : I} {k : fin (n+1)} (m : k ∈ (S f ε h n x)ᶜ) :
+  {f : C(I, ℝ)} {ε : ℝ} {h : 0 < ε} {n : ℕ} {x : I} {k : fin (n+1)} (m : k ∈ (S f ε h n x)ᶜ) :
   (1 : ℝ) ≤ (f.modulus (ε/2) (half_pos h))^(-2 : ℤ) * (x - k/ₙ) ^ 2 :=
 begin
   simp only [finset.mem_compl, not_lt, set.mem_to_finset, set.mem_set_of_eq, S] at m,
@@ -266,7 +276,7 @@ open_locale topological_space
 This is the proof given in [Richard Beals' *Analysis, an introduction*][beals-analysis], §7D,
 and reproduced on wikipedia.
 -/
-theorem bernstein_approximation_uniform (f : I →ᵇ ℝ) :
+theorem bernstein_approximation_uniform (f : C(I, ℝ)) :
   tendsto (λ n : ℕ, bernstein_approximation n f) at_top (𝓝 f) :=
 begin
   simp only [metric.nhds_basis_ball.tendsto_right_iff, metric.mem_ball, dist_eq_norm],

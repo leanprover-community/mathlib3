@@ -110,6 +110,12 @@ instance continuous_map_monoid {α : Type*} {β : Type*} [topological_space α] 
   ..continuous_map_semigroup,
   ..continuous_map.has_one }
 
+/-- Coercion to a function as an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/
+@[simps, to_additive]
+def coe_fn_monoid_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [monoid β] [has_continuous_mul β] : C(α, β) →* (α → β) :=
+{ to_fun := coe_fn, map_one' := continuous_map.one_coe, map_mul' := continuous_map.mul_coe }
+
 @[simp, norm_cast]
 lemma pow_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
@@ -139,6 +145,20 @@ instance continuous_map_comm_monoid {α : Type*} {β : Type*} [topological_space
   mul_comm := λ a b, by ext; exact mul_comm _ _,
   ..continuous_map_semigroup,
   ..continuous_map.has_one }
+
+open_locale big_operators
+@[simp, to_additive] lemma continuous_map.coe_prod {α : Type*} {β : Type*} [comm_monoid β]
+  [topological_space α] [topological_space β] [has_continuous_mul β]
+  {ι : Type*} (s : finset ι) (f : ι → C(α, β)) :
+  ⇑(∏ i in s, f i) = (∏ i in s, (f i : α → β)) :=
+(@coe_fn_monoid_hom α β _ _ _ _).map_prod f s
+
+@[to_additive]
+lemma continuous_map.prod_apply {α : Type*} {β : Type*} [comm_monoid β]
+  [topological_space α] [topological_space β] [has_continuous_mul β]
+  {ι : Type*} (s : finset ι) (f : ι → C(α, β)) (a : α) :
+  (∏ i in s, f i) a = (∏ i in s, f i a) :=
+by simp
 
 @[to_additive]
 instance continuous_map_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]

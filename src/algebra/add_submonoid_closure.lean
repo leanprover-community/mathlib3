@@ -55,10 +55,6 @@ def submonoid.to_subsemiring (S : submonoid R) : subsemiring R :=
   zero_mem' := (add_submonoid.closure (S : set R)).zero_mem,
   add_mem' := λ x y, (add_submonoid.closure (S : set R)).add_mem }
 
-/-- The additive closure of a submonoid is a semiring. -/
-instance submonoid.to_semiring (S : submonoid R) : semiring (add_submonoid.closure (S : set R)) :=
-S.to_subsemiring.to_semiring
-
 /-- The elements of the additive closure of a multiplicative submonoid `S` are exactly the
 elements of the subsemiring closure of `S`. -/
 lemma clss : (add_submonoid.closure (S : set R) : set R) = subsemiring.closure (S : set R) :=

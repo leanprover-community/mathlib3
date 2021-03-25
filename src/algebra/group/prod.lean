@@ -74,6 +74,11 @@ instance [has_div M] [has_div N] : has_div (M × N) := ⟨λ p q, ⟨p.1 / q.1, 
 @[simp] lemma mk_sub_mk [add_group A] [add_group B] (x₁ x₂ : A) (y₁ y₂ : B) :
 (x₁, y₁) - (x₂, y₂) = (x₁ - x₂, y₁ - y₂) := rfl
 
+instance [mul_zero_class M] [mul_zero_class N] : mul_zero_class (M × N) :=
+{ zero_mul := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
+  mul_zero := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨mul_zero _, mul_zero _⟩,
+  .. prod.has_zero, .. prod.has_mul }
+
 @[to_additive]
 instance [semigroup M] [semigroup N] : semigroup (M × N) :=
 { mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,

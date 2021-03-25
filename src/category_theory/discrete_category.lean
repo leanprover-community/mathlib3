@@ -70,7 +70,7 @@ lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X = Y := i.down.down
 variables {C : Type u₂} [category.{v₂} C]
 
 instance {I : Type u₁} {i j : discrete I} (f : i ⟶ j) : is_iso f :=
-⟨eq_to_hom (eq_of_hom f).symm, by tidy⟩
+⟨⟨eq_to_hom (eq_of_hom f).symm, by tidy⟩⟩
 
 /--
 Any function `I → C` gives a functor `discrete I ⥤ C`.

@@ -42,7 +42,7 @@ indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 
 def ring.perfection (R : Type u₁) [comm_semiring R]
   (p : ℕ) [hp : fact p.prime] [char_p R p] :
   subsemiring (ℕ → R) :=
-{ zero_mem' := λ n, zero_pow $ hp.pos,
+{ zero_mem' := λ n, zero_pow $ hp.1.pos,
   add_mem' := λ f g hf hg n, (frobenius_add R p _ _).trans $ congr_arg2 _ (hf n) (hg n),
   .. monoid.perfection R p }
 
@@ -113,7 +113,7 @@ by rw [ring_hom.comp_apply, ring_hom.id_apply, ring_hom.map_frobenius, coeff_pth
 
 lemma coeff_add_ne_zero {f : ring.perfection R p} {n : ℕ} (hfn : coeff R p n f ≠ 0) (k : ℕ) :
   coeff R p (n + k) f ≠ 0 :=
-nat.rec_on k hfn $ λ k ih h, ih $ by erw [← coeff_pow_p, ring_hom.map_pow, h, zero_pow hp.pos]
+nat.rec_on k hfn $ λ k ih h, ih $ by erw [← coeff_pow_p, ring_hom.map_pow, h, zero_pow hp.1.pos]
 
 lemma coeff_ne_zero_of_le {f : ring.perfection R p} {m n : ℕ} (hfm : coeff R p m f ≠ 0)
   (hmn : m ≤ n) : coeff R p n f ≠ 0 :=
@@ -310,10 +310,10 @@ ideal.quotient.comm_ring _
 
 include hp hvp
 instance : char_p (mod_p K v O hv p) p :=
-char_p.quotient O p $ mt hv.one_of_is_unit $ ((algebra_map O K).map_nat_cast p).symm ▸ hvp
+char_p.quotient O p $ mt hv.one_of_is_unit $ ((algebra_map O K).map_nat_cast p).symm ▸ hvp.1
 
 instance : nontrivial (mod_p K v O hv p) :=
-char_p.nontrivial_of_char_ne_one hp.ne_one
+char_p.nontrivial_of_char_ne_one hp.1.ne_one
 
 section classical
 local attribute [instance] classical.dec
@@ -391,16 +391,16 @@ lemma mul_ne_zero_of_pow_p_ne_zero {x y : mod_p K v O hv p} (hx : x ^ p ≠ 0) (
 begin
   obtain ⟨r, rfl⟩ := ideal.quotient.mk_surjective x,
   obtain ⟨s, rfl⟩ := ideal.quotient.mk_surjective y,
-  have h1p : (0 : ℝ) < 1 / p := one_div_pos.2 (nat.cast_pos.2 hp.pos),
+  have h1p : (0 : ℝ) < 1 / p := one_div_pos.2 (nat.cast_pos.2 hp.1.pos),
   rw ← ring_hom.map_mul, rw ← ring_hom.map_pow at hx hy,
   rw ← v_p_lt_val hv at hx hy ⊢,
   rw [ring_hom.map_pow, v.map_pow, ← rpow_lt_rpow_iff h1p, ← rpow_nat_cast, ← rpow_mul,
-      mul_one_div_cancel (nat.cast_ne_zero.2 hp.ne_zero : (p : ℝ) ≠ 0), rpow_one] at hx hy,
+      mul_one_div_cancel (nat.cast_ne_zero.2 hp.1.ne_zero : (p : ℝ) ≠ 0), rpow_one] at hx hy,
   rw [ring_hom.map_mul, v.map_mul], refine lt_of_le_of_lt _ (mul_lt_mul'''' hx hy),
   by_cases hvp : v p = 0, { rw hvp, exact zero_le _ }, replace hvp := zero_lt_iff.2 hvp,
   conv_lhs { rw ← rpow_one (v p) }, rw ← rpow_add (ne_of_gt hvp),
   refine rpow_le_rpow_of_exponent_ge hvp ((algebra_map O K).map_nat_cast p ▸ hv.2 _) _,
-  rw [← add_div, div_le_one (nat.cast_pos.2 hp.pos : 0 < (p : ℝ))], exact_mod_cast hp.two_le
+  rw [← add_div, div_le_one (nat.cast_pos.2 hp.1.pos : 0 < (p : ℝ))], exact_mod_cast hp.1.two_le
 end
 
 end classical
@@ -520,7 +520,7 @@ end
 end classical
 
 instance : integral_domain (pre_tilt K v O hv p) :=
-{ exists_pair_ne := (char_p.nontrivial_of_char_ne_one hp.ne_one).1,
+{ exists_pair_ne := (char_p.nontrivial_of_char_ne_one hp.1.ne_one).1,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ f g hfg,
     by { simp_rw ← map_eq_zero at hfg ⊢, contrapose! hfg, rw valuation.map_mul,
       exact mul_ne_zero hfg.1 hfg.2 },

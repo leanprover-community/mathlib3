@@ -627,7 +627,7 @@ measurable_inv'.comp hf
 lemma measurable.div {α : Type*} [normed_field α] [measurable_space α] [borel_space α]
   [second_countable_topology α] {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, f a / g a) :=
-hf.mul hg.inv'
+by simpa only [div_eq_mul_inv] using hf.mul hg.inv'
 
 @[to_additive]
 lemma measurable.of_inv [group α] [topological_group α] {f : δ → α}

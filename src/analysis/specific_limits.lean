@@ -378,7 +378,7 @@ begin
     from ((tendsto_pow_at_top_nhds_0_of_norm_lt_1 h).sub tendsto_const_nhds).mul tendsto_const_nhds,
   have B : (λ n, (∑ i in range n, ξ ^ i)) = (λ n, geom_series ξ n) := rfl,
   rw [has_sum_iff_tendsto_nat_of_summable_norm, B],
-  { simpa [geom_sum, xi_ne_one, neg_inv] using A },
+  { simpa [geom_sum, xi_ne_one, neg_inv, div_eq_mul_inv] using A },
   { simp [normed_field.norm_pow, summable_geometric_of_lt_1 (norm_nonneg _) h] }
 end
 

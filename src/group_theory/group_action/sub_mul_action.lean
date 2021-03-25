@@ -52,6 +52,11 @@ iff.rfl
 
 @[ext] theorem ext {p q : sub_mul_action R M} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
+instance : has_bot (sub_mul_action R M) :=
+⟨{ carrier := ∅, smul_mem' := λ c, set.not_mem_empty}⟩
+
+instance : inhabited (sub_mul_action R M) := ⟨⊥⟩
+
 end sub_mul_action
 
 namespace sub_mul_action

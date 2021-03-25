@@ -91,11 +91,7 @@ instance distrib_mul_action' {g : I → Type*} {m : Π i, monoid (f i)} {n : Π 
 lemma single_smul {α} [monoid α] [Π i, add_monoid $ f i]
   [Π i, distrib_mul_action α $ f i] [decidable_eq I] (i : I) (r : α) (x : f i) :
   single i (r • x) = r • single i x :=
-begin
-  ext j,
-  refine (apply_single _ (λ _, _) i x j).symm,
-  exact smul_zero _,
-end
+by { refine single_op (λ _, (•) c) (λ j, _) _ _, apply smul_zero }
 
 lemma single_smul' {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_monoid (g i)]
   [Π i, distrib_mul_action (f i) (g i)] [decidable_eq I] (i : I) (r : f i) (x : g i) :

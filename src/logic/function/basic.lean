@@ -432,6 +432,13 @@ lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (
   f ∘ (update g i v) = update (f ∘ g) i (f v) :=
 funext $ apply_update _ _ _ _
 
+lemma update_binop {ι : Sort*} [decidable_eq ι] {α β γ : ι → Sort*}
+  (f : Π i, α i → β i → γ i) (ga : Π i, α i) (gb : Π i, β i) (i : ι)
+  (va : α i) (vb : β i) :
+  update (λ k, f k (ga k) (gb k)) i (f i va vb) =
+    λ j, f j (update ga i va j) (update gb i vb j) :=
+update_eq_iff.2 ⟨by simp, λ j hj, by simp [hj]⟩
+
 theorem update_comm {α} [decidable_eq α] {β : α → Sort*}
   {a b : α} (h : a ≠ b) (v : β a) (w : β b) (f : Πa, β a) :
   update (update f a v) b w = update (update f b w) a v :=

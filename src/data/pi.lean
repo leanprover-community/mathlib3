@@ -38,6 +38,8 @@ instance has_mul [∀ i, has_mul $ f i] :
 ⟨λ f g i, f i * g i⟩
 @[simp, to_additive] lemma mul_apply [∀ i, has_mul $ f i] : (x * y) i = x i * y i := rfl
 
+@[to_additive] lemma mul_def [Π i, has_mul $ f i] : x * y = λ i, x i * y i := rfl
+
 @[to_additive] instance has_inv [∀ i, has_inv $ f i] :
   has_inv (Π i : I, f i) :=
   ⟨λ f i, (f i)⁻¹⟩
@@ -58,13 +60,14 @@ variables [Π i, has_zero (f i)] [Π i, has_zero (g i)] [Π i, has_zero (h i)]
 def single (i : I) (x : f i) : Π i, f i :=
 function.update 0 i x
 
-@[simp]
-lemma single_eq_same (i : I) (x : f i) : single i x i = x :=
+@[simp] lemma single_eq_same (i : I) (x : f i) : single i x i = x :=
 function.update_same i x _
 
-@[simp]
-lemma single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : single i x i' = 0 :=
+@[simp] lemma single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : single i x i' = 0 :=
 function.update_noteq h x _
+
+@[simp] lemma single_zero (i : I) : single i (0 : f i) = 0 :=
+function.update_eq_self _ _
 
 lemma apply_single (f' : Π i, f i → g i) (hf' : ∀ i, f' i 0 = 0) (i : I) (x : f i) (j : I):
   f' j (single i x j) = single i (f' i x) j :=
@@ -78,6 +81,16 @@ begin
   { subst h, simp only [single_eq_same], },
   { simp only [h, single_eq_of_ne, ne.def, not_false_iff, hf'], },
 end
+
+lemma single_op {g : I → Type*} [Π i, has_zero (g i)] (op : Π i, f i → g i) (h : ∀ i, op i 0 = 0)
+  (i : I) (x : f i) :
+  single i (op i x) = λ j, op j (single i x j) :=
+eq.symm $ funext $ apply_single op h i x
+
+lemma single_binop {g₁ g₂ : I → Type*} [Π i, has_zero (g₁ i)] [Π i, has_zero (g₂ i)]
+  (op : Π i, g₁ i → g₂ i → f i) (h : ∀ i, op i 0 0 = 0) (i : I) (x₁ : g₁ i) (x₂ : g₂ i) :
+  single i (op i x₁ x₂) = λ j, op j (single i x₁ j) (single i x₂ j) :=
+by simp only [single, ← function.update_binop op, pi.zero_def, h]
 
 variables (f)
 

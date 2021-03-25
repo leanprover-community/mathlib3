@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 Eric Wieser. All rights reserved.
+Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
@@ -8,7 +8,7 @@ import data.set.basic
 /-!
 # Typeclass for a type `A` with an injective map to `set B`
 
-This is implemented by subobjects.
+This typecalss is primary for use by subobjects like `submonoid` and `submodule`.
 
 A typical subobject should be declared as:
 ```
@@ -34,6 +34,7 @@ extensionality and simp lemmas.
 -/
 set_option old_structure_cmd true
 
+/-- A class to indicate that there is a canonical injection between `A` and `set B`. -/
 @[protect_proj]
 class set_like (A : Type*) (B : out_param $ Type*) :=
 (coe : A → set B)
@@ -46,7 +47,12 @@ variables {A : Type*} {B : Type*} [i : set_like A B]
 include i
 
 instance : has_coe_t A (set B) := ⟨set_like.coe⟩
+
+@[priority 100]
 instance : has_mem B A := ⟨λ x p, x ∈ (p : set B)⟩
+
+-- `dangerous_instance` does not know that `B` is used only as an `out_param`
+@[nolint dangerous_instance, priority 100]
 instance : has_coe_to_sort A := ⟨_, λ p, {x : B // x ∈ p}⟩
 
 variables (p q : A)

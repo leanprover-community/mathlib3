@@ -136,6 +136,18 @@ end
 lemma is_closed_convex_hull {X : finset E} : is_closed (convex_hull (X : set E)) :=
 X.finite_to_set.is_closed_convex_hull
 
+lemma is_closed_boundary {X : finset E} : is_closed (boundary X) :=
+begin
+  apply is_closed_bUnion,
+  { suffices : set.finite {Y | Y ⊆ X},
+    { exact this.subset (λ i h, h.1) },
+    convert X.powerset.finite_to_set using 1,
+    ext,
+    simp },
+  { intros i hi,
+    apply is_closed_convex_hull }
+end
+
 /- interior X is the topological interior iff X is of dimension m -/
 lemma interiors_agree_of_high_dimension {S : simplicial_complex m}
   {X} (hX : X ∈ S.faces) (hXdim : X.card = m + 1) :

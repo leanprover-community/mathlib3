@@ -56,52 +56,6 @@ namespace Nxzmod_2
 
 variables {a b : ℕ × zmod 2}
 
-instance pre_zmod_2 : partial_order (zmod 2) :=
-{ le := λ x y, x = y,
-  lt := λ x y, false,
-  le_refl := dec_trivial,
-  le_trans := dec_trivial,
-  lt_iff_le_not_le := dec_trivial,
-  le_antisymm := dec_trivial }
-
-instance preN2 : partial_order (ℕ × zmod 2) :=
-{ le := prod.lex (≤) (≤),
-  lt := λ (a b : ℕ × zmod 2), a ≤ b ∧ ¬b ≤ a,
-  le_refl := λ ⟨a, a2⟩, prod.lex.left a2 a2 rfl.le,
-  le_trans := λ a b c ab bc, begin
-    cases a with a a2,
-    cases b with b b2,
-    cases c with c c2,
-    cases ab; cases bc; refine prod.lex.left a2 c2 _;
-    exact (le_trans ab_h bc_h) <|> assumption <|> exact rfl.le,
-  end,
-  lt_iff_le_not_le := λ a b, ⟨λ h, begin
-    cases a with a a2,
-    cases b with b b2,
-    cases h,
-    refine ⟨_, _⟩,
-    refine prod.lex.left a2 b2 h_left.1,
-    refine λ k, h_right _,
-    refine ⟨_, _⟩,
-    cases k,
-    exact k_h,
-    exact rfl.le,
-    cases k,
-    cases h_left,
-    cases h_left_right,
-    refl,
-    exact k_h,
-  end, λ h, begin
-    cases h with ab nab,
-    cases a with a a2,
-    cases b with b b2,
-    refine ⟨_, _⟩,
-    cases ab,
-    refine ⟨ab_h, _⟩,
-    dsimp,
-  end⟩,
-  le_antisymm := _ }
-
 /-- The preorder relation on `ℕ × ℤ/2ℤ` where we only compare the first coordinate,
 except that we leave incomparable each pair of elements with the same first component.
 For instance, `∀ α, β ∈ ℤ/2ℤ`, the inequality `(1,α) ≤ (2,β)` holds,

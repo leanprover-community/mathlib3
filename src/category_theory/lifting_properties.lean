@@ -86,10 +86,7 @@ begin
     cases h1 with e he,
     fconstructor,
     fconstructor,
-    fconstructor,
-    { exact e },
-    { apply category_theory.limits.is_initial.hom_ext, simp, exact h },
-    { exact he } }
+    fconstructor, }
 end
 
 /- A helper construction: given a square between i and f ≫ g, produce a square between i and g,

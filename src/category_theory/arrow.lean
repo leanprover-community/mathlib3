@@ -73,11 +73,8 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
 /-- A lift of a commutative square is a diagonal morphism making the two triangles commute. -/
 @[ext] structure lift_struct {f g : arrow T} (sq : f ⟶ g) :=
 (lift : f.right ⟶ g.left)
-(fac_left' : f.hom ≫ lift = sq.left . obviously)
-(fac_right' : lift ≫ g.hom = sq.right . obviously)
-
-restate_axiom lift_struct.fac_left'
-restate_axiom lift_struct.fac_right'
+(fac_left : f.hom ≫ lift = sq.left)
+(fac_right : lift ≫ g.hom = sq.right)
 
 instance lift_struct_inhabited {X : T} : inhabited (lift_struct (𝟙 (arrow.mk (𝟙 X)))) :=
 ⟨⟨𝟙 _, category.id_comp _, category.comp_id _⟩⟩

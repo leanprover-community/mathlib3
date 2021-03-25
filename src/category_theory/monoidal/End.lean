@@ -65,9 +65,9 @@ def tensoring_right_monoidal : monoidal_functor C (C ⥤ C) :=
   μ_is_iso := λ X Y,
     -- We could avoid needing to do this explicitly by
     -- constructing a partially applied analogue of `associator_nat_iso`.
-  ⟨{ app := λ Z, (α_ Z X Y).inv,
+  ⟨⟨{ app := λ Z, (α_ Z X Y).inv,
       naturality' := λ Z Z' f, by { dsimp, rw ←associator_inv_naturality, simp, } },
-    by tidy⟩,
+    by tidy⟩⟩,
   ..tensoring_right C }.
 
 end category_theory

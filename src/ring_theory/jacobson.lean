@@ -441,7 +441,8 @@ begin
     λ ⟨z, hz⟩, hM (quotient_map_injective (trans hz.2 φ.map_zero.symm) ▸ hz.1),
   letI : integral_domain (localization M') :=
     localization_map.integral_domain_localization (le_non_zero_divisors_of_domain hM'),
-  let ϕ' : localization_map (M.map ↑φ) (localization (M.map ↑φ)) := localization.of (M.map ↑φ),
+  let ϕ' : localization_map (M.map ↑φ : submonoid P.quotient) (localization (M.map ↑φ)) :=
+    localization.of (M.map ↑φ),
   suffices : (⊥ : ideal (localization M')).is_maximal,
   { rw le_antisymm bot_le (comap_bot_le_of_injective _ (map_injective_of_injective _
       quotient_map_injective M ϕ ϕ' (le_non_zero_divisors_of_domain hM'))),
@@ -463,11 +464,12 @@ begin
     exists_nonzero_mem_of_ne_bot (ne_of_lt (bot_lt_of_maximal P polynomial_not_is_field)).symm hP',
   let M : submonoid P'.quotient := submonoid.powers (pX.map (quotient.mk P')).leading_coeff,
   let φ : P'.quotient →+* P.quotient := quotient_map P C le_rfl,
-  let ϕ' : localization_map (M.map ↑φ) (localization (M.map ↑φ)) := localization.of (M.map ↑φ),
+  let ϕ' : localization_map (M.map ↑φ : submonoid P.quotient) (localization (M.map ↑φ)) :=
+    localization.of (M.map ↑φ),
   haveI hp'_prime : P'.is_prime := comap_is_prime C P,
   have hM : (0 : P'.quotient) ∉ M := λ ⟨n, hn⟩, hp0 $ leading_coeff_eq_zero.mp (pow_eq_zero hn),
   refine ((quotient_map P C le_rfl).is_integral_tower_bot_of_is_integral
-    (localization.of (M.map ↑(quotient_map P C le_rfl))).to_map _ _),
+    (localization.of (M.map ↑(quotient_map P C le_rfl) : submonoid P.quotient)).to_map _ _),
   { refine ϕ'.injective (le_non_zero_divisors_of_domain (λ hM', hM _)),
     exact (let ⟨z, zM, z0⟩ := hM' in (quotient_map_injective (trans z0 φ.map_zero.symm)) ▸ zM) },
   { let ϕ : localization_map M (localization M) := localization.of M,

@@ -182,3 +182,25 @@ lemma pi.single_mul [Π i, monoid_with_zero $ f i] (i : I) (x y : f i) :
 (mul_hom.single f i).map_mul x y
 
 end single
+
+section piecewise
+
+@[to_additive]
+lemma pi.piecewise_mul [Π i, has_mul (f i)] (s : set I) [Π i, decidable (i ∈ s)]
+  (f₁ f₂ g₁ g₂ : Π i, f i) :
+  s.piecewise (f₁ * f₂) (g₁ * g₂) = s.piecewise f₁ g₁ * s.piecewise f₂ g₂ :=
+by { ext i, by_cases hi : i ∈ s; simp [*, set.piecewise] }
+
+@[to_additive]
+lemma pi.piecewise_inv [Π i, has_inv (f i)] (s : set I) [Π i, decidable (i ∈ s)]
+  (f₁ g₁ : Π i, f i) :
+  s.piecewise (f₁⁻¹) (g₁⁻¹) = (s.piecewise f₁ g₁)⁻¹ :=
+by { ext i, by_cases hi : i ∈ s; simp [*, set.piecewise] }
+
+@[to_additive]
+lemma pi.piecewise_div [Π i, has_div (f i)] (s : set I) [Π i, decidable (i ∈ s)]
+  (f₁ f₂ g₁ g₂ : Π i, f i) :
+  s.piecewise (f₁ / f₂) (g₁ / g₂) = s.piecewise f₁ g₁ / s.piecewise f₂ g₂ :=
+by { ext i, by_cases hi : i ∈ s; simp [*, set.piecewise] }
+
+end piecewise

@@ -795,6 +795,11 @@ protected lemma div_le_self' (m n : ℕ) : m / n ≤ m :=
 lemma div_lt_self' (n b : ℕ) : (n+1)/(b+2) < n+1 :=
 nat.div_lt_self (nat.succ_pos n) (nat.succ_lt_succ (nat.succ_pos _))
 
+lemma nat.succ_half_le_self : ∀ (n : ℕ), (n + 1) / 2 ≤ n
+| 0       := rfl.le
+| (n + 1) := nat.div_le_of_le_mul (((add_le_add_iff_left _).mpr ((1 : ℕ).le_add_left n)).trans
+              (two_mul _).symm.le)
+
 theorem le_div_iff_mul_le' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y :=
 le_div_iff_mul_le x y k0
 

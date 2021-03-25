@@ -69,7 +69,7 @@ is connected.
 See https://stacks.math.columbia.edu/tag/04E6
 -/
 class cofinal (F : C ⥤ D) : Prop :=
-(out (d : D) : is_connected (structured_arrow d F)
+(out (d : D) : is_connected (structured_arrow d F))
 
 attribute [instance] cofinal.out
 

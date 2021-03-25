@@ -444,24 +444,22 @@ end
 
 @[to_additive]
 lemma prod_eq_mul {s : finset α} {f : α → β} (a b : α) (hn : a ≠ b)
-  (h₀ : ∀ c ∈ s, c ≠ a ∧ c ≠ b → f c = 1) (h₁ : ∀ (c : α), c ∉ s → f c = 1) :
+  (h₀ : ∀ c ∈ s, c ≠ a ∧ c ≠ b → f c = 1) (ha : a ∉ s → f a = 1) (hb : b ∉ s → f b = 1) :
   (∏ x in s, f x) = (f a) * (f b) :=
 begin
   haveI := classical.dec_eq α;
-  by_cases ha : a ∈ s; by_cases hb : b ∈ s,
-  { exact prod_eq_mul_of_mem a b ha hb hn h₀ },
-  { rw [h₁ b hb, mul_one],
-    apply prod_eq_single_of_mem a ha,
-    exact λ c hc hca, h₀ c hc ⟨hca, ne_of_mem_of_not_mem hc hb⟩ },
-  { rw [h₁ a ha, one_mul],
-    apply prod_eq_single_of_mem b hb,
-    exact λ c hc hcb, h₀ c hc ⟨ne_of_mem_of_not_mem hc ha, hcb⟩ },
-  { rw [h₁ a ha, h₁ b hb, mul_one],
-    convert prod_const_one,
-    ext c,
-    by_cases hc : c ∈ s,
-    { apply h₀ c hc, exact ⟨ne_of_mem_of_not_mem hc ha, ne_of_mem_of_not_mem hc hb⟩ },
-    { exact h₁ c hc }}
+  by_cases h₁ : a ∈ s; by_cases h₂ : b ∈ s,
+  { exact prod_eq_mul_of_mem a b h₁ h₂ hn h₀ },
+  { rw [hb h₂, mul_one],
+    apply prod_eq_single_of_mem a h₁,
+    exact λ c hc hca, h₀ c hc ⟨hca, ne_of_mem_of_not_mem hc h₂⟩ },
+  { rw [ha h₁, one_mul],
+    apply prod_eq_single_of_mem b h₂,
+    exact λ c hc hcb, h₀ c hc ⟨ne_of_mem_of_not_mem hc h₁, hcb⟩ },
+  { rw [ha h₁, hb h₂, mul_one],
+    exact trans
+      (prod_congr rfl (λ c hc, h₀ c hc ⟨ne_of_mem_of_not_mem hc h₁, ne_of_mem_of_not_mem hc h₂⟩))
+      prod_const_one }
 end
 
 @[to_additive]

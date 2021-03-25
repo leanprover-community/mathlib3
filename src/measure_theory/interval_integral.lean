@@ -303,9 +303,9 @@ lemma integral_cases (f : α → E) (a b) :
 (le_total a b).imp (λ h, by simp [h, integral_of_le]) (λ h, by simp [h, integral_of_ge])
 
 lemma integral_non_ae_measurable {f : α → E} {a b}
-  (h : a < b) (hf : ¬ ae_measurable f (μ.restrict (Ioc a b))) :
+  (h : a ≤ b) (hf : ¬ ae_measurable f (μ.restrict (Ioc a b))) :
   ∫ x in a..b, f x ∂μ = 0 :=
-by rw [integral_of_le h.le, integral_non_ae_measurable hf]
+by rw [integral_of_le h, integral_non_ae_measurable hf]
 
 lemma norm_integral_eq_norm_integral_Ioc :
   ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ioc (min a b) (max a b), f x ∂μ∥ :=

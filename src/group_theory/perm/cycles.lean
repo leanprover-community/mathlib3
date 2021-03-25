@@ -66,6 +66,29 @@ by classical; exact ⟨(n % order_of f).to_nat, by {
   have := n.mod_nonneg (int.coe_nat_ne_zero.mpr (ne_of_gt (order_of_pos f))),
   rwa [← gpow_coe_nat, int.to_nat_of_nonneg this, ← gpow_eq_mod_order_of] }⟩
 
+lemma order_of_is_cycle {σ : perm α} (hσ : is_cycle σ) : order_of σ = σ.support.card :=
+begin
+  obtain ⟨x, hx, hσ⟩ := hσ,
+  rw [order_eq_card_gpowers, ←fintype.card_coe],
+  apply fintype.card_congr,
+  refine equiv.of_bijective (λ τ, ⟨τ x, _⟩) ⟨_, _⟩,
+  { obtain ⟨τ, n, rfl⟩ := τ,
+    rw [finset.mem_coe, mem_support],
+    exact λ h, hx ((σ ^ n).injective (by rwa [←mul_apply, mul_gpow_self, ←mul_self_gpow])) },
+  { rintros ⟨a, m, rfl⟩ ⟨b, n, rfl⟩ h,
+    ext y,
+    by_cases hy : σ y = y,
+    { simp_rw [subtype.coe_mk, gpow_apply_eq_self_of_apply_eq_self hy] },
+    { obtain ⟨i, rfl⟩ := hσ y hy,
+      rw [subtype.coe_mk, subtype.coe_mk, ←mul_apply, ←mul_apply, ←gpow_add, ←gpow_add,
+          add_comm m i, add_comm n i, gpow_add, gpow_add, mul_apply, mul_apply],
+      exact congr_arg _ (subtype.ext_iff.mp h) } },
+  { rintros ⟨y, hy⟩,
+    rw [finset.mem_coe, mem_support] at hy,
+    obtain ⟨n, rfl⟩ := hσ y hy,
+    exact ⟨⟨σ ^ n, n, rfl⟩, rfl⟩ },
+end
+
 lemma is_cycle_swap_mul_aux₁ {α : Type*} [decidable_eq α] : ∀ (n : ℕ) {b x : α} {f : perm α}
   (hb : (swap x (f x) * f) b ≠ b) (h : (f ^ n) (f x) = b),
   ∃ i : ℤ, ((swap x (f x) * f) ^ i) (f x) = b

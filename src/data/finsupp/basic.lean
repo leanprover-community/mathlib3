@@ -521,9 +521,9 @@ end
   zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a) :=
 rfl
 
-lemma support_zip_with {f : M → N → P} {hf : f 0 0 = 0} {g₁ : α →₀ M} {g₂ : α →₀ N} :
-  (zip_with f hf g₁ g₂).support ⊆ g₁.support ∪ g₂.support :=
-support_on_finset_subset
+lemma support_zip_with [D : decidable_eq α] {f : M → N → P} {hf : f 0 0 = 0}
+  {g₁ : α →₀ M} {g₂ : α →₀ N} : (zip_with f hf g₁ g₂).support ⊆ g₁.support ∪ g₂.support :=
+by rw subsingleton.elim D; exact support_on_finset_subset
 
 end zip_with
 
@@ -673,10 +673,11 @@ instance : has_add (α →₀ M) := ⟨zip_with (+) (add_zero 0)⟩
 @[simp] lemma coe_add (f g : α →₀ M) : ⇑(f + g) = f + g := rfl
 lemma add_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ + g₂) a = g₁ a + g₂ a := rfl
 
-lemma support_add {g₁ g₂ : α →₀ M} : (g₁ + g₂).support ⊆ g₁.support ∪ g₂.support :=
+lemma support_add [decidable_eq α] {g₁ g₂ : α →₀ M} :
+  (g₁ + g₂).support ⊆ g₁.support ∪ g₂.support :=
 support_zip_with
 
-lemma support_add_eq {g₁ g₂ : α →₀ M} (h : disjoint g₁.support g₂.support) :
+lemma support_add_eq [decidable_eq α] {g₁ g₂ : α →₀ M} (h : disjoint g₁.support g₂.support) :
   (g₁ + g₂).support = g₁.support ∪ g₂.support :=
 le_antisymm support_zip_with $ assume a ha,
 (finset.mem_union.1 ha).elim
@@ -949,7 +950,7 @@ finset.subset.antisymm
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
 (apply_add_hom a₂ : (β →₀ N) →+ _).map_sum _ _
 
-lemma support_sum [has_zero M] [add_comm_monoid N]
+lemma support_sum [decidable_eq β] [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → (β →₀ N)} :
   (f.sum g).support ⊆ f.support.bUnion (λa, (g a (f a)).support) :=
 have ∀ c, f.sum (λ a b, g a b c) ≠ 0 → (∃ a, f a ≠ 0 ∧ ¬ (g a (f a)) c = 0),
@@ -1180,7 +1181,7 @@ lemma map_domain_sum [has_zero N] {f : α → β} {s : α →₀ N} {v : α → 
   map_domain f (s.sum v) = s.sum (λa b, map_domain f (v a b)) :=
 eq.symm $ sum_finset_sum_index (λ _, single_zero) (λ _ _ _, single_add)
 
-lemma map_domain_support {f : α → β} {s : α →₀ M} :
+lemma map_domain_support [decidable_eq β] {f : α → β} {s : α →₀ M} :
   (s.map_domain f).support ⊆ s.support.image f :=
 finset.subset.trans support_sum $
   finset.subset.trans (finset.bUnion_mono $ assume a ha, support_single_subset) $
@@ -1304,7 +1305,8 @@ def filter (p : α → Prop) (f : α →₀ M) : α →₀ M :=
   support := f.support.filter (λ a, p a),
   mem_support_to_fun := λ a, by split_ifs; { simp only [h, mem_filter, mem_support_iff], tauto } }
 
-lemma filter_apply (a : α) : f.filter p a = if p a then f a else 0 := rfl
+lemma filter_apply (a : α) [D : decidable (p a)] : f.filter p a = if p a then f a else 0 :=
+by rw subsingleton.elim D; refl
 
 lemma filter_eq_indicator : ⇑(f.filter p) = set.indicator {x | p x} f := rfl
 
@@ -1314,7 +1316,8 @@ if_pos h
 @[simp] lemma filter_apply_neg {a : α} (h : ¬ p a) : f.filter p a = 0 :=
 if_neg h
 
-@[simp] lemma support_filter : (f.filter p).support = f.support.filter p := rfl
+@[simp] lemma support_filter [D : decidable_pred p] : (f.filter p).support = f.support.filter p :=
+by rw subsingleton.elim D; refl
 
 lemma filter_zero : (0 : α →₀ M).filter p = 0 :=
 by rw [← support_eq_empty, support_filter, support_zero, finset.filter_empty]
@@ -1372,9 +1375,9 @@ variables [has_zero M] {p : α → Prop}
 def subtype_domain (p : α → Prop) (f : α →₀ M) : (subtype p →₀ M) :=
 ⟨f.support.subtype p, f ∘ coe, λ a, by simp only [mem_subtype, mem_support_iff]⟩
 
-@[simp] lemma support_subtype_domain {f : α →₀ M} :
+@[simp] lemma support_subtype_domain [D : decidable_pred p] {f : α →₀ M} :
   (subtype_domain p f).support = f.support.subtype p :=
-rfl
+by rw subsingleton.elim D; refl
 
 @[simp] lemma subtype_domain_apply {a : subtype p} {v : α →₀ M} :
   (subtype_domain p v) a = v (a.val) :=
@@ -1441,9 +1444,9 @@ lemma filter_sum (s : finset ι) (f : ι → α →₀ M) :
   (∑ a in s, f a).filter p = ∑ a in s, filter p (f a) :=
 (filter_add_hom p : (α →₀ M) →+ _).map_sum f s
 
-lemma filter_eq_sum (p : α → Prop) (f : α →₀ M) :
+lemma filter_eq_sum (p : α → Prop) [D : decidable_pred p] (f : α →₀ M) :
   f.filter p = ∑ i in f.support.filter p, single i (f i) :=
-(f.filter p).sum_single.symm.trans $ finset.sum_congr rfl $
+(f.filter p).sum_single.symm.trans $ finset.sum_congr (by rw subsingleton.elim D; refl) $
   λ x hx, by rw [filter_apply_pos _ _ (mem_filter.1 hx).2]
 
 end comm_monoid
@@ -1519,7 +1522,8 @@ begin
     { exact pow_add  } }
 end
 
-@[simp] lemma to_finset_to_multiset (f : α →₀ ℕ) : f.to_multiset.to_finset = f.support :=
+@[simp] lemma to_finset_to_multiset [decidable_eq α] (f : α →₀ ℕ) :
+  f.to_multiset.to_finset = f.support :=
 begin
   refine f.induction _ _,
   { rw [to_multiset_zero, multiset.to_finset_zero, support_zero] },
@@ -1532,7 +1536,7 @@ begin
     rwa [finset.singleton_disjoint] }
 end
 
-@[simp] lemma count_to_multiset (f : α →₀ ℕ) (a : α) :
+@[simp] lemma count_to_multiset [decidable_eq α] (f : α →₀ ℕ) (a : α) :
   f.to_multiset.count a = f a :=
 calc f.to_multiset.count a = f.sum (λx n, (n •ℕ {x} : multiset α).count a) :
     (f.support.sum_hom $ multiset.count a).symm
@@ -1623,7 +1627,8 @@ begin
   { rwa [filter_single_of_neg] }
 end
 
-lemma support_curry (f : α × β →₀ M) : f.curry.support ⊆ f.support.image prod.fst :=
+lemma support_curry [decidable_eq α] (f : α × β →₀ M) :
+  f.curry.support ⊆ f.support.image prod.fst :=
 begin
   rw ← finset.bUnion_singleton,
   refine finset.subset.trans support_sum _,
@@ -1808,7 +1813,7 @@ end
 between the subtype of finitely supported functions with support contained in `s` and
 the type of finitely supported functions from `s`. -/
 def restrict_support_equiv (s : set α) (M : Type*) [add_comm_monoid M] :
-  {f : α →₀ M // ↑f.support ⊆ s } ≃ (s →₀ M):=
+  {f : α →₀ M // ↑f.support ⊆ s } ≃ (s →₀ M) :=
 begin
   refine ⟨λf, subtype_domain (λx, x ∈ s) f.1, λ f, ⟨f.map_domain subtype.val, _⟩, _, _⟩,
   { refine set.subset.trans (finset.coe_subset.2 map_domain_support) _,
@@ -1917,13 +1922,13 @@ namespace multiset
 the multiplicities of the elements of `s`. -/
 def to_finsupp : multiset α ≃+ (α →₀ ℕ) := finsupp.to_multiset.symm
 
-@[simp] lemma to_finsupp_support (s : multiset α) :
+@[simp] lemma to_finsupp_support [D : decidable_eq α] (s : multiset α) :
   s.to_finsupp.support = s.to_finset :=
-rfl
+by rw subsingleton.elim D; refl
 
-@[simp] lemma to_finsupp_apply (s : multiset α) (a : α) :
+@[simp] lemma to_finsupp_apply [D : decidable_eq α] (s : multiset α) (a : α) :
   to_finsupp s a = s.count a :=
-rfl
+by rw subsingleton.elim D; refl
 
 lemma to_finsupp_zero : to_finsupp (0 : multiset α) = 0 := add_equiv.map_zero _
 
@@ -2055,24 +2060,26 @@ lemma swap_mem_antidiagonal_support {n : α →₀ ℕ} {f : (α →₀ ℕ) × 
   f.swap ∈ (antidiagonal n).support ↔ f ∈ (antidiagonal n).support :=
 by simp only [mem_antidiagonal_support, add_comm, prod.swap]
 
-lemma antidiagonal_support_filter_fst_eq (f g : α →₀ ℕ) :
+lemma antidiagonal_support_filter_fst_eq (f g : α →₀ ℕ)
+  [D : Π (p : (α →₀ ℕ) × (α →₀ ℕ)), decidable (p.1 = g)] :
   (antidiagonal f).support.filter (λ p, p.1 = g) = if g ≤ f then {(g, f - g)} else ∅ :=
 begin
   ext ⟨a, b⟩,
   suffices : a = g → (a + b = f ↔ g ≤ f ∧ b = f - g),
   { simpa [apply_ite ((∈) (a, b)), ← and.assoc, @and.right_comm _ (a = _), and.congr_left_iff] },
-  rintro rfl, split,
+  unfreezingI {rintro rfl}, split,
   { rintro rfl, exact ⟨le_add_right le_rfl, (nat_add_sub_cancel_left _ _).symm⟩ },
   { rintro ⟨h, rfl⟩, exact nat_add_sub_of_le h }
 end
 
-lemma antidiagonal_support_filter_snd_eq (f g : α →₀ ℕ) :
+lemma antidiagonal_support_filter_snd_eq (f g : α →₀ ℕ)
+  [D : Π (p : (α →₀ ℕ) × (α →₀ ℕ)), decidable (p.2 = g)] :
   (antidiagonal f).support.filter (λ p, p.2 = g) = if g ≤ f then {(f - g, g)} else ∅ :=
 begin
   ext ⟨a, b⟩,
   suffices : b = g → (a + b = f ↔ g ≤ f ∧ a = f - g),
   { simpa [apply_ite ((∈) (a, b)), ← and.assoc, and.congr_left_iff] },
-  rintro rfl, split,
+  unfreezingI {rintro rfl}, split,
   { rintro rfl, exact ⟨le_add_left le_rfl, (nat_add_sub_cancel _ _).symm⟩ },
   { rintro ⟨h, rfl⟩, exact nat_sub_add_cancel h }
 end

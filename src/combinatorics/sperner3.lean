@@ -5,7 +5,7 @@ import linear_algebra.std_basis
 import linear_algebra.affine_space.finite_dimensional
 import linear_algebra.affine_space.combination
 import linear_algebra.finite_dimensional
-import analysis.convex.basic
+import analysis.convex.topology
 -- import data.nat.parity
 
 -- TODO: move to mathlib
@@ -21,10 +21,30 @@ end
 theorem sdiff_union_of_subset {α : Type*} {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
 set.ext $ λ x, by simpa [em, or_comm, or_and_distrib_left] using or_iff_right_of_imp (@h x)
 
-open_locale classical affine
+open_locale classical affine big_operators
 
 open set
 namespace affine
+
+lemma coe_sum {α β : Type*} [add_comm_monoid β] (s : finset α) (f : α → β) :
+  ∑ (i : (s : set α)), f i = ∑ i in s, f i :=
+finset.sum_bij (λ a _, a) (λ a _, a.prop)
+  (λ _ _, rfl)
+  (λ _ _ _ _, subtype.ext)
+  (λ a ha, ⟨⟨_, ha⟩, finset.mem_univ _, (subtype.coe_mk _ _).symm⟩)
+
+-- TODO: find in mathlib or move to mathlib
+lemma finset.strong_downward_induction_on' {α : Type*} {p : finset α → Prop}
+  {n : ℕ} (h : ∀ {Y}, (∀ {Z : finset α}, Z.card ≤ n → Y ⊂ Z → p Z) → p Y)
+  {y : finset α} (hy : y.card ≤ n) : p y :=
+begin
+  set k := n - y.card with hk,
+  clear_value k,
+  induction k using nat.strong_induction_on with k ih generalizing y,
+  apply h (λ z hz yz, ih _ _ hz rfl),
+  rw [hk, nat.sub_lt_sub_left_iff hz],
+  apply finset.card_lt_card yz,
+end
 
 -- TODO: find in mathlib or move to mathlib
 lemma finset.strong_downward_induction_on {α : Type*} {p : finset α → Prop} {A : set (finset α)}
@@ -64,27 +84,89 @@ def simplicial_complex.of_surcomplex {m : ℕ} {S : simplicial_complex m}
   down_closed := λ X Y hX hYX, down_closed hX hYX,
   disjoint := λ X Y hX hY, S.disjoint (subset_surcomplex hX) (subset_surcomplex hY) }
 
+-- TODO (Bhavik): Golf
+lemma disjoint_convex_hull_of_subsets {X : finset E}
+  (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) {Y₁ Y₂ : finset E}
+  (hY₁ : Y₁ ⊆ X) (hY₂ : Y₂ ⊆ X) :
+  convex_hull (Y₁ : set E) ∩ convex_hull (Y₂ : set E) ⊆ convex_hull (Y₁ ∩ Y₂ : set E) :=
+begin
+  rintro x ⟨hx₁, hx₂⟩,
+  rw ←finset.coe_inter,
+  rw finset.convex_hull_eq at hx₁ hx₂,
+  rcases hx₁ with ⟨w₁, h₁w₁, h₂w₁, h₃w₁⟩,
+  rcases hx₂ with ⟨w₂, h₁w₂, h₂w₂, h₃w₂⟩,
+  rw finset.center_mass_eq_of_sum_1 _ _ h₂w₁ at h₃w₁,
+  rw finset.center_mass_eq_of_sum_1 _ _ h₂w₂ at h₃w₂,
+  dsimp at h₃w₁,
+  dsimp at h₃w₂,
+  rw affine_independent_def at hX,
+  let w : E → ℝ,
+  { intro x,
+    apply (if x ∈ Y₁ then w₁ x else 0) - (if x ∈ Y₂ then w₂ x else 0) },
+  have h₁w : ∑ (i : (X : set E)), w i = 0,
+  { rw [coe_sum, finset.sum_sub_distrib, ←finset.sum_filter, finset.filter_mem_eq_inter,
+      ←finset.sum_filter, finset.filter_mem_eq_inter, subset_iff_inter_eq_left hY₁,
+      subset_iff_inter_eq_left hY₂, h₂w₁, h₂w₂],
+    simp only [sub_self] },
+  specialize hX finset.univ _ h₁w _,
+  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ h₁w (0 : E),
+    rw finset.weighted_vsub_of_point_apply,
+    simp only [vsub_eq_sub, sub_zero, coe_sum X (λ i, w i • i)],
+    simp only [sub_smul, zero_smul, ite_smul, finset.sum_sub_distrib, ←finset.sum_filter, h₃w₁,
+      finset.filter_mem_eq_inter, subset_iff_inter_eq_left hY₁, subset_iff_inter_eq_left hY₂, h₃w₂,
+      sub_self] },
+  simp only [finset.mem_univ, set_coe.forall, forall_true_left] at hX,
+  rw finset.convex_hull_eq,
+  have t₁ : ∀ x, x ∈ Y₁ → x ∉ Y₂ → w₁ x = 0,
+  { intros x hx₁ hx₂,
+    have : ite (x ∈ Y₁) (w₁ x) 0 - ite (x ∈ Y₂) (w₂ x) 0 = 0 := hX x (hY₁ hx₁),
+    simpa [hx₁, hx₂] using this },
+  have h₄w₁ : ∑ (y : fin m → ℝ) in Y₁ ∩ Y₂, w₁ y = 1,
+  { rw [finset.sum_subset (finset.inter_subset_left Y₁ Y₂), h₂w₁],
+    simp_intros x hx₁ hx₂,
+    exact t₁ x hx₁ (hx₂ hx₁)},
+  refine ⟨w₁, _, h₄w₁, _⟩,
+  { simp only [and_imp, finset.mem_inter],
+    intros y hy₁ hy₂,
+    apply h₁w₁,
+    apply hy₁ },
+  { rw finset.center_mass_eq_of_sum_1 _ _ h₄w₁,
+    dsimp only [id.def],
+    rw [finset.sum_subset (finset.inter_subset_left Y₁ Y₂), h₃w₁],
+    simp_intros x hx₁ hx₂,
+    left,
+    apply t₁,
+    apply hx₁,
+    apply hx₂,
+    apply hx₁ },
+end
+
 /--
 A constructor for simplicial complexes by specifying a set of faces to close downward.
 -/
-def simplicial_complex.of_set_closure {m : ℕ} {A : set (finset (fin m → ℝ))}
-  (indep : ∀ {X}, X ∈ A → affine_independent ℝ (λ p, p : (X : set (fin m → ℝ)) → (fin m → ℝ)))
+def simplicial_complex.of_set_closure {A : set (finset E)}
+  (indep : ∀ {X}, X ∈ A → affine_independent ℝ (λ p, p : (X : set E) → E))
   (disjoint : ∀ {X Y}, X ∈ A → Y ∈ A →
-  convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set (fin m → ℝ))) :
-  simplicial_complex m := {
-  faces := {X | ∃ {Y}, Y ∈ A ∧ X ⊆ Y},
-  indep := begin
+    convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set E)) :
+  simplicial_complex m :=
+{ faces := {X | ∃ Y, Y ∈ A ∧ X ⊆ Y},
+  indep :=
+  begin
     rintro X ⟨Y, hY, hXY⟩,
     exact affine_independent_of_subset_affine_independent (indep hY) hXY,
   end,
-  down_closed := begin
+  down_closed :=
+  begin
     rintro X Y ⟨Z, hZ, hXZ⟩ hYX,
     exact ⟨Z, hZ, subset.trans hYX hXZ⟩,
   end,
-  disjoint := begin
-    rintro W X ⟨Y, hY, hWY⟩ ⟨Z, hZ, hXZ⟩,
-    specialize disjoint hY hZ,
+  disjoint :=
+  begin
+    rintro W X ⟨Y, hY, hWY⟩ ⟨Z, hZ, hXZ⟩ x ⟨hx₁, hx₂⟩,
+    have : x ∈ convex_hull (Y ∩ Z : set E) :=
+      disjoint hY hZ ⟨convex_hull_mono hWY hx₁, convex_hull_mono hXZ hx₂⟩,
     sorry
+    -- this is easy with `disjoint_convex_hull_of_subsets` now
   end}
 
 /-- The underlying space of a simplicial complex. -/
@@ -92,8 +174,8 @@ def simplicial_complex.space (S : simplicial_complex m) : set E :=
 ⋃ X ∈ S.faces, convex_hull (X : set E)
 
 --I think we should take faces := {∅} instead of faces := ∅
-def empty_simplicial_complex (m : ℕ) : simplicial_complex m := {
-  faces := ∅,
+def empty_simplicial_complex (m : ℕ) : simplicial_complex m :=
+{ faces := ∅,
   indep := begin
     rintro X hX,
     exfalso,
@@ -126,7 +208,8 @@ The boundary of a simplex as a subspace.
 def boundary (X : finset E) : set E :=
 ⋃ Y ⊂ X, convex_hull Y
 
-lemma boundaries_agree_of_high_dimension {X : finset E} (hXcard : X.card = m + 1) : boundary X = frontier (convex_hull X) :=
+lemma boundaries_agree_of_high_dimension {X : finset E} (hXcard : X.card = m + 1) :
+  boundary X = frontier (convex_hull X) :=
 begin
   ext x,
   split,
@@ -169,16 +252,14 @@ begin
   rintro ⟨⟨hxX, hXbound⟩, ⟨hyY, hYbound⟩⟩,
   by_contra,
   have hXY : X ∩ Y ⊂ X,
-  {
-    use finset.inter_subset_left X Y,
+  { use finset.inter_subset_left X Y,
     intro H,
     apply hYbound,
     apply set.mem_bUnion _ _,
     exact X,
     exact ⟨subset.trans H (finset.inter_subset_right X Y),
       (λ H2, h (finset.subset.antisymm (subset.trans H (finset.inter_subset_right X Y)) H2))⟩,
-    exact hxX,
-  },
+    exact hxX },
   refine hXbound (mem_bUnion hXY _),
   exact_mod_cast S.disjoint hX hY ⟨hxX, hyY⟩,
 end
@@ -230,34 +311,18 @@ begin
   exact ⟨X, ⟨⟨hX, hxX⟩, (λ Y ⟨hY, hxY⟩, disjoint_interiors hY hX x ⟨hxY, hxX⟩)⟩⟩,
 end
 
+lemma is_closed_convex_hull {X : finset E} : is_closed (convex_hull (X : set E)) :=
+X.finite_to_set.is_closed_convex_hull
+
 /- interior X is the topological interior iff X is of dimension m -/
-lemma interiors_agree_of_high_dimension {S : simplicial_complex m} :
-  ∀ X ∈ S.faces, finset.card X = m + 1 → combi_interior X = interior X :=
+lemma interiors_agree_of_high_dimension {S : simplicial_complex m}
+  {X} (hX : X ∈ S.faces) (hXdim : X.card = m + 1) :
+  combi_interior X = interior X :=
 begin
-  unfold combi_interior,
-  rintro X hX hXdim,
-  ext x,
-  split,
-  {
-    rintro ⟨hxhull, hxbound⟩,
-    unfold convex_hull at hxhull,
-    unfold interior,
-    sorry
-  },
-  {
-    intro hx,
-    split,
-    {
-      sorry
-    },
-    {
-      intro hxbound,
-      sorry
-    }
-  }
+  sorry
 end
 
-local attribute [-instance] real.ring
+local attribute [-instance] real.nondiscrete_normed_field real.normed_field real.semiring real.ring
 
 --To golf down
 lemma size_bound {X : finset (fin m → ℝ)} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
@@ -321,14 +386,6 @@ end
 
 -- end
 
-open_locale big_operators
-
-lemma coe_sum {α β : Type*} [add_comm_monoid β] (s : finset α) (f : α → β) :
-  ∑ (i : (s : set α)), f i = ∑ i in s, f i :=
-finset.sum_bij (λ a _, a) (λ a _, a.prop)
-  (λ _ _, rfl)
-  (λ _ _ _ _, subtype.ext)
-  (λ a ha, ⟨⟨_, ha⟩, finset.mem_univ _, (subtype.coe_mk _ _).symm⟩)
 
 lemma is_extreme_convex_hull_of_affine_independent {s : finset E} {x : E} (hx : x ∈ s)
   (hs : affine_independent ℝ (λ p, p : (s : set E) → E)) :
@@ -370,58 +427,38 @@ begin
         { apply lt_of_le_of_ne hθ₁.1 hθ.1.symm },
         { rw sub_pos,
           apply lt_of_le_of_ne hθ₁.2 hθ.2 } },
-      have both_zero : ∀ q ∈ s, q ≠ x → w q = 0 ∧ w' q = 0,
-      { rintro q hq₁ hq₂,
+      have both_zero : ∀ q ∈ s, q ≠ x → w q = 0,
+      { intros q hq₁ hq₂,
         specialize hw''₃ q hq₁,
         change _ + _ = _ at hw''₃,
         rw if_neg hq₂ at hw''₃,
         simp only [add_zero, neg_zero] at hw''₃,
-        rw add_eq_zero_iff' at hw''₃,
-        apply and.imp _ _ hw''₃,
-        rw mul_eq_zero,
-        intro t,
-        exact or.resolve_left t (ne_of_gt this.2),
-        rw mul_eq_zero,
-        intro t,
-        exact or.resolve_left t (ne_of_gt this.1),
-        apply mul_nonneg (le_of_lt this.2),
-        exact hw₀ q hq₁,
-        apply mul_nonneg,
-        apply le_of_lt this.1,
-        apply hw'₀,
-        apply hq₁ },
+        rw add_eq_zero_iff'
+            (mul_nonneg (le_of_lt this.2) (hw₀ q hq₁))
+            (mul_nonneg (le_of_lt this.1) (hw'₀ q hq₁)) at hw''₃,
+        rw mul_eq_zero at hw''₃,
+        apply or.resolve_left hw''₃.1 (ne_of_gt this.2) },
       have : (1 - θ) * w x + θ * w' x = 1,
       { specialize hw''₃ _ hx,
         change (1 - θ) * w x + θ * w' x - ite _ _ _ = 0 at hw''₃,
-        rw if_pos rfl at hw''₃,
-        rwa sub_eq_zero at hw''₃ },
+        rwa [if_pos rfl, sub_eq_zero] at hw''₃ },
       rw finset.sum_eq_single x at hw₁,
       { rw finset.sum_eq_single x at hy,
         { rw hw₁ at hy,
           apply t.1,
           simpa using hy },
         { rintro q hq₁ hq₂,
-          rw (both_zero q hq₁ hq₂).1,
+          rw (both_zero q hq₁ hq₂),
           simp },
-        { intro t,
-          exfalso,
-          apply t,
-          apply hx } },
-      { rintro q hq₁ hq₂,
-        apply (both_zero q hq₁ hq₂).1 },
-      { intro t,
-        exfalso,
-        apply t,
-        apply hx } },
+        { exact λ t, (t hx).elim } },
+      { intros q hq₁ hq₂,
+        apply (both_zero q hq₁ hq₂) },
+      { exact λ t, (t hx).elim } },
     rcases this with (rfl | rfl),
-    simp at hθ₂,
-    apply t.1,
-    symmetry,
-    assumption,
-    simp at hθ₂,
-    apply t.2,
-    symmetry,
-    assumption },
+    { simp only [add_zero, one_smul, sub_zero, zero_smul] at hθ₂,
+      apply t.1 hθ₂.symm },
+    { simp only [one_smul, zero_smul, zero_add, sub_self] at hθ₂,
+      apply t.2 hθ₂.symm } },
   rw affine_independent_iff_of_fintype at hs,
   let w''' : (s : set E) → ℝ := λ t, w'' (t : E),
   have hw''' : finset.univ.sum w''' = 0,
@@ -474,15 +511,6 @@ lemma eq_of_convex_hull_eq_convex_hull_of_linearly_independent_of_linearly_indep
 finset.subset.antisymm
   (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hX h)
   (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hY h.symm)
-
-def convex_independent (s : set E) : Prop := ∀ x ∈ s, x ∉ convex_hull (s \ {x})
-
-lemma convex_independent_of_affine_independent {s : set E} :
-  affine_independent ℝ (λ p, p : s → E) → convex_independent s :=
-begin
-  sorry
-end
-
 
 /- S₁ ≤ S₂ (S₁ is a subdivision of S₂) iff their underlying space is the same and each face of S₁
 is contained in some face of S₂-/
@@ -567,11 +595,9 @@ begin
   rintro Y hY h,
   by_cases hYfacet : Y ∈ S.facets,
   { exact ⟨Y, hYfacet, finset.subset.refl _⟩, },
-  {
-    obtain ⟨Z, hZ⟩ := (not_facet_iff_subface hY).mp hYfacet,
-    obtain ⟨W, hW⟩ := h hZ.1 hZ.2,
-    exact ⟨W, hW.1, finset.subset.trans hZ.2.1 hW.2⟩,
-  }
+  { obtain ⟨Z, hZ₁, hZ₂⟩ := (not_facet_iff_subface hY).mp hYfacet,
+    obtain ⟨W, hW⟩ := h hZ₁ hZ₂,
+    exact ⟨W, hW.1, finset.subset.trans hZ₂.1 hW.2⟩, }
 end
 
 /--
@@ -595,28 +621,15 @@ begin
   exact finset.card_le_of_subset hXY,
 end
 
-lemma pureness_le_space_dimension {S : simplicial_complex m} (hS : S.pure) {X : finset (fin m → ℝ)} :
-  X ∈ S.faces → X.card ≤ pureness hS + 1 :=
-begin
-  rintro hX,
-  obtain ⟨n, hS⟩ := hS,
-  sorry
-end
-
 lemma facet_iff_dimension_eq_pureness {S : simplicial_complex m} (hS : S.pure)
-  {X : finset (fin m → ℝ)} : X ∈ S.faces → (X ∈ S.facets ↔ X.card = pureness hS + 1) :=
+  {X : finset (fin m → ℝ)} (hX : X ∈ S.faces) :
+  X ∈ S.facets ↔ X.card = pureness hS + 1 :=
 begin
-  rintro hX,
-  split,
-  { exact pureness_def hS },
-  {
-    rintro hXcard,
-    use hX,
-    rintro Y hY hXY,
+  refine ⟨pureness_def hS, λ hXcard, _⟩,
+  { refine ⟨hX, λ Y hY hXY, _⟩,
     apply finset.eq_of_subset_of_card_le hXY,
     rw hXcard,
-    exact pureness_le_space_dimension hS hY,
-  }
+    exact simplex_dimension_le_pureness hS hY, }
 end
 
 /--
@@ -627,26 +640,22 @@ lemma pure_iff {S : simplicial_complex m} : S.pure ↔ ∃ n : ℕ, ∀ {X}, X �
   ∃ {Y}, Y ∈ S.faces ∧ finset.card Y = n + 1 ∧ X ⊆ Y :=
 begin
   split,
-  {
-    rintro hS,
+  { rintro hS,
     use pureness hS,
     rintro X hX,
     obtain ⟨Y, hY, hXY⟩ := subfacet hX,
-    exact ⟨Y, facets_subset hY, pureness_def hS hY, hXY⟩,
-  },
-  {
-    rintro ⟨n, hS⟩,
+    exact ⟨Y, facets_subset hY, pureness_def hS hY, hXY⟩ },
+  { rintro ⟨n, hS⟩,
     use n,
     rintro X ⟨hX, hXmax⟩,
     obtain ⟨Y, hY, hYcard, hXY⟩ := hS hX,
     rw hXmax hY hXY,
-    exact hYcard,
-  }
+    exact hYcard, }
 end
 
 /-The cells of a simplicial complex are its simplices whose dimension matches the one of the space-/
-def simplicial_complex.cells (S : simplicial_complex m) : set (finset (fin m → ℝ))
-  := {X | X ∈ S.faces ∧ X.card = m + 1}
+def simplicial_complex.cells (S : simplicial_complex m) : set (finset (fin m → ℝ)) :=
+{X | X ∈ S.faces ∧ X.card = m + 1}
 
 lemma cells_subset_facets {S : simplicial_complex m} : S.cells ⊆ S.facets :=
 begin
@@ -661,13 +670,17 @@ end
 /-A simplicial complex is connected iff its space is-/
 def simplicial_complex.connected (S : simplicial_complex m) : Prop := connected_space S.space
 
-def simplicial_complex.skeleton (S : simplicial_complex m) (k : ℕ) : simplicial_complex m :=
-  simplicial_complex.of_surcomplex {X ∈ S.faces | finset.card X ≤ k + 1} (λ X ⟨hX, _⟩, hX)
+def simplicial_complex.skeleton (S : simplicial_complex m) (k : ℕ) :
+  simplicial_complex m :=
+simplicial_complex.of_surcomplex
+  {X ∈ S.faces | finset.card X ≤ k + 1}
+  (λ X ⟨hX, _⟩, hX)
   (λ X Y hX hY, ⟨S.down_closed hX.1 hY, le_trans (finset.card_le_of_subset hY) hX.2⟩)
 
 --Is this lemma useful?
 lemma skeleton_subcomplex_self {S : simplicial_complex m} {k : ℕ} :
-  (S.skeleton k).faces ⊆ S.faces := (λ X ⟨hX, _⟩, hX)
+  (S.skeleton k).faces ⊆ S.faces :=
+λ X ⟨hX, _⟩, hX
 
 lemma pure_skeleton_of_pure {S : simplicial_complex m} (k : ℕ) : S.pure → (S.skeleton k).pure :=
 begin
@@ -678,30 +691,23 @@ begin
     rintro X hXskel,
     obtain ⟨Y, hY, hXY⟩ := subfacet (skeleton_subcomplex_self (facets_subset hXskel)),
     have hYskel : Y ∈ (S.skeleton k).faces,
-    {
-      use facets_subset hY,
+    { use facets_subset hY,
       simp,
       rw hS hY,
-      exact hmin,
-    },
+      exact hmin, },
     rw hXskel.2 hYskel hXY,
-    exact hS hY,
-  },
-  {
-    use k,
+    exact hS hY },
+  { use k,
     rintro X ⟨⟨hX, hXcard⟩, hXmax⟩,
     obtain ⟨Y, hY, hXY⟩ := subfacet hX,
     have : k + 1 - X.card + X.card ≤ Y.card,
-    {
-      rw hS hY,
+    { rw hS hY,
       rw nat.sub_add_cancel hXcard,
-      exact le_of_lt hmin,
-    },
+      exact le_of_lt hmin, },
     obtain ⟨Z, hXZ, hZY, hZcard⟩ := finset.exists_intermediate_set (k + 1 - X.card) this hXY,
       rw nat.sub_add_cancel hXcard at hZcard,
     rw hXmax ⟨S.down_closed (facets_subset hY) hZY, le_of_eq hZcard⟩ hXZ,
-    exact hZcard,
-  }
+    exact hZcard, }
 end
 
 lemma skeleton_pureness_eq_min_pureness_dimension {S : simplicial_complex m} {k : ℕ} (hS : S.pure) :
@@ -712,8 +718,7 @@ lemma connected_iff_one_skeleton_connected {S : simplicial_complex m} :
   S.connected ↔ (S.skeleton 1).connected :=
 begin
   split,
-  {
-    rintro h,
+  { rintro h,
     unfold simplicial_complex.connected,
     sorry
   },
@@ -751,7 +756,8 @@ lemma closure_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ)
 
 /-The open star of a set of faces is the s-/
 def star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A ⊆ S.faces) :
-  set (finset (fin m → ℝ)) := ⋃ (X : finset (fin m → ℝ)) (H : X ∈ A), {Y | Y ∈ S.faces ∧ X ⊆ Y}
+  set (finset (fin m → ℝ)) :=
+⋃ (X ∈ A), {Y | Y ∈ S.faces ∧ X ⊆ Y}
 
 lemma star_subset {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
   (hA : A ⊆ S.faces) : star hA ⊆ S.faces :=
@@ -878,10 +884,9 @@ def link {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} (hA : A �
     }
   end
 
-/-
--/
 def link_singleton {S : simplicial_complex m} {X : finset (fin m → ℝ)} (hX : X ∈ S.faces) :
-  simplicial_complex m := sorry
+  simplicial_complex m :=
+link (set.singleton_subset_iff.2 hX)
 
 lemma link_subset {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
   (hA : A ⊆ S.faces) : (link hA).faces ⊆ S.faces := λ X hX, Star_subset hA hX.1

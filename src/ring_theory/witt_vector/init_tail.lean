@@ -122,7 +122,7 @@ begin
     alg_hom.map_mul, bind₁_X_right, bind₁_C_right, ← finset.sum_add_distrib, ← mul_add],
   apply finset.sum_congr rfl,
   refine λ m hm, mul_eq_mul_left_iff.mpr (or.inl _),
-  rw [ite_pow, ite_pow, zero_pow (pow_pos hp.pos _)],
+  rw [ite_pow, ite_pow, zero_pow (pow_pos hp.out.pos _)],
   by_cases Pm : P m,
   { rw [if_pos Pm, if_neg _, add_zero],
     exact not_not.mpr Pm },

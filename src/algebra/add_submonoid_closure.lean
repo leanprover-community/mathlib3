@@ -61,7 +61,7 @@ S.to_subsemiring.to_semiring
 
 /-- The elements of the additive closure of a multiplicative submonoid `S` are exactly the
 elements of the subsemiring closure of `S`. -/
-lemma clss : (add_submonoid.closure (S : set R)).carrier = subsemiring.closure (S : set R) :=
+lemma clss : (add_submonoid.closure (S : set R) : set R) = subsemiring.closure (S : set R) :=
 begin
   refine set.ext (λ x, ⟨λ hx, _, λ hx, _⟩),
   { refine subsemiring.mem_coe.mpr _,

@@ -31,6 +31,7 @@ open category_theory.category
 We work in an additive category C equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [additive_category C]
+
   [has_shift C] [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
 /-
 Eventually can remove conditions on shift functor and inverse, as all equivalences of additive
@@ -54,7 +55,6 @@ local attribute [instance] has_zero_object.has_zero
 instance [has_zero_object C] : inhabited (triangle C) :=
 ⟨⟨0,0,0,0,0,0⟩⟩
 
-
 /--
 For each object in C, there is a triangle of the form (X,X,0,𝟙_X,0,0)
 -/
@@ -65,7 +65,6 @@ def contractible_triangle (X : C) : triangle C :=
   mor₁ := 𝟙 X,
   mor₂ := 0,
   mor₃ := 0 }
-
 
 variable {C}
 

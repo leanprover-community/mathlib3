@@ -31,6 +31,19 @@ begin
     exact λ r s hr hs b hb, (add_submonoid.closure (S : set R)).add_mem (hr hb) (hs hb) }
 end
 
+/-- The product of an element of `S` and an element of the additive closure of a multiplicative
+submonoid `S` is contained in the additive closure of `S`. -/
+lemma submonoid.mem_add_closure_mul (ha : a ∈ S) (hb : b ∈ add_submonoid.closure (S : set R)) :
+  a * b ∈ add_submonoid.closure (S : set R) :=
+begin
+  revert a,
+  refine add_submonoid.closure_induction hb _ _ _; clear hb b,
+  { exact λ r hr b hb, add_submonoid.mem_closure.mpr (λ y hy, hy (S.mul_mem hb hr)) },
+  { exact λ b hb, by simp only [mul_zero, (add_submonoid.closure (S : set R)).zero_mem] },
+  { simp_rw mul_add,
+    exact λ r s hr hs b hb, (add_submonoid.closure (S : set R)).add_mem (hr hb) (hs hb) }
+end
+
 variable {S}
 
 /-- The product of two elements of the additive closure of a submonoid `S` is an element of the
@@ -54,7 +67,6 @@ def submonoid.to_subsemiring (S : submonoid R) : subsemiring R :=
   mul_mem' := λ x y, mul_mem,
   zero_mem' := (add_submonoid.closure (S : set R)).zero_mem,
   add_mem' := λ x y, (add_submonoid.closure (S : set R)).add_mem }
-
 
 lemma to_semiring_coe : (S.to_subsemiring : set R) = add_submonoid.closure (S : set R) := rfl
 

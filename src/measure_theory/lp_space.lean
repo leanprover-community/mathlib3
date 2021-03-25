@@ -6,6 +6,7 @@ Authors: Rémy Degenne, Sébastien Gouëzel
 import measure_theory.ess_sup
 import measure_theory.ae_eq_fun
 import analysis.mean_inequalities
+import topology.bounded_continuous_function
 
 /-!
 # ℒp space and Lp space
@@ -321,6 +322,27 @@ begin
   { exact snorm'_mono_ae ennreal.to_real_nonneg h }
 end
 
+lemma snorm_le_of_bound {f : α → E} (hf : ae_measurable f μ)
+  {C : ℝ} (hC : 0 ≤ C) (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
+  snorm f p μ ≤ ((μ set.univ) ^ p.to_real⁻¹) * (@coe ℝ≥0 ℝ≥0∞ _ ⟨C, hC⟩) :=
+begin
+  by_cases hp : p = 0,
+  { simp [hp] },
+  by_cases hμ : μ = 0,
+  { simp [hμ] },
+  have hC' : ∥C∥ = C := by simp [real.norm_eq_abs, abs_eq_self.mpr hC],
+  let g : α → ℝ := λ _, C,
+  have : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥,
+  { convert hfC,
+    ext,
+    simp [hC'] },
+  convert snorm_mono_ae this,
+  rw [snorm_const _ hp hμ, mul_comm],
+  congr,
+  { simp [hC'] },
+  { simp }
+end
+
 lemma snorm_congr_norm_ae {f : α → F} {g : α → G} (hfg : ∀ᵐ x ∂μ, ∥f x∥ = ∥g x∥) :
   snorm f p μ = snorm g p μ :=
 le_antisymm (snorm_mono_ae $ eventually_eq.le hfg)
@@ -387,6 +409,11 @@ lemma mem_ℒp.ae_eq {f g : α → E} (hfg : f =ᵐ[μ] g) (hf_Lp : mem_ℒp f p
 lemma mem_ℒp.of_le [measurable_space F] {f : α → E} {g : α → F}
   (hg : mem_ℒp g p μ) (hf : ae_measurable f μ) (hfg : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥) : mem_ℒp f p μ :=
 ⟨hf, (snorm_mono_ae hfg).trans_lt hg.snorm_lt_top⟩
+
+lemma mem_ℒp.of_bound [finite_measure μ] {f : α → E} (hf : ae_measurable f μ)
+  (C : ℝ) (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
+  mem_ℒp f p μ :=
+(mem_ℒp_const C).of_le hf (hfC.mono (λ x hx, le_trans hx (le_abs_self _)))
 
 section opens_measurable_space
 variable [opens_measurable_space E]
@@ -1028,11 +1055,23 @@ end
 
 lemma mem_Lp_of_ae_le_mul [second_countable_topology F] [measurable_space F] [borel_space F]
   {c : ℝ} {f : α →ₘ[μ] E} {g : Lp F p μ} (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ c * ∥g x∥) : f ∈ Lp E p μ :=
-mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_le_mul (Lp.mem_ℒp g) (ae_eq_fun.ae_measurable f) h
+mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_le_mul (Lp.mem_ℒp g) f.ae_measurable h
 
 lemma mem_Lp_of_ae_le [second_countable_topology F] [measurable_space F] [borel_space F]
   {f : α →ₘ[μ] E} {g : Lp F p μ} (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥) : f ∈ Lp E p μ :=
-mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_le (Lp.mem_ℒp g) (ae_eq_fun.ae_measurable f) h
+mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_le (Lp.mem_ℒp g) f.ae_measurable h
+
+lemma mem_Lp_of_ae_bound [finite_measure μ] {f : α →ₘ[μ] E} (C : ℝ) (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
+  f ∈ Lp E p μ :=
+mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_bound f.ae_measurable _ hfC
+
+lemma norm_of_ae_bound [finite_measure μ] {f : α →ₘ[μ] E} {C : ℝ} (hC : 0 ≤ C)
+  (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
+  ∥(⟨f, mem_Lp_of_ae_bound C hfC⟩ : Lp E p μ)∥
+  ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * (⟨C, hC⟩ : ℝ≥0) :=
+begin
+  sorry
+end
 
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p μ) :=
 normed_group.of_core _
@@ -1064,17 +1103,22 @@ begin
   exact or.inl ⟨ennreal.coe_lt_top, f.prop⟩,
 end
 
-instance : has_scalar 𝕜 (Lp E p μ) := { smul := λ c f, ⟨c • ↑f, mem_Lp_const_smul c f⟩ }
+variables (E p μ 𝕜)
 
-lemma coe_fn_smul (c : 𝕜) (f : Lp E p μ) : ⇑(c • f) =ᵐ[μ] c • f := ae_eq_fun.coe_fn_smul _ _
+/-- The `𝕜`-submodule of elements of `α →ₘ[μ] E` whose `Lp` norm is finite.  This is `Lp E p μ`, with
+extra structure. -/
+def Lp_submodule : submodule 𝕜 (α →ₘ[μ] E) :=
+{ smul_mem' := λ c f hf, by simpa using mem_Lp_const_smul c ⟨f, hf⟩,
+  .. Lp E p μ }
+
+variables {E p μ 𝕜}
+
+lemma coe_Lp_submodule : (Lp_submodule E p μ 𝕜).to_add_subgroup = Lp E p μ := rfl
 
 instance : semimodule 𝕜 (Lp E p μ) :=
-{ one_smul := λ _, subtype.eq (one_smul 𝕜 _),
-  mul_smul := λ _ _ _, subtype.eq (mul_smul _ _ _),
-  smul_add := λ _ _ _, subtype.eq (smul_add _ _ _),
-  smul_zero := λ _, subtype.eq (smul_zero _),
-  add_smul := λ _ _ _, subtype.eq (add_smul _ _ _),
-  zero_smul := λ _, subtype.eq (zero_smul _ _) }
+{ .. (Lp_submodule E p μ 𝕜).semimodule }
+
+lemma coe_fn_smul (c : 𝕜) (f : Lp E p μ) : ⇑(c • f) =ᵐ[μ] c • f := ae_eq_fun.coe_fn_smul _ _
 
 lemma norm_const_smul (c : 𝕜) (f : Lp E p μ) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
 by rw [norm_def, snorm_congr_ae (coe_fn_smul _ _), snorm_const_smul c,
@@ -1678,3 +1722,54 @@ end Lp
 end measure_theory
 
 end complete_space
+
+namespace bounded_continuous_function
+
+open_locale bounded_continuous_function
+variables [measurable_space E] [normed_group E] [borel_space E] [second_countable_topology E]
+variables [topological_space α] [borel_space α]
+variables [finite_measure μ]
+
+lemma mem_Lp (f : α →ᵇ E) :
+  f.to_continuous_map.to_ae_eq_fun μ ∈ Lp E p μ :=
+begin
+  refine Lp.mem_Lp_of_ae_bound (∥f∥) _,
+  filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
+  intros x hx,
+  convert f.norm_coe_le_norm x
+end
+
+/-- The normed group homomorphism of considering a bounded continuous function on a finite-measure
+space as an element of `Lp`. -/
+def to_Lp_hom [fact (1 ≤ p)] : normed_group_hom (α →ᵇ E) (Lp E p μ) :=
+{ bound' := ⟨(measure_univ_nnreal μ) ^ (p.to_real)⁻¹, λ f, begin
+    apply Lp.norm_of_ae_bound (norm_nonneg f),
+    filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
+    intros x hx,
+    convert f.norm_coe_le_norm x
+  end⟩,
+  .. add_monoid_hom.cod_restrict
+      ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E))
+      (Lp E p μ)
+      mem_Lp }
+
+variables (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 E]
+
+/-- The bounded linear map of considering a bounded continuous function on a finite-measure space
+as an element of `Lp`. -/
+def to_Lp [fact (1 ≤ p)] : (α →ᵇ E) →L[𝕜] (Lp E p μ) :=
+linear_map.mk_continuous
+  (linear_map.cod_restrict
+    (Lp.Lp_submodule E p μ 𝕜)
+    ((continuous_map.to_ae_eq_fun_linear_map μ).comp (forget_boundedness_linear_map α E))
+    mem_Lp)
+  ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹)
+  begin
+    intros f,
+    apply Lp.norm_of_ae_bound (norm_nonneg f),
+    filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
+    intros x hx,
+    convert f.norm_coe_le_norm x
+  end
+
+end bounded_continuous_function

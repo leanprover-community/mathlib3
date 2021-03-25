@@ -85,7 +85,7 @@ measure, almost everywhere, measure space, completion, null set, null measurable
 noncomputable theory
 
 open classical set filter (hiding map) function measurable_space
-open_locale classical topological_space big_operators filter ennreal
+open_locale classical topological_space big_operators filter ennreal nnreal
 
 variables {α β γ δ ι : Type*}
 
@@ -1631,6 +1631,13 @@ lemma measure_lt_top (μ : measure α) [finite_measure μ] (s : set α) : μ s <
 
 lemma measure_ne_top (μ : measure α) [finite_measure μ] (s : set α) : μ s ≠ ∞ :=
 ne_of_lt (measure_lt_top μ s)
+
+/-- The measure of the whole space with respect to a finite measure, considered as `ℝ≥0`. -/
+def measure_univ_nnreal (μ : measure α) [finite_measure μ] : ℝ≥0 := (μ univ).to_nnreal
+
+@[simp] lemma coe_measure_univ_nnreal (μ : measure α) [finite_measure μ] :
+  ↑(measure_univ_nnreal μ) = μ univ :=
+ennreal.coe_to_nnreal (measure_ne_top μ univ)
 
 /-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
 but it holds for measures with the additional assumption that μ is finite. -/

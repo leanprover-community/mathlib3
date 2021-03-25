@@ -648,6 +648,17 @@ instance [compact_space α] : normed_space 𝕜 C(α,β) :=
     exact le_of_eq (norm_smul c f),
   end }
 
+variables (α β)
+
+/--
+The linear map forgetting that a bounded continuous function is bounded.
+-/
+@[simps]
+def forget_boundedness_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
+{ to_fun := forget_boundedness α β,
+  map_smul' := by { intros, ext, simp, },
+  map_add' := by { intros, ext, simp, }, }
+
 end normed_space
 
 section normed_ring

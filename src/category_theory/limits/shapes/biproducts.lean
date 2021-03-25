@@ -951,12 +951,14 @@ lemma biproduct.lift_matrix
   biproduct.lift x ≫ biproduct.matrix m = biproduct.lift (λ k, ∑ j, x j ≫ m j k) :=
 by { ext, simp, }
 
+@[reassoc]
 lemma biproduct.matrix_map
   [fintype J] {K : Type v} [fintype K] [decidable_eq K] [has_finite_biproducts C]
   {f : J → C} {g : K → C} {h : K → C} (m : Π j k, f j ⟶ g k) (n : Π k, g k ⟶ h k) :
   biproduct.matrix m ≫ biproduct.map n = biproduct.matrix (λ j k, m j k ≫ n k) :=
 by { ext, simp, }
 
+@[reassoc]
 lemma biproduct.map_matrix
   [fintype J] {K : Type v} [fintype K] [decidable_eq K] [has_finite_biproducts C]
   {f : J → C} {g : J → C} {h : K → C} (m : Π k, f k ⟶ g k) (n : Π j k, g j ⟶ h k) :

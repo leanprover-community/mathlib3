@@ -19,17 +19,21 @@ whose morphisms are matrices of morphisms from `C`.
 
 There is a functor `Mat_.embedding : C ⥤ Mat_ C` sending morphisms to one-by-one matrices.
 
-### The additive envelope
+`Mat_ C` has finite biproducts.
+
+## The additive envelope
 
 We show that this construction is the "additive envelope" of `C`,
 in the sense that any additive functor `F : C ⥤ D` to a category `D` with biproducts
 lifts to a functor `Mat_.lift F : Mat_ C ⥤ D`,
-and that this functor is unique (up to natural isomorphisms) amongst functors `L : Mat_ C ⥤ D`
+Moreover, this functor is unique (up to natural isomorphisms) amongst functors `L : Mat_ C ⥤ D`
 such that `embedding C ⋙ L ≅ F`.
-(We can't explicitly state that it is
+(As we don't have 2-category theory, we can't explicitly state that `Mat_ C` is
 the initial object in the 2-category of categories under `C` which have biproducts.)
 
-### Matrices over a ring
+As a consequence, when `C` already has finite biproducts we have `Mat_ C ≌ C`.
+
+## Matrices over a ring
 
 We also provide for convenience `Mat R`, where `R` is a ring, as a category with objects `ℕ`,
 and whose morphisms are matrices with components in `R`.
@@ -132,6 +136,7 @@ We now prove that `Mat_ C` has finite biproducts.
 Be warned, however, that `Mat_ C` is not necessarily Krull-Schmidt,
 and so the internal indexing of a biproduct may have nothing to do with the external indexing,
 even though the construction we give uses a sigma type.
+See however `iso_biproduct_embedding`.
 -/
 instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
 { has_biproducts_of_shape := λ J 𝒟 ℱ, by exactI
@@ -235,22 +240,6 @@ end)
 
 end functor
 
-/--
-Consider a natural number `n` as an object of `Mat R`, the category of matrices over `R`.
--/
-def Mat.of (R : Type*) [ring R] (n : ℕ) : Mat_ (single_obj R) :=
-⟨fin n, λ _, punit.star⟩
-
-/--
-The category of matrices over a ring `R`, with objects the natural numbers.
--/
-@[derive [category, preadditive]]
-def Mat (R : Type*) [ring R] := induced_category (Mat_ (single_obj R)) (Mat.of R)
-
-example : matrix (fin 3) (fin 3) ℤ := 𝟙 (Mat.of ℤ 3)
-example : Mat.of ℤ 2 ⟶ Mat.of ℤ 3 := ![![(37 : ℤ), 42, 0], ![0, 37, 42]]
-
-
 namespace Mat_
 
 variables (C)
@@ -269,6 +258,8 @@ instance : faithful (embedding C) :=
 
 instance : full (embedding C) :=
 { preimage := λ X Y f, f punit.star punit.star, }
+
+instance : functor.additive (embedding C) := {}
 
 end embedding
 
@@ -350,39 +341,33 @@ def additive_obj_iso_biproduct (F : Mat_ C ⥤ D) [functor.additive F] (M : Mat_
   F.obj M ≅ ⨁ (λ i, F.obj ((embedding C).obj (M.X i))) :=
 (F.map_iso (iso_biproduct_embedding M)) ≪≫ (F.map_biproduct _)
 
-@[simp, reassoc] lemma additive_obj_iso_biproduct_naturality (F : Mat_ C ⥤ D) [functor.additive F]
+@[reassoc] lemma additive_obj_iso_biproduct_naturality (F : Mat_ C ⥤ D) [functor.additive F]
   {M N : Mat_ C} (f : M ⟶ N) :
   F.map f ≫ (additive_obj_iso_biproduct F N).hom =
     (additive_obj_iso_biproduct F M).hom ≫ biproduct.matrix (λ i j, F.map ((embedding C).map (f i j))) :=
 begin
+  -- This is disappointingly tedious.
   ext,
   dsimp [embedding],
   simp only [←F.map_comp, biproduct.lift_π, biproduct.matrix_π, category.assoc],
   simp only [←F.map_comp, ←F.map_sum, biproduct.lift_desc, biproduct.lift_π_assoc, comp_sum],
-  simp only [comp_def],
-  simp only [comp_dite],
-  simp only [comp_zero],
-  simp only [finset.sum_dite_eq'],
-  simp only [finset.mem_univ],
-  simp only [if_true],
+  simp only [comp_def, comp_dite, comp_zero, finset.sum_dite_eq', finset.mem_univ, if_true],
   dsimp,
-  simp only [finset.sum_singleton],
-  simp only [dite_comp, zero_comp],
+  simp only [finset.sum_singleton, dite_comp, zero_comp],
   congr,
   symmetry,
-  convert finset.sum_apply' _ _,
-  simp only [finset.sum_apply'],
-  simp only [finset.sum_dite_eq],
+  convert finset.sum_fn _ _, -- It's hard to use this as a simp lemma!
+  simp only [finset.sum_fn, finset.sum_dite_eq],
   ext,
   simp,
-  -- simp?,
 end
 
-@[simp, reassoc] lemma additive_obj_iso_biproduct_naturality' (F : Mat_ C ⥤ D) [functor.additive F]
+@[reassoc] lemma additive_obj_iso_biproduct_naturality' (F : Mat_ C ⥤ D) [functor.additive F]
   {M N : Mat_ C} (f : M ⟶ N) :
   (additive_obj_iso_biproduct F M).inv ≫ F.map f =
-    biproduct.matrix (λ i j, F.map ((embedding C).map (f i j)) : _) ≫ (additive_obj_iso_biproduct F N).inv :=
-sorry
+    biproduct.matrix (λ i j, F.map ((embedding C).map (f i j)) : _) ≫
+      (additive_obj_iso_biproduct F N).inv :=
+by rw [iso.inv_comp_eq, ←category.assoc, iso.eq_comp_inv, additive_obj_iso_biproduct_naturality]
 
 /--
 `Mat_.lift F` is the unique additive functor `L : Mat_ C ⥤ D` such that `F ≅ embedding C ⋙ L`.
@@ -406,36 +391,67 @@ nat_iso.of_components
   dsimp, simp,
   convert α.hom.naturality (f j k),
   erw [biproduct.matrix_π],
-  -- have := λ j k, α.hom.naturality_assoc (f j k),
-  -- dsimp at this,
-  -- change ∀ j k f', _ ≫ (α.app (N.X k)).hom ≫ _ = _ at this,
-  -- simp only [this],
-  -- simp only [α.hom.naturality_assoc],
+  simp,
+end).
 
-  -- ext,
-  -- simp [comp_def, comp_sum, sum_comp],
-  -- ext,
-  -- dsimp,
-  -- simp only [biproduct.map_desc_assoc, biproduct.matrix_π,
-  --   category.assoc],
-  -- simp only [biproduct.lift_desc, biproduct.lift_desc_assoc,
-  --   biproduct.matrix_desc, biproduct.lift_matrix_assoc,
-  --   category.assoc, category.id_comp, sum_comp, comp_sum],
-  --   simp only [←L.map_comp_assoc, biproduct.lift_π],
-  --   simp only [←F.map_comp],
+-- TODO is there some uniqueness statement for the natural isomorphism in `lift_unique`?
 
-  --   erw [biproduct.ι_desc],
+/-- Two additive functors `Mat_ C ⥤ D` are naturally isomorphic if
+their precompositions with `embedding C` are naturally isomorphic as functors `C ⥤ D`. -/
+@[ext]
+def ext {F G : Mat_ C ⥤ D} [functor.additive F] [functor.additive G]
+  (α : embedding C ⋙ F ≅ embedding C ⋙ G) : F ≅ G :=
+(lift_unique (embedding C ⋙ G) _ α) ≪≫ (lift_unique _ _ (iso.refl _)).symm
 
-  -- -- simp only [biproduct.lift_desc, category.assoc, sum_comp, comp_sum, category.id_comp],
-end)
+def aux [has_finite_biproducts C] :
+  embedding C ⋙ 𝟭 (Mat_ C) ≅ embedding C ⋙ lift (𝟭 C) ⋙ embedding C :=
+functor.right_unitor _ ≪≫
+  (functor.left_unitor _).symm ≪≫
+  (iso_whisker_right (embedding_lift_iso _).symm _) ≪≫
+  functor.associator _ _ _
 
--- TODO is one meant to prove that the natural isomorphism in `lift_unique` is itself unique?
+/--
+A preadditive category that already has finite biproducts is equivalent to its additive envelope.
 
-def equivalence_self_of_has_finite_biproducts [has_finite_biproducts C] :
+Note that we only prove this for a large category;
+otherwise there are universe issues that I haven't attempted to sort out.
+-/
+def equivalence_self_of_has_finite_biproducts
+  (C : Type (u₁+1)) [large_category C] [preadditive C] [has_finite_biproducts C] :
   Mat_ C ≌ C :=
-{ functor := lift (𝟭 C),
-  inverse := embedding C, }
+equivalence.mk -- I suspect this is already an adjoint equivalence, but it seems painful to verify.
+  (lift (𝟭 C))
+  (embedding C)
+  (ext aux)
+  (embedding_lift_iso (𝟭 C))
+
+@[simp] lemma equivalence_self_of_has_finite_biproducts_functor
+  {C : Type (u₁+1)} [large_category C] [preadditive C] [has_finite_biproducts C] :
+  (equivalence_self_of_has_finite_biproducts C).functor = lift (𝟭 C) :=
+rfl
+
+@[simp] lemma equivalence_self_of_has_finite_biproducts_inverse
+  {C : Type (u₁+1)} [large_category C] [preadditive C] [has_finite_biproducts C] :
+  (equivalence_self_of_has_finite_biproducts C).inverse = embedding C :=
+rfl
 
 end Mat_
+
+
+/--
+Consider a natural number `n` as an object of `Mat R`, the category of matrices over `R`.
+-/
+def Mat.of (R : Type*) [ring R] (n : ℕ) : Mat_ (single_obj R) :=
+⟨fin n, λ _, punit.star⟩
+
+/--
+The category of matrices over a ring `R`, with objects the natural numbers.
+-/
+@[derive [category, preadditive]]
+def Mat (R : Type*) [ring R] := induced_category (Mat_ (single_obj R)) (Mat.of R)
+
+example : matrix (fin 3) (fin 3) ℤ := 𝟙 (Mat.of ℤ 3)
+example : Mat.of ℤ 2 ⟶ Mat.of ℤ 3 := ![![(37 : ℤ), 42, 0], ![0, 37, 42]]
+
 
 end category_theory

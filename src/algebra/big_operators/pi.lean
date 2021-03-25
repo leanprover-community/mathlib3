@@ -36,7 +36,7 @@ lemma finset.prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid
 (monoid_hom.apply β a).map_prod _ _
 
 @[to_additive]
-lemma finset.prod_apply' {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)]
+lemma finset.prod_fn {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)]
   (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) = (λ a, ∏ c in s, g c a) :=
 funext (λ a, finset.prod_apply _ _ _)
 

@@ -84,6 +84,7 @@ def triangle.inv_rotate (T : triangle C) : triangle C :=
 
 namespace triangle_morphism
 variables {T₁ T₂ T₃ T₄: triangle C}
+open triangle
 /--
 You can also rotate a triangle morphism to get a morphism between the two rotated triangles.
 Given a triangle morphism of the form:
@@ -113,12 +114,7 @@ def rotate (f : triangle_morphism T₁ T₂) :
 { hom₁ := f.hom₂,
   hom₂ := f.hom₃,
   hom₃ := f.hom₁⟦1⟧',
-  comm₃' := begin
-    repeat {rw triangle.rotate_mor₃},
-    rw [comp_neg, neg_comp],
-    repeat {rw ← functor.map_comp},
-    rw f.comm₁,
-  end }
+  comm₃' := by simp only [rotate_mor₃, comp_neg, neg_comp, ← functor.map_comp, f.comm₁] }
 
 /--
 Given a triangle morphism of the form:
@@ -152,17 +148,11 @@ def inv_rotate (f : triangle_morphism T₁ T₂) :
   hom₂ := f.hom₁,
   hom₃ := f.hom₂,
   comm₁' := begin
-    simp only [triangle.inv_rotate_mor₁],
-    rw [comp_neg, neg_comp, ← assoc],
-    dsimp,
-    rw [← functor.map_comp (shift C ).inverse, ← f.comm₃, functor.map_comp],
-    repeat {rw assoc},
-    suffices h : (shift C).unit_iso.inv.app T₁.obj₁ ≫ f.hom₁ =
-      (shift C).inverse.map ((shift C).functor.map f.hom₁) ≫ (shift C).unit_iso.inv.app T₂.obj₁,
-    { rw h },
-    { simp only [iso.hom_inv_id_app, assoc, equivalence.inv_fun_map,
-        nat_iso.cancel_nat_iso_inv_left],
-      exact (category.comp_id f.hom₁).symm }
+    dsimp [inv_rotate_mor₁],
+    simp_rw [comp_neg, neg_comp, ← assoc, ← functor.map_comp (shift C ).inverse, ← f.comm₃,
+      functor.map_comp, assoc, equivalence.inv_fun_map, assoc, iso.hom_inv_id_app],
+    congr,
+    exact (category.comp_id f.hom₁).symm
   end }
 
 end triangle_morphism

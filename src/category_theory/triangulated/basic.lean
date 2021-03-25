@@ -27,7 +27,7 @@ universes v v₀ v₁ v₂ u u₀ u₁ u₂
 namespace category_theory.triangulated
 open category_theory.category
 
-/--
+/-
 We work in an additive category C equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [additive_category C]

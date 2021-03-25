@@ -360,6 +360,27 @@ begin
   exact ⟨w, hw1, hw2⟩,
 end
 
+lemma exists_gpow_eq_self_of_coprime {G : Type*} [group G] [fintype G] [decidable_eq G]
+  {n : ℕ} {g : G} (h0 : nat.coprime n (order_of g)) :
+  ∃ m : ℤ, (g ^ n) ^ m = g :=
+begin
+  use n.gcd_a (order_of g),
+  dsimp only [nat.coprime] at h0,
+  conv { to_rhs, rw [←pow_one g, ←h0, ←gpow_coe_nat, nat.gcd_eq_gcd_ab, gpow_add, gpow_mul,
+    gpow_mul, gpow_coe_nat, gpow_coe_nat, pow_order_of_eq_one, one_gpow, mul_one] },
+end
+
+lemma exists_pow_eq_self_of_coprime {G : Type*} [group G] [fintype G] [decidable_eq G]
+  {n : ℕ} {g : G} (h0 : nat.coprime n (order_of g)) :
+  ∃ m : ℕ, (g ^ n) ^ m = g :=
+begin
+  cases exists_gpow_eq_self_of_coprime h0 with m hm,
+  use (m % (order_of g)).to_nat,
+  rwa [←pow_mul, mul_comm, pow_mul, ←gpow_coe_nat, ←gpow_coe_nat, int.to_nat_of_nonneg,
+      ←gpow_eq_mod_order_of, ←gpow_mul, mul_comm, gpow_mul, gpow_coe_nat],
+  exact int.mod_nonneg _ (int.coe_nat_ne_zero.mpr (ne_of_gt (order_of_pos g))),
+end
+
 variables {n : ℕ}
 
 open nat

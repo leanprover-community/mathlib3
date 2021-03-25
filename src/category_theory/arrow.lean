@@ -147,4 +147,31 @@ def map_arrow (F : C ⥤ D) : arrow C ⥤ arrow D :=
 
 end functor
 
+namespace helper
+
+universes v₁ u₁
+
+variables {C : Type u₁} [category.{v₁} C]
+/-- A helper construction: given a square between `i` and `f ≫ g`, produce a square between
+`i` and `g`, whose top leg uses `f`:
+A  → X
+     ↓f
+↓i   Y             --> A → Y
+     ↓g                ↓i  ↓g
+B  → Z                 B → Z
+ -/
+def square_to_second {X Y Z: C} {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
+  (sq : i ⟶ arrow.mk (f ≫ g)) :
+  i ⟶ arrow.mk g :=
+{ left := sq.left ≫ f,
+  right := sq.right,
+  w' := begin
+    have : sq.left ≫ f ≫ g = i.hom ≫ sq.right := arrow.w sq,
+    rw ←category.assoc at this,
+    tidy,
+  end }
+
+end helper
+
+
 end category_theory

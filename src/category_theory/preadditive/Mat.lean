@@ -17,11 +17,33 @@ When `C` is a preadditive category, `Mat_ C` is the preadditive categoriy
 whose objects are finite tuples of objects in `C`, and
 whose morphisms are matrices of morphisms from `C`.
 
+There is a functor `Mat_.embedding : C ⥤ Mat_ C` sending morphisms to one-by-one matrices.
+
+### The additive envelope
+
+We show that this construction is the "additive envelope" of `C`,
+in the sense that any additive functor `F : C ⥤ D` to a category `D` with biproducts
+lifts to a functor `Mat_.lift F : Mat_ C ⥤ D`,
+and that this functor is unique (up to natural isomorphisms) amongst functors `L : Mat_ C ⥤ D`
+such that `embedding C ⋙ L ≅ F`.
+(We can't explicitly state that it is
+the initial object in the 2-category of categories under `C` which have biproducts.)
+
+### Matrices over a ring
+
+We also provide for convenience `Mat R`, where `R` is a ring, as a category with objects `ℕ`,
+and whose morphisms are matrices with components in `R`.
+
+This is defined as an induced category from `Mat_ (single_obj R)`, along the map
+sending `n : ℕ` to the `fin n`-indexed tuple of `punit.star`.
+
 -/
 
 open category_theory category_theory.preadditive
 open_locale big_operators
 noncomputable theory
+
+namespace category_theory
 
 universes w v₁ v₂ u₁ u₂
 variables (C : Type u₁) [category.{v₁} C] [preadditive C]
@@ -101,7 +123,8 @@ open category_theory.limits
 We now prove that `Mat_ C` has finite biproducts.
 
 Be warned, however, that `Mat_ C` is not necessarily Krull-Schmidt,
-and so the internal indexing of biproduct may have nothing to do with the external indexing!
+and so the internal indexing of a biproduct may have nothing to do with the external indexing,
+even though the construction we give uses a sigma type.
 -/
 instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
 { has_biproducts_of_shape := λ J 𝒟 ℱ, by exactI
@@ -163,9 +186,57 @@ instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
 
 end Mat_
 
+namespace functor
+variables {C} {D : Type*} [category.{v₁} D] [preadditive D]
+
+local attribute [simp] Mat_.id_apply
+
+/--
+A functor induces a functor of matrix categories.
+-/
+@[simps]
+def map_Mat_ (F : C ⥤ D) [functor.additive F] : Mat_ C ⥤ Mat_ D :=
+{ obj := λ M, ⟨M.ι, λ i, F.obj (M.X i)⟩,
+  map := λ M N f i j, F.map (f i j),
+  map_comp' := λ M N K f g, by { ext i k, simp,}, }
+
+/--
+The identity functor induces the identity functor on matrix categories.
+-/
+@[simps]
+def map_Mat_id : (𝟭 C).map_Mat_ ≅ 𝟭 (Mat_ C) :=
+nat_iso.of_components (λ M, eq_to_iso (by { cases M, refl, }))
+(λ M N f, begin
+  ext i j,
+  cases M, cases N,
+  simp [comp_dite, dite_comp],
+end)
+
+/--
+Composite functors induce composite functors on matrix categories.
+-/
+@[simps]
+def map_Mat_comp {E : Type*} [category.{v₁} E] [preadditive E]
+  (F : C ⥤ D) [functor.additive F] (G : D ⥤ E) [functor.additive G] :
+  (F ⋙ G).map_Mat_ ≅ F.map_Mat_ ⋙ G.map_Mat_ :=
+nat_iso.of_components (λ M, eq_to_iso (by { cases M, refl, }))
+(λ M N f, begin
+  ext i j,
+  cases M, cases N,
+  simp [comp_dite, dite_comp],
+end)
+
+end functor
+
+/--
+Consider a natural number `n` as an object of `Mat R`, the category of matrices over `R`.
+-/
 def Mat.of (R : Type*) [ring R] (n : ℕ) : Mat_ (single_obj R) :=
 ⟨fin n, λ _, punit.star⟩
 
+/--
+The category of matrices over a ring `R`, with objects the natural numbers.
+-/
 @[derive [category, preadditive]]
 def Mat (R : Type*) [ring R] := induced_category (Mat_ (single_obj R)) (Mat.of R)
 
@@ -256,13 +327,22 @@ def embedding_lift_iso (F : C ⥤ D) [functor.additive F] : embedding C ⋙ lift
 nat_iso.of_components (λ X,
   { hom := biproduct.desc (λ P, 𝟙 (F.obj X)),
     inv := biproduct.lift (λ P, 𝟙 (F.obj X)), })
-  (by sorry).
+(λ X Y f, begin
+  dsimp,
+  ext,
+  simp only [category.id_comp, biproduct.ι_desc_assoc],
+  erw biproduct.ι_matrix_assoc, -- Not sure why this doesn't fire via `simp`.
+  simp,
+end)
 
 /-- this is just `additive.map_biproduct`, which doesn't yet exist -/
 def additive_obj_iso_biproduct (F : Mat_ C ⥤ D) [functor.additive F] (M : Mat_ C) :
   F.obj M ≅ ⨁ (λ i, F.obj ((embedding C).obj (M.X i))) :=
 sorry
 
+/--
+`Mat_.lift F` is the unique additive functor `L : Mat_ C ⥤ D` such that `F ≅ embedding C ⋙ L`.
+-/
 def lift_unique (F : C ⥤ D) [functor.additive F] (L : Mat_ C ⥤ D) [functor.additive L]
   (α : embedding C ⋙ L ≅ F) :
   L ≅ lift F :=
@@ -271,3 +351,5 @@ nat_iso.of_components
   sorry
 
 end Mat_
+
+end category_theory

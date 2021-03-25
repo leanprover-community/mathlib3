@@ -18,6 +18,8 @@ by { rw div_eq_mul_inv, exact is_submonoid.mul_mem hx (is_subfield.inv_mem hy) }
 instance is_subfield.field [is_subfield S] : field S :=
 by letI cr_inst : comm_ring S := subset.comm_ring; exact
 { inv := λ x, ⟨x⁻¹, is_subfield.inv_mem x.2⟩,
+  div := λ x y, ⟨x / y, is_subfield.div_mem x.2 y.2⟩,
+  div_eq_mul_inv := λ x y, subtype.ext $ div_eq_mul_inv (x : F) y,
   exists_pair_ne := ⟨0, 1, λ h, zero_ne_one (subtype.ext_iff_val.1 h)⟩,
   mul_inv_cancel := λ a ha, subtype.ext_iff_val.2 (mul_inv_cancel
     (λ h, ha $ subtype.ext_iff_val.2 h)),

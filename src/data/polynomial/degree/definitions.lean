@@ -921,7 +921,7 @@ def leading_coeff_hom : polynomial R →* R :=
 
 @[simp] lemma leading_coeff_pow (p : polynomial R) (n : ℕ) :
   leading_coeff (p ^ n) = leading_coeff p ^ n :=
-leading_coeff_hom.map_pow p n
+(leading_coeff_hom : polynomial R →* R).map_pow p n
 
 end no_zero_divisors
 

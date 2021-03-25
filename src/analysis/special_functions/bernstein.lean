@@ -161,11 +161,11 @@ def z {n : ℕ} (k : fin (n+1)) : I :=
   begin
     cases n,
     { norm_num },
-    have h₁ : 0 < (n.succ : ℝ) := by exact_mod_cast (nat.succ_pos _),
-    have h₂ : ↑k ≤ n.succ := by exact_mod_cast (fin.le_last k),
-    rw [set.mem_Icc, le_div_iff h₁, div_le_iff h₁],
-    norm_cast,
-    simp [h₂]
+    { have h₁ : 0 < (n.succ : ℝ) := by exact_mod_cast (nat.succ_pos _),
+      have h₂ : ↑k ≤ n.succ := by exact_mod_cast (fin.le_last k),
+      rw [set.mem_Icc, le_div_iff h₁, div_le_iff h₁],
+      norm_cast,
+      simp [h₂], },
   end⟩
 
 local postfix `/ₙ`:90 := z
@@ -205,6 +205,7 @@ end bernstein
 open bernstein
 
 local postfix `/ₙ`:2000 := z
+local notation `|`x`|` := abs x
 
 /--
 The `n`-th approximation of a continuous function on `[0,1]` by Bernstein polynomials,
@@ -230,14 +231,14 @@ If `k ∈ S`, then `f(k/n)` is close to `f x`.
 -/
 lemma lt_of_mem_S
   {f : I →ᵇ ℝ} {ε : ℝ} {h : 0 < ε} {n : ℕ} {x : I} {k : fin (n+1)} (m : k ∈ S f ε h n x) :
-  abs (f k/ₙ - f x) < ε/2 :=
+  |f k/ₙ - f x| < ε/2 :=
 begin
   apply f.dist_lt_of_dist_lt_modulus (ε/2) (half_pos h),
   simpa [S] using m,
 end
 
 /--
-If `k ∉ S`, then as `δ ≤ abs (x - k/n)`, we have the inequality `1 ≤ δ^-2 * (x - k/n)^2`.
+If `k ∉ S`, then as `δ ≤ |x - k/n|`, we have the inequality `1 ≤ δ^-2 * (x - k/n)^2`.
 This particular formulation will be helpful later.
 -/
 lemma le_of_mem_S_compl
@@ -285,37 +286,37 @@ begin
   -- `S`, where `x - k/n < δ`, and its complement.
   let S := S f ε h n x,
   calc
-    abs ((bernstein_approximation n f - f) x)
-        = abs (bernstein_approximation n f x - f x)
+    |(bernstein_approximation n f - f) x|
+        = |bernstein_approximation n f x - f x|
                               : rfl
-    ... = abs (bernstein_approximation n f x - f x * 1)
+    ... = |bernstein_approximation n f x - f x * 1|
                               : by rw mul_one
-    ... = abs (bernstein_approximation n f x - f x * (∑ k : fin (n+1), bernstein n k x))
+    ... = |bernstein_approximation n f x - f x * (∑ k : fin (n+1), bernstein n k x)|
                               : by rw bernstein.probability
-    ... = abs (∑ k : fin (n+1), (f k/ₙ - f x) * bernstein n k x)
+    ... = |∑ k : fin (n+1), (f k/ₙ - f x) * bernstein n k x|
                               : by simp [bernstein_approximation, finset.mul_sum, sub_mul]
-    ... ≤ ∑ k : fin (n+1), abs ((f k/ₙ - f x) * bernstein n k x)
+    ... ≤ ∑ k : fin (n+1), |(f k/ₙ - f x) * bernstein n k x|
                               : finset.abs_sum_le_sum_abs
-    ... = ∑ k : fin (n+1), abs (f k/ₙ - f x) * bernstein n k x
+    ... = ∑ k : fin (n+1), |f k/ₙ - f x| * bernstein n k x
                               : by simp_rw [abs_mul, abs_eq_self.mpr bernstein_nonneg]
-    ... = ∑ k in S, abs (f k/ₙ - f x) * bernstein n k x +
-          ∑ k in Sᶜ, abs (f k/ₙ - f x) * bernstein n k x
+    ... = ∑ k in S, |f k/ₙ - f x| * bernstein n k x +
+          ∑ k in Sᶜ, |f k/ₙ - f x| * bernstein n k x
                               : (S.sum_add_sum_compl _).symm
     -- We'll now deal with the terms in `S` and the terms in `Sᶜ` in separate calc blocks.
     ... < ε/2 + ε/2 : add_lt_add_of_le_of_lt _ _
     ... = ε : add_halves ε,
     { -- We now work on the terms in `S`: uniform continuity and `bernstein.probability`
       -- quickly give us a bound.
-      calc ∑ k in S, abs (f k/ₙ - f x) * bernstein n k x
-          ≤ ∑ k in S, (ε/2) * bernstein n k x
+      calc ∑ k in S, |f k/ₙ - f x| * bernstein n k x
+          ≤ ∑ k in S, ε/2 * bernstein n k x
                                 :  finset.sum_le_sum
                                     (λ k m, (mul_le_mul_of_nonneg_right (le_of_lt (lt_of_mem_S m))
                                       bernstein_nonneg))
-      ... = (ε/2) * ∑ k in S, bernstein n k x
+      ... = ε/2 * ∑ k in S, bernstein n k x
                                 : by rw finset.mul_sum
       -- In this step we increase the sum of `S` back to a sum over all of `fin (n+1)`,
       -- so that we can use `bernstein.probability`.
-      ... ≤ (ε/2) * ∑ k : fin (n+1), bernstein n k x
+      ... ≤ ε/2 * ∑ k : fin (n+1), bernstein n k x
                                 : mul_le_mul_of_nonneg_left
                                     (finset.sum_le_univ_sum_of_nonneg (λ k, bernstein_nonneg))
                                     (le_of_lt (half_pos h))
@@ -323,7 +324,7 @@ begin
       -- We now turn to working on `Sᶜ`: we control the difference term just using `∥f∥`,
       -- and then insert a `δ^(-2) * (x - k/n)^2` factor
       -- (which is at least one because we are not in `S`).
-      calc ∑ k in Sᶜ, abs (f k/ₙ - f x) * bernstein n k x
+      calc ∑ k in Sᶜ, |f k/ₙ - f x| * bernstein n k x
           ≤ ∑ k in Sᶜ, (2 * ∥f∥) * bernstein n k x
                                 : finset.sum_le_sum
                                     (λ k m, mul_le_mul_of_nonneg_right (f.dist_le_two_norm _ _)

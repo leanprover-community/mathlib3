@@ -1222,13 +1222,6 @@ end
 
 section
 
-variable [finite_dimensional K V]
-
--- Move
-lemma finite_dimensional.subtype_eq_findim_eq (p : subspace K V) (q : subspace K p) :
-  finite_dimensional.findim K (q.map p.subtype) = finite_dimensional.findim K q :=
-linear_equiv.findim_eq (submodule.equiv_subtype_map p q).symm
-
 lemma to_lin_restrict_ker_eq_inf_orthogonal
   (B : bilin_form K V) (W : subspace K V) (hB : sym_bilin_form.is_sym B) :
   (B.to_lin.dom_restrict W).ker.map W.subtype = (W ⊓ B.orthogonal ⊤ : subspace K V) :=
@@ -1250,7 +1243,7 @@ begin
 end
 
 lemma to_lin_restrict_range_eq_dual_annihilator
-  (B : bilin_form K V) (W : subspace K V) (hB : sym_bilin_form.is_sym B) :
+  (B : bilin_form K V) (W : subspace K V) :
   (B.to_lin.dom_restrict W).range.dual_annihilator_comap = B.orthogonal W :=
 begin
   ext x, split; rw [mem_orthogonal_iff]; intro hx,
@@ -1263,13 +1256,15 @@ begin
     exact hx w hw }
 end
 
+variable [finite_dimensional K V]
+
 lemma findim_add_findim_orthogonal
   {B : bilin_form K V} {W : subspace K V} (hB₁ : sym_bilin_form.is_sym B) :
   finite_dimensional.findim K W + finite_dimensional.findim K (B.orthogonal W) =
   finite_dimensional.findim K V + finite_dimensional.findim K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
   rw [← to_lin_restrict_ker_eq_inf_orthogonal _ _ hB₁,
-      ← to_lin_restrict_range_eq_dual_annihilator _ _ hB₁,
+      ← to_lin_restrict_range_eq_dual_annihilator _ _,
       ← subspace.findim_add_findim_dual_annihilator_comap_eq (B.to_lin.dom_restrict W).range,
       finite_dimensional.subtype_eq_findim_eq],
   conv_rhs { rw [add_comm, ← add_assoc,

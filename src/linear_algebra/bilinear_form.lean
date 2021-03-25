@@ -1318,6 +1318,11 @@ lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
 
 end
 
+/- We note that we cannot use `restrict_nondegenerate_iff_is_compl_orthogonal` for the lemma below
+since the below lemma does not require `V` to be finite dimensional. However,
+`restrict_nondegenerate_iff_is_compl_orthogonal` does not require `B` to be nondegenerate on the
+whoe space. -/
+
 /-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of
 the span of a singleton is also non-degenerate. -/
 lemma restrict_orthogonal_span_singleton_nondegenerate (B : bilin_form K V)

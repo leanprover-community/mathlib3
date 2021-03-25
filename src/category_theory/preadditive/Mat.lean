@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.preadditive.default
 import category_theory.preadditive.single_obj
-import category_theory.abelian.additive_functor
+import category_theory.preadditive.additive_functor
 import category_theory.limits.shapes.biproducts
 import algebra.big_operators.basic
 import data.matrix.notation
@@ -93,6 +93,10 @@ instance : category.{v₁} (Mat_ C) :=
   end, }.
 
 
+lemma id_def (M : Mat_ C) :
+  (𝟙 M : hom M M) = λ i j, if h : i = j then eq_to_hom (congr_arg M.X h) else 0 :=
+rfl
+
 lemma id_apply (M : Mat_ C) (i j : M.ι) :
   (𝟙 M : hom M M) i j = if h : i = j then eq_to_hom (congr_arg M.X h) else 0 :=
 rfl
@@ -104,6 +108,9 @@ by simp [id_apply]
 @[simp] lemma id_apply_of_ne (M : Mat_ C) (i j : M.ι) (h : i ≠ j) :
   (𝟙 M : hom M M) i j = 0 :=
 by simp [id_apply, h]
+
+lemma comp_def {M N K : Mat_ C} (f : M ⟶ N) (g : N ⟶ K) :
+  (f ≫ g) = λ i k, ∑ j : N.ι, f i j ≫ g j k := rfl
 
 @[simp] lemma comp_apply {M N K : Mat_ C} (f : M ⟶ N) (g : N ⟶ K) (i k) :
   (f ≫ g) i k = ∑ j : N.ι, f i j ≫ g j k := rfl
@@ -267,9 +274,12 @@ end embedding
 
 open category_theory.limits
 
+variables {C}
+
 /--
 Every object in `Mat_ C` is isomorphic to the biproduct of its summands.
 -/
+@[simps]
 def iso_biproduct_embedding (M : Mat_ C) : M ≅ ⨁ (λ i, (embedding C).obj (M.X i)) :=
 { hom := biproduct.lift (λ i j k, if h : j = i then eq_to_hom (congr_arg M.X h) else 0),
   inv := biproduct.desc (λ i j k, if h : i = k then eq_to_hom (congr_arg M.X h) else 0),
@@ -302,7 +312,7 @@ def iso_biproduct_embedding (M : Mat_ C) : M ≅ ⨁ (λ i, (embedding C).obj (M
     { simp [h], },
   end, }.
 
-variables {C} {D : Type u₁} [category.{v₁} D] [preadditive D] [has_finite_biproducts D]
+variables {D : Type u₁} [category.{v₁} D] [preadditive D] [has_finite_biproducts D]
 
 /-- Any additive functor `C ⥤ D` to a category `D` with finite biproducts extends to
 a functor `Mat_ C ⥤ D`. -/
@@ -318,8 +328,7 @@ def lift (F : C ⥤ D) [functor.additive F] : Mat_ C ⥤ D :=
   end,
   map_comp' := λ X Y Z f g, by { ext i j, simp, }, }.
 
-instance lift_additive (F : C ⥤ D) [functor.additive F] : functor.additive (lift F) :=
-{}
+instance lift_additive (F : C ⥤ D) [functor.additive F] : functor.additive (lift F) := {}
 
 /-- An additive functor `C ⥤ D` factors through its lift to `Mat_ C ⥤ D`. -/
 @[simps]
@@ -333,11 +342,46 @@ nat_iso.of_components (λ X,
   simp only [category.id_comp, biproduct.ι_desc_assoc],
   erw biproduct.ι_matrix_assoc, -- Not sure why this doesn't fire via `simp`.
   simp,
-end)
+end).
 
-/-- this is just `additive.map_biproduct`, which doesn't yet exist -/
+/-- Every `M` is a direct sum of objects from `C`, and `F` preserves biproducts. -/
+@[simps]
 def additive_obj_iso_biproduct (F : Mat_ C ⥤ D) [functor.additive F] (M : Mat_ C) :
   F.obj M ≅ ⨁ (λ i, F.obj ((embedding C).obj (M.X i))) :=
+(F.map_iso (iso_biproduct_embedding M)) ≪≫ (F.map_biproduct _)
+
+@[simp, reassoc] lemma additive_obj_iso_biproduct_naturality (F : Mat_ C ⥤ D) [functor.additive F]
+  {M N : Mat_ C} (f : M ⟶ N) :
+  F.map f ≫ (additive_obj_iso_biproduct F N).hom =
+    (additive_obj_iso_biproduct F M).hom ≫ biproduct.matrix (λ i j, F.map ((embedding C).map (f i j))) :=
+begin
+  ext,
+  dsimp [embedding],
+  simp only [←F.map_comp, biproduct.lift_π, biproduct.matrix_π, category.assoc],
+  simp only [←F.map_comp, ←F.map_sum, biproduct.lift_desc, biproduct.lift_π_assoc, comp_sum],
+  simp only [comp_def],
+  simp only [comp_dite],
+  simp only [comp_zero],
+  simp only [finset.sum_dite_eq'],
+  simp only [finset.mem_univ],
+  simp only [if_true],
+  dsimp,
+  simp only [finset.sum_singleton],
+  simp only [dite_comp, zero_comp],
+  congr,
+  symmetry,
+  convert finset.sum_apply' _ _,
+  simp only [finset.sum_apply'],
+  simp only [finset.sum_dite_eq],
+  ext,
+  simp,
+  -- simp?,
+end
+
+@[simp, reassoc] lemma additive_obj_iso_biproduct_naturality' (F : Mat_ C ⥤ D) [functor.additive F]
+  {M N : Mat_ C} (f : M ⟶ N) :
+  (additive_obj_iso_biproduct F M).inv ≫ F.map f =
+    biproduct.matrix (λ i j, F.map ((embedding C).map (f i j)) : _) ≫ (additive_obj_iso_biproduct F N).inv :=
 sorry
 
 /--
@@ -347,8 +391,50 @@ def lift_unique (F : C ⥤ D) [functor.additive F] (L : Mat_ C ⥤ D) [functor.a
   (α : embedding C ⋙ L ≅ F) :
   L ≅ lift F :=
 nat_iso.of_components
-  (λ M, begin end)
-  sorry
+  (λ M, (additive_obj_iso_biproduct L M) ≪≫
+    (biproduct.map_iso (λ i, α.app (M.X i))) ≪≫
+    (biproduct.map_iso (λ i, (embedding_lift_iso F).symm.app (M.X i))) ≪≫
+    (additive_obj_iso_biproduct (lift F) M).symm)
+(λ M N f, begin
+  dsimp only [iso.trans_hom, iso.symm_hom, biproduct.map_iso_hom],
+  simp only [additive_obj_iso_biproduct_naturality_assoc],
+  simp only [biproduct.matrix_map_assoc, category.assoc],
+  simp only [additive_obj_iso_biproduct_naturality'],
+  simp only [biproduct.map_matrix_assoc, category.assoc],
+  congr,
+  ext j k ⟨⟩,
+  dsimp, simp,
+  convert α.hom.naturality (f j k),
+  erw [biproduct.matrix_π],
+  -- have := λ j k, α.hom.naturality_assoc (f j k),
+  -- dsimp at this,
+  -- change ∀ j k f', _ ≫ (α.app (N.X k)).hom ≫ _ = _ at this,
+  -- simp only [this],
+  -- simp only [α.hom.naturality_assoc],
+
+  -- ext,
+  -- simp [comp_def, comp_sum, sum_comp],
+  -- ext,
+  -- dsimp,
+  -- simp only [biproduct.map_desc_assoc, biproduct.matrix_π,
+  --   category.assoc],
+  -- simp only [biproduct.lift_desc, biproduct.lift_desc_assoc,
+  --   biproduct.matrix_desc, biproduct.lift_matrix_assoc,
+  --   category.assoc, category.id_comp, sum_comp, comp_sum],
+  --   simp only [←L.map_comp_assoc, biproduct.lift_π],
+  --   simp only [←F.map_comp],
+
+  --   erw [biproduct.ι_desc],
+
+  -- -- simp only [biproduct.lift_desc, category.assoc, sum_comp, comp_sum, category.id_comp],
+end)
+
+-- TODO is one meant to prove that the natural isomorphism in `lift_unique` is itself unique?
+
+def equivalence_self_of_has_finite_biproducts [has_finite_biproducts C] :
+  Mat_ C ≌ C :=
+{ functor := lift (𝟭 C),
+  inverse := embedding C, }
 
 end Mat_
 

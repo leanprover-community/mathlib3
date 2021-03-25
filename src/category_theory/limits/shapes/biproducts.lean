@@ -264,7 +264,7 @@ is_colimit.map (biproduct.is_colimit f) (biproduct.bicone g).to_cocone (discrete
 
 @[ext] lemma biproduct.hom_ext' {f : J → C} [has_biproduct f]
   {Z : C} (g h : ⨁ f ⟶ Z)
-  (w : ∀ j, biproduct.ι f j ≫ g =  biproduct.ι f j ≫ h) : g = h :=
+  (w : ∀ j, biproduct.ι f j ≫ g = biproduct.ι f j ≫ h) : g = h :=
 (biproduct.is_colimit f).hom_ext w
 
 lemma biproduct.map_eq_map' [fintype J] {f g : J → C} [has_finite_biproducts C]
@@ -279,6 +279,41 @@ begin
   { subst h, rw [eq_to_hom_refl, category.id_comp], erw category.comp_id, },
   { simp, },
 end
+
+@[simp, reassoc]
+lemma biproduct.map_π [fintype J] {f g : J → C} [has_finite_biproducts C]
+  (p : Π j, f j ⟶ g j) (j : J) :
+  biproduct.map p ≫ biproduct.π g j = biproduct.π f j ≫ p j :=
+limits.is_limit.map_π _ _ _ _
+
+@[simp, reassoc]
+lemma biproduct.ι_map [fintype J] {f g : J → C} [has_finite_biproducts C]
+  (p : Π j, f j ⟶ g j) (j : J) :
+  biproduct.ι f j ≫ biproduct.map p = p j ≫ biproduct.ι g j :=
+begin
+  rw biproduct.map_eq_map',
+  convert limits.is_colimit.ι_map _ _ _ _; refl
+end
+
+@[simp, reassoc]
+lemma biproduct.map_desc [fintype J] {f g : J → C} [has_finite_biproducts C]
+  (p : Π j, f j ⟶ g j) {P : C} (k : Π j, g j ⟶ P) :
+  biproduct.map p ≫ biproduct.desc k = biproduct.desc (λ j, p j ≫ k j) :=
+by { ext, simp, }
+
+@[simp, reassoc]
+lemma biproduct.lift_map [fintype J] {f g : J → C} [has_finite_biproducts C]
+  {P : C} (k : Π j, P ⟶ f j) (p : Π j, f j ⟶ g j)  :
+  biproduct.lift k ≫ biproduct.map p = biproduct.lift (λ j, k j ≫ p j) :=
+by { ext, simp, }
+
+/-- Given a collection of isomorphisms between corresponding summands of a pair of biproducts
+indexed by the same type, we obtain an isomorphism between the biproducts. -/
+@[simps]
+def biproduct.map_iso [fintype J] {f g : J → C} [has_finite_biproducts C]
+  (p : Π b, f b ≅ g b) : ⨁ f ≅ ⨁ g :=
+{ hom := biproduct.map (λ b, (p b).hom),
+  inv := biproduct.map (λ b, (p b).inv), }
 
 /--
 Convert a (dependently typed) matrix to a morphism of biproducts.
@@ -325,21 +360,6 @@ instance biproduct.π_epi (f : J → C) [has_biproduct f]
   (b : J) : split_epi (biproduct.π f b) :=
 { section_ := biproduct.lift $
     λ b', if h : b = b' then eq_to_hom (congr_arg f h) else biproduct.ι f b ≫ biproduct.π f b' }
-
-@[simp, reassoc]
-lemma biproduct.map_π [fintype J] {f g : J → C} [has_finite_biproducts C]
-  (p : Π j, f j ⟶ g j) (j : J) :
-  biproduct.map p ≫ biproduct.π g j = biproduct.π f j ≫ p j :=
-limits.is_limit.map_π _ _ _ _
-
-@[simp, reassoc]
-lemma biproduct.ι_map [fintype J] {f g : J → C} [has_finite_biproducts C]
-  (p : Π j, f j ⟶ g j) (j : J) :
-  biproduct.ι f j ≫ biproduct.map p = p j ≫ biproduct.ι g j :=
-begin
-  rw biproduct.map_eq_map',
-  convert limits.is_colimit.ι_map _ _ _ _; refl
-end
 
 variables {C}
 
@@ -916,6 +936,32 @@ begin
   ext,
   simp [biproduct.ι_π, biproduct.ι_π_assoc, comp_sum, sum_comp, comp_dite, dite_comp],
 end
+
+@[simp, reassoc]
+lemma biproduct.matrix_desc
+  [fintype J] {K : Type v} [fintype K] [decidable_eq K] [has_finite_biproducts C]
+  {f : J → C} {g : K → C} (m : Π j k, f j ⟶ g k) {P} (x : Π k, g k ⟶ P) :
+  biproduct.matrix m ≫ biproduct.desc x = biproduct.desc (λ j, ∑ k, m j k ≫ x k) :=
+by { ext, simp, }
+
+@[simp, reassoc]
+lemma biproduct.lift_matrix
+  [fintype J] {K : Type v} [fintype K] [decidable_eq K] [has_finite_biproducts C]
+  {f : J → C} {g : K → C} {P} (x : Π j, P ⟶ f j) (m : Π j k, f j ⟶ g k)  :
+  biproduct.lift x ≫ biproduct.matrix m = biproduct.lift (λ k, ∑ j, x j ≫ m j k) :=
+by { ext, simp, }
+
+lemma biproduct.matrix_map
+  [fintype J] {K : Type v} [fintype K] [decidable_eq K] [has_finite_biproducts C]
+  {f : J → C} {g : K → C} {h : K → C} (m : Π j k, f j ⟶ g k) (n : Π k, g k ⟶ h k) :
+  biproduct.matrix m ≫ biproduct.map n = biproduct.matrix (λ j k, m j k ≫ n k) :=
+by { ext, simp, }
+
+lemma biproduct.map_matrix
+  [fintype J] {K : Type v} [fintype K] [decidable_eq K] [has_finite_biproducts C]
+  {f : J → C} {g : J → C} {h : K → C} (m : Π k, f k ⟶ g k) (n : Π j k, g j ⟶ h k) :
+  biproduct.map m ≫ biproduct.matrix n = biproduct.matrix (λ j k, m j ≫ n j k) :=
+by { ext, simp, }
 
 end
 

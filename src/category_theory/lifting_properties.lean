@@ -95,19 +95,18 @@ begin
 
   -- lift i vs. g
   haveI := hg sq1,
-  have lift_structure_sq1 := arrow.has_lift.struct sq1,
 
   -- form a square from i to f, using the previously constructed lift
-  have h3 : sq0.left ≫ (arrow.mk f).hom = i.hom ≫ lift_structure_sq1.lift :=
+  have h3 : sq0.left ≫ (arrow.mk f).hom = i.hom ≫ (arrow.has_lift.struct sq1).lift :=
   begin
-    rw lift_structure_sq1.fac_left,
+    rw (arrow.has_lift.struct sq1).fac_left,
     refl,
   end,
 
   -- construct a square i ⟶ f
   let sq2 : i ⟶ (arrow.mk f) :=
   { left := sq0.left,
-    right := lift_structure_sq1.lift },
+    right := (arrow.has_lift.struct sq1).lift },
 
   -- construct a lift i vs. f
   haveI := hf sq2,
@@ -121,7 +120,7 @@ begin
   { simp, tidy,
     rw ←category.assoc,
     let d := (arrow.has_lift.struct sq2).fac_right,
-    let d' := lift_structure_sq1.fac_right,
+    let d' := (arrow.has_lift.struct sq1).fac_right,
     have : sq0.right = sq1.right := begin tidy, end,
     rw this,
     rw ←d',

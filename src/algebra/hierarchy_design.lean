@@ -5,6 +5,11 @@ Authors: Scott Morrison, Eric Weiser
 -/
 import tactic.doc_commands
 
+/-!
+# Documentation of the algebraic hierarchy
+
+-/
+
 /--
 # The algebraic hierarchy
 

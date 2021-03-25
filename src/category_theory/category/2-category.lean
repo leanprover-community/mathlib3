@@ -114,7 +114,9 @@ def pseudofunctor.comp (P : pseudofunctor C D) (Q : pseudofunctor D E) :
   pseudofunctor C E :=
 { P := λ X, Q.P (P.P X),
   func := λ X Y, P.func ⋙ Q.func,
-
+  ids :=
+  begin
+  end
 }
 
 variables {C D E}

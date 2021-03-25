@@ -28,16 +28,27 @@ begin
   apply h
 end
 
+lemma finset.exists_of_ssubset {α : Type*} {s t : finset α} (h : s ⊂ t) : (∃x∈t, x ∉ s) :=
+set.exists_of_ssubset h
+
+-- not_subset.1 h.
+
 -- TODO: move to mathlib
 theorem sdiff_union_of_subset {α : Type*} {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
 set.ext $ λ x, by simpa [em, or_comm, or_and_distrib_left] using or_iff_right_of_imp (@h x)
 
 lemma coe_sum {α β : Type*} [add_comm_monoid β] (s : finset α) (f : α → β) :
   ∑ (i : (s : set α)), f i = ∑ i in s, f i :=
-finset.sum_bij (λ a _, a) (λ a _, a.prop)
-  (λ _ _, rfl)
-  (λ _ _ _ _, subtype.ext)
-  (λ a ha, ⟨⟨_, ha⟩, finset.mem_univ _, (subtype.coe_mk _ _).symm⟩)
+begin
+  rw ←finset.sum_image,
+  apply finset.sum_congr _ (λ _ _, rfl),
+  { ext, simp },
+  { simp },
+end
+-- finset.sum_bij (λ a _, a) (λ a _, a.prop)
+--   (λ _ _, rfl)
+--   (λ _ _ _ _, subtype.ext)
+--   (λ a ha, ⟨⟨_, ha⟩, finset.mem_univ _, (subtype.coe_mk _ _).symm⟩)
 
 -- TODO: find in mathlib or move to mathlib
 lemma finset.strong_downward_induction_on' {α : Type*} {p : finset α → Prop}
@@ -190,8 +201,6 @@ begin
   simpa using h,
 end
 
-
-
 #exit
 /-
 THEOREMS ON SALE
@@ -265,85 +274,6 @@ begin
   apply finset.sum_congr _ (λ _ _, rfl),
   { ext, simp },
   { simp },
-end
-
-
-lemma disjoint_convex_hulls {X : finset E} (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
-  {Y₁ Y₂ : finset E} (hY₁ : Y₁ ⊆ X) (hY₂ : Y₂ ⊆ X) :
-  convex_hull (Y₁ : set E) ∩ convex_hull (Y₂ : set E) ⊆ convex_hull (Y₁ ∩ Y₂ : set E) :=
-begin
-  rintro x ⟨hx₁, hx₂⟩,
-  rw ←finset.coe_inter,
-  rw finset.convex_hull_eq at hx₁ hx₂,
-  rcases hx₁ with ⟨w₁, h₁w₁, h₂w₁, h₃w₁⟩,
-  rcases hx₂ with ⟨w₂, h₁w₂, h₂w₂, h₃w₂⟩,
-  rw finset.center_mass_eq_of_sum_1 _ _ h₂w₁ at h₃w₁,
-  rw finset.center_mass_eq_of_sum_1 _ _ h₂w₂ at h₃w₂,
-  dsimp at h₃w₁,
-  dsimp at h₃w₂,
-  rw affine_independent_def at hX,
-  let w : E → ℝ,
-  { intro x,
-    apply (if x ∈ Y₁ then w₁ x else 0) - (if x ∈ Y₂ then w₂ x else 0) },
-  have h₁w : ∑ (i : (X : set E)), w i = 0,
-  { rw thing,
-    rw finset.sum_sub_distrib,
-    rw ←finset.sum_filter,
-    rw finset.filter_mem_eq_inter,
-    rw ←finset.sum_filter,
-    rw finset.filter_mem_eq_inter,
-    rw subset_iff_inter_eq_left hY₁,
-    rw subset_iff_inter_eq_left hY₂,
-    rw h₂w₁,
-    rw h₂w₂,
-    simp only [sub_self] },
-  have h₂w : finset.univ.weighted_vsub (λ (p : (X : set E)), (p : E)) (λ (i : (X : set E)), w i) = (0 : E),
-  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ h₁w (0 : E),
-    rw finset.weighted_vsub_of_point_apply,
-    simp only [vsub_eq_sub, sub_zero],
-    rw thing X (λ i, w i • i),
-    dsimp only,
-    change ∑ i in X, (_ - _) • i = 0,
-    simp_rw sub_smul,
-    simp_rw ite_smul,
-    simp_rw zero_smul,
-    rw [finset.sum_sub_distrib, ←finset.sum_filter, finset.filter_mem_eq_inter,
-      subset_iff_inter_eq_left hY₁, ←finset.sum_filter, finset.filter_mem_eq_inter,
-      subset_iff_inter_eq_left hY₂, h₃w₁, h₃w₂, sub_self] },
-  specialize hX finset.univ _ h₁w h₂w,
-  simp only [finset.mem_univ, set_coe.forall, forall_true_left] at hX,
-  rw finset.convex_hull_eq,
-  have t₁ : ∀ x, x ∈ Y₁ → x ∉ Y₂ → w₁ x = 0,
-  { rintro x hx₁ hx₂,
-    have : ite (x ∈ Y₁) (w₁ x) 0 - ite (x ∈ Y₂) (w₂ x) 0 = 0 := hX x _,
-    rw if_pos hx₁ at this,
-    rw if_neg hx₂ at this,
-    rw sub_zero at this,
-    apply this,
-    simp only [finset.mem_coe],
-    apply hY₁,
-    apply hx₁ },
-  have h₄w₁ : ∑ (y : fin m → ℝ) in Y₁ ∩ Y₂, w₁ y = 1,
-  { rw [finset.sum_subset (finset.inter_subset_left Y₁ Y₂), h₂w₁],
-    simp_rintro x hx₁ hx₂,
-    specialize hx₂ hx₁,
-    apply t₁,
-    apply hx₁,
-    apply hx₂ },
-  refine ⟨w₁, _, h₄w₁, _⟩,
-  { simp only [and_imp, finset.mem_inter],
-    rintro y hy₁ hy₂,
-    apply h₁w₁,
-    apply hy₁ },
-  { rw finset.center_mass_eq_of_sum_1 _ _ h₄w₁,
-    dsimp only [id.def],
-    rw [finset.sum_subset (finset.inter_subset_left Y₁ Y₂), h₃w₁],
-    simp_rintro x hx₁ hx₂,
-    left,
-    apply t₁,
-    apply hx₁,
-    apply hx₂,
-    apply hx₁ },
 end
 
 def triangulation.facets (S : triangulation s) : set (finset E) :=

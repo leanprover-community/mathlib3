@@ -86,16 +86,17 @@ def simplicial_complex.of_set_closure {A : set (finset E)}
 /-The empty simplicial complex is made up of only the empty simplex-/
 def empty_simplicial_complex (m : ℕ) : simplicial_complex m :=
 { faces := {∅},
-  indep := begin
-    rintro X hX,
-    --exact affine_independent_of_subsingleton ℝ (λ (p : X), ↑p) hX, @bhavik heeelp
-    sorry
+  indep :=
+  begin
+    rintro X (rfl : _ = _),
+    apply affine_independent_of_subsingleton ℝ _,
+    simp,
   end,
   down_closed := λ X Y hX, hX.symm ▸ finset.subset_empty.1,
-  disjoint := begin
+  disjoint :=
+  begin
     rintro X _ (rfl : X = ∅) (rfl : Y = ∅),
     simp,
-    --exact subset.refl _,
   end, }
 
 /-def simplicial_complex.dimension (S : simplicial_complex m) {X : finset (fin m → ℝ)} : ℕ :=
@@ -109,8 +110,8 @@ def empty_simplicial_complex (m : ℕ) : simplicial_complex m :=
 lemma simplex_dimension_le_space_dimension {S : simplicial_complex m} {X : finset E} :
   X ∈ S.faces → finset.card X ≤ m + 1 := λ hX, size_bound (S.indep hX)
 
-def simplicial_complex.facets (S : simplicial_complex m) : set (finset (fin m → ℝ))
-  := {X | X ∈ S.faces ∧ (∀ {Y}, Y ∈ S.faces → X ⊆ Y → X = Y)}
+def simplicial_complex.facets (S : simplicial_complex m) : set (finset (fin m → ℝ)) :=
+{X | X ∈ S.faces ∧ (∀ {Y}, Y ∈ S.faces → X ⊆ Y → X = Y)}
 
 lemma facets_subset {S : simplicial_complex m} : S.facets ⊆ S.faces := λ X hX, hX.1
 
@@ -119,18 +120,14 @@ lemma not_facet_iff_subface {S : simplicial_complex m} {X : finset (fin m → �
 begin
   rintro hX,
   split,
-  {
-    rintro (hX' : ¬(X ∈ S.faces ∧ (∀ {Y}, Y ∈ S.faces → X ⊆ Y → X = Y))),
+  { rintro (hX' : ¬(X ∈ S.faces ∧ (∀ {Y}, Y ∈ S.faces → X ⊆ Y → X = Y))),
     push_neg at hX',
     obtain ⟨Y, hY⟩ := hX' hX,
-    exact ⟨Y, hY.1, ⟨hY.2.1, (λ hYX, hY.2.2 (finset.subset.antisymm hY.2.1 hYX))⟩⟩,
-  },
-  {
-    rintro ⟨Y, hY⟩ ⟨hX, hX'⟩,
+    exact ⟨Y, hY.1, ⟨hY.2.1, (λ hYX, hY.2.2 (finset.subset.antisymm hY.2.1 hYX))⟩⟩, },
+  { rintro ⟨Y, hY⟩ ⟨hX, hX'⟩,
     have := hX' hY.1 hY.2.1,
     rw this at hY,
-    exact hY.2.2 (subset.refl Y),
-  }
+    exact hY.2.2 (subset.refl Y), }
 end
 
 lemma subfacet {S : simplicial_complex m} {X : finset (fin m → ℝ)} :

@@ -79,11 +79,3 @@ lemma clss : (add_submonoid.closure (S : set R) : set R) = subsemiring.closure (
 by ext; simp [subsemiring.mem_closure_iff]
 
 end semiring
-
-section comm_semiring
-
-variables [comm_semiring R] {S : submonoid R}
-
-instance : comm_semiring (add_submonoid.closure (S : set R)) := S.to_subsemiring.to_comm_semiring
-
-end comm_semiring

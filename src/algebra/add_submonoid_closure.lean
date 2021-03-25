@@ -16,11 +16,11 @@ variables {R : Type*} {a b : R}
 
 section semiring
 
-variables [semiring R] {S : submonoid R}
+variables [semiring R] (S : submonoid R)
 
 /-- The product of an element of the additive closure of a multiplicative submonoid `S`
 and an element of `S` is contained in the additive closure of `S`. -/
-lemma add_submonoid.closure_mem_mul (ha : a ∈ add_submonoid.closure (S : set R)) (hb : b ∈ S) :
+lemma submonoid.mul_mem_add_closure (ha : a ∈ add_submonoid.closure (S : set R)) (hb : b ∈ S) :
   a * b ∈ add_submonoid.closure (S : set R) :=
 begin
   revert b,
@@ -31,6 +31,8 @@ begin
     exact λ r s hr hs b hb, (add_submonoid.closure (S : set R)).add_mem (hr hb) (hs hb) }
 end
 
+variable {S}
+
 /-- The product of two elements of the additive closure of a submonoid `S` is an element of the
 additive closure of `S`. -/
 lemma mul_mem
@@ -39,7 +41,7 @@ lemma mul_mem
 begin
   revert a,
   refine add_submonoid.closure_induction hb _ _ _; clear hb b,
-  { exact λ r hr b hb, add_submonoid.closure_mem_mul hb hr },
+  { exact λ r hr b hb, S.mul_mem_add_closure hb hr },
   { exact λ b hb, by simp only [mul_zero, (add_submonoid.closure (S : set R)).zero_mem] },
   { simp_rw mul_add,
     exact λ r s hr hs b hb, (add_submonoid.closure (S : set R)).add_mem (hr hb) (hs hb) }

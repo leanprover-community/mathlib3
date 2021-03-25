@@ -90,6 +90,9 @@ instance [monoid M] [monoid N] : monoid (M × N) :=
   mul_one := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨mul_one _, mul_one _⟩,
   .. prod.semigroup, .. prod.has_one }
 
+instance [monoid_with_zero M] [monoid_with_zero N] : monoid_with_zero (M × N) :=
+{ .. prod.monoid, .. prod.mul_zero_class }
+
 @[to_additive]
 instance [group G] [group H] : group (G × H) :=
 { mul_left_inv := assume a, mk.inj_iff.mpr ⟨mul_left_inv _, mul_left_inv _⟩,

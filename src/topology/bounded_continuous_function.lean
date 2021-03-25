@@ -672,7 +672,7 @@ instance : ring (α →ᵇ R) :=
   right_distrib := λ f₁ f₂ f₃, ext $ λ x, right_distrib _ _ _,
   .. bounded_continuous_function.add_comm_group }
 
-@[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = (⇑f : α → R) * (⇑g : α → R) := rfl
+@[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
 lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
 
 instance : normed_ring (α →ᵇ R) :=

@@ -86,7 +86,10 @@ begin
     cases h1 with e he,
     fconstructor,
     fconstructor,
-    fconstructor, }
+    fconstructor,
+    { exact e },
+    { apply category_theory.limits.is_initial.hom_ext, simp, exact h },
+    { exact he } }
 end
 
 /- A helper construction: given a square between i and f ≫ g, produce a square between i and g,
@@ -134,10 +137,6 @@ begin
   {
     left := sq0.left,
     right := lift_structure_sq1.lift,
-    w' := begin
-      simp,
-      tidy,
-    end,
   },
 
   -- construct a lift i vs. f

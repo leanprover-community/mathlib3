@@ -511,7 +511,7 @@ instance : has_sub (α →ᵇ β) :=
        exact le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) $
          trans_rel_right _ (norm_neg _) (g.norm_coe_le_norm x)) }⟩
 
-@[simp] lemma coe_add : ⇑(f + g) = (⇑f : α → β) + (⇑g : α → β) := rfl
+@[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 lemma neg_apply : (-f) x = -f x := rfl

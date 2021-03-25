@@ -24,9 +24,17 @@ namespace pi
 instance semigroup [∀ i, semigroup $ f i] : semigroup (Π i : I, f i) :=
 by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
 
+instance semigroup_with_zero [∀ i, semigroup_with_zero $ f i] :
+  semigroup_with_zero (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
+
 @[to_additive]
 instance comm_semigroup [∀ i, comm_semigroup $ f i] : comm_semigroup (Π i : I, f i) :=
 by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
+
+@[to_additive]
+instance mul_one_class [∀ i, mul_one_class $ f i] : mul_one_class (Π i : I, f i) :=
+by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=

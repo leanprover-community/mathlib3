@@ -18,6 +18,7 @@ and the appropriate definition of instances:
    instance-implicit arguments
  * `dangerous_instance` checks for instances that generate subproblems with metavariables
  * `fails_quickly` checks that type class resolution finishes quickly
+ * `class_structure` checks that every `class` is a structure, i.e. `@[class] def` is forbidden
  * `has_coe_variable` checks that there is no instance of type `has_coe α t`
  * `inhabited_nonempty` checks whether `[inhabited α]` arguments could be generalized
    to `[nonempty α]`
@@ -233,6 +234,23 @@ meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option stri
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.
 For the following classes, there is an instance that causes a loop, or an excessively long search.",
   is_fast := ff }
+
+/-- Checks that all uses of the `@[class]` attribute apply to structures or inductive types.
+  This is future-proofing for lean 4, which no longer supports `@[class] def`. -/
+private meta def class_structure (n : name) : tactic (option string) := do
+  is_class ← has_attribute' `class n,
+  if is_class then do
+    env ← get_env,
+    pure $ if env.is_inductive n then none else
+      "is a non-structure or inductive type marked @[class]"
+  else pure none
+
+/-- A linter object for `class_structure`. -/
+@[linter] meta def linter.class_structure : linter :=
+{ test := λ d, class_structure d.to_name,
+  auto_decls := tt,
+  no_errors_found := "All classes are structures",
+  errors_found := "USE OF @[class] def IS DISALLOWED" }
 
 /--
 Tests whether there is no instance of type `has_coe α t` where `α` is a variable,

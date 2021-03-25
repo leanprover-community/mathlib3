@@ -180,10 +180,10 @@ end
   char_poly (M ^ (fintype.card K)) = char_poly M :=
 begin
   by_cases hn : nonempty n,
-  { letI := hn,
+  { haveI := hn,
     cases char_p.exists K with p hp, letI := hp,
     rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩,
-    letI : fact p.prime := hp,
+    haveI : fact p.prime := ⟨hp⟩,
     dsimp at hk, rw hk at *,
     apply (frobenius_inj (polynomial K) p).iterate k,
     repeat { rw iterate_frobenius, rw ← hk },

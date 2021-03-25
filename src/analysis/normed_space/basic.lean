@@ -79,6 +79,22 @@ instance : normed_group ℝ :=
 
 lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
 
+lemma real.pow_even_norm (x : ℝ) {p : ℕ} (hp : even p) :
+  ∥x∥ ^ p = x ^ p :=
+by rw [real.norm_eq_abs, pow_even_abs x hp]
+
+@[simp] lemma real.pow_bit0_norm (x : ℝ) (p : ℕ) :
+  ∥x∥ ^ bit0 p = x ^ bit0 p :=
+real.pow_even_norm _ (even_bit0 _)
+
+lemma real.fpow_even_norm (x : ℝ) {p : ℤ} (hp : even p) :
+  ∥x∥ ^ p = x ^ p :=
+by rw [real.norm_eq_abs, fpow_even_abs x hp]
+
+@[simp] lemma real.fpow_bit0_norm (x : ℝ) (p : ℤ) :
+  ∥x∥ ^ bit0 p = x ^ bit0 p :=
+real.fpow_even_norm _ (even_bit0 _)
+
 section normed_group
 variables [normed_group α] [normed_group β]
 
@@ -583,7 +599,7 @@ end
 continuous. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
-⟨(lipschitz_with.prod_fst.sub lipschitz_with.prod_snd).uniform_continuous⟩
+⟨((@lipschitz_with.prod_fst α α _ _).sub lipschitz_with.prod_snd).uniform_continuous⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_monoid : has_continuous_add α :=

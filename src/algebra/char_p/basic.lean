@@ -190,7 +190,7 @@ begin
   rw [show (2 : R) = (2 : ℕ), by norm_cast] at h,
   have := (char_p.cast_eq_zero_iff R p 2).mp h,
   have := nat.le_of_dvd dec_trivial this,
-  rw fact at *, linarith,
+  rw fact_iff at *, linarith,
 end
 
 lemma ring_hom.char_p_iff_char_p {K L : Type*} [field K] [field L] (f : K →+* L) (p : ℕ) :
@@ -213,7 +213,7 @@ def frobenius : R →+* R :=
 { to_fun := λ x, x^p,
   map_one' := one_pow p,
   map_mul' := λ x y, mul_pow x y p,
-  map_zero' := zero_pow (lt_trans zero_lt_one ‹nat.prime p›.one_lt),
+  map_zero' := zero_pow (lt_trans zero_lt_one (fact.out (nat.prime p)).one_lt),
   map_add' := add_pow_char R }
 
 variable {R}
@@ -347,7 +347,7 @@ match p, hc with
 end
 
 lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p R p] : fact p.prime :=
-(char_p.char_is_prime_or_zero R _).resolve_right (pos_iff_ne_zero.1 h)
+⟨(char_p.char_is_prime_or_zero R _).resolve_right (pos_iff_ne_zero.1 h.1)⟩
 
 end nontrivial
 
@@ -421,7 +421,7 @@ begin
   obtain ⟨c, hc⟩ := char_p.exists R, resetI,
   have hcpn : c ∣ p ^ n,
   { rw [← char_p.cast_eq_zero_iff R c, ← hn, char_p.cast_card_eq_zero], },
-  obtain ⟨i, hi, hc⟩ : ∃ i ≤ n, c = p ^ i, by rwa nat.dvd_prime_pow hp at hcpn,
+  obtain ⟨i, hi, hc⟩ : ∃ i ≤ n, c = p ^ i, by rwa nat.dvd_prime_pow hp.1 at hcpn,
   obtain rfl : i = n,
   { apply hR i hi, rw [← nat.cast_pow, ← hc, char_p.cast_eq_zero] },
   rwa ← hc

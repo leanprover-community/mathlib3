@@ -1020,6 +1020,9 @@ theorem monotone_powerset : monotone (powerset : set α → set (set α)) :=
 @[simp] theorem powerset_empty : 𝒫 (∅ : set α) = {∅} :=
 ext $ λ s, subset_empty_iff
 
+@[simp] theorem powerset_univ : 𝒫 (univ : set α) = univ :=
+eq_univ_of_forall subset_univ
+
 /-! ### If-then-else for sets -/
 
 /-- `ite` for sets: `set.ite t s s' ∩ t = s ∩ t`, `set.ite t s s' ∩ tᶜ = s' ∩ tᶜ`.

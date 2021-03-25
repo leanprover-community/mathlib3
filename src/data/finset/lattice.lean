@@ -445,7 +445,7 @@ lemma min'_insert (a : α) (s : finset α) (H : s.nonempty) :
 * for every `s : finset α` and an element `a` strictly greater than all elements of `s`, `p s`
   implies `p (insert a s)`. -/
 @[elab_as_eliminator]
-lemma induction_on_max {p : finset α → Prop} (s : finset α) (h0 : p ∅)
+lemma induction_on_max [decidable_eq α] {p : finset α → Prop} (s : finset α) (h0 : p ∅)
   (step : ∀ a s, (∀ x ∈ s, x < a) → p s → p (insert a s)) : p s :=
 begin
   induction hn : s.card with n ihn generalizing s,
@@ -465,12 +465,9 @@ end
 * for every `s : finset α` and an element `a` strictly less than all elements of `s`, `p s`
   implies `p (insert a s)`. -/
 @[elab_as_eliminator]
-lemma induction_on_min {p : finset α → Prop} (s : finset α) (h0 : p ∅)
+lemma induction_on_min [decidable_eq α] {p : finset α → Prop} (s : finset α) (h0 : p ∅)
   (step : ∀ a s, (∀ x ∈ s, a < x) → p s → p (insert a s)) : p s :=
-begin
-  refine @induction_on_max (order_dual α) _ _ s h0 (λ a s has hs, _),
-  convert step a s has hs
-end
+@induction_on_max (order_dual α) _ _ _ s h0 step
 
 end max_min
 

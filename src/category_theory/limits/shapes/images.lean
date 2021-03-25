@@ -314,9 +314,9 @@ image.lift
   e := factor_thru_image f', }.
 
 instance (h : f = f') : is_iso (image.eq_to_hom h) :=
-⟨image.eq_to_hom h.symm,
+⟨⟨image.eq_to_hom h.symm,
   ⟨(cancel_mono (image.ι f)).1 (by simp [image.eq_to_hom]),
-   (cancel_mono (image.ι f')).1 (by simp [image.eq_to_hom])⟩⟩
+   (cancel_mono (image.ι f')).1 (by simp [image.eq_to_hom])⟩⟩⟩
 
 /-- An equation between morphisms gives an isomorphism between the images. -/
 def image.eq_to_iso (h : f = f') : image f ≅ image f' := as_iso (image.eq_to_hom h)
@@ -370,11 +370,11 @@ variables [has_equalizers C]
 -/
 instance image.is_iso_precomp_iso (f : X ≅ Y) [has_image g] [has_image (f.hom ≫ g)] :
   is_iso (image.pre_comp f.hom g) :=
-⟨image.lift
+⟨⟨image.lift
   { I := image (f.hom ≫ g),
     m := image.ι (f.hom ≫ g),
     e := f.inv ≫ factor_thru_image (f.hom ≫ g) },
-  ⟨by { ext, simp [image.pre_comp], }, by { ext, simp [image.pre_comp], }⟩⟩
+  ⟨by { ext, simp [image.pre_comp], }, by { ext, simp [image.pre_comp], }⟩⟩⟩
 
 -- Note that in general we don't have the other comparison map you might expect
 -- `image f ⟶ image (f ≫ g)`.

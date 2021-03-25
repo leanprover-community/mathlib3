@@ -1302,8 +1302,8 @@ if and only if that bilinear form restricted on to the subspace is nondegenerate
 theorem restrict_nondegenerate_iff_is_compl_orthogonal
   {B : bilin_form K V} {W : subspace K V} (hB₁ : sym_bilin_form.is_sym B) :
   (B.restrict W).nondegenerate ↔ is_compl W (B.orthogonal W) :=
-⟨ λ hB₂, restrict_nondegenerate_of_is_compl_orthogonal hB₁ hB₂,
-  λ h, B.nondegenerate_restrict_of_inf_orthogonal_le_bot hB₁ h.1⟩
+⟨λ hB₂, restrict_nondegenerate_of_is_compl_orthogonal hB₁ hB₂,
+ λ h, B.nondegenerate_restrict_of_inf_orthogonal_le_bot hB₁ h.1⟩
 
 /-- Given a nondegenerate bilinear form `B` on a finite-dimensional vector space, `B.to_dual` is
 the linear equivalence between a vector space and its dual with the underlying linear map

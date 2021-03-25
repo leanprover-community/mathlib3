@@ -90,7 +90,7 @@ eq.symm $ funext $ apply_single op h i x
 lemma single_binop {g₁ g₂ : I → Type*} [Π i, has_zero (g₁ i)] [Π i, has_zero (g₂ i)]
   (op : Π i, g₁ i → g₂ i → f i) (h : ∀ i, op i 0 0 = 0) (i : I) (x₁ : g₁ i) (x₂ : g₂ i) :
   single i (op i x₁ x₂) = λ j, op j (single i x₁ j) (single i x₂ j) :=
-by simp only [single, ← function.update_binop op, pi.zero_def, h]
+eq.symm $ funext $ apply_single₂ op h i x₁ x₂
 
 variables (f)
 

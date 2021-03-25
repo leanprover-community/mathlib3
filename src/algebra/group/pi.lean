@@ -133,7 +133,7 @@ into a dependent family of values, as functions supported at a point.
 This is the `zero_hom` version of `pi.single`. -/
 @[simps] def zero_hom.single [Π i, has_zero $ f i] (i : I) : zero_hom (f i) (Π i, f i) :=
 { to_fun := single i,
-  map_zero' := function.update_eq_self i 0 }
+  map_zero' := single_zero i }
 
 /-- The additive monoid homomorphism including a single additive monoid
 into a dependent family of additive monoids, as functions supported at a point.
@@ -141,29 +141,18 @@ into a dependent family of additive monoids, as functions supported at a point.
 This is the `add_monoid_hom` version of `pi.single`. -/
 @[simps] def add_monoid_hom.single [Π i, add_monoid $ f i] (i : I) : f i →+ Π i, f i :=
 { to_fun := single i,
-  map_add' := λ x y, funext $ λ j, begin
-    refine (apply_single₂ _ (λ _, _) i x y j).symm,
-    exact zero_add 0,
-  end,
+  map_add' := single_binop (λ _, (+)) (λ _, zero_add _) _,
   .. (zero_hom.single f i) }
 
 /-- The multiplicative homomorphism including a single `monoid_with_zero`
 into a dependent family of monoid_with_zeros, as functions supported at a point.
 
 This is the `mul_hom` version of `pi.single`. -/
-@[simps] def mul_hom.single [Π i, monoid_with_zero $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=
+@[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=
 { to_fun := single i,
-  map_mul' := λ x y, funext $ λ j, begin
-    refine (apply_single₂ _ (λ _, _) i x y j).symm,
-    exact zero_mul 0,
-  end, }
+  map_mul' := single_binop (λ _, (*)) (λ _, zero_mul _) _, }
 
 variables {f}
-
-@[simp]
-lemma pi.single_zero [Π i, has_zero $ f i] (i : I) :
-  single i (0 : f i) = 0 :=
-(zero_hom.single f i).map_zero
 
 lemma pi.single_add [Π i, add_monoid $ f i] (i : I) (x y : f i) :
   single i (x + y) = single i x + single i y :=
@@ -177,7 +166,7 @@ lemma pi.single_sub [Π i, add_group $ f i] (i : I) (x y : f i) :
   single i (x - y) = single i x - single i y :=
 (add_monoid_hom.single f i).map_sub x y
 
-lemma pi.single_mul [Π i, monoid_with_zero $ f i] (i : I) (x y : f i) :
+lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 (mul_hom.single f i).map_mul x y
 

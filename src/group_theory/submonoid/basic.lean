@@ -47,18 +47,20 @@ numbers.
 submonoid, submonoids
 -/
 
-variables {M : Type*} [monoid M] {s : set M}
-variables {A : Type*} [add_monoid A] {t : set A}
+section
+
+variables {M : Type*} [mul_one_class M] {s : set M}
+variables {A : Type*} [add_zero_class A] {t : set A}
 
 /-- A submonoid of a monoid `M` is a subset containing 1 and closed under multiplication. -/
-structure submonoid (M : Type*) [monoid M] :=
+structure submonoid (M : Type*) [mul_one_class M] :=
 (carrier : set M)
 (one_mem' : (1 : M) ∈ carrier)
 (mul_mem' {a b} : a ∈ carrier → b ∈ carrier → a * b ∈ carrier)
 
 /-- An additive submonoid of an additive monoid `M` is a subset containing 0 and
   closed under addition. -/
-structure add_submonoid (M : Type*) [add_monoid M] :=
+structure add_submonoid (M : Type*) [add_zero_class M] :=
 (carrier : set M)
 (zero_mem' : (0 : M) ∈ carrier)
 (add_mem' {a b} : a ∈ carrier → b ∈ carrier → a + b ∈ carrier)
@@ -360,6 +362,8 @@ lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, clos
 
 end submonoid
 
+end
+
 section is_unit
 
 /-- The submonoid consisting of the units of a monoid -/
@@ -379,7 +383,7 @@ end is_unit
 
 namespace monoid_hom
 
-variables {N : Type*} {P : Type*} [monoid N] [monoid P] (S : submonoid M)
+variables {M N P : Type*} [monoid M] [monoid N] [monoid P] (S : submonoid M) {s : set M}
 
 open submonoid
 

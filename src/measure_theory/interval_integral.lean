@@ -369,30 +369,26 @@ end basic
 
 section comp
 
-lemma real.closed_embedding_mul_right {c : ℝ} (hc : c ≠ 0) :
-  closed_embedding (λ (x : ℝ), x * c) := sorry
-
-
 variables {a b c : ℝ} (f : ℝ → E)
-
 
 lemma integral_comp_mul_right_of_pos (hc : 0 < c) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
 begin
+  have A : closed_embedding (λ (x : ℝ), x * c) :=
+    (homeomorph.mul_right' c (ne_of_gt hc)).closed_embedding,
   conv_rhs { rw [← real.smul_map_volume_mul_right (ne_of_gt hc)] },
   rw [integral_smul_measure],
   simp only [interval_integral, hc, preimage_mul_const_Ioc, mul_div_cancel _ (ne_of_gt hc),
-    abs_of_pos, set_integral_map_of_closed_embedding measurable_set_Ioc
-      (real.closed_embedding_mul_right (ne_of_gt hc)),
+    abs_of_pos, set_integral_map_of_closed_embedding measurable_set_Ioc A,
     ennreal.to_real_of_real (le_of_lt hc), inv_smul_smul' (ne_of_gt hc)],
 end
 
 lemma integral_comp_neg : ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=
 begin
-  have A : closed_embedding (λ (x : ℝ), - x) := sorry,
+  have A : closed_embedding (λ (x : ℝ), - x) := (homeomorph.neg ℝ).closed_embedding,
   conv_rhs { rw ← real.map_volume_neg },
   simp only [interval_integral, set_integral_map_of_closed_embedding measurable_set_Ioc A,
-    neg_preimage, preimage_neg_Ioc, neg_neg, restrict_congr_set Ico_ae_eq_Ioc]
+    neg_preimage, preimage_neg_Ioc, neg_neg, restrict_congr_set Ico_ae_eq_Ioc],
 end
 
 lemma integral_comp_mul_right_of_neg (hc : c < 0) :
@@ -400,7 +396,7 @@ lemma integral_comp_mul_right_of_neg (hc : c < 0) :
 begin
   let g := λ x, f (-x),
   have h : (λ x, f (x * c)) = λ x, g (x * -c) := by simp_rw [g, neg_mul_eq_mul_neg, neg_neg],
-  rw [h, integral_comp_mul_right_of_pos g (neg_pos.mpr hc), integral_comp_neg g, integral_symm],
+  rw [h, integral_comp_mul_right_of_pos g (neg_pos.mpr hc), integral_comp_neg f, integral_symm],
   simp only [neg_mul_eq_mul_neg, neg_neg, inv_neg, neg_smul, ← smul_neg],
 end
 
@@ -408,69 +404,68 @@ lemma integral_comp_mul_right (hc : c ≠ 0) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
 begin
   cases lt_or_gt_of_ne hc with hneg hpos,
-  exacts [integral_comp_mul_right_of_neg hneg, integral_comp_mul_right_of_pos hpos],
+  exacts [integral_comp_mul_right_of_neg f hneg, integral_comp_mul_right_of_pos f hpos],
 end
 
 lemma integral_comp_mul_left (hc : c ≠ 0) :
   ∫ x in a..b, f (c * x) = c⁻¹ • ∫ x in c*a..c*b, f x :=
-by simpa only [mul_comm c] using integral_comp_mul_right hc
+by simpa only [mul_comm c] using integral_comp_mul_right f hc
 
 lemma integral_comp_div (hc : c ≠ 0) :
   ∫ x in a..b, f (x / c) = c • ∫ x in a/c..b/c, f x :=
-by simpa only [inv_inv'] using integral_comp_mul_right (inv_ne_zero hc)
+by simpa only [inv_inv'] using integral_comp_mul_right f (inv_ne_zero hc)
 
-lemma integral_comp_add_right (d : ℝ) (hfm : ae_measurable f) :
+lemma integral_comp_add_right (d : ℝ) :
   ∫ x in a..b, f (x + d) = ∫ x in a+d..b+d, f x :=
-have A : ae_measurable f (measure.map (λ x, x + d) volume), by rwa [real.map_volume_add_right],
+have A : closed_embedding (λ x : ℝ, x + d) := (homeomorph.add_right d).closed_embedding,
 calc ∫ x in a..b, f (x + d) = ∫ x in a+d..b+d, f x ∂(measure.map (λ x, x + d) volume) :
-  by simp only [interval_integral, set_integral_map measurable_set_Ioc A (measurable_add_right _),
+  by simp only [interval_integral, set_integral_map_of_closed_embedding measurable_set_Ioc A,
     preimage_add_const_Ioc, add_sub_cancel]
 ... = ∫ x in a+d..b+d, f x : by rw [real.map_volume_add_right]
 
-lemma integral_comp_mul_add (hc : c ≠ 0) (d : ℝ) (hfm : ae_measurable f) :
+lemma integral_comp_mul_add (hc : c ≠ 0) (d : ℝ) :
   ∫ x in a..b, f (c * x + d) = c⁻¹ • ∫ x in c*a+d..c*b+d, f x :=
-by rw [← integral_comp_add_right d hfm, ← integral_comp_mul_left hc $
-  hfm.comp_measurable' (measurable_add_right d) $ by rwa real.map_volume_add_right]
+by rw [← integral_comp_add_right f d, ← integral_comp_mul_left _ hc]
 
-lemma integral_comp_add_mul (hc : c ≠ 0) (d : ℝ) (hfm : ae_measurable f) :
+lemma integral_comp_add_mul (hc : c ≠ 0) (d : ℝ) :
   ∫ x in a..b, f (d + c * x) = c⁻¹ • ∫ x in d+c*a..d+c*b, f x :=
-by simpa only [add_comm] using integral_comp_mul_add hc d hfm
+by simpa only [add_comm] using integral_comp_mul_add f hc d
 
-lemma integral_comp_div_add (hc : c ≠ 0) (d : ℝ) (hfm : ae_measurable f) :
+lemma integral_comp_div_add (hc : c ≠ 0) (d : ℝ) :
   ∫ x in a..b, f (x / c + d) = c • ∫ x in a/c+d..b/c+d, f x :=
-by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_mul_add (inv_ne_zero hc) d hfm
+by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_mul_add f (inv_ne_zero hc) d
 
-lemma integral_comp_add_div (hc : c ≠ 0) (d : ℝ) (hfm : ae_measurable f) :
+lemma integral_comp_add_div (hc : c ≠ 0) (d : ℝ) :
   ∫ x in a..b, f (d + x / c) = c • ∫ x in d+a/c..d+b/c, f x :=
-by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_add_mul (inv_ne_zero hc) d hfm
+by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_add_mul f (inv_ne_zero hc) d
 
-lemma integral_comp_mul_sub (hc : c ≠ 0) (d : ℝ) (hfm : ae_measurable f) :
+lemma integral_comp_mul_sub (hc : c ≠ 0) (d : ℝ) :
   ∫ x in a..b, f (c * x - d) = c⁻¹ • ∫ x in c*a-d..c*b-d, f x :=
-by simpa only [sub_eq_add_neg] using integral_comp_mul_add hc (-d) hfm
+by simpa only [sub_eq_add_neg] using integral_comp_mul_add f hc (-d)
 
-lemma integral_comp_sub_mul (hc : c ≠ 0) (d : ℝ) (hfm : ae_measurable f) :
+lemma integral_comp_sub_mul (hc : c ≠ 0) (d : ℝ) :
   ∫ x in a..b, f (d - c * x) = c⁻¹ • ∫ x in d-c*b..d-c*a, f x :=
 begin
   simp only [sub_eq_add_neg, neg_mul_eq_neg_mul],
-  rw [integral_comp_add_mul (neg_ne_zero.mpr hc) d hfm, integral_symm],
+  rw [integral_comp_add_mul f (neg_ne_zero.mpr hc) d, integral_symm],
   simp only [inv_neg, smul_neg, neg_neg, neg_smul],
 end
 
-lemma integral_comp_div_sub (hc : c ≠ 0) (d : ℝ) (hfm : ae_measurable f) :
+lemma integral_comp_div_sub (hc : c ≠ 0) (d : ℝ) :
   ∫ x in a..b, f (x / c - d) = c • ∫ x in a/c-d..b/c-d, f x :=
-by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_mul_sub (inv_ne_zero hc) d hfm
+by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_mul_sub f (inv_ne_zero hc) d
 
-lemma integral_comp_sub_div (hc : c ≠ 0) (d : ℝ) (hfm : ae_measurable f) :
+lemma integral_comp_sub_div (hc : c ≠ 0) (d : ℝ) :
   ∫ x in a..b, f (d - x / c) = c • ∫ x in d-b/c..d-a/c, f x :=
-by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_sub_mul (inv_ne_zero hc) d hfm
+by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_sub_mul f (inv_ne_zero hc) d
 
-lemma integral_comp_sub_right (d : ℝ) (hfm : ae_measurable f) :
+lemma integral_comp_sub_right (d : ℝ) :
   ∫ x in a..b, f (x - d) = ∫ x in a-d..b-d, f x :=
-by simpa only [sub_eq_add_neg] using integral_comp_add_right (-d) hfm
+by simpa only [sub_eq_add_neg] using integral_comp_add_right f (-d)
 
-lemma integral_comp_sub_left (d : ℝ) (hfm : ae_measurable f) :
+lemma integral_comp_sub_left (d : ℝ) :
   ∫ x in a..b, f (d - x) = ∫ x in d-b..d-a, f x :=
-by simpa only [one_mul, one_smul, inv_one] using integral_comp_sub_mul one_ne_zero d hfm
+by simpa only [one_mul, one_smul, inv_one] using integral_comp_sub_mul f one_ne_zero d
 
 end comp
 

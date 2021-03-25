@@ -241,6 +241,7 @@ noncomputable instance : linear_ordered_field ℝ :=
 /- Extra instances to short-circuit type class resolution -/
 
 noncomputable instance : linear_ordered_add_comm_group ℝ := by apply_instance
+noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
 noncomputable instance : distrib_lattice ℝ := by apply_instance

@@ -2516,7 +2516,7 @@ lemma times_cont_diff_within_at.div [complete_space 𝕜] {f g : E → 𝕜} {n}
   (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g s x)
   (hx : g x ≠ 0) :
   times_cont_diff_within_at 𝕜 n (λ x, f x / g x) s x :=
-hf.mul (hg.inv hx)
+by simpa only [div_eq_mul_inv] using hf.mul (hg.inv hx)
 
 lemma times_cont_diff_on.div [complete_space 𝕜] {f g : E → 𝕜} {n}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) (h₀ : ∀ x ∈ s, g x ≠ 0) :

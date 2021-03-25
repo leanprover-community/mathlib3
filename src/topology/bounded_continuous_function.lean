@@ -511,7 +511,7 @@ instance : has_sub (α →ᵇ β) :=
        exact le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) $
          trans_rel_right _ (norm_neg _) (g.norm_coe_le_norm x)) }⟩
 
-@[simp] lemma coe_add : ⇑(f + g) = λ x, f x + g x := rfl
+@[simp] lemma coe_add : ⇑(f + g) = (⇑f : α → β) + (⇑g : α → β) := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp] lemma coe_neg : ⇑(-f) = λ x, - f x := rfl
 lemma neg_apply : (-f) x = -f x := rfl
@@ -531,7 +531,7 @@ instance : add_comm_group (α →ᵇ β) :=
   ..bounded_continuous_function.has_sub,
   ..bounded_continuous_function.has_zero }
 
-@[simp] lemma coe_sub : ⇑(f - g) = λ x, f x - g x := rfl
+@[simp] lemma coe_sub : ⇑(f - g) = (⇑f : α → β) - (⇑g : α → β) := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
 
 /-- Coercion of a `normed_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/
@@ -672,8 +672,8 @@ instance : ring (α →ᵇ R) :=
   right_distrib := λ f₁ f₂ f₃, ext $ λ x, right_distrib _ _ _,
   .. bounded_continuous_function.add_comm_group }
 
-@[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = λ x, (f x) * (g x) := rfl
-lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = (f x) * (g x) := rfl
+@[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = (⇑f : α → R) * (⇑g : α → R) := rfl
+lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
 
 instance : normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,

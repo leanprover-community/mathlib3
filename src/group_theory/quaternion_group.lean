@@ -151,7 +151,7 @@ def quaternion_group_zero_equiv_dihedral_group_zero : quaternion_group 0 ≃* di
 /-- Some of the lemmas on `zmod m` require that `m` is positive, as `m = 2 * n` is the case relevant
 in this file but we don't want to write `[fact (0 < 2 * n)]` we make this lemma a local instance. -/
 private lemma succ_mul_pos_fact {m : ℕ} [hn : fact (0 < n)] : fact (0 < (nat.succ m) * n) :=
-nat.succ_mul_pos m hn
+⟨nat.succ_mul_pos m hn.1⟩
 
 local attribute [instance] succ_mul_pos_fact
 
@@ -217,7 +217,7 @@ begin
     apply_fun zmod.val at h',
     apply_fun ( / n) at h',
     simp only [zmod.val_nat_cast, zmod.val_zero, nat.zero_div, nat.mod_mul_left_div_self,
-             nat.div_self hpos] at h',
+             nat.div_self hpos.1] at h',
     norm_num at h' },
   { norm_num }
 end
@@ -235,7 +235,7 @@ If `0 < n`, then `a 1` has order `2 * n`.
 -/
 @[simp] lemma order_of_a_one [hn : fact (0 < n)] : order_of (a 1 : quaternion_group n) = 2 * n :=
 begin
-  cases (nat.le_of_dvd (nat.succ_mul_pos _ hn)
+  cases (nat.le_of_dvd (nat.succ_mul_pos _ hn.1)
     (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))).lt_or_eq with h h,
   { have h1 : (a 1 : quaternion_group n)^(order_of (a 1)) = 1 := pow_order_of_eq_one _,
     rw a_one_pow at h1,

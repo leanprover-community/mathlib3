@@ -378,9 +378,10 @@ lemma of_separable_splitting_field [sp : p.is_splitting_field F E] (hp : p.separ
 begin
   haveI hFE : finite_dimensional F E := polynomial.is_splitting_field.finite_dimensional E p,
   let s := (p.map (algebra_map F E)).roots.to_finset,
-  have adjoin_root := intermediate_field.ext (set_like.ext_iff.mp (eq.trans (top_le_iff.mp
-    (eq.trans_le sp.adjoin_roots.symm (intermediate_field.algebra_adjoin_le_adjoin F ↑s)))
-    intermediate_field.top_to_subalgebra.symm)),
+  have adjoin_root : intermediate_field.adjoin F ↑s = ⊤,
+  { apply intermediate_field.to_subalgebra_injective,
+    rw [intermediate_field.top_to_subalgebra, ←top_le_iff, ←sp.adjoin_roots],
+    apply intermediate_field.algebra_adjoin_le_adjoin, },
   let P : intermediate_field F E → Prop := λ K, fintype.card (K →ₐ[F] E) = findim F K,
   suffices : P (intermediate_field.adjoin F ↑s),
   { rw adjoin_root at this,

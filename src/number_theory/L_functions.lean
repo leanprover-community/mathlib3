@@ -7,6 +7,7 @@ import topology.category.Profinite
 import topology.locally_constant.algebra
 import topology.algebra.continuous_functions
 import topology.metric_space.basic
+import topology.continuous_on
 
 variables {A : Type*} [integral_domain A] [algebra ℚ A]
 
@@ -122,13 +123,6 @@ begin
   exact set.Inter_subset (λ (i : ι), s i) i,
 end
 
-/-- This is false because empty intersection of a set gives itself -/
-lemma Inter_nonempty_of' {α  β : Type*} {ι : set β} {s : ι → set α} :
-  (⋂ j, s j).nonempty → nonempty ι :=
-begin
-  sorry
-end
-
 /-- A compact Hausdorff space is totally disconnected if and only if it is totally separated, this
   is also true for locally compact spaces. -/
 -- TODO : Prove for locally compact spaces
@@ -188,12 +182,6 @@ begin
   have f := set.mem_inter H Uy, rw set.inter_compl_self _ at f, simp at f, assumption,
 end
 
-lemma closed_of_compact_space {H : Type*} [topological_space H] [compact_space H] {U : set H}
-  [h : is_closed U] : is_compact U :=
-begin
-  exact is_closed.compact h,
-end
-
 lemma compact_exists_clopen_in_open {H : Type*} [topological_space H] [compact_space H] [t2_space H]
   [totally_disconnected_space H] {x : H} {U : set H} [is_open U] (memU : x ∈ U) : ∃ (V : set H)
   (hV : is_clopen V), x ∈ V ∧ V ⊆ U :=
@@ -206,7 +194,7 @@ begin
     { rintros y hy, rw ←compl_compl U at memU,
       obtain ⟨U, hU, Uy, Ux⟩ := @tot_sep_exists_clopen H _ _inst_10 y x (@stuff H y Uᶜ hy x memU),
       refine ⟨U, hU, Uy, Ux⟩, },
-    set h := λ (y : H) (hy : y ∈ Uᶜ), classical.some (ex y hy) with fh,
+      set h := λ (y : H) (hy : y ∈ Uᶜ), classical.some (ex y hy) with fh,
     set V := (⨆ (y : H) (hy : y ∈ Uᶜ), h y hy) with hV,
     have sub : Uᶜ ⊆ V,
     { intros y hy, rw hV, rw set.mem_Union, use y, rw set.mem_Union, use hy,
@@ -217,46 +205,81 @@ begin
     have comp : is_compact Uᶜ := by { exact is_closed.compact _inst_11 },
     obtain ⟨t, fin⟩ := is_compact.elim_finite_subcover comp _ _ sub,
     { rw set.compl_subset_comm at fin,
-      set V := (⨆ (i : H) (H_1 : i ∈ t), (λ (y : H), ⨆ (hy : y ∈ Uᶜ), h y hy) i)ᶜ with hV,
-      simp only [set.compl_Union] at hV,
-      refine ⟨V, _, _, fin⟩,
+      set W := (⨆ (i : H) (H_1 : i ∈ t), (λ (y : H), ⨆ (hy : y ∈ Uᶜ), h y hy) i)ᶜ with hW,
+      rw [set.compl_Union] at hW,
+      refine ⟨W, _, _, fin⟩,
       have g : fintype (t : set H), exact finset_coe.fintype t,
-      { rw hV,
-        suffices f : ∀ y : ((t : set H) ∩ Uᶜ), is_clopen (h y.val ((set.mem_inter_iff y.val _ _).1 y.property).2),
-        { have g := is_clopen_Inter f,
---          convert_to (is_clopen (⋂ (i : H) (i_1 : i ∈ ((t : set H) ∩ Uᶜ), (some _)ᶜ)) using set.mem_inter_iff,
-          conv at g { congr, congr, funext, norm_num, rw [set.set_coe_eq_subtype ((t : set H) ∩ Uᶜ)], },
-         --rw [set.set_coe_eq_subtype (↑t ∩ Uᶜ)] at g,
---          change (is_clopen (⋂ (i : H) (i_1 : i ∈ ((t : set H) ∩ Uᶜ)), (λ (y ∈ (↑t ∩ Uᶜ)), h y _) i i_1)) at g,
---          suffices h : ⋂ (i : (t : set H) ∩ Uᶜ), (h i.val ((set.mem_inter_iff i.val _ _).1 i.property).2) = ⋂ (i : H) (i_1 : i ∈ t) (i_1 : i ∈ Uᶜ), h i i_1,
-          simp only [subtype.val_eq_coe] at g, },
-        { rintros y, obtain ⟨g1, g2, g3⟩ := some_spec (ex y.val ((set.mem_inter_iff y.val _ _).1 y.property).2),
-          refine g1, }, },
-      { rw hV, rw set.mem_Inter, rintros i, rw set.mem_Inter, rintros hi, rw set.mem_Inter,
+      rw hW,
+      suffices f : ∀ y : ((t : set H) ∩ Uᶜ), is_clopen (h y.val ((set.mem_inter_iff y.val _ _).1 y.property).2)ᶜ,
+      { have g := is_clopen_Inter f,
+        simp only [subtype.val_eq_coe] at g,
+        have h' : (⋂ (i : H) (i_1 : i ∈ t) (i_1 : i ∈ Uᶜ), (h i i_1)ᶜ) = ⋂ (i : (↑t ∩ Uᶜ)), (h ↑i ((set.mem_inter_iff i.val _ _).1 i.property).2)ᶜ,
+        { ext, split,
+          { rintros a, rw set.mem_Inter at *, rintros j, specialize a j, rw set.mem_Inter at *,
+            have b := a ((set.mem_inter_iff j.val _ _).1 j.property).1, rw set.mem_Inter at *,
+            specialize b ((set.mem_inter_iff j.val _ _).1 j.property).2, exact b, },
+            { rintros a, rw set.mem_Inter at *, rintros j, rw set.mem_Inter, rintros b,
+              rw set.mem_Inter, rintros c, specialize a ⟨j, set.mem_inter b c⟩, exact a, }, },
+        conv { congr, congr, funext, rw [set.compl_Union],
+               conv { congr, funext, rw [set.compl_Union], }, },
+        rw [h'], apply g, },
+      { rintros y, obtain ⟨g1, g2, g3⟩ := some_spec (ex y.val ((set.mem_inter_iff y.val _ _).1 y.property).2),
+        apply is_clopen_compl, refine g1, },
+      { rw hW, rw set.mem_Inter, rintros i, conv { congr, congr, funext, rw [set.compl_Union],
+               conv { congr, funext, rw [set.compl_Union], }, }, rw set.mem_Inter, rintros hi, rw set.mem_Inter,
         rintros Ui, obtain ⟨g1, g2, g3⟩ := some_spec (ex i Ui),
-      refine g3, },
-    },
-    { rintros i, apply is_open_Union, rintros hi, obtain ⟨g1, g2, g3⟩ := some_spec (ex i hi),
-      refine g1.1, },
-
-    have ne : set.nonempty Uᶜ,
-    {contrapose h, rw not_not, rw <-set.not_nonempty_iff_eq_empty, assumption, },
-    set y := set.nonempty.to_subtype ne with hy, },
+        refine g3, }, },
+    {  rintros i, apply is_open_Union, rintros hi, obtain ⟨g1, g2, g3⟩ := some_spec (ex i hi),
+      refine g1.1, }, },
 end
 
-lemma compact_Haus_tot_disc_iff_zero_dim {H : Type*} [topological_space H]
-  [compact_space H] [t2_space H] [totally_disconnected_space H] :
-  ∃ (B : set (set H)) (hB : topological_space.is_topological_basis B), ∀ x ∈ B, is_clopen x :=
-begin
-  rw set.subset_bUnion_of_mem
-  sorry
-end
+open_locale topological_space filter
 
 lemma loc_compact_Haus_tot_disc_iff_zero_dim {H : Type*} [topological_space H]
   [locally_compact_space H] [t2_space H] [totally_disconnected_space H] :
-  ∃ (B : set (set H)), topological_space.is_topological_basis B ∧ ∀ x ∈ B, is_clopen x :=
+  ∃ (B : set (set H)) (hB : topological_space.is_topological_basis B), ∀ x ∈ B, is_clopen x :=
 begin
-  sorry
+  set C := {Z : set H | is_clopen Z} with hC,
+  have h_open : ∀ Z ∈ C, is_open Z,
+  { rintros Z h, change (is_clopen Z) at h, apply h.1, },
+  have h_nhds : ∀(a:H) (U : set H), a ∈ U → is_open U → ∃Z ∈ C, a ∈ Z ∧ Z ⊆ U,
+  { rintros a U memU h_open,
+    obtain ⟨s, comp, xs, sU⟩ := exists_compact_subset h_open memU,
+    obtain ⟨t, h, ht, xt⟩ := mem_interior.1 xs,
+    set u : set s := (coe : s → H)⁻¹' (interior s) with hu,
+    have u_open_in_s : is_open u, { apply is_open.preimage (continuous_subtype_coe) is_open_interior, },
+    obtain ⟨V, clopen_in_s, Vx, V_sub⟩ := @compact_exists_clopen_in_open s _
+      (compact_iff_compact_space.1 comp) (subtype.t2_space) (subtype.totally_disconnected_space) ⟨a, h xt⟩
+        u u_open_in_s xs,
+    have V_clopen : (set.image (coe : s → H) V) ∈ C,
+    { show is_clopen (set.image (coe : s → H) V), split,
+      { set v : set u := (coe : u → s)⁻¹' V with hv,
+        have : (coe : u → H) = (coe : s → H) ∘ (coe : u → s), exact rfl,
+        have pre_f : embedding (coe : u → H),
+        { rw this, refine embedding.comp _ _, exact embedding_subtype_coe, exact embedding_subtype_coe, },
+        have f' : open_embedding (coe : u → H),
+        { constructor, apply pre_f,
+          { have : set.range (coe : u → H) = interior s,
+            { rw this, rw set.range_comp,
+              have g : set.range (coe : u → s) = u,
+              { ext, split,
+                { rw set.mem_range, rintros ⟨y, hy⟩, rw ←hy, apply y.property, },
+                rintros hx, rw set.mem_range, use ⟨x, hx⟩, simp, },
+              simp [g], apply set.inter_eq_self_of_subset_left interior_subset, },
+            rw this, apply is_open_interior, }, },
+        have f2 : is_open v,
+        { rw hv, apply is_open.preimage, exact continuous_subtype_coe, apply clopen_in_s.1, },
+        have f3 : (set.image (coe : s → H) V) = (set.image (coe : u → H) v),
+        { rw this, rw hv, symmetry', rw set.image_comp, congr, simp, apply set.inter_eq_self_of_subset_left V_sub, },
+        rw f3, apply (open_embedding.is_open_map f') v f2, },
+      { apply (closed_embedding.closed_iff_image_closed (is_closed.closed_embedding_subtype_coe (is_compact.is_closed comp))).1 (clopen_in_s).2, }, },
+    refine ⟨_, V_clopen, _, _⟩,
+    { simp [Vx, h xt], },
+    { transitivity s,
+      { simp, },
+      assumption, }, },
+  have f := topological_space.is_topological_basis_of_open_of_nhds h_open h_nhds,
+  use C, simp [f],
 end
 
 --show that locally compact Hausdorff is tot disc iff zero dim

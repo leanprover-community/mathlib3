@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin, Scott Morrison
+Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 import algebraic_topology.simplicial_object
 import category_theory.yoneda
+import category_theory.limits.types
 
 /-!
 A simplicial set is just a simplicial object in `Type`,
@@ -30,10 +31,12 @@ universes v u
 
 open category_theory
 
+open_locale simplicial
+
 /-- The category of simplicial sets.
 This is the category of contravariant functors from
 `simplex_category` to `Type u`. -/
-@[derive large_category]
+@[derive [large_category, limits.has_limits, limits.has_colimits]]
 def sSet : Type (u+1) := simplicial_object (Type u)
 
 namespace sSet
@@ -42,14 +45,17 @@ namespace sSet
 is the Yoneda embedding of `n`. -/
 def standard_simplex : simplex_category ⥤ sSet := yoneda
 
-localized "notation `Δ[`n`]` := standard_simplex.obj n" in sSet
+localized "notation `Δ[`n`]` := standard_simplex.obj (simplex_category.mk n)" in simplicial
 
-instance : inhabited sSet := ⟨standard_simplex.obj (0 : ℕ)⟩
+instance : inhabited sSet := ⟨Δ[0]⟩
+
+section
 
 /-- The `m`-simplices of the `n`-th standard simplex are
 the monotone maps from `fin (m+1)` to `fin (n+1)`. -/
 def as_preorder_hom {n} {m} (α : Δ[n].obj m) :
-  preorder_hom (fin (m.unop+1)) (fin (n+1)) := α
+  preorder_hom (fin (m.unop.len+1)) (fin (n+1)) := α.to_preorder_hom
+end
 
 /-- The boundary `∂Δ[n]` of the `n`-th standard simplex consists of
 all `m`-simplices of `standard_simplex n` that are not surjective
@@ -59,7 +65,7 @@ def boundary (n : ℕ) : sSet :=
   map := λ m₁ m₂ f α, ⟨f.unop ≫ (α : Δ[n].obj m₁),
   by { intro h, apply α.property, exact function.surjective.of_comp h }⟩ }
 
-localized "notation `∂Δ[`n`]` := boundary n" in sSet
+localized "notation `∂Δ[`n`]` := boundary n" in simplicial
 
 /-- The inclusion of the boundary of the `n`-th standard simplex into that standard simplex. -/
 def boundary_inclusion (n : ℕ) :
@@ -82,11 +88,32 @@ def horn (n : ℕ) (i : fin (n+1)) : sSet :=
     exact set.range_comp_subset_range _ _ hj,
   end⟩ }
 
-localized "notation `Λ[`n`, `i`]` := horn n i" in sSet
+localized "notation `Λ[`n`, `i`]` := horn (n : ℕ) i" in simplicial
 
 /-- The inclusion of the `i`-th horn of the `n`-th standard simplex into that standard simplex. -/
 def horn_inclusion (n : ℕ) (i : fin (n+1)) :
   Λ[n, i] ⟶ Δ[n] :=
 { app := λ m (α : {α : Δ[n].obj m // _}), α }
+
+section examples
+
+open_locale simplicial
+
+/-- The simplicial circle. -/
+noncomputable def S1 : sSet :=
+limits.colimit $ limits.parallel_pair
+  ((standard_simplex.map $ simplex_category.δ 0) : Δ[0] ⟶ Δ[1])
+  (standard_simplex.map $ simplex_category.δ 1)
+
+end examples
+
+/-- Truncated simplicial sets. -/
+@[derive [large_category, limits.has_limits, limits.has_colimits]]
+def truncated (n : ℕ) := simplicial_object.truncated (Type u) n
+
+/-- The skeleton functor on simplicial sets. -/
+def sk (n : ℕ) : sSet ⥤ sSet.truncated n := simplicial_object.sk n
+
+instance {n} : inhabited (sSet.truncated n) := ⟨(sk n).obj $ Δ[0]⟩
 
 end sSet

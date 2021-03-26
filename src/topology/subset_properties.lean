@@ -639,6 +639,22 @@ begin
   rw nhds_prod_eq, exact le_inf ha hb
 end
 
+lemma inducing.is_compact_iff {f : α → β} (hf : inducing f) {s : set α} :
+  is_compact (f '' s) ↔ is_compact s :=
+begin
+  split,
+  { introsI hs F F_ne_bot F_le,
+    obtain ⟨_, ⟨x, x_in : x ∈ s, rfl⟩, hx : cluster_pt (f x) (map f F)⟩ :=
+      hs (calc map f F ≤ map f (𝓟 s) : map_mono F_le
+                  ... = 𝓟 (f '' s) : map_principal),
+    use [x, x_in],
+    suffices : (map f (𝓝 x ⊓ F)).ne_bot, by simpa [filter.map_ne_bot_iff],
+    rwa calc map f (𝓝 x ⊓ F) = map f ((comap f $ 𝓝 $ f x) ⊓ F) : by rw hf.nhds_eq_comap
+                          ... = 𝓝 (f x) ⊓ map f F : filter.push_pull' _ _ _ },
+  { intro hs,
+    exact hs.image hf.continuous }
+end
+
 /-- Finite topological spaces are compact. -/
 @[priority 100] instance fintype.compact_space [fintype α] : compact_space α :=
 { compact_univ := finite_univ.is_compact }

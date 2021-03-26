@@ -57,8 +57,11 @@ instance : emetric_space (α →ₘ[μ] γ) :=
       measure_theory.lintegral_mono (λ a, edist_triangle (f a) (g a) (h a))
     ... = ∫⁻ a, edist (f a) (g a) ∂μ + ∫⁻ a, edist (g a) (h a) ∂μ :
       lintegral_add' (hf.edist hg) (hg.edist hh),
-  eq_of_edist_eq_zero := λ f g, induction_on₂ f g $ λ f hf g hg H, mk_eq_mk.2 $
-    ((lintegral_eq_zero_iff' (hf.edist hg)).1 H).mono $ λ x, eq_of_edist_eq_zero }
+  eq_of_edist_eq_zero := λ f g,
+  begin
+    exact induction_on₂ f g (λ f hf g hg H, mk_eq_mk.2 (((lintegral_eq_zero_iff'
+      (hf.edist hg)).1 H).mono (λ x, eq_of_edist_eq_zero)))
+  end }
 
 lemma edist_mk_mk {f g : α → γ} (hf hg) :
   edist (mk f hf : α →ₘ[μ] γ) (mk g hg) = ∫⁻ x, edist (f x) (g x) ∂μ :=

@@ -1814,6 +1814,7 @@ begin
   { rw [← h.equiv_fun.symm_apply_apply y, h.equiv_fun_symm_apply] }
 end
 
+/-- `ℂ` is isometric to ℝ² with the Euclidean inner product. -/
 def complex.isometry_euclidean : ℂ ≃ₗᵢ[ℝ] (euclidean_space ℝ (fin 2)) :=
 complex.is_basis_one_I.isometry_euclidean_of_orthonormal
 begin

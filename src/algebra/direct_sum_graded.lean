@@ -27,12 +27,19 @@ Respectively, these imbue the direct sum `⨁ i, A i` with:
 * `direct_sum.semiring`, `direct_sum.ring`
 * `direct_sum.comm_semiring`, `direct_sum.comm_ring`
 
-and the base ring `A 0` with:
+the base ring `A 0` with:
 
 * `direct_sum.grade_zero.has_one`
 * `direct_sum.grade_zero.mul_zero_class`, `direct_sum.grade_zero.distrib`
 * `direct_sum.grade_zero.semiring`, `direct_sum.grade_zero.ring`
 * `direct_sum.grade_zero.comm_semiring`, `direct_sum.grade_zero.comm_ring`
+
+and the `i`th grade `A i` with `A 0`-actions (`•`) defined as left-multiplication:
+
+* (nothing)
+* `direct_sum.grade_zero.has_scalar (A 0)`, `direct_sum.grade_zero.smul_with_zero (A 0)`
+* `direct_sum.grade_zero.semimodule (A 0)`
+* (nothing)
 
 `direct_sum.of_zero_ring_hom : A 0 →+* ⨁ i, A i` provides `direct_sum.of A 0` as a ring
 homomorphism.
@@ -453,14 +460,14 @@ The various `g*` instances are enough to promote the `add_comm_monoid (A 0)` str
 types of multiplicative structure.
 -/
 
-namespace grade_zero
+section grade_zero
 
 section one
 variables [has_zero ι] [ghas_one A] [Π i, add_comm_monoid (A i)]
 
 /-- `1 : A 0` is the value provided in `direct_sum.ghas_one.one`. -/
 @[nolint unused_arguments]
-instance has_one : has_one (A 0) :=
+instance grade_zero.has_one : has_one (A 0) :=
 ⟨ghas_one.one⟩
 
 lemma of_zero_one : of _ 0 (1 : A 0) = 1 := rfl
@@ -470,15 +477,20 @@ end one
 section mul
 variables [add_monoid ι] [Π i, add_comm_monoid (A i)] [ghas_mul A]
 
+
+/-- `(•) : A 0 → A i → A i` is the value provided in `direct_sum.ghas_mul.mul`, composed with
+an `eq.rec` to turn `A (0 + i)` into `A i`.
+-/
+instance grade_zero.has_scalar (i : ι) : has_scalar (A 0) (A i) :=
+{ smul := λ x y, (zero_add i).rec (ghas_mul.mul x y)}
+
 /-- `(*) : A 0 → A 0 → A 0` is the value provided in `direct_sum.ghas_mul.mul`, composed with
 an `eq.rec` to turn `A (0 + 0)` into `A 0`.
 -/
--- Note we use `add_zero` instead of `zero_add` because `nat.add_zero` is true by `rfl`, which might
--- be useful
-instance : has_mul (A 0) :=
-{ mul := λ x y, (add_zero (0 : ι)).rec (ghas_mul.mul x y)}
+instance grade_zero.has_mul : has_mul (A 0) :=
+{ mul := (•)}
 
-lemma of_zero_mul (a b : A 0) : of _ 0 (a * b) = of _ 0 a * of _ 0 b:=
+lemma of_zero_smul {i} (a : A 0) (b : A i) : of _ _ (a • b) = of _ _ a * of _ _ b :=
 begin
   rw of_mul_of,
   dsimp [has_mul.mul, direct_sum.of, dfinsupp.single_add_hom_apply],
@@ -487,27 +499,68 @@ begin
   apply eq_rec_heq,
 end
 
-instance : mul_zero_class (A 0) :=
+lemma of_zero_mul (a b : A 0) : of _ 0 (a * b) = of _ 0 a * of _ 0 b:=
+of_zero_smul A a b
+
+instance grade_zero.mul_zero_class : mul_zero_class (A 0) :=
 function.injective.mul_zero_class (of A 0) dfinsupp.single_injective
   (add_monoid_hom.map_zero _) (of_zero_mul A)
 
-instance : distrib (A 0) :=
+instance grade_zero.distrib : distrib (A 0) :=
 function.injective.distrib (of A 0) dfinsupp.single_injective
   (add_monoid_hom.map_add _) (of_zero_mul A)
+
+instance grade_zero.smul_with_zero (i : ι) : smul_with_zero (A 0) (A i) :=
+begin
+  letI : smul_with_zero (⨁ i, A i) (⨁ i, A i) :=
+  { smul := (*), smul_zero := mul_zero, zero_smul := zero_mul },
+  letI : smul_with_zero (A 0) (⨁ i, A i) :=
+  { smul := (•) ∘ (of A 0),
+    smul_zero := λ m, by simp,
+    zero_smul := λ m, by simp, },
+  -- TODO: #6892
+  -- apply function.injective.smul_with_zero (A 0) (of A i) dfinsupp.single_injective,
+  sorry
+end
 
 end mul
 
 section semiring
 variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gmonoid A]
 
+-- TODO: gh-6895
+/-- Compose a `semimodule` with a `ring_hom`, with action `f s • m` -/
+def _root_.ring_hom.comp_semimodule
+  {R S} (M : Type*) [semiring R] [add_comm_monoid M] [semimodule R M] [semiring S]
+  (f : S →+* R) : semimodule S M :=
+{ smul := (•) ∘ f,
+  zero_smul := λ x, by simp [zero_smul],
+  smul_zero := λ x, by simp [smul_zero],
+  add_smul := λ r s x, by simp [add_smul],
+  smul_add := λ r s x, by simp [smul_add],
+  mul_smul := λ r s x, by simp [mul_smul],
+  one_smul := λ x, by simp}
+
 /-- The `semiring` structure derived from `gmonoid A`. -/
-instance : semiring (A 0) :=
+instance grade_zero.semiring : semiring (A 0) :=
 function.injective.semiring (of A 0) dfinsupp.single_injective
   (add_monoid_hom.map_zero _) (of_zero_one A) (add_monoid_hom.map_add _) (of_zero_mul A)
 
 /-- `of A 0` is a `ring_hom`, using the `direct_sum.grade_zero.semiring` structure. -/
 def of_zero_ring_hom : A 0 →+* (⨁ i, A i) :=
 { map_one' := of_zero_one A, map_mul' := of_zero_mul A, ..(of _ 0)}
+
+/-- Each grade `A i` derives a `A 0`-semimodule structure from `gmonoid A`. Note that this results
+in an overall `semimodule (A 0) (⨁ i, A i)` structure via `direct_sum.semimodule`.
+-/
+instance grade_zero.semimodule {i} : semimodule (A 0) (A i) :=
+begin
+  letI : semimodule (A 0) (⨁ i, A i) := (of_zero_ring_hom A).comp_semimodule _,
+  apply function.injective.semimodule (A 0) (of A i) dfinsupp.single_injective
+    (λ a b, of_zero_smul A a b),
+end
+
+lemma grade_zero.smul_eq_mul (a b : A 0) : a • b = a * b := rfl
 
 end semiring
 
@@ -516,7 +569,7 @@ section comm_semiring
 variables [Π i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_monoid A]
 
 /-- The `comm_semiring` structure derived from `gcomm_monoid A`. -/
-instance : comm_semiring (A 0) :=
+instance grade_zero.comm_semiring : comm_semiring (A 0) :=
 function.injective.comm_semiring (of A 0) dfinsupp.single_injective
   (add_monoid_hom.map_zero _) (of_zero_one A) (add_monoid_hom.map_add _) (of_zero_mul A)
 
@@ -526,7 +579,7 @@ section ring
 variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gmonoid A]
 
 /-- The `ring` derived from `gmonoid A`. -/
-instance : ring (A 0) :=
+instance grade_zero.ring : ring (A 0) :=
 function.injective.ring_sub (of A 0) dfinsupp.single_injective
   (add_monoid_hom.map_zero _) (of_zero_one A) (add_monoid_hom.map_add _) (of_zero_mul A)
   (add_monoid_hom.map_neg _) (add_monoid_hom.map_sub _)
@@ -537,7 +590,7 @@ section comm_ring
 variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_monoid A]
 
 /-- The `comm_ring` derived from `gcomm_monoid A`. -/
-instance : comm_ring (A 0) :=
+instance grade_zero.comm_ring : comm_ring (A 0) :=
 function.injective.comm_ring_sub (of A 0) dfinsupp.single_injective
   (add_monoid_hom.map_zero _) (of_zero_one A) (add_monoid_hom.map_add _) (of_zero_mul A)
   (add_monoid_hom.map_neg _) (add_monoid_hom.map_sub _)

@@ -34,24 +34,24 @@ end
 lemma log_eq_zero_of_lt {b n : ℕ} (hn : n < b) : log b n = 0 :=
 log_eq_zero $ or.inl hn
 
-lemma log_eq_zero_of_lt' {b n : ℕ} (hb : b ≤ 1) : log b n = 0 :=
+lemma log_eq_zero_of_le {b n : ℕ} (hb : b ≤ 1) : log b n = 0 :=
 log_eq_zero $ or.inr hb
 
 lemma log_zero_eq_zero {b : ℕ} : log b 0 = 0 :=
-by cases b; exact rfl; exact rfl
+by { cases b; refl}
 
 lemma log_one_eq_zero {b : ℕ} : log b 1 = 0 :=
 begin
-  by_cases b ≤ 1,
-  exact log_eq_zero_of_lt' h,
-  exact log_eq_zero_of_lt (not_le.mp h),
+  by_cases h : b ≤ 1,
+  { exact log_eq_zero_of_le h },
+  { exact log_eq_zero_of_lt (not_le.mp h) },
 end
 
 lemma log_b_zero_eq_zero {n : ℕ} : log 0 n = 0 :=
-log_eq_zero_of_lt' zero_le_one
+log_eq_zero_of_le zero_le_one
 
 lemma log_b_one_eq_zero {n : ℕ} : log 1 n = 0 :=
-log_eq_zero_of_lt' rfl.ge
+log_eq_zero_of_le rfl.ge
 
 lemma pow_le_iff_le_log (x y : ℕ) {b} (hb : 1 < b) (hy : 1 ≤ y) :
   b^x ≤ y ↔ x ≤ log b y :=
@@ -95,11 +95,13 @@ by rw [pow_le_iff_le_log _ _ hb hx]
 
 lemma log_le_log_of_le {b n m : ℕ} (h : n ≤ m) : log b n ≤ log b m :=
 begin
-  by_cases hb : b ≤ 1, by rw log_eq_zero_of_lt' hb; exact zero_le',
-  by_cases hn : n = 0, by rw [hn, log_zero_eq_zero]; exact zero_le',
+  cases (le_or_lt b 1) with hb hb,
+  { rw log_eq_zero_of_le hb; exact zero_le' },
+  cases eq_zero_or_pos n with hn hn,
+  { rw [hn, log_zero_eq_zero]; exact zero_le' },
 
-  rw ←pow_le_iff_le_log _ _ (not_le.mp hb) (lt_of_lt_of_le (zero_lt_iff.mpr hn) h),
-  exact (pow_log_le_self b n (not_le.mp hb) (zero_lt_iff.mpr hn)).trans h,
+  rw ←pow_le_iff_le_log _ _ hb (lt_of_lt_of_le hn h),
+  exact (pow_log_le_self b n hb hn).trans h,
 end
 
 lemma log_le_log_succ {b n : ℕ} : log b n ≤ log b n.succ :=

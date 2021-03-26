@@ -724,31 +724,6 @@ lemma of_mul_pow {A : Type*} [monoid A] (x : A) (n : ℕ) :
   additive.of_mul (x ^ n) = n •ℕ (additive.of_mul x) :=
 (congr_arg additive.of_mul (of_add_nsmul (additive.of_mul x) n)).symm
 
-lemma of_mul_image_powers_eq_multiples_of_mul {a : α} :
-  additive.of_mul '' ((submonoid.powers a) : set α) = add_submonoid.multiples (additive.of_mul a) :=
-begin
-  ext,
-  split,
-  { rintros ⟨y, ⟨n, hy1⟩, hy2⟩,
-    use n,
-    simpa [← of_mul_pow, hy1] },
-  { rintros ⟨n, hn⟩,
-    use (a ^ n),
-    dsimp only at hn,
-    split,
-    { use n },
-    { rwa of_mul_pow } },
-end
-
-lemma of_add_image_multiples_eq_powers_of_add {x : H} :
-  multiplicative.of_add '' ((add_submonoid.multiples x) : set H) =
-  submonoid.powers (multiplicative.of_add x) :=
-begin
-  symmetry,
-  rw eq_image_iff_symm_image_eq,
-  exact of_mul_image_powers_eq_multiples_of_mul,
-end
-
 @[simp] lemma semiconj_by.gpow_right [group G] {a x y : G} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (x^m) (y^m)
 | (n : ℕ) := h.pow_right n

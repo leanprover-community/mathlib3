@@ -99,6 +99,31 @@ def powers (x : M) : set M := {y | ∃ n:ℕ, x^n = y}
 def multiples (x : A) : set A := {y | ∃ n:ℕ, n •ℕ x = y}
 attribute [to_additive multiples] powers
 
+lemma of_mul_image_powers_eq_multiples_of_mul {x : M} :
+  additive.of_mul '' ((submonoid.powers x) : set A) = add_submonoid.multiples (additive.of_mul x) :=
+begin
+  ext,
+  split,
+  { rintros ⟨y, ⟨n, hy1⟩, hy2⟩,
+    use n,
+    simpa [← of_mul_pow, hy1] },
+  { rintros ⟨n, hn⟩,
+    use (a ^ n),
+    dsimp only at hn,
+    split,
+    { use n },
+    { rwa of_mul_pow } },
+end
+
+lemma of_add_image_multiples_eq_powers_of_add {x : A} :
+  multiplicative.of_add '' ((add_submonoid.multiples x) : set A) =
+  submonoid.powers (multiplicative.of_add x) :=
+begin
+  symmetry,
+  rw eq_image_iff_symm_image_eq,
+  exact of_mul_image_powers_eq_multiples_of_mul,
+end
+
 /-- 1 is in the set of natural number powers of an element of a monoid. -/
 lemma powers.one_mem {x : M} : (1 : M) ∈ powers x := ⟨0, pow_zero _⟩
 

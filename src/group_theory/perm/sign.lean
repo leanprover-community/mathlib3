@@ -311,7 +311,7 @@ is preserved under composition with a non-trivial swap, then `P` holds for all p
 λ h1 IH, inv_inv f ▸ swap_induction_on f⁻¹ h1 (λ f, IH f⁻¹)
 
 lemma is_conj_swap {w x y z : α} (hwx : w ≠ x) (hyz : y ≠ z) : is_conj (swap w x) (swap y z) :=
-is_conj_iff.2 (have h : ∀ {y z : α}, y ≠ z → w ≠ z →
+group.is_conj_iff.2 (have h : ∀ {y z : α}, y ≠ z → w ≠ z →
       (swap w y * swap x z) * swap w x * (swap w y * swap x z)⁻¹ = swap y z :=
     λ y z hyz hwz, by rw [mul_inv_rev, swap_inv, swap_inv, mul_assoc (swap w y),
       mul_assoc (swap w y), ← mul_assoc _ (swap x z), swap_mul_swap_mul_swap hwx hwz,

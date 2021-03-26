@@ -318,6 +318,8 @@ def additive_obj_iso_biproduct (F : Mat_ C ⥤ D) [functor.additive F] (M : Mat_
   F.obj M ≅ ⨁ (λ i, F.obj ((embedding C).obj (M.X i))) :=
 (F.map_iso (iso_biproduct_embedding M)) ≪≫ (F.map_biproduct _)
 
+variables [has_finite_biproducts D]
+
 @[reassoc] lemma additive_obj_iso_biproduct_naturality (F : Mat_ C ⥤ D) [functor.additive F]
   {M N : Mat_ C} (f : M ⟶ N) :
   F.map f ≫ (additive_obj_iso_biproduct F N).hom =
@@ -346,8 +348,6 @@ end
     biproduct.matrix (λ i j, F.map ((embedding C).map (f i j)) : _) ≫
       (additive_obj_iso_biproduct F N).inv :=
 by rw [iso.inv_comp_eq, ←category.assoc, iso.eq_comp_inv, additive_obj_iso_biproduct_naturality]
-
-variables [has_finite_biproducts D]
 
 /-- Any additive functor `C ⥤ D` to a category `D` with finite biproducts extends to
 a functor `Mat_ C ⥤ D`. -/

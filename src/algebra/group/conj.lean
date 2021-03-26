@@ -45,8 +45,9 @@ section group
 variables [group α] [group β]
 
 @[simp] lemma is_conj_iff {a b : α} :
-  is_conj a b ↔ ∃ c : α, semiconj_by c a b :=
-⟨λ ⟨c, hc⟩, ⟨c, hc⟩, λ ⟨c, hc⟩, ⟨⟨c, c⁻¹, mul_inv_self c, inv_mul_self c⟩, hc⟩⟩
+  is_conj a b ↔ ∃ c : α, c * a * c⁻¹ = b :=
+⟨λ ⟨c, hc⟩, ⟨c, mul_inv_eq_iff_eq_mul.2 hc⟩, λ ⟨c, hc⟩,
+  ⟨⟨c, c⁻¹, mul_inv_self c, inv_mul_self c⟩, mul_inv_eq_iff_eq_mul.1 hc⟩⟩
 
 @[simp] lemma is_conj_one_right {a : α} : is_conj 1 a  ↔ a = 1 :=
 ⟨λ ⟨c, hc⟩, mul_right_cancel (hc.symm.trans ((mul_one _).trans (one_mul _).symm)), λ h, by rw [h]⟩

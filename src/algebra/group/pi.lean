@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import data.pi
+import data.set.function
 import tactic.pi_instances
 import algebra.group.defs
 import algebra.group.hom
@@ -202,3 +203,25 @@ lemma pi.single_mul [Π i, monoid_with_zero $ f i] (i : I) (x y : f i) :
 (mul_hom.single f i).map_mul x y
 
 end single
+
+section piecewise
+
+@[to_additive]
+lemma set.piecewise_mul [Π i, has_mul (f i)] (s : set I) [Π i, decidable (i ∈ s)]
+  (f₁ f₂ g₁ g₂ : Π i, f i) :
+  s.piecewise (f₁ * f₂) (g₁ * g₂) = s.piecewise f₁ g₁ * s.piecewise f₂ g₂ :=
+s.piecewise_op₂ _ _ _ _ (λ _, (*))
+
+@[to_additive]
+lemma pi.piecewise_inv [Π i, has_inv (f i)] (s : set I) [Π i, decidable (i ∈ s)]
+  (f₁ g₁ : Π i, f i) :
+  s.piecewise (f₁⁻¹) (g₁⁻¹) = (s.piecewise f₁ g₁)⁻¹ :=
+s.piecewise_op f₁ g₁ (λ _ x, x⁻¹)
+
+@[to_additive]
+lemma pi.piecewise_div [Π i, has_div (f i)] (s : set I) [Π i, decidable (i ∈ s)]
+  (f₁ f₂ g₁ g₂ : Π i, f i) :
+  s.piecewise (f₁ / f₂) (g₁ / g₂) = s.piecewise f₁ g₁ / s.piecewise f₂ g₂ :=
+s.piecewise_op₂ _ _ _ _ (λ _, (/))
+
+end piecewise

@@ -241,6 +241,10 @@ lemma integrable_on.indicator (h : integrable_on f s μ) (hs : measurable_set s)
   integrable (indicator s f) μ :=
 (integrable_indicator_iff hs).2 h
 
+lemma integrable.indicator (h : integrable f μ) (hs : measurable_set s) :
+  integrable (indicator s f) μ :=
+h.integrable_on.indicator hs
+
 /-- We say that a function `f` is *integrable at filter* `l` if it is integrable on some
 set `s ∈ l`. Equivalently, it is eventually integrable on `s` in `l.lift' powerset`. -/
 def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volume_tac) :=
@@ -316,15 +320,12 @@ alias measure.finite_at_filter.integrable_at_filter_of_tendsto ← filter.tendst
 variables [borel_space E] [second_countable_topology E]
 
 lemma integrable_add [opens_measurable_space E] {f g : α → E}
-  (h : univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0}) (hf : measurable f) (hg : measurable g) :
+  (h : disjoint (support f) (support g)) (hf : measurable f) (hg : measurable g) :
   integrable (f + g) μ ↔ integrable f μ ∧ integrable g μ :=
 begin
-  refine ⟨λ hfg, _, λ h, h.1.add h.2⟩,
-  rw [← indicator_add_eq_left h],
-  conv { congr, skip, rw [← indicator_add_eq_right h] },
-  rw [integrable_indicator_iff (hf (measurable_set_singleton 0)).compl],
-  rw [integrable_indicator_iff (hg (measurable_set_singleton 0)).compl],
-  exact ⟨hfg.integrable_on, hfg.integrable_on⟩
+  refine ⟨λ hfg, ⟨_, _⟩, λ h, h.1.add h.2⟩,
+  { rw ← indicator_add_eq_left h, exact hfg.indicator (measurable_set_support hf) },
+  { rw ← indicator_add_eq_right h, exact hfg.indicator (measurable_set_support hg) }
 end
 
 /-- To prove something for an arbitrary integrable function in a second countable
@@ -335,14 +336,14 @@ Borel normed group, it suffices to show that
 * the property is closed under the almost-everywhere equal relation.
 
 It is possible to make the hypotheses in the induction steps a bit stronger, and such conditions
-can be added once we need them (for example in `h_sum` it is only necessary to consider the sum of
+can be added once we need them (for example in `h_add` it is only necessary to consider the sum of
 a simple function with a multiple of a characteristic function and that the intersection
 of their images is a subset of `{0}`).
 -/
 @[elab_as_eliminator]
 lemma integrable.induction (P : (α → E) → Prop)
   (h_ind : ∀ (c : E) ⦃s⦄, measurable_set s → μ s < ∞ → P (s.indicator (λ _, c)))
-  (h_sum : ∀ ⦃f g : α → E⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → integrable f μ → integrable g μ →
+  (h_add : ∀ ⦃f g : α → E⦄, disjoint (support f) (support g) → integrable f μ → integrable g μ →
     P f → P g → P (f + g))
   (h_closed : is_closed {f : α →₁[μ] E | P f} )
   (h_ae : ∀ ⦃f g⦄, f =ᵐ[μ] g → integrable f μ → P f → P g) :
@@ -363,7 +364,7 @@ begin
       exact ennreal.lt_top_of_mul_lt_top_right this (by simp [hc]) },
     { intros f g hfg hf hg int_fg,
       rw [simple_func.coe_add, integrable_add hfg f.measurable g.measurable] at int_fg,
-      refine h_sum hfg int_fg.1 int_fg.2 (hf int_fg.1) (hg int_fg.2) } },
+      refine h_add hfg int_fg.1 int_fg.2 (hf int_fg.1) (hg int_fg.2) } },
   have : ∀ (f : α →₁ₛ[μ] E), P f,
   { intro f,
     exact h_ae (L1.simple_func.to_simple_func_eq_to_fun f) (L1.simple_func.integrable f)

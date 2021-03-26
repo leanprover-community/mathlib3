@@ -196,8 +196,8 @@ isomorphism of cones.
 -/
 lemma cone_iso_of_hom_iso {K : J ⥤ C} {c d : cone K} (f : c ⟶ d) [i : is_iso f.hom] :
   is_iso f :=
-⟨{ hom := inv f.hom,
-   w' := λ j, (as_iso f.hom).inv_comp_eq.2 (f.w j).symm }, by tidy⟩
+⟨⟨{ hom := inv f.hom,
+    w' := λ j, (as_iso f.hom).inv_comp_eq.2 (f.w j).symm }, by tidy⟩⟩
 
 /--
 Functorially postcompose a cone for `F` by a natural transformation `F ⟶ G` to give a cone for `G`.
@@ -355,8 +355,8 @@ isomorphism of cocones.
 -/
 lemma cocone_iso_of_hom_iso {K : J ⥤ C} {c d : cocone K} (f : c ⟶ d) [i : is_iso f.hom] :
   is_iso f :=
-⟨{ hom := inv f.hom,
-   w' := λ j, (as_iso f.hom).comp_inv_eq.2 (f.w j).symm }, by tidy⟩
+⟨⟨{ hom := inv f.hom,
+    w' := λ j, (as_iso f.hom).comp_inv_eq.2 (f.w j).symm }, by tidy⟩⟩
 
 /-- Functorially precompose a cocone for `F` by a natural transformation `G ⟶ F` to give a cocone
 for `G`. -/

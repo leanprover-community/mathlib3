@@ -70,12 +70,12 @@ noncomputable theory
 open topological_space measure_theory filter
 open_locale nnreal ennreal big_operators topological_space
 
-lemma fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := le_refl _
+lemma fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_refl _⟩
 
 lemma fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
-ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)
+⟨ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)⟩
 
-lemma fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := le_top
+lemma fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := ⟨le_top⟩
 
 local attribute [instance] fact_one_le_one_ennreal fact_one_le_two_ennreal fact_one_le_top_ennreal
 
@@ -1036,7 +1036,7 @@ mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_le (Lp.mem_ℒp g) (ae_eq_fun.ae_measurable 
 
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p μ) :=
 normed_group.of_core _
-{ norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp),
+{ norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
   triangle := begin
     assume f g,
     simp only [norm_def],
@@ -1045,7 +1045,7 @@ normed_group.of_core _
     { rwa ennreal.to_real_le_to_real (snorm_ne_top (f + g)),
       exact ennreal.add_ne_top.mpr ⟨snorm_ne_top f, snorm_ne_top g⟩, },
     rw [snorm_congr_ae (coe_fn_add _ _)],
-    exact snorm_add_le (Lp.ae_measurable f) (Lp.ae_measurable g) hp,
+    exact snorm_add_le (Lp.ae_measurable f) (Lp.ae_measurable g) hp.1,
   end,
   norm_neg := by simp }
 

@@ -36,7 +36,7 @@ invertible_of_nonzero (λ h, not_dvd ((char_p.cast_eq_zero_iff K p t).mp h))
 
 instance invertible_of_pos [char_zero K] (n : ℕ) [h : fact (0 < n)] :
   invertible (n : K) :=
-invertible_of_nonzero $ by simpa [pos_iff_ne_zero] using h
+invertible_of_nonzero $ by simpa [pos_iff_ne_zero] using h.out
 
 end field
 

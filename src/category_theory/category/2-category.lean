@@ -16,8 +16,8 @@ class two_category_struct (obj : Type u₁) extends category_struct.{v₁} obj :
 
 attribute [instance] two_category_struct.hom_cats
 
-notation η ` ▶ ` f:50 := two_category_struct.right_whisker f η
-notation η ` ◀ ` f:50 := two_category_struct.left_whisker η f
+notation f ` ◀ ` η:50 := two_category_struct.right_whisker f η
+notation η ` ▶ ` f:50 := two_category_struct.left_whisker f η
 
 notation `λ_` := two_category_struct.left_unitor
 notation `ρ_` := two_category_struct.right_unitor
@@ -25,28 +25,28 @@ notation `α_` := two_category_struct.associator
 
 -- https://ncatlab.org/nlab/show/bicategory
 class two_category (obj : Type u₁) extends two_category_struct.{w₁ v₁} obj :=
-(left_whisker_id' : ∀ {a b c : obj} (f : a ⟶ b) (g : b ⟶ c), g ◀ 𝟙 f = 𝟙 (f ≫ g) . obviously)
-(id_right_whisker' : ∀ {a b c : obj} (f : a ⟶ b) (g : b ⟶ c), 𝟙 g ▶ f = 𝟙 (f ≫ g) . obviously)
+(left_whisker_id' : ∀ {a b c : obj} (f : a ⟶ b) (g : b ⟶ c), 𝟙 f ▶ g = 𝟙 (f ≫ g) . obviously)
+(id_right_whisker' : ∀ {a b c : obj} (f : a ⟶ b) (g : b ⟶ c), f ◀ 𝟙 g = 𝟙 (f ≫ g) . obviously)
 (left_whisker_comp' : ∀ {a b c : obj} {f g h : a ⟶ b} (i : b ⟶ c) (η : f ⟶ g) (θ : g ⟶ h),
-  (i ◀ η) ≫ (i ◀ θ) = (i ◀ (η ≫ θ)) . obviously)
+  (η ▶ i) ≫ (θ ▶ i) = ((η ≫ θ) ▶ i) . obviously)
 (right_whisker_comp' : ∀ {a b c : obj} {f : a ⟶ b} (g h i : b ⟶ c) (η : g ⟶ h) (θ : h ⟶ i),
-  (η ▶ f) ≫ (θ ▶ f) = ((η ≫ θ) ▶ f) . obviously)
+  (f ◀ η) ≫ (f ◀ θ) = (f ◀ (η ≫ θ)) . obviously)
 (left_unitor_naturality' : ∀ {a b : obj} (f g : a ⟶ b) (η : f ⟶ g),
-  (η ▶ 𝟙 _) ≫ (λ_ g).hom = (λ_ f).hom ≫ η . obviously)
+  (𝟙 _ ◀ η) ≫ (λ_ g).hom = (λ_ f).hom ≫ η . obviously)
 (right_unitor_naturality' : ∀ {a b : obj} (f g : a ⟶ b) (η : f ⟶ g),
-  (𝟙 _ ◀ η) ≫ (ρ_ g).hom = (ρ_ f).hom ≫ η . obviously)
+  (η ▶ 𝟙 _) ≫ (ρ_ g).hom = (ρ_ f).hom ≫ η . obviously)
 (associator_naturality_right' : ∀ {a b c d : obj} (f : a ⟶ b) (g : b ⟶ c) (h i : c ⟶ d) (η : h ⟶ i),
-  (η ▶ (f ≫ g)) ≫ (associator f g i).hom = (associator f g h).hom ≫ ((η ▶ g) ▶ f) . obviously)
+  ((f ≫ g) ◀ η) ≫ (associator f g i).hom = (associator f g h).hom ≫ (f ◀ (g ◀ η)) . obviously)
 (associator_naturality_middle' : ∀ {a b c d} (f : a ⟶ b) {g h : b ⟶ c} (i : c ⟶ d) (η : g ⟶ h),
-  (i ◀ (η ▶ f)) ≫ (associator f h i).hom = (associator f g i).hom ≫ ((i ◀ η) ▶ f) . obviously)
+  ((f ◀ η) ▶ i) ≫ (associator f h i).hom = (associator f g i).hom ≫ (f ◀ (η ▶ i)) . obviously)
 (associator_naturality_left' : ∀ {a b c d : obj} {f g : a ⟶ b} (h : b ⟶ c) (i : c ⟶ d) (η : f ⟶ g),
-  (_ ◀ (_ ◀ η)) ≫ (associator g h i).hom = (associator f h i).hom ≫ (_ ◀ η) . obviously)
+  ((η ▶ _) ▶ _) ≫ (associator g h i).hom = (associator f h i).hom ≫ (η ▶ _) . obviously)
 (exchange' : ∀ {a b c : obj} {f g : a ⟶ b} {h i : b ⟶ c} (η : f ⟶ g) (θ : h ⟶ i),
-  (θ ▶ _) ≫ (_ ◀ η) = (_ ◀ η) ≫ (θ ▶ _) . obviously)
+  (_ ◀ θ) ≫ (η ▶ _) = (η ▶ _) ≫ (_ ◀ θ) . obviously)
 (triangle' : ∀ {a b c : obj} (f : a ⟶ b) (g : b ⟶ c),
-  (associator f _ g).hom ≫ ((λ_ g).hom ▶ _) = (g ◀ (ρ_ f).hom) . obviously)
+  (associator f _ g).hom ≫ (_ ◀ (λ_ g).hom) = ((ρ_ f).hom ▶ g) . obviously)
 (pentagon' : ∀ {a b c d e : obj} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e),
-    (i ◀ (associator f g h).hom) ≫ (associator f (g ≫ h) i).hom ≫ ((associator g h i).hom ▶ f)
+    ((associator f g h).hom ▶ i) ≫ (associator f (g ≫ h) i).hom ≫ (f ◀ (associator g h i).hom)
   = (associator (f ≫ g) h i).hom ≫ (associator f g (h ≫ i)).hom . obviously)
 
 restate_axiom two_category.left_whisker_id'
@@ -84,25 +84,38 @@ variables (E : Type u₃) [two_category.{w₃ v₃} E]
 -- https://ncatlab.org/nlab/show/pseudofunctor
 structure pseudofunctor :=
 (P : C → D)
-(func : Π x y : C, (x ⟶ y) ⥤ (P x ⟶ P y))
-(ids : Π (x : C), 𝟙 (P x) ≅ (func _ _).obj (𝟙 x))
+(func : Π {x y : C}, functor (x ⟶ y) (P x ⟶ P y))
+(ids : Π (x : C), 𝟙 (P x) ≅ func.obj (𝟙 x))
 (comps : Π {x y z : C} (f : x ⟶ y) (g : y ⟶ z),
-  (func x y).obj f ≫ (func y z).obj g ≅ (func x z).obj (f ≫ g))
-(comps_natural_left : ∀ {x y z : C} {f f' : x ⟶ y} (g : y ⟶ z) (η : f ⟶ f'),
-  (comps f g).hom ≫ (func x z).map (_ ◄ η) = (_ ◄ (func x y).map η) ≫ (comps f' g).hom
+  func.obj f ≫ func.obj g ≅ func.obj (f ≫ g))
+(comps_natural_left' : ∀ {x y z : C} {f f' : x ⟶ y} (g : y ⟶ z) (η : f ⟶ f'),
+  (comps f g).hom ≫ func.map (η ▶ _) = (func.map η ▶ _) ≫ (comps f' g).hom
     . obviously)
-(comps_natural_right : ∀ {x y z : C} (f : x ⟶ y) {g g' : y ⟶ z} (η : g ⟶ g'),
-  (comps f g).hom ≫ (func x z).map (η ▶ _) = ((func y z).map η ▶ _) ≫ (comps f g').hom
+(comps_natural_right' : ∀ {x y z : C} (f : x ⟶ y) {g g' : y ⟶ z} (η : g ⟶ g'),
+  (comps f g).hom ≫ func.map (_ ◀ η) = (_ ◀ func.map η) ≫ (comps f g').hom
     . obviously)
-(left_unitors : ∀ {x y : C} (f : x ⟶ y),
-  (_ ◄ (ids _).hom) ≫ (comps _ _).hom ≫ (func _ _).map (λ_ f).hom = (λ_ _).hom
+(left_unitors' : ∀ {x y : C} (f : x ⟶ y),
+  ((ids _).hom ▶ _) ≫ (comps _ _).hom ≫ func.map (λ_ f).hom = (λ_ _).hom
     . obviously)
-(right_unitors : ∀ {x y : C} (f : x ⟶ y),
-  ((ids _).hom ▶ _) ≫ (comps _ _).hom ≫ (func _ _).map (ρ_ f).hom = (ρ_ _).hom
+(right_unitors' : ∀ {x y : C} (f : x ⟶ y),
+  (_ ◀ (ids _).hom) ≫ (comps _ _).hom ≫ func.map (ρ_ f).hom = (ρ_ _).hom
     . obviously)
-(assoc : ∀ {w x y z : C} (f : w ⟶ x) (g : x ⟶ y) (h : y ⟶ z),
-  (α_ _ _ _).hom ≫ ((comps _ _).hom ▶ _) ≫ (comps _ _).hom =
-  (_ ◄ (comps _ _).hom) ≫ (comps _ _).hom ≫ (func _ _).map (α_ f g h).hom . obviously)
+(assoc' : ∀ {w x y z : C} (f : w ⟶ x) (g : x ⟶ y) (h : y ⟶ z),
+  (α_ _ _ _).hom ≫ (_ ◀ (comps _ _).hom) ≫ (comps _ _).hom =
+  ((comps _ _).hom ▶ _) ≫ (comps _ _).hom ≫ func.map (α_ f g h).hom . obviously)
+
+restate_axiom pseudofunctor.comps_natural_left'
+restate_axiom pseudofunctor.comps_natural_right'
+restate_axiom pseudofunctor.left_unitors'
+restate_axiom pseudofunctor.right_unitors'
+restate_axiom pseudofunctor.assoc'
+
+attribute [simp, reassoc]
+  pseudofunctor.comps_natural_left
+  pseudofunctor.comps_natural_right
+  pseudofunctor.left_unitors
+  pseudofunctor.right_unitors
+  pseudofunctor.assoc
 
 def pseudofunctor.id : pseudofunctor C C :=
 { P := λ X, X,
@@ -113,11 +126,38 @@ def pseudofunctor.id : pseudofunctor C C :=
 def pseudofunctor.comp (P : pseudofunctor C D) (Q : pseudofunctor D E) :
   pseudofunctor C E :=
 { P := λ X, Q.P (P.P X),
-  func := λ X Y, P.func ⋙ Q.func,
-  ids :=
+  func := λ X Y, pseudofunctor.func P ⋙ pseudofunctor.func Q,
+  ids := λ X, Q.ids (P.P X) ≪≫ (pseudofunctor.func Q).map_iso (P.ids _),
+  comps := λ X Y Z f g, Q.comps _ _ ≪≫ (pseudofunctor.func Q).map_iso (P.comps _ _),
+  comps_natural_left' := λ X Y Z f f' g η,
   begin
-  end
-}
+    dsimp,
+    rw [category.assoc, ←functor.map_comp, P.comps_natural_left, functor.map_comp,
+      Q.comps_natural_left_assoc],
+  end,
+  comps_natural_right' := λ X Y Z f g g' η,
+  begin
+    dsimp,
+    rw [category.assoc, ←functor.map_comp, P.comps_natural_right, functor.map_comp,
+      Q.comps_natural_right_assoc],
+  end,
+  left_unitors' := λ X Y f,
+  begin
+    dsimp,
+    rw [category.assoc, ←left_whisker_comp_assoc, ←Q.comps_natural_left_assoc, ←functor.map_comp,
+      ←functor.map_comp, P.left_unitors, Q.left_unitors],
+  end,
+  right_unitors' := λ X Y f,
+  begin
+    dsimp,
+    rw [category.assoc, ←right_whisker_comp_assoc, ←Q.comps_natural_right_assoc, ←functor.map_comp,
+      ←functor.map_comp, P.right_unitors, Q.right_unitors],
+  end,
+  assoc' := λ W X Y Z f g h,
+  begin
+    dsimp,
+    sorry
+  end }
 
 variables {C D E}
 

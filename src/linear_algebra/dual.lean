@@ -40,10 +40,13 @@ noncomputable theory
 namespace module
 
 variables (R : Type*) (M : Type*)
-variables [comm_ring R] [add_comm_group M] [module R M]
+variables [comm_semiring R] [add_comm_monoid M] [semimodule R M]
 
 /-- The dual space of an R-module M is the R-module of linear maps `M → R`. -/
-@[derive [add_comm_group, module R]] def dual := M →ₗ[R] R
+@[derive [add_comm_monoid, semimodule R]] def dual := M →ₗ[R] R
+
+instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
+  add_comm_group (dual S N) := by {unfold dual, apply_instance}
 
 namespace dual
 
@@ -61,7 +64,7 @@ begin
   rw [linear_map.flip_apply, linear_map.id_apply]
 end
 
-variables {R M} {M' : Type*} [add_comm_group M'] [module R M']
+variables {R M} {M' : Type*} [add_comm_monoid M'] [semimodule R M']
 
 /-- The transposition of linear maps, as a linear map from `M →ₗ[R] M'` to
 `dual R M' →ₗ[R] dual R M`. -/
@@ -70,7 +73,7 @@ def transpose : (M →ₗ[R] M') →ₗ[R] (dual R M' →ₗ[R] dual R M) :=
 
 lemma transpose_apply (u : M →ₗ[R] M') (l : dual R M') : transpose u l = l.comp u := rfl
 
-variables {M'' : Type*} [add_comm_group M''] [module R M'']
+variables {M'' : Type*} [add_comm_monoid M''] [semimodule R M'']
 
 lemma transpose_comp (u : M' →ₗ[R] M'') (v : M →ₗ[R] M') :
   transpose (u.comp v) = (transpose v).comp (transpose u) := rfl
@@ -96,7 +99,7 @@ include de h
 /-- The linear map from a vector space equipped with basis to its dual vector space,
 taking basis elements to corresponding dual basis elements. -/
 def to_dual : V →ₗ[K] module.dual K V :=
-h.constr $ λ v, h.constr $ λ w, if w = v then 1 else 0
+h.constr $ λ v, h.constr $ λ w, if w = v then (1 : K) else 0
 
 variable {B}
 

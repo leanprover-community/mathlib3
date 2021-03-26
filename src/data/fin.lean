@@ -196,7 +196,16 @@ def coe_embedding (n) : (fin n) ↪o ℕ :=
 instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
 (coe_embedding n).is_well_order
 
-/-- Use the ordering on `fin n` for checking recursive definitions. -/
+/-- Use the ordering on `fin n` for checking recursive definitions.
+
+For example, the following definition is not accepted by the termination checker,
+unless we declare the `has_well_founded` instance:
+```lean
+def factorial {n : ℕ} : fin n → ℕ
+| ⟨0, _⟩ := 1
+| ⟨i + 1, hi⟩ := (i + 1) * factorial ⟨i, i.lt_succ_self.trans hi⟩
+```
+-/
 instance {n : ℕ} : has_well_founded (fin n) :=
 ⟨_, measure_wf coe⟩
 

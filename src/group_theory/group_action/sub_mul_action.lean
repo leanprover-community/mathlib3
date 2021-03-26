@@ -3,10 +3,10 @@ Copyright (c) 2020 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import group_theory.group_action.basic
 import algebra.group_action_hom
 import algebra.module.basic
 import data.set_like
+import group_theory.group_action.basic
 /-!
 
 # Sets invariant to a `mul_action`

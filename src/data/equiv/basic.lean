@@ -1694,6 +1694,16 @@ abbreviation range_of_left_inverse' {α β : Sort*}
   α ≃ set.range f :=
 range_of_left_inverse f (λ _, f_inv) (λ _, hf)
 
+@[simp] lemma equiv.set.range_of_left_inverse_symm_apply {α β : Sort*}
+  (f : α → β) (f_inv hf) (x : set.range f) :
+  (equiv.set.range_of_left_inverse f f_inv hf).symm x = f_inv ⟨classical.some x.2⟩ x :=
+rfl
+
+@[simp] lemma equiv.set.range_of_left_inverse'_symm_apply {α β : Sort*}
+  (f : α → β) (f_inv hf) (x : set.range f) :
+  (equiv.set.range_of_left_inverse' f f_inv hf).symm x = f_inv x :=
+rfl
+
 /-- If `f : α → β` is an injective function, then `α` is equivalent to the range of `f`. -/
 @[simps apply]
 protected noncomputable def range {α β} (f : α → β) (H : injective f) :
@@ -1872,6 +1882,21 @@ def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
+
+end equiv
+
+lemma function.injective.map_swap {α β : Type*} [decidable_eq α] [decidable_eq β]
+  {f : α → β} (hf : function.injective f) (x y z : α) :
+  f (equiv.swap x y z) = equiv.swap (f x) (f y) (f z) :=
+begin
+  conv_rhs { rw equiv.swap_apply_def },
+  split_ifs with h₁ h₂,
+  { rw [hf h₁, equiv.swap_apply_left] },
+  { rw [hf h₂, equiv.swap_apply_right] },
+  { rw [equiv.swap_apply_of_ne_of_ne (mt (congr_arg f) h₁) (mt (congr_arg f) h₂)] }
+end
+
+namespace equiv
 
 protected lemma exists_unique_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
   (h : ∀{x}, p x ↔ q (f x)) : (∃! x, p x) ↔ ∃! y, q y :=

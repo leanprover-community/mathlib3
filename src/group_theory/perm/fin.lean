@@ -97,14 +97,6 @@ rfl
 @[simp] lemma cycle_all_apply_zero {n : ℕ} : cycle_all n.succ 0 = 1 :=
 by rw [cycle_all_succ_apply, zero_add]
 
-@[simp] lemma last_add_one {n : ℕ} :
-  last n + 1 = 0 :=
-begin
-  cases n,
-  { apply subsingleton.elim },
-  { ext, rw [coe_add, coe_zero, coe_last, coe_one, nat.mod_self] }
-end
-
 @[simp] lemma cycle_all_apply_last {n : ℕ} : cycle_all n.succ (last n) = 0 :=
 by { ext, rw [cycle_all_succ_apply, last_add_one] }
 
@@ -124,20 +116,6 @@ begin
   exact coe_cycle_all_of_ne_last h
 end
 
-@[simp] lemma last_succ {n : ℕ} : last (n + 1) = (last n).succ :=
-by { ext, simp }
-
-lemma function.injective.map_swap {α β : Type*} [decidable_eq α] [decidable_eq β]
-  {f : α → β} (hf : function.injective f) (x y z : α) :
-  f (swap x y z) = swap (f x) (f y) (f z) :=
-begin
-  conv_rhs { rw swap_apply_def },
-  split_ifs with h₁ h₂,
-  { rw [hf h₁, swap_apply_left] },
-  { rw [hf h₂, swap_apply_right] },
-  { rw [swap_apply_of_ne_of_ne (mt (congr_arg f) h₁) (mt (congr_arg f) h₂)] },
-end
-
 lemma cycle_all_succ {n : ℕ} :
   cycle_all n.succ = decompose_fin.symm (1, cycle_all n) :=
 begin
@@ -152,7 +130,7 @@ begin
   { rw [fin.coe_succ, function.injective.map_swap fin.coe_injective, fin.coe_succ, coe_cycle_all,
         if_neg h, fin.coe_zero, fin.coe_one,
         swap_apply_of_ne_of_ne (nat.succ_ne_zero _) (nat.succ_succ_ne_one _)] },
-  { rw [last_succ, (fin.succ_injective _).eq_iff] }
+  { rw [← succ_last, (fin.succ_injective _).eq_iff] }
 end
 
 @[simp] lemma sign_cycle_all (n : ℕ) : (cycle_all (n + 1)).sign = (-1) ^ n :=
@@ -161,38 +139,6 @@ begin
   { simp },
   { rw cycle_all_succ, simp [ih, pow_succ] },
 end
-
-@[simp] lemma range_cast_le {n k : ℕ} (h : n ≤ k) :
-  set.range (cast_le h) = {i | (i : ℕ) < n} :=
-set.ext (λ x, ⟨λ ⟨y, hy⟩, hy ▸ y.2, λ hx, ⟨⟨x, hx⟩, fin.ext rfl⟩⟩)
-
-@[simp] lemma range_cast_succ {n : ℕ} :
-  set.range (cast_succ : fin n → fin n.succ) = {i | (i : ℕ) < n} :=
-range_cast_le _
-
-@[simp] lemma coe_set_range_cast_le_symm {n k : ℕ} (h : n ≤ k) (i : fin k) (hi) :
-  ((equiv.set.range _ ((cast_le h).injective)).symm ⟨i, hi⟩ : ℕ) = i :=
-begin
-  rw ← coe_cast_le,
-  exact congr_arg coe (equiv.set.apply_range_symm _ _ _)
-end
-
-@[simp] lemma coe_set_range_cast_succ_symm {n : ℕ} (i : fin n.succ) (hi) :
-  ((equiv.set.range cast_succ (cast_succ_injective _)).symm ⟨i, hi⟩ : ℕ) = i :=
-begin
-  rw ← coe_cast_succ,
-  exact congr_arg coe (equiv.set.apply_range_symm _ _ _)
-end
-
-@[simp] lemma equiv.set.range_of_left_inverse_symm_apply {α β : Sort*}
-  (f : α → β) (f_inv hf) (x : set.range f) :
-  (equiv.set.range_of_left_inverse f f_inv hf).symm x = f_inv ⟨classical.some x.2⟩ x :=
-rfl
-
-@[simp] lemma equiv.set.range_of_left_inverse'_symm_apply {α β : Sort*}
-  (f : α → β) (f_inv hf) (x : set.range f) :
-  (equiv.set.range_of_left_inverse' f f_inv hf).symm x = f_inv x :=
-rfl
 
 /-- `fin.cycle_range i` is the cycle `(0 1 2 ... i)`. -/
 def cycle_range {n : ℕ} (i : fin n) : perm (fin n) :=

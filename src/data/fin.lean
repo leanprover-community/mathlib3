@@ -359,6 +359,14 @@ begin
   rw [fin.coe_add, fin.coe_one, nat.mod_eq_of_lt (nat.succ_lt_succ h)]
 end
 
+@[simp] lemma last_add_one {n : ℕ} :
+  last n + 1 = 0 :=
+begin
+  cases n,
+  { apply subsingleton.elim },
+  { ext, rw [coe_add, coe_zero, coe_last, coe_one, nat.mod_self] }
+end
+
 section bit
 
 @[simp] lemma mk_bit0 {m n : ℕ} (h : bit0 m < n) :
@@ -518,6 +526,17 @@ order_embedding.of_strict_mono (λ a, cast_lt a (lt_of_lt_of_le a.2 h)) $ λ a b
 @[simp] lemma cast_le_mk (i n m : ℕ) (hn : i < n) (h : n ≤ m) :
   cast_le h ⟨i, hn⟩ = ⟨i, lt_of_lt_of_le hn h⟩ := rfl
 
+@[simp] lemma range_cast_le {n k : ℕ} (h : n ≤ k) :
+  set.range (cast_le h) = {i | (i : ℕ) < n} :=
+set.ext (λ x, ⟨λ ⟨y, hy⟩, hy ▸ y.2, λ hx, ⟨⟨x, hx⟩, fin.ext rfl⟩⟩)
+
+@[simp] lemma coe_set_range_cast_le_symm {n k : ℕ} (h : n ≤ k) (i : fin k) (hi) :
+  ((equiv.set.range _ ((cast_le h).injective)).symm ⟨i, hi⟩ : ℕ) = i :=
+begin
+  rw ← coe_cast_le,
+  exact congr_arg coe (equiv.set.apply_range_symm _ _ _)
+end
+
 /-- `cast eq i` embeds `i` into a equal `fin` type. -/
 def cast (eq : n = m) : fin n ≃o fin m :=
 { to_equiv := ⟨cast_le eq.le, cast_le eq.symm.le, λ a, eq_of_veq rfl, λ a, eq_of_veq rfl⟩,
@@ -602,6 +621,17 @@ end
 
 lemma lt_succ : a.cast_succ < a.succ :=
 by { rw [cast_succ, lt_iff_coe_lt_coe, coe_cast_add, coe_succ], exact lt_add_one a.val }
+
+@[simp] lemma range_cast_succ {n : ℕ} :
+  set.range (cast_succ : fin n → fin n.succ) = {i | (i : ℕ) < n} :=
+range_cast_le _
+
+@[simp] lemma coe_set_range_cast_succ_symm {n : ℕ} (i : fin n.succ) (hi) :
+  ((equiv.set.range cast_succ (cast_succ_injective _)).symm ⟨i, hi⟩ : ℕ) = i :=
+begin
+  rw ← coe_cast_succ,
+  exact congr_arg coe (equiv.set.apply_range_symm _ _ _)
+end
 
 /-- `add_nat m i` adds `m` to `i`, generalizes `fin.succ`. -/
 def add_nat (m) : fin n ↪o fin (n + m) :=

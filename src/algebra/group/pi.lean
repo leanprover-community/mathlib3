@@ -144,8 +144,8 @@ This is the `add_monoid_hom` version of `pi.single`. -/
   map_add' := single_op₂ (λ _, (+)) (λ _, zero_add _) _,
   .. (zero_hom.single f i) }
 
-/-- The multiplicative homomorphism including a single `monoid_with_zero`
-into a dependent family of monoid_with_zeros, as functions supported at a point.
+/-- The multiplicative homomorphism including a single `mul_zero_class`
+into a dependent family of `mul_zero_class`es, as functions supported at a point.
 
 This is the `mul_hom` version of `pi.single`. -/
 @[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=

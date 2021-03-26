@@ -842,7 +842,6 @@ private def f (r x : ℝ) : ℝ := 1 + r * x - (1 + x)^r
 private lemma has_deriv_at_f (r x : ℝ) (hx : -1 < x) :
   has_deriv_at (f r) (r - r * (1 + x)^(r - 1) * 1) x :=
 begin
-  change f r with λ x, 1 + r * x - (1 + x)^r,
   apply has_deriv_at.sub,
   { apply has_deriv_at.const_add,
     nth_rewrite 0 ←mul_one r,

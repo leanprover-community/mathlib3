@@ -921,6 +921,18 @@ begin
     exact one_add_rpow_le_of_nonneg hx.le hr0 hr1 }
 end
 
+/--
+Bernoulli's Inequality, if `-1 ≤ x` and `0 < r ≤ 1`, then `(1 + x)^r ≤ 1 + r * x`
+-/
+lemma one_add_rpow_le' {x r : ℝ} (hxm1 : -1 ≤ x) (hr0 : 0 < r) (hr1 : r ≤ 1) :
+  (1 + x)^r ≤ 1 + r * x :=
+begin
+  rcases lt_or_eq_of_le hxm1 with (hxm1 | rfl),
+  { exact one_add_rpow_le hxm1 hr0.le hr1 },
+  rw [add_neg_self, zero_rpow hr0.ne.symm],
+  linarith,
+end
+
 lemma le_one_add_rpow_of_nonneg {x r : ℝ} (hx : 0 ≤ x) (hr : 1 ≤ r) : 1 + r * x ≤ (1 + x)^r :=
 begin
   have h1 : ∀ x : ℝ, 0 ≤ x → 1 ≤ (1 + x)^(r - 1),

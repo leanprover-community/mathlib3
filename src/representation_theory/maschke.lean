@@ -136,6 +136,15 @@ end
 end linear_map
 end
 
+namespace char_zero
+
+variables {k : Type u} [field k] {G : Type u} [fintype G] [group G] [char_zero k]
+
+instance : fact ¬(ring_char k ∣ fintype.card G) :=
+⟨by simp [fintype.card_eq_zero_iff]⟩
+
+end char_zero
+
 namespace monoid_algebra
 
 -- Now we work over a `[field k]`, and replace the assumption `[invertible (fintype.card G : k)]`
@@ -145,13 +154,14 @@ variables {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k
 variables [is_scalar_tower k (monoid_algebra k G) V]
 variables {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
 variables [is_scalar_tower k (monoid_algebra k G) W]
+variables [fact ¬(ring_char k ∣ fintype.card G)]
+
+instance : invertible (fintype.card G : k) := invertible_of_ring_char_not_dvd (fact.out _)
 
 lemma exists_left_inverse_of_injective
-  (not_dvd : ¬(ring_char k ∣ fintype.card G)) (f : V →ₗ[monoid_algebra k G] W) (hf : f.ker = ⊥) :
+  (f : V →ₗ[monoid_algebra k G] W) (hf : f.ker = ⊥) :
   ∃ (g : W →ₗ[monoid_algebra k G] V), g.comp f = linear_map.id :=
 begin
-  haveI : invertible (fintype.card G : k) :=
-    invertible_of_ring_char_not_dvd not_dvd,
   obtain ⟨φ, hφ⟩ := (f.restrict_scalars k).exists_left_inverse_of_injective
     (by simp only [hf, submodule.restrict_scalars_bot, linear_map.ker_restrict_scalars]),
   refine ⟨φ.equivariant_projection G, _⟩,
@@ -165,19 +175,17 @@ end
 
 namespace submodule
 
+variable [fact ¬(ring_char k ∣ fintype.card G)]
+
 lemma exists_is_compl
-  (not_dvd : ¬(ring_char k ∣ fintype.card G)) (p : submodule (monoid_algebra k G) V) :
+  (p : submodule (monoid_algebra k G) V) :
   ∃ q : submodule (monoid_algebra k G) V, is_compl p q :=
-let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective not_dvd p.subtype p.ker_subtype in
+let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective p.subtype p.ker_subtype in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
-theorem is_complemented (not_dvd : ¬(ring_char k ∣ fintype.card G)) :
-  is_complemented (submodule (monoid_algebra k G) V) := ⟨exists_is_compl not_dvd⟩
+/-- This also implies an instance `is_semisimple_module (monoid_algebra k G) V`. -/
+instance is_complemented : is_complemented (submodule (monoid_algebra k G) V) :=
+⟨exists_is_compl⟩
 
 end submodule
-
-theorem is_semisimple_module (not_dvd : ¬(ring_char k ∣ fintype.card G)) :
-  is_semisimple_module (monoid_algebra k G) V :=
-submodule.is_complemented not_dvd
-
 end monoid_algebra

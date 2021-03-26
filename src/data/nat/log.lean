@@ -3,6 +3,7 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
+import algebra.linear_ordered_comm_group_with_zero
 import data.nat.basic
 /-!
 # Natural number logarithm
@@ -63,5 +64,52 @@ end
 
 lemma pow_log_le_self (b x : ℕ) (hb : 1 < b) (hx : 1 ≤ x) : b ^ log b x ≤ x :=
 by rw [pow_le_iff_le_log _ _ hb hx]
+
+lemma log_eq_zero {b n : ℕ} (hnb : n < b ∨ b < 2) : log b n = 0 :=
+begin
+  rw log,
+  simp only [or_iff_not_and_not, not_lt, not_and, not_le] at hnb,
+  simp only [and_imp, ite_eq_right_iff, add_eq_zero_iff, one_ne_zero, and_false],
+  intros,
+  exact lt_le_antisymm (hnb ᾰ) ᾰ_1,
+end
+
+lemma log_eq_zero_of_lt {b n : ℕ} (hn : n < b) : log b n = 0 :=
+by exact log_eq_zero (or.inl hn)
+
+lemma log_eq_zero_of_lt' {b n : ℕ} (hb : b < 2) : log b n = 0 :=
+by exact log_eq_zero (or.inr hb)
+
+lemma log_zero_eq_zero {b : ℕ} : log b 0 = 0 :=
+begin
+  cases b,
+  exact log_eq_zero_of_lt' zero_lt_two,
+  exact rfl,
+end
+
+lemma log_one_eq_zero {b : ℕ} : log b 1 = 0 :=
+begin
+  by_cases b < 2,
+  exact log_eq_zero_of_lt' h,
+  exact log_eq_zero_of_lt (not_lt.mp h),
+end
+
+lemma log_b_zero_eq_zero {n : ℕ} : log 0 n = 0 :=
+by exact log_eq_zero_of_lt' zero_lt_two
+
+lemma log_b_one_eq_zero {n : ℕ} : log 1 n = 0 :=
+by exact log_eq_zero_of_lt' one_lt_two
+
+lemma log_le_log_of_le {b n m : ℕ} (h : n ≤ m) : log b n ≤ log b m :=
+begin
+  by_cases hb : b < 2, by simp only [log_eq_zero_of_lt', hb],
+  by_cases hn : n = 0, by simp only [hn, log_zero_eq_zero, zero_le],
+
+  rw ←pow_le_iff_le_log _ _ (not_lt.mp hb) (lt_of_lt_of_le (zero_lt_iff.mpr hn) h),
+  exact (pow_log_le_self b n (not_lt.mp hb) (zero_lt_iff.mpr hn)).trans h,
+end
+
+lemma log_le_log_succ {b n : ℕ} : log b n ≤ log b n.succ :=
+by exact log_le_log_of_le (le_succ n)
 
 end nat

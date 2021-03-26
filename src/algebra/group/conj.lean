@@ -92,7 +92,7 @@ protected def setoid (α : Type*) [monoid α] : setoid α :=
 
 end is_conj
 
-local attribute [instance] is_conj.setoid
+local attribute [instance, priority 100] is_conj.setoid
 
 /-- The quotient type of conjugacy classes of a group. -/
 def conj_classes (α : Type*) [monoid α] : Type* :=
@@ -202,4 +202,3 @@ lemma carrier_eq_preimage_mk {a : conj_classes α} :
 set.ext (λ x, mem_carrier_iff_mk_eq)
 
 end conj_classes
-#lint

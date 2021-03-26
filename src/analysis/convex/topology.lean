@@ -72,10 +72,10 @@ end std_simplex
 
 /-! ### Topological vector space -/
 
-section topological_vector_space
+section has_continuous_smul
 
 variables [add_comm_group E] [vector_space ℝ E] [topological_space E]
-  [topological_add_group E] [topological_vector_space ℝ E]
+  [topological_add_group E] [has_continuous_smul ℝ E]
 
 /-- In a topological vector space, the interior of a convex set is convex. -/
 lemma convex.interior {s : set E} (hs : convex s) : convex (interior s) :=
@@ -85,10 +85,10 @@ convex_iff_pointwise_add_subset.mpr $ λ a b ha hb hab,
   (λ heq,
     have hne : b ≠ 0, by { rw [heq, zero_add] at hab, rw hab, exact one_ne_zero },
     by { rw ← image_smul,
-         exact (is_open_map_smul_of_ne_zero hne _ is_open_interior).add_left } )
+         exact (is_open_map_smul' hne _ is_open_interior).add_left } )
   (λ hne,
     by { rw ← image_smul,
-         exact (is_open_map_smul_of_ne_zero hne _ is_open_interior).add_right }),
+         exact (is_open_map_smul' hne _ is_open_interior).add_right }),
   (subset_interior_iff_subset_of_open h).mpr $ subset.trans
     (by { simp only [← image_smul], apply add_subset_add; exact image_subset _ interior_subset })
     (convex_iff_pointwise_add_subset.mp hs ha hb hab)
@@ -118,7 +118,7 @@ lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : finite s) 
   is_closed (convex_hull s) :=
 hs.compact_convex_hull.is_closed
 
-end topological_vector_space
+end has_continuous_smul
 
 /-! ### Normed vector space -/
 

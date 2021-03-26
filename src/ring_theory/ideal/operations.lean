@@ -1232,8 +1232,11 @@ lemma quotient.alg_map_eq (I : ideal A) :
   algebra_map R I.quotient = (algebra_map A I.quotient).comp (algebra_map R A) :=
 by simp only [ring_hom.algebra_map_to_algebra, ring_hom.comp_id]
 
-instance {I : ideal A} : is_scalar_tower R A (ideal.quotient I) :=
-is_scalar_tower.of_algebra_map_eq' (quotient.alg_map_eq R I)
+instance [algebra S A] [algebra S R] [is_scalar_tower S R A]
+  {I : ideal A} : is_scalar_tower S R (ideal.quotient I) :=
+is_scalar_tower.of_algebra_map_eq' $ by
+  rw [quotient.alg_map_eq R, quotient.alg_map_eq S, ring_hom.comp_assoc,
+    is_scalar_tower.algebra_map_eq S R A]
 
 lemma quotient.mkₐ_to_ring_hom (I : ideal A) :
   (quotient.mkₐ R I).to_ring_hom = ideal.quotient.mk I := rfl

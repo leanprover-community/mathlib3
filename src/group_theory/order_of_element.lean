@@ -364,7 +364,7 @@ variables {n : ℕ}
 
 open nat
 
-lemma exists_pow_eq_self_of_coprime (h : coprime n (order_of a)) :
+lemma exists_pow_eq_self_of_coprime {α : Type*} [monoid α] {a : α} (h : coprime n (order_of a)) :
   ∃ m : ℕ, (a ^ n) ^ m = a :=
 begin
   rw coprime at h,

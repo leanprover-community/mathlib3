@@ -3,8 +3,7 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.linear_isometry
-import tactic.equiv_rw
+import analysis.normed_space.basic
 
 /-!
 # Bounded continuous functions

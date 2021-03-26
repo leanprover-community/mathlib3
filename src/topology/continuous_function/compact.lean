@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.continuous_function.bounded
+import analysis.normed_space.linear_isometry
+import tactic.equiv_rw
 
 /-!
 # Continuous functions on a compact space

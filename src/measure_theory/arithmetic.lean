@@ -15,7 +15,7 @@ In this file we define classes `has_measurable_mul` etc and prove dot-style lemm
 - `has_measurable_mul₂` says that `λ p : α × α, p.1 * p.2` is measurable,
 
 and similarly for other binary operations. The reason for introducing these classes is that in case
-of topological space `α` equipped with the Borel `Σ`-algebra, instances for `has_measurable_mul₂`
+of topological space `α` equipped with the Borel `σ`-algebra, instances for `has_measurable_mul₂`
 etc require `α` to have a second countable topology.
 
 We define separate classes for `has_measurable_div`/`has_measurable_sub`
@@ -303,7 +303,7 @@ instance has_measurable_div₂_of_mul_inv (G : Type*) [measurable_space G]
 class has_measurable_const_smul (M α : Type*) [has_scalar M α] [measurable_space α] : Prop :=
 (measurable_const_smul : ∀ (c : M), measurable ((•) c : α → α))
 
-/-- We say that the action of `M` on `α` `has_measurable__smul` if the map
+/-- We say that the action of `M` on `α` `has_measurable_smul` if the map
 `(c, x) ↦ c • x` is a measurable function. -/
 class has_measurable_smul (M α : Type*) [has_scalar M α] [measurable_space M]
   [measurable_space α] : Prop :=

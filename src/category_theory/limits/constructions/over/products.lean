@@ -137,7 +137,7 @@ lemma over_products_of_wide_pullbacks [has_wide_pullbacks C] {B : C} :
 /-- Given all finite wide pullbacks in `C`, construct finite products in `C/B`. -/
 lemma over_finite_products_of_finite_wide_pullbacks [has_finite_wide_pullbacks C] {B : C} :
   has_finite_products (over B) :=
-λ J 𝒥₁ 𝒥₂, by exactI over_product_of_wide_pullback
+⟨λ J 𝒥₁ 𝒥₂, by exactI over_product_of_wide_pullback⟩
 
 end construct_products
 

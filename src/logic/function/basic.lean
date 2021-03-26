@@ -375,7 +375,8 @@ dif_pos rfl
 lemma update_injective (f : Πa, β a) (a' : α) : injective (update f a') :=
 λ v v' h, have _ := congr_fun h a', by rwa [update_same, update_same] at this
 
-@[simp] lemma update_noteq {a a' : α} (h : a ≠ a') (v : β a') (f : Πa, β a) : update f a' v a = f a :=
+@[simp] lemma update_noteq {a a' : α} (h : a ≠ a') (v : β a') (f : Πa, β a) :
+  update f a' v a = f a :=
 dif_neg h
 
 lemma forall_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a → Prop) :
@@ -564,7 +565,7 @@ by rw [apply_ite f, h, ite_not]
 end involutive
 
 /-- The property of a binary function `f : α → β → γ` being injective.
-  Mathematically this should be thought of as the corresponding function `α × β → γ` being injective.
+Mathematically this should be thought of as the corresponding function `α × β → γ` being injective.
 -/
 @[reducible] def injective2 {α β γ} (f : α → β → γ) : Prop :=
 ∀ ⦃a₁ a₂ b₁ b₂⦄, f a₁ b₁ = f a₂ b₂ → a₁ = a₂ ∧ b₁ = b₂
@@ -604,6 +605,44 @@ end sometimes
 end function
 
 /-- `s.piecewise f g` is the function equal to `f` on the set `s`, and to `g` on its complement. -/
-def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β i) [∀j, decidable (j ∈ s)] :
+def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β i)
+  [∀j, decidable (j ∈ s)] :
   Πi, β i :=
 λi, if i ∈ s then f i else g i
+
+/-! ### Bijectivity of `eq.rec`, `eq.mp`, `eq.mpr`, and `cast` -/
+
+lemma eq_rec_on_bijective {α : Sort*} {C : α → Sort*} :
+  ∀ {a a' : α} (h : a = a'), function.bijective (@eq.rec_on _ _ C _ h)
+| _ _ rfl := ⟨λ x y, id, λ x, ⟨x, rfl⟩⟩
+
+lemma eq_mp_bijective {α β : Sort*} (h : α = β) : function.bijective (eq.mp h) :=
+eq_rec_on_bijective h
+
+lemma eq_mpr_bijective {α β : Sort*} (h : α = β) : function.bijective (eq.mpr h) :=
+eq_rec_on_bijective h.symm
+
+lemma cast_bijective {α β : Sort*} (h : α = β) : function.bijective (cast h) :=
+eq_rec_on_bijective h
+
+/-! Note these lemmas apply to `Type*` not `Sort*`, as the latter interferes with `simp`, and
+is trivial anyway.-/
+
+@[simp]
+lemma eq_rec_inj {α : Sort*} {a a' : α} (h : a = a') {C : α → Type*} (x y : C a) :
+  (eq.rec x h : C a') = eq.rec y h ↔ x = y :=
+(eq_rec_on_bijective h).injective.eq_iff
+
+@[simp]
+lemma cast_inj {α β : Type*} (h : α = β) {x y : α} : cast h x = cast h y ↔ x = y :=
+(cast_bijective h).injective.eq_iff
+
+/-- A set of functions "separates points"
+if for each pair of distinct points there is a function taking different values on them. -/
+def separates_points {α β : Type*} (A : set (α → β)) : Prop :=
+∀ ⦃x y : α⦄, x ≠ y → ∃ f ∈ A, (f x : β) ≠ f y
+
+/-- A set of functions "separates points strongly"
+if for each pair of distinct points there is a function with specified values on them.  -/
+def separates_points_strongly {α β : Type*} (A : set (α → β)) : Prop :=
+∀ (x y : α), x ≠ y → ∀ (a b : β), ∃ f ∈ A, (f x : β) = a ∧ f y = b

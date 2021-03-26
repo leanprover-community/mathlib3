@@ -5,6 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import topology.instances.nnreal
 import topology.algebra.module
+import topology.algebra.algebra
 import topology.metric_space.antilipschitz
 
 /-!
@@ -77,6 +78,22 @@ instance : normed_group ℝ :=
   dist_eq := assume x y, rfl }
 
 lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
+
+lemma real.pow_even_norm (x : ℝ) {p : ℕ} (hp : even p) :
+  ∥x∥ ^ p = x ^ p :=
+by rw [real.norm_eq_abs, pow_even_abs x hp]
+
+@[simp] lemma real.pow_bit0_norm (x : ℝ) (p : ℕ) :
+  ∥x∥ ^ bit0 p = x ^ bit0 p :=
+real.pow_even_norm _ (even_bit0 _)
+
+lemma real.fpow_even_norm (x : ℝ) {p : ℤ} (hp : even p) :
+  ∥x∥ ^ p = x ^ p :=
+by rw [real.norm_eq_abs, fpow_even_abs x hp]
+
+@[simp] lemma real.fpow_bit0_norm (x : ℝ) (p : ℤ) :
+  ∥x∥ ^ bit0 p = x ^ bit0 p :=
+real.fpow_even_norm _ (even_bit0 _)
 
 section normed_group
 variables [normed_group α] [normed_group β]
@@ -294,7 +311,7 @@ lipschitz_on_with_iff_norm_sub_le.mp h x x_in y y_in
 /-- A homomorphism `f` of normed groups is continuous, if there exists a constant `C` such that for
 all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
 The analogous condition for a linear map of normed spaces is in `normed_space.operator_norm`. -/
-lemma add_monoid_hom.continuous_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+lemma add_monoid_hom.continuous_of_bound (f : α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   continuous f :=
 (f.lipschitz_of_bound C h).continuous
 
@@ -582,7 +599,7 @@ end
 continuous. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
-⟨(lipschitz_with.prod_fst.sub lipschitz_with.prod_snd).uniform_continuous⟩
+⟨((@lipschitz_with.prod_fst α α _ _).sub lipschitz_with.prod_snd).uniform_continuous⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_monoid : has_continuous_add α :=
@@ -1013,7 +1030,7 @@ variables {E : Type*} {F : Type*}
 [normed_group E] [normed_space α E] [normed_group F] [normed_space α F]
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_space.topological_vector_space : topological_vector_space α E :=
+instance normed_space.has_continuous_smul : has_continuous_smul α E :=
 begin
   refine { continuous_smul := continuous_iff_continuous_at.2 $
     λ p, tendsto_iff_norm_tendsto_zero.2 _ },

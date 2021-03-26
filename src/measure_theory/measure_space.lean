@@ -1649,7 +1649,7 @@ begin
   norm_cast
 end
 
-lemma measure_univ_pos [finite_measure μ] (hμ : μ ≠ 0) : 0 < measure_univ_nnreal μ :=
+lemma measure_univ_nnreal_pos [finite_measure μ] (hμ : μ ≠ 0) : 0 < measure_univ_nnreal μ :=
 begin
   contrapose! hμ,
   simpa [measure_univ_nnreal_eq_zero, le_zero_iff] using hμ

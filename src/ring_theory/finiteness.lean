@@ -35,13 +35,11 @@ variables [add_comm_group M] [module R M]
 variables [add_comm_group N] [module R N]
 
 /-- A module over a commutative ring is `finite` if it is finitely generated as a module. -/
-@[class]
-def module.finite : Prop := (⊤ : submodule R M).fg
+class module.finite : Prop := (out : (⊤ : submodule R M).fg)
 
 /-- An algebra over a commutative ring is of `finite_type` if it is finitely generated
 over the base ring as algebra. -/
-@[class]
-def algebra.finite_type : Prop := (⊤ : subalgebra R A).fg
+class algebra.finite_type : Prop := (out : (⊤ : subalgebra R A).fg)
 
 /-- An algebra over a commutative ring is `finite_presentation` if it is the quotient of a
 polynomial ring in `n` variables by a finitely generated ideal. -/
@@ -52,12 +50,12 @@ def algebra.finite_presentation : Prop :=
 namespace module
 
 variables {R M N}
-lemma finite_def : finite R M ↔ (⊤ : submodule R M).fg := iff.rfl
+lemma finite_def : finite R M ↔ (⊤ : submodule R M).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 variables (R M N)
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_noetherian.finite [is_noetherian R M] : finite R M :=
-is_noetherian.noetherian ⊤
+⟨is_noetherian.noetherian ⊤⟩
 
 namespace finite
 
@@ -65,40 +63,44 @@ variables {R M N}
 
 lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
   finite R N :=
-by { rw [finite, ← linear_map.range_eq_top.2 hf, ← submodule.map_top], exact submodule.fg_map hM }
+⟨begin
+  rw [← linear_map.range_eq_top.2 hf, ← submodule.map_top],
+  exact submodule.fg_map hM.1
+end⟩
 
 lemma of_injective [is_noetherian R N] (f : M →ₗ[R] N)
   (hf : function.injective f) : finite R M :=
-fg_of_injective f $ linear_map.ker_eq_bot.2 hf
+⟨fg_of_injective f $ linear_map.ker_eq_bot.2 hf⟩
 
 variables (R)
 
 instance self : finite R R :=
-⟨{1}, by simpa only [finset.coe_singleton] using ideal.span_singleton_one⟩
+⟨⟨{1}, by simpa only [finset.coe_singleton] using ideal.span_singleton_one⟩⟩
 
 variables {R}
 
 instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
-begin
-  rw [finite, ← submodule.prod_top],
-  exact submodule.fg_prod hM hN
-end
+⟨begin
+  rw ← submodule.prod_top,
+  exact submodule.fg_prod hM.1 hN.1
+end⟩
 
 lemma equiv [hM : finite R M] (e : M ≃ₗ[R] N) : finite R N :=
 of_surjective (e : M →ₗ[R] N) e.surjective
 
 section algebra
 
-lemma trans [algebra A B] [is_scalar_tower R A B] [hRA : finite R A] [hAB : finite A B] :
-  finite R B :=
-let ⟨s, hs⟩ := hRA, ⟨t, ht⟩ := hAB in submodule.fg_def.2
-⟨set.image2 (•) (↑s : set A) (↑t : set B),
-set.finite.image2 _ s.finite_to_set t.finite_to_set,
-by rw [set.image2_smul, submodule.span_smul hs (↑t : set B), ht, submodule.restrict_scalars_top]⟩
+lemma trans [algebra A B] [is_scalar_tower R A B] :
+  ∀ [finite R A] [finite A B], finite R B
+| ⟨⟨s, hs⟩⟩ ⟨⟨t, ht⟩⟩ := ⟨submodule.fg_def.2
+  ⟨set.image2 (•) (↑s : set A) (↑t : set B),
+    set.finite.image2 _ s.finite_to_set t.finite_to_set,
+    by rw [set.image2_smul, submodule.span_smul hs (↑t : set B),
+      ht, submodule.restrict_scalars_top]⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance finite_type [hRA : finite R A] : algebra.finite_type R A :=
-subalgebra.fg_of_submodule_fg hRA
+⟨subalgebra.fg_of_submodule_fg hRA.1⟩
 
 end algebra
 
@@ -110,13 +112,13 @@ namespace algebra
 
 namespace finite_type
 
-lemma self : finite_type R R := ⟨{1}, subsingleton.elim _ _⟩
+lemma self : finite_type R R := ⟨⟨{1}, subsingleton.elim _ _⟩⟩
 
 section
 open_locale classical
 
 protected lemma mv_polynomial (ι : Type*) [fintype ι] : finite_type R (mv_polynomial ι R) :=
-⟨finset.univ.image mv_polynomial.X, begin
+⟨⟨finset.univ.image mv_polynomial.X, begin
   rw eq_top_iff, refine λ p, mv_polynomial.induction_on' p
     (λ u x, finsupp.induction u (subalgebra.algebra_map_mem _ x)
       (λ i n f hif hn ih, _))
@@ -124,25 +126,24 @@ protected lemma mv_polynomial (ι : Type*) [fintype ι] : finite_type R (mv_poly
   rw [add_comm, mv_polynomial.monomial_add_single],
   exact subalgebra.mul_mem _ ih
     (subalgebra.pow_mem _ (subset_adjoin $ finset.mem_image_of_mem _ $ finset.mem_univ _) _)
-end⟩
+end⟩⟩
 end
 
 variables {R A B}
 
 lemma of_surjective (hRA : finite_type R A) (f : A →ₐ[R] B) (hf : surjective f) :
   finite_type R B :=
-begin
-  rw [finite_type] at hRA ⊢,
-  convert subalgebra.fg_map _ f hRA,
+⟨begin
+  convert subalgebra.fg_map _ f hRA.1,
   simpa only [map_top f, @eq_comm _ ⊤, eq_top_iff, alg_hom.mem_range] using hf
-end
+end⟩
 
 lemma equiv (hRA : finite_type R A) (e : A ≃ₐ[R] B) : finite_type R B :=
 hRA.of_surjective e e.surjective
 
 lemma trans [algebra A B] [is_scalar_tower R A B] (hRA : finite_type R A) (hAB : finite_type A B) :
   finite_type R B :=
-fg_trans' hRA hAB
+⟨fg_trans' hRA.1 hAB.1⟩
 
 /-- An algebra is finitely generated if and only if it is a quotient
 of a polynomial ring whose variables are indexed by a finset. -/

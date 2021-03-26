@@ -22,7 +22,7 @@ section
 variables [monoid R] [monoid S] [add_monoid A] [add_comm_monoid B]
 variables [distrib_mul_action R B] [distrib_mul_action S B]
 
-instance distrib_mul_action : distrib_mul_action R (A →+ B) :=
+instance : distrib_mul_action R (A →+ B) :=
 { smul := λ r f,
   { to_fun := r • f,
     map_zero' := by simp,

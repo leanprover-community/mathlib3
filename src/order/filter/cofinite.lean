@@ -114,7 +114,7 @@ lemma filter.tendsto.exists_forall_le {α β : Type*} [nonempty α] [linear_orde
   ∃ a₀, ∀ a, f a₀ ≤ f a :=
 begin
   rcases em (∃ y, ∃ x, f y < x) with ⟨y, x, hx⟩|not_all_top,
-  { -- take the inverse image, `small_vals`, of some bounded nonempty set; it's finite so has a min
+  { -- the set of points `{y | f y < x}` is nonempty and finite, so we take `min` over this set
     have : finite {y | ¬x ≤ f y} := (filter.eventually_cofinite.mp (tendsto_at_top.1 hf x)),
     simp only [not_le] at this,
     obtain ⟨a₀, ha₀ : f a₀ < x, others_bigger⟩ := exists_min_image _ f this ⟨y, hx⟩,

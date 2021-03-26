@@ -390,11 +390,6 @@ lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := ⟨set.fintype_le_nat _�
 
 lemma finite_lt_nat (n : ℕ) : finite {i | i < n} := ⟨set.fintype_lt_nat _⟩
 
-theorem exists_lt_modeq_of_infinite_nat {s : set ℕ} (hs : infinite s) {k : ℕ} (hk : 0 < k) :
-  ∃ (m ∈ s) (n ∈ s), m < n ∧ m % k = n % k :=
-hs.exists_lt_map_eq_of_maps_to (λ n _, show n % k ∈ Iio k, from nat.mod_lt n hk) $
-  finite_lt_nat k
-
 instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintype (set.prod s t) :=
 fintype.of_finset (s.to_finset.product t.to_finset) $ by simp
 

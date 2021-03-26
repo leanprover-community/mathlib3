@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import dynamics.ergodic.measure_preserving
-import data.nat.modeq
+import combinatorics.pigeonhole
 
 /-!
 # Conservative systems
@@ -185,7 +185,7 @@ begin
   then we choose two of these values `k < l` such that `k ≡ l [MOD (n + 1)]`.
   Then `f^[k] x ∈ s` and `(f^[n + 1])^[(l - k) / (n + 1)] (f^[k] x) = f^[l] x ∈ s`. -/
   rw nat.frequently_at_top_iff_infinite at hx,
-  rcases exists_lt_modeq_of_infinite_nat hx n.succ_pos with ⟨k, hk, l, hl, hkl, hn⟩,
+  rcases nat.exists_lt_modeq_of_infinite hx n.succ_pos with ⟨k, hk, l, hl, hkl, hn⟩,
   set m := (l - k) / (n + 1),
   have : (n + 1) * m = l - k,
   { apply nat.mul_div_cancel',

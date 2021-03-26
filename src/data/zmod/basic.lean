@@ -62,7 +62,7 @@ private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin (n+1), a * (b + c) = 
         modeq_add (nat.mod_mod _ _).symm (nat.mod_mod _ _).symm)
 
 /-- Commutative ring structure on `fin (n+1)`. -/
-instance : comm_ring (fin (n+1)) :=
+instance (n : ℕ) : comm_ring (fin (n+1)) :=
 { one_mul := fin.one_mul,
   mul_one := fin.mul_one,
   left_distrib := left_distrib_aux n,

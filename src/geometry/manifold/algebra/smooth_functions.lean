@@ -34,13 +34,17 @@ instance has_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H'
 
 @[simp, to_additive]
 lemma coe_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H' G]
-[has_smooth_mul I' G] (f g : C^∞⟮I, N; I', G⟯) :
+  [has_smooth_mul I' G] (f g : C^∞⟮I, N; I', G⟯) :
   ⇑(f * g) = f * g := rfl
 
 @[to_additive]
 instance has_one {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
   has_one C^∞⟮I, N; I', G⟯ :=
 ⟨times_cont_mdiff_map.const (1 : G)⟩
+
+@[simp, to_additive]
+lemma coe_one {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
+  ⇑(1 : C^∞⟮I, N; I', G⟯) = 1 := rfl
 
 end smooth_map
 
@@ -89,6 +93,12 @@ instance smooth_map_group {G : Type*} [group G] [topological_space G]
 lemma smooth_map.coe_inv {G : Type*} [group G] [topological_space G]
   [charted_space H' G] [lie_group I' G] (f : C^∞⟮I, N; I', G⟯) :
   ⇑f⁻¹ = f⁻¹ := rfl
+
+@[simp, to_additive]
+lemma smooth_map.coe_div {G : Type*} [group G] [topological_space G]
+  [charted_space H' G] [lie_group I' G] (f g : C^∞⟮I, N; I', G⟯) :
+  ⇑(f / g) = f / g :=
+by simp only [div_eq_mul_inv, smooth_map.coe_inv, smooth_map.coe_mul]
 
 @[to_additive]
 instance smooth_map_comm_group {G : Type*} [comm_group G] [topological_space G]

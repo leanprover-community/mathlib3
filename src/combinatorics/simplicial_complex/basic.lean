@@ -245,11 +245,8 @@ begin
   use hS hX.1,
   rintro Y hY hXY,
   have : Y.card ≤ X.card,
-  {
-    rw hS₁ hX,
-    --exact simplex_dimension_le_pureness hS₂ hY, @Bhavik same problem as on l. 187
-    sorry
-  },
+  { rw hS₁ hX,
+    exact simplex_dimension_le_pureness hS₂ hY },
   exact finset.eq_of_subset_of_card_le hXY this,
 end
 

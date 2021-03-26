@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Nicolò Cavalleri
 -/
 import topology.algebra.module
-import topology.continuous_functions.basic
+import topology.continuous_function.basic
 import algebra.algebra.subalgebra
 
 /-!

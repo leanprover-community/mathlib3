@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import category_theory.yoneda
 import topology.sheaves.presheaf
 import topology.category.TopCommRing
-import topology.continuous_functions.algebra
+import topology.continuous_function.algebra
 
 /-!
 # Presheaves of functions

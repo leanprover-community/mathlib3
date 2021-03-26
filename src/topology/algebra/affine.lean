@@ -3,7 +3,7 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
-import topology.continuous_functions.algebra
+import topology.continuous_function.algebra
 import linear_algebra.affine_space.affine_map
 
 /-!

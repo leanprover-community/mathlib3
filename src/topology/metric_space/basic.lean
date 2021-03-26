@@ -1259,6 +1259,8 @@ class proper_space (α : Type u) [pseudo_metric_space α] : Prop :=
 instance second_countable_of_proper [proper_space α] :
   second_countable_topology α :=
 begin
+  -- We already have `sigma_compact_space_of_locally_compact_second_countable`, so we don't
+  -- add an instance for `sigma_compact_space`.
   suffices : sigma_compact_space α, by exactI emetric.second_countable_of_sigma_compact α,
   rcases em (nonempty α) with ⟨⟨x⟩⟩|hn,
   { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.compact_ball _ _,

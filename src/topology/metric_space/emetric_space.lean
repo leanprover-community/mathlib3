@@ -741,19 +741,31 @@ begin
 end
 
 /-- For a set `s` in a pseudo emetric space, if for every `ε > 0` there exists a countable
-`ε`-dense set in `s`, then there exists a countable subset `t ⊆ s` that is dense in `s`. -/
+set that is `ε`-dense in `s`, then there exists a countable subset `t ⊆ s` that is dense in `s`. -/
 lemma subset_countable_closure_of_almost_dense_set (s : set α)
-  (hs : ∀ ε > 0, ∃ t ⊆ s, countable t ∧ s ⊆ ⋃ x ∈ t, closed_ball x ε) :
+  (hs : ∀ ε > 0, ∃ t : set α, countable t ∧ s ⊆ ⋃ x ∈ t, closed_ball x ε) :
   ∃ t ⊆ s, (countable t ∧ s ⊆ closure t) :=
 begin
-  choose! T hTs hTc hsT using hs,
-  have hpos : ∀ n : ℕ, (0 : ℝ≥0∞) < n⁻¹, from λ n, by simp,
-  refine ⟨⋃ n : ℕ, T n⁻¹, Union_subset $ λ n, hTs _ (hpos n),
-    countable_Union $ λ n, hTc _ (hpos n), _⟩,
+  rcases s.eq_empty_or_nonempty with rfl|⟨x₀, hx₀⟩,
+  { exact ⟨∅, empty_subset _, countable_empty, empty_subset _⟩ },
+  choose! T hTc hsT using (λ n : ℕ, hs n⁻¹ (by simp)),
+  have : ∀ r x, ∃ y ∈ s, closed_ball x r ∩ s ⊆ closed_ball y (r * 2),
+  { intros r x,
+    rcases (closed_ball x r ∩ s).eq_empty_or_nonempty with he|⟨y, hxy, hys⟩,
+    { refine ⟨x₀, hx₀, _⟩, rw he, exact empty_subset _ },
+    { refine ⟨y, hys, λ z hz, _⟩,
+      calc edist z y ≤ edist z x + edist y x : edist_triangle_right _ _ _
+      ... ≤ r + r : add_le_add hz.1 hxy
+      ... = r * 2 : (mul_two r).symm } },
+  choose f hfs hf,
+  refine ⟨⋃ n : ℕ, (f n⁻¹) '' (T n), Union_subset $ λ n, image_subset_iff.2 (λ z hz, hfs _ _),
+    countable_Union $ λ n, (hTc n).image _, _⟩,
   refine λ x hx, mem_closure_iff.2 (λ ε ε0, _),
-  rcases ennreal.exists_inv_nat_lt ε0.lt.ne' with ⟨n, hn⟩,
-  rcases mem_bUnion_iff.1 (hsT _ (hpos n) hx) with ⟨y, hyn, hyx⟩,
-  exact ⟨y, mem_Union.2 ⟨n, hyn⟩, lt_of_le_of_lt hyx hn⟩
+  rcases ennreal.exists_inv_nat_lt (ennreal.half_pos ε0).ne' with ⟨n, hn⟩,
+  rcases mem_bUnion_iff.1 (hsT n hx) with ⟨y, hyn, hyx⟩,
+  refine ⟨f n⁻¹ y, mem_Union.2 ⟨n, mem_image_of_mem _ hyn⟩, _⟩,
+  calc edist x (f n⁻¹ y) ≤ n⁻¹ * 2 : hf _ _ ⟨hyx, hx⟩
+                     ... < ε      : ennreal.mul_lt_of_lt_div hn
 end
 
 /-- A compact set in a pseudo emetric space is separable, i.e., it is a subset of the closure of a
@@ -763,7 +775,7 @@ lemma subset_countable_closure_of_compact {s : set α} (hs : is_compact s) :
 begin
   refine subset_countable_closure_of_almost_dense_set s (λ ε hε, _),
   rcases totally_bounded_iff'.1 hs.totally_bounded ε hε with ⟨t, hts, htf, hst⟩,
-  exact ⟨t, hts, htf.countable,
+  exact ⟨t, htf.countable,
     subset.trans hst (bUnion_subset_bUnion_right $ λ _ _, ball_subset_closed_ball)⟩
 end
 
@@ -791,7 +803,8 @@ lemma second_countable_of_separable [separable_space α] :
   second_countable_topology α :=
 uniform_space.second_countable_of_separable uniformity_has_countable_basis
 
-/-- A sigma compact pseudo emetric space has second countable topology. -/
+/-- A sigma compact pseudo emetric space has second countable topology. This is not an instance
+to avoid a loop with `sigma_compact_space_of_locally_compact_second_countable`.  -/
 lemma second_countable_of_sigma_compact [sigma_compact_space α] :
   second_countable_topology α :=
 begin
@@ -814,7 +827,7 @@ begin
     with ⟨t, -, htc, ht⟩,
   { exact ⟨⟨t, htc, λ x, ht (mem_univ x)⟩⟩ },
   { rcases hs ε ε0 with ⟨t, htc, ht⟩,
-    exact ⟨t, subset_univ t, htc, univ_subset_iff.2 ht⟩ }
+    exact ⟨t, htc, univ_subset_iff.2 ht⟩ }
 end
 
 end second_countable

@@ -574,6 +574,10 @@ by simpa [lt_iff_coe_lt_coe, le_iff_coe_le_coe] using nat.succ_le_succ_iff.symm
 
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 
+@[simp] lemma succ_eq_last_succ {n : ℕ} (i : fin n.succ) :
+  i.succ = last (n + 1) ↔ i = last n :=
+by rw [← succ_last, (succ_injective _).eq_iff]
+
 @[simp] lemma cast_succ_cast_lt (i : fin (n + 1)) (h : (i : ℕ) < n) : cast_succ (cast_lt i h) = i :=
 fin.eq_of_veq rfl
 

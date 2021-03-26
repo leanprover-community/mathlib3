@@ -181,27 +181,6 @@ end
 @[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
 ⟨λ h, by conv_lhs { rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
 
-@[simp] lemma order_of_submonoid {G : Type*} [monoid G] {H : submonoid G} (σ : H) :
-  order_of (σ : G) = order_of σ :=
-begin
-  have key : (λ n, 0 < n ∧ (σ : G) ^ n = 1) = (λ n, 0 < n ∧ σ ^ n = 1),
-  { ext n,
-    rw [←submonoid.coe_pow, ←submonoid.coe_one H, submonoid.coe_eq_coe] },
-  by_cases h : ∃ n, 0 < n ∧ σ ^ n = 1,
-  { rw [order_of, order_of, dif_pos, dif_pos],
-    { congr,
-      exact key },
-    { exact h },
-    { rwa key } },
-  { rw [order_of, order_of, dif_neg, dif_neg],
-    { exact h },
-    { rwa key } },
-end
-
-@[simp] lemma order_of_subgroup {G : Type*} [group G] {H : subgroup G} (σ : H) :
-  order_of (σ : G) = order_of σ :=
-@order_of_submonoid G _ H.to_submonoid σ
-
 lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
 calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) : by rw [nat.mod_add_div]
        ... = a ^ (n % order_of a) : by simp [pow_add, pow_mul, pow_order_of_eq_one]
@@ -230,6 +209,34 @@ lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
 lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
   (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
 (hp.out.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
+
+lemma order_of_eq_order_of_iff {β : Type*} [monoid β] {b : β} :
+  order_of a = order_of b ↔ ∀ n : ℕ, a ^ n = 1 ↔ b ^ n = 1 :=
+begin
+  split,
+  { exact λ h n, by rw [←order_of_dvd_iff_pow_eq_one, ←order_of_dvd_iff_pow_eq_one, h] },
+  { intro h,
+    by_cases h' : ∃ n, 0 < n ∧ b ^ n = 1,
+    { rw [order_of, order_of, dif_pos, dif_pos],
+      { congr,
+        simp_rw h },
+      { exact h' },
+      { simp_rw h,
+        exact h' } },
+    { rw [order_of, order_of, dif_neg, dif_neg],
+      { exact h' },
+      { simp_rw h,
+        exact h' } } }
+end
+
+@[simp] lemma order_of_submonoid {G : Type*} [monoid G] {H : submonoid G} (σ : H) :
+  order_of (σ : G) = order_of σ :=
+by simp_rw [order_of_eq_order_of_iff, ←submonoid.coe_pow, ←submonoid.coe_one H,
+  submonoid.coe_eq_coe, iff_self, forall_const]
+
+@[simp] lemma order_of_subgroup {G : Type*} [group G] {H : subgroup G} (σ : H) :
+  order_of (σ : G) = order_of σ :=
+@order_of_submonoid G _ H.to_submonoid σ
 
 open nat
 

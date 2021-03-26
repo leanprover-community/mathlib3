@@ -48,7 +48,7 @@ section group
 
 variables [group α]
 
-@[simp] lemma group.is_conj_iff {a b : α} :
+@[simp] lemma is_conj_iff {a b : α} :
   is_conj a b ↔ ∃ c : α, c * a * c⁻¹ = b :=
 ⟨λ ⟨c, hc⟩, ⟨c, mul_inv_eq_iff_eq_mul.2 hc⟩, λ ⟨c, hc⟩,
   ⟨⟨c, c⁻¹, mul_inv_self c, inv_mul_self c⟩, mul_inv_eq_iff_eq_mul.1 hc⟩⟩
@@ -71,7 +71,7 @@ lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹)
 
 end group
 
-@[simp] lemma group_with_zero.is_conj_iff [group_with_zero α] {a b : α} :
+@[simp] lemma is_conj_iff' [group_with_zero α] {a b : α} :
   is_conj a b ↔ ∃ c : α, c ≠ 0 ∧ c * a * c⁻¹ = b :=
 ⟨λ ⟨c, hc⟩, ⟨c, begin
     rw [← units.coe_inv', units.mul_inv_eq_iff_eq_mul],

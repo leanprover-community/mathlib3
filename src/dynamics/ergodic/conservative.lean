@@ -94,7 +94,7 @@ begin
 end
 
 /-- If `f` is a conservative map and `s` is a measurable set of nonzero measure, then
-for an arbitrafily large `m` a positive measure of points `x ∈ s` returns back to `s`
+for an arbitrarily large `m` a positive measure of points `x ∈ s` returns back to `s`
 after `m` iterations of `f`. -/
 lemma exists_gt_measure_inter_ne_zero (hf : conservative f μ) (hs : measurable_set s) (h0 : μ s ≠ 0)
   (N : ℕ) :
@@ -103,7 +103,7 @@ let ⟨m, hm, hmN⟩ :=
   ((hf.frequently_measure_inter_ne_zero hs h0).and_eventually (eventually_gt_at_top N)).exists
 in ⟨m, hmN, hm⟩
 
-/-- Poincaré recurrence theorem: given a volume preserving map `f` and a measurable set `s`, the set
+/-- Poincaré recurrence theorem: given a conservative map `f` and a measurable set `s`, the set
 of points `x ∈ s` such that `x` does not return to `s` after `≥ n` iterations has measure zero. -/
 lemma measure_mem_forall_ge_image_not_mem_eq_zero (hf : conservative f μ) (hs : measurable_set s)
   (n : ℕ) :
@@ -119,7 +119,7 @@ begin
   exact hxn m hmn.lt.le hxm
 end
 
-/-- Poincaré recurrence theorem: given a volume preserving map `f` and a measurable set `s`,
+/-- Poincaré recurrence theorem: given a conservative map `f` and a measurable set `s`,
 almost every point `x ∈ s` returns back to `s` infinitely many times. -/
 lemma ae_mem_imp_frequently_image_mem (hf : conservative f μ) (hs : measurable_set s) :
   ∀ᵐ x ∂μ, x ∈ s → ∃ᶠ n in at_top, (f^[n] x) ∈ s :=

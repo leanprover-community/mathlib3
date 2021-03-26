@@ -1814,6 +1814,15 @@ begin
   { rw [← h.equiv_fun.symm_apply_apply y, h.equiv_fun_symm_apply] }
 end
 
+def complex.isometry_euclidean : ℂ ≃ₗᵢ[ℝ] (euclidean_space ℝ (fin 2)) :=
+complex.is_basis_one_I.isometry_euclidean_of_orthonormal
+begin
+  rw orthonormal_iff_ite,
+  intros i, fin_cases i;
+  intros j; fin_cases j;
+  simp [real_inner_eq_re_inner]
+end
+
 end pi_Lp
 
 

@@ -1824,6 +1824,28 @@ begin
   simp [real_inner_eq_re_inner]
 end
 
+@[simp] lemma complex.isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
+  complex.isometry_euclidean.symm x = (x 0) + (x 1) * I :=
+begin
+  convert complex.is_basis_one_I.equiv_fun_symm_apply x,
+  { simp only [fin.mk_zero, mul_one, complex.smul_coe, fin.mk_eq_subtype_mk, matrix.cons_val_zero],
+    refl },
+  { simp },
+end
+
+lemma complex.isometry_euclidean_proj_eq_self (z : ℂ) :
+  ↑(complex.isometry_euclidean z 0) + ↑(complex.isometry_euclidean z 1) * (I : ℂ) = z :=
+by rw [← complex.isometry_euclidean_symm_apply (complex.isometry_euclidean z),
+  complex.isometry_euclidean.symm_apply_apply z]
+
+@[simp] lemma complex.isometry_euclidean_apply_zero (z : ℂ) :
+  complex.isometry_euclidean z 0 = z.re :=
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+
+@[simp] lemma complex.isometry_euclidean_apply_one (z : ℂ) :
+  complex.isometry_euclidean z 1 = z.im :=
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+
 end pi_Lp
 
 

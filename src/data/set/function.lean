@@ -726,9 +726,24 @@ lemma piecewise_preimage (f g : α → β) (t) :
   s.piecewise f g ⁻¹' t = s.ite (f ⁻¹' t) (g ⁻¹' t) :=
 ext $ λ x, by by_cases x ∈ s; simp [*, set.ite]
 
-lemma comp_piecewise (h : β → γ) {f g : α → β} {x : α} :
-  h (s.piecewise f g x) = s.piecewise (h ∘ f) (h ∘ g) x :=
+lemma apply_piecewise {δ' : α → Sort*} (h : Π i, δ i → δ' i) {x : α} :
+  h x (s.piecewise f g x) = s.piecewise (λ x, h x (f x)) (λ x, h x (g x)) x :=
 by by_cases hx : x ∈ s; simp [hx]
+
+lemma apply_piecewise₂ {δ' δ'' : α → Sort*} (f' g' : Π i, δ' i) (h : Π i, δ i → δ' i → δ'' i)
+  {x : α} :
+  h x (s.piecewise f g x) (s.piecewise f' g' x) =
+    s.piecewise (λ x, h x (f x) (f' x)) (λ x, h x (g x) (g' x)) x :=
+by by_cases hx : x ∈ s; simp [hx]
+
+lemma piecewise_op {δ' : α → Sort*} (h : Π i, δ i → δ' i) :
+  s.piecewise (λ x, h x (f x)) (λ x, h x (g x)) = λ x, h x (s.piecewise f g x) :=
+funext $ λ x, (apply_piecewise _ _ _ _).symm
+
+lemma piecewise_op₂ {δ' δ'' : α → Sort*} (f' g' : Π i, δ' i) (h : Π i, δ i → δ' i → δ'' i) :
+  s.piecewise (λ x, h x (f x) (f' x)) (λ x, h x (g x) (g' x)) =
+    λ x, h x (s.piecewise f g x) (s.piecewise f' g' x) :=
+funext $ λ x, (apply_piecewise₂ _ _ _ _ _ _).symm
 
 @[simp] lemma piecewise_same : s.piecewise f f = f :=
 by { ext x, by_cases hx : x ∈ s; simp [hx] }

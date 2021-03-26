@@ -117,7 +117,7 @@ funext $ λx, by { simp only [indicator], split_ifs, repeat {simp * at * {contex
 
 lemma comp_indicator (h : β → γ) (f : α → β) {s : set α} {x : α} :
   h (s.indicator f x) = s.piecewise (h ∘ f) (const α (h 0)) x :=
-s.comp_piecewise h
+s.apply_piecewise _ _ (λ _, h)
 
 lemma indicator_comp_right {s : set α} (f : γ → α) {g : α → β} {x : γ} :
   indicator (f ⁻¹' s) (g ∘ f) x = indicator s g (f x) :=

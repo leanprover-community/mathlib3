@@ -527,7 +527,7 @@ order_embedding.of_strict_mono (λ a, cast_lt a (lt_of_lt_of_le a.2 h)) $ λ a b
 set.ext (λ x, ⟨λ ⟨y, hy⟩, hy ▸ y.2, λ hx, ⟨⟨x, hx⟩, fin.ext rfl⟩⟩)
 
 @[simp] lemma coe_set_range_cast_le_symm {n k : ℕ} (h : n ≤ k) (i : fin k) (hi) :
-  ((equiv.set.range _ ((cast_le h).injective)).symm ⟨i, hi⟩ : ℕ) = i :=
+  ((equiv.set.range _ (cast_le h).injective).symm ⟨i, hi⟩ : ℕ) = i :=
 begin
   rw ← coe_cast_le,
   exact congr_arg coe (equiv.set.apply_range_symm _ _ _)

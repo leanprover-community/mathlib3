@@ -91,17 +91,17 @@ instance monoid_with_zero.to_mul_action_with_zero : mul_action_with_zero R R :=
   zero_smul := zero_mul,
   ..monoid.to_mul_action R }
 
-variables {R M} [mul_action_with_zero R M]
+variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_scalar R M']
 
 /-- Pullback a `mul_action_with_zero` structure along an injective zero-preserving homomorphism. -/
-protected def function.injective.mul_action_with_zero [has_scalar R M'] [has_zero M']
+protected def function.injective.mul_action_with_zero
   (f : zero_hom M' M) (hf : function.injective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   mul_action_with_zero R M' :=
 { ..hf.mul_action f smul, ..hf.smul_zero_class f smul }
 
 /-- Pushforward a `mul_action_with_zero` structure along a surjective zero-preserving homomorphism.
 -/
-protected def function.surjective.mul_action_with_zero [has_zero M'] [has_scalar R M']
+protected def function.surjective.mul_action_with_zero
   (f : zero_hom M M') (hf : function.surjective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   mul_action_with_zero R M' :=
 { ..hf.mul_action f smul, ..hf.smul_zero_class f smul }

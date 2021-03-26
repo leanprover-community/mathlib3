@@ -265,3 +265,28 @@ attribute [to_additive add_submonoid.multiples_eq_closure] submonoid.powers_eq_c
 attribute [to_additive add_submonoid.multiples_subset] submonoid.powers_subset
 
 end add_submonoid
+
+lemma of_mul_image_powers_eq_multiples_of_mul {x : M} :
+  additive.of_mul '' ((submonoid.powers x) : set M) = add_submonoid.multiples (additive.of_mul x) :=
+begin
+  ext,
+  split,
+  { rintros ⟨y, ⟨n, hy1⟩, hy2⟩,
+    use n,
+    simpa [← of_mul_pow, hy1] },
+  { rintros ⟨n, hn⟩,
+    use (x ^ n),
+    dsimp only at hn,
+    split,
+    { use n },
+    { rwa of_mul_pow } },
+end
+
+lemma of_add_image_multiples_eq_powers_of_add {x : A} :
+  multiplicative.of_add '' ((add_submonoid.multiples x) : set A) =
+  submonoid.powers (multiplicative.of_add x) :=
+begin
+  symmetry,
+  rw equiv.eq_image_iff_symm_image_eq,
+  exact of_mul_image_powers_eq_multiples_of_mul,
+end

@@ -196,9 +196,9 @@ begin
               ring_hom.id_apply, polynomial.eval₂_monomial, polynomial.eval₂_sub],
   split,
   { intro h,
-    simpa [sub_eq_zero_iff_eq] using h 0 },
+    simpa [sub_eq_zero] using h 0 },
   { intros h n,
-    simp only [pow_add, sub_eq_zero_iff_eq.mp h, mul_sum],
+    simp only [pow_add, sub_eq_zero.mp h, mul_sum],
     exact sum_congr rfl (λ _ _, by ring) }
 end
 

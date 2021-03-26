@@ -204,7 +204,7 @@ begin
     simp only [one_pow, one_mul, X_in_terms_of_W_zero, sub_self, bind₁_X_right] },
   { intros i hin hi0,
     rw [finset.mem_range] at hin,
-    rw [IH _ hin (nat.pos_of_ne_zero hi0), zero_pow (pow_pos hp.pos _), mul_zero], },
+    rw [IH _ hin (nat.pos_of_ne_zero hi0), zero_pow (pow_pos hp.1.pos _), mul_zero], },
   { rw finset.mem_range, intro, contradiction }
 end
 

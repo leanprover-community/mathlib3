@@ -373,10 +373,6 @@ instance continuous_map_algebra : algebra R C(α, A) :=
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
   ..continuous_map_semiring }
 
-@[simp] lemma algebra_map_apply (k : R) (a : α) :
-  algebra_map R C(α, A) k a = k • 1 :=
-by { rw algebra.algebra_map_eq_smul_one, refl, }
-
 /--
 A version of `separates_points` for subalgebras of the continuous functions,
 used for stating the Stone-Weierstrass theorem.
@@ -388,10 +384,14 @@ lemma subalgebra.separates_points_monotone :
   monotone (λ s : subalgebra R C(α, A), s.separates_points) :=
 λ s s' r h x y n,
 begin
-  obtain ⟨f, m, w⟩ := h x y n,
+  obtain ⟨f, m, w⟩ := h n,
   rcases m with ⟨f, ⟨m, rfl⟩⟩,
   exact ⟨_, ⟨f, ⟨r m, rfl⟩⟩, w⟩,
 end
+
+@[simp] lemma algebra_map_apply (k : R) (a : α) :
+  algebra_map R C(α, A) k a = k • 1 :=
+by { rw algebra.algebra_map_eq_smul_one, refl, }
 
 variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
 
@@ -402,11 +402,11 @@ a subalgebra of functions that separates points also separates points strongly.
 By the hypothesis, we can find a function `f` so `f x ≠ f y`.
 By an affine transformation in the field we can arrange so that `f x = a` and `f x = b`.
 -/
-lemma subalgebra.separates_points_strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h : s.separates_points) :
+lemma subalgebra.separates_points.strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h : s.separates_points) :
   separates_points_strongly ((λ f : C(α, 𝕜), (f : α → 𝕜)) '' (s : set C(α, 𝕜))) :=
 λ x y n,
 begin
-  obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h x y n,
+  obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
   replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
   intros a b,
   let f' := ((b - a) * (f x - f y)⁻¹) • (continuous_map.C (f x) - f) + continuous_map.C a,

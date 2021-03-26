@@ -1,7 +1,7 @@
 [package]
 name = "mathlib"
 version = "0.1"
-lean_version = "urkud/lean:coeFnLean4"
+lean_version = "urkud/lean:coeFn2"
 path = "src"
 
 [dependencies]

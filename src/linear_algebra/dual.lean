@@ -40,10 +40,13 @@ noncomputable theory
 namespace module
 
 variables (R : Type*) (M : Type*)
-variables [comm_ring R] [add_comm_group M] [module R M]
+variables [comm_semiring R] [add_comm_monoid M] [semimodule R M]
 
 /-- The dual space of an R-module M is the R-module of linear maps `M → R`. -/
-@[derive [add_comm_group, module R]] def dual := M →ₗ[R] R
+@[derive [add_comm_monoid, semimodule R]] def dual := M →ₗ[R] R
+
+instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
+  add_comm_group (dual S N) := by {unfold dual, apply_instance}
 
 namespace dual
 
@@ -61,7 +64,7 @@ begin
   rw [linear_map.flip_apply, linear_map.id_apply]
 end
 
-variables {R M} {M' : Type*} [add_comm_group M'] [module R M']
+variables {R M} {M' : Type*} [add_comm_monoid M'] [semimodule R M']
 
 /-- The transposition of linear maps, as a linear map from `M →ₗ[R] M'` to
 `dual R M' →ₗ[R] dual R M`. -/
@@ -70,7 +73,7 @@ def transpose : (M →ₗ[R] M') →ₗ[R] (dual R M' →ₗ[R] dual R M) :=
 
 lemma transpose_apply (u : M →ₗ[R] M') (l : dual R M') : transpose u l = l.comp u := rfl
 
-variables {M'' : Type*} [add_comm_group M''] [module R M'']
+variables {M'' : Type*} [add_comm_monoid M''] [semimodule R M'']
 
 lemma transpose_comp (u : M' →ₗ[R] M'') (v : M →ₗ[R] M') :
   transpose (u.comp v) = (transpose v).comp (transpose u) := rfl
@@ -96,7 +99,7 @@ include de h
 /-- The linear map from a vector space equipped with basis to its dual vector space,
 taking basis elements to corresponding dual basis elements. -/
 def to_dual : V →ₗ[K] module.dual K V :=
-h.constr $ λ v, h.constr $ λ w, if w = v then 1 else 0
+h.constr $ λ v, h.constr $ λ w, if w = v then (1 : K) else 0
 
 variable {B}
 
@@ -363,7 +366,7 @@ lemma decomposition (v : V) : dual_pair.lc e (h.coeffs v) = v :=
 begin
   refine eq_of_sub_eq_zero (h.total _),
   intros i,
-  simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero_iff_eq]
+  simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero]
 end
 
 lemma mem_of_mem_span {H : set ι} {x : V} (hmem : x ∈ submodule.span K (e '' H)) :
@@ -439,6 +442,21 @@ end
 lemma dual_restrict_ker_eq_dual_annihilator (W : submodule R M) :
   W.dual_restrict.ker = W.dual_annihilator :=
 rfl
+
+lemma dual_annihilator_sup_eq_inf_dual_annihilator (U V : submodule R M) :
+  (U ⊔ V).dual_annihilator = U.dual_annihilator ⊓ V.dual_annihilator :=
+begin
+  ext φ,
+  rw [mem_inf, mem_dual_annihilator, mem_dual_annihilator, mem_dual_annihilator],
+  split; intro h,
+  { refine ⟨_, _⟩;
+    intros x hx,
+    exact h x (mem_sup.2 ⟨x, hx, 0, zero_mem _, add_zero _⟩),
+    exact h x (mem_sup.2 ⟨0, zero_mem _, x, hx, zero_add _⟩) },
+  { simp_rw mem_sup,
+    rintro _ ⟨x, hx, y, hy, rfl⟩,
+    rw [linear_map.map_add, h.1 _ hx, h.2 _ hy, add_zero] }
+end
 
 end submodule
 

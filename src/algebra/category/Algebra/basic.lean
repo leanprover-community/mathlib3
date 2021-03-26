@@ -145,5 +145,5 @@ instance Algebra.forget_reflects_isos : reflects_isomorphisms (forget (Algebra.{
     resetI,
     let i := as_iso ((forget (Algebra.{u} R)).map f),
     let e : X ≃ₐ[R] Y := { ..f, ..i.to_equiv },
-    exact is_iso.of_iso e.to_Algebra_iso,
+    exact ⟨(is_iso.of_iso e.to_Algebra_iso).1⟩,
   end }

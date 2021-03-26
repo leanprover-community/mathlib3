@@ -464,8 +464,7 @@ multiset.induction_on p (by simp; refl) $ assume a s ih, by simp [ih]; refl
 
 theorem rel_associated_iff_map_eq_map {p q : multiset α} :
   multiset.rel associated p q ↔ p.map associates.mk = q.map associates.mk :=
-by rw [← multiset.rel_eq];
-  simp [multiset.rel_map_left, multiset.rel_map_right, mk_eq_mk_iff_associated]
+by { rw [← multiset.rel_eq, multiset.rel_map], simp only [mk_eq_mk_iff_associated] }
 
 theorem mul_eq_one_iff {x y : associates α} : x * y = 1 ↔ (x = 1 ∧ y = 1) :=
 iff.intro

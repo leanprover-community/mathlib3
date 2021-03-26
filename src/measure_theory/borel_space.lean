@@ -411,10 +411,10 @@ instance topological_group.has_measurable_inv [group γ] [topological_group γ] 
 ⟨continuous_inv.measurable⟩
 
 @[priority 100]
-instance topological_semimodule.has_measurable_const_smul {R M} [semiring R] [topological_space R]
-  [add_comm_monoid M] [topological_space M] [measurable_space M]
-  [borel_space M] [semimodule R M] [topological_semimodule R M] :
-  has_measurable_const_smul R M :=
+instance has_continuous_smul.has_measurable_const_smul {M α} [topological_space M]
+  [topological_space α] [measurable_space α]
+  [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
+  has_measurable_const_smul M α :=
 ⟨λ c, (continuous_const.smul continuous_id).measurable⟩
 
 section homeomorph
@@ -470,11 +470,11 @@ instance has_continuous_sub.has_measurable_sub₂ [second_countable_topology γ]
 ⟨continuous_sub.measurable⟩
 
 @[priority 100]
-instance topological_semimodule.has_measurable_smul {R M} [semiring R] [topological_space R]
-  [second_countable_topology R] [measurable_space R] [opens_measurable_space R]
-  [add_comm_monoid M] [topological_space M] [second_countable_topology M] [measurable_space M]
-  [borel_space M] [semimodule R M] [topological_semimodule R M] :
-  has_measurable_smul R M :=
+instance has_continuous_smul.has_measurable_smul {M α} [topological_space M]
+  [second_countable_topology M] [measurable_space M] [opens_measurable_space M]
+  [topological_space α] [second_countable_topology α] [measurable_space α]
+  [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
+  has_measurable_smul M α :=
 ⟨continuous_smul.measurable⟩
 
 end

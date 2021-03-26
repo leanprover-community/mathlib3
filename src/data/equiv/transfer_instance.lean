@@ -130,6 +130,13 @@ protected def comm_semigroup [comm_semigroup β] : comm_semigroup α :=
 { mul_comm := by simp [mul_def, mul_comm],
   ..equiv.semigroup e }
 
+/-- Transfer `mul_zero_class` across an `equiv` -/
+protected def mul_zero_class [mul_zero_class β] : mul_zero_class α :=
+{ zero_mul := by simp [mul_def, zero_def],
+  mul_zero := by simp [mul_def, zero_def],
+  ..equiv.has_mul e,
+  ..equiv.has_zero e }
+
 /-- Transfer `monoid` across an `equiv` -/
 @[to_additive "Transfer `add_monoid` across an `equiv`"]
 protected def monoid [monoid β] : monoid α :=

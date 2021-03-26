@@ -197,9 +197,17 @@ nonpos_iff_eq_zero.1 $ h₂ ▸ measure_mono h
 lemma measure_mono_top (h : s₁ ⊆ s₂) (h₁ : μ s₁ = ∞) : μ s₂ = ∞ :=
 top_unique $ h₁ ▸ measure_mono h
 
+/-- For every set there exists a measurable superset of the same measure. -/
 lemma exists_measurable_superset (μ : measure α) (s : set α) :
   ∃ t, s ⊆ t ∧ measurable_set t ∧ μ t = μ s :=
 by simpa only [← measure_eq_trim] using μ.to_outer_measure.exists_measurable_superset_eq_trim s
+
+/-- For every set `s` and a countable collection of measures `μ i` there exists a measurable
+superset `t ⊇ s` such that each measure `μ i` takes the same value on `s` and `t`. -/
+lemma exists_measurable_superset_forall_eq {ι} [encodable ι] (μ : ι → measure α) (s : set α) :
+  ∃ t, s ⊆ t ∧ measurable_set t ∧ ∀ i, μ i t = μ i s :=
+by simpa only [← measure_eq_trim]
+  using outer_measure.exists_measurable_superset_forall_eq_trim (λ i, (μ i).to_outer_measure) s
 
 /-- A measurable set `t ⊇ s` such that `μ t = μ s`. -/
 def to_measurable (μ : measure α) (s : set α) : set α :=

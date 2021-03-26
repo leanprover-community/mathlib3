@@ -79,6 +79,22 @@ instance : normed_group ℝ :=
 
 lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
 
+lemma real.pow_even_norm (x : ℝ) {p : ℕ} (hp : even p) :
+  ∥x∥ ^ p = x ^ p :=
+by rw [real.norm_eq_abs, pow_even_abs x hp]
+
+@[simp] lemma real.pow_bit0_norm (x : ℝ) (p : ℕ) :
+  ∥x∥ ^ bit0 p = x ^ bit0 p :=
+real.pow_even_norm _ (even_bit0 _)
+
+lemma real.fpow_even_norm (x : ℝ) {p : ℤ} (hp : even p) :
+  ∥x∥ ^ p = x ^ p :=
+by rw [real.norm_eq_abs, fpow_even_abs x hp]
+
+@[simp] lemma real.fpow_bit0_norm (x : ℝ) (p : ℤ) :
+  ∥x∥ ^ bit0 p = x ^ bit0 p :=
+real.fpow_even_norm _ (even_bit0 _)
+
 section normed_group
 variables [normed_group α] [normed_group β]
 
@@ -583,7 +599,7 @@ end
 continuous. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
-⟨(lipschitz_with.prod_fst.sub lipschitz_with.prod_snd).uniform_continuous⟩
+⟨((@lipschitz_with.prod_fst α α _ _).sub lipschitz_with.prod_snd).uniform_continuous⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_monoid : has_continuous_add α :=
@@ -1014,7 +1030,7 @@ variables {E : Type*} {F : Type*}
 [normed_group E] [normed_space α E] [normed_group F] [normed_space α F]
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_space.topological_vector_space : topological_vector_space α E :=
+instance normed_space.has_continuous_smul : has_continuous_smul α E :=
 begin
   refine { continuous_smul := continuous_iff_continuous_at.2 $
     λ p, tendsto_iff_norm_tendsto_zero.2 _ },
@@ -1188,21 +1204,6 @@ normed_algebra.norm_algebra_map_eq _
 
 variables (𝕜 : Type*) [normed_field 𝕜]
 variables (𝕜' : Type*) [normed_ring 𝕜']
-
--- This could also be proved via `linear_map.continuous_of_bound`,
--- but this is further up the import tree in `normed_space.operator_norm`, so not yet available.
-@[continuity] lemma normed_algebra.algebra_map_continuous
-  [normed_algebra 𝕜 𝕜'] :
-  continuous (algebra_map 𝕜 𝕜') :=
-begin
-  change continuous (algebra_map 𝕜 𝕜').to_add_monoid_hom,
-  exact add_monoid_hom.continuous_of_bound _ 1 (λ x, by simp),
-end
-
-@[priority 100]
-instance normed_algebra.to_topological_algebra [normed_algebra 𝕜 𝕜'] :
-  topological_algebra 𝕜 𝕜' :=
-⟨by continuity⟩
 
 @[priority 100]
 instance normed_algebra.to_normed_space [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=

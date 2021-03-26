@@ -704,11 +704,11 @@ end tsum
 
 end topological_semiring
 
-section topological_semimodule
+section has_continuous_smul
 variables {R : Type*}
 [semiring R] [topological_space R]
 [topological_space α] [add_comm_monoid α]
-[semimodule R α] [topological_semimodule R α]
+[semimodule R α] [has_continuous_smul R α]
 {f : β → α}
 
 lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
@@ -720,7 +720,7 @@ hf.has_sum.smul.summable
 lemma tsum_smul [t2_space α] {r : R} (hf : summable f) : ∑' z, r • f z = r • ∑' z, f z :=
 hf.has_sum.smul.tsum_eq
 
-end topological_semimodule
+end has_continuous_smul
 
 section division_ring
 

@@ -551,6 +551,11 @@ begin
   exact eq_empty_of_not_nonempty h _,
 end
 
+@[to_additive] lemma measurable_set_mul_support [has_one β]
+  [measurable_singleton_class β] {f : α → β} (hf : measurable f) :
+  measurable_set (mul_support f) :=
+hf (measurable_set_singleton 1).compl
+
 end measurable_functions
 
 section constructions

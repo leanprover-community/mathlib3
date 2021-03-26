@@ -148,15 +148,15 @@ end char_zero
 namespace monoid_algebra
 
 -- Now we work over a `[field k]`, and replace the assumption `[invertible (fintype.card G : k)]`
--- with `¬(ring_char k ∣ fintype.card G)`.
-variables {k : Type u} [field k] {G : Type u} [fintype G] [group G]
+-- with `[fact ¬(ring_char k ∣ fintype.card G)]`.
+variables {k : Type u} [field k] {G : Type u} [fintype G] [fact ¬(ring_char k ∣ fintype.card G)]
+instance : invertible (fintype.card G : k) := invertible_of_ring_char_not_dvd (fact.out _)
+
+variables [group G]
 variables {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
 variables [is_scalar_tower k (monoid_algebra k G) V]
 variables {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
 variables [is_scalar_tower k (monoid_algebra k G) W]
-variables [fact ¬(ring_char k ∣ fintype.card G)]
-
-instance : invertible (fintype.card G : k) := invertible_of_ring_char_not_dvd (fact.out _)
 
 lemma exists_left_inverse_of_injective
   (f : V →ₗ[monoid_algebra k G] W) (hf : f.ker = ⊥) :
@@ -174,8 +174,6 @@ begin
 end
 
 namespace submodule
-
-variable [fact ¬(ring_char k ∣ fintype.card G)]
 
 lemma exists_is_compl
   (p : submodule (monoid_algebra k G) V) :

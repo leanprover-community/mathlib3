@@ -136,7 +136,8 @@ lemma monoid_hom.coe_prod [monoid β] [comm_monoid γ] (f : α → β →* γ) (
   ⇑(∏ x in s, f x) = ∏ x in s, f x :=
 (monoid_hom.coe_fn β γ).map_prod _ _
 
--- This lemma is strictly weaker than `finset.prod_apply`, and should be removed.
+-- See also `finset.prod_apply`, with the same conclusion
+-- but with the weaker hypothesis `f : α → β → γ`.
 @[simp, to_additive]
 lemma monoid_hom.finset_prod_apply [monoid β] [comm_monoid γ] (f : α → β →* γ) (s : finset α)
   (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=

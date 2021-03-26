@@ -100,7 +100,7 @@ namespace finsupp
 section basic
 variable [has_zero M]
 
-instance : has_coe_to_fun (α →₀ M) := ⟨λ _, α → M, to_fun⟩
+instance : has_coe_to_fun (α →₀ M) (λ _, α → M) := ⟨to_fun⟩
 
 @[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
   ⇑(⟨s, f, h⟩ : α →₀ M) = f := rfl

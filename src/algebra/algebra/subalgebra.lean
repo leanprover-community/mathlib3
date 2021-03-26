@@ -39,7 +39,7 @@ very often, harder to use than the projections themselves, and none of the other
 that type of coercion. -/
 instance : has_coe_t (subalgebra R A) (set A) := ⟨λ s, s.carrier⟩
 instance : has_mem A (subalgebra R A) := ⟨λ x p, x ∈ (p : set A)⟩
-instance : has_coe_to_sort (subalgebra R A) := ⟨_, λ p, {x : A // x ∈ p}⟩
+instance : has_coe_to_sort (subalgebra R A) _ := ⟨λ p, {x : A // x ∈ p}⟩
 
 lemma coe_injective : function.injective (coe : subalgebra R A → set A) :=
 λ S T h, by cases S; cases T; congr'

@@ -60,7 +60,7 @@ section basic
 
 variables [has_mul R] [has_add R] [has_mul S] [has_add S] [has_mul S'] [has_add S']
 
-instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
+instance : has_coe_to_fun (R ≃+* S) (λ _, R → S) := ⟨ring_equiv.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : R ≃+* S) : f.to_fun = f := rfl
 

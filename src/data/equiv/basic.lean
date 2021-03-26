@@ -77,20 +77,19 @@ namespace equiv
 /-- `perm α` is the type of bijections from `α` to itself. -/
 @[reducible] def perm (α : Sort*) := equiv α α
 
-instance : has_coe_to_fun (α ≃ β) :=
-⟨_, to_fun⟩
+instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨to_fun⟩
 
 @[simp] theorem coe_fn_mk (f : α → β) (g l r) : (equiv.mk f g l r : α → β) = f :=
 rfl
 
 /-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. -/
-theorem coe_fn_injective : function.injective (λ (e : α ≃ β) (x : α), e x)
+theorem coe_fn_injective : function.injective (coe_fn : (α ≃ β) → (α → β))
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ h :=
   have f₁ = f₂, from h,
   have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),
   by simp *
 
-@[simp, norm_cast] protected lemma coe_inj {e₁ e₂ : α ≃ β} : ⇑e₁ = e₂ ↔ e₁ = e₂ :=
+@[simp, norm_cast] protected lemma coe_inj {e₁ e₂ : α ≃ β} : (e₁ : α → β) = e₂ ↔ e₁ = e₂ :=
 coe_fn_injective.eq_iff
 
 @[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g :=

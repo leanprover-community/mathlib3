@@ -84,7 +84,7 @@ local infix ` ≼i `:25 := initial_seg
 namespace initial_seg
 
 instance : has_coe (r ≼i s) (r ↪r s) := ⟨initial_seg.to_rel_embedding⟩
-instance : has_coe_to_fun (r ≼i s) := ⟨λ _, α → β, λ f x, (f : r ↪r s) x⟩
+instance : has_coe_to_fun (r ≼i s) (λ _, α → β) := ⟨λ f x, (f : r ↪r s) x⟩
 
 @[simp] theorem coe_fn_mk (f : r ↪r s) (o) :
   (@initial_seg.mk _ _ r s f o : α → β) = f := rfl
@@ -204,7 +204,7 @@ local infix ` ≺i `:25 := principal_seg
 namespace principal_seg
 
 instance : has_coe (r ≺i s) (r ↪r s) := ⟨principal_seg.to_rel_embedding⟩
-instance : has_coe_to_fun (r ≺i s) := ⟨λ _, α → β, λ f, f⟩
+instance : has_coe_to_fun (r ≺i s) (λ _, α → β) := ⟨λ f, f⟩
 
 @[simp] theorem coe_fn_mk (f : r ↪r s) (t o) :
   (@principal_seg.mk _ _ r s f t o : α → β) = f := rfl

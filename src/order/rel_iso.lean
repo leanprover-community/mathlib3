@@ -24,7 +24,7 @@ infix ` →r `:25 := rel_hom
 
 namespace rel_hom
 
-instance : has_coe_to_fun (r →r s) := ⟨λ _, α → β, λ o, o.to_fun⟩
+instance : has_coe_to_fun (r →r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
 
 theorem map_rel (f : r →r s) : ∀ {a b}, r a b → s (f a) (f b) := f.map_rel'
 
@@ -155,7 +155,7 @@ def to_rel_hom (f : r ↪r s) : (r →r s) :=
 
 instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
 -- see Note [function coercion]
-instance : has_coe_to_fun (r ↪r s) := ⟨λ _, α → β, λ o, o.to_embedding⟩
+instance : has_coe_to_fun (r ↪r s) (λ _, α → β) := ⟨λ o, o.to_embedding⟩
 
 @[simp] lemma to_rel_hom_eq_coe (f : r ↪r s) : f.to_rel_hom = f := rfl
 
@@ -366,7 +366,7 @@ def to_rel_embedding (f : r ≃r s) : r ↪r s :=
 
 instance : has_coe (r ≃r s) (r ↪r s) := ⟨to_rel_embedding⟩
 -- see Note [function coercion]
-instance : has_coe_to_fun (r ≃r s) := ⟨λ _, α → β, λ f, f⟩
+instance : has_coe_to_fun (r ≃r s) (λ _, α → β) := ⟨λ f, f⟩
 
 @[simp] lemma to_rel_embedding_eq_coe (f : r ≃r s) : f.to_rel_embedding = f := rfl
 

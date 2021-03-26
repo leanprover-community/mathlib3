@@ -40,7 +40,7 @@ instance : has_coe (subsemiring R) (set R) := ⟨subsemiring.carrier⟩
 
 instance : has_mem R (subsemiring R) := ⟨λ m S, m ∈ (S:set R)⟩
 
-instance : has_coe_to_sort (subsemiring R) := ⟨Type*, λ S, {x : R // x ∈ S}⟩
+instance : has_coe_to_sort (subsemiring R) Type* := ⟨λ S, {x : R // x ∈ S}⟩
 
 /-- Construct a `subsemiring R` from a set `s`, a submonoid `sm`, and an additive
 submonoid `sa` such that `x ∈ s ↔ x ∈ sm ↔ x ∈ sa`. -/

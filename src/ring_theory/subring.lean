@@ -90,7 +90,7 @@ instance : has_coe (subring R) (set R) := ⟨subring.carrier⟩
 
 instance : has_mem R (subring R) := ⟨λ m S, m ∈ (S:set R)⟩
 
-instance : has_coe_to_sort (subring R) := ⟨Type*, λ S, {x : R // x ∈ S}⟩
+instance : has_coe_to_sort (subring R) Type* := ⟨λ S, {x : R // x ∈ S}⟩
 
 /-- Construct a `subring R` from a set `s`, a submonoid `sm`, and an additive
 subgroup `sa` such that `x ∈ s ↔ x ∈ sm ↔ x ∈ sa`. -/

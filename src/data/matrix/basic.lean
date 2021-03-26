@@ -1096,6 +1096,16 @@ begin
   refl
 end
 
+@[simp] lemma update_row_eq_self [decidable_eq m]
+  (A : matrix m n α) {i : m} :
+  A.update_row i (A i) = A :=
+by { ext i', rw update_row_apply, split_ifs with h; simp [h] }
+
+@[simp] lemma update_column_eq_self [decidable_eq n]
+  (A : matrix m n α) {i : n} :
+  A.update_column i (λ j, A j i) = A :=
+by { ext i', rw update_column_apply, split_ifs with h; simp [h] }
+
 end update
 
 section block_matrices

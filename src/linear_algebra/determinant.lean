@@ -226,6 +226,20 @@ calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_di
              ... = det (diagonal (λ _, c)) * det A        : det_mul _ _
              ... = c ^ fintype.card n * det A             : by simp [card_univ]
 
+/-- Multiplying each row by a fixed `v i` multiplies the determinant by
+the product of the `v`s. -/
+lemma det_mul_row (v : n → R) (A : matrix n n R) :
+  det (λ i j, v j * A i j) = (∏ i, v i) * det A :=
+calc det (λ i j, v j * A i j) = det (A ⬝ diagonal v) : congr_arg det $ by { ext, simp [mul_comm] }
+                          ... = (∏ i, v i) * det A : by rw [det_mul, det_diagonal, mul_comm]
+
+/-- Multiplying each column by a fixed `v j` multiplies the determinant by
+the product of the `v`s. -/
+lemma det_mul_column (v : n → R) (A : matrix n n R) :
+  det (λ i j, v i * A i j) = (∏ i, v i) * det A :=
+calc det (λ i j, v i * A i j) = det (diagonal v ⬝ A) : congr_arg det $ by { ext, simp }
+                          ... = (∏ i, v i) * det A : by rw [det_mul, det_diagonal]
+
 section hom_map
 
 variables {S : Type w} [comm_ring S]
@@ -260,6 +274,10 @@ variables {M : matrix n n R} {i j : n}
 theorem det_zero_of_row_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
 (det_row_multilinear : alternating_map R (n → R) R n).map_eq_zero_of_eq M hij i_ne_j
 
+/-- If a matrix has a repeated column, the determinant will be zero. -/
+theorem det_zero_of_column_eq (i_ne_j : i ≠ j) (hij : ∀ k, M k i = M k j) : M.det = 0 :=
+by { rw [← det_transpose, det_zero_of_row_eq i_ne_j], exact funext hij }
+
 end det_zero
 
 lemma det_update_row_add (M : matrix n n R) (j : n) (u v : n → R) :
@@ -283,6 +301,151 @@ begin
   rw [← det_transpose, ← update_row_transpose, det_update_row_smul],
   simp [update_row_transpose, det_transpose]
 end
+
+section det_eq
+
+/-! ### `det_eq` section
+
+Lemmas showing the determinant is invariant under a variety of operations.
+-/
+lemma det_eq_of_eq_mul_det_one {A B : matrix n n R}
+  (C : matrix n n R) (hC : det C = 1) (hA : A = B ⬝ C) : det A = det B :=
+calc det A = det (B ⬝ C) : congr_arg _ hA
+       ... = det B * det C : det_mul _ _
+       ... = det B : by rw [hC, mul_one]
+
+lemma det_eq_of_eq_det_one_mul {A B : matrix n n R}
+  (C : matrix n n R) (hC : det C = 1) (hA : A = C ⬝ B) : det A = det B :=
+calc det A = det (C ⬝ B) : congr_arg _ hA
+       ... = det C * det B : det_mul _ _
+       ... = det B : by rw [hC, one_mul]
+
+lemma det_update_row_add_self (A : matrix n n R) {i j : n} (hij : i ≠ j) :
+  det (update_row A i (A i + A j)) = det A :=
+by simp [det_update_row_add,
+    det_zero_of_row_eq hij ((update_row_self).trans (update_row_ne hij.symm).symm)]
+
+lemma det_update_column_add_self (A : matrix n n R) {i j : n} (hij : i ≠ j) :
+  det (update_column A i (λ k, A k i + A k j)) = det A :=
+by { rw [← det_transpose, ← update_row_transpose, ← det_transpose A],
+     exact det_update_row_add_self Aᵀ hij }
+
+lemma det_update_row_add_smul_self (A : matrix n n R) {i j : n} (hij : i ≠ j) (c : R) :
+  det (update_row A i (A i + c • A j)) = det A :=
+by simp [det_update_row_add, det_update_row_smul,
+  det_zero_of_row_eq hij ((update_row_self).trans (update_row_ne hij.symm).symm)]
+
+lemma det_update_column_add_smul_self (A : matrix n n R) {i j : n} (hij : i ≠ j) (c : R) :
+  det (update_column A i (λ k, A k i + c • A k j)) = det A :=
+by { rw [← det_transpose, ← update_row_transpose, ← det_transpose A],
+      exact det_update_row_add_smul_self Aᵀ hij c }
+
+lemma det_eq_of_forall_row_eq_smul_add_const_aux
+  {A B : matrix n n R} {s : finset n} : ∀ (c : n → R) (hs : ∀ i, i ∉ s → c i = 0)
+  (k : n) (hk : k ∉ s) (A_eq : ∀ i j, A i j = B i j + c i * B k j),
+  det A = det B :=
+begin
+  revert B,
+  refine s.induction_on _ _,
+  { intros A c hs k hk A_eq,
+    have : ∀ i, c i = 0,
+    { intros i,
+      specialize hs i,
+      contrapose! hs,
+      simp [hs] },
+    congr,
+    ext i j,
+    rw [A_eq, this, zero_mul, add_zero], },
+  { intros i s hi ih B c hs k hk A_eq,
+    have hAi : A i = B i + c i • B k := funext (A_eq i),
+    rw [@ih (update_row B i (A i)) (function.update c i 0), hAi,
+        det_update_row_add_smul_self],
+    { exact mt (λ h, show k ∈ insert i s, from h ▸ finset.mem_insert_self _ _) hk },
+    { intros i' hi',
+      rw function.update_apply,
+      split_ifs with hi'i, { refl },
+      { exact hs i' (λ h, hi' ((finset.mem_insert.mp h).resolve_left hi'i)) } },
+    { exact λ h, hk (finset.mem_insert_of_mem h) },
+    { intros i' j',
+      rw [update_row_apply, function.update_apply],
+      split_ifs with hi'i,
+      { simp [hi'i] },
+      rw [A_eq, update_row_ne (λ (h : k = i), hk $ h ▸ finset.mem_insert_self k s)] } }
+end
+
+/-- If you add multiples of row `B k` to other rows, the determinant doesn't change. -/
+lemma det_eq_of_forall_row_eq_smul_add_const
+  {A B : matrix n n R} (c : n → R) (k : n) (hk : c k = 0)
+  (A_eq : ∀ i j, A i j = B i j + c i * B k j) :
+  det A = det B :=
+det_eq_of_forall_row_eq_smul_add_const_aux c
+  (λ i, not_imp_comm.mp $ λ hi, finset.mem_erase.mpr
+    ⟨mt (λ (h : i = k), show c i = 0, from h.symm ▸ hk) hi, finset.mem_univ i⟩)
+  k (finset.not_mem_erase k finset.univ) A_eq
+
+lemma det_eq_of_forall_row_eq_smul_add_pred_aux {n : ℕ} (k : fin (n + 1)) :
+  ∀ (c : fin n → R) (hc : ∀ (i : fin n), k < i.succ → c i = 0)
+    {M N : matrix (fin n.succ) (fin n.succ) R}
+    (h0 : ∀ j, M 0 j = N 0 j)
+    (hsucc : ∀ (i : fin n) j, M i.succ j = N i.succ j + c i * M i.cast_succ j),
+    det M = det N :=
+begin
+  refine fin.induction _ (λ k ih, _) k;
+    intros c hc M N h0 hsucc,
+  { congr,
+    ext i j,
+    refine fin.cases (h0 j) (λ i, _) i,
+    rw [hsucc, hc i (fin.succ_pos _), zero_mul, add_zero] },
+
+  set M' := update_row M k.succ (N k.succ) with hM',
+  have hM : M = update_row M' k.succ (M' k.succ + c k • M k.cast_succ),
+  { ext i j,
+    by_cases hi : i = k.succ,
+    { simp [hi, hM', hsucc, update_row_self] },
+    rw [update_row_ne hi, hM', update_row_ne hi] },
+
+  have k_ne_succ : k.cast_succ ≠ k.succ := (fin.cast_succ_lt_succ k).ne,
+  have M_k : M k.cast_succ = M' k.cast_succ := (update_row_ne k_ne_succ).symm,
+
+  rw [hM, M_k, det_update_row_add_smul_self M' k_ne_succ.symm, ih (function.update c k 0)],
+  { intros i hi,
+    rw [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ, fin.coe_succ, nat.lt_succ_iff] at hi,
+    rw function.update_apply,
+    split_ifs with hik, { refl },
+    exact hc _ (fin.succ_lt_succ_iff.mpr (lt_of_le_of_ne hi (ne.symm hik))) },
+  { rwa [hM', update_row_ne (fin.succ_ne_zero _).symm] },
+  intros i j,
+  rw function.update_apply,
+  split_ifs with hik,
+  { rw [zero_mul, add_zero, hM', hik, update_row_self] },
+  rw [hM', update_row_ne ((fin.succ_injective _).ne hik), hsucc],
+  by_cases hik2 : k < i,
+  { simp [hc i (fin.succ_lt_succ_iff.mpr hik2)] },
+  rw update_row_ne,
+  apply ne_of_lt,
+  rwa [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ, fin.coe_succ, nat.lt_succ_iff, ← not_lt]
+end
+
+/-- If you add multiples of previous rows to the next row, the determinant doesn't change. -/
+lemma det_eq_of_forall_row_eq_smul_add_pred {n : ℕ}
+  {A B : matrix (fin (n + 1)) (fin (n + 1)) R} (c : fin n → R)
+  (A_zero : ∀ j, A 0 j = B 0 j)
+  (A_succ : ∀ (i : fin n) j, A i.succ j = B i.succ j + c i * A i.cast_succ j) :
+  det A = det B :=
+det_eq_of_forall_row_eq_smul_add_pred_aux (fin.last _) c
+  (λ i hi, absurd hi (not_lt_of_ge (fin.le_last _)))
+  A_zero A_succ
+
+/-- If you add multiples of previous columns to the next columns, the determinant doesn't change. -/
+lemma det_eq_of_forall_col_eq_smul_add_pred {n : ℕ}
+  {A B : matrix (fin (n + 1)) (fin (n + 1)) R} (c : fin n → R)
+  (A_zero : ∀ i, A i 0 = B i 0)
+  (A_succ : ∀ i (j : fin n), A i j.succ = B i j.succ + c j * A i j.cast_succ) :
+  det A = det B :=
+by { rw [← det_transpose A, ← det_transpose B],
+     exact det_eq_of_forall_row_eq_smul_add_pred c A_zero (λ i j, A_succ j i) }
+
+end det_eq
 
 @[simp] lemma det_block_diagonal {o : Type*} [fintype o] [decidable_eq o] (M : o → matrix n n R) :
   (block_diagonal M).det = ∏ k, (M k).det :=

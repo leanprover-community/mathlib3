@@ -1,12 +1,19 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
-
-More partial recursive functions using a universal program;
-Rice's theorem and the halting problem.
+Authors: Mario Carneiro
 -/
 import computability.partrec_code
+
+/-!
+# Computability theory and the halting problem
+
+A universal partial recursive function, Rice's theorem, and the halting problem.
+
+## References
+
+* [Mario Carneiro, *Formalizing computability theory via partial recursive functions*][carneiro2019]
+-/
 
 open encodable denumerable
 
@@ -123,11 +130,13 @@ option_some_iff.1 $ (cond
 
 end partrec
 
+/-- A computable predicate is one whose indicator function is computable. -/
 def computable_pred {α} [primcodable α] (p : α → Prop) :=
 ∃ [D : decidable_pred p],
 by exactI computable (λ a, to_bool (p a))
 
-/- recursively enumerable predicate -/
+/-- A recursively enumerable predicate is one which is the domain of a computable partial function.
+ -/
 def re_pred {α} [primcodable α] (p : α → Prop) :=
 partrec (λ a, roption.assert (p a) (λ _, roption.some ()))
 
@@ -174,7 +183,7 @@ begin
   simp at e,
   by_cases eval c ∈ C,
   { simp [h] at e, rwa ← e },
-  { simp at h, simp [h] at e,
+  { simp [h] at e,
     rw e at h, contradiction }
 end
 
@@ -200,6 +209,7 @@ theorem halting_problem (n) : ¬ computable_pred (λ c, (eval c n).dom)
 -- Post's theorem on the equivalence of r.e., co-r.e. sets and
 -- computable sets. The assumption that p is decidable is required
 -- unless we assume Markov's principle or LEM.
+@[nolint decidable_classical]
 theorem computable_iff_re_compl_re {p : α → Prop} [decidable_pred p] :
   computable_pred p ↔ re_pred p ∧ re_pred (λ a, ¬ p a) :=
 ⟨λ h, ⟨h.to_re, h.not.to_re⟩, λ ⟨h₁, h₂⟩, ⟨‹_›, begin
@@ -223,7 +233,7 @@ inductive partrec' : ∀ {n}, (vector ℕ n →. ℕ) → Prop
   partrec' f → (∀ i, partrec' (g i)) →
   partrec' (λ v, m_of_fn (λ i, g i v) >>= f)
 | rfind {n} {f : vector ℕ (n+1) → ℕ} : @partrec' (n+1) f →
-  partrec' (λ v, rfind (λ n, some (f (n :: v) = 0)))
+  partrec' (λ v, rfind (λ n, some (f (n ::ᵥ v) = 0)))
 
 end nat
 
@@ -258,7 +268,7 @@ theorem tail {n f} (hf : @partrec' n f) : @partrec' n.succ (λ v, f v.tail) :=
 
 protected theorem bind {n f g}
   (hf : @partrec' n f) (hg : @partrec' (n+1) g) :
-  @partrec' n (λ v, (f v).bind (λ a, g (a :: v))) :=
+  @partrec' n (λ v, (f v).bind (λ a, g (a ::ᵥ v))) :=
 (@comp n (n+1) g
   (λ i, fin.cases f (λ i v, some (v.nth i)) i) hg
   (λ i, begin
@@ -269,10 +279,12 @@ protected theorem bind {n f g}
 
 protected theorem map {n f} {g : vector ℕ (n+1) → ℕ}
   (hf : @partrec' n f) (hg : @partrec' (n+1) g) :
-  @partrec' n (λ v, (f v).map (λ a, g (a :: v))) :=
+  @partrec' n (λ v, (f v).map (λ a, g (a ::ᵥ v))) :=
 by simp [(roption.bind_some_eq_map _ _).symm];
    exact hf.bind hg
 
+/-- Analogous to `nat.partrec'` for `ℕ`-valued functions, a predicate for partial recursive
+  vector-valued functions.-/
 def vec {n m} (f : vector ℕ n → vector ℕ m) :=
 ∀ i, partrec' (λ v, (f v).nth i)
 
@@ -283,7 +295,7 @@ protected theorem nil {n} : @vec n 0 (λ _, nil) := λ i, i.elim0
 
 protected theorem cons {n m} {f : vector ℕ n → ℕ} {g}
   (hf : @partrec' n f) (hg : @vec n m g) :
-  vec (λ v, f v :: g v) :=
+  vec (λ v, f v ::ᵥ g v) :=
 λ i, fin.cases (by simp *) (λ i, by simp [hg i]) i
 
 theorem idv {n} : @vec n n id := vec.prim nat.primrec'.idv
@@ -299,7 +311,7 @@ by simpa using hf.comp' (partrec'.cons hg partrec'.nil)
 
 theorem rfind_opt {n} {f : vector ℕ (n+1) → ℕ}
   (hf : @partrec' (n+1) f) :
-  @partrec' n (λ v, nat.rfind_opt (λ a, of_nat (option ℕ) (f (a :: v)))) :=
+  @partrec' n (λ v, nat.rfind_opt (λ a, of_nat (option ℕ) (f (a ::ᵥ v)))) :=
 ((rfind $ (of_prim (primrec.nat_sub.comp (primrec.const 1) primrec.vector_head))
    .comp₁ (λ n, roption.some (1 - n)) hf)
    .bind ((prim nat.primrec'.pred).comp₁ nat.pred hf)).of_eq $
@@ -308,10 +320,10 @@ theorem rfind_opt {n} {f : vector ℕ (n+1) → ℕ}
   refine exists_congr (λ a,
     (and_congr (iff_of_eq _) iff.rfl).trans (and_congr_right (λ h, _))),
   { congr; funext n,
-    simp, cases f (n :: v); simp [nat.succ_ne_zero]; refl },
+    simp, cases f (n ::ᵥ v); simp [nat.succ_ne_zero]; refl },
   { have := nat.rfind_spec h,
     simp at this,
-    cases f (a :: v) with c, {cases this},
+    cases f (a ::ᵥ v) with c, {cases this},
     rw [← option.some_inj, eq_comm], refl }
 end
 

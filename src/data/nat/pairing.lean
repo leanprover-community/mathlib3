@@ -6,7 +6,8 @@ Authors: Leonardo de Moura, Mario Carneiro
 Elegant pairing function.
 -/
 import data.nat.sqrt
-open prod decidable
+import data.set.lattice
+open prod decidable function
 
 namespace nat
 
@@ -28,7 +29,7 @@ let s := sqrt n in begin
   { have hl : n - s*s - s ≤ s :=
       nat.sub_le_left_of_le_add (nat.sub_le_left_of_le_add $
       by rw ← add_assoc; apply sqrt_le_add),
-    suffices : s * s + (s + (n - s * s - s)) = n, {simpa [not_lt_of_ge hl]},
+    suffices : s * s + (s + (n - s * s - s)) = n, {simpa [not_lt_of_ge hl, add_assoc]},
     rwa [nat.add_sub_cancel' (le_of_not_gt h)] }
 end
 
@@ -42,11 +43,14 @@ begin
     have be : sqrt (b * b + a) = b,
     { rw sqrt_add_eq, exact le_trans (le_of_lt h) (le_add_left _ _) },
     simp [unpair, be, nat.add_sub_cancel, h] },
-  { show unpair (a * a + (a + b)) = (a, b),
+  { show unpair (a * a + a + b) = (a, b),
     have ae : sqrt (a * a + (a + b)) = a,
     { rw sqrt_add_eq, exact add_le_add_left (le_of_not_gt h) _ },
-    simp [unpair, ae, not_lt_zero] }
+    simp [unpair, ae, not_lt_zero, add_assoc] }
 end
+
+lemma surjective_unpair : surjective unpair :=
+λ ⟨m, n⟩, ⟨mkpair m n, unpair_mkpair m n⟩
 
 theorem unpair_lt {n : ℕ} (n1 : 1 ≤ n) : (unpair n).1 < n :=
 let s := sqrt n in begin
@@ -68,8 +72,7 @@ by simpa using unpair_le_left (mkpair a b)
 theorem le_mkpair_right (a b : ℕ) : b ≤ mkpair a b :=
 begin
   by_cases h : a < b; simp [mkpair, h],
-  { exact le_trans (le_mul_self _) (le_add_right _ _) },
-  { exact le_trans (le_add_left _ _) (le_add_left _ _) },
+  exact le_trans (le_mul_self _) (le_add_right _ _)
 end
 
 theorem unpair_le_right (n : ℕ) : (unpair n).2 ≤ n :=
@@ -77,7 +80,7 @@ by simpa using le_mkpair_right n.unpair.1 n.unpair.2
 
 theorem mkpair_lt_mkpair_left {a₁ a₂} (b) (h : a₁ < a₂) : mkpair a₁ b < mkpair a₂ b :=
 begin
-  by_cases h₁ : a₁ < b; simp [mkpair, h₁],
+  by_cases h₁ : a₁ < b; simp [mkpair, h₁, add_assoc],
   { by_cases h₂ : a₂ < b; simp [mkpair, h₂, h],
     simp at h₂,
     apply add_lt_add_of_le_of_lt,
@@ -92,7 +95,7 @@ end
 
 theorem mkpair_lt_mkpair_right (a) {b₁ b₂} (h : b₁ < b₂) : mkpair a b₁ < mkpair a b₂ :=
 begin
-  by_cases h₁ : a < b₁; simp [mkpair, h₁],
+  by_cases h₁ : a < b₁; simp [mkpair, h₁, add_assoc],
   { simp [mkpair, lt_trans h₁ h, h],
     exact mul_self_lt_mul_self h },
   { by_cases h₂ : a < b₂; simp [mkpair, h₂, h],
@@ -103,3 +106,12 @@ begin
 end
 
 end nat
+open nat
+
+namespace set
+
+lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
+  (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
+by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
+
+end set

@@ -1,20 +1,21 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 A computable model of hereditarily finite sets with atoms
 (ZFA without infinity). This is useful for calculations in naive
 set theory.
 -/
-import tactic.interactive data.list.basic data.sigma
+import data.list.basic
+import data.sigma
 
 variables {α : Type*}
 
 @[derive decidable_eq]
 inductive {u} lists' (α : Type u) : bool → Type u
 | atom : α → lists' ff
-| nil {} : lists' tt
+| nil : lists' tt
 | cons' {b} : lists' b → lists' tt → lists' tt
 
 def lists (α : Type*) := Σ b, lists' α b
@@ -66,7 +67,7 @@ with lists'.subset : lists' α tt → lists' α tt → Prop
 | nil {l} : lists'.subset lists'.nil l
 | cons {a a' l l'} : lists.equiv a a' → a' ∈ lists'.to_list l' →
   lists'.subset l l' → lists'.subset (lists'.cons a l) l'
-local infix ~ := equiv
+local infix ~ := lists.equiv
 
 namespace lists'
 
@@ -94,7 +95,7 @@ theorem of_list_subset {l₁ l₂ : list (lists α)} (h : l₁ ⊆ l₂) :
   lists'.of_list l₁ ⊆ lists'.of_list l₂ :=
 begin
   induction l₁, {exact subset.nil},
-  refine subset.cons (equiv.refl _) _ (l₁_ih (list.subset_of_cons_subset h)),
+  refine subset.cons (lists.equiv.refl _) _ (l₁_ih (list.subset_of_cons_subset h)),
   simp at h, simp [h]
 end
 

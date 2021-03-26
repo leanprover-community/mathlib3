@@ -3,12 +3,15 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.big_operators data.zmod.basic
+import algebra.big_operators.basic
 
 open finset
+open_locale big_operators
 
 namespace nat
 
+/-- Euler's totient function. This counts the number of positive integers less than `n` which are
+coprime with `n`. -/
 def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
 
 localized "notation `φ` := nat.totient" in nat
@@ -16,7 +19,7 @@ localized "notation `φ` := nat.totient" in nat
 @[simp] theorem totient_zero : φ 0 = 0 := rfl
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
-calc totient n ≤ (range n).card : card_le_of_subset (filter_subset _)
+calc totient n ≤ (range n).card : card_filter_le _ _
            ... = n              : card_range _
 
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
@@ -24,11 +27,11 @@ lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 1 := dec_trivial
 | (n+2) := λ h, card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
 
-lemma sum_totient (n : ℕ) : ((range n.succ).filter (∣ n)).sum φ = n :=
+lemma sum_totient (n : ℕ) : ∑ m in (range n.succ).filter (∣ n), φ m = n :=
 if hn0 : n = 0 then by rw hn0; refl
 else
-calc ((range n.succ).filter (∣ n)).sum φ
-    = ((range n.succ).filter (∣ n)).sum (λ d, ((range (n / d)).filter (λ m, gcd (n / d) m = 1)).card) :
+calc ∑ m in (range n.succ).filter (∣ n), φ m
+    = ∑ d in (range n.succ).filter (∣ n), ((range (n / d)).filter (λ m, gcd (n / d) m = 1)).card :
   eq.symm $ sum_bij (λ d _, n / d)
     (λ d hd, mem_filter.2 ⟨mem_range.2 $ lt_succ_of_le $ nat.div_le_self _ _,
       by conv {to_rhs, rw ← nat.mul_div_cancel' (mem_filter.1 hd).2}; simp⟩)
@@ -36,15 +39,15 @@ calc ((range n.succ).filter (∣ n)).sum φ
     (λ a b ha hb h,
       have ha : a * (n / a) = n, from nat.mul_div_cancel' (mem_filter.1 ha).2,
       have 0 < (n / a), from nat.pos_of_ne_zero (λ h, by simp [*, lt_irrefl] at *),
-      by rw [← nat.mul_right_inj this, ha, h, nat.mul_div_cancel' (mem_filter.1 hb).2])
+      by rw [← nat.mul_left_inj this, ha, h, nat.mul_div_cancel' (mem_filter.1 hb).2])
     (λ b hb,
       have hb : b < n.succ ∧ b ∣ n, by simpa [-range_succ] using hb,
       have hbn : (n / b) ∣ n, from ⟨b, by rw nat.div_mul_cancel hb.2⟩,
       have hnb0 : (n / b) ≠ 0, from λ h, by simpa [h, ne.symm hn0] using nat.div_mul_cancel hbn,
       ⟨n / b, mem_filter.2 ⟨mem_range.2 $ lt_succ_of_le $ nat.div_le_self _ _, hbn⟩,
-        by rw [← nat.mul_right_inj (nat.pos_of_ne_zero hnb0),
+        by rw [← nat.mul_left_inj (nat.pos_of_ne_zero hnb0),
           nat.mul_div_cancel' hb.2, nat.div_mul_cancel hbn]⟩)
-... = ((range n.succ).filter (∣ n)).sum (λ d, ((range n).filter (λ m, gcd n m = d)).card) :
+... = ∑ d in (range n.succ).filter (∣ n), ((range n).filter (λ m, gcd n m = d)).card :
   sum_congr rfl (λ d hd,
     have hd : d ∣ n, from (mem_filter.1 hd).2,
     have hd0 : 0 < d, from nat.pos_of_ne_zero (λ h, hn0 (eq_zero_of_zero_dvd $ h ▸ hd)),
@@ -53,37 +56,20 @@ calc ((range n.succ).filter (∣ n)).sum φ
         mem_filter.2 ⟨mem_range.2 $ nat.mul_div_cancel' hd ▸
           (mul_lt_mul_left hd0).2 hm.1,
           by rw [← nat.mul_div_cancel' hd, gcd_mul_left, hm.2, mul_one]⟩)
-      (λ a b ha hb h, (nat.mul_left_inj hd0).1 h)
+      (λ a b ha hb h, (nat.mul_right_inj hd0).1 h)
       (λ b hb, have hb : b < n ∧ gcd n b = d, by simpa using hb,
         ⟨b / d, mem_filter.2 ⟨mem_range.2 ((mul_lt_mul_left (show 0 < d, from hb.2 ▸ hb.2.symm ▸ hd0)).1
             (by rw [← hb.2, nat.mul_div_cancel' (gcd_dvd_left _ _),
               nat.mul_div_cancel' (gcd_dvd_right _ _)]; exact hb.1)),
                 hb.2 ▸ coprime_div_gcd_div_gcd (hb.2.symm ▸ hd0)⟩,
           hb.2 ▸ nat.mul_div_cancel' (gcd_dvd_right _ _)⟩))
-... = ((filter (∣ n) (range n.succ)).bind (λ d, (range n).filter (λ m, gcd n m = d))).card :
-  (card_bind (by intros; apply disjoint_filter.2; cc)).symm
+... = ((filter (∣ n) (range n.succ)).bUnion (λ d, (range n).filter (λ m, gcd n m = d))).card :
+  (card_bUnion (by intros; apply disjoint_filter.2; cc)).symm
 ... = (range n).card :
-  congr_arg card (finset.ext.2 (λ m, ⟨by finish,
+  congr_arg card (finset.ext (λ m, ⟨by finish,
     λ hm, have h : m < n, from mem_range.1 hm,
-      mem_bind.2 ⟨gcd n m, mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (nat.zero_le _) h)
+      mem_bUnion.2 ⟨gcd n m, mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (nat.zero_le _) h)
         (gcd_dvd_left _ _))), gcd_dvd_left _ _⟩, mem_filter.2 ⟨hm, rfl⟩⟩⟩))
 ... = n : card_range _
 
 end nat
-
-namespace zmod
-
-open fintype
-open_locale nat
-
-@[simp] lemma card_units_eq_totient (n : ℕ+) :
-  card (units (zmod n)) = φ n :=
-calc card (units (zmod n)) = card {x : zmod n // x.1.coprime n} :
-  fintype.card_congr zmod.units_equiv_coprime
-... = φ n : finset.card_congr
-  (λ a _, a.1.1)
-  (λ a, by simp [a.1.2, a.2.symm] {contextual := tt})
-  (λ _ _ h, by simp [subtype.val_injective.eq_iff, (fin.eq_iff_veq _ _).symm])
-  (λ b hb, ⟨⟨⟨b, by finish⟩, nat.coprime.symm (by simp at hb; tauto)⟩, mem_univ _, rfl⟩)
-
-end zmod

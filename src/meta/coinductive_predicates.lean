@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl (CMU)
+Authors: Johannes Hölzl (CMU)
 -/
 import tactic.core
 
@@ -75,7 +75,7 @@ private meta def mono_aux (ns : list name) (hs : list expr) : tactic unit := do
         skip))) <|>
   first (hs.map $ λh, apply_core h {md := transparency.none, new_goals := new_goals.non_dep_only} >> skip) <|>
   first (ns.map $ λn, do c ← mk_const n, apply_core c {md := transparency.none, new_goals := new_goals.non_dep_only}, skip),
-  all_goals mono_aux
+  all_goals' mono_aux
 
 meta def mono (e : expr) (hs : list expr) : tactic unit := do
   t ← target,
@@ -233,7 +233,7 @@ meta def add_coinductive_predicate
   let u_params := u_names.map param,
 
   pre_info ← preds.mmap (λ⟨c, is⟩, do
-    (ls, t) ← mk_local_pis c.local_type,
+    (ls, t) ← open_pis c.local_type,
     (is_def_eq t `(Prop) <|>
       fail (format! "Type of {c.local_pp_name} is not Prop. Currently only " ++
                     "coinductive predicates are supported.")),
@@ -250,7 +250,7 @@ meta def add_coinductive_predicate
     sort u_f ← infer_type f₁ >>= infer_type,
     let pred_g := λc:expr, (const c.local_uniq_name u_params : expr).app_of_list params,
     intros ← is.mmap (λi, do
-      (args, t') ← mk_local_pis i.local_type,
+      (args, t') ← open_pis i.local_type,
       (name.mk_string sub p) ← return i.local_uniq_name,
       let loc_args := args.map $ λe, (fs₁.zip preds).foldl (λ(e:expr) ⟨f, c, _⟩,
         e.replace_with (pred_g c) f) e,
@@ -470,7 +470,7 @@ do
   g ← list.head <$> get_goals,
   (list.cons _ m_is) ← return $ mvars.drop_while (λv, v.2 ≠ g),
   tgt ← target,
-  (is, ty) ← mk_local_pis tgt,
+  (is, ty) ← open_pis tgt,
   -- construct coinduction predicate
   (bs, eqs) ← compact_relation ctxts <$>
     ((is.zip m_is).mmap (λ⟨i, m⟩, prod.mk i <$> instantiate_mvars m.2)),
@@ -487,10 +487,10 @@ do
   solve1 (do
     target >>= instantiate_mvars >>= change, -- TODO: bug in existsi & constructor when mvars in hyptohesis
     bs.mmap existsi,
-    iterate (econstructor >> skip)),
+    iterate' (econstructor >> skip)),
 
   -- clean up remaining coinduction steps
-  all_goals (do
+  all_goals' (do
     ctxts'.reverse.mmap clear,
     target >>= instantiate_mvars >>= change, -- TODO: bug in subst when mvars in hyptohesis
     is ← intro_lst $ is.map expr.local_pp_name,

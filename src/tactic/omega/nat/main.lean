@@ -1,8 +1,12 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
-Main procedure for linear natural number arithmetic. -/
+/-
+Main procedure for linear natural number arithmetic.
+-/
 
 import tactic.omega.prove_unsats
 import tactic.omega.nat.dnf
@@ -26,8 +30,8 @@ attribute [sugar_nat]
   and_true true_and
   ge gt mul_add add_mul mul_comm
   one_mul mul_one
-  classical.imp_iff_not_or
-  classical.iff_iff_not_or_and_or_not
+  imp_iff_not_or
+  iff_iff_not_or_and_or_not
 
 meta def desugar := `[try {simp only with sugar_nat at *}]
 
@@ -218,6 +222,7 @@ do xf ← to_exprform x,
 /-- Return expr of proof of current LNA goal -/
 meta def prove : tactic expr :=
 do (p,m) ← target >>= to_preform,
+   trace_if_enabled `omega p,
    prove_univ_close m p
 
 /-- Succeed iff argument is expr of ℕ -/

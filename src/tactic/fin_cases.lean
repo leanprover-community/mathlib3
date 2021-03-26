@@ -1,13 +1,13 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Scott Morrison
+Authors: Scott Morrison
 
 Case bashing:
 * on `x ∈ A`, for `A : finset α` or `A : list α`, or
 * on `x : A`, with `[fintype A]`.
 -/
-import data.fintype
+import data.fintype.basic
 import tactic.norm_num
 
 namespace tactic
@@ -25,12 +25,18 @@ do t ← infer_type e,
    to_expr ``(_ ∈ (_ : list %%α))     tt ff >>= unify t,
    instantiate_mvars α
 
+/--
+`expr_list_to_list_expr` converts an `expr` of type `list α`
+to a list of `expr`s each with type `α`.
+
+TODO: this should be moved, and possibly duplicates an existing definition.
+-/
 meta def expr_list_to_list_expr : Π (e : expr), tactic (list expr)
 | `(list.cons %%h %%t) := list.cons h <$> expr_list_to_list_expr t
 | `([]) := return []
 | _ := failed
 
-meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr), tactic unit
+private meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr), tactic unit
 | with_list e :=
 (do
   result ← cases_core e,
@@ -46,8 +52,9 @@ meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr), tactic unit
                         (to_rhs >> conv.interactive.change (to_pexpr h))
         -- Otherwise, call `norm_num`. We let `norm_num` unfold `max` and `min`
         -- because it's helpful for the `interval_cases` tactic.
-        | _ := try $ tactic.interactive.norm_num
-                 [simp_arg_type.expr ``(max), simp_arg_type.expr ``(min)] (loc.ns [some sn])
+        | _ := try $ tactic.interactive.conv (some sn) none $
+               to_rhs >> conv.interactive.norm_num
+                 [simp_arg_type.expr ``(max), simp_arg_type.expr ``(min)]
         end,
         s ← get_local sn,
         try `[subst %%s],
@@ -59,7 +66,12 @@ meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr), tactic unit
   | _ := failed
   end)
 
-
+/--
+`fin_cases_at with_list e` performs case analysis on `e : α`, where `α` is a fintype.
+The optional list of expressions `with_list` provides descriptions for the cases of `e`,
+for example, to display nats as `n.succ` instead of `n+1`.
+These should be defeq to and in the same order as the terms in the enumeration of `α`.
+-/
 meta def fin_cases_at : Π (with_list : option pexpr) (e : expr), tactic unit
 | with_list e :=
 do ty ← try_core $ guard_mem_fin e,

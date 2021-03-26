@@ -3,9 +3,6 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Patrick Massot, Scott Morrison
 -/
-
-import category_theory.concrete_category.unbundled_hom
-import category_theory.full_subcategory
 import category_theory.monad.limits
 import topology.uniform_space.completion
 import topology.category.Top.basic
@@ -23,19 +20,25 @@ universes u
 
 open category_theory
 
-/-- A (bundled) uniform spaces. -/
-@[reducible] def UniformSpace : Type (u+1) := bundled uniform_space
+/-- A (bundled) uniform space. -/
+def UniformSpace : Type (u+1) := bundled uniform_space
 
 namespace UniformSpace
+
+/-- The information required to build morphisms for `UniformSpace`. -/
+instance : unbundled_hom @uniform_continuous :=
+⟨@uniform_continuous_id, @uniform_continuous.comp⟩
+
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] UniformSpace
 
 instance (x : UniformSpace) : uniform_space x := x.str
 
 /-- Construct a bundled `UniformSpace` from the underlying type and the typeclass. -/
 def of (α : Type u) [uniform_space α] : UniformSpace := ⟨α⟩
 
-/-- The category instance on `UniformSpace`. -/
-instance concrete_category_uniform_continuous : unbundled_hom @uniform_continuous :=
-⟨@uniform_continuous_id, @uniform_continuous.comp⟩
+instance : inhabited UniformSpace := ⟨UniformSpace.of empty⟩
+
+@[simp] lemma coe_of (X : Type u) [uniform_space X] : (of X : Type u) = X := rfl
 
 instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
 { F := λ _, X → Y, coe := category_theory.functor.map (forget UniformSpace) }
@@ -50,9 +53,10 @@ lemma hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g
 
 /-- The forgetful functor from uniform spaces to topological spaces. -/
 instance has_forget_to_Top : has_forget₂ UniformSpace.{u} Top.{u} :=
-unbundled_hom.mk_has_forget₂
-  @uniform_space.to_topological_space
-  @uniform_continuous.continuous
+{ forget₂ :=
+  { obj := λ X, Top.of X,
+    map := λ X Y f, { to_fun := f,
+                      continuous_to_fun := uniform_continuous.continuous f.property }, }, }
 
 end UniformSpace
 
@@ -61,7 +65,7 @@ structure CpltSepUniformSpace :=
 (α : Type u)
 [is_uniform_space : uniform_space α]
 [is_complete_space : complete_space α]
-[is_separated : separated α]
+[is_separated : separated_space α]
 
 namespace CpltSepUniformSpace
 
@@ -73,13 +77,30 @@ attribute [instance] is_uniform_space is_complete_space is_separated
 def to_UniformSpace (X : CpltSepUniformSpace) : UniformSpace :=
 UniformSpace.of X
 
-instance (X : CpltSepUniformSpace) : complete_space ((to_UniformSpace X).α) := CpltSepUniformSpace.is_complete_space X
-instance (X : CpltSepUniformSpace) : separated ((to_UniformSpace X).α) := CpltSepUniformSpace.is_separated X
+instance complete_space (X : CpltSepUniformSpace) : complete_space ((to_UniformSpace X).α) :=
+CpltSepUniformSpace.is_complete_space X
+
+instance separated_space (X : CpltSepUniformSpace) : separated_space ((to_UniformSpace X).α) :=
+CpltSepUniformSpace.is_separated X
 
 /-- Construct a bundled `UniformSpace` from the underlying type and the appropriate typeclasses. -/
-def of (X : Type u) [uniform_space X] [complete_space X] [separated X] : CpltSepUniformSpace := ⟨X⟩
+def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] :
+CpltSepUniformSpace := ⟨X⟩
+
+@[simp] lemma coe_of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] :
+  (of X : Type u) = X := rfl
+
+instance : inhabited CpltSepUniformSpace :=
+begin
+  haveI : separated_space empty := separated_iff_t2.mpr (by apply_instance),
+  exact ⟨CpltSepUniformSpace.of empty⟩
+end
 
 /-- The category instance on `CpltSepUniformSpace`. -/
+instance category : large_category CpltSepUniformSpace :=
+induced_category.category to_UniformSpace
+
+/-- The concrete category instance on `CpltSepUniformSpace`. -/
 instance concrete_category : concrete_category CpltSepUniformSpace :=
 induced_category.concrete_category to_UniformSpace
 
@@ -97,17 +118,10 @@ open CpltSepUniformSpace
 noncomputable def completion_functor : UniformSpace ⥤ CpltSepUniformSpace :=
 { obj := λ X, CpltSepUniformSpace.of (completion X),
   map := λ X Y f, ⟨completion.map f.1, completion.uniform_continuous_map⟩,
-  map_comp' := λ X Y Z f g,
-  begin
-  apply subtype.eq,
-  dsimp,
-  rw ←completion.map_comp,
-  refl,
-  exact g.property,
-  exact f.property
-  end }.
+  map_id' := λ X, subtype.eq completion.map_id,
+  map_comp' := λ X Y Z f g, subtype.eq (completion.map_comp g.property f.property).symm, }.
 
-/-- The inclusion of any uniform spaces into its completion. -/
+/-- The inclusion of a uniform space into its completion. -/
 def completion_hom (X : UniformSpace) :
   X ⟶ (forget₂ CpltSepUniformSpace UniformSpace).obj (completion_functor.obj X) :=
 { val := (coe : X → completion X),
@@ -142,8 +156,7 @@ adjunction.mk_of_hom_equiv
     right_inv := λ f,
     begin
       apply subtype.eq, funext x, cases f,
-      change completion.extension f_val _ = f_val x,
-      erw completion.extension_coe, assumption
+      exact @completion.extension_coe _ _ _ _ _ (CpltSepUniformSpace.separated_space _) f_property _
     end },
   hom_equiv_naturality_left_symm' := λ X X' Y f g,
   begin
@@ -159,7 +172,7 @@ noncomputable instance : reflective (forget₂ CpltSepUniformSpace UniformSpace)
 open category_theory.limits
 
 -- TODO Once someone defines `has_limits UniformSpace`, turn this into an instance.
-noncomputable example [has_limits.{u} UniformSpace.{u}] : has_limits.{u} CpltSepUniformSpace.{u} :=
-has_limits_of_reflective $ forget₂ CpltSepUniformSpace UniformSpace
+example [has_limits.{u} UniformSpace.{u}] : has_limits.{u} CpltSepUniformSpace.{u} :=
+has_limits_of_reflective $ forget₂ CpltSepUniformSpace UniformSpace.{u}
 
 end UniformSpace

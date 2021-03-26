@@ -139,7 +139,7 @@ theorem add_le_add_left : ∀ (a b : game), a ≤ b → ∀ (c : game), c + a �
 begin rintro ⟨a⟩ ⟨b⟩ h ⟨c⟩, apply pgame.add_le_add_left h, end
 
 -- While it is very tempting to define a `partial_order` on games, and prove
--- that games form an `ordered_comm_group`, it is a bit dangerous.
+-- that games form an `ordered_add_comm_group`, it is a bit dangerous.
 
 -- The relations `≤` and `<` on games do not satisfy
 -- `lt_iff_le_not_le : ∀ a b : α, a < b ↔ (a ≤ b ∧ ¬ b ≤ a)`
@@ -147,7 +147,7 @@ begin rintro ⟨a⟩ ⟨b⟩ h ⟨c⟩, apply pgame.add_le_add_left h, end
 -- (`lt_iff_le_not_le` is satisfied by surreal numbers, however.)
 -- Thus we can not use `<` when defining a `partial_order`.
 
--- Because of this issue, we define the `partial_order` and `ordered_comm_group` instances,
+-- Because of this issue, we define the `partial_order` and `ordered_add_comm_group` instances,
 -- but do not actually mark them as instances, for safety.
 
 /-- The `<` operation provided by this partial order is not the usual `<` on games! -/
@@ -157,10 +157,10 @@ def game_partial_order : partial_order game :=
   le_antisymm := le_antisymm,
   ..game.has_le }
 
-local attribute [instance] game_partial_order
-
-/-- The `<` operation provided by this `ordered_comm_group` is not the usual `<` on games! -/
-def ordered_comm_group_game : ordered_comm_group game :=
-ordered_comm_group.mk' add_le_add_left
+/-- The `<` operation provided by this `ordered_add_comm_group` is not the usual `<` on games! -/
+def ordered_add_comm_group_game : ordered_add_comm_group game :=
+{ add_le_add_left := add_le_add_left,
+  ..game.add_comm_group,
+  ..game_partial_order }
 
 end game

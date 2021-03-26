@@ -3,7 +3,6 @@ Copyright (c) 2019 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
-
 import data.real.basic
 
 /-!
@@ -26,13 +25,12 @@ real, ereal, complete lattice
 
 ## TODO
 
-abs : ereal → ennreal
+abs : ereal → ℝ≥0∞
 
 In Isabelle they define + - * and / (making junk choices for things like -∞ + ∞)
 and then prove whatever bits of the ordered ring/field axioms still hold. They
 also do some limits stuff (liminf/limsup etc).
 See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
-
 -/
 
 /-- ereal : The type `[-∞, ∞]` -/
@@ -42,14 +40,17 @@ def ereal := with_top (with_bot ℝ)
 
 namespace ereal
 instance : has_coe ℝ ereal := ⟨some ∘ some⟩
-@[simp, elim_cast] protected lemma coe_real_le {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
+@[simp, norm_cast] protected lemma coe_real_le {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
 by { unfold_coes, norm_num }
-@[simp, elim_cast] protected lemma coe_real_lt {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
+@[simp, norm_cast] protected lemma coe_real_lt {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
 by { unfold_coes, norm_num }
-@[simp, elim_cast] protected lemma coe_real_inj' {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
+@[simp, norm_cast] protected lemma coe_real_inj' {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
 by { unfold_coes, simp [option.some_inj] }
 
-/- neg -/
+instance : has_zero ereal := ⟨(0 : ℝ)⟩
+instance : inhabited ereal := ⟨0⟩
+
+/-! ### Negation -/
 
 /-- negation on ereal -/
 protected def neg : ereal → ereal
@@ -59,7 +60,7 @@ protected def neg : ereal → ereal
 
 instance : has_neg ereal := ⟨ereal.neg⟩
 
-@[move_cast] protected lemma neg_def (x : ℝ) : ((-x : ℝ) : ereal) = -x := rfl
+@[norm_cast] protected lemma neg_def (x : ℝ) : ((-x : ℝ) : ereal) = -x := rfl
 
 /-- - -a = a on ereal -/
 protected theorem neg_neg : ∀ (a : ereal), - (- a) = a

@@ -1,14 +1,12 @@
 /-
 Copyright (c) 2019 Patrick Massot All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Patrick Massot, Simon Hudon
+Authors: Patrick Massot, Simon Hudon
 
 A tactic pushing negations into an expression
 -/
 
-
-
-import tactic.interactive
+import logic.basic
 import algebra.order
 
 open tactic expr
@@ -23,7 +21,7 @@ variable  (s : α → Prop)
 
 local attribute [instance, priority 10] classical.prop_decidable
 theorem not_not_eq : (¬ ¬ p) = p := propext not_not
-theorem not_and_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_distrib
+theorem not_and_eq : (¬ (p ∧ q)) = (p → ¬ q) := propext not_and
 theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_distrib
 theorem not_forall_eq : (¬ ∀ x, s x) = (∃ x, ¬ s x) := propext not_forall
 theorem not_exists_eq : (¬ ∃ x, s x) = (∀ x, ¬ s x) := propext not_exists
@@ -52,7 +50,7 @@ do e ← whnf_reducible e,
       | `(¬ %%a)      := do pr ← mk_app ``not_not_eq [a],
                             return (some (a, pr))
       | `(%%a ∧ %%b)  := do pr ← mk_app ``not_and_eq [a, b],
-                            return (some (`(¬ %%a ∨ ¬ %%b), pr))
+                            return (some (`((%%a : Prop) → ¬ %%b), pr))
       | `(%%a ∨ %%b)  := do pr ← mk_app ``not_or_eq [a, b],
                             return (some (`(¬ %%a ∧ ¬ %%b), pr))
       | `(%%a ≤ %%b)  := do e ← to_expr ``(%%b < %%a),
@@ -144,13 +142,16 @@ at every assumption and the goal using `push_neg at *` or at selected assumption
 using say `push_neg at h h' ⊢` as usual.
 -/
 meta def tactic.interactive.push_neg : parse location → tactic unit
-| (loc.ns loc_l) := loc_l.mmap'
-                      (λ l, match l with
-                            | some h := do push_neg_at_hyp h,
-                                            try `[simp only [push_neg.not_eq] at h { eta := ff }]
-                            | none   := do push_neg_at_goal,
-                                            try `[simp only [push_neg.not_eq] { eta := ff }]
-                            end)
+| (loc.ns loc_l) :=
+  loc_l.mmap'
+    (λ l, match l with
+          | some h := do push_neg_at_hyp h,
+                          try $ interactive.simp_core { eta := ff } failed tt
+                                 [simp_arg_type.expr ``(push_neg.not_eq)] []
+                                 (interactive.loc.ns [some h])
+          | none   := do push_neg_at_goal,
+                          try `[simp only [push_neg.not_eq] { eta := ff }]
+          end)
 | loc.wildcard := do
     push_neg_at_goal,
     local_context >>= mmap' (λ h, push_neg_at_hyp (local_pp_name h)) ,
@@ -162,8 +163,8 @@ add_tactic_doc
   decl_names := [`tactic.interactive.push_neg],
   tags       := ["logic"] }
 
-lemma imp_of_not_imp_not (P Q : Prop) [decidable Q] : (¬ Q → ¬ P) → (P → Q) :=
-λ h hP, by_contradiction (λ h', h h' hP)
+lemma imp_of_not_imp_not (P Q : Prop) : (¬ Q → ¬ P) → (P → Q) :=
+λ h hP, classical.by_contradiction (λ h', h h' hP)
 
 /-- Matches either an identifier "h" or a pair of identifiers "h with k" -/
 meta def name_with_opt : lean.parser (name × option name) :=
@@ -183,7 +184,7 @@ meta def tactic.interactive.contrapose (push : parse (tk "!" )?) : parse name_wi
 | (some (h, h')) := get_local h >>= revert >> tactic.interactive.contrapose none >> intro (h'.get_or_else h) >> skip
 | none :=
   do `(%%P → %%Q) ← target | fail "The goal is not an implication, and you didn't specify an assumption",
-  cp ← mk_mapp `imp_of_not_imp_not [P, Q, none] <|> fail "contrapose only applies to nondependent arrows between decidable props",
+  cp ← mk_mapp ``imp_of_not_imp_not [P, Q] <|> fail "contrapose only applies to nondependent arrows between props",
   apply cp,
   when push.is_some $ try (tactic.interactive.push_neg (loc.ns [none]))
 

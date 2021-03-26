@@ -3,29 +3,27 @@ Copyright (c) 2019 Chris Hughes All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.polynomial topology.algebra.polynomial analysis.complex.exponential
+import topology.algebra.polynomial
+import analysis.special_functions.pow
+
+/-!
+# The fundamental theorem of algebra
+
+This file proves that every nonconstant complex polynomial has a root.
+-/
 
 open complex polynomial metric filter is_absolute_value set
+open_locale classical
 
 namespace complex
 
-lemma exists_forall_abs_polynomial_eval_le (p : polynomial ℂ) :
-  ∃ x, ∀ y, (p.eval x).abs ≤ (p.eval y).abs :=
-if hp0 : 0 < degree p
-then let ⟨r, hr0, hr⟩ := polynomial.tendsto_infinity complex.abs hp0 ((p.eval 0).abs) in
-  let ⟨x, hx₁, hx₂⟩ := (proper_space.compact_ball (0:ℂ) r).exists_forall_le
-    ⟨0, by simp [le_of_lt hr0]⟩
-    (continuous_abs.comp p.continuous_eval).continuous_on in
-  ⟨x, λ y, if hy : y.abs ≤ r then hx₂ y $ by simpa [complex.dist_eq] using hy
-    else le_trans (hx₂ _ (by simp [le_of_lt hr0])) (le_of_lt (hr y (lt_of_not_ge hy)))⟩
-else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩
-
 /- The following proof uses the method given at
-  <https://ncatlab.org/nlab/show/fundamental+theorem+of+algebra#classical_fta_via_advanced_calculus> -/
+<https://ncatlab.org/nlab/show/fundamental+theorem+of+algebra#classical_fta_via_advanced_calculus>
+-/
 /-- The fundamental theorem of algebra. Every non constant complex polynomial
   has a root -/
 lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
-let ⟨z₀, hz₀⟩ := exists_forall_abs_polynomial_eval_le f in
+let ⟨z₀, hz₀⟩ := f.exists_forall_norm_le in
 exists.intro z₀ $ classical.by_contradiction $ λ hf0,
 have hfX : f - C (f.eval z₀) ≠ 0,
   from mt sub_eq_zero.1 (λ h, not_le_of_gt hf (h.symm ▸ degree_C_le)),
@@ -35,33 +33,32 @@ have hg0 : g.eval z₀ ≠ 0, from eval_div_by_monic_pow_root_multiplicity_ne_ze
 have hg : g * (X - C z₀) ^ n = f - C (f.eval z₀),
   from div_by_monic_mul_pow_root_multiplicity_eq _ _,
 have hn0 : 0 < n, from nat.pos_of_ne_zero $ λ hn0, by simpa [g, hn0] using hg0,
-let ⟨δ', hδ'₁, hδ'₂⟩ := continuous_iff.1 (polynomial.continuous_eval g) z₀
+let ⟨δ', hδ'₁, hδ'₂⟩ := continuous_iff.1 (polynomial.continuous g) z₀
   ((g.eval z₀).abs) (complex.abs_pos.2 hg0) in
 let δ := min (min (δ' / 2) 1) (((f.eval z₀).abs / (g.eval z₀).abs) / 2) in
 have hf0' : 0 < (f.eval z₀).abs, from complex.abs_pos.2 hf0,
-have hfg0 : 0 < abs (eval z₀ f) * (abs (eval z₀ g))⁻¹, from div_pos hf0' (complex.abs_pos.2 hg0),
+have hg0' : 0 < abs (eval z₀ g), from complex.abs_pos.2 hg0,
+have hfg0 : 0 < (f.eval z₀).abs / abs (eval z₀ g), from div_pos hf0' hg0',
 have hδ0 : 0 < δ, from lt_min (lt_min (half_pos hδ'₁) (by norm_num)) (half_pos hfg0),
 have hδ : ∀ z : ℂ, abs (z - z₀) = δ → abs (g.eval z - g.eval z₀) < (g.eval z₀).abs,
   from λ z hz, hδ'₂ z (by rw [complex.dist_eq, hz];
-    exact lt_of_le_of_lt (le_trans (min_le_left _ _) (min_le_left _ _))
-      (half_lt_self hδ'₁)),
+    exact ((min_le_left _ _).trans (min_le_left _ _)).trans_lt (half_lt_self hδ'₁)),
 have hδ1 : δ ≤ 1, from le_trans (min_le_left _ _) (min_le_right _ _),
 let F : polynomial ℂ := C (f.eval z₀) + C (g.eval z₀) * (X - C z₀) ^ n in
 let z' := (-f.eval z₀ * (g.eval z₀).abs * δ ^ n /
   ((f.eval z₀).abs * g.eval z₀)) ^ (n⁻¹ : ℂ) + z₀ in
 have hF₁ : F.eval z' = f.eval z₀ - f.eval z₀ * (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs,
-  by simp only [F, cpow_nat_inv_pow _ hn0, div_eq_mul_inv, eval_pow, mul_assoc, mul_comm (g.eval z₀),
-      mul_left_comm (g.eval z₀), mul_left_comm (g.eval z₀)⁻¹, mul_inv', inv_mul_cancel hg0,
-      eval_C, eval_add, eval_neg, sub_eq_add_neg, eval_mul, eval_X, add_neg_cancel_right,
-      neg_mul_eq_neg_mul_symm, mul_one, div_eq_mul_inv];
+  by simp only [F, cpow_nat_inv_pow _ hn0, div_eq_mul_inv, eval_pow, mul_assoc,
+      mul_comm (g.eval z₀), mul_left_comm (g.eval z₀), mul_left_comm (g.eval z₀)⁻¹, mul_inv',
+      inv_mul_cancel hg0, eval_C, eval_add, eval_neg, sub_eq_add_neg, eval_mul, eval_X,
+      add_neg_cancel_right, neg_mul_eq_neg_mul_symm, mul_one, div_eq_mul_inv];
     simp only [mul_comm, mul_left_comm, mul_assoc],
 have hδs : (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs < 1,
-  by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← @inv_inv' _ _ (complex.abs _ * _), mul_inv',
-      inv_inv', ← div_eq_mul_inv, div_lt_iff hfg0, one_mul];
-    calc δ ^ n ≤ δ ^ 1 : pow_le_pow_of_le_one (le_of_lt hδ0) hδ1 hn0
-      ... = δ : pow_one _
-      ... ≤ ((f.eval z₀).abs / (g.eval z₀).abs) / 2 : min_le_right _ _
-      ... < _ : half_lt_self hfg0,
+  from (div_lt_one hf0').2 $ (lt_div_iff' hg0').1 $
+  calc δ ^ n ≤ δ ^ 1 : pow_le_pow_of_le_one (le_of_lt hδ0) hδ1 hn0
+         ... = δ : pow_one _
+         ... ≤ ((f.eval z₀).abs / (g.eval z₀).abs) / 2 : min_le_right _ _
+         ... < _ : half_lt_self (div_pos hf0' hg0'),
 have hF₂ : (F.eval z').abs = (f.eval z₀).abs - (g.eval z₀).abs * δ ^ n,
   from calc (F.eval z').abs = (f.eval z₀ - f.eval z₀ * (g.eval z₀).abs
     * δ ^ n / (f.eval z₀).abs).abs : congr_arg abs hF₁
@@ -84,7 +81,7 @@ have hF₃ : (f.eval z' - F.eval z').abs < (g.eval z₀).abs * δ ^ n,
         by rw [← eq_sub_iff_add_eq.1 hg, ← is_absolute_value.abv_pow complex.abs,
             ← complex.abs_mul, sub_mul];
           simp [F, eval_pow, eval_add, eval_mul, eval_sub, eval_C, eval_X, eval_neg, add_sub_cancel,
-                sub_eq_add_neg]
+                sub_eq_add_neg, add_assoc]
   ... = (g.eval z' - g.eval z₀).abs * δ ^ n : by rw hz'z₀
   ... < _ : (mul_lt_mul_right (pow_pos hδ0 _)).2 (hδ _ hz'z₀),
 lt_irrefl (f.eval z₀).abs $

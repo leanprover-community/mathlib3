@@ -3,8 +3,8 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-
-import data.buffer.parser tactic.doc_commands
+import data.buffer.parser
+import tactic.doc_commands
 
 open lean.parser tactic interactive parser
 
@@ -68,8 +68,7 @@ restate_axiom A.a f
 example (z : A) : z.x = 1 := by rw A.f
 ```
 -/
-@[user_command] meta def restate_axiom_cmd (meta_info : decl_meta_info)
-  (_ : parse $ tk "restate_axiom") : lean.parser unit :=
+@[user_command] meta def restate_axiom_cmd (_ : parse $ tk "restate_axiom") : lean.parser unit :=
 do from_lemma ← ident,
    new_name ← optional ident,
    from_lemma_fully_qualified ← resolve_constant from_lemma,
@@ -84,4 +83,4 @@ add_tactic_doc
 { name                     := "restate_axiom",
   category                 := doc_category.cmd,
   decl_names               := [`restate_axiom_cmd],
-  tags                     := [] }
+  tags                     := ["renaming", "environment"] }

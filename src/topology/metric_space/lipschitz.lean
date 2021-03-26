@@ -3,8 +3,10 @@ Copyright (c) 2018 Rohan Mitta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
+import logic.function.iterate
 import topology.metric_space.basic
-import category_theory.endomorphism category_theory.types
+import category_theory.endomorphism
+import category_theory.types
 
 /-!
 # Lipschitz continuous functions
@@ -12,51 +14,96 @@ import category_theory.endomorphism category_theory.types
 A map `f : α → β` between two (extended) metric spaces is called *Lipschitz continuous*
 with constant `K ≥ 0` if for all `x, y` we have `edist (f x) (f y) ≤ K * edist x y`.
 For a metric space, the latter inequality is equivalent to `dist (f x) (f y) ≤ K * dist x y`.
+There is also a version asserting this inequality only for `x` and `y` in some set `s`.
 
 In this file we provide various ways to prove that various combinations of Lipschitz continuous
 functions are Lipschitz continuous. We also prove that Lipschitz continuous functions are
 uniformly continuous.
 
+## Main definitions and lemmas
+
+* `lipschitz_with K f`: states that `f` is Lipschitz with constant `K : ℝ≥0`
+* `lipschitz_on_with K f`: states that `f` is Lipschitz with constant `K : ℝ≥0` on a set `s`
+* `lipschitz_with.uniform_continuous`: a Lipschitz function is uniformly continuous
+* `lipschitz_on_with.uniform_continuous_on`: a function which is Lipschitz on a set is uniformly
+  continuous on that set.
+
+
 ## Implementation notes
 
-The parameter `K` has type `nnreal`. This way we avoid conjuction in the definition and have
-coercions both to `ℝ` and `ennreal`. Constructors whose names end with `'` take `K : ℝ` as an
+The parameter `K` has type `ℝ≥0`. This way we avoid conjuction in the definition and have
+coercions both to `ℝ` and `ℝ≥0∞`. Constructors whose names end with `'` take `K : ℝ` as an
 argument, and return `lipschitz_with (nnreal.of_real K) f`.
 -/
 
 universes u v w x
 
-open filter
-open_locale topological_space nnreal
+open filter function set
+open_locale topological_space nnreal ennreal
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
 
 /-- A function `f` is Lipschitz continuous with constant `K ≥ 0` if for all `x, y`
 we have `dist (f x) (f y) ≤ K * dist x y` -/
-def lipschitz_with [emetric_space α] [emetric_space β] (K : ℝ≥0) (f : α → β) :=
+def lipschitz_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0) (f : α → β) :=
 ∀x y, edist (f x) (f y) ≤ K * edist x y
 
-lemma lipschitz_with_iff_dist_le_mul [metric_space α] [metric_space β] {K : ℝ≥0} {f : α → β} :
-  lipschitz_with K f ↔ ∀ x y, dist (f x) (f y) ≤ K * dist x y :=
+lemma lipschitz_with_iff_dist_le_mul [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0}
+  {f : α → β} : lipschitz_with K f ↔ ∀ x y, dist (f x) (f y) ≤ K * dist x y :=
 by { simp only [lipschitz_with, edist_nndist, dist_nndist], norm_cast }
 
 alias lipschitz_with_iff_dist_le_mul ↔ lipschitz_with.dist_le_mul lipschitz_with.of_dist_le_mul
+
+/-- A function `f` is Lipschitz continuous with constant `K ≥ 0` on `s` if for all `x, y` in `s`
+we have `dist (f x) (f y) ≤ K * dist x y` -/
+def lipschitz_on_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0) (f : α → β)
+  (s : set α) :=
+∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), edist (f x) (f y) ≤ K * edist x y
+
+@[simp] lemma lipschitz_on_with_empty [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0)
+  (f : α → β) : lipschitz_on_with K f ∅ :=
+λ x x_in y y_in, false.elim x_in
+
+lemma lipschitz_on_with.mono [pseudo_emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
+  {s t : set α} {f : α → β} (hf : lipschitz_on_with K f t) (h : s ⊆ t) : lipschitz_on_with K f s :=
+λ x x_in y y_in, hf (h x_in) (h y_in)
+
+lemma lipschitz_on_with_iff_dist_le_mul [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0}
+  {s : set α} {f : α → β} :
+  lipschitz_on_with K f s ↔ ∀ (x ∈ s) (y ∈ s), dist (f x) (f y) ≤ K * dist x y :=
+by { simp only [lipschitz_on_with, edist_nndist, dist_nndist], norm_cast }
+
+alias lipschitz_on_with_iff_dist_le_mul ↔
+  lipschitz_on_with.dist_le_mul lipschitz_on_with.of_dist_le_mul
+
+@[simp] lemma lipschitz_on_univ [pseudo_emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
+  {f : α → β} : lipschitz_on_with K f univ ↔ lipschitz_with K f :=
+by simp [lipschitz_on_with, lipschitz_with]
+
+lemma lipschitz_on_with_iff_restrict [pseudo_emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
+  {f : α → β} {s : set α} : lipschitz_on_with K f s ↔ lipschitz_with K (s.restrict f) :=
+by simp only [lipschitz_on_with, lipschitz_with, set_coe.forall', restrict, subtype.edist_eq]
 
 namespace lipschitz_with
 
 section emetric
 
-variables [emetric_space α] [emetric_space β] [emetric_space γ] {K : ℝ≥0} {f : α → β}
+variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
+variables {K : ℝ≥0} {f : α → β}
 
 lemma edist_le_mul (h : lipschitz_with K f) (x y : α) : edist (f x) (f y) ≤ K * edist x y := h x y
 
+lemma edist_lt_top (hf : lipschitz_with K f) {x y : α} (h : edist x y < ⊤) :
+  edist (f x) (f y) < ⊤ :=
+lt_of_le_of_lt (hf x y) $ ennreal.mul_lt_top ennreal.coe_lt_top h
+
 lemma mul_edist_le (h : lipschitz_with K f) (x y : α) :
-  (K⁻¹ : ennreal) * edist (f x) (f y) ≤ edist x y :=
+  (K⁻¹ : ℝ≥0∞) * edist (f x) (f y) ≤ edist x y :=
 begin
   have := h x y,
   rw [mul_comm] at this,
   replace := ennreal.div_le_of_le_mul this,
-  rwa [ennreal.div_def, mul_comm] at this
+  rwa [div_eq_mul_inv, mul_comm] at this
 end
 
 protected lemma of_edist_le (h : ∀ x y, edist (f x) (f y) ≤ edist x y) :
@@ -106,6 +153,10 @@ lipschitz_with.of_edist_le $ assume x y, le_refl _
 protected lemma subtype_coe (s : set α) : lipschitz_with 1 (coe : s → α) :=
 lipschitz_with.subtype_val s
 
+protected lemma restrict (hf : lipschitz_with K f) (s : set α) :
+  lipschitz_with K (s.restrict f) :=
+λ x y, hf x y
+
 protected lemma comp {Kf Kg : ℝ≥0} {f : β → γ} {g : α → β}
   (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) : lipschitz_with (Kf * Kg) (f ∘ g) :=
 assume x y,
@@ -128,21 +179,16 @@ begin
   exact max_le_max (hf x y) (hg x y)
 end
 
-protected lemma uncurry' {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ b, lipschitz_with Kα (λ a, f a b))
-  (hβ : ∀ a, lipschitz_with Kβ (f a)) :
-  lipschitz_with (Kα + Kβ) (function.uncurry' f) :=
-begin
-  rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-  simp only [function.uncurry', ennreal.coe_add, add_mul],
-  apply le_trans (edist_triangle _ (f a₂ b₁) _),
-  exact add_le_add' (le_trans (hα _ _ _) $ ennreal.mul_left_mono $ le_max_left _ _)
-    (le_trans (hβ _ _ _) $ ennreal.mul_left_mono $ le_max_right _ _)
-end
-
 protected lemma uncurry {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ b, lipschitz_with Kα (λ a, f a b))
   (hβ : ∀ a, lipschitz_with Kβ (f a)) :
   lipschitz_with (Kα + Kβ) (function.uncurry f) :=
-by { rw function.uncurry_def, apply lipschitz_with.uncurry'; assumption }
+begin
+  rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
+  simp only [function.uncurry, ennreal.coe_add, add_mul],
+  apply le_trans (edist_triangle _ (f a₂ b₁) _),
+  exact add_le_add (le_trans (hα _ _ _) $ ennreal.mul_left_mono $ le_max_left _ _)
+    (le_trans (hβ _ _ _) $ ennreal.mul_left_mono $ le_max_right _ _)
+end
 
 protected lemma iterate {f : α → α} (hf : lipschitz_with K f) :
   ∀n, lipschitz_with (K ^ n) (f^[n])
@@ -152,7 +198,7 @@ protected lemma iterate {f : α → α} (hf : lipschitz_with K f) :
 lemma edist_iterate_succ_le_geometric {f : α → α} (hf : lipschitz_with K f) (x n) :
   edist (f^[n] x) (f^[n + 1] x) ≤ edist x (f x) * K ^ n :=
 begin
-  rw [nat.iterate_succ, mul_comm],
+  rw [iterate_succ, mul_comm],
   simpa only [ennreal.coe_pow] using (hf.iterate n) x (f x)
 end
 
@@ -166,7 +212,7 @@ hf.comp hg
 endomorphism. -/
 protected lemma list_prod (f : ι → End α) (K : ι → ℝ≥0) (h : ∀ i, lipschitz_with (K i) (f i)) :
   ∀ l : list ι, lipschitz_with (l.map K).prod (l.map f).prod
-| [] := by simp [lipschitz_with.id]
+| [] := by simp [types_id, lipschitz_with.id]
 | (i :: l) := by { simp only [list.map_cons, list.prod_cons], exact (h i).mul (list_prod l) }
 
 protected lemma pow {f : End α} {K} (h : lipschitz_with K f) :
@@ -178,7 +224,7 @@ end emetric
 
 section metric
 
-variables [metric_space α] [metric_space β] [metric_space γ] {K : ℝ≥0}
+variables [pseudo_metric_space α] [pseudo_metric_space β] [pseudo_metric_space γ] {K : ℝ≥0}
 
 protected lemma of_dist_le' {f : α → β} {K : ℝ} (h : ∀ x y, dist (f x) (f y) ≤ K * dist x y) :
   lipschitz_with (nnreal.of_real K) f :=
@@ -237,19 +283,32 @@ lipschitz_with.of_le_add $ assume x z, by { rw [add_comm], apply dist_triangle }
 protected lemma dist_right (x : α) : lipschitz_with 1 (dist x) :=
 lipschitz_with.of_le_add $ assume y z, dist_triangle_right _ _ _
 
-protected lemma dist : lipschitz_with 2 (function.uncurry' $ @dist α _) :=
-lipschitz_with.uncurry' lipschitz_with.dist_left lipschitz_with.dist_right
+protected lemma dist : lipschitz_with 2 (function.uncurry $ @dist α _) :=
+lipschitz_with.uncurry lipschitz_with.dist_left lipschitz_with.dist_right
 
 lemma dist_iterate_succ_le_geometric {f : α → α} (hf : lipschitz_with K f) (x n) :
   dist (f^[n] x) (f^[n + 1] x) ≤ dist x (f x) * K ^ n :=
 begin
-  rw [nat.iterate_succ, mul_comm],
+  rw [iterate_succ, mul_comm],
   simpa only [nnreal.coe_pow] using (hf.iterate n).dist_le_mul x (f x)
 end
 
 end metric
 
 end lipschitz_with
+
+namespace lipschitz_on_with
+
+variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
+variables {K : ℝ≥0} {s : set α} {f : α → β}
+
+protected lemma uniform_continuous_on (hf : lipschitz_on_with K f s) : uniform_continuous_on f s :=
+uniform_continuous_on_iff_restrict.mpr (lipschitz_on_with_iff_restrict.mp hf).uniform_continuous
+
+protected lemma continuous_on (hf : lipschitz_on_with K f s) : continuous_on f s :=
+hf.uniform_continuous_on.continuous_on
+
+end lipschitz_on_with
 
 open metric
 

@@ -5,25 +5,25 @@ Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
 
 Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 -/
-
-import category_theory.category category_theory.isomorphism category_theory.groupoid category_theory.functor
-import algebra.group.units data.equiv.mul_add
+import category_theory.groupoid
+import data.equiv.mul_add
 
 universes v v' u u'
 
 namespace category_theory
 
-/-- Endomorphisms of an object in a category. Arguments order in multiplication agrees with `function.comp`, not with `category.comp`. -/
-def End {C : Type u} [𝒞_struct : category_struct.{v} C] (X : C) := X ⟶ X
+/-- Endomorphisms of an object in a category. Arguments order in multiplication agrees with
+`function.comp`, not with `category.comp`. -/
+def End {C : Type u} [category_struct.{v} C] (X : C) := X ⟶ X
 
 namespace End
 
 section struct
 
-variables {C : Type u} [𝒞_struct : category_struct.{v} C] (X : C)
-include 𝒞_struct
+variables {C : Type u} [category_struct.{v} C] (X : C)
 
 instance has_one : has_one (End X) := ⟨𝟙 X⟩
+instance inhabited : inhabited (End X) := ⟨𝟙 X⟩
 
 /-- Multiplication of endomorphisms agrees with `function.comp`, not `category_struct.comp`. -/
 instance has_mul : has_mul (End X) := ⟨λ x y, y ≫ x⟩
@@ -38,30 +38,39 @@ end struct
 
 /-- Endomorphisms of an object form a monoid -/
 instance monoid {C : Type u} [category.{v} C] {X : C} : monoid (End X) :=
-{ mul_one := category.id_comp C,
-  one_mul := category.comp_id C,
-  mul_assoc := λ x y z, (category.assoc C z y x).symm,
+{ mul_one := category.id_comp,
+  one_mul := category.comp_id,
+  mul_assoc := λ x y z, (category.assoc z y x).symm,
   ..End.has_mul X, ..End.has_one X }
 
 /-- In a groupoid, endomorphisms form a group -/
 instance group {C : Type u} [groupoid.{v} C] (X : C) : group (End X) :=
-{ mul_left_inv := groupoid.comp_inv C, inv := groupoid.inv, ..End.monoid }
+{ mul_left_inv := groupoid.comp_inv, inv := groupoid.inv, ..End.monoid }
 
 end End
 
-variables {C : Type u} [𝒞 : category.{v} C] (X : C)
-include 𝒞
+variables {C : Type u} [category.{v} C] (X : C)
 
+/--
+Automorphisms of an object in a category.
+
+The order of arguments in multiplication agrees with
+`function.comp`, not with `category.comp`.
+-/
 def Aut (X : C) := X ≅ X
 
 attribute [ext Aut] iso.ext
 
 namespace Aut
 
+instance inhabited : inhabited (Aut X) := ⟨iso.refl X⟩
+
 instance : group (Aut X) :=
 by refine { one := iso.refl X,
             inv := iso.symm,
-            mul := flip iso.trans, .. } ; dunfold flip; obviously
+            mul := flip iso.trans,
+            div_eq_mul_inv := λ _ _, rfl, .. } ;
+     simp [flip, (*), has_one.one, monoid.one, has_inv.inv]
 
 /--
 Units in the monoid of endomorphisms of an object
@@ -78,8 +87,7 @@ end Aut
 
 namespace functor
 
-variables {D : Type u'} [𝒟 : category.{v'} D] (f : C ⥤ D) (X)
-include 𝒟
+variables {D : Type u'} [category.{v'} D] (f : C ⥤ D) (X)
 
 /-- `f.map` as a monoid hom between endomorphism monoids. -/
 def map_End : End X →* End (f.obj X) :=

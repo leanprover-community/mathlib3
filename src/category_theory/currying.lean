@@ -3,20 +3,27 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-
 import category_theory.products.bifunctor
-import category_theory.equivalence
-import category_theory.eq_to_hom
 
+/-!
+# Curry and uncurry, as functors.
+
+We define `curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E))` and `uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E)`,
+and verify that they provide an equivalence of categories
+`currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E)`.
+
+-/
 namespace category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-          {D : Type u₂} [𝒟 : category.{v₂} D]
-          {E : Type u₃} [ℰ : category.{v₃} E]
-include 𝒞 𝒟 ℰ
+variables {C : Type u₁} [category.{v₁} C]
+          {D : Type u₂} [category.{v₂} D]
+          {E : Type u₃} [category.{v₃} E]
 
+/--
+The uncurrying functor, taking a functor `C ⥤ (D ⥤ E)` and producing a functor `(C × D) ⥤ E`.
+-/
 def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
 { obj := λ F,
   { obj := λ X, (F.obj X.1).obj X.2,
@@ -42,12 +49,18 @@ def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
       rw category.assoc,
     end } }.
 
+/--
+The object level part of the currying functor. (See `curry` for the functorial version.)
+-/
 def curry_obj (F : (C × D) ⥤ E) : C ⥤ (D ⥤ E) :=
 { obj := λ X,
     { obj := λ Y, F.obj (X, Y),
       map := λ Y Y' g, F.map (𝟙 X, g) },
     map := λ X X' f, { app := λ Y, F.map (f, 𝟙 Y) } }
 
+/--
+The currying functor, taking a functor `(C × D) ⥤ E` and producing a functor `C ⥤ (D ⥤ E)`.
+-/
 def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
 { obj := λ F, curry_obj F,
   map := λ F G T,
@@ -81,11 +94,15 @@ def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
 @[simp] lemma curry.map_app_app {F G : (C × D) ⥤ E} {α : F ⟶ G} {X} {Y} :
   ((curry.map α).app X).app Y = α.app (X, Y) := rfl
 
+/--
+The equivalence of functor categories given by currying/uncurrying.
+-/
+@[simps] -- create projection simp lemmas even though this isn't a `{ .. }`.
 def currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E) :=
 equivalence.mk uncurry curry
   (nat_iso.of_components (λ F, nat_iso.of_components
-    (λ X, nat_iso.of_components (λ Y, as_iso (𝟙 _)) (by tidy)) (by tidy)) (by tidy))
+    (λ X, nat_iso.of_components (λ Y, iso.refl _) (by tidy)) (by tidy)) (by tidy))
   (nat_iso.of_components (λ F, nat_iso.of_components
-    (λ X, eq_to_iso (by {dsimp, simp})) (by tidy)) (by tidy))
+    (λ X, eq_to_iso (by simp)) (by tidy)) (by tidy))
 
 end category_theory

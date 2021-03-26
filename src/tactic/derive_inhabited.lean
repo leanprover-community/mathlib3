@@ -1,14 +1,14 @@
 /-
 Copyright (c) 2020 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Gabriel Ebner
 -/
-
 import logic.basic
 
 /-!
 # Derive handler for `inhabited` instances
 
-This file introduces a derive handle to automatically generate `inhabited`
+This file introduces a derive handler to automatically generate `inhabited`
 instances for structures and inductives. We also add various `inhabited`
 instances for types in the core library.
 -/
@@ -36,7 +36,7 @@ argument `inhabited α`, even if it is not used.  (This is due to the implementa
 instance_derive_handler ``inhabited $ do
 applyc ``inhabited.mk,
 `[refine {..}] <|> (constructor >> skip),
-all_goals $ do
+all_goals' $ do
   applyc ``default <|> (do s ← read,
     fail $ to_fmt "could not find inhabited instance for:\n" ++ to_fmt s)
 

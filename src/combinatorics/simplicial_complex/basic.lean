@@ -166,8 +166,21 @@ complexes.
 noncomputable def simplicial_complex.pureness (S : simplicial_complex m) : ℕ :=
   if hS : S.pure then classical.some hS else 0
 
-lemma pureness_def {S : simplicial_complex m} (hS : S.pure) : S.pure_of S.pureness := sorry
 --classical.some_spec hS hX @Bhavik the totalling broke it and I broke it even more :/
+lemma pureness_def {S : simplicial_complex m} (hS : S.pure) : S.pure_of S.pureness := sorry
+
+lemma pureness_unique_of_nonempty {S : simplicial_complex m} {a b : ℕ} (hS : S.faces.nonempty) :
+  S.pure_of a → S.pure_of b → a = b :=
+begin
+  obtain ⟨X, hX⟩ := hS,
+  obtain ⟨Y, hY, hYX⟩ := subfacet hX,
+  rintro hSa hSb,
+  rw [←hSa hY, ←hSb hY],
+end
+
+--same below. I really don't get what i'm doing wrong
+lemma pureness_def' {S : simplicial_complex m} (hSnonempty : S.faces.nonempty) (hS : S.pure_of n) :
+  S.pureness = n := sorry --pureness_unique_of_nonempty hSnonempty (pureness_def ⟨n, hS⟩) hS
 
 lemma simplex_dimension_le_pureness {S : simplicial_complex m} {n : ℕ} (hS : S.pure_of n)
   {X : finset (fin m → ℝ)} : X ∈ S.faces → X.card ≤ n :=
@@ -300,24 +313,45 @@ lemma skeleton_pureness_eq_min_pureness_dimension {S : simplicial_complex m} {k 
 The closure of a set of faces is the set of their subfaces
 -/
 def simplicial_complex.closure (S : simplicial_complex m) (A : set (finset (fin m → ℝ))) :
+  simplicial_complex m := {
+  faces := {X | X ∈ S.faces ∧ ∃ {X'}, X' ∈ A ∧ X ⊆ X'},
+  indep := λ X ⟨hX, _⟩, S.indep hX,
+  down_closed := λ X Y ⟨hX, X', hX', hXX'⟩ hYX,
+    ⟨S.down_closed hX hYX, X', hX', subset.trans hYX hXX'⟩,
+  disjoint := λ X Y ⟨hX, _⟩ ⟨hY, _⟩, S.disjoint hX hY }
+/-Previous def
+def simplicial_complex.closure (S : simplicial_complex m) (A : set (finset (fin m → ℝ))) :
   simplicial_complex m := simplicial_complex.of_surcomplex
   {X | X ∈ S.faces ∧ ∃ {X'}, X' ∈ A ∧ X ⊆ X'}
   (λ X ⟨hX, _⟩, hX)
-  (λ X Y ⟨hX, X', hX', hXX'⟩ hYX, ⟨S.down_closed hX hYX, X', hX', subset.trans hYX hXX'⟩)
+  (λ X Y ⟨hX, X', hX', hXX'⟩ hYX, ⟨S.down_closed hX hYX, X', hX', subset.trans hYX hXX'⟩)-/
 
-lemma closure_subset {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} :
-  (S.closure A).faces ⊆ S.faces := λ X ⟨hX, _⟩, hX
+--@Bhavik homonymy problem
+lemma closure_empty {S : simplicial_complex m} (hS : S.faces.nonempty) : (S.closure ∅).faces = ∅ :=
+begin
+  unfold simplicial_complex.closure,
+  simp,
+end
 
---@Bhavik subset_closure is unfortunately already taken by the topological statement that
---s ⊆ closure s
-lemma faces_subset_closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} :
-  S.faces ∩ A ⊆ (S.closure A).faces := λ X hX, ⟨hX.1, X, hX.2, subset.refl _⟩
-
-lemma closure_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))} (hAB : A ⊆ B) :
-  (S.closure A).faces ⊆ (S.closure B).faces := λ X ⟨hX, Y, hY, hXY⟩, ⟨hX, Y, hAB hY, hXY⟩
+lemma closure_singleton_empty {S : simplicial_complex m} (hS : S.faces.nonempty) : (S.closure {∅}).faces = {∅} :=
+begin
+  ext X,
+  split,
+  {
+    rintro ⟨hX, X', (hX' : X' = ∅), hXX'⟩,
+    rw hX' at hXX',
+    exact finset.subset_empty.1 hXX',
+  },
+  {
+    rintro (hX : X = ∅),
+    rw hX,
+    obtain ⟨Y, hY⟩ := hS,
+    exact ⟨S.down_closed hY (empty_subset Y), ∅, mem_singleton ∅, subset.refl ∅⟩,
+  }
+end
 
 --@Bhavik same homonymy here
-lemma closure_singleton_point {S : simplicial_complex m} {x : fin m → ℝ} (hx : {x} ∈ S.faces) :
+lemma closure_singleton {S : simplicial_complex m} {x : fin m → ℝ} (hx : {x} ∈ S.faces) :
   (S.closure {{x}}).faces = {∅, {x}} :=
 begin
   ext Y,
@@ -336,12 +370,57 @@ begin
   }
 end
 
+lemma mem_closure_singleton_iff {S : simplicial_complex m} {X Y : finset (fin m → ℝ)} :
+  Y ∈ (S.closure {X}).faces ↔ Y ∈ S.faces ∧ Y ⊆ X :=
+begin
+  split,
+  {
+    rintro ⟨hY, Z, (hZ : Z = X), hYZ⟩,
+    rw hZ at hYZ,
+    exact ⟨hY, hYZ⟩,
+  },
+  {
+    rintro ⟨hY, hYX⟩,
+    exact ⟨hY, X, rfl, hYX⟩,
+  }
+end
+
+lemma closure_subset {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} :
+  (S.closure A).faces ⊆ S.faces := λ X ⟨hX, _⟩, hX
+
+--@Bhavik subset_closure is unfortunately already taken by the topological statement that
+--s ⊆ closure s
+lemma faces_subset_closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} :
+  S.faces ∩ A ⊆ (S.closure A).faces := λ X hX, ⟨hX.1, X, hX.2, subset.refl _⟩
+
+lemma closure_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))} (hAB : A ⊆ B) :
+  (S.closure A).faces ⊆ (S.closure B).faces := λ X ⟨hX, Y, hY, hXY⟩, ⟨hX, Y, hAB hY, hXY⟩
+
 /--
 The open star of a set of faces is the union of their surfaces. Note that the star is all of the
 original complex as soon as A contains the empty set.
 -/
 def simplicial_complex.star (S : simplicial_complex m) : set (finset (fin m → ℝ)) →
   set (finset (fin m → ℝ)) := λ A, {X | X ∈ S.faces ∧ ∃ {Y}, Y ∈ A ∧ Y ⊆ X}
+
+lemma star_empty {S : simplicial_complex m} : S.star ∅ = ∅ :=
+begin
+  unfold simplicial_complex.star,
+  simp,
+end
+
+lemma star_singleton_empty {S : simplicial_complex m} : S.star {∅} = S.faces :=
+begin
+  unfold simplicial_complex.star,
+  simp,
+end
+
+lemma mem_star_singleton_iff {S : simplicial_complex m} {X Y : finset (fin m → ℝ)} :
+  Y ∈ S.star {X} ↔ Y ∈ S.faces ∧ X ⊆ Y :=
+begin
+  unfold simplicial_complex.star,
+  simp,
+end
 
 lemma mem_star_iff {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
   {X : finset (fin m → ℝ)} : X ∈ S.star A ↔ X ∈ S.faces ∩ ⋃ (Y ∈ A), {Z | Y ⊆ Z} :=
@@ -363,13 +442,6 @@ lemma star_up_closed {S : simplicial_complex m} {X Y : finset (fin m → ℝ)}
   {A : set (finset (fin m → ℝ))} : X ∈ S.faces → Y ∈ S.star A → Y ⊆ X → X ∈ S.star A :=
   λ hX ⟨hY, Z, hZ, hZY⟩ hYX, ⟨hX, Z, hZ, subset.trans hZY hYX⟩
 
-lemma star_empty {S : simplicial_complex m} : S.star {∅} = S.faces :=
-begin
-  ext X,
-  unfold simplicial_complex.star,
-  simp,
-end
-
 lemma Union_star_eq_star {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} :
   (⋃ (X ∈ A), S.star {X}) = S.star A :=
 begin
@@ -387,13 +459,6 @@ begin
   }
 end
 
-lemma mem_star_singleton_iff {S : simplicial_complex m} {X Y : finset (fin m → ℝ)}
-  (hX : X ∈ S.faces) : Y ∈ S.star {X} ↔ Y ∈ S.faces ∧ X ⊆ Y :=
-begin
-  unfold simplicial_complex.star,
-  simp,
-end
-
 --Can maybe get rid of hX?
 lemma star_singleton_eq_Inter_star_singleton {S : simplicial_complex m} {X : finset (fin m → ℝ)} (hX : X ∈ S.faces) :
   S.star {X} = ⋂ x ∈ X, S.star {{x}} :=
@@ -408,7 +473,7 @@ begin
   },
   {
     rintro h,
-    rw mem_star_singleton_iff hX,
+    rw mem_star_singleton_iff,
     split,
     {
       --rw mem_bInter_iff at h, @Bhavik, bug here, maybe there's a workaround?
@@ -432,6 +497,33 @@ def simplicial_complex.Star (S : simplicial_complex m) : set (finset (fin m → 
   down_closed := λ X W ⟨Y, Z, hY, hZ, hXZ, hYZ⟩ hWX, ⟨Y, Z, hY, hZ, subset.trans hWX hXZ, hYZ⟩,
   disjoint := λ X X' ⟨_, Z, _, hZ, hXZ, _⟩ ⟨_, Z', _, hZ', hXZ', _⟩,
     S.disjoint (S.down_closed hZ hXZ) (S.down_closed hZ' hXZ') }
+
+lemma Star_empty {S : simplicial_complex m} : (S.Star ∅).faces = ∅ :=
+begin
+  unfold simplicial_complex.Star,
+  simp,
+end
+
+lemma Star_singleton_empty {S : simplicial_complex m} : (S.Star {∅}).faces = S.faces :=
+begin
+  ext X,
+  split,
+  {
+    rintro ⟨Y, Z, (hY : Y = ∅), hZ, hXZ, hYZ⟩,
+    exact S.down_closed hZ hXZ,
+  },
+  {
+    rintro hX,
+    exact ⟨∅, X, rfl, hX, subset.refl _, empty_subset X⟩,
+  }
+end
+
+lemma mem_Star_singleton_iff {S : simplicial_complex m} {X Y : finset (fin m → ℝ)} :
+  Y ∈ (S.Star {X}).faces ↔ ∃ {Z}, Z ∈ S.faces ∧ Y ⊆ Z ∧ X ⊆ Z :=
+begin
+  unfold simplicial_complex.Star,
+  simp,
+end
 
 /--
 The closed star of a set is the closure of its open star.
@@ -468,48 +560,6 @@ begin
   exact closure_mono (star_mono hAB),
 end
 
-lemma pure_Star_of_pure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} :
-  S.pure → (S.Star A).pure :=
-begin
-  --not hard but I'm tired
-  sorry
-  /-rintro ⟨n, hS⟩, -- (S.faces ∩ A).nonempty →  rintro ⟨n, hS⟩
-  use n,
-  rintro X ⟨⟨Y, Z, hY, hZ, hXZ, hYZ⟩, hXmax⟩,
-  have hYA : Y ∈ S.star A,
-  {
-    exact ⟨S.down_closed hZ hYZ, Y, hY, subset.refl Y⟩,
-  },
-  obtain ⟨W, hW, hYW⟩ := subfacet (star_subset hYA),
-  unfold simplicial_complex.pure_of at hS,
-  have hW' : W ∈ (S.Star A).facets,
-  {
-    split,
-    {
-      apply star_subset_Star,
-      sorry
-    },
-    {
-      rintro V ⟨T, U, hT, hU, hVU, hTU⟩ hWV,
-      have : V.card ≤ W.card,
-      {
-        rw hS hW,
-        --exact simplex_dimension_le_pureness hS (S.down_closed hU hVU), @Bhavik same problem as on l. 187
-        sorry
-      },
-      exact finset.eq_of_subset_of_card_le hWV this,
-    }
-  },
-  have hW' : W ∈ (S.Star A).faces,
-  {
-      apply star_subset_Star,
-      exact star_up_closed hW.1 hYA hYW,
-  },
-  rw hXmax (star_subset_Star (star_up_closed hZ hYA hYZ))
-    hXZ,
-  exact hS hW,-/
-end
-
 lemma Star_facet_iff {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
   {X : finset (fin m → ℝ)} :
   X ∈ (S.Star A).facets ↔ X ∈ S.facets ∧ ∃ {Y}, Y ∈ A ∧ Y ⊆ X :=
@@ -539,22 +589,20 @@ begin
   }
 end
 
-lemma Star_pureness_eq_pureness_of_nonempty {S : simplicial_complex m}
-  {A : set (finset (fin m → ℝ))} (hS : S.pure) :
-  (S.faces ∩ A).nonempty → (S.Star A).pureness = S.pureness :=
+lemma pure_Star_of_pure {S : simplicial_complex m} {n : ℕ} {A : set (finset (fin m → ℝ))} :
+  S.pure_of n → (S.Star A).pure_of n := λ hS X hX, hS (Star_facet_iff.1 hX).1
+
+lemma Star_pureness_eq_pureness {S : simplicial_complex m} {A : set (finset (fin m → ℝ))}
+  (hS : S.pure) (hSA : (S.Star A).faces.nonempty) : (S.Star A).pureness = S.pureness :=
 begin
-  rintro ⟨X, hX⟩,
-  obtain ⟨Y, hY, hXY⟩ := subfacet hX.1,
-  apply nat.succ.inj,
-  have : Y ∈ (S.Star A).facets,
-  {
-    use star_subset_Star (star_up_closed hY.1 (subset_star hX) hXY),
-    rintro Z hZ hYZ,
-    exact hY.2 (Star_subset hZ) hYZ,
-  },
-  rw [nat.succ_eq_add_one, nat.succ_eq_add_one, ← pureness_def hS hY,
-    ← pureness_def (pure_Star_of_pure hS) this],
+  obtain ⟨n, hS⟩ := hS,
+  obtain ⟨X, hX⟩ := id hSA,
+  sorry
+  --@Bhavik same problem again! Seems like S.pure_of n is very brittle in Lean's handling of things
+  --rw pureness_def' hSA (pure_Star_of_pure hS),
 end
+
+
 
 def simplicial_complex.link (S : simplicial_complex m) (A : set (finset (fin m → ℝ))) :
   simplicial_complex m := {
@@ -589,6 +637,79 @@ def simplicial_complex.link (S : simplicial_complex m) (A : set (finset (fin m �
       exact hW,
     }
   end-/
+
+lemma link_empty {S : simplicial_complex m} : (S.link ∅).faces = ∅ :=
+begin
+  unfold simplicial_complex.link,
+  simp,
+end
+
+lemma link_singleton_empty {S : simplicial_complex m} : (S.link {∅}).faces = S.faces :=
+begin
+  ext X,
+  split,
+  {
+    rintro ⟨_, _, Z, _, hZ, hXZ, _⟩,
+    exact S.down_closed hZ hXZ,
+  },
+  {
+    rintro hX,
+    split,
+    { rintro W (h : W = ∅),
+      rw h,
+      exact finset.disjoint_empty_left X, },
+    exact ⟨∅, X, rfl, hX, subset.refl X, empty_subset X⟩,
+  }
+end
+
+lemma mem_link_singleton_iff {S : simplicial_complex m} {X Y : finset (fin m → ℝ)} :
+  Y ∈ (S.link {X}).faces ↔ disjoint X Y ∧ ∃ {Z}, Z ∈ S.faces ∧ Y ⊆ Z ∧ X ⊆ Z :=
+begin
+  unfold simplicial_complex.link,
+  simp,
+end
+
+lemma link_singleton_subset {S : simplicial_complex m} {X : finset (fin m → ℝ)} (hX : X ≠ ∅) :
+  (S.link {X}).faces ⊆ (S.Star {X}).faces \ S.star {X} :=
+begin
+  rintro Y ⟨hY, W, Z, (hWX : W = X), hZ, hYZ, hWZ⟩,
+  simp at hY,
+  subst hWX,
+  split,
+  { exact ⟨W, Z, mem_singleton W, hZ, hYZ, hWZ⟩, },
+  { rintro h,
+    rw mem_star_singleton_iff at h,
+    exact hX (disjoint_self.1 (finset.disjoint_of_subset_right h.2 hY)), }
+end
+
+lemma link_singleton_eq_iff_singleton_eq_singleton {S : simplicial_complex m}
+  {X : finset (fin m → ℝ)} (hX : X ≠ ∅) :
+  (S.link {X}).faces = (S.Star {X}).faces \ S.star {X} ↔ X.card = 1 :=
+begin
+  split,
+  {
+    sorry --true? The PDF claims so but i'm not sure
+  },
+  {
+    rintro hXcard,
+    apply subset.antisymm (link_singleton_subset hX),
+    rintro Y ⟨h, hYstar⟩,
+    obtain ⟨Z, hZ, hYZ, hXZ⟩ := mem_Star_singleton_iff.1 h,
+    split,
+    {
+      obtain ⟨x, hxX⟩ := finset.card_eq_one.1 hXcard,
+      rintro W (hW : W = X),
+      subst hW,
+      subst hxX,
+      rw finset.singleton_disjoint,
+      rintro hx,
+      apply hYstar,
+      rw [mem_star_singleton_iff, finset.singleton_subset_iff],
+      exact ⟨S.down_closed hZ hYZ, hx⟩,
+    },
+    exact ⟨X, Z, rfl, hZ, hYZ, hXZ⟩,
+  }
+end
 
 lemma link_subset {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} :
   (S.link A).faces ⊆ S.faces := λ X ⟨hXdisj, Y, Z, hY, hZ, hXZ, hYZ⟩, S.down_closed hZ hXZ
@@ -630,33 +751,6 @@ begin
       exact finset.singleton_subset_iff.2 (finset.inter_subset_right W X hx),
     },
     { exact hXStar }
-  }
-end
-
-lemma link_singleton {S : simplicial_complex m} {X : finset (fin m → ℝ)} (hX : X ≠ ∅) :
-  (S.link {X}).faces = (S.Star {X}).faces \ S.star {X} :=
-begin
-  ext Y,
-  split,
-  {
-    rintro ⟨hY, W, Z, (hWX : W = X), hZ, hYZ, hWZ⟩,
-    subst hWX,
-    split,
-    {
-      --rw mem_star_singleton_iff (S.down_closed hZ hWZ),
-      sorry
-    },
-    {
-      rintro h,
-      rw mem_star_singleton_iff (S.down_closed hZ hWZ) at h,
-      simp at hY,
-      sorry
-      --rw link_eq_Star_sub_star_closure,
-      --rw mem_star_singleton_iff,rintro ⟨hY, V, hV, hVY⟩,
-    }
-  },
-  {
-    sorry
   }
 end
 

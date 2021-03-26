@@ -322,8 +322,7 @@ begin
   { exact snorm'_mono_ae ennreal.to_real_nonneg h }
 end
 
-lemma snorm_le_of_bound {f : α → E} (hf : ae_measurable f μ)
-  {C : ℝ} (hC : 0 ≤ C) (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
+lemma snorm_le_of_bound {f : α → E} {C : ℝ} (hC : 0 ≤ C) (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
   snorm f p μ ≤ ((μ set.univ) ^ p.to_real⁻¹) * (@coe ℝ≥0 ℝ≥0∞ _ ⟨C, hC⟩) :=
 begin
   by_cases hp : p = 0,
@@ -1076,7 +1075,7 @@ begin
   let A : ℝ≥0 := (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * ⟨C, hC⟩,
   suffices : snorm f p μ ≤ A,
   { exact ennreal.to_real_mono this },
-  convert snorm_le_of_bound f.ae_measurable hC hfC,
+  convert snorm_le_of_bound hC hfC,
   dsimp [A],
   rw [← coe_measure_univ_nnreal μ, ennreal.coe_rpow_of_ne_zero (measure_univ_nnreal_pos hμ).ne'],
   simp
@@ -1735,7 +1734,7 @@ end complete_space
 namespace bounded_continuous_function
 
 open_locale bounded_continuous_function
-variables [measurable_space E] [normed_group E] [borel_space E] [second_countable_topology E]
+variables [borel_space E] [second_countable_topology E]
 variables [topological_space α] [borel_space α]
 variables [finite_measure μ]
 

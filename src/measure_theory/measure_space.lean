@@ -1633,7 +1633,7 @@ lemma measure_ne_top (μ : measure α) [finite_measure μ] (s : set α) : μ s �
 ne_of_lt (measure_lt_top μ s)
 
 /-- The measure of the whole space with respect to a finite measure, considered as `ℝ≥0`. -/
-def measure_univ_nnreal (μ : measure α) [finite_measure μ] : ℝ≥0 := (μ univ).to_nnreal
+def measure_univ_nnreal (μ : measure α) : ℝ≥0 := (μ univ).to_nnreal
 
 @[simp] lemma coe_measure_univ_nnreal (μ : measure α) [finite_measure μ] :
   ↑(measure_univ_nnreal μ) = μ univ :=

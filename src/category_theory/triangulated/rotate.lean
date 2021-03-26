@@ -151,8 +151,8 @@ def inv_rotate (f : triangle_morphism T₁ T₂) :
     dsimp [inv_rotate_mor₁],
     simp_rw [comp_neg, neg_comp, ← assoc, ← functor.map_comp (shift C ).inverse, ← f.comm₃,
       functor.map_comp, assoc, equivalence.inv_fun_map, assoc, iso.hom_inv_id_app],
-    congr,
-    exact (category.comp_id f.hom₁).symm
+    dsimp,
+    simp only [comp_id],
   end }
 
 end triangle_morphism

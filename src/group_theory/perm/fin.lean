@@ -209,6 +209,22 @@ begin
     { simpa [fin.le_iff_coe_le_coe] using hgt } },
 end
 
+@[simp] lemma cycle_range_succ_above {n : ℕ} (i : fin (n + 1)) (j : fin n) :
+  i.cycle_range (i.succ_above j) = j.succ :=
+begin
+  cases lt_or_ge j.cast_succ i with h h,
+  { rw [fin.succ_above_below _ _ h, fin.cycle_range_of_lt h, fin.coe_succ_eq_succ] },
+  { rw [fin.succ_above_above _ _ h, fin.cycle_range_of_gt (fin.le_cast_succ_iff.mp h)] }
+end
+
+@[simp] lemma cycle_range_symm_zero {n : ℕ} (i : fin (n + 1)) :
+  i.cycle_range.symm 0 = i :=
+i.cycle_range.injective (by simp)
+
+@[simp] lemma cycle_range_symm_succ {n : ℕ} (i : fin (n + 1)) (j : fin n) :
+  i.cycle_range.symm j.succ = i.succ_above j :=
+i.cycle_range.injective (by simp)
+
 end fin
 
 end cycle_range

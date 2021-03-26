@@ -446,22 +446,6 @@ by { rw [← det_transpose A, det_succ_column_zero],
      simp only [matrix.transpose_apply],
      refl }
 
-@[simp] lemma cycle_range_symm_zero {n : ℕ} (i : fin (n + 1)) :
-  i.cycle_range.symm 0 = i :=
-i.cycle_range.injective (by simp)
-
-@[simp] lemma cycle_range_succ_above {n : ℕ} (i : fin (n + 1)) (j : fin n) :
-  i.cycle_range (i.succ_above j) = j.succ :=
-begin
-  cases lt_or_ge j.cast_succ i with h h,
-  { rw [fin.succ_above_below _ _ h, fin.cycle_range_of_lt h, fin.coe_succ_eq_succ] },
-  { rw [fin.succ_above_above _ _ h, fin.cycle_range_of_gt (fin.le_cast_succ_iff.mp h)] }
-end
-
-@[simp] lemma cycle_range_symm_succ {n : ℕ} (i : fin (n + 1)) (j : fin n) :
-  i.cycle_range.symm j.succ = i.succ_above j :=
-i.cycle_range.injective (by simp)
-
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along row `i`. -/
 lemma det_succ_row {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (i : fin n.succ) :
   det A = ∑ j : fin n.succ, (-1) ^ (i + j : ℕ) * A i j *
@@ -479,9 +463,9 @@ begin
   refine finset.sum_congr rfl (λ j _, _),
   rw mul_assoc,
   congr,
-  { rw [equiv.perm.inv_def, cycle_range_symm_zero] },
+  { rw [equiv.perm.inv_def, fin.cycle_range_symm_zero] },
   { ext i' j',
-    rw [equiv.perm.inv_def, cycle_range_symm_succ] },
+    rw [equiv.perm.inv_def, fin.cycle_range_symm_succ] },
 end
 
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along column `j`. -/

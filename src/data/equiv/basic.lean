@@ -1674,7 +1674,7 @@ While awkward, the `nonempty α` hypothesis on `f_inv` and `hf` allows this to b
 empty too. This hypothesis is absent on analogous definitions on stronger `equiv`s like
 `linear_equiv.of_left_inverse` and `ring_equiv.of_left_inverse` as their typeclass assumptions
 are already sufficient to ensure non-emptiness. -/
-@[simps]
+@[simps apply]
 def range_of_left_inverse {α β : Sort*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
   α ≃ set.range f :=
@@ -1688,6 +1688,7 @@ def range_of_left_inverse {α β : Sort*}
 
 Note that if `α` is empty, no such `f_inv` exists and so this definition can't be used, unlike
 the stronger but less convenient `equiv.set.range_of_left_inverse`. -/
+@[simps apply]
 abbreviation range_of_left_inverse' {α β : Sort*}
   (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
   α ≃ set.range f :=

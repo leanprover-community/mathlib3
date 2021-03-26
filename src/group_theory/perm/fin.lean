@@ -3,8 +3,9 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import group_theory.perm.option
 import data.equiv.fin
+import data.zmod.basic
+import group_theory.perm.option
 
 /-!
 # Permutations of `fin n`
@@ -63,93 +64,167 @@ lemma finset.univ_perm_fin_succ {n : ℕ} :
   equiv.perm.decompose_fin.symm.to_embedding :=
 (finset.univ_map_equiv_to_embedding _).symm
 
-section cycle_range
+section cycle
 
-/-! ### `cycle_range` section
+/-! ### `cycle` section
 
-Define the permutation `fin.cycle_range i`, the cycle `(0 1 2 ... i)`.
-The definition is slightly awkward because we need to keep track of the fact
-that the cycle indeed stays within `fin n`. You're advised to use
-`cycle_range_of_lt`, `cycle_range_self` and `cycle_range_of_gt` instead of
-unfolding the definition.
+Define the permutations `fin.cycle_all n`, the cycle `(0 1 2 ... (n - 1 : fin n))`
+and `fin.cycle_range i`, the cycle `(0 1 2 ... i)`.
 -/
 
 namespace fin
 
-/-- `fin.cycle_range i` is the cycle `(0 1 2 ... i)`. -/
-def cycle_range {n : ℕ} : fin n → perm (fin n)
--- We could write this as a product over `list.range`,
--- but the explicit `mk`s would become `coe`s and make the proofs a lot more annoying.
--- We could also write this as two `if`s, but it is very annoying to prove that
--- indeed results in a permutation.
-| ⟨0, _⟩ := 1
-| i@⟨nat.succ i', hi⟩ :=
-have i' < i'.succ := nat.lt_succ_self _,
-  swap ⟨0, lt_of_le_of_lt (nat.zero_le _) hi⟩ i * cycle_range ⟨i', this.trans hi⟩
+open equiv.perm
 
-@[simp] lemma cycle_range_zero' {n : ℕ} (h : 0 < n) : cycle_range ⟨0, h⟩ = 1 := rfl
-@[simp] lemma cycle_range_zero {n : ℕ} : cycle_range (0 : fin n.succ) = 1 := rfl
+/-- `fin.cycle_all` is the cycle `(0 1 2 ... fin.last n)`.
 
-/-- The definition of `cycle_range i.succ`, where `i` is given as a natural number.
-
-This lemma is not really supposed to be used since it gives such an ugly right hand side,
-use `cycle_range_of_lt`, `cycle_range_self` and `cycle_range_of_gt` instead.
+If `n` is `0` or `1`, this will be the identity permutation,
+otherwise it sends `i` to `i + 1` and `fin.last n` to `0`.
 -/
-lemma cycle_range_succ_aux {n : ℕ} {i : ℕ} (hi : i + 1 < n) :
-  cycle_range ⟨i + 1, hi⟩ = swap ⟨0, lt_of_le_of_lt (nat.zero_le _) hi⟩ ⟨i + 1, hi⟩ *
-    cycle_range ⟨i, (nat.lt_succ_self _).trans hi⟩ := rfl
+def cycle_all : Π (n : ℕ), perm (fin n)
+| 0 := 1
+| (nat.succ n) := let inst := fin.comm_ring n in by exactI equiv.add_right 1
+
+@[simp] lemma cycle_all_zero : cycle_all 0 = 1 := rfl
+
+@[simp] lemma cycle_all_one : cycle_all 1 = 1 :=
+subsingleton.elim _ _
+
+lemma cycle_all_succ_apply {n : ℕ} (i : fin n.succ) :
+  cycle_all n.succ i = i + 1 :=
+rfl
+
+@[simp] lemma cycle_all_apply_zero {n : ℕ} : cycle_all n.succ 0 = 1 :=
+by rw [cycle_all_succ_apply, zero_add]
+
+@[simp] lemma last_add_one {n : ℕ} :
+  last n + 1 = 0 :=
+begin
+  cases n,
+  { apply subsingleton.elim },
+  { ext, rw [coe_add, coe_zero, coe_last, coe_one, nat.mod_self] }
+end
+
+@[simp] lemma cycle_all_apply_last {n : ℕ} : cycle_all n.succ (last n) = 0 :=
+by { ext, rw [cycle_all_succ_apply, last_add_one] }
+
+lemma coe_cycle_all_of_ne_last {n : ℕ} {i : fin n.succ} (h : i ≠ last n) :
+  (cycle_all n.succ i : ℕ) = i + 1 :=
+begin
+  rw cycle_all_succ_apply,
+  have : (i : ℕ) < n := lt_of_le_of_ne (nat.succ_le_succ_iff.mp i.2) (coe_injective.ne h),
+  exact coe_add_one this
+end
+
+lemma coe_cycle_all {n : ℕ} (i : fin n.succ) :
+  (cycle_all n.succ i : ℕ) = if i = fin.last n then 0 else i + 1 :=
+begin
+  split_ifs with h,
+  { simp [cycle_all_succ_apply, h] },
+  exact coe_cycle_all_of_ne_last h
+end
+
+@[simp] lemma last_succ {n : ℕ} : last (n + 1) = (last n).succ :=
+by { ext, simp }
+
+lemma function.injective.map_swap {α β : Type*} [decidable_eq α] [decidable_eq β]
+  {f : α → β} (hf : function.injective f) (x y z : α) :
+  f (swap x y z) = swap (f x) (f y) (f z) :=
+begin
+  conv_rhs { rw swap_apply_def },
+  split_ifs with h₁ h₂,
+  { rw [hf h₁, swap_apply_left] },
+  { rw [hf h₂, swap_apply_right] },
+  { rw [swap_apply_of_ne_of_ne (mt (congr_arg f) h₁) (mt (congr_arg f) h₂)] },
+end
+
+lemma cycle_all_succ {n : ℕ} :
+  cycle_all n.succ = decompose_fin.symm (1, cycle_all n) :=
+begin
+  ext i,
+  cases n, { simp },
+  refine fin.cases _ (λ i, _) i,
+  { simp },
+  rw [coe_cycle_all, decompose_fin_symm_apply_succ,
+      if_congr (show i.succ = last (n + 1) ↔ i = last n, from _) rfl rfl],
+  split_ifs with h,
+  { simp [h] },
+  { rw [fin.coe_succ, function.injective.map_swap fin.coe_injective, fin.coe_succ, coe_cycle_all,
+        if_neg h, fin.coe_zero, fin.coe_one,
+        swap_apply_of_ne_of_ne (nat.succ_ne_zero _) (nat.succ_succ_ne_one _)] },
+  { rw [last_succ, (fin.succ_injective _).eq_iff] }
+end
+
+@[simp] lemma sign_cycle_all (n : ℕ) : (cycle_all (n + 1)).sign = (-1) ^ n :=
+begin
+  induction n with n ih,
+  { simp },
+  { rw cycle_all_succ, simp [ih, pow_succ] },
+end
+
+@[simp] lemma range_cast_le {n k : ℕ} (h : n ≤ k) :
+  set.range (cast_le h) = {i | (i : ℕ) < n} :=
+set.ext (λ x, ⟨λ ⟨y, hy⟩, hy ▸ y.2, λ hx, ⟨⟨x, hx⟩, fin.ext rfl⟩⟩)
+
+@[simp] lemma range_cast_succ {n : ℕ} :
+  set.range (cast_succ : fin n → fin n.succ) = {i | (i : ℕ) < n} :=
+range_cast_le _
+
+@[simp] lemma coe_set_range_cast_le_symm {n k : ℕ} (h : n ≤ k) (i : fin k) (hi) :
+  ((equiv.set.range _ ((cast_le h).injective)).symm ⟨i, hi⟩ : ℕ) = i :=
+begin
+  rw ← coe_cast_le,
+  exact congr_arg coe (equiv.set.apply_range_symm _ _ _)
+end
+
+@[simp] lemma coe_set_range_cast_succ_symm {n : ℕ} (i : fin n.succ) (hi) :
+  ((equiv.set.range cast_succ (cast_succ_injective _)).symm ⟨i, hi⟩ : ℕ) = i :=
+begin
+  rw ← coe_cast_succ,
+  exact congr_arg coe (equiv.set.apply_range_symm _ _ _)
+end
+
+@[simp] lemma equiv.set.range_of_left_inverse_symm_apply {α β : Sort*}
+  (f : α → β) (f_inv hf) (x : set.range f) :
+  (equiv.set.range_of_left_inverse f f_inv hf).symm x = f_inv ⟨classical.some x.2⟩ x :=
+rfl
+
+@[simp] lemma equiv.set.range_of_left_inverse'_symm_apply {α β : Sort*}
+  (f : α → β) (f_inv hf) (x : set.range f) :
+  (equiv.set.range_of_left_inverse' f f_inv hf).symm x = f_inv x :=
+rfl
+
+/-- `fin.cycle_range i` is the cycle `(0 1 2 ... i)`. -/
+def cycle_range {n : ℕ} (i : fin n) : perm (fin n) :=
+((equiv.set.range_of_left_inverse' (fin.cast_le i.2) coe (by { intros x, ext, simp }))
+  .perm_congr (cycle_all (i + 1)))
+  .subtype_congr 1
 
 lemma cycle_range_of_gt {n : ℕ} {i j : fin n.succ} (h : i < j) :
   cycle_range i j = j :=
 begin
-  obtain ⟨i, hi⟩ := i,
-  induction i with i ih,
-  { simp },
-  { have hi' := ((nat.lt_succ_self i).trans hi),
-    have h' := ((nat.lt_succ_self i).trans h),
-    rw [cycle_range_succ_aux, perm.mul_apply, ih hi' h', swap_apply_of_ne_of_ne],
-    { rintro rfl,
-      cases h' },
-    { rintro rfl,
-      have : i.succ ≠ i.succ := subtype.coe_injective.ne h.ne,
-      contradiction } },
+  rw [cycle_range, perm.subtype_congr.apply, dif_neg, perm.one_apply, subtype.coe_mk],
+  { simpa only [range_cast_le, val_eq_coe, not_lt, set.mem_set_of_eq] },
 end
 
--- We do `of_le` first to get a stronger induction hypothesis,
--- then derive separate `of_lt` and `of_eq` results.
--- TODO: is there a non-awkward way to state this for `fin n` instead of `fin n.succ`?
 lemma cycle_range_of_le {n : ℕ} {i j : fin n.succ} (h : j ≤ i) :
   cycle_range i j = if j = i then 0 else j + 1 :=
 begin
-  obtain ⟨i, hi⟩ := i,
-  induction i with i ih,
-  { simp [le_antisymm h (nat.zero_le j)], },
-
-  rw [cycle_range_succ_aux, perm.mul_apply],
-  -- Handle the `of_eq` and `of_lt` cases separately.
-  split_ifs with heq,
-  { rw [heq, cycle_range_of_gt (subtype.mk_lt_mk.mpr (nat.lt_succ_self i)),
-        swap_apply_right, fin.mk_zero] },
-  have h := lt_of_le_of_ne h heq,
-  have j_lt_n : (j : ℕ) < n := lt_of_lt_of_le h (nat.lt_succ_iff.mp hi),
-  rcases lt_or_eq_of_le (nat.lt_succ_iff.mp h) with h | rfl,
-  { rw [ih _ h.le, if_neg, swap_apply_of_ne_of_ne],
-    { intro hj0,
-      have hj0 := congr_arg (coe : fin _ → ℕ) hj0,
-      rw [fin.coe_add_one j_lt_n] at hj0,
-      exact nat.succ_ne_zero _ hj0 },
-    { intro hji,
-      have hji := congr_arg (coe : fin _ → ℕ) hji,
-      rw [fin.coe_add_one j_lt_n] at hji,
-      have : (j + 1 : ℕ) ≠ i + 1 := (nat.succ_lt_succ h).ne,
-      contradiction },
-    { intro hji,
-      have hji := congr_arg (coe : fin _ → ℕ) hji,
-      exact h.ne hji } },
-  { rw [ih _ (le_refl j), if_pos, fin.mk_zero, swap_apply_left, subtype.ext_iff,
-        fin.coe_add_one j_lt_n, subtype.coe_mk],
-    { refl },
-    { ext, refl } }
+  have j_mod_i : (j : ℕ) % (↑i : ℕ).succ = j := nat.mod_eq_of_lt (nat.lt_succ_of_le h),
+  ext,
+  rw [cycle_range, perm.subtype_congr.apply, dif_pos,  perm_congr_apply,
+       equiv.set.range_of_left_inverse_apply, subtype.coe_mk, coe_cast_le, coe_cycle_all],
+  push_cast,
+  apply if_ctx_congr,
+  { simp [fin.ext_iff, equiv.set.range_of_left_inverse_symm_apply, j_mod_i] },
+  { simp },
+  { intro hij,
+    have : (j : ℕ) < n := lt_of_lt_of_le
+        (lt_of_le_of_ne h (coe_injective.ne hij))
+        (nat.succ_le_succ_iff.mp i.2),
+    simp [coe_add_one this, j_mod_i] },
+  { simp only [range_cast_le, val_eq_coe, not_lt, set.mem_set_of_eq],
+    exact nat.lt_succ_of_le h }
 end
 
 lemma cycle_range_of_lt {n : ℕ} {i j : fin n.succ} (h : j < i) :
@@ -174,57 +249,26 @@ begin
   { exact cycle_range_of_gt (lt_of_le_of_ne (le_of_not_gt h₁) (ne.symm h₂)) },
 end
 
+@[simp] lemma cycle_range_zero (n : ℕ) : cycle_range (0 : fin n.succ) = 1 :=
+begin
+  ext j,
+  refine fin.cases _ (λ j, _) j,
+  { simp },
+  { rw [cycle_range_of_gt (fin.succ_pos j), one_apply] },
+end
+
+@[simp] lemma cycle_range_zero' {n : ℕ} (h : 0 < n) : cycle_range ⟨0, h⟩ = 1 :=
+begin
+  cases n with n,
+  { cases h },
+  exact cycle_range_zero n
+end
+
 @[simp] lemma sign_cycle_range {n : ℕ} (i : fin n) :
   perm.sign (cycle_range i) = (-1) ^ (i : ℕ) :=
-begin
-  obtain ⟨i, hi⟩ := i,
-  induction i with i ih,
-  { simp },
-  { rw [cycle_range_succ_aux, monoid_hom.map_mul, ih, perm.sign_swap],
-    { simp [pow_succ] },
-    intro h,
-    exact (nat.succ_ne_zero _).symm (congr_arg coe h) },
-end
+by { simp only [cycle_range, sign_perm_congr, mul_one, sign_one, sign_subtype_congr],
+     exact sign_cycle_all i }
 
 end fin
 
-end cycle_range
-
-section cycle_all
-
-namespace fin
-
-/-- `fin.cycle_all` is the cycle `(0 1 2 ... fin.last n)`. -/
-def cycle_all : Π (n : ℕ), perm (fin n)
-| 0 := 1
-| (nat.succ n) := cycle_range (last n)
-
-@[simp] lemma cycle_all_zero : cycle_all 0 = 1 := rfl
-
-@[simp] lemma cycle_all_one : cycle_all 1 = 1 :=
-subsingleton.elim _ _
-
-lemma cycle_all_succ_apply {n : ℕ} (i : fin n.succ) :
-  cycle_all n.succ i = if i = fin.last n then 0 else i + 1 :=
-cycle_range_of_le (le_last _)
-
-lemma coe_cycle_all {n : ℕ} (i : fin n.succ) :
-  (cycle_all n.succ i : ℕ) = if i = fin.last n then 0 else i + 1 :=
-begin
-  rw cycle_all_succ_apply,
-  split_ifs with h,
-  { simp },
-  have : (i : ℕ) < n := lt_of_le_of_ne (nat.succ_le_succ_iff.mp i.2) (coe_injective.ne h),
-  exact coe_add_one this
-end
-
-lemma cycle_all_succ {n : ℕ} :
-  cycle_all n.succ.succ = swap 0 (last n.succ) * cycle_range (cast_succ (last n)) :=
-cycle_range_succ_aux _
-
-@[simp] lemma sign_cycle_all {n : ℕ} : (cycle_all n.succ).sign = (-1) ^ n :=
-sign_cycle_range _
-
-end fin
-
-end cycle_all
+end cycle

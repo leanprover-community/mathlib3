@@ -55,9 +55,8 @@ coe_injective $ set.ext h
 theorem ext_iff {S T : subalgebra R A} : S = T ↔ (∀ x : A, x ∈ S ↔ x ∈ T) :=
 coe_injective.eq_iff.symm.trans set.ext_iff
 
--- TODO analogues for other substructures
 theorem ext_set {S T : subalgebra R A}
-  (h : ((S : subsemiring A) : set A) = ((T : subsemiring A) : set A)) : S = T :=
+  (h : (S : set A) = (T : set A)) : S = T :=
 begin
   rw set.ext_iff at h,
   ext x,
@@ -117,17 +116,6 @@ S.to_subsemiring.coe_nat_mem n
 theorem coe_int_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) (n : ℤ) : (n : A) ∈ S :=
 int.cases_on n (λ i, S.coe_nat_mem i) (λ i, S.neg_mem $ S.coe_nat_mem $ i + 1)
-
-@[simp, norm_cast] lemma coe_one : ((1 : S) : A) = (1 : A) := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : S) : A) = (0 : A) := rfl
-@[simp, norm_cast] lemma coe_add (x y : S) : ((x + y : S) : A) = (x + y : A) := rfl
-@[simp, norm_cast] lemma coe_mul (x y : S) : ((x * y : S) : A) = (x * y : A) := rfl
-@[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : ((x^n : S) : A) = (x^n : A) :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
-end
 
 theorem list_prod_mem {L : list A} (h : ∀ x ∈ L, x ∈ S) : L.prod ∈ S :=
 S.to_subsemiring.list_prod_mem h
@@ -247,8 +235,6 @@ instance no_zero_smul_divisors_bot [no_zero_smul_divisors R A] : no_zero_smul_di
 @[simp, norm_cast] lemma coe_sub {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
   {S : subalgebra R A} (x y : S) : (↑(x - y) : A) = ↑x - ↑y := rfl
 @[simp, norm_cast] lemma coe_smul (r : R) (x : S) : (↑(r • x) : A) = r • ↑x := rfl
-@[simp, norm_cast] lemma coe_algebra_map (r : R) : ↑(algebra_map R S r) = algebra_map R A r :=
-rfl
 
 @[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x^n) : A) = (↑x)^n :=
 begin
@@ -347,7 +333,7 @@ def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
 iff.rfl
 
 @[simp, norm_cast] lemma coe_comap' (S : subalgebra R B) (f : A →ₐ[R] B) :
-  (S.comap' f : subsemiring A) = (S : subsemiring B).comap f :=
+  (S.comap' f : set A) = f ⁻¹' (S : set B) :=
 by { ext, simp, }
 
 lemma map_mono {S₁ S₂ : subalgebra R A} {f : A →ₐ[R] B} :

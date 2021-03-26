@@ -60,13 +60,8 @@ def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
   algebra_map_mem' := λ r, s.to_subring.subring_topological_closure (s.algebra_map_mem r),
   ..s.to_subring.topological_closure }
 
-@[simp] lemma subalgebra.topological_closure_coe_subsemiring (s : subalgebra R A) :
-  (s.topological_closure : subsemiring A) = (s : subsemiring A).topological_closure :=
-rfl
-
-@[simp] lemma subalgebra.topological_closure_coe_submodule
-  [topological_space R] [topological_ring R] [topological_algebra R A] (s : subalgebra R A) :
-  (s.topological_closure : submodule R A) = (s : submodule R A).topological_closure :=
+@[simp] lemma subalgebra.topological_closure_coe (s : subalgebra R A) :
+  (s.topological_closure : set A) = closure (s : set A) :=
 rfl
 
 instance subalgebra.topological_closure_topological_ring (s : subalgebra R A) :
@@ -108,7 +103,7 @@ lemma subalgebra.topological_closure_comap'_homeomorph
   s.topological_closure.comap' f = (s.comap' f).topological_closure :=
 begin
   apply subalgebra.ext_set,
-  simp only [subalgebra.topological_closure_coe_subsemiring, subsemiring.topological_closure_coe],
+  simp only [subalgebra.topological_closure_coe],
   simp only [subalgebra.coe_comap', subsemiring.coe_comap, alg_hom.coe_to_ring_hom],
   rw [w],
   exact f'.preimage_closure _,

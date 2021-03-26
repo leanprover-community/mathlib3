@@ -420,4 +420,15 @@ noncomputable def polytope.triangulation_of_convex {P : polytope m n} (hP : conv
 --def simplicial_complex.nonsingular (S : simplicial_complex m) {X : finset (fin m → ℝ)} : Prop :=
 --  homeomorph (S.link {X}).space (metric.ball (0 : E) 1)
 
+/-def simplicial_complex.mesh_size (S : simplicial_complex m) : ℝ := sorry --max diameter of simplices
+
+def barycentrisation : list (fin m → ℝ) → fin m → ℝ :=
+  λ L,
+
+def simplicial_complex.barycentric_subdivision (S : simplicial_complex m) : simplicial_complex m :=
+{ faces := {X | ∃ {L : list (fin m → ℝ)}, list.to_finset L ∈ S.faces ∧ X = },
+  indep := _,
+  down_closed := _,
+  disjoint := _ }-/
+
 end affine

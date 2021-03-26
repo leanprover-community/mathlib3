@@ -79,12 +79,21 @@ rfl
 section
 variables (α β)
 /--
+The map forgetting that a bounded continuous function is bounded.
+-/
+def forget_boundedness : (α →ᵇ β) → C(α, β) :=
+λ f, f.1
+
+@[simp] lemma forget_boundedness_coe (f : α →ᵇ β) : (forget_boundedness α β f : α → β) = f :=
+rfl
+
+/--
 When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
 equivalent to `C(α, 𝕜)`.
 -/
 @[simps]
 def equiv_continuous_map_of_compact [compact_space α] : (α →ᵇ β) ≃ C(α, β) :=
-⟨to_continuous_map, mk_of_compact, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
+⟨forget_boundedness α β, mk_of_compact, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
 
 end
 
@@ -554,8 +563,8 @@ variables (α β)
 The additive map forgetting that a bounded continuous function is bounded.
 -/
 @[simps]
-def to_continuous_map_add_hom : (α →ᵇ β) →+ C(α, β) :=
-{ to_fun := to_continuous_map,
+def forget_boundedness_add_hom : (α →ᵇ β) →+ C(α, β) :=
+{ to_fun := forget_boundedness α β,
   map_zero' := by { ext, simp, },
   map_add' := by { intros, ext, simp, }, }
 
@@ -570,7 +579,7 @@ additively equivalent to `C(α, 𝕜)`.
 -/
 @[simps]
 def add_equiv_continuous_map_of_compact : (α →ᵇ β) ≃+ C(α, β) :=
-{ ..to_continuous_map_add_hom α β,
+{ ..forget_boundedness_add_hom α β,
   ..equiv_continuous_map_of_compact α β, }
 
 @[simp]

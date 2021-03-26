@@ -394,7 +394,7 @@ begin
     simpa [add_supr, supr_add] using
       λ i j:ι, show f i + g j ≤ ⨆ a, f a + g a, from
       let ⟨k, hk⟩ := h i j in le_supr_of_le k hk },
-  { have : ∀f:ι → ℝ≥0∞, (⨆i, f i) = 0 := λ f, bot_unique (supr_le $ assume i, (hι ⟨i⟩).elim),
+  { have : ∀f:ι → ℝ≥0∞, (⨆i, f i) = 0 := λ f, supr_eq_zero.mpr (λ i, (hι ⟨i⟩).elim),
     rw [this, this, this, zero_add] }
 end
 
@@ -408,8 +408,7 @@ lemma finset_sum_supr_nat {α} {ι} [semilattice_sup ι] {s : finset α} {f : α
   ∑ a in s, supr (f a) = (⨆ n, ∑ a in s, f a n) :=
 begin
   refine finset.induction_on s _ _,
-  { simp,
-    exact (bot_unique $ supr_le $ assume i, le_refl ⊥).symm },
+  { simp, },
   { assume a s has ih,
     simp only [finset.sum_insert has],
     rw [ih, supr_add_supr_of_monotone (hf a)],

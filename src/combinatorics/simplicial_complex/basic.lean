@@ -152,7 +152,7 @@ end
 A simplicial complex is pure of dimension n iff all its facets have dimension n.
 -/
 def simplicial_complex.pure_of (S : simplicial_complex m) (n : ℕ) : Prop :=
-  ∀ {X}, X ∈ S.facets → (X : finset _).card = n
+  ∀ ⦃X⦄, X ∈ S.facets → (X : finset _).card = n
 
 /--
 A simplicial complex is pure iff all its facets have the same dimension.
@@ -166,8 +166,12 @@ complexes.
 noncomputable def simplicial_complex.pureness (S : simplicial_complex m) : ℕ :=
   if hS : S.pure then classical.some hS else 0
 
---classical.some_spec hS hX @Bhavik the totalling broke it and I broke it even more :/
-lemma pureness_def {S : simplicial_complex m} (hS : S.pure) : S.pure_of S.pureness := sorry
+lemma pureness_def {S : simplicial_complex m} (hS : S.pure) : S.pure_of S.pureness :=
+begin
+  unfold simplicial_complex.pureness,
+  rw dif_pos hS,
+  exact classical.some_spec hS,
+end
 
 lemma pureness_unique_of_nonempty {S : simplicial_complex m} {a b : ℕ} (hS : S.faces.nonempty) :
   S.pure_of a → S.pure_of b → a = b :=
@@ -180,7 +184,8 @@ end
 
 --same below. I really don't get what i'm doing wrong
 lemma pureness_def' {S : simplicial_complex m} (hSnonempty : S.faces.nonempty) (hS : S.pure_of n) :
-  S.pureness = n := sorry --pureness_unique_of_nonempty hSnonempty (pureness_def ⟨n, hS⟩) hS
+  S.pureness = n :=
+pureness_unique_of_nonempty hSnonempty (pureness_def ⟨_, hS⟩) hS
 
 lemma simplex_dimension_le_pureness {S : simplicial_complex m} {n : ℕ} (hS : S.pure_of n)
   {X : finset (fin m → ℝ)} : X ∈ S.faces → X.card ≤ n :=
@@ -195,13 +200,14 @@ lemma facet_iff_dimension_eq_pureness {S : simplicial_complex m} (hS : S.pure)
   {X : finset (fin m → ℝ)} (hX : X ∈ S.faces) :
   X ∈ S.facets ↔ X.card = S.pureness :=
 begin
-  refine ⟨pureness_def hS, λ hXcard, _⟩,
-  { refine ⟨hX, λ Y hY hXY, _⟩,
-    apply finset.eq_of_subset_of_card_le hXY,
-    rw hXcard,
-    --exact simplex_dimension_le_pureness (pureness_def hS) hY, @Bhavik heeeelp
-    sorry
-    }
+  sorry
+  -- refine ⟨pureness_def hS, λ hXcard, _⟩,
+  -- { refine ⟨hX, λ Y hY hXY, _⟩,
+  --   apply finset.eq_of_subset_of_card_le hXY,
+  --   rw hXcard,
+  --   --exact simplex_dimension_le_pureness (pureness_def hS) hY, @Bhavik heeeelp
+  --   sorry
+  --   }
 end
 
 /--

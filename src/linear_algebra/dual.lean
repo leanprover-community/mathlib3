@@ -651,7 +651,7 @@ open finite_dimensional
 
 variable [finite_dimensional K V₂]
 
-lemma findim_range_dual_map_eq_findim_range (f : V₁ →ₗ[K] V₂) :
+@[simp] lemma findim_range_dual_map_eq_findim_range (f : V₁ →ₗ[K] V₂) :
   findim K f.dual_map.range = findim K f.range :=
 begin
   have := submodule.findim_quotient_add_findim f.range,

@@ -148,7 +148,12 @@ lemma mk_bijective : function.bijective (@conj_classes.mk α _) :=
 
 /-- The bijection between a `comm_group` and its `conj_classes`. -/
 def mk_equiv : α ≃ conj_classes α :=
-⟨conj_classes.mk, quotient.lift id (λ a b ab, by apply is_conj_iff_eq.1 ab), sorry, sorry⟩
+⟨conj_classes.mk, quotient.lift id (λ (a : α) b, is_conj_iff_eq.1), quotient.lift_mk _ _,
+  begin
+    rw [function.right_inverse, function.left_inverse, forall_is_conj],
+    intro x,
+    rw [← quotient_mk_eq_mk, ← quotient_mk_eq_mk, quotient.lift_mk, id.def],
+  end⟩
 
 end comm_monoid
 end conj_classes

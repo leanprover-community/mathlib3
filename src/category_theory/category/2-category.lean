@@ -8,7 +8,7 @@ namespace category_theory
 -- https://ncatlab.org/nlab/show/bicategory
 class two_category_struct (obj : Type u₁) extends category_struct.{v₁} obj :=
 [hom_cats : Π (a b : obj), category.{w₁} (a ⟶ b)]
-(left_whisker : Π {a b c : obj} {f g : a ⟶ b} (h : b ⟶ c) (η : f ⟶ g), f ≫ h ⟶ g ≫ h)
+(left_whisker : Π {a b c : obj} {f g : a ⟶ b} (η : f ⟶ g) (h : b ⟶ c), f ≫ h ⟶ g ≫ h)
 (right_whisker : Π {a b c : obj} (f : a ⟶ b) {g h : b ⟶ c} (η : g ⟶ h), f ≫ g ⟶ f ≫ h)
 (left_unitor : Π {a b : obj} (f : a ⟶ b), 𝟙 _ ≫ f ≅ f)
 (right_unitor : Π {a b : obj} (f : a ⟶ b), f ≫ 𝟙 _ ≅ f)
@@ -16,8 +16,8 @@ class two_category_struct (obj : Type u₁) extends category_struct.{v₁} obj :
 
 attribute [instance] two_category_struct.hom_cats
 
-notation f ` ◀ ` η:50 := two_category_struct.right_whisker f η
-notation η ` ▶ ` f:50 := two_category_struct.left_whisker f η
+infixr ` ◀ `:70 := two_category_struct.right_whisker
+infixr ` ▶ `:70 := two_category_struct.left_whisker
 
 notation `λ_` := two_category_struct.left_unitor
 notation `ρ_` := two_category_struct.right_unitor
@@ -36,18 +36,18 @@ class two_category (obj : Type u₁) extends two_category_struct.{w₁ v₁} obj
 (right_unitor_naturality' : ∀ {a b : obj} (f g : a ⟶ b) (η : f ⟶ g),
   (η ▶ 𝟙 _) ≫ (ρ_ g).hom = (ρ_ f).hom ≫ η . obviously)
 (associator_naturality_right' : ∀ {a b c d : obj} (f : a ⟶ b) (g : b ⟶ c) (h i : c ⟶ d) (η : h ⟶ i),
-  ((f ≫ g) ◀ η) ≫ (associator f g i).hom = (associator f g h).hom ≫ (f ◀ (g ◀ η)) . obviously)
+  ((f ≫ g) ◀ η) ≫ (α_ f g i).hom = (α_ f g h).hom ≫ (f ◀ (g ◀ η)) . obviously)
 (associator_naturality_middle' : ∀ {a b c d} (f : a ⟶ b) {g h : b ⟶ c} (i : c ⟶ d) (η : g ⟶ h),
-  ((f ◀ η) ▶ i) ≫ (associator f h i).hom = (associator f g i).hom ≫ (f ◀ (η ▶ i)) . obviously)
+  ((f ◀ η) ▶ i) ≫ (α_ f h i).hom = (associator f g i).hom ≫ (f ◀ (η ▶ i)) . obviously)
 (associator_naturality_left' : ∀ {a b c d : obj} {f g : a ⟶ b} (h : b ⟶ c) (i : c ⟶ d) (η : f ⟶ g),
-  ((η ▶ _) ▶ _) ≫ (associator g h i).hom = (associator f h i).hom ≫ (η ▶ _) . obviously)
+  ((η ▶ _) ▶ _) ≫ (α_ g h i).hom = (α_ f h i).hom ≫ (η ▶ _) . obviously)
 (exchange' : ∀ {a b c : obj} {f g : a ⟶ b} {h i : b ⟶ c} (η : f ⟶ g) (θ : h ⟶ i),
   (_ ◀ θ) ≫ (η ▶ _) = (η ▶ _) ≫ (_ ◀ θ) . obviously)
 (triangle' : ∀ {a b c : obj} (f : a ⟶ b) (g : b ⟶ c),
-  (associator f _ g).hom ≫ (_ ◀ (λ_ g).hom) = ((ρ_ f).hom ▶ g) . obviously)
+  (α_ f _ g).hom ≫ (_ ◀ (λ_ g).hom) = ((ρ_ f).hom ▶ g) . obviously)
 (pentagon' : ∀ {a b c d e : obj} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e),
-    ((associator f g h).hom ▶ i) ≫ (associator f (g ≫ h) i).hom ≫ (f ◀ (associator g h i).hom)
-  = (associator (f ≫ g) h i).hom ≫ (associator f g (h ≫ i)).hom . obviously)
+    ((α_ f g h).hom ▶ i) ≫ (α_ f (g ≫ h) i).hom ≫ (f ◀ (α_ g h i).hom)
+  = (α_ (f ≫ g) h i).hom ≫ (α_ f g (h ≫ i)).hom . obviously)
 
 restate_axiom two_category.left_whisker_id'
 restate_axiom two_category.id_right_whisker'
@@ -77,9 +77,57 @@ attribute [simp, reassoc]
 
 open two_category
 
-variables (C : Type u₁) [two_category.{w₁ v₁} C]
-variables (D : Type u₂) [two_category.{w₂ v₂} D]
-variables (E : Type u₃) [two_category.{w₃ v₃} E]
+variables {C : Type u₁} [two_category.{w₁ v₁} C]
+variables {D : Type u₂} [two_category.{w₂ v₂} D]
+variables {E : Type u₃} [two_category.{w₃ v₃} E]
+
+@[simps]
+def left_whisker_iso {a b c : C} {f g : a ⟶ b} (η : f ≅ g) (h : b ⟶ c) :
+  f ≫ h ≅ g ≫ h :=
+{ hom := η.hom ▶ h,
+  inv := η.inv ▶ h }
+
+@[simps]
+def right_whisker_iso {a b c : C} {g h : b ⟶ c} (η : g ≅ h) (f : a ⟶ b) :
+  f ≫ g ≅ f ≫ h :=
+{ hom := _ ◀ η.hom,
+  inv := _ ◀ η.inv }
+
+infixr ` ▶ `:70 := left_whisker_iso
+
+lemma id_right_whisker_eq_iff {x y : C} (f g : x ⟶ y) (η η' : f ⟶ g):
+  𝟙 _ ◀ η = 𝟙 _ ◀ η' ↔ η = η' :=
+by simp [←cancel_mono (λ_ g).hom]
+
+lemma left_whisker_id_eq_iff {x y : C} (f g : x ⟶ y) (η η' : f ⟶ g):
+  η ▶ 𝟙 _ = η' ▶ 𝟙 _ ↔ η = η' :=
+by simp [←cancel_mono (ρ_ g).hom]
+
+@[reassoc]
+lemma associator_left_unitor {x y z : C} (f : x ⟶ y) (g : y ⟶ z) :
+  (α_ (𝟙 x) f g).hom ≫ (λ_ (f ≫ g)).hom = (λ_ _).hom ▶ _ :=
+begin
+  rw [←id_right_whisker_eq_iff, ←cancel_epi (α_ (𝟙 x) (𝟙 x ≫ f) g).hom,
+    ←cancel_epi ((α_ (𝟙 _) (𝟙 _) f) ▶ g).hom, ←associator_naturality_middle, left_whisker_iso_hom,
+    left_whisker_comp_assoc, triangle, ←right_whisker_comp, pentagon_assoc, triangle,
+    associator_naturality_left],
+end
+
+lemma associator_right_unitor {x y z : C} (f : x ⟶ y) (g : y ⟶ z) :
+  (α_ f g (𝟙 z)).hom ≫ (f ◀ (ρ_ _).hom) = (ρ_ _).hom :=
+begin
+  rw [←left_whisker_id_eq_iff, ←cancel_mono (α_ f g (𝟙 _)).hom, ←triangle_assoc,
+    ←left_whisker_comp_assoc, associator_naturality_middle, associator_naturality_right, ←triangle,
+    ←right_whisker_comp, pentagon_assoc],
+end
+
+lemma unitors_equal {x : C} : (λ_ (𝟙 x)).hom = (ρ_ (𝟙 x)).hom :=
+begin
+  rw [←id_right_whisker_eq_iff, ←cancel_epi (α_ (𝟙 x) (𝟙 _) (𝟙 _)).hom, ←cancel_mono (ρ_ (𝟙 x)).hom,
+    triangle, associator_right_unitor, right_unitor_naturality],
+end
+
+variables (C D E)
 
 -- https://ncatlab.org/nlab/show/pseudofunctor
 structure pseudofunctor :=
@@ -121,6 +169,8 @@ def pseudofunctor.id : pseudofunctor C C :=
   ids := λ X, iso.refl _,
   comps := λ X Y Z f g, iso.refl _ }
 
+variables {C D E}
+
 def pseudofunctor.comp (P : pseudofunctor C D) (Q : pseudofunctor D E) :
   pseudofunctor C E :=
 { P := λ X, Q.P (P.P X),
@@ -159,7 +209,12 @@ def pseudofunctor.comp (P : pseudofunctor C D) (Q : pseudofunctor D E) :
       Q.comps_natural_left_assoc, left_whisker_comp_assoc],
   end }
 
-variables {C D E}
+variables (U V : pseudofunctor C D)
+
+structure pseudonatural_transformation :=
+(obj_app : Π (x : C), U.P x ⟶ V.P x)
+(mor_app : Π {x y : C} (f : x ⟶ y),
+  (pseudofunctor.func U).obj f ≫ obj_app y ≅ obj_app x ≫ (pseudofunctor.func V).obj f)
 
 structure CAT :=
 {α : Type u₁}

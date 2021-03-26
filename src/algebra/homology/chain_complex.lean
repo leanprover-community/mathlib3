@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import data.int.basic
 import category_theory.graded_object
 import category_theory.differential_object
-import category_theory.abelian.additive_functor
+import category_theory.preadditive.additive_functor
 
 /-!
 # Chain complexes

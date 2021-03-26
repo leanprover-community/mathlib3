@@ -973,14 +973,17 @@ begin
 end
 
 /-
-Bernoulli's Inequality, if `-1 < x` and `1 ≤ r`, then `1 + r * x ≤ (1 + x)^r`
+Bernoulli's Inequality, if `-1 ≤ x` and `1 ≤ r`, then `1 + r * x ≤ (1 + x)^r`
 -/
-lemma le_one_add_rpow {x r : ℝ} (hxm1 : -1 < x) (hr : 1 ≤ r) : 1 + r * x ≤ (1 + x)^r :=
+lemma le_one_add_rpow {x r : ℝ} (hxm1 : -1 ≤ x) (hr : 1 ≤ r) : 1 + r * x ≤ (1 + x)^r :=
 begin
-  by_cases hx : x ≤ 0,
-  { exact le_one_add_rpow_of_neg_one_lt_of_nonpos hxm1 hx hr },
-  { rw not_le at hx,
-    exact le_one_add_rpow_of_nonneg hx.le hr }
+  rcases lt_or_eq_of_le hxm1 with (hxm1 | rfl),
+  { by_cases hx : x ≤ 0,
+    { exact le_one_add_rpow_of_neg_one_lt_of_nonpos hxm1 hx hr },
+    { rw not_le at hx,
+      exact le_one_add_rpow_of_nonneg hx.le hr } },
+  rw [add_neg_self, zero_rpow (show r ≠ 0, by linarith)],
+  linarith
 end
 
 end bernoulli

@@ -79,7 +79,7 @@ open equiv.perm
 /-- `fin.cycle_all` is the cycle `(0 1 2 ... fin.last n)`.
 
 If `n` is `0` or `1`, this will be the identity permutation,
-otherwise it sends `i` to `i + 1` and `fin.last n` to `0`.
+otherwise it sends `i` to `i + 1` and `fin.last (n - 1)` to `0`.
 -/
 def cycle_all : Π (n : ℕ), perm (fin n)
 | 0 := 1
@@ -140,7 +140,7 @@ begin
   { rw cycle_all_succ, simp [ih, pow_succ] },
 end
 
-/-- `fin.cycle_range i` is the cycle `(0 1 2 ... i)`. -/
+/-- `fin.cycle_range i` is the cycle `(0 1 2 ... i)` leaving `(i+1 ... (n-1))` unchanged. -/
 def cycle_range {n : ℕ} (i : fin n) : perm (fin n) :=
 ((equiv.set.range_of_left_inverse' (fin.cast_le i.2) coe (by { intros x, ext, simp }))
   .perm_congr (cycle_all (i + 1)))

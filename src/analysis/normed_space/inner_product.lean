@@ -1828,8 +1828,7 @@ end
   complex.isometry_euclidean.symm x = (x 0) + (x 1) * I :=
 begin
   convert complex.is_basis_one_I.equiv_fun_symm_apply x,
-  { simp only [fin.mk_zero, mul_one, complex.smul_coe, fin.mk_eq_subtype_mk, matrix.cons_val_zero],
-    refl },
+  { simpa },
   { simp },
 end
 

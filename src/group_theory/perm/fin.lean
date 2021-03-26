@@ -173,9 +173,20 @@ begin
     exact nat.lt_succ_of_le h }
 end
 
+lemma coe_cycle_range_of_le {n : ℕ} {i j : fin n.succ} (h : j ≤ i) :
+  (cycle_range i j : ℕ) = if j = i then 0 else j + 1 :=
+by { rw [cycle_range_of_le h],
+     split_ifs with h', { refl },
+     exact coe_add_one (calc (j : ℕ) < i : fin.lt_iff_coe_lt_coe.mp (lt_of_le_of_ne h h')
+                                 ... ≤ n : nat.lt_succ_iff.mp i.2) }
+
 lemma cycle_range_of_lt {n : ℕ} {i j : fin n.succ} (h : j < i) :
   cycle_range i j = j + 1 :=
 by rw [cycle_range_of_le h.le, if_neg h.ne]
+
+lemma coe_cycle_range_of_lt {n : ℕ} {i j : fin n.succ} (h : j < i) :
+  (cycle_range i j : ℕ) = j + 1 :=
+by rw [coe_cycle_range_of_le h.le, if_neg h.ne]
 
 lemma cycle_range_of_eq {n : ℕ} {i j : fin n.succ} (h : j = i) :
   cycle_range i j = 0 :=
@@ -202,6 +213,9 @@ begin
   { simp },
   { rw [cycle_range_of_gt (fin.succ_pos j), one_apply] },
 end
+
+@[simp] lemma cycle_range_last (n : ℕ) : cycle_range (last n) = cycle_all (n + 1) :=
+by { ext i, rw [coe_cycle_range_of_le (le_last _), coe_cycle_all] }
 
 @[simp] lemma cycle_range_zero' {n : ℕ} (h : 0 < n) : cycle_range ⟨0, h⟩ = 1 :=
 begin

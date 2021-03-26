@@ -91,6 +91,14 @@ protected def function.surjective.semimodule [add_comm_monoid M₂] [has_scalar 
 
 variable (M)
 
+/-- Compose a `semimodule` with a `ring_hom`, with action `f s • m` -/
+def ring_hom.comp_semimodule [semiring S] (f : S →+* R) :
+  semimodule S M :=
+{ smul := (•) ∘ f,
+  zero_smul := λ x, by simp [zero_smul],
+  add_smul := λ r s x, by simp [add_smul],
+  ..f.to_monoid_hom.comp_mul_action M }
+
 /-- `(•)` as an `add_monoid_hom`. -/
 def smul_add_hom : R →+ M →+ M :=
 { to_fun := const_smul_hom M,

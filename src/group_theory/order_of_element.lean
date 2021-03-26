@@ -377,11 +377,11 @@ begin
   have key := congr_arg (λ m, a ^ (int.nat_mod m (order_of a))) (gcd_eq_gcd_ab n (order_of a)),
   simp_rw int.nat_mod at key,
   rw [int.add_mul_mod_self_left, h, ←int.coe_nat_mod, int.to_nat_coe_nat,
-      mod_eq_of_lt (one_lt_iff_ne_zero_and_ne_one.mpr ⟨h0, h1⟩), pow_one] at key,
-  exact ⟨(n.gcd_a (order_of a) % order_of a).to_nat, by rw [←pow_mul, pow_eq_mod_order_of,
+      mod_eq_of_lt (one_lt_iff_ne_zero_and_ne_one.mpr ⟨h0, h1⟩), pow_one, eq_comm] at key,
+  exact ⟨(n.gcd_a (order_of a) % order_of a).to_nat, by rwa [←pow_mul, pow_eq_mod_order_of,
     ←int.to_nat_coe_nat (_ % order_of a), int.coe_nat_mod, int.coe_nat_mul,
     int.to_nat_of_nonneg (int.mod_nonneg _ (int.coe_nat_ne_zero.mpr h0)),
-    int.mul_mod, int.mod_mod, ←int.mul_mod, ←key]⟩,
+    int.mul_mod, int.mod_mod, ←int.mul_mod]⟩,
 end
 
 /-- This is the same as `order_of_pow'` and `order_of_pow''` but with one assumption less which is

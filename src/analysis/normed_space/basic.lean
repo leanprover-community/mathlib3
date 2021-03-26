@@ -1030,7 +1030,7 @@ variables {E : Type*} {F : Type*}
 [normed_group E] [normed_space α E] [normed_group F] [normed_space α F]
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_space.topological_vector_space : topological_vector_space α E :=
+instance normed_space.has_continuous_smul : has_continuous_smul α E :=
 begin
   refine { continuous_smul := continuous_iff_continuous_at.2 $
     λ p, tendsto_iff_norm_tendsto_zero.2 _ },
@@ -1204,21 +1204,6 @@ normed_algebra.norm_algebra_map_eq _
 
 variables (𝕜 : Type*) [normed_field 𝕜]
 variables (𝕜' : Type*) [normed_ring 𝕜']
-
--- This could also be proved via `linear_map.continuous_of_bound`,
--- but this is further up the import tree in `normed_space.operator_norm`, so not yet available.
-@[continuity] lemma normed_algebra.algebra_map_continuous
-  [normed_algebra 𝕜 𝕜'] :
-  continuous (algebra_map 𝕜 𝕜') :=
-begin
-  change continuous (algebra_map 𝕜 𝕜').to_add_monoid_hom,
-  exact add_monoid_hom.continuous_of_bound _ 1 (λ x, by simp),
-end
-
-@[priority 100]
-instance normed_algebra.to_topological_algebra [normed_algebra 𝕜 𝕜'] :
-  topological_algebra 𝕜 𝕜' :=
-⟨by continuity⟩
 
 @[priority 100]
 instance normed_algebra.to_normed_space [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=

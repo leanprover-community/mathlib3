@@ -1069,7 +1069,7 @@ begin
     { simp [hμ, norm_def, real.zero_rpow hp] } },
   let A : ℝ≥0 := (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * ⟨C, hC⟩,
   suffices : snorm f p μ ≤ A,
-  { exact ennreal.to_real_mono this },
+  { exact ennreal.to_real_le_coe_of_le_coe this },
   convert snorm_le_of_ae_bound hfC,
   rw [← coe_measure_univ_nnreal μ, ennreal.coe_rpow_of_ne_zero (measure_univ_nnreal_pos hμ).ne',
     ennreal.coe_mul],

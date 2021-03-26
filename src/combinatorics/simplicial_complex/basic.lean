@@ -200,14 +200,10 @@ lemma facet_iff_dimension_eq_pureness {S : simplicial_complex m} (hS : S.pure)
   {X : finset (fin m → ℝ)} (hX : X ∈ S.faces) :
   X ∈ S.facets ↔ X.card = S.pureness :=
 begin
-  sorry
-  -- refine ⟨pureness_def hS, λ hXcard, _⟩,
-  -- { refine ⟨hX, λ Y hY hXY, _⟩,
-  --   apply finset.eq_of_subset_of_card_le hXY,
-  --   rw hXcard,
-  --   --exact simplex_dimension_le_pureness (pureness_def hS) hY, @Bhavik heeeelp
-  --   sorry
-  --   }
+  refine ⟨λ t, pureness_def hS t, λ hXcard, _⟩,
+  { refine ⟨hX, λ Y hY hXY, finset.eq_of_subset_of_card_le hXY _⟩,
+    rw hXcard,
+    exact simplex_dimension_le_pureness (pureness_def hS) hY }
 end
 
 /--

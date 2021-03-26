@@ -83,6 +83,8 @@ end group
   end⟩⟩
 
 namespace is_conj
+/- This small quotient API is largely copied from the API of `associates`;
+where possible, try to keep them in sync -/
 
 /-- The setoid of the relation `is_conj` iff there is a unit `u` such that `u * x = y * u` -/
 protected def setoid (α : Type*) [monoid α] : setoid α :=
@@ -200,3 +202,4 @@ lemma carrier_eq_preimage_mk {a : conj_classes α} :
 set.ext (λ x, mem_carrier_iff_mk_eq)
 
 end conj_classes
+#lint

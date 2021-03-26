@@ -359,13 +359,9 @@ begin
   rw [fin.coe_add, fin.coe_one, nat.mod_eq_of_lt (nat.succ_lt_succ h)]
 end
 
-@[simp] lemma last_add_one {n : ℕ} :
-  last n + 1 = 0 :=
-begin
-  cases n,
-  { apply subsingleton.elim },
-  { ext, rw [coe_add, coe_zero, coe_last, coe_one, nat.mod_self] }
-end
+@[simp] lemma last_add_one : ∀ n, last n + 1 = 0
+| 0 := subsingleton.elim _ _
+| (n + 1) := by { ext, rw [coe_add, coe_zero, coe_last, coe_one, nat.mod_self] }
 
 section bit
 

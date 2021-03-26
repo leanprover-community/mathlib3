@@ -215,26 +215,3 @@ lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
 (const_smul_hom β r).map_sum f s
 
 end
-
-namespace monoid_hom
-
-variables {R R' : Type*} (M : Type*)
-
-/-- Compose a `mul_action` with a `monoid_hom`, with action `f r' • m` -/
-def comp_mul_action
-  [monoid R] [monoid R'] [mul_action R M] (f : R' →* R) :
-  mul_action R' M :=
-{ smul := (•) ∘ f,
-  one_smul := λ m, by simp,
-  mul_smul := λ r s m, by simp [mul_smul] }
-
-/-- Compose a `distrib_mul_action` with a `monoid_hom`, with action `f r' • m` -/
-def comp_distrib_mul_action
-  [monoid R] [monoid R'] [add_monoid M] [distrib_mul_action R M] (f : R' →* R) :
-  distrib_mul_action R' M :=
-{ smul := (•) ∘ f,
-  smul_zero := λ x, smul_zero (f x),
-  smul_add := λ x, smul_add (f x),
-  ..f.comp_mul_action M }
-
-end monoid_hom

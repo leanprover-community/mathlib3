@@ -13,7 +13,6 @@ open set
 variables {m n : ℕ}
 local notation `E` := fin m → ℝ
 
-
 /-
 MATHLIB DEPARTURE ZONE
 A few PRs to be done
@@ -26,6 +25,19 @@ begin
   ext t,
   simp only [and_iff_right_iff_imp, finset.mem_inter],
   apply h
+end
+
+lemma subset_singleton_iff {α : Type*} {s : finset α} {a : α} : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=
+begin
+  split,
+  { intro hs,
+    apply or.imp_right _ s.eq_empty_or_nonempty,
+    rintro ⟨t, ht⟩,
+    apply finset.subset.antisymm hs,
+    rwa [finset.singleton_subset_iff, ←finset.mem_singleton.1 (hs ht)] },
+  { rintro (rfl | rfl),
+    { apply empty_subset },
+    { apply subset.refl } }
 end
 
 lemma finset.exists_of_ssubset {α : Type*} {s t : finset α} (h : s ⊂ t) : (∃x∈t, x ∉ s) :=

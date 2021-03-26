@@ -25,6 +25,9 @@ protected def lift (f : filter α) (g : set α → filter β) :=
 
 variables {f f₁ f₂ : filter α} {g g₁ g₂ : set α → filter β}
 
+@[simp] lemma lift_top (g : set α → filter β) : (⊤ : filter α).lift g = g univ :=
+by simp [filter.lift]
+
 /-- If `(p : ι → Prop, s : ι → set α)` is a basis of a filter `f`, `g` is a monotone function
 `set α → filter γ`, and for each `i`, `(pg : β i → Prop, sg : β i → set α)` is a basis
 of the filter `g (s i)`, then `(λ (i : ι) (x : β i), p i ∧ pg i x, λ (i : ι) (x : β i), sg i x)`
@@ -217,6 +220,9 @@ f.lift (𝓟 ∘ h)
 
 variables {f f₁ f₂ : filter α} {h h₁ h₂ : set α → set β}
 
+@[simp] lemma lift'_top (h : set α → set β) : (⊤ : filter α).lift' h = 𝓟 (h univ) :=
+lift_top _
+
 lemma mem_lift' {t : set α} (ht : t ∈ f) : h t ∈ (f.lift' h) :=
 le_principal_iff.mp $ show f.lift' h ≤ 𝓟 (h t),
   from infi_le_of_le t $ infi_le_of_le ht $ le_refl _
@@ -360,9 +366,13 @@ theorem comap_eq_lift' {f : filter β} {m : α → β} :
   comap m f = f.lift' (preimage m) :=
 filter.ext $ λ s, (mem_lift'_sets monotone_preimage).symm
 
-lemma lift'_infi_powerset [nonempty ι] {f : ι → filter α} :
+lemma lift'_infi_powerset {f : ι → filter α} :
   (infi f).lift' powerset = (⨅i, (f i).lift' powerset) :=
-lift'_infi $ λ _ _, (powerset_inter _ _).symm
+begin
+  by_cases hι : nonempty ι,
+  { exactI (lift'_infi $ λ _ _, (powerset_inter _ _).symm) },
+  { rw [infi_of_empty hι, infi_of_empty hι, lift'_top, powerset_univ, principal_univ] }
+end
 
 lemma lift'_inf_powerset (f g : filter α) :
   (f ⊓ g).lift' powerset = f.lift' powerset ⊓ g.lift' powerset :=

@@ -74,6 +74,11 @@ instance [has_div M] [has_div N] : has_div (M × N) := ⟨λ p q, ⟨p.1 / q.1, 
 @[simp] lemma mk_sub_mk [add_group A] [add_group B] (x₁ x₂ : A) (y₁ y₂ : B) :
 (x₁, y₁) - (x₂, y₂) = (x₁ - x₂, y₁ - y₂) := rfl
 
+instance [mul_zero_class M] [mul_zero_class N] : mul_zero_class (M × N) :=
+{ zero_mul := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
+  mul_zero := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨mul_zero _, mul_zero _⟩,
+  .. prod.has_zero, .. prod.has_mul }
+
 @[to_additive]
 instance [semigroup M] [semigroup N] : semigroup (M × N) :=
 { mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,
@@ -115,8 +120,30 @@ instance [right_cancel_semigroup G] [right_cancel_semigroup H] :
   .. prod.semigroup }
 
 @[to_additive]
+instance [left_cancel_monoid M] [left_cancel_monoid N] : left_cancel_monoid (M × N) :=
+{ .. prod.left_cancel_semigroup, .. prod.monoid }
+
+@[to_additive]
+instance [right_cancel_monoid M] [right_cancel_monoid N] : right_cancel_monoid (M × N) :=
+{ .. prod.right_cancel_semigroup, .. prod.monoid }
+
+@[to_additive]
+instance [cancel_monoid M] [cancel_monoid N] : cancel_monoid (M × N) :=
+{ .. prod.right_cancel_monoid, .. prod.left_cancel_monoid }
+
+@[to_additive]
 instance [comm_monoid M] [comm_monoid N] : comm_monoid (M × N) :=
 { .. prod.comm_semigroup, .. prod.monoid }
+
+@[to_additive]
+instance [cancel_comm_monoid M] [cancel_comm_monoid N] : cancel_comm_monoid (M × N) :=
+{ .. prod.left_cancel_monoid, .. prod.right_cancel_monoid, .. prod.comm_monoid }
+
+instance [monoid_with_zero M] [monoid_with_zero N] : monoid_with_zero (M × N) :=
+{ .. prod.monoid, .. prod.mul_zero_class }
+
+instance [comm_monoid_with_zero M] [comm_monoid_with_zero N] : comm_monoid_with_zero (M × N) :=
+{ .. prod.comm_monoid, .. prod.mul_zero_class }
 
 @[to_additive]
 instance [comm_group G] [comm_group H] : comm_group (G × H) :=

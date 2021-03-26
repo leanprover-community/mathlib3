@@ -56,11 +56,14 @@ projective module
 
 universes u v
 
-/-- An R-module is projective if it is a direct summand of a free module.
-There are several other equivalent definitions. -/
+/- The actual implementation we choose: `M` is projective if the natural surjection
+   from the free `R`-module on `M` to `M` splits. -/
+/-- An R-module is projective if it is a direct summand of a free module, or equivalently
+  if maps from the module lift along surjections. There are several other equivalent
+  definitions. -/
 def is_projective
   (R : Type u) [semiring R] (M : Type v) [add_comm_monoid M] [semimodule R M] : Prop :=
-∃ s : M →ₗ[R] (M →₀ R), ∀ m, finsupp.total M M R id (s m) = m
+∃ s : M →ₗ[R] (M →₀ R), function.left_inverse (finsupp.total M M R id) s
 
 namespace is_projective
 

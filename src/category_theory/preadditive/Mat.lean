@@ -68,6 +68,7 @@ namespace Mat_
 variables {C}
 
 /-- A morphism in `Mat_ C` is a dependently typed matrix of morphisms. -/
+@[nolint has_inhabited_instance]
 def hom (M N : Mat_ C) : Type v₁ := dmatrix M.ι N.ι (λ i j, M.X i ⟶ N.X j)
 
 namespace hom
@@ -118,6 +119,8 @@ lemma comp_def {M N K : Mat_ C} (f : M ⟶ N) (g : N ⟶ K) :
 
 @[simp] lemma comp_apply {M N K : Mat_ C} (f : M ⟶ N) (g : N ⟶ K) (i k) :
   (f ≫ g) i k = ∑ j : N.ι, f i j ≫ g j k := rfl
+
+instance (M N : Mat_ C) : inhabited (M ⟶ N) := ⟨λ i j, (0 : M.X i ⟶ N.X j)⟩
 
 end
 
@@ -244,6 +247,8 @@ namespace Mat_
 
 variables (C)
 
+/-- The embedding of `C` into `Mat_ C` as one-by-one matrices.
+(We index the summands by `punit`.) -/
 @[simps]
 def embedding : C ⥤ Mat_ C :=
 { obj := λ X, ⟨punit, λ _, X⟩,
@@ -262,6 +267,8 @@ instance : full (embedding C) :=
 instance : functor.additive (embedding C) := {}
 
 end embedding
+
+instance [inhabited C] : inhabited (Mat_ C) := ⟨(embedding C).obj (default C)⟩
 
 open category_theory.limits
 
@@ -303,37 +310,7 @@ def iso_biproduct_embedding (M : Mat_ C) : M ≅ ⨁ (λ i, (embedding C).obj (M
     { simp [h], },
   end, }.
 
-variables {D : Type u₁} [category.{v₁} D] [preadditive D] [has_finite_biproducts D]
-
-/-- Any additive functor `C ⥤ D` to a category `D` with finite biproducts extends to
-a functor `Mat_ C ⥤ D`. -/
-@[simps]
-def lift (F : C ⥤ D) [functor.additive F] : Mat_ C ⥤ D :=
-{ obj := λ X, ⨁ (λ i, F.obj (X.X i)),
-  map := λ X Y f, biproduct.matrix (λ i j, F.map (f i j)),
-  map_id' := λ X, begin
-    ext i j,
-    by_cases h : i = j,
-    { subst h, simp, },
-    { simp [h, Mat_.id_apply], },
-  end,
-  map_comp' := λ X Y Z f g, by { ext i j, simp, }, }.
-
-instance lift_additive (F : C ⥤ D) [functor.additive F] : functor.additive (lift F) := {}
-
-/-- An additive functor `C ⥤ D` factors through its lift to `Mat_ C ⥤ D`. -/
-@[simps]
-def embedding_lift_iso (F : C ⥤ D) [functor.additive F] : embedding C ⋙ lift F ≅ F :=
-nat_iso.of_components (λ X,
-  { hom := biproduct.desc (λ P, 𝟙 (F.obj X)),
-    inv := biproduct.lift (λ P, 𝟙 (F.obj X)), })
-(λ X Y f, begin
-  dsimp,
-  ext,
-  simp only [category.id_comp, biproduct.ι_desc_assoc],
-  erw biproduct.ι_matrix_assoc, -- Not sure why this doesn't fire via `simp`.
-  simp,
-end).
+variables {D : Type u₁} [category.{v₁} D] [preadditive D]
 
 /-- Every `M` is a direct sum of objects from `C`, and `F` preserves biproducts. -/
 @[simps]
@@ -370,6 +347,38 @@ end
       (additive_obj_iso_biproduct F N).inv :=
 by rw [iso.inv_comp_eq, ←category.assoc, iso.eq_comp_inv, additive_obj_iso_biproduct_naturality]
 
+variables [has_finite_biproducts D]
+
+/-- Any additive functor `C ⥤ D` to a category `D` with finite biproducts extends to
+a functor `Mat_ C ⥤ D`. -/
+@[simps]
+def lift (F : C ⥤ D) [functor.additive F] : Mat_ C ⥤ D :=
+{ obj := λ X, ⨁ (λ i, F.obj (X.X i)),
+  map := λ X Y f, biproduct.matrix (λ i j, F.map (f i j)),
+  map_id' := λ X, begin
+    ext i j,
+    by_cases h : i = j,
+    { subst h, simp, },
+    { simp [h, Mat_.id_apply], },
+  end,
+  map_comp' := λ X Y Z f g, by { ext i j, simp, }, }.
+
+instance lift_additive (F : C ⥤ D) [functor.additive F] : functor.additive (lift F) := {}
+
+/-- An additive functor `C ⥤ D` factors through its lift to `Mat_ C ⥤ D`. -/
+@[simps]
+def embedding_lift_iso (F : C ⥤ D) [functor.additive F] : embedding C ⋙ lift F ≅ F :=
+nat_iso.of_components (λ X,
+  { hom := biproduct.desc (λ P, 𝟙 (F.obj X)),
+    inv := biproduct.lift (λ P, 𝟙 (F.obj X)), })
+(λ X Y f, begin
+  dsimp,
+  ext,
+  simp only [category.id_comp, biproduct.ι_desc_assoc],
+  erw biproduct.ι_matrix_assoc, -- Not sure why this doesn't fire via `simp`.
+  simp,
+end).
+
 /--
 `Mat_.lift F` is the unique additive functor `L : Mat_ C ⥤ D` such that `F ≅ embedding C ⋙ L`.
 -/
@@ -404,7 +413,10 @@ def ext {F G : Mat_ C ⥤ D} [functor.additive F] [functor.additive G]
   (α : embedding C ⋙ F ≅ embedding C ⋙ G) : F ≅ G :=
 (lift_unique (embedding C ⋙ G) _ α) ≪≫ (lift_unique _ _ (iso.refl _)).symm
 
-def aux [has_finite_biproducts C] :
+/--
+Natural isomorphism needed in the construction of `equivalence_self_of_has_finite_biproducts`.
+-/
+def equivalence_self_of_has_finite_biproducts_aux [has_finite_biproducts C] :
   embedding C ⋙ 𝟭 (Mat_ C) ≅ embedding C ⋙ lift (𝟭 C) ⋙ embedding C :=
 functor.right_unitor _ ≪≫
   (functor.left_unitor _).symm ≪≫
@@ -423,7 +435,7 @@ def equivalence_self_of_has_finite_biproducts
 equivalence.mk -- I suspect this is already an adjoint equivalence, but it seems painful to verify.
   (lift (𝟭 C))
   (embedding C)
-  (ext aux)
+  (ext equivalence_self_of_has_finite_biproducts_aux)
   (embedding_lift_iso (𝟭 C))
 
 @[simp] lemma equivalence_self_of_has_finite_biproducts_functor
@@ -438,21 +450,21 @@ rfl
 
 end Mat_
 
-
-/--
-Consider a natural number `n` as an object of `Mat R`, the category of matrices over `R`.
--/
-def Mat.of (R : Type*) [ring R] (n : ℕ) : Mat_ (single_obj R) :=
-⟨fin n, λ _, punit.star⟩
-
 /--
 The category of matrices over a ring `R`, with objects the natural numbers.
 -/
 @[derive [category, preadditive]]
-def Mat (R : Type*) [ring R] := induced_category (Mat_ (single_obj R)) (Mat.of R)
+def Mat (R : Type*) [ring R] :=
+induced_category (Mat_ (single_obj R)) (λ n : ℕ, ⟨fin n, λ _, punit.star⟩)
+
+/--
+Consider a natural number `n` as an object of `Mat R`, the category of matrices over `R`.
+-/
+def Mat.of (R : Type*) [ring R] (n : ℕ) : Mat R := n
+
+instance (R : Type*) [ring R] : inhabited (Mat R) := ⟨Mat.of R 1⟩
 
 example : matrix (fin 3) (fin 3) ℤ := 𝟙 (Mat.of ℤ 3)
 example : Mat.of ℤ 2 ⟶ Mat.of ℤ 3 := ![![(37 : ℤ), 42, 0], ![0, 37, 42]]
-
 
 end category_theory

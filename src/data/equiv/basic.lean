@@ -1694,12 +1694,12 @@ abbreviation range_of_left_inverse' {α β : Sort*}
   α ≃ set.range f :=
 range_of_left_inverse f (λ _, f_inv) (λ _, hf)
 
-@[simp] lemma equiv.set.range_of_left_inverse_symm_apply {α β : Sort*}
+@[simp] lemma range_of_left_inverse_symm_apply {α β : Sort*}
   (f : α → β) (f_inv hf) (x : set.range f) :
   (equiv.set.range_of_left_inverse f f_inv hf).symm x = f_inv ⟨classical.some x.2⟩ x :=
 rfl
 
-@[simp] lemma equiv.set.range_of_left_inverse'_symm_apply {α β : Sort*}
+@[simp] lemma range_of_left_inverse'_symm_apply {α β : Sort*}
   (f : α → β) (f_inv hf) (x : set.range f) :
   (equiv.set.range_of_left_inverse' f f_inv hf).symm x = f_inv x :=
 rfl

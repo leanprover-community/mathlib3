@@ -4,6 +4,7 @@ import category_theory.concrete_category
 universes w₁ w₂ w₃ v₁ v₂ v₃ u₁ u₂ u₃
 
 namespace category_theory
+open category
 
 -- https://ncatlab.org/nlab/show/bicategory
 class two_category_struct (obj : Type u₁) extends category_struct.{v₁} obj :=
@@ -204,6 +205,24 @@ abbreviation pseudofunctor.cell (P : pseudofunctor C D) {x y : C} {f f' : x ⟶ 
   P.map f ⟶ P.map f' :=
 P.hom_functor.map θ
 
+abbreviation pseudofunctor.cell_iso (P : pseudofunctor C D) {x y : C} {f f' : x ⟶ y} (θ : f ≅ f') :
+  P.map f ≅ P.map f' :=
+P.hom_functor.map_iso θ
+
+@[simp]
+lemma pseudofunctor_hom_functor_obj {P : pseudofunctor C D} {x y : C} (f : x ⟶ y) :
+  P.hom_functor.obj f = P.map f := rfl
+
+@[simp]
+lemma pseudofunctor_hom_functor_map {P : pseudofunctor C D} {x y : C} {f g : x ⟶ y} (η : f ⟶ g) :
+  P.hom_functor.map η = P.cell η := rfl
+
+@[simp]
+lemma pseudofunctor_hom_functor_map_iso {P : pseudofunctor C D}
+  {x y : C} {f g : x ⟶ y} (η : f ≅ g) :
+  P.hom_functor.map_iso η = P.cell_iso η :=
+rfl
+
 @[reassoc]
 lemma pseudofunctor.cell_comp (P : pseudofunctor C D) {x y : C} {f f' f'' : x ⟶ y}
   {θ : f ⟶ f'} {θ' : f' ⟶ f''} :
@@ -216,43 +235,47 @@ lemma comps_natural {P : pseudofunctor C D}
 by rw [hcomp_eq_left_comp_right, P.comps_natural_left_assoc, P.comps_natural_right,
        ←P.cell_comp_assoc, hcomp_eq_left_comp_right]
 
--- def pseudofunctor.comp (P : pseudofunctor C D) (Q : pseudofunctor D E) :
---   pseudofunctor C E :=
--- { obj := λ X, Q.obj (P.obj X),
---   func := λ X Y, P.hom_functor ⋙ Q.hom_functor,
---   ids := λ X, Q.ids (P.obj X) ≪≫ (pseudofunctor.func Q).map_iso (P.ids _),
---   comps := λ X Y Z f g, Q.comps _ _ ≪≫ (pseudofunctor.func Q).map_iso (P.comps _ _),
---   comps_natural_left' := λ X Y Z f f' g η,
---   begin
---     dsimp,
---     rw [category.assoc, ←functor.map_comp, P.comps_natural_left, functor.map_comp,
---       Q.comps_natural_left_assoc],
---   end,
---   comps_natural_right' := λ X Y Z f g g' η,
---   begin
---     dsimp,
---     rw [category.assoc, ←functor.map_comp, P.comps_natural_right, functor.map_comp,
---       Q.comps_natural_right_assoc],
---   end,
---   left_unitors' := λ X Y f,
---   begin
---     dsimp,
---     rw [category.assoc, ←left_whisker_comp_assoc, ←Q.comps_natural_left_assoc, ←functor.map_comp,
---       ←functor.map_comp, P.left_unitors, Q.left_unitors],
---   end,
---   right_unitors' := λ X Y f,
---   begin
---     dsimp,
---     rw [category.assoc, ←right_whisker_comp_assoc, ←Q.comps_natural_right_assoc, ←functor.map_comp,
---       ←functor.map_comp, P.right_unitors, Q.right_unitors],
---   end,
---   assoc' := λ W X Y Z f g h,
---   begin
---     dsimp,
---     rw [category.assoc, ←right_whisker_comp_assoc, ←Q.comps_natural_right_assoc, Q.assoc_assoc,
---       ←functor.map_comp, ←functor.map_comp, P.assoc, functor.map_comp, functor.map_comp,
---       Q.comps_natural_left_assoc, left_whisker_comp_assoc],
---   end }
+def pseudofunctor.comp (P : pseudofunctor C D) (Q : pseudofunctor D E) :
+  pseudofunctor C E :=
+{ obj := λ X, Q.obj (P.obj X),
+  func := λ X Y, P.hom_functor ⋙ Q.hom_functor,
+  ids := λ X, Q.cell_iso (P.ids _) ≪≫ Q.ids (P.obj X),
+  comps := λ X Y Z f g, Q.cell_iso (P.comps _ _) ≪≫ Q.comps _ _,
+  comps_natural_left' := λ X Y Z f f' g η,
+  begin
+    dsimp,
+    rw [assoc, Q.comps_natural_left, ←Q.cell_comp_assoc, P.comps_natural_left, Q.cell_comp_assoc],
+  end,
+  comps_natural_right' := λ X Y Z f g g' η,
+  begin
+    dsimp,
+    rw [assoc, Q.comps_natural_right, ←Q.cell_comp_assoc, P.comps_natural_right, Q.cell_comp_assoc],
+  end,
+  left_unitors' := λ X Y f,
+  begin
+    dsimp,
+    rw [assoc, ←left_whisker_comp_assoc, Q.comps_natural_left_assoc, ←Q.cell_comp_assoc,
+      Q.left_unitors, ←Q.cell_comp, assoc, P.left_unitors],
+  end,
+  right_unitors' := λ X Y f,
+  begin
+    dsimp,
+    rw [assoc, ←right_whisker_comp_assoc, Q.comps_natural_right_assoc, ←Q.cell_comp_assoc,
+        Q.right_unitors, ←Q.cell_comp, assoc, P.right_unitors],
+  end,
+  assoc' := λ W X Y Z f g h,
+  begin
+    dsimp,
+    rw [assoc, assoc, ←left_whisker_comp_assoc, Q.comps_natural_left_assoc, ←Q.cell_comp_assoc,
+      Q.assoc, ←Q.cell_comp_assoc, assoc, P.assoc, Q.cell_comp_assoc, Q.cell_comp_assoc,
+      ←right_whisker_comp],
+
+
+
+    -- rw [category.assoc, ←right_whisker_comp_assoc, ←Q.comps_natural_right_assoc, Q.assoc_assoc,
+    --   ←functor.map_comp, ←functor.map_comp, P.assoc, functor.map_comp, functor.map_comp,
+    --   Q.comps_natural_left_assoc, left_whisker_comp_assoc],
+  end }
 
 variables (P Q : pseudofunctor C D)
 

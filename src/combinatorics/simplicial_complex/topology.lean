@@ -373,7 +373,7 @@ is pure of dimension `n` and has the same underlying space.
 -/
 @[ext] structure polytope (m n : ℕ) :=
 (space : set (fin m → ℝ))
-(realisable : ∃ (S : simplicial_complex m), S.pure ∧ space = S.space)
+(realisable : ∃ {S : simplicial_complex m}, S.pure ∧ space = S.space)
 
 def polytope.vertices (P : polytope m n) : set (fin m → ℝ) :=
   ⋂ (S : simplicial_complex m) (H : P.space = S.space), {x | {x} ∈ S.faces}
@@ -416,5 +416,8 @@ end
 
 noncomputable def polytope.triangulation_of_convex {P : polytope m n} (hP : convex P.space) :
   simplicial_complex m := classical.some (polytope.triangulable_of_convex hP)
+
+--def simplicial_complex.nonsingular (S : simplicial_complex m) {X : finset (fin m → ℝ)} : Prop :=
+--  homeomorph (S.link {X}).space (metric.ball (0 : E) 1)
 
 end affine

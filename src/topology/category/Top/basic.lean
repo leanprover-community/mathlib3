@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 -/
 import category_theory.concrete_category.unbundled_hom
-import topology.continuous_map
+import topology.continuous_functions.basic
 import topology.opens
 
 /-!

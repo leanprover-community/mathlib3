@@ -5,7 +5,7 @@ Authors: Nicolò Cavalleri
 -/
 
 import geometry.manifold.times_cont_mdiff
-import topology.continuous_map
+import topology.continuous_functions.basic
 
 /-!
 # Smooth bundled map

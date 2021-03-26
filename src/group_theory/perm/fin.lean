@@ -189,6 +189,26 @@ end
   perm.sign (cycle_range i) = (-1) ^ (i : ℕ) :=
 by simp [cycle_range]
 
+@[simp] lemma succ_above_cycle_range {n : ℕ} (i j : fin n) :
+  i.succ.succ_above (i.cycle_range j) = swap 0 i.succ j.succ :=
+begin
+  cases n,
+  { rcases j with ⟨_, ⟨⟩⟩ },
+  rcases lt_trichotomy j i with hlt | heq | hgt,
+  { rw [fin.cycle_range_of_lt hlt, fin.succ_above_below, swap_apply_of_ne_of_ne],
+    { ext, simp [fin.coe_add_one (lt_of_lt_of_le hlt (nat.lt_succ_iff.mp i.2))] },
+    { apply fin.succ_ne_zero },
+    { exact (fin.succ_injective _).ne hlt.ne },
+    { rw fin.lt_iff_coe_lt_coe,
+      simpa [fin.coe_add_one (lt_of_lt_of_le hlt (nat.lt_succ_iff.mp i.2))] using hlt } },
+  { rw [heq, fin.cycle_range_self, fin.succ_above_below, swap_apply_right, fin.cast_succ_zero],
+    { rw fin.cast_succ_zero, apply fin.succ_pos } },
+  { rw [fin.cycle_range_of_gt hgt, fin.succ_above_above, swap_apply_of_ne_of_ne],
+    { apply fin.succ_ne_zero },
+    { apply (fin.succ_injective _).ne hgt.ne.symm },
+    { simpa [fin.le_iff_coe_le_coe] using hgt } },
+end
+
 end fin
 
 end cycle_range

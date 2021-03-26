@@ -8,6 +8,7 @@ import topology.locally_constant.algebra
 import topology.algebra.continuous_functions
 import topology.metric_space.basic
 import topology.continuous_on
+import topology.opens
 
 variables {A : Type*} [integral_domain A] [algebra ℚ A]
 
@@ -41,24 +42,24 @@ instance topo' : topological_space (units A) := sorry
 /-- A-valued points of weight space -/ --shouldn't this be a category theory statement?
 def weight_space : group ({ χ : mul_hom (units ℤ_[p]) (units A) // continuous χ }) := sorry
 
-variables (X : Profinite)
+def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
 
-def clopen_sets := {s : set X // is_clopen s}
+instance bool' {H : Type*} [topological_space H] : boolean_algebra (clopen_sets H) := sorry
 
-instance bool' : boolean_algebra (clopen_sets X) := sorry
+--instance union : semilattice_inf_bot (clopen_sets X) := sorry
 
-instance union : semilattice_inf_bot (clopen_sets X) := sorry
-
-instance has_union' : has_union (clopen_sets X) :=
+/-instance has_union' : has_union (clopen_sets X) :=
 begin
 constructor,
 sorry
-end
+end-/
 
 open_locale big_operators
 
 --variables {R : Type*} [ring R] [topological_space R]
 --variables {R : Type*} [ring R] [topological_space R] [topological_ring R]
+variables (X : Profinite)
+
 structure  distribution {R : Type*} [add_monoid R] :=
 (phi : clopen_sets X → R)
 (count_add ⦃f : ℕ → clopen_sets X⦄ :
@@ -125,7 +126,6 @@ end
 
 /-- A compact Hausdorff space is totally disconnected if and only if it is totally separated, this
   is also true for locally compact spaces. -/
--- TODO : Prove for locally compact spaces
 lemma compact_t2_tot_disc_iff_tot_sep {H : Type*} [topological_space H]
   [compact_space H] [t2_space H] :
   totally_disconnected_space H ↔ totally_separated_space H :=
@@ -141,23 +141,6 @@ begin
     rw f, rw set.mem_Inter, by_contradiction, simp at h,
     rcases h with ⟨Z, hZ, hZx, hZy⟩,
     have g' := g Z hZ.1 Zᶜ (is_clopen_compl hZ).1 hZx hZy, simp at g', assumption, },
-  apply totally_separated_space.totally_disconnected_space,
-end
-
-lemma loc_compact_t2_tot_disc_iff_tot_sep {H : Type*} [topological_space H]
-  [locally_compact_space H] [t2_space H] :
-  totally_disconnected_space H ↔ totally_separated_space H :=
-begin
-  split,
-  { rintros h, constructor, rw is_totally_separated,
-    rintros x hx y hy hxy,
-    apply locally_compact_space.rec_on _inst_8,
-    rintros f,
-    have g := t2_separation hxy,
-    rcases g with ⟨Ux, Uy, hUx, hUy, memUx, memUy, disj⟩,
-    have f' := f x Ux (mem_nhds_sets hUx memUx),
-    rcases f' with ⟨C, hC, hCsub, compC⟩,
-    sorry},
   apply totally_separated_space.totally_disconnected_space,
 end
 
@@ -235,7 +218,7 @@ end
 
 open_locale topological_space filter
 
-lemma loc_compact_Haus_tot_disc_iff_zero_dim {H : Type*} [topological_space H]
+lemma loc_compact_Haus_tot_disc_of_zero_dim {H : Type*} [topological_space H]
   [locally_compact_space H] [t2_space H] [totally_disconnected_space H] :
   ∃ (B : set (set H)) (hB : topological_space.is_topological_basis B), ∀ x ∈ B, is_clopen x :=
 begin
@@ -281,6 +264,87 @@ begin
   have f := topological_space.is_topological_basis_of_open_of_nhds h_open h_nhds,
   use C, simp [f],
 end
+
+lemma loc_compact_t2_tot_disc_iff_tot_sep {H : Type*} [topological_space H]
+  [locally_compact_space H] [t2_space H] :
+  totally_disconnected_space H ↔ totally_separated_space H :=
+begin
+  split,
+  { rintros h, constructor, rw is_totally_separated,
+    rintros x hx y hy hxy,
+    apply locally_compact_space.rec_on _inst_8,
+    rintros f,
+    have g := t2_separation hxy,
+    rcases g with ⟨Ux, Uy, hUx, hUy, memUx, memUy, disj⟩,
+    have f' := f x Ux (mem_nhds_sets hUx memUx),
+    rcases f' with ⟨C, hC, hCsub, compC⟩,
+    sorry},
+  apply totally_separated_space.totally_disconnected_space,
+end
+
+open topological_space.is_topological_basis
+
+lemma is_basis_iff_cover' {H : Type*} [topological_space H] {B : set (set H)} :
+  topological_space.is_topological_basis B ↔ ∀ (U : set H) (hU : is_open U), ∃ Us ⊆ B, U = Sup Us :=
+begin
+  sorry,
+/-  convert topological_space.opens.is_basis_iff_cover,
+  split,
+  { intros hB U hU,
+    rcases topological_space.sUnion_basis_of_is_open hB hU with ⟨sUs, F, hU⟩,
+    existsi {U : set (set H) | U ∈ B ∧ ↑U ∈ sUs},
+    split,
+    { intros U hU, exact hU.left },
+    { apply ext,
+      rw [Sup_s, hU],
+      congr' with s; split; intro hs,
+      { rcases H hs with ⟨V, hV⟩,
+        rw ← hV.right at hs,
+        refine ⟨V, ⟨⟨hV.left, hs⟩, hV.right⟩⟩ },
+      { rcases hs with ⟨V, ⟨⟨H₁, H₂⟩, H₃⟩⟩,
+        subst H₃, exact H₂ } } },
+  { intro h,
+    rw is_basis_iff_nbhd,
+    intros U x hx,
+    rcases h U with ⟨Us, hUs, H⟩,
+    replace H := congr_arg (coe : _ → set α) H,
+    rw Sup_s at H,
+    change x ∈ ↑U at hx,
+    rw H at hx,
+    rcases set.mem_sUnion.mp hx with ⟨sV, ⟨⟨V, H₁, H₂⟩, hsV⟩⟩,
+    refine ⟨V,hUs H₁,_⟩,
+    cases V with V hV,
+    dsimp at H₂, subst H₂,
+    refine ⟨hsV,_⟩,
+    change V ⊆ U, rw H,
+    exact set.subset_sUnion_of_mem ⟨⟨V, _⟩, ⟨H₁, rfl⟩⟩ } -/
+end
+
+lemma clopen_union_disjoint {H : Type*} [topological_space H]
+  [locally_compact_space H] [t2_space H] [totally_disconnected_space H] {C : set H} (hC : is_clopen C) :
+  ∃ (s : set (set H)), C = Sup s ∧ ∀ (x y : set H) (hx : x ∈ s) (hy : y ∈ s), is_clopen x ∧ is_clopen y ∧ x ∩ y = ∅ :=
+begin
+  sorry,
+end
+
+lemma clopen_union_disjoint {H : Type*} [topological_space H]
+  [locally_compact_space H] [t2_space H] [totally_disconnected_space H] {C : set H} (hC : is_open C) :
+  ∃ (s : set (set H)), C = Sup s ∧ ∀ (x y : set H) (hx : x ∈ s) (hy : y ∈ s), is_clopen x ∧ is_clopen y ∧ x ∩ y = ∅ :=
+begin
+  obtain ⟨B, hB, h⟩ := @loc_compact_Haus_tot_disc_of_zero_dim H _ _ _ _,
+--  have D : set (topological_space.opens H) := {Z // is_clopen (Z : set H)},
+--  have f : topological_space.opens.is_basis _ hB,
+  obtain ⟨V, hV, f⟩ := is_basis_iff_cover'.1 hB C hC,
+  set g : V × V → set H := λ ⟨x, y⟩, x.1 \ y.1 with hg,
+  use (set.range g),
+  split,
+  {sorry},
+  {sorry},
+  --rw topological_space.opens.is_basis_iff_cover.1
+end
+
+/- lemma clopen_union_disjoint {H : Type*} [topological_space H] [boolean_algebra A] [t : finset {Z : set H | is_clopen Z}] :
+  ∃ (s : finset {Z : set H | is_clopen Z}), (∀ (x y :set  H) (hx : x ∈ s) (hy : y ∈ s), (x : set H) ∩ y = ∅) ∧ ⨆ (Z : A) (Ht : Z ∈ t), Z = ⨆ (Z : A) (Hs : Z ∈ s), Z := -/
 
 --show that locally compact Hausdorff is tot disc iff zero dim
 lemma dense_C [topological_space R] [topological_ring R] [has_norm R] :

@@ -92,6 +92,8 @@ variables {p}
 
 @[simp] protected lemma eta (x : p) (hx : (x : B) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
 
+-- `dangerous_instance` does not know that `B` is used only as an `out_param`
+@[nolint dangerous_instance, priority 100]
 instance : partial_order A :=
 { le := λ H K, ∀ ⦃x⦄, x ∈ H → x ∈ K,
   .. partial_order.lift (coe : A → set B) coe_injective }

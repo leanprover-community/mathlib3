@@ -6,6 +6,7 @@ Authors: Patrick Massot, Chris Hughes, Michael Howes
 import algebra.group.hom
 import algebra.group.semiconj
 import data.equiv.mul_add_aut
+import algebra.group_with_zero.basic
 
 /-!
 # Conjugacy of group elements
@@ -45,9 +46,9 @@ end monoid
 
 section group
 
-variables [group α] [group β]
+variables [group α]
 
-@[simp] lemma is_conj_iff {a b : α} :
+@[simp] lemma group.is_conj_iff {a b : α} :
   is_conj a b ↔ ∃ c : α, c * a * c⁻¹ = b :=
 ⟨λ ⟨c, hc⟩, ⟨c, mul_inv_eq_iff_eq_mul.2 hc⟩, λ ⟨c, hc⟩,
   ⟨⟨c, c⁻¹, mul_inv_self c, inv_mul_self c⟩, mul_inv_eq_iff_eq_mul.1 hc⟩⟩
@@ -69,6 +70,17 @@ lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹)
 (mul_aut.conj x).injective
 
 end group
+
+@[simp] lemma group_with_zero.is_conj_iff [group_with_zero α] {a b : α} :
+  is_conj a b ↔ ∃ c : α, c ≠ 0 ∧ c * a * c⁻¹ = b :=
+⟨λ ⟨c, hc⟩, ⟨c, begin
+    rw [← units.coe_inv', units.mul_inv_eq_iff_eq_mul],
+    exact ⟨c.ne_zero, hc⟩,
+  end⟩, λ ⟨c, c0, hc⟩,
+  ⟨units.mk0 c c0, begin
+    rw [semiconj_by, ← units.mul_inv_eq_iff_eq_mul, units.coe_inv', units.coe_mk0],
+    exact hc
+  end⟩⟩
 
 namespace is_conj
 
@@ -135,8 +147,8 @@ lemma mk_bijective : function.bijective (@conj_classes.mk α _) :=
 ⟨mk_injective, mk_surjective⟩
 
 /-- The bijection between a `comm_group` and its `conj_classes`. -/
-noncomputable def mk_equiv : α ≃ conj_classes α :=
-equiv.of_bijective conj_classes.mk mk_bijective
+def mk_equiv : α ≃ conj_classes α :=
+⟨conj_classes.mk, quotient.lift id (λ a b ab, by apply is_conj_iff_eq.1 ab), sorry, sorry⟩
 
 end comm_monoid
 end conj_classes

@@ -1639,6 +1639,22 @@ def measure_univ_nnreal (μ : measure α) [finite_measure μ] : ℝ≥0 := (μ u
   ↑(measure_univ_nnreal μ) = μ univ :=
 ennreal.coe_to_nnreal (measure_ne_top μ univ)
 
+instance finite_measure_zero : finite_measure (0 : measure α) := ⟨by simp⟩
+
+@[simp] lemma measure_univ_nnreal_zero : measure_univ_nnreal (0 : measure α) = 0 := rfl
+
+@[simp] lemma measure_univ_nnreal_eq_zero [finite_measure μ] : measure_univ_nnreal μ = 0 ↔ μ = 0 :=
+begin
+  rw [← measure_theory.measure.measure_univ_eq_zero, ← coe_measure_univ_nnreal],
+  norm_cast
+end
+
+lemma measure_univ_pos [finite_measure μ] (hμ : μ ≠ 0) : 0 < measure_univ_nnreal μ :=
+begin
+  contrapose! hμ,
+  simpa [measure_univ_nnreal_eq_zero, le_zero_iff] using hμ
+end
+
 /-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
 but it holds for measures with the additional assumption that μ is finite. -/
 lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ : measure α} [finite_measure μ]

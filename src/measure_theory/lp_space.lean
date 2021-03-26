@@ -1067,10 +1067,19 @@ mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_bound f.ae_measurable _ hfC
 
 lemma norm_of_ae_bound [finite_measure μ] {f : α →ₘ[μ] E} {C : ℝ} (hC : 0 ≤ C)
   (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
-  ∥(⟨f, mem_Lp_of_ae_bound C hfC⟩ : Lp E p μ)∥
-  ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * (⟨C, hC⟩ : ℝ≥0) :=
+  ∥(⟨f, mem_Lp_of_ae_bound C hfC⟩ : Lp E p μ)∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * C :=
 begin
-  sorry
+  by_cases hμ : μ = 0,
+  { by_cases hp : p.to_real⁻¹ = 0,
+    { simpa [hp, hμ, norm_def] using hC },
+    { simp [hμ, norm_def, real.zero_rpow hp] } },
+  let A : ℝ≥0 := (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * ⟨C, hC⟩,
+  suffices : snorm f p μ ≤ A,
+  { exact to_real_mono this },
+  convert snorm_le_of_bound f.ae_measurable hC hfC,
+  dsimp [A],
+  rw [← coe_measure_univ_nnreal μ, ennreal.coe_rpow_of_ne_zero (measure_univ_pos hμ).ne'],
+  simp
 end
 
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p μ) :=
@@ -1105,8 +1114,8 @@ end
 
 variables (E p μ 𝕜)
 
-/-- The `𝕜`-submodule of elements of `α →ₘ[μ] E` whose `Lp` norm is finite.  This is `Lp E p μ`, with
-extra structure. -/
+/-- The `𝕜`-submodule of elements of `α →ₘ[μ] E` whose `Lp` norm is finite.  This is `Lp E p μ`,
+with extra structure. -/
 def Lp_submodule : submodule 𝕜 (α →ₘ[μ] E) :=
 { smul_mem' := λ c f hf, by simpa using mem_Lp_const_smul c ⟨f, hf⟩,
   .. Lp E p μ }
@@ -1753,11 +1762,11 @@ def to_Lp_hom [fact (1 ≤ p)] : normed_group_hom (α →ᵇ E) (Lp E p μ) :=
       (Lp E p μ)
       mem_Lp }
 
-variables (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 E]
+variables (𝕜 : Type*) (E p μ)
 
 /-- The bounded linear map of considering a bounded continuous function on a finite-measure space
 as an element of `Lp`. -/
-def to_Lp [fact (1 ≤ p)] : (α →ᵇ E) →L[𝕜] (Lp E p μ) :=
+def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] : (α →ᵇ E) →L[𝕜] (Lp E p μ) :=
 linear_map.mk_continuous
   (linear_map.cod_restrict
     (Lp.Lp_submodule E p μ 𝕜)
@@ -1771,5 +1780,9 @@ linear_map.mk_continuous
     intros x hx,
     convert f.norm_coe_le_norm x
   end
+
+lemma to_Lp_norm_le [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+  ∥to_Lp E p μ 𝕜∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=
+linear_map.mk_continuous_norm_le _ ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹).coe_nonneg _
 
 end bounded_continuous_function

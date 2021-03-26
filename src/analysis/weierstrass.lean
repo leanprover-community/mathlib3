@@ -77,7 +77,6 @@ theorem polynomial_functions_closure_eq_top' :
 begin
   apply eq_top_iff.mpr,
   rintros f -,
-  dsimp,
   refine filter.frequently.mem_closure _,
   refine filter.tendsto.frequently (bernstein_approximation_uniform f) _,
   apply frequently_of_forall,

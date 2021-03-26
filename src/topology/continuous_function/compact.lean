@@ -13,7 +13,7 @@ import tactic.equiv_rw
 Continuous functions `C(α, β)` from a compact space `α` to a metric space `β`
 are automatically bounded, and so acquire various structures inherited from `α →ᵇ β`.
 
-This file transfers these structures, and restates some, but not all of the lemmas
+This file transfers these structures, and restates some lemmas
 characterising these structures.
 
 If you need a lemma which is proved about `α →ᵇ β` but not for `C(α, β)` when `α` is compact,
@@ -28,10 +28,6 @@ open_locale topological_space classical nnreal bounded_continuous_function
 open set filter metric
 
 variables (α : Type*) (β : Type*) [topological_space α] [compact_space α] [normed_group β]
-
-namespace bounded_continuous_function
-
-end bounded_continuous_function
 
 open bounded_continuous_function
 
@@ -73,6 +69,7 @@ metric_space.induced
   (by apply_instance)
 
 variables (α β)
+
 /--
 When `α` is compact, and `β` is a metric space, the bounded continuous maps `α →ᵇ β` are
 isometric to `C(α, β)`.
@@ -100,15 +97,7 @@ instance : normed_group C(α,β) :=
     exact ((add_equiv_bounded_of_compact α β).symm.map_sub _ _).symm,
   end, }
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
-
-instance : normed_space 𝕜 C(α,β) :=
-{ norm_smul_le := λ c f,
-  begin
-    equiv_rw (equiv_bounded_of_compact α β) at f,
-    exact le_of_eq (norm_smul c f),
-  end }
-
+section
 variables {R : Type*} [normed_ring R]
 
 instance : normed_ring C(α,R) :=
@@ -119,6 +108,18 @@ instance : normed_ring C(α,R) :=
     exact norm_mul_le f g,
   end,
   ..(infer_instance : normed_group C(α,R)) }
+
+end
+
+section
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+
+instance : normed_space 𝕜 C(α,β) :=
+{ norm_smul_le := λ c f,
+  begin
+    equiv_rw (equiv_bounded_of_compact α β) at f,
+    exact le_of_eq (norm_smul c f),
+  end }
 
 variables (α 𝕜)
 
@@ -150,5 +151,7 @@ lemma linear_isometry_bounded_of_compact_of_compact_to_equiv :
   (linear_isometry_bounded_of_compact α 𝕜).to_linear_equiv.to_equiv =
     equiv_bounded_of_compact α 𝕜 :=
 rfl
+
+end
 
 end continuous_map

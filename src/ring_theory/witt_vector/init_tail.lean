@@ -122,7 +122,7 @@ begin
     alg_hom.map_mul, bind₁_X_right, bind₁_C_right, ← finset.sum_add_distrib, ← mul_add],
   apply finset.sum_congr rfl,
   intros, congr' 2,
-  split_ifs; simp only [zero_pow (pow_pos hp.pos _), add_zero, zero_add],
+  split_ifs; simp only [zero_pow (pow_pos hp.1.pos _), add_zero, zero_add],
 end
 
 lemma coeff_add_of_disjoint (x y : 𝕎 R) (h : ∀ n, x.coeff n = 0 ∨ y.coeff n = 0) :

@@ -5,6 +5,7 @@ Authors: Scott Morrison, Nicolò Cavalleri
 -/
 import topology.algebra.module
 import topology.continuous_map
+import algebra.algebra.subalgebra
 
 /-!
 # Algebraic structures over continuous functions
@@ -249,14 +250,14 @@ section subtype
 instance continuous_has_scalar {α : Type*} [topological_space α]
   {R : Type*} [semiring R] [topological_space R]
   {M : Type*} [topological_space M] [add_comm_group M]
-  [semimodule R M] [topological_semimodule R M] :
+  [semimodule R M] [has_continuous_smul R M] :
   has_scalar R { f : α → M | continuous f } :=
-⟨λ r f, ⟨r • f, continuous_const.smul f.property⟩⟩
+⟨λ r f, ⟨r • f, f.property.const_smul r⟩⟩
 
 instance continuous_semimodule {α : Type*} [topological_space α]
 {R : Type*} [semiring R] [topological_space R]
 {M : Type*} [topological_space M] [add_comm_group M] [topological_add_group M]
-[semimodule R M] [topological_semimodule R M] :
+[semimodule R M] [has_continuous_smul R M] :
   semimodule R { f : α → M | continuous f } :=
   semimodule.of_core $
 { smul     := (•),
@@ -273,21 +274,21 @@ variables {α : Type*} [topological_space α]
   {M : Type*} [topological_space M] [add_comm_monoid M]
 
 instance continuous_map_has_scalar
-  [semimodule R M] [topological_semimodule R M] :
+  [semimodule R M] [has_continuous_smul R M] :
   has_scalar R C(α, M) :=
-⟨λ r f, ⟨r • f, continuous_const.smul f.continuous⟩⟩
+⟨λ r f, ⟨r • f, f.continuous.const_smul r⟩⟩
 
-@[simp] lemma continuous_map.smul_apply [semimodule R M] [topological_semimodule R M]
+@[simp] lemma continuous_map.smul_apply [semimodule R M] [has_continuous_smul R M]
   (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) :=
 rfl
 
 @[simp] lemma continuous_map.smul_comp {α : Type*} {β : Type*}
   [topological_space α] [topological_space β]
-   [semimodule R M] [topological_semimodule R M] (r : R) (f : C(β, M)) (g : C(α, β)) :
+   [semimodule R M] [has_continuous_smul R M] (r : R) (f : C(β, M)) (g : C(α, β)) :
   (r • f).comp g = r • (f.comp g) :=
 by { ext, simp, }
 
-variables [has_continuous_add M] [semimodule R M] [topological_semimodule R M]
+variables [has_continuous_add M] [semimodule R M] [has_continuous_smul R M]
 
 instance continuous_map_semimodule : semimodule R C(α, M) :=
 { smul     := (•),
@@ -309,7 +310,7 @@ section algebra_structure
 
 In this section we show that continuous functions valued in a topological algebra `A` over a ring
 `R` inherit the structure of an algebra. Note that the hypothesis that `A` is a topological algebra
-is obtained by requiring that `A` be both a `topological_semimodule` and a `topological_semiring`
+is obtained by requiring that `A` be both a `has_continuous_smul` and a `topological_semiring`
 (by now we require `topological_ring`: see TODO below).-/
 
 section subtype
@@ -327,7 +328,7 @@ def continuous.C : R →+* { f : α → A | continuous f } :=
   map_zero' := by ext x; exact (algebra_map R A).map_zero,
   map_add'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_add _ _ }
 
-variables [topological_space R] [topological_semimodule R A]
+variables [topological_space R] [has_continuous_smul R A]
 
 instance : algebra R { f : α → A | continuous f } :=
 { to_ring_hom := continuous.C,
@@ -364,7 +365,7 @@ def continuous_map.C : R →+* C(α, A) :=
 @[simp] lemma continuous_map.C_apply (r : R) (a : α) : continuous_map.C r a = algebra_map R A r :=
 rfl
 
-variables [topological_space R] [topological_semimodule R A]
+variables [topological_space R] [has_continuous_smul R A]
 
 instance continuous_map_algebra : algebra R C(α, A) :=
 { to_ring_hom := continuous_map.C,
@@ -372,9 +373,56 @@ instance continuous_map_algebra : algebra R C(α, A) :=
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
   ..continuous_map_semiring }
 
+/--
+A version of `separates_points` for subalgebras of the continuous functions,
+used for stating the Stone-Weierstrass theorem.
+-/
+abbreviation subalgebra.separates_points (s : subalgebra R C(α, A)) : Prop :=
+separates_points ((λ f : C(α, A), (f : α → A)) '' (s : set C(α, A)))
+
+lemma subalgebra.separates_points_monotone :
+  monotone (λ s : subalgebra R C(α, A), s.separates_points) :=
+λ s s' r h x y n,
+begin
+  obtain ⟨f, m, w⟩ := h n,
+  rcases m with ⟨f, ⟨m, rfl⟩⟩,
+  exact ⟨_, ⟨f, ⟨r m, rfl⟩⟩, w⟩,
+end
+
 @[simp] lemma algebra_map_apply (k : R) (a : α) :
   algebra_map R C(α, A) k a = k • 1 :=
 by { rw algebra.algebra_map_eq_smul_one, refl, }
+
+variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
+
+/--
+Working in continuous functions into a topological field,
+a subalgebra of functions that separates points also separates points strongly.
+
+By the hypothesis, we can find a function `f` so `f x ≠ f y`.
+By an affine transformation in the field we can arrange so that `f x = a` and `f x = b`.
+-/
+lemma subalgebra.separates_points.strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h : s.separates_points) :
+  separates_points_strongly ((λ f : C(α, 𝕜), (f : α → 𝕜)) '' (s : set C(α, 𝕜))) :=
+λ x y n,
+begin
+  obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
+  replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
+  intros a b,
+  let f' := ((b - a) * (f x - f y)⁻¹) • (continuous_map.C (f x) - f) + continuous_map.C a,
+  refine ⟨f', _, _, _⟩,
+  { simp only [set.mem_image, coe_coe],
+    refine ⟨f', _, rfl⟩,
+    simp only [f', submodule.mem_coe, subalgebra.mem_to_submodule],
+    -- TODO should there be a tactic for this?
+    -- We could add an attribute `@[subobject_mem]`, and a tactic
+    -- ``def subobject_mem := `[solve_by_elim with subobject_mem { max_depth := 10 }]``
+    solve_by_elim
+      [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
+      { max_depth := 6 }, },
+  { simp [f'], },
+  { simp [f', inv_mul_cancel_right' w], },
+end
 
 end continuous_map
 
@@ -393,14 +441,14 @@ section subtype
 instance continuous_has_scalar' {α : Type*} [topological_space α]
   {R : Type*} [semiring R] [topological_space R]
   {M : Type*} [topological_space M] [add_comm_group M]
-  [semimodule R M] [topological_semimodule R M] :
+  [semimodule R M] [has_continuous_smul R M] :
   has_scalar { f : α → R | continuous f } { f : α → M | continuous f } :=
 ⟨λ f g, ⟨λ x, (f x) • (g x), (continuous.smul f.2 g.2)⟩⟩
 
 instance continuous_module' {α : Type*} [topological_space α]
   (R : Type*) [ring R] [topological_space R] [topological_ring R]
   (M : Type*) [topological_space M] [add_comm_group M] [topological_add_group M]
-  [module R M] [topological_module R M]
+  [module R M] [has_continuous_smul R M]
   : module { f : α → R | continuous f } { f : α → M | continuous f } :=
   semimodule.of_core $
 { smul     := (•),
@@ -416,14 +464,14 @@ section continuous_map
 instance continuous_map_has_scalar' {α : Type*} [topological_space α]
   {R : Type*} [semiring R] [topological_space R]
   {M : Type*} [topological_space M] [add_comm_monoid M]
-  [semimodule R M] [topological_semimodule R M] :
+  [semimodule R M] [has_continuous_smul R M] :
   has_scalar C(α, R) C(α, M) :=
 ⟨λ f g, ⟨λ x, (f x) • (g x), (continuous.smul f.2 g.2)⟩⟩
 
 instance continuous_map_module' {α : Type*} [topological_space α]
   (R : Type*) [ring R] [topological_space R] [topological_ring R]
   (M : Type*) [topological_space M] [add_comm_monoid M] [has_continuous_add M]
-  [semimodule R M] [topological_semimodule R M] :
+  [semimodule R M] [has_continuous_smul R M] :
   semimodule C(α, R) C(α, M) :=
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add (c x) (f x) (g x),

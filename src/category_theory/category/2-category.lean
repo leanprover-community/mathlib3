@@ -95,11 +95,9 @@ structure pseudofunctor :=
   (comps f g).hom ≫ func.map (_ ◀ η) = (_ ◀ func.map η) ≫ (comps f g').hom
     . obviously)
 (left_unitors' : ∀ {x y : C} (f : x ⟶ y),
-  ((ids _).hom ▶ _) ≫ (comps _ _).hom ≫ func.map (λ_ f).hom = (λ_ _).hom
-    . obviously)
+  ((ids _).hom ▶ _) ≫ (comps _ _).hom ≫ func.map (λ_ f).hom = (λ_ _).hom . obviously)
 (right_unitors' : ∀ {x y : C} (f : x ⟶ y),
-  (_ ◀ (ids _).hom) ≫ (comps _ _).hom ≫ func.map (ρ_ f).hom = (ρ_ _).hom
-    . obviously)
+  (_ ◀ (ids _).hom) ≫ (comps _ _).hom ≫ func.map (ρ_ f).hom = (ρ_ _).hom . obviously)
 (assoc' : ∀ {w x y z : C} (f : w ⟶ x) (g : x ⟶ y) (h : y ⟶ z),
   (α_ _ _ _).hom ≫ (_ ◀ (comps _ _).hom) ≫ (comps _ _).hom =
   ((comps _ _).hom ▶ _) ≫ (comps _ _).hom ≫ func.map (α_ f g h).hom . obviously)
@@ -156,7 +154,9 @@ def pseudofunctor.comp (P : pseudofunctor C D) (Q : pseudofunctor D E) :
   assoc' := λ W X Y Z f g h,
   begin
     dsimp,
-    sorry
+    rw [category.assoc, ←right_whisker_comp_assoc, ←Q.comps_natural_right_assoc, Q.assoc_assoc,
+      ←functor.map_comp, ←functor.map_comp, P.assoc, functor.map_comp, functor.map_comp,
+      Q.comps_natural_left_assoc, left_whisker_comp_assoc],
   end }
 
 variables {C D E}

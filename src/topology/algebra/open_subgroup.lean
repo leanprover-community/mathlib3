@@ -182,7 +182,7 @@ begin
     (continuous_id.mul continuous_const).tendsto _,
   rw [mul_inv_cancel_left] at this,
   have := filter.mem_map.1 (this hg),
-  replace hg : g ∈ H := (set_like.mem_coe _).1 (mem_of_nhds hg),
+  replace hg : g ∈ H := set_like.mem_coe.1 (mem_of_nhds hg),
   simp only [set_like.mem_coe, H.mul_mem_cancel_right (H.mul_mem (H.inv_mem hx) hg)] at this,
   exact this
 end

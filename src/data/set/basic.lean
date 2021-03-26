@@ -1020,6 +1020,9 @@ theorem monotone_powerset : monotone (powerset : set α → set (set α)) :=
 @[simp] theorem powerset_empty : 𝒫 (∅ : set α) = {∅} :=
 ext $ λ s, subset_empty_iff
 
+@[simp] theorem powerset_univ : 𝒫 (univ : set α) = univ :=
+eq_univ_of_forall subset_univ
+
 /-! ### If-then-else for sets -/
 
 /-- `ite` for sets: `set.ite t s s' ∩ t = s ∩ t`, `set.ite t s s' ∩ tᶜ = s' ∩ tᶜ`.
@@ -1741,6 +1744,28 @@ begin
       { exact h y hy x hx hyx } } },
   { rintros ⟨z, hz⟩ x hx y hy hne,
     rw [hz x hx, hz y hy] }
+end
+
+@[simp] lemma pairwise_on_empty {α} (r : α → α → Prop) :
+  (∅ : set α).pairwise_on r :=
+λ _, by simp
+
+lemma pairwise_on_insert_of_symmetric {α} {s : set α} {a : α} {r : α → α → Prop}
+  (hr : symmetric r) :
+  (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b :=
+begin
+  refine ⟨λ h, ⟨_, _⟩, λ h, _⟩,
+  { exact h.mono (s.subset_insert a) },
+  { intros b hb hn,
+    exact h a (s.mem_insert _) b (set.mem_insert_of_mem _ hb) hn },
+  { intros b hb c hc hn,
+    rw [mem_insert_iff] at hb hc,
+    rcases hb with (rfl | hb);
+    rcases hc with (rfl | hc),
+    { exact absurd rfl hn },
+    { exact h.right _ hc hn },
+    { exact hr (h.right _ hb hn.symm) },
+    { exact h.left _ hb _ hc hn } }
 end
 
 end set

@@ -150,7 +150,8 @@ lemma l_bot : l ⊥ = ⊥ :=
 end order_bot
 
 section semilattice_sup
-variables [semilattice_sup α] [semilattice_sup β] {l : α → β} {u : β → α} (gc : galois_connection l u)
+variables [semilattice_sup α] [semilattice_sup β] {l : α → β} {u : β → α}
+  (gc : galois_connection l u)
 include gc
 
 lemma l_sup : l (a₁ ⊔ a₂) = l a₁ ⊔ l a₂ :=
@@ -159,7 +160,8 @@ lemma l_sup : l (a₁ ⊔ a₂) = l a₁ ⊔ l a₂ :=
 end semilattice_sup
 
 section semilattice_inf
-variables [semilattice_inf α] [semilattice_inf β] {l : α → β} {u : β → α} (gc : galois_connection l u)
+variables [semilattice_inf α] [semilattice_inf β] {l : α → β} {u : β → α}
+  (gc : galois_connection l u)
 include gc
 
 lemma u_inf : u (b₁ ⊓ b₂) = u b₁ ⊓ u b₂ :=
@@ -168,7 +170,8 @@ lemma u_inf : u (b₁ ⊓ b₂) = u b₁ ⊓ u b₂ :=
 end semilattice_inf
 
 section complete_lattice
-variables [complete_lattice α] [complete_lattice β] {l : α → β} {u : β → α} (gc : galois_connection l u)
+variables [complete_lattice α] [complete_lattice β] {l : α → β} {u : β → α}
+  (gc : galois_connection l u)
 include gc
 
 lemma l_supr {f : ι → α} : l (supr f) = (⨆i, l (f i)) :=
@@ -335,17 +338,19 @@ def lift_semilattice_sup [semilattice_sup α] (gi : galois_insertion l u) : semi
 { sup := λa b, l (u a ⊔ u b),
   le_sup_left  := assume a b, le_trans (gi.le_l_u a) $ gi.gc.monotone_l $ le_sup_left,
   le_sup_right := assume a b, le_trans (gi.le_l_u b) $ gi.gc.monotone_l $ le_sup_right,
-  sup_le       := assume a b c hac hbc, gi.gc.l_le $ sup_le (gi.gc.monotone_u hac) (gi.gc.monotone_u hbc),
+  sup_le       := assume a b c hac hbc,
+    gi.gc.l_le $ sup_le (gi.gc.monotone_u hac) (gi.gc.monotone_u hbc),
   .. ‹partial_order β› }
 
 /-- Lift the infima along a Galois insertion -/
 def lift_semilattice_inf [semilattice_inf α] (gi : galois_insertion l u) : semilattice_inf β :=
 { inf := λa b, gi.choice (u a ⊓ u b) $
-    (le_inf (gi.gc.monotone_u $ gi.gc.l_le $ inf_le_left) (gi.gc.monotone_u $ gi.gc.l_le $ inf_le_right)),
+    (le_inf (gi.gc.monotone_u $ gi.gc.l_le $ inf_le_left)
+      (gi.gc.monotone_u $ gi.gc.l_le $ inf_le_right)),
   inf_le_left  := by simp only [gi.choice_eq]; exact assume a b, gi.gc.l_le inf_le_left,
   inf_le_right := by simp only [gi.choice_eq]; exact assume a b, gi.gc.l_le inf_le_right,
   le_inf       := by simp only [gi.choice_eq]; exact assume a b c hac hbc,
-    le_trans (gi.le_l_u a) $ gi.gc.monotone_l $ le_inf (gi.gc.monotone_u hac) (gi.gc.monotone_u hbc),
+    (gi.le_l_u a).trans $ gi.gc.monotone_l $ le_inf (gi.gc.monotone_u hac) (gi.gc.monotone_u hbc),
   .. ‹partial_order β› }
 
 /-- Lift the suprema and infima along a Galois insertion -/
@@ -355,7 +360,7 @@ def lift_lattice [lattice α] (gi : galois_insertion l u) : lattice β :=
 /-- Lift the top along a Galois insertion -/
 def lift_order_top [order_top α] (gi : galois_insertion l u) : order_top β :=
 { top    := gi.choice ⊤ $ le_top,
-  le_top := by simp only [gi.choice_eq]; exact assume b, le_trans (gi.le_l_u b) (gi.gc.monotone_l le_top),
+  le_top := by simp only [gi.choice_eq]; exact λ b, (gi.le_l_u b).trans (gi.gc.monotone_l le_top),
   .. ‹partial_order β› }
 
 /-- Lift the top, bottom, suprema, and infima along a Galois insertion -/
@@ -365,8 +370,9 @@ def lift_bounded_lattice [bounded_lattice α] (gi : galois_insertion l u) : boun
 /-- Lift all suprema and infima along a Galois insertion -/
 def lift_complete_lattice [complete_lattice α] (gi : galois_insertion l u) : complete_lattice β :=
 { Sup := λs, l (⨆ b∈s, u b),
-  Sup_le := assume s a hs, gi.gc.l_le $ supr_le $ assume b, supr_le $ assume hb, gi.gc.monotone_u $ hs _ hb,
-  le_Sup := assume s a ha, le_trans (gi.le_l_u a) $ gi.gc.monotone_l $ le_supr_of_le a $ le_supr_of_le ha $ le_refl _,
+  Sup_le := λ s a hs, gi.gc.l_le $ supr_le $ λ b, supr_le $ λ hb, gi.gc.monotone_u $ hs _ hb,
+  le_Sup := λ s a ha, le_trans (gi.le_l_u a) $
+    gi.gc.monotone_l $ le_supr_of_le a $ le_supr_of_le ha $ le_refl _,
   Inf := λs, gi.choice (⨅ b∈s, u b) $ le_infi $ assume b, le_infi $ assume hb,
     gi.gc.monotone_u $ gi.gc.l_le $ infi_le_of_le b $ infi_le_of_le hb $ le_refl _,
   Inf_le := by simp only [gi.choice_eq]; exact
@@ -419,8 +425,9 @@ protected def rel_iso.to_galois_coinsertion [preorder α] [preorder β] (oi : α
   choice_eq := λ b h, rfl }
 
 /-- A constructor for a Galois coinsertion with the trivial `choice` function. -/
-def galois_coinsertion.monotone_intro {α β : Type*} [preorder α] [preorder β] {l : α → β} {u : β → α}
-  (hu : monotone u) (hl : monotone l) (hlu : ∀ b, l (u b) ≤ b) (hul : ∀ a, u (l a) = a) :
+def galois_coinsertion.monotone_intro [preorder α] [preorder β] {l : α → β} {u : β → α}
+  (hu : monotone u) (hl : monotone l) (hlu : ∀ b, l (u b) ≤ b)
+  (hul : ∀ a, u (l a) = a) :
   galois_coinsertion l u :=
 galois_coinsertion.of_dual (galois_insertion.monotone_intro hl.order_dual hu.order_dual hlu hul)
 
@@ -501,17 +508,19 @@ def lift_semilattice_inf [semilattice_inf β] (gi : galois_coinsertion l u) : se
 { inf := λa b, u (l a ⊓ l b),
   inf_le_left  := assume a b, le_trans (gi.gc.monotone_u $ inf_le_left) (gi.u_l_le a),
   inf_le_right := assume a b, le_trans (gi.gc.monotone_u $ inf_le_right) (gi.u_l_le b),
-  le_inf       := assume a b c hac hbc, gi.gc.le_u $ le_inf (gi.gc.monotone_l hac) (gi.gc.monotone_l hbc),
+  le_inf       := assume a b c hac hbc, gi.gc.le_u $ le_inf (gi.gc.monotone_l hac)
+    (gi.gc.monotone_l hbc),
   .. ‹partial_order α› }
 
 /-- Lift the suprema along a Galois coinsertion -/
 def lift_semilattice_sup [semilattice_sup β] (gi : galois_coinsertion l u) : semilattice_sup α :=
 { sup := λa b, gi.choice (l a ⊔ l b) $
-    (sup_le (gi.gc.monotone_l $ gi.gc.le_u $ le_sup_left) (gi.gc.monotone_l $ gi.gc.le_u $ le_sup_right)),
+    (sup_le (gi.gc.monotone_l $ gi.gc.le_u $ le_sup_left)
+      (gi.gc.monotone_l $ gi.gc.le_u $ le_sup_right)),
   le_sup_left  := by simp only [gi.choice_eq]; exact assume a b, gi.gc.le_u le_sup_left,
   le_sup_right := by simp only [gi.choice_eq]; exact assume a b, gi.gc.le_u le_sup_right,
   sup_le       := by simp only [gi.choice_eq]; exact assume a b c hac hbc,
-    le_trans (gi.gc.monotone_u $ sup_le (gi.gc.monotone_l hac) (gi.gc.monotone_l hbc)) (gi.u_l_le c),
+    (gi.gc.monotone_u $ sup_le (gi.gc.monotone_l hac) (gi.gc.monotone_l hbc)).trans (gi.u_l_le c),
   .. ‹partial_order α› }
 
 /-- Lift the suprema and infima along a Galois coinsertion -/
@@ -521,7 +530,8 @@ def lift_lattice [lattice β] (gi : galois_coinsertion l u) : lattice α :=
 /-- Lift the bot along a Galois coinsertion -/
 def lift_order_bot [order_bot β] (gi : galois_coinsertion l u) : order_bot α :=
 { bot    := gi.choice ⊥ $ bot_le,
-  bot_le := by simp only [gi.choice_eq]; exact assume b, le_trans (gi.gc.monotone_u bot_le) (gi.u_l_le b),
+  bot_le := by simp only [gi.choice_eq];
+    exact assume b, le_trans (gi.gc.monotone_u bot_le) (gi.u_l_le b),
   .. ‹partial_order α› }
 
 /-- Lift the top, bottom, suprema, and infima along a Galois coinsertion -/
@@ -531,7 +541,8 @@ def lift_bounded_lattice [bounded_lattice β] (gi : galois_coinsertion l u) : bo
 /-- Lift all suprema and infima along a Galois coinsertion -/
 def lift_complete_lattice [complete_lattice β] (gi : galois_coinsertion l u) : complete_lattice α :=
 { Inf := λs, u (⨅ a∈s, l a),
-  le_Inf := assume s a hs, gi.gc.le_u $ le_infi $ assume b, le_infi $ assume hb, gi.gc.monotone_l $ hs _ hb,
+  le_Inf := assume s a hs, gi.gc.le_u $ le_infi $ assume b, le_infi $
+    assume hb, gi.gc.monotone_l $ hs _ hb,
   Inf_le := assume s a ha, le_trans (gi.gc.monotone_u $ infi_le_of_le a $
     infi_le_of_le ha $ le_refl _) (gi.u_l_le a),
   Sup := λs, gi.choice (⨆ a∈s, l a) $ supr_le $ assume b, supr_le $ assume hb,

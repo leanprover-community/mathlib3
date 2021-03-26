@@ -1752,9 +1752,10 @@ space as an element of `Lp`. -/
 def to_Lp_hom [fact (1 ≤ p)] : normed_group_hom (α →ᵇ E) (Lp E p μ) :=
 { bound' := ⟨(measure_univ_nnreal μ) ^ (p.to_real)⁻¹, λ f, begin
     apply Lp.norm_of_ae_bound (norm_nonneg f),
-    filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
-    intros x hx,
-    convert f.norm_coe_le_norm x
+    { filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
+      intros x hx,
+      convert f.norm_coe_le_norm x },
+    { apply_instance }
   end⟩,
   .. add_monoid_hom.cod_restrict
       ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E))
@@ -1775,9 +1776,10 @@ linear_map.mk_continuous
   begin
     intros f,
     apply Lp.norm_of_ae_bound (norm_nonneg f),
-    filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
-    intros x hx,
-    convert f.norm_coe_le_norm x
+    { filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
+      intros x hx,
+      convert f.norm_coe_le_norm x },
+    { apply_instance }
   end
 
 lemma to_Lp_norm_le [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :

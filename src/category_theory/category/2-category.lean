@@ -71,7 +71,6 @@ attribute [simp, reassoc]
   two_category.associator_naturality_right
   two_category.associator_naturality_middle
   two_category.associator_naturality_left
-  two_category.exchange
   two_category.triangle
   two_category.pentagon
 
@@ -80,6 +79,29 @@ open two_category
 variables {C : Type u₁} [two_category.{w₁ v₁} C]
 variables {D : Type u₂} [two_category.{w₂ v₂} D]
 variables {E : Type u₃} [two_category.{w₃ v₃} E]
+
+def hcomp {a b c : C} {f f' : a ⟶ b} {g g' : b ⟶ c} (η : f ⟶ f') (θ : g ⟶ g') :
+  f ≫ g ⟶ f' ≫ g' :=
+(_ ◀ θ) ≫ (η ▶ _)
+
+infixr ` ■ `:65 := hcomp
+
+lemma hcomp_eq_right_comp_left {a b c : C} {f f' : a ⟶ b} {g g' : b ⟶ c} (η : f ⟶ f') (θ : g ⟶ g') :
+  η ■ θ = (_ ◀ θ) ≫ (η ▶ _) :=
+rfl
+
+lemma hcomp_eq_left_comp_right {a b c : C} {f f' : a ⟶ b} {g g' : b ⟶ c} (η : f ⟶ f') (θ : g ⟶ g') :
+  η ■ θ = (η ▶ _) ≫ (_ ◀ θ) :=
+exchange _ _
+
+lemma associator_naturality {a b c d : C} {f f' : a ⟶ b} {g g' : b ⟶ c} {h h' : c ⟶ d}
+  (η : f ⟶ f') (θ : g ⟶ g') (ι : h ⟶ h') :
+  ((η ■ θ) ■ ι) ≫ (α_ f' g' h').hom = (α_ f g h).hom ≫ (η ■ (θ ■ ι)) :=
+by
+  rw [hcomp_eq_left_comp_right, category.assoc, associator_naturality_right,
+    hcomp_eq_left_comp_right, ←left_whisker_comp, category.assoc,
+    associator_naturality_middle_assoc, associator_naturality_left_assoc, right_whisker_comp,
+    ←hcomp_eq_left_comp_right, ←hcomp_eq_left_comp_right]
 
 @[simps]
 def left_whisker_iso {a b c : C} {f g : a ⟶ b} (η : f ≅ g) (h : b ⟶ c) :
@@ -232,7 +254,7 @@ instance : two_category CAT.{v₁ u₁} :=
   comp := λ X Y Z f g, f ⋙ g,
   left_unitor := λ X Y, functor.right_unitor,
   right_unitor := λ X Y, functor.left_unitor,
-  left_whisker := λ X Y Z f g h α, whisker_right α _,
+  left_whisker := λ X Y Z f g α h, whisker_right α _,
   right_whisker := λ X Y Z f g h α, whisker_left _ α,
   associator := λ X Y Z W f g h, functor.associator _ _ _ }
 

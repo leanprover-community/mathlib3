@@ -247,9 +247,6 @@ end
 @[simp] lemma fin_rotate_apply_zero {n : ℕ} : fin_rotate n.succ 0 = 1 :=
 by rw [fin_rotate_succ_apply, zero_add]
 
-@[simp] lemma fin_rotate_apply_last {n : ℕ} : fin_rotate n.succ (fin.last n) = 0 :=
-by { ext, rw [fin_rotate_succ_apply, fin.last_add_one] }
-
 lemma coe_fin_rotate_of_ne_last {n : ℕ} {i : fin n.succ} (h : i ≠ fin.last n) :
   (fin_rotate n.succ i : ℕ) = i + 1 :=
 begin

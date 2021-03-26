@@ -61,8 +61,11 @@ universes v₁ v₂ v₃ u₁ u₂ u₃
   a unit and counit which are natural isomorphisms and the triangle law `Fη ≫ εF = 1`, or in other
   words the composite `F ⟶ FGF ⟶ F` is the identity.
 
-  In `unit_inverse_comp`, we show that this is actually an adjoint equivalence, i.e., that the
+  In `functor_unit_iso_comp'`, we show that this is actually an adjoint equivalence, i.e., that the
   composite `G ⟶ GFG ⟶ G` is also the identity.
+
+  (See `equivalence.mk` for a constructor which does not need this field,
+  and which instead adjusts the unit and counit.)
 
   The triangle equation is written as a family of equalities between morphisms, it is more
   complicated if we write it as an equality of natural transformations, because then we would have

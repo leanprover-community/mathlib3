@@ -496,29 +496,6 @@ section finite_cancel_monoid
 variables {α} [fintype α] [left_cancel_monoid α]
 variables {H : Type u} [fintype H] [add_left_cancel_monoid H]
 
-lemma exists_nsmul_eq_zero (x : H) : ∃i, 0 < i ∧ i •ℕ x = 0 :=
-begin
-  have h : ¬ injective (λ i : ℕ, i •ℕ x) := not_injective_infinite_fintype _,
-  have h' : ∃(i j : ℕ), i •ℕ x = j •ℕ x ∧ i ≠ j,
-  { rw injective at h,
-    simp only [not_forall, exists_prop] at h,
-    exact h },
-  rcases h' with ⟨i, j, x_eq, ne⟩,
-  wlog h'' : j ≤ i,
-  have h''' : (i - j) •ℕ x = 0,
-  { rw [(nat.add_sub_of_le h'').symm, add_nsmul, ← add_zero (j •ℕ x), add_assoc] at x_eq,
-    convert add_left_cancel x_eq,
-    rw zero_add },
-  use (i - j),
-  split,
-  { apply lt_of_le_of_ne (zero_le (i - j)),
-    by_contradiction,
-    rw not_not at h,
-    apply ne,
-    rw [(nat.add_sub_of_le h'').symm, ← h, add_zero] },
-  { exact h''' }
-end
-
 /-- TODO: Use this to show that a finite left cancellative monoid is a group.-/
 lemma exists_pow_eq_one (a : α) : ∃i, 0 < i ∧ a ^ i = 1 :=
 begin
@@ -541,6 +518,16 @@ begin
     apply ne,
     rw [(nat.add_sub_of_le h'').symm, ← h, add_zero] },
   { exact h''' },
+end
+
+lemma exists_nsmul_eq_zero (x : H) : ∃i, 0 < i ∧ i •ℕ x = 0 :=
+begin
+  rcases exists_pow_eq_one (multiplicative.of_add x) with ⟨i, hi1, hi2⟩,
+  use i,
+  split,
+  { exact hi1 },
+  { apply multiplicative.of_add.injective,
+    rw [of_add_nsmul, hi2, of_add_zero] },
 end
 
 attribute [to_additive exists_nsmul_eq_zero] exists_pow_eq_one
@@ -632,18 +619,7 @@ begin
   exact mem_powers_iff_mem_range_order_of
 end
 
-lemma add_order_of_eq_card_multiples [decidable_eq H] {x : H} :
-  add_order_of x = fintype.card (add_submonoid.multiples x : set H) :=
-begin
-  refine (finset.card_eq_of_bijective _ _ _ _).symm,
-  { exact λn hn, ⟨n •ℕ x, ⟨n, rfl⟩⟩ },
-  { rintros ⟨_, i, rfl⟩ _,
-    exact ⟨i % add_order_of x, mod_lt i (add_order_of_pos x),
-      subtype.eq nsmul_eq_mod_add_order_of.symm⟩ },
-  { intros, exact finset.mem_univ _ },
-  { intros i j hi hj eq,
-    exact nsmul_injective_of_lt_add_order_of x hi hj ( by simpa using eq ) },
-end
+
 
 lemma order_eq_card_powers [decidable_eq α] {a : α} :
   order_of a = fintype.card (submonoid.powers a : set α) :=
@@ -657,6 +633,14 @@ begin
     exact pow_injective_of_lt_order_of a hi hj ( by simpa using eq ) }
 end
 
+lemma add_order_of_eq_card_multiples [decidable_eq H] {x : H} :
+  add_order_of x = fintype.card (add_submonoid.multiples x : set H) :=
+begin
+  rw ← order_of_of_add_eq_add_order_of,
+  rw order_eq_card_powers,
+  congr, -- TODO : Replace by proof not using defeq.
+end
+
 attribute [to_additive add_order_of_eq_card_multiples] order_eq_card_powers
 
 end finite_cancel_monoid
@@ -665,15 +649,6 @@ section finite_group
 variables {α} [fintype α] [group α]
 variables {H : Type u} [fintype H] [add_group H]
 
-lemma exists_gsmul_eq_zero (x : H) : ∃ i ≠ 0, i •ℤ x = 0 :=
-begin
-  rcases exists_nsmul_eq_zero x with ⟨w, hw1, hw2⟩,
-  use w,
-  split,
-  { exact_mod_cast ne_of_gt hw1 },
-  { exact_mod_cast hw2 }
-end
-
 lemma exists_gpow_eq_one (a : α) : ∃ i ≠ 0, a ^ (i : ℤ) = 1 :=
 begin
   rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
@@ -681,6 +656,16 @@ begin
   split,
   { exact_mod_cast ne_of_gt hw1 },
   { exact_mod_cast hw2 }
+end
+
+lemma exists_gsmul_eq_zero (x : H) : ∃ i ≠ 0, i •ℤ x = 0 :=
+begin
+  rcases exists_gpow_eq_one (multiplicative.of_add x) with ⟨i, hi1, hi2⟩,
+  use i,
+  split,
+  { exact hi1 },
+  { apply multiplicative.of_add.injective,
+    rw [of_add_gsmul, hi2, of_add_zero] }
 end
 
 attribute [to_additive exists_gsmul_eq_zero] exists_gpow_eq_one

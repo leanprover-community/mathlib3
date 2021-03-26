@@ -322,24 +322,19 @@ begin
   { exact snorm'_mono_ae ennreal.to_real_nonneg h }
 end
 
-lemma snorm_le_of_bound {f : α → E} {C : ℝ} (hC : 0 ≤ C) (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
-  snorm f p μ ≤ ((μ set.univ) ^ p.to_real⁻¹) * (@coe ℝ≥0 ℝ≥0∞ _ ⟨C, hC⟩) :=
+lemma snorm_le_of_ae_bound {f : α → F} {C : ℝ} (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
+  snorm f p μ ≤ ((μ set.univ) ^ p.to_real⁻¹) * (ennreal.of_real C) :=
 begin
-  by_cases hp : p = 0,
-  { simp [hp] },
   by_cases hμ : μ = 0,
   { simp [hμ] },
-  have hC' : ∥C∥ = C := by simp [real.norm_eq_abs, abs_eq_self.mpr hC],
-  let g : α → ℝ := λ _, C,
-  have : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥,
-  { convert hfC,
-    ext,
-    simp [hC'] },
+  haveI : μ.ae.ne_bot := ae_ne_bot.mpr hμ,
+  by_cases hp : p = 0,
+  { simp [hp] },
+  have hC : 0 ≤ C, from le_trans (norm_nonneg _) hfC.exists.some_spec,
+  have hC' : ∥C∥ = C := by rw [real.norm_eq_abs, abs_eq_self.mpr hC],
+  have : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥(λ _, C) x∥, from hfC.mono (λ x hx, hx.trans (le_of_eq hC'.symm)),
   convert snorm_mono_ae this,
-  rw [snorm_const _ hp hμ, mul_comm],
-  congr,
-  { simp [hC'] },
-  { simp }
+  rw [snorm_const _ hp hμ, mul_comm, ← of_real_norm_eq_coe_nnnorm, hC', one_div]
 end
 
 lemma snorm_congr_norm_ae {f : α → F} {g : α → G} (hfg : ∀ᵐ x ∂μ, ∥f x∥ = ∥g x∥) :
@@ -1064,9 +1059,9 @@ lemma mem_Lp_of_ae_bound [finite_measure μ] {f : α →ₘ[μ] E} (C : ℝ) (hf
   f ∈ Lp E p μ :=
 mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_bound f.ae_measurable _ hfC
 
-lemma norm_of_ae_bound [finite_measure μ] {f : α →ₘ[μ] E} {C : ℝ} (hC : 0 ≤ C)
+lemma norm_le_of_ae_bound [finite_measure μ] {f : Lp E p μ} {C : ℝ} (hC : 0 ≤ C)
   (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
-  ∥(⟨f, mem_Lp_of_ae_bound C hfC⟩ : Lp E p μ)∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * C :=
+  ∥f∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * C :=
 begin
   by_cases hμ : μ = 0,
   { by_cases hp : p.to_real⁻¹ = 0,
@@ -1075,10 +1070,11 @@ begin
   let A : ℝ≥0 := (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * ⟨C, hC⟩,
   suffices : snorm f p μ ≤ A,
   { exact ennreal.to_real_mono this },
-  convert snorm_le_of_bound hC hfC,
-  dsimp [A],
-  rw [← coe_measure_univ_nnreal μ, ennreal.coe_rpow_of_ne_zero (measure_univ_nnreal_pos hμ).ne'],
-  simp
+  convert snorm_le_of_ae_bound hfC,
+  rw [← coe_measure_univ_nnreal μ, ennreal.coe_rpow_of_ne_zero (measure_univ_nnreal_pos hμ).ne',
+    ennreal.coe_mul],
+  congr,
+  rw max_eq_left hC
 end
 
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p μ) :=
@@ -1751,7 +1747,7 @@ end
 space as an element of `Lp`. -/
 def to_Lp_hom [fact (1 ≤ p)] : normed_group_hom (α →ᵇ E) (Lp E p μ) :=
 { bound' := ⟨(measure_univ_nnreal μ) ^ (p.to_real)⁻¹, λ f, begin
-    apply Lp.norm_of_ae_bound (norm_nonneg f),
+    apply Lp.norm_le_of_ae_bound (norm_nonneg f),
     { filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
       intros x hx,
       convert f.norm_coe_le_norm x },
@@ -1775,7 +1771,7 @@ linear_map.mk_continuous
   ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹)
   begin
     intros f,
-    apply Lp.norm_of_ae_bound (norm_nonneg f),
+    apply Lp.norm_le_of_ae_bound (norm_nonneg f),
     { filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
       intros x hx,
       convert f.norm_coe_le_norm x },

@@ -367,8 +367,8 @@ section
 
 open filter
 
-instance {α : Type*} [ring α] [topological_space α] {n : Type*} [fintype n] :
-  topological_space (matrix n n α) :=
+instance {α : Type*} [ring α] [topological_space α] {n m : Type*} [fintype n] [fintype m] :
+  topological_space (matrix n m α) :=
 Pi.topological_space
 
 
@@ -428,13 +428,10 @@ begin
 
 end
 
-lemma cocompact_ℝ_to_cofinite_ℤ (k : ℕ) :
-  tendsto (int.cast_ring_hom ℝ).map_matrix cofinite (cocompact (matrix (fin k) (fin k) ℝ)) :=
-sorry
 
-lemma pi_prod_cofinite {ι : Type*} [fintype ι] (α : ι → Type*) (β : ι → Type*)
+lemma pi_prod_cofinite {ι : Type*} [fintype ι] {α : ι → Type*} {β : ι → Type*}
   [∀ i, topological_space (β i)]
-  (f : Π i : ι, α i → β i) (hf : ∀ i, tendsto (f i) cofinite (cocompact (β i))) :
+  {f : Π i : ι, α i → β i} (hf : ∀ i, tendsto (f i) cofinite (cocompact (β i))) :
   tendsto (λ (a : Π i, α i), λ i, f i (a i)) cofinite (cocompact (Π i, β i)) :=
 begin
   rw tendsto_def,
@@ -442,6 +439,8 @@ begin
   rw mem_cofinite,
   rw mem_cocompact' at h,
   obtain ⟨t, ht1, ht2⟩ := h,
+
+  sorry,
   have scbdd := metric.bounded.subset ht2 (is_compact.bounded ht1),
   refine finite_of_is_compact_of_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ) _,
   have scclosed := is_closed_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
@@ -458,28 +457,14 @@ begin
 
 end
 
-lemma cocompact_ℝ_to_cofinite_ℤ' (k : ℕ) :
-  tendsto ((λ (p : (fin k) → ℤ), (coe : ℤ → ℝ) ∘ p)) cofinite (cocompact ((fin k) → ℝ)) :=
-begin
-  rw tendsto_def,
-  intros s h,
-  rw mem_cofinite,
-  rw mem_cocompact' at h,
-  obtain ⟨t, ht1, ht2⟩ := h,
-  have scbdd := ht1.bounded.subset ht2,
-  refine finite_of_is_compact_of_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ) _,
-  have scclosed := is_closed_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
-  have scbdd_coe : metric.bounded (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
-  {
-    simp [scbdd],
-    ----- Help???
-    sorry,
-  },
-  refine metric.compact_iff_closed_bounded.mpr _,
-  split,
-  exact scclosed,
-  exact scbdd_coe,
-end
+lemma cocompact_ℝ_to_cofinite_ℤ (ι : Type*) [fintype ι] :
+  tendsto ((λ (p : ι → ℤ), (coe : ℤ → ℝ) ∘ p)) cofinite (cocompact (ι → ℝ)) :=
+ pi_prod_cofinite (λ i, int.tendsto_coe_cofinite)
+
+lemma cocompact_ℝ_to_cofinite_ℤ_matrix {ι ι' : Type*} [fintype ι] [fintype ι']  :
+  tendsto (λ m, matrix.map m (coe : ℤ → ℝ)) cofinite (cocompact (matrix ι ι' ℝ)) :=
+ pi_prod_cofinite (λ i, cocompact_ℝ_to_cofinite_ℤ ι')
+
 
 /-- method 1 -/
 def line (cd : coprime_ints) : set (matrix (fin 2) (fin 2) ℝ) :=
@@ -550,7 +535,7 @@ lemma tendsto_lattice_intersect_fun (A : set (matrix (fin 2) (fin 2) ℝ)) :
 begin
   apply tendsto_inverse_image_fun,
   { sorry },
-  { sorry }
+  { exact  pi_prod_cofinite (λ i, (pi_prod_cofinite (λ j, int.tendsto_coe_cofinite))) }
 end
 
 def smul_aux' : (matrix (fin 2) (fin 2) ℝ) → ℂ → ℂ := sorry

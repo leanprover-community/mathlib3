@@ -2439,7 +2439,6 @@ end prod
 /-! ### Coproducts of filters -/
 
 section coprod
-variables {s : set α} {t : set β} {f : filter α} {g : filter β}
 
 /-- Coproduct of filters. -/
 protected def coprod (f : filter α) (g : filter β) : filter (α × β) :=
@@ -2515,6 +2514,46 @@ lemma tendsto.prod_map_coprod {δ : Type*} {f : α → γ} {g : β → δ} {a : 
 map_prod_map_coprod_le.trans (coprod_mono hf hg)
 
 end coprod
+
+/-! ### Finitary coproducts of filters -/
+
+section Coprod
+variables {δ : Type*} [fintype δ] {κ : δ → Type*}  -- {f : Π d, filter (κ d)}
+
+/-- Coproduct of filters. -/
+protected def Coprod (f : Π d, filter (κ d)) : filter (Π d, κ d) :=
+⨆ d : δ, (f d).comap (λ k, k d)
+
+lemma mem_Coprod_iff {s : set (Π d, κ d)} {f : Π d, filter (κ d)} :
+  (s ∈ (filter.Coprod f)) ↔ (∀ d : δ, (∃ t₁ ∈ f d, (λ k : (Π d, κ d), k d) ⁻¹' t₁ ⊆ s)) :=
+by simp [filter.Coprod]
+
+@[mono] lemma Coprod_mono {f₁ f₂ : Π d, filter (κ d)} (hf : ∀ d, f₁ d ≤ f₂ d) :
+  filter.Coprod f₁ ≤ filter.Coprod f₂ :=
+Sup_le_Sup begin
+  have := (λ d : δ, comap_mono (hf d)) ,
+  -- Heather homework
+  repeat {sorry},
+end
+
+lemma map_prod_map_Coprod_le {μ : δ → Type*}
+  {f : Π d, filter (κ d)} {m : Π d, κ d → μ d} :
+  map (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) ≤ filter.Coprod (λ d, map (m d) (f d)) :=
+begin
+  intros s h,
+  -- Alex homework
+  sorry,
+  simp only [mem_map, mem_coprod_iff],
+  rintros ⟨u₁, hu₁, h₁⟩,
+  refine ⟨⟨m₁ ⁻¹' u₁, hu₁, λ _ hx, h₁ _⟩, ⟨m₂ ⁻¹' u₂, hu₂, λ _ hx, h₂ _⟩⟩; convert hx
+end
+
+lemma tendsto.prod_map_Coprod {μ : δ → Type*} {f : Π d, filter (κ d)} {m : Π d, κ d → μ d}
+  {g : Π d, filter (μ d)} (hf : ∀ d, tendsto (m d) (f d) (g d)) :
+  tendsto (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) (filter.Coprod g) :=
+map_prod_map_Coprod_le.trans (Coprod_mono hf)
+
+end Coprod
 
 end filter
 

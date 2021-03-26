@@ -32,8 +32,11 @@ def is_conj (a b : α) := ∃ c : units α, semiconj_by ↑c a b
 @[trans] lemma is_conj_trans {a b c : α} : is_conj a b → is_conj b c → is_conj a c
 | ⟨c₁, hc₁⟩ ⟨c₂, hc₂⟩ := ⟨c₂ * c₁, hc₂.mul_left hc₁⟩
 
-@[simp] lemma is_conj_iff_eq {α : Type*} [cancel_comm_monoid α] {a b : α} : is_conj a b ↔ a = b :=
-⟨λ ⟨c, hc⟩, semiconj_by_iff_eq.1 hc, λ h, by rw h⟩
+@[simp] lemma is_conj_iff_eq {α : Type*} [comm_monoid α] {a b : α} : is_conj a b ↔ a = b :=
+⟨λ ⟨c, hc⟩, begin
+  rw [semiconj_by, mul_comm, ← units.mul_inv_eq_iff_eq_mul, mul_assoc, c.mul_inv, mul_one] at hc,
+  exact hc,
+end, λ h, by rw h⟩
 
 protected lemma monoid_hom.map_is_conj (f : α →* β) {a b : α} : is_conj a b → is_conj (f a) (f b)
 | ⟨c, hc⟩ := ⟨units.map f c, by rw [units.coe_map, semiconj_by, ← f.map_mul, hc.eq, f.map_mul]⟩
@@ -66,3 +69,117 @@ lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹)
 (mul_aut.conj x).injective
 
 end group
+
+namespace is_conj
+
+/-- The setoid of the relation `is_conj` iff there is a unit `u` such that `u * x = y * u` -/
+protected def setoid (α : Type*) [monoid α] : setoid α :=
+{ r := is_conj, iseqv := ⟨is_conj_refl, λa b, is_conj_symm, λa b c, is_conj_trans⟩ }
+
+end is_conj
+
+local attribute [instance] is_conj.setoid
+
+/-- The quotient type of conjugacy classes of a group. -/
+def conj_classes (α : Type*) [monoid α] : Type* :=
+quotient (is_conj.setoid α)
+
+namespace conj_classes
+
+section monoid
+variables [monoid α] [monoid β]
+
+/-- The canonical quotient map from a monoid `α` into the `conj_classes` of `α` -/
+protected def mk {α : Type*} [monoid α] (a : α) : conj_classes α :=
+⟦ a ⟧
+
+instance : inhabited (conj_classes α) := ⟨⟦1⟧⟩
+
+theorem mk_eq_mk_iff_is_conj {a b : α} :
+  conj_classes.mk a = conj_classes.mk b ↔ is_conj a b :=
+iff.intro quotient.exact quot.sound
+
+theorem quotient_mk_eq_mk (a : α) : ⟦ a ⟧ = conj_classes.mk a := rfl
+
+theorem quot_mk_eq_mk (a : α) : quot.mk setoid.r a = conj_classes.mk a := rfl
+
+theorem forall_is_conj {p : conj_classes α → Prop} :
+  (∀a, p a) ↔ (∀a, p (conj_classes.mk a)) :=
+iff.intro
+  (assume h a, h _)
+  (assume h a, quotient.induction_on a h)
+
+theorem mk_surjective : function.surjective (@conj_classes.mk α _) :=
+forall_is_conj.2 (λ a, ⟨a, rfl⟩)
+
+instance : has_one (conj_classes α) := ⟨⟦ 1 ⟧⟩
+
+theorem one_eq_mk_one : (1 : conj_classes α) = conj_classes.mk 1 := rfl
+
+lemma exists_rep (a : conj_classes α) : ∃ a0 : α, conj_classes.mk a0 = a :=
+quot.exists_rep a
+
+/-- A `monoid_hom` maps conjugacy classes of one group to conjugacy classes of another. -/
+def map (f : α →* β) : conj_classes α → conj_classes β :=
+quotient.lift (conj_classes.mk ∘ f) (λ a b ab, mk_eq_mk_iff_is_conj.2 (f.map_is_conj ab))
+
+end monoid
+
+section comm_monoid
+variable [comm_monoid α]
+
+lemma mk_injective : function.injective (@conj_classes.mk α _) :=
+λ _ _, (mk_eq_mk_iff_is_conj.trans is_conj_iff_eq).1
+
+lemma mk_bijective : function.bijective (@conj_classes.mk α _) :=
+⟨mk_injective, mk_surjective⟩
+
+/-- The bijection between a `comm_group` and its `conj_classes`. -/
+noncomputable def mk_equiv : α ≃ conj_classes α :=
+equiv.of_bijective conj_classes.mk mk_bijective
+
+end comm_monoid
+end conj_classes
+
+section monoid
+
+variables [monoid α]
+
+/-- Given an element `a`, `conjugates a` is the set of conjugates. -/
+def conjugates (a : α) : set α := {b | is_conj a b}
+
+lemma mem_conjugates_self {a : α} : a ∈ conjugates a := is_conj_refl _
+
+lemma conjugates_eq_of_is_conj {a b : α} (ab : is_conj a b) :
+  conjugates a = conjugates b :=
+set.ext (λ g, ⟨λ ag, is_conj_trans (is_conj_symm ab) ag, λ bg, is_conj_trans ab bg⟩)
+
+end monoid
+
+namespace conj_classes
+
+variables [monoid α]
+
+local attribute [instance] is_conj.setoid
+
+/-- Given a conjugacy class `a`, `carrier a` is the set it represents. -/
+def carrier : conj_classes α → set α :=
+quotient.lift conjugates (λ (a : α) b ab, conjugates_eq_of_is_conj ab)
+
+lemma mem_carrier_mk {a : α} : a ∈ carrier (conj_classes.mk a) := is_conj_refl _
+
+lemma mem_carrier_iff_mk_eq {a : α} {b : conj_classes α} :
+  a ∈ carrier b ↔ conj_classes.mk a = b :=
+begin
+  revert b,
+  rw forall_is_conj,
+  intro b,
+  rw [carrier, eq_comm, mk_eq_mk_iff_is_conj, ← quotient_mk_eq_mk, quotient.lift_mk],
+  refl,
+end
+
+lemma carrier_eq_preimage_mk {a : conj_classes α} :
+  a.carrier = conj_classes.mk ⁻¹' {a} :=
+set.ext (λ x, mem_carrier_iff_mk_eq)
+
+end conj_classes

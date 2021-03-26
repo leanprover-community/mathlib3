@@ -360,30 +360,31 @@ begin
   exact ⟨w, hw1, hw2⟩,
 end
 
-lemma exists_gpow_eq_self_of_coprime {G : Type*} [group G] [fintype G] [decidable_eq G]
-  {n : ℕ} {g : G} (h0 : nat.coprime n (order_of g)) :
-  ∃ m : ℤ, (g ^ n) ^ m = g :=
-begin
-  use n.gcd_a (order_of g),
-  dsimp only [nat.coprime] at h0,
-  conv { to_rhs, rw [←pow_one g, ←h0, ←gpow_coe_nat, nat.gcd_eq_gcd_ab, gpow_add, gpow_mul,
-    gpow_mul, gpow_coe_nat, gpow_coe_nat, pow_order_of_eq_one, one_gpow, mul_one] },
-end
-
-lemma exists_pow_eq_self_of_coprime {G : Type*} [group G] [fintype G] [decidable_eq G]
-  {n : ℕ} {g : G} (h0 : nat.coprime n (order_of g)) :
-  ∃ m : ℕ, (g ^ n) ^ m = g :=
-begin
-  cases exists_gpow_eq_self_of_coprime h0 with m hm,
-  use (m % (order_of g)).to_nat,
-  rwa [←pow_mul, mul_comm, pow_mul, ←gpow_coe_nat, ←gpow_coe_nat, int.to_nat_of_nonneg,
-      ←gpow_eq_mod_order_of, ←gpow_mul, mul_comm, gpow_mul, gpow_coe_nat],
-  exact int.mod_nonneg _ (int.coe_nat_ne_zero.mpr (ne_of_gt (order_of_pos g))),
-end
-
 variables {n : ℕ}
 
 open nat
+
+lemma exists_pow_eq_self_of_coprime (h : coprime n (order_of a)) :
+  ∃ m : ℕ, (a ^ n) ^ m = a :=
+begin
+  rw coprime at h,
+  by_cases h0 : order_of a = 0,
+  { rw [h0, gcd_zero_right] at h,
+    rw [h, pow_one],
+    exact ⟨1, pow_one a⟩ },
+  by_cases h1 : order_of a = 1,
+  { rw order_of_eq_one_iff at h1,
+    exact ⟨37, by rw [h1, one_pow, one_pow]⟩ },
+  have key := gcd_eq_gcd_ab n (order_of a),
+  replace key := congr_arg (λ m, a ^ (int.to_nat (m % order_of a))) key,
+  simp only at key,
+  rw [int.add_mul_mod_self_left, h, ←int.coe_nat_mod, int.to_nat_coe_nat,
+      mod_eq_of_lt (one_lt_iff_ne_zero_and_ne_one.mpr ⟨h0, h1⟩), pow_one] at key,
+  use (n.gcd_a (order_of a) % order_of a).to_nat,
+  rw [←pow_mul, pow_eq_mod_order_of, ←int.to_nat_coe_nat (_ % order_of a), int.coe_nat_mod,
+      int.coe_nat_mul, int.to_nat_of_nonneg (int.mod_nonneg _ (int.coe_nat_ne_zero.mpr h0)),
+      int.mul_mod, int.mod_mod, ←int.mul_mod, ←key],
+end
 
 /-- This is the same as `order_of_pow'` and `order_of_pow''` but with one assumption less which is
 automatic in the case of a finite cancellative group.-/

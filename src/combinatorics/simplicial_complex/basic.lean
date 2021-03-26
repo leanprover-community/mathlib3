@@ -148,6 +148,23 @@ begin
     exact ⟨W, hW.1, finset.subset.trans hZ₂.1 hW.2⟩, }
 end
 
+lemma facets_empty_iff_faces_empty (S : simplicial_complex m) :
+  S.facets = ∅ ↔ S.faces = ∅ :=
+begin
+  classical,
+  split,
+  { intro h,
+    by_contra h',
+    rw [←ne.def, set.ne_empty_iff_nonempty] at h',
+    rcases h' with ⟨X, hX⟩,
+    rcases subfacet hX with ⟨Y, hY, hZ⟩,
+    rw h at hY,
+    apply hY },
+  { intro h,
+    rw [←subset_empty_iff, ←h],
+    apply facets_subset }
+end
+
 /--
 A simplicial complex is pure of dimension n iff all its facets have dimension n.
 -/
@@ -173,13 +190,13 @@ begin
   exact classical.some_spec hS,
 end
 
-lemma pureness_unique_of_nonempty {S : simplicial_complex m} {a b : ℕ} (hS : S.faces.nonempty) :
-  S.pure_of a → S.pure_of b → a = b :=
+lemma pureness_unique_of_nonempty {S : simplicial_complex m} {a b : ℕ} (hS : S.faces.nonempty)
+  (ha : S.pure_of a) (hb : S.pure_of b) :
+  a = b :=
 begin
   obtain ⟨X, hX⟩ := hS,
   obtain ⟨Y, hY, hYX⟩ := subfacet hX,
-  rintro hSa hSb,
-  rw [←hSa hY, ←hSb hY],
+  rw [←ha hY, ←hb hY],
 end
 
 --same below. I really don't get what i'm doing wrong
@@ -596,12 +613,8 @@ lemma Star_pureness_eq_pureness {S : simplicial_complex m} {A : set (finset (fin
 begin
   obtain ⟨n, hS⟩ := hS,
   obtain ⟨X, hX⟩ := id hSA,
-  sorry
-  --@Bhavik same problem again! Seems like S.pure_of n is very brittle in Lean's handling of things
-  --rw pureness_def' hSA (pure_Star_of_pure hS),
+  rw [pureness_def' hSA (pure_Star_of_pure hS), pureness_def' (hSA.mono Star_subset) hS],
 end
-
-
 
 def simplicial_complex.link (S : simplicial_complex m) (A : set (finset (fin m → ℝ))) :
   simplicial_complex m := {

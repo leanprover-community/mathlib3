@@ -74,6 +74,17 @@ namespace category_theory.preadditive
 section preadditive
 variables {C : Type u} [category.{v} C] [preadditive C]
 
+section induced_category
+universes u'
+variables {C} {D : Type u'} (F : D → C)
+
+instance induced_category.category : preadditive.{v} (induced_category C F) :=
+{ hom_group := λ P Q, @preadditive.hom_group C _ _ (F P) (F Q),
+  add_comp' := λ P Q R f f' g, add_comp' _ _ _ _ _ _,
+  comp_add' := λ P Q R f g g', comp_add' _ _ _ _ _ _, }
+
+end induced_category
+
 /-- Composition by a fixed left argument as a group homomorphism -/
 def left_comp {P Q : C} (R : C) (f : P ⟶ Q) : (Q ⟶ R) →+ (P ⟶ R) :=
 mk' (λ g, f ≫ g) $ λ g g', by simp

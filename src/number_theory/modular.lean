@@ -240,12 +240,11 @@ end
 
 lemma finite_pairs (z : H) :
   filter.tendsto (λ cd : coprime_ints , (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ).2 : ℂ)).norm_sq)
-  cofinite at_top
-:=
+  cofinite at_top :=
 begin
   have h₁ : tendsto (λ c : ℝ × ℝ, ↑c.1 * (z:ℂ) + c.2) (cocompact _) (cocompact _),
-  { let g : ℂ →L[ℝ] ℝ×ℝ := (continuous_linear_map.im).prod
-      (continuous_linear_map.im.comp (((z:ℂ)• continuous_linear_map.conj ))),
+  { let g : ℂ →L[ℝ] ℝ×ℝ := im_clm.prod
+      (im_clm.comp (((z:ℂ)• conj_clm ))),
     apply tendsto_cocompact_of_left_inverse ((z:ℂ).im⁻¹ • g).continuous,
     rintros ⟨c₁, c₂⟩,
     have hz : 0 < (z:ℂ).im := z.2,
@@ -338,6 +337,7 @@ end
 lemma exists_g_with_min_bottom (z : H) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
 begin
+  haveI : nonempty coprime_ints := sorry,
   obtain ⟨cd, hcd⟩  := filter.tendsto.exists_forall_le (finite_pairs z),
   obtain ⟨g, hg⟩  := bottom_row_surj cd,
   use g,
@@ -370,6 +370,116 @@ open filter
 instance {α : Type*} [ring α] [topological_space α] {n : Type*} [fintype n] :
   topological_space (matrix n n α) :=
 Pi.topological_space
+
+
+
+def inverse_image_fun {α β : Type*} (K : set β) (f : α → β) (a : f ⁻¹' K) : K :=
+let ⟨a₀, haK⟩ := a in ⟨f a₀, haK⟩
+
+lemma tendsto_inverse_image_fun {α β : Type*} [topological_space β] (K : set β) {f : α → β}
+  (hf₁ : function.injective f) (hf₂ : tendsto f cofinite (cocompact _)) :
+  tendsto (inverse_image_fun K f) cofinite (cocompact _) :=
+begin
+--  rw tendsto_def,
+  intros s h,
+  rw mem_cocompact' at h,
+  obtain ⟨t, ht1, ht2⟩ := h,
+  let t1 := (coe : K → β) '' t,
+  have t1cpt : t1ᶜ ∈ cocompact β,
+  { have : is_compact t1,
+    { refine (embedding.compact_iff_compact_image _).mp ht1,
+      exact embedding_subtype_coe },
+    rw mem_cocompact',
+    use t1,
+    split,
+    exact this,
+    rw compl_compl },
+  have scomplInt1 : (coe : K → β) '' (sᶜ) ⊆ t1 := set.image_subset coe ht2,
+  have := hf₂,
+  rw tendsto_def at this,
+  have := this t1ᶜ t1cpt,
+  simp [cofinite],
+  simp [cofinite] at this,
+  suffices : ((inverse_image_fun K f) ⁻¹' sᶜ).finite,
+  { exact this },
+  have : function.injective (inverse_image_fun K f),
+  { sorry },
+  refine set.finite.preimage (this.inj_on _) _,
+  have := scomplInt1.subset
+
+  simp [inverse_image_fun],
+
+/-
+  have : (function.comp coe ⁻¹' (coe '' t)) = t,
+  {
+
+    sorry,
+  },
+  -- {x : ↥(lattice_intersect A) | lattice_intersect_fun A x ∈ s}
+-/
+  -- pullback of finite set under injective is finite
+
+--  refine this.subset _,
+
+
+  -- assume rationality of `A` if needed
+
+  repeat {sorry},
+
+end
+
+lemma cocompact_ℝ_to_cofinite_ℤ (k : ℕ) :
+  tendsto (int.cast_ring_hom ℝ).map_matrix cofinite (cocompact (matrix (fin k) (fin k) ℝ)) :=
+sorry
+
+lemma pi_prod_cofinite {ι : Type*} [fintype ι] (α : ι → Type*) (β : ι → Type*)
+  [∀ i, topological_space (β i)]
+  (f : Π i : ι, α i → β i) (hf : ∀ i, tendsto (f i) cofinite (cocompact (β i))) :
+  tendsto (λ (a : Π i, α i), λ i, f i (a i)) cofinite (cocompact (Π i, β i)) :=
+begin
+  rw tendsto_def,
+  intros s h,
+  rw mem_cofinite,
+  rw mem_cocompact' at h,
+  obtain ⟨t, ht1, ht2⟩ := h,
+  have scbdd := metric.bounded.subset ht2 (is_compact.bounded ht1),
+  refine finite_of_is_compact_of_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ) _,
+  have scclosed := is_closed_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
+  have scbdd_coe : metric.bounded (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
+  {
+    simp [scbdd],
+    ----- Help???
+    sorry,
+  },
+  refine metric.compact_iff_closed_bounded.mpr _,
+  split,
+  exact scclosed,
+  exact scbdd_coe,
+
+end
+
+lemma cocompact_ℝ_to_cofinite_ℤ' (k : ℕ) :
+  tendsto ((λ (p : (fin k) → ℤ), (coe : ℤ → ℝ) ∘ p)) cofinite (cocompact ((fin k) → ℝ)) :=
+begin
+  rw tendsto_def,
+  intros s h,
+  rw mem_cofinite,
+  rw mem_cocompact' at h,
+  obtain ⟨t, ht1, ht2⟩ := h,
+  have scbdd := ht1.bounded.subset ht2,
+  refine finite_of_is_compact_of_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ) _,
+  have scclosed := is_closed_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
+  have scbdd_coe : metric.bounded (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
+  {
+    simp [scbdd],
+    ----- Help???
+    sorry,
+  },
+  refine metric.compact_iff_closed_bounded.mpr _,
+  split,
+  exact scclosed,
+  exact scbdd_coe,
+end
 
 /-- method 1 -/
 def line (cd : coprime_ints) : set (matrix (fin 2) (fin 2) ℝ) :=
@@ -416,109 +526,57 @@ begin
   sorry
 end
 
-def lattice_intersect {k : ℕ} (A : set (fin k → ℝ)) : set (fin k → ℤ) :=
-(λ p, (coe : ℤ → ℝ) ∘ p) ⁻¹' (A : set (fin k → ℝ))
 
-def lattice_intersect_fun {k : ℕ} (A : set (fin k → ℝ)) :
+def lattice_intersect (A : set (matrix (fin 2) (fin 2) ℝ)) :
+  set (matrix (fin 2) (fin 2) ℤ) :=
+(int.cast_ring_hom ℝ).map_matrix ⁻¹' (A : set (matrix (fin 2) (fin 2) ℝ))
+
+
+example (cd : coprime_ints) : bottom_row ⁻¹' {cd} → (lattice_intersect (line cd)) :=
+set.cod_restrict (coe : bottom_row ⁻¹' {cd} → (matrix (fin 2) (fin 2) ℤ)) (lattice_intersect (line cd))
+begin
+  rintros ⟨⟨g, hg'⟩, hg⟩,
+  simp [lattice_intersect, line] at *,
+  sorry
+end
+
+def lattice_intersect_fun (A : set (matrix (fin 2) (fin 2) ℝ)) :
   lattice_intersect A → A :=
-λ q, ⟨(coe : ℤ → ℝ) ∘ q, begin
-  cases q with q hq,
-  simpa [lattice_intersect] using hq
-end⟩
-
-/-
-lemma subsomething {k : ℕ} (A : affine_subspace ℝ (fin k → ℝ)) (S : set A)
-  (h : is_compact S) : ∃ (T : set (fin k → ℝ)), ∀ p ∈ S, (p: (fin k → ℝ)) ∈ T :=
-begin
---  use S,
-  sorry,
-end
--/
-
-lemma cocompact_ℝ_to_cofinite_ℤ (k : ℕ) :
-tendsto ((λ (p : (fin k) → ℤ), (coe : ℤ → ℝ) ∘ p)) cofinite (cocompact ((fin k) → ℝ))
-:=
-begin
-  rw tendsto_def,
-  intros s h,
-  rw mem_cofinite,
-  rw mem_cocompact' at h,
-  obtain ⟨t, ht1, ht2⟩ := h,
-  have scbdd := metric.bounded.subset ht2 (is_compact.bounded ht1),
-  refine finite_of_is_compact_of_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ) _,
-  have scclosed := is_closed_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
-  have scbdd_coe : metric.bounded (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
-  {
-    simp [scbdd],
-    ----- Help???
-    sorry,
-  },
-  refine metric.compact_iff_closed_bounded.mpr _,
-  split,
-  exact scclosed,
-  exact scbdd_coe,
-end
-
+inverse_image_fun A (int.cast_ring_hom ℝ).map_matrix
 
 /-- lemma about intersection of affine subspaces with integer lattice -/
-lemma tendsto_affine (k : ℕ) (A : set (fin k → ℝ)) :
+lemma tendsto_lattice_intersect_fun (A : set (matrix (fin 2) (fin 2) ℝ)) :
   tendsto (lattice_intersect_fun A) cofinite (cocompact _) :=
 begin
---  rw tendsto_def,
-  intros s h,
-  rw mem_cocompact' at h,
-  obtain ⟨t, ht1, ht2⟩ := h,
-  let t1 := (coe : A → (fin k → ℝ)) '' t,
-  have t1cpt : t1ᶜ ∈ cocompact (fin k → ℝ),
-  { have : is_compact t1,
-    { refine (embedding.compact_iff_compact_image _).mp ht1,
-      exact embedding_subtype_coe },
-    rw mem_cocompact',
-    use t1,
-    split,
-    exact this,
-    rw compl_compl },
-  have scomplInt1 : (coe : A → (fin k) → ℝ) '' (sᶜ) ⊆ t1 := set.image_subset coe ht2,
-  have := cocompact_ℝ_to_cofinite_ℤ k,
-  rw tendsto_def at this,
-  have := this t1ᶜ t1cpt,
-  simp [cofinite],
-  simp [cofinite] at this,
-
-  have := set.finite.image coe this,
-  simp [t1] at this,
-
-  rw lattice_intersect_fun,
-  simp,
-
-/-
-  have : (function.comp coe ⁻¹' (coe '' t)) = t,
-  {
-
-    sorry,
-  },
-  -- {x : ↥(lattice_intersect A) | lattice_intersect_fun A x ∈ s}
--/
-  -- pullback of finite set under injective is finite
-
---  refine this.subset _,
-
-
-  -- assume rationality of `A` if needed
-
-  repeat {sorry},
+  apply tendsto_inverse_image_fun,
+  { sorry },
+  { sorry }
 end
-
 
 def smul_aux' : (matrix (fin 2) (fin 2) ℝ) → ℂ → ℂ := sorry
 
 lemma tendsto_action (cd : coprime_ints) (z : ℂ) :
   tendsto (λ g, (smul_aux' ↑g z).re) (cocompact (line cd)) (cocompact ℝ) :=
 begin
-  let g : ℝ → matrix (fin 2) (fin 2) ℝ :=
+  -- let g : ℝ → matrix (fin 2) (fin 2) ℝ :=
 
   sorry
 end
+
+lemma tendsto_at_top_abs :
+  tendsto _root_.abs (cocompact ℝ) at_top :=
+begin
+  rw has_basis_cocompact.tendsto_iff at_top_basis_Ioi,
+  { refine λ b _, ⟨set.Icc (-b) b, compact_Icc, λ x hx, _⟩,
+    simpa [lt_abs, or_comm, lt_neg, not_and_distrib] using hx },
+  { apply_instance },
+  { apply_instance }
+end
+
+lemma sddsf (cd : coprime_ints) (z : ℂ) :
+  tendsto (λ g : lattice_intersect (line cd), _root_.abs (smul_aux' ↑(lattice_intersect_fun _ g) z).re)
+    cofinite at_top :=
+(tendsto_at_top_abs.comp (tendsto_action cd z)).comp (tendsto_lattice_intersect_fun (line cd))
 
 /-- method 2 -/
 def line' (cd : coprime_ints) : set (ℝ × ℝ) :=

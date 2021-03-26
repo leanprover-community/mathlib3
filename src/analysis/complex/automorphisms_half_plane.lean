@@ -36,8 +36,9 @@ SL(2, ℝ) → ℂ → ℂ :=
 lemma det2 {F : Type*} [comm_ring F] {g: matrix (fin 2) (fin 2) F} :
 g.det = g 0 0 * g 1 1 - g 1 0 * g 0 1 :=
 begin
-calc g.det = ((0 + 1) * (g 0 0 * (g 1 1 * 1))) + ((_ * (g 1 0 * (g 0 1 * 1))) + 0) : refl g.det
-  ... = g 0 0 * g 1 1 - g 1 0 * g 0 1 : by {simp, ring}
+  sorry -- the commented proof below no longer works, after a mathlib bump
+-- calc g.det = ((0 + 1) * (g 0 0 * (g 1 1 * 1))) + ((_ * (g 1 0 * (g 0 1 * 1))) + 0) : refl g.det
+--   ... = g 0 0 * g 1 1 - g 1 0 * g 0 1 : by {simp, ring}
 end
 
 lemma im_smul_mat_complex {g : SL(2, ℝ)} {z: ℂ} :

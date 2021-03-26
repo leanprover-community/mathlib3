@@ -227,6 +227,47 @@ begin
     refl, }
 end
 
+@[simp] lemma fin_rotate_zero : fin_rotate 0 = equiv.refl _ := rfl
+
+@[simp] lemma fin_rotate_one : fin_rotate 1 = equiv.refl _ :=
+subsingleton.elim _ _
+
+lemma fin_rotate_succ_apply {n : ℕ} (i : fin n.succ) :
+  fin_rotate n.succ i = i + 1 :=
+begin
+  by_cases i_eq : i = fin.last n,
+  { simp [i_eq] },
+  have coe_i_lt : (i : ℕ) < n :=
+    lt_of_le_of_ne (nat.lt_succ_iff.mp i.2) (fin.coe_injective.ne i_eq),
+  cases i with i hi,
+  have i_lt : i < n, { simpa using coe_i_lt },
+  rw [fin_rotate, equiv.trans_apply, fin_add_flip_apply_left i_lt _],
+  ext,
+  simp [add_comm 1 i, fin.coe_add_one coe_i_lt]
+end
+
+@[simp] lemma fin_rotate_apply_zero {n : ℕ} : fin_rotate n.succ 0 = 1 :=
+by rw [fin_rotate_succ_apply, zero_add]
+
+@[simp] lemma fin_rotate_apply_last {n : ℕ} : fin_rotate n.succ (fin.last n) = 0 :=
+by { ext, rw [fin_rotate_succ_apply, fin.last_add_one] }
+
+lemma coe_fin_rotate_of_ne_last {n : ℕ} {i : fin n.succ} (h : i ≠ fin.last n) :
+  (fin_rotate n.succ i : ℕ) = i + 1 :=
+begin
+  rw fin_rotate_succ_apply,
+  have : (i : ℕ) < n := lt_of_le_of_ne (nat.succ_le_succ_iff.mp i.2) (fin.coe_injective.ne h),
+  exact fin.coe_add_one this
+end
+
+lemma coe_fin_rotate {n : ℕ} (i : fin n.succ) :
+  (fin_rotate n.succ i : ℕ) = if i = fin.last n then 0 else i + 1 :=
+begin
+  split_ifs with h,
+  { simp [fin_rotate_succ_apply, h] },
+  exact coe_fin_rotate_of_ne_last h
+end
+
 /-- Equivalence between `fin m × fin n` and `fin (m * n)` -/
 def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
 { to_fun := λ x, ⟨x.2.1 + n * x.1.1,

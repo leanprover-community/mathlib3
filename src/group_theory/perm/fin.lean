@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import data.equiv.fin
-import data.zmod.basic
 import group_theory.perm.option
 
 /-!
@@ -64,84 +63,43 @@ lemma finset.univ_perm_fin_succ {n : ℕ} :
   equiv.perm.decompose_fin.symm.to_embedding :=
 (finset.univ_map_equiv_to_embedding _).symm
 
-section cycle
+section cycle_range
 
-/-! ### `cycle` section
+/-! ### `cycle_range` section
 
-Define the permutations `fin.cycle_all n`, the cycle `(0 1 2 ... (n - 1 : fin n))`
-and `fin.cycle_range i`, the cycle `(0 1 2 ... i)`.
+Define the permutations `fin.cycle_range i`, the cycle `(0 1 2 ... i)`.
 -/
-
-namespace fin
 
 open equiv.perm
 
-/-- `fin.cycle_all` is the cycle `(0 1 2 ... fin.last n)`.
-
-If `n` is `0` or `1`, this will be the identity permutation,
-otherwise it sends `i` to `i + 1` and `fin.last (n - 1)` to `0`.
--/
-def cycle_all : Π (n : ℕ), perm (fin n)
-| 0 := 1
-| (nat.succ n) := let inst := fin.comm_ring n in by exactI equiv.add_right 1
-
-@[simp] lemma cycle_all_zero : cycle_all 0 = 1 := rfl
-
-@[simp] lemma cycle_all_one : cycle_all 1 = 1 :=
-subsingleton.elim _ _
-
-lemma cycle_all_succ_apply {n : ℕ} (i : fin n.succ) :
-  cycle_all n.succ i = i + 1 :=
-rfl
-
-@[simp] lemma cycle_all_apply_zero {n : ℕ} : cycle_all n.succ 0 = 1 :=
-by rw [cycle_all_succ_apply, zero_add]
-
-@[simp] lemma cycle_all_apply_last {n : ℕ} : cycle_all n.succ (last n) = 0 :=
-by { ext, rw [cycle_all_succ_apply, last_add_one] }
-
-lemma coe_cycle_all_of_ne_last {n : ℕ} {i : fin n.succ} (h : i ≠ last n) :
-  (cycle_all n.succ i : ℕ) = i + 1 :=
-begin
-  rw cycle_all_succ_apply,
-  have : (i : ℕ) < n := lt_of_le_of_ne (nat.succ_le_succ_iff.mp i.2) (coe_injective.ne h),
-  exact coe_add_one this
-end
-
-lemma coe_cycle_all {n : ℕ} (i : fin n.succ) :
-  (cycle_all n.succ i : ℕ) = if i = fin.last n then 0 else i + 1 :=
-begin
-  split_ifs with h,
-  { simp [cycle_all_succ_apply, h] },
-  exact coe_cycle_all_of_ne_last h
-end
-
-lemma cycle_all_succ {n : ℕ} :
-  cycle_all n.succ = decompose_fin.symm (1, cycle_all n) :=
+lemma fin_rotate_succ {n : ℕ} :
+  fin_rotate n.succ = decompose_fin.symm (1, fin_rotate n) :=
 begin
   ext i,
   cases n, { simp },
   refine fin.cases _ (λ i, _) i,
   { simp },
-  rw [coe_cycle_all, decompose_fin_symm_apply_succ, if_congr (i.succ_eq_last_succ) rfl rfl],
+  rw [coe_fin_rotate, decompose_fin_symm_apply_succ, if_congr (i.succ_eq_last_succ) rfl rfl],
   split_ifs with h,
   { simp [h] },
-  { rw [fin.coe_succ, function.injective.map_swap fin.coe_injective, fin.coe_succ, coe_cycle_all,
-        if_neg h, fin.coe_zero, fin.coe_one,
-        swap_apply_of_ne_of_ne (nat.succ_ne_zero _) (nat.succ_succ_ne_one _)] }
+  { rw [fin.coe_succ, function.injective.map_swap fin.coe_injective, fin.coe_succ, coe_fin_rotate,
+    if_neg h, fin.coe_zero, fin.coe_one,
+    swap_apply_of_ne_of_ne (nat.succ_ne_zero _) (nat.succ_succ_ne_one _)] }
 end
 
-@[simp] lemma sign_cycle_all (n : ℕ) : (cycle_all (n + 1)).sign = (-1) ^ n :=
+@[simp] lemma sign_fin_rotate (n : ℕ) : perm.sign (fin_rotate (n + 1)) = (-1) ^ n :=
 begin
   induction n with n ih,
   { simp },
-  { rw cycle_all_succ, simp [ih, pow_succ] },
+  { rw fin_rotate_succ, simp [ih, pow_succ] },
 end
+
+namespace fin
 
 /-- `fin.cycle_range i` is the cycle `(0 1 2 ... i)` leaving `(i+1 ... (n-1))` unchanged. -/
 def cycle_range {n : ℕ} (i : fin n) : perm (fin n) :=
 ((equiv.set.range_of_left_inverse' (fin.cast_le i.2) coe (by { intros x, ext, simp }))
-  .perm_congr (cycle_all (i + 1)))
+  .perm_congr (fin_rotate (i + 1)))
   .subtype_congr 1
 
 lemma cycle_range_of_gt {n : ℕ} {i j : fin n.succ} (h : i < j) :
@@ -157,7 +115,7 @@ begin
   have j_mod_i : (j : ℕ) % (↑i : ℕ).succ = j := nat.mod_eq_of_lt (nat.lt_succ_of_le h),
   ext,
   rw [cycle_range, perm.subtype_congr.apply, dif_pos,  perm_congr_apply,
-       equiv.set.range_of_left_inverse_apply, subtype.coe_mk, coe_cast_le, coe_cycle_all],
+       equiv.set.range_of_left_inverse_apply, subtype.coe_mk, coe_cast_le, coe_fin_rotate],
   push_cast,
   apply if_ctx_congr,
   { simp [fin.ext_iff, equiv.set.range_of_left_inverse_symm_apply, j_mod_i] },
@@ -212,8 +170,8 @@ begin
   { rw [cycle_range_of_gt (fin.succ_pos j), one_apply] },
 end
 
-@[simp] lemma cycle_range_last (n : ℕ) : cycle_range (last n) = cycle_all (n + 1) :=
-by { ext i, rw [coe_cycle_range_of_le (le_last _), coe_cycle_all] }
+@[simp] lemma cycle_range_last (n : ℕ) : cycle_range (last n) = fin_rotate (n + 1) :=
+by { ext i, rw [coe_cycle_range_of_le (le_last _), coe_fin_rotate] }
 
 @[simp] lemma cycle_range_zero' {n : ℕ} (h : 0 < n) : cycle_range ⟨0, h⟩ = 1 :=
 begin
@@ -225,8 +183,8 @@ end
 @[simp] lemma sign_cycle_range {n : ℕ} (i : fin n) :
   perm.sign (cycle_range i) = (-1) ^ (i : ℕ) :=
 by { simp only [cycle_range, sign_perm_congr, mul_one, sign_one, sign_subtype_congr],
-     exact sign_cycle_all i }
+     exact sign_fin_rotate i }
 
 end fin
 
-end cycle
+end cycle_range

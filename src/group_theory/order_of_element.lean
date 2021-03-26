@@ -458,8 +458,6 @@ section finite_monoid
 variables {α} [fintype α] [monoid α]
 variables {H : Type u} [fintype H] [add_monoid H]
 
-
-
 lemma sum_card_order_of_eq_card_pow_eq_one [decidable_eq α] {n : ℕ} (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
@@ -520,7 +518,6 @@ begin
     rw [(nat.add_sub_of_le h'').symm, ← h, add_zero] },
   { exact h''' }
 end
-
 
 /-- TODO: Use this to show that a finite left cancellative monoid is a group.-/
 lemma exists_pow_eq_one (a : α) : ∃i, 0 < i ∧ a ^ i = 1 :=

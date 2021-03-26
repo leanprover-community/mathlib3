@@ -343,6 +343,15 @@ by rw [set.image_subset_iff, e.image_eq_preimage]
 @[simp] lemma symm_image_image {α β} (e : α ≃ β) (s : set α) : e.symm '' (e '' s) = s :=
 by { rw [← set.image_comp], simp }
 
+lemma eq_image_iff_symm_image_eq {α β} (e : α ≃ β) (s : set α) (t : set β) :
+  t = e '' s ↔ e.symm '' t = s :=
+begin
+  refine (injective.eq_iff' _ _).symm,
+  { rw set.image_injective,
+    exact (equiv.symm e).injective },
+  { exact equiv.symm_image_image _ _ }
+end
+
 @[simp] lemma image_symm_image {α β} (e : α ≃ β) (s : set β) : e '' (e.symm '' s) = s :=
 e.symm.symm_image_image s
 

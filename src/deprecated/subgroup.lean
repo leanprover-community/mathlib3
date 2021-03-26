@@ -602,8 +602,9 @@ namespace group
 variables {s : set G} [group G]
 
 lemma conjugates_subset {t : set G} [normal_subgroup t] {a : G} (h : a ∈ t) : conjugates a ⊆ t :=
-λ x ⟨c,w⟩,
+λ x hc,
 begin
+  obtain ⟨c, w⟩ := is_conj_iff.1 hc,
   have H := normal_subgroup.normal a h c,
   rwa ←w,
 end

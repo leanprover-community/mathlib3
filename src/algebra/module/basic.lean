@@ -97,7 +97,7 @@ def ring_hom.comp_semimodule [semiring S] (f : S →+* R) :
 { smul := (•) ∘ f,
   zero_smul := λ x, by simp [zero_smul],
   add_smul := λ r s x, by simp [add_smul],
-  ..f.to_monoid_hom.comp_mul_action M }
+  ..f.to_monoid_hom.comp_distrib_mul_action M }
 
 /-- `(•)` as an `add_monoid_hom`. -/
 def smul_add_hom : R →+ M →+ M :=

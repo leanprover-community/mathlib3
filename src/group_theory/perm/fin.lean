@@ -123,14 +123,12 @@ begin
   cases n, { simp },
   refine fin.cases _ (λ i, _) i,
   { simp },
-  rw [coe_cycle_all, decompose_fin_symm_apply_succ,
-      if_congr (show i.succ = last (n + 1) ↔ i = last n, from _) rfl rfl],
+  rw [coe_cycle_all, decompose_fin_symm_apply_succ, if_congr (i.succ_eq_last_succ) rfl rfl],
   split_ifs with h,
   { simp [h] },
   { rw [fin.coe_succ, function.injective.map_swap fin.coe_injective, fin.coe_succ, coe_cycle_all,
         if_neg h, fin.coe_zero, fin.coe_one,
-        swap_apply_of_ne_of_ne (nat.succ_ne_zero _) (nat.succ_succ_ne_one _)] },
-  { rw [← succ_last, (fin.succ_injective _).eq_iff] }
+        swap_apply_of_ne_of_ne (nat.succ_ne_zero _) (nat.succ_succ_ne_one _)] }
 end
 
 @[simp] lemma sign_cycle_all (n : ℕ) : (cycle_all (n + 1)).sign = (-1) ^ n :=

@@ -194,10 +194,10 @@ src/order/conditionally_complete_lattice.lean : line 891 : ERR_LIN : Line has mo
 src/order/directed.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/order/filter/extr.lean : line 309 : ERR_LIN : Line has more than 100 characters
 src/order/filter/extr.lean : line 66 : ERR_LIN : Line has more than 100 characters
-src/order/filter/lift.lean : line 150 : ERR_LIN : Line has more than 100 characters
-src/order/filter/lift.lean : line 255 : ERR_LIN : Line has more than 100 characters
-src/order/filter/lift.lean : line 270 : ERR_LIN : Line has more than 100 characters
-src/order/filter/lift.lean : line 336 : ERR_LIN : Line has more than 100 characters
+src/order/filter/lift.lean : line 153 : ERR_LIN : Line has more than 100 characters
+src/order/filter/lift.lean : line 261 : ERR_LIN : Line has more than 100 characters
+src/order/filter/lift.lean : line 276 : ERR_LIN : Line has more than 100 characters
+src/order/filter/lift.lean : line 342 : ERR_LIN : Line has more than 100 characters
 src/order/filter/partial.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/fixed_points.lean : line 203 : ERR_LIN : Line has more than 100 characters
 src/order/fixed_points.lean : line 207 : ERR_LIN : Line has more than 100 characters
@@ -420,7 +420,7 @@ src/tactic/transform_decl.lean : line 32 : ERR_LIN : Line has more than 100 char
 src/tactic/transform_decl.lean : line 40 : ERR_LIN : Line has more than 100 characters
 src/tactic/transform_decl.lean : line 43 : ERR_LIN : Line has more than 100 characters
 src/tactic/transform_decl.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/tactic/transport.lean : line 44 : ERR_LIN : Line has more than 100 characters
+src/tactic/transport.lean : line 45 : ERR_LIN : Line has more than 100 characters
 src/tactic/trunc_cases.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/wlog.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/wlog.lean : line 181 : ERR_LIN : Line has more than 100 characters

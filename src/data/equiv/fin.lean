@@ -192,7 +192,7 @@ begin
 end
 
 /-- Rotate `fin n` one step to the right. -/
-def fin_rotate : Π n, fin n ≃ fin n
+def fin_rotate : Π n, equiv.perm (fin n)
 | 0 := equiv.refl _
 | (n+1) := fin_add_flip.trans (fin_congr (add_comm _ _))
 
@@ -235,15 +235,13 @@ subsingleton.elim _ _
 lemma fin_rotate_succ_apply {n : ℕ} (i : fin n.succ) :
   fin_rotate n.succ i = i + 1 :=
 begin
-  by_cases i_eq : i = fin.last n,
-  { simp [i_eq] },
-  have coe_i_lt : (i : ℕ) < n :=
-    lt_of_le_of_ne (nat.lt_succ_iff.mp i.2) (fin.coe_injective.ne i_eq),
-  cases i with i hi,
-  have i_lt : i < n, { simpa using coe_i_lt },
-  rw [fin_rotate, equiv.trans_apply, fin_add_flip_apply_left i_lt _],
-  ext,
-  simp [add_comm 1 i, fin.coe_add_one coe_i_lt]
+  cases n,
+  { simp },
+  rcases i.le_last.eq_or_lt with rfl|h,
+  { simp },
+  { cases i,
+    simp only [fin.lt_iff_coe_lt_coe, fin.coe_last, fin.coe_mk] at h,
+    simp [fin_rotate_of_lt h, fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt (nat.succ_lt_succ h)] },
 end
 
 @[simp] lemma fin_rotate_apply_zero {n : ℕ} : fin_rotate n.succ 0 = 1 :=

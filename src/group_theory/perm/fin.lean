@@ -6,6 +6,41 @@ Authors: Eric Wieser
 import data.equiv.fin
 import group_theory.perm.option
 
+section
+
+-- TODO: move to appropriate files, complicated import hierarchy
+
+variables {α β : Type*} [fintype α] [decidable_eq β] (e : equiv.perm α) (f : α ↪ β)
+
+def function.embedding.to_equiv_range : α ≃ set.range f :=
+⟨λ a, ⟨f a, set.mem_range_self a⟩, f.inv_of_mem_range, λ _, by simp, λ _, by simp⟩
+
+@[simp] lemma function.embedding.to_equiv_range_apply (a : α) :
+  f.to_equiv_range a = ⟨f a, set.mem_range_self a⟩ := rfl
+
+@[simp] lemma function.embedding.to_equiv_range_symm_apply_self (a : α) :
+  f.to_equiv_range.symm ⟨f a, set.mem_range_self a⟩ = a :=
+by simp [equiv.symm_apply_eq]
+
+def equiv.perm.via_embedding : equiv.perm β :=
+equiv.perm.subtype_congr (equiv.perm_congr f.to_equiv_range e) (equiv.refl _)
+
+@[simp] lemma equiv.perm.of_embedding_apply_image (a : α) :
+  e.via_embedding f (f a) = f (e a) :=
+by simp [equiv.perm.via_embedding]
+
+@[simp] lemma equiv.perm.via_embedding_sign [decidable_eq α] [fintype β] :
+  equiv.perm.sign (e.via_embedding f) = equiv.perm.sign e :=
+by simp [equiv.perm.via_embedding]
+
+variable {f}
+
+lemma equiv.perm.of_embedding_apply_not_image {b : β} (h : b ∉ set.range f) :
+  e.via_embedding f b = b :=
+by simp [equiv.perm.via_embedding, h]
+
+end
+
 /-!
 # Permutations of `fin n`
 -/
@@ -98,35 +133,31 @@ namespace fin
 
 /-- `fin.cycle_range i` is the cycle `(0 1 2 ... i)` leaving `(i+1 ... (n-1))` unchanged. -/
 def cycle_range {n : ℕ} (i : fin n) : perm (fin n) :=
-((equiv.set.range_of_left_inverse' (fin.cast_le i.2) coe (by { intros x, ext, simp }))
-  .perm_congr (fin_rotate (i + 1)))
-  .subtype_congr 1
+(fin_rotate (i + 1)).via_embedding (fin.cast_le (nat.succ_le_of_lt i.is_lt)).to_embedding
 
 lemma cycle_range_of_gt {n : ℕ} {i j : fin n.succ} (h : i < j) :
   cycle_range i j = j :=
 begin
-  rw [cycle_range, perm.subtype_congr.apply, dif_neg, perm.one_apply, subtype.coe_mk],
-  { simpa only [range_cast_le, val_eq_coe, not_lt, set.mem_set_of_eq] },
+  have : j ∉ set.range (fin.cast_le (nat.succ_le_of_lt i.is_lt)).to_embedding,
+    { simpa using nat.succ_le_of_lt h },
+  rw [cycle_range, of_embedding_apply_not_image _ this]
 end
 
 lemma cycle_range_of_le {n : ℕ} {i j : fin n.succ} (h : j ≤ i) :
   cycle_range i j = if j = i then 0 else j + 1 :=
 begin
-  have j_mod_i : (j : ℕ) % (↑i : ℕ).succ = j := nat.mod_eq_of_lt (nat.lt_succ_of_le h),
-  ext,
-  rw [cycle_range, perm.subtype_congr.apply, dif_pos,  perm_congr_apply,
-       equiv.set.range_of_left_inverse_apply, subtype.coe_mk, coe_cast_le, coe_fin_rotate],
-  push_cast,
-  apply if_ctx_congr,
-  { simp [fin.ext_iff, equiv.set.range_of_left_inverse_symm_apply, j_mod_i] },
+  cases n,
   { simp },
-  { intro hij,
-    have : (j : ℕ) < n := lt_of_lt_of_le
-        (lt_of_le_of_ne h (coe_injective.ne hij))
-        (nat.succ_le_succ_iff.mp i.2),
-    simp [coe_add_one this, j_mod_i] },
-  { simp only [range_cast_le, val_eq_coe, not_lt, set.mem_set_of_eq],
-    exact nat.lt_succ_of_le h }
+  have : j = (fin.cast_le (nat.succ_le_of_lt i.is_lt)).to_embedding
+    ⟨j, lt_of_le_of_lt h (nat.lt_succ_self i)⟩,
+    { simp },
+  rw [this, cycle_range, of_embedding_apply_image],
+  rcases h.eq_or_lt with rfl|h,
+  { simp },
+  { suffices : (j : ℕ) + 1 = ((j + 1) : fin _),
+      { simp [h, h.ne, this], },
+    rw [fin.coe_add, fin.coe_one, nat.mod_eq_of_lt],
+    exact (lt_of_le_of_lt (nat.succ_le_of_lt h) i.is_lt) }
 end
 
 lemma coe_cycle_range_of_le {n : ℕ} {i j : fin n.succ} (h : j ≤ i) :
@@ -182,8 +213,7 @@ end
 
 @[simp] lemma sign_cycle_range {n : ℕ} (i : fin n) :
   perm.sign (cycle_range i) = (-1) ^ (i : ℕ) :=
-by { simp only [cycle_range, sign_perm_congr, mul_one, sign_one, sign_subtype_congr],
-     exact sign_fin_rotate i }
+by simp [cycle_range]
 
 end fin
 

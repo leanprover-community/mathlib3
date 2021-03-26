@@ -531,6 +531,10 @@ order_embedding.of_strict_mono (λ a, cast_lt a (lt_of_lt_of_le a.2 h)) $ λ a b
 @[simp] lemma cast_le_mk (i n m : ℕ) (hn : i < n) (h : n ≤ m) :
   cast_le h ⟨i, hn⟩ = ⟨i, lt_of_lt_of_le hn h⟩ := rfl
 
+@[simp] lemma cast_le_zero {n m : ℕ} (h : n.succ ≤ m.succ) :
+  cast_le h 0 = 0 :=
+by simp [eq_iff_veq]
+
 @[simp] lemma range_cast_le {n k : ℕ} (h : n ≤ k) :
   set.range (cast_le h) = {i | (i : ℕ) < n} :=
 set.ext (λ x, ⟨λ ⟨y, hy⟩, hy ▸ y.2, λ hx, ⟨⟨x, hx⟩, fin.ext rfl⟩⟩)

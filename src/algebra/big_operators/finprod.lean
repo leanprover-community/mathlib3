@@ -437,12 +437,18 @@ by rw [← finprod_in_inter_mul_support f s, ← finprod_in_inter_mul_support f 
   ← finprod_in_union hs ht hst, ← union_inter_distrib_right, finprod_in_inter_mul_support]
 
 /-- The product of `f i` over `i ∈ {a}` equals `f a`. -/
-@[simp, to_additive] lemma finprod_in_singleton : ∏ᶠ i ∈ ({a} : set α), f i = f a :=
+@[to_additive] lemma finprod_in_singleton : ∏ᶠ i ∈ ({a} : set α), f i = f a :=
 by rw [← finset.coe_singleton, finprod_in_coe_eq_prod, finset.prod_singleton]
+
+@[to_additive] lemma finprod_in_eq_left : ∏ᶠ i = a, f i = f a :=
+finprod_in_singleton
+
+@[to_additive] lemma finprod_in_eq_right : ∏ᶠ i (hi : a = i), f i = f a :=
+by simpa [@eq_comm _ a] using finprod_in_eq_left
 
 /-- A more general version of `finprod_in_insert` that requires `s ∩ mul_support f` instead of
 `s` to be finite. -/
-@[simp, to_additive] lemma finprod_in_insert' (f : α → M) (h : a ∉ s)
+@[to_additive] lemma finprod_in_insert' (f : α → M) (h : a ∉ s)
   (hs : (s ∩ mul_support f).finite) :
   ∏ᶠ i ∈ insert a s, f i = f a * ∏ᶠ i ∈ s, f i :=
 begin
@@ -469,17 +475,17 @@ end
 
 /-- If `f a = 1`, then the product of `f i` over `i ∈ insert a s` equals the product of `f i` over
 `i ∈ s`. -/
-@[simp, to_additive] lemma finprod_insert_one (h : f a = 1) :
+@[to_additive] lemma finprod_insert_one (h : f a = 1) :
   ∏ᶠ i ∈ (insert a s), f i = ∏ᶠ i ∈ s, f i :=
 finprod_in_insert_of_eq_one_if_not_mem (λ _, h)
 
 /-- The product of `f i` over `i ∈ {a, b}`, `a ≠ b`, is equal to `f a * f b`. -/
-@[simp, to_additive] lemma finprod_pair (h : a ≠ b) : ∏ᶠ i ∈ ({a, b} : set α), f i = f a * f b :=
+@[to_additive] lemma finprod_pair (h : a ≠ b) : ∏ᶠ i ∈ ({a, b} : set α), f i = f a * f b :=
 by { rw [finprod_in_insert, finprod_in_singleton], exacts [h, finite_singleton b] }
 
 /-- The product of `f y` over `y ∈ g '' s` equals the product of `f (g i)` over `s`
 provided that `g` is injective on `s ∩ mul_support (f ∘ g)`. -/
-@[simp, to_additive] lemma finprod_in_image' {s : set β} {g : β → α}
+@[to_additive] lemma finprod_in_image' {s : set β} {g : β → α}
   (hg : set.inj_on g (s ∩ mul_support (f ∘ g))) :
   ∏ᶠ i ∈ (g '' s), f i = ∏ᶠ j ∈ s, f (g j) :=
 begin
@@ -496,7 +502,7 @@ end
 
 /-- The product of `f y` over `y ∈ g '' s` equals the product of `f (g i)` over `s`
 provided that `g` is injective on `s`. -/
-@[simp, to_additive] lemma finprod_in_image {β} {s : set β} {g : β → α} (hg : set.inj_on g s) :
+@[to_additive] lemma finprod_in_image {β} {s : set β} {g : β → α} (hg : set.inj_on g s) :
   ∏ᶠ i ∈ (g '' s), f i = ∏ᶠ j ∈ s, f (g j) :=
 finprod_in_image' $ hg.mono $ inter_subset_left _ _
 

@@ -110,8 +110,9 @@ instance continuous_map_monoid {α : Type*} {β : Type*} [topological_space α] 
   ..continuous_map_semigroup,
   ..continuous_map.has_one }
 
-/-- Coercion to a function as an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/
-@[simps, to_additive]
+/-- Coercion to a function as an `monoid_hom`. Similar to `monoid_hom.coe_fn`. -/
+@[simps,
+  to_additive "Coercion to a function as an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn`."]
 def coe_fn_monoid_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : C(α, β) →* (α → β) :=
 { to_fun := coe_fn, map_one' := continuous_map.one_coe, map_mul' := continuous_map.mul_coe }

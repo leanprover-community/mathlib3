@@ -405,9 +405,9 @@ calc (∏ a in s.filter p, f a) = ∏ a in s.filter p, if p a then f a else 1 :
 
 @[to_additive]
 lemma prod_eq_single_of_mem {s : finset α} {f : α → β} (a : α) (h : a ∈ s)
-  (h₀ : ∀b∈s, b ≠ a → f b = 1) : (∏ x in s, f x) = f a :=
+  (h₀ : ∀ b ∈ s, b ≠ a → f b = 1) : (∏ x in s, f x) = f a :=
 begin
-  haveI := classical.dec_eq α;
+  haveI := classical.dec_eq α,
   calc (∏ x in s, f x) = ∏ x in {a}, f x :
       begin
         refine (prod_subset _ _).symm,
@@ -436,8 +436,14 @@ begin
   have hu : s' ⊆ s,
   { refine insert_subset.mpr _, apply and.intro ha, apply singleton_subset_iff.mpr hb },
   have hf : ∀ c ∈ s, c ∉ s' → f c = 1,
-  { intros c hc hcs, apply h₀ c hc, apply not_or_distrib.mp, intro hab,
-    apply hcs, apply mem_insert.mpr, rw mem_singleton, exact hab },
+  { intros c hc hcs,
+    apply h₀ c hc,
+    apply not_or_distrib.mp,
+    intro hab,
+    apply hcs,
+    apply mem_insert.mpr,
+    rw mem_singleton,
+    exact hab },
   rw ←prod_subset hu hf,
   exact finset.prod_pair hn
 end

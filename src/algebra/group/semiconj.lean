@@ -135,6 +135,11 @@ end group
 
 end semiconj_by
 
+@[simp, to_additive add_semiconj_by_iff_eq]
+lemma semiconj_by_iff_eq {M : Type u} [cancel_comm_monoid M] {a x y : M} :
+  semiconj_by a x y ↔ x = y :=
+⟨λ h, mul_left_cancel (h.trans (mul_comm _ _)), λ h, by rw [h, semiconj_by, mul_comm] ⟩
+
 /-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
 @[to_additive]
 lemma units.mk_semiconj_by {M : Type u} [monoid M] (u : units M) (x : M) :

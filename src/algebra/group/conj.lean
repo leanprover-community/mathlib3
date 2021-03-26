@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
 import algebra.group.hom
+import algebra.group.semiconj
 import data.equiv.mul_add_aut
 
 /-!
@@ -15,22 +16,40 @@ See also `mul_aut.conj` and `quandle.conj`.
 universes u v
 variables {α : Type u} {β : Type v}
 
-variables [group α] [group β]
+section monoid
 
-/-- We say that `a` is conjugate to `b` if for some `c` we have `c * a * c⁻¹ = b`. -/
-def is_conj (a b : α) := ∃ c : α, c * a * c⁻¹ = b
+variables [monoid α] [monoid β]
+
+/-- We say that `a` is conjugate to `b` if for some unit `c` we have `c * a * c⁻¹ = b`. -/
+def is_conj (a b : α) := ∃ c : units α, semiconj_by ↑c a b
 
 @[refl] lemma is_conj_refl (a : α) : is_conj a a :=
-⟨1, by rw [one_mul, one_inv, mul_one]⟩
+⟨1, semiconj_by.one_left a⟩
 
 @[symm] lemma is_conj_symm {a b : α} : is_conj a b → is_conj b a
-| ⟨c, hc⟩ := ⟨c⁻¹, by rw [← hc, mul_assoc, mul_inv_cancel_right, inv_mul_cancel_left]⟩
+| ⟨c, hc⟩ := ⟨c⁻¹, hc.units_inv_symm_left⟩
 
 @[trans] lemma is_conj_trans {a b c : α} : is_conj a b → is_conj b c → is_conj a c
-| ⟨c₁, hc₁⟩ ⟨c₂, hc₂⟩ := ⟨c₂ * c₁, by rw [← hc₂, ← hc₁, mul_inv_rev]; simp only [mul_assoc]⟩
+| ⟨c₁, hc₁⟩ ⟨c₂, hc₂⟩ := ⟨c₂ * c₁, hc₂.mul_left hc₁⟩
+
+@[simp] lemma is_conj_iff_eq {α : Type*} [cancel_comm_monoid α] {a b : α} : is_conj a b ↔ a = b :=
+⟨λ ⟨c, hc⟩, semiconj_by_iff_eq.1 hc, λ h, by rw h⟩
+
+protected lemma monoid_hom.map_is_conj (f : α →* β) {a b : α} : is_conj a b → is_conj (f a) (f b)
+| ⟨c, hc⟩ := ⟨units.map f c, by rw [units.coe_map, semiconj_by, ← f.map_mul, hc.eq, f.map_mul]⟩
+
+end monoid
+
+section group
+
+variables [group α] [group β]
+
+@[simp] lemma is_conj_iff {a b : α} :
+  is_conj a b ↔ ∃ c : α, semiconj_by c a b :=
+⟨λ ⟨c, hc⟩, ⟨c, hc⟩, λ ⟨c, hc⟩, ⟨⟨c, c⁻¹, mul_inv_self c, inv_mul_self c⟩, hc⟩⟩
 
 @[simp] lemma is_conj_one_right {a : α} : is_conj 1 a  ↔ a = 1 :=
-⟨by simp [is_conj, is_conj_refl] {contextual := tt}, by simp [is_conj_refl] {contextual := tt}⟩
+⟨λ ⟨c, hc⟩, mul_right_cancel (hc.symm.trans ((mul_one _).trans (one_mul _).symm)), λ h, by rw [h]⟩
 
 @[simp] lemma is_conj_one_left {a : α} : is_conj a 1 ↔ a = 1 :=
 calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
@@ -45,8 +64,4 @@ calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
 lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
 (mul_aut.conj x).injective
 
-@[simp] lemma is_conj_iff_eq {α : Type*} [comm_group α] {a b : α} : is_conj a b ↔ a = b :=
-⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩
-
-protected lemma monoid_hom.map_is_conj (f : α →* β) {a b : α} : is_conj a b → is_conj (f a) (f b)
-| ⟨c, hc⟩ := ⟨f c, by rw [← f.map_mul, ← f.map_inv, ← f.map_mul, hc]⟩
+end group

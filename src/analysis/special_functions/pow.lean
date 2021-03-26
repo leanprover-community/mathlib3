@@ -853,13 +853,13 @@ begin
       linarith } }
 end
 
-private lemma f_zero (r : ℝ) : f r 0 = 0 :=
+private lemma f_zero {r : ℝ} : f r 0 = 0 :=
 begin
   change f r with λ x, 1 + r * x - (1 + x)^r,
   simp only [add_zero, real.one_rpow, mul_zero, sub_self]
 end
 
-lemma one_add_rpow_le_of_nonneg (x : ℝ) (hx : 0 ≤ x) (r : ℝ) (hr0 : 0 ≤ r) (hr1 : r ≤ 1) :
+lemma one_add_rpow_le_of_nonneg {x r : ℝ} (hx : 0 ≤ x) (hr0 : 0 ≤ r) (hr1 : r ≤ 1) :
   (1 + x)^r ≤ 1 + r * x :=
 begin
   have h1 : ∀ x : ℝ, 0 ≤ x → (1 + x)^(r - 1) ≤ 1,
@@ -884,8 +884,8 @@ begin
   linarith,
 end
 
-lemma one_add_rpow_le_of_neg_one_lt_of_nonpos (x : ℝ) (hxm1 : -1 < x) (hx0 : x ≤ 0) (r : ℝ)
-  (hr0 : 0 ≤ r) (hr1 : r ≤ 1) : (1 + x)^r ≤ 1 + r * x :=
+lemma one_add_rpow_le_of_neg_one_lt_of_nonpos {x r : ℝ} (hxm1 : -1 < x) (hx0 : x ≤ 0) (hr0 : 0 ≤ r)
+  (hr1 : r ≤ 1) : (1 + x)^r ≤ 1 + r * x :=
 begin
   have h1 : ∀ x : ℝ, -1 < x → x ≤ 0 → 1 ≤ (1 + x)^(r - 1),
   { intros x hx1 hx2,
@@ -912,17 +912,16 @@ end
 /--
 Bernoulli's Inequality, if `-1 < x` and `0 ≤ r ≤ 1`, then `(1 + x)^r ≤ 1 + r * x`
 -/
-lemma one_add_rpow_le (x : ℝ) (hxm1 : -1 < x) (r : ℝ) (hr0 : 0 ≤ r) (hr1 : r ≤ 1) :
+lemma one_add_rpow_le {x r : ℝ} (hxm1 : -1 < x) (hr0 : 0 ≤ r) (hr1 : r ≤ 1) :
   (1 + x)^r ≤ 1 + r * x :=
 begin
   by_cases hx : x ≤ 0,
-  { exact one_add_rpow_le_of_neg_one_lt_of_nonpos x hxm1 hx r hr0 hr1 },
+  { exact one_add_rpow_le_of_neg_one_lt_of_nonpos hxm1 hx hr0 hr1 },
   { rw not_le at hx,
-    exact one_add_rpow_le_of_nonneg _ hx.le _ hr0 hr1 }
+    exact one_add_rpow_le_of_nonneg hx.le hr0 hr1 }
 end
 
-lemma le_one_add_rpow_of_nonneg (x : ℝ) (hx : 0 ≤ x) (r : ℝ) (hr : 1 ≤ r) :
-  1 + r * x ≤ (1 + x)^r :=
+lemma le_one_add_rpow_of_nonneg {x r : ℝ} (hx : 0 ≤ x) (hr : 1 ≤ r) : 1 + r * x ≤ (1 + x)^r :=
 begin
   have h1 : ∀ x : ℝ, 0 ≤ x → 1 ≤ (1 + x)^(r - 1),
   { intros x hx,
@@ -947,8 +946,8 @@ begin
   linarith,
 end
 
-lemma le_one_add_rpow_of_neg_one_lt_of_nonpos (x : ℝ) (hxm1 : -1 < x) (hx0 : x ≤ 0) (r : ℝ)
-  (hr : 1 ≤ r) : 1 + r * x ≤ (1 + x)^r :=
+lemma le_one_add_rpow_of_neg_one_lt_of_nonpos {x r : ℝ} (hxm1 : -1 < x) (hx0 : x ≤ 0) (hr : 1 ≤ r) :
+  1 + r * x ≤ (1 + x)^r :=
 begin
   have h1 : ∀ x : ℝ, -1 < x → x ≤ 0 → (1 + x)^(r - 1) ≤ 1,
   { intros x hx1 hx2,
@@ -976,12 +975,12 @@ end
 /-
 Bernoulli's Inequality, if `-1 < x` and `1 ≤ r`, then `1 + r * x ≤ (1 + x)^r`
 -/
-lemma le_one_add_rpow (x : ℝ) (hxm1 : -1 < x) (r : ℝ) (hr : 1 ≤ r) : 1 + r * x ≤ (1 + x)^r :=
+lemma le_one_add_rpow {x r : ℝ} (hxm1 : -1 < x) (hr : 1 ≤ r) : 1 + r * x ≤ (1 + x)^r :=
 begin
   by_cases hx : x ≤ 0,
-  { exact le_one_add_rpow_of_neg_one_lt_of_nonpos x hxm1 hx r hr },
+  { exact le_one_add_rpow_of_neg_one_lt_of_nonpos hxm1 hx hr },
   { rw not_le at hx,
-    exact le_one_add_rpow_of_nonneg _ hx.le _ hr }
+    exact le_one_add_rpow_of_nonneg hx.le hr }
 end
 
 end bernoulli

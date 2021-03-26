@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.monoidal.functor
+import category_theory.monoidal.types
 import category_theory.functorial
 
 /-!
@@ -80,6 +81,13 @@ restate_axiom lax_monoidal.right_unitality'
 
 restate_axiom lax_monoidal.associativity'
 attribute [simp] lax_monoidal.associativity
+
+def lax_monoidal.ε_type (F : C → Type u₂) [functorial F] [lax_monoidal F] : F (𝟙_ C) :=
+(lax_monoidal.ε F : punit → F (𝟙_ C)) punit.star
+
+def lax_monoidal.μ_type (F : C → Type u₂) [functorial F] [lax_monoidal F]
+  {X Y : C} (x : F X) (y : F Y) : F (X ⊗ Y) :=
+(lax_monoidal.μ F X Y : F X ⊗ F Y → F (X ⊗ Y)) ⟨x, y⟩
 
 namespace lax_monoidal_functor
 

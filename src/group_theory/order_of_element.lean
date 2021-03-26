@@ -213,20 +213,8 @@ lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
 lemma order_of_eq_order_of_iff {β : Type*} [monoid β] {b : β} :
   order_of a = order_of b ↔ ∀ n : ℕ, a ^ n = 1 ↔ b ^ n = 1 :=
 begin
-  split,
-  { exact λ h n, by rw [←order_of_dvd_iff_pow_eq_one, ←order_of_dvd_iff_pow_eq_one, h] },
-  { intro h,
-    by_cases h' : ∃ n, 0 < n ∧ b ^ n = 1,
-    { rw [order_of, order_of, dif_pos, dif_pos],
-      { congr,
-        simp_rw h },
-      { exact h' },
-      { simp_rw h,
-        exact h' } },
-    { rw [order_of, order_of, dif_neg, dif_neg],
-      { exact h' },
-      { simp_rw h,
-        exact h' } } }
+  simp_rw ← order_of_dvd_iff_pow_eq_one,
+  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
 end
 
 @[simp] lemma order_of_submonoid {G : Type*} [monoid G] {H : submonoid G} (σ : H) :

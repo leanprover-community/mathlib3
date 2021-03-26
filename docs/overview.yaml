@@ -230,7 +230,7 @@ Topology:
 Analysis:
   Normed vector spaces:
     normed vector space over a normed field: 'normed_space'
-    topology on a normed vector space: 'normed_space.topological_vector_space'
+    topology on a normed vector space: 'semi_normed_space.topological_vector_space'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
     finite dimensional normed spaces over complete normed fields are complete: 'submodule.complete_of_finite_dimensional'
     Heine-Borel theorem (finite dimensional normed spaces are proper): 'finite_dimensional.proper'

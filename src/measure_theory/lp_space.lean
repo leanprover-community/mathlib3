@@ -38,6 +38,10 @@ that it is continuous. In particular,
 * `Lp.pos_part` is the positive part of an `Lp` function.
 * `Lp.neg_part` is the negative part of an `Lp` function.
 
+When `α` is a topological space equipped with a finite Borel measure, there is a bounded linear map
+from the normed space of bounded continuous functions (`α →ᵇ E`) to `Lp E p μ`.  We construct this
+as `bounded_continuous_function.to_Lp`.
+
 ## Notations
 
 * `α →₁[μ] E` : the type `Lp E 1 μ`.

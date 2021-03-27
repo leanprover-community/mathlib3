@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Zhouhang Zhou
 -/
 import measure_theory.integration
 import order.filter.germ
-import topology.continuous_function.basic
 
 /-!
 
@@ -470,7 +469,7 @@ def to_ae_eq_fun_mul_hom : C(α, β) →* α →ₘ[μ] β :=
 
 variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜]
 variables [topological_space γ] [measurable_space γ] [borel_space γ] [add_comm_group γ]
-  [semimodule 𝕜 γ] [topological_add_group γ] [topological_semimodule 𝕜 γ]
+  [semimodule 𝕜 γ] [topological_add_group γ] [has_continuous_smul 𝕜 γ]
   [second_countable_topology γ]
 
 /-- The linear map from the group of continuous maps from `α` to `β` to the group of equivalence

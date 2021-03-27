@@ -136,7 +136,7 @@ by simp [← findim_eq_dim, findim_real_complex]
 lemma {u} dim_real_complex' : cardinal.lift.{0 u} (vector_space.dim ℝ ℂ) = 2 :=
 by simp [← findim_eq_dim, findim_real_complex, bit0]
 
-/-- Identity involving the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
+/-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
 circle. -/
 lemma findim_real_complex_fact : fact (findim ℝ ℂ = 2) := ⟨findim_real_complex⟩
 

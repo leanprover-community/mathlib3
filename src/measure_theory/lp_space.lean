@@ -1789,7 +1789,7 @@ linear_map.mk_continuous_norm_le _ ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹)
 
 end bounded_continuous_function
 
-namespace continuous_function
+namespace continuous_map
 
 variables [borel_space E] [second_countable_topology E]
 variables [topological_space α] [compact_space α] [borel_space α]
@@ -1801,8 +1801,14 @@ variables (𝕜 : Type*) (E p μ)
 space as an element of `Lp`. -/
 def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] : C(α, E) →L[𝕜] (Lp E p μ) :=
 (bounded_continuous_function.to_Lp E p μ 𝕜).comp
-  (continuous_map.linear_isometry_bounded_of_compact
-    α E 𝕜).to_linear_isometry.to_continuous_linear_map
+  (linear_isometry_bounded_of_compact α E 𝕜).to_linear_isometry.to_continuous_linear_map
+
+lemma to_Lp_norm_eq_to_Lp_norm_coe [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)]
+  (f : C(α, E)) :
+  ∥to_Lp E p μ 𝕜∥ = ∥bounded_continuous_function.to_Lp E p μ 𝕜∥ :=
+begin
+  convert (bounded_continuous_function.to_Lp E p μ 𝕜).op_norm_comp_linear_isometry_equiv _,
+end
 
 lemma to_Lp_norm_le [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
   ∥to_Lp E p μ 𝕜∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=
@@ -1810,4 +1816,4 @@ begin
   sorry
 end
 
-end continuous_function
+end continuous_map

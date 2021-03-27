@@ -83,6 +83,16 @@ def const (b : β) : C(α, β) := ⟨λ x, b⟩
 @[simp] lemma const_coe (b : β) : (const b : α → β) = (λ x, b) := rfl
 lemma const_apply (b : β) (a : α) : const b a = b := rfl
 
+instance [nonempty α] [nontrivial β] : nontrivial C(α, β) :=
+{ exists_pair_ne := begin
+    obtain ⟨b₁, b₂, hb⟩ := exists_pair_ne β,
+    refine ⟨const b₁, const b₂, _⟩,
+    contrapose! hb,
+    inhabit α,
+    change const b₁ (default α) = const b₂ (default α),
+    simp [hb]
+  end }
+
 section
 variables [linear_ordered_add_comm_group β] [order_topology β]
 

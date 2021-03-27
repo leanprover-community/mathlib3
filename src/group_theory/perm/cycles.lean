@@ -66,26 +66,29 @@ by classical; exact ⟨(n % order_of f).to_nat, by {
   have := n.mod_nonneg (int.coe_nat_ne_zero.mpr (ne_of_gt (order_of_pos f))),
   rwa [← gpow_coe_nat, int.to_nat_of_nonneg this, ← gpow_eq_mod_order_of] }⟩
 
+noncomputable def is_cycle.gpowers_equiv_support {σ : perm α} (hσ : is_cycle σ) :
+  (↑(subgroup.gpowers σ) : set (perm α)) ≃ (↑(σ.support) : set α) :=
+equiv.of_bijective (λ τ, ⟨τ (classical.some hσ), by
+{ obtain ⟨τ, n, rfl⟩ := τ,
+  rw [finset.mem_coe, mem_support],
+  exact λ h, (classical.some_spec hσ).1
+    ((σ ^ n).injective (by rwa [←mul_apply, mul_gpow_self, ←mul_self_gpow])) }⟩) ⟨by
+{ rintros ⟨a, m, rfl⟩ ⟨b, n, rfl⟩ h,
+  ext y,
+  by_cases hy : σ y = y,
+  { simp_rw [subtype.coe_mk, gpow_apply_eq_self_of_apply_eq_self hy] },
+  { obtain ⟨i, rfl⟩ := (classical.some_spec hσ).2 y hy,
+    rw [subtype.coe_mk, subtype.coe_mk, gpow_apply_comm σ m i, gpow_apply_comm σ n i],
+    exact congr_arg _ (subtype.ext_iff.mp h) } }, by
+{ rintros ⟨y, hy⟩,
+  rw [finset.mem_coe, mem_support] at hy,
+  obtain ⟨n, rfl⟩ := (classical.some_spec hσ).2 y hy,
+  exact ⟨⟨σ ^ n, n, rfl⟩, rfl⟩ }⟩
+
 lemma order_of_is_cycle {σ : perm α} (hσ : is_cycle σ) : order_of σ = σ.support.card :=
 begin
-  obtain ⟨x, hx, hσ⟩ := hσ,
   rw [order_eq_card_gpowers, ←fintype.card_coe],
-  apply fintype.card_congr,
-  refine equiv.of_bijective (λ τ, ⟨τ x, _⟩) ⟨_, _⟩,
-  { obtain ⟨τ, n, rfl⟩ := τ,
-    rw [finset.mem_coe, mem_support],
-    exact λ h, hx ((σ ^ n).injective (by rwa [←mul_apply, mul_gpow_self, ←mul_self_gpow])) },
-  { rintros ⟨a, m, rfl⟩ ⟨b, n, rfl⟩ h,
-    ext y,
-    by_cases hy : σ y = y,
-    { simp_rw [subtype.coe_mk, gpow_apply_eq_self_of_apply_eq_self hy] },
-    { obtain ⟨i, rfl⟩ := hσ y hy,
-      rw [subtype.coe_mk, subtype.coe_mk, gpow_apply_comm σ m i, gpow_apply_comm σ n i],
-      exact congr_arg _ (subtype.ext_iff.mp h) } },
-  { rintros ⟨y, hy⟩,
-    rw [finset.mem_coe, mem_support] at hy,
-    obtain ⟨n, rfl⟩ := hσ y hy,
-    exact ⟨⟨σ ^ n, n, rfl⟩, rfl⟩ },
+  convert fintype.card_congr (is_cycle.gpowers_equiv_support hσ),
 end
 
 lemma is_cycle_swap_mul_aux₁ {α : Type*} [decidable_eq α] : ∀ (n : ℕ) {b x : α} {f : perm α}

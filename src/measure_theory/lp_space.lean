@@ -1738,6 +1738,7 @@ variables [borel_space E] [second_countable_topology E]
 variables [topological_space α] [borel_space α]
 variables [finite_measure μ]
 
+/-- A bounded continuous function is in `Lp`. -/
 lemma mem_Lp (f : α →ᵇ E) :
   f.to_continuous_map.to_ae_eq_fun μ ∈ Lp E p μ :=
 begin
@@ -1747,16 +1748,23 @@ begin
   convert f.norm_coe_le_norm x
 end
 
+/-- The `Lp`-norm of a bounded continuous function is at most a constant (depending on the measure
+of the whole space) times its sup-norm. -/
+lemma Lp_norm_le (f : α →ᵇ E) :
+  ∥(⟨f.to_continuous_map.to_ae_eq_fun μ, mem_Lp f⟩ : Lp E p μ)∥
+  ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * ∥f∥ :=
+begin
+  apply Lp.norm_le_of_ae_bound (norm_nonneg f),
+  { refine (f.to_continuous_map.coe_fn_to_ae_eq_fun μ).mono _,
+    intros x hx,
+    convert f.norm_coe_le_norm x },
+  { apply_instance }
+end
+
 /-- The normed group homomorphism of considering a bounded continuous function on a finite-measure
 space as an element of `Lp`. -/
 def to_Lp_hom [fact (1 ≤ p)] : normed_group_hom (α →ᵇ E) (Lp E p μ) :=
-{ bound' := ⟨(measure_univ_nnreal μ) ^ (p.to_real)⁻¹, λ f, begin
-    apply Lp.norm_le_of_ae_bound (norm_nonneg f),
-    { filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
-      intros x hx,
-      convert f.norm_coe_le_norm x },
-    { apply_instance }
-  end⟩,
+{ bound' := ⟨_, Lp_norm_le⟩,
   .. add_monoid_hom.cod_restrict
       ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E))
       (Lp E p μ)
@@ -1772,15 +1780,8 @@ linear_map.mk_continuous
     (Lp.Lp_submodule E p μ 𝕜)
     ((continuous_map.to_ae_eq_fun_linear_map μ).comp (forget_boundedness_linear_map α E))
     mem_Lp)
-  ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹)
-  begin
-    intros f,
-    apply Lp.norm_le_of_ae_bound (norm_nonneg f),
-    { filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
-      intros x hx,
-      convert f.norm_coe_le_norm x },
-    { apply_instance }
-  end
+  _
+  Lp_norm_le
 
 lemma to_Lp_norm_le [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
   ∥to_Lp E p μ 𝕜∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=

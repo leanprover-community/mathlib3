@@ -13,14 +13,19 @@ import ring_theory.simple_module
 
 We prove Maschke's theorem for finite groups,
 in the formulation that every submodule of a `k[G]` module has a complement,
-when `k` is a field with `invertible (fintype.card G : k)`, which can be derived from
-`¬(ring_char k ∣ fintype.card G)` using `invertible_of_ring_char_not_dvd`.
+when `k` is a field with `invertible (fintype.card G : k)`.
 
 We do the core computation in greater generality.
 For any `[comm_ring k]` in which  `[invertible (fintype.card G : k)]`,
 and a `k[G]`-linear map `i : V → W` which admits a `k`-linear retraction `π`,
 we produce a `k[G]`-linear retraction by
 taking the average over `G` of the conjugates of `π`.
+
+## Implementation Notes
+* These results assume `invertible (fintype.card G : k)` which is equivalent to the more
+familiar `¬(ring_char k ∣ fintype.card G)`. It is possible to convert between them using
+`invertible_of_ring_char_not_dvd` and `ring_char_not_dvd_of_invertible`.
+
 
 ## Future work
 It's not so far to give the usual statement, that every finite dimensional representation

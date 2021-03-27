@@ -26,11 +26,11 @@ We also add an `instance`:
 * any `monoid_with_zero` has a `mul_action_with_zero R R` acting on itself.
 -/
 
-variables {R M M' : Type*}
+variables {R R' M M' : Type*}
 
 section has_zero
 
-variables [has_zero R] [has_zero M]
+variables [has_zero R] [has_zero R'] [has_zero M]
 
 variables (R M)
 /--  `smul_with_zero` is a class consisting of a Type `R` with `0 ∈ R` and a scalar multiplication
@@ -66,11 +66,19 @@ protected def function.surjective.smul_zero_class
   zero_smul := λ m, by { rcases hf m with ⟨x, rfl⟩, simp [←smul] },
   smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero'] }
 
+variables (M)
+
+/-- Compose a `smul_with_zero` with a `zero_hom`, with action `f r' • m` -/
+def zero_hom.comp_smul_with_zero (f : zero_hom R' R) : smul_with_zero R' M :=
+{ smul := (•) ∘ f,
+  smul_zero := λ m, by simp,
+  zero_smul := λ m, by simp }
+
 end has_zero
 
 section monoid_with_zero
 
-variables [monoid_with_zero R] [has_zero M]
+variables [monoid_with_zero R] [monoid_with_zero R'] [has_zero M]
 
 variables (R M)
 /--  An action of a monoid with zero `R` on a Type `M`, also with `0`, extends `mul_action` and
@@ -105,5 +113,15 @@ protected def function.surjective.mul_action_with_zero
   (f : zero_hom M M') (hf : function.surjective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   mul_action_with_zero R M' :=
 { ..hf.mul_action f smul, ..hf.smul_zero_class f smul }
+
+variables (M)
+
+/-- Compose a `mul_action_with_zero` with a `monoid_with_zero_hom`, with action `f r' • m` -/
+def monoid_with_zero_hom.comp_mul_action_with_zero (f : monoid_with_zero_hom R' R) :
+  mul_action_with_zero R' M :=
+{ smul := (•) ∘ f,
+  mul_smul := λ r s m, by simp [mul_smul],
+  one_smul := λ m, by simp,
+  ..f.to_zero_hom.comp_smul_with_zero M}
 
 end monoid_with_zero

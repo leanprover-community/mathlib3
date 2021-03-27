@@ -27,6 +27,13 @@ begin
   apply h
 end
 
+lemma set.subset_singleton_iff' {α : Type*} (s : set α) (a : α) : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=
+begin
+  rcases s.eq_empty_or_nonempty with (rfl | hs),
+  { simp },
+  { simp [eq_singleton_iff_nonempty_unique_mem, hs, ne_empty_iff_nonempty.2 hs] }
+end
+
 lemma subset_singleton_iff {α : Type*} {s : finset α} {a : α} : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=
 begin
   split,
@@ -42,8 +49,6 @@ end
 
 lemma finset.exists_of_ssubset {α : Type*} {s t : finset α} (h : s ⊂ t) : (∃x∈t, x ∉ s) :=
 set.exists_of_ssubset h
-
--- not_subset.1 h.
 
 -- TODO: move to mathlib
 theorem sdiff_union_of_subset {α : Type*} {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=

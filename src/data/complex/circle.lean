@@ -56,8 +56,6 @@ lemma circle_def : ↑circle = {z : ℂ | abs z = 1} := by { ext, simp }
 
 instance : group circle :=
 { inv := λ z, ⟨conj z, by simp⟩,
-  div := λ z, λ w, z * ⟨conj w, by simp⟩,
-  div_eq_mul_inv := by simp,
   mul_left_inv := λ z, subtype.ext $ by { simp [has_inv.inv, ← norm_sq_eq_conj_mul_self,
     ← mul_self_abs] },
   .. circle.to_monoid }

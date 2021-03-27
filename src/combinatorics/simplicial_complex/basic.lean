@@ -405,20 +405,15 @@ lemma closure_singleton {S : simplicial_complex m} {x : fin m → ℝ} (hx : {x}
 begin
   ext Y,
   split,
-  {
-    rintro ⟨hY, Z, (hZ : Z = {x}), hYZ⟩,
+  { rintro ⟨hY, Z, (hZ : Z = {x}), hYZ⟩,
     rw hZ at hYZ,
-    simp,
-    --exact_mod_cast set.subset_singleton_iff.1 hYZ,
-    sorry -- @Bhavik easy but I can't
-  },
-  {
-    have hxS : {x} ∈ (S.closure {{x}}).faces := ⟨hx, {x}, rfl, finset.subset.refl {x}⟩,
-    rintro ⟨rfl | rfl⟩,
-    exact empty_mem_faces_of_nonempty (nonempty_of_mem hxS),
-    rw eq_of_mem_singleton ᾰ,
-    exact hxS,
-  }
+    simp only [mem_singleton_iff, mem_insert_iff],
+    rwa ←finset.subset_singleton_iff },
+  { have hxS : {x} ∈ (S.closure {{x}}).faces := ⟨hx, {x}, rfl, finset.subset.refl {x}⟩,
+    simp only [mem_singleton_iff, mem_insert_iff],
+    rintro (rfl | rfl),
+    { exact empty_mem_faces_of_nonempty (nonempty_of_mem hxS) },
+    { assumption } }
 end
 
 lemma mem_closure_singleton_iff {S : simplicial_complex m} {X Y : finset (fin m → ℝ)} :

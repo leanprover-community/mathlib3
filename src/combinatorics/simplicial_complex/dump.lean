@@ -34,7 +34,7 @@ begin
   { simp [eq_singleton_iff_nonempty_unique_mem, hs, ne_empty_iff_nonempty.2 hs] }
 end
 
-lemma subset_singleton_iff {α : Type*} {s : finset α} {a : α} : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=
+lemma finset.subset_singleton_iff {α : Type*} {s : finset α} {a : α} : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=
 begin
   split,
   { intro hs,

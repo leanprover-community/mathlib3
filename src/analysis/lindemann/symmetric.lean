@@ -1,9 +1,10 @@
 import algebra.algebra.subalgebra
 import ring_theory.polynomial.symmetric
 import data.mv_polynomial.basic
+import analysis.lindemann.test2
 
 open equiv fintype function
-open_locale big_operators
+open_locale big_operators classical
 noncomputable theory
 
 universes u
@@ -39,6 +40,17 @@ begin
   { apply list.sorted_repeat }
 end
 
+lemma get_eq_nth_le : ∀ (l : list ℕ) (n : ℕ) (h : n < l.length),
+  list.func.get n l = list.nth_le l n h
+| []       n     h := by { simp only [nat.not_lt_zero, list.length] at h, exfalso, exact h }
+| (a :: l) 0     h := by { simp }
+| (a :: l) (n+1) h :=
+begin
+  simp only [list.nth_le, list.func.get],
+  simp only [list.length, add_lt_add_iff_right] at h,
+  exact get_eq_nth_le l n h,
+end
+
 end list
 
 namespace multiset
@@ -55,6 +67,13 @@ begin
     { simp only [IH, h, countp_cons_of_neg, filter_cons_of_neg, not_false_iff, map_cons] } }
 end
 
+
+lemma map_sum {α : Type*} {β : Type*} {ι : Type*}
+  (s : finset ι) (f : α → β) (s : ι → multiset α) : 0 = 0 :=
+begin
+
+  sorry
+end
 
 end multiset
 
@@ -110,6 +129,94 @@ linear_order.lift signature.coeffs coeffs_injective
 instance : unique (signature 0) :=
 { default := ⟨[], list.sorted_nil, rfl⟩,
   uniq    := by { intro l, ext1, rw list.eq_nil_of_length_eq_zero l.length, } }
+
+#reduce list.nth_le [0, 1] 0 _
+
+def add : signature n → signature n → signature n :=
+λ l₁ l₂, {
+  coeffs := list.func.add l₁.coeffs l₂.coeffs,
+  sorted :=
+  begin
+    unfold list.sorted,
+    rw list.pairwise_iff_nth_le,
+    intros,
+    have hl : (list.func.add l₁.coeffs l₂.coeffs).length = n, sorry,
+    rw hl at h₁,
+    rw [← get_eq_nth_le, ← get_eq_nth_le, list.func.get_add, list.func.get_add],
+    apply add_le_add,
+    { rw [get_eq_nth_le l₁.coeffs j (l₁.length.symm ▸ h₁),
+        get_eq_nth_le l₁.coeffs i (h₂.trans (l₁.length.symm ▸ h₁))],
+      exact (list.pairwise_iff_nth_le.mp l₁.sorted i j (l₁.length.symm ▸ h₁) h₂).le, },
+    rw [get_eq_nth_le l₂.coeffs j (l₂.length.symm ▸ h₁),
+        get_eq_nth_le l₂.coeffs i (h₂.trans (l₂.length.symm ▸ h₁))],
+    exact (list.pairwise_iff_nth_le.mp l₂.sorted i j (l₂.length.symm ▸ h₁) h₂).le,
+  end,
+  length := by { rw list.func.length_add, rw l₁.length, rw l₂.length, exact max_self n } }
+
+instance : has_add (signature n) := ⟨add⟩
+
+@[simp] lemma coeffs_add (l₁ l₂ : signature n) : (l₁ + l₂).coeffs = list.func.add l₁.coeffs l₂.coeffs := rfl
+
+@[simp] lemma length_add_left (l₁ l₂ : signature n) : (l₁ + l₂).coeffs.length = l₁.coeffs.length :=
+by { rw [coeffs_add, list.func.length_add, l₁.length, l₂.length], exact max_self n }
+
+@[simp] lemma length_add_right (l₁ l₂ : signature n) : (l₁ + l₂).coeffs.length = l₂.coeffs.length :=
+by { rw [coeffs_add, list.func.length_add, l₁.length, l₂.length], exact max_self n }
+
+lemma add_assoc : ∀ (l₁ l₂ l₃ : signature n), l₁ + l₂ + l₃ = l₁ + (l₂ + l₃) :=
+λ l₁ l₂ l₃,
+begin
+  rw ext_iff,
+  apply list.ext_le,
+  simp only [l₁.length, l₂.length, l₃.length, max_eq_right, list.func.length_add, coeffs_add],
+  intros n ha hb,
+  simp [← get_eq_nth_le, list.func.get_add, add_assoc],
+end
+
+lemma add_comm : ∀ (l₁ l₂ : signature n), l₁ + l₂ = l₂ + l₁ :=
+λ l₁ l₂,
+begin
+  rw ext_iff,
+  apply list.ext_le,
+  simp only [l₁.length, l₂.length, max_eq_right, list.func.length_add, coeffs_add],
+  intros n ha hb,
+  simp [← get_eq_nth_le, list.func.get_add, add_comm],
+end
+
+def zero : signature n :=
+{ coeffs := list.repeat 0 n,
+  sorted := by { simp [list.sorted_repeat] },
+  length := by { simp, } }
+
+instance : has_zero (signature n) := ⟨zero⟩
+
+@[simp] lemma coeffs_zero : (0 : signature n).coeffs = list.repeat 0 n := rfl
+
+@[simp] lemma length_zero : (0 : signature n).coeffs.length = n := (0 : signature n).length
+
+@[simp] lemma get_zero {k : ℕ}: list.func.get k (0 : signature n).coeffs = 0 :=
+by { rw coeffs_zero, sorry }
+
+lemma add_zero : ∀ (l : signature n), l + 0 = l :=
+λ l,
+begin
+  rw ext_iff,
+  apply list.ext_le,
+  simp only [l.length, max_eq_right, list.func.length_add, coeffs_add, length_zero],
+  intros n ha hb,
+  simp only [← get_eq_nth_le, list.func.get_add, add_right_eq_self, coeffs_add],
+  exact get_zero,
+end
+
+lemma zero_add : ∀ (l : signature n), 0 + l = l := λ l, (add_comm l 0) ▸ add_zero l
+
+instance : add_comm_monoid (signature n) :=
+{ add := add,
+  add_assoc := add_assoc,
+  zero := zero,
+  zero_add := zero_add,
+  add_zero := add_zero,
+  add_comm := add_comm }
 
 lemma lt_iff : ∀ {n : ℕ} {l₁ l₂ : signature n},
   l₁ < l₂ ↔ l₁.coeffs.head < l₂.coeffs.head ∨
@@ -211,11 +318,6 @@ begin
     rwa [fin.ext_iff] at h }
 end
 
-instance (n : ℕ) : has_zero (signature n) :=
-⟨{ coeffs := list.repeat 0 n, sorted := list.sorted_repeat _ _ _, length := list.length_repeat _ _ }⟩
-
-@[simp] lemma coeffs_zero : (0 : signature n).coeffs = list.repeat 0 n := rfl
-
 lemma zero_le (l : signature n) : 0 ≤ l :=
 begin
   apply le_of_forall_nth_le_le,
@@ -270,7 +372,7 @@ begin
   cases n,
   { exfalso, exact lt_irrefl 0 h },
   { show list.sum (k :: list.repeat 0 n) = k,
-    rw [list.sum_cons, list.sum_repeat, nsmul_zero, add_zero] }
+    rw [list.sum_cons, list.sum_repeat, nsmul_zero, nat.add_zero] }
 end
 
 end signature
@@ -350,7 +452,7 @@ def psignature (φ : mv_polynomial σ R) : option (signature (card σ)) :=
 finset.max (finset.image (λ d, to_signature d) φ.support)
 
 def psignature' (φ : mv_polynomial σ R) (h : φ ≠ 0): signature (card σ) :=
-finset.max' (finset.image (λ d, to_signature d) φ.support)
+finset.max' (finset.image to_signature φ.support)
 begin
   rw finset.nonempty.image_iff, rcases (exists_coeff_ne_zero h) with ⟨d, hd⟩,
   rw ← mv_polynomial.mem_support_iff at hd,
@@ -386,37 +488,68 @@ begin
     rcases nat.eq_zero_one_or_ge_two a with h0 | h1 | h2,
     simp only [h0, multiset.count_cons_of_ne, multiset.count_repeat_self, ne.def,
       not_false_iff, zero_ne_one],
-
    },
   sorry
 end
 
-lemma esymm_ne_zero (n : ℕ) (h : n ≤ card σ): esymm σ R n ≠ 0 :=
+#check (to_signature ∘ (λ (t : finset σ), ∑ (i : σ) in t, finsupp.single i 1))
+#check λ (t : finset σ), signature.step (card σ) t.card t.card_le_univ
+#check λ t, multiset.map (∑ (i : σ) in t, finsupp.single i 1) finset.univ.val
+lemma map_sum_single (t : finset σ) :
+  (multiset.map (∑ (i : σ) in t, finsupp.single i 1) finset.univ.val : multiset ℕ) :=
 begin
-  --simp only [esymm],
-  rw ne_zero_iff,
-  have : (finset.powerset_len n (finset.univ : finset σ)).nonempty,
-  have := nat.choose_pos h,
-  unfold fintype.card at *,
-  rw ← finset.card_powerset_len n (finset.univ) at this,
-  rwa finset.card_pos at this,
-  have raww := (finset.coe_nonempty.mpr this).to_subtype,
-  rcases (classical.choice raww),
-  norm_cast at property,
-  use ∑ i in val, finsupp.single i 1,
-  rw esymm_eq_sum_monomial,
-  rw coeff_sum,
-  simp only [coeff_monomial],
-  simp only [← finset.sum_filter, finset.sum_const (1:R)],
 
+end
 
+lemma monomial_psignature :
+  (to_signature ∘ (λ (t : finset σ), ∑ (i : σ) in t, finsupp.single i 1)) =
+  λ t, signature.step (card σ) t.card t.card_le_univ :=
+begin
+  funext,
+  simp only [comp_app],
+  rw to_signature,
+  rw signature.ext_iff,
+  simp only [option.mem_def],
+  apply list.ext_le,
+  rw multiset.length_sort,
+  rw multiset.card_map,
+  rw (signature.step (card σ) x.card _).length,
+  rw fintype.card,
+  convert (multiset.to_finset_card_of_nodup finset.univ.nodup).symm,
+  exact finset.univ.val_to_finset.symm,
+  intros,
   sorry
 end
 
-lemma esymm_psignature (n : ℕ) (h : n ≤ card σ) :
-  (esymm σ R n).psignature' (esymm_ne_zero n) = signature.step (card σ) n h :=
+lemma esymm_psignature' [decidable_eq σ] [nontrivial R] (n : ℕ) (h : n ≤ card σ) :
+  finset.image to_signature (esymm σ R n).support = {signature.step (card σ) n h} :=
+begin
+  ext,
+  rw support_esymm n,
+  rw finset.image_image,
+  simp [monomial_psignature],
+  { refine ⟨λ ha, _, λ ha, _⟩,
+    rcases ha with ⟨t, ht, ha⟩,
+    rw finset.mem_powerset_len at ht,
+    simp_rw ht.2 at ha,
+    exact ha.symm,
+    sorry,
+     },
+  apply_instance,
+  apply_instance,
+end
+
+lemma esymm_psignature [nontrivial R] (n : ℕ) (h : n ≤ card σ) :
+  (esymm σ R n).psignature' (esymm_ne_zero n h) = signature.step (card σ) n h :=
 begin
   rw psignature',
+  simp [esymm_psignature' n h],
+end
+
+lemma psignature_mul_of_esymm [nontrivial R] (n m : ℕ) (hn : n ≤ card σ) (hm : m ≤ card σ) :
+  (esymm σ R n * esymm σ R m).psignature' (by sorry) =
+  (esymm σ R n).psignature' (esymm_ne_zero n hn) + (esymm σ R m).psignature' (esymm_ne_zero m hm) :=
+begin
   sorry
 end
 

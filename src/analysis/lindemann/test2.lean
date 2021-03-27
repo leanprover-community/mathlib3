@@ -72,9 +72,7 @@ begin
 end
 
 variables {f : α → M} {s : finset α}
-#check ∑ i in s, finsupp.single (f i) (1:R)
 variables (t : finset (σ →₀ M)) [decidable_eq M]
-#check (finsupp.on_finset (s.image f) (s.image f).indicator (s.image f).mem_indicator)
 
 lemma finsupp.sum_single_one {f : α → M} (s : finset α) [nontrivial R] :
   ∑ i in s, finsupp.single (f i) (1:R) =
@@ -140,7 +138,7 @@ begin
   exact finsupp.support_single _ 1 one_ne_zero,
 end
 
-lemma support_esymm (n : ℕ) [decidable_eq σ] [nontrivial R] :
+lemma support_esymm [decidable_eq σ] [nontrivial R] (n : ℕ) :
   (esymm σ R n).support =
   (powerset_len n (univ : finset σ)).image (λ t, ∑ (i : σ) in t, finsupp.single i 1) :=
 begin
@@ -189,6 +187,20 @@ end
 
 instance [nontrivial R] : nontrivial (mv_polynomial σ R) := add_monoid_algebra.nontrivial
 
+lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
+
+lemma powerset_len_empty_iff {α : Type*} {s : finset α} (n : ℕ) :
+  powerset_len n s = ∅ ↔ s.card < n :=
+begin
+  refine ⟨_, powerset_len_empty n⟩,
+  contrapose!,
+  intro h,
+  apply nonempty.ne_empty,
+  rw ← card_pos,
+  rw card_powerset_len,
+  exact nat.choose_pos h,
+end
+
 lemma esymm_ne_zero (k : ℕ) (h : k ≤ fintype.card σ) [nontrivial R] : esymm σ R k ≠ 0 :=
 begin
   by_cases h : (nonempty σ),
@@ -199,7 +211,22 @@ begin
     clear hmem,
     rw ne_zero_iff,
     exact ⟨d, hd⟩ },
-  sorry
+  revert h,
+  contrapose!,
+  intro he,
+  apply_fun support at he,
+  rw support_esymm k at he,
+  { have h1 :
+      image (λ (t : finset σ), ∑ (i : σ) in t, finsupp.single i 1) (powerset_len k univ) = ∅,
+    rw he,
+    rw support_zero,
+    clear he,
+    simp at h1,
+    rw powerset_len_empty_iff at h1,
+    rw fintype.card at h,
+    exfalso,
+    exact not_lt_of_le h h1 },
+  apply_instance,
 end
 
 end mv_polynomial

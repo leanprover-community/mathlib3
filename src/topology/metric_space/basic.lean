@@ -1903,11 +1903,11 @@ lemma exists_subset_Union_ball_radius_lt {r : ι → ℝ} (hs : is_closed s)
   (uf : ∀ x ∈ s, finite {i | x ∈ ball (c i) (r i)}) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
   ∃ r' : ι → ℝ, s ⊆ (⋃ i, ball (c i) (r' i)) ∧ ∀ i, r' i < r i :=
 begin
-  choose v hsv hvo hcv
-    using exists_subset_Union_closure_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us,
-  have := λ i, exists_lt_subset_ball is_closed_closure (hcv i),
+  rcases exists_subset_Union_closed_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us
+    with ⟨v, hsv, hvc, hcv⟩,
+  have := λ i, exists_lt_subset_ball (hvc i) (hcv i),
   choose r' hlt hsub,
-  exact ⟨r', subset.trans hsv $ Union_subset_Union $ λ i, subset.trans subset_closure (hsub i), hlt⟩
+  exact ⟨r', subset.trans hsv $ Union_subset_Union $ hsub, hlt⟩
 end
 
 /-- Shrinking lemma for coverings by open balls in a proper metric space. A point-finite open cover
@@ -1926,11 +1926,11 @@ lemma exists_subset_Union_ball_radius_pos_lt {r : ι → ℝ} (hr : ∀ i, 0 < r
   (uf : ∀ x ∈ s, finite {i | x ∈ ball (c i) (r i)}) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
   ∃ r' : ι → ℝ, s ⊆ (⋃ i, ball (c i) (r' i)) ∧ ∀ i, r' i ∈ Ioo 0 (r i) :=
 begin
-  choose v hsv hvo hcv
-    using exists_subset_Union_closure_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us,
-  have := λ i, exists_pos_lt_subset_ball (hr i) is_closed_closure (hcv i),
+  rcases exists_subset_Union_closed_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us
+    with ⟨v, hsv, hvc, hcv⟩,
+  have := λ i, exists_pos_lt_subset_ball (hr i) (hvc i) (hcv i),
   choose r' hlt hsub,
-  exact ⟨r', subset.trans hsv $ Union_subset_Union $ λ i, subset.trans subset_closure (hsub i), hlt⟩
+  exact ⟨r', subset.trans hsv $ Union_subset_Union hsub, hlt⟩
 end
 
 /-- Shrinking lemma for coverings by open balls in a proper metric space. A point-finite open cover

@@ -90,12 +90,18 @@ begin
   exact metric.nhds_basis_closed_ball.comap _
 end
 
+lemma closed_ball_mem_nhds {x : E} {r : ℝ} (hr : 0 < r) : closed_ball x r ∈ 𝓝 x :=
+nhds_basis_closed_ball.mem_of_mem hr
+
 lemma nhds_basis_ball {x : E} :
   (𝓝 x).has_basis (λ r : ℝ, 0 < r) (ball x) :=
 begin
   rw [to_euclidean.to_homeomorph.nhds_eq_comap],
   exact metric.nhds_basis_ball.comap _
 end
+
+lemma ball_mem_nhds {x : E} {r : ℝ} (hr : 0 < r) : ball x r ∈ 𝓝 x :=
+nhds_basis_ball.mem_of_mem hr
 
 end euclidean
 

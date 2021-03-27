@@ -208,7 +208,7 @@ to a new open cover so that the closure of each new open set is contained in the
 original open set. -/
 lemma exists_subset_Union_closure_subset (hs : is_closed s) (uo : ∀ i, is_open (u i))
   (uf : ∀ x ∈ s, finite {i | x ∈ u i}) (us : s ⊆ ⋃ i, u i) :
-  ∃ v : ι → set X, s ⊆ Union v ∧ ∀ i, is_open (v i) ∧ closure (v i) ⊆ u i :=
+  ∃ v : ι → set X, s ⊆ Union v ∧ (∀ i, is_open (v i)) ∧ ∀ i, closure (v i) ⊆ u i :=
 begin
   classical,
   haveI : nonempty (partial_refinement u s) := ⟨⟨u, ∅, uo, us, λ _, false.elim, λ _ _, rfl⟩⟩,
@@ -217,7 +217,7 @@ begin
       λ v hv, partial_refinement.le_chain_Sup _ _ _ _ hv⟩,
   rcases zorn_nonempty_partial_order this with ⟨v, hv⟩,
   suffices : ∀ i, i ∈ v.carrier,
-    from ⟨v, v.subset_Union, λ i, ⟨v.is_open _, v.closure_subset (this i)⟩⟩,
+    from ⟨v, v.subset_Union, λ i, v.is_open _, λ i, v.closure_subset (this i)⟩,
   contrapose! hv,
   rcases hv with ⟨i, hi⟩,
   rcases v.exists_gt hs i hi with ⟨v', hlt⟩,
@@ -225,10 +225,20 @@ begin
 end
 
 /-- Shrinking lemma. A point-finite open cover of a closed subset of a normal space can be "shrunk"
+to a new closed cover so that each new closed set is contained in the corresponding original open
+set. See also `exists_subset_Union_closure_subset` for a stronger statement. -/
+lemma exists_subset_Union_closed_subset (hs : is_closed s) (uo : ∀ i, is_open (u i))
+  (uf : ∀ x ∈ s, finite {i | x ∈ u i}) (us : s ⊆ ⋃ i, u i) :
+  ∃ v : ι → set X, s ⊆ Union v ∧ (∀ i, is_closed (v i)) ∧ ∀ i, v i ⊆ u i :=
+let ⟨v, hsv, hvo, hv⟩ := exists_subset_Union_closure_subset hs uo uf us
+in ⟨λ i, closure (v i), subset.trans hsv (Union_subset_Union $ λ i, subset_closure),
+  λ i, is_closed_closure, hv⟩
+
+/-- Shrinking lemma. A point-finite open cover of a closed subset of a normal space can be "shrunk"
 to a new open cover so that the closure of each new open set is contained in the corresponding
 original open set. -/
 lemma exists_Union_eq_closure_subset (uo : ∀ i, is_open (u i)) (uf : ∀ x, finite {i | x ∈ u i})
   (uU : (⋃ i, u i) = univ) :
-  ∃ v : ι → set X, Union v = univ ∧ ∀ i, is_open (v i) ∧ closure (v i) ⊆ u i :=
+  ∃ v : ι → set X, Union v = univ ∧ (∀ i, is_open (v i)) ∧ ∀ i, closure (v i) ⊆ u i :=
 let ⟨v, vU, hv⟩ := exists_subset_Union_closure_subset is_closed_univ uo (λ x _, uf x) uU.ge
 in ⟨v, univ_subset_iff.1 vU, hv⟩

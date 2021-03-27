@@ -134,6 +134,9 @@ by rw [coe_def, support_indicator, (∘), support_comp_eq_preimage, ← ext_char
   ← (ext_chart_at I c).symm_image_target_inter_eq',
   ← (ext_chart_at I c).symm_image_target_inter_eq', f.to_times_cont_diff_bump.support_eq]
 
+lemma open_support : is_open (support f) :=
+by { rw support_eq_inter_preimage, exact ext_chart_preimage_open_of_open I c is_open_ball }
+
 lemma support_eq_symm_image :
   support f = (ext_chart_at I c).symm '' (ball (ext_chart_at I c c) f.R ∩ range I) :=
 begin
@@ -146,6 +149,22 @@ end
 
 lemma support_subset_source : support f ⊆ (chart_at H c).source :=
 by { rw [f.support_eq_inter_preimage, ← ext_chart_at_source I], exact inter_subset_left _ _ }
+
+lemma image_eq_inter_preimage_of_subset_support {s : set M} (hs : s ⊆ support f) :
+  ext_chart_at I c '' s =
+    closed_ball (ext_chart_at I c c) f.R ∩ range I ∩ (ext_chart_at I c).symm ⁻¹' s :=
+begin
+  rw [support_eq_inter_preimage, subset_inter_iff, ← ext_chart_at_source I,
+    ← image_subset_iff] at hs,
+  cases hs with hse hsf,
+  apply subset.antisymm,
+  { refine subset_inter (subset_inter (subset.trans hsf ball_subset_closed_ball) _) _,
+    { rintro _ ⟨x, -, rfl⟩, exact mem_range_self _ },
+    { rw [(ext_chart_at I c).image_eq_target_inter_inv_preimage hse],
+      exact inter_subset_right _ _ } },
+  { refine subset.trans (inter_subset_inter_left _ f.closed_ball_subset) _,
+    rw [(ext_chart_at I c).image_eq_target_inter_inv_preimage hse] }
+end
 
 lemma mem_Icc : f x ∈ Icc (0 : ℝ) 1 :=
 begin
@@ -174,7 +193,13 @@ by { rw [euclidean.dist, dist_self], exact f.r_pos }
 
 @[simp] lemma eq_one : f c = 1 := f.eventually_eq_one.eq_of_nhds
 
-lemma c_mem_support : c ∈ support f := by { rw [mem_support, f.eq_one], exact one_ne_zero }
+lemma support_mem_nhds : support f ∈ 𝓝 c :=
+f.eventually_eq_one.mono $ λ x hx, by { rw hx, exact one_ne_zero }
+
+lemma closure_support_mem_nhds : closure (support f) ∈ 𝓝 c :=
+mem_sets_of_superset f.support_mem_nhds subset_closure
+
+lemma c_mem_support : c ∈ support f := mem_of_nhds f.support_mem_nhds
 
 lemma nonempty_support : (support f).nonempty := ⟨c, f.c_mem_support⟩
 
@@ -182,6 +207,53 @@ lemma compact_symm_image_closed_ball :
   is_compact ((ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)) :=
 (compact_ball.inter_right I.closed_range).image_of_continuous_on $
   (ext_chart_at_continuous_on_symm _ _).mono f.closed_ball_subset
+
+lemma nhds_within_range_basis :
+  (𝓝[range I] (ext_chart_at I c c)).has_basis (λ f : smooth_bump_function I c, true)
+    (λ f, closed_ball (ext_chart_at I c c) f.R ∩ range I) :=
+begin
+  refine ((nhds_within_has_basis euclidean.nhds_basis_closed_ball _).restrict_subset
+      (ext_chart_at_target_mem_nhds_within _ _)).to_has_basis' _ _,
+  { rintro R ⟨hR0, hsub⟩,
+    exact ⟨⟨⟨⟨R / 2, R, half_pos hR0, half_lt_self hR0⟩⟩, hsub⟩, trivial, subset.rfl⟩ },
+  { exact λ f _, inter_mem_sets (mem_nhds_within_of_mem_nhds $ closed_ball_mem_nhds f.R_pos)
+      self_mem_nhds_within }
+end
+
+lemma closed_image_of_closed {s : set M} (hsc : is_closed s) (hs : s ⊆ support f) :
+  is_closed (ext_chart_at I c '' s) :=
+begin
+  rw f.image_eq_inter_preimage_of_subset_support hs,
+  refine continuous_on.preimage_closed_of_closed
+    ((ext_chart_continuous_on_symm _ _).mono f.closed_ball_subset) _ hsc,
+  exact is_closed_inter is_closed_closed_ball I.closed_range
+end
+
+lemma exists_r_pos_lt_subset_ball {s : set M} (hsc : is_closed s) (hs : s ⊆ support f) :
+  ∃ r (hr : r ∈ Ioo 0 f.R), s ⊆
+    (chart_at H c).source ∩ ext_chart_at I c ⁻¹' (ball (ext_chart_at I c c) r) :=
+begin
+  set e := ext_chart_at I c,
+  have : is_closed (e '' s) := f.closed_image_of_closed hsc hs,
+  rw [support_eq_inter_preimage, subset_inter_iff, ← image_subset_iff] at hs,
+  rcases euclidean.exists_pos_lt_subset_ball f.R_pos this hs.2 with ⟨r, hrR, hr⟩,
+  exact ⟨r, hrR, subset_inter hs.1 (image_subset_iff.1 hr)⟩
+end
+
+/-- Replace `r` with another value in the interval `(0, f.R)`. -/
+def update_r (r : ℝ) (hr : r ∈ Ioo 0 f.R) : smooth_bump_function I c :=
+⟨⟨⟨r, f.R, hr.1, hr.2⟩⟩, f.closed_ball_subset⟩
+
+@[simp] lemma update_r_R {r : ℝ} (hr : r ∈ Ioo 0 f.R) : (f.update_r r hr).R = f.R := rfl
+
+@[simp] lemma update_r_r {r : ℝ} (hr : r ∈ Ioo 0 f.R) : (f.update_r r hr).r = r := rfl
+
+@[simp] lemma support_update_r {r : ℝ} (hr : r ∈ Ioo 0 f.R) :
+  support (f.update_r r hr) = support f :=
+by simp only [support_eq_inter_preimage, update_r_R]
+
+instance : inhabited (smooth_bump_function I c) :=
+classical.inhabited_of_nonempty nhds_within_range_basis.nonempty
 
 variables [t2_space M]
 
@@ -216,7 +288,27 @@ lemma compact_closure_support : is_compact (closure $ support f) :=
 compact_of_is_closed_subset f.compact_symm_image_closed_ball is_closed_closure
  f.closure_support_subset_symm_image_closed_ball
 
-variables [smooth_manifold_with_corners I M]
+variables (I c)
+
+lemma nhds_basis_closure_support :
+  (𝓝 c).has_basis (λ f : smooth_bump_function I c, true) (λ f, closure $ support f) :=
+begin
+  have : (𝓝 c).has_basis (λ f : smooth_bump_function I c, true)
+    (λ f, (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)),
+  { rw [← ext_chart_at_symm_map_nhds_within_range I c],
+    exact nhds_within_range_basis.map _ },
+  refine this.to_has_basis' (λ f hf, ⟨f, trivial, f.closure_support_subset_symm_image_closed_ball⟩)
+    (λ f _, f.closure_support_mem_nhds),
+end
+
+variable {c}
+
+lemma nhds_basis_support {s : set M} (hs : s ∈ 𝓝 c) :
+  (𝓝 c).has_basis (λ f : smooth_bump_function I c, closure (support f) ⊆ s) (λ f, support f) :=
+((nhds_basis_closure_support I c).restrict_subset hs).to_has_basis' (λ f hf, ⟨f, hf.2, subset_closure⟩)
+  (λ f hf, f.support_mem_nhds)
+
+variables [smooth_manifold_with_corners I M] {I}
 
 protected lemma smooth : smooth I 𝓘(ℝ) f :=
 begin
@@ -289,6 +381,10 @@ variables {s : set M} {U : M → set M} (f : smooth_bump_covering I s) {I}
 
 instance : has_coe_to_fun (smooth_bump_covering I s) := ⟨_, to_fun⟩
 
+@[simp] lemma coe_mk (ι : Type uM) (c : ι → M) (to_fun : Π i, smooth_bump_function I (c i))
+  (h₁ h₂ h₃) : ⇑(mk ι c to_fun h₁ h₂ h₃ : smooth_bump_covering I s) = to_fun :=
+rfl
+
 /-- 
 We say that `f : smooth_bump_covering I s` is *subordinate* to a map `U : M → set M` if for each
 index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
@@ -308,103 +404,34 @@ lemma exists_is_subordinate [t2_space M] [sigma_compact_space M] (hs : is_closed
   (hU : ∀ x ∈ s, U x ∈ 𝓝 x) :
   ∃ f : smooth_bump_covering I s, f.is_subordinate U :=
 begin
-  /- The proof is similar to the proof of `exists_locally_finite_subset_Union_ball_radius_lt`.
-  This proof is longer because we need to move the properties and sets back and forth along
-  extended charts at different points. -/
   -- First we deduce some missing instances
   haveI : locally_compact_space H := I.locally_compact,
   haveI : locally_compact_space M := charted_space.locally_compact H,
   haveI : normal_space M := normal_of_paracompact_t2,
-  -- Then we introduce some notation
-  set e : M → local_equiv M E := ext_chart_at I,
-  set cBE : M → ℝ → set E := λ x r, euclidean.closed_ball (e x x) r ∩ range I,
-  set cB : M → ℝ → set M := λ x r, (e x).symm '' cBE x r,
-  set BE : M → ℝ → set E := λ x r, euclidean.ball (e x x) r ∩ range I,
-  set B : M → ℝ → set M := λ x r, (e x).symm '' BE x r,
-  have BEcBE : ∀ x r, BE x r ⊆ cBE x r,
-    from λ x r, inter_subset_inter_left _ euclidean.ball_subset_closed_ball,
-  have BcB : ∀ x r, B x r ⊆ cB x r, from λ x r, image_subset _ (BEcBE x r),
-  have memB : ∀ x r, 0 < r → x ∈ B x r,
-    from λ x r hr, ⟨e x x, ⟨euclidean.mem_ball_self hr, mem_range_self _⟩, ext_chart_at_to_inv _ _⟩,
-  have B_eq : ∀ x r, cBE x r ⊆ (e x).target →
-    B x r = (e x).source ∩ e x ⁻¹' euclidean.ball (e x x) r,
-  { intros x r h,
-    have : BE x r ⊆ (e x).target, from subset.trans (BEcBE x r) h,
-    simp only [B],
-    rw [← (e x).symm_image_target_inter_eq', inter_comm],
-    congr' 1,
-    refine subset.antisymm (subset_inter (inter_subset_left _ _) this)
-      (inter_subset_inter_right _ (ext_chart_at_target_subset_range _ _)) },
-  have Bo : ∀ x r, cBE x r ⊆ (e x).target → is_open (B x r),
-  { intros x r h,
-    rw B_eq _ _ h,
-    exact ext_chart_preimage_open_of_open' _ _ euclidean.is_open_ball },
-  /- Next we prove that the balls `B x r` such that `cB x r ⊆ U x` and `cBE x r ⊆ (e x).target`
-  form a basis of the filter `𝓝 x`. -/
-  have hcB : ∀ x ∈ s,
-    (𝓝 x).has_basis (λ r : ℝ, 0 < r ∧ cBE x r ⊆ (e x).target ∧ cB x r ⊆ U x) (cB x),
-  { intros x hx,
-    simp only [← and.assoc],
-    refine has_basis.restrict_subset _ (hU x hx),
-    rw ← ext_chart_at_symm_map_nhds_within_range I x,
-    exact ((nhds_within_has_basis euclidean.nhds_basis_closed_ball _).restrict_subset
-      (ext_chart_at_target_mem_nhds_within _ _)).map _ },
-  have hB : ∀ x ∈ s, (𝓝 x).has_basis (λ r : ℝ, 0 < r ∧ cBE x r ⊆ (e x).target ∧ cB x r ⊆ U x) (B x),
-  { refine λ x hx, (hcB x hx).to_subset (λ r hr, BcB _ _) _,
-    rintro r ⟨h0, hrE, hrU⟩,
-    exact mem_nhds_sets (Bo _ _ hrE) (memB _ _ h0) },
-  /- Then we use paracompactness of `M` to find a locally finite covering by the balls
-  `B (c i) (R i)`. More precisely, we use lemma
-  `refinement_of_locally_compact_sigma_compact_of_nhds_basis_set` which is a more precise
-  version of “locally compact sigma compact space is paracompact”. -/
+  -- Next we choose a covering by supports of smooth bump functions
+  have hB := λ x hx, smooth_bump_function.nhds_basis_support I (hU x hx),
   rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis_set hs hB
-    with ⟨ι, c, R, hR, hsub', hfin⟩, choose hcs hR0 hcBER hcBR using hR,
-  have Bio : ∀ i, is_open (B (c i) (R i)), from λ i, Bo _ _ (hcBER i),
-  -- We introduce an auxiliary family of bump functions to use lemmas about them.
-  set f' : Π i, smooth_bump_function I (c i) :=
-    λ i, ⟨⟨⟨R i / 2, R i, half_pos (hR0 i), half_lt_self (hR0 i)⟩⟩, hcBER i⟩,
-  have compact_cB : ∀ i, is_compact (cB (c i) (R i)),
-    from λ i, (f' i).compact_symm_image_closed_ball,
-  have Bsrc : ∀ i, B (c i) (R i) ⊆ (e (c i)).source,
-    from λ i, (B_eq (c i) (R i) (hcBER i)).symm ▸ inter_subset_left _ _,
-  /- Finally, we use the shrinking lemma to get a covering by smaller balls `B (c i) (r i)`,
-  then use `c`, `r`, and `R` to construct the desired covering. -/
-  choose V hsV hVo hVB
-    using exists_subset_Union_closure_subset hs Bio (λ x hx, hfin.point_finite x) hsub',
-  have hVcB : ∀ i, closure (V i) ⊆ cB (c i) (R i), from λ i, subset.trans (hVB i) (BcB _ _),
-  have hVc : ∀ i, is_compact (closure (V i)),
-    from λ i, compact_of_is_closed_subset
-      (compact_cB i) is_closed_closure (hVcB i),
-  have hVBE : ∀ i, closure (e (c i) '' V i) ⊆ BE (c i) (R i),
-  { intro i,
-    rw [← image_closure_of_compact (hVc i) ((ext_chart_at_continuous_on I (c i)).mono $
-      subset.trans (hVB i) (Bsrc i)), image_subset_iff],
-    refine subset.trans (hVB i) (λ x' hx', mem_preimage.2 _),
-    rw B_eq (c i) (R i) (hcBER i) at hx',
-    exact ⟨hx'.2, mem_range_self _⟩ },
-  have : ∀ i, ∃ r ∈ Ioo 0 (R i), closure (e (c i) '' V i) ⊆ BE (c i) r,
-  { intro i,
-    rcases euclidean.exists_pos_lt_subset_ball (hR0 i) is_closed_closure
-      (subset.trans (hVBE i) (inter_subset_left _ _)) with ⟨r, hIoo, hrV⟩,
-    exact ⟨r, hIoo, subset_inter hrV (subset.trans (hVBE i) (inter_subset_right _ _))⟩ },
-  choose r hlt hrV,
-  set f : Π i, smooth_bump_function I (c i) := λ i, ⟨⟨⟨r i, R i, (hlt i).1, (hlt i).2⟩⟩, hcBER i⟩,
-  refine ⟨⟨ι, c, f, hcs, _, λ x hx, _⟩, λ i, _⟩,
-  { simpa only [(f _).support_eq_symm_image] },
+    with ⟨ι, c, f, hf, hsub', hfin⟩, choose hcs hfU using hf,
+  /- Then we use the shrinking lemma to get a covering by smaller open -/
+  rcases exists_subset_Union_closed_subset hs (λ i, (f i).open_support)
+    (λ x hx, hfin.point_finite x) hsub' with ⟨V, hsV, hVc, hVf⟩,
+  choose r hrR hr using λ i, (f i).exists_r_pos_lt_subset_ball (hVc i) (hVf i),
+  refine ⟨⟨ι, c, λ i, (f i).update_r (r i) (hrR i), hcs, _, λ x hx, _⟩, λ i, _⟩,
+  { simpa only [smooth_bump_function.support_update_r] },
   { refine (mem_Union.1 $ hsV hx).imp (λ i hi, _),
-    refine mem_nhds_sets_iff.2 ⟨V i, λ x' hx', _, hVo i, hi⟩,
-    simp only [ext_chart_at_source] at Bsrc,
-    exact (f i).one_of_dist_le (Bsrc _ $ hVB _ $ subset_closure hx')
-      (le_of_lt (hrV i (subset_closure $ mem_image_of_mem _ hx')).1) },
-  { calc closure (support (f i)) ⊆ cB (c i) (R i) :
-      (f i).closure_support_subset_symm_image_closed_ball
-    ... ⊆ U (c i) : hcBR i }
+    exact ((f i).update_r _ _).eventually_eq_one_of_dist_lt
+      ((f i).support_subset_source $ hVf _ hi) (hr i hi).2 },
+  { simpa only [coe_mk, smooth_bump_function.support_update_r] using hfU i }
 end
 
 /-- Choice of a covering of a closed set `s` by supports of smooth bump functions. -/
 def choice_set [t2_space M] [sigma_compact_space M] (s : set M) (hs : is_closed s) :
   smooth_bump_covering I s :=
 (exists_is_subordinate I hs (λ x hx, univ_mem_sets)).some
+
+instance [t2_space M] [sigma_compact_space M] {s : set M} [is_closed s] :
+  inhabited (smooth_bump_covering I s) :=
+⟨choice_set I s ‹_›⟩
 
 variable (M)
 

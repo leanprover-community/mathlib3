@@ -217,17 +217,17 @@ begin
   exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
 end
 
-lemma order_of_injective {G H : Type*} [monoid G] [monoid H] {f : G →* H}
+lemma order_of_injective {G H : Type*} [monoid G] [monoid H] (f : G →* H)
   (hf : function.injective f) (σ : G) : order_of (f σ) = order_of σ :=
 by simp_rw [order_of_eq_order_of_iff, ←f.map_pow, ←f.map_one, hf.eq_iff, iff_self, forall_const]
 
 @[simp] lemma order_of_submonoid {G : Type*} [monoid G] {H : submonoid G} (σ : H) :
   order_of (σ : G) = order_of σ :=
-order_of_injective (show function.injective H.subtype, from subtype.coe_injective) σ
+order_of_injective H.subtype subtype.coe_injective σ
 
 @[simp] lemma order_of_subgroup {G : Type*} [group G] {H : subgroup G} (σ : H) :
   order_of (σ : G) = order_of σ :=
-order_of_injective (show function.injective H.subtype, from subtype.coe_injective) σ
+order_of_injective H.subtype subtype.coe_injective σ
 
 open nat
 

@@ -514,32 +514,16 @@ instance grade_zero.smul_with_zero (i : ι) : smul_with_zero (A 0) (A i) :=
 begin
   letI : smul_with_zero (⨁ i, A i) (⨁ i, A i) :=
   { smul := (*), smul_zero := mul_zero, zero_smul := zero_mul },
+  -- TODO: #6909
   letI : smul_with_zero (A 0) (⨁ i, A i) :=
-  { smul := (•) ∘ (of A 0),
-    smul_zero := λ m, by simp,
-    zero_smul := λ m, by simp, },
-  -- TODO: #6892
-  -- apply function.injective.smul_with_zero (A 0) (of A i) dfinsupp.single_injective,
-  sorry
+  { smul := (•) ∘ (of A 0), smul_zero := λ m, by simp, zero_smul := λ m, by simp, },
+  apply function.injective.smul_with_zero (A 0) (of A i) dfinsupp.single_injective,
 end
 
 end mul
 
 section semiring
 variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gmonoid A]
-
--- TODO: gh-6895
-/-- Compose a `semimodule` with a `ring_hom`, with action `f s • m` -/
-def _root_.ring_hom.comp_semimodule
-  {R S} (M : Type*) [semiring R] [add_comm_monoid M] [semimodule R M] [semiring S]
-  (f : S →+* R) : semimodule S M :=
-{ smul := (•) ∘ f,
-  zero_smul := λ x, by simp [zero_smul],
-  smul_zero := λ x, by simp [smul_zero],
-  add_smul := λ r s x, by simp [add_smul],
-  smul_add := λ r s x, by simp [smul_add],
-  mul_smul := λ r s x, by simp [mul_smul],
-  one_smul := λ x, by simp}
 
 /-- The `semiring` structure derived from `gmonoid A`. -/
 instance grade_zero.semiring : semiring (A 0) :=

@@ -3,6 +3,7 @@ Copyright (c) 2018  Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
+import data.fintype.basic
 import algebra.group.hom
 import algebra.group.semiconj
 import data.equiv.mul_add_aut
@@ -136,6 +137,10 @@ quot.exists_rep a
 /-- A `monoid_hom` maps conjugacy classes of one group to conjugacy classes of another. -/
 def map (f : α →* β) : conj_classes α → conj_classes β :=
 quotient.lift (conj_classes.mk ∘ f) (λ a b ab, mk_eq_mk_iff_is_conj.2 (f.map_is_conj ab))
+
+instance [fintype α] [decidable_rel (is_conj : α → α → Prop)] :
+  fintype (conj_classes α) :=
+quotient.fintype (is_conj.setoid α)
 
 end monoid
 

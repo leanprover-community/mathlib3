@@ -20,7 +20,6 @@ these subgroups.
 -/
 
 namespace equiv
-
 namespace perm
 
 universes u

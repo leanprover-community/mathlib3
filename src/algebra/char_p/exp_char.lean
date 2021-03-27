@@ -42,17 +42,16 @@ class inductive exp_char (R : Type u) [semiring R] : ℕ → Prop
 lemma exp_char_one_of_char_zero (q : ℕ) [hp : char_p R 0] [hq : exp_char R q] :
 q = 1 :=
 begin
-  casesI hq,
+  casesI hq with q hq_one hq_prime,
   { refl },
-  { exact false.elim (lt_irrefl _ ((hp.eq R hq_hchar).symm ▸ hq_hprime : (0 : ℕ).prime).pos) }
+  { exact false.elim (lt_irrefl _ ((hp.eq R hq_hchar).symm ▸ hq_prime : (0 : ℕ).prime).pos) }
 end
 
 /-- The characteristic equals the exponential characteristic iff the former is prime. -/
 theorem char_eq_exp_char_iff (p q : ℕ) [hp : char_p R p] [hq : exp_char R q] :
 p = q ↔ p.prime :=
 begin
-  casesI hq,
-  --unfreezingI {rcases hq.exp_char_def with ⟨rfl,q_one⟩ | q_prime},
+  casesI hq with q hq_one hq_prime,
   { split,
     { unfreezingI {rintro rfl},
       exact false.elim (one_ne_zero (hp.eq R (char_p.of_char_zero R))) },
@@ -60,7 +59,7 @@ begin
       rw (char_p.eq R hp infer_instance : p = 0) at pprime,
       exact false.elim (nat.not_prime_zero pprime) } },
   { split,
-    { intro hpq, rw hpq, exact hq_hprime, },
+    { intro hpq, rw hpq, exact hq_prime, },
     { intro _,
       exact char_p.eq R hp hq_hchar } },
 end

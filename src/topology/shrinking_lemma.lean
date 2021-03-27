@@ -242,3 +242,12 @@ lemma exists_Union_eq_closure_subset (uo : ∀ i, is_open (u i)) (uf : ∀ x, fi
   ∃ v : ι → set X, Union v = univ ∧ (∀ i, is_open (v i)) ∧ ∀ i, closure (v i) ⊆ u i :=
 let ⟨v, vU, hv⟩ := exists_subset_Union_closure_subset is_closed_univ uo (λ x _, uf x) uU.ge
 in ⟨v, univ_subset_iff.1 vU, hv⟩
+
+/-- Shrinking lemma. A point-finite open cover of a closed subset of a normal space can be "shrunk"
+to a new closed cover so that each of the new closed sets is contained in the corresponding
+original open set. See also `exists_Union_eq_closure_subset` for a stronger statement. -/
+lemma exists_Union_eq_closed_subset (uo : ∀ i, is_open (u i)) (uf : ∀ x, finite {i | x ∈ u i})
+  (uU : (⋃ i, u i) = univ) :
+  ∃ v : ι → set X, Union v = univ ∧ (∀ i, is_closed (v i)) ∧ ∀ i, v i ⊆ u i :=
+let ⟨v, vU, hv⟩ := exists_subset_Union_closed_subset is_closed_univ uo (λ x _, uf x) uU.ge
+in ⟨v, univ_subset_iff.1 vU, hv⟩

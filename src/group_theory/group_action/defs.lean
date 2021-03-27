@@ -112,7 +112,8 @@ is_scalar_tower.smul_assoc x y z
 section
 variables [monoid M] [mul_action M α]
 
-@[to_additive] lemma smul_smul (a₁ a₂ : M) (b : α) : a₁ • a₂ • b = (a₁ * a₂) • b := (mul_smul _ _ _).symm
+@[to_additive] lemma smul_smul (a₁ a₂ : M) (b : α) : a₁ • a₂ • b = (a₁ * a₂) • b :=
+(mul_smul _ _ _).symm
 
 variable (M)
 @[simp, to_additive] theorem one_smul (b : α) : (1 : M) • b = b := mul_action.one_smul _

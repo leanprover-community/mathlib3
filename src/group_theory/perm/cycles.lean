@@ -166,6 +166,8 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
         pow_one, units.neg_mul_neg] }
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support.card)⟩]}
 
+-- The lemma `support_pow_le` is relevant. It means that `h2` is equivalent to
+-- `σ.support = (σ ^ n).support`, as well as to `σ.support.card ≤ (σ ^ n).support.card`.
 lemma is_cycle_of_is_cycle_pow {σ : perm α} {n : ℤ}
   (h1 : is_cycle (σ ^ n)) (h2 : σ.support ≤ (σ ^ n).support) : is_cycle σ :=
 begin

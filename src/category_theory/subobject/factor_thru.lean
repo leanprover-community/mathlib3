@@ -199,7 +199,7 @@ lemma kernel_subobject_arrow :
   (kernel_subobject_iso f).inv ≫ (kernel_subobject f).arrow = kernel.ι f :=
 over.w (subobject.representative_iso (mono_over.mk' (kernel.ι f))).inv
 
-@[simp]
+@[simp, reassoc]
 lemma kernel_subobject_arrow_comp :
   (kernel_subobject f).arrow ≫ f = 0 :=
 by simp [kernel_subobject_arrow, kernel.condition]
@@ -214,6 +214,17 @@ lemma kernel_subobject_factors_iff {W : C} (h : W ⟶ X) :
   kernel_subobject_arrow_comp, comp_zero],
 kernel_subobject_factors f h⟩
 
+lemma le_kernel_subobject (A : subobject X) (h : A.arrow ≫ f = 0) : A ≤ kernel_subobject f :=
+subobject.le_mk_of_comm (kernel.lift f A.arrow h) (by simp)
+
+/-- Postcomposing by an isomorphism does not change the kernel subobject. -/
+lemma kernel_subobject_comp_iso
+  {f : X ⟶ Y} [has_kernel f] {Z : C} (h : Y ⟶ Z) [is_iso h] :
+  kernel_subobject (f ≫ h) = kernel_subobject f :=
+le_antisymm
+  (le_kernel_subobject _ _ ((cancel_mono h).mp (by simp)))
+  (le_kernel_subobject _ _ (by simp))
+
 end kernel
 
 section image
@@ -221,7 +232,7 @@ variables (f : X ⟶ Y) [has_image f]
 
 /-- The image of a morphism `f g : X ⟶ Y` as a `subobject Y`. -/
 def image_subobject : subobject Y :=
-(to_thin_skeleton _).obj (mono_over.image_mono_over f)
+subobject.mk (image.ι f)
 
 /-- The underlying object of `image_subobject f` is (up to isomorphism!)
 the same as the chosen object `image f`. -/
@@ -250,6 +261,22 @@ lemma image_subobject_factors {W : C} (h : W ⟶ Y) (k : W ⟶ X) (w : k ≫ f =
   (image_subobject f).factors h :=
 ⟨k ≫ factor_thru_image f, by simp [w]⟩
 
+/-- Precomposing by an isomorphism does not change the image subobject. -/
+lemma image_subobject_iso_comp [has_equalizers C]
+  {f : X ⟶ Y} [has_image f] {X' : C} (h : X' ⟶ X) [is_iso h] :
+  image_subobject (h ≫ f) = image_subobject f :=
+le_antisymm
+  (subobject.mk_le_mk_of_comm (image.pre_comp h f) (by simp))
+  (subobject.mk_le_mk_of_comm (inv (image.pre_comp h f)) (by simp))
+
+lemma image_subobject_le_mk {A B : C} {X : C} (g : X ⟶ B) [mono g] (f : A ⟶ B) [has_image f]
+  (h : A ⟶ X) (w : h ≫ g = f) :
+  image_subobject f ≤ subobject.mk g :=
+subobject.le_mk_of_comm
+  ((image_subobject_iso f).hom ≫ image.lift { I := (X : C), e := h, m := g, })
+  (by simp [←image_subobject_arrow f])
+
+-- TODO de-duplicate
 lemma image_subobject_le {A B : C} {X : subobject B} (f : A ⟶ B) [has_image f]
   (h : A ⟶ X) (w : h ≫ X.arrow = f) :
   image_subobject f ≤ X :=

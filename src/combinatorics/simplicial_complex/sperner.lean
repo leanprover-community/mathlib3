@@ -9,6 +9,7 @@ import analysis.convex.topology
 import combinatorics.simplicial_complex.dump
 import combinatorics.simplicial_complex.extreme_point
 import combinatorics.simplicial_complex.basic
+import combinatorics.simplicial_complex.topology
 -- import data.nat.parity
 
 namespace affine

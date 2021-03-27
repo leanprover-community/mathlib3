@@ -66,10 +66,6 @@ by classical; exact ⟨(n % order_of f).to_nat, by {
   have := n.mod_nonneg (int.coe_nat_ne_zero.mpr (ne_of_gt (order_of_pos f))),
   rwa [← gpow_coe_nat, int.to_nat_of_nonneg this, ← gpow_eq_mod_order_of] }⟩
 
-lemma gpow_apply_comm {α : Type*} (σ : perm α) (m n : ℤ) {x : α} :
-  (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
-by rw [←mul_apply, ←mul_apply, gpow_mul_comm]
-
 lemma order_of_is_cycle {σ : perm α} (hσ : is_cycle σ) : order_of σ = σ.support.card :=
 begin
   obtain ⟨x, hx, hσ⟩ := hσ,

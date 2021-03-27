@@ -39,10 +39,10 @@ abbreviation assoc_monoid_hom (M N : Type*) [monoid M] [monoid N] := monoid_hom 
 
 @[to_additive]
 instance bundled_hom : bundled_hom assoc_monoid_hom :=
-⟨λ M N [monoid M] [monoid N], by exactI @monoid_hom.to_fun M N _ _,
- λ M [monoid M], by exactI @monoid_hom.id M _,
- λ M N P [monoid M] [monoid N] [monoid P], by exactI @monoid_hom.comp M N P _ _ _,
- λ M N [monoid M] [monoid N], by exactI @monoid_hom.coe_inj M N _ _⟩
+⟨λ M N [monoid M] [monoid N], by exactI @monoid_hom.to_fun M N _ _ _ _,
+ λ M [monoid M], by exactI @monoid_hom.id M _ _,
+ λ M N P [monoid M] [monoid N] [monoid P], by exactI @monoid_hom.comp M N P _ _ _ _ _ _,
+ λ M N [monoid M] [monoid N], by exactI @monoid_hom.coe_inj M N _ _ _ _⟩
 
 attribute [derive [has_coe_to_sort, large_category, concrete_category]] Mon AddMon
 

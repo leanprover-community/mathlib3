@@ -425,7 +425,7 @@ card.map_add s t
 
 lemma card_nsmul (s : multiset α) (n : ℕ) :
   (n •ℕ s).card = n * s.card :=
-by rw [card.map_nsmul s n, nat.nsmul_eq_mul]
+by rw [(card : multiset α →+ ℕ).map_nsmul s n, nat.nsmul_eq_mul]
 
 @[simp] theorem card_cons (a : α) (s : multiset α) : card (a ::ₘ s) = card s + 1 :=
 quot.induction_on s $ λ l, rfl

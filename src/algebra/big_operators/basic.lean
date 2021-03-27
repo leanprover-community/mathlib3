@@ -139,7 +139,7 @@ lemma monoid_hom.coe_prod [monoid β] [comm_monoid γ] (f : α → β →* γ) (
 @[simp, to_additive]
 lemma monoid_hom.finset_prod_apply [monoid β] [comm_monoid γ] (f : α → β →* γ) (s : finset α)
   (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
-(monoid_hom.eval b).map_prod _ _
+(monoid_hom.eval b : (β →* γ) →* γ).map_prod _ _
 
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 

@@ -50,4 +50,9 @@ begin
   apply image_subobject_iso_comp,
 end
 
+-- not sure what the correct names for the fields are
+structure hom (A B : homological_complex V c) :=
+(f : ∀ i, A.X i ⟶ B.X i)
+(commutes : ∀ i j, f i ≫ B.d i j = A.d i j ≫ f j)
+
 end homological_complex

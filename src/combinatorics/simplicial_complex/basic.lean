@@ -711,13 +711,13 @@ begin
     exact hX (disjoint_self.1 (finset.disjoint_of_subset_right h.2 hY)), }
 end
 
-lemma link_singleton_eq_iff_singleton_eq_singleton {S : simplicial_complex m}
+lemma link_singleton_eq_Star_minus_star_iff_singleton {S : simplicial_complex m}
   {X : finset (fin m → ℝ)} (hX : X ≠ ∅) :
   (S.link {X}).faces = (S.Star {X}).faces \ S.star {X} ↔ X.card = 1 :=
 begin
   split,
   {
-    sorry --true? The PDF claims so but i'm not sure
+    sorry --true? The PDF claims so but I'm not sure
   },
   {
     rintro hXcard,
@@ -783,11 +783,74 @@ begin
   }
 end
 
-lemma pure_link_of_pure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} {n k : ℕ}
-  (hA : ∀ {X}, X ∈ A → (X : finset _).card = k) :
-  S.pure_of n → (S.link A).pure_of (n - k - 1) :=
+lemma link_facet_iff {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} {n k : ℕ}
+  (hS : S.pure_of n) {X : finset (fin m → ℝ)} (hA : ∀ {W}, W ∈ A → (W : finset _).card = k) :
+  X ∈ (S.link A).facets ↔ ∃ {W Y}, W ∈ A ∧ Y ∈ S.facets ∧ W ⊆ Y ∧ X = Y \ W :=
 begin
-  rintro hS X ⟨⟨hXdisj, W, Z, hW, hZ, hXZ, hWZ⟩, hXmax⟩,
+  split,
+  {
+    rintro ⟨⟨hXdisj, W, Z, hW, hZ, hXZ, hWZ⟩, hXmax⟩,
+    obtain ⟨Y, hY, hZY⟩ := subfacet hZ,
+    use [W, Y, hW, hY, subset.trans hWZ hZY],
+    apply hXmax,
+    {
+      split,
+      {
+        rintro V hV,
+        rw finset.disjoint_iff_inter_eq_empty,
+        by_contra hVYW,
+        change V ∩ (Y \ W) ≠ ∅ at hVYW,
+        rw ← finset.nonempty_iff_ne_empty at hVYW,
+        sorry --use hA' here
+      },
+      {
+        have htrivial : Y \ W ⊆ Y,
+        {
+          sorry --trivial
+        },
+        exact ⟨W, Y, hW, facets_subset hY, htrivial, subset.trans hWZ hZY⟩,
+      }
+    },
+    {
+      rintro x hx,
+      rw finset.mem_sdiff,
+      use finset.subset.trans hXZ hZY hx,
+      rintro hxW,
+      have hempty:= hXdisj hW,
+      rw finset.disjoint_iff_inter_eq_empty at hempty,
+      have : x ∈ W ∩ X := finset.mem_inter.2 ⟨hxW, hx⟩,
+      rw hempty at this,
+      exact finset.not_mem_empty x this,
+    }
+  },
+  {
+    rintro ⟨W, Y, hW, hY, hWY, rfl⟩,
+    split,
+    {
+      split,
+      {
+        rintro V hV,
+        sorry --use hA' here
+      },
+      { exact ⟨W, Y, hW, facets_subset hY, finset.sdiff_subset_self, hWY⟩ }
+    },
+    {
+      rintro X ⟨hXdisj, U, V, hU, hV, hXV, hUV⟩ hYWX,
+      apply finset.eq_of_subset_of_card_le hYWX,
+      rw finset.card_sdiff hWY,
+      have := finset.card_le_of_subset (finset.union_subset hUV hXV),
+      rw [finset.card_disjoint_union (hXdisj hU), hA hU] at this,
+      rw [hA hW, hS hY],
+      exact nat.le_sub_left_of_add_le (le_trans this (simplex_dimension_le_pureness hS hV)),
+    }
+  }
+end
+
+lemma pure_link_of_pure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} {n k : ℕ}
+  (hA : ∀ {X}, X ∈ A → (X : finset _).card = k) (hS : S.pure_of n) :
+  (S.link A).pure_of (n - k) :=
+begin
+  rintro X ⟨⟨hXdisj, W, Z, hW, hZ, hXZ, hWZ⟩, hXmax⟩, --easy once we have `link_facet_iff`
   sorry
 end
 
@@ -981,10 +1044,25 @@ end
 lemma boundary_link {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} : --{X : finset (fin m → ℝ)}
   S.boundary.link A = (S.link A).boundary :=
 begin
-  ext X,
+  ext V,
   split,
   {
-    sorry
+    rintro ⟨hVdisj, W, X, hW, ⟨Y, hY, hXY, Z, ⟨hZ, hYZ⟩, hZmax⟩, hVX, hWX⟩,
+    simp at hYZ hZmax,
+    use V,
+    split,
+    {
+      split,
+      exact (λ U hU, hVdisj hU),
+      exact ⟨W, Z, hW, facets_subset hZ, subset.trans hVX (subset.trans hXY hYZ.1),
+        subset.trans hWX (subset.trans hXY hYZ.1)⟩,
+    },
+    {
+      use subset.refl V,
+      use Z,
+      simp,
+      sorry
+    }
   },
   {
     sorry

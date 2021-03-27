@@ -343,7 +343,7 @@ begin
       rcases hv p₂ hp₂ with ⟨r, rfl⟩,
       rcases hv p₁ hp₁ with ⟨r₁, rfl⟩,
       use r - r₁,
-      simp [vadd_assoc, ←add_smul] } }
+      simp [vadd_vadd, ←add_smul] } }
 end
 
 /-- Two points are collinear. -/

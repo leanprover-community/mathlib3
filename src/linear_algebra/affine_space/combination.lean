@@ -190,7 +190,7 @@ def affine_combination (p : ι → P) : (ι → k) →ᵃ[k] P :=
 { to_fun := λ w,
     s.weighted_vsub_of_point p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty),
   linear := s.weighted_vsub p,
-  map_vadd' := λ w₁ w₂, by simp_rw [vadd_assoc, weighted_vsub, vadd_eq_add, linear_map.map_add] }
+  map_vadd' := λ w₁ w₂, by simp_rw [vadd_vadd, weighted_vsub, vadd_eq_add, linear_map.map_add] }
 
 /-- The linear map corresponding to `affine_combination` is
 `weighted_vsub`. -/

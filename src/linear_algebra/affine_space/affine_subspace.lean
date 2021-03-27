@@ -128,7 +128,7 @@ lemma vadd_mem_span_points_of_mem_span_points_of_mem_vector_span {s : set P} {p 
     (hp : p ∈ span_points k s) (hv : v ∈ vector_span k s) : v +ᵥ p ∈ span_points k s :=
 begin
   rcases hp with ⟨p2, ⟨hp2, ⟨v2, ⟨hv2, hv2p⟩⟩⟩⟩,
-  rw [hv2p, vadd_assoc],
+  rw [hv2p, vadd_vadd],
   use [p2, hp2, v + v2, (vector_span k s).add_mem hv hv2, rfl]
 end
 
@@ -374,8 +374,8 @@ end
 
 instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.direction s :=
 { vadd := λ a b, ⟨(a:V) +ᵥ (b:P), vadd_mem_of_mem_direction a.2 b.2⟩,
-  zero_vadd' := by simp,
-  vadd_assoc' := λ a b c, by { ext, apply add_torsor.vadd_assoc' },
+  zero_vadd := by simp,
+  add_vadd := λ a b c, by { ext, apply add_vadd },
   vsub := λ a b, ⟨(a:P) -ᵥ (b:P), (vsub_left_mem_direction_iff_mem a.2 _).mpr b.2 ⟩,
   nonempty := by apply_instance,
   vsub_vadd' := λ a b, by { ext, apply add_torsor.vsub_vadd' },
@@ -404,7 +404,7 @@ def mk' (p : P) (direction : submodule k V) : affine_subspace k P :=
     rcases hp3 with ⟨v3, hv3, hp3⟩,
     use [c • (v1 - v2) + v3,
          direction.add_mem (direction.smul_mem c (direction.sub_mem hv1 hv2)) hv3],
-    simp [hp1, hp2, hp3, vadd_assoc]
+    simp [hp1, hp2, hp3, vadd_vadd]
   end }
 
 /-- An affine subspace constructed from a point and a direction contains
@@ -1085,7 +1085,7 @@ begin
     use [r, v2 +ᵥ p1, vadd_mem_of_mem_direction hv2 hp1],
     symmetry' at hp,
     rw [←sub_eq_zero, ←vsub_vadd_eq_vsub_sub, vsub_eq_zero_iff_eq] at hp,
-    rw [hp, vadd_assoc] },
+    rw [hp, vadd_vadd] },
   { rintros ⟨r, p3, hp3, rfl⟩,
     use [r • (p2 -ᵥ p1), submodule.mem_span_singleton.2 ⟨r, rfl⟩, p3 -ᵥ p1,
          vsub_mem_direction hp3 hp1],

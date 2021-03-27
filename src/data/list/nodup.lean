@@ -137,7 +137,7 @@ begin
     { refl },
     { apply (d.1 _ h₂ h₃.symm).elim },
     { apply (d.1 _ h₁ h₃).elim },
-    { apply ih d.2 _ h₁ _ h₂ h₃ } }
+    { apply ih d.2 h₁ h₂ h₃ } }
 end
 
 theorem nodup_map_iff_inj_on {f : α → β} {l : list α} (d : nodup l) :

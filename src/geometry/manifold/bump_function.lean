@@ -208,6 +208,9 @@ lemma compact_symm_image_closed_ball :
 (compact_ball.inter_right I.closed_range).image_of_continuous_on $
   (ext_chart_at_continuous_on_symm _ _).mono f.closed_ball_subset
 
+/-- Given a smooth bump function `f : smooth_bump_function I c`, the closed ball of radius `f.R` is
+known to include the support of `f`. These closed balls (in the model normed space `E`) intersected
+with `set.range I` form a basis of `𝓝[range I] (ext_chart_at I c c)`. -/
 lemma nhds_within_range_basis :
   (𝓝[range I] (ext_chart_at I c c)).has_basis (λ f : smooth_bump_function I c, true)
     (λ f, closed_ball (ext_chart_at I c c) f.R ∩ range I) :=
@@ -229,6 +232,9 @@ begin
   exact is_closed_inter is_closed_closed_ball I.closed_range
 end
 
+/-- If `f` is a smooth bump function and `s` closed subset of the support of `f` (i.e., of the open
+ball of radius `f.R`), then there exists `0 < r < f.R` such that `s` is a subset of the open ball of
+radius `r`. Formally, `s ⊆ e.source ∩ e ⁻¹' (ball (e c) r)`, where `e = ext_chart_at I c`. -/
 lemma exists_r_pos_lt_subset_ball {s : set M} (hsc : is_closed s) (hs : s ⊆ support f) :
   ∃ r (hr : r ∈ Ioo 0 f.R), s ⊆
     (chart_at H c).source ∩ ext_chart_at I c ⁻¹' (ball (ext_chart_at I c c) r) :=
@@ -290,6 +296,9 @@ compact_of_is_closed_subset f.compact_symm_image_closed_ball is_closed_closure
 
 variables (I c)
 
+/-- The closures of supports of smooth bump functions centered at `c` form a basis of `𝓝 c`.
+In other words, each of these closures is a neighborhood of `c` and each neighborhood of `c`
+includes `closure (support f)` for some `f : smooth_bump_function I c`. -/
 lemma nhds_basis_closure_support :
   (𝓝 c).has_basis (λ f : smooth_bump_function I c, true) (λ f, closure $ support f) :=
 begin
@@ -303,6 +312,10 @@ end
 
 variable {c}
 
+/-- Given `s ∈ 𝓝 c`, the supports of smooth bump functions `f : smooth_bump_function I c` such that
+`closure (support f) ⊆ s` form a basis of `𝓝 c`.  In other words, each of these supports is a
+neighborhood of `c` and each neighborhood of `c` includes `support f` for some `f :
+smooth_bump_function I c` such that `closure (support f) ⊆ s`. -/
 lemma nhds_basis_support {s : set M} (hs : s ∈ 𝓝 c) :
   (𝓝 c).has_basis (λ f : smooth_bump_function I c, closure (support f) ⊆ s) (λ f, support f) :=
 ((nhds_basis_closure_support I c).restrict_subset hs).to_has_basis'
@@ -310,6 +323,7 @@ lemma nhds_basis_support {s : set M} (hs : s ∈ 𝓝 c) :
 
 variables [smooth_manifold_with_corners I M] {I}
 
+/-- A smooth bump function is infinitely smooth. -/
 protected lemma smooth : smooth I 𝓘(ℝ) f :=
 begin
   refine times_cont_mdiff_of_support (λ x hx, _),
@@ -322,6 +336,8 @@ end
 
 protected lemma smooth_at {x} : smooth_at I 𝓘(ℝ) f x := f.smooth.smooth_at
 
+/-- If `f : smooth_bump_function I c` is a smooth bump function and `g : M → G` is a function smooth
+on the source of the chart at `c`, then `f • g` is smooth on the whole manifold. -/
 lemma smooth_smul {G} [normed_group G] [normed_space ℝ G]
   {g : M → G} (hg : smooth_on I 𝓘(ℝ, G) g (chart_at H c).source) :
   smooth I 𝓘(ℝ, G) (λ x, f x • g x) :=

@@ -1194,6 +1194,7 @@ begin
   { exact single_zero }
 end
 
+@[simp]
 lemma map_domain_single {f : α → β} {a : α} {b : M} : map_domain f (single a b) = single (f a) b :=
 sum_single_index single_zero
 

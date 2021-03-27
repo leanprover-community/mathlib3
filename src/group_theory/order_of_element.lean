@@ -619,8 +619,6 @@ begin
   exact mem_powers_iff_mem_range_order_of
 end
 
-
-
 lemma order_eq_card_powers [decidable_eq α] {a : α} :
   order_of a = fintype.card (submonoid.powers a : set α) :=
 begin
@@ -680,14 +678,13 @@ lemma mem_multiples_iff_mem_gmultiples {x y : H} :
 
 open subgroup
 
+@[to_additive mem_multiples_iff_mem_gmultiples]
 lemma mem_powers_iff_mem_gpowers {a x : α} : x ∈ submonoid.powers a ↔ x ∈ gpowers a :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
 λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
   by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
     (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos a))),
     ← gpow_eq_mod_order_of]⟩⟩
-
-attribute [to_additive mem_multiples_iff_mem_gmultiples] mem_powers_iff_mem_gpowers
 
 lemma multiples_eq_gmultiples (x : H) :
   (add_submonoid.multiples x : set H) = add_subgroup.gmultiples x :=
@@ -727,20 +724,6 @@ begin
   exact decidable_powers,
 end
 
-lemma add_order_eq_card_gmultiples [decidable_eq H] {x : H} :
-  add_order_of x = fintype.card (add_subgroup.gmultiples x : set H) :=
-begin
-  refine (finset.card_eq_of_bijective _ _ _ _).symm,
-  { exact λn hn, ⟨n •ℤ x, ⟨n, rfl⟩⟩ },
-  { exact assume ⟨_, i, rfl⟩ _,
-    have pos : (0 : ℤ) < add_order_of x := int.coe_nat_lt.mpr $ add_order_of_pos x,
-    have 0 ≤ i % (add_order_of x) := int.mod_nonneg _ $ ne_of_gt pos,
-    ⟨int.to_nat (i % add_order_of x), by rw [← int.coe_nat_lt, int.to_nat_of_nonneg this];
-      exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gsmul_eq_mod_add_order_of.symm⟩⟩ },
-  { intros, exact finset.mem_univ _ },
-  { exact assume i j hi hj eq, nsmul_injective_of_lt_add_order_of x hi hj $ by simpa using eq }
-end
-
 lemma order_eq_card_gpowers [decidable_eq α] {a : α} :
   order_of a = fintype.card (subgroup.gpowers a : set α) :=
 begin
@@ -754,6 +737,14 @@ begin
         exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gpow_eq_mod_order_of.symm⟩⟩ },
   { intros, exact finset.mem_univ _ },
   { exact assume i j hi hj eq, pow_injective_of_lt_order_of a hi hj $ by simpa using eq }
+end
+
+lemma add_order_eq_card_gmultiples [decidable_eq H] {x : H} :
+  add_order_of x = fintype.card (add_subgroup.gmultiples x : set H) :=
+begin
+  rw ← order_of_of_add_eq_add_order_of,
+  rw order_eq_card_gpowers,
+  congr, -- TODO : Replace by proof not using defeq.
 end
 
 attribute [to_additive add_order_eq_card_gmultiples] order_eq_card_gpowers
@@ -813,11 +804,10 @@ lemma image_range_add_order_of [decidable_eq H] {x : H} :
 by {ext x, rw [set.mem_to_finset, add_subgroup.mem_coe, mem_gmultiples_iff_mem_range_add_order_of] }
 
 /-- TODO: Generalise to `submonoid.powers`.-/
+@[to_additive image_range_add_order_of]
 lemma image_range_order_of [decidable_eq α] :
   finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a : set α).to_finset :=
 by { ext x, rw [set.mem_to_finset, mem_coe, mem_gpowers_iff_mem_range_order_of] }
-
-attribute [to_additive image_range_add_order_of] image_range_order_of
 
 open nat
 
@@ -828,13 +818,12 @@ lemma gcd_nsmul_card_eq_zero_iff {x : H} {n : ℕ} :
     by rw [hm, mul_comm, mul_nsmul, h, nsmul_zero]⟩
 
 /-- TODO: Generalise to `finite_cancel_monoid`. -/
+@[to_additive gcd_nsmul_card_eq_zero_iff]
 lemma pow_gcd_card_eq_one_iff {n : ℕ} :
   a ^ n = 1 ↔ a ^ (gcd n (fintype.card α)) = 1 :=
 ⟨λ h, pow_gcd_eq_one _ h $ pow_card_eq_one,
   λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card α) in
     by rw [hm, pow_mul, h, one_pow]⟩
-
-attribute [to_additive gcd_nsmul_card_eq_zero_iff] pow_gcd_card_eq_one_iff
 
 end finite_group
 

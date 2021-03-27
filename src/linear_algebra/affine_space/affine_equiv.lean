@@ -277,7 +277,7 @@ variable (P₁)
 def const_vadd (v : V₁) : P₁ ≃ᵃ[k] P₁ :=
 { to_equiv := equiv.const_vadd P₁ v,
   linear := linear_equiv.refl _ _,
-  map_vadd' := λ p w, vadd_comm _ _ _ _ }
+  map_vadd' := λ p w, vadd_comm _ _ _ }
 
 @[simp] lemma linear_const_vadd (v : V₁) : (const_vadd k P₁ v).linear = linear_equiv.refl _ _ := rfl
 

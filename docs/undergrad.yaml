@@ -412,7 +412,7 @@ Topology:
     complete metric spaces: 'metric.complete_of_cauchy_seq_tendsto'
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
   Normed vector spaces on $\R$ and $\C$:
-    topology on a normed vector space: 'normed_space.topological_vector_space'
+    topology on a normed vector space: 'normed_space.has_continuous_smul'
     equivalent norms:
     Banach open mapping theorem: 'open_mapping'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
@@ -431,7 +431,8 @@ Topology:
     orthogonal projection onto closed vector subspaces: 'orthogonal_projection_fn'
     dual space: 'normed_space.dual.normed_space'
     Riesz representation theorem: 'inner_product_space.to_dual'
-    $l^2$ and $L^2$ cases:
+    inner product spaces $l^2$ and $L^2$: 'measure_theory.L2.inner_product_space'
+    their completeness: 'measure_theory.Lp.complete_space'
     Hilbert (orthonormal) bases (in the separable case): 'exists_is_orthonormal_dense_span'
     Hilbert basis of trigonometric polynomials:
     Hilbert bases of orthogonal polynomials:

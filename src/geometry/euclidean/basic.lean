@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import analysis.normed_space.inner_product
 import algebra.quadratic_discriminant
@@ -186,7 +186,8 @@ begin
                       (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2,
       ←real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
       ←real.sqrt_mul' _ (mul_self_nonneg _), pow_two,
-      real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)), real_inner_self_eq_norm_square,
+      real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
+      real_inner_self_eq_norm_square,
       real_inner_self_eq_norm_square],
   by_cases h : (∥x∥ * ∥y∥) = 0,
   { rw [(show ∥x∥ * ∥x∥ * (∥y∥ * ∥y∥) = (∥x∥ * ∥y∥) * (∥x∥ * ∥y∥), by ring), h, mul_zero, mul_zero,
@@ -197,7 +198,8 @@ begin
     { rw norm_eq_zero at hy,
       rw [hy, inner_zero_right, zero_mul, neg_zero] } },
   { field_simp [h],
-    ring }
+    ring_nf,
+    ring_nf, }
 end
 
 /-- The angle between two vectors is zero if and only if they are
@@ -388,8 +390,8 @@ lemma dist_smul_vadd_square (r : ℝ) (v : V) (p₁ p₂ : P) :
   dist (r • v +ᵥ p₁) p₂ * dist (r • v +ᵥ p₁) p₂ =
     ⟪v, v⟫ * r * r + 2 * ⟪v, p₁ -ᵥ p₂⟫ * r + ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ :=
 begin
-  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_square, vadd_vsub_assoc, real_inner_add_add_self,
-      real_inner_smul_left, real_inner_smul_left, real_inner_smul_right],
+  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_square, vadd_vsub_assoc,
+    real_inner_add_add_self, real_inner_smul_left, real_inner_smul_left, real_inner_smul_right],
   ring
 end
 
@@ -399,7 +401,7 @@ lemma dist_smul_vadd_eq_dist {v : V} (p₁ p₂ : P) (hv : v ≠ 0) (r : ℝ) :
   dist (r • v +ᵥ p₁) p₂ = dist p₁ p₂ ↔ (r = 0 ∨ r = -2 * ⟪v, p₁ -ᵥ p₂⟫ / ⟪v, v⟫) :=
 begin
   conv_lhs { rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_smul_vadd_square,
-                 ←sub_eq_zero_iff_eq, add_sub_assoc, dist_eq_norm_vsub V p₁ p₂,
+                 ←sub_eq_zero, add_sub_assoc, dist_eq_norm_vsub V p₁ p₂,
                  ←real_inner_self_eq_norm_square, sub_self] },
   have hvi : ⟪v, v⟫ ≠ 0, by simpa using hv,
   have hd : discrim ⟪v, v⟫ (2 * ⟪v, p₁ -ᵥ p₂⟫) 0 =
@@ -498,7 +500,8 @@ classical.some $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.directionᗮ)
   begin
-    convert submodule.is_compl_orthogonal_of_is_complete (complete_space_coe_iff_is_complete.mp ‹_›),
+    convert submodule.is_compl_orthogonal_of_is_complete
+      (complete_space_coe_iff_is_complete.mp ‹_›),
     exact direction_mk' p s.directionᗮ
   end
 
@@ -514,7 +517,8 @@ classical.some_spec $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.directionᗮ)
   begin
-    convert submodule.is_compl_orthogonal_of_is_complete (complete_space_coe_iff_is_complete.mp ‹_›),
+    convert submodule.is_compl_orthogonal_of_is_complete
+      (complete_space_coe_iff_is_complete.mp ‹_›),
     exact direction_mk' p s.directionᗮ
   end
 
@@ -726,7 +730,7 @@ lemma dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_proje
     dist p1 (orthogonal_projection s p2) * dist p1 (orthogonal_projection s p2) +
     dist p2 (orthogonal_projection s p2) * dist p2 (orthogonal_projection s p2) :=
 begin
-  rw [metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
+  rw [pseudo_metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
     dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (orthogonal_projection s p2) p2,
     norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero],
   exact submodule.inner_right_of_mem_orthogonal
@@ -862,7 +866,8 @@ end
 
 /-- The distance between `p₁` and the reflection of `p₂` equals that
 between the reflection of `p₁` and `p₂`. -/
-lemma dist_reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] (p₁ p₂ : P) :
+lemma dist_reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction]
+  (p₁ p₂ : P) :
   dist p₁ (reflection s p₂) = dist (reflection s p₁) p₂ :=
 begin
   conv_lhs { rw ←reflection_reflection s p₁ },

@@ -166,6 +166,20 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
         pow_one, units.neg_mul_neg] }
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support.card)⟩]}
 
+-- The lemma `support_pow_le` is relevant. It means that `h2` is equivalent to
+-- `σ.support = (σ ^ n).support`, as well as to `σ.support.card ≤ (σ ^ n).support.card`.
+lemma is_cycle_of_is_cycle_pow {σ : perm α} {n : ℤ}
+  (h1 : is_cycle (σ ^ n)) (h2 : σ.support ≤ (σ ^ n).support) : is_cycle σ :=
+begin
+  have key : ∀ x : α, (σ ^ n) x ≠ x ↔ σ x ≠ x,
+  { simp_rw [←mem_support],
+    exact finset.ext_iff.mp (le_antisymm (support_pow_le σ n) h2) },
+  obtain ⟨x, hx1, hx2⟩ := h1,
+  refine ⟨x, (key x).mp hx1, λ y hy, _⟩,
+  cases (hx2 y ((key y).mpr hy)) with i _,
+  exact ⟨n * i, by rwa gpow_mul⟩,
+end
+
 end sign_cycle
 
 /-!
@@ -193,16 +207,18 @@ lemma is_cycle.same_cycle {f : perm β} (hf : is_cycle f) {x y : β}
   (hx : f x ≠ x) (hy : f y ≠ y) : same_cycle f x y :=
 hf.exists_gpow_eq hx hy
 
-instance [fintype α] (f : perm α) : decidable_rel (same_cycle f) :=
+noncomputable instance [fintype α] (f : perm α) : decidable_rel (same_cycle f) :=
 λ x y, decidable_of_iff (∃ n ∈ list.range (order_of f), (f ^ n) x = y)
 ⟨λ ⟨n, _, hn⟩, ⟨n, hn⟩, λ ⟨i, hi⟩, ⟨(i % order_of f).nat_abs, list.mem_range.2
   (int.coe_nat_lt.1 $
     by { rw int.nat_abs_of_nonneg (int.mod_nonneg _
         (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))),
       calc _ < _ : int.mod_lt _ (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))
-          ... = _ : by simp }),
-  by rw [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
-      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of, hi]⟩⟩
+          ... = _ : by simp,
+          exact fintype_perm, }),
+  by { rw [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
+      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of, hi],
+    exact fintype_perm }⟩⟩
 
 lemma same_cycle_apply {f : perm β} {x y : β} : same_cycle f x (f y) ↔ same_cycle f x y :=
 ⟨λ ⟨i, hi⟩, ⟨-1 + i, by rw [gpow_add, mul_apply, hi, gpow_neg_one, inv_apply_self]⟩,
@@ -228,7 +244,7 @@ by rw [← same_cycle_inv, same_cycle_apply, same_cycle_inv]
 -/
 
 /-- `f.cycle_of x` is the cycle of the permutation `f` to which `x` belongs. -/
-def cycle_of [fintype α] (f : perm α) (x : α) : perm α :=
+noncomputable def cycle_of [fintype α] (f : perm α) (x : α) : perm α :=
 of_subtype (@subtype_perm _ f (same_cycle f x) (λ _, same_cycle_apply.symm))
 
 lemma cycle_of_apply [fintype α] (f : perm α) (x y : α) :
@@ -287,7 +303,8 @@ have cycle_of f x x ≠ x, by rwa [(same_cycle.refl _ _).cycle_of_apply],
 
 /-- Given a list `l : list α` and a permutation `f : perm α` whose nonfixed points are all in `l`,
   recursively factors `f` into cycles. -/
-def cycle_factors_aux [fintype α] : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
+noncomputable def cycle_factors_aux [fintype α] : Π (l : list α) (f : perm α),
+  (∀ {x}, f x ≠ x → x ∈ l) →
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint}
 | []     f h := ⟨[], by { simp only [imp_false, list.pairwise.nil, list.not_mem_nil, forall_const,
     and_true, forall_prop_of_false, not_not, not_false_iff, list.prod_nil] at *,
@@ -320,7 +337,7 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
         hm₃⟩⟩
 
 /-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`. -/
-def cycle_factors [fintype α] [linear_order α] (f : perm α) :
+noncomputable def cycle_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 

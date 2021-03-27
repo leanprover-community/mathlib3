@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Andreas Swerdlow
+Authors: Andreas Swerdlow
 -/
 import ring_theory.ring_invo
 import algebra.module.linear_map
@@ -125,11 +125,11 @@ lemma is_add_monoid_hom_right (S : sesq_form R M I) (x : M) : is_add_monoid_hom 
 { map_add := λ z y, sesq_add_right S _ _ _,
   map_zero := zero_right x }
 
-lemma map_sum_left {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
+lemma sum_left {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
   S (∑ i in t, g i) w = ∑ i in t, S (g i) w :=
 by haveI s_inst := is_add_monoid_hom_left S w; exact (finset.sum_hom t (λ z, S z w)).symm
 
-lemma map_sum_right {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
+lemma sum_right {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
   S w (∑ i in t, g i) = ∑ i in t, S w (g i) :=
 by haveI s_inst := is_add_monoid_hom_right S w; exact (finset.sum_hom t (λ z, S w z)).symm
 

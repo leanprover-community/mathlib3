@@ -86,7 +86,7 @@ lemma exact_comp_mono [exact f g] [mono h] : exact f (g ≫ h) :=
 begin
   refine ⟨by simp, _⟩,
   letI : is_iso (kernel.lift (g ≫ h) (kernel.ι g) (by simp)) :=
-  { inv := kernel.lift g (kernel.ι (g ≫ h)) (by simp [←cancel_mono h]) },
+    ⟨⟨kernel.lift g (kernel.ι (g ≫ h)) (by simp [←cancel_mono h]), by tidy⟩⟩,
   rw image_to_kernel_map_comp_right f g h exact.w,
   exact epi_comp _ _
 end
@@ -95,8 +95,8 @@ lemma exact_kernel : exact (kernel.ι f) f :=
 begin
   refine ⟨kernel.condition _, _⟩,
   letI : is_iso (image_to_kernel_map (kernel.ι f) f (kernel.condition f)) :=
-  { inv := factor_thru_image (kernel.ι f),
-    hom_inv_id' := by simp [←cancel_mono (image.ι (kernel.ι f))] },
+    ⟨⟨factor_thru_image (kernel.ι f),
+      ⟨by simp [←cancel_mono (image.ι (kernel.ι f))], by tidy⟩⟩⟩,
   apply_instance
 end
 

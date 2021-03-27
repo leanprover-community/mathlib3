@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau.
+Authors: Kenny Lau
 -/
 
 import algebra.polynomial.big_operators
@@ -296,7 +296,7 @@ include hp
 
 /-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
 noncomputable def contract (f : polynomial F) : polynomial F :=
-⟨f.support.preimage (*p) $ λ _ _ _ _, (nat.mul_left_inj hp.pos).1,
+⟨f.support.preimage (*p) $ λ _ _ _ _, (nat.mul_left_inj hp.1.pos).1,
 λ n, f.coeff (n * p),
 λ n, by rw [finset.mem_preimage, mem_support_iff]⟩
 
@@ -304,7 +304,7 @@ theorem coeff_contract (f : polynomial F) (n : ℕ) : (contract p f).coeff n = f
 
 theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f)) :
   irreducible f :=
-@@of_irreducible_map _ _ _ (is_local_ring_hom_expand F hp.pos) hf
+@@of_irreducible_map _ _ _ (is_local_ring_hom_expand F hp.1.pos) hf
 
 theorem of_irreducible_expand_pow {f : polynomial F} {n : ℕ} :
   irreducible (expand F (p ^ n) f) → irreducible f :=
@@ -330,13 +330,13 @@ begin
   induction n, {simp [ring_hom.one_def]},
   symmetry,
   rw [pow_succ', pow_mul, ← n_ih, ← expand_char, pow_succ, ring_hom.mul_def, ← map_map, mul_comm,
-      expand_mul, ← map_expand (nat.prime.pos hp)],
+      expand_mul, ← map_expand (nat.prime.pos hp.1)],
 end
 
 theorem expand_contract {f : polynomial F} (hf : f.derivative = 0) :
   expand F p (contract p f) = f :=
 begin
-  ext n, rw [coeff_expand hp.pos, coeff_contract], split_ifs with h,
+  ext n, rw [coeff_expand hp.1.pos, coeff_contract], split_ifs with h,
   { rw nat.div_mul_cancel h },
   { cases n, { exact absurd (dvd_zero p) h },
     have := coeff_derivative f n, rw [hf, coeff_zero, zero_eq_mul] at this, cases this, { rw this },
@@ -349,7 +349,7 @@ theorem separable_or {f : polynomial F} (hf : irreducible f) : f.separable ∨
 if H : f.derivative = 0 then or.inr
   ⟨by rw [separable_iff_derivative_ne_zero hf, not_not, H],
   contract p f,
-  by haveI := is_local_ring_hom_expand F hp.pos; exact
+  by haveI := is_local_ring_hom_expand F hp.1.pos; exact
     of_irreducible_map ↑(expand F p) (by rwa ← expand_contract p H at hf),
   expand_contract p H⟩
 else or.inl $ (separable_iff_derivative_ne_zero hf).2 H
@@ -371,7 +371,7 @@ begin
     { intro this, rw [this, zero_mul] at hg1, cases hg1 },
     have hg3 : g.nat_degree < N.succ,
     { rw [← mul_one g.nat_degree, ← hg1],
-      exact nat.mul_lt_mul_of_pos_left hp.one_lt (nat.pos_of_ne_zero hg2) },
+      exact nat.mul_lt_mul_of_pos_left hp.1.one_lt (nat.pos_of_ne_zero hg2) },
     have hg4 : g ≠ 0,
     { rintro rfl, exact hg2 nat_degree_zero },
     rcases ih _ hg3 hg hg4 rfl with ⟨n, g, hg5, rfl⟩, refine ⟨n+1, g, hg5, _⟩,
@@ -386,7 +386,7 @@ begin
   { by rw [derivative_expand, nat.cast_pow, char_p.cast_eq_zero,
       zero_pow (nat.pos_of_ne_zero hn), zero_mul, mul_zero] },
   rw [separable_def, hf2, is_coprime_zero_right, is_unit_iff] at hf, rcases hf with ⟨r, hr, hrf⟩,
-  rw [eq_comm, expand_eq_C (pow_pos hp.pos _)] at hrf,
+  rw [eq_comm, expand_eq_C (pow_pos hp.1.pos _)] at hrf,
   rwa [hrf, is_unit_C]
 end
 
@@ -397,7 +397,7 @@ theorem unique_separable_of_irreducible {f : polynomial F} (hf : irreducible f) 
 begin
   revert g₁ g₂, wlog hn : n₁ ≤ n₂ := le_total n₁ n₂ using [n₁ n₂, n₂ n₁] tactic.skip,
   unfreezingI { intros, rw le_iff_exists_add at hn, rcases hn with ⟨k, rfl⟩,
-    rw [← hgf₁, pow_add, expand_mul, expand_inj (pow_pos hp.pos n₁)] at hgf₂, subst hgf₂,
+    rw [← hgf₁, pow_add, expand_mul, expand_inj (pow_pos hp.1.pos n₁)] at hgf₂, subst hgf₂,
     subst hgf₁,
     rcases is_unit_or_eq_zero_of_separable_expand p k hg₁ with h | rfl,
     { rw is_unit_iff at h, rcases h with ⟨r, hr, rfl⟩,

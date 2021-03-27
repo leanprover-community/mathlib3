@@ -40,6 +40,12 @@ protected lemma bounded (f : α →ᵇ β) : ∃C, ∀ x y : α, dist (f x) (f y
 @[continuity]
 protected lemma continuous (f : α →ᵇ β) : continuous f := f.to_continuous_map.continuous
 
+@[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
+by { cases f, cases g, congr, ext, exact H x, }
+
+lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
+⟨λ h, λ x, h ▸ rfl, ext⟩
+
 lemma bounded_range : bounded (range f) :=
 bounded_range_iff.2 f.bounded
 
@@ -69,6 +75,19 @@ def mk_of_discrete [discrete_topology α] (f : α → β)
   mk_of_discrete f C h a = f a :=
 rfl
 
+section
+variables (α β)
+/--
+The map forgetting that a bounded continuous function is bounded.
+-/
+def forget_boundedness : (α →ᵇ β) → C(α, β) :=
+λ f, f.1
+
+@[simp] lemma forget_boundedness_coe (f : α →ᵇ β) : (forget_boundedness α β f : α → β) = f :=
+rfl
+
+end
+
 /-- The uniform distance between two bounded continuous functions -/
 instance : has_dist (α →ᵇ β) :=
 ⟨λf g, Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C}⟩
@@ -93,12 +112,6 @@ end
 lemma dist_coe_le_dist (x : α) : dist (f x) (g x) ≤ dist f g :=
 le_cInf dist_set_exists $ λb hb, hb.2 x
 
-@[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
-by { cases f, cases g, congr, ext, exact H x, }
-
-lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
-⟨λ h, λ x, h ▸ rfl, ext⟩
-
 /- This lemma will be needed in the proof of the metric space instance, but it will become
 useless afterwards as it will be superseded by the general result that the distance is nonnegative
 in metric spaces. -/
@@ -108,6 +121,40 @@ le_cInf dist_set_exists (λ C, and.left)
 /-- The distance between two functions is controlled by the supremum of the pointwise distances -/
 lemma dist_le (C0 : (0 : ℝ) ≤ C) : dist f g ≤ C ↔ ∀x:α, dist (f x) (g x) ≤ C :=
 ⟨λ h x, le_trans (dist_coe_le_dist x) h, λ H, cInf_le ⟨0, λ C, and.left⟩ ⟨C0, H⟩⟩
+
+lemma dist_le_of_nonempty [nonempty α] :
+  dist f g ≤ C ↔ ∀ x, dist (f x) (g x) ≤ C :=
+⟨λ h x, le_trans (dist_coe_le_dist x) h,
+ λ w, (dist_le (le_trans dist_nonneg (w (nonempty.some ‹_›)))).mpr w⟩
+
+lemma dist_lt_of_nonempty_compact [nonempty α] [compact_space α]
+  (w : ∀x:α, dist (f x) (g x) < C) : dist f g < C :=
+begin
+  have c : continuous (λ x, dist (f x) (g x)), { continuity, },
+  obtain ⟨x, -, le⟩ :=
+    is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
+  exact lt_of_le_of_lt (dist_le_of_nonempty.mpr (λ y, le y trivial)) (w x),
+end
+
+lemma dist_lt_iff_of_compact [compact_space α] (C0 : (0 : ℝ) < C) :
+  dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
+begin
+  fsplit,
+  { intros w x,
+    exact lt_of_le_of_lt (dist_coe_le_dist x) w, },
+  { by_cases h : nonempty α,
+    { resetI,
+      exact dist_lt_of_nonempty_compact, },
+    { rintro -,
+      convert C0,
+      apply le_antisymm _ dist_nonneg',
+      rw [dist_eq],
+      exact cInf_le ⟨0, λ C, and.left⟩ ⟨le_refl _, λ x, false.elim (h (nonempty.intro x))⟩, }, },
+end
+
+lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
+  dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
+⟨λ w x, lt_of_le_of_lt (dist_coe_le_dist x) w, dist_lt_of_nonempty_compact⟩
 
 /-- On an empty space, bounded continuous functions are at distance 0 -/
 lemma dist_zero_of_empty (e : ¬ nonempty α) : dist f g = 0 :=
@@ -123,7 +170,7 @@ instance : metric_space (α →ᵇ β) :=
     (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
       le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
 
-variable (α)
+variables (α) {β}
 
 /-- Constant as a continuous bounded function. -/
 def const (b : β) : α →ᵇ β := ⟨continuous_map.const b, 0, by simp [le_refl]⟩
@@ -416,16 +463,24 @@ lemma norm_le (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ 
 by simpa using @dist_le _ _ _ _ f 0 _ C0
 
 lemma norm_le_of_nonempty [nonempty α]
-  {f : α →ᵇ β} {M : ℝ} (w : ∀ x, ∥f x∥ ≤ M) : ∥f∥ ≤ M :=
-(bounded_continuous_function.norm_le (le_trans (norm_nonneg _) (w (nonempty.some ‹_›)))).mpr w
-
-lemma norm_lt_of_compact [nonempty α] [compact_space α]
-  {f : α →ᵇ β} {M : ℝ} (h : ∀ x, ∥f x∥ < M) : ∥f∥ < M :=
+  {f : α →ᵇ β} {M : ℝ} : ∥f∥ ≤ M ↔ ∀ x, ∥f x∥ ≤ M :=
 begin
-  have c : continuous (λ x, ∥f x∥), { continuity, },
-  obtain ⟨x, -, le⟩ :=
-    is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
-  exact lt_of_le_of_lt (norm_le_of_nonempty (λ y, le y trivial)) (h x),
+  simp_rw [norm_def, ←dist_zero_right],
+  exact dist_le_of_nonempty,
+end
+
+lemma norm_lt_iff_of_compact [compact_space α]
+  {f : α →ᵇ β} {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
+begin
+  simp_rw [norm_def, ←dist_zero_right],
+  exact dist_lt_iff_of_compact M0,
+end
+
+lemma norm_lt_iff_of_nonempty_compact [nonempty α] [compact_space α]
+  {f : α →ᵇ β} {M : ℝ} : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
+begin
+  simp_rw [norm_def, ←dist_zero_right],
+  exact dist_lt_iff_of_nonempty_compact,
 end
 
 variable (f)
@@ -472,9 +527,9 @@ instance : has_sub (α →ᵇ β) :=
        exact le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) $
          trans_rel_right _ (norm_neg _) (g.norm_coe_le_norm x)) }⟩
 
-@[simp] lemma coe_add : ⇑(f + g) = λ x, f x + g x := rfl
+@[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
-@[simp] lemma coe_neg : ⇑(-f) = λ x, - f x := rfl
+@[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 lemma neg_apply : (-f) x = -f x := rfl
 
 lemma forall_coe_zero_iff_zero : (∀x, f x = 0) ↔ f = 0 :=
@@ -492,7 +547,7 @@ instance : add_comm_group (α →ᵇ β) :=
   ..bounded_continuous_function.has_sub,
   ..bounded_continuous_function.has_zero }
 
-@[simp] lemma coe_sub : ⇑(f - g) = λ x, f x - g x := rfl
+@[simp] lemma coe_sub : ⇑(f - g) = f - g := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
 
 /-- Coercion of a `normed_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/
@@ -518,6 +573,17 @@ by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }
 lemma coe_le_coe_add_dist {f g : α →ᵇ ℝ} : f x ≤ g x + dist f g :=
 sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
 
+variables (α β)
+
+/--
+The additive map forgetting that a bounded continuous function is bounded.
+-/
+@[simps]
+def forget_boundedness_add_hom : (α →ᵇ β) →+ C(α, β) :=
+{ to_fun := forget_boundedness α β,
+  map_zero' := by { ext, simp, },
+  map_add' := by { intros, ext, simp, }, }
+
 end normed_group
 
 section normed_space
@@ -533,7 +599,7 @@ variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 instance : has_scalar 𝕜 (α →ᵇ β) :=
-⟨λ c f, of_normed_group (c • f) (continuous_const.smul f.continuous) (∥c∥ * ∥f∥) $ λ x,
+⟨λ c f, of_normed_group (c • f) (f.continuous.const_smul c) (∥c∥ * ∥f∥) $ λ x,
   trans_rel_right _ (norm_smul _ _)
     (mul_le_mul_of_nonneg_left (f.norm_coe_le_norm _) (norm_nonneg _))⟩
 
@@ -574,6 +640,9 @@ instance : ring (α →ᵇ R) :=
   left_distrib := λ f₁ f₂ f₃, ext $ λ x, left_distrib _ _ _,
   right_distrib := λ f₁ f₂ f₃, ext $ λ x, right_distrib _ _ _,
   .. bounded_continuous_function.add_comm_group }
+
+@[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
+lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
 
 instance : normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,

@@ -175,8 +175,14 @@ lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
   set.range (λ x : α, 2 * x) = {a | even a} :=
 by { ext x, simp [even, eq_comm] }
 
+@[simp] lemma even_bit0 (a : α) : even (bit0 a) :=
+⟨a, by rw [bit0, two_mul]⟩
+
 /-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
 def odd (a : α) : Prop := ∃ k, a = 2*k + 1
+
+@[simp] lemma odd_bit1 (a : α) : odd (bit1 a) :=
+⟨a, by rw [bit1, bit0, two_mul]⟩
 
 @[simp] lemma range_two_mul_add_one (α : Type*) [semiring α] :
   set.range (λ x : α, 2 * x + 1) = {a | odd a} :=
@@ -878,10 +884,10 @@ def add_monoid_hom.mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β
     intros x y,
     have hxy := h (x + y),
     rw [mul_add, add_mul, add_mul, f.map_add, f.map_add, f.map_add, f.map_add, h x, h y, add_mul,
-      mul_add, mul_add, ← sub_eq_zero_iff_eq, add_comm, ← sub_sub, ← sub_sub, ← sub_sub,
+      mul_add, mul_add, ← sub_eq_zero, add_comm, ← sub_sub, ← sub_sub, ← sub_sub,
       mul_comm y x, mul_comm (f y) (f x)] at hxy,
     simp only [add_assoc, add_sub_assoc, add_sub_cancel'_right] at hxy,
-    rw [sub_sub, ← two_mul, ← add_sub_assoc, ← two_mul, ← mul_sub, mul_eq_zero, sub_eq_zero_iff_eq,
+    rw [sub_sub, ← two_mul, ← add_sub_assoc, ← two_mul, ← mul_sub, mul_eq_zero, sub_eq_zero,
       or_iff_not_imp_left] at hxy,
     exact hxy h_two,
   end,
@@ -915,8 +921,8 @@ noncomputable def inverse : M₀ → M₀ :=
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
 @[simp] lemma inverse_unit (u : units M₀) : inverse (u : M₀) = (u⁻¹ : units M₀) :=
 begin
-  simp only [is_unit_unit, inverse, dif_pos],
-  exact units.inv_unique (classical.some_spec (is_unit_unit u))
+  simp only [units.is_unit, inverse, dif_pos],
+  exact units.inv_unique (classical.some_spec u.is_unit)
 end
 
 /-- By definition, if `x` is not invertible then `inverse x = 0`. -/
@@ -999,6 +1005,18 @@ semiconj_by.add_right
 @[simp] theorem add_left [distrib R] {a b c : R} :
   commute a c → commute b c → commute (a + b) c :=
 semiconj_by.add_left
+
+lemma bit0_right [distrib R] {x y : R} (h : commute x y) : commute x (bit0 y) :=
+h.add_right h
+
+lemma bit0_left [distrib R] {x y : R} (h : commute x y) : commute (bit0 x) y :=
+h.add_left h
+
+lemma bit1_right [semiring R] {x y : R} (h : commute x y) : commute x (bit1 y) :=
+h.bit0_right.add_right (commute.one_right x)
+
+lemma bit1_left [semiring R] {x y : R} (h : commute x y) : commute (bit1 x) y :=
+h.bit0_left.add_left (commute.one_left y)
 
 variables [ring R] {a b c : R}
 

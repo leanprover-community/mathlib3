@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import topology.basic
 import order.omega_complete_partial_order
@@ -139,8 +139,9 @@ begin
   cases hf, specialize hf_h c,
   simp only [not_below, preorder_hom.coe_fun_mk, eq_iff_iff, set.mem_set_of_eq] at hf_h,
   rw [← not_iff_not],
-  simp only [ωSup_le_iff, hf_h, ωSup, supr, Sup, complete_lattice.Sup, exists_prop, set.mem_range,
-    preorder_hom.coe_fun_mk, chain.map_to_fun, function.comp_app, eq_iff_iff, not_forall],
+  simp only [ωSup_le_iff, hf_h, ωSup, supr, Sup, complete_lattice.Sup, complete_semilattice_Sup.Sup,
+    exists_prop, set.mem_range, preorder_hom.coe_fun_mk, chain.map_to_fun, function.comp_app,
+    eq_iff_iff, not_forall],
   tauto,
 end
 

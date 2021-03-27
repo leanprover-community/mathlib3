@@ -140,6 +140,26 @@ def prod (f : continuous_multilinear_map R M₁ M₂) (g : continuous_multilinea
   (f : continuous_multilinear_map R M₁ M₂) (g : continuous_multilinear_map R M₁ M₃) (m : Πi, M₁ i) :
   (f.prod g) m = (f m, g m) := rfl
 
+/-- Combine a family of continuous multilinear maps with the same domain and codomains `M' i` into a
+continuous multilinear map taking values in the space of functions `Π i, M' i`. -/
+def pi {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_group (M' i)] [Π i, topological_space (M' i)]
+  [Π i, semimodule R (M' i)] (f : Π i, continuous_multilinear_map R M₁ (M' i)) :
+  continuous_multilinear_map R M₁ (Π i, M' i) :=
+{ cont := continuous_pi $ λ i, (f i).coe_continuous,
+  to_multilinear_map := multilinear_map.pi (λ i, (f i).to_multilinear_map) }
+
+@[simp] lemma coe_pi {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_group (M' i)]
+  [Π i, topological_space (M' i)] [Π i, semimodule R (M' i)]
+  (f : Π i, continuous_multilinear_map R M₁ (M' i)) :
+  ⇑(pi f) = λ m j, f j m :=
+rfl
+
+lemma pi_apply {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_group (M' i)]
+  [Π i, topological_space (M' i)] [Π i, semimodule R (M' i)]
+  (f : Π i, continuous_multilinear_map R M₁ (M' i)) (m : Π i, M₁ i) (j : ι') :
+  pi f m j = f j m :=
+rfl
+
 /-- If `g` is continuous multilinear and `f` is a collection of continuous linear maps,
 then `g (f₁ m₁, ..., fₙ mₙ)` is again a continuous multilinear map, that we call
 `g.comp_continuous_linear_map f`. -/
@@ -272,7 +292,7 @@ f.to_multilinear_map.map_smul_univ _ _
 
 variables {R' A : Type*} [comm_semiring R'] [semiring A] [algebra R' A]
   [Π i, semimodule A (M₁ i)] [semimodule R' M₂] [semimodule A M₂] [is_scalar_tower R' A M₂]
-  [topological_space R'] [topological_semimodule R' M₂]
+  [topological_space R'] [has_continuous_smul R' M₂]
 
 instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
 ⟨λ c f, { cont := continuous_const.smul f.cont, .. c • f.to_multilinear_map }⟩
@@ -286,7 +306,7 @@ rfl
 
 instance {R''} [comm_semiring R''] [has_scalar R' R''] [algebra R'' A]
   [semimodule R'' M₂] [is_scalar_tower R'' A M₂] [is_scalar_tower R' R'' M₂]
-  [topological_space R''] [topological_semimodule R'' M₂]:
+  [topological_space R''] [has_continuous_smul R'' M₂]:
   is_scalar_tower R' R'' (continuous_multilinear_map A M₁ M₂) :=
 ⟨λ c₁ c₂ f, ext $ λ x, smul_assoc _ _ _⟩
 

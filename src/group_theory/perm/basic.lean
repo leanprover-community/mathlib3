@@ -23,15 +23,13 @@ variables {α : Type u}
 namespace perm
 
 instance perm_group : group (perm α) :=
-begin
-  refine { mul := λ f g, equiv.trans g f,
-           one := equiv.refl α,
-           inv := equiv.symm,
-           div_eq_mul_inv := λ _ _, rfl,
-           ..};
-  intros; apply equiv.ext; try { apply trans_apply },
-  apply symm_apply_apply
-end
+{ mul := λ f g, equiv.trans g f,
+  one := equiv.refl α,
+  inv := equiv.symm,
+  mul_assoc := λ f g h, (trans_assoc _ _ _).symm,
+  one_mul := trans_refl,
+  mul_one := refl_trans,
+  mul_left_inv := trans_symm }
 
 theorem mul_apply (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
@@ -264,6 +262,9 @@ end
 
 lemma mul_swap_eq_swap_mul (f : perm α) (x y : α) : f * swap x y = swap (f x) (f y) * f :=
 by rw [swap_mul_eq_mul_swap, perm.inv_apply_self, perm.inv_apply_self]
+
+lemma swap_apply_apply (f : perm α) (x y : α) : swap (f x) (f y) = f * swap x y * f⁻¹ :=
+by rw [mul_swap_eq_swap_mul, mul_inv_cancel_right]
 
 /-- Left-multiplying a permutation with `swap i j` twice gives the original permutation.
 

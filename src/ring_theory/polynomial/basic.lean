@@ -252,10 +252,10 @@ begin
       exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
   { intros hf,
     rw ← sum_monomial_eq f,
-    refine (map C I : ideal (polynomial R)).sum_mem (λ n hn, _),
+    refine (I.map C : ideal (polynomial R)).sum_mem (λ n hn, _),
     simp [single_eq_C_mul_X],
     rw mul_comm,
-    exact (map C I : ideal (polynomial R)).smul_mem _ (mem_map_of_mem (hf n)) }
+    exact (I.map C : ideal (polynomial R)).mul_mem_left _ (mem_map_of_mem (hf n)) }
 end
 
 lemma quotient_map_C_eq_zero {I : ideal R} :
@@ -352,7 +352,7 @@ begin
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
       (polynomial.map_surjective _ (((quotient.mk I).comp C).range_restrict_surjective)) this,
     refine sub_add_cancel (C y) f ▸ I.add_mem (hi' _ : (C y - f) ∈ I) hf.1,
-    rw [ring_hom.mem_ker, ring_hom.map_sub, hf.2, sub_eq_zero_iff_eq, coe_map_ring_hom, map_C] },
+    rw [ring_hom.mem_ker, ring_hom.map_sub, hf.2, sub_eq_zero, coe_map_ring_hom, map_C] },
   exact hx,
 end
 
@@ -389,7 +389,7 @@ def of_polynomial (I : ideal (polynomial R)) : submodule R (polynomial R) :=
 { carrier := I.carrier,
   zero_mem' := I.zero_mem,
   add_mem' := λ _ _, I.add_mem,
-  smul_mem' := λ c x H, by rw [← C_mul']; exact submodule.smul_mem _ _ H }
+  smul_mem' := λ c x H, by { rw [← C_mul'], exact I.mul_mem_left _ H } }
 
 variables {I : ideal (polynomial R)}
 theorem mem_of_polynomial (x) : x ∈ I.of_polynomial ↔ x ∈ I := iff.rfl

@@ -33,7 +33,7 @@ index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit
 being subordinate to an open covering of `M`, because we make no assumption about the way `U x`
 depends on `x`.
 
-We prove that on a smooth finitely dimensional real manifold with `Σ`-countable Hausdorff topology,
+We prove that on a smooth finitely dimensional real manifold with `σ`-compact Hausdorff topology,
 for any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering I s`
 subordinate to `U`. Then we use this fact to prove a version of the Whitney embedding theorem: any
 compact real manifold can be embedded into `ℝ^n` for large enough `n`.
@@ -45,7 +45,7 @@ compact real manifold can be embedded into `ℝ^n` for large enough `n`.
   hence it has measure zero.
 
 * Construct a smooth partition of unity. While we can do it now, the formulas will be much nicer if
-  we wait for `finprod` and `finsum` coming in #6832.
+  we wait for `finprod` and `finsum` coming in #6355.
 
 * Deduce some corollaries from existence of a smooth partition of unity.
 

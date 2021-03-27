@@ -15,11 +15,15 @@ variables {D : Type u} [category.{v} D]
 structure weak_factorization_system {C : Type u} [category.{v} C] :=
   (A B : arrow_cond C)
   (retracts : closed_under_retracts A ∧ closed_under_retracts B)
-  (lifting : ∀ i : arrow C, A i → left_lifting_property B i)
+  (lifting : A = left_lifting_property B)
   (factorization : ∀ i : arrow C, ∃ Z : C, ∃ a : i.left ⟶ Z, ∃ b : Z ⟶ i.right,
     i.hom = a ≫ b ∧ A (arrow.mk a) ∧ B (arrow.mk b) )
 
+/- todos :
+- construct this if lifting is replaced by A ⊆ left_lifting_property B using retract_of_lifting (2.1.5 in Cisinski)
 
+- construct a wfs on a presheaf category (2.1.10 in Cisinski)
+-/
 
 /-
 Cisinski Proposition 2.1.12. LetF : C ? C 0 : Gbeanadjunction.AssumethatCandC 0

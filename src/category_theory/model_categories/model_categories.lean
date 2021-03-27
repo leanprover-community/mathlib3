@@ -19,4 +19,13 @@ class model_category (obj : Type u) extends category.{v} u  :=
   (weak_factorization_system_WC_F : weak_factorization_system (W ∩ C) F)
 
 variables [model_category M]
+
+/- todos:
+
+- formal / test cases:
+-- construct the opposite of a model structure
+-- construct a model structure with W = iso, C = iso, F = all & W = F = iso, C = all (2.2.4 in Cisinski)
+
+--
+-/
 end category_theory

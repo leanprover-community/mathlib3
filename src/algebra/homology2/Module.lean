@@ -10,25 +10,20 @@ section subquotients
 
 universes u v
 
-variables {R : Type u} [ring R] {M : Type v} [add_comm_group M] [module R M] {Z B : submodule R M}
+variables {R : Type u} [ring R] {M : Type v} [add_comm_group M] [module R M] (Z B : submodule R M)
 
 namespace submodule
 
-def subsubmodule_as_submodule (hBZ : B ≤ Z) : submodule R Z :=
-{ carrier := {z | z.1 ∈ B},
-  zero_mem' := B.zero_mem,
-  add_mem' := λ _ _, B.add_mem,
-  smul_mem' := λ _ _, B.smul_mem _ }
-
-variable (hBZ : B ≤ Z)
-
+/-- `subquotient Z B` is `Z/(Z ∩ B)` as an `R`-module -/
 @[derive add_comm_group] def subquotient : Type v :=
-submodule.quotient (submodule.subsubmodule_as_submodule hBZ : submodule R Z)
+submodule.quotient (submodule.comap (Z.subtype : Z →ₗ[R] M) B : submodule R Z)
 
-instance : module R (subquotient hBZ) := by { dunfold subquotient, apply_instance }
+instance : module R (subquotient Z B) := by { dunfold subquotient, apply_instance }
 
 variables {N : Type v} [add_comm_group N] [module R N] {Y A : submodule R N} {f : M →ₗ[R] N}
   (hAY : A ≤ Y)
+
+variables {Z B}
 
 -- is this already in mathlib?
 def induced_map (f : M →ₗ[R] N) (hfZ : Z.map f ≤ Y) : Z →ₗ[R] Y :=
@@ -38,8 +33,8 @@ def induced_map (f : M →ₗ[R] N) (hfZ : Z.map f ≤ Y) : Z →ₗ[R] Y :=
 
 namespace subquotient
 
-def map (hfZ : Z.map f ≤ Y) (hfB : B.map f ≤ A) : subquotient hBZ →ₗ[R] subquotient hAY :=
-mapq (subsubmodule_as_submodule hBZ) (subsubmodule_as_submodule hAY) (induced_map _ hfZ)
+def map (hfZ : Z.map f ≤ Y) (hfB : B.map f ≤ A) : subquotient Z B →ₗ[R] subquotient Y A :=
+mapq (_) (_) (induced_map _ hfZ)
   (λ m hmb, hfB ⟨m, hmb, rfl⟩)
 
 end subquotient -- namespace
@@ -75,6 +70,17 @@ submodule.induced_map (φ.f j) begin
   rw φ.commutes,
   change φ.f k (_) = 0,
   convert (φ.f k).map_zero,
+end
+
+@[simp] lemma map_apply (φ : A ⟶ B) (hjk : s.r j k) (m : cycle R A hjk) :
+  (map R φ hjk m : B.X j)= φ.f j m := rfl
+
+lemma map_zero {φ : A ⟶ B} (hjk : s.r j k) (hφ : φ.f j = 0) : map R φ hjk = 0 :=
+begin
+  ext a,
+  change φ.f j a = 0,
+  rw hφ,
+  refl,
 end
 
 end cycle
@@ -123,7 +129,7 @@ variables (R C)
 
 -- this probably shouldn't be in the root namespace
 @[derive add_comm_group] def homology : Type :=
-submodule.subquotient (boundary_le_cycle R C hij hjk)
+submodule.subquotient (cycle R C hjk) (boundary R C hij)
 
 namespace homology
 
@@ -142,10 +148,43 @@ submodule.mapq _ _ (cycle.map R φ hjk) begin
   refl,
 end
 
-theorem map_exact (φ : A ⟶ B) (ψ : B ⟶ C) (hφψ : homological_complex.exact φ ψ) :
+lemma map_zero (φ : A ⟶ B) (hφ : φ.f j = 0) : map R hij hjk φ = 0 :=
+begin
+  apply quot_hom_ext,
+  simp [map, cycle.map_zero _ _ hφ],
+end
+
+variable {C}
+
+theorem map_comp (φ : A ⟶ B) (ψ : B ⟶ C) :
+  map R hij hjk (φ ≫ ψ) = (map R hij hjk ψ).comp (map R hij hjk φ) :=
+begin
+  ext a,
+  apply quotient.induction_on' a, clear a,
+  intro a,
+  rw quotient.mk'_eq_mk,
+  simp [map],
+  refl,
+end
+.
+
+theorem map_exact (φ : A ⟶ B) (ψ : B ⟶ C)
+  --(hφψ : homological_complex.exact φ ψ)  -- let's see how much we need.
+  (h1 : (φ ≫ ψ).f j = 0) -- need this for the easy way
+  -- will need more: 0 -> A -> B -> C -> 0 short exact is enough of course
+  :
   (map R hij hjk φ).range = (map R hij hjk ψ).ker :=
 begin
-  sorry
+  ext x,
+  split,
+  { rintro ⟨a, -, rfl⟩,
+    change (map R hij hjk ψ).comp (map R hij hjk φ) a = 0,
+    rw ← map_comp,
+    rw map_zero R hij hjk (φ ≫ ψ) h1,
+    refl },
+  { rintro (h : map R hij hjk ψ x = 0),
+    sorry
+  }
 end
 
 -- TODO : boundary map from homology to homology with i,j,k,l and two more

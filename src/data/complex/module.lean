@@ -138,7 +138,7 @@ by simp [← findim_eq_dim, findim_real_complex, bit0]
 
 /-- Identity involving the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
 circle. -/
-lemma findim_real_complex_fact : fact (findim ℝ ℂ = 1 + 1) := ⟨by simp⟩
+lemma findim_real_complex_fact : fact (findim ℝ ℂ = 2) := ⟨findim_real_complex⟩
 
 end complex
 

@@ -41,6 +41,13 @@ t.lift (as_empty_cone Y)
 lemma is_terminal.hom_ext {X Y : C} (t : is_terminal X) (f g : Y ⟶ X) : f = g :=
 t.hom_ext (by tidy)
 
+@[simp] lemma is_terminal.comp_from {Z : C} (t : is_terminal Z) {X Y : C} (f : X ⟶ Y) :
+  f ≫ t.from Y = t.from X :=
+t.hom_ext _ _
+
+@[simp] lemma is_terminal.from_self {X : C} (t : is_terminal X) : t.from X = 𝟙 X :=
+t.hom_ext _ _
+
 /-- Give the morphism from an initial object to any other. -/
 def is_initial.to {X : C} (t : is_initial X) (Y : C) : X ⟶ Y :=
 t.desc (as_empty_cocone Y)
@@ -48,6 +55,13 @@ t.desc (as_empty_cocone Y)
 /-- Any two morphisms from an initial object are equal. -/
 lemma is_initial.hom_ext {X Y : C} (t : is_initial X) (f g : X ⟶ Y) : f = g :=
 t.hom_ext (by tidy)
+
+@[simp] lemma is_initial.to_comp {X : C} (t : is_initial X) {Y Z : C} (f : Y ⟶ Z) :
+  t.to Y ≫ f = t.to Z :=
+t.hom_ext _ _
+
+@[simp] lemma is_initial.to_self {X : C} (t : is_initial X) : t.to X = 𝟙 X :=
+t.hom_ext _ _
 
 /-- Any morphism from a terminal object is mono. -/
 lemma is_terminal.mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : mono f :=
@@ -117,6 +131,13 @@ instance unique_to_terminal [has_terminal C] (P : C) : unique (P ⟶ ⊤_ C) :=
 instance unique_from_initial [has_initial C] (P : C) : unique (⊥_ C ⟶ P) :=
 { default := initial.to P,
   uniq := λ m, by { apply colimit.hom_ext, rintro ⟨⟩ } }
+
+@[simp] lemma terminal.comp_from [has_terminal C] {P Q : C} (f : P ⟶ Q) :
+  f ≫ terminal.from Q = terminal.from P :=
+by tidy
+@[simp] lemma initial.to_comp [has_initial C] {P Q : C} (f : P ⟶ Q) :
+  initial.to P ≫ f = initial.to Q :=
+by tidy
 
 /-- A terminal object is terminal. -/
 def terminal_is_terminal [has_terminal C] : is_terminal (⊤_ C) :=
@@ -249,5 +270,53 @@ def initial_comparison [has_initial C] [has_initial D] :
 initial.to _
 
 end comparison
+
+variables {C} {J : Type v} [small_category J]
+
+/--
+If `j` is initial in the index category, then the map `limit.π F j` is an isomorphism.
+-/
+def is_iso_π_of_is_initial {j : J} (I : is_initial j) (F : J ⥤ C) [has_limit F] :
+  is_iso (limit.π F j) :=
+begin
+  refine ⟨⟨_, ⟨_, _⟩⟩⟩,
+  apply limit.lift _
+  { X := F.obj j,
+    π :=
+    { app := λ j', F.map (I.to j'),
+      naturality' := λ j₁ j₂ f,
+      begin
+        dsimp, simp only [category.id_comp, ←F.map_comp, is_initial.to_comp],
+      end, }, },
+  { ext, simp, },
+  { simp, },
+end
+
+instance is_iso_π_initial [has_initial J] (F : J ⥤ C) [has_limit F] :
+  is_iso (limit.π F (⊥_ J)) :=
+is_iso_π_of_is_initial (initial_is_initial) F
+
+/--
+If `j` is terminal in the index category, then the map `colimit.ι F j` is an isomorphism.
+-/
+def is_iso_ι_of_is_terminal {j : J} (I : is_terminal j) (F : J ⥤ C) [has_colimit F] :
+  is_iso (colimit.ι F j) :=
+begin
+  refine ⟨⟨_, ⟨_, _⟩⟩⟩,
+  apply colimit.desc _
+  { X := F.obj j,
+    ι :=
+    { app := λ j', F.map (I.from j'),
+      naturality' := λ j₁ j₂ f,
+      begin
+        dsimp, simp only [category.comp_id, ←F.map_comp, is_terminal.comp_from],
+      end, }, },
+  { simp, },
+  { ext, simp, },
+end
+
+instance is_iso_ι_terminal [has_terminal J] (F : J ⥤ C) [has_colimit F] :
+  is_iso (colimit.ι F (⊤_ J)) :=
+is_iso_ι_of_is_terminal (terminal_is_terminal) F
 
 end category_theory.limits

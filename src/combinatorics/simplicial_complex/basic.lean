@@ -199,13 +199,13 @@ The pureness of a pure simplicial complex is the cardinality of its facets. Set 
 complexes.
 -/
 noncomputable def simplicial_complex.pureness (S : simplicial_complex m) : ℕ :=
-  if hS : S.pure then classical.some hS else 0
+  if hS : S.pure then nat.find hS else 0
 
 lemma pureness_def {S : simplicial_complex m} (hS : S.pure) : S.pure_of S.pureness :=
 begin
   unfold simplicial_complex.pureness,
   rw dif_pos hS,
-  exact classical.some_spec hS,
+  exact nat.find_spec hS,
 end
 
 lemma pureness_unique_of_nonempty {S : simplicial_complex m} {a b : ℕ} (hS : S.faces.nonempty)
@@ -217,7 +217,6 @@ begin
   rw [←ha hY, ←hb hY],
 end
 
---same below. I really don't get what i'm doing wrong
 lemma pureness_def' {S : simplicial_complex m} (hSnonempty : S.faces.nonempty) (hS : S.pure_of n) :
   S.pureness = n :=
 pureness_unique_of_nonempty hSnonempty (pureness_def ⟨_, hS⟩) hS
@@ -312,12 +311,20 @@ lemma skeleton_subcomplex {S : simplicial_complex m} {k : ℕ} :
   (S.skeleton k).faces ⊆ S.faces :=
 λ X ⟨hX, _⟩, hX
 
+lemma skeleton_nonempty_iff {S : simplicial_complex m} {k : ℕ} :
+  (S.skeleton k).faces.nonempty ↔ S.faces.nonempty :=
+begin
+  split,
+  { apply nonempty.mono skeleton_subcomplex },
+  { rintro ⟨X, hX⟩,
+    exact ⟨∅, S.down_closed hX X.empty_subset, nat.zero_le _⟩ }
+end
+
 lemma pure_skeleton_of_pure {S : simplicial_complex m} (k : ℕ) (hS : S.pure_of n) :
   (S.skeleton k).pure_of (min n (k + 1)) :=
 begin
   cases le_or_gt n (k + 1) with hmin hmin,
-  {
-    rw min_eq_left hmin,
+  { rw min_eq_left hmin,
     rintro X hXskel,
     obtain ⟨Y, hY, hXY⟩ := subfacet (skeleton_subcomplex (facets_subset hXskel)),
     have hYskel : Y ∈ (S.skeleton k).faces,
@@ -340,8 +347,15 @@ begin
     exact hZcard, }
 end
 
-lemma skeleton_pureness_eq_min_pureness_dimension {S : simplicial_complex m} {k : ℕ} (hS : S.pure) :
-  (S.skeleton k).pureness = min S.pureness (k + 1) := sorry
+lemma skeleton_pureness_eq_min_pureness_dimension {S : simplicial_complex m} {k : ℕ} (hS : S.pure)
+  (hS' : S.faces.nonempty) :
+  (S.skeleton k).pureness = min S.pureness (k + 1) :=
+begin
+  rcases hS with ⟨n, hn⟩,
+  rw [pureness_def' hS' hn, pureness_def'],
+  { rwa skeleton_nonempty_iff },
+  { apply pure_skeleton_of_pure _ hn },
+end
 
 /--
 The closure of a set of faces is the set of their subfaces

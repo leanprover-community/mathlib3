@@ -3,12 +3,8 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.equiv.basic
-import algebra.group.basic
-import algebra.group.hom
 import algebra.group.pi
 import algebra.group_power
-import algebra.group.prod
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`

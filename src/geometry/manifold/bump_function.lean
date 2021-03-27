@@ -305,8 +305,8 @@ variable {c}
 
 lemma nhds_basis_support {s : set M} (hs : s ∈ 𝓝 c) :
   (𝓝 c).has_basis (λ f : smooth_bump_function I c, closure (support f) ⊆ s) (λ f, support f) :=
-((nhds_basis_closure_support I c).restrict_subset hs).to_has_basis' (λ f hf, ⟨f, hf.2, subset_closure⟩)
-  (λ f hf, f.support_mem_nhds)
+((nhds_basis_closure_support I c).restrict_subset hs).to_has_basis'
+  (λ f hf, ⟨f, hf.2, subset_closure⟩) (λ f hf, f.support_mem_nhds)
 
 variables [smooth_manifold_with_corners I M] {I}
 

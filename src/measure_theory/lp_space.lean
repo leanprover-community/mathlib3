@@ -6,7 +6,7 @@ Authors: Rémy Degenne, Sébastien Gouëzel
 import measure_theory.ess_sup
 import measure_theory.ae_eq_fun
 import analysis.mean_inequalities
-import topology.bounded_continuous_function
+import topology.continuous_function.bounded
 
 /-!
 # ℒp space and Lp space

@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.ring
-import topology.algebra.continuous_functions
+import topology.continuous_function.algebra
 import ring_theory.subring
 import group_theory.archimedean
 /-!

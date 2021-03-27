@@ -144,6 +144,8 @@ instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
 { ..continuous_map.semilattice_inf,
   ..continuous_map.semilattice_sup }
 
+-- TODO transfer this lattice structure to `bounded_continuous_function`
+
 end lattice
 
 end continuous_map

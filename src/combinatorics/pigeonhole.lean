@@ -3,7 +3,8 @@ Copyright (c) 2020 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller, Yury Kudryashov
 -/
-import data.fintype.basic
+import data.set.finite
+import data.nat.modeq
 import algebra.big_operators.order
 
 /-!
@@ -24,6 +25,7 @@ following locations:
 * `data.fintype.basic` has `fintype.exists_ne_map_eq_of_card_lt`
 * `data.fintype.basic` has `fintype.exists_ne_map_eq_of_infinite`
 * `data.fintype.basic` has `fintype.exists_infinite_fiber`
+* `data.set.finite` has `set.infinite.exists_ne_map_eq_of_maps_to`
 
 This module gives access to these pigeonhole principles along with 20 more.
 The versions vary by:
@@ -347,3 +349,16 @@ lemma exists_card_fiber_le_of_card_le_mul [nonempty β] (hn : card α ≤ card �
 let ⟨y, _, h⟩ := exists_card_fiber_le_of_card_le_mul univ_nonempty hn in ⟨y, h⟩
 
 end fintype
+
+namespace nat
+
+open set
+
+/-- If `s` is an infinite set of natural numbers and `k > 0`, then `s` contains two elements `m < n`
+that are equal mod `k`. -/
+theorem exists_lt_modeq_of_infinite {s : set ℕ} (hs : s.infinite) {k : ℕ} (hk : 0 < k) :
+  ∃ (m ∈ s) (n ∈ s), m < n ∧ m ≡ n [MOD k] :=
+hs.exists_lt_map_eq_of_maps_to (λ n _, show n % k ∈ Iio k, from nat.mod_lt n hk) $
+  finite_lt_nat k
+
+end nat

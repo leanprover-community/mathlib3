@@ -9,6 +9,7 @@ import analysis.normed_space.riesz_lemma
 import analysis.normed_space.normed_group_hom
 import analysis.asymptotics.asymptotics
 import algebra.algebra.tower
+import data.equiv.transfer_instance
 
 /-!
 # Operator norm on the space of continuous linear maps
@@ -649,6 +650,25 @@ f.to_continuous_linear_map.op_norm_le_bound zero_le_one $ λ x, by simp
 f.to_continuous_linear_map.homothety_norm $ by simp
 
 end linear_isometry
+
+namespace continuous_linear_map
+
+/-- Precomposition with a linear isometry preserves the operator norm. -/
+lemma op_norm_comp_linear_isometry_equiv [nontrivial E] (f : F →L[𝕜] G) (g : E ≃ₗᵢ[𝕜] F) :
+  ∥f.comp g.to_linear_isometry.to_continuous_linear_map∥ = ∥f∥ :=
+begin
+  refine le_antisymm _ _,
+  { convert f.op_norm_comp_le g.to_linear_isometry.to_continuous_linear_map,
+    simp [g.to_linear_isometry.norm_to_continuous_linear_map] },
+  { convert (f.comp g.to_linear_isometry.to_continuous_linear_map).op_norm_comp_le
+      g.symm.to_linear_isometry.to_continuous_linear_map,
+    { ext,
+      simp },
+    haveI := g.symm.to_linear_equiv.to_equiv.nontrivial,
+    simp [g.symm.to_linear_isometry.norm_to_continuous_linear_map] },
+end
+
+end continuous_linear_map
 
 namespace linear_map
 

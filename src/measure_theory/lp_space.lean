@@ -6,7 +6,7 @@ Authors: Rémy Degenne, Sébastien Gouëzel
 import measure_theory.ess_sup
 import measure_theory.ae_eq_fun
 import analysis.mean_inequalities
-import topology.continuous_function.bounded
+import topology.continuous_function.compact
 
 /-!
 # ℒp space and Lp space
@@ -1788,3 +1788,26 @@ lemma to_Lp_norm_le [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [fact 
 linear_map.mk_continuous_norm_le _ ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹).coe_nonneg _
 
 end bounded_continuous_function
+
+namespace continuous_function
+
+variables [borel_space E] [second_countable_topology E]
+variables [topological_space α] [compact_space α] [borel_space α]
+variables [finite_measure μ]
+
+variables (𝕜 : Type*) (E p μ)
+
+/-- The bounded linear map of considering a continuous function on a compact finite-measure
+space as an element of `Lp`. -/
+def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] : C(α, E) →L[𝕜] (Lp E p μ) :=
+(bounded_continuous_function.to_Lp E p μ 𝕜).comp
+  (continuous_map.linear_isometry_bounded_of_compact
+    α E 𝕜).to_linear_isometry.to_continuous_linear_map
+
+lemma to_Lp_norm_le [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+  ∥to_Lp E p μ 𝕜∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=
+begin
+  sorry
+end
+
+end continuous_function

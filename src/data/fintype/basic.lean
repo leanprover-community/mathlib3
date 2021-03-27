@@ -1431,3 +1431,13 @@ def trunc_sigma_of_exists {α} [fintype α] {P : α → Prop} [decidable_pred P]
 @trunc_of_nonempty_fintype (Σ' a, P a) (exists.elim h $ λ a ha, ⟨⟨a, ha⟩⟩) _
 
 end trunc
+
+namespace multiset
+
+variables [fintype α] [decidable_eq α]
+
+@[simp] lemma count_univ (a : α) :
+  count a finset.univ.val = 1 :=
+count_eq_one_of_mem finset.univ.nodup (finset.mem_univ _)
+
+end multiset

@@ -375,7 +375,7 @@ section semimodule
 
 variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜]
 variables [topological_space γ] [borel_space γ] [add_comm_monoid γ] [semimodule 𝕜 γ]
-  [topological_semimodule 𝕜 γ]
+  [has_continuous_smul 𝕜 γ]
 
 instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
 ⟨λ c f, comp ((•) c) (measurable_id.const_smul c) f⟩

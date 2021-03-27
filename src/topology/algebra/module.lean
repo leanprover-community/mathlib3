@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov
 -/
 import topology.algebra.ring
+import topology.algebra.mul_action
 import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
@@ -12,23 +13,14 @@ import linear_algebra.pi
 /-!
 # Theory of topological modules and continuous linear maps.
 
-We define classes `topological_semimodule`, `topological_module` and `topological_vector_spaces`,
-as extensions of the corresponding algebraic classes where the algebraic operations are continuous.
+We use the class `has_continuous_smul` for topological (semi) modules and topological vector spaces.
 
-We also define continuous linear maps, as linear maps between topological modules which are
+In this file we define continuous linear maps, as linear maps between topological modules which are
 continuous. The set of continuous linear maps between the topological `R`-modules `M` and `M₂` is
 denoted by `M →L[R] M₂`.
 
 Continuous linear equivalences are denoted by `M ≃L[R] M₂`.
 
-## Implementation notes
-
-Topological vector spaces are defined as an `abbreviation` for topological modules,
-if the base ring is a field. This has as advantage that topological vector spaces are completely
-transparent for type class inference, which means that all instances for topological modules
-are immediately picked up for vector spaces as well.
-A cosmetic disadvantage is that one can not extend topological vector spaces.
-The solution is to extend `topological_module` instead.
 -/
 
 open filter
@@ -36,86 +28,12 @@ open_locale topological_space big_operators
 
 universes u v w u'
 
-/-- A topological semimodule, over a semiring which is also a topological space, is a
-semimodule in which scalar multiplication is continuous. In applications, R will be a topological
-semiring and M a topological additive semigroup, but this is not needed for the definition -/
-class topological_semimodule (R : Type u) (M : Type v)
-  [semiring R] [topological_space R]
-  [topological_space M] [add_comm_monoid M]
-  [semimodule R M] : Prop :=
-(continuous_smul : continuous (λp : R × M, p.1 • p.2))
-
-section
-
-variables {R : Type u} {M : Type v}
-[semiring R] [topological_space R]
-[topological_space M] [add_comm_monoid M]
-[semimodule R M] [topological_semimodule R M]
-
-lemma continuous_smul : continuous (λp:R×M, p.1 • p.2) :=
-topological_semimodule.continuous_smul
-
-@[continuity]
-lemma continuous.smul {α : Type*} [topological_space α] {f : α → R} {g : α → M}
-  (hf : continuous f) (hg : continuous g) : continuous (λp, f p • g p) :=
-continuous_smul.comp (hf.prod_mk hg)
-
-lemma continuous_on.smul {α : Type*} [topological_space α] {s : set α} {f : α → R} {g : α → M}
-  (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λp, f p • g p) s :=
-continuous_smul.comp_continuous_on (hf.prod hg)
-
-lemma tendsto_smul {c : R} {x : M} : tendsto (λp:R×M, p.fst • p.snd) (𝓝 (c, x)) (𝓝 (c • x)) :=
-continuous_smul.tendsto _
-
-lemma filter.tendsto.smul {α : Type*} {l : filter α} {f : α → R} {g : α → M} {c : R} {x : M}
-  (hf : tendsto f l (𝓝 c)) (hg : tendsto g l (𝓝 x)) : tendsto (λ a, f a • g a) l (𝓝 (c • x)) :=
-tendsto_smul.comp (hf.prod_mk_nhds hg)
-
-end
-
-instance topological_semiring.to_semimodule {R : Type*} [topological_space R]
-  [semiring R] [topological_semiring R] :
-  topological_semimodule R R :=
-{ continuous_smul := continuous_mul }
-
-/-- A topological module, over a ring which is also a topological space, is a module in which
-scalar multiplication is continuous. In applications, `R` will be a topological ring and `M` a
-topological additive group, but this is not needed for the definition -/
-abbreviation topological_module (R : Type u) (M : Type v)
-  [ring R] [topological_space R]
-  [topological_space M] [add_comm_group M] [module R M] :=
-topological_semimodule R M
-
-/-- A topological vector space is a topological module over a field. -/
-abbreviation topological_vector_space (R : Type u) (M : Type v)
-  [field R] [topological_space R]
-  [topological_space M] [add_comm_group M] [module R M] :=
-topological_module R M
-
 section
 
 variables {R : Type*} {M : Type*}
 [ring R] [topological_space R]
 [topological_space M] [add_comm_group M]
-[module R M] [topological_module R M]
-
-/-- Scalar multiplication by a unit is a homeomorphism from a
-topological module onto itself. -/
-protected def homeomorph.smul_of_unit (a : units R) : M ≃ₜ M :=
-{ to_fun    := λ x, (a : R) • x,
-  inv_fun   := λ x, ((a⁻¹ : units R) : R) • x,
-  right_inv := λ x, calc (a : R) • ((a⁻¹ : units R) : R) • x = x :
-                 by rw [smul_smul, units.mul_inv, one_smul],
-  left_inv  := λ x, calc ((a⁻¹ : units R) : R) • (a : R) • x = x :
-                 by rw [smul_smul, units.inv_mul, one_smul],
-  continuous_to_fun  := continuous_const.smul continuous_id,
-  continuous_inv_fun := continuous_const.smul continuous_id }
-
-lemma is_open_map_smul_of_unit (a : units R) : is_open_map (λ (x : M), (a : R) • x) :=
-(homeomorph.smul_of_unit a).is_open_map
-
-lemma is_closed_map_smul_of_unit (a : units R) : is_closed_map (λ (x : M), (a : R) • x) :=
-(homeomorph.smul_of_unit a).is_closed_map
+[module R M] [has_continuous_smul R M]
 
 /-- If `M` is a topological module over `R` and `0` is a limit of invertible elements of `R`, then
 `⊤` is the only submodule of `M` with a nonempty interior.
@@ -144,7 +62,7 @@ section closure
 variables {R : Type u} {M : Type v}
 [semiring R] [topological_space R]
 [topological_space M] [add_comm_monoid M]
-[semimodule R M] [topological_semimodule R M]
+[semimodule R M] [has_continuous_smul R M]
 
 lemma submodule.closure_smul_self_subset (s : submodule R M) :
   (λ p : R × M, p.1 • p.2) '' ((set.univ : set R).prod (closure (s : set M)))
@@ -177,8 +95,8 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
   smul_mem' := λ c x hx, s.closure_smul_self_subset ⟨⟨c, x⟩, ⟨set.mem_univ _, hx⟩, rfl⟩,
   ..s.to_add_submonoid.topological_closure }
 
-instance submodule.topological_closure_topological_semimodule (s : submodule R M) :
-  topological_semimodule R (s.topological_closure) :=
+instance submodule.topological_closure_has_continuous_smul (s : submodule R M) :
+  has_continuous_smul R (s.topological_closure) :=
 { continuous_smul :=
   begin
     apply continuous_induced_rng,
@@ -201,31 +119,6 @@ lemma submodule.topological_closure_minimal
 closure_minimal h ht
 
 end closure
-
-section
-
-variables {R : Type*} {M : Type*} {a : R}
-[field R] [topological_space R]
-[topological_space M] [add_comm_group M]
-[vector_space R M] [topological_vector_space R M]
-
-
-/-- Scalar multiplication by a non-zero field element is a
-homeomorphism from a topological vector space onto itself. -/
-protected def homeomorph.smul_of_ne_zero (ha : a ≠ 0) : M ≃ₜ M :=
-{.. homeomorph.smul_of_unit (units.mk0 a ha)}
-
-lemma is_open_map_smul_of_ne_zero (ha : a ≠ 0) : is_open_map (λ (x : M), a • x) :=
-(homeomorph.smul_of_ne_zero ha).is_open_map
-
-/-- `smul` is a closed map in the second argument.
-
-The lemma that `smul` is a closed map in the first argument (for a normed space over a complete
-normed field) is `is_closed_map_smul_left` in `analysis.normed_space.finite_dimension`. -/
-lemma is_closed_map_smul_of_ne_zero (ha : a ≠ 0) : is_closed_map (λ (x : M), a • x) :=
-(homeomorph.smul_of_ne_zero ha).is_closed_map
-
-end
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
 definition, although in applications `M` and `M₂` will be topological modules over the topological
@@ -477,11 +370,6 @@ end
 @[simp, norm_cast] lemma coe_inl : (inl R M M₂ : M →ₗ[R] M × M₂) = linear_map.inl R M M₂ := rfl
 @[simp, norm_cast] lemma coe_inr : (inr R M M₂ : M₂ →ₗ[R] M × M₂) = linear_map.inr R M M₂ := rfl
 
-instance [topological_space R] [topological_semimodule R M] [topological_semimodule R M₂] :
-  topological_semimodule R (M × M₂) :=
-⟨(continuous_fst.smul (continuous_fst.comp continuous_snd)).prod_mk
-  (continuous_fst.smul (continuous_snd.comp continuous_snd))⟩
-
 /-- Kernel of a continuous linear map. -/
 def ker (f : M →L[R] M₂) : submodule R M := (f : M →ₗ[R] M₂).ker
 
@@ -607,7 +495,7 @@ rfl
 section
 
 variables {S : Type*} [semiring S] [semimodule R S] [semimodule S M₂] [is_scalar_tower R S M₂]
-    [topological_space S] [topological_semimodule S M₂]
+    [topological_space S] [has_continuous_smul S M₂]
 
 /-- The linear map `λ x, c x • f`.  Associates to a scalar-valued linear map and an element of
 `M₂` the `M₂`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `M₂`).
@@ -623,7 +511,7 @@ rfl
 
 end
 
-variables [topological_space R] [topological_semimodule R M₂]
+variables [topological_space R] [has_continuous_smul R M₂]
 
 @[simp]
 lemma smul_right_one_one (c : R →L[R] M₂) : smul_right (1 : R →L[R] R) (c 1) = c :=
@@ -634,7 +522,7 @@ lemma smul_right_one_eq_iff {f f' : M₂} :
   smul_right (1 : R →L[R] R) f = smul_right (1 : R →L[R] R) f' ↔ f = f' :=
 by simp only [ext_ring_iff, smul_right_apply, one_apply, one_smul]
 
-lemma smul_right_comp [topological_semimodule R R] {x : M₂} {c : R} :
+lemma smul_right_comp [has_continuous_mul R] {x : M₂} {c : R} :
   (smul_right (1 : R →L[R] R) x).comp (smul_right (1 : R →L[R] R) c) =
     smul_right (1 : R →L[R] R) (c • x) :=
 by { ext, simp [mul_smul] }
@@ -752,8 +640,7 @@ instance [topological_add_group M] : ring (M →L[R] M) :=
   right_distrib := λ _ _ _, ext $ λ _, linear_map.add_apply _ _ _,
   ..continuous_linear_map.add_comm_group }
 
-lemma smul_right_one_pow [topological_space R]
-  [topological_add_group R] [topological_semimodule R R] (c : R) (n : ℕ) :
+lemma smul_right_one_pow [topological_space R] [topological_ring R] (c : R) (n : ℕ) :
   (smul_right (1 : R →L[R] R) c)^n = smul_right (1 : R →L[R] R) (c^n) :=
 begin
   induction n with n ihn,
@@ -791,7 +678,7 @@ variables {R S : Type*} [ring R] [ring S] [topological_space S]
   {M : Type*} [topological_space M] [add_comm_group M] [module R M]
   {M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M₂]
   {M₃ : Type*} [topological_space M₃] [add_comm_group M₃] [module R M₃]
-  [module S M₃] [smul_comm_class R S M₃] [topological_module S M₃]
+  [module S M₃] [smul_comm_class R S M₃] [has_continuous_smul S M₃]
 
 instance : has_scalar S (M →L[R] M₃) :=
 ⟨λ c f, ⟨c • f, continuous_const.smul f.2⟩⟩
@@ -800,7 +687,7 @@ variables (c : S) (h : M₂ →L[R] M₃) (f g : M →L[R] M₂) (x y z : M)
 
 @[simp] lemma smul_comp : (c • h).comp f = c • (h.comp f) := rfl
 
-variables [module S M₂] [topological_module S M₂] [smul_comm_class R S M₂]
+variables [module S M₂] [has_continuous_smul S M₂] [smul_comm_class R S M₂]
 
 lemma smul_apply : (c • f) x = c • (f x) := rfl
 @[simp, norm_cast] lemma coe_smul : (((c • f) : M →L[R] M₂) : M →ₗ[R] M₂) = c • f := rfl
@@ -848,9 +735,9 @@ section smul_rightₗ
 
 variables {R S T M M₂ : Type*} [ring R] [ring S] [ring T] [module R S]
   [add_comm_group M₂] [module R M₂] [module S M₂] [is_scalar_tower R S M₂]
-  [topological_space S] [topological_space M₂] [topological_semimodule S M₂]
+  [topological_space S] [topological_space M₂] [has_continuous_smul S M₂]
   [topological_space M] [add_comm_group M] [module R M] [topological_add_group M₂]
-  [topological_space T] [module T M₂] [topological_module T M₂]
+  [topological_space T] [module T M₂] [has_continuous_smul T M₂]
   [smul_comm_class R T M₂] [smul_comm_class S T M₂]
 
 /-- Given `c : E →L[𝕜] 𝕜`, `c.smul_rightₗ` is the linear map from `F` to `E →L[𝕜] F`
@@ -872,9 +759,9 @@ variables
 {M : Type*} [topological_space M] [add_comm_group M]
 {M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
-[module R M] [module R M₂] [module R M₃] [topological_module R M₃]
+[module R M] [module R M₂] [module R M₃] [has_continuous_smul R M₃]
 
-variables [topological_add_group M₂] [topological_module R M₂]
+variables [topological_add_group M₂] [has_continuous_smul R M₂]
 
 instance : algebra R (M₂ →L[R] M₂) :=
 algebra.of_semimodule smul_comp (λ _ _ _, comp_smul _ _ _)
@@ -912,7 +799,7 @@ variable [topological_add_group M₂]
   (-f).restrict_scalars R = -f.restrict_scalars R := rfl
 end
 
-variables {S : Type*} [ring S] [topological_space S] [semimodule S M₂] [topological_module S M₂]
+variables {S : Type*} [ring S] [topological_space S] [semimodule S M₂] [has_continuous_smul S M₂]
   [smul_comm_class A S M₂] [smul_comm_class R S M₂]
 
 @[simp] lemma restrict_scalars_smul (c : S) (f : M →L[A] M₂) :
@@ -1257,7 +1144,7 @@ def units_equiv : units (M →L[R] M) ≃* (M ≃L[R] M) :=
 end
 
 section
-variables (R) [topological_space R] [topological_module R R]
+variables (R) [topological_space R] [has_continuous_mul R]
 
 /-- Continuous linear equivalences `R ≃L[R] R` are enumerated by `units R`. -/
 def units_equiv_aut : units R ≃ (R ≃L[R] R) :=

@@ -194,7 +194,7 @@ we prepare some easy lemmas about √2.
 -- defeated me. Thanks for the rescue from Shing Tak Lam!
 lemma tsirelson_inequality_aux : √2 * √2 ^ 3 = √2 * (2 * √2⁻¹ + 4 * (√2⁻¹ * 2⁻¹)) :=
 begin
-  ring,
+  ring_nf,
   rw [mul_assoc, inv_mul_cancel, real.sqrt_eq_rpow, ←real.rpow_nat_cast, ←real.rpow_mul],
   { norm_num,
     rw show (2 : ℝ) ^ (2 : ℝ) = (2 : ℝ) ^ (2 : ℕ), by { rw ←real.rpow_nat_cast, norm_num },

@@ -922,7 +922,7 @@ lemma Sup_within_of_ord_connected
 begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
   obtain ⟨B, hB⟩ : ∃ B, B ∈ upper_bounds t := h_bdd,
-  refine hs c.2 B.2 ⟨_, _⟩,
+  refine hs.out c.2 B.2 ⟨_, _⟩,
   { exact (subtype.mono_coe s).le_cSup_image hct ⟨B, hB⟩ },
   { exact (subtype.mono_coe s).cSup_image_le ⟨c, hct⟩ hB },
 end
@@ -935,7 +935,7 @@ lemma Inf_within_of_ord_connected
 begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
   obtain ⟨B, hB⟩ : ∃ B, B ∈ lower_bounds t := h_bdd,
-  refine hs B.2 c.2 ⟨_, _⟩,
+  refine hs.out B.2 c.2 ⟨_, _⟩,
   { exact (subtype.mono_coe s).le_cInf_image ⟨c, hct⟩ hB },
   { exact (subtype.mono_coe s).cInf_image_le hct ⟨B, hB⟩ },
 end

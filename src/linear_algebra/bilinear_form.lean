@@ -245,7 +245,7 @@ variables (R₂) [algebra R₂ R] [semimodule R₂ M] [is_scalar_tower R₂ R M]
 /-- The linear map obtained from a `bilin_form` by fixing the left co-ordinate and evaluating in
 the right.
 This is the most general version of the construction; it is `R₂`-linear for some distinguished
-commutative subsemiring `R₂` of the scalar ring.  Over semiring with no particular distinguished
+commutative subsemiring `R₂` of the scalar ring.  Over a semiring with no particular distinguished
 such subsemiring, use `to_lin'`, which is `ℕ`-linear.  Over a commutative semiring, use `to_lin`,
 which is linear. -/
 def to_lin_hom : bilin_form R M →ₗ[R₂] M →ₗ[R₂] M →ₗ[R] R :=
@@ -271,12 +271,12 @@ Over a commutative semiring, use `to_lin`, which is linear rather than `ℕ`-lin
 abbreviation to_lin' : bilin_form R M →ₗ[ℕ] M →ₗ[ℕ] M →ₗ[R] R := to_lin_hom ℕ
 
 @[simp]
-lemma map_sum_left {α} (t : finset α) (g : α → M) (w : M) :
+lemma sum_left {α} (t : finset α) (g : α → M) (w : M) :
   B (∑ i in t, g i) w = ∑ i in t, B (g i) w :=
 (bilin_form.to_lin' B).map_sum₂ t g w
 
 @[simp]
-lemma map_sum_right {α} (t : finset α) (w : M) (g : α → M) :
+lemma sum_right {α} (t : finset α) (w : M) (g : α → M) :
   B w (∑ i in t, g i) = ∑ i in t, B w (g i) :=
 (bilin_form.to_lin' B w).map_sum
 
@@ -343,13 +343,6 @@ linear_map.to_bilin.symm_symm
 
 @[simp, norm_cast]
 lemma bilin_form.to_lin_apply (x : M₂) : ⇑(bilin_form.to_lin B₂ x) = B₂ x := rfl
-
-/-- Bilinear forms are linearly equivalent to maps with two arguments that are linear in both,
-"arguments-reversed" version. -/
-def bilin_form.to_lin_flip : bilin_form R₂ M₂ ≃ₗ[R₂] M₂ →ₗ[R₂] M₂ →ₗ[R₂] R₂ :=
-bilin_form.flip.trans bilin_form.to_lin
-
-@[simp] lemma bilin_form.to_lin_flip_eq_flip : B₂.to_lin_flip = B₂.to_lin.flip := rfl
 
 end equiv_lin
 
@@ -551,7 +544,7 @@ begin
     by_cases (i = j),
     { rw [if_pos h] },
     { rw [if_neg h, is_Ortho_def.1 hv₁ _ _ h, mul_zero] } },
-  simp_rw [map_sum_left, smul_left, hsum, finset.sum_ite_eq] at this,
+  simp_rw [sum_left, smul_left, hsum, finset.sum_ite_eq] at this,
   rw [if_pos, mul_eq_zero] at this,
   cases this,
   { assumption },
@@ -575,7 +568,7 @@ lemma sum_repr_mul_repr_mul (x y : M₃) :
   (hb.repr x).sum (λ i xi, (hb.repr y).sum (λ j yj, xi • yj • B₃ (b i) (b j))) = B₃ x y :=
 begin
   conv_rhs { rw [← hb.total_repr x, ← hb.total_repr y] },
-  simp_rw [finsupp.total_apply, finsupp.sum, map_sum_left, map_sum_right,
+  simp_rw [finsupp.total_apply, finsupp.sum, sum_left, sum_right,
     smul_left, smul_right, smul_eq_mul]
 end
 

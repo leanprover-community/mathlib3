@@ -447,7 +447,7 @@ neighborhood `s` there exists an infinitely smooth function with the following p
 *  moreover, `closure (support f) ⊆ s` and `closure (support f)` is a compact set;
 * `f y ∈ [0, 1]` for all `y`.
 
-This lemma is a simple wrapper around lemmas about bundled smooth bump function, see
+This lemma is a simple wrapper around lemmas about bundled smooth bump functions, see
 `times_cont_diff_bump`. -/
 lemma exists_times_cont_diff_bump_function_of_mem_nhds [normed_group E] [normed_space ℝ E]
   [finite_dimensional ℝ E] {x : E} {s : set E} (hs : s ∈ 𝓝 x) :

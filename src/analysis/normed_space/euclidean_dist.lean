@@ -32,7 +32,7 @@ namespace euclidean
 
 /-- If `x` and `y` are two points in a finite dimensional space over `ℝ`, then `euclidean.dist x y`
 is the distance between these points in the metric defined by some inner product space structure on
-`G`. -/
+`E`. -/
 def dist (x y : E) : ℝ := dist (to_euclidean x) (to_euclidean y)
 
 /-- Closed ball w.r.t. the euclidean distance. -/
@@ -108,7 +108,7 @@ end euclidean
 variables {F : Type*} [normed_group F] [normed_space ℝ F] {f g : F → E} {n : with_top ℕ}
 
 lemma times_cont_diff.euclidean_dist (hf : times_cont_diff ℝ n f) (hg : times_cont_diff ℝ n g)
-  (h : ∀ x , f x ≠ g x) :
+  (h : ∀ x, f x ≠ g x) :
   times_cont_diff ℝ n (λ x, euclidean.dist (f x) (g x)) :=
 begin
   simp only [euclidean.dist],

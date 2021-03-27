@@ -26,7 +26,7 @@ section has_one
 
 variables [has_one M] [has_one N] [has_one P]
 
-/-- `support` of a function is the set of points `x` such that `f x ≠ 0` -/
+/-- `support` of a function is the set of points `x` such that `f x ≠ 0`. -/
 def support [has_zero A] (f : α → A) : set α := {x | f x ≠ 0}
 
 /-- `mul_support` of a function is the set of points `x` such that `f x ≠ 1`. -/
@@ -256,5 +256,9 @@ begin
   split_ifs;
   simp
 end
+
+lemma support_single_disjoint {b' : B} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : A} :
+  disjoint (function.support (single i b)) (function.support (single j b')) ↔ i ≠ j :=
+by simpa [support_single, hb, hb'] using ne_comm
 
 end pi

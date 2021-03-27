@@ -211,7 +211,7 @@ this as a local instance where needed. -/
 lemma finite_dimensional_of_findim_eq_succ {K V : Type*} [field K] [add_comm_group V]
   [vector_space K V] (n : ℕ) [fact (findim K V = n + 1)] :
   finite_dimensional K V :=
-finite_dimensional_of_findim $ by convert nat.succ_pos n
+finite_dimensional_of_findim $ by convert nat.succ_pos n; apply fact.out
 
 /-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
 cardinality of the basis. -/

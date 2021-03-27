@@ -362,7 +362,7 @@ def to_units {G} [group G] : G ≃* units G :=
   right_inv := λ u, units.ext rfl,
   map_mul' := λ x y, units.ext rfl }
 
-protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := is_unit_unit (to_units x)
+protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
 
 namespace units
 

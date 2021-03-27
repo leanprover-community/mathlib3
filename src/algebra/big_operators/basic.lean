@@ -91,6 +91,10 @@ theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) :
   (∏ x in s, f x) = s.fold (*) 1 f :=
 rfl
 
+@[simp] lemma sum_multiset_singleton (s : finset α) :
+  s.sum (λ x, x ::ₘ 0) = s.val :=
+by simp [sum_eq_multiset_sum]
+
 end finset
 
 

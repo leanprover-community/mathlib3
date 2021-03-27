@@ -547,9 +547,8 @@ finset.le_card_of_inj_on_range ((^) a)
   automatic in case of a finite cancellative monoid.-/
 lemma order_of_pos (a : α) : 0 < order_of a :=
 begin
+  rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
   apply order_of_pos',
-  cases exists_pow_eq_one a with w hw,
-  cases hw with hw1 hw2,
   exact ⟨w, hw1, hw2⟩,
 end
 
@@ -572,9 +571,8 @@ automatic in the case of a finite cancellative monoid.-/
 lemma order_of_pow (a : α) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
+  rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
   apply order_of_pow'',
-  cases exists_pow_eq_one a with w hw,
-  cases hw with hw1 hw2,
   exact ⟨w, hw1, hw2⟩
 end
 

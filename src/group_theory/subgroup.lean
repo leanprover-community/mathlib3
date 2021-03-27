@@ -1398,6 +1398,31 @@ attribute [to_additive add_subgroup.gmultiples_subset] subgroup.gpowers_subset
 
 end add_subgroup
 
+lemma of_mul_image_gpowers_eq_gmultiples_of_mul { x : G } :
+  additive.of_mul '' ((subgroup.gpowers x) : set G) = add_subgroup.gmultiples (additive.of_mul x) :=
+begin
+  ext y,
+  split,
+  { rintro ⟨z, ⟨m, hm⟩, hz2⟩,
+    use m,
+    simp only,
+    rwa [← of_mul_gpow, hm] },
+  { rintro ⟨m, hm⟩,
+    use (x ^ m),
+    split,
+    { use m },
+    { rwa of_mul_gpow } },
+end
+
+lemma of_add_image_gmultiples_eq_gpowers_of_add {x : A} :
+  multiplicative.of_add '' ((add_subgroup.gmultiples x) : set A) =
+  subgroup.gpowers (multiplicative.of_add x) :=
+begin
+  symmetry,
+  rw equiv.eq_image_iff_symm_image_eq,
+  exact of_mul_image_gpowers_eq_gmultiples_of_mul,
+end
+
 namespace mul_equiv
 
 variables {H K : subgroup G}

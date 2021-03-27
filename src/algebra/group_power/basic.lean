@@ -724,6 +724,9 @@ lemma of_mul_pow {A : Type*} [monoid A] (x : A) (n : ℕ) :
   additive.of_mul (x ^ n) = n •ℕ (additive.of_mul x) :=
 (congr_arg additive.of_mul (of_add_nsmul (additive.of_mul x) n)).symm
 
+lemma of_mul_gpow [group G] (x : G) (n : ℤ) : additive.of_mul (x ^ n) = n •ℤ additive.of_mul x :=
+by { cases n; simp [gsmul_of_nat, gpow_of_nat, of_mul_pow] }
+
 @[simp] lemma semiconj_by.gpow_right [group G] {a x y : G} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (x^m) (y^m)
 | (n : ℕ) := h.pow_right n

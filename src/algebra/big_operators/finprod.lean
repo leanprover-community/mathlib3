@@ -30,14 +30,8 @@ Definitions in this file:
 * `finsum f : M` : the sum of `f x` as `x` ranges over the support of `f`, if it's finite.
    Zero otherwise.
 
-* `finsum_in s f : M` : the sum of `f x` as `x` ranges over the elements of `s` for which `f x ≠ 0`,
-  if this is a finite sum. Zero otherwise.
-
 * `finprod f : M` : the product of `f x` as `x` ranges over the multiplicative support of `f`, if
    it's finite. One otherwise.
-
-* `finprod_in s f : M` : the product of `f x` as `x` ranges over the elements of `s` for which
-  `f x ≠ 1`, if this is a finite sum. One otherwise.
 
 ## Notation
 
@@ -440,10 +434,10 @@ by rw [← finprod_in_inter_mul_support f s, ← finprod_in_inter_mul_support f 
 @[to_additive] lemma finprod_in_singleton : ∏ᶠ i ∈ ({a} : set α), f i = f a :=
 by rw [← finset.coe_singleton, finprod_in_coe_eq_prod, finset.prod_singleton]
 
-@[to_additive] lemma finprod_in_eq_left : ∏ᶠ i = a, f i = f a :=
+@[simp, to_additive] lemma finprod_in_eq_left : ∏ᶠ i = a, f i = f a :=
 finprod_in_singleton
 
-@[to_additive] lemma finprod_in_eq_right : ∏ᶠ i (hi : a = i), f i = f a :=
+@[simp, to_additive] lemma finprod_in_eq_right : ∏ᶠ i (hi : a = i), f i = f a :=
 by simpa [@eq_comm _ a] using finprod_in_eq_left
 
 /-- A more general version of `finprod_in_insert` that requires `s ∩ mul_support f` instead of

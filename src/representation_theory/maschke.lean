@@ -13,7 +13,8 @@ import ring_theory.simple_module
 
 We prove Maschke's theorem for finite groups,
 in the formulation that every submodule of a `k[G]` module has a complement,
-when `k` is a field with `¬(ring_char k ∣ fintype.card G)`.
+when `k` is a field with `invertible (fintype.card G : k)`, which can be derived from
+`¬(ring_char k ∣ fintype.card G)` using `invertible_of_ring_char_not_dvd`.
 
 We do the core computation in greater generality.
 For any `[comm_ring k]` in which  `[invertible (fintype.card G : k)]`,
@@ -140,18 +141,15 @@ namespace char_zero
 
 variables {k : Type u} [field k] {G : Type u} [fintype G] [group G] [char_zero k]
 
-instance : fact ¬(ring_char k ∣ fintype.card G) :=
-⟨by simp [fintype.card_eq_zero_iff]⟩
+instance : invertible (fintype.card G : k) :=
+invertible_of_ring_char_not_dvd (by simp [fintype.card_eq_zero_iff])
 
 end char_zero
 
 namespace monoid_algebra
 
--- Now we work over a `[field k]`, and replace the assumption `[invertible (fintype.card G : k)]`
--- with `[fact ¬(ring_char k ∣ fintype.card G)]`.
-variables {k : Type u} [field k] {G : Type u} [fintype G] [fact ¬(ring_char k ∣ fintype.card G)]
-instance : invertible (fintype.card G : k) := invertible_of_ring_char_not_dvd (fact.out _)
-
+-- Now we work over a `[field k]`.
+variables {k : Type u} [field k] {G : Type u} [fintype G] [invertible (fintype.card G : k)]
 variables [group G]
 variables {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
 variables [is_scalar_tower k (monoid_algebra k G) V]

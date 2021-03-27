@@ -24,6 +24,12 @@ The underlying space of a simplicial complex.
 def simplicial_complex.space (S : simplicial_complex m) : set E :=
 ⋃ X ∈ S.faces, convex_hull (X : set E)
 
+lemma empty_space_of_empty_simplicial_complex (m : ℕ) : (empty_simplicial_complex m).space = ∅ :=
+begin
+  unfold empty_simplicial_complex simplicial_complex.space,
+  simp,
+end
+
 /--
 The boundary of a simplex as a subspace.
 -/
@@ -80,7 +86,7 @@ begin
     apply hy₂ }
 end
 
-lemma boundaries_agree_of_high_dimension {X : finset E} (hXcard : X.card = m + 1) :
+lemma boundaries_agree_of_full_dimensional {X : finset E} (hXcard : X.card = m + 1) :
   boundary X = frontier (convex_hull X) :=
 begin
   ext x,
@@ -221,7 +227,7 @@ begin
 end
 
 /- interior X is the topological interior iff X is of dimension m -/
-lemma interiors_agree_of_high_dimension {S : simplicial_complex m}
+lemma interiors_agree_of_full_dimensional {S : simplicial_complex m}
   {X} (hX : X ∈ S.faces) (hXdim : X.card = m + 1) :
   combi_interior X = interior X :=
 begin
@@ -283,12 +289,6 @@ def subdivision_order : partial_order (simplicial_complex m) :=
 
 /-A simplicial complex is connected iff its space is-/
 def simplicial_complex.connected (S : simplicial_complex m) : Prop := connected_space S.space
-
-lemma empty_space_of_empty_simplicial_complex (m : ℕ) : (empty_simplicial_complex m).space = ∅ :=
-begin
-  unfold empty_simplicial_complex simplicial_complex.space,
-  simp,
-end
 
 /-A simplicial complex is connected iff its 1-skeleton is-/
 lemma connected_iff_one_skeleton_connected {S : simplicial_complex m} :

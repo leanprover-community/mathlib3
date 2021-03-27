@@ -996,4 +996,7 @@ def simplicial_complex.boundaryless (S : simplicial_complex m) : Prop := S.bound
 lemma boundary_boundaryless {S : simplicial_complex m} : S.boundary.boundaryless :=
   boundary_boundary
 
+def simplicial_complex.full_dimensional (S : simplicial_complex m) : Prop :=
+  ∃ {X}, X ∈ S.faces ∧ (X : finset _).card = m + 1
+
 end affine

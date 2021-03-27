@@ -174,9 +174,12 @@ namespace mul_action
 
 variables (M α)
 
-/-- Embedding induced by action. -/
+/-- Embedding of `α` into functions `M → α` induced by a multiplicative action of `M` on `α`. -/
 @[to_additive] def to_fun : α ↪ (M → α) :=
 ⟨λ y x, x • y, λ y₁ y₂ H, one_smul M y₁ ▸ one_smul M y₂ ▸ by convert congr_fun H 1⟩
+
+/-- Embedding of `α` into functions `M → α` induced by an additive action of `M` on `α`. -/
+add_decl_doc add_action.to_fun
 
 variables {M α}
 
@@ -185,12 +188,17 @@ rfl
 
 variable (α)
 
-/-- An action of `M` on `α` and a monoid homomorphism `N → M` induce an action of `N` on `α`. -/
+/-- A multiplicative action of `M` on `α` and a monoid homomorphism `N → M` induce
+a multiplicative action of `N` on `α`. -/
 @[to_additive] def comp_hom [monoid N] (g : N →* M) :
   mul_action N α :=
 { smul := λ x b, (g x) • b,
   one_smul := by simp [g.map_one, mul_action.one_smul],
   mul_smul := by simp [g.map_mul, mul_action.mul_smul] }
+
+/-- An additive action of `M` on `α` and an additive monoid homomorphism `N → M` induce
+an additive action of `N` on `α`. -/
+add_decl_doc add_action.comp_hom
 
 end mul_action
 

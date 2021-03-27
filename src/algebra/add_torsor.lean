@@ -60,6 +60,7 @@ class add_torsor (G : out_param Type*) (P : Type*) [out_param $ add_group G]
 (vadd_vsub' : ∀ (g : G) (p : P), g +ᵥ p -ᵥ p = g)
 
 attribute [instance, priority 100, nolint dangerous_instance] add_torsor.nonempty
+attribute [nolint dangerous_instance] add_torsor.to_has_vsub
 
 /-- An `add_group G` is a torsor for itself. -/
 @[nolint instance_priority]

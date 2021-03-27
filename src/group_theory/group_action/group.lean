@@ -35,6 +35,10 @@ by rw [smul_smul, u.mul_inv, one_smul]
 @[to_additive] def units.smul_perm (u : units α) : equiv.perm β :=
 ⟨λ x, (u:α) • x, λ x, (↑u⁻¹:α) • x, u.inv_smul_smul, u.smul_inv_smul⟩
 
+/-- If an additive monoid `α` acts on `β`, then each `u : add_units α` defines a permutation
+of `β`. -/
+add_decl_doc add_units.vadd_perm
+
 /-- If a monoid `α` acts on `β`, then each `u : units α` defines a permutation of `β`. -/
 def units.smul_perm_hom : units α →* equiv.perm β :=
 { to_fun := units.smul_perm,

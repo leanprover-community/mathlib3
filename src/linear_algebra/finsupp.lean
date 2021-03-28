@@ -600,7 +600,7 @@ begin
     split_ifs; simp, },
 end
 
-@[simp] theorem lcongr_symm_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (k : κ) (n : N) :
+theorem lcongr_symm_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (k : κ) (n : N) :
   (lcongr e₁ e₂).symm (finsupp.single k n) = finsupp.single (e₁.symm k) (e₂.symm n) :=
 begin
   apply_fun lcongr e₁ e₂ using (lcongr e₁ e₂).injective,

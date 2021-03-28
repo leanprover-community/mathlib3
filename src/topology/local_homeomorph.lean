@@ -255,6 +255,21 @@ by rw [e.map_nhds_within_eq hx, e.image_source_inter_eq', e.target_inter_inv_pre
 lemma preimage_open_of_open {s : set β} (hs : is_open s) : is_open (e.source ∩ e ⁻¹' s) :=
 e.continuous_on.preimage_open_of_open e.open_source hs
 
+/-!
+### `local_homeomorph.is_image` relation
+
+We say that `t : set β` is an image of `s : set α` under a local homeomorphism `e` if any of the
+following equivalent conditions hold:
+
+* `e '' (e.source ∩ s) = e.target ∩ t`;
+* `e.source ∩ e ⁻¹ t = e.source ∩ s`;
+* `∀ x ∈ e.source, e x ∈ t ↔ x ∈ s` (this one is used in the definition).
+
+This definition is a restatement of `local_equiv.is_image` for local homeomorphisms. In this section
+we transfer API about `local_equiv.is_image` to local homeomorphisms and add a few
+`local_homeomorph`-specific lemmas like `local_homeomorph.is_image.closure`.
+-/
+
 /-- We say that `t : set β` is an image of `s : set α` under a local homeomorphism `e` if any of the
 following equivalent conditions hold:
 

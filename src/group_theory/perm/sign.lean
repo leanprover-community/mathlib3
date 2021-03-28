@@ -772,7 +772,7 @@ variables (α) [fintype α] [decidable_eq α]
 
 /-- The alternating group on a finite type, realized as a subgroup of `equiv.perm`.
   For $A_n$, use `alternating_subgroup (fin n)`. -/
-def alternating_subgroup : subgroup (perm α) :=
+@[derive fintype] def alternating_subgroup : subgroup (perm α) :=
 sign.ker
 
 variables {α}
@@ -784,15 +784,12 @@ lemma mem_alternating_subgroup {f : perm α} :
   f ∈ alternating_subgroup α ↔ sign f = 1 :=
 sign.mem_ker
 
-instance : decidable_pred ((alternating_subgroup α).carrier) :=
-sign.decidable_ker
-
-lemma card_perm_eq_two_mul_card_alternating_subgroup [nontrivial α] :
-  card (perm α) = 2 * card (alternating_subgroup α) :=
+lemma two_mul_card_alternating_subgroup [nontrivial α] :
+  2 * card (alternating_subgroup α) = card (perm α) :=
 begin
   classical,
   rw ← fintype.card_units_int,
-  convert card_eq_card_quotient_mul_card_subgroup (alternating_subgroup α),
+  convert (card_eq_card_quotient_mul_card_subgroup (alternating_subgroup α)).symm,
   convert of_equiv_card (quotient_group.quotient_ker_equiv_of_surjective _
     (sign_surjective α)).to_equiv,
 end

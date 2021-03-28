@@ -902,10 +902,13 @@ protected lemma div_div_self : ∀ {a b : ℕ}, b ∣ a → 0 < a → a / (a / b
   by rw [nat.div_mul_cancel (div_dvd_of_dvd h₁), nat.mul_div_cancel' h₁]
 
 lemma mod_mul_right_div_self (a b c : ℕ) : a % (b * c) / b = (a / b) % c :=
-if hb : b = 0 then by simp [hb] else if hc : c = 0 then by simp [hc]
-else by conv {to_rhs, rw ← mod_add_div a (b * c)};
-rw [mul_assoc, nat.add_mul_div_left _ _ (nat.pos_of_ne_zero hb), add_mul_mod_self_left,
-  mod_eq_of_lt (nat.div_lt_of_lt_mul (mod_lt _ (mul_pos (nat.pos_of_ne_zero hb) (nat.pos_of_ne_zero hc))))]
+begin
+  rcases (zero_le b).eq_or_lt with rfl|hb, { simp },
+  rcases (zero_le c).eq_or_lt with rfl|hc, { simp },
+  conv_rhs { rw ← mod_add_div a (b * c) },
+  rw [mul_assoc, nat.add_mul_div_left _ _ hb, add_mul_mod_self_left,
+    mod_eq_of_lt (nat.div_lt_of_lt_mul (mod_lt _ (mul_pos hb hc)))]
+end
 
 lemma mod_mul_left_div_self (a b c : ℕ) : a % (c * b) / b = (a / b) % c :=
 by rw [mul_comm c, mod_mul_right_div_self]

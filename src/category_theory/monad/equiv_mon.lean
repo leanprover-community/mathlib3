@@ -3,7 +3,7 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import category_theory.monad.bundled
+import category_theory.monad.basic
 import category_theory.monoidal.End
 import category_theory.monoidal.Mon_
 import category_theory.category.Cat

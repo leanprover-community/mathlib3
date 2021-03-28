@@ -207,14 +207,31 @@ begin
   apply image_subobject_iso_comp,
 end
 
--- /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
--- namespace hom
+/-! Lemmas relating chain maps and `d_to`/`d_from`. -/
+namespace hom
 
--- variables {C₁ C₂ : homological_complex V c}
+variables {C₁ C₂ : homological_complex V c}
 
--- def comm_d_to (f : C₁ ⟶ C₂) (i : ι) :
---   f.f i ≫ (C₂.d_from i).hom = (C₁.d_from i).hom ≫ f.f _
+def f_pred (f : hom C₁ C₂) (i : ι) : C₁.X_pred i ⟶ C₂.X_pred i :=
+if h : nonempty (c.pred i) then
+  (C₁.X_pred_iso h.some.2).hom ≫ f.f h.some.1 ≫ (C₂.X_pred_iso h.some.2).inv
+else
+  0
 
--- end hom
+def f_succ (f : hom C₁ C₂) (i : ι) : C₁.X_succ i ⟶ C₂.X_succ i :=
+if h : nonempty (c.succ i) then
+  (C₁.X_succ_iso h.some.2).hom ≫ f.f h.some.1 ≫ (C₂.X_succ_iso h.some.2).inv
+else
+  0
+
+@[simp, reassoc]
+def comm_d_from (f : C₁ ⟶ C₂) (i : ι) :
+  f.f i ≫ C₂.d_from i = C₁.d_from i ≫ f.f_succ i :=
+begin
+  dsimp [d_from, f_succ],
+  split_ifs; simp
+end
+
+end hom
 
 end homological_complex

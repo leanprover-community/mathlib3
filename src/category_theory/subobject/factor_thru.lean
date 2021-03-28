@@ -82,27 +82,8 @@ begin
   { refl, },
 end
 
-/-- `P.factor_thru f h` provides a factorisation of `f : X ⟶ Y` through some `P : subobject Y`,
-given the evidence `h : P.factors f` that such a factorisation exists. -/
-def factor_thru {X Y : C} (P : subobject Y) (f : X ⟶ Y) (h : factors P f) : X ⟶ P :=
-classical.some ((factors_iff _ _).mp h)
-
-@[simp, reassoc] lemma factor_thru_arrow {X Y : C} (P : subobject Y) (f : X ⟶ Y) (h : factors P f) :
-  P.factor_thru f h ≫ P.arrow = f :=
-classical.some_spec ((factors_iff _ _).mp h)
-
-@[simp] lemma factor_thru_eq_zero [has_zero_morphisms C]
-  {X Y : C} {P : subobject Y} {f : X ⟶ Y} {h : factors P f} :
-  P.factor_thru f h = 0 ↔ f = 0 :=
-begin
-  fsplit,
-  { intro w,
-    replace w := w =≫ P.arrow,
-    simpa using w, },
-  { rintro rfl,
-    apply (cancel_mono P.arrow).mp,
-    simp, },
-end
+lemma factors_self {X : C} (P : subobject X) : P.factors P.arrow :=
+(factors_iff _ _).mpr ⟨𝟙 P, (by simp)⟩
 
 lemma factors_comp_arrow {X Y : C} {P : subobject Y} (f : X ⟶ P) : P.factors (f ≫ P.arrow) :=
 (factors_iff _ _).mpr ⟨f, rfl⟩
@@ -117,6 +98,10 @@ begin
   exact ⟨f ≫ g, by simp⟩,
 end
 
+lemma factors_comp_id {X Y : C} {P : subobject Y} {f : X ⟶ Y} :
+  P.factors (f ≫ 𝟙 Y) ↔ P.factors f :=
+by rwa category.comp_id
+
 lemma factors_of_le {Y Z : C} {P Q : subobject Y} (f : Z ⟶ Y) (h : P ≤ Q) :
   P.factors f → Q.factors f :=
 begin
@@ -129,6 +114,35 @@ begin
   apply over.w h,
 end
 
+/-- `P.factor_thru f h` provides a factorisation of `f : X ⟶ Y` through some `P : subobject Y`,
+given the evidence `h : P.factors f` that such a factorisation exists. -/
+def factor_thru {X Y : C} (P : subobject Y) (f : X ⟶ Y) (h : factors P f) : X ⟶ P :=
+classical.some ((factors_iff _ _).mp h)
+
+@[simp, reassoc] lemma factor_thru_arrow {X Y : C} (P : subobject Y) (f : X ⟶ Y) (h : factors P f) :
+  P.factor_thru f h ≫ P.arrow = f :=
+classical.some_spec ((factors_iff _ _).mp h)
+
+@[simp] lemma factor_thru_self {X : C} (P : subobject X) (h) :
+  P.factor_thru P.arrow h = 𝟙 P :=
+by { ext, simp, }
+
+@[simp] lemma factor_thru_comp_arrow {X Y : C} {P : subobject Y} (f : X ⟶ P) (h) :
+  P.factor_thru (f ≫ P.arrow) h = f :=
+by { ext, simp, }
+
+@[simp] lemma factor_thru_eq_zero [has_zero_morphisms C]
+  {X Y : C} {P : subobject Y} {f : X ⟶ Y} {h : factors P f} :
+  P.factor_thru f h = 0 ↔ f = 0 :=
+begin
+  fsplit,
+  { intro w,
+    replace w := w =≫ P.arrow,
+    simpa using w, },
+  { rintro rfl,
+    ext, simp, },
+end
+
 @[simp]
 lemma factor_thru_right {X Y Z : C} {P : subobject Z} (f : X ⟶ Y) (g : Y ⟶ Z) (h : P.factors g) :
   f ≫ P.factor_thru g h = P.factor_thru (f ≫ g) (factors_of_factors_right f h) :=
@@ -136,6 +150,11 @@ begin
   apply (cancel_mono P.arrow).mp,
   simp,
 end
+
+@[simp]
+lemma factor_thru_comp_id {X Y : C} {P : subobject Y} (f : X ⟶ Y) (h : P.factors (f ≫ 𝟙 Y)) :
+  P.factor_thru (f ≫ 𝟙 Y) h = P.factor_thru f (factors_comp_id.mp h) :=
+by simp
 
 end subobject
 

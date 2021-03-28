@@ -20,6 +20,10 @@ variables [has_kernels V]
 def cycles (i : ι) : subobject (C.X i) :=
 kernel_subobject (C.d_from i)
 
+@[simp, reassoc]
+lemma cycles_arrow_d_from (i : ι) : (C.cycles i).arrow ≫ C.d_from i = 0 :=
+by { dsimp [cycles], simp, }
+
 lemma cycles_eq_kernel_subobject {i j : ι} (r : c.r i j) :
   C.cycles i = kernel_subobject (C.d i j) :=
 C.kernel_from_eq_kernel r
@@ -68,14 +72,23 @@ end
 
 section
 variables [has_kernels V]
-variables {C₁ C₂ : homological_complex V c} (f : C₁ ⟶ C₂)
+variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 
 def cycles_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.cycles i : V) ⟶ (C₂.cycles i : V) :=
+subobject.factor_thru _ ((C₁.cycles i).arrow ≫ f.f i) (kernel_subobject_factors _ _ (by simp))
+
+@[simp] lemma cycles_map_id (i : ι) : cycles_map (𝟙 C₁) i = 𝟙 _ :=
 begin
-  fapply subobject.factor_thru,
-  refine (C₁.cycles i).arrow ≫ f.f i,
-  apply kernel_subobject_factors,
+  simp [cycles_map],
+  erw subobject.factor_thru_comp_id, -- why the `erw`?
   simp,
+end
+
+@[simp] lemma cycles_map_comp (f : C₁ ⟶ C₂) (g : C₂ ⟶ C₃) (i : ι) :
+  cycles_map (f ≫ g) i = cycles_map f i ≫ cycles_map g i :=
+begin
+  simp [cycles_map],
+  congr,
 end
 
 end

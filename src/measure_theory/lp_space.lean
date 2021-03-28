@@ -1807,7 +1807,7 @@ variables (𝕜 : Type*) (E p μ) [fact (1 ≤ p)]
 space `α` as an element of `Lp`.  By definition, the norm on `C(α, E)` is the sup-norm, transferred
 from the space `α →ᵇ E` of bounded continuous functions, so this construction is just a matter of
 transferring the structure from `bounded_continuous_function.to_Lp` along the isometry. -/
-def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] : C(α, E) →L[𝕜] (Lp E p μ) :=
+def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] : C(α, E) →L[𝕜] (Lp E p μ) :=
 (bounded_continuous_function.to_Lp E p μ 𝕜).comp
   (linear_isometry_bounded_of_compact α E 𝕜).to_linear_isometry.to_continuous_linear_map
 

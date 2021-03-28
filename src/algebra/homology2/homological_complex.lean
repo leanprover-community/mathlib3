@@ -53,24 +53,21 @@ end
 -- not sure what the correct names for the fields are
 @[ext] structure hom (A B : homological_complex V c) :=
 (f : ∀ i, A.X i ⟶ B.X i)
-(commutes : ∀ i j, f i ≫ B.d i j = A.d i j ≫ f j)
+(commutes' : ∀ i j, f i ≫ B.d i j = A.d i j ≫ f j . obviously)
 
-def id (A : homological_complex V c) : hom A A :=
-{ f := λ _, 𝟙 _,
-  commutes := by simp }
+restate_axiom hom.commutes'
 
-def comp (A B C : homological_complex V c) (φ : hom A B) (ψ : hom B C) : hom A C :=
-{ f := λ i, φ.f i ≫ ψ.f i,
-  -- I know there's some trick for this but I don't know the tricks. reassoc?
-  commutes := λ i j, by rw [category.assoc, ψ.commutes, ←category.assoc, φ.commutes, category.assoc] }
+attribute [simp, reassoc] hom.commutes
+
+@[simps] def id (A : homological_complex V c) : hom A A :=
+{ f := λ _, 𝟙 _ }
+
+@[simps] def comp (A B C : homological_complex V c) (φ : hom A B) (ψ : hom B C) : hom A C :=
+{ f := λ i, φ.f i ≫ ψ.f i }
 
 instance : category (homological_complex V c) :=
 { hom := hom,
   id := id,
-  comp := comp,
-  -- again I know there are tricks but I don't know them
-  id_comp' := by { simp [id, comp], tidy, },
-  comp_id' := by {simp [id, comp], tidy },
-  assoc' := by { simp [id, comp], tidy } }
+  comp := comp }
 
 end homological_complex

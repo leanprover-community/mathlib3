@@ -787,14 +787,14 @@ sign.mem_ker
 instance : decidable_pred ((alternating_subgroup α).carrier) :=
 sign.decidable_ker
 
-lemma two_mul_card_alternating_subgroup [nontrivial α] :
-  2 * card (alternating_subgroup α) = (card α).factorial :=
+lemma card_perm_eq_two_mul_card_alternating_subgroup [nontrivial α] :
+  card (perm α) = 2 * card (alternating_subgroup α) :=
 begin
   classical,
-  rw [← card_perm, card_eq_card_quotient_mul_card_subgroup (alternating_subgroup α),
-    ← fintype.card_units_int],
-  convert congr (congr rfl (of_equiv_card (quotient_group.quotient_ker_equiv_of_surjective _
-    (sign_surjective α)).to_equiv)) rfl,
+  rw ← fintype.card_units_int,
+  convert card_eq_card_quotient_mul_card_subgroup (alternating_subgroup α),
+  convert of_equiv_card (quotient_group.quotient_ker_equiv_of_surjective _
+    (sign_surjective α)).to_equiv,
 end
 
 @[simp]

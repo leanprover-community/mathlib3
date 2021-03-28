@@ -152,7 +152,7 @@ begin
     replace w := nat.lt_succ_iff.mp w,
     revert w,
     induction k with k ih generalizing n ν,
-    { simp [eval_at_0], rintro ⟨⟩, },
+    { simp [eval_at_0], },
     { simp only [derivative_succ, int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat, mul_eq_zero,
         function.comp_app, function.iterate_succ,
         polynomial.iterate_derivative_sub, polynomial.iterate_derivative_cast_nat_mul,

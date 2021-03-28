@@ -790,7 +790,7 @@ begin
     { congr' with i,
       have : (i : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos i),
       field_simp [this, mul_comm] },
-    field_simp [F, this, ← geom_series_def, geom_sum (ne_of_lt hy.2),
+    field_simp [F, this, ← geom_sum_def, geom_sum_eq (ne_of_lt hy.2),
                 sub_ne_zero_of_ne (ne_of_gt hy.2), sub_ne_zero_of_ne (ne_of_lt hy.2)],
     ring },
   -- second step: show that the derivative of `F` is small

@@ -666,6 +666,22 @@ lemma piecewise_eq_on (f g : α → β) : eq_on (s.piecewise f g) f s :=
 lemma piecewise_eq_on_compl (f g : α → β) : eq_on (s.piecewise f g) g sᶜ :=
 λ _, piecewise_eq_of_not_mem _ _ _
 
+lemma piecewise_le {δ : α → Type*} [Π i, preorder (δ i)] {s : set α} [Π j, decidable (j ∈ s)]
+  {f₁ f₂ g : Π i, δ i} (h₁ : ∀ i ∈ s, f₁ i ≤ g i) (h₂ : ∀ i ∉ s, f₂ i ≤ g i) :
+  s.piecewise f₁ f₂ ≤ g :=
+λ i, if h : i ∈ s then by simp * else by simp *
+
+lemma le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {s : set α} [Π j, decidable (j ∈ s)]
+  {f₁ f₂ g : Π i, δ i} (h₁ : ∀ i ∈ s, g i ≤ f₁ i) (h₂ : ∀ i ∉ s, g i ≤ f₂ i) :
+  g ≤ s.piecewise f₁ f₂ :=
+@piecewise_le α (λ i, order_dual (δ i)) _ s _ _ _ _ h₁ h₂
+
+lemma piecewise_le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {s : set α}
+  [Π j, decidable (j ∈ s)] {f₁ f₂ g₁ g₂ : Π i, δ i} (h₁ : ∀ i ∈ s, f₁ i ≤ g₁ i)
+  (h₂ : ∀ i ∉ s, f₂ i ≤ g₂ i) :
+  s.piecewise f₁ f₂ ≤ s.piecewise g₁ g₂ :=
+by apply piecewise_le; intros; simp *
+
 @[simp, priority 990]
 lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g i = s.piecewise f g i :=
@@ -710,9 +726,24 @@ lemma piecewise_preimage (f g : α → β) (t) :
   s.piecewise f g ⁻¹' t = s.ite (f ⁻¹' t) (g ⁻¹' t) :=
 ext $ λ x, by by_cases x ∈ s; simp [*, set.ite]
 
-lemma comp_piecewise (h : β → γ) {f g : α → β} {x : α} :
-  h (s.piecewise f g x) = s.piecewise (h ∘ f) (h ∘ g) x :=
+lemma apply_piecewise {δ' : α → Sort*} (h : Π i, δ i → δ' i) {x : α} :
+  h x (s.piecewise f g x) = s.piecewise (λ x, h x (f x)) (λ x, h x (g x)) x :=
 by by_cases hx : x ∈ s; simp [hx]
+
+lemma apply_piecewise₂ {δ' δ'' : α → Sort*} (f' g' : Π i, δ' i) (h : Π i, δ i → δ' i → δ'' i)
+  {x : α} :
+  h x (s.piecewise f g x) (s.piecewise f' g' x) =
+    s.piecewise (λ x, h x (f x) (f' x)) (λ x, h x (g x) (g' x)) x :=
+by by_cases hx : x ∈ s; simp [hx]
+
+lemma piecewise_op {δ' : α → Sort*} (h : Π i, δ i → δ' i) :
+  s.piecewise (λ x, h x (f x)) (λ x, h x (g x)) = λ x, h x (s.piecewise f g x) :=
+funext $ λ x, (apply_piecewise _ _ _ _).symm
+
+lemma piecewise_op₂ {δ' δ'' : α → Sort*} (f' g' : Π i, δ' i) (h : Π i, δ i → δ' i → δ'' i) :
+  s.piecewise (λ x, h x (f x) (f' x)) (λ x, h x (g x) (g' x)) =
+    λ x, h x (s.piecewise f g x) (s.piecewise f' g' x) :=
+funext $ λ x, (apply_piecewise₂ _ _ _ _ _ _).symm
 
 @[simp] lemma piecewise_same : s.piecewise f f = f :=
 by { ext x, by_cases hx : x ∈ s; simp [hx] }

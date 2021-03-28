@@ -6,7 +6,7 @@ Authors: Kexing Ying
 import group_theory.submonoid
 import algebra.group.conj
 import algebra.pointwise
-import order.modular_lattice
+import order.atoms
 
 /-!
 # Subgroups
@@ -162,8 +162,8 @@ attribute [norm_cast] add_subgroup.mem_coe
 attribute [norm_cast] add_subgroup.coe_coe
 
 @[to_additive]
-instance (K : subgroup G) [d : decidable_pred K.carrier] [fintype G] : fintype K :=
-show fintype {g : G // g ∈ K.carrier}, from infer_instance
+instance (K : subgroup G) [d : decidable_pred (∈ K)] [fintype G] : fintype K :=
+show fintype {g : G // g ∈ K}, from infer_instance
 
 end subgroup
 
@@ -392,6 +392,13 @@ begin
     ext x,
     rw mem_bot,
     exact ⟨h x, by { rintros rfl, exact H.one_mem }⟩ },
+end
+
+@[to_additive] lemma eq_bot_of_subsingleton [subsingleton H] : H = ⊥ :=
+begin
+  rw subgroup.eq_bot_iff_forall,
+  intros y hy,
+  rw [← subgroup.coe_mk H y hy, subsingleton.elim (⟨y, hy⟩ : H) 1, subgroup.coe_one],
 end
 
 @[to_additive] lemma eq_top_of_card_eq [fintype H] [fintype G]
@@ -1480,6 +1487,45 @@ instance : is_modular_lattice (subgroup C) :=
 end⟩
 
 end subgroup
+
+section
+variable (G)
+
+class is_simple_group extends nontrivial G : Prop :=
+(eq_bot_or_eq_top_of_normal : ∀ H : subgroup G, H.normal → H = ⊥ ∨ H = ⊤)
+
+variable {G}
+
+lemma subgroup.normal.eq_bot_or_eq_top [is_simple_group G] {H : subgroup G} (Hn : H.normal) :
+  H = ⊥ ∨ H = ⊤ :=
+is_simple_group.eq_bot_or_eq_top_of_normal H Hn
+
+namespace is_simple_group
+
+instance {C : Type*} [comm_group C] [is_simple_group C] :
+  is_simple_lattice (subgroup C) :=
+⟨λ H, H.normal_of_comm.eq_bot_or_eq_top⟩
+
+lemma is_simple_group_of_surjective {H : Type*} [group G] [group H] [is_simple_group G]
+  [nontrivial H] (f : G →* H) (hf : function.surjective f) :
+  is_simple_group H :=
+⟨nontrivial.exists_pair_ne, λ H iH, begin
+  refine ((iH.comap f).eq_bot_or_eq_top).imp (λ h, _) (λ h, _),
+  { rw subgroup.eq_bot_iff_forall at *,
+    simp_rw subgroup.mem_comap at h,
+    intros x hx,
+    obtain ⟨y, hy⟩ := hf x,
+    rw ← hy at hx,
+    rw h y hx at hy,
+    rw [← hy, f.map_one] },
+  { rw [← top_le_iff, ← subgroup.map_le_iff_le_comap, ← monoid_hom.range_eq_map,
+      monoid_hom.range_top_of_surjective f hf, top_le_iff] at h,
+    exact h }
+end⟩
+
+end is_simple_group
+
+end
 
 section pointwise
 

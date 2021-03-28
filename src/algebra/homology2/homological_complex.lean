@@ -50,14 +50,12 @@ begin
   apply image_subobject_iso_comp,
 end
 
--- not sure what the correct names for the fields are
 @[ext] structure hom (A B : homological_complex V c) :=
 (f : ∀ i, A.X i ⟶ B.X i)
-(commutes' : ∀ i j, f i ≫ B.d i j = A.d i j ≫ f j . obviously)
+(comm' : ∀ i j, f i ≫ B.d i j = A.d i j ≫ f j . obviously)
 
-restate_axiom hom.commutes'
-
-attribute [simp, reassoc] hom.commutes
+restate_axiom hom.comm'
+attribute [simp, reassoc] hom.comm
 
 @[simps] def id (A : homological_complex V c) : hom A A :=
 { f := λ _, 𝟙 _ }
@@ -68,6 +66,6 @@ attribute [simp, reassoc] hom.commutes
 instance : category (homological_complex V c) :=
 { hom := hom,
   id := id,
-  comp := comp }
+  comp := comp, }
 
 end homological_complex

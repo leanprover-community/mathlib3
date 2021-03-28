@@ -50,13 +50,19 @@ def s : complex_shape ℤ :=
   succ_eq := by intros; linarith,
   pred_eq := by intros; linarith }
 
-universe u
-
 variables (R : Type) [ring R]
 
 variables (A B C : homological_complex.{0 1} (Module R) s)
+variables {A B}
 
 variables {i j k : ℤ}
+
+lemma commutes_apply (φ : A ⟶ B) (a : A.X i) :
+   B.d i j (φ.f i a) = φ.f j (A.d i j a) :=
+begin
+  change (φ.f i ≫ B.d i j) a = (A.d i j ≫ φ.f j) a,
+  rw φ.commutes,
+end
 
 def cycle (hjk : s.r j k) : submodule R (C.X j) := ((C.d j k) : C.X j →ₗ[R] C.X k).ker
 
@@ -95,8 +101,6 @@ variables (hij : s.r i j) (hjk : s.r j k)
 
 namespace boundary
 
-variables {A B}
-
 def map (φ : A ⟶ B) : boundary R A hij →ₗ[R] boundary R B hij :=
 submodule.induced_map (φ.f j) begin
   rintros - ⟨-, ⟨a, -, rfl⟩, rfl⟩,
@@ -124,7 +128,7 @@ open submodule
 
 -- roll-your-own exactness
 
-variables {R A B C}
+variables {R C}
 
 def homological_complex.exact (φ : A ⟶ B) (ψ : B ⟶ C) : Prop :=
 ∀ i, (φ.f i).range = (ψ.f i).ker
@@ -188,7 +192,7 @@ begin
     show φ.f j x ∈ (ψ.f j).ker,
     rw ← hj,
     exact ⟨x, trivial, rfl⟩ },
-  {
+  { -- should there be a submodule.quotient.induction_on?
     apply quotient.induction_on' x, clear x,
     intro b,
     rw quotient.mk'_eq_mk,
@@ -208,24 +212,20 @@ begin
     rcases hb with ⟨c, -, hc⟩,
     rcases hi c with ⟨bi, rfl⟩,
     have hb2 : (b : B.X j) - B.d i j bi ∈ (φ.f j).range,
-      rw [hj, linear_map.mem_ker, (ψ.f j).map_sub, ← hc],
-      change (ψ.f i ≫ C.d i j) bi - _ = _,
-      simp,
+      simp [hj, linear_map.mem_ker, (ψ.f j).map_sub, ← hc, commutes_apply],
     rcases hb2 with ⟨a, -, ha⟩,
     have ha' : A.d j k a = 0,
       apply hk,
-      change (A.d j k ≫ φ.f k) a = _,
-      rw [← φ.commutes, linear_map.map_zero],
-      change B.d j k _ = 0,
-      rw [ha, linear_map.map_sub],
+      rw [← commutes_apply, linear_map.map_zero, ha, linear_map.map_sub],
       convert sub_zero _,
+        rw ← linear_map.comp_apply,
         change (B.d i j ≫ B.d j k) _ = _,
         rw B.d_comp_d,
         refl,
-      symmetry,
-      exact b.2,
+      exact b.2.symm,
+    -- does submodule.range not use the "remove x ∈ ⊤" trick?
     use [submodule.quotient.mk ⟨a, ha'⟩, trivial],
-    simp [map],
+    simp only [map, mapq_apply],
     change mkq _ _ = mkq _ b,
     symmetry,
     rw ← linear_map.sub_mem_ker_iff,
@@ -235,6 +235,7 @@ begin
     rw ha,
     abel }
 end
+
 
 -- TODO : boundary map from homology to homology with i,j,k,l and two more
 -- exactness theorems

@@ -167,7 +167,7 @@ lemma factor_thru_zero
 by simp
 
 lemma factor_thru_le {Y Z : C} {P Q : subobject Y} (f : Z ⟶ Y) (h : P ≤ Q) (w : P.factors f) :
-  Q.factor_thru f (factors_of_le f h w) = P.factor_thru f w ≫ underlying.map (hom_of_le h) :=
+  Q.factor_thru f (factors_of_le f h w) = P.factor_thru f w ≫ of_le P Q h :=
 sorry
 
 end subobject

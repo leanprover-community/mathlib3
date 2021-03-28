@@ -29,7 +29,7 @@ C.kernel_from_eq_kernel r
 
 def cycles_iso_kernel {i j : ι} (r : c.r i j) :
   (C.cycles i : V) ≅ kernel (C.d i j) :=
-subobject.underlying.map_iso (eq_to_iso (C.cycles_eq_kernel_subobject r)) ≪≫
+subobject.iso_of_eq _ _ (C.cycles_eq_kernel_subobject r) ≪≫
   kernel_subobject_iso (C.d i j)
 
 lemma cycles_eq_top {i} (h : c.succ i → false) : C.cycles i = ⊤ :=
@@ -53,7 +53,7 @@ C.image_to_eq_image r
 
 def boundaries_iso_image {i j : ι} (r : c.r i j) :
   (C.boundaries j : V) ≅ image (C.d i j) :=
-subobject.underlying.map_iso (eq_to_iso (C.boundaries_eq_image_subobject r)) ≪≫
+subobject.iso_of_eq _ _ (C.boundaries_eq_image_subobject r) ≪≫
   image_subobject_iso (C.d i j)
 
 lemma boundaries_eq_bot {j} (h : c.pred j → false) : C.boundaries j = ⊥ :=
@@ -74,7 +74,7 @@ image_subobject_le_mk _ _ (kernel.lift _ _ (C.d_to_comp_d_from i)) (by simp)
 
 def boundaries_to_cycles (C : homological_complex V c) (i : ι) :
   (C.boundaries i : V) ⟶ (C.cycles i : V) :=
-subobject.underlying.map (hom_of_le (C.boundaries_le_cycles i))
+subobject.of_le _ _ (C.boundaries_le_cycles i)
 
 variables [has_cokernels V]
 
@@ -156,8 +156,9 @@ lemma boundaries_to_cycles_naturality (i : ι) :
 begin
   simp [cycles_map, boundaries_map, boundaries_to_cycles],
   ext,
-  simp only [subobject.factor_thru_arrow, subobject.underlying_arrow, category.assoc],
-  erw image_subobject_map_arrow, -- TODO diagnose this
+  simp only [subobject.factor_thru_arrow, subobject.of_le_arrow, category.assoc],
+  dsimp [boundaries],
+  rw image_subobject_map_arrow,
   refl,
 end
 

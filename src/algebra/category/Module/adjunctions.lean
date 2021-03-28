@@ -52,7 +52,7 @@ adjunction.mk_of_hom_equiv
 
 end
 
-section lax_monoidal
+namespace free
 variables [comm_ring R]
 
 /-- The free R-module functor is lax monoidal. -/
@@ -62,11 +62,55 @@ instance : lax_monoidal.{u} (free R).obj :=
   ε := finsupp.lsingle punit.star,
   -- Send `(α →₀ R) ⊗ (β →₀ R)` to `α × β →₀ R`
   μ := λ α β, (finsupp_tensor_finsupp' R α β).to_linear_map,
-  μ_natural' := by { intros, ext x x' ⟨y, y'⟩, simp, },
-  left_unitality' := by { intros, ext, simp, },
-  right_unitality' := by { intros, ext, simp, },
-  associativity' := by { intros, ext, simp, }, }
+  μ_natural' := begin
+    intros,
+    ext x x' ⟨y, y'⟩,
+    -- This is rather tedious: it's a terminal simp, with no arguments,
+    -- but between the four of them it is too slow.
+    simp only [tensor_product.mk_apply, mul_one, monoidal.tensor_apply, monoidal_category.hom_apply,
+      Module.free_map, Module.coe_comp, map_functorial_obj,
+      linear_map.compr₂_apply, linear_equiv.coe_to_linear_map, linear_map.comp_apply,
+      function.comp_app,
+      finsupp.lmap_domain_apply, finsupp.map_domain_single,
+      finsupp_tensor_finsupp'_single_tmul_single, finsupp.lsingle_apply],
+  end,
+  left_unitality' := begin
+    intros,
+    ext,
+    simp only [tensor_product.mk_apply, mul_one,
+      Module.id_apply, Module.free_map, Module.coe_comp, map_functorial_obj,
+      Module.monoidal_category.hom_apply, monoidal.left_unitor_hom_apply,
+      Module.monoidal_category.left_unitor_hom_apply,
+      linear_map.compr₂_apply, linear_equiv.coe_to_linear_map, linear_map.comp_apply,
+      function.comp_app,
+      finsupp.lmap_domain_apply, finsupp.smul_single', finsupp.map_domain_single,
+      finsupp_tensor_finsupp'_single_tmul_single, finsupp.lsingle_apply],
+  end,
+  right_unitality' := begin
+    intros,
+    ext,
+    simp only [tensor_product.mk_apply, mul_one,
+      Module.id_apply, Module.free_map, Module.coe_comp, map_functorial_obj,
+      Module.monoidal_category.hom_apply, monoidal.right_unitor_hom_apply,
+      Module.monoidal_category.right_unitor_hom_apply,
+      linear_map.compr₂_apply, linear_equiv.coe_to_linear_map, linear_map.comp_apply,
+      function.comp_app,
+      finsupp.lmap_domain_apply, finsupp.smul_single', finsupp.map_domain_single,
+      finsupp_tensor_finsupp'_single_tmul_single, finsupp.lsingle_apply],
+  end,
+  associativity' := begin
+    intros,
+    ext,
+    simp only [tensor_product.mk_apply, mul_one,
+      Module.id_apply, Module.free_map, Module.coe_comp, map_functorial_obj,
+      Module.monoidal_category.hom_apply, monoidal.associator_hom_apply,
+      Module.monoidal_category.associator_hom_apply,
+      linear_map.compr₂_apply, linear_equiv.coe_to_linear_map, linear_map.comp_apply,
+      function.comp_app,
+      finsupp.lmap_domain_apply, finsupp.smul_single', finsupp.map_domain_single,
+      finsupp_tensor_finsupp'_single_tmul_single, finsupp.lsingle_apply],
+  end, }
 
-end lax_monoidal
+end free
 
 end Module

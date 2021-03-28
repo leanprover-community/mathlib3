@@ -15,7 +15,7 @@ radius `1`.  We equip it with the following structure:
 * a group
 * a topological group
 * a charted space with model space `euclidean_space ℝ (fin 1)` (inherited from `metric.sphere`)
-* a Lie group with model space `𝓡 1`
+* a Lie group with model with corners `𝓡 1`
 
 We furthermore define `exp_map_circle` to be the natural map `λ t, exp (t * I)` from `ℝ` to
 `circle`, and show that this map is a group homomorphism and is smooth.
@@ -74,7 +74,7 @@ instance : topological_group circle :=
 
 /-- The unit circle in `ℂ` is a charted space modelled on `euclidean_space ℝ (fin 1)`.  This
 follows by definition from the corresponding result for `metric.sphere`. -/
-instance: charted_space (euclidean_space ℝ (fin 1)) circle := metric.sphere.charted_space
+instance : charted_space (euclidean_space ℝ (fin 1)) circle := metric.sphere.charted_space
 
 /-- The unit circle in `ℂ` is a Lie group. -/
 instance : lie_group (𝓡 1) circle :=

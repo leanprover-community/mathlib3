@@ -70,6 +70,8 @@ Definitions in the file:
 * `monoid_hom.eq_locus f g` : given group homomorphisms `f`, `g`, the elements of `G` such that
   `f x = g x` form a subgroup of `G`
 
+* `is_simple_group G` : a class indicating that a group has exactly two normal subgroups
+
 ## Implementation notes
 
 Subgroup inclusion is denoted `≤` rather than `⊆`, although `∈` is defined as
@@ -1489,23 +1491,31 @@ end⟩
 end subgroup
 
 section
-variable (G)
+variables (G) (A)
 
 class is_simple_group extends nontrivial G : Prop :=
 (eq_bot_or_eq_top_of_normal : ∀ H : subgroup G, H.normal → H = ⊥ ∨ H = ⊤)
 
-variable {G}
+class is_simple_add_group extends nontrivial A : Prop :=
+(eq_bot_or_eq_top_of_normal : ∀ H : add_subgroup A, H.normal → H = ⊥ ∨ H = ⊤)
 
+attribute [to_additive] is_simple_group
+
+variables {G} {A}
+
+@[to_additive]
 lemma subgroup.normal.eq_bot_or_eq_top [is_simple_group G] {H : subgroup G} (Hn : H.normal) :
   H = ⊥ ∨ H = ⊤ :=
 is_simple_group.eq_bot_or_eq_top_of_normal H Hn
 
 namespace is_simple_group
 
+@[to_additive]
 instance {C : Type*} [comm_group C] [is_simple_group C] :
   is_simple_lattice (subgroup C) :=
 ⟨λ H, H.normal_of_comm.eq_bot_or_eq_top⟩
 
+@[to_additive]
 lemma is_simple_group_of_surjective {H : Type*} [group G] [group H] [is_simple_group G]
   [nontrivial H] (f : G →* H) (hf : function.surjective f) :
   is_simple_group H :=

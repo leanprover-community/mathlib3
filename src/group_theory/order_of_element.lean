@@ -210,6 +210,25 @@ lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
   (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
 (hp.out.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
 
+lemma order_of_eq_order_of_iff {β : Type*} [monoid β] {b : β} :
+  order_of a = order_of b ↔ ∀ n : ℕ, a ^ n = 1 ↔ b ^ n = 1 :=
+begin
+  simp_rw ← order_of_dvd_iff_pow_eq_one,
+  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
+end
+
+lemma order_of_injective {G H : Type*} [monoid G] [monoid H] (f : G →* H)
+  (hf : function.injective f) (σ : G) : order_of (f σ) = order_of σ :=
+by simp_rw [order_of_eq_order_of_iff, ←f.map_pow, ←f.map_one, hf.eq_iff, iff_self, forall_const]
+
+@[simp, norm_cast] lemma order_of_submonoid {G : Type*} [monoid G] {H : submonoid G} (σ : H) :
+  order_of (σ : G) = order_of σ :=
+order_of_injective H.subtype subtype.coe_injective σ
+
+@[simp, norm_cast] lemma order_of_subgroup {G : Type*} [group G] {H : subgroup G} (σ : H) :
+  order_of (σ : G) = order_of σ :=
+order_of_injective H.subtype subtype.coe_injective σ
+
 open nat
 
 -- An example on how to determine the order of an element of a finite group.

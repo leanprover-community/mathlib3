@@ -158,6 +158,9 @@ lemma algebra_map_eq_smul_one (r : R) : algebra_map R A r = r • 1 :=
 calc algebra_map R A r = algebra_map R A r * 1 : (mul_one _).symm
                    ... = r • 1                 : (algebra.smul_def r 1).symm
 
+lemma algebra_map_eq_smul_one' : ⇑(algebra_map R A) = λ r, r • (1 : A) :=
+funext algebra_map_eq_smul_one
+
 theorem commutes (r : R) (x : A) : algebra_map R A r * x = x * algebra_map R A r :=
 algebra.commutes' r x
 
@@ -1425,13 +1428,7 @@ module structure over `R`.
 The preferred way of setting this up is `[module R M] [module A M] [is_scalar_tower R A M]`.
 -/
 instance : semimodule R (restrict_scalars R A M) :=
-{ smul      := λ c x, (algebra_map R A c) • x,
-  one_smul  := by simp,
-  mul_smul  := by simp [mul_smul],
-  smul_add  := by simp [smul_add],
-  smul_zero := by simp [smul_zero],
-  add_smul  := by simp [add_smul],
-  zero_smul := by simp [zero_smul] }
+(algebra_map R A).comp_semimodule M
 
 lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R A M) :
   c • x = ((algebra_map R A c) • x : M) := rfl

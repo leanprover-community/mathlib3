@@ -25,6 +25,8 @@ structure, such as a bottom element, a top element, or a join-semilattice struct
   Dual to the notion of a prime filter.
 - `order.ideal.is_maximal`: a predicate for maximal ideals.
   Dual to the notion of an ultrafilter.
+- `ideal_inter_nonempty P`: a predicate for when the intersection of any two ideals of
+  `P` is nonempty.
 - `order.cofinal P`: the type of subsets of `P` containing arbitrarily large elements.
   Dual to the notion of 'dense set' used in forcing.
 - `order.ideal_of_cofinals p 𝒟`, where `p : P`, and `𝒟` is a countable family of cofinal
@@ -75,7 +77,7 @@ def is_ideal.to_ideal [preorder P] {I : set P} (h : is_ideal I) : ideal P :=
 /-- A preorder `P` has the `ideal_inter_nonempty` property if the
     intersection of any two ideals is nonempty.
     Most importantly, a `semilattice_sup` preorder with this property
-    satisfies that its ideal poset is a latice.
+    satisfies that its ideal poset is a lattice.
 -/
 class ideal_inter_nonempty (P) [preorder P] : Prop :=
 (inter_nonempty : ∀ (I J : ideal P), (I.carrier ∩ J.carrier).nonempty)

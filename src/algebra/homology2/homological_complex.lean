@@ -80,120 +80,141 @@ begin
   apply image_subobject_iso_comp,
 end
 
-/--
-The differential mapping into `C.X j`, or zero if there isn't one.
-
-We represent this as an object over `C.X j`,
-in order to avoid explicitly picking a predecessor of `j`,
-and because the source might be `0`, rather than some `C.X i`.
--/
-def d_to (j : ι) : over (C.X j) :=
+def X_pred (j : ι) : V :=
 if h : nonempty (c.pred j) then
-  over.mk (C.d h.some.1 j)
+  C.X h.some.1
 else
-  over.mk (0 : 0 ⟶ C.X j)
+  0
 
-/--
-The differential mapping out of `C.X i`, or zero if there isn't one.
-
-We represent this as an object under `C.X i`,
-in order to avoid explicitly picking a successor of `i`,
-and because the target might be `0`, rather than some `C.X j`.
--/
-def d_from (i : ι) : under (C.X i) :=
-if h : nonempty (c.succ i) then
-  under.mk (C.d i h.some.1)
-else
-  under.mk (0 : C.X i ⟶ 0)
-
-lemma over.hom_congr {X : V} {A B : over X} (h : A = B) : A.hom = eq_to_hom (by subst h) ≫ B.hom :=
-by { subst h, simp }
-
-def d_to_left {i j : ι} (r : c.r i j) :
-  (C.d_to j).left ≅ C.X i :=
+def X_pred_iso {i j : ι} (r : c.r i j) :
+  C.X_pred j ≅ C.X i :=
 begin
-  dsimp [d_to],
+  dsimp [X_pred],
   apply eq_to_iso,
   rw [dif_pos (c.nonempty_pred r)],
   exact congr_arg C.X (c.nonempty_pred_some r),
 end
 
-lemma d_to_hom {i j : ι} (r : c.r i j) :
-  (C.d_to j).hom = (C.d_to_left r).hom ≫ C.d i j :=
+def X_pred_iso_zero {j : ι} (h : c.pred j → false) :
+  C.X_pred j ≅ 0 :=
 begin
-  dsimp [d_to, d_to_left],
-  convert over.hom_congr (dif_pos (c.nonempty_pred r)),
-  repeat { apply (c.nonempty_pred_some r).symm, },
-  repeat { assumption, },
+  dsimp [X_pred],
+  apply eq_to_iso,
+  rw [dif_neg (not_nonempty_iff_imp_false.mpr h)],
 end
 
-lemma d_to_hom_eq_zero {j : ι} (h : c.pred j → false) :
-  (C.d_to j).hom = 0 :=
-begin
-  dsimp [d_to],
-  rw [dif_neg],
-  { refl, },
-  { rintro ⟨a⟩, exact h a, }
-end
+def X_succ (i : ι) : V :=
+if h : nonempty (c.succ i) then
+  C.X h.some.1
+else
+  0
 
-lemma under.hom_congr {X : V} {A B : under X} (h : A = B) : A.hom = B.hom ≫ eq_to_hom (by subst h) :=
-by { subst h, simp }
-
-def d_from_right {i j : ι} (r : c.r i j) :
-  (C.d_from i).right ≅ C.X j :=
+def X_succ_iso {i j : ι} (r : c.r i j) :
+  C.X_succ i ≅ C.X j :=
 begin
-  dsimp [d_from],
+  dsimp [X_succ],
   apply eq_to_iso,
   rw [dif_pos (c.nonempty_succ r)],
   exact congr_arg C.X (c.nonempty_succ_some r),
 end
 
-lemma d_from_hom {i j : ι} (r : c.r i j) :
-  (C.d_from i).hom = C.d i j ≫ (C.d_from_right r).inv :=
+def X_succ_iso_zero {i : ι} (h : c.succ i → false) :
+  C.X_succ i ≅ 0 :=
 begin
-  dsimp [d_from, d_from_right],
-  convert under.hom_congr (dif_pos (c.nonempty_succ r)),
-  repeat { apply (c.nonempty_succ_some r).symm, },
-  repeat { assumption, },
+  dsimp [X_succ],
+  apply eq_to_iso,
+  rw [dif_neg (not_nonempty_iff_imp_false.mpr h)],
 end
 
-lemma d_from_hom_eq_zero {i : ι} (h : c.succ i → false) :
-  (C.d_from i).hom = 0 :=
+/--
+The differential mapping into `C.X j`, or zero if there isn't one.
+-/
+def d_to (j : ι) : C.X_pred j ⟶ C.X j :=
+if h : nonempty (c.pred j) then
+  (C.X_pred_iso h.some.2).hom ≫ C.d h.some.1 j
+else
+  (0 : C.X_pred j ⟶ C.X j)
+
+/--
+The differential mapping out of `C.X i`, or zero if there isn't one.
+-/
+def d_from (i : ι) : C.X i ⟶ C.X_succ i :=
+if h : nonempty (c.succ i) then
+  C.d i h.some.1 ≫ (C.X_succ_iso h.some.2).inv
+else
+  (0 : C.X i ⟶ C.X_succ i)
+
+lemma d_to_eq {i j : ι} (r : c.r i j) :
+  C.d_to j = (C.X_pred_iso r).hom ≫ C.d i j :=
+begin
+  dsimp [d_to, X_pred_iso],
+  rw [dif_pos (c.nonempty_pred r), ←is_iso.inv_comp_eq, inv_eq_to_hom, eq_to_hom_trans_assoc],
+  rw C.eq_to_hom_comp_d r _,
+  apply c.r_of_nonempty_pred,
+end
+
+lemma d_to_eq_zero {j : ι} (h : c.pred j → false) :
+  C.d_to j = 0 :=
+begin
+  dsimp [d_to],
+  rw [dif_neg (not_nonempty_iff_imp_false.mpr h)]
+end
+
+lemma d_from_eq {i j : ι} (r : c.r i j) :
+  C.d_from i = C.d i j ≫ (C.X_succ_iso r).inv :=
+begin
+  dsimp [d_from, X_succ_iso],
+  rw [dif_pos (c.nonempty_succ r), ←is_iso.comp_inv_eq, inv_eq_to_hom, category.assoc,
+    eq_to_hom_trans],
+  rw C.d_comp_eq_to_hom r _,
+  apply c.r_of_nonempty_succ,
+end
+
+lemma d_from_eq_zero {i : ι} (h : c.succ i → false) :
+  C.d_from i = 0 :=
 begin
   dsimp [d_from],
-  rw [dif_neg],
-  { refl, },
-  { rintro ⟨a⟩, exact h a, }
+  rw [dif_neg (not_nonempty_iff_imp_false.mpr h)]
 end
 
 @[simp]
-lemma d_to_comp_d_from (j : ι) : (C.d_to j).hom ≫ (C.d_from j).hom = 0 :=
+lemma d_to_comp_d_from (j : ι) : C.d_to j ≫ C.d_from j = 0 :=
 begin
   by_cases h : nonempty (c.pred j),
   { obtain ⟨⟨i, rij⟩⟩ := h,
     by_cases h' : nonempty (c.succ j),
     { obtain ⟨⟨k, rjk⟩⟩ := h',
-      rw [C.d_to_hom rij, C.d_from_hom rjk],
+      rw [C.d_to_eq rij, C.d_from_eq rjk],
       simp, },
-    { rw [C.d_from_hom_eq_zero (not_nonempty_iff_imp_false.mp h')],
+    { rw [C.d_from_eq_zero (not_nonempty_iff_imp_false.mp h')],
       simp, }, },
-  { rw [C.d_to_hom_eq_zero (not_nonempty_iff_imp_false.mp h)],
+  { rw [C.d_to_eq_zero (not_nonempty_iff_imp_false.mp h)],
     simp, },
 end
 
 lemma kernel_from_eq_kernel [has_kernels V] {i j : ι} (r : c.r i j) :
-  kernel_subobject (C.d_from i).hom = kernel_subobject (C.d i j) :=
+  kernel_subobject (C.d_from i) = kernel_subobject (C.d i j) :=
 begin
-  rw C.d_from_hom r,
+  rw C.d_from_eq r,
   apply kernel_subobject_comp_iso,
 end
 
 lemma image_to_eq_image [has_images V] [has_equalizers V] [has_zero_object V]
   {i j : ι} (r : c.r i j) :
-  image_subobject (C.d_to j).hom = image_subobject (C.d i j) :=
+  image_subobject (C.d_to j) = image_subobject (C.d i j) :=
 begin
-  rw C.d_to_hom r,
+  rw C.d_to_eq r,
   apply image_subobject_iso_comp,
 end
+
+-- /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
+-- namespace hom
+
+-- variables {C₁ C₂ : homological_complex V c}
+
+-- def comm_d_to (f : C₁ ⟶ C₂) (i : ι) :
+--   f.f i ≫ (C₂.d_from i).hom = (C₁.d_from i).hom ≫ f.f _
+
+-- end hom
 
 end homological_complex

@@ -22,6 +22,11 @@ variables {ι : Type*}
 def succ (c : complex_shape ι) (i : ι) := { j // c.r i j }
 def pred (c : complex_shape ι) (j : ι) := { i // c.r i j }
 
+lemma r_of_nonempty_succ (c : complex_shape ι) {i : ι} (h : nonempty (c.succ i)) :
+  c.r i h.some.1 := h.some.2
+lemma r_of_nonempty_pred (c : complex_shape ι) {j : ι} (h : nonempty (c.pred j)) :
+  c.r h.some.1 j := h.some.2
+
 lemma nonempty_succ (c : complex_shape ι) {i j : ι} (r : c.r i j) : nonempty (c.succ i) :=
 ⟨⟨j, r⟩⟩
 lemma nonempty_pred (c : complex_shape ι) {i j : ι} (r : c.r i j) : nonempty (c.pred j) :=

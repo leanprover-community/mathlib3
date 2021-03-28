@@ -8,13 +8,22 @@ import data.complex.exponential
 import data.real.sqrt
 import analysis.normed_space.linear_isometry
 
+/-!
+# Isometries of the Complex Plane
+
+Classification of isometries in the complex plane.
+
+## References
+
+* [Isometries of the Complex Plane](http://helmut.knaust.info/mediawiki/images/b/b5/Iso.pdf)
+-/
+
 open complex
 
 local notation `|` x `|` := complex.abs x
 
 lemma add_self_eq (a : ℝ) : a + a = a * 2 := by ring
 
--- http://helmut.knaust.info/mediawiki/images/b/b5/Iso.pdf
 lemma linear_isometry_complex_aux (z : ℂ) (f : ℂ →ₗᵢ[ℝ] ℂ) :
   f 0 = 0 → f 1 = 1 → ((f z = z) ∨ (f z = conj z)) :=
 begin

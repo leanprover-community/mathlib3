@@ -171,8 +171,9 @@ end
 
 theorem map_exact (φ : A ⟶ B) (ψ : B ⟶ C)
   --(hφψ : homological_complex.exact φ ψ)  -- let's see how much we need.
-  (hj : (φ.f j).range = (ψ.f j).ker)
   (hi : function.surjective (ψ.f i))
+  (hj : (φ.f j).range = (ψ.f j).ker)
+  (hk : function.injective (φ.f k))
   -- will need more: 0 -> A -> B -> C -> 0 short exact is enough of course
   :
   (map R hij hjk φ).range = (map R hij hjk ψ).ker :=
@@ -206,16 +207,34 @@ begin
     simp only [map, mapq_apply, cycle.map_apply, subtype_apply, quotient.mk_eq_zero, mem_comap] at hb,
     rcases hb with ⟨c, -, hc⟩,
     rcases hi c with ⟨bi, rfl⟩,
-    have hbi : B.d i j bi ∈ (B.d j k).ker,
-      apply boundary_le_cycle R B hij hjk,
-      exact ⟨bi, trivial, rfl⟩,
-    let b' := b - ⟨B.d i j bi, hbi⟩,
---    have hb' : b' ∈ (ψ.f j).ker,
-    sorry
-  }
+    have hb2 : (b : B.X j) - B.d i j bi ∈ (φ.f j).range,
+      rw [hj, linear_map.mem_ker, (ψ.f j).map_sub, ← hc],
+      change (ψ.f i ≫ C.d i j) bi - _ = _,
+      simp,
+    rcases hb2 with ⟨a, -, ha⟩,
+    have ha' : A.d j k a = 0,
+      apply hk,
+      change (A.d j k ≫ φ.f k) a = _,
+      rw [← φ.commutes, linear_map.map_zero],
+      change B.d j k _ = 0,
+      rw [ha, linear_map.map_sub],
+      convert sub_zero _,
+        change (B.d i j ≫ B.d j k) _ = _,
+        rw B.d_comp_d,
+        refl,
+      symmetry,
+      exact b.2,
+    use [submodule.quotient.mk ⟨a, ha'⟩, trivial],
+    simp [map],
+    change mkq _ _ = mkq _ b,
+    symmetry,
+    rw ← linear_map.sub_mem_ker_iff,
+    rw ker_mkq,
+    simp only [cycle.map_apply, coe_sub, subtype_apply, mem_comap, subtype.coe_mk],
+    use [bi, trivial],
+    rw ha,
+    abel }
 end
-
-#check @congr_arg
 
 -- TODO : boundary map from homology to homology with i,j,k,l and two more
 -- exactness theorems

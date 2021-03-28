@@ -1,4 +1,4 @@
-import algebra.homology2.pre_complex
+import algebra.homology2.homological_complex
 
 universes v u
 

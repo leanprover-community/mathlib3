@@ -157,17 +157,17 @@ lemma representative_arrow (Y : subobject X) :
   (representative.obj Y).arrow = Y.arrow :=
 rfl
 
-@[simp]
+@[simp, reassoc]
 lemma underlying_arrow {X : C} {Y Z : subobject X} (f : Y ⟶ Z) :
   underlying.map f ≫ arrow Z = arrow Y :=
 over.w (representative.map f)
 
-@[simp]
+@[simp, reassoc]
 lemma underlying_iso_arrow {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).inv ≫ (subobject.mk f).arrow = f :=
 over.w _
 
-@[simp]
+@[simp, reassoc]
 lemma underlying_iso_hom_comp_eq_mk {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).hom ≫ f = (mk f).arrow :=
 (iso.eq_inv_comp _).1 (underlying_iso_arrow f).symm

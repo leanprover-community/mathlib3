@@ -73,10 +73,14 @@ lemma boundaries_le_cycles (C : homological_complex V c) (i : ι) :
   C.boundaries i ≤ C.cycles i :=
 image_subobject_le_mk _ _ (kernel.lift _ _ (C.d_to_comp_d_from i)) (by simp)
 
+def boundaries_to_cycles (C : homological_complex V c) (i : ι) :
+  (C.boundaries i : V) ⟶ (C.cycles i : V) :=
+subobject.underlying.map (hom_of_le (C.boundaries_le_cycles i))
+
 variables [has_cokernels V]
 
 def homology (C : homological_complex V c) (i : ι) : V :=
-cokernel (subobject.underlying.map (hom_of_le (C.boundaries_le_cycles i)))
+cokernel (C.boundaries_to_cycles i)
 
 end
 
@@ -94,6 +98,8 @@ by { simp [cycles_map], }
 @[simp] lemma cycles_map_comp (f : C₁ ⟶ C₂) (g : C₂ ⟶ C₃) (i : ι) :
   cycles_map (f ≫ g) i = cycles_map f i ≫ cycles_map g i :=
 by { simp [cycles_map], }
+
+variables (V c)
 
 @[simps]
 def cycles_functor (i : ι) : homological_complex V c ⥤ V :=
@@ -115,7 +121,7 @@ begin
   simp [boundaries_map],
   ext,
   simp,
-  erw [category.id_comp],  --- hrm.
+  erw [category.id_comp],  -- TODO diagnose this
 end
 
 @[simp] lemma boundaries_map_comp (f : C₁ ⟶ C₂) (g : C₂ ⟶ C₃) (i : ι) :
@@ -126,10 +132,57 @@ begin
   simp,
 end
 
+variables (V c)
+
 @[simps]
 def boundaries_functor (i : ι) : homological_complex V c ⥤ V :=
 { obj := λ C, C.boundaries i,
   map := λ C₁ C₂ f, boundaries_map f i, }
+
+end
+
+section
+
+/-! The `boundaries_to_cycles` morphisms are natural. -/
+variables [has_kernels V] [has_images V] [has_image_maps V] [has_equalizers V]
+variables {C₁ C₂ : homological_complex V c} (f : C₁ ⟶ C₂)
+
+@[simp, reassoc]
+lemma boundaries_to_cycles_naturality (i : ι) :
+  boundaries_map f i ≫ C₂.boundaries_to_cycles i = C₁.boundaries_to_cycles i ≫ cycles_map f i :=
+begin
+  simp [cycles_map, boundaries_map, boundaries_to_cycles],
+  ext,
+  simp only [subobject.factor_thru_arrow, subobject.underlying_arrow, category.assoc],
+  erw image_subobject_map_arrow, -- TODO diagnose this
+  refl,
+end
+
+variables (V c)
+
+def boundaries_to_cycles_transformation (i : ι) :
+  boundaries_functor V c i ⟶ cycles_functor V c i :=
+{ app := λ C, C.boundaries_to_cycles i,
+  naturality' := λ C₁ C₂ f, boundaries_to_cycles_naturality f i, }
+
+def homology_functor [has_cokernels V] (i : ι) : homological_complex V c ⥤ V :=
+-- It would be nice if we could just write
+-- `cokernel (boundaries_to_cycles_transformation V c i)`
+-- here, but universe implementation details get in the way...
+{ obj := λ C, C.homology i,
+  map := λ C₁ C₂ f, begin
+    fapply cokernel.desc,
+    refine _ ≫ cokernel.π _,
+    apply cycles_map f i,
+    rw ←boundaries_to_cycles_naturality_assoc,
+    simp,
+  end,
+  map_id' := λ C,
+  begin
+    ext, dsimp,
+    simp only [limits.cokernel.π_desc, category.id_comp, cycles_map_id],
+    erw category.comp_id,
+  end, }
 
 end
 

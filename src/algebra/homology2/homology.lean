@@ -91,6 +91,11 @@ begin
   congr,
 end
 
+@[simps]
+def cycles_functor (i : ι) : homological_complex V c ⥤ V :=
+{ obj := λ C, C.cycles i,
+  map := λ C₁ C₂ f, cycles_map f i, }
+
 end
 
 end homological_complex

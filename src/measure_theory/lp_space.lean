@@ -1771,11 +1771,12 @@ def to_Lp_hom [fact (1 ≤ p)] : normed_group_hom (α →ᵇ E) (Lp E p μ) :=
       (Lp E p μ)
       mem_Lp }
 
-variables (𝕜 : Type*) (E p μ)
+variables (𝕜 : Type*) (E p μ) [measurable_space 𝕜]
 
 /-- The bounded linear map of considering a bounded continuous function on a finite-measure space
 as an element of `Lp`. -/
-def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] : (α →ᵇ E) →L[𝕜] (Lp E p μ) :=
+def to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+  (α →ᵇ E) →L[𝕜] (Lp E p μ) :=
 linear_map.mk_continuous
   (linear_map.cod_restrict
     (Lp.Lp_submodule E p μ 𝕜)
@@ -1784,7 +1785,8 @@ linear_map.mk_continuous
   _
   Lp_norm_le
 
-lemma to_Lp_norm_le [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+lemma to_Lp_norm_le [nondiscrete_normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E]
+  [fact (1 ≤ p)] :
   ∥to_Lp E p μ 𝕜∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=
 linear_map.mk_continuous_norm_le _ ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹).coe_nonneg _
 

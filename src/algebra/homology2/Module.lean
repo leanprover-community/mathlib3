@@ -18,6 +18,7 @@ namespace submodule
 @[derive add_comm_group] def subquotient : Type v :=
 submodule.quotient (submodule.comap (Z.subtype : Z →ₗ[R] M) B : submodule R Z)
 
+/-- The `R`-module structure on the subquotient. -/
 instance : module R (subquotient Z B) := by { dunfold subquotient, apply_instance }
 
 variables {N : Type v} [add_comm_group N] [module R N] {Y A : submodule R N} {f : M →ₗ[R] N}
@@ -33,9 +34,9 @@ def induced_map (f : M →ₗ[R] N) (hfZ : Z.map f ≤ Y) : Z →ₗ[R] Y :=
 
 namespace subquotient
 
+/-- The map Z/B → Y/A induced by a map from M to N sending Z to Y and B to A. -/
 def map (hfZ : Z.map f ≤ Y) (hfB : B.map f ≤ A) : subquotient Z B →ₗ[R] subquotient Y A :=
-mapq (_) (_) (induced_map _ hfZ)
-  (λ m hmb, hfB ⟨m, hmb, rfl⟩)
+mapq _ _ (induced_map _ hfZ) (λ m hmb, hfB ⟨m, hmb, rfl⟩)
 
 end subquotient -- namespace
 
@@ -75,13 +76,16 @@ end
 @[simp] lemma map_apply (φ : A ⟶ B) (hjk : s.r j k) (m : cycle R A hjk) :
   (map R φ hjk m : B.X j)= φ.f j m := rfl
 
-lemma map_zero {φ : A ⟶ B} (hjk : s.r j k) (hφ : φ.f j = 0) : map R φ hjk = 0 :=
+@[simp] lemma map_zero {φ : A ⟶ B} (hjk : s.r j k) (hφ : φ.f j = 0) : map R φ hjk = 0 :=
 begin
   ext a,
   change φ.f j a = 0,
   rw hφ,
   refl,
 end
+
+@[simp] lemma map_comp {φ : A ⟶ B} {ψ : B ⟶ C} (hjk : s.r j k) :
+  map R (φ ≫ ψ) hjk = (map R ψ hjk).comp (map R φ hjk) := rfl
 
 end cycle
 
@@ -159,18 +163,16 @@ variable {C}
 theorem map_comp (φ : A ⟶ B) (ψ : B ⟶ C) :
   map R hij hjk (φ ≫ ψ) = (map R hij hjk ψ).comp (map R hij hjk φ) :=
 begin
-  ext a,
-  apply quotient.induction_on' a, clear a,
+  apply quot_hom_ext,
   intro a,
-  rw quotient.mk'_eq_mk,
   simp [map],
-  refl,
 end
 .
 
 theorem map_exact (φ : A ⟶ B) (ψ : B ⟶ C)
   --(hφψ : homological_complex.exact φ ψ)  -- let's see how much we need.
-  (h1 : (φ ≫ ψ).f j = 0) -- need this for the easy way
+  (hj : (φ.f j).range = (ψ.f j).ker)
+  (hi : function.surjective (ψ.f i))
   -- will need more: 0 -> A -> B -> C -> 0 short exact is enough of course
   :
   (map R hij hjk φ).range = (map R hij hjk ψ).ker :=
@@ -180,12 +182,34 @@ begin
   { rintro ⟨a, -, rfl⟩,
     change (map R hij hjk ψ).comp (map R hij hjk φ) a = 0,
     rw ← map_comp,
-    rw map_zero R hij hjk (φ ≫ ψ) h1,
-    refl },
-  { rintro (h : map R hij hjk ψ x = 0),
+    rw map_zero R hij hjk (φ ≫ ψ) _, refl,
+    ext x,
+    show φ.f j x ∈ (ψ.f j).ker,
+    rw ← hj,
+    exact ⟨x, trivial, rfl⟩ },
+  {
+    apply quotient.induction_on' x, clear x,
+    intro b,
+    rw quotient.mk'_eq_mk,
+    rintro (hb : map R hij hjk ψ (submodule.quotient.mk b) = 0),
+    /-
+       φ     ψ
+    Ai -> Bi -> Ci
+    \/    \/    \/ d
+    Aj -> Bj -> Cj
+    \/    \/    \/ d
+    Ak -> Bk -> Ck
+
+
+    -/
+    --
+    simp only [map, mapq_apply, cycle.map_apply, subtype_apply, quotient.mk_eq_zero, mem_comap] at hb,
+    rcases hb with ⟨c, -, hc⟩,
     sorry
   }
 end
+
+#check @congr_arg
 
 -- TODO : boundary map from homology to homology with i,j,k,l and two more
 -- exactness theorems

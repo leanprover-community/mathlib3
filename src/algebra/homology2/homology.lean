@@ -26,11 +26,9 @@ C.kernel_from_eq_kernel r
 
 lemma cycles_eq_top {i} (h : c.succ i → false) : C.cycles i = ⊤ :=
 begin
-  dsimp [cycles],
   rw eq_top_iff,
   apply le_kernel_subobject,
-  rw C.d_from_hom_eq_zero h,
-  simp,
+  rw [C.d_from_hom_eq_zero h, comp_zero],
 end
 
 end cycles
@@ -47,12 +45,9 @@ C.image_to_eq_image r
 
 lemma boundaries_eq_bot {j} (h : c.pred j → false) : C.boundaries j = ⊥ :=
 begin
-  dsimp [boundaries],
   rw eq_bot_iff,
-  apply image_subobject_le _ 0,
-  rw C.d_to_hom_eq_zero h,
-  simp,
-  apply_instance,
+  refine image_subobject_le _ 0 _,
+  rw [C.d_to_hom_eq_zero h, zero_comp],
 end
 
 end boundaries

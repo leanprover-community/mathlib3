@@ -1171,6 +1171,7 @@ def ker (f : G →* N) := (⊥ : subgroup N).comap f
 @[to_additive]
 lemma mem_ker (f : G →* N) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
+@[to_additive]
 instance decidable_mem_ker [decidable_eq N] (f : G →* N) :
   decidable_pred (∈ f.ker) :=
 λ x, decidable_of_iff (f x = 1) f.mem_ker

@@ -133,6 +133,7 @@ section distrib_lattice
 variables [distrib_lattice P]
 variables {I : ideal P}
 
+@[priority 100]
 instance is_maximal.is_prime [is_maximal I] : is_prime I :=
 begin
   rw is_prime_iff_mem_or_mem,

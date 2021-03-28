@@ -301,6 +301,7 @@ end semilattice_sup_ideal_inter_nonempty
 section semilattice_sup_bot
 variables [semilattice_sup_bot P] (I J K : ideal P)
 
+@[priority 100]
 instance semilattice_sup_bot.ideal_inter_nonempty : ideal_inter_nonempty P :=
 { inter_nonempty := λ _ _, ⟨⊥, ⟨bot_mem, bot_mem⟩⟩ }
 
@@ -310,6 +311,7 @@ section semilattice_inf
 
 variable [semilattice_inf P]
 
+@[priority 100]
 instance semilattice_inf.ideal_inter_nonempty : ideal_inter_nonempty P :=
 {
   inter_nonempty := λ I J, begin

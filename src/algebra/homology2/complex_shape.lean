@@ -1,4 +1,5 @@
 import tactic.basic
+import tactic.linarith
 
 /--
 A `c : complex_shape ι` describes the shape of a chain complex,
@@ -54,5 +55,21 @@ begin
   congr,
   exact c.pred_eq rik rjk,
 end
+
+def r' (c : complex_shape ι) : ℤ → ι → ι → Prop
+| (int.of_nat 0) i j := i = j
+| (int.of_nat (n+1)) i j := ∃ k, c.r i k ∧ r' (int.of_nat n) k j
+| (int.neg_succ_of_nat 0) i j := c.r j i
+| (int.neg_succ_of_nat (n+1)) i j := ∃ k, c.r j k ∧ r' (int.neg_succ_of_nat n) k j
+
+def nat (s : ℕ) : complex_shape ℕ :=
+{ r := λ i j, i + s = j,
+  succ_eq := by tidy,
+  pred_eq := λ i j k hi hj, by linarith, }
+
+def int (s : ℤ) : complex_shape ℤ :=
+{ r := λ i j, i + s = j,
+  succ_eq := by tidy,
+  pred_eq := λ i j k hi hj, by linarith, }
 
 end complex_shape

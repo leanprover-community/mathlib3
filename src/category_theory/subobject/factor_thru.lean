@@ -102,6 +102,10 @@ lemma factors_comp_id {X Y : C} {P : subobject Y} {f : X ⟶ Y} :
   P.factors (f ≫ 𝟙 Y) ↔ P.factors f :=
 by rwa category.comp_id
 
+lemma factors_zero [has_zero_morphisms C] {X Y : C} {P : subobject Y} :
+  P.factors (0 : X ⟶ Y) :=
+(factors_iff _ _).mpr ⟨0, by simp⟩
+
 lemma factors_of_le {Y Z : C} {P Q : subobject Y} (f : Z ⟶ Y) (h : P ≤ Q) :
   P.factors f → Q.factors f :=
 begin
@@ -155,6 +159,16 @@ end
 lemma factor_thru_comp_id {X Y : C} {P : subobject Y} (f : X ⟶ Y) (h : P.factors (f ≫ 𝟙 Y)) :
   P.factor_thru (f ≫ 𝟙 Y) h = P.factor_thru f (factors_comp_id.mp h) :=
 by simp
+
+@[simp]
+lemma factor_thru_zero
+  [has_zero_morphisms C] {X Y : C} {P : subobject Y} (h : P.factors (0 : X ⟶ Y)) :
+  P.factor_thru 0 h = 0 :=
+by simp
+
+lemma factor_thru_le {Y Z : C} {P Q : subobject Y} (f : Z ⟶ Y) (h : P ≤ Q) (w : P.factors f) :
+  Q.factor_thru f (factors_of_le f h w) = P.factor_thru f w ≫ underlying.map (hom_of_le h) :=
+sorry
 
 end subobject
 
@@ -279,6 +293,11 @@ by simp [factor_thru_image_subobject, image_subobject_arrow]
 lemma image_subobject_factors {W : C} (h : W ⟶ Y) (k : W ⟶ X) (w : k ≫ f = h) :
   (image_subobject f).factors h :=
 ⟨k ≫ factor_thru_image f, by simp [w]⟩
+
+-- TODO sort out which of these we want
+lemma image_subobject_factors' {W : C} (k : W ⟶ X)  :
+  (image_subobject f).factors (k ≫ f) :=
+⟨k ≫ factor_thru_image f, by simp⟩
 
 /-- Precomposing by an isomorphism does not change the image subobject. -/
 lemma image_subobject_iso_comp [has_equalizers C]

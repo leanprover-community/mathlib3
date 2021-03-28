@@ -5,14 +5,13 @@ universes v u
 open category_theory category_theory.limits
 
 variables {ι : Type*}
-variables (V : Type u) [category.{v} V] [has_zero_object V] [has_zero_morphisms V]
+variables {V : Type u} [category.{v} V] [has_zero_object V] [has_zero_morphisms V]
+variables {c : complex_shape ι} (C : homological_complex V c)
 
 open_locale classical
 noncomputable theory
 
 namespace homological_complex
-
-variables {V} {c : complex_shape ι} (C : homological_complex V c)
 
 section cycles
 variables [has_kernels V]
@@ -84,6 +83,10 @@ cokernel (C.boundaries_to_cycles i)
 
 end
 
+end homological_complex
+
+open homological_complex
+
 /-! Computing the cycles is functorial. -/
 section
 variables [has_kernels V]
@@ -110,7 +113,7 @@ end
 
 /-! Computing the boundaries is functorial. -/
 section
-variables [has_images V] [has_image_maps V] [has_equalizers V]
+variables [has_equalizers V] [has_images V] [has_image_maps V]
 variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 
 def boundaries_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.boundaries i : V) ⟶ (C₂.boundaries i : V) :=
@@ -144,7 +147,7 @@ end
 section
 
 /-! The `boundaries_to_cycles` morphisms are natural. -/
-variables [has_kernels V] [has_images V] [has_image_maps V] [has_equalizers V]
+variables [has_equalizers V] [has_images V] [has_image_maps V]
 variables {C₁ C₂ : homological_complex V c} (f : C₁ ⟶ C₂)
 
 @[simp, reassoc]
@@ -170,20 +173,13 @@ def homology_functor [has_cokernels V] (i : ι) : homological_complex V c ⥤ V 
 -- `cokernel (boundaries_to_cycles_transformation V c i)`
 -- here, but universe implementation details get in the way...
 { obj := λ C, C.homology i,
-  map := λ C₁ C₂ f, begin
-    fapply cokernel.desc,
-    refine _ ≫ cokernel.π _,
-    apply cycles_map f i,
-    rw ←boundaries_to_cycles_naturality_assoc,
-    simp,
-  end,
+  map := λ C₁ C₂ f, cokernel.desc _ (cycles_map f i ≫ cokernel.π _)
+    (by rw [←boundaries_to_cycles_naturality_assoc, cokernel.condition, comp_zero]),
   map_id' := λ C,
   begin
     ext, dsimp,
     simp only [limits.cokernel.π_desc, category.id_comp, cycles_map_id],
-    erw category.comp_id,
+    erw category.comp_id, -- TODO diagnose this!
   end, }
 
 end
-
-end homological_complex

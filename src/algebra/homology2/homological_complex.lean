@@ -53,6 +53,10 @@ end
   (f ≫ g).f i = f.f i ≫ g.f i :=
 rfl
 
+lemma hom_f_injective {C₁ C₂ : homological_complex V c} :
+  function.injective (λ f : hom C₁ C₂, hom.f f) :=
+by tidy
+
 open_locale classical
 noncomputable theory
 

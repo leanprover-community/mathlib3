@@ -94,7 +94,7 @@ induction_on₃ f g h $ λ f hf g hg h hh, by simp [edist_mk_mk, edist_dist, dis
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜]
+variables {𝕜 : Type*} [normed_field 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 variables [normed_group γ] [second_countable_topology γ] [normed_space 𝕜 γ] [borel_space γ]
 
 lemma edist_smul (c : 𝕜) (f : α →ₘ[μ] γ) : edist (c • f) 0 = (ennreal.of_real ∥c∥) * edist f 0 :=

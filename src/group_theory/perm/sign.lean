@@ -213,6 +213,10 @@ def support [fintype α] (f : perm α) : finset α := univ.filter (λ x, f x ≠
 @[simp] lemma mem_support [fintype α] {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x :=
 by simp only [support, true_and, mem_filter, mem_univ]
 
+lemma support_pow_le [fintype α] (σ : perm α) (n : ℤ) :
+  (σ ^ n).support ≤ σ.support :=
+λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
+
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/
 def is_swap (f : perm α) : Prop := ∃ x y, x ≠ y ∧ f = swap x y
 

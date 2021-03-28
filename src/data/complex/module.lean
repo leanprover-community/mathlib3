@@ -41,11 +41,13 @@ section
 
 variables [has_scalar R ℝ]
 
+/- The useless `0` multiplication in `smul` is to make sure that
+`restrict_scalars.semimodule ℝ ℂ ℂ  = complex.semimodule` definitionally. -/
 instance : has_scalar R ℂ :=
-{ smul := λ r x, ⟨r • x.re, r • x.im⟩ }
+{ smul := λ r x, ⟨r • x.re - 0 * x.im, r • x.im + 0 * x.re⟩ }
 
-lemma smul_re (r : R) (z : ℂ) : (r • z).re = r • z.re := rfl
-lemma smul_im (r : R) (z : ℂ) : (r • z).im = r • z.im := rfl
+lemma smul_re (r : R) (z : ℂ) : (r • z).re = r • z.re := by simp [(•)]
+lemma smul_im (r : R) (z : ℂ) : (r • z).im = r • z.im := by simp [(•)]
 
 @[simp] lemma smul_coe {x : ℝ} {z : ℂ} : x • z = x * z :=
 by ext; simp [smul_re, smul_im]
@@ -53,23 +55,23 @@ by ext; simp [smul_re, smul_im]
 end
 
 instance [has_scalar R ℝ] [has_scalar S ℝ] [smul_comm_class R S ℝ] : smul_comm_class R S ℂ :=
-{ smul_comm := λ r s x, ext (smul_comm _ _ _) (smul_comm _ _ _) }
+{ smul_comm := λ r s x, by ext; simp [smul_re, smul_im, smul_comm] }
 
 instance [has_scalar R S] [has_scalar R ℝ] [has_scalar S ℝ] [is_scalar_tower R S ℝ] :
   is_scalar_tower R S ℂ :=
-{ smul_assoc := λ r s x, ext (smul_assoc _ _ _) (smul_assoc _ _ _) }
+{ smul_assoc := λ r s x, by ext; simp [smul_re, smul_im, smul_assoc] }
 
 instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
-{ one_smul := λ x, ext (one_smul _ _) (one_smul _ _),
-  mul_smul := λ r s x, ext (mul_smul _ _ _) (mul_smul _ _ _) }
+{ one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
+  mul_smul := λ r s x, by ext; simp  [smul_re, smul_im, mul_smul] }
 
 instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
-{ smul_add := λ r x y, ext (smul_add _ _ _) (smul_add _ _ _),
-  smul_zero := λ r, ext (smul_zero _) (smul_zero _) }
+{ smul_add := λ r x y, by ext; simp [smul_re, smul_im, smul_add],
+  smul_zero := λ r, by ext; simp [smul_re, smul_im, smul_zero] }
 
 instance [semiring R] [semimodule R ℝ] : semimodule R ℂ :=
-{ add_smul := λ r s x, ext (add_smul _ _ _) (add_smul _ _ _),
-  zero_smul := λ r, ext (zero_smul _ _) (zero_smul _ _) }
+{ add_smul := λ r s x, by ext; simp [smul_re, smul_im, add_smul],
+  zero_smul := λ r, by ext; simp [smul_re, smul_im, zero_smul] }
 
 instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
 { smul := (•),

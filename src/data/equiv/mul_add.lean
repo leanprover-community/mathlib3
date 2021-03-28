@@ -35,6 +35,16 @@ equiv, mul_equiv, add_equiv
 variables {A : Type*} {B : Type*} {M : Type*} {N : Type*}
   {P : Type*} {Q : Type*} {G : Type*} {H : Type*}
 
+/-- Makes a multiplicative inverse from a bijection which preserves multiplication. -/
+@[to_additive "Makes an additive inverse from a bijection which preserves addition."]
+def mul_hom.inverse [has_mul M] [has_mul N] (f : mul_hom M N) (g : N → M)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) : mul_hom N M :=
+{ to_fun   := g,
+  map_mul' := λ x y,
+    calc g (x * y) = g (f (g x) * f (g y)) : by rw [h₂ x, h₂ y]
+               ... = g (f (g x * g y)) : by rw f.map_mul
+               ... = g x * g y : h₁ _, }
+
 set_option old_structure_cmd true
 
 /-- add_equiv α β is the type of an equiv α ≃ β which preserves addition. -/
@@ -103,11 +113,7 @@ instance : inhabited (M ≃* M) := ⟨refl M⟩
 /-- The inverse of an isomorphism is an isomorphism. -/
 @[symm, to_additive "The inverse of an isomorphism is an isomorphism."]
 def symm (h : M ≃* N) : N ≃* M :=
-{ map_mul' := λ n₁ n₂, h.injective $
-    begin
-      have : ∀ x, h (h.to_equiv.symm.to_fun x) = x := h.to_equiv.apply_symm_apply,
-      simp only [this, h.map_mul]
-    end,
+{ map_mul' := (h.to_mul_hom.inverse h.to_equiv.symm h.left_inv h.right_inv).map_mul,
   .. h.to_equiv.symm}
 
 /-- See Note [custom simps projection] -/
@@ -356,6 +362,8 @@ def to_units {G} [group G] : G ≃* units G :=
   left_inv := λ x, rfl,
   right_inv := λ u, units.ext rfl,
   map_mul' := λ x y, units.ext rfl }
+
+protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
 
 namespace units
 

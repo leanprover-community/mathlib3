@@ -83,6 +83,18 @@ def const (b : β) : C(α, β) := ⟨λ x, b⟩
 @[simp] lemma const_coe (b : β) : (const b : α → β) = (λ x, b) := rfl
 lemma const_apply (b : β) (a : α) : const b a = b := rfl
 
+section
+variables [linear_ordered_add_comm_group β] [order_topology β]
+
+/-- The pointwise absolute value of a continuous function as a continuous function. -/
+def abs (f : C(α, β)) : C(α, β) :=
+{ to_fun := λ x, abs (f x), }
+
+@[simp] lemma abs_apply (f : C(α, β)) (x : α) : f.abs x = _root_.abs (f x) :=
+rfl
+
+end
+
 /-!
 We now set up the partial order and lattice structure (given by pointwise min and max)
 on continuous functions.
@@ -131,6 +143,8 @@ instance [linear_order β] [order_closed_topology β] : semilattice_inf C(α, β
 instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
 { ..continuous_map.semilattice_inf,
   ..continuous_map.semilattice_sup }
+
+-- TODO transfer this lattice structure to `bounded_continuous_function`
 
 end lattice
 

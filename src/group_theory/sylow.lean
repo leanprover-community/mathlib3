@@ -79,7 +79,7 @@ begin
     have : card (orbit G b) ∣ p ^ n,
     { rw [← h, fintype.card_congr (orbit_equiv_quotient_stabilizer G b)],
       exact card_quotient_dvd_card _ },
-    rcases (nat.dvd_prime_pow hp).1 this with ⟨k, _, hk⟩,
+    rcases (nat.dvd_prime_pow hp.1).1 this with ⟨k, _, hk⟩,
     have hb' :¬ p ^ 1 ∣ p ^ k,
     { rw [pow_one, ← hk, ← nat.modeq.modeq_zero_iff, ← zmod.eq_iff_modeq_nat,
         nat.cast_zero, ← ne.def],
@@ -162,8 +162,8 @@ rotate_eq_self_iff_eq_repeat.2 ⟨(1 : G),
 /-- Cauchy's theorem -/
 lemma exists_prime_order_of_dvd_card [fintype G] (p : ℕ) [hp : fact p.prime]
   (hdvd : p ∣ card G) : ∃ x : G, order_of x = p :=
-let n : ℕ+ := ⟨p - 1, nat.sub_pos_of_lt hp.one_lt⟩ in
-have hn : p = n + 1 := nat.succ_sub hp.pos,
+let n : ℕ+ := ⟨p - 1, nat.sub_pos_of_lt hp.1.one_lt⟩ in
+have hn : p = n + 1 := nat.succ_sub hp.1.pos,
 have hcard : card (vectors_prod_eq_one G (n + 1)) = card G ^ (n : ℕ),
   by rw [set.ext mem_vectors_prod_eq_one_iff,
     set.card_range_of_injective (mk_vector_prod_eq_one_injective _), card_vector],
@@ -181,7 +181,7 @@ have hcard_pos : 0 < card (fixed_points (multiplicative (zmod p)) (vectors_prod_
   fintype.card_pos_iff.2 ⟨⟨⟨vector.repeat 1 p, one_mem_vectors_prod_eq_one _⟩,
     one_mem_fixed_points_rotate _⟩⟩,
 have hlt : 1 < card (fixed_points (multiplicative (zmod p)) (vectors_prod_eq_one G p)) :=
-  calc (1 : ℕ) < p : hp.one_lt
+  calc (1 : ℕ) < p : hp.1.one_lt
   ... ≤ _ : nat.le_of_dvd hcard_pos hdvdcard₂,
 let ⟨⟨⟨⟨x, hx₁⟩, hx₂⟩, hx₃⟩, hx₄⟩ := fintype.exists_ne_of_one_lt_card hlt
   ⟨_, one_mem_fixed_points_rotate p⟩ in
@@ -194,7 +194,7 @@ let ⟨a, ha⟩ := this in
 ⟨a, have hx1 : x.prod = 1 := hx₂,
   have ha1: a ≠ 1, from λ h, hx (ha.symm ▸ h ▸ hx₁ ▸ rfl),
   have a ^ p = 1, by rwa [ha, list.prod_repeat, hx₁] at hx1,
-  (hp.2 _ (order_of_dvd_of_pow_eq_one this)).resolve_left
+  (hp.1.2 _ (order_of_dvd_of_pow_eq_one this)).resolve_left
     (λ h, ha1 (order_of_eq_one_iff.1 h))⟩
 
 open subgroup submonoid is_group_hom mul_action

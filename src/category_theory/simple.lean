@@ -74,7 +74,7 @@ local attribute [instance] has_zero_object.has_zero
 
 /-- We don't want the definition of 'simple' to include the zero object, so we check that here. -/
 lemma zero_not_simple [simple (0 : C)] : false :=
-(simple.mono_is_iso_iff_nonzero (0 : (0 : C) ⟶ (0 : C))).mp ⟨0, by tidy⟩ rfl
+(simple.mono_is_iso_iff_nonzero (0 : (0 : C) ⟶ (0 : C))).mp ⟨⟨0, by tidy⟩⟩ rfl
 
 end
 end

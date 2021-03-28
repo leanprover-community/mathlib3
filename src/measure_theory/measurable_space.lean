@@ -551,6 +551,11 @@ begin
   exact eq_empty_of_not_nonempty h _,
 end
 
+@[to_additive] lemma measurable_set_mul_support [has_one β]
+  [measurable_singleton_class β] {f : α → β} (hf : measurable f) :
+  measurable_set (mul_support f) :=
+hf (measurable_set_singleton 1).compl
+
 end measurable_functions
 
 section constructions
@@ -695,6 +700,10 @@ measurable_const.prod_mk measurable_id
 
 lemma measurable_prod_mk_right {y : β} : measurable (λ x : α, (x, y)) :=
 measurable_id.prod_mk measurable_const
+
+lemma measurable.prod_map [measurable_space δ] {f : α → β} {g : γ → δ} (hf : measurable f)
+  (hg : measurable g) : measurable (prod.map f g) :=
+(hf.comp measurable_fst).prod_mk (hg.comp measurable_snd)
 
 lemma measurable.of_uncurry_left {f : α → β → γ} (hf : measurable (uncurry f)) {x : α} :
   measurable (f x) :=

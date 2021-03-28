@@ -144,6 +144,10 @@ instance decidable_exists_fintype {p : α → Prop} [decidable_pred p] [fintype 
   decidable (∃ a, p a) :=
 decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
 
+instance decidable_mem_range_fintype [fintype α] [decidable_eq β] (f : α → β) :
+  decidable_pred (∈ set.range f) :=
+λ x, fintype.decidable_exists_fintype
+
 instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ≃ β) :=
 λ a b, decidable_of_iff (a.1 = b.1) ⟨λ h, equiv.ext (congr_fun h), congr_arg _⟩
@@ -1425,3 +1429,13 @@ def trunc_sigma_of_exists {α} [fintype α] {P : α → Prop} [decidable_pred P]
 @trunc_of_nonempty_fintype (Σ' a, P a) (exists.elim h $ λ a ha, ⟨⟨a, ha⟩⟩) _
 
 end trunc
+
+namespace multiset
+
+variables [fintype α] [decidable_eq α]
+
+@[simp] lemma count_univ (a : α) :
+  count a finset.univ.val = 1 :=
+count_eq_one_of_mem finset.univ.nodup (finset.mem_univ _)
+
+end multiset

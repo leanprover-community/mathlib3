@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin, Scott Morrison
+Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 import algebraic_topology.simplex_category
 import category_theory.category.ulift
@@ -13,6 +13,10 @@ import category_theory.adjunction.limits
 # Simplicial objects in a category.
 
 A simplicial object in a category `C` is a `C`-valued presheaf on `simplex_category`.
+
+Use the notation `X _[n]` in the `simplicial` locale to obtain the `n`-th term of a
+simplicial object `X`, where `n` is a natural number.
+
 -/
 
 open opposite
@@ -28,39 +32,38 @@ variables (C : Type u) [category.{v} C]
 /-- The category of simplicial objects valued in a category `C`.
 This is the category of contravariant functors from `simplex_category` to `C`. -/
 @[derive category, nolint has_inhabited_instance]
-def simplicial_object := simplex_categoryᵒᵖ ⥤ C
+def simplicial_object := simplex_category.{v}ᵒᵖ ⥤ C
 
 namespace simplicial_object
 
+localized
+  "notation X `_[`:1000 n `]` :=
+    (X : category_theory.simplicial_object _).obj (opposite.op (simplex_category.mk n))"
+  in simplicial
+
 instance {J : Type v} [small_category J] [has_limits_of_shape J C] :
-  has_limits_of_shape J (simplicial_object C) :=
-let E : (simplex_categoryᵒᵖ ⥤ C) ≌ (ulift.{v} simplex_category)ᵒᵖ ⥤ C :=
-  ulift.equivalence.op.congr_left in
-  adjunction.has_limits_of_shape_of_equivalence E.functor
+  has_limits_of_shape J (simplicial_object C) := by {dsimp [simplicial_object], apply_instance}
 
 instance [has_limits C] : has_limits (simplicial_object C) := ⟨infer_instance⟩
 
 instance {J : Type v} [small_category J] [has_colimits_of_shape J C] :
-  has_colimits_of_shape J (simplicial_object C) :=
-let E : (simplex_categoryᵒᵖ ⥤ C) ≌ (ulift.{v} simplex_category)ᵒᵖ ⥤ C :=
-  ulift.equivalence.op.congr_left in
-  adjunction.has_colimits_of_shape_of_equivalence E.functor
+  has_colimits_of_shape J (simplicial_object C) := by {dsimp [simplicial_object], apply_instance}
 
 instance [has_colimits C] : has_colimits (simplicial_object C) := ⟨infer_instance⟩
 
 variables {C} (X : simplicial_object C)
 
 /-- Face maps for a simplicial object. -/
-def δ {n} (i : fin (n+2)) : X.obj (op (n+1 : ℕ)) ⟶ X.obj (op n) :=
+def δ {n} (i : fin (n+2)) : X _[n+1] ⟶ X _[n] :=
 X.map (simplex_category.δ i).op
 
 /-- Degeneracy maps for a simplicial object. -/
-def σ {n} (i : fin (n+1)) : X.obj (op n) ⟶ X.obj (op (n+1 : ℕ)) :=
+def σ {n} (i : fin (n+1)) : X _[n] ⟶ X _[n+1] :=
 X.map (simplex_category.σ i).op
 
 
 /-- Isomorphisms from identities in ℕ. -/
-def eq_to_iso {n m : ℕ} (h : n = m) : X.obj (op n) ≅ X.obj (op m) :=
+def eq_to_iso {n m : ℕ} (h : n = m) : X _[n] ≅ X _[m] :=
 X.map_iso (eq_to_iso (by rw h))
 
 @[simp] lemma eq_to_iso_refl {n : ℕ} (h : n = n) : X.eq_to_iso h = iso.refl _ :=
@@ -110,24 +113,19 @@ by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.σ_c
 variable (C)
 /-- Truncated simplicial objects. -/
 @[derive category, nolint has_inhabited_instance]
-def truncated (n : ℕ) := (simplex_category.truncated n)ᵒᵖ ⥤ C
+def truncated (n : ℕ) := (simplex_category.truncated.{v} n)ᵒᵖ ⥤ C
 variable {C}
 
 namespace truncated
 
 instance {n} {J : Type v} [small_category J] [has_limits_of_shape J C] :
-  has_limits_of_shape J (simplicial_object.truncated C n) :=
-let E : (simplex_category.truncated n)ᵒᵖ ⥤ C ≌ (ulift.{v} (simplex_category.truncated n))ᵒᵖ ⥤ C :=
-  ulift.equivalence.op.congr_left in
-  adjunction.has_limits_of_shape_of_equivalence E.functor
+  has_limits_of_shape J (simplicial_object.truncated C n) := by {dsimp [truncated], apply_instance}
 
 instance {n} [has_limits C] : has_limits (simplicial_object.truncated C n) := ⟨infer_instance⟩
 
 instance {n} {J : Type v} [small_category J] [has_colimits_of_shape J C] :
   has_colimits_of_shape J (simplicial_object.truncated C n) :=
-let E : (simplex_category.truncated n)ᵒᵖ ⥤ C ≌ (ulift.{v} (simplex_category.truncated n))ᵒᵖ ⥤ C :=
-  ulift.equivalence.op.congr_left in
-  adjunction.has_colimits_of_shape_of_equivalence E.functor
+by {dsimp [truncated], apply_instance}
 
 instance {n} [has_colimits C] : has_colimits (simplicial_object.truncated C n) := ⟨infer_instance⟩
 

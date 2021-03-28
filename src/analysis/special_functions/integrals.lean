@@ -11,12 +11,18 @@ import measure_theory.interval_integral
 This file contains proofs of the integrals of various simple functions, including `pow`, `exp`,
 `inv`/`one_div`, `sin`, `cos`, and `λ x, 1 / (1 + x^2)`.
 
+There are also facts about more complicated integrals:
+* `sin x ^ n`: We prove a recursive formula for `sin x ^ (n + 2)` in terms of `sin x ^ n`,
+  along with explicit product formulas for even and odd `n`.
+
 With these lemmas, many simple integrals can be computed by `simp` or `norm_num`.
+See `test/integration.lean` for specific examples.
 
 This file is still being developed.
 -/
 
-open real set interval_integral
+open real set
+open_locale real big_operators
 variables {a b : ℝ}
 
 namespace interval_integral
@@ -98,6 +104,8 @@ by simpa only [one_div] using interval_integrable_one_div_one_add_sq
 
 end interval_integral
 
+open interval_integral
+
 @[simp]
 lemma integral_pow (n : ℕ) : ∫ x in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=
 begin
@@ -150,6 +158,69 @@ by simp only [one_div, integral_inv_of_neg ha hb]
 @[simp]
 lemma integral_sin : ∫ x in a..b, sin x = cos a - cos b :=
 by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_on_sin]
+
+lemma integral_sin_pow_aux (n : ℕ) : ∫ x in 0..π, sin x ^ (n + 2) =
+  ((n + 1) * ∫ x in 0..π, sin x ^ n) - (n + 1) * ∫ x in 0..π, sin x ^ (n + 2) :=
+begin
+  have hv : ∀ x ∈ interval 0 π, has_deriv_at (-cos) (sin x) x,
+  { intros, convert (has_deriv_at_cos x).neg, rw neg_neg },
+  have hu : ∀ x ∈ interval 0 π, has_deriv_at (λ x, sin x ^ (n + 1)) ((n + 1) * cos x * sin x ^ n) x,
+  { intros,
+    convert (has_deriv_at_pow (n + 1) (sin x)).comp x (has_deriv_at_sin x) using 1,
+    simp [mul_right_comm], },
+  calc ∫ (x : ℝ) in 0..π, sin x ^ (n + 2)
+      = ∫ (x : ℝ) in 0..π, sin x ^ (n + 1) * sin x : by { congr, ext, ring_nf }
+  ... = ∫ (x : ℝ) in 0..π, cos x * (λ (x : ℝ), (↑n + 1) * cos x * sin x ^ n) x : by
+  { simp [integral_mul_deriv_eq_deriv_mul hu hv (by continuity : continuous _).continuous_on
+      (by continuity : continuous _).continuous_on] }
+  ... = (↑n + 1) * ∫ (x : ℝ) in 0..π, cos x ^ 2 * sin x ^ n : by
+  { rw ← integral_const_mul, congr, ext, simp only, ring }
+  ... = (↑n + 1) * ∫ (x : ℝ) in 0..π, sin x ^ n - sin x ^ (n + 2) : by
+  { simp [integral_const_mul, cos_square', sub_mul, ← pow_add, add_comm] }
+  ... = _ - _ : by { rw [integral_sub, mul_sub],
+    { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
+    { exact ((continuous_pow (n + 2)).comp continuous_sin).interval_integrable 0 π } },
+end
+
+lemma integral_sin_pow_succ_succ (n : ℕ) :
+  ∫ x in 0..π, sin x ^ (n + 2) = (n + 1) / (n + 2) * ∫ x in 0..π, sin x ^ n :=
+begin
+  have : (n:ℝ) + 2 ≠ 0 := by exact_mod_cast nat.succ_ne_zero n.succ,
+  field_simp,
+  convert eq_sub_iff_add_eq.mp (integral_sin_pow_aux n),
+  ring,
+end
+
+theorem integral_sin_pow_odd (n : ℕ) :
+  ∫ x in 0..π, sin x ^ (2 * n + 1) = 2 * ∏ i in finset.range n, (2 * i + 2) / (2 * i + 3) :=
+begin
+  induction n with k ih,
+  { norm_num },
+  rw [finset.prod_range_succ, ← mul_assoc, mul_comm (2:ℝ) ((2 * k + 2) / (2 * k + 3)),
+    mul_assoc, ← ih],
+  have h₁ : 2 * k.succ + 1 = 2 * k + 1 + 2, { ring },
+  have h₂ : (2:ℝ) * k + 1 + 1 = 2 * k + 2, { norm_cast },
+  have h₃ : (2:ℝ) * k + 1 + 2 = 2 * k + 3, { norm_cast },
+  simp [h₁, h₂, h₃, integral_sin_pow_succ_succ (2 * k + 1)],
+end
+
+theorem integral_sin_pow_even (n : ℕ) :
+  ∫ x in 0..π, sin x ^ (2 * n) = π * ∏ i in finset.range n, (2 * i + 1) / (2 * i + 2) :=
+begin
+  induction n with k ih,
+  { norm_num },
+  rw [finset.prod_range_succ, ← mul_assoc, mul_comm π ((2 * k + 1) / (2 * k + 2)), mul_assoc, ← ih],
+  simp [nat.succ_eq_add_one, mul_add, mul_one, integral_sin_pow_succ_succ _],
+end
+
+lemma integral_sin_pow_pos (n : ℕ) : 0 < ∫ x in 0..π, sin x ^ n :=
+begin
+  rcases nat.even_or_odd' n with ⟨k, h, h⟩;
+  simp only [h, integral_sin_pow_even, integral_sin_pow_odd];
+  refine mul_pos (by norm_num [pi_pos]) (finset.prod_pos (λ n hn, div_pos _ _));
+  norm_cast;
+  linarith,
+end
 
 @[simp]
 lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=

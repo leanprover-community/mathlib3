@@ -252,11 +252,7 @@ end
 
 /-- `R` is finitely presented as `R`-algebra. -/
 lemma self : finite_presentation R R :=
-begin
-  letI hempty := mv_polynomial R pempty,
-  exact @equiv R (_root_.mv_polynomial pempty R) R _ _ _ _ _ hempty
-    (mv_polynomial.pempty_alg_equiv R)
-end
+equiv (mv_polynomial R pempty) (mv_polynomial.pempty_alg_equiv R)
 
 variable {R}
 
@@ -277,7 +273,6 @@ then so is `B`. -/
 lemma of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) (hker : f.to_ring_hom.ker.fg)
   (hfp : finite_presentation R A) : finite_presentation R B :=
 equiv (quotient hker hfp) (ideal.quotient_ker_alg_equiv_of_surjective hf)
-
 
 lemma iff : finite_presentation R A ↔
   ∃ n (I : ideal (_root_.mv_polynomial (fin n) R)) (e : I.quotient ≃ₐ[R] A), I.fg :=
@@ -323,9 +318,15 @@ begin
   refine equiv _ e.symm,
   obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
   refine equiv _ (mv_polynomial.map_alg_equiv (fin n) e),
-  letI : is_scalar_tower R (_root_.mv_polynomial (fin m) R)
-    (@ideal.map _ (_root_.mv_polynomial (fin n) (_root_.mv_polynomial (fin m) R))
-    _ _ mv_polynomial.C I).quotient := is_scalar_tower.comap,
+  -- typeclass inference seems to struggle to find this path
+  letI : is_scalar_tower R
+    (_root_.mv_polynomial (fin m) R) (_root_.mv_polynomial (fin m) R) :=
+      is_scalar_tower.right,
+  letI : is_scalar_tower R
+    (_root_.mv_polynomial (fin m) R)
+    (_root_.mv_polynomial (fin n) (_root_.mv_polynomial (fin m) R)) :=
+      mv_polynomial.is_scalar_tower,
+
   refine equiv _ ((@mv_polynomial.quotient_equiv_quotient_mv_polynomial
     _ (fin n) _ I).restrict_scalars R).symm,
   refine quotient (submodule.map_fg_of_fg I hfg _) _,
@@ -340,8 +341,6 @@ lemma trans [algebra A B] [is_scalar_tower R A B] (hfpA : finite_presentation R 
   (hfpB : finite_presentation A B) : finite_presentation R B :=
 begin
   obtain ⟨n, I, e, hfg⟩ := iff.1 hfpB,
-  -- note that this unfolds `algebra.comap` from the last argument of `is_scalar_tower`
-  letI : is_scalar_tower R A I.quotient := is_scalar_tower.comap,
   exact equiv (quotient hfg (mv_polynomial_of_finite_presentation hfpA _)) (e.restrict_scalars R)
 end
 

@@ -105,7 +105,7 @@ then iff_of_false (not_not_intro ⟨rat.sqrt q,
          sqrt_eq, abs_of_nonneg (rat.sqrt_nonneg q)]⟩) (λ h, h.1 H1)
 else if H2 : 0 ≤ q
 then iff_of_true (λ ⟨r, hr⟩, H1 $ (exists_mul_self _).1 ⟨r,
-  by rwa [eq_comm, sqrt_eq_iff_mul_self_eq (cast_nonneg.2 H2), ← cast_mul, cast_inj] at hr;
+  by rwa [eq_comm, sqrt_eq_iff_mul_self_eq (cast_nonneg.2 H2), ← cast_mul, rat.cast_inj] at hr;
   rw [← hr]; exact real.sqrt_nonneg _⟩) ⟨H1, H2⟩
 else iff_of_false (not_not_intro ⟨0,
   by rw cast_zero; exact (sqrt_eq_zero_of_nonpos (rat.cast_nonpos.2 $ le_of_not_le H2)).symm⟩)

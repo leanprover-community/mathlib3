@@ -5,7 +5,6 @@ Authors: Alain Verberkmoes
 -/
 
 import tactic
-open int
 
 /-!
 # IMO 2011 Q5
@@ -16,6 +15,8 @@ of positive integers.  Suppose that, for any two integers
 `f(m − n)`.  Prove that, for all integers `m` and `n` with
 `f(m) ≤ f(n)`, the number `f(n)` is divisible by `f(m)`.
 -/
+
+open int
 
 theorem imo2011_q5 (f : ℤ → ℤ) (hpos : ∀ n : ℤ, 0 < f n)
   (hdvd : ∀ m n : ℤ, f (m - n) ∣ f m - f n) :

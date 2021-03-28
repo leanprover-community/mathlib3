@@ -289,8 +289,12 @@ instance (c : E) : inhabited (times_cont_diff_bump_of_inner c) := ⟨⟨1, 2, ze
 
 variables [inner_product_space ℝ E] {c : E} (f : times_cont_diff_bump_of_inner c) {x : E}
 
-instance : has_coe_to_fun (times_cont_diff_bump_of_inner c) :=
-⟨_, λ f x, by exactI real.smooth_transition ((f.R - dist x c) / (f.R - f.r))⟩
+/-- The function defined by `f : times_cont_diff_bump_of_inner c`. Use automatic coercion to
+function instead. -/
+def to_fun (f : times_cont_diff_bump_of_inner c) : E → ℝ :=
+λ x, real.smooth_transition ((f.R - dist x c) / (f.R - f.r))
+
+instance : has_coe_to_fun (times_cont_diff_bump_of_inner c) := ⟨_, to_fun⟩
 
 open real (smooth_transition) real.smooth_transition metric
 
@@ -367,8 +371,12 @@ namespace times_cont_diff_bump
 variables [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] {c x : E}
   (f : times_cont_diff_bump c)
 
+/-- The function defined by `f : times_cont_diff_bump c`. Use automatic coercion to function
+instead. -/
+def to_fun (f : times_cont_diff_bump c) : E → ℝ := f.to_times_cont_diff_bump_of_inner ∘ to_euclidean
+
 instance : has_coe_to_fun (times_cont_diff_bump c) :=
-⟨λ f, E → ℝ, λ f, f.to_times_cont_diff_bump_of_inner ∘ to_euclidean⟩
+⟨λ f, E → ℝ, to_fun⟩
 
 instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default _⟩⟩
 

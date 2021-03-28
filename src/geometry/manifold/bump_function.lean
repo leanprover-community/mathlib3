@@ -40,9 +40,10 @@ compact real manifold can be embedded into `ℝ^n` for large enough `n`.
 
 ## TODO
 
-* Prove the weak Whitney embedding theorem. This requires a version of Sard's theorem: for a locally
-  Lipschitz continuous map `f : ℝ^m → ℝ^n`, `m < n`, the range has Hausdorff dimension at most `m`,
-  hence it has measure zero.
+* Prove the weak Whitney embedding theorem: any `σ`-compact smooth `m`-dimensional manifold can be
+  embedded into `ℝ^(2m+1)`. This requires a version of Sard's theorem: for a locally Lipschitz
+  continuous map `f : ℝ^m → ℝ^n`, `m < n`, the range has Hausdorff dimension at most `m`, hence it
+  has measure zero.
 
 * Construct a smooth partition of unity. While we can do it now, the formulas will be much nicer if
   we wait for `finprod` and `finsum` coming in #6355.
@@ -101,8 +102,12 @@ open euclidean (renaming dist -> eudist)
 
 variables {c : M} (f : smooth_bump_function I c) {x : M} {I}
 
-instance : has_coe_to_fun (smooth_bump_function I c) :=
-⟨_, λ f, indicator (chart_at H c).source (f.to_times_cont_diff_bump ∘ ext_chart_at I c)⟩
+/-- The function defined by `f : smooth_bump_function c`. Use automatic coercion to function
+instead. -/
+def to_fun : M → ℝ :=
+indicator (chart_at H c).source (f.to_times_cont_diff_bump ∘ ext_chart_at I c)
+
+instance : has_coe_to_fun (smooth_bump_function I c) := ⟨_, to_fun⟩
 
 lemma coe_def :
   ⇑f = indicator (chart_at H c).source (f.to_times_cont_diff_bump ∘ ext_chart_at I c) :=

@@ -22,6 +22,18 @@ variables {ι : Type*}
 def succ (c : complex_shape ι) (i : ι) := { j // c.r i j }
 def pred (c : complex_shape ι) (j : ι) := { i // c.r i j }
 
+lemma nonempty_succ (c : complex_shape ι) {i j : ι} (r : c.r i j) : nonempty (c.succ i) :=
+⟨⟨j, r⟩⟩
+lemma nonempty_pred (c : complex_shape ι) {i j : ι} (r : c.r i j) : nonempty (c.pred j) :=
+⟨⟨i, r⟩⟩
+
+lemma nonempty_succ_some (c : complex_shape ι) {i j : ι} (r : c.r i j) :
+  (c.nonempty_succ r).some.1 = j :=
+c.succ_eq (c.nonempty_succ r).some.2 r
+lemma nonempty_pred_some (c : complex_shape ι) {i j : ι} (r : c.r i j) :
+  (c.nonempty_pred r).some.1 = i :=
+c.pred_eq (c.nonempty_pred r).some.2 r
+
 instance (c : complex_shape ι) (i : ι) : subsingleton (c.succ i) :=
 begin
   fsplit,

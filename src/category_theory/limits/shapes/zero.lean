@@ -118,7 +118,14 @@ section
 universes v' u'
 variables (D : Type u') [category.{v'} D]
 
-variables [has_zero_morphisms C] [has_zero_morphisms D]
+variables [has_zero_morphisms D]
+
+instance : has_zero_morphisms (C ⥤ D) :=
+{ has_zero := λ F G, ⟨{ app := λ X, 0, }⟩ }
+
+@[simp] lemma zero_app (F G : C ⥤ D) (j : C) : (0 : F ⟶ G).app j = 0 := rfl
+
+variables [has_zero_morphisms C]
 
 lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
   F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=

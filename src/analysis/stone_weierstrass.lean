@@ -196,7 +196,7 @@ begin
     (B : set C(X, ℝ))
     (λ f g fm gm, inf_mem_closed_subalgebra B A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (λ f g fm gm, sup_mem_closed_subalgebra B A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
-    (subalgebra.separates_points_strongly
+    (subalgebra.separates_points.strongly
       (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
   { simp, },
   { ext, simp, },

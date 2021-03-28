@@ -67,7 +67,6 @@ def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
   (s.topological_closure : set A) = closure (s : set A) :=
 rfl
 
-
 instance subalgebra.topological_closure_topological_semiring (s : subalgebra R A) :
   topological_semiring (s.topological_closure) :=
 s.to_subsemiring.topological_closure_topological_semiring

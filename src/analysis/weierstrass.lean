@@ -107,7 +107,8 @@ begin
   refine metric.continuous_iff.mpr _,
   intros g ε ε_pos,
   refine ⟨ε, ε_pos, λ g' h, _⟩,
-  erw bounded_continuous_function.dist_lt_of_compact ε_pos at h ⊢,
+  -- FIXME shouldn't need `erw`
+  erw bounded_continuous_function.dist_lt_iff_of_compact ε_pos at h ⊢,
   { exact λ x, h (f x), },
   { assumption, },
   { assumption, },

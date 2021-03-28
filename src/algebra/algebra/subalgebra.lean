@@ -513,8 +513,11 @@ by { ext x, simp [mem_bot, -set.singleton_one, submodule.mem_span_singleton, alg
 @[simp] theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
 subsemiring.subset_closure $ or.inr trivial
 
-@[simp] theorem coe_top : (⊤ : subalgebra R A).to_submodule = ⊤ :=
+@[simp] theorem top_to_submodule : (⊤ : subalgebra R A).to_submodule = ⊤ :=
 submodule.ext $ λ x, iff_of_true mem_top trivial
+
+@[simp] theorem top_to_subsemiring : (⊤ : subalgebra R A).to_subsemiring = ⊤ :=
+subsemiring.ext $ λ x, iff_of_true mem_top trivial
 
 @[simp] theorem coe_bot : ((⊥ : subalgebra R A) : set A) = set.range (algebra_map R A) :=
 by simp [set.ext_iff, algebra.mem_bot]

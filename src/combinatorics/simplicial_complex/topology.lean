@@ -30,6 +30,21 @@ begin
   simp,
 end
 
+lemma convex_hull_face_subset_space {X} (hX : X ∈ S.faces) :
+  convex_hull ↑X ⊆ S.space :=
+λ x hx, mem_bUnion hX hx
+
+lemma face_subset_space {X} (hX : X ∈ S.faces) :
+  (X : set E) ⊆ S.space :=
+set.subset.trans (subset_convex_hull _) (convex_hull_face_subset_space hX)
+
+def simplicial_complex.points (S : simplicial_complex m) : set E :=
+⋃ k ∈ S.faces, (k : set E)
+
+lemma points_subset_space :
+  S.points ⊆ S.space :=
+bUnion_subset_bUnion_right (λ x hx, subset_convex_hull x)
+
 /--
 The boundary of a simplex as a subspace.
 -/

@@ -12,7 +12,7 @@ import combinatorics.simplicial_complex.extreme_point
 
 open_locale classical affine big_operators
 open set
-variables {m n : ℕ}
+variables (m : ℕ) {n : ℕ}
 local notation `E` := fin m → ℝ
 
 namespace affine
@@ -21,21 +21,21 @@ namespace affine
 A simplicial complex in `R^m`.
 TODO: generalise to normed affine spaces `E`, so this is `simplicial_complex E`.
 -/
-@[ext] structure simplicial_complex (m : ℕ) :=
-(faces : set (finset (fin m → ℝ)))
-(indep : ∀ {X}, X ∈ faces → affine_independent ℝ (λ p, p : (X : set (fin m → ℝ)) → (fin m → ℝ)))
+@[ext] structure simplicial_complex :=
+(faces : set (finset E))
+(indep : ∀ {X}, X ∈ faces → affine_independent ℝ (λ p, p : (X : set E) → E))
 (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces)
 (disjoint : ∀ {X Y}, X ∈ faces → Y ∈ faces →
-  convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set (fin m → ℝ)))
+  convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set E))
 
-variables {S : simplicial_complex m}
+variables {m} {S : simplicial_complex m}
 
 /--
 A constructor for simplicial complexes by specifying a surcomplex and making the set of faces
 downward closed.
 -/
-@[simp] def simplicial_complex.of_surcomplex {m : ℕ} {S : simplicial_complex m}
-  (faces : set (finset (fin m → ℝ))) (subset_surcomplex : faces ⊆ S.faces)
+@[simp] def simplicial_complex.of_surcomplex {S : simplicial_complex m}
+  (faces : set (finset E)) (subset_surcomplex : faces ⊆ S.faces)
   (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces) :
   simplicial_complex m :=
 { faces := faces,
@@ -111,9 +111,18 @@ lemma empty_mem_faces_of_nonempty {S : simplicial_complex m} : (S.faces).nonempt
 /-def simplicial_complex.dimension (S : simplicial_complex m) : ℕ :=
  Sup {finset.card (X : set E) | X ∈ S.faces}-/
 
+-- Dumb bug in mathlib, see
+--https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there.20code.20for.20X.3F/topic/R.5Em.20is.20finite.20dimensional.20over.20R/near/231748016
+instance {m : ℕ} : finite_dimensional ℝ (fin m → ℝ) := sorry
+
 --Refinement of `size_bound`
-lemma simplex_dimension_le_space_dimension {S : simplicial_complex m} {X : finset E} :
-  X ∈ S.faces → finset.card X ≤ m + 1 := λ hX, size_bound (S.indep hX)
+lemma simplex_dimension_le_space_dimension {S : simplicial_complex m} {X : finset E}
+  (hX : X ∈ S.faces) :
+finset.card X ≤ m + 1 :=
+begin
+  convert size_bound (S.indep hX),
+  simp,
+end
 
 def simplicial_complex.facets (S : simplicial_complex m) : set (finset (fin m → ℝ)) :=
 {X | X ∈ S.faces ∧ (∀ {Y}, Y ∈ S.faces → X ⊆ Y → X = Y)}
@@ -199,13 +208,13 @@ The pureness of a pure simplicial complex is the cardinality of its facets. Set 
 complexes.
 -/
 noncomputable def simplicial_complex.pureness (S : simplicial_complex m) : ℕ :=
-  if hS : S.pure then classical.some hS else 0
+  if hS : S.pure then nat.find hS else 0
 
 lemma pureness_def {S : simplicial_complex m} (hS : S.pure) : S.pure_of S.pureness :=
 begin
   unfold simplicial_complex.pureness,
   rw dif_pos hS,
-  exact classical.some_spec hS,
+  exact nat.find_spec hS,
 end
 
 lemma pureness_unique_of_nonempty {S : simplicial_complex m} {a b : ℕ} (hS : S.faces.nonempty)
@@ -217,7 +226,6 @@ begin
   rw [←ha hY, ←hb hY],
 end
 
---same below. I really don't get what i'm doing wrong
 lemma pureness_def' {S : simplicial_complex m} (hSnonempty : S.faces.nonempty) (hS : S.pure_of n) :
   S.pureness = n :=
 pureness_unique_of_nonempty hSnonempty (pureness_def ⟨_, hS⟩) hS
@@ -312,12 +320,20 @@ lemma skeleton_subcomplex {S : simplicial_complex m} {k : ℕ} :
   (S.skeleton k).faces ⊆ S.faces :=
 λ X ⟨hX, _⟩, hX
 
+lemma skeleton_nonempty_iff {S : simplicial_complex m} {k : ℕ} :
+  (S.skeleton k).faces.nonempty ↔ S.faces.nonempty :=
+begin
+  split,
+  { apply nonempty.mono skeleton_subcomplex },
+  { rintro ⟨X, hX⟩,
+    exact ⟨∅, S.down_closed hX X.empty_subset, nat.zero_le _⟩ }
+end
+
 lemma pure_skeleton_of_pure {S : simplicial_complex m} (k : ℕ) (hS : S.pure_of n) :
   (S.skeleton k).pure_of (min n (k + 1)) :=
 begin
   cases le_or_gt n (k + 1) with hmin hmin,
-  {
-    rw min_eq_left hmin,
+  { rw min_eq_left hmin,
     rintro X hXskel,
     obtain ⟨Y, hY, hXY⟩ := subfacet (skeleton_subcomplex (facets_subset hXskel)),
     have hYskel : Y ∈ (S.skeleton k).faces,
@@ -340,8 +356,15 @@ begin
     exact hZcard, }
 end
 
-lemma skeleton_pureness_eq_min_pureness_dimension {S : simplicial_complex m} {k : ℕ} (hS : S.pure) :
-  (S.skeleton k).pureness = min S.pureness (k + 1) := sorry
+lemma skeleton_pureness_eq_min_pureness_dimension {S : simplicial_complex m} {k : ℕ} (hS : S.pure)
+  (hS' : S.faces.nonempty) :
+  (S.skeleton k).pureness = min S.pureness (k + 1) :=
+begin
+  rcases hS with ⟨n, hn⟩,
+  rw [pureness_def' hS' hn, pureness_def'],
+  { rwa skeleton_nonempty_iff },
+  { apply pure_skeleton_of_pure _ hn },
+end
 
 /--
 The closure of a set of faces is the set of their subfaces
@@ -391,20 +414,15 @@ lemma closure_singleton {S : simplicial_complex m} {x : fin m → ℝ} (hx : {x}
 begin
   ext Y,
   split,
-  {
-    rintro ⟨hY, Z, (hZ : Z = {x}), hYZ⟩,
+  { rintro ⟨hY, Z, (hZ : Z = {x}), hYZ⟩,
     rw hZ at hYZ,
-    simp,
-    --exact_mod_cast set.subset_singleton_iff.1 hYZ,
-    sorry -- @Bhavik easy but I can't
-  },
-  {
-    have hxS : {x} ∈ (S.closure {{x}}).faces := ⟨hx, {x}, rfl, finset.subset.refl {x}⟩,
-    rintro ⟨rfl | rfl⟩,
-    exact empty_mem_faces_of_nonempty (nonempty_of_mem hxS),
-    rw eq_of_mem_singleton ᾰ,
-    exact hxS,
-  }
+    simp only [mem_singleton_iff, mem_insert_iff],
+    rwa ←finset.subset_singleton_iff },
+  { have hxS : {x} ∈ (S.closure {{x}}).faces := ⟨hx, {x}, rfl, finset.subset.refl {x}⟩,
+    simp only [mem_singleton_iff, mem_insert_iff],
+    rintro (rfl | rfl),
+    { exact empty_mem_faces_of_nonempty (nonempty_of_mem hxS) },
+    { assumption } }
 end
 
 lemma mem_closure_singleton_iff {S : simplicial_complex m} {X Y : finset (fin m → ℝ)} :

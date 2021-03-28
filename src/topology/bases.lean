@@ -24,10 +24,10 @@ include t
 /-- A topological basis is one that satisfies the necessary conditions so that
   it suffices to take unions of the basis sets to get a topology (without taking
   finite intersections as well). -/
-def is_topological_basis (s : set (set α)) : Prop :=
-(∀t₁∈s, ∀t₂∈s, ∀ x ∈ t₁ ∩ t₂, ∃ t₃∈s, x ∈ t₃ ∧ t₃ ⊆ t₁ ∩ t₂) ∧
-(⋃₀ s) = univ ∧
-t = generate_from s
+structure is_topological_basis (s : set (set α)) : Prop :=
+(exists_subset_inter : ∀t₁∈s, ∀t₂∈s, ∀ x ∈ t₁ ∩ t₂, ∃ t₃∈s, x ∈ t₃ ∧ t₃ ⊆ t₁ ∩ t₂)
+(sUnion_eq : (⋃₀ s) = univ)
+(eq_generate_from : t = generate_from s)
 
 /-- If a family of sets `s` generates the topology, then nonempty intersections of finite
 subcollections of `s` form a topological basis. -/
@@ -69,48 +69,50 @@ begin
     exact binfi_le_of_le v ⟨hav, hvs⟩ (le_principal_iff.2 hvu) }
 end
 
-lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}
+lemma is_topological_basis.mem_nhds_iff {a : α} {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) : s ∈ 𝓝 a ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
 begin
   change s ∈ (𝓝 a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s,
-  rw [hb.2.2, nhds_generate_from, binfi_sets_eq],
+  rw [hb.eq_generate_from, nhds_generate_from, binfi_sets_eq],
   { simp only [mem_bUnion_iff, exists_prop, mem_set_of_eq, and_assoc, and.left_comm], refl },
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
       have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
       let ⟨u, hu₁, hu₂, hu₃⟩ := hb.1 _ hs₂ _ ht₂ _ this in
       ⟨u, ⟨hu₂, hu₁⟩, le_principal_iff.2 (subset.trans hu₃ (inter_subset_left _ _)),
         le_principal_iff.2 (subset.trans hu₃ (inter_subset_right _ _))⟩ },
-  { rcases eq_univ_iff_forall.1 hb.2.1 a with ⟨i, h1, h2⟩,
+  { rcases eq_univ_iff_forall.1 hb.sUnion_eq a with ⟨i, h1, h2⟩,
     exact ⟨i, h2, h1⟩ }
 end
 
 lemma is_topological_basis.nhds_has_basis {b : set (set α)} (hb : is_topological_basis b) {a : α} :
   (𝓝 a).has_basis (λ t : set α, t ∈ b ∧ a ∈ t) (λ t, t) :=
-⟨λ s, (mem_nhds_of_is_topological_basis hb).trans $ by simp only [exists_prop, and_assoc]⟩
+⟨λ s, hb.mem_nhds_iff.trans $ by simp only [exists_prop, and_assoc]⟩
 
-lemma is_open_of_is_topological_basis {s : set α} {b : set (set α)}
+protected lemma is_topological_basis.is_open {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) (hs : s ∈ b) : is_open s :=
-is_open_iff_mem_nhds.2 $ λ a as,
-(mem_nhds_of_is_topological_basis hb).2 ⟨s, hs, as, subset.refl _⟩
+by { rw hb.eq_generate_from, exact generate_open.basic s hs }
 
-lemma mem_basis_subset_of_mem_open {b : set (set α)}
+lemma is_topological_basis.exists_subset_of_mem_open {b : set (set α)}
   (hb : is_topological_basis b) {a:α} {u : set α} (au : a ∈ u)
   (ou : is_open u) : ∃v ∈ b, a ∈ v ∧ v ⊆ u :=
-(mem_nhds_of_is_topological_basis hb).1 $ mem_nhds_sets ou au
+hb.mem_nhds_iff.1 $ mem_nhds_sets ou au
 
-lemma sUnion_basis_of_is_open {B : set (set α)}
+lemma is_topological_basis.open_eq_sUnion' {B : set (set α)}
+  (hB : is_topological_basis B) {u : set α} (ou : is_open u) :
+  u = ⋃₀ {s ∈ B | s ⊆ u} :=
+ext $ λ a,
+⟨λ ha, let ⟨b, hb, ab, bu⟩ := hB.exists_subset_of_mem_open ha ou in ⟨b, ⟨hb, bu⟩, ab⟩,
+  λ ⟨b, ⟨hb, bu⟩, ab⟩, bu ab⟩
+
+lemma is_topological_basis.open_eq_sUnion {B : set (set α)}
   (hB : is_topological_basis B) {u : set α} (ou : is_open u) :
   ∃ S ⊆ B, u = ⋃₀ S :=
-⟨{s ∈ B | s ⊆ u}, λ s h, h.1, set.ext $ λ a,
-  ⟨λ ha, let ⟨b, hb, ab, bu⟩ := mem_basis_subset_of_mem_open hB ha ou in
-         ⟨b, ⟨hb, bu⟩, ab⟩,
-   λ ⟨b, ⟨hb, bu⟩, ab⟩, bu ab⟩⟩
+⟨{s ∈ B | s ⊆ u}, λ s h, h.1, hB.open_eq_sUnion' ou⟩
 
 lemma Union_basis_of_is_open {B : set (set α)}
   (hB : is_topological_basis B) {u : set α} (ou : is_open u) :
   ∃ (β : Type u) (f : β → set α), u = (⋃ i, f i) ∧ ∀ i, f i ∈ B :=
-let ⟨S, sb, su⟩ := sUnion_basis_of_is_open hB ou in
-⟨S, subtype.val, su.trans set.sUnion_eq_Union, λ ⟨b, h⟩, sb h⟩
+⟨↥{s ∈ B | s ⊆ u}, coe, by { rw ← sUnion_eq_Union, apply hB.open_eq_sUnion' ou }, λ s, and.left s.2⟩
 
 lemma is_topological_basis.mem_closure_iff {b : set (set α)} (hb : is_topological_basis b)
   {s : set α} {a : α} :
@@ -122,6 +124,23 @@ lemma is_topological_basis.dense_iff {b : set (set α)} (hb : is_topological_bas
 begin
   simp only [dense, hb.mem_closure_iff],
   exact ⟨λ h o hb ⟨a, ha⟩, h a o hb ha, λ h a o hb ha, h o hb ⟨a, ha⟩⟩
+end
+
+lemma is_topological_basis_of_cover {ι} {U  : ι → set α} (Uo : ∀ i, is_open (U i))
+  (Uc : (⋃ i, U i) = univ) {b : Π i, set (set (U i))} (hb : ∀ i, is_topological_basis (b i)) :
+  is_topological_basis (⋃ i : ι, image (coe : U i → α) '' (b i)) :=
+begin
+  refine is_topological_basis_of_open_of_nhds (λ u hu, _) _,
+  { simp only [mem_Union, mem_image] at hu,
+    rcases hu with ⟨i, s, sb, rfl⟩,
+    exact (Uo i).is_open_map_subtype_coe _ ((hb i).is_open sb) },
+  { intros a u ha uo,
+    rcases Union_eq_univ_iff.1 Uc a with ⟨i, hi⟩,
+    lift a to ↥(U i) using hi,
+    rcases (hb i).exists_subset_of_mem_open (by exact ha) (uo.preimage continuous_subtype_coe)
+      with ⟨v, hvb, hav, hvu⟩,
+    exact ⟨coe '' v, mem_Union.2 ⟨i, mem_image_of_mem _ hvb⟩, mem_image_of_mem _ hav,
+      image_subset_iff.2 hvu⟩ }
 end
 
 variables (α)
@@ -264,7 +283,7 @@ instance second_countable_topology_fintype {ι : Type*} {π : ι → Type*}
 have ∀i, ∃b : set (set (π i)), countable b ∧ ∅ ∉ b ∧ is_topological_basis b, from
   assume a, @is_open_generated_countable_inter (π a) _ (sc a),
 let ⟨g, hg⟩ := classical.axiom_of_choice this in
-have t = (λa, generate_from (g a)), from funext $ assume a, (hg a).2.2.2.2,
+have t = (λa, generate_from (g a)), from funext $ assume a, (hg a).2.2.eq_generate_from,
 begin
   constructor,
   refine ⟨pi univ '' pi univ g, countable.image _ _, _⟩,
@@ -272,7 +291,7 @@ begin
     exact countable_pi (assume i, (hg i).1), },
   rw [this, pi_generate_from_eq_fintype],
   { congr' 1 with f, simp [pi, eq_comm] },
-  exact assume a, (hg a).2.2.2.1
+  exact assume a, (hg a).2.2.sUnion_eq
 end
 
 @[priority 100] -- see Note [lower instance priority]
@@ -289,6 +308,17 @@ end
 
 variables {α}
 
+lemma second_countable_topology_of_countable_cover {ι} [encodable ι] {U : ι → set α}
+  (Uo : ∀ i, is_open (U i)) (hU : ∀ i, second_countable_topology (U i)) (hc : (⋃ i, U i) = univ) :
+  second_countable_topology α :=
+begin
+  resetI,
+  choose B cB Bne bB using λ i, is_open_generated_countable_inter (U i),
+  have := is_topological_basis_of_cover Uo hc bB,
+  refine ⟨⟨_, countable_Union $ λ i, _, this.eq_generate_from⟩⟩,
+  exact (cB i).image _
+end
+
 lemma is_open_Union_countable [second_countable_topology α]
   {ι} (s : ι → set α) (H : ∀ i, is_open (s i)) :
   ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=
@@ -300,7 +330,7 @@ begin
   refine ⟨_, countable_range f,
     subset.antisymm (bUnion_subset_Union _ _) (sUnion_subset _)⟩,
   rintro _ ⟨i, rfl⟩ x xs,
-  rcases mem_basis_subset_of_mem_open bB xs (H _) with ⟨b, hb, xb, bs⟩,
+  rcases bB.exists_subset_of_mem_open xs (H _) with ⟨b, hb, xb, bs⟩,
   exact ⟨_, ⟨_, rfl⟩, _, ⟨⟨⟨_, hb, _, bs⟩, rfl⟩, rfl⟩, hf _ (by exact xb)⟩
 end
 

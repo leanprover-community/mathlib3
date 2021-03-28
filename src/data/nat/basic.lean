@@ -295,6 +295,13 @@ theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
 
+lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
+begin
+  rw [← lt_succ_iff, div_lt_iff_lt_mul _ _ n0, succ_mul, mul_comm],
+  cases n, {cases n0},
+  exact lt_succ_iff,
+end
+
 /-! ### `add` -/
 
 -- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding
@@ -1118,8 +1125,8 @@ begin
   { rintros (rfl|rfl); simp }
 end
 
-lemma lt_iff_le_pred {m n : ℕ} (n0 : 0 < n) : m < n ↔ m ≤ n - 1 :=
-⟨λ h, le_pred_of_lt h, λ h, h.trans_lt (buffer.lt_aux_2 n0)⟩
+lemma lt_iff_le_pred : ∀ {m n : ℕ}, 0 < n → (m < n ↔ m ≤ n - 1)
+| m (n+1) _ := lt_succ_iff
 
 lemma div_eq_sub_mod_div {m n : ℕ} : m / n = (m - m % n) / n :=
 begin
@@ -1129,24 +1136,17 @@ begin
     rw [nat.add_sub_cancel_left, mul_div_right _ (nat.pos_of_ne_zero n0)] }
 end
 
-lemma mul_div_le (m n : ℕ) :
-  n * (m / n) ≤ m :=
+lemma mul_div_le (m n : ℕ) : n * (m / n) ≤ m :=
 begin
-  by_cases n0 : n = 0,
-  { rw [n0, zero_mul],
-    exact m.zero_le },
-  { cases @dvd_sub_mod n m with d hd,
-    rw [div_eq_sub_mod_div, hd, nat.mul_div_cancel_left d (nat.pos_of_ne_zero n0), ← hd],
-    exact sub_le _ _ }
+  cases nat.eq_zero_or_pos n with n0 h,
+  { rw [n0, zero_mul], exact m.zero_le },
+  { rw [mul_comm, ← nat.le_div_iff_mul_le' h] },
 end
 
-lemma lt_mul_div_succ (m : ℕ) {n : ℕ} (n0 : 0 < n) :
-  m < n * ((m / n) + 1) :=
+lemma lt_mul_div_succ (m : ℕ) {n : ℕ} (n0 : 0 < n) : m < n * ((m / n) + 1) :=
 begin
-  cases @dvd_sub_mod n m with d hd,
-  rw [div_eq_sub_mod_div, hd, d.mul_div_cancel_left n0, mul_succ, ← hd,
-    ← nat.sub_add_comm (m.mod_le n), nat.add_sub_assoc (m.mod_lt n0).le],
-  exact nat.lt_add_of_pos_right (nat.sub_pos_of_lt (mod_lt m n0)),
+  rw [mul_comm, ← nat.div_lt_iff_lt_mul' n0],
+  exact lt_succ_self _
 end
 
 @[simp] lemma mod_div_self (m n : ℕ) : m % n / n = 0 :=
@@ -1154,18 +1154,6 @@ begin
   cases n,
   { exact (m % 0).div_zero },
   { exact nat.div_eq_zero (m.mod_lt n.succ_pos) }
-end
-
-lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { rw ← nat.add_sub_assoc (succ_le_iff.mpr n0),
-    refine (lt_iff_le_pred (nat.lt_add_left _ _ _ n0)).mp _,
-    rw ← mul_succ,
-    exact (m.lt_mul_div_succ n0).trans_le (n.mul_le_mul_left (add_le_add_right h 1)) },
-  { refine lt_succ_iff.mp ((_root_.mul_lt_mul_left n0).mp ((m.mul_div_le n).trans_lt _)),
-    rwa [succ_eq_add_one, mul_add, mul_one, lt_iff_le_pred (nat.lt_add_left _ _ _ n0),
-      nat.add_sub_assoc (succ_le_iff.mpr n0)] }
 end
 
 /-! ### `pow` -/

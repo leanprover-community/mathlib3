@@ -124,6 +124,19 @@ end
 
 end submodule
 
+/- I can't find the linear maps projecting from a product -/
+def prod.lfst (R M N : Type*) [ring R] [add_comm_group M] [add_comm_group N]
+  [module R M] [module R N] : M × N →ₗ[R] M :=
+{ to_fun := prod.fst,
+  map_add' := λ _ _, rfl,
+  map_smul' := λ _ _, rfl }
+
+def prod.lsnd (R M N : Type*) [ring R] [add_comm_group M] [add_comm_group N]
+  [module R M] [module R N] : M × N →ₗ[R] N :=
+{ to_fun := prod.snd,
+  map_add' := λ _ _, rfl,
+  map_smul' := λ _ _, rfl }
+
 open submodule
 
 -- roll-your-own exactness
@@ -235,9 +248,50 @@ begin
     rw ha,
     abel }
 end
+.
+
+section boundary_map
+
+variables {l : ℤ} (hkl : s.r k l)
+
+    /-
+       φ     ψ
+    Ai -> Bi -> Ci
+    \/    \/    \/ d
+    Aj -> Bj -> Cj
+    \/    \/    \/ d
+    Ak -> Bk -> Ck
+    \/    \/    \/ d
+    Al -> Bl -> Cl
+
+    Want a map from H(Cj) to H(Ak)
+    Need: Bj -> Cj surjective
+    Need φ.k.im = ψ.k.ker
+    Need Al → Bl injective
+    Then we can define the map from cycles in Cj to cycles in Ak
+    using a choice. The resulting map to H(Ak) is choice-free
+    if φ.j im = ψ.j.ker and is zero on coboundaries.
+    To prove it's R-linear will need some more.
+
+    -/
+
+example : module R (B.X j × A.X k) := prod.semimodule
+
+def aux_prod (φ : A ⟶ B) (hjk : s.r j k) : submodule R (A.X k × B.X j) :=
+linear_map.ker ((B.d j k).comp (prod.lsnd R _ _) - (φ.f k).comp (prod.lfst R _ _))
+
+@[simp] lemma mem_aux_prod (φ : A ⟶ B) (b : B.X j) (a : A.X k) :
+  (a,b) ∈ aux_prod R φ hjk ↔ B.d j k b = φ.f k a :=
+begin
+  simp [aux_prod, prod.lsnd, prod.lfst, sub_eq_zero],
+end
 
 
 -- TODO : boundary map from homology to homology with i,j,k,l and two more
 -- exactness theorems
+
+
+end boundary_map
+
 
 end homology

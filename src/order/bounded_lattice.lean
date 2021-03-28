@@ -69,7 +69,7 @@ lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
 theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ :=
 assume ha, hb $ top_unique $ ha ▸ hab
 
-lemma unique_maximal (h : ∀ b, ¬ a < b) : a = ⊤ :=
+lemma eq_top_of_maximal (h : ∀ b, ¬ a < b) : a = ⊤ :=
 or.elim (lt_or_eq_of_le le_top) (λ hlt, absurd hlt (h ⊤)) (λ he, he)
 
 end order_top
@@ -133,7 +133,7 @@ end
 lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ :=
 bot_lt_iff_ne_bot.1 $ lt_of_le_of_lt bot_le h
 
-lemma unique_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
+lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
 or.elim (lt_or_eq_of_le bot_le) (λ hlt, absurd hlt (h ⊥)) (λ he, he.symm)
 
 end order_bot

@@ -795,11 +795,6 @@ protected lemma div_le_self' (m n : ℕ) : m / n ≤ m :=
 lemma div_lt_self' (n b : ℕ) : (n+1)/(b+2) < n+1 :=
 nat.div_lt_self (nat.succ_pos n) (nat.succ_lt_succ (nat.succ_pos _))
 
-lemma succ_half_le_self : ∀ (n : ℕ), (n + 1) / 2 ≤ n
-| 0       := rfl.le
-| (n + 1) := nat.div_le_of_le_mul (((add_le_add_iff_left _).mpr ((1 : ℕ).le_add_left n)).trans
-              (two_mul _).symm.le)
-
 theorem le_div_iff_mul_le' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y :=
 le_div_iff_mul_le x y k0
 
@@ -1121,6 +1116,56 @@ begin
         refine eq_zero_of_le_half _,
         simp * at * } } },
   { rintros (rfl|rfl); simp }
+end
+
+lemma lt_iff_le_pred {m n : ℕ} (n0 : 0 < n) : m < n ↔ m ≤ n - 1 :=
+⟨λ h, le_pred_of_lt h, λ h, h.trans_lt (buffer.lt_aux_2 n0)⟩
+
+lemma div_eq_sub_mod_div {m n : ℕ} : m / n = (m - m % n) / n :=
+begin
+  by_cases n0 : n = 0,
+  { rw [n0, nat.div_zero, nat.div_zero] },
+  { rw [← mod_add_div m n] { occs := occurrences.pos [2] },
+    rw [nat.add_sub_cancel_left, mul_div_right _ (nat.pos_of_ne_zero n0)] }
+end
+
+lemma mul_div_le (m n : ℕ) :
+  n * (m / n) ≤ m :=
+begin
+  by_cases n0 : n = 0,
+  { rw [n0, zero_mul],
+    exact m.zero_le },
+  { cases @dvd_sub_mod n m with d hd,
+    rw [div_eq_sub_mod_div, hd, nat.mul_div_cancel_left d (nat.pos_of_ne_zero n0), ← hd],
+    exact sub_le _ _ }
+end
+
+lemma lt_mul_div_succ (m : ℕ) {n : ℕ} (n0 : 0 < n) :
+  m < n * ((m / n) + 1) :=
+begin
+  cases @dvd_sub_mod n m with d hd,
+  rw [div_eq_sub_mod_div, hd, d.mul_div_cancel_left n0, mul_succ, ← hd,
+    ← nat.sub_add_comm (m.mod_le n), nat.add_sub_assoc (m.mod_lt n0).le],
+  exact nat.lt_add_of_pos_right (nat.sub_pos_of_lt (mod_lt m n0)),
+end
+
+@[simp] lemma mod_div_self (m n : ℕ) : m % n / n = 0 :=
+begin
+  cases n,
+  { exact (m % 0).div_zero },
+  { exact nat.div_eq_zero (m.mod_lt n.succ_pos) }
+end
+
+lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw ← nat.add_sub_assoc (succ_le_iff.mpr n0),
+    refine (lt_iff_le_pred (nat.lt_add_left _ _ _ n0)).mp _,
+    rw ← mul_succ,
+    exact (m.lt_mul_div_succ n0).trans_le (n.mul_le_mul_left (add_le_add_right h 1)) },
+  { refine lt_succ_iff.mp ((_root_.mul_lt_mul_left n0).mp ((m.mul_div_le n).trans_lt _)),
+    rwa [succ_eq_add_one, mul_add, mul_one, lt_iff_le_pred (nat.lt_add_left _ _ _ n0),
+      nat.add_sub_assoc (succ_le_iff.mpr n0)] }
 end
 
 /-! ### `pow` -/

@@ -134,7 +134,7 @@ begin
   exact congr_arg f (plift.down_up _)
 end
 
-@[to_additive] lemma finprod_true (f : true → M) : ∏ᶠ i, f i = f trivial :=
+@[simp, to_additive] lemma finprod_true (f : true → M) : ∏ᶠ i, f i = f trivial :=
 @finprod_unique true M _ ⟨⟨trivial⟩, λ _, rfl⟩ f
 
 @[to_additive] lemma finprod_eq_dif {p : Prop} (f : p → M) :

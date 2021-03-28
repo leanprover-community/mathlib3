@@ -372,7 +372,8 @@ instance [topological_space γ] [borel_space γ] [comm_group γ] [topological_gr
 
 section semimodule
 
-variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜]
+variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
+  [opens_measurable_space 𝕜]
 variables [topological_space γ] [borel_space γ] [add_comm_monoid γ] [semimodule 𝕜 γ]
   [has_continuous_smul 𝕜 γ]
 

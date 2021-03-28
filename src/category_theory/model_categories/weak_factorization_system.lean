@@ -12,8 +12,7 @@ open category_theory
 variables {C : Type u} [category.{v} C]
 variables {D : Type u} [category.{v} D]
 
-structure weak_factorization_system {C : Type u} [category.{v} C] :=
-  (A B : arrow_cond C)
+structure weak_factorization_system {C : Type u} [category.{v} C] (A B : arrow_cond C) :=
   (retracts : closed_under_retracts A ∧ closed_under_retracts B)
   (lifting : A = left_lifting_property B)
   (factorization : ∀ i : arrow C, ∃ Z : C, ∃ a : i.left ⟶ Z, ∃ b : Z ⟶ i.right,

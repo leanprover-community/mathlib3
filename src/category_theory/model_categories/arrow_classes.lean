@@ -99,12 +99,27 @@ begin
   tauto,
 end
 
+lemma sub_right_left (Z : arrow_cond C) :
+  Z ⊆ right_lifting_property (left_lifting_property Z) :=
+begin
+  tauto,
+end
+
+lemma sub_left_right (Z : arrow_cond C) :
+  Z ⊆ left_lifting_property (right_lifting_property Z) :=
+begin
+  tauto,
+end
+
 /-- Repeating closure processes stops: `r(ight lifting property) l r = r`. -/
 lemma right_eq_right_left_right (Z : arrow_cond C) :
   right_lifting_property Z =
   right_lifting_property (left_lifting_property (right_lifting_property Z)) :=
 begin
-  sorry
+  apply arrow_cond.subset_antisymm,
+  { sorry, },
+  { apply right_lifting_property_sub,
+    exact sub_left_right Z, }
 end
 
 /-- Given two composable squares, a lift of the second can be precomposed to get a lift of the

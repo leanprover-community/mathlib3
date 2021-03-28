@@ -129,6 +129,46 @@ end
 -- { faces := {X ∈ S.faces | ∀ (x : fin (m+1) → ℝ), x ∈ X → x 0 = 0 },
 -- := finset.image matrix.vec_tail '' S.faces,
 
+lemma affine_independent_proj {n : ℕ} {ι : Type*}
+  {p : ι → fin (n+1) → ℝ}
+  (hp₁ : ∀ i, p i 0 = 0)
+  (hp₂ : affine_independent ℝ p) :
+  affine_independent ℝ (matrix.vec_tail ∘ p) :=
+begin
+  rw affine_independent_def,
+  intros s w hw hs i hi,
+  rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → ℝ) at hs,
+  rw finset.weighted_vsub_of_point_apply at hs,
+  simp only [vsub_eq_sub, function.comp_app, sub_zero] at hs,
+  have : s.weighted_vsub p w = (0:fin (n+1) → ℝ),
+  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin (n+1) → ℝ),
+    rw finset.weighted_vsub_of_point_apply,
+    simp only [vsub_eq_sub, sub_zero],
+    ext j,
+    simp only [pi.zero_apply],
+    rw finset.sum_apply _ s (λ i, w i • p i),
+    refine fin.cases _ _ j,
+    { simp [hp₁] },
+    intro j,
+    dsimp,
+    rw function.funext_iff at hs,
+    specialize hs j,
+    simp only [pi.zero_apply] at hs,
+    rw finset.sum_apply _ s (λ i, w i • matrix.vec_tail (p i)) at hs,
+    dsimp [matrix.vec_tail] at hs,
+    apply hs },
+  exact hp₂ s w hw this i hi,
+end
+
+lemma is_linear_map_matrix_vec_tail {n : ℕ} :
+  is_linear_map ℝ (matrix.vec_tail : (fin n.succ → ℝ) → (fin n → ℝ)) :=
+{ map_add := by simp,
+  map_smul := λ c x,
+  begin
+    ext i,
+    simp [matrix.vec_tail],
+  end }
+
 def dimension_drop {S : simplicial_complex (m+1)} :
   simplicial_complex m :=
 { faces := {Y | ∃ X ∈ S.faces, finset.image matrix.vec_tail X = Y ∧ ∀ (x : fin (m+1) → ℝ), x ∈ X → x 0 = 0 },
@@ -156,7 +196,58 @@ def dimension_drop {S : simplicial_complex (m+1)} :
     simp,
   end,
   indep :=
+  begin
+    rintro _ ⟨X, hX₁, rfl, hX₂⟩,
+    let f : ((finset.image matrix.vec_tail X : set (fin m → ℝ))) → (X : set (fin (m+1) → ℝ)),
+    { intro t,
+      refine ⟨matrix.vec_cons 0 t.1, _⟩,
+      rcases t with ⟨t, ht⟩,
+      simp only [set.mem_image, finset.mem_coe, finset.coe_image] at ht,
+      rcases ht with ⟨x, hx, rfl⟩,
+      suffices : matrix.vec_head x = 0,
+      { rw ← this,
+        simpa },
+      apply hX₂ x hx },
+    have hf : function.injective f,
+    { rintro ⟨x₁, hx₁⟩ ⟨x₂, hx₂⟩ h,
+      rw subtype.ext_iff at h,
+      change matrix.vec_cons _ x₁ = matrix.vec_cons _ x₂ at h,
+      apply subtype.ext,
+      apply_fun matrix.vec_tail at h,
+      simpa using h },
+    have := affine_independent_proj _ (S.indep hX₁),
+    { convert affine_independent_embedding_of_affine_independent ⟨f, hf⟩ this,
+      ext p,
+      dsimp,
+      simp },
+    rintro ⟨i, hi⟩,
+    apply hX₂ _ hi,
+  end,
+  disjoint :=
+  begin
+    rintro _ _ ⟨X, hX₁, rfl, hX₂⟩ ⟨Y, hY₁, rfl, hY₂⟩,
+    simp only [finset.coe_image],
+    rw ← is_linear_map.image_convex_hull,
+    rw ← is_linear_map.image_convex_hull,
 
+    rw set.image_inter_on,
+    refine set.subset.trans (set.image_subset matrix.vec_tail (S.disjoint hX₁ hY₁)) _,
+    rw is_linear_map.image_convex_hull,
+    apply convex_hull_mono,
+    apply set.image_inter_subset,
+    apply is_linear_map_matrix_vec_tail,
+    { intros x hx y hy h,
+      rw ← matrix.cons_head_tail x,
+      rw ← matrix.cons_head_tail y,
+      rw h,
+      sorry -- want x 0 = 0 and y 0 = 0 because they're in the convex hull of points which are that
+
+      -- rw (show matrix.vec_head x = 0, from hY₂ _ _),
+      -- rw (show matrix.vec_head y = 0, from (convex_hull_face_subset _ hX hy).2)
+      },
+    apply is_linear_map_matrix_vec_tail,
+    apply is_linear_map_matrix_vec_tail,
+  end
 }
 
 theorem strong_sperner {S : simplicial_complex (m+1)}

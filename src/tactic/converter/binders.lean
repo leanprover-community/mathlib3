@@ -28,7 +28,9 @@ meta def head_beta : old_conv unit :=
 meta def congr_arg : old_conv unit → old_conv unit := congr_core (return ())
 meta def congr_fun : old_conv unit → old_conv unit := λc, congr_core c (return ())
 
-meta def congr_rule (congr : expr) (cs : list (list expr → old_conv unit)) : old_conv unit := λr lhs, do
+meta def congr_rule (congr : expr) (cs : list (list expr → old_conv unit)) :
+  old_conv unit :=
+λr lhs, do
   meta_rhs ← infer_type lhs >>= mk_meta_var, -- is maybe overly restricted for `heq`
   t ← mk_app r [lhs, meta_rhs],
   ((), meta_pr) ← solve_aux t (do

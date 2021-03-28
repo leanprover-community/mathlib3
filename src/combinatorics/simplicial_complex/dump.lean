@@ -188,6 +188,87 @@ begin
     apply hx₁ },
 end
 
+lemma affine_span_convex_hull_eq {X : set E} :
+  affine_span ℝ (convex_hull X) = affine_span ℝ X :=
+le_antisymm
+  (((affine_subspace.gi _ _ _).gc _ _).2 (convex_hull_subset_span_points X))
+  (affine_span_mono ℝ (subset_convex_hull X))
+
+example {m n : ℕ} (hn : 1 ≤ n) (h : m - 1 ≤ n - 1) : m ≤ n :=
+begin
+  exact (nat.sub_le_sub_right_iff m n 1 hn).mp h
+end
+
+lemma findim_le_findim_of_le {x y : submodule ℝ E} (h : x ≤ y) [finite_dimensional ℝ y] :
+  finite_dimensional.findim ℝ x ≤ finite_dimensional.findim ℝ y :=
+begin
+  let f : x →ₗ[ℝ] y := submodule.of_le h,
+  have hf : function.injective f,
+  { intros x₁ x₂ h',
+    apply subtype.ext,
+    apply subtype.ext_iff.1 h' },
+  haveI : finite_dimensional ℝ x := submodule.finite_dimensional_of_le h,
+  apply linear_map.findim_le_findim_of_injective hf,
+end
+
+lemma coe_eq_empty_iff {α : Type*} {X : finset α} : (X : set α) = ∅ ↔ X = ∅ :=
+begin
+  simp [set.ext_iff, finset.ext_iff],
+end
+
+lemma convex_hull_empty_iff {X : set E} : convex_hull X = ∅ ↔ X = ∅ :=
+begin
+  split,
+  { intro h,
+    rw [←subset_empty_iff, ← h],
+    apply subset_convex_hull },
+  { rintro rfl,
+    simp }
+end
+
+-- convex_hull ↑X ⊆ convex_hull ↑Y implies that X.card <= Y.card if X is independent
+theorem card_le_of_convex_hull_subset {X Y : finset E}
+  (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
+  (hXY : convex_hull ↑X ⊆ convex_hull (Y : set E)) :
+  X.card ≤ Y.card :=
+begin
+  cases X.eq_empty_or_nonempty with h₁ h₁,
+  { subst h₁,
+    simp },
+  cases Y.eq_empty_or_nonempty with h₂ h₂,
+  { subst h₂,
+    simp only [finset.coe_empty, convex_hull_empty, subset_empty_iff, convex_hull_empty_iff,
+      coe_eq_empty_iff] at hXY,
+    subst hXY },
+  have X_card_pos : 0 < X.card := finset.card_pos.2 h₁,
+  have X_eq_succ : fintype.card (X : set E) = (X.card - 1) + 1,
+  { simp [nat.sub_add_cancel ‹1 ≤ X.card›] },
+  have Y_card_pos : 0 < Y.card := finset.card_pos.2 h₂,
+  have Y_eq_succ : fintype.card (Y : set E) = (Y.card - 1) + 1,
+  { simp [nat.sub_add_cancel ‹1 ≤ Y.card›] },
+  have affine_span_le := affine_span_mono ℝ hXY,
+  rw [affine_span_convex_hull_eq, affine_span_convex_hull_eq] at affine_span_le,
+  have direction_le := affine_subspace.direction_le affine_span_le,
+  letI : finite_dimensional ℝ (vector_span ℝ (Y : set E)),
+  { apply finite_dimensional_vector_span_of_finite,
+    exact Y.finite_to_set },
+  rw direction_affine_span at direction_le,
+  rw direction_affine_span at direction_le,
+  have findim_le := findim_le_findim_of_le direction_le,
+  have dumb : set.range (λ (p : (X : set E)), ↑p) = (X : set E),
+  { simp only [subtype.range_coe_subtype, finset.set_of_mem, finset.mem_coe] },
+  rw ← dumb at findim_le,
+  rw findim_vector_span_of_affine_independent hX X_eq_succ at findim_le,
+  have := findim_vector_span_range_le ℝ (λ p, p : (Y : set E) → E) Y_eq_succ,
+  have dumb₂ : set.range (λ (p : (Y : set E)), ↑p) = (Y : set E),
+  { simp only [subtype.range_coe_subtype, finset.set_of_mem, finset.mem_coe] },
+  rw dumb₂ at this,
+  have := le_trans findim_le this,
+  rwa nat.sub_le_sub_right_iff at this,
+  apply Y_card_pos
+end
+
+
 variables [finite_dimensional ℝ E]
 
 open finite_dimensional

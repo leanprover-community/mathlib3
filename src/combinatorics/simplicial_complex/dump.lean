@@ -11,8 +11,6 @@ import analysis.convex.topology
 open_locale classical affine big_operators
 open set
 variables {m n : ℕ}
-local notation `E` := fin m → ℝ
-
 /-
 MATHLIB DEPARTURE ZONE
 A few PRs to be done
@@ -105,6 +103,8 @@ lemma kenny (M : Type*) [add_comm_group M] [vector_space ℝ M] (s : affine_subs
 calc a • x + b • y = b • (y - x) + x : convex.combo_to_vadd hab
                ... ∈ s : s.2 _ hys hxs hxs
 
+variables {E : Type*} [normed_group E] [normed_space ℝ E]
+
 -- TODO: move to mathlib
 lemma convex_hull_subset_span_points (X : set E) :
   convex_hull X ⊆ affine_span ℝ X :=
@@ -168,7 +168,7 @@ begin
   { intros x hx₁ hx₂,
     have : ite (x ∈ Y₁) (w₁ x) 0 - ite (x ∈ Y₂) (w₂ x) 0 = 0 := hX x (hY₁ hx₁),
     simpa [hx₁, hx₂] using this },
-  have h₄w₁ : ∑ (y : fin m → ℝ) in Y₁ ∩ Y₂, w₁ y = 1,
+  have h₄w₁ : ∑ (y : E) in Y₁ ∩ Y₂, w₁ y = 1,
   { rw [finset.sum_subset (finset.inter_subset_left Y₁ Y₂), h₂w₁],
     simp_intros x hx₁ hx₂,
     exact t₁ x hx₁ (hx₂ hx₁)},
@@ -188,21 +188,22 @@ begin
     apply hx₁ },
 end
 
-local attribute [-instance] real.nondiscrete_normed_field real.normed_field real.semiring real.ring
+variables [finite_dimensional ℝ E]
 
---To golf down
-lemma size_bound {X : finset (fin m → ℝ)} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
-  X.card ≤ m+1 :=
+open finite_dimensional
+
+lemma size_bound {X : finset E} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
+  X.card ≤ findim ℝ E + 1 :=
 begin
   cases X.eq_empty_or_nonempty,
   { simp [h] },
   rcases h with ⟨y, hy⟩,
-  have y_mem : y ∈ (X : set (fin m → ℝ)) := hy,
-  have Xy : (↑X \ {y}) = (↑(X.erase y) : set (fin m → ℝ)),
+  have y_mem : y ∈ (X : set E) := hy,
+  have Xy : (↑X \ {y}) = (↑(X.erase y) : set E),
   { simp },
   have := hX,
   rw @affine_independent_set_iff_linear_independent_vsub ℝ _ _ _ _ _ _ ↑X y y_mem at this,
-  letI q : fintype ↥((λ (p : fin m → ℝ), p -ᵥ y) '' (↑X \ {y})),
+  letI q : fintype ↥((λ (p : E), p -ᵥ y) '' (↑X \ {y})),
   { apply set.fintype_image _ _,
     { apply_instance },
     rw Xy,
@@ -216,7 +217,7 @@ begin
     { simp [and_comm] } },
   rintro p q h,
   simpa using h,
-end
+end.
 
 #exit
 /-

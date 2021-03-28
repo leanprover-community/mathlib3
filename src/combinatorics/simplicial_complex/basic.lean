@@ -12,7 +12,7 @@ import combinatorics.simplicial_complex.extreme_point
 
 open_locale classical affine big_operators
 open set
-variables {m n : ℕ}
+variables (m : ℕ) {n : ℕ}
 local notation `E` := fin m → ℝ
 
 namespace affine
@@ -21,21 +21,21 @@ namespace affine
 A simplicial complex in `R^m`.
 TODO: generalise to normed affine spaces `E`, so this is `simplicial_complex E`.
 -/
-@[ext] structure simplicial_complex (m : ℕ) :=
-(faces : set (finset (fin m → ℝ)))
-(indep : ∀ {X}, X ∈ faces → affine_independent ℝ (λ p, p : (X : set (fin m → ℝ)) → (fin m → ℝ)))
+@[ext] structure simplicial_complex :=
+(faces : set (finset E))
+(indep : ∀ {X}, X ∈ faces → affine_independent ℝ (λ p, p : (X : set E) → E))
 (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces)
 (disjoint : ∀ {X Y}, X ∈ faces → Y ∈ faces →
-  convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set (fin m → ℝ)))
+  convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set E))
 
-variables {S : simplicial_complex m}
+variables {m} {S : simplicial_complex m}
 
 /--
 A constructor for simplicial complexes by specifying a surcomplex and making the set of faces
 downward closed.
 -/
-@[simp] def simplicial_complex.of_surcomplex {m : ℕ} {S : simplicial_complex m}
-  (faces : set (finset (fin m → ℝ))) (subset_surcomplex : faces ⊆ S.faces)
+@[simp] def simplicial_complex.of_surcomplex {S : simplicial_complex m}
+  (faces : set (finset E)) (subset_surcomplex : faces ⊆ S.faces)
   (down_closed : ∀ {X Y}, X ∈ faces → Y ⊆ X → Y ∈ faces) :
   simplicial_complex m :=
 { faces := faces,
@@ -111,9 +111,16 @@ lemma empty_mem_faces_of_nonempty {S : simplicial_complex m} : (S.faces).nonempt
 /-def simplicial_complex.dimension (S : simplicial_complex m) : ℕ :=
  Sup {finset.card (X : set E) | X ∈ S.faces}-/
 
+variable [finite_dimensional ℝ (fin m → ℝ)]
+
 --Refinement of `size_bound`
-lemma simplex_dimension_le_space_dimension {S : simplicial_complex m} {X : finset E} :
-  X ∈ S.faces → finset.card X ≤ m + 1 := λ hX, size_bound (S.indep hX)
+lemma simplex_dimension_le_space_dimension {S : simplicial_complex m} {X : finset E}
+  (hX : X ∈ S.faces) :
+finset.card X ≤ m + 1 :=
+begin
+  convert size_bound (S.indep hX),
+  simp,
+end
 
 def simplicial_complex.facets (S : simplicial_complex m) : set (finset (fin m → ℝ)) :=
 {X | X ∈ S.faces ∧ (∀ {Y}, Y ∈ S.faces → X ⊆ Y → X = Y)}

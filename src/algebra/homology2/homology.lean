@@ -78,8 +78,7 @@ lemma boundaries_le_cycles (C : homological_complex V c) (i : ι) :
 begin
   dsimp [cycles, boundaries],
   split_ifs with h h',
-  { exact image_subobject_le_mk _ (C.d _ i)
-      (kernel.lift _ _ (C.d_comp_d _ i _)) (by simp), },
+  { exact image_subobject_le_mk _ (C.d _ i) (kernel.lift _ _ (C.d_comp_d _ i _)) (by simp), },
   { exact le_top, },
   { exact bot_le, },
   { exact le_top, },

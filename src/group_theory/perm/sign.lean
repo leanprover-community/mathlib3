@@ -782,14 +782,10 @@ lemma alternating_subgroup_eq_sign_ker : alternating_subgroup α = sign.ker := r
 @[simp]
 lemma mem_alternating_subgroup {f : perm α} :
   f ∈ alternating_subgroup α ↔ sign f = 1 :=
-monoid_hom.mem_ker _
+sign.mem_ker
 
-instance alternating_subgroup.fintype :
-  fintype (alternating_subgroup α) :=
-fintype.subtype (univ.filter (λ x, sign x = 1)) (λ x, begin
-  simp only [true_and, mem_filter, mem_univ, ← mem_alternating_subgroup],
-  refl,
-end)
+instance : decidable_pred ((alternating_subgroup α).carrier) :=
+sign.decidable_ker
 
 lemma two_mul_card_alternating_subgroup [nontrivial α] :
   2 * card (alternating_subgroup α) = (card α).factorial :=

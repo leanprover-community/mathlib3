@@ -278,19 +278,7 @@ If `j` is initial in the index category, then the map `limit.π F j` is an isomo
 -/
 def is_iso_π_of_is_initial {j : J} (I : is_initial j) (F : J ⥤ C) [has_limit F] :
   is_iso (limit.π F j) :=
-begin
-  refine ⟨⟨_, ⟨_, _⟩⟩⟩,
-  apply limit.lift _
-  { X := F.obj j,
-    π :=
-    { app := λ j', F.map (I.to j'),
-      naturality' := λ j₁ j₂ f,
-      begin
-        dsimp, simp only [category.id_comp, ←F.map_comp, is_initial.to_comp],
-      end, }, },
-  { ext, simp, },
-  { simp, },
-end
+⟨⟨limit.lift _ (cone_of_diagram_initial I F), ⟨by { ext, simp }, by simp⟩⟩⟩
 
 instance is_iso_π_initial [has_initial J] (F : J ⥤ C) [has_limit F] :
   is_iso (limit.π F (⊥_ J)) :=
@@ -301,19 +289,7 @@ If `j` is terminal in the index category, then the map `colimit.ι F j` is an is
 -/
 def is_iso_ι_of_is_terminal {j : J} (I : is_terminal j) (F : J ⥤ C) [has_colimit F] :
   is_iso (colimit.ι F j) :=
-begin
-  refine ⟨⟨_, ⟨_, _⟩⟩⟩,
-  apply colimit.desc _
-  { X := F.obj j,
-    ι :=
-    { app := λ j', F.map (I.from j'),
-      naturality' := λ j₁ j₂ f,
-      begin
-        dsimp, simp only [category.comp_id, ←F.map_comp, is_terminal.comp_from],
-      end, }, },
-  { simp, },
-  { ext, simp, },
-end
+⟨⟨colimit.desc _ (cocone_of_diagram_terminal I F), ⟨by simp, by { ext, simp }⟩⟩⟩
 
 instance is_iso_ι_terminal [has_terminal J] (F : J ⥤ C) [has_colimit F] :
   is_iso (colimit.ι F (⊤_ J)) :=

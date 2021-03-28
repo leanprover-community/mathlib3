@@ -303,6 +303,21 @@ subobject.le_of_comm
   ((image_subobject_iso f).hom ≫ image.lift { I := (X : C), e := h, m := X.arrow, })
   (by simp [←image_subobject_arrow f])
 
+def image_subobject_map {W X Y Z : C} {f : W ⟶ X} [has_image f] {g : Y ⟶ Z} [has_image g]
+  (sq : arrow.mk f ⟶ arrow.mk g) [has_image_map sq] :
+  (image_subobject f : C) ⟶ (image_subobject g : C) :=
+(image_subobject_iso f).hom ≫ image.map sq ≫ (image_subobject_iso g).inv
+
+@[simp, reassoc]
+lemma image_subobject_map_arrow {W X Y Z : C} {f : W ⟶ X} [has_image f] {g : Y ⟶ Z} [has_image g]
+  (sq : arrow.mk f ⟶ arrow.mk g) [has_image_map sq] :
+  image_subobject_map sq ≫ (image_subobject g).arrow =
+    (image_subobject f).arrow ≫ sq.right :=
+begin
+  simp only [image_subobject_map, category.assoc, image_subobject_arrow'],
+  erw [image.map_ι, ←category.assoc, ←image_subobject_arrow],
+end
+
 end image
 
 end limits

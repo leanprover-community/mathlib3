@@ -32,16 +32,26 @@ variables {V} {c : complex_shape ι} (C : homological_complex V c)
 restate_axiom hom.comm'
 attribute [simp, reassoc] hom.comm
 
-@[simps] def id (A : homological_complex V c) : hom A A :=
+def id (A : homological_complex V c) : hom A A :=
 { f := λ _, 𝟙 _ }
 
-@[simps] def comp (A B C : homological_complex V c) (φ : hom A B) (ψ : hom B C) : hom A C :=
+def comp (A B C : homological_complex V c) (φ : hom A B) (ψ : hom B C) : hom A C :=
 { f := λ i, φ.f i ≫ ψ.f i }
+
+section
+local attribute [simp] id comp
 
 instance : category (homological_complex V c) :=
 { hom := hom,
   id := id,
   comp := comp, }
+
+end
+
+@[simp] lemma id_f (C : homological_complex V c) (i : ι) : hom.f (𝟙 C) i = 𝟙 (C.X i) := rfl
+@[simp] lemma comp_f {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂) (g : C₂ ⟶ C₃) (i : ι) :
+  (f ≫ g).f i = f.f i ≫ g.f i :=
+rfl
 
 open_locale classical
 noncomputable theory
@@ -207,17 +217,43 @@ begin
   apply image_subobject_iso_comp,
 end
 
-/-! Lemmas relating chain maps and `d_to`/`d_from`. -/
 namespace hom
 
 variables {C₁ C₂ : homological_complex V c}
 
-def f_pred (f : hom C₁ C₂) (i : ι) : C₁.X_pred i ⟶ C₂.X_pred i :=
-if h : nonempty (c.pred i) then
+/-- The commutative square
+```
+C₁.X i ---d---> C₁.X j
+  |               |
+f.f i           f.f j
+  |               |
+  v               v
+C₂.X i ---d---> C₂.X j
+```
+-/
+def sq (f : hom C₁ C₂) (i j : ι) : arrow.mk (C₁.d i j) ⟶ arrow.mk (C₂.d i j) :=
+arrow.hom_mk (f.comm i j)
+
+@[simp] lemma sq_left (f : hom C₁ C₂) (i j : ι) : (f.sq i j).left = f.f i := rfl
+@[simp] lemma sq_right (f : hom C₁ C₂) (i j : ι) : (f.sq i j).right = f.f j := rfl
+
+/--
+The map induced on boundaries by a chain map.
+-/
+def image_map [has_images V] [has_image_maps V] (f : hom C₁ C₂) (i j : ι) :
+  image (C₁.d i j) ⟶ image (C₂.d i j) :=
+image.map (f.sq i j)
+
+/-! Lemmas relating chain maps and `d_to`/`d_from`. -/
+
+/-- `f.f_pred j` is `f.f i` if there is some `r i j`, and zero otherwise. -/
+def f_pred (f : hom C₁ C₂) (j : ι) : C₁.X_pred j ⟶ C₂.X_pred j :=
+if h : nonempty (c.pred j) then
   (C₁.X_pred_iso h.some.2).hom ≫ f.f h.some.1 ≫ (C₂.X_pred_iso h.some.2).inv
 else
   0
 
+/-- `f.f_succ i` is `f.f j` if there is some `r i j`, and zero otherwise. -/
 def f_succ (f : hom C₁ C₂) (i : ι) : C₁.X_succ i ⟶ C₂.X_succ i :=
 if h : nonempty (c.succ i) then
   (C₁.X_succ_iso h.some.2).hom ≫ f.f h.some.1 ≫ (C₂.X_succ_iso h.some.2).inv
@@ -225,12 +261,29 @@ else
   0
 
 @[simp, reassoc]
-def comm_d_from (f : C₁ ⟶ C₂) (i : ι) :
+lemma comm_from (f : hom C₁ C₂) (i : ι) :
   f.f i ≫ C₂.d_from i = C₁.d_from i ≫ f.f_succ i :=
 begin
   dsimp [d_from, f_succ],
   split_ifs; simp
 end
+
+@[simp, reassoc]
+lemma comm_to (f : hom C₁ C₂) (j : ι) :
+  f.f_pred j ≫ C₂.d_to j = C₁.d_to j ≫ f.f j :=
+begin
+  dsimp [d_to, f_pred],
+  split_ifs; simp
+end
+
+def sq_to (f : hom C₁ C₂) (j : ι) : arrow.mk (C₁.d_to j) ⟶ arrow.mk (C₂.d_to j) :=
+arrow.hom_mk (f.comm_to j)
+
+@[simp] lemma sq_to_right (f : hom C₁ C₂) (j : ι) : (f.sq_to j).right = f.f j := rfl
+
+def image_map_to [has_images V] [has_image_maps V] (f : hom C₁ C₂) (j : ι) :
+  image (C₁.d_to j) ⟶ image (C₂.d_to j) :=
+image.map (f.sq_to j)
 
 end hom
 

@@ -276,7 +276,7 @@ variables {C} {J : Type v} [small_category J]
 /--
 If `j` is initial in the index category, then the map `limit.π F j` is an isomorphism.
 -/
-def is_iso_π_of_is_initial {j : J} (I : is_initial j) (F : J ⥤ C) [has_limit F] :
+lemma is_iso_π_of_is_initial {j : J} (I : is_initial j) (F : J ⥤ C) [has_limit F] :
   is_iso (limit.π F j) :=
 ⟨⟨limit.lift _ (cone_of_diagram_initial I F), ⟨by { ext, simp }, by simp⟩⟩⟩
 
@@ -287,7 +287,7 @@ is_iso_π_of_is_initial (initial_is_initial) F
 /--
 If `j` is terminal in the index category, then the map `colimit.ι F j` is an isomorphism.
 -/
-def is_iso_ι_of_is_terminal {j : J} (I : is_terminal j) (F : J ⥤ C) [has_colimit F] :
+lemma is_iso_ι_of_is_terminal {j : J} (I : is_terminal j) (F : J ⥤ C) [has_colimit F] :
   is_iso (colimit.ι F j) :=
 ⟨⟨colimit.desc _ (cocone_of_diagram_terminal I F), ⟨by simp, by { ext, simp }⟩⟩⟩
 

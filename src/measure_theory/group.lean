@@ -214,7 +214,7 @@ end group
 
 section integration
 
-variables [topological_space G] [has_mul G] [has_continuous_mul G] [borel_space G]
+variables [has_mul G] [has_continuous_mul G]
 open measure
 
 /-- Translating a function by left-multiplication does not change its `lintegral` with respect to

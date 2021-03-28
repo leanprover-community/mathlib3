@@ -10,10 +10,17 @@ import algebra.module.basic
 
 # Sets invariant to a `mul_action`
 
-In this file we define `sub_mul_action R M`; a subset of a `mul_action M` which is closed with
+In this file we define `sub_mul_action R M`; a subset of a `mul_action R M` which is closed with
 respect to scalar multiplication.
 
 For most uses, typically `submodule R M` is more powerful.
+
+## Main definitions
+
+* `sub_mul_action.mul_action` - the `mul_action R M` transferred to the subtype.
+* `sub_mul_action.mul_action'` - the `mul_action S M` transferred to the subtype when
+  `is_scalar_tower S R M`.
+* `sub_mul_action.is_scalar_tower` - the `is_scalar_tower S R M` transferred to the subtype.
 
 ## Tags
 
@@ -22,8 +29,8 @@ submodule, mul_action
 
 open function
 
-universes u v
-variables {R : Type u} {M : Type v}
+universes u u' v
+variables {S : Type u'} {R : Type u} {M : Type v}
 
 set_option old_structure_cmd true
 
@@ -108,20 +115,35 @@ end has_scalar
 
 section mul_action
 
-variables [monoid R]
+variables [monoid S] [monoid R]
 
 variables [mul_action R M]
+variables [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
 variables (p : sub_mul_action R M)
 variables {r : R} {x : M}
 
-@[simp] lemma smul_mem_iff' (u : units R) : (u : R) • x ∈ p ↔ x ∈ p :=
-⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
+lemma smul_of_tower_mem (s : S) (h : x ∈ p) : s • x ∈ p :=
+by { rw [←one_smul R x, ←smul_assoc], exact p.smul_mem _ h }
+
+instance has_scalar' : has_scalar S p :=
+{ smul := λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩ }
+
+instance : is_scalar_tower S R p :=
+{ smul_assoc := λ s r x, subtype.ext $ smul_assoc s r ↑x }
+
+@[simp, norm_cast] lemma coe_smul_of_tower (s : S) (x : p) : ((s • x : p) : M) = s • ↑x := rfl
+
+@[simp] lemma smul_mem_iff' (u : units S) : (u : S) • x ∈ p ↔ x ∈ p :=
+⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_of_tower_mem (↑u⁻¹ : S) h,
+  p.smul_of_tower_mem u⟩
 
 /-- If the scalar product forms a `mul_action`, then the subset inherits this action -/
-instance : mul_action R p :=
+instance mul_action' : mul_action S p :=
 { smul := (•),
   one_smul := λ x, subtype.ext $ one_smul _ x,
   mul_smul := λ c₁ c₂ x, subtype.ext $ mul_smul c₁ c₂ x }
+
+instance : mul_action R p := p.mul_action'
 
 end mul_action
 
@@ -163,10 +185,11 @@ end sub_mul_action
 
 namespace sub_mul_action
 
-variables [division_ring R] [add_comm_group M] [module R M]
-variables (p : sub_mul_action R M) {r : R} {x y : M}
+variables [division_ring S] [semiring R] [mul_action R M]
+variables [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
+variables (p : sub_mul_action R M) {s : S} {x y : M}
 
-theorem smul_mem_iff (r0 : r ≠ 0) : r • x ∈ p ↔ x ∈ p :=
-p.smul_mem_iff' (units.mk0 r r0)
+theorem smul_mem_iff (s0 : s ≠ 0) : s • x ∈ p ↔ x ∈ p :=
+p.smul_mem_iff' (units.mk0 s s0)
 
 end sub_mul_action

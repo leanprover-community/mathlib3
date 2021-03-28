@@ -175,8 +175,6 @@ lemma subset_zero_locus_iff_subset_vanishing_ideal (t : set (prime_spectrum R)) 
 
 end gc
 
--- TODO: we actually get the radical ideal,
--- but I think that isn't in mathlib yet.
 lemma subset_vanishing_ideal_zero_locus (s : set R) :
   s ⊆ vanishing_ideal (zero_locus s) :=
 (gc_set R).le_u_l s
@@ -184,6 +182,16 @@ lemma subset_vanishing_ideal_zero_locus (s : set R) :
 lemma le_vanishing_ideal_zero_locus (I : ideal R) :
   I ≤ vanishing_ideal (zero_locus I) :=
 (gc R).le_u_l I
+
+@[simp] lemma vanishing_ideal_zero_locus_eq_radical (I : ideal R) :
+  vanishing_ideal (zero_locus (I : set R)) = I.radical :=
+begin
+  ext f,
+  rw [mem_vanishing_ideal, ideal.radical_eq_Inf, submodule.mem_Inf],
+  split ; intros h x hx,
+  { exact h ⟨x, hx.2⟩ hx.1 },
+  { exact h x.1 ⟨hx, x.2⟩ }
+end
 
 lemma subset_zero_locus_vanishing_ideal (t : set (prime_spectrum R)) :
   t ⊆ zero_locus (vanishing_ideal t) :=
@@ -323,7 +331,7 @@ by simp only [@eq_comm _ Uᶜ]; refl
 
 lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
   is_closed Z ↔ ∃ s, Z = zero_locus s :=
-by rw [is_closed, is_open_iff, compl_compl]
+by rw [← is_open_compl_iff, is_open_iff, compl_compl]
 
 lemma is_closed_zero_locus (s : set R) :
   is_closed (zero_locus s) :=

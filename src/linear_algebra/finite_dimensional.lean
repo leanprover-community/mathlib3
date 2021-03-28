@@ -211,7 +211,7 @@ this as a local instance where needed. -/
 lemma finite_dimensional_of_findim_eq_succ {K V : Type*} [field K] [add_comm_group V]
   [vector_space K V] (n : ℕ) [fact (findim K V = n + 1)] :
   finite_dimensional K V :=
-finite_dimensional_of_findim $ by convert nat.succ_pos n
+finite_dimensional_of_findim $ by convert nat.succ_pos n; apply fact.out
 
 /-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
 cardinality of the basis. -/
@@ -499,10 +499,8 @@ begin
   exact_mod_cast this
 end
 
-/-- The vector space of functions on a fintype has finite dimension. -/
-instance finite_dimensional_fintype_fun {ι : Type*} [fintype ι] :
-  finite_dimensional K (ι → K) :=
-by { rw [finite_dimensional_iff_dim_lt_omega, dim_fun'], exact nat_lt_omega _ }
+instance finite_dimensional_self : finite_dimensional K K :=
+by apply_instance
 
 /-- The vector space of functions on a fintype ι has findim equal to the cardinality of ι. -/
 @[simp] lemma findim_fintype_fun_eq_card {ι : Type v} [fintype ι] :
@@ -542,6 +540,10 @@ begin
   convert findim_eq_dim K V,
   rw h, norm_cast
 end
+
+lemma findim_eq_zero_of_not_exists_basis
+  (h : ¬ ∃ s : finset V, is_basis K (λ x, x : (↑s : set V) → V)) : findim K V = 0 :=
+dif_neg (mt (λ h, @exists_is_basis_finset K V _ _ _ (finite_dimensional_iff_dim_lt_omega.mpr h)) h)
 
 variables (K V)
 
@@ -903,6 +905,20 @@ calc  findim K V
 ... = findim K f.range : by rw [ker_eq_bot.2 hf, findim_bot, add_zero]
 ... ≤ findim K V₂ : submodule.findim_le _
 
+/-- Given a linear map `f` between two vector spaces with the same dimension, if
+`ker f = ⊥` then `linear_equiv_of_ker_eq_bot` is the induced isomorphism
+between the two vector spaces. -/
+noncomputable def linear_equiv_of_ker_eq_bot
+  [finite_dimensional K V] [finite_dimensional K V₂]
+  (f : V →ₗ[K] V₂) (hf : f.ker = ⊥) (hdim : findim K V = findim K V₂) : V ≃ₗ[K] V₂ :=
+linear_equiv.of_bijective f hf (linear_map.range_eq_top.2 $
+  (linear_map.injective_iff_surjective_of_findim_eq_findim hdim).1 (linear_map.ker_eq_bot.1 hf))
+
+@[simp] lemma linear_equiv_of_ker_eq_bot_apply
+  [finite_dimensional K V] [finite_dimensional K V₂]
+  {f : V →ₗ[K] V₂} (hf : f.ker = ⊥) (hdim : findim K V = findim K V₂) (x : V) :
+  f.linear_equiv_of_ker_eq_bot hf hdim x = f x := rfl
+
 end linear_map
 
 namespace alg_hom
@@ -966,6 +982,15 @@ begin
   intro h_eq_top,
   rw comap_subtype_eq_top at h_eq_top,
   apply not_le_of_lt hst h_eq_top,
+end
+
+lemma findim_add_eq_of_is_compl
+  [finite_dimensional K V] {U W : submodule K V} (h : is_compl U W) :
+  findim K U + findim K W = findim K V :=
+begin
+  rw [← submodule.dim_sup_add_dim_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1,
+      findim_bot, add_zero],
+  exact findim_top
 end
 
 end submodule
@@ -1162,7 +1187,8 @@ variables {F E : Type*} [field F] [field E] [algebra F E]
 lemma subalgebra.dim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : dim F S = 1 :=
 begin
   rw [← S.to_submodule_equiv.dim_eq, h,
-    (linear_equiv.of_eq ↑(⊥ : subalgebra F E) _ algebra.to_submodule_bot).dim_eq, dim_span_set],
+    (linear_equiv.of_eq (⊥ : subalgebra F E).to_submodule _ algebra.to_submodule_bot).dim_eq,
+    dim_span_set],
   exacts [mk_singleton _, linear_independent_singleton one_ne_zero]
 end
 
@@ -1207,7 +1233,7 @@ begin
   obtain ⟨_, b_spans⟩ := set_is_basis_of_linear_independent_of_card_eq_findim
     b_lin_ind (by simp only [*, set.to_finset_card]),
   intros x hx,
-  rw [subalgebra.mem_coe, algebra.mem_bot],
+  rw [algebra.mem_bot],
   have x_in_span_b : (⟨x, hx⟩ : S) ∈ submodule.span F b,
   { rw subtype.range_coe at b_spans,
     rw b_spans,

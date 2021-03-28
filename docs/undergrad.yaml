@@ -196,7 +196,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     bilinear forms: 'bilin_form'
     alternating bilinear forms: 'alt_bilin_form.is_alt'
     symmetric bilinear forms: 'sym_bilin_form.is_sym'
-    nondegenerate forms:
+    nondegenerate forms: 'bilin_form.nondegenerate'
     matrix representation: 'bilin_form.to_matrix'
     change of coordinates: 'bilin_form.to_matrix_comp'
     rank of a bilinear form:
@@ -412,7 +412,7 @@ Topology:
     complete metric spaces: 'metric.complete_of_cauchy_seq_tendsto'
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
   Normed vector spaces on $\R$ and $\C$:
-    topology on a normed vector space: 'normed_space.topological_vector_space'
+    topology on a normed vector space: 'normed_space.has_continuous_smul'
     equivalent norms:
     Banach open mapping theorem: 'open_mapping'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
@@ -431,7 +431,8 @@ Topology:
     orthogonal projection onto closed vector subspaces: 'orthogonal_projection_fn'
     dual space: 'normed_space.dual.normed_space'
     Riesz representation theorem: 'inner_product_space.to_dual'
-    $l^2$ and $L^2$ cases:
+    inner product spaces $l^2$ and $L^2$: 'measure_theory.L2.inner_product_space'
+    their completeness: 'measure_theory.Lp.complete_space'
     Hilbert (orthonormal) bases (in the separable case): 'exists_is_orthonormal_dense_span'
     Hilbert basis of trigonometric polynomials:
     Hilbert bases of orthogonal polynomials:
@@ -508,7 +509,7 @@ Measures and integral Calculus:
     continuity of integrals with respect to parameters:
     differentiability of integrals with respect to parameters:
     $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$: 'measure_theory.Lp'
-    Completeness of $\mathrm{L}^p$ spaces:
+    Completeness of $\mathrm{L}^p$ spaces: 'measure_theory.Lp.complete_space'
     Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'
     change of variables for multiple integrals:

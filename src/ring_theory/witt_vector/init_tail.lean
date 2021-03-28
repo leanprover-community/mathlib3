@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 Johan Commelin and Robert Y. Lewis. All rights reserved.
+Copyright (c) 2020 Johan Commelin, Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
@@ -75,8 +75,6 @@ noncomputable theory
 
 section
 
-local attribute [semireducible] witt_vector
-
 /-- `witt_vector.select P x`, for a predicate `P : ℕ → Prop` is the Witt vector
 whose `n`-th coefficient is `x.coeff n` if `P n` is true, and `0` otherwise.
 -/
@@ -124,7 +122,7 @@ begin
     alg_hom.map_mul, bind₁_X_right, bind₁_C_right, ← finset.sum_add_distrib, ← mul_add],
   apply finset.sum_congr rfl,
   intros, congr' 2,
-  split_ifs; simp only [zero_pow (pow_pos hp.pos _), add_zero, zero_add],
+  split_ifs; simp only [zero_pow (pow_pos hp.1.pos _), add_zero, zero_add],
 end
 
 lemma coeff_add_of_disjoint (x y : 𝕎 R) (h : ∀ n, x.coeff n = 0 ∨ y.coeff n = 0) :

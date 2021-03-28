@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 Thomas Browning and Patrick Lutz. All rights reserved.
+Copyright (c) 2020 Thomas Browning, Patrick Lutz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Thomas Browning and Patrick Lutz
+Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.intermediate_field
@@ -314,7 +314,7 @@ begin
   rw mul_inv_cancel (mt (λ key, _) h),
   rw ← ϕ.map_zero at key,
   change ↑(⟨x, hx⟩ : algebra.adjoin F {α}) = _,
-  rw [ϕ.injective key, submodule.coe_zero]
+  rw [ϕ.injective key, subalgebra.coe_zero]
 end
 
 end adjoin_simple

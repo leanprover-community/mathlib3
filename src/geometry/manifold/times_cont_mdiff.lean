@@ -241,7 +241,8 @@ point, and smoothness in the corresponding extended chart. -/
 lemma times_cont_mdiff_within_at_iff :
   times_cont_mdiff_within_at I I' n f s x ↔ continuous_within_at f s x ∧
     times_cont_diff_within_at 𝕜 n ((ext_chart_at I' (f x)) ∘ f ∘ (ext_chart_at I x).symm)
-    ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' (f x)).source))
+    ((ext_chart_at I x).target ∩
+      (ext_chart_at I x).symm ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' (f x)).source))
     (ext_chart_at I x x) :=
 begin
   rw [times_cont_mdiff_within_at, lift_prop_within_at, times_cont_diff_within_at_prop],
@@ -265,7 +266,7 @@ begin
   rw [times_cont_mdiff_within_at_iff, and.congr_right_iff],
   set e := ext_chart_at I x, set e' := ext_chart_at I' (f x),
   refine λ hc, times_cont_diff_within_at_congr_nhds _,
-  rw [← e.image_inter_source_eq', inter_comm _ e.source, ← ext_chart_at_map_nhds_within_eq_image,
+  rw [← e.image_source_inter_eq', ← ext_chart_at_map_nhds_within_eq_image,
       ← ext_chart_at_map_nhds_within, inter_comm, nhds_within_inter_of_mem],
   exact hc (ext_chart_at_source_mem_nhds _ _)
 end
@@ -295,7 +296,8 @@ end
 lemma smooth_within_at_iff :
   smooth_within_at I I' f s x ↔ continuous_within_at f s x ∧
     times_cont_diff_within_at 𝕜 ∞ ((ext_chart_at I' (f x)) ∘ f ∘ (ext_chart_at I x).symm)
-    ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' (f x)).source))
+    ((ext_chart_at I x).target ∩
+      (ext_chart_at I x).symm ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' (f x)).source))
     (ext_chart_at I x x) :=
 times_cont_mdiff_within_at_iff
 
@@ -352,7 +354,8 @@ extended chart. -/
 lemma times_cont_mdiff_on_iff :
   times_cont_mdiff_on I I' n f s ↔ continuous_on f s ∧
     ∀ (x : M) (y : M'), times_cont_diff_on 𝕜 n ((ext_chart_at I' y) ∘ f ∘ (ext_chart_at I x).symm)
-    ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' y).source)) :=
+    ((ext_chart_at I x).target ∩
+      (ext_chart_at I x).symm ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' y).source)) :=
 begin
   split,
   { assume h,
@@ -363,9 +366,10 @@ begin
     specialize h w this,
     have w1 : w ∈ (chart_at H x).source, by simp only [w, hz] with mfld_simps,
     have w2 : f w ∈ (chart_at H' y).source, by simp only [w, hz] with mfld_simps,
-    convert (((times_cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_indep_chart
-      (structure_groupoid.chart_mem_maximal_atlas _ x) w1
-      (structure_groupoid.chart_mem_maximal_atlas _ y) w2).1 h).2 using 1,
+    convert
+      (((times_cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_indep_chart
+        (structure_groupoid.chart_mem_maximal_atlas _ x) w1
+        (structure_groupoid.chart_mem_maximal_atlas _ y) w2).1 h).2 using 1,
     { mfld_set_tac },
     { simp only [w, hz] with mfld_simps } },
   { rintros ⟨hcont, hdiff⟩ x hx,
@@ -399,7 +403,8 @@ end
 lemma smooth_on_iff :
   smooth_on I I' f s ↔ continuous_on f s ∧
     ∀ (x : M) (y : M'), times_cont_diff_on 𝕜 ⊤ ((ext_chart_at I' y) ∘ f ∘ (ext_chart_at I x).symm)
-    ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' y).source)) :=
+    ((ext_chart_at I x).target ∩
+      (ext_chart_at I x).symm ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' y).source)) :=
 times_cont_mdiff_on_iff
 
 lemma smooth_on_iff_target :
@@ -459,7 +464,8 @@ lemma times_cont_mdiff.of_le (hf : times_cont_mdiff I I' n f) (le : m ≤ n) :
 
 /-! ### Deducing smoothness from smoothness one step beyond -/
 
-lemma times_cont_mdiff_within_at.of_succ {n : ℕ} (h : times_cont_mdiff_within_at I I' n.succ f s x) :
+lemma times_cont_mdiff_within_at.of_succ {n : ℕ}
+  (h : times_cont_mdiff_within_at I I' n.succ f s x) :
   times_cont_mdiff_within_at I I' n f s x :=
 h.of_le (with_top.coe_le_coe.2 (nat.le_succ n))
 
@@ -526,7 +532,8 @@ times_cont_mdiff.mdifferentiable hf le_top
 lemma smooth.mdifferentiable_at (hf : smooth I I' f) : mdifferentiable_at I I' f x :=
 hf.mdifferentiable x
 
-lemma smooth.mdifferentiable_within_at (hf : smooth I I' f) : mdifferentiable_within_at I I' f s x :=
+lemma smooth.mdifferentiable_within_at (hf : smooth I I' f) :
+  mdifferentiable_within_at I I' f s x :=
 hf.mdifferentiable_at.mdifferentiable_within_at
 
 /-! ### `C^∞` smoothness -/
@@ -625,7 +632,8 @@ begin
       { assume y hy, exact hy.2 },
       { assume y hy, exact hu ⟨hy.1.1, hy.2⟩ } },
     have h' : times_cont_mdiff_within_at I I' n f (s ∩ o) x := h.mono (inter_subset_left _ _),
-    simp only [times_cont_mdiff_within_at, lift_prop_within_at, times_cont_diff_within_at_prop] at h',
+    simp only [times_cont_mdiff_within_at, lift_prop_within_at, times_cont_diff_within_at_prop]
+      at h',
     -- let `u` be a good neighborhood in the chart where the function is smooth
     rcases h.2.times_cont_diff_on (le_refl _) with ⟨u, u_nhds, u_subset, hu⟩,
     -- pull it back to the manifold, and intersect with a suitable neighborhood of `x`, to get the
@@ -651,7 +659,8 @@ begin
       { simp only [mem_insert_iff, ho hy.2, h', h'o ⟨hy.2, h'⟩] with mfld_simps } },
     show times_cont_mdiff_on I I' n f v,
     { assume y hy,
-      apply (((times_cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_indep_chart
+      apply
+        (((times_cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_indep_chart
         (structure_groupoid.chart_mem_maximal_atlas _ x) (v_incl hy)
         (structure_groupoid.chart_mem_maximal_atlas _ (f x)) (v_incl' y hy))).2,
       split,
@@ -811,6 +820,13 @@ lemma times_cont_mdiff_within_at.comp' {t : set M'} {g : M' → M''} (x : M)
   (hf : times_cont_mdiff_within_at I I' n f s x) :
   times_cont_mdiff_within_at I I'' n (g ∘ f) (s ∩ f⁻¹' t) x :=
 hg.comp x (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
+
+/-- `g ∘ f` is `C^n` within `s` at `x` if `g` is `C^n` at `f x` and
+`f` is `C^n` within `s` at `x`. -/
+lemma times_cont_mdiff_at.comp_times_cont_mdiff_within_at {g : M' → M''} (x : M)
+  (hg : times_cont_mdiff_at I' I'' n g (f x)) (hf : times_cont_mdiff_within_at I I' n f s x) :
+  times_cont_mdiff_within_at I I'' n (g ∘ f) s x :=
+hg.comp x hf (maps_to_univ _ _)
 
 /-- The composition of `C^n` functions at points is `C^n`. -/
 lemma times_cont_mdiff_at.comp {g : M' → M''} (x : M)
@@ -1012,7 +1028,8 @@ begin
   suffices h : continuous_on (fderiv_within 𝕜 (I' ∘ f ∘ I.symm)
                      (I.symm ⁻¹' s ∩ range I)) (I '' s),
   { have C := continuous_on.comp h I.continuous_to_fun.continuous_on (subset.refl _),
-    have A : continuous (λq : (E →L[𝕜] E') × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
+    have A : continuous (λq : (E →L[𝕜] E') × E, q.1 q.2) :=
+      is_bounded_bilinear_map_apply.continuous,
     have B : continuous_on (λp : H × E,
       (fderiv_within 𝕜 (I' ∘ f ∘ I.symm) (I.symm ⁻¹' s ∩ range I)
                        (I p.1), p.2)) (prod.fst ⁻¹' s),
@@ -1026,7 +1043,7 @@ begin
   have A := hf.2 x y,
   simp only [I.image_eq, inter_comm] with mfld_simps at A ⊢,
   apply A.continuous_on_fderiv_within _ hn,
-  convert hs.unique_diff_on x using 1,
+  convert hs.unique_diff_on_target_inter x using 1,
   simp only [inter_comm] with mfld_simps
 end
 
@@ -1392,7 +1409,8 @@ begin
         with mfld_simps,
       apply h,
       simp only [hy] with mfld_simps },
-    { simp only [chart, chart_at, prod.mk.inj_iff, to_topological_fiber_bundle_core] with mfld_simps,
+    { simp only [chart, chart_at, prod.mk.inj_iff, to_topological_fiber_bundle_core]
+        with mfld_simps,
       apply h,
       simp only with mfld_simps } }
 end
@@ -1510,9 +1528,17 @@ lemma times_cont_mdiff_within_at.prod_mk {f : M → M'} {g : M → N'}
   (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at I J' n g s x) :
   times_cont_mdiff_within_at I (I'.prod J') n (λ x, (f x, g x)) s x :=
 begin
-  rw times_cont_mdiff_within_at_iff at *,
-  refine ⟨hf.1.prod hg.1, (hf.2.mono _).prod (hg.2.mono _)⟩;
-  mfld_set_tac,
+  rw times_cont_mdiff_within_at_iff'' at *,
+  exact ⟨hf.1.prod hg.1, hf.2.prod hg.2⟩,
+end
+
+lemma times_cont_mdiff_within_at.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : times_cont_mdiff_within_at I 𝓘(𝕜, E') n f s x)
+  (hg : times_cont_mdiff_within_at I 𝓘(𝕜, F') n g s x) :
+  times_cont_mdiff_within_at I 𝓘(𝕜, E' × F') n (λ x, (f x, g x)) s x :=
+begin
+  rw times_cont_mdiff_within_at_iff'' at *,
+  exact ⟨hf.1.prod hg.1, hf.2.prod hg.2⟩,
 end
 
 lemma times_cont_mdiff_at.prod_mk {f : M → M'} {g : M → N'}
@@ -1520,35 +1546,70 @@ lemma times_cont_mdiff_at.prod_mk {f : M → M'} {g : M → N'}
   times_cont_mdiff_at I (I'.prod J') n (λ x, (f x, g x)) x :=
 hf.prod_mk hg
 
+lemma times_cont_mdiff_at.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : times_cont_mdiff_at I 𝓘(𝕜, E') n f x) (hg : times_cont_mdiff_at I 𝓘(𝕜, F') n g x) :
+  times_cont_mdiff_at I 𝓘(𝕜, E' × F') n (λ x, (f x, g x)) x :=
+hf.prod_mk_space hg
+
 lemma times_cont_mdiff_on.prod_mk {f : M → M'} {g : M → N'}
   (hf : times_cont_mdiff_on I I' n f s) (hg : times_cont_mdiff_on I J' n g s) :
   times_cont_mdiff_on I (I'.prod J') n (λ x, (f x, g x)) s :=
 λ x hx, (hf x hx).prod_mk (hg x hx)
+
+lemma times_cont_mdiff_on.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : times_cont_mdiff_on I 𝓘(𝕜, E') n f s) (hg : times_cont_mdiff_on I 𝓘(𝕜, F') n g s) :
+  times_cont_mdiff_on I 𝓘(𝕜, E' × F') n (λ x, (f x, g x)) s :=
+λ x hx, (hf x hx).prod_mk_space (hg x hx)
 
 lemma times_cont_mdiff.prod_mk {f : M → M'} {g : M → N'}
   (hf : times_cont_mdiff I I' n f) (hg : times_cont_mdiff I J' n g) :
   times_cont_mdiff I (I'.prod J') n (λ x, (f x, g x)) :=
 λ x, (hf x).prod_mk (hg x)
 
+lemma times_cont_mdiff.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : times_cont_mdiff I 𝓘(𝕜, E') n f) (hg : times_cont_mdiff I 𝓘(𝕜, F') n g) :
+  times_cont_mdiff I 𝓘(𝕜, E' × F') n (λ x, (f x, g x)) :=
+λ x, (hf x).prod_mk_space (hg x)
+
 lemma smooth_within_at.prod_mk {f : M → M'} {g : M → N'}
   (hf : smooth_within_at I I' f s x) (hg : smooth_within_at I J' g s x) :
   smooth_within_at I (I'.prod J') (λ x, (f x, g x)) s x :=
 hf.prod_mk hg
+
+lemma smooth_within_at.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : smooth_within_at I 𝓘(𝕜, E') f s x) (hg : smooth_within_at I 𝓘(𝕜, F') g s x) :
+  smooth_within_at I 𝓘(𝕜, E' × F') (λ x, (f x, g x)) s x :=
+hf.prod_mk_space hg
 
 lemma smooth_at.prod_mk {f : M → M'} {g : M → N'}
   (hf : smooth_at I I' f x) (hg : smooth_at I J' g x) :
   smooth_at I (I'.prod J') (λ x, (f x, g x)) x :=
 hf.prod_mk hg
 
+lemma smooth_at.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : smooth_at I 𝓘(𝕜, E') f x) (hg : smooth_at I 𝓘(𝕜, F') g x) :
+  smooth_at I 𝓘(𝕜, E' × F') (λ x, (f x, g x)) x :=
+hf.prod_mk_space hg
+
 lemma smooth_on.prod_mk {f : M → M'} {g : M → N'}
   (hf : smooth_on I I' f s) (hg : smooth_on I J' g s) :
   smooth_on I (I'.prod J') (λ x, (f x, g x)) s :=
 hf.prod_mk hg
 
+lemma smooth_on.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : smooth_on I 𝓘(𝕜, E') f s) (hg : smooth_on I 𝓘(𝕜, F') g s) :
+  smooth_on I 𝓘(𝕜, E' × F') (λ x, (f x, g x)) s :=
+hf.prod_mk_space hg
+
 lemma smooth.prod_mk {f : M → M'} {g : M → N'}
   (hf : smooth I I' f) (hg : smooth I J' g) :
   smooth I (I'.prod J') (λ x, (f x, g x)) :=
 hf.prod_mk hg
+
+lemma smooth.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : smooth I 𝓘(𝕜, E') f) (hg : smooth I 𝓘(𝕜, F') g) :
+  smooth I 𝓘(𝕜, E' × F') (λ x, (f x, g x)) :=
+hf.prod_mk_space hg
 
 end prod_mk
 
@@ -1649,7 +1710,8 @@ variables {g : N → N'} {r : set N} {y : N}
 /-- The product map of two `C^n` functions within a set at a point is `C^n`
 within the product set at the product point. -/
 lemma times_cont_mdiff_within_at.prod_map' {p : M × N}
-  (hf : times_cont_mdiff_within_at I I' n f s p.1) (hg : times_cont_mdiff_within_at J J' n g r p.2) :
+  (hf : times_cont_mdiff_within_at I I' n f s p.1)
+  (hg : times_cont_mdiff_within_at J J' n g r p.2) :
   times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) p :=
 (hf.comp p times_cont_mdiff_within_at_fst (prod_subset_preimage_fst _ _)).prod_mk $
 hg.comp p times_cont_mdiff_within_at_snd (prod_subset_preimage_snd _ _)
@@ -1712,17 +1774,66 @@ hf.prod_map hg
 
 end prod_map
 
+section pi_space
+
+/-!
+### Smoothness of functions with codomain `Π i, F i`
+
+We have no `model_with_corners.pi` yet, so we prove lemmas about functions `f : M → Π i, F i` and
+use `𝓘(𝕜, Π i, F i)` as the model space.
+-/
+
+variables {ι : Type*} [fintype ι] {Fi : ι → Type*} [Π i, normed_group (Fi i)]
+  [Π i, normed_space 𝕜 (Fi i)] {φ : M → Π i, Fi i}
+
+lemma times_cont_mdiff_within_at_pi_space :
+  times_cont_mdiff_within_at I (𝓘(𝕜, Π i, Fi i)) n φ s x ↔
+    ∀ i, times_cont_mdiff_within_at I (𝓘(𝕜, Fi i)) n (λ x, φ x i) s x :=
+by simp only [times_cont_mdiff_within_at_iff'', continuous_within_at_pi,
+  times_cont_diff_within_at_pi, forall_and_distrib, written_in_ext_chart_at,
+  ext_chart_model_space_eq_id, (∘), local_equiv.refl_coe, id]
+
+lemma times_cont_mdiff_on_pi_space :
+  times_cont_mdiff_on I (𝓘(𝕜, Π i, Fi i)) n φ s ↔
+    ∀ i, times_cont_mdiff_on I (𝓘(𝕜, Fi i)) n (λ x, φ x i) s :=
+⟨λ h i x hx, times_cont_mdiff_within_at_pi_space.1 (h x hx) i,
+  λ h x hx, times_cont_mdiff_within_at_pi_space.2 (λ i, h i x hx)⟩
+
+lemma times_cont_mdiff_at_pi_space :
+  times_cont_mdiff_at I (𝓘(𝕜, Π i, Fi i)) n φ x ↔
+    ∀ i, times_cont_mdiff_at I (𝓘(𝕜, Fi i)) n (λ x, φ x i) x :=
+times_cont_mdiff_within_at_pi_space
+
+lemma times_cont_mdiff_pi_space :
+  times_cont_mdiff I (𝓘(𝕜, Π i, Fi i)) n φ ↔
+    ∀ i, times_cont_mdiff I (𝓘(𝕜, Fi i)) n (λ x, φ x i) :=
+⟨λ h i x, times_cont_mdiff_at_pi_space.1 (h x) i,
+  λ h x, times_cont_mdiff_at_pi_space.2 (λ i, h i x)⟩
+
+lemma smooth_within_at_pi_space :
+  smooth_within_at I (𝓘(𝕜, Π i, Fi i)) φ s x ↔
+    ∀ i, smooth_within_at I (𝓘(𝕜, Fi i)) (λ x, φ x i) s x :=
+times_cont_mdiff_within_at_pi_space
+
+lemma smooth_on_pi_space :
+  smooth_on I (𝓘(𝕜, Π i, Fi i)) φ s ↔ ∀ i, smooth_on I (𝓘(𝕜, Fi i)) (λ x, φ x i) s :=
+times_cont_mdiff_on_pi_space
+
+lemma smooth_at_pi_space :
+  smooth_at I (𝓘(𝕜, Π i, Fi i)) φ x ↔ ∀ i, smooth_at I (𝓘(𝕜, Fi i)) (λ x, φ x i) x :=
+times_cont_mdiff_at_pi_space
+
+lemma smooth_pi_space :
+  smooth I (𝓘(𝕜, Π i, Fi i)) φ ↔ ∀ i, smooth I (𝓘(𝕜, Fi i)) (λ x, φ x i) :=
+times_cont_mdiff_pi_space
+
+end pi_space
+
 /-! ### Linear maps between normed spaces are smooth -/
 
 lemma continuous_linear_map.times_cont_mdiff (L : E →L[𝕜] F) :
   times_cont_mdiff 𝓘(𝕜, E) 𝓘(𝕜, F) n L :=
-begin
-  rw times_cont_mdiff_iff,
-  refine ⟨L.cont, λ x y, _⟩,
-  simp only with mfld_simps,
-  rw times_cont_diff_on_univ,
-  exact continuous_linear_map.times_cont_diff L,
-end
+L.times_cont_diff.times_cont_mdiff
 
 /-! ### Smoothness of standard operations -/
 

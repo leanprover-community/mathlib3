@@ -61,7 +61,7 @@ begin
   intros x hx,
   apply measurable_set.of_compl,
   apply generate_measurable.basic,
-  exact is_closed_singleton
+  exact is_closed_singleton.is_open_compl
 end
 
 lemma borel_eq_generate_from_of_subbasis {s : set (set α)}
@@ -89,6 +89,14 @@ le_antisymm
 
 lemma is_pi_system_is_open [topological_space α] : is_pi_system (is_open : set α → Prop) :=
 λ s t hs ht hst, is_open_inter hs ht
+
+lemma borel_eq_generate_from_is_closed [topological_space α] :
+  borel α = generate_from {s | is_closed s} :=
+le_antisymm
+  (generate_from_le $ λ t ht, @measurable_set.of_compl α _ (generate_from {s | is_closed s})
+    (generate_measurable.basic _ $ is_closed_compl_iff.2 ht))
+  (generate_from_le $ λ t ht, @measurable_set.of_compl α _ (borel α)
+    (generate_measurable.basic _ $ is_open_compl_iff.2 ht))
 
 section order_topology
 
@@ -190,7 +198,7 @@ lemma measurable_set_of_continuous_at {β} [emetric_space β] (f : α → β) :
 (is_Gδ_set_of_continuous_at f).measurable_set
 
 lemma is_closed.measurable_set (h : is_closed s) : measurable_set s :=
-h.measurable_set.of_compl
+h.is_open_compl.measurable_set.of_compl
 
 lemma is_compact.measurable_set [t2_space α] (h : is_compact s) : measurable_set s :=
 h.is_closed.measurable_set
@@ -423,27 +431,27 @@ h.measurable.comp_ae_measurable (hf.prod_mk hg)
 
 lemma measurable.smul [semiring α] [second_countable_topology α]
   [add_comm_monoid γ] [second_countable_topology γ]
-  [semimodule α γ] [topological_semimodule α γ]
+  [semimodule α γ] [has_continuous_smul α γ]
   {f : δ → α} {g : δ → γ} (hf : measurable f) (hg : measurable g) :
   measurable (λ c, f c • g c) :=
 continuous_smul.measurable2 hf hg
 
 lemma ae_measurable.smul [semiring α] [second_countable_topology α]
   [add_comm_monoid γ] [second_countable_topology γ]
-  [semimodule α γ] [topological_semimodule α γ]
+  [semimodule α γ] [has_continuous_smul α γ]
   {f : δ → α} {g : δ → γ} {μ : measure δ} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
   ae_measurable (λ c, f c • g c) μ :=
 continuous_smul.ae_measurable2 hf hg
 
 lemma measurable.const_smul {R M : Type*} [topological_space R] [semiring R]
-  [add_comm_monoid M] [semimodule R M] [topological_space M] [topological_semimodule R M]
+  [add_comm_monoid M] [semimodule R M] [topological_space M] [has_continuous_smul R M]
   [measurable_space M] [borel_space M]
   {f : δ → M} (hf : measurable f) (c : R) :
   measurable (λ x, c • f x) :=
 (continuous_const.smul continuous_id).measurable.comp hf
 
 lemma ae_measurable.const_smul {R M : Type*} [topological_space R] [semiring R]
-  [add_comm_monoid M] [semimodule R M] [topological_space M] [topological_semimodule R M]
+  [add_comm_monoid M] [semimodule R M] [topological_space M] [has_continuous_smul R M]
   [measurable_space M] [borel_space M]
   {f : δ → M} {μ : measure δ} (hf : ae_measurable f μ) (c : R) :
   ae_measurable (λ x, c • f x) μ :=
@@ -451,7 +459,7 @@ lemma ae_measurable.const_smul {R M : Type*} [topological_space R] [semiring R]
 
 lemma measurable_const_smul_iff {α : Type*} [topological_space α]
   [division_ring α] [add_comm_monoid γ]
-  [semimodule α γ] [topological_semimodule α γ]
+  [semimodule α γ] [has_continuous_smul α γ]
   {f : δ → γ} {c : α} (hc : c ≠ 0) :
   measurable (λ x, c • f x) ↔ measurable f :=
 ⟨λ h, by simpa only [smul_smul, inv_mul_cancel hc, one_smul] using h.const_smul c⁻¹,
@@ -459,7 +467,7 @@ lemma measurable_const_smul_iff {α : Type*} [topological_space α]
 
 lemma ae_measurable_const_smul_iff {α : Type*} [topological_space α]
   [division_ring α] [add_comm_monoid γ]
-  [semimodule α γ] [topological_semimodule α γ]
+  [semimodule α γ] [has_continuous_smul α γ]
   {f : δ → γ} {μ : measure δ} {c : α} (hc : c ≠ 0) :
   ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
 ⟨λ h, by simpa only [smul_smul, inv_mul_cancel hc, one_smul] using h.const_smul c⁻¹,
@@ -573,6 +581,26 @@ begin
     (λ i _, hf i),
 end
 
+lemma measurable.pow {β} [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
+  [measurable_space β] {n : ℕ} {f : β → α} (hf : measurable f) :
+  measurable (λ x : β, (f x) ^ n) :=
+begin
+  simp_rw finset.pow_eq_prod_const,
+  exact finset.measurable_prod _ (λ _, hf),
+end
+
+lemma measurable_pow [comm_monoid α] [has_continuous_mul α] [second_countable_topology α] {n : ℕ} :
+  measurable (λ x : α, x ^ n) :=
+measurable_id.pow
+
+lemma ae_measurable.pow {β} [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
+  [measurable_space β] {n : ℕ} {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
+  ae_measurable (λ x : β, (f x) ^ n) μ :=
+begin
+  simp_rw finset.pow_eq_prod_const,
+  exact finset.ae_measurable_prod _ (λ _, hf),
+end
+
 @[to_additive]
 lemma measurable_inv [group α] [topological_group α] : measurable (has_inv.inv : α → α) :=
 continuous_inv.measurable
@@ -599,7 +627,7 @@ measurable_inv'.comp hf
 lemma measurable.div {α : Type*} [normed_field α] [measurable_space α] [borel_space α]
   [second_countable_topology α] {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, f a / g a) :=
-hf.mul hg.inv'
+by simpa only [div_eq_mul_inv] using hf.mul hg.inv'
 
 @[to_additive]
 lemma measurable.of_inv [group α] [topological_group α] {f : δ → α}

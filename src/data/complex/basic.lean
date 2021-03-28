@@ -106,10 +106,10 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 @[simp] lemma mul_im (z w : ℂ) : (z * w).im = z.re * w.im + z.im * w.re := rfl
 @[simp, norm_cast] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simp
 
-lemma smul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
-lemma smul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
-lemma of_real_smul (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ :=
-ext (smul_re _ _) (smul_im _ _)
+lemma of_real_mul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
+lemma of_real_mul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
+lemma of_real_mul' (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ :=
+ext (of_real_mul_re _ _) (of_real_mul_im _ _)
 
 /-! ### The imaginary unit, `I` -/
 
@@ -136,7 +136,7 @@ ext_iff.2 $ by simp
 instance : comm_ring ℂ :=
 by refine { zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1, mul := (*),
             sub_eq_add_neg := _, ..};
-   { intros, apply ext_iff.2; split; simp; ring }
+   { intros, apply ext_iff.2; split; simp; {ring1 <|> ring_nf} }
 
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
 { map_add := complex.add_re }

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import linear_algebra.affine_space.independent
 import linear_algebra.finite_dimensional

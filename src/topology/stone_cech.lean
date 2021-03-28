@@ -54,7 +54,7 @@ topological_space.is_open_of_is_topological_basis ultrafilter_basis_is_basis ⟨
 lemma ultrafilter_is_closed_basic (s : set α) :
   is_closed {u : ultrafilter α | s ∈ u} :=
 begin
-  change is_open _ᶜ,
+  rw ← is_open_compl_iff,
   convert ultrafilter_is_open_basic sᶜ,
   ext u,
   exact ultrafilter.compl_mem_iff_not_mem.symm

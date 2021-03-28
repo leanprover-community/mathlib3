@@ -42,7 +42,7 @@ theorem prime.two_le {p : ℕ} : prime p → 2 ≤ p := and.left
 
 theorem prime.one_lt {p : ℕ} : prime p → 1 < p := prime.two_le
 
-instance prime.one_lt' (p : ℕ) [hp : _root_.fact p.prime] : _root_.fact (1 < p) := hp.one_lt
+instance prime.one_lt' (p : ℕ) [hp : _root_.fact p.prime] : _root_.fact (1 < p) := ⟨hp.1.one_lt⟩
 
 lemma prime.ne_one {p : ℕ} (hp : p.prime) : p ≠ 1 :=
 ne.symm $ ne_of_lt hp.one_lt
@@ -593,7 +593,7 @@ def primes := {p : ℕ // p.prime}
 namespace primes
 
 instance : has_repr nat.primes := ⟨λ p, repr p.val⟩
-instance : inhabited primes := ⟨⟨2, prime_two⟩⟩
+instance inhabited_primes : inhabited primes := ⟨⟨2, prime_two⟩⟩
 
 instance coe_nat : has_coe nat.primes ℕ := ⟨subtype.val⟩
 

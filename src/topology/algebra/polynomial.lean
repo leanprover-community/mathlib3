@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Robert Y. Lewis
+Authors: Robert Y. Lewis
 -/
 import data.polynomial.algebra_map
 import data.polynomial.div
@@ -67,7 +67,6 @@ section topological_algebra
 variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   [topological_space A] [topological_semiring A]
   (p : polynomial R)
-
 
 @[continuity]
 protected lemma continuous_aeval : continuous (λ x : A, aeval x p) :=

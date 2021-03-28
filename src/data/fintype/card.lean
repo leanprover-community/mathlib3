@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.fintype.basic
 import algebra.big_operators.ring
@@ -62,6 +62,14 @@ finset.prod_congr rfl $ λ a ha, h a
 lemma prod_eq_single {f : α → M} (a : α) (h : ∀ x ≠ a, f x = 1) :
   (∏ x, f x) = f a :=
 finset.prod_eq_single a (λ x _ hx, h x hx) $ λ ha, (ha (finset.mem_univ a)).elim
+
+@[to_additive]
+lemma prod_eq_mul {f : α → M} (a b : α) (h₁ : a ≠ b) (h₂ : ∀ x, x ≠ a ∧ x ≠ b → f x = 1) :
+  (∏ x, f x) = (f a) * (f b) :=
+begin
+  apply finset.prod_eq_mul a b h₁ (λ x _ hx, h₂ x hx);
+  exact λ hc, (hc (finset.mem_univ _)).elim
+end
 
 @[to_additive]
 lemma prod_unique [unique β] (f : β → M) :

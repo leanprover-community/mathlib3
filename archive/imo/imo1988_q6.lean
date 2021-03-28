@@ -293,5 +293,5 @@ begin
       have y_dvd : y ∣ y * k := dvd_mul_right y k,
       rw [← h, ← add_assoc, nat.dvd_add_left (dvd_mul_left y y)] at y_dvd,
       obtain rfl|rfl : y = 1 ∨ y = 2 := nat.prime_two.2 y y_dvd,
-      all_goals { ring at h, omega } } }
+      all_goals { ring_nf at h, omega } } }
 end

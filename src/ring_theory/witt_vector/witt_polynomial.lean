@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import algebra.invertible
+import algebra.char_p.invertible
 import data.mv_polynomial.variables
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.expand
@@ -117,7 +117,7 @@ begin
   rintro i hi,
   rw [if_neg],
   rw [finsupp.single_eq_zero],
-  exact ne_of_gt (pow_pos hp.pos _)
+  exact ne_of_gt (pow_pos hp.1.pos _)
 end
 
 @[simp] lemma witt_polynomial_zero : witt_polynomial p R 0 = X 0 :=
@@ -160,10 +160,10 @@ begin
   { intro i,
     rw vars_monomial_single,
     { rw ← pos_iff_ne_zero,
-      apply pow_pos hp.pos },
+      apply pow_pos hp.1.pos },
     { rw [← nat.cast_pow, nat.cast_ne_zero],
       apply ne_of_gt,
-      apply pow_pos hp.pos i } },
+      apply pow_pos hp.1.pos i } },
   rw [witt_polynomial, vars_sum_of_disjoint],
   { simp only [this, int.nat_cast_eq_coe_nat, bUnion_singleton_eq_self], },
   { simp only [this, int.nat_cast_eq_coe_nat],
@@ -217,7 +217,7 @@ begin
     rw mem_range at H,
     simp only [ring_hom.map_mul, ring_hom.map_pow, constant_coeff_C, IH m H],
     rw [zero_pow, mul_zero],
-    apply pow_pos hp.pos, }
+    apply pow_pos hp.1.pos, }
 end
 
 @[simp] lemma X_in_terms_of_W_zero [invertible (p : R)] :
@@ -251,7 +251,7 @@ begin
     rcases H with ⟨j, hj, H⟩,
     rw vars_C_mul at H,
     swap,
-    { apply pow_ne_zero, exact_mod_cast hp.ne_zero },
+    { apply pow_ne_zero, exact_mod_cast hp.1.ne_zero },
     rw mem_range at hj,
     replace H := (ih j hj).2 (vars_pow _ _ H),
     rw mem_range at H },

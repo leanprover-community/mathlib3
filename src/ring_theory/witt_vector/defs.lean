@@ -45,8 +45,8 @@ If `p` is invertible in `R`, this ring is isomorphic to `ℕ → R` (the product
 If `R` is a ring of characteristic `p`, then `witt_vector p R` is a ring of characteristic `0`.
 The canonical example is `witt_vector p (zmod p)`,
 which is isomorphic to the `p`-adic integers `ℤ_[p]`. -/
-@[nolint unused_arguments]
-def witt_vector (p : ℕ) (R : Type*) := ℕ → R
+structure witt_vector (p : ℕ) (R : Type*) :=
+mk [] :: (coeff : ℕ → R)
 
 variables {p : ℕ}
 
@@ -60,35 +60,38 @@ namespace witt_vector
 variables (p) {R : Type*}
 
 /-- Construct a Witt vector `mk p x : 𝕎 R` from a sequence `x` of elements of `R`. -/
-def mk (x : ℕ → R) : witt_vector p R := x
-
-instance [inhabited R] : inhabited (𝕎 R) := ⟨mk p $ λ _, default R⟩
+add_decl_doc witt_vector.mk
 
 /--
 `x.coeff n` is the `n`th coefficient of the Witt vector `x`.
 
 This concept does not have a standard name in the literature.
 -/
-def coeff (x : 𝕎 R) (n : ℕ) : R := x n
+add_decl_doc witt_vector.coeff
 
 @[ext] lemma ext {x y : 𝕎 R} (h : ∀ n, x.coeff n = y.coeff n) : x = y :=
-funext $ λ n, h n
+begin
+  cases x,
+  cases y,
+  simp only at h,
+  simp [function.funext_iff, h]
+end
 
 lemma ext_iff {x y : 𝕎 R} : x = y ↔ ∀ n, x.coeff n = y.coeff n :=
 ⟨λ h n, by rw h, ext⟩
 
-@[simp] lemma coeff_mk (x : ℕ → R) :
+lemma coeff_mk (x : ℕ → R) :
   (mk p x).coeff = x := rfl
 
 /- These instances are not needed for the rest of the development,
 but it is interesting to establish early on that `witt_vector p` is a lawful functor. -/
 instance : functor (witt_vector p) :=
-{ map := λ α β f v, f ∘ v,
-  map_const := λ α β a v, λ _, a }
+{ map := λ α β f v, mk p (f ∘ v.coeff),
+  map_const := λ α β a v, mk p (λ _, a) }
 
 instance : is_lawful_functor (witt_vector p) :=
 { map_const_eq := λ α β, rfl,
-  id_map := λ α v, rfl,
+  id_map := λ α ⟨v, _⟩, rfl,
   comp_map := λ α β γ f g v, rfl }
 
 variables (p) [hp : fact p.prime] [comm_ring R]
@@ -149,6 +152,8 @@ variables (R) [fact p.prime]
 instance : has_zero (𝕎 R) :=
 ⟨eval (witt_zero p) ![]⟩
 
+instance : inhabited (𝕎 R) := ⟨0⟩
+
 instance : has_one (𝕎 R) :=
 ⟨eval (witt_one p) ![]⟩
 
@@ -199,7 +204,7 @@ begin
     simp only [one_pow, one_mul, X_in_terms_of_W_zero, sub_self, bind₁_X_right] },
   { intros i hin hi0,
     rw [finset.mem_range] at hin,
-    rw [IH _ hin (nat.pos_of_ne_zero hi0), zero_pow (pow_pos hp.pos _), mul_zero], },
+    rw [IH _ hin (nat.pos_of_ne_zero hi0), zero_pow (pow_pos hp.1.pos _), mul_zero], },
   { rw finset.mem_range, intro, contradiction }
 end
 
@@ -283,17 +288,28 @@ by simp only [hn, witt_one_pos_eq_zero, alg_hom.map_zero]
 
 variables {p R}
 
+omit hp
+@[simp]
+lemma v2_coeff {p' R'} (x y : witt_vector p' R') (i : fin 2) :
+  (![x, y] i).coeff = ![x.coeff, y.coeff] i :=
+by fin_cases i; simp
+include hp
+
 lemma add_coeff (x y : 𝕎 R) (n : ℕ) :
-  (x + y).coeff n = peval (witt_add p n) ![x.coeff, y.coeff] := rfl
+  (x + y).coeff n = peval (witt_add p n) ![x.coeff, y.coeff] :=
+by simp [(+), eval]
 
 lemma sub_coeff (x y : 𝕎 R) (n : ℕ) :
-  (x - y).coeff n = peval (witt_sub p n) ![x.coeff, y.coeff] := rfl
+  (x - y).coeff n = peval (witt_sub p n) ![x.coeff, y.coeff] :=
+by simp [has_sub.sub, eval]
 
 lemma mul_coeff (x y : 𝕎 R) (n : ℕ) :
-  (x * y).coeff n = peval (witt_mul p n) ![x.coeff, y.coeff] := rfl
+  (x * y).coeff n = peval (witt_mul p n) ![x.coeff, y.coeff] :=
+by simp [(*), eval]
 
 lemma neg_coeff (x : 𝕎 R) (n : ℕ) :
-  (-x).coeff n = peval (witt_neg p n) ![x.coeff] := rfl
+  (-x).coeff n = peval (witt_neg p n) ![x.coeff] :=
+by simp [has_neg.neg, eval, matrix.cons_fin_one]
 
 end coeff
 
@@ -314,5 +330,3 @@ lemma witt_neg_vars (n : ℕ) :
 witt_structure_int_vars _ _ _
 
 end witt_vector
-
-attribute [irreducible] witt_vector

@@ -6,6 +6,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 import linear_algebra.finite_dimensional
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
+import analysis.normed_space.normed_group_hom
 import analysis.asymptotics.asymptotics
 import algebra.algebra.tower
 
@@ -23,12 +24,6 @@ variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
 [normed_group E] [normed_group F] [normed_group G]
 
 open metric continuous_linear_map
-
-lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤ M * ∥x∥) :
-  ∃ N, 0 < N ∧ ∀x, ∥f x∥ ≤ N * ∥x∥ :=
-⟨max M 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _), λx, calc
-  ∥f x∥ ≤ M * ∥x∥ : h x
-  ... ≤ max M 1 * ∥x∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) ⟩
 
 section normed_field
 /-! Most statements in this file require the field to be non-discrete,
@@ -131,7 +126,7 @@ begin
     { assume h,
       have : x₀ ∈ f.ker, by { rw h, exact (linear_map.ker f).zero_mem },
       exact x₀ker this },
-    have rx₀_ne_zero : r * ∥x₀∥ ≠ 0, by { simp [norm_eq_zero, this], norm_num },
+    have rx₀_ne_zero : r * ∥x₀∥ ≠ 0, by { simp [norm_eq_zero, this], },
     have : ∀x, ∥f x∥ ≤ (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥,
     { assume x,
       by_cases hx : f x = 0,
@@ -419,7 +414,7 @@ le_antisymm
 
 /-- `continuous_linear_map.prod` as a `linear_isometry_equiv`. -/
 def prodₗᵢ (R : Type*) [ring R] [topological_space R] [module R F] [module R G]
-  [topological_module R F] [topological_module R G]
+  [has_continuous_smul R F] [has_continuous_smul R G]
   [smul_comm_class 𝕜 R F] [smul_comm_class 𝕜 R G] :
   (E →L[𝕜] F) × (E →L[𝕜] G) ≃ₗᵢ[R] (E →L[𝕜] F × G) :=
 ⟨prodₗ R, λ ⟨f, g⟩, op_norm_prod f g⟩
@@ -596,7 +591,7 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
 }
 
 lemma extend_unique (g : G →L[𝕜] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
-continuous_linear_map.injective_coe_fn $
+continuous_linear_map.coe_fn_injective $
   uniformly_extend_unique h_e h_dense (continuous_linear_map.ext_iff.1 H) g.continuous
 
 @[simp] lemma extend_zero : extend (0 : E →L[𝕜] F) e h_dense h_e = 0 :=
@@ -857,7 +852,7 @@ le_antisymm
   (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] })
 
 @[simp] lemma op_norm_lmul_right : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
-(op_norm_flip (lmul 𝕜 𝕜')).trans $ op_norm_lmul _ _
+(op_norm_flip (@lmul 𝕜 _ 𝕜' _ _)).trans (op_norm_lmul _ _)
 
 /-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
 continuous linear maps. -/
@@ -912,7 +907,7 @@ le_antisymm (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
   (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
 
 variables (𝕜 E F 𝕜') (𝕜'' : Type*) [ring 𝕜''] [topological_space 𝕜''] [module 𝕜'' F]
-  [topological_module 𝕜'' F] [smul_comm_class 𝕜 𝕜'' F] [smul_comm_class 𝕜' 𝕜'' F]
+  [has_continuous_smul 𝕜'' F] [smul_comm_class 𝕜 𝕜'' F] [smul_comm_class 𝕜' 𝕜'' F]
 
 /-- `continuous_linear_map.restrict_scalars` as a `linear_isometry`. -/
 def restrict_scalars_isometry : (E →L[𝕜] F) →ₗᵢ[𝕜''] (E →L[𝕜'] F) :=

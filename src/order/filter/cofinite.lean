@@ -108,3 +108,24 @@ end
 lemma nat.frequently_at_top_iff_infinite {p : ℕ → Prop} :
   (∃ᶠ n in at_top, p n) ↔ set.infinite {n | p n} :=
 by simp only [← nat.cofinite_eq_at_top, frequently_cofinite_iff_infinite]
+
+lemma filter.tendsto.exists_forall_le {α β : Type*} [nonempty α] [linear_order β]
+  {f : α → β} (hf : tendsto f cofinite at_top) :
+  ∃ a₀, ∀ a, f a₀ ≤ f a :=
+begin
+  rcases em (∃ y, ∃ x, f y < x) with ⟨y, x, hx⟩|not_all_top,
+  { -- the set of points `{y | f y < x}` is nonempty and finite, so we take `min` over this set
+    have : finite {y | ¬x ≤ f y} := (filter.eventually_cofinite.mp (tendsto_at_top.1 hf x)),
+    simp only [not_le] at this,
+    obtain ⟨a₀, ha₀ : f a₀ < x, others_bigger⟩ := exists_min_image _ f this ⟨y, hx⟩,
+    exact ⟨a₀, λ a, (lt_or_le (f a) x).elim (others_bigger _) (le_trans ha₀.le)⟩ },
+  { -- in this case, f is constant because all values are at top
+    push_neg at not_all_top,
+    inhabit α,
+    exact ⟨default α, λ a, not_all_top a (f $ default α)⟩ }
+end
+
+lemma filter.tendsto.exists_forall_ge {α β : Type*} [nonempty α] [linear_order β]
+  {f : α → β} (hf : tendsto f cofinite at_bot) :
+  ∃ a₀, ∀ a, f a ≤ f a₀ :=
+@filter.tendsto.exists_forall_le _ (order_dual β) _ _ _ hf

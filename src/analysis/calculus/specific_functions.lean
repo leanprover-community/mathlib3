@@ -341,14 +341,14 @@ begin
   obtain ⟨R, hR₀, hR⟩ : ∃ R > 0, ∀ y ∈ ball (e x) R, e.symm y ∈ K, from mem_nhds_iff.1 hxK,
   have Hpos : 0 < R / 2 := half_pos hR₀,
   have Hlt : R / 2 < R := half_lt_self hR₀,
-  have : closure (support (smooth_bump_function (e x) (R / 2) R ∘ e)) ⊆ K,
-  { refine closure_minimal (λ y hy, _) hKc.is_closed,
+  have : support (smooth_bump_function (e x) (R / 2) R ∘ e) ⊆ K,
+  { intros y hy,
     rw [support_comp_eq_preimage, smooth_bump_function.support_eq Hlt] at hy,
     simpa only [e.symm_apply_apply] using (hR _ hy) },
   exact ⟨smooth_bump_function (e x) (R / 2) R ∘ e,
     e.continuous_at.eventually (smooth_bump_function.eventually_eq_one Hpos Hlt),
     λ y, ⟨smooth_bump_function.nonneg, smooth_bump_function.le_one⟩,
     (smooth_bump_function.times_cont_diff Hpos Hlt).comp e.times_cont_diff,
-    compact_of_is_closed_subset hKc is_closed_closure this,
-    subset.trans this hKs⟩
+    compact_closure_of_subset_compact hKc this,
+    subset.trans (closure_minimal this hKc.is_closed) hKs⟩
 end

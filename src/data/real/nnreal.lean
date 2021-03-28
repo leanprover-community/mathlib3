@@ -93,9 +93,9 @@ instance : has_le ℝ≥0    := ⟨λ r s, (r:ℝ) ≤ s⟩
 instance : has_bot ℝ≥0   := ⟨0⟩
 instance : inhabited ℝ≥0 := ⟨0⟩
 
-protected lemma injective_coe : function.injective (coe : ℝ≥0 → ℝ) := subtype.coe_injective
+protected lemma coe_injective : function.injective (coe : ℝ≥0 → ℝ) := subtype.coe_injective
 @[simp, norm_cast] protected lemma coe_eq {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) = r₂ ↔ r₁ = r₂ :=
-nnreal.injective_coe.eq_iff
+nnreal.coe_injective.eq_iff
 @[simp, norm_cast] protected lemma coe_zero : ((0 : ℝ≥0) : ℝ) = 0 := rfl
 @[simp, norm_cast] protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
 @[simp, norm_cast] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
@@ -191,7 +191,7 @@ to_real_hom.to_add_monoid_hom.map_nsmul _ _
 to_real_hom.map_nat_cast n
 
 instance : linear_order ℝ≥0 :=
-linear_order.lift (coe : ℝ≥0 → ℝ) nnreal.injective_coe
+linear_order.lift (coe : ℝ≥0 → ℝ) nnreal.coe_injective
 
 @[simp, norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
 @[simp, norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
@@ -440,6 +440,14 @@ begin
     intro, have := not_lt_of_le (zero_le r), contradiction,
     intro rp, have : ¬(p ≤ 0) := not_le_of_lt (lt_of_le_of_lt (coe_nonneg _) rp), contradiction }
 end
+
+@[simp] lemma of_real_bit0 {r : ℝ} (hr : 0 ≤ r) :
+  nnreal.of_real (bit0 r) = bit0 (nnreal.of_real r) :=
+of_real_add hr hr
+
+@[simp] lemma of_real_bit1 {r : ℝ} (hr : 0 ≤ r) :
+  nnreal.of_real (bit1 r) = bit1 (nnreal.of_real r) :=
+(of_real_add (by simp [hr]) zero_le_one).trans (by simp [of_real_one, bit1, hr])
 
 end of_real
 

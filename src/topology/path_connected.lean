@@ -263,7 +263,7 @@ begin
       unfold_coes,
       have : t/2 ≤ 1/2 := by linarith,
       simp only [this, comp_app, if_true],
-      ring,
+      ring_nf,
       rwa γ₁.extend_extends },
     { by_cases h : t = 0,
       { use ⟨1/2, ⟨by linarith, by linarith⟩⟩,
@@ -277,7 +277,7 @@ begin
         have ht0 := lt_of_le_of_ne ht0 h.symm,
         have : ¬ (t+1)/2 ≤ 1/2 := by {rw not_le, linarith},
         simp only [comp_app, if_false, this],
-        ring,
+        ring_nf,
         rwa γ₂.extend_extends } } }
 end
 

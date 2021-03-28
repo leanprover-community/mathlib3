@@ -992,6 +992,10 @@ lemma frequently.mp {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
   ∃ᶠ x in f, q x :=
 mt (λ hq, hq.mp $ hpq.mono $ λ x, mt) h
 
+lemma frequently.filter_mono {p : α → Prop} {f g : filter α} (h : ∃ᶠ x in f, p x) (hle : f ≤ g) :
+  ∃ᶠ x in g, p x :=
+mt (λ h', h'.filter_mono hle) h
+
 lemma frequently.mono {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
   (hpq : ∀ x, p x → q x) :
   ∃ᶠ x in f, q x :=
@@ -1217,6 +1221,14 @@ h.inter h'.compl
 lemma eventually_eq_empty {s : set α} {l : filter α} :
   s =ᶠ[l] (∅ : set α) ↔ ∀ᶠ x in l, x ∉ s :=
 eventually_eq_set.trans $ by simp
+
+lemma inter_eventually_eq_left {s t : set α} {l : filter α} :
+  (s ∩ t : set α) =ᶠ[l] s ↔ ∀ᶠ x in l, x ∈ s → x ∈ t :=
+by simp only [eventually_eq_set, mem_inter_eq, and_iff_left_iff_imp]
+
+lemma inter_eventually_eq_right {s t : set α} {l : filter α} :
+  (s ∩ t : set α) =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ t → x ∈ s :=
+by rw [inter_comm, inter_eventually_eq_left]
 
 @[simp] lemma eventually_eq_principal {s : set α} {f g : α → β} :
   f =ᶠ[𝓟 s] g ↔ eq_on f g s :=
@@ -2266,6 +2278,16 @@ begin
   exact assume ⟨t₁, ht₁, t₂, ht₂, h⟩,
     ⟨prod.fst ⁻¹' t₁, ⟨t₁, ht₁, subset.refl _⟩, prod.snd ⁻¹' t₂, ⟨t₂, ht₂, subset.refl _⟩, h⟩
 end
+
+@[simp] lemma prod_mem_prod_iff {s : set α} {t : set β} {f : filter α} {g : filter β}
+  [f.ne_bot] [g.ne_bot] :
+  s.prod t ∈ f ×ᶠ g ↔ s ∈ f ∧ t ∈ g :=
+⟨λ h, let ⟨s', hs', t', ht', H⟩ := mem_prod_iff.1 h in (prod_subset_prod_iff.1 H).elim
+  (λ ⟨hs's, ht't⟩, ⟨mem_sets_of_superset hs' hs's, mem_sets_of_superset ht' ht't⟩)
+  (λ h, h.elim
+    (λ hs'e, absurd hs'e (nonempty_of_mem_sets hs').ne_empty)
+    (λ ht'e, absurd ht'e (nonempty_of_mem_sets ht').ne_empty)),
+  λ h, prod_mem_prod h.1 h.2⟩
 
 lemma comap_prod (f : α → β × γ) (b : filter β) (c : filter γ) :
   comap f (b ×ᶠ c) = (comap (prod.fst ∘ f) b) ⊓ (comap (prod.snd ∘ f) c) :=

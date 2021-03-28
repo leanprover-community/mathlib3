@@ -246,7 +246,7 @@ lemma nhds_within_pi_eq_bot {ι : Type*} {α : ι → Type*} [Π i, topological_
   𝓝[pi I s] x = ⊥ ↔ ∃ i ∈ I, 𝓝[s i] (x i) = ⊥ :=
 begin
   classical,
-  rw [← pi_piecewise_univ I, nhds_within_pi_univ_eq_bot],
+  rw [← univ_pi_piecewise I, nhds_within_pi_univ_eq_bot],
   refine exists_congr (λ i, _),
   by_cases hi : i ∈ I; simp [*, nhds_within_univ, nhds_ne_bot.ne]
 end
@@ -542,6 +542,10 @@ begin
   rintros _ ⟨x, hx, rfl⟩,
   exact (hf x hx).mem_closure_image hx
 end
+
+lemma continuous_on.image_closure {f : α → β} {s : set α} (hf : continuous_on f (closure s)) :
+  f '' (closure s) ⊆ closure (f '' s) :=
+continuous_within_at.image_closure $ λ x hx, (hf x hx).mono subset_closure
 
 @[simp] lemma continuous_within_at_singleton {f : α → β} {x : α} : continuous_within_at f {x} x :=
 by simp only [continuous_within_at, nhds_within_singleton, tendsto_pure_nhds]

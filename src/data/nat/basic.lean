@@ -115,7 +115,11 @@ instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
     λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
   .. (infer_instance : comm_monoid_with_zero ℕ) }
 
-attribute [simp] nat.not_lt_zero
+attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
+  nat.zero_ne_one nat.one_ne_zero
+  nat.zero_ne_bit1 nat.bit1_ne_zero
+  nat.bit0_ne_one nat.one_ne_bit0
+  nat.bit0_ne_bit1 nat.bit1_ne_bit0
 
 /-!
 Inject some simple facts into the type class system.
@@ -123,10 +127,10 @@ This `fact` should not be confused with the factorial function `nat.fact`!
 -/
 section facts
 
-instance succ_pos'' (n : ℕ) : fact (0 < n.succ) := n.succ_pos
+instance succ_pos'' (n : ℕ) : fact (0 < n.succ) := ⟨n.succ_pos⟩
 
 instance pos_of_one_lt (n : ℕ) [h : fact (1 < n)] : fact (0 < n) :=
-lt_trans zero_lt_one h
+⟨lt_trans zero_lt_one h.1⟩
 
 end facts
 
@@ -235,6 +239,15 @@ theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
 ⟨succ.inj, congr_arg _⟩
 
 theorem succ_injective : function.injective nat.succ := λ x y, succ.inj
+
+lemma succ_ne_succ {n m : ℕ} : succ n ≠ succ m ↔ n ≠ m :=
+succ_injective.ne_iff
+
+@[simp] lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
+succ_ne_succ.mpr n.succ_ne_zero
+
+@[simp] lemma one_lt_succ_succ (n : ℕ) : 1 < n.succ.succ :=
+succ_lt_succ $ succ_pos n
 
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
@@ -560,6 +573,9 @@ lt_of_succ_lt (lt_pred_iff.1 h)
 
 /-! ### `mul` -/
 
+lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (succ m) * n :=
+mul_pos (succ_pos m) hn
+
 theorem mul_self_le_mul_self {n m : ℕ} (h : n ≤ m) : n * n ≤ m * m :=
 mul_le_mul h h (zero_le _) (zero_le _)
 
@@ -615,6 +631,12 @@ lemma mul_left_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, x * 
 
 lemma mul_right_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, a * x) :=
 λ _ _, eq_of_mul_eq_mul_left ha
+
+lemma mul_ne_mul_left {a b c : ℕ} (ha : 0 < a) : b * a ≠ c * a ↔ b ≠ c :=
+(mul_left_injective ha).ne_iff
+
+lemma mul_ne_mul_right {a b c : ℕ} (ha : 0 < a) : a * b ≠ a * c ↔ b ≠ c :=
+(mul_right_injective ha).ne_iff
 
 lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
@@ -1415,6 +1437,23 @@ by unfold bodd div2; cases bodd_div2 n; refl
 @[simp] lemma div2_bit1 (n) : div2 (bit1 n) = n := div2_bit tt n
 
 /-! ### `bit0` and `bit1` -/
+
+-- There is no need to prove `bit0_eq_zero : bit0 n = 0 ↔ n = 0`
+-- as this is true for any `[semiring R] [no_zero_divisors R] [char_zero R]`
+
+-- However the lemmas `bit0_eq_bit0`, `bit1_eq_bit1`, `bit1_eq_one`, `one_eq_bit1`
+-- need `[ring R] [no_zero_divisors R] [char_zero R]` in general,
+-- so we prove `ℕ` specialized versions here.
+@[simp] lemma bit0_eq_bit0 {m n : ℕ} : bit0 m = bit0 n ↔ m = n :=
+⟨nat.bit0_inj, λ h, by subst h⟩
+
+@[simp] lemma bit1_eq_bit1 {m n : ℕ} : bit1 m = bit1 n ↔ m = n :=
+⟨nat.bit1_inj, λ h, by subst h⟩
+
+@[simp] lemma bit1_eq_one {n : ℕ} : bit1 n = 1 ↔ n = 0 :=
+⟨@nat.bit1_inj n 0, λ h, by subst h⟩
+@[simp] lemma one_eq_bit1 {n : ℕ} : 1 = bit1 n ↔ n = 0 :=
+⟨λ h, (@nat.bit1_inj 0 n h).symm, λ h, by subst h⟩
 
 protected theorem bit0_le {n m : ℕ} (h : n ≤ m) : bit0 n ≤ bit0 m :=
 add_le_add h h

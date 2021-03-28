@@ -53,7 +53,7 @@ def lie_equiv_matrix' : module.End R (n → R) ≃ₗ⁅R⁆ matrix n n R :=
 /-- An invertible matrix induces a Lie algebra equivalence from the space of matrices to itself. -/
 noncomputable def matrix.lie_conj (P : matrix n n R) (h : is_unit P) :
   matrix n n R ≃ₗ⁅R⁆ matrix n n R :=
-((@lie_equiv_matrix' R _ n _ _).symm.trans (P.to_linear_equiv h).lie_conj).trans lie_equiv_matrix'
+((@lie_equiv_matrix' R _ n _ _).symm.trans (P.to_linear_equiv' h).lie_conj).trans lie_equiv_matrix'
 
 @[simp] lemma matrix.lie_conj_apply (P A : matrix n n R) (h : is_unit P) :
   P.lie_conj h A = P ⬝ A ⬝ P⁻¹ :=

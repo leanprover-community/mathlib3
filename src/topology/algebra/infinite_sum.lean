@@ -8,6 +8,7 @@ import topology.instances.real
 import topology.algebra.module
 import data.indicator_function
 import data.equiv.encodable.lattice
+import data.nat.parity
 import order.filter.at_top_bot
 
 /-!
@@ -150,6 +151,10 @@ lemma equiv.has_sum_iff (e : γ ≃ β) :
   has_sum (f ∘ e) a ↔ has_sum f a :=
 e.injective.has_sum_iff $ by simp
 
+lemma function.injective.has_sum_range_iff {g : γ → β} (hg : injective g) :
+  has_sum (λ x : set.range g, f x) a ↔ has_sum (f ∘ g) a :=
+(equiv.set.range g hg).has_sum_iff.symm
+
 lemma equiv.summable_iff (e : γ ≃ β) :
   summable (f ∘ e) ↔ summable f :=
 exists_congr $ λ a, e.has_sum_iff
@@ -231,10 +236,25 @@ lemma summable_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, summab
   summable (λb, ∑ i in s, f i b) :=
 (has_sum_sum $ assume i hi, (hf i hi).has_sum).summable
 
+lemma has_sum.add_disjoint {s t : set β} (hs : disjoint s t)
+  (ha : has_sum (f ∘ coe : s → α) a) (hb : has_sum (f ∘ coe : t → α) b) :
+  has_sum (f ∘ coe : s ∪ t → α) (a + b) :=
+begin
+  rw has_sum_subtype_iff_indicator at *,
+  rw set.indicator_union_of_disjoint hs,
+  exact ha.add hb
+end
+
+lemma has_sum.add_is_compl {s t : set β} (hs : is_compl s t)
+  (ha : has_sum (f ∘ coe : s → α) a) (hb : has_sum (f ∘ coe : t → α) b) :
+  has_sum f (a + b) :=
+by simpa [← hs.compl_eq]
+  using (has_sum_subtype_iff_indicator.1 ha).add (has_sum_subtype_iff_indicator.1 hb)
+
 lemma has_sum.add_compl {s : set β} (ha : has_sum (f ∘ coe : s → α) a)
   (hb : has_sum (f ∘ coe : sᶜ → α) b) :
   has_sum f (a + b) :=
-by simpa using (has_sum_subtype_iff_indicator.1 ha).add (has_sum_subtype_iff_indicator.1 hb)
+ha.add_is_compl is_compl_compl hb
 
 lemma summable.add_compl {s : set β} (hs : summable (f ∘ coe : s → α))
   (hsc : summable (f ∘ coe : sᶜ → α)) :
@@ -244,12 +264,28 @@ lemma summable.add_compl {s : set β} (hs : summable (f ∘ coe : s → α))
 lemma has_sum.compl_add {s : set β} (ha : has_sum (f ∘ coe : sᶜ → α) a)
   (hb : has_sum (f ∘ coe : s → α) b) :
   has_sum f (a + b) :=
-by simpa using (has_sum_subtype_iff_indicator.1 ha).add (has_sum_subtype_iff_indicator.1 hb)
+ha.add_is_compl is_compl_compl.symm hb
+
+lemma has_sum.even_add_odd {f : ℕ → α} (he : has_sum (λ k, f (2 * k)) a)
+  (ho : has_sum (λ k, f (2 * k + 1)) b) :
+  has_sum f (a + b) :=
+begin
+  have := mul_right_injective' (@two_ne_zero ℕ _ _),
+  replace he := this.has_sum_range_iff.2 he,
+  replace ho := ((add_left_injective 1).comp this).has_sum_range_iff.2 ho,
+  refine he.add_is_compl _ ho,
+  simpa [(∘)] using nat.is_compl_even_odd
+end
 
 lemma summable.compl_add {s : set β} (hs : summable (f ∘ coe : sᶜ → α))
   (hsc : summable (f ∘ coe : s → α)) :
   summable f :=
 (hs.has_sum.compl_add hsc.has_sum).summable
+
+lemma summable.even_add_odd {f : ℕ → α} (he : summable (λ k, f (2 * k)))
+  (ho : summable (λ k, f (2 * k + 1))) :
+  summable f :=
+(he.has_sum.even_add_odd ho.has_sum).summable
 
 lemma has_sum.sigma [regular_space α] {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α} {a : α}
   (ha : has_sum f a) (hf : ∀b, has_sum (λc, f ⟨b, c⟩) (g b)) : has_sum g a :=
@@ -464,6 +500,23 @@ end
 
 end encodable
 
+variables [has_continuous_add α]
+
+lemma tsum_add_tsum_compl {s : set β} (hs : summable (f ∘ coe : s → α))
+  (hsc : summable (f ∘ coe : sᶜ → α)) :
+  (∑' x : s, f x) + (∑' x : sᶜ, f x) = ∑' x, f x :=
+(hs.has_sum.add_compl hsc.has_sum).tsum_eq.symm
+
+lemma tsum_union_disjoint {s t : set β} (hd : disjoint s t)
+  (hs : summable (f ∘ coe : s → α)) (ht : summable (f ∘ coe : t → α)) :
+  (∑' x : s ∪ t, f x) = (∑' x : s, f x) + (∑' x : t, f x) :=
+(hs.has_sum.add_disjoint hd ht.has_sum).tsum_eq
+
+lemma tsum_even_add_odd {f : ℕ → α} (he : summable (λ k, f (2 * k)))
+  (ho : summable (λ k, f (2 * k + 1))) :
+  (∑' k, f (2 * k)) + (∑' k, f (2 * k + 1)) = ∑' k, f k :=
+(he.has_sum.even_add_odd ho.has_sum).tsum_eq.symm
+
 end tsum
 
 section pi
@@ -562,11 +615,6 @@ hf.has_sum.neg.tsum_eq
 lemma tsum_sub (hf : summable f) (hg : summable g) : ∑'b, (f b - g b) = ∑'b, f b - ∑'b, g b :=
 (hf.has_sum.sub hg.has_sum).tsum_eq
 
-lemma tsum_add_tsum_compl {s : set β} (hs : summable (f ∘ coe : s → α))
-  (hsc : summable (f ∘ coe : sᶜ → α)) :
-  (∑' x : s, f x) + (∑' x : sᶜ, f x) = ∑' x, f x :=
-(hs.has_sum.add_compl hsc.has_sum).tsum_eq.symm
-
 lemma sum_add_tsum_compl {s : finset β} (hf : summable f) :
   (∑ x in s, f x) + (∑' x : (↑s : set β)ᶜ, f x) = ∑' x, f x :=
 ((s.has_sum f).add_compl (s.summable_compl_iff.2 hf).has_sum).tsum_eq.symm
@@ -656,11 +704,11 @@ end tsum
 
 end topological_semiring
 
-section topological_semimodule
+section has_continuous_smul
 variables {R : Type*}
 [semiring R] [topological_space R]
 [topological_space α] [add_comm_monoid α]
-[semimodule R α] [topological_semimodule R α]
+[semimodule R α] [has_continuous_smul R α]
 {f : β → α}
 
 lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
@@ -672,7 +720,7 @@ hf.has_sum.smul.summable
 lemma tsum_smul [t2_space α] {r : R} (hf : summable f) : ∑' z, r • f z = r • ∑' z, f z :=
 hf.has_sum.smul.tsum_eq
 
-end topological_semimodule
+end has_continuous_smul
 
 section division_ring
 

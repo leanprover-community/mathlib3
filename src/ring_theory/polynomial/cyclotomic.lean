@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Riccardo Brasca
+Authors: Riccardo Brasca
 -/
 
 import field_theory.splitting_field
@@ -145,7 +145,7 @@ begin
   have hmonic : (X ^ n - C (1 : K)).monic := monic_X_pow_sub_C (1 : K) (ne_of_lt hpos).symm,
   symmetry,
   apply prod_multiset_X_sub_C_of_monic_of_roots_card_eq hmonic,
-  rw [@nat_degree_X_pow_sub_C K _ _ n hpos 1, ← nth_roots],
+  rw [@nat_degree_X_pow_sub_C K _ _ n 1, ← nth_roots],
   exact is_primitive_root.card_nth_roots h
 end
 
@@ -165,7 +165,6 @@ begin
   { simp only [hzero, ring_hom.map_one, splits_zero, pow_zero, sub_self] },
   rw [splits_iff_card_roots, ← nth_roots, is_primitive_root.card_nth_roots h,
     nat_degree_X_pow_sub_C],
-  exact nat.pos_of_ne_zero hzero
 end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then
@@ -532,9 +531,9 @@ begin
     exact monic.ne_zero prod_monic (degree_eq_bot.1 h) },
 end
 
-/-- If `p` is prime, then `cyclotomic p R = geom_series X p`. -/
-lemma cyclotomic_eq_geom_series {R : Type*} [comm_ring R] [nontrivial R] {p : ℕ}
-  (hp : nat.prime p) : cyclotomic p R = geom_series X p :=
+/-- If `p` is prime, then `cyclotomic p R = geom_sum X p`. -/
+lemma cyclotomic_eq_geom_sum {R : Type*} [comm_ring R] [nontrivial R] {p : ℕ}
+  (hp : nat.prime p) : cyclotomic p R = geom_sum X p :=
 begin
   symmetry,
   refine (eq_cyclotomic_iff hp.pos _).mpr _,
@@ -582,7 +581,7 @@ lemma coprime_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fa
   a.coprime p :=
 begin
   apply nat.coprime.symm,
-  rw [nat.prime.coprime_iff_not_dvd hprime],
+  rw [hprime.1.coprime_iff_not_dvd],
   by_contra h,
   replace h := (zmod.nat_coe_zmod_eq_zero_iff_dvd a p).2 h,
   rw [is_root.def, ring_hom.eq_nat_cast, h, ← coeff_zero_eq_eval_zero] at hroot,
@@ -601,7 +600,7 @@ section order
 
 /-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, then the multiplicative order of `a` modulo
 `p` divides `n`. -/
-lemma order_of_root_cyclotomic_dvd {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact p.prime]
+lemma order_of_root_cyclotomic_dvd {n : ℕ} (hpos : 0 < n) {p : ℕ} [fact p.prime]
   {a : ℕ} (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
   order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) ∣ n :=
 begin
@@ -618,7 +617,7 @@ end
 
 /-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, where `p` is a prime that does not divide
 `n`, then the multiplicative order of `a` modulo `p` is exactly `n`. -/
-lemma order_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact p.prime] {a : ℕ}
+lemma order_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [fact p.prime] {a : ℕ}
   (hn : ¬ p ∣ n) (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
   order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) = n :=
 begin
@@ -688,7 +687,8 @@ lemma cyclotomic.irreducible {n : ℕ} (hpos : 0 < n) : irreducible (cyclotomic 
 begin
   have h0 := (ne_of_lt hpos).symm,
   rw [cyclotomic_eq_minpoly (is_primitive_root_exp n h0) hpos],
-  exact minpoly.irreducible (is_integral (is_primitive_root_exp n h0) hpos)
+  apply minpoly.irreducible,
+  exact (is_primitive_root_exp n h0).is_integral hpos,
 end
 
 end minpoly

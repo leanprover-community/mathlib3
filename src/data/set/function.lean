@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Andrew Zipperer, Haitao Zhang, Minchao Wu, Yury Kudryashov
+Authors: Jeremy Avigad, Andrew Zipperer, Haitao Zhang, Minchao Wu, Yury Kudryashov
 -/
 import data.set.basic
 import logic.function.conjugate
@@ -87,6 +87,9 @@ lemma eq_on_comm : eq_on f₁ f₂ s ↔ eq_on f₂ f₁ s :=
 
 theorem eq_on.image_eq (heq : eq_on f₁ f₂ s) : f₁ '' s = f₂ '' s :=
 image_congr heq
+
+theorem eq_on.inter_preimage_eq (heq : eq_on f₁ f₂ s) (t : set β) : s ∩ f₁ ⁻¹' t = s ∩ f₂ ⁻¹' t :=
+ext $ λ x, and.congr_right_iff.2 $ λ hx, by rw [mem_preimage, mem_preimage, heq hx]
 
 lemma eq_on.mono (hs : s₁ ⊆ s₂) (hf : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ s₁ :=
 λ x hx, hf (hs hx)
@@ -184,6 +187,18 @@ theorem maps_to_preimage (f : α → β) (t : set β) : maps_to f (f ⁻¹' t) t
 
 theorem maps_to_range (f : α → β) (s : set α) : maps_to f s (range f) :=
 (maps_to_image f s).mono (subset.refl s) (image_subset_range _ _)
+
+@[simp] lemma maps_image_to (f : α → β) (g : γ → α) (s : set γ) (t : set β) :
+  maps_to f (g '' s) t ↔ maps_to (f ∘ g) s t :=
+⟨λ h c hc, h ⟨c, hc, rfl⟩, λ h d ⟨c, hc⟩, hc.2 ▸ h hc.1⟩
+
+@[simp] lemma maps_univ_to (f : α → β) (s : set β) :
+  maps_to f univ s ↔ ∀ a, f a ∈ s :=
+⟨λ h a, h (mem_univ _), λ h x _, h x⟩
+
+@[simp] lemma maps_range_to (f : α → β) (g : γ → α) (s : set β) :
+  maps_to f (range g) s ↔ maps_to (f ∘ g) univ s :=
+by rw [←image_univ, maps_image_to]
 
 theorem surjective_maps_to_image_restrict (f : α → β) (s : set α) :
   surjective ((maps_to_image f s).restrict f s (f '' s)) :=
@@ -651,6 +666,22 @@ lemma piecewise_eq_on (f g : α → β) : eq_on (s.piecewise f g) f s :=
 lemma piecewise_eq_on_compl (f g : α → β) : eq_on (s.piecewise f g) g sᶜ :=
 λ _, piecewise_eq_of_not_mem _ _ _
 
+lemma piecewise_le {δ : α → Type*} [Π i, preorder (δ i)] {s : set α} [Π j, decidable (j ∈ s)]
+  {f₁ f₂ g : Π i, δ i} (h₁ : ∀ i ∈ s, f₁ i ≤ g i) (h₂ : ∀ i ∉ s, f₂ i ≤ g i) :
+  s.piecewise f₁ f₂ ≤ g :=
+λ i, if h : i ∈ s then by simp * else by simp *
+
+lemma le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {s : set α} [Π j, decidable (j ∈ s)]
+  {f₁ f₂ g : Π i, δ i} (h₁ : ∀ i ∈ s, g i ≤ f₁ i) (h₂ : ∀ i ∉ s, g i ≤ f₂ i) :
+  g ≤ s.piecewise f₁ f₂ :=
+@piecewise_le α (λ i, order_dual (δ i)) _ s _ _ _ _ h₁ h₂
+
+lemma piecewise_le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {s : set α}
+  [Π j, decidable (j ∈ s)] {f₁ f₂ g₁ g₂ : Π i, δ i} (h₁ : ∀ i ∈ s, f₁ i ≤ g₁ i)
+  (h₂ : ∀ i ∉ s, f₂ i ≤ g₂ i) :
+  s.piecewise f₁ f₂ ≤ s.piecewise g₁ g₂ :=
+by apply piecewise_le; intros; simp *
+
 @[simp, priority 990]
 lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g i = s.piecewise f g i :=
@@ -664,13 +695,55 @@ funext $ λ x, if hx : x ∈ s then by simp [hx] else by simp [hx]
   (range f).piecewise g₁ g₂ ∘ f = g₁ ∘ f :=
 comp_eq_of_eq_on_range $ piecewise_eq_on _ _ _
 
-lemma piecewise_preimage (f g : α → β) (t) :
-  s.piecewise f g ⁻¹' t = s ∩ f ⁻¹' t ∪ sᶜ ∩ g ⁻¹' t :=
-ext $ λ x, by by_cases x ∈ s; simp *
+theorem maps_to.piecewise_ite {s s₁ s₂ : set α} {t t₁ t₂ : set β} {f₁ f₂ : α → β}
+  [∀ i, decidable (i ∈ s)]
+  (h₁ : maps_to f₁ (s₁ ∩ s) (t₁ ∩ t)) (h₂ : maps_to f₂ (s₂ ∩ sᶜ) (t₂ ∩ tᶜ)) :
+  maps_to (s.piecewise f₁ f₂) (s.ite s₁ s₂) (t.ite t₁ t₂) :=
+begin
+  refine (h₁.congr _).union_union (h₂.congr _),
+  exacts [(piecewise_eq_on s f₁ f₂).symm.mono (inter_subset_right _ _),
+    (piecewise_eq_on_compl s f₁ f₂).symm.mono (inter_subset_right _ _)]
+end
 
-lemma comp_piecewise (h : β → γ) {f g : α → β} {x : α} :
-  h (s.piecewise f g x) = s.piecewise (h ∘ f) (h ∘ g) x :=
+theorem eq_on_piecewise {f f' g : α → β} {t} :
+  eq_on (s.piecewise f f') g t ↔ eq_on f g (t ∩ s) ∧ eq_on f' g (t ∩ sᶜ) :=
+begin
+  simp only [eq_on, ← forall_and_distrib],
+  refine forall_congr (λ a, _), by_cases a ∈ s; simp *
+end
+
+theorem eq_on.piecewise_ite' {f f' g : α → β} {t t'} (h : eq_on f g (t ∩ s))
+  (h' : eq_on f' g (t' ∩ sᶜ)) :
+  eq_on (s.piecewise f f') g (s.ite t t') :=
+by simp [eq_on_piecewise, *]
+
+theorem eq_on.piecewise_ite {f f' g : α → β} {t t'} (h : eq_on f g t)
+  (h' : eq_on f' g t') :
+  eq_on (s.piecewise f f') g (s.ite t t') :=
+(h.mono (inter_subset_left _ _)).piecewise_ite' s (h'.mono (inter_subset_left _ _))
+
+lemma piecewise_preimage (f g : α → β) (t) :
+  s.piecewise f g ⁻¹' t = s.ite (f ⁻¹' t) (g ⁻¹' t) :=
+ext $ λ x, by by_cases x ∈ s; simp [*, set.ite]
+
+lemma apply_piecewise {δ' : α → Sort*} (h : Π i, δ i → δ' i) {x : α} :
+  h x (s.piecewise f g x) = s.piecewise (λ x, h x (f x)) (λ x, h x (g x)) x :=
 by by_cases hx : x ∈ s; simp [hx]
+
+lemma apply_piecewise₂ {δ' δ'' : α → Sort*} (f' g' : Π i, δ' i) (h : Π i, δ i → δ' i → δ'' i)
+  {x : α} :
+  h x (s.piecewise f g x) (s.piecewise f' g' x) =
+    s.piecewise (λ x, h x (f x) (f' x)) (λ x, h x (g x) (g' x)) x :=
+by by_cases hx : x ∈ s; simp [hx]
+
+lemma piecewise_op {δ' : α → Sort*} (h : Π i, δ i → δ' i) :
+  s.piecewise (λ x, h x (f x)) (λ x, h x (g x)) = λ x, h x (s.piecewise f g x) :=
+funext $ λ x, (apply_piecewise _ _ _ _).symm
+
+lemma piecewise_op₂ {δ' δ'' : α → Sort*} (f' g' : Π i, δ' i) (h : Π i, δ i → δ' i → δ'' i) :
+  s.piecewise (λ x, h x (f x) (f' x)) (λ x, h x (g x) (g' x)) =
+    λ x, h x (s.piecewise f g x) (s.piecewise f' g' x) :=
+funext $ λ x, (apply_piecewise₂ _ _ _ _ _ _).symm
 
 @[simp] lemma piecewise_same : s.piecewise f f = f :=
 by { ext x, by_cases hx : x ∈ s; simp [hx] }
@@ -687,7 +760,7 @@ lemma piecewise_mem_pi {δ : α → Type*} {t : set α} {t' : Π i, set (δ i)}
   s.piecewise f g ∈ pi t t' :=
 by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
 
-@[simp] lemma pi_piecewise_left {ι : Type*} {α : ι → Type*} (s s' : set ι)
+@[simp] lemma pi_piecewise {ι : Type*} {α : ι → Type*} (s s' : set ι)
   (t t' : Π i, set (α i)) [Π x, decidable (x ∈ s')] :
   pi s (s'.piecewise t t') = pi (s ∩ s') t ∩ pi (s \ s') t' :=
 begin
@@ -697,7 +770,7 @@ begin
   by_cases hi : i ∈ s'; simp *
 end
 
-lemma pi_piecewise_univ {ι : Type*} {α : ι → Type*} (s : set ι)
+lemma univ_pi_piecewise {ι : Type*} {α : ι → Type*} (s : set ι)
   (t : Π i, set (α i)) [Π x, decidable (x ∈ s)] :
   pi univ (s.piecewise t (λ _, univ)) = pi s t :=
 by simp

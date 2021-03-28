@@ -48,7 +48,7 @@ variables [smul_comm_class S R P] [smul_comm_class S R P']
 include R
 
 variables (R S)
-/-- Create a bilinear map from a function that is linear in each component. 
+/-- Create a bilinear map from a function that is linear in each component.
 See `mk₂` for the special case where both arguments come from modules over the same ring. -/
 def mk₂' (f : M → N → P)
   (H1 : ∀ m₁ m₂ n, f (m₁ + m₂) n = f m₁ n + f m₂ n)
@@ -85,6 +85,8 @@ end
 
 @[simp] theorem flip_apply (f : M →ₗ[R] N →ₗ[S] P) (m : M) (n : N) : flip f n m = f m n := rfl
 
+open_locale big_operators
+
 variables {R}
 theorem flip_inj {f g : M →ₗ[R] N →ₗ[S] P} (H : flip f = flip g) : f = g :=
 ext₂ $ λ m n, show flip f n m = flip g n m, by rw H
@@ -103,6 +105,10 @@ theorem map_add₂ (f : M →ₗ[R] N →ₗ[S] P) (x₁ x₂ y) : f (x₁ + x�
 
 theorem map_smul₂ (f : M →ₗ[R] N →ₗ[S] P) (r : R) (x y) : f (r • x) y = r • f x y :=
 (flip f y).map_smul _ _
+
+theorem map_sum₂ {ι : Type*} (f : M →ₗ[R] N →ₗ[S] P) (t : finset ι) (x : ι → M) (y) :
+  f (∑ i in t, x i) y = ∑ i in t, f (x i) y :=
+(flip f y).map_sum
 
 end semiring
 
@@ -189,6 +195,16 @@ variables {R M}
 @[simp] theorem lsmul_apply (r : R) (m : M) : lsmul R M r m = r • m := rfl
 
 end comm_semiring
+
+section comm_ring
+
+variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+
+lemma lsmul_injective [no_zero_smul_divisors R M] {x : R} (hx : x ≠ 0) :
+  function.injective (lsmul R M x) :=
+smul_injective hx
+
+end comm_ring
 
 end linear_map
 

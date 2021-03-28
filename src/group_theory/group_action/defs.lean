@@ -63,7 +63,7 @@ class mul_action (α : Type*) (β : Type*) [monoid α] extends has_scalar α β 
 class vadd_comm_class (M N α : Type*) [has_vadd M α] [has_vadd N α] : Prop :=
 (vadd_comm : ∀ (m : M) (n : N) (a : α), m +ᵥ (n +ᵥ a) = n +ᵥ (m +ᵥ a))
 
-/-- A typeclass mixin saying that two multiplicativeactions on the same space commute. -/
+/-- A typeclass mixin saying that two multiplicative actions on the same space commute. -/
 @[to_additive] class smul_comm_class (M N α : Type*) [has_scalar M α] [has_scalar N α] : Prop :=
 (smul_comm : ∀ (m : M) (n : N) (a : α), m • n • a = n • m • a)
 

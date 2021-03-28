@@ -856,6 +856,7 @@ namespace is_simple_group
 section comm_group
 variables [comm_group α] [is_simple_group α]
 
+@[priority 100]
 instance : is_cyclic α :=
 begin
   cases subsingleton_or_nontrivial α with hi hi; haveI := hi,
@@ -897,3 +898,14 @@ end
 end comm_group
 
 end is_simple_group
+
+theorem comm_group.is_simple_iff_is_cyclic_and_prime_card [fintype α] [comm_group α] :
+  is_simple_group α ↔ is_cyclic α ∧ (fintype.card α).prime :=
+begin
+  split,
+  { introI h,
+    exact ⟨is_simple_group.is_cyclic, is_simple_group.prime_card⟩ },
+  { rintro ⟨hc, hp⟩,
+    haveI : fact (fintype.card α).prime := ⟨hp⟩,
+    exact is_simple_group_of_prime_card rfl }
+end

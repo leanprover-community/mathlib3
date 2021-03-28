@@ -181,8 +181,8 @@ end
 
 variables [borel_space E] {f g : α → E} {a b : α} {μ : measure α}
 
-lemma smul [normed_field 𝕜] [normed_space 𝕜 E] {f : α → E} {a b : α} {μ : measure α}
-  (h : interval_integrable f μ a b) (r : 𝕜) :
+lemma smul [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  {f : α → E} {a b : α} {μ : measure α} (h : interval_integrable f μ a b) (r : 𝕜) :
   interval_integrable (r • f) μ a b :=
 ⟨h.1.smul r, h.2.smul r⟩
 

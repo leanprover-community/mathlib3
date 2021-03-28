@@ -533,7 +533,8 @@ lemma integrable.min_zero {f : α → ℝ} (hf : integrable f μ) : integrable (
 end pos_part
 
 section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_space 𝕜]
+  [opens_measurable_space 𝕜]
 
 lemma integrable.smul [borel_space β] (c : 𝕜) {f : α → β}
   (hf : integrable f μ) : integrable (c • f) μ :=
@@ -622,7 +623,8 @@ hf.add hg.neg
 end
 
 section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_space 𝕜]
+  [opens_measurable_space 𝕜]
 
 lemma integrable.smul {c : 𝕜} {f : α →ₘ[μ] β} : integrable f → integrable (c • f) :=
 induction_on f $ λ f hfm hfi, (integrable_mk _).2 $ ((integrable_mk hfm).1 hfi).smul _
@@ -747,7 +749,8 @@ by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
   edist (hf.to_L1 f) 0 = ∫⁻ a, edist (f a) 0 ∂μ :=
 by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm] }
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_space 𝕜]
+  [opens_measurable_space 𝕜]
 
 lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :
   to_L1 (λa, k • f a) (hf.smul k) = k • to_L1 f hf := rfl

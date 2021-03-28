@@ -750,7 +750,8 @@ begin
     (ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) h0.symm, h_top⟩),
 end
 
-lemma mem_ℒp.const_smul [borel_space E] {f : α → E} (hf : mem_ℒp f p μ) (c : 𝕜) :
+lemma mem_ℒp.const_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] [borel_space E] {f : α → E}
+  (hf : mem_ℒp f p μ) (c : 𝕜) :
   mem_ℒp (c • f) p μ :=
 ⟨ae_measurable.const_smul hf.1 c,
   lt_of_le_of_lt (le_of_eq (snorm_const_smul c)) (ennreal.mul_lt_top ennreal.coe_lt_top hf.2)⟩
@@ -1055,7 +1056,8 @@ instance normed_group_Ltop : normed_group (Lp E ∞ μ) := by apply_instance
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜]
+  [opens_measurable_space 𝕜]
 
 lemma mem_Lp_const_smul (c : 𝕜) (f : Lp E p μ) : c • ↑f ∈ Lp E p μ :=
 begin
@@ -1095,7 +1097,7 @@ namespace mem_ℒp
 
 variables
   [borel_space E] [second_countable_topology E]
-  {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
+  {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 lemma to_Lp_const_smul {f : α → E} (c : 𝕜) (hf : mem_ℒp f p μ) :
   (hf.const_smul c).to_Lp (c • f) = c • hf.to_Lp f := rfl

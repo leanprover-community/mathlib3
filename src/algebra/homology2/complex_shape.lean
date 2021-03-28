@@ -62,14 +62,20 @@ def r' (c : complex_shape ι) : ℤ → ι → ι → Prop
 | (int.neg_succ_of_nat 0) i j := c.r j i
 | (int.neg_succ_of_nat (n+1)) i j := ∃ k, c.r j k ∧ r' (int.neg_succ_of_nat n) k j
 
-def nat (s : ℕ) : complex_shape ℕ :=
-{ r := λ i j, i + s = j,
-  succ_eq := by tidy,
-  pred_eq := λ i j k hi hj, by linarith, }
+def up' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape α :=
+{ r := λ i j , i + a = j,
+  succ_eq := λ i j k hi hj, hi.symm.trans hj,
+  pred_eq := λ i j k hi hj, add_right_cancel (hi.trans hj.symm), }
 
-def int (s : ℤ) : complex_shape ℤ :=
-{ r := λ i j, i + s = j,
-  succ_eq := by tidy,
-  pred_eq := λ i j k hi hj, by linarith, }
+def down' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape α :=
+{ r := λ i j , j + a = i,
+  succ_eq := λ i j k hi hj, add_right_cancel (hi.trans (hj.symm)),
+  pred_eq := λ i j k hi hj, hi.symm.trans hj, }
+
+def up {α : Type*} [add_right_cancel_semigroup α] [has_one α] : complex_shape α :=
+up' 1
+
+def down {α : Type*} [add_right_cancel_semigroup α] [has_one α] : complex_shape α :=
+down' 1
 
 end complex_shape

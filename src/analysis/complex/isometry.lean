@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 François Sunatori. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: François Sunatori.
+Authors: François Sunatori
 -/
 import analysis.complex.basic
 import data.complex.exponential
@@ -162,8 +162,10 @@ begin
       have ha_inv : a⁻¹ ≠ 0 := by {
         exact inv_ne_zero ha,
       },
-      conv { congr, rw ← mul_right_inj' ha_inv, rw ← mul_assoc, rw inv_mul_cancel ha, rw one_mul, change g z = z },
-      conv { congr, skip, rw ← mul_right_inj' ha_inv, rw ← mul_assoc, rw inv_mul_cancel ha, rw one_mul, change g z = conj z },
+      conv { congr, rw ← mul_right_inj' ha_inv, rw ← mul_assoc,
+        rw inv_mul_cancel ha, rw one_mul, change g z = z },
+      conv { congr, skip, rw ← mul_right_inj' ha_inv, rw ← mul_assoc,
+        rw inv_mul_cancel ha, rw one_mul, change g z = conj z },
       exact h,
     }
 end

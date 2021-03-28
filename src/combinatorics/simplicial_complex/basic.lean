@@ -111,7 +111,9 @@ lemma empty_mem_faces_of_nonempty {S : simplicial_complex m} : (S.faces).nonempt
 /-def simplicial_complex.dimension (S : simplicial_complex m) : ℕ :=
  Sup {finset.card (X : set E) | X ∈ S.faces}-/
 
-variable [finite_dimensional ℝ (fin m → ℝ)]
+-- Dumb bug in mathlib, see
+--https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there.20code.20for.20X.3F/topic/R.5Em.20is.20finite.20dimensional.20over.20R/near/231748016
+instance {m : ℕ} : finite_dimensional ℝ (fin m → ℝ) := sorry
 
 --Refinement of `size_bound`
 lemma simplex_dimension_le_space_dimension {S : simplicial_complex m} {X : finset E}

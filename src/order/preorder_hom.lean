@@ -25,9 +25,7 @@ infixr ` →ₘ `:25 := preorder_hom
 namespace preorder_hom
 variables {α : Type*} {β : Type*} {γ : Type*} [preorder α] [preorder β] [preorder γ]
 
-instance : has_coe_to_fun (preorder_hom α β) :=
-{ F := λ f, α → β,
-  coe := preorder_hom.to_fun }
+instance : has_coe_to_fun (preorder_hom α β) (λ _, α → β) := ⟨preorder_hom.to_fun⟩
 
 @[mono]
 lemma monotone (f : α →ₘ β) : monotone f :=

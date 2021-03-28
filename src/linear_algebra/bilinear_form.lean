@@ -67,7 +67,7 @@ variables {B : bilin_form R M} {B₁ : bilin_form R₁ M₁} {B₂ : bilin_form 
 
 namespace bilin_form
 
-instance : has_coe_to_fun (bilin_form R M) :=
+instance : has_coe_to_fun (bilin_form R M) (λ _, M → M → R) :=
 ⟨_, λ B, B.bilin⟩
 
 initialize_simps_projections bilin_form (bilin -> apply)

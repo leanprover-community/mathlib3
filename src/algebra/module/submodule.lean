@@ -47,11 +47,11 @@ variables [semiring R] [add_comm_monoid M] [semimodule R M]
 
 instance : has_coe_t (submodule R M) (set M) := ⟨λ s, s.carrier⟩
 instance : has_mem M (submodule R M) := ⟨λ x p, x ∈ (p : set M)⟩
-instance : has_coe_to_sort (submodule R M) := ⟨_, λ p, {x : M // x ∈ p}⟩
+instance : has_coe_to_sort (submodule R M) Type* := ⟨λ p, {x : M // x ∈ p}⟩
 
 variables (p q : submodule R M)
 
-@[simp, norm_cast] theorem coe_sort_coe : ↥(p : set M) = p := rfl
+@[simp, norm_cast] theorem coe_sort_coe : ((p : set M) : Type*) = p := rfl
 
 variables {p q}
 

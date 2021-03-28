@@ -189,10 +189,10 @@ variables {α : Type*} [linear_ordered_field α]
 section ring
 variables {β : Type*} [ring β] {abv : β → α}
 
-instance : has_coe_to_fun (cau_seq β abv) := ⟨_, subtype.val⟩
+instance : has_coe_to_fun (cau_seq β abv) (λ _, ℕ → β) := ⟨subtype.val⟩
 
 @[simp] theorem mk_to_fun (f) (hf : is_cau_seq abv f) :
-  @coe_fn (cau_seq β abv) _ ⟨f, hf⟩ = f := rfl
+  @coe_fn (cau_seq β abv) _ _ ⟨f, hf⟩ = f := rfl
 
 theorem ext {f g : cau_seq β abv} (h : ∀ i, f i = g i) : f = g :=
 subtype.eq (funext h)

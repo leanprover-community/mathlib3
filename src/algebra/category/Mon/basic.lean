@@ -35,7 +35,10 @@ namespace Mon
 instance bundled_hom : bundled_hom @monoid_hom :=
 ⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.coe_inj⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Mon AddMon
+attribute [derive [large_category, concrete_category]] Mon AddMon
+attribute [to_additive] Mon.large_category Mon.concrete_category
+
+@[to_additive] instance : has_coe_to_sort Mon Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `Mon` from the underlying type and typeclass. -/
 @[to_additive]
@@ -69,7 +72,10 @@ namespace CommMon
 @[to_additive]
 instance : bundled_hom.parent_projection comm_monoid.to_monoid := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommMon AddCommMon
+attribute [derive [large_category, concrete_category]] CommMon AddCommMon
+attribute [to_additive] CommMon.large_category CommMon.concrete_category
+
+@[to_additive] instance : has_coe_to_sort CommMon Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `CommMon` from the underlying type and typeclass. -/
 @[to_additive]

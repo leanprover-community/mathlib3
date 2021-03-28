@@ -146,7 +146,7 @@ lemma X_pow_mul_monomial (k n : ℕ) (r : R) : X^k * monomial n r = monomial (n+
 by rw [X_pow_mul, monomial_mul_X_pow]
 
 /-- coeff p n is the coefficient of X^n in p -/
-def coeff (p : polynomial R) : ℕ → R := @coe_fn (ℕ →₀ R) _ p
+def coeff (p : polynomial R) : ℕ → R := @coe_fn (ℕ →₀ R) _ _ p
 
 @[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
 

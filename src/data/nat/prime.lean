@@ -628,10 +628,12 @@ pos_iff_ne_zero.2 $ λ e,
 by rw e at h; exact not_le_of_lt (nat.bit1_lt h.1) h.2
 
 lemma min_fac_ne_bit0 {n k : ℕ} : nat.min_fac (bit1 n) ≠ bit0 k :=
-by rw bit0_eq_two_mul; exact λ e, absurd
-  ((nat.dvd_add_iff_right (by simp [bit0_eq_two_mul n])).2
-    (dvd_trans ⟨_, e⟩ (nat.min_fac_dvd _)))
-  dec_trivial
+begin
+  rw bit0_eq_two_mul,
+  refine λ e, absurd ((nat.dvd_add_iff_right _).2
+    (dvd_trans ⟨_, e⟩ (nat.min_fac_dvd _))) dec_trivial,
+  simp [bit0_eq_two_mul n]
+end
 
 lemma min_fac_helper_0 (n : ℕ) (h : 0 < n) : min_fac_helper n 1 :=
 begin

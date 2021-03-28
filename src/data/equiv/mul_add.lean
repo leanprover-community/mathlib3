@@ -385,7 +385,7 @@ def mul_left (u : units M) : equiv.perm M :=
   right_inv := u.mul_inv_cancel_left }
 
 @[simp, to_additive]
-lemma coe_mul_left (u : units M) : ⇑u.mul_left = (*) u := rfl
+lemma coe_mul_left (u : units M) : (u.mul_left : M → M) = (*) u := rfl
 
 @[simp, to_additive]
 lemma mul_left_symm (u : units M) : u.mul_left.symm = u⁻¹.mul_left :=

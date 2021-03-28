@@ -304,7 +304,7 @@ lemma le_def {s t : subring R} : s ≤ t ↔ ∀ ⦃x : R⦄, x ∈ s → x ∈ 
 lemma mem_coe {S : subring R} {m : R} : m ∈ (S : set R) ↔ m ∈ S := iff.rfl
 
 @[simp, norm_cast]
-lemma coe_coe (s : subring R) : ↥(s : set R) = s := rfl
+lemma coe_coe (s : subring R) : ((s : set R) : Type*) = s := rfl
 
 @[simp] lemma mem_to_submonoid {s : subring R} {x : R} : x ∈ s.to_submonoid ↔ x ∈ s := iff.rfl
 @[simp] lemma coe_to_submonoid (s : subring R) : (s.to_submonoid : set R) = s := rfl

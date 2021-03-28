@@ -149,13 +149,13 @@ lemma coe_to_submonoid (K : subgroup G) : (K.to_submonoid : set G) = K := rfl
 instance : has_mem G (subgroup G) := ⟨λ m K, m ∈ (K : set G)⟩
 
 @[to_additive]
-instance : has_coe_to_sort (subgroup G) := ⟨_, λ G, (G : Type*)⟩
+instance : has_coe_to_sort (subgroup G) Type* := ⟨λ K, ↥(K : set G)⟩
 
 @[simp, norm_cast, to_additive]
 lemma mem_coe {K : subgroup G} {g : G} : g ∈ (K : set G) ↔ g ∈ K := iff.rfl
 
 @[simp, norm_cast, to_additive]
-lemma coe_coe (K : subgroup G) : ↥(K : set G) = K := rfl
+lemma coe_coe (K : subgroup G) : ((K : set G) : Type*) = K := rfl
 
 -- note that `to_additive` transfers the `simp` attribute over but not the `norm_cast` attribute
 attribute [norm_cast] add_subgroup.mem_coe
@@ -435,8 +435,8 @@ begin
   { left,
     exact H.eq_bot_iff_forall.mpr h },
   { right,
-    push_neg at h,
-    simpa [nontrivial_iff_exists_ne_one] using h },
+    simp only [not_forall] at h,
+    simpa only [nontrivial_iff_exists_ne_one] }
 end
 
 /-- A subgroup is either the trivial subgroup or contains a nonzero element. -/

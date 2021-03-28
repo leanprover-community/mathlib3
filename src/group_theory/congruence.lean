@@ -110,7 +110,7 @@ instance : inhabited (con M) :=
 
 /-- A coercion from a congruence relation to its underlying binary relation. -/
 @[to_additive "A coercion from an additive congruence relation to its underlying binary relation."]
-instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, c.r x y⟩
+instance : has_coe_to_fun (con M) (λ _, M → M → Prop) := ⟨λ c x y, c.r x y⟩
 
 @[simp, to_additive] lemma rel_eq_coe (c : con M) : c.r = c := rfl
 

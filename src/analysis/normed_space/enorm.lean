@@ -46,7 +46,7 @@ namespace enorm
 variables {𝕜 : Type*} {V : Type*} [normed_field 𝕜] [add_comm_group V] [vector_space 𝕜 V]
   (e : enorm 𝕜 V)
 
-instance : has_coe_to_fun (enorm 𝕜 V) := ⟨_, enorm.to_fun⟩
+instance : has_coe_to_fun (enorm 𝕜 V) (λ _, V → ℝ≥0∞) := ⟨enorm.to_fun⟩
 
 lemma coe_fn_injective : function.injective (λ (e : enorm 𝕜 V) (x : V), e x) :=
 λ e₁ e₂ h, by cases e₁; cases e₂; congr; exact h

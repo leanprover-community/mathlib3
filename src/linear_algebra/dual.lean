@@ -52,7 +52,7 @@ namespace dual
 
 instance : inhabited (dual R M) := by dunfold dual; apply_instance
 
-instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
+instance : has_coe_to_fun (dual R M) (λ _, M → R) := ⟨linear_map.to_fun⟩
 
 /-- Maps a module M to the dual of the dual of M. See `vector_space.erange_coe` and
 `vector_space.eval_equiv`. -/

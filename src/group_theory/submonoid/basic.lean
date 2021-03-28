@@ -75,7 +75,7 @@ instance : has_coe (submonoid M) (set M) := ⟨submonoid.carrier⟩
 instance : has_mem M (submonoid M) := ⟨λ m S, m ∈ (S:set M)⟩
 
 @[to_additive]
-instance : has_coe_to_sort (submonoid M) := ⟨Type*, λ S, {x : M // x ∈ S}⟩
+instance : has_coe_to_sort (submonoid M) Type* := ⟨λ S, {x : M // x ∈ S}⟩
 
 @[simp, to_additive]
 lemma mem_carrier {s : submonoid M} {x : M} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -84,7 +84,7 @@ lemma mem_carrier {s : submonoid M} {x : M} : x ∈ s.carrier ↔ x ∈ s := iff
 lemma mem_coe {S : submonoid M} {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
 
 @[simp, norm_cast, to_additive]
-lemma coe_coe (s : submonoid M) : ↥(s : set M) = s := rfl
+lemma coe_coe (s : submonoid M) : ((s : set M) : Type*) = s := rfl
 
 attribute [norm_cast] add_submonoid.mem_coe add_submonoid.coe_coe
 

@@ -23,7 +23,7 @@ structure embedding (α : Sort*) (β : Sort*) :=
 
 infixr ` ↪ `:25 := embedding
 
-instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) := ⟨_, embedding.to_fun⟩
+instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) (λ _, α → β) := ⟨embedding.to_fun⟩
 
 initialize_simps_projections embedding (to_fun → apply)
 
@@ -48,7 +48,7 @@ lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 @[simp] theorem coe_fn_mk {α β} (f : α → β) (i) :
   (@mk _ _ f i : α → β) = f := rfl
 
-theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
+protected theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
 
 @[refl, simps {simp_rhs := tt}]
 protected def refl (α : Sort*) : α ↪ α :=

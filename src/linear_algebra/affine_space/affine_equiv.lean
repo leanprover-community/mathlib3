@@ -49,8 +49,8 @@ instance (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
   [ring k]
   [add_comm_group V1] [module k V1] [affine_space V1 P1]
   [add_comm_group V2] [module k V2] [affine_space V2 P2] :
-  has_coe_to_fun (P1 ≃ᵃ[k] P2) :=
-⟨_, λ e, e.to_fun⟩
+  has_coe_to_fun (P1 ≃ᵃ[k] P2) (λ _, P1 → P2) :=
+⟨λ e, e.to_fun⟩
 
 variables {k V₁ V₂ V₃ V₄ P₁ P₂ P₃ P₄ : Type*} [ring k]
   [add_comm_group V₁] [semimodule k V₁] [add_torsor V₁ P₁]
@@ -66,7 +66,7 @@ def to_affine_equiv (e : V₁ ≃ₗ[k] V₂) : V₁ ≃ᵃ[k] V₂ :=
   linear := e,
   map_vadd' := λ p v, e.map_add v p }
 
-@[simp] lemma coe_to_affine_equiv (e : V₁ ≃ₗ[k] V₂) : ⇑e.to_affine_equiv = e := rfl
+@[simp] lemma coe_to_affine_equiv (e : V₁ ≃ₗ[k] V₂) : (e.to_affine_equiv : V₁ → V₂) = e := rfl
 
 end linear_equiv
 
@@ -130,7 +130,7 @@ to_affine_map_injective $ affine_map.ext h
 lemma coe_fn_injective : injective (λ (e : P₁ ≃ᵃ[k] P₂) (x : P₁), e x) :=
 λ e e' H, ext $ congr_fun H
 
-@[simp, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : ⇑e = e' ↔ e = e' :=
+@[simp, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : (e : P₁ → P₂) = e' ↔ e = e' :=
 coe_fn_injective.eq_iff
 
 lemma to_equiv_injective : injective (to_equiv : (P₁ ≃ᵃ[k] P₂) → (P₁ ≃ P₂)) :=

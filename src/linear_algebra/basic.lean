@@ -2387,7 +2387,7 @@ instance automorphism_group.to_linear_map_is_monoid_hom :
 namespace general_linear_group
 variables {R M}
 
-instance : has_coe_to_fun (general_linear_group R M) := by apply_instance
+instance : has_coe_to_fun (general_linear_group R M) (λ _, M → M) := by apply_instance
 
 /-- An invertible linear map `f` determines an equivalence from `M` to itself. -/
 def to_linear_equiv (f : general_linear_group R M) : (M ≃ₗ[R] M) :=

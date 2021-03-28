@@ -52,9 +52,9 @@ def induced_category : Type u₁ := C
 
 variables {D}
 
-instance induced_category.has_coe_to_sort [has_coe_to_sort D] :
-  has_coe_to_sort (induced_category D F) :=
-⟨_, λ c, ↥(F c)⟩
+instance induced_category.has_coe_to_sort {α : Sort*} [has_coe_to_sort D α] :
+  has_coe_to_sort (induced_category D F) α :=
+⟨λ c, ↥(F c)⟩
 
 instance induced_category.category : category.{v} (induced_category D F) :=
 { hom  := λ X Y, F X ⟶ F Y,

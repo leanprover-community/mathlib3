@@ -117,7 +117,7 @@ lemma right_eq_right_left_right (Z : arrow_cond C) :
   right_lifting_property (left_lifting_property (right_lifting_property Z)) :=
 begin
   apply arrow_cond.subset_antisymm,
-  { sorry, },
+  { tauto,  },
   { apply right_lifting_property_sub,
     exact sub_left_right Z, }
 end
@@ -159,28 +159,44 @@ begin
     -/
 end
 
+/-- An adjunction yields an adjunction between the arrow categories. -/
+def arrow_adjunction (F : C ⥤ D) (G : D ⥤ C) (adj : F ⊣ G) :
+  functor.map_arrow F ⊣ functor.map_arrow G :=
+category_theory.adjunction.mk_of_hom_equiv {
+  hom_equiv := sorry,
+-- This def should be put in arrow.lean!
+
+}
+
+lemma lifting_adjunction {F : C ⥤ D} {G : D ⥤ C} [adj : F ⊣ G]
+  (i : arrow C) (p : arrow D) :
+  has_lifting_property ((functor.map_arrow F).obj i) p →
+  has_lifting_property i ((functor.map_arrow G).obj p) :=
+begin
+  intros h sq,
+
+  -- convert the square from i ⟶ G p into F i ⟶ p
+  let sq_adjoint := ((arrow_adjunction F G adj).hom_equiv i p).inv_fun sq,
+  haveI := h sq_adjoint,
+
+  fconstructor,
+  fconstructor,
+  fconstructor,
+  { simp,
+    exact (adj.hom_equiv i.right p.left).to_fun (arrow.lift sq_adjoint), },
+  {
+    sorry
+  },
+  { sorry, }
+end
+
 lemma lifting_properties_adjunction
   (A : arrow_cond C) (B : arrow_cond D)
   {F : C ⥤ D} {G : D ⥤ C} [F ⊣ G] :
   arrow_cond.ess_image F A ⊆ left_lifting_property B ↔ A ⊆ arrow_cond.ess_image G B :=
 begin
-  split,
-  {
-    intros hAB --
-      i -- an arrow in C
-      hAi, -- A p holds
-    -- show that p lies in the essential image G(B)
-
-    -- show that F i lifts vs. B using hAB
-
-    -- apply G to the lift: G F i lifts vs. G B
-
-    -- use the isomorphism G F i ≅ i
-
-    -- show that the lift
-    sorry
-  },
-  { sorry }
+  -- use lifting_adjunction
+  sorry
 end
 
 variable (Z : arrow_cond C)

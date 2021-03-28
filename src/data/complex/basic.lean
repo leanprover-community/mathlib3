@@ -191,6 +191,10 @@ lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
+lemma conj_sub (z z': ℂ) : conj (z - z') = conj z - conj z' := conj.map_sub z z'
+
+lemma conj_one : conj 1 = 1 := by rw conj.map_one
+
 instance : star_ring ℂ :=
 { star := λ z, conj z,
   star_involutive := λ z, by simp,

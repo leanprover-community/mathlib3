@@ -7,10 +7,6 @@ open complex
 
 local notation `|` x `|` := complex.abs x
 
-lemma conj_sub (z z': ℂ) : conj (z - z') = conj z - conj z' := conj.map_sub z z'
-
-lemma conj_one : conj 1 = 1 := by rw conj.map_one
-
 lemma add_self_eq (a : ℝ) : a + a = a * 2 := by ring
 
 -- http://helmut.knaust.info/mediawiki/images/b/b5/Iso.pdf

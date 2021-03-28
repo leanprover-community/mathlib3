@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2021 François Sunatori. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: François Sunatori.
+-/
 import analysis.complex.basic
 import data.complex.exponential
 import data.real.sqrt

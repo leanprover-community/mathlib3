@@ -88,7 +88,7 @@ ideal_inter_nonempty.inter_nonempty
 namespace ideal
 
 section preorder
-variables [preorder P] {x : P} {I J : ideal P}
+variables [preorder P] {x y : P} {I J : ideal P}
 
 /-- The smallest ideal containing a given element. -/
 def principal (p : P) : ideal P :=
@@ -107,6 +107,8 @@ instance : has_coe (ideal P) (set P) := ⟨carrier⟩
 instance : has_mem P (ideal P) := ⟨λ x I, x ∈ (I : set P)⟩
 
 @[simp] lemma mem_def : x ∈ I ↔ x ∈ (I : set P) := iff_of_eq rfl
+
+@[simp] lemma mem_principal : y ∈ principal x ↔ y ≤ x := by refl
 
 /-- Two ideals are equal when their underlying sets are equal. -/
 @[ext] lemma ext : ∀ (I J : ideal P), (I : set P) = J → I = J
@@ -129,6 +131,9 @@ instance : partial_order (ideal P) := partial_order.lift coe ext
 ⟨λ (h : ∀ {y}, y ≤ x → y ∈ I), h (le_refl x),
  λ h_mem y (h_le : y ≤ x), I.mem_of_le h_le h_mem⟩
 
+lemma compl_mem_of_ge {x y : P} : x ≤ y → x ∈ (I : set P)ᶜ → y ∈ (I : set P)ᶜ :=
+λ h, mt (I.mem_of_le h)
+
 /-- A proper ideal is one that is not the whole set.
     Note that the whole set might not be an ideal. -/
 @[mk_iff] class is_proper (I : ideal P) : Prop := (ne_univ : (I : set P) ≠ set.univ)
@@ -144,7 +149,7 @@ end⟩
   Note that we cannot use the `is_coatom` class because `P` might not have a `top` element.
 -/
 @[mk_iff] class is_maximal (I : ideal P) extends is_proper I : Prop :=
-(maximal_proper : ∀ J : ideal P, I < J → J.carrier = set.univ)
+(maximal_proper : ∀ {J : ideal P}, I < J → J.carrier = set.univ)
 
 end preorder
 
@@ -206,7 +211,7 @@ lemma is_proper_iff_ne_top {I : ideal P} : is_proper I ↔ I ≠ ⊤ :=
 
 lemma is_maximal.is_coatom {I : ideal P} (h : is_maximal I) : is_coatom I :=
 ⟨is_maximal.to_is_proper.ne_top,
- λ J _, by { rw [ext'_iff, top_coe], exact is_maximal.maximal_proper J ‹_› }⟩
+ λ _ _, by { rw [ext'_iff, top_coe], exact is_maximal.maximal_proper ‹_› }⟩
 
 lemma is_maximal.is_coatom' {I : ideal P} [is_maximal I] : is_coatom I :=
 is_maximal.is_coatom ‹_›
@@ -281,6 +286,14 @@ instance : lattice (ideal P) :=
 
 @[simp] lemma mem_sup {x : P} : x ∈ I ⊔ J ↔ ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j := iff_of_eq rfl
 
+lemma gt_sup_principal_of_not_mem {I : ideal P} {x : P} (hx : x ∉ I) : I < I ⊔ principal x :=
+begin
+  apply lt_of_le_of_ne le_sup_left,
+  intro h,
+  simp at h,
+  exact hx h
+end
+
 end semilattice_sup_ideal_inter_nonempty
 
 section semilattice_sup_bot
@@ -300,7 +313,7 @@ instance semilattice_inf.ideal_inter_nonempty : ideal_inter_nonempty P :=
   inter_nonempty := λ I J, begin
     cases I.nonempty with i _,
     cases J.nonempty with j _,
-    refine ⟨i ⊓ j, I.mem_of_le inf_le_left ‹_›, J.mem_of_le inf_le_right ‹_›⟩,
+    exact ⟨i ⊓ j, I.mem_of_le inf_le_left ‹_›, J.mem_of_le inf_le_right ‹_›⟩
   end
 }
 
@@ -324,7 +337,7 @@ lemma sup_coe_eq_sup_set : ↑(I ⊔ J) = {x | ∃ i ∈ I, ∃ j ∈ J, x = i �
 begin
   ext,
   rw [← mem_def, mem_sup],
-  exact ⟨λ ⟨_, hi, _, hj, hx⟩, eq_sup_of_le_sup ‹_› ‹_› ‹_›,
+  exact ⟨λ ⟨_, _, _, _, _⟩, eq_sup_of_le_sup ‹_› ‹_› ‹_›,
   λ ⟨i, _, j, _, _⟩, ⟨i, ‹_›, j, ‹_›, le_of_eq ‹_›⟩⟩
 end
 

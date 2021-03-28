@@ -49,6 +49,11 @@ structure pfilter (P) [preorder P] :=
 def is_pfilter [preorder P] (F : set P) : Prop :=
 @is_ideal (order_dual P) _ F
 
+lemma is_pfilter.of_def [preorder P] {F : set P} (nonempty : F.nonempty)
+(directed : directed_on (≥) F) (mem_of_le : ∀ {x y : P}, x ≤ y → x ∈ F → y ∈ F) : is_pfilter F :=
+by { use [nonempty, directed], exact λ _ _ _ _, mem_of_le ‹_› ‹_›}
+
+
 /-- Create an element of type `order.pfilter` from a set satisfying the predicate
 `order.is_pfilter`. -/
 def is_pfilter.to_pfilter [preorder P] {F : set P} (h : is_pfilter F) : pfilter P :=
@@ -64,6 +69,8 @@ instance : has_coe (pfilter P) (set P) := ⟨λ F, F.dual.carrier⟩
 
 /-- For the notation `x ∈ F`. -/
 instance : has_mem P (pfilter P) := ⟨λ x F, x ∈ (F : set P)⟩
+
+@[simp] lemma mem_def : x ∈ F ↔ x ∈ (F : set P) := iff_of_eq rfl
 
 lemma is_pfilter : is_pfilter (F : set P) :=
 F.dual.is_ideal

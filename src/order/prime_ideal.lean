@@ -39,8 +39,6 @@ variables {P : Type*}
 
 section preorder
 
-variables [preorder P]
-
 namespace ideal
 
 /-- A pair of an `ideal` and a `pfilter` which form a partition of `P`.
@@ -52,6 +50,9 @@ structure prime_pair (P : Type*) [preorder P] :=
 (is_compl_I_F : is_compl (I : set P) F)
 
 namespace prime_pair
+
+variable [preorder P]
+
 variable (IF : prime_pair P)
 
 lemma compl_I_eq_F : (IF.I : set P)ᶜ = IF.F := IF.is_compl_I_F.compl_eq
@@ -73,8 +74,12 @@ end prime_pair
 
 /-- An ideal `I` is prime if its complement is a filter.
 -/
-@[mk_iff] class is_prime (I : ideal P) extends is_proper I : Prop :=
+@[mk_iff] class is_prime [preorder P] (I : ideal P) extends is_proper I : Prop :=
 (compl_filter : is_pfilter (I : set P)ᶜ)
+
+section preorder
+
+variable [preorder P]
 
 /-- Create an element of type `order.ideal.prime_pair` from an ideal satisfying the predicate
 `order.ideal.is_prime`. -/
@@ -87,27 +92,74 @@ lemma prime_pair.I_is_prime (IF : prime_pair P) : is_prime IF.I :=
 { compl_filter := by { rw IF.compl_I_eq_F, exact IF.F.is_pfilter },
   ..IF.I_is_proper }
 
+end preorder
+
 section semilattice_inf
 
 variable [semilattice_inf P]
-variables {x y : P}
 
-lemma is_prime.mem_or_mem {I : ideal P} (hI : is_prime I) : x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
+variables {x y : P} {I : ideal P}
+
+lemma is_prime.mem_or_mem (hI : is_prime I) {x y : P} : x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
 begin
   contrapose!,
-  intro h,
-  let IF : prime_pair P := hI.to_prime_pair,
-  have hxy : x ∈ ↑IF.F ∧ y ∈ ↑IF.F := by rwa ← prime_pair.compl_I_eq_F,
-  show x ⊓ y ∈ IF.F,
-  repeat {rw ← pfilter.mem_def at hxy},
-  refine @inf_mem P _ IF.F x y hxy.1 hxy.2,
+  let F := hI.compl_filter.to_pfilter,
+  show x ∈ F ∧ y ∈ F → x ⊓ y ∈ F,
+  exact λ h, inf_mem _ _ h.1 h.2,
 end
 
+lemma is_prime.of_mem_or_mem [is_proper I] (hI : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I) :
+is_prime I :=
+begin
+  rw is_prime_iff,
+  use ‹_›,
+  apply is_pfilter.of_def,
+  { exact set.nonempty_compl.2 (I.is_proper_iff.1 ‹_›) },
+  { intros x _ y _,
+    refine ⟨x ⊓ y, _, inf_le_left, inf_le_right⟩,
+    have := mt hI,
+    tauto!,
+   },
+  { exact @compl_mem_of_ge _ _ _}
+end
+
+lemma is_prime_iff_mem_or_mem [is_proper I] : is_prime I ↔ ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
+⟨is_prime.mem_or_mem, is_prime.of_mem_or_mem⟩
+
 end semilattice_inf
+
+section distrib_lattice
+
+variables [distrib_lattice P]
+variables {I : ideal P}
+
+instance is_maximal.is_prime [is_maximal I] : is_prime I :=
+begin
+  rw is_prime_iff_mem_or_mem,
+  intros x y,
+  contrapose!,
+  rintro ⟨hx, hynI⟩ hxy,
+  apply hynI,
+  let J := I ⊔ principal x,
+  have hJuniv : (J : set P) = set.univ :=
+  is_maximal.maximal_proper (gt_sup_principal_of_not_mem ‹_›),
+  have hyJ : y ∈ ↑J := set.eq_univ_iff_forall.mp hJuniv y,
+  rw sup_coe_eq_sup_set at hyJ,
+  rcases hyJ with ⟨a, ha, b, hb, hy⟩,
+  rw hy,
+  apply sup_mem _ _ ha,
+  refine I.mem_of_le (le_inf hb _) hxy,
+  rw hy,
+  exact le_sup_right
+end
+
+end distrib_lattice
 
 end ideal
 
 namespace pfilter
+
+variable [preorder P]
 
 /-- A filter `F` is prime if its complement is an ideal.
 -/

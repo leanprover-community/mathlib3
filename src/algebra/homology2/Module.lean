@@ -205,6 +205,12 @@ begin
     --
     simp only [map, mapq_apply, cycle.map_apply, subtype_apply, quotient.mk_eq_zero, mem_comap] at hb,
     rcases hb with ⟨c, -, hc⟩,
+    rcases hi c with ⟨bi, rfl⟩,
+    have hbi : B.d i j bi ∈ (B.d j k).ker,
+      apply boundary_le_cycle R B hij hjk,
+      exact ⟨bi, trivial, rfl⟩,
+    let b' := b - ⟨B.d i j bi, hbi⟩,
+--    have hb' : b' ∈ (ψ.f j).ker,
     sorry
   }
 end

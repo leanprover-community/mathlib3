@@ -287,6 +287,27 @@ def subdivision_order : partial_order (simplicial_complex m) :=
     exact ⟨λ hX, aux_lemma h₁ h₂ hX, λ hX, aux_lemma h₂ h₁ hX⟩,
   end}
 
+lemma boundary_mono {S₁ S₂ : simplicial_complex m} (hS : S₁ ≤ S₂) : S₁.boundary ≤ S₂.boundary :=
+begin
+  split,
+  {
+    sorry --hard?
+  },
+  {
+    rintro X₁ ⟨Y₁, hY₁, hX₁Y₁, Z₁, ⟨hZ₁, hY₁Z₁⟩, hZ₁max⟩,
+    simp at *,
+    obtain ⟨X₂, hX₂, hX₁X₂⟩ := hS.2 (S₁.down_closed hY₁ hX₁Y₁),
+    obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := hS.2 hY₁,
+    obtain ⟨Z₂, hZ₂, hZ₁Z₂⟩ := hS.2 (facets_subset hZ₁),
+    use Y₂,
+    split,
+    {
+      sorry
+    },
+    sorry
+  }
+end
+
 /-A simplicial complex is connected iff its space is-/
 def simplicial_complex.connected (S : simplicial_complex m) : Prop := connected_space S.space
 

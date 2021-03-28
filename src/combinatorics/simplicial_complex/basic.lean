@@ -782,9 +782,15 @@ begin
     { exact hXStar }
   }
 end
+/-
 
 lemma link_facet_iff {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} {n k : ℕ}
   (hS : S.pure_of n) {X : finset (fin m → ℝ)} (hA : ∀ {W}, W ∈ A → (W : finset _).card = k) :
+  X ∈ (S.link A).facets ↔ ∃ {W Y}, W ∈ A ∧ Y ∈ S.facets ∧ W ⊆ Y ∧ X = Y \ W :=-/
+
+lemma link_facet_iff {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} {n k : ℕ}
+  (hS : S.pure_of n) {X : finset (fin m → ℝ)}
+  (hA : ∀ {V W Y}, V ∈ A → W ∈ A → Y ∈ S.faces → W ⊆ Y → (V ∩ Y : finset _).nonempty → V = W) :
   X ∈ (S.link A).facets ↔ ∃ {W Y}, W ∈ A ∧ Y ∈ S.facets ∧ W ⊆ Y ∧ X = Y \ W :=
 begin
   split,
@@ -800,26 +806,22 @@ begin
         rw finset.disjoint_iff_inter_eq_empty,
         by_contra hVYW,
         change V ∩ (Y \ W) ≠ ∅ at hVYW,
-        rw ← finset.nonempty_iff_ne_empty at hVYW,
-        sorry --use hA' here
+        obtain ⟨x, hx⟩ := finset.nonempty_iff_ne_empty.2 hVYW,
+        rw [finset.mem_inter, finset.mem_sdiff] at hx,
+        have := hA hV hW (facets_subset hY) (subset.trans hWZ hZY)
+          ⟨x, finset.mem_inter.2 ⟨hx.1, hx.2.1⟩⟩,
+        rw this at hx,
+        exact hx.2.2 hx.1,
       },
-      {
-        have htrivial : Y \ W ⊆ Y,
-        {
-          sorry --trivial
-        },
-        exact ⟨W, Y, hW, facets_subset hY, htrivial, subset.trans hWZ hZY⟩,
-      }
+      { exact ⟨W, Y, hW, facets_subset hY, finset.sdiff_subset_self, subset.trans hWZ hZY⟩ }
     },
     {
       rintro x hx,
       rw finset.mem_sdiff,
       use finset.subset.trans hXZ hZY hx,
       rintro hxW,
-      have hempty:= hXdisj hW,
-      rw finset.disjoint_iff_inter_eq_empty at hempty,
       have : x ∈ W ∩ X := finset.mem_inter.2 ⟨hxW, hx⟩,
-      rw hempty at this,
+      rw finset.disjoint_iff_inter_eq_empty.1 (hXdisj hW) at this,
       exact finset.not_mem_empty x this,
     }
   },
@@ -830,18 +832,31 @@ begin
       split,
       {
         rintro V hV,
-        sorry --use hA' here
+        rw finset.disjoint_iff_inter_eq_empty,
+        by_contra hVYW,
+        change V ∩ (Y \ W) ≠ ∅ at hVYW,
+        obtain ⟨x, hx⟩ := finset.nonempty_iff_ne_empty.2 hVYW,
+        rw [finset.mem_inter, finset.mem_sdiff] at hx,
+        have := hA hV hW (facets_subset hY) hWY ⟨x, finset.mem_inter.2 ⟨hx.1, hx.2.1⟩⟩,
+        rw this at hx,
+        exact hx.2.2 hx.1,
       },
       { exact ⟨W, Y, hW, facets_subset hY, finset.sdiff_subset_self, hWY⟩ }
     },
     {
       rintro X ⟨hXdisj, U, V, hU, hV, hXV, hUV⟩ hYWX,
-      apply finset.eq_of_subset_of_card_le hYWX,
+      apply finset.subset.antisymm hYWX,
+      rintro x hx,
+      have := hA hU hW (facets_subset hY) hWY,
+      rw finset.mem_sdiff,
+      --have := hA hV hW (facets_subset hY) hWY ⟨x, finset.mem_inter.2 ⟨hx.1, hx.2.1⟩⟩,
+      sorry
+      /-apply finset.eq_of_subset_of_card_le hYWX,
       rw finset.card_sdiff hWY,
       have := finset.card_le_of_subset (finset.union_subset hUV hXV),
       rw [finset.card_disjoint_union (hXdisj hU), hA hU] at this,
       rw [hA hW, hS hY],
-      exact nat.le_sub_left_of_add_le (le_trans this (simplex_dimension_le_pureness hS hV)),
+      exact nat.le_sub_left_of_add_le (le_trans this (simplex_dimension_le_pureness hS hV)),-/
     }
   }
 end

@@ -185,44 +185,6 @@ by simp [fin_sum_fin_equiv, dif_pos h]
       show m + (x.1 - m) < m + n, from (nat.add_sub_of_le $ h).symm ▸ x.2⟩ :=
 by simp [fin_sum_fin_equiv, dif_neg (not_lt.mpr h)]
 
-/-- Equivalence between `fin m ⊕ fin n` and `fin (n + m)` -/
-def fin_sum_fin_equiv' : (fin m) ⊕ (fin n) ≃ fin (n + m) :=
-  equiv.trans fin_sum_fin_equiv (fin_congr (add_comm m n))
-
-@[simp] lemma fin_sum_fin_equiv'_apply_left (x : fin m) :
-  @fin_sum_fin_equiv' m n (sum.inl x) = ⟨x.1, nat.lt_of_lt_of_le x.2 $ nat.le_add_left m n⟩ :=
-by simp [fin_sum_fin_equiv', equiv.trans, fin_sum_fin_equiv, fin_congr, equiv.subtype_equiv_right]
-
-@[simp] lemma fin_sum_fin_equiv'_apply_right (x : fin n) :
-  @fin_sum_fin_equiv' m n (sum.inr x) = ⟨x.1 + m, nat.add_lt_add_right x.2 m⟩ :=
-by simp [fin_sum_fin_equiv', equiv.trans, fin_sum_fin_equiv, fin_congr, equiv.subtype_equiv_right,
-  add_comm]
-
-@[simp] lemma fin_sum_fin_equiv'_symm_apply_left (x : fin (n + m)) (h : ↑x < m) :
-  (fin_sum_fin_equiv'.symm) x = sum.inl ⟨x.1, h⟩ :=
-by simp [fin_sum_fin_equiv', equiv.trans, fin_sum_fin_equiv, fin_congr, dif_pos h]
-
-@[simp] lemma fin_sum_fin_equiv'_symm_apply_right (m : ℕ) (x : fin (n + m)) (h : m ≤ ↑x) :
-  fin_sum_fin_equiv'.symm x =
-    sum.inr ⟨x.1 - m, (nat.sub_lt_right_iff_lt_add h).mpr (fin.is_lt x)⟩ :=
-begin
-  simp [fin_sum_fin_equiv', equiv.trans, fin_sum_fin_equiv, fin_congr,
-    dif_neg (not_lt.mpr h)],
-end
-
-@[simp] lemma fin_sum_fin_equiv'_symm_apply_left_of_fin_one :
-  ((@fin_sum_fin_equiv' 1 n).symm) 0 = sum.inl 0 := by simp
-
-@[simp] lemma fin_sum_fin_equiv'_symm_apply_right_of_fin_one (x : fin (n + 1)) (h : ¬x = 0) :
-  ((@fin_sum_fin_equiv' 1 n).symm) x = sum.inr (x.pred h) :=
-begin
-  rw @fin_sum_fin_equiv'_symm_apply_right _ 1 _ ((fin.pos_iff_ne_zero x).mpr h),
-  simp only [fin.val_eq_coe],
-  apply fin.eq_of_veq,
-  simp only [],
-  rw [←fin.coe_eq_val, fin.coe_pred]
-end
-
 /-- The equivalence between `fin (m + n)` and `fin (n + m)` which rotates by `n`. -/
 def fin_add_flip : fin (m + n) ≃ fin (n + m) :=
 (fin_sum_fin_equiv.symm.trans (equiv.sum_comm _ _)).trans fin_sum_fin_equiv

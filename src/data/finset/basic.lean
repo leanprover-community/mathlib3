@@ -1996,7 +1996,7 @@ by simp only [card, image_val_of_inj_on H, card_map]
 
 theorem inj_on_of_card_image_eq [decidable_eq β] {f : α → β} {s : finset α}
   (H : card (image f s) = card s) :
-set.inj_on f s :=
+  set.inj_on f s :=
 begin
   change (s.1.map f).erase_dup.card = s.1.card at H,
   have : (s.1.map f).erase_dup = s.1.map f,

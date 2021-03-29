@@ -407,10 +407,10 @@ end
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along column 0. -/
 lemma det_succ_column_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
   det A = ∑ i : fin n.succ, (-1) ^ (i : ℕ) * A i 0 *
-    det (λ (i' j' : fin n), A (i.succ_above i') j'.succ) :=
+    det (A.minor i.succ_above fin.succ) :=
 begin
   rw [matrix.det_apply, finset.univ_perm_fin_succ, ← finset.univ_product_univ],
-  simp only [finset.sum_map, equiv.to_embedding_apply, finset.sum_product],
+  simp only [finset.sum_map, equiv.to_embedding_apply, finset.sum_product, matrix.minor],
   refine finset.sum_congr rfl (λ i _, fin.cases _ (λ i, _) i),
   { simp only [fin.prod_univ_succ, matrix.det_apply, finset.mul_sum,
         equiv.perm.decompose_fin_symm_apply_zero, fin.coe_zero, one_mul,
@@ -439,7 +439,7 @@ end
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along row 0. -/
 lemma det_succ_row_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
   det A = ∑ j : fin n.succ, (-1) ^ (j : ℕ) * A 0 j *
-    det (λ (i' j' : fin n), A i'.succ (j.succ_above j')) :=
+    det (A.minor fin.succ j.succ_above) :=
 by { rw [← det_transpose A, det_succ_column_zero],
      refine finset.sum_congr rfl (λ i _, _),
      rw [← det_transpose],
@@ -449,7 +449,7 @@ by { rw [← det_transpose A, det_succ_column_zero],
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along row `i`. -/
 lemma det_succ_row {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (i : fin n.succ) :
   det A = ∑ j : fin n.succ, (-1) ^ (i + j : ℕ) * A i j *
-    det (λ (i' j' : fin n), A (i.succ_above i') (j.succ_above j')) :=
+    det (A.minor i.succ_above j.succ_above) :=
 begin
   simp_rw [pow_add, mul_assoc, ← mul_sum],
   have : det A = (-1 : R) ^ (i : ℕ) * (i.cycle_range⁻¹).sign * det A,
@@ -461,7 +461,7 @@ begin
   congr,
   rw [← det_permute, det_succ_row_zero],
   refine finset.sum_congr rfl (λ j _, _),
-  rw mul_assoc,
+  rw [mul_assoc, matrix.minor, matrix.minor],
   congr,
   { rw [equiv.perm.inv_def, fin.cycle_range_symm_zero] },
   { ext i' j',
@@ -471,7 +471,7 @@ end
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along column `j`. -/
 lemma det_succ_column {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (j : fin n.succ) :
   det A = ∑ i : fin n.succ, (-1) ^ (i + j : ℕ) * A i j *
-    det (λ (i' j' : fin n), A (i.succ_above i') (j.succ_above j')) :=
+    det (A.minor i.succ_above j.succ_above) :=
 by { rw [← det_transpose, det_succ_row _ j],
      refine finset.sum_congr rfl (λ i _, _),
      rw [add_comm, ← det_transpose],

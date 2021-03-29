@@ -124,12 +124,14 @@ end
 -- <https://github.com/leanprover-community/mathlib/pull/1018#discussion_r283978240>
 -- However, I can't get the subsequent two proofs to work with either one.
 
--- def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) : (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
+-- def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) :
+--   (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
 -- colim.map ((functor.associator _ _ _).inv ≫
 --   whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ) ≫
 -- colimit.pre ((open_nhds.inclusion x).op ⋙ ℱ) (open_nhds.map f x).op
 
--- def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) : (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
+-- def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) :
+--   (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
 -- (colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ) :
 --   colim.obj ((open_nhds.inclusion (f x) ⋙ opens.map f).op ⋙ ℱ) ⟶ _) ≫
 -- colimit.pre ((open_nhds.inclusion x).op ⋙ ℱ) (open_nhds.map f x).op

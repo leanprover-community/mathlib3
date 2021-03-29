@@ -82,7 +82,8 @@ preserves the joins of ω-chains  -/
 @[reducible]
 def Scott (α : Type u) := α
 
-instance Scott.topological_space (α : Type u) [omega_complete_partial_order α] : topological_space (Scott α) :=
+instance Scott.topological_space (α : Type u) [omega_complete_partial_order α] :
+  topological_space (Scott α) :=
 { is_open := Scott.is_open α,
   is_open_univ := Scott.is_open_univ α,
   is_open_inter := Scott.is_open_inter α,

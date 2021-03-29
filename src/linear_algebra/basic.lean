@@ -2128,7 +2128,6 @@ variables [semiring R] [add_comm_monoid M] [semimodule R M]
 
 /-- Given `p` a submodule of the module `M` and `q` a submodule of `p`, `p.equiv_subtype_map q`
 is the natural `linear_equiv` between `q` and `q.map p.subtype`. -/
-@[simps]
 def equiv_subtype_map (p : submodule R M) (q : submodule R p) :
   q ≃ₗ[R] q.map p.subtype :=
 { inv_fun :=
@@ -2145,6 +2144,16 @@ def equiv_subtype_map (p : submodule R M) (q : submodule R p) :
       rintro ⟨x, hx⟩,
       refine ⟨x, hx, rfl⟩,
     end }
+
+@[simp]
+lemma equiv_subtype_map_apply {p : submodule R M} {q : submodule R p} (x : q) :
+  (p.equiv_subtype_map q x : M) = p.subtype.dom_restrict q x :=
+rfl
+
+@[simp]
+lemma equiv_subtype_map_symm_apply {p : submodule R M} {q : submodule R p} (x : q.map p.subtype) :
+  ((p.equiv_subtype_map q).symm x : M) = (x : M) :=
+by { cases x, refl }
 
 /-- If `s ≤ t`, then we can view `s` as a submodule of `t` by taking the comap
 of `t.subtype`. -/

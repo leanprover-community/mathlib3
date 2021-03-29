@@ -754,11 +754,11 @@ end prod
 
 section piecewise
 
-/-- Combine two `local_homeomorph`s using `set.piecewise`. The source of the new `local_equiv` is
+/-- Combine two `local_homeomorph`s using `set.piecewise`. The source of the new `local_homeomorph` is
 `s.ite e.source e'.source = e.source ∩ s ∪ e'.source \ s`, and similarly for target.  The function
 sends `e.source ∩ s` to `e.target ∩ t` using `e` and `e'.source \ s` to `e'.target \ t` using `e'`,
 and similarly for the inverse function. To ensure that the maps `to_fun` and `inv_fun` are inverse
-of each other on the new `source` and `target`, the definition assumes that sets `s` and `t` are
+of each other on the new `source` and `target`, the definition assumes that the sets `s` and `t` are
 related both by `e.is_image` and `e'.is_image`. To ensure that the new maps are continuous on
 `source`/`target`, it also assumes that `e.source` and `e'.source` meet `frontier s` on the same set
 and `e x = e' x` on this intersection. -/

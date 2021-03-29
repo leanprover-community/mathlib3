@@ -2122,11 +2122,15 @@ end linear_equiv
 
 namespace submodule
 
+section semimodule
+
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
 /-- Given `p` a submodule of the module `M` and `q` a submodule of `p`, `p.equiv_subtype_map q`
 is the natural `linear_equiv` between `q` and `q.map p.subtype`. -/
 @[simps]
-def equiv_subtype_map [semiring R] [add_comm_monoid M] [semimodule R M]
-  (p : submodule R M) (q : submodule R p) : q ≃ₗ[R] q.map p.subtype :=
+def equiv_subtype_map (p : submodule R M) (q : submodule R p) :
+  q ≃ₗ[R] q.map p.subtype :=
 { inv_fun :=
     begin
       rintro ⟨x, hx⟩,
@@ -2141,10 +2145,6 @@ def equiv_subtype_map [semiring R] [add_comm_monoid M] [semimodule R M]
       rintro ⟨x, hx⟩,
       refine ⟨x, hx, rfl⟩,
     end }
-
-section semimodule
-
-variables [semiring R] [add_comm_monoid M] [semimodule R M]
 
 /-- If `s ≤ t`, then we can view `s` as a submodule of `t` by taking the comap
 of `t.subtype`. -/

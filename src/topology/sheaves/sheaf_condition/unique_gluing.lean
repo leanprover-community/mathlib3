@@ -106,6 +106,7 @@ end
 /--
 The subtype of all gluings for a given family of sections
 -/
+@[nolint has_inhabited_instance]
 def gluing (sf : Π i : ι, F.obj (op (U i))) : Type u :=
   {s : F.obj (op (supr U)) // is_gluing F U sf s}
 
@@ -123,6 +124,10 @@ def sheaf_condition_unique_gluing : Type (u+1) :=
   Π ⦃ι : Type u⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),
     is_compatible F U sf → unique (gluing F U sf)
 
+/--
+The "equalizer" sheaf condition can be obtained from the sheaf condition
+in terms of unique gluings
+-/
 def sheaf_condition_of_sheaf_condition_unique_gluing :
   F.sheaf_condition_unique_gluing → F.sheaf_condition := λ Fsh ι U,
 begin
@@ -143,6 +148,10 @@ begin
     exact congr_fun hm x },
 end
 
+/--
+The sheaf condition in terms of unique gluings can be obtained from the usual
+"equalizer" sheaf condition
+-/
 def sheaf_condition_unique_gluing_of_sheaf_condition :
   F.sheaf_condition → F.sheaf_condition_unique_gluing := λ Fsh ι U sf hsf,
 { default := begin

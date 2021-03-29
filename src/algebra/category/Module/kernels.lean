@@ -84,7 +84,7 @@ limit.iso_limit_cone ⟨_, kernel_is_limit f⟩
 by { convert (limit.iso_limit_cone_inv_π _ _); refl, }
 
 @[simp] lemma kernel_ι_kernel_iso_ker_symm {G H : Module.{v} R} (f : G ⟶ H) (x : f.ker) :
-  kernel.ι f ((kernel_iso_ker f).symm.to_linear_equiv x) = f.ker.subtype x :=
+  kernel.ι f ((kernel_iso_ker f).inv x) = f.ker.subtype x :=
 concrete_category.congr_hom (kernel_iso_ker_inv_kernel_ι f) x
 
 @[simp] lemma kernel_iso_ker_hom_ker_subtype {G H : Module.{v} R} (f : G ⟶ H) :
@@ -92,7 +92,7 @@ concrete_category.congr_hom (kernel_iso_ker_inv_kernel_ι f) x
 by { convert limit.iso_limit_cone_hom_π ⟨_, kernel_is_limit f⟩ _; refl, }
 
 @[simp] lemma ker_subtype_kernel_iso_ker {G H : Module.{v} R} (f : G ⟶ H) (x : kernel f) :
-  f.ker.subtype ((kernel_iso_ker f).to_linear_equiv x) = kernel.ι f x :=
+  f.ker.subtype ((kernel_iso_ker f).hom x) = kernel.ι f x :=
 concrete_category.congr_hom (kernel_iso_ker_hom_ker_subtype f) x
 
 /--
@@ -111,7 +111,7 @@ colimit.iso_colimit_cocone ⟨_, cokernel_is_colimit f⟩
 by { convert colimit.iso_colimit_cocone_ι_hom _ _; refl, }
 
 @[simp] lemma cokernel_iso_range_quotient_cokernel_π {G H : Module.{v} R} (f : G ⟶ H) (x : H) :
-  (cokernel_iso_range_quotient f).to_linear_equiv (cokernel.π f x) = f.range.mkq x :=
+  (cokernel_iso_range_quotient f).hom (cokernel.π f x) = f.range.mkq x :=
 concrete_category.congr_hom (cokernel_iso_range_quotient_inv_kernel_ι f) x
 
 @[simp] lemma range_mkq_cokernel_iso_range_quotient_inv {G H : Module.{v} R} (f : G ⟶ H) :
@@ -119,7 +119,7 @@ concrete_category.congr_hom (cokernel_iso_range_quotient_inv_kernel_ι f) x
 by { convert colimit.iso_colimit_cocone_ι_inv ⟨_, cokernel_is_colimit f⟩ _; refl, }
 
 @[simp] lemma cokernel_iso_range_quotient_symm_range_mkq {G H : Module.{v} R} (f : G ⟶ H) (x : H) :
-  (cokernel_iso_range_quotient f).symm.to_linear_equiv (f.range.mkq x) = cokernel.π f x :=
+  (cokernel_iso_range_quotient f).inv (f.range.mkq x) = cokernel.π f x :=
 concrete_category.congr_hom (range_mkq_cokernel_iso_range_quotient_inv f) x
 
 end Module

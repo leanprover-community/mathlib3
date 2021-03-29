@@ -88,12 +88,13 @@ lemma inv {α β} [has_mul α] [comm_group β] (f : α → β) [is_mul_hom f] :
 end is_mul_hom
 
 /-- Predicate for add_monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
-class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends is_add_hom f : Prop :=
+class is_add_monoid_hom [add_zero_class α] [add_zero_class β] (f : α → β) =
+  extends is_add_hom f : Prop :=
 (map_zero [] : f 0 = 0)
 
 /-- Predicate for monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
 @[to_additive]
-class is_monoid_hom [monoid α] [monoid β] (f : α → β) extends is_mul_hom f : Prop :=
+class is_monoid_hom [mul_one_class α] [mul_one_class β] (f : α → β) extends is_mul_hom f : Prop :=
 (map_one [] : f 1 = 1)
 
 namespace monoid_hom

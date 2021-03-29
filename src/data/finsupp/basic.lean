@@ -679,9 +679,9 @@ end sum_prod
 ### Additive monoid structure on `α →₀ M`
 -/
 
-section add_monoid
+section add_zero_class
 
-variables [add_monoid M]
+variables [add_zero_class M]
 
 instance : has_add (α →₀ M) := ⟨zip_with (+) (add_zero 0)⟩
 
@@ -711,11 +711,9 @@ begin
   { rw [add_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, zero_add] }
 end
 
-instance : add_monoid (α →₀ M) :=
-{ add_monoid .
-  zero      := 0,
+instance : add_zero_class (α →₀ M) :=
+{ zero      := 0,
   add       := (+),
-  add_assoc := assume ⟨s, f, hf⟩ ⟨t, g, hg⟩ ⟨u, h, hh⟩, ext $ assume a, add_assoc _ _ _,
   zero_add  := assume ⟨s, f, hf⟩, ext $ assume a, zero_add _,
   add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
 
@@ -793,7 +791,7 @@ top_unique $ λ x hx, finsupp.induction x (add_submonoid.zero_mem _) $
 
 /-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`, then
 they are equal. -/
-lemma add_hom_ext [add_monoid N] ⦃f g : (α →₀ M) →+ N⦄
+lemma add_hom_ext [add_zero_class N] ⦃f g : (α →₀ M) →+ N⦄
   (H : ∀ x y, f (single x y) = g (single x y)) :
   f = g :=
 begin
@@ -809,27 +807,40 @@ they are equal.
 We formulate this using equality of `add_monoid_hom`s so that `ext` tactic can apply a type-specific
 extensionality lemma after this one.  E.g., if the fiber `M` is `ℕ` or `ℤ`, then it suffices to
 verify `f (single a 1) = g (single a 1)`. -/
-@[ext] lemma add_hom_ext' [add_monoid N] ⦃f g : (α →₀ M) →+ N⦄
+@[ext] lemma add_hom_ext' [add_zero_class N] ⦃f g : (α →₀ M) →+ N⦄
   (H : ∀ x, f.comp (single_add_hom x) = g.comp (single_add_hom x)) :
   f = g :=
 add_hom_ext $ λ x, add_monoid_hom.congr_fun (H x)
 
-lemma mul_hom_ext [monoid N] ⦃f g : multiplicative (α →₀ M) →* N⦄
+lemma mul_hom_ext [mul_one_class N] ⦃f g : multiplicative (α →₀ M) →* N⦄
   (H : ∀ x y, f (multiplicative.of_add $ single x y) = g (multiplicative.of_add $ single x y)) :
   f = g :=
 monoid_hom.ext $ add_monoid_hom.congr_fun $
   @add_hom_ext α M (additive N) _ _ f.to_additive'' g.to_additive'' H
 
-@[ext] lemma mul_hom_ext' [monoid N] {f g : multiplicative (α →₀ M) →* N}
+@[ext] lemma mul_hom_ext' [mul_one_class N] {f g : multiplicative (α →₀ M) →* N}
   (H : ∀ x, f.comp (single_add_hom x).to_multiplicative =
     g.comp (single_add_hom x).to_multiplicative) :
   f = g :=
 mul_hom_ext $ λ x, monoid_hom.congr_fun (H x)
 
-lemma map_range_add [add_monoid N]
+lemma map_range_add [add_zero_class N]
   {f : M → N} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
+
+end add_zero_class
+
+section add_monoid
+
+variables [add_monoid M]
+
+instance : add_monoid (α →₀ M) :=
+{ add_monoid .
+  zero      := 0,
+  add       := (+),
+  add_assoc := assume ⟨s, f, hf⟩ ⟨t, g, hg⟩ ⟨u, h, hh⟩, ext $ assume a, add_assoc _ _ _,
+  .. finsupp.add_zero_class }
 
 end add_monoid
 
@@ -1366,7 +1377,7 @@ ext $ by simp [filter_eq_indicator, single_apply_eq_zero, @imp.swap (p _), h]
 
 end has_zero
 
-lemma filter_pos_add_filter_neg [add_monoid M] (f : α →₀ M) (p : α → Prop) :
+lemma filter_pos_add_filter_neg [add_zero_class M] (f : α →₀ M) (p : α → Prop) :
   f.filter p + f.filter (λa, ¬ p a) = f :=
 coe_fn_injective $ set.indicator_self_add_compl {x | p x} f
 

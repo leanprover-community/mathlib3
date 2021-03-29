@@ -89,7 +89,7 @@ Group Theory:
     orbit: 'mul_action.orbit'
     quotient space: 'mul_action.orbit_equiv_quotient_stabilizer'
     class formula: ''
-    conjugacy classes: 'group.conjugates'
+    conjugacy classes: 'conj_classes'
   Abelian group:
     cyclic group: 'is_cyclic'
     finite type abelian groups: ''

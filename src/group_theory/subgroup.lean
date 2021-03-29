@@ -922,11 +922,6 @@ end subgroup
 namespace group
 variables {s : set G}
 
-/-- Given an element `a`, `conjugates a` is the set of conjugates. -/
-def conjugates (a : G) : set G := {b | is_conj a b}
-
-lemma mem_conjugates_self {a : G} : a ∈ conjugates a := is_conj_refl _
-
 /-- Given a set `s`, `conjugates_of_set s` is the set of all conjugates of
 the elements of `s`. -/
 def conjugates_of_set (s : set G) : set G := ⋃ a ∈ s, conjugates a
@@ -943,7 +938,7 @@ set.bUnion_subset_bUnion_left h
 
 lemma conjugates_subset_normal {N : subgroup G} [tn : N.normal] {a : G} (h : a ∈ N) :
   conjugates a ⊆ N :=
-by { rintros a ⟨c, rfl⟩, exact tn.conj_mem a h c }
+by { rintros a hc, obtain ⟨c, rfl⟩ := is_conj_iff.1 hc, exact tn.conj_mem a h c }
 
 theorem conjugates_of_set_subset {s : set G} {N : subgroup G} [N.normal] (h : s ⊆ N) :
   conjugates_of_set s ⊆ N :=
@@ -955,7 +950,7 @@ lemma conj_mem_conjugates_of_set {x c : G} :
 λ H,
 begin
   rcases (mem_conjugates_of_set_iff.1 H) with ⟨a,h₁,h₂⟩,
-  exact mem_conjugates_of_set_iff.2 ⟨a, h₁, is_conj_trans h₂ ⟨c,rfl⟩⟩,
+  exact mem_conjugates_of_set_iff.2 ⟨a, h₁, is_conj_trans h₂ (is_conj_iff.2 ⟨c,rfl⟩)⟩,
 end
 
 end group

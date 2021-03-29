@@ -310,6 +310,21 @@ begin
       e'.left_inv he] }
 end
 
+lemma inter_eq_of_inter_eq_of_eq_on {e' : local_equiv α β} (h : e.is_image s t)
+  (h' : e'.is_image s t) (hs : e.source ∩ s = e'.source ∩ s) (Heq : eq_on e e' (e.source ∩ s)) :
+  e.target ∩ t = e'.target ∩ t :=
+by rw [← h.image_eq, ← h'.image_eq, ← hs, Heq.image_eq]
+
+lemma symm_eq_on_of_inter_eq_of_eq_on {e' : local_equiv α β} (h : e.is_image s t)
+  (hs : e.source ∩ s = e'.source ∩ s) (Heq : eq_on e e' (e.source ∩ s)) :
+  eq_on e.symm e'.symm (e.target ∩ t) :=
+begin
+  rw [← h.image_eq],
+  rintros y ⟨x, hx, rfl⟩,
+  have hx' := hx, rw hs at hx',
+  rw [e.left_inv hx.1, Heq hx, e'.left_inv hx'.1]
+end
+
 end is_image
 
 lemma is_image_source_target : e.is_image e.source e.target := λ x hx, by simp [hx]
@@ -652,8 +667,9 @@ lemma symm_piecewise (e e' : local_equiv α β) {s : set α} {t : set β}
   (e.piecewise e' s t H H').symm = e.symm.piecewise e'.symm t s H.symm H'.symm :=
 rfl
 
-/-- Combine two `local_equiv`s with disjoint sources and disjoint targets. We do not reuse
-`local_equiv.piecewise` here to provide better formulas for `source` and `target`. -/
+/-- Combine two `local_equiv`s with disjoint sources and disjoint targets. We reuse
+`local_equiv.piecewise`, then override `source` and `target` to ensure better definitional
+equalities. -/
 @[simps] def disjoint_union (e e' : local_equiv α β) (hs : disjoint e.source e'.source)
   (ht : disjoint e.target e'.target) [∀ x, decidable (x ∈ e.source)]
   [∀ y, decidable (y ∈ e.target)] :

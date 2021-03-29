@@ -360,17 +360,12 @@ h.to_local_equiv.left_inv_on_piecewise h'
 lemma inter_eq_of_inter_eq_of_eq_on {e' : local_homeomorph α β} (h : e.is_image s t)
   (h' : e'.is_image s t) (hs : e.source ∩ s = e'.source ∩ s) (Heq : eq_on e e' (e.source ∩ s)) :
   e.target ∩ t = e'.target ∩ t :=
-by rw [← h.image_eq, ← h'.image_eq, ← hs, Heq.image_eq]
+h.to_local_equiv.inter_eq_of_inter_eq_of_eq_on h' hs Heq
 
 lemma symm_eq_on_of_inter_eq_of_eq_on {e' : local_homeomorph α β} (h : e.is_image s t)
   (hs : e.source ∩ s = e'.source ∩ s) (Heq : eq_on e e' (e.source ∩ s)) :
   eq_on e.symm e'.symm (e.target ∩ t) :=
-begin
-  rw [← h.image_eq],
-  rintros y ⟨x, hx, rfl⟩,
-  have hx' := hx, rw hs at hx',
-  rw [e.left_inv hx.1, Heq hx, e'.left_inv hx'.1]
-end
+h.to_local_equiv.symm_eq_on_of_inter_eq_of_eq_on hs Heq
 
 lemma map_nhds_within_eq (h : e.is_image s t) (hx : x ∈ e.source) :
   map e (𝓝[s] x) = 𝓝[t] (e x) :=
@@ -801,8 +796,9 @@ rfl
       (H.frontier.symm_eq_on_of_inter_eq_of_eq_on Hs Heq) :=
 rfl
 
-/-- Combine two `local_homeomorph`s with disjoint sources and disjoint targets. We do not reuse
-`local_homeomorph.piecewise` here to provide better formulas for `source` and `target`. -/
+/-- Combine two `local_homeomorph`s with disjoint sources and disjoint targets. We reuse
+`local_homeomorph.piecewise` then override `to_local_equiv` to `local_equiv.disjoint_union`.
+This way we have better definitional equalities for `source` and `target`. -/
 def disjoint_union (e e' : local_homeomorph α β)
   [∀ x, decidable (x ∈ e.source)] [∀ y, decidable (y ∈ e.target)]
   (Hs : disjoint e.source e'.source) (Ht : disjoint e.target e'.target) :

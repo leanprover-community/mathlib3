@@ -52,8 +52,6 @@ instance (n : ℕ) : comm_semigroup (fin (n+1)) :=
     fin.eq_of_veq (show (a * b) % (n+1) = (b * a) % (n+1), by rw mul_comm),
   ..fin.has_mul }
 
-local attribute [instance] fin.comm_semigroup
-
 private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin (n+1), a * (b + c) = a * b + a * c :=
 λ ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, fin.eq_of_veq
 (calc a * ((b + c) % (n+1)) ≡ a * (b + c) [MOD (n+1)] : modeq_mul rfl (nat.mod_mod _ _)

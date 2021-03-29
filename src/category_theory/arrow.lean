@@ -159,7 +159,7 @@ A  → X
      ↓g                ↓i  ↓g
 B  → Z                 B → Z
  -/
-def square_to_snd {X Y Z: C} {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
+@[simps] def square_to_snd {X Y Z: C} {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
   (sq : i ⟶ arrow.mk (f ≫ g)) :
   i ⟶ arrow.mk g :=
 { left := sq.left ≫ f,

@@ -265,6 +265,10 @@ lemma measure_Union_null_iff [encodable ι] {s : ι → set α} :
   μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
 ⟨λ h i, measure_mono_null (subset_Union _ _) h, measure_Union_null⟩
 
+lemma measure_bUnion_null_iff {s : set ι} (hs : countable s) {t : ι → set α} :
+  μ (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, μ (t i) = 0 :=
+by { haveI := hs.to_encodable, rw [← Union_subtype, measure_Union_null_iff, set_coe.forall], refl }
+
 theorem measure_union_le (s₁ s₂ : set α) : μ (s₁ ∪ s₂) ≤ μ s₁ + μ s₂ :=
 μ.to_outer_measure.union _ _
 
@@ -286,6 +290,7 @@ def measure.ae (μ : measure α) : filter α :=
   sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
 
 notation `∀ᵐ` binders ` ∂` μ `, ` r:(scoped P, filter.eventually P (measure.ae μ)) := r
+notation `∃ᵐ` binders ` ∂` μ `, ` r:(scoped P, filter.frequently P (measure.ae μ)) := r
 notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[measure.ae μ] g
 notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[measure.ae μ] g
 
@@ -294,6 +299,12 @@ lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
 lemma ae_iff {p : α → Prop} : (∀ᵐ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
 
 lemma compl_mem_ae_iff {s : set α} : sᶜ ∈ μ.ae ↔ μ s = 0 := by simp only [mem_ae_iff, compl_compl]
+
+lemma frequently_ae_iff {p : α → Prop} : (∃ᵐ a ∂μ, p a) ↔ μ {a | p a} ≠ 0 :=
+not_congr compl_mem_ae_iff
+
+lemma frequently_ae_mem_iff {s : set α} : (∃ᵐ a ∂μ, a ∈ s) ↔ μ s ≠ 0 :=
+not_congr compl_mem_ae_iff
 
 lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ᵐ a ∂ μ, a ∉ s :=
 compl_mem_ae_iff.symm
@@ -380,6 +391,9 @@ section measure_space
 notation `∀ᵐ` binders `, ` r:(scoped P, filter.eventually P
   (measure_theory.measure.ae measure_theory.measure_space.volume)) := r
 
+notation `∃ᵐ` binders `, ` r:(scoped P, filter.frequently P
+  (measure_theory.measure.ae measure_theory.measure_space.volume)) := r
+
 /-- The tactic `exact volume`, to be used in optional (`auto_param`) arguments. -/
 meta def volume_tac : tactic unit := `[exact measure_theory.measure_space.volume]
 
@@ -439,6 +453,12 @@ lemma sum_measure_preimage_singleton (s : finset β) {f : α → β}
   ∑ b in s, μ (f ⁻¹' {b}) = μ (f ⁻¹' ↑s) :=
 by simp only [← measure_bUnion_finset (pairwise_on_disjoint_fiber _ _) hf,
   finset.set_bUnion_preimage_singleton]
+
+lemma measure_diff_null' (h : μ (s₁ ∩ s₂) = 0) : μ (s₁ \ s₂) = μ s₁ :=
+measure_congr $ diff_ae_eq_self.2 h
+
+lemma measure_diff_null (h : μ s₂ = 0) : μ (s₁ \ s₂) = μ s₁ :=
+measure_diff_null' $ measure_mono_null (inter_subset_right _ _) h
 
 lemma measure_diff (h : s₂ ⊆ s₁) (h₁ : measurable_set s₁) (h₂ : measurable_set s₂)
   (h_fin : μ s₂ < ∞) :
@@ -784,6 +804,12 @@ have μ.to_outer_measure ≤ Inf (to_outer_measure '' m) :=
   le_Inf $ ball_image_of_ball $ assume μ hμ, to_outer_measure_le.2 $ h _ hμ,
 assume s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
 
+instance : complete_semilattice_Inf (measure α) :=
+{ Inf_le := λ s a, measure_Inf_le,
+  le_Inf := λ s a, measure_le_Inf,
+  ..(by apply_instance : partial_order (measure α)),
+  ..(by apply_instance : has_Inf (measure α)), }
+
 instance : complete_lattice (measure α) :=
 { bot := 0,
   bot_le := assume a s hs, by exact bot_le,
@@ -794,7 +820,7 @@ instance : complete_lattice (measure α) :=
     by cases s.eq_empty_or_nonempty with h  h;
       simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
 -/
-  .. complete_lattice_of_Inf (measure α) (λ ms, ⟨λ _, measure_Inf_le, λ _, measure_le_Inf⟩) }
+  .. complete_lattice_of_complete_semilattice_Inf (measure α) }
 
 end Inf
 
@@ -2058,9 +2084,9 @@ begin
         ennreal.sub_add_cancel_of_le (h₂ t h_t_measurable_set)] },
     have h_measure_sub_eq : (μ - ν) = measure_sub,
     { rw measure_theory.measure.sub_def, apply le_antisymm,
-      { apply @Inf_le (measure α) (measure.complete_lattice), simp [le_refl, add_comm,
+      { apply @Inf_le (measure α) measure.complete_semilattice_Inf, simp [le_refl, add_comm,
           h_measure_sub_add] },
-      apply @le_Inf (measure α) (measure.complete_lattice),
+      apply @le_Inf (measure α) measure.complete_semilattice_Inf,
       intros d h_d, rw [← h_measure_sub_add, mem_set_of_eq, add_comm d] at h_d,
       apply measure.le_of_add_le_add_left h_d },
     rw h_measure_sub_eq,
@@ -2443,7 +2469,7 @@ lemma measurable.ae_measurable (h : measurable f) : ae_measurable f μ :=
 @[nontriviality] lemma subsingleton.ae_measurable [subsingleton α] : ae_measurable f μ :=
 subsingleton.measurable.ae_measurable
 
-@[simp] lemma ae_measurable_zero : ae_measurable f 0 :=
+@[simp] lemma ae_measurable_zero_measure : ae_measurable f 0 :=
 begin
   nontriviality α, inhabit α,
   exact ⟨λ x, f (default α), measurable_const, rfl⟩
@@ -2537,7 +2563,7 @@ lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
 ⟨λ a, (hf.mk f a, hg.mk g a), hf.measurable_mk.prod_mk hg.measurable_mk,
   eventually_eq.prod_mk hf.ae_eq_mk hg.ae_eq_mk⟩
 
-lemma null_measurable_set (h : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
+protected lemma null_measurable_set (h : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
   null_measurable_set μ (f ⁻¹' s) :=
 begin
   apply null_measurable_set_iff_ae.2,
@@ -2563,6 +2589,9 @@ lemma ae_measurable_congr (h : f =ᵐ[μ] g) :
 @[simp] lemma ae_measurable_const {b : β} : ae_measurable (λ a : α, b) μ :=
 measurable_const.ae_measurable
 
+@[simp, to_additive] lemma ae_measurable_one [has_one β] : ae_measurable (λ a : α, (1 : β)) μ :=
+measurable_one.ae_measurable
+
 @[simp] lemma ae_measurable_smul_measure_iff {c : ℝ≥0∞} (hc : c ≠ 0) :
   ae_measurable f (c • μ) ↔ ae_measurable f μ :=
 ⟨λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).1 h.ae_eq_mk⟩,
@@ -2571,13 +2600,6 @@ measurable_const.ae_measurable
 lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
   (hg : measurable g) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
 ⟨g ∘ hf.mk f, hg.comp hf.measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk _⟩
-
-lemma ae_measurable_of_zero_measure {f : α → β} : ae_measurable f 0 :=
-begin
-  by_cases h : nonempty α,
-  { exact (@ae_measurable_const _ _ _ _ _ (f h.some)).congr rfl },
-  { exact (measurable_of_not_nonempty h f).ae_measurable }
-end
 
 end
 

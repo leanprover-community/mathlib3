@@ -48,7 +48,6 @@ src/data/array/lemmas.lean : line 9 : ERR_MOD : Module docstring missing, or too
 src/data/bitvec/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/buffer/basic.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/char.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/data/complex/exponential.lean : line 1255 : ERR_LIN : Line has more than 100 characters
 src/data/dlist/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/dlist/instances.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/equiv/denumerable.lean : line 14 : ERR_MOD : Module docstring missing, or too late
@@ -185,8 +184,8 @@ src/order/bounded_lattice.lean : line 231 : ERR_LIN : Line has more than 100 cha
 src/order/bounded_lattice.lean : line 235 : ERR_LIN : Line has more than 100 characters
 src/order/bounded_lattice.lean : line 239 : ERR_LIN : Line has more than 100 characters
 src/order/complete_boolean_algebra.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/order/complete_lattice.lean : line 202 : ERR_LIN : Line has more than 100 characters
-src/order/complete_lattice.lean : line 205 : ERR_LIN : Line has more than 100 characters
+src/order/complete_lattice.lean : line 134 : ERR_LIN : Line has more than 100 characters
+src/order/complete_lattice.lean : line 94 : ERR_LIN : Line has more than 100 characters
 src/order/conditionally_complete_lattice.lean : line 526 : ERR_LIN : Line has more than 100 characters
 src/order/conditionally_complete_lattice.lean : line 748 : ERR_LIN : Line has more than 100 characters
 src/order/conditionally_complete_lattice.lean : line 760 : ERR_LIN : Line has more than 100 characters

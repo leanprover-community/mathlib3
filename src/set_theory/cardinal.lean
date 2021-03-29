@@ -133,7 +133,8 @@ noncomputable instance : linear_order cardinal.{u} :=
   le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total,
   decidable_le := classical.dec_rel _ }
 
-noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance -- short-circuit type class inference
+-- short-circuit type class inference
+noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance
 
 instance : has_zero cardinal.{u} := ⟨⟦pempty⟧⟩
 
@@ -495,7 +496,8 @@ quot.induction_on a $ λ α, quot.sound ⟨equiv.ulift⟩
 
 @[simp] theorem lift_id : ∀ a, lift.{u u} a = a := lift_id'.{u u}
 
-@[simp] theorem lift_lift (a : cardinal) : lift.{(max u v) w} (lift.{u v} a) = lift.{u (max v w)} a :=
+@[simp] theorem lift_lift (a : cardinal) :
+  lift.{(max u v) w} (lift.{u v} a) = lift.{u (max v w)} a :=
 quot.induction_on a $ λ α,
 quotient.sound ⟨equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm⟩
 
@@ -983,7 +985,8 @@ calc  mk (list α)
   ⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩⟩
 ... = mk (Σ n : ℕ, ulift.{u} (fin n) → α) : quotient.sound ⟨equiv.sigma_congr_right $ λ n,
   equiv.arrow_congr equiv.ulift.symm (equiv.refl α)⟩
-... = sum (λ n : ℕ, (mk α)^(n:cardinal.{u})) : by simp only [(lift_mk_fin _).symm, lift_mk, power_def, sum_mk]
+... = sum (λ n : ℕ, (mk α)^(n:cardinal.{u})) :
+  by simp only [(lift_mk_fin _).symm, lift_mk, power_def, sum_mk]
 
 theorem mk_quot_le {α : Type u} {r : α → α → Prop} : mk (quot r) ≤ mk α :=
 mk_le_of_surjective quot.exists_rep
@@ -1153,11 +1156,13 @@ by { convert mk_preimage_of_injective_of_subset_range_lift.{u u} f s h h2 using 
 lemma mk_subset_ge_of_subset_image_lift {α : Type u} {β : Type v} (f : α → β) {s : set α}
   {t : set β} (h : t ⊆ f '' s) :
     lift.{v u} (mk t) ≤ lift.{u v} (mk ({ x ∈ s | f x ∈ t } : set α)) :=
-by { rw [image_eq_range] at h, convert mk_preimage_of_subset_range_lift _ _ h using 1, rw [mk_sep], refl }
+by { rw [image_eq_range] at h, convert mk_preimage_of_subset_range_lift _ _ h using 1,
+     rw [mk_sep], refl }
 
 lemma mk_subset_ge_of_subset_image (f : α → β) {s : set α} {t : set β} (h : t ⊆ f '' s) :
   mk t ≤ mk ({ x ∈ s | f x ∈ t } : set α) :=
-by { rw [image_eq_range] at h, convert mk_preimage_of_subset_range _ _ h using 1, rw [mk_sep], refl }
+by { rw [image_eq_range] at h, convert mk_preimage_of_subset_range _ _ h using 1,
+     rw [mk_sep], refl }
 
 theorem le_mk_iff_exists_subset {c : cardinal} {α : Type u} {s : set α} :
   c ≤ mk s ↔ ∃ p : set α, p ⊆ s ∧ mk p = c :=

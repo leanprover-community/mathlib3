@@ -339,14 +339,14 @@ instance : inhabited (subgroup G) := ⟨⊥⟩
 @[simp, to_additive] lemma coe_bot : ((⊥ : subgroup G) : set G) = {1} := rfl
 
 @[to_additive] lemma eq_bot_iff_forall : H = ⊥ ↔ ∀ x ∈ H, x = (1 : G) :=
-by simp only [subgroup.ext'_iff, coe_bot, set.eq_singleton_iff_unique_mem, mem_coe, H.one_mem,
-  true_and]
+by simp only [set_like.ext'_iff, coe_bot, set.eq_singleton_iff_unique_mem, set_like.mem_coe,
+  H.one_mem, true_and]
 
 @[to_additive] lemma eq_top_of_card_eq [fintype H] [fintype G]
   (h : fintype.card H = fintype.card G) : H = ⊤ :=
 begin
   haveI : fintype (H : set G) := ‹fintype H›,
-  rw [subgroup.ext'_iff, coe_top, ← finset.coe_univ, ← (H : set G).coe_to_finset, finset.coe_inj,
+  rw [set_like.ext'_iff, coe_top, ← finset.coe_univ, ← (H : set G).coe_to_finset, finset.coe_inj,
     ← finset.card_eq_iff_eq_univ, ← h, set.to_finset_card],
   congr
 end

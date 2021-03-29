@@ -1452,8 +1452,8 @@ prod_bij (λp _, p.val)
 
 end zero
 
-section monoid
-variables [add_monoid M] {p : α → Prop} {v v' : α →₀ M}
+section add_zero_class
+variables [add_zero_class M] {p : α → Prop} {v v' : α →₀ M}
 
 @[simp] lemma subtype_domain_add {v v' : α →₀ M} :
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
@@ -1472,7 +1472,7 @@ def filter_add_hom (p : α → Prop) : (α →₀ M) →+ (α →₀ M) :=
 @[simp] lemma filter_add {v v' : α →₀ M} : (v + v').filter p = v.filter p + v'.filter p :=
 (filter_add_hom p).map_add v v'
 
-end monoid
+end add_zero_class
 
 section comm_monoid
 variables [add_comm_monoid M] {p : α → Prop}

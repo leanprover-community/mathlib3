@@ -435,15 +435,12 @@ lemma to_subsemiring_to_add_submonoid :
 elements of the subsemiring closure of `M`. -/
 lemma clss : (add_submonoid.closure (M : set R) : set R) = subsemiring.closure (M : set R) :=
 begin
-  refine set.ext (λ x, ⟨λ hx, _, λ hx, _⟩),
-  { refine subsemiring.mem_coe.mpr _,
-    rintros - ⟨H1, rfl⟩,
-    rintros - ⟨H2, rfl⟩,
-    exact add_submonoid.mem_closure.mp hx H1.to_add_submonoid H2 },
-  { refine (subsemiring.mem_closure.mp hx) M.to_subsemiring (λ s sM, _),
-    rintros - ⟨H1, rfl⟩,
-    rintros - ⟨H2, rfl⟩,
-    exact H2 sM }
+  refine set.ext (λ x, ⟨λ hx, subsemiring.mem_coe.mpr _,
+    λ hx, (subsemiring.mem_closure.mp hx) M.to_subsemiring (λ s sM, _)⟩);
+  rintros - ⟨H1, rfl⟩;
+  rintros - ⟨H2, rfl⟩,
+  { exact add_submonoid.mem_closure.mp hx H1.to_add_submonoid H2 },
+  { exact H2 sM }
 end
 
 lemma mem_closure_iff {s : set R} {x} :

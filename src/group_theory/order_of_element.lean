@@ -541,6 +541,7 @@ open subgroup
 class is_cyclic (α : Type u) [group α] : Prop :=
 (exists_generator [] : ∃ g : α, ∀ x, x ∈ gpowers g)
 
+@[priority 100]
 instance is_cyclic_of_subsingleton [group α] [subsingleton α] : is_cyclic α :=
 ⟨⟨1, λ x, by { rw subsingleton.elim x 1, exact mem_gpowers 1 }⟩⟩
 

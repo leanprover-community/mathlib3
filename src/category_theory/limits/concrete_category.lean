@@ -89,7 +89,8 @@ begin
   dsimp at w,
   rwa coe_comp at w,
 end
-
+set_option pp.all true
+#print colimit.ι_desc_apply
 @[simp]
 lemma colimit.w_apply (F : J ⥤ C) [has_colimit F] {j j' : J} (f : j ⟶ j') (x : F.obj j) :
   colimit.ι F j' (F.map f x) = colimit.ι F j x :=

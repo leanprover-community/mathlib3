@@ -1,6 +1,7 @@
 import algebra.homology2.additive
 import algebra.category.Module.abelian
 import algebra.category.Module.subobject
+import category_theory.limits.shapes.concrete_category
 
 universes v u
 
@@ -66,15 +67,36 @@ begin
 end
 
 @[ext]
-lemma cokernel_π_ext {M N : Module R} (f : M ⟶ N) {x y : N} (w : ∃ m, f m + x = y) :
+lemma cokernel_π_ext {M N : Module.{v} R} (f : M ⟶ N) {x y : N} (m : M) (w : f m + x = y) :
   cokernel.π f x = cokernel.π f y :=
 begin
-  obtain ⟨m, rfl⟩ := w,
+  subst w,
   simp,
 end
 
+@[ext]
+lemma cokernel_π_image_subobject_ext {L M N : Module.{v} R}
+  (f : L ⟶ M) (g : (image_subobject f : Module.{v} R) ⟶ N)
+  {x y : N} (l : L) (w : g (factor_thru_image_subobject f l) + x = y) :
+  cokernel.π g x = cokernel.π g y :=
+begin
+  subst w,
+  simp,
+end
+
+def to_kernel {M N : Module R} {f : M ⟶ N} (m : M) (w : f m = 0) : (kernel f : Module R) :=
+(Module.kernel_iso_ker f).symm.to_linear_equiv.to_equiv ⟨m, w⟩
+
+@[simp] lemma to_kernel_kernel_ι {M N : Module R} {f : M ⟶ N} (m : M) (w : f m = 0) :
+  (kernel.ι f) (to_kernel m w) = m :=
+by simp [to_kernel]
+
 def to_kernel_subobject {M N : Module R} {f : M ⟶ N} (m : M) (w : f m = 0) : kernel_subobject f :=
-(kernel_subobject_iso f ≪≫ Module.kernel_iso_ker f).symm.to_linear_equiv.to_equiv ⟨m, w⟩
+(kernel_subobject_iso f ≪≫ Module.kernel_iso_ker f).inv ⟨m, w⟩
+
+@[simp] lemma to_kernel_subobject_arrow {M N : Module R} {f : M ⟶ N} (m : M) (w : f m = 0) :
+  (kernel_subobject f).arrow (to_kernel_subobject m w) = m :=
+sorry
 
 @[ext]
 lemma subquotient_ext {L M N K : Module R} {f : L ⟶ M} {g : M ⟶ N} (w : f ≫ g = 0)
@@ -84,9 +106,9 @@ lemma subquotient_ext {L M N K : Module R} {f : L ⟶ M} {g : M ⟶ N} (w : f �
       k (cokernel.π (image_to_kernel w) (to_kernel_subobject m p))) : h = k :=
 begin
   ext n,
-  -- Gosh it would be nice if `equiv_rw` could directly use isomorphisms, or enriched `≃`.
+  -- Gosh it would be nice if `equiv_rw` could directly use an isomorphism, or an enriched `≃`.
   equiv_rw (kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g).to_linear_equiv.to_equiv at n,
-  convert w n.1 n.2; simp,
+  convert w n.1 n.2; simp [to_kernel_subobject],
 end
 
 variables {ι : Type*} {c : complex_shape ι} {C D : homological_complex (Module.{v} R) c}
@@ -102,14 +124,17 @@ to_kernel_subobject x p
 begin
   simp [to_cycles],
   dsimp [to_kernel_subobject, cycles, kernel_subobject_iso],
-  have := subobject.underlying_iso_arrow (kernel.ι (C.d_from i)),
-  have := concrete_category.congr_hom this _,
-  convert this,
+  convert concrete_category.congr_hom (subobject.underlying_iso_arrow (kernel.ι (C.d_from i))) _,
+  simp,
 end
 
 @[ext] lemma cycles_ext {C : homological_complex (Module.{v} R) c} {i : ι}
   {x y : C.cycles i} (w : (C.cycles i).arrow x = (C.cycles i).arrow y) : x = y :=
-sorry
+begin
+  apply_fun (C.cycles i).arrow,
+  exact w,
+  sorry,
+end
 
 end homological_complex
 
@@ -117,6 +142,10 @@ end homological_complex
   (cycles_map f i) (C.to_cycles x p) = D.to_cycles (f.f i x) sorry :=
 begin
   ext,
+  simp,
+  have := concrete_category.congr_hom (cycles_map_arrow f i),
+  dsimp at this,
+  rw this,
   simp,
 end
 
@@ -134,15 +163,25 @@ variables (f g : C ⟶ D)
 theorem homology_map_eq_of_homotopy' (h : homotopy f g) (i : ι) :
   (homology_functor (Module.{v} R) c i).map f = (homology_functor (Module.{v} R) c i).map g :=
 begin
+  -- To check two morphisms out of a homology group agree, it suffices to check on cycles:
   ext,
   dsimp [homology_functor, homology, homological_complex.to_homology],
   erw colimit.ι_desc_apply, -- a cokernel specific version?
   erw colimit.ι_desc_apply,
   simp only [function.comp_app, Module.coe_comp, category_theory.limits.cofork.of_π_ι_app],
   simp only [cycles_map_to_cycles],
-  ext,
-  refine ⟨_, _⟩, swap,
-  ext,
+  -- To check that two elements are equal mod coboundaries, it suffices to exhibit a coboundary:
+  ext1,
+  -- Moreover, to check that two cycles are equal, it suffices to check their underlying elements:
+  ext1,
+  simp only [homological_complex.to_cycles_arrow, linear_map.map_add],
+  rw ←h.comm' i,
+  simp only [function.comp_app, Module.coe_comp, linear_map.add_apply],
+  -- Now we use `p : d x = 0` to get rid of a term:
+  simp only [p, linear_map.map_zero, add_zero],
+  -- Cancel the `g` terms:
+  simp only [←add_assoc, add_left_eq_self],
+
   -- rw [←h.comm' i],
   -- simp,
   -- simp,

@@ -94,6 +94,11 @@ def boundaries_to_cycles (C : homological_complex V c) (i : ι) :
   (C.boundaries i : V) ⟶ (C.cycles i : V) :=
 subobject.of_le _ _ (C.boundaries_le_cycles i)
 
+@[simp]
+lemma boundaries_to_cycles_arrow (C : homological_complex V c) (i : ι) :
+  C.boundaries_to_cycles i ≫ (C.cycles i).arrow = (C.boundaries i).arrow :=
+by simp [boundaries_to_cycles]
+
 variables [has_cokernels V]
 
 def homology (C : homological_complex V c) (i : ι) : V :=

@@ -7,6 +7,7 @@ import category_theory.punit
 import category_theory.structured_arrow
 import category_theory.limits.functor_category
 import category_theory.limits.shapes.terminal
+import tactic
 
 /-!
 
@@ -151,62 +152,11 @@ end Ran
 
 namespace Lan
 
-local attribute [simp] comma.fst comma.map_right
-
-/-- The index category of limits used to define `Lan`. -/
-@[simp, derive category, nolint has_inhabited_instance]
-def index (l : L) := comma ι (functor.from_punit l)
-
-variable {ι}
-
-/-- Make a term of type `Lan.index ι x`. -/
-@[simp]
-def index.mk {x : L} {y : S} (f : ι.obj y ⟶ x) : index ι x := ⟨y, ⟨⟩, f⟩
-
-/-- The functor `Lan.index ι x ⥤ Lan.index ι y` associated to a morphism `x ⟶ y`. -/
-@[simp]
-def index.map {x y : L} (f : x ⟶ y) : index ι x ⥤ index ι y :=
-comma.map_right _ ((functor.const _).map f)
-
-/-- Make a morphism in `Lan.index ι x`. -/
-@[simps]
-def index.mk_hom {x : L} {y z : S} (f : ι.obj z ⟶ x) (g : y ⟶ z) :
-  index.mk (ι.map g ≫ f) ⟶ index.mk f :=
-{ left := g,
-  right := 𝟙 _,
-  w' := by simpa }
-
-lemma index.map_mk {x y : L} {z : S} (f : ι.obj z ⟶ x) (g : x ⟶ y) :
-  (index.map g).obj (index.mk f) = index.mk (f ≫ g) := rfl
-
-lemma index.map_id {x : L} {j : index ι x} :
-  (index.map (𝟙 x)).obj j = j := by {cases j, tidy}
-
-lemma index.map_comp {x y z : L} (f : x ⟶ y) (g : y ⟶ z) (j : index ι x) :
-  (index.map (f ≫ g)).obj j = (index.map g).obj ((index.map f).obj j) :=
-by {cases j, tidy}
-variable (ι)
-
--- TODO: Use this to prove that `Lan.adjunction` is coreflective
--- when `ι` is fully faithful.
-/-- `index.mk (𝟙 (ι.obj y))` is terminal when `ι` is fully faithful. -/
-def index.mk_id_terminal [full ι] [faithful ι] {y : S} : is_terminal (index.mk (𝟙 (ι.obj y))) :=
-{ lift := λ T, ⟨ι.preimage T.X.hom, eq_to_hom (by simp), by tidy⟩,
-  uniq' := begin
-    intros T m w,
-    ext j,
-    { apply ι.map_injective,
-      have := m.w,
-      change _ ≫ 𝟙 _ = _ ≫ 𝟙 _ at this,
-      rw [category.comp_id, category.comp_id] at this,
-      simpa },
-    { tidy }
-  end }
+local attribute [simp] costructured_arrow.proj
 
 /-- The diagram indexed by `Ran.index ι x` used to define `Ran`. -/
-@[simp]
-def diagram (F : S ⥤ D) (x : L) : index ι x ⥤ D :=
-  comma.fst ι (functor.from_punit x) ⋙ F
+abbreviation diagram (F : S ⥤ D) (x : L) : costructured_arrow ι x ⥤ D :=
+  costructured_arrow.proj ⋙ F
 variable {ι}
 
 /-- A cocone over `Lan.diagram ι F x` used to define `Lan`. -/
@@ -228,48 +178,57 @@ variable (ι)
 
 /-- An auxiliary definition used to define `Lan`. -/
 @[simps]
-def obj_aux (F : S ⥤ D) [∀ x, has_colimits_of_shape (index ι x) D] : L ⥤ D :=
+def obj_aux (F : S ⥤ D) [∀ x, has_colimits_of_shape (costructured_arrow ι x) D] : L ⥤ D :=
 { obj := λ x, colimit (diagram ι F x),
-  map := λ x y f, colimit.pre (diagram _ _ _) (index.map f),
+  map := λ x y f, colimit.pre (diagram _ _ _) (costructured_arrow.map f : costructured_arrow ι _ ⥤ _),
   map_id' := begin
     intro l,
     ext j,
     erw [colimit.ι_pre, category.comp_id],
     congr' 1,
-    rw index.map_id,
+    simp,
   end,
   map_comp' := begin
     intros x y z f g,
     ext j,
-    have := colimit.pre_pre (diagram ι F z) (index.map g) (index.map f),
-    change _ = _ ≫
-      colimit.pre (index.map g ⋙ diagram ι F z) (index.map f) ≫
-      colimit.pre (diagram ι F z) (index.map g),
-    rw this,
-    change _ = colimit.ι ((index.map f ⋙ index.map g) ⋙ diagram ι F z) j ≫ _,
+    have := colimit.pre_pre (diagram ι F z) (costructured_arrow.map g) (costructured_arrow.map f),
+    --change _ = _ ≫
+    --  colimit.pre (costructured_arrow.map g ⋙ diagram ι F z) (costructured_arrow.map f) ≫
+    --  colimit.pre (diagram ι F z) (costructured_arrow.map g),
+    erw this,
+    --change _ = colimit.ι ((costructured_arrow.map f ⋙ costructured_arrow.map g) ⋙ diagram ι F z) j ≫
+    --  colimit.pre (diagram ι F z) (costructured_arrow.map f ⋙ costructured_arrow.map g),
+    change _ = colimit.ι
+      (((costructured_arrow.map f : costructured_arrow ι _ ⥤ _)
+        ⋙ costructured_arrow.map g) ⋙ diagram ι F z) j ≫ _,
     rw [colimit.ι_pre, colimit.ι_pre],
     congr' 1,
-    simp only [index.map_comp, functor.comp_obj],
+    simp,
   end }
 
 /-- An auxiliary definition used to define `Lan` and `Lan.adjunction`. -/
 @[simps]
-def equiv [∀ x, has_colimits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
+def equiv [∀ x, has_colimits_of_shape (costructured_arrow ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
   (obj_aux ι F ⟶ G) ≃ (F ⟶ ι ⋙ G ) :=
 { to_fun := λ f,
-  { app := λ x, by apply colimit.ι (diagram ι F (ι.obj x)) (index.mk (𝟙 _)) ≫ f.app _, -- sigh
+  { app := λ x,
+      by apply colimit.ι (diagram ι F (ι.obj x)) (costructured_arrow.mk (𝟙 _)) ≫ f.app _, -- sigh
   naturality' := begin
     intros x y ff,
     simp,
     erw [← f.naturality (ι.map ff)],
     delta obj_aux,
     erw [← category.assoc, ← category.assoc],
-    erw colimit.ι_pre (diagram ι F (ι.obj y)) (index.map (ι.map ff)) (index.mk (𝟙 _)),
+    erw colimit.ι_pre (diagram ι F (ι.obj y)) (costructured_arrow.map (ι.map ff))
+      (costructured_arrow.mk (𝟙 _)),
     congr' 1,
-    have := colimit.w (diagram ι F (ι.obj y)) (index.mk_hom (𝟙 _) ff),
-    convert this,
-    rw index.map_mk,
-    simp [index.map_mk],
+    let xx : costructured_arrow ι (ι.obj y) := costructured_arrow.mk (ι.map ff),
+    let yy : costructured_arrow ι (ι.obj y) := costructured_arrow.mk (𝟙 _),
+    let fff : xx ⟶ yy := costructured_arrow.hom_mk ff (by {simp, erw category.comp_id}),
+    have := colimit.w (diagram ι F (ι.obj y)) fff,
+    erw colimit.w (diagram ι F (ι.obj y)) fff,
+    congr,
+    simp,
   end },
   inv_fun := λ f,
   { app := λ x, colimit.desc (diagram ι F x) (cocone _ f),
@@ -286,8 +245,8 @@ def equiv [∀ x, has_colimits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤
     dsimp only [cocone],
     rw [category.assoc, ← x.naturality j.hom, ← category.assoc],
     congr' 1,
-    dsimp only [obj_aux, index.map],
-    change colimit.ι _ _ ≫ colimit.pre (diagram ι F k) (index.map _) = _,
+    dsimp only [obj_aux],
+    change colimit.ι _ _ ≫ colimit.pre (diagram ι F k) (costructured_arrow.map _) = _,
     rw colimit.ι_pre,
     congr,
     cases j,
@@ -297,14 +256,14 @@ def equiv [∀ x, has_colimits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤
 
 /-- A variant of `Lan.equiv` with `whiskering_left` instead of functor composition. -/
 @[simps]
-def equiv' [∀ x, has_colimits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
+def equiv' [∀ x, has_colimits_of_shape (costructured_arrow ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
   (obj_aux ι F ⟶ G) ≃ (F ⟶ ((whiskering_left _ _ _).obj ι).obj G) := equiv _ _ _
 
 end Lan
 
 /-- The left Kan extension of a functor. -/
 @[simps]
-def Lan [∀ X, has_colimits_of_shape (Lan.index ι X) D] : (S ⥤ D) ⥤ L ⥤ D :=
+def Lan [∀ X, has_colimits_of_shape (costructured_arrow ι X) D] : (S ⥤ D) ⥤ L ⥤ D :=
 adjunction.left_adjoint_of_equiv (Lan.equiv' ι) (by tidy)
 
 namespace Lan
@@ -312,7 +271,7 @@ namespace Lan
 variable (D)
 
 /-- The adjunction associated to `Lan`. -/
-def adjunction [∀ X, has_colimits_of_shape (Lan.index ι X) D] :
+def adjunction [∀ X, has_colimits_of_shape (costructured_arrow ι X) D] :
   Lan ι ⊣ (whiskering_left _ _ D).obj ι :=
 adjunction.adjunction_of_equiv_left _ _
 

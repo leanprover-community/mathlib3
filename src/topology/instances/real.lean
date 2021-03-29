@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.ring
-import topology.algebra.continuous_functions
 import ring_theory.subring
 import group_theory.archimedean
 /-!
@@ -109,6 +108,11 @@ instance : topological_add_group ℚ := by apply_instance
 instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
+instance : proper_space ℝ :=
+{ compact_ball := λx r, by { rw closed_ball_Icc, apply compact_Icc } }
+
+instance : second_countable_topology ℝ := second_countable_of_proper
+
 lemma real.is_topological_basis_Ioo_rat :
   @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 is_topological_basis_of_open_of_nhds
@@ -121,11 +125,6 @@ is_topological_basis_of_open_of_nhds
       by { simp only [mem_Union], exact ⟨q, p, rat.cast_lt.1 $ hqa.trans hap, rfl⟩ },
       ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h ⟨hlq.trans hqa', ha'p.trans hpu⟩⟩)
 
-instance : second_countable_topology ℝ :=
-⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo a b}),
-  by simp [countable_Union, countable_Union_Prop],
-  real.is_topological_basis_Ioo_rat.2.2⟩⟩
-
 /- TODO(Mario): Prove that these are uniform isomorphisms instead of uniform embeddings
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=
 _
@@ -133,7 +132,8 @@ _
 lemma uniform_embedding_mul_rat {q : ℚ} (hq : q ≠ 0) : uniform_embedding ((*) q) :=
 _ -/
 
-lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} : x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
+lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} :
+  x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
 by simp [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
 
 lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
@@ -258,9 +258,6 @@ lemma closure_of_rat_image_le_le_eq {a b : ℚ} (hab : a ≤ b) :
   closure (of_rat '' {q:ℚ | a ≤ q ∧ q ≤ b}) = {r:ℝ | of_rat a ≤ r ∧ r ≤ of_rat b} :=
 _-/
 
-instance : proper_space ℝ :=
-{ compact_ball := λx r, by rw closed_ball_Icc; apply compact_Icc }
-
 lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_below s ∧ bdd_above s :=
 ⟨begin
   assume bdd,
@@ -283,11 +280,6 @@ eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc
   (compact_Icc.image_of_continuous_on h)
 
 end
-
-instance reals_semimodule : topological_semimodule ℝ ℝ := ⟨continuous_mul⟩
-
-instance real_maps_algebra {α : Type*} [topological_space α] :
-  algebra ℝ C(α, ℝ) := continuous_map_algebra
 
 section subgroups
 

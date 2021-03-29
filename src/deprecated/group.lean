@@ -88,7 +88,7 @@ lemma inv {α β} [has_mul α] [comm_group β] (f : α → β) [is_mul_hom f] :
 end is_mul_hom
 
 /-- Predicate for add_monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
-class is_add_monoid_hom [add_zero_class α] [add_zero_class β] (f : α → β) =
+class is_add_monoid_hom [add_zero_class α] [add_zero_class β] (f : α → β)
   extends is_add_hom f : Prop :=
 (map_zero [] : f 0 = 0)
 

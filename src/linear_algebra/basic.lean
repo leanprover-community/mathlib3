@@ -2104,6 +2104,7 @@ end field
 
 /-- Given `f : M₁ ≃ₗ[R] M₂` and `U` a submodule of `M₂`, `f.comap U` is the
 induced `linear_equiv` from `U.comap f.to_linear_map` to `U`. -/
+@[simps]
 def comap [ring R] [add_comm_group M] [module R M]
   [add_comm_group M₂] [module R M₂] (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
   U.comap f.to_linear_map ≃ₗ[R] U := f.of_submodules _ _
@@ -2123,6 +2124,7 @@ namespace submodule
 
 /-- Given `p` a submodule of the module `M` and `q` a submodule of `p`, `p.equiv_subtype_map q`
 is the natural `linear_equiv` between `q` and `q.map p.subtype`. -/
+@[simps]
 noncomputable def equiv_subtype_map [ring R] [add_comm_group M] [module R M]
   (p : submodule R M) (q : submodule R p) : q ≃ₗ[R] q.map p.subtype :=
 linear_equiv.of_bijective ((p.subtype.dom_restrict q).cod_restrict _

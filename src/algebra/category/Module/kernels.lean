@@ -119,7 +119,7 @@ concrete_category.congr_hom (cokernel_iso_range_quotient_inv_kernel_ι f) x
 by { convert colimit.iso_colimit_cocone_ι_inv ⟨_, cokernel_is_colimit f⟩ _; refl, }
 
 @[simp] lemma cokernel_iso_range_quotient_symm_range_mkq {G H : Module.{v} R} (f : G ⟶ H) (x : H) :
-  (cokernel_iso_range_quotient f).inv (f.range.mkq x) = cokernel.π f x :=
+  (cokernel_iso_range_quotient f).inv (submodule.quotient.mk x) = cokernel.π f x :=
 concrete_category.congr_hom (range_mkq_cokernel_iso_range_quotient_inv f) x
 
 end Module

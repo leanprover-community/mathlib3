@@ -318,10 +318,10 @@ lemma inf_factors {A B : C} {X Y : subobject B} (f : A ⟶ B) :
   end⟩
 
 lemma inf_arrow_factors_left {B : C} (X Y : subobject B) : X.factors (X ⊓ Y).arrow :=
-(factors_iff _ _).mpr ⟨underlying.map (hom_of_le (inf_le_left X Y)), by simp⟩
+(factors_iff _ _).mpr ⟨of_le (X ⊓ Y) X (inf_le_left X Y), by simp⟩
 
 lemma inf_arrow_factors_right {B : C} (X Y : subobject B) : Y.factors (X ⊓ Y).arrow :=
-(factors_iff _ _).mpr ⟨underlying.map (hom_of_le (inf_le_right X Y)), by simp⟩
+(factors_iff _ _).mpr ⟨of_le (X ⊓ Y) Y (inf_le_right X Y), by simp⟩
 
 @[simp]
 lemma finset_inf_factors {I : Type*} {A B : C} {s : finset I} {P : I → subobject B}

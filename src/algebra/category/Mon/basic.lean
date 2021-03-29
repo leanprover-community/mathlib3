@@ -179,7 +179,7 @@ instance Mon.forget_reflects_isos : reflects_isomorphisms (forget Mon.{u}) :=
     resetI,
     let i := as_iso ((forget Mon).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact is_iso.of_iso e.to_Mon_iso,
+    exact ⟨(is_iso.of_iso e.to_Mon_iso).1⟩,
   end }
 
 @[to_additive]
@@ -189,7 +189,7 @@ instance CommMon.forget_reflects_isos : reflects_isomorphisms (forget CommMon.{u
     resetI,
     let i := as_iso ((forget CommMon).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact is_iso.of_iso e.to_CommMon_iso,
+    exact ⟨(is_iso.of_iso e.to_CommMon_iso).1⟩,
   end }
 
 /-!

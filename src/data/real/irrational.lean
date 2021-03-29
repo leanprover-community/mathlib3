@@ -64,32 +64,33 @@ end
 is irrational. -/
 theorem irrational_nrt_of_n_not_dvd_multiplicity {x : ℝ} (n : ℕ) {m : ℤ} (hm : m ≠ 0) (p : ℕ)
   [hp : fact p.prime] (hxr : x ^ n = m)
-  (hv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.ne_one, hm⟩) % n ≠ 0) :
+  (hv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.1.ne_one, hm⟩) % n ≠ 0) :
   irrational x :=
 begin
   rcases nat.eq_zero_or_pos n with rfl | hnpos,
   { rw [eq_comm, pow_zero, ← int.cast_one, int.cast_inj] at hxr,
     simpa [hxr, multiplicity.one_right (mt is_unit_iff_dvd_one.1
-      (mt int.coe_nat_dvd.1 hp.not_dvd_one)), nat.zero_mod] using hv },
+      (mt int.coe_nat_dvd.1 hp.1.not_dvd_one)), nat.zero_mod] using hv },
   refine irrational_nrt_of_notint_nrt _ _ hxr _ hnpos,
   rintro ⟨y, rfl⟩,
   rw [← int.cast_pow, int.cast_inj] at hxr, subst m,
   have : y ≠ 0, { rintro rfl, rw zero_pow hnpos at hm, exact hm rfl },
-  erw [multiplicity.pow' (nat.prime_iff_prime_int.1 hp)
-    (finite_int_iff.2 ⟨hp.ne_one, this⟩), nat.mul_mod_right] at hv,
+  erw [multiplicity.pow' (nat.prime_iff_prime_int.1 hp.1)
+    (finite_int_iff.2 ⟨hp.1.ne_one, this⟩), nat.mul_mod_right] at hv,
   exact hv rfl
 end
 
 theorem irrational_sqrt_of_multiplicity_odd (m : ℤ) (hm : 0 < m)
   (p : ℕ) [hp : fact p.prime]
-  (Hpv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.ne_one, (ne_of_lt hm).symm⟩) % 2 = 1) :
+  (Hpv : (multiplicity (p : ℤ) m).get
+    (finite_int_iff.2 ⟨hp.1.ne_one, (ne_of_lt hm).symm⟩) % 2 = 1) :
   irrational (sqrt m) :=
 @irrational_nrt_of_n_not_dvd_multiplicity _ 2 _ (ne.symm (ne_of_lt hm)) p hp
   (sqr_sqrt (int.cast_nonneg.2 $ le_of_lt hm))
   (by rw Hpv; exact one_ne_zero)
 
 theorem nat.prime.irrational_sqrt {p : ℕ} (hp : nat.prime p) : irrational (sqrt p) :=
-@irrational_sqrt_of_multiplicity_odd p (int.coe_nat_pos.2 hp.pos) p hp $
+@irrational_sqrt_of_multiplicity_odd p (int.coe_nat_pos.2 hp.pos) p ⟨hp⟩ $
 by simp [multiplicity_self (mt is_unit_iff_dvd_one.1 (mt int.coe_nat_dvd.1 hp.not_dvd_one) : _)];
   refl
 
@@ -104,7 +105,7 @@ then iff_of_false (not_not_intro ⟨rat.sqrt q,
          sqrt_eq, abs_of_nonneg (rat.sqrt_nonneg q)]⟩) (λ h, h.1 H1)
 else if H2 : 0 ≤ q
 then iff_of_true (λ ⟨r, hr⟩, H1 $ (exists_mul_self _).1 ⟨r,
-  by rwa [eq_comm, sqrt_eq_iff_mul_self_eq (cast_nonneg.2 H2), ← cast_mul, cast_inj] at hr;
+  by rwa [eq_comm, sqrt_eq_iff_mul_self_eq (cast_nonneg.2 H2), ← cast_mul, rat.cast_inj] at hr;
   rw [← hr]; exact real.sqrt_nonneg _⟩) ⟨H1, H2⟩
 else iff_of_false (not_not_intro ⟨0,
   by rw cast_zero; exact (sqrt_eq_zero_of_nonpos (rat.cast_nonpos.2 $ le_of_not_le H2)).symm⟩)

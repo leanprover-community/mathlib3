@@ -16,6 +16,7 @@ There are also facts about more complicated integrals:
   along with explicit product formulas for even and odd `n`.
 
 With these lemmas, many simple integrals can be computed by `simp` or `norm_num`.
+See `test/integration.lean` for specific examples.
 
 This file is still being developed.
 -/
@@ -168,7 +169,7 @@ begin
     convert (has_deriv_at_pow (n + 1) (sin x)).comp x (has_deriv_at_sin x) using 1,
     simp [mul_right_comm], },
   calc ∫ (x : ℝ) in 0..π, sin x ^ (n + 2)
-      = ∫ (x : ℝ) in 0..π, sin x ^ (n + 1) * sin x : by { congr, ext, ring }
+      = ∫ (x : ℝ) in 0..π, sin x ^ (n + 1) * sin x : by { congr, ext, ring_nf }
   ... = ∫ (x : ℝ) in 0..π, cos x * (λ (x : ℝ), (↑n + 1) * cos x * sin x ^ n) x : by
   { simp [integral_mul_deriv_eq_deriv_mul hu hv (by continuity : continuous _).continuous_on
       (by continuity : continuous _).continuous_on] }

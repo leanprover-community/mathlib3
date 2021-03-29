@@ -118,7 +118,14 @@ section
 universes v' u'
 variables (D : Type u') [category.{v'} D]
 
-variables [has_zero_morphisms C] [has_zero_morphisms D]
+variables [has_zero_morphisms D]
+
+instance : has_zero_morphisms (C ⥤ D) :=
+{ has_zero := λ F G, ⟨{ app := λ X, 0, }⟩ }
+
+@[simp] lemma zero_app (F G : C ⥤ D) (j : C) : (0 : F ⟶ G).app j = 0 := rfl
+
+variables [has_zero_morphisms C]
 
 lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
   F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
@@ -292,7 +299,7 @@ the identities on both `X` and `Y` are zero.
 def is_iso_zero_equiv (X Y : C) : is_iso (0 : X ⟶ Y) ≃ (𝟙 X = 0 ∧ 𝟙 Y = 0) :=
 { to_fun := by { introsI i, rw ←is_iso.hom_inv_id (0 : X ⟶ Y),
     rw ←is_iso.inv_hom_id (0 : X ⟶ Y), simp },
-  inv_fun := λ h, ⟨(0 : Y ⟶ X), by tidy⟩,
+  inv_fun := λ h, ⟨⟨(0 : Y ⟶ X), by tidy⟩⟩,
   left_inv := by tidy,
   right_inv := by tidy, }
 

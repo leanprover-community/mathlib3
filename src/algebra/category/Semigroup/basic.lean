@@ -170,7 +170,7 @@ instance Magma.forget_reflects_isos : reflects_isomorphisms (forget Magma.{u}) :
     resetI,
     let i := as_iso ((forget Magma).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact is_iso.of_iso e.to_Magma_iso,
+    exact ⟨(is_iso.of_iso e.to_Magma_iso).1⟩,
   end }
 
 @[to_additive]
@@ -180,7 +180,7 @@ instance Semigroup.forget_reflects_isos : reflects_isomorphisms (forget Semigrou
     resetI,
     let i := as_iso ((forget Semigroup).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact is_iso.of_iso e.to_Semigroup_iso,
+    exact ⟨(is_iso.of_iso e.to_Semigroup_iso).1⟩,
   end }
 
 /-!

@@ -226,10 +226,10 @@ calc edist (f x -ᵥ g x) (f y -ᵥ g y) ≤ edist (f x) (f y) + edist (g x) (g 
   (add_mul _ _ _).symm
 
 lemma uniform_continuous_vadd : uniform_continuous (λ x : V × P, x.1 +ᵥ x.2) :=
-(lipschitz_with.prod_fst.vadd lipschitz_with.prod_snd).uniform_continuous
+((@lipschitz_with.prod_fst V P _ _).vadd lipschitz_with.prod_snd).uniform_continuous
 
 lemma uniform_continuous_vsub : uniform_continuous (λ x : P × P, x.1 -ᵥ x.2) :=
-(lipschitz_with.prod_fst.vsub lipschitz_with.prod_snd).uniform_continuous
+((@lipschitz_with.prod_fst P P _ _).vsub lipschitz_with.prod_snd).uniform_continuous
 
 lemma continuous_vadd : continuous (λ x : V × P, x.1 +ᵥ x.2) :=
 uniform_continuous_vadd.continuous

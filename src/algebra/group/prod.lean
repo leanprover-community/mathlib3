@@ -52,7 +52,7 @@ lemma mk_eq_one [has_one M] [has_one N] {x : M} {y : N} : (x, y) = 1 ↔ x = 1 �
 mk.inj_iff
 
 @[to_additive]
-lemma fst_mul_snd [monoid M] [monoid N] (p : M × N) :
+lemma fst_mul_snd [mul_one_class M] [mul_one_class N] (p : M × N) :
   (p.fst, 1) * (1, p.snd) = p :=
 ext (mul_one p.1) (one_mul p.2)
 
@@ -153,7 +153,7 @@ end prod
 
 namespace monoid_hom
 
-variables (M N) [monoid M] [monoid N]
+variables (M N) [mul_one_class M] [mul_one_class N]
 
 /-- Given monoids `M`, `N`, the natural projection homomorphism from `M × N` to `M`.-/
 @[to_additive "Given additive monoids `A`, `B`, the natural projection homomorphism
@@ -192,7 +192,7 @@ variables {M N}
 
 section prod
 
-variable [monoid P]
+variable [mul_one_class P]
 
 /-- Combine two `monoid_hom`s `f : M →* N`, `g : M →* P` into `f.prod g : M →* N × P`
 given by `(f.prod g) x = (f x, g x)` -/
@@ -223,7 +223,7 @@ end prod
 
 section prod_map
 
-variables {M' : Type*} {N' : Type*} [monoid M'] [monoid N'] [monoid P]
+variables {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class N'] [mul_one_class P]
   (f : M →* M') (g : N →* N')
 
 /-- `prod.map` as a `monoid_hom`. -/
@@ -281,7 +281,9 @@ end coprod
 end monoid_hom
 
 namespace mul_equiv
-variables {M N} [monoid M] [monoid N]
+
+section
+variables {M N} [mul_one_class M] [mul_one_class N]
 
 /-- The equivalence between `M × N` and `N × M` given by swapping the components
 is multiplicative. -/
@@ -296,6 +298,11 @@ def prod_comm : M × N ≃* N × M :=
 @[simp, to_additive coe_prod_comm_symm] lemma coe_prod_comm_symm :
   ⇑((prod_comm : M × N ≃* N × M).symm) = prod.swap := rfl
 
+end
+
+section
+variables {M N} [monoid M] [monoid N]
+
 /-- The monoid equivalence between units of a product of two monoids, and the product of the
     units of each monoid. -/
 @[to_additive prod_add_units "The additive monoid equivalence between additive units of a product
@@ -306,5 +313,7 @@ def prod_units : units (M × N) ≃* units M × units N :=
   left_inv := λ u, by simp,
   right_inv := λ ⟨u₁, u₂⟩, by simp [units.map],
   map_mul' := monoid_hom.map_mul _ }
+
+end
 
 end mul_equiv

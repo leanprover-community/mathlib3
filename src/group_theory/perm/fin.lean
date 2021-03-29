@@ -4,42 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import data.equiv.fin
+import data.equiv.fintype
 import group_theory.perm.option
-
-section
-
--- TODO: move to appropriate files, complicated import hierarchy
-
-variables {α β : Type*} [fintype α] [decidable_eq β] (e : equiv.perm α) (f : α ↪ β)
-
-def function.embedding.to_equiv_range : α ≃ set.range f :=
-⟨λ a, ⟨f a, set.mem_range_self a⟩, f.inv_of_mem_range, λ _, by simp, λ _, by simp⟩
-
-@[simp] lemma function.embedding.to_equiv_range_apply (a : α) :
-  f.to_equiv_range a = ⟨f a, set.mem_range_self a⟩ := rfl
-
-@[simp] lemma function.embedding.to_equiv_range_symm_apply_self (a : α) :
-  f.to_equiv_range.symm ⟨f a, set.mem_range_self a⟩ = a :=
-by simp [equiv.symm_apply_eq]
-
-def equiv.perm.via_embedding : equiv.perm β :=
-equiv.perm.subtype_congr (equiv.perm_congr f.to_equiv_range e) (equiv.refl _)
-
-@[simp] lemma equiv.perm.of_embedding_apply_image (a : α) :
-  e.via_embedding f (f a) = f (e a) :=
-by simp [equiv.perm.via_embedding]
-
-@[simp] lemma equiv.perm.via_embedding_sign [decidable_eq α] [fintype β] :
-  equiv.perm.sign (e.via_embedding f) = equiv.perm.sign e :=
-by simp [equiv.perm.via_embedding]
-
-variable {f}
-
-lemma equiv.perm.of_embedding_apply_not_image {b : β} (h : b ∉ set.range f) :
-  e.via_embedding f b = b :=
-by simp [equiv.perm.via_embedding, h]
-
-end
 
 /-!
 # Permutations of `fin n`

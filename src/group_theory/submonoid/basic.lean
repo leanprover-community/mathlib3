@@ -40,6 +40,9 @@ definition in the `add_submonoid` namespace.
 Submonoid inclusion is denoted `≤` rather than `⊆`, although `∈` is defined as
 membership of a submonoid's underlying set.
 
+Note that `submonoid M` does not actually require `monoid M`, instead requiring only the weaker
+`mul_one_class M`.
+
 This file is designed to have very few dependencies. In particular, it should not use natural
 numbers.
 
@@ -47,18 +50,22 @@ numbers.
 submonoid, submonoids
 -/
 
-variables {M : Type*} [monoid M] {s : set M}
-variables {A : Type*} [add_monoid A] {t : set A}
+variables {M : Type*} {N : Type*}
+variables {A : Type*}
+
+section non_assoc
+variables [mul_one_class M] {s : set M}
+variables [add_zero_class A] {t : set A}
 
 /-- A submonoid of a monoid `M` is a subset containing 1 and closed under multiplication. -/
-structure submonoid (M : Type*) [monoid M] :=
+structure submonoid (M : Type*) [mul_one_class M] :=
 (carrier : set M)
 (one_mem' : (1 : M) ∈ carrier)
 (mul_mem' {a b} : a ∈ carrier → b ∈ carrier → a * b ∈ carrier)
 
 /-- An additive submonoid of an additive monoid `M` is a subset containing 0 and
   closed under addition. -/
-structure add_submonoid (M : Type*) [add_monoid M] :=
+structure add_submonoid (M : Type*) [add_zero_class M] :=
 (carrier : set M)
 (zero_mem' : (0 : M) ∈ carrier)
 (add_mem' {a b} : a ∈ carrier → b ∈ carrier → a + b ∈ carrier)
@@ -360,26 +367,9 @@ lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, clos
 
 end submonoid
 
-section is_unit
-
-/-- The submonoid consisting of the units of a monoid -/
-def is_unit.submonoid (M : Type*) [monoid M] : submonoid M :=
-{ carrier := set_of is_unit,
-  one_mem' := by simp only [is_unit_one, set.mem_set_of_eq],
-  mul_mem' := by { intros a b ha hb, rw set.mem_set_of_eq at *, exact is_unit.mul ha hb } }
-
-lemma is_unit.mem_submonoid_iff {M : Type*} [monoid M] (a : M) :
-  a ∈ is_unit.submonoid M ↔ is_unit a :=
-begin
-  change a ∈ set_of is_unit ↔ is_unit a,
-  rw set.mem_set_of_eq
-end
-
-end is_unit
-
 namespace monoid_hom
 
-variables {N : Type*} {P : Type*} [monoid N] [monoid P] (S : submonoid M)
+variables [mul_one_class N]
 
 open submonoid
 
@@ -406,12 +396,42 @@ lemma eq_of_eq_on_mdense {s : set M} (hs : closure s = ⊤) {f g : M →* N} (h 
   f = g :=
 eq_of_eq_on_mtop $ hs ▸ eq_on_mclosure h
 
+
+end monoid_hom
+
+end non_assoc
+
+section assoc
+
+variables [monoid M] [monoid N] {s : set M}
+
+section is_unit
+
+/-- The submonoid consisting of the units of a monoid -/
+def is_unit.submonoid (M : Type*) [monoid M] : submonoid M :=
+{ carrier := set_of is_unit,
+  one_mem' := by simp only [is_unit_one, set.mem_set_of_eq],
+  mul_mem' := by { intros a b ha hb, rw set.mem_set_of_eq at *, exact is_unit.mul ha hb } }
+
+lemma is_unit.mem_submonoid_iff {M : Type*} [monoid M] (a : M) :
+  a ∈ is_unit.submonoid M ↔ is_unit a :=
+begin
+  change a ∈ set_of is_unit ↔ is_unit a,
+  rw set.mem_set_of_eq
+end
+
+end is_unit
+
+namespace monoid_hom
+
+open submonoid
+
 /-- Let `s` be a subset of a monoid `M` such that the closure of `s` is the whole monoid.
 Then `monoid_hom.of_mdense` defines a monoid homomorphism from `M` asking for a proof
 of `f (x * y) = f x * f y` only for `y ∈ s`. -/
 @[to_additive]
-def of_mdense (f : M → N) (hs : closure s = ⊤) (h1 : f 1 = 1)
-  (hmul : ∀ x (y ∈ s), f (x * y) = f x * f y) :
+def of_mdense {M N} [monoid M] [monoid N] {s : set M} (f : M → N) (hs : closure s = ⊤)
+  (h1 : f 1 = 1) (hmul : ∀ x (y ∈ s), f (x * y) = f x * f y) :
   M →* N :=
 { to_fun := f,
   map_one' := h1,
@@ -429,3 +449,5 @@ add_decl_doc add_monoid_hom.of_mdense
 attribute [norm_cast] coe_of_mdense add_monoid_hom.coe_of_mdense
 
 end monoid_hom
+
+end assoc

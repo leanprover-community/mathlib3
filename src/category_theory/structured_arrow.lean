@@ -35,6 +35,9 @@ namespace structured_arrow
 
 variables {S S' S'' : D} {Y Y' : C} {T : C ⥤ D}
 
+/-- TODO -/
+def proj : structured_arrow S T ⥤ C := comma.snd _ _
+
 /-- Construct a structured arrow from a morphism. -/
 def mk (f : S ⟶ T.obj Y) : structured_arrow S T := ⟨⟨⟩, Y, f⟩
 
@@ -118,6 +121,9 @@ def costructured_arrow (S : C ⥤ D) (T : D) := comma S (functor.from_punit T)
 namespace costructured_arrow
 
 variables {T T' T'' : D} {Y Y' : C} {S : C ⥤ D}
+
+/-- TODO -/
+def proj : costructured_arrow S T ⥤ C := comma.fst _ _
 
 /-- Construct a costructured arrow from a morphism. -/
 def mk (f : S.obj Y ⟶ T) : costructured_arrow S T := ⟨Y, ⟨⟩, f⟩

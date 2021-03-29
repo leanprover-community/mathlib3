@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Adam Topaz
 -/
 import category_theory.punit
-import category_theory.comma
+import category_theory.structured_arrow
 import category_theory.limits.functor_category
 import category_theory.limits.shapes.terminal
 
@@ -43,61 +43,12 @@ variables (ι : S ⥤ L)
 
 namespace Ran
 
-local attribute [simp] comma.snd comma.map_left
-
-/-- The index category of limits used to define `Ran`. -/
-@[simp, derive category, nolint has_inhabited_instance]
-def index (l : L) := comma (functor.from_punit l) ι
-
-variable {ι}
-
-/-- Make a term of type `Ran.index ι x`. -/
-@[simp]
-def index.mk {x : L} {y : S} (f : x ⟶ ι.obj y) : index ι x := ⟨⟨⟩, y, f⟩
-
-/-- The functor `Ran.index ι y ⥤ Ran.index ι x` associated to a morphism `x ⟶ y`. -/
-@[simp]
-def index.map {x y : L} (f : x ⟶ y) : index ι y ⥤ index ι x :=
-comma.map_left _ ((functor.const _).map f)
-
-/-- Make a morphism in `Ran.index ι x`. -/
-@[simps]
-def index.mk_hom {x : L} {y z : S} (f : x ⟶ ι.obj y) (g : y ⟶ z) :
-  index.mk f ⟶ index.mk (f ≫ ι.map g) :=
-{ left := 𝟙 _,
-  right := g,
-  w' := by simpa }
-
-lemma index.map_mk {x y : L} {z : S} (f : x ⟶ ι.obj z) (g : y ⟶ x) :
-  (index.map g).obj (index.mk f) = index.mk (g ≫ f) := rfl
-
-lemma index.map_id {x : L} {j : index ι x} :
-  (index.map (𝟙 x)).obj j = j := by {cases j, tidy}
-
-lemma index.map_comp {x y z : L} (f : z ⟶ y) (g : y ⟶ x) (j : index ι x) :
-  (index.map (f ≫ g)).obj j = (index.map f).obj ((index.map g).obj j) :=
-by {cases j, tidy}
-
--- TODO: Use this to prove that `Ran.adjunction` is reflective
--- when `ι` is fully faithful.
-/-- `index.mk (𝟙 (ι.obj y))` is initial when `ι` is fully faithful. -/
-def index.mk_id_initial [full ι] [faithful ι] {y : S} : is_initial (index.mk (𝟙 (ι.obj y))) :=
-{ desc := λ T, ⟨eq_to_hom (by simp), ι.preimage T.X.hom, by tidy⟩,
-  --fac' := _,
-  uniq' := begin
-    intros T m w,
-    ext j,
-    apply ι.map_injective,
-    have := m.w,
-    tidy,
-  end }
-
-variable (ι)
+local attribute [simp] structured_arrow.snd
 
 /-- The diagram indexed by `Ran.index ι x` used to define `Ran`. -/
-@[simp]
-def diagram (F : S ⥤ D) (x : L) : index ι x ⥤ D :=
-  comma.snd (functor.from_punit x) ι ⋙ F
+abbreviation diagram (F : S ⥤ D) (x : L) : structured_arrow x ι ⥤ D :=
+  structured_arrow.snd ⋙ F
+
 variable {ι}
 
 /-- A cone over `Ran.diagram ι F x` used to define `Ran`. -/
@@ -120,15 +71,15 @@ variable (ι)
 
 /-- An auxiliary definition used to define `Ran`. -/
 @[simps]
-def obj_aux (F : S ⥤ D) [∀ x, has_limits_of_shape (index ι x) D] : L ⥤ D :=
+def obj_aux (F : S ⥤ D) [∀ x, has_limits_of_shape (structured_arrow x ι) D] : L ⥤ D :=
 { obj := λ x, limit (diagram ι F x),
-  map := λ x y f, limit.pre (diagram _ _ _) (index.map f),
+  map := λ x y f, limit.pre (diagram _ _ _) (structured_arrow.map f : structured_arrow _ ι ⥤ _),
   map_id' := begin
     intro l,
     ext j,
     simp only [category.id_comp, limit.pre_π],
     congr' 1,
-    rw [index.map_id],
+    simp,
   end,
   map_comp' := begin
     intros x y z f g,
@@ -140,17 +91,19 @@ def obj_aux (F : S ⥤ D) [∀ x, has_limits_of_shape (index ι x) D] : L ⥤ D 
 
 /-- An auxiliary definition used to define `Ran` and `Ran.adjunction`. -/
 @[simps]
-def equiv [∀ x, has_limits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
+def equiv [∀ x, has_limits_of_shape (structured_arrow x ι) D] (F : S ⥤ D) (G : L ⥤ D) :
   (G ⟶ obj_aux ι F) ≃ (ι ⋙ G ⟶ F) :=
 { to_fun := λ f,
-  { app := λ x, f.app _ ≫ limit.π (diagram ι F (ι.obj x)) (index.mk (𝟙 _)),
+  { app := λ x, f.app _ ≫ limit.π (diagram ι F (ι.obj x)) (structured_arrow.mk (𝟙 _)),
   naturality' := begin
     intros x y ff,
     simp only [functor.comp_map, nat_trans.naturality_assoc, obj_aux_map, category.assoc],
     congr' 1,
-    erw [limit.pre_π, limit.w (diagram ι F _) (index.mk_hom (𝟙 _) ff)],
-    congr,
-    tidy,
+    have := limit.w (diagram ι F _),
+    sorry,
+    --erw [limit.pre_π, limit.w (diagram ι F _) (structured_arrow.hom_mk (𝟙 _) _)],
+    --congr,
+    --tidy,
   end },
   inv_fun := λ f,
   { app := λ x, limit.lift (diagram ι F x) (cone _ f),

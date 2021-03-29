@@ -61,7 +61,7 @@ lemma commutes_apply (φ : A ⟶ B) (a : A.X i) :
    B.d i j (φ.f i a) = φ.f j (A.d i j a) :=
 begin
   change (φ.f i ≫ B.d i j) a = (A.d i j ≫ φ.f j) a,
-  rw φ.commutes,
+  rw φ.comm,
 end
 
 def cycle (hjk : s.r j k) : submodule R (C.X j) := ((C.d j k) : C.X j →ₗ[R] C.X k).ker
@@ -74,7 +74,7 @@ def map (φ : A ⟶ B) (hjk : s.r j k) : cycle R A hjk →ₗ[R] cycle R B hjk :
 submodule.induced_map (φ.f j) begin
   rintros - ⟨m, hm, rfl⟩,
   change (φ.f j ≫ B.d j k) m = 0,
-  rw φ.commutes,
+  rw φ.comm,
   change φ.f k (_) = 0,
   convert (φ.f k).map_zero,
 end
@@ -106,7 +106,7 @@ submodule.induced_map (φ.f j) begin
   rintros - ⟨-, ⟨a, -, rfl⟩, rfl⟩,
   use [φ.f i a, trivial],
   change (φ.f i ≫ _) a = _,
-  rw φ.commutes,
+  rw φ.comm,
   refl,
 end
 
@@ -163,7 +163,7 @@ submodule.mapq _ _ (cycle.map R φ hjk) begin
   rintro aj ⟨ai, -, ha⟩,
   use [φ.f i ai, trivial],
   change (φ.f i ≫ _) _ = _,
-  rw φ.commutes,
+  rw φ.comm,
   change φ.f j _ = _,
   rw ha,
   refl,

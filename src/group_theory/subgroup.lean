@@ -339,48 +339,21 @@ instance : inhabited (subgroup G) := ⟨⊥⟩
 @[simp, to_additive] lemma coe_bot : ((⊥ : subgroup G) : set G) = {1} := rfl
 
 @[to_additive] lemma eq_bot_iff_forall : H = ⊥ ↔ ∀ x ∈ H, x = (1 : G) :=
-begin
-  split,
-  { intros h x x_in,
-    rwa [h, mem_bot] at x_in },
-  { intros h,
-    ext x,
-    rw mem_bot,
-    exact ⟨h x, by { rintros rfl, exact H.one_mem }⟩ },
-end
+by simp only [subgroup.ext'_iff, coe_bot, set.eq_singleton_iff_unique_mem, mem_coe, H.one_mem,
+  true_and]
 
 @[to_additive] lemma eq_top_of_card_eq [fintype H] [fintype G]
   (h : fintype.card H = fintype.card G) : H = ⊤ :=
 begin
-  classical,
-  rw fintype.card_congr (equiv.refl _) at h, -- this swaps the fintype instance to classical
-  change fintype.card H.carrier = _ at h,
-  unfreezingI { cases H with S hS1 hS2 hS3, },
-  have : S = set.univ,
-  { suffices : S.to_finset = finset.univ,
-    { rwa [←set.to_finset_univ, set.to_finset_inj] at this, },
-    apply finset.eq_univ_of_card,
-    rwa set.to_finset_card },
-  change (⟨_, _, _, _⟩ : subgroup G) = ⟨_, _, _, _⟩,
-  congr',
+  haveI : fintype (H : set G) := ‹fintype H›,
+  rw [subgroup.ext'_iff, coe_top, ← finset.coe_univ, ← (H : set G).coe_to_finset, finset.coe_inj,
+    ← finset.card_eq_iff_eq_univ, ← h, set.to_finset_card],
+  congr
 end
 
 @[to_additive] lemma nontrivial_iff_exists_ne_one (H : subgroup G) :
   nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=
-begin
-  split,
-  { introI h,
-    rcases exists_ne (1 : H) with ⟨⟨h, h_in⟩, h_ne⟩,
-    use [h, h_in],
-    intro hyp,
-    apply h_ne,
-    simpa [hyp] },
-  { rintros ⟨x, x_in, hx⟩,
-    apply nontrivial_of_ne (⟨x, x_in⟩ : H) 1,
-    intro hyp,
-    apply hx,
-    simpa [has_one.one] using hyp },
-end
+subtype.nontrivial_iff_exists_ne (λ x, x ∈ H) (1 : H)
 
 /-- A subgroup is either the trivial subgroup or nontrivial. -/
 @[to_additive] lemma bot_or_nontrivial (H : subgroup G) : H = ⊥ ∨ nontrivial H :=

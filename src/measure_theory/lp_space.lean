@@ -1833,8 +1833,7 @@ rfl
   (to_Lp E p μ 𝕜 f : α →ₘ[μ] E) = f.to_ae_eq_fun μ :=
 rfl
 
-variables [nonempty α] [nontrivial E] [nondiscrete_normed_field 𝕜] [opens_measurable_space 𝕜]
-  [normed_space 𝕜 E]
+variables [nondiscrete_normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E]
 
 lemma to_Lp_norm_eq_to_Lp_norm_coe :
   ∥to_Lp E p μ 𝕜∥ = ∥bounded_continuous_function.to_Lp E p μ 𝕜∥ :=

@@ -424,6 +424,14 @@ def prodₗᵢ (R : Type*) [ring R] [topological_space R] [module R F] [module R
 protected theorem uniform_continuous : uniform_continuous f :=
 f.lipschitz.uniform_continuous
 
+@[simp, nontriviality] lemma op_norm_subsingleton [subsingleton E] : ∥f∥ = 0 :=
+begin
+  refine le_antisymm _ (norm_nonneg _),
+  apply op_norm_le_bound _ rfl.ge,
+  intros x,
+  simp [subsingleton.elim x 0]
+end
+
 /-- A continuous linear map is an isometry if and only if it preserves the norm. -/
 lemma isometry_iff_norm : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
 f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
@@ -654,9 +662,12 @@ end linear_isometry
 namespace continuous_linear_map
 
 /-- Precomposition with a linear isometry preserves the operator norm. -/
-lemma op_norm_comp_linear_isometry_equiv [nontrivial E] (f : F →L[𝕜] G) (g : E ≃ₗᵢ[𝕜] F) :
+lemma op_norm_comp_linear_isometry_equiv (f : F →L[𝕜] G) (g : E ≃ₗᵢ[𝕜] F) :
   ∥f.comp g.to_linear_isometry.to_continuous_linear_map∥ = ∥f∥ :=
 begin
+  casesI subsingleton_or_nontrivial E,
+  { haveI := g.symm.to_linear_equiv.to_equiv.subsingleton,
+    simp },
   refine le_antisymm _ _,
   { convert f.op_norm_comp_le g.to_linear_isometry.to_continuous_linear_map,
     simp [g.to_linear_isometry.norm_to_continuous_linear_map] },

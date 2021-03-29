@@ -109,7 +109,7 @@ instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
 instance : proper_space ℝ :=
-{ compact_ball := λx r, by rw closed_ball_Icc; apply compact_Icc }
+{ compact_ball := λx r, by { rw closed_ball_Icc, apply compact_Icc } }
 
 instance : second_countable_topology ℝ := second_countable_of_proper
 

@@ -1126,7 +1126,7 @@ set_option extends_priority 920
 -- Here, we set a rather high priority for the instance `[semi_normed_space α β] : semimodule α β`
 -- to take precedence over `semiring.to_semimodule` as this leads to instance paths with better
 -- unification properties.
--- see Note[vector space definition] for why we extend `semimodule`.
+-- see Note [vector space definition] for why we extend `semimodule`.
 /-- A seminormed space over a normed field is a vector space endowed with a seminorm which satisfies
 the equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ ∥c∥ ∥x∥` in the definition, then prove
 `∥c • x∥ = ∥c∥ ∥x∥` in `norm_smul`. -/

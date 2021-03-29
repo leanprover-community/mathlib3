@@ -143,10 +143,6 @@ end homological_complex
 begin
   ext,
   simp,
-  have := concrete_category.congr_hom (cycles_map_arrow f i),
-  dsimp at this,
-  rw this,
-  simp,
 end
 
 def homological_complex.to_homology (C : homological_complex (Module.{v} R) c) {i : ι} (x : C.X i) (p : C.d_from i x = 0) : C.homology i :=
@@ -185,4 +181,6 @@ begin
   -- rw [←h.comm' i],
   -- simp,
   -- simp,
+  sorry,
+  sorry,
 end

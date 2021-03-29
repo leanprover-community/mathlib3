@@ -106,8 +106,6 @@ do d ← get_decl n,
    let ls := d.univ_params.map level.param,
    let c := @expr.const tt n ls,
    (t'',pr',l') ← prove_elementwise c,
-   pp t'' >>= trace,
-   pp pr' >>= trace,
    add_decl $ declaration.thm n' (l' :: d.univ_params) t'' (pure pr'),
    copy_attribute `simp n n'
 

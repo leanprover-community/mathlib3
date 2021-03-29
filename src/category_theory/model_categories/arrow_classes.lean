@@ -159,15 +159,6 @@ begin
     -/
 end
 
-/-- An adjunction yields an adjunction between the arrow categories. -/
-def arrow_adjunction (F : C ⥤ D) (G : D ⥤ C) (adj : F ⊣ G) :
-  functor.map_arrow F ⊣ functor.map_arrow G :=
-category_theory.adjunction.mk_of_hom_equiv {
-  hom_equiv := sorry,
--- This def should be put in arrow.lean!
-
-}
-
 lemma lifting_adjunction {F : C ⥤ D} {G : D ⥤ C} [adj : F ⊣ G]
   (i : arrow C) (p : arrow D) :
   has_lifting_property ((functor.map_arrow F).obj i) p →
@@ -176,7 +167,7 @@ begin
   intros h sq,
 
   -- convert the square from i ⟶ G p into F i ⟶ p
-  let sq_adjoint := ((arrow_adjunction F G adj).hom_equiv i p).inv_fun sq,
+  let sq_adjoint := ((adjunction_arrow_category F G adj).hom_equiv i p).inv_fun sq,
   haveI := h sq_adjoint,
 
   fconstructor,

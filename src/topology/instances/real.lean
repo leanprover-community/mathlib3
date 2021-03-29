@@ -108,6 +108,11 @@ instance : topological_add_group ℚ := by apply_instance
 instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
+instance : proper_space ℝ :=
+{ compact_ball := λx r, by { rw closed_ball_Icc, apply compact_Icc } }
+
+instance : second_countable_topology ℝ := second_countable_of_proper
+
 lemma real.is_topological_basis_Ioo_rat :
   @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 is_topological_basis_of_open_of_nhds
@@ -119,11 +124,6 @@ is_topological_basis_of_open_of_nhds
     ⟨Ioo q p,
       by { simp only [mem_Union], exact ⟨q, p, rat.cast_lt.1 $ hqa.trans hap, rfl⟩ },
       ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h ⟨hlq.trans hqa', ha'p.trans hpu⟩⟩)
-
-instance : second_countable_topology ℝ :=
-⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo a b}),
-  by simp [countable_Union, countable_Union_Prop],
-  real.is_topological_basis_Ioo_rat.2.2⟩⟩
 
 /- TODO(Mario): Prove that these are uniform isomorphisms instead of uniform embeddings
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=
@@ -257,9 +257,6 @@ _
 lemma closure_of_rat_image_le_le_eq {a b : ℚ} (hab : a ≤ b) :
   closure (of_rat '' {q:ℚ | a ≤ q ∧ q ≤ b}) = {r:ℝ | of_rat a ≤ r ∧ r ≤ of_rat b} :=
 _-/
-
-instance : proper_space ℝ :=
-{ compact_ball := λx r, by rw closed_ball_Icc; apply compact_Icc }
 
 lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_below s ∧ bdd_above s :=
 ⟨begin

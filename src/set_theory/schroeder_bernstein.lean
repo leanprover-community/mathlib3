@@ -99,8 +99,8 @@ parameters {ι : Type u} {β : ι → Type v}
 theorem min_injective (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
 let ⟨s, hs, ms⟩ := show ∃s∈sets, ∀a∈sets, s ⊆ a → a = s, from
   zorn.zorn_subset sets (λ c hc hcc, ⟨⋃₀ c,
-    λ x ⟨p, hpc, hxp⟩ y ⟨q, hqc, hyq⟩ i hi,
-      (hcc.total hpc hqc).elim (λ h, hc hqc x (h hxp) y hyq i hi) (λ h, hc hpc x hxp y (h hyq) i hi),
+    λ x ⟨p, hpc, hxp⟩ y ⟨q, hqc, hyq⟩ i hi, (hcc.total hpc hqc).elim
+      (λ h, hc hqc x (h hxp) y hyq i hi) (λ h, hc hpc x hxp y (h hyq) i hi),
   λ _, subset_sUnion_of_mem⟩) in
 let ⟨i, e⟩ := show ∃ i, ∀ y, ∃ x ∈ s, (x : ∀ i, β i) i = y, from
   classical.by_contradiction $ λ h,

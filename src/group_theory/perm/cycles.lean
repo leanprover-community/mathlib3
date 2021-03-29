@@ -354,11 +354,13 @@ cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 
 /-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`,
   without a linear order. -/
-noncomputable def trunc_cycle_factors [fintype α] (f : perm α) :
-  trunc {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
-quotient.rec_on_subsingleton (@univ α _).1
-  (λ l h, trunc.mk (cycle_factors_aux l f h))
-  (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
+lemma nonempty_cycle_factors [fintype α] (f : perm α) :
+  nonempty {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
+begin
+  refine ⟨cycle_factors_aux univ.val.to_list _ (λ z hz, _)⟩,
+  rw [multiset.mem_to_list, ← mem_def],
+  exact mem_univ _
+end
 
 section fixed_points
 

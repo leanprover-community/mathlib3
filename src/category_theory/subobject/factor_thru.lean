@@ -152,16 +152,6 @@ begin
 end
 
 @[simp]
-lemma factor_thru_comp_id {X Y : C} {P : subobject Y} (f : X ⟶ Y) (h : P.factors (f ≫ 𝟙 Y)) :
-  P.factor_thru (f ≫ 𝟙 Y) h = P.factor_thru f (by { rwa [category.comp_id] at h, }) :=
-by simp
-
-@[simp]
-lemma factor_thru_id_comp {X Y : C} {P : subobject Y} (f : X ⟶ Y) (h : P.factors (𝟙 X ≫ f)) :
-  P.factor_thru (𝟙 X ≫ f) h = P.factor_thru f (by { rwa [category.id_comp] at h, }) :=
-by simp
-
-@[simp]
 lemma factor_thru_zero
   [has_zero_morphisms C] {X Y : C} {P : subobject Y} (h : P.factors (0 : X ⟶ Y)) :
   P.factor_thru 0 h = 0 :=
@@ -319,6 +309,8 @@ lemma image_subobject_le_mk {A B : C} {X : C} (g : X ⟶ B) [mono g] (f : A ⟶ 
   image_subobject f ≤ subobject.mk g :=
 image_subobject_le f (h ≫ (subobject.underlying_iso g).inv) (by simp [w])
 
+/-- Given a commutative square between morphisms `f` and `g`,
+we have a morphism in the category from `image_subobject f` to `image_subobject g`. -/
 def image_subobject_map {W X Y Z : C} {f : W ⟶ X} [has_image f] {g : Y ⟶ Z} [has_image g]
   (sq : arrow.mk f ⟶ arrow.mk g) [has_image_map sq] :
   (image_subobject f : C) ⟶ (image_subobject g : C) :=

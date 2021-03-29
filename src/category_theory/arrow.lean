@@ -90,7 +90,7 @@ end
 in terms of the inverse of `i`. -/
 @[simp] lemma square_from_iso_invert {X Y : T} (i : X ≅ Y) (p : arrow T) (sq : arrow.mk i.hom ⟶ p) :
   i.inv ≫ sq.left ≫ p.hom = sq.right :=
-(iso.inv_comp_eq i).mpr (arrow.w sq)
+by simp only [category_theory.iso.inv_hom_id_assoc, category_theory.arrow.w, category_theory.arrow.mk_hom]
 
 /-- A lift of a commutative square is a diagonal morphism making the two triangles commute. -/
 @[ext] structure lift_struct {f g : arrow T} (sq : f ⟶ g) :=

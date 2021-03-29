@@ -83,8 +83,14 @@ begin
     simp },
   { intros h1 sq,
     cases h1 with e he,
-    refine ⟨⟨{lift := e, fac_left' := _}⟩⟩,
-    apply is_initial.hom_ext, simpa using h },
+    fconstructor,
+    fconstructor,
+    fconstructor,
+    --simp,
+    /- { exact e },
+    { apply is_initial.hom_ext, simp, exact h },
+    { exact he }-/
+    },
 end
 
 /-- The condition of having the rlp with respect to a morphism `i` is stable under composition-/
@@ -115,16 +121,21 @@ begin
   haveI := hf sq2,
 
   -- show that this lift is a lift of i vs. g ∘ f
-  refine ⟨⟨{lift := (arrow.has_lift.struct sq2).lift, fac_right' := _}⟩⟩,
-  { have : sq0.right = sq1.right := rfl,
-    rw this,
-    simp only [arrow.mk_hom],
+  fconstructor,
+  fconstructor,
+  fconstructor,
+  { simp, exact (arrow.has_lift.struct sq2).lift, },
+  { simp,  },
+  { simp, tidy,
     rw ←category.assoc,
-    rw ←((arrow.has_lift.struct sq1).fac_right),
-    simp only [arrow.mk_hom],
     let d := (arrow.has_lift.struct sq2).fac_right,
-    simp only [arrow.mk_hom] at d,
-    rw d }
+    let d' := (arrow.has_lift.struct sq1).fac_right,
+    have : sq0.right = sq1.right := begin tidy, end,
+    rw this,
+    rw ←d',
+    tidy,
+    rw ←category.assoc,
+    rw d, },
 end
 
 variable {F : D → arrow C}

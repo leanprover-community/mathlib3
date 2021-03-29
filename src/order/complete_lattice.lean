@@ -91,7 +91,12 @@ theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
 is_lub_le_iff (is_lub_Sup s)
 
 theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
-le_of_forall_le' (by simp only [Sup_le_iff]; introv h₀ h₁; rcases h _ h₁ with ⟨y,hy,hy'⟩; solve_by_elim [le_trans hy'])
+le_of_forall_le' begin
+  simp only [Sup_le_iff],
+  introv h₀ h₁,
+  rcases h _ h₁ with ⟨y,hy,hy'⟩,
+  solve_by_elim [le_trans hy']
+end
 
 -- We will generalize this to conditionally complete lattices in `cSup_singleton`.
 theorem Sup_singleton {a : α} : Sup {a} = a :=
@@ -131,7 +136,12 @@ theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
 le_is_glb_iff (is_glb_Inf s)
 
 theorem Inf_le_Inf_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, y ≤ x) : Inf t ≤ Inf s :=
-le_of_forall_le (by simp only [le_Inf_iff]; introv h₀ h₁; rcases h _ h₁ with ⟨y,hy,hy'⟩; solve_by_elim [le_trans _ hy'])
+le_of_forall_le begin
+  simp only [le_Inf_iff],
+  introv h₀ h₁,
+  rcases h _ h₁ with ⟨y,hy,hy'⟩,
+  solve_by_elim [le_trans _ hy']
+end
 
 -- We will generalize this to conditionally complete lattices in `cInf_singleton`.
 theorem Inf_singleton {a : α} : Inf {a} = a :=

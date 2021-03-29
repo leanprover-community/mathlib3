@@ -2051,6 +2051,10 @@ theorem prod_range_range_eq {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} 
   (range m₁).prod (range m₂) = range (λp:α×β, (m₁ p.1, m₂ p.2)) :=
 ext $ by simp [range]
 
+@[simp] theorem range_prod_map {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} :
+  range (prod.map m₁ m₂) = (range m₁).prod (range m₂) :=
+prod_range_range_eq.symm
+
 theorem prod_range_univ_eq {α β γ} {m₁ : α → γ} :
   (range m₁).prod (univ : set β) = range (λp:α×β, (m₁ p.1, p.2)) :=
 ext $ by simp [range]
@@ -2399,9 +2403,9 @@ variables {s s' : set α} {t t' : set β} {u u' : set γ} {a a' : α} {b b' : β
 def image2 (f : α → β → γ) (s : set α) (t : set β) : set γ :=
 {c | ∃ a b, a ∈ s ∧ b ∈ t ∧ f a b = c }
 
-lemma mem_image2_eq : c ∈ image2 f s t = ∃ a b, a ∈ s ∧ b ∈ t ∧ f a b = c := rfl
+@[simp] lemma mem_image2_eq : c ∈ image2 f s t = ∃ a b, a ∈ s ∧ b ∈ t ∧ f a b = c := rfl
 
-@[simp] lemma mem_image2 : c ∈ image2 f s t ↔ ∃ a b, a ∈ s ∧ b ∈ t ∧ f a b = c := iff.rfl
+lemma mem_image2 : c ∈ image2 f s t ↔ ∃ a b, a ∈ s ∧ b ∈ t ∧ f a b = c := iff.rfl
 
 lemma mem_image2_of_mem (h1 : a ∈ s) (h2 : b ∈ t) : f a b ∈ image2 f s t :=
 ⟨a, b, h1, h2, rfl⟩

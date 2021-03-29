@@ -969,6 +969,14 @@ instance : distrib_lattice (finset α) :=
     simp only [true_or, imp_true_iff, true_and, or_true],
   ..finset.lattice }
 
+theorem union_left_idem (s t : finset α) : s ∪ (s ∪ t) = s ∪ t := sup_left_idem
+
+theorem union_right_idem (s t : finset α) : s ∪ t ∪ t = s ∪ t := sup_right_idem
+
+theorem inter_left_idem (s t : finset α) : s ∩ (s ∩ t) = s ∩ t := inf_left_idem
+
+theorem inter_right_idem (s t : finset α) : s ∩ t ∩ t = s ∩ t := inf_right_idem
+
 theorem inter_distrib_left (s t u : finset α) : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) := inf_sup_left
 
 theorem inter_distrib_right (s t u : finset α) : (s ∪ t) ∩ u = (s ∩ u) ∪ (t ∩ u) := inf_sup_right
@@ -2635,6 +2643,10 @@ theorem bUnion_congr {s₁ s₂ : finset α} {t₁ t₂ : α → finset β}
   (hs : s₁ = s₂) (ht : ∀ a ∈ s₁, t₁ a = t₂ a) :
   s₁.bUnion t₁ = s₂.bUnion t₂ :=
 ext $ λ x, by simp [hs, ht] { contextual := tt }
+
+theorem bUnion_subset {s' : finset β} : s.bUnion t ⊆ s' ↔ ∀ x ∈ s, t x ⊆ s' :=
+by simp only [subset_iff, mem_bUnion]; exact
+⟨λ H a ha b hb, H ⟨a, ha, hb⟩, λ H b ⟨a, ha, hb⟩, H a ha hb⟩
 
 @[simp] lemma singleton_bUnion {a : α} : finset.bUnion {a} t = t a :=
 begin

@@ -2152,7 +2152,7 @@ rfl
 
 @[simp]
 lemma equiv_subtype_map_symm_apply {p : submodule R M} {q : submodule R p} (x : q.map p.subtype) :
-  ((p.equiv_subtype_map q).symm x : M) = (x : M) :=
+  ((p.equiv_subtype_map q).symm x : M) = x :=
 by { cases x, refl }
 
 /-- If `s ≤ t`, then we can view `s` as a submodule of `t` by taking the comap

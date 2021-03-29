@@ -191,13 +191,7 @@ def obj_aux (F : S ⥤ D) [∀ x, has_colimits_of_shape (costructured_arrow ι x
   map_comp' := begin
     intros x y z f g,
     ext j,
-    have := colimit.pre_pre (diagram ι F z) (costructured_arrow.map g) (costructured_arrow.map f),
-    --change _ = _ ≫
-    --  colimit.pre (costructured_arrow.map g ⋙ diagram ι F z) (costructured_arrow.map f) ≫
-    --  colimit.pre (diagram ι F z) (costructured_arrow.map g),
-    erw this,
-    --change _ = colimit.ι ((costructured_arrow.map f ⋙ costructured_arrow.map g) ⋙ diagram ι F z) j ≫
-    --  colimit.pre (diagram ι F z) (costructured_arrow.map f ⋙ costructured_arrow.map g),
+    erw colimit.pre_pre (diagram ι F z) (costructured_arrow.map g) (costructured_arrow.map f),
     change _ = colimit.ι
       (((costructured_arrow.map f : costructured_arrow ι _ ⥤ _)
         ⋙ costructured_arrow.map g) ⋙ diagram ι F z) j ≫ _,
@@ -215,17 +209,15 @@ def equiv [∀ x, has_colimits_of_shape (costructured_arrow ι x) D] (F : S ⥤ 
       by apply colimit.ι (diagram ι F (ι.obj x)) (costructured_arrow.mk (𝟙 _)) ≫ f.app _, -- sigh
   naturality' := begin
     intros x y ff,
-    simp,
-    erw [← f.naturality (ι.map ff)],
-    delta obj_aux,
-    erw [← category.assoc, ← category.assoc],
+    simp only [functor.comp_map, category.assoc],
+    rw [← f.naturality (ι.map ff), ← category.assoc, ← category.assoc],
     erw colimit.ι_pre (diagram ι F (ι.obj y)) (costructured_arrow.map (ι.map ff))
       (costructured_arrow.mk (𝟙 _)),
     congr' 1,
     let xx : costructured_arrow ι (ι.obj y) := costructured_arrow.mk (ι.map ff),
     let yy : costructured_arrow ι (ι.obj y) := costructured_arrow.mk (𝟙 _),
-    let fff : xx ⟶ yy := costructured_arrow.hom_mk ff (by {simp, erw category.comp_id}),
-    have := colimit.w (diagram ι F (ι.obj y)) fff,
+    let fff : xx ⟶ yy := costructured_arrow.hom_mk ff
+      (by {simp only [costructured_arrow.mk_hom_eq_self], erw category.comp_id}),
     erw colimit.w (diagram ι F (ι.obj y)) fff,
     congr,
     simp,
@@ -245,7 +237,6 @@ def equiv [∀ x, has_colimits_of_shape (costructured_arrow ι x) D] (F : S ⥤ 
     dsimp only [cocone],
     rw [category.assoc, ← x.naturality j.hom, ← category.assoc],
     congr' 1,
-    dsimp only [obj_aux],
     change colimit.ι _ _ ≫ colimit.pre (diagram ι F k) (costructured_arrow.map _) = _,
     rw colimit.ι_pre,
     congr,

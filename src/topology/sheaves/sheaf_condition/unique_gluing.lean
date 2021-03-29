@@ -117,7 +117,7 @@ compatible family of sections `sf : Π i : ι, F.obj (op (U i))`, there exists a
 gluing `s : F.obj (op (supr U))`.
 
 We prove this to be equivalent to the usual one below in
-`sheaf_condition_equiv_sheaf_condition_pairwise_intersections`
+`sheaf_condition_of_exists_unique_gluing`
 -/
 @[derive subsingleton, nolint has_inhabited_instance]
 def sheaf_condition_unique_gluing : Type (u+1) :=

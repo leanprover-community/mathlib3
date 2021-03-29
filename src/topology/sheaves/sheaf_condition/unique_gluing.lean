@@ -177,7 +177,7 @@ def sheaf_condition_unique_gluing_of_sheaf_condition :
 The sheaf condition in terms of unique gluings is equivalent to the usual sheaf condition
 in terms of equalizer diagrams.
 -/
-def sheaf_condition_equiv_sheaf_condition_pairwise_intersections :
+def sheaf_condition_equiv_sheaf_condition_unique_gluing :
   F.sheaf_condition ≃ F.sheaf_condition_unique_gluing :=
 equiv_of_subsingleton_of_subsingleton
   F.sheaf_condition_unique_gluing_of_sheaf_condition

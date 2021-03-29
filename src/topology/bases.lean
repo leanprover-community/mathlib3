@@ -248,7 +248,7 @@ let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ (⋂₀ 
   assume ⟨s, ⟨_, _, hn⟩, hp⟩, absurd hn (not_nonempty_iff_eq_empty.2 hp),
   is_topological_basis_of_subbasis hb₂⟩
 
-/-- A countably topological basis of `α`. -/
+/-- A countable topological basis of `α`. -/
 def countable_basis [second_countable_topology α] : set (set α) :=
 (exists_countable_basis α).some
 

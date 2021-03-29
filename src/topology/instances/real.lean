@@ -124,7 +124,7 @@ is_topological_basis_of_open_of_nhds
 instance : second_countable_topology ℝ :=
 ⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo a b}),
   by simp [countable_Union, countable_Union_Prop],
-  real.is_topological_basis_Ioo_rat.2.2⟩⟩
+  real.is_topological_basis_Ioo_rat.3⟩⟩
 
 /- TODO(Mario): Prove that these are uniform isomorphisms instead of uniform embeddings
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=

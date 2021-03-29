@@ -126,6 +126,19 @@ begin
   exact ⟨λ h o hb ⟨a, ha⟩, h a o hb ha, λ h a o hb ha, h o hb ⟨a, ha⟩⟩
 end
 
+protected lemma is_topological_basis.prod {β} [topological_space β] {B₁ : set (set α)}
+  {B₂ : set (set β)} (h₁ : is_topological_basis B₁) (h₂ : is_topological_basis B₂) :
+  is_topological_basis (image2 set.prod B₁ B₂) :=
+begin
+  refine is_topological_basis_of_open_of_nhds _ _,
+  { rintro _ ⟨u₁, u₂, hu₁, hu₂, rfl⟩,
+    exact (h₁.is_open hu₁).prod (h₂.is_open hu₂) },
+  { rintro ⟨a, b⟩ u hu uo,
+    rcases (h₁.nhds_has_basis.prod_nhds h₂.nhds_has_basis).mem_iff.1 (mem_nhds_sets uo hu)
+      with ⟨⟨s, t⟩, ⟨⟨hs, ha⟩, ht, hb⟩, hu⟩,
+    exact ⟨s.prod t, mem_image2_of_mem hs ht, ⟨ha, hb⟩, hu⟩ }
+end
+
 lemma is_topological_basis_of_cover {ι} {U  : ι → set α} (Uo : ∀ i, is_open (U i))
   (Uc : (⋃ i, U i) = univ) {b : Π i, set (set (U i))} (hb : ∀ i, is_topological_basis (b i)) :
   is_topological_basis (⋃ i : ι, image (coe : U i → α) '' (b i)) :=
@@ -233,15 +246,65 @@ class second_countable_topology : Prop :=
 (is_open_generated_countable [] :
   ∃ b : set (set α), countable b ∧ t = topological_space.generate_from b)
 
+variable {α}
+
+protected lemma is_topological_basis.second_countable_topology
+  {b : set (set α)} (hb : is_topological_basis b) (hc : countable b) :
+  second_countable_topology α :=
+⟨⟨b, hc, hb.eq_generate_from⟩⟩
+
+variable (α)
+
+lemma exists_countable_basis [second_countable_topology α] :
+  ∃b:set (set α), countable b ∧ ∅ ∉ b ∧ is_topological_basis b :=
+let ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countable α in
+let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ (⋂₀ s).nonempty} in
+⟨b',
+  ((countable_set_of_finite_subset hb₁).mono
+    (by { simp only [← and_assoc], apply inter_subset_left })).image _,
+  assume ⟨s, ⟨_, _, hn⟩, hp⟩, absurd hn (not_nonempty_iff_eq_empty.2 hp),
+  is_topological_basis_of_subbasis hb₂⟩
+
+/-- A countably topological basis of `α`. -/
+def countable_basis [second_countable_topology α] : set (set α) :=
+(exists_countable_basis α).some
+
+lemma countable_countable_basis [second_countable_topology α] : countable (countable_basis α) :=
+(exists_countable_basis α).some_spec.1
+
+instance encodable_countable_basis [second_countable_topology α] :
+  encodable (countable_basis α) :=
+(countable_countable_basis α).to_encodable
+
+lemma empty_nmem_countable_basis [second_countable_topology α] : ∅ ∉ countable_basis α :=
+(exists_countable_basis α).some_spec.2.1
+
+lemma is_basis_countable_basis [second_countable_topology α] :
+  is_topological_basis (countable_basis α) :=
+(exists_countable_basis α).some_spec.2.2
+
+lemma eq_generate_from_countable_basis [second_countable_topology α] :
+  ‹topological_space α› = generate_from (countable_basis α) :=
+(is_basis_countable_basis α).eq_generate_from
+
+variable {α}
+
+lemma is_open_of_mem_countable_basis [second_countable_topology α] {s : set α}
+  (hs : s ∈ countable_basis α) : is_open s :=
+(is_basis_countable_basis α).is_open hs
+
+lemma nonempty_of_mem_countable_basis [second_countable_topology α] {s : set α}
+  (hs : s ∈ countable_basis α) : s.nonempty :=
+ne_empty_iff_nonempty.1 $ ne_of_mem_of_not_mem hs $ empty_nmem_countable_basis α
+
+variable (α)
+
 @[priority 100] -- see Note [lower instance priority]
 instance second_countable_topology.to_first_countable_topology
   [second_countable_topology α] : first_countable_topology α :=
-let ⟨b, hb, eq⟩ := second_countable_topology.is_open_generated_countable α in
-⟨begin
-   intros,
-   rw [eq, nhds_generate_from],
-   exact is_countably_generated_binfi_principal (hb.mono (assume x, and.right)),
- end⟩
+⟨λ x, has_countable_basis.is_countably_generated $
+  ⟨(is_basis_countable_basis α).nhds_has_basis, (countable_countable_basis α).mono $
+    inter_subset_left _ _⟩⟩
 
 lemma second_countable_topology_induced (β)
   [t : topological_space β] [second_countable_topology β] (f : α → β) :
@@ -252,85 +315,64 @@ begin
   rw [eq, induced_generate_from_eq]
 end
 
-instance subtype.second_countable_topology
-  (s : set α) [second_countable_topology α] : second_countable_topology s :=
+instance subtype.second_countable_topology (s : set α) [second_countable_topology α] :
+  second_countable_topology s :=
 second_countable_topology_induced s α coe
-
-lemma is_open_generated_countable_inter [second_countable_topology α] :
-  ∃b:set (set α), countable b ∧ ∅ ∉ b ∧ is_topological_basis b :=
-let ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countable α in
-let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ (⋂₀ s).nonempty} in
-⟨b',
-  ((countable_set_of_finite_subset hb₁).mono
-    (by { simp only [← and_assoc], apply inter_subset_left })).image _,
-  assume ⟨s, ⟨_, _, hn⟩, hp⟩, absurd hn (not_nonempty_iff_eq_empty.2 hp),
-  is_topological_basis_of_subbasis hb₂⟩
 
 /- TODO: more fine grained instances for first_countable_topology, separable_space, t2_space, ... -/
 instance {β : Type*} [topological_space β]
   [second_countable_topology α] [second_countable_topology β] : second_countable_topology (α × β) :=
-⟨let ⟨a, ha₁, ha₂, ha₃, ha₄, ha₅⟩ := is_open_generated_countable_inter α in
-  let ⟨b, hb₁, hb₂, hb₃, hb₄, hb₅⟩ := is_open_generated_countable_inter β in
-  ⟨{g | ∃u∈a, ∃v∈b, g = set.prod u v},
-    have {g | ∃u∈a, ∃v∈b, g = set.prod u v} = (⋃u∈a, ⋃v∈b, {set.prod u v}),
-      by apply set.ext; simp,
-    by rw [this]; exact (ha₁.bUnion $ assume u hu, hb₁.bUnion $ by simp),
-    by rw [ha₅, hb₅, prod_generate_from_generate_from_eq ha₄ hb₄]⟩⟩
+((is_basis_countable_basis α).prod (is_basis_countable_basis β)).second_countable_topology $
+  (countable_countable_basis α).image2 (countable_countable_basis β) _
 
 instance second_countable_topology_fintype {ι : Type*} {π : ι → Type*}
   [fintype ι] [t : ∀a, topological_space (π a)] [sc : ∀a, second_countable_topology (π a)] :
   second_countable_topology (∀a, π a) :=
-have ∀i, ∃b : set (set (π i)), countable b ∧ ∅ ∉ b ∧ is_topological_basis b, from
-  assume a, @is_open_generated_countable_inter (π a) _ (sc a),
-let ⟨g, hg⟩ := classical.axiom_of_choice this in
-have t = (λa, generate_from (g a)), from funext $ assume a, (hg a).2.2.eq_generate_from,
 begin
+  have : t = (λa, generate_from (countable_basis (π a))),
+    from funext (assume a, (is_basis_countable_basis (π a)).eq_generate_from),
+  rw this,
   constructor,
-  refine ⟨pi univ '' pi univ g, countable.image _ _, _⟩,
-  { suffices : countable {f : Πa, set (π a) | ∀a, f a ∈ g a}, { simpa [pi] },
-    exact countable_pi (assume i, (hg i).1), },
-  rw [this, pi_generate_from_eq_fintype],
+  refine ⟨pi univ '' pi univ (λ a, countable_basis (π a)), countable.image _ _, _⟩,
+  { suffices : countable {f : Πa, set (π a) | ∀a, f a ∈ countable_basis (π a)}, { simpa [pi] },
+    exact countable_pi (assume i, (countable_countable_basis _)), },
+  rw [pi_generate_from_eq_fintype],
   { congr' 1 with f, simp [pi, eq_comm] },
-  exact assume a, (hg a).2.2.sUnion_eq
+  exact assume a, (is_basis_countable_basis (π a)).sUnion_eq
 end
 
 @[priority 100] -- see Note [lower instance priority]
 instance second_countable_topology.to_separable_space
   [second_countable_topology α] : separable_space α :=
 begin
-  rcases is_open_generated_countable_inter α with  ⟨b, hbc, hbne, hb⟩,
-  haveI := hbc.to_encodable,
-  have : ∀ s : b, (s : set α).nonempty := λ ⟨s, hs⟩, ne_empty_iff_nonempty.1 (λ h, hbne $ h ▸ hs),
-  choose p hp,
+  choose p hp using λ s : countable_basis α, nonempty_of_mem_countable_basis s.2,
   exact ⟨⟨range p, countable_range _,
-    hb.dense_iff.2 $ λ o ho _, ⟨p ⟨o, ho⟩, hp _, mem_range_self _⟩⟩⟩
+    (is_basis_countable_basis α).dense_iff.2 $ λ o ho _, ⟨p ⟨o, ho⟩, hp _, mem_range_self _⟩⟩⟩
 end
 
 variables {α}
 
 lemma second_countable_topology_of_countable_cover {ι} [encodable ι] {U : ι → set α}
-  (Uo : ∀ i, is_open (U i)) (hU : ∀ i, second_countable_topology (U i)) (hc : (⋃ i, U i) = univ) :
+  [∀ i, second_countable_topology (U i)] (Uo : ∀ i, is_open (U i))  (hc : (⋃ i, U i) = univ) :
   second_countable_topology α :=
 begin
-  resetI,
-  choose B cB Bne bB using λ i, is_open_generated_countable_inter (U i),
-  have := is_topological_basis_of_cover Uo hc bB,
-  refine ⟨⟨_, countable_Union $ λ i, _, this.eq_generate_from⟩⟩,
-  exact (cB i).image _
+  have : is_topological_basis (⋃ i, image (coe : U i → α) '' (countable_basis (U i))),
+    from is_topological_basis_of_cover Uo hc (λ i, is_basis_countable_basis (U i)),
+  exact this.second_countable_topology
+    (countable_Union $ λ i, (countable_countable_basis _).image _)
 end
 
 lemma is_open_Union_countable [second_countable_topology α]
   {ι} (s : ι → set α) (H : ∀ i, is_open (s i)) :
   ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=
-let ⟨B, cB, _, bB⟩ := is_open_generated_countable_inter α in
 begin
-  let B' := {b ∈ B | ∃ i, b ⊆ s i},
-  choose f hf using λ b:B', b.2.2,
-  haveI : encodable B' := (cB.mono (sep_subset _ _)).to_encodable,
+  let B := {b ∈ countable_basis α | ∃ i, b ⊆ s i},
+  choose f hf using λ b : B, b.2.2,
+  haveI : encodable B := ((countable_countable_basis α).mono (sep_subset _ _)).to_encodable,
   refine ⟨_, countable_range f,
     subset.antisymm (bUnion_subset_Union _ _) (sUnion_subset _)⟩,
   rintro _ ⟨i, rfl⟩ x xs,
-  rcases bB.exists_subset_of_mem_open xs (H _) with ⟨b, hb, xb, bs⟩,
+  rcases (is_basis_countable_basis α).exists_subset_of_mem_open xs (H _) with ⟨b, hb, xb, bs⟩,
   exact ⟨_, ⟨_, rfl⟩, _, ⟨⟨⟨_, hb, _, bs⟩, rfl⟩, rfl⟩, hf _ (by exact xb)⟩
 end
 

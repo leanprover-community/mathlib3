@@ -192,24 +192,21 @@ have trunc (encodable (Π (a : α), s a)), from
 trunc.induction_on this $ assume h,
 @countable_range _ _ h _
 
-lemma countable_prod {s : set α} {t : set β} (hs : countable s) (ht : countable t) :
+protected lemma countable.prod {s : set α} {t : set β} (hs : countable s) (ht : countable t) :
   countable (set.prod s t) :=
 begin
   haveI : encodable s := hs.to_encodable,
   haveI : encodable t := ht.to_encodable,
   haveI : encodable (s × t) := by apply_instance,
-  have : range (λp, ⟨p.1, p.2⟩ : s × t → α × β) = set.prod s t,
-  { ext ⟨x, y⟩,
-    simp only [exists_prop, set.mem_range, set_coe.exists, prod.mk.inj_iff,
-               set.prod_mk_mem_set_prod_eq, subtype.coe_mk, prod.exists],
-    split,
-    { rintros ⟨x', x's, y', y't, x'x, y'y⟩,
-      simp [x'x.symm, y'y.symm, x's, y't] },
-    { rintros ⟨xs, yt⟩,
-      exact ⟨x, xs, y, yt, rfl, rfl⟩ }},
+  have : range (prod.map coe coe : s × t → α × β) = set.prod s t,
+    by rw [range_prod_map, subtype.range_coe, subtype.range_coe],
   rw ← this,
   exact countable_range _
 end
+
+lemma countable.image2 {s : set α} {t : set β} (hs : countable s) (ht : countable t)
+  (f : α → β → γ) : countable (image2 f s t) :=
+by { rw ← image_prod, exact (hs.prod ht).image _ }
 
 section enumerate
 

@@ -166,12 +166,11 @@ lemma ae_frequently_mem_of_mem_nhds [topological_space α] [second_countable_top
   [opens_measurable_space α] {f : α → α} {μ : measure α} (h : conservative f μ) :
   ∀ᵐ x ∂μ, ∀ s ∈ 𝓝 x, ∃ᶠ n in at_top, f^[n] x ∈ s :=
 begin
-  rcases is_open_generated_countable_inter α with ⟨S, hSc, he, hSb⟩,
-  have : ∀ s ∈ S, ∀ᵐ x ∂μ, x ∈ s → ∃ᶠ n in at_top, (f^[n] x) ∈ s,
+  have : ∀ s ∈ countable_basis α, ∀ᵐ x ∂μ, x ∈ s → ∃ᶠ n in at_top, (f^[n] x) ∈ s,
     from λ s hs, h.ae_mem_imp_frequently_image_mem
-      (is_open_of_is_topological_basis hSb hs).measurable_set,
-  refine ((ae_ball_iff hSc).2 this).mono (λ x hx s hs, _),
-  rcases (mem_nhds_of_is_topological_basis hSb).1 hs with ⟨o, hoS, hxo, hos⟩,
+      (is_open_of_mem_countable_basis hs).measurable_set,
+  refine ((ae_ball_iff $ countable_countable_basis α).2 this).mono (λ x hx s hs, _),
+  rcases (is_basis_countable_basis α).mem_nhds_iff.1 hs with ⟨o, hoS, hxo, hos⟩,
   exact (hx o hoS hxo).mono (λ n hn, hos hn)
 end
 

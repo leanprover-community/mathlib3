@@ -10,6 +10,120 @@ import topology.metric_space.basic
 import topology.continuous_on
 import topology.opens
 
+variables {A : Type*} [integral_domain A] [algebra ℚ A]
+
+def dirichlet_char_space (f : ℤ) : monoid { χ : mul_hom ℤ ℂ // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 } :=
+{
+  mul := begin
+        rintros a b, sorry,
+        end,
+  one := begin sorry end,
+  one_mul := begin sorry end,
+  mul_one := begin sorry end,
+  mul_assoc := begin sorry end,
+}
+
+instance dir_char (f : ℤ) : group { χ : mul_hom ℤ ℂ // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 } := sorry
+
+variables (p : ℕ) [fact p.prime]
+
+instance topo : topological_space (units ℤ_[p]) := sorry
+
+instance compact : compact_space (units ℤ_[p]) := sorry
+
+instance t2 : t2_space (units ℤ_[p]) := sorry
+
+instance td : totally_disconnected_space (units ℤ_[p]) := sorry
+
+--instance cat : (units ℤ_[p]) ∈ category_theory.Cat.objects Profinite :=
+
+instance topo' : topological_space (units A) := sorry
+
+/-- A-valued points of weight space -/ --shouldn't this be a category theory statement?
+def weight_space : group ({ χ : mul_hom (units ℤ_[p]) (units A) // continuous χ }) := sorry
+
+def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
+
+instance bool' {H : Type*} [topological_space H] : boolean_algebra (clopen_sets H) := sorry
+
+--instance union : semilattice_inf_bot (clopen_sets X) := sorry
+
+/-instance has_union' : has_union (clopen_sets X) :=
+begin
+constructor,
+sorry
+end-/
+
+open_locale big_operators
+
+--variables {R : Type*} [ring R] [topological_space R]
+--variables {R : Type*} [ring R] [topological_space R] [topological_ring R]
+variables (X : Profinite)
+
+structure  distribution {R : Type*} [add_monoid R] :=
+(phi : clopen_sets X → R)
+(count_add ⦃f : ℕ → clopen_sets X⦄ :
+  (∀ i j, pairwise (disjoint on f) →
+  phi((f i) ∪ (f j)) = phi (f i) + phi (f j)))
+
+instance semi {R : Type*} [semiring R] : semimodule R (locally_constant X R) := sorry
+
+variables {R : Type*} [ring R] {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation R Γ₀)
+
+instance dis [topological_space R] : has_dist C(X,R) := sorry
+
+noncomputable instance met [topological_space R] : metric_space C(X,R) := sorry
+/-{
+  dist_self := sorry
+  eq_of_dist_eq_zero := sorry
+  dist_comm := sorry
+  dist_triangle := sorry
+  edist := sorry
+  edist_dist := sorry
+  to_uniform_space := sorry
+  uniformity_dist := sorry
+}-/
+
+noncomputable instance uniform [topological_space R] : uniform_space C(X, R) := metric_space.to_uniform_space'
+
+instance completeness [topological_space R] : complete_space C(X, R) := sorry
+
+--topo ring assumption not really needed
+def inclusion [topological_space R] [topological_ring R] : locally_constant X R → C(X,R) := sorry
+
+lemma sub [topological_space R] [topological_ring R] : function.injective (@inclusion X R _ _ _) := sorry
+
+instance topo_space :  topological_space (locally_constant ↥X R) := sorry
+
+lemma totally_disconnected_space.is_disconnected {A : Type*} [topological_space A]
+  [totally_disconnected_space A] : ∃ (U V : set A) (hU : is_open U) (hV : is_open V)
+    (hnU : U.nonempty) (hnV : V.nonempty) (hdis : disjoint U V), U ∪ V = ⊤:= sorry
+
+open classical
+local attribute [instance] prop_decidable
+
+noncomputable def char_fn (U : clopen_sets X) : locally_constant X R :=
+{
+  to_fun := λ x, if (x ∈ U.val) then 1 else 0,
+  is_locally_constant := sorry
+}
+
+lemma exists_local (a b : X) (h : a ≠ b) : ∃ (f : locally_constant X R), f a = 1 ∧ f b = 0 := sorry
+
+lemma exists_local' [has_norm R] [topological_space R] [topological_ring R] (g : C(X,R)) (U : set X) [is_open U] :
+   ∀ (x : X) (h : x ∈ U) (ε : ℝ) [hε : ε > 0], ∃ (f : locally_constant X R) (V : set X)
+    (hV : is_open V) (hVx : x ∈ V), ∀ (y : X) (hy : y ∈ V), ∥(g - (inclusion X f)) y∥ < ε := sorry
+
+variable [topological_space R]
+
+lemma Inter_nonempty_of {α : Type*} {ι : Type*} {s : ι → set α} :
+  (⋂ j, s j).nonempty → ∀ (i : ι), (s i).nonempty :=
+begin
+  rintros h i,
+  refine set.nonempty.mono _ h,
+  exact set.Inter_subset (λ (i : ι), s i) i,
+end
+
 /-- A compact Hausdorff space is totally disconnected if and only if it is totally separated, this
   is also true for locally compact spaces. -/
 lemma compact_t2_tot_disc_iff_tot_sep {H : Type*} [topological_space H]
@@ -213,7 +327,7 @@ begin
   sorry,
 end
 
-lemma clopen_union_disjoint {H : Type*} [topological_space H]
+lemma clopen_union_disjoint' {H : Type*} [topological_space H]
   [locally_compact_space H] [t2_space H] [totally_disconnected_space H] {C : set H} (hC : is_open C) :
   ∃ (s : set (set H)), C = Sup s ∧ ∀ (x y : set H) (hx : x ∈ s) (hy : y ∈ s), is_clopen x ∧ is_clopen y ∧ x ∩ y = ∅ :=
 begin
@@ -231,120 +345,6 @@ end
 
 /- lemma clopen_union_disjoint {H : Type*} [topological_space H] [boolean_algebra A] [t : finset {Z : set H | is_clopen Z}] :
   ∃ (s : finset {Z : set H | is_clopen Z}), (∀ (x y :set  H) (hx : x ∈ s) (hy : y ∈ s), (x : set H) ∩ y = ∅) ∧ ⨆ (Z : A) (Ht : Z ∈ t), Z = ⨆ (Z : A) (Hs : Z ∈ s), Z := -/
-
-variables {A : Type*} [integral_domain A] [algebra ℚ A]
-
-def dirichlet_char_space (f : ℤ) : monoid { χ : mul_hom ℤ ℂ // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 } :=
-{
-  mul := begin
-        rintros a b, sorry,
-        end,
-  one := begin sorry end,
-  one_mul := begin sorry end,
-  mul_one := begin sorry end,
-  mul_assoc := begin sorry end,
-}
-
-instance dir_char (f : ℤ) : group { χ : mul_hom ℤ ℂ // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 } := sorry
-
-variables (p : ℕ) [fact p.prime]
-
-instance topo : topological_space (units ℤ_[p]) := sorry
-
-instance compact : compact_space (units ℤ_[p]) := sorry
-
-instance t2 : t2_space (units ℤ_[p]) := sorry
-
-instance td : totally_disconnected_space (units ℤ_[p]) := sorry
-
---instance cat : (units ℤ_[p]) ∈ category_theory.Cat.objects Profinite :=
-
-instance topo' : topological_space (units A) := sorry
-
-/-- A-valued points of weight space -/ --shouldn't this be a category theory statement?
-def weight_space : group ({ χ : mul_hom (units ℤ_[p]) (units A) // continuous χ }) := sorry
-
-def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
-
-instance bool' {H : Type*} [topological_space H] : boolean_algebra (clopen_sets H) := sorry
-
---instance union : semilattice_inf_bot (clopen_sets X) := sorry
-
-/-instance has_union' : has_union (clopen_sets X) :=
-begin
-constructor,
-sorry
-end-/
-
-open_locale big_operators
-
---variables {R : Type*} [ring R] [topological_space R]
---variables {R : Type*} [ring R] [topological_space R] [topological_ring R]
-variables (X : Profinite)
-
-structure  distribution {R : Type*} [add_monoid R] :=
-(phi : clopen_sets X → R)
-(count_add ⦃f : ℕ → clopen_sets X⦄ :
-  (∀ i j, pairwise (disjoint on f) →
-  phi((f i) ∪ (f j)) = phi (f i) + phi (f j)))
-
-instance semi {R : Type*} [semiring R] : semimodule R (locally_constant X R) := sorry
-
-variables {R : Type*} [ring R] {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation R Γ₀)
-
-instance dis [topological_space R] : has_dist C(X,R) := sorry
-
-noncomputable instance met [topological_space R] : metric_space C(X,R) := sorry
-/-{
-  dist_self := sorry
-  eq_of_dist_eq_zero := sorry
-  dist_comm := sorry
-  dist_triangle := sorry
-  edist := sorry
-  edist_dist := sorry
-  to_uniform_space := sorry
-  uniformity_dist := sorry
-}-/
-
-noncomputable instance uniform [topological_space R] : uniform_space C(X, R) := metric_space.to_uniform_space'
-
-instance completeness [topological_space R] : complete_space C(X, R) := sorry
-
---topo ring assumption not really needed
-def inclusion [topological_space R] [topological_ring R] : locally_constant X R → C(X,R) := sorry
-
-lemma sub [topological_space R] [topological_ring R] : function.injective (@inclusion X R _ _ _) := sorry
-
-instance topo_space :  topological_space (locally_constant ↥X R) := sorry
-
-lemma totally_disconnected_space.is_disconnected {A : Type*} [topological_space A]
-  [totally_disconnected_space A] : ∃ (U V : set A) (hU : is_open U) (hV : is_open V)
-    (hnU : U.nonempty) (hnV : V.nonempty) (hdis : disjoint U V), U ∪ V = ⊤:= sorry
-
-open classical
-local attribute [instance] prop_decidable
-
-noncomputable def char_fn (U : clopen_sets X) : locally_constant X R :=
-{
-  to_fun := λ x, if (x ∈ U.val) then 1 else 0,
-  is_locally_constant := sorry
-}
-
-lemma exists_local (a b : X) (h : a ≠ b) : ∃ (f : locally_constant X R), f a = 1 ∧ f b = 0 := sorry
-
-lemma exists_local' [has_norm R] [topological_space R] [topological_ring R] (g : C(X,R)) (U : set X) [is_open U] :
-   ∀ (x : X) (h : x ∈ U) (ε : ℝ) [hε : ε > 0], ∃ (f : locally_constant X R) (V : set X)
-    (hV : is_open V) (hVx : x ∈ V), ∀ (y : X) (hy : y ∈ V), ∥(g - (inclusion X f)) y∥ < ε := sorry
-
-variable [topological_space R]
-
-lemma Inter_nonempty_of {α : Type*} {ι : Type*} {s : ι → set α} :
-  (⋂ j, s j).nonempty → ∀ (i : ι), (s i).nonempty :=
-begin
-  rintros h i,
-  refine set.nonempty.mono _ h,
-  exact set.Inter_subset (λ (i : ι), s i) i,
-end
 
 --show that locally compact Hausdorff is tot disc iff zero dim
 lemma dense_C [topological_space R] [topological_ring R] [has_norm R] :

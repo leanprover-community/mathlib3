@@ -19,17 +19,17 @@ variables {C : Type u} [category.{v} C]
 variables {D : Type u'} [category.{v'} D]
 
 /-- A shorthand for the condition singling out some arrows in a category `C`. -/
-def arrow_cond (C : Type u) [category.{v} C] := arrow C → Prop
+def arrow_cond (C : Type u) [category.{v} C] := set (arrow C)
 
-instance : has_inter (arrow_cond C) := ⟨λ Z Z' f, Z f ∧ Z' f⟩
+instance : has_inter (arrow_cond C) := ⟨set.inter⟩
 
-instance : has_subset (arrow_cond C) := ⟨λ Z Z', ∀ f : arrow C, Z f → Z' f⟩
+instance : has_subset (arrow_cond C) := ⟨set.subset⟩
 
 lemma arrow_cond.inter_subset_left {I J : arrow_cond C} : I ∩ J ⊆ I :=
-λ f hf, hf.1
+  set.inter_subset_left I J
 
 lemma arrow_cond.inter_subset_right {I J : arrow_cond C} : I ∩ J ⊆ J :=
-λ f hf, hf.2
+  set.inter_subset_right I J
 
 @[ext] def arrow_cond.ext {I J : arrow_cond C}
   (h : ∀ f, I f ↔ J f) : I = J :=

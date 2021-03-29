@@ -2125,7 +2125,7 @@ namespace submodule
 /-- Given `p` a submodule of the module `M` and `q` a submodule of `p`, `p.equiv_subtype_map q`
 is the natural `linear_equiv` between `q` and `q.map p.subtype`. -/
 @[simps]
-def equiv_subtype_map [ring R] [add_comm_group M] [module R M]
+def equiv_subtype_map [semiring R] [add_comm_monoid M] [semimodule R M]
   (p : submodule R M) (q : submodule R p) : q ≃ₗ[R] q.map p.subtype :=
 { inv_fun :=
     begin

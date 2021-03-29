@@ -1643,7 +1643,11 @@ theorem code_supp_supports {S c k}
   (H : code_supp c k ⊆ S) : supports (code_supp c k) S :=
 supports_union.2 ⟨code_supp'_supports H, cont_supp_supports (subset_right H)⟩
 
-/-- The support of a set of TM2 states in the TM2 emulator. -/
+/-- The set `code_supp c k` is a finite set that witnesses the effective finiteness of the `tr`
+Turing machine. Starting from the initial state `tr_normal c k`, forward simulation uses only
+states in `code_supp c k`, so this is a finite state machine. Even though the underlying type of
+state labels `Λ'` is infinite, for a given partial recursive function `c` and continuation `k`,
+only finitely many states are accessed, corresponding roughly to subterms of `c`. -/
 theorem tr_supports (c k) : @TM2.supports _ _ _ _ _ ⟨tr_normal c k⟩ tr (code_supp c k) :=
 ⟨code_supp_self _ _ (tr_stmts₁_self _),
   λ l', code_supp_supports (finset.subset.refl _) _⟩

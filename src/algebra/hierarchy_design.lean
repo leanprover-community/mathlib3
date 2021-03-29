@@ -61,6 +61,11 @@ when applicable:
   ```
   instance pi.Z [∀ i, Z $ f i] : Z (Π i : I, f i) := ...`
   ```
+* Instances tranferred to `opposite M`, like `opposite.monoid`.
+  See `algebra.opposites` for more examples.
+  ```
+  instance opposite.Z [Z M] : Z (opposite M) := ...`
+  ```
 * Definitions for transferring the proof fields of instances along
   injective or surjective functions that agree on the data fields,
   like `function.injective.monoid` and `function.surjective.monoid`.

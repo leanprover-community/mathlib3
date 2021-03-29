@@ -14,6 +14,8 @@ import category_theory.limits.shapes.concrete_category
 
 This file uses a "pre-automated" approach, just as for `Mon/colimits.lean`.
 
+Note that finite colimits can already be obtained from the instance `abelian (Module R)`.
+
 TODO:
 In fact, in `Module R` there is a much nicer model of colimits as quotients
 of finitely supported functions, and we really should implement this as well (or instead).
@@ -373,25 +375,3 @@ instance has_colimits_Module : has_colimits (Module R) :=
       is_colimit := colimit_cocone_is_colimit F } } }
 
 end Module.colimits
-
-namespace Module
-
-/--
-The categorical cokernel of a morphism in `Module`
-agrees with the usual module-theoretical quotient.
--/
-noncomputable def cokernel_iso_quotient {G H : Module.{v} R} (f : G ⟶ H) :
-  cokernel f ≅ Module.of R ((linear_map.range f).quotient) :=
-{ hom := cokernel.desc f (submodule.mkq _)
-    (by { ext, apply quotient.sound, fsplit, exact x, simp, }),
-  inv := submodule.liftq _ (cokernel.π f) (by tidy),
-  hom_inv_id' :=
-  begin
-    -- Unfortunately `ext` invokes the elementwise lemma before this one, after which tidy fails.
-    apply coequalizer.hom_ext,
-    simp only [category.comp_id, limits.cokernel.π_desc_assoc, limits.coequalizer_as_cokernel],
-    ext,
-    simp,
-  end, }
-
-end Module

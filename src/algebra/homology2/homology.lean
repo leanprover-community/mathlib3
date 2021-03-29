@@ -11,6 +11,24 @@ variables {c : complex_shape ι} (C : homological_complex V c)
 open_locale classical
 noncomputable theory
 
+section
+variables [has_images V] [has_kernels V]
+
+def image_le_kernel {A B C : V} {f : A ⟶ B} {g : B ⟶ C} (w : f ≫ g = 0) :
+  image_subobject f ≤ kernel_subobject g :=
+image_subobject_le_mk _ _ (kernel.lift _ _ w) (by simp)
+
+def image_to_kernel {A B C : V} {f : A ⟶ B} {g : B ⟶ C} (w : f ≫ g = 0) :
+  (image_subobject f : V) ⟶ (kernel_subobject g : V) :=
+(subobject.of_le _ _ (image_le_kernel w))
+
+variables [has_cokernels V]
+
+def subquotient {A B C : V} {f : A ⟶ B} {g : B ⟶ C} (w : f ≫ g = 0) : V :=
+cokernel (image_to_kernel w)
+
+end
+
 namespace homological_complex
 
 section cycles
@@ -70,7 +88,7 @@ variables [has_kernels V] [has_images V] [has_equalizers V] [has_zero_object V]
 
 lemma boundaries_le_cycles (C : homological_complex V c) (i : ι) :
   C.boundaries i ≤ C.cycles i :=
-image_subobject_le_mk _ _ (kernel.lift _ _ (C.d_to_comp_d_from i)) (by simp)
+image_le_kernel (C.d_to_comp_d_from i)
 
 def boundaries_to_cycles (C : homological_complex V c) (i : ι) :
   (C.boundaries i : V) ⟶ (C.cycles i : V) :=
@@ -94,6 +112,10 @@ variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 
 def cycles_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.cycles i : V) ⟶ (C₂.cycles i : V) :=
 subobject.factor_thru _ ((C₁.cycles i).arrow ≫ f.f i) (kernel_subobject_factors _ _ (by simp))
+
+@[simp] lemma cycles_map_arrow (f : C₁ ⟶ C₂) (i : ι) :
+  (cycles_map f i) ≫ (C₂.cycles i).arrow = (C₁.cycles i).arrow ≫ f.f i :=
+by { simp [cycles_map], }
 
 @[simp] lemma cycles_map_id (i : ι) : cycles_map (𝟙 C₁) i = 𝟙 _ :=
 by { simp [cycles_map], }

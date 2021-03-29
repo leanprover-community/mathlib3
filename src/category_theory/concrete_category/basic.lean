@@ -109,6 +109,12 @@ congr_fun ((forget C).map_iso f).hom_inv_id x
   f.hom (f.inv y) = y :=
 congr_fun ((forget C).map_iso f).inv_hom_id y
 
+lemma concrete_category.congr_hom {X Y : C} {f g : X ⟶ Y} (h : f = g) (x : X) : f x = g x :=
+congr_fun (congr_arg (λ f : X ⟶ Y, (f : X → Y)) h) x
+
+lemma concrete_category.congr_arg {X Y : C} (f : X ⟶ Y) {x x' : X} (h : x = x') : f x = f x' :=
+congr_arg (f : X → Y) h
+
 /-- In any concrete category, injective morphisms are monomorphisms. -/
 lemma concrete_category.mono_of_injective {X Y : C} (f : X ⟶ Y) (i : function.injective f) :
   mono f :=

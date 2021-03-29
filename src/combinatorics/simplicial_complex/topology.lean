@@ -249,6 +249,38 @@ begin
   sorry
 end
 
+/--
+A simplicial complex is locally finite iff each point belongs to finitely many faces.
+-/
+lemma locally_finite_iff_finitely_many_surfaces {S : simplicial_complex m} :
+  S.locally_finite ↔ ∀ {x : fin m → ℝ}, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set E)} :=
+begin
+  split,
+  {
+    unfold simplicial_complex.locally_finite,
+    contrapose!,
+    rintro ⟨x, hx⟩,
+    by_cases hxspace : x ∈ S.space,
+    {
+      obtain ⟨X, ⟨hX, hxX⟩, hXunique⟩ := combi_interiors_partition hxspace,
+      simp at hXunique,
+      use [X, hX],
+      rintro hXlocallyfinite,
+      apply hx,
+      sorry
+    },
+    {
+      exfalso,
+      apply hx,
+      suffices h : {V : finset E | V ∈ S.faces ∧ x ∈ convex_hull ↑V} = ∅,
+    }
+  },
+  {
+    rintro hS X hX,
+    sorry
+  }
+end
+
 /-
 S₁ ≤ S₂ (S₁ is a subdivision of S₂) iff their underlying space is the same and each face of S₁ is
 contained in some face of S₂
@@ -313,7 +345,7 @@ begin
     simp at *,
     obtain ⟨X₂, hX₂, hX₁X₂⟩ := hS.2 (S₁.down_closed hY₁ hX₁Y₁),
     obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := hS.2 hY₁,
-    obtain ⟨Z₂, hZ₂, hZ₁Z₂⟩ := hS.2 (facets_subset hZ₁),
+    obtain ⟨Z₂, hZ₂, hZ₁Z₂⟩ := hS.2 hZ₁,
     use Y₂,
     split,
     {
@@ -339,10 +371,6 @@ begin
     sorry
   }
 end
-
-/-A simplex is locally finite iff each face belongs to finitely many faces-/
-def simplicial_complex.locally_finite (S : simplicial_complex m) : Prop :=
-  ∀ x : fin m → ℝ, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set(fin m → ℝ))}
 
 lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m)
   (hS : S.locally_finite) : locally_compact_space S.space :=

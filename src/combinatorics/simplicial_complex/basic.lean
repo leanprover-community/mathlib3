@@ -1057,7 +1057,6 @@ begin
     linarith },
   obtain ⟨W, hXW, hWZ, hWcard⟩ := finset.exists_intermediate_set (n - X.card) this hXY.1,
   rw nat.sub_add_cancel hXcard at hWcard,
-  rw [nat.succ_sub_one, ← hWcard],
   have hW : W ∈ S.boundary.faces,
   { have hYW : ¬Y ⊆ W,
     { have hWYcard : W.card < Y.card,
@@ -1069,28 +1068,40 @@ begin
     use [W, S.down_closed (facets_subset hY) hWZ, subset.refl W, Y, hY, ⟨hWZ, hYW⟩],
     rintro Z hZ hWZ,
     exact hYunique hZ ⟨subset.trans hXW hWZ.1, (λ hZX, hWZ.2 (finset.subset.trans hZX hXW))⟩ },
-  rw hX.2 hW hXW,
+  rw [nat.succ_sub_one, ← hWcard, hX.2 hW hXW],
 end
 
-lemma boundary_boundary {S : simplicial_complex m} : S.boundary.boundary.faces = ∅ :=
+/--
+A simplicial complex is locally finite iff each of its faces belongs to finitely many faces.
+-/
+def simplicial_complex.locally_finite (S : simplicial_complex m) : Prop :=
+  ∀ {X}, X ∈ S.faces → finite {Y | Y ∈ S.faces ∧ X ⊆ Y}
+
+def simplicial_complex.locally_finite_at (S : simplicial_complex m) : set (finset E) :=
+  {X | X ∈ S.faces ∧ set.finite {Y | Y ∈ S.faces ∧ X ⊆ Y}}
+
+def simplicial_complex.locally_infinite_at (S : simplicial_complex m) : set (finset E) :=
+  {X | X ∈ S.faces ∧ set.infinite {Y | Y ∈ S.faces ∧ X ⊆ Y}}
+
+lemma locally_finite_at_up_closed {S : simplicial_complex m} {X Y : finset E}
+  (hX : X ∈ S.locally_finite_at) (hXY : X ⊆ Y) : Y ∈ S.locally_finite_at := sorry
+
+lemma locally_infinite_at_down_closed {S : simplicial_complex m} {X Y : finset E}
+  (hY : Y ∈ S.locally_infinite_at) (hXY : X ⊆ Y) : X ∈ S.locally_infinite_at := sorry
+
+lemma boundary_boundary {S : simplicial_complex m} :
+  S.boundary.boundary.faces ⊆ S.locally_infinite_at :=
 begin
-  apply eq_empty_of_subset_empty,
-  rintro V ⟨W, ⟨X, hX, hWX, Y, hY, hXY, hYunique⟩, hVW, Z, hZ, hWZ, hZunique⟩,
-  simp at *,
-  have : Z = X,
-  {
-    apply hZunique _ ⟨hWX, _⟩,
-    {
-      exact ⟨X, hX, subset.refl X, Y, hY, hXY, (λ Y', hYunique)⟩,
-    },
-    {
-      rintro hXW,
-      have := finset.subset.antisymm hWX hXW,
-      subst this,
-      have := hYunique (boundary_subset (facets_subset hZ)) hWZ,
-    }
-  }
+  rintro U hU,
+  obtain ⟨V, hV, hUV⟩ := subfacet hU,
+  apply locally_infinite_at_down_closed
+      ⟨boundary_subset (boundary_subset (facets_subset hV)), _⟩ hUV,
+  clear hU hUV U,
+  obtain ⟨W, hW, hVW, hWunique⟩ := boundary_facet_iff.1 hV,
+  obtain ⟨X, hX, hXV, hXunique⟩ := boundary_facet_iff.1 hW,
+
 end
+
 --lemma boundary_pureness_eq_pureness_sub_one {S : simplicial_complex m} (hS : S.pure) : pureness (pure_boundary_of_pure hS) = S.pureness - 1 := sorry
 
 lemma boundary_link {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} : --{X : finset (fin m → ℝ)}
@@ -1099,7 +1110,7 @@ begin
   ext V,
   split,
   {
-    rintro ⟨hVdisj, W, X, hW, ⟨Y, hY, hXY, Z, ⟨hZ, hYZ⟩, hZmax⟩, hVX, hWX⟩,
+    rintro ⟨hVdisj, W, X, hW, ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩, hVX, hWX⟩,
     use V,
     split,
     {
@@ -1111,7 +1122,14 @@ begin
     {
       use subset.refl V,
       use Z,
-      simp,
+      split,
+      {
+        sorry --waiting for link_facet_iff. May make this lemma require more assumptions
+      },
+      use ⟨finset.subset.trans hVX (finset.subset.trans hXY hYZ.1),
+        (λ hZV, hYZ.2 (finset.subset.trans hZV (finset.subset.trans hVX hXY)))⟩,
+      rintro U ⟨hUdisj, T, R, hT, hR, hUR, hTR⟩ hVU,
+      apply hZunique (S.down_closed hR hUR),
       sorry
     }
   },
@@ -1122,8 +1140,14 @@ end
 
 def simplicial_complex.boundaryless (S : simplicial_complex m) : Prop := S.boundary.faces = ∅
 
-lemma boundary_boundaryless {S : simplicial_complex m} : S.boundary.boundaryless :=
-  boundary_boundary
+lemma boundary_boundaryless_of_locally_finite {S : simplicial_complex m} (hS : S.locally_finite) :
+  S.boundary.boundaryless :=
+begin
+  apply eq_empty_of_subset_empty,
+  rintro X hX,
+  have := boundary_boundary hX,
+  exact this.2 (hS this.1),
+end
 
 def simplicial_complex.full_dimensional (S : simplicial_complex m) : Prop :=
   ∃ {X}, X ∈ S.faces ∧ (X : finset _).card = m + 1

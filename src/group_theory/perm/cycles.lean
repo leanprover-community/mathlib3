@@ -3,6 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+import data.nat.parity
 import group_theory.perm.sign
 /-!
 # Cyclic permutations
@@ -411,10 +412,16 @@ begin
       simp } },
 end
 
-lemma is_three_cycle.inv {f : perm α} (hf : is_three_cycle f) : is_three_cycle (f⁻¹) :=
+lemma is_three_cycle.sign {f : perm α} (h : is_three_cycle f) : sign f = 1 :=
+begin
+  rw [h.is_cycle.sign, h.card_support],
+  dec_trivial
+end
+
+lemma is_three_cycle.inv {f : perm α} (h : is_three_cycle f) : is_three_cycle (f⁻¹) :=
 begin
   rw is_three_cycle at *,
-  rw [support_inv, hf],
+  rw [support_inv, h],
 end
 
 lemma is_three_cycle_swap_mul_swap_same {a b c : α} (ab : a ≠ b) (ac : a ≠ c) (bc : b ≠ c) :

@@ -925,7 +925,7 @@ begin
   exact finset.card_disjoint_union h.disjoint_support,
 end
 
-lemma card_support_prod_list_of_pairwise_disjoint [fintype α] {l : list (perm α)}
+lemma card_support_prod_list_of_pairwise_disjoint {l : list (perm α)}
   (h : l.pairwise disjoint) :
   l.prod.support.card = (l.map (λ x : perm α, x.support.card)).sum :=
 begin

@@ -1207,10 +1207,10 @@ begin
 end
 
 /-- The restriction of a nondegenerate bilinear form `B` onto a submodule `W` is
-nondegenerate if `W ⊓ B.orthogonal W ≤ ⊥`. -/
-lemma nondegenerate_restrict_of_inf_orthogonal_le_bot
+nondegenerate if `disjoint W (B.orthogonal W)`. -/
+lemma nondegenerate_restrict_of_disjoint_orthogonal
   (B : bilin_form R₁ M₁) (hB : sym_bilin_form.is_sym B)
-  {W : submodule R₁ M₁} (hW : W ⊓ B.orthogonal W ≤ ⊥) :
+  {W : submodule R₁ M₁} (hW : disjoint W (B.orthogonal W)) :
   (B.restrict W).nondegenerate :=
 begin
   rintro ⟨x, hx⟩ hB₁,
@@ -1304,7 +1304,7 @@ theorem restrict_nondegenerate_iff_is_compl_orthogonal
   {B : bilin_form K V} {W : subspace K V} (hB₁ : sym_bilin_form.is_sym B) :
   (B.restrict W).nondegenerate ↔ is_compl W (B.orthogonal W) :=
 ⟨λ hB₂, restrict_nondegenerate_of_is_compl_orthogonal hB₁ hB₂,
- λ h, B.nondegenerate_restrict_of_inf_orthogonal_le_bot hB₁ h.1⟩
+ λ h, B.nondegenerate_restrict_of_disjoint_orthogonal hB₁ h.1⟩
 
 /-- Given a nondegenerate bilinear form `B` on a finite-dimensional vector space, `B.to_dual` is
 the linear equivalence between a vector space and its dual with the underlying linear map

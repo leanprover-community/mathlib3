@@ -296,7 +296,8 @@ protected def mul_right' (c : α) (hc : c ≠ 0) : α ≃ₜ α :=
 @[simp] lemma mul_left'_symm_apply (c : α) (hc : c ≠ 0) :
   ((homeomorph.mul_left' c hc).symm : α → α) = (*) c⁻¹ := rfl
 
-@[simp] lemma coe_mul_right' (c : α) (hc : c ≠ 0) : ⇑(homeomorph.mul_right' c hc) = λ x, x * c := rfl
+@[simp] lemma coe_mul_right' (c : α) (hc : c ≠ 0) :
+  ⇑(homeomorph.mul_right' c hc) = λ x, x * c := rfl
 
 @[simp] lemma mul_right'_symm_apply (c : α) (hc : c ≠ 0) :
   ((homeomorph.mul_right' c hc).symm : α → α) = λ x, x * c⁻¹ := rfl

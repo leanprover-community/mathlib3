@@ -170,7 +170,8 @@ by simp
 -- `h` is an explicit argument here so we can use
 -- `rw ←factor_thru_le h`, obtaining a subgoal `P.factors f`.
 @[simp]
-lemma factor_thru_comp_of_le {Y Z : C} {P Q : subobject Y} {f : Z ⟶ Y} (h : P ≤ Q) (w : P.factors f) :
+lemma factor_thru_comp_of_le
+  {Y Z : C} {P Q : subobject Y} {f : Z ⟶ Y} (h : P ≤ Q) (w : P.factors f) :
   P.factor_thru f w ≫ of_le P Q h = Q.factor_thru f (factors_of_le f h w) :=
 by { ext, simp, }
 

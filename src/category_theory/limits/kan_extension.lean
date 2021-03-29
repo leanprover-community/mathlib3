@@ -43,11 +43,11 @@ variables (ι : S ⥤ L)
 
 namespace Ran
 
-local attribute [simp] structured_arrow.snd
+local attribute [simp] structured_arrow.proj
 
 /-- The diagram indexed by `Ran.index ι x` used to define `Ran`. -/
 abbreviation diagram (F : S ⥤ D) (x : L) : structured_arrow x ι ⥤ D :=
-  structured_arrow.snd ⋙ F
+  structured_arrow.proj ⋙ F
 
 variable {ι}
 
@@ -99,11 +99,10 @@ def equiv [∀ x, has_limits_of_shape (structured_arrow x ι) D] (F : S ⥤ D) (
     intros x y ff,
     simp only [functor.comp_map, nat_trans.naturality_assoc, obj_aux_map, category.assoc],
     congr' 1,
-    have := limit.w (diagram ι F _),
-    sorry,
-    --erw [limit.pre_π, limit.w (diagram ι F _) (structured_arrow.hom_mk (𝟙 _) _)],
-    --congr,
-    --tidy,
+    erw limit.pre_π,
+    change _ = _ ≫ (diagram ι F (ι.obj x)).map (structured_arrow.hom_mk _ _),
+    rw limit.w,
+    tidy,
   end },
   inv_fun := λ f,
   { app := λ x, limit.lift (diagram ι F x) (cone _ f),
@@ -111,13 +110,12 @@ def equiv [∀ x, has_limits_of_shape (structured_arrow x ι) D] (F : S ⥤ D) (
       intros x y ff,
       ext j,
       erw [limit.lift_pre, limit.lift_π, category.assoc, limit.lift_π (cone _ f) j],
-      delta cone index.map,
       tidy,
     end },
   left_inv := begin
     intro x,
     ext k j,
-    dsimp only [cone, diagram],
+    dsimp only [cone],
     rw limit.lift_π,
     simp only [nat_trans.naturality_assoc, obj_aux_map],
     congr' 1,
@@ -130,14 +128,14 @@ def equiv [∀ x, has_limits_of_shape (structured_arrow x ι) D] (F : S ⥤ D) (
 
 /-- A variant of `Ran.equiv` with `whiskering_left` instead of functor composition. -/
 @[simps]
-def equiv' [∀ x, has_limits_of_shape (index ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
+def equiv' [∀ x, has_limits_of_shape (structured_arrow x ι) D] (F : S ⥤ D) (G : L ⥤ D) :
   (G ⟶ obj_aux ι F) ≃ (((whiskering_left _ _ _).obj ι).obj G ⟶ F) := equiv _ _ _
 
 end Ran
 
 /-- The right Kan extension of a functor. -/
 @[simps]
-def Ran [∀ X, has_limits_of_shape (Ran.index ι X) D] : (S ⥤ D) ⥤ L ⥤ D :=
+def Ran [∀ X, has_limits_of_shape (structured_arrow X ι) D] : (S ⥤ D) ⥤ L ⥤ D :=
 adjunction.right_adjoint_of_equiv (λ F G, (Ran.equiv' ι G F).symm) (by tidy)
 
 namespace Ran
@@ -145,7 +143,7 @@ namespace Ran
 variable (D)
 
 /-- The adjunction associated to `Ran`. -/
-def adjunction [∀ X, has_limits_of_shape (Ran.index ι X) D] :
+def adjunction [∀ X, has_limits_of_shape (structured_arrow X ι) D] :
   (whiskering_left _ _ D).obj ι ⊣ Ran ι :=
 adjunction.adjunction_of_equiv_right _ _
 

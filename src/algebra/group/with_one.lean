@@ -76,16 +76,15 @@ protected lemma cases_on {P : with_one α → Prop} :
 option.cases_on
 
 @[to_additive]
-instance [has_mul α] : has_mul (with_one α) :=
-{ mul := option.lift_or_get (*) }
+instance [has_mul α] : mul_one_class (with_one α) :=
+{ mul := option.lift_or_get (*),
+  one_mul   := (option.lift_or_get_is_left_id _).1,
+  mul_one   := (option.lift_or_get_is_right_id _).1 }
 
 @[to_additive]
 instance [semigroup α] : monoid (with_one α) :=
 { mul_assoc := (option.lift_or_get_assoc _).1,
-  one_mul   := (option.lift_or_get_is_left_id _).1,
-  mul_one   := (option.lift_or_get_is_right_id _).1,
-  ..with_one.has_one,
-  ..with_one.has_mul }
+  ..with_one.mul_one_class }
 
 @[to_additive]
 instance [comm_semigroup α] : comm_monoid (with_one α) :=

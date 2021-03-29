@@ -121,7 +121,12 @@ lemma coinduced_eq (h : α ≃ₜ β) : topological_space.coinduced h ‹_› = 
 h.quotient_map.2.symm
 
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
-⟨h.inducing, h.to_equiv.injective⟩
+⟨h.inducing, h.injective⟩
+
+protected lemma second_countable_topology [topological_space.second_countable_topology β]
+  (h : α ≃ₜ β) :
+  topological_space.second_countable_topology α :=
+h.inducing.second_countable_topology
 
 lemma compact_image {s : set α} (h : α ≃ₜ β) : is_compact (h '' s) ↔ is_compact s :=
 h.embedding.compact_iff_compact_image.symm
@@ -131,8 +136,7 @@ by rw ← image_symm; exact h.symm.compact_image
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,
-  inj     := h.injective,
-  induced := h.induced_eq.symm }
+  .. h.embedding }
 
 @[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
 h.quotient_map.is_open_preimage

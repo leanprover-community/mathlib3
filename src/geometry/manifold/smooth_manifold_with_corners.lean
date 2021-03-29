@@ -262,6 +262,12 @@ begin
   exact (hsc.inter_right I.closed_range).image I.continuous_symm
 end
 
+open topological_space
+
+protected lemma second_countable_topology [second_countable_topology E]
+  (I : model_with_corners 𝕜 E H) : second_countable_topology H :=
+I.closed_embedding.to_embedding.second_countable_topology
+
 end model_with_corners
 
 section

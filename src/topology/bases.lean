@@ -398,3 +398,15 @@ begin
 end
 
 end topological_space
+
+open topological_space
+
+variables {α β : Type*} [topological_space α] [topological_space β] {f : α → β}
+
+protected lemma inducing.second_countable_topology [second_countable_topology β]
+  (hf : inducing f) : second_countable_topology α :=
+by { rw hf.1, exact second_countable_topology_induced α β f }
+
+protected lemma embedding.second_countable_topology [second_countable_topology β]
+  (hf : embedding f) : second_countable_topology α :=
+hf.1.second_countable_topology

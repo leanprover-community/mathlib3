@@ -42,7 +42,7 @@ If a lemma deals with the intersection of a set with either source or target of 
 then it should use `e.source ∩ s` or `e.target ∩ t`, not `s ∩ e.source` or `t ∩ e.target`.
 -/
 
-open function set filter
+open function set filter topological_space (second_countable_topology)
 open_locale topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
@@ -689,10 +689,26 @@ forall_congr $ λ x, forall_congr $ λ hx, e.continuous_within_at_iff_continuous
 
 end continuity
 
+/-- A local homeomrphism defines a homeomorphism between its source and target. -/
+def to_homeomorph_source_target : e.source ≃ₜ e.target :=
+{ to_fun := e.maps_to.restrict _ _ _,
+  inv_fun := e.symm_maps_to.restrict _ _ _,
+  left_inv := λ x, subtype.eq $ e.left_inv x.2,
+  right_inv := λ x, subtype.eq $ e.right_inv x.2,
+  continuous_to_fun := continuous_subtype_mk _ $
+    continuous_on_iff_continuous_restrict.1 e.continuous_on,
+  continuous_inv_fun := continuous_subtype_mk _ $
+    continuous_on_iff_continuous_restrict.1 e.symm.continuous_on }
+
+lemma second_countable_topology_source [second_countable_topology β]
+  (e : local_homeomorph α β) :
+  second_countable_topology e.source :=
+e.to_homeomorph_source_target.second_countable_topology
+
 /-- If a local homeomorphism has source and target equal to univ, then it induces a homeomorphism
 between the whole spaces, expressed in this definition. -/
 def to_homeomorph_of_source_eq_univ_target_eq_univ (h : e.source = (univ : set α))
-  (h' : e.target = univ) : homeomorph α β :=
+  (h' : e.target = univ) : α ≃ₜ β :=
 { to_fun := e,
   inv_fun := e.symm,
   left_inv := λx, e.left_inv $ by { rw h, exact mem_univ _ },
@@ -733,7 +749,7 @@ end
 end local_homeomorph
 
 namespace homeomorph
-variables (e : homeomorph α β) (e' : homeomorph β γ)
+variables (e : α ≃ₜ β) (e' : β ≃ₜ γ)
 /- Register as simp lemmas that the fields of a local homeomorphism built from a homeomorphism
 correspond to the fields of the original homeomorphism. -/
 

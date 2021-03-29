@@ -922,7 +922,7 @@ open measurable_space measure_theory
 
 lemma borel_eq_generate_from_Ioo_rat :
   borel ℝ = generate_from (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
-borel_eq_generate_from_of_subbasis is_topological_basis_Ioo_rat.2.2
+is_topological_basis_Ioo_rat.borel_eq_generate_from
 
 lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]
   (h : ∀ a b : ℚ, μ (Ioo a b) = ν (Ioo a b)) : μ = ν :=
@@ -936,7 +936,7 @@ begin
     refine ⟨_, _, _, rfl⟩,
     assumption_mod_cast },
   { exact countable_Union (λ a, (countable_encodable _).bUnion $ λ _ _, countable_singleton _) },
-  { exact is_topological_basis_Ioo_rat.2.1 },
+  { exact is_topological_basis_Ioo_rat.sUnion_eq },
   { simp only [mem_Union, mem_singleton_iff],
     rintros _ ⟨a, b, h, rfl⟩,
     refine (measure_mono subset_closure).trans_lt _,

@@ -132,7 +132,7 @@ by resetI; apply e.injective.comm_semigroup _; intros; exact e.apply_symm_apply 
 
 /-- Transfer `mul_zero_class` across an `equiv` -/
 protected def mul_zero_class [mul_zero_class β] : mul_zero_class α :=
-let one := e.has_one, mul := e.has_mul in
+let zero := e.has_zero, mul := e.has_mul in
 by resetI; apply e.injective.mul_zero_class _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `mul_one_class` across an `equiv` -/

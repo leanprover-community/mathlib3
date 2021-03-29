@@ -35,7 +35,7 @@ namespace structured_arrow
 
 variables {S S' S'' : D} {Y Y' : C} {T : C ⥤ D}
 
-/-- TODO -/
+/-- The obvious projection functor from structured arrows. -/
 def proj : structured_arrow S T ⥤ C := comma.snd _ _
 
 /-- Construct a structured arrow from a morphism. -/
@@ -122,7 +122,7 @@ namespace costructured_arrow
 
 variables {T T' T'' : D} {Y Y' : C} {S : C ⥤ D}
 
-/-- TODO -/
+/-- The obviuous projection functor from costructured arrows. -/
 def proj : costructured_arrow S T ⥤ C := comma.fst _ _
 
 /-- Construct a costructured arrow from a morphism. -/

@@ -307,18 +307,6 @@ le_antisymm
   (subobject.mk_le_mk_of_comm (image.pre_comp h f) (by simp))
   (subobject.mk_le_mk_of_comm (inv (image.pre_comp h f)) (by simp))
 
-lemma image_subobject_factors {W : C} (k : W ⟶ X)  :
-  (image_subobject f).factors (k ≫ f) :=
-⟨k ≫ factor_thru_image f, by simp⟩
-
-/-- Precomposing by an isomorphism does not change the image subobject. -/
-lemma image_subobject_iso_comp [has_equalizers C]
-  {f : X ⟶ Y} [has_image f] {X' : C} (h : X' ⟶ X) [is_iso h] :
-  image_subobject (h ≫ f) = image_subobject f :=
-le_antisymm
-  (subobject.mk_le_mk_of_comm (image.pre_comp h f) (by simp))
-  (subobject.mk_le_mk_of_comm (inv (image.pre_comp h f)) (by simp))
-
 lemma image_subobject_le {A B : C} {X : subobject B} (f : A ⟶ B) [has_image f]
   (h : A ⟶ X) (w : h ≫ X.arrow = f) :
   image_subobject f ≤ X :=

@@ -1274,9 +1274,6 @@ open normed_field
 /-- The product of two seminormed spaces is a seminormed space, with the sup norm. -/
 instance prod.semi_normed_space : semi_normed_space α (E × F) :=
 { norm_smul_le := λ s x, le_of_eq $ by simp [prod.semi_norm_def, norm_smul, mul_max_of_nonneg],
-  -- TODO: without the next two lines Lean unfolds `≤` to `real.le`
-  add_smul := λ r x y, prod.ext (add_smul _ _ _) (add_smul _ _ _),
-  smul_add := λ r x y, prod.ext (smul_add _ _ _) (smul_add _ _ _),
   ..prod.normed_group,
   ..prod.semimodule }
 

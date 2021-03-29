@@ -84,7 +84,8 @@ with chain_iter : list expr → list expr → tactic (list (tactic_script α))
   l' ← chain_many current_goals,
   return (w :: l') } <|> chain_iter later_goals (g :: stuck_goals)
 
-meta def chain_core {α : Type} [has_to_string (tactic_script α)] (tactics : list (tactic α)) : tactic (list string) :=
+meta def chain_core {α : Type} [has_to_string (tactic_script α)] (tactics : list (tactic α)) :
+  tactic (list string) :=
 do results ← (get_goals >>= chain_many (first tactics)),
    when results.empty (fail "`chain` tactic made no progress"),
    return (results.map to_string)

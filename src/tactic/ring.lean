@@ -518,7 +518,8 @@ by simp [mul_assoc]
 theorem pow_add_rev {α} [monoid α] (a : α) (m n : ℕ) : a ^ m * a ^ n = a ^ (m + n) :=
 by simp [pow_add]
 
-theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) : b * a ^ m * a ^ n = b * a ^ (m + n) :=
+theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) :
+  b * a ^ m * a ^ n = b * a ^ (m + n) :=
 by simp [pow_add, mul_assoc]
 
 theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := (sub_eq_add_neg a b).symm
@@ -618,7 +619,8 @@ which rewrites all ring expressions into a normal form. When writing a normal fo
 `ring_nf SOP` will use sum-of-products form instead of horner form.
 `ring_nf!` will use a more aggressive reducibility setting to identify atoms.
 -/
-meta def ring_nf (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) : tactic unit :=
+meta def ring_nf (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) :
+  tactic unit :=
 do ns ← loc.get_locals,
    let transp := if red.is_some then semireducible else reducible,
    tt ← tactic.replace_at (normalize transp SOP) ns loc.include_goal

@@ -1,4 +1,6 @@
 import algebra.homology2.additive
+import algebra.category.Module.limits
+import algebra.category.Module.subobject
 
 universes v u
 
@@ -6,6 +8,8 @@ open_locale classical
 noncomputable theory
 
 open category_theory category_theory.limits homological_complex
+
+section
 
 variables {ι : Type*}
 variables {V : Type u} [category.{v} V] [has_zero_object V] [preadditive V]
@@ -46,3 +50,13 @@ begin
   rw [←category.assoc],
   apply image_subobject_factors_comp_self,
 end
+
+end
+
+variables {R : Type*} [comm_ring R]
+variables {ι : Type*} {c : complex_shape ι} {C D : homological_complex (Module.{u} R) c}
+variables (f g : C ⟶ D)
+
+
+theorem homology_map_eq_of_homotopy' (h : homotopy f g) (i : ι) :
+  (homology_functor (Module.{u} R) c i).map f = (homology_functor (Module.{u} R) c i).map g :=

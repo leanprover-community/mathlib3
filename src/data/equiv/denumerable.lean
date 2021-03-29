@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 Denumerable (countably infinite) types, as a typeclass extending
 encodable. This is used to provide explicit encode/decode functions
@@ -13,14 +13,11 @@ import data.fintype.basic
 import data.list.min_max
 open nat
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A denumerable type is one which is (constructively) bijective with ℕ.
   Although we already have a name for this property, namely `α ≃ ℕ`,
   we are here interested in using it as a typeclass. -/
 class denumerable (α : Type*) extends encodable α :=
 (decode_inv : ∀ n, ∃ a ∈ decode n, encode a = n)
-end prio
 
 namespace denumerable
 

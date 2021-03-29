@@ -5,7 +5,7 @@ Authors: Johan Commelin, Scott Morrison
 -/
 import topology.sheaves.presheaf_of_functions
 import topology.sheaves.sheaf
-import category_theory.limits.types
+import category_theory.limits.shapes.types
 import topology.local_homeomorph
 
 /-!
@@ -14,7 +14,11 @@ import topology.local_homeomorph
 We show that
 * `Top.sheaf_condition.to_Type`: not-necessarily-continuous functions into a type form a sheaf
 * `Top.sheaf_condition.to_Types`: in fact, these may be dependent functions into a type family
+
+For
 * `Top.sheaf_condition.to_Top`: continuous functions into a topological space form a sheaf
+please see `topology/sheaves/local_predicate.lean`, where we set up a general framework
+for constructing sub(pre)sheaves of the sheaf of dependent functions.
 
 ## Future work
 Obviously there's more to do:
@@ -36,7 +40,7 @@ variables (X : Top.{u})
 
 open Top
 
-namespace Top.sheaf_condition
+namespace Top.presheaf
 
 /--
 We show that the presheaf of functions to a type `T`
@@ -99,29 +103,31 @@ begin
     -- Now, we assert that the two restrictions of `f` to `U i` and `U j` coincide on `U i ⊓ U j`,
     -- and in particular coincide there after evaluating at `x`.
     have s₀ := s.condition =≫ pi.π _ (j, i),
-    simp only [sheaf_condition.left_res, sheaf_condition.right_res] at s₀,
+    simp only [sheaf_condition_equalizer_products.left_res,
+      sheaf_condition_equalizer_products.right_res] at s₀,
     have s₁ := congr_fun s₀ f,
-    have s₂ := congr_fun s₁ ⟨x, _⟩,
+    have s₂ := congr_fun s₁ ⟨x, _⟩, clear s₀ s₁,
     -- Notice at this point we've spun after an additional goal:
-    -- that `x ∈ U j ⊓ U i` to begin with! We'll postpone that.
-
-    -- In the meantime, we can just assert that `s₂` is the droid you are looking for.
-    -- (We relying shamefacedly on Lean's unification understanding this,
-    -- even though the type of the goal is still fairly messy. "It's obvious.")
-    simpa [presheaf_to_Type] using s₂,
-    clear s₀ s₁,
-
-    -- We still need to show `x ∈ U j ⊓ U i`.
-    -- We knew `x ∈ U i` right from the start:
-    refine ⟨_, mem⟩,
-    dsimp,
-
-    -- Notice that when we introduced `j`, we just introduced it as some metavariable.
-    -- However at this point it's received a concrete value,
-    -- because Lean's unification has worked out that this `j` must have been the index
-    -- that we picked using choice back when constructing the lift.
-    -- From this, we can extract the evidence that `x ∈ U j`:
-    convert @classical.some_spec _ (λ i, x ∈ (U i : set X)) _, },
+    -- that `x ∈ U j ⊓ U i` to begin with! Let's get that out of the way.
+    swap,
+    { -- We knew `x ∈ U i` right from the start:
+      refine ⟨_, mem⟩,
+      -- Notice that when we introduced `j`, we just introduced it as some metavariable.
+      -- However at this point it's received a concrete value,
+      -- because Lean's unification has worked out that this `j` must have been the index
+      -- that we picked using choice back when constructing the lift.
+      -- From this, we can extract the evidence that `x ∈ U j`:
+      convert @classical.some_spec _ (λ i, x ∈ (U i : set X)) _, },
+    -- Now, we can just assert that `s₂` is the droid you are looking for,
+    -- and do a little patching up afterwards.
+    convert s₂,
+    { simp only [sheaf_condition_equalizer_products.res, presheaf_to_Types_map,
+        types.pi_lift_π_apply, types_comp_apply],
+      dsimp [inf_le_left_apply],
+      simp,
+      refl, },
+    { simp,
+      refl, }, },
   { -- On the home stretch now,
     -- we just need to check that the lift we picked was the only possible one.
 
@@ -136,11 +142,14 @@ begin
     -- We'll need the later,
     specialize w walking_parallel_pair.zero,
     -- because we're not sure which arbitrary `j : ι` we used to define our lift.
+
     let j : ι := _,
 
     -- Now it's just a matter of plugging in all the values;
     -- `j` gets solved for during unification.
-    convert congr_fun (congr_fun (w =≫ pi.π _ j) f) ⟨x, _⟩, }
+    convert congr_fun (congr_fun (w =≫ pi.π _ j) f) ⟨x, _⟩,
+    simp [sheaf_condition_equalizer_products.res],
+    refl, }
 end.
 
 -- We verify that the non-dependent version is an immediate consequence:
@@ -151,23 +160,23 @@ a target type `T` satsifies the sheaf condition.
 def to_Type (T : Type u) : sheaf_condition (presheaf_to_Type X T) :=
 to_Types X (λ _, T)
 
-end Top.sheaf_condition
+end Top.presheaf
 
 namespace Top
 
 /--
-The sheaf of not-necessarily-continuous functions on `X` with values in type family `T : X → Type u`.
+The sheaf of not-necessarily-continuous functions on `X` with values in type family
+`T : X → Type u`.
 -/
 def sheaf_to_Types (T : X → Type u) : sheaf (Type u) X :=
 { presheaf := presheaf_to_Types X T,
-  sheaf_condition := sheaf_condition.to_Types _ _, }
+  sheaf_condition := presheaf.to_Types _ _, }
 
 /--
 The sheaf of not-necessarily-continuous functions on `X` with values in a type `T`.
 -/
 def sheaf_to_Type (T : Type u) : sheaf (Type u) X :=
 { presheaf := presheaf_to_Type X T,
-  sheaf_condition := sheaf_condition.to_Type _ _, }
-
+  sheaf_condition := presheaf.to_Type _ _, }
 
 end Top

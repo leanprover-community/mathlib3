@@ -92,7 +92,7 @@ is_open_iff_mem_nhds.trans $ ball_congr $ λ a h, F.mem_nhds
 
 theorem is_closed_iff [topological_space α] (F : realizer α) {s : set α} :
   is_closed s ↔ ∀ a, (∀ b, a ∈ F.F b → ∃ z, z ∈ F.F b ∩ s) → a ∈ s :=
-F.is_open_iff.trans $ forall_congr $ λ a,
+is_open_compl_iff.symm.trans $ F.is_open_iff.trans $ forall_congr $ λ a,
 show (a ∉ s → (∃ (b : F.σ), a ∈ F.F b ∧ ∀ z ∈ F.F b, z ∉ s)) ↔ _,
 by haveI := classical.prop_decidable; rw [not_imp_comm];
    simp [not_exists, not_and, not_forall, and_comm]
@@ -107,11 +107,9 @@ is_open_iff_nhds.2 $ λ a m, by simpa using F.mem_nhds.2 ⟨s, m, subset.refl _�
 theorem ext' [T : topological_space α] {σ : Type*} {F : ctop α σ}
   (H : ∀ a s, s ∈ 𝓝 a ↔ ∃ b, a ∈ F b ∧ F b ⊆ s) :
   F.to_topsp = T :=
-topological_space_eq $ funext $ λ s, begin
-  have : ∀ T s, @topological_space.is_open _ T s ↔ _ := @is_open_iff_mem_nhds α,
-  rw [this, this],
-  apply congr_arg (λ f : α → filter α, ∀ a ∈ s, s ∈ f a),
-  funext a, apply filter_eq, apply set.ext, intro x,
+begin
+  refine eq_of_nhds_eq_nhds (λ x, _),
+  ext s,
   rw [mem_nhds_to_topsp, H]
 end
 

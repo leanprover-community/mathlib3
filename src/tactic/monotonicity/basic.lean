@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
-import algebra.order_functions
+import algebra.ordered_ring
+import order.bounded_lattice
 
 namespace tactic.interactive
 open tactic list
@@ -19,6 +20,8 @@ inductive mono_selection : Type
 | left : mono_selection
 | right : mono_selection
 | both : mono_selection
+
+declare_trace mono.relation
 
 section compare
 
@@ -95,8 +98,11 @@ meta def mono_head_candidates : ℕ → list expr → expr → tactic mono_key
 
 meta def monotonicity.check (lm_n : name) : tactic mono_key :=
 do lm ← mk_const lm_n,
-   lm_t ← infer_type lm,
-   lm_t ← expr.dsimp lm_t { fail_if_unchanged := ff } tt [] [simp_arg_type.expr ``(monotone)],
+   lm_t ← infer_type lm >>= instantiate_mvars,
+   when_tracing `mono.relation trace!"[mono] Looking for relation in {lm_t}",
+   s ← simp_lemmas.mk.add_simp ``monotone,
+   lm_t ← s.dsimplify [] lm_t { fail_if_unchanged := ff },
+   when_tracing `mono.relation trace!"[mono] Looking for relation in {lm_t} (after unfolding)",
    (xs,h) ← open_pis lm_t,
    mono_head_candidates 3 xs.reverse h
 
@@ -160,6 +166,7 @@ end tactic.interactive
 attribute [mono] add_le_add mul_le_mul neg_le_neg
          mul_lt_mul_of_pos_left mul_lt_mul_of_pos_right
          imp_imp_imp le_implies_le_of_le_of_le
-         sub_le_sub abs_le_abs
+         sub_le_sub abs_le_abs sup_le_sup
+         inf_le_inf
 attribute [mono left] add_lt_add_of_le_of_lt mul_lt_mul'
 attribute [mono right] add_lt_add_of_lt_of_le mul_lt_mul

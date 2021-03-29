@@ -19,9 +19,6 @@ variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 
-instance mul_zero_class [Π i, mul_zero_class $ f i] : mul_zero_class (Π i : I, f i) :=
-by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
-
 instance distrib [Π i, distrib $ f i] : distrib (Π i : I, f i) :=
 by refine_struct { add := (+), mul := (*), .. }; tactic.pi_instance_derive_field
 
@@ -67,7 +64,8 @@ variable {I : Type*}     -- The indexing type
 variable (f : I → Type*) -- The family of types already equipped with instances
 variables [Π i, semiring (f i)]
 
-/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid homomorphism. -/
+/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
+homomorphism. -/
 def ring_hom.apply (i : I) : (Π i, f i) →+* f i :=
 { ..(monoid_hom.apply f i),
   ..(add_monoid_hom.apply f i) }

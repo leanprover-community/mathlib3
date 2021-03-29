@@ -6,6 +6,7 @@ Authors: Reid Barton
 import tactic.auto_cases
 import tactic.tidy
 import tactic.with_local_reducibility
+import tactic.show_term
 import topology.basic
 /-!
 # Tactics for topology
@@ -77,16 +78,18 @@ namespace interactive
 setup_tactic_parser
 
 /--
-Solve goals of the form `continuous f`.
+Solve goals of the form `continuous f`. `continuity?` reports back the proof term it found.
 -/
 meta def continuity
-  (bang : parse $ optional (tk "!")) (cfg : tidy.cfg := {}) : tactic unit :=
-with_local_reducibility `continuous decl_reducibility.irreducible $
-let md := if bang.is_some then semireducible else reducible in
-tactic.tidy { tactics := continuity_tactics md, ..cfg }
+  (bang : parse $ optional (tk "!")) (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :
+  tactic unit :=
+let md              := if bang.is_some then semireducible else reducible,
+    continuity_core := tactic.tidy { tactics := continuity_tactics md, ..cfg },
+    trace_fn        := if trace.is_some then show_term else id in
+trace_fn continuity_core
 
 /-- Version of `continuity` for use with auto_param. -/
-meta def continuity' : tactic unit := continuity none {}
+meta def continuity' : tactic unit := continuity none none {}
 
 /--
 `continuity` solves goals of the form `continuous f` by applying lemmas tagged with the
@@ -104,6 +107,8 @@ will discharge the goal, generating a proof term like
 You can also use `continuity!`, which applies lemmas with `{ md := semireducible }`.
 The default behaviour is more conservative, and only unfolds `reducible` definitions
 when attempting to match lemmas with the goal.
+
+`continuity?` reports back the proof term it found.
 -/
 add_tactic_doc
 { name := "continuity / continuity'",

@@ -5,7 +5,14 @@ Authors: Scott Morrison
 -/
 import algebra.category.CommRing.basic
 import topology.category.Top.basic
-import topology.instances.complex
+import topology.algebra.ring
+
+/-!
+# Category of topological commutative rings
+
+We introduce the category `TopCommRing` of topological commutative rings together with the relevant
+forgetful functors to topological spaces and commutative rings.
+-/
 
 universes u
 
@@ -40,10 +47,6 @@ instance : concrete_category TopCommRing.{u} :=
 
 /-- Construct a bundled `TopCommRing` from the underlying type and the appropriate typeclasses. -/
 def of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] : TopCommRing := ⟨X⟩
-
-noncomputable example : TopCommRing := TopCommRing.of ℚ
-noncomputable example : TopCommRing := TopCommRing.of ℝ
-noncomputable example : TopCommRing := TopCommRing.of ℂ
 
 @[simp] lemma coe_of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] :
   (of X : Type u) = X := rfl
@@ -101,9 +104,8 @@ instance : reflects_isomorphisms (forget₂ TopCommRing Top) :=
 
     -- Putting these together we obtain the isomorphism we're after:
     exact
-    { inv := ⟨e_Ring.symm, i_Top.inv.2⟩,
-      hom_inv_id' := by { ext x, exact e_Ring.left_inv x, },
-      inv_hom_id' := by { ext x, exact e_Ring.right_inv x, }, },
+    ⟨⟨⟨e_Ring.symm, i_Top.inv.2⟩,
+      ⟨by { ext x, exact e_Ring.left_inv x, }, by { ext x, exact e_Ring.right_inv x, }⟩⟩⟩
   end }
 
 end TopCommRing

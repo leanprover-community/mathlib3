@@ -31,11 +31,12 @@ instance : comm_ring int :=
   one            := int.one,
   one_mul        := int.one_mul,
   mul_one        := int.mul_one,
+  sub            := int.sub,
   left_distrib   := int.distrib_left,
   right_distrib  := int.distrib_right,
   mul_comm       := int.mul_comm }
 
-/- Extra instances to short-circuit type class resolution -/
+/-! ### Extra instances to short-circuit type class resolution -/
 -- instance : has_sub int            := by apply_instance -- This is in core
 instance : add_comm_monoid int    := by apply_instance
 instance : add_monoid int         := by apply_instance
@@ -50,14 +51,16 @@ instance : semiring int           := by apply_instance
 instance : ring int               := by apply_instance
 instance : distrib int            := by apply_instance
 
-instance : decidable_linear_ordered_comm_ring int :=
+instance : linear_ordered_comm_ring int :=
 { add_le_add_left := @int.add_le_add_left,
   mul_pos         := @int.mul_pos,
-  zero_lt_one     := int.zero_lt_one,
-  .. int.comm_ring, .. int.decidable_linear_order, .. int.nontrivial }
+  zero_le_one     := le_of_lt int.zero_lt_one,
+  .. int.comm_ring, .. int.linear_order, .. int.nontrivial }
 
-instance : decidable_linear_ordered_add_comm_group int :=
+instance : linear_ordered_add_comm_group int :=
 by apply_instance
+
+@[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
 
 theorem abs_eq_nat_abs : ∀ a : ℤ, abs a = nat_abs a
 | (n : ℕ) := abs_of_nonneg $ coe_zero_le _
@@ -80,6 +83,13 @@ attribute [simp] int.of_nat_eq_coe int.bodd
 @[simp] theorem add_def {a b : ℤ} : int.add a b = a + b := rfl
 @[simp] theorem mul_def {a b : ℤ} : int.mul a b = a * b := rfl
 
+@[simp] lemma neg_succ_not_nonneg (n : ℕ) : 0 ≤ -[1+ n] ↔ false :=
+by { simp only [not_le, iff_false], exact int.neg_succ_lt_zero n, }
+
+@[simp] lemma neg_succ_not_pos (n : ℕ) : 0 < -[1+ n] ↔ false :=
+by simp only [not_lt, iff_false]
+
+@[simp] lemma neg_succ_sub_one (n : ℕ) : -[1+ n] - 1 = -[1+ (n+1)] := rfl
 @[simp] theorem coe_nat_mul_neg_succ (m n : ℕ) : (m : ℤ) * -[1+ n] = -(m * succ n) := rfl
 @[simp] theorem neg_succ_mul_coe_nat (m n : ℕ) : -[1+ m] * n = -(succ m * n) := rfl
 @[simp] theorem neg_succ_mul_neg_succ (m n : ℕ) : -[1+ m] * -[1+ n] = succ m * succ n := rfl
@@ -100,7 +110,7 @@ by rw [← int.coe_nat_zero, coe_nat_inj']
 theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
 not_congr coe_nat_eq_zero
 
-lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
+@[simp] lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
 
 lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 ⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),
@@ -111,7 +121,7 @@ lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ
 @[simp, norm_cast] theorem coe_nat_abs (n : ℕ) : abs (n : ℤ) = n :=
 abs_of_nonneg (coe_nat_nonneg n)
 
-/- succ and pred -/
+/-! ### succ and pred -/
 
 /-- Immediate successor of an integer: `succ n = n + 1` -/
 def succ (a : ℤ) := a + 1
@@ -153,6 +163,12 @@ theorem add_one_le_iff {a b : ℤ} : a + 1 ≤ b ↔ a < b := iff.rfl
 theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
 @add_le_add_iff_right _ _ a b 1
 
+@[simp] lemma succ_coe_nat_pos (n : ℕ) : 0 < (n : ℤ) + 1 :=
+lt_add_one_iff.mpr (by simp)
+
+@[norm_cast] lemma coe_pred_of_pos (n : ℕ) (h : 0 < n) : ((n - 1 : ℕ) : ℤ) = (n : ℤ) - 1 :=
+by { cases n, cases h, simp, }
+
 lemma le_add_one {a b : ℤ} (h : a ≤ b) : a ≤ b + 1 :=
 le_of_lt (int.lt_add_one_iff.mpr h)
 
@@ -161,6 +177,10 @@ sub_lt_iff_lt_add.trans lt_add_one_iff
 
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
 le_sub_iff_add_le
+
+@[simp] lemma eq_zero_iff_abs_lt_one {a : ℤ} : abs a < 1 ↔ a = 0 :=
+⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (le_of_lt_add_one (by exact hp)).antisymm hn,
+  λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
   (i : ℤ) (hz : p 0) (hp : ∀i : ℕ, p i → p (i + 1)) (hn : ∀i : ℕ, p (-i) → p (-i - 1)) : p i :=
@@ -176,23 +196,25 @@ begin
     exact this (i + 1) }
 end
 
+/-- Inductively define a function on `ℤ` by defining it at `b`, for the `succ` of a number greater
+  than `b`, and the `pred` of a number less than `b`. -/
 protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ) :
   C b → (∀ k, b ≤ k → C k → C (k + 1)) → (∀ k ≤ b, C k → C (k - 1)) → C z :=
 λ H0 Hs Hp,
 begin
   rw ←sub_add_cancel z b,
-  induction (z - b),
-  { induction a with n ih, { rwa [of_nat_zero, zero_add] },
+  induction (z - b) with n n,
+  { induction n with n ih, { rwa [of_nat_zero, zero_add] },
     rw [of_nat_succ, add_assoc, add_comm 1 b, ←add_assoc],
     exact Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih },
-  { induction a with n ih,
+  { induction n with n ih,
     { rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub],
       exact Hp _ (le_refl _) H0 },
     { rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub],
       exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) (le_refl _))) ih } }
 end
 
-/- nat abs -/
+/-! ### nat abs -/
 
 attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
 
@@ -218,6 +240,10 @@ theorem nat_abs_mul (a b : ℤ) : nat_abs (a * b) = (nat_abs a) * (nat_abs b) :=
 by cases a; cases b;
   simp only [← int.mul_def, int.mul, nat_abs_neg_of_nat, eq_self_iff_true, int.nat_abs]
 
+lemma nat_abs_mul_nat_abs_eq {a b : ℤ} {c : ℕ} (h : a * b = (c : ℤ)) :
+  a.nat_abs * b.nat_abs = c :=
+by rw [← nat_abs_mul, h, nat_abs_of_nat]
+
 @[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
 by rw [← int.coe_nat_mul, nat_abs_mul_self]
 
@@ -238,7 +264,42 @@ begin
   simpa using w₂,
 end
 
-/- /  -/
+lemma nat_abs_eq_nat_abs_iff {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a = b ∨ a = -b :=
+begin
+  split; intro h,
+  { cases int.nat_abs_eq a with h₁ h₁; cases int.nat_abs_eq b with h₂ h₂;
+    rw [h₁, h₂]; simp [h], },
+  { cases h; rw h, rw int.nat_abs_neg, },
+end
+
+lemma nat_abs_eq_iff_mul_self_eq {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a * a = b * b :=
+begin
+  rw [← abs_eq_iff_mul_self_eq, abs_eq_nat_abs, abs_eq_nat_abs],
+  exact int.coe_nat_inj'.symm
+end
+
+lemma nat_abs_lt_iff_mul_self_lt {a b : ℤ} : a.nat_abs < b.nat_abs ↔ a * a < b * b :=
+begin
+  rw [← abs_lt_iff_mul_self_lt, abs_eq_nat_abs, abs_eq_nat_abs],
+  exact int.coe_nat_lt.symm
+end
+
+lemma nat_abs_le_iff_mul_self_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a * a ≤ b * b :=
+begin
+  rw [← abs_le_iff_mul_self_le, abs_eq_nat_abs, abs_eq_nat_abs],
+  exact int.coe_nat_le.symm
+end
+
+lemma nat_abs_eq_iff_sq_eq {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a ^ 2 = b ^ 2 :=
+by { rw [pow_two, pow_two], exact nat_abs_eq_iff_mul_self_eq }
+
+lemma nat_abs_lt_iff_sq_lt {a b : ℤ} : a.nat_abs < b.nat_abs ↔ a ^ 2 < b ^ 2 :=
+by { rw [pow_two, pow_two], exact nat_abs_lt_iff_mul_self_lt }
+
+lemma nat_abs_le_iff_sq_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a ^ 2 ≤ b ^ 2 :=
+by { rw [pow_two, pow_two], exact nat_abs_le_iff_mul_self_le }
+
+/-! ### `/`  -/
 
 @[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
 
@@ -346,6 +407,22 @@ protected theorem add_mul_div_left (a : ℤ) {b : ℤ} (c : ℤ) (H : b ≠ 0) :
     (a + b * c) / b = a / b + c :=
 by rw [mul_comm, int.add_mul_div_right _ _ H]
 
+protected theorem add_div_of_dvd_right {a b c : ℤ} (H : c ∣ b) :
+  (a + b) / c = a / c + b / c :=
+begin
+  by_cases h1 : c = 0,
+  { simp [h1] },
+  cases H with k hk,
+  rw hk,
+  change c ≠ 0 at h1,
+  rw [mul_comm c k, int.add_mul_div_right _ _ h1, ←zero_add (k * c), int.add_mul_div_right _ _ h1,
+      int.zero_div, zero_add]
+end
+
+protected theorem add_div_of_dvd_left {a b c : ℤ} (H : c ∣ a) :
+  (a + b) / c = a / c + b / c :=
+by rw [add_comm, int.add_div_of_dvd_right H, add_comm]
+
 @[simp] protected theorem mul_div_cancel (a : ℤ) {b : ℤ} (H : b ≠ 0) : a * b / b = a :=
 by have := int.add_mul_div_right 0 a H;
    rwa [zero_add, int.zero_div, zero_add] at this
@@ -356,7 +433,7 @@ by rw [mul_comm, int.mul_div_cancel _ H]
 @[simp] protected theorem div_self {a : ℤ} (H : a ≠ 0) : a / a = 1 :=
 by have := int.mul_div_cancel 1 H; rwa one_mul at this
 
-/- mod -/
+/-! ### mod -/
 
 theorem of_nat_mod (m n : nat) : (m % n : ℤ) = of_nat (m % n) := rfl
 
@@ -406,7 +483,7 @@ match a, b, eq_succ_of_zero_lt H with
 end
 
 theorem mod_lt (a : ℤ) {b : ℤ} (H : b ≠ 0) : a % b < abs b :=
-by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos_of_ne_zero H)
+by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos.2 H)
 
 theorem mod_add_div_aux (m n : ℕ) : (n - (m % n + 1) - (n * (m / n) + n) : ℤ) = -[1+ m] :=
 begin
@@ -425,6 +502,15 @@ theorem mod_add_div : ∀ (a b : ℤ), a % b + b * (a / b) = a
 | -[1+ m] 0       := by rw [mod_zero, int.div_zero]; refl
 | -[1+ m] (n+1:ℕ) := mod_add_div_aux m n.succ
 | -[1+ m] -[1+ n] := mod_add_div_aux m n.succ
+
+theorem div_add_mod (a b : ℤ) : b * (a / b) + a % b = a :=
+(add_comm _ _).trans (mod_add_div _ _)
+
+lemma mod_add_div' (m k : ℤ) : m % k + (m / k) * k = m :=
+by { rw mul_comm, exact mod_add_div _ _ }
+
+lemma div_add_mod' (m k : ℤ) : (m / k) * k + m % k = m :=
+by { rw mul_comm, exact div_add_mod _ _ }
 
 theorem mod_def (a b : ℤ) : a % b = a - b * (a / b) :=
 eq_sub_of_add_eq (mod_add_div _ _)
@@ -487,9 +573,16 @@ by rw [mul_comm, mul_mod_left]
 lemma mul_mod (a b n : ℤ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 begin
   conv_lhs {
-    rw [←mod_add_div a n, ←mod_add_div b n, right_distrib, left_distrib, left_distrib,
-        mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left,
-        mul_comm _ (n * (b / n)), mul_assoc, add_mul_mod_self_left] }
+    rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
+        mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left, ← mul_assoc,
+        add_mul_mod_self] }
+end
+
+@[simp] lemma neg_mod_two (i : ℤ) : (-i) % 2 = i % 2 :=
+begin
+  apply int.mod_eq_mod_iff_mod_sub_eq_zero.mpr,
+  convert int.mul_mod_right 2 (-i),
+  simp only [two_mul, sub_eq_add_neg]
 end
 
 local attribute [simp] -- Will be generalized to Euclidean domains.
@@ -511,7 +604,7 @@ begin
   rw [sub_add_cancel, ← add_mod_mod, sub_add_cancel, mod_mod]
 end
 
-/- properties of / and % -/
+/-! ### properties of `/` and `%` -/
 
 @[simp] theorem mul_div_mul_of_pos {a : ℤ} (b c : ℤ) (H : 0 < a) : a * b / (a * c) = b / c :=
 suffices ∀ (m k : ℕ) (b : ℤ), (m.succ * b / (m.succ * k) : ℤ) = b / k, from
@@ -546,8 +639,8 @@ by rw [mul_comm, mul_comm c, mul_div_mul_of_pos _ _ H]
 by rw [mod_def, mod_def, mul_div_mul_of_pos _ _ H, mul_sub_left_distrib, mul_assoc]
 
 theorem lt_div_add_one_mul_self (a : ℤ) {b : ℤ} (H : 0 < b) : a < (a / b + 1) * b :=
-by rw [add_mul, one_mul, mul_comm]; apply lt_add_of_sub_left_lt;
-   rw [← mod_def]; apply mod_lt_of_pos _ H
+by { rw [add_mul, one_mul, mul_comm, ← sub_lt_iff_lt_add', ← mod_def],
+  exact mod_lt_of_pos _ H }
 
 theorem abs_div_le_abs : ∀ (a b : ℤ), abs (a / b) ≤ abs a :=
 suffices ∀ (a : ℤ) (n : ℕ), abs (a / n) ≤ abs a, from
@@ -582,7 +675,7 @@ match (n % 2), h, h₁ with
 | -[1+ a] := λ _ h₁, absurd h₁ dec_trivial
 end
 
-/- dvd -/
+/-! ### dvd -/
 
 @[norm_cast] theorem coe_nat_dvd {m n : ℕ} : (↑m : ℤ) ∣ ↑n ↔ m ∣ n :=
 ⟨λ ⟨a, ae⟩, m.eq_zero_or_pos.elim
@@ -642,6 +735,9 @@ protected theorem mul_div_assoc (a : ℤ) : ∀ {b c : ℤ}, c ∣ b → (a * b)
 | ._ c ⟨d, rfl⟩ := if cz : c = 0 then by simp [cz] else
   by rw [mul_left_comm, int.mul_div_cancel_left _ cz, int.mul_div_cancel_left _ cz]
 
+protected theorem mul_div_assoc' (b : ℤ) {a c : ℤ} (h : c ∣ a) : a * b / c = a / c * b :=
+by rw [mul_comm, int.mul_div_assoc _ h, mul_comm]
+
 theorem div_dvd_div : ∀ {a b c : ℤ} (H1 : a ∣ b) (H2 : b ∣ c), b / a ∣ c / a
 | a ._ ._ ⟨b, rfl⟩ ⟨c, rfl⟩ := if az : a = 0 then by simp [az] else
   by rw [int.mul_div_cancel_left _ az, mul_assoc, int.mul_div_cancel_left _ az];
@@ -654,6 +750,10 @@ by rw [← H2, int.mul_div_cancel' H1]
 protected theorem div_eq_of_eq_mul_right {a b c : ℤ} (H1 : b ≠ 0) (H2 : a = b * c) :
   a / b = c :=
 by rw [H2, int.mul_div_cancel_left _ H1]
+
+protected theorem eq_div_of_mul_eq_right {a b c : ℤ} (H1 : a ≠ 0) (H2 : a * b = c) :
+  b = c / a :=
+eq.symm $ int.div_eq_of_eq_mul_right H1 H2.symm
 
 protected theorem div_eq_iff_eq_mul_right {a b c : ℤ} (H : b ≠ 0) (H' : b ∣ a) :
   a / b = c ↔ a = b * c :=
@@ -675,17 +775,15 @@ theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 | ._ b ⟨c, rfl⟩ := if bz : b = 0 then by simp [bz] else
   by rw [neg_mul_eq_mul_neg, int.mul_div_cancel_left _ bz, int.mul_div_cancel_left _ bz]
 
-lemma add_div_of_dvd {a b c : ℤ} :
-  c ∣ a → c ∣ b → (a + b) / c = a / c + b / c :=
+lemma sub_div_of_dvd {a b c : ℤ} (hcb : c ∣ b) : (a - b) / c = a / c - b / c :=
 begin
-  intros h1 h2,
-  by_cases h3 : c = 0,
-  { rw [h3, zero_dvd_iff] at *,
-    rw [h1, h2, h3], refl },
-  { apply mul_right_cancel' h3,
-    rw add_mul, repeat {rw [int.div_mul_cancel]};
-    try {apply dvd_add}; assumption }
+  rw [sub_eq_add_neg, sub_eq_add_neg, int.add_div_of_dvd_right ((dvd_neg c b).mpr hcb)],
+  congr,
+  exact neg_div_of_dvd hcb,
 end
+
+lemma sub_div_of_dvd_sub {a b c : ℤ} (hcab : c ∣ (a - b)) : (a - b) / c = a / c - b / c :=
+by rw [eq_sub_iff_add_eq, ← int.add_div_of_dvd_left hcab, sub_add_cancel]
 
 theorem div_sign : ∀ a b, a / sign b = a * sign b
 | a (n+1:ℕ) := by unfold sign; simp
@@ -702,7 +800,7 @@ theorem div_sign : ∀ a b, a / sign b = a * sign b
 
 protected theorem sign_eq_div_abs (a : ℤ) : sign a = a / (abs a) :=
 if az : a = 0 then by simp [az] else
-(int.div_eq_of_eq_mul_left (mt eq_zero_of_abs_eq_zero az)
+(int.div_eq_of_eq_mul_left (mt abs_eq_zero.1 az)
   (sign_mul_abs _).symm).symm
 
 theorem mul_sign : ∀ (i : ℤ), i * sign i = nat_abs i
@@ -763,9 +861,24 @@ begin
 end
 
 lemma dvd_of_pow_dvd {p k : ℕ} {m : ℤ} (hk : 1 ≤ k) (hpk : ↑(p^k) ∣ m) : ↑p ∣ m :=
-by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
+by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
-/- / and ordering -/
+/-- If `n > 0` then `m` is not divisible by `n` iff it is between `n * k` and `n * (k + 1)`
+  for some `k`. -/
+lemma exists_lt_and_lt_iff_not_dvd (m : ℤ) {n : ℤ} (hn : 0 < n) :
+  (∃ k, n * k < m ∧ m < n * (k + 1)) ↔ ¬ n ∣ m :=
+begin
+  split,
+  { rintro ⟨k, h1k, h2k⟩ ⟨l, rfl⟩, rw [mul_lt_mul_left hn] at h1k h2k,
+    rw [lt_add_one_iff, ← not_lt] at h2k, exact h2k h1k },
+  { intro h, rw [dvd_iff_mod_eq_zero, ← ne.def] at h,
+    have := (mod_nonneg m hn.ne.symm).lt_of_ne h.symm,
+    simp only [← mod_add_div m n] {single_pass := tt},
+    refine ⟨m / n, lt_add_of_pos_left _ this, _⟩,
+    rw [add_comm _ (1 : ℤ), left_distrib, mul_one], exact add_lt_add_right (mod_lt_of_pos _ hn) _ }
+end
+
+/-! ### `/` and ordering -/
 
 protected theorem div_mul_le (a : ℤ) {b : ℤ} (H : b ≠ 0) : a / b * b ≤ a :=
 le_of_sub_nonneg $ by rw [mul_comm, ← mod_def]; apply mod_nonneg _ H
@@ -871,7 +984,7 @@ end
 
 @[simp] theorem neg_add_neg (m n : ℕ) : -[1+m] + -[1+n] = -[1+nat.succ(m+n)] := rfl
 
-/- to_nat -/
+/-! ### to_nat -/
 
 theorem to_nat_eq_max : ∀ (a : ℤ), (to_nat a : ℤ) = max a 0
 | (n : ℕ) := (max_eq_left (coe_zero_le n)).symm
@@ -922,6 +1035,18 @@ end
 lemma to_nat_add_one {a : ℤ} (h : 0 ≤ a) : (a + 1).to_nat = a.to_nat + 1 :=
 to_nat_add h (zero_le_one)
 
+@[simp]
+lemma pred_to_nat : ∀ (i : ℤ), (i - 1).to_nat = i.to_nat - 1
+| (0:ℕ)   := rfl
+| (n+1:ℕ) := by simp
+| -[1+ n] := rfl
+
+@[simp]
+lemma to_nat_pred_coe_of_pos {i : ℤ} (h : 0 < i) : ((i.to_nat - 1 : ℕ) : ℤ) = i - 1 :=
+by simp [h, le_of_lt h] with push_cast
+
+/-- If `n : ℕ`, then `int.to_nat' n = some n`, if `n : ℤ` is negative, then `int.to_nat' n = none`.
+-/
 def to_nat' : ℤ → option ℕ
 | (n : ℕ) := some n
 | -[1+ n] := none
@@ -934,7 +1059,7 @@ lemma to_nat_zero_of_neg : ∀ {z : ℤ}, z < 0 → z.to_nat = 0
 | (-[1+n]) _ := rfl
 | (int.of_nat n) h := (not_le_of_gt h $ int.of_nat_nonneg n).elim
 
-/- units -/
+/-! ### units -/
 
 @[simp] theorem units_nat_abs (u : units ℤ) : nat_abs u = 1 :=
 units.ext_iff.1 $ nat.units_eq_one ⟨nat_abs u, nat_abs ↑u⁻¹,
@@ -947,11 +1072,21 @@ by simpa only [units.ext_iff, units_nat_abs] using nat_abs_eq u
 lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 (units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
 
-/- bitwise ops -/
+@[simp] lemma units_mul_self (u : units ℤ) : u * u = 1 :=
+(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+
+-- `units.coe_mul` is a "wrong turn" for the simplifier, this undoes it and simplifies further
+@[simp] lemma units_coe_mul_self (u : units ℤ) : (u * u : ℤ) = 1 :=
+by rw [←units.coe_mul, units_mul_self, units.coe_one]
+
+@[simp] lemma neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n ≠ 0 :=
+pow_ne_zero _ (abs_pos.mp trivial)
+
+/-! ### bitwise ops -/
 
 @[simp] lemma bodd_zero : bodd 0 = ff := rfl
 @[simp] lemma bodd_one : bodd 1 = tt := rfl
-@[simp] lemma bodd_two : bodd 2 = ff := rfl
+lemma bodd_two : bodd 2 = ff := rfl
 
 @[simp, norm_cast] lemma bodd_coe (n : ℕ) : int.bodd n = nat.bodd n := rfl
 
@@ -998,6 +1133,8 @@ by { cases b, apply (bit0_val n).trans (add_zero _).symm, apply bit1_val }
 lemma bit_decomp (n : ℤ) : bit (bodd n) (div2 n) = n :=
 (bit_val _ _).trans $ (add_comm _ _).trans $ bodd_add_div2 _
 
+/-- Defines a function from `ℤ` conditionally, if it is defined for odd and even integers separately
+  using `bit`. -/
 def {u} bit_cases_on {C : ℤ → Sort u} (n) (h : ∀ b n, C (bit b n)) : C n :=
 by rw [← bit_decomp n]; apply h
 
@@ -1012,11 +1149,24 @@ by rw [bit_val, nat.bit_val]; cases b; refl
 @[simp] lemma bodd_bit (b n) : bodd (bit b n) = b :=
 by rw bit_val; simp; cases b; cases bodd n; refl
 
+@[simp] lemma bodd_bit0 (n : ℤ) : bodd (bit0 n) = ff := bodd_bit ff n
+
+@[simp] lemma bodd_bit1 (n : ℤ) : bodd (bit1 n) = tt := bodd_bit tt n
+
 @[simp] lemma div2_bit (b n) : div2 (bit b n) = n :=
 begin
   rw [bit_val, div2_val, add_comm, int.add_mul_div_left, (_ : (_/2:ℤ) = 0), zero_add],
   cases b, all_goals {exact dec_trivial}
 end
+
+lemma bit0_ne_bit1 (m n : ℤ) : bit0 m ≠ bit1 n :=
+mt (congr_arg bodd) $ by simp
+
+lemma bit1_ne_bit0 (m n : ℤ) : bit1 m ≠ bit0 n :=
+(bit0_ne_bit1 _ _).symm
+
+lemma bit1_ne_zero (m : ℤ) : bit1 m ≠ 0 :=
+by simpa only [bit0_zero] using bit1_ne_bit0 m 0
 
 @[simp] lemma test_bit_zero (b) : ∀ n, test_bit (bit b n) 0 = b
 | (n : ℕ) := by rw [bit_coe_nat]; apply nat.test_bit_zero
@@ -1154,7 +1304,7 @@ lemma shiftr_eq_div_pow : ∀ (m : ℤ) (n : ℕ), shiftr m n = m / ↑(2 ^ n)
 | (m : ℕ) n := by rw shiftr_coe_nat; exact congr_arg coe (nat.shiftr_eq_div_pow _ _)
 | -[1+ m] n := begin
   rw [shiftr_neg_succ, neg_succ_of_nat_div, nat.shiftr_eq_div_pow], refl,
-  exact coe_nat_lt_coe_nat_of_lt (nat.pos_pow_of_pos _ dec_trivial)
+  exact coe_nat_lt_coe_nat_of_lt (pow_pos dec_trivial _)
 end
 
 lemma one_shiftl (n : ℕ) : shiftl 1 n = (2 ^ n : ℕ) :=
@@ -1166,7 +1316,7 @@ congr_arg coe (nat.one_shiftl _)
 
 @[simp] lemma zero_shiftr (n) : shiftr 0 n = 0 := zero_shiftl _
 
-/- Least upper bound property for integers -/
+/-! ### Least upper bound property for integers -/
 
 section classical
 open_locale classical
@@ -1199,3 +1349,5 @@ let ⟨lb, Plb, al⟩ := exists_least_of_bdd Hbdd' Hinh' in
 end classical
 
 end int
+
+attribute [irreducible] int.nonneg

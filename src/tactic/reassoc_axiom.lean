@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author(s): Simon Hudon
+Authors: Simon Hudon
 -/
 import category_theory.category
 
@@ -81,7 +81,7 @@ do
    s ← s.add_simp ``category.assoc,
    s ← s.add_simp ``category.id_comp,
    s ← s.add_simp ``category.comp_id,
-   (t'',pr') ← simplify s [] t',
+   (t'', pr', _) ← simplify s [] t',
    pr' ← mk_eq_mp pr' pr,
    t'' ← pis (vs ++ [X',f']) t'',
    pr' ← lambdas (vs ++ [X',f']) pr',

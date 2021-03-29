@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 import category_theory.products.basic
 import category_theory.currying
 
@@ -20,7 +20,7 @@ In the first part, given a coherent family `D` of limit cones over the functors 
 and a cone `c` over `G`, we construct a cone over the cone points of `D`.
 We then show that if `c` is a limit cone, the constructed cone is also a limit cone.
 
-In the second part, we state the Fubini theorem in the setting where we have chosen limits
+In the second part, we state the Fubini theorem in the setting where limits are
 provided by suitable `has_limit` classes.
 
 We construct
@@ -29,6 +29,10 @@ and give simp lemmas characterising it.
 For convenience, we also provide
 `limit_iso_limit_curry_comp_lim G : limit G ≅ limit ((curry.obj G) ⋙ lim)`
 in terms of the uncurried functor.
+
+## Future work
+
+The dual statement.
 -/
 
 universes v u
@@ -153,17 +157,17 @@ variables (F)
 variables [has_limits_of_shape K C]
 
 /--
-Given a functor `F : J ⥤ K ⥤ C`, with all needed chosen limits,
+Given a functor `F : J ⥤ K ⥤ C`, with all needed limits,
 we can construct a diagram consisting of the limit cone over each functor `F.obj j`,
 and the universal cone morphisms between these.
 -/
 @[simps]
-def diagram_of_cones.mk_of_has_limits : diagram_of_cones F :=
+noncomputable def diagram_of_cones.mk_of_has_limits : diagram_of_cones F :=
 { obj := λ j, limit.cone (F.obj j),
   map := λ j j' f, { hom := lim.map (F.map f), }, }
 
 -- Satisfying the inhabited linter.
-instance diagram_of_cones_inhabited : inhabited (diagram_of_cones F) :=
+noncomputable instance diagram_of_cones_inhabited : inhabited (diagram_of_cones F) :=
 ⟨diagram_of_cones.mk_of_has_limits F⟩
 
 @[simp]
@@ -179,7 +183,7 @@ The Fubini theorem for a functor `F : J ⥤ K ⥤ C`,
 showing that the limit of `uncurry.obj F` can be computed as
 the limit of the limits of the functors `F.obj j`.
 -/
-def limit_uncurry_iso_limit_comp_lim : limit (uncurry.obj F) ≅ limit (F ⋙ lim) :=
+noncomputable def limit_uncurry_iso_limit_comp_lim : limit (uncurry.obj F) ≅ limit (F ⋙ lim) :=
 begin
   let c := limit.cone (uncurry.obj F),
   let P : is_limit c := limit.is_limit _,
@@ -210,6 +214,8 @@ end
 
 section
 variables (G : J × K ⥤ C)
+
+section
 variables [has_limits_of_shape K C]
 variables [has_limit G]
 variables [has_limit ((curry.obj G) ⋙ lim)]
@@ -219,7 +225,7 @@ The Fubini theorem for a functor `G : J × K ⥤ C`,
 showing that the limit of `G` can be computed as
 the limit of the limits of the functors `G.obj (j, _)`.
 -/
-def limit_iso_limit_curry_comp_lim : limit G ≅ limit ((curry.obj G) ⋙ lim) :=
+noncomputable def limit_iso_limit_curry_comp_lim : limit G ≅ limit ((curry.obj G) ⋙ lim) :=
 begin
   have i : G ≅ uncurry.obj ((@curry J _ K _ C _).obj G) := currying.symm.unit_iso.app G,
   haveI : limits.has_limit (uncurry.obj ((@curry J _ K _ C _).obj G)) :=
@@ -229,21 +235,64 @@ begin
   exact limit_uncurry_iso_limit_comp_lim ((@curry J _ K _ C _).obj G),
 end
 
-@[simp]
+@[simp, reassoc]
 lemma limit_iso_limit_curry_comp_lim_hom_π_π {j} {k} :
   (limit_iso_limit_curry_comp_lim G).hom ≫ limit.π _ j ≫ limit.π _ k = limit.π _ (j, k) :=
-begin
-  dsimp [limit_iso_limit_curry_comp_lim, is_limit.cone_point_unique_up_to_iso,
-    is_limit.unique_up_to_iso],
-  simp, dsimp, simp, -- See note [dsimp, simp].
-end
+by simp [limit_iso_limit_curry_comp_lim, is_limit.cone_point_unique_up_to_iso,
+  is_limit.unique_up_to_iso]
 
-@[simp]
+@[simp, reassoc]
 lemma limit_iso_limit_curry_comp_lim_inv_π {j} {k} :
   (limit_iso_limit_curry_comp_lim G).inv ≫ limit.π _ (j, k) = limit.π _ j ≫ limit.π _ k :=
 begin
   rw [←cancel_epi (limit_iso_limit_curry_comp_lim G).hom],
   simp,
+end
+end
+
+
+section
+variables [has_limits C] -- Certainly one could weaken the hypotheses here.
+
+open category_theory.prod
+
+/--
+A variant of the Fubini theorem for a functor `G : J × K ⥤ C`,
+showing that $\lim_k \lim_j G(j,k) ≅ \lim_j \lim_k G(j,k)$.
+-/
+noncomputable
+def limit_curry_swap_comp_lim_iso_limit_curry_comp_lim :
+  limit ((curry.obj (swap K J ⋙ G)) ⋙ lim) ≅ limit ((curry.obj G) ⋙ lim) :=
+calc
+  limit ((curry.obj (swap K J ⋙ G)) ⋙ lim)
+      ≅ limit (swap K J ⋙ G) : (limit_iso_limit_curry_comp_lim _).symm
+  ... ≅ limit G : has_limit.iso_of_equivalence (braiding K J) (iso.refl _)
+  ... ≅ limit ((curry.obj G) ⋙ lim) : limit_iso_limit_curry_comp_lim _
+
+@[simp]
+lemma limit_curry_swap_comp_lim_iso_limit_curry_comp_lim_hom_π_π {j} {k} :
+  (limit_curry_swap_comp_lim_iso_limit_curry_comp_lim G).hom ≫ limit.π _ j ≫ limit.π _ k =
+   limit.π _ k ≫ limit.π _ j :=
+begin
+  dsimp [limit_curry_swap_comp_lim_iso_limit_curry_comp_lim],
+  simp only [iso.refl_hom, braiding_counit_iso_hom_app, limits.has_limit.iso_of_equivalence_hom_π,
+    iso.refl_inv, limit_iso_limit_curry_comp_lim_hom_π_π, eq_to_iso_refl, category.assoc],
+  erw [nat_trans.id_app], -- Why can't `simp` do this`?
+  dsimp, simp,
+end
+
+@[simp]
+lemma limit_curry_swap_comp_lim_iso_limit_curry_comp_lim_inv_π_π {j} {k} :
+  (limit_curry_swap_comp_lim_iso_limit_curry_comp_lim G).inv ≫ limit.π _ k ≫ limit.π _ j =
+   limit.π _ j ≫ limit.π _ k :=
+begin
+  dsimp [limit_curry_swap_comp_lim_iso_limit_curry_comp_lim],
+  simp only [iso.refl_hom, braiding_counit_iso_hom_app, limits.has_limit.iso_of_equivalence_inv_π,
+    iso.refl_inv, limit_iso_limit_curry_comp_lim_hom_π_π, eq_to_iso_refl, category.assoc],
+  erw [nat_trans.id_app], -- Why can't `simp` do this`?
+  dsimp, simp,
+end
+
 end
 
 end

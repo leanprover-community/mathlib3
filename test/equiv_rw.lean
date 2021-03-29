@@ -29,9 +29,9 @@ example {α β : Type} (e : α ≃ β) (Z : α → Type) (f : Π a, Z a → ℕ)
   (i : α) (x : Z i) : f i x = 0 :=
 begin
   equiv_rw e at i,
-  guard_hyp i := β,
+  guard_hyp i : β,
   guard_target f (e.symm i) x = 0,
-  guard_hyp x := Z ((e.symm) i),
+  guard_hyp x : Z ((e.symm) i),
   exact h i x,
 end
 
@@ -287,7 +287,7 @@ mk_simp_attribute transport_simps "simps useful inside `transport`"
 
 attribute [transport_simps]
   eq_rec_constant
-  eq_mpr_rfl
+  cast_eq
   equiv.to_fun_as_coe
   equiv.arrow_congr'_apply
   equiv.symm_apply_apply

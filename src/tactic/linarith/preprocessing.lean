@@ -98,10 +98,10 @@ and similarly if `pf` proves a negated weak inequality.
 meta def mk_non_strict_int_pf_of_strict_int_pf (pf : expr) : tactic expr :=
 do tp ← infer_type pf,
 match tp with
-| `(%%a < %%b) := to_expr ``(id_rhs (%%a + 1 ≤ %%b) %%pf)
-| `(%%a > %%b) := to_expr ``(id_rhs (%%b + 1 ≤ %%a) %%pf)
-| `(¬ %%a ≤ %%b) := to_expr ``(id_rhs (%%b + 1 ≤ %%a) %%pf)
-| `(¬ %%a ≥ %%b) := to_expr ``(id_rhs (%%a + 1 ≤ %%b) %%pf)
+| `(%%a < %%b) := to_expr ``(int.add_one_le_iff.mpr %%pf)
+| `(%%a > %%b) := to_expr ``(int.add_one_le_iff.mpr %%pf)
+| `(¬ %%a ≤ %%b) := to_expr ``(int.add_one_le_iff.mpr (le_of_not_gt %%pf))
+| `(¬ %%a ≥ %%b) := to_expr ``(int.add_one_le_iff.mpr (le_of_not_gt %%pf))
 | _ := fail "mk_non_strict_int_pf_of_strict_int_pf failed: proof is not an inequality"
 end
 

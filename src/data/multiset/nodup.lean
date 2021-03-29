@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.multiset.powerset
 import data.multiset.range
@@ -26,30 +26,30 @@ quot.lift_on s nodup (λ s t p, propext p.nodup_iff)
 
 @[simp] theorem nodup_zero : @nodup α 0 := pairwise.nil
 
-@[simp] theorem nodup_cons {a : α} {s : multiset α} : nodup (a::s) ↔ a ∉ s ∧ nodup s :=
+@[simp] theorem nodup_cons {a : α} {s : multiset α} : nodup (a ::ₘ s) ↔ a ∉ s ∧ nodup s :=
 quot.induction_on s $ λ l, nodup_cons
 
-theorem nodup_cons_of_nodup {a : α} {s : multiset α} (m : a ∉ s) (n : nodup s) : nodup (a::s) :=
+theorem nodup_cons_of_nodup {a : α} {s : multiset α} (m : a ∉ s) (n : nodup s) : nodup (a ::ₘ s) :=
 nodup_cons.2 ⟨m, n⟩
 
-theorem nodup_singleton : ∀ a : α, nodup (a::0) := nodup_singleton
+theorem nodup_singleton : ∀ a : α, nodup (a ::ₘ 0) := nodup_singleton
 
-theorem nodup_of_nodup_cons {a : α} {s : multiset α} (h : nodup (a::s)) : nodup s :=
+theorem nodup_of_nodup_cons {a : α} {s : multiset α} (h : nodup (a ::ₘ s)) : nodup s :=
 (nodup_cons.1 h).2
 
-theorem not_mem_of_nodup_cons {a : α} {s : multiset α} (h : nodup (a::s)) : a ∉ s :=
+theorem not_mem_of_nodup_cons {a : α} {s : multiset α} (h : nodup (a ::ₘ s)) : a ∉ s :=
 (nodup_cons.1 h).1
 
 theorem nodup_of_le {s t : multiset α} (h : s ≤ t) : nodup t → nodup s :=
 le_induction_on h $ λ l₁ l₂, nodup_of_sublist
 
-theorem not_nodup_pair : ∀ a : α, ¬ nodup (a::a::0) := not_nodup_pair
+theorem not_nodup_pair : ∀ a : α, ¬ nodup (a ::ₘ a ::ₘ 0) := not_nodup_pair
 
-theorem nodup_iff_le {s : multiset α} : nodup s ↔ ∀ a : α, ¬ a::a::0 ≤ s :=
+theorem nodup_iff_le {s : multiset α} : nodup s ↔ ∀ a : α, ¬ a ::ₘ a ::ₘ 0 ≤ s :=
 quot.induction_on s $ λ l, nodup_iff_sublist.trans $ forall_congr $ λ a,
 not_congr (@repeat_le_coe _ a 2 _).symm
 
-lemma nodup_iff_ne_cons_cons {s : multiset α} : s.nodup ↔ ∀ a t, s ≠ a :: a :: t :=
+lemma nodup_iff_ne_cons_cons {s : multiset α} : s.nodup ↔ ∀ a t, s ≠ a ::ₘ a ::ₘ t :=
 nodup_iff_le.trans
   ⟨λ h a t s_eq, h a (s_eq.symm ▸ cons_le_cons a (cons_le_cons a (zero_le _))),
    λ h a le, let ⟨t, s_eq⟩ := le_iff_exists_add.mp le in
@@ -79,7 +79,8 @@ quotient.induction_on₂ s t $ λ l₁ l₂, nodup_append
 theorem disjoint_of_nodup_add {s t : multiset α} (d : nodup (s + t)) : disjoint s t :=
 (nodup_add.1 d).2.2
 
-theorem nodup_add_of_nodup {s t : multiset α} (d₁ : nodup s) (d₂ : nodup t) : nodup (s + t) ↔ disjoint s t :=
+theorem nodup_add_of_nodup {s t : multiset α} (d₁ : nodup s) (d₂ : nodup t) :
+  nodup (s + t) ↔ disjoint s t :=
 by simp [nodup_add, d₁, d₂]
 
 theorem nodup_of_nodup_map (f : α → β) {s : multiset α} : nodup (map f s) → nodup s :=
@@ -89,7 +90,8 @@ theorem nodup_map_on {f : α → β} {s : multiset α} : (∀x∈s, ∀y∈s, f 
   nodup s → nodup (map f s) :=
 quot.induction_on s $ λ l, nodup_map_on
 
-theorem nodup_map {f : α → β} {s : multiset α} (hf : function.injective f) : nodup s → nodup (map f s) :=
+theorem nodup_map {f : α → β} {s : multiset α} (hf : function.injective f) :
+  nodup s → nodup (map f s) :=
 nodup_map_on (λ x _ y _ h, hf h)
 
 theorem nodup_filter (p : α → Prop) [decidable_pred p] {s} : nodup s → nodup (filter p s) :=
@@ -143,7 +145,8 @@ nodup_of_le $ inter_le_left _ _
 theorem nodup_inter_right [decidable_eq α] (s) {t : multiset α} : nodup t → nodup (s ∩ t) :=
 nodup_of_le $ inter_le_right _ _
 
-@[simp] theorem nodup_union [decidable_eq α] {s t : multiset α} : nodup (s ∪ t) ↔ nodup s ∧ nodup t :=
+@[simp] theorem nodup_union [decidable_eq α] {s t : multiset α} :
+  nodup (s ∪ t) ↔ nodup s ∧ nodup t :=
 ⟨λ h, ⟨nodup_of_le (le_union_left _ _) h, nodup_of_le (le_union_right _ _) h⟩,
  λ ⟨h₁, h₂⟩, nodup_iff_count_le_one.2 $ λ a, by rw [count_union]; exact
    max_le (nodup_iff_count_le_one.1 h₁ a) (nodup_iff_count_le_one.1 h₂ a)⟩

@@ -1,10 +1,10 @@
-
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
+Authors: Mario Carneiro, Simon Hudon, Sébastien Gouëzel, Scott Morrison
 -/
 import tactic.lint
+import tactic.dependencies
 
 open lean
 open lean.parser
@@ -36,7 +36,7 @@ do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
 
 /-- Multiple `subst`. `substs x y z` is the same as `subst x, subst y, subst z`. -/
 meta def substs (l : parse ident*) : tactic unit :=
-l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducible)
+propagate_tags $ l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducible)
 
 add_tactic_doc
 { name       := "substs",
@@ -56,6 +56,11 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.unfold_coes],
   tags       := ["simplification"] }
+
+
+/-- Unfold `has_well_founded.r`, `sizeof` and other such definitions. -/
+meta def unfold_wf :=
+propagate_tags (well_founded_tactics.unfold_wf_rel; well_founded_tactics.unfold_sizeof)
 
 /-- Unfold auxiliary definitions associated with the current declaration. -/
 meta def unfold_aux : tactic unit :=
@@ -360,18 +365,18 @@ do (x,xs) ← collect_struct e,
    set_goals (xs'.join ++ gs)
 
 /--
-`guard_hyp h := t` fails if the hypothesis `h` does not have type `t`.
+`guard_hyp' h : t` fails if the hypothesis `h` does not have type `t`.
 We use this tactic for writing tests.
 Fixes `guard_hyp` by instantiating meta variables
 -/
-meta def guard_hyp' (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+meta def guard_hyp' (n : parse ident) (p : parse $ tk ":" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
 
 /--
-`match_hyp h := t` fails if the hypothesis `h` does not match the type `t` (which may be a pattern).
+`match_hyp h : t` fails if the hypothesis `h` does not match the type `t` (which may be a pattern).
 We use this tactic for writing tests.
 -/
-meta def match_hyp (n : parse ident) (p : parse $ tk ":=" *> texpr) (m := reducible) : tactic (list expr) :=
+meta def match_hyp (n : parse ident) (p : parse $ tk ":" *> texpr) (m := reducible) : tactic (list expr) :=
 do
   h ← get_local n >>= infer_type >>= instantiate_mvars,
   match_expr p h m
@@ -391,28 +396,40 @@ We use this tactic for writing tests.
 meta def guard_target_strict (p : parse texpr) : tactic unit :=
 do t ← target, guard_expr_strict t p
 
-
 /--
-`guard_hyp_strict h := t` fails if the hypothesis `h` does not have type syntactically equal
+`guard_hyp_strict h : t` fails if the hypothesis `h` does not have type syntactically equal
 to `t`.
 We use this tactic for writing tests.
 -/
-meta def guard_hyp_strict (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+meta def guard_hyp_strict (n : parse ident) (p : parse $ tk ":" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_strict h p
 
+/-- Tests that there are `n` hypotheses in the current context. -/
 meta def guard_hyp_nums (n : ℕ) : tactic unit :=
 do k ← local_context,
    guard (n = k.length) <|> fail format!"{k.length} hypotheses found"
 
+/-- Test that `t` is the tag of the main goal. -/
 meta def guard_tags (tags : parse ident*) : tactic unit :=
 do (t : list name) ← get_main_tag,
    guard (t = tags)
+
+/-- `guard_proof_term { t } e` applies tactic `t` and tests whether the resulting proof term
+  unifies with `p`. -/
+meta def guard_proof_term (t : itactic) (p : parse texpr) : itactic :=
+do
+  g :: _ ← get_goals,
+  e ← to_expr p,
+  t,
+  g ← instantiate_mvars g,
+  unify e g
 
 /-- `success_if_fail_with_msg { tac } msg` succeeds if the interactive tactic `tac` fails with
 error message `msg` (for test writing purposes). -/
 meta def success_if_fail_with_msg (tac : tactic.interactive.itactic) :=
 tactic.success_if_fail_with_msg tac
 
+/-- Get the field of the current goal. -/
 meta def get_current_field : tactic name :=
 do [_,field,str] ← get_main_tag,
    expr.const_name <$> resolve_name (field.update_prefix str)
@@ -578,7 +595,7 @@ do let (e,n) := arg,
         tactic.clear h' ),
    when h.is_some (do
      (to_expr ``(heq_of_eq_rec_left %%eq_h %%asm)
-       <|> to_expr ``(heq_of_eq_mp %%eq_h %%asm))
+       <|> to_expr ``(heq_of_cast_eq %%eq_h %%asm))
      >>= note h' none >> pure ()),
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
@@ -589,72 +606,16 @@ add_tactic_doc
   decl_names := [`tactic.interactive.h_generalize],
   tags       := ["context management"] }
 
-/--
-The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
-where neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully
-crafted simpset named `field_simps`) to reduce the number of division symbols whenever possible by
-iterating the following steps:
-
-- write an inverse as a division
-- in any product, move the division to the right
-- if there are several divisions in a product, group them together at the end and write them as a
-  single division
-- reduce a sum to a common denominator
-
-If the goal is an equality, this simpset will also clear the denominators, so that the proof
-can normally be concluded by an application of `ring` or `ring_exp`.
-
-`field_simp [hx, hy]` is a short form for `simp [-one_div, hx, hy] with field_simps`
-
-Note that this naive algorithm will not try to detect common factors in denominators to reduce the
-complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
-complicated expressions in the next step.
-
-As always with the simplifier, reduction steps will only be applied if the preconditions of the
-lemmas can be checked. This means that proofs that denominators are nonzero should be included. The
-fact that a product is nonzero when all factors are, and that a power of a nonzero number is
-nonzero, are included in the simpset, but more complicated assertions (especially dealing with sums)
-should be given explicitly. If your expression is not completely reduced by the simplifier
-invocation, check the denominators of the resulting expression and provide proofs that they are
-nonzero to enable further progress.
-
-The invocation of `field_simp` removes the lemma `one_div` (which is marked as a simp lemma
-in core) from the simpset, as this lemma works against the algorithm explained above.
-
-For example,
-```lean
-example (a b c d x y : ℂ) (hx : x ≠ 0) (hy : y ≠ 0) :
-  a + b / x + c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x + c) / x) :=
-begin
-  field_simp [hx, hy],
-  ring
-end
-
-See also the `cancel_denoms` tactic, which tries to do a similar simplification for expressions
-that have numerals in denominators.
-The tactics are not related: `cancel_denoms` will only handle numeric denominators, and will try to
-entirely remove (numeric) division from the expression by multiplying by a factor.
-```
--/
-meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
-  (attr_names : parse with_ident_list)
-  (locat : parse location) (cfg : simp_config_ext := {}) : tactic unit :=
-let attr_names := `field_simps :: attr_names,
-    hs := simp_arg_type.except `one_div :: hs in
-propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat)
-
-add_tactic_doc
-{ name       := "field_simp",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.field_simp],
-  tags       := ["simplification", "arithmetic"] }
-
+/-- Tests whether `t` is definitionally equal to `p`. The difference with `guard_expr_eq` is that
+  this uses definitional equality instead of alpha-equivalence. -/
 meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do e ← to_expr p, is_def_eq t e
 
 /--
-`guard_target t` fails if the target of the main goal is not `t`.
+`guard_target' t` fails if the target of the main goal is not definitionally equal to `t`.
 We use this tactic for writing tests.
+The difference with `guard_target` is that this uses definitional equality instead of
+alpha-equivalence.
 -/
 meta def guard_target' (p : parse texpr) : tactic unit :=
 do t ← target, guard_expr_eq' t p
@@ -1043,7 +1004,8 @@ add_tactic_doc
 /-- `revert_deps n₁ n₂ ...` reverts all the hypotheses that depend on one of `n₁, n₂, ...`
 It does not revert `n₁, n₂, ...` themselves (unless they depend on another `nᵢ`). -/
 meta def revert_deps (ns : parse ident*) : tactic unit :=
-propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.revert_deps
+propagate_tags $
+  ns.mmap get_local >>= revert_reverse_dependencies_of_hyps >> skip
 
 add_tactic_doc
 { name       := "revert_deps",

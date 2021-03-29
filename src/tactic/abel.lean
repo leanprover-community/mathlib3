@@ -136,7 +136,7 @@ meta def eval_add (c : cache) : normal_expr → normal_expr → tactic (normal_e
     (a', h) ← eval_add he₁ a₂,
     return (term' c n₂ x₂ a', c.iapp ``const_add_term [e₁, n₂.1, x₂, a₂, a', h])
   else do
-    (n', h₁) ← mk_app ``has_add.add [n₁.1, n₂.1] >>= norm_num.derive',
+    (n', h₁) ← mk_app ``has_add.add [n₁.1, n₂.1] >>= norm_num.eval_field,
     (a', h₂) ← eval_add a₁ a₂,
     let k := n₁.2 + n₂.2,
     let p₁ := c.iapp ``term_add_term [n₁.1, x₁, a₁, n₂.1, a₂, n', a', h₁, h₂],
@@ -155,7 +155,7 @@ meta def eval_neg (c : cache) : normal_expr → tactic (normal_expr × expr)
   p ← c.mk_app ``neg_zero ``add_group [],
   return (zero' c, p)
 | (nterm e n x a) := do
-  (n', h₁) ← mk_app ``has_neg.neg [n.1] >>= norm_num.derive',
+  (n', h₁) ← mk_app ``has_neg.neg [n.1] >>= norm_num.eval_field,
   (a', h₂) ← eval_neg a,
   return (term' c (n', -n.2) x a',
     c.app ``term_neg c.inst [n.1, x, a, n', a', h₁, h₂])
@@ -183,7 +183,7 @@ meta def eval_smul (c : cache) (k : expr × ℤ) :
   normal_expr → tactic (normal_expr × expr)
 | (zero _) := return (zero' c, c.iapp ``zero_smul [k.1])
 | (nterm e n x a) := do
-  (n', h₁) ← mk_app ``has_mul.mul [k.1, n.1] >>= norm_num.derive',
+  (n', h₁) ← mk_app ``has_mul.mul [k.1, n.1] >>= norm_num.eval_field,
   (a', h₂) ← eval_smul a,
   return (term' c (n', k.2 * n.2) x a',
     c.iapp ``term_smul [k.1, n.1, x, a, n', a', h₁, h₂])
@@ -199,7 +199,8 @@ do n1 ← c.int_to_expr 1,
    return (term' c (n1, 1) e (zero' c), c.iapp ``term_atom [e])
 
 lemma unfold_sub {α} [add_group α] (a b c : α)
-  (h : a + -b = c) : a - b = c := h
+  (h : a + -b = c) : a - b = c :=
+by rw [sub_eq_add_neg, h]
 
 theorem unfold_smul {α} [add_comm_monoid α] (n) (x y : α)
   (h : smul n x = y) : n •ℕ x = y := h
@@ -272,7 +273,8 @@ meta def normalize (mode := normalize_mode.term) (e : expr) : tactic (expr × ex
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
 let lemmas := match mode with
 | normalize_mode.term :=
-  [``term.equations._eqn_1, ``termg.equations._eqn_1, ``add_zero, ``one_nsmul, ``one_gsmul, ``gsmul_zero]
+  [``term.equations._eqn_1, ``termg.equations._eqn_1, ``add_zero, ``one_nsmul, ``one_gsmul,
+    ``gsmul_zero]
 | _ := []
 end,
 lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
@@ -281,7 +283,8 @@ lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
     c ← mk_cache e,
     (new_e, pr) ← match mode with
     | normalize_mode.raw := eval' c
-    | normalize_mode.term := trans_conv (eval' c) (simplify lemmas [])
+    | normalize_mode.term := trans_conv (eval' c)
+                               (λ e, do (e', prf, _) ← simplify lemmas [] e, return (e', prf))
     end e,
     guard (¬ new_e =ₐ e),
     return ((), new_e, some pr, ff))

@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.category.Group.preadditive
 import group_theory.quotient_group
-import category_theory.limits.limits
 import category_theory.limits.concrete_category
 import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.concrete_category
@@ -269,7 +268,7 @@ def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
   map_add' := λ x y, by { induction x; induction y; refl }, }
 
 /-- Evidence that the proposed colimit is the colimit. -/
-def colimit_is_colimit : is_colimit (colimit_cocone F) :=
+def colimit_cocone_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,
   uniq' := λ s m w,
   begin
@@ -286,10 +285,10 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
   end }.
 
 instance has_colimits_AddCommGroup : has_colimits AddCommGroup :=
-{ has_colimits_of_shape := λ J 𝒥,
-  { has_colimit := λ F, by exactI
+{ has_colimits_of_shape := λ J 𝒥, by exactI
+  { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F,
-      is_colimit := colimit_is_colimit F } } }
+      is_colimit := colimit_cocone_is_colimit F } } }
 
 end AddCommGroup.colimits
 
@@ -301,7 +300,7 @@ open quotient_add_group
 The categorical cokernel of a morphism in `AddCommGroup`
 agrees with the usual group-theoretical quotient.
 -/
-def cokernel_iso_quotient {G H : AddCommGroup} (f : G ⟶ H) :
+noncomputable def cokernel_iso_quotient {G H : AddCommGroup} (f : G ⟶ H) :
   cokernel f ≅ AddCommGroup.of (quotient (add_monoid_hom.range f)) :=
 { hom := cokernel.desc f (mk' _)
     (by { ext, apply quotient.sound, fsplit, exact -x, simp, }),

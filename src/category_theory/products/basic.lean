@@ -5,15 +5,35 @@ Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.eq_to_hom
 
+/-!
+# Cartesian products of categories
+
+We define the category instance on `C × D` when `C` and `D` are categories.
+
+We define:
+* `sectl C Z` : the functor `C ⥤ C × D` given by `X ↦ ⟨X, Z⟩`
+* `sectr Z D` : the functor `D ⥤ C × D` given by `Y ↦ ⟨Z, Y⟩`
+* `fst`       : the functor `⟨X, Y⟩ ↦ X`
+* `snd`       : the functor `⟨X, Y⟩ ↦ Y`
+* `swap`      : the functor `C × D ⥤ D × C` given by `⟨X, Y⟩ ↦ ⟨Y, X⟩`
+    (and the fact this is an equivalence)
+
+We further define `evaluation : C ⥤ (C ⥤ D) ⥤ D` and `evaluation_uncurried : C × (C ⥤ D) ⥤ D`,
+and products of functors and natural transformations, written `F.prod G` and `α.prod β`.
+-/
+
 namespace category_theory
 
-universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 
 section
 variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
 /--
 `prod C D` gives the cartesian product of two categories.
+
+See https://stacks.math.columbia.edu/tag/001K.
 -/
 instance prod : category.{max v₁ v₂} (C × D) :=
 { hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
@@ -69,14 +89,23 @@ variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D
 { obj := λ X, X.2,
   map := λ X Y f, f.2 }
 
+/-- The functor swapping the factors of a cartesian product of categories, `C × D ⥤ D × C`. -/
 @[simps] def swap : C × D ⥤ D × C :=
 { obj := λ X, (X.2, X.1),
   map := λ _ _ f, (f.2, f.1) }
 
+/--
+Swapping the factors of a cartesion product of categories twice is naturally isomorphic
+to the identity functor.
+-/
 @[simps] def symmetry : swap C D ⋙ swap D C ≅ 𝟭 (C × D) :=
 { hom := { app := λ X, 𝟙 X },
   inv := { app := λ X, 𝟙 X } }
 
+/--
+The equivalence, given by swapping factors, between `C × D` and `D × C`.
+-/
+@[simps]
 def braiding : C × D ≌ D × C :=
 equivalence.mk (swap C D) (swap D C)
   (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
@@ -90,6 +119,11 @@ end prod
 section
 variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
+/--
+The "evaluation at `X`" functor, such that
+`(evaluation.obj X).obj F = F.obj X`,
+which is functorial in both `X` and `F`.
+-/
 @[simps] def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
 { obj := λ X,
   { obj := λ F, F.obj X,
@@ -98,6 +132,10 @@ variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D
   { app := λ F, F.map f,
     naturality' := λ F G α, eq.symm (α.naturality f) } }
 
+/--
+The "evaluation of `F` at `X`" functor,
+as a functor `C × (C ⥤ D) ⥤ D`.
+-/
 @[simps] def evaluation_uncurried : C × (C ⥤ D) ⥤ D :=
 { obj := λ p, p.2.obj p.1,
   map := λ x y f, (x.2.map f.1) ≫ (f.2.app y.1),

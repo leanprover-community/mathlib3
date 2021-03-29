@@ -33,19 +33,19 @@ variables {X Y : Type*} [topological_space X] [topological_space Y]
 at any `x₀`, if `f` converges to some `y` as `x` tends to `x₀` within `A`,
 then `g x₀` is defined to be one of these `y`. Else, `g x₀` could be anything. -/
 def extend_from (A : set X) (f : X → Y) : X → Y :=
-λ x, @@lim _ ⟨f x⟩ (nhds_within x A) f
+λ x, @@lim _ ⟨f x⟩ (𝓝[A] x) f
 
 /-- If `f` converges to some `y` as `x` tends to `x₀` within `A`,
 then `f` tends to `extend_from A f x` as `x` tends to `x₀`. -/
 lemma tendsto_extend_from {A : set X} {f : X → Y} {x : X}
-  (h : ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : tendsto f (nhds_within x A) (𝓝 $ extend_from A f x) :=
-lim_spec h
+  (h : ∃ y, tendsto f (𝓝[A] x) (𝓝 y)) : tendsto f (𝓝[A] x) (𝓝 $ extend_from A f x) :=
+tendsto_nhds_lim h
 
 lemma extend_from_eq [t2_space Y] {A : set X} {f : X → Y} {x : X} {y : Y} (hx : x ∈ closure A)
-  (hf : tendsto f (nhds_within x A) (𝓝 y)) : extend_from A f x = y :=
+  (hf : tendsto f (𝓝[A] x) (𝓝 y)) : extend_from A f x = y :=
 begin
   haveI := mem_closure_iff_nhds_within_ne_bot.mp hx,
-  exact tendsto_nhds_unique (lim_spec ⟨y, hf⟩) hf,
+  exact tendsto_nhds_unique (tendsto_nhds_lim ⟨y, hf⟩) hf,
 end
 
 lemma extend_from_extends [t2_space Y] {f : X → Y} {A : set X} (hf : continuous_on f A) :
@@ -55,11 +55,11 @@ lemma extend_from_extends [t2_space Y] {f : X → Y} {A : set X} (hf : continuou
 /-- If `f` is a function to a regular space `Y` which has a limit within `A` at any
 point of a set `B ⊆ closure A`, then `extend_from A f` is continuous on `B`. -/
 lemma continuous_on_extend_from [regular_space Y] {f : X → Y} {A B : set X} (hB : B ⊆ closure A)
-  (hf : ∀ x ∈ B, ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : continuous_on (extend_from A f) B :=
+  (hf : ∀ x ∈ B, ∃ y, tendsto f (𝓝[A] x) (𝓝 y)) : continuous_on (extend_from A f) B :=
 begin
   set φ := extend_from A f,
   intros x x_in,
-  suffices : ∀ V' ∈ 𝓝 (φ x), is_closed V' → φ ⁻¹' V' ∈ nhds_within x B,
+  suffices : ∀ V' ∈ 𝓝 (φ x), is_closed V' → φ ⁻¹' V' ∈ 𝓝[B] x,
     by simpa [continuous_within_at, (closed_nhds_basis _).tendsto_right_iff],
   intros V' V'_in V'_closed,
   obtain ⟨V, V_in, V_op, hV⟩ : ∃ V ∈ 𝓝 x, is_open V ∧ V ∩ A ⊆ f ⁻¹' V',
@@ -70,18 +70,18 @@ begin
     from mem_sets_of_superset (inter_mem_inf_sets V_in $ mem_principal_self B) this,
   rintros y ⟨hyV, hyB⟩,
   haveI := mem_closure_iff_nhds_within_ne_bot.mp (hB hyB),
-  have limy : tendsto f (nhds_within y A) (𝓝 $ φ y) := tendsto_extend_from (hf y hyB),
+  have limy : tendsto f (𝓝[A] y) (𝓝 $ φ y) := tendsto_extend_from (hf y hyB),
   have hVy : V ∈ 𝓝 y := mem_nhds_sets V_op hyV,
-  have : V ∩ A ∈ (nhds_within y A),
+  have : V ∩ A ∈ (𝓝[A] y),
     by simpa [inter_comm] using inter_mem_nhds_within _ hVy,
   exact V'_closed.mem_of_tendsto limy (mem_sets_of_superset this hV)
 end
 
 /-- If a function `f` to a regular space `Y` has a limit within a
 dense set `A` for any `x`, then `extend_from A f` is continuous. -/
-lemma continuous_extend_from [regular_space Y] {f : X → Y} {A : set X} (hA : univ ⊆ closure A)
-  (hf : ∀ x, ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : continuous (extend_from A f) :=
+lemma continuous_extend_from [regular_space Y] {f : X → Y} {A : set X} (hA : dense A)
+  (hf : ∀ x, ∃ y, tendsto f (𝓝[A] x) (𝓝 y)) : continuous (extend_from A f) :=
 begin
   rw continuous_iff_continuous_on_univ,
-  exact continuous_on_extend_from (λ x _, hA $ mem_univ x) (by simpa using hf)
+  exact continuous_on_extend_from (λ x _, hA x) (by simpa using hf)
 end

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import ring_theory.polynomial.basic
+import ring_theory.polynomial.scale_roots
 import ring_theory.localization
 
 /-!
@@ -31,128 +31,23 @@ variables {M : submonoid A} {f : localization_map M S} {g : fraction_map A K}
 
 open finsupp polynomial
 
-/-- `scale_roots p s` is a polynomial with root `r * s` for each root `r` of `p`. -/
-noncomputable def scale_roots (p : polynomial R) (s : R) : polynomial R :=
-on_finset p.support
-  (λ i, coeff p i * s ^ (p.nat_degree - i))
-  (λ i h, mem_support_iff.mpr (left_ne_zero_of_mul h))
-
-@[simp] lemma coeff_scale_roots (p : polynomial R) (s : R) (i : ℕ) :
-  (scale_roots p s).coeff i = coeff p i * s ^ (p.nat_degree - i) :=
-rfl
-
-lemma coeff_scale_roots_nat_degree (p : polynomial R) (s : R) :
-  (scale_roots p s).coeff p.nat_degree = p.leading_coeff :=
-by rw [leading_coeff, coeff_scale_roots, nat.sub_self, pow_zero, mul_one]
-
-@[simp] lemma zero_scale_roots (s : R) : scale_roots 0 s = 0 := by { ext, simp }
-
-lemma scale_roots_ne_zero {p : polynomial R} (hp : p ≠ 0) (s : R) :
-  scale_roots p s ≠ 0 :=
-begin
-  intro h,
-  have : p.coeff p.nat_degree ≠ 0 := mt leading_coeff_eq_zero.mp hp,
-  have : (scale_roots p s).coeff p.nat_degree = 0 :=
-    congr_fun (congr_arg (coeff : polynomial R → ℕ → R) h) p.nat_degree,
-  rw [coeff_scale_roots_nat_degree] at this,
-  contradiction
-end
-
-lemma support_scale_roots_le (p : polynomial R) (s : R) :
-(scale_roots p s).support ≤ p.support :=
-begin
-  intros i,
-  simp only [mem_support_iff, scale_roots, on_finset_apply],
-  exact left_ne_zero_of_mul
-end
-
-lemma support_scale_roots_eq (p : polynomial R) {s : R} (hs : s ∈ non_zero_divisors R) :
-  (scale_roots p s).support = p.support :=
-le_antisymm (support_scale_roots_le p s)
-  begin
-    intro i,
-    simp only [mem_support_iff, scale_roots, on_finset_apply],
-    intros p_ne_zero ps_zero,
-    have := ((non_zero_divisors R).pow_mem hs (p.nat_degree - i)) _ ps_zero,
-    contradiction
-  end
-
-@[simp] lemma degree_scale_roots (p : polynomial R) {s : R} :
-  degree (scale_roots p s) = degree p :=
-begin
-  haveI := classical.prop_decidable,
-  by_cases hp : p = 0,
-  { rw [hp, zero_scale_roots] },
-  have := scale_roots_ne_zero hp s,
-  refine le_antisymm (finset.sup_mono (support_scale_roots_le p s)) (degree_le_degree _),
-  rw coeff_scale_roots_nat_degree,
-  intro h,
-  have := leading_coeff_eq_zero.mp h,
-  contradiction,
-end
-
-@[simp] lemma nat_degree_scale_roots (p : polynomial R) (s : R) :
-  nat_degree (scale_roots p s) = nat_degree p :=
-by simp only [nat_degree, degree_scale_roots]
-
-lemma monic_scale_roots_iff {p : polynomial R} (s : R) :
-  monic (scale_roots p s) ↔ monic p :=
-by simp [monic, leading_coeff]
-
-lemma scale_roots_eval₂_eq_zero {p : polynomial S} (f : S →+* R)
-  {r : R} {s : S} (hr : eval₂ f r p = 0) (hs : s ∈ non_zero_divisors S) :
-  eval₂ f (f s * r) (scale_roots p s) = 0 :=
-calc eval₂ f (f s * r) (scale_roots p s) =
-  (scale_roots p s).support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) : eval₂_eq_sum
-... = p.support.sum (λ (i : ℕ), f (p.coeff i) * f s ^ (p.nat_degree - i + i) * r ^ i) :
-  finset.sum_congr (support_scale_roots_eq p hs)
-    (λ i hi, by simp_rw [f.map_mul, f.map_pow, pow_add, mul_pow, mul_assoc])
-... = p.support.sum (λ (i : ℕ), f s ^ p.nat_degree * (f (p.coeff i) * r ^ i)) :
-  finset.sum_congr rfl
-  (λ i hi, by { rw [mul_assoc, mul_left_comm, nat.sub_add_cancel],
-                exact le_nat_degree_of_ne_zero (mem_support_iff.mp hi) })
-... = f s ^ p.nat_degree * p.support.sum (λ (i : ℕ), (f (p.coeff i) * r ^ i)) : finset.mul_sum.symm
-... = f s ^ p.nat_degree * eval₂ f r p : by { rw [eval₂_eq_sum], refl }
-... = 0 : by rw [hr, _root_.mul_zero]
-
-lemma scale_roots_aeval_eq_zero [algebra S R] {p : polynomial S}
-  {r : R} {s : S} (hr : aeval r p = 0) (hs : s ∈ non_zero_divisors S) :
-  aeval (algebra_map S R s * r) (scale_roots p s) = 0 :=
-scale_roots_eval₂_eq_zero (algebra_map S R) hr hs
-
-lemma scale_roots_eval₂_eq_zero_of_eval₂_div_eq_zero
-  {p : polynomial A} {f : A →+* K} (hf : function.injective f)
-  {r s : A} (hr : eval₂ f (f r / f s) p = 0) (hs : s ∈ non_zero_divisors A) :
-  eval₂ f (f r) (scale_roots p s) = 0 :=
-begin
-  convert scale_roots_eval₂_eq_zero f hr hs,
-  rw [←mul_div_assoc, mul_comm, mul_div_cancel],
-  exact @map_ne_zero_of_mem_non_zero_divisors _ _ _ _ _ hf ⟨s, hs⟩
-end
-
-lemma scale_roots_aeval_eq_zero_of_aeval_div_eq_zero [algebra A K]
-  (inj : function.injective (algebra_map A K)) {p : polynomial A} {r s : A}
-  (hr : aeval (algebra_map A K r / algebra_map A K s) p = 0) (hs : s ∈ non_zero_divisors A) :
-  aeval (algebra_map A K r) (scale_roots p s) = 0 :=
-scale_roots_eval₂_eq_zero_of_eval₂_div_eq_zero inj hr hs
-
 lemma scale_roots_aeval_eq_zero_of_aeval_mk'_eq_zero {p : polynomial A} {r : A} {s : M}
-  (hr : @aeval A f.codomain _ _ _ (f.mk' r s) p = 0) (hM : M ≤ non_zero_divisors A) :
+  (hr : @aeval A f.codomain _ _ _ (f.mk' r s) p = 0) :
   @aeval A f.codomain _ _ _ (f.to_map r) (scale_roots p s) = 0 :=
 begin
-  convert scale_roots_eval₂_eq_zero f.to_map hr (hM s.2),
+  convert scale_roots_eval₂_eq_zero f.to_map hr,
   rw aeval_def,
   congr,
   apply (f.mk'_spec' r s).symm
 end
 
 lemma num_is_root_scale_roots_of_aeval_eq_zero
-  [unique_factorization_domain A] (g : fraction_map A K)
+  [unique_factorization_monoid A] (g : fraction_map A K)
   {p : polynomial A} {x : g.codomain} (hr : aeval x p = 0) :
   is_root (scale_roots p (g.denom x)) (g.num x) :=
 begin
   apply is_root_of_eval₂_map_eq_zero g.injective,
-  refine scale_roots_aeval_eq_zero_of_aeval_mk'_eq_zero _ (le_refl (non_zero_divisors A)),
+  refine scale_roots_aeval_eq_zero_of_aeval_mk'_eq_zero _,
   rw g.mk'_num_denom,
   exact hr
 end
@@ -161,10 +56,10 @@ end scale_roots
 
 section rational_root_theorem
 
-variables {A K : Type*} [integral_domain A] [unique_factorization_domain A] [field K]
+variables {A K : Type*} [integral_domain A] [unique_factorization_monoid A] [field K]
 variables {f : fraction_map A K}
 
-open polynomial unique_factorization_domain
+open polynomial unique_factorization_monoid
 
 /-- Rational root theorem part 1:
 if `r : f.codomain` is a root of a polynomial over the ufd `A`,
@@ -176,7 +71,7 @@ begin
   { simp only [coeff_scale_roots, nat.sub_zero] at this,
     haveI := classical.prop_decidable,
     by_cases hr : f.num r = 0,
-    { obtain ⟨u, hu⟩ := is_unit_pow p.nat_degree (f.is_unit_denom_of_num_eq_zero hr),
+    { obtain ⟨u, hu⟩ := (f.is_unit_denom_of_num_eq_zero hr).pow p.nat_degree,
       rw ←hu at this,
       exact units.dvd_mul_right.mp this },
     { refine dvd_of_dvd_mul_left_of_no_prime_factors hr _ this,
@@ -207,7 +102,8 @@ begin
   apply dvd_term_of_is_root_of_dvd_terms _ (num_is_root_scale_roots_of_aeval_eq_zero f hr),
   intros j hj,
   by_cases h : j < p.nat_degree,
-  { refine dvd_mul_of_dvd_left (dvd_mul_of_dvd_right _ _) _,
+  { rw coeff_scale_roots,
+    refine dvd_mul_of_dvd_left (dvd_mul_of_dvd_right _ _) _,
     convert pow_dvd_pow _ (nat.succ_le_iff.mpr (nat.lt_sub_left_of_add_lt _)),
     { exact (pow_one _).symm },
     simpa using h },
@@ -223,7 +119,7 @@ theorem is_integer_of_is_root_of_monic {p : polynomial A} (hp : monic p) {r : f.
   (hr : aeval r p = 0) : f.is_integer r :=
 f.is_integer_of_is_unit_denom (is_unit_of_dvd_one _ (hp ▸ denom_dvd_of_is_root hr))
 
-namespace unique_factorization_domain
+namespace unique_factorization_monoid
 
 lemma integer_of_integral {x : f.codomain} :
   is_integral A x → f.is_integer x :=
@@ -232,6 +128,6 @@ lemma integer_of_integral {x : f.codomain} :
 lemma integrally_closed : integral_closure A f.codomain = ⊥ :=
 eq_bot_iff.mpr (λ x hx, algebra.mem_bot.mpr (integer_of_integral hx))
 
-end unique_factorization_domain
+end unique_factorization_monoid
 
 end rational_root_theorem

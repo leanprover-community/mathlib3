@@ -6,13 +6,13 @@ Authors: Scott Morrison
 import category_theory.yoneda
 import topology.sheaves.presheaf
 import topology.category.TopCommRing
-import topology.algebra.continuous_functions
+import topology.continuous_function.algebra
 
 /-!
 # Presheaves of functions
 
 We construct some simple examples of presheaves of functions on a topological space.
-* `presheaf_to_Type X f`, where `f : X → Type`,
+* `presheaf_to_Types X T`, where `T : X → Type`,
   is the presheaf of dependently-typed (not-necessarily continuous) functions
 * `presheaf_to_Type X T`, where `T : Type`,
   is the presheaf of (not-necessarily-continuous) functions to a fixed target type `T`
@@ -21,7 +21,8 @@ We construct some simple examples of presheaves of functions on a topological sp
 * `presheaf_To_TopCommRing X R`, where `R : TopCommRing`
   is the presheaf valued in `CommRing` of functions functions into a topological ring `R`
 * as an example of the previous construction,
-  `presheaf_ℂ X` is the presheaf of rings of continuous complex-valued functions on `X`.
+  `presheaf_to_TopCommRing X (TopCommRing.of ℂ)`
+  is the presheaf of rings of continuous complex-valued functions on `X`.
 -/
 
 universes v u
@@ -35,7 +36,7 @@ namespace Top
 variables (X : Top.{v})
 
 /--
-The presheaf of dependently typed functions on `X`, with fibres given by a type family `f`.
+The presheaf of dependently typed functions on `X`, with fibres given by a type family `T`.
 There is no requirement that the functions are continuous, here.
 -/
 def presheaf_to_Types (T : X → Type v) : X.presheaf (Type v) :=
@@ -76,7 +77,8 @@ rfl
   (presheaf_to_Type X T).map i f = f ∘ i.unop :=
 rfl
 
-/-- The presheaf of continuous functions on `X` with values in fixed target topological space `T`. -/
+/-- The presheaf of continuous functions on `X` with values in fixed target topological space
+`T`. -/
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 (opens.to_Top X).op ⋙ (yoneda.obj T)
 
@@ -121,18 +123,18 @@ def CommRing_yoneda : TopCommRing.{u} ⥤ (Top.{u}ᵒᵖ ⥤ CommRing.{u}) :=
   map := λ R S φ,
   { app := λ X, continuous_functions.map X φ } }
 
-/-- The presheaf (of commutative rings), consisting of functions on an open set `U ⊆ X` with
-values in some topological commutative ring `T`. -/
+/--
+The presheaf (of commutative rings), consisting of functions on an open set `U ⊆ X` with
+values in some topological commutative ring `T`.
+
+For example, we could construct the presheaf of continuous complex valued functions of `X` as
+```
+presheaf_to_TopCommRing X (TopCommRing.of ℂ)
+```
+(this requires `import topology.instances.complex`).
+-/
 def presheaf_to_TopCommRing (T : TopCommRing.{v}) :
   X.presheaf CommRing.{v} :=
 (opens.to_Top X).op ⋙ (CommRing_yoneda.obj T)
-
-/-- The presheaf (of commutative rings) of real valued functions. -/
-noncomputable def presheaf_ℝ (Y : Top) : Y.presheaf CommRing :=
-presheaf_to_TopCommRing Y (TopCommRing.of ℝ)
-
-/-- The presheaf (of commutative rings) of complex valued functions. -/
-noncomputable def presheaf_ℂ (Y : Top) : Y.presheaf CommRing :=
-presheaf_to_TopCommRing Y (TopCommRing.of ℂ)
 
 end Top

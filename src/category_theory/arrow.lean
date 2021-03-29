@@ -22,7 +22,7 @@ comma, arrow
 
 namespace category_theory
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 variables {T : Type u} [category.{v} T]
 
 section
@@ -68,19 +68,34 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
   right := v,
   w' := w }
 
-@[reassoc] lemma w {f g : arrow T} (sq : f ⟶ g) : sq.left ≫ g.hom = f.hom ≫ sq.right := sq.w
+@[simp, reassoc] lemma w {f g : arrow T} (sq : f ⟶ g) : sq.left ≫ g.hom = f.hom ≫ sq.right := sq.w
 
 /-- A lift of a commutative square is a diagonal morphism making the two triangles commute. -/
-@[ext] class has_lift {f g : arrow T} (sq : f ⟶ g) :=
+@[ext] structure lift_struct {f g : arrow T} (sq : f ⟶ g) :=
 (lift : f.right ⟶ g.left)
 (fac_left : f.hom ≫ lift = sq.left)
 (fac_right : lift ≫ g.hom = sq.right)
 
-attribute [simp, reassoc] has_lift.fac_left has_lift.fac_right
+instance lift_struct_inhabited {X : T} : inhabited (lift_struct (𝟙 (arrow.mk (𝟙 X)))) :=
+⟨⟨𝟙 _, category.id_comp _, category.comp_id _⟩⟩
 
-/-- If we have chosen a lift of a commutative square `sq`, we can access it by saying `lift sq`. -/
-abbreviation lift {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : f.right ⟶ g.left :=
-has_lift.lift sq
+/-- `has_lift sq` says that there is some `lift_struct sq`, i.e., that it is possible to find a
+    diagonal morphism making the two triangles commute. -/
+class has_lift {f g : arrow T} (sq : f ⟶ g) : Prop :=
+mk' :: (exists_lift : nonempty (lift_struct sq))
+
+lemma has_lift.mk {f g : arrow T} {sq : f ⟶ g} (s : lift_struct sq) : has_lift sq :=
+⟨nonempty.intro s⟩
+
+attribute [simp, reassoc] lift_struct.fac_left lift_struct.fac_right
+
+/-- Given `has_lift sq`, obtain a lift. -/
+noncomputable def has_lift.struct {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : lift_struct sq :=
+classical.choice has_lift.exists_lift
+
+/-- If there is a lift of a commutative square `sq`, we can access it by saying `lift sq`. -/
+noncomputable abbreviation lift {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : f.right ⟶ g.left :=
+(has_lift.struct sq).lift
 
 lemma lift.fac_left {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : f.hom ≫ lift sq = sq.left :=
 by simp
@@ -100,13 +115,13 @@ by simp only [←arrow.mk_hom g, lift.fac_right, arrow.hom_mk'_right]
 
 section
 
-instance subsingleton_has_lift_of_epi {f g : arrow T} (sq : f ⟶ g) [epi f.hom] :
-  subsingleton (has_lift sq) :=
-subsingleton.intro $ λ a b, has_lift.ext a b $ (cancel_epi f.hom).1 $ by simp
+instance subsingleton_lift_struct_of_epi {f g : arrow T} (sq : f ⟶ g) [epi f.hom] :
+  subsingleton (lift_struct sq) :=
+subsingleton.intro $ λ a b, lift_struct.ext a b $ (cancel_epi f.hom).1 $ by simp
 
-instance subsingleton_has_lift_of_mono {f g : arrow T} (sq : f ⟶ g) [mono g.hom] :
-  subsingleton (has_lift sq) :=
-subsingleton.intro $ λ a b, has_lift.ext a b $ (cancel_mono g.hom).1 $ by simp
+instance subsingleton_lift_struct_of_mono {f g : arrow T} (sq : f ⟶ g) [mono g.hom] :
+  subsingleton (lift_struct sq) :=
+subsingleton.intro $ λ a b, lift_struct.ext a b $ (cancel_mono g.hom).1 $ by simp
 
 end
 

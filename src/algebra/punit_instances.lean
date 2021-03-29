@@ -2,10 +2,16 @@
 Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Instances on punit.
 -/
+
 import algebra.module.basic
+
+/-!
+# Instances on punit
+
+This file collects facts about algebraic structures on the one-element type, e.g. that it is a
+commutative ring.
+-/
 
 universes u
 
@@ -17,7 +23,8 @@ instance : comm_group punit :=
 by refine
 { mul := λ _ _, star,
   one := star,
-  inv := λ _, star, .. };
+  inv := λ _, star,
+  div := λ _ _, star, .. };
 intros; exact subsingleton.elim _ _
 
 instance : comm_ring punit :=
@@ -26,7 +33,6 @@ by refine
   .. punit.add_comm_group,
   .. };
 intros; exact subsingleton.elim _ _
-
 
 instance : complete_boolean_algebra punit :=
 by refine
@@ -52,7 +58,7 @@ by refine
   .. punit.comm_ring, .. punit.complete_boolean_algebra, .. };
 intros; trivial
 
-instance : decidable_linear_ordered_cancel_add_comm_monoid punit :=
+instance : linear_ordered_cancel_add_comm_monoid punit :=
 { add_left_cancel := λ _ _ _ _, subsingleton.elim _ _,
   add_right_cancel := λ _ _ _ _, subsingleton.elim _ _,
   le_of_add_le_add_left := λ _ _ _ _, trivial,
@@ -72,6 +78,7 @@ intros; exact subsingleton.elim _ _
 @[simp, to_additive] lemma one_eq : (1 : punit) = star := rfl
 @[simp] lemma add_eq : x + y = star := rfl
 @[simp, to_additive] lemma mul_eq : x * y = star := rfl
+@[simp, to_additive] lemma div_eq : x / y = star := rfl
 @[simp] lemma neg_eq : -x = star := rfl
 @[simp, to_additive] lemma inv_eq : x⁻¹ = star := rfl
 lemma smul_eq : x • y = star := rfl

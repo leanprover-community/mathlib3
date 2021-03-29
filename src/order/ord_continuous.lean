@@ -94,7 +94,7 @@ variable (f)
 /-- Convert an injective left order continuous function to an order embedding. -/
 def to_order_embedding (hf : left_ord_continuous f) (h : injective f) :
   α ↪o β :=
-⟨⟨f, h⟩, λ x y, (hf.le_iff h).symm⟩
+⟨⟨f, h⟩, λ x y, hf.le_iff h⟩
 
 variable {f}
 
@@ -188,7 +188,7 @@ variable (f)
 
 /-- Convert an injective left order continuous function to a `order_embedding`. -/
 def to_order_embedding (hf : right_ord_continuous f) (h : injective f) : α ↪o β :=
-⟨⟨f, h⟩, λ x y, (hf.le_iff h).symm⟩
+⟨⟨f, h⟩, λ x y, hf.le_iff h⟩
 
 variable {f}
 
@@ -241,11 +241,12 @@ variables [preorder α] [preorder β] (e : α ≃o β)
 
 protected lemma left_ord_continuous : left_ord_continuous e :=
 λ s x hx,
-⟨monotone.mem_upper_bounds_image (λ x y, e.map_rel_iff.1) hx.1,
+⟨monotone.mem_upper_bounds_image (λ x y, e.map_rel_iff.2) hx.1,
   λ y hy, e.rel_symm_apply.1 $ (is_lub_le_iff hx).2 $ λ x' hx', e.rel_symm_apply.2 $ hy $
     mem_image_of_mem _ hx'⟩
 
-protected lemma right_ord_continuous : right_ord_continuous e := order_iso.left_ord_continuous e.osymm
+protected lemma right_ord_continuous : right_ord_continuous e :=
+order_iso.left_ord_continuous e.dual
 
 end preorder
 

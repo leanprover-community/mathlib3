@@ -3,9 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.degree
+import data.polynomial.reverse
 import algebra.associated
-import tactic.omega
 
 /-!
 # Theory of monic polynomials
@@ -30,7 +29,7 @@ variables [semiring R] {p q r : polynomial R}
 lemma monic.as_sum {p : polynomial R} (hp : p.monic) :
   p = X^(p.nat_degree) + (∑ i in finset.range p.nat_degree, C (p.coeff i) * X^i) :=
 begin
-  conv_lhs { rw [p.as_sum, finset.sum_range_succ] },
+  conv_lhs { rw [p.as_sum_range_C_mul_X_pow, finset.sum_range_succ] },
   suffices : C (p.coeff p.nat_degree) = 1,
   { rw [this, one_mul] },
   exact congr_arg C hp
@@ -60,6 +59,11 @@ begin
   suffices : (map f p).nat_degree = p.nat_degree, rw this, exact hp,
   rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero _ _),
 end
+
+lemma monic_mul_C_of_leading_coeff_mul_eq_one [nontrivial R] {b : R}
+  (hp : p.leading_coeff * b = 1) : monic (p * C b) :=
+by rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp]
+
 theorem monic_of_degree_le (n : ℕ) (H1 : degree p ≤ n) (H2 : coeff p n = 1) : monic p :=
 decidable.by_cases
   (assume H : degree p < n, eq_of_zero_eq_one
@@ -86,6 +90,47 @@ else
 lemma monic_pow (hp : monic p) : ∀ (n : ℕ), monic (p ^ n)
 | 0     := monic_one
 | (n+1) := monic_mul hp (monic_pow n)
+
+lemma monic_add_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :
+  monic (p + q) :=
+by rwa [monic, add_comm, leading_coeff_add_of_degree_lt hpq]
+
+lemma monic_add_of_right {p q : polynomial R} (hq : monic q) (hpq : degree p < degree q) :
+  monic (p + q) :=
+by rwa [monic, leading_coeff_add_of_degree_lt hpq]
+
+namespace monic
+
+@[simp]
+lemma degree_eq_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
+  p.nat_degree = 0 ↔ p = 1 :=
+begin
+  split; intro h,
+  swap, { rw h, exact nat_degree_one },
+  have : p = C (p.coeff 0),
+  { rw ← polynomial.degree_le_zero_iff,
+    rwa polynomial.nat_degree_eq_zero_iff_degree_le_zero at h },
+  rw this, convert C_1, rw ← h, apply hp,
+end
+
+lemma nat_degree_mul {p q : polynomial R} (hp : p.monic) (hq : q.monic) :
+  (p * q).nat_degree = p.nat_degree + q.nat_degree :=
+begin
+  nontriviality R,
+  apply nat_degree_mul',
+  simp [hp.leading_coeff, hq.leading_coeff]
+end
+
+lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
+  next_coeff (p * q) = next_coeff p + next_coeff q :=
+begin
+  nontriviality,
+  simp only [← coeff_one_reverse],
+  rw reverse_mul;
+    simp [coeff_mul, nat.antidiagonal, hp.leading_coeff, hq.leading_coeff, add_comm]
+end
+
+end monic
 
 end semiring
 
@@ -127,70 +172,7 @@ have degree p ≤ 0,
 by rw [eq_C_of_degree_le_zero this, ← nat_degree_eq_zero_iff_degree_le_zero.2 this,
     ← leading_coeff, hm.leading_coeff, C_1]
 
-
-end comm_semiring
-
-section comm_ring
-variables [comm_ring R]
-namespace monic
-
-lemma coeff_nat_degree {p : polynomial R} (hp : p.monic) : p.coeff (p.nat_degree) = 1 := hp
-
-@[simp]
-lemma degree_eq_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
-p.nat_degree = 0 ↔ p = 1 :=
-begin
-  split; intro h,
-  swap, { rw h, exact nat_degree_one },
-  have : p = C (p.coeff 0),
-  { rw ← polynomial.degree_le_zero_iff,
-    rwa polynomial.nat_degree_eq_zero_iff_degree_le_zero at h },
-  rw this, convert C_1, rw ← h, apply hp,
-end
-
-lemma nat_degree_mul [nontrivial R] {p q : polynomial R} (hp : p.monic) (hq : q.monic) :
-(p * q).nat_degree = p.nat_degree + q.nat_degree :=
-by { apply nat_degree_mul', rw [hp.leading_coeff, hq.leading_coeff], simp }
-
-lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
-next_coeff (p * q) = next_coeff p + next_coeff q :=
-begin
-  classical,
-  by_cases h : nontrivial R, swap,
-  { rw nontrivial_iff at h, push_neg at h, apply h, },
-  haveI := h, clear h,
-  have := monic.nat_degree_mul hp hq,
-  dsimp only [next_coeff], rw this,
-  simp only [hp, hq, degree_eq_zero_iff_eq_one, add_eq_zero_iff], clear this,
-  split_ifs; try { tauto <|> simp [h_1, h_2] },
-  rename h_1 hp0, rename h_2 hq0, clear h,
-  rw ← degree_eq_zero_iff_eq_one at hp0 hq0, assumption',
-  -- we've reduced to the case where the degrees dp and dq are nonzero
-  set dp := p.nat_degree, set dq := q.nat_degree,
-  rw coeff_mul,
-  have : {(dp, dq - 1), (dp - 1, dq)} ⊆ nat.antidiagonal (dp + dq - 1),
-  { rw insert_subset, split,
-    work_on_goal 0 { rw [nat.mem_antidiagonal, nat.add_sub_assoc] },
-    work_on_goal 1 { simp only [singleton_subset_iff, nat.mem_antidiagonal],
-      apply nat.sub_add_eq_add_sub },
-    all_goals { apply nat.succ_le_of_lt, apply nat.pos_of_ne_zero, assumption } },
-  rw ← sum_subset this,
-  { rw [sum_insert, sum_singleton], iterate 2 { rw coeff_nat_degree }, ring, assumption',
-    suffices : dp ≠ dp - 1, { rw mem_singleton, simp [this] }, omega }, clear this,
-  intros x hx hx1,
-  simp only [nat.mem_antidiagonal] at hx, simp only [mem_insert, mem_singleton] at hx1,
-  suffices : p.coeff x.fst = 0 ∨ q.coeff x.snd = 0, cases this; simp [this],
-  suffices : dp < x.fst ∨ dq < x.snd, cases this,
-  { left,  apply coeff_eq_zero_of_nat_degree_lt, assumption },
-  { right, apply coeff_eq_zero_of_nat_degree_lt, assumption },
-  by_cases h : dp < x.fst, { left, exact h }, push_neg at h, right,
-  have : x.fst ≠ dp - 1, { contrapose! hx1, right, ext, assumption, dsimp only, omega },
-  have : x.fst ≠ dp,     { contrapose! hx1, left,  ext, assumption, dsimp only, omega },
-  omega,
-end
-
-lemma next_coeff_prod
-  (s : finset ι) (f : ι → polynomial R) (h : ∀ i ∈ s, monic (f i)) :
+lemma monic.next_coeff_prod (s : finset ι) (f : ι → polynomial R) (h : ∀ i ∈ s, monic (f i)) :
 next_coeff (∏ i in s, f i) = ∑ i in s, next_coeff (f i) :=
 begin
   classical,
@@ -198,27 +180,40 @@ begin
   { simp only [finset.not_mem_empty, forall_prop_of_true, forall_prop_of_false, finset.sum_empty,
   finset.prod_empty, not_false_iff, forall_true_iff],
   rw ← C_1, rw next_coeff_C_eq_zero },
-  { intros a s ha hs monic,
-    rw finset.prod_insert ha,
-    rw finset.sum_insert ha,
-    rw next_coeff_mul (monic a (finset.mem_insert_self a s)), swap,
-    { apply monic_prod_of_monic, intros b bs,
-      apply monic, apply finset.mem_insert_of_mem bs },
-    { refine congr rfl (hs _),
-      intros b bs, apply monic, apply finset.mem_insert_of_mem bs }}
+  { intros a s ha hs H,
+    rw [finset.prod_insert ha, finset.sum_insert ha, monic.next_coeff_mul, hs],
+    exacts [λ i hi, H i (mem_insert_of_mem hi), H a (mem_insert_self _ _),
+      monic_prod_of_monic _ _ (λ b bs, H _ (finset.mem_insert_of_mem bs))] }
 end
 
-end monic
-end comm_ring
+end comm_semiring
 
 section ring
 variables [ring R] {p : polynomial R}
 
 theorem monic_X_sub_C (x : R) : monic (X - C x) :=
-by simpa only [C_neg] using monic_X_add_C (-x)
+by simpa only [sub_eq_add_neg, C_neg] using monic_X_add_C (-x)
 
 theorem monic_X_pow_sub {n : ℕ} (H : degree p ≤ n) : monic (X ^ (n+1) - p) :=
-monic_X_pow_add ((degree_neg p).symm ▸ H)
+by simpa [sub_eq_add_neg] using monic_X_pow_add (show degree (-p) ≤ n, by rwa ←degree_neg p at H)
+
+/-- `X ^ n - a` is monic. -/
+lemma monic_X_pow_sub_C {R : Type u} [ring R] (a : R) {n : ℕ} (h : n ≠ 0) : (X ^ n - C a).monic :=
+begin
+  obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero h,
+  convert monic_X_pow_sub _,
+  exact le_trans degree_C_le nat.with_bot.coe_nonneg,
+end
+
+lemma monic_sub_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :
+  monic (p - q) :=
+by { rw sub_eq_add_neg, apply monic_add_of_left hp, rwa degree_neg }
+
+lemma monic_sub_of_right {p q : polynomial R}
+  (hq : q.leading_coeff = -1) (hpq : degree p < degree q) : monic (p - q) :=
+have (-q).coeff (-q).nat_degree = 1 :=
+by rw [nat_degree_neg, coeff_neg, show q.coeff q.nat_degree = -1, from hq, neg_neg],
+by { rw sub_eq_add_neg, apply monic_add_of_right this, rwa degree_neg }
 
 section injective
 open function

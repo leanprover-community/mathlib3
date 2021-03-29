@@ -20,14 +20,14 @@ example (m n p q : nat) (h : m + n = p) : true :=
 begin
   have : m + n = q,
   { generalize_hyp h' : m + n = x at h,
-    guard_hyp h' := m + n = x,
-    guard_hyp h := x = p,
+    guard_hyp h' : m + n = x,
+    guard_hyp h : x = p,
     guard_target m + n = q,
     admit },
   have : m + n = q,
   { generalize_hyp h' : m + n = x at h ⊢,
-    guard_hyp h' := m + n = x,
-    guard_hyp h := x = p,
+    guard_hyp h' : m + n = x,
+    guard_hyp h : x = p,
     guard_target x = q,
     admit },
   trivial
@@ -52,11 +52,11 @@ end
 example (x y : ℕ) (p q : Prop) (h : x = y) (h' : p ↔ q) : true :=
 begin
   symmetry' at h,
-  guard_hyp' h := y = x,
-  guard_hyp' h' := p ↔ q,
+  guard_hyp' h : y = x,
+  guard_hyp' h' : p ↔ q,
   symmetry' at *,
-  guard_hyp' h := x = y,
-  guard_hyp' h' := q ↔ p,
+  guard_hyp' h : x = y,
+  guard_hyp' h' : q ↔ p,
   trivial
 end
 
@@ -73,7 +73,7 @@ begin
   guard_hyp_nums 16,
   h_generalize hp : a == p with hh,
   guard_hyp_nums 19,
-  guard_hyp' hh := β = α,
+  guard_hyp' hh : β = α,
   guard_target f x y x z = f p (cast h₀ b) p (eq.mpr h₂ a),
   h_generalize hq : _ == q,
   guard_hyp_nums 21,
@@ -100,7 +100,7 @@ begin
   { guard_hyp_nums 11,
     h_generalize : a == p with _,
     guard_hyp_nums 13,
-    guard_hyp' h := β = α,
+    guard_hyp' h : β = α,
     guard_target f x x = f p (cast h₁ a),
     h_generalize! : a == q ,
     guard_hyp_nums 13,
@@ -216,19 +216,19 @@ example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u)
   k + n = m + x :=
 begin
   lift n to ℕ using le_of_lt hn,
-    guard_target (k + ↑n = m + x), guard_hyp hn := (0 : ℤ) < ↑n,
+    guard_target (k + ↑n = m + x), guard_hyp hn : (0 : ℤ) < ↑n,
   lift m to ℕ,
     guard_target (k + ↑n = ↑m + x), tactic.swap, guard_target (0 ≤ m), tactic.swap,
     tactic.num_goals >>= λ n, guard (n = 2),
   lift (k + n) to ℕ using hk with l hl,
-    guard_hyp l := ℕ, guard_hyp hl := ↑l = k + ↑n, guard_target (↑l = ↑m + x),
+    guard_hyp l : ℕ, guard_hyp hl : ↑l = k + ↑n, guard_target (↑l = ↑m + x),
     tactic.success_if_fail (tactic.get_local `hk),
   lift x to ℕ with y hy,
-    guard_hyp y := ℕ, guard_hyp hy := ↑y = x, guard_target (↑l = ↑m + x),
+    guard_hyp y : ℕ, guard_hyp hy : ↑y = x, guard_target (↑l = ↑m + x),
   lift z to ℕ with w,
-    guard_hyp w := ℕ, tactic.success_if_fail (tactic.get_local `z),
+    guard_hyp w : ℕ, tactic.success_if_fail (tactic.get_local `z),
   lift u to ℕ using hu with u rfl hu,
-    guard_hyp hu := (0 : ℤ) ≤ ↑u,
+    guard_hyp hu : (0 : ℤ) ≤ ↑u,
 
   all_goals { exfalso, assumption },
 end
@@ -238,8 +238,8 @@ example (α : Type*) (f : α → ℤ) (hf : ∀ a, 0 ≤ f a) (hf' : ∀ a, f a 
 begin
   lift f to α → ℕ using hf,
     guard_target ((0:ℤ) ≤ 2 * (λ i : α, (f i : ℤ)) a),
-    guard_hyp hf' := ∀ a, ((λ i : α, (f i:ℤ)) a) < 1,
-  trivial
+    guard_hyp hf' : ∀ a, ((λ i : α, (f i:ℤ)) a) < 1,
+  exact int.coe_nat_nonneg _
 end
 
 instance can_lift_unit : can_lift unit unit :=
@@ -363,12 +363,12 @@ example : x + y + z ≤ w :=
 begin
   elide 0 at h,
   elide 2 at h',
-  guard_hyp h := @hidden _ (x + y + z ≤ w),
-  guard_hyp h' := x ≤ @has_add.add (@hidden Type nat) (@hidden (has_add nat) nat.has_add)
+  guard_hyp h : @hidden _ (x + y + z ≤ w),
+  guard_hyp h' : x ≤ @has_add.add (@hidden Type nat) (@hidden (has_add nat) nat.has_add)
                                    (@hidden ℕ (y + z)) (@hidden ℕ w),
   unelide at h,
   unelide at h',
-  guard_hyp h' := x ≤ y + z + w,
+  guard_hyp h' : x ≤ y + z + w,
   exact h, -- there was a universe problem in `elide`. `exact h` lets the kernel check
            -- the consistency of the universes
 end
@@ -476,7 +476,12 @@ begin
     "No such hypothesis 1 + 2." },
   revert_deps k, tactic.intron 5, guard_target unit,
   revert_after n, tactic.intron 7, guard_target unit,
-  do { e ← get_local `k, tactic.revert_deps e, l ← local_context, guard $ e ∈ l, intros },
+  do {
+    e ← get_local `k,
+    tactic.revert_reverse_dependencies_of_hyp e,
+    l ← local_context,
+    guard $ e ∈ l,
+    intros },
   exact unit.star
 end
 
@@ -517,22 +522,22 @@ end
 example : ∀ x y : ℤ, let z := x + y in x = z - y → x = y - z → true :=
 begin
   introv h h,
-  guard_hyp x := ℤ,
-  guard_hyp y := ℤ,
-  guard_hyp z := ℤ,
-  guard_hyp h := x = y - z,
+  guard_hyp x : ℤ,
+  guard_hyp y : ℤ,
+  guard_hyp z : ℤ := x + y,
+  guard_hyp h : x = y - z,
   suffices : true, -- test the type of the second assumption named `h`
   { clear h,
-    guard_hyp h := x = z - y,
+    guard_hyp h : x = z - y,
     assumption },
   do { to_expr ```(z) >>= is_local_def },
   clear_value z,
-  guard_hyp z := ℤ,
+  guard_hyp z : ℤ,
   success_if_fail { do { to_expr ```(z) >>= is_local_def } },
-  guard_hyp h := x = y - z,
+  guard_hyp h : x = y - z,
   suffices : true,
   { clear h,
-    guard_hyp h := x = z - y,
+    guard_hyp h : x = z - y,
     assumption },
   trivial
 end
@@ -571,8 +576,9 @@ run_cmd do nm ← get_user_attribute_name `higher_order, guard $ nm = `tactic.hi
 run_cmd do success_if_fail $ get_user_attribute_name `zxy.xzy
 
 run_cmd set_attribute `norm `prod.map tt
+run_cmd set_attribute `my_attr `prod.map
+run_cmd set_attribute `to_additive `has_mul
 run_cmd success_if_fail $ set_attribute `higher_order `prod.map tt
-run_cmd success_if_fail $ set_attribute `my_attr `prod.map
 run_cmd success_if_fail $ set_attribute `norm `xyz.zxy
 run_cmd success_if_fail $ set_attribute `zxy.xyz `prod.map
 

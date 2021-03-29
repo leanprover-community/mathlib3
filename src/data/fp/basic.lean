@@ -2,11 +2,12 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Implementation of floating-point numbers (experimental).
 -/
 import data.rat
 import data.semiquot
+/-!
+# Implementation of floating-point numbers (experimental).
+-/
 
 def int.shift2 (a b : ℕ) : ℤ → ℕ × ℕ
 | (int.of_nat e) := (a.shiftl e, b)
@@ -64,7 +65,7 @@ begin
   rw ← int.coe_nat_le at this,
   rw ← sub_nonneg at *,
   simp only [emin, emax] at *,
-  ring,
+  ring_nf,
   assumption
 end, le_trans C.prec_max (nat.le_mul_of_pos_left dec_trivial),
 by rw max_eq_right; simp [sub_eq_add_neg]⟩

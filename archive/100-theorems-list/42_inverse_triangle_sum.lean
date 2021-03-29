@@ -3,7 +3,6 @@ Copyright (c) 2020. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jalex Stark, Yury Kudryashov
 -/
-import tactic
 import data.real.basic
 
 /-!
@@ -30,6 +29,6 @@ begin
   simp_rw [if_neg (nat.succ_ne_zero _), nat.succ_eq_add_one],
   have A : (n + 1 + 1 : ℚ) ≠ 0, by { norm_cast, norm_num },
   push_cast,
-  field_simp [nat.cast_add_one_ne_zero, A],
+  field_simp [nat.cast_add_one_ne_zero],
   ring
 end

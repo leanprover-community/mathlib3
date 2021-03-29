@@ -6,6 +6,8 @@ Authors: Mario Carneiro, Kevin Kappelmann
 import tactic.linarith
 import tactic.abel
 import algebra.ordered_group
+import data.set.intervals.basic
+
 /-!
 # Floor and Ceil
 
@@ -89,9 +91,9 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
   ← sub_le_iff_le_add, ← sub_le_iff_le_add, le_floor, int.cast_sub]
 
 theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
-eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
+eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (floor_add_int _ _)
 
-lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [decidable_linear_ordered_comm_ring α]
+lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α]
   [floor_ring α] {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=
 begin
   have : x < ⌊x⌋ + 1         := lt_floor_add_one x,
@@ -114,6 +116,12 @@ begin
   suffices : (⌊v⌋ : α) ≤ v ∧ v < ⌊v⌋ + 1, by rwa [floor_eq_iff],
   exact ⟨floor_le v, lt_floor_add_one v⟩
 end
+
+lemma floor_eq_on_Ico (n : ℤ) : ∀ x ∈ (set.Ico n (n+1) : set α), floor x = n :=
+λ x ⟨h₀, h₁⟩, floor_eq_iff.mpr ⟨h₀, h₁⟩
+
+lemma floor_eq_on_Ico' (n : ℤ) : ∀ x ∈ (set.Ico n (n+1) : set α), (floor x : α) = n :=
+λ x hx, by exact_mod_cast floor_eq_on_Ico n x hx
 
 /-- The fractional part fract r of r is just r - ⌊r⌋ -/
 def fract (r : α) : α := r - ⌊r⌋
@@ -211,7 +219,7 @@ ceil_le.2 (le_trans h (le_ceil _))
 by rw [ceil, neg_add', floor_sub_int, neg_sub, sub_eq_neg_add]; refl
 
 theorem ceil_sub_int (x : α) (z : ℤ) : ⌈x - z⌉ = ⌈x⌉ - z :=
-eq.trans (by rw [int.cast_neg]; refl) (ceil_add_int _ _)
+eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)
 
 theorem ceil_lt_add_one (x : α) : (⌈x⌉ : α) < x + 1 :=
 by rw [← lt_ceil, ← int.cast_one, ceil_add_int]; apply lt_add_one
@@ -227,6 +235,17 @@ lemma ceil_pos {a : α} : 0 < ⌈a⌉ ↔ 0 < a :=
 lemma ceil_nonneg {q : α} (hq : 0 ≤ q) : 0 ≤ ⌈q⌉ :=
 if h : q > 0 then le_of_lt $ ceil_pos.2 h
 else by rw [le_antisymm (le_of_not_lt h) hq, ceil_zero]; trivial
+
+lemma ceil_eq_iff {r : α} {z : ℤ} :
+  ⌈r⌉ = z ↔ ↑z-1 < r ∧ r ≤ z :=
+by rw [←ceil_le, ←int.cast_one, ←int.cast_sub, ←lt_ceil,
+int.sub_one_lt_iff, le_antisymm_iff, and.comm]
+
+lemma ceil_eq_on_Ioc (n : ℤ) : ∀ x ∈ (set.Ioc (n-1) n : set α), ceil x = n :=
+λ x ⟨h₀, h₁⟩, ceil_eq_iff.mpr ⟨h₀, h₁⟩
+
+lemma ceil_eq_on_Ioc' (n : ℤ) : ∀ x ∈ (set.Ioc (n-1) n : set α), (ceil x : α) = n :=
+λ x hx, by exact_mod_cast ceil_eq_on_Ioc n x hx
 
 /--
 `nat_ceil x` is the smallest nonnegative integer `n` with `x ≤ n`.
@@ -271,3 +290,35 @@ lt_of_le_of_lt (le_nat_ceil x) (by exact_mod_cast h)
 
 lemma le_of_nat_ceil_le {x : α} {n : ℕ} (h : nat_ceil x ≤ n) : x ≤ n :=
 le_trans (le_nat_ceil x) (by exact_mod_cast h)
+
+namespace int
+
+@[simp] lemma preimage_Ioo {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ioo x y)) = set.Ioo (floor x) (ceil y) :=
+by { ext, simp [floor_lt, lt_ceil] }
+
+@[simp] lemma preimage_Ico {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ico x y)) = set.Ico (ceil x) (ceil y) :=
+by { ext, simp [ceil_le, lt_ceil] }
+
+@[simp] lemma preimage_Ioc {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ioc x y)) = set.Ioc (floor x) (floor y) :=
+by { ext, simp [floor_lt, le_floor] }
+
+@[simp] lemma preimage_Icc {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Icc x y)) = set.Icc (ceil x) (floor y) :=
+by { ext, simp [ceil_le, le_floor] }
+
+@[simp] lemma preimage_Ioi {x : α} : ((coe : ℤ → α) ⁻¹' (set.Ioi x)) = set.Ioi (floor x) :=
+by { ext, simp [floor_lt] }
+
+@[simp] lemma preimage_Ici {x : α} : ((coe : ℤ → α) ⁻¹' (set.Ici x)) = set.Ici (ceil x) :=
+by { ext, simp [ceil_le] }
+
+@[simp] lemma preimage_Iio {x : α} : ((coe : ℤ → α) ⁻¹' (set.Iio x)) = set.Iio (ceil x) :=
+by { ext, simp [lt_ceil] }
+
+@[simp] lemma preimage_Iic {x : α} : ((coe : ℤ → α) ⁻¹' (set.Iic x)) = set.Iic (floor x) :=
+by { ext, simp [le_floor] }
+
+end int

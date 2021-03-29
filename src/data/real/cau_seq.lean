@@ -30,7 +30,7 @@ open_locale big_operators
 
 /-- A function `f` is an absolute value if it is nonnegative, zero only at 0, additive, and
 multiplicative. -/
-class is_absolute_value {α} [discrete_linear_ordered_field α]
+class is_absolute_value {α} [linear_ordered_field α]
   {β} [ring β] (f : β → α) : Prop :=
 (abv_nonneg [] : ∀ x, 0 ≤ f x)
 (abv_eq_zero [] : ∀ {x}, f x = 0 ↔ x = 0)
@@ -38,18 +38,14 @@ class is_absolute_value {α} [discrete_linear_ordered_field α]
 (abv_mul [] : ∀ x y, f (x * y) = f x * f y)
 
 namespace is_absolute_value
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv]
 
 theorem abv_zero : abv 0 = 0 := (abv_eq_zero abv).2 rfl
 
-theorem abv_one' (h : (1:β) ≠ 0) : abv 1 = 1 :=
-(mul_right_inj' $ mt (abv_eq_zero abv).1 h).1 $
+theorem abv_one [nontrivial β] : abv 1 = 1 :=
+(mul_right_inj' $ mt (abv_eq_zero abv).1 one_ne_zero).1 $
 by rw [← abv_mul abv, mul_one, mul_one]
-
-theorem abv_one
-  {β : Type*} [domain β] (abv : β → α) [is_absolute_value abv] :
-  abv 1 = 1 := abv_one' abv one_ne_zero
 
 theorem abv_pos {a : β} : 0 < abv a ↔ a ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [abv_eq_zero abv, abv_nonneg abv]
@@ -61,18 +57,19 @@ by rw [← mul_self_inj_of_nonneg (abv_nonneg abv _) (abv_nonneg abv _),
 theorem abv_sub (a b : β) : abv (a - b) = abv (b - a) :=
 by rw [← neg_sub, abv_neg abv]
 
+/-- `abv` as a `monoid_with_zero_hom`. -/
+def abv_hom [nontrivial β] : monoid_with_zero_hom β α :=
+⟨abv, abv_zero abv, abv_one abv, abv_mul abv⟩
+
 theorem abv_inv
   {β : Type*} [field β] (abv : β → α) [is_absolute_value abv]
   (a : β) : abv a⁻¹ = (abv a)⁻¹ :=
-classical.by_cases
-  (λ h : a = 0, by simp [h, abv_zero abv])
-  (λ h, mul_right_cancel' (mt (abv_eq_zero abv).1 h) $
-    by rw [← abv_mul abv]; simp [h, mt (abv_eq_zero abv).1 h, abv_one abv])
+(abv_hom abv).map_inv' a
 
 theorem abv_div
   {β : Type*} [field β] (abv : β → α) [is_absolute_value abv]
   (a b : β) : abv (a / b) = abv a / abv b :=
-by rw [division_def, abv_mul abv, abv_inv abv]; refl
+(abv_hom abv).map_div a b
 
 lemma abv_sub_le (a b c : β) : abv (a - c) ≤ abv (a - b) + abv (b - c) :=
 by simpa [sub_eq_add_neg, add_assoc] using abv_add abv (a - b) (b - c)
@@ -85,13 +82,13 @@ lemma abs_abv_sub_le_abv_sub (a b : β) :
 abs_sub_le_iff.2 ⟨sub_abv_le_abv_sub abv _ _,
   by rw abv_sub abv; apply sub_abv_le_abv_sub abv⟩
 
-lemma abv_pow {β : Type*} [domain β] (abv : β → α) [is_absolute_value abv]
+lemma abv_pow [nontrivial β] (abv : β → α) [is_absolute_value abv]
   (a : β) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
-by induction n; simp [abv_mul abv, pow_succ, abv_one abv, *]
+(abv_hom abv).to_monoid_hom.map_pow a n
 
 end is_absolute_value
 
-instance abs_is_absolute_value {α} [discrete_linear_ordered_field α] :
+instance abs_is_absolute_value {α} [linear_ordered_field α] :
   is_absolute_value (abs : α → α) :=
 { abv_nonneg  := abs_nonneg,
   abv_eq_zero := λ _, abs_eq_zero,
@@ -107,7 +104,7 @@ theorem exists_forall_ge_and {α} [linear_order α] {P Q : α → Prop} :
   ⟨c, λ j hj, ⟨h₁ _ (le_trans ac hj), h₂ _ (le_trans bc hj)⟩⟩
 
 section
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv]
 
 theorem rat_add_continuous_lemma
@@ -156,12 +153,12 @@ end
 end
 
 /-- A sequence is Cauchy if the distance between its entries tends to zero. -/
-def is_cau_seq {α : Type*} [discrete_linear_ordered_field α]
+def is_cau_seq {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] (abv : β → α) (f : ℕ → β) : Prop :=
 ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j - f i) < ε
 
 namespace is_cau_seq
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
   {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv] {f : ℕ → β}
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -182,12 +179,12 @@ end is_cau_seq
 
 /-- `cau_seq β abv` is the type of `β`-valued Cauchy sequences, with respect to the absolute value
 function `abv`. -/
-def cau_seq {α : Type*} [discrete_linear_ordered_field α]
+def cau_seq {α : Type*} [linear_ordered_field α]
   (β : Type*) [ring β] (abv : β → α) : Type* :=
 {f : ℕ → β // is_cau_seq abv f}
 
 namespace cau_seq
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
 
 section ring
 variables {β : Type*} [ring β] {abv : β → α}
@@ -270,6 +267,7 @@ instance : inhabited (cau_seq β abv) := ⟨0⟩
 
 @[simp] theorem zero_apply (i) : (0 : cau_seq β abv) i = 0 := rfl
 @[simp] theorem one_apply (i) : (1 : cau_seq β abv) i = 1 := rfl
+@[simp] theorem const_zero : const 0 = 0 := rfl
 
 theorem const_add (x y : β) : const (x + y) = const x + const y :=
 ext $ λ i, rfl
@@ -295,19 +293,30 @@ instance : has_neg (cau_seq β abv) :=
 theorem const_neg (x : β) : const (-x) = -const x :=
 ext $ λ i, rfl
 
+instance : has_sub (cau_seq β abv) :=
+⟨λ f g, of_eq (f + -g) (λ x, f x - g x) (λ i, by simp [sub_eq_add_neg])⟩
+
+@[simp] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
+
+theorem const_sub (x y : β) : const (x - y) = const x - const y :=
+ext $ λ i, rfl
+
 instance : ring (cau_seq β abv) :=
-by refine {neg := has_neg.neg, add := (+), zero := 0, mul := (*), one := 1, ..};
-   { intros, apply ext, simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm] }
+by refine
+     { neg := has_neg.neg,
+       add := (+),
+       zero := 0,
+       mul := (*),
+       one := 1,
+       sub := has_sub.sub,
+       sub_eq_add_neg := _,
+       .. };
+  { intros, apply ext, simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg] }
 
 instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
   comm_ring (cau_seq β abv) :=
 { mul_comm := by intros; apply ext; simp [mul_left_comm, mul_comm],
   ..cau_seq.ring }
-
-theorem const_sub (x y : β) : const (x - y) = const x - const y :=
-by rw [sub_eq_add_neg, const_add, const_neg, sub_eq_add_neg]
-
-@[simp] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
 
 /-- `lim_zero f` holds when `f` approaches 0. -/
 def lim_zero {abv : β → α} (f : cau_seq β abv) : Prop := ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j) < ε
@@ -338,7 +347,7 @@ by rw ← neg_one_mul; exact mul_lim_zero_right _ hf
 
 theorem sub_lim_zero {f g : cau_seq β abv}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f - g) :=
-add_lim_zero hf (neg_lim_zero hg)
+by simpa only [sub_eq_add_neg] using add_lim_zero hf (neg_lim_zero hg)
 
 theorem lim_zero_sub_rev {f g : cau_seq β abv} (hfg : lim_zero (f - g)) : lim_zero (g - f) :=
 by simpa using neg_lim_zero hfg
@@ -357,6 +366,23 @@ instance equiv : setoid (cau_seq β abv) :=
 ⟨λ f, by simp [zero_lim_zero],
  λ f g h, by simpa using neg_lim_zero h,
  λ f g h fg gh, by simpa [sub_eq_add_neg, add_assoc] using add_lim_zero fg gh⟩⟩
+
+lemma add_equiv_add {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
+  f1 + g1 ≈ f2 + g2 :=
+begin
+  change lim_zero ((f1 + g1) - _),
+  convert add_lim_zero hf hg using 1,
+  simp only [sub_eq_add_neg, add_assoc],
+  rw add_comm (-f2), simp only [add_assoc],
+  congr' 2, simp
+end
+
+lemma neg_equiv_neg {f g : cau_seq β abv} (hf : f ≈ g) : -f ≈ -g :=
+begin
+  have hf : lim_zero _ := neg_lim_zero hf,
+  show lim_zero (-f - -g),
+  convert hf using 1, simp
+end
 
 theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - g j) < ε :=
@@ -549,6 +575,7 @@ instance : has_le (cau_seq α abs) := ⟨λ f g, f < g ∨ f ≈ g⟩
 
 theorem lt_of_lt_of_eq {f g h : cau_seq α abs}
   (fg : f < g) (gh : g ≈ h) : f < h :=
+show pos (h - f),
 by simpa [sub_eq_add_neg, add_comm, add_left_comm] using pos_add_lim_zero fg (neg_lim_zero gh)
 
 theorem lt_of_eq_of_lt {f g h : cau_seq α abs}
@@ -557,6 +584,7 @@ by have := pos_add_lim_zero gh (neg_lim_zero fg);
    rwa [← sub_eq_add_neg, sub_sub_sub_cancel_right] at this
 
 theorem lt_trans {f g h : cau_seq α abs} (fg : f < g) (gh : g < h) : f < h :=
+show pos (h - f),
 by simpa [sub_eq_add_neg, add_comm, add_left_comm] using add_pos fg gh
 
 theorem lt_irrefl {f : cau_seq α abs} : ¬ f < f

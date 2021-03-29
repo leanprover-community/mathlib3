@@ -62,7 +62,14 @@ def is_solution (u : ℕ → α) :=
   We will prove this is the only such solution. -/
 def mk_sol (init : fin E.order → α) : ℕ → α
 | n := if h : n < E.order then init ⟨n, h⟩ else
-  ∑ k : fin E.order, have n - E.order + k.1 < n, by have := k.2; omega,
+  ∑ k : fin E.order,
+    have n - E.order + k < n :=
+    begin
+      rw [add_comm, ← nat.add_sub_assoc (not_lt.mp h), nat.sub_lt_left_iff_lt_add],
+      { exact add_lt_add_right k.is_lt n },
+      { convert add_le_add (zero_le (k : ℕ)) (not_lt.mp h),
+        simp only [zero_add] }
+    end,
     E.coeffs k * mk_sol (n - E.order + k)
 
 /-- `E.mk_sol` indeed gives solutions to `E`. -/
@@ -71,7 +78,7 @@ lemma is_sol_mk_sol (init : fin E.order → α) : E.is_solution (E.mk_sol init) 
 
 /-- `E.mk_sol init`'s first `E.order` terms are `init`. -/
 lemma mk_sol_eq_init (init : fin E.order → α) : ∀ n : fin E.order, E.mk_sol init n = init n :=
-  λ n, by rw mk_sol; simp [fin.coe_eq_val, n.2]
+  λ n, by { rw mk_sol, simp only [n.is_lt, dif_pos, fin.mk_coe, fin.eta] }
 
 /-- If `u` is a solution to `E` and `init` designates its first `E.order` values,
   then `∀ n, u n = E.mk_sol init n`. -/
@@ -84,7 +91,13 @@ lemma eq_mk_of_is_sol_of_eq_init {u : ℕ → α} {init : fin E.order → α}
     rw [mk_sol, ← nat.sub_add_cancel (le_of_not_lt h'), h (n-E.order)],
     simp [h'],
     congr' with k,
-    exact have wf : n - E.order + k.1 < n, by have := k.2; omega,
+    exact have wf : n - E.order + k < n :=
+      begin
+        rw [add_comm, ← nat.add_sub_assoc (not_lt.mp h'), nat.sub_lt_left_iff_lt_add],
+        { exact add_lt_add_right k.is_lt n },
+        { convert add_le_add (zero_le (k : ℕ)) (not_lt.mp h'),
+          simp only [zero_add] }
+      end,
       by rw eq_mk_of_is_sol_of_eq_init
   end
 
@@ -140,7 +153,7 @@ end
 /-- `E.tuple_succ` maps `![s₀, s₁, ..., sₙ]` to `![s₁, ..., sₙ, ∑ (E.coeffs i) * sᵢ]`,
   where `n := E.order`. -/
 def tuple_succ : (fin E.order → α) →ₗ[α] (fin E.order → α) :=
-{ to_fun := λ X i, if h : i.1 + 1 < E.order then X ⟨i+1, h⟩ else (∑ i, E.coeffs i * X i),
+{ to_fun := λ X i, if h : (i : ℕ) + 1 < E.order then X ⟨i+1, h⟩ else (∑ i, E.coeffs i * X i),
   map_add' := λ x y,
     begin
       ext i,
@@ -169,7 +182,8 @@ section comm_ring
 
 variables {α : Type*} [comm_ring α] (E : linear_recurrence α)
 
-/-- The characteristic polynomial of `E` is `X ^ E.order - ∑ i : fin E.order, (E.coeffs i) * X ^ i`. -/
+/-- The characteristic polynomial of `E` is
+`X ^ E.order - ∑ i : fin E.order, (E.coeffs i) * X ^ i`. -/
 def char_poly : polynomial α :=
   polynomial.monomial E.order 1 - (∑ i : fin E.order, polynomial.monomial i (E.coeffs i))
 
@@ -182,9 +196,9 @@ begin
               ring_hom.id_apply, polynomial.eval₂_monomial, polynomial.eval₂_sub],
   split,
   { intro h,
-    simpa [sub_eq_zero_iff_eq] using h 0 },
+    simpa [sub_eq_zero] using h 0 },
   { intros h n,
-    simp only [pow_add, sub_eq_zero_iff_eq.mp h, mul_sum],
+    simp only [pow_add, sub_eq_zero.mp h, mul_sum],
     exact sum_congr rfl (λ _ _, by ring) }
 end
 

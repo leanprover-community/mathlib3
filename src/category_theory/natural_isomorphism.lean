@@ -6,6 +6,30 @@ Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 import category_theory.functor_category
 import category_theory.isomorphism
 
+/-!
+# Natural isomorphisms
+
+For the most part, natural isomorphisms are just another sort of isomorphism.
+
+We provide some special support for extracting components:
+* if `α : F ≅ G`, then `a.app X : F.obj X ≅ G.obj X`,
+and building natural isomorphisms from components:
+*
+```
+nat_iso.of_components
+  (app : ∀ X : C, F.obj X ≅ G.obj X)
+  (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
+F ≅ G
+```
+only needing to check naturality in one direction.
+
+## Implementation
+
+Note that `nat_iso` is a namespace without a corresponding definition;
+we put some declarations that are specifically about natural isomorphisms in the `iso`
+namespace so that they are available using dot notation.
+-/
+
 open category_theory
 
 -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -21,7 +45,7 @@ namespace iso
 
 /-- The application of a natural isomorphism to an object. We put this definition in a different
 namespace, so that we can use `α.app` -/
-@[simp, reducible] def app {F G : C ⥤ D} (α : F ≅ G) (X : C) : F.obj X ≅ G.obj X :=
+@[simps] def app {F G : C ⥤ D} (α : F ≅ G) (X : C) : F.obj X ≅ G.obj X :=
 { hom := α.hom.app X,
   inv := α.inv.app X,
   hom_inv_id' := begin rw [← comp_app, iso.hom_inv_id], refl end,
@@ -52,13 +76,12 @@ lemma app_inv {F G : C ⥤ D} (α : F ≅ G) (X : C) : (α.app X).inv = α.inv.a
 variables {F G : C ⥤ D}
 
 instance hom_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.hom.app X) :=
-{ inv := α.inv.app X,
-  hom_inv_id' := begin rw [←comp_app, iso.hom_inv_id, ←id_app] end,
-  inv_hom_id' := begin rw [←comp_app, iso.inv_hom_id, ←id_app] end }
+⟨⟨α.inv.app X,
+  ⟨by rw [←comp_app, iso.hom_inv_id, ←id_app], by rw [←comp_app, iso.inv_hom_id, ←id_app]⟩⟩⟩
+
 instance inv_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.inv.app X) :=
-{ inv := α.hom.app X,
-  hom_inv_id' := begin rw [←comp_app, iso.inv_hom_id, ←id_app] end,
-  inv_hom_id' := begin rw [←comp_app, iso.hom_inv_id, ←id_app] end }
+⟨⟨α.hom.app X,
+  ⟨by rw [←comp_app, iso.inv_hom_id, ←id_app], by rw [←comp_app, iso.hom_inv_id, ←id_app]⟩⟩⟩
 
 section
 /-!
@@ -105,34 +128,38 @@ end
 variables {X Y : C}
 lemma naturality_1 (α : F ≅ G) (f : X ⟶ Y) :
   (α.inv.app X) ≫ (F.map f) ≫ (α.hom.app Y) = G.map f :=
-begin erw [naturality, ←category.assoc, is_iso.hom_inv_id, category.id_comp] end
+by rw [naturality, ←category.assoc, ←nat_trans.comp_app, α.inv_hom_id, id_app, category.id_comp]
 lemma naturality_2 (α : F ≅ G) (f : X ⟶ Y) :
   (α.hom.app X) ≫ (G.map f) ≫ (α.inv.app Y) = F.map f :=
-begin erw [naturality, ←category.assoc, is_iso.hom_inv_id, category.id_comp] end
+by rw [naturality, ←category.assoc, ←nat_trans.comp_app, α.hom_inv_id, id_app, category.id_comp]
 
-def is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
-{ inv :=
-  { app := λ X, inv (α.app X),
-    naturality' := λ X Y f,
-     begin
-       have h := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.naturality f).symm,
-       simp only [is_iso.inv_hom_id_assoc, is_iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
-       exact h
-     end } }
+/--
+The components of a natural isomorphism are isomorphisms.
+-/
+instance is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X) :=
+⟨⟨(inv α).app X,
+  ⟨congr_fun (congr_arg nat_trans.app (is_iso.hom_inv_id α)) X,
+   congr_fun (congr_arg nat_trans.app (is_iso.inv_hom_id α)) X⟩⟩⟩
 
-instance is_iso_of_is_iso_app' (α : F ⟶ G) [H : ∀ X : C, is_iso (nat_trans.app α X)] : is_iso α :=
-@nat_iso.is_iso_of_is_iso_app _ _ _ _ _ _ α H
+@[simp] lemma is_iso_inv_app (α : F ⟶ G) [is_iso α] (X) : (inv α).app X = inv (α.app X) :=
+by { ext, rw ←nat_trans.comp_app, simp, }
 
--- TODO can we make this an instance?
-def is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X) :=
-{ inv := (inv α).app X,
-  hom_inv_id' := congr_fun (congr_arg nat_trans.app (is_iso.hom_inv_id α)) X,
-  inv_hom_id' := congr_fun (congr_arg nat_trans.app (is_iso.inv_hom_id α)) X }
-
+/--
+Construct a natural isomorphism between functors by giving object level isomorphisms,
+and checking naturality only in the forward direction.
+-/
 def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
   (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
   F ≅ G :=
-as_iso { app := λ X, (app X).hom }
+{ hom := { app := λ X, (app X).hom },
+  inv :=
+  { app := λ X, (app X).inv,
+    naturality' := λ X Y f,
+    begin
+      have h := congr_arg (λ f, (app X).inv ≫ (f ≫ (app Y).inv)) (naturality f).symm,
+      simp only [iso.inv_hom_id_assoc, iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
+      exact h
+    end }, }
 
 @[simp] lemma of_components.app (app' : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
   (of_components app' naturality).app X = app' X :=
@@ -140,17 +167,23 @@ by tidy
 @[simp] lemma of_components.hom_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
   (of_components app naturality).hom.app X = (app X).hom := rfl
 @[simp] lemma of_components.inv_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
-  (of_components app naturality).inv.app X = (app X).inv := rfl
+  (of_components app naturality).inv.app X = (app X).inv :=
+by simp [of_components]
 
+/--
+A natural transformation is an isomorphism if all its components are isomorphisms.
+-/
+-- Making this an instance would cause a typeclass inference loop with `is_iso_app_of_is_iso`.
+lemma is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
+⟨(is_iso.of_iso (of_components (λ X, as_iso (α.app X)) (by tidy))).1⟩
+
+/-- Horizontal composition of natural isomorphisms. -/
 def hcomp {F G : C ⥤ D} {H I : D ⥤ E} (α : F ≅ G) (β : H ≅ I) : F ⋙ H ≅ G ⋙ I :=
 begin
   refine ⟨α.hom ◫ β.hom, α.inv ◫ β.inv, _, _⟩,
   { ext, rw [←nat_trans.exchange], simp, refl },
   ext, rw [←nat_trans.exchange], simp, refl
 end
--- declare local notation for nat_iso.hcomp
-localized "infix ` ■ `:80 := category_theory.nat_iso.hcomp" in category
-
 
 end nat_iso
 

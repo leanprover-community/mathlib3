@@ -13,13 +13,13 @@ open category_theory
 open category_theory.limits
 open category_theory.limits.walking_parallel_pair
 
-universe u
+universes u v
 
 namespace Module
 variables {R : Type u} [ring R]
 
 section
-variables {M N : Module R} (f : M ⟶ N)
+variables {M N : Module.{v} R} (f : M ⟶ N)
 
 /-- The kernel cone induced by the concrete kernel. -/
 def kernel_cone : kernel_fork f :=
@@ -56,11 +56,11 @@ cofork.is_colimit.mk _
 end
 
 /-- The category of R-modules has kernels, given by the inclusion of the kernel submodule. -/
-def has_kernels_Module : has_kernels (Module R) :=
-⟨λ X Y f, ⟨_, kernel_is_limit f⟩⟩
+lemma has_kernels_Module : has_kernels (Module R) :=
+⟨λ X Y f, has_limit.mk ⟨_, kernel_is_limit f⟩⟩
 
 /-- The category or R-modules has cokernels, given by the projection onto the quotient. -/
-def has_cokernels_Module : has_cokernels (Module R) :=
-⟨λ X Y f, ⟨_, cokernel_is_colimit f⟩⟩
+lemma has_cokernels_Module : has_cokernels (Module R) :=
+⟨λ X Y f, has_colimit.mk ⟨_, cokernel_is_colimit f⟩⟩
 
 end Module

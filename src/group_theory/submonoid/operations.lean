@@ -1,3 +1,10 @@
+/-
+Copyright (c) 2018 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
+Amelia Livingston, Yury Kudryashov
+-/
+
 import group_theory.submonoid.basic
 import data.equiv.mul_add
 import algebra.group.prod
@@ -122,7 +129,7 @@ lemma comap_comap (S : submonoid P) (g : N →* P) (f : M →* N) :
   (S.comap g).comap f = S.comap (g.comp f) :=
 rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma comap_id (S : submonoid P) : S.comap (monoid_hom.id _) = S :=
 ext (by simp)
 
@@ -143,6 +150,10 @@ lemma coe_map (f : M →* N) (S : submonoid M) :
 lemma mem_map {f : M →* N} {S : submonoid M} {y : N} :
   y ∈ S.map f ↔ ∃ x ∈ S, f x = y :=
 mem_image_iff_bex
+
+@[to_additive]
+lemma mem_map_of_mem (f : M →* N) (x : S) : f x ∈ S.map f :=
+mem_image_of_mem f x.2
 
 @[to_additive]
 lemma map_map (g : N →* P) (f : M →* N) : (S.map f).map g = S.map (g.comp f) :=
@@ -321,11 +332,68 @@ an `add_comm_monoid`."]
 instance to_comm_monoid {M} [comm_monoid M] (S : submonoid M) : comm_monoid S :=
 S.coe_injective.comm_monoid coe rfl (λ _ _, rfl)
 
+/-- A submonoid of an `ordered_comm_monoid` is an `ordered_comm_monoid`. -/
+@[to_additive "An `add_submonoid` of an `ordered_add_comm_monoid` is
+an `ordered_add_comm_monoid`."]
+instance to_ordered_comm_monoid {M} [ordered_comm_monoid M] (S : submonoid M) :
+  ordered_comm_monoid S :=
+S.coe_injective.ordered_comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submonoid of a `linear_ordered_comm_monoid` is a `linear_ordered_comm_monoid`. -/
+@[to_additive "An `add_submonoid` of a `linear_ordered_add_comm_monoid` is
+a `linear_ordered_add_comm_monoid`."]
+instance to_linear_ordered_comm_monoid {M} [linear_ordered_comm_monoid M] (S : submonoid M) :
+  linear_ordered_comm_monoid S :=
+S.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submonoid of an `ordered_cancel_comm_monoid` is an `ordered_cancel_comm_monoid`. -/
+@[to_additive "An `add_submonoid` of an `ordered_cancel_add_comm_monoid` is
+an `ordered_cancel_add_comm_monoid`."]
+instance to_ordered_cancel_comm_monoid {M} [ordered_cancel_comm_monoid M] (S : submonoid M) :
+  ordered_cancel_comm_monoid S :=
+S.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submonoid of a `linear_ordered_cancel_comm_monoid` is a `linear_ordered_cancel_comm_monoid`.
+-/
+@[to_additive "An `add_submonoid` of a `linear_ordered_cancel_add_comm_monoid` is
+a `linear_ordered_cancel_add_comm_monoid`."]
+instance to_linear_ordered_cancel_comm_monoid {M} [linear_ordered_cancel_comm_monoid M]
+  (S : submonoid M) : linear_ordered_cancel_comm_monoid S :=
+S.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
+
 /-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
 def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
+
+/-- An induction principle on elements of the type `submonoid.closure s`.
+If `p` holds for `1` and all elements of `s`, and is preserved under multiplication, then `p`
+holds for all elements of the closure of `s`.
+
+The difference with `submonoid.closure_induction` is that this acts on the subtype.
+-/
+@[to_additive "An induction principle on elements of the type `add_submonoid.closure s`.
+If `p` holds for `0` and all elements of `s`, and is preserved under addition, then `p`
+holds for all elements of the closure of `s`.
+
+The difference with `add_submonoid.closure_induction` is that this acts on the subtype."]
+lemma closure_induction' (s : set M) {p : closure s → Prop}
+  (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_closure h⟩)
+  (H1 : p 1)
+  (Hmul : ∀ x y, p x → p y → p (x * y))
+  (x : closure s) :
+  p x :=
+subtype.rec_on x $ λ x hx, begin
+  refine exists.elim _ (λ (hx : x ∈ closure s) (hc : p ⟨x, hx⟩), hc),
+  exact closure_induction hx
+    (λ x hx, ⟨subset_closure hx, Hs x hx⟩)
+    ⟨one_mem _, H1⟩
+    (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
+      ⟨mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
+end
+
+attribute [elab_as_eliminator] submonoid.closure_induction' add_submonoid.closure_induction'
 
 /-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid
 of `M × N`. -/
@@ -506,6 +574,56 @@ S.subtype.cod_mrestrict _ (λ x, h x.2)
 @[simp, to_additive]
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
 ext' $ (coe_mrange _).trans $ subtype.range_coe
+
+@[to_additive] lemma eq_top_iff' : S = ⊤ ↔ ∀ x : M, x ∈ S :=
+eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
+
+@[to_additive] lemma eq_bot_iff_forall : S = ⊥ ↔ ∀ x ∈ S, x = (1 : M) :=
+begin
+  split,
+  { intros h x x_in,
+    rwa [h, mem_bot] at x_in },
+  { intros h,
+    ext x,
+    rw mem_bot,
+    exact ⟨h x, by { rintros rfl, exact S.one_mem }⟩ },
+end
+
+@[to_additive] lemma nontrivial_iff_exists_ne_one (S : submonoid M) :
+  nontrivial S ↔ ∃ x ∈ S, x ≠ (1:M) :=
+begin
+  split,
+  { introI h,
+    rcases exists_ne (1 : S) with ⟨⟨h, h_in⟩, h_ne⟩,
+    use [h, h_in],
+    intro hyp,
+    apply  h_ne,
+    simpa [hyp] },
+  { rintros ⟨x, x_in, hx⟩,
+    apply nontrivial_of_ne (⟨x, x_in⟩ : S) 1,
+    intro hyp,
+    apply hx,
+    simpa [has_one.one] using hyp },
+end
+
+/-- A submonoid is either the trivial submonoid or nontrivial. -/
+@[to_additive] lemma bot_or_nontrivial (S : submonoid M) : S = ⊥ ∨ nontrivial S :=
+begin
+  classical,
+  by_cases h : ∀ x ∈ S, x = (1 : M),
+  { left,
+    exact S.eq_bot_iff_forall.mpr h },
+  { right,
+    push_neg at h,
+    simpa [nontrivial_iff_exists_ne_one] using h },
+end
+
+/-- A submonoid is either the trivial submonoid or contains a nonzero element. -/
+@[to_additive] lemma bot_or_exists_ne_one (S : submonoid M) : S = ⊥ ∨ ∃ x ∈ S, x ≠ (1:M) :=
+begin
+  convert S.bot_or_nontrivial,
+  rw nontrivial_iff_exists_ne_one
+end
 
 end submonoid
 

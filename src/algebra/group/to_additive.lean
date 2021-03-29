@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Yury Kudryashov.
+Authors: Mario Carneiro, Yury Kudryashov
 -/
 import tactic.transform_decl
 import tactic.algebra
@@ -87,25 +87,28 @@ meta def add_comm_prefix : bool → string → string
 
 /-- Dictionary used by `to_additive.guess_name` to autogenerate names. -/
 meta def tr : bool → list string → list string
-| is_comm ("one" :: "le" :: s) := add_comm_prefix is_comm "nonneg" :: tr ff s
-| is_comm ("one" :: "lt" :: s) := add_comm_prefix is_comm "pos"    :: tr ff s
-| is_comm ("le" :: "one" :: s) := add_comm_prefix is_comm "nonpos" :: tr ff s
-| is_comm ("lt" :: "one" :: s) := add_comm_prefix is_comm "neg"    :: tr ff s
-| is_comm ("mul" :: s)         := add_comm_prefix is_comm "add"    :: tr ff s
-| is_comm ("inv" :: s)         := add_comm_prefix is_comm "neg"    :: tr ff s
-| is_comm ("div" :: s)         := add_comm_prefix is_comm "sub"    :: tr ff s
-| is_comm ("one" :: s)         := add_comm_prefix is_comm "zero"   :: tr ff s
-| is_comm ("prod" :: s)        := add_comm_prefix is_comm "sum"    :: tr ff s
+| is_comm ("one" :: "le" :: s)        := add_comm_prefix is_comm "nonneg"    :: tr ff s
+| is_comm ("one" :: "lt" :: s)        := add_comm_prefix is_comm "pos"       :: tr ff s
+| is_comm ("le" :: "one" :: s)        := add_comm_prefix is_comm "nonpos"    :: tr ff s
+| is_comm ("lt" :: "one" :: s)        := add_comm_prefix is_comm "neg"       :: tr ff s
+| is_comm ("mul" :: "support" :: s)   := add_comm_prefix is_comm "support"   :: tr ff s
+| is_comm ("mul" :: "indicator" :: s) := add_comm_prefix is_comm "indicator" :: tr ff s
+| is_comm ("mul" :: s)                := add_comm_prefix is_comm "add"       :: tr ff s
+| is_comm ("inv" :: s)                := add_comm_prefix is_comm "neg"       :: tr ff s
+| is_comm ("div" :: s)                := add_comm_prefix is_comm "sub"       :: tr ff s
+| is_comm ("one" :: s)                := add_comm_prefix is_comm "zero"      :: tr ff s
+| is_comm ("prod" :: s)               := add_comm_prefix is_comm "sum"       :: tr ff s
+| is_comm ("finprod" :: s)            := add_comm_prefix is_comm "finsum"    :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
 | is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
 | is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s
 | is_comm ("subgroup" :: s)    := ("add_" ++ add_comm_prefix is_comm "subgroup")  :: tr ff s
 | is_comm ("semigroup" :: s)   := ("add_" ++ add_comm_prefix is_comm "semigroup") :: tr ff s
-| is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma") :: tr ff s
+| is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma")     :: tr ff s
 | is_comm ("comm" :: s)        := tr tt s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
-| tt []                   := ["comm"]
-| ff []                   := []
+| tt []                        := ["comm"]
+| ff []                        := []
 
 /-- Autogenerate target name for `to_additive`. -/
 meta def guess_name : string → string :=
@@ -196,6 +199,20 @@ The transport tries to do the right thing in most cases using several
 heuristics described below.  However, in some cases it fails, and
 requires manual intervention.
 
+If the declaration to be transported has attributes which need to be
+copied to the additive version, then `to_additive` should come last:
+
+```
+@[simp, to_additive] lemma mul_one' {G : Type*} [group G] (x : G) : x * 1 = x := mul_one x
+```
+
+The exception to this rule is the `simps` attribute, which should come after `to_additive`:
+
+```
+@[to_additive, simps]
+instance {M N} [has_mul M] [has_mul N] : has_mul (M × N) := ⟨λ p q, ⟨p.1 * q.1, p.2 * q.2⟩⟩
+```
+
 ## Implementation notes
 
 The transport process generally works by taking all the names of
@@ -238,7 +255,10 @@ inductive types.
 
 For new structures this means that `to_additive` automatically handles
 coercions, and for old structures it does the same, if ancestry
-information is present in `@[ancestor]` attributes.
+information is present in `@[ancestor]` attributes. The `ancestor`
+attribute must come before the `to_additive` attribute, and it is
+essential that the order of the base structures passed to `ancestor` matches
+between the multiplicative and additive versions of the structure.
 
 ### Name generation
 
@@ -301,4 +321,4 @@ add_tactic_doc
 end to_additive
 
 /- map operations -/
-attribute [to_additive] has_mul has_one has_inv
+attribute [to_additive] has_mul has_one has_inv has_div

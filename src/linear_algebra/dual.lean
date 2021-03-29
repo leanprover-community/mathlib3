@@ -583,9 +583,11 @@ begin
     exact is_basis.to_dual_equiv _ hB.1 },
 end
 
-lemma dual_annihilator_comp_findim_eq {Φ : subspace K (module.dual K V)} :
-  finite_dimensional.findim K Φ.dual_annihilator_comap =
-  finite_dimensional.findim K Φ.dual_annihilator :=
+open finite_dimensional
+
+@[simp]
+lemma findim_dual_annihilator_comap_eq {Φ : subspace K (module.dual K V)} :
+  findim K Φ.dual_annihilator_comap = findim K Φ.dual_annihilator :=
 begin
   rw [submodule.dual_annihilator_comap,
       show module.dual.eval K V = vector_space.eval_equiv.to_linear_map, by refl],
@@ -594,10 +596,10 @@ begin
 end
 
 lemma findim_add_findim_dual_annihilator_comap_eq
-  (W : subspace K (module.dual K V)) : finite_dimensional.findim K W +
-  finite_dimensional.findim K W.dual_annihilator_comap = finite_dimensional.findim K V :=
+  (W : subspace K (module.dual K V)) :
+  findim K W + findim K W.dual_annihilator_comap = findim K V :=
 begin
-  rw [dual_annihilator_comp_findim_eq, W.quot_equiv_annihilator.findim_eq.symm, add_comm,
+  rw [findim_dual_annihilator_comap_eq, W.quot_equiv_annihilator.findim_eq.symm, add_comm,
       submodule.findim_quotient_add_findim, subspace.dual_findim_eq],
 end
 

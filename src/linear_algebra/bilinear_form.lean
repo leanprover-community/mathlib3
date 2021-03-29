@@ -1258,17 +1258,18 @@ end
 
 variable [finite_dimensional K V]
 
+open finite_dimensional
+
 lemma findim_add_findim_orthogonal
   {B : bilin_form K V} {W : subspace K V} (hB₁ : sym_bilin_form.is_sym B) :
-  finite_dimensional.findim K W + finite_dimensional.findim K (B.orthogonal W) =
-  finite_dimensional.findim K V + finite_dimensional.findim K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
+  findim K W + findim K (B.orthogonal W) =
+  findim K V + findim K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
   rw [← to_lin_restrict_ker_eq_inf_orthogonal _ _ hB₁,
       ← to_lin_restrict_range_eq_dual_annihilator _ _,
       ← subspace.findim_add_findim_dual_annihilator_comap_eq (B.to_lin.dom_restrict W).range,
-      finite_dimensional.subtype_eq_findim_eq],
-  conv_rhs { rw [add_comm, ← add_assoc,
-                 add_comm (finite_dimensional.findim K ↥((B.to_lin.dom_restrict W).ker)),
+      findim_map_subtype_eq],
+  conv_rhs { rw [add_comm, ← add_assoc, add_comm (findim K ↥((B.to_lin.dom_restrict W).ker)),
                  linear_map.findim_range_add_findim_ker] },
 end
 
@@ -1289,9 +1290,9 @@ begin
     exact hx₂ n hn },
   refine ⟨this ▸ le_refl _, _⟩,
   { rw top_le_iff,
-    refine finite_dimensional.eq_top_of_findim_eq _,
+    refine eq_top_of_findim_eq _,
     refine le_antisymm (submodule.findim_le _) _,
-    conv_rhs { rw ← add_zero (finite_dimensional.findim K _) },
+    conv_rhs { rw ← add_zero (findim K _) },
     rw [← findim_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
         findim_add_findim_orthogonal hB₁],
     exact nat.le.intro rfl }
@@ -1318,10 +1319,10 @@ lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
 
 end
 
-/- We note that we cannot use `restrict_nondegenerate_iff_is_compl_orthogonal` for the lemma below
-since the below lemma does not require `V` to be finite dimensional. However,
-`restrict_nondegenerate_iff_is_compl_orthogonal` does not require `B` to be nondegenerate on the
-whole space. -/
+/-! We note that we cannot use `bilin_form.restrict_nondegenerate_iff_is_compl_orthogonal` for the
+lemma below since the below lemma does not require `V` to be finite dimensional. However,
+`bilin_form.restrict_nondegenerate_iff_is_compl_orthogonal` does not require `B` to be nondegenerate
+on the whole space. -/
 
 /-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of
 the span of a singleton is also non-degenerate. -/

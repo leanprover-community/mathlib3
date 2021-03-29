@@ -752,9 +752,9 @@ begin
       ← linear_equiv.findim_eq f, add_comm, submodule.findim_quotient_add_findim]
 end
 
-lemma subtype_eq_findim_eq (p : subspace K V) (q : subspace K p) :
+lemma findim_map_subtype_eq (p : subspace K V) (q : subspace K p) :
   finite_dimensional.findim K (q.map p.subtype) = finite_dimensional.findim K q :=
-linear_equiv.findim_eq (submodule.equiv_subtype_map p q).symm
+(submodule.equiv_subtype_map p q).symm.findim_eq
 
 end finite_dimensional
 

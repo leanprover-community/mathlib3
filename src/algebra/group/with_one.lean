@@ -78,6 +78,7 @@ option.cases_on
 @[to_additive]
 instance [has_mul α] : mul_one_class (with_one α) :=
 { mul := option.lift_or_get (*),
+  one := (1),
   one_mul   := (option.lift_or_get_is_left_id _).1,
   mul_one   := (option.lift_or_get_is_right_id _).1 }
 
@@ -98,7 +99,7 @@ def coe_mul_hom [has_mul α] : mul_hom α (with_one α) :=
 
 section lift
 
-variables [semigroup α] {β : Type v} [monoid β]
+variables [has_mul α] {β : Type v} [mul_one_class β]
 
 /-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism. -/
 @[to_additive "Lift an add_semigroup homomorphism `f` to a bundled add_monoid homorphism."]
@@ -130,7 +131,7 @@ end lift
 
 section map
 
-variables {β : Type v} [semigroup α] [semigroup β]
+variables {β : Type v} [has_mul α] [has_mul β]
 
 /-- Given a multiplicative map from `α → β` returns a monoid homomorphism
   from `with_one α` to `with_one β` -/
@@ -144,7 +145,7 @@ lemma map_id : map (mul_hom.id α) = monoid_hom.id (with_one α) :=
 by { ext, cases x; refl }
 
 @[simp, to_additive]
-lemma map_comp {γ : Type w} [semigroup γ] (f : mul_hom α β) (g : mul_hom β γ) :
+lemma map_comp {γ : Type w} [has_mul γ] (f : mul_hom α β) (g : mul_hom β γ) :
 map (g.comp f) = (map g).comp (map f) :=
 by { ext, cases x; refl }
 

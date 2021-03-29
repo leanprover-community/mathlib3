@@ -43,7 +43,7 @@ and the identifications given by the morphisms in the diagram.
 variables {J : Type v} [small_category J] (F : J ⥤ Module.{v} R)
 
 /--
-An inductive type representing all group expressions (without relations)
+An inductive type representing all module expressions (without relations)
 on a collection of types indexed by the objects of `J`.
 -/
 inductive prequotient
@@ -61,7 +61,7 @@ open prequotient
 
 /--
 The relation on `prequotient` saying when two expressions are equal
-because of the abelian group laws, or
+because of the module laws, or
 because one element is mapped to another by a morphism in the diagram.
 -/
 inductive relation : prequotient F → prequotient F → Prop
@@ -95,14 +95,14 @@ inductive relation : prequotient F → prequotient F → Prop
 | zero_smul     : Π (x), relation (smul 0 x) zero
 
 /--
-The setoid corresponding to group expressions modulo abelian group relations and identifications.
+The setoid corresponding to module expressions modulo module relations and identifications.
 -/
 def colimit_setoid : setoid (prequotient F) :=
 { r := relation F, iseqv := ⟨relation.refl, relation.symm, relation.trans⟩ }
 attribute [instance] colimit_setoid
 
 /--
-The underlying type of the colimit of a diagram in `AddCommGroup`.
+The underlying type of the colimit of a diagram in `Module R`.
 -/
 @[derive inhabited]
 def colimit_type : Type v := quotient (colimit_setoid F)
@@ -248,15 +248,14 @@ instance : module R (colimit_type F) :=
 @[simp] lemma quot_smul (s x) :
   quot.mk setoid.r (smul s x) = (s • (quot.mk setoid.r x) : colimit_type F) := rfl
 
-/-- The bundled abelian group giving the colimit of a diagram. -/
+/-- The bundled module giving the colimit of a diagram. -/
 def colimit : Module R := Module.of R (colimit_type F)
 
-/-- The function from a given abelian group in the diagram to the colimit abelian group. -/
+/-- The function from a given module in the diagram to the colimit module. -/
 def cocone_fun (j : J) (x : F.obj j) : colimit_type F :=
 quot.mk _ (of j x)
 
-/-- The group homomorphism from a given abelian group in the diagram to the colimit abelian
-group. -/
+/-- The group homomorphism from a given module in the diagram to the colimit module. -/
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
 { to_fun := cocone_fun F j,
   map_smul' := by { intros, apply quot.sound, apply relation.smul, },
@@ -274,14 +273,13 @@ end
   (cocone_morphism F j') (F.map f x) = (cocone_morphism F j) x :=
 by { rw ←cocone_naturality F f, refl }
 
-/-- The cocone over the proposed colimit abelian group. -/
+/-- The cocone over the proposed colimit module. -/
 def colimit_cocone : cocone F :=
 { X := colimit F,
   ι :=
   { app := cocone_morphism F } }.
 
-/-- The function from the free abelian group on the diagram to the cone point of any other
-cocone. -/
+/-- The function from the free module on the diagram to the cone point of any other cocone. -/
 @[simp] def desc_fun_lift (s : cocone F) : prequotient F → s.X
 | (of j x)  := (s.ι.app j) x
 | zero      := 0
@@ -289,7 +287,7 @@ cocone. -/
 | (add x y) := desc_fun_lift x + desc_fun_lift y
 | (smul s x) := s • (desc_fun_lift x)
 
-/-- The function from the colimit abelian group to the cone point of any other cocone. -/
+/-- The function from the colimit module to the cone point of any other cocone. -/
 def desc_fun (s : cocone F) : colimit_type F → s.X :=
 begin
   fapply quot.lift,
@@ -344,7 +342,7 @@ begin
     { rw zero_smul, },  }
 end
 
-/-- The group homomorphism from the colimit abelian group to the cone point of any other cocone. -/
+/-- The group homomorphism from the colimit module to the cone point of any other cocone. -/
 def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_smul' := λ s x, by { induction x; refl, },

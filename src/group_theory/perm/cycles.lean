@@ -360,6 +360,27 @@ quotient.rec_on_subsingleton (@univ α _).1
   (λ l h, trunc.mk (cycle_factors_aux l f h))
   (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
 
+/-!
+### Conjugacy
+-/
+
+section
+variables [fintype α] {σ τ : perm α}
+
+lemma is_cycle.is_conj_of_card_support_eq (hσ : is_cycle σ) (hτ : is_cycle τ)
+  (h : σ.support.card = τ.support.card) : is_conj σ τ :=
+begin
+  revert σ τ,
+  suffices hn : ∀ (n : ℕ) (σ τ : perm α) (hσ : is_cycle σ) (hτ : is_cycle τ)
+    (h : σ.support.card = τ.support.card) (hn σ.support.card = (n + 2)), is_conj σ τ,
+  {   },
+  intro n,
+  induction n with
+end
+
+
+end
+
 section fixed_points
 
 /-!

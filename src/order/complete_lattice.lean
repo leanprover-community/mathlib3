@@ -20,7 +20,7 @@ import order.bounds
 ## Naming conventions
 
 We use `Sup`/`Inf`/`supr`/`infi` for the corresponding functions in the statement. Sometimes we
-also use `bsupr`/`binfi` for "bounded` supremum or infimum, i.e. one of `⨆ i ∈ s, f i`,
+also use `bsupr`/`binfi` for "bounded" supremum or infimum, i.e. one of `⨆ i ∈ s, f i`,
 `⨆ i (hi : p i), f i`, or more generally `⨆ i (hi : p i), f i hi`.
 
 ## Notation

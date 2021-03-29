@@ -60,7 +60,7 @@ def cone {F : S ⥤ D} {G : L ⥤ D} (x : L) (f : ι ⋙ G ⟶ F) :
   π :=
   { app := λ i, G.map i.hom ≫ f.app i.right,
     naturality' := begin
-      rintro ⟨⟨il⟩,ir,i⟩ ⟨⟨jl⟩,jr,j⟩ ⟨⟨⟨fl⟩⟩,fr,ff⟩,
+      rintro ⟨⟨il⟩, ir, i⟩ ⟨⟨jl⟩, jr, j⟩ ⟨⟨⟨fl⟩⟩, fr, ff⟩,
       dsimp at *,
       simp only [category.id_comp, category.assoc] at *,
       rw [ff],
@@ -93,11 +93,12 @@ def obj_aux (F : S ⥤ D) [∀ x, has_limits_of_shape (structured_arrow x ι) D]
 /-- An auxiliary definition used to define `Ran` and `Ran.adjunction`. -/
 @[simps]
 def equiv [∀ x, has_limits_of_shape (structured_arrow x ι) D] (F : S ⥤ D) (G : L ⥤ D) :
-  (G ⟶ obj_aux ι F) ≃ (ι ⋙ G ⟶ F) :=
+  (G ⟶ obj_aux ι F) ≃ (((whiskering_left _ _ _).obj ι).obj G ⟶ F) :=
 { to_fun := λ f,
   { app := λ x, f.app _ ≫ limit.π (diagram ι F (ι.obj x)) (structured_arrow.mk (𝟙 _)),
   naturality' := begin
     intros x y ff,
+    dsimp only [whiskering_left],
     simp only [functor.comp_map, nat_trans.naturality_assoc, obj_aux_map, category.assoc],
     congr' 1,
     erw limit.pre_π,
@@ -127,17 +128,12 @@ def equiv [∀ x, has_limits_of_shape (structured_arrow x ι) D] (F : S ⥤ D) (
   end,
   right_inv := by tidy }
 
-/-- A variant of `Ran.equiv` with `whiskering_left` instead of functor composition. -/
-@[simps]
-def equiv' [∀ x, has_limits_of_shape (structured_arrow x ι) D] (F : S ⥤ D) (G : L ⥤ D) :
-  (G ⟶ obj_aux ι F) ≃ (((whiskering_left _ _ _).obj ι).obj G ⟶ F) := equiv _ _ _
-
 end Ran
 
 /-- The right Kan extension of a functor. -/
 @[simps]
 def Ran [∀ X, has_limits_of_shape (structured_arrow X ι) D] : (S ⥤ D) ⥤ L ⥤ D :=
-adjunction.right_adjoint_of_equiv (λ F G, (Ran.equiv' ι G F).symm) (by tidy)
+adjunction.right_adjoint_of_equiv (λ F G, (Ran.equiv ι G F).symm) (by tidy)
 
 namespace Ran
 
@@ -167,7 +163,7 @@ def cocone {F : S ⥤ D} {G : L ⥤ D} (x : L) (f : F ⟶ ι ⋙ G) :
   ι :=
   { app := λ i, f.app i.left ≫ G.map i.hom,
     naturality' := begin
-      rintro ⟨ir,⟨il⟩,i⟩ ⟨jl,⟨jr⟩,j⟩ ⟨fl,⟨⟨fl⟩⟩,ff⟩,
+      rintro ⟨ir, ⟨il⟩, i⟩ ⟨jl, ⟨jr⟩, j⟩ ⟨fl, ⟨⟨fl⟩⟩, ff⟩,
       dsimp at *,
       simp only [functor.comp_map, category.comp_id, nat_trans.naturality_assoc],
       rw [← G.map_comp, ff],
@@ -180,7 +176,8 @@ variable (ι)
 @[simps]
 def obj_aux (F : S ⥤ D) [∀ x, has_colimits_of_shape (costructured_arrow ι x) D] : L ⥤ D :=
 { obj := λ x, colimit (diagram ι F x),
-  map := λ x y f, colimit.pre (diagram _ _ _) (costructured_arrow.map f : costructured_arrow ι _ ⥤ _),
+  map := λ x y f,
+    colimit.pre (diagram _ _ _) (costructured_arrow.map f : costructured_arrow ι _ ⥤ _),
   map_id' := begin
     intro l,
     ext j,
@@ -203,12 +200,13 @@ def obj_aux (F : S ⥤ D) [∀ x, has_colimits_of_shape (costructured_arrow ι x
 /-- An auxiliary definition used to define `Lan` and `Lan.adjunction`. -/
 @[simps]
 def equiv [∀ x, has_colimits_of_shape (costructured_arrow ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
-  (obj_aux ι F ⟶ G) ≃ (F ⟶ ι ⋙ G ) :=
+  (obj_aux ι F ⟶ G) ≃ (F ⟶ ((whiskering_left _ _ _).obj ι).obj G) :=
 { to_fun := λ f,
   { app := λ x,
       by apply colimit.ι (diagram ι F (ι.obj x)) (costructured_arrow.mk (𝟙 _)) ≫ f.app _, -- sigh
   naturality' := begin
     intros x y ff,
+    dsimp only [whiskering_left],
     simp only [functor.comp_map, category.assoc],
     rw [← f.naturality (ι.map ff), ← category.assoc, ← category.assoc],
     erw colimit.ι_pre (diagram ι F (ι.obj y)) (costructured_arrow.map (ι.map ff))
@@ -245,17 +243,12 @@ def equiv [∀ x, has_colimits_of_shape (costructured_arrow ι x) D] (F : S ⥤ 
   end,
   right_inv := by tidy }
 
-/-- A variant of `Lan.equiv` with `whiskering_left` instead of functor composition. -/
-@[simps]
-def equiv' [∀ x, has_colimits_of_shape (costructured_arrow ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
-  (obj_aux ι F ⟶ G) ≃ (F ⟶ ((whiskering_left _ _ _).obj ι).obj G) := equiv _ _ _
-
 end Lan
 
 /-- The left Kan extension of a functor. -/
 @[simps]
 def Lan [∀ X, has_colimits_of_shape (costructured_arrow ι X) D] : (S ⥤ D) ⥤ L ⥤ D :=
-adjunction.left_adjoint_of_equiv (Lan.equiv' ι) (by tidy)
+adjunction.left_adjoint_of_equiv (Lan.equiv ι) (by tidy)
 
 namespace Lan
 

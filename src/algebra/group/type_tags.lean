@@ -137,18 +137,28 @@ instance [has_zero α] : has_one (multiplicative α) := ⟨multiplicative.of_add
 
 @[simp] lemma to_add_one [has_zero α] : (1 : multiplicative α).to_add = 0 := rfl
 
-instance [monoid α] : add_monoid (additive α) :=
+instance [mul_one_class α] : add_zero_class (additive α) :=
 { zero     := 0,
   add      := (+),
   zero_add := one_mul,
-  add_zero := mul_one,
+  add_zero := mul_one }
+
+instance [add_zero_class α] : mul_one_class (multiplicative α) :=
+{ one     := 1,
+  mul     := (*),
+  one_mul := zero_add,
+  mul_one := add_zero }
+
+instance [monoid α] : add_monoid (additive α) :=
+{ zero     := 0,
+  add      := (+),
+  ..additive.add_zero_class,
   ..additive.add_semigroup }
 
 instance [add_monoid α] : monoid (multiplicative α) :=
 { one     := 1,
   mul     := (*),
-  one_mul := zero_add,
-  mul_one := add_zero,
+  ..multiplicative.mul_one_class,
   ..multiplicative.semigroup }
 
 instance [comm_monoid α] : add_comm_monoid (additive α) :=

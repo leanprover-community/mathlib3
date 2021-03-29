@@ -53,7 +53,7 @@ noncomputable def subobject_Module : subobject M ≃o submodule R M := order_iso
   map_rel_iff' := λ S T,
   begin
     refine ⟨λ h, _, λ h, mk_le_mk_of_comm ↟(submodule.of_le h) (by { ext, refl })⟩,
-    convert linear_map.range_comp_le_range (of_mk_le_mk h) ↾T.subtype,
+    convert linear_map.range_comp_le_range (of_mk_le_mk _ _ h) ↾T.subtype,
     { simpa only [←comp_def, of_mk_le_mk_comp] using (submodule.range_subtype _).symm },
     { exact (submodule.range_subtype _).symm }
   end })

@@ -175,6 +175,11 @@ instance monoid.to_mul_action : mul_action M M :=
   one_smul := one_mul,
   mul_smul := mul_assoc }
 
+/-- The regular action of a monoid on itself by left addition.
+
+This is promoted to an `add_torsor` by `add_group_is_add_torsor`. -/
+add_decl_doc add_monoid.to_add_action
+
 @[simp, to_additive] lemma smul_eq_mul {a a' : M} : a • a' = a * a' := rfl
 
 instance is_scalar_tower.left : is_scalar_tower M M α :=

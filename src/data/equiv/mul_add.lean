@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 import algebra.group.hom
 import algebra.group.type_tags
 import algebra.group.units_hom
+import algebra.group_with_zero
 
 /-!
 # Multiplicative and additive equivs
@@ -464,6 +465,37 @@ lemma coe_inv : ⇑(equiv.inv G) = has_inv.inv := rfl
 lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
 
 end group
+
+section group_with_zero
+variables [group_with_zero G]
+
+/-- Left multiplication by a nonzero element in a `group_with_zero` is a permutation of the
+underlying type. -/
+protected def mul_left' (a : G) (ha : a ≠ 0) : perm G :=
+{ to_fun := λ x, a * x,
+  inv_fun := λ x, a⁻¹ * x,
+  left_inv := λ x, by { dsimp, rw [← mul_assoc, inv_mul_cancel ha, one_mul] },
+  right_inv := λ x, by { dsimp, rw [← mul_assoc, mul_inv_cancel ha, one_mul] } }
+
+@[simp] lemma coe_mul_left' (a : G) (ha : a ≠ 0) : ⇑(equiv.mul_left' a ha) = (*) a := rfl
+
+@[simp] lemma mul_left'_symm_apply (a : G) (ha : a ≠ 0) :
+  ((equiv.mul_left' a ha).symm : G → G) = (*) a⁻¹ := rfl
+
+/-- Right multiplication by a nonzero element in a `group_with_zero` is a permutation of the
+underlying type. -/
+protected def mul_right' (a : G) (ha : a ≠ 0) : perm G :=
+{ to_fun := λ x, x * a,
+  inv_fun := λ x, x * a⁻¹,
+  left_inv := λ x, by { dsimp, rw [mul_assoc, mul_inv_cancel ha, mul_one] },
+  right_inv := λ x, by { dsimp, rw [mul_assoc, inv_mul_cancel ha, mul_one] } }
+
+@[simp] lemma coe_mul_right' (a : G) (ha : a ≠ 0) : ⇑(equiv.mul_right' a ha) = λ x, x * a := rfl
+
+@[simp] lemma mul_right'_symm_apply (a : G) (ha : a ≠ 0) :
+  ((equiv.mul_right' a ha).symm : G → G) = λ x, x * a⁻¹ := rfl
+
+end group_with_zero
 
 end equiv
 

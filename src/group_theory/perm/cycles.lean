@@ -39,6 +39,17 @@ variables [fintype α]
   application of the permutation. -/
 def is_cycle (f : perm β) : Prop := ∃ x, f x ≠ x ∧ ∀ y, f y ≠ y → ∃ i : ℤ, (f ^ i) x = y
 
+lemma is_cycle.ne_one {f : perm β} (h : is_cycle f) : f ≠ 1 :=
+begin
+  contrapose! h,
+  rw h,
+  simp [is_cycle],
+end
+
+lemma is_cycle.two_le_card_support {f : perm α} (h : is_cycle f) :
+  2 ≤ f.support.card :=
+two_le_card_support_of_ne_one h.ne_one
+
 lemma is_cycle.swap {α : Type*} [decidable_eq α] {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=
 ⟨y, by rwa swap_apply_right,
   λ a (ha : ite (a = x) y (ite (a = y) x a) ≠ a),
@@ -341,32 +352,118 @@ noncomputable def cycle_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 
+/-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`,
+  without a linear order. -/
+noncomputable def trunc_cycle_factors [fintype α] (f : perm α) :
+  trunc {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
+quotient.rec_on_subsingleton (@univ α _).1
+  (λ l h, trunc.mk (cycle_factors_aux l f h))
+  (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
+
 section fixed_points
 
 /-!
 ### Fixed points
 -/
 
-lemma one_lt_nonfixed_point_card_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
-  1 < (filter (λ x, σ x ≠ x) univ).card :=
-begin
-  rw one_lt_card_iff,
-  contrapose! h,
-  ext x,
-  dsimp,
-  have := h (σ x) x,
-  contrapose! this,
-  simpa,
-end
-
 lemma fixed_point_card_lt_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
   (filter (λ x, σ x = x) univ).card < fintype.card α - 1 :=
 begin
   rw [nat.lt_sub_left_iff_add_lt, ← nat.lt_sub_right_iff_add_lt, ← finset.card_compl,
     finset.compl_filter],
-  exact one_lt_nonfixed_point_card_of_ne_one h
+  exact one_lt_card_support_of_ne_one h
 end
 
 end fixed_points
+
+/-!
+### 3-cycles
+-/
+
+section is_three_cycle
+
+variables [fintype α] {σ : perm α}
+
+/-- A three-cycle is a cycle of length 3. -/
+def is_three_cycle (σ : perm α) : Prop := σ.support.card = 3
+
+lemma is_three_cycle.card_support (h : is_three_cycle σ) : σ.support.card = 3 := h
+
+lemma is_three_cycle.is_cycle (h : is_three_cycle σ) : is_cycle σ :=
+begin
+  obtain ⟨l, rfl, hl, hd⟩ := trunc_cycle_factors σ,
+  have hle := card_support_prod_list_of_pairwise_disjoint hd,
+  rw [h.card_support] at hle,
+  cases l with a l',
+  { contrapose! h,
+    simp [is_three_cycle] },
+  cases l' with a' l'',
+  { simp only [mul_one, list.prod_cons, list.prod_nil],
+    apply hl,
+    simp },
+  { contrapose! hle,
+    simp only [list.sum_cons, ne.def, list.map],
+    apply ne_of_lt,
+    rw [← nat.succ_le_iff],
+    transitivity 2 + (2 + 0), { refl },
+    refine add_le_add _ (add_le_add _ (nat.zero_le _));
+    { apply (hl _ _).two_le_card_support,
+      simp } },
+end
+
+lemma is_three_cycle.inv {f : perm α} (hf : is_three_cycle f) : is_three_cycle (f⁻¹) :=
+begin
+  rw is_three_cycle at *,
+  rw [support_inv, hf],
+end
+
+lemma is_three_cycle_swap_mul_swap_same {a b c : α} (ab : a ≠ b) (ac : a ≠ c) (bc : b ≠ c) :
+  is_three_cycle (swap a b * swap a c) :=
+begin
+  suffices h : support (swap a b * swap a c) = {a, b, c},
+  { rw [is_three_cycle, h],
+    simp [ab, ac, bc] },
+  apply le_antisymm (support_mul_le.trans (λ x, _)) (λ x hx, _),
+  { simp [ab, ac, bc] },
+  { simp only [mem_insert, mem_singleton] at hx,
+    rw mem_support,
+    simp only [perm.coe_mul, comp_app, ne.def],
+    obtain rfl | rfl | rfl := hx,
+    { rw [swap_apply_left, swap_apply_of_ne_of_ne ac.symm bc.symm],
+      exact ac.symm },
+    { rw [swap_apply_of_ne_of_ne ab.symm bc, swap_apply_right],
+      exact ab },
+    { rw [swap_apply_right, swap_apply_left],
+      exact bc } }
+end
+
+open subgroup
+
+lemma swap_mul_swap_same_mem_closure_three_cycles {a b c : α} (ab : a ≠ b) (ac : a ≠ c) :
+  (swap a b * swap a c) ∈ closure {σ : perm α | is_three_cycle σ } :=
+begin
+  by_cases bc : b = c,
+  { subst bc,
+    simp [one_mem] },
+  exact subset_closure (is_three_cycle_swap_mul_swap_same ab ac bc)
+end
+
+lemma is_swap.mul_mem_closure_three_cycles {σ τ : perm α}
+  (hσ : is_swap σ) (hτ : is_swap τ) :
+  σ * τ ∈ closure {σ : perm α | is_three_cycle σ } :=
+begin
+  obtain ⟨a, b, ab, rfl⟩ := hσ,
+  obtain ⟨c, d, cd, rfl⟩ := hτ,
+  by_cases ac : a = c,
+  { subst ac,
+    exact swap_mul_swap_same_mem_closure_three_cycles ab cd },
+  have h' : swap a b * swap c d = swap a b * swap a c * (swap c a * swap c d),
+  { simp [swap_comm c a, mul_assoc] },
+  rw h',
+  exact mul_mem _ (swap_mul_swap_same_mem_closure_three_cycles ab ac)
+    (swap_mul_swap_same_mem_closure_three_cycles (ne.symm ac) cd),
+end
+
+end is_three_cycle
 
 end equiv.perm

@@ -50,16 +50,16 @@ variables {R} (M)
 
 variables {R M} [has_zero M'] [has_scalar R M']
 
-/-- Pullback a `smul_zero_class` structure along an injective zero-preserving homomorphism. -/
-protected def function.injective.smul_zero_class
+/-- Pullback a `smul_with_zero` structure along an injective zero-preserving homomorphism. -/
+protected def function.injective.smul_with_zero
   (f : zero_hom M' M) (hf : function.injective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   smul_with_zero R M' :=
 { smul := (•),
   zero_smul := λ a, hf $ by simp [smul],
   smul_zero := λ a, hf $ by simp [smul]}
 
-/-- Pushforward a `smul_zero_class` structure along a surjective zero-preserving homomorphism. -/
-protected def function.surjective.smul_zero_class
+/-- Pushforward a `smul_with_zero` structure along a surjective zero-preserving homomorphism. -/
+protected def function.surjective.smul_with_zero
   (f : zero_hom M M') (hf : function.surjective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   smul_with_zero R M' :=
 { smul := (•),
@@ -69,7 +69,7 @@ protected def function.surjective.smul_zero_class
 variables (M)
 
 /-- Compose a `smul_with_zero` with a `zero_hom`, with action `f r' • m` -/
-def zero_hom.comp_smul_with_zero (f : zero_hom R' R) : smul_with_zero R' M :=
+def smul_with_zero.comp_hom (f : zero_hom R' R) : smul_with_zero R' M :=
 { smul := (•) ∘ f,
   smul_zero := λ m, by simp,
   zero_smul := λ m, by simp }
@@ -105,23 +105,23 @@ variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_scalar R M']
 protected def function.injective.mul_action_with_zero
   (f : zero_hom M' M) (hf : function.injective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   mul_action_with_zero R M' :=
-{ ..hf.mul_action f smul, ..hf.smul_zero_class f smul }
+{ ..hf.mul_action f smul, ..hf.smul_with_zero f smul }
 
 /-- Pushforward a `mul_action_with_zero` structure along a surjective zero-preserving homomorphism.
 -/
 protected def function.surjective.mul_action_with_zero
   (f : zero_hom M M') (hf : function.surjective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   mul_action_with_zero R M' :=
-{ ..hf.mul_action f smul, ..hf.smul_zero_class f smul }
+{ ..hf.mul_action f smul, ..hf.smul_with_zero f smul }
 
 variables (M)
 
 /-- Compose a `mul_action_with_zero` with a `monoid_with_zero_hom`, with action `f r' • m` -/
-def monoid_with_zero_hom.comp_mul_action_with_zero (f : monoid_with_zero_hom R' R) :
+def mul_action_with_zero.comp_hom (f : monoid_with_zero_hom R' R) :
   mul_action_with_zero R' M :=
 { smul := (•) ∘ f,
   mul_smul := λ r s m, by simp [mul_smul],
   one_smul := λ m, by simp,
-  ..f.to_zero_hom.comp_smul_with_zero M}
+  .. smul_with_zero.comp_hom M f.to_zero_hom}
 
 end monoid_with_zero

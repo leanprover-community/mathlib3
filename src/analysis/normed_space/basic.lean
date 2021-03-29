@@ -1126,7 +1126,7 @@ set_option extends_priority 920
 -- Here, we set a rather high priority for the instance `[semi_normed_space α β] : semimodule α β`
 -- to take precedence over `semiring.to_semimodule` as this leads to instance paths with better
 -- unification properties.
--- see Note [vector space definition] for why we extend `semimodule`.
+-- see Note[vector space definition] for why we extend `semimodule`.
 /-- A seminormed space over a normed field is a vector space endowed with a seminorm which satisfies
 the equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ ∥c∥ ∥x∥` in the definition, then prove
 `∥c • x∥ = ∥c∥ ∥x∥` in `norm_smul`. -/
@@ -1274,9 +1274,6 @@ open normed_field
 /-- The product of two seminormed spaces is a seminormed space, with the sup norm. -/
 instance prod.semi_normed_space : semi_normed_space α (E × F) :=
 { norm_smul_le := λ s x, le_of_eq $ by simp [prod.semi_norm_def, norm_smul, mul_max_of_nonneg],
-  -- TODO: without the next two lines Lean unfolds `≤` to `real.le`
-  add_smul := λ r x y, prod.ext (add_smul _ _ _) (add_smul _ _ _),
-  smul_add := λ r x y, prod.ext (smul_add _ _ _) (smul_add _ _ _),
   ..prod.normed_group,
   ..prod.semimodule }
 

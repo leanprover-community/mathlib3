@@ -1428,7 +1428,7 @@ module structure over `R`.
 The preferred way of setting this up is `[module R M] [module A M] [is_scalar_tower R A M]`.
 -/
 instance : semimodule R (restrict_scalars R A M) :=
-(algebra_map R A).comp_semimodule M
+semimodule.comp_hom M (algebra_map R A)
 
 lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R A M) :
   c • x = ((algebra_map R A c) • x : M) := rfl

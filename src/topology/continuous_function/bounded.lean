@@ -618,6 +618,15 @@ semimodule.of_core $
 instance : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, norm_of_normed_group_le _
   (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
 
+variables (α β)
+
+/-- The linear map forgetting that a bounded continuous function is bounded. -/
+@[simps]
+def forget_boundedness_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
+{ to_fun := forget_boundedness α β,
+  map_smul' := by { intros, ext, simp, },
+  map_add' := by { intros, ext, simp, }, }
+
 end normed_space
 
 section normed_ring

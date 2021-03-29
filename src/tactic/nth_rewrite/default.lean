@@ -107,10 +107,12 @@ meta def nth_rewrite
   (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
 nth_rewrite_core [] n q l
 
-meta def nth_rewrite_lhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
+meta def nth_rewrite_lhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) :
+  tactic unit :=
 nth_rewrite_core [dir.F, dir.A] n q l
 
-meta def nth_rewrite_rhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) : tactic unit :=
+meta def nth_rewrite_rhs (n : parse small_nat) (q : parse rw_rules) (l : parse location) :
+  tactic unit :=
 nth_rewrite_core [dir.A] n q l
 
 copy_doc_string nth_rewrite → nth_rewrite_lhs nth_rewrite_rhs

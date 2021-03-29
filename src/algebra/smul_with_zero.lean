@@ -30,17 +30,20 @@ variables {R M M' : Type*}
 
 section has_zero
 
-variables [has_zero R] [has_zero M]
-
 variables (R M)
 /--  `smul_with_zero` is a class consisting of a Type `R` with `0 ∈ R` and a scalar multiplication
 of `R` on a Type `M` with `0`, such that the equality `r • m = 0` holds if at least one among `r`
 or `m` equals `0`. -/
-class smul_with_zero extends has_scalar R M :=
+class smul_with_zero [has_zero R] [has_zero M] extends has_scalar R M :=
 (smul_zero : ∀ r : R, r • (0 : M) = 0)
 (zero_smul : ∀ m : M, (0 : R) • m = 0)
 
-variables (R) {M} [smul_with_zero R M]
+instance mul_zero_class.to_smul_with_zero [mul_zero_class R] : smul_with_zero R R :=
+{ smul := (*),
+  smul_zero := mul_zero,
+  zero_smul := zero_mul }
+
+variables (R) {M} [has_zero R] [has_zero M] [smul_with_zero R M]
 
 @[simp] lemma zero_smul (m : M) : (0 : R) • m = 0 := smul_with_zero.zero_smul m
 
@@ -87,8 +90,7 @@ instance mul_action_with_zero.to_smul_with_zero [m : mul_action_with_zero R M] :
 {..m}
 
 instance monoid_with_zero.to_mul_action_with_zero : mul_action_with_zero R R :=
-{ smul_zero := mul_zero,
-  zero_smul := zero_mul,
+{ ..mul_zero_class.to_smul_with_zero R,
   ..monoid.to_mul_action R }
 
 variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_scalar R M']

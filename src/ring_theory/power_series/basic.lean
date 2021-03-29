@@ -657,7 +657,7 @@ instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
   rintros φ ⟨ψ, h⟩,
   replace h := congr_arg (constant_coeff σ S) h,
   rw constant_coeff_map at h,
-  have : is_unit (constant_coeff σ S ↑ψ) := @is_unit_constant_coeff σ S _ (↑ψ) (is_unit_unit ψ),
+  have : is_unit (constant_coeff σ S ↑ψ) := @is_unit_constant_coeff σ S _ (↑ψ) ψ.is_unit,
   rw h at this,
   rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
   exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc.symm)

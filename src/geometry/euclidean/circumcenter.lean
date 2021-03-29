@@ -541,7 +541,8 @@ def centroid_weights_with_circumcenter {n : ℕ} (fs : finset (fin (n + 1)))
 
 /-- `centroid_weights_with_circumcenter` sums to 1, if the `finset` is
 nonempty. -/
-@[simp] lemma sum_centroid_weights_with_circumcenter {n : ℕ} {fs : finset (fin (n + 1))} (h : fs.nonempty) :
+@[simp] lemma sum_centroid_weights_with_circumcenter {n : ℕ} {fs : finset (fin (n + 1))}
+  (h : fs.nonempty) :
   ∑ i, centroid_weights_with_circumcenter fs i = 1 :=
 begin
   simp_rw [sum_points_with_circumcenter, centroid_weights_with_circumcenter, add_zero,
@@ -837,17 +838,17 @@ begin
   have hd₁ : dist p₁ s.circumcenter * dist p₁ s.circumcenter =
     r * r - s.circumradius * s.circumradius,
   { rw [dist_comm, ←h₁ 0,
-        dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₁ h],
+      dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₁ h],
     simp [h₁', dist_comm p₁] },
   have hd₂ : dist p₂ s.circumcenter * dist p₂ s.circumcenter =
     r * r - s.circumradius * s.circumradius,
   { rw [dist_comm, ←h₂ 0,
-        dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₂ h],
+      dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₂ h],
     simp [h₂', dist_comm p₂] },
   rw [←hd₂, hp₁, hp₂, dist_eq_norm_vsub V _ s.circumcenter,
       dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←real_inner_self_eq_norm_square,
-      ←real_inner_self_eq_norm_square, real_inner_smul_left, real_inner_smul_left, real_inner_smul_right,
-      real_inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
+      ←real_inner_self_eq_norm_square, real_inner_smul_left, real_inner_smul_left,
+      real_inner_smul_right, real_inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
   by_cases hp : p = orthogonal_projection span_s p,
   { rw [hp₁, hp₂, ←hp],
     simp },

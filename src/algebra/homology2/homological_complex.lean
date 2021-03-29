@@ -83,7 +83,7 @@ lemma kernel_eq_kernel [has_kernels V] {i j j' : ι} (r : c.r i j) (r' : c.r i j
   kernel_subobject (C.d i j) = kernel_subobject (C.d i j') :=
 begin
   rw ←d_comp_eq_to_hom C r r',
-  apply kernel_subobject_comp_iso,
+  apply kernel_subobject_comp_mono,
 end
 
 lemma image_eq_image [has_images V] [has_equalizers V] [has_zero_object V]
@@ -210,7 +210,7 @@ lemma kernel_from_eq_kernel [has_kernels V] {i j : ι} (r : c.r i j) :
   kernel_subobject (C.d_from i) = kernel_subobject (C.d i j) :=
 begin
   rw C.d_from_eq r,
-  apply kernel_subobject_comp_iso,
+  apply kernel_subobject_comp_mono,
 end
 
 lemma image_to_eq_image [has_images V] [has_equalizers V] [has_zero_object V]

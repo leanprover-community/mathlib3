@@ -67,14 +67,15 @@ def submonoid.to_subsemiring (M : submonoid R) : subsemiring R :=
   mul_mem' := λ x y, submonoid.mul_mem_add_closure,
   ..add_submonoid.closure (M : set R)}
 
-lemma to_subsemiring_coe : (M.to_subsemiring : set R) = add_submonoid.closure (M : set R) := rfl
+lemma subsemiring.to_subsemiring_coe :
+  (M.to_subsemiring : set R) = add_submonoid.closure (M : set R) := rfl
 
-lemma to_subsemiring_to_add_submonoid :
+lemma subsemiring.to_subsemiring_to_add_submonoid :
   M.to_subsemiring.to_add_submonoid = add_submonoid.closure (M : set R) := rfl
 
 /-- The elements of the additive closure of a multiplicative submonoid `M` are exactly the
 elements of the subsemiring closure of `M`. -/
-lemma clss : (add_submonoid.closure (M : set R) : set R) = subsemiring.closure (M : set R) :=
+lemma subsemiring.clss : (add_submonoid.closure (M : set R) : set R) = subsemiring.closure (M : set R) :=
 begin
   refine set.ext (λ x, ⟨λ hx, _, λ hx, _⟩),
   { refine subsemiring.mem_coe.mpr _,
@@ -86,5 +87,16 @@ begin
     rintros - ⟨H2, rfl⟩,
     exact H2 sM }
 end
+
+open subsemiring
+
+lemma subsemiring.mem_closure_iff {s : set R} {x} :
+  x ∈ closure s ↔ x ∈ add_submonoid.closure (submonoid.closure s : set R) :=
+begin
+  erw [← add_submonoid.mem_coe, clss],
+  refine ⟨λ hx, closure_mono (submonoid.subset_closure) hx, λ hx, (mem_closure.mp hx) _ _⟩,
+  exact λ y hy, (submonoid.mem_closure.mp hy) (subsemiring.to_submonoid (closure s)) subset_closure
+end
+
 
 end add_closure_of_submonoid

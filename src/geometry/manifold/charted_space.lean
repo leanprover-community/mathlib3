@@ -572,7 +572,7 @@ instance prod_charted_space (H : Type*) [topological_space H]
     use (charted_space.chart_at H x.1),
     split,
     { apply chart_mem_atlas _, },
-    { use (charted_space.chart_at H' x.2), simp only [chart_mem_atlas, eq_self_iff_true, and_self], }
+    { use (charted_space.chart_at H' x.2), simp only [chart_mem_atlas, and_self, true_and] }
   end }
 
 section prod_charted_space
@@ -844,7 +844,8 @@ instance [closed_under_restriction G] : has_groupoid s G :=
     simp only [hc.symm, mem_singleton_iff, subtype.val_eq_coe] at he,
     simp only [hc'.symm, mem_singleton_iff, subtype.val_eq_coe] at he',
     rw [he, he'],
-    convert G.eq_on_source _ (subtype_restr_symm_trans_subtype_restr s (chart_at H x) (chart_at H x')),
+    convert G.eq_on_source _
+      (subtype_restr_symm_trans_subtype_restr s (chart_at H x) (chart_at H x')),
     apply closed_under_restriction',
     { exact G.compatible (chart_mem_atlas H x) (chart_mem_atlas H x') },
     { exact preimage_open_of_open_symm (chart_at H x) s.2 },
@@ -889,7 +890,8 @@ def structomorph.symm (e : structomorph G M M') : structomorph G M' M :=
   ..e.to_homeomorph.symm}
 
 /-- The composition of structomorphisms is a structomorphism -/
-def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') : structomorph G M M'' :=
+def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') :
+  structomorph G M M'' :=
 { mem_groupoid := begin
     /- Let c and c' be two charts in M and M''. We want to show that e' ∘ e is smooth in these
     charts, around any point x. For this, let y = e (c⁻¹ x), and consider a chart g around y.

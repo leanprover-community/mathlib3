@@ -65,7 +65,6 @@ attribute [instance] Module.is_add_comm_group Module.is_module
 
 namespace Module
 
--- TODO revisit this after #1438 merges, to check coercions and instances are handled consistently
 instance : has_coe_to_sort (Module.{v} R) :=
 { S := Type v, coe := Module.carrier }
 
@@ -120,6 +119,8 @@ variables {R} {M N U : Module.{v} R}
 
 @[simp] lemma coe_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g ∘ f := rfl
+
+lemma comp_def (f : M ⟶ N) (g : N ⟶ U) : f ≫ g = g.comp f := rfl
 
 end Module
 

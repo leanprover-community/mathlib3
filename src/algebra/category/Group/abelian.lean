@@ -39,7 +39,7 @@ end
 
 /-- The category of abelian groups is abelian. -/
 instance : abelian AddCommGroup :=
-{ has_finite_products := by { dsimp [has_finite_products], apply_instance },
+{ has_finite_products := ⟨by apply_instance⟩,
   normal_mono := λ X Y, normal_mono,
   normal_epi := λ X Y, normal_epi }
 

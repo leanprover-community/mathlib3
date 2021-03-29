@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.ring
-import topology.continuous_function.algebra
 import ring_theory.subring
 import group_theory.archimedean
 /-!
@@ -284,11 +283,6 @@ eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc
   (compact_Icc.image_of_continuous_on h)
 
 end
-
-instance reals_semimodule : has_continuous_smul ℝ ℝ := ⟨continuous_mul⟩
-
-instance real_maps_algebra {α : Type*} [topological_space α] :
-  algebra ℝ C(α, ℝ) := continuous_map_algebra
 
 section subgroups
 

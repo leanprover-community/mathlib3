@@ -39,6 +39,17 @@ variables [fintype α]
   application of the permutation. -/
 def is_cycle (f : perm β) : Prop := ∃ x, f x ≠ x ∧ ∀ y, f y ≠ y → ∃ i : ℤ, (f ^ i) x = y
 
+lemma is_cycle.ne_one {f : perm β} (h : is_cycle f) : f ≠ 1 :=
+begin
+  contrapose! h,
+  rw h,
+  simp [is_cycle],
+end
+
+lemma is_cycle.two_le_card_support {f : perm α} (h : is_cycle f) :
+  2 ≤ f.support.card :=
+two_le_card_support_of_ne_one h.ne_one
+
 lemma is_cycle.swap {α : Type*} [decidable_eq α] {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=
 ⟨y, by rwa swap_apply_right,
   λ a (ha : ite (a = x) y (ite (a = y) x a) ≠ a),
@@ -341,30 +352,26 @@ noncomputable def cycle_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 
+/-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`,
+  without a linear order. -/
+noncomputable def trunc_cycle_factors [fintype α] (f : perm α) :
+  trunc {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
+quotient.rec_on_subsingleton (@univ α _).1
+  (λ l h, trunc.mk (cycle_factors_aux l f h))
+  (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
+
 section fixed_points
 
 /-!
 ### Fixed points
 -/
 
-lemma one_lt_nonfixed_point_card_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
-  1 < (filter (λ x, σ x ≠ x) univ).card :=
-begin
-  rw one_lt_card_iff,
-  contrapose! h,
-  ext x,
-  dsimp,
-  have := h (σ x) x,
-  contrapose! this,
-  simpa,
-end
-
 lemma fixed_point_card_lt_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
   (filter (λ x, σ x = x) univ).card < fintype.card α - 1 :=
 begin
   rw [nat.lt_sub_left_iff_add_lt, ← nat.lt_sub_right_iff_add_lt, ← finset.card_compl,
     finset.compl_filter],
-  exact one_lt_nonfixed_point_card_of_ne_one h
+  exact one_lt_card_support_of_ne_one h
 end
 
 end fixed_points

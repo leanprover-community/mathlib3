@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Yury Kudryashov
 -/
 import data.equiv.basic
 import algebra.group.defs
@@ -13,25 +13,33 @@ import logic.embedding
 
 This file defines a hierarchy of group action type-classes:
 
-* `has_scalar α β`
-* `mul_action α β`
-* `distrib_mul_action α β`
+* `has_scalar M α` and its additive version `has_vadd G P` are notation typeclasses for
+  `•` and `+ᵥ`, respectively;
+* `mul_action M α` and its additive version `add_action G P` are typeclasses used for
+  actions of multiplicative and additive monoids and groups;
+* `distrib_mul_action M A` is a typeclass for an action of a multiplicative monoid on
+  an additive monoid such that `a • (b + c) = a • b + a • c` and `a • 0 = 0`.
 
 The hierarchy is extended further by `semimodule`, defined elsewhere.
 
 Also provided are type-classes regarding the interaction of different group actions,
 
-* `smul_comm_class M N α`
-* `is_scalar_tower M N α`
+* `smul_comm_class M N α` and its additive version `vadd_comm_class M N α`;
+* `is_scalar_tower M N α` (no additive version).
 
 ## Notation
 
-`a • b` is used as notation for `smul a b`.
+- `a • b` is used as notation for `has_scalar.smul a b`.
+- `a +ᵥ b` is used as notation for `has_vadd.vadd a b`.
 
 ## Implementation details
 
 This file should avoid depending on other parts of `group_theory`, to avoid import cycles.
 More sophisticated lemmas belong in `group_theory.group_action`.
+
+## Tags
+
+group action
 -/
 
 variables {M N G A B α β γ : Type*}
@@ -93,6 +101,10 @@ would cause a loop in the instance search graph. -/
 @[to_additive] lemma smul_comm_class.symm (M N α : Type*) [has_scalar M α] [has_scalar N α]
   [smul_comm_class M N α] : smul_comm_class N M α :=
 ⟨λ a' a b, (smul_comm a a' b).symm⟩
+
+/-- Commutativity of additive actions is a symmetric relation. This lemma can't be an instance
+because this would cause a loop in the instance search graph. -/
+add_decl_doc vadd_comm_class.symm
 
 @[to_additive] instance smul_comm_class_self (M α : Type*) [comm_monoid M] [mul_action M α] :
   smul_comm_class M M α :=

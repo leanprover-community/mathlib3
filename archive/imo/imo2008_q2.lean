@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Manuel Candales. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Manuel Candales.
+Authors: Manuel Candales
 -/
 import data.real.basic
 
@@ -9,7 +9,7 @@ import data.real.basic
 # IMO 2008 Q2
 (a) Prove that
           ```x^2 / (x-1)^2 + y^2 / (y-1)^2 + z^2 / (z-1)^2 ≥ 1```
-    for all real numbers x, y, z, each different from 1, and satisfying xyz = 1.
+for all real numbers x, y, z, each different from 1, and satisfying xyz = 1.
 
 (b) Prove that equality holds above for infinitely many triples of rational numbers x, y, z, each
 different from 1, and satisfying xyz = 1.
@@ -74,4 +74,9 @@ begin
         by { exact pow_two_nonneg _ },
 
   linarith [key],
+end
+
+theorem imo2008_q2_b : set.infinite {(x, y, z) | x ≠ 1 ∧ y ≠ 1 ∧ z ≠ 1} :=
+begin
+  sorry
 end

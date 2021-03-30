@@ -226,6 +226,15 @@ lemma has_image.uniq
   l = image.lift F' :=
 (cancel_mono F'.m).1 (by simp [w])
 
+/-- If `has_image g`, then `has_image (f ≫ g)` when `f` is an isomorphism. -/
+instance {X Y Z : C} (f : X ⟶ Y) [is_iso f] (g : Y ⟶ Z) [has_image g] : has_image (f ≫ g) :=
+{ exists_image := ⟨{
+  F :=
+  { I := image g,
+    m := image.ι g,
+    e := f ≫ factor_thru_image g, },
+  is_image := { lift := λ F', image.lift { I := F'.I, m := F'.m, e := inv f ≫ F'.e, }, }, }⟩ }
+
 end
 
 section
@@ -314,9 +323,9 @@ image.lift
   e := factor_thru_image f', }.
 
 instance (h : f = f') : is_iso (image.eq_to_hom h) :=
-⟨image.eq_to_hom h.symm,
+⟨⟨image.eq_to_hom h.symm,
   ⟨(cancel_mono (image.ι f)).1 (by simp [image.eq_to_hom]),
-   (cancel_mono (image.ι f')).1 (by simp [image.eq_to_hom])⟩⟩
+   (cancel_mono (image.ι f')).1 (by simp [image.eq_to_hom])⟩⟩⟩
 
 /-- An equation between morphisms gives an isomorphism between the images. -/
 def image.eq_to_iso (h : f = f') : image f ≅ image f' := as_iso (image.eq_to_hom h)
@@ -340,6 +349,11 @@ image.lift
 { I := image g,
   m := image.ι g,
   e := f ≫ factor_thru_image g }
+
+@[simp, reassoc]
+lemma image.pre_comp_ι [has_image g] [has_image (f ≫ g)] :
+  image.pre_comp f g ≫ image.ι g = image.ι (f ≫ g) :=
+by simp [image.pre_comp]
 
 @[simp, reassoc]
 lemma image.factor_thru_image_pre_comp [has_image g] [has_image (f ≫ g)] :
@@ -368,13 +382,13 @@ variables [has_equalizers C]
 `image.pre_comp f g` is an isomorphism when `f` is an isomorphism
 (we need `C` to have equalizers to prove this).
 -/
-instance image.is_iso_precomp_iso (f : X ≅ Y) [has_image g] [has_image (f.hom ≫ g)] :
-  is_iso (image.pre_comp f.hom g) :=
-⟨image.lift
-  { I := image (f.hom ≫ g),
-    m := image.ι (f.hom ≫ g),
-    e := f.inv ≫ factor_thru_image (f.hom ≫ g) },
-  ⟨by { ext, simp [image.pre_comp], }, by { ext, simp [image.pre_comp], }⟩⟩
+instance image.is_iso_precomp_iso (f : X ⟶ Y) [is_iso f] [has_image g] [has_image (f ≫ g)] :
+  is_iso (image.pre_comp f g) :=
+⟨⟨image.lift
+  { I := image (f ≫ g),
+    m := image.ι (f ≫ g),
+    e := inv f ≫ factor_thru_image (f ≫ g) },
+  ⟨by { ext, simp [image.pre_comp], }, by { ext, simp [image.pre_comp], }⟩⟩⟩
 
 -- Note that in general we don't have the other comparison map you might expect
 -- `image f ⟶ image (f ≫ g)`.

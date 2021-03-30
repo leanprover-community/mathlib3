@@ -86,9 +86,11 @@ def sheaf_condition_equiv_of_iso {F G : presheaf C X} (α : F ≅ G) :
   sheaf_condition F ≃ sheaf_condition G :=
 equiv_of_subsingleton_of_subsingleton
 (λ c ι U, is_limit.of_iso_limit
-  ((is_limit.postcompose_inv_equiv _ _).symm (c U)) (sheaf_condition_equalizer_products.fork.iso_of_iso U α.symm).symm)
+  ((is_limit.postcompose_inv_equiv _ _).symm (c U))
+    (sheaf_condition_equalizer_products.fork.iso_of_iso U α.symm).symm)
 (λ c ι U, is_limit.of_iso_limit
-  ((is_limit.postcompose_inv_equiv _ _).symm (c U)) (sheaf_condition_equalizer_products.fork.iso_of_iso U α).symm)
+  ((is_limit.postcompose_inv_equiv _ _).symm (c U))
+    (sheaf_condition_equalizer_products.fork.iso_of_iso U α).symm)
 
 end presheaf
 

@@ -23,7 +23,9 @@ This file defines the order of an element of a finite group. For a finite group 
 
 ## Main statements
 
-`is_cyclic_of_prime_card` proves that a finite group of prime order is cyclic.
+* `is_cyclic_of_prime_card` proves that a finite group of prime order is cyclic.
+* `is_simple_group_of_prime_card`, `is_simple_group.is_cyclic`,
+  and `is_simple_group.prime_card` classify finite simple abelian groups.
 
 ## Implementation details
 
@@ -208,14 +210,33 @@ lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
 
 lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
   (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
-(hp.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
+(hp.out.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
+
+lemma order_of_eq_order_of_iff {β : Type*} [monoid β] {b : β} :
+  order_of a = order_of b ↔ ∀ n : ℕ, a ^ n = 1 ↔ b ^ n = 1 :=
+begin
+  simp_rw ← order_of_dvd_iff_pow_eq_one,
+  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
+end
+
+lemma order_of_injective {G H : Type*} [monoid G] [monoid H] (f : G →* H)
+  (hf : function.injective f) (σ : G) : order_of (f σ) = order_of σ :=
+by simp_rw [order_of_eq_order_of_iff, ←f.map_pow, ←f.map_one, hf.eq_iff, iff_self, forall_const]
+
+@[simp, norm_cast] lemma order_of_submonoid {G : Type*} [monoid G] {H : submonoid G} (σ : H) :
+  order_of (σ : G) = order_of σ :=
+order_of_injective H.subtype subtype.coe_injective σ
+
+@[simp, norm_cast] lemma order_of_subgroup {G : Type*} [group G] {H : subgroup G} (σ : H) :
+  order_of (σ : G) = order_of σ :=
+order_of_injective H.subtype subtype.coe_injective σ
 
 open nat
 
 -- An example on how to determine the order of an element of a finite group.
 example : order_of (-1 : units ℤ) = 2 :=
 begin
-  haveI : fact (prime 2) := prime_two,
+  haveI : fact (prime 2) := ⟨prime_two⟩,
   exact order_of_eq_prime (by { rw pow_two, simp }) (dec_trivial)
 end
 
@@ -520,6 +541,10 @@ open subgroup
 class is_cyclic (α : Type u) [group α] : Prop :=
 (exists_generator [] : ∃ g : α, ∀ x, x ∈ gpowers g)
 
+@[priority 100]
+instance is_cyclic_of_subsingleton [group α] [subsingleton α] : is_cyclic α :=
+⟨⟨1, λ x, by { rw subsingleton.elim x 1, exact mem_gpowers 1 }⟩⟩
+
 /-- A cyclic group is always commutative. This is not an `instance` because often we have a better
 proof of `comm_group`. -/
 def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
@@ -558,12 +583,12 @@ lemma is_cyclic_of_prime_card {α : Type u} [group α] [fintype α] {p : ℕ} [h
   (h : fintype.card α = p) : is_cyclic α :=
 ⟨begin
   obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1,
-  from fintype.exists_ne_of_one_lt_card (by { rw h, exact nat.prime.one_lt hp }) 1,
+  from fintype.exists_ne_of_one_lt_card (by { rw h, exact hp.1.one_lt }) 1,
   classical, -- for fintype (subgroup.gpowers g)
   have : fintype.card (subgroup.gpowers g) ∣ p,
   { rw ←h,
     apply card_subgroup_dvd_card },
-  rw nat.dvd_prime hp at this,
+  rw nat.dvd_prime hp.1 at this,
   cases this,
   { rw fintype.card_eq_one_iff at this,
     cases this with t ht,
@@ -807,4 +832,81 @@ begin
   apply card_order_of_eq_totient_aux₂ (λ n, is_cyclic.card_pow_eq_one_le) hd
 end
 
+/-- A finite group of prime order is simple. -/
+lemma is_simple_group_of_prime_card {α : Type u} [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
+  (h : fintype.card α = p) : is_simple_group α :=
+⟨begin
+  have h' := nat.prime.one_lt (fact.out p.prime),
+  rw ← h at h',
+  haveI := fintype.one_lt_card_iff_nontrivial.1 h',
+  apply exists_pair_ne α,
+end, λ H Hn, begin
+  classical,
+  have hcard := card_subgroup_dvd_card H,
+  rw [h, dvd_prime (fact.out p.prime)] at hcard,
+  refine hcard.imp (λ h1, _) (λ hp, _),
+  { haveI := fintype.card_le_one_iff_subsingleton.1 (le_of_eq h1),
+    apply eq_bot_of_subsingleton },
+  { exact eq_top_of_card_eq _ (hp.trans h.symm) }
+end⟩
+
 end cyclic
+
+namespace is_simple_group
+
+section comm_group
+variables [comm_group α] [is_simple_group α]
+
+@[priority 100]
+instance : is_cyclic α :=
+begin
+  cases subsingleton_or_nontrivial α with hi hi; haveI := hi,
+  { apply is_cyclic_of_subsingleton },
+  { obtain ⟨g, hg⟩ := exists_ne (1 : α),
+    refine ⟨⟨g, λ x, _⟩⟩,
+    cases is_simple_lattice.eq_bot_or_eq_top (subgroup.gpowers g) with hb ht,
+    { exfalso,
+      apply hg,
+      rw [← subgroup.mem_bot, ← hb],
+      apply subgroup.mem_gpowers },
+    { rw ht,
+      apply subgroup.mem_top } }
+end
+
+theorem prime_card [fintype α] : (fintype.card α).prime :=
+begin
+  have h0 : 0 < fintype.card α := fintype.card_pos_iff.2 (by apply_instance),
+  obtain ⟨g, hg⟩ := is_cyclic.exists_generator α,
+  refine ⟨fintype.one_lt_card_iff_nontrivial.2 infer_instance, λ n hn, _⟩,
+  refine (is_simple_lattice.eq_bot_or_eq_top (subgroup.gpowers (g ^ n))).symm.imp _ _,
+  { intro h,
+    have hgo := order_of_pow g,
+    rw [order_of_eq_card_of_forall_mem_gpowers hg, nat.gcd_eq_right_iff_dvd.1 hn,
+      order_of_eq_card_of_forall_mem_gpowers, eq_comm,
+      nat.div_eq_iff_eq_mul_left (nat.pos_of_dvd_of_pos hn h0) hn] at hgo,
+    { exact (mul_left_cancel' (ne_of_gt h0) ((mul_one (fintype.card α)).trans hgo)).symm },
+    { intro x,
+      rw h,
+      exact subgroup.mem_top _ } },
+  { intro h,
+    apply le_antisymm (nat.le_of_dvd h0 hn),
+    rw ← order_of_eq_card_of_forall_mem_gpowers hg,
+    apply order_of_le_of_pow_eq_one (nat.pos_of_dvd_of_pos hn h0),
+    rw [← subgroup.mem_bot, ← h],
+    exact subgroup.mem_gpowers _ }
+end
+
+end comm_group
+
+end is_simple_group
+
+theorem comm_group.is_simple_iff_is_cyclic_and_prime_card [fintype α] [comm_group α] :
+  is_simple_group α ↔ is_cyclic α ∧ (fintype.card α).prime :=
+begin
+  split,
+  { introI h,
+    exact ⟨is_simple_group.is_cyclic, is_simple_group.prime_card⟩ },
+  { rintro ⟨hc, hp⟩,
+    haveI : fact (fintype.card α).prime := ⟨hp⟩,
+    exact is_simple_group_of_prime_card rfl }
+end

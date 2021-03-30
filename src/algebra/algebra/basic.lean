@@ -1480,7 +1480,7 @@ variables (R S M)
 
 lemma restrict_scalars_injective :
   function.injective (restrict_scalars R : submodule S M → submodule R M) :=
-λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (ext'_iff.1 h); refl
+λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (set_like.ext'_iff.1 h); refl
 
 @[simp] lemma restrict_scalars_inj {V₁ V₂ : submodule S M} :
   restrict_scalars R V₁ = restrict_scalars R V₂ ↔ V₁ = V₂ :=

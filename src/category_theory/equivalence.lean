@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.fully_faithful
+import category_theory.full_subcategory
 import category_theory.whiskering
 import category_theory.essential_image
 import tactic.slice
@@ -537,6 +538,13 @@ is_equivalence.mk (equivalence_inverse F)
 @[simp] lemma inverse_map_inj_iff (e : C ≌ D) {X Y : D} (f g : X ⟶ Y) :
   e.inverse.map f = e.inverse.map g ↔ f = g :=
 functor_map_inj_iff e.symm f g
+
+instance ess_surj_induced_functor {C' : Type*} (e : C' ≃ D) : ess_surj (induced_functor e) :=
+{ mem_ess_image := λ Y, ⟨e.symm Y, by simp⟩, }
+
+noncomputable
+instance induced_functor_of_equiv {C' : Type*} (e : C' ≃ D) : is_equivalence (induced_functor e) :=
+equivalence_of_fully_faithfully_ess_surj _
 
 end equivalence
 

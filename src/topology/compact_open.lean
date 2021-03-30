@@ -201,4 +201,22 @@ variables [topological_space α] [topological_space β] [topological_space γ]
 def curry [locally_compact_space α] [locally_compact_space β] : C(α × β, γ) ≃ₜ C(α, C(β, γ)) :=
 ⟨⟨curry, uncurry, by tidy, by tidy⟩, continuous_curry, continuous_uncurry⟩
 
+/-- If `α` has a single element, then `β` is homeomorphic to `C(α, β)`. -/
+def continuous_map_of_unique [unique α] : β ≃ₜ C(α, β) :=
+{ to_fun := continuous_map.induced continuous_fst ∘ coev α β,
+  inv_fun := ev α β ∘ (λ f, (f, default α)),
+  left_inv := λ a, rfl,
+  right_inv := λ f, by { ext, rw unique.eq_default x, refl },
+  continuous_to_fun := continuous.comp (continuous_induced _) continuous_coev,
+  continuous_inv_fun :=
+    continuous.comp continuous_ev (continuous.prod_mk continuous_id continuous_const) }
+
+@[simp] lemma continuous_map_of_unique_apply [unique α] (b : β) (a : α) :
+  continuous_map_of_unique b a = b :=
+rfl
+
+@[simp] lemma continuous_map_of_unique_symm_apply [unique α] (f : C(α, β)) :
+  continuous_map_of_unique.symm f = f (default α) :=
+rfl
+
 end homeomorph

@@ -302,3 +302,32 @@ solvable_of_ker_le_range (monoid_hom.inl G G') (monoid_hom.snd G G')
   (λ x hx, ⟨x.1, prod.ext rfl hx.symm⟩)
 
 end solvable
+
+section is_simple_group
+
+variable [is_simple_group G]
+
+lemma is_simple_group.derived_series_succ {n : ℕ} : derived_series G n.succ = commutator G :=
+begin
+  induction n with n ih,
+  { exact derived_series_one _ },
+  rw [derived_series_succ, ih],
+  cases (commutator.normal G).eq_bot_or_eq_top with h h; simp [h]
+end
+
+lemma is_simple_group.comm_iff_is_solvable :
+  (∀ a b : G, a * b = b * a) ↔ is_solvable G :=
+⟨is_solvable_of_comm, λ ⟨⟨n, hn⟩⟩, begin
+  cases n,
+  { rw derived_series_zero at hn,
+    intros a b,
+    refine (mem_bot.1 _).trans (mem_bot.1 _).symm;
+    { rw ← hn,
+      exact mem_top _ } },
+  { rw is_simple_group.derived_series_succ at hn,
+    intros a b,
+    rw [← mul_inv_eq_one, mul_inv_rev, ← mul_assoc, ← mem_bot, ← hn],
+    exact subset_normal_closure ⟨a, b, rfl⟩ }
+end⟩
+
+end is_simple_group

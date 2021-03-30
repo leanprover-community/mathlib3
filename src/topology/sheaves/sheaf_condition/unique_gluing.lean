@@ -106,7 +106,6 @@ end
 /--
 The subtype of all gluings for a given family of sections
 -/
-@[nolint has_inhabited_instance]
 def gluing (sf : Π i : ι, F.obj (op (U i))) : Type u :=
   {s : F.obj (op (supr U)) // is_gluing F U sf s}
 
@@ -117,17 +116,13 @@ compatible family of sections `sf : Π i : ι, F.obj (op (U i))`, there exists a
 gluing `s : F.obj (op (supr U))`.
 
 We prove this to be equivalent to the usual one below in
-`sheaf_condition_equiv_sheaf_condition_unique_gluing`
+`sheaf_condition_equiv_sheaf_condition_pairwise_intersections`
 -/
 @[derive subsingleton, nolint has_inhabited_instance]
 def sheaf_condition_unique_gluing : Type (u+1) :=
   Π ⦃ι : Type u⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),
     is_compatible F U sf → unique (gluing F U sf)
 
-/--
-The "equalizer" sheaf condition can be obtained from the sheaf condition
-in terms of unique gluings
--/
 def sheaf_condition_of_sheaf_condition_unique_gluing :
   F.sheaf_condition_unique_gluing → F.sheaf_condition := λ Fsh ι U,
 begin
@@ -148,10 +143,6 @@ begin
     exact congr_fun hm x },
 end
 
-/--
-The sheaf condition in terms of unique gluings can be obtained from the usual
-"equalizer" sheaf condition
--/
 def sheaf_condition_unique_gluing_of_sheaf_condition :
   F.sheaf_condition → F.sheaf_condition_unique_gluing := λ Fsh ι U sf hsf,
 { default := begin
@@ -192,7 +183,51 @@ equiv_of_subsingleton_of_subsingleton
   F.sheaf_condition_unique_gluing_of_sheaf_condition
   F.sheaf_condition_of_sheaf_condition_unique_gluing
 
+/--
+A slightly more convenient way of obtaining the sheaf condition for type-valued sheaves
+-/
+def sheaf_condition_of_exists_unique_gluing
+  (h : ∀ ⦃ι : Type u⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),
+        is_compatible F U sf → ∃! s : F.obj (op (supr U)), is_gluing F U sf s) :
+  F.sheaf_condition :=
+sheaf_condition_of_sheaf_condition_unique_gluing F $ λ ι U sf hsf,
+{ default := by {
+    choose gl gl_spec gl_uniq using h U sf hsf,
+    exact ⟨gl, gl_spec⟩,
+  },
+  uniq := by {
+    intro s,
+    let t : F.gluing U sf := _,
+    change s = t,
+    ext,
+    choose gl gl_spec gl_uniq using h U sf hsf,
+    refine eq.trans (gl_uniq s.1 _) (gl_uniq t.1 _).symm,
+    { exact s.2 },
+    { exact t.2 }
+  },
+}
 
 end presheaf
+
+
+namespace sheaf
+open presheaf
+
+variables {X : Top.{u}} (F : sheaf (Type u) X) {ι : Type u} (U : ι → opens X)
+
+/--
+A more convenient way of obtaining a unique gluing of sections for a sheaf
+-/
+def exists_unique_gluing (sf : Π i : ι, F.presheaf.obj (op (U i)))
+ (hsf : is_compatible F.presheaf U sf) :
+ ∃! s : F.presheaf.obj (op (supr U)), is_gluing F.presheaf U sf s  :=
+begin
+  have := (sheaf_condition_unique_gluing_of_sheaf_condition _ F.sheaf_condition U sf hsf),
+  refine ⟨this.default.1,this.default.2,_⟩,
+  intros s hs,
+  exact congr_arg subtype.val (this.uniq ⟨s,hs⟩),
+end
+
+end sheaf
 
 end Top

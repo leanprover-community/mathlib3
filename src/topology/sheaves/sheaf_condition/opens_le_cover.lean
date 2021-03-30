@@ -134,7 +134,7 @@ def pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover U :=
   map := λ V W i, pairwise_to_opens_le_cover_map U i, }
 
 instance (V : opens_le_cover U) :
-  nonempty (comma (functor.from_punit V) (pairwise_to_opens_le_cover U)) :=
+  nonempty (structured_arrow V (pairwise_to_opens_le_cover U)) :=
 ⟨{ right := single (V.index), hom := V.hom_to_index }⟩
 
 /--

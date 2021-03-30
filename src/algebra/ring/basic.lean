@@ -175,8 +175,14 @@ lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
   set.range (λ x : α, 2 * x) = {a | even a} :=
 by { ext x, simp [even, eq_comm] }
 
+@[simp] lemma even_bit0 (a : α) : even (bit0 a) :=
+⟨a, by rw [bit0, two_mul]⟩
+
 /-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
 def odd (a : α) : Prop := ∃ k, a = 2*k + 1
+
+@[simp] lemma odd_bit1 (a : α) : odd (bit1 a) :=
+⟨a, by rw [bit1, bit0, two_mul]⟩
 
 @[simp] lemma range_two_mul_add_one (α : Type*) [semiring α] :
   set.range (λ x : α, 2 * x + 1) = {a | odd a} :=
@@ -915,8 +921,8 @@ noncomputable def inverse : M₀ → M₀ :=
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
 @[simp] lemma inverse_unit (u : units M₀) : inverse (u : M₀) = (u⁻¹ : units M₀) :=
 begin
-  simp only [is_unit_unit, inverse, dif_pos],
-  exact units.inv_unique (classical.some_spec (is_unit_unit u))
+  simp only [units.is_unit, inverse, dif_pos],
+  exact units.inv_unique (classical.some_spec u.is_unit)
 end
 
 /-- By definition, if `x` is not invertible then `inverse x = 0`. -/

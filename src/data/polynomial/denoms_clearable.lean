@@ -94,5 +94,5 @@ begin
   rw [eq_one_div_of_mul_eq_one_left bu, F0, one_div, eq_int_cast, int.cast_zero, zero_eq_mul] at hF,
   cases hF with hF hF,
   { exact (not_le.mpr b0 (le_of_eq (int.cast_eq_zero.mp (pow_eq_zero hF)))).elim },
-  { exact hF }
+  { rwa div_eq_mul_inv }
 end

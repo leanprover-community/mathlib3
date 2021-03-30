@@ -55,7 +55,7 @@ begin
   simp,	rw mul_comm, refl,
 end
 
-/- We refrase the original question into a question about `d a`. -/
+/- We rephrase the original question into a question about `d a`. -/
 lemma ineq_iff {n : ℕ+} :
   (a n : ℚ) < (↑∑ i : fin (n + 1), a i : ℚ) / n ∧
   (↑∑ i : fin (n + 1), a i : ℚ) / n ≤ a (n + 1)

@@ -222,54 +222,31 @@ lemma kernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (kernel.ι f)) → false
 
 instance has_kernel_comp_mono {X Y Z : C} (f : X ⟶ Y) [has_kernel f] (g : Y ⟶ Z) [mono g] :
   has_kernel (f ≫ g) :=
-{ exists_limit := ⟨{
-  cone := kernel_fork.of_ι (kernel.ι f) (by simp),
-  is_limit := is_limit_aux _ (λ s, kernel.lift _ s.ι ((cancel_mono g).mp (by simp)))
-    (by tidy) (by tidy)
-}⟩ }
+{ exists_limit :=
+  ⟨{ cone := kernel_fork.of_ι (kernel.ι f) (by simp),
+     is_limit := is_limit_aux _ (λ s, kernel.lift _ s.ι ((cancel_mono g).mp (by simp)))
+      (by tidy) (by tidy) }⟩ }
 
 /--
 When `g` is an monomorphism, the kernel of `f ≫ g` is isomorphic to the kernel of `f`.
 -/
+@[simps]
 def kernel_comp_mono {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [has_kernel f] [mono g] :
   kernel (f ≫ g) ≅ kernel f :=
 { hom := kernel.lift _ (kernel.ι _) (by { rw [←cancel_mono g], simp, }),
   inv := kernel.lift _ (kernel.ι _) (by simp), }
-
-@[simp]
-lemma kernel_comp_mono_hom_comp_kernel_ι {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
-  [has_kernel f] [mono g] :
-  (kernel_comp_mono f g).hom ≫ kernel.ι f = kernel.ι (f ≫ g) :=
-by simp [kernel_comp_mono]
-
-@[simp]
-lemma kernel_comp_mono_inv_comp_kernel_ι {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
-  [has_kernel f] [is_iso g] :
-  (kernel_comp_mono f g).inv ≫ kernel.ι (f ≫ g) = kernel.ι f :=
-by simp [kernel_comp_mono]
 
 -- TODO provide an instance `[has_kernel (f ≫ g)]` from `[is_iso f] [has_kernel g]`
 
 /--
 When `f` is an isomorphism, the kernel of `f ≫ g` is isomorphic to the kernel of `g`.
 -/
+@[simps]
 def kernel_is_iso_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_kernel (f ≫ g)] [is_iso f] [has_kernel g] :
   kernel (f ≫ g) ≅ kernel g :=
 { hom := kernel.lift _ (kernel.ι _ ≫ f) (by simp),
   inv := kernel.lift _ (kernel.ι _ ≫ inv f) (by simp), }
-
-@[simp]
-lemma kernel_is_iso_comp_hom_comp_kernel_ι {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
-  [has_kernel (f ≫ g)] [is_iso f] [has_kernel g] :
-  (kernel_is_iso_comp f g).hom ≫ kernel.ι g = kernel.ι (f ≫ g) ≫ f :=
-by simp [kernel_is_iso_comp]
-
-@[simp]
-lemma kernel_is_iso_comp_inv_comp_kernel_ι {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
-  [has_kernel (f ≫ g)] [is_iso f] [has_kernel g] :
-  (kernel_is_iso_comp f g).inv ≫ kernel.ι (f ≫ g) = kernel.ι g ≫ (inv f) :=
-by simp [kernel_is_iso_comp]
 
 end
 
@@ -498,53 +475,30 @@ lemma cokernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (cokernel.π f)) → f
 /--
 When `g` is an isomorphism, the cokernel of `f ≫ g` is isomorphic to the cokernel of `f`.
 -/
+@[simps]
 def cokernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_cokernel (f ≫ g)] [has_cokernel f] [is_iso g] :
   cokernel (f ≫ g) ≅ cokernel f :=
 { hom := cokernel.desc _ (inv g ≫ cokernel.π f) (by simp),
   inv := cokernel.desc _ (g ≫ cokernel.π (f ≫ g)) (by rw [←category.assoc, cokernel.condition]), }
 
-@[simp]
-lemma cokernel_π_comp_cokernel_comp_is_iso_hom {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
-  [has_cokernel (f ≫ g)] [has_cokernel f] [is_iso g] :
-  cokernel.π (f ≫ g) ≫ (cokernel_comp_is_iso f g).hom = inv g ≫ cokernel.π f :=
-by simp [cokernel_comp_is_iso]
-
-@[simp]
-lemma cokernel_π_comp_cokernel_comp_is_iso_inv {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
-  [has_cokernel (f ≫ g)] [has_cokernel f] [is_iso g] :
-  cokernel.π f ≫ (cokernel_comp_is_iso f g).inv = g ≫ cokernel.π (f ≫ g) :=
-by simp [cokernel_comp_is_iso]
-
 instance has_cokernel_epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [has_cokernel g] :
   has_cokernel (f ≫ g) :=
-{ exists_colimit := ⟨{
-  cocone := cokernel_cofork.of_π (cokernel.π g) (by simp),
-  is_colimit := is_colimit_aux _
-    (λ s, cokernel.desc _ s.π ((cancel_epi f).mp (by { rw ← category.assoc, simp })))
-    (by tidy) (by tidy)
-}⟩ }
+{ exists_colimit :=
+  ⟨{ cocone := cokernel_cofork.of_π (cokernel.π g) (by simp),
+     is_colimit := is_colimit_aux _
+      (λ s, cokernel.desc _ s.π ((cancel_epi f).mp (by { rw ← category.assoc, simp })))
+      (by tidy) (by tidy) }⟩ }
 
 /--
 When `f` is an epimorphism, the cokernel of `f ≫ g` is isomorphic to the cokernel of `g`.
 -/
+@[simps]
 def cokernel_epi_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [epi f] [has_cokernel g] :
   cokernel (f ≫ g) ≅ cokernel g :=
 { hom := cokernel.desc _ (cokernel.π g) (by simp),
   inv := cokernel.desc _ (cokernel.π (f ≫ g)) (by { rw [←cancel_epi f, ←category.assoc], simp, }), }
-
-@[simp]
-lemma cokernel_π_comp_cokernel_epi_comp_hom {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
-  [epi f] [has_cokernel g] :
-  cokernel.π (f ≫ g) ≫ (cokernel_epi_comp f g).hom = cokernel.π g :=
-by simp [cokernel_epi_comp]
-
-@[simp]
-lemma cokernel_π_comp_cokernel_epi_comp_inv {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
-  [epi f] [has_cokernel g] :
-  cokernel.π g ≫ (cokernel_epi_comp f g).inv = cokernel.π (f ≫ g) :=
-by simp [cokernel_epi_comp]
 
 end
 

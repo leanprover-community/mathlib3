@@ -10,11 +10,45 @@ import analysis.convex.topology
 
 open_locale classical affine big_operators
 open set
-variables {m n : ℕ}
+variables {m n : ℕ} {α : Type}
 /-
 MATHLIB DEPARTURE ZONE
 A few PRs to be done
 -/
+
+--Are those two in mathlib?
+lemma finset.ssubset_of_ssubset_of_subset {X Y Z : finset α} (hXY : X ⊂ Y) (hYZ : Y ⊆ Z) : X ⊂ Z :=
+  ⟨subset.trans hXY.1 hYZ, (λ hZX, hXY.2 (subset.trans hYZ hZX))⟩
+lemma finset.ssubset_of_subset_of_ssubset {X Y Z : finset α} (hXY : X ⊆ Y) (hYZ : Y ⊂ Z) : X ⊂ Z :=
+  ⟨subset.trans hXY hYZ.1, (λ hZX, hYZ.2 (subset.trans hZX hXY))⟩
+
+--and this one?
+lemma finset.union_subset_iff {X Y Z : finset α} : X ∪ Y ⊆ Z ↔ X ⊆ Z ∧ Y ⊆ Z :=
+begin
+  split,
+  {
+    rintro hXYZ,
+    split,
+    exact finset.subset.trans (finset.subset_union_left X Y) hXYZ,
+    exact finset.subset.trans (finset.subset_union_right X Y) hXYZ,
+  },
+  rintro ⟨hXZ, hYZ⟩,
+  exact finset.union_subset hXZ hYZ,
+end
+
+lemma finset.subset_inter_iff {α : Type} [decidable_eq α] {s₁ s₂ s₃ : finset α} :
+  s₁ ⊆ s₂ ∩ s₃ ↔ s₁ ⊆ s₂ ∧ s₁ ⊆ s₃ :=
+begin
+  split,
+  {
+    rintro h,
+    split,
+    exact finset.subset.trans h (finset.inter_subset_left _ _),
+    exact finset.subset.trans h (finset.inter_subset_right _ _),
+  },
+  rintro ⟨h₁, h₂⟩,
+  exact finset.subset_inter h₁ h₂,
+end
 
 -- TODO: move to mathlib
 lemma subset_iff_inter_eq_left {ι : Type*} {X Y : finset ι} (h : Y ⊆ X) [decidable_eq ι] :

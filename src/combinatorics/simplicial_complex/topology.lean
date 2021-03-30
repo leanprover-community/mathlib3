@@ -49,7 +49,10 @@ bUnion_subset_bUnion_right (λ x hx, subset_convex_hull x)
 The boundary of a simplex as a subspace.
 -/
 def boundary (X : finset E) : set E :=
-⋃ Y ⊂ X, convex_hull Y
+  ⋃ Y ⊂ X, convex_hull Y
+
+lemma mem_boundary_iff {X : finset E} {x : E} :
+  x ∈ boundary X ↔ ∃ {Y}, Y ⊂ X ∧ x ∈ convex_hull (Y : set E) := sorry
 
 lemma boundary_eq (X : finset E) :
   boundary X =
@@ -252,33 +255,53 @@ end
 /--
 A simplicial complex is locally finite iff each point belongs to finitely many faces.
 -/
-lemma locally_finite_iff_finitely_many_surfaces {S : simplicial_complex m} :
-  S.locally_finite ↔ ∀ {x : fin m → ℝ}, finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set E)} :=
+lemma locally_finite_iff_mem_finitely_many_faces {S : simplicial_complex m} :
+  S.locally_finite ↔ ∀ (x : fin m → ℝ), finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set E)} :=
 begin
   split,
-  {
-    unfold simplicial_complex.locally_finite,
+  { unfold simplicial_complex.locally_finite,
     contrapose!,
     rintro ⟨x, hx⟩,
     by_cases hxspace : x ∈ S.space,
-    {
-      obtain ⟨X, ⟨hX, hxX⟩, hXunique⟩ := combi_interiors_partition hxspace,
+    { obtain ⟨X, ⟨hX, hXhull, hXbound⟩, hXunique⟩ := combi_interiors_partition hxspace,
       simp at hXunique,
       use [X, hX],
+      split,
+      { rintro rfl,
+        simp at hXhull,
+        exact hXhull },
       rintro hXlocallyfinite,
       apply hx,
-      sorry
-    },
-    {
-      exfalso,
+      suffices h : {X : finset (fin m → ℝ) | X ∈ S.faces ∧ x ∈ convex_hull ↑X} ⊆
+        {Y : finset (fin m → ℝ) | Y ∈ S.faces ∧ X ⊆ Y},
+      { exact finite.subset hXlocallyfinite h },
+      rintro Y ⟨hY, hYhull⟩,
+      use hY,
+      have hXYhull := S.disjoint hX hY ⟨hXhull, hYhull⟩,
+      norm_cast at hXYhull,
+      by_contra hXY,
+      apply hXbound,
+      have hYX : X ∩ Y ⊂ X,
+      { use finset.inter_subset_left X Y,
+        rintro hXXY,
+        exact hXY (finset.subset_inter_iff.1 hXXY).2 },
+      exact mem_boundary_iff.2 ⟨X ∩ Y, hYX, hXYhull⟩ },
+    { exfalso,
       apply hx,
-      suffices h : {V : finset E | V ∈ S.faces ∧ x ∈ convex_hull ↑V} = ∅,
-    }
-  },
-  {
-    rintro hS X hX,
-    sorry
-  }
+      suffices h : {X : finset (fin m → ℝ) | X ∈ S.faces ∧ x ∈ convex_hull ↑X} = ∅,
+      { rw h,
+        exact finite_empty },
+      apply eq_empty_of_subset_empty,
+      rintro X ⟨hX, h⟩,
+      exact hxspace (mem_bUnion hX h) }},
+  { rintro hS X hX h,
+    obtain ⟨x, hx⟩ := finset.nonempty_iff_ne_empty.2 h,
+    suffices h : {Y : finset (fin m → ℝ) | Y ∈ S.faces ∧ X ⊆ Y} ⊆
+      {Y : finset (fin m → ℝ) | Y ∈ S.faces ∧ x ∈ convex_hull ↑Y},
+    { exact finite.subset (hS x) h },
+    rintro Y ⟨hY, hXY⟩,
+    use hY,
+    exact subset_convex_hull Y (hXY hx) }
 end
 
 /-
@@ -341,7 +364,7 @@ begin
     sorry --hard?
   },
   {
-    rintro X₁ ⟨Y₁, hY₁, hX₁Y₁, Z₁, ⟨hZ₁, hY₁Z₁⟩, hZ₁max⟩,
+    /-rintro X₁ ⟨Y₁, hY₁, hX₁Y₁, Z₁, ⟨hZ₁, hY₁Z₁⟩, hZ₁max⟩,
     simp at *,
     obtain ⟨X₂, hX₂, hX₁X₂⟩ := hS.2 (S₁.down_closed hY₁ hX₁Y₁),
     obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := hS.2 hY₁,
@@ -350,7 +373,7 @@ begin
     split,
     {
       sorry
-    },
+    },-/
     sorry
   }
 end

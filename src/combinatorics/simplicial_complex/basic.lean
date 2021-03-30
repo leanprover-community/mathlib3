@@ -809,66 +809,38 @@ lemma link_facet_iff {S : simplicial_complex m} {A : set (finset (fin m → ℝ)
 -- X ∈ (S.link A).facets ↔ X ∉ S.facets ∧ (∀ {W}, W ∈ A → disjoint W X) ∧ ∃ {Y W Z}, Y ∈ S.facets ∧
 --   W ∈ A ∧ Z ∈ S.facets ∧ X ∪ W ⊆ Z ∧ ∀ {y}, y ∈ Y → y ∈ X ∨ ∃ {V}, V ∈ A ∧ y ∈ V
 lemma link_facet_iff {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} {n k : ℕ}
-  (hS : S.pure_of n) {X : finset (fin m → ℝ)}
-  (hA : ∀ {V W Y}, V ∈ A → W ∈ A → Y ∈ S.faces → W ⊆ Y → (V ∩ Y : finset _).nonempty → V = W) :
-  X ∈ (S.link A).facets ↔ ∃ {W Y}, W ∈ A ∧ Y ∈ S.facets ∧ W ⊆ Y ∧ X = Y \ W :=
+  {X : finset (fin m → ℝ)} :
+  X ∈ (S.link A).facets ↔ X ∉ S.facets ∧ (∀ {W}, W ∈ A → disjoint W X) ∧ ∃ {W Y Z},
+   W ∈ A ∧ Y ∈ S.facets ∧ Z ∈ S.faces ∧ X ∪ W ⊆ Z ∧ ∀ {y}, y ∈ Y → y ∈ X ∨ ∃ {V}, V ∈ A ∧ y ∈ V :=
 begin
   split,
   {
     rintro ⟨⟨hXdisj, W, Z, hW, hZ, hXZ, hWZ⟩, hXmax⟩,
     obtain ⟨Y, hY, hZY⟩ := subfacet hZ,
-    use [W, Y, hW, hY, subset.trans hWZ hZY],
-    apply hXmax,
+    split,
     {
-      split,
-      {
-        rintro V hV,
-        rw finset.disjoint_iff_inter_eq_empty,
-        by_contra hVYW,
-        change V ∩ (Y \ W) ≠ ∅ at hVYW,
-        obtain ⟨x, hx⟩ := finset.nonempty_iff_ne_empty.2 hVYW,
-        rw [finset.mem_inter, finset.mem_sdiff] at hx,
-        have := hA hV hW (facets_subset hY) (subset.trans hWZ hZY)
-          ⟨x, finset.mem_inter.2 ⟨hx.1, hx.2.1⟩⟩,
-        rw this at hx,
-        exact hx.2.2 hx.1,
-      },
-      { exact ⟨W, Y, hW, facets_subset hY, finset.sdiff_subset_self, subset.trans hWZ hZY⟩ }
+      sorry
     },
     {
-      rintro x hx,
-      rw finset.mem_sdiff,
-      use finset.subset.trans hXZ hZY hx,
-      rintro hxW,
-      have : x ∈ W ∩ X := finset.mem_inter.2 ⟨hxW, hx⟩,
-      rw finset.disjoint_iff_inter_eq_empty.1 (hXdisj hW) at this,
-      exact finset.not_mem_empty x this,
+      use [(λ W, hXdisj), W, Y, Z, hW, hY, hZ, finset.union_subset hXZ hWZ],
+      rintro y hy,
+      sorry
     }
   },
   {
-    rintro ⟨W, Y, hW, hY, hWY, rfl⟩,
+    rintro ⟨stuff, hXdisj, W, Y, Z, hW, hY, hZ, hXYW, hunion⟩,
     split,
     {
-      split,
-      {
-        rintro V hV,
-        rw finset.disjoint_iff_inter_eq_empty,
-        by_contra hVYW,
-        change V ∩ (Y \ W) ≠ ∅ at hVYW,
-        obtain ⟨x, hx⟩ := finset.nonempty_iff_ne_empty.2 hVYW,
-        rw [finset.mem_inter, finset.mem_sdiff] at hx,
-        have := hA hV hW (facets_subset hY) hWY ⟨x, finset.mem_inter.2 ⟨hx.1, hx.2.1⟩⟩,
-        rw this at hx,
-        exact hx.2.2 hx.1,
-      },
-      { exact ⟨W, Y, hW, facets_subset hY, finset.sdiff_subset_self, hWY⟩ }
+      have hXZ : X ⊆ Z := sorry, -- finset.union_subset_iff.1 hXYW
+      have hWZ : W ⊆ Z := sorry, -- finset.union_subset_iff.1 hXYW
+      exact ⟨(λ V, hXdisj), W, Z, hW, hZ, hXZ, hWZ⟩,
     },
     {
-      rintro X ⟨hXdisj, U, V, hU, hV, hXV, hUV⟩ hYWX,
-      apply finset.subset.antisymm hYWX,
-      rintro x hx,
-      have := hA hU hW (facets_subset hY) hWY,
-      rw finset.mem_sdiff,
+      rintro V ⟨hVdisj, U, R, hU, hR, hVR, hUR⟩ hXV,
+      apply finset.subset.antisymm hXV,
+      rintro v hv,
+      /-have := hA hU hW (facets_subset hY) hWY,
+      rw finset.mem_sdiff,-/
       --have := hA hV hW (facets_subset hY) hWY ⟨x, finset.mem_inter.2 ⟨hx.1, hx.2.1⟩⟩,
       sorry
       /-apply finset.eq_of_subset_of_card_le hYWX,
@@ -916,14 +888,10 @@ lemma link_eq_erasure_Star {S : simplicial_complex m} {A : set (finset (fin m �
 begin
   ext X,
   split,
-  {
-    rintro ⟨hXdisj, hXStar⟩,
-    exact ⟨hXStar, (λ W, hXdisj)⟩,
-  },
-  {
-    rintro ⟨hXStar, hXdisj⟩,
-    exact ⟨(λ W, hXdisj), hXStar⟩,
-  }
+  { rintro ⟨hXdisj, hXStar⟩,
+    exact ⟨hXStar, (λ W, hXdisj)⟩ },
+  { rintro ⟨hXStar, hXdisj⟩,
+    exact ⟨(λ W, hXdisj), hXStar⟩ }
 end
 
 lemma erasure_and_closure_star_partition {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} :
@@ -931,15 +899,11 @@ lemma erasure_and_closure_star_partition {S : simplicial_complex m} {A : set (fi
 begin
   ext X,
   split,
-  {
-    rintro hX,
+  { rintro hX,
     by_cases (∀ {W}, W ∈ A → disjoint W X),
-    {
-      left,
-      exact ⟨hX, (λ W, h)⟩,
-    },
-    {
-      right,
+    { left,
+      exact ⟨hX, (λ W, h)⟩ },
+    { right,
       push_neg at h,
       obtain ⟨W, hW, hWX⟩ := h,
       rw finset.disjoint_iff_inter_eq_empty at hWX,
@@ -952,22 +916,24 @@ begin
       exact ⟨S.down_closed hX (subset.trans hx (finset.inter_subset_right W X)), W, hW,
         finset.subset.trans hx (finset.inter_subset_left W X)⟩,
       exact finset.nonempty_iff_ne_empty.1 (finset.singleton_nonempty x),
-      exact finset.subset.trans hx (finset.inter_subset_right W X),
-    }
-  },
-  {
-    rintro (hX | hX);
-    exact hX.1,
-  }
+      exact finset.subset.trans hx (finset.inter_subset_right W X) }},
+  { rintro (hX | hX);
+    exact hX.1, }
 end
 
 
 def simplicial_complex.boundary (S : simplicial_complex m) : simplicial_complex m :=
 simplicial_complex.of_surcomplex
+  {X | ∃ {Y Z}, Y ∈ S.faces ∧ Z ∈ S.faces ∧ X ⊆ Y ∧ Y ⊂ Z ∧ ∀ {Z'}, Z' ∈ S.faces → Y ⊂ Z' → Z = Z'}
+  (λ X ⟨Y, Z, hY, hZ, hXY, _⟩, S.down_closed hY hXY)
+  (λ X W ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩ hWX, ⟨Y, Z, hY, hZ, subset.trans hWX hXY, hYZ, (λ Z', hZunique)⟩)
+/-Previous def
+def simplicial_complex.boundary (S : simplicial_complex m) : simplicial_complex m :=
+simplicial_complex.of_surcomplex
   {X | ∃ Y ∈ S.faces, X ⊆ Y ∧ ∃ Z ∈ S.facets, Y ⊂ Z ∧ ∀ {Z'}, Z' ∈ S.faces → Y ⊂ Z' → Z = Z'}
   (λ X ⟨Y, hY, hXY, _⟩, S.down_closed hY hXY)
   (λ X W ⟨Y, hY, hXY, ⟨Z, hZ⟩⟩ hWX, ⟨Y, hY, subset.trans hWX hXY, Z, hZ⟩)
-/-Previous def
+Preprevious def
 def simplicial_complex.boundary (S : simplicial_complex m) : simplicial_complex m :=
 simplicial_complex.of_surcomplex
   {X | ∃ Y ∈ S.faces, X ⊆ Y ∧ ∃! Z ∈ S.facets, Y ⊂ Z}
@@ -978,7 +944,7 @@ lemma boundary_empty {S : simplicial_complex m} (hS : S.faces = ∅) : S.boundar
 begin
   unfold simplicial_complex.boundary,
   simp,
-  rw [hS, facets_empty hS],
+  rw hS,
   simp,
 end
 
@@ -988,33 +954,52 @@ begin
   ext X,
   unfold simplicial_complex.boundary,
   simp,
-  rw [hS, facets_singleton_empty hS],
-  rintro _ _ _ Y (hY : Y = ∅) hY',
+  rw hS,
+  rintro _ _ Y (hY : Y = ∅) _ hY',
   rw hY at hY',
   exfalso,
   exact hY'.2 (empty_subset _),
 end
 
 lemma boundary_subset {S : simplicial_complex m} : S.boundary.faces ⊆ S.faces :=
-  λ X ⟨Y, hY, hXY, _⟩, S.down_closed hY hXY
+  λ X ⟨Y, Z, hY, hZ, hXY, _⟩, S.down_closed hY hXY
 
-lemma facets_disjoint_boundary {S : simplicial_complex m} : disjoint S.facets S.boundary.faces :=
-begin
-  rintro X ⟨⟨hX, hXunique⟩, ⟨Y, hY, hXY, ⟨Z, hZ, hYZ, hZunique⟩⟩⟩,
-  simp at *,
-  apply hYZ.2,
-  rw ← hXunique (facets_subset hZ) (subset.trans hXY hYZ.1),
-  exact hXY,
-end
-
-lemma boundary_facet_iff {S : simplicial_complex m} {X : finset (fin m → ℝ)} :
-  X ∈ S.boundary.facets ↔ ∃ {Y}, Y ∈ S.facets ∧ X ⊂ Y ∧ ∀ {Y'}, Y' ∈ S.faces → X ⊂ Y' → Y = Y' :=
+lemma mem_boundary_iff_subset_unique_facet {S : simplicial_complex m} {X : finset E} :
+  X ∈ S.boundary.faces ↔ ∃ {Y Z}, Y ∈ S.faces ∧ Z ∈ S.facets ∧ X ⊆ Y ∧ Y ⊂ Z ∧
+  ∀ {Z'}, Z' ∈ S.faces → Y ⊂ Z' → Z = Z' :=
 begin
   split,
   {
-    rintro ⟨⟨X', hX', hXX', ⟨Y, hY, hXY, hYunique⟩⟩, hXmax⟩,
+    rintro ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩,
+    suffices hZ' : Z ∈ S.facets,
+    { exact ⟨Y, Z, hY, hZ', hXY, hYZ, (λ Z', hZunique)⟩ },
+    use hZ,
+    rintro Z' hZ' hZZ',
+    exact hZunique hZ' ⟨finset.subset.trans hYZ.1 hZZ',
+      (λ hZ'Y, hYZ.2 (finset.subset.trans hZZ' hZ'Y))⟩,
+  },
+  {
+    rintro ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩,
+    exact ⟨Y, Z, hY, hZ.1, hXY, hYZ, (λ Z', hZunique)⟩,
+  }
+end
+
+lemma facets_disjoint_boundary {S : simplicial_complex m} : disjoint S.facets S.boundary.faces :=
+begin
+  rintro X ⟨⟨hX, hXunique⟩, ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩⟩,
+  apply hYZ.2,
+  rw ← hXunique hZ (subset.trans hXY hYZ.1),
+  exact hXY,
+end
+
+lemma boundary_facet_iff {S : simplicial_complex m} {X : finset E} :
+  X ∈ S.boundary.facets ↔ ∃ {Y}, Y ∈ S.faces ∧ X ⊂ Y ∧ ∀ {Y'}, Y' ∈ S.faces → X ⊂ Y' → Y = Y' :=
+begin
+  split,
+  {
+    rintro ⟨⟨X', Y, hX', hY, hXX', hXY, hYunique⟩, hXmax⟩,
     have hX' : X' ∈ S.boundary.faces,
-    { exact ⟨X', hX', subset.refl X', Y, hY, hXY, (λ Y', hYunique)⟩, },
+    { exact ⟨X', Y, hX', hY, subset.refl X', hXY, (λ Y', hYunique)⟩, },
     have hXX' := hXmax hX' hXX',
     subst hXX',
     use [Y, hY, hXY],
@@ -1023,18 +1008,34 @@ begin
   },
   {
     rintro ⟨Y, hY, hXY, hYunique⟩,
-    use [X, S.down_closed (facets_subset hY) hXY.1, subset.refl X, Y, hY, hXY, (λ Y',
+    use [X, Y, S.down_closed hY hXY.1, hY, subset.refl X, hXY, (λ Y',
       hYunique)],
-    rintro V ⟨W, hW, hVW, Z, hZ, hWZ, hZunique⟩ hXV,
+    rintro V ⟨W, Z, hW, hZ, hVW, hWZ, hZunique⟩ hXV,
     apply finset.subset.antisymm hXV,
     by_contra hVX,
     have := hYunique (S.down_closed hW hVW) ⟨hXV, hVX⟩,
     subst this,
-    have := hYunique (facets_subset hZ) ⟨subset.trans hXV (subset.trans hVW hWZ.1),
+    have := hYunique hZ ⟨subset.trans hXV (subset.trans hVW hWZ.1),
       λ hZX, hWZ.2 (subset.trans hZX (subset.trans hXV hVW))⟩,
     subst this,
     exact hWZ.2 hVW,
   }
+end
+
+lemma boundary_facet_iff' {S : simplicial_complex m} {X : finset E} :
+  X ∈ S.boundary.facets ↔ ∃ {Y}, Y ∈ S.facets ∧ X ⊂ Y ∧ ∀ {Y'}, Y' ∈ S.faces → X ⊂ Y' → Y = Y' :=
+begin
+  rw boundary_facet_iff,
+  split,
+  { rintro ⟨Y, hY, hXY, hYunique⟩,
+    have hY' : Y ∈ S.facets,
+    { use hY,
+      rintro Y' hY' hYY',
+      exact hYunique hY' (finset.ssubset_of_ssubset_of_subset hXY hYY'),
+    },
+    exact ⟨Y, hY', hXY, (λ Y', hYunique)⟩ },
+  { rintro ⟨Y, hY, hXY, hYunique⟩,
+    exact ⟨Y, hY.1, hXY, (λ Y', hYunique)⟩ }
 end
 
 lemma pure_boundary_of_pure {S : simplicial_complex m} {n : ℕ} (hS : S.pure_of n) :
@@ -1047,11 +1048,10 @@ begin
     rw finset.card_eq_zero.mp (hS hY) at hXY,
     exact finset.card_eq_zero.2 (finset.subset_empty.1 hXY) },
   rintro X hX,
-  obtain ⟨Y, hY, hXY, hYunique⟩ := boundary_facet_iff.1 hX,
-  have hXcard : X.card ≤ n,
-  { apply nat.le_of_lt_succ,
-    rw ← hS hY,
-    exact finset.card_lt_card hXY },
+  obtain ⟨Y, hY, hXY, hYunique⟩ := boundary_facet_iff'.1 hX,
+  have hYcard : Y.card = n.succ := hS hY,
+  have hXcard : X.card ≤ n := nat.le_of_lt_succ (nat.lt_of_lt_of_le (finset.card_lt_card hXY)
+    (simplex_dimension_le_pureness hS hY.1)),
   have : n - X.card + X.card ≤ Y.card,
   { rw [hS hY, nat.sub_add_cancel hXcard, nat.succ_eq_add_one],
     linarith },
@@ -1065,7 +1065,7 @@ begin
       have : n.succ = n := by rw [← hS hY, ← hWcard,
         finset.eq_of_subset_of_card_le hYW (le_of_lt hWYcard)],
       exact nat.succ_ne_self n this },
-    use [W, S.down_closed (facets_subset hY) hWZ, subset.refl W, Y, hY, ⟨hWZ, hYW⟩],
+    use [W, Y, S.down_closed (facets_subset hY) hWZ, hY.1, subset.refl W, ⟨hWZ, hYW⟩],
     rintro Z hZ hWZ,
     exact hYunique hZ ⟨subset.trans hXW hWZ.1, (λ hZX, hWZ.2 (finset.subset.trans hZX hXW))⟩ },
   rw [nat.succ_sub_one, ← hWcard, hX.2 hW hXW],
@@ -1075,7 +1075,7 @@ end
 A simplicial complex is locally finite iff each of its faces belongs to finitely many faces.
 -/
 def simplicial_complex.locally_finite (S : simplicial_complex m) : Prop :=
-  ∀ {X}, X ∈ S.faces → finite {Y | Y ∈ S.faces ∧ X ⊆ Y}
+  ∀ {X}, X ∈ S.faces → X ≠ ∅ → finite {Y | Y ∈ S.faces ∧ X ⊆ Y} --@Bhavik replace ≠ ∅ by nonempty
 
 def simplicial_complex.locally_finite_at (S : simplicial_complex m) : set (finset E) :=
   {X | X ∈ S.faces ∧ set.finite {Y | Y ∈ S.faces ∧ X ⊆ Y}}
@@ -1089,17 +1089,16 @@ lemma locally_finite_at_up_closed {S : simplicial_complex m} {X Y : finset E}
 lemma locally_infinite_at_down_closed {S : simplicial_complex m} {X Y : finset E}
   (hY : Y ∈ S.locally_infinite_at) (hXY : X ⊆ Y) : X ∈ S.locally_infinite_at := sorry
 
-lemma boundary_boundary {S : simplicial_complex m} :
-  S.boundary.boundary.faces ⊆ S.locally_infinite_at :=
+lemma boundary_boundary {S : simplicial_complex m} (hS : S.pure_of n) (hS' : ∀ {X}, X ∈ S.faces →
+  (X : finset E).card = n - 1 → equiv {Y | Y ∈ S.faces ∧ X ⊆ Y} (fin 2)) :
+  S.boundary.boundary.faces = ∅ :=
 begin
-  rintro U hU,
-  obtain ⟨V, hV, hUV⟩ := subfacet hU,
-  apply locally_infinite_at_down_closed
-      ⟨boundary_subset (boundary_subset (facets_subset hV)), _⟩ hUV,
-  clear hU hUV U,
-  obtain ⟨W, hW, hVW, hWunique⟩ := boundary_facet_iff.1 hV,
-  obtain ⟨X, hX, hXV, hXunique⟩ := boundary_facet_iff.1 hW,
-
+  rw ← facets_empty_iff_faces_empty,
+  apply eq_empty_of_subset_empty,
+  rintro V hV,
+  obtain ⟨W, hW, hVW, hWunique⟩ := boundary_facet_iff'.1 hV,
+  obtain ⟨X, hX, hXV, hXunique⟩ := boundary_facet_iff'.1 hW,
+  sorry
 end
 
 --lemma boundary_pureness_eq_pureness_sub_one {S : simplicial_complex m} (hS : S.pure) : pureness (pure_boundary_of_pure hS) = S.pureness - 1 := sorry
@@ -1110,17 +1109,18 @@ begin
   ext V,
   split,
   {
-    rintro ⟨hVdisj, W, X, hW, ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩, hVX, hWX⟩,
+    rintro ⟨hVdisj, W, X, hW, ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩, hVX, hWX⟩,
     use V,
     split,
     {
-      split,
+      sorry
+      /-split,
       exact (λ U hU, hVdisj hU),
       exact ⟨W, Z, hW, facets_subset hZ, subset.trans hVX (subset.trans hXY hYZ.1),
-        subset.trans hWX (subset.trans hXY hYZ.1)⟩,
+        subset.trans hWX (subset.trans hXY hYZ.1)⟩,-/
     },
     {
-      use subset.refl V,
+      /-use subset.refl V,
       use Z,
       split,
       {
@@ -1129,7 +1129,7 @@ begin
       use ⟨finset.subset.trans hVX (finset.subset.trans hXY hYZ.1),
         (λ hZV, hYZ.2 (finset.subset.trans hZV (finset.subset.trans hVX hXY)))⟩,
       rintro U ⟨hUdisj, T, R, hT, hR, hUR, hTR⟩ hVU,
-      apply hZunique (S.down_closed hR hUR),
+      apply hZunique (S.down_closed hR hUR),-/
       sorry
     }
   },
@@ -1145,8 +1145,9 @@ lemma boundary_boundaryless_of_locally_finite {S : simplicial_complex m} (hS : S
 begin
   apply eq_empty_of_subset_empty,
   rintro X hX,
-  have := boundary_boundary hX,
-  exact this.2 (hS this.1),
+  sorry
+  /-have := boundary_boundary hX,
+  exact this.2 (hS this.1),-/
 end
 
 def simplicial_complex.full_dimensional (S : simplicial_complex m) : Prop :=

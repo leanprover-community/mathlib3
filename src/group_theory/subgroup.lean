@@ -6,7 +6,7 @@ Authors: Kexing Ying
 import group_theory.submonoid
 import algebra.group.conj
 import algebra.pointwise
-import order.modular_lattice
+import order.atoms
 
 /-!
 # Subgroups
@@ -69,6 +69,8 @@ Definitions in the file:
 
 * `monoid_hom.eq_locus f g` : given group homomorphisms `f`, `g`, the elements of `G` such that
   `f x = g x` form a subgroup of `G`
+
+* `is_simple_group G` : a class indicating that a group has exactly two normal subgroups
 
 ## Implementation notes
 
@@ -162,8 +164,8 @@ attribute [norm_cast] add_subgroup.mem_coe
 attribute [norm_cast] add_subgroup.coe_coe
 
 @[to_additive]
-instance (K : subgroup G) [d : decidable_pred K.carrier] [fintype G] : fintype K :=
-show fintype {g : G // g ∈ K.carrier}, from infer_instance
+instance (K : subgroup G) [d : decidable_pred (∈ K)] [fintype G] : fintype K :=
+show fintype {g : G // g ∈ K}, from infer_instance
 
 end subgroup
 
@@ -384,48 +386,28 @@ instance : inhabited (subgroup G) := ⟨⊥⟩
 @[simp, to_additive] lemma coe_bot : ((⊥ : subgroup G) : set G) = {1} := rfl
 
 @[to_additive] lemma eq_bot_iff_forall : H = ⊥ ↔ ∀ x ∈ H, x = (1 : G) :=
+by simp only [subgroup.ext'_iff, coe_bot, set.eq_singleton_iff_unique_mem, mem_coe, H.one_mem,
+  true_and]
+
+@[to_additive] lemma eq_bot_of_subsingleton [subsingleton H] : H = ⊥ :=
 begin
-  split,
-  { intros h x x_in,
-    rwa [h, mem_bot] at x_in },
-  { intros h,
-    ext x,
-    rw mem_bot,
-    exact ⟨h x, by { rintros rfl, exact H.one_mem }⟩ },
+  rw subgroup.eq_bot_iff_forall,
+  intros y hy,
+  rw [← subgroup.coe_mk H y hy, subsingleton.elim (⟨y, hy⟩ : H) 1, subgroup.coe_one],
 end
 
 @[to_additive] lemma eq_top_of_card_eq [fintype H] [fintype G]
   (h : fintype.card H = fintype.card G) : H = ⊤ :=
 begin
-  classical,
-  rw fintype.card_congr (equiv.refl _) at h, -- this swaps the fintype instance to classical
-  change fintype.card H.carrier = _ at h,
-  unfreezingI { cases H with S hS1 hS2 hS3, },
-  have : S = set.univ,
-  { suffices : S.to_finset = finset.univ,
-    { rwa [←set.to_finset_univ, set.to_finset_inj] at this, },
-    apply finset.eq_univ_of_card,
-    rwa set.to_finset_card },
-  change (⟨_, _, _, _⟩ : subgroup G) = ⟨_, _, _, _⟩,
-  congr',
+  haveI : fintype (H : set G) := ‹fintype H›,
+  rw [subgroup.ext'_iff, coe_top, ← finset.coe_univ, ← (H : set G).coe_to_finset, finset.coe_inj,
+    ← finset.card_eq_iff_eq_univ, ← h, set.to_finset_card],
+  congr
 end
 
 @[to_additive] lemma nontrivial_iff_exists_ne_one (H : subgroup G) :
   nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=
-begin
-  split,
-  { introI h,
-    rcases exists_ne (1 : H) with ⟨⟨h, h_in⟩, h_ne⟩,
-    use [h, h_in],
-    intro hyp,
-    apply h_ne,
-    simpa [hyp] },
-  { rintros ⟨x, x_in, hx⟩,
-    apply nontrivial_of_ne (⟨x, x_in⟩ : H) 1,
-    intro hyp,
-    apply hx,
-    simpa [has_one.one] using hyp },
-end
+subtype.nontrivial_iff_exists_ne (λ x, x ∈ H) (1 : H)
 
 /-- A subgroup is either the trivial subgroup or nontrivial. -/
 @[to_additive] lemma bot_or_nontrivial (H : subgroup G) : H = ⊥ ∨ nontrivial H :=
@@ -1480,6 +1462,55 @@ instance : is_modular_lattice (subgroup C) :=
 end⟩
 
 end subgroup
+
+section
+variables (G) (A)
+
+/-- A `group` is simple when it has exactly two normal `subgroup`s. -/
+class is_simple_group extends nontrivial G : Prop :=
+(eq_bot_or_eq_top_of_normal : ∀ H : subgroup G, H.normal → H = ⊥ ∨ H = ⊤)
+
+/-- An `add_group` is simple when it has exactly two normal `add_subgroup`s. -/
+class is_simple_add_group extends nontrivial A : Prop :=
+(eq_bot_or_eq_top_of_normal : ∀ H : add_subgroup A, H.normal → H = ⊥ ∨ H = ⊤)
+
+attribute [to_additive] is_simple_group
+
+variables {G} {A}
+
+@[to_additive]
+lemma subgroup.normal.eq_bot_or_eq_top [is_simple_group G] {H : subgroup G} (Hn : H.normal) :
+  H = ⊥ ∨ H = ⊤ :=
+is_simple_group.eq_bot_or_eq_top_of_normal H Hn
+
+namespace is_simple_group
+
+@[to_additive]
+instance {C : Type*} [comm_group C] [is_simple_group C] :
+  is_simple_lattice (subgroup C) :=
+⟨λ H, H.normal_of_comm.eq_bot_or_eq_top⟩
+
+@[to_additive]
+lemma is_simple_group_of_surjective {H : Type*} [group H] [is_simple_group G]
+  [nontrivial H] (f : G →* H) (hf : function.surjective f) :
+  is_simple_group H :=
+⟨nontrivial.exists_pair_ne, λ H iH, begin
+  refine ((iH.comap f).eq_bot_or_eq_top).imp (λ h, _) (λ h, _),
+  { rw subgroup.eq_bot_iff_forall at *,
+    simp_rw subgroup.mem_comap at h,
+    intros x hx,
+    obtain ⟨y, hy⟩ := hf x,
+    rw ← hy at hx,
+    rw h y hx at hy,
+    rw [← hy, f.map_one] },
+  { rw [← top_le_iff, ← subgroup.map_le_iff_le_comap, ← monoid_hom.range_eq_map,
+      monoid_hom.range_top_of_surjective f hf, top_le_iff] at h,
+    exact h }
+end⟩
+
+end is_simple_group
+
+end
 
 section pointwise
 

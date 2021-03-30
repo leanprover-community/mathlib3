@@ -49,8 +49,8 @@ lemma function.embedding.to_equiv_range_eq_range :
 by { ext, simp }
 
 /--
-Extend the domain of `e : perm α`, mapping it through `f : α ↪ β`.
-Everything outside of `range f` is kept fixed. Has poor computational performance,
+Extend the domain of `e : equiv.perm α`, mapping it through `f : α ↪ β`.
+Everything outside of `set.range f` is kept fixed. Has poor computational performance,
 due to exhaustive searching in constructed inverse.
 -/
 def equiv.perm.via_embedding : equiv.perm β :=

@@ -181,8 +181,8 @@ end
 
 variables [borel_space E] {f g : α → E} {a b : α} {μ : measure α}
 
-lemma smul [normed_field 𝕜] [normed_space 𝕜 E] {f : α → E} {a b : α} {μ : measure α}
-  (h : interval_integrable f μ a b) (r : 𝕜) :
+lemma smul [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  {f : α → E} {a b : α} {μ : measure α} (h : interval_integrable f μ a b) (r : 𝕜) :
   interval_integrable (r • f) μ a b :=
 ⟨h.1.smul r, h.2.smul r⟩
 
@@ -303,9 +303,14 @@ lemma integral_cases (f : α → E) (a b) :
 (le_total a b).imp (λ h, by simp [h, integral_of_le]) (λ h, by simp [h, integral_of_ge])
 
 lemma integral_non_ae_measurable {f : α → E} {a b}
-  (h : a < b) (hf : ¬ ae_measurable f (μ.restrict (Ioc a b))) :
+  (hf : ¬ ae_measurable f (μ.restrict (Ioc (min a b) (max a b)))) :
   ∫ x in a..b, f x ∂μ = 0 :=
-by rw [integral_of_le h.le, integral_non_ae_measurable hf]
+by cases le_total a b; simpa [integral_of_le, integral_of_ge, h] using integral_non_ae_measurable hf
+
+lemma integral_non_ae_measurable_of_le {f : α → E} {a b} (h : a ≤ b)
+  (hf : ¬ ae_measurable f (μ.restrict (Ioc a b))) :
+  ∫ x in a..b, f x ∂μ = 0 :=
+integral_non_ae_measurable $ by simpa [h] using hf
 
 lemma norm_integral_eq_norm_integral_Ioc :
   ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ioc (min a b) (max a b), f x ∂μ∥ :=
@@ -369,7 +374,7 @@ lemma integral_comp_add_right {a b : ℝ} (c : ℝ) {f : ℝ → E} (hfm : ae_me
   ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x :=
 have A : ae_measurable f (measure.map (λ x, x + c) volume), by rwa [real.map_volume_add_right],
 calc ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x ∂(measure.map (λ x, x + c) volume) :
-  by simp only [interval_integral, set_integral_map measurable_set_Ioc A (measurable_add_right _),
+  by simp only [interval_integral, set_integral_map measurable_set_Ioc A (measurable_add_const _),
     preimage_add_const_Ioc, add_sub_cancel]
 ... = ∫ x in a+c..b+c, f x : by rw [real.map_volume_add_right]
 
@@ -380,7 +385,7 @@ begin
     by { rw real.map_volume_mul_right (ne_of_gt hc), exact hfm.smul_measure _ },
   conv_rhs { rw [← real.smul_map_volume_mul_right (ne_of_gt hc)] },
   rw [integral_smul_measure],
-  simp only [interval_integral, set_integral_map measurable_set_Ioc A (measurable_mul_right _),
+  simp only [interval_integral, set_integral_map measurable_set_Ioc A (measurable_mul_const _),
     hc, preimage_mul_const_Ioc, mul_div_cancel _ (ne_of_gt hc), abs_of_pos,
     ennreal.to_real_of_real (le_of_lt hc), inv_smul_smul' (ne_of_gt hc)],
 end

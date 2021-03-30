@@ -147,7 +147,7 @@ lemma fin_succ_equiv'_zero {n : ℕ} :
   fin_succ_equiv' (0 : fin (n + 1)) = fin_succ_equiv (n + 1) := rfl
 
 /-- Equivalence between `fin m ⊕ fin n` and `fin (m + n)` -/
-def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
+def fin_sum_fin_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
 { to_fun := λ x, sum.rec_on x
     (λ y, ⟨y.1, nat.lt_of_lt_of_le y.2 $ nat.le_add_right m n⟩)
     (λ y, ⟨m + y.1, nat.add_lt_add_left y.2 m⟩),
@@ -168,16 +168,33 @@ def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
     { dsimp, rw [dif_neg H], simp [fin.ext_iff, nat.add_sub_of_le (le_of_not_gt H)] }
   end }
 
+@[simp] lemma fin_sum_fin_equiv_apply_left (x : fin m) :
+  @fin_sum_fin_equiv m n (sum.inl x) = ⟨x.1, nat.lt_of_lt_of_le x.2 $ nat.le_add_right m n⟩ :=
+rfl
+
+@[simp] lemma fin_sum_fin_equiv_apply_right (x : fin n) :
+  @fin_sum_fin_equiv m n (sum.inr x) = ⟨m + x.1, nat.add_lt_add_left x.2 m⟩ :=
+rfl
+
+@[simp] lemma fin_sum_fin_equiv_symm_apply_left (x : fin (m + n)) (h : ↑x < m) :
+  fin_sum_fin_equiv.symm x = sum.inl ⟨x.1, h⟩ :=
+by simp [fin_sum_fin_equiv, dif_pos h]
+
+@[simp] lemma fin_sum_fin_equiv_symm_apply_right (x : fin (m + n)) (h : m ≤ ↑x) :
+  fin_sum_fin_equiv.symm x = sum.inr ⟨x.1 - m, nat.lt_of_add_lt_add_left $
+      show m + (x.1 - m) < m + n, from (nat.add_sub_of_le $ h).symm ▸ x.2⟩ :=
+by simp [fin_sum_fin_equiv, dif_neg (not_lt.mpr h)]
+
 /-- The equivalence between `fin (m + n)` and `fin (n + m)` which rotates by `n`. -/
 def fin_add_flip : fin (m + n) ≃ fin (n + m) :=
-(sum_fin_sum_equiv.symm.trans (equiv.sum_comm _ _)).trans sum_fin_sum_equiv
+(fin_sum_fin_equiv.symm.trans (equiv.sum_comm _ _)).trans fin_sum_fin_equiv
 
 @[simp] lemma fin_add_flip_apply_left {k : ℕ} (h : k < m)
   (hk : k < m + n := nat.lt_add_right k m n h)
   (hnk : n + k < n + m := add_lt_add_left h n) :
   fin_add_flip (⟨k, hk⟩ : fin (m + n)) = ⟨n + k, hnk⟩ :=
 begin
-  dsimp [fin_add_flip, sum_fin_sum_equiv],
+  dsimp [fin_add_flip, fin_sum_fin_equiv],
   rw [dif_pos h],
   refl,
 end
@@ -186,7 +203,7 @@ end
   fin_add_flip (⟨k, h₂⟩ : fin (m + n)) =
     ⟨k - m, lt_of_le_of_lt (nat.sub_le _ _) (by { convert h₂ using 1, simp [add_comm] })⟩ :=
 begin
-  dsimp [fin_add_flip, sum_fin_sum_equiv],
+  dsimp [fin_add_flip, fin_sum_fin_equiv],
   rw [dif_neg (not_lt.mpr h₁)],
   refl,
 end

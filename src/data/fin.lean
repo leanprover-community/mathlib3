@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import data.nat.cast
+import data.int.basic
 import tactic.localized
 import tactic.apply_fun
 import order.rel_iso
@@ -768,6 +769,49 @@ by simp [eq_iff_veq]
 
 end pred
 
+section add_group
+
+open nat int
+
+/-- Negation on `fin n` -/
+instance (n : ℕ) : has_neg (fin n) :=
+⟨λ a, ⟨nat_mod (-(a.1 : ℤ)) n,
+begin
+  have npos : 0 < n := lt_of_le_of_lt (nat.zero_le _) a.2,
+  have h : (n : ℤ) ≠ 0 := int.coe_nat_ne_zero_iff_pos.2 npos,
+  have := int.mod_lt (-(a.1 : ℤ)) h,
+  rw [(abs_of_nonneg (int.coe_nat_nonneg n))] at this,
+  rwa [← int.coe_nat_lt, nat_mod, to_nat_of_nonneg (int.mod_nonneg _ h)]
+end⟩⟩
+
+/-- Abelian group structure on `fin (n+1)`. -/
+instance (n : ℕ) : add_comm_group (fin (n+1)) :=
+{ add_left_neg :=
+    λ ⟨a, ha⟩, fin.eq_of_veq (show (((-a : ℤ) % (n+1)).to_nat + a) % (n+1) = 0,
+      from int.coe_nat_inj
+      begin
+        have npos : 0 < n+1 := lt_of_le_of_lt (nat.zero_le _) ha,
+        have hn : ((n+1) : ℤ) ≠ 0 := (ne_of_lt (int.coe_nat_lt.2 npos)).symm,
+        rw [int.coe_nat_mod, int.coe_nat_add, to_nat_of_nonneg (int.mod_nonneg _ hn), add_comm],
+        simp [int.zero_mod],
+      end),
+  sub_eq_add_neg := λ ⟨a, ha⟩ ⟨b, hb⟩, subtype.eq $
+    show (a + (n + 1 - b)) % (n + 1) = (a + nat_mod (-b : ℤ) _) % (n + 1),
+    from int.coe_nat_inj
+    begin
+      have npos : 0 < n+1 := lt_of_le_of_lt (nat.zero_le _) ha,
+      have hn : ((n+1 : _) : ℤ) ≠ 0 := (ne_of_lt (int.coe_nat_lt.2 npos)).symm,
+      rw [int.coe_nat_mod, int.coe_nat_mod, int.coe_nat_add a, int.coe_nat_add a,
+        int.mod_add_cancel_left, int.nat_mod, to_nat_of_nonneg (int.mod_nonneg (-b : ℤ) hn),
+        int.coe_nat_sub hb.le, sub_eq_add_neg],
+      simp,
+    end,
+  sub := fin.sub,
+  ..fin.add_comm_monoid n,
+  ..fin.has_neg n.succ  }
+
+end add_group
+
 section succ_above
 
 lemma succ_above_aux (p : fin (n + 1)) :
@@ -1282,7 +1326,7 @@ begin
       { have : update (snoc p x) j (_root_.cast C1 y) j = _root_.cast C1 y, by simp,
         convert this,
         { exact h'.symm },
-        { exact heq_of_eq_mp (congr_arg α (eq.symm h')) rfl } },
+        { exact heq_of_cast_eq (congr_arg α (eq.symm h')) rfl } },
       have C2 : α i.cast_succ = α (cast_succ (cast_lt j h)),
         by rw [cast_succ_cast_lt, h'],
       have E2 : update p i y (cast_lt j h) = _root_.cast C2 y,
@@ -1290,7 +1334,7 @@ begin
           by simp,
         convert this,
         { simp [h, h'] },
-        { exact heq_of_eq_mp C2 rfl } },
+        { exact heq_of_cast_eq C2 rfl } },
       rw [E1, E2],
       exact eq_rec_compose _ _ _ },
     { have : ¬(cast_lt j h = i),

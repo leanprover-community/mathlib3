@@ -58,18 +58,20 @@ calc ∑ m in (range n.succ).filter (∣ n), φ m
           by rw [← nat.mul_div_cancel' hd, gcd_mul_left, hm.2, mul_one]⟩)
       (λ a b ha hb h, (nat.mul_right_inj hd0).1 h)
       (λ b hb, have hb : b < n ∧ gcd n b = d, by simpa using hb,
-        ⟨b / d, mem_filter.2 ⟨mem_range.2 ((mul_lt_mul_left (show 0 < d, from hb.2 ▸ hb.2.symm ▸ hd0)).1
-            (by rw [← hb.2, nat.mul_div_cancel' (gcd_dvd_left _ _),
-              nat.mul_div_cancel' (gcd_dvd_right _ _)]; exact hb.1)),
-                hb.2 ▸ coprime_div_gcd_div_gcd (hb.2.symm ▸ hd0)⟩,
+        ⟨b / d, mem_filter.2 ⟨mem_range.2
+            ((mul_lt_mul_left (show 0 < d, from hb.2 ▸ hb.2.symm ▸ hd0)).1
+              (by rw [← hb.2, nat.mul_div_cancel' (gcd_dvd_left _ _),
+                nat.mul_div_cancel' (gcd_dvd_right _ _)]; exact hb.1)),
+            hb.2 ▸ coprime_div_gcd_div_gcd (hb.2.symm ▸ hd0)⟩,
           hb.2 ▸ nat.mul_div_cancel' (gcd_dvd_right _ _)⟩))
 ... = ((filter (∣ n) (range n.succ)).bUnion (λ d, (range n).filter (λ m, gcd n m = d))).card :
   (card_bUnion (by intros; apply disjoint_filter.2; cc)).symm
 ... = (range n).card :
   congr_arg card (finset.ext (λ m, ⟨by finish,
     λ hm, have h : m < n, from mem_range.1 hm,
-      mem_bUnion.2 ⟨gcd n m, mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (nat.zero_le _) h)
-        (gcd_dvd_left _ _))), gcd_dvd_left _ _⟩, mem_filter.2 ⟨hm, rfl⟩⟩⟩))
+      mem_bUnion.2 ⟨gcd n m, mem_filter.2
+        ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (zero_le _) h)
+          (gcd_dvd_left _ _))), gcd_dvd_left _ _⟩, mem_filter.2 ⟨hm, rfl⟩⟩⟩))
 ... = n : card_range _
 
 end nat

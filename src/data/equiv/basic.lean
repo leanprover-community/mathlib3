@@ -1701,6 +1701,11 @@ protected noncomputable def range {α β} (f : α → β) (H : injective f) :
 equiv.set.range_of_left_inverse f
   (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun H)
 
+lemma range_of_left_inverse'_eq_range {α β : Sort*}
+  (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
+  range_of_left_inverse' f f_inv hf = set.range f hf.injective :=
+by { ext, simp }
+
 theorem apply_range_symm {α β} (f : α → β) (H : injective f) (b : range f) :
   f ((set.range f H).symm b) = b :=
 subtype.ext_iff.1 $ (set.range f H).apply_symm_apply b

@@ -45,12 +45,10 @@ or the left lifting property of `p` with respect to `i`. -/
 class has_lifting_property (i p : arrow C) : Prop :=
 (sq_has_lift : ∀ (sq : i ⟶ p), arrow.has_lift sq)
 
-instance has_lifting_property' {i p : arrow C} [h : has_lifting_property i p] (sq : i ⟶ p) : arrow.has_lift sq :=
-begin
-  let s := h.sq_has_lift,
-  specialize s sq,
-  exact s
-end
+@[priority 100] -- see Note [lower instance priority]
+instance has_lifting_property' {i p : arrow C} [has_lifting_property i p] (sq : i ⟶ p) :
+  arrow.has_lift sq :=
+has_lifting_property.sq_has_lift sq
 
 /-- Any isomorphism has the right lifting property with respect to any map.
 A    → X
@@ -59,7 +57,7 @@ B    → Y
 -/
 lemma iso_has_right_lifting_property (i : arrow C) (p : X ≅ Y) :
   has_lifting_property i (arrow.mk p.hom) :=
-{ sq_has_lift := λ sq, ⟨⟨{ lift := sq.right ≫ p.inv, }⟩⟩ } -- the lift is obtained by p⁻¹ ∘ (B → Y)
+⟨λ sq, ⟨⟨{ lift := sq.right ≫ p.inv, }⟩⟩⟩ -- the lift is obtained by p⁻¹ ∘ (B → Y)
 
 /-- Any identity has the right lifting property with respect to any map. -/
 lemma id_has_right_lifting_property (i : arrow C) : has_lifting_property i (arrow.mk (𝟙 X)) :=
@@ -84,11 +82,8 @@ begin
     haveI := s,
     use arrow.lift (arrow.hom_mk comm),
     simp },
-  { intro hlift,
-    constructor,
-    intro sq,
-    have : ∃ (l : i.right ⟶ p.left), l ≫ p.hom = sq.right := hlift,
-    cases this with l hl,
+  { refine λ hlift, ⟨λ sq, _⟩,
+    obtain ⟨l, hl⟩ : ∃ (l : i.right ⟶ p.left), l ≫ p.hom = sq.right := hlift,
     exact arrow.has_lift.mk ⟨l, is_initial.hom_ext h _ _⟩, }
 end
 
@@ -98,41 +93,40 @@ lemma has_right_lifting_property_comp {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
   (hg : has_lifting_property i (arrow.mk g)) :
   has_lifting_property i (arrow.mk (f ≫ g)) :=
 { sq_has_lift := λ sq1,
-  begin
     -- construct a square i ⟶ f
-    let sq2 : i ⟶ (arrow.mk f) :=
-    { left := sq1.left,
-      right := arrow.lift (arrow.square_to_snd sq1) },
-
+    let sq2 : i ⟶ (arrow.mk f) := ⟨sq1.left, arrow.lift (arrow.square_to_snd sq1)⟩ in
     -- show that the lift of this square is a lift of i with respect to g ∘ f
-    exact ⟨⟨⟨(arrow.lift sq2 : _ ⟶ _), by simp⟩⟩⟩,
-  end }
+    ⟨⟨⟨(arrow.lift sq2 : _ ⟶ _), by simp⟩⟩⟩ }
 
-variable {F : D → arrow C}
+/-- The objects of the subcategory `right_lifting_subcategory` are the ones in the
+underlying category. -/
+def right_lifting_subcat (R : Type u) := R
+
+instance right_lifting_subcat.inhabited  (R : Type u) [h : inhabited R]: inhabited (right_lifting_subcat R) :=
+{ default := h.default }
+
+/-- The objects of the subcategory `right_lifting_subcategory` are the ones in the
+underlying category. -/
+def right_lifting_subcat.X {R : Type u} (x : right_lifting_subcat R) : R := x
+
+lemma id_has_right_lifting_property' {F : D → arrow C} (X : C) :
+  ∀ i : D, has_lifting_property (F i) (arrow.mk (𝟙 X)) :=
+λ i, id_has_right_lifting_property (F i)
+
+lemma has_right_lifting_property_comp'
+  {F : D → arrow C} {f : X ⟶ Y} (hf : ∀ i : D, has_lifting_property (F i) (arrow.mk f))
+  {g : Y ⟶ Z} (hg : ∀ i : D, has_lifting_property (F i) (arrow.mk g)) :
+  ∀ i : D,  has_lifting_property (F i) (arrow.mk (f ≫ g)) :=
+λ i, has_right_lifting_property_comp (hf i) (hg i)
 
 /-- Given a set of arrows in C, indexed by `F : D → arrow C`,
 we construct the (non-full) subcategory of `C`
 spanned by those morphisms that have the right lifting property relative to all maps
 of the form `F i`, where `i` is any element in `D`. -/
-def right_lifting_subcat (F : D → arrow C) := C
-
-/--The objects of this subcategory are the ones of `C`. -/
-def right_lifting_subcat.X (x : right_lifting_subcat F) : C := x
-
-lemma id_has_right_lifting_property' (X : C) :
-  ∀ i : D, has_lifting_property (F i) (arrow.mk (𝟙 X)) :=
-λ i, id_has_right_lifting_property (F i)
-
-lemma has_right_lifting_property_comp'
-  {f : X ⟶ Y} (hf : ∀ i : D, has_lifting_property (F i) (arrow.mk f))
-  {g : Y ⟶ Z} (hg : ∀ i : D, has_lifting_property (F i) (arrow.mk g)) :
-  ∀ i : D,  has_lifting_property (F i) (arrow.mk (f ≫ g)) :=
-λ i, has_right_lifting_property_comp (hf i) (hg i)
-
-instance : category (right_lifting_subcat F) :=
-{ hom := λ X Y, { p : X.X ⟶ Y.X //
+def right_lifting_subcategory (F : D → arrow C) : category (right_lifting_subcat C) :=
+{ hom := λ X Y, { p : X ⟶ Y //
     ∀ {i : D}, has_lifting_property (F i) (arrow.mk p) },
-  id := λ X, ⟨𝟙 X.X, id_has_right_lifting_property' X⟩,
+  id := λ X, ⟨𝟙 X, id_has_right_lifting_property' X⟩,
   comp := λ X Y Z f g, ⟨f.val ≫ g.val,
     begin intro i, apply has_right_lifting_property_comp' f.property g.property end⟩ }
 

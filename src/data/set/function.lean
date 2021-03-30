@@ -812,9 +812,6 @@ open set
 
 variables {fa : α → α} {fb : β → β} {f : α → β} {g : β → γ} {s t : set α}
 
-lemma injective.inj_on (h : injective f) (s : set α) : s.inj_on f :=
-λ _ _ _ _ heq, h heq
-
 lemma injective.inj_on_univ (h : injective f) : inj_on f univ := λ x hx y hy hxy, h hxy
 
 lemma injective.comp_inj_on (hg : injective g) (hf : s.inj_on f) : s.inj_on (g ∘ f) :=

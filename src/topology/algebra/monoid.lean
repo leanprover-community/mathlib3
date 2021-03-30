@@ -7,6 +7,7 @@ import topology.continuous_on
 import group_theory.submonoid.operations
 import algebra.group.prod
 import algebra.pointwise
+import topology.local_homeomorph
 
 /-!
 # Theory of topological monoids
@@ -34,7 +35,7 @@ and `has_continuous_mul α`. -/
 class has_continuous_mul (M : Type*) [topological_space M] [has_mul M] : Prop :=
 (continuous_mul : continuous (λ p : M × M, p.1 * p.2))
 
-section topological_semigroup
+section has_continuous_mul
 
 variables [topological_space M] [has_mul M] [has_continuous_mul M]
 
@@ -273,7 +274,7 @@ lemma continuous.pow {f : α → M} [topological_space α] (h : continuous f) (n
 continuous.comp (continuous_pow n) h
 
 @[to_additive]
-lemma function.injective_mul [monoid β] {f : β →* α} (h : function.injective f) (a b : β) :
+lemma function.injective_mul [monoid β] {f : β →* M} (h : function.injective f) (a b : β) :
   a * b = h.to_local_equiv.symm ((f a) * (f b)) :=
 begin
   rw [←local_equiv.left_inv h.to_local_equiv (mem_univ (a * b)),
@@ -283,7 +284,7 @@ end
 
 @[to_additive]
 lemma embedding_mul [monoid β] [topological_space β] [nonempty β]
-  {f : β →* α} (h : open_embedding f) (a b : β) :
+  {f : β →* M} (h : open_embedding f) (a b : β) :
   a * b = (h.to_local_homeomorph.symm) ((f a) * (f b)) :=
 begin
   rw [←local_homeomorph.left_inv h.to_local_homeomorph (mem_univ (a * b)),
@@ -293,7 +294,7 @@ end
 
 @[to_additive]
 lemma open_embedding.continuous_mul [topological_space β] [monoid β]
-  {f : β →* α} (h : open_embedding f) :
+  {f : β →* M} (h : open_embedding f) :
   continuous (λ p : β × β, p.1 * p.2) :=
 begin
   rw continuous_iff_continuous_at,
@@ -308,7 +309,7 @@ end
 
 @[to_additive]
 def open_embedding.has_continuous_mul [topological_space β] [monoid β]
-  {f : β →* α} (h : open_embedding f) : has_continuous_mul β :=
+  {f : β →* M} (h : open_embedding f) : has_continuous_mul β :=
 { continuous_mul := h.continuous_mul }
 
 end topological_monoid

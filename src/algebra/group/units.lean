@@ -5,6 +5,7 @@ Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemake
 -/
 import algebra.group.basic
 import logic.nontrivial
+import data.equiv.basic
 
 /-!
 # Units (i.e., invertible elements) of a multiplicative monoid

@@ -65,10 +65,6 @@ rfl
 @[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
 
-@[ext] lemma ext {f g : α ≃ₜ β} (H : ∀ x, f x = g x) : f = g :=
-by { cases f, cases g, congr', ext, exact H x }
-
-@[simp] lemma coe_refl : ⇑(homeomorph.refl α) = id := rfl
 @[simp] lemma refl_apply (x : α) : homeomorph.refl α x = x := rfl
 @[simp] lemma coe_trans (f : α ≃ₜ β) (g : β ≃ₜ γ) : ⇑(f.trans g) = g ∘ f := rfl
 @[simp] lemma trans_apply (f : α ≃ₜ β) (g : β ≃ₜ γ) (a : α) : (f.trans g) a = g (f a) := rfl
@@ -107,12 +103,6 @@ have g = f.symm, from funext (λ x, calc g x = f.symm (f (g x)) : (f.left_inv (g
   right_inv := by convert f.right_inv,
   continuous_to_fun := f.continuous,
   continuous_inv_fun := by convert f.symm.continuous }
-
-@[simp] lemma symm_comp_self (h : α ≃ₜ β) : ⇑h.symm ∘ ⇑h = id :=
-funext h.symm_apply_apply
-
-@[simp] lemma self_comp_symm (h : α ≃ₜ β) : ⇑h ∘ ⇑h.symm = id :=
-funext h.apply_symm_apply
 
 @[simp] lemma range_coe (h : α ≃ₜ β) : range h = univ :=
 h.surjective.range_eq
@@ -331,7 +321,7 @@ end distrib
 
 end homeomorph
 
-def equiv.homeomorph {α : Type*} {β : Type*} [tα : topological_space α] (e : α ≃ β) :
+/-def equiv.homeomorph {α : Type*} {β : Type*} [tα : topological_space α] (e : α ≃ β) :
   @homeomorph α β _ (tα.induced e.symm) :=
 { to_fun := e,
   continuous_inv_fun := λ s hs, ⟨s, hs, rfl⟩,
@@ -340,4 +330,4 @@ def equiv.homeomorph {α : Type*} {β : Type*} [tα : topological_space α] (e :
   rw [equiv.preimage_symm_preimage] at h,
   rw h,
   exact ht1 },
-  ..e }
+  ..e }-/

@@ -23,7 +23,7 @@ open_locale big_operators
 
 noncomputable theory
 
-/- The integer seequence. -/
+/- The integer sequence. -/
 variable (a : ℕ → ℤ)
 
 /- We define an auxiliary sequence `d a : ℕ+ → ℤ` by

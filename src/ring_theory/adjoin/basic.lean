@@ -129,7 +129,7 @@ le_antisymm
       exact subalgebra.mul_mem _ ih (subset_adjoin rfl) }))
 
 lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
-eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ subalgebra.mem_coe.2 $ subalgebra.one_mem ⊥
+eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ set_like.mem_coe.2 $ one_mem _
 
 theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
   (adjoin R s).to_submodule * (adjoin R t).to_submodule :=

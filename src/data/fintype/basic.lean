@@ -368,7 +368,7 @@ theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β �
      ... ≃ β : (trunc.out (equiv_fin β)).symm⟩,
 λ ⟨f⟩, card_congr f⟩
 
-/-- Subsingleton types are fintypes (with zero or one terms). -/
+/-- Any subsingleton type with a witness is a fintype (with one term). -/
 def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 ⟨{a}, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
 
@@ -377,6 +377,17 @@ def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 
 @[simp] theorem card_of_subsingleton (a : α) [subsingleton α] :
   @fintype.card _ (of_subsingleton a) = 1 := rfl
+
+open_locale classical
+variables (α)
+
+/-- Any subsingleton type is (noncomputably) a fintype (with zero or one terms). -/
+@[priority 100]
+noncomputable instance of_subsingleton' [subsingleton α] : fintype α :=
+if h : nonempty α then
+  of_subsingleton (nonempty.some h)
+else
+  ⟨∅, (λ a, false.elim (h ⟨a⟩))⟩
 
 end fintype
 

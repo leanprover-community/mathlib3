@@ -226,7 +226,7 @@ lemma is_closed_map_smul (c : G) : is_closed_map (λ x : α, c • x) :=
 
 end group
 
-instance has_contnuous_mul.has_continuous_smul {M : Type*} [monoid M]
+instance has_continuous_mul.has_continuous_smul {M : Type*} [monoid M]
   [topological_space M] [has_continuous_mul M] :
   has_continuous_smul M M :=
 ⟨continuous_mul⟩

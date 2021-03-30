@@ -225,6 +225,14 @@ protected def function.surjective.distrib_mul_action [add_monoid γ] [has_scalar
 
 variable (β)
 
+/-- Compose a `distrib_mul_action` with a `monoid_hom`, with action `f r' • m` -/
+def distrib_mul_action.comp_hom [monoid γ] (f : γ →* α) :
+  distrib_mul_action γ β :=
+{ smul := (•) ∘ f,
+  smul_zero := λ x, smul_zero (f x),
+  smul_add := λ x, smul_add (f x),
+  .. mul_action.comp_hom β f }
+
 /-- Scalar multiplication by `r` as an `add_monoid_hom`. -/
 def const_smul_hom (r : α) : β →+ β :=
 { to_fun := (•) r,

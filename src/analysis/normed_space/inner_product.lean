@@ -451,12 +451,12 @@ def bilin_form_of_real_inner : bilin_form ℝ F :=
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ :=
-sesq_form.map_sum_right (sesq_form_of_inner) _ _ _
+sesq_form.sum_right (sesq_form_of_inner) _ _ _
 
 /-- An inner product with a sum on the right. -/
 lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ :=
-sesq_form.map_sum_left (sesq_form_of_inner) _ _ _
+sesq_form.sum_left (sesq_form_of_inner) _ _ _
 
 /-- An inner product with a sum on the left, `finsupp` version. -/
 lemma finsupp.sum_inner {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :
@@ -1813,6 +1813,37 @@ begin
   { rw [← h.equiv_fun.symm_apply_apply x, h.equiv_fun_symm_apply] },
   { rw [← h.equiv_fun.symm_apply_apply y, h.equiv_fun_symm_apply] }
 end
+
+/-- `ℂ` is isometric to ℝ² with the Euclidean inner product. -/
+def complex.isometry_euclidean : ℂ ≃ₗᵢ[ℝ] (euclidean_space ℝ (fin 2)) :=
+complex.is_basis_one_I.isometry_euclidean_of_orthonormal
+begin
+  rw orthonormal_iff_ite,
+  intros i, fin_cases i;
+  intros j; fin_cases j;
+  simp [real_inner_eq_re_inner]
+end
+
+@[simp] lemma complex.isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
+  complex.isometry_euclidean.symm x = (x 0) + (x 1) * I :=
+begin
+  convert complex.is_basis_one_I.equiv_fun_symm_apply x,
+  { simpa },
+  { simp },
+end
+
+lemma complex.isometry_euclidean_proj_eq_self (z : ℂ) :
+  ↑(complex.isometry_euclidean z 0) + ↑(complex.isometry_euclidean z 1) * (I : ℂ) = z :=
+by rw [← complex.isometry_euclidean_symm_apply (complex.isometry_euclidean z),
+  complex.isometry_euclidean.symm_apply_apply z]
+
+@[simp] lemma complex.isometry_euclidean_apply_zero (z : ℂ) :
+  complex.isometry_euclidean z 0 = z.re :=
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+
+@[simp] lemma complex.isometry_euclidean_apply_one (z : ℂ) :
+  complex.isometry_euclidean z 1 = z.im :=
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
 
 end pi_Lp
 

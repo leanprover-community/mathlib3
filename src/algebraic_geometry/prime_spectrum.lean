@@ -135,14 +135,14 @@ lemma coe_vanishing_ideal (t : set (prime_spectrum R)) :
   (vanishing_ideal t : set R) = {f : R | ∀ x : prime_spectrum R, x ∈ t → f ∈ x.as_ideal} :=
 begin
   ext f,
-  rw [vanishing_ideal, submodule.mem_coe, submodule.mem_infi],
+  rw [vanishing_ideal, set_like.mem_coe, submodule.mem_infi],
   apply forall_congr, intro x,
   rw [submodule.mem_infi],
 end
 
 lemma mem_vanishing_ideal (t : set (prime_spectrum R)) (f : R) :
   f ∈ vanishing_ideal t ↔ ∀ x : prime_spectrum R, x ∈ t → f ∈ x.as_ideal :=
-by rw [← submodule.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
+by rw [← set_like.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
 
 @[simp] lemma vanishing_ideal_singleton (x : prime_spectrum R) :
   vanishing_ideal ({x} : set (prime_spectrum R)) = x.as_ideal :=
@@ -175,8 +175,6 @@ lemma subset_zero_locus_iff_subset_vanishing_ideal (t : set (prime_spectrum R)) 
 
 end gc
 
--- TODO: we actually get the radical ideal,
--- but I think that isn't in mathlib yet.
 lemma subset_vanishing_ideal_zero_locus (s : set R) :
   s ⊆ vanishing_ideal (zero_locus s) :=
 (gc_set R).le_u_l s
@@ -184,6 +182,16 @@ lemma subset_vanishing_ideal_zero_locus (s : set R) :
 lemma le_vanishing_ideal_zero_locus (I : ideal R) :
   I ≤ vanishing_ideal (zero_locus I) :=
 (gc R).le_u_l I
+
+@[simp] lemma vanishing_ideal_zero_locus_eq_radical (I : ideal R) :
+  vanishing_ideal (zero_locus (I : set R)) = I.radical :=
+begin
+  ext f,
+  rw [mem_vanishing_ideal, ideal.radical_eq_Inf, submodule.mem_Inf],
+  split ; intros h x hx,
+  { exact h ⟨x, hx.2⟩ hx.1 },
+  { exact h x.1 ⟨hx, x.2⟩ }
+end
 
 lemma subset_zero_locus_vanishing_ideal (t : set (prime_spectrum R)) :
   t ⊆ zero_locus (vanishing_ideal t) :=
@@ -440,7 +448,7 @@ subtype.coe_lt_coe
 lemma le_iff_mem_closure (x y : prime_spectrum R) :
   x ≤ y ↔ y ∈ closure ({x} : set (prime_spectrum R)) :=
 by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
-    mem_zero_locus, vanishing_ideal_singleton, submodule.le_def]
+    mem_zero_locus, vanishing_ideal_singleton, set_like.coe_subset_coe]
 
 end order
 

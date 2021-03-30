@@ -352,7 +352,7 @@ begin
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
       (polynomial.map_surjective _ (((quotient.mk I).comp C).range_restrict_surjective)) this,
     refine sub_add_cancel (C y) f ▸ I.add_mem (hi' _ : (C y - f) ∈ I) hf.1,
-    rw [ring_hom.mem_ker, ring_hom.map_sub, hf.2, sub_eq_zero_iff_eq, coe_map_ring_hom, map_C] },
+    rw [ring_hom.mem_ker, ring_hom.map_sub, hf.2, sub_eq_zero, coe_map_ring_hom, map_C] },
   exact hx,
 end
 
@@ -441,7 +441,7 @@ theorem leading_coeff_nth_mono {m n : ℕ} (H : m ≤ n) :
   I.leading_coeff_nth m ≤ I.leading_coeff_nth n :=
 begin
   intros r hr,
-  simp only [submodule.mem_coe, mem_leading_coeff_nth] at hr ⊢,
+  simp only [set_like.mem_coe, mem_leading_coeff_nth] at hr ⊢,
   rcases hr with ⟨p, hpI, hpdeg, rfl⟩,
   refine ⟨p * X ^ (n - m), I.mul_mem_right _ hpI, _, leading_coeff_mul_X_pow⟩,
   refine le_trans (degree_mul_le _ _) _,

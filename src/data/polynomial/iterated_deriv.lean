@@ -196,7 +196,7 @@ begin
         C ↑1 * p.iterated_deriv n.succ * q.iterated_deriv 0 :
     by ring
   ... = ∑ (i : ℕ) in range n.succ,
-          C ↑(n.succ.choose (i + 1)) * p.iterated_deriv (n + 1 - (i + 1)) * q.iterated_deriv (i + 1) +
+          C ↑((n+1).choose (i+1)) * p.iterated_deriv (n + 1 - (i+1)) * q.iterated_deriv (i+1) +
         C ↑1 * p.iterated_deriv n.succ * q.iterated_deriv 0 :
     by simp_rw [choose_succ_succ, succ_sub_succ, cast_add, C.map_add, add_mul, sum_add_distrib]
   ... = ∑ (k : ℕ) in range n.succ.succ,

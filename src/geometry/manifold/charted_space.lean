@@ -433,6 +433,7 @@ begin
     rintros e ⟨s, hs, hes⟩,
     refine G.eq_on_source _ hes,
     convert closed_under_restriction' G.id_mem hs,
+    change s = _ ∩ _,
     rw hs.interior_eq,
     simp only with mfld_simps },
   { intros h,
@@ -517,14 +518,15 @@ end
 
 end
 
-/-- Same thing as `H × H'`. We introduce it for technical reasons: a charted space `M` with model `H`
-is a set of local charts from `M` to `H` covering the space. Every space is registered as a charted
-space over itself, using the only chart `id`, in `manifold_model_space`. You can also define a product
-of charted space `M` and `M'` (with model space `H × H'`) by taking the products of the charts. Now,
-on `H × H'`, there are two charted space structures with model space `H × H'` itself, the one coming
-from `manifold_model_space`, and the one coming from the product of the two `manifold_model_space` on
-each component. They are equal, but not defeq (because the product of `id` and `id` is not defeq to
-`id`), which is bad as we know. This expedient of renaming `H × H'` solves this problem. -/
+/-- Same thing as `H × H'`. We introduce it for technical reasons: a charted space `M` with model
+`H` is a set of local charts from `M` to `H` covering the space. Every space is registered as a
+charted space over itself, using the only chart `id`, in `manifold_model_space`. You can also define
+a product of charted space `M` and `M'` (with model space `H × H'`) by taking the products of the
+charts. Now, on `H × H'`, there are two charted space structures with model space `H × H'` itself,
+the one coming from `manifold_model_space`, and the one coming from the product of the two
+`manifold_model_space` on each component. They are equal, but not defeq (because the product of `id`
+and `id` is not defeq to `id`), which is bad as we know. This expedient of renaming `H × H'` solves
+this problem. -/
 def model_prod (H : Type*) (H' : Type*) := H × H'
 
 section
@@ -570,7 +572,7 @@ instance prod_charted_space (H : Type*) [topological_space H]
     use (charted_space.chart_at H x.1),
     split,
     { apply chart_mem_atlas _, },
-    { use (charted_space.chart_at H' x.2), simp only [chart_mem_atlas, eq_self_iff_true, and_self], }
+    { use (charted_space.chart_at H' x.2), simp only [chart_mem_atlas, and_self, true_and] }
   end }
 
 section prod_charted_space
@@ -842,7 +844,8 @@ instance [closed_under_restriction G] : has_groupoid s G :=
     simp only [hc.symm, mem_singleton_iff, subtype.val_eq_coe] at he,
     simp only [hc'.symm, mem_singleton_iff, subtype.val_eq_coe] at he',
     rw [he, he'],
-    convert G.eq_on_source _ (subtype_restr_symm_trans_subtype_restr s (chart_at H x) (chart_at H x')),
+    convert G.eq_on_source _
+      (subtype_restr_symm_trans_subtype_restr s (chart_at H x) (chart_at H x')),
     apply closed_under_restriction',
     { exact G.compatible (chart_mem_atlas H x) (chart_mem_atlas H x') },
     { exact preimage_open_of_open_symm (chart_at H x) s.2 },
@@ -887,7 +890,8 @@ def structomorph.symm (e : structomorph G M M') : structomorph G M' M :=
   ..e.to_homeomorph.symm}
 
 /-- The composition of structomorphisms is a structomorphism -/
-def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') : structomorph G M M'' :=
+def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') :
+  structomorph G M M'' :=
 { mem_groupoid := begin
     /- Let c and c' be two charts in M and M''. We want to show that e' ∘ e is smooth in these
     charts, around any point x. For this, let y = e (c⁻¹ x), and consider a chart g around y.

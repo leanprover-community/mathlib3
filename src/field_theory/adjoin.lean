@@ -126,7 +126,7 @@ by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
 
 @[simp] lemma coe_top_eq_top (K : intermediate_field F E) :
   ↑(⊤ : intermediate_field K E) = (⊤ : intermediate_field F E) :=
-intermediate_field.ext'_iff.mpr (set.ext_iff.mpr (λ _, iff_of_true mem_top mem_top))
+set_like.ext_iff.mpr $ λ _, mem_lift2.trans (iff_of_true mem_top mem_top)
 
 end lattice
 
@@ -190,7 +190,7 @@ lemma adjoin_subset_adjoin_iff {F' : Type*} [field F'] [algebra F' E]
 /-- `F[S][T] = F[S ∪ T]` -/
 lemma adjoin_adjoin_left (T : set E) : ↑(adjoin (adjoin F S) T) = adjoin F (S ∪ T) :=
 begin
-  rw intermediate_field.ext'_iff,
+  rw set_like.ext'_iff,
   change ↑(adjoin (adjoin F S) T) = _,
   apply set.eq_of_subset_of_subset; rw adjoin_subset_adjoin_iff; split,
   { rintros _ ⟨⟨x, hx⟩, rfl⟩, exact adjoin.mono _ _ _ (set.subset_union_left _ _) hx },
@@ -314,7 +314,7 @@ begin
   rw mul_inv_cancel (mt (λ key, _) h),
   rw ← ϕ.map_zero at key,
   change ↑(⟨x, hx⟩ : algebra.adjoin F {α}) = _,
-  rw [ϕ.injective key, submodule.coe_zero]
+  rw [ϕ.injective key, subalgebra.coe_zero]
 end
 
 end adjoin_simple

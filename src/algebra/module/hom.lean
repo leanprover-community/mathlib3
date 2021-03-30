@@ -10,7 +10,7 @@ import algebra.module.pi
 
 This file defines instances for module, mul_action and related structures on bundled `_hom` types.
 
-These are analagous to the instances in `algebra.module.pi`, but for bundled instead of unbundled
+These are analogous to the instances in `algebra.module.pi`, but for bundled instead of unbundled
 functions.
 -/
 

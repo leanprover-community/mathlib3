@@ -367,7 +367,7 @@ from the collection is equal to `1` in a neighborhood of `x`. A covering of this
 construct a smooth partition of unity and can be used instead of a partition of unity in some
 proofs.
 
-We prove that on a smooth finitely dimensional real manifold with `Σ`-countable Hausdorff topology,
+We prove that on a smooth finite dimensional real manifold with `σ`-compact Hausdorff topology,
 for any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering I s`
 subordinate to `U`. Then we use this fact to prove a version of the Whitney embedding theorem: any
 compact real manifold can be embedded into `ℝ^n` for large enough `n`.
@@ -418,7 +418,7 @@ def is_subordinate {s : set M} (f : smooth_bump_covering I s) (U : M → set M) 
 variable (I)
 
 /-- Let `M` be a smooth manifold with corners modelled on a finite dimensional real vector space.
-Suppose also that `M` is a Hausdorff `Σ`-compact topological space. Let `s` be a closed set
+Suppose also that `M` is a Hausdorff `σ`-compact topological space. Let `s` be a closed set
 in `M` and `U : M → set M` be a collection of sets such that `U x ∈ 𝓝 x` for every `x ∈ s`.
 Then there exists a smooth bump covering of `s` that is subordinate to `U`. -/
 lemma exists_is_subordinate [t2_space M] [sigma_compact_space M] (hs : is_closed s)

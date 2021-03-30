@@ -130,13 +130,13 @@ begin
   ext,
   cases x with a b,
   { rw [equiv.sum_congr_apply, sum.map_inl, perm_congr_apply, equiv.symm_symm,
-      set.apply_range_symm (@sum.inl m n)],
+        apply_of_injective_symm (@sum.inl m n)],
     erw subtype_perm_apply,
-    rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] },
+    rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] },
   { rw [equiv.sum_congr_apply, sum.map_inr, perm_congr_apply, equiv.symm_symm,
-      set.apply_range_symm (@sum.inr m n)],
+        apply_of_injective_symm (@sum.inr m n)],
     erw subtype_perm_apply,
-    rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] }
+    rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] }
 end
 
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,

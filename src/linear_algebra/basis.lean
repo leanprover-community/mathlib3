@@ -464,7 +464,7 @@ begin
   -- This is a hack: we jump through hoops to reuse `exists_subset_is_basis`.
   let s := set.range v,
   let e : ι ≃ s := equiv.of_injective v hs.injective,
-  have : (λ x, x : s → V) = v ∘ e.symm := by { funext, dsimp, rw [equiv.set.apply_range_symm v], },
+  have : (λ x, x : s → V) = v ∘ e.symm := by { ext, dsimp, rw [equiv.apply_of_injective_symm v] },
   have : linear_independent K (λ x, x : s → V),
   { rw this,
     exact linear_independent.comp hs _ (e.symm.injective), },

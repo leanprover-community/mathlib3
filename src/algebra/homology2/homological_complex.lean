@@ -30,7 +30,7 @@ variables {V} {c : complex_shape ι} (C : homological_complex V c)
 (comm' : ∀ i j, f i ≫ B.d i j = A.d i j ≫ f j . obviously)
 
 restate_axiom hom.comm'
-attribute [simp, reassoc] hom.comm
+attribute [simp, reassoc, elementwise] hom.comm
 
 def id (A : homological_complex V c) : hom A A :=
 { f := λ _, 𝟙 _ }
@@ -264,7 +264,7 @@ if h : nonempty (c.succ i) then
 else
   0
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma comm_from (f : hom C₁ C₂) (i : ι) :
   f.f i ≫ C₂.d_from i = C₁.d_from i ≫ f.f_succ i :=
 begin
@@ -272,7 +272,7 @@ begin
   split_ifs; simp
 end
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma comm_to (f : hom C₁ C₂) (j : ι) :
   f.f_pred j ≫ C₂.d_to j = C₁.d_to j ≫ f.f j :=
 begin

@@ -280,6 +280,7 @@ over.w (subobject.representative_iso (mono_over.mk' (image.ι f))).inv
 def factor_thru_image_subobject : X ⟶ image_subobject f :=
 factor_thru_image f ≫ (image_subobject_iso f).inv
 
+@[simp, reassoc]
 lemma image_subobject_arrow_comp :
   factor_thru_image_subobject f ≫ (image_subobject f).arrow = f :=
 by simp [factor_thru_image_subobject, image_subobject_arrow]
@@ -287,6 +288,16 @@ by simp [factor_thru_image_subobject, image_subobject_arrow]
 lemma image_subobject_factors_comp_self {W : C} (k : W ⟶ X)  :
   (image_subobject f).factors (k ≫ f) :=
 ⟨k ≫ factor_thru_image f, by simp⟩
+
+@[simp]
+lemma factor_thru_image_subobject_comp_self {W : C} (k : W ⟶ X) (h) :
+  (image_subobject f).factor_thru (k ≫ f) h = k ≫ factor_thru_image_subobject f :=
+by { ext, simp, }
+
+@[simp]
+lemma factor_thru_image_subobject_comp_self_assoc {W W' : C} (k : W ⟶ W') (k' : W' ⟶ X) (h) :
+  (image_subobject f).factor_thru (k ≫ k' ≫ f) h = k ≫ k' ≫ factor_thru_image_subobject f :=
+by { ext, simp, }
 
 /-- Precomposing by an isomorphism does not change the image subobject. -/
 lemma image_subobject_iso_comp [has_equalizers C]

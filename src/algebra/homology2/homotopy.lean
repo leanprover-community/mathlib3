@@ -36,19 +36,18 @@ theorem homology_map_eq_of_homotopy (h : homotopy f g) (i : ι) :
 begin
   dsimp [homology_functor],
   ext,
-  simp,
+  simp only [cokernel.π_desc],
   dunfold cycles_map,
-  simp [←h.comm' i],
-  apply eq_of_sub_eq_zero,
+  simp only [←h.comm' i],
+  simp only [add_zero, zero_comp,
+    cycles_arrow_d_from_assoc, preadditive.comp_add],
+  apply eq_of_sub_eq_zero, -- move this higher, needs some lemmas
   rw [←preadditive.sub_comp],
-
   suffices h : ((D.cycles i).factor_thru ((C.cycles i).arrow ≫ h.to_ihom.to_pred i i ≫ D.d_to i) _) ≫ cokernel.π (D.boundaries_to_cycles i) = 0,
   { sorry, }, -- interaction of factor_thru and preadditive
   { dsimp [cycles],
-    rw [←category.assoc], -- Need some sort of congruence lemma for factor_thru here.
     erw [subobject.factor_thru_of_le (D.boundaries_le_cycles i)],
-    { simp,
-      sorry, },
+    { simp, },
     { rw [←category.assoc],
       apply image_subobject_factors_comp_self, }, },
 end
@@ -130,9 +129,6 @@ begin
   simp [to_cycles],
   dsimp [to_kernel_subobject, cycles, kernel_subobject_iso],
   simp,
-  -- erw is needed here because of the difference between `kernel_subobject` and `subobject.mk (kernel.ι ....)`
-  -- erw subobject.underlying_iso_arrow_apply (kernel.ι (C.d_from i)),
-  -- simp,
 end
 
 @[ext] lemma cycles_ext {C : homological_complex (Module.{v} R) c} {i : ι}
@@ -146,14 +142,11 @@ end
 end homological_complex
 
 @[simp] lemma cycles_map_to_cycles (f : C ⟶ D) {i : ι} {x : C.X i} (p : C.d_from i x = 0) :
-  (cycles_map f i) (C.to_cycles x p) = D.to_cycles (f.f i x) sorry :=
-begin
-  ext,
-  simp,
-end
+  (cycles_map f i) (C.to_cycles x p) = D.to_cycles (f.f i x) (by simp [p]) :=
+by { ext, simp, }
 
 def homological_complex.to_homology (C : homological_complex (Module.{v} R) c) {i : ι} (x : C.X i) (p : C.d_from i x = 0) : C.homology i :=
-cokernel.π (image_to_kernel _ _ (C.d_to_comp_d_from i)) (C.to_cycles x p)
+cokernel.π (C.boundaries_to_cycles i) (C.to_cycles x p)
 
 @[ext]
 lemma homological_complex.ext {M : Module R} (i : ι) {h k : C.homology i ⟶ M}
@@ -163,6 +156,14 @@ homology_ext _ w
 variables (f g : C ⟶ D)
 
 attribute [elementwise] cokernel.π_desc
+open category_theory.limits
+
+@[simp]
+lemma add_left_eq_self_foo {M : Type*} [add_right_cancel_monoid M] {a b c : M} :
+  a + (b + c) = c ↔ a + b = 0 :=
+by rw [←add_assoc, add_left_eq_self]
+
+attribute [elementwise] image_subobject_arrow_comp -- rename this?
 
 theorem homology_map_eq_of_homotopy' (h : homotopy f g) (i : ι) :
   (homology_functor (Module.{v} R) c i).map f = (homology_functor (Module.{v} R) c i).map g :=
@@ -170,26 +171,13 @@ begin
   -- To check two morphisms out of a homology group agree, it suffices to check on cycles:
   ext,
   dsimp [homology_functor, homological_complex.to_homology],
-  simp,
-  -- erw colimit.ι_desc_apply, -- a cokernel specific version?
-  -- erw colimit.ι_desc_apply,
-  -- simp only [function.comp_app, Module.coe_comp, category_theory.limits.cofork.of_π_ι_app],
-  -- simp only [cycles_map_to_cycles],
-  -- -- To check that two elements are equal mod coboundaries, it suffices to exhibit a coboundary:
-  -- ext1,
-  -- -- Moreover, to check that two cycles are equal, it suffices to check their underlying elements:
-  -- ext1,
-  -- simp only [homological_complex.to_cycles_arrow, linear_map.map_add],
-  -- rw ←h.comm' i,
-  -- simp only [function.comp_app, Module.coe_comp, linear_map.add_apply],
-  -- -- Now we use `p : d x = 0` to get rid of a term:
-  -- simp only [p, linear_map.map_zero, add_zero],
-  -- -- Cancel the `g` terms:
-  -- simp only [←add_assoc, add_left_eq_self],
+  simp only [cokernel.π_desc_apply],
+  simp only [coe_comp],
+  -- To check that two elements are equal mod coboundaries, it suffices to exhibit a coboundary:
+  ext1,
+  swap, exact -(h.to_ihom.to_pred i i) x,
+  -- Moreover, to check that two cycles are equal, it suffices to check their underlying elements:
+  ext1,
+  simp [←h.comm' i, p],
 
-  -- rw [←h.comm' i],
-  -- simp,
-  -- simp,
-  sorry,
-  sorry,
 end

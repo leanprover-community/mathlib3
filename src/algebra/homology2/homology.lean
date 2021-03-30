@@ -23,6 +23,12 @@ def image_to_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) :
   (image_subobject f : V) ⟶ (kernel_subobject g : V) :=
 (subobject.of_le _ _ (image_le_kernel _ _ w))
 
+/-- Prefer `image_to_kernel`. -/
+@[simp] lemma subobject_of_le_as_image_to_kernel
+  {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) (h) :
+  subobject.of_le (image_subobject f) (kernel_subobject g) h = image_to_kernel f g w :=
+rfl
+
 @[simp, reassoc]
 lemma image_to_kernel_arrow {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) :
   image_to_kernel f g w ≫ (kernel_subobject g).arrow = (image_subobject f).arrow :=
@@ -100,7 +106,12 @@ abbreviation boundaries_to_cycles (C : homological_complex V c) (i : ι) :
   (C.boundaries i : V) ⟶ (C.cycles i : V) :=
 image_to_kernel _ _ (C.d_to_comp_d_from i)
 
-@[simp, reassoc]
+/-- Prefer `boundaries_to_cycles`. -/
+@[simp] lemma image_to_kernel_as_boundaries_to_cycles (C : homological_complex V c) (i : ι) (h) :
+  (C.boundaries i).of_le (C.cycles i) h = C.boundaries_to_cycles i :=
+rfl
+
+@[simp, reassoc, elementwise]
 lemma boundaries_to_cycles_arrow (C : homological_complex V c) (i : ι) :
   C.boundaries_to_cycles i ≫ (C.cycles i).arrow = (C.boundaries i).arrow :=
 by { dsimp [cycles], simp, }

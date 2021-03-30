@@ -1687,7 +1687,7 @@ def range_of_left_inverse {α β : Sort*}
 /-- If `f : α → β` has a left-inverse, then `α` is computably equivalent to the range of `f`.
 
 Note that if `α` is empty, no such `f_inv` exists and so this definition can't be used, unlike
-the stronger but less convenient `equiv.of_injective_of_left_inverse`. -/
+the stronger but less convenient `equiv.set.range_of_left_inverse`. -/
 abbreviation range_of_left_inverse' {α β : Sort*}
   (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
   α ≃ set.range f :=

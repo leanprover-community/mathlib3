@@ -57,14 +57,12 @@ meta def get_cat_inst : expr → tactic expr
 | _ := failed
 
 /-- (internals for `@[reassoc]`)
-Given a lemma of the form `f ≫ g = h`, proves a new lemma of the form
-`h : ∀ {W} (k), f ≫ (g ≫ k) = h ≫ k`, and returns the type and proof of this lemma.
+Given a lemma of the form `∀ ..., f ≫ g = h`, proves a new lemma of the form
+`h : ∀ ... {W} (k), f ≫ (g ≫ k) = h ≫ k`, and returns the type and proof of this lemma.
 -/
 meta def prove_reassoc (h : expr) : tactic (expr × expr) :=
 do
    (vs,t) ← infer_type h >>= open_pis,
-   (vs',t) ← whnf t >>= open_pis,
-   let vs := vs ++ vs',
    (lhs,rhs) ← match_eq t,
    struct_inst ← get_cat_inst lhs <|> get_cat_inst rhs <|> fail "no composition found in statement",
    `(@has_hom.hom _ %%hom_inst %%X %%Y) ← infer_type lhs,
@@ -88,8 +86,8 @@ do
    pure (t'',pr')
 
 /-- (implementation for `@[reassoc]`)
-Given a declaration named `n` of the form `f ≫ g = h`, proves a new lemma named `n'`
-of the form `∀ {W} (k), f ≫ (g ≫ k) = h ≫ k`.
+Given a declaration named `n` of the form `∀ ..., f ≫ g = h`, proves a new lemma named `n'`
+of the form `∀ ... {W} (k), f ≫ (g ≫ k) = h ≫ k`.
 -/
 meta def reassoc_axiom (n : name) (n' : name := n.append_suffix "_assoc") : tactic unit :=
 do d ← get_decl n,

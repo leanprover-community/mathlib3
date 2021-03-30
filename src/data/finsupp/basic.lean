@@ -1886,7 +1886,7 @@ end
 
 /-- Given `add_comm_monoid M` and `e : α ≃ β`, `dom_congr e` is the corresponding `equiv` between
 `α →₀ M` and `β →₀ M`. -/
-@[simps]
+@[simps apply]
 protected def dom_congr [add_comm_monoid M] (e : α ≃ β) : (α →₀ M) ≃+ (β →₀ M) :=
 { to_fun := map_domain e,
   inv_fun := map_domain e.symm,

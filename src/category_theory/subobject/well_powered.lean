@@ -52,14 +52,14 @@ theorem essentially_small_mono_over_iff_small_subobject (X : C) :
   essentially_small.{v} (mono_over X) ↔ small.{v} (subobject X) :=
 essentially_small_iff_of_thin
 
-theorem well_powered_of_mono_over_essentially_small
+theorem well_powered_of_essentially_small_mono_over
   (h : ∀ X : C, essentially_small.{v} (mono_over X)) :
   well_powered C :=
 { subobject_small := λ X, (essentially_small_mono_over_iff_small_subobject X).mp (h X), }
 
 variables [well_powered C]
 
-instance mono_over_essentially_small (X : C) :
+instance essentially_small_mono_over (X : C) :
   essentially_small.{v} (mono_over X) :=
 (essentially_small_mono_over_iff_small_subobject X).mpr (well_powered.subobject_small X)
 

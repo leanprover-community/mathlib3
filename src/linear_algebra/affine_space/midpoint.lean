@@ -130,6 +130,10 @@ calc midpoint R x y +ᵥ midpoint R x y = midpoint R x y +ᵥ midpoint R y x : b
 lemma midpoint_zero_add (x y : V) : midpoint R 0 (x + y) = midpoint R x y :=
 (midpoint_eq_midpoint_iff_vsub_eq_vsub R).2 $ by simp [sub_add_eq_sub_sub_swap]
 
+lemma midpoint_eq_smul_add (x y : V) : midpoint R x y = (⅟2 : R) • (x + y) :=
+by rw [midpoint_eq_iff, point_reflection_apply, vsub_eq_sub, vadd_eq_add, sub_add_eq_add_sub,
+  ← two_smul R, smul_smul, mul_inv_of_self, one_smul, add_sub_cancel']
+
 end
 
 lemma line_map_inv_two {R : Type*} {V P : Type*} [division_ring R] [char_zero R]

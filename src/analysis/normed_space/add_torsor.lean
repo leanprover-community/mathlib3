@@ -280,6 +280,22 @@ hf.vsub hg
 
 end
 
+section
+
+variables {R : Type*} [ring R] [topological_space R] [semimodule R V] [has_continuous_smul R V]
+
+lemma filter.tendsto.line_map {l : filter α} {f₁ f₂ : α → P} {g : α → R} {p₁ p₂ : P} {c : R}
+  (h₁ : tendsto f₁ l (𝓝 p₁)) (h₂ : tendsto f₂ l (𝓝 p₂)) (hg : tendsto g l (𝓝 c)) :
+  tendsto (λ x, affine_map.line_map (f₁ x) (f₂ x) (g x)) l (𝓝 $ affine_map.line_map p₁ p₂ c) :=
+(hg.smul (h₂.vsub h₁)).vadd h₁
+
+lemma filter.tendsto.midpoint [invertible (2:R)] {l : filter α} {f₁ f₂ : α → P} {p₁ p₂ : P}
+  (h₁ : tendsto f₁ l (𝓝 p₁)) (h₂ : tendsto f₂ l (𝓝 p₂)) :
+  tendsto (λ x, midpoint R (f₁ x) (f₂ x)) l (𝓝 $ midpoint R p₁ p₂) :=
+h₁.line_map h₂ tendsto_const_nhds
+
+end
+
 variables {V' : Type*} {P' : Type*} [normed_group V'] [metric_space P'] [normed_add_torsor V' P']
 
 /-- The map `g` from `V1` to `V2` corresponding to a map `f` from `P1`
@@ -347,9 +363,23 @@ by rw [midpoint_comm, dist_midpoint_left, dist_comm]
   dist p₂ (midpoint 𝕜 p₁ p₂) = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
 by rw [dist_comm, dist_midpoint_right]
 
+lemma dist_midpoint_midpoint_le' (p₁ p₂ p₃ p₄ : P) :
+  dist (midpoint 𝕜 p₁ p₂) (midpoint 𝕜 p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / ∥(2 : 𝕜)∥ :=
+begin
+  rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, midpoint_vsub_midpoint];
+    try { apply_instance },
+  rw [midpoint_eq_smul_add, norm_smul, inv_of_eq_inv, normed_field.norm_inv, ← div_eq_inv_mul],
+  exact div_le_div_of_le_of_nonneg (norm_add_le _ _) (norm_nonneg _),
+end
+
 end normed_space
 
 variables [normed_space ℝ V] [normed_space ℝ V']
+
+lemma dist_midpoint_midpoint_le (p₁ p₂ p₃ p₄ : V) :
+  dist (midpoint ℝ p₁ p₂) (midpoint ℝ p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / 2 :=
+by simpa using dist_midpoint_midpoint_le' p₁ p₂ p₃ p₄
+
 include V'
 
 /-- A continuous map between two normed affine spaces is an affine map provided that

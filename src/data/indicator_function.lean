@@ -265,13 +265,22 @@ lemma indicator_sub {G} [add_group G] (s : set α) (f g : α → G) :
   indicator s (λa, f a - g a) = λa, indicator s f a - indicator s g a :=
 (indicator_hom G s).map_sub f g
 
-@[to_additive indicator_compl''] lemma mul_indicator_compl (s : set α) (f : α → G) :
+@[to_additive indicator_compl'] lemma mul_indicator_compl (s : set α) (f : α → G) :
   mul_indicator sᶜ f = f * (mul_indicator s f)⁻¹ :=
 eq_mul_inv_of_mul_eq $ s.mul_indicator_compl_mul_self f
 
 lemma indicator_compl {G} [add_group G] (s : set α) (f : α → G) :
   indicator sᶜ f = f - indicator s f :=
-by rw [sub_eq_add_neg, indicator_compl'']
+by rw [sub_eq_add_neg, indicator_compl']
+
+@[to_additive indicator_diff'] lemma mul_indicator_diff (h : s ⊆ t) (f : α → G) :
+  mul_indicator (t \ s) f = mul_indicator t f * (mul_indicator s f)⁻¹ :=
+eq_mul_inv_of_mul_eq $ by rw [pi.mul_def, ← mul_indicator_union_of_disjoint disjoint_diff.symm f,
+  diff_union_self, union_eq_self_of_subset_right h]
+
+lemma indicator_diff {G : Type*} [add_group G] {s t : set α} (h : s ⊆ t) (f : α → G) :
+  indicator (t \ s) f = indicator t f - indicator s f :=
+by rw [indicator_diff' h, sub_eq_add_neg]
 
 end group
 
@@ -373,19 +382,19 @@ by simp [indicator, ← ite_and]
 end monoid_with_zero
 
 section order
-variables [has_one M] [preorder M] {s t : set α} {f g : α → M} {a : α}
+variables [has_one M] [preorder M] {s t : set α} {f g : α → M} {a : α} {y : M}
 
-@[to_additive] lemma mul_indicator_apply_le' (hfg : a ∈ s → f a ≤ g a) (hg : a ∉ s → 1 ≤ g a) :
-  mul_indicator s f a ≤ g a :=
+@[to_additive] lemma mul_indicator_apply_le' (hfg : a ∈ s → f a ≤ y) (hg : a ∉ s → 1 ≤ y) :
+  mul_indicator s f a ≤ y :=
 if ha : a ∈ s then by simpa [ha] using hfg ha else by simpa [ha] using hg ha
 
 @[to_additive] lemma mul_indicator_le' (hfg : ∀ a ∈ s, f a ≤ g a) (hg : ∀ a ∉ s, 1 ≤ g a) :
   mul_indicator s f ≤ g :=
 λ a, mul_indicator_apply_le' (hfg _) (hg _)
 
-@[to_additive] lemma le_mul_indicator_apply (hfg : a ∈ s → f a ≤ g a) (hf : a ∉ s → f a ≤ 1) :
-  f a ≤ mul_indicator s g a :=
-if ha : a ∈ s then by simpa [ha] using hfg ha else by simpa [ha] using hf ha
+@[to_additive] lemma le_mul_indicator_apply {y} (hfg : a ∈ s → y ≤ g a) (hf : a ∉ s → y ≤ 1) :
+  y ≤ mul_indicator s g a :=
+@mul_indicator_apply_le' α (order_dual M) ‹_› _ _ _ _ _ hfg hf
 
 @[to_additive] lemma le_mul_indicator (hfg : ∀ a ∈ s, f a ≤ g a) (hf : ∀ a ∉ s, f a ≤ 1) :
   f ≤ mul_indicator s g :=

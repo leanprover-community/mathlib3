@@ -222,8 +222,8 @@ lemma kernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (kernel.ι f)) → false
 
 instance has_kernel_comp_mono {X Y Z : C} (f : X ⟶ Y) [has_kernel f] (g : Y ⟶ Z) [mono g] :
   has_kernel (f ≫ g) :=
-{ exists_limit := ⟨{
-  cone := kernel_fork.of_ι (kernel.ι f) (by simp),
+{ exists_limit := 
+  ⟨{ cone := kernel_fork.of_ι (kernel.ι f) (by simp),
   is_limit := is_limit_aux _ (λ s, kernel.lift _ s.ι ((cancel_mono g).mp (by simp)))
     (by tidy) (by tidy)
 }⟩ }

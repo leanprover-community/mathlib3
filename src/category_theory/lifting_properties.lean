@@ -76,8 +76,7 @@ begin
     simp },
   { intros h1 sq,
     cases h1 with e he,
-    refine ⟨⟨{lift := e, fac_left' := _}⟩⟩,
-    apply is_initial.hom_ext, simpa using h },
+    exact ⟨⟨⟨e, is_initial.hom_ext h _ _⟩⟩⟩ }
 end
 
 /-- The condition of having the rlp with respect to a morphism `i` is stable under composition. -/

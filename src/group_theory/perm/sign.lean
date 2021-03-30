@@ -213,6 +213,30 @@ def support [fintype α] (f : perm α) : finset α := univ.filter (λ x, f x ≠
 @[simp] lemma mem_support [fintype α] {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x :=
 by simp only [support, true_and, mem_filter, mem_univ]
 
+@[simp] lemma support_eq_empty_iff [fintype α] {σ : perm α} : σ.support = ∅ ↔ σ = 1 :=
+by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_not,
+  equiv.perm.ext_iff, one_apply]
+
+@[simp] lemma support_one [fintype α] : (1 : perm α).support = ∅ :=
+by rw support_eq_empty_iff
+
+@[simp] lemma card_support_eq_zero_iff [fintype α] {σ : perm α} : σ.support.card = 0 ↔ σ = 1 :=
+by rw [finset.card_eq_zero, support_eq_empty_iff]
+
+@[simp] lemma card_support_one [fintype α] : (1 : perm α).support.card = 0 :=
+by rw card_support_eq_zero_iff
+
+lemma card_support_ne_one [fintype α] (σ : perm α) : σ.support.card ≠ 1 :=
+begin
+  intro h,
+  obtain ⟨a, ha⟩ := finset.card_eq_one.mp h,
+  have h1 : σ a ≠ a,
+  { rw [←mem_support, ha, finset.mem_singleton] },
+  have h2 : σ (σ a) = σ a,
+  { rwa [←@not_not (σ (σ a) = σ a), ←ne, ←mem_support, ha, finset.mem_singleton] },
+  exact h1 (σ.apply_eq_iff_eq.mp h2),
+end
+
 lemma support_pow_le [fintype α] (σ : perm α) (n : ℤ) :
   (σ ^ n).support ≤ σ.support :=
 λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))

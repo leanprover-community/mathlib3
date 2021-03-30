@@ -25,6 +25,8 @@ universes u
 open category_theory
 open category_theory.subobject
 
+open_locale category_theory.Type
+
 lemma subtype_val_mono {α : Type u} (s : set α) : mono ↾(subtype.val : s → α) :=
 (mono_iff_injective _).mpr subtype.val_injective
 

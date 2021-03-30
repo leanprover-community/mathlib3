@@ -385,6 +385,20 @@ variables {n : ℕ}
 
 open nat
 
+lemma exists_pow_eq_self_of_coprime {α : Type*} [monoid α] {a : α} (h : coprime n (order_of a)) :
+  ∃ m : ℕ, (a ^ n) ^ m = a :=
+begin
+  by_cases h0 : order_of a = 0,
+  { rw [h0, coprime_zero_right] at h,
+    exact ⟨1, by rw [h, pow_one, pow_one]⟩ },
+  by_cases h1 : order_of a = 1,
+  { rw order_of_eq_one_iff at h1,
+    exact ⟨37, by rw [h1, one_pow, one_pow]⟩ },
+  obtain ⟨m, hm⟩ :=
+    exists_mul_mod_eq_one_of_coprime h (one_lt_iff_ne_zero_and_ne_one.mpr ⟨h0, h1⟩),
+  exact ⟨m, by rw [←pow_mul, pow_eq_mod_order_of, hm, pow_one]⟩,
+end
+
 /-- This is the same as `order_of_pow'` and `order_of_pow''` but with one assumption less which is
 automatic in the case of a finite cancellative group.-/
 lemma order_of_pow (a : α) :

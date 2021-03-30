@@ -51,9 +51,11 @@ namespace tactic
 
 open interactive lean.parser category_theory
 
+-- #check category.to_category_struct.has_comp
+
 /-- From an expression `f ≫ g`, extract the expression representing the category instance. -/
 meta def get_cat_inst : expr → tactic expr
-| `(@category_struct.comp _ %%struct_inst _ _ _ _ _) := pure struct_inst
+| `(@has_comp.compose _ ._ (@category_struct.to_has_comp _ %%S) _ _ _ _ _) := pure S
 | _ := failed
 
 /-- (internals for `@[reassoc]`)
@@ -72,8 +74,11 @@ do
    X' ← mk_local' `X' binder_info.implicit C,
    ft ← to_expr ``(@has_hom.hom _ %%hom_inst %%Y %%X'),
    f' ← mk_local_def `f' ft,
-   t' ← to_expr ``(@category_struct.comp _ %%struct_inst _ _ _%%lhs %%f' =
-                     @category_struct.comp _ %%struct_inst _ _ _ %%rhs %%f'),
+   t' ← to_expr
+          ``(@has_comp.compose _ _
+               (@category_struct.to_has_comp _ %%struct_inst) _ _ _ %%lhs %%f'
+           = @has_comp.compose _ _
+               (@category_struct.to_has_comp _ %%struct_inst) _ _ _ %%rhs %%f'),
    let c' := h.mk_app vs,
    (_,pr) ← solve_aux t' (rewrite_target c'; reflexivity),
    pr ← instantiate_mvars pr,

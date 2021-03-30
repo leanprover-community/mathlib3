@@ -75,17 +75,25 @@ namespace category_theory
 class has_hom (obj : Type u) : Type (max u (v+1)) :=
 (hom : obj → obj → Type v)
 
+class has_id (obj : Type u) (hom : obj → obj → Type v) : Type (max u v) :=
+(id : Π (x : obj), hom x x)
+
+class has_comp (obj : Type u) (hom : obj → obj → Type v) : Type (max u v) :=
+(comp : Π {X Y Z : obj}, hom X Y → hom Y Z → hom X Z)
+
+def has_comp.compose {obj : Type u} {hom : obj → obj → Type v} [has_comp obj hom] {X Y Z : obj} :
+  hom X Y → hom Y Z → hom X Z :=
+λ f g, has_comp.comp _ f g
+
 infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
 /-- A preliminary structure on the way to defining a category,
 containing the data, but none of the axioms. -/
-class category_struct (obj : Type u)
-extends has_hom.{v} obj : Type (max u (v+1)) :=
-(id       : Π X : obj, hom X X)
-(comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
+class category_struct (obj : Type u) extends
+  has_hom.{v} obj, has_id obj (⟶), has_comp obj (⟶) : Type (max u (v+1)).
 
-notation `𝟙` := category_struct.id -- type as \b1
-infixr ` ≫ `:80 := category_struct.comp -- type as \gg
+notation `𝟙` := has_id.id -- type as \b1
+infixr ` ≫ `:80 := has_comp.compose -- type as \gg
 
 /--
 The typeclass `category C` describes morphisms associated to objects of type `C`.
@@ -94,10 +102,9 @@ specified explicitly, as `category.{v} C`. (See also `large_category` and `small
 
 See https://stacks.math.columbia.edu/tag/0014.
 -/
-class category (obj : Type u)
-extends category_struct.{v} obj : Type (max u (v+1)) :=
-(id_comp' : ∀ {X Y : obj} (f : hom X Y), 𝟙 X ≫ f = f . obviously)
-(comp_id' : ∀ {X Y : obj} (f : hom X Y), f ≫ 𝟙 Y = f . obviously)
+class category (obj : Type u) extends category_struct.{v} obj : Type (max u (v+1)) :=
+(id_comp' : ∀ {X Y : obj} (f : X ⟶ Y), 𝟙 X ≫ f = f . obviously)
+(comp_id' : ∀ {X Y : obj} (f : X ⟶ Y), f ≫ 𝟙 Y = f . obviously)
 (assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z),
   (f ≫ g) ≫ h = f ≫ (g ≫ h) . obviously)
 
@@ -108,7 +115,6 @@ restate_axiom category.id_comp'
 restate_axiom category.comp_id'
 restate_axiom category.assoc'
 attribute [simp] category.id_comp category.comp_id category.assoc
-attribute [trans] category_struct.comp
 
 /--
 A `large_category` has objects in one universe level higher than the universe level of
@@ -212,8 +218,7 @@ end
 lemma mono_of_mono {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [mono (f ≫ g)] : mono f :=
 begin
   split, intros Z a b w,
-  replace w := congr_arg (λ k, k ≫ g) w,
-  dsimp at w,
+  replace w := eq_whisker w g,
   rw [category.assoc, category.assoc] at w,
   exact (cancel_mono _).1 w,
 end
@@ -242,10 +247,15 @@ variable [category.{v} C]
 
 universe u'
 
+set_option pp.universes true
+
 instance ulift_category : category.{v} (ulift.{u'} C) :=
-{ hom  := λ X Y, (X.down ⟶ Y.down),
-  id   := λ X, 𝟙 X.down,
-  comp := λ _ _ _ f g, f ≫ g }
+{ hom := λ X Y, X.down ⟶ Y.down,
+  id := λ (X : ulift C), (𝟙 X.down : X.down ⟶ X.down),
+  comp := λ X Y Z f g, (f ≫ g : X.down ⟶ Z.down),
+  comp_id' := λ X Y f, category.comp_id f,
+  id_comp' := λ X Y f, category.id_comp f,
+  assoc' := λ X Y Z W f g h, category.assoc _ _ _ }
 
 -- We verify that this previous instance can lift small categories to large categories.
 example (D : Type u) [small_category D] : large_category (ulift.{u+1} D) := by apply_instance

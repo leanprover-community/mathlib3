@@ -268,55 +268,30 @@ def pseudofunctor.comp (P : pseudofunctor C D) (Q : pseudofunctor D E) :
     dsimp,
     rw [assoc, assoc, ←left_whisker_comp_assoc, Q.comps_natural_left_assoc, ←Q.cell_comp_assoc,
       Q.assoc, ←Q.cell_comp_assoc, assoc, P.assoc, Q.cell_comp_assoc, Q.cell_comp_assoc,
-      ←right_whisker_comp, Q.comps_natural_right_assoc],
+      ←right_whisker_comp],
+
+
+    -- rw [category.assoc, ←right_whisker_comp_assoc, ←Q.comps_natural_right_assoc, Q.assoc_assoc,
+    --   ←functor.map_comp, ←functor.map_comp, P.assoc, functor.map_comp, functor.map_comp,
+    --   Q.comps_natural_left_assoc, left_whisker_comp_assoc],
   end }
 
 variables (P Q : pseudofunctor C D)
 
-structure lax_natural_transformation :=
+structure pseudonatural_transformation :=
 (obj_app : Π (x : C), P.obj x ⟶ Q.obj x)
 (mor_app : Π {x y : C} (f : x ⟶ y),
-  P.map f ≫ obj_app y ⟶ obj_app x ≫ Q.map f)
+  P.map f ≫ obj_app y ≅ obj_app x ≫ Q.map f)
 (comps' : ∀ {x y z : C} (f : x ⟶ y) (g : y ⟶ z),
-  ((P.comps _ _).hom ▶ _) ≫ (α_ _ _ _).hom ≫ (_ ◀ mor_app _) ≫ (α_ _ _ _).inv ≫
-    (mor_app _ ▶ _) ≫ (α_ _ _ _).hom = mor_app (f ≫ g) ≫ (_ ◀ (Q.comps _ _).hom)
+  ((P.comps _ _).hom ▶ _) ≫ (α_ _ _ _).hom ≫ (_ ◀ (mor_app _).hom) ≫ (α_ _ _ _).inv ≫
+    ((mor_app _).hom ▶ _) ≫ (α_ _ _ _).hom = (mor_app (f ≫ g)).hom ≫ (_ ◀ (Q.comps _ _).hom)
       . obviously)
 (ids' : ∀ (x : C),
-  mor_app (𝟙 x) ≫ (_ ◀ (Q.ids _).hom) ≫ (ρ_ _).hom = ((P.ids _).hom ▶ _) ≫ (λ_ _).hom
+  (mor_app (𝟙 x)).hom ≫ (_ ◀ (Q.ids _).hom) ≫ (ρ_ _).hom = ((P.ids _).hom ▶ _) ≫ (λ_ _).hom
     . obviously)
 (naturality : ∀ {x y : C} {f g : x ⟶ y} (η : f ⟶ g),
-  mor_app f ≫ (_ ◀ Q.cell η) = (P.cell η ▶ _) ≫ mor_app g . obviously)
-
-structure pseudonatural_transformation extends lax_natural_transformation P Q :=
-[invertible_cells : ∀ {x y : C} (f : x ⟶ y), is_iso (mor_app f)]
-
-attribute [instance] pseudonatural_transformation.invertible_cells
-
-variables {P Q} (σ σ' : lax_natural_transformation P Q)
-
-structure modification :=
-(cells : ∀ (x : C), σ.obj_app x ⟶ σ'.obj_app x)
-(comm' : ∀ {x y : C} (f : x ⟶ y), σ.mor_app f ≫ (cells x ▶ _) = (_ ◀ cells y) ≫ σ'.mor_app f)
-
--- instance : category_struct (pseudofunctor C D) :=
--- { hom := pseudonatural_transformation,
---   id := sorry,
---   comp := sorry }
-
--- instance : category (P ⟶ Q) :=
--- { hom := λ σ σ',
---   begin
-
---   end
-
--- }
-
--- instance : two_category (pseudofunctor C D) :=
--- { hom_cats := _
-
--- }
-
-#exit
+  (mor_app f).hom ≫ (_ ◀ Q.cell η) = (P.cell η ▶ _) ≫ (mor_app g).hom
+    . obviously)
 
 structure CAT :=
 {α : Type u₁}

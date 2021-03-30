@@ -901,7 +901,7 @@ end
 
 omit dec
 lemma sum_add_hom_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ → Type*} {γ : Type*}
-  [decidable_eq ι₁] [decidable_eq ι₂] [Π i, add_monoid (β₁ i)] [Π i, add_zero_class (β₂ i)]
+  [decidable_eq ι₁] [decidable_eq ι₂] [Π i, add_zero_class (β₁ i)] [Π i, add_zero_class (β₂ i)]
   [add_comm_monoid γ]
   (f₁ : Π₀ i, β₁ i) (f₂ : Π₀ i, β₂ i) (h : Π i j, β₁ i →+ β₂ j →+ γ) :
   sum_add_hom (λ i₂, sum_add_hom (λ i₁, h i₁ i₂) f₁) f₂ =
@@ -910,7 +910,7 @@ begin
   refine quotient.induction_on₂ f₁ f₂ (λ x₁ x₂, _),
   simp only [sum_add_hom, add_monoid_hom.finset_sum_apply, quotient.lift_on_mk,
     add_monoid_hom.coe_mk, add_monoid_hom.flip_apply],
-  convert finset.sum_comm,
+  exact finset.sum_comm,
 end
 
 include dec
@@ -1079,12 +1079,12 @@ lemma map_dfinsupp_sum_add_hom [add_comm_monoid R] [add_comm_monoid S] [Π i, ad
 congr_fun (comp_lift_add_hom h g) f
 
 @[simp]
-lemma dfinsupp_sum_add_hom_apply [add_monoid R] [add_comm_monoid S] [Π i, add_comm_monoid (β i)]
+lemma dfinsupp_sum_add_hom_apply [add_zero_class R] [add_comm_monoid S] [Π i, add_comm_monoid (β i)]
   (f : Π₀ i, β i) (g : Π i, β i →+ R →+ S) (r : R) :
   (sum_add_hom g f) r = sum_add_hom (λ i, (eval r).comp (g i)) f :=
 map_dfinsupp_sum_add_hom (eval r) f g
 
-lemma coe_dfinsupp_sum_add_hom [add_monoid R] [add_comm_monoid S] [Π i, add_comm_monoid (β i)]
+lemma coe_dfinsupp_sum_add_hom [add_zero_class R] [add_comm_monoid S] [Π i, add_comm_monoid (β i)]
   (f : Π₀ i, β i) (g : Π i, β i →+ R →+ S) :
   ⇑(sum_add_hom g f) = sum_add_hom (λ i, (coe_fn R S).comp (g i)) f :=
 map_dfinsupp_sum_add_hom (coe_fn R S) f g

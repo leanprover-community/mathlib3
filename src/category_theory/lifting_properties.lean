@@ -102,7 +102,8 @@ lemma has_right_lifting_property_comp {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
 underlying category. -/
 def right_lifting_subcat (R : Type u) := R
 
-instance right_lifting_subcat.inhabited  (R : Type u) [h : inhabited R]: inhabited (right_lifting_subcat R) :=
+instance right_lifting_subcat.inhabited  (R : Type u) [h : inhabited R]: inhabited
+  (right_lifting_subcat R) :=
 { default := h.default }
 
 /-- The objects of the subcategory `right_lifting_subcategory` are the ones in the

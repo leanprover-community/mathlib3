@@ -41,6 +41,8 @@ and the `i`th grade `A i` with `A 0`-actions (`•`) defined as left-multiplicat
 * `direct_sum.grade_zero.semimodule (A 0)`
 * (nothing)
 
+Note that in the presence of these instances, `⨁ i, A i` itself inherits an `A 0`-action.
+
 `direct_sum.of_zero_ring_hom : A 0 →+* ⨁ i, A i` provides `direct_sum.of A 0` as a ring
 homomorphism.
 
@@ -477,7 +479,6 @@ end one
 section mul
 variables [add_monoid ι] [Π i, add_comm_monoid (A i)] [ghas_mul A]
 
-
 /-- `(•) : A 0 → A i → A i` is the value provided in `direct_sum.ghas_mul.mul`, composed with
 an `eq.rec` to turn `A (0 + i)` into `A i`.
 -/
@@ -489,6 +490,8 @@ an `eq.rec` to turn `A (0 + 0)` into `A 0`.
 -/
 instance grade_zero.has_mul : has_mul (A 0) :=
 { mul := (•)}
+
+lemma grade_zero.smul_eq_mul (a b : A 0) : a • b = a * b := rfl
 
 lemma of_zero_smul {i} (a : A 0) (b : A i) : of _ _ (a • b) = of _ _ a * of _ _ b :=
 begin
@@ -512,12 +515,8 @@ function.injective.distrib (of A 0) dfinsupp.single_injective
 
 instance grade_zero.smul_with_zero (i : ι) : smul_with_zero (A 0) (A i) :=
 begin
-  letI : smul_with_zero (⨁ i, A i) (⨁ i, A i) :=
-  { smul := (*), smul_zero := mul_zero, zero_smul := zero_mul },
-  -- TODO: #6909
-  letI : smul_with_zero (A 0) (⨁ i, A i) :=
-  { smul := (•) ∘ (of A 0), smul_zero := λ m, by simp, zero_smul := λ m, by simp, },
-  apply function.injective.smul_with_zero (A 0) (of A i) dfinsupp.single_injective,
+  letI := smul_with_zero.comp_hom (⨁ i, A i) (of A 0).to_zero_hom,
+  refine dfinsupp.single_injective.smul_with_zero (of A i).to_zero_hom (of_zero_smul A),
 end
 
 end mul
@@ -539,12 +538,9 @@ in an overall `semimodule (A 0) (⨁ i, A i)` structure via `direct_sum.semimodu
 -/
 instance grade_zero.semimodule {i} : semimodule (A 0) (A i) :=
 begin
-  letI : semimodule (A 0) (⨁ i, A i) := (of_zero_ring_hom A).comp_semimodule _,
-  apply function.injective.semimodule (A 0) (of A i) dfinsupp.single_injective
-    (λ a b, of_zero_smul A a b),
+  letI := semimodule.comp_hom (⨁ i, A i) (of_zero_ring_hom A),
+  exact dfinsupp.single_injective.semimodule (A 0) (of A i) (λ a, of_zero_smul A a),
 end
-
-lemma grade_zero.smul_eq_mul (a b : A 0) : a • b = a * b := rfl
 
 end semiring
 

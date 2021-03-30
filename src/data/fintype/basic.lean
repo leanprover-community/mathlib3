@@ -651,13 +651,13 @@ finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 lemma card_le_of_embedding (f : α ↪ β) : card α ≤ card β := card_le_of_injective f f.2
 
 lemma card_lt_of_injective_of_not_mem (f : α → β) (h : function.injective f)
-  {b : β} (w : b ∉ set.range f) : fintype.card α < fintype.card β :=
+  {b : β} (w : b ∉ set.range f) : card α < card β :=
 calc card α = (univ.map ⟨f, h⟩).card : (card_map _).symm
 ... < card β : finset.card_lt_univ_of_not_mem $
                  by rwa [← mem_coe, coe_map, coe_univ, set.image_univ]
 
 lemma card_lt_of_injective_not_surjective (f : α → β) (h : function.injective f)
-  (h' : ¬function.surjective f) : fintype.card α < fintype.card β :=
+  (h' : ¬function.surjective f) : card α < card β :=
 let ⟨y, hy⟩ := not_forall.1 h' in card_lt_of_injective_of_not_mem f h hy
 
 lemma card_le_of_surjective (f : α → β) (h : function.surjective f) : card β ≤ card α :=

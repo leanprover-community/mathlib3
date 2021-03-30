@@ -97,7 +97,7 @@ theorem lt_of_lt_of_des {n m : ℕ+} (hnm : n < m) :
   f m < f n :=
 begin
   have : ∀ k : ℕ, f (n + ⟨k + 1, by linarith⟩) < f n,
-  {	intro k, induction k with k ih,
+  { intro k, induction k with k ih,
     { exact hdes n },
     apply lt_trans _ ih,
     change f (n + ⟨k + 1, by linarith⟩ + 1) < _,

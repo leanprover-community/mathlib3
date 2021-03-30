@@ -37,9 +37,21 @@ abbreviation is_initial (X : C) := is_colimit (as_empty_cocone X)
 def is_terminal.of_unique (Y : C) [h : Π X : C, unique (X ⟶ Y)] : is_terminal Y :=
 { lift := λ s, (h s.X).default }
 
+/-- Transport a term of type `is_terminal` across an isomorphism. -/
+def is_terminal.of_iso {Y Z : C} (hY : is_terminal Y) (i : Y ≅ Z) : is_terminal Z :=
+is_limit.of_iso_limit hY
+{ hom := { hom := i.hom },
+  inv := { hom := i.symm.hom } }
+
 /-- An object `X` is initial if for every `Y` there is a unique morphism `X ⟶ Y`. -/
 def is_initial.of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : is_initial X :=
 { desc := λ s, (h s.X).default }
+
+/-- Transport a term of type `is_initial` across an isomorphism. -/
+def is_initial.of_iso {X Y : C} (hX : is_initial X) (i : X ≅ Y) : is_initial Y :=
+is_colimit.of_iso_colimit hX
+{ hom := { hom := i.hom },
+  inv := { hom := i.symm.hom } }
 
 /-- Give the morphism to a terminal object from any other. -/
 def is_terminal.from {X : C} (t : is_terminal X) (Y : C) : Y ⟶ X :=

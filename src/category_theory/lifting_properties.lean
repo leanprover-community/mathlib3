@@ -87,37 +87,21 @@ lemma has_right_lifting_property_comp {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
   has_lifting_property i (arrow.mk (f ≫ g)) :=
 begin
   intro sq0, -- a square between i and f ≫ g
-  let sq1 := arrow.square_to_snd sq0, -- transform this into a square between i and g
 
-  -- lift of i with respect to g
-  haveI := hg sq1,
-
-  -- form a square from i to f, using the previously constructed lift
-  have h3 : sq0.left ≫ (arrow.mk f).hom = i.hom ≫ (arrow.has_lift.struct sq1).lift :=
-  begin
-    rw (arrow.has_lift.struct sq1).fac_left,
-    refl,
-  end,
+  -- lift i with respect to g
+  haveI := hg (arrow.square_to_snd sq0),
 
   -- construct a square i ⟶ f
   let sq2 : i ⟶ (arrow.mk f) :=
   { left := sq0.left,
-    right := (arrow.has_lift.struct sq1).lift },
+    right := arrow.lift (arrow.square_to_snd sq0) },
 
   -- construct a lift i with respect to f
   haveI := hf sq2,
 
   -- show that this lift is a lift of i with respect to g ∘ f
-  refine ⟨⟨{lift := (arrow.has_lift.struct sq2).lift, fac_right' := _}⟩⟩,
-  { have : sq0.right = sq1.right := rfl,
-    rw this,
-    simp only [arrow.mk_hom],
-    rw ←category.assoc,
-    rw ←((arrow.has_lift.struct sq1).fac_right),
-    simp only [arrow.mk_hom],
-    let d := (arrow.has_lift.struct sq2).fac_right,
-    simp only [arrow.mk_hom] at d,
-    rw d }
+  refine ⟨⟨{lift := (arrow.lift sq2 : _ ⟶ _), fac_right' := _}⟩⟩,
+  { simp }
 end
 
 variable {F : D → arrow C}

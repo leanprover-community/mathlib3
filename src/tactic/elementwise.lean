@@ -189,6 +189,7 @@ do ns.mmap' (λ n,
 
 end interactive
 
+/-- Auxiliary definition for `elementwise_of`. -/
 meta def derive_elementwise_proof : tactic unit :=
 do `(calculated_Prop %%v %%h) ← target,
    (t,pr,n) ← prove_elementwise h,

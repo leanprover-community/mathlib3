@@ -1742,6 +1742,25 @@ noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α �
 of_bijective (λ x, ⟨f x, set.mem_range_self x⟩)
   ⟨λ x y hxy, hf $ by injections, λ ⟨_, x, rfl⟩, ⟨x, rfl⟩⟩
 
+section
+
+variables {α' β' : Type*} (e : perm α') {f' : α' → β'}
+  (f : α' ≃ _root_.set.range f') [decidable_pred (∈ _root_.set.range f')]
+
+def perm.via_set_range : perm β' :=
+perm.subtype_congr (perm_congr f e) (equiv.refl _)
+
+@[simp] lemma perm.via_set_range_apply_image (a : α') :
+  e.via_set_range f (f a) = f (e a) :=
+by simp [perm.via_set_range]
+
+lemma perm.via_set_range_apply_not_mem_image {b : β'} (h : b ∉ _root_.set.range f') :
+  e.via_set_range f b = b :=
+by simp [perm.via_set_range, h]
+
+end
+
+
 /-- Subtype of the quotient is equivalent to the quotient of the subtype. Let `α` be a setoid with
 equivalence relation `~`. Let `p₂` be a predicate on the quotient type `α/~`, and `p₁` be the lift
 of this predicate to `α`: `p₁ a ↔ p₂ ⟦a⟧`. Let `~₂` be the restriction of `~` to `{x // p₁ x}`.

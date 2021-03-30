@@ -1547,34 +1547,25 @@ begin
   exact supports_union.2 ⟨tr_stmts₁_supports H₁ H₂.1, H₃ H₂.2⟩,
 end
 
-theorem tr_normal_supports {S c k} (Hk : code_supp c k ⊆ S) : (tr_normal c k).supports S :=
-begin
-  induction c generalizing k; simp [Λ'.supports, head],
-  { rw [code_supp_zero] at Hk,
-    exact (finset.union_subset_iff.1 Hk).2 },
-  { intro, split_ifs; simp [id, unrev];
-    exact (finset.union_subset_iff.1 Hk).2 },
-  { rw [code_supp_tail] at Hk,
-    exact (finset.union_subset_iff.1 Hk).2 },
-  case cons : f fs IHf IHfs {
-    apply IHf, rw [code_supp_cons] at Hk,
-    exact (finset.union_subset_iff.1 Hk).2 },
-  case comp : f g IHf IHg {
-    apply IHg, rw [code_supp_comp] at Hk,
-    exact (finset.union_subset_iff.1 Hk).2 },
-  case case : f g IHf IHg {
-    simp only [code_supp_case, finset.union_subset_iff] at Hk,
-    exact ⟨IHf Hk.2.1, IHg Hk.2.2⟩ },
-  case fix : f IHf {
-    apply IHf, rw [code_supp_fix] at Hk,
-    exact (finset.union_subset_iff.1 Hk).2 },
-end
-
 theorem subset_left {α} [decidable_eq α] {s₁ s₂ s₃ : finset α} (h : s₁ ∪ s₂ ⊆ s₃) : s₁ ⊆ s₃ :=
 finset.subset.trans (finset.subset_union_left _ _) h
 
 theorem subset_right {α} [decidable_eq α] {s₁ s₂ s₃ : finset α} (h : s₁ ∪ s₂ ⊆ s₃) : s₂ ⊆ s₃ :=
 finset.subset.trans (finset.subset_union_right _ _) h
+
+theorem tr_normal_supports {S c k} (Hk : code_supp c k ⊆ S) : (tr_normal c k).supports S :=
+begin
+  induction c generalizing k; simp [Λ'.supports, head],
+  case zero' { exact subset_right Hk },
+  case succ { intro, split_ifs; exact subset_right Hk },
+  case tail { exact subset_right Hk },
+  case cons : f fs IHf IHfs { apply IHf, rw code_supp_cons at Hk, exact subset_right Hk },
+  case comp : f g IHf IHg { apply IHg, rw code_supp_comp at Hk, exact subset_right Hk },
+  case case : f g IHf IHg {
+    simp only [code_supp_case, finset.union_subset_iff] at Hk,
+    exact ⟨IHf Hk.2.1, IHg Hk.2.2⟩ },
+  case fix : f IHf { apply IHf, rw code_supp_fix at Hk, exact subset_right Hk },
+end
 
 theorem code_supp'_supports {S c k}
   (H : code_supp c k ⊆ S) : supports (code_supp' c k) S :=

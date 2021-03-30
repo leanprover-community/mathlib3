@@ -1250,7 +1250,7 @@ begin
     contrapose h1,
     simp },
   intros c hc,
-  rw [set.mem_Icc, ← abs_le, ←   real.norm_eq_abs, ← mul_le_mul_right hr],
+  rw [set.mem_Icc, ← abs_le, ← real.norm_eq_abs, ← mul_le_mul_right hr],
   simpa [f, dist_eq_norm, norm_smul] using hc
 end
 

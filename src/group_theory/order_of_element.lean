@@ -485,7 +485,7 @@ variables {H : Type u} [fintype H] [add_left_cancel_monoid H]
 /-- TODO: Use this to show that a finite left cancellative monoid is a group.-/
 lemma exists_pow_eq_one (a : α) : ∃i, 0 < i ∧ a ^ i = 1 :=
 begin
-  have h :  ¬ injective (λi:ℕ, a^i) := not_injective_infinite_fintype _,
+  have h : ¬ injective (λi:ℕ, a^i) := not_injective_infinite_fintype _,
   have h' : ∃(i j : ℕ), a ^ i = a ^ j ∧ i ≠ j,
   { rw injective at h,
     simp only [not_forall, exists_prop] at h,
@@ -506,7 +506,7 @@ begin
   { exact h''' },
 end
 
-lemma exists_nsmul_eq_zero (x : H) : ∃i, 0 < i ∧ i •ℕ x = 0 :=
+lemma exists_nsmul_eq_zero (x : H) : ∃ i, 0 < i ∧ i •ℕ x = 0 :=
 begin
   rcases exists_pow_eq_one (multiplicative.of_add x) with ⟨i, hi1, hi2⟩,
   use i,
@@ -608,8 +608,7 @@ end
 lemma add_order_of_eq_card_multiples [decidable_eq H] {x : H} :
   add_order_of x = fintype.card (add_submonoid.multiples x : set H) :=
 begin
-  rw ← order_of_of_add_eq_add_order_of,
-  rw order_eq_card_powers,
+  rw [← order_of_of_add_eq_add_order_of, order_eq_card_powers],
   apply fintype.card_congr,
   rw ←of_add_image_multiples_eq_powers_of_add,
   exact (equiv.set.image _ _ (equiv.injective _)).symm
@@ -645,7 +644,7 @@ lemma mem_multiples_iff_mem_gmultiples {x y : H} :
   y ∈ add_submonoid.multiples x ↔ y ∈ add_subgroup.gmultiples x :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩, λ ⟨i, hi⟩, ⟨(i % add_order_of x).nat_abs,
   by { simp only at hi ⊢,
-       rwa  [ ← gsmul_coe_nat,
+       rwa  [← gsmul_coe_nat,
        int.nat_abs_of_nonneg (int.mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2
           (add_order_of_pos x))), ← gsmul_eq_mod_add_order_of] } ⟩⟩
 

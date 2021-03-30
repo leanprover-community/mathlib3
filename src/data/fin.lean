@@ -346,6 +346,24 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = (a + b) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
+lemma coe_sub_of_le {n : ℕ} {a b : fin n} (h : b ≤ a) : ((a - b : fin n) : ℕ) = a - b :=
+begin
+  rw [←fin.val_eq_coe, fin.sub_def, ←(nat.add_sub_assoc (nat.le_of_lt b.2)), add_comm,
+    nat.add_sub_assoc h, nat.add_mod_left, nat.mod_eq_of_lt (lt_of_le_of_lt (nat.sub_le _ _) a.2),
+    fin.val_eq_coe, fin.val_eq_coe]
+end
+
+lemma coe_sub_of_lt {n : ℕ} {a b : fin n} (h : a < b) : ((a - b : fin n) : ℕ) = a + n - b :=
+begin
+  rw [←fin.val_eq_coe, fin.sub_def, ←(nat.add_sub_assoc (nat.le_of_lt b.2)), nat.mod_eq_of_lt,
+    fin.val_eq_coe, fin.val_eq_coe],
+  have hab : a.val + (n - b.val) < b.val + (n - b.val) :=
+    add_lt_add_right (fin.coe_fin_lt.mpr h) (n - b.val),
+  rw ←(nat.add_sub_assoc (nat.le_of_lt b.2)) at hab,
+  convert hab,
+  rw [←(nat.add_sub_assoc (nat.le_of_lt b.2)), add_comm, nat.add_sub_cancel]
+end
+
 section bit
 
 @[simp] lemma mk_bit0 {m n : ℕ} (h : bit0 m < n) :

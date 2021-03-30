@@ -5,6 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import topology.algebra.monoid
 import algebra.group.pi
+import algebra.group_with_zero.power
 
 /-!
 # Topological group with zero
@@ -160,3 +161,50 @@ lemma continuous_on_div : continuous_on (λ p : G₀ × G₀, p.1 / p.2) {p | p.
 continuous_on_fst.div continuous_on_snd $ λ _, id
 
 end div
+
+section fpow
+
+variables [group_with_zero G₀] [topological_space G₀] [has_continuous_inv' G₀]
+  [has_continuous_mul G₀]
+
+lemma tendsto_fpow {x : G₀} (hx : x ≠ 0) (m : ℤ) : tendsto (λ x, x ^ m) (𝓝 x) (𝓝 (x ^ m)) :=
+begin
+  have : ∀ y : G₀, ∀ m : ℤ, 0 < m → tendsto (λ x, x ^ m) (𝓝 y) (𝓝 (y ^ m)),
+  { assume y m hm,
+    lift m to ℕ using (le_of_lt hm) with k,
+    simp only [fpow_coe_nat],
+    exact (continuous_pow k).continuous_at.tendsto },
+  rcases lt_trichotomy m 0 with hm | hm | hm,
+  { have hm' : 0 < - m := by rwa neg_pos,
+    convert (this _ (-m) hm').comp (tendsto_inv' hx) using 1,
+    { ext y,
+      simp },
+    { congr' 1,
+      simp } },
+  { simpa [hm] using tendsto_const_nhds },
+  { exact this _ m hm }
+end
+
+lemma continuous_at_fpow {x : G₀} (hx : x ≠ 0) (m : ℤ) : continuous_at (λ x, x ^ m) x :=
+tendsto_fpow hx m
+
+lemma continuous_on_fpow (m : ℤ) : continuous_on (λ x : G₀, x ^ m) {0}ᶜ :=
+λ x hx, (continuous_at_fpow hx m).continuous_within_at
+
+variables {f : α → G₀}
+
+lemma filter.tendsto.fpow {l : filter α} {a : G₀} (hf : tendsto f l (𝓝 a)) (ha : a ≠ 0) (m : ℤ) :
+  tendsto (λ x, (f x) ^ m) l (𝓝 (a ^ m)) :=
+(tendsto_fpow ha m).comp hf
+
+variables [topological_space α] {a : α}
+
+lemma continuous_at.fpow (hf : continuous_at f a) (ha : f a ≠ 0) (m : ℤ) :
+  continuous_at (λ x, (f x) ^ m) a :=
+(continuous_at_fpow ha m).comp hf
+
+lemma continuous.fpow (hf : continuous f) (h0 : ∀ a, f a ≠ 0) (m : ℤ) :
+  continuous (λ x, (f x) ^ m) :=
+continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).fpow (h0 x) m
+
+end fpow

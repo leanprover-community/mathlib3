@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import tactic.monotonicity.basic
 import data.set.lattice
@@ -16,8 +16,8 @@ lemma mul_mono_nonneg {x y z : α} [ordered_semiring α]
 : x * z ≤ y * z :=
 by apply mul_le_mul_of_nonneg_right; assumption
 
-lemma gt_of_mul_lt_mul_neg_right {a b c : α}  [linear_ordered_ring α]
-  (h : a * c < b * c) (hc : c ≤ 0) : a > b :=
+lemma lt_of_mul_lt_mul_neg_right {a b c : α}  [linear_ordered_ring α]
+  (h : a * c < b * c) (hc : c ≤ 0) : b < a :=
 have nhc : -c ≥ 0, from neg_nonneg_of_nonpos hc,
 have h2 : -(b * c) < -(a * c), from neg_lt_neg h,
 have h3 : b * (-c) < a * (-c), from calc
@@ -28,15 +28,13 @@ lt_of_mul_lt_mul_right h3 nhc
 
 @[mono]
 lemma mul_mono_nonpos {x y z : α} [linear_ordered_ring α]
-  (h' : 0 ≥ z)
-  (h : y ≤ x)
-: x * z ≤ y * z :=
+  (h' : z ≤ 0) (h : y ≤ x) : x * z ≤ y * z :=
 begin
   classical,
   by_contradiction h'',
   revert h,
   apply not_le_of_lt,
-  apply gt_of_mul_lt_mul_neg_right _ h',
+  apply lt_of_mul_lt_mul_neg_right _ h',
   apply lt_of_not_ge h''
 end
 
@@ -70,9 +68,10 @@ end
 
 open set
 
-attribute [mono] monotone_inter monotone_union
+attribute [mono] inter_subset_inter union_subset_union
                  sUnion_mono bUnion_mono sInter_subset_sInter bInter_mono
                  image_subset preimage_mono prod_mono monotone_prod seq_mono
+                 image2_subset order_embedding.monotone
 attribute [mono] upper_bounds_mono_set lower_bounds_mono_set
                  upper_bounds_mono_mem  lower_bounds_mono_mem
                  upper_bounds_mono  lower_bounds_mono

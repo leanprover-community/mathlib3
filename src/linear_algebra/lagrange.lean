@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Kenny Lau.
+Authors: Kenny Lau
 -/
 
-import ring_theory.polynomial algebra.big_operators
+import ring_theory.polynomial
+import algebra.big_operators.basic
 
 /-!
 # Lagrange interpolation
@@ -64,8 +65,8 @@ begin
     have h1 : C (x - y)⁻¹ ≠ C 0 := λ h, hx.1 (eq_of_sub_eq_zero $ inv_eq_zero.1 $ C_inj.1 h),
     have h2 : X ^ 1 - C y ≠ 0 := by convert X_pow_sub_C_ne_zero zero_lt_one y,
     rw C_0 at h1, rw pow_one at h2,
-    rw [finset.prod_insert hys, nat_degree_mul_eq (mul_ne_zero h1 h2), ih hx.2,
-        finset.card_insert_of_not_mem hys, nat_degree_mul_eq h1 h2,
+    rw [finset.prod_insert hys, nat_degree_mul (mul_ne_zero h1 h2), ih hx.2,
+        finset.card_insert_of_not_mem hys, nat_degree_mul h1 h2,
         nat_degree_C, zero_add, nat_degree, degree_X_sub_C, add_comm], refl,
     rw [ne, finset.prod_eq_zero_iff], rintro ⟨z, hzs, hz⟩,
     rw mul_eq_zero at hz, cases hz with hz hz,
@@ -95,7 +96,7 @@ end
 
 theorem degree_interpolate_lt : (interpolate s f).degree < s.card :=
 if H : s = ∅ then by { subst H, rw [interpolate_empty, degree_zero], exact with_bot.bot_lt_coe _ }
-else lt_of_le_of_lt (degree_sum_le _ _) $ (finset.sup_lt_iff $ with_bot.bot_lt_coe s.card).2 $ λ b _,
+else (degree_sum_le _ _).trans_lt $ (finset.sup_lt_iff $ with_bot.bot_lt_coe s.card).2 $ λ b _,
 calc  (C (f b) * basis s b).degree
     ≤ (C (f b)).degree + (basis s b).degree : degree_mul_le _ _
 ... ≤ 0 + (basis s b).degree : add_le_add_right degree_C_le _
@@ -130,8 +131,9 @@ theorem eq_zero_of_eval_eq_zero {f : polynomial F'} (hf1 : f.degree < s'.card)
   (hf2 : ∀ x ∈ s', f.eval x = 0) : f = 0 :=
 by_contradiction $ λ hf3, not_le_of_lt hf1 $
 calc  (s'.card : with_bot ℕ)
-    ≤ f.roots.card : with_bot.coe_le_coe.2 $ finset.card_le_of_subset $ λ x hx,
-        (mem_roots hf3).2 $ hf2 x hx
+    ≤ f.roots.to_finset.card : with_bot.coe_le_coe.2 $ finset.card_le_of_subset $ λ x hx,
+        (multiset.mem_to_finset).mpr $ (mem_roots hf3).2 $ hf2 x hx
+... ≤ f.roots.card : with_bot.coe_le_coe.2 $ f.roots.to_finset_card_le
 ... ≤ f.degree : card_roots hf3
 
 theorem eq_of_eval_eq {f g : polynomial F'} (hf : f.degree < s'.card) (hg : g.degree < s'.card)

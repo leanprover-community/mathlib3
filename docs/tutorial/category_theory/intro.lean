@@ -54,9 +54,7 @@ open category_theory
 
 section category
 
-universes v u  -- the order matters (see below)
-
-variables (C : Type u) [category.{v} C]
+variables (C : Type*) [category C]
 
 variables {W X Y Z : C}
 variables (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z)
@@ -65,12 +63,15 @@ variables (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z)
 This says "let `C` be a category, let `W`, `X`, `Y`, `Z` be objects of `C`, and let `f : W ⟶ X`, `g
 : X ⟶ Y` and `h : Y ⟶ Z` be morphisms in `C` (with the specified source and targets)".
 
-Note that we need to explicitly tell Lean the universe that the morphisms live in, by writing `category.{v} C`, because Lean cannot guess this from `C` alone.
+Note that we sometimes need to explicitly tell Lean the universe that the morphisms live in,
+by writing `category.{v} C`, because Lean cannot guess this from `C` alone.
+However just writing `category C` is often fine: this allows a "free" universe level.
 
-The order in which universes are introduced at the top of the file matters: we put the universes for
-morphisms first (typically `v`, `v₁` and so on), and then universes for objects (typically `u`, `u₁`
-and so on). This ensures that in any new definition we make the universe variables for morphisms
-come first, so that they can be explicitly specified while still allowing the universe levels of the
+The order in which universes are introduced at the top of the file matters:
+we put the universes for morphisms first (typically `v`, `v₁` and so on),
+and then universes for objects (typically `u`, `u₁` and so on).
+This ensures that in any new definition we make the universe variables for morphisms come first,
+so that they can be explicitly specified while still allowing the universe levels of the
 objects to be inferred automatically.
 
 ## Basic notation
@@ -121,12 +122,9 @@ functor.
 
 section functor
 
--- recall we put morphism universes (`vᵢ`) before object universes (`uᵢ`)
-universes v₁ v₂ v₃ u₁ u₂ u₃
-
-variables (C : Type u₁) [category.{v₁} C]
-variables (D : Type u₂) [category.{v₂} D]
-variables (E : Type u₃) [category.{v₃} E]
+variables (C : Type*) [category C]
+variables (D : Type*) [category D]
+variables (E : Type*) [category E]
 
 variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
@@ -142,7 +140,7 @@ example : F.map (𝟙 X) = 𝟙 (F.obj X) := F.map_id X
 -- and preserves compositions
 example : F.map (f ≫ g) = (F.map f) ≫ (F.map g) := F.map_comp f g
 
--- The identity functor is `𝟭`, currently apparently untypesettable in Lean!
+-- The identity functor is `𝟭`, which you can write as `\sb1`.
 example : C ⥤ C := 𝟭 C
 
 -- The identity functor is (definitionally) the identity on objects and morphisms:
@@ -179,9 +177,7 @@ use morphism notation for natural transformations.
 
 section nat_trans
 
-universes v₁ v₂ u₁ u₂
-
-variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
+variables {C : Type*} [category C] {D : Type*} [category D]
 
 variables (X Y : C)
 

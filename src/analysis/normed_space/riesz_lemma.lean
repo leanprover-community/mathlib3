@@ -35,7 +35,7 @@ begin
   let r' := max r 2⁻¹,
   have hr' : r' < 1, by { simp [r', hr], norm_num },
   have hlt : 0 < r' := lt_of_lt_of_le (by norm_num) (le_max_right r 2⁻¹),
-  have hdlt : d < d / r', from lt_div_of_mul_lt hlt ((mul_lt_iff_lt_one_right hdp).2 hr'),
+  have hdlt : d < d / r', from (lt_div_iff hlt).mpr ((mul_lt_iff_lt_one_right hdp).2 hr'),
   obtain ⟨y₀, hy₀F, hxy₀⟩ : ∃ y ∈ F, dist x y < d / r' :=
     metric.exists_dist_lt_of_inf_dist_lt hdlt hFn,
   have x_ne_y₀ : x - y₀ ∉ F,

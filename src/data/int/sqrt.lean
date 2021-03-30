@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import data.nat.sqrt
-import data.int.basic
 
 namespace int
 
@@ -23,6 +22,6 @@ theorem exists_mul_self (x : ℤ) :
 ⟨λ ⟨n, hn⟩, by rw [← hn, sqrt_eq, ← int.coe_nat_mul, nat_abs_mul_self],
 λ h, ⟨sqrt x, h⟩⟩
 
-theorem sqrt_nonneg (n : ℤ) : 0 ≤ sqrt n := trivial
+theorem sqrt_nonneg (n : ℤ) : 0 ≤ sqrt n := coe_nat_nonneg _
 
 end int

@@ -118,6 +118,15 @@ begin
   guard_target (1 : ℤ) < 20, norm_num,
 end
 
+example (n : ℕ) : n % 2 = 0 ∨ n % 2 = 1 :=
+begin
+  set r := n % 2 with hr,
+  have h2 : r < 2 := nat.mod_lt _ (dec_trivial),
+  interval_cases r with hrv,
+  { left, exact hrv },
+  { right, exact hrv }
+end
+
 /-
 Sadly, this one doesn't work, reporting:
   `deep recursion was detected at 'expression equality test'`

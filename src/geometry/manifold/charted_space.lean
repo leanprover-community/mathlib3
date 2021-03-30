@@ -107,16 +107,9 @@ In the locale `manifold`, we denote the composition of local homeomorphisms with
 composition of local equivs with `≫`.
 -/
 
--- register in the simpset `mfld_simps` several lemmas that are often useful
-attribute [mfld_simps] id.def function.comp.left_id set.mem_set_of_eq set.image_eq_empty
-set.univ_inter set.preimage_univ set.prod_mk_mem_set_prod_eq and_true set.mem_univ
-set.mem_image_of_mem true_and set.mem_inter_eq set.mem_preimage function.comp_app
-set.inter_subset_left set.mem_prod set.range_id and_self set.mem_range_self
-eq_self_iff_true forall_const forall_true_iff set.inter_univ set.preimage_id function.comp.right_id
-not_false_iff and_imp
-
 noncomputable theory
-open_locale classical
+open_locale classical topological_space
+open filter
 universes u
 
 variables {H : Type u} {H' : Type*} {M : Type*} {M' : Type*} {M'' : Type*}
@@ -128,19 +121,26 @@ the arrow. -/
 localized "infixr  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
 localized "infixr  ` ≫ `:100 := local_equiv.trans" in manifold
 
+/- `simp` looks for subsingleton instances at every call. This turns out to be very
+inefficient, especially in `simp`-heavy parts of the library such as the manifold code.
+Disable two such instances to speed up things.
+NB: this is just a hack. TODO: fix `simp` properly. -/
+localized "attribute [-instance] unique.subsingleton pi.subsingleton" in manifold
+
 open set local_homeomorph
 
 /-! ### Structure groupoids-/
 
 section groupoid
 
-/- One could add to the definition of a structure groupoid the fact that the restriction of an
+/-! One could add to the definition of a structure groupoid the fact that the restriction of an
 element of the groupoid to any open set still belongs to the groupoid.
 (This is in Kobayashi-Nomizu.)
 I am not sure I want this, for instance on `H × E` where `E` is a vector space, and the groupoid is
 made of functions respecting the fibers and linear in the fibers (so that a charted space over this
 groupoid is naturally a vector bundle) I prefer that the members of the groupoid are always
-defined on sets of the form `s × E`.
+defined on sets of the form `s × E`.  There is a typeclass `closed_under_restriction` for groupoids
+which have the restriction property.
 
 The only nontrivial requirement is locality: if a local homeomorphism belongs to the groupoid
 around each point in its domain of definition, then it belongs to the groupoid. Without this
@@ -228,16 +228,16 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
       rcases h with ⟨x, hx⟩,
       rcases he x hx with ⟨s, open_s, xs, hs⟩,
       have x's : x ∈ (e.restr s).source,
-      { rw [restr_source, interior_eq_of_open open_s],
+      { rw [restr_source, open_s.interior_eq],
         exact ⟨hx, xs⟩ },
       cases hs,
       { replace hs : local_homeomorph.restr e s = local_homeomorph.refl H,
-          by simpa using hs,
+          by simpa only using hs,
         have : (e.restr s).source = univ, by { rw hs, simp },
         change (e.to_local_equiv).source ∩ interior s = univ at this,
         have : univ ⊆ interior s, by { rw ← this, exact inter_subset_right _ _ },
-        have : s = univ, by rwa [interior_eq_of_open open_s, univ_subset_iff] at this,
-        simpa [this, restr_univ] using hs },
+        have : s = univ, by rwa [open_s.interior_eq, univ_subset_iff] at this,
+        simpa only [this, restr_univ] using hs },
       { exfalso,
         rw mem_set_of_eq at hs,
         rwa hs at x's } },
@@ -304,15 +304,15 @@ def pregroupoid.groupoid (PG : pregroupoid H) : structure_groupoid H :=
     { apply PG.locality e.open_source (λx xu, _),
       rcases he x xu with ⟨s, s_open, xs, hs⟩,
       refine ⟨s, s_open, xs, _⟩,
-      convert hs.1,
-      exact (interior_eq_of_open s_open).symm },
+      convert hs.1 using 1,
+      dsimp [local_homeomorph.restr], rw s_open.interior_eq },
     { apply PG.locality e.open_target (λx xu, _),
       rcases he (e.symm x) (e.map_target xu) with ⟨s, s_open, xs, hs⟩,
       refine ⟨e.target ∩ e.symm ⁻¹' s, _, ⟨xu, xs⟩, _⟩,
       { exact continuous_on.preimage_open_of_open e.continuous_inv_fun e.open_target s_open },
       { rw [← inter_assoc, inter_self],
-        convert hs.2,
-        exact (interior_eq_of_open s_open).symm } },
+        convert hs.2 using 1,
+        dsimp [local_homeomorph.restr], rw s_open.interior_eq } },
   end,
   eq_on_source' := λe e' he ee', begin
     split,
@@ -325,7 +325,7 @@ def pregroupoid.groupoid (PG : pregroupoid H) : structure_groupoid H :=
       refl }
   end }
 
-lemma mem_groupoid_of_pregroupoid (PG : pregroupoid H) (e : local_homeomorph H H) :
+lemma mem_groupoid_of_pregroupoid {PG : pregroupoid H} {e : local_homeomorph H H} :
   e ∈ PG.groupoid ↔ PG.property e e.source ∧ PG.property e.symm e.target :=
 iff.rfl
 
@@ -365,6 +365,91 @@ instance : order_top (structure_groupoid H) :=
   le_top := λ u f hf, by { split; exact dec_trivial },
   ..structure_groupoid.partial_order }
 
+/-- A groupoid is closed under restriction if it contains all restrictions of its element local
+homeomorphisms to open subsets of the source. -/
+class closed_under_restriction (G : structure_groupoid H) : Prop :=
+(closed_under_restriction : ∀ {e : local_homeomorph H H}, e ∈ G → ∀ (s : set H), is_open s →
+  e.restr s ∈ G)
+
+lemma closed_under_restriction' {G : structure_groupoid H} [closed_under_restriction G]
+  {e : local_homeomorph H H} (he : e ∈ G) {s : set H} (hs : is_open s) :
+  e.restr s ∈ G :=
+closed_under_restriction.closed_under_restriction he s hs
+
+/-- The trivial restriction-closed groupoid, containing only local homeomorphisms equivalent to the
+restriction of the identity to the various open subsets. -/
+def id_restr_groupoid : structure_groupoid H :=
+{ members := {e | ∃ {s : set H} (h : is_open s), e ≈ local_homeomorph.of_set s h},
+  trans' := begin
+    rintros e e' ⟨s, hs, hse⟩ ⟨s', hs', hse'⟩,
+    refine ⟨s ∩ s', is_open_inter hs hs', _⟩,
+    have := local_homeomorph.eq_on_source.trans' hse hse',
+    rwa local_homeomorph.of_set_trans_of_set at this,
+  end,
+  symm' := begin
+    rintros e ⟨s, hs, hse⟩,
+    refine ⟨s, hs, _⟩,
+    rw [← of_set_symm],
+    exact local_homeomorph.eq_on_source.symm' hse,
+  end,
+  id_mem' := ⟨univ, is_open_univ, by simp only with mfld_simps⟩,
+  locality' := begin
+    intros e h,
+    refine ⟨e.source, e.open_source, by simp only with mfld_simps, _⟩,
+    intros x hx,
+    rcases h x hx with ⟨s, hs, hxs, s', hs', hes'⟩,
+    have hes : x ∈ (e.restr s).source,
+    { rw e.restr_source, refine ⟨hx, _⟩,
+      rw hs.interior_eq, exact hxs },
+    simpa only with mfld_simps using local_homeomorph.eq_on_source.eq_on hes' hes,
+  end,
+  eq_on_source' := begin
+    rintros e e' ⟨s, hs, hse⟩ hee',
+    exact ⟨s, hs, setoid.trans hee' hse⟩,
+  end
+}
+
+lemma id_restr_groupoid_mem {s : set H} (hs : is_open s) :
+  of_set s hs ∈ @id_restr_groupoid H _ := ⟨s, hs, by refl⟩
+
+/-- The trivial restriction-closed groupoid is indeed `closed_under_restriction`. -/
+instance closed_under_restriction_id_restr_groupoid :
+  closed_under_restriction (@id_restr_groupoid H _) :=
+⟨ begin
+    rintros e ⟨s', hs', he⟩ s hs,
+    use [s' ∩ s, is_open_inter hs' hs],
+    refine setoid.trans (local_homeomorph.eq_on_source.restr he s) _,
+    exact ⟨by simp only [hs.interior_eq] with mfld_simps, by simp only with mfld_simps⟩,
+  end ⟩
+
+/-- A groupoid is closed under restriction if and only if it contains the trivial restriction-closed
+groupoid. -/
+lemma closed_under_restriction_iff_id_le (G : structure_groupoid H) :
+  closed_under_restriction G ↔ id_restr_groupoid ≤ G :=
+begin
+  split,
+  { introsI _i,
+    apply structure_groupoid.le_iff.mpr,
+    rintros e ⟨s, hs, hes⟩,
+    refine G.eq_on_source _ hes,
+    convert closed_under_restriction' G.id_mem hs,
+    change s = _ ∩ _,
+    rw hs.interior_eq,
+    simp only with mfld_simps },
+  { intros h,
+    split,
+    intros e he s hs,
+    rw ← of_set_trans (e : local_homeomorph H H) hs,
+    refine G.trans _ he,
+    apply structure_groupoid.le_iff.mp h,
+    exact id_restr_groupoid_mem hs },
+end
+
+/-- The groupoid of all local homeomorphisms on a topological space `H` is closed under restriction.
+-/
+instance : closed_under_restriction (continuous_groupoid H) :=
+(closed_under_restriction_iff_id_le _).mpr (by convert le_top)
+
 end groupoid
 
 
@@ -390,7 +475,7 @@ attribute [simp, mfld_simps] mem_chart_source chart_mem_atlas
 section charted_space
 
 /-- Any space is a charted_space modelled over itself, by just using the identity chart -/
-instance manifold_model_space (H : Type*) [topological_space H] : charted_space H H :=
+instance charted_space_self (H : Type*) [topological_space H] : charted_space H H :=
 { atlas            := {local_homeomorph.refl H},
   chart_at         := λx, local_homeomorph.refl H,
   mem_chart_source := λx, mem_univ x,
@@ -398,23 +483,50 @@ instance manifold_model_space (H : Type*) [topological_space H] : charted_space 
 
 /-- In the trivial charted_space structure of a space modelled over itself through the identity, the
 atlas members are just the identity -/
-@[simp, mfld_simps] lemma model_space_atlas {H : Type*} [topological_space H] {e : local_homeomorph H H} :
+@[simp, mfld_simps] lemma charted_space_self_atlas
+  {H : Type*} [topological_space H] {e : local_homeomorph H H} :
   e ∈ atlas H H ↔ e = local_homeomorph.refl H :=
 by simp [atlas, charted_space.atlas]
 
 /-- In the model space, chart_at is always the identity -/
-@[simp, mfld_simps] lemma chart_at_model_space_eq {H : Type*} [topological_space H] {x : H} :
+@[simp, mfld_simps] lemma chart_at_self_eq {H : Type*} [topological_space H] {x : H} :
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
-/-- Same thing as `H × H'`. We introduce it for technical reasons: a charted space `M` with model `H`
-is a set of local charts from `M` to `H` covering the space. Every space is registered as a charted
-space over itself, using the only chart `id`, in `manifold_model_space`. You can also define a product
-of charted space `M` and `M'` (with model space `H × H'`) by taking the products of the charts. Now,
-on `H × H'`, there are two charted space structures with model space `H × H'` itself, the one coming
-from `manifold_model_space`, and the one coming from the product of the two `manifold_model_space` on
-each component. They are equal, but not defeq (because the product of `id` and `id` is not defeq to
-`id`), which is bad as we know. This expedient of renaming `H × H'` solves this problem. -/
+section
+
+variables (H) [topological_space H] [topological_space M] [charted_space H M]
+
+lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
+(chart_at H x).map_source (mem_chart_source _ _)
+
+/-- If a topological space admits an atlas with locally compact charts, then the space itself
+is locally compact. -/
+lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
+begin
+  have : ∀ (x : M), (𝓝 x).has_basis
+      (λ s, s ∈ 𝓝 (chart_at H x x) ∧ is_compact s ∧ s ⊆ (chart_at H x).target)
+      (λ s, (chart_at H x).symm '' s),
+  { intro x,
+    rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
+    exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
+      (mem_nhds_sets (chart_at H x).open_target (mem_chart_target H x))).map _ },
+  refine locally_compact_space_of_has_basis this _,
+  rintro x s ⟨h₁, h₂, h₃⟩,
+  exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
+end
+
+end
+
+/-- Same thing as `H × H'`. We introduce it for technical reasons: a charted space `M` with model
+`H` is a set of local charts from `M` to `H` covering the space. Every space is registered as a
+charted space over itself, using the only chart `id`, in `manifold_model_space`. You can also define
+a product of charted space `M` and `M'` (with model space `H × H'`) by taking the products of the
+charts. Now, on `H × H'`, there are two charted space structures with model space `H × H'` itself,
+the one coming from `manifold_model_space`, and the one coming from the product of the two
+`manifold_model_space` on each component. They are equal, but not defeq (because the product of `id`
+and `id` is not defeq to `id`), which is bad as we know. This expedient of renaming `H × H'` solves
+this problem. -/
 def model_prod (H : Type*) (H' : Type*) := H × H'
 
 section
@@ -460,7 +572,7 @@ instance prod_charted_space (H : Type*) [topological_space H]
     use (charted_space.chart_at H x.1),
     split,
     { apply chart_mem_atlas _, },
-    { use (charted_space.chart_at H' x.2), simp only [chart_mem_atlas, eq_self_iff_true, and_self], }
+    { use (charted_space.chart_at H' x.2), simp only [chart_mem_atlas, and_self, true_and] }
   end }
 
 section prod_charted_space
@@ -519,7 +631,7 @@ end
 /-- An element of the atlas in a charted space without topology becomes a local homeomorphism
 for the topology constructed from this atlas. The `local_homeomorph` version is given in this
 definition. -/
-def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
+protected def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
   @local_homeomorph M H c.to_topological_space _ :=
 { open_source := by convert c.open_source' he,
   open_target := by convert c.open_target he,
@@ -569,11 +681,16 @@ end charted_space_core
 section has_groupoid
 variables [topological_space H] [topological_space M] [charted_space H M]
 
+section
+set_option old_structure_cmd true
+
 /-- A charted space has an atlas in a groupoid `G` if the change of coordinates belong to the
 groupoid -/
 class has_groupoid {H : Type*} [topological_space H] (M : Type*) [topological_space M]
   [charted_space H M] (G : structure_groupoid H) : Prop :=
 (compatible [] : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M → e.symm ≫ₕ e' ∈ G)
+
+end
 
 /-- Reformulate in the `structure_groupoid` namespace the compatibility condition of charts in a
 charted space admitting a structure groupoid, to make it more easily accessible with dot
@@ -592,7 +709,7 @@ lemma has_groupoid_of_pregroupoid (PG : pregroupoid H)
   (h : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M
     → PG.property (e.symm ≫ₕ e') (e.symm ≫ₕ e').source) :
   has_groupoid M (PG.groupoid) :=
-⟨assume e e' he he', (mem_groupoid_of_pregroupoid PG _).mpr ⟨h he he', h he' he⟩⟩
+⟨assume e e' he he', mem_groupoid_of_pregroupoid.mpr ⟨h he he', h he' he⟩⟩
 
 /-- The trivial charted space structure on the model space is compatible with any groupoid -/
 instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structure_groupoid H) :
@@ -600,7 +717,7 @@ instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structu
 { compatible := λe e' he he', begin
     replace he : e ∈ atlas H H := he,
     replace he' : e' ∈ atlas H H := he',
-    rw model_space_atlas at he he',
+    rw charted_space_self_atlas at he he',
     simp [he, he', structure_groupoid.id_mem]
   end }
 
@@ -664,7 +781,77 @@ begin
   exact G.eq_on_source C (setoid.symm D),
 end
 
+variable (G)
+
+/-- In the model space, the identity is in any maximal atlas. -/
+lemma structure_groupoid.id_mem_maximal_atlas : local_homeomorph.refl H ∈ G.maximal_atlas H :=
+G.mem_maximal_atlas_of_mem_atlas (by simp)
+
 end maximal_atlas
+
+section singleton
+variables {α : Type*} [topological_space α]
+variables (e : local_homeomorph α H)
+
+/-- If a single local homeomorphism `e` from a space `α` into `H` has source covering the whole
+space `α`, then that local homeomorphism induces an `H`-charted space structure on `α`.
+(This condition is equivalent to `e` being an open embedding of `α` into `H`; see
+`local_homeomorph.to_open_embedding` and `open_embedding.to_local_homeomorph`.) -/
+def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
+{ atlas := {e},
+  chart_at := λ _, e,
+  mem_chart_source := λ _, by simp only [h] with mfld_simps,
+  chart_mem_atlas := λ _, by tauto }
+
+lemma singleton_charted_space_one_chart (h : e.source = set.univ) (e' : local_homeomorph α H)
+  (h' : e' ∈ (singleton_charted_space e h).atlas) : e' = e := h'
+
+/-- Given a local homeomorphism `e` from a space `α` into `H`, if its source covers the whole
+space `α`, then the induced charted space structure on `α` is `has_groupoid G` for any structure
+groupoid `G` which is closed under restrictions. -/
+lemma singleton_has_groupoid (h : e.source = set.univ) (G : structure_groupoid H)
+  [closed_under_restriction G] : @has_groupoid _ _ _ _ (singleton_charted_space e h) G :=
+{ compatible := begin
+    intros e' e'' he' he'',
+    rw singleton_charted_space_one_chart e h e' he',
+    rw singleton_charted_space_one_chart e h e'' he'',
+    refine G.eq_on_source _ e.trans_symm_self,
+    have hle : id_restr_groupoid ≤ G := (closed_under_restriction_iff_id_le G).mp (by assumption),
+    exact structure_groupoid.le_iff.mp hle _ (id_restr_groupoid_mem _),
+  end }
+
+end singleton
+
+namespace topological_space.opens
+
+open topological_space
+variables (G : structure_groupoid H) [has_groupoid M G]
+variables (s : opens M)
+
+/-- An open subset of a charted space is naturally a charted space. -/
+instance : charted_space H s :=
+{ atlas := ⋃ (x : s), {@local_homeomorph.subtype_restr _ _ _ _ (chart_at H x.1) s ⟨x⟩},
+  chart_at := λ x, @local_homeomorph.subtype_restr _ _ _ _ (chart_at H x.1) s ⟨x⟩,
+  mem_chart_source := λ x, by { simp only with mfld_simps, exact (mem_chart_source H x.1) },
+  chart_mem_atlas := λ x, by { simp only [mem_Union, mem_singleton_iff], use x } }
+
+/-- If a groupoid `G` is `closed_under_restriction`, then an open subset of a space which is
+`has_groupoid G` is naturally `has_groupoid G`. -/
+instance [closed_under_restriction G] : has_groupoid s G :=
+{ compatible := begin
+    rintros e e' ⟨_, ⟨x, hc⟩, he⟩ ⟨_, ⟨x', hc'⟩, he'⟩,
+    haveI : nonempty s := ⟨x⟩,
+    simp only [hc.symm, mem_singleton_iff, subtype.val_eq_coe] at he,
+    simp only [hc'.symm, mem_singleton_iff, subtype.val_eq_coe] at he',
+    rw [he, he'],
+    convert G.eq_on_source _
+      (subtype_restr_symm_trans_subtype_restr s (chart_at H x) (chart_at H x')),
+    apply closed_under_restriction',
+    { exact G.compatible (chart_mem_atlas H x) (chart_mem_atlas H x') },
+    { exact preimage_open_of_open_symm (chart_at H x) s.2 },
+  end }
+
+end topological_space.opens
 
 /-! ### Structomorphisms -/
 
@@ -703,7 +890,8 @@ def structomorph.symm (e : structomorph G M M') : structomorph G M' M :=
   ..e.to_homeomorph.symm}
 
 /-- The composition of structomorphisms is a structomorphism -/
-def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') : structomorph G M M'' :=
+def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') :
+  structomorph G M M'' :=
 { mem_groupoid := begin
     /- Let c and c' be two charts in M and M''. We want to show that e' ∘ e is smooth in these
     charts, around any point x. For this, let y = e (c⁻¹ x), and consider a chart g around y.

@@ -3,9 +3,27 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import category_theory.yoneda
 import topology.sheaves.presheaf
 import topology.category.TopCommRing
-import topology.algebra.continuous_functions
+import topology.continuous_function.algebra
+
+/-!
+# Presheaves of functions
+
+We construct some simple examples of presheaves of functions on a topological space.
+* `presheaf_to_Types X T`, where `T : X → Type`,
+  is the presheaf of dependently-typed (not-necessarily continuous) functions
+* `presheaf_to_Type X T`, where `T : Type`,
+  is the presheaf of (not-necessarily-continuous) functions to a fixed target type `T`
+* `presheaf_to_Top X T`, where `T : Top`,
+  is the presheaf of continuous functions into a topological space `T`
+* `presheaf_To_TopCommRing X R`, where `R : TopCommRing`
+  is the presheaf valued in `CommRing` of functions functions into a topological ring `R`
+* as an example of the previous construction,
+  `presheaf_to_TopCommRing X (TopCommRing.of ℂ)`
+  is the presheaf of rings of continuous complex-valued functions on `X`.
+-/
 
 universes v u
 
@@ -17,26 +35,64 @@ namespace Top
 
 variables (X : Top.{v})
 
-/-- The presheaf of continuous functions on `X` with values in fixed target topological space `T`. -/
+/--
+The presheaf of dependently typed functions on `X`, with fibres given by a type family `T`.
+There is no requirement that the functions are continuous, here.
+-/
+def presheaf_to_Types (T : X → Type v) : X.presheaf (Type v) :=
+{ obj := λ U, Π x : (unop U), T x,
+  map := λ U V i g, λ (x : unop V), g (i.unop x) }
+
+@[simp] lemma presheaf_to_Types_obj
+  {T : X → Type v} {U : (opens X)ᵒᵖ} :
+  (presheaf_to_Types X T).obj U = Π x : (unop U), T x :=
+rfl
+
+@[simp] lemma presheaf_to_Types_map
+  {T : X → Type v} {U V : (opens X)ᵒᵖ} {i : U ⟶ V} {f} :
+  (presheaf_to_Types X T).map i f = λ x, f (i.unop x) :=
+rfl
+
+/--
+The presheaf of functions on `X` with values in a type `T`.
+There is no requirement that the functions are continuous, here.
+-/
+-- We don't just define this in terms of `presheaf_to_Types`,
+-- as it's helpful later to see (at a syntactic level) that `(presheaf_to_Type X T).obj U`
+-- is a non-dependent function.
+-- We don't use `@[simps]` to generate the projection lemmas here,
+-- as it turns out to be useful to have `presheaf_to_Type_map`
+-- written as an equality of functions (rather than being applied to some argument).
+def presheaf_to_Type (T : Type v) : X.presheaf (Type v) :=
+{ obj := λ U, (unop U) → T,
+  map := λ U V i g, g ∘ i.unop }
+
+@[simp] lemma presheaf_to_Type_obj
+  {T : Type v} {U : (opens X)ᵒᵖ} :
+  (presheaf_to_Type X T).obj U = ((unop U) → T) :=
+rfl
+
+@[simp] lemma presheaf_to_Type_map
+  {T : Type v} {U V : (opens X)ᵒᵖ} {i : U ⟶ V} {f} :
+  (presheaf_to_Type X T).map i f = f ∘ i.unop :=
+rfl
+
+/-- The presheaf of continuous functions on `X` with values in fixed target topological space
+`T`. -/
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 (opens.to_Top X).op ⋙ (yoneda.obj T)
+
+@[simp] lemma presheaf_to_Top_obj (T : Top.{v}) (U : (opens X)ᵒᵖ) :
+  (presheaf_to_Top X T).obj U = ((opens.to_Top X).obj (unop U) ⟶ T) :=
+rfl
 
 /-- The (bundled) commutative ring of continuous functions from a topological space
 to a topological commutative ring, with pointwise multiplication. -/
 -- TODO upgrade the result to TopCommRing?
 def continuous_functions (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) : CommRing.{v} :=
-{ α := unop X ⟶ (forget₂ TopCommRing Top).obj R,
-  str := _root_.continuous_comm_ring }
+CommRing.of (unop X ⟶ (forget₂ TopCommRing Top).obj R)
 
 namespace continuous_functions
-@[simp] lemma one (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x) :
-  (monoid.one : continuous_functions X R).val x = 1 := rfl
-@[simp] lemma zero (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x) :
-  (comm_ring.zero : continuous_functions X R).val x = 0 := rfl
-@[simp] lemma add (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x) :
-  (comm_ring.add f g).val x = f.1 x + g.1 x := rfl
-@[simp] lemma mul (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x) :
-  (ring.mul f g).val x = f.1 x * g.1 x := rfl
 
 /-- Pulling back functions into a topological ring along a continuous map is a ring homomorphism. -/
 def pullback {X Y : Topᵒᵖ} (f : X ⟶ Y) (R : TopCommRing) :
@@ -47,11 +103,9 @@ def pullback {X Y : Topᵒᵖ} (f : X ⟶ Y) (R : TopCommRing) :
   map_add' := by tidy,
   map_mul' := by tidy }
 
-local attribute [ext] subtype.eq
-
 /-- A homomorphism of topological rings can be postcomposed with functions from a source space `X`;
 this is a ring homomorphism (with respect to the pointwise ring operations on functions). -/
-def map (X : Topᵒᵖ) {R S : TopCommRing} (φ : R ⟶ S) :
+def map (X : Top.{u}ᵒᵖ) {R S : TopCommRing.{u}} (φ : R ⟶ S) :
   continuous_functions X R ⟶ continuous_functions X S :=
 { to_fun := λ g, g ≫ ((forget₂ TopCommRing Top).map φ),
   map_one' := by ext; exact φ.1.map_one,
@@ -69,18 +123,18 @@ def CommRing_yoneda : TopCommRing.{u} ⥤ (Top.{u}ᵒᵖ ⥤ CommRing.{u}) :=
   map := λ R S φ,
   { app := λ X, continuous_functions.map X φ } }
 
-/-- The presheaf (of commutative rings), consisting of functions on an open set `U ⊆ X` with
-values in some topological commutative ring `T`. -/
+/--
+The presheaf (of commutative rings), consisting of functions on an open set `U ⊆ X` with
+values in some topological commutative ring `T`.
+
+For example, we could construct the presheaf of continuous complex valued functions of `X` as
+```
+presheaf_to_TopCommRing X (TopCommRing.of ℂ)
+```
+(this requires `import topology.instances.complex`).
+-/
 def presheaf_to_TopCommRing (T : TopCommRing.{v}) :
   X.presheaf CommRing.{v} :=
 (opens.to_Top X).op ⋙ (CommRing_yoneda.obj T)
-
-/-- The presheaf (of commutative rings) of real valued functions. -/
-noncomputable def presheaf_ℝ (Y : Top) : Y.presheaf CommRing :=
-presheaf_to_TopCommRing Y (TopCommRing.of ℝ)
-
-/-- The presheaf (of commutative rings) of complex valued functions. -/
-noncomputable def presheaf_ℂ (Y : Top) : Y.presheaf CommRing :=
-presheaf_to_TopCommRing Y (TopCommRing.of ℂ)
 
 end Top

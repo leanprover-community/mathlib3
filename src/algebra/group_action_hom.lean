@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.group_ring_action
+import group_theory.group_action
 
 /-!
 # Equivariant homomorphisms
@@ -25,10 +26,11 @@ import algebra.group_ring_action
 
 -/
 
+variables (M' : Type*)
+variables (X : Type*) [has_scalar M' X]
+variables (Y : Type*) [has_scalar M' Y]
+variables (Z : Type*) [has_scalar M' Z]
 variables (M : Type*) [monoid M]
-variables (X : Type*) [mul_action M X]
-variables (Y : Type*) [mul_action M Y]
-variables (Z : Type*) [mul_action M Z]
 variables (A : Type*) [add_monoid A] [distrib_mul_action M A]
 variables (A' : Type*) [add_group A'] [distrib_mul_action M A']
 variables (B : Type*) [add_monoid B] [distrib_mul_action M B]
@@ -39,7 +41,7 @@ variables (R' : Type*) [ring R'] [mul_semiring_action M R']
 variables (S : Type*) [semiring S] [mul_semiring_action M S]
 variables (S' : Type*) [ring S'] [mul_semiring_action M S']
 variables (T : Type*) [semiring T] [mul_semiring_action M T]
-variables (G : Type*) [group G] (H : set G) [is_subgroup H]
+variables (G : Type*) [group G] (H : subgroup G)
 
 set_option old_structure_cmd true
 
@@ -47,51 +49,49 @@ set_option old_structure_cmd true
 @[nolint has_inhabited_instance]
 structure mul_action_hom :=
 (to_fun : X → Y)
-(map_smul' : ∀ (m : M) (x : X), to_fun (m • x) = m • to_fun x)
+(map_smul' : ∀ (m : M') (x : X), to_fun (m • x) = m • to_fun x)
 
 notation X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
 
 namespace mul_action_hom
 
-instance : has_coe_to_fun (X →[M] Y) :=
+instance : has_coe_to_fun (X →[M'] Y) :=
 ⟨_, λ c, c.to_fun⟩
 
-variables {M X Y}
+variables {M M' X Y}
 
-@[simp] lemma map_smul (f : X →[M] Y) (m : M) (x : X) : f (m • x) = m • f x :=
+@[simp] lemma map_smul (f : X →[M'] Y) (m : M') (x : X) : f (m • x) = m • f x :=
 f.map_smul' m x
 
-@[ext] theorem ext : ∀ {f g : X →[M] Y}, (∀ x, f x = g x) → f = g
-| ⟨f, _⟩ ⟨g, _⟩ H := by { congr' 1, ext x, exact H x }
+@[ext] theorem ext : ∀ {f g : X →[M'] Y}, (∀ x, f x = g x) → f = g
+| ⟨f, _⟩ ⟨g, _⟩ H := by { congr' 1 with x, exact H x }
 
-theorem ext_iff {f g : X →[M] Y} : f = g ↔ ∀ x, f x = g x :=
+theorem ext_iff {f g : X →[M'] Y} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
 
-variables (M) {X}
+variables (M M') {X}
 
 /-- The identity map as an equivariant map. -/
-protected def id : X →[M] X :=
+protected def id : X →[M'] X :=
 ⟨id, λ _ _, rfl⟩
 
-@[simp] lemma id_apply (x : X) : mul_action_hom.id M x = x := rfl
+@[simp] lemma id_apply (x : X) : mul_action_hom.id M' x = x := rfl
 
-variables {M X Y Z}
+variables {M M' X Y Z}
 
 /-- Composition of two equivariant maps. -/
-def comp (g : Y →[M] Z) (f : X →[M] Y) : X →[M] Z :=
+def comp (g : Y →[M'] Z) (f : X →[M'] Y) : X →[M'] Z :=
 ⟨g ∘ f, λ m x, calc
 g (f (m • x)) = g (m • f x) : by rw f.map_smul
           ... = m • g (f x) : g.map_smul _ _⟩
 
-@[simp] lemma comp_apply (g : Y →[M] Z) (f : X →[M] Y) (x : X) : g.comp f x = g (f x) := rfl
+@[simp] lemma comp_apply (g : Y →[M'] Z) (f : X →[M'] Y) (x : X) : g.comp f x = g (f x) := rfl
 
-@[simp] lemma id_comp (f : X →[M] Y) : (mul_action_hom.id M).comp f = f :=
+@[simp] lemma id_comp (f : X →[M'] Y) : (mul_action_hom.id M').comp f = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
-@[simp] lemma comp_id (f : X →[M] Y) : f.comp (mul_action_hom.id M) = f :=
+@[simp] lemma comp_id (f : X →[M'] Y) : f.comp (mul_action_hom.id M') = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
-
-local attribute [instance] mul_action.regular
 
 variables {G} (H)
 
@@ -132,7 +132,7 @@ variables {M A B}
 @[norm_cast] lemma coe_fn_coe' (f : A →+[M] B) : ((f : A →[M] B) : A → B) = f := rfl
 
 @[ext] theorem ext : ∀ {f g : A →+[M] B}, (∀ x, f x = g x) → f = g
-| ⟨f, _, _, _⟩ ⟨g, _, _, _⟩ H := by { congr' 1, ext x, exact H x }
+| ⟨f, _, _, _⟩ ⟨g, _, _, _⟩ H := by { congr' 1 with x, exact H x }
 
 theorem ext_iff {f g : A →+[M] B} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
@@ -206,7 +206,7 @@ variables {M R S}
 @[norm_cast] lemma coe_fn_coe' (f : R →+*[M] S) : ((f : R →+[M] S) : R → S) = f := rfl
 
 @[ext] theorem ext : ∀ {f g : R →+*[M] S}, (∀ x, f x = g x) → f = g
-| ⟨f, _, _, _, _, _⟩ ⟨g, _, _, _, _, _⟩ H := by { congr' 1, ext x, exact H x }
+| ⟨f, _, _, _, _, _⟩ ⟨g, _, _, _, _, _⟩ H := by { congr' 1 with x, exact H x }
 
 theorem ext_iff {f g : R →+*[M] S} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
@@ -256,3 +256,19 @@ ext $ λ x, by rw [comp_apply, id_apply]
 ext $ λ x, by rw [comp_apply, id_apply]
 
 end mul_semiring_action_hom
+
+section
+variables (M) {R'} (U : set R') [is_subring U] [is_invariant_subring M U]
+local attribute [instance] subset.ring
+
+/-- The canonical inclusion from an invariant subring. -/
+def is_invariant_subring.subtype_hom : U →+*[M] R' :=
+{ map_smul' := λ m s, rfl, .. is_subring.subtype U }
+
+@[simp] theorem is_invariant_subring.coe_subtype_hom :
+  (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
+
+@[simp] theorem is_invariant_subring.coe_subtype_hom' :
+  (is_invariant_subring.subtype_hom M U : U →+* R') = is_subring.subtype U := rfl
+
+end

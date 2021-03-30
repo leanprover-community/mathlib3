@@ -19,7 +19,7 @@ structure open_add_subgroup  (G : Type*) [add_group G] [topological_space G]
 (is_open' : is_open carrier)
 
 /-- The type of open subgroups of a topological group. -/
-@[ancestor subgroup, to_additive open_add_subgroup]
+@[ancestor subgroup, to_additive]
 structure open_subgroup (G : Type*) [group G] [topological_space G] extends subgroup G :=
 (is_open' : is_open carrier)
 
@@ -52,7 +52,7 @@ instance has_coe_opens : has_coe_t (open_subgroup G) (opens G) := ⟨λ U, ⟨U,
 
 @[simp, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
 @[simp, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
-@[simp, to_additive mem_coe_add_subgroup]
+@[simp, to_additive]
 lemma mem_coe_subgroup : g ∈ (U : subgroup G) ↔ g ∈ U := iff.rfl
 
 attribute [norm_cast] mem_coe mem_coe_opens mem_coe_subgroup open_add_subgroup.mem_coe
@@ -92,25 +92,27 @@ instance : has_top (open_subgroup G) := ⟨{ is_open' := is_open_univ, .. (⊤ :
 instance : inhabited (open_subgroup G) := ⟨⊤⟩
 
 @[to_additive]
-lemma is_closed [topological_monoid G] (U : open_subgroup G) : is_closed (U : set G) :=
+lemma is_closed [has_continuous_mul G] (U : open_subgroup G) : is_closed (U : set G) :=
 begin
+  apply is_open_compl_iff.1,
   refine is_open_iff_forall_mem_open.2 (λ x hx, ⟨(λ y, y * x⁻¹) ⁻¹' U, _, _, _⟩),
   { intros u hux,
     simp only [set.mem_preimage, set.mem_compl_iff, mem_coe] at hux hx ⊢,
     refine mt (λ hu, _) hx,
     convert U.mul_mem (U.inv_mem hux) hu,
     simp },
-  { exact (continuous_mul_right _) _ U.is_open },
+  { exact U.is_open.preimage (continuous_mul_right _) },
   { simp [U.one_mem] }
 end
 
 section
 variables {H : Type*} [group H] [topological_space H]
 
-@[to_additive]
+/-- The product of two open subgroups as an open subgroup of the product group. -/
+@[to_additive "The product of two open subgroups as an open subgroup of the product group."]
 def prod (U : open_subgroup G) (V : open_subgroup H) : open_subgroup (G × H) :=
 { carrier := (U : set G).prod (V : set H),
-  is_open' := is_open_prod U.is_open V.is_open,
+  is_open' := U.is_open.prod V.is_open,
   .. (U : subgroup G).prod (V : subgroup H) }
 
 end
@@ -137,13 +139,38 @@ instance : semilattice_inf_top (open_subgroup G) :=
 @[simp, to_additive] lemma coe_subgroup_le : (U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
 
 attribute [norm_cast] coe_inf coe_subset coe_subgroup_le open_add_subgroup.coe_inf
-  open_add_subgroup.coe_subset open_add_subgroup.coe_subgroup_le
+  open_add_subgroup.coe_subset open_add_subgroup.coe_add_subgroup_le
+
+variables {N : Type*} [group N] [topological_space N]
+
+/-- The preimage of an `open_subgroup` along a continuous `monoid` homomorphism
+  is an `open_subgroup`. -/
+@[to_additive "The preimage of an `open_add_subgroup` along a continuous `add_monoid` homomorphism
+is an `open_add_subgroup`."]
+def comap (f : G →* N)
+  (hf : continuous f) (H : open_subgroup N) : open_subgroup G :=
+{ is_open' := H.is_open.preimage hf,
+  .. (H : subgroup N).comap f }
+
+@[simp, to_additive]
+lemma coe_comap (H : open_subgroup N) (f : G →* N) (hf : continuous f) :
+  (H.comap f hf : set G) = f ⁻¹' H := rfl
+
+@[simp, to_additive]
+lemma mem_comap {H : open_subgroup N} {f : G →* N} {hf : continuous f} {x : G} :
+  x ∈ H.comap f hf ↔ f x ∈ H := iff.rfl
+
+@[to_additive]
+lemma comap_comap {P : Type*} [group P] [topological_space P]
+  (K : open_subgroup P) (f₂ : N →* P) (hf₂ : continuous f₂) (f₁ : G →* N) (hf₁ : continuous f₁) :
+  (K.comap f₂ hf₂).comap f₁ hf₁ = K.comap (f₂.comp f₁) (hf₂.comp hf₁) :=
+rfl
 
 end open_subgroup
 
 namespace subgroup
 
-variables {G : Type*} [group G] [topological_space G] [topological_monoid G] (H : subgroup G)
+variables {G : Type*} [group G] [topological_space G] [has_continuous_mul G] (H : subgroup G)
 
 @[to_additive]
 lemma is_open_of_mem_nhds {g : G} (hg : (H : set G) ∈ 𝓝 g) :
@@ -160,7 +187,7 @@ begin
   exact this
 end
 
-@[to_additive is_open_of_open_add_subgroup]
+@[to_additive]
 lemma is_open_of_open_subgroup {U : open_subgroup G} (h : U.1 ≤ H) :
   is_open (H : set G) :=
 H.is_open_of_mem_nhds (filter.mem_sets_of_superset U.mem_nhds_one h)
@@ -174,7 +201,7 @@ end subgroup
 
 namespace open_subgroup
 
-variables {G : Type*} [group G] [topological_space G] [topological_monoid G]
+variables {G : Type*} [group G] [topological_space G] [has_continuous_mul G]
 
 @[to_additive]
 instance : semilattice_sup_top (open_subgroup G) :=

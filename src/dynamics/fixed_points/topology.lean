@@ -30,7 +30,7 @@ lemma is_fixed_pt_of_tendsto_iterate {x y : α} (hy : tendsto (λ n, f^[n] x) at
   (hf : continuous_at f y) :
   is_fixed_pt f y :=
 begin
-  refine tendsto_nhds_unique at_top_ne_bot ((tendsto_add_at_top_iff_nat 1).1 _) hy,
+  refine tendsto_nhds_unique ((tendsto_add_at_top_iff_nat 1).1 _) hy,
   simp only [iterate_succ' f],
   exact hf.tendsto.comp hy
 end

@@ -4,14 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
 import data.dlist.basic
+import logic.function.basic
 import control.basic
 import meta.expr
 import meta.rb_map
 import data.bool
+import tactic.binder_matching
 import tactic.lean_core_docs
 import tactic.interactive_expr
+import system.io
 
 universe variable u
+
+attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 
 instance : has_lt pos :=
 { lt := λ x y, (x.line, x.column) < (y.line, y.column) }
@@ -125,15 +130,19 @@ each line break is decided independently -/
 meta def soft_break : format :=
 group line
 
+/-- Format a list as a comma separated list, without any brackets. -/
+meta def comma_separated {α : Type*} [has_to_format α] : list α → format
+| [] := nil
+| xs := group (nest 1 $ intercalate ("," ++ soft_break) $ xs.map to_fmt)
+
 end format
 
 section format
 open format
 
 /-- format a `list` by separating elements with `soft_break` instead of `line` -/
-meta def list.to_line_wrap_format {α : Type u} [has_to_format α] : list α → format
-| [] := to_fmt "[]"
-| xs := to_fmt "[" ++ group (nest 1 $ intercalate ("," ++ soft_break) $ xs.map to_fmt) ++ to_fmt "]"
+meta def list.to_line_wrap_format {α : Type u} [has_to_format α] (l : list α) : format :=
+bracket "[" "]" (comma_separated l)
 
 end format
 
@@ -189,16 +198,115 @@ meta def add_local_consts_as_local_hyps (vars : list expr) : tactic (list (expr 
    reported by the system is often mostly the reverse of the order in which they are dependent. -/
 add_local_consts_as_local_hyps_aux [] vars.reverse.erase_dup
 
-/-- `mk_local_pisn e n` instantiates the first `n` variables of a pi expression `e`,
-and returns the new local constants along with the instantiated expression. Fails if `e` does
-not begin with at least `n` pi binders. -/
-meta def mk_local_pisn : expr → nat → tactic (list expr × expr)
-| (expr.pi n bi d b) (c + 1) := do
-  p ← mk_local' n bi d,
-  (ps, r) ← mk_local_pisn (b.instantiate_var p) c,
-  return ((p :: ps), r)
-| e 0 := return ([], e)
-| _ _ := failed
+private meta def get_expl_pi_arity_aux : expr → tactic nat
+| (expr.pi n bi d b) :=
+  do m     ← mk_fresh_name,
+     let l := expr.local_const m n bi d,
+     new_b ← whnf (expr.instantiate_var b l),
+     r     ← get_expl_pi_arity_aux new_b,
+     if bi = binder_info.default then
+       return (r + 1)
+     else
+       return r
+| e := return 0
+
+/-- Compute the arity of explicit arguments of `type`. -/
+meta def get_expl_pi_arity (type : expr) : tactic nat :=
+whnf type >>= get_expl_pi_arity_aux
+
+/-- Compute the arity of explicit arguments of `fn`'s type. -/
+meta def get_expl_arity (fn : expr) : tactic nat :=
+infer_type fn >>= get_expl_pi_arity
+
+private meta def get_app_fn_args_whnf_aux (md : transparency)
+  (unfold_ginductive : bool) : list expr → expr → tactic (expr × list expr) :=
+λ args e, do
+  e ← whnf e md unfold_ginductive,
+  match e with
+  | (expr.app t u) := get_app_fn_args_whnf_aux (u :: args) t
+  | _ := pure (e, args)
+  end
+
+/--
+For `e = f x₁ ... xₙ`, `get_app_fn_args_whnf e` returns `(f, [x₁, ..., xₙ])`. `e`
+is normalised as necessary; for example:
+
+```
+get_app_fn_args_whnf `(let f := g x in f y) = (`(g), [`(x), `(y)])
+```
+
+The returned expression is in whnf, but the arguments are generally not.
+-/
+meta def get_app_fn_args_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (expr × list expr) :=
+get_app_fn_args_whnf_aux md unfold_ginductive [] e
+
+/--
+`get_app_fn_whnf e md unfold_ginductive` is like `expr.get_app_fn e` but `e` is
+normalised as necessary (with transparency `md`). `unfold_ginductive` controls
+whether constructors of generalised inductive types are unfolded. The returned
+expression is in whnf.
+-/
+meta def get_app_fn_whnf : expr → opt_param _ semireducible → opt_param _ tt → tactic expr
+| e md unfold_ginductive := do
+  e ← whnf e md unfold_ginductive,
+  match e with
+  | (expr.app f _) := get_app_fn_whnf f md unfold_ginductive
+  | _ := pure e
+  end
+
+/--
+`get_app_fn_const_whnf e md unfold_ginductive` expects that `e = C x₁ ... xₙ`,
+where `C` is a constant, after normalisation with transparency `md`. If so, the
+name of `C` is returned. Otherwise the tactic fails. `unfold_ginductive`
+controls whether constructors of generalised inductive types are unfolded.
+-/
+meta def get_app_fn_const_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic name := do
+  f ← get_app_fn_whnf e md unfold_ginductive,
+  match f with
+  | (expr.const n _) := pure n
+  | _ := fail format!
+    "expected a constant (possibly applied to some arguments), but got:\n{e}"
+  end
+
+/--
+`get_app_args_whnf e md unfold_ginductive` is like `expr.get_app_args e` but `e`
+is normalised as necessary (with transparency `md`). `unfold_ginductive`
+controls whether constructors of generalised inductive types are unfolded. The
+returned expressions are not necessarily in whnf.
+-/
+meta def get_app_args_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (list expr) :=
+prod.snd <$> get_app_fn_args_whnf e md unfold_ginductive
+
+/-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
+`loc_consts` should be a list of local constants. The function will abstract these local
+constants from `f` and bind them with pi binders.
+
+For example, if `a, b` are local constants with types `Ta, Tb`,
+``pis [a, b] `(f a b)`` will return the expression
+`Π (a : Ta) (b : Tb), f a b`. -/
+meta def pis : list expr → expr → tactic expr
+| (e@(expr.local_const uniq pp info _) :: es) f := do
+  t ← infer_type e,
+  f' ← pis es f,
+  pure $ expr.pi pp info t (expr.abstract_local f' uniq)
+| _ f := pure f
+
+/-- `lambdas loc_consts f` is used to create a lambda expression whose body is `f`.
+`loc_consts` should be a list of local constants. The function will abstract these local
+constants from `f` and bind them with lambda binders.
+
+For example, if `a, b` are local constants with types `Ta, Tb`,
+``lambdas [a, b] `(f a b)`` will return the expression
+`λ (a : Ta) (b : Tb), f a b`. -/
+meta def lambdas : list expr → expr → tactic expr
+| (e@(expr.local_const uniq pp info _) :: es) f := do
+  t ← infer_type e,
+  f' ← lambdas es f,
+  pure $ expr.lam pp info t (expr.abstract_local f' uniq)
+| _ f := pure f
 
 -- TODO: move to `declaration` namespace in `meta/expr.lean`
 /-- `mk_theorem n ls t e` creates a theorem declaration with name `n`, universe parameters named
@@ -249,8 +357,34 @@ Covers all declarations from the current file. -/
 meta def local_decls : tactic (name_map declaration) :=
 do e ← tactic.get_env,
    let xs := e.fold native.mk_rb_map
-     (λ d s, if environment.in_current_file' e d.to_name
+     (λ d s, if environment.in_current_file e d.to_name
              then s.insert d.to_name d else s),
+   pure xs
+
+/-- `get_decls_from` returns a dictionary mapping names to their
+corresponding declarations.  Covers all declarations the files listed
+in `fs`, with the current file listed as `none`.
+
+The path of the file names is expected to be relative to
+the root of the project (i.e. the location of `leanpkg.toml` when it
+is present); e.g. `"src/tactic/core.lean"`
+
+Possible issue: `get_decls_from` uses `get_cwd`, the current working
+directory, which may not always point at the root of the project.
+It would work better if it searched for the root directory or,
+better yet, if Lean exposed its path information.
+-/
+meta def get_decls_from (fs : list (option string)) : tactic (name_map declaration) :=
+do root ← unsafe_run_io $ io.env.get_cwd,
+   let fs := fs.map (option.map $ λ path, root ++ "/" ++ path),
+   err ← unsafe_run_io $ (fs.filter_map id).mfilter $ (<$>) bnot ∘ io.fs.file_exists,
+   guard (err = []) <|> fail format!"File not found: {err}",
+   e ← tactic.get_env,
+   let xs := e.fold native.mk_rb_map
+     (λ d s,
+       let source := e.decl_olean d.to_name in
+       if source ∈ fs ∧ (source = none → e.in_current_file d.to_name)
+       then s.insert d.to_name d else s),
    pure xs
 
 /-- If `{nm}_{n}` doesn't exist in the environment, returns that, otherwise tries `{nm}_{n+1}` -/
@@ -298,34 +432,6 @@ a meaningful expression. -/
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
 
-/-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
-`loc_consts` should be a list of local constants. The function will abstract these local
-constants from `f` and bind them with pi binders.
-
-For example, if `a, b` are local constants with types `Ta, Tb`,
-``pis [a, b] `(f a b)`` will return the expression
-`Π (a : Ta) (b : Tb), f a b`. -/
-meta def pis : list expr → expr → tactic expr
-| (e@(expr.local_const uniq pp info _) :: es) f := do
-  t ← infer_type e,
-  f' ← pis es f,
-  pure $ expr.pi pp info t (expr.abstract_local f' uniq)
-| _ f := pure f
-
-/-- `lambdas loc_consts f` is used to create a lambda expression whose body is `f`.
-`loc_consts` should be a list of local constants. The function will abstract these local
-constants from `f` and bind them with lambda binders.
-
-For example, if `a, b` are local constants with types `Ta, Tb`,
-``lambdas [a, b] `(f a b)`` will return the expression
-`λ (a : Ta) (b : Tb), f a b`. -/
-meta def lambdas : list expr → expr → tactic expr
-| (e@(expr.local_const uniq pp info _) :: es) f := do
-  t ← infer_type e,
-  f' ← lambdas es f,
-  pure $ expr.lam pp info t (expr.abstract_local f' uniq)
-| _ f := pure f
-
 /-- `mk_psigma [x,y,z]`, with `[x,y,z]` list of local constants of types `x : tx`,
 `y : ty x` and `z : tz x y`, creates an expression of sigma type:
 `⟨x,y,z⟩ : Σ' (x : tx) (y : ty x), tz x y`.
@@ -341,6 +447,21 @@ meta def mk_psigma : list expr → tactic expr
      r ← mk_mapp ``psigma.mk [α,t],
      pure $ r x y
 | _ := fail "mk_psigma expects a list of local constants"
+
+/--
+Update the type of a local constant or metavariable. For local constants and
+metavariables obtained via, for example, `tactic.get_local`, the type stored in
+the expression is not necessarily the same as the type returned by `infer_type`.
+This tactic, given a local constant or metavariable, updates the stored type to
+match the output of `infer_type`. If the input is not a local constant or
+metavariable, `update_type` does nothing.
+-/
+meta def update_type : expr → tactic expr
+| e@(expr.local_const ppname uname binfo _) :=
+  expr.local_const ppname uname binfo <$> infer_type e
+| e@(expr.mvar ppname uname _) :=
+  expr.mvar ppname uname <$> infer_type e
+| e := pure e
 
 /-- `elim_gen_prod n e _ ns` with `e` an expression of type `psigma _`, applies `cases` on `e` `n`
 times and uses `ns` to name the resulting variables. Returns a triple: list of new variables,
@@ -394,6 +515,12 @@ meta def retrieve {α} (tac : tactic α) : tactic α :=
  (λ a s', result.success a s)
  result.exception
 
+/-- Runs a tactic for a result, reverting the state after completion or error. -/
+meta def retrieve' {α} (tac : tactic α) : tactic α :=
+λ s, result.cases_on (tac s)
+ (λ a s', result.success a s)
+ (λ msg pos s', result.exception msg pos s)
+
 /-- Repeat a tactic at least once, calling it recursively on all subgoals,
 until it fails. This tactic fails if the first invocation fails. -/
 meta def repeat1 (t : tactic unit) : tactic unit := t; repeat t
@@ -435,6 +562,16 @@ meta def revert_after (e : expr) : tactic ℕ := do
   let l := l.drop pos.succ, -- all local hypotheses after `e`
   revert_lst l
 
+/-- `revert_target_deps` reverts all local constants on which the target depends (recursively).
+  Returns the number of local constants that have been reverted. -/
+meta def revert_target_deps : tactic ℕ :=
+do tgt ← target,
+   ctx ← local_context,
+   l ← ctx.mfilter (kdepends_on tgt),
+   n ← revert_lst l,
+   if l = [] then return n
+     else do m ← revert_target_deps, return (m + n)
+
 /-- `generalize' e n` generalizes the target with respect to `e`. It creates a new local constant
 with name `n` of the same type as `e` and replaces all occurrences of `e` by `n`.
 
@@ -442,7 +579,19 @@ with name `n` of the same type as `e` and replaces all occurrences of `e` by `n`
 goal, in which case it just calls `assert`.
 In contrast to `generalize` it already introduces the generalized variable. -/
 meta def generalize' (e : expr) (n : name) : tactic expr :=
-(generalize e n >> intro1) <|> note n none e
+(generalize e n >> intro n) <|> note n none e
+
+/--
+`intron_no_renames n` calls `intro` `n` times, using the pretty-printing name
+provided by the binder to name the new local constant.
+Unlike `intron`, it does not rename introduced constants if the names shadow existing constants.
+-/
+meta def intron_no_renames : ℕ → tactic unit
+| 0 := pure ()
+| (n+1) := do
+  expr.pi pp_n _ _ _ ← target,
+  intro pp_n,
+  intron_no_renames n
 
 /-!
 ### Various tactics related to local definitions (local constants of the form `x : α := t`)
@@ -462,38 +611,69 @@ tactic.unsafe.type_context.run $ do
     tactic.unsafe.type_context.fail format!"Variable {e} is not a local definition.",
   return let_val
 
-/-- `revert_deps e` reverts all the hypotheses that depend on one of the local
-constants `e`, including the local definitions that have `e` in their definition.
-This fixes a bug in `revert_kdeps` that does not revert local definitions for which `e` only
-appears in the definition. -/
-/- We cannot implement it as `revert e >> intro1`, because that would change the local constant in
-the context. -/
-meta def revert_deps (e : expr) : tactic ℕ := do
-  n ← revert_kdeps e,
-  l ← local_context,
-  [pos] ← return $ l.indexes_of e,
-  let l := l.drop pos.succ, -- local hypotheses after `e`
-  ls ← l.mfilter $ λ e', try_core (local_def_value e') >>= λ o, return $ o.elim ff $ λ e'',
-    e''.has_local_constant e,
-  n' ← revert_lst ls,
-  return $ n + n'
-
 /-- `is_local_def e` succeeds when `e` is a local definition (a local constant of the form
 `e : α := t`) and otherwise fails. -/
 meta def is_local_def (e : expr) : tactic unit :=
 retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
 
-/-- `clear_value e` clears the body of the local definition `e`, changing it into a regular
-hypothesis. A hypothesis `e : α := t` is changed to `e : α`.
-This tactic is called `clearbody` in Coq. -/
-meta def clear_value (e : expr) : tactic unit := do
-  n ← revert_after e,
-  is_local_def e <|>
-    pp e >>= λ s, fail format!"Cannot clear the body of {s}. It is not a local definition.",
-  let nm := e.local_pp_name,
-  (generalize' e nm >> clear e) <|>
-    fail format!"Cannot clear the body of {nm}. The resulting goal is not type correct.",
-  intron n
+/-- like `split_on_p p xs`, `partition_local_deps_aux vs xs acc` searches for matches in `xs`
+(using membership to `vs` instead of a predicate) and breaks `xs` when matches are found.
+whereas `split_on_p p xs` removes the matches, `partition_local_deps_aux vs xs acc` includes
+them in the following partition. Also, `partition_local_deps_aux vs xs acc` discards the partition
+running up to the first match. -/
+private def partition_local_deps_aux {α} [decidable_eq α] (vs : list α) :
+  list α → list α → list (list α)
+| [] acc := [acc.reverse]
+| (l :: ls) acc :=
+  if l ∈ vs then acc.reverse :: partition_local_deps_aux ls [l]
+  else partition_local_deps_aux ls (l :: acc)
+
+/-- `partition_local_deps vs`, with `vs` a list of local constants,
+reorders `vs` in the order they appear in the local context together
+with the variables that follow them. If local context is `[a,b,c,d,e,f]`,
+and that we call `partition_local_deps [d,b]`, we get `[[d,e,f], [b,c]]`.
+The head of each list is one of the variables given as a parameter. -/
+meta def partition_local_deps (vs : list expr) : tactic (list (list expr)) :=
+do ls ← local_context,
+   pure (partition_local_deps_aux vs ls []).tail.reverse
+
+/-- `clear_value [e₀, e₁, e₂, ...]` clears the body of the local definitions `e₀`, `e₁`, `e₂`, ...
+changing them into regular hypotheses. A hypothesis `e : α := t` is changed to `e : α`. The order of
+locals `e₀`, `e₁`, `e₂` does not matter as a permutation will be chosen so as to preserve type
+correctness. This tactic is called `clearbody` in Coq. -/
+meta def clear_value (vs : list expr) : tactic unit := do
+  ls ← partition_local_deps vs,
+  ls.mmap' $ λ vs, do
+  { revert_lst vs,
+    (expr.elet v t d b) ← target |
+      fail format!"Cannot clear the body of {vs.head}. It is not a local definition.",
+    let e := expr.pi v binder_info.default t b,
+    type_check e <|>
+      fail format!"Cannot clear the body of {vs.head}. The resulting goal is not type correct.",
+    g ← mk_meta_var e,
+    h ← note `h none g,
+    tactic.exact $ h d,
+    gs ← get_goals,
+    set_goals $ g :: gs },
+  ls.reverse.mmap' $ λ vs, intro_lst $ vs.map expr.local_pp_name
+
+/--
+`context_has_local_def` is true iff there is at least one local definition in
+the context.
+-/
+meta def context_has_local_def : tactic bool := do
+  ctx ← local_context,
+  ctx.many (succeeds ∘ local_def_value)
+
+/--
+`context_upto_hyp_has_local_def h` is true iff any of the hypotheses in the
+context up to and including `h` is a local definition.
+-/
+meta def context_upto_hyp_has_local_def (h : expr) : tactic bool := do
+  ff ← succeeds (local_def_value h) | pure tt,
+  ctx ← local_context,
+  let ctx := ctx.take_while (≠ h),
+  ctx.many (succeeds ∘ local_def_value)
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
@@ -565,54 +745,6 @@ protected meta def of_int (c : instance_cache) : ℤ → tactic (instance_cache 
 
 end instance_cache
 
-private meta def get_expl_pi_arity_aux : expr → tactic nat
-| (expr.pi n bi d b) :=
-  do m     ← mk_fresh_name,
-     let l := expr.local_const m n bi d,
-     new_b ← whnf (expr.instantiate_var b l),
-     r     ← get_expl_pi_arity_aux new_b,
-     if bi = binder_info.default then
-       return (r + 1)
-     else
-       return r
-| e := return 0
-
-/-- Compute the arity of explicit arguments of the given (Pi-)type. -/
-meta def get_expl_pi_arity (type : expr) : tactic nat :=
-whnf type >>= get_expl_pi_arity_aux
-
-/-- Compute the arity of explicit arguments of the given function. -/
-meta def get_expl_arity (fn : expr) : tactic nat :=
-infer_type fn >>= get_expl_pi_arity
-
-/-- Auxilliary defintion for `get_pi_binders`. -/
-meta def get_pi_binders_aux : list binder → expr → tactic (list binder × expr)
-| es (expr.pi n bi d b) :=
-  do m ← mk_fresh_name,
-     let l := expr.local_const m n bi d,
-     let new_b := expr.instantiate_var b l,
-     get_pi_binders_aux (⟨n, bi, d⟩::es) new_b
-| es e                  := return (es, e)
-
-/-- Get the binders and target of a pi-type. Instantiates bound variables by
-local constants. Cf. `pi_binders` in `meta.expr` (which produces open terms).
-See also `mk_local_pis` in `init.core.tactic` which does almost the same. -/
-meta def get_pi_binders : expr → tactic (list binder × expr) | e :=
-do (es, e) ← get_pi_binders_aux [] e, return (es.reverse, e)
-
-/-- Auxilliary definition for `get_pi_binders_dep`. -/
-meta def get_pi_binders_dep_aux : ℕ → expr → tactic (list (ℕ × binder) × expr)
-| n (expr.pi nm bi d b) :=
- do l ← mk_local' nm bi d,
-    (ls, r) ← get_pi_binders_dep_aux (n+1) (expr.instantiate_var b l),
-    return (if b.has_var then ls else (n, ⟨nm, bi, d⟩)::ls, r)
-| n e                  := return ([], e)
-
-/-- A variant of `get_pi_binders` that only returns the binders that do not occur in later
-arguments or in the target. Also returns the argument position of each returned binder. -/
-meta def get_pi_binders_dep : expr → tactic (list (ℕ × binder) × expr) :=
-get_pi_binders_dep_aux 0
-
 /-- A variation on `assert` where a (possibly incomplete)
 proof of the assertion is provided as a parameter.
 
@@ -649,7 +781,14 @@ The names in `instances` are the projections from `struct_n` to the structures t
 The names in `fields` are the standard fields of `struct_n`. -/
 meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
 do env ← get_env,
-   [c] ← pure $ env.constructors_of struct_n | fail "too many constructors",
+   c ← match env.constructors_of struct_n with
+       | [c] := pure c
+       | [] :=
+         if env.is_inductive struct_n
+           then fail format!"{struct_n} does not have constructors"
+           else fail format!"{struct_n} is not an inductive type"
+       | _ := fail "too many constructors"
+       end,
    vs  ← var_names <$> (mk_const c >>= infer_type),
    fields ← env.structure_fields struct_n,
    return $ fields.partition (λ fn, ↑("_" ++ fn.to_string) ∈ vs)
@@ -657,14 +796,16 @@ do env ← get_env,
 private meta def expanded_field_list' : name → tactic (dlist $ name × name) | struct_n :=
 do (so,fs) ← subobject_names struct_n,
    ts ← so.mmap (λ n, do
-     (_, e) ← mk_const (n.update_prefix struct_n) >>= infer_type >>= mk_local_pis,
+     (_, e) ← mk_const (n.update_prefix struct_n) >>= infer_type >>= open_pis,
      expanded_field_list' $ e.get_app_fn.const_name),
    return $ dlist.join ts ++ dlist.of_list (fs.map $ prod.mk struct_n)
 open functor function
 
 /-- `expanded_field_list struct_n` produces a list of the names of the fields of the structure
 named `struct_n`. These are returned as pairs of names `(prefix, name)`, where the full name
-of the projection is `prefix.name`. -/
+of the projection is `prefix.name`.
+
+`struct_n` cannot be a synonym for a `structure`, it must be itself a `structure` -/
 meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
 dlist.to_list <$> expanded_field_list' struct_n
 
@@ -675,6 +816,19 @@ for the given expression.
 meta def get_classes (e : expr) : tactic (list name) :=
 attribute.get_instances `class >>= list.mfilter (λ n,
   succeeds $ mk_app n [e] >>= mk_instance)
+
+/--
+Finds an instance of an implication `cond → tgt`.
+Returns a pair of a local constant `e` of type `cond`, and an instance of `tgt` that can mention
+`e`. The local constant `e` is added as an hypothesis to the tactic state, but should not be used,
+since it has been "proven" by a metavariable.
+-/
+meta def mk_conditional_instance (cond tgt : expr) : tactic (expr × expr) := do
+f ← mk_meta_var cond,
+e ← assertv `c cond f, swap,
+reset_instance_cache,
+inst ← mk_instance tgt,
+return (e, inst)
 
 open nat
 
@@ -705,25 +859,45 @@ meta def iterate_at_most_on_subgoals : nat → tactic unit → tactic unit
 | 0        tac := trace "maximal iterations reached"
 | (succ n) tac := focus1 (do tac, iterate_at_most_on_all_goals n tac)
 
-/-- `apply_list l`: try to apply the tactics in the list `l` on the first goal, and
-fail if none succeeds -/
-meta def apply_list_expr : list expr → tactic unit
-| []     := fail "no matching rule"
-| (h::t) := do interactive.concat_tags (apply h) <|> apply_list_expr t
+/-- This makes sure that the execution of the tactic does not change the tactic state.
+This can be helpful while using rewrite, apply, or expr munging.
+Remember to instantiate your metavariables before you're done! -/
+meta def lock_tactic_state {α} (t : tactic α) : tactic α
+| s := match t s with
+       | result.success a s' := result.success a s
+       | result.exception msg pos s' := result.exception msg pos s
+end
 
-/-- constructs a list of expressions given a list of p-expressions, as follows:
+/--
+`apply_list l`, for `l : list (tactic expr)`,
+tries to apply the lemmas generated by the tactics in `l` on the first goal, and
+fail if none succeeds.
+-/
+meta def apply_list_expr (opt : apply_cfg) : list (tactic expr) → tactic unit
+| []     := fail "no matching rule"
+| (h::t) := (do e ← h, interactive.concat_tags (apply e opt)) <|> apply_list_expr t
+
+/--
+Constructs a list of `tactic expr` given a list of p-expressions, as follows:
 - if the p-expression is the name of a theorem, use `i_to_expr_for_apply` on it
 - if the p-expression is a user attribute, add all the theorems with this attribute
-  to the list.-/
-meta def build_list_expr_for_apply : list pexpr → tactic (list expr)
+  to the list.
+
+We need to return a list of `tactic expr`, rather than just `expr`, because these expressions
+will be repeatedly applied against goals, and we need to ensure that metavariables don't get stuck.
+-/
+meta def build_list_expr_for_apply : list pexpr → tactic (list (tactic expr))
 | [] := return []
 | (h::t) := do
   tail ← build_list_expr_for_apply t,
   a ← i_to_expr_for_apply h,
   (do l ← attribute.get_instances (expr.const_name a),
-      m ← list.mmap mk_const l,
-      return (m.append tail))
-  <|> return (a::tail)
+      m ← l.mmap (λ n, _root_.to_pexpr <$> mk_const n),
+      -- We reverse the list of lemmas marked with an attribute,
+      -- on the assumption that lemmas proved earlier are more often applicable
+      -- than lemmas proved later. This is a performance optimization.
+      build_list_expr_for_apply (m.reverse ++ t))
+  <|> return ((i_to_expr_for_apply h) :: tail)
 
 /--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
 first goal and the resulting subgoals, iteratively, at most `n` times.
@@ -731,9 +905,9 @@ first goal and the resulting subgoals, iteratively, at most `n` times.
 Unlike `solve_by_elim`, `apply_rules` does not do any backtracking, and just greedily applies
 a lemma from the list until it can't.
  -/
-meta def apply_rules (hs : list pexpr) (n : nat) : tactic unit :=
-do l ← build_list_expr_for_apply hs,
-   iterate_at_most_on_subgoals n (assumption <|> apply_list_expr l)
+meta def apply_rules (hs : list pexpr) (n : nat) (opt : apply_cfg) : tactic unit :=
+do l ← lock_tactic_state $ build_list_expr_for_apply hs,
+   iterate_at_most_on_subgoals n (assumption <|> apply_list_expr opt l)
 
 /-- `replace h p` elaborates the pexpr `p`, clears the existing hypothesis named `h` from the local
 context, and adds a new hypothesis named `h`. The type of this hypothesis is the type of `p`.
@@ -789,10 +963,9 @@ Configuration options for `apply_any`:
 * `use_exfalso`: if `apply_any` fails to apply any lemma, call `exfalso` and try again.
 * `apply`: specify an alternative to `tactic.apply`; usually `apply := tactic.eapply`.
 -/
-meta structure apply_any_opt :=
+meta structure apply_any_opt extends apply_cfg :=
 (use_symmetry : bool := tt)
 (use_exfalso : bool := tt)
-(apply : expr → tactic (list (name × expr)) := tactic.apply)
 
 /--
 This is a version of `apply_any` that takes a list of `tactic expr`s instead of `expr`s,
@@ -803,14 +976,16 @@ We need to do this to avoid metavariables getting stuck during subsequent rounds
 meta def apply_any_thunk
   (lemmas : list (tactic expr))
   (opt : apply_any_opt := {})
-  (tac : tactic unit := skip) : tactic unit :=
+  (tac : tactic unit := skip)
+  (on_success : expr → tactic unit := (λ _, skip))
+  (on_failure : tactic unit := skip) : tactic unit :=
 do
   let modes := [skip]
     ++ (if opt.use_symmetry then [symmetry] else [])
     ++ (if opt.use_exfalso then [exfalso] else []),
   modes.any_of (λ m, do m,
-    lemmas.any_of (λ H, H >>= opt.apply >> tac)) <|>
-  fail "apply_any tactic failed; no lemma could be applied"
+    lemmas.any_of (λ H, H >>= (λ e, do apply e opt.to_apply_cfg, on_success e, tac))) <|>
+  (on_failure >> fail "apply_any tactic failed; no lemma could be applied")
 
 /--
 `apply_any lemmas` tries to apply one of the list `lemmas` to the current goal.
@@ -863,6 +1038,16 @@ do h ← get_local hyp,
 the list of goals, since the goals can be manually edited. -/
 meta def metavariables : tactic (list expr) :=
 expr.list_meta_vars <$> result
+
+/--
+`sorry_if_contains_sorry` will solve any goal already containing `sorry` in its type with `sorry`,
+and fail otherwise.
+-/
+meta def sorry_if_contains_sorry : tactic unit :=
+do
+  g ← target,
+  guard g.contains_sorry <|> fail "goal does not contain `sorrry`",
+  tactic.admit
 
 /-- Fail if the target contains a metavariable. -/
 meta def no_mvars_in_target : tactic unit :=
@@ -1035,51 +1220,12 @@ of the previous local constants. `l` is a list of local constants and their valu
 meta def dependent_pose_core (l : list (expr × expr)) : tactic unit := do
   let lc := l.map prod.fst,
   let lm := l.map (λ⟨l, v⟩, (l.local_uniq_name, v)),
-  t ← target,
-  new_goal ← mk_meta_var (t.pis lc),
   old::other_goals ← get_goals,
+  t ← infer_type old,
+  new_goal ← mk_meta_var (t.pis lc),
   set_goals (old :: new_goal :: other_goals),
   exact ((new_goal.mk_app lc).instantiate_locals lm),
   return ()
-
-/-- Like `mk_local_pis` but translating into weak head normal form before checking if it is a `Π`.
--/
-meta def mk_local_pis_whnf : expr → tactic (list expr × expr) | e := do
-(expr.pi n bi d b) ← whnf e | return ([], e),
-p ← mk_local' n bi d,
-(ps, r) ← mk_local_pis (expr.instantiate_var b p),
-return ((p :: ps), r)
-
-/-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs) ⊢ g`. -/
-meta def choose1 (h : expr) (data : name) (spec : name) : tactic expr := do
-  t ← infer_type h,
-  (ctxt, t) ← mk_local_pis_whnf t,
-  `(@Exists %%α %%p) ← whnf t transparency.all |
-    fail "expected a term of the shape ∀xs, ∃a, p xs a",
-  α_t ← infer_type α,
-  expr.sort u ← whnf α_t transparency.all,
-  value ← mk_local_def data (α.pis ctxt),
-  t' ← head_beta (p.app (value.mk_app ctxt)),
-  spec ← mk_local_def spec (t'.pis ctxt),
-  dependent_pose_core [
-    (value, ((((expr.const `classical.some [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt),
-    (spec, ((((expr.const `classical.some_spec [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt)],
-  try (tactic.clear h),
-  intro1,
-  intro1
-
-/-- Changes `(h : ∀xs, ∃as, p as) ⊢ g` to a list of functions `as`,
-and a final hypothesis on `p as`. -/
-meta def choose : expr → list name → tactic unit
-| h [] := fail "expect list of variables"
-| h [n] := do
-  cnt ← revert h,
-  intro n,
-  intron (cnt - 1),
-  return ()
-| h (n::ns) := do
-  v ← get_unused_name >>= choose1 h n,
-  choose v ns
 
 /--
 Instantiates metavariables that appear in the current goal.
@@ -1092,24 +1238,6 @@ Instantiates metavariables in all goals.
 -/
 meta def instantiate_mvars_in_goals : tactic unit :=
 all_goals' $ instantiate_mvars_in_target
-
-/-- This makes sure that the execution of the tactic does not change the tactic state.
-This can be helpful while using rewrite, apply, or expr munging.
-Remember to instantiate your metavariables before you're done! -/
-meta def lock_tactic_state {α} (t : tactic α) : tactic α
-| s := match t s with
-       | result.success a s' := result.success a s
-       | result.exception msg pos s' := result.exception msg pos s
-end
-
-/-- Similar to `mk_local_pis` but make meta variables instead of
-local constants. -/
-meta def mk_meta_pis : expr → tactic (list expr × expr)
-| (expr.pi n bi d b) := do
-  p ← mk_meta_var d,
-  (ps, r) ← mk_meta_pis (expr.instantiate_var b p),
-  return ((p :: ps), r)
-| e := return ([], e)
 
 /-- Protect the declaration `n` -/
 meta def mk_protected (n : name) : tactic unit :=
@@ -1126,12 +1254,30 @@ meta def emit_command_here (str : string) : lean.parser string :=
 do (_, left) ← with_input command_like str,
    return left
 
+/-- Inner recursion for `emit_code_here`. -/
+meta def emit_code_here_aux : string → ℕ → lean.parser unit
+| str slen := do
+  left ← emit_command_here str,
+  let llen := left.length,
+  when (llen < slen ∧ llen ≠ 0) (emit_code_here_aux left llen)
+
 /-- `emit_code_here str` behaves as if the string `str` were placed at the current location in
 source code. -/
-meta def emit_code_here : string → lean.parser unit
-| str := do left ← emit_command_here str,
-            if left.length = 0 then return ()
-            else emit_code_here left
+meta def emit_code_here (s : string) : lean.parser unit := emit_code_here_aux s s.length
+
+/-- `run_parser p` is like `run_cmd` but for the parser monad. It executes parser `p` at the
+top level, giving access to operations like `emit_code_here`. -/
+@[user_command]
+meta def run_parser_cmd (_ : interactive.parse $ tk "run_parser") : lean.parser unit :=
+do e ← lean.parser.pexpr 0,
+  p ← eval_pexpr (lean.parser unit) e,
+  p
+
+add_tactic_doc
+{ name       := "run_parser",
+  category   := doc_category.cmd,
+  decl_names := [``run_parser_cmd],
+  tags       := ["parsing"] }
 
 /-- `get_current_namespace` returns the current namespace (it could be `name.anonymous`).
 
@@ -1297,7 +1443,7 @@ do let cl := t.get_app_fn.const_name,
    env ← get_env,
    let fs := env.constructors_of cl,
    fs.mmap $ λ f,
-     do { (vs,_) ← mk_const f >>= infer_type >>= mk_local_pis,
+     do { (vs,_) ← mk_const f >>= infer_type >>= open_pis,
           let vs := vs.filter (λ v, v.is_default_local),
           vs ← vs.mmap (λ v,
             do v' ← get_unused_name v.local_pp_name,
@@ -1413,7 +1559,7 @@ meta def foo : expr → tactic unit := -- don't forget to erase `:=`!!
          | _ := fail "expecting one type"
          end,
      e ← whnf t,
-     (v :: _,_) ← mk_local_pis e | fail "expecting a Pi-type",
+     (v :: _,_) ← open_pis e | fail "expecting a Pi-type",
      t' ← infer_type v,
      fs ← mk_patterns t',
      t ← pp t,
@@ -1461,7 +1607,7 @@ sum.inr : ℕ → ℤ ⊕ ℕ
   descr := "Show the list of constructors of the expected type.",
   action := λ es,
   do t ← target >>= whnf,
-     (_,t) ← mk_local_pis t,
+     (_,t) ← open_pis t,
      let cl := t.get_app_fn.const_name,
      let args := t.get_app_args,
      env ← get_env,
@@ -1505,6 +1651,9 @@ meta def mk_comp (v : expr) : expr → tactic expr
   do guard (e = v),
      t ← infer_type e,
      mk_mapp ``id [t]
+
+/-- Given two expressions `e₀` and `e₁`, return the expression `` `(%%e₀ ↔ %%e₁)``. -/
+meta def mk_iff (e₀ : expr) (e₁ : expr) : expr := `(%%e₀ ↔ %%e₁)
 
 /--
 From a lemma of the shape `∀ x, f (g x) = h x`
@@ -1561,6 +1710,37 @@ add_tactic_doc
   tags                     := ["lemma derivation"] }
 
 attribute [higher_order map_comp_pure] map_pure
+
+/--
+Copies a definition into the `tactic.interactive` namespace to make it usable
+in proof scripts. It allows one to write
+
+```lean
+@[interactive]
+meta def my_tactic := ...
+```
+
+instead of
+
+```lean
+meta def my_tactic := ...
+
+run_cmd add_interactive [``my_tactic]
+```
+-/
+@[user_attribute]
+meta def interactive_attr : user_attribute :=
+{ name := `interactive,
+  descr :=
+"Put a definition in the `tactic.interactive` namespace to make it usable
+in proof scripts.",
+  after_set := some $ λ tac _ _, add_interactive [tac] }
+
+add_tactic_doc
+{ name                     := "interactive",
+  category                 := doc_category.attr,
+  decl_names               := [``tactic.interactive_attr],
+  tags                     := ["environment"] }
 
 /--
 Use `refine` to partially discharge the goal,
@@ -1622,10 +1802,9 @@ do tgt   ← infer_type h,
    match env.symm_for (const_name r) with
    | (some symm) := do s ← mk_const symm,
                        apply_at s h
-   | none        := fail "symmetry tactic failed, target is not a relation application with the expected property."
+   | none        := fail
+      "symmetry tactic failed, target is not a relation application with the expected property."
    end
-
-precedence `setup_tactic_parser`:0
 
 /-- `setup_tactic_parser` is a user command that opens the namespaces used in writing
 interactive tactics, and declares the local postfix notation `?` for `optional` and `*` for `many`.
@@ -1682,6 +1861,14 @@ meta def retrieve_or_report_error {α : Type u} (t : tactic α) : tactic (α ⊕
   result.success (sum.inr (msg'.iget ()).to_string) s
 end
 
+/-- Applies tactic `t`. If it succeeds, return the value. If it fails, returns the error message. -/
+meta def try_or_report_error {α : Type u} (t : tactic α) : tactic (α ⊕ string) :=
+λ s, match t s with
+| (interaction_monad.result.success a s') := result.success (sum.inl a) s'
+| (interaction_monad.result.exception msg' _ s') :=
+  result.success (sum.inr (msg'.iget ()).to_string) s
+end
+
 /-- This tactic succeeds if `t` succeeds or fails with message `msg` such that `p msg` is `tt`.
 -/
 meta def succeeds_or_fails_with_msg {α : Type} (t : tactic α) (p : string → bool) : tactic unit :=
@@ -1702,7 +1889,8 @@ of `t`. -/
 meta def trace_error (msg : string) (t : tactic α) : tactic α
 | s := match t s with
        | (result.success r s') := result.success r s'
-       | (result.exception (some msg') p s') := (trace msg >> trace (msg' ()) >> result.exception (some msg') p) s'
+       | (result.exception (some msg') p s') := (trace msg >> trace (msg' ()) >> result.exception
+            (some msg') p) s'
        | (result.exception none p s') := result.exception none p s'
        end
 
@@ -1739,6 +1927,17 @@ meta def success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) :
 | (interaction_monad.result.success a s) :=
    mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
 end
+
+/--
+Construct a `Try this: refine ...` or `Try this: exact ...` string which would construct `g`.
+-/
+meta def tactic_statement (g : expr) : tactic string :=
+do g ← instantiate_mvars g,
+   g ← head_beta g,
+   r ← pp (replace_mvars g),
+   if g.has_meta_var
+   then return (sformat!"Try this: refine {r}")
+   else return (sformat!"Try this: exact {r}")
 
 /-- `with_local_goals gs tac` runs `tac` on the goals `gs` and then restores the
 initial goals and returns the goals `tac` ended on. -/
@@ -1876,8 +2075,6 @@ do (e, s) ← with_input (lean.parser.pexpr 0) s.as_string,
    pure ``(to_pfmt %%(reflect acc) ++ to_pfmt %%e ++ %%f)
 | acc (c::s) := parse_pformat (acc.str c) s
 
-reserve prefix `pformat! `:100
-
 /-- See `format!` in `init/meta/interactive_base.lean`.
 
 The main differences are that `pp` is called instead of `to_fmt` and that we can use
@@ -1886,7 +2083,8 @@ arguments of type `tactic α` in the quotations.
 Now, consider the following:
 ```lean
 e ← to_expr ``(3 + 7),
-trace format!"{e}"  -- outputs `has_add.add.{0} nat nat.has_add (bit1.{0} nat nat.has_one nat.has_add (has_one.one.{0} nat nat.has_one)) ...`
+trace format!"{e}"  -- outputs `has_add.add.{0} nat nat.has_add
+                    -- (bit1.{0} nat nat.has_one nat.has_add (has_one.one.{0} nat nat.has_one)) ...`
 trace pformat!"{e}" -- outputs `3 + 7`
 ```
 
@@ -1904,8 +2102,6 @@ meta def pformat_macro (_ : parse $ tk "pformat!") (s : string) : parser pexpr :
 do e ← parse_pformat "" s.to_list,
    return ``(%%e : pformat)
 
-reserve prefix `fail! `:100
-
 /--
 The combination of `pformat` and `fail`.
 -/
@@ -1914,7 +2110,6 @@ meta def fail_macro (_ : parse $ tk "fail!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= fail)
 
-reserve prefix `trace! `:100
 /--
 The combination of `pformat` and `trace`.
 -/
@@ -1957,7 +2152,8 @@ private meta def apply_under_n_pis_aux (func arg : pexpr) : ℕ → ℕ → expr
   let vars := ((list.range n).reverse.map (@expr.var ff)),
       bd := vars.foldl expr.app arg.mk_explicit in
   func bd
-| n (k+1) (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_n_pis_aux (n+1) k bd)
+| n (k+1) (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp)
+  (apply_under_n_pis_aux (n+1) k bd)
 | n (k+1) t := apply_under_n_pis_aux n 0 t
 
 /--
@@ -1981,52 +2177,17 @@ When `tgt` is a `pi` expr, `func` is elaborated in a context
 with the domain of `tgt`.
 
 Examples:
-* ```get_pexpr_arg_arity ``(ring) `(true)``` returns 0, since `ring` takes one non-function argument.
-* ```get_pexpr_arg_arity_with_tgt ``(monad) `(true)``` returns 1, since `monad` takes one argument of type `α → α`.
+* ```get_pexpr_arg_arity ``(ring) `(true)``` returns 0, since `ring` takes one non-function
+  argument.
+* ```get_pexpr_arg_arity_with_tgt ``(monad) `(true)``` returns 1, since `monad` takes one argument
+  of type `α → α`.
 * ```get_pexpr_arg_arity_with_tgt ``(module R) `(Π (R : Type), comm_ring R → true)``` returns 0
- -/
-private meta def get_pexpr_arg_arity_with_tgt (func : pexpr) (tgt : expr) : tactic ℕ :=
+-/
+meta def get_pexpr_arg_arity_with_tgt (func : pexpr) (tgt : expr) : tactic ℕ :=
 lock_tactic_state $ do
   mv ← mk_mvar,
   solve_aux tgt $ intros >> to_expr ``(%%func %%mv),
   expr.pi_arity <$> (infer_type mv >>= instantiate_mvars)
-
-/--
-Tries to derive instances by unfolding the newly introduced type and applying type class resolution.
-
-For example,
-```lean
-@[derive ring] def new_int : Type := ℤ
-```
-adds an instance `ring new_int`, defined to be the instance of `ring ℤ` found by `apply_instance`.
-
-Multiple instances can be added with `@[derive [ring, module ℝ]]`.
-
-This derive handler applies only to declarations made using `def`, and will fail on such a
-declaration if it is unable to derive an instance. It is run with higher priority than the built-in
-handlers, which will fail on `def`s.
--/
-@[derive_handler, priority 2000] meta def delta_instance : derive_handler :=
-λ cls new_decl_name,
-do env ← get_env,
-if env.is_inductive new_decl_name then return ff else
-do new_decl ← get_decl new_decl_name,
-   new_decl_pexpr ← resolve_name new_decl_name,
-   arity ← get_pexpr_arg_arity_with_tgt cls new_decl.type,
-   tgt ← to_expr $ apply_under_n_pis cls new_decl_pexpr new_decl.type (new_decl.type.pi_arity - arity),
-   (_, inst) ← solve_aux tgt
-     (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
-   inst ← instantiate_mvars inst,
-   inst ← replace_univ_metas_with_univ_params inst,
-   tgt ← instantiate_mvars tgt,
-   nm ← get_unused_decl_name $ new_decl_name <.>
-     match cls with
-     | (expr.const nm _) := nm.last
-     | _ := "inst"
-     end,
-   add_protected_decl $ declaration.defn nm inst.collect_univ_params tgt inst new_decl.reducibility_hints new_decl.is_trusted,
-   set_basic_attribute `instance nm tt,
-   return tt
 
 /-- `find_private_decl n none` finds a private declaration named `n` in any of the imported files.
 
@@ -2045,7 +2206,8 @@ do env ← get_env,
      end,
    let xs := env.decl_filter_map (λ d,
      do fn ← env.decl_olean d.to_name,
-        guard ((`_private).is_prefix_of d.to_name ∧ p fn ∧ d.to_name.update_prefix name.anonymous = n),
+        guard ((`_private).is_prefix_of d.to_name ∧ p fn ∧
+          d.to_name.update_prefix name.anonymous = n),
         pure d.to_name),
    match xs with
    | [n] := pure n
@@ -2113,6 +2275,40 @@ add_tactic_doc
   category                 := doc_category.cmd,
   decl_names               := [`tactic.mk_simp_attribute_cmd],
   tags                     := ["simplification"] }
+
+/--
+Given a user attribute name `attr_name`, `get_user_attribute_name attr_name` returns
+the name of the declaration that defines this attribute.
+Fails if there is no user attribute with this name.
+Example: ``get_user_attribute_name `norm_cast`` returns `` `norm_cast.norm_cast_attr`` -/
+meta def get_user_attribute_name (attr_name : name) : tactic name := do
+ns ← attribute.get_instances `user_attribute,
+ns.mfirst (λ nm, do
+  d ← get_decl nm,
+  e ← mk_app `user_attribute.name [d.value],
+  attr_nm ← eval_expr name e,
+  guard $ attr_nm = attr_name,
+  return nm) <|> fail!"'{attr_name}' is not a user attribute."
+
+/-- A tactic to set either a basic attribute or a user attribute.
+  If the the user attribute has a parameter, the default value will be used.
+  This tactic raises an error if there is no `inhabited` instance for the parameter type. -/
+meta def set_attribute (attr_name : name) (c_name : name) (persistent := tt)
+  (prio : option nat := none) : tactic unit := do
+get_decl c_name <|> fail!"unknown declaration {c_name}",
+s ← try_or_report_error (set_basic_attribute attr_name c_name persistent prio),
+sum.inr msg ← return s | skip,
+if msg =
+  (format!"set_basic_attribute tactic failed, '{attr_name}' is not a basic attribute").to_string
+then do
+  user_attr_nm ← get_user_attribute_name attr_name,
+  user_attr_const ← mk_const user_attr_nm,
+  tac ← eval_pexpr (tactic unit)
+    ``(user_attribute.set %%user_attr_const %%c_name (default _) %%persistent) <|>
+    fail!"Cannot set attribute @[{attr_name}]. The corresponding user attribute {user_attr_nm} has a parameter without a default value.
+Solution: provide an `inhabited` instance.",
+  tac
+else fail msg
 
 end tactic
 

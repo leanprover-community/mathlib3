@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro, Minchao Wu
 -/
 import tactic.core
 /-!
@@ -19,12 +19,29 @@ namespace explode
 @[derive inhabited]
 inductive status : Type | reg | intro | lam | sintro
 
+/--
+A type to distinguish introduction or elimination rules represented as
+strings from theorems referred to by their names.
+-/
+meta inductive thm : Type
+| expr (e : expr)
+| name (n : name)
+| string (s : string)
+
+/--
+Turn a thm into a string.
+-/
+meta def thm.to_string : thm → string
+| (thm.expr e) := e.to_string
+| (thm.name n) := n.to_string
+| (thm.string s) := s
+
 meta structure entry : Type :=
 (expr : expr)
 (line : nat)
 (depth : nat)
 (status : status)
-(thm : string)
+(thm : thm)
 (deps : list nat)
 
 meta def pad_right (l : list string) : list string :=
@@ -56,7 +73,7 @@ meta def format_aux : list string → list string → list string → list entry
       end,
     p ← infer_type en.expr >>= pp,
     let lhs :=  line ++ "│" ++ dep ++ "│ " ++ thm ++ margin ++ " ",
-    return $ format.of_string lhs ++ to_string p ++ format.line },
+    return $ format.of_string lhs ++ (p.nest lhs.length).group ++ format.line },
   (++ fmt) <$> format_aux lines deps thms es
 | _ _ _ _ := return format.nil
 
@@ -64,7 +81,7 @@ meta instance : has_to_tactic_format entries :=
 ⟨λ es : entries,
   let lines := pad_right $ es.l.map (λ en, to_string en.line),
       deps  := pad_right $ es.l.map (λ en, string.intercalate "," (en.deps.map to_string)),
-      thms  := pad_right $ es.l.map entry.thm in
+      thms  := pad_right $ es.l.map (λ en, (entry.thm en).to_string) in
   format_aux lines deps thms es.l⟩
 
 meta def append_dep (filter : expr → tactic unit)
@@ -88,30 +105,32 @@ with explode.core : expr → bool → nat → entries → tactic entries
   let l := local_const m n bi d,
   let b' := instantiate_var b l,
   if si then
-    let en : entry := ⟨l, es.size, depth, status.sintro, to_string n, []⟩ in do
+    let en : entry := ⟨l, es.size, depth, status.sintro, thm.name n, []⟩ in do
     es' ← explode.core b' si depth (es.add en),
-    return $ es'.add ⟨e, es'.size, depth, status.lam, "∀I", [es.size, es'.size - 1]⟩
+    return $ es'.add ⟨e, es'.size, depth, status.lam, thm.string "∀I", [es.size, es'.size - 1]⟩
   else do
-    let en : entry := ⟨l, es.size, depth, status.intro, to_string n, []⟩,
+    let en : entry := ⟨l, es.size, depth, status.intro, thm.name n, []⟩,
     es' ← explode.core b' si (depth + 1) (es.add en),
-    deps' ← explode.append_dep filter es' b' [],
+    -- in case of a "have" clause, the b' here has an annotation
+    deps' ← explode.append_dep filter es' b'.erase_annotations [],
     deps' ← explode.append_dep filter es' l deps',
-    return $ es'.add ⟨e, es'.size, depth, status.lam, "∀I", deps'⟩
-| e@(macro _ l) si depth es := explode.core l.head si depth es
+    return $ es'.add ⟨e, es'.size, depth, status.lam, thm.string "∀I", deps'⟩
+| e@(elet n t a b) si depth es := explode.core (reduce_lets e) si depth es
+| e@(macro n l) si depth es := explode.core l.head si depth es
 | e si depth es := filter e >>
   match get_app_fn_args e with
-  | (const n _, args) :=
-    explode.args e args depth es (to_string n) []
+  | (nm@(const n _), args) :=
+    explode.args e args depth es (thm.expr nm) []
   | (fn, []) := do
-    p ← pp fn,
-    let en : entry := ⟨fn, es.size, depth, status.reg, to_string p, []⟩,
+    let en : entry := ⟨fn, es.size, depth, status.reg, thm.expr fn, []⟩,
     return (es.add en)
   | (fn, args) := do
     es' ← explode.core fn ff depth es,
-    deps ← explode.append_dep filter es' fn [],
-    explode.args e args depth es' "∀E" deps
+    -- in case of a "have" clause, the fn here has an annotation
+    deps ← explode.append_dep filter es' fn.erase_annotations [],
+    explode.args e args depth es' (thm.string "∀E") deps
   end
-with explode.args : expr → list expr → nat → entries → string → list nat → tactic entries
+with explode.args : expr → list expr → nat → entries → thm → list nat → tactic entries
 | e (arg :: args) depth es thm deps := do
   es' ← explode.core arg ff depth es <|> return es,
   deps' ← explode.append_dep filter es' arg deps,
@@ -139,6 +158,7 @@ open interactive lean lean.parser interaction_monad.result
 /--
 `#explode decl_name` displays a proof term in a line-by-line format somewhat akin to a Fitch-style
 proof or the Metamath proof style.
+`#explode_widget decl_name` renders a widget that displays an `#explode` proof.
 
 `#explode iff_true_intro` produces
 
@@ -199,9 +219,10 @@ do n ← ident,
 .
 
 add_tactic_doc
-{ name       := "#explode",
+{ name       := "#explode / #explode_widget",
   category   := doc_category.cmd,
-  decl_names := [`tactic.explode_cmd],
-  tags       := ["proof display"] }
+  decl_names := [`tactic.explode_cmd, `tactic.explode_widget_cmd],
+  inherit_description_from := `tactic.explode_cmd,
+  tags       := ["proof display", "widgets"] }
 
 end tactic

@@ -10,8 +10,9 @@ import algebra.category.Mon.basic
 /-!
 # Single-object category
 
-Single object category with a given monoid of endomorphisms.  It is defined to facilitate transfering
-some definitions and lemmas (e.g., conjugacy etc.) from category theory to monoids and groups.
+Single object category with a given monoid of endomorphisms.
+It is defined to facilitate transfering some definitions and lemmas (e.g., conjugacy etc.)
+from category theory to monoids and groups.
 
 ## Main definitions
 
@@ -56,7 +57,11 @@ instance category [monoid α] : category (single_obj α) :=
   id_comp' := λ _ _, mul_one,
   assoc' := λ _ _ _ _ x y z, (mul_assoc z y x).symm }
 
-/-- Groupoid structure on `single_obj α` -/
+/--
+Groupoid structure on `single_obj α`.
+
+See https://stacks.math.columbia.edu/tag/0019.
+-/
 instance groupoid [group α] : groupoid (single_obj α) :=
 { inv := λ _ _ x, x⁻¹,
   inv_comp' := λ _ _, mul_right_inv,
@@ -75,7 +80,11 @@ lemma to_End_def [monoid α] (x : α) : to_End α x = x := rfl
 
 /-- There is a 1-1 correspondence between monoid homomorphisms `α → β` and functors between the
     corresponding single-object categories. It means that `single_obj` is a fully faithful
-    functor. -/
+    functor.
+
+See https://stacks.math.columbia.edu/tag/001F --
+although we do not characterize when the functor is full or faithful.
+-/
 def map_hom (α : Type u) (β : Type v) [monoid α] [monoid β] :
   (α →* β) ≃ (single_obj α) ⥤ (single_obj β) :=
 { to_fun := λ f,

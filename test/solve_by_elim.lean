@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
 import tactic.solve_by_elim
+import tactic.rcases
+import tactic.interactive
 
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
 begin
@@ -99,7 +101,7 @@ end
 -- Verifying that `solve_by_elim*` backtracks when given multiple goals.
 example (n m : ℕ) (f : ℕ → ℕ → Prop) (h : f n m) : ∃ p : ℕ × ℕ, f p.1 p.2 :=
 begin
-  repeat { split },
+  repeat { fsplit },
   solve_by_elim*,
 end
 
@@ -157,3 +159,15 @@ end
 
 -- We verify that the solution did use `b`.
 example : solve_by_elim_use_b 1 2 = (1, 1, 2) := rfl
+
+-- Test that `solve_by_elim*`, which works on multiple goals,
+-- successfully uses the relevant local hypotheses for each goal.
+example (f g : ℕ → Prop) : (∃ k : ℕ, f k) ∨ (∃ k : ℕ, g k) ↔ ∃ k : ℕ, f k ∨ g k :=
+begin
+  dsimp at *,
+  fsplit,
+  rintro (⟨n, fn⟩ | ⟨n, gn⟩),
+  swap 3,
+  rintro ⟨n, hf | hg⟩,
+  solve_by_elim* [or.inl, or.inr, Exists.intro] { max_depth := 20 },
+end

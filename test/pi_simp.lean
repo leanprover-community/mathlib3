@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
-import algebra.pi_instances
+import algebra.group.pi
 
 /-!
 Test if `simp` can use a lemma about `pi.has_one` to simplify `1` coming from `pi.group`

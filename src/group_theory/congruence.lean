@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 import data.setoid.basic
-import algebra.pi_instances
+import algebra.group.pi
+import algebra.group.prod
+import data.equiv.mul_add
+import group_theory.submonoid.operations
 
 /-!
 # Congruence relations
@@ -61,6 +64,12 @@ structure add_con [has_add M] extends setoid M :=
     preserves multiplication. -/
 @[to_additive add_con] structure con [has_mul M] extends setoid M :=
 (mul' : ∀ {w x y z}, r w x → r y z → r (w * y) (x * z))
+
+/-- The equivalence relation underlying an additive congruence relation. -/
+add_decl_doc add_con.to_setoid
+
+/-- The equivalence relation underlying a multiplicative congruence relation. -/
+add_decl_doc con.to_setoid
 
 variables {M}
 
@@ -273,7 +282,7 @@ lemma coe_mul (x y : M) : (↑(x * y) : c.quotient) = ↑x * ↑y := rfl
     that is constant on `c`'s equivalence classes. -/
 @[simp, to_additive "Definition of the function on the quotient by an additive congruence
 relation `c` induced by a function that is constant on `c`'s equivalence classes."]
-protected lemma lift_on_beta {β} (c : con M) (f : M → β)
+protected lemma lift_on_coe {β} (c : con M) (f : M → β)
   (h : ∀ a b, c a b → f a = f b) (x : M) :
   con.lift_on (x : c.quotient) f h = f x := rfl
 
@@ -444,8 +453,7 @@ underlying binary relation."]
 lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) :=
 begin
   rw [Sup_eq_con_gen, Sup_image],
-  congr,
-  ext x y,
+  congr' with x y,
   simp only [Sup_image, supr_apply, supr_Prop_eq, exists_prop, rel_eq_coe]
 end
 
@@ -455,9 +463,9 @@ variables (M)
     binary relations on `M`. -/
 @[to_additive "There is a Galois insertion of additive congruence relations on a type with
 an addition `M` into binary relations on `M`."]
-protected def gi : @galois_insertion (M → M → Prop) (con M) _ _ con_gen r :=
+protected noncomputable def gi : @galois_insertion (M → M → Prop) (con M) _ _ con_gen r :=
 { choice := λ r h, con_gen r,
- gc := λ r c, ⟨λ H _ _ h, H $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
+  gc := λ r c, ⟨λ H _ _ h, H $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
   le_l_u := λ x, (con_gen_of_con x).symm ▸ le_refl x,
   choice_eq := λ _ _, rfl }
 
@@ -513,8 +521,7 @@ open quotient
 @[to_additive "Given an additive congruence relation `c` on a type `M` with an addition,
 the order-preserving bijection between the set of additive congruence relations containing `c` and
 the additive congruence relations on the quotient of `M` by `c`."]
-def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
-  ((≤) : con c.quotient → con c.quotient → Prop) :=
+def correspondence : {d // c ≤ d} ≃o (con c.quotient) :=
 { to_fun := λ d, d.1.map_of_surjective coe _
     (by rw mul_ker_mk_eq; exact d.2) $ @exists_rep _ c.to_setoid,
   inv_fun := λ d, ⟨comap (coe : M → c.quotient) (λ x y, rfl) d, λ _ _ h,
@@ -528,20 +535,21 @@ def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
       λ x y h, show d _ _, by rw mul_ker_mk_eq at h; exact c.eq.2 h ▸ d.refl _ in
     ext $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
       con.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-  ord' := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
-    λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨_, _, rfl, rfl, hs⟩ in
-      t.1.trans (t.1.symm $ t.2 $ eq_rel.1 hx) $ t.1.trans ht $ t.2 $ eq_rel.1 hy⟩ }
+  map_rel_iff' := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨_, _, rfl, rfl, hs⟩ in
+      t.1.trans (t.1.symm $ t.2 $ eq_rel.1 hx) $ t.1.trans ht $ t.2 $ eq_rel.1 hy,
+      λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
 
 end
 
 end
 
 -- Monoids
+section monoids
 
 variables {M} [monoid M] [monoid N] [monoid P] (c : con M)
 
 /-- The quotient of a monoid by a congruence relation is a monoid. -/
-@[to_additive add_monoid "The quotient of an `add_monoid` by an additive congruence relation is
+@[to_additive "The quotient of an `add_monoid` by an additive congruence relation is
 an `add_monoid`."]
 instance monoid : monoid c.quotient :=
 { one := ((1 : M) : c.quotient),
@@ -553,7 +561,7 @@ instance monoid : monoid c.quotient :=
 
 
 /-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
-@[to_additive add_comm_monoid "The quotient of an `add_comm_monoid` by an additive congruence
+@[to_additive "The quotient of an `add_comm_monoid` by an additive congruence
 relation is an `add_comm_monoid`."]
 instance comm_monoid {α : Type*} [comm_monoid α] (c : con α) :
   comm_monoid c.quotient :=
@@ -571,7 +579,7 @@ lemma coe_one : ((1 : M) : c.quotient) = 1 := rfl
 variables (M c)
 
 /-- The submonoid of `M × M` defined by a congruence relation on a monoid `M`. -/
-@[to_additive add_submonoid "The `add_submonoid` of `M × M` defined by an additive congruence
+@[to_additive "The `add_submonoid` of `M × M` defined by an additive congruence
 relation on an `add_monoid` `M`."]
 protected def submonoid : submonoid (M × M) :=
 { carrier := { x | c x.1 x.2 },
@@ -582,7 +590,7 @@ variables {M c}
 
 /-- The congruence relation on a monoid `M` from a submonoid of `M × M` for which membership
     is an equivalence relation. -/
-@[to_additive of_add_submonoid "The additive congruence relation on an `add_monoid` `M` from
+@[to_additive "The additive congruence relation on an `add_monoid` `M` from
 an `add_submonoid` of `M × M` for which membership is an equivalence relation."]
 def of_submonoid (N : submonoid (M × M)) (H : equivalence (λ x y, (x, y) ∈ N)) : con M :=
 { r := λ x y, (x, y) ∈ N,
@@ -591,7 +599,7 @@ def of_submonoid (N : submonoid (M × M)) (H : equivalence (λ x y, (x, y) ∈ N
 
 /-- Coercion from a congruence relation `c` on a monoid `M` to the submonoid of `M × M` whose
     elements are `(x, y)` such that `x` is related to `y` by `c`. -/
-@[to_additive to_add_submonoid "Coercion from a congruence relation `c` on an `add_monoid` `M`
+@[to_additive "Coercion from a congruence relation `c` on an `add_monoid` `M`
 to the `add_submonoid` of `M × M` whose elements are `(x, y)` such that `x`
 is related to `y` by `c`."]
 instance to_submonoid : has_coe (con M) (submonoid (M × M)) := ⟨λ c, c.submonoid M⟩
@@ -599,7 +607,7 @@ instance to_submonoid : has_coe (con M) (submonoid (M × M)) := ⟨λ c, c.submo
 @[to_additive] lemma mem_coe {c : con M} {x y} :
   (x, y) ∈ (↑c : submonoid (M × M)) ↔ (x, y) ∈ c := iff.rfl
 
-@[to_additive to_add_submonoid_inj]
+@[to_additive]
 theorem to_submonoid_inj (c d : con M) (H : (c : submonoid (M × M)) = d) : c = d :=
 ext $ λ x y, show (x, y) ∈ (c : submonoid (M × M)) ↔ (x, y) ∈ ↑d, by rw H
 
@@ -838,5 +846,35 @@ def quotient_quotient_equiv_quotient (c d : con M) (h : c ≤ d) :
 { map_mul' := λ x y, con.induction_on₂ x y $ λ w z, con.induction_on₂ w z $ λ a b,
     show _ = d.mk' a * d.mk' b, by rw ←d.mk'.map_mul; refl,
   ..quotient_quotient_equiv_quotient c.to_setoid d.to_setoid h }
+
+end monoids
+
+section groups
+
+variables {M} [group M] [group N] [group P] (c : con M)
+
+/-- Multiplicative congruence relations preserve inversion. -/
+@[to_additive "Additive congruence relations preserve negation."]
+protected lemma inv : ∀ {w x}, c w x → c w⁻¹ x⁻¹ :=
+λ x y h, by simpa using c.symm (c.mul (c.mul (c.refl x⁻¹) h) (c.refl y⁻¹))
+
+/-- The inversion induced on the quotient by a congruence relation on a type with a
+    inversion. -/
+@[to_additive "The negation induced on the quotient by an additive congruence relation on a type
+with an negation."]
+instance has_inv : has_inv c.quotient :=
+⟨λ x, quotient.lift_on' x (λ w, ((w⁻¹ : M) : c.quotient))
+     $ λ x y h, c.eq.2 $ c.inv h⟩
+
+/-- The quotient of a group by a congruence relation is a group. -/
+@[to_additive "The quotient of an `add_group` by an additive congruence relation is
+an `add_group`."]
+instance group : group c.quotient :=
+{ inv := λ x, x⁻¹,
+  mul_left_inv := λ x, show x⁻¹ * x = 1,
+    from quotient.induction_on' x $ λ _, congr_arg coe $ mul_left_inv _,
+  .. con.monoid c}
+
+end groups
 
 end con

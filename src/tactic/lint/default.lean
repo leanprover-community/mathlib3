@@ -42,7 +42,7 @@ The following linters are run by default:
 15. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of simp lemmas.
 16. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
 17. `decidable_classical` checks for `decidable` hypotheses that are used in the proof of a proposition but not
-    in the statement, and could be removed using `classical`.
+    in the statement, and could be removed using `classical`. Theorems in the `decidable` namespace are exempt.
 18. `has_coe_to_fun` checks that every type that coerces to a function has a direct `has_coe_to_fun` instance.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
@@ -53,8 +53,11 @@ The command `#list_linters` prints a list of the names of all available linters.
 You can append a `*` to any command (e.g. `#lint_mathlib*`) to omit the slow tests (4).
 
 You can append a `-` to any command (e.g. `#lint_mathlib-`) to run a silent lint
-that suppresses the output of passing checks.
+that suppresses the output if all checks pass.
 A silent lint will fail if any test fails.
+
+You can append a `+` to any command (e.g. `#lint_mathlib+`) to run a verbose lint
+that reports the result of each linter, including  the successes.
 
 You can append a sequence of linter names to any command to run extra tests, in addition to the
 default ones. e.g. `#lint doc_blame_thm` will run all default tests and `doc_blame_thm`.

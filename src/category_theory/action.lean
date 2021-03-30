@@ -5,6 +5,7 @@ Authors: David Wärn
 -/
 import category_theory.elements
 import category_theory.single_obj
+import group_theory.group_action.basic
 
 /-!
 # Actions as functors and as categories
@@ -41,6 +42,7 @@ def action_category := (action_as_functor M X).elements
 
 namespace action_category
 
+noncomputable
 instance (G : Type*) [group G] [mul_action G X] : groupoid (action_category G X) :=
 category_theory.groupoid_of_elements _
 
@@ -72,11 +74,11 @@ instance [inhabited X] : inhabited (action_category M X) :=
 variables {X} (x : X)
 /-- The stabilizer of a point is isomorphic to the endomorphism monoid at the
   corresponding point. In fact they are definitionally equivalent. -/
-def stabilizer_iso_End : stabilizer M x ≃* End (obj_equiv M X x) :=
+def stabilizer_iso_End : stabilizer.submonoid M x ≃* End (obj_equiv M X x) :=
 mul_equiv.refl _
 
 @[simp]
-lemma stabilizer_iso_End_apply (f : stabilizer M x) :
+lemma stabilizer_iso_End_apply (f : stabilizer.submonoid M x) :
   (stabilizer_iso_End M x).to_fun f = f := rfl
 
 @[simp]

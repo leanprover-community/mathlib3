@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author(s): Simon Hudon
+Authors: Simon Hudon
 -/
 import category_theory.category
 
@@ -62,8 +62,8 @@ Given a lemma of the form `f ≫ g = h`, proves a new lemma of the form
 -/
 meta def prove_reassoc (h : expr) : tactic (expr × expr) :=
 do
-   (vs,t) ← infer_type h >>= mk_local_pis,
-   (vs',t) ← whnf t >>= mk_local_pis,
+   (vs,t) ← infer_type h >>= open_pis,
+   (vs',t) ← whnf t >>= open_pis,
    let vs := vs ++ vs',
    (lhs,rhs) ← match_eq t,
    struct_inst ← get_cat_inst lhs <|> get_cat_inst rhs <|> fail "no composition found in statement",
@@ -81,7 +81,7 @@ do
    s ← s.add_simp ``category.assoc,
    s ← s.add_simp ``category.id_comp,
    s ← s.add_simp ``category.comp_id,
-   (t'',pr') ← simplify s [] t',
+   (t'', pr', _) ← simplify s [] t',
    pr' ← mk_eq_mp pr' pr,
    t'' ← pis (vs ++ [X',f']) t'',
    pr' ← lambdas (vs ++ [X',f']) pr',

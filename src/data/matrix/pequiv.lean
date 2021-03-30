@@ -36,7 +36,7 @@ open matrix
 
 universes u v
 
-variables {k l m n : Type u}
+variables {k l m n : Type*}
 variables [fintype k] [fintype l] [fintype m] [fintype n]
 variables {α : Type v}
 
@@ -50,7 +50,7 @@ def to_matrix [decidable_eq n] [has_zero α] [has_one α] (f : m ≃. n) : matri
 lemma mul_matrix_apply [decidable_eq m] [semiring α] (f : l ≃. m) (M : matrix m n α) (i j) :
   (f.to_matrix ⬝ M) i j = option.cases_on (f i) 0 (λ fi, M fi j) :=
 begin
-  dsimp [to_matrix, matrix.mul_val],
+  dsimp [to_matrix, matrix.mul_apply],
   cases h : f i with fi,
   { simp [h] },
   { rw finset.sum_eq_single fi;
@@ -63,18 +63,17 @@ by ext; simp only [transpose, mem_iff_mem f, to_matrix]; congr
 
 @[simp] lemma to_matrix_refl [decidable_eq n] [has_zero α] [has_one α] :
   ((pequiv.refl n).to_matrix : matrix n n α) = 1 :=
-by ext; simp [to_matrix, one_val]; congr
+by ext; simp [to_matrix, one_apply]; congr
 
 lemma matrix_mul_apply [semiring α] [decidable_eq n] (M : matrix l m α) (f : m ≃. n) (i j) :
   (M ⬝ f.to_matrix) i j = option.cases_on (f.symm j) 0 (λ fj, M i fj) :=
 begin
-  dsimp [to_matrix, matrix.mul_val],
+  dsimp [to_matrix, matrix.mul_apply],
   cases h : f.symm j with fj,
-  { simp [h, f.eq_some_iff.symm] },
-  { conv in (_ ∈ _) { rw ← f.mem_iff_mem },
-    rw finset.sum_eq_single fj,
-    { simp [h, f.eq_some_iff.symm], },
-    { intros b H n, simp [h, f.eq_some_iff.symm, n.symm], },
+  { simp [h, ← f.eq_some_iff] },
+  { rw finset.sum_eq_single fj,
+    { simp [h, ← f.eq_some_iff], },
+    { intros b H n, simp [h, ← f.eq_some_iff, n.symm], },
     { simp, } }
 end
 
@@ -101,7 +100,7 @@ begin
   assume f g,
   refine not_imp_not.1 _,
   simp only [matrix.ext_iff.symm, to_matrix, pequiv.ext_iff,
-    classical.not_forall, exists_imp_distrib],
+    not_forall, exists_imp_distrib],
   assume i hi,
   use i,
   cases hf : f i with fi,
@@ -119,7 +118,7 @@ lemma to_matrix_swap [decidable_eq n] [ring α] (i j : n) :
     (single j i).to_matrix :=
 begin
   ext,
-  dsimp [to_matrix, single, equiv.swap_apply_def, equiv.to_pequiv, one_val],
+  dsimp [to_matrix, single, equiv.swap_apply_def, equiv.to_pequiv, one_apply],
   split_ifs; simp * at *
 end
 
@@ -135,13 +134,14 @@ by rw [← to_matrix_trans, single_trans_single_of_ne hb, to_matrix_bot]
 
 /-- Restatement of `single_mul_single`, which will simplify expressions in `simp` normal form,
   when associativity may otherwise need to be carefully applied. -/
-@[simp] lemma single_mul_single_right [decidable_eq k] [decidable_eq m] [decidable_eq n] [semiring α]
-  (a : m) (b : n) (c : k) (M : matrix k l α) :
+@[simp] lemma single_mul_single_right [decidable_eq k] [decidable_eq m] [decidable_eq n]
+  [semiring α] (a : m) (b : n) (c : k) (M : matrix k l α) :
   (single a b).to_matrix ⬝ ((single b c).to_matrix ⬝ M) = (single a c).to_matrix ⬝ M :=
 by rw [← matrix.mul_assoc, single_mul_single]
 
 /-- We can also define permutation matrices by permuting the rows of the identity matrix. -/
-lemma equiv_to_pequiv_to_matrix [decidable_eq n] [has_zero α] [has_one α] (σ : equiv n n) (i j : n) :
+lemma equiv_to_pequiv_to_matrix [decidable_eq n] [has_zero α] [has_one α] (σ : equiv n n)
+  (i j : n) :
   σ.to_pequiv.to_matrix i j = (1 : matrix n n α) (σ i) j :=
 if_congr option.some_inj rfl rfl
 

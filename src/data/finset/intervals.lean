@@ -48,6 +48,12 @@ multiset.Ico.card _ _
 @[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
 multiset.Ico.mem
 
+@[simp, norm_cast] lemma coe_eq_Ico {n m : ℕ} : ↑(Ico n m) = set.Ico n m :=
+begin
+  ext,
+  rw [set.mem_Ico, mem_coe, finset.Ico.mem],
+end
+
 theorem eq_empty_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = ∅ :=
 eq_of_veq $ multiset.Ico.eq_zero_of_le h
 
@@ -82,11 +88,22 @@ lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
 by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
   multiset.Ico.add_consecutive hnm hml, to_finset]
 
+lemma union' {n m l k : ℕ} (hlm : l ≤ m) (hnk : n ≤ k) :
+  Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
+by simp [←coe_inj, set.Ico_union_Ico' hlm hnk]
+
+lemma union {n m l k : ℕ} (h₁ : min n m ≤ max l k) (h₂ : min l k ≤ max n m) :
+  Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
+by simp [←coe_inj, set.Ico_union_Ico h₁ h₂]
+
 @[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = ∅ :=
 begin
   rw [← to_finset, ← to_finset, ← multiset.to_finset_inter, multiset.Ico.inter_consecutive],
   simp,
 end
+
+lemma inter {n m l k : ℕ} : Ico n m ∩ Ico l k = Ico (max n l) (min m k) :=
+by simp [←coe_inj, ←inf_eq_min, ←sup_eq_max, set.Ico_inter_Ico]
 
 lemma disjoint_consecutive (n m l : ℕ) : disjoint (Ico n m) (Ico m l) :=
 le_of_eq $ inter_consecutive n m l
@@ -119,6 +136,9 @@ eq_of_veq $ multiset.Ico.filter_lt_of_top_le hml
 
 lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x < l) = ∅ :=
 eq_of_veq $ multiset.Ico.filter_lt_of_le_bot hln
+
+lemma filter_Ico_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = {n} :=
+eq_of_veq $ multiset.Ico.filter_le_of_bot hnm
 
 lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico n m).filter (λ x, x < l) = Ico n l :=
 eq_of_veq $ multiset.Ico.filter_lt_of_ge hlm

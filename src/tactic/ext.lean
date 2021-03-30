@@ -1,13 +1,16 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Simon Hudon
+Authors: Simon Hudon, Jesse Michael Han
 -/
 import tactic.rcases
 import data.sum
+import logic.function.basic
+
 universes u₁ u₂
 
 open interactive interactive.types
+section ext
 open lean.parser nat tactic
 
 /--
@@ -41,7 +44,7 @@ do e ← get_env,
    d ← get_decl n,
    n ← resolve_constant n,
    let r := @expr.const tt n $ d.univ_params.map level.param,
-   (args,_) ← infer_type r >>= mk_local_pis,
+   (args,_) ← infer_type r >>= open_pis,
    let args := args.map expr.to_implicit_local_const,
    let t := r.mk_app args,
    x ← mk_local_def `x t,
@@ -339,8 +342,23 @@ add_tactic_doc
   decl_names               := [`extensional_attribute],
   tags                     := ["rewrite", "logic"] }
 
+/--
+When possible, `ext` lemmas are stated without a full set of arguments. As an example, for bundled
+homs `f`, `g`, and `of`, `f.comp of = g.comp of → f = g` is a better `ext` lemma than
+`(∀ x, f (of x) = g (of x)) → f = g`, as the former allows a second type-specific extensionality
+lemmas to be applied to `f.comp of = g.comp of`.
+If the domain of `of` is `ℕ` or `ℤ` and `of` is a `ring_hom`, such a lemma could then make the goal
+`f (of 1) = g (of 1)`.
+
+For bundled morphisms, there is a `ext` lemma that always applies of the form
+`(∀ x, ⇑f x = ⇑g x) → f = g`. When adding type-specific `ext` lemmas like the one above, we want
+these to be tried first. This happens automatically since the type-specific lemmas are inevitably
+defined later.
+-/
+library_note "partially-applied ext lemmas"
+
 -- We mark some existing extensionality lemmas.
-attribute [ext] array.ext propext
+attribute [ext] array.ext propext function.hfunext
 attribute [ext [(→),thunk]] _root_.funext
 
 -- We create some extensionality lemmas for existing structures.
@@ -358,31 +376,87 @@ end plift
 -- as they become useful.
 attribute [ext] has_zero
 
+@[ext] lemma unit.ext {x y : unit} : x = y := by { cases x, cases y, refl, }
+@[ext] lemma punit.ext {x y : punit} : x = y := by { cases x, cases y, refl, }
+
 namespace tactic
 
-meta def try_intros : ext_patt → tactic ext_patt
-| [] := try intros $> []
-| (x::xs) :=
-do tgt ← target >>= whnf,
-   if tgt.is_pi
-     then rintro [x] >> try_intros xs
-     else pure (x :: xs)
+/-- Helper structure for `ext` and `ext1`. `lemmas` keeps track of extensionality lemmas
+  applied so far. -/
+meta structure ext_state : Type :=
+(patts : list rcases_patt := [])
+(trace_msg : list string := [])
+(fuel : option ℕ := none)
 
-meta def ext1 (xs : ext_patt) (cfg : apply_cfg := {}) : tactic ext_patt :=
-do subject ← target >>= get_ext_subject,
-   m ← get_ext_lemmas,
-   do { rule ← m.find subject,
-        applyc rule cfg } <|>
-     do { ls ← get_ext_lemma_names,
-          ls.any_of (λ n, applyc n cfg) } <|>
-     fail format!"no applicable extensionality rule found for {subject}",
-   try_intros xs
+/-- Helper function for `try_intros`. Additionally populates the `trace_msg` field
+  of `ext_state`. -/
+private meta def try_intros_core : state_t ext_state tactic unit :=
+do ⟨patts, trace_msg, fuel⟩ ← get,
+   match patts with
+   | [] := do { es ← state_t.lift intros, when (es.length > 0) $ do
+                let msg := "intros " ++ (" ".intercalate (es.map (λ e, e.local_pp_name.to_string))),
+                modify (λ ⟨patts, trace_msg, fuel⟩, ⟨patts, trace_msg ++ [msg], fuel⟩) }
+             <|> pure ()
+   | (x::xs) :=
+     do tgt ← state_t.lift (target >>= whnf),
+        when tgt.is_pi $
+          do state_t.lift (rintro [x]),
+             msg ← state_t.lift (((++) "rintro ") <$> format.to_string <$> x.format ff),
+             modify (λ ⟨_, trace_msg, fuel⟩, ⟨xs, trace_msg ++ [msg], fuel⟩),
+             try_intros_core
+   end
 
-meta def ext : ext_patt → option ℕ → tactic unit
-| _  (some 0) := skip
-| xs n        := focus1 $ do
-  ys ← ext1 xs, try (ext ys (nat.pred <$> n))
+/-- Try to introduce as many arguments as possible, using the given patterns to destruct the
+  introduced variables. Returns the unused patterns. -/
+meta def try_intros (patts : list rcases_patt) : tactic (list rcases_patt) :=
+let σ := ext_state.mk patts [] none in
+  (ext_state.patts ∘ prod.snd) <$> state_t.run try_intros_core σ
 
+/-- Apply one extensionality lemma, and destruct the arguments using the patterns
+  in the ext_state. -/
+meta def ext1_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
+do ⟨patts, trace_msg, _⟩ ← get,
+   (new_msgs) ← state_t.lift $ focus1 $
+   do { m ← get_ext_lemmas,
+         subject ← (target >>= get_ext_subject),
+         new_trace_msg ←
+           do { rule ← (m.find subject),
+                (applyc rule cfg),
+                pure (["apply " ++ rule.to_string]) } <|>
+             do { ls ← get_ext_lemma_names,
+                  let nms := ls.map name.to_string,
+                  rule ← (ls.any_of (λ n, applyc n cfg *> pure n)),
+                  pure (["apply " ++ rule.to_string]) } <|>
+               (fail format!"no applicable extensionality rule found for {subject}"),
+         pure new_trace_msg },
+    modify (λ ⟨patts, trace_msg, fuel⟩, ⟨patts, trace_msg ++ new_msgs, fuel⟩),
+    try_intros_core
+
+/-- Apply multiple extensionality lemmas, destructing the arguments using the given patterns. -/
+meta def ext_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
+do acc@⟨_, _, fuel⟩ ← get,
+   match fuel with
+   | (some 0) := pure ()
+   | n        := do { ext1_core cfg,
+                      modify (λ ⟨patts, lemmas, _⟩, ⟨patts, lemmas, nat.pred <$> n⟩),
+                      ext_core <|> pure () }
+   end
+
+/-- Apply one extensionality lemma, and destruct the arguments using the given patterns.
+  Returns the unused patterns. -/
+meta def ext1 (xs : list rcases_patt) (cfg : apply_cfg := {})
+  (trace : bool := ff) : tactic (list rcases_patt) :=
+do ⟨_, σ⟩ ← state_t.run (ext1_core cfg) {patts := xs},
+   when trace $ tactic.trace $ "Try this: " ++  ", ".intercalate σ.trace_msg,
+   pure σ.patts
+
+/-- Apply multiple extensionality lemmas, destructing the arguments using the given patterns.
+  `ext ps (some n)` applies at most `n` extensionality lemmas. Returns the unused patterns. -/
+meta def ext (xs : list rcases_patt) (fuel : option ℕ) (cfg : apply_cfg := {})
+  (trace : bool := ff): tactic (list rcases_patt) :=
+do ⟨_, σ⟩ ← state_t.run (ext_core cfg) {patts := xs, fuel := fuel},
+   when trace $ tactic.trace $ "Try this: " ++  ", ".intercalate σ.trace_msg,
+   pure σ.patts
 
 local postfix `?`:9001 := optional
 local postfix *:9001 := many
@@ -391,10 +465,13 @@ local postfix *:9001 := many
 `ext1 id` selects and apply one extensionality lemma (with attribute
 `ext`), using `id`, if provided, to name a local constant
 introduced by the lemma. If `id` is omitted, the local constant is
-named automatically, as per `intro`.
+named automatically, as per `intro`. Placing a `?` after `ext1`
+ (e.g. `ext1? i ⟨a,b⟩ : 3`) will display a sequence of tactic
+applications that can replace the call to `ext1`.
 -/
-meta def interactive.ext1 (xs : parse ext_parse) : tactic unit :=
-ext1 xs $> ()
+meta def interactive.ext1 (trace : parse (tk "?")?)
+  (xs : parse (rcases_patt_parse tt)*) : tactic unit :=
+ext1 xs {} trace.is_some $> ()
 
 /--
 - `ext` applies as many extensionality lemmas as possible;
@@ -402,6 +479,8 @@ ext1 xs $> ()
   until it runs out of identifiers in `ids` to name the local constants.
 - `ext` can also be given an `rcases` pattern in place of an identifier.
   This will destruct the introduced local constant.
+- Placing a `?` after `ext` (e.g. `ext? i ⟨a,b⟩ : 3`) will display
+  a sequence of tactic applications that can replace the call to `ext`.
 
 When trying to prove:
 
@@ -443,12 +522,19 @@ b : β
 
 by applying functional extensionality and destructing the introduced pair.
 
+In the previous example, applying `ext? ⟨a,b⟩` will produce the trace message:
+
+```lean
+Try this: apply funext, rintro ⟨a, b⟩
+```
+
 A maximum depth can be provided with `ext x y z : 3`.
 -/
-meta def interactive.ext : parse ext_parse → parse (tk ":" *> small_nat)? → tactic unit
- | [] (some n) := iterate_range 1 n (ext1 [] $> ())
- | [] none     := repeat1 (ext1 [] $> ())
- | xs n        := tactic.ext xs n
+meta def interactive.ext :
+  (parse $ (tk "?")?) → parse (rcases_patt_parse tt)* → parse (tk ":" *> small_nat)? → tactic unit
+ | trace [] (some n)  := iterate_range 1 n (ext1 [] {} trace.is_some $> ())
+ | trace [] none      := repeat1 (ext1 [] {} trace.is_some $> ())
+ | trace xs n         := ext xs n {} trace.is_some $> ()
 
 /--
 * `ext1 id` selects and apply one extensionality lemma (with
@@ -462,6 +548,8 @@ meta def interactive.ext : parse ext_parse → parse (tk ":" *> small_nat)? → 
   the local constants.
 * `ext` can also be given an `rcases` pattern in place of an identifier.
   This will destruct the introduced local constant.
+- Placing a `?` after `ext`/`ext1` (e.g. `ext? i ⟨a,b⟩ : 3`) will display
+  a sequence of tactic applications that can replace the call to `ext`/`ext1`.
 
 When trying to prove:
 
@@ -502,6 +590,12 @@ b : β
 
 by applying functional extensionality and destructing the introduced pair.
 
+In the previous example, applying `ext? ⟨a,b⟩` will produce the trace message:
+
+```lean
+Try this: apply funext, rintro ⟨a, b⟩
+```
+
 A maximum depth can be provided with `ext x y z : 3`.
 -/
 add_tactic_doc
@@ -511,3 +605,4 @@ add_tactic_doc
   tags        := ["rewriting", "logic"] }
 
 end tactic
+end ext

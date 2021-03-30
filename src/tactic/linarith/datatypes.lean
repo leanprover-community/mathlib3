@@ -115,7 +115,8 @@ end linexp
 
 /-! ### Inequalities -/
 
-/-- The three-element type `ineq` is used to represent the strength of a comparison between terms. -/
+/-- The three-element type `ineq` is used to represent the strength of a comparison between
+terms. -/
 @[derive decidable_eq, derive inhabited]
 inductive ineq : Type
 | eq | le | lt
@@ -230,11 +231,32 @@ meta structure preprocessor : Type :=
 
 /--
 Some preprocessors need to examine the full list of hypotheses instead of working item by item.
-As with `preprocessor`, the input to a `global_preprocessor` is replaced by, not added to, its output.
+As with `preprocessor`, the input to a `global_preprocessor` is replaced by, not added to, its
+output.
 -/
 meta structure global_preprocessor : Type :=
 (name : string)
 (transform : list expr → tactic (list expr))
+
+/--
+Some preprocessors perform branching case splits. A `branch` is used to track one of these case
+splits. The first component, an `expr`, is the goal corresponding to this branch of the split,
+given as a metavariable. The `list expr` component is the list of hypotheses for `linarith`
+in this branch. Every `expr` in this list should be type correct in the context of the associated
+goal.
+-/
+meta def branch : Type := expr × list expr
+
+/--
+Some preprocessors perform branching case splits.
+A `global_branching_preprocessor` produces a list of branches to run.
+Each branch is independent, so hypotheses that appear in multiple branches should be duplicated.
+The preprocessor is responsible for making sure that each branch contains the correct goal
+metavariable.
+-/
+meta structure global_branching_preprocessor : Type :=
+(name : string)
+(transform : list expr → tactic (list branch))
 
 /--
 A `preprocessor` lifts to a `global_preprocessor` by folding it over the input list.
@@ -244,17 +266,47 @@ meta def preprocessor.globalize (pp : preprocessor) : global_preprocessor :=
   transform := list.mfoldl (λ ret e, do l' ← pp.transform e, return (l' ++ ret)) [] }
 
 /--
+A `global_preprocessor` lifts to a `global_branching_preprocessor` by producing only one branch.
+-/
+meta def global_preprocessor.branching (pp : global_preprocessor) : global_branching_preprocessor :=
+{ name := pp.name,
+  transform := λ l, do g ← tactic.get_goal, singleton <$> prod.mk g <$> pp.transform l }
+
+/--
 `process pp l` runs `pp.transform` on `l` and returns the result,
 tracing the result if `trace.linarith` is on.
 -/
-meta def global_preprocessor.process (pp : global_preprocessor) (l : list expr) :
-  tactic (list expr) :=
+meta def global_branching_preprocessor.process (pp : global_branching_preprocessor)
+  (l : list expr) :
+  tactic (list branch) :=
 do l ← pp.transform l,
-   linarith_trace_proofs (to_string format!"Preprocessing: {pp.name}") l,
+   when (l.length > 1) $
+     linarith_trace format!"Preprocessing: {pp.name} has branched, with branches:",
+   l.mmap' $ λ l, tactic.set_goals [l.1] >>
+     linarith_trace_proofs (to_string format!"Preprocessing: {pp.name}") l.2,
    return l
 
-meta instance : has_coe preprocessor global_preprocessor :=
-⟨preprocessor.globalize⟩
+meta instance preprocessor_to_gb_preprocessor :
+  has_coe preprocessor global_branching_preprocessor :=
+⟨global_preprocessor.branching ∘ preprocessor.globalize⟩
+
+meta instance global_preprocessor_to_gb_preprocessor :
+  has_coe global_preprocessor global_branching_preprocessor :=
+⟨global_preprocessor.branching⟩
+
+
+/--
+A `certificate_oracle` is a function `produce_certificate : list comp → ℕ → tactic (rb_map ℕ ℕ)`.
+`produce_certificate hyps max_var` tries to derive a contradiction from the comparisons in `hyps`
+by eliminating all variables ≤ `max_var`.
+If successful, it returns a map `coeff : ℕ → ℕ` as a certificate.
+This map represents that we can find a contradiction by taking the sum  `∑ (coeff i) * hyps[i]`.
+
+The default `certificate_oracle` used by `linarith` is
+`linarith.fourier_motzkin.produce_certificate`.
+-/
+meta def certificate_oracle : Type :=
+list comp → ℕ → tactic (rb_map ℕ ℕ)
 
 /-- A configuration object for `linarith`. -/
 meta structure linarith_config : Type :=
@@ -264,7 +316,9 @@ meta structure linarith_config : Type :=
 (exfalso : bool := tt)
 (transparency : tactic.transparency := reducible)
 (split_hypotheses : bool := tt)
-(preprocessors : option (list global_preprocessor) := none)
+(split_ne : bool := ff)
+(preprocessors : option (list global_branching_preprocessor) := none)
+(oracle : option certificate_oracle := none)
 
 /--
 `cfg.update_reducibility reduce_semi` will change the transparency setting of `cfg` to

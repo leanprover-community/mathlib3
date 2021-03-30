@@ -1,9 +1,14 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
+/-
 Non-constant terms of linear constraints are represented
-by storing their coefficients in integer lists. -/
+by storing their coefficients in integer lists.
+-/
+
 import data.list.func
 import tactic.ring
 import tactic.omega.misc
@@ -110,6 +115,7 @@ begin
   apply val_between_set, apply zero_le,
   apply lt_of_lt_of_le (lt_add_one _),
   simp only [length_set, zero_add, le_max_right],
+  apply_instance,
 end
 
 lemma val_between_neg {as : list int} {l : nat} :
@@ -230,14 +236,13 @@ begin
     { rw [add_comm, nat.sub_add_cancel h1] },
     rw h5 at h4, apply eq.trans _ h4,
      simp only [val_between, zero_add], ring },
-  rw not_lt at h1,
   have h2 : (list.length as - (n + 1)) = 0,
   { apply nat.sub_eq_zero_of_le
-    (le_trans h1 (nat.le_add_right _ _)) },
+    (le_trans (not_lt.1 h1) (nat.le_add_right _ _)) },
   have h3 : val_between v as 0 (list.length as) =
             val_between v as 0 (n + 1),
   { simpa only [val] using @val_eq_of_le v as (n+1)
-      (le_trans h1 (nat.le_add_right _ _)) },
+      (le_trans (not_lt.1 h1) (nat.le_add_right _ _)) },
   simp only [add_zero, val_between, zero_add, h2, h3]
 end
 
@@ -285,7 +290,7 @@ lemma dvd_val {as : list int} {i : int} :
 | (m+1) :=
   begin
     unfold val_between,
-    rw [@val_between_map_div m, int.add_div_of_dvd (dvd_val_between h1)],
+    rw [@val_between_map_div m, int.add_div_of_dvd_right],
     apply fun_mono_2 rfl,
     { apply calc get (l + m) (list.map (λ (x : ℤ), x / i) as) * v (l + m)
           = ((get (l + m) as) / i) * v (l + m) :

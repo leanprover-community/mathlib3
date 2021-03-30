@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2019 Neil Strickland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Neil Strickland
+Authors: Neil Strickland
 -/
-import data.pnat.basic
+import data.pnat.prime
 import data.multiset.sort
 import data.int.gcd
 import algebra.group
@@ -38,7 +38,7 @@ multiset.add_sub_of_le
 
 /-- The multiset consisting of a single prime
 -/
-def of_prime (p : nat.primes) : prime_multiset := (p :: 0)
+def of_prime (p : nat.primes) : prime_multiset := (p ::ₘ 0)
 
 theorem card_of_prime (p : nat.primes) : multiset.card (of_prime p) = 1 := rfl
 
@@ -63,13 +63,14 @@ theorem coe_nat_injective : function.injective (coe : prime_multiset → multise
 multiset.map_injective nat.primes.coe_nat_inj
 
 theorem coe_nat_of_prime (p : nat.primes) :
-((of_prime p) : multiset ℕ) = (p : ℕ) :: 0 := rfl
+((of_prime p) : multiset ℕ) = (p : ℕ) ::ₘ 0 := rfl
 
 theorem coe_nat_prime (v : prime_multiset)
 (p : ℕ) (h : p ∈ (v : multiset ℕ)) : p.prime :=
 by { rcases multiset.mem_map.mp h with ⟨⟨p', hp'⟩, ⟨h_mem, h_eq⟩⟩,
      exact h_eq ▸ hp' }
 
+/-- Converts a `prime_multiset` to a `multiset ℕ+`. -/
 def to_pnat_multiset : prime_multiset → multiset ℕ+ :=
 λ v, v.map (λ p, (p : ℕ+))
 
@@ -82,7 +83,7 @@ theorem coe_pnat_injective : function.injective (coe : prime_multiset → multis
 multiset.map_injective nat.primes.coe_pnat_inj
 
 theorem coe_pnat_of_prime (p : nat.primes) :
-((of_prime p) : multiset ℕ+) = (p : ℕ+) :: 0 := rfl
+((of_prime p) : multiset ℕ+) = (p : ℕ+) ::ₘ 0 := rfl
 
 theorem coe_pnat_prime (v : prime_multiset)
   (p : ℕ+) (h : p ∈ (v : multiset ℕ+)) : p.prime :=
@@ -97,6 +98,7 @@ theorem coe_pnat_nat (v : prime_multiset) :
 by { change (v.map (coe : nat.primes → ℕ+)).map subtype.val = v.map subtype.val,
      rw [multiset.map_map], congr }
 
+/-- The product of a `prime_multiset`, as a `ℕ+`. -/
 def prod (v : prime_multiset) : ℕ+ := (v : multiset pnat).prod
 
 theorem coe_prod (v : prime_multiset) : (v.prod : ℕ) = (v : multiset ℕ).prod :=
@@ -109,9 +111,10 @@ begin
 end
 
 theorem prod_of_prime (p : nat.primes) : (of_prime p).prod = (p : ℕ+) :=
-by { change multiset.prod ((p : ℕ+) :: 0) = (p : ℕ+),
+by { change multiset.prod ((p : ℕ+) ::ₘ 0) = (p : ℕ+),
      rw [multiset.prod_cons, multiset.prod_zero, mul_one] }
 
+/-- If a `multiset ℕ` consists only of primes, it can be recast as a `prime_multiset`. -/
 def of_nat_multiset
   (v : multiset ℕ) (h : ∀ (p : ℕ), p ∈ v → p.prime) : prime_multiset :=
 @multiset.pmap ℕ nat.primes nat.prime (λ p hp, ⟨p, hp⟩) v h
@@ -130,6 +133,7 @@ theorem prod_of_nat_multiset (v : multiset ℕ) (h) :
   ((of_nat_multiset v h).prod : ℕ) = (v.prod : ℕ) :=
 by rw[coe_prod, to_of_nat_multiset]
 
+/-- If a `multiset ℕ+` consists only of primes, it can be recast as a `prime_multiset`. -/
 def of_pnat_multiset
   (v : multiset ℕ+) (h : ∀ (p : ℕ+), p ∈ v → p.prime) : prime_multiset :=
 @multiset.pmap ℕ+ nat.primes pnat.prime (λ p hp, ⟨(p : ℕ), hp⟩) v h
@@ -157,6 +161,8 @@ theorem prod_of_nat_list (l : list ℕ) (h) : ((of_nat_list l h).prod : ℕ) = l
 by { have := prod_of_nat_multiset (l : multiset ℕ) h,
      rw [multiset.coe_prod] at this, exact this }
 
+/-- If a `list ℕ+` consists only of primes, it can be recast as a `prime_multiset` with
+  the coercion from lists to multisets. -/
 def of_pnat_list (l : list ℕ+) (h : ∀ (p : ℕ+), p ∈ l → p.prime) : prime_multiset :=
 of_pnat_multiset (l : multiset ℕ+) h
 
@@ -210,7 +216,7 @@ theorem factor_multiset_prod (v : prime_multiset) :
 begin
   apply prime_multiset.coe_nat_injective,
   rw [v.prod.coe_nat_factor_multiset, prime_multiset.coe_prod],
-  rcases v with l,
+  rcases v with ⟨l⟩,
   unfold_coes,
   dsimp [prime_multiset.to_nat_multiset],
   rw [multiset.coe_prod],
@@ -274,7 +280,7 @@ begin
   split,
   { intro h,
     rw [← prod_factor_multiset m, ← prod_factor_multiset m],
-    apply dvd_intro (n.factor_multiset - m.factor_multiset).prod,
+    apply dvd.intro (n.factor_multiset - m.factor_multiset).prod,
     rw [← prime_multiset.prod_add, prime_multiset.factor_multiset_prod,
         prime_multiset.add_sub_of_le h, prod_factor_multiset] },
   { intro  h,
@@ -339,8 +345,8 @@ begin
   congr' 2,
   apply multiset.eq_repeat.mpr,
   split,
-  { rw [multiset.card_smul, prime_multiset.card_of_prime, mul_one] },
-  { have : ∀ (m : ℕ), m •ℕ (p::0) = multiset.repeat p m :=
+  { rw [multiset.card_nsmul, prime_multiset.card_of_prime, mul_one] },
+  { have : ∀ (m : ℕ), m •ℕ (p ::ₘ 0) = multiset.repeat p m :=
     λ m, by {induction m with m ih, { refl },
              rw [succ_nsmul, multiset.repeat_succ, ih],
              rw[multiset.cons_add, zero_add] },

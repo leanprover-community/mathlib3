@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.equiv.list
+import logic.function.iterate
 
 /-!
 # The primitive recursive functions
@@ -102,19 +103,16 @@ theorem mul : primrec (unpaired (*)) :=
 
 theorem pow : primrec (unpaired (^)) :=
 (prec (const 1) (mul.comp (pair (right.comp right) left))).of_eq $
-λ p, by simp; induction p.unpair.2; simp [*, nat.pow_succ]
+λ p, by simp; induction p.unpair.2; simp [*, pow_succ']
 
 end primrec
 
 end nat
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `primcodable` type is an `encodable` type for which
   the encode/decode functions are primitive recursive. -/
 class primcodable (α : Type*) extends encodable α :=
 (prim [] : nat.primrec (λ n, encodable.encode (decode n)))
-end prio
 
 namespace primcodable
 open nat.primrec
@@ -220,9 +218,7 @@ theorem option_some_iff {f : α → σ} : primrec (λ a, some (f a)) ↔ primrec
 theorem of_equiv {β} {e : β ≃ α} :
   by haveI := primcodable.of_equiv α e; exact
   primrec e :=
-(primcodable.prim α).of_eq $ λ n,
-show _ = encode (option.map e (option.map _ _)),
-by cases decode α n; simp
+by letI : primcodable β := primcodable.of_equiv α e; exact encode_iff.1 primrec.encode
 
 theorem of_equiv_symm {β} {e : β ≃ α} :
   by haveI := primcodable.of_equiv α e; exact
@@ -580,7 +576,7 @@ theorem nat_le : primrec_rel ((≤) : ℕ → ℕ → Prop) :=
 end
 
 theorem nat_min : primrec₂ (@min ℕ _) := ite nat_le fst snd
-theorem nat_max : primrec₂ (@max ℕ _) := ite nat_le snd fst
+theorem nat_max : primrec₂ (@max ℕ _) := ite (nat_le.comp primrec.snd primrec.fst) fst snd
 
 theorem dom_bool (f : bool → α) : primrec f :=
 (cond primrec.id (const (f tt)) (const (f ff))).of_eq $
@@ -965,7 +961,7 @@ theorem list_map
 theorem list_range : primrec list.range :=
 (nat_elim' primrec.id (const [])
   ((list_concat.comp snd fst).comp snd).to₂).of_eq $
-λ n, by simp; induction n; simp [*, list.range_concat]; refl
+λ n, by simp; induction n; simp [*, list.range_succ]; refl
 
 theorem list_join : primrec (@list.join α) :=
 (list_foldr primrec.id (const []) $ to₂ $
@@ -1005,7 +1001,7 @@ primrec₂.option_some_iff.1 $
     (to₂ $ list_concat.comp (snd.comp fst) snd))).of_eq $
 λ a n, begin
   simp, induction n with n IH, {refl},
-  simp [IH, H, list.range_concat]
+  simp [IH, H, list.range_succ]
 end
 
 end primrec
@@ -1113,7 +1109,7 @@ begin
   exactI (iff.trans (by refl) subtype_val_iff).trans (of_equiv_iff _)
 end
 
-theorem fin_val {n} : primrec (@fin.val n) := fin_val_iff.2 primrec.id
+theorem fin_val {n} : primrec (coe : fin n → ℕ) := fin_val_iff.2 primrec.id
 
 theorem fin_succ {n} : primrec (@fin.succ n) :=
 fin_val_iff.1 $ by simp [succ.comp fin_val]
@@ -1190,7 +1186,7 @@ inductive primrec' : ∀ {n}, (vector ℕ n → ℕ) → Prop
   primrec' (λ a, f (of_fn (λ i, g i a)))
 | prec {n f g} : @primrec' n f → @primrec' (n+2) g →
   primrec' (λ v : vector ℕ (n+1),
-    v.head.elim (f v.tail) (λ y IH, g (y :: IH :: v.tail)))
+    v.head.elim (f v.tail) (λ y IH, g (y ::ᵥ IH ::ᵥ v.tail)))
 
 end nat
 
@@ -1236,7 +1232,7 @@ protected theorem nil {n} : @vec n 0 (λ _, nil) := λ i, i.elim0
 
 protected theorem cons {n m f g}
   (hf : @primrec' n f) (hg : @vec n m g) :
-  vec (λ v, f v :: g v) :=
+  vec (λ v, (f v ::ᵥ g v)) :=
 λ i, fin.cases (by simp *) (λ i, by simp [hg i]) i
 
 theorem idv {n} : @vec n n id := nth
@@ -1259,7 +1255,7 @@ by simpa using hf.comp' (hg.cons $ hh.cons primrec'.nil)
 theorem prec' {n f g h}
   (hf : @primrec' n f) (hg : @primrec' n g) (hh : @primrec' (n+2) h) :
   @primrec' n (λ v, (f v).elim (g v)
-    (λ (y IH : ℕ), h (y :: IH :: v))) :=
+    (λ (y IH : ℕ), h (y ::ᵥ IH ::ᵥ v))) :=
 by simpa using comp' (prec hg hh) (hf.cons idv)
 
 theorem pred : @primrec' 1 (λ v, v.head.pred) :=

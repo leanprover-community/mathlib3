@@ -47,7 +47,7 @@ are equivalent on `ℝ^n` for abstract (norm equivalence) reasons. Instead, we g
 -/
 
 open real set filter
-open_locale big_operators uniformity topological_space
+open_locale big_operators uniformity topological_space nnreal ennreal
 
 noncomputable theory
 
@@ -107,7 +107,7 @@ have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
     (∑ (i : ι), edist (f i) (h i) ^ p) ^ (1 / p) ≤
     (∑ (i : ι), (edist (f i) (g i) + edist (g i) (h i)) ^ p) ^ (1 / p) :
     begin
-      apply ennreal.rpow_le_rpow _ (div_nonneg zero_le_one pos),
+      apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 $ le_of_lt pos),
       refine finset.sum_le_sum (λ i hi, _),
       exact ennreal.rpow_le_rpow (edist_triangle _ _ _) (le_trans zero_le_one hp)
     end
@@ -132,37 +132,38 @@ begin
   assume i,
   calc
   edist (x i) (y i) = (edist (x i) (y i) ^ p) ^ (1/p) :
-    by simp [← ennreal.rpow_mul, cancel, -one_div_eq_inv]
+    by simp [← ennreal.rpow_mul, cancel, -one_div]
   ... ≤ (∑ (i : ι), edist (x i) (y i) ^ p) ^ (1 / p) :
   begin
-    apply ennreal.rpow_le_rpow _ (div_nonneg zero_le_one pos),
-    exact finset.single_le_sum (λ i hi, (bot_le : (0 : ennreal) ≤ _)) (finset.mem_univ i)
+    apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 $ le_of_lt pos),
+    exact finset.single_le_sum (λ i hi, (bot_le : (0 : ℝ≥0∞) ≤ _)) (finset.mem_univ i)
   end
 end
 
 lemma antilipschitz_with_equiv :
-  antilipschitz_with ((fintype.card ι : nnreal) ^ (1/p)) (pi_Lp.equiv p hp α) :=
+  antilipschitz_with ((fintype.card ι : ℝ≥0) ^ (1/p)) (pi_Lp.equiv p hp α) :=
 begin
   have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
+  have nonneg : 0 ≤ 1 / p := one_div_nonneg.2 (le_of_lt pos),
   have cancel : p * (1/p) = 1 := mul_div_cancel' 1 (ne_of_gt pos),
   assume x y,
-  simp [edist, -one_div_eq_inv],
+  simp [edist, -one_div],
   calc (∑ (i : ι), edist (x i) (y i) ^ p) ^ (1 / p) ≤
   (∑ (i : ι), edist (pi_Lp.equiv p hp α x) (pi_Lp.equiv p hp α y) ^ p) ^ (1 / p) :
   begin
-    apply ennreal.rpow_le_rpow _ (div_nonneg zero_le_one pos),
+    apply ennreal.rpow_le_rpow _ nonneg,
     apply finset.sum_le_sum (λ i hi, _),
     apply ennreal.rpow_le_rpow _ (le_of_lt pos),
     exact finset.le_sup (finset.mem_univ i)
   end
-  ... = (((fintype.card ι : nnreal)) ^ (1/p) : nnreal) *
+  ... = (((fintype.card ι : ℝ≥0)) ^ (1/p) : ℝ≥0) *
     edist (pi_Lp.equiv p hp α x) (pi_Lp.equiv p hp α y) :
   begin
     simp only [nsmul_eq_mul, finset.card_univ, ennreal.rpow_one, finset.sum_const,
-      ennreal.mul_rpow_of_nonneg _ _ (div_nonneg zero_le_one pos), ←ennreal.rpow_mul, cancel],
-    have : (fintype.card ι : ennreal) = (fintype.card ι : nnreal) :=
+      ennreal.mul_rpow_of_nonneg _ _ nonneg, ←ennreal.rpow_mul, cancel],
+    have : (fintype.card ι : ℝ≥0∞) = (fintype.card ι : ℝ≥0) :=
       (ennreal.coe_nat (fintype.card ι)).symm,
-    rw [this, ennreal.coe_rpow_of_nonneg _ (div_nonneg zero_le_one pos)]
+    rw [this, ennreal.coe_rpow_of_nonneg _ nonneg]
   end
 end
 
@@ -210,7 +211,7 @@ begin
           ennreal.sum_eq_top_iff, edist_ne_top] },
   { have A : ∀ (i : ι), i ∈ (finset.univ : finset ι) → edist (f i) (g i) ^ p < ⊤ :=
       λ i hi, by simp [lt_top_iff_ne_top, edist_ne_top, le_of_lt pos],
-    simp [dist, -one_div_eq_inv, pi_Lp.edist, ← ennreal.to_real_rpow,
+    simp [dist, -one_div, pi_Lp.edist, ← ennreal.to_real_rpow,
           ennreal.to_real_sum A, dist_edist] }
 end
 
@@ -221,12 +222,17 @@ protected lemma dist {p : ℝ} {hp : 1 ≤ p} {α : ι → Type*}
 /-- normed group instance on the product of finitely many normed groups, using the `L^p` norm. -/
 instance normed_group [∀i, normed_group (α i)] : normed_group (pi_Lp p hp α) :=
 { norm := λf, (∑ (i : ι), norm (f i) ^ p) ^ (1/p),
-  dist_eq := λ x y, by { simp [pi_Lp.dist, dist_eq_norm] },
+  dist_eq := λ x y, by { simp [pi_Lp.dist, dist_eq_norm, sub_eq_add_neg] },
   .. pi.add_comm_group }
 
 lemma norm_eq {p : ℝ} {hp : 1 ≤ p} {α : ι → Type*}
   [∀i, normed_group (α i)] (f : pi_Lp p hp α) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ p) ^ (1/p) := rfl
+
+lemma norm_eq_of_nat {p : ℝ} {hp : 1 ≤ p} {α : ι → Type*}
+  [∀i, normed_group (α i)] (n : ℕ) (h : p = n) (f : pi_Lp p hp α) :
+  ∥f∥ = (∑ (i : ι), ∥f i∥ ^ n) ^ (1/(n : ℝ)) :=
+by simp [norm_eq, h, real.sqrt_eq_rpow, ←real.rpow_nat_cast]
 
 variables (𝕜 : Type*) [normed_field 𝕜]
 

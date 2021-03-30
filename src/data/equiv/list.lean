@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 Additional equiv and encodable instances for lists, finsets, and fintypes.
 -/
@@ -59,7 +59,7 @@ variables [encodable α]
 private def enle : α → α → Prop := encode ⁻¹'o (≤)
 
 private lemma enle.is_linear_order : is_linear_order α enle :=
-(order_embedding.preimage ⟨encode, encode_injective⟩ (≤)).is_linear_order
+(rel_embedding.preimage ⟨encode, encode_injective⟩ (≤)).is_linear_order
 
 private def decidable_enle (a b : α) : decidable (enle a b) :=
 by unfold enle order.preimage; apply_instance
@@ -88,6 +88,12 @@ def trunc_encodable_of_fintype (α : Type*) [decidable_eq α] [fintype α] : tru
   (λ l H, trunc.mk $ encodable_of_list l H)
   finset.mem_univ
 
+/-- A noncomputable way to arbitrarily choose an ordering on a finite type.
+  It is not made into a global instance, since it involves an arbitrary choice.
+  This can be locally made into an instance with `local attribute [instance] fintype.encodable`. -/
+noncomputable def fintype.encodable (α : Type*) [fintype α] : encodable α :=
+by { classical, exact (encodable.trunc_encodable_of_fintype α).out }
+
 instance vector [encodable α] {n} : encodable (vector α n) :=
 encodable.subtype
 
@@ -105,13 +111,13 @@ by haveI := decidable_eq_of_encodable α; exact
  of_equiv {s : multiset α // s.nodup}
   ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
 
-def fintype_arrow (α : Type*) (β : Type*) [fintype α] [decidable_eq α] [encodable β] :
+def fintype_arrow (α : Type*) (β : Type*) [decidable_eq α] [fintype α] [encodable β] :
   trunc (encodable (α → β)) :=
 (fintype.equiv_fin α).map $
   λf, encodable.of_equiv (fin (fintype.card α) → β) $
   equiv.arrow_congr f (equiv.refl _)
 
-def fintype_pi (α : Type*) (π : α → Type*) [fintype α] [decidable_eq α] [∀a, encodable (π a)] :
+def fintype_pi (α : Type*) (π : α → Type*) [decidable_eq α] [fintype α] [∀a, encodable (π a)] :
   trunc (encodable (Πa, π a)) :=
 (encodable.trunc_encodable_of_fintype α).bind $ λa,
   (@fintype_arrow α (Σa, π a) _ _ (@encodable.sigma _ _ a _)).bind $ λf,

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker
 -/
 import algebra.group.basic
+import logic.nontrivial
 
 /-!
 # Units (i.e., invertible elements) of a multiplicative monoid
@@ -46,12 +47,18 @@ variables [monoid α]
   by change v = v' at e; subst v'; congr;
       simpa only [iv₂, vi₁, one_mul, mul_one] using mul_assoc i₂ v i₁
 
+@[norm_cast, to_additive] theorem eq_iff {a b : units α} :
+  (a : α) = b ↔ a = b := ext.eq_iff
+
 @[to_additive] theorem ext_iff {a b : units α} :
-  a = b ↔ (a : α) = b :=
-ext.eq_iff.symm
+  a = b ↔ (a : α) = b := eq_iff.symm
 
 @[to_additive] instance [decidable_eq α] : decidable_eq (units α) :=
 λ a b, decidable_of_iff' _ ext_iff
+
+@[simp, to_additive] theorem mk_coe (u : units α) (y h₁ h₂) :
+  mk (u : α) y h₁ h₂ = u :=
+ext rfl
 
 /-- Units of a monoid form a group. -/
 @[to_additive] instance : group (units α) :=
@@ -71,6 +78,11 @@ attribute [norm_cast] add_units.coe_add
 
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : units α) : α) = 1 := rfl
 attribute [norm_cast] add_units.coe_zero
+
+@[simp, norm_cast, to_additive] lemma coe_eq_one {a : units α} : (a : α) = 1 ↔ a = 1 :=
+by rw [←units.coe_one, eq_iff]
+
+@[simp, to_additive] lemma inv_mk (x y : α) (h₁ h₂) : (mk x y h₁ h₂)⁻¹ = mk y x h₂ h₁ := rfl
 
 @[to_additive] lemma val_coe : (↑a : α) = a.val := rfl
 
@@ -220,8 +232,11 @@ a two-sided additive inverse. The actual definition says that `a` is equal to so
 `u : add_units M`, where `add_units M` is a bundled version of `is_add_unit`."]
 def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, (u : M) = a
 
+@[nontriviality] lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
+⟨⟨a, a, subsingleton.elim _ _, subsingleton.elim _ _⟩, rfl⟩
+
 @[simp, to_additive is_add_unit_add_unit]
-lemma is_unit_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
+protected lemma units.is_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
 
 @[simp, to_additive is_add_unit_zero]
 theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
@@ -279,3 +294,26 @@ lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 classical.some_spec h
 
 end is_unit
+
+section noncomputable_defs
+
+variables {M : Type*}
+
+/-- Constructs a `group` structure on a `monoid` consisting only of units. -/
+noncomputable def group_of_is_unit [hM : monoid M] (h : ∀ (a : M), is_unit a) : group M :=
+{ inv := λ a, ↑((h a).unit)⁻¹,
+  mul_left_inv := λ a, by {
+    change ↑((h a).unit)⁻¹ * a = 1,
+    rw [units.inv_mul_eq_iff_eq_mul, (h a).unit_spec, mul_one] },
+.. hM }
+
+/-- Constructs a `comm_group` structure on a `comm_monoid` consisting only of units. -/
+noncomputable def comm_group_of_is_unit [hM : comm_monoid M] (h : ∀ (a : M), is_unit a) :
+  comm_group M :=
+{ inv := λ a, ↑((h a).unit)⁻¹,
+  mul_left_inv := λ a, by {
+    change ↑((h a).unit)⁻¹ * a = 1,
+    rw [units.inv_mul_eq_iff_eq_mul, (h a).unit_spec, mul_one] },
+.. hM }
+
+end noncomputable_defs

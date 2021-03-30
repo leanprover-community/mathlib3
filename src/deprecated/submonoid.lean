@@ -3,7 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard
 -/
-import group_theory.submonoid
+import group_theory.submonoid.basic
+import algebra.big_operators.basic
 
 /-!
 # Submonoids
@@ -36,7 +37,7 @@ class is_add_submonoid (s : set A) : Prop :=
 (add_mem {a b} : a ∈ s → b ∈ s → a + b ∈ s)
 
 /-- `s` is a submonoid: a set containing 1 and closed under multiplication. -/
-@[to_additive is_add_submonoid]
+@[to_additive]
 class is_submonoid (s : set M) : Prop :=
 (one_mem : (1:M) ∈ s)
 (mul_mem {a b} : a ∈ s → b ∈ s → a * b ∈ s)
@@ -77,7 +78,7 @@ instance is_submonoid.Inter {ι : Sort*} (s : ι → set M) [h : ∀ y : ι, is_
 
 /-- The union of an indexed, directed, nonempty set of submonoids of a monoid `M` is a submonoid
     of `M`. -/
-@[to_additive is_add_submonoid_Union_of_directed "The union of an indexed, directed, nonempty set
+@[to_additive "The union of an indexed, directed, nonempty set
 of `add_submonoid`s of an `add_monoid` `M` is an `add_submonoid` of `M`. "]
 lemma is_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
   (s : ι → set M) [∀ i, is_submonoid (s i)]
@@ -124,18 +125,18 @@ lemma multiples.add_mem {x y z : A} :
 attribute [to_additive] powers.mul_mem
 
 /-- The set of natural number powers of an element of a monoid `M` is a submonoid of `M`. -/
-@[to_additive is_add_submonoid "The set of natural number multiples of an element of
+@[to_additive "The set of natural number multiples of an element of
 an `add_monoid` `M` is an `add_submonoid` of `M`."]
 instance powers.is_submonoid (x : M) : is_submonoid (powers x) :=
 { one_mem := powers.one_mem,
   mul_mem := λ y z, powers.mul_mem }
 
 /-- A monoid is a submonoid of itself. -/
-@[to_additive is_add_submonoid "An `add_monoid` is an `add_submonoid` of itself."]
+@[to_additive "An `add_monoid` is an `add_submonoid` of itself."]
 instance univ.is_submonoid : is_submonoid (@set.univ M) := by split; simp
 
 /-- The preimage of a submonoid under a monoid hom is a submonoid of the domain. -/
-@[to_additive is_add_submonoid "The preimage of an `add_submonoid` under an `add_monoid` hom is
+@[to_additive "The preimage of an `add_submonoid` under an `add_monoid` hom is
 an `add_submonoid` of the domain."]
 instance preimage.is_submonoid {N : Type*} [monoid N] (f : M → N) [is_monoid_hom f]
   (s : set N) [is_submonoid s] : is_submonoid (f ⁻¹' s) :=
@@ -144,7 +145,7 @@ instance preimage.is_submonoid {N : Type*} [monoid N] (f : M → N) [is_monoid_h
     show f (a * b) ∈ s, by rw is_monoid_hom.map_mul f; exact is_submonoid.mul_mem ha hb }
 
 /-- The image of a submonoid under a monoid hom is a submonoid of the codomain. -/
-@[instance, to_additive is_add_submonoid "The image of an `add_submonoid` under an `add_monoid`
+@[instance, to_additive "The image of an `add_submonoid` under an `add_monoid`
 hom is an `add_submonoid` of the codomain."]
 lemma image.is_submonoid {γ : Type*} [monoid γ] (f : M → γ) [is_monoid_hom f]
   (s : set M) [is_submonoid s] : is_submonoid (f '' s) :=
@@ -153,7 +154,7 @@ lemma image.is_submonoid {γ : Type*} [monoid γ] (f : M → γ) [is_monoid_hom 
     by rw [is_monoid_hom.map_mul f, hx.2, hy.2]⟩ }
 
 /-- The image of a monoid hom is a submonoid of the codomain. -/
-@[to_additive is_add_submonoid "The image of an `add_monoid` hom is an `add_submonoid`
+@[to_additive "The image of an `add_monoid` hom is an `add_submonoid`
 of the codomain."]
 instance range.is_submonoid {γ : Type*} [monoid γ] (f : M → γ) [is_monoid_hom f] :
   is_submonoid (set.range f) :=
@@ -213,13 +214,7 @@ of the submonoid. -/
 a `finset` is an element of the `add_submonoid`."]
 lemma finset_prod_mem {M A} [comm_monoid M] (s : set M) [is_submonoid s] (f : A → M) :
   ∀(t : finset A), (∀b∈t, f b ∈ s) → ∏ b in t, f b ∈ s
-| ⟨m, hm⟩ hs :=
-  begin
-    refine multiset_prod_mem s _ _,
-    simp,
-    rintros a b hb rfl,
-    exact hs _ hb
-  end
+| ⟨m, hm⟩ hs := multiset_prod_mem s _ (by simpa)
 
 end is_submonoid
 
@@ -227,8 +222,8 @@ end is_submonoid
 --  and for `subtype.group`
 
 /-- Submonoids are themselves monoids. -/
-@[to_additive add_monoid "An `add_submonoid` is itself an `add_monoid`."]
-instance subtype.monoid {s : set M} [is_submonoid s] : monoid s :=
+@[to_additive "An `add_submonoid` is itself an `add_monoid`."]
+def subtype.monoid {s : set M} [is_submonoid s] : monoid s :=
 { one := ⟨1, is_submonoid.one_mem⟩,
   mul := λ x y, ⟨x * y, is_submonoid.mul_mem x.2 y.2⟩,
   mul_one := λ x, subtype.eq $ mul_one x.1,
@@ -236,11 +231,14 @@ instance subtype.monoid {s : set M} [is_submonoid s] : monoid s :=
   mul_assoc := λ x y z, subtype.eq $ mul_assoc x.1 y.1 z.1 }
 
 /-- Submonoids of commutative monoids are themselves commutative monoids. -/
-@[to_additive add_comm_monoid "An `add_submonoid` of a commutative `add_monoid` is itself
+@[to_additive "An `add_submonoid` of a commutative `add_monoid` is itself
 a commutative `add_monoid`. "]
-instance subtype.comm_monoid {M} [comm_monoid M] {s : set M} [is_submonoid s] : comm_monoid s :=
+def subtype.comm_monoid {M} [comm_monoid M] {s : set M} [is_submonoid s] : comm_monoid s :=
 { mul_comm := λ x y, subtype.eq $ mul_comm x.1 y.1,
   .. subtype.monoid }
+
+section
+local attribute [instance] subtype.monoid subtype.add_monoid
 
 /-- Submonoids inherit the 1 of the monoid. -/
 @[simp, norm_cast, to_additive "An `add_submonoid` inherits the 0 of the `add_monoid`. "]
@@ -265,20 +263,20 @@ by {induction n, refl, simp [*, succ_nsmul]}
 attribute [to_additive smul_coe] is_submonoid.coe_pow
 
 /-- The natural injection from a submonoid into the monoid is a monoid hom. -/
-@[to_additive is_add_monoid_hom "The natural injection from an `add_submonoid` into
+@[to_additive "The natural injection from an `add_submonoid` into
 the `add_monoid` is an `add_monoid` hom. "]
 instance subtype_val.is_monoid_hom [is_submonoid s] : is_monoid_hom (subtype.val : s → M) :=
 { map_one := rfl, map_mul := λ _ _, rfl }
 
 /-- The natural injection from a submonoid into the monoid is a monoid hom. -/
-@[to_additive is_add_monoid_hom "The natural injection from an `add_submonoid` into
+@[to_additive "The natural injection from an `add_submonoid` into
 the `add_monoid` is an `add_monoid` hom. "]
 instance coe.is_monoid_hom [is_submonoid s] : is_monoid_hom (coe : s → M) :=
 subtype_val.is_monoid_hom
 
 /-- Given a monoid hom `f : γ → M` whose image is contained in a submonoid `s`, the induced map
     from `γ` to `s` is a monoid hom. -/
-@[to_additive is_add_monoid_hom "Given an `add_monoid` hom `f : γ → M` whose image is contained in
+@[to_additive "Given an `add_monoid` hom `f : γ → M` whose image is contained in
 an `add_submonoid` s, the induced map from `γ` to `s` is an `add_monoid` hom."]
 instance subtype_mk.is_monoid_hom {γ : Type*} [monoid γ] [is_submonoid s] (f : γ → M)
   [is_monoid_hom f] (h : ∀ x, f x ∈ s) : is_monoid_hom (λ x, (⟨f x, h x⟩ : s)) :=
@@ -287,11 +285,13 @@ instance subtype_mk.is_monoid_hom {γ : Type*} [monoid γ] [is_submonoid s] (f :
 
 /-- Given two submonoids `s` and `t` such that `s ⊆ t`, the natural injection from `s` into `t` is
     a monoid hom. -/
-@[to_additive is_add_monoid_hom "Given two `add_submonoid`s `s` and `t` such that `s ⊆ t`, the
+@[to_additive "Given two `add_submonoid`s `s` and `t` such that `s ⊆ t`, the
 natural injection from `s` into `t` is an `add_monoid` hom."]
 instance set_inclusion.is_monoid_hom (t : set M) [is_submonoid s] [is_submonoid t] (h : s ⊆ t) :
   is_monoid_hom (set.inclusion h) :=
 subtype_mk.is_monoid_hom _ _
+
+end
 
 namespace add_monoid
 
@@ -321,7 +321,7 @@ attribute [to_additive] monoid.in_closure.mul
 @[to_additive "The inductively defined `add_submonoid` genrated by a subset of an `add_monoid`."]
 def closure (s : set M) : set M := {a | in_closure s a }
 
-@[to_additive is_add_submonoid]
+@[to_additive]
 instance closure.is_submonoid (s : set M) : is_submonoid (closure s) :=
 { one_mem := in_closure.one, mul_mem := assume a b, in_closure.mul }
 

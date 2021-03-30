@@ -6,7 +6,15 @@ Authors: Scott Morrison, Bhavik Mehta
 import category_theory.const
 import category_theory.discrete_category
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+/-!
+# The category `discrete punit`
+
+We define `star : C ⥤ discrete punit` sending everything to `punit.star`,
+show that any two functors to `discrete punit` are naturally isomorphic,
+and construct the equivalence `(discrete punit ⥤ C) ≌ C`.
+-/
+
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
 
@@ -30,7 +38,7 @@ lemma punit_ext' (F G : C ⥤ discrete punit) : F = G :=
 functor.ext (λ _, dec_trivial) (λ _ _ _, dec_trivial)
 
 /-- The functor from `discrete punit` sending everything to the given object. -/
-abbreviation from_punit (X : C) : discrete punit ⥤ C :=
+abbreviation from_punit (X : C) : discrete punit.{v+1} ⥤ C :=
 (functor.const _).obj X
 
 /-- Functors from `discrete punit` are equivalent to the category itself. -/
@@ -55,7 +63,7 @@ def equiv : (discrete punit ⥤ C) ≌ C :=
   begin
     refine nat_iso.of_components iso.refl _,
     intros X Y f,
-    dsimp, simp,
+    dsimp, simp,  -- See note [dsimp, simp].
   end }
 
 end functor

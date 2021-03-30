@@ -1,12 +1,28 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
-
-Linear structures on function with finite support `ι →₀ β`.
+Authors: Johannes Hölzl
 -/
+
 import data.mv_polynomial
 import linear_algebra.dimension
+import linear_algebra.direct_sum.finsupp
+import linear_algebra.finite_dimensional
+
+/-!
+# Linear structures on function with finite support `ι →₀ M`
+
+This file contains results on the `R`-module structure on functions of finite support from a type
+`ι` to an `R`-module `M`, in particular in the case that `R` is a field.
+
+Furthermore, it contains some facts about isomorphisms of vector spaces from equality of dimension
+as well as the cardinality of finite dimensional vector spaces.
+
+## TODO
+
+Move the second half of this file to more appropriate other files.
+-/
+
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
@@ -27,7 +43,7 @@ begin
     have h_disjoint : disjoint (span R (range (f i))) (ker (lsingle i)),
     { rw ker_lsingle,
       exact disjoint_bot_right },
-    apply linear_independent.image (hf i) h_disjoint },
+    apply (hf i).map h_disjoint },
   { intros i t ht hit,
     refine (disjoint_lsingle_lsingle {i} t (disjoint_singleton_left.2 hit)).mono _ _,
     { rw span_le,
@@ -126,12 +142,14 @@ begin
       (module_equiv_finsupp hm').symm⟩,
 end
 
+/-- Two `K`-vector spaces are equivalent if their dimension is the same. -/
 def equiv_of_dim_eq_dim (h : dim K V₁ = dim K V₂) : V₁ ≃ₗ[K] V₂ :=
 begin
   classical,
   exact classical.choice (equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h))
 end
 
+/-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
 def fin_dim_vectorspace_equiv (n : ℕ)
   (hn : (dim K V) = n) : V ≃ₗ[K] (fin n → K) :=
 begin
@@ -143,27 +161,6 @@ begin
   exact classical.choice (equiv_of_dim_eq_lift_dim hn),
 end
 
-lemma eq_bot_iff_dim_eq_zero (p : submodule K V) (h : dim K p = 0) : p = ⊥ :=
-begin
-  have : dim K p = dim K (⊥ : submodule K V) := by rwa [dim_bot],
-  let e := equiv_of_dim_eq_dim this,
-  exact e.eq_bot_of_equiv _
-end
-
-lemma injective_of_surjective (f : V₁ →ₗ[K] V₂)
-  (hV₁ : dim K V₁ < cardinal.omega) (heq : dim K V₂ = dim K V₁) (hf : f.range = ⊤) : f.ker = ⊥ :=
-have hk : dim K f.ker < cardinal.omega := lt_of_le_of_lt (dim_submodule_le _) hV₁,
-begin
-  rcases cardinal.lt_omega.1 hV₁ with ⟨d₁, eq₁⟩,
-  rcases cardinal.lt_omega.1 hk with ⟨d₂, eq₂⟩,
-  have : 0 = d₂,
-  { have := dim_eq_of_surjective f (linear_map.range_eq_top.1 hf),
-    rw [heq, eq₁, eq₂, ← nat.cast_add, cardinal.nat_cast_inj] at this,
-    exact nat.add_left_cancel this },
-  refine eq_bot_iff_dim_eq_zero _ _,
-  rw [eq₂, ← this, nat.cast_zero]
-end
-
 end vector_space
 
 section vector_space
@@ -171,25 +168,27 @@ universes u
 
 open vector_space
 
-variables {K V : Type u} [field K] [add_comm_group V] [vector_space K V]
+variables (K V : Type u) [field K] [add_comm_group V] [vector_space K V]
 
-lemma cardinal_mk_eq_cardinal_mk_field_pow_dim (h : dim K V < cardinal.omega) :
+lemma cardinal_mk_eq_cardinal_mk_field_pow_dim [finite_dimensional K V] :
   cardinal.mk V = cardinal.mk K ^ dim K V :=
 begin
   rcases exists_is_basis K V with ⟨s, hs⟩,
   have : nonempty (fintype s),
-  { rwa [← cardinal.lt_omega_iff_fintype, cardinal.lift_inj.1 hs.mk_eq_dim] },
+  { rw [← cardinal.lt_omega_iff_fintype, cardinal.lift_inj.1 hs.mk_eq_dim],
+    exact finite_dimensional.dim_lt_omega K V },
   cases this with hsf, letI := hsf,
   calc cardinal.mk V = cardinal.mk (s →₀ K) : quotient.sound ⟨(module_equiv_finsupp hs).to_equiv⟩
     ... = cardinal.mk (s → K) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end
 
-lemma cardinal_lt_omega_of_dim_lt_omega [fintype K] (h : dim K V < cardinal.omega) :
+lemma cardinal_lt_omega_of_finite_dimensional [fintype K] [finite_dimensional K V] :
   cardinal.mk V < cardinal.omega :=
 begin
-  rw [cardinal_mk_eq_cardinal_mk_field_pow_dim h],
-  exact cardinal.power_lt_omega (cardinal.lt_omega_iff_fintype.2 ⟨infer_instance⟩) h
+  rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
+  exact cardinal.power_lt_omega (cardinal.lt_omega_iff_fintype.2 ⟨infer_instance⟩)
+    (finite_dimensional.dim_lt_omega K V),
 end
 
 end vector_space

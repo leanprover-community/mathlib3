@@ -17,7 +17,6 @@ See also `data/set/intervals.lean` for `set.Ico`, modelling intervals in general
 `multiset.Ico` and `finset.Ico` for `n ≤ x < m` as a multiset or as a finset.
 
 @TODO (anyone): Define `Ioo` and `Icc`, state basic lemmas about them.
-@TODO (anyone): Prove that `finset.Ico` and `set.Ico` agree.
 @TODO (anyone): Also do the versions for integers?
 @TODO (anyone): One could generalise even further, defining
 'locally finite partial orders', for which `set.Ico a b` is `[finite]`, and
@@ -158,6 +157,18 @@ begin
   cases le_total n l with hnl hln,
   { rw [max_eq_right hnl, filter_le_of_le hnl] },
   { rw [max_eq_left hln, filter_le_of_le_bot hln] }
+end
+
+lemma filter_lt_of_succ_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x < n + 1) = [n] :=
+begin
+  have r : min m (n + 1) = n + 1 := (@inf_eq_right _ _ m (n + 1)).mpr hnm,
+  simp [filter_lt n m (n + 1), r],
+end
+
+@[simp] lemma filter_le_of_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = [n] :=
+begin
+  rw ←filter_lt_of_succ_bot hnm,
+  exact filter_congr (λ _ _, lt_succ_iff.symm),
 end
 
 /--

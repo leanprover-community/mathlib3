@@ -6,13 +6,13 @@ Authors: Johannes Hölzl
 Hahn decomposition theorem
 
 TODO:
-* introduce finite measures (into nnreal)
+* introduce finite measures (into ℝ≥0)
 * show general for signed measures (into ℝ)
 -/
 import measure_theory.measure_space
 
 open set filter
-open_locale classical topological_space
+open_locale classical topological_space ennreal
 
 namespace measure_theory
 
@@ -23,25 +23,25 @@ private lemma aux {m : ℕ} {γ d : ℝ} (h : γ - (1 / 2) ^ m < d) :
   γ - 2 * (1 / 2) ^ m + (1 / 2) ^ m ≤ d :=
 by linarith
 
-lemma hahn_decomposition (hμ : μ univ < ⊤) (hν : ν univ < ⊤) :
-  ∃s, is_measurable s ∧
-    (∀t, is_measurable t → t ⊆ s → ν t ≤ μ t) ∧
-    (∀t, is_measurable t → t ⊆ sᶜ → μ t ≤ ν t) :=
+lemma hahn_decomposition (hμ : μ univ < ∞) (hν : ν univ < ∞) :
+  ∃s, measurable_set s ∧
+    (∀t, measurable_set t → t ⊆ s → ν t ≤ μ t) ∧
+    (∀t, measurable_set t → t ⊆ sᶜ → μ t ≤ ν t) :=
 begin
   let d : set α → ℝ := λs, ((μ s).to_nnreal : ℝ) - (ν s).to_nnreal,
-  let c : set ℝ := d '' {s | is_measurable s },
+  let c : set ℝ := d '' {s | measurable_set s },
   let γ : ℝ := Sup c,
 
-  have hμ : ∀s, μ s < ⊤ := assume s, lt_of_le_of_lt (measure_mono $ subset_univ _) hμ,
-  have hν : ∀s, ν s < ⊤ := assume s, lt_of_le_of_lt (measure_mono $ subset_univ _) hν,
-  have to_nnreal_μ : ∀s, ((μ s).to_nnreal : ennreal) = μ s :=
+  have hμ : ∀s, μ s < ∞ := assume s, lt_of_le_of_lt (measure_mono $ subset_univ _) hμ,
+  have hν : ∀s, ν s < ∞ := assume s, lt_of_le_of_lt (measure_mono $ subset_univ _) hν,
+  have to_nnreal_μ : ∀s, ((μ s).to_nnreal : ℝ≥0∞) = μ s :=
     (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hμ _),
-  have to_nnreal_ν : ∀s, ((ν s).to_nnreal : ennreal) = ν s :=
+  have to_nnreal_ν : ∀s, ((ν s).to_nnreal : ℝ≥0∞) = ν s :=
     (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hν _),
 
   have d_empty : d ∅ = 0, { simp [d], rw [measure_empty, measure_empty], simp },
 
-  have d_split : ∀s t, is_measurable s → is_measurable t →
+  have d_split : ∀s t, measurable_set s → measurable_set t →
     d s = d (s \ t) + d (s ∩ t),
   { assume s t hs ht,
     simp only [d],
@@ -51,21 +51,21 @@ begin
     simp only [sub_eq_add_neg, neg_add],
     ac_refl },
 
-  have d_Union : ∀(s : ℕ → set α), (∀n, is_measurable (s n)) → monotone s →
+  have d_Union : ∀(s : ℕ → set α), (∀n, measurable_set (s n)) → monotone s →
     tendsto (λn, d (s n)) at_top (𝓝 (d (⋃n, s n))),
   { assume s hs hm,
     refine tendsto.sub _ _;
       refine (nnreal.tendsto_coe.2 $
-        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ⊤ _).comp $ tendsto_measure_Union hs hm),
+        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ∞ _).comp $ tendsto_measure_Union hs hm),
     exact hμ _,
     exact hν _ },
 
-  have d_Inter : ∀(s : ℕ → set α), (∀n, is_measurable (s n)) → (∀n m, n ≤ m → s m ⊆ s n) →
+  have d_Inter : ∀(s : ℕ → set α), (∀n, measurable_set (s n)) → (∀n m, n ≤ m → s m ⊆ s n) →
     tendsto (λn, d (s n)) at_top (𝓝 (d (⋂n, s n))),
   { assume s hs hm,
     refine tendsto.sub _ _;
       refine (nnreal.tendsto_coe.2 $
-        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ⊤ _).comp $ tendsto_measure_Inter hs hm _),
+        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ∞ _).comp $ tendsto_measure_Inter hs hm _),
     exact hμ _,
     exact ⟨0, hμ _⟩,
     exact hν _,
@@ -78,26 +78,26 @@ begin
     rw [nnreal.coe_le_coe, ← ennreal.coe_le_coe, to_nnreal_μ, to_nnreal_μ],
     exact measure_mono (subset_univ _) },
 
-  have c_nonempty : c.nonempty := nonempty.image _ ⟨_, is_measurable.empty⟩,
+  have c_nonempty : c.nonempty := nonempty.image _ ⟨_, measurable_set.empty⟩,
 
-  have d_le_γ : ∀s, is_measurable s → d s ≤ γ := assume s hs, le_cSup bdd_c ⟨s, hs, rfl⟩,
+  have d_le_γ : ∀s, measurable_set s → d s ≤ γ := assume s hs, le_cSup bdd_c ⟨s, hs, rfl⟩,
 
-  have : ∀n:ℕ, ∃s : set α, is_measurable s ∧ γ - (1/2)^n < d s,
+  have : ∀n:ℕ, ∃s : set α, measurable_set s ∧ γ - (1/2)^n < d s,
   { assume n,
     have : γ - (1/2)^n < γ := sub_lt_self γ (pow_pos (half_pos zero_lt_one) n),
     rcases exists_lt_of_lt_cSup c_nonempty this with ⟨r, ⟨s, hs, rfl⟩, hlt⟩,
     exact ⟨s, hs, hlt⟩ },
   rcases classical.axiom_of_choice this with ⟨e, he⟩,
   change ℕ → set α at e,
-  have he₁ : ∀n, is_measurable (e n) := assume n, (he n).1,
+  have he₁ : ∀n, measurable_set (e n) := assume n, (he n).1,
   have he₂ : ∀n, γ - (1/2)^n < d (e n) := assume n, (he n).2,
 
   let f : ℕ → ℕ → set α := λn m, (finset.Ico n (m + 1)).inf e,
 
-  have hf : ∀n m, is_measurable (f n m),
+  have hf : ∀n m, measurable_set (f n m),
   { assume n m,
     simp only [f, finset.inf_eq_infi],
-    exact is_measurable.bInter (countable_encodable _) (assume i _, he₁ _) },
+    exact measurable_set.bInter (countable_encodable _) (assume i _, he₁ _) },
 
   have f_subset_f : ∀{a b c d}, a ≤ b → c ≤ d → f a d ⊆ f b c,
   { assume a b c d hab hcd,
@@ -157,21 +157,21 @@ begin
           (le_of_lt $ half_pos $ zero_lt_one) (half_lt_self zero_lt_one)) },
     have hd : tendsto (λm, d (⋂n, f m n)) at_top (𝓝 (d (⋃ m, ⋂ n, f m n))),
     { refine d_Union _ _ _,
-      { assume n, exact is_measurable.Inter (assume m, hf _ _) },
+      { assume n, exact measurable_set.Inter (assume m, hf _ _) },
       { exact assume n m hnm, subset_Inter
           (assume i, subset.trans (Inter_subset (f n) i) $ f_subset_f hnm $ le_refl _) } },
-    refine le_of_tendsto_of_tendsto' at_top_ne_bot hγ hd (assume m, _),
+    refine le_of_tendsto_of_tendsto' hγ hd (assume m, _),
     have : tendsto (λn, d (f m n)) at_top (𝓝 (d (⋂ n, f m n))),
     { refine d_Inter _ _ _,
       { assume n, exact hf _ _ },
       { assume n m hnm, exact f_subset_f (le_refl _) hnm } },
-    refine ge_of_tendsto (@at_top_ne_bot ℕ _ _) this (eventually_at_top.2 ⟨m, assume n hmn, _⟩),
+    refine ge_of_tendsto this (eventually_at_top.2 ⟨m, assume n hmn, _⟩),
     change γ - 2 * (1 / 2) ^ m ≤ d (f m n),
     refine le_trans _ (le_d_f _ _ hmn),
     exact le_add_of_le_of_nonneg (le_refl _) (pow_nonneg (le_of_lt $ half_pos $ zero_lt_one) _) },
 
-  have hs : is_measurable s :=
-    is_measurable.Union (assume n, is_measurable.Inter (assume m, hf _ _)),
+  have hs : measurable_set s :=
+    measurable_set.Union (assume n, measurable_set.Inter (assume m, hf _ _)),
   refine ⟨s, hs, _, _⟩,
   { assume t ht hts,
     have : 0 ≤ d t := ((add_le_add_iff_left γ).1 $

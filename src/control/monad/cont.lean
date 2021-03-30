@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 
 Monad encapsulating continuation passing programming style, similar to
 Haskell's `Cont`, `ContT` and `MonadCont`:
@@ -9,7 +9,7 @@ Haskell's `Cont`, `ContT` and `MonadCont`:
 -/
 import control.monad.writer
 
-universes u v w
+universes u v w u₀ u₁ v₀ v₁
 
 structure monad_cont.label (α : Type w) (m : Type u → Type v) (β : Type u) :=
 (apply : α → m β)
@@ -21,8 +21,6 @@ class monad_cont (m : Type u → Type v) :=
 
 open monad_cont
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 class is_lawful_monad_cont (m : Type u → Type v) [monad m] [monad_cont m]
 extends is_lawful_monad m :=
 (call_cc_bind_right {α ω γ} (cmd : m α) (next : (label ω m γ) → α → m ω) :
@@ -31,7 +29,6 @@ extends is_lawful_monad m :=
   call_cc (λ f : label α m β, goto f x >>= dead f) = pure x)
 (call_cc_dummy {α β} (dummy : m α) :
   call_cc (λ f : label α m β, dummy) = dummy)
-end prio
 
 export is_lawful_monad_cont
 
@@ -80,7 +77,10 @@ instance [monad m] : has_monad_lift m (cont_t r m) :=
 
 lemma monad_lift_bind [monad m] [is_lawful_monad m] {α β} (x : m α) (f : α → m β) :
   (monad_lift (x >>= f) : cont_t r m β) = monad_lift x >>= monad_lift ∘ f :=
-by { ext, simp only [monad_lift,has_monad_lift.monad_lift,(∘),(>>=),bind_assoc,id.def,run,cont_t.monad_lift] }
+begin
+  ext,
+  simp only [monad_lift,has_monad_lift.monad_lift,(∘),(>>=),bind_assoc,id.def,run,cont_t.monad_lift]
+end
 
 instance : monad_cont (cont_t r m) :=
 { call_cc := λ α β f g, f ⟨λ x h, g x⟩ g }
@@ -107,7 +107,9 @@ def except_t.mk_label {α β ε} : label (except.{u u} ε α) m β → label α 
 lemma except_t.goto_mk_label {α β ε : Type*} (x : label (except.{u u} ε α) m β) (i : α) :
   goto (except_t.mk_label x) i = ⟨ except.ok <$> goto x (except.ok i) ⟩ := by cases x; refl
 
-def except_t.call_cc {ε} [monad_cont m] {α β : Type*} (f : label α (except_t ε m) β → except_t ε m α) : except_t ε m α :=
+def except_t.call_cc
+  {ε} [monad_cont m] {α β : Type*} (f : label α (except_t ε m) β → except_t ε m α) :
+  except_t ε m α :=
 except_t.mk (call_cc $ λ x : label _ m β, except_t.run $ f (except_t.mk_label x) : m (except ε α))
 
 instance {ε} [monad_cont m] : monad_cont (except_t ε m) :=
@@ -115,7 +117,7 @@ instance {ε} [monad_cont m] : monad_cont (except_t ε m) :=
 
 instance {ε} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (except_t ε m) :=
 { call_cc_bind_right := by { intros, simp [call_cc,except_t.call_cc,call_cc_bind_right], ext, dsimp,
-    congr, ext ⟨ ⟩; simp [except_t.bind_cont,@call_cc_dummy m _], },
+    congr' with ⟨ ⟩; simp [except_t.bind_cont,@call_cc_dummy m _], },
   call_cc_bind_left  := by { intros,
     simp [call_cc,except_t.call_cc,call_cc_bind_right,except_t.goto_mk_label,map_eq_bind_pure_comp,
       bind_assoc,@call_cc_bind_left m _], ext, refl },
@@ -136,7 +138,7 @@ instance [monad_cont m] : monad_cont (option_t m) :=
 
 instance [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (option_t m) :=
 { call_cc_bind_right := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right], ext, dsimp,
-    congr, ext ⟨ ⟩; simp [option_t.bind_cont,@call_cc_dummy m _], },
+    congr' with ⟨ ⟩; simp [option_t.bind_cont,@call_cc_dummy m _], },
   call_cc_bind_left  := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right,
     option_t.goto_mk_label,map_eq_bind_pure_comp,bind_assoc,@call_cc_bind_left m _], ext, refl },
   call_cc_dummy := by { intros, simp [call_cc,option_t.call_cc,@call_cc_dummy m _], ext, refl }, }
@@ -169,8 +171,8 @@ instance {σ} [monad_cont m] : monad_cont (state_t σ m) :=
 
 instance {σ} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (state_t σ m) :=
 { call_cc_bind_right := by { intros,
-    simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),state_t.bind], ext, dsimp, congr,
-    ext ⟨x₀,x₁⟩, refl },
+    simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),state_t.bind], ext, dsimp,
+    congr' with ⟨x₀,x₁⟩, refl },
   call_cc_bind_left  := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_left,(>>=),
     state_t.bind,state_t.goto_mk_label], ext, refl },
   call_cc_dummy := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),
@@ -195,3 +197,13 @@ instance {ρ} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (re
   call_cc_bind_left  := by { intros, simp [call_cc,reader_t.call_cc,call_cc_bind_left,
     reader_t.goto_mk_label], ext, refl },
   call_cc_dummy := by { intros, simp [call_cc,reader_t.call_cc,@call_cc_dummy m _], ext, refl } }
+
+/-- reduce the equivalence between two continuation passing monads to the equivalence between
+their underlying monad -/
+def cont_t.equiv {m₁ : Type u₀ → Type v₀} {m₂ : Type u₁ → Type v₁}
+  {α₁ r₁ : Type u₀} {α₂ r₂ : Type u₁} (F : m₁ r₁ ≃ m₂ r₂) (G : α₁ ≃ α₂) :
+  cont_t r₁ m₁ α₁ ≃ cont_t r₂ m₂ α₂ :=
+{ to_fun := λ f r, F $ f $ λ x, F.symm $ r $ G x,
+  inv_fun := λ f r, F.symm $ f $ λ x, F $ r $ G.symm x,
+  left_inv := λ f, by funext r; simp,
+  right_inv := λ f, by funext r; simp }

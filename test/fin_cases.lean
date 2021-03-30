@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import tactic.fin_cases
 import data.nat.prime
 import group_theory.perm.sign
+import data.finset.intervals
 
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
 begin
@@ -30,7 +31,7 @@ begin
   fin_cases x3,
   success_if_fail { fin_cases * },
   success_if_fail { fin_cases y },
-  all_goals { simp },
+  all_goals { refl },
 end
 
 open finset
@@ -96,6 +97,6 @@ end
 example (n : ℕ) (h : n % 3 ∈ [0,1]) : true :=
 begin
   fin_cases h,
-  guard_hyp h := n % 3 = 0, trivial,
-  guard_hyp h := n % 3 = 1, trivial,
+  guard_hyp h : n % 3 = 0, trivial,
+  guard_hyp h : n % 3 = 1, trivial,
 end

@@ -5,10 +5,11 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Bases of topologies. Countability axioms.
 -/
-import topology.constructions
+import topology.continuous_on
 
 open set filter classical
 open_locale topological_space filter
+noncomputable theory
 
 namespace topological_space
 /- countability axioms
@@ -28,43 +29,45 @@ def is_topological_basis (s : set (set α)) : Prop :=
 (⋃₀ s) = univ ∧
 t = generate_from s
 
+/-- If a family of sets `s` generates the topology, then nonempty intersections of finite
+subcollections of `s` form a topological basis. -/
 lemma is_topological_basis_of_subbasis {s : set (set α)} (hs : t = generate_from s) :
-  is_topological_basis ((λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ (⋂₀ f).nonempty}) :=
-let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ (⋂₀ f).nonempty} in
-⟨assume s₁ ⟨t₁, ⟨hft₁, ht₁b, ht₁⟩, eq₁⟩ s₂ ⟨t₂, ⟨hft₂, ht₂b, ht₂⟩, eq₂⟩,
-    have ie : ⋂₀(t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂, from Inf_union,
-    eq₁ ▸ eq₂ ▸ assume x h,
-      ⟨_, ⟨t₁ ∪ t₂, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b,
-        ie.symm ▸ ⟨_, h⟩⟩, ie⟩, h, subset.refl _⟩,
-  eq_univ_iff_forall.2 $ assume a, ⟨univ, ⟨∅, ⟨finite_empty, empty_subset _,
-    by rw sInter_empty; exact ⟨a, mem_univ a⟩⟩, sInter_empty⟩, mem_univ _⟩,
- have generate_from s = generate_from b',
-    from le_antisymm
-      (le_generate_from $ assume u ⟨t, ⟨hft, htb, ne⟩, eq⟩,
-        eq ▸ @is_open_sInter _ (generate_from s) _ hft (assume s hs, generate_open.basic _ $ htb hs))
-      (le_generate_from $ assume s hs,
-        s.eq_empty_or_nonempty.elim
-          (assume : s = ∅, by rw [this]; apply @is_open_empty _ _)
-          (assume : s.nonempty, generate_open.basic _ ⟨{s}, ⟨finite_singleton s, singleton_subset_iff.2 hs,
-            by rwa sInter_singleton⟩, sInter_singleton s⟩)),
-  this ▸ hs⟩
+  is_topological_basis ((λ f, ⋂₀ f) '' {f : set (set α) | finite f ∧ f ⊆ s ∧ (⋂₀ f).nonempty}) :=
+begin
+  refine ⟨_, _, _⟩,
+  { rintro _ ⟨t₁, ⟨hft₁, ht₁b, ht₁⟩, rfl⟩ _ ⟨t₂, ⟨hft₂, ht₂b, ht₂⟩, rfl⟩ x h,
+    have : ⋂₀ (t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂ := sInter_union t₁ t₂,
+    exact ⟨_, ⟨t₁ ∪ t₂, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b, this.symm ▸ ⟨x, h⟩⟩, this⟩, h,
+      subset.rfl⟩ },
+  { rw [sUnion_image, bUnion_eq_univ_iff],
+    intro x, have : x ∈ ⋂₀ ∅, { rw sInter_empty, exact mem_univ x },
+    exact ⟨∅, ⟨finite_empty, empty_subset _, x, this⟩, this⟩ },
+  { rw hs,
+    apply le_antisymm; apply le_generate_from,
+    { rintro _ ⟨t, ⟨hft, htb, ht⟩, rfl⟩,
+      exact @is_open_sInter _ (generate_from s) _ hft (λ s hs, generate_open.basic _ $ htb hs) },
+    { intros t ht,
+      rcases t.eq_empty_or_nonempty with rfl|hne, { apply @is_open_empty _ _ },
+      rw ← sInter_singleton t at hne ⊢,
+      exact generate_open.basic _ ⟨{t}, ⟨finite_singleton t, singleton_subset_iff.2 ht, hne⟩,
+        rfl⟩ } }
+end
 
 lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
   (h_open : ∀ u ∈ s, is_open u)
   (h_nhds : ∀(a:α) (u : set α), a ∈ u → is_open u → ∃v ∈ s, a ∈ v ∧ v ⊆ u) :
   is_topological_basis s :=
-⟨assume t₁ ht₁ t₂ ht₂ x ⟨xt₁, xt₂⟩,
-    h_nhds x (t₁ ∩ t₂) ⟨xt₁, xt₂⟩
-      (is_open_inter (h_open _ ht₁) (h_open _ ht₂)),
-  eq_univ_iff_forall.2 $ assume a,
-    let ⟨u, h₁, h₂, _⟩ := h_nhds a univ trivial is_open_univ in
-    ⟨u, h₁, h₂⟩,
-  le_antisymm
-    (le_generate_from h_open)
-    (assume u hu,
-      (@is_open_iff_nhds α (generate_from _) _).mpr $ assume a hau,
-        let ⟨v, hvs, hav, hvu⟩ := h_nhds a u hau hu in
-        by rw nhds_generate_from; exact infi_le_of_le v (infi_le_of_le ⟨hav, hvs⟩ $ le_principal_iff.2 hvu))⟩
+begin
+  refine ⟨λ t₁ ht₁ t₂ ht₂ x hx, h_nhds _ _ hx (is_open_inter (h_open _ ht₁) (h_open _ ht₂)), _, _⟩,
+  { refine sUnion_eq_univ_iff.2 (λ a, _),
+    rcases h_nhds a univ trivial is_open_univ with ⟨u, h₁, h₂, -⟩,
+    exact ⟨u, h₁, h₂⟩ },
+  { refine (le_generate_from h_open).antisymm (λ u hu, _),
+    refine (@is_open_iff_nhds α (generate_from s) u).mpr (λ a ha, _),
+    rcases h_nhds a u ha hu with ⟨v, hvs, hav, hvu⟩,
+    rw nhds_generate_from,
+    exact binfi_le_of_le v ⟨hav, hvs⟩ (le_principal_iff.2 hvu) }
+end
 
 lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) : s ∈ 𝓝 a ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
@@ -80,6 +83,10 @@ begin
   { rcases eq_univ_iff_forall.1 hb.2.1 a with ⟨i, h1, h2⟩,
     exact ⟨i, h2, h1⟩ }
 end
+
+lemma is_topological_basis.nhds_has_basis {b : set (set α)} (hb : is_topological_basis b) {a : α} :
+  (𝓝 a).has_basis (λ t : set α, t ∈ b ∧ a ∈ t) (λ t, t) :=
+⟨λ s, (mem_nhds_of_is_topological_basis hb).trans $ by simp only [exists_prop, and_assoc]⟩
 
 lemma is_open_of_is_topological_basis {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) (hs : s ∈ b) : is_open s :=
@@ -105,11 +112,75 @@ lemma Union_basis_of_is_open {B : set (set α)}
 let ⟨S, sb, su⟩ := sUnion_basis_of_is_open hB ou in
 ⟨S, subtype.val, su.trans set.sUnion_eq_Union, λ ⟨b, h⟩, sb h⟩
 
+lemma is_topological_basis.mem_closure_iff {b : set (set α)} (hb : is_topological_basis b)
+  {s : set α} {a : α} :
+  a ∈ closure s ↔ ∀ o ∈ b, a ∈ o → (o ∩ s).nonempty :=
+(mem_closure_iff_nhds_basis' hb.nhds_has_basis).trans $ by simp only [and_imp]
+
+lemma is_topological_basis.dense_iff {b : set (set α)} (hb : is_topological_basis b) {s : set α} :
+  dense s ↔ ∀ o ∈ b, set.nonempty o → (o ∩ s).nonempty :=
+begin
+  simp only [dense, hb.mem_closure_iff],
+  exact ⟨λ h o hb ⟨a, ha⟩, h a o hb ha, λ h a o hb ha, h o hb ⟨a, ha⟩⟩
+end
+
 variables (α)
 
-/-- A separable space is one with a countable dense subset. -/
+/-- A separable space is one with a countable dense subset, available through
+`topological_space.exists_countable_dense`. If `α` is also known to be nonempty, then
+`topological_space.dense_seq` provides a sequence `ℕ → α` with dense range, see
+`topological_space.dense_range_dense_seq`.
+
+If `α` is a uniform space with countably generated uniformity filter (e.g., an `emetric_space`),
+then this condition is equivalent to `topological_space.second_countable_topology α`. In this case
+the latter should be used as a typeclass argument in theorems because Lean can automatically deduce
+`separable_space` from `second_countable_topology` but it can't deduce `second_countable_topology`
+and `emetric_space`. -/
 class separable_space : Prop :=
-(exists_countable_closure_eq_univ : ∃s:set α, countable s ∧ closure s = univ)
+(exists_countable_dense : ∃s:set α, countable s ∧ dense s)
+
+lemma exists_countable_dense [separable_space α] :
+  ∃ s : set α, countable s ∧ dense s :=
+separable_space.exists_countable_dense
+
+/-- A nonempty separable space admits a sequence with dense range. Instead of running `cases` on the
+conclusion of this lemma, you might want to use `topological_space.dense_seq` and
+`topological_space.dense_range_dense_seq`.
+
+If `α` might be empty, then `exists_countable_dense` is the main way to use separability of `α`. -/
+lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, dense_range u :=
+begin
+  obtain ⟨s : set α, hs, s_dense⟩ := exists_countable_dense α,
+  cases countable_iff_exists_surjective.mp hs with u hu,
+  exact ⟨u, s_dense.mono hu⟩,
+end
+
+/-- A sequence dense in a non-empty separable topological space.
+
+If `α` might be empty, then `exists_countable_dense` is the main way to use separability of `α`. -/
+def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some (exists_dense_seq α)
+
+/-- The sequence `dense_seq α` has dense range. -/
+@[simp] lemma dense_range_dense_seq [separable_space α] [nonempty α] :
+  dense_range (dense_seq α) := classical.some_spec (exists_dense_seq α)
+
+end topological_space
+
+open topological_space
+
+/-- If `α` is a separable space and `f : α → β` is a continuous map with dense range, then `β` is
+a separable space as well. E.g., the completion of a separable uniform space is separable. -/
+protected lemma dense_range.separable_space {α β : Type*} [topological_space α] [separable_space α]
+  [topological_space β] {f : α → β} (h : dense_range f) (h' : continuous f) :
+  separable_space β :=
+let ⟨s, s_cnt, s_dense⟩ := exists_countable_dense α in
+⟨⟨f '' s, countable.image s_cnt f, h.dense_image h' s_dense⟩⟩
+
+namespace topological_space
+universe u
+variables (α : Type u) [t : topological_space α]
+include t
+
 
 /-- A first-countable space is one in which every point has a
   countable neighborhood basis. -/
@@ -118,14 +189,30 @@ class first_countable_topology : Prop :=
 
 namespace first_countable_topology
 variable {α}
-lemma tendsto_subseq [first_countable_topology α] {u : ℕ → α} {x : α} (hx : map_cluster_pt x at_top u) :
+
+lemma tendsto_subseq [first_countable_topology α] {u : ℕ → α} {x : α}
+  (hx : map_cluster_pt x at_top u) :
   ∃ (ψ : ℕ → ℕ), (strict_mono ψ) ∧ (tendsto (u ∘ ψ) at_top (𝓝 x)) :=
 (nhds_generated_countable x).subseq_tendsto hx
+
 end first_countable_topology
+
+variables {α}
+
+lemma is_countably_generated_nhds [first_countable_topology α] (x : α) :
+  is_countably_generated (𝓝 x) :=
+first_countable_topology.nhds_generated_countable x
+
+lemma is_countably_generated_nhds_within [first_countable_topology α] (x : α) (s : set α) :
+  is_countably_generated (𝓝[s] x) :=
+(is_countably_generated_nhds x).inf_principal s
+
+variable (α)
 
 /-- A second-countable space is one with a countable basis. -/
 class second_countable_topology : Prop :=
-(is_open_generated_countable [] : ∃b:set (set α), countable b ∧ t = topological_space.generate_from b)
+(is_open_generated_countable [] :
+  ∃ b : set (set α), countable b ∧ t = topological_space.generate_from b)
 
 @[priority 100] -- see Note [lower instance priority]
 instance second_countable_topology.to_first_countable_topology
@@ -184,42 +271,21 @@ begin
   { suffices : countable {f : Πa, set (π a) | ∀a, f a ∈ g a}, { simpa [pi] },
     exact countable_pi (assume i, (hg i).1), },
   rw [this, pi_generate_from_eq_fintype],
-  { congr' 1, ext f, simp [pi, eq_comm] },
+  { congr' 1 with f, simp [pi, eq_comm] },
   exact assume a, (hg a).2.2.2.1
 end
 
 @[priority 100] -- see Note [lower instance priority]
 instance second_countable_topology.to_separable_space
   [second_countable_topology α] : separable_space α :=
-let ⟨b, hb₁, hb₂, hb₃, hb₄, eq⟩ := is_open_generated_countable_inter α in
-have nhds_eq : ∀a, 𝓝 a = (⨅ s : {s : set α // a ∈ s ∧ s ∈ b}, 𝓟 s.val),
-  by intro a; rw [eq, nhds_generate_from, infi_subtype]; refl,
-have ∀s∈b, set.nonempty s,
-  from assume s hs, ne_empty_iff_nonempty.1 $ λ eq, absurd hs (eq.symm ▸ hb₂),
-have ∃f:∀s∈b, α, ∀s h, f s h ∈ s, by simpa only [skolem, set.nonempty] using this,
-let ⟨f, hf⟩ := this in
-⟨⟨(⋃s∈b, ⋃h:s∈b, {f s h}),
-  hb₁.bUnion (λ _ _, countable_Union_Prop $ λ _, countable_singleton _),
-  set.ext $ assume a,
-  have a ∈ (⋃₀ b), by rw [hb₄]; exact trivial,
-  let ⟨t, ht₁, ht₂⟩ := this in
-  have w : {s : set α // a ∈ s ∧ s ∈ b}, from ⟨t, ht₂, ht₁⟩,
-  suffices (⨅ (x : {s // a ∈ s ∧ s ∈ b}), 𝓟 (x.val ∩ ⋃s (h₁ h₂ : s ∈ b), {f s h₂})) ≠ ⊥,
-    by simpa only [closure_eq_cluster_pts, cluster_pt, nhds_eq, infi_inf w, inf_principal,
-                   mem_set_of_eq, mem_univ, iff_true],
-  infi_ne_bot_of_directed ⟨a⟩
-    (assume ⟨s₁, has₁, hs₁⟩ ⟨s₂, has₂, hs₂⟩,
-      have a ∈ s₁ ∩ s₂, from ⟨has₁, has₂⟩,
-      let ⟨s₃, hs₃, has₃, hs⟩ := hb₃ _ hs₁ _ hs₂ _ this in
-      ⟨⟨s₃, has₃, hs₃⟩, begin
-        simp only [le_principal_iff, mem_principal_sets, (≥)],
-        simp only [subset_inter_iff] at hs, split;
-          apply inter_subset_inter_left; simp only [hs]
-      end⟩)
-    (assume ⟨s, has, hs⟩,
-      have (s ∩ (⋃ (s : set α) (H h : s ∈ b), {f s h})).nonempty,
-        from ⟨_, hf _ hs, mem_bUnion hs $ mem_Union.mpr ⟨hs, mem_singleton _⟩⟩,
-      principal_ne_bot_iff.2 this) ⟩⟩
+begin
+  rcases is_open_generated_countable_inter α with  ⟨b, hbc, hbne, hb⟩,
+  haveI := hbc.to_encodable,
+  have : ∀ s : b, (s : set α).nonempty := λ ⟨s, hs⟩, ne_empty_iff_nonempty.1 (λ h, hbne $ h ▸ hs),
+  choose p hp,
+  exact ⟨⟨range p, countable_range _,
+    hb.dense_iff.2 $ λ o ho _, ⟨p ⟨o, ho⟩, hp _, mem_range_self _⟩⟩⟩
+end
 
 variables {α}
 
@@ -245,5 +311,18 @@ let ⟨T, cT, hT⟩ := is_open_Union_countable (λ s:S, s.1) (λ s, H s.1 s.2) i
 ⟨subtype.val '' T, cT.image _,
   image_subset_iff.2 $ λ ⟨x, xs⟩ xt, xs,
   by rwa [sUnion_image, sUnion_eq_Union]⟩
+
+/-- In a topological space with second countable topology, if `f` is a function that sends each
+point `x` to a neighborhood of `x`, then for some countable set `s`, the neighborhoods `f x`,
+`x ∈ s`, cover the whole space. -/
+lemma countable_cover_nhds [second_countable_topology α] {f : α → set α}
+  (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
+begin
+  rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open_interior) with ⟨s, hsc, hsU⟩,
+  suffices : (⋃ x ∈ s, interior (f x)) = univ,
+    from ⟨s, hsc, flip eq_univ_of_subset this (bUnion_mono $ λ _ _, interior_subset)⟩,
+  simp only [hsU, eq_univ_iff_forall, mem_Union],
+  exact λ x, ⟨x, mem_interior_iff_mem_nhds.2 (hf x)⟩
+end
 
 end topological_space

@@ -55,6 +55,8 @@ begin
   have : group α,
   { refine_struct { .._inst },
     guard_tags _field inv group, admit,
+    guard_tags _field div group, admit,
+    guard_tags _field div_eq_mul_inv group, admit,
     guard_tags _field mul_left_inv group, admit, },
   trivial
 end
@@ -107,6 +109,16 @@ begin
       -- α : Type
       -- ⊢ α → α
 
+    guard_tags _field div group, admit,
+      -- case group, div
+      -- α : Type
+      -- ⊢ α → α
+
+    guard_tags _field div_eq_mul_inv group, admit,
+      -- case group, div_eq_mul_inv
+      -- α : Type
+      -- ⊢ α → α
+
     guard_tags _field mul_left_inv group, admit,
       -- case group, mul_left_inv
       -- α : Type
@@ -129,10 +141,22 @@ begin
     guard_tags _field one_mul group, admit,
     guard_tags _field mul_one group, admit,
     guard_tags _field inv group, admit,
+    guard_tags _field div group, admit,
+    guard_tags _field div_eq_mul_inv group, admit,
     guard_tags _field mul_left_inv group, admit,
     guard_tags _field mul_assoc monoid, admit,
     guard_tags _field one monoid, admit,
     guard_tags _field one_mul monoid, admit,
     guard_tags _field mul_one monoid, admit, },
   trivial
+end
+
+def my_semigroup := semigroup
+
+example {α} (mul : α → α → α) (h : false) : my_semigroup α :=
+begin
+  refine_struct { mul := mul, .. },
+  field mul_assoc {
+    guard_target ∀ a b c : α, mul (mul a b) c = mul a (mul b c),
+    exact h.elim }
 end

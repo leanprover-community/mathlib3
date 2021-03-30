@@ -1,11 +1,46 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro, Floris van Doorn
 -/
-import set_theory.ordinal
+import set_theory.cardinal_ordinal
 /-!
-# Cofinality on ordinals, regular cardinals
+# Cofinality
+
+This file contains the definition of cofinality of a ordinal number and regular cardinals
+
+## Main Definitions
+
+* `ordinal.cof o` is the cofinality of the ordinal `o`.
+  If `o` is the order type of the relation `<` on `α`, then `o.cof` is the smallest cardinality of a
+  subset `s` of α that is *cofinal* in `α`, i.e. `∀ x : α, ∃ y ∈ s, ¬ y < x`.
+* `cardinal.is_limit c` means that `c` is a (weak) limit cardinal: `c ≠ 0 ∧ ∀ x < c, succ x < c`.
+* `cardinal.is_strong_limit c` means that `c` is a strong limit cardinal:
+  `c ≠ 0 ∧ ∀ x < c, 2 ^ x < c`.
+* `cardinal.is_regular c` means that `c` is a regular cardinal: `omega ≤ c ∧ c.ord.cof = c`.
+* `cardinal.is_inaccessible c` means that `c` is strongly inaccessible:
+  `omega < c ∧ is_regular c ∧ is_strong_limit c`.
+
+## Main Statements
+
+* `ordinal.infinite_pigeonhole_card`: the infinite pigeonhole principle
+* `cardinal.lt_power_cof`: A consequence of König's theorem stating that `c < c ^ c.ord.cof` for
+  `c ≥ cardinal.omega`
+* `cardinal.univ_inaccessible`: The type of ordinals in `Type u` form an inaccessible cardinal
+  (in `Type v` with `v > u`). This shows (externally) that in `Type u` there are at least `u`
+  inaccessible cardinals.
+
+## Implementation Notes
+
+* The cofinality is defined for ordinals.
+  If `c` is a cardinal number, its cofinality is `c.ord.cof`.
+
+## Tags
+
+cofinality, regular cardinals, limits cardinals, inaccessible cardinals,
+infinite pigeonhole principle
+
+
 -/
 noncomputable theory
 
@@ -33,8 +68,8 @@ by { rw [order.cof, cardinal.le_min], exact ⟨λ H S h, H ⟨S, h⟩, λ H ⟨S
 
 end order
 
-theorem order_iso.cof.aux {α : Type u} {β : Type v} {r s}
-  [is_refl α r] [is_refl β s] (f : r ≃o s) :
+theorem rel_iso.cof.aux {α : Type u} {β : Type v} {r s}
+  [is_refl α r] [is_refl β s] (f : r ≃r s) :
   cardinal.lift.{u (max u v)} (order.cof r) ≤
   cardinal.lift.{v (max u v)} (order.cof s) :=
 begin
@@ -42,18 +77,18 @@ begin
   intro S, cases S with S H, simp [(∘)],
   refine le_trans (min_le _ _) _,
   { exact ⟨f ⁻¹' S, λ a,
-    let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, f.ord', h,
+    let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, ← f.map_rel_iff, h,
       -coe_fn_coe_base, -coe_fn_coe_trans, principal_seg.coe_coe_fn', initial_seg.coe_coe_fn]⟩⟩ },
   { exact lift_mk_le.{u v (max u v)}.2
     ⟨⟨λ ⟨x, h⟩, ⟨f x, h⟩, λ ⟨x, h₁⟩ ⟨y, h₂⟩ h₃,
       by congr; injection h₃ with h'; exact f.to_equiv.injective h'⟩⟩ }
 end
 
-theorem order_iso.cof {α : Type u} {β : Type v} {r s}
-  [is_refl α r] [is_refl β s] (f : r ≃o s) :
+theorem rel_iso.cof {α : Type u} {β : Type v} {r s}
+  [is_refl α r] [is_refl β s] (f : r ≃r s) :
   cardinal.lift.{u (max u v)} (order.cof r) =
   cardinal.lift.{v (max u v)} (order.cof s) :=
-le_antisymm (order_iso.cof.aux f) (order_iso.cof.aux f.symm)
+le_antisymm (rel_iso.cof.aux f) (rel_iso.cof.aux f.symm)
 
 def strict_order.cof (r : α → α → Prop) [h : is_irrefl α r] : cardinal :=
 @order.cof α (λ x y, ¬ r y x) ⟨h.1⟩
@@ -70,7 +105,7 @@ quot.lift_on o (λ ⟨α, r, _⟩, by exactI strict_order.cof r)
 begin
   rintros ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨⟨f, hf⟩⟩,
   rw ← cardinal.lift_inj,
-  apply order_iso.cof ⟨f, _⟩,
+  apply rel_iso.cof ⟨f, _⟩,
   simp [hf]
 end
 
@@ -107,7 +142,7 @@ begin
   { refine ⟨T, this,
       le_antisymm _ (cardinal.ord_le.2 $ cof_type_le T this)⟩,
     rw [← e, e'],
-    refine type_le'.2 ⟨order_embedding.of_monotone
+    refine type_le'.2 ⟨rel_embedding.of_monotone
       (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
     rcases a with ⟨a, aS, ha⟩, rcases b with ⟨b, bS, hb⟩,
     change s ⟨a, _⟩ ⟨b, _⟩,
@@ -185,7 +220,7 @@ end
   rcases cof_eq r with ⟨S, hl, e⟩, rw z at e,
   cases ne_zero_iff_nonempty.1 (by rw e; exact one_ne_zero) with a,
   refine ⟨typein r a, eq.symm $ quotient.sound
-    ⟨order_iso.of_surjective (order_embedding.of_monotone _
+    ⟨rel_iso.of_surjective (rel_embedding.of_monotone _
       (λ x y, _)) (λ x, _)⟩⟩,
   { apply sum.rec; [exact subtype.val, exact λ _, a] },
   { rcases x with x|⟨⟨⟨⟩⟩⟩; rcases y with y|⟨⟨⟨⟩⟩⟩;
@@ -228,7 +263,7 @@ induction_on a $ λ α r _, induction_on b $ λ β s _ b0, begin
         by injection h with h; congr; injection h } }
 end
 
-@[simp] theorem cof_cof (o : ordinal) : cof (cof o).ord = cof o :=
+@[simp] theorem cof_cof (o : ordinal) : cof (cof o).ord= cof o :=
 le_antisymm (le_trans (cof_le_card _) (by simp)) $
 induction_on o $ λ α r _, by exactI
 let ⟨S, hS, e₁⟩ := ord_cof_eq r,
@@ -340,7 +375,8 @@ theorem sup_lt {ι} (f : ι → cardinal) {c : cardinal} (H1 : cardinal.mk ι < 
   (H2 : ∀ i, f i < c) : cardinal.sup.{u u} f < c :=
 by { rw [←ord_lt_ord, ←sup_ord], apply sup_lt_ord _ H1, intro i, rw ord_lt_ord, apply H2 }
 
-/-- If the union of s is unbounded and s is smaller than the cofinality, then s has an unbounded member -/
+/-- If the union of s is unbounded and s is smaller than the cofinality,
+  then s has an unbounded member -/
 theorem unbounded_of_unbounded_sUnion (r : α → α → Prop) [wo : is_well_order α r] {s : set (set α)}
   (h₁ : unbounded r $ ⋃₀ s) (h₂ : mk s < strict_order.cof r) : ∃(x ∈ s), unbounded r x :=
 begin
@@ -356,7 +392,8 @@ begin
   exact cardinal.min_le _ (subtype.mk t this)
 end
 
-/-- If the union of s is unbounded and s is smaller than the cofinality, then s has an unbounded member -/
+/-- If the union of s is unbounded and s is smaller than the cofinality,
+  then s has an unbounded member -/
 theorem unbounded_of_unbounded_Union {α β : Type u} (r : α → α → Prop) [wo : is_well_order α r]
   (s : β → set α)
   (h₁ : unbounded r $ ⋃x, s x) (h₂ : mk β < strict_order.cof r) : ∃x : β, unbounded r (s x) :=
@@ -366,7 +403,7 @@ begin
   rcases unbounded_of_unbounded_sUnion r h₁ this with ⟨_, ⟨x, rfl⟩, u⟩, exact ⟨x, u⟩
 end
 
-/-- The infinite pigeonhole principle-/
+/-- The infinite pigeonhole principle -/
 theorem infinite_pigeonhole {β α : Type u} (f : β → α) (h₁ : cardinal.omega ≤ mk β)
   (h₂ : mk α < (mk β).ord.cof) : ∃a : α, mk (f ⁻¹' {a}) = mk β :=
 begin
@@ -445,7 +482,8 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
   rw [← αe, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   rw [← Se],
-  apply lt_imp_lt_of_le_imp_le (mul_le_mul_right c),
+  apply lt_imp_lt_of_le_imp_le
+    (λ (h : mk S ≤ c), canonically_ordered_semiring.mul_le_mul_right' h c),
   rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const],
   refine le_trans _ (sum_le_sum (λ x:S, card (typein r x)) _ _),
   { simp [typein, sum_mk (λ x:S, {a//r a x})],
@@ -473,8 +511,7 @@ theorem sum_lt_of_is_regular {ι} (f : ι → cardinal)
 lt_of_le_of_lt (sum_le_sup _) $ mul_lt_of_lt hc.1 H1 $
 sup_lt_of_is_regular f hc H1 H2
 
-/-- A cardinal is inaccessible if it is an
-  uncountable regular strong limit cardinal. -/
+/-- A cardinal is inaccessible if it is an uncountable regular strong limit cardinal. -/
 def is_inaccessible (c : cardinal) :=
 omega < c ∧ is_regular c ∧ is_strong_limit c
 
@@ -484,8 +521,7 @@ theorem is_inaccessible.mk {c}
 ⟨h₁, ⟨le_of_lt h₁, le_antisymm (cof_ord_le _) h₂⟩,
   ne_of_gt (lt_trans omega_pos h₁), h₃⟩
 
-/- Lean's foundations prove the existence of ω many inaccessible
-   cardinals -/
+/- Lean's foundations prove the existence of ω many inaccessible cardinals -/
 theorem univ_inaccessible : is_inaccessible (univ.{u v}) :=
 is_inaccessible.mk
   (by simpa using lift_lt_univ' omega)

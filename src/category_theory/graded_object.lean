@@ -5,13 +5,16 @@ Authors: Scott Morrison
 -/
 import category_theory.shift
 import category_theory.concrete_category
+import category_theory.pi.basic
+import algebra.group.basic
 
 /-!
 # The category of graded objects
 
 For any type `β`, a `β`-graded object over some category `C` is just
 a function `β → C` into the objects of `C`.
-We define the category structure on these.
+We put the "pointwise" category structure on these, as the non-dependent specialization of
+`category_theory.pi`.
 
 We describe the `comap` functors obtained by precomposing with functions `β → γ`.
 
@@ -22,6 +25,7 @@ When `C` has coproducts we construct the `total` functor `graded_object β C ⥤
 show that it is faithful, and deduce that when `C` is concrete so is `graded_object β C`.
 -/
 
+open category_theory.pi
 open category_theory.limits
 
 namespace category_theory
@@ -41,68 +45,34 @@ A type synonym for `β → C`, used for `β`-graded objects in a category `C`
 with a shift functor given by translation by `s`.
 -/
 @[nolint unused_arguments] -- `s` is here to distinguish type synonyms asking for different shifts
-abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β) (C : Type u) : Type (max w u) := graded_object β C
+abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β) (C : Type u) :
+  Type (max w u) := graded_object β C
 
 namespace graded_object
 
 variables {C : Type u} [category.{v} C]
 
 instance category_of_graded_objects (β : Type w) : category.{(max w v)} (graded_object β C) :=
-{ hom := λ X Y, Π b : β, X b ⟶ Y b,
-  id := λ X b, 𝟙 (X b),
-  comp := λ X Y Z f g b, f b ≫ g b, }
+category_theory.pi (λ _, C)
 
-@[simp]
-lemma id_apply {β : Type w} (X : graded_object β C) (b : β) :
-  ((𝟙 X) : Π b, X b ⟶ X b) b = 𝟙 (X b) := rfl
 
-@[simp]
-lemma comp_apply {β : Type w} {X Y Z : graded_object β C} (f : X ⟶ Y) (g : Y ⟶ Z) (b : β) :
-  ((f ≫ g) : Π b, X b ⟶ Z b) b = f b ≫ g b := rfl
 
 section
 variable (C)
-
-/-- Pull back a graded object along a change-of-grading function. -/
-@[simps]
-def comap {β γ : Type w} (f : β → γ) :
-  (graded_object γ C) ⥤ (graded_object β C) :=
-{ obj := λ X, X ∘ f,
-  map := λ X Y g b, g (f b) }
-
-/--
-The natural isomorphism between
-pulling back a grading along the identity function,
-and the identity functor. -/
-@[simps]
-def comap_id (β : Type w) : comap C (id : β → β) ≅ 𝟭 (graded_object β C) :=
-{ hom := { app := λ X, 𝟙 X },
-  inv := { app := λ X, 𝟙 X } }.
-
-/--
-The natural isomorphism comparing between
-pulling back along two successive functions, and
-pulling back along their composition
--/
-@[simps]
-def comap_comp {β γ δ : Type w} (f : β → γ) (g : γ → δ) : comap C g ⋙ comap C f ≅ comap C (g ∘ f) :=
-{ hom := { app := λ X b, 𝟙 (X (g (f b))) },
-  inv := { app := λ X b, 𝟙 (X (g (f b))) } }
 
 /--
 The natural isomorphism comparing between
 pulling back along two propositionally equal functions.
 -/
 @[simps]
-def comap_eq {β γ : Type w} {f g : β → γ} (h : f = g) : comap C f ≅ comap C g :=
+def comap_eq {β γ : Type w} {f g : β → γ} (h : f = g) : comap (λ _, C) f ≅ comap (λ _, C) g :=
 { hom := { app := λ X b, eq_to_hom begin dsimp [comap], subst h, end },
   inv := { app := λ X b, eq_to_hom begin dsimp [comap], subst h, end }, }
 
-@[simp]
-lemma comap_eq_symm {β γ : Type w} {f g : β → γ} (h : f = g) : comap_eq C h.symm = (comap_eq C h).symm :=
+lemma comap_eq_symm {β γ : Type w} {f g : β → γ} (h : f = g) :
+  comap_eq C h.symm = (comap_eq C h).symm :=
 by tidy
 
-@[simp]
 lemma comap_eq_trans {β γ : Type w} {f g h : β → γ} (k : f = g) (l : g = h) :
   comap_eq C (k.trans l) = comap_eq C k ≪≫ comap_eq C l :=
 begin
@@ -117,20 +87,30 @@ given an equivalence between β and γ.
 @[simps]
 def comap_equiv {β γ : Type w} (e : β ≃ γ) :
   (graded_object β C) ≌ (graded_object γ C) :=
-{ functor := comap C (e.symm : γ → β),
-  inverse := comap C (e : β → γ),
-  counit_iso := (comap_comp C _ _).trans (comap_eq C (by { ext, simp } )),
-  unit_iso := (comap_eq C (by { ext, simp} )).trans (comap_comp _ _ _).symm,
-  functor_unit_iso_comp' := λ X, begin ext b, dsimp, simp, end, }
+{ functor := comap (λ _, C) (e.symm : γ → β),
+  inverse := comap (λ _, C) (e : β → γ),
+  counit_iso := (comap_comp (λ _, C) _ _).trans (comap_eq C (by { ext, simp } )),
+  unit_iso := (comap_eq C (by { ext, simp } )).trans (comap_comp _ _ _).symm,
+  functor_unit_iso_comp' := λ X, by { ext b, dsimp, simp, }, }  -- See note [dsimp, simp].
 
 end
 
-instance has_shift {β : Type} [add_comm_group β] (s : β) : has_shift (graded_object_with_shift s C) :=
+instance has_shift {β : Type*} [add_comm_group β] (s : β) :
+  has_shift (graded_object_with_shift s C) :=
 { shift := comap_equiv C
   { to_fun := λ b, b-s,
     inv_fun := λ b, b+s,
     left_inv := λ x, (by simp),
     right_inv := λ x, (by simp), } }
+
+@[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β] (s : β) (X : β → C) (t : β) :
+  (shift (graded_object_with_shift s C)).functor.obj X t = X (t + s) :=
+rfl
+
+@[simp] lemma shift_functor_map_apply {β : Type*} [add_comm_group β] (s : β)
+  {X Y : graded_object_with_shift s C} (f : X ⟶ Y) (t : β) :
+  (shift (graded_object_with_shift s C)).functor.map f t = f (t + s) :=
+rfl
 
 instance has_zero_morphisms [has_zero_morphisms C] (β : Type w) :
   has_zero_morphisms.{(max w v)} (graded_object β C) :=
@@ -164,7 +144,7 @@ variables [has_coproducts C]
 /--
 The total object of a graded object is the coproduct of the graded components.
 -/
-def total : graded_object β C ⥤ C :=
+noncomputable def total : graded_object β C ⥤ C :=
 { obj := λ X, ∐ (λ i : ulift.{v} β, X i.down),
   map := λ X Y f, limits.sigma.map (λ i, f i.down) }.
 
@@ -188,6 +168,8 @@ instance : faithful (total β C) :=
 end graded_object
 
 namespace graded_object
+
+noncomputable theory
 
 variables (β : Type)
 variables (C : Type (u+1)) [large_category C] [concrete_category C]

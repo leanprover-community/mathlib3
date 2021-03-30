@@ -1,2 +1,2 @@
 import algebra.group
-import algebra.module
+import algebra.module.basic

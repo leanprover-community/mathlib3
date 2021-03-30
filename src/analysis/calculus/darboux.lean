@@ -46,7 +46,7 @@ begin
       simpa [-sub_nonneg, -continuous_linear_map.map_sub]
         using hc.localize.has_fderiv_within_at_nonneg (hg a (left_mem_Icc.2 hab)) this },
     cases eq_or_lt_of_le cmem.2 with hbc hbc,
-    -- Show that `c` can't be equal to `a`
+    -- Show that `c` can't be equal to `b`
     { subst c,
       refine absurd (sub_nonpos.1 $ nonpos_of_mul_nonneg_right _ (sub_lt_zero.2 hab'))
         (not_le_of_lt hmb),
@@ -75,19 +75,19 @@ theorem convex_image_has_deriv_at {s : set ℝ} (hs : convex s)
   (hf : ∀ x ∈ s, has_deriv_at f (f' x) x) :
   convex (f' '' s) :=
 begin
-  refine convex_real_iff.2 _,
-  rintros _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩ m ⟨hma, hmb⟩,
+  refine real.convex_iff_ord_connected.2 ⟨_⟩,
+  rintros _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ m ⟨hma, hmb⟩,
   cases eq_or_lt_of_le hma with hma hma,
     by exact hma ▸ mem_image_of_mem f' ha,
   cases eq_or_lt_of_le hmb with hmb hmb,
     by exact hmb.symm ▸ mem_image_of_mem f' hb,
   cases le_total a b with hab hab,
-  { have : Icc a b ⊆ s, from convex_real_iff.1 hs ha hb,
+  { have : Icc a b ⊆ s, from hs.ord_connected.out ha hb,
     rcases exists_has_deriv_within_at_eq_of_gt_of_lt hab
       (λ x hx, (hf x $ this hx).has_deriv_within_at) hma hmb
       with ⟨c, cmem, hc⟩,
     exact ⟨c, this cmem, hc⟩ },
-  { have : Icc b a ⊆ s, from convex_real_iff.1 hs hb ha,
+  { have : Icc b a ⊆ s, from hs.ord_connected.out hb ha,
     rcases exists_has_deriv_within_at_eq_of_lt_of_gt hab
       (λ x hx, (hf x $ this hx).has_deriv_within_at) hmb hma
       with ⟨c, cmem, hc⟩,
@@ -102,6 +102,6 @@ theorem deriv_forall_lt_or_forall_gt_of_forall_ne {s : set ℝ} (hs : convex s)
 begin
   contrapose! hf',
   rcases hf' with ⟨⟨b, hb, hmb⟩, ⟨a, ha, hma⟩⟩,
-  exact convex_real_iff.1 (convex_image_has_deriv_at hs hf) (mem_image_of_mem f' ha)
+  exact (convex_image_has_deriv_at hs hf).ord_connected.out (mem_image_of_mem f' ha)
     (mem_image_of_mem f' hb) ⟨hma, hmb⟩
 end

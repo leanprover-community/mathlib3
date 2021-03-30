@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jannis Limperg
+Authors: Jannis Limperg
 -/
 
 import tactic.generalizes
@@ -12,10 +12,10 @@ lemma example_from_docs₁ (P : ∀ n, fin n → Prop) (n : ℕ) (f : fin n)
   (p : ∀ n xs, P n xs) : P (nat.succ n) (fin.succ f) :=
 begin
   generalizes [n'_eq : nat.succ n = n', f'_eq : fin.succ f == f'],
-  guard_hyp n' := ℕ,
-  guard_hyp n'_eq := n' = nat.succ n,
-  guard_hyp f' := fin n',
-  guard_hyp f'_eq := f' == fin.succ f,
+  guard_hyp n' : ℕ,
+  guard_hyp n'_eq : n' = nat.succ n,
+  guard_hyp f' : fin n',
+  guard_hyp f'_eq : f' == fin.succ f,
   exact p n' f'
   -- Note: `generalizes` fails if we write `n + 1` instead of `nat.succ n` in
   -- the target because `kabstract` works with a notion of equality that is
@@ -27,10 +27,10 @@ lemma example_from_docs₂ (P : ∀ n, fin n → Prop) (n : ℕ) (f : fin n)
   (p : ∀ n xs, P n xs) : P (nat.succ n) (fin.succ f) :=
 begin
   generalizes [(nat.succ n = n'), (fin.succ f == f')],
-  guard_hyp n' := ℕ,
-  success_if_fail { guard_hyp n'_eq := n' = nat.succ n },
-  guard_hyp f' := fin n',
-  success_if_fail { guard_hyp f'_eq := f' == fin.succ f },
+  guard_hyp n' : ℕ,
+  success_if_fail { guard_hyp n'_eq : n' = nat.succ n },
+  guard_hyp f' : fin n',
+  success_if_fail { guard_hyp f'_eq : f' == fin.succ f },
   exact p n' f'
 end
 
@@ -64,10 +64,10 @@ begin
   },
   -- `generalizes` gives us the expected result with everything generalised.
   generalizes [eq_n' : n + 1 = n', eq_xs' : cons x xs = xs'],
-  guard_hyp n' := ℕ,
-  guard_hyp eq_n' := n' = n + 1,
-  guard_hyp xs' := Vec α n',
-  guard_hyp eq_xs' := xs' == cons x xs,
+  guard_hyp n' : ℕ,
+  guard_hyp eq_n' : n' = n + 1,
+  guard_hyp xs' : Vec α n',
+  guard_hyp eq_xs' : xs' == cons x xs,
   exact fancy_unit.intro n' xs'
 end
 
@@ -76,10 +76,10 @@ end
 lemma test₂ {α n} {x : α} {xs} : fancy_unit (n + 1) (cons x xs) :=
 begin
   generalizes [n + 1 = n', eq_xs' : cons x xs = xs'],
-  guard_hyp n' := ℕ,
-  success_if_fail { guard_hyp eq_n' := n' = n + 1 },
-  guard_hyp xs' := Vec α n',
-  guard_hyp eq_xs' := xs' == cons x xs,
+  guard_hyp n' : ℕ,
+  success_if_fail { guard_hyp eq_n' : n' = n + 1 },
+  guard_hyp xs' : Vec α n',
+  guard_hyp eq_xs' : xs' == cons x xs,
   exact fancy_unit.intro n' xs'
 end
 

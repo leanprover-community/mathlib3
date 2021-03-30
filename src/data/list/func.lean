@@ -279,7 +279,7 @@ by {apply get_pointwise, apply zero_add}
 begin
   rw [add, @nil_pointwise α α α ⟨0⟩ ⟨0⟩],
   apply eq.trans _ (map_id as),
-  congr, ext,
+  congr' with x,
   have : @default α ⟨0⟩ = 0 := rfl,
   rw [this, zero_add], refl
 end
@@ -289,7 +289,7 @@ end
 begin
   rw [add, @pointwise_nil α α α ⟨0⟩ ⟨0⟩],
   apply eq.trans _ (map_id as),
-  congr, ext,
+  congr' with x,
   have : @default α ⟨0⟩ = 0 := rfl,
   rw [this, add_zero], refl
 end
@@ -326,7 +326,7 @@ by {apply get_pointwise, apply sub_zero}
   (as : list α) : sub [] as = neg as :=
 begin
   rw [sub, nil_pointwise],
-  congr, ext,
+  congr' with x,
   have : @default α ⟨0⟩ = 0 := rfl,
   rw [this, zero_sub]
 end
@@ -336,7 +336,7 @@ end
 begin
   rw [sub, pointwise_nil],
   apply eq.trans _ (map_id as),
-  congr, ext,
+  congr' with x,
   have : @default α ⟨0⟩ = 0 := rfl,
   rw [this, sub_zero], refl
 end

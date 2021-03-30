@@ -5,6 +5,7 @@ Authors: Alexander Bentkamp, Yury Kudriashov
 -/
 import analysis.convex.basic
 import analysis.normed_space.finite_dimension
+import topology.path_connected
 
 /-!
 # Topological and metric properties of convex sets
@@ -27,6 +28,11 @@ We prove the following facts:
 variables {ι : Type*} {E : Type*}
 
 open set
+
+lemma real.convex_iff_is_preconnected {s : set ℝ} : convex s ↔ is_preconnected s :=
+real.convex_iff_ord_connected.trans is_preconnected_iff_ord_connected.symm
+
+alias real.convex_iff_is_preconnected ↔ convex.is_preconnected is_preconnected.convex
 
 /-! ### Standard simplex -/
 
@@ -59,17 +65,17 @@ lemma is_closed_std_simplex : is_closed (std_simplex ι) :=
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
 /-- `std_simplex ι` is compact. -/
-lemma compact_std_simplex : compact (std_simplex ι) :=
+lemma compact_std_simplex : is_compact (std_simplex ι) :=
 metric.compact_iff_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
 
 end std_simplex
 
 /-! ### Topological vector space -/
 
-section topological_vector_space
+section has_continuous_smul
 
 variables [add_comm_group E] [vector_space ℝ E] [topological_space E]
-  [topological_add_group E] [topological_vector_space ℝ E]
+  [topological_add_group E] [has_continuous_smul ℝ E]
 
 /-- In a topological vector space, the interior of a convex set is convex. -/
 lemma convex.interior {s : set E} (hs : convex s) : convex (interior s) :=
@@ -78,11 +84,11 @@ convex_iff_pointwise_add_subset.mpr $ λ a b ha hb hab,
   or.elim (classical.em (a = 0))
   (λ heq,
     have hne : b ≠ 0, by { rw [heq, zero_add] at hab, rw hab, exact one_ne_zero },
-    by { rw ← image_smul, apply is_open_add_left,
-         exact is_open_map_smul_of_ne_zero hne _ is_open_interior } )
+    by { rw ← image_smul,
+         exact (is_open_map_smul' hne _ is_open_interior).add_left } )
   (λ hne,
-    by { rw ← image_smul, apply is_open_add_right,
-         exact is_open_map_smul_of_ne_zero hne _ is_open_interior }),
+    by { rw ← image_smul,
+         exact (is_open_map_smul' hne _ is_open_interior).add_right }),
   (subset_interior_iff_subset_of_open h).mpr $ subset.trans
     (by { simp only [← image_smul], apply add_subset_add; exact image_subset _ interior_subset })
     (convex_iff_pointwise_add_subset.mp hs ha hb hab)
@@ -99,7 +105,7 @@ show f x y ∈ closure s, from
 
 /-- Convex hull of a finite set is compact. -/
 lemma set.finite.compact_convex_hull {s : set E} (hs : finite s) :
-  compact (convex_hull s) :=
+  is_compact (convex_hull s) :=
 begin
   rw [hs.convex_hull_eq_image],
   apply (compact_std_simplex _).image,
@@ -112,7 +118,7 @@ lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : finite s) 
   is_closed (convex_hull s) :=
 hs.compact_convex_hull.is_closed
 
-end topological_vector_space
+end has_continuous_smul
 
 /-! ### Normed vector space -/
 
@@ -162,8 +168,7 @@ end
 @[simp] lemma convex_hull_ediam (s : set E) :
   emetric.diam (convex_hull s) = emetric.diam s :=
 begin
-  refine le_antisymm (emetric.diam_le_of_forall_edist_le $ λ x hx y hy, _)
-    (emetric.diam_mono $ subset_convex_hull s),
+  refine (emetric.diam_le $ λ x hx y hy, _).antisymm (emetric.diam_mono $ subset_convex_hull s),
   rcases convex_hull_exists_dist_ge2 hx hy with ⟨x', hx', y', hy', H⟩,
   rw edist_dist,
   apply le_trans (ennreal.of_real_le_of_real H),
@@ -180,5 +185,28 @@ by simp only [metric.diam, convex_hull_ediam]
 @[simp] lemma bounded_convex_hull {s : set E} :
   metric.bounded (convex_hull s) ↔ metric.bounded s :=
 by simp only [metric.bounded_iff_ediam_ne_top, convex_hull_ediam]
+
+lemma convex.is_path_connected {s : set E} (hconv : convex s) (hne : s.nonempty) :
+  is_path_connected s :=
+begin
+  refine is_path_connected_iff.mpr ⟨hne, _⟩,
+  intros x y x_in y_in,
+  let f := λ θ : ℝ, x + θ • (y - x),
+  have hf : continuous f, by continuity,
+  have h₀ : f 0 = x, by simp [f],
+  have h₁ : f 1 = y, by { dsimp [f], rw one_smul, abel },
+  have H := hconv.segment_subset x_in y_in,
+  rw segment_eq_image' at H,
+  exact joined_in.of_line hf.continuous_on h₀ h₁ H
+end
+
+@[priority 100]
+instance normed_space.path_connected : path_connected_space E :=
+path_connected_space_iff_univ.mpr $ convex_univ.is_path_connected ⟨(0 : E), trivial⟩
+
+@[priority 100]
+instance normed_space.loc_path_connected : loc_path_connected_space E :=
+loc_path_connected_of_bases (λ x, metric.nhds_basis_ball)
+  (λ x r r_pos, (convex_ball x r).is_path_connected $ by simp [r_pos])
 
 end normed_space

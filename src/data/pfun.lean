@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Jeremy Avigad
+Authors: Mario Carneiro, Jeremy Avigad, Simon Hudon
 -/
 import data.rel
 
@@ -44,6 +44,7 @@ theorem dom_iff_mem : ∀ {o : roption α}, o.dom ↔ ∃y, y ∈ o
 theorem get_mem {o : roption α} (h) : get o h ∈ o := ⟨_, rfl⟩
 
 /-- `roption` extensionality -/
+@[ext]
 theorem ext {o p : roption α} (H : ∀ a, a ∈ o ↔ a ∈ p) : o = p :=
 ext' ⟨λ h, ((H _).1 ⟨h, rfl⟩).fst,
      λ h, ((H _).2 ⟨h, rfl⟩).fst⟩ $
@@ -60,8 +61,11 @@ instance : inhabited (roption α) := ⟨none⟩
   function returns `a`. -/
 def some (a : α) : roption α := ⟨true, λ_, a⟩
 
-theorem mem_unique : relator.left_unique ((∈) : α → roption α → Prop)
-| _ ⟨p, f⟩ _ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
+theorem mem_unique : ∀ {a b : α} {o : roption α}, a ∈ o → b ∈ o → a = b
+| _ _ ⟨p, f⟩ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
+
+theorem mem.left_unique : relator.left_unique ((∈) : α → roption α → Prop) :=
+⟨λ a o b, mem_unique⟩
 
 theorem get_eq_of_mem {o : roption α} {a} (h : a ∈ o) (h') : get o h' = a :=
 mem_unique ⟨_, rfl⟩ h
@@ -92,6 +96,16 @@ begin
   split,
   { rw [ne, eq_none_iff], intro h, push_neg at h, cases h with x hx, use x, rwa [eq_some_iff] },
   { rintro ⟨x, rfl⟩, apply some_ne_none }
+end
+
+lemma eq_none_or_eq_some (o : roption α) : o = none ∨ ∃ x, o = some x :=
+begin
+  classical,
+  by_cases h : o.dom,
+  { rw dom_iff_mem at h, right,
+    apply exists_imp_exists _ h,
+    simp [eq_some_iff] },
+  { rw eq_none_iff', exact or.inl h },
 end
 
 @[simp] lemma some_inj {a b : α} : roption.some a = some b ↔ a = b :=
@@ -172,6 +186,29 @@ by haveI := classical.dec; exact
 ⟨λ o, to_option o, of_option, λ o, of_to_option o,
  λ o, eq.trans (by dsimp; congr) (to_of_option o)⟩
 
+instance : order_bot (roption α) :=
+{ le := λ x y, ∀ i, i ∈ x → i ∈ y,
+  le_refl := λ x y, id,
+  le_trans := λ x y z f g i, g _ ∘ f _,
+  le_antisymm := λ x y f g, roption.ext $ λ z, ⟨f _, g _⟩,
+  bot := none,
+  bot_le := by { introv x, rintro ⟨⟨_⟩,_⟩, } }
+
+instance : preorder (roption α) :=
+by apply_instance
+
+lemma le_total_of_le_of_le {x y : roption α} (z : roption α) (hx : x ≤ z) (hy : y ≤ z) :
+  x ≤ y ∨ y ≤ x :=
+begin
+  rcases roption.eq_none_or_eq_some x with h | ⟨b, h₀⟩,
+  { rw h, left, apply order_bot.bot_le _ },
+  right, intros b' h₁,
+  rw roption.eq_some_iff at h₀,
+  replace hx := hx _ h₀, replace hy := hy _ h₁,
+  replace hx := roption.mem_unique hx hy, subst hx,
+  exact h₀
+end
+
 /-- `assert p f` is a bind-like operation which appends an additional condition
   `p` to the domain and uses `f` to produce the value. -/
 def assert (p : Prop) (f : p → roption α) : roption α :=
@@ -209,6 +246,27 @@ theorem mem_assert {p : Prop} {f : p → roption α}
   a ∈ assert p f ↔ ∃ h : p, a ∈ f h :=
 ⟨match a with _, ⟨h, rfl⟩ := ⟨_, ⟨_, rfl⟩⟩ end,
  λ ⟨a, h⟩, mem_assert _ h⟩
+
+lemma assert_pos {p : Prop} {f : p → roption α} (h : p) :
+  assert p f = f h :=
+begin
+  dsimp [assert],
+  cases h' : f h,
+  simp only [h', h, true_and, iff_self, exists_prop_of_true, eq_iff_iff],
+  apply function.hfunext,
+  { simp only [h,h',exists_prop_of_true] },
+  { cc }
+end
+
+lemma assert_neg {p : Prop} {f : p → roption α} (h : ¬ p) :
+  assert p f = none :=
+begin
+  dsimp [assert,none], congr,
+  { simp only [h, not_false_iff, exists_prop_of_false] },
+  { apply function.hfunext,
+    { simp only [h, not_false_iff, exists_prop_of_false] },
+    cc },
+end
 
 theorem mem_bind {f : roption α} {g : α → roption β} :
   ∀ {a b}, a ∈ f → b ∈ g a → b ∈ f.bind g
@@ -273,6 +331,18 @@ by rw [bind_some_eq_map]; simp [map_id']
 @[simp] theorem bind_eq_bind {α β} (f : roption α) (g : α → roption β) :
   f >>= g = f.bind g := rfl
 
+lemma bind_le {α} (x : roption α) (f : α → roption β) (y : roption β) :
+  x >>= f ≤ y ↔ (∀ a, a ∈ x → f a ≤ y) :=
+begin
+  split; intro h,
+  { intros a h' b, replace h := h b,
+    simp only [and_imp, exists_prop, bind_eq_bind, mem_bind_iff, exists_imp_distrib] at h,
+    apply h _ h' },
+  { intros b h',
+    simp only [exists_prop, bind_eq_bind, mem_bind_iff] at h',
+    rcases h' with ⟨a,h₀,h₁⟩, apply h _ h₀ _ h₁ },
+end
+
 instance : monad_fail roption :=
 { fail := λ_ _, none, ..roption.monad }
 
@@ -317,10 +387,10 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 instance : inhabited (α →. β) := ⟨λ a, roption.none⟩
 
 /-- The domain of a partial function -/
-def dom (f : α →. β) : set α := λ a, (f a).dom
+def dom (f : α →. β) : set α := {a | (f a).dom}
 
 theorem mem_dom (f : α →. β) (x : α) : x ∈ dom f ↔ ∃ y, y ∈ f x :=
-by simp [dom, set.mem_def, roption.dom_iff_mem]
+by simp [dom, roption.dom_iff_mem]
 
 theorem dom_eq (f : α →. β) : dom f = {x | ∃ y, y ∈ f x} :=
 set.ext (mem_dom f)
@@ -342,11 +412,13 @@ theorem ext {f g : α →. β} (H : ∀ a b, b ∈ f a ↔ b ∈ g a) : f = g :=
 funext $ λ a, roption.ext (H a)
 
 /-- Turn a partial function into a function out of a subtype -/
-def as_subtype (f : α →. β) (s : {x // f.dom x}) : β := f.fn s.1 s.2
+def as_subtype (f : α →. β) (s : f.dom) : β := f.fn s s.2
 
+/-- The set of partial functions `α →. β` is equivalent to
+the set of pairs `(p : α → Prop, f : subtype p → β)`. -/
 def equiv_subtype : (α →. β) ≃ (Σ p : α → Prop, subtype p → β) :=
-⟨λ f, ⟨f.dom, as_subtype f⟩,
- λ ⟨p, f⟩ x, ⟨p x, λ h, f ⟨x, h⟩⟩,
+⟨λ f, ⟨λ a, (f a).dom, as_subtype f⟩,
+ λ f x, ⟨f.1 x, λ h, f.2 ⟨x, h⟩⟩,
  λ f, funext $ λ a, roption.eta _,
  λ ⟨p, f⟩, by dsimp; congr; funext a; cases a; refl⟩
 
@@ -376,19 +448,19 @@ def ran (f : α →. β) : set β := {b | ∃a, b ∈ f a}
 
 /-- Restrict a partial function to a smaller domain. -/
 def restrict (f : α →. β) {p : set α} (H : p ⊆ f.dom) : α →. β :=
-λ x, roption.restrict (p x) (f x) (@H x)
+λ x, roption.restrict (x ∈ p) (f x) (@H x)
 
 @[simp]
 theorem mem_restrict {f : α →. β} {s : set α} (h : s ⊆ f.dom) (a : α) (b : β) :
   b ∈ restrict f h a ↔ a ∈ s ∧ b ∈ f a :=
-by { simp [restrict], reflexivity }
+by simp [restrict]
 
 def res (f : α → β) (s : set α) : α →. β :=
 restrict (pfun.lift f) (set.subset_univ s)
 
 theorem mem_res (f : α → β) (s : set α) (a : α) (b : β) :
   b ∈ res f s a ↔ (a ∈ s ∧ f a = b) :=
-by { simp [res], split; {intro h, simp [h]} }
+by simp [res, @eq_comm _ b]
 
 theorem res_univ (f : α → β) : pfun.res f set.univ = f :=
 rfl
@@ -543,11 +615,7 @@ rel.core_inter _ s t
 
 lemma mem_core_res (f : α → β) (s : set α) (t : set β) (x : α) :
   x ∈ core (res f s) t ↔ (x ∈ s → f x ∈ t) :=
-begin
-  simp [mem_core, mem_res], split,
-  { intros h h', apply h _ h', reflexivity },
-  intros h y xs fxeq, rw ←fxeq, exact h xs
-end
+by simp [mem_core, mem_res]
 
 section
 open_locale classical

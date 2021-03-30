@@ -5,7 +5,7 @@ Authors: Markus Himmel
 -/
 import algebra.group.hom
 import category_theory.limits.shapes.kernels
-import algebra.big_operators
+import algebra.big_operators.basic
 
 /-!
 # Preadditive categories
@@ -145,7 +145,7 @@ lemma mono_iff_cancel_zero {Q R : C} (f : Q ⟶ R) :
 
 lemma mono_of_kernel_zero {X Y : C} {f : X ⟶ Y} [has_limit (parallel_pair f 0)]
   (w : kernel.ι f = 0) : mono f :=
-mono_of_cancel_zero f (λ P g h, by rw [←kernel.lift_ι f g h, w, has_zero_morphisms.comp_zero])
+mono_of_cancel_zero f (λ P g h, by rw [←kernel.lift_ι f g h, w, limits.comp_zero])
 
 lemma epi_of_cancel_zero {P Q : C} (f : P ⟶ Q) (h : ∀ {R : C} (g : Q ⟶ R), f ≫ g = 0 → g = 0) :
   epi f :=
@@ -157,7 +157,7 @@ lemma epi_iff_cancel_zero {P Q : C} (f : P ⟶ Q) :
 
 lemma epi_of_cokernel_zero {X Y : C} (f : X ⟶ Y) [has_colimit (parallel_pair f 0 )]
   (w : cokernel.π f = 0) : epi f :=
-epi_of_cancel_zero f (λ P g h, by rw [←cokernel.π_desc f g h, w, has_zero_morphisms.zero_comp])
+epi_of_cancel_zero f (λ P g h, by rw [←cokernel.π_desc f g h, w, limits.zero_comp])
 
 end preadditive
 
@@ -168,9 +168,9 @@ section
 variables {X Y : C} (f : X ⟶ Y) (g : X ⟶ Y)
 
 /-- A kernel of `f - g` is an equalizer of `f` and `g`. -/
-def has_limit_parallel_pair [has_kernel (f - g)] :
+lemma has_limit_parallel_pair [has_kernel (f - g)] :
   has_limit (parallel_pair f g) :=
-{ cone := fork.of_ι (kernel.ι (f - g)) (sub_eq_zero.1 $
+has_limit.mk { cone := fork.of_ι (kernel.ι (f - g)) (sub_eq_zero.1 $
     by { rw ←comp_sub, exact kernel.condition _ }),
   is_limit := fork.is_limit.mk _
     (λ s, kernel.lift (f - g) (fork.ι s) $
@@ -183,7 +183,7 @@ end
 section
 
 /-- If a preadditive category has all kernels, then it also has all equalizers. -/
-def has_equalizers_of_has_kernels [has_kernels C] : has_equalizers C :=
+lemma has_equalizers_of_has_kernels [has_kernels C] : has_equalizers C :=
 @has_equalizers_of_has_limit_parallel_pair _ _ (λ _ _ f g, has_limit_parallel_pair f g)
 
 end
@@ -192,9 +192,9 @@ section
 variables {X Y : C} (f : X ⟶ Y) (g : X ⟶ Y)
 
 /-- A cokernel of `f - g` is a coequalizer of `f` and `g`. -/
-def has_colimit_parallel_pair [has_cokernel (f - g)] :
+lemma has_colimit_parallel_pair [has_cokernel (f - g)] :
   has_colimit (parallel_pair f g) :=
-{ cocone := cofork.of_π (cokernel.π (f - g)) (sub_eq_zero.1 $
+has_colimit.mk { cocone := cofork.of_π (cokernel.π (f - g)) (sub_eq_zero.1 $
     by { rw ←sub_comp, exact cokernel.condition _ }),
   is_colimit := cofork.is_colimit.mk _
     (λ s, cokernel.desc (f - g) (cofork.π s) $
@@ -207,7 +207,7 @@ end
 section
 
 /-- If a preadditive category has all cokernels, then it also has all coequalizers. -/
-def has_coequalizers_of_has_cokernels [has_cokernels C] : has_coequalizers C :=
+lemma has_coequalizers_of_has_cokernels [has_cokernels C] : has_coequalizers C :=
 @has_coequalizers_of_has_colimit_parallel_pair _ _ (λ _ _ f g, has_colimit_parallel_pair f g)
 
 end

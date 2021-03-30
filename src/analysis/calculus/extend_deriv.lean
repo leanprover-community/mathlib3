@@ -34,7 +34,7 @@ with derivative `f'`. -/
 theorem has_fderiv_at_boundary_of_tendsto_fderiv {f : E → F} {s : set E} {x : E} {f' : E →L[ℝ] F}
   (f_diff : differentiable_on ℝ f s) (s_conv : convex s) (s_open : is_open s)
   (f_cont : ∀y ∈ closure s, continuous_within_at f s y)
-  (h : tendsto (λy, fderiv ℝ f y) (nhds_within x s) (𝓝 f')) :
+  (h : tendsto (λy, fderiv ℝ f y) (𝓝[s] x) (𝓝 f')) :
   has_fderiv_within_at f f' (closure s) x :=
 begin
   classical,
@@ -47,7 +47,7 @@ begin
   /- One needs to show that `∥f y - f x - f' (y - x)∥ ≤ ε ∥y - x∥` for `y` close to `x` in `closure
   s`, where `ε` is an arbitrary positive constant. By continuity of the functions, it suffices to
   prove this for nearby points inside `s`. In a neighborhood of `x`, the derivative of `f` is
-  arbitrarily close to f' by assumption. The mean value inequality completes the proof. -/
+  arbitrarily close to `f'` by assumption. The mean value inequality completes the proof. -/
   assume ε ε_pos,
   obtain ⟨δ, δ_pos, hδ⟩ : ∃ δ > 0, ∀ y ∈ s, dist y x < δ → ∥fderiv ℝ f y - f'∥ < ε,
     by simpa [dist_zero_right] using tendsto_nhds_within_nhds.1 h ε ε_pos,
@@ -83,7 +83,7 @@ begin
     obtain ⟨u_in, v_in⟩ : u ∈ closure s ∧ v ∈ closure s,
       by simpa [closure_prod_eq] using closure_mono this uv_in,
     apply continuous_within_at.mono _ this,
-    simp only [continuous_within_at, nhds_prod_eq] },
+    simp only [continuous_within_at] },
   rw nhds_within_prod_eq,
   { have : f v - f u - (f' v - f' u) = f v - f' v - (f u - f' u) := by abel,
     rw this,
@@ -100,8 +100,8 @@ end
 its derivative also converges at `a`, then `f` is differentiable on the right at `a`. -/
 lemma has_deriv_at_interval_left_endpoint_of_tendsto_deriv {s : set ℝ} {e : E} {a : ℝ} {f : ℝ → E}
   (f_diff : differentiable_on ℝ f s) (f_lim : continuous_within_at f s a)
-  (hs : s ∈ nhds_within a (Ioi a))
-  (f_lim' : tendsto (λx, deriv f x) (nhds_within a (Ioi a)) (𝓝 e)) :
+  (hs : s ∈ 𝓝[Ioi a] a)
+  (f_lim' : tendsto (λx, deriv f x) (𝓝[Ioi a] a) (𝓝 e)) :
   has_deriv_within_at f e (Ici a) a :=
 begin
   /- This is a specialization of `has_fderiv_at_boundary_of_tendsto_fderiv`. To be in the setting of
@@ -122,10 +122,10 @@ begin
     { rw h, exact f_lim.mono ts },
     { have : y ∈ s := sab ⟨lt_of_le_of_ne hy.1 (ne.symm h), hy.2⟩,
       exact (f_diff.continuous_on y this).mono ts } },
-  have t_diff' : tendsto (λx, fderiv ℝ f x) (nhds_within a t) (𝓝 (smul_right 1 e)),
+  have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
   { simp [deriv_fderiv.symm],
     refine tendsto.comp is_bounded_bilinear_map_smul_right.continuous_right.continuous_at _,
-    exact tendsto_le_left (nhds_within_mono _ Ioo_subset_Ioi_self) f_lim' },
+    exact tendsto_nhds_within_mono_left Ioo_subset_Ioi_self f_lim' },
   -- now we can apply `has_fderiv_at_boundary_of_differentiable`
   have : has_deriv_within_at f e (Icc a b) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],
@@ -137,8 +137,8 @@ end
 its derivative also converges at `a`, then `f` is differentiable on the left at `a`. -/
 lemma has_deriv_at_interval_right_endpoint_of_tendsto_deriv {s : set ℝ} {e : E} {a : ℝ} {f : ℝ → E}
   (f_diff : differentiable_on ℝ f s) (f_lim : continuous_within_at f s a)
-  (hs : s ∈ nhds_within a (Iio a))
-  (f_lim' : tendsto (λx, deriv f x) (nhds_within a (Iio a)) (𝓝 e)) :
+  (hs : s ∈ 𝓝[Iio a] a)
+  (f_lim' : tendsto (λx, deriv f x) (𝓝[Iio a] a) (𝓝 e)) :
   has_deriv_within_at f e (Iic a) a :=
 begin
   /- This is a specialization of `has_fderiv_at_boundary_of_differentiable`. To be in the setting of
@@ -159,10 +159,10 @@ begin
     { rw h, exact f_lim.mono ts },
     { have : y ∈ s := sab ⟨hy.1, lt_of_le_of_ne hy.2 h⟩,
       exact (f_diff.continuous_on y this).mono ts } },
-  have t_diff' : tendsto (λx, fderiv ℝ f x) (nhds_within a t) (𝓝 (smul_right 1 e)),
+  have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
   { simp [deriv_fderiv.symm],
     refine tendsto.comp is_bounded_bilinear_map_smul_right.continuous_right.continuous_at _,
-    exact tendsto_le_left (nhds_within_mono _ Ioo_subset_Iio_self) f_lim' },
+    exact tendsto_nhds_within_mono_left Ioo_subset_Iio_self f_lim' },
   -- now we can apply `has_fderiv_at_boundary_of_differentiable`
   have : has_deriv_within_at f e (Icc b a) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],
@@ -184,7 +184,7 @@ begin
     -- extension results.
     apply has_deriv_at_interval_left_endpoint_of_tendsto_deriv diff hf.continuous_within_at
       self_mem_nhds_within,
-    have : tendsto g (nhds_within x (Ioi x)) (𝓝 (g x)) := tendsto_inf_left hg,
+    have : tendsto g (𝓝[Ioi x] x) (𝓝 (g x)) := tendsto_inf_left hg,
     apply this.congr' _,
     apply mem_sets_of_superset self_mem_nhds_within (λy hy, _),
     exact (f_diff y (ne_of_gt hy)).deriv.symm },
@@ -195,7 +195,7 @@ begin
     -- extension results.
     apply has_deriv_at_interval_right_endpoint_of_tendsto_deriv diff hf.continuous_within_at
       self_mem_nhds_within,
-    have : tendsto g (nhds_within x (Iio x)) (𝓝 (g x)) := tendsto_inf_left hg,
+    have : tendsto g (𝓝[Iio x] x) (𝓝 (g x)) := tendsto_inf_left hg,
     apply this.congr' _,
     apply mem_sets_of_superset self_mem_nhds_within (λy hy, _),
     exact (f_diff y (ne_of_lt hy)).deriv.symm },

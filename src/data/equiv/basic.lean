@@ -1747,6 +1747,12 @@ section
 variables {α' β' : Type*} (e : perm α') {f' : α' → β'}
   (f : α' ≃ _root_.set.range f') [decidable_pred (∈ _root_.set.range f')]
 
+/--
+Extend the domain of `e : equiv.perm α`, mapping it through `f : α ≃ set.range f'`, for some
+`f' : α → β`. Everything outside of `set.range f` is kept fixed. The `equiv` given by `f` can
+be constructed by `equiv.of_injective` or when there is a known inverse,
+`equiv.set.range_of_left_inverse'`.
+-/
 def perm.via_set_range : perm β' :=
 perm.subtype_congr (perm_congr f e) (equiv.refl _)
 

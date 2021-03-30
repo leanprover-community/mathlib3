@@ -268,13 +268,7 @@ def pseudofunctor.comp (P : pseudofunctor C D) (Q : pseudofunctor D E) :
     dsimp,
     rw [assoc, assoc, ←left_whisker_comp_assoc, Q.comps_natural_left_assoc, ←Q.cell_comp_assoc,
       Q.assoc, ←Q.cell_comp_assoc, assoc, P.assoc, Q.cell_comp_assoc, Q.cell_comp_assoc,
-      ←right_whisker_comp],
-
-
-
-    -- rw [category.assoc, ←right_whisker_comp_assoc, ←Q.comps_natural_right_assoc, Q.assoc_assoc,
-    --   ←functor.map_comp, ←functor.map_comp, P.assoc, functor.map_comp, functor.map_comp,
-    --   Q.comps_natural_left_assoc, left_whisker_comp_assoc],
+      ←right_whisker_comp, Q.comps_natural_right_assoc],
   end }
 
 variables (P Q : pseudofunctor C D)

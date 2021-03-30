@@ -398,7 +398,7 @@ structure smooth_bump_covering (s : set M) :=
 
 namespace smooth_bump_covering
 
-variables {s : set M} {U : M → set M} (f : smooth_bump_covering I s) {I}
+variables {s : set M} {U : M → set M} (fs : smooth_bump_covering I s) {I}
 
 instance : has_coe_to_fun (smooth_bump_covering I s) := ⟨_, to_fun⟩
 
@@ -463,38 +463,38 @@ choice_set I univ is_closed_univ
 
 variables {I M}
 
-protected lemma locally_finite : locally_finite (λ i, support (f i)) := f.locally_finite'
+protected lemma locally_finite : locally_finite (λ i, support (fs i)) := fs.locally_finite'
 
-protected lemma point_finite (x : M) : {i | f i x ≠ 0}.finite :=
-f.locally_finite.point_finite x
+protected lemma point_finite (x : M) : {i | fs i x ≠ 0}.finite :=
+fs.locally_finite.point_finite x
 
-lemma mem_chart_at_source_of_eq_one {i : f.ι} {x : M} (h : f i x = 1) :
-  x ∈ (chart_at H (f.c i)).source :=
-(f i).support_subset_source $ by simp [h]
+lemma mem_chart_at_source_of_eq_one {i : fs.ι} {x : M} (h : fs i x = 1) :
+  x ∈ (chart_at H (fs.c i)).source :=
+(fs i).support_subset_source $ by simp [h]
 
-lemma mem_ext_chart_at_source_of_eq_one {i : f.ι} {x : M} (h : f i x = 1) :
-  x ∈ (ext_chart_at I (f.c i)).source :=
-by { rw ext_chart_at_source, exact f.mem_chart_at_source_of_eq_one h }
+lemma mem_ext_chart_at_source_of_eq_one {i : fs.ι} {x : M} (h : fs i x = 1) :
+  x ∈ (ext_chart_at I (fs.c i)).source :=
+by { rw ext_chart_at_source, exact fs.mem_chart_at_source_of_eq_one h }
 
-/-- Index of a bump function such that `f i =ᶠ[𝓝 x] 1`. -/
-def ind (x : M) (hx : x ∈ s) : f.ι := (f.eventually_eq_one' x hx).some
+/-- Index of a bump function such that `fs i =ᶠ[𝓝 x] 1`. -/
+def ind (x : M) (hx : x ∈ s) : fs.ι := (fs.eventually_eq_one' x hx).some
 
-lemma eventually_eq_one (x : M) (hx : x ∈ s) : f (f.ind x hx) =ᶠ[𝓝 x] 1 :=
-(f.eventually_eq_one' x hx).some_spec
+lemma eventually_eq_one (x : M) (hx : x ∈ s) : fs (fs.ind x hx) =ᶠ[𝓝 x] 1 :=
+(fs.eventually_eq_one' x hx).some_spec
 
-lemma apply_ind (x : M) (hx : x ∈ s) : f (f.ind x hx) x = 1 :=
-(f.eventually_eq_one x hx).eq_of_nhds
+lemma apply_ind (x : M) (hx : x ∈ s) : fs (fs.ind x hx) x = 1 :=
+(fs.eventually_eq_one x hx).eq_of_nhds
 
-lemma mem_support_ind (x : M) (hx : x ∈ s) : x ∈ support (f $ f.ind x hx) :=
-by simp [f.apply_ind x hx]
+lemma mem_support_ind (x : M) (hx : x ∈ s) : x ∈ support (fs $ fs.ind x hx) :=
+by simp [fs.apply_ind x hx]
 
 lemma mem_chart_at_ind_source (x : M) (hx : x ∈ s) :
-  x ∈ (chart_at H (f.c (f.ind x hx))).source :=
-f.mem_chart_at_source_of_eq_one (f.apply_ind x hx)
+  x ∈ (chart_at H (fs.c (fs.ind x hx))).source :=
+fs.mem_chart_at_source_of_eq_one (fs.apply_ind x hx)
 
 lemma mem_ext_chart_at_ind_source (x : M) (hx : x ∈ s) :
-  x ∈ (ext_chart_at I (f.c (f.ind x hx))).source :=
-f.mem_ext_chart_at_source_of_eq_one (f.apply_ind x hx)
+  x ∈ (ext_chart_at I (fs.c (fs.ind x hx))).source :=
+fs.mem_ext_chart_at_source_of_eq_one (fs.apply_ind x hx)
 
 section embedding
 
@@ -505,73 +505,74 @@ In this section we prove a version of the Whitney embedding theorem: for any com
 `M`, for sufficiently large `n` there exists a smooth embedding `M → ℝ^n`.
 -/
 
-instance fintype_ι_of_compact [compact_space M] : fintype f.ι :=
-f.locally_finite.fintype_of_compact $ λ i, (f i).nonempty_support
+instance fintype_ι_of_compact [compact_space M] : fintype fs.ι :=
+fs.locally_finite.fintype_of_compact $ λ i, (fs i).nonempty_support
 
-variables [t2_space M] [fintype f.ι]
+variables [t2_space M] [fintype fs.ι] (f : smooth_bump_covering I (univ : set M))
+  [fintype f.ι]
 
 /-- Smooth embedding of `M` into `(E × ℝ) ^ f.ι`. -/
-def embedding_pi_tangent : C^∞⟮I, M; 𝓘(ℝ, f.ι → (E × ℝ)), f.ι → (E × ℝ)⟯ :=
-{ to_fun := λ x i, (f i x • ext_chart_at I (f.c i) x, f i x),
+def embedding_pi_tangent : C^∞⟮I, M; 𝓘(ℝ, fs.ι → (E × ℝ)), fs.ι → (E × ℝ)⟯ :=
+{ to_fun := λ x i, (fs i x • ext_chart_at I (fs.c i) x, fs i x),
   times_cont_mdiff_to_fun := times_cont_mdiff_pi_space.2 $ λ i,
-    ((f i).smooth_smul times_cont_mdiff_on_ext_chart_at).prod_mk_space ((f i).smooth) }
+    ((fs i).smooth_smul times_cont_mdiff_on_ext_chart_at).prod_mk_space ((fs i).smooth) }
 
 local attribute [simp] lemma embedding_pi_tangent_coe :
-  ⇑f.embedding_pi_tangent = λ x i, (f i x • ext_chart_at I (f.c i) x, f i x) :=
+  ⇑fs.embedding_pi_tangent = λ x i, (fs i x • ext_chart_at I (fs.c i) x, fs i x) :=
 rfl
 
-lemma embedding_pi_tangent_inj_on : inj_on f.embedding_pi_tangent s :=
+lemma embedding_pi_tangent_inj_on : inj_on fs.embedding_pi_tangent s :=
 begin
   intros x hx y hy h,
   simp only [embedding_pi_tangent_coe, funext_iff] at h,
-  obtain ⟨h₁, h₂⟩ := prod.mk.inj_iff.1 (h (f.ind x hx)),
-  rw [f.apply_ind x hx] at h₂,
-  rw [← h₂, f.apply_ind x hx, one_smul, one_smul] at h₁,
-  have := f.mem_ext_chart_at_source_of_eq_one h₂.symm,
-  exact (ext_chart_at I (f.c _)).inj_on (f.mem_ext_chart_at_ind_source x hx) this h₁
+  obtain ⟨h₁, h₂⟩ := prod.mk.inj_iff.1 (h (fs.ind x hx)),
+  rw [fs.apply_ind x hx] at h₂,
+  rw [← h₂, fs.apply_ind x hx, one_smul, one_smul] at h₁,
+  have := fs.mem_ext_chart_at_source_of_eq_one h₂.symm,
+  exact (ext_chart_at I (fs.c _)).inj_on (fs.mem_ext_chart_at_ind_source x hx) this h₁
 end
 
-lemma embedding_pi_tangent_injective (f : smooth_bump_covering I (univ : set M))
-  [fintype f.ι] :
+lemma embedding_pi_tangent_injective :
   injective f.embedding_pi_tangent :=
 injective_iff_inj_on_univ.2 f.embedding_pi_tangent_inj_on
 
 lemma comp_embedding_pi_tangent_mfderiv (x : M) (hx : x ∈ s) :
   ((continuous_linear_map.fst ℝ E ℝ).comp
-    (@continuous_linear_map.proj ℝ _ f.ι (λ _, E × ℝ) _ _ (λ _, infer_instance) (f.ind x hx))).comp
-      (mfderiv I 𝓘(ℝ, f.ι → (E × ℝ)) f.embedding_pi_tangent x) =
-  mfderiv I I (chart_at H (f.c (f.ind x hx))) x :=
+    (@continuous_linear_map.proj ℝ _ fs.ι (λ _, E × ℝ) _ _
+      (λ _, infer_instance) (fs.ind x hx))).comp
+      (mfderiv I 𝓘(ℝ, fs.ι → (E × ℝ)) fs.embedding_pi_tangent x) =
+  mfderiv I I (chart_at H (fs.c (fs.ind x hx))) x :=
 begin
   set L := ((continuous_linear_map.fst ℝ E ℝ).comp
-    (@continuous_linear_map.proj ℝ _ f.ι (λ _, E × ℝ) _ _ (λ _, infer_instance) (f.ind x hx))),
-  have := (L.has_mfderiv_at.comp x (f.embedding_pi_tangent.mdifferentiable_at.has_mfderiv_at)),
+    (@continuous_linear_map.proj ℝ _ fs.ι (λ _, E × ℝ) _ _ (λ _, infer_instance) (fs.ind x hx))),
+  have := (L.has_mfderiv_at.comp x (fs.embedding_pi_tangent.mdifferentiable_at.has_mfderiv_at)),
   convert has_mfderiv_at_unique this _,
-  refine (has_mfderiv_at_ext_chart_at I (f.mem_chart_at_ind_source x hx)).congr_of_eventually_eq _,
-  refine (f.eventually_eq_one x hx).mono (λ y hy, _),
+  refine (has_mfderiv_at_ext_chart_at I (fs.mem_chart_at_ind_source x hx)).congr_of_eventually_eq _,
+  refine (fs.eventually_eq_one x hx).mono (λ y hy, _),
   simp only [embedding_pi_tangent_coe, continuous_linear_map.coe_comp', (∘),
     continuous_linear_map.coe_fst', continuous_linear_map.proj_apply],
   rw [hy, pi.one_apply, one_smul]
 end
 
 lemma embedding_pi_tangent_ker_mfderiv (x : M) (hx : x ∈ s) :
-  (mfderiv I 𝓘(ℝ, f.ι → (E × ℝ)) f.embedding_pi_tangent x).ker = ⊥ :=
+  (mfderiv I 𝓘(ℝ, fs.ι → (E × ℝ)) fs.embedding_pi_tangent x).ker = ⊥ :=
 begin
   apply bot_unique,
-  rw [← (mdifferentiable_chart I (f.c (f.ind x hx))).ker_mfderiv_eq_bot
-    (f.mem_chart_at_ind_source x hx), ← comp_embedding_pi_tangent_mfderiv],
+  rw [← (mdifferentiable_chart I (fs.c (fs.ind x hx))).ker_mfderiv_eq_bot
+    (fs.mem_chart_at_ind_source x hx), ← comp_embedding_pi_tangent_mfderiv],
   exact linear_map.ker_le_ker_comp _ _
 end
 
 lemma embedding_pi_tangent_injective_mfderiv (x : M) (hx : x ∈ s) :
-  injective (mfderiv I 𝓘(ℝ, f.ι → (E × ℝ)) f.embedding_pi_tangent x) :=
-linear_map.ker_eq_bot.1 (f.embedding_pi_tangent_ker_mfderiv x hx)
+  injective (mfderiv I 𝓘(ℝ, fs.ι → (E × ℝ)) fs.embedding_pi_tangent x) :=
+linear_map.ker_eq_bot.1 (fs.embedding_pi_tangent_ker_mfderiv x hx)
 
 end embedding
 
 /-- Baby version of the Whitney weak embedding theorem: if `M` admits a finite covering by
-supports of bump functions, then for some `n` it can be embedded into the `n`-dimensional
+supports of bump functions, then for some `n` it can be immersed into the `n`-dimensional
 Euclidean space. -/
-lemma exists_embedding_findim [t2_space M] (f : smooth_bump_covering I (univ : set M))
+lemma exists_immersion_findim [t2_space M] (f : smooth_bump_covering I (univ : set M))
   [fintype f.ι] :
   ∃ (n : ℕ) (e : M → euclidean_space ℝ (fin n)), smooth I (𝓡 n) e ∧
     injective e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
@@ -595,5 +596,9 @@ supports of bump functions, then for some `n` it can be embedded into the `n`-di
 Euclidean space. -/
 lemma exists_embedding_findim_of_compact [t2_space M] [compact_space M] :
   ∃ (n : ℕ) (e : M → euclidean_space ℝ (fin n)), smooth I (𝓡 n) e ∧
-    injective e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
-(smooth_bump_covering.choice I M).exists_embedding_findim
+    closed_embedding e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
+begin
+  rcases (smooth_bump_covering.choice I M).exists_immersion_findim
+    with ⟨n, e, hsmooth, hinj, hinj_mfderiv⟩,
+  exact ⟨n, e, hsmooth, hsmooth.continuous.closed_embedding hinj, hinj_mfderiv⟩
+end

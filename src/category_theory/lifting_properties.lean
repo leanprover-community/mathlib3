@@ -80,7 +80,7 @@ begin
     apply is_initial.hom_ext, simpa using h },
 end
 
-/-- The condition of having the rlp with respect to a morphism `i` is stable under composition-/
+/-- The condition of having the rlp with respect to a morphism `i` is stable under composition. -/
 lemma has_right_lifting_property_comp {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
   (hf : has_lifting_property i (arrow.mk f))
   (hg : has_lifting_property i (arrow.mk g)) :
@@ -107,7 +107,7 @@ variable {F : D → arrow C}
 
 /-- Right lifting conditions relative to a set of arrows in `C`. -/
 def right_lifting_property_rel (p : X ⟶ Y) : Prop :=
-  ∀ i : D, has_lifting_property (F i) (arrow.mk p)
+∀ i : D, has_lifting_property (F i) (arrow.mk p)
 
 lemma id_has_right_lifting_property' (X : C) :
   ∀ i : D, has_lifting_property (F i) (arrow.mk (𝟙 X)) :=

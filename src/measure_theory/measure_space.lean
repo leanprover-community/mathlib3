@@ -85,7 +85,7 @@ measure, almost everywhere, measure space, completion, null set, null measurable
 noncomputable theory
 
 open classical set filter (hiding map) function measurable_space
-open_locale classical topological_space big_operators filter ennreal
+open_locale classical topological_space big_operators filter ennreal nnreal
 
 variables {α β γ δ ι : Type*}
 
@@ -804,6 +804,12 @@ have μ.to_outer_measure ≤ Inf (to_outer_measure '' m) :=
   le_Inf $ ball_image_of_ball $ assume μ hμ, to_outer_measure_le.2 $ h _ hμ,
 assume s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
 
+instance : complete_semilattice_Inf (measure α) :=
+{ Inf_le := λ s a, measure_Inf_le,
+  le_Inf := λ s a, measure_le_Inf,
+  ..(by apply_instance : partial_order (measure α)),
+  ..(by apply_instance : has_Inf (measure α)), }
+
 instance : complete_lattice (measure α) :=
 { bot := 0,
   bot_le := assume a s hs, by exact bot_le,
@@ -814,7 +820,7 @@ instance : complete_lattice (measure α) :=
     by cases s.eq_empty_or_nonempty with h  h;
       simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
 -/
-  .. complete_lattice_of_Inf (measure α) (λ ms, ⟨λ _, measure_Inf_le, λ _, measure_le_Inf⟩) }
+  .. complete_lattice_of_complete_semilattice_Inf (measure α) }
 
 end Inf
 
@@ -1660,6 +1666,29 @@ lemma measure_lt_top (μ : measure α) [finite_measure μ] (s : set α) : μ s <
 lemma measure_ne_top (μ : measure α) [finite_measure μ] (s : set α) : μ s ≠ ∞ :=
 ne_of_lt (measure_lt_top μ s)
 
+/-- The measure of the whole space with respect to a finite measure, considered as `ℝ≥0`. -/
+def measure_univ_nnreal (μ : measure α) : ℝ≥0 := (μ univ).to_nnreal
+
+@[simp] lemma coe_measure_univ_nnreal (μ : measure α) [finite_measure μ] :
+  ↑(measure_univ_nnreal μ) = μ univ :=
+ennreal.coe_to_nnreal (measure_ne_top μ univ)
+
+instance finite_measure_zero : finite_measure (0 : measure α) := ⟨by simp⟩
+
+@[simp] lemma measure_univ_nnreal_zero : measure_univ_nnreal (0 : measure α) = 0 := rfl
+
+@[simp] lemma measure_univ_nnreal_eq_zero [finite_measure μ] : measure_univ_nnreal μ = 0 ↔ μ = 0 :=
+begin
+  rw [← measure_theory.measure.measure_univ_eq_zero, ← coe_measure_univ_nnreal],
+  norm_cast
+end
+
+lemma measure_univ_nnreal_pos [finite_measure μ] (hμ : μ ≠ 0) : 0 < measure_univ_nnreal μ :=
+begin
+  contrapose! hμ,
+  simpa [measure_univ_nnreal_eq_zero, le_zero_iff] using hμ
+end
+
 /-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
 but it holds for measures with the additional assumption that μ is finite. -/
 lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ : measure α} [finite_measure μ]
@@ -2078,9 +2107,9 @@ begin
         ennreal.sub_add_cancel_of_le (h₂ t h_t_measurable_set)] },
     have h_measure_sub_eq : (μ - ν) = measure_sub,
     { rw measure_theory.measure.sub_def, apply le_antisymm,
-      { apply @Inf_le (measure α) (measure.complete_lattice), simp [le_refl, add_comm,
+      { apply @Inf_le (measure α) measure.complete_semilattice_Inf, simp [le_refl, add_comm,
           h_measure_sub_add] },
-      apply @le_Inf (measure α) (measure.complete_lattice),
+      apply @le_Inf (measure α) measure.complete_semilattice_Inf,
       intros d h_d, rw [← h_measure_sub_add, mem_set_of_eq, add_comm d] at h_d,
       apply measure.le_of_add_le_add_left h_d },
     rw h_measure_sub_eq,
@@ -2463,7 +2492,7 @@ lemma measurable.ae_measurable (h : measurable f) : ae_measurable f μ :=
 @[nontriviality] lemma subsingleton.ae_measurable [subsingleton α] : ae_measurable f μ :=
 subsingleton.measurable.ae_measurable
 
-@[simp] lemma ae_measurable_zero : ae_measurable f 0 :=
+@[simp] lemma ae_measurable_zero_measure : ae_measurable f 0 :=
 begin
   nontriviality α, inhabit α,
   exact ⟨λ x, f (default α), measurable_const, rfl⟩
@@ -2557,7 +2586,7 @@ lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
 ⟨λ a, (hf.mk f a, hg.mk g a), hf.measurable_mk.prod_mk hg.measurable_mk,
   eventually_eq.prod_mk hf.ae_eq_mk hg.ae_eq_mk⟩
 
-lemma null_measurable_set (h : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
+protected lemma null_measurable_set (h : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
   null_measurable_set μ (f ⁻¹' s) :=
 begin
   apply null_measurable_set_iff_ae.2,
@@ -2583,6 +2612,9 @@ lemma ae_measurable_congr (h : f =ᵐ[μ] g) :
 @[simp] lemma ae_measurable_const {b : β} : ae_measurable (λ a : α, b) μ :=
 measurable_const.ae_measurable
 
+@[simp, to_additive] lemma ae_measurable_one [has_one β] : ae_measurable (λ a : α, (1 : β)) μ :=
+measurable_one.ae_measurable
+
 @[simp] lemma ae_measurable_smul_measure_iff {c : ℝ≥0∞} (hc : c ≠ 0) :
   ae_measurable f (c • μ) ↔ ae_measurable f μ :=
 ⟨λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).1 h.ae_eq_mk⟩,
@@ -2591,13 +2623,6 @@ measurable_const.ae_measurable
 lemma measurable.comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
   (hg : measurable g) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
 ⟨g ∘ hf.mk f, hg.comp hf.measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk _⟩
-
-lemma ae_measurable_of_zero_measure {f : α → β} : ae_measurable f 0 :=
-begin
-  by_cases h : nonempty α,
-  { exact (@ae_measurable_const _ _ _ _ _ (f h.some)).congr rfl },
-  { exact (measurable_of_not_nonempty h f).ae_measurable }
-end
 
 end
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.isometry
-import topology.bounded_continuous_function
+import topology.continuous_function.bounded
 import topology.compacts
 
 /-!

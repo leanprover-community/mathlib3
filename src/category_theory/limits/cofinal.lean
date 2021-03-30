@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.punit
-import category_theory.comma
+import category_theory.structured_arrow
 import category_theory.is_connected
 import category_theory.limits.yoneda
 import category_theory.limits.types
@@ -69,7 +69,7 @@ is connected.
 See https://stacks.math.columbia.edu/tag/04E6
 -/
 class cofinal (F : C ⥤ D) : Prop :=
-(out (d : D) : is_connected (comma (functor.from_punit d) F))
+(out (d : D) : is_connected (structured_arrow d F))
 
 attribute [instance] cofinal.out
 
@@ -77,7 +77,7 @@ namespace cofinal
 
 variables (F : C ⥤ D) [cofinal F]
 
-instance (d : D) : nonempty (comma (functor.from_punit d) F) := is_connected.is_nonempty
+instance (d : D) : nonempty (structured_arrow d F) := is_connected.is_nonempty
 
 variables {E : Type u} [category.{v} E] (G : D ⥤ E)
 
@@ -86,14 +86,14 @@ When `F : C ⥤ D` is cofinal, we denote by `lift F d` an arbitrary choice of ob
 there exists a morphism `d ⟶ F.obj (lift F d)`.
 -/
 def lift (d : D) : C :=
-(classical.arbitrary (comma (functor.from_punit d) F)).right
+(classical.arbitrary (structured_arrow d F)).right
 
 /--
 When `F : C ⥤ D` is cofinal, we denote by `hom_to_lift` an arbitrary choice of morphism
 `d ⟶ F.obj (lift F d)`.
 -/
 def hom_to_lift (d : D) : d ⟶ F.obj (lift F d) :=
-(classical.arbitrary (comma (functor.from_punit d) F)).hom
+(classical.arbitrary (structured_arrow d F)).hom
 
 /--
 We provide an induction principle for reasoning about `lift` and `hom_to_lift`.
@@ -113,7 +113,7 @@ lemma induction {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Prop)
 begin
   apply nonempty.some,
   apply @is_preconnected_induction _ _ _
-    (λ (Y : comma (functor.from_punit d) F), Z Y.right Y.hom) _ _ { right := X₀, hom := k₀, } z,
+    (λ (Y : structured_arrow d F), Z Y.right Y.hom) _ _ { right := X₀, hom := k₀, } z,
   { intros j₁ j₂ f a, fapply h₁ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simp, },
   { intros j₁ j₂ f a, fapply h₂ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simp, },
 end
@@ -420,9 +420,7 @@ as_iso (colimit.pre (coyoneda.obj (op d)) F) ≪≫ coyoneda.colimit_coyoneda_is
 
 lemma zigzag_of_eqv_gen_quot_rel {F : C ⥤ D} {d : D} {f₁ f₂ : Σ X, d ⟶ F.obj X}
   (t : eqv_gen (types.quot.rel (F ⋙ coyoneda.obj (op d))) f₁ f₂) :
-  zigzag
-    ({left := punit.star, right := f₁.1, hom := f₁.2} : comma (functor.from_punit d) F)
-    {left := punit.star, right := f₂.1, hom := f₂.2} :=
+  zigzag (structured_arrow.mk f₁.2) (structured_arrow.mk f₂.2) :=
 begin
   induction t,
   case eqv_gen.rel : x y r
@@ -447,10 +445,10 @@ If `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit` for all `d : D`, then `F` is 
 lemma cofinal_of_colimit_comp_coyoneda_iso_punit
   (I : Π d, colimit (F ⋙ coyoneda.obj (op d)) ≅ punit) : cofinal F :=
 ⟨λ d, begin
-  haveI : nonempty (comma (functor.from_punit d) F) := by
+  haveI : nonempty (structured_arrow d F) := by
   { have := (I d).inv punit.star,
     obtain ⟨j, y, rfl⟩ := limits.types.jointly_surjective' this,
-    exact ⟨{right := j, hom := y}⟩, },
+    exact ⟨structured_arrow.mk y⟩, },
   apply zigzag_is_connected,
   rintros ⟨⟨⟩,X₁,f₁⟩ ⟨⟨⟩,X₂,f₂⟩,
   dsimp at *,

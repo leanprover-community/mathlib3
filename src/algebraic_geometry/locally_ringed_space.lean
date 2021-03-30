@@ -13,9 +13,9 @@ import ring_theory.ideal.basic
 /-!
 # The category of locally ringed spaces
 
-We define (bundled) locally ringed spaces
-(as `SheafedSpace CommRing` along with the fact that the stalks are local rings),
-and morphisms between these (morphisms in `SheafedSpace` with `is_local_ring_hom` on the stalk maps).
+We define (bundled) locally ringed spaces (as `SheafedSpace CommRing` along with the fact that the
+stalks are local rings), and morphisms between these (morphisms in `SheafedSpace` with
+`is_local_ring_hom` on the stalk maps).
 
 ## Future work
 * Define the restriction along an open embedding
@@ -62,7 +62,8 @@ def 𝒪 : sheaf CommRing X.to_Top := X.to_SheafedSpace.sheaf
 /-- A morphism of locally ringed spaces is a morphism of ringed spaces
  such that the morphims induced on stalks are local ring homomorphisms. -/
 def hom (X Y : LocallyRingedSpace) : Type* :=
-{ f : X.to_SheafedSpace ⟶ Y.to_SheafedSpace // ∀ x, is_local_ring_hom (PresheafedSpace.stalk_map f x) }
+{ f : X.to_SheafedSpace ⟶ Y.to_SheafedSpace //
+    ∀ x, is_local_ring_hom (PresheafedSpace.stalk_map f x) }
 
 instance : has_hom LocallyRingedSpace := ⟨hom⟩
 
@@ -74,12 +75,14 @@ The stalk of a locally ringed space, just as a `CommRing`.
 -/
 -- TODO perhaps we should make a bundled `LocalRing` and return one here?
 -- TODO define `sheaf.stalk` so we can write `X.𝒪.stalk` here?
+noncomputable
 def stalk (X : LocallyRingedSpace) (x : X) : CommRing := X.presheaf.stalk x
 
 /--
 A morphism of locally ringed spaces `f : X ⟶ Y` induces
 a local ring homomorphism from `Y.stalk (f x)` to `X.stalk x` for any `x : X`.
 -/
+noncomputable
 def stalk_map {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
   Y.stalk (f.1.1 x) ⟶ X.stalk x :=
 PresheafedSpace.stalk_map f.1 x
@@ -136,6 +139,24 @@ def restrict {U : Top} (X : LocallyRingedSpace)
   end,
   .. X.to_SheafedSpace.restrict _ f h }
 -/
+
+/--
+The global sections, notated Gamma.
+-/
+def Γ : LocallyRingedSpaceᵒᵖ ⥤ CommRing :=
+forget_to_SheafedSpace.op ⋙ SheafedSpace.Γ
+
+lemma Γ_def : Γ = forget_to_SheafedSpace.op ⋙ SheafedSpace.Γ := rfl
+
+@[simp] lemma Γ_obj (X : LocallyRingedSpaceᵒᵖ) : Γ.obj X = (unop X).presheaf.obj (op ⊤) := rfl
+
+lemma Γ_obj_op (X : LocallyRingedSpace) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
+
+@[simp] lemma Γ_map {X Y : LocallyRingedSpaceᵒᵖ} (f : X ⟶ Y) :
+  Γ.map f = f.unop.1.c.app (op ⊤) ≫ (unop Y).presheaf.map (opens.le_map_top _ _).op := rfl
+
+lemma Γ_map_op {X Y : LocallyRingedSpace} (f : X ⟶ Y) :
+  Γ.map f.op = f.1.c.app (op ⊤) ≫ X.presheaf.map (opens.le_map_top _ _).op := rfl
 
 end LocallyRingedSpace
 

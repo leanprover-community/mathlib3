@@ -5,6 +5,7 @@ Authors: Reid Barton
 -/
 import category_theory.fin_category
 import category_theory.limits.cones
+import category_theory.adjunction.basic
 import order.bounded_lattice
 
 /-!
@@ -40,7 +41,7 @@ of finsets of morphisms.
 * Forgetful functors for algebraic categories typically preserve filtered colimits.
 -/
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₁ u u₁-- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 
@@ -62,6 +63,8 @@ A category `is_filtered` if
 2. for every pair of parallel morphisms there exists a morphism to the right so the compositions
    are equal, and
 3. there exists some object.
+
+See https://stacks.math.columbia.edu/tag/002V. (They also define a diagram being filtered.)
 -/
 class is_filtered extends is_filtered_or_empty C : Prop :=
 [nonempty : nonempty C]
@@ -125,6 +128,7 @@ noncomputable def coeq_hom {j j' : C} (f f' : j ⟶ j') : j' ⟶ coeq f f' :=
 `coeq_condition f f'`, for morphisms `f f' : j ⟶ j'`, is the proof that
 `f ≫ coeq_hom f f' = f' ≫ coeq_hom f f'`.
 -/
+@[simp, reassoc]
 lemma coeq_condition {j j' : C} (f f' : j ⟶ j') : f ≫ coeq_hom f f' = f' ≫ coeq_hom f f' :=
 (is_filtered_or_empty.cocone_maps f f').some_spec.some_spec
 
@@ -146,16 +150,15 @@ begin
     { exact ⟨(w' (by finish)).some ≫ right_to_max _ _⟩, }, }
 end
 
-/--
-An alternative formulation of `sup_exists`, using a single `finset` of morphisms,
-rather than a family indexed by the sources and targets.
+variables (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y))
 
+/--
 Given any `finset` of objects `{X, ...}` and
 indexed collection of `finset`s of morphisms `{f, ...}` in `C`,
-there is an object `S`, with a morphism `T X : X ⟶ S` from each `X`,
+there exists an object `S`, with a morphism `T X : X ⟶ S` from each `X`,
 such that the triangles commute: `f ≫ T X = T Y`, for `f : X ⟶ Y` in the `finset`.
 -/
-lemma sup_exists' (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) :
+lemma sup_exists :
   ∃ (S : C) (T : Π {X : C}, X ∈ O → (X ⟶ S)), ∀ {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y},
     (⟨X, Y, mX, mY, f⟩ : (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H → f ≫ T mY = T mX :=
 begin
@@ -173,54 +176,33 @@ begin
       by_cases hf : f = f',
       { subst hf,
         apply coeq_condition, },
-      { rw w' _ _ (by finish), }, },
-    { rw w' _ _ (by finish), }, },
+      { rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
+    { rw @w' _ _ mX' mY' f' (by finish), }, },
 end
 
 /--
-Given any `finset` of objects `{X, ...}` and
-indexed collection of `finset`s of morphisms `{f, ...}` in `C`,
-there is an object `S`, with a morphism `T X : X ⟶ S` from each `X`,
-such that the triangles commute: `f ≫ T X = T Y`, for `f : X ⟶ Y` in the `finset`.
--/
-lemma sup_exists (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y)) :
-  ∃ (S : C) (T : Π {X : C}, X ∈ O → (X ⟶ S)), ∀ {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y},
-    f ∈ H _ _ mX mY → f ≫ T mY = T mX :=
-begin
-  classical,
-  let H' : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
-    O.attach.bind (λ X : { X // X ∈ O }, O.attach.bind (λ Y : { Y // Y ∈ O },
-      (H X.1 Y.1 X.2 Y.2).image (λ f, ⟨X.1, Y.1, X.2, Y.2, f⟩))),
-  obtain ⟨S, T, w⟩ := sup_exists' O H',
-  refine ⟨S, @T, _⟩,
-  intros X Y mX mY f mf,
-  apply w,
-  simp only [finset.mem_attach, exists_prop, finset.mem_bind, exists_prop_of_true, finset.mem_image,
-    subtype.exists, subtype.coe_mk, subtype.val_eq_coe],
-  refine ⟨X, mX, Y, mY, f, mf, rfl, (by simp)⟩,
-end
-
-/--
-An arbitrary choice of object "to the right" of a finite collection of objects `O` and morphisms `H`,
+An arbitrary choice of object "to the right"
+of a finite collection of objects `O` and morphisms `H`,
 making all the triangles commute.
 -/
 noncomputable
-def sup (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y)) : C :=
+def sup : C :=
 (sup_exists O H).some
 
 /--
 The morphisms to `sup O H`.
 -/
 noncomputable
-def to_sup (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y)) {X : C} (m : X ∈ O) :
+def to_sup {X : C} (m : X ∈ O) :
   X ⟶ sup O H :=
 (sup_exists O H).some_spec.some m
 
 /--
 The triangles of consisting of a morphism in `H` and the maps to `sup O H` commute.
 -/
-lemma to_sup_commutes (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y))
-  {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y} (mf : f ∈ H _ _ mX mY) :
+lemma to_sup_commutes
+  {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y}
+  (mf : (⟨X, Y, mX, mY, f⟩ : Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) ∈ H) :
   f ≫ to_sup O H mY = to_sup O H mX :=
 (sup_exists O H).some_spec.some_spec mX mY mf
 
@@ -235,24 +217,45 @@ begin
   classical,
   let O := (finset.univ.image F.obj),
   let H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
-    finset.univ.bind (λ X : J, finset.univ.bind (λ Y : J, finset.univ.image (λ f : X ⟶ Y,
+    finset.univ.bUnion (λ X : J, finset.univ.bUnion (λ Y : J, finset.univ.image (λ f : X ⟶ Y,
       ⟨F.obj X, F.obj Y, by simp, by simp, F.map f⟩))),
-  obtain ⟨Z, f, w⟩ := sup_exists' O H,
+  obtain ⟨Z, f, w⟩ := sup_exists O H,
   refine ⟨⟨Z, ⟨λ X, f (by simp), _⟩⟩⟩,
   intros j j' g,
   dsimp,
   simp only [category.comp_id],
   apply w,
-  simp only [finset.mem_univ, finset.mem_bind, exists_and_distrib_left,
+  simp only [finset.mem_univ, finset.mem_bUnion, exists_and_distrib_left,
     exists_prop_of_true, finset.mem_image],
   exact ⟨j, rfl, j', g, (by simp)⟩,
 end
 
 /--
-An arbitrarily chosen cocone over `F : J ⥤ C`, for `fin_category J` and `is_filtered C`.
+An arbitrary choice of cocone over `F : J ⥤ C`, for `fin_category J` and `is_filtered C`.
 -/
 noncomputable def cocone (F : J ⥤ C) : cocone F :=
 (cocone_nonempty F).some
+
+variables {D : Type u₁} [category.{v₁} D]
+
+/--
+If `C` is filtered, and we have a functor `R : C ⥤ D` with a left adjoint, then `D` is filtered.
+-/
+lemma of_right_adjoint {L : D ⥤ C} {R : C ⥤ D} (h : L ⊣ R) : is_filtered D :=
+{ cocone_objs := λ X Y,
+    ⟨_, h.hom_equiv _ _ (left_to_max _ _), h.hom_equiv _ _ (right_to_max _ _), ⟨⟩⟩,
+  cocone_maps := λ X Y f g,
+    ⟨_, h.hom_equiv _ _ (coeq_hom _ _),
+     by rw [← h.hom_equiv_naturality_left, ← h.hom_equiv_naturality_left, coeq_condition]⟩,
+  nonempty := is_filtered.nonempty.map R.obj }
+
+/-- If `C` is filtered, and we have a right adjoint functor `R : C ⥤ D`, then `D` is filtered. -/
+lemma of_is_right_adjoint (R : C ⥤ D) [is_right_adjoint R] : is_filtered D :=
+of_right_adjoint (adjunction.of_right_adjoint R)
+
+/-- Being filtered is preserved by equivalence of categories. -/
+lemma of_equivalence (h : C ≌ D) : is_filtered D :=
+of_right_adjoint h.symm.to_adjunction
 
 end is_filtered
 

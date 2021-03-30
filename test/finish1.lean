@@ -182,12 +182,6 @@ section
   variables a b c d : Prop
   variables (p q : ℕ → Prop) (r : ℕ → ℕ → Prop)
 
-  example (h₁ : ¬ (a → b ∨ c)) (h₂ : ¬ (b ∨ ¬ c)) : true :=
-  begin
-    normalize_hyps {classical := false},
-    trivial
-  end
-
   example (h : ¬ ∀ x, (∃ y, r x y) → p x) : true :=
   begin
     normalize_hyps {},

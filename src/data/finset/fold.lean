@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.finset.basic
 import data.multiset.fold
@@ -121,7 +121,7 @@ lemma fold_sup_bot_singleton [decidable_eq α] (s : finset α) :
 fold_union_empty_singleton s
 
 section order
-variables [decidable_linear_order β] (c : β)
+variables [linear_order β] (c : β)
 
 lemma le_fold_min : c ≤ s.fold min b f ↔ (c ≤ b ∧ ∀ x∈s, c ≤ f x) :=
 fold_op_rel_iff_and $ λ x y z, le_min_iff

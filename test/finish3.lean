@@ -56,7 +56,7 @@ variable r : Prop
 
 example : (∃ x : A, r) → r := by finish
 -- TODO(Jeremy): can we get these automatically?
-example (a : A) : r → (∃ x : A, r) := begin safe; apply a_2; assumption end
+example (a : A) : r → (∃ x : A, r) := begin safe; apply_assumption; assumption end
 example : (∃ x, p x ∧ r) ↔ (∃ x, p x) ∧ r := by finish
 
 theorem foo': (∃ x, p x ∨ q x) ↔ (∃ x, p x) ∨ (∃ x, q x) :=

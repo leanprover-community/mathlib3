@@ -39,6 +39,8 @@ variables {n m a b c d : ℕ}
 
 @[trans] protected theorem trans : a ≡ b [MOD n] → b ≡ c [MOD n] → a ≡ c [MOD n] := eq.trans
 
+protected theorem comm : a ≡ b [MOD n] ↔ b ≡ a [MOD n] := ⟨nat.modeq.symm, nat.modeq.symm⟩
+
 theorem modeq_zero_iff : a ≡ 0 [MOD n] ↔ n ∣ a :=
 by rw [modeq, zero_mod, dvd_iff_mod_eq_zero]
 
@@ -73,6 +75,13 @@ by rw [mul_comm a, mul_comm b]; exact modeq_mul_left c h
 theorem modeq_mul (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a * c ≡ b * d [MOD n] :=
 (modeq_mul_left _ h₂).trans (modeq_mul_right _ h₁)
 
+theorem modeq_pow (m : ℕ) (h : a ≡ b [MOD n]) : a ^ m ≡ b ^ m [MOD n] :=
+begin
+  induction m with d hd, {refl},
+  rw [pow_succ, pow_succ],
+  exact modeq_mul h hd,
+end
+
 theorem modeq_add (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a + c ≡ b + d [MOD n] :=
 modeq_of_dvd begin
   convert dvd_add (dvd_of_modeq h₁) (dvd_of_modeq h₂) using 1,
@@ -96,29 +105,45 @@ by rw [modeq_iff_dvd] at *; exact dvd.trans (dvd_mul_left (n : ℤ) (m : ℤ)) h
 theorem modeq_of_modeq_mul_right (m : ℕ) : a ≡ b [MOD n * m] → a ≡ b [MOD n] :=
 mul_comm m n ▸ modeq_of_modeq_mul_left _
 
+theorem modeq_one : a ≡ b [MOD 1] := modeq_of_dvd $ one_dvd _
+
+local attribute [semireducible] int.nonneg
+
+/-- The natural number less than `lcm n m` congruent to `a` mod `n` and `b` mod `m` -/
+def chinese_remainder' (h : a ≡ b [MOD gcd n m]) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
+if hn : n = 0 then ⟨a, begin rw [hn, gcd_zero_left] at h, split, refl, exact h end⟩ else
+if hm : m = 0 then ⟨b, begin rw [hm, gcd_zero_right] at h, split, exact h.symm, refl end⟩ else
+⟨let (c, d) := xgcd n m in int.to_nat (((n * c * b + m * d * a) / gcd n m) % lcm n m), begin
+  rw xgcd_val,
+  dsimp [chinese_remainder'._match_1],
+  rw [modeq_iff_dvd, modeq_iff_dvd,
+    int.to_nat_of_nonneg (int.mod_nonneg _ (int.coe_nat_ne_zero.2 (lcm_ne_zero hn hm)))],
+  have hnonzero : (gcd n m : ℤ) ≠ 0 := begin
+    norm_cast,
+    rw [nat.gcd_eq_zero_iff, not_and],
+    exact λ _, hm,
+  end,
+  have hcoedvd : ∀ t, (gcd n m : ℤ) ∣ t * (b - a) := λ t, dvd_mul_of_dvd_right h.dvd_of_modeq _,
+  have := gcd_eq_gcd_ab n m,
+  split; rw [int.mod_def, ← sub_add]; refine dvd_add _ (dvd_mul_of_dvd_left _ _); try {norm_cast},
+  { rw ← sub_eq_iff_eq_add' at this,
+    rw [← this, sub_mul, ← add_sub_assoc, add_comm, add_sub_assoc, ← mul_sub,
+      int.add_div_of_dvd_left, int.mul_div_cancel_left _ hnonzero,
+      int.mul_div_assoc _ h.dvd_of_modeq, ← sub_sub, sub_self, zero_sub, dvd_neg, mul_assoc],
+    exact dvd_mul_right _ _,
+    norm_cast, exact dvd_mul_right _ _, },
+  { exact dvd_lcm_left n m, },
+  { rw ← sub_eq_iff_eq_add at this,
+    rw [← this, sub_mul, sub_add, ← mul_sub, int.sub_div_of_dvd, int.mul_div_cancel_left _ hnonzero,
+      int.mul_div_assoc _ h.dvd_of_modeq, ← sub_add, sub_self, zero_add, mul_assoc],
+    exact dvd_mul_right _ _,
+    exact hcoedvd _ },
+  { exact dvd_lcm_right n m, },
+end⟩
+
 /-- The natural number less than `n*m` congruent to `a` mod `n` and `b` mod `m` -/
 def chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
-⟨let (c, d) := xgcd n m in int.to_nat ((b * c * n + a * d * m) % (n * m)), begin
-  rw xgcd_val, dsimp [chinese_remainder._match_1],
-  rw [modeq_iff_dvd, modeq_iff_dvd],
-  rw [int.to_nat_of_nonneg], swap,
-  { by_cases h₁ : n = 0, {simp [coprime, h₁] at co, substs m n, simp},
-    by_cases h₂ : m = 0, {simp [coprime, h₂] at co, substs m n, simp},
-    exact int.mod_nonneg _
-      (mul_ne_zero (int.coe_nat_ne_zero.2 h₁) (int.coe_nat_ne_zero.2 h₂)) },
-  have := gcd_eq_gcd_ab n m, simp [co.gcd_eq_one, mul_comm] at this,
-  rw [int.mod_def, ← sub_add, ← sub_add]; split,
-  { refine dvd_add _ (dvd_trans (dvd_mul_right _ _) (dvd_mul_right _ _)),
-    rw [add_comm, ← sub_sub], refine _root_.dvd_sub _ (dvd_mul_left _ _),
-    have := congr_arg ((*) ↑a) this,
-    exact ⟨_, by rwa [mul_add, ← mul_assoc, ← mul_assoc, mul_one, mul_comm,
-        ← sub_eq_iff_eq_add] at this⟩ },
-  { refine dvd_add _ (dvd_trans (dvd_mul_left _ _) (dvd_mul_right _ _)),
-    rw [← sub_sub], refine _root_.dvd_sub _ (dvd_mul_left _ _),
-    have := congr_arg ((*) ↑b) this,
-    exact ⟨_, by rwa [mul_add, ← mul_assoc, ← mul_assoc, mul_one, mul_comm _ ↑m,
-        ← sub_eq_iff_eq_add'] at this⟩ }
-end⟩
+chinese_remainder' (by convert modeq_one)
 
 lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
   a ≡ b [MOD m] ∧ a ≡ b [MOD n] ↔ (a ≡ b [MOD m * n]) :=
@@ -131,7 +156,7 @@ lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
 λ h, ⟨nat.modeq.modeq_of_modeq_mul_right _ h, nat.modeq.modeq_of_modeq_mul_left _ h⟩⟩
 
 lemma coprime_of_mul_modeq_one (b : ℕ) {a n : ℕ} (h : a * b ≡ 1 [MOD n]) : coprime a n :=
-nat.coprime_of_dvd' (λ k ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
+nat.coprime_of_dvd' (λ k kp ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
   rw [hka, hkb, modeq_iff_dvd] at h,
   cases h with z hz,
   rw [sub_eq_iff_eq_add] at hz,
@@ -186,7 +211,8 @@ lemma add_div {a b c : ℕ} (hc0 : 0 < c) : (a + b) / c = a / c + b / c +
 begin
   rw [← nat.mul_right_inj hc0, ← @add_left_cancel_iff _ _ ((a + b) % c + a % c + b % c)],
   suffices : (a + b) % c + c * ((a + b) / c) + a % c + b % c =
-    a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) + (a + b) % c,
+    a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) +
+      (a + b) % c,
   { simpa only [mul_add, add_comm, add_left_comm, add_assoc] },
   rw [mod_add_div, mod_add_div, mod_add_div, mul_ite, add_assoc, add_assoc],
   conv_lhs { rw ← add_mod_add_ite },
@@ -197,6 +223,17 @@ lemma add_div_eq_of_add_mod_lt {a b c : ℕ} (hc : a % c + b % c < c) :
   (a + b) / c = a / c + b / c :=
 if hc0 : c = 0 then by simp [hc0]
 else by rw [add_div (nat.pos_of_ne_zero hc0), if_neg (not_le_of_lt hc), add_zero]
+
+protected lemma add_div_of_dvd_right {a b c : ℕ} (hca : c ∣ a) :
+  (a + b) / c = a / c + b / c :=
+if h : c = 0 then by simp [h] else add_div_eq_of_add_mod_lt begin
+  rw [nat.mod_eq_zero_of_dvd hca, zero_add],
+  exact nat.mod_lt _ (pos_iff_ne_zero.mpr h),
+end
+
+protected lemma add_div_of_dvd_left {a b c : ℕ} (hca : c ∣ b) :
+  (a + b) / c = a / c + b / c :=
+by rwa [add_comm, nat.add_div_of_dvd_right, add_comm]
 
 lemma add_div_eq_of_le_mod_add_mod {a b c : ℕ} (hc : c ≤ a % c + b % c) (hc0 : 0 < c) :
   (a + b) / c = a / c + b / c + 1 :=
@@ -258,7 +295,6 @@ have h₃ : m < list.length (l ++ [a]), by simpa using hml,
       add_assoc m n 1 ▸ nat.modeq.modeq_add
         (hml'.trans (nat.mod_eq_of_lt (nat.lt_succ_self _)).symm) rfl
     ... = 0 : by simp,
-  have h₂ : l.length < (l ++ [a]).length, by simp [nat.lt_succ_self],
   by rw [list.length, list.rotate_cons_succ, nth_rotate h₃, list.length_append,
     list.length_cons, list.length, zero_add, hml', h₁, list.nth_concat_length]; refl)
 

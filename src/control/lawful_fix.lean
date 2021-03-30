@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 
 import tactic.apply
@@ -59,7 +59,7 @@ lemma approx_mono ⦃i j : ℕ⦄ (hij : i ≤ j) : approx f i ≤ approx f j :=
 begin
   induction j, cases hij, refine @le_refl _ _ _,
   cases hij, apply @le_refl _ _ _,
-  apply @le_trans _ _ _ (approx f j_n) _ (j_ih hij_a),
+  apply @le_trans _ _ _ (approx f j_n) _ (j_ih ‹_›),
   apply approx_mono' f
 end
 
@@ -175,7 +175,7 @@ namespace roption
 @[simps]
 def to_unit_mono (f : roption α →ₘ roption α) : (unit → roption α) →ₘ (unit → roption α) :=
 { to_fun := λ x u, f (x u),
-  monotone := λ x y (h : x ≤ y) u, f.monotone $ h u }
+  monotone' := λ x y (h : x ≤ y) u, f.monotone $ h u }
 
 lemma to_unit_cont (f : roption α →ₘ roption α) (hc : continuous f) : continuous (to_unit_mono f)
 | c := begin
@@ -206,14 +206,14 @@ variables (α β γ)
 def monotone_curry [∀ x y, preorder $ γ x y] :
   (Π x : Σ a, β a, γ x.1 x.2) →ₘ (Π a (b : β a), γ a b) :=
 { to_fun := curry,
-  monotone := λ x y h a b, h ⟨a,b⟩ }
+  monotone' := λ x y h a b, h ⟨a,b⟩ }
 
 /-- `sigma.uncurry` as a monotone function. -/
 @[simps]
 def monotone_uncurry [∀ x y, preorder $ γ x y] :
   (Π a (b : β a), γ a b) →ₘ (Π x : Σ a, β a, γ x.1 x.2) :=
 { to_fun := uncurry,
-  monotone := λ x y h a, h a.1 a.2 }
+  monotone' := λ x y h a, h a.1 a.2 }
 
 variables [∀ x y, omega_complete_partial_order $ γ x y]
 
@@ -239,7 +239,8 @@ section curry
 variables {f : (Π x (y : β x), γ x y) →ₘ (Π x (y : β x), γ x y)}
 variables (hc : continuous f)
 
-lemma uncurry_curry_continuous : continuous $ (monotone_uncurry α β γ).comp $ f.comp $ monotone_curry α β γ :=
+lemma uncurry_curry_continuous :
+  continuous $ (monotone_uncurry α β γ).comp $ f.comp $ monotone_curry α β γ :=
 continuous_comp _ _
   (continuous_comp _ _ (continuous_curry _ _ _) hc)
   (continuous_uncurry _ _ _)
@@ -248,6 +249,10 @@ end curry
 
 instance pi.lawful_fix' [lawful_fix $ Π x : sigma β, γ x.1 x.2] : lawful_fix (Π x y, γ x y) :=
 { fix_eq := λ f hc,
-  by { dsimp [fix], conv { to_lhs, erw [lawful_fix.fix_eq (uncurry_curry_continuous hc)] }, refl, } }
+    begin
+      dsimp [fix],
+      conv { to_lhs, erw [lawful_fix.fix_eq (uncurry_curry_continuous hc)] },
+      refl,
+    end, }
 
 end pi

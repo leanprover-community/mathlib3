@@ -47,7 +47,7 @@ begin
   /- One needs to show that `∥f y - f x - f' (y - x)∥ ≤ ε ∥y - x∥` for `y` close to `x` in `closure
   s`, where `ε` is an arbitrary positive constant. By continuity of the functions, it suffices to
   prove this for nearby points inside `s`. In a neighborhood of `x`, the derivative of `f` is
-  arbitrarily close to f' by assumption. The mean value inequality completes the proof. -/
+  arbitrarily close to `f'` by assumption. The mean value inequality completes the proof. -/
   assume ε ε_pos,
   obtain ⟨δ, δ_pos, hδ⟩ : ∃ δ > 0, ∀ y ∈ s, dist y x < δ → ∥fderiv ℝ f y - f'∥ < ε,
     by simpa [dist_zero_right] using tendsto_nhds_within_nhds.1 h ε ε_pos,

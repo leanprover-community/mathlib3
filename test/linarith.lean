@@ -57,7 +57,7 @@ example (ε : ℚ) (h1 : ε > 0) : ε / 3 + ε / 3 + ε / 3 = ε :=
 by linarith
 
 example (a b c : ℚ)  (h2 : b + 2 > 3 + b) : false :=
-by linarith {discharger := `[ring SOP]}
+by linarith {discharger := `[ring]}
 
 example (a b c : ℚ)  (h2 : b + 2 > 3 + b) : false :=
 by linarith
@@ -69,6 +69,8 @@ example (g v V c h : ℚ) (h1 : h = 0) (h2 : v = V) (h3 : V > 0) (h4 : g > 0)
         (h5 : 0 ≤ c) (h6 : c < 1) :
   v ≤ V :=
 by linarith
+
+constant nat.prime : ℕ → Prop
 
 example (x y z : ℚ) (h1 : 2*x + ((-3)*y) < 0) (h2 : (-4)*x + 2*z < 0)
        (h3 : 12*y + (-4)* z < 0) (h4 : nat.prime 7) : false :=
@@ -340,8 +342,8 @@ constant α : Type
 variable [fact false] -- we work in an inconsistent context below
 def leα : α → α → Prop := λ a b, ∀ c : α, true
 
-noncomputable instance : discrete_linear_ordered_field α :=
-by refine_struct { le := leα }; exact false.elim _inst_2
+noncomputable instance : linear_ordered_field α :=
+by refine_struct { le := leα }; exact (fact.out false).elim
 
 example (a : α) (ha : a < 2) : a ≤ a :=
 by linarith
@@ -354,7 +356,7 @@ by nlinarith
 -- do not cause an exception
 variables {R : Type*} [ring R] (abs : R → ℚ)
 
-lemma abs_nonneg' : ∀ r, 0 ≤ abs r := false.elim _inst_2
+lemma abs_nonneg' : ∀ r, 0 ≤ abs r := (fact.out false).elim
 
 example (t : R) (a b : ℚ) (h : a ≤ b) : abs (t^2) * a ≤ abs (t^2) * b :=
 by nlinarith [abs_nonneg' abs (t^2)]
@@ -372,7 +374,7 @@ constant T_zero : ordered_ring T
 
 namespace T
 
-lemma zero_lt_one : (0 : T) < 1 := false.elim _inst_2
+lemma zero_lt_one : (0 : T) < 1 := (fact.out false).elim
 
 lemma works {a b : ℕ} (hab : a ≤ b) (h : b < a) : false :=
 begin
@@ -390,3 +392,6 @@ by linarith {split_ne := tt}
 example (x y : ℚ) (h₁ : 0 ≤ y) (h₂ : y ≤ x) : y * x ≤ x * x := by nlinarith
 
 example (x y : ℚ) (h₁ : 0 ≤ y) (h₂ : y ≤ x) : y * x ≤ x ^ 2 := by nlinarith
+
+axiom foo {x : int} : 1 ≤ x → 1 ≤ x*x
+lemma bar (x y: int)(h : 0 ≤ y ∧ 1 ≤ x) : 1 ≤ y + x*x := by linarith [foo h.2]

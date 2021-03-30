@@ -8,8 +8,6 @@ TODO: Generalize normalization monoids commutative (cancellative) monoids with o
 TODO: Generalize GCD monoid to not require normalization in all cases
 -/
 import algebra.associated
-import data.nat.basic
-import data.int.gcd
 
 /-!
 
@@ -21,6 +19,8 @@ This file defines extra structures on `comm_cancel_monoid_with_zero`s, including
 
 * `normalization_monoid`
 * `gcd_monoid`
+* `gcd_monoid_of_exists_gcd`
+* `gcd_monoid_of_exists_lcm`
 
 ## Implementation Notes
 
@@ -31,6 +31,18 @@ definition as currently implemented does casework on `0`.
 * `gcd_monoid` extends `normalization_monoid`, so the `gcd` and `lcm` are always normalized.
 This makes `gcd`s of polynomials easier to work with, but excludes Euclidean domains, and monoids
 without zero.
+
+* `gcd_monoid_of_gcd` noncomputably constructs a `gcd_monoid` structure just from the `gcd`
+  and its properties.
+
+* `gcd_monoid_of_exists_gcd` noncomputably constructs a `gcd_monoid` structure just from a proof
+  that any two elements have a (not necessarily normalized) `gcd`.
+
+* `gcd_monoid_of_lcm` noncomputably constructs a `gcd_monoid` structure just from the `lcm`
+  and its properties.
+
+* `gcd_monoid_of_exists_lcm` noncomputably constructs a `gcd_monoid` structure just from a proof
+  that any two elements have a (not necessarily normalized) `lcm`.
 
 ## TODO
 
@@ -51,7 +63,8 @@ set_option old_structure_cmd true
 
 
 
-/-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated elements. -/
+/-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated
+elements. -/
 @[protect_proj] class normalization_monoid (α : Type*) [nontrivial α]
   [comm_cancel_monoid_with_zero α] :=
 (norm_unit : α → units α)
@@ -70,15 +83,14 @@ variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoi
 norm_unit_coe_units 1
 
 /-- Chooses an element of each associate class, by multiplying by `norm_unit` -/
-def normalize : α →* α :=
+def normalize : monoid_with_zero_hom α α :=
 { to_fun := λ x, x * norm_unit x,
+  map_zero' := by simp,
   map_one' := by rw [norm_unit_one, units.coe_one, mul_one],
   map_mul' := λ x y,
   classical.by_cases (λ hx : x = 0, by rw [hx, zero_mul, zero_mul, zero_mul]) $ λ hx,
   classical.by_cases (λ hy : y = 0, by rw [hy, mul_zero, zero_mul, mul_zero]) $ λ hy,
   by simp only [norm_unit_mul hx hy, units.coe_mul]; simp only [mul_assoc, mul_left_comm y], }
-
-@[simp] lemma normalize_apply {x : α} : normalize x = x * norm_unit x := rfl
 
 theorem associated_normalize {x : α} : associated x (normalize x) :=
 ⟨_, rfl⟩
@@ -86,14 +98,20 @@ theorem associated_normalize {x : α} : associated x (normalize x) :=
 theorem normalize_associated {x : α} : associated (normalize x) x :=
 associated_normalize.symm
 
-@[simp] lemma normalize_zero : normalize (0 : α) = 0 := by simp
+lemma associates.mk_normalize {x : α} : associates.mk (normalize x) = associates.mk x :=
+associates.mk_eq_mk_iff_associated.2 normalize_associated
+
+@[simp] lemma normalize_apply {x : α} : normalize x = x * norm_unit x := rfl
+
+@[simp] lemma normalize_zero : normalize (0 : α) = 0 := normalize.map_zero
 
 @[simp] lemma normalize_one : normalize (1 : α) = 1 := normalize.map_one
 
 lemma normalize_coe_units (u : units α) : normalize (u : α) = 1 := by simp
 
 lemma normalize_eq_zero {x : α} : normalize x = 0 ↔ x = 0 :=
-⟨λ hx, (associated_zero_iff_eq_zero x).1 $ hx ▸ associated_normalize, by rintro rfl; exact normalize_zero⟩
+⟨λ hx, (associated_zero_iff_eq_zero x).1 $ hx ▸ associated_normalize,
+  by rintro rfl; exact normalize_zero⟩
 
 lemma normalize_eq_one {x : α} : normalize x = 1 ↔ is_unit x :=
 ⟨λ hx, is_unit_iff_exists_inv.2 ⟨_, hx⟩, λ ⟨u, hu⟩, hu ▸ normalize_coe_units u⟩
@@ -135,6 +153,22 @@ units.mul_right_dvd
 
 end normalization_monoid
 
+namespace comm_group_with_zero
+variables [decidable_eq α] [comm_group_with_zero α]
+
+@[priority 100] -- see Note [lower instance priority]
+instance : normalization_monoid α :=
+{ norm_unit := λ x, if h : x = 0 then 1 else (units.mk0 x h)⁻¹,
+  norm_unit_zero := dif_pos rfl,
+  norm_unit_mul := λ x y x0 y0, units.eq_iff.1 (by simp [x0, y0, mul_inv']),
+  norm_unit_coe_units := λ u, by { rw [dif_neg (units.ne_zero _), units.mk0_coe], apply_instance } }
+
+@[simp]
+lemma coe_norm_unit {a : α} (h0 : a ≠ 0) : (↑(norm_unit a) : α) = a⁻¹ :=
+by simp [norm_unit, h0]
+
+end comm_group_with_zero
+
 namespace associates
 variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoid α]
 
@@ -155,10 +189,12 @@ quotient.induction_on₂ a b $ assume a b,
 by simp only [associates.quotient_mk_eq_mk, out_mk, mk_mul_mk, normalize.map_mul]
 
 lemma dvd_out_iff (a : α) (b : associates α) : a ∣ b.out ↔ associates.mk a ≤ b :=
-quotient.induction_on b $ by simp [associates.out_mk, associates.quotient_mk_eq_mk, mk_le_mk_iff_dvd_iff]
+quotient.induction_on b $
+  by simp [associates.out_mk, associates.quotient_mk_eq_mk, mk_le_mk_iff_dvd_iff]
 
 lemma out_dvd_iff (a : α) (b : associates α) : b.out ∣ a ↔ b ≤ associates.mk a :=
-quotient.induction_on b $ by simp [associates.out_mk, associates.quotient_mk_eq_mk, mk_le_mk_iff_dvd_iff]
+quotient.induction_on b $
+  by simp [associates.out_mk, associates.quotient_mk_eq_mk, mk_le_mk_iff_dvd_iff]
 
 @[simp] lemma out_top : (⊤ : associates α).out = 0 :=
 normalize_zero
@@ -215,7 +251,8 @@ theorem gcd_assoc (m n k : α) : gcd (gcd m n) k = gcd m (gcd n k) :=
 dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
   (dvd_gcd
     (dvd.trans (gcd_dvd_left (gcd m n) k) (gcd_dvd_left m n))
-    (dvd_gcd (dvd.trans (gcd_dvd_left (gcd m n) k) (gcd_dvd_right m n)) (gcd_dvd_right (gcd m n) k)))
+    (dvd_gcd (dvd.trans (gcd_dvd_left (gcd m n) k) (gcd_dvd_right m n))
+      (gcd_dvd_right (gcd m n) k)))
   (dvd_gcd
     (dvd_gcd (gcd_dvd_left m (gcd n k)) (dvd.trans (gcd_dvd_right m (gcd n k)) (gcd_dvd_left n k)))
     (dvd.trans (gcd_dvd_right m (gcd n k)) (gcd_dvd_right n k)))
@@ -252,7 +289,8 @@ dvd_gcd (dvd.trans (gcd_dvd_left _ _) hab) (dvd.trans (gcd_dvd_right _ _) hcd)
 gcd_eq_normalize (gcd_dvd_left _ _) (dvd_gcd (dvd_refl a) (dvd_refl a))
 
 @[simp] theorem gcd_mul_left (a b c : α) : gcd (a * b) (a * c) = normalize a * gcd b c :=
-classical.by_cases (by rintro rfl; simp only [zero_mul, gcd_zero_left, normalize_zero]) $ assume ha : a ≠ 0,
+classical.by_cases (by rintro rfl; simp only [zero_mul, gcd_zero_left, normalize_zero]) $
+assume ha : a ≠ 0,
 suffices gcd (a * b) (a * c) = normalize (a * gcd b c),
   by simpa only [normalize.map_mul, normalize_gcd],
 let ⟨d, eq⟩ := dvd_gcd (dvd_mul_right a b) (dvd_mul_right a c) in
@@ -270,7 +308,8 @@ by simp only [mul_comm, gcd_mul_left]
 
 theorem gcd_eq_left_iff (a b : α) (h : normalize a = a) : gcd a b = a ↔ a ∣ b :=
 iff.intro (assume eq, eq ▸ gcd_dvd_right _ _) $
-  assume hab, dvd_antisymm_of_normalize_eq (normalize_gcd _ _) h (gcd_dvd_left _ _) (dvd_gcd (dvd_refl a) hab)
+  assume hab, dvd_antisymm_of_normalize_eq (normalize_gcd _ _) h (gcd_dvd_left _ _)
+    (dvd_gcd (dvd_refl a) hab)
 
 theorem gcd_eq_right_iff (a b : α) (h : normalize b = b) : gcd a b = b ↔ b ∣ a :=
 by simpa only [gcd_comm a b] using gcd_eq_left_iff b a h
@@ -286,6 +325,128 @@ gcd_dvd_gcd (dvd_refl _) (dvd_mul_left _ _)
 
 theorem gcd_dvd_gcd_mul_right_right (m n k : α) : gcd m n ∣ gcd m (n * k) :=
 gcd_dvd_gcd (dvd_refl _) (dvd_mul_right _ _)
+
+theorem gcd_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : gcd m k = gcd n k :=
+dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
+  (gcd_dvd_gcd (dvd_of_associated h) (dvd_refl _))
+  (gcd_dvd_gcd (dvd_of_associated h.symm) (dvd_refl _))
+
+theorem gcd_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : gcd k m = gcd k n :=
+dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
+  (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h))
+  (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h.symm))
+
+lemma dvd_gcd_mul_of_dvd_mul {m n k : α} (H : k ∣ m * n) : k ∣ (gcd k m) * n :=
+begin
+  transitivity gcd k m * normalize n,
+  { rw ← gcd_mul_right,
+    exact dvd_gcd (dvd_mul_right _ _) H },
+  { apply dvd.intro ↑(norm_unit n)⁻¹,
+    rw [normalize_apply, mul_assoc, mul_assoc, ← units.coe_mul],
+    simp }
+end
+
+lemma dvd_mul_gcd_of_dvd_mul {m n k : α} (H : k ∣ m * n) : k ∣ m * gcd k n :=
+by { rw mul_comm at H ⊢, exact dvd_gcd_mul_of_dvd_mul H }
+
+/-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`.
+
+ Note: In general, this representation is highly non-unique. -/
+lemma exists_dvd_and_dvd_of_dvd_mul {m n k : α} (H : k ∣ m * n) :
+  ∃ d₁ (hd₁ : d₁ ∣ m) d₂ (hd₂ : d₂ ∣ n), k = d₁ * d₂ :=
+begin
+  by_cases h0 : gcd k m = 0,
+  { rw gcd_eq_zero_iff at h0,
+    rcases h0 with ⟨rfl, rfl⟩,
+    refine ⟨0, dvd_refl 0, n, dvd_refl n, _⟩,
+    simp },
+  { obtain ⟨a, ha⟩ := gcd_dvd_left k m,
+    refine ⟨gcd k m, gcd_dvd_right _ _, a, _, ha⟩,
+    suffices h : gcd k m * a ∣ gcd k m * n,
+    { cases h with b hb,
+      use b,
+      rw mul_assoc at hb,
+      apply mul_left_cancel' h0 hb },
+    rw ← ha,
+    exact dvd_gcd_mul_of_dvd_mul H }
+end
+
+theorem gcd_mul_dvd_mul_gcd (k m n : α) : gcd k (m * n) ∣ gcd k m * gcd k n :=
+begin
+  obtain ⟨m', hm', n', hn', h⟩ := (exists_dvd_and_dvd_of_dvd_mul $ gcd_dvd_right k (m * n)),
+  replace h : gcd k (m * n) = m' * n' := h,
+  rw h,
+  have hm'n' : m' * n' ∣ k := h ▸ gcd_dvd_left _ _,
+  apply mul_dvd_mul,
+  { have hm'k : m' ∣ k := dvd_trans (dvd_mul_right m' n') hm'n',
+    exact dvd_gcd hm'k hm' },
+  { have hn'k : n' ∣ k := dvd_trans (dvd_mul_left n' m') hm'n',
+    exact dvd_gcd hn'k hn' }
+end
+
+theorem gcd_pow_right_dvd_pow_gcd {a b : α} {k : ℕ} : gcd a (b ^ k) ∣ (gcd a b) ^ k :=
+begin
+  by_cases hg : gcd a b = 0,
+  { rw gcd_eq_zero_iff at hg,
+    rcases hg with ⟨rfl, rfl⟩,
+    simp },
+  { induction k with k hk, simp,
+    rw [pow_succ, pow_succ],
+    transitivity gcd a b * gcd a (b ^ k),
+    apply gcd_mul_dvd_mul_gcd a b (b ^ k),
+    refine (mul_dvd_mul_iff_left hg).mpr hk }
+end
+
+theorem gcd_pow_left_dvd_pow_gcd {a b : α} {k : ℕ} : gcd (a ^ k) b ∣ (gcd a b) ^ k :=
+by { rw [gcd_comm, gcd_comm a b], exact gcd_pow_right_dvd_pow_gcd }
+
+theorem pow_dvd_of_mul_eq_pow {a b c d₁ d₂ : α} (ha : a ≠ 0)
+  (hab : gcd a b = 1) {k : ℕ} (h : a * b = c ^ k) (hc : c = d₁ * d₂)
+  (hd₁ : d₁ ∣ a) : d₁ ^ k ≠ 0 ∧ d₁ ^ k ∣ a :=
+begin
+  have h1 : gcd (d₁ ^ k) b = 1,
+  { rw ← normalize_gcd (d₁ ^ k) b, rw normalize_eq_one,
+    apply is_unit_of_dvd_one,
+    transitivity (gcd d₁ b) ^ k,
+    { exact gcd_pow_left_dvd_pow_gcd },
+    { apply is_unit.dvd, apply is_unit.pow, apply is_unit_of_dvd_one,
+      rw ← hab, apply gcd_dvd_gcd hd₁ (dvd_refl b) } },
+  have h2 : d₁ ^ k ∣ a * b, { use d₂ ^ k, rw [h, hc], exact mul_pow d₁ d₂ k },
+  rw mul_comm at h2,
+  have h3 : d₁ ^ k ∣ a, { rw [← one_mul a, ← h1], apply dvd_gcd_mul_of_dvd_mul h2 },
+  have h4 : d₁ ^ k ≠ 0,
+  { intro hdk, rw hdk at h3, apply absurd (zero_dvd_iff.mp h3) ha },
+  tauto
+end
+
+theorem exists_associated_pow_of_mul_eq_pow {a b c : α} (hab : gcd a b = 1) {k : ℕ}
+  (h : a * b = c ^ k) : ∃ (d : α), associated (d ^ k) a :=
+begin
+  by_cases ha : a = 0,
+  { use 0, rw ha,
+    by_cases hk : k = 0,
+    { exfalso, revert h, rw [ha, hk, zero_mul, pow_zero], apply zero_ne_one },
+    { rw zero_pow (nat.pos_of_ne_zero hk) }},
+  by_cases hb : b = 0,
+  { rw [hb, gcd_zero_right] at hab, use 1, rw one_pow,
+    apply (associated_one_iff_is_unit.mpr (normalize_eq_one.mp hab)).symm },
+  by_cases hk : k = 0,
+  { use 1, rw [hk, pow_zero] at h ⊢, use units.mk_of_mul_eq_one _ _ h,
+    rw [units.coe_mk_of_mul_eq_one, one_mul] },
+  have hc : c ∣ a * b, { rw h, refine dvd_pow (dvd_refl c) hk },
+  obtain ⟨d₁, hd₁, d₂, hd₂, hc⟩ := exists_dvd_and_dvd_of_dvd_mul hc,
+  use d₁,
+  obtain ⟨h0₁, ⟨a', ha'⟩⟩ := pow_dvd_of_mul_eq_pow ha hab h hc hd₁,
+  rw [mul_comm] at h hc, rw [gcd_comm] at hab,
+  obtain ⟨h0₂, ⟨b', hb'⟩⟩ := pow_dvd_of_mul_eq_pow hb hab h hc hd₂,
+  rw [ha', hb', hc, mul_pow] at h,
+  have h' : a' * b' = 1,
+  { apply (mul_right_inj' h0₁).mp, rw mul_one,
+    apply (mul_right_inj' h0₂).mp, rw ← h,
+    rw [mul_assoc, mul_comm a', ← mul_assoc (d₁ ^ k), ← mul_assoc _ (d₁ ^ k), mul_comm b'] },
+  use units.mk_of_mul_eq_one _ _ h',
+  rw [units.coe_mk_of_mul_eq_one, ha']
+end
 
 end gcd
 
@@ -374,7 +535,8 @@ iff.intro
       by rw [lcm_units_coe_left, normalize_coe_units])
 
 @[simp] theorem lcm_mul_left (a b c : α) : lcm (a * b) (a * c) = normalize a * lcm b c :=
-classical.by_cases (by rintro rfl; simp only [zero_mul, lcm_zero_left, normalize_zero]) $ assume ha : a ≠ 0,
+classical.by_cases (by rintro rfl; simp only [zero_mul, lcm_zero_left, normalize_zero]) $
+assume ha : a ≠ 0,
 suffices lcm (a * b) (a * c) = normalize (a * lcm b c),
   by simpa only [normalize.map_mul, normalize_lcm],
 have a ∣ lcm (a * b) (a * c), from dvd.trans (dvd_mul_right _ _) (dvd_lcm_left _ _),
@@ -390,7 +552,8 @@ by simp only [mul_comm, lcm_mul_left]
 
 theorem lcm_eq_left_iff (a b : α) (h : normalize a = a) : lcm a b = a ↔ b ∣ a :=
 iff.intro (assume eq, eq ▸ dvd_lcm_right _ _) $
-  assume hab, dvd_antisymm_of_normalize_eq (normalize_lcm _ _) h (lcm_dvd (dvd_refl a) hab) (dvd_lcm_left _ _)
+  assume hab, dvd_antisymm_of_normalize_eq (normalize_lcm _ _) h (lcm_dvd (dvd_refl a) hab)
+    (dvd_lcm_left _ _)
 
 theorem lcm_eq_right_iff (a b : α) (h : normalize b = b) : lcm a b = b ↔ a ∣ b :=
 by simpa only [lcm_comm b a] using lcm_eq_left_iff b a h
@@ -407,6 +570,16 @@ lcm_dvd_lcm (dvd_refl _) (dvd_mul_left _ _)
 theorem lcm_dvd_lcm_mul_right_right (m n k : α) : lcm m n ∣ lcm m (n * k) :=
 lcm_dvd_lcm (dvd_refl _) (dvd_mul_right _ _)
 
+theorem lcm_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : lcm m k = lcm n k :=
+dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
+  (lcm_dvd_lcm (dvd_of_associated h) (dvd_refl _))
+  (lcm_dvd_lcm (dvd_of_associated h.symm) (dvd_refl _))
+
+theorem lcm_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : lcm k m = lcm k n :=
+dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
+  (lcm_dvd_lcm (dvd_refl _) (dvd_of_associated h))
+  (lcm_dvd_lcm (dvd_refl _) (dvd_of_associated h.symm))
+
 end lcm
 
 namespace gcd_monoid
@@ -414,7 +587,7 @@ theorem prime_of_irreducible {x : α} (hi: irreducible x) : prime x :=
 ⟨hi.ne_zero, ⟨hi.1, λ a b h,
 begin
   cases gcd_dvd_left x a with y hy,
-  cases hi.2 _ _ hy with hu hu; cases hu with u hu,
+  cases hi.is_unit_or_is_unit hy with hu hu; cases hu with u hu,
   { right, transitivity (gcd (x * b) (a * b)), apply dvd_gcd (dvd_mul_right x b) h,
     rw gcd_mul_right, rw ← hu,
     apply dvd_of_associated, transitivity (normalize b), symmetry, use u, apply mul_comm,
@@ -429,288 +602,7 @@ theorem irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
 end gcd_monoid
 end gcd_monoid
 
-namespace int
-
-section normalization_monoid
-
-instance : normalization_monoid ℤ :=
-{ norm_unit      := λa:ℤ, if 0 ≤ a then 1 else -1,
-  norm_unit_zero := if_pos (le_refl _),
-  norm_unit_mul  := assume a b hna hnb,
-  begin
-    by_cases ha : 0 ≤ a; by_cases hb : 0 ≤ b; simp [ha, hb],
-    exact if_pos (mul_nonneg ha hb),
-    exact if_neg (assume h, hb $ nonneg_of_mul_nonneg_left h $ lt_of_le_of_ne ha hna.symm),
-    exact if_neg (assume h, ha $ nonneg_of_mul_nonneg_right h $ lt_of_le_of_ne hb hnb.symm),
-    exact if_pos (mul_nonneg_of_nonpos_of_nonpos (le_of_not_ge ha) (le_of_not_ge hb))
-  end,
-  norm_unit_coe_units := assume u, (units_eq_one_or u).elim
-    (assume eq, eq.symm ▸ if_pos zero_le_one)
-    (assume eq, eq.symm ▸ if_neg (not_le_of_gt $ show (-1:ℤ) < 0, by simp [@neg_lt ℤ _ 1 0])), }
-
-lemma normalize_of_nonneg {z : ℤ} (h : 0 ≤ z) : normalize z = z :=
-show z * ↑(ite _ _ _) = z, by rw [if_pos h, units.coe_one, mul_one]
-
-lemma normalize_of_neg {z : ℤ} (h : z < 0) : normalize z = -z :=
-show z * ↑(ite _ _ _) = -z, by rw [if_neg (not_le_of_gt h), units.coe_neg, units.coe_one, mul_neg_one]
-
-lemma normalize_coe_nat (n : ℕ) : normalize (n : ℤ) = n :=
-normalize_of_nonneg (coe_nat_le_coe_nat_of_le $ nat.zero_le n)
-
-theorem coe_nat_abs_eq_normalize (z : ℤ) : (z.nat_abs : ℤ) = normalize z :=
-begin
-  by_cases 0 ≤ z,
-  { simp [nat_abs_of_nonneg h, normalize_of_nonneg h] },
-  { simp [of_nat_nat_abs_of_nonpos (le_of_not_ge h), normalize_of_neg (lt_of_not_ge h)] }
-end
-
-end normalization_monoid
-
-/-- ℤ specific version of least common multiple. -/
-def lcm (i j : ℤ) : ℕ := nat.lcm (nat_abs i) (nat_abs j)
-
-theorem lcm_def (i j : ℤ) : lcm i j = nat.lcm (nat_abs i) (nat_abs j) := rfl
-
-section gcd_monoid
-
-theorem gcd_dvd_left (i j : ℤ) : (gcd i j : ℤ) ∣ i :=
-dvd_nat_abs.mp $ coe_nat_dvd.mpr $ nat.gcd_dvd_left _ _
-
-theorem gcd_dvd_right (i j : ℤ) : (gcd i j : ℤ) ∣ j :=
-dvd_nat_abs.mp $ coe_nat_dvd.mpr $ nat.gcd_dvd_right _ _
-
-theorem dvd_gcd {i j k : ℤ} (h1 : k ∣ i) (h2 : k ∣ j) : k ∣ gcd i j :=
-nat_abs_dvd.1 $ coe_nat_dvd.2 $ nat.dvd_gcd (nat_abs_dvd_abs_iff.2 h1) (nat_abs_dvd_abs_iff.2 h2)
-
-theorem gcd_mul_lcm (i j : ℤ) : gcd i j * lcm i j = nat_abs (i * j) :=
-by rw [int.gcd, int.lcm, nat.gcd_mul_lcm, nat_abs_mul]
-
-instance : gcd_monoid ℤ :=
-{ gcd            := λa b, int.gcd a b,
-  lcm            := λa b, int.lcm a b,
-  gcd_dvd_left   := assume a b, int.gcd_dvd_left _ _,
-  gcd_dvd_right  := assume a b, int.gcd_dvd_right _ _,
-  dvd_gcd        := assume a b c, dvd_gcd,
-  normalize_gcd  := assume a b, normalize_coe_nat _,
-  gcd_mul_lcm    := by intros; rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
-  lcm_zero_left  := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_left _,
-  lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _,
-  .. int.normalization_monoid }
-
-lemma coe_gcd (i j : ℤ) : ↑(int.gcd i j) = gcd_monoid.gcd i j := rfl
-lemma coe_lcm (i j : ℤ) : ↑(int.lcm i j) = gcd_monoid.lcm i j := rfl
-
-lemma nat_abs_gcd (i j : ℤ) : nat_abs (gcd_monoid.gcd i j) = int.gcd i j := rfl
-lemma nat_abs_lcm (i j : ℤ) : nat_abs (gcd_monoid.lcm i j) = int.lcm i j := rfl
-
-end gcd_monoid
-
-theorem gcd_comm (i j : ℤ) : gcd i j = gcd j i := nat.gcd_comm _ _
-
-theorem gcd_assoc (i j k : ℤ) : gcd (gcd i j) k = gcd i (gcd j k) := nat.gcd_assoc _ _ _
-
-@[simp] theorem gcd_self (i : ℤ) : gcd i i = nat_abs i := by simp [gcd]
-
-@[simp] theorem gcd_zero_left (i : ℤ) : gcd 0 i = nat_abs i := by simp [gcd]
-
-@[simp] theorem gcd_zero_right (i : ℤ) : gcd i 0 = nat_abs i := by simp [gcd]
-
-@[simp] theorem gcd_one_left (i : ℤ) : gcd 1 i = 1 := nat.gcd_one_left _
-
-@[simp] theorem gcd_one_right (i : ℤ) : gcd i 1 = 1 := nat.gcd_one_right _
-
-theorem gcd_mul_left (i j k : ℤ) : gcd (i * j) (i * k) = nat_abs i * gcd j k :=
-by simp [(int.coe_nat_eq_coe_nat_iff _ _).symm, coe_gcd, coe_nat_abs_eq_normalize]
-
-theorem gcd_mul_right (i j k : ℤ) : gcd (i * j) (k * j) = gcd i k * nat_abs j :=
-by simp [(int.coe_nat_eq_coe_nat_iff _ _).symm, coe_gcd, coe_nat_abs_eq_normalize]
-
-theorem gcd_pos_of_non_zero_left {i : ℤ} (j : ℤ) (i_non_zero : i ≠ 0) : 0 < gcd i j :=
-nat.gcd_pos_of_pos_left (nat_abs j) (nat_abs_pos_of_ne_zero i_non_zero)
-
-theorem gcd_pos_of_non_zero_right (i : ℤ) {j : ℤ} (j_non_zero : j ≠ 0) : 0 < gcd i j :=
-nat.gcd_pos_of_pos_right (nat_abs i) (nat_abs_pos_of_ne_zero j_non_zero)
-
-theorem gcd_eq_zero_iff {i j : ℤ} : gcd i j = 0 ↔ i = 0 ∧ j = 0 :=
-by rw [← int.coe_nat_eq_coe_nat_iff, int.coe_nat_zero, coe_gcd, gcd_eq_zero_iff]
-
-theorem gcd_div {i j k : ℤ} (H1 : k ∣ i) (H2 : k ∣ j) :
-  gcd (i / k) (j / k) = gcd i j / nat_abs k :=
-by rw [gcd, nat_abs_div i k H1, nat_abs_div j k H2];
-exact nat.gcd_div (nat_abs_dvd_abs_iff.mpr H1) (nat_abs_dvd_abs_iff.mpr H2)
-
-theorem gcd_div_gcd_div_gcd {i j : ℤ} (H : 0 < gcd i j) :
-  gcd (i / gcd i j) (j / gcd i j) = 1 :=
-begin
-  rw [gcd_div (gcd_dvd_left i j) (gcd_dvd_right i j)],
-  rw [nat_abs_of_nat, nat.div_self H]
-end
-
-theorem gcd_dvd_gcd_of_dvd_left {i k : ℤ} (j : ℤ) (H : i ∣ k) : gcd i j ∣ gcd k j :=
-int.coe_nat_dvd.1 $ dvd_gcd (dvd.trans (gcd_dvd_left i j) H) (gcd_dvd_right i j)
-
-theorem gcd_dvd_gcd_of_dvd_right {i k : ℤ} (j : ℤ) (H : i ∣ k) : gcd j i ∣ gcd j k :=
-int.coe_nat_dvd.1 $ dvd_gcd (gcd_dvd_left j i) (dvd.trans (gcd_dvd_right j i) H)
-
-theorem gcd_dvd_gcd_mul_left (i j k : ℤ) : gcd i j ∣ gcd (k * i) j :=
-gcd_dvd_gcd_of_dvd_left _ (dvd_mul_left _ _)
-
-theorem gcd_dvd_gcd_mul_right (i j k : ℤ) : gcd i j ∣ gcd (i * k) j :=
-gcd_dvd_gcd_of_dvd_left _ (dvd_mul_right _ _)
-
-theorem gcd_dvd_gcd_mul_left_right (i j k : ℤ) : gcd i j ∣ gcd i (k * j) :=
-gcd_dvd_gcd_of_dvd_right _ (dvd_mul_left _ _)
-
-theorem gcd_dvd_gcd_mul_right_right (i j k : ℤ) : gcd i j ∣ gcd i (j * k) :=
-gcd_dvd_gcd_of_dvd_right _ (dvd_mul_right _ _)
-
-theorem gcd_eq_left {i j : ℤ} (H : i ∣ j) : gcd i j = nat_abs i :=
-nat.dvd_antisymm (by unfold gcd; exact nat.gcd_dvd_left _ _)
-                 (by unfold gcd; exact nat.dvd_gcd (dvd_refl _) (nat_abs_dvd_abs_iff.mpr H))
-
-theorem gcd_eq_right {i j : ℤ} (H : j ∣ i) : gcd i j = nat_abs j :=
-by rw [gcd_comm, gcd_eq_left H]
-
-theorem ne_zero_of_gcd {x y : ℤ}
-  (hc : gcd x y ≠ 0) : x ≠ 0 ∨ y ≠ 0 :=
-begin
-  contrapose! hc,
-  rw [hc.left, hc.right, gcd_zero_right, nat_abs_zero]
-end
-
-theorem exists_gcd_one {m n : ℤ} (H : 0 < gcd m n) :
-  ∃ (m' n' : ℤ), gcd m' n' = 1 ∧ m = m' * gcd m n ∧ n = n' * gcd m n :=
-⟨_, _, gcd_div_gcd_div_gcd H,
-  (int.div_mul_cancel (gcd_dvd_left m n)).symm,
-  (int.div_mul_cancel (gcd_dvd_right m n)).symm⟩
-
-theorem exists_gcd_one' {m n : ℤ} (H : 0 < gcd m n) :
-  ∃ (g : ℕ) (m' n' : ℤ), 0 < g ∧ gcd m' n' = 1 ∧ m = m' * g ∧ n = n' * g :=
-let ⟨m', n', h⟩ := exists_gcd_one H in ⟨_, m', n', H, h⟩
-
-theorem pow_dvd_pow_iff {m n : ℤ} {k : ℕ} (k0 : 0 < k) : m ^ k ∣ n ^ k ↔ m ∣ n :=
-begin
-  refine ⟨λ h, _, λ h, pow_dvd_pow_of_dvd h _⟩,
-  apply int.nat_abs_dvd_abs_iff.mp,
-  apply (nat.pow_dvd_pow_iff k0).mp,
-  rw [← int.nat_abs_pow, ← int.nat_abs_pow],
-  exact int.nat_abs_dvd_abs_iff.mpr h
-end
-
-/- lcm -/
-
-theorem lcm_comm (i j : ℤ) : lcm i j = lcm j i :=
-by simp [(int.coe_nat_eq_coe_nat_iff _ _).symm, coe_lcm, lcm_comm]
-
-theorem lcm_assoc (i j k : ℤ) : lcm (lcm i j) k = lcm i (lcm j k) :=
-by simp [(int.coe_nat_eq_coe_nat_iff _ _).symm, coe_lcm, lcm_assoc]
-
-@[simp] theorem lcm_zero_left (i : ℤ) : lcm 0 i = 0 :=
-by simp [(int.coe_nat_eq_coe_nat_iff _ _).symm, coe_lcm]
-
-@[simp] theorem lcm_zero_right (i : ℤ) : lcm i 0 = 0 :=
-by simp [(int.coe_nat_eq_coe_nat_iff _ _).symm, coe_lcm]
-
-@[simp] theorem lcm_one_left (i : ℤ) : lcm 1 i = nat_abs i :=
-by simp [(int.coe_nat_eq_coe_nat_iff _ _).symm, coe_lcm, coe_nat_abs_eq_normalize]
-
-@[simp] theorem lcm_one_right (i : ℤ) : lcm i 1 = nat_abs i :=
-by simp [(int.coe_nat_eq_coe_nat_iff _ _).symm, coe_lcm, coe_nat_abs_eq_normalize]
-
-@[simp] theorem lcm_self (i : ℤ) : lcm i i = nat_abs i :=
-by simp [(int.coe_nat_eq_coe_nat_iff _ _).symm, coe_lcm, coe_nat_abs_eq_normalize]
-
-theorem dvd_lcm_left (i j : ℤ) : i ∣ lcm i j :=
-by rw [coe_lcm]; exact dvd_lcm_left _ _
-
-theorem dvd_lcm_right (i j : ℤ) : j ∣ lcm i j :=
-by rw [coe_lcm]; exact dvd_lcm_right _ _
-
-theorem lcm_dvd {i j k : ℤ}  : i ∣ k → j ∣ k → (lcm i j : ℤ) ∣ k :=
-by rw [coe_lcm]; exact lcm_dvd
-
-end int
-
-theorem irreducible_iff_nat_prime : ∀(a : ℕ), irreducible a ↔ nat.prime a
-| 0 := by simp [nat.not_prime_zero]
-| 1 := by simp [nat.prime, one_lt_two]
-| (n + 2) :=
-  have h₁ : ¬n + 2 = 1, from dec_trivial,
-  begin
-    simp [h₁, nat.prime, irreducible, (≥), nat.le_add_left 2 n, (∣)],
-    refine forall_congr (assume a, forall_congr $ assume b, forall_congr $ assume hab, _),
-    by_cases a = 1; simp [h],
-    split,
-    { assume hb, simpa [hb] using hab.symm },
-    { assume ha, subst ha,
-      have : n + 2 > 0, from dec_trivial,
-      refine nat.eq_of_mul_eq_mul_left this _,
-      rw [← hab, mul_one] }
-  end
-
-lemma nat.prime_iff_prime {p : ℕ} : p.prime ↔ _root_.prime (p : ℕ) :=
-⟨λ hp, ⟨nat.pos_iff_ne_zero.1 hp.pos, mt is_unit_iff_dvd_one.1 hp.not_dvd_one,
-    λ a b, hp.dvd_mul.1⟩,
-  λ hp, ⟨nat.one_lt_iff_ne_zero_and_ne_one.2 ⟨hp.1, λ h1, hp.2.1 $ h1.symm ▸ is_unit_one⟩,
-    λ a h, let ⟨b, hab⟩ := h in
-      (hp.2.2 a b (hab ▸ dvd_refl _)).elim
-        (λ ha, or.inr (nat.dvd_antisymm h ha))
-        (λ hb, or.inl (have hpb : p = b, from nat.dvd_antisymm hb
-            (hab.symm ▸ dvd_mul_left _ _),
-          (nat.mul_right_inj (show 0 < p, from
-              nat.pos_of_ne_zero hp.1)).1 $
-            by rw [hpb, mul_comm, ← hab, hpb, mul_one]))⟩⟩
-
-lemma nat.prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
-⟨λ hp, ⟨int.coe_nat_ne_zero_iff_pos.2 hp.pos, mt is_unit_int.1 hp.ne_one,
-  λ a b h, by rw [← int.dvd_nat_abs, int.coe_nat_dvd, int.nat_abs_mul, hp.dvd_mul] at h;
-    rwa [← int.dvd_nat_abs, int.coe_nat_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd]⟩,
-  λ hp, nat.prime_iff_prime.2 ⟨int.coe_nat_ne_zero.1 hp.1,
-      mt nat.is_unit_iff.1 $ λ h, by simpa [h, not_prime_one] using hp,
-    λ a b, by simpa only [int.coe_nat_dvd, (int.coe_nat_mul _ _).symm] using hp.2.2 a b⟩⟩
-
-/-- Maps an associate class of integers consisting of `-n, n` to `n : ℕ` -/
-def associates_int_equiv_nat : associates ℤ ≃ ℕ :=
-begin
-  refine ⟨λz, z.out.nat_abs, λn, associates.mk n, _, _⟩,
-  { refine (assume a, quotient.induction_on' a $ assume a,
-      associates.mk_eq_mk_iff_associated.2 $ associated.symm $ ⟨norm_unit a, _⟩),
-    show normalize a = int.nat_abs (normalize a),
-    rw [int.coe_nat_abs_eq_normalize, normalize_idem] },
-  { intro n, dsimp, rw [associates.out_mk ↑n,
-    ← int.coe_nat_abs_eq_normalize, int.nat_abs_of_nat, int.nat_abs_of_nat] }
-end
-
-lemma int.prime.dvd_mul {m n : ℤ} {p : ℕ}
-  (hp : nat.prime p) (h : (p : ℤ) ∣ m * n) : p ∣ m.nat_abs ∨ p ∣ n.nat_abs :=
-begin
-  apply (nat.prime.dvd_mul hp).mp,
-  rw ← int.nat_abs_mul,
-  exact int.coe_nat_dvd_left.mp h
-end
-
-lemma int.prime.dvd_mul' {m n : ℤ} {p : ℕ}
-  (hp : nat.prime p) (h : (p : ℤ) ∣ m * n) : (p : ℤ) ∣ m ∨ (p : ℤ) ∣ n :=
-begin
-  rw [int.coe_nat_dvd_left, int.coe_nat_dvd_left],
-  exact int.prime.dvd_mul hp h
-end
-
-lemma prime_two_or_dvd_of_dvd_two_mul_pow_self_two {m : ℤ} {p : ℕ}
-  (hp : nat.prime p) (h : (p : ℤ) ∣ 2 * m ^ 2) : p = 2 ∨ p ∣ int.nat_abs m :=
-begin
-  cases int.prime.dvd_mul hp h with hp2 hpp,
-  { apply or.intro_left,
-    exact le_antisymm (nat.le_of_dvd two_pos hp2) (nat.prime.two_le hp) },
-  { apply or.intro_right,
-    rw [pow_two, int.nat_abs_mul] at hpp,
-    exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
-end
-
 section unique_unit
-
-instance nat.unique_units : unique (units ℕ) :=
-{ default := 1, uniq := nat.units_eq_one }
 
 variables [comm_cancel_monoid_with_zero α] [unique (units α)]
 
@@ -730,3 +622,202 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
 
 end unique_unit
+
+section integral_domain
+
+variables [integral_domain α] [gcd_monoid α]
+
+lemma gcd_eq_of_dvd_sub_right {a b c : α} (h : a ∣ b - c) : gcd a b = gcd a c :=
+begin
+  apply dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _);
+  rw dvd_gcd_iff; refine ⟨gcd_dvd_left _ _, _⟩,
+  { rcases h with ⟨d, hd⟩,
+    rcases gcd_dvd_right a b with ⟨e, he⟩,
+    rcases gcd_dvd_left a b with ⟨f, hf⟩,
+    use e - f * d,
+    rw [mul_sub, ← he, ← mul_assoc, ← hf, ← hd, sub_sub_cancel] },
+  { rcases h with ⟨d, hd⟩,
+    rcases gcd_dvd_right a c with ⟨e, he⟩,
+    rcases gcd_dvd_left a c with ⟨f, hf⟩,
+    use e + f * d,
+    rw [mul_add, ← he, ← mul_assoc, ← hf, ← hd, ← add_sub_assoc, add_comm c b, add_sub_cancel] }
+end
+
+lemma gcd_eq_of_dvd_sub_left {a b c : α} (h : a ∣ b - c) : gcd b a = gcd c a :=
+by rw [gcd_comm _ a, gcd_comm _ a, gcd_eq_of_dvd_sub_right h]
+
+end integral_domain
+
+section constructors
+noncomputable theory
+
+open associates
+
+variables [comm_cancel_monoid_with_zero α] [nontrivial α]
+
+private lemma map_mk_unit_aux [decidable_eq α] {f : associates α →* α}
+  (hinv : function.right_inverse f associates.mk) (a : α) :
+    a * ↑(classical.some (associated_map_mk hinv a)) = f (associates.mk a) :=
+classical.some_spec (associated_map_mk hinv a)
+
+/-- Define `normalization_monoid` on a structure from a `monoid_hom` inverse to `associates.mk`. -/
+def normalization_monoid_of_monoid_hom_right_inverse [decidable_eq α] (f : associates α →* α)
+  (hinv : function.right_inverse f associates.mk) :
+  normalization_monoid α :=
+{ norm_unit := λ a, if a = 0 then 1 else
+    classical.some (associates.mk_eq_mk_iff_associated.1 (hinv (associates.mk a)).symm),
+  norm_unit_zero := if_pos rfl,
+  norm_unit_mul := λ a b ha hb, by {
+    rw [if_neg (mul_ne_zero ha hb), if_neg ha, if_neg hb, units.ext_iff, units.coe_mul],
+    suffices : (a * b) * ↑(classical.some (associated_map_mk hinv (a * b))) =
+      (a * ↑(classical.some (associated_map_mk hinv a))) *
+      (b * ↑(classical.some (associated_map_mk hinv b))),
+    { apply mul_left_cancel' (mul_ne_zero ha hb) _,
+      simpa only [mul_assoc, mul_comm, mul_left_comm] using this },
+    rw [map_mk_unit_aux hinv a, map_mk_unit_aux hinv (a * b), map_mk_unit_aux hinv b,
+        ← monoid_hom.map_mul, associates.mk_mul_mk] },
+  norm_unit_coe_units := λ u, by {
+    rw [if_neg (units.ne_zero u), units.ext_iff],
+    apply mul_left_cancel' (units.ne_zero u),
+    rw [units.mul_inv, map_mk_unit_aux hinv u,
+      associates.mk_eq_mk_iff_associated.2 (associated_one_iff_is_unit.2 ⟨u, rfl⟩),
+      associates.mk_one, monoid_hom.map_one] } }
+
+variable [normalization_monoid α]
+
+/-- Define `gcd_monoid` on a structure just from the `gcd` and its properties. -/
+noncomputable def gcd_monoid_of_gcd [decidable_eq α] (gcd : α → α → α)
+  (gcd_dvd_left   : ∀a b, gcd a b ∣ a)
+  (gcd_dvd_right  : ∀a b, gcd a b ∣ b)
+  (dvd_gcd        : ∀{a b c}, a ∣ c → a ∣ b → a ∣ gcd c b)
+  (normalize_gcd  : ∀a b, normalize (gcd a b) = gcd a b) :
+  gcd_monoid α :=
+{ gcd := gcd,
+  gcd_dvd_left := gcd_dvd_left,
+  gcd_dvd_right := gcd_dvd_right,
+  dvd_gcd := λ a b c, dvd_gcd,
+  normalize_gcd := normalize_gcd,
+  lcm := λ a b, if a = 0 then 0 else classical.some (dvd_normalize_iff.2
+          (dvd.trans (gcd_dvd_left a b) (dvd.intro b rfl))),
+  gcd_mul_lcm := λ a b, by {
+    split_ifs with a0,
+    { rw [mul_zero, a0, zero_mul, normalize_zero] },
+    { exact (classical.some_spec (dvd_normalize_iff.2
+                  (dvd.trans (gcd_dvd_left a b) (dvd.intro b rfl)))).symm } },
+  lcm_zero_left := λ a, if_pos rfl,
+  lcm_zero_right := λ a, by {
+    split_ifs with a0, { refl },
+    rw ← normalize_eq_zero at a0,
+    have h := (classical.some_spec (dvd_normalize_iff.2
+                  (dvd.trans (gcd_dvd_left a 0) (dvd.intro 0 rfl)))).symm,
+    have gcd0 : gcd a 0 = normalize a,
+    { rw ← normalize_gcd,
+      exact normalize_eq_normalize (gcd_dvd_left _ _) (dvd_gcd (dvd_refl a) (dvd_zero a)) },
+    rw ← gcd0 at a0,
+    apply or.resolve_left (mul_eq_zero.1 _) a0,
+    rw [h, mul_zero, normalize_zero] },
+  .. (infer_instance : normalization_monoid α) }
+
+/-- Define `gcd_monoid` on a structure just from the `lcm` and its properties. -/
+noncomputable def gcd_monoid_of_lcm [decidable_eq α] (lcm : α → α → α)
+  (dvd_lcm_left   : ∀a b, a ∣ lcm a b)
+  (dvd_lcm_right  : ∀a b, b ∣ lcm a b)
+  (lcm_dvd        : ∀{a b c}, c ∣ a → b ∣ a → lcm c b ∣ a)
+  (normalize_lcm  : ∀a b, normalize (lcm a b) = lcm a b) :
+  gcd_monoid α :=
+let exists_gcd := λ a b, dvd_normalize_iff.2 (lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl)) in
+{ lcm := lcm,
+  gcd := λ a b, if a = 0 then normalize b else (if b = 0 then normalize a else
+    classical.some (exists_gcd a b)),
+  gcd_mul_lcm := λ a b, by {
+    split_ifs,
+    { rw [h, zero_dvd_iff.1 (dvd_lcm_left _ _), mul_zero, zero_mul, normalize_zero] },
+    { rw [h_1, zero_dvd_iff.1 (dvd_lcm_right _ _), mul_zero, mul_zero, normalize_zero] },
+    apply eq.trans (mul_comm _ _) (classical.some_spec
+      (dvd_normalize_iff.2 (lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl)))).symm },
+  normalize_gcd := λ a b, by {
+    split_ifs,
+    { apply normalize_idem },
+    { apply normalize_idem },
+    have h0 : lcm a b ≠ 0,
+    { intro con,
+      have h := lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl),
+      rw [con, zero_dvd_iff, mul_eq_zero] at h,
+      cases h; tauto },
+    apply mul_left_cancel' h0,
+    refine trans _ (classical.some_spec (exists_gcd a b)),
+    conv_lhs { congr, rw [← normalize_lcm a b] },
+    erw [← normalize.map_mul, ← classical.some_spec (exists_gcd a b), normalize_idem] },
+  lcm_zero_left := λ a, zero_dvd_iff.1 (dvd_lcm_left _ _),
+  lcm_zero_right := λ a, zero_dvd_iff.1 (dvd_lcm_right _ _),
+  gcd_dvd_left := λ a b, by {
+    split_ifs,
+    { rw h, apply dvd_zero },
+    { apply dvd_of_associated normalize_associated },
+    have h0 : lcm a b ≠ 0,
+    { intro con,
+      have h := lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl),
+      rw [con, zero_dvd_iff, mul_eq_zero] at h,
+      cases h; tauto },
+    rw [← mul_dvd_mul_iff_left h0, ← classical.some_spec (exists_gcd a b),
+        normalize_dvd_iff, mul_comm, mul_dvd_mul_iff_right h],
+    apply dvd_lcm_right },
+  gcd_dvd_right := λ a b, by {
+    split_ifs,
+    { apply dvd_of_associated normalize_associated },
+    { rw h_1, apply dvd_zero },
+    have h0 : lcm a b ≠ 0,
+    { intro con,
+      have h := lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl),
+      rw [con, zero_dvd_iff, mul_eq_zero] at h,
+      cases h; tauto },
+    rw [← mul_dvd_mul_iff_left h0, ← classical.some_spec (exists_gcd a b),
+        normalize_dvd_iff, mul_dvd_mul_iff_right h_1],
+    apply dvd_lcm_left },
+  dvd_gcd := λ a b c ac ab, by {
+    split_ifs,
+    { apply dvd_normalize_iff.2 ab },
+    { apply dvd_normalize_iff.2 ac },
+    have h0 : lcm c b ≠ 0,
+    { intro con,
+      have h := lcm_dvd (dvd.intro b rfl) (dvd.intro_left c rfl),
+      rw [con, zero_dvd_iff, mul_eq_zero] at h,
+      cases h; tauto },
+    rw [← mul_dvd_mul_iff_left h0, ← classical.some_spec (dvd_normalize_iff.2
+        (lcm_dvd (dvd.intro b rfl) (dvd.intro_left c rfl))), dvd_normalize_iff],
+    rcases ab with ⟨d, rfl⟩,
+    rw mul_eq_zero at h_1,
+    push_neg at h_1,
+    rw [mul_comm a, ← mul_assoc, mul_dvd_mul_iff_right h_1.1],
+    apply lcm_dvd (dvd.intro d rfl),
+    rw [mul_comm, mul_dvd_mul_iff_right h_1.2],
+    apply ac },
+  .. (infer_instance : normalization_monoid α) }
+
+/-- Define a `gcd_monoid` structure on a monoid just from the existence of a `gcd`. -/
+noncomputable def gcd_monoid_of_exists_gcd [decidable_eq α]
+  (h : ∀ a b : α, ∃ c : α, ∀ d : α, d ∣ a ∧ d ∣ b ↔ d ∣ c) :
+  gcd_monoid α :=
+gcd_monoid_of_gcd
+  (λ a b, normalize (classical.some (h a b)))
+  (λ a b, normalize_dvd_iff.2
+    (((classical.some_spec (h a b) (classical.some (h a b))).2 (dvd_refl _))).1)
+  (λ a b, normalize_dvd_iff.2
+    (((classical.some_spec (h a b) (classical.some (h a b))).2 (dvd_refl _))).2)
+  (λ a b c ac ab, dvd_normalize_iff.2 ((classical.some_spec (h c b) a).1 ⟨ac, ab⟩))
+  (λ a b, normalize_idem _)
+
+/-- Define a `gcd_monoid` structure on a monoid just from the existence of an `lcm`. -/
+noncomputable def gcd_monoid_of_exists_lcm [decidable_eq α]
+  (h : ∀ a b : α, ∃ c : α, ∀ d : α, a ∣ d ∧ b ∣ d ↔ c ∣ d) :
+  gcd_monoid α :=
+gcd_monoid_of_lcm
+  (λ a b, normalize (classical.some (h a b)))
+  (λ a b, dvd_normalize_iff.2
+    (((classical.some_spec (h a b) (classical.some (h a b))).2 (dvd_refl _))).1)
+  (λ a b, dvd_normalize_iff.2
+    (((classical.some_spec (h a b) (classical.some (h a b))).2 (dvd_refl _))).2)
+  (λ a b c ac ab, normalize_dvd_iff.2 ((classical.some_spec (h c b) a).1 ⟨ac, ab⟩))
+  (λ a b, normalize_idem _)
+
+end constructors

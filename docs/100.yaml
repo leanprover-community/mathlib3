@@ -26,6 +26,9 @@
   title  : The Impossibility of Trisecting the Angle and Doubling the Cube
 9:
   title  : The Area of a Circle
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/9_area_of_a_circle.lean
+  author : James Arthur, Benjamin Davidson, and Andrew Souther
 10:
   title  : Euler’s Generalization of Fermat’s Little Theorem
   decl   : nat.modeq.pow_totient
@@ -40,8 +43,16 @@
   title  : Polyhedron Formula
 14:
   title  : Euler’s Summation of 1 + (1/2)^2 + (1/3)^2 + ….
+  author : Marc Masdeu
+  links  :
+    result : https://github.com/mmasdeu/euler/blob/main/src/euler.lean#L712
+    website: https://github.com/mmasdeu/euler
 15:
   title  : Fundamental Theorem of Integral Calculus
+  decls  :
+    - interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right
+    - interval_integral.integral_eq_sub_of_has_deriv_right_of_le
+  author : Yury G. Kudryashov (first) and Benjamin Davidson (second)
 16:
   title  : Insolvability of General Higher Degree Equations
 17:
@@ -84,7 +95,9 @@
   decl   : function.embedding.schroeder_bernstein
   author : Mario Carneiro
 26:
-  title  : Leibnitz’s Series for Pi
+  title  : Leibniz’s Series for Pi
+  decl   : real.tendsto_sum_pi_div_four
+  author : Benjamin Davidson
 27:
   title  : Sum of the Angles of a Triangle
   decl   : euclidean_geometry.angle_add_angle_add_angle_eq_pi
@@ -107,8 +120,8 @@
   title  : Fermat’s Last Theorem
 34:
   title  : Divergence of the Harmonic Series
-  decl   : harmonic_tendsto_at_top
-  author : Anatole Dedecker
+  decl   : real.tendsto_sum_range_one_div_nat_succ_at_top
+  author : Anatole Dedecker, Yury Kudryashov
 35:
   title  : Taylor’s Theorem
 36:
@@ -162,7 +175,7 @@
   decl   : finset.card_powerset
   author : mathlib
 53:
-  title  : Pi is Trancendental
+  title  : Pi is Transcendental
 54:
   title  : Konigsberg Bridges Problem
 55:
@@ -224,6 +237,9 @@
   author : mathlib
 70:
   title  : The Perfect Number Theorem
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/70_perfect_numbers.lean
+  author : Aaron Anderson
 71:
   title  : Order of a Subgroup
   decl   : card_subgroup_dvd_card
@@ -255,6 +271,10 @@
   title  : Fourier Series
 77:
   title  : Sum of kth powers
+  decls  :
+    - sum_range_pow
+    - sum_range_pow'
+  author : mathlib (Moritz Firsching, Fabian Kruse, Ashvni Narayanan)
 78:
   title  : The Cauchy-Schwarz Inequality
   decls  :
@@ -271,8 +291,8 @@
     - nat.factors_unique
     - int.euclidean_domain
     - euclidean_domain.to_principal_ideal_domain
-    - unique_factorization_domain
-    - unique_factorization_domain.unique
+    - unique_factorization_monoid
+    - unique_factorization_monoid.factors_unique
   author : mathlib (Chris Hughes)
   note   : "it also has a generalized version, by showing that every Euclidean domain is a unique factorization domain, and showing that the integers form a Euclidean domain."
 81:
@@ -284,16 +304,16 @@
   author : Floris van Doorn
 83:
   title  : The Friendship Theorem
-  links:
+  links  :
     mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/83_friendship_graphs.lean
-  author: Aaron Anderson, Jalex Stark, Kyle Miller
+  author : Aaron Anderson, Jalex Stark, Kyle Miller
 84:
   title  : Morley’s Theorem
 85:
   title  : Divisibility by 3 Rule
   author : Scott Morrison
   decls  :
-    - three_dvd_iff
+    - nat.three_dvd_iff
 86:
   title  : Lebesgue Measure and Integration
   decl   : measure_theory.lintegral
@@ -312,7 +332,7 @@
   title  : Stirling’s Formula
 91:
   title  : The Triangle Inequality
-  decl   : inner_product_space.to_normed_group
+  decl   : norm_add_le
   author : Zhouhang Zhou
 92:
   title  : Pick’s Theorem
@@ -331,6 +351,8 @@
   author : Neil Strickland
 97:
   title  : Cramer’s Rule
+  decl   : matrix.mul_vec_cramer
+  author : Anne Baanen
 98:
   title  : Bertrand’s Postulate
 99:

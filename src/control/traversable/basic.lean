@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import control.functor
 
@@ -30,8 +30,10 @@ For more on how to use traversable, consider the Haskell tutorial:
 
 ## Main definitions
   * `traversable` type class - exposes the `traverse` function
-  * `sequence` - based on `traverse`, turns a collection of effects into an effect returning a collection
-  * is_lawful_traversable - laws
+  * `sequence` - based on `traverse`,
+    turns a collection of effects into an effect returning a collection
+  * `is_lawful_traversable` - laws for a traversable functor
+  * `applicative_transformation` - the notion of a natural transformation for applicative functors
 
 ## Tags
 
@@ -59,8 +61,12 @@ section applicative_transformation
 variables (F : Type u → Type v) [applicative F] [is_lawful_applicative F]
 variables (G : Type u → Type w) [applicative G] [is_lawful_applicative G]
 
+/-- A transformation between applicative functors.  It a natural
+transformation such that `app` preserves the `has_pure.pure` and
+`functor.map` (`<*>`) operations. See
+`applicative_transformation.preserves_map` for naturality. -/
 structure applicative_transformation : Type (max (u+1) v w) :=
-(app : ∀ α : Type u, F α → G α)
+(app : Π α : Type u, F α → G α)
 (preserves_pure' : ∀ {α : Type u} (x : α), app _ (pure x) = pure x)
 (preserves_seq' : ∀ {α β : Type u} (x : F (α → β)) (y : F α), app _ (x <*> y) = app _ x <*> app _ y)
 
@@ -76,6 +82,37 @@ instance : has_coe_to_fun (applicative_transformation F G) :=
   coe := λ a, a.app }
 
 variables {F G}
+
+@[simp]
+lemma app_eq_coe (η : applicative_transformation F G) : η.app = η := rfl
+
+@[simp]
+lemma coe_mk (f : Π (α : Type u), F α → G α) (pp ps) :
+  ⇑(applicative_transformation.mk f pp ps) = f := rfl
+
+protected
+lemma congr_fun (η η' : applicative_transformation F G) (h : η = η') {α : Type u} (x : F α) :
+  η x = η' x :=
+congr_arg (λ η'' : applicative_transformation F G, η'' x) h
+
+protected
+lemma congr_arg (η : applicative_transformation F G) {α : Type u} {x y : F α} (h : x = y) :
+  η x = η y :=
+congr_arg (λ z : F α, η z) h
+
+lemma coe_inj ⦃η η' : applicative_transformation F G⦄ (h : (η : Π α, F α → G α) = η') : η = η' :=
+by { cases η, cases η', congr, exact h }
+
+@[ext]
+lemma ext ⦃η η' : applicative_transformation F G⦄ (h : ∀ (α : Type u) (x : F α), η x = η' x) :
+  η = η' :=
+by { apply coe_inj, ext1 α, exact funext (h α) }
+
+lemma ext_iff {η η' : applicative_transformation F G} :
+  η = η' ↔ ∀ (α : Type u) (x : F α), η x = η' x :=
+⟨λ h α x, h ▸ rfl, λ h, ext h⟩
+
+section preserves
 variables (η : applicative_transformation F G)
 
 @[functor_norm]
@@ -90,10 +127,57 @@ lemma preserves_seq :
 lemma preserves_map {α β} (x : α → β) (y : F α) : η (x <$> y) = x <$> η y :=
 by rw [← pure_seq_eq_map, η.preserves_seq]; simp with functor_norm
 
+lemma preserves_map' {α β} (x : α → β) : @η _ ∘ functor.map x = functor.map x ∘ @η _ :=
+by { ext y, exact preserves_map η x y }
+
+end preserves
+
+/-- The identity applicative transformation from an applicative functor to itself. -/
+def id_transformation : applicative_transformation F F :=
+{ app := λ α, id,
+  preserves_pure' := by simp,
+  preserves_seq' := λ α β x y, by simp }
+
+instance : inhabited (applicative_transformation F F) := ⟨id_transformation⟩
+
+universes s t
+variables {H : Type u → Type s} [applicative H] [is_lawful_applicative H]
+
+/-- The composition of applicative transformations. -/
+def comp (η' : applicative_transformation G H) (η : applicative_transformation F G) :
+  applicative_transformation F H :=
+{ app := λ α x, η' (η x),
+  preserves_pure' := λ α x, by simp with functor_norm,
+  preserves_seq' := λ α β x y, by simp with functor_norm }
+
+@[simp]
+lemma comp_apply (η' : applicative_transformation G H) (η : applicative_transformation F G)
+  {α : Type u} (x : F α) :
+  η'.comp η x = η' (η x) := rfl
+
+lemma comp_assoc {I : Type u → Type t} [applicative I] [is_lawful_applicative I]
+  (η'' : applicative_transformation H I)
+  (η' : applicative_transformation G H)
+  (η : applicative_transformation F G) :
+  (η''.comp η').comp η = η''.comp (η'.comp η) := rfl
+
+@[simp]
+lemma comp_id (η : applicative_transformation F G) : η.comp id_transformation = η :=
+ext $ λ α x, rfl
+
+@[simp]
+lemma id_comp (η : applicative_transformation F G) : id_transformation.comp η = η :=
+ext $ λ α x, rfl
+
 end applicative_transformation
 
 open applicative_transformation
 
+/-- A traversable functor is a functor along with a way to commute
+with all applicative functors (see `sequence`).  For example, if `t`
+is the traversable functor `list` and `m` is the applicative functor
+`io`, then given a function `f : α → io β`, the function `functor.map f` is
+`list α → list (io β)`, but `traverse f` is `list α → io (list β)`. -/
 class traversable (t : Type u → Type u) extends functor t :=
 (traverse : Π {m : Type u → Type u} [applicative m] {α β},
    (α → m β) → t α → m (t β))
@@ -111,10 +195,17 @@ variables {α β : Type u}
 
 variables {f : Type u → Type u} [applicative f]
 
+/-- A traversable functor commutes with all applicative functors. -/
 def sequence [traversable t] : t (f α) → f (t α) := traverse id
 
 end functions
 
+/-- A traversable functor is lawful if its `traverse` satisfies a
+number of additional properties.  It must send `id.mk` to `id.mk`,
+send the composition of applicative functors to the composition of the
+`traverse` of each, send each function `f` to `λ x, f <$> x`, and
+satisfy a naturality condition with respect to applicative
+transformations. -/
 class is_lawful_traversable (t : Type u → Type u) [traversable t]
   extends is_lawful_functor t : Type (u+1) :=
 (id_traverse : ∀ {α} (x : t α), traverse id.mk x = x )
@@ -149,6 +240,8 @@ variables {σ : Type u}
 variables {F : Type u → Type u}
 variables [applicative F]
 
+/-- Defines a `traverse` function on the second component of a sum type.
+This is used to give a `traversable` instance for the functor `σ ⊕ -`. -/
 protected def traverse {α β} (f : α → F β) : σ ⊕ α → F (σ ⊕ β)
 | (sum.inl x) := pure (sum.inl x)
 | (sum.inr x) := sum.inr <$> f x

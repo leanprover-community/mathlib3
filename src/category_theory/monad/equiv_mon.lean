@@ -3,9 +3,9 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import category_theory.monad.bundled
+import category_theory.monad.basic
 import category_theory.monoidal.End
-import category_theory.monoidal.internal
+import category_theory.monoidal.Mon_
 import category_theory.category.Cat
 
 /-!
@@ -26,7 +26,7 @@ A monad "is just" a monoid in the category of endofunctors.
 namespace category_theory
 open category
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 variables {C : Type u} [category.{v} C]
 
 namespace Monad
@@ -34,46 +34,34 @@ local attribute [instance, reducible] endofunctor_monoidal_category
 
 /-- To every `Monad C` we associated a monoid object in `C ⥤ C`.-/
 @[simps]
-def to_Mon : Monad C → Mon_ (C ⥤ C) := λ M,
-{ X := M.func,
-  one := η_ _,
-  mul := μ_ _ }
+def to_Mon : monad C → Mon_ (C ⥤ C) := λ M,
+{ X := (M : C ⥤ C),
+  one := M.η,
+  mul := M.μ,
+  mul_assoc' := by { ext, dsimp, simp [M.assoc] } }
 
 variable (C)
 /-- Passing from `Monad C` to `Mon_ (C ⥤ C)` is functorial. -/
 @[simps]
-def Monad_to_Mon : Monad C ⥤ Mon_ (C ⥤ C) :=
+def Monad_to_Mon : monad C ⥤ Mon_ (C ⥤ C) :=
 { obj := to_Mon,
   map := λ _ _ f, { hom := f.to_nat_trans } }
 variable {C}
 
 /-- To every monoid object in `C ⥤ C` we associate a `Monad C`. -/
 @[simps]
-def of_Mon : Mon_ (C ⥤ C) → Monad C := λ M,
-{ func := M.X,
-  str :=
-  { η := M.one,
-    μ := M.mul,
-    assoc' := begin
-      intro X,
-      rw [←nat_trans.hcomp_id_app, ←nat_trans.comp_app],
-      simp,
-    end,
-    left_unit' := begin
-      intro X,
-      rw [←nat_trans.id_hcomp_app, ←nat_trans.comp_app, M.mul_one],
-      refl,
-    end,
-    right_unit' := begin
-      intro X,
-      rw [←nat_trans.hcomp_id_app, ←nat_trans.comp_app, M.one_mul],
-      refl,
-    end } }
+def of_Mon : Mon_ (C ⥤ C) → monad C := λ M,
+{ to_functor := M.X,
+  η' := M.one,
+  μ' := M.mul,
+  left_unit' := λ X, by { rw [←M.one.id_hcomp_app, ←nat_trans.comp_app, M.mul_one], refl },
+  right_unit' := λ X, by { rw [←M.one.hcomp_id_app, ←nat_trans.comp_app, M.one_mul], refl },
+  assoc' := λ X, by { rw [←nat_trans.hcomp_id_app, ←nat_trans.comp_app], simp } }
 
 variable (C)
 /-- Passing from `Mon_ (C ⥤ C)` to `Monad C` is functorial. -/
 @[simps]
-def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
+def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ monad C :=
 { obj := of_Mon,
   map := λ _ _ f,
   { app_η' := begin
@@ -87,31 +75,46 @@ def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
       finish,
     end,
     ..f.hom } }
+
+namespace Monad_Mon_equiv
 variable {C}
 
 /-- Isomorphism of functors used in `Monad_Mon_equiv` -/
-@[simps]
-def of_to_mon_end_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
+@[simps {rhs_md := semireducible}]
+def counit_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
 { hom := { app := λ _, { hom := 𝟙 _ } },
   inv := { app := λ _, { hom := 𝟙 _ } } }
 
+/-- Auxilliary definition for `Monad_Mon_equiv` -/
+@[simps]
+def unit_iso_hom : 𝟭 _ ⟶ Monad_to_Mon C ⋙ Mon_to_Monad C :=
+{ app := λ _, { app := λ _, 𝟙 _ } }
+
+/-- Auxilliary definition for `Monad_Mon_equiv` -/
+@[simps]
+def unit_iso_inv : Monad_to_Mon C ⋙ Mon_to_Monad C ⟶ 𝟭 _ :=
+{ app := λ _, { app := λ _, 𝟙 _ } }
+
 /-- Isomorphism of functors used in `Monad_Mon_equiv` -/
 @[simps]
-def to_of_mon_end_iso : Monad_to_Mon C ⋙ Mon_to_Monad C ≅ 𝟭 _ :=
-{ hom := { app := λ _, { app := λ _, 𝟙 _ } },
-  inv := { app := λ _, { app := λ _, 𝟙 _ } } }
+def unit_iso : 𝟭 _ ≅ Monad_to_Mon C ⋙ Mon_to_Monad C :=
+{ hom := unit_iso_hom,
+  inv := unit_iso_inv }
 
-variable (C)
+end Monad_Mon_equiv
+
+open Monad_Mon_equiv
+
 /-- Oh, monads are just monoids in the category of endofunctors (equivalence of categories). -/
 @[simps]
-def Monad_Mon_equiv : (Monad C) ≌ (Mon_ (C ⥤ C)) :=
+def Monad_Mon_equiv : (monad C) ≌ (Mon_ (C ⥤ C)) :=
 { functor := Monad_to_Mon _,
   inverse := Mon_to_Monad _,
-  unit_iso := to_of_mon_end_iso.symm,
-  counit_iso := of_to_mon_end_iso }
+  unit_iso := unit_iso,
+  counit_iso := counit_iso }
 
 -- Sanity check
-example (A : Monad C) {X : C} : ((Monad_Mon_equiv C).unit_iso.app A).hom.app X = 𝟙 _ := rfl
+example (A : monad C) {X : C} : ((Monad_Mon_equiv C).unit_iso.app A).hom.app X = 𝟙 _ := rfl
 
 end Monad
 end category_theory

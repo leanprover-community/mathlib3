@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Johannes Hölzl, Simon Hudon, Kenny Lau
+Authors: Mario Carneiro, Johannes Hölzl, Simon Hudon, Kenny Lau
 -/
 import data.multiset.basic
 import control.traversable.lemmas
@@ -51,11 +51,11 @@ begin
 end
 
 instance : monad multiset :=
-{ pure := λ α x, x::0,
+{ pure := λ α x, x ::ₘ 0,
   bind := @bind,
   .. multiset.functor }
 
-@[simp] lemma pure_def {α} : (pure : α → multiset α) = (λ x, x::0) := rfl
+@[simp] lemma pure_def {α} : (pure : α → multiset α) = (λ x, x ::ₘ 0) := rfl
 @[simp] lemma bind_def {α β} : (>>=) = @bind α β := rfl
 
 instance : is_lawful_monad multiset :=
@@ -67,10 +67,10 @@ open functor
 open traversable is_lawful_traversable
 
 @[simp]
-lemma lift_beta {α β : Type*} (x : list α) (f : list α → β)
+lemma lift_coe {α β : Type*} (x : list α) (f : list α → β)
   (h : ∀ a b : list α, a ≈ b → f a = f b) :
   quotient.lift f h (x : multiset α) = f x :=
-quotient.lift_beta _ _ _
+quotient.lift_mk _ _ _
 
 @[simp]
 lemma map_comp_coe {α β} (h : α → β) :
@@ -102,7 +102,7 @@ lemma map_traverse {G : Type* → Type*}
   traverse (functor.map h ∘ g) x :=
 quotient.induction_on x
 (by intro; simp [traverse] with functor_norm;
-    rw [comp_map,map_traverse])
+    rw [is_lawful_functor.comp_map, map_traverse])
 
 lemma traverse_map {G : Type* → Type*}
                [applicative G] [is_comm_applicative G]

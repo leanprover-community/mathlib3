@@ -38,7 +38,7 @@ variables [preadditive C] [has_kernels C]
 Schur's Lemma (for a general preadditive category),
 that a nonzero morphism between simple objects is an isomorphism.
 -/
-def is_iso_of_hom_simple {X Y : C} [simple X] [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
+lemma is_iso_of_hom_simple {X Y : C} [simple X] [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
   is_iso f :=
 begin
   haveI : mono f := preadditive.mono_of_kernel_zero (kernel_zero_of_nonzero_from_simple w),
@@ -55,7 +55,7 @@ def is_iso_equiv_nonzero {X Y : C} [simple.{v} X] [simple.{v} Y] {f : X ⟶ Y} :
   begin
     introI h,
     apply id_nonzero X,
-    simp only [←is_iso.hom_inv_id f, h, has_zero_morphisms.zero_comp],
+    simp only [←is_iso.hom_inv_id f, h, zero_comp],
   end,
   inv_fun := λ w, is_iso_of_hom_simple w,
   left_inv := λ I, subsingleton.elim _ _,

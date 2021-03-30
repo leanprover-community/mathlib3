@@ -26,9 +26,11 @@ namespace ulift
 @[to_additive] instance has_one [has_one α] : has_one (ulift α) := ⟨⟨1⟩⟩
 @[simp, to_additive] lemma one_down [has_one α] : (1 : ulift α).down = 1 := rfl
 
-@[to_additive]
-instance has_mul [has_mul α] : has_mul (ulift α) := ⟨λ f g, ⟨f.down * g.down⟩⟩
+@[to_additive] instance has_mul [has_mul α] : has_mul (ulift α) := ⟨λ f g, ⟨f.down * g.down⟩⟩
 @[simp, to_additive] lemma mul_down [has_mul α] : (x * y).down = x.down * y.down := rfl
+
+@[to_additive] instance has_div [has_div α] : has_div (ulift α) := ⟨λ f g, ⟨f.down / g.down⟩⟩
+@[simp, to_additive] lemma div_down [has_div α] : (x / y).down = x.down / y.down := rfl
 
 @[to_additive] instance has_inv [has_inv α] : has_inv (ulift α) := ⟨λ f, ⟨f.down⁻¹⟩⟩
 @[simp, to_additive] lemma inv_down [has_inv α] : x⁻¹.down = (x.down)⁻¹ := rfl
@@ -62,14 +64,12 @@ by refine_struct { one := (1 : ulift α), mul := (*), .. }; tactic.pi_instance_d
 
 @[to_additive]
 instance group [group α] : group (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, .. };
+by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div };
   tactic.pi_instance_derive_field
-
-@[simp] lemma sub_down [add_group α] : (x - y).down = x.down - y.down := rfl
 
 @[to_additive]
 instance comm_group [comm_group α] : comm_group (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, .. };
+by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div };
   tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
@@ -77,7 +77,7 @@ instance left_cancel_semigroup [left_cancel_semigroup α] :
   left_cancel_semigroup (ulift α) :=
 begin
   refine_struct { mul := (*) }; tactic.pi_instance_derive_field,
-  replace a_1 := congr_arg ulift.down a_1,
+  have := congr_arg ulift.down ‹_›,
   assumption,
 end
 
@@ -86,7 +86,7 @@ instance right_cancel_semigroup [right_cancel_semigroup α] :
   right_cancel_semigroup (ulift α) :=
 begin
   refine_struct { mul := (*) }; tactic.pi_instance_derive_field,
-  replace a_1 := congr_arg ulift.down a_1,
+  have := congr_arg ulift.down ‹_›,
   assumption,
 end
 

@@ -7,7 +7,11 @@ import data.list.basic
 
 namespace list
 
-/- tfae: The Following (propositions) Are Equivalent -/
+/--
+tfae: The Following (propositions) Are Equivalent.
+
+The `tfae_have` and `tfae_finish` tactics can be useful in proofs with `tfae` goals.
+-/
 def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
 
 theorem tfae_nil : tfae [] := forall_mem_nil _

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import tactic.monotonicity.interactive
 
@@ -63,7 +63,8 @@ do x ← to_expr ``(7 + 3 : ℕ) >>= check_ac,
    let y := "(some (is_left_id.left_id, (is_right_id.right_id, 0)))",
    guard (x.to_string = y) <|> fail ("guard: " ++ x.to_string)
 
-meta def test_pp {α} [has_to_tactic_format α] (tag : format) (expected : string) (prog : tactic α) : tactic unit :=
+meta def test_pp {α} [has_to_tactic_format α] (tag : format) (expected : string) (prog : tactic α) :
+  tactic unit :=
 do r ← prog,
    pp_r ← pp r,
    guard (pp_r.to_string = expected) <|> fail format!"test_pp: {tag}"

@@ -30,7 +30,7 @@ with tensor product given by composition of functors
 -/
 def endofunctor_monoidal_category : monoidal_category (C ⥤ C) :=
 { tensor_obj   := λ F G, F ⋙ G,
-  tensor_hom   := λ F G F' G' α β, nat_trans.hcomp α β,
+  tensor_hom   := λ F G F' G' α β, α ◫ β,
   tensor_unit  := 𝟭 C,
   associator   := λ F G H, functor.associator F G H,
   left_unitor  := λ F, functor.left_unitor F,
@@ -55,14 +55,19 @@ def tensoring_right_monoidal : monoidal_functor C (C ⥤ C) :=
   μ_natural' := λ X Y X' Y' f g, by { ext Z, dsimp, simp [associator_naturality], },
   associativity' := λ X Y Z, by { ext W, dsimp, simp [pentagon], },
   left_unitality' := λ X, by { ext Y, dsimp, rw [category.id_comp, triangle, ←tensor_comp], simp, },
-  right_unitality' := λ X, by { ext Y, dsimp, simp, },
+  right_unitality' := λ X,
+  begin
+    ext Y, dsimp,
+    rw [tensor_id, category.comp_id, right_unitor_tensor_inv, category.assoc, iso.inv_hom_id_assoc,
+      ←id_tensor_comp, iso.inv_hom_id, tensor_id],
+  end,
   ε_is_iso := by apply_instance,
   μ_is_iso := λ X Y,
-  { inv :=
     -- We could avoid needing to do this explicitly by
     -- constructing a partially applied analogue of `associator_nat_iso`.
-    { app := λ Z, (α_ Z X Y).inv,
-      naturality' := λ Z Z' f, by { dsimp, rw ←associator_inv_naturality, simp, } }, },
+  ⟨⟨{ app := λ Z, (α_ Z X Y).inv,
+      naturality' := λ Z Z' f, by { dsimp, rw ←associator_inv_naturality, simp, } },
+    by tidy⟩⟩,
   ..tensoring_right C }.
 
 end category_theory

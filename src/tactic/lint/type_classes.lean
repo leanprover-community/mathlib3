@@ -18,11 +18,13 @@ and the appropriate definition of instances:
    instance-implicit arguments
  * `dangerous_instance` checks for instances that generate subproblems with metavariables
  * `fails_quickly` checks that type class resolution finishes quickly
+ * `class_structure` checks that every `class` is a structure, i.e. `@[class] def` is forbidden
  * `has_coe_variable` checks that there is no instance of type `has_coe α t`
  * `inhabited_nonempty` checks whether `[inhabited α]` arguments could be generalized
    to `[nonempty α]`
  * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used
    in the statement, and could thus be removed by using `classical` in the proof.
+ * `linter.has_coe_to_fun` checks whether necessary `has_coe_to_fun` instances are declared
 -/
 
 open tactic
@@ -44,7 +46,9 @@ private meta def instance_priority (d : declaration) : tactic (option string) :=
   (is_persistent, prio) ← has_attribute `instance nm,
   /- return `none` if `d` is has low priority -/
   if prio < 1000 then return none else do
-  let (fn, args) := d.type.pi_codomain.get_app_fn_args,
+  (_, tp) ← open_pis d.type,
+  tp ← whnf tp transparency.none,
+  let (fn, args) := tp.get_app_fn_args,
   cls ← get_decl fn.const_name,
   let (pi_args, _) := cls.type.pi_binders,
   guard (args.length = pi_args.length),
@@ -54,8 +58,20 @@ private meta def instance_priority (d : declaration) : tactic (option string) :=
   let relevant_args := (args.zip pi_args).filter_map $ λ⟨e, ⟨_, info, tp⟩⟩,
     if info = binder_info.inst_implicit ∨ tp.get_app_fn.is_constant_of `out_param
     then none else some e,
-  let always_applies := relevant_args.all expr.is_var ∧ relevant_args.nodup,
+  let always_applies := relevant_args.all expr.is_local_constant ∧ relevant_args.nodup,
   if always_applies then return $ some "set priority below 1000" else return none
+
+/--
+There are places where typeclass arguments are specified with implicit `{}` brackets instead of
+the usual `[]` brackets. This is done when the instances can be inferred because they are implicit
+arguments to the type of one of the other arguments. When they can be inferred from these other
+arguments,  it is faster to use this method than to use type class inference.
+
+For example, when writing lemmas about `(f : α →+* β)`, it is faster to specify the fact that `α`
+and `β` are `semiring`s as `{rα : semiring α} {rβ : semiring β}` rather than the usual
+`[semiring α] [semiring β]`.
+-/
+library_note "implicit instance arguments"
 
 /--
 Certain instances always apply during type-class resolution. For example, the instance
@@ -75,18 +91,6 @@ Therefore, if we create an instance that always applies, we set the priority of 
 -/
 library_note "lower instance priority"
 
-/--
-Instances that always apply should be applied after instances that only apply in specific cases,
-see note [lower instance priority] above.
-
-Classes that use the `extends` keyword automatically generate instances that always apply.
-Therefore, we set the priority of these instances to 100 (or something similar, which is below the
-default value of 1000) using `set_option default_priority 100`.
-We have to put this option inside a section, so that the default priority is the default
-1000 outside the section.
--/
-library_note "default priority"
-
 /-- A linter object for checking instance priorities of instances that always apply.
 This is in the default linter set. -/
 @[linter] meta def linter.instance_priority : linter :=
@@ -95,9 +99,7 @@ This is in the default linter set. -/
   errors_found := "DANGEROUS INSTANCE PRIORITIES.
 The following instances always apply, and therefore should have a priority < 1000.
 If you don't know what priority to choose, use priority 100.
-
-If this is an automatically generated instance (using the keywords `class` and `extends`),
-see note [lower instance priority] and see note [default priority] for instructions to change the priority",
+See note [lower instance priority] for instructions to change the priority.",
   auto_decls := tt }
 
 /-- Reports declarations of types that do not have an associated `inhabited` instance. -/
@@ -233,6 +235,23 @@ meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option stri
 For the following classes, there is an instance that causes a loop, or an excessively long search.",
   is_fast := ff }
 
+/-- Checks that all uses of the `@[class]` attribute apply to structures or inductive types.
+  This is future-proofing for lean 4, which no longer supports `@[class] def`. -/
+private meta def class_structure (n : name) : tactic (option string) := do
+  is_class ← has_attribute' `class n,
+  if is_class then do
+    env ← get_env,
+    pure $ if env.is_inductive n then none else
+      "is a non-structure or inductive type marked @[class]"
+  else pure none
+
+/-- A linter object for `class_structure`. -/
+@[linter] meta def linter.class_structure : linter :=
+{ test := λ d, class_structure d.to_name,
+  auto_decls := tt,
+  no_errors_found := "All classes are structures",
+  errors_found := "USE OF @[class] def IS DISALLOWED" }
+
 /--
 Tests whether there is no instance of type `has_coe α t` where `α` is a variable,
 or `has_coe t α` where `α` does not occur in `t`.
@@ -302,6 +321,7 @@ attribute [nolint decidable_classical] dec_em not.decidable_imp_symm
 
 private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
 retrieve $ do
+tt ← return d.is_trusted | pure none,
 mk_meta_var d.type >>= set_goals ∘ pure,
 args ← unfreezing intros,
 expr.sort _ ← target | pure none,
@@ -327,4 +347,4 @@ pure $ format.to_string $
   no_errors_found := "has_coe_to_fun is used correctly",
   errors_found := "INVALID/MISSING `has_coe_to_fun` instances.
 You should add a `has_coe_to_fun` instance for the following types.
-See Note function coercions]." }
+See Note [function coercion]." }

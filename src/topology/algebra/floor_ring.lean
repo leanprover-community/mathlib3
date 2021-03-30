@@ -46,18 +46,16 @@ lemma tendsto_floor_right' [order_closed_topology α] (n : ℤ) :
   tendsto (λ x, floor x : α → α) (𝓝[Ici n] n) (𝓝 n) :=
 begin
   rw ← nhds_within_Ico_eq_nhds_within_Ici (lt_add_one (n : α)),
-  convert ← (continuous_on_floor _ _ (left_mem_Ico.mpr $ lt_add_one (_ : α))).tendsto,
-  rw floor_eq_iff,
-  exact ⟨le_refl _, lt_add_one _⟩
+  simpa only [floor_coe] using
+    (continuous_on_floor n _ (left_mem_Ico.mpr $ lt_add_one (_ : α))).tendsto
 end
 
 lemma tendsto_ceil_left' [order_closed_topology α] (n : ℤ) :
   tendsto (λ x, ceil x : α → α) (𝓝[Iic n] n) (𝓝 n) :=
 begin
   rw ← nhds_within_Ioc_eq_nhds_within_Iic (sub_one_lt (n : α)),
-  convert ← (continuous_on_ceil _ _ (right_mem_Ioc.mpr $ sub_one_lt (_ : α))).tendsto,
-  rw ceil_eq_iff,
-  exact ⟨sub_one_lt _, le_refl _⟩
+  simpa only [ceil_coe] using
+    (continuous_on_ceil _ _ (right_mem_Ioc.mpr $ sub_one_lt (_ : α))).tendsto
 end
 
 lemma tendsto_floor_right [order_closed_topology α] (n : ℤ) :
@@ -174,17 +172,18 @@ begin
       rw this,
       refine (h _ ⟨true.intro, by exact_mod_cast right_mem_Icc.mpr zero_le_one⟩).tendsto.comp _,
       rw [nhds_within_prod_eq, nhds_within_univ],
-      rw nhds_within_Icc_eq_nhds_within_Iic (@zero_lt_one α _),
+      rw nhds_within_Icc_eq_nhds_within_Iic (@zero_lt_one α _ _),
       exact tendsto_id.prod_map
         (tendsto_nhds_within_mono_right Iio_subset_Iic_self $ tendsto_fract_left _) },
     { simp only [continuous_within_at, fract_coe, nhds_within_prod_eq,
                   nhds_within_univ, id.def, comp_app, prod.map_mk],
       refine (h _ ⟨true.intro, by exact_mod_cast left_mem_Icc.mpr zero_le_one⟩).tendsto.comp _,
-      rw [nhds_within_prod_eq, nhds_within_univ, nhds_within_Icc_eq_nhds_within_Ici (@zero_lt_one α _)],
+      rw [nhds_within_prod_eq, nhds_within_univ,
+        nhds_within_Icc_eq_nhds_within_Ici (@zero_lt_one α _ _)],
       exact tendsto_id.prod_map (tendsto_fract_right _) } },
   { have : t ∈ Ioo (floor t : α) ((floor t : α) + 1),
       from ⟨lt_of_le_of_ne (floor_le t) (ne.symm ht), lt_floor_add_one _⟩,
-    refine (h ((prod.map _ fract) _) ⟨trivial, ⟨fract_nonneg _, (fract_lt_one _).le⟩⟩).tendsto.comp _,
+    apply (h ((prod.map _ fract) _) ⟨trivial, ⟨fract_nonneg _, (fract_lt_one _).le⟩⟩).tendsto.comp,
     simp only [nhds_prod_eq, nhds_within_prod_eq, nhds_within_univ, id.def, prod.map_mk],
     exact continuous_at_id.tendsto.prod_map
             (tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _

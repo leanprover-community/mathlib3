@@ -3,9 +3,10 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Bhavik Mehta
 -/
-import category_theory.comma
+import category_theory.structured_arrow
 import category_theory.punit
 import category_theory.reflects_isomorphisms
+import category_theory.epi_mono
 
 /-!
 # Over and under categories
@@ -23,13 +24,17 @@ comma, slice, coslice, over, under
 
 namespace category_theory
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 variables {T : Type u₁} [category.{v₁} T]
 
-/-- The over category has as objects arrows in `T` with codomain `X` and as morphisms commutative
-    triangles. -/
+/--
+The over category has as objects arrows in `T` with codomain `X` and as morphisms commutative
+triangles.
+
+See https://stacks.math.columbia.edu/tag/001G.
+-/
 @[derive category]
-def over (X : T) := comma.{v₁ 0 v₁} (𝟭 T) (functor.from_punit X)
+def over (X : T) := costructured_arrow (𝟭 T) X
 
 -- Satisfying the inhabited linter
 instance over.inhabited [inhabited T] : inhabited (over (default T)) :=
@@ -57,7 +62,7 @@ by have := f.w; tidy
 /-- To give an object in the over category, it suffices to give a morphism with codomain `X`. -/
 @[simps]
 def mk {X Y : T} (f : Y ⟶ X) : over X :=
-{ left := Y, hom := f }
+costructured_arrow.mk f
 
 /-- We can set up a coercion from arrows with codomain `X` to `over X`. This most likely should not
     be a global instance, but it is sometimes useful. -/
@@ -75,30 +80,36 @@ end
 @[simps]
 def hom_mk {U V : over X} (f : U.left ⟶ V.left) (w : f ≫ V.hom = U.hom . obviously) :
   U ⟶ V :=
-{ left := f }
+costructured_arrow.hom_mk f w
 
 /--
 Construct an isomorphism in the over category given isomorphisms of the objects whose forward
 direction gives a commutative triangle.
 -/
-def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom) : f ≅ g :=
-comma.iso_mk hl (eq_to_iso (subsingleton.elim _ _)) (by simp [hw])
+@[simps]
+def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) :
+  f ≅ g :=
+costructured_arrow.iso_mk hl hw
 
-@[simp]
-lemma iso_mk_hom_left {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom) :
-  (iso_mk hl hw).hom.left = hl.hom := rfl
+section
+variable (X)
+/--
+The forgetful functor mapping an arrow to its domain.
 
-@[simp]
-lemma iso_mk_inv_left {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom) :
-  (iso_mk hl hw).inv.left = hl.inv := rfl
-
-/-- The forgetful functor mapping an arrow to its domain. -/
+See https://stacks.math.columbia.edu/tag/001G.
+-/
 def forget : over X ⥤ T := comma.fst _ _
 
-@[simp] lemma forget_obj {U : over X} : forget.obj U = U.left := rfl
-@[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : forget.map f = f.left := rfl
+end
 
-/-- A morphism `f : X ⟶ Y` induces a functor `over X ⥤ over Y` in the obvious way. -/
+@[simp] lemma forget_obj {U : over X} : (forget X).obj U = U.left := rfl
+@[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : (forget X).map f = f.left := rfl
+
+/--
+A morphism `f : X ⟶ Y` induces a functor `over X ⥤ over Y` in the obvious way.
+
+See https://stacks.math.columbia.edu/tag/001G.
+-/
 def map {Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ discrete.nat_trans (λ _, f)
 
 section
@@ -117,9 +128,48 @@ nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
 
 end
 
-instance forget_reflects_iso : reflects_isomorphisms (forget : over X ⥤ T) :=
-{ reflects := λ X Y f t, by exactI
-  { inv := over.hom_mk t.inv ((as_iso (forget.map f)).inv_comp_eq.2 (over.w f).symm) } }
+instance forget_reflects_iso : reflects_isomorphisms (forget X) :=
+{ reflects := λ Y Z f t, by exactI
+  ⟨⟨over.hom_mk (inv ((forget X).map f))
+      ((as_iso ((forget X).map f)).inv_comp_eq.2 (over.w f).symm),
+    by tidy⟩⟩ }
+
+instance forget_faithful : faithful (forget X) := {}.
+
+/--
+If `k.left` is an epimorphism, then `k` is an epimorphism. In other words, `over.forget X` reflects
+epimorphisms.
+The converse does not hold without additional assumptions on the underlying category.
+-/
+-- TODO: Show the converse holds if `T` has binary products or pushouts.
+lemma epi_of_epi_left {f g : over X} (k : f ⟶ g) [hk : epi k.left] : epi k :=
+faithful_reflects_epi (forget X) hk
+
+/--
+If `k.left` is a monomorphism, then `k` is a monomorphism. In other words, `over.forget X` reflects
+monomorphisms.
+The converse of `category_theory.over.mono_left_of_mono`.
+
+This lemma is not an instance, to avoid loops in type class inference.
+-/
+lemma mono_of_mono_left {f g : over X} (k : f ⟶ g) [hk : mono k.left] : mono k :=
+faithful_reflects_mono (forget X) hk
+
+/--
+If `k` is a monomorphism, then `k.left` is a monomorphism. In other words, `over.forget X` preserves
+monomorphisms.
+The converse of `category_theory.over.mono_of_mono_left`.
+-/
+instance mono_left_of_mono {f g : over X} (k : f ⟶ g) [mono k] : mono k.left :=
+begin
+  refine ⟨λ (Y : T) l m a, _⟩,
+  let l' : mk (m ≫ f.hom) ⟶ f := hom_mk l (by { dsimp, rw [←over.w k, reassoc_of a] }),
+  suffices : l' = hom_mk m,
+  { apply congr_arg comma_morphism.left this },
+  rw ← cancel_mono k,
+  ext,
+  apply a,
+end
 
 section iterated_slice
 variables (f : over X)
@@ -151,11 +201,11 @@ def iterated_slice_equiv : over f ≌ over f.left :=
     (λ X Y g, by { ext, dsimp, simp }) }
 
 lemma iterated_slice_forward_forget :
-  iterated_slice_forward f ⋙ forget = forget ⋙ forget :=
+  iterated_slice_forward f ⋙ forget f.left = forget f ⋙ forget X :=
 rfl
 
 lemma iterated_slice_backward_forget_forget :
-  iterated_slice_backward f ⋙ forget ⋙ forget = forget :=
+  iterated_slice_backward f ⋙ forget f ⋙ forget X = forget f.left :=
 rfl
 
 end iterated_slice
@@ -178,7 +228,7 @@ end over
 /-- The under category has as objects arrows with domain `X` and as morphisms commutative
     triangles. -/
 @[derive category]
-def under (X : T) := comma.{0 v₁ v₁} (functor.from_punit X) (𝟭 T)
+def under (X : T) := structured_arrow X (𝟭 T)
 
 -- Satisfying the inhabited linter
 instance under.inhabited [inhabited T] : inhabited (under (default T)) :=
@@ -200,27 +250,27 @@ by tidy
 @[simp] lemma comp_right (a b c : under X) (f : a ⟶ b) (g : b ⟶ c) :
   (f ≫ g).right = f.right ≫ g.right := rfl
 
-@[simp] lemma w {A B : under X} (f : A ⟶ B) : A.hom ≫ f.right = B.hom :=
+@[simp, reassoc] lemma w {A B : under X} (f : A ⟶ B) : A.hom ≫ f.right = B.hom :=
 by have := f.w; tidy
 
 /-- To give an object in the under category, it suffices to give an arrow with domain `X`. -/
 @[simps]
 def mk {X Y : T} (f : X ⟶ Y) : under X :=
-{ right := Y, hom := f }
+structured_arrow.mk f
 
 /-- To give a morphism in the under category, it suffices to give a morphism fitting in a
     commutative triangle. -/
 @[simps]
 def hom_mk {U V : under X} (f : U.right ⟶ V.right) (w : U.hom ≫ f = V.hom . obviously) :
   U ⟶ V :=
-{ right := f }
+structured_arrow.hom_mk f w
 
 /--
 Construct an isomorphism in the over category given isomorphisms of the objects whose forward
 direction gives a commutative triangle.
 -/
 def iso_mk {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom ≫ hr.hom = g.hom) : f ≅ g :=
-comma.iso_mk (eq_to_iso (subsingleton.elim _ _)) hr (by simp [hw])
+structured_arrow.iso_mk hr hw
 
 @[simp]
 lemma iso_mk_hom_right {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom ≫ hr.hom = g.hom) :
@@ -230,11 +280,15 @@ lemma iso_mk_hom_right {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom �
 lemma iso_mk_inv_right {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom ≫ hr.hom = g.hom) :
   (iso_mk hr hw).inv.right = hr.inv := rfl
 
+section
+variables (X)
 /-- The forgetful functor mapping an arrow to its domain. -/
 def forget : under X ⥤ T := comma.snd _ _
 
-@[simp] lemma forget_obj {U : under X} : forget.obj U = U.right := rfl
-@[simp] lemma forget_map {U V : under X} {f : U ⟶ V} : forget.map f = f.right := rfl
+end
+
+@[simp] lemma forget_obj {U : under X} : (forget X).obj U = U.right := rfl
+@[simp] lemma forget_map {U V : under X} {f : U ⟶ V} : (forget X).map f = f.right := rfl
 
 /-- A morphism `X ⟶ Y` induces a functor `under Y ⥤ under X` in the obvious way. -/
 def map {Y : T} (f : X ⟶ Y) : under Y ⥤ under X := comma.map_left _ $ discrete.nat_trans (λ _, f)

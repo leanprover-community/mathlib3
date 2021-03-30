@@ -193,40 +193,14 @@ ext' $ preimage_comp.symm
 Constructs an ordered semimodule given an `ordered_add_comm_group`, a cone, and a proof that
 the order relation is the one defined by the cone.
 -/
-def to_ordered_semimodule {M : Type*} [ordered_add_comm_group M] [semimodule ℝ M]
+lemma to_ordered_semimodule {M : Type*} [ordered_add_comm_group M] [semimodule ℝ M]
   (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_semimodule ℝ M :=
-{ smul_lt_smul_of_pos :=
-    begin
-      intros x y z xy hz,
-      refine lt_of_le_of_ne _ _,
-      { rw [h (z • x) (z • y), ←smul_sub z y x],
-        exact smul_mem S hz ((h x y).mp (le_of_lt xy)) },
-      { intro H,
-        have H' := congr_arg (λ r, (1/z) • r) H,
-        refine (ne_of_lt xy) _,
-        field_simp [smul_smul, div_self ((ne_of_lt hz).symm)] at H',
-        exact H' },
-    end,
-  lt_of_smul_lt_smul_of_nonneg :=
-    begin
-      intros x y z hxy hz,
-      refine lt_of_le_of_ne _ _,
-      { rw [h x y],
-        have hz' : 0 < z,
-        { refine lt_of_le_of_ne hz _,
-          rintro rfl,
-          rw [zero_smul, zero_smul] at hxy,
-          exact lt_irrefl 0 hxy },
-        have hz'' : 0 < 1/z := div_pos (by linarith) hz',
-        have hxy' := (h (z • x) (z • y)).mp (le_of_lt hxy),
-        rw [←smul_sub z y x] at hxy',
-        have hxy'' := smul_mem S hz'' hxy',
-        field_simp [smul_smul, div_self ((ne_of_lt hz').symm)] at hxy'',
-        exact hxy'' },
-      { rintro rfl,
-        exact lt_irrefl (z • x) hxy }
-    end,
-}
+ordered_semimodule.mk'
+begin
+  intros x y z xy hz,
+  rw [h (z • x) (z • y), ←smul_sub z y x],
+  exact smul_mem S hz ((h x y).mp (le_of_lt xy))
+end
 
 /-! ### Convex cones with extra properties -/
 
@@ -302,7 +276,7 @@ def to_ordered_add_comm_group (S : convex_cone E) (h₁ : pointed S) (h₂ : sal
 /-! ### Positive cone of an ordered semimodule -/
 section positive_cone
 
-variables (M : Type*) [ordered_add_comm_group M] [ordered_semimodule ℝ M]
+variables (M : Type*) [ordered_add_comm_group M] [semimodule ℝ M] [ordered_semimodule ℝ M]
 
 /--
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered
@@ -439,7 +413,7 @@ begin
       by simpa only [set.nonempty, upper_bounds, lower_bounds, ball_image_iff] using this,
     refine exists_between_of_forall_le (nonempty.image f _) (nonempty.image f (dense y)) _,
     { rcases (dense (-y)) with ⟨x, hx⟩,
-      rw [← neg_neg x, coe_neg] at hx,
+      rw [← neg_neg x, coe_neg, ← sub_eq_add_neg] at hx,
       exact ⟨_, hx⟩ },
     rintros a ⟨xn, hxn, rfl⟩ b ⟨xp, hxp, rfl⟩,
     have := s.add_mem hxp hxn,
@@ -447,20 +421,17 @@ begin
     replace := nonneg _ this,
     rwa [f.map_sub, sub_nonneg] at this },
   have hy' : y ≠ 0, from λ hy₀, hy (hy₀.symm ▸ zero_mem _),
-  refine ⟨f.sup (linear_pmap.mk_span_singleton y (-c) hy') _, _, _⟩,
-  { refine linear_pmap.sup_h_of_disjoint _ _ (submodule.disjoint_span_singleton.2 _),
-    exact (λ h, (hy h).elim) },
+  refine ⟨f.sup_span_singleton y (-c) hy, _, _⟩,
   { refine lt_iff_le_not_le.2 ⟨f.left_le_sup _ _, λ H, _⟩,
     replace H := linear_pmap.domain_mono.monotone H,
-    rw [linear_pmap.domain_sup, linear_pmap.domain_mk_span_singleton, sup_le_iff,
-      span_le, singleton_subset_iff] at H,
+    rw [linear_pmap.domain_sup_span_singleton, sup_le_iff, span_le, singleton_subset_iff] at H,
     exact hy H.2 },
   { rintros ⟨z, hz⟩ hzs,
     rcases mem_sup.1 hz with ⟨x, hx, y', hy', rfl⟩,
     rcases mem_span_singleton.1 hy' with ⟨r, rfl⟩,
     simp only [subtype.coe_mk] at hzs,
-    rw [linear_pmap.sup_apply _ ⟨x, hx⟩ ⟨_, hy'⟩ ⟨_, hz⟩ rfl, linear_pmap.mk_span_singleton_apply,
-      smul_neg, ← sub_eq_add_neg, sub_nonneg],
+    erw [linear_pmap.sup_span_singleton_apply_mk _ _ _ _ _ hx, smul_neg,
+      ← sub_eq_add_neg, sub_nonneg],
     rcases lt_trichotomy r 0 with hr|hr|hr,
     { have : -(r⁻¹ • x) - y ∈ s,
         by rwa [← s.smul_mem_iff (neg_pos.2 hr), smul_sub, smul_neg, neg_smul, neg_neg, smul_smul,
@@ -551,7 +522,7 @@ begin
     { intro x,
       have A : (x, N x) = (x, 0) + (0, N x), by simp,
       have B := g_nonneg ⟨x, N x⟩ (le_refl (N x)),
-      rw [A, map_add, ← neg_le_iff_add_nonneg] at B,
+      rw [A, map_add, ← neg_le_iff_add_nonneg'] at B,
       have C := g_eq 0 (N x),
       simp only [submodule.coe_zero, f.map_zero, sub_zero] at C,
       rwa ← C } },

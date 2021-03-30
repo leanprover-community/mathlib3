@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.shift
 import category_theory.concrete_category
 import category_theory.pi.basic
+import algebra.group.basic
 
 /-!
 # The category of graded objects
@@ -44,7 +45,8 @@ A type synonym for `β → C`, used for `β`-graded objects in a category `C`
 with a shift functor given by translation by `s`.
 -/
 @[nolint unused_arguments] -- `s` is here to distinguish type synonyms asking for different shifts
-abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β) (C : Type u) : Type (max w u) := graded_object β C
+abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β) (C : Type u) :
+  Type (max w u) := graded_object β C
 
 namespace graded_object
 
@@ -67,7 +69,8 @@ def comap_eq {β γ : Type w} {f g : β → γ} (h : f = g) : comap (λ _, C) f 
 { hom := { app := λ X b, eq_to_hom begin dsimp [comap], subst h, end },
   inv := { app := λ X b, eq_to_hom begin dsimp [comap], subst h, end }, }
 
-lemma comap_eq_symm {β γ : Type w} {f g : β → γ} (h : f = g) : comap_eq C h.symm = (comap_eq C h).symm :=
+lemma comap_eq_symm {β γ : Type w} {f g : β → γ} (h : f = g) :
+  comap_eq C h.symm = (comap_eq C h).symm :=
 by tidy
 
 lemma comap_eq_trans {β γ : Type w} {f g h : β → γ} (k : f = g) (l : g = h) :
@@ -92,7 +95,8 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
 
 end
 
-instance has_shift {β : Type*} [add_comm_group β] (s : β) : has_shift (graded_object_with_shift s C) :=
+instance has_shift {β : Type*} [add_comm_group β] (s : β) :
+  has_shift (graded_object_with_shift s C) :=
 { shift := comap_equiv C
   { to_fun := λ b, b-s,
     inv_fun := λ b, b+s,
@@ -140,7 +144,7 @@ variables [has_coproducts C]
 /--
 The total object of a graded object is the coproduct of the graded components.
 -/
-def total : graded_object β C ⥤ C :=
+noncomputable def total : graded_object β C ⥤ C :=
 { obj := λ X, ∐ (λ i : ulift.{v} β, X i.down),
   map := λ X Y f, limits.sigma.map (λ i, f i.down) }.
 
@@ -164,6 +168,8 @@ instance : faithful (total β C) :=
 end graded_object
 
 namespace graded_object
+
+noncomputable theory
 
 variables (β : Type)
 variables (C : Type (u+1)) [large_category C] [concrete_category C]

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 import tactic.lint
 import tactic.ext
@@ -38,6 +38,16 @@ by { cases x₀, cases x₁, cases h₀, cases h₁, refl }
 
 lemma ext_iff {x₀ x₁ : sigma β} : x₀ = x₁ ↔ x₀.1 = x₁.1 ∧ x₀.2 == x₁.2 :=
 by { cases x₀, cases x₁, exact sigma.mk.inj_iff }
+
+/-- A specialized ext lemma for equality of sigma types over an indexed subtype. -/
+@[ext]
+lemma subtype_ext {β : Type*} {p : α → β → Prop} :
+  ∀ {x₀ x₁ : Σ a, subtype (p a)}, x₀.fst = x₁.fst → (x₀.snd : β) = x₁.snd → x₀ = x₁
+| ⟨a₀, b₀, hb₀⟩ ⟨a₁, b₁, hb₁⟩ rfl rfl := rfl
+
+lemma subtype_ext_iff {β : Type*} {p : α → β → Prop} {x₀ x₁ : Σ a, subtype (p a)} :
+  x₀ = x₁ ↔ x₀.fst = x₁.fst ∧ (x₀.snd : β) = x₁.snd :=
+⟨λ h, h ▸ ⟨rfl, rfl⟩, λ ⟨h₁, h₂⟩, subtype_ext h₁ h₂⟩
 
 @[simp] theorem «forall» {p : (Σ a, β a) → Prop} :
   (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
@@ -88,6 +98,19 @@ f ⟨x,y⟩
 def sigma.uncurry {γ : Π a, β a → Type*} (f : Π x (y : β x), γ x y) (x : sigma β) : γ x.1 x.2 :=
 f x.1 x.2
 
+/-- Convert a product type to a Σ-type. -/
+@[simp]
+def prod.to_sigma {α β} : α × β → Σ _ : α, β
+| ⟨x,y⟩ := ⟨x,y⟩
+
+@[simp]
+lemma prod.fst_to_sigma {α β} (x : α × β) : (prod.to_sigma x).fst = x.fst :=
+by cases x; refl
+
+@[simp]
+lemma prod.snd_to_sigma {α β} (x : α × β) : (prod.to_sigma x).snd = x.snd :=
+by cases x; refl
+
 end sigma
 
 section psigma
@@ -125,6 +148,16 @@ by { cases x₀, cases x₁, cases h₀, cases h₁, refl }
 
 lemma ext_iff {x₀ x₁ : psigma β} : x₀ = x₁ ↔ x₀.1 = x₁.1 ∧ x₀.2 == x₁.2 :=
 by { cases x₀, cases x₁, exact psigma.mk.inj_iff }
+
+/-- A specialized ext lemma for equality of psigma types over an indexed subtype. -/
+@[ext]
+lemma subtype_ext {β : Sort*} {p : α → β → Prop} :
+  ∀ {x₀ x₁ : Σ' a, subtype (p a)}, x₀.fst = x₁.fst → (x₀.snd : β) = x₁.snd → x₀ = x₁
+| ⟨a₀, b₀, hb₀⟩ ⟨a₁, b₁, hb₁⟩ rfl rfl := rfl
+
+lemma subtype_ext_iff {β : Sort*} {p : α → β → Prop} {x₀ x₁ : Σ' a, subtype (p a)} :
+  x₀ = x₁ ↔ x₀.fst = x₁.fst ∧ (x₀.snd : β) = x₁.snd :=
+⟨λ h, h ▸ ⟨rfl, rfl⟩, λ ⟨h₁, h₂⟩, subtype_ext h₁ h₂⟩
 
 variables {α₁ : Sort*} {α₂ : Sort*} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*}
 

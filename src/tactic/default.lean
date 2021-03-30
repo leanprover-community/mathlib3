@@ -35,3 +35,4 @@ import tactic.cancel_denoms
 import tactic.zify
 import tactic.transport
 import tactic.unfold_cases
+import tactic.field_simp

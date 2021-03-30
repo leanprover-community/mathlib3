@@ -20,6 +20,8 @@ open category_theory.limits
 
 universe u
 
+noncomputable theory
+
 namespace SemiRing
 
 variables {J : Type u} [small_category J]
@@ -45,7 +47,8 @@ instance limit_semiring (F : J ⥤ SemiRing) :
 def limit_π_ring_hom (F : J ⥤ SemiRing.{u}) (j) :
   (types.limit_cone (F ⋙ forget SemiRing)).X →+* (F ⋙ forget SemiRing).obj j :=
 { to_fun := (types.limit_cone (F ⋙ forget SemiRing)).π.app j,
-  ..AddMon.limit_π_add_monoid_hom (F ⋙ forget₂ SemiRing AddCommMon.{u} ⋙ forget₂ AddCommMon AddMon) j,
+  ..AddMon.limit_π_add_monoid_hom
+      (F ⋙ forget₂ SemiRing AddCommMon.{u} ⋙ forget₂ AddCommMon AddMon) j,
   ..Mon.limit_π_monoid_hom (F ⋙ forget₂ SemiRing Mon) j, }
 
 namespace has_limits
@@ -83,7 +86,7 @@ open has_limits
 @[irreducible]
 instance has_limits : has_limits SemiRing :=
 { has_limits_of_shape := λ J 𝒥, by exactI
-  { has_limit := λ F,
+  { has_limit := λ F, has_limit.mk
     { cone     := limit_cone F,
       is_limit := limit_cone_is_limit F } } }
 
@@ -213,8 +216,8 @@ The flat sections of a functor into `Ring` form a subring of all sections.
 def sections_subring (F : J ⥤ Ring) :
   subring (Π j, F.obj j) :=
 { carrier := (F ⋙ forget Ring).sections,
-  ..(AddGroup.sections_add_subgroup (F ⋙ forget₂ Ring AddCommGroup ⋙ forget₂ AddCommGroup AddGroup)),
-  ..(SemiRing.sections_subsemiring (F ⋙ forget₂ Ring SemiRing)) }
+  .. AddGroup.sections_add_subgroup (F ⋙ forget₂ Ring AddCommGroup ⋙ forget₂ AddCommGroup AddGroup),
+  .. SemiRing.sections_subsemiring (F ⋙ forget₂ Ring SemiRing) }
 
 instance limit_ring (F : J ⥤ Ring) :
   ring (types.limit_cone (F ⋙ forget Ring.{u})).X :=
@@ -324,7 +327,8 @@ creates_limit_of_reflects_iso (λ c' t,
   { X := CommRing.of (types.limit_cone (F ⋙ forget _)).X,
     π :=
     { app := SemiRing.limit_π_ring_hom (F ⋙ forget₂ CommRing Ring.{u} ⋙ forget₂ Ring SemiRing),
-      naturality' := (SemiRing.has_limits.limit_cone (F ⋙ forget₂ _ _ ⋙ forget₂ _ _)).π.naturality, } },
+      naturality' := (SemiRing.has_limits.limit_cone
+        (F ⋙ forget₂ _ _ ⋙ forget₂ _ _)).π.naturality } },
   valid_lift := is_limit.unique_up_to_iso (Ring.limit_cone_is_limit _) t,
   makes_limit := is_limit.of_faithful (forget₂ CommRing Ring.{u}) (Ring.limit_cone_is_limit _)
     (λ s, _) (λ s, rfl) })

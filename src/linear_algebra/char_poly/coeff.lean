@@ -1,16 +1,16 @@
 /-
 Copyright (c) 2020 Aaron Anderson, Jalex Stark. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Aaron Anderson, Jalex Stark.
+Authors: Aaron Anderson, Jalex Stark
 -/
 
 import data.matrix.char_p
-import linear_algebra.char_poly
+import linear_algebra.char_poly.basic
 import linear_algebra.matrix
 import ring_theory.polynomial.basic
 import algebra.polynomial.big_operators
 import group_theory.perm.cycles
-import field_theory.finite
+import field_theory.finite.basic
 
 /-!
 # Characteristic polynomials
@@ -21,10 +21,10 @@ We give methods for computing coefficients of the characteristic polynomial.
 
 - `char_poly_degree_eq_dim` proves that the degree of the characteristic polynomial
   over a nonzero ring is the dimension of the matrix
-- `det_eq_sign_char_poly_coeff` proves that the determinant is the constant term of the characteristic
-  polynomial, up to sign.
-- `trace_eq_neg_char_poly_coeff` proves that the trace is the negative of the (d-1)th coefficient of the
-  characteristic polynomial, where d is the dimension of the matrix.
+- `det_eq_sign_char_poly_coeff` proves that the determinant is the constant term of the
+  characteristic polynomial, up to sign.
+- `trace_eq_neg_char_poly_coeff` proves that the trace is the negative of the (d-1)th coefficient of
+  the characteristic polynomial, where d is the dimension of the matrix.
   For a nonzero ring, this is the second-highest coefficient.
 
 -/
@@ -58,7 +58,7 @@ variable (M)
 lemma char_poly_sub_diagonal_degree_lt :
 (char_poly M - ∏ (i : n), (X - C (M i i))).degree < ↑(fintype.card n - 1) :=
 begin
-  rw [char_poly, det, ← insert_erase (mem_univ (equiv.refl n)),
+  rw [char_poly, det_apply', ← insert_erase (mem_univ (equiv.refl n)),
     sum_insert (not_mem_erase (equiv.refl n) univ), add_comm],
   simp only [char_matrix_apply_eq, one_mul, equiv.perm.sign_refl, id.def, int.cast_one,
     units.coe_one, add_sub_cancel, equiv.coe_refl],
@@ -82,17 +82,17 @@ end
 lemma det_of_card_zero (h : fintype.card n = 0) (M : matrix n n R) : M.det = 1 :=
 by { rw fintype.card_eq_zero_iff at h, suffices : M = 1, { simp [this] }, ext, tauto }
 
-
 theorem char_poly_degree_eq_dim [nontrivial R] (M : matrix n n R) :
 (char_poly M).degree = fintype.card n :=
 begin
-  by_cases fintype.card n = 0, rw h, unfold char_poly, rw det_of_card_zero, simpa,
+  by_cases fintype.card n = 0,
+  { rw h, unfold char_poly, rw det_of_card_zero, {simp}, {assumption} },
   rw ← sub_add_cancel (char_poly M) (∏ (i : n), (X - C (M i i))),
   have h1 : (∏ (i : n), (X - C (M i i))).degree = fintype.card n,
   { rw degree_eq_iff_nat_degree_eq_of_pos, swap, apply nat.pos_of_ne_zero h,
     rw nat_degree_prod', simp_rw nat_degree_X_sub_C, unfold fintype.card, simp,
     simp_rw (monic_X_sub_C _).leading_coeff, simp, },
-  rw degree_add_eq_of_degree_lt, exact h1, rw h1,
+  rw degree_add_eq_right_of_degree_lt, exact h1, rw h1,
   apply lt_trans (char_poly_sub_diagonal_degree_lt M), rw with_bot.coe_lt_coe,
   rw ← nat.pred_eq_sub_one, apply nat.pred_lt, apply h,
 end
@@ -101,10 +101,11 @@ theorem char_poly_nat_degree_eq_dim [nontrivial R] (M : matrix n n R) :
   (char_poly M).nat_degree = fintype.card n :=
 nat_degree_eq_of_degree_eq_some (char_poly_degree_eq_dim M)
 
-lemma char_poly_monic_of_nontrivial [nontrivial R] (M : matrix n n R) :
+lemma char_poly_monic (M : matrix n n R) :
   monic (char_poly M) :=
 begin
-  by_cases fintype.card n = 0, rw [char_poly, det_of_card_zero h], apply monic_one,
+  nontriviality,
+  by_cases fintype.card n = 0, {rw [char_poly, det_of_card_zero h], apply monic_one},
   have mon : (∏ (i : n), (X - C (M i i))).monic,
   { apply monic_prod_of_monic univ (λ i : n, (X - C (M i i))), simp [monic_X_sub_C], },
   rw ← sub_add_cancel (∏ (i : n), (X - C (M i i))) (char_poly M) at mon,
@@ -114,19 +115,10 @@ begin
   rw ← nat.pred_eq_sub_one, apply nat.pred_lt, apply h,
 end
 
-lemma char_poly_monic (M : matrix n n R) :
-  monic (char_poly M) :=
-begin
-  classical, by_cases h : nontrivial R,
-  { letI := h, apply char_poly_monic_of_nontrivial, },
-  { rw nontrivial_iff at h, push_neg at h, apply h, }
-end
-
 theorem trace_eq_neg_char_poly_coeff [nonempty n] (M : matrix n n R) :
   (matrix.trace n R R) M = -(char_poly M).coeff (fintype.card n - 1) :=
 begin
-  by_cases nontrivial R; try { rw not_nontrivial_iff_subsingleton at h }; haveI := h, swap,
-  { apply subsingleton.elim },
+  nontriviality,
   rw char_poly_coeff_eq_prod_coeff_of_le, swap, refl,
   rw [fintype.card, prod_X_sub_C_coeff_card_pred univ (λ i : n, M i i)], simp,
   rw [← fintype.card, fintype.card_pos_iff], apply_instance,
@@ -146,7 +138,7 @@ begin
     have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simp,
     symmetry, rw ← finsupp.sum_map_range_index h, swap, refl,
     refine congr (congr rfl _) (by {ext, rw mul_comm}), ext, rw finsupp.map_range_apply,
-    simp [apply_eq_coeff], }
+    simpa [coeff] using (mat_poly_equiv_coeff_apply M a i j).symm }
 end
 
 lemma eval_det (M : matrix n n (polynomial R)) (r : R) :
@@ -169,10 +161,10 @@ variables {p : ℕ} [fact p.prime]
   char_poly (M ^ (fintype.card K)) = char_poly M :=
 begin
   by_cases hn : nonempty n,
-  { letI := hn,
+  { haveI := hn,
     cases char_p.exists K with p hp, letI := hp,
     rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩,
-    letI : fact p.prime := hp,
+    haveI : fact p.prime := ⟨hp⟩,
     dsimp at hk, rw hk at *,
     apply (frobenius_inj (polynomial K) p).iterate k,
     repeat { rw iterate_frobenius, rw ← hk },
@@ -195,8 +187,8 @@ end
   char_poly (M ^ p) = char_poly M :=
 by { have h := finite_field.char_poly_pow_card M, rwa zmod.card at h, }
 
-lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K] [nonempty n] (M : matrix n n K) :
-  trace n K K (M ^ (fintype.card K)) = (trace n K K M) ^ (fintype.card K) :=
+lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K] [nonempty n]
+  (M : matrix n n K) : trace n K K (M ^ (fintype.card K)) = (trace n K K M) ^ (fintype.card K) :=
 by rw [trace_eq_neg_char_poly_coeff, trace_eq_neg_char_poly_coeff,
        finite_field.char_poly_pow_card, finite_field.pow_card]
 
@@ -209,7 +201,7 @@ namespace matrix
 theorem is_integral : is_integral R M := ⟨char_poly M, ⟨char_poly_monic M, aeval_self_char_poly M⟩⟩
 
 theorem min_poly_dvd_char_poly {K : Type*} [field K] (M : matrix n n K) :
-  (minimal_polynomial M.is_integral) ∣ char_poly M :=
-minimal_polynomial.dvd M.is_integral (aeval_self_char_poly M)
+  (minpoly K M) ∣ char_poly M :=
+minpoly.dvd _ _ (aeval_self_char_poly M)
 
 end matrix

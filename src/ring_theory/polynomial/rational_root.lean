@@ -42,7 +42,7 @@ begin
 end
 
 lemma num_is_root_scale_roots_of_aeval_eq_zero
-  [unique_factorization_domain A] (g : fraction_map A K)
+  [unique_factorization_monoid A] (g : fraction_map A K)
   {p : polynomial A} {x : g.codomain} (hr : aeval x p = 0) :
   is_root (scale_roots p (g.denom x)) (g.num x) :=
 begin
@@ -56,10 +56,10 @@ end scale_roots
 
 section rational_root_theorem
 
-variables {A K : Type*} [integral_domain A] [unique_factorization_domain A] [field K]
+variables {A K : Type*} [integral_domain A] [unique_factorization_monoid A] [field K]
 variables {f : fraction_map A K}
 
-open polynomial unique_factorization_domain
+open polynomial unique_factorization_monoid
 
 /-- Rational root theorem part 1:
 if `r : f.codomain` is a root of a polynomial over the ufd `A`,
@@ -71,7 +71,7 @@ begin
   { simp only [coeff_scale_roots, nat.sub_zero] at this,
     haveI := classical.prop_decidable,
     by_cases hr : f.num r = 0,
-    { obtain ⟨u, hu⟩ := is_unit_pow p.nat_degree (f.is_unit_denom_of_num_eq_zero hr),
+    { obtain ⟨u, hu⟩ := (f.is_unit_denom_of_num_eq_zero hr).pow p.nat_degree,
       rw ←hu at this,
       exact units.dvd_mul_right.mp this },
     { refine dvd_of_dvd_mul_left_of_no_prime_factors hr _ this,
@@ -102,7 +102,8 @@ begin
   apply dvd_term_of_is_root_of_dvd_terms _ (num_is_root_scale_roots_of_aeval_eq_zero f hr),
   intros j hj,
   by_cases h : j < p.nat_degree,
-  { refine dvd_mul_of_dvd_left (dvd_mul_of_dvd_right _ _) _,
+  { rw coeff_scale_roots,
+    refine dvd_mul_of_dvd_left (dvd_mul_of_dvd_right _ _) _,
     convert pow_dvd_pow _ (nat.succ_le_iff.mpr (nat.lt_sub_left_of_add_lt _)),
     { exact (pow_one _).symm },
     simpa using h },
@@ -118,7 +119,7 @@ theorem is_integer_of_is_root_of_monic {p : polynomial A} (hp : monic p) {r : f.
   (hr : aeval r p = 0) : f.is_integer r :=
 f.is_integer_of_is_unit_denom (is_unit_of_dvd_one _ (hp ▸ denom_dvd_of_is_root hr))
 
-namespace unique_factorization_domain
+namespace unique_factorization_monoid
 
 lemma integer_of_integral {x : f.codomain} :
   is_integral A x → f.is_integer x :=
@@ -127,6 +128,6 @@ lemma integer_of_integral {x : f.codomain} :
 lemma integrally_closed : integral_closure A f.codomain = ⊥ :=
 eq_bot_iff.mpr (λ x hx, algebra.mem_bot.mpr (integer_of_integral hx))
 
-end unique_factorization_domain
+end unique_factorization_monoid
 
 end rational_root_theorem

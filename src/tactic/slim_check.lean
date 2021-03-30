@@ -1,10 +1,12 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 
 import testing.slim_check.testable
+import testing.slim_check.functions
+import data.list.sort
 
 /-!
 ## Finding counterexamples automatically using `slim_check`
@@ -102,7 +104,10 @@ open tactic slim_check
 
 declare_trace slim_check.instance
 declare_trace slim_check.decoration
-declare_trace slim_check.discared
+declare_trace slim_check.discarded
+declare_trace slim_check.success
+declare_trace slim_check.shrink.steps
+declare_trace slim_check.shrink.candidates .
 open expr
 
 /-- Tree structure representing a `testable` instance. -/
@@ -179,18 +184,25 @@ Optional arguments given with `slim_check_cfg`
 Options:
   * `set_option trace.slim_check.decoration true`: print the proposition with quantifier annotations
   * `set_option trace.slim_check.discarded true`: print the examples discarded because they do not satisfy assumptions
+  * `set_option trace.slim_check.shrink.steps true`: trace the shrinking of counter-example
+  * `set_option trace.slim_check.shrink.candidates true`: print the lists of candidates considered when shrinking each variable
   * `set_option trace.slim_check.instance true`: print the instances of `testable` being used to test the proposition
+  * `set_option trace.slim_check.success true`: print the tested samples that satisfy a property
 -/
 meta def slim_check (cfg : slim_check_cfg := {}) : tactic unit := do
 { tgt ← retrieve $ tactic.revert_all >> target,
   let tgt' := tactic.add_decorations tgt,
-  let cfg := { cfg with enable_tracing := cfg.enable_tracing || is_trace_enabled_for `slim_check.discared },
+  let cfg := { cfg with
+               trace_discarded         := cfg.trace_discarded         || is_trace_enabled_for `slim_check.discarded,
+               trace_shrink            := cfg.trace_shrink            || is_trace_enabled_for `slim_check.shrink.steps,
+               trace_shrink_candidates := cfg.trace_shrink_candidates || is_trace_enabled_for `slim_check.shrink.candidates,
+               trace_success           := cfg.trace_success           || is_trace_enabled_for `slim_check.success },
   inst ← mk_app ``testable [tgt'] >>= mk_instance <|>
     fail!"Failed to create a `testable` instance for `{tgt}`.
 What to do:
-1. make sure that the types you are using have `sampleable` instances (you can use `#sample my_type` if you are unsure);
+1. make sure that the types you are using have `slim_check.sampleable` instances (you can use `#sample my_type` if you are unsure);
 2. make sure that the relations and predicates that your proposition use are decidable;
-3. make sure that instances of `testable` exist that, when combined, apply to your decorated proposition:
+3. make sure that instances of `slim_check.testable` exist that, when combined, apply to your decorated proposition:
 ```
 {tgt'}
 ```
@@ -199,14 +211,14 @@ Use `set_option trace.class_instances true` to understand what instances are mis
 
 Try this:
 set_option trace.class_instances true
-#check (by apply_instance : testable ({tgt'}))",
+#check (by apply_instance : slim_check.testable ({tgt'}))",
   e ← mk_mapp ``testable.check [tgt, `(cfg), tgt', inst],
   when_tracing `slim_check.decoration trace!"[testable decoration]\n  {tgt'}",
   when_tracing `slim_check.instance   $ do
   { inst ← summarize_instance inst >>= pp,
     trace!"\n[testable instance]{format.indent inst 2}" },
-  code ← eval_expr (io bool) e,
-  b ← unsafe_run_io code,
-  if b then admit else failed }
+  code ← eval_expr (io punit) e,
+  unsafe_run_io code,
+  admit }
 
 end tactic.interactive

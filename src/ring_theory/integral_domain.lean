@@ -47,7 +47,7 @@ end
 /-- A finite subgroup of the unit group of an integral domain is cyclic. -/
 lemma is_cyclic_of_subgroup_integral_domain (f : G →* R) (hf : injective f) : is_cyclic G :=
 begin
-  haveI := classical.dec_eq G,
+  classical,
   apply is_cyclic_of_card_pow_eq_one_le,
   intros n hn,
   convert (le_trans (card_nth_roots_subgroup_units f hf hn 1) (card_nth_roots n (f 1)))
@@ -70,6 +70,7 @@ def field_of_integral_domain [decidable_eq R] [fintype R] : field R :=
 section
 
 variables (S : set (units R)) [is_subgroup S] [fintype S]
+local attribute [instance] subtype.group
 
 /-- A finite subgroup of the units of an integral domain is cyclic. -/
 instance subgroup_units_cyclic : is_cyclic S :=
@@ -98,12 +99,15 @@ begin
       mul_inv_cancel_right, inv_mul_cancel_right], }
 end
 
-/-- In an integral domain, a sum indexed by a nontrivial homomorphism from a finite group is zero. -/
+section
+local attribute [instance] subtype.group subtype.monoid range.is_submonoid
+/-- In an integral domain, a sum indexed by a nontrivial homomorphism from a finite group is zero.
+-/
 lemma sum_hom_units_eq_zero (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=
 begin
   classical,
   obtain ⟨x, hx⟩ : ∃ x : set.range f.to_hom_units, ∀ y : set.range f.to_hom_units, y ∈ powers x,
-    from is_cyclic.exists_monoid_generator (set.range (f.to_hom_units)),
+    from is_cyclic.exists_monoid_generator,
   have hx1 : x ≠ 1,
   { rintro rfl,
     apply hf,
@@ -112,18 +116,19 @@ begin
     cases hx ⟨f.to_hom_units g, g, rfl⟩ with n hn,
     rwa [subtype.ext_iff, units.ext_iff, subtype.coe_mk, monoid_hom.coe_to_hom_units,
       is_submonoid.coe_pow, units.coe_pow, is_submonoid.coe_one, units.coe_one,
-      _root_.one_pow, eq_comm] at hn, },
+      one_pow, eq_comm] at hn, },
   replace hx1 : (x : R) - 1 ≠ 0,
     from λ h, hx1 (subtype.eq (units.ext (sub_eq_zero.1 h))),
   let c := (univ.filter (λ g, f.to_hom_units g = 1)).card,
   calc ∑ g : G, f g
       = ∑ g : G, f.to_hom_units g : rfl
-  ... = ∑ u : units R in univ.image f.to_hom_units, (univ.filter (λ g, f.to_hom_units g = u)).card • u :
-    sum_comp (coe : units R → R) f.to_hom_units
+  ... = ∑ u : units R in univ.image f.to_hom_units,
+    (univ.filter (λ g, f.to_hom_units g = u)).card • u : sum_comp (coe : units R → R) f.to_hom_units
   ... = ∑ u : units R in univ.image f.to_hom_units, c • u :
     sum_congr rfl (λ u hu, congr_arg2 _ _ rfl) -- remaining goal 1, proven below
-  ... = ∑ b : set.range f.to_hom_units, c • ↑b : finset.sum_subtype
-      (by simp only [mem_image, set.mem_range, forall_const, iff_self, mem_univ, exists_prop_of_true]) _
+  ... = ∑ b : set.range f.to_hom_units, c • ↑b : finset.sum_subtype _
+      (by simp only [mem_image, set.mem_range, forall_const, iff_self, mem_univ,
+                     exists_prop_of_true]) _
   ... = c • ∑ b : set.range f.to_hom_units, (b : R) : smul_sum.symm
   ... = c • 0 : congr_arg2 _ rfl _            -- remaining goal 2, proven below
   ... = 0 : smul_zero _,
@@ -138,20 +143,23 @@ begin
       = ∑ n in range (order_of x), x ^ n :
     eq.symm $ sum_bij (λ n _, x ^ n)
       (by simp only [mem_univ, forall_true_iff])
-      (by simp only [is_submonoid.coe_pow, eq_self_iff_true, units.coe_pow, coe_coe, forall_true_iff])
+      (by simp only [is_submonoid.coe_pow, eq_self_iff_true, units.coe_pow, coe_coe,
+                     forall_true_iff])
       (λ m n hm hn, pow_injective_of_lt_order_of _
         (by simpa only [mem_range] using hm)
         (by simpa only [mem_range] using hn))
       (λ b hb, let ⟨n, hn⟩ := hx b in ⟨n % order_of x, mem_range.2 (nat.mod_lt _ (order_of_pos _)),
         by rw [← pow_eq_mod_order_of, hn]⟩)
   ... = 0 : _,
-  rw [← mul_left_inj' hx1, zero_mul, ← geom_series, geom_sum_mul, coe_coe],
+  rw [← mul_left_inj' hx1, zero_mul, ← geom_sum, geom_sum_mul, coe_coe],
   norm_cast,
   rw [pow_order_of_eq_one, is_submonoid.coe_one, units.coe_one, sub_self],
 end
+end
 
 /-- In an integral domain, a sum indexed by a homomorphism from a finite group is zero,
-unless the homomorphism is trivial, in which case the sum is equal to the cardinality of the group. -/
+unless the homomorphism is trivial, in which case the sum is equal to the cardinality of the group.
+-/
 lemma sum_hom_units (f : G →* R) [decidable (f = 1)] :
   ∑ g : G, f g = if f = 1 then fintype.card G else 0 :=
 begin

@@ -19,45 +19,49 @@ variables {C : Type u₁} [category.{v₁} C]
 variables {D : Type u₂} [category.{v₂} D]
 variables {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R)
 
--- Lemma 4.5.13 from [Riehl][riehl2017]
--- Proof in <https://stacks.math.columbia.edu/tag/0036>
--- or at <https://math.stackexchange.com/a/2727177>
+/--
+If the left adjoint is fully faithful, then the unit is an isomorphism.
+
+See
+* Lemma 4.5.13 from [Riehl][riehl2017]
+* https://math.stackexchange.com/a/2727177
+* https://stacks.math.columbia.edu/tag/07RB (we only prove the forward direction!)
+-/
 instance unit_is_iso_of_L_fully_faithful [full L] [faithful L] : is_iso (adjunction.unit h) :=
 @nat_iso.is_iso_of_is_iso_app _ _ _ _ _ _ (adjunction.unit h) $ λ X,
 @yoneda.is_iso _ _ _ _ ((adjunction.unit h).app X)
-{ inv := { app := λ Y f, L.preimage ((h.hom_equiv (unop Y) (L.obj X)).symm f) },
-  inv_hom_id' :=
-  begin
-    ext, dsimp,
+⟨⟨{ app := λ Y f, L.preimage ((h.hom_equiv (unop Y) (L.obj X)).symm f) },
+  ⟨begin
+    ext x f, dsimp,
+    apply L.map_injective,
+    simp,
+  end, begin
+    ext x f, dsimp,
     simp only [adjunction.hom_equiv_counit, preimage_comp, preimage_map, category.assoc],
     rw ←h.unit_naturality,
     simp,
-  end,
-  hom_inv_id' :=
-  begin
-    ext, dsimp,
-    apply L.map_injective,
-    simp,
-  end }.
+  end⟩⟩⟩
 
+/--
+If the right adjoint is fully faithful, then the counit is an isomorphism.
+
+See https://stacks.math.columbia.edu/tag/07RB (we only prove the forward direction!)
+-/
 instance counit_is_iso_of_R_fully_faithful [full R] [faithful R] : is_iso (adjunction.counit h) :=
 @nat_iso.is_iso_of_is_iso_app _ _ _ _ _ _ (adjunction.counit h) $ λ X,
 @is_iso_of_op _ _ _ _ _ $
 @coyoneda.is_iso _ _ _ _ ((adjunction.counit h).app X).op
-{ inv := { app := λ Y f, R.preimage ((h.hom_equiv (R.obj X) Y) f) },
-  inv_hom_id' :=
-  begin
-    ext, dsimp,
+⟨⟨{ app := λ Y f, R.preimage ((h.hom_equiv (R.obj X) Y) f) },
+  ⟨begin
+    ext x f, dsimp,
+    apply R.map_injective,
+    simp,
+  end, begin
+    ext x f, dsimp,
     simp only [adjunction.hom_equiv_unit, preimage_comp, preimage_map],
     rw ←h.counit_naturality,
     simp,
-  end,
-  hom_inv_id' :=
-  begin
-    ext, dsimp,
-    apply R.map_injective,
-    simp,
-  end }
+  end⟩⟩⟩
 
 -- TODO also prove the converses?
 -- def L_full_of_unit_is_iso [is_iso (adjunction.unit h)] : full L := sorry
@@ -95,21 +99,14 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_left_symm' := λ X' X Y f g,
   begin
     apply iD.map_injective,
-    simp only [functor.image_preimage, adjunction.hom_equiv_counit, assoc, id_comp, comp_id,
-      functor.map_comp, iso.refl_hom, iso.refl_symm, iso.refl_inv, iso.symm_mk,
-      equiv_of_fully_faithful_symm_apply, iso.hom_congr_apply, iso.hom_congr_symm,
-      equiv_of_fully_faithful_apply, equiv.symm_symm, equiv.symm_trans_apply, iso.symm_hom],
-    erw [comm1.inv.naturality_assoc f],
-    refl,
+    simpa using (comm1.inv.naturality_assoc f _).symm,
   end,
   hom_equiv_naturality_right' := λ X Y' Y f g,
   begin
     apply iC.map_injective,
-    dsimp [equiv.trans, iso.hom_congr_apply, iso.hom_congr_symm],
-    simp only [adjunction.hom_equiv_unit, functor.image_preimage, assoc, id_comp, comp_id,
-               functor.map_comp],
-    erw comm2.hom.naturality g,
-    refl,
+    suffices : R'.map (iD.map g) ≫ comm2.hom.app Y = comm2.hom.app Y' ≫ iC.map (R.map g),
+      simp [this],
+    apply comm2.hom.naturality g,
   end }
 
 

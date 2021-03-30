@@ -1,16 +1,13 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import algebra.invertible
 import data.indicator_function
-import linear_algebra.affine_space.basic
+import linear_algebra.affine_space.affine_map
+import linear_algebra.affine_space.affine_subspace
 import linear_algebra.finsupp
-
-noncomputable theory
-open_locale big_operators
-open_locale classical
 
 /-!
 # Affine combinations of points
@@ -40,6 +37,9 @@ These definitions are for sums over a `finset`; versions for a
 * https://en.wikipedia.org/wiki/Affine_space
 
 -/
+
+noncomputable theory
+open_locale big_operators classical affine
 
 namespace finset
 
@@ -186,7 +186,7 @@ the weights.  This is intended to be used when the sum of the weights
 is 1, in which case it is an affine combination (barycenter) of the
 points with the given weights; that condition is specified as a
 hypothesis on those lemmas that require it. -/
-def affine_combination (p : ι → P) : affine_map k (ι → k) P :=
+def affine_combination (p : ι → P) : (ι → k) →ᵃ[k] P :=
 { to_fun := λ w,
     s.weighted_vsub_of_point p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty),
   linear := s.weighted_vsub p,
@@ -195,7 +195,7 @@ def affine_combination (p : ι → P) : affine_map k (ι → k) P :=
 /-- The linear map corresponding to `affine_combination` is
 `weighted_vsub`. -/
 @[simp] lemma affine_combination_linear (p : ι → P) :
-  (s.affine_combination p : affine_map k (ι → k) P).linear = s.weighted_vsub p :=
+  (s.affine_combination p : (ι → k) →ᵃ[k] P).linear = s.weighted_vsub p :=
 rfl
 
 /-- Applying `affine_combination` with given weights.  This is for the
@@ -473,6 +473,49 @@ lemma centroid_eq_affine_combination_fintype [fintype ι] (p : ι → P) :
   s.centroid k p = univ.affine_combination p (s.centroid_weights_indicator k) :=
 affine_combination_indicator_subset _ _ (subset_univ _)
 
+/-- An indexed family of points that is injective on the given
+`finset` has the same centroid as the image of that `finset`.  This is
+stated in terms of a set equal to the image to provide control of
+definitional equality for the index type used for the centroid of the
+image. -/
+lemma centroid_eq_centroid_image_of_inj_on {p : ι → P} (hi : ∀ i j ∈ s, p i = p j → i = j)
+  {ps : set P} [fintype ps] (hps : ps = p '' ↑s) :
+  s.centroid k p = (univ : finset ps).centroid k (λ x, x) :=
+begin
+  let f : p '' ↑s → ι := λ x, x.property.some,
+  have hf : ∀ x, f x ∈ s ∧ p (f x) = x := λ x, x.property.some_spec,
+  let f' : ps → ι := λ x, f ⟨x, hps ▸ x.property⟩,
+  have hf' : ∀ x, f' x ∈ s ∧ p (f' x) = x := λ x, hf ⟨x, hps ▸ x.property⟩,
+  have hf'i : function.injective f',
+  { intros x y h,
+    rw [subtype.ext_iff, ←(hf' x).2, ←(hf' y).2, h] },
+  let f'e : ps ↪ ι := ⟨f', hf'i⟩,
+  have hu : finset.univ.map f'e = s,
+  { ext x,
+    rw mem_map,
+    split,
+    { rintros ⟨i, _, rfl⟩,
+      exact (hf' i).1 },
+    { intro hx,
+      use [⟨p x, hps.symm ▸ set.mem_image_of_mem _ hx⟩, mem_univ _],
+      refine hi _ _ (hf' _).1 hx _,
+      rw (hf' _).2,
+      refl } },
+  rw [←hu, centroid_map],
+  congr' with x,
+  change p (f' x) = ↑x,
+  rw (hf' x).2
+end
+
+/-- Two indexed families of points that are injective on the given
+`finset`s and with the same points in the image of those `finset`s
+have the same centroid. -/
+lemma centroid_eq_of_inj_on_of_image_eq {p : ι → P} (hi : ∀ i j ∈ s, p i = p j → i = j)
+  {p₂ : ι₂ → P} (hi₂ : ∀ i j ∈ s₂, p₂ i = p₂ j → i = j) (he : p '' ↑s = p₂ '' ↑s₂) :
+  s.centroid k p = s₂.centroid k p₂ :=
+by rw [s.centroid_eq_centroid_image_of_inj_on k hi rfl,
+       s₂.centroid_eq_centroid_image_of_inj_on k hi₂ he]
+
 end finset
 
 section affine_space'
@@ -669,7 +712,7 @@ include V
 
 -- TODO: define `affine_map.proj`, `affine_map.fst`, `affine_map.snd`
 /-- A weighted sum, as an affine map on the points involved. -/
-def weighted_vsub_of_point (w : ι → k) : affine_map k ((ι → P) × P) V :=
+def weighted_vsub_of_point (w : ι → k) : ((ι → P) × P) →ᵃ[k] V :=
 { to_fun := λ p, s.weighted_vsub_of_point p.fst p.snd w,
   linear := ∑ i in s,
     w i • ((linear_map.proj i).comp (linear_map.fst _ _ _) - linear_map.snd _ _ _),

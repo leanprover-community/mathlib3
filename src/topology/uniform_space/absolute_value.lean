@@ -33,7 +33,7 @@ open set function filter uniform_space
 open_locale filter
 
 namespace is_absolute_value
-variables {𝕜 : Type*} [discrete_linear_ordered_field 𝕜]
+variables {𝕜 : Type*} [linear_ordered_field 𝕜]
 variables {R : Type*} [comm_ring R] (abv : R → 𝕜) [is_absolute_value abv]
 
 /-- The uniformity coming from an absolute value. -/
@@ -46,7 +46,7 @@ def uniform_space_core : uniform_space.core R :=
       have h : abv (y - x) < ε, by simpa [-sub_eq_add_neg] using h,
       by rwa abv_sub abv at h,
   comp := le_infi $ assume ε, le_infi $ assume h, lift'_le
-    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos h two_pos) (subset.refl _)) $
+    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos h zero_lt_two) (subset.refl _)) $
     have ∀ (a b c : R), abv (c-a) < ε / 2 → abv (b-c) < ε / 2 → abv (b-a) < ε,
       from assume a b c hac hcb,
        calc abv (b - a) ≤ _ : abv_sub_le abv b c a
@@ -68,7 +68,8 @@ begin
     exact this },
   rw mem_infi,
   { simp [subset_def] },
-  { exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩, },
+  { rintros ⟨r, hr⟩ ⟨p, hp⟩,
+    exact ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩, },
 end
 
 end is_absolute_value

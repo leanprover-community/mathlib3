@@ -3,8 +3,8 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.limits
-import category_theory.sparse
+import category_theory.limits.has_limits
+import category_theory.thin
 
 /-!
 # Wide pullbacks
@@ -70,7 +70,7 @@ local attribute [tidy] tactic.case_bash
 instance subsingleton_hom (j j' : wide_pullback_shape J) : subsingleton (j ⟶ j') :=
 ⟨by tidy⟩
 
-instance category : small_category (wide_pullback_shape J) := sparse_category
+instance category : small_category (wide_pullback_shape J) := thin_category
 
 @[simp] lemma hom_id (X : wide_pullback_shape J) : hom.id X = 𝟙 X := rfl
 
@@ -81,7 +81,8 @@ Construct a functor out of the wide pullback shape given a J-indexed collection 
 fixed object.
 -/
 @[simps]
-def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) : wide_pullback_shape J ⥤ C :=
+def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) :
+  wide_pullback_shape J ⥤ C :=
 { obj := λ j, option.cases_on j B objs,
   map := λ X Y f,
   begin
@@ -127,7 +128,7 @@ local attribute [tidy] tactic.case_bash
 instance subsingleton_hom (j j' : wide_pushout_shape J) : subsingleton (j ⟶ j') :=
 ⟨by tidy⟩
 
-instance category : small_category (wide_pushout_shape J) := sparse_category
+instance category : small_category (wide_pushout_shape J) := thin_category
 
 @[simp] lemma hom_id (X : wide_pushout_shape J) : hom.id X = 𝟙 X := rfl
 
@@ -157,11 +158,11 @@ end wide_pushout_shape
 variables (C : Type u) [category.{v} C]
 
 /-- `has_wide_pullbacks` represents a choice of wide pullback for every collection of morphisms -/
-abbreviation has_wide_pullbacks : Type (max (v+1) u) :=
+abbreviation has_wide_pullbacks : Prop :=
 Π (J : Type v), has_limits_of_shape (wide_pullback_shape J) C
 
 /-- `has_wide_pushouts` represents a choice of wide pushout for every collection of morphisms -/
-abbreviation has_wide_pushouts : Type (max (v+1) u) :=
+abbreviation has_wide_pushouts : Prop :=
 Π (J : Type v), has_colimits_of_shape (wide_pushout_shape J) C
 
 end category_theory.limits

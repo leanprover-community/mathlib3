@@ -5,6 +5,7 @@ Authors: Bhavik Mehta, Scott Morrison
 -/
 import category_theory.subobject.mono_over
 import category_theory.skeletal
+import tactic.elementwise
 
 /-!
 # Subobjects
@@ -162,7 +163,7 @@ lemma underlying_arrow {X : C} {Y Z : subobject X} (f : Y ⟶ Z) :
   underlying.map f ≫ arrow Z = arrow Y :=
 over.w (representative.map f)
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma underlying_iso_arrow {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).inv ≫ (subobject.mk f).arrow = f :=
 over.w _

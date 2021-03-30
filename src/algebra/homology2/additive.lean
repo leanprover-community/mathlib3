@@ -35,21 +35,24 @@ end homological_complex
 variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
 
 instance : functor.additive (cycles_functor V c i) :=
-{ map_zero' := λ C D, by { dsimp [cycles_functor, cycles_map], ext, simp, },
-  map_add' := λ C D f g, by { dsimp [cycles_functor, cycles_map], ext, simp, }, }
+{ map_zero' := λ C D, by { dsimp [cycles_functor], ext, simp, },
+  map_add' := λ C D f g, by { dsimp [cycles_functor], ext, simp, }, }
 
 instance : functor.additive (boundaries_functor V c i) :=
-{ map_zero' := λ C D, by { dsimp [boundaries_functor, boundaries_map], ext, simp, },
-  map_add' := λ C D f g, by { dsimp [boundaries_functor, boundaries_map], ext, simp, }, }
+{ map_zero' := λ C D, by { dsimp [boundaries_functor], ext, simp, },
+  map_add' := λ C D f g, by { dsimp [boundaries_functor], ext, simp, }, }
 
 instance : functor.additive (homology_functor V c i) :=
 { map_zero' := λ C D, begin
-    dsimp [homology_functor, boundaries_to_cycles, cycles_map],
+    dsimp [homology_functor],
+    ext,
+    simp only [limits.cokernel.π_desc, limits.comp_zero],
+    convert zero_comp,
     ext,
     simp,
   end,
   map_add' := λ C D f g, begin
-    dsimp [homology_functor, boundaries_to_cycles, cycles_map],
+    dsimp [homology_functor],
     ext,
     simp only [limits.cokernel.π_desc, preadditive.comp_add,
       limits.coequalizer_as_cokernel, ←preadditive.add_comp],

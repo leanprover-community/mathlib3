@@ -34,22 +34,23 @@ variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
 theorem homology_map_eq_of_homotopy (h : homotopy f g) (i : ι) :
   (homology_functor V c i).map f = (homology_functor V c i).map g :=
 begin
-  dsimp [homology_functor, cycles_map],
+  dsimp [homology_functor],
   ext,
-  dsimp,
+  simp,
+  dunfold cycles_map,
   simp [←h.comm' i],
   apply eq_of_sub_eq_zero,
   rw [←preadditive.sub_comp],
 
   suffices h : ((D.cycles i).factor_thru ((C.cycles i).arrow ≫ h.to_ihom.to_pred i i ≫ D.d_to i) _) ≫ cokernel.π (D.boundaries_to_cycles i) = 0,
-  sorry, -- interaction of factor_thru and preadditive
-  dsimp [cycles],
-  erw [subobject.factor_thru_of_le (D.boundaries_le_cycles i)],
-  dsimp [boundaries_to_cycles],
-  simp,
-  dsimp [boundaries],
-  rw [←category.assoc],
-  apply image_subobject_factors_comp_self,
+  { sorry, }, -- interaction of factor_thru and preadditive
+  { dsimp [cycles],
+    rw [←category.assoc], -- Need some sort of congruence lemma for factor_thru here.
+    erw [subobject.factor_thru_of_le (D.boundaries_le_cycles i)],
+    { simp,
+      sorry, },
+    { rw [←category.assoc],
+      apply image_subobject_factors_comp_self, }, },
 end
 
 end
@@ -98,12 +99,16 @@ def to_kernel_subobject {M N : Module R} {f : M ⟶ N} (m : M) (w : f m = 0) : k
   (kernel_subobject f).arrow (to_kernel_subobject m w) = m :=
 sorry
 
+/--
+To prove that two maps out of a homology group are equal,
+it suffices to check they are equal on the images of cycles.
+-/
 @[ext]
-lemma subquotient_ext {L M N K : Module R} {f : L ⟶ M} {g : M ⟶ N} (w : f ≫ g = 0)
-  {h k : subquotient w ⟶ K}
+lemma homology_ext {L M N K : Module R} {f : L ⟶ M} {g : M ⟶ N} (w : f ≫ g = 0)
+  {h k : homology f g w ⟶ K}
   (w : ∀ (m : M) (p : g m = 0),
-    h (cokernel.π (image_to_kernel w) (to_kernel_subobject m p)) =
-      k (cokernel.π (image_to_kernel w) (to_kernel_subobject m p))) : h = k :=
+    h (cokernel.π (image_to_kernel _ _ w) (to_kernel_subobject m p)) =
+      k (cokernel.π (image_to_kernel _ _ w) (to_kernel_subobject m p))) : h = k :=
 begin
   ext n,
   -- Gosh it would be nice if `equiv_rw` could directly use an isomorphism, or an enriched `≃`.
@@ -124,8 +129,10 @@ to_kernel_subobject x p
 begin
   simp [to_cycles],
   dsimp [to_kernel_subobject, cycles, kernel_subobject_iso],
-  convert concrete_category.congr_hom (subobject.underlying_iso_arrow (kernel.ι (C.d_from i))) _,
   simp,
+  -- erw is needed here because of the difference between `kernel_subobject` and `subobject.mk (kernel.ι ....)`
+  -- erw subobject.underlying_iso_arrow_apply (kernel.ι (C.d_from i)),
+  -- simp,
 end
 
 @[ext] lemma cycles_ext {C : homological_complex (Module.{v} R) c} {i : ι}
@@ -146,37 +153,39 @@ begin
 end
 
 def homological_complex.to_homology (C : homological_complex (Module.{v} R) c) {i : ι} (x : C.X i) (p : C.d_from i x = 0) : C.homology i :=
-cokernel.π (image_to_kernel (C.d_to_comp_d_from i)) (C.to_cycles x p)
+cokernel.π (image_to_kernel _ _ (C.d_to_comp_d_from i)) (C.to_cycles x p)
 
 @[ext]
-lemma from_homology_ext {M : Module R} (i : ι) {h k : C.homology i ⟶ M}
+lemma homological_complex.ext {M : Module R} (i : ι) {h k : C.homology i ⟶ M}
   (w : ∀ (x : C.X i) (p : C.d_from i x = 0), h (C.to_homology x p) = k (C.to_homology x p)) : h = k :=
-subquotient_ext _ w
+homology_ext _ w
 
 variables (f g : C ⟶ D)
 
+attribute [elementwise] cokernel.π_desc
 
 theorem homology_map_eq_of_homotopy' (h : homotopy f g) (i : ι) :
   (homology_functor (Module.{v} R) c i).map f = (homology_functor (Module.{v} R) c i).map g :=
 begin
   -- To check two morphisms out of a homology group agree, it suffices to check on cycles:
   ext,
-  dsimp [homology_functor, homology, homological_complex.to_homology],
-  erw colimit.ι_desc_apply, -- a cokernel specific version?
-  erw colimit.ι_desc_apply,
-  simp only [function.comp_app, Module.coe_comp, category_theory.limits.cofork.of_π_ι_app],
-  simp only [cycles_map_to_cycles],
-  -- To check that two elements are equal mod coboundaries, it suffices to exhibit a coboundary:
-  ext1,
-  -- Moreover, to check that two cycles are equal, it suffices to check their underlying elements:
-  ext1,
-  simp only [homological_complex.to_cycles_arrow, linear_map.map_add],
-  rw ←h.comm' i,
-  simp only [function.comp_app, Module.coe_comp, linear_map.add_apply],
-  -- Now we use `p : d x = 0` to get rid of a term:
-  simp only [p, linear_map.map_zero, add_zero],
-  -- Cancel the `g` terms:
-  simp only [←add_assoc, add_left_eq_self],
+  dsimp [homology_functor, homological_complex.to_homology],
+  simp,
+  -- erw colimit.ι_desc_apply, -- a cokernel specific version?
+  -- erw colimit.ι_desc_apply,
+  -- simp only [function.comp_app, Module.coe_comp, category_theory.limits.cofork.of_π_ι_app],
+  -- simp only [cycles_map_to_cycles],
+  -- -- To check that two elements are equal mod coboundaries, it suffices to exhibit a coboundary:
+  -- ext1,
+  -- -- Moreover, to check that two cycles are equal, it suffices to check their underlying elements:
+  -- ext1,
+  -- simp only [homological_complex.to_cycles_arrow, linear_map.map_add],
+  -- rw ←h.comm' i,
+  -- simp only [function.comp_app, Module.coe_comp, linear_map.add_apply],
+  -- -- Now we use `p : d x = 0` to get rid of a term:
+  -- simp only [p, linear_map.map_zero, add_zero],
+  -- -- Cancel the `g` terms:
+  -- simp only [←add_assoc, add_left_eq_self],
 
   -- rw [←h.comm' i],
   -- simp,

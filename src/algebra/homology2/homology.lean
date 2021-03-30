@@ -15,18 +15,23 @@ noncomputable theory
 section
 variables [has_images V] [has_kernels V]
 
-def image_le_kernel {A B C : V} {f : A ⟶ B} {g : B ⟶ C} (w : f ≫ g = 0) :
+def image_le_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) :
   image_subobject f ≤ kernel_subobject g :=
 image_subobject_le_mk _ _ (kernel.lift _ _ w) (by simp)
 
-def image_to_kernel {A B C : V} {f : A ⟶ B} {g : B ⟶ C} (w : f ≫ g = 0) :
+def image_to_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) :
   (image_subobject f : V) ⟶ (kernel_subobject g : V) :=
-(subobject.of_le _ _ (image_le_kernel w))
+(subobject.of_le _ _ (image_le_kernel _ _ w))
+
+@[simp, reassoc]
+lemma image_to_kernel_arrow {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) :
+  image_to_kernel f g w ≫ (kernel_subobject g).arrow = (image_subobject f).arrow :=
+by simp [image_to_kernel]
 
 variables [has_cokernels V]
 
-def subquotient {A B C : V} {f : A ⟶ B} {g : B ⟶ C} (w : f ≫ g = 0) : V :=
-cokernel (image_to_kernel w)
+def homology {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) : V :=
+cokernel (image_to_kernel _ _ w)
 
 end
 
@@ -63,7 +68,7 @@ end cycles
 section boundaries
 variables [has_images V] [has_equalizers V]
 
-def boundaries (C : homological_complex V c) (j : ι) : subobject (C.X j) :=
+abbreviation boundaries (C : homological_complex V c) (j : ι) : subobject (C.X j) :=
 image_subobject (C.d_to j)
 
 lemma boundaries_eq_image_subobject {i j : ι} (r : c.r i j) :
@@ -89,20 +94,20 @@ variables [has_kernels V] [has_images V] [has_equalizers V] [has_zero_object V]
 
 lemma boundaries_le_cycles (C : homological_complex V c) (i : ι) :
   C.boundaries i ≤ C.cycles i :=
-image_le_kernel (C.d_to_comp_d_from i)
+image_le_kernel _ _ (C.d_to_comp_d_from i)
 
-def boundaries_to_cycles (C : homological_complex V c) (i : ι) :
+abbreviation boundaries_to_cycles (C : homological_complex V c) (i : ι) :
   (C.boundaries i : V) ⟶ (C.cycles i : V) :=
-subobject.of_le _ _ (C.boundaries_le_cycles i)
+image_to_kernel _ _ (C.d_to_comp_d_from i)
 
-@[simp]
+@[simp, reassoc]
 lemma boundaries_to_cycles_arrow (C : homological_complex V c) (i : ι) :
   C.boundaries_to_cycles i ≫ (C.cycles i).arrow = (C.boundaries i).arrow :=
-by simp [boundaries_to_cycles]
+by { dsimp [cycles], simp, }
 
 variables [has_cokernels V]
 
-def homology (C : homological_complex V c) (i : ι) : V :=
+abbreviation homology (C : homological_complex V c) (i : ι) : V :=
 cokernel (C.boundaries_to_cycles i)
 
 end
@@ -116,19 +121,19 @@ section
 variables [has_kernels V]
 variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 
-def cycles_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.cycles i : V) ⟶ (C₂.cycles i : V) :=
+abbreviation cycles_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.cycles i : V) ⟶ (C₂.cycles i : V) :=
 subobject.factor_thru _ ((C₁.cycles i).arrow ≫ f.f i) (kernel_subobject_factors _ _ (by simp))
 
 @[simp, elementwise] lemma cycles_map_arrow (f : C₁ ⟶ C₂) (i : ι) :
   (cycles_map f i) ≫ (C₂.cycles i).arrow = (C₁.cycles i).arrow ≫ f.f i :=
-by { simp [cycles_map], }
+by { simp, }
 
 @[simp] lemma cycles_map_id (i : ι) : cycles_map (𝟙 C₁) i = 𝟙 _ :=
-by { simp [cycles_map], }
+by { dunfold cycles_map, simp, }
 
 @[simp] lemma cycles_map_comp (f : C₁ ⟶ C₂) (g : C₂ ⟶ C₃) (i : ι) :
   cycles_map (f ≫ g) i = cycles_map f i ≫ cycles_map g i :=
-by { simp [cycles_map], }
+by { dunfold cycles_map, simp [subobject.factor_thru_right], }
 
 variables (V c)
 
@@ -144,31 +149,15 @@ section
 variables [has_equalizers V] [has_images V] [has_image_maps V]
 variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 
-def boundaries_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.boundaries i : V) ⟶ (C₂.boundaries i : V) :=
+abbreviation boundaries_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.boundaries i : V) ⟶ (C₂.boundaries i : V) :=
 image_subobject_map (f.sq_to i)
-
-@[simp] lemma boundaries_map_id (i : ι) : boundaries_map (𝟙 C₁) i = 𝟙 _ :=
-begin
-  simp [boundaries_map],
-  ext,
-  simp,
-  erw [category.id_comp],  -- TODO diagnose this
-end
-
-@[simp] lemma boundaries_map_comp (f : C₁ ⟶ C₂) (g : C₂ ⟶ C₃) (i : ι) :
-  boundaries_map (f ≫ g) i = boundaries_map f i ≫ boundaries_map g i :=
-begin
-  simp [boundaries_map],
-  ext,
-  simp,
-end
 
 variables (V c)
 
 @[simps]
 def boundaries_functor (i : ι) : homological_complex V c ⥤ V :=
 { obj := λ C, C.boundaries i,
-  map := λ C₁ C₂ f, boundaries_map f i, }
+  map := λ C₁ C₂ f, image_subobject_map (f.sq_to i), }
 
 end
 
@@ -181,14 +170,7 @@ variables {C₁ C₂ : homological_complex V c} (f : C₁ ⟶ C₂)
 @[simp, reassoc]
 lemma boundaries_to_cycles_naturality (i : ι) :
   boundaries_map f i ≫ C₂.boundaries_to_cycles i = C₁.boundaries_to_cycles i ≫ cycles_map f i :=
-begin
-  simp [cycles_map, boundaries_map, boundaries_to_cycles],
-  ext,
-  simp only [subobject.factor_thru_arrow, subobject.of_le_arrow, category.assoc],
-  dsimp [boundaries],
-  rw image_subobject_map_arrow,
-  refl,
-end
+by { ext, simp, }
 
 variables (V c)
 
@@ -203,12 +185,6 @@ def homology_functor [has_cokernels V] (i : ι) : homological_complex V c ⥤ V 
 -- here, but universe implementation details get in the way...
 { obj := λ C, C.homology i,
   map := λ C₁ C₂ f, cokernel.desc _ (cycles_map f i ≫ cokernel.π _)
-    (by rw [←boundaries_to_cycles_naturality_assoc, cokernel.condition, comp_zero]),
-  map_id' := λ C,
-  begin
-    ext, dsimp,
-    simp only [limits.cokernel.π_desc, category.id_comp, cycles_map_id],
-    erw category.comp_id, -- TODO diagnose this!
-  end, }
+    (by rw [←boundaries_to_cycles_naturality_assoc, cokernel.condition, comp_zero]), }
 
 end

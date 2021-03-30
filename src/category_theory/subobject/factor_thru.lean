@@ -143,7 +143,6 @@ begin
     ext, simp, },
 end
 
-@[simp]
 lemma factor_thru_right {X Y Z : C} {P : subobject Z} (f : X ⟶ Y) (g : Y ⟶ Z) (h : P.factors g) :
   f ≫ P.factor_thru g h = P.factor_thru (f ≫ g) (factors_of_factors_right f h) :=
 begin
@@ -210,7 +209,7 @@ section kernel
 variables [has_zero_morphisms C] (f : X ⟶ Y) [has_kernel f]
 
 /-- The kernel of a morphism `f : X ⟶ Y` as a `subobject X`. -/
-def kernel_subobject : subobject X :=
+abbreviation kernel_subobject : subobject X :=
 subobject.mk (kernel.ι f)
 
 /-- The underlying object of `kernel_subobject f` is (up to isomorphism!)

@@ -381,7 +381,7 @@ section cancel_monoid
 variables {α} [left_cancel_monoid α] (a)
 variables {H : Type u} [add_left_cancel_monoid H] (x : H)
 
-private lemma pow_injective_aux {n m : ℕ} (h : n ≤ m)
+lemma pow_injective_aux {n m : ℕ} (h : n ≤ m)
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 by_contradiction $ assume ne : n ≠ m,
   have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
@@ -393,9 +393,9 @@ by_contradiction $ assume ne : n ≠ m,
     from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
   lt_irrefl _ (lt_of_le_of_lt le lt)
 
-/-- TODO: Why is it not possible to mark this lemma as the additive version of the next? It is
-possible if the private is removed though.-/
-private lemma nsmul_injective_aux {n m : ℕ} (h : n ≤ m)
+-- TODO: This lemma was originally private, but this doesn't seem to work with `to_additive`,
+-- therefore the private got removed.
+lemma nsmul_injective_aux {n m : ℕ} (h : n ≤ m)
   (hn : n < add_order_of x) (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=
 begin
   apply_fun multiplicative.of_add at eq,
@@ -403,6 +403,8 @@ begin
   rw ← order_of_of_add_eq_add_order_of at hn hm,
   exact pow_injective_aux (multiplicative.of_add x) h hn hm eq,
 end
+
+attribute [to_additive nsmul_injective_aux] pow_injective_aux
 
 lemma nsmul_injective_of_lt_add_order_of {n m : ℕ}
   (hn : n < add_order_of x) (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=

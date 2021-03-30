@@ -34,9 +34,9 @@ namespace Mon_Module_equivalence_Algebra
 instance (A : Mon_ (Module.{u} R)) : ring A.X :=
 { one := A.one (1 : R),
   mul := λ x y, A.mul (x ⊗ₜ y),
-  one_mul := λ x, by { convert lcongr_fun A.one_mul ((1 : R) ⊗ₜ x), simp, },
-  mul_one := λ x, by { convert lcongr_fun A.mul_one (x ⊗ₜ (1 : R)), simp, },
-  mul_assoc := λ x y z, by convert lcongr_fun A.mul_assoc ((x ⊗ₜ y) ⊗ₜ z),
+  one_mul := λ x, by { convert linear_map.congr_fun A.one_mul ((1 : R) ⊗ₜ x), simp, },
+  mul_one := λ x, by { convert linear_map.congr_fun A.mul_one (x ⊗ₜ (1 : R)), simp, },
+  mul_assoc := λ x y z, by convert linear_map.congr_fun A.mul_assoc ((x ⊗ₜ y) ⊗ₜ z),
   left_distrib := λ x y z,
   begin
     convert A.mul.map_add (x ⊗ₜ y) (x ⊗ₜ z),
@@ -56,16 +56,16 @@ instance (A : Mon_ (Module.{u} R)) : algebra R A.X :=
   map_one' := rfl,
   map_mul' := λ x y,
   begin
-    have h := lcongr_fun A.one_mul.symm (x ⊗ₜ (A.one y)),
+    have h := linear_map.congr_fun A.one_mul.symm (x ⊗ₜ (A.one y)),
     rwa [monoidal_category.left_unitor_hom_apply, ←A.one.map_smul] at h,
   end,
   commutes' := λ r a,
   begin dsimp,
-    have h₁ := lcongr_fun A.one_mul (r ⊗ₜ a),
-    have h₂ := lcongr_fun A.mul_one (a ⊗ₜ r),
+    have h₁ := linear_map.congr_fun A.one_mul (r ⊗ₜ a),
+    have h₂ := linear_map.congr_fun A.mul_one (a ⊗ₜ r),
     exact h₁.trans h₂.symm,
   end,
-  smul_def' := λ r a, by { convert (lcongr_fun A.one_mul (r ⊗ₜ a)).symm, simp, },
+  smul_def' := λ r a, by { convert (linear_map.congr_fun A.one_mul (r ⊗ₜ a)).symm, simp, },
   ..A.one }
 
 @[simp] lemma algebra_map (A : Mon_ (Module.{u} R)) (r : R) : algebra_map R A.X r = A.one r := rfl
@@ -78,9 +78,9 @@ def functor : Mon_ (Module.{u} R) ⥤ Algebra R :=
 { obj := λ A, Algebra.of R A.X,
   map := λ A B f,
   { to_fun := f.hom,
-    map_one' := lcongr_fun f.one_hom (1 : R),
-    map_mul' := λ x y, lcongr_fun f.mul_hom (x ⊗ₜ y),
-    commutes' := λ r, lcongr_fun f.one_hom r,
+    map_one' := linear_map.congr_fun f.one_hom (1 : R),
+    map_mul' := λ x y, linear_map.congr_fun f.mul_hom (x ⊗ₜ y),
+    commutes' := λ r, linear_map.congr_fun f.one_hom r,
     ..(f.hom.to_add_monoid_hom) }, }.
 
 /--
@@ -90,7 +90,7 @@ Converting a bundled algebra to a monoid object in `Module R`.
 def inverse_obj (A : Algebra.{u} R) : Mon_ (Module.{u} R) :=
 { X := Module.of R A,
   one := algebra.linear_map R A,
-  mul := algebra.lmul' R A,
+  mul := @algebra.lmul' R A _ _ _,
   one_mul' :=
   begin
     ext x,
@@ -108,12 +108,9 @@ def inverse_obj (A : Algebra.{u} R) : Mon_ (Module.{u} R) :=
   end,
   mul_assoc' :=
   begin
-    ext xy z,
+    ext x y z,
     dsimp,
-    apply tensor_product.induction_on xy,
-    { simp only [linear_map.map_zero, tensor_product.zero_tmul], },
-    { intros x y, dsimp, simp [mul_assoc], },
-    { intros x y hx hy, dsimp, simp [tensor_product.add_tmul, hx, hy], },
+    simp only [mul_assoc, algebra.lmul'_apply],
   end }
 
 /--

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.multiset.erase_dup
 
@@ -27,14 +27,14 @@ quot.lift_on s (λ l, (l.insert a : multiset α))
 
 @[simp] theorem coe_ndinsert (a : α) (l : list α) : ndinsert a l = (insert a l : list α) := rfl
 
-@[simp] theorem ndinsert_zero (a : α) : ndinsert a 0 = a::0 := rfl
+@[simp] theorem ndinsert_zero (a : α) : ndinsert a 0 = a ::ₘ 0 := rfl
 
 @[simp, priority 980]
 theorem ndinsert_of_mem {a : α} {s : multiset α} : a ∈ s → ndinsert a s = s :=
 quot.induction_on s $ λ l h, congr_arg coe $ insert_of_mem h
 
 @[simp, priority 980]
-theorem ndinsert_of_not_mem {a : α} {s : multiset α} : a ∉ s → ndinsert a s = a :: s :=
+theorem ndinsert_of_not_mem {a : α} {s : multiset α} : a ∉ s → ndinsert a s = a ::ₘ s :=
 quot.induction_on s $ λ l h, congr_arg coe $ insert_of_not_mem h
 
 @[simp] theorem mem_ndinsert {a b : α} {s : multiset α} : a ∈ ndinsert b s ↔ a = b ∨ a ∈ s :=
@@ -60,7 +60,7 @@ theorem length_ndinsert_of_not_mem {a : α} {s : multiset α} (h : a ∉ s) :
 by simp [h]
 
 theorem erase_dup_cons {a : α} {s : multiset α} :
-  erase_dup (a::s) = ndinsert a (erase_dup s) :=
+  erase_dup (a ::ₘ s) = ndinsert a (erase_dup s) :=
 by by_cases a ∈ s; simp [h]
 
 theorem nodup_ndinsert (a : α) {s : multiset α} : nodup s → nodup (ndinsert a s) :=
@@ -116,7 +116,7 @@ quotient.lift_on₂ s t (λ l₁ l₂, (l₁.union l₂ : multiset α)) $ λ v�
 quot.induction_on s $ λ l, rfl
 
 @[simp] theorem cons_ndunion (s t : multiset α) (a : α) :
-  ndunion (a :: s) t = ndinsert a (ndunion s t) :=
+  ndunion (a ::ₘ s) t = ndinsert a (ndunion s t) :=
 quotient.induction_on₂ s t $ λ l₁ l₂, rfl
 
 @[simp] theorem mem_ndunion {s t : multiset α} {a : α} : a ∈ ndunion s t ↔ a ∈ s ∨ a ∈ t :=
@@ -169,11 +169,11 @@ def ndinter (s t : multiset α) : multiset α := filter (∈ t) s
 
 @[simp, priority 980]
 theorem cons_ndinter_of_mem {a : α} (s : multiset α) {t : multiset α} (h : a ∈ t) :
-  ndinter (a::s) t = a :: (ndinter s t) := by simp [ndinter, h]
+  ndinter (a ::ₘ s) t = a ::ₘ (ndinter s t) := by simp [ndinter, h]
 
 @[simp, priority 980]
 theorem ndinter_cons_of_not_mem {a : α} (s : multiset α) {t : multiset α} (h : a ∉ t) :
-  ndinter (a::s) t = ndinter s t := by simp [ndinter, h]
+  ndinter (a ::ₘ s) t = ndinter s t := by simp [ndinter, h]
 
 @[simp] theorem mem_ndinter {s t : multiset α} {a : α} : a ∈ ndinter s t ↔ a ∈ s ∧ a ∈ t :=
 mem_filter

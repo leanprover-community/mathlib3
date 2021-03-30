@@ -1,9 +1,15 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Neil Strickland
+Authors: Mario Carneiro, Neil Strickland
 -/
-import data.nat.prime
+import data.nat.basic
+
+/-!
+# The positive natural numbers
+
+This file defines the type `ℕ+` or `pnat`, the subtype of natural numbers that are positive.
+-/
 
 /-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
   and the VM representation of `ℕ+` is the same as `ℕ` because the proof
@@ -40,18 +46,6 @@ def to_pnat' (n : ℕ) : ℕ+ := succ_pnat (pred n)
 | 0 := rfl
 | (m + 1) := by {rw [if_pos (succ_pos m)], refl}
 
-namespace primes
-instance coe_pnat : has_coe nat.primes ℕ+ := ⟨λ p, ⟨(p : ℕ), p.property.pos⟩⟩
-theorem coe_pnat_nat (p : nat.primes) : ((p : ℕ+) : ℕ) = p := rfl
-
-theorem coe_pnat_inj (p q : nat.primes) : (p : ℕ+) = (q : ℕ+) → p = q := λ h,
-begin
-  replace h : ((p : ℕ+) : ℕ) = ((q : ℕ+) : ℕ) := congr_arg subtype.val h,
-  rw [coe_pnat_nat, coe_pnat_nat] at h,
-  exact subtype.eq h,
-end
-
-end primes
 end nat
 
 namespace pnat
@@ -66,8 +60,8 @@ open nat
 
 instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
 
-instance : decidable_linear_order ℕ+ :=
-subtype.decidable_linear_order _
+instance : linear_order ℕ+ :=
+subtype.linear_order _
 
 @[simp] lemma mk_le_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
   (⟨n, hn⟩ : ℕ+) ≤ ⟨k, hk⟩ ↔ n ≤ k := iff.rfl
@@ -177,7 +171,7 @@ lemma coe_eq_one_iff {m : ℕ+} :
 
 @[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
 by induction n with n ih;
- [refl, rw [nat.pow_succ, pow_succ, mul_coe, mul_comm, ih]]
+ [refl, rw [pow_succ', pow_succ, mul_coe, mul_comm, ih]]
 
 instance : left_cancel_semigroup ℕ+ :=
 { mul_left_cancel := λ a b c h, by {
@@ -196,7 +190,7 @@ instance : ordered_cancel_comm_monoid ℕ+ :=
   le_of_mul_le_mul_left := by { intros a b c h, apply nat.le_of_mul_le_mul_left h a.property, },
   .. (pnat.left_cancel_semigroup),
   .. (pnat.right_cancel_semigroup),
-  .. (pnat.decidable_linear_order),
+  .. (pnat.linear_order),
   .. (pnat.comm_monoid)}
 
 instance : distrib ℕ+ :=
@@ -222,14 +216,55 @@ theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
  λ h, eq $ by { rw [add_coe, sub_coe, if_pos h],
                 exact nat.add_sub_of_le (le_of_lt h) }
 
-/-- We define m % k and m / k in the same way as for nat
-  except that when m = n * k we take m % k = k and
-  m / k = n - 1.  This ensures that m % k is always positive
-  and m = (m % k) + k * (m / k) in all cases.  Later we
-  define a function div_exact which gives the usual m / k
-  in the case where k divides m.
--/
+instance : has_well_founded ℕ+ := ⟨(<), measure_wf coe⟩
 
+/-- Strong induction on `pnat`. -/
+lemma strong_induction_on {p : pnat → Prop} : ∀ (n : pnat) (h : ∀ k, (∀ m, m < k → p m) → p k), p n
+| n := λ IH, IH _ (λ a h, strong_induction_on a IH)
+using_well_founded { dec_tac := `[assumption] }
+
+/-- If `(n : pnat)` is different from `1`, then it is the successor of some `(k : pnat)`. -/
+lemma exists_eq_succ_of_ne_one : ∀ {n : pnat} (h1 : n ≠ 1), ∃ (k : pnat), n = k + 1
+| ⟨1, _⟩ h1 := false.elim $ h1 rfl
+| ⟨n+2, _⟩ _ := ⟨⟨n+1, by simp⟩, rfl⟩
+
+lemma case_strong_induction_on {p : pnat → Prop} (a : pnat) (hz : p 1)
+  (hi : ∀ n, (∀ m, m ≤ n → p m) → p (n + 1)) : p a :=
+begin
+  apply strong_induction_on a,
+  intros k hk,
+  by_cases h1 : k = 1, { rwa h1 },
+  obtain ⟨b, rfl⟩ := exists_eq_succ_of_ne_one h1,
+  simp only [lt_add_one_iff] at hk,
+  exact hi b hk
+end
+
+/-- An induction principle for `pnat`: it takes values in `Sort*`, so it applies also to Types,
+not only to `Prop`. -/
+@[elab_as_eliminator]
+def rec_on (n : pnat) {p : pnat → Sort*} (p1 : p 1) (hp : ∀ n, p n → p (n + 1)) : p n :=
+begin
+  rcases n with ⟨n, h⟩,
+  induction n with n IH,
+  { exact absurd h dec_trivial },
+  { cases n with n,
+    { exact p1 },
+    { exact hp _ (IH n.succ_pos) } }
+end
+
+@[simp] theorem rec_on_one {p} (p1 hp) : @pnat.rec_on 1 p p1 hp = p1 := rfl
+
+@[simp] theorem rec_on_succ (n : pnat) {p : pnat → Sort*} (p1 hp) :
+  @pnat.rec_on (n + 1) p p1 hp = hp n (@pnat.rec_on n p p1 hp) :=
+by { cases n with n h, cases n; [exact absurd h dec_trivial, refl] }
+
+/-- We define `m % k` and `m / k` in the same way as for `ℕ`
+  except that when `m = n * k` we take `m % k = k` and
+  `m / k = n - 1`.  This ensures that `m % k` is always positive
+  and `m = (m % k) + k * (m / k)` in all cases.  Later we
+  define a function `div_exact` which gives the usual `m / k`
+  in the case where `k` divides `m`.
+-/
 def mod_div_aux : ℕ+ → ℕ → ℕ → ℕ+ × ℕ
 | k 0 q := ⟨k, q.pred⟩
 | k (r + 1) q := ⟨⟨r + 1, nat.succ_pos r⟩, q⟩
@@ -242,20 +277,45 @@ lemma mod_div_aux_spec : ∀ (k : ℕ+) (r q : ℕ) (h : ¬ (r = 0 ∧ q = 0)),
   rw [nat.pred_succ, nat.mul_succ, zero_add, add_comm]}
 | k (r + 1) q h := rfl
 
+/-- `mod_div m k = (m % k, m / k)`.
+  We define `m % k` and `m / k` in the same way as for `ℕ`
+  except that when `m = n * k` we take `m % k = k` and
+  `m / k = n - 1`.  This ensures that `m % k` is always positive
+  and `m = (m % k) + k * (m / k)` in all cases.  Later we
+  define a function `div_exact` which gives the usual `m / k`
+  in the case where `k` divides `m`.
+-/
 def mod_div (m k : ℕ+) : ℕ+ × ℕ := mod_div_aux k ((m : ℕ) % (k : ℕ)) ((m : ℕ) / (k : ℕ))
 
+/-- We define `m % k` in the same way as for `ℕ`
+  except that when `m = n * k` we take `m % k = k` This ensures that `m % k` is always positive.
+-/
 def mod (m k : ℕ+) : ℕ+ := (mod_div m k).1
+
+/-- We define `m / k` in the same way as for `ℕ` except that when `m = n * k` we take
+  `m / k = n - 1`. This ensures that `m = (m % k) + k * (m / k)` in all cases. Later we
+  define a function `div_exact` which gives the usual `m / k` in the case where `k` divides `m`.
+-/
 def div (m k : ℕ+) : ℕ  := (mod_div m k).2
 
-theorem mod_add_div (m k : ℕ+) : (m : ℕ) = (mod m k) + k * (div m k) :=
+theorem mod_add_div (m k : ℕ+) : ((mod m k) + k * (div m k) : ℕ) = m :=
 begin
   let h₀ := nat.mod_add_div (m : ℕ) (k : ℕ),
   have : ¬ ((m : ℕ) % (k : ℕ) = 0 ∧ (m : ℕ) / (k : ℕ) = 0),
   by { rintro ⟨hr, hq⟩, rw [hr, hq, mul_zero, zero_add] at h₀,
        exact (m.ne_zero h₀.symm).elim },
   have := mod_div_aux_spec k ((m : ℕ) % (k : ℕ)) ((m : ℕ) / (k : ℕ)) this,
-  exact (this.trans h₀).symm,
+  exact (this.trans h₀),
 end
+
+theorem div_add_mod (m k : ℕ+) : (k * (div m k) + mod m k : ℕ) = m :=
+(add_comm _ _).trans (mod_add_div _ _)
+
+lemma mod_add_div' (m k : ℕ+) : ((mod m k) + (div m k) * k : ℕ) = m :=
+by { rw mul_comm, exact mod_add_div _ _ }
+
+lemma div_add_mod' (m k : ℕ+) : ((div m k) * k + mod m k : ℕ) = m :=
+by { rw mul_comm, exact div_add_mod _ _ }
 
 theorem mod_coe (m k : ℕ+) :
  ((mod m k) : ℕ) = ite ((m : ℕ) % (k : ℕ) = 0) (k : ℕ) ((m : ℕ) % (k : ℕ)) :=
@@ -311,14 +371,15 @@ end
 lemma le_of_dvd {m n : ℕ+} : m ∣ n → m ≤ n :=
 by { rw dvd_iff', intro h, rw ← h, apply (mod_le n m).left }
 
-def div_exact {m k : ℕ+} (h : k ∣ m) : ℕ+ :=
+/-- If `h : k | m`, then `k * (div_exact m k) = m`. Note that this is not equal to `m / k`. -/
+def div_exact (m k : ℕ+) : ℕ+ :=
  ⟨(div m k).succ, nat.succ_pos _⟩
 
-theorem mul_div_exact {m k : ℕ+} (h : k ∣ m) : k * (div_exact h) = m :=
+theorem mul_div_exact {m k : ℕ+} (h : k ∣ m) : k * (div_exact m k) = m :=
 begin
  apply eq, rw [mul_coe],
  change (k : ℕ) * (div m k).succ = m,
- rw [mod_add_div m k, dvd_iff'.mp h, nat.mul_succ, add_comm],
+ rw [← div_add_mod m k, dvd_iff'.mp h, nat.mul_succ]
 end
 
 theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
@@ -327,185 +388,24 @@ theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
 theorem dvd_one_iff (n : ℕ+) : n ∣ 1 ↔ n = 1 :=
  ⟨λ h, dvd_antisymm h (one_dvd n), λ h, h.symm ▸ (dvd_refl 1)⟩
 
-def gcd (n m : ℕ+) : ℕ+ :=
- ⟨nat.gcd (n : ℕ) (m : ℕ), nat.gcd_pos_of_pos_left (m : ℕ) n.pos⟩
-
-def lcm (n m : ℕ+) : ℕ+ :=
- ⟨nat.lcm (n : ℕ) (m : ℕ),
-  by { let h := mul_pos n.pos m.pos,
-       rw [← gcd_mul_lcm (n : ℕ) (m : ℕ), mul_comm] at h,
-       exact pos_of_dvd_of_pos (dvd.intro (nat.gcd (n : ℕ) (m : ℕ)) rfl) h }⟩
-
-@[simp] theorem gcd_coe (n m : ℕ+) : ((gcd n m) : ℕ) = nat.gcd n m := rfl
-
-@[simp] theorem lcm_coe (n m : ℕ+) : ((lcm n m) : ℕ) = nat.lcm n m := rfl
-
-theorem gcd_dvd_left (n m : ℕ+) : (gcd n m) ∣ n := dvd_iff.2 (nat.gcd_dvd_left (n : ℕ) (m : ℕ))
-
-theorem gcd_dvd_right (n m : ℕ+) : (gcd n m) ∣ m := dvd_iff.2 (nat.gcd_dvd_right (n : ℕ) (m : ℕ))
-
-theorem dvd_gcd {m n k : ℕ+} (hm : k ∣ m) (hn : k ∣ n) : k ∣ gcd m n :=
- dvd_iff.2 (@nat.dvd_gcd (m : ℕ) (n : ℕ) (k : ℕ) (dvd_iff.1 hm) (dvd_iff.1 hn))
-
-theorem dvd_lcm_left  (n m : ℕ+) : n ∣ lcm n m := dvd_iff.2 (nat.dvd_lcm_left  (n : ℕ) (m : ℕ))
-
-theorem dvd_lcm_right (n m : ℕ+) : m ∣ lcm n m := dvd_iff.2 (nat.dvd_lcm_right (n : ℕ) (m : ℕ))
-
-theorem lcm_dvd {m n k : ℕ+} (hm : m ∣ k) (hn : n ∣ k) : lcm m n ∣ k :=
-  dvd_iff.2 (@nat.lcm_dvd (m : ℕ) (n : ℕ) (k : ℕ) (dvd_iff.1 hm) (dvd_iff.1 hn))
-
-theorem gcd_mul_lcm (n m : ℕ+) : (gcd n m) * (lcm n m) = n * m :=
- subtype.eq (nat.gcd_mul_lcm (n : ℕ) (m : ℕ))
-
-lemma eq_one_of_lt_two {n : ℕ+} : n < 2 → n = 1 :=
+lemma pos_of_div_pos {n : ℕ+} {a : ℕ} (h : a ∣ n) : 0 < a :=
 begin
-  intro h, apply le_antisymm, swap, apply pnat.one_le,
-  change n < 1 + 1 at h, rw pnat.lt_add_one_iff at h, apply h
+  apply pos_iff_ne_zero.2,
+  intro hzero,
+  rw hzero at h,
+  exact pnat.ne_zero n (eq_zero_of_zero_dvd h)
 end
-
-
-section prime
-/-! ### Prime numbers -/
-
-def prime (p : ℕ+) : Prop := (p : ℕ).prime
-
-lemma prime.one_lt {p : ℕ+} : p.prime → 1 < p := nat.prime.one_lt
-
-lemma prime_two : (2 : ℕ+).prime := nat.prime_two
-
-lemma dvd_prime {p m : ℕ+} (pp : p.prime) :
-(m ∣ p ↔ m = 1 ∨ m = p) := by { rw pnat.dvd_iff, rw nat.dvd_prime pp, simp }
-
-lemma prime.ne_one {p : ℕ+} : p.prime → p ≠ 1 :=
-by { intro pp, intro contra, apply nat.prime.ne_one pp, rw pnat.coe_eq_one_iff, apply contra }
-
-@[simp]
-lemma not_prime_one : ¬ (1: ℕ+).prime :=  nat.not_prime_one
-
-lemma prime.not_dvd_one {p : ℕ+} :
-p.prime →  ¬ p ∣ 1 := λ pp : p.prime, by {rw dvd_iff, apply nat.prime.not_dvd_one pp}
-
-lemma exists_prime_and_dvd {n : ℕ+} : 2 ≤ n → (∃ (p : ℕ+), p.prime ∧ p ∣ n) :=
-begin
-  intro h, cases nat.exists_prime_and_dvd h with p hp,
-  existsi (⟨p, nat.prime.pos hp.left⟩ : ℕ+), rw dvd_iff, apply hp
-end
-
-end prime
-
-section coprime
-/-! ### Coprime numbers and gcd -/
-
-/-- Two pnats are coprime if their gcd is 1. -/
-def coprime (m n : ℕ+) : Prop := m.gcd n = 1
-
-@[simp]
-lemma coprime_coe {m n : ℕ+} : nat.coprime ↑m ↑n ↔ m.coprime n :=
-by { unfold coprime, unfold nat.coprime, rw ← coe_inj, simp }
-
-lemma coprime.mul {k m n : ℕ+} : m.coprime k → n.coprime k → (m * n).coprime k :=
-by { repeat {rw ← coprime_coe}, rw mul_coe, apply nat.coprime.mul }
-
-lemma coprime.mul_right {k m n : ℕ+} : k.coprime m → k.coprime n → k.coprime (m * n) :=
-by { repeat {rw ← coprime_coe}, rw mul_coe, apply nat.coprime.mul_right }
-
-lemma gcd_comm {m n : ℕ+} : m.gcd n = n.gcd m :=
-by { apply eq, simp only [gcd_coe], apply nat.gcd_comm }
-
-lemma gcd_eq_left_iff_dvd {m n : ℕ+} : m ∣ n ↔ m.gcd n = m :=
-by { rw dvd_iff, rw nat.gcd_eq_left_iff_dvd, rw ← coe_inj, simp }
-
-lemma gcd_eq_right_iff_dvd {m n : ℕ+} : m ∣ n ↔ n.gcd m = m :=
-by { rw gcd_comm, apply gcd_eq_left_iff_dvd, }
-
-lemma coprime.gcd_mul_left_cancel (m : ℕ+) {n k : ℕ+} :
-  k.coprime n → (k * m).gcd n = m.gcd n :=
-begin
-  intro h, apply eq, simp only [gcd_coe, mul_coe],
-  apply nat.coprime.gcd_mul_left_cancel, simpa
-end
-
-lemma coprime.gcd_mul_right_cancel (m : ℕ+) {n k : ℕ+} :
-  k.coprime n → (m * k).gcd n = m.gcd n :=
-begin
-  rw mul_comm, apply coprime.gcd_mul_left_cancel,
-end
-
-lemma coprime.gcd_mul_left_cancel_right (m : ℕ+) {n k : ℕ+} :
-  k.coprime m → m.gcd (k * n) = m.gcd n :=
-begin
-  intro h, iterate 2 {rw gcd_comm, symmetry}, apply coprime.gcd_mul_left_cancel _ h,
-end
-
-lemma coprime.gcd_mul_right_cancel_right (m : ℕ+) {n k : ℕ+} :
-  k.coprime m → m.gcd (n * k) = m.gcd n :=
-begin
-  rw mul_comm, apply coprime.gcd_mul_left_cancel_right,
-end
-
-@[simp]
-lemma one_gcd {n : ℕ+} : gcd 1 n = 1 :=
-by { rw ← gcd_eq_left_iff_dvd, apply one_dvd }
-
-@[simp]
-lemma gcd_one {n : ℕ+} : gcd n 1 = 1 := by { rw gcd_comm, apply one_gcd }
-
-@[symm]
-lemma coprime.symm {m n : ℕ+} : m.coprime n → n.coprime m :=
-by { unfold coprime, rw gcd_comm, simp }
-
-@[simp]
-lemma one_coprime {n : ℕ+} : (1 : ℕ+).coprime n := one_gcd
-
-@[simp]
-lemma coprime_one {n : ℕ+} : n.coprime 1 := coprime.symm one_coprime
-
-lemma coprime.coprime_dvd_left {m k n : ℕ+} :
-  m ∣ k → k.coprime n → m.coprime n :=
-by { rw dvd_iff, repeat {rw ← coprime_coe}, apply nat.coprime.coprime_dvd_left }
-
-lemma coprime.factor_eq_gcd_left {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n):
-  a = (a * b).gcd m :=
-begin
-  rw gcd_eq_left_iff_dvd at am,
-  conv_lhs {rw ← am}, symmetry,
-  apply coprime.gcd_mul_right_cancel a,
-  apply coprime.coprime_dvd_left bn cop.symm,
-end
-
-lemma coprime.factor_eq_gcd_right {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n):
-  a = (b * a).gcd m :=
-begin
-  rw mul_comm, apply coprime.factor_eq_gcd_left cop am bn,
-end
-
-lemma coprime.factor_eq_gcd_left_right {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n):
-  a = m.gcd (a * b) :=
-begin
-  rw gcd_comm, apply coprime.factor_eq_gcd_left cop am bn,
-end
-
-lemma coprime.factor_eq_gcd_right_right {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n):
-  a = m.gcd (b * a) :=
-begin
-  rw gcd_comm, apply coprime.factor_eq_gcd_right cop am bn,
-end
-
-lemma coprime.gcd_mul (k : ℕ+) {m n : ℕ+} (h: m.coprime n) :
-  k.gcd (m * n) = k.gcd m * k.gcd n :=
-begin
-  rw ← coprime_coe at h, apply eq,
-  simp only [gcd_coe, mul_coe], apply nat.coprime.gcd_mul k h
-end
-
-lemma gcd_eq_left {m n : ℕ+} : m ∣ n → m.gcd n = m :=
-by { rw dvd_iff, intro h, apply eq, simp only [gcd_coe], apply nat.gcd_eq_left h }
-
-lemma coprime.pow {m n : ℕ+} (k l : ℕ) (h : m.coprime n) : (m ^ k).coprime (n ^ l) :=
-begin
-  rw ← coprime_coe at *, simp only [pow_coe], apply nat.coprime.pow, apply h
-end
-
-end coprime
 
 end pnat
+
+section can_lift
+
+instance nat.can_lift_pnat : can_lift ℕ ℕ+ :=
+⟨coe, λ n, 0 < n, λ n hn, ⟨nat.to_pnat' n, pnat.to_pnat'_coe hn⟩⟩
+
+instance int.can_lift_pnat : can_lift ℤ ℕ+ :=
+⟨coe, λ n, 0 < n, λ n hn, ⟨nat.to_pnat' (int.nat_abs n),
+  by rw [coe_coe, nat.to_pnat'_coe, if_pos (int.nat_abs_pos_of_ne_zero (ne_of_gt hn)),
+    int.nat_abs_of_nonneg hn.le]⟩⟩
+
+end can_lift

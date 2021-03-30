@@ -65,6 +65,12 @@ structure add_con [has_add M] extends setoid M :=
 @[to_additive add_con] structure con [has_mul M] extends setoid M :=
 (mul' : ∀ {w x y z}, r w x → r y z → r (w * y) (x * z))
 
+/-- The equivalence relation underlying an additive congruence relation. -/
+add_decl_doc add_con.to_setoid
+
+/-- The equivalence relation underlying a multiplicative congruence relation. -/
+add_decl_doc con.to_setoid
+
 variables {M}
 
 /-- The inductively defined smallest additive congruence relation containing a given binary
@@ -276,7 +282,7 @@ lemma coe_mul (x y : M) : (↑(x * y) : c.quotient) = ↑x * ↑y := rfl
     that is constant on `c`'s equivalence classes. -/
 @[simp, to_additive "Definition of the function on the quotient by an additive congruence
 relation `c` induced by a function that is constant on `c`'s equivalence classes."]
-protected lemma lift_on_beta {β} (c : con M) (f : M → β)
+protected lemma lift_on_coe {β} (c : con M) (f : M → β)
   (h : ∀ a b, c a b → f a = f b) (x : M) :
   con.lift_on (x : c.quotient) f h = f x := rfl
 
@@ -457,9 +463,9 @@ variables (M)
     binary relations on `M`. -/
 @[to_additive "There is a Galois insertion of additive congruence relations on a type with
 an addition `M` into binary relations on `M`."]
-protected def gi : @galois_insertion (M → M → Prop) (con M) _ _ con_gen r :=
+protected noncomputable def gi : @galois_insertion (M → M → Prop) (con M) _ _ con_gen r :=
 { choice := λ r h, con_gen r,
- gc := λ r c, ⟨λ H _ _ h, H $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
+  gc := λ r c, ⟨λ H _ _ h, H $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
   le_l_u := λ x, (con_gen_of_con x).symm ▸ le_refl x,
   choice_eq := λ _ _, rfl }
 
@@ -529,15 +535,16 @@ def correspondence : {d // c ≤ d} ≃o (con c.quotient) :=
       λ x y h, show d _ _, by rw mul_ker_mk_eq at h; exact c.eq.2 h ▸ d.refl _ in
     ext $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
       con.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-  map_rel_iff' := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
-    λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨_, _, rfl, rfl, hs⟩ in
-      t.1.trans (t.1.symm $ t.2 $ eq_rel.1 hx) $ t.1.trans ht $ t.2 $ eq_rel.1 hy⟩ }
+  map_rel_iff' := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨_, _, rfl, rfl, hs⟩ in
+      t.1.trans (t.1.symm $ t.2 $ eq_rel.1 hx) $ t.1.trans ht $ t.2 $ eq_rel.1 hy,
+      λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
 
 end
 
 end
 
 -- Monoids
+section monoids
 
 variables {M} [monoid M] [monoid N] [monoid P] (c : con M)
 
@@ -839,5 +846,35 @@ def quotient_quotient_equiv_quotient (c d : con M) (h : c ≤ d) :
 { map_mul' := λ x y, con.induction_on₂ x y $ λ w z, con.induction_on₂ w z $ λ a b,
     show _ = d.mk' a * d.mk' b, by rw ←d.mk'.map_mul; refl,
   ..quotient_quotient_equiv_quotient c.to_setoid d.to_setoid h }
+
+end monoids
+
+section groups
+
+variables {M} [group M] [group N] [group P] (c : con M)
+
+/-- Multiplicative congruence relations preserve inversion. -/
+@[to_additive "Additive congruence relations preserve negation."]
+protected lemma inv : ∀ {w x}, c w x → c w⁻¹ x⁻¹ :=
+λ x y h, by simpa using c.symm (c.mul (c.mul (c.refl x⁻¹) h) (c.refl y⁻¹))
+
+/-- The inversion induced on the quotient by a congruence relation on a type with a
+    inversion. -/
+@[to_additive "The negation induced on the quotient by an additive congruence relation on a type
+with an negation."]
+instance has_inv : has_inv c.quotient :=
+⟨λ x, quotient.lift_on' x (λ w, ((w⁻¹ : M) : c.quotient))
+     $ λ x y h, c.eq.2 $ c.inv h⟩
+
+/-- The quotient of a group by a congruence relation is a group. -/
+@[to_additive "The quotient of an `add_group` by an additive congruence relation is
+an `add_group`."]
+instance group : group c.quotient :=
+{ inv := λ x, x⁻¹,
+  mul_left_inv := λ x, show x⁻¹ * x = 1,
+    from quotient.induction_on' x $ λ _, congr_arg coe $ mul_left_inv _,
+  .. con.monoid c}
+
+end groups
 
 end con

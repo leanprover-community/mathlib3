@@ -69,8 +69,8 @@ jobs:
         # (and send an annoying email) if the labels don't exist
         run: |
           curl --request DELETE \
-            --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels/awaiting-review \
+            --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/awaiting-review \
             --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'
           curl --request DELETE \
-            --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels/awaiting-author \
+            --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/awaiting-author \
             --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'

@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import linear_algebra.basic
+import linear_algebra.prod
 
 /-!
 # Projection to a subspace
@@ -167,13 +168,102 @@ lemma linear_proj_of_is_compl_idempotent (h : is_compl p q) (x : E) :
     linear_proj_of_is_compl p q h x :=
 linear_proj_of_is_compl_apply_left h _
 
+lemma exists_unique_add_of_is_compl_prod (hc : is_compl p q) (x : E) :
+  ∃! (u : p × q), (u.fst : E) + u.snd = x :=
+(prod_equiv_of_is_compl _ _ hc).to_equiv.bijective.exists_unique _
+
+lemma exists_unique_add_of_is_compl (hc : is_compl p q) (x : E) :
+  ∃ (u : p) (v : q), ((u : E) + v = x ∧ ∀ (r : p) (s : q),
+    (r : E) + s = x → r = u ∧ s = v) :=
+let ⟨u, hu₁, hu₂⟩ := exists_unique_add_of_is_compl_prod hc x in
+  ⟨u.1, u.2, hu₁, λ r s hrs, prod.eq_iff_fst_eq_snd_eq.1 (hu₂ ⟨r, s⟩ hrs)⟩
+
 end submodule
 
 namespace linear_map
 
-variable {p}
-
 open submodule
+
+/-- Given linear maps `φ` and `ψ` from complement submodules, `of_is_compl` is
+the induced linear map over the entire module. -/
+def of_is_compl {p q : submodule R E} (h : is_compl p q)
+  (φ : p →ₗ[R] F) (ψ : q →ₗ[R] F) : E →ₗ[R] F :=
+(linear_map.coprod φ ψ).comp (submodule.prod_equiv_of_is_compl _ _ h).symm
+
+variables {p q}
+
+@[simp] lemma of_is_compl_left_apply
+  (h : is_compl p q) {φ : p →ₗ[R] F} {ψ : q →ₗ[R] F} (u : p) :
+  of_is_compl h φ ψ (u : E) = φ u := by simp [of_is_compl]
+
+@[simp] lemma of_is_compl_right_apply
+  (h : is_compl p q) {φ : p →ₗ[R] F} {ψ : q →ₗ[R] F} (v : q) :
+  of_is_compl h φ ψ (v : E) = ψ v := by simp [of_is_compl]
+
+lemma of_is_compl_eq (h : is_compl p q)
+  {φ : p →ₗ[R] F} {ψ : q →ₗ[R] F} {χ : E →ₗ[R] F}
+  (hφ : ∀ u, φ u = χ u) (hψ : ∀ u, ψ u = χ u) :
+  of_is_compl h φ ψ = χ :=
+begin
+  ext x,
+  obtain ⟨_, _, rfl, _⟩ := exists_unique_add_of_is_compl h x,
+  simp [of_is_compl, hφ, hψ]
+end
+
+lemma of_is_compl_eq' (h : is_compl p q)
+  {φ : p →ₗ[R] F} {ψ : q →ₗ[R] F} {χ : E →ₗ[R] F}
+  (hφ : φ = χ.comp p.subtype) (hψ : ψ = χ.comp q.subtype) :
+  of_is_compl h φ ψ = χ :=
+of_is_compl_eq h (λ _, hφ.symm ▸ rfl) (λ _, hψ.symm ▸ rfl)
+
+@[simp] lemma of_is_compl_zero (h : is_compl p q) :
+  (of_is_compl h 0 0 : E →ₗ[R] F) = 0 :=
+of_is_compl_eq _ (λ _, rfl) (λ _, rfl)
+
+@[simp] lemma of_is_compl_add (h : is_compl p q)
+  {φ₁ φ₂ : p →ₗ[R] F} {ψ₁ ψ₂ : q →ₗ[R] F} :
+  of_is_compl h (φ₁ + φ₂) (ψ₁ + ψ₂) = of_is_compl h φ₁ ψ₁ + of_is_compl h φ₂ ψ₂ :=
+of_is_compl_eq _ (by simp) (by simp)
+
+@[simp] lemma of_is_compl_smul
+  {R : Type*} [comm_ring R] {E : Type*} [add_comm_group E] [module R E]
+  {F : Type*} [add_comm_group F] [module R F] {p q : submodule R E}
+  (h : is_compl p q) {φ : p →ₗ[R] F} {ψ : q →ₗ[R] F} (c : R) :
+  of_is_compl h (c • φ) (c • ψ) = c • of_is_compl h φ ψ :=
+of_is_compl_eq _ (by simp) (by simp)
+
+section
+
+variables {R₁ : Type*} [comm_ring R₁] [module R₁ E] [module R₁ F]
+
+/-- The linear map from `(p →ₗ[R₁] F) × (q →ₗ[R₁] F)` to `E →ₗ[R₁] F`. -/
+def of_is_compl_prod {p q : submodule R₁ E} (h : is_compl p q) :
+  ((p →ₗ[R₁] F) × (q →ₗ[R₁] F)) →ₗ[R₁] (E →ₗ[R₁] F) :=
+{ to_fun := λ φ, of_is_compl h φ.1 φ.2,
+  map_add' := by { intros φ ψ, rw [prod.snd_add, prod.fst_add, of_is_compl_add] },
+  map_smul' := by { intros c φ, rw [prod.smul_snd, prod.smul_fst, of_is_compl_smul] } }
+
+@[simp] lemma of_is_compl_prod_apply {p q : submodule R₁ E} (h : is_compl p q)
+  (φ : (p →ₗ[R₁] F) × (q →ₗ[R₁] F)) : of_is_compl_prod h φ = of_is_compl h φ.1 φ.2 := rfl
+
+/-- The natural linear equivalence between `(p →ₗ[R₁] F) × (q →ₗ[R₁] F)` and `E →ₗ[R₁] F`. -/
+def of_is_compl_prod_equiv {p q : submodule R₁ E} (h : is_compl p q) :
+  ((p →ₗ[R₁] F) × (q →ₗ[R₁] F)) ≃ₗ[R₁] (E →ₗ[R₁] F) :=
+{ inv_fun := λ φ, ⟨φ.dom_restrict p, φ.dom_restrict q⟩,
+  left_inv :=
+    begin
+      intros φ, ext,
+      { exact of_is_compl_left_apply h x },
+      { exact of_is_compl_right_apply h x }
+    end,
+  right_inv :=
+    begin
+      intro φ, ext,
+      obtain ⟨a, b, hab, _⟩ := exists_unique_add_of_is_compl h x,
+      rw [← hab], simp,
+    end, .. of_is_compl_prod h }
+
+end
 
 @[simp] lemma linear_proj_of_is_compl_of_proj (f : E →ₗ[R] p) (hf : ∀ x : p, f x = x) :
   p.linear_proj_of_is_compl f.ker (is_compl_of_proj hf) = f :=

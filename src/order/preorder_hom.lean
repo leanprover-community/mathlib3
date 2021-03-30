@@ -7,7 +7,7 @@ Authors: Johan Commelin
 
 Bundled monotone functions, `x ≤ y → f x ≤ f y`.
 -/
-
+import logic.function.iterate
 import order.basic
 import order.bounded_lattice
 import order.complete_lattice
@@ -61,6 +61,10 @@ by { ext, refl }
 
 @[simp] lemma id_comp (f : preorder_hom α β) : id.comp f = f :=
 by { ext, refl }
+
+/-- `subtype.val` as a bundled monotone function.  -/
+def subtype.val (p : α → Prop) : subtype p →ₘ α :=
+⟨subtype.val, λ x y h, h⟩
 
 /-- The preorder structure of `α →ₘ β` is pointwise inequality: `f ≤ g ↔ ∀ a, f a ≤ g a`. -/
 instance : preorder (α →ₘ β) :=
@@ -116,16 +120,22 @@ instance {β : Type*} [order_top β] : order_top (α →ₘ β) :=
 @[simps]
 instance {β : Type*} [complete_lattice β] : has_Inf (α →ₘ β) :=
 { Inf := λ s, ⟨ λ x, Inf ((λ f : _ →ₘ _, f x) '' s), λ x y h,
-      Inf_le_Inf_of_forall_exists_le
-        (by simp only [and_imp, exists_prop, set.mem_image, exists_exists_and_eq_and, exists_imp_distrib];
-            intros; subst_vars; refine ⟨_,by assumption, monotone _ h⟩) ⟩ }
+    Inf_le_Inf_of_forall_exists_le begin
+      simp only [and_imp, exists_prop, set.mem_image, exists_exists_and_eq_and, exists_imp_distrib],
+      intros,
+      subst_vars,
+      refine ⟨_,by assumption, monotone _ h⟩
+    end ⟩ }
 
 @[simps]
 instance {β : Type*} [complete_lattice β] : has_Sup (α →ₘ β) :=
 { Sup := λ s, ⟨ λ x, Sup ((λ f : _ →ₘ _, f x) '' s), λ x y h,
-      Sup_le_Sup_of_forall_exists_le
-        (by simp only [and_imp, exists_prop, set.mem_image, exists_exists_and_eq_and, exists_imp_distrib];
-            intros; subst_vars; refine ⟨_,by assumption, monotone _ h⟩) ⟩ }
+    Sup_le_Sup_of_forall_exists_le begin
+      simp only [and_imp, exists_prop, set.mem_image, exists_exists_and_eq_and, exists_imp_distrib],
+      intros,
+      subst_vars,
+      refine ⟨_,by assumption, monotone _ h⟩
+    end ⟩ }
 
 @[simps Sup Inf]
 instance {β : Type*} [complete_lattice β] : complete_lattice (α →ₘ β) :=
@@ -141,4 +151,37 @@ instance {β : Type*} [complete_lattice β] : complete_lattice (α →ₘ β) :=
   .. (_ : order_top (α →ₘ β)),
   .. (_ : order_bot (α →ₘ β)) }
 
+lemma iterate_sup_le_sup_iff {α : Type*} [semilattice_sup α] (f : α →ₘ α) :
+  (∀ n₁ n₂ a₁ a₂, f^[n₁ + n₂] (a₁ ⊔ a₂) ≤ (f^[n₁] a₁) ⊔ (f^[n₂] a₂)) ↔
+  (∀ a₁ a₂, f (a₁ ⊔ a₂) ≤ (f a₁) ⊔ a₂) :=
+begin
+  split; intros h,
+  { exact h 1 0, },
+  { intros n₁ n₂ a₁ a₂, have h' : ∀ n a₁ a₂, f^[n] (a₁ ⊔ a₂) ≤ (f^[n] a₁) ⊔ a₂,
+    { intros n, induction n with n ih; intros a₁ a₂,
+      { refl, },
+      { calc f^[n + 1] (a₁ ⊔ a₂) = (f^[n] (f (a₁ ⊔ a₂))) : function.iterate_succ_apply f n _
+                             ... ≤ (f^[n] ((f a₁) ⊔ a₂)) : f.monotone.iterate n (h a₁ a₂)
+                             ... ≤ (f^[n] (f a₁)) ⊔ a₂ : ih _ _
+                             ... = (f^[n + 1] a₁) ⊔ a₂ : by rw ← function.iterate_succ_apply, }, },
+    calc f^[n₁ + n₂] (a₁ ⊔ a₂) = (f^[n₁] (f^[n₂] (a₁ ⊔ a₂))) : function.iterate_add_apply f n₁ n₂ _
+                           ... = (f^[n₁] (f^[n₂] (a₂ ⊔ a₁))) : by rw sup_comm
+                           ... ≤ (f^[n₁] ((f^[n₂] a₂) ⊔ a₁)) : f.monotone.iterate n₁ (h' n₂ _ _)
+                           ... = (f^[n₁] (a₁ ⊔ (f^[n₂] a₂))) : by rw sup_comm
+                           ... ≤ (f^[n₁] a₁) ⊔ (f^[n₂] a₂) : h' n₁ a₁ _, },
+end
+
 end preorder_hom
+
+namespace order_embedding
+
+/-- Convert an `order_embedding` to a `preorder_hom`. -/
+def to_preorder_hom {X Y : Type*} [preorder X] [preorder Y] (f : X ↪o Y) : X →ₘ Y :=
+{ to_fun := f,
+  monotone' := f.monotone }
+
+@[simp]
+lemma to_preorder_hom_coe {X Y : Type*} [preorder X] [preorder Y] (f : X ↪o Y) :
+  (f.to_preorder_hom : X → Y) = (f : X → Y) := rfl
+
+end order_embedding

@@ -12,6 +12,42 @@ on:
       - 'lean-3.*'
 
 jobs:
+  lint_self_test:
+    name: Ensure the linter works
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version:
+          - name: 3.8
+          - name: 3.9
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version.name }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version.name }}
+
+      - name: sanity check the linter
+        run: |
+          ./scripts/lint_style_sanity_test.py
+
+  style_lint:
+    name: Lint style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: lint
+        run: |
+          ./scripts/lint-style.sh
+
   build:
     name: Build mathlib
     runs-on: ubuntu-latest
@@ -30,14 +66,8 @@ jobs:
           set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
-          echo "::add-path::$HOME/.elan/bin"
-          echo "::set-env name=short_lean_version::$(~/.elan/bin/lean --run scripts/lean_version.lean)"
-
-      - name: install azcopy
-        run: |
-          cd /usr/local/bin
-          wget -q https://aka.ms/downloadazcopy-v10-linux -O - | sudo tar zxf - --strip-components 1 --wildcards '*/azcopy'
-          sudo chmod 755 /usr/local/bin/azcopy
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
+          echo "short_lean_version=$(~/.elan/bin/lean --run scripts/lean_version.lean)" >> $GITHUB_ENV
 
       - name: install Python
         uses: actions/setup-python@v1
@@ -51,10 +81,11 @@ jobs:
         id: build
         run: |
           leanpkg configure
+          echo "::set-output name=started::true"
           lean --json -T100000 --make src | python scripts/detect_errors.py
 
       - name: push release to azure
-        if: always() && github.repository == 'leanprover-community/mathlib'
+        if: always() && github.repository == 'leanprover-community/mathlib' && steps.build.outputs.started == 'true'
         run: |
           archive_name="$(git rev-parse HEAD).tar.gz"
           find src/ -name "*.olean" -o -name ".noisy_files" | tar czf "$archive_name" -T -
@@ -64,6 +95,7 @@ jobs:
           azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
 
       - name: setup precompiled zip file
+        if: always() && steps.build.outputs.started == 'true'
         id: setup_precompiled
         run: |
           touch workspace.tar
@@ -71,6 +103,7 @@ jobs:
           git_hash="$(git log -1 --pretty=format:%h)"
           echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
       - name: upload precompiled mathlib zip file
+        if: always() && steps.build.outputs.started == 'true'
         uses: actions/upload-artifact@v2
         with:
           name: ${{ steps.setup_precompiled.outputs.artifact_name }}
@@ -94,7 +127,7 @@ jobs:
           set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
-          echo "::add-path::$HOME/.elan/bin"
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
       - name: lint
         run: |
@@ -119,7 +152,7 @@ jobs:
           set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
-          echo "::add-path::$HOME/.elan/bin"
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
       - name: install Python
         uses: actions/setup-python@v1

@@ -1,11 +1,11 @@
 /-
 Copyright (c) 2020 Kyle Miller All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Kyle Miller.
+Authors: Kyle Miller
 -/
 
 import data.multiset.basic
-import data.vector
+import data.vector2
 import tactic.tidy
 
 /-!
@@ -69,7 +69,7 @@ The unique element in `sym α 0`.
 Inserts an element into the term of `sym α n`, increasing the length by one.
 -/
 @[pattern] def cons : α → sym α n → sym α (nat.succ n)
-| a ⟨s, h⟩ := ⟨a :: s, by rw [multiset.card_cons, h]⟩
+| a ⟨s, h⟩ := ⟨a ::ₘ s, by rw [multiset.card_cons, h]⟩
 
 notation a :: b := cons a b
 
@@ -95,7 +95,7 @@ instance decidable_mem [decidable_eq α] (a : α) (s : sym α n) : decidable (a 
 by { cases s, change decidable (a ∈ s_val), apply_instance }
 
 @[simp] lemma mem_cons {a b : α} {s : sym α n} : a ∈ b :: s ↔ a = b ∨ a ∈ s :=
-begin cases s, change a ∈ b :: s_val ↔ a = b ∨ a ∈ s_val, simp, end
+begin cases s, change a ∈ b ::ₘ s_val ↔ a = b ∨ a ∈ s_val, simp, end
 
 lemma mem_cons_of_mem {a b : α} {s : sym α n} (h : a ∈ s) : a ∈ b :: s :=
 mem_cons.2 (or.inr h)
@@ -103,7 +103,7 @@ mem_cons.2 (or.inr h)
 @[simp] lemma mem_cons_self (a : α) (s : sym α n) : a ∈ a :: s :=
 mem_cons.2 (or.inl rfl)
 
-lemma cons_of_coe_eq (a : α) (v : vector α n) : a :: (↑v : sym α n) = ↑(a :: v) :=
+lemma cons_of_coe_eq (a : α) (v : vector α n) : a :: (↑v : sym α n) = ↑(a ::ᵥ v) :=
 by { unfold_coes, delta of_vector, delta cons, delta vector.cons, tidy }
 
 lemma sound {a b : vector α n} (h : a.val ~ b.val) : (↑a : sym α n) = ↑b :=
@@ -132,7 +132,8 @@ Multisets of cardinality n are equivalent to length-n vectors up to permutations
 def sym_equiv_sym' {α : Type u} {n : ℕ} : sym α n ≃ sym' α n :=
 equiv.subtype_quotient_equiv_quotient_subtype _ _ (λ _, by refl) (λ _ _, by refl)
 
-lemma cons_equiv_eq_equiv_cons (α : Type u) (n : ℕ) (a : α) (s : sym α n) : a :: sym_equiv_sym' s = sym_equiv_sym' (a :: s) :=
+lemma cons_equiv_eq_equiv_cons (α : Type u) (n : ℕ) (a : α) (s : sym α n) :
+  a :: sym_equiv_sym' s = sym_equiv_sym' (a :: s) :=
 by tidy
 
 section inhabited

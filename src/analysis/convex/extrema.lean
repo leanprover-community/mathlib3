@@ -15,8 +15,8 @@ a global minimum, and likewise for concave functions.
 -/
 
 variables {E β: Type*} [add_comm_group E] [topological_space E]
-  [module ℝ E] [topological_add_group E] [topological_vector_space ℝ E]
-  [decidable_linear_ordered_add_comm_group β] [ordered_semimodule ℝ β]
+  [module ℝ E] [topological_add_group E] [has_continuous_smul ℝ E]
+  [linear_ordered_add_comm_group β] [semimodule ℝ β] [ordered_semimodule ℝ β]
   {s : set E}
 
 open set filter
@@ -47,7 +47,7 @@ begin
       ... ≤ ya • f a + yx • f x
                 : h_conv.2 (left_mem_Icc.mpr (le_of_lt a_lt_b)) ⟨h_ax, h_xb⟩ (ya_pos)
                     (le_of_lt yx_pos) yax
-      ... < ya • f a + yx • f a       : add_lt_add_left (smul_lt_smul_of_pos fx_lt_fa yx_pos) (ya • f a)
+      ... < ya • f a + yx • f a       : add_lt_add_left (smul_lt_smul_of_pos fx_lt_fa yx_pos) _
       ... = f a                       : by rw [←add_smul, yax, one_smul] },
   by_cases h_xz : x ≤ z,
   { exact not_lt_of_ge (ge_on_nhd x (show x ∈ Icc a z, by exact ⟨h_ax, h_xz⟩)) fx_lt_fa, },
@@ -66,9 +66,9 @@ begin
   by_contradiction H_cont,
   push_neg at H_cont,
   rcases H_cont with ⟨x, ⟨x_in_s, fx_lt_fa⟩⟩,
-  let g : affine_map ℝ ℝ E := affine_map.line_map a (x - a),
-  have hg0 : g 0 = a := affine_map.line_map_apply_zero a (x - a),
-  have hg1 : g 1 = x := by simp [affine_map.line_map_apply, one_smul],
+  let g : ℝ →ᵃ[ℝ] E := affine_map.line_map a x,
+  have hg0 : g 0 = a := affine_map.line_map_apply_zero a x,
+  have hg1 : g 1 = x := affine_map.line_map_apply_one a x,
   have fg_local_min_on : is_local_min_on (f ∘ g) (g ⁻¹' s) 0,
   { rw ←hg0 at h_localmin,
     refine is_local_min_on.comp_continuous_on h_localmin subset.rfl
@@ -93,7 +93,8 @@ end
 lemma is_max_on.of_is_local_max_on_of_concave_on {f : E → β} {a : E}
   (a_in_s : a ∈ s) (h_localmax: is_local_max_on f s a) (h_conc : concave_on s f) :
   ∀ x ∈ s, f x ≤ f a :=
-@is_min_on.of_is_local_min_on_of_convex_on _ (order_dual β) _ _ _ _ _ _ _ s f a a_in_s h_localmax h_conc
+@is_min_on.of_is_local_min_on_of_convex_on
+  _ (order_dual β) _ _ _ _ _ _ _ _ s f a a_in_s h_localmax h_conc
 
 /-- A local minimum of a convex function is a global minimum. -/
 lemma is_min_on.of_is_local_min_of_convex_univ {f : E → β} {a : E}
@@ -104,4 +105,4 @@ lemma is_min_on.of_is_local_min_of_convex_univ {f : E → β} {a : E}
 /-- A local maximum of a concave function is a global maximum. -/
 lemma is_max_on.of_is_local_max_of_convex_univ {f : E → β} {a : E}
   (h_local_max : is_local_max f a) (h_conc : concave_on univ f) : ∀ x, f x ≤ f a :=
-@is_min_on.of_is_local_min_of_convex_univ _ (order_dual β) _ _ _ _ _ _ _ f a h_local_max h_conc
+@is_min_on.of_is_local_min_of_convex_univ _ (order_dual β) _ _ _ _ _ _ _ _ f a h_local_max h_conc

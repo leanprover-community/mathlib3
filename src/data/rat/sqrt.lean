@@ -9,7 +9,8 @@ import data.int.sqrt
 /-!
 # Square root on rational numbers
 
-This file defines the square root function on rational numbers, `rat.sqrt` and proves several theorems about it.
+This file defines the square root function on rational numbers `rat.sqrt`
+and proves several theorems about it.
 
 -/
 namespace rat
@@ -27,6 +28,7 @@ theorem exists_mul_self (x : ℚ) : (∃ q, q * q = x) ↔ rat.sqrt x * rat.sqrt
 
 theorem sqrt_nonneg (q : ℚ) : 0 ≤ rat.sqrt q :=
 nonneg_iff_zero_le.1 $ (mk_nonneg _ $ int.coe_nat_pos.2 $
-nat.pos_of_ne_zero $ λ H, nat.pos_iff_ne_zero.1 q.pos $ nat.sqrt_eq_zero.1 H).2 trivial
+nat.pos_of_ne_zero $ λ H, pos_iff_ne_zero.1 q.pos $ nat.sqrt_eq_zero.1 H).2
+$ int.coe_nat_nonneg _
 
 end rat

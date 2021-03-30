@@ -45,7 +45,7 @@ variables {S : Type u} [semigroup S] {a b x y z x' y' : S}
 
 /-- If `a` semiconjugates `x` to `y` and `x'` to `y'`,
 then it semiconjugates `x * x'` to `y * y'`. -/
-@[to_additive, simp] lemma mul_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
+@[simp, to_additive] lemma mul_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
   semiconj_by a (x * x') (y * y') :=
 by unfold semiconj_by; assoc_rw [h.eq, h'.eq]
 

@@ -125,11 +125,11 @@ is_open.open_embedding_subtype_coe U.2
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
 def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
-{ obj := λ U, ⟨ f ⁻¹' U.val, f.continuous _ U.property ⟩,
+{ obj := λ U, ⟨ f ⁻¹' U.val, U.property.preimage f.continuous ⟩,
   map := λ U V i, ⟨ ⟨ λ a b, (le_of_hom i) b ⟩ ⟩ }.
 
-@[simp] lemma map_obj (f : X ⟶ Y) (U) (p) : (map f).obj ⟨U, p⟩ = ⟨f ⁻¹' U, f.continuous _ p⟩ :=
-rfl
+@[simp] lemma map_obj (f : X ⟶ Y) (U) (p) :
+  (map f).obj ⟨U, p⟩ = ⟨f ⁻¹' U, p.preimage f.continuous⟩ := rfl
 
 @[simp] lemma map_id_obj (U : opens X) : (map (𝟙 X)).obj U = U :=
 by { ext, refl } -- not quite `rfl`, since we don't have eta for records
@@ -148,6 +148,26 @@ The inclusion `U ⟶ (map f).obj ⊤` as a morphism in the category of open sets
 def le_map_top (f : X ⟶ Y) (U : opens X) : U ⟶ (map f).obj ⊤ :=
 hom_of_le $ λ _ _, trivial
 
+@[simp] lemma map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map (f ≫ g)).obj U = (map f).obj ((map g).obj U) :=
+by { ext, refl } -- not quite `rfl`, since we don't have eta for records
+
+@[simp] lemma map_comp_obj' (f : X ⟶ Y) (g : Y ⟶ Z) (U) (p) :
+  (map (f ≫ g)).obj ⟨U, p⟩ = (map f).obj ((map g).obj ⟨U, p⟩) :=
+rfl
+
+@[simp] lemma map_comp_map (f : X ⟶ Y) (g : Y ⟶ Z) {U V} (i : U ⟶ V) :
+  (map (f ≫ g)).map i = (map f).map ((map g).map i) :=
+rfl
+
+@[simp] lemma map_comp_obj_unop (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map (f ≫ g)).obj (unop U) = (map f).obj ((map g).obj (unop U)) :=
+map_comp_obj f g (unop U)
+
+@[simp] lemma op_map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map (f ≫ g)).op.obj U = (map f).op.obj ((map g).op.obj U) :=
+by simp
+
 section
 variable (X)
 
@@ -161,21 +181,6 @@ def map_id : map (𝟙 X) ≅ 𝟭 (opens X) :=
   inv := { app := λ U, eq_to_hom (map_id_obj U).symm } }
 
 end
-
-@[simp] lemma map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (map (f ≫ g)).obj U = (map f).obj ((map g).obj U) :=
-by { ext, refl } -- not quite `rfl`, since we don't have eta for records
-
-@[simp] lemma map_comp_obj' (f : X ⟶ Y) (g : Y ⟶ Z) (U) (p) :
-  (map (f ≫ g)).obj ⟨U, p⟩ = (map f).obj ((map g).obj ⟨U, p⟩) :=
-rfl
-
-@[simp] lemma map_comp_obj_unop (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (map (f ≫ g)).obj (unop U) = (map f).obj ((map g).obj (unop U)) :=
-by simp
-@[simp] lemma op_map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (map (f ≫ g)).op.obj U = (map f).op.obj ((map g).op.obj U) :=
-by simp
 
 /--
 The natural isomorphism between taking preimages under `f ≫ g`, and the composite

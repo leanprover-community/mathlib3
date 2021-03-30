@@ -1,15 +1,21 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 import tactic.lint
 import tactic.ext
+import tactic.simps
 
 open function
 
 namespace subtype
-variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop}
+variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop} {q : α → Prop}
+
+/-- See Note [custom simps projection] -/
+def simps.val (x : subtype p) : α := x
+
+initialize_simps_projections subtype (val → coe)
 
 /-- A version of `x.property` or `x.2` where `p` is syntactically applied to the coercion of `x`
   instead of `x.1`. A similar result is `subtype.mem` in `data.set.basic`. -/
@@ -37,6 +43,10 @@ protected theorem forall' {q : ∀x, p x → Prop} :
 lemma ext_iff {a1 a2 : {x // p x}} : a1 = a2 ↔ (a1 : α) = (a2 : α) :=
 ⟨congr_arg _, subtype.ext⟩
 
+lemma heq_iff_coe_eq (h : ∀ x, p x ↔ q x) {a1 : {x // p x}} {a2 : {x // q x}} :
+  a1 == a2 ↔ (a1 : α) = (a2 : α) :=
+eq.rec (λ a2', heq_iff_eq.trans ext_iff) (funext $ λ x, propext (h x)) a2
+
 lemma ext_val {a1 a2 : {x // p x}} : a1.1 = a2.1 → a1 = a2 :=
 subtype.ext
 
@@ -49,7 +59,10 @@ ext_iff
 
 @[simp, nolint simp_nf] -- built-in reduction doesn't always work
 theorem mk_eq_mk {a h a' h'} : @mk α p a h = @mk α p a' h' ↔ a = a' :=
-⟨λ H, by injection H, λ H, by congr; assumption⟩
+ext_iff
+
+theorem coe_eq_iff {a : {a // p a}} {b : α} : ↑a = b ↔ ∃ h, a = ⟨b, h⟩ :=
+⟨λ h, h ▸ ⟨a.2, (coe_eta _ _).symm⟩, λ ⟨hb, ha⟩, ha.symm ▸ rfl⟩
 
 theorem coe_injective : injective (coe : subtype p → α) :=
 λ a b, subtype.ext
@@ -73,15 +86,23 @@ lemma restrict_injective {α β} {f : α → β} (p : α → Prop) (h : injectiv
 h.comp coe_injective
 
 /-- Defining a map into a subtype, this can be seen as an "coinduction principle" of `subtype`-/
-def coind {α β} (f : α → β) {p : β → Prop} (h : ∀a, p (f a)) : α → subtype p :=
+@[simps] def coind {α β} (f : α → β) {p : β → Prop} (h : ∀a, p (f a)) : α → subtype p :=
 λ a, ⟨f a, h a⟩
 
 theorem coind_injective {α β} {f : α → β} {p : β → Prop} (h : ∀a, p (f a))
   (hf : injective f) : injective (coind f h) :=
 λ x y hxy, hf $ by apply congr_arg subtype.val hxy
 
+theorem coind_surjective {α β} {f : α → β} {p : β → Prop} (h : ∀a, p (f a))
+  (hf : surjective f) : surjective (coind f h) :=
+λ x, let ⟨a, ha⟩ := hf x in ⟨a, coe_injective ha⟩
+
+theorem coind_bijective {α β} {f : α → β} {p : β → Prop} (h : ∀a, p (f a))
+  (hf : bijective f) : bijective (coind f h) :=
+⟨coind_injective h hf.1, coind_surjective h hf.2⟩
+
 /-- Restriction of a function to a function on subtypes. -/
-def map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀a, p a → q (f a)) :
+@[simps] def map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀a, p a → q (f a)) :
   subtype p → subtype q :=
 λ x, ⟨f x, h x x.prop⟩
 
@@ -96,6 +117,10 @@ funext $ assume ⟨v, h⟩, rfl
 lemma map_injective {p : α → Prop} {q : β → Prop} {f : α → β} (h : ∀a, p a → q (f a))
   (hf : injective f) : injective (map f h) :=
 coind_injective _ $ hf.comp coe_injective
+
+lemma map_involutive {p : α → Prop} {f : α → α} (h : ∀a, p a → p (f a))
+  (hf : involutive f) : involutive (map f h) :=
+λ x, subtype.ext (hf x)
 
 instance [has_equiv α] (p : α → Prop) : has_equiv (subtype p) :=
 ⟨λ s t, (s : α) ≈ (t : α)⟩

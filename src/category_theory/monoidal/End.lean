@@ -30,7 +30,7 @@ with tensor product given by composition of functors
 -/
 def endofunctor_monoidal_category : monoidal_category (C ⥤ C) :=
 { tensor_obj   := λ F G, F ⋙ G,
-  tensor_hom   := λ F G F' G' α β, nat_trans.hcomp α β,
+  tensor_hom   := λ F G F' G' α β, α ◫ β,
   tensor_unit  := 𝟭 C,
   associator   := λ F G H, functor.associator F G H,
   left_unitor  := λ F, functor.left_unitor F,
@@ -63,11 +63,11 @@ def tensoring_right_monoidal : monoidal_functor C (C ⥤ C) :=
   end,
   ε_is_iso := by apply_instance,
   μ_is_iso := λ X Y,
-  { inv :=
     -- We could avoid needing to do this explicitly by
     -- constructing a partially applied analogue of `associator_nat_iso`.
-    { app := λ Z, (α_ Z X Y).inv,
-      naturality' := λ Z Z' f, by { dsimp, rw ←associator_inv_naturality, simp, } }, },
+  ⟨⟨{ app := λ Z, (α_ Z X Y).inv,
+      naturality' := λ Z Z' f, by { dsimp, rw ←associator_inv_naturality, simp, } },
+    by tidy⟩⟩,
   ..tensoring_right C }.
 
 end category_theory

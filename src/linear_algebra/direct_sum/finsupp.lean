@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 import linear_algebra.finsupp
 import linear_algebra.direct_sum.tensor_product
@@ -18,10 +18,11 @@ the direct sum of copies of `M` indexed by `ι`.
 universes u v w
 
 noncomputable theory
-open_locale classical
+open_locale classical direct_sum
 
 open set linear_map submodule
-variables {R : Type u} {M : Type v} {N : Type w} [ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+variables {R : Type u} {M : Type v} {N : Type w} [ring R] [add_comm_group M] [module R M]
+  [add_comm_group N] [module R N]
 
 section finsupp_lequiv_direct_sum
 
@@ -29,9 +30,9 @@ variables (R M) (ι : Type*) [decidable_eq ι]
 
 /-- The finitely supported functions ι →₀ M are in linear equivalence with the direct sum of
 copies of M indexed by ι. -/
-def finsupp_lequiv_direct_sum : (ι →₀ M) ≃ₗ[R] direct_sum ι (λ i, M) :=
+def finsupp_lequiv_direct_sum : (ι →₀ M) ≃ₗ[R] ⨁ i : ι, M :=
 linear_equiv.of_linear
-  (finsupp.lsum $ direct_sum.lof R ι (λ _, M))
+  (finsupp.lsum ℕ (show ι → (M →ₗ[R] ⨁ i, M), from direct_sum.lof R ι _))
   (direct_sum.to_module _ _ _ finsupp.lsingle)
   (linear_map.ext $ direct_sum.to_module.ext _ $ λ i,
     linear_map.ext $ λ x, by simp [finsupp.sum_single_index])
@@ -39,7 +40,7 @@ linear_equiv.of_linear
 
 @[simp] theorem finsupp_lequiv_direct_sum_single (i : ι) (m : M) :
   finsupp_lequiv_direct_sum R M ι (finsupp.single i m) = direct_sum.lof R ι _ i m :=
-finsupp.sum_single_index $ direct_sum.of_zero i
+finsupp.sum_single_index $ linear_map.map_zero _
 
 @[simp] theorem finsupp_lequiv_direct_sum_symm_lof (i : ι) (m : M) :
   (finsupp_lequiv_direct_sum R M ι).symm (direct_sum.lof R ι _ i m) = finsupp.single i m :=

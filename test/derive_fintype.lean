@@ -32,3 +32,9 @@ inductive foo3 (α β : Type) (n : ℕ)
 
 instance (α β : Type) [decidable_eq α] [fintype α] [fintype β] (n : ℕ) : fintype (foo3 α β n) :=
 by tactic.mk_fintype_instance
+
+@[derive fintype]
+structure foo4 {m n : Type} (b : m → ℕ) :=
+(x : m × n)
+(y : m × n)
+(h : b x.1 = b y.1)

@@ -3,8 +3,8 @@ Copyright (c) 2020 Dany Fabian. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Dany Fabian
 -/
+import tactic.unfold_cases
 
-import tactic
 open tactic
 
 variable {α : Type*}

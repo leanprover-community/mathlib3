@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2019 Mathlib Authors. All rights reserved.
+Copyright (c) 2019 mathlib community. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Wojciech Nawrocki
 -/
@@ -14,9 +14,10 @@ to be defined and is better suited for in-kernel computation.
 
 ## References
 
-<https://leanprover-community.github.io/archive/113488general/62193tacticquestion.html>
+<https://leanprover-community.github.io/archive/stream/113488-general/topic/tactic.20question.html>
 -/
 
+/-- A binary tree with values stored in non-leaf nodes. -/
 @[derive has_reflect, derive decidable_eq]
 inductive {u} tree (α : Type u) : Type u
 | nil : tree
@@ -27,6 +28,7 @@ namespace tree
 universe u
 variable {α : Type u}
 
+/-- Construct a string representation of a tree. Provides a `has_repr` instance. -/
 def repr [has_repr α] : tree α → string
 | nil := "nil"
 | (node a t1 t2) := "tree.node " ++ has_repr.repr a
@@ -60,7 +62,7 @@ def index_of (lt : α → α → Prop) [decidable_rel lt]
 taking the following path to get to the element:
 - `bit0` - go to left child
 - `bit1` - go to right child
-- `one` - retrieve from here -/
+- `pos_num.one` - retrieve from here -/
 def get : pos_num → tree α → option α
 | _                nil            := none
 | pos_num.one      (node a t₁ t₂) := some a
@@ -72,6 +74,8 @@ if the index is invalid. See `tree.get`. -/
 def get_or_else (n : pos_num) (t : tree α) (v : α) : α :=
   (t.get n).get_or_else v
 
+/-- Apply a function to each value in the tree.  This is the `map` function for the `tree` functor.
+TODO: implement `traversable tree`. -/
 def map {β} (f : α → β) : tree α → tree β
 | nil := nil
 | (node a l r) := node (f a) (map l) (map r)

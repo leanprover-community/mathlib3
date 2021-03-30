@@ -6,8 +6,34 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 import data.matrix.pequiv
 import data.fintype.card
 import group_theory.perm.sign
-import ring_theory.algebra
+import algebra.algebra.basic
 import tactic.ring
+import linear_algebra.alternating
+import linear_algebra.pi
+
+/-!
+# Determinant of a matrix
+
+This file defines the determinant of a matrix, `matrix.det`, and its essential properties.
+
+## Main definitions
+
+ - `matrix.det`: the determinant of a square matrix, as a sum over permutations
+ - `matrix.det_row_multilinear`: the determinant, as an `alternating_map` in the rows of the matrix
+
+## Main results
+
+ - `det_mul`: the determinant of `A ⬝ B` is the product of determinants
+ - `det_zero_of_row_eq`: the determinant is zero if there is a repeated row
+ - `det_block_diagonal`: the determinant of a block diagonal matrix is a product
+   of the blocks' determinants
+
+## Implementation notes
+
+It is possible to configure `simp` to compute determinants. See the file
+`test/matrix.lean` for some examples.
+
+-/
 
 universes u v w z
 open equiv equiv.perm finset function
@@ -15,16 +41,37 @@ open equiv equiv.perm finset function
 namespace matrix
 open_locale matrix big_operators
 
-variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
+variables {m n : Type u} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
+variables {R : Type v} [comm_ring R]
 
 local notation `ε` σ:max := ((sign σ : ℤ ) : R)
 
+
+/-- `det` is an `alternating_map` in the rows of the matrix. -/
+def det_row_multilinear : alternating_map R (n → R) R n :=
+((multilinear_map.mk_pi_algebra R n R).comp_linear_map (linear_map.proj)).alternatization
+
 /-- The determinant of a matrix given by the Leibniz formula. -/
-definition det (M : matrix n n R) : R :=
-∑ σ : perm n, ε σ * ∏ i, M (σ i) i
+abbreviation det (M : matrix n n R) : R :=
+det_row_multilinear M
+
+lemma det_apply (M : matrix n n R) :
+  M.det = ∑ σ : perm n, (σ.sign : ℤ) • ∏ i, M (σ i) i :=
+multilinear_map.alternatization_apply _ M
+
+-- This is what the old definition was. We use it to avoid having to change the old proofs below
+lemma det_apply' (M : matrix n n R) :
+  M.det = ∑ σ : perm n, ε σ * ∏ i, M (σ i) i :=
+begin
+  rw det_apply,
+  have : ∀ (r : R) (z : ℤ), z • r = (z : R) * r := λ r z, by
+    rw [←gsmul_eq_smul, ←smul_eq_mul, ←gsmul_eq_smul_cast],
+  simp only [this],
+end
 
 @[simp] lemma det_diagonal {d : n → R} : det (diagonal d) = ∏ i, d i :=
 begin
+  rw det_apply',
   refine (finset.sum_eq_single 1 _ _).trans _,
   { intros σ h1 h2,
     cases not_forall.1 (mt equiv.ext h2) with x h3,
@@ -37,8 +84,7 @@ begin
 end
 
 @[simp] lemma det_zero (h : nonempty n) : det (0 : matrix n n R) = 0 :=
-by rw [← diagonal_zero, det_diagonal, finset.prod_const, ← fintype.card,
-  zero_pow (fintype.card_pos_iff.2 h)]
+(det_row_multilinear : alternating_map R (n → R) R n).map_zero
 
 @[simp] lemma det_one : det (1 : matrix n n R) = 1 :=
 by rw [← diagonal_one]; simp [-diagonal_one]
@@ -47,7 +93,25 @@ lemma det_eq_one_of_card_eq_zero {A : matrix n n R} (h : fintype.card n = 0) : d
 begin
   have perm_eq : (univ : finset (perm n)) = {1} :=
   univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
-  simp [det, card_eq_zero.mp h, perm_eq],
+  simp [det_apply, card_eq_zero.mp h, perm_eq],
+end
+
+/-- If `n` has only one element, the determinant of an `n` by `n` matrix is just that element.
+Although `unique` implies `decidable_eq` and `fintype`, the instances might
+not be syntactically equal. Thus, we need to fill in the args explicitly. -/
+@[simp]
+lemma det_unique {n : Type*} [unique n] [decidable_eq n] [fintype n] (A : matrix n n R) :
+  det A = A (default n) (default n) :=
+by simp [det_apply, univ_unique]
+
+lemma det_eq_elem_of_card_eq_one {A : matrix n n R} (h : fintype.card n = 1) (k : n) :
+  det A = A k k :=
+begin
+  have h1 : (univ : finset (perm n)) = {1},
+  { apply univ_eq_singleton_of_card_one (1 : perm n),
+    simp [card_univ, fintype.card_perm, h] },
+  have h2 := univ_eq_singleton_of_card_one k h,
+  simp [det_apply, h1, h2],
 end
 
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
@@ -60,43 +124,43 @@ begin
   exact sum_involution
     (λ σ _, σ * swap i j)
     (λ σ _,
-      have ∀ a, p (swap i j a) = p a := λ a, by simp only [swap_apply_def]; split_ifs; cc,
       have ∏ x, M (σ x) (p x) = ∏ x, M ((σ * swap i j) x) (p x),
-        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _) (by simp [this])
+        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _)
+          (by simp [apply_swap_eq_self hpij])
           (λ _ _ _ _ h, (swap i j).injective h)
           (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
-      by simp [sign_mul, this, sign_swap hij, prod_mul_distrib])
-    (λ σ _ _ h, hij (σ.injective $ by conv {to_lhs, rw ← h}; simp))
+      by simp [this, sign_swap hij, prod_mul_distrib])
+    (λ σ _ _, (not_congr mul_swap_eq_iff).mpr hij)
     (λ _ _, mem_univ _)
-    (λ _ _, equiv.ext $ by simp)
+    (λ σ _, mul_swap_involutive i j σ)
 end
 
 @[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
 calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
-  by simp only [det, mul_apply, prod_univ_sum, mul_sum,
+  by simp only [det_apply', mul_apply, prod_univ_sum, mul_sum,
     fintype.pi_finset_univ]; rw [finset.sum_comm]
 ... = ∑ p in (@univ (n → n) _).filter bijective, ∑ σ : perm n,
     ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
-  eq.symm $ sum_subset (filter_subset _)
+  eq.symm $ sum_subset (filter_subset _ _)
     (λ f _ hbij, det_mul_aux $ by simpa using hbij)
 ... = ∑ τ : perm n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (τ i) * N (τ i) i) :
   sum_bij (λ p h, equiv.of_bijective p (mem_filter.1 h).2) (λ _ _, mem_univ _)
     (λ _ _, rfl) (λ _ _ _ _ h, by injection h)
     (λ b _, ⟨b, mem_filter.2 ⟨mem_univ _, b.bijective⟩, coe_fn_injective rfl⟩)
 ... = ∑ σ : perm n, ∑ τ : perm n, (∏ i, N (σ i) i) * ε τ * (∏ j, M (τ j) (σ j)) :
-  by simp [mul_sum, det, mul_comm, mul_left_comm, prod_mul_distrib, mul_assoc]
+  by simp [mul_sum, det_apply', mul_comm, mul_left_comm, prod_mul_distrib, mul_assoc]
 ... = ∑ σ : perm n, ∑ τ : perm n, (((∏ i, N (σ i) i) * (ε σ * ε τ)) * ∏ i, M (τ i) i) :
   sum_congr rfl (λ σ _, sum_bij (λ τ _, τ * σ⁻¹) (λ _ _, mem_univ _)
     (λ τ _,
       have ∏ j, M (τ j) (σ j) = ∏ j, M ((τ * σ⁻¹) j) j,
-        by rw ← finset.prod_equiv σ⁻¹; simp [mul_apply],
+        by rw ← σ⁻¹.prod_comp; simp [mul_apply],
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
-          by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp [sign_mul]
+          by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp
         ... = ε τ : by simp,
       by rw h; simp [this, mul_comm, mul_assoc, mul_left_comm])
     (λ _ _ _ _, mul_right_cancel) (λ τ _, ⟨τ * σ, by simp⟩))
-... = det M * det N : by simp [det, mul_assoc, mul_sum, mul_comm, mul_left_comm]
+... = det M * det N : by simp [det_apply', mul_assoc, mul_sum, mul_comm, mul_left_comm]
 
 instance : is_monoid_hom (det : matrix n n R → R) :=
 { map_one := det_one,
@@ -105,6 +169,7 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
 /-- Transposing a matrix preserves the determinant. -/
 @[simp] lemma det_transpose (M : matrix n n R) : Mᵀ.det = M.det :=
 begin
+  rw [det_apply', det_apply'],
   apply sum_bij (λ σ _, σ⁻¹),
   { intros σ _, apply mem_univ },
   { intros σ _,
@@ -119,27 +184,20 @@ begin
   { intros σ _, use σ⁻¹, finish }
 end
 
-/-- The determinant of a permutation matrix equals its sign. -/
-@[simp] lemma det_permutation (σ : perm n) :
-  matrix.det (σ.to_pequiv.to_matrix : matrix n n R) = σ.sign := begin
-  suffices : matrix.det (σ.to_pequiv.to_matrix) = ↑σ.sign * det (1 : matrix n n R), { simp [this] },
-  unfold det,
-  rw mul_sum,
-  apply sum_bij (λ τ _, σ * τ),
-  { intros τ _, apply mem_univ },
-  { intros τ _,
-    conv_lhs { rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)] },
-    conv_rhs { rw [←mul_assoc, coe_coe, sign_mul, units.coe_mul, int.cast_mul, ←mul_assoc] },
-    congr,
-    { simp [pow_two] },
-    { ext i, apply pequiv.equiv_to_pequiv_to_matrix } },
-  { intros τ τ' _ _, exact (mul_right_inj σ).mp },
-  { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }
-end
 
 /-- Permuting the columns changes the sign of the determinant. -/
 lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
-by rw [←det_permutation, ←det_mul, pequiv.to_pequiv_mul_matrix]
+begin
+  have : (σ.sign : ℤ) • M.det = (σ.sign * M.det : R),
+  { rw [coe_coe, ←gsmul_eq_smul, ←smul_eq_mul, ←gsmul_eq_smul_cast] },
+  exact ((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans this,
+end
+
+/-- The determinant of a permutation matrix equals its sign. -/
+@[simp] lemma det_permutation (σ : perm n) :
+  matrix.det (σ.to_pequiv.to_matrix : matrix n n R) = σ.sign :=
+by rw [←matrix.mul_one (σ.to_pequiv.to_matrix : matrix n n R), pequiv.to_pequiv_mul_matrix,
+  det_permute, det_one, mul_one]
 
 @[simp] lemma det_smul {A : matrix n n R} {c : R} : det (c • A) = c ^ fintype.card n * det A :=
 calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_diagonal_mul]
@@ -152,7 +210,7 @@ variables {S : Type w} [comm_ring S]
 
 lemma ring_hom.map_det {M : matrix n n R} {f : R →+* S} :
   f M.det = matrix.det (f.map_matrix M) :=
-by simp [matrix.det, f.map_sum, f.map_prod]
+by simp [matrix.det_apply', f.map_sum, f.map_prod]
 
 lemma alg_hom.map_det [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
   {M : matrix n n S} {f : S →ₐ[R] T} :
@@ -168,105 +226,159 @@ section det_zero
 Prove that a matrix with a repeated column has determinant equal to zero.
 -/
 
-lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A i j = 0) : det A = 0 :=
-begin
-  rw [←det_transpose, det],
-  convert @sum_const_zero _ _ (univ : finset (perm n)) _,
-  ext σ,
-  convert mul_zero ↑(sign σ),
-  apply prod_eq_zero (mem_univ i),
-  rw [transpose_apply],
-  apply h
-end
+lemma det_eq_zero_of_row_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A i j = 0) : det A = 0 :=
+(det_row_multilinear : alternating_map R (n → R) R n).map_coord_zero i (funext h)
 
-/--
-  `mod_swap i j` contains permutations up to swapping `i` and `j`.
-
-  We use this to partition permutations in the expression for the determinant,
-  such that each partitions sums up to `0`.
--/
-def mod_swap {n : Type u} [decidable_eq n] (i j : n) : setoid (perm n) :=
-⟨ λ σ τ, σ = τ ∨ σ = swap i j * τ,
-  λ σ, or.inl (refl σ),
-  λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
-  λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish⟩
-
-instance (i j : n) : decidable_rel (mod_swap i j).r := λ σ τ, or.decidable
+lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (j : n) (h : ∀ i, A i j = 0) : det A = 0 :=
+by { rw ← det_transpose, exact det_eq_zero_of_row_eq_zero j h, }
 
 variables {M : matrix n n R} {i j : n}
 
-/-- If a matrix has a repeated column, the determinant will be zero. -/
-theorem det_zero_of_column_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
-begin
-  have swap_invariant : ∀ k, M (swap i j k) = M k,
-  { intros k,
-    rw [swap_apply_def],
-    by_cases k = i, { rw [if_pos h, h, ←hij] },
-    rw [if_neg h],
-    by_cases k = j, { rw [if_pos h, h, hij] },
-    rw [if_neg h] },
-
-  have : ∀ σ, _root_.disjoint {σ} {swap i j * σ},
-  { intros σ,
-    rw [disjoint_singleton, mem_singleton],
-    exact (not_congr swap_mul_eq_iff).mpr i_ne_j },
-
-  apply finset.sum_cancels_of_partition_cancels (mod_swap i j),
-  intros σ _,
-  erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
-    sum_union (this σ), sum_singleton, sum_singleton],
-  convert add_right_neg (↑↑(sign σ) * ∏ i, M (σ i) i),
-  rw [neg_mul_eq_neg_mul],
-  congr,
-  { rw [sign_mul, sign_swap i_ne_j], norm_num },
-  ext j, rw [perm.mul_apply, swap_invariant]
-end
+/-- If a matrix has a repeated row, the determinant will be zero. -/
+theorem det_zero_of_row_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
+(det_row_multilinear : alternating_map R (n → R) R n).map_eq_zero_of_eq M hij i_ne_j
 
 end det_zero
+
+lemma det_update_row_add (M : matrix n n R) (j : n) (u v : n → R) :
+  det (update_row M j $ u + v) = det (update_row M j u) + det (update_row M j v) :=
+(det_row_multilinear : alternating_map R (n → R) R n).map_add M j u v
 
 lemma det_update_column_add (M : matrix n n R) (j : n) (u v : n → R) :
   det (update_column M j $ u + v) = det (update_column M j u) + det (update_column M j v) :=
 begin
-  simp only [det],
-  have : ∀ σ : perm n, ∏ i, M.update_column j (u + v) (σ i) i =
-                       ∏ i, M.update_column j u (σ i) i + ∏ i, M.update_column j v (σ i) i,
-  { intros σ,
-    simp only [update_column_apply, prod_ite, filter_eq',
-               finset.prod_singleton, finset.mem_univ, if_true, pi.add_apply, add_mul] },
-  rw [← sum_add_distrib],
-  apply sum_congr rfl,
-  intros x _,
-  rw [this, mul_add]
-end
-
-lemma det_update_row_add (M : matrix n n R) (j : n) (u v : n → R) :
-  det (update_row M j $ u + v) = det (update_row M j u) + det (update_row M j v) :=
-begin
-  rw [← det_transpose, ← update_column_transpose, det_update_column_add],
-  simp [update_column_transpose, det_transpose]
-end
-
-lemma det_update_column_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
-  det (update_column M j $ s • u) = s * det (update_column M j u) :=
-begin
-  simp only [det],
-  have : ∀ σ : perm n, ∏ i, M.update_column j (s • u) (σ i) i = s * ∏ i, M.update_column j u (σ i) i,
-  { intros σ,
-    simp only [update_column_apply, prod_ite, filter_eq', finset.prod_singleton, finset.mem_univ,
-               if_true, algebra.id.smul_eq_mul, pi.smul_apply],
-    ring },
-  rw mul_sum,
-  apply sum_congr rfl,
-  intros x _,
-  rw this,
-  ring
+  rw [← det_transpose, ← update_row_transpose, det_update_row_add],
+  simp [update_row_transpose, det_transpose]
 end
 
 lemma det_update_row_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
   det (update_row M j $ s • u) = s * det (update_row M j u) :=
+(det_row_multilinear : alternating_map R (n → R) R n).map_smul M j s u
+
+lemma det_update_column_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
+  det (update_column M j $ s • u) = s * det (update_column M j u) :=
 begin
-  rw [← det_transpose, ← update_column_transpose, det_update_column_smul],
-  simp [update_column_transpose, det_transpose]
+  rw [← det_transpose, ← update_row_transpose, det_update_row_smul],
+  simp [update_row_transpose, det_transpose]
+end
+
+@[simp] lemma det_block_diagonal {o : Type*} [fintype o] [decidable_eq o] (M : o → matrix n n R) :
+  (block_diagonal M).det = ∏ k, (M k).det :=
+begin
+  -- Rewrite the determinants as a sum over permutations.
+  simp_rw [det_apply'],
+  -- The right hand side is a product of sums, rewrite it as a sum of products.
+  rw finset.prod_sum,
+  simp_rw [finset.mem_univ, finset.prod_attach_univ, finset.univ_pi_univ],
+  -- We claim that the only permutations contributing to the sum are those that
+  -- preserve their second component.
+  let preserving_snd : finset (equiv.perm (n × o)) :=
+    finset.univ.filter (λ σ, ∀ x, (σ x).snd = x.snd),
+  have mem_preserving_snd : ∀ {σ : equiv.perm (n × o)},
+    σ ∈ preserving_snd ↔ ∀ x, (σ x).snd = x.snd :=
+    λ σ, finset.mem_filter.trans ⟨λ h, h.2, λ h, ⟨finset.mem_univ _, h⟩⟩,
+  rw ← finset.sum_subset (finset.subset_univ preserving_snd) _,
+  -- And that these are in bijection with `o → equiv.perm m`.
+  rw (finset.sum_bij (λ (σ : ∀ (k : o), k ∈ finset.univ → equiv.perm n) _,
+                        prod_congr_left (λ k, σ k (finset.mem_univ k))) _ _ _ _).symm,
+  { intros σ _,
+    rw mem_preserving_snd,
+    rintros ⟨k, x⟩,
+    simp },
+  { intros σ _,
+    rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product, finset.prod_comm],
+    simp [sign_prod_congr_left] },
+  { intros σ σ' _ _ eq,
+    ext x hx k,
+    simp only at eq,
+    have : ∀ k x, prod_congr_left (λ k, σ k (finset.mem_univ _)) (k, x) =
+                  prod_congr_left (λ k, σ' k (finset.mem_univ _)) (k, x) :=
+      λ k x, by rw eq,
+    simp only [prod_congr_left_apply, prod.mk.inj_iff] at this,
+    exact (this k x).1 },
+  { intros σ hσ,
+    rw mem_preserving_snd at hσ,
+    have hσ' : ∀ x, (σ⁻¹ x).snd = x.snd,
+    { intro x, conv_rhs { rw [← perm.apply_inv_self σ x, hσ] } },
+    have mk_apply_eq : ∀ k x, ((σ (x, k)).fst, k) = σ (x, k),
+    { intros k x,
+      ext; simp [hσ] },
+    have mk_inv_apply_eq : ∀ k x, ((σ⁻¹ (x, k)).fst, k) = σ⁻¹ (x, k),
+    { intros k x,
+      conv_lhs { rw ← perm.apply_inv_self σ (x, k) },
+      ext; simp [hσ'] },
+    refine ⟨λ k _, ⟨λ x, (σ (x, k)).fst, λ x, (σ⁻¹ (x, k)).fst, _, _⟩, _, _⟩,
+    { intro x,
+      simp [mk_apply_eq, mk_inv_apply_eq] },
+    { intro x,
+      simp [mk_apply_eq, mk_inv_apply_eq] },
+    { apply finset.mem_univ },
+    { ext ⟨k, x⟩; simp [hσ] } },
+  { intros σ _ hσ,
+    rw mem_preserving_snd at hσ,
+    obtain ⟨⟨k, x⟩, hkx⟩ := not_forall.mp hσ,
+    rw [finset.prod_eq_zero (finset.mem_univ (k, x)), mul_zero],
+    rw [← @prod.mk.eta _ _ (σ (k, x)), block_diagonal_apply_ne],
+    exact hkx }
+end
+
+/-- The determinant of a 2x2 block matrix with the lower-left block equal to zero is the product of
+the determinants of the diagonal blocks. For the generalization to any number of blocks, see
+`matrix.upper_block_triangular_det`. -/
+lemma upper_two_block_triangular_det
+  (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
+  (matrix.from_blocks A B 0 D).det = A.det * D.det :=
+begin
+  classical,
+  simp_rw det_apply',
+  convert
+    (sum_subset (subset_univ ((sum_congr_hom m n).range : set (perm (m ⊕ n))).to_finset) _).symm,
+  rw sum_mul_sum,
+  simp_rw univ_product_univ,
+  rw (sum_bij (λ (σ : perm m × perm n) _, equiv.sum_congr σ.fst σ.snd) _ _ _ _).symm,
+  { intros σ₁₂ h,
+    simp only [],
+    erw [set.mem_to_finset, monoid_hom.mem_range],
+    use σ₁₂,
+    simp },
+  { simp only [forall_prop_of_true, prod.forall, mem_univ],
+    intros σ₁ σ₂,
+    rw fintype.prod_sum_type,
+    simp_rw [equiv.sum_congr_apply, sum.map_inr, sum.map_inl, from_blocks_apply₁₁,
+      from_blocks_apply₂₂],
+    have hr : ∀ (a b c d : R), (a * b) * (c * d) = a * c * (b * d), { intros, ac_refl },
+    rw hr,
+    congr,
+    norm_cast,
+    rw sign_sum_congr },
+  { intros σ₁ σ₂ h₁ h₂,
+    dsimp only [],
+    intro h,
+    have h2 : ∀ x, perm.sum_congr σ₁.fst σ₁.snd x = perm.sum_congr σ₂.fst σ₂.snd x,
+    { intro x, exact congr_fun (congr_arg to_fun h) x },
+    simp only [sum.map_inr, sum.map_inl, perm.sum_congr_apply, sum.forall] at h2,
+    ext,
+    { exact h2.left x },
+    { exact h2.right x }},
+  { intros σ hσ,
+    erw [set.mem_to_finset, monoid_hom.mem_range] at hσ,
+    obtain ⟨σ₁₂, hσ₁₂⟩ := hσ,
+    use σ₁₂,
+    rw ←hσ₁₂,
+    simp },
+  { intros σ hσ hσn,
+    have h1 : ¬ (∀ x, ∃ y, sum.inl y = σ (sum.inl x)),
+    { by_contradiction,
+      rw set.mem_to_finset at hσn,
+      apply absurd (mem_sum_congr_hom_range_of_perm_maps_to_inl _) hσn,
+      rintros x ⟨a, ha⟩,
+      rw [←ha], exact h a },
+    obtain ⟨a, ha⟩ := not_forall.mp h1,
+    cases hx : σ (sum.inl a) with a2 b,
+    { have hn := (not_exists.mp ha) a2,
+      exact absurd hx.symm hn },
+    { rw [finset.prod_eq_zero (finset.mem_univ (sum.inl a)), mul_zero],
+      rw [hx, from_blocks_apply₂₁], refl }}
 end
 
 end matrix

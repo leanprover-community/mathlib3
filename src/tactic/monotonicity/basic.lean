@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
-import algebra.order_functions
+import algebra.ordered_ring
+import order.bounded_lattice
 
 namespace tactic.interactive
 open tactic list

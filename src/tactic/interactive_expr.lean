@@ -2,7 +2,7 @@
 Copyright (c) 2020 E.W.Ayers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 
-Author: E.W.Ayers
+Authors: E.W.Ayers
 -/
 
 /-!
@@ -253,7 +253,7 @@ $ tc.mk_simple
 meta def implicit_arg_list (tooltip : tc subexpr empty) (e : expr) : tactic $ html empty := do
   fn ← (mk tooltip) $ expr.get_app_fn e,
   args ← list.mmap (mk tooltip) $ expr.get_app_args e,
-  pure $ h "div" []
+  pure $ h "div" [style [("display", "flex"), ("flexWrap", "wrap"), ("alignItems", "baseline")]]
     ( (h "span" [className "bg-blue br3 ma1 ph2 white"] [fn]) ::
       list.map (λ a, h "span" [className "bg-gray br3 ma1 ph2 white"] [a]) args
     )
@@ -267,7 +267,12 @@ tc.stateless (λ ⟨e,ea⟩, do
     y_comp ← mk type_tooltip y,
     implicit_args ← implicit_arg_list type_tooltip e,
     pure [
-        h "div" [style [("minWidth", "8rem")]] [
+        h "div" [style [
+            ("minWidth", "8rem"),
+            -- [note]: textIndent is inherited, and we might
+            -- be in an expression here where textIndent is set
+            ("textIndent", "0")]
+          ] [
           h "div" [cn "pl1"] [y_comp],
           h "hr" [] [],
           implicit_args

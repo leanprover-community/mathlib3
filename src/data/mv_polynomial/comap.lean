@@ -16,7 +16,7 @@ This file defines the `comap` function on `mv_polynomial`.
 
 ## Notation
 
-As in other polynomial files we typically use the notation:
+As in other polynomial files, we typically use the notation:
 
 + `σ : Type*` (indexing the variables)
 
@@ -58,8 +58,7 @@ begin
   { apply eval₂_hom_congr rfl rfl,
     rw alg_hom.comp_apply,
     suffices : g = aeval (λ i, g (X i)), { rw ← this, },
-    apply mv_polynomial.alg_hom_ext g,
-    intro, rw aeval_X, },
+    exact aeval_unique g },
   { simp only [comap, aeval_eq_eval₂_hom, map_eval₂_hom, alg_hom.comp_apply],
     refine eval₂_hom_congr _ rfl rfl,
     ext r, apply aeval_C },

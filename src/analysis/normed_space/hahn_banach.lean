@@ -6,6 +6,7 @@ Authors: Yury Kudryashov, Heather Macbeth
 import analysis.normed_space.operator_norm
 import analysis.normed_space.extend
 import analysis.convex.cone
+import data.complex.is_R_or_C
 
 /-!
 # Hahn-Banach theorem
@@ -13,9 +14,8 @@ import analysis.convex.cone
 In this file we prove a version of Hahn-Banach theorem for continuous linear
 functions on normed spaces over `ℝ` and `ℂ`.
 
-In order to state and prove its corollaries uniformly, we introduce a typeclass
-`has_exists_extension_norm_eq` for a field, requiring that a strong version of the
-Hahn-Banach theorem holds over this field, and provide instances for `ℝ` and `ℂ`.
+In order to state and prove its corollaries uniformly, we prove the statements for a field `𝕜`
+satisfying `is_R_or_C 𝕜`.
 
 In this setting, `exists_dual_vector` states that, for any nonzero `x`, there exists a continuous
 linear form `g` of norm `1` with `g x = ∥x∥` (where the norm has to be interpreted as an element
@@ -24,20 +24,6 @@ of `𝕜`).
 -/
 
 universes u v
-
-/--
-A field where the Hahn-Banach theorem for continuous linear functions holds. This allows stating
-theorems that depend on it uniformly over such fields.
-
-In particular, this is satisfied by `ℝ` and `ℂ`.
--/
-class has_exists_extension_norm_eq (𝕜 : Type v) [nondiscrete_normed_field 𝕜] : Prop :=
-(exists_extension_norm_eq :
-  ∀ (E : Type u)
-  [normed_group E] [normed_space 𝕜 E]
-  (p : subspace 𝕜 E)
-  (f : p →L[𝕜] 𝕜),
-  ∃ g : E →L[𝕜] 𝕜, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥)
 
 /--
 The norm of `x` as an element of `𝕜` (a normed algebra over `ℝ`). This is needed in particular to
@@ -59,7 +45,7 @@ lemma norm_norm'
   (x : A) : ∥norm' 𝕜 x∥ = ∥x∥ :=
 by rw [norm'_def, norm_algebra_map_eq, norm_norm]
 
-section real
+namespace real
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
 /-- Hahn-Banach theorem for continuous linear functions over `ℝ`. -/
@@ -82,93 +68,78 @@ begin
     exact mul_le_mul_of_nonneg_left (norm_add_le x y) (norm_nonneg f) }
 end
 
-instance real_has_exists_extension_norm_eq : has_exists_extension_norm_eq ℝ :=
-⟨by { intros, apply exists_extension_norm_eq }⟩
-
 end real
 
-section complex
-variables {F : Type*} [normed_group F] [normed_space ℂ F]
+section is_R_or_C
+open is_R_or_C
 
--- Inlining the following two definitions causes a type mismatch between
--- subspace ℝ (semimodule.restrict_scalars ℝ ℂ F) and subspace ℂ F.
-/-- Restrict a `ℂ`-subspace to an `ℝ`-subspace. -/
-noncomputable def restrict_scalars (p : subspace ℂ F) : subspace ℝ F := p.restrict_scalars ℝ ℂ F
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [normed_group F] [normed_space 𝕜 F]
 
-private lemma apply_real (p : subspace ℂ F) (f' : p →L[ℝ] ℝ) :
-  ∃ g : F →L[ℝ] ℝ, (∀ x : restrict_scalars p, g x = f' x) ∧ ∥g∥ = ∥f'∥ :=
-  exists_extension_norm_eq (p.restrict_scalars ℝ ℂ F) f'
-
-open complex
-
-/-- Hahn-Banach theorem for continuous linear functions over `ℂ`. -/
-theorem complex.exists_extension_norm_eq (p : subspace ℂ F) (f : p →L[ℂ] ℂ) :
-  ∃ g : F →L[ℂ] ℂ, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥ :=
+/-- Hahn-Banach theorem for continuous linear functions over `𝕜` satisyfing `is_R_or_C 𝕜`. -/
+theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :
+  ∃ g : F →L[𝕜] 𝕜, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥ :=
 begin
+  letI : module ℝ F := restrict_scalars.semimodule ℝ 𝕜 F,
+  letI : is_scalar_tower ℝ 𝕜 F := restrict_scalars.is_scalar_tower _ _ _,
+  letI : normed_space ℝ F := normed_space.restrict_scalars _ 𝕜 _,
   -- Let `fr: p →L[ℝ] ℝ` be the real part of `f`.
-  let fr := continuous_linear_map.re.comp (f.restrict_scalars ℝ),
-  have fr_apply : ∀ x, fr x = (f x).re := λ x, rfl,
-
-  -- Use the real version to get a norm-preserving extension of `fr`, which we'll call `g: F →L[ℝ] ℝ`.
-  rcases apply_real p fr with ⟨g, ⟨hextends, hnormeq⟩⟩,
-
-  -- Now `g` can be extended to the `F →L[ℂ] ℂ` we need.
-  use g.extend_to_ℂ,
-
+  let fr := re_clm.comp (f.restrict_scalars ℝ),
+  have fr_apply : ∀ x, fr x = re (f x) := λ x, rfl,
+  -- Use the real version to get a norm-preserving extension of `fr`, which
+  -- we'll call `g : F →L[ℝ] ℝ`.
+  rcases real.exists_extension_norm_eq (p.restrict_scalars ℝ) fr with ⟨g, ⟨hextends, hnormeq⟩⟩,
+  -- Now `g` can be extended to the `F →L[𝕜] 𝕜` we need.
+  use g.extend_to_𝕜,
   -- It is an extension of `f`.
-  have h : ∀ x : p, g.extend_to_ℂ x = f x,
-  { intros,
-    change (⟨g x, -g ((I • x) : p)⟩ : ℂ) = f x,
-    ext; dsimp only; rw [hextends, fr_apply],
-    rw [continuous_linear_map.map_smul, algebra.id.smul_eq_mul, mul_re, I_re, I_im],
-    ring },
-
+  have h : ∀ x : p, g.extend_to_𝕜 x = f x,
+  { assume x,
+    rw [continuous_linear_map.extend_to_𝕜_apply, ←submodule.coe_smul, hextends, hextends],
+    change (re (f x) : 𝕜) - (I : 𝕜) * (re (f ((I : 𝕜) • x))) = f x,
+    apply ext,
+    { simp only [add_zero, algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add,
+        zero_sub, I_im', zero_mul, of_real_re, eq_self_iff_true, sub_zero, mul_neg_eq_neg_mul_symm,
+        of_real_neg, mul_re, mul_zero, sub_neg_eq_add, continuous_linear_map.map_smul] },
+    { simp only [algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add, zero_sub, I_im',
+        zero_mul, of_real_re, mul_neg_eq_neg_mul_symm, mul_im, zero_add, of_real_neg, mul_re,
+        sub_neg_eq_add, continuous_linear_map.map_smul] } },
   refine ⟨h, _⟩,
-
   -- And we derive the equality of the norms by bounding on both sides.
   refine le_antisymm _ _,
-  { calc ∥g.extend_to_ℂ∥
-        ≤ ∥g∥ : g.extend_to_ℂ.op_norm_le_bound g.op_norm_nonneg (norm_bound _)
+  { calc ∥g.extend_to_𝕜∥
+        ≤ ∥g∥ : g.extend_to_𝕜.op_norm_le_bound g.op_norm_nonneg (norm_bound _)
     ... = ∥fr∥ : hnormeq
-    ... ≤ ∥continuous_linear_map.re∥ * ∥f∥ : continuous_linear_map.op_norm_comp_le _ _
-    ... = ∥f∥ : by rw [complex.continuous_linear_map.re_norm, one_mul] },
-
-  { exact f.op_norm_le_bound g.extend_to_ℂ.op_norm_nonneg (λ x, h x ▸ g.extend_to_ℂ.le_op_norm x) },
+    ... ≤ ∥re_clm∥ * ∥f∥ : continuous_linear_map.op_norm_comp_le _ _
+    ... = ∥f∥ : by rw [re_clm_norm, one_mul] },
+  { exact f.op_norm_le_bound g.extend_to_𝕜.op_norm_nonneg (λ x, h x ▸ g.extend_to_𝕜.le_op_norm x) },
 end
 
-instance complex_has_exists_extension_norm_eq : has_exists_extension_norm_eq ℂ :=
-⟨by { intros, apply complex.exists_extension_norm_eq }⟩
-
-end complex
+end is_R_or_C
 
 section dual_vector
-variables {𝕜 : Type v} [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
+variables {𝕜 : Type v} [is_R_or_C 𝕜]
 variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
 
-open continuous_linear_equiv
+open continuous_linear_equiv submodule
 open_locale classical
 
 lemma coord_norm' (x : E) (h : x ≠ 0) : ∥norm' 𝕜 x • coord 𝕜 x h∥ = 1 :=
 by rw [norm_smul, norm_norm', coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
 
-variables [has_exists_extension_norm_eq.{u} 𝕜]
-open submodule
-
 /-- Corollary of Hahn-Banach.  Given a nonzero element `x` of a normed space, there exists an
     element of the dual space, of norm `1`, whose value on `x` is `∥x∥`. -/
 theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=
 begin
-  let p : submodule 𝕜 E := span 𝕜 {x},
+  let p : submodule 𝕜 E := 𝕜 ∙ x,
   let f := norm' 𝕜 x • coord 𝕜 x h,
-  obtain ⟨g, hg⟩ := has_exists_extension_norm_eq.exists_extension_norm_eq E p f,
+  obtain ⟨g, hg⟩ := exists_extension_norm_eq p f,
   use g, split,
   { rw [hg.2, coord_norm'] },
-  { calc g x = g (⟨x, mem_span_singleton_self x⟩ : span 𝕜 {x}) : by rw coe_mk
-    ... = (norm' 𝕜 x • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : span 𝕜 {x}) : by rw ← hg.1
-    ... = norm' 𝕜 x : by simp [coord_self] }
+  { calc g x = g (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw coe_mk
+    ... = (norm' 𝕜 x • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw ← hg.1
+    ... = norm' 𝕜 x : by simp }
 end
 
-/-- Variant of the above theorem, eliminating the hypothesis that `x` be nonzero, and choosing
+/-- Variant of Hahn-Banach, eliminating the hypothesis that `x` be nonzero, and choosing
     the dual element arbitrarily when `x = 0`. -/
 theorem exists_dual_vector' [nontrivial E] (x : E) :
   ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=

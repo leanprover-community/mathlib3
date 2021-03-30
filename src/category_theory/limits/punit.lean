@@ -1,5 +1,11 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
+
 import category_theory.punit
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 
 /-!
 # `discrete punit` has limits and colimits

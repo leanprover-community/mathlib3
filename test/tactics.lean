@@ -239,7 +239,7 @@ begin
   lift f to α → ℕ using hf,
     guard_target ((0:ℤ) ≤ 2 * (λ i : α, (f i : ℤ)) a),
     guard_hyp hf' : ∀ a, ((λ i : α, (f i:ℤ)) a) < 1,
-  trivial
+  exact int.coe_nat_nonneg _
 end
 
 instance can_lift_unit : can_lift unit unit :=
@@ -476,7 +476,12 @@ begin
     "No such hypothesis 1 + 2." },
   revert_deps k, tactic.intron 5, guard_target unit,
   revert_after n, tactic.intron 7, guard_target unit,
-  do { e ← get_local `k, tactic.revert_deps e, l ← local_context, guard $ e ∈ l, intros },
+  do {
+    e ← get_local `k,
+    tactic.revert_reverse_dependencies_of_hyp e,
+    l ← local_context,
+    guard $ e ∈ l,
+    intros },
   exact unit.star
 end
 
@@ -571,8 +576,9 @@ run_cmd do nm ← get_user_attribute_name `higher_order, guard $ nm = `tactic.hi
 run_cmd do success_if_fail $ get_user_attribute_name `zxy.xzy
 
 run_cmd set_attribute `norm `prod.map tt
+run_cmd set_attribute `my_attr `prod.map
+run_cmd set_attribute `to_additive `has_mul
 run_cmd success_if_fail $ set_attribute `higher_order `prod.map tt
-run_cmd success_if_fail $ set_attribute `my_attr `prod.map
 run_cmd success_if_fail $ set_attribute `norm `xyz.zxy
 run_cmd success_if_fail $ set_attribute `zxy.xyz `prod.map
 

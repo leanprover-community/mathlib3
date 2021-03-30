@@ -1,12 +1,12 @@
 /-
 Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Scott Morrison, Adam Topaz.
+Authors: Scott Morrison, Adam Topaz
 -/
-
-import ring_theory.algebra
+import algebra.algebra.subalgebra
+import algebra.monoid_algebra
 import linear_algebra
-import data.monoid_algebra
+import data.equiv.transfer_instance
 
 /-!
 # Free Algebras
@@ -16,24 +16,25 @@ Given a commutative semiring `R`, and a type `X`, we construct the free `R`-alge
 ## Notation
 
 1. `free_algebra R X` is the free algebra itself. It is endowed with an `R`-algebra structure.
-2. `free_algebra.ι R X` is the function `X → free_algebra R X`.
-3. Given a function `f : X → A` to an R-algebra `A`, `lift R X f` is the lift of `f` to an
+2. `free_algebra.ι R` is the function `X → free_algebra R X`.
+3. Given a function `f : X → A` to an R-algebra `A`, `lift R f` is the lift of `f` to an
   `R`-algebra morphism `free_algebra R X → A`.
 
 ## Theorems
 
-1. `ι_comp_lift` states that the composition `(lift R X f) ∘ (ι R X)` is identical to `f`.
+1. `ι_comp_lift` states that the composition `(lift R f) ∘ (ι R)` is identical to `f`.
 2. `lift_unique` states that whenever an R-algebra morphism `g : free_algebra R X → A` is
-  given whose composition with `ι R X` is `f`, then one has `g = lift R X f`.
+  given whose composition with `ι R` is `f`, then one has `g = lift R f`.
 3. `hom_ext` is a variant of `lift_unique` in the form of an extensionality theorem.
 4. `lift_comp_ι` is a combination of `ι_comp_lift` and `lift_unique`. It states that the lift
   of the composition of an algebra morphism with `ι` is the algebra morphism itself.
 5. `equiv_monoid_algebra_free_monoid : free_algebra R X ≃ₐ[R] monoid_algebra R (free_monoid X)`
+6. An inductive principle `induction`.
 
 ## Implementation details
 
-We construct the free algebra on `X` as a quotient of an inductive type `free_algebra.pre` by an inductively defined relation `free_algebra.rel`.
-Explicitly, the construction involves three steps:
+We construct the free algebra on `X` as a quotient of an inductive type `free_algebra.pre` by an
+inductively defined relation `free_algebra.rel`. Explicitly, the construction involves three steps:
 1. We construct an inductive type `free_algebra.pre R X`, the terms of which should be thought
   of as representatives for the elements of `free_algebra R X`.
   It is the free type with maps from `R` and `X`, and with two binary operations `add` and `mul`.
@@ -173,18 +174,21 @@ instance : algebra R (free_algebra R X) :=
   commutes' := λ _, by { rintros ⟨⟩, exact quot.sound rel.central_scalar },
   smul_def' := λ _ _, rfl }
 
+instance {S : Type*} [comm_ring S] : ring (free_algebra S X) := algebra.semiring_to_ring S
+
+variables {X}
+
 /--
 The canonical function `X → free_algebra R X`.
 -/
 def ι : X → free_algebra R X := λ m, quot.mk _ m
 
-@[simp] lemma quot_mk_eq_ι (m : X) : quot.mk (free_algebra.rel R X) m = ι R X m := rfl
+@[simp] lemma quot_mk_eq_ι (m : X) : quot.mk (free_algebra.rel R X) m = ι R m := rfl
 
-/--
-Given a function `f : X → A` where `A` is an `R`-algebra, `lift R X f` is the unique lift
-of `f` to a morphism of `R`-algebras `free_algebra R X → A`.
--/
-def lift {A : Type*} [semiring A] [algebra R A] (f : X → A) : free_algebra R X →ₐ[R] A :=
+variables {A : Type*} [semiring A] [algebra R A]
+
+/-- Internal definition used to define `lift` -/
+private def lift_aux (f : X → A) : (free_algebra R X →ₐ[R] A) :=
 { to_fun := λ a, quot.lift_on a (lift_fun _ _ f) $ λ a b h,
   begin
     induction h,
@@ -224,54 +228,77 @@ def lift {A : Type*} [semiring A] [algebra R A] (f : X → A) : free_algebra R X
   map_add' := by { rintros ⟨⟩ ⟨⟩, refl },
   commutes' := by tauto }
 
+/--
+Given a function `f : X → A` where `A` is an `R`-algebra, `lift R f` is the unique lift
+of `f` to a morphism of `R`-algebras `free_algebra R X → A`.
+-/
+def lift : (X → A) ≃ (free_algebra R X →ₐ[R] A) :=
+{ to_fun := lift_aux R,
+  inv_fun := λ F, F ∘ (ι R),
+  left_inv := λ f, by {ext, refl},
+  right_inv := λ F, by {
+    ext x,
+    rcases x,
+    induction x,
+    case pre.of : {
+      change ((F : free_algebra R X → A) ∘ (ι R)) _ = _,
+      refl },
+    case pre.of_scalar : {
+      change algebra_map _ _ x = F (algebra_map _ _ x),
+      rw alg_hom.commutes F x, },
+    case pre.add : a b ha hb {
+      change lift_aux R (F ∘ ι R) (quot.mk _ _ + quot.mk _ _) = F (quot.mk _ _ + quot.mk _ _),
+      rw [alg_hom.map_add, alg_hom.map_add, ha, hb], },
+    case pre.mul : a b ha hb {
+      change lift_aux R (F ∘ ι R) (quot.mk _ _ * quot.mk _ _) = F (quot.mk _ _ * quot.mk _ _),
+      rw [alg_hom.map_mul, alg_hom.map_mul, ha, hb], }, }, }
+
+@[simp] lemma lift_aux_eq (f : X → A) : lift_aux R f = lift R f := rfl
+
+@[simp]
+lemma lift_symm_apply (F : free_algebra R X →ₐ[R] A) : (lift R).symm F = F ∘ (ι R) := rfl
+
 variables {R X}
 
 @[simp]
-theorem ι_comp_lift {A : Type*} [semiring A] [algebra R A] (f : X → A) :
-  (lift R X f : free_algebra R X → A) ∘ (ι R X) = f := by {ext, refl}
+theorem ι_comp_lift (f : X → A) :
+  (lift R f : free_algebra R X → A) ∘ (ι R) = f := by {ext, refl}
 
 @[simp]
-theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : X → A) (x) :
-  lift R X f (ι R X x) = f x := rfl
+theorem lift_ι_apply (f : X → A) (x) :
+  lift R f (ι R x) = f x := rfl
 
 @[simp]
-theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : X → A)
-  (g : free_algebra R X →ₐ[R] A) :
-  (g : free_algebra R X → A) ∘ (ι R X) = f ↔ g = lift R X f :=
-begin
-  refine ⟨λ hyp, _, λ hyp, by rw [hyp, ι_comp_lift]⟩,
-  ext,
-  rcases x,
-  induction x,
-  { change ((g : free_algebra R X → A) ∘ (ι R X)) _ = _,
-    rw hyp,
-    refl },
-  { exact alg_hom.commutes g x },
-  { change g (quot.mk _ _ + quot.mk _ _) = _,
-    rw [alg_hom.map_add, x_ih_a, x_ih_a_1],
-    refl },
-  { change g (quot.mk _ _ * quot.mk _ _) = _,
-    rw [alg_hom.map_mul, x_ih_a, x_ih_a_1],
-    refl },
-end
+theorem lift_unique (f : X → A) (g : free_algebra R X →ₐ[R] A) :
+  (g : free_algebra R X → A) ∘ (ι R) = f ↔ g = lift R f :=
+(lift R).symm_apply_eq
 
 /-!
-At this stage we set the basic definitions as `@[irreducible]`, so from this point onwards one should only use the universal properties of the free algebra, and consider the actual implementation as a quotient of an inductive type as completely hidden.
+At this stage we set the basic definitions as `@[irreducible]`, so from this point onwards one
+should only use the universal properties of the free algebra, and consider the actual implementation
+as a quotient of an inductive type as completely hidden.
 
-Of course, one still has the option to locally make these definitions `semireducible` if so desired, and Lean is still willing in some circumstances to do unification based on the underlying definition.
+Of course, one still has the option to locally make these definitions `semireducible` if so desired,
+and Lean is still willing in some circumstances to do unification based on the underlying
+definition.
 -/
-attribute [irreducible] free_algebra ι lift
+attribute [irreducible] ι lift
+-- Marking `free_algebra` irreducible makes `ring` instances inaccessible on quotients.
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
+-- For now, we avoid this by not marking it irreducible.
 
 @[simp]
-theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : free_algebra R X →ₐ[R] A) :
-  lift R X ((g : free_algebra R X → A) ∘ (ι R X)) = g := by {symmetry, rw ←lift_unique}
+theorem lift_comp_ι (g : free_algebra R X →ₐ[R] A) :
+  lift R ((g : free_algebra R X → A) ∘ (ι R)) = g :=
+by { rw ←lift_symm_apply, exact (lift R).apply_symm_apply g }
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext]
-theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : free_algebra R X →ₐ[R] A}
-  (w : ((f : free_algebra R X → A) ∘ (ι R X)) = ((g : free_algebra R X → A) ∘ (ι R X))) : f = g :=
+theorem hom_ext {f g : free_algebra R X →ₐ[R] A}
+  (w : ((f : free_algebra R X → A) ∘ (ι R)) = ((g : free_algebra R X → A) ∘ (ι R))) : f = g :=
 begin
-  have : g = lift R X ((g : free_algebra R X → A) ∘ (ι R X)), by rw ←lift_unique,
-  rw [this, ←lift_unique, w],
+  rw [←lift_symm_apply, ←lift_symm_apply] at w,
+  exact (lift R).symm.injective w,
 end
 
 /--
@@ -283,8 +310,8 @@ for example.
 noncomputable
 def equiv_monoid_algebra_free_monoid : free_algebra R X ≃ₐ[R] monoid_algebra R (free_monoid X) :=
 alg_equiv.of_alg_hom
-  (lift R X (λ x, (monoid_algebra.of R (free_monoid X)) (free_monoid.of x)))
-  ((monoid_algebra.lift R (free_monoid X) (free_algebra R X)) (free_monoid.lift (ι R X)))
+  (lift R (λ x, (monoid_algebra.of R (free_monoid X)) (free_monoid.of x)))
+  ((monoid_algebra.lift R (free_monoid X) (free_algebra R X)) (free_monoid.lift (ι R)))
 begin
   apply monoid_algebra.alg_hom_ext, intro x,
   apply free_monoid.rec_on x,
@@ -292,5 +319,90 @@ begin
   { intros x y ih, simp at ih, simp [ih], }
 end
 (by { ext, simp, })
+
+instance [nontrivial R] : nontrivial (free_algebra R X) :=
+equiv_monoid_algebra_free_monoid.to_equiv.nontrivial
+
+section
+open_locale classical
+
+/-- The left-inverse of `algebra_map`. -/
+def algebra_map_inv : free_algebra R X →ₐ[R] R :=
+lift R (0 : X → R)
+
+lemma algebra_map_left_inverse :
+  function.left_inverse algebra_map_inv (algebra_map R $ free_algebra R X) :=
+λ x, by simp [algebra_map_inv]
+
+-- this proof is copied from the approach in `free_abelian_group.of_injective`
+lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebra R X) :=
+λ x y hoxy, classical.by_contradiction $ assume hxy : x ≠ y,
+  let f : free_algebra R X →ₐ[R] R := lift R (λ z, if x = z then (1 : R) else 0) in
+  have hfx1 : f (ι R x) = 1, from (lift_ι_apply _ _).trans $ if_pos rfl,
+  have hfy1 : f (ι R y) = 1, from hoxy ▸ hfx1,
+  have hfy0 : f (ι R y) = 0, from (lift_ι_apply _ _).trans $ if_neg hxy,
+  one_ne_zero $ hfy1.symm.trans hfy0
+
+end
+
+end free_algebra
+
+/- There is something weird in the above namespace that breaks the typeclass resolution of
+`has_coe_to_sort` below. Closing it and reopening it fixes it... -/
+namespace free_algebra
+
+/-- An induction principle for the free algebra.
+
+If `C` holds for the `algebra_map` of `r : R` into `free_algebra R X`, the `ι` of `x : X`, and is
+preserved under addition and muliplication, then it holds for all of `free_algebra R X`.
+-/
+@[elab_as_eliminator]
+lemma induction {C : free_algebra R X → Prop}
+  (h_grade0 : ∀ r, C (algebra_map R (free_algebra R X) r))
+  (h_grade1 : ∀ x, C (ι R x))
+  (h_mul : ∀ a b, C a → C b → C (a * b))
+  (h_add : ∀ a b, C a → C b → C (a + b))
+  (a : free_algebra R X) :
+  C a :=
+begin
+  -- the arguments are enough to construct a subalgebra, and a mapping into it from X
+  let s : subalgebra R (free_algebra R X) := {
+    carrier := C,
+    mul_mem' := h_mul,
+    add_mem' := h_add,
+    algebra_map_mem' := h_grade0, },
+  let of : X → s := subtype.coind (ι R) h_grade1,
+  -- the mapping through the subalgebra is the identity
+  have of_id : alg_hom.id R (free_algebra R X) = s.val.comp (lift R of),
+  { ext,
+    simp [of, subtype.coind], },
+  -- finding a proof is finding an element of the subalgebra
+  convert subtype.prop (lift R of a),
+  simp [alg_hom.ext_iff] at of_id,
+  exact of_id a,
+end
+
+/-- The star ring formed by reversing the elements of products -/
+instance : star_ring (free_algebra R X) :=
+{ star := opposite.unop ∘ lift R (opposite.op ∘ ι R),
+  star_involutive := λ x, by {
+    unfold has_star.star,
+    simp only [function.comp_apply],
+    refine free_algebra.induction R X _ _ _ _ x; intros; simp [*] },
+  star_mul := λ a b, by simp,
+  star_add := λ a b, by simp }
+
+@[simp]
+lemma star_ι (x : X) : star (ι R x) = (ι R x) :=
+by simp [star, has_star.star]
+
+@[simp]
+lemma star_algebra_map (r : R) : star (algebra_map R (free_algebra R X) r) = (algebra_map R _ r) :=
+by simp [star, has_star.star]
+
+/-- `star` as an `alg_equiv` -/
+def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵒᵖ :=
+{ commutes' := λ r, by simp [star_algebra_map],
+  ..star_ring_equiv }
 
 end free_algebra

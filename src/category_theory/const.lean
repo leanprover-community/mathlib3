@@ -1,11 +1,23 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.opposites
 
-universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+/-!
+# The constant functor
+
+`const J : C ⥤ (J ⥤ C)` is the functor that sends an object `X : C` to the functor `J ⥤ C` sending
+every object in `J` to `X`, and every morphism to `𝟙 X`.
+
+When `J` is nonempty, `const` is faithful.
+
+We have `(const J).obj X ⋙ F ≅ (const J).obj (F.obj X)` for any `F : C ⥤ D`.
+-/
+
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ u₁ u₂ u₃
 
 open category_theory
 
@@ -76,6 +88,10 @@ variables {D : Type u₃} [category.{v₃} D]
   (const J).obj X ⋙ F ≅ (const J).obj (F.obj X) :=
 { hom := { app := λ _, 𝟙 _ },
   inv := { app := λ _, 𝟙 _ } }
+
+/-- If `J` is nonempty, then the constant functor over `J` is faithful. -/
+instance [nonempty J] : faithful (const J : C ⥤ J ⥤ C) :=
+{ map_injective' := λ X Y f g e, nat_trans.congr_app e (classical.arbitrary J) }
 
 end
 

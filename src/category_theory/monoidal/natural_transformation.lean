@@ -109,22 +109,6 @@ namespace monoidal_nat_iso
 
 variables {F G : lax_monoidal_functor C D}
 
-instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
-{ inv :=
-  { app := λ X, inv (α.app X),
-    naturality' := λ X Y f,
-    begin
-      have h := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.to_nat_trans.naturality f).symm,
-      simp only [is_iso.inv_hom_id_assoc, is_iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
-      exact h
-    end,
-    tensor' := λ X Y,
-    begin
-      dsimp,
-      rw [is_iso.comp_inv_eq, assoc, monoidal_nat_trans.tensor, ←inv_tensor,
-        is_iso.inv_hom_id_assoc],
-    end }, }
-
 /--
 Construct a monoidal natural isomorphism from object level isomorphisms,
 and the monoidal naturality in the forward direction.
@@ -135,12 +119,29 @@ def of_components
   (unit : F.ε ≫ (app (𝟙_ C)).hom = G.ε)
   (tensor : ∀ X Y, F.μ X Y ≫ (app (X ⊗ Y)).hom = ((app X).hom ⊗ (app Y).hom) ≫ G.μ X Y) :
   F ≅ G :=
-as_iso { app := λ X, (app X).hom }
+{ hom := { app := λ X, (app X).hom, },
+  inv :=
+  { app := λ X, (app X).inv,
+    unit' := by { dsimp, rw [←unit, assoc, iso.hom_inv_id, comp_id], },
+    tensor' := λ X Y,
+    begin
+      dsimp,
+      rw [iso.comp_inv_eq, assoc, tensor, ←tensor_comp_assoc,
+        iso.inv_hom_id, iso.inv_hom_id, tensor_id, id_comp],
+    end,
+    ..(nat_iso.of_components app @naturality).inv, }, }
 
-@[simp] lemma of_components.hom_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
+@[simp] lemma of_components.hom_app
+  (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
   (of_components app naturality unit tensor).hom.app X = (app X).hom := rfl
-@[simp] lemma of_components.inv_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
-  (of_components app naturality unit tensor).inv.app X = (app X).inv := rfl
+@[simp] lemma of_components.inv_app
+  (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
+  (of_components app naturality unit tensor).inv.app X = (app X).inv :=
+by simp [of_components]
+
+instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
+⟨(is_iso.of_iso (of_components (λ X, as_iso (α.app X))
+  (λ X Y f, α.to_nat_trans.naturality f) α.unit α.tensor)).1⟩
 
 end monoidal_nat_iso
 

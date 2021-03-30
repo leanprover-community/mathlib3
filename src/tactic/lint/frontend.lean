@@ -47,11 +47,6 @@ omits it from only the specified linter checks.
 sanity check, lint, cleanup, command, tactic
 -/
 
-reserve notation `#lint`
-reserve notation `#lint_mathlib`
-reserve notation `#lint_all`
-reserve notation `#list_linters`
-
 open tactic expr native
 setup_tactic_parser
 
@@ -76,7 +71,8 @@ meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
   list.append default <$> get_linters extra
 
 /--
-`lint_core all_decls non_auto_decls checks` applies the linters `checks` to the list of declarations.
+`lint_core all_decls non_auto_decls checks` applies the linters `checks` to the list of
+declarations.
 If `auto_decls` is false for a linter (default) the linter is applied to `non_auto_decls`.
 If `auto_decls` is true, then it is applied to `all_decls`.
 The resulting list has one element for each linter, containing the linter as
@@ -86,18 +82,18 @@ meta def lint_core (all_decls non_auto_decls : list declaration) (checks : list 
   tactic (list (name × linter × rb_map name string)) := do
 checks.mmap $ λ ⟨linter_name, linter⟩, do
   let test_decls := if linter.auto_decls then all_decls else non_auto_decls,
-  results ← test_decls.mfoldl (λ (results : rb_map name string) decl, do
-    tt ← should_be_linted linter_name decl.to_name | pure results,
-    s ← read,
-    let linter_warning : option string :=
+  test_decls ← test_decls.mfilter (λ decl, should_be_linted linter_name decl.to_name),
+  s ← read,
+  let results := test_decls.map_async_chunked $ λ decl, prod.mk decl.to_name $
       match linter.test decl s with
       | result.success w _ := w
       | result.exception msg _ _ :=
         some $ "LINTER FAILED:\n" ++ msg.elim "(no message)" (λ msg, to_string $ msg ())
       end,
-    match linter_warning with
-    | some w := pure $ results.insert decl.to_name w
-    | none := pure results
+  let results := results.foldl (λ (results : rb_map name string) warning,
+    match warning with
+    | (decl_name, some w) := results.insert decl_name w
+    | (_, none) := results
     end) mk_rb_map,
   pure (linter_name, linter, results)
 
@@ -225,11 +221,13 @@ tk "+" >> return lint_verbosity.high <|>
 return none
 
 /-- The common denominator of `lint_cmd`, `lint_mathlib_cmd`, `lint_all_cmd` -/
-private meta def lint_cmd_aux (scope : bool → lint_verbosity → list name → bool → tactic (name_set × format)) :
+private meta def lint_cmd_aux
+  (scope : bool → lint_verbosity → list name → bool → tactic (name_set × format)) :
   parser unit :=
 do verbosity ← parse_verbosity,
    fast_only ← optional (tk "*"),
-   verbosity ← if verbosity.is_some then return verbosity else parse_verbosity, -- allow either order of *-
+   -- allow either order of *-
+   verbosity ← if verbosity.is_some then return verbosity else parse_verbosity,
    let verbosity := verbosity.get_or_else lint_verbosity.medium,
    (use_only, extra) ← parse_lint_additions,
    (failed, s) ← scope fast_only.is_none verbosity extra use_only,

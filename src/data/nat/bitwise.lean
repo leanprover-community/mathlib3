@@ -35,6 +35,9 @@ namespace nat
 @[simp] lemma bit_ff : bit ff = bit0 := rfl
 @[simp] lemma bit_tt : bit tt = bit1 := rfl
 
+@[simp] lemma bit_eq_zero {n : ℕ} {b : bool} : n.bit b = 0 ↔ n = 0 ∧ b = ff :=
+by { cases b; norm_num [bit0_eq_zero, nat.bit1_ne_zero] }
+
 lemma zero_of_test_bit_eq_ff {n : ℕ} (h : ∀ i, test_bit n i = ff) : n = 0 :=
 begin
   induction n using nat.binary_rec with b n hn,
@@ -99,6 +102,29 @@ begin
     cases b; cases b';
     simp only [bit_ff, bit_tt, bit0_val n, bit1_val n, bit0_val m, bit1_val m];
     linarith }
+end
+
+@[simp]
+lemma test_bit_two_pow_self (n : ℕ) : test_bit (2 ^ n) n = tt :=
+by rw [test_bit, shiftr_eq_div_pow, nat.div_self (pow_pos zero_lt_two n), bodd_one]
+
+lemma test_bit_two_pow_of_ne {n m : ℕ} (hm : n ≠ m) : test_bit (2 ^ n) m = ff :=
+begin
+  rw [test_bit, shiftr_eq_div_pow],
+  cases hm.lt_or_lt with hm hm,
+  { rw [nat.div_eq_zero, bodd_zero],
+    exact nat.pow_lt_pow_of_lt_right one_lt_two hm },
+  { rw [pow_div hm.le zero_lt_two, ←nat.sub_add_cancel (nat.sub_pos_of_lt hm), pow_succ],
+    simp }
+end
+
+lemma test_bit_two_pow (n m : ℕ) : test_bit (2 ^ n) m = (n = m) :=
+begin
+  by_cases n = m,
+  { cases h,
+    simp },
+  { rw test_bit_two_pow_of_ne h,
+    simp [h] }
 end
 
 /-- If `f` is a commutative operation on bools such that `f ff ff = ff`, then `bitwise f` is also

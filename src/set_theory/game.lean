@@ -157,10 +157,10 @@ def game_partial_order : partial_order game :=
   le_antisymm := le_antisymm,
   ..game.has_le }
 
-local attribute [instance] game_partial_order
-
 /-- The `<` operation provided by this `ordered_add_comm_group` is not the usual `<` on games! -/
 def ordered_add_comm_group_game : ordered_add_comm_group game :=
-ordered_add_comm_group.mk' add_le_add_left
+{ add_le_add_left := add_le_add_left,
+  ..game.add_comm_group,
+  ..game_partial_order }
 
 end game

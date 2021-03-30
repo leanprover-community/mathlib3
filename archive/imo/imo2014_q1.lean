@@ -48,7 +48,7 @@ begin
   change _ / ↑(n : ℤ) ≤ _ ↔ _, rw this,
   simp [rat.div_num_denom],
   rw rat.le_def, swap,
-  {	norm_cast, have : 1 ≤ ↑n := pnat.one_le n, linarith }, swap,
+  { norm_cast, have : 1 ≤ ↑n := pnat.one_le n, linarith }, swap,
   { norm_num },
   simp [d, @fin.sum_univ_cast_succ _ _ ↑(n + 1)],
   rw [add_mul, one_mul],

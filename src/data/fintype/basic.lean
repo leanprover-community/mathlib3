@@ -660,6 +660,9 @@ lemma card_lt_of_injective_not_surjective (f : α → β) (h : function.injectiv
   (h' : ¬function.surjective f) : fintype.card α < fintype.card β :=
 let ⟨y, hy⟩ := not_forall.1 h' in card_lt_of_injective_of_not_mem f h hy
 
+lemma card_le_of_surjective (f : α → β) (h : function.surjective f) : card β ≤ card α :=
+card_le_of_injective _ (function.injective_surj_inv h)
+
 /--
 The pigeonhole principle for finitely many pigeons and pigeonholes.
 This is the `fintype` version of `finset.exists_ne_map_eq_of_card_lt_of_maps_to`.
@@ -962,6 +965,10 @@ fintype.card_le_of_embedding (function.embedding.subtype _)
 theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p]
   {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
 fintype.card_lt_of_injective_of_not_mem coe subtype.coe_injective $ by rwa subtype.range_coe_subtype
+
+theorem fintype.card_quotient_le [fintype α] {s : setoid α} [decidable_rel ((≈) : α → α → Prop)] :
+  fintype.card (quotient s) ≤ fintype.card α :=
+fintype.card_le_of_surjective _ (surjective_quotient_mk _)
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=

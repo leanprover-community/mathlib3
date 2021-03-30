@@ -1715,7 +1715,7 @@ end set
 /-- If `f : α → β` is an injective function, then domain `α` is equivalent to the range of `f`. -/
 @[simps apply]
 noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=
-equiv.of_injective_of_left_inverse f
+equiv.set.range_of_left_inverse f
   (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun hf)
 
 theorem apply_range_symm {α β} (f : α → β) (hf : injective f) (b : _root_.set.range f) :

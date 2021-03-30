@@ -14,18 +14,19 @@ The `elementwise` attribute can be applied to a lemma
 
 ```lean
 @[elementwise]
-lemma some_lemma {C : Type*} [category C] {X Y : C} (f g : X ⟶ Y) : f = g := ...
+lemma some_lemma {C : Type*} [category C]
+  {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : X ⟶ Z) (w : ...) : f ≫ g = h := ...
 ```
 
-and produce
+and will produce
 
 ```lean
 lemma some_lemma_apply {C : Type*} [category C] [concrete_category C]
-  {X Y : C} (f g : X ⟶ Y) (x : X) : f x = g x := ...
+  {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : X ⟶ Z) (w : ...) (x : X) : g (f x) = h x := ...
 ```
 
 (Here `X` is being coerced to a type via `concrete_category.has_coe_to_sort` and
-`f` and `g` are being coerced to functions via `concrete_category.has_coe_to_fun`.)
+`f`, `g`, and `h` are being coerced to functions via `concrete_category.has_coe_to_fun`.)
 
 The name of the produced lemma can be specified with `@[elementwise other_lemma_name]`.
 If `simp` is added first, the generated lemma will also have the `simp` attribute.
@@ -88,6 +89,8 @@ do
    t' ← instantiate_mvars t',
    CC ← instantiate_mvars CC,
    x ← instantiate_mvars x,
+   -- Now the key step: replace morphism composition with function composition,
+   -- and identity morphisms with nothing.
    let s := simp_lemmas.mk,
    s ← s.add_simp ``coe_id,
    s ← s.add_simp ``coe_comp,
@@ -98,13 +101,12 @@ do
    pure (t'',pr',n)
 
 /-- (implementation for `@[elementwise]`)
-Given a declaration named `n` of the form `f = g`, proves a new lemma named `n'`
-of the form `∀ [concrete_category V] (x : X), f x = g x`.
+Given a declaration named `n` of the form `∀ ..., f = g`, proves a new lemma named `n'`
+of the form `∀ ... [concrete_category V] (x : X), f x = g x`.
 -/
 meta def elementwise_lemma (n : name) (n' : name := n.append_suffix "_apply") : tactic unit :=
 do d ← get_decl n,
-   let ls := d.univ_params.map level.param,
-   let c := @expr.const tt n ls,
+   let c := @expr.const tt n d.univ_levels,
    (t'',pr',l') ← prove_elementwise c,
    add_decl $ declaration.thm n' (l' :: d.univ_params) t'' (pure pr'),
    copy_attribute `simp n n'
@@ -114,18 +116,19 @@ The `elementwise` attribute can be applied to a lemma
 
 ```lean
 @[elementwise]
-lemma some_lemma {C : Type*} [category C] {X Y : C} (f g : X ⟶ Y) : f = g := ...
+lemma some_lemma {C : Type*} [category C]
+  {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : X ⟶ Z) (w : ...) : f ≫ g = h := ...
 ```
 
-and produce
+and will produce
 
 ```lean
 lemma some_lemma_apply {C : Type*} [category C] [concrete_category C]
-  {X Y : C} (f g : X ⟶ Y) (x : X) : f x = g x := ...
+  {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : X ⟶ Z) (w : ...) (x : X) : g (f x) = h x := ...
 ```
 
 (Here `X` is being coerced to a type via `concrete_category.has_coe_to_sort` and
-`f` and `g` are being coerced to functions via `concrete_category.has_coe_to_fun`.)
+`f`, `g`, and `h` are being coerced to functions via `concrete_category.has_coe_to_fun`.)
 
 The name of the produced lemma can be specified with `@[elementwise other_lemma_name]`.
 If `simp` is added first, the generated lemma will also have the `simp` attribute.

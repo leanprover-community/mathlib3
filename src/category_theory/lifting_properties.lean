@@ -100,8 +100,7 @@ begin
   haveI := hf sq2,
 
   -- show that this lift is a lift of i with respect to g ∘ f
-  refine ⟨⟨{lift := (arrow.lift sq2 : _ ⟶ _), fac_right' := _}⟩⟩,
-  { simp }
+  exact ⟨⟨⟨(arrow.lift sq2 : _ ⟶ _), by simp⟩⟩⟩,
 end
 
 variable {F : D → arrow C}

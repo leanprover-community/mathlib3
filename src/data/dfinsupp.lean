@@ -942,8 +942,8 @@ lemma lift_add_hom_comp_single [Π i, add_zero_class (β i)] [add_comm_monoid γ
 by simp
 
 /-- The `dfinsupp` version of `finsupp.comp_lift_add_hom`,-/
-lemma comp_lift_add_hom {δ : Type*} [Π i, add_zero_class (β i)] [add_comm_monoid γ] [add_comm_monoid δ]
-  (g : γ →+ δ) (f : Π i, β i →+ γ) :
+lemma comp_lift_add_hom {δ : Type*} [Π i, add_zero_class (β i)] [add_comm_monoid γ]
+  [add_comm_monoid δ] (g : γ →+ δ) (f : Π i, β i →+ γ) :
   g.comp (lift_add_hom f) = lift_add_hom (λ a, g.comp (f a)) :=
 lift_add_hom.symm_apply_eq.1 $ funext $ λ a,
   by rw [lift_add_hom_symm_apply, add_monoid_hom.comp_assoc, lift_add_hom_comp_single]

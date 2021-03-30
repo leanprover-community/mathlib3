@@ -75,8 +75,3 @@ begin
 
   linarith [key],
 end
-
-theorem imo2008_q2_b : set.infinite {(x, y, z) | x ≠ 1 ∧ y ≠ 1 ∧ z ≠ 1} :=
-begin
-  sorry
-end

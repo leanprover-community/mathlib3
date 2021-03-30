@@ -3,7 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.list.basic
+import data.list.perm
 
 universes u
 variables {α : Type u}
@@ -104,5 +104,19 @@ have n % list.length (a :: l) ≤ list.length (a :: l), from le_of_lt (nat.mod_l
 by rw ← list.take_append_drop (n % list.length (a :: l)) (a :: l) at hl;
   rw [← rotate_mod, rotate_eq_take_append_drop this, list.prod_append, mul_eq_one_iff_inv_eq,
     ← one_mul (list.prod _)⁻¹, ← hl, list.prod_append, mul_assoc, mul_inv_self, mul_one]
+
+lemma rotate_perm (l : list α) (n : ℕ) : l.rotate n ~ l :=
+begin
+  rw rotate_eq_rotate',
+  induction n with n hn generalizing l,
+  { simp },
+  { cases l with hd tl,
+    { simp },
+    { rw rotate'_cons_succ,
+      exact (hn _).trans (perm_append_singleton _ _) } }
+end
+
+@[simp] lemma nodup_rotate {l : list α} {n : ℕ} : nodup (l.rotate n) ↔ nodup l :=
+(rotate_perm l n).nodup_iff
 
 end list

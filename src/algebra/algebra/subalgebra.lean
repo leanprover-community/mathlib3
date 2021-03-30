@@ -34,26 +34,13 @@ variables {R : Type u} {A : Type v} {B : Type w}
 variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B]
 include R
 
-/- While we could add coercion aliases for `to_subsemiring` and `to_submodule`, they're not needed
-very often, harder to use than the projections themselves, and none of the other subobjects define
-that type of coercion. -/
-instance : has_coe_t (subalgebra R A) (set A) := ⟨λ s, s.carrier⟩
-instance : has_mem A (subalgebra R A) := ⟨λ x p, x ∈ (p : set A)⟩
-instance : has_coe_to_sort (subalgebra R A) := ⟨_, λ p, {x : A // x ∈ p}⟩
-
-lemma coe_injective : function.injective (coe : subalgebra R A → set A) :=
-λ S T h, by cases S; cases T; congr'
+instance : set_like (subalgebra R A) A :=
+⟨subalgebra.carrier, λ p q h, by cases p; cases q; congr'⟩
 
 @[simp]
 lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
-@[simp] theorem mem_coe {s : subalgebra R A} {x : A} : x ∈ (s : set A) ↔ x ∈ s := iff.rfl
-
-@[ext] theorem ext {S T : subalgebra R A} (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T :=
-coe_injective $ set.ext h
-
-theorem ext_iff {S T : subalgebra R A} : S = T ↔ (∀ x : A, x ∈ S ↔ x ∈ T) :=
-coe_injective.eq_iff.symm.trans set.ext_iff
+@[ext] theorem ext {S T : subalgebra R A} (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
 variables (S : subalgebra R A)
 
@@ -287,12 +274,6 @@ we define it as a `linear_equiv` to avoid type equalities. -/
 def to_submodule_equiv (S : subalgebra R A) : S.to_submodule ≃ₗ[R] S :=
 linear_equiv.of_eq _ _ rfl
 
-instance : partial_order (subalgebra R A) :=
-{ le := λ p q, ∀ ⦃x⦄, x ∈ p → x ∈ q,
-  ..partial_order.lift (coe : subalgebra R A → set A) coe_injective }
-
-lemma le_def {p q : subalgebra R A} : p ≤ q ↔ (p : set A) ⊆ q := iff.rfl
-
 /-- Reinterpret an `S`-subalgebra as an `R`-subalgebra in `comap R S A`. -/
 def comap {R : Type u} {S : Type v} {A : Type w}
   [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
@@ -329,7 +310,7 @@ set.image_subset_iff
 
 lemma map_injective {S₁ S₂ : subalgebra R A} (f : A →ₐ[R] B)
   (hf : function.injective f) (ih : S₁.map f = S₂.map f) : S₁ = S₂ :=
-ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ ext_iff.mp ih
+ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ set_like.ext_iff.mp ih
 
 lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
@@ -369,7 +350,7 @@ protected def range (φ : A →ₐ[R] B) : subalgebra R B :=
 theorem mem_range_self (φ : A →ₐ[R] B) (x : A) : φ x ∈ φ.range := φ.mem_range.2 ⟨x, rfl⟩
 
 @[simp] lemma coe_range (φ : A →ₐ[R] B) : (φ.range : set B) = set.range φ :=
-by { ext, rw [subalgebra.mem_coe, mem_range], refl }
+by { ext, rw [set_like.mem_coe, mem_range], refl }
 
 /-- Restrict the codomain of an algebra homomorphism. -/
 def cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) : A →ₐ[R] S :=
@@ -487,7 +468,7 @@ instance : inhabited (subalgebra R A) := ⟨⊥⟩
 
 theorem mem_bot {x : A} : x ∈ (⊥ : subalgebra R A) ↔ x ∈ set.range (algebra_map R A) :=
 suffices (of_id R A).range = (⊥ : subalgebra R A),
-by { rw [← this, ←subalgebra.mem_coe, alg_hom.coe_range], refl },
+by { rw [← this, ←set_like.mem_coe, alg_hom.coe_range], refl },
 le_bot_iff.mp (λ x hx, subalgebra.range_le _ ((of_id R A).coe_range ▸ hx))
 
 theorem to_submodule_bot : (⊥ : subalgebra R A).to_submodule = R ∙ 1 :=

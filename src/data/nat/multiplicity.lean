@@ -156,7 +156,7 @@ have h₁ : multiplicity p (choose n k) + multiplicity p (k! * (n - k)!) =
   begin
     rw [← hp.multiplicity_mul, ← mul_assoc, choose_mul_factorial_mul_factorial hkn,
         hp.multiplicity_factorial hnb, hp.multiplicity_mul,
-        hp.multiplicity_factorial (lt_of_le_of_lt (log_le_log_of_le hkn) hnb),
+        hp.multiplicity_factorial ((log_le_log_of_le hkn).trans_lt hnb),
         hp.multiplicity_factorial (lt_of_le_of_lt (log_le_log_of_le (nat.sub_le_self _ _)) hnb),
         multiplicity_choose_aux hp hkn],
     simp [add_comm],

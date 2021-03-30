@@ -1329,7 +1329,7 @@ variables {F : Type*} [normed_group F] [normed_space α F]
 
 open normed_field
 
-theorem interior_closed_ball' [semi_normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
+theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   interior (closed_ball x r) = ball x r :=
 begin
   rcases lt_trichotomy r 0 with hr|rfl|hr,
@@ -1351,7 +1351,7 @@ begin
   { exact interior_closed_ball x hr }
 end
 
-theorem frontier_closed_ball' [semi_normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
+theorem frontier_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball' x r, closed_ball_diff_ball]
 

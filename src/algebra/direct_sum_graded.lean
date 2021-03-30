@@ -85,7 +85,7 @@ class ghas_one [has_zero ι] :=
 /-- A graded version of `has_mul` that also subsumes `distrib` and `mul_zero_class` by requiring
 the multiplication be an `add_monoid_hom`. Multiplication combines grades additively, like
 `add_monoid_algebra`. -/
-class ghas_mul [add_monoid ι] [Π i, add_comm_monoid (A i)] :=
+class ghas_mul [has_add ι] [Π i, add_comm_monoid (A i)] :=
 (mul {i j} : A i →+ A j →+ A (i + j))
 
 variables {A}
@@ -96,7 +96,7 @@ def ghas_one.to_sigma_has_one [has_zero ι] [ghas_one A] : has_one (Σ i, A i) :
 
 /-- `direct_sum.ghas_mul` implies a `has_mul (Σ i, A i)`, although this is only used as an instance
 locally to define notation in `direct_sum.gmonoid`. -/
-def ghas_mul.to_sigma_has_mul [add_monoid ι] [Π i, add_comm_monoid (A i)] [ghas_mul A] :
+def ghas_mul.to_sigma_has_mul [has_add ι] [Π i, add_comm_monoid (A i)] [ghas_mul A] :
   has_mul (Σ i, A i) :=
 ⟨λ (x y : Σ i, A i), ⟨_, ghas_mul.mul x.snd y.snd⟩⟩
 
@@ -131,7 +131,7 @@ variables {R : Type*}
 
 /-- Build a `ghas_one` instance for a collection of `add_submonoid`s. -/
 @[simps one]
-def ghas_one.of_add_submonoids [semiring R] [add_monoid ι]
+def ghas_one.of_add_submonoids [semiring R] [has_zero ι]
   (carriers : ι → add_submonoid R)
   (one_mem : (1 : R) ∈ carriers 0) :
   ghas_one (λ i, carriers i) :=
@@ -139,7 +139,7 @@ def ghas_one.of_add_submonoids [semiring R] [add_monoid ι]
 
 /-- Build a `ghas_mul` instance for a collection of `add_submonoids`. -/
 @[simps mul]
-def ghas_mul.of_add_submonoids [semiring R] [add_monoid ι]
+def ghas_mul.of_add_submonoids [semiring R] [has_add ι]
   (carriers : ι → add_submonoid R)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
   ghas_mul (λ i, carriers i) :=
@@ -179,7 +179,7 @@ def gcomm_monoid.of_add_submonoids [comm_semiring R] [add_comm_monoid ι]
 
 /-- Build a `ghas_one` instance for a collection of `add_subgroup`s. -/
 @[simps one]
-def ghas_one.of_add_subgroups [ring R] [add_monoid ι]
+def ghas_one.of_add_subgroups [ring R] [has_zero ι]
   (carriers : ι → add_subgroup R)
   (one_mem : (1 : R) ∈ carriers 0) :
   ghas_one (λ i, carriers i) :=
@@ -187,7 +187,7 @@ ghas_one.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem
 
 /-- Build a `ghas_mul` instance for a collection of `add_subgroup`s. -/
 @[simps mul]
-def ghas_mul.of_add_subgroups [ring R] [add_monoid ι]
+def ghas_mul.of_add_subgroups [ring R] [has_add ι]
   (carriers : ι → add_subgroup R)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
   ghas_mul (λ i, carriers i) :=
@@ -218,7 +218,7 @@ variables {A : Type*}
 /-- Build a `ghas_one` instance for a collection of `submodule`s. -/
 @[simps one]
 def ghas_one.of_submodules
-  [comm_semiring R] [semiring A] [algebra R A] [add_monoid ι]
+  [comm_semiring R] [semiring A] [algebra R A] [has_zero ι]
   (carriers : ι → submodule R A)
   (one_mem : (1 : A) ∈ carriers 0) :
   ghas_one (λ i, carriers i) :=
@@ -227,7 +227,7 @@ ghas_one.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem
 /-- Build a `ghas_mul` instance for a collection of `submodule`s. -/
 @[simps mul]
 def ghas_mul.of_submodules
-  [comm_semiring R] [semiring A] [algebra R A] [add_monoid ι]
+  [comm_semiring R] [semiring A] [algebra R A] [has_add ι]
   (carriers : ι → submodule R A)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : A) ∈ carriers (i + j)) :
   ghas_mul (λ i, carriers i) :=
@@ -269,7 +269,7 @@ instance : has_one (⨁ i, A i) :=
 end one
 
 section mul
-variables [add_monoid ι] [Π i, add_comm_monoid (A i)] [ghas_mul A]
+variables [has_add ι] [Π i, add_comm_monoid (A i)] [ghas_mul A]
 
 instance : has_mul (⨁ i, A i) :=
 { mul := λ a b, begin

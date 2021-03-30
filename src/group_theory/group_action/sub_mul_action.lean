@@ -3,9 +3,10 @@ Copyright (c) 2020 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import group_theory.group_action.basic
 import algebra.group_action_hom
 import algebra.module.basic
+import data.set_like
+import group_theory.group_action.basic
 /-!
 
 # Sets invariant to a `mul_action`
@@ -43,36 +44,18 @@ namespace sub_mul_action
 
 variables [has_scalar R M]
 
-instance : has_coe_t (sub_mul_action R M) (set M) := ⟨λ s, s.carrier⟩
-instance : has_mem M (sub_mul_action R M) := ⟨λ x p, x ∈ (p : set M)⟩
-instance : has_coe_to_sort (sub_mul_action R M) := ⟨_, λ p, {x : M // x ∈ p}⟩
+instance : set_like (sub_mul_action R M) M :=
+⟨sub_mul_action.carrier, λ p q h, by cases p; cases q; congr'⟩
 
-instance : has_top (sub_mul_action R M) :=
-⟨{ carrier := set.univ, smul_mem' := λ _ _ _, set.mem_univ _ }⟩
+@[simp] lemma mem_carrier {p : sub_mul_action R M} {x : M} : x ∈ p.carrier ↔ x ∈ (p : set M) :=
+iff.rfl
+
+@[ext] theorem ext {p q : sub_mul_action R M} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
 instance : has_bot (sub_mul_action R M) :=
 ⟨{ carrier := ∅, smul_mem' := λ c, set.not_mem_empty}⟩
 
 instance : inhabited (sub_mul_action R M) := ⟨⊥⟩
-
-variables (p q : sub_mul_action R M)
-
-@[simp, norm_cast] theorem coe_sort_coe : ↥(p : set M) = p := rfl
-
-variables {p q}
-
-protected theorem «exists» {q : p → Prop} : (∃ x, q x) ↔ (∃ x ∈ p, q ⟨x, ‹_›⟩) := set_coe.exists
-
-protected theorem «forall» {q : p → Prop} : (∀ x, q x) ↔ (∀ x ∈ p, q ⟨x, ‹_›⟩) := set_coe.forall
-
-theorem coe_injective : injective (coe : sub_mul_action R M → set M) :=
-λ p q h, by cases p; cases q; congr'
-
-@[simp, norm_cast] theorem coe_set_eq : (p : set M) = q ↔ p = q := coe_injective.eq_iff
-
-theorem ext'_iff : p = q ↔ (p : set M) = q := coe_set_eq.symm
-
-@[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := coe_injective $ set.ext h
 
 end sub_mul_action
 
@@ -84,22 +67,14 @@ variables [has_scalar R M]
 variables (p : sub_mul_action R M)
 variables {r : R} {x : M}
 
-@[simp] theorem mem_coe : x ∈ (p : set M) ↔ x ∈ p := iff.rfl
-
 lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
 
 instance : has_scalar R p :=
 { smul := λ c x, ⟨c • x.1, smul_mem _ c x.2⟩ }
 
 variables {p}
-@[simp, norm_cast] lemma coe_eq_coe {x y : p} : (x : M) = y ↔ x = y := subtype.ext_iff_val.symm
 @[simp, norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
-@[simp] lemma coe_mem (x : p) : (x : M) ∈ p := x.2
-
-variables {p}
-
-@[simp] protected lemma eta (x : p) (hx : (x : M) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
 
 variables (p)
 

@@ -320,4 +320,3 @@ def lift_unique {D : Type*} [category D] {Z : D} (hZ : limits.is_initial Z) (F :
 end with_init
 
 end category_theory
-#lint

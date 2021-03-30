@@ -38,7 +38,7 @@ begin
   rw [this, rat.div_lt_div_iff_mul_lt_mul], swap,
   { norm_num }, swap,
   { norm_cast, have : 1 ≤ ↑n := pnat.one_le n, linarith },
-  simp [d], rw mul_comm
+  simp [d, mul_comm],
 end
 
 lemma second_ineq_iff {n : ℕ+} :
@@ -46,13 +46,14 @@ lemma second_ineq_iff {n : ℕ+} :
 begin
   have : (↑(a (n + 1)) : ℚ) = ↑(a (n + 1)) / ↑(1 : ℤ) := by simp,
   change _ / ↑(n : ℤ) ≤ _ ↔ _, rw this,
-  simp [rat.div_num_denom],
+  simp only [rat.div_num_denom, mul_one, rat.num_one, one_mul, rat.coe_int_denom, int.coe_nat_zero,
+    rat.coe_int_num, int.coe_nat_succ, zero_add, coe_coe],
   rw rat.le_def, swap,
   { norm_cast, have : 1 ≤ ↑n := pnat.one_le n, linarith }, swap,
-  { norm_num },
-  simp [d, @fin.sum_univ_cast_succ _ _ ↑(n + 1)],
-  rw [add_mul, one_mul],
-  simp,	rw mul_comm, refl,
+  { exact zero_lt_one },
+  simp only [d, @fin.sum_univ_cast_succ _ _ ↑(n + 1), mul_one, fin.coe_last, pnat.one_coe,
+    fin.coe_cast_succ, int.coe_nat_succ, pnat.add_coe, sub_nonpos, coe_coe, add_mul, one_mul],
+  rw [add_le_add_iff_right,	mul_comm], refl,
 end
 
 /- We rephrase the original question into a question about `d a`. -/
@@ -78,9 +79,9 @@ begin
           = ((∑ i : fin (n + 1), a i) + a (n + 1) - (n + 1) * (a (n + 1)))
           - ((∑ i : fin (n + 1), a i) - n * (a n))
       : by simp [fin.sum_univ_cast_succ]
-    ... = a (n + 1) - (n + 1) * (a (n + 1)) + n * (a n)                  : by ring
-    ... = n * (a n - a (n + 1))                                          : by ring
-    ... < 0                                                              : this,
+    ... = a (n + 1) - (n + 1) * (a (n + 1)) + n * (a n)  : by ring
+    ... = n * (a n - a (n + 1))                          : by ring
+    ... < 0                                              : this,
   linarith,
 end
 
@@ -104,8 +105,7 @@ begin
     exact hdes _ },
   convert this (↑(m - n) - 1),
   have : 1 ≤ ↑(m - n) := (pnat.coe_le_coe 1 _).mpr (pnat.one_le _),
-  simp [nat.sub_add_cancel this],
-  rw pnat.add_sub_of_lt hnm,
+  simp [nat.sub_add_cancel this, pnat.add_sub_of_lt hnm],
 end
 
 theorem no_middle_term (n : ℕ+) :
@@ -151,7 +151,7 @@ begin
   {	have : k = 0 := by linarith, simp [this] at h, linarith },
   apply (hmin (k - 1) _) _, swap,
   {	apply nat.sub_lt, linarith, norm_num },
-  simp [nat.sub_add_cancel h1k],
+  simp only [set.mem_set_of_eq, nat.sub_add_cancel h1k],
   exact (le_of_not_gt h),
 end
 

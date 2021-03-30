@@ -1754,7 +1754,7 @@ be constructed by `equiv.of_injective` or when there is a known inverse,
 `equiv.set.range_of_left_inverse'`.
 -/
 def perm.via_set_range : perm β' :=
-perm.subtype_congr (perm_congr f e) (equiv.refl _)
+(perm_congr f e).subtype_congr (equiv.refl _)
 
 @[simp] lemma perm.via_set_range_apply_image (a : α') :
   e.via_set_range f (f a) = f (e a) :=

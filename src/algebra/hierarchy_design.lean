@@ -150,5 +150,28 @@ In practice this is rarely a problem.
 
 [[ ... ]]
 
+# Making a pull request
+
+With so many moving parts, how do you actually go about changing the algebraic hierarchy?
+
+We're still evolving how to handle this, but the current suggestion is:
+
+* If you adding a new "leaf" class, the requirements are lower,
+  and an initial PR can just add whatever is immediately needed.
+* A new "intermediate" class, especially low down in the hierarchy,
+  needs to be careful about leaving gaps.
+
+In a perfect world, there would be a group of simultaneous PRs that basically cover everything!
+(Or at least an expectation that PRs may not be merged immediately while waiting on other
+PRs that fill out the API.)
+
+However perfect is the enemy of good, and it would also be completely reasonable
+to add a TODO list in the main module doc-string for the new class,
+briefly listing the parts of the API which still need to be provided.
+Hopefully this document makes it easy to assemble this list.
+
+Another alternative to a TODO list in the doc-strings is adding github issues.
+
+
 -/
 library_note "the algebraic hierarchy"

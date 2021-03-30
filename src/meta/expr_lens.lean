@@ -127,10 +127,12 @@ private meta def app_map_aux {α} (F : expr_lens → expr → tactic (list α)) 
   ] <|> pure []
 | none := pure []
 
-/-- `app_map F e` maps a function `F` which understands `expr_lens`es over the given `e : expr` in the natural way;
-that is, make holes in `e` everywhere where that is possible (generating `expr_lens`es in the
-process), and at each stage call the function `F` passing both the `expr_lens` generated and the
-`expr` which was removed to make the hole.
+/-- `app_map F e` maps a function `F` which understands `expr_lens`es
+over the given `e : expr` in the natural way;
+that is, make holes in `e` everywhere where that is possible
+(generating `expr_lens`es in the process),
+and at each stage call the function `F` passing
+both the `expr_lens` generated and the `expr` which was removed to make the hole.
 
 At each stage `F` returns a list of some type, and `app_map` collects these lists together and
 returns a concatenation of them all. -/

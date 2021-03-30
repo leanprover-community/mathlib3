@@ -203,4 +203,8 @@ lemma continuous_at.fpow (hf : continuous_at f a) (ha : f a ≠ 0) (m : ℤ) :
   continuous_at (λ x, (f x) ^ m) a :=
 (continuous_at_fpow ha m).comp hf
 
+lemma continuous.fpow (hf : continuous f) (h0 : ∀ a, f a ≠ 0) (m : ℤ) :
+  continuous (λ x, (f x) ^ m) :=
+continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).fpow (h0 x) m
+
 end fpow

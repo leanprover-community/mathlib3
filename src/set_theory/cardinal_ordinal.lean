@@ -569,7 +569,7 @@ theorem extend_function {α β : Type*} {s : set α} (f : s ↪ β)
 begin
   intros, have := h, cases this with g,
   let h : α ≃ β := (set.sum_compl (s : set α)).symm.trans
-    ((sum_congr (equiv.set.range f f.2) g).trans
+    ((sum_congr (equiv.of_injective f f.2) g).trans
     (set.sum_compl (range f))),
   refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx]
 end

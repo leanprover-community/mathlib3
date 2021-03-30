@@ -53,19 +53,6 @@ begin
     exact λ r s hr hs b hb, (add_submonoid.closure (M : set R)).add_mem (hr hb) (hs hb) }
 end
 
-/-- The product of an element of `M` and an element of the additive closure of a multiplicative
-submonoid `M` is contained in the additive closure of `M`. -/
-lemma mul_left_mem_add_closure (ha : a ∈ M) (hb : b ∈ add_submonoid.closure (M : set R)) :
-  a * b ∈ add_submonoid.closure (M : set R) :=
-begin
-  revert a,
-  refine add_submonoid.closure_induction hb _ _ _; clear hb b,
-  { exact λ r hr b hb, add_submonoid.mem_closure.mpr (λ y hy, hy (M.mul_mem hb hr)) },
-  { exact λ b hb, by simp only [mul_zero, (add_submonoid.closure (M : set R)).zero_mem] },
-  { simp_rw mul_add,
-    exact λ r s hr hs b hb, (add_submonoid.closure (M : set R)).add_mem (hr hb) (hs hb) }
-end
-
 variable {M}
 
 /-- The product of two elements of the additive closure of a submonoid `M` is an element of the
@@ -87,6 +74,14 @@ def to_subsemiring (M : submonoid R) : subsemiring R :=
 { one_mem' := add_submonoid.mem_closure.mpr (λ y hy, hy M.one_mem),
   mul_mem' := λ x y, submonoid.mul_mem_add_closure,
   ..add_submonoid.closure (M : set R)}
+
+variable (M)
+
+/-- The product of an element of `M` and an element of the additive closure of a multiplicative
+submonoid `M` is contained in the additive closure of `M`. -/
+lemma mul_left_mem_add_closure (ha : a ∈ M) (hb : b ∈ add_submonoid.closure (M : set R)) :
+  a * b ∈ add_submonoid.closure (M : set R) :=
+mul_mem_add_closure (add_submonoid.mem_closure.mpr (λ S MS, MS ha)) hb
 
 end submonoid
 
@@ -425,8 +420,16 @@ lemma closure_eq_of_le {s : set R} {t : subsemiring R} (h₁ : s ⊆ t) (h₂ : 
   closure s = t :=
 le_antisymm (closure_le.2 h₁) h₂
 
+end subsemiring
+
+namespace submonoid
+
 lemma to_subsemiring_coe :
   (M.to_subsemiring : set R) = add_submonoid.closure (M : set R) := rfl
+
+end submonoid
+
+namespace subsemiring
 
 lemma to_subsemiring_to_add_submonoid :
   M.to_subsemiring.to_add_submonoid = add_submonoid.closure (M : set R) := rfl

@@ -42,7 +42,15 @@ variables {X Y Z : C}
 /-- The lifting property of a morphism `i` with respect to a morphism `p`.
 This can be interpreted as the right lifting property of `i` with respect to `p`,
 or the left lifting property of `p` with respect to `i`. -/
-def has_lifting_property (i p : arrow C) : Prop := ∀ (sq : i ⟶ p), arrow.has_lift sq
+class has_lifting_property (i p : arrow C) : Prop :=
+(sq_has_lift : ∀ (sq : i ⟶ p), arrow.has_lift sq)
+
+instance has_lifting_property' {i p : arrow C} [h : has_lifting_property i p] (sq : i ⟶ p) : arrow.has_lift sq :=
+begin
+  let s := h.sq_has_lift,
+  specialize s sq,
+  exact s
+end
 
 /-- Any isomorphism has the right lifting property with respect to any map.
 A    → X
@@ -51,7 +59,7 @@ B    → Y
 -/
 lemma iso_has_right_lifting_property (i : arrow C) (p : X ≅ Y) :
   has_lifting_property i (arrow.mk p.hom) :=
-λ sq, ⟨⟨{ lift := sq.right ≫ p.inv, }⟩⟩ -- the lift is obtained by p⁻¹ ∘ (B → Y)
+{ sq_has_lift := λ sq, ⟨⟨{ lift := sq.right ≫ p.inv, }⟩⟩ } -- the lift is obtained by p⁻¹ ∘ (B → Y)
 
 /-- Any identity has the right lifting property with respect to any map. -/
 lemma id_has_right_lifting_property (i : arrow C) : has_lifting_property i (arrow.mk (𝟙 X)) :=
@@ -68,15 +76,20 @@ lemma right_lifting_property_initial_iff (i p : arrow C)
   has_lifting_property i p ↔ ∀ {e : i.right ⟶ p.right}, ∃ l : i.right ⟶ p.left, l ≫ p.hom = e :=
 begin
   fsplit,
-  { intros hlift bottom,
-    have comm : (is_initial.to h p.left) ≫ p.hom = i.hom ≫ bottom :=
+  { intros hlift e,
+    have comm : (is_initial.to h p.left) ≫ p.hom = i.hom ≫ e :=
       is_initial.hom_ext h _ _,
-    haveI := hlift (arrow.hom_mk comm),
+    let s := hlift.sq_has_lift,
+    specialize s (arrow.hom_mk comm),
+    haveI := s,
     use arrow.lift (arrow.hom_mk comm),
     simp },
-  { intros h1 sq,
-    cases h1 with e he,
-    exact ⟨⟨⟨e, is_initial.hom_ext h _ _⟩⟩⟩ }
+  { intro hlift,
+    constructor,
+    intro sq,
+    have : ∃ (l : i.right ⟶ p.left), l ≫ p.hom = sq.right := hlift,
+    cases this with l hl,
+    exact arrow.has_lift.mk ⟨l, is_initial.hom_ext h _ _⟩, }
 end
 
 /-- The condition of having the rlp with respect to a morphism `i` is stable under composition. -/
@@ -84,29 +97,27 @@ lemma has_right_lifting_property_comp {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
   (hf : has_lifting_property i (arrow.mk f))
   (hg : has_lifting_property i (arrow.mk g)) :
   has_lifting_property i (arrow.mk (f ≫ g)) :=
-begin
-  intro sq0, -- a square between i and f ≫ g
+{ sq_has_lift := λ sq1,
+  begin
+    -- construct a square i ⟶ f
+    let sq2 : i ⟶ (arrow.mk f) :=
+    { left := sq1.left,
+      right := arrow.lift (arrow.square_to_snd sq1) },
 
-  -- lift i with respect to g
-  haveI := hg (arrow.square_to_snd sq0),
-
-  -- construct a square i ⟶ f
-  let sq2 : i ⟶ (arrow.mk f) :=
-  { left := sq0.left,
-    right := arrow.lift (arrow.square_to_snd sq0) },
-
-  -- construct a lift i with respect to f
-  haveI := hf sq2,
-
-  -- show that this lift is a lift of i with respect to g ∘ f
-  exact ⟨⟨⟨(arrow.lift sq2 : _ ⟶ _), by simp⟩⟩⟩,
-end
+    -- show that the lift of this square is a lift of i with respect to g ∘ f
+    exact ⟨⟨⟨(arrow.lift sq2 : _ ⟶ _), by simp⟩⟩⟩,
+  end }
 
 variable {F : D → arrow C}
 
-/-- Right lifting conditions relative to a set of arrows in `C`. -/
-def right_lifting_property_rel (p : X ⟶ Y) : Prop :=
-∀ i : D, has_lifting_property (F i) (arrow.mk p)
+/-- Given a set of arrows in C, indexed by `F : D → arrow C`,
+we construct the (non-full) subcategory of `C`
+spanned by those morphisms that have the right lifting property relative to all maps
+of the form `F i`, where `i` is any element in `D`. -/
+def right_lifting_subcat (F : D → arrow C) := C
+
+/--The objects of this subcategory are the ones of `C`. -/
+def right_lifting_subcat.X (x : right_lifting_subcat F) : C := x
 
 lemma id_has_right_lifting_property' (X : C) :
   ∀ i : D, has_lifting_property (F i) (arrow.mk (𝟙 X)) :=
@@ -117,15 +128,6 @@ lemma has_right_lifting_property_comp'
   {g : Y ⟶ Z} (hg : ∀ i : D, has_lifting_property (F i) (arrow.mk g)) :
   ∀ i : D,  has_lifting_property (F i) (arrow.mk (f ≫ g)) :=
 λ i, has_right_lifting_property_comp (hf i) (hg i)
-
-/-- Given a set of arrows in C, indexed by `F : D → arrow C`,
-we construct the (non-full) subcategory of `C`
-spanned by those morphisms that have the right lifting property relative to all maps
-of the form `F i`, where `i` is any element in `D`. -/
-def right_lifting_subcat (F : D → arrow C) := C
-
-/--The objects of this subcategory are the ones of `C`. -/
-def right_lifting_subcat.X (x : right_lifting_subcat F) : C := x
 
 instance : category (right_lifting_subcat F) :=
 { hom := λ X Y, { p : X.X ⟶ Y.X //

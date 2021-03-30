@@ -88,7 +88,7 @@ end
 
 /-- Given a square from an isomorphism `i` to an arrow `p`, express the target part of `sq`
 in terms of the inverse of `i`. -/
-@[simp] lemma square_from_iso_invert {X Y : T} (i : X ≅ Y) (p : arrow T) (sq : arrow.mk i.hom ⟶ p) :
+lemma square_from_iso_invert {X Y : T} (i : X ≅ Y) (p : arrow T) (sq : arrow.mk i.hom ⟶ p) :
   i.inv ≫ sq.left ≫ p.hom = sq.right :=
 by simp only [category_theory.iso.inv_hom_id_assoc, category_theory.arrow.w, category_theory.arrow.mk_hom]
 

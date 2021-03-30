@@ -20,7 +20,7 @@ property with respect to arrows in a given diagram.
 - `has_lifting_property`: the definition of the lifting property
 - `iso_has_right_lifting_property`: any isomorphism satisfies the right lifting property (rlp)
 - `id_has_right_lifting_property`: any identity has the rlp
-- `right_lifting_property_initial_iff`: spells out the rlp against a map whose source is an
+- `right_lifting_property_initial_iff`: spells out the rlp with respect to a map whose source is an
 initial object
 - `right_lifting_subcat`: given a set of arrows `F : D → arrow C`, we construct the subcategory
 of those morphisms `p` in `C` that satisfy the rlp w.r.t. `F i`, for any element `i` of `D`.
@@ -39,16 +39,10 @@ variables {D : Type v₁}
 
 variables {X Y Z : C}
 
-/-- The lifting property of a morphism `i` vs. a morphism `p`. This can be interpreted as the
-right lifting property of `i` vs. `p`, or the left lifting property of `p` vs. `i`. -/
+/-- The lifting property of a morphism `i` with respect to a morphism `p`.
+This can be interpreted as the right lifting property of `i` with respect to `p`,
+or the left lifting property of `p` with respect to `i`. -/
 def has_lifting_property (i p : arrow C) : Prop := ∀ (sq : i ⟶ p), arrow.has_lift sq
-
-/-X Y : C,
-i : arrow C,
-p : X ≅ Y,
-sq : i ⟶ arrow.mk p.hom
-⊢ i.hom ≫ sq.right ≫ p.inv = sq.left-/
-
 
 /-- Any isomorphism has the right lifting property with respect to any map.
 A    → X
@@ -57,15 +51,14 @@ B    → Y
 -/
 lemma iso_has_right_lifting_property (i : arrow C) (p : X ≅ Y) :
   has_lifting_property i (arrow.mk p.hom) :=
-λ sq, ⟨⟨{ lift := sq.right ≫ p.inv, }⟩⟩
---⟨⟨⟨sq.right ≫ p.inv, by { rw [←category.assoc, (arrow.w sq).symm], simp, }, by simp⟩⟩⟩
--- the lift is obtained by p⁻¹ ∘ (B → Y)
+λ sq, ⟨⟨{ lift := sq.right ≫ p.inv, }⟩⟩ -- the lift is obtained by p⁻¹ ∘ (B → Y)
 
 /-- Any identity has the right lifting property with respect to any map. -/
 lemma id_has_right_lifting_property (i : arrow C) : has_lifting_property i (arrow.mk (𝟙 X)) :=
   iso_has_right_lifting_property i (iso.refl _)
 
-/-- An equivalent characterization for right lifting against a map `i` whose source is initial.
+/-- An equivalent characterization for right lifting with respect to a map `i` whose source is
+initial.
 ∅ → X
 ↓   ↓
 B → Y has a lifting iff there is a map B → X making the right part commute.
@@ -96,7 +89,7 @@ begin
   intro sq0, -- a square between i and f ≫ g
   let sq1 := arrow.square_to_snd sq0, -- transform this into a square between i and g
 
-  -- lift i vs. g
+  -- lift of i with respect to g
   haveI := hg sq1,
 
   -- form a square from i to f, using the previously constructed lift
@@ -111,10 +104,10 @@ begin
   { left := sq0.left,
     right := (arrow.has_lift.struct sq1).lift },
 
-  -- construct a lift i vs. f
+  -- construct a lift i with respect to f
   haveI := hf sq2,
 
-  -- show that this lift is a lift of i vs. g ∘ f
+  -- show that this lift is a lift of i with respect to g ∘ f
   refine ⟨⟨{lift := (arrow.has_lift.struct sq2).lift, fac_right' := _}⟩⟩,
   { have : sq0.right = sq1.right := rfl,
     rw this,

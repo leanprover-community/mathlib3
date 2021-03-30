@@ -1407,11 +1407,9 @@ begin
     use m,
     simp only,
     rwa [← of_mul_gpow, hm] },
-  { rintro ⟨m, hm⟩,
-    use (x ^ m),
-    split,
-    { use m },
-    { rwa of_mul_gpow } },
+  { rintros ⟨n, hn⟩,
+    refine ⟨x ^ n, ⟨n, rfl⟩, _⟩,
+    rwa of_mul_gpow }
 end
 
 lemma of_add_image_gmultiples_eq_gpowers_of_add {x : A} :

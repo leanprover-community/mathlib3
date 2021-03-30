@@ -275,11 +275,8 @@ begin
     use n,
     simpa [← of_mul_pow, hy1] },
   { rintros ⟨n, hn⟩,
-    use (x ^ n),
-    dsimp only at hn,
-    split,
-    { use n },
-    { rwa of_mul_pow } },
+    refine ⟨x ^ n, ⟨n, rfl⟩, _⟩,
+    rwa of_mul_pow }
 end
 
 lemma of_add_image_multiples_eq_powers_of_add {x : A} :

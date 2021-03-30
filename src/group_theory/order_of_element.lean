@@ -207,7 +207,7 @@ begin
   rw add_order_of at h,
   split_ifs at h with hfin,
   { exact nat.find_min hfin h },
-  { exfalso, exact nat.not_lt_zero m h }
+  { exact absurd h m.zero_le.not_lt }
 end
 
 @[to_additive add_order_of_le_of_nsmul_eq_zero']
@@ -216,14 +216,11 @@ begin
   rw order_of at h,
   split_ifs at h with hfin,
   { exact nat.find_min hfin h },
-  { exfalso, exact nat.not_lt_zero m h }
+  { exact absurd h m.zero_le.not_lt }
 end
 
 lemma add_order_of_le_of_nsmul_eq_zero {n : ℕ} (hn : 0 < n) (h : n •ℕ x = 0) : add_order_of x ≤ n :=
-begin
-  by_contradiction h',
-  exact (add_order_of_le_of_nsmul_eq_zero' (not_le.mp h')) ⟨hn, h⟩
-end
+le_of_not_lt (mt add_order_of_le_of_nsmul_eq_zero' (by simp [hn, h]))
 
 @[to_additive add_order_of_le_of_nsmul_eq_zero]
 lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
@@ -546,7 +543,7 @@ finset.le_card_of_inj_on_range ((^) a)
 /-- This is the same as `order_of_pos' but with one fewer explicit assumption since this is
   automatic in case of a finite cancellative monoid.-/
 lemma order_of_pos (a : α) : 0 < order_of a :=
-begin
+order_of_pos' (exists_pow_eq_one a)
   rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
   apply order_of_pos',
   exact ⟨w, hw1, hw2⟩,
@@ -570,7 +567,7 @@ open nat
 automatic in the case of a finite cancellative monoid.-/
 lemma order_of_pow (a : α) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
-begin
+order_of_pow'' _ _ (exists_pow_eq_one _)
   rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
   apply order_of_pow'',
   exact ⟨w, hw1, hw2⟩
@@ -634,7 +631,9 @@ lemma add_order_of_eq_card_multiples [decidable_eq H] {x : H} :
 begin
   rw ← order_of_of_add_eq_add_order_of,
   rw order_eq_card_powers,
-  congr, -- TODO : Replace by proof not using defeq.
+  apply fintype.card_congr,
+  rw ←of_add_image_multiples_eq_powers_of_add,
+  exact (equiv.set.image _ _ (equiv.injective _)).symm
 end
 
 attribute [to_additive add_order_of_eq_card_multiples] order_eq_card_powers
@@ -657,11 +656,8 @@ end
 lemma exists_gsmul_eq_zero (x : H) : ∃ i ≠ 0, i •ℤ x = 0 :=
 begin
   rcases exists_gpow_eq_one (multiplicative.of_add x) with ⟨i, hi1, hi2⟩,
-  use i,
-  split,
-  { exact hi1 },
-  { apply multiplicative.of_add.injective,
-    rw [of_add_gsmul, hi2, of_add_zero] }
+  refine ⟨i, hi1, multiplicative.of_add.injective _⟩,
+  { rw [of_add_gsmul, hi2, of_add_zero] }
 end
 
 attribute [to_additive exists_gsmul_eq_zero] exists_gpow_eq_one
@@ -742,7 +738,9 @@ lemma add_order_eq_card_gmultiples [decidable_eq H] {x : H} :
 begin
   rw ← order_of_of_add_eq_add_order_of,
   rw order_eq_card_gpowers,
-  congr, -- TODO : Replace by proof not using defeq.
+  apply fintype.card_congr,
+  rw ←of_add_image_gmultiples_eq_gpowers_of_add,
+  exact (equiv.set.image _ _ (equiv.injective _)).symm
 end
 
 attribute [to_additive add_order_eq_card_gmultiples] order_eq_card_gpowers

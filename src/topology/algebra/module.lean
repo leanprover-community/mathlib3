@@ -402,6 +402,8 @@ def range (f : M →L[R] M₂) : submodule R M₂ := (f : M →ₗ[R] M₂).rang
 lemma range_coe : (f.range : set M₂) = set.range f := linear_map.range_coe _
 lemma mem_range {f : M →L[R] M₂} {y} : y ∈ f.range ↔ ∃ x, f x = y := linear_map.mem_range
 
+lemma mem_range_self (f : M →L[R] M₂) (x : M) : f x ∈ f.range := mem_range.2 ⟨x, rfl⟩
+
 lemma range_prod_le (f : M →L[R] M₂) (g : M →L[R] M₃) :
   range (f.prod g) ≤ (range f).prod (range g) :=
 (f : M →ₗ[R] M₂).range_prod_le g
@@ -491,6 +493,10 @@ rfl
 
 @[simp] lemma coprod_apply [has_continuous_add M₃] (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) (x) :
   f₁.coprod f₂ x = f₁ x.1 + f₂ x.2 := rfl
+
+lemma range_coprod [has_continuous_add M₃] (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) :
+  (f₁.coprod f₂).range = f₁.range ⊔ f₂.range :=
+linear_map.range_coprod _ _
 
 section
 

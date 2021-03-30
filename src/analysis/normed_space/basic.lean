@@ -398,6 +398,16 @@ instance submodule.semi_normed_group {𝕜 : Type*} {_ : ring 𝕜}
 { norm := λx, norm (x : E),
   dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
 
+/-- A submodule of a seminormed group is also a seminormed group, with the restriction of the norm.
+
+See note [implicit instance arguments]. -/
+instance submodule.semi_normed_group_quotient {𝕜 : Type*} {_ : ring 𝕜}
+  {E : Type*} [semi_normed_group E] {_ : module 𝕜 E} (s : submodule 𝕜 E) :
+  semi_normed_group s.quotient :=
+{ norm := λx, Inf (norm '' {m | mk s m = x}),
+  dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
+
+
 /-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `E` is equal to its
 norm in `s`.
 

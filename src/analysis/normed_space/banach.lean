@@ -326,3 +326,46 @@ noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj 
 (of_bijective f hinj hsurj).apply_symm_apply y
 
 end continuous_linear_equiv
+
+namespace continuous_linear_map
+
+private lemma closed_complemented_range_of_is_compl_aux (f : E →L[𝕜] F) (G : submodule 𝕜 F)
+  (h : is_compl f.range G) (hG : is_closed (G : set F)) (hker : f.ker = ⊥) :
+  is_closed (f.range : set F) :=
+begin
+  let g : (E × G) →L[𝕜] F := f.coprod G.subtypeL,
+  have : (f.range : set F) = g '' ((⊤ : submodule 𝕜 E).prod (⊥ : submodule 𝕜 G)),
+    by { ext x, simp [continuous_linear_map.mem_range] },
+  rw this,
+  haveI : complete_space G := complete_space_coe_iff_is_complete.2 hG.is_complete,
+  have grange : g.range = ⊤,
+    by simp only [range_coprod, h.sup_eq_top, submodule.range_subtypeL],
+  have gker : g.ker = ⊥,
+  { apply le_antisymm _ bot_le,
+    rintros ⟨x, y⟩ hx,
+    simp at hx,
+    have fxy : f x = - y, by { rw [← sub_eq_zero], simpa only [sub_neg_eq_add], },
+    have : f x ∈ f.range ⊓ G,
+    { suffices : f x ∈ G, by simpa only [f.mem_range_self, true_and, submodule.mem_inf],
+      rw fxy,
+      simp only [submodule.neg_mem_iff, submodule.coe_mem] },
+    rw h.inf_eq_bot at this,
+    have : x ∈ f.ker, by simpa only,
+    rw hker at this,
+    have x0 : x = 0, by simpa only,
+    simp [x0] at hx,
+    simp [x0, hx] },
+  apply (continuous_linear_equiv.of_bijective g gker grange).to_homeomorph.is_closed_image.2,
+  exact is_closed_univ.prod is_closed_singleton,
+end
+
+instance zoug (p : submodule 𝕜 E) [is_closed p] : normed_space 𝕜 p.quotient := by apply_instance
+
+lemma closed_complemented_range_of_is_compl (f : E →L[𝕜] F) (G : submodule 𝕜 F)
+  (h : is_compl f.range G) (hG : is_closed (G : set F)) :
+  is_closed (f.range : set F) :=
+begin
+  have Z := submodule.liftq,
+end
+
+end continuous_linear_map

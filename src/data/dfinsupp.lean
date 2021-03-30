@@ -964,8 +964,8 @@ lemma sum_add_hom_single_add_hom [Π i, add_comm_monoid (β i)] :
   sum_add_hom (single_add_hom β) = add_monoid_hom.id _ :=
 lift_add_hom_single_add_hom
 
-lemma comp_sum_add_hom {δ : Type*} [Π i, add_zero_class (β i)] [add_comm_monoid γ] [add_comm_monoid δ]
-  (g : γ →+ δ) (f : Π i, β i →+ γ) :
+lemma comp_sum_add_hom {δ : Type*} [Π i, add_zero_class (β i)] [add_comm_monoid γ]
+  [add_comm_monoid δ] (g : γ →+ δ) (f : Π i, β i →+ γ) :
   g.comp (sum_add_hom f) = sum_add_hom (λ a, g.comp (f a)) :=
 comp_lift_add_hom _ _
 

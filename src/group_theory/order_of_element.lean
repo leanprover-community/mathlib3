@@ -293,31 +293,12 @@ lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
 
 lemma add_order_of_eq_prime {p : ℕ} [hp : fact p.prime]
 (hg : p •ℕ x = 0) (hg1 : x ≠ 0) : add_order_of x = p :=
-(hp.2 _ (add_order_of_dvd_of_nsmul_eq_zero hg)).resolve_left (mt add_order_of_eq_one_iff.1 hg1)
+(hp.out.2 _ (add_order_of_dvd_of_nsmul_eq_zero hg)).resolve_left (mt add_order_of_eq_one_iff.1 hg1)
 
 @[to_additive add_order_of_eq_prime]
 lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
   (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
 (hp.out.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
-
-lemma order_of_eq_order_of_iff {β : Type*} [monoid β] {b : β} :
-  order_of a = order_of b ↔ ∀ n : ℕ, a ^ n = 1 ↔ b ^ n = 1 :=
-begin
-  simp_rw ← order_of_dvd_iff_pow_eq_one,
-  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
-end
-
-lemma order_of_injective {G H : Type*} [monoid G] [monoid H] (f : G →* H)
-  (hf : function.injective f) (σ : G) : order_of (f σ) = order_of σ :=
-by simp_rw [order_of_eq_order_of_iff, ←f.map_pow, ←f.map_one, hf.eq_iff, iff_self, forall_const]
-
-@[simp, norm_cast] lemma order_of_submonoid {G : Type*} [monoid G] {H : submonoid G} (σ : H) :
-  order_of (σ : G) = order_of σ :=
-order_of_injective H.subtype subtype.coe_injective σ
-
-@[simp, norm_cast] lemma order_of_subgroup {G : Type*} [group G] {H : subgroup G} (σ : H) :
-  order_of (σ : G) = order_of σ :=
-order_of_injective H.subtype subtype.coe_injective σ
 
 open nat
 
@@ -327,6 +308,39 @@ begin
   haveI : fact (prime 2) := ⟨prime_two⟩,
   exact order_of_eq_prime (by { rw pow_two, simp }) (dec_trivial)
 end
+
+lemma add_order_of_eq_add_order_of_iff {A : Type*} [add_monoid A] {y : A} :
+  add_order_of x = add_order_of y ↔ ∀ n : ℕ, n •ℕ x = 0 ↔ n •ℕ y = 0 :=
+begin
+  simp_rw ← add_order_of_dvd_iff_nsmul_eq_zero,
+  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
+end
+
+@[to_additive add_order_of_eq_add_order_of_iff]
+lemma order_of_eq_order_of_iff {β : Type*} [monoid β] {b : β} :
+  order_of a = order_of b ↔ ∀ n : ℕ, a ^ n = 1 ↔ b ^ n = 1 :=
+begin
+  simp_rw ← order_of_dvd_iff_pow_eq_one,
+  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
+end
+
+lemma add_order_of_injective {A B : Type*} [add_monoid A] [add_monoid B] (f : A →+ B)
+  (hf : function.injective f) (x : A) : add_order_of (f x) = add_order_of x :=
+by simp_rw [add_order_of_eq_add_order_of_iff, ←f.map_nsmul, ←f.map_zero, hf.eq_iff, iff_self,
+            forall_const]
+
+@[to_additive add_order_of_injective]
+lemma order_of_injective {G H : Type*} [monoid G] [monoid H] (f : G →* H)
+  (hf : function.injective f) (σ : G) : order_of (f σ) = order_of σ :=
+by simp_rw [order_of_eq_order_of_iff, ←f.map_pow, ←f.map_one, hf.eq_iff, iff_self, forall_const]
+
+@[simp, norm_cast, to_additive] lemma order_of_submonoid {G : Type*} [monoid G] {H : submonoid G}
+  (σ : H) : order_of (σ : G) = order_of σ :=
+order_of_injective H.subtype subtype.coe_injective σ
+
+@[simp, norm_cast, to_additive] lemma order_of_subgroup {G : Type*} [group G] {H : subgroup G}
+  (σ : H) : order_of (σ : G) = order_of σ :=
+order_of_injective H.subtype subtype.coe_injective σ
 
 lemma add_order_of_eq_prime_pow {p k : ℕ} (hprime : prime p)
   (hnot : ¬ (p ^ k) •ℕ x = 0) (hfin : (p ^ (k + 1)) •ℕ x = 0) : add_order_of x = p ^ (k + 1) :=
@@ -467,19 +481,6 @@ section finite_monoid
 variables {α} [fintype α] [monoid α]
 variables {H : Type u} [fintype H] [add_monoid H]
 
-lemma sum_card_order_of_eq_card_pow_eq_one [decidable_eq α] {n : ℕ} (hn : 0 < n) :
-  ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
-  = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
-calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
-    = _ : (finset.card_bUnion (by { intros, apply finset.disjoint_filter.2, cc })).symm
-... = _ : congr_arg finset.card (finset.ext (begin
-  assume a,
-  suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
-  { simpa [nat.lt_succ_iff], },
-  exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, one_pow],
-    λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
-end))
-
 lemma sum_card_add_order_of_eq_card_nsmul_eq_zero [decidable_eq H] {n : ℕ} (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : H, add_order_of x = m)).card
   = (finset.univ.filter (λ x : H, n •ℕ x = 0)).card :=
@@ -495,8 +496,19 @@ calc ∑ m in (finset.range n.succ).filter (∣ n),
     λ h, ⟨add_order_of_le_of_nsmul_eq_zero hn h, add_order_of_dvd_of_nsmul_eq_zero h⟩⟩
 end))
 
-attribute [to_additive sum_card_add_order_of_eq_card_nsmul_eq_zero]
-  sum_card_order_of_eq_card_pow_eq_one
+@[to_additive sum_card_add_order_of_eq_card_nsmul_eq_zero]
+lemma sum_card_order_of_eq_card_pow_eq_one [decidable_eq α] {n : ℕ} (hn : 0 < n) :
+  ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
+  = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
+calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
+    = _ : (finset.card_bUnion (by { intros, apply finset.disjoint_filter.2, cc })).symm
+... = _ : congr_arg finset.card (finset.ext (begin
+  assume a,
+  suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
+  { simpa [nat.lt_succ_iff], },
+  exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, one_pow],
+    λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
+end))
 
 end finite_monoid
 
@@ -532,11 +544,8 @@ end
 lemma exists_nsmul_eq_zero (x : H) : ∃ i, 0 < i ∧ i •ℕ x = 0 :=
 begin
   rcases exists_pow_eq_one (multiplicative.of_add x) with ⟨i, hi1, hi2⟩,
-  use i,
-  split,
-  { exact hi1 },
-  { apply multiplicative.of_add.injective,
-    rw [of_add_nsmul, hi2, of_add_zero] },
+  refine ⟨i, hi1, multiplicative.of_add.injective _⟩,
+  rw [of_add_nsmul, hi2, of_add_zero],
 end
 
 attribute [to_additive exists_nsmul_eq_zero] exists_pow_eq_one
@@ -583,6 +592,20 @@ begin
     exists_mul_mod_eq_one_of_coprime h (one_lt_iff_ne_zero_and_ne_one.mpr ⟨h0, h1⟩),
   exact ⟨m, by rw [←pow_mul, pow_eq_mod_order_of, hm, pow_one]⟩,
 end
+
+lemma exists_nsmul_eq_self_of_coprime {H : Type*} [add_monoid H] (x : H)
+  (h : coprime n (add_order_of x)) : ∃ m : ℕ, m •ℕ (n •ℕ x) = x :=
+begin
+  have h' : coprime n (order_of (multiplicative.of_add x)),
+  { simp_rw order_of_of_add_eq_add_order_of,
+    exact h },
+  cases exists_pow_eq_self_of_coprime h' with m hpow,
+  use m,
+  apply multiplicative.of_add.injective,
+  simpa [of_add_nsmul],
+end
+
+attribute [to_additive exists_nsmul_eq_self_of_coprime] exists_pow_eq_self_of_coprime
 
 /-- This is the same as `order_of_pow'` and `order_of_pow''` but with one assumption less which is
 automatic in the case of a finite cancellative monoid.-/
@@ -805,7 +828,7 @@ variable (a)
 lemma image_range_add_order_of [decidable_eq H] {x : H} :
   finset.image (λ i, i •ℕ x) (finset.range (add_order_of x)) =
   (add_subgroup.gmultiples x : set H).to_finset :=
-by {ext x, rw [set.mem_to_finset, add_subgroup.mem_coe, mem_gmultiples_iff_mem_range_add_order_of] }
+by {ext x, rw [set.mem_to_finset, set_like.mem_coe, mem_gmultiples_iff_mem_range_add_order_of] }
 
 /-- TODO: Generalise to `submonoid.powers`.-/
 @[to_additive image_range_add_order_of]

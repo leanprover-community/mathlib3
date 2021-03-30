@@ -125,7 +125,7 @@ lemma term_le_of_des (x : ℤ) (m : ℕ+) (hx : x < f m) :
   ∃ k, f (m + ⟨k + 1, by linarith⟩) ≤ x :=
 begin
   have : ∀ d, f (m + ⟨d + 1, by linarith⟩) < f m - d,
-  {	intro d, induction d with d ih,
+  { intro d, induction d with d ih,
     { simp, exact hdes m },
     simp [sub_add_eq_sub_sub],
     apply lt_of_lt_of_le _ (int.le_sub_one_of_lt ih),

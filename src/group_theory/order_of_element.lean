@@ -27,8 +27,7 @@ This file defines the order of an element of a finite group. For a finite group 
 
 ## Implementation details
 
-Both `order_of` and `is_cyclic` are currently only available for multiplicatively written monoids,
-resp. groups.
+The parts about `is_cyclic` are currently only available for multiplicatively written groups.
 
 ## Tags
 
@@ -37,7 +36,7 @@ order of an element, cyclic group
 ## TODO
 
 * Move the first declarations until the definition of order to other files.
-* Add the attribute `@[to_additive]` to the declarations in that file so that they also work with
+* Add the attribute `@[to_additive]` to the declarations about `is_cyclic`, so that they work for
   additive groups.
 -/
 
@@ -224,10 +223,7 @@ le_of_not_lt (mt add_order_of_le_of_nsmul_eq_zero' (by simp [hn, h]))
 
 @[to_additive add_order_of_le_of_nsmul_eq_zero]
 lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
-begin
-  by_contradiction h',
-  exact (order_of_le_of_pow_eq_one' (not_le.mp h')) ⟨hn, h⟩
-end
+le_of_not_lt (mt order_of_le_of_pow_eq_one' (by simp [hn, h]))
 
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin
@@ -237,10 +233,7 @@ begin
 end
 
 @[simp] lemma add_order_of_zero : add_order_of (0 : H) = 1 :=
-begin
-  rw ← order_of_of_add_eq_add_order_of,
-  exact order_of_one,
-end
+by simp [← order_of_of_add_eq_add_order_of]
 
 attribute [to_additive add_order_of_zero] order_of_one
 
@@ -248,10 +241,7 @@ attribute [to_additive add_order_of_zero] order_of_one
 ⟨λ h, by conv_lhs { rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
 
 @[simp] lemma add_order_of_eq_one_iff : add_order_of x = 1 ↔ x = 0 :=
-begin
-  rw ← order_of_of_add_eq_add_order_of,
-  exact order_of_eq_one_iff,
-end
+by simp [← order_of_of_add_eq_add_order_of]
 
 attribute [to_additive add_order_of_eq_one_iff] order_of_eq_one_iff
 
@@ -269,7 +259,8 @@ attribute [to_additive nsmul_eq_mod_add_order_of] pow_eq_mod_order_of
 
 lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
 begin
-  by_cases h₁ : 0 < n,
+  rcases n.zero_le.eq_or_lt with rfl|h₁,
+  { simp },
   { apply nat.dvd_of_mod_eq_zero,
     by_contradiction h₂,
     have h₃ : ¬ (0 < n % order_of a ∧ a ^ (n % order_of a) = 1) := order_of_le_of_pow_eq_one'
@@ -278,8 +269,6 @@ begin
     specialize h₃ (nat.pos_of_ne_zero h₂),
     rw ← pow_eq_mod_order_of at h₃,
     exact h₃ h },
-  { have h₅ : n = 0 := le_antisymm (not_lt.mp h₁) (nat.zero_le n),
-    simp [h₅] }
 end
 
 lemma add_order_of_dvd_of_nsmul_eq_zero {n : ℕ} (h : n •ℕ x = 0) : add_order_of x ∣ n :=
@@ -542,12 +531,7 @@ finset.le_card_of_inj_on_range ((^) a)
 
 /-- This is the same as `order_of_pos' but with one fewer explicit assumption since this is
   automatic in case of a finite cancellative monoid.-/
-lemma order_of_pos (a : α) : 0 < order_of a :=
-order_of_pos' (exists_pow_eq_one a)
-  rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
-  apply order_of_pos',
-  exact ⟨w, hw1, hw2⟩,
-end
+lemma order_of_pos (a : α) : 0 < order_of a := order_of_pos' (exists_pow_eq_one a)
 
 /-- This is the same as `add_order_of_pos' but with one fewer explicit assumption since this is
   automatic in case of a finite cancellative additive monoid.-/
@@ -566,12 +550,7 @@ open nat
 /-- This is the same as `order_of_pow'` and `order_of_pow''` but with one assumption less which is
 automatic in the case of a finite cancellative monoid.-/
 lemma order_of_pow (a : α) :
-  order_of (a ^ n) = order_of a / gcd (order_of a) n :=
-order_of_pow'' _ _ (exists_pow_eq_one _)
-  rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
-  apply order_of_pow'',
-  exact ⟨w, hw1, hw2⟩
-end
+  order_of (a ^ n) = order_of a / gcd (order_of a) n := order_of_pow'' _ _ (exists_pow_eq_one _)
 
 /-- This is the same as `add_order_of_nsmul'` and `add_order_of_nsmul` but with one assumption less
 which is automatic in the case of a finite cancellative additive monoid. -/
@@ -690,18 +669,12 @@ set.ext $ λ x, mem_powers_iff_mem_gpowers
 
 lemma mem_gmultiples_iff_mem_range_add_order_of [decidable_eq H] {x x' : H} :
   x' ∈ add_subgroup.gmultiples x ↔ x' ∈ (finset.range (add_order_of x)).image (•ℕ x) :=
-begin
-  rw ← mem_multiples_iff_mem_gmultiples,
-  exact mem_multiples_iff_mem_range_add_order_of,
-end
+by rw [← mem_multiples_iff_mem_gmultiples, mem_multiples_iff_mem_range_add_order_of]
 
 @[to_additive mem_gmultiples_iff_mem_range_add_order_of]
 lemma mem_gpowers_iff_mem_range_order_of [decidable_eq α] {a a' : α} :
   a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
-begin
-  rw ← mem_powers_iff_mem_gpowers,
-  exact mem_powers_iff_mem_range_order_of,
-end
+by rw [← mem_powers_iff_mem_gpowers, mem_powers_iff_mem_range_order_of]
 
 noncomputable instance decidable_gmultiples [decidable_eq H] {x : H}:
   decidable_pred (add_subgroup.gmultiples x : set H) :=
@@ -736,10 +709,9 @@ end
 lemma add_order_eq_card_gmultiples [decidable_eq H] {x : H} :
   add_order_of x = fintype.card (add_subgroup.gmultiples x : set H) :=
 begin
-  rw ← order_of_of_add_eq_add_order_of,
-  rw order_eq_card_gpowers,
+  rw [← order_of_of_add_eq_add_order_of, order_eq_card_gpowers],
   apply fintype.card_congr,
-  rw ←of_add_image_gmultiples_eq_gpowers_of_add,
+  rw ← of_add_image_gmultiples_eq_gpowers_of_add,
   exact (equiv.set.image _ _ (equiv.injective _)).symm
 end
 

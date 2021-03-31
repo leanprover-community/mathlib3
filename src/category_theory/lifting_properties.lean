@@ -19,7 +19,7 @@ property with respect to arrows in a given diagram.
 - `iso_has_right_lifting_property`: any isomorphism satisfies the right lifting property (rlp)
 - `id_has_right_lifting_property`: any identity has the rlp
 - `right_lifting_property_initial_iff`: spells out the rlp with respect to a map whose source is an
-initial object
+  initial object
 - `right_lifting_subcat`: given a set of arrows `F : D → arrow C`, we construct the subcategory
   of those morphisms `p` in `C` that satisfy the rlp w.r.t. `F i`, for any element `i` of `D`.
 

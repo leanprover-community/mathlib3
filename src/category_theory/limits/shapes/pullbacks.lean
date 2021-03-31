@@ -37,11 +37,11 @@ The type of objects for the diagram indexing a pullback, defined as a special ca
 abbreviation walking_cospan : Type v := wide_pullback_shape walking_pair
 
 /-- The left point of the walking cospan. -/
-abbreviation walking_cospan.left : walking_cospan := some walking_pair.left
+@[pattern] abbreviation walking_cospan.left : walking_cospan := some walking_pair.left
 /-- The right point of the walking cospan. -/
-abbreviation walking_cospan.right : walking_cospan := some walking_pair.right
+@[pattern] abbreviation walking_cospan.right : walking_cospan := some walking_pair.right
 /-- The central point of the walking cospan. -/
-abbreviation walking_cospan.one : walking_cospan := none
+@[pattern] abbreviation walking_cospan.one : walking_cospan := none
 
 /--
 The type of objects for the diagram indexing a pushout, defined as a special case of
@@ -50,11 +50,11 @@ The type of objects for the diagram indexing a pushout, defined as a special cas
 abbreviation walking_span : Type v := wide_pushout_shape walking_pair
 
 /-- The left point of the walking span. -/
-abbreviation walking_span.left : walking_span := some walking_pair.left
+@[pattern] abbreviation walking_span.left : walking_span := some walking_pair.left
 /-- The right point of the walking span. -/
-abbreviation walking_span.right : walking_span := some walking_pair.right
+@[pattern] abbreviation walking_span.right : walking_span := some walking_pair.right
 /-- The central point of the walking span. -/
-abbreviation walking_span.zero : walking_span := none
+@[pattern] abbreviation walking_span.zero : walking_span := none
 
 namespace walking_cospan
 
@@ -62,11 +62,11 @@ namespace walking_cospan
 abbreviation hom : walking_cospan → walking_cospan → Type v := wide_pullback_shape.hom
 
 /-- The left arrow of the walking cospan. -/
-abbreviation hom.inl : left ⟶ one := wide_pullback_shape.hom.term _
+@[pattern] abbreviation hom.inl : left ⟶ one := wide_pullback_shape.hom.term _
 /-- The right arrow of the walking cospan. -/
-abbreviation hom.inr : right ⟶ one := wide_pullback_shape.hom.term _
+@[pattern] abbreviation hom.inr : right ⟶ one := wide_pullback_shape.hom.term _
 /-- The identity arrows of the walking cospan. -/
-abbreviation hom.id (X : walking_cospan) : X ⟶ X := wide_pullback_shape.hom.id X
+@[pattern] abbreviation hom.id (X : walking_cospan) : X ⟶ X := wide_pullback_shape.hom.id X
 
 instance (X Y : walking_cospan) : subsingleton (X ⟶ Y) := by tidy
 
@@ -78,11 +78,11 @@ namespace walking_span
 abbreviation hom : walking_span → walking_span → Type v := wide_pushout_shape.hom
 
 /-- The left arrow of the walking span. -/
-abbreviation hom.fst : zero ⟶ left := wide_pushout_shape.hom.init _
+@[pattern] abbreviation hom.fst : zero ⟶ left := wide_pushout_shape.hom.init _
 /-- The right arrow of the walking span. -/
-abbreviation hom.snd : zero ⟶ right := wide_pushout_shape.hom.init _
+@[pattern] abbreviation hom.snd : zero ⟶ right := wide_pushout_shape.hom.init _
 /-- The identity arrows of the walking span. -/
-abbreviation hom.id (X : walking_span) : X ⟶ X := wide_pushout_shape.hom.id X
+@[pattern] abbreviation hom.id (X : walking_span) : X ⟶ X := wide_pushout_shape.hom.id X
 
 instance (X Y : walking_span) : subsingleton (X ⟶ Y) := by tidy
 

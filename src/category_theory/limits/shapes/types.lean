@@ -19,7 +19,11 @@ In this file, we provide definitions of the "standard" special shapes of limits 
 giving the expected definitional implementation:
 * the terminal object is `punit`
 * the binary product of `X` and `Y` is `X × Y`
-* the product of a family `f : J → Type` is `Π j, f j`.
+* the product of a family `f : J → Type` is `Π j, f j`
+* the binary coproduct of `X` and `Y` is the sum type `X ⊕ Y`
+* the equalizer of a pair of maps `(g, h)` is the subtype `{x : Y // g x = h x}`
+* the pullback of `f : X ⟶ Z` and `g : Y ⟶ Z` is the subtype `{ p : X × Y // f p.1 = g p.2 }`
+  of the product
 
 Because these are not intended for use with the `has_limit` API,
 we instead construct terms of `limit_data`.
@@ -222,5 +226,140 @@ def equalizer_limit : limits.limit_cone (parallel_pair g h) :=
      λ m hm, funext $ λ x, subtype.ext (congr_fun hm x)⟩ }
 
 end fork
+
+section pullback
+open category_theory.limits.walking_pair
+open category_theory.limits.walking_cospan
+open category_theory.limits.walking_cospan.hom
+
+variables {W X Y Z : Type u}
+variables (f : X ⟶ Z) (g : Y ⟶ Z)
+
+/--
+The usual explicit pullback in the category of types, as a subtype of the product.
+The full `limit_cone` data is bundled as `pullback_limit_cone f g`.
+-/
+def pullback_obj : Type u := { p : X × Y // f p.1 = g p.2 }
+
+def pullback_proj : Π (j : walking_cospan), (pullback_obj f g) ⟶ (limits.cospan f g).obj j
+| left  p := p.val.1
+| right p := p.val.2
+| one   p := f p.val.1
+
+def pullback_fst : pullback_obj f g ⟶ X := pullback_proj f g left
+def pullback_snd : pullback_obj f g ⟶ Y := pullback_proj f g right
+
+@[simp] lemma pullback_proj_fst  : pullback_proj f g left  = λ p, p.val.1   := rfl
+@[simp] lemma pullback_proj_snd  : pullback_proj f g right = λ p, p.val.2   := rfl
+@[simp] lemma pullback_proj_base : pullback_proj f g one   = λ p, f p.val.1 := rfl
+
+lemma pullback_commutes :
+  ∀ ⦃j j' : walking_cospan⦄ (h : j ⟶ j'),
+    pullback_proj f g j' = pullback_proj f g j ≫ (limits.cospan f g).map h
+| _ _  inl   := by funext; rw [types_comp_apply, cospan_map_inl]; refl
+| _ _  inr   := by funext; rw [types_comp_apply, cospan_map_inr]; exact x.prop
+| _ _ (id _) := by funext; rw [types_comp_apply]; refl
+
+/--
+The explicit pullback cone on `pullback_obj f g`.
+This is bundled with the `is_limit` data as `pullback_limit_cone f g`.
+-/
+def pullback_cone : cone (cospan f g) :=
+{ X := pullback_obj f g,
+  π := { app := pullback_proj f g, naturality' := pullback_commutes f g } }
+
+@[simp] lemma pullback_cone_app : (pullback_cone f g).π.app = pullback_proj f g := rfl
+
+instance : has_coe (pullback_cone f g).X (X × Y) := ⟨λ w, ⟨w.val.1, w.val.2⟩⟩
+
+@[simp] lemma pullback_cone_coe (x : (pullback_cone f g).X) : ↑x = prod.mk x.val.1 x.val.2 := rfl
+
+def pullback_lift : Π (s : limits.cone (limits.cospan f g)), s.X ⟶ (pullback_cone f g).X
+| ⟨W, ⟨π, commutes⟩⟩ :=
+λ w: W,
+let x : X := π left w in
+let y : Y := π right w in
+have π left ≫ f = π right ≫ g, from (commutes inl).symm.trans (commutes inr),
+have (π left ≫ f) w = (π right ≫ g) w, from congr_fun this w,
+have f x = g y, by rw [types_comp_apply] at this; assumption,
+⟨⟨x, y⟩, this⟩
+
+@[simp] lemma pullback_lift_val (s : limits.cone (limits.cospan f g)) (w : s.X)
+  : (pullback_lift f g s w).val = ⟨s.π.app left w, s.π.app right w⟩ :=
+begin rcases s with ⟨W, ⟨π, commutes⟩⟩, refl end
+
+@[simp] lemma pullback_lift_fst (s : limits.cone (limits.cospan f g)) (w : s.X)
+  : (↑(pullback_lift f g s w) : X × Y).fst = (pullback_lift f g s w).val.fst :=
+rfl
+
+/--
+The explicit pullback given by `pullback_cone f g` is a limit.
+This is bundled with the cone itself as `pullback_limit_cone f g`.
+-/
+def pullback_limit : is_limit (pullback_cone f g) :=
+{ lift := pullback_lift f g,
+
+  fac' := λ s j, begin
+    rcases j with hbase | hleft | hright,
+    rw ←s.w inl,
+
+    -- Concise but slow version:
+    -- all_goals { funext w, simp [-subtype.val_eq_coe], },
+    -- (This can get wedged by converting val to coe: f ↑(pullback_lift f g s w).fst = s.π.app one w )
+
+    all_goals {
+      funext w,
+      rw [pullback_cone_app, types_comp_apply],
+      try { rw [types_comp_apply, cospan_map_inl] },
+      rw pullback_proj_base <|> rw pullback_proj_fst <|> rw pullback_proj_snd,
+      dsimp only [],
+      rw pullback_lift_val,
+    },
+  end,
+
+  uniq' := begin
+    intro s,
+    rintros (lift: s.X ⟶ pullback_obj f g) h_lift,
+    funext w,
+    rw pullback_cone_app at h_lift,
+    have h_fst : (lift w).val.fst = (pullback_lift f g s w).val.fst,
+      by rw [pullback_lift_val, ←h_lift left, types_comp_apply, pullback_proj_fst],
+    have h_snd : (lift w).val.snd = (pullback_lift f g s w).val.snd,
+      by rw [pullback_lift_val, ←h_lift right, types_comp_apply, pullback_proj_snd],
+    ext, exact h_fst, exact h_snd,
+  end,
+}
+
+/--
+The explicit pullback in the category of types, bundled up as a `limit_cone`
+for given `f` and `g`.
+-/
+def pullback_limit_cone (f : X ⟶ Z) (g : Y ⟶ Z) : limits.limit_cone (cospan f g) :=
+{ cone := pullback_cone f g,
+  is_limit := pullback_limit f g, }
+
+/--
+The pullback cone given by the instance `has_pullbacks (Type u)` is isomorphic to the
+explicit pullback cone given by `pullback_limit_cone`.
+-/
+noncomputable def pullback_cone_iso_pullback : limit.cone (cospan f g) ≅ pullback_cone f g :=
+(limit.is_limit _).unique_up_to_iso (pullback_limit f g)
+
+/--
+The pullback given by the instance `has_pullbacks (Type u)` is isomorphic to the
+explicit pullback object given by `pullback_limit_obj`.
+-/
+noncomputable def pullback_iso_pullback : pullback f g ≅ pullback_obj f g :=
+cones.hom_iso_of_cone_iso (pullback_cone_iso_pullback f g)
+
+@[simp] lemma pullback_fst'
+  : limits.pullback.fst = (pullback_iso_pullback f g).hom ≫ pullback_fst f g :=
+eq.symm $ (pullback_cone_iso_pullback f g).hom.w _
+
+@[simp] lemma pullback_snd'
+  : limits.pullback.snd = (pullback_iso_pullback f g).hom ≫ pullback_snd f g :=
+eq.symm $ (pullback_cone_iso_pullback f g).hom.w _
+
+end pullback
 
 end category_theory.limits.types

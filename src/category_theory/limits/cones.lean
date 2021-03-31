@@ -200,6 +200,14 @@ lemma cone_iso_of_hom_iso {K : J ⥤ C} {c d : cone K} (f : c ⟶ d) [i : is_iso
     w' := λ j, (as_iso f.hom).inv_comp_eq.2 (f.w j).symm }, by tidy⟩⟩
 
 /--
+Given an isomorphism of cones, extract the underlying isomorphism between their vertices.
+-/
+def hom_iso_of_cone_iso {K : J ⥤ C} {c d : cone K} (i : c ≅ d) : c.X ≅ d.X :=
+{ hom := i.hom.hom, inv := i.inv.hom,
+  hom_inv_id' := by { transitivity (i.hom ≫ i.inv).hom, { dsimp, refl }, simp },
+  inv_hom_id' := by { transitivity (i.inv ≫ i.hom).hom, { dsimp, refl }, simp } }
+
+/--
 Functorially postcompose a cone for `F` by a natural transformation `F ⟶ G` to give a cone for `G`.
 -/
 @[simps] def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=

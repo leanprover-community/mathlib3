@@ -176,7 +176,8 @@ begin
   simpa using equiv.congr_fun h i
 end
 
-/-- If `e` is also a permutation, we can write `perm_congr` completely in terms of the group structure. -/
+/-- If `e` is also a permutation, we can write `perm_congr` 
+completely in terms of the group structure. -/
 @[simp] lemma perm_congr_eq_mul (e p : perm α) :
   e.perm_congr p = e * p * e⁻¹ := rfl
 

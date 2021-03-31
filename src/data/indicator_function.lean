@@ -138,7 +138,7 @@ by rw [← mul_indicator_mul_indicator, mul_indicator_mul_support]
 
 @[to_additive] lemma comp_mul_indicator (h : M → β) (f : α → M) {s : set α} {x : α} :
   h (s.mul_indicator f x) = s.piecewise (h ∘ f) (const α (h 1)) x :=
-s.comp_piecewise h
+s.apply_piecewise _ _ (λ _, h)
 
 @[to_additive] lemma mul_indicator_comp_right {s : set α} (f : β → α) {g : α → M} {x : β} :
   mul_indicator (f ⁻¹' s) (g ∘ f) x = mul_indicator s g (f x) :=

@@ -476,8 +476,8 @@ end
 @[to_additive]
 lemma closure_mul_le (S T : set M) : closure (S * T) ≤ closure S ⊔ closure T :=
 Inf_le $ λ x ⟨s, t, hs, ht, hx⟩, hx ▸ (closure S ⊔ closure T).mul_mem
-    (le_def.mp le_sup_left $ subset_closure hs)
-    (le_def.mp le_sup_right $ subset_closure ht)
+    (set_like.le_def.mp le_sup_left $ subset_closure hs)
+    (set_like.le_def.mp le_sup_right $ subset_closure ht)
 
 @[to_additive]
 lemma sup_eq_closure (H K : submonoid M) : H ⊔ K = closure (H * K) :=

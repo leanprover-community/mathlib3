@@ -27,6 +27,12 @@ def invertible_of_ring_char_not_dvd
   {t : ℕ} (not_dvd : ¬(ring_char K ∣ t)) : invertible (t : K) :=
 invertible_of_nonzero (λ h, not_dvd ((ring_char.spec K t).mp h))
 
+lemma ring_char_not_dvd_of_invertible {t : ℕ} [invertible (t : K)] :
+  ¬(ring_char K ∣ t) :=
+begin
+  rw [← ring_char.spec, ← ne.def],
+  exact nonzero_of_invertible (t : K)
+end
 
 /-- A natural number `t` is invertible in a field `K` of charactistic `p` if `p` does not divide
 `t`. -/

@@ -127,7 +127,8 @@ def random_r [preorder α] [bounded_random α] (x y : α) (h : x ≤ y) : rand_g
 bounded_random.random_r g x y h
 
 /-- generate an infinite series of random values of type `α` between `x` and `y` inclusive. -/
-def random_series_r [preorder α] [bounded_random α] (x y : α) (h : x ≤ y) : rand_g g (stream (x .. y)) :=
+def random_series_r [preorder α] [bounded_random α] (x y : α) (h : x ≤ y) :
+  rand_g g (stream (x .. y)) :=
 do gen ← uliftable.up (split g),
    pure $ corec_state (bounded_random.random_r g x y h) gen
 
@@ -284,10 +285,13 @@ begin
 end
 
 instance : random bool :=
-{ random   := λ g inst, (bool.of_nat ∘ subtype.val) <$> @bounded_random.random_r ℕ _ _ g inst 0 1 (nat.zero_le _) }
+{ random   := λ g inst,
+  (bool.of_nat ∘ subtype.val) <$> @bounded_random.random_r ℕ _ _ g inst 0 1 (nat.zero_le _) }
 
 instance : bounded_random bool :=
-{ random_r := λ g _inst x y p, subtype.map bool.of_nat (bool_of_nat_mem_Icc_of_mem_Icc_to_nat x y) <$> @bounded_random.random_r ℕ _ _ g _inst x.to_nat y.to_nat (bool.to_nat_le_to_nat p) }
+{ random_r := λ g _inst x y p,
+  subtype.map bool.of_nat (bool_of_nat_mem_Icc_of_mem_Icc_to_nat x y) <$>
+    @bounded_random.random_r ℕ _ _ g _inst x.to_nat y.to_nat (bool.to_nat_le_to_nat p) }
 
 open_locale fin_fact
 

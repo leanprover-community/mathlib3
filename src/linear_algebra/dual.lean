@@ -648,7 +648,7 @@ begin
   { ext x,
     rw dual_map_apply,
     rw submodule.mem_dual_annihilator at hφ,
-    exact hφ (f x) ⟨x, (submodule.mem_coe _).mpr submodule.mem_top, rfl⟩ }
+    exact hφ (f x) ⟨x, set_like.mem_coe.mpr submodule.mem_top, rfl⟩ }
 end
 
 lemma range_dual_map_le_dual_annihilator_ker :

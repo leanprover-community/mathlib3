@@ -59,6 +59,8 @@ local infix ` ≈ ` := equiv
 
 namespace nim
 
+open ordinal
+
 lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
   (λ O₂, nim (ordinal.typein O.out.r O₂))
   (λ O₂, nim (ordinal.typein O.out.r O₂)) :=
@@ -79,26 +81,26 @@ begin
   { rw pgame.le_def,
     split,
     { intro i,
-      let hwf : (ordinal.typein O.out.r i) < O := nim_wf_lemma i,
-      exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ ordinal.typein O.out.r i).1⟩ },
+      let hwf : (typein O.out.r i) < O := nim_wf_lemma i,
+      exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein O.out.r i).1⟩ },
     { intro j,
-      let hwf : (ordinal.typein O.out.r j) < O := nim_wf_lemma j,
-      exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ ordinal.typein O.out.r j).1⟩ } },
+      let hwf : (typein O.out.r j) < O := nim_wf_lemma j,
+      exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein O.out.r j).1⟩ } },
   { rw pgame.le_def,
     split,
     { intro i,
-      let hwf : (ordinal.typein O.out.r i) < O := nim_wf_lemma i,
-      exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ ordinal.typein O.out.r i).2⟩ },
+      let hwf : (typein O.out.r i) < O := nim_wf_lemma i,
+      exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein O.out.r i).2⟩ },
     { intro j,
-      let hwf : (ordinal.typein O.out.r j) < O := nim_wf_lemma j,
-      exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ ordinal.typein O.out.r j).2⟩ } },
+      let hwf : (typein O.out.r j) < O := nim_wf_lemma j,
+      exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein O.out.r j).2⟩ } },
   split,
   { intro i,
-    let hwf : (ordinal.typein O.out.r i) < O := nim_wf_lemma i,
-    simpa using nim_impartial (ordinal.typein O.out.r i) },
+    let hwf : (typein O.out.r i) < O := nim_wf_lemma i,
+    simpa using nim_impartial (typein O.out.r i) },
   { intro j,
-    let hwf : (ordinal.typein O.out.r j) < O := nim_wf_lemma j,
-    simpa using nim_impartial (ordinal.typein O.out.r j) }
+    let hwf : (typein O.out.r j) < O := nim_wf_lemma j,
+    simpa using nim_impartial (typein O.out.r j) }
 end
 using_well_founded { dec_tac := tactic.assumption }
 

@@ -921,8 +921,8 @@ noncomputable def inverse : M₀ → M₀ :=
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
 @[simp] lemma inverse_unit (u : units M₀) : inverse (u : M₀) = (u⁻¹ : units M₀) :=
 begin
-  simp only [is_unit_unit, inverse, dif_pos],
-  exact units.inv_unique (classical.some_spec (is_unit_unit u))
+  simp only [units.is_unit, inverse, dif_pos],
+  exact units.inv_unique (classical.some_spec u.is_unit)
 end
 
 /-- By definition, if `x` is not invertible then `inverse x = 0`. -/

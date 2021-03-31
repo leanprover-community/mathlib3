@@ -1110,7 +1110,8 @@ and where there is no non-trivial pair of disjoint opens. -/
 class irreducible_space (α : Type u) [topological_space α] extends preirreducible_space α : Prop :=
 (to_nonempty [] : nonempty α)
 
-attribute [instance, priority 50] irreducible_space.to_nonempty -- see Note [lower instance priority]
+-- see Note [lower instance priority]
+attribute [instance, priority 50] irreducible_space.to_nonempty
 
 theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
   is_open s → is_open t → s.nonempty → t.nonempty → (s ∩ t).nonempty :=

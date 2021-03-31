@@ -417,7 +417,7 @@ variables {α} [left_cancel_monoid α] (a)
 variables {H : Type u} [add_left_cancel_monoid H] (x : H)
 
 lemma pow_injective_aux {n m : ℕ} (h : n ≤ m)
-  (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
+  (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 by_contradiction $ assume ne : n ≠ m,
   have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
   have h₂ : m = n + (m - n) := (nat.add_sub_of_le h).symm,
@@ -431,12 +431,12 @@ by_contradiction $ assume ne : n ≠ m,
 -- TODO: This lemma was originally private, but this doesn't seem to work with `to_additive`,
 -- therefore the private got removed.
 lemma nsmul_injective_aux {n m : ℕ} (h : n ≤ m)
-  (hn : n < add_order_of x) (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=
+  (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=
 begin
   apply_fun multiplicative.of_add at eq,
   rw [of_add_nsmul, of_add_nsmul] at eq,
   rw ← order_of_of_add_eq_add_order_of at hn hm,
-  exact pow_injective_aux (multiplicative.of_add x) h hn hm eq,
+  exact pow_injective_aux (multiplicative.of_add x) h hm eq,
 end
 
 attribute [to_additive nsmul_injective_aux] pow_injective_aux

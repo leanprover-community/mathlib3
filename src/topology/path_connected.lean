@@ -3,7 +3,7 @@ Copyright (c) 2020 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import topology.instances.real
+import topology.unit_interval
 import topology.algebra.ordered.proj_Icc
 
 /-!
@@ -58,46 +58,10 @@ on `(-∞, 0]` and to `y` on `[1, +∞)`.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topological_space filter unit_interval
 open filter set function
 
 variables {X : Type*} [topological_space X] {x y z : X} {ι : Type*}
-
-/-! ### The unit interval -/
-
-local notation `I` := Icc (0 : ℝ) 1
-
-lemma Icc_zero_one_symm {t : ℝ} : t ∈ I ↔ 1 - t ∈ I :=
-begin
-  rw [mem_Icc, mem_Icc],
-  split ; intro ; split ; linarith
-end
-
-instance I_has_zero : has_zero I := ⟨⟨0, by split ; norm_num⟩⟩
-
-@[simp, norm_cast] lemma coe_I_zero : ((0 : I) : ℝ) = 0 := rfl
-
-instance I_has_one : has_one I := ⟨⟨1, by split ; norm_num⟩⟩
-
-@[simp, norm_cast] lemma coe_I_one : ((1 : I) : ℝ) = 1 := rfl
-
-/-- Unit interval central symmetry. -/
-def I_symm : I → I := λ t, ⟨1 - t.val, Icc_zero_one_symm.mp t.property⟩
-
-local notation `σ` := I_symm
-
-@[simp] lemma I_symm_zero : σ 0 = 1 :=
-subtype.ext $ by simp [I_symm]
-
-@[simp] lemma I_symm_one : σ 1 = 0 :=
-subtype.ext $ by simp [I_symm]
-
-@[continuity]
-lemma continuous_I_symm : continuous σ :=
-by continuity!
-
-instance : connected_space I :=
-subtype.connected_space ⟨nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩
 
 /-! ### Paths -/
 

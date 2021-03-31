@@ -81,6 +81,10 @@ calc
   a * b ≤ c * b : mul_le_mul_of_nonneg_right hac nn_b
     ... ≤ c * d : mul_le_mul_of_nonneg_left hbd nn_c
 
+lemma mul_nonneg_le_one_le {α : Type*} [ordered_semiring α] {a b c : α}
+  (h₁ : 0 ≤ c) (h₂ : a ≤ c) (h₃ : 0 ≤ b) (h₄ : b ≤ 1) : a * b ≤ c :=
+by simpa only [mul_one] using mul_le_mul h₂ h₄ h₃ h₁
+
 lemma mul_nonneg (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
 have h : 0 * b ≤ a * b, from mul_le_mul_of_nonneg_right ha hb,
 by rwa [zero_mul] at h

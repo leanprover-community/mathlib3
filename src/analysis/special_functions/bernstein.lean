@@ -4,12 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import ring_theory.polynomial.bernstein
-import topology.instances.real
-import topology.algebra.continuous_functions
-import topology.algebra.polynomial
-import analysis.normed_space.basic
-import topology.bounded_continuous_function
-import topology.uniform_space.compact_separated
+import topology.continuous_function.compact
+import topology.continuous_function.polynomial
+import topology.unit_interval
 import algebra.floor
 import analysis.specific_limits
 
@@ -53,102 +50,19 @@ noncomputable theory
 open_locale classical
 open_locale big_operators
 open_locale bounded_continuous_function
-
-namespace continuous_map
-variables {α : Type*} [topological_space α] [compact_space α]
-variables {β : Type*} [normed_group β]
-variables (f : C(α, β))
-
-/-- Distance between the images of any two points is at most twice the norm of the function. -/
-lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ∥f∥ :=
-((bounded_continuous_function.equiv_continuous_map_of_compact α β).symm f).dist_le_two_norm x y
-
-end continuous_map
-
--- FIXME find a home for this
-lemma mul_unit_interval_le {α : Type*} [ordered_semiring α] {a b c : α}
-  (h₁ : 0 ≤ c) (h₂ : a ≤ c) (h₃ : 0 ≤ b) (h₄ : b ≤ 1) : a * b ≤ c :=
-begin
-  conv_rhs { rw ←mul_one c, },
-  exact mul_le_mul h₂ h₄ h₃ h₁,
-end
-
-/--
-The Bernstein polynomials, as continuous functions on ℝ.
--/
-def bernstein' (n ν : ℕ) : C(ℝ, ℝ) :=
-⟨λ x : ℝ, (bernstein_polynomial ℝ n ν).eval x, by continuity⟩
-
--- TODO there's some orphaned development regarding `[0,1]` in `topology.path_connected`;
--- perhaps this should be consolidated.
-local notation `I` := set.Icc (0 : ℝ) (1 : ℝ)
-
-namespace unit_interval
-
-lemma nonneg (x : I) : 0 ≤ (x : ℝ) := x.2.1
-lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
-lemma le_one (x : I) : (x : ℝ) ≤ 1 := x.2.2
-lemma one_minus_le_one (x : I) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
-
-end unit_interval
-
-namespace tactic.interactive
-
-/-- A tactic that solves `0 ≤ x`, `0 ≤ 1 - x`, `x ≤ 1`, and `1 - x ≤ 1` for `x : I`. -/
-meta def unit_interval : tactic unit :=
-`[apply unit_interval.nonneg] <|> `[apply unit_interval.one_minus_nonneg] <|>
-`[apply unit_interval.le_one] <|> `[apply unit_interval.one_minus_le_one]
-
-end tactic.interactive
-
-instance : has_zero I := ⟨⟨0, ⟨le_refl _, le_of_lt real.zero_lt_one⟩⟩⟩
-instance : has_one I := ⟨⟨1, ⟨le_of_lt real.zero_lt_one, le_refl _⟩⟩⟩
-instance : nonempty I := ⟨0⟩
-
--- FIXME Where do these lemmas belong?
--- Should they become part of a public API, or remain hidden here?
--- They really belong on `C(α,β)` rather than `α →ᵇ β`.
-
-namespace continuous_map
-variables {α β : Type*} [metric_space α] [compact_space α] [metric_space β]
-
-/-!
-We now set up some abbreviations for the various components of
-uniform continuity for a continuous function on a compact metric space.
--/
-lemma uniform_continuity
-  (f : C(α, β)) (ε : ℝ) (h : 0 < ε) :
-  ∃ δ > 0, ∀ {x y}, dist x y < δ → dist (f x) (f y) < ε :=
-metric.uniform_continuous_iff.mp
-  (compact_space.uniform_continuous_of_continuous f.continuous) ε h
-
-/--
-The (noncomputable) modulus of uniform continuity for a given function `f` and `ε > 0`.
--/
-def modulus (f : C(α, β)) (ε : ℝ) (h : 0 < ε) : ℝ :=
-classical.some (uniform_continuity f ε h)
-
-lemma modulus_pos (f : C(α, β)) {ε : ℝ} {h : 0 < ε} : 0 < f.modulus ε h :=
-classical.some (classical.some_spec (uniform_continuity f ε h))
-
-lemma dist_lt_of_dist_lt_modulus
-  (f : C(α, β)) (ε : ℝ) (h : 0 < ε) {a b : α} (w : dist a b < f.modulus ε h) :
-  dist (f a) (f b) < ε :=
-classical.some_spec (classical.some_spec (uniform_continuity f ε h)) w
-
-end continuous_map
-
+open_locale unit_interval
 
 /--
 The Bernstein polynomials, as continuous functions on `[0,1]`.
 -/
 def bernstein (n ν : ℕ) : C(I, ℝ) :=
-⟨λ x : I, bernstein' n ν x, by continuity⟩
+(bernstein_polynomial ℝ n ν).as_continuous_map_on I
 
 @[simp] lemma bernstein_apply (n ν : ℕ) (x : I) :
   bernstein n ν x = n.choose ν * x^ν * (1-x)^(n-ν) :=
 begin
-  dsimp [bernstein, bernstein', bernstein_polynomial],
+  dsimp [bernstein, polynomial.as_continuous_map_on, polynomial.as_continuous_map,
+    bernstein_polynomial],
   simp,
 end
 
@@ -160,6 +74,10 @@ begin
     (mul_nonneg (nat.cast_nonneg _) (pow_nonneg (by unit_interval) _))
     (pow_nonneg (by unit_interval) _),
 end
+
+/-!
+We now give a slight reformulation of `bernstein_polynomial.variance`.
+-/
 
 namespace bernstein
 
@@ -223,6 +141,17 @@ given by `∑ k, f (k/n) * bernstein n k x`.
 -/
 def bernstein_approximation (n : ℕ) (f : C(I, ℝ)) : C(I, ℝ) :=
 ∑ k : fin (n+1), f k/ₙ • bernstein n k
+
+/-!
+We now set up some of the basic machinery of the proof that the Bernstein approximations
+converge uniformly.
+
+A key player is the set `S f ε h n x`,
+for some function `f : C(I, ℝ)`, `h : 0 < ε`, `n : ℕ` and `x : I`.
+This is the set of points `k` in `fin (n+1)` such that `f(k/n)` is within `ε/2` of `f x`.
+
+We show that if `k ∉ S`, then `1 ≤ δ^-2 * (x - k/n)^2`.
+-/
 
 namespace bernstein_approximation
 
@@ -290,7 +219,8 @@ begin
   have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),
   have w₂ : 0 ≤ 2 * ∥f∥ * δ^(-2 : ℤ) := mul_nonneg w₁ pow_minus_two_nonneg,
   -- As `[0,1]` is compact, it suffices to check the inequality pointwise.
-  apply bounded_continuous_function.norm_lt_of_compact,
+  rw (continuous_map.norm_lt_iff_of_compact _ h),
+  swap, apply_instance, -- FIXME why isn't this found by `apply` in the line above?
   intro x,
   -- The idea is to split up the sum over `k` into two sets,
   -- `S`, where `x - k/n < δ`, and its complement.
@@ -324,7 +254,7 @@ begin
                                       bernstein_nonneg))
       ... = ε/2 * ∑ k in S, bernstein n k x
                                 : by rw finset.mul_sum
-      -- In this step we increase the sum of `S` back to a sum over all of `fin (n+1)`,
+      -- In this step we increase the sum over `S` back to a sum over all of `fin (n+1)`,
       -- so that we can use `bernstein.probability`.
       ... ≤ ε/2 * ∑ k : fin (n+1), bernstein n k x
                                 : mul_le_mul_of_nonneg_left
@@ -364,8 +294,8 @@ begin
       ... ≤ (2 * ∥f∥) * δ^(-2 : ℤ) / n
                                 : (div_le_div_right npos).mpr
                                   begin
-                                    apply mul_unit_interval_le w₂,
-                                    apply mul_unit_interval_le w₂ (le_refl _),
+                                    apply mul_nonneg_le_one_le w₂,
+                                    apply mul_nonneg_le_one_le w₂ (le_refl _),
                                     all_goals { unit_interval, },
                                   end
       ... < ε/2 : nh,

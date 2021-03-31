@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import topology.continuous_function.bounded
 import analysis.normed_space.linear_isometry
+import topology.uniform_space.compact_separated
 import tactic.equiv_rw
 
 /-!
@@ -27,11 +28,11 @@ open_locale topological_space classical nnreal bounded_continuous_function
 
 open set filter metric
 
-variables (α : Type*) (β : Type*) [topological_space α] [compact_space α] [normed_group β]
-
 open bounded_continuous_function
 
 namespace continuous_map
+
+variables (α : Type*) (β : Type*) [topological_space α] [compact_space α] [normed_group β]
 
 /--
 When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
@@ -68,6 +69,36 @@ metric_space.induced
   (equiv_bounded_of_compact α β).injective
   (by apply_instance)
 
+section
+variables {α β} (f g : C(α, β)) {C : ℝ}
+
+/-- The distance between two functions is controlled by the supremum of the pointwise distances -/
+lemma dist_le (C0 : (0 : ℝ) ≤ C) : dist f g ≤ C ↔ ∀x:α, dist (f x) (g x) ≤ C :=
+@bounded_continuous_function.dist_le  _ _ _ _
+  ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ C0
+
+lemma dist_le_of_nonempty [nonempty α] :
+  dist f g ≤ C ↔ ∀ x, dist (f x) (g x) ≤ C :=
+@bounded_continuous_function.dist_le_of_nonempty  _ _ _ _
+  ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _
+
+lemma dist_lt_of_nonempty_compact [nonempty α] [compact_space α]
+  (w : ∀x:α, dist (f x) (g x) < C) : dist f g < C :=
+@bounded_continuous_function.dist_lt_of_nonempty_compact  _ _ _ _
+  ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _ _ w
+
+lemma dist_lt_iff_of_compact [compact_space α] (C0 : (0 : ℝ) < C) :
+  dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
+@bounded_continuous_function.dist_lt_iff_of_compact  _ _ _ _
+  ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _ C0
+
+lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
+  dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
+@bounded_continuous_function.dist_lt_iff_of_nonempty_compact  _ _ _ _
+  ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _ _
+
+end
+
 variables (α β)
 
 /--
@@ -96,6 +127,35 @@ instance : normed_group C(α,β) :=
     convert p,
     exact ((add_equiv_bounded_of_compact α β).symm.map_sub _ _).symm,
   end, }
+
+section
+variables {α β} (f : C(α, β))
+-- The corresponding lemmas for `bounded_continuous_function` are stated with `{f}`,
+-- and so can not be used in dot notation.
+
+/-- Distance between the images of any two points is at most twice the norm of the function. -/
+lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ∥f∥ :=
+((equiv_bounded_of_compact α β) f).dist_le_two_norm x y
+
+/-- The norm of a function is controlled by the supremum of the pointwise norms -/
+lemma norm_le {C : ℝ} (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
+@bounded_continuous_function.norm_le _ _ _ _
+  ((equiv_bounded_of_compact α β) f) _ C0
+
+lemma norm_le_of_nonempty [nonempty α] {M : ℝ} : ∥f∥ ≤ M ↔ ∀ x, ∥f x∥ ≤ M :=
+@bounded_continuous_function.norm_le_of_nonempty _ _ _ _ _
+  ((equiv_bounded_of_compact α β) f) _
+
+lemma norm_lt_iff_of_compact [compact_space α] {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
+@bounded_continuous_function.norm_lt_iff_of_compact _ _ _ _ _
+  ((equiv_bounded_of_compact α β) f) _ M0
+
+lemma norm_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] {M : ℝ} :
+  ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
+@bounded_continuous_function.norm_lt_iff_of_nonempty_compact _ _ _ _ _ _
+  ((equiv_bounded_of_compact α β) f) _
+
+end
 
 section
 variables {R : Type*} [normed_ring R]
@@ -153,5 +213,42 @@ lemma linear_isometry_bounded_of_compact_of_compact_to_equiv :
 rfl
 
 end
+
+end continuous_map
+
+namespace continuous_map
+
+section uniform_continuity
+variables {α β : Type*}
+variables [metric_space α] [compact_space α] [metric_space β]
+
+/-!
+We now set up some declarations making it convenient to use uniform continuity.
+-/
+
+lemma uniform_continuity
+  (f : C(α, β)) (ε : ℝ) (h : 0 < ε) :
+  ∃ δ > 0, ∀ {x y}, dist x y < δ → dist (f x) (f y) < ε :=
+metric.uniform_continuous_iff.mp
+  (compact_space.uniform_continuous_of_continuous f.continuous) ε h
+
+/--
+An arbitrarily chosen modulus of uniform continuity for a given function `f` and `ε > 0`.
+-/
+-- This definition allows us to separate the choice of some `δ`,
+-- and the corresponding use of `dist a b < δ → dist (f a) (f b) < ε`,
+-- even across different declarations.
+def modulus (f : C(α, β)) (ε : ℝ) (h : 0 < ε) : ℝ :=
+classical.some (uniform_continuity f ε h)
+
+lemma modulus_pos (f : C(α, β)) {ε : ℝ} {h : 0 < ε} : 0 < f.modulus ε h :=
+classical.some (classical.some_spec (uniform_continuity f ε h))
+
+lemma dist_lt_of_dist_lt_modulus
+  (f : C(α, β)) (ε : ℝ) (h : 0 < ε) {a b : α} (w : dist a b < f.modulus ε h) :
+  dist (f a) (f b) < ε :=
+classical.some_spec (classical.some_spec (uniform_continuity f ε h)) w
+
+end uniform_continuity
 
 end continuous_map

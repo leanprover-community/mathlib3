@@ -21,7 +21,7 @@ property with respect to arrows in a given diagram.
 - `right_lifting_property_initial_iff`: spells out the rlp with respect to a map whose source is an
 initial object
 - `right_lifting_subcat`: given a set of arrows `F : D → arrow C`, we construct the subcategory
-of those morphisms `p` in `C` that satisfy the rlp w.r.t. `F i`, for any element `i` of `D`.
+  of those morphisms `p` in `C` that satisfy the rlp w.r.t. `F i`, for any element `i` of `D`.
 
 ## Tags
 lifting property
@@ -59,7 +59,7 @@ lemma iso_has_right_lifting_property (i : arrow C) (p : X ≅ Y) :
 
 /-- Any identity has the right lifting property with respect to any map. -/
 lemma id_has_right_lifting_property (i : arrow C) : has_lifting_property i (arrow.mk (𝟙 X)) :=
-  iso_has_right_lifting_property i (iso.refl _)
+iso_has_right_lifting_property i (iso.refl _)
 
 /-- An equivalent characterization for right lifting with respect to a map `i` whose source is
 initial.
@@ -67,8 +67,7 @@ initial.
 ↓   ↓
 B → Y has a lifting iff there is a map B → X making the right part commute.
 -/
-lemma right_lifting_property_initial_iff (i p : arrow C)
-  (h : is_initial i.left) :
+lemma right_lifting_property_initial_iff (i p : arrow C) (h : is_initial i.left) :
   has_lifting_property i p ↔ ∀ {e : i.right ⟶ p.right}, ∃ l : i.right ⟶ p.left, l ≫ p.hom = e :=
 begin
   fsplit,
@@ -97,9 +96,9 @@ lemma has_right_lifting_property_comp {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
 underlying category. -/
 def right_lifting_subcat (R : Type u) := R
 
-instance right_lifting_subcat.inhabited  (R : Type u) [h : inhabited R]: inhabited
-  (right_lifting_subcat R) :=
-{ default := h.default }
+instance right_lifting_subcat.inhabited  (R : Type u) [inhabited R] :
+  inhabited (right_lifting_subcat R) :=
+{ default := (default R : R) }
 
 /-- The objects of the subcategory `right_lifting_subcategory` are the ones in the
 underlying category. -/
@@ -120,10 +119,8 @@ we construct the (non-full) subcategory of `C`
 spanned by those morphisms that have the right lifting property relative to all maps
 of the form `F i`, where `i` is any element in `D`. -/
 def right_lifting_subcategory (F : D → arrow C) : category (right_lifting_subcat C) :=
-{ hom := λ X Y, { p : X ⟶ Y //
-    ∀ {i : D}, has_lifting_property (F i) (arrow.mk p) },
+{ hom := λ X Y, { p : X ⟶ Y // ∀ {i : D}, has_lifting_property (F i) (arrow.mk p) },
   id := λ X, ⟨𝟙 X, id_has_right_lifting_property' X⟩,
-  comp := λ X Y Z f g, ⟨f.val ≫ g.val,
-    begin intro i, apply has_right_lifting_property_comp' f.property g.property end⟩ }
+  comp := λ X Y Z f g, ⟨f.val ≫ g.val, has_right_lifting_property_comp' f.property g.property⟩ }
 
 end category_theory

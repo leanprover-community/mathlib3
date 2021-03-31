@@ -471,6 +471,32 @@ begin
     (swap_mul_swap_same_mem_closure_three_cycles (ne.symm ac) cd),
 end
 
+@[simp]
+theorem closure_three_cycles_eq_alternating :
+  closure {σ : perm α | is_three_cycle σ} = alternating_subgroup α :=
+closure_eq_of_le _ (λ σ hσ, mem_alternating_subgroup.2 hσ.sign) $ λ σ hσ, begin
+  suffices hind : ∀ (n : ℕ) (l : list (perm α)) (hl : ∀ g, g ∈ l → is_swap g)
+    (hn : l.length = 2 * n), l.prod ∈ closure {σ : perm α | is_three_cycle σ},
+  { obtain ⟨l, rfl, hl⟩ := trunc_swap_factors σ,
+    rw [mem_alternating_subgroup, sign_prod_list_swap hl, ← units.coe_eq_one,
+      units.coe_pow, units.coe_neg_one,
+      nat.neg_one_pow_eq_one_iff_even (int.neg_ne_of_pos zero_lt_one zero_lt_one)] at hσ,
+    obtain ⟨n, hn⟩ := hσ,
+    exact hind n l hl hn },
+  intro n,
+  induction n with n ih; intros l hl hn,
+  { simp [list.length_eq_zero.1 hn, one_mem] },
+  rw [nat.mul_succ] at hn,
+  obtain ⟨a, l, rfl⟩ := l.exists_of_length_succ hn,
+  rw [list.length_cons, nat.succ_inj'] at hn,
+  obtain ⟨b, l, rfl⟩ := l.exists_of_length_succ hn,
+  rw [list.prod_cons, list.prod_cons, ← mul_assoc],
+  rw [list.length_cons, nat.succ_inj'] at hn,
+  exact mul_mem _ (is_swap.mul_mem_closure_three_cycles (hl a (list.mem_cons_self a _))
+    (hl b (list.mem_cons_of_mem a (l.mem_cons_self b))))
+    (ih _ (λ g hg, hl g (list.mem_cons_of_mem _ (list.mem_cons_of_mem _ hg))) hn),
+end
+
 end is_three_cycle
 
 end equiv.perm

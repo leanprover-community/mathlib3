@@ -1544,9 +1544,9 @@ lemma is_simple_group_of_surjective {H : Type*} [group H] [is_simple_group G]
   [nontrivial H] (f : G →* H) (hf : function.surjective f) :
   is_simple_group H :=
 ⟨nontrivial.exists_pair_ne, λ H iH, begin
-  cases ((iH.comap f).eq_bot_or_eq_top),
-  { left, rw [←map_bot f, ←h, map_comap_eq_self_of_surjective hf] },
-  right, rw [←comap_top f] at h, exact comap_injective hf h,
+  refine ((iH.comap f).eq_bot_or_eq_top).imp (λ h, _) (λ h, _),
+  { rw [←map_bot f, ←h, map_comap_eq_self_of_surjective hf] },
+  { rw [←comap_top f] at h, exact comap_injective hf h }
 end⟩
 
 end is_simple_group

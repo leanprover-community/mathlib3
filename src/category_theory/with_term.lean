@@ -22,8 +22,7 @@ The inclusion from `C` intro `with_term C` resp. `with_init C` is denoted
 
 The relevant constructions needed for the universal properties of these constructions are:
 1. `lift`, which lifts `F : C ⥤ D` to a functor from `with_term C` resp. `with_init C` in
-  the case where the user provides an object `Z : D` with an associated `is_terminal Z`
-  resp. `is_initial Z`.
+  the case where an object `Z : D` is provided satisfying some additional conditions.
 2. `incl_lift` shows that the composition of `lift` with `incl` is isomorphic to the
   functor which was lifted.
 3. `lift_unique` provides the uniqueness property of `lift`.
@@ -121,7 +120,8 @@ limits.is_terminal.of_unique _
 
 /-- Lift a functor `F : C ⥤ D` to `with_term C ⥤ D`, given a terminal object of `D`. -/
 @[simps]
-def lift {D : Type*} [category D] {Z : D} (hZ : limits.is_terminal Z) (F : C ⥤ D) :
+def lift {D : Type*} [category D] {Z : D} (F : C ⥤ D) (M : Π (x : C), F.obj x ⟶ Z)
+  (hM : ∀ (x y : C) (f : x ⟶ y), F.map f ≫ M y = M x) :
   (with_term C) ⥤ D :=
 { obj := λ X,
     match X with
@@ -131,59 +131,57 @@ def lift {D : Type*} [category D] {Z : D} (hZ : limits.is_terminal Z) (F : C ⥤
   map := λ X Y f,
     match X, Y, f with
     | of x, of y, f := F.map f
-    | of x, star, punit.star := hZ.from _
-    | star, star, punit.star := hZ.from _
+    | of x, star, punit.star := M x
+    | star, star, punit.star := 𝟙 Z
     end,
-  map_id' := begin
-    rintros (X|X),
-    apply F.map_id,
-    apply hZ.hom_ext,
-  end,
-  map_comp' := begin
-    rintros (X|X) (Y|Y) (Z|Z) f g,
-    any_goals {apply hZ.hom_ext},
-    tidy,
-  end }
+  map_id' := by {rintros (X|X), tidy},
+  map_comp' := by {rintros (X|X) (Y|Y) (Z|Z) f g, tidy}, }
 
-/-- The isomorphism between `incl ⋙ lift _ F` with `F`. -/
+/-- The isomorphism between `incl ⋙ lift F _` with `F`. -/
 @[simps]
-def incl_lift {D : Type*} [category D] {Z : D} (hZ : limits.is_terminal Z) (F : C ⥤ D) :
-  incl ⋙ lift hZ F ≅ F :=
+def incl_lift {D : Type*} [category D] {Z : D} (F : C ⥤ D) (M : Π (x : C), F.obj x ⟶ Z)
+  (hM : ∀ (x y : C) (f : x ⟶ y), F.map f ≫ M y = M x) :
+  incl ⋙ lift F M hM ≅ F :=
 { hom := { app := λ X, 𝟙 _ },
   inv := { app := λ X, 𝟙 _ } }
 
-/-- The uniqueness of `lift _ F`. -/
+/-- The isomorphism between `(lift F _).obj with_term.star` with `Z`. -/
 @[simps]
-def lift_unique {D : Type*} [category D] {Z : D} (hZ : limits.is_terminal Z) (F : C ⥤ D)
-  (G : with_term C ⥤ D) (h : incl ⋙ G ≅ F) (hG : G.obj star ≅ Z) : G ≅ lift hZ F :=
-{ hom :=
-  { app := λ X,
-      match X with
-      | of x := h.hom.app x
-      | star := hG.hom
-      end,
-    naturality' := begin
-      rintros (X|X) (Y|Y) f,
-      any_goals {apply hZ.hom_ext},
-      apply h.hom.naturality,
-      cases f,
-    end },
-  inv :=
-  { app := λ X,
-      match X with
-      | of x := h.symm.hom.app x
-      | star := hG.symm.hom
-      end,
-    naturality' := begin
-      rintros (X|X) (Y|Y) f,
-      any_goals {apply (limits.is_terminal.of_iso hZ hG.symm).hom_ext},
-      apply h.symm.hom.naturality,
-      cases f,
-    end },
-  hom_inv_id' := by {ext (X|X), tidy},
-  inv_hom_id' := by {ext (X|X), tidy} }
+def lift_star {D : Type*} [category D] {Z : D} (F : C ⥤ D) (M : Π (x : C), F.obj x ⟶ Z)
+  (hM : ∀ (x y : C) (f : x ⟶ y), F.map f ≫ M y = M x) :
+  (lift F M hM).obj star ≅ Z := eq_to_iso rfl
 
-end with_term
+@[simp]
+lemma lift_map_lift_star {D : Type*} [category D] {Z : D} (F : C ⥤ D) (M : Π (x : C), F.obj x ⟶ Z)
+  (hM : ∀ (x y : C) (f : x ⟶ y), F.map f ≫ M y = M x) (x : C) :
+  (lift F M hM).map (star_terminal.from (incl.obj x)) ≫ (lift_star F M hM).hom =
+  (incl_lift F M hM).hom.app x ≫ M x :=
+begin
+  erw [category.id_comp, category.comp_id],
+  refl,
+end
+
+/-- The uniqueness of `lift`. -/
+@[simps]
+def lift_unique {D : Type*} [category D] {Z : D} (F : C ⥤ D)
+  (M : Π (x : C), F.obj x ⟶ Z) (hM : ∀ (x y : C) (f : x ⟶ y), F.map f ≫ M y = M x)
+  (G : with_term C ⥤ D) (h : incl ⋙ G ≅ F) (hG : G.obj star ≅ Z)
+  (hh : ∀ x : C, G.map (star_terminal.from (incl.obj x)) ≫ hG.hom = h.hom.app x ≫ M x) :
+  G ≅ lift F M hM :=
+nat_iso.of_components (λ X,
+  match X with
+  | of x := h.app x
+  | star := hG
+  end)
+begin
+  rintro (X|X) (Y|Y) f,
+  { apply h.hom.naturality },
+  { cases f, exact hh _ },
+  { cases f, },
+  { cases f,
+    change G.map (𝟙 _) ≫ hG.hom = hG.hom ≫ 𝟙 _,
+    simp }
+end
 
 namespace with_init
 

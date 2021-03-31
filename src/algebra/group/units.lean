@@ -292,8 +292,8 @@ noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
 classical.some h
 
 @[to_additive]
-noncomputable def is_unit.equiv (M : Type*) [monoid M] : equiv {a : M | is_unit a} (units M) :=
-equiv.symm $ equiv.of_injective _ units.ext
+noncomputable def is_unit.subtype_equiv (M : Type*) [monoid M] : subtype (is_unit : M → Prop) ≃ (units M) :=
+(equiv.of_injective _ units.ext).symm
 
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 classical.some_spec h

@@ -349,6 +349,13 @@ by simp [biproduct.components]
   biproduct.matrix (λ j k, biproduct.components m j k) = m :=
 by { ext, simp [biproduct.components], }
 
+/-- Morphisms between direct sums are matrices. -/
+def biproduct.matrix_equiv : (⨁ f ⟶ ⨁ g) ≃ (Π j k, f j ⟶ g k) :=
+{ to_fun := biproduct.components,
+  inv_fun := biproduct.matrix,
+  left_inv := biproduct.components_matrix,
+  right_inv := λ m, by { ext, apply biproduct.matrix_components } }
+
 end
 
 instance biproduct.ι_mono (f : J → C) [has_biproduct f]

@@ -128,10 +128,8 @@ def map_biproduct {J : Type v} [fintype J] [decidable_eq J] (f : J → C) [has_b
   inv_hom_id' :=
   begin
     ext j j',
-    dsimp,
-    simp_rw [category.comp_id,  category.assoc, biproduct.lift_π, biproduct.ι_desc_assoc,
-      ←F.map_comp, biproduct.ι_π, F.map_dite],
-    simp only [dif_ctx_congr, eq_to_hom_map, F.map_zero],
+    simp only [category.comp_id,  category.assoc, biproduct.lift_π, biproduct.ι_desc_assoc,
+      ←F.map_comp, biproduct.ι_π, F.map_dite, dif_ctx_congr, eq_to_hom_map, F.map_zero],
   end }
 
 end

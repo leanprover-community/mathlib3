@@ -656,7 +656,7 @@ lemma coe_comap (K : subgroup N) (f : G →* N) : (K.comap f : set G) = f ⁻¹'
 lemma mem_comap {K : subgroup N} {f : G →* N} {x : G} : x ∈ K.comap f ↔ f x ∈ K := iff.rfl
 
 @[simp, to_additive]
-lemma comap_mono {f : G →* H} {K K' : subgroup H} : K ≤ K' → comap f K ≤ comap f K' :=
+lemma comap_mono {f : G →* N} {K K' : subgroup N} : K ≤ K' → comap f K ≤ comap f K' :=
 preimage_mono
 
 @[to_additive]
@@ -682,7 +682,7 @@ lemma mem_map {f : G →* N} {K : subgroup G} {y : N} :
 mem_image_iff_bex
 
 @[simp, to_additive]
-lemma map_mono {f : G →* H} {K K' : subgroup G} : K ≤ K' → map f K ≤ map f K' :=
+lemma map_mono {f : G →* N} {K K' : subgroup G} : K ≤ K' → map f K ≤ map f K' :=
 image_subset _
 
 @[to_additive]
@@ -1193,6 +1193,30 @@ end
 @[to_additive]
 lemma map_eq_bot_iff_of_injective {f : G →* N} (hf : function.injective f) : H.map f = ⊥ ↔ H = ⊥ :=
 by rw [map_eq_bot_iff, f.ker_eq_bot_iff.mpr hf, le_bot_iff]
+
+end subgroup
+
+namespace subgroup
+
+open monoid_hom
+
+variables {H : Type*} [group H] {f : G →* H}
+
+lemma map_le_range {K : subgroup G} : map f K ≤ f.range :=
+(monoid_hom.range_eq_map f).symm ▸ map_mono le_top
+
+variable (f)
+lemma map_comap_le (K : subgroup H) : map f (comap f K) ≤ K :=
+(gc_map_comap f).l_u_le _
+
+lemma map_comap_eq (K : subgroup H) :
+  map f (comap f K) = f.range ⊓ K :=
+le_antisymm (le_inf map_le_range $ map_comap_le _ _) $
+λ x hx, begin
+  simp only [exists_prop, mem_map, mem_comap],
+  rcases mem_range.mp (mem_inf.mp hx).1 with ⟨y, rfl⟩,
+  use [y, (mem_inf.mp hx).2],
+end
 
 end subgroup
 

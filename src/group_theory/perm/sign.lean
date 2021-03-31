@@ -214,7 +214,7 @@ variable [fintype α]
 def support (f : perm α) : finset α := univ.filter (λ x, f x ≠ x)
 
 @[simp] lemma mem_support {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x :=
-rw [support, mem_filter, and_iff_right (mem_univ x)]
+by rw [support, mem_filter, and_iff_right (mem_univ x)]
 
 @[simp] lemma support_eq_empty_iff {σ : perm α} : σ.support = ∅ ↔ σ = 1 :=
 by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_not,
@@ -246,19 +246,9 @@ lemma support_pow_le (σ : perm α) (n : ℤ) :
   (σ ^ n).support ≤ σ.support :=
 λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
 
-@[simp]
-lemma support_inv (σ : perm α) : support (σ⁻¹) = σ.support :=
-begin
-  ext,
-  rw [mem_support, mem_support, ne.def, ne.def, not_congr],
-  split,
-  { intro h,
-    have h' := apply_inv_self σ a,
-    rwa h at h' },
-  { intro h,
-    have h' := inv_apply_self σ a,
-    rwa h at h' },
-end
+@[simp] lemma support_inv (σ : perm α) : support (σ⁻¹) = σ.support :=
+by simp_rw [finset.ext_iff, mem_support, not_iff_not,
+  (inv_eq_iff_eq).trans eq_comm, iff_self, imp_true_iff]
 
 @[simp]
 lemma apply_mem_support {f : perm α} {x : α} :
@@ -875,6 +865,10 @@ begin
   change (∀ x, f x = x ∨ g x = x) ↔ (∀ x, x ∉ (f.support ∩ g.support)),
   simp_rw [finset.mem_inter, not_and_distrib, mem_support, not_not],
 end
+
+lemma disjoint.disjoint_support (h : disjoint f g) :
+  _root_.disjoint f.support g.support :=
+disjoint_iff_disjoint_support.1 h
 
 lemma disjoint.support_mul (h : disjoint f g) :
   (f * g).support = f.support ∪ g.support :=

@@ -264,8 +264,7 @@ begin
   { simp only [true_and, mem_range, mem_inf, exists_apply_eq_apply],
     use -z,
     rwa [eq_comm, map_neg, ← sub_eq_zero, sub_neg_eq_add] },
-  rw hd.eq_bot at this,
-  simp only [mem_bot] at this,
+  rw [hd.eq_bot, mem_bot] at this,
   rw [this] at h,
   simpa [this] using h,
 end

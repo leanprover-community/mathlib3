@@ -198,6 +198,9 @@ def lift_to_terminal_unique {D : Type*} [category D] {Z : D} (F : C ⥤ D) (hZ :
   G ≅ lift_to_terminal F hZ :=
 lift_unique F (λ z, hZ.from _) (λ x y f, hZ.hom_ext _ _) G h hG (λ x, hZ.hom_ext _ _)
 
+@[simp]
+def hom_from (X : C) : incl.obj X ⟶ star := star_terminal.from _
+
 end with_terminal
 
 namespace with_initial
@@ -352,6 +355,9 @@ def lift_to_initial_unique {D : Type*} [category D] {Z : D} (F : C ⥤ D) (hZ : 
   (G : with_initial C ⥤ D) (h : incl ⋙ G ≅ F) (hG : G.obj star ≅ Z) :
   G ≅ lift_to_initial F hZ :=
 lift_unique F (λ z, hZ.to _) (λ x y f, hZ.hom_ext _ _) G h hG (λ x, hZ.hom_ext _ _)
+
+@[simp]
+def hom_to (X : C) : star ⟶ incl.obj X := star_initial.to _
 
 end with_initial
 

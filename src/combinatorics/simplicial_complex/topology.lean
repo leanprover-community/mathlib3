@@ -22,7 +22,14 @@ local notation `E` := fin m → ℝ
 The underlying space of a simplicial complex.
 -/
 def simplicial_complex.space (S : simplicial_complex m) : set E :=
-⋃ X ∈ S.faces, convex_hull (X : set E)
+  ⋃ X ∈ S.faces, convex_hull (X : set E)
+
+lemma mem_space_iff {S : simplicial_complex m} {x : E} :
+  x ∈ S.space ↔ ∃ X ∈ S.faces, x ∈ convex_hull (X : set E) :=
+begin
+  unfold simplicial_complex.space,
+  rw mem_bUnion_iff,
+end
 
 lemma empty_space_of_empty_simplicial_complex (m : ℕ) : (empty_simplicial_complex m).space = ∅ :=
 begin
@@ -151,7 +158,7 @@ convex_hull X \ combi_frontier X
 example {p q : Prop} : (p → ¬q) → q → ¬p :=
 function.swap
 
-lemma combi_interior_eq (X : finset E) :
+lemma combi_interior_eq {X : finset E} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
   combi_interior X =
     {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ X, 0 < w y) (hw₁ : ∑ y in X, w y = 1),
       X.center_mass w id = x} :=
@@ -166,8 +173,10 @@ begin
   { simp only [not_exists, and_imp, not_and, mem_set_of_eq, mem_diff, exists_imp_distrib],
     intros w hw₁ hw₂ hw₃,
     refine ⟨⟨w, λ y hy, le_of_lt (hw₁ y hy), hw₂, hw₃⟩, _⟩,
-    intros w' hw'₁ hw'₂ y hy₁ hy₂,
-    sorry }
+    intros w' hw'₁ hw'₂ y hy₁ hy₂ hw'₃,
+    have hww' : w = w' := sorry,
+    rw ← hww' at hy₂,
+    exact ne_of_gt (hw₁ y hy₁) hy₂,}
 end
 
 lemma combi_frontier_subset_convex_hull {X : finset E} : combi_frontier X ⊆ convex_hull X :=
@@ -176,6 +185,12 @@ lemma combi_frontier_subset_convex_hull {X : finset E} : combi_frontier X ⊆ co
 lemma convex_hull_eq_interior_union_combi_frontier (X : finset E) :
   convex_hull ↑X = combi_interior X ∪ combi_frontier X :=
 (sdiff_union_of_subset combi_frontier_subset_convex_hull).symm
+
+lemma convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior {X Y : finset E} :
+  combi_interior X ⊆ combi_interior Y → convex_hull (X : set E) ⊆ convex_hull (Y : set E) :=
+begin
+  sorry
+end
 
 lemma disjoint_interiors {S : simplicial_complex m} {X Y : finset E}
   (hX : X ∈ S.faces) (hY : Y ∈ S.faces) (x : E) :
@@ -366,6 +381,53 @@ def subdivision_order : partial_order (simplicial_complex m) :=
     exact ⟨λ hX, aux_lemma h₁ h₂ hX, λ hX, aux_lemma h₂ h₁ hX⟩,
   end}
 
+lemma subdivision_iff_partitionable {S₁ S₂ : simplicial_complex m} (hS₂ : S₂.faces.nonempty) :
+  S₁ ≤ S₂ ↔ S₁.space = S₂.space ∧ ∀ {X₂}, X₂ ∈ S₂.faces →
+  ∃ {F}, F ⊆ S₁.faces ∧ combi_interior X₂ = ⋃ (X₁ ∈ F), combi_interior X₁ :=
+begin
+  split,
+  {
+    sorry --hard part
+  },
+  {
+    rintro ⟨hspace, hpartition⟩,
+    use hspace,
+    rintro X₁ hX₁,
+    cases finset.eq_empty_or_nonempty X₁ with hX₁empty hX₁nonempty,
+    { subst hX₁empty,
+      obtain ⟨X₂, hX₂⟩ := hS₂,
+      use [X₂, hX₂],
+      simp },
+    obtain ⟨x, hx⟩ := hX₁nonempty,
+    have hxspace := mem_space_iff.2 ⟨X₁, hX₁, subset_convex_hull X₁ hx⟩,
+    rw [hspace, interiors_cover, mem_bUnion_iff] at hxspace,
+    obtain ⟨X₂, hX₂, hXhull⟩ := hxspace,
+    use [X₂, hX₂],
+    suffices h : (X₁ : set E) ⊆ convex_hull ↑X₂,
+    {
+      sorry
+    },
+    rintro x' (hx' : x' ∈ X₁),
+    have hxspace := mem_space_iff.2 ⟨X₁, hX₁, subset_convex_hull X₁ hx'⟩,
+    rw [hspace, interiors_cover, mem_bUnion_iff] at hxspace,
+    obtain ⟨X₂', hX₂', hXhull'⟩ := hxspace,
+    suffices hX₂X₂' : X₂ = X₂',
+    {
+      rw hX₂X₂',
+      exact hXhull'.1,
+    },
+    obtain ⟨F, hF, hinterior⟩ := hpartition hX₂,
+    obtain ⟨F', hF', hinterior'⟩ := hpartition hX₂',
+    rw [hinterior, mem_bUnion_iff] at hXhull,
+    rw [hinterior', mem_bUnion_iff] at hXhull',
+    obtain ⟨Y, hY, hYint⟩ := hXhull,
+    obtain ⟨Y', hY', hYint'⟩ := hXhull',
+    --have := disjoint_interiors (hF hY) (hF' hY') x (mem_inter hYint hY'int),
+    sorry
+    }
+  }
+end
+
 lemma subdivision_refinement {S₁ S₂ : simplicial_complex m} (hS : S₁ ≤ S₂) :
   ∀ {X₁}, X₁ ∈ S₁.faces → ∃ {X₂}, X₂ ∈ S₂.faces ∧ combi_interior X₁ ⊆ combi_interior X₂ :=
 begin
@@ -382,7 +444,8 @@ begin
   },
   {
     rintro X₁ ⟨Y₁, Z₁, hY₁, hZ₁, hX₁Y₁, hY₁Z₁, hZ₁max⟩,
-    obtain ⟨X₂, hX₂, hX₁X₂⟩ := hS.2 (S₁.down_closed hY₁ hX₁Y₁),
+    obtain ⟨X₂, hX₂, hX₁X₂⟩ := subdivision_refinement hS (S₁.down_closed hY₁ hX₁Y₁),
+    use X₂,
     obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := hS.2 hY₁,
     obtain ⟨Z₂, hZ₂, hZ₁Z₂⟩ := hS.2 hZ₁,
     use Y₂,
@@ -476,7 +539,7 @@ is pure of dimension `n` and has the same underlying space.
 -/
 @[ext] structure polytope (m n : ℕ) :=
 (space : set (fin m → ℝ))
-(realisable : ∃ {S : simplicial_complex m}, S.pure ∧ space = S.space)
+(realisable : ∃ {S : simplicial_complex m}, S.pure_of n ∧ space = S.space)
 
 def polytope.vertices (P : polytope m n) : set (fin m → ℝ) :=
   ⋂ (S : simplicial_complex m) (H : P.space = S.space), {x | {x} ∈ S.faces}
@@ -487,10 +550,8 @@ def polytope.edges (P : polytope m n) : set (finset (fin m → ℝ)) :=
 noncomputable def polytope.realisation (P : polytope m n) :
   simplicial_complex m := classical.some P.realisable
 
-lemma pure_polytope_realisation (P : polytope m n) : P.realisation.pure :=
-begin
-  sorry --trivial by definition but I don't know how to do it
-end
+lemma pure_polytope_realisation (P : polytope m n) : P.realisation.pure_of n :=
+  (classical.some_spec P.realisable).1
 
 --def polytope.faces {n : ℕ} (P : polytope m n) : set (finset (fin m → ℝ)) :=
 --  P.realisation.boundary.faces
@@ -519,6 +580,9 @@ end
 
 noncomputable def polytope.triangulation_of_convex {P : polytope m n} (hP : convex P.space) :
   simplicial_complex m := classical.some (polytope.triangulable_of_convex hP)
+
+/-lemma convex_polytope_iff_intersection_of_half_spaces {space : set E} {n : ℕ} :
+  ∃ {S : simplicial_complex m}, S.pure ∧ space = S.space ↔ ∃ half spaces and stuff-/
 
 --def simplicial_complex.nonsingular (S : simplicial_complex m) {X : finset (fin m → ℝ)} : Prop :=
 --  homeomorph (S.link {X}).space (metric.ball (0 : E) 1)

@@ -1184,11 +1184,11 @@ add_monoid_hom.ext $ map_range_comp _ _ _ _ _
 
 lemma map_range_multiset_sum (f : M →+ N) (m : multiset (α →₀ M)) :
   map_range f f.map_zero m.sum = (m.map $ λx, map_range f f.map_zero x).sum :=
-(m.sum_hom (map_range.add_monoid_hom f)).symm
+(map_range.add_monoid_hom f : (α →₀ _) →+ _).map_multiset_sum _
 
 lemma map_range_finset_sum (f : M →+ N) (s : finset ι) (g : ι → (α →₀ M))  :
   map_range f f.map_zero (∑ x in s, g x) = ∑ x in s, map_range f f.map_zero (g x) :=
-by rw [finset.sum.equations._eqn_1, map_range_multiset_sum, multiset.map_map]; refl
+(map_range.add_monoid_hom f : (α →₀ _) →+ _).map_sum _ _
 
 end map_range
 

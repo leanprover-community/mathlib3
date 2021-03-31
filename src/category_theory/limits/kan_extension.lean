@@ -120,7 +120,6 @@ def equiv (F : S ⥤ D) [∀ x, has_limit (diagram ι F x)] (G : L ⥤ D) :
     dsimp only [cone],
     rw limit.lift_π,
     simp only [nat_trans.naturality_assoc, loc_map],
-    congr' 1,
     erw limit.pre_π,
     congr,
     cases j,
@@ -213,13 +212,10 @@ def equiv (F : S ⥤ D) [I : ∀ x, has_colimit (diagram ι F x)] (G : L ⥤ D) 
     dsimp only [whiskering_left],
     simp only [functor.comp_map, category.assoc],
     rw [← f.naturality (ι.map ff), ← category.assoc, ← category.assoc],
+    let fff : costructured_arrow ι _ ⥤ _ := costructured_arrow.map (ι.map ff),
     -- same issue :-(
-    haveI : has_colimit
-      ((costructured_arrow.map (ι.map ff) : costructured_arrow ι _ ⥤ _) ⋙
-      diagram ι F (ι.obj y)) := I _,
-    erw colimit.ι_pre (diagram ι F (ι.obj y)) (costructured_arrow.map (ι.map ff))
-      (costructured_arrow.mk (𝟙 _)),
-    congr' 1,
+    haveI : has_colimit (fff ⋙ diagram ι F (ι.obj y)) := I _,
+    erw colimit.ι_pre (diagram ι F (ι.obj y)) fff (costructured_arrow.mk (𝟙 _)),
     let xx : costructured_arrow ι (ι.obj y) := costructured_arrow.mk (ι.map ff),
     let yy : costructured_arrow ι (ι.obj y) := costructured_arrow.mk (𝟙 _),
     let fff : xx ⟶ yy := costructured_arrow.hom_mk ff

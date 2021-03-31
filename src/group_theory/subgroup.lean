@@ -1253,6 +1253,10 @@ lemma map_comap_eq_self_of_surjective (h : function.surjective f) (K : subgroup 
 map_comap_eq_self ((range_top_of_surjective _ h).symm ▸ le_top)
 
 @[to_additive]
+lemma comap_injective (h : function.surjective f) : function.injective (comap f) :=
+λ K L hKL, by { apply_fun map f at hKL, simpa [map_comap_eq_self_of_surjective h] using hKL }
+
+@[to_additive]
 lemma comap_map_eq_self {K : subgroup G} (h : f.ker ≤ K) :
   comap f (map f K) = K :=
 by rwa [comap_map_eq, sup_eq_left]
@@ -1263,9 +1267,14 @@ lemma comap_map_eq_self_of_injective (h : function.injective f) (K : subgroup G)
 comap_map_eq_self (((ker_eq_bot_iff _).mpr h).symm ▸ bot_le)
 
 @[to_additive]
+lemma map_injective (h : function.injective f) : function.injective (map f) :=
+λ K L hKL, by { apply_fun comap f at hKL, simpa [comap_map_eq_self_of_injective h] using hKL }
+
+@[to_additive]
 lemma map_eq_comap_of_inverse {g : H →* G} (hl : function.left_inverse g f)
   (hr : function.right_inverse g f) (K : subgroup G) : map f K = comap g K :=
 set_like.ext' $ by rw [coe_map, coe_comap, set.image_eq_preimage_of_inverse hl hr]
+
 
 end subgroup
 
@@ -1537,8 +1546,7 @@ lemma is_simple_group_of_surjective {H : Type*} [group H] [is_simple_group G]
 ⟨nontrivial.exists_pair_ne, λ H iH, begin
   cases ((iH.comap f).eq_bot_or_eq_top),
   { left, rw [←map_bot f, ←h, map_comap_eq_self_of_surjective hf] },
-  right, rw [←comap_top f] at h,
-  rw [←map_comap_eq_self_of_surjective hf ⊤, ←h, map_comap_eq_self_of_surjective hf],
+  right, rw [←comap_top f] at h, exact comap_injective hf h,
 end⟩
 
 end is_simple_group

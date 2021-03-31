@@ -81,10 +81,7 @@ sq.w
 in terms of the inverse of `p`. -/
 @[simp] lemma square_to_iso_invert (i : arrow T) {X Y : T} (p : X ≅ Y) (sq : i ⟶ arrow.mk p.hom) :
   i.hom ≫ sq.right ≫ p.inv = sq.left :=
-begin
-  rw ←category.assoc,
-  exact (iso.comp_inv_eq p).mpr ((arrow.w_mk_right sq).symm),
-end
+by simpa only [category.assoc] using (iso.comp_inv_eq p).mpr ((arrow.w_mk_right sq).symm)
 
 /-- Given a square from an isomorphism `i` to an arrow `p`, express the target part of `sq`
 in terms of the inverse of `i`. -/

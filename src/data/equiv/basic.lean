@@ -1782,12 +1782,12 @@ lemma perm.extend_domain_apply_not_subtype {b : β'} (h : ¬ p b) :
   e.extend_domain f b = b :=
 by simp [perm.extend_domain, h]
 
-@[simp] lemma extend_domain_refl : perm.extend_domain (equiv.refl _) f = equiv.refl _ :=
+@[simp] lemma perm.extend_domain_refl : perm.extend_domain (equiv.refl _) f = equiv.refl _ :=
 by simp [perm.extend_domain]
 
-lemma extend_domain_symm : (e.extend_domain f).symm = perm.extend_domain e.symm f := rfl
+lemma perm.extend_domain_symm : (e.extend_domain f).symm = perm.extend_domain e.symm f := rfl
 
-lemma extend_domain_trans (e e' : perm α') :
+lemma perm.extend_domain_trans (e e' : perm α') :
   (e.extend_domain f).trans (e'.extend_domain f) = perm.extend_domain (e.trans e') f :=
 by simp [perm.extend_domain, perm_congr_trans]
 

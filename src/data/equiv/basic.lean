@@ -337,9 +337,9 @@ protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s 
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
 
 @[simp] lemma symm_preimage_eq_image {α β} (e : α ≃ β) (s : set α) : e.symm ⁻¹' s = e '' s :=
-by symmetry; exact equiv.image_eq_preimage e s
+(e.image_eq_preimage s).symm
 
-lemma symm_image_eq_preimage {α β} (e : α ≃ β) (s : set β) : e ⁻¹' s = e.symm '' s :=
+@[simp] lemma symm_image_eq_preimage {α β} (e : α ≃ β) (s : set β) : e.symm '' s = e ⁻¹' s :=
 by conv_lhs {rw [←symm_symm e, symm_preimage_eq_image]}
 
 protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :

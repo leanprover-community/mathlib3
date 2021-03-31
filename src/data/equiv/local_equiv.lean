@@ -714,7 +714,7 @@ namespace function
 /-- A map injective provides a local equivalence. -/
 @[simp, mfld_simps] noncomputable def injective.to_local_equiv [nonempty α] {f : α → β}
   (hf : injective f) : local_equiv α β :=
-hf.inj_on_univ.bij_on_image.to_local_equiv f univ (f '' univ)
+(hf.inj_on univ).bij_on_image.to_local_equiv f univ (f '' univ)
 
 lemma injective_to_local_equiv_apply [nonempty α] {f : α → β} (hf : injective f) (a : α) :
   hf.to_local_equiv a = f a := rfl

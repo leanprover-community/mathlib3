@@ -46,7 +46,7 @@ def function.embedding.to_equiv_range : α ≃ set.range f :=
 by simp [equiv.symm_apply_eq]
 
 lemma function.embedding.to_equiv_range_eq_range :
-  f.to_equiv_range = equiv.set.range f f.injective :=
+  f.to_equiv_range = equiv.of_injective f f.injective :=
 by { ext, simp }
 
 /--

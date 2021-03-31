@@ -435,7 +435,7 @@ lemma nsmul_injective_aux {n m : ℕ} (h : n ≤ m)
 begin
   apply_fun multiplicative.of_add at eq,
   rw [of_add_nsmul, of_add_nsmul] at eq,
-  rw ← order_of_of_add_eq_add_order_of at hn hm,
+  rw ← order_of_of_add_eq_add_order_of at hm,
   exact pow_injective_aux (multiplicative.of_add x) h hm eq,
 end
 
@@ -444,15 +444,15 @@ attribute [to_additive nsmul_injective_aux] pow_injective_aux
 lemma nsmul_injective_of_lt_add_order_of {n m : ℕ}
   (hn : n < add_order_of x) (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=
 (le_total n m).elim
-  (assume h, nsmul_injective_aux x h hn hm eq)
-  (assume h, (nsmul_injective_aux x h hm hn eq.symm).symm)
+  (assume h, nsmul_injective_aux x h hm eq)
+  (assume h, (nsmul_injective_aux x h hn eq.symm).symm)
 
 @[to_additive nsmul_injective_of_lt_add_order_of]
 lemma pow_injective_of_lt_order_of {n m : ℕ}
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 (le_total n m).elim
-  (assume h, pow_injective_aux a h hn hm eq)
-  (assume h, (pow_injective_aux a h hm hn eq.symm).symm)
+  (assume h, pow_injective_aux a h hm eq)
+  (assume h, (pow_injective_aux a h hn eq.symm).symm)
 
 end cancel_monoid
 

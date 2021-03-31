@@ -72,7 +72,7 @@ variable (ι)
 
 /-- An auxiliary definition used to define `Ran`. -/
 @[simps]
-def obj_aux (F : S ⥤ D) [∀ x, has_limits_of_shape (structured_arrow x ι) D] : L ⥤ D :=
+def loc (F : S ⥤ D) [∀ x, has_limit (diagram ι F x)] : L ⥤ D :=
 { obj := λ x, limit (diagram ι F x),
   map := λ x y f, limit.pre (diagram _ _ _) (structured_arrow.map f : structured_arrow _ ι ⥤ _),
   map_id' := begin
@@ -92,14 +92,14 @@ def obj_aux (F : S ⥤ D) [∀ x, has_limits_of_shape (structured_arrow x ι) D]
 
 /-- An auxiliary definition used to define `Ran` and `Ran.adjunction`. -/
 @[simps]
-def equiv [∀ x, has_limits_of_shape (structured_arrow x ι) D] (F : S ⥤ D) (G : L ⥤ D) :
-  (G ⟶ obj_aux ι F) ≃ (((whiskering_left _ _ _).obj ι).obj G ⟶ F) :=
+def equiv (F : S ⥤ D) [∀ x, has_limit (diagram ι F x)] (G : L ⥤ D) :
+  (G ⟶ loc ι F) ≃ (((whiskering_left _ _ _).obj ι).obj G ⟶ F) :=
 { to_fun := λ f,
   { app := λ x, f.app _ ≫ limit.π (diagram ι F (ι.obj x)) (structured_arrow.mk (𝟙 _)),
   naturality' := begin
     intros x y ff,
     dsimp only [whiskering_left],
-    simp only [functor.comp_map, nat_trans.naturality_assoc, obj_aux_map, category.assoc],
+    simp only [functor.comp_map, nat_trans.naturality_assoc, loc_map, category.assoc],
     congr' 1,
     erw limit.pre_π,
     change _ = _ ≫ (diagram ι F (ι.obj x)).map (structured_arrow.hom_mk _ _),
@@ -119,7 +119,7 @@ def equiv [∀ x, has_limits_of_shape (structured_arrow x ι) D] (F : S ⥤ D) (
     ext k j,
     dsimp only [cone],
     rw limit.lift_π,
-    simp only [nat_trans.naturality_assoc, obj_aux_map],
+    simp only [nat_trans.naturality_assoc, loc_map],
     congr' 1,
     erw limit.pre_π,
     congr,
@@ -174,7 +174,7 @@ variable (ι)
 
 /-- An auxiliary definition used to define `Lan`. -/
 @[simps]
-def obj_aux (F : S ⥤ D) [∀ x, has_colimits_of_shape (costructured_arrow ι x) D] : L ⥤ D :=
+def loc (F : S ⥤ D) [I : ∀ x, has_colimit (diagram ι F x)] : L ⥤ D :=
 { obj := λ x, colimit (diagram ι F x),
   map := λ x y f,
     colimit.pre (diagram _ _ _) (costructured_arrow.map f : costructured_arrow ι _ ⥤ _),
@@ -188,19 +188,23 @@ def obj_aux (F : S ⥤ D) [∀ x, has_colimits_of_shape (costructured_arrow ι x
   map_comp' := begin
     intros x y z f g,
     ext j,
-    erw colimit.pre_pre (diagram ι F z) (costructured_arrow.map g) (costructured_arrow.map f),
-    change _ = colimit.ι
-      (((costructured_arrow.map f : costructured_arrow ι _ ⥤ _)
-        ⋙ costructured_arrow.map g) ⋙ diagram ι F z) j ≫ _,
-    rw [colimit.ι_pre, colimit.ι_pre],
+    let ff : costructured_arrow ι _ ⥤ _ := costructured_arrow.map f,
+    let gg : costructured_arrow ι _ ⥤ _ := costructured_arrow.map g,
+    let dd := diagram ι F z,
+    -- I don't know why lean can't deduce the following three instances...
+    haveI : has_colimit (ff ⋙ gg ⋙ dd) := I _,
+    haveI : has_colimit ((ff ⋙ gg) ⋙ dd) := I _,
+    haveI : has_colimit (gg ⋙ dd) :=  I _,
+    change _ = colimit.ι ((ff ⋙ gg) ⋙ dd) j ≫ _ ≫ _,
+    erw [colimit.pre_pre dd gg ff, colimit.ι_pre, colimit.ι_pre],
     congr' 1,
     simp,
   end }
 
 /-- An auxiliary definition used to define `Lan` and `Lan.adjunction`. -/
 @[simps]
-def equiv [∀ x, has_colimits_of_shape (costructured_arrow ι x) D] (F : S ⥤ D) (G : L ⥤ D) :
-  (obj_aux ι F ⟶ G) ≃ (F ⟶ ((whiskering_left _ _ _).obj ι).obj G) :=
+def equiv (F : S ⥤ D) [I : ∀ x, has_colimit (diagram ι F x)] (G : L ⥤ D) :
+  (loc ι F ⟶ G) ≃ (F ⟶ ((whiskering_left _ _ _).obj ι).obj G) :=
 { to_fun := λ f,
   { app := λ x,
       by apply colimit.ι (diagram ι F (ι.obj x)) (costructured_arrow.mk (𝟙 _)) ≫ f.app _, -- sigh
@@ -209,6 +213,10 @@ def equiv [∀ x, has_colimits_of_shape (costructured_arrow ι x) D] (F : S ⥤ 
     dsimp only [whiskering_left],
     simp only [functor.comp_map, category.assoc],
     rw [← f.naturality (ι.map ff), ← category.assoc, ← category.assoc],
+    -- same issue :-(
+    haveI : has_colimit
+      ((costructured_arrow.map (ι.map ff) : costructured_arrow ι _ ⥤ _) ⋙
+      diagram ι F (ι.obj y)) := I _,
     erw colimit.ι_pre (diagram ι F (ι.obj y)) (costructured_arrow.map (ι.map ff))
       (costructured_arrow.mk (𝟙 _)),
     congr' 1,
@@ -248,7 +256,7 @@ end Lan
 /-- The left Kan extension of a functor. -/
 @[simps]
 def Lan [∀ X, has_colimits_of_shape (costructured_arrow ι X) D] : (S ⥤ D) ⥤ L ⥤ D :=
-adjunction.left_adjoint_of_equiv (Lan.equiv ι) (by tidy)
+adjunction.left_adjoint_of_equiv (λ F G, Lan.equiv ι F G) (by tidy)
 
 namespace Lan
 

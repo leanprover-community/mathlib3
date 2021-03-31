@@ -376,15 +376,17 @@ section comp
 
 variables {a b c : ℝ} (f : ℝ → E)
 
-lemma integral_comp_mul_right_of_pos (hc : 0 < c) :
+lemma integral_comp_mul_right_of_pos (hc : c ≠ 0) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
 begin
-  have A : closed_embedding (λ x, x * c) := (homeomorph.mul_right' c hc.ne').closed_embedding,
-  conv_rhs { rw [← real.smul_map_volume_mul_right hc.ne'] },
-  rw [integral_smul_measure],
-  simp only [interval_integral, hc, preimage_mul_const_Ioc, mul_div_cancel _ hc.ne',
-    abs_of_pos, set_integral_map_of_closed_embedding measurable_set_Ioc A,
-    ennreal.to_real_of_real hc.le, inv_smul_smul' hc.ne'],
+  have A : closed_embedding (λ x, x * c) := (homeomorph.mul_right' c hc).closed_embedding,
+  conv_rhs { rw [← real.smul_map_volume_mul_right hc] },
+  simp_rw [integral_smul_measure, interval_integral,
+          set_integral_map_of_closed_embedding measurable_set_Ioc A,
+          ennreal.to_real_of_real (abs_nonneg c)],
+  cases lt_or_gt_of_ne hc,
+  { simp [h, mul_div_cancel, hc, abs_of_neg, restrict_congr_set Ico_ae_eq_Ioc] },
+  { simp [(show 0 < c, from h), mul_div_cancel, hc, abs_of_pos] }
 end
 
 lemma integral_comp_neg : ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=

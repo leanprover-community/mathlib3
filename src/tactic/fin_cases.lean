@@ -115,9 +115,10 @@ end
 after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 -/
 meta def fin_cases : parse hyp → parse (tk "with" *> texpr)? → tactic unit
-| none none := focus1 $
-               do ctx ← local_context,
-                  ctx.mfirst (fin_cases_at none) <|> fail "No hypothesis of the forms `x ∈ A`, where `A : finset X`, `A : list X`, or `A : multiset X`, or `x : A`, with `[fintype A]`."
+| none none := focus1 $ do
+    ctx ← local_context,
+    ctx.mfirst (fin_cases_at none) <|>
+      fail "No hypothesis of the forms `x ∈ A`, where `A : finset X`, `A : list X`, or `A : multiset X`, or `x : A`, with `[fintype A]`."
 | none (some _) := fail "Specify a single hypothesis when using a `with` argument."
 | (some n) with_list :=
   do

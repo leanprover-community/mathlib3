@@ -9,6 +9,7 @@ import analysis.normed_space.riesz_lemma
 import analysis.normed_space.normed_group_hom
 import analysis.asymptotics.asymptotics
 import algebra.algebra.tower
+import data.equiv.transfer_instance
 
 /-!
 # Operator norm on the space of continuous linear maps
@@ -414,7 +415,7 @@ le_antisymm
 
 /-- `continuous_linear_map.prod` as a `linear_isometry_equiv`. -/
 def prodₗᵢ (R : Type*) [ring R] [topological_space R] [module R F] [module R G]
-  [topological_module R F] [topological_module R G]
+  [has_continuous_smul R F] [has_continuous_smul R G]
   [smul_comm_class 𝕜 R F] [smul_comm_class 𝕜 R G] :
   (E →L[𝕜] F) × (E →L[𝕜] G) ≃ₗᵢ[R] (E →L[𝕜] F × G) :=
 ⟨prodₗ R, λ ⟨f, g⟩, op_norm_prod f g⟩
@@ -422,6 +423,14 @@ def prodₗᵢ (R : Type*) [ring R] [topological_space R] [module R F] [module R
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
 f.lipschitz.uniform_continuous
+
+@[simp, nontriviality] lemma op_norm_subsingleton [subsingleton E] : ∥f∥ = 0 :=
+begin
+  refine le_antisymm _ (norm_nonneg _),
+  apply op_norm_le_bound _ rfl.ge,
+  intros x,
+  simp [subsingleton.elim x 0]
+end
 
 /-- A continuous linear map is an isometry if and only if it preserves the norm. -/
 lemma isometry_iff_norm : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
@@ -650,6 +659,28 @@ f.to_continuous_linear_map.homothety_norm $ by simp
 
 end linear_isometry
 
+namespace continuous_linear_map
+
+/-- Precomposition with a linear isometry preserves the operator norm. -/
+lemma op_norm_comp_linear_isometry_equiv (f : F →L[𝕜] G) (g : E ≃ₗᵢ[𝕜] F) :
+  ∥f.comp g.to_linear_isometry.to_continuous_linear_map∥ = ∥f∥ :=
+begin
+  casesI subsingleton_or_nontrivial E,
+  { haveI := g.symm.to_linear_equiv.to_equiv.subsingleton,
+    simp },
+  refine le_antisymm _ _,
+  { convert f.op_norm_comp_le g.to_linear_isometry.to_continuous_linear_map,
+    simp [g.to_linear_isometry.norm_to_continuous_linear_map] },
+  { convert (f.comp g.to_linear_isometry.to_continuous_linear_map).op_norm_comp_le
+      g.symm.to_linear_isometry.to_continuous_linear_map,
+    { ext,
+      simp },
+    haveI := g.symm.to_linear_equiv.to_equiv.nontrivial,
+    simp [g.symm.to_linear_isometry.norm_to_continuous_linear_map] },
+end
+
+end continuous_linear_map
+
 namespace linear_map
 
 /-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
@@ -852,7 +883,7 @@ le_antisymm
   (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] })
 
 @[simp] lemma op_norm_lmul_right : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
-(op_norm_flip (lmul 𝕜 𝕜')).trans $ op_norm_lmul _ _
+(op_norm_flip (@lmul 𝕜 _ 𝕜' _ _)).trans (op_norm_lmul _ _)
 
 /-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
 continuous linear maps. -/
@@ -907,7 +938,7 @@ le_antisymm (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
   (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
 
 variables (𝕜 E F 𝕜') (𝕜'' : Type*) [ring 𝕜''] [topological_space 𝕜''] [module 𝕜'' F]
-  [topological_module 𝕜'' F] [smul_comm_class 𝕜 𝕜'' F] [smul_comm_class 𝕜' 𝕜'' F]
+  [has_continuous_smul 𝕜'' F] [smul_comm_class 𝕜 𝕜'' F] [smul_comm_class 𝕜' 𝕜'' F]
 
 /-- `continuous_linear_map.restrict_scalars` as a `linear_isometry`. -/
 def restrict_scalars_isometry : (E →L[𝕜] F) →ₗᵢ[𝕜''] (E →L[𝕜'] F) :=

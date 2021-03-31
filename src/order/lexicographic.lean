@@ -67,7 +67,8 @@ instance lex_preorder [preorder α] [preorder β] : preorder (lex α β) :=
 instance lex_partial_order [partial_order α] [partial_order β] : partial_order (lex α β) :=
 { le_antisymm :=
   begin
-    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ (⟨_, _, _, _, hlt₁⟩ | ⟨_, _, _, hlt₁⟩) (⟨_, _, _, _, hlt₂⟩ | ⟨_, _, _, hlt₂⟩),
+    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩
+      (⟨_, _, _, _, hlt₁⟩ | ⟨_, _, _, hlt₁⟩) (⟨_, _, _, _, hlt₂⟩ | ⟨_, _, _, hlt₂⟩),
     { exfalso, exact lt_irrefl a₁ (lt_trans hlt₁ hlt₂) },
     { exfalso, exact lt_irrefl a₁ hlt₁ },
     { exfalso, exact lt_irrefl a₁ hlt₂ },
@@ -166,10 +167,12 @@ instance dlex_preorder [preorder α] [∀ a, preorder (Z a)] : preorder (Σ' a, 
   .. dlex_has_lt }
 
 /-- Dictionary / lexicographic partial_order for dependent pairs. -/
-instance dlex_partial_order [partial_order α] [∀ a, partial_order (Z a)] : partial_order (Σ' a, Z a) :=
+instance dlex_partial_order [partial_order α] [∀ a, partial_order (Z a)] :
+  partial_order (Σ' a, Z a) :=
 { le_antisymm :=
   begin
-    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ (⟨_, _, _, _, hlt₁⟩ | ⟨_, _, _, hlt₁⟩) (⟨_, _, _, _, hlt₂⟩ | ⟨_, _, _, hlt₂⟩),
+    rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩
+      (⟨_, _, _, _, hlt₁⟩ | ⟨_, _, _, hlt₁⟩) (⟨_, _, _, _, hlt₂⟩ | ⟨_, _, _, hlt₂⟩),
     { exfalso, exact lt_irrefl a₁ (lt_trans hlt₁ hlt₂) },
     { exfalso, exact lt_irrefl a₁ hlt₁ },
     { exfalso, exact lt_irrefl a₁ hlt₂ },

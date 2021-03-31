@@ -270,7 +270,7 @@ variables {f : α → β} (hf : function.injective f)
 /--
 The inverse of an `hf : injective` function `f : α → β`, of the type `↥(set.range f) → α`.
 This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`,
-or the function version of applying `(equiv.set.range f hf).symm`.
+or the function version of applying `(equiv.of_injective f hf).symm`.
 This function should not usually be used for actual computation because for most cases,
 an explicit inverse can be stated that has better computational properties.
 This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
@@ -308,7 +308,7 @@ variables (f : α ↪ β) (b : set.range f)
 /--
 The inverse of an embedding `f : α ↪ β`, of the type `↥(set.range f) → α`.
 This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`,
-or the function version of applying `(equiv.set.range f f.injective).symm`.
+or the function version of applying `(equiv.of_injective f f.injective).symm`.
 This function should not usually be used for actual computation because for most cases,
 an explicit inverse can be stated that has better computational properties.
 This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
@@ -370,7 +370,7 @@ theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β �
      ... ≃ β : (trunc.out (equiv_fin β)).symm⟩,
 λ ⟨f⟩, card_congr f⟩
 
-/-- Subsingleton types are fintypes (with zero or one terms). -/
+/-- Any subsingleton type with a witness is a fintype (with one term). -/
 def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 ⟨{a}, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
 
@@ -379,6 +379,17 @@ def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 
 @[simp] theorem card_of_subsingleton (a : α) [subsingleton α] :
   @fintype.card _ (of_subsingleton a) = 1 := rfl
+
+open_locale classical
+variables (α)
+
+/-- Any subsingleton type is (noncomputably) a fintype (with zero or one terms). -/
+@[priority 100]
+noncomputable instance of_subsingleton' [subsingleton α] : fintype α :=
+if h : nonempty α then
+  of_subsingleton (nonempty.some h)
+else
+  ⟨∅, (λ a, false.elim (h ⟨a⟩))⟩
 
 end fintype
 
@@ -1431,3 +1442,13 @@ def trunc_sigma_of_exists {α} [fintype α] {P : α → Prop} [decidable_pred P]
 @trunc_of_nonempty_fintype (Σ' a, P a) (exists.elim h $ λ a ha, ⟨⟨a, ha⟩⟩) _
 
 end trunc
+
+namespace multiset
+
+variables [fintype α] [decidable_eq α]
+
+@[simp] lemma count_univ (a : α) :
+  count a finset.univ.val = 1 :=
+count_eq_one_of_mem finset.univ.nodup (finset.mem_univ _)
+
+end multiset

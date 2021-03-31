@@ -93,7 +93,7 @@ lemma isometry.right_inv {f : α → β} {g : β → α} (h : isometry f) (hg : 
 lemma isometry.ediam_image (hf : isometry f) (s : set α) :
   emetric.diam (f '' s) = emetric.diam s :=
 eq_of_forall_ge_iff $ λ d,
-by simp only [emetric.diam_le_iff_forall_edist_le, ball_image_iff, hf.edist_eq]
+by simp only [emetric.diam_le_iff, ball_image_iff, hf.edist_eq]
 
 lemma isometry.ediam_range (hf : isometry f) :
   emetric.diam (range f) = emetric.diam (univ : set α) :=
@@ -365,7 +365,7 @@ range of the isometry. -/
 def isometry.isometric_on_range [emetric_space α] [emetric_space β] {f : α → β} (h : isometry f) :
   α ≃ᵢ range f :=
 { isometry_to_fun := λx y, by simpa [subtype.edist_eq] using h x y,
-  .. equiv.set.range f h.injective }
+  .. equiv.of_injective f h.injective }
 
 @[simp] lemma isometry.isometric_on_range_apply [emetric_space α] [emetric_space β]
   {f : α → β} (h : isometry f) (x : α) : h.isometric_on_range x = ⟨f x, mem_range_self _⟩ :=

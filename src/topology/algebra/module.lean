@@ -871,6 +871,12 @@ def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { to_equiv := e.to_lin
 lemma image_closure (e : M ≃L[R] M₂) (s : set M) : e '' closure s = closure (e '' s) :=
 e.to_homeomorph.image_closure s
 
+lemma preimage_closure (e : M ≃L[R] M₂) (s : set M₂) : e ⁻¹' closure s = closure (e ⁻¹' s) :=
+e.to_homeomorph.preimage_closure s
+
+@[simp] lemma is_closed_image (e : M ≃L[R] M₂) {s : set M} : is_closed (e '' s) ↔ is_closed s :=
+e.to_homeomorph.is_closed_image
+
 lemma map_nhds_eq (e : M ≃L[R] M₂) (x : M) : map e (𝓝 x) = 𝓝 (e x) :=
 e.to_homeomorph.map_nhds_eq x
 

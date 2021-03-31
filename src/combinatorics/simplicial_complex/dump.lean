@@ -10,11 +10,24 @@ import analysis.convex.topology
 
 open_locale classical affine big_operators
 open set
-variables {m n : ℕ} {α : Type}
+variables {m n : ℕ} {α : Type} {E : Type*} [normed_group E] [normed_space ℝ E]
 /-
 MATHLIB DEPARTURE ZONE
 A few PRs to be done
 -/
+
+--Probably belongs in mathlib
+lemma set.eq_empty_of_ssubset_singleton {x : α} {X : set α} : X ⊂ {x} → X = ∅ :=
+begin
+  rintro ⟨hX, hX'⟩,
+  sorry
+end
+
+lemma finset.eq_empty_of_ssubset_singleton {x : α} {X : finset α} : X ⊂ {x} → X = ∅ :=
+begin
+  rintro ⟨hX, hX'⟩,
+  sorry
+end
 
 --Are those two in mathlib?
 lemma finset.ssubset_of_ssubset_of_subset {X Y Z : finset α} (hXY : X ⊂ Y) (hYZ : Y ⊆ Z) : X ⊂ Z :=
@@ -159,8 +172,6 @@ lemma kenny (M : Type*) [add_comm_group M] [vector_space ℝ M] (s : affine_subs
 λ x y hxs hys a b ha hb hab,
 calc a • x + b • y = b • (y - x) + x : convex.combo_to_vadd hab
                ... ∈ s : s.2 _ hys hxs hxs
-
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
 -- TODO: move to mathlib
 lemma convex_hull_subset_span_points (X : set E) :

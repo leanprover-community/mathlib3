@@ -122,21 +122,21 @@ begin
     rw ← hb, exact ⟨b, rfl⟩ },
   let σ₁' := subtype_perm_of_fintype σ h1,
   let σ₂' := subtype_perm_of_fintype σ h3,
-  let σ₁ := perm_congr (equiv.set.range (@sum.inl m n) sum.inl_injective).symm σ₁',
-  let σ₂ := perm_congr (equiv.set.range (@sum.inr m n) sum.inr_injective).symm σ₂',
+  let σ₁ := perm_congr (equiv.of_injective (@sum.inl m n) sum.inl_injective).symm σ₁',
+  let σ₂ := perm_congr (equiv.of_injective (@sum.inr m n) sum.inr_injective).symm σ₂',
   rw [monoid_hom.mem_range, prod.exists],
   use [σ₁, σ₂],
   rw [perm.sum_congr_hom_apply],
   ext,
   cases x with a b,
   { rw [equiv.sum_congr_apply, sum.map_inl, perm_congr_apply, equiv.symm_symm,
-      set.apply_range_symm (@sum.inl m n)],
+        apply_of_injective_symm (@sum.inl m n)],
     erw subtype_perm_apply,
-    rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] },
+    rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] },
   { rw [equiv.sum_congr_apply, sum.map_inr, perm_congr_apply, equiv.symm_symm,
-      set.apply_range_symm (@sum.inr m n)],
+        apply_of_injective_symm (@sum.inr m n)],
     erw subtype_perm_apply,
-    rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] }
+    rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] }
 end
 
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,
@@ -212,6 +212,10 @@ def support [fintype α] (f : perm α) : finset α := univ.filter (λ x, f x ≠
 
 @[simp] lemma mem_support [fintype α] {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x :=
 by simp only [support, true_and, mem_filter, mem_univ]
+
+lemma support_pow_le [fintype α] (σ : perm α) (n : ℤ) :
+  (σ ^ n).support ≤ σ.support :=
+λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
 
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/
 def is_swap (f : perm α) : Prop := ∃ x y, x ≠ y ∧ f = swap x y

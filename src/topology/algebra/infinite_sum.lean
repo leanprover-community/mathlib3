@@ -153,7 +153,7 @@ e.injective.has_sum_iff $ by simp
 
 lemma function.injective.has_sum_range_iff {g : γ → β} (hg : injective g) :
   has_sum (λ x : set.range g, f x) a ↔ has_sum (f ∘ g) a :=
-(equiv.set.range g hg).has_sum_iff.symm
+(equiv.of_injective g hg).has_sum_iff.symm
 
 lemma equiv.summable_iff (e : γ ≃ β) :
   summable (f ∘ e) ↔ summable f :=
@@ -704,11 +704,11 @@ end tsum
 
 end topological_semiring
 
-section topological_semimodule
+section has_continuous_smul
 variables {R : Type*}
 [semiring R] [topological_space R]
 [topological_space α] [add_comm_monoid α]
-[semimodule R α] [topological_semimodule R α]
+[semimodule R α] [has_continuous_smul R α]
 {f : β → α}
 
 lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
@@ -720,7 +720,7 @@ hf.has_sum.smul.summable
 lemma tsum_smul [t2_space α] {r : R} (hf : summable f) : ∑' z, r • f z = r • ∑' z, f z :=
 hf.has_sum.smul.tsum_eq
 
-end topological_semimodule
+end has_continuous_smul
 
 section division_ring
 

@@ -337,7 +337,7 @@ def hom_of_le : N →ₗ⁅R,L⁆ N' :=
 lemma hom_of_le_apply (m : N) : hom_of_le h m = ⟨m.1, h m.2⟩ := rfl
 
 lemma hom_of_le_injective : function.injective (hom_of_le h) :=
-λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, submodule.coe_eq_coe,
+λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, set_like.coe_eq_coe,
   subtype.val_eq_coe]
 
 end inclusion_maps
@@ -441,7 +441,7 @@ def comap : lie_ideal R L :=
 
 @[simp] lemma map_coe_submodule (h : ↑(map f I) = f '' I) :
   (map f I : submodule R L') = (I : submodule R L).map f :=
-by { rw [submodule.ext'_iff, lie_submodule.coe_to_submodule, h, submodule.map_coe], refl, }
+by { rw [set_like.ext'_iff, lie_submodule.coe_to_submodule, h, submodule.map_coe], refl, }
 
 @[simp] lemma comap_coe_submodule : (comap f J : submodule R L) = (J : submodule R L').comap f :=
 rfl
@@ -603,7 +603,7 @@ begin
       have hy' : ∃ (x : L), x ∈ I ∧ f x = y, { simpa [hy], },
       obtain ⟨z₂, hz₂, rfl⟩ := hy',
       obtain ⟨z₁, rfl⟩ := h x,
-      simp only [lie_hom.coe_to_linear_map, submodule.mem_coe, set.mem_image,
+      simp only [lie_hom.coe_to_linear_map, set_like.mem_coe, set.mem_image,
         lie_submodule.mem_coe_submodule, submodule.mem_carrier, submodule.map_coe],
       use ⁅z₁, z₂⁆,
       exact ⟨I.lie_mem hz₂, f.map_lie z₁ z₂⟩,
@@ -644,7 +644,7 @@ lemma hom_of_le_apply {I₁ I₂ : lie_ideal R L} (h : I₁ ≤ I₂) (x : I₁)
 
 lemma hom_of_le_injective {I₁ I₂ : lie_ideal R L} (h : I₁ ≤ I₂) :
   function.injective (hom_of_le h) :=
-λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, submodule.coe_eq_coe,
+λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, set_like.coe_eq_coe,
   subtype.val_eq_coe]
 
 @[simp] lemma map_sup_ker_eq_map : lie_ideal.map f (I ⊔ f.ker) = lie_ideal.map f I :=

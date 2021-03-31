@@ -960,10 +960,10 @@ lemma insert_diff_self_of_not_mem {a : α} {s : set α} (h : a ∉ s) :
   insert a s \ {a} = s :=
 by { ext, simp [and_iff_left_of_imp (λ hx : x ∈ s, show x ≠ a, from λ hxa, h $ hxa ▸ hx)] }
 
-theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
+@[simp] theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
 by finish [ext_iff, iff_def]
 
-theorem diff_union_self {s t : set α} : (s \ t) ∪ t = s ∪ t :=
+@[simp] theorem diff_union_self {s t : set α} : (s \ t) ∪ t = s ∪ t :=
 by rw [union_comm, union_diff_self, union_comm]
 
 theorem diff_inter_self {a b : set α} : (b \ a) ∩ a = ∅ :=
@@ -1043,6 +1043,10 @@ ite_inter_compl_self t s s'
 
 @[simp] lemma ite_same (t s : set α) : t.ite s s = s := inter_union_diff _ _
 
+@[simp] lemma ite_left (s t : set α) : s.ite s t = s ∪ t := by simp [set.ite]
+
+@[simp] lemma ite_right (s t : set α) : s.ite t s = t ∩ s := by simp [set.ite]
+
 @[simp] lemma ite_empty (s s' : set α) : set.ite ∅ s s' = s' :=
 by simp [set.ite]
 
@@ -1072,6 +1076,17 @@ by { ext x, finish [set.ite, iff_def] }
 lemma ite_inter (t s₁ s₂ s : set α) :
   t.ite (s₁ ∩ s) (s₂ ∩ s) = t.ite s₁ s₂ ∩ s :=
 by rw [ite_inter_inter, ite_same]
+
+lemma ite_inter_of_inter_eq (t : set α) {s₁ s₂ s : set α} (h : s₁ ∩ s = s₂ ∩ s) :
+  t.ite s₁ s₂ ∩ s = s₁ ∩ s :=
+by rw [← ite_inter, ← h, ite_same]
+
+lemma subset_ite {t s s' u : set α} : u ⊆ t.ite s s' ↔ u ∩ t ⊆ s ∧ u \ t ⊆ s' :=
+begin
+  simp only [subset_def, ← forall_and_distrib],
+  refine forall_congr (λ x, _),
+  by_cases hx : x ∈ t; simp [*, set.ite]
+end
 
 /-! ### Inverse image -/
 
@@ -1106,6 +1121,10 @@ theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 
 @[simp] theorem preimage_diff (f : α → β) (s t : set β) :
   f ⁻¹' (s \ t) = f ⁻¹' s \ f ⁻¹' t := rfl
+
+@[simp] theorem preimage_ite (f : α → β) (s t₁ t₂ : set β) :
+  f ⁻¹' (s.ite t₁ t₂) = (f ⁻¹' s).ite (f ⁻¹' t₁) (f ⁻¹' t₂) :=
+rfl
 
 @[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
 rfl
@@ -1746,6 +1765,28 @@ begin
     rw [hz x hx, hz y hy] }
 end
 
+@[simp] lemma pairwise_on_empty {α} (r : α → α → Prop) :
+  (∅ : set α).pairwise_on r :=
+λ _, by simp
+
+lemma pairwise_on_insert_of_symmetric {α} {s : set α} {a : α} {r : α → α → Prop}
+  (hr : symmetric r) :
+  (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b :=
+begin
+  refine ⟨λ h, ⟨_, _⟩, λ h, _⟩,
+  { exact h.mono (s.subset_insert a) },
+  { intros b hb hn,
+    exact h a (s.mem_insert _) b (set.mem_insert_of_mem _ hb) hn },
+  { intros b hb c hc hn,
+    rw [mem_insert_iff] at hb hc,
+    rcases hb with (rfl | hb);
+    rcases hc with (rfl | hc),
+    { exact absurd rfl hn },
+    { exact h.right _ hc hn },
+    { exact hr (h.right _ hb hn.symm) },
+    { exact h.left _ hb _ hc hn } }
+end
+
 end set
 
 open set
@@ -2028,6 +2069,10 @@ ext $ by simp [-exists_and_distrib_right, exists_and_distrib_right.symm, and.lef
 theorem prod_range_range_eq {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} :
   (range m₁).prod (range m₂) = range (λp:α×β, (m₁ p.1, m₂ p.2)) :=
 ext $ by simp [range]
+
+@[simp] theorem range_prod_map {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} :
+  range (prod.map m₁ m₂) = (range m₁).prod (range m₂) :=
+prod_range_range_eq.symm
 
 theorem prod_range_univ_eq {α β γ} {m₁ : α → γ} :
   (range m₁).prod (univ : set β) = range (λp:α×β, (m₁ p.1, p.2)) :=

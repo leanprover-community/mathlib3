@@ -1203,19 +1203,34 @@ open monoid_hom
 variables {H : Type*} [group H] {f : G →* H}
 
 lemma map_le_range {K : subgroup G} : map f K ≤ f.range :=
-(monoid_hom.range_eq_map f).symm ▸ map_mono le_top
+(range_eq_map f).symm ▸ map_mono le_top
+
+lemma ker_le_comap {K : subgroup H} : f.ker ≤ comap f K :=
+comap_mono bot_le
 
 variable (f)
 lemma map_comap_le (K : subgroup H) : map f (comap f K) ≤ K :=
 (gc_map_comap f).l_u_le _
 
+lemma le_comap_map (K : subgroup G) : K ≤ comap f (map f K) :=
+(gc_map_comap f).le_u_l _
+
 lemma map_comap_eq (K : subgroup H) :
   map f (comap f K) = f.range ⊓ K :=
-le_antisymm (le_inf map_le_range $ map_comap_le _ _) $
-λ x hx, begin
-  simp only [exists_prop, mem_map, mem_comap],
-  rcases mem_range.mp (mem_inf.mp hx).1 with ⟨y, rfl⟩,
-  use [y, (mem_inf.mp hx).2],
+set_like.ext' begin
+  convert set.image_preimage_eq_inter_range,
+  simp [set.inter_comm],
+end
+
+lemma comap_map_eq (K : subgroup G) :
+  comap f (map f K) = K ⊔ f.ker :=
+begin
+  refine le_antisymm _ (sup_le (le_comap_map _ _) ker_le_comap),
+  intros x hx, simp only [exists_prop, mem_map, mem_comap] at hx,
+  rcases hx with ⟨y, hy, hy'⟩,
+  have : y⁻¹ * x ∈ f.ker, { rw mem_ker, simp [hy'] },
+  convert mul_mem _ (mem_sup_left hy) (mem_sup_right this),
+  simp,
 end
 
 end subgroup

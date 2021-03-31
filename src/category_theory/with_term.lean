@@ -151,7 +151,6 @@ def lift_star {D : Type*} [category D] {Z : D} (F : C ⥤ D) (M : Π (x : C), F.
   (hM : ∀ (x y : C) (f : x ⟶ y), F.map f ≫ M y = M x) :
   (lift F M hM).obj star ≅ Z := eq_to_iso rfl
 
-@[simp]
 lemma lift_map_lift_star {D : Type*} [category D] {Z : D} (F : C ⥤ D) (M : Π (x : C), F.obj x ⟶ Z)
   (hM : ∀ (x y : C) (f : x ⟶ y), F.map f ≫ M y = M x) (x : C) :
   (lift F M hM).map (star_terminal.from (incl.obj x)) ≫ (lift_star F M hM).hom =
@@ -182,6 +181,8 @@ begin
     change G.map (𝟙 _) ≫ hG.hom = hG.hom ≫ 𝟙 _,
     simp }
 end
+
+end with_term
 
 namespace with_init
 

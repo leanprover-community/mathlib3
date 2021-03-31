@@ -678,3 +678,49 @@ instance additive.topological_add_group {G} [h : topological_space G]
 instance multiplicative.topological_group {G} [h : topological_space G]
   [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
 { continuous_inv := @continuous_neg G _ _ _ }
+
+section embedding
+
+variables [topological_space G] [group G] [topological_group G]
+
+@[to_additive]
+lemma function.injective_inv [group β] {f : β →* G} (h : function.injective f) (a : β) :
+  a⁻¹ = h.to_local_equiv.symm ((f a)⁻¹) :=
+begin
+  rw [←local_equiv.left_inv h.to_local_equiv (mem_univ (a⁻¹)),
+    function.injective_to_local_equiv_apply h],
+  exact congr_arg h.to_local_equiv.symm (f.map_inv a),
+end
+
+@[to_additive]
+lemma open_embedding.inv [group β] [topological_space β] [nonempty β]
+  {f : β →* G} (h : open_embedding f) (a : β) :
+  a⁻¹ = ((h.to_local_homeomorph f).symm) ((f a)⁻¹) :=
+begin
+  rw [←local_homeomorph.left_inv (h.to_local_homeomorph f) (mem_univ (a⁻¹)),
+    open_embedding.to_local_homeomorph_coe],
+  exact congr_arg (h.to_local_homeomorph f).symm (f.map_inv a),
+end
+
+@[to_additive]
+lemma open_embedding.continuous_inv [topological_space β] [group β]
+  {f : β →* G} (h : open_embedding f) :
+  continuous (λ p : β, p⁻¹) :=
+begin
+  rw continuous_iff_continuous_at,
+  intro x,
+  simp only [h.inv],
+  have h' : (f x)⁻¹ ∈ (h.to_local_homeomorph f).target :=
+    by { rw [←monoid_hom.map_inv, open_embedding.target], exact mem_range_self (x⁻¹), },
+  exact continuous_at.comp ((h.to_local_homeomorph f).continuous_inv_fun.continuous_at
+    (mem_nhds_sets (h.to_local_homeomorph f).open_target h'))
+    (continuous_at_inv.comp h.continuous.continuous_at),
+end
+
+@[to_additive]
+def open_embedding.topological_group [topological_space β] [group β]
+  {f : β →* G} (h : open_embedding f) : topological_group β :=
+{ continuous_inv := h.continuous_inv,
+  ..h.has_continuous_mul }
+
+end embedding

@@ -152,7 +152,7 @@ end
 
 end has_continuous_mul
 
-section topological_monoid
+section has_continuous_mul
 
 variables [topological_space M] [monoid M] [has_continuous_mul M]
 
@@ -285,11 +285,11 @@ end
 @[to_additive]
 lemma embedding_mul [monoid β] [topological_space β] [nonempty β]
   {f : β →* M} (h : open_embedding f) (a b : β) :
-  a * b = (h.to_local_homeomorph.symm) ((f a) * (f b)) :=
+  a * b = ((h.to_local_homeomorph f).symm) ((f a) * (f b)) :=
 begin
-  rw [←local_homeomorph.left_inv h.to_local_homeomorph (mem_univ (a * b)),
+  rw [←local_homeomorph.left_inv (h.to_local_homeomorph f) (mem_univ (a * b)),
     open_embedding.to_local_homeomorph_coe],
-  exact congr_arg h.to_local_homeomorph.symm (f.map_mul a b),
+  exact congr_arg (h.to_local_homeomorph f).symm (f.map_mul a b),
 end
 
 @[to_additive]
@@ -300,10 +300,10 @@ begin
   rw continuous_iff_continuous_at,
   intro x,
   simp only [embedding_mul h],
-  have h' : (f x.fst) * (f x.snd) ∈ h.to_local_homeomorph.target :=
+  have h' : (f x.fst) * (f x.snd) ∈ (h.to_local_homeomorph f).target :=
     by { rw [←monoid_hom.map_mul, open_embedding.target], exact mem_range_self (x.fst * x.snd), },
-  exact continuous_at.comp (h.to_local_homeomorph.continuous_inv_fun.continuous_at
-    (mem_nhds_sets h.to_local_homeomorph.open_target h')) (continuous_mul.continuous_at.comp
+  exact continuous_at.comp ((h.to_local_homeomorph f).continuous_inv_fun.continuous_at
+    (mem_nhds_sets (h.to_local_homeomorph f).open_target h')) (continuous_mul.continuous_at.comp
     (h.continuous.continuous_at.prod_map h.continuous.continuous_at)),
 end
 
@@ -312,7 +312,34 @@ def open_embedding.has_continuous_mul [topological_space β] [monoid β]
   {f : β →* M} (h : open_embedding f) : has_continuous_mul β :=
 { continuous_mul := h.continuous_mul }
 
-end topological_monoid
+end has_continuous_mul
+
+section units
+
+@[to_additive]
+noncomputable instance units.topological_space {α : Type*} [topological_space α] [monoid α] :
+  topological_space (units α) :=
+topological_space.induced (is_unit.equiv α).symm (subtype.topological_space)
+
+lemma open_units_coe_open_embedding' {α : Type*} [topological_space α] [monoid α]
+  (h : is_open {a : α | is_unit a}) : open_embedding (λ a : {a : α | is_unit a}, (a : α)) :=
+{ open_range := by { simp only [mem_set_of_eq, subtype.range_coe_subtype], exact h, },
+  ..embedding_subtype_coe }
+
+lemma open_units_coe_open_embedding {α : Type*} [topological_space α] [monoid α]
+  (h : is_open {a : α | is_unit a}) : open_embedding (λ a : units α, (a : α)) :=
+(open_units_coe_open_embedding' h).comp (is_unit.equiv α).homeomorph.symm.open_embedding
+
+lemma open_units_has_continuous_mul {α : Type*} [topological_space α] [monoid α]
+  [has_continuous_mul α] (h : is_open {a : α | is_unit a}) : has_continuous_mul (units α) :=
+begin
+  let f : (units α) →* α := ⟨λ a, a, rfl,
+    by { simp only [forall_const, eq_self_iff_true, units.coe_mul] }⟩,
+  have hf : open_embedding f := open_units_coe_open_embedding h,
+  exact open_embedding.has_continuous_mul hf,
+end
+
+end units
 
 section
 

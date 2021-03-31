@@ -291,7 +291,8 @@ by cases ha with a ha; rw [←ha, units.mul_left_inj]
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
 classical.some h
 
-noncomputable def is_unit.equiv [monoid M] : equiv {a : M | is_unit a} (units M) :=
+@[to_additive]
+noncomputable def is_unit.equiv (M : Type*) [monoid M] : equiv {a : M | is_unit a} (units M) :=
 equiv.symm $ equiv.of_injective _ units.ext
 
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=

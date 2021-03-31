@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.order
+import data.equiv.local_equiv
 
 /-!
 # Specific classes of maps between topological spaces
@@ -158,6 +159,17 @@ inducing.continuous hf.1
 lemma embedding.closure_eq_preimage_closure_image {e : α → β} (he : embedding e) (s : set α) :
   closure s = e ⁻¹' closure (e '' s) :=
 he.1.closure_eq_preimage_closure_image s
+
+noncomputable def embedding.to_local_equiv {e : α → β} [nonempty α] (he : embedding e) :
+  local_equiv α β :=
+he.inj.to_local_equiv
+
+variables [nonempty α]
+variables {e : α → β} (he : embedding e)
+
+@[simp] lemma embedding.to_local_equiv_coe : ⇑he.to_local_equiv = e := rfl
+@[simp] lemma embedding.source : he.to_local_equiv.source = set.univ := rfl
+@[simp] lemma embedding.target : he.to_local_equiv.target = set.range e := image_univ
 
 end embedding
 

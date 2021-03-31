@@ -166,6 +166,9 @@ by rw [← preimage_symm, preimage_closure]
 
 protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h := λ s, h.is_open_image.2
 
+protected lemma open_embedding (h : α ≃ₜ β) : open_embedding h :=
+open_embedding_of_embedding_open h.embedding h.is_open_map
+
 protected lemma is_closed_map (h : α ≃ₜ β) : is_closed_map h := λ s, h.is_closed_image.2
 
 protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
@@ -321,13 +324,16 @@ end distrib
 
 end homeomorph
 
-/-def equiv.homeomorph {α : Type*} {β : Type*} [tα : topological_space α] (e : α ≃ β) :
+def equiv.homeomorph {α : Type*} {β : Type*} [tα : topological_space α] (e : α ≃ β) :
   @homeomorph α β _ (tα.induced e.symm) :=
 { to_fun := e,
-  continuous_inv_fun := λ s hs, ⟨s, hs, rfl⟩,
-  continuous_to_fun := λ s hs, by { rcases hs with ⟨t, ht1, ht2⟩,
-  have h := congr_arg (preimage e) ht2.symm,
-  rw [equiv.preimage_symm_preimage] at h,
-  rw h,
-  exact ht1 },
-  ..e }-/
+  continuous_to_fun := begin
+    dsimp,
+    rw continuous_iff_le_induced,
+    rintros a ⟨c, ⟨⟨b, ⟨hb, hbc⟩⟩, hca⟩⟩,
+    induction hca,
+    induction hbc,
+    simp only [equiv.preimage_image, equiv.symm_preimage_eq_image],
+    exact hb,
+  end,
+  ..e }

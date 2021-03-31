@@ -81,6 +81,9 @@ begin
   exact ⟨x.unit_of_nearby y hy, unit_of_nearby_coe _ _ _⟩
 end
 
+/-- The group of units of a complete normed ring is a topological monoid. -/
+instance : has_continuous_mul (units R) := open_units_has_continuous_mul units.is_open
+
 protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
 mem_nhds_sets units.is_open x.is_unit
 

@@ -3,9 +3,7 @@ Copyright (c) 2021 Jakob Scholbach. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob Scholbach
 -/
-import category_theory.category
 import category_theory.arrow
-import category_theory.functor
 import category_theory.limits.preserves.shapes.terminal
 
 /-!
@@ -74,12 +72,9 @@ lemma right_lifting_property_initial_iff (i p : arrow C)
   has_lifting_property i p ↔ ∀ {e : i.right ⟶ p.right}, ∃ l : i.right ⟶ p.left, l ≫ p.hom = e :=
 begin
   fsplit,
-  { intros hlift e,
+  { introsI hlift e,
     have comm : (is_initial.to h p.left) ≫ p.hom = i.hom ≫ e :=
       is_initial.hom_ext h _ _,
-    let s := hlift.sq_has_lift,
-    specialize s (arrow.hom_mk comm),
-    haveI := s,
     use arrow.lift (arrow.hom_mk comm),
     simp },
   { refine λ hlift, ⟨λ sq, _⟩,

@@ -745,13 +745,10 @@ namespace ennreal
 lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0∞) (hf : ∑' i, f i ≠ ∞) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
-  have : ∀ i, ∑' k, (((ennreal.to_nnreal ∘ f) (k + i) : ℝ≥0) : ℝ≥0∞) =
-    (∑' k, (ennreal.to_nnreal ∘ f) (k + i) : ℝ≥0) :=
-    λ i, (ennreal.coe_tsum
-      (nnreal.summable_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf) _)).symm,
-  simp only [λ x, (to_nnreal_apply_of_tsum_ne_top hf x).symm, ←ennreal.coe_zero,
-    this, ennreal.tendsto_coe] { single_pass := tt },
-  exact nnreal.tendsto_sum_nat_add _
+  lift f to ℕ → ℝ≥0 using ennreal.ne_top_of_tsum_ne_top hf,
+  replace hf : summable f := tsum_coe_ne_top_iff_summable.1 hf,
+  simp only [← ennreal.coe_tsum, nnreal.summable_nat_add _ hf, ← ennreal.coe_zero],
+  exact_mod_cast nnreal.tendsto_sum_nat_add f
 end
 
 end ennreal

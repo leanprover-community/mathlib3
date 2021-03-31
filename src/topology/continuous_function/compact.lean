@@ -185,31 +185,31 @@ variables (α 𝕜)
 
 /--
 When `α` is compact and `𝕜` is a normed field,
-the `𝕜`-algebra of bounded continuous maps `α →ᵇ 𝕜` is
-`𝕜`-linearly isometric to `C(α, 𝕜)`.
+the `𝕜`-algebra of bounded continuous maps `α →ᵇ β` is
+`𝕜`-linearly isometric to `C(α, β)`.
 -/
 def linear_isometry_bounded_of_compact :
-  C(α, 𝕜) ≃ₗᵢ[𝕜] (α →ᵇ 𝕜) :=
+  C(α, β) ≃ₗᵢ[𝕜] (α →ᵇ β) :=
 { map_smul' := λ c f, by { ext, simp, },
   norm_map' := λ f, rfl,
-  ..add_equiv_bounded_of_compact α 𝕜 }
+  ..add_equiv_bounded_of_compact α β }
 
 @[simp]
 lemma linear_isometry_bounded_of_compact_to_isometric :
-  (linear_isometry_bounded_of_compact α 𝕜).to_isometric =
-    isometric_bounded_of_compact α 𝕜 :=
+  (linear_isometry_bounded_of_compact α β 𝕜).to_isometric =
+    isometric_bounded_of_compact α β :=
 rfl
 
 @[simp]
 lemma linear_isometry_bounded_of_compact_to_add_equiv :
-  (linear_isometry_bounded_of_compact α 𝕜).to_linear_equiv.to_add_equiv =
-    add_equiv_bounded_of_compact α 𝕜 :=
+  (linear_isometry_bounded_of_compact α β 𝕜).to_linear_equiv.to_add_equiv =
+    add_equiv_bounded_of_compact α β :=
 rfl
 
 @[simp]
 lemma linear_isometry_bounded_of_compact_of_compact_to_equiv :
-  (linear_isometry_bounded_of_compact α 𝕜).to_linear_equiv.to_equiv =
-    equiv_bounded_of_compact α 𝕜 :=
+  (linear_isometry_bounded_of_compact α β 𝕜).to_linear_equiv.to_equiv =
+    equiv_bounded_of_compact α β :=
 rfl
 
 end

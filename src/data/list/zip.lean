@@ -203,7 +203,7 @@ by rw [← zip_unzip.{u u} (revzip l).reverse, unzip_eq_map]; simp; simp [revzip
 theorem revzip_swap (l : list α) : (revzip l).map prod.swap = revzip l.reverse :=
 by simp [revzip]
 
-lemma nth_zip_with {α β γ} (f : α → β → γ) (l₁ : list α) (l₂ : list β) (i : ℕ) :
+lemma nth_zip_with (f : α → β → γ) (l₁ : list α) (l₂ : list β) (i : ℕ) :
   (zip_with f l₁ l₂).nth i = ((l₁.nth i).map f).bind (λ g, (l₂.nth i).map g) :=
 begin
   induction l₁ generalizing l₂ i,

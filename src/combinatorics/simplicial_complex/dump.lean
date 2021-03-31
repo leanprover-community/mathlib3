@@ -188,6 +188,21 @@ begin
   simpa [←and_assoc],
 end
 
+lemma nontrivial_sum_of_affine_independent {X : finset E}
+  (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
+  (w : E → ℝ) (hw₀ : ∑ i in X, w i = 0) (hw₁ : ∑ i in X, w i • i = 0) :
+∀ i ∈ X, w i = 0 :=
+begin
+  have hw₀' : ∑ (i : (X : set E)), w i = 0,
+  { rwa [coe_sum] },
+  specialize hX _ _ hw₀' _,
+  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw₀' (0 : E),
+    rw finset.weighted_vsub_of_point_apply,
+    simpa only [vsub_eq_sub, sub_zero, coe_sum X (λ i, w i • i)] },
+  intros i hi,
+  apply hX ⟨i, hi⟩ (finset.mem_univ _)
+end
+
 -- TODO (Bhavik): Golf
 lemma disjoint_convex_hull_of_subsets {X : finset E}
   (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) {Y₁ Y₂ : finset E}
@@ -203,16 +218,18 @@ begin
   rw finset.center_mass_eq_of_sum_1 _ _ h₂w₂ at h₃w₂,
   dsimp at h₃w₁,
   dsimp at h₃w₂,
-  rw affine_independent_def at hX,
+  -- rw affine_independent_def at hX,
   let w : E → ℝ,
   { intro x,
     apply (if x ∈ Y₁ then w₁ x else 0) - (if x ∈ Y₂ then w₂ x else 0) },
-  have h₁w : ∑ (i : (X : set E)), w i = 0,
-  { rw [coe_sum, finset.sum_sub_distrib, ←finset.sum_filter, finset.filter_mem_eq_inter,
+
+  have h₁w : ∑ i in X, w i = 0,
+  { rw [finset.sum_sub_distrib, ←finset.sum_filter, finset.filter_mem_eq_inter,
       ←finset.sum_filter, finset.filter_mem_eq_inter, subset_iff_inter_eq_left hY₁,
       subset_iff_inter_eq_left hY₂, h₂w₁, h₂w₂],
     simp only [sub_self] },
-  specialize hX finset.univ _ h₁w _,
+  have hX' := nontrivial_sum_of_affine_independent hX w h₁w,
+
   { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ h₁w (0 : E),
     rw finset.weighted_vsub_of_point_apply,
     simp only [vsub_eq_sub, sub_zero, coe_sum X (λ i, w i • i)],

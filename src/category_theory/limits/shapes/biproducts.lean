@@ -350,6 +350,7 @@ by simp [biproduct.components]
 by { ext, simp [biproduct.components], }
 
 /-- Morphisms between direct sums are matrices. -/
+@[simps]
 def biproduct.matrix_equiv : (⨁ f ⟶ ⨁ g) ≃ (Π j k, f j ⟶ g k) :=
 { to_fun := biproduct.components,
   inv_fun := biproduct.matrix,

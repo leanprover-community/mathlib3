@@ -63,5 +63,6 @@ welcomed.
 * Robert Y. Lewis (@robertylewis): all
 * Heather Macbeth (@hrmacbeth): geometry, analysis
 * Patrick Massot (@patrickmassot): documentation, topology
+* Bhavik Mehta (@b-mehta):
 * Scott Morrison (@semorrison): category theory
 * Eric Wieser (@eric-wieser): algebra, infrastructure

@@ -216,7 +216,7 @@ protected lemma edist {p : ℝ} {hp : 1 ≤ p} {β : ι → Type*}
   [∀ i, pseudo_emetric_space (β i)] (x y : pi_Lp p hp β) :
   edist x y = (∑ (i : ι), (edist (x i) (y i)) ^ p) ^ (1/p) := rfl
 
-/-- psuedometric space instance on the product of finitely many psuedometric spaces, using the
+/-- pseudometric space instance on the product of finitely many psuedometric spaces, using the
 `L^p` distance, and having as uniformity the product uniformity. -/
 instance [∀ i, pseudo_metric_space (β i)] : pseudo_metric_space (pi_Lp p hp β) :=
 begin

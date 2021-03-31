@@ -1095,8 +1095,7 @@ by { simp_rw [← of_real_norm_eq_coe_nnnorm], apply ennreal.of_real_le_of_le_to
   exact norm_integral_le_lintegral_norm f }
 
 lemma integral_eq_zero_of_ae {f : α → E} (hf : f =ᵐ[μ] 0) : ∫ a, f a ∂μ = 0 :=
-if hfm : ae_measurable f μ then by simp [integral_congr_ae hf, integral_zero]
-else integral_non_ae_measurable hfm
+by simp [integral_congr_ae hf, integral_zero]
 
 /-- If `f` has finite integral, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
 to zero as `μ s` tends to zero. -/
@@ -1548,6 +1547,17 @@ let g := hfm.mk f in calc
 ∫ y, f y ∂(measure.map φ μ) = ∫ y, g y ∂(measure.map φ μ) : integral_congr_ae hfm.ae_eq_mk
 ... = ∫ x, g (φ x) ∂μ : integral_map_of_measurable hφ hfm.measurable_mk
 ... = ∫ x, f (φ x) ∂μ : integral_congr_ae $ ae_eq_comp hφ (hfm.ae_eq_mk).symm
+
+lemma integral_map_of_closed_embedding {β} [topological_space α] [borel_space α]
+  [topological_space β] [measurable_space β] [borel_space β]
+  {φ : α → β} (hφ : closed_embedding φ) (f : β → E) :
+  ∫ y, f y ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
+begin
+  by_cases hfm : ae_measurable f (measure.map φ μ),
+  { exact integral_map hφ.continuous.measurable hfm },
+  { rw [integral_non_ae_measurable hfm, integral_non_ae_measurable],
+    rwa ae_measurable_comp_right_iff_of_closed_embedding hφ }
+end
 
 lemma integral_dirac' (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=

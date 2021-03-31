@@ -7,6 +7,7 @@ import topology.continuous_on
 import group_theory.submonoid.operations
 import algebra.group.prod
 import algebra.pointwise
+import topology.homeomorph
 
 /-!
 # Theory of topological monoids
@@ -271,6 +272,37 @@ lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 lemma continuous.pow {f : α → M} [topological_space α] (h : continuous f) (n : ℕ) :
   continuous (λ b, (f b) ^ n) :=
 continuous.comp (continuous_pow n) h
+
+namespace homeomorph
+
+variables [topological_space α] [group_with_zero α] [has_continuous_mul α]
+
+/-- Left multiplication by a nonzero element in a `group_with_zero` with continuous multiplication
+is a homeomorphism of the underlying type. -/
+protected def mul_left' (c : α) (hc : c ≠ 0) : α ≃ₜ α :=
+{ continuous_to_fun := continuous_mul_left _,
+  continuous_inv_fun := continuous_mul_left _,
+  .. equiv.mul_left' c hc }
+
+/-- Right multiplication by a nonzero element in a `group_with_zero` with continuous multiplication
+is a homeomorphism of the underlying type. -/
+protected def mul_right' (c : α) (hc : c ≠ 0) : α ≃ₜ α :=
+{ continuous_to_fun := continuous_mul_right _,
+  continuous_inv_fun := continuous_mul_right _,
+  .. equiv.mul_right' c hc }
+
+@[simp] lemma coe_mul_left' (c : α) (hc : c ≠ 0) : ⇑(homeomorph.mul_left' c hc) = (*) c := rfl
+
+@[simp] lemma mul_left'_symm_apply (c : α) (hc : c ≠ 0) :
+  ((homeomorph.mul_left' c hc).symm : α → α) = (*) c⁻¹ := rfl
+
+@[simp] lemma coe_mul_right' (c : α) (hc : c ≠ 0) :
+  ⇑(homeomorph.mul_right' c hc) = λ x, x * c := rfl
+
+@[simp] lemma mul_right'_symm_apply (c : α) (hc : c ≠ 0) :
+  ((homeomorph.mul_right' c hc).symm : α → α) = λ x, x * c⁻¹ := rfl
+
+end homeomorph
 
 end has_continuous_mul
 

@@ -949,7 +949,7 @@ lemma det_reindex_self' [decidable_eq m] [decidable_eq n] [comm_ring R]
   (e : m ≃ n) (A : matrix m m R) :
   det (λ i j, A (e.symm i) (e.symm j)) = det A :=
 begin
-  unfold det,
+  rw [det_apply', det_apply'],
   apply finset.sum_bij' (λ σ _, equiv.perm_congr e.symm σ) _ _ (λ σ _, equiv.perm_congr e σ),
   { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.apply_symm_apply] },
   { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.symm_apply_apply] },
@@ -1185,7 +1185,7 @@ lemma det_to_block (M : matrix m m R) (p : m → Prop) [decidable_pred p] :
     (to_block M (λ j, ¬p j) p) (to_block M (λ j, ¬p j) (λ j, ¬p j))).det :=
 begin
   rw ← matrix.det_reindex_self (equiv.sum_compl p).symm M,
-  unfold det,
+  rw [det_apply', det_apply'],
   congr, ext σ, congr, ext,
   generalize hy : σ x = y,
   cases x; cases y;

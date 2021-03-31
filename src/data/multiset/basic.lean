@@ -54,7 +54,7 @@ protected def zero : multiset α := @nil α
 
 instance : has_zero (multiset α)   := ⟨multiset.zero⟩
 instance : has_emptyc (multiset α) := ⟨0⟩
-instance : inhabited (multiset α)  := ⟨0⟩
+instance inhabited_multiset : inhabited (multiset α)  := ⟨0⟩
 
 @[simp] theorem coe_nil_eq_zero : (@nil α : multiset α) = 0 := rfl
 @[simp] theorem empty_eq_zero : (∅ : multiset α) = 0 := rfl
@@ -252,6 +252,11 @@ eq_zero_of_forall_not_mem h
 theorem subset_zero {s : multiset α} : s ⊆ 0 ↔ s = 0 :=
 ⟨eq_zero_of_subset_zero, λ xeq, xeq.symm ▸ subset.refl 0⟩
 
+lemma induction_on' {p : multiset α → Prop} (S : multiset α)
+  (h₁ : p ∅) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → p s → p (insert a s)) : p S :=
+@multiset.induction_on α (λ T, T ⊆ S → p T) S (λ _, h₁) (λ a s hps hs,
+  let ⟨hS, sS⟩ := cons_subset.1 hs in h₂ hS sS (hps sS)) (subset.refl S)
+
 end subset
 
 section to_list
@@ -418,7 +423,7 @@ def card : multiset α →+ ℕ :=
 theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
 card.map_add s t
 
-lemma card_smul (s : multiset α) (n : ℕ) :
+lemma card_nsmul (s : multiset α) (n : ℕ) :
   (n •ℕ s).card = n * s.card :=
 by rw [card.map_nsmul s n, nat.nsmul_eq_mul]
 
@@ -822,11 +827,11 @@ quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : multiset α → α) :=
 { map_add := sum_add, map_zero := sum_zero }
 
-lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
+lemma prod_nsmul {α : Type*} [comm_monoid α] (m : multiset α) :
   ∀n, (n •ℕ m).prod = m.prod ^ n
 | 0       := rfl
 | (n + 1) :=
-  by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_smul n]
+  by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_nsmul n]
 
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
@@ -1819,7 +1824,7 @@ countp_add _
 instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
 countp.is_add_monoid_hom _
 
-@[simp] theorem count_smul (a : α) (n s) : count a (n •ℕ s) = n * count a s :=
+@[simp] theorem count_nsmul (a : α) (n s) : count a (n •ℕ s) = n * count a s :=
 by induction n; simp [*, succ_nsmul', succ_mul]
 
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=

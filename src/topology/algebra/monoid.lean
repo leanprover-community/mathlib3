@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.continuous_on
-import group_theory.submonoid.basic
+import group_theory.submonoid.operations
 import algebra.group.prod
 import algebra.pointwise
 
@@ -174,6 +174,16 @@ def submonoid.topological_closure (s : submonoid M) : submonoid M :=
 { carrier := closure (s : set M),
   one_mem' := subset_closure s.one_mem,
   mul_mem' := λ a b ha hb, s.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩ }
+
+@[to_additive]
+instance submonoid.topological_closure_has_continuous_mul (s : submonoid M) :
+  has_continuous_mul (s.topological_closure) :=
+{ continuous_mul :=
+  begin
+    apply continuous_induced_rng,
+    change continuous (λ p : s.topological_closure × s.topological_closure, (p.1 : M) * (p.2 : M)),
+    continuity,
+  end }
 
 lemma submonoid.submonoid_topological_closure (s : submonoid M) :
   s ≤ s.topological_closure :=

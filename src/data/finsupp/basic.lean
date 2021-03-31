@@ -1487,7 +1487,7 @@ begin
   { rw [to_multiset_zero, multiset.prod_zero, finsupp.prod_zero_index] },
   { assume a n f _ _ ih,
     rw [to_multiset_add, multiset.prod_add, ih, to_multiset_single, finsupp.prod_add_index,
-      finsupp.prod_single_index, multiset.prod_smul, multiset.singleton_eq_singleton,
+      finsupp.prod_single_index, multiset.prod_nsmul, multiset.singleton_eq_singleton,
       multiset.prod_singleton],
     { exact pow_zero a },
     { exact pow_zero },
@@ -1511,7 +1511,7 @@ end
   f.to_multiset.count a = f a :=
 calc f.to_multiset.count a = f.sum (λx n, (n •ℕ {x} : multiset α).count a) :
     (f.support.sum_hom $ multiset.count a).symm
-  ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_smul]
+  ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_nsmul]
   ... = f.sum (λx n, n * (x ::ₘ 0 : multiset α).count a) : rfl
   ... = f a * (a ::ₘ 0 : multiset α).count a : sum_eq_single _
     (λ a' _ H, by simp only [multiset.count_cons_of_ne (ne.symm H), multiset.count_zero, mul_zero])
@@ -1749,6 +1749,13 @@ lemma sum_smul_index' [semiring R] [add_comm_monoid M] [semimodule R M] [add_com
   {g : α →₀ M} {b : R} {h : α → M → N} (h0 : ∀i, h i 0 = 0) :
   (b • g).sum h = g.sum (λi c, h i (b • c)) :=
 finsupp.sum_map_range_index h0
+
+/-- A version of `finsupp.sum_smul_index'` for bundled additive maps. -/
+lemma sum_smul_index_add_monoid_hom
+  [semiring R] [add_comm_monoid M] [add_comm_monoid N] [semimodule R M]
+  {g : α →₀ M} {b : R} {h : α → M →+ N} :
+  (b • g).sum (λ a, h a) = g.sum (λ i c, h i (b • c)) :=
+sum_map_range_index (λ i, (h i).map_zero)
 
 instance [semiring R] [add_comm_monoid M] [semimodule R M] {ι : Type*}
   [no_zero_smul_divisors R M] : no_zero_smul_divisors R (ι →₀ M) :=

@@ -132,10 +132,14 @@ by resetI; apply e.injective.comm_semigroup _; intros; exact e.apply_symm_apply 
 
 /-- Transfer `mul_zero_class` across an `equiv` -/
 protected def mul_zero_class [mul_zero_class β] : mul_zero_class α :=
-{ zero_mul := by simp [mul_def, zero_def],
-  mul_zero := by simp [mul_def, zero_def],
-  ..equiv.has_mul e,
-  ..equiv.has_zero e }
+let zero := e.has_zero, mul := e.has_mul in
+by resetI; apply e.injective.mul_zero_class _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `mul_one_class` across an `equiv` -/
+@[to_additive "Transfer `add_zero_class` across an `equiv`"]
+protected def mul_one_class [mul_one_class β] : mul_one_class α :=
+let one := e.has_one, mul := e.has_mul in
+by resetI; apply e.injective.mul_one_class _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `monoid` across an `equiv` -/
 @[to_additive "Transfer `add_monoid` across an `equiv`"]

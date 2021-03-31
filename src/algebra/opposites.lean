@@ -59,10 +59,13 @@ iff.refl _
 iff.refl _
 end
 
-instance [add_monoid α] : add_monoid (opposite α) :=
+instance [add_zero_class α] : add_zero_class (opposite α) :=
 { zero_add := λ x, unop_injective $ zero_add $ unop x,
   add_zero := λ x, unop_injective $ add_zero $ unop x,
-  .. opposite.add_semigroup α, .. opposite.has_zero α }
+  .. opposite.has_add α, .. opposite.has_zero α }
+
+instance [add_monoid α] : add_monoid (opposite α) :=
+{ .. opposite.add_semigroup α, .. opposite.add_zero_class α }
 
 instance [add_comm_monoid α] : add_comm_monoid (opposite α) :=
 { .. opposite.add_monoid α, .. opposite.add_comm_semigroup α }
@@ -109,10 +112,13 @@ iff.refl _
 iff.refl _
 end
 
-instance [monoid α] : monoid (opposite α) :=
+instance [mul_one_class α] : mul_one_class (opposite α) :=
 { one_mul := λ x, unop_injective $ mul_one $ unop x,
   mul_one := λ x, unop_injective $ one_mul $ unop x,
-  .. opposite.semigroup α, .. opposite.has_one α }
+  .. opposite.has_mul α, .. opposite.has_one α }
+
+instance [monoid α] : monoid (opposite α) :=
+{ .. opposite.semigroup α, .. opposite.mul_one_class α }
 
 instance [comm_monoid α] : comm_monoid (opposite α) :=
 { .. opposite.monoid α, .. opposite.comm_semigroup α }

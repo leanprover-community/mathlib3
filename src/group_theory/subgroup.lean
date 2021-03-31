@@ -1202,19 +1202,25 @@ open monoid_hom
 
 variables {H : Type*} [group H] {f : G →* H}
 
+@[to_additive]
 lemma map_le_range {K : subgroup G} : map f K ≤ f.range :=
 (range_eq_map f).symm ▸ map_mono le_top
 
+@[to_additive]
 lemma ker_le_comap {K : subgroup H} : f.ker ≤ comap f K :=
 comap_mono bot_le
 
 variable (f)
+
+@[to_additive]
 lemma map_comap_le (K : subgroup H) : map f (comap f K) ≤ K :=
 (gc_map_comap f).l_u_le _
 
+@[to_additive]
 lemma le_comap_map (K : subgroup G) : K ≤ comap f (map f K) :=
 (gc_map_comap f).le_u_l _
 
+@[to_additive]
 lemma map_comap_eq (K : subgroup H) :
   map f (comap f K) = f.range ⊓ K :=
 set_like.ext' begin
@@ -1222,6 +1228,7 @@ set_like.ext' begin
   simp [set.inter_comm],
 end
 
+@[to_additive]
 lemma comap_map_eq (K : subgroup G) :
   comap f (map f K) = K ⊔ f.ker :=
 begin
@@ -1232,6 +1239,33 @@ begin
   convert mul_mem _ (mem_sup_left hy) (mem_sup_right this),
   simp,
 end
+
+variable {f}
+
+@[to_additive]
+lemma map_comap_eq_self {K : subgroup H} (h : K ≤ f.range) :
+  map f (comap f K) = K :=
+by rwa [map_comap_eq, inf_eq_right]
+
+@[to_additive]
+lemma map_comap_eq_self_of_surjective (h : function.surjective f) {K : subgroup H} :
+  map f (comap f K) = K :=
+map_comap_eq_self ((range_top_of_surjective _ h).symm ▸ le_top)
+
+@[to_additive]
+lemma comap_map_eq_self {K : subgroup G} (h : f.ker ≤ K) :
+  comap f (map f K) = K :=
+by rwa [comap_map_eq, sup_eq_left]
+
+@[to_additive]
+lemma comap_map_eq_self_of_injective (h : function.injective f) {K : subgroup G} :
+  comap f (map f K) = K :=
+comap_map_eq_self (((ker_eq_bot_iff _).mpr h).symm ▸ bot_le)
+
+@[to_additive]
+lemma map_eq_comap_of_inverse {g : H →* G} (hl : function.left_inverse g f)
+  (hr : function.right_inverse g f) (K : subgroup G) : map f K = comap g K :=
+set_like.ext' $ by rw [coe_map, coe_comap, set.image_eq_preimage_of_inverse hl hr]
 
 end subgroup
 

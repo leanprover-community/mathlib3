@@ -182,6 +182,24 @@ begin
     simp }
 end
 
+/-- A variant of `lift` with `Z` a terminal object. -/
+@[simps]
+def lift_to_terminal {D : Type*} [category D] {Z : D} (F : C ⥤ D) (hZ : limits.is_terminal Z) :
+  with_terminal C ⥤ D :=
+lift F (λ x, hZ.from _) (λ x y f, hZ.hom_ext _ _)
+
+/-- A variant of `incl_lift` with `Z` a terminal object. -/
+@[simps]
+def incl_lift_to_terminal {D : Type*} [category D] {Z : D} (F : C ⥤ D) (hZ : limits.is_terminal Z) :
+  incl ⋙ lift_to_terminal F hZ ≅ F := incl_lift _ _ _
+
+/-- A variant of `lift_unique` with `Z` a terminal object. -/
+@[simps]
+def lift_to_terminal_unique {D : Type*} [category D] {Z : D} (F : C ⥤ D) (hZ : limits.is_terminal Z)
+  (G : with_terminal C ⥤ D) (h : incl ⋙ G ≅ F) (hG : G.obj star ≅ Z) :
+  G ≅ lift_to_terminal F hZ :=
+lift_unique F (λ z, hZ.from _) (λ x y f, hZ.hom_ext _ _) G h hG (λ x, hZ.hom_ext _ _)
+
 end with_terminal
 
 namespace with_initial
@@ -320,6 +338,24 @@ begin
     change G.map (𝟙 _) ≫ hG.hom = hG.hom ≫ 𝟙 _,
     simp }
 end
+
+/-- A variant of `lift` with `Z` an initial object. -/
+@[simps]
+def lift_to_initial {D : Type*} [category D] {Z : D} (F : C ⥤ D) (hZ : limits.is_initial Z) :
+  with_initial C ⥤ D :=
+lift F (λ x, hZ.to _) (λ x y f, hZ.hom_ext _ _)
+
+/-- A variant of `incl_lift` with `Z` an initial object. -/
+@[simps]
+def incl_lift_to_initial {D : Type*} [category D] {Z : D} (F : C ⥤ D) (hZ : limits.is_initial Z) :
+  incl ⋙ lift_to_initial F hZ ≅ F := incl_lift _ _ _
+
+/-- A variant of `lift_unique` with `Z` an initial object. -/
+@[simps]
+def lift_to_initial_unique {D : Type*} [category D] {Z : D} (F : C ⥤ D) (hZ : limits.is_initial Z)
+  (G : with_initial C ⥤ D) (h : incl ⋙ G ≅ F) (hG : G.obj star ≅ Z) :
+  G ≅ lift_to_initial F hZ :=
+lift_unique F (λ z, hZ.to _) (λ x y f, hZ.hom_ext _ _) G h hG (λ x, hZ.hom_ext _ _)
 
 end with_initial
 

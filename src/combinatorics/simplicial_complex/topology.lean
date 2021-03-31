@@ -387,44 +387,96 @@ lemma subdivision_iff_partitionable {S₁ S₂ : simplicial_complex m} (hS₂ : 
 begin
   split,
   {
-    sorry --hard part
-  },
+    rintro ⟨hspace, hsubdiv⟩,
+    use hspace,
+    rintro X hX,
+    use [{Y | Y ∈ S₁.faces ∧ combi_interior Y ⊆ combi_interior X}, (λ Y hY, hY.1)],
+    ext x,
+    split,
+    {
+      rintro hxX,
+      rw mem_bUnion_iff,
+      have hxspace := mem_space_iff.2 ⟨X, hX, hxX.1⟩,
+      rw [←hspace, interiors_cover, mem_bUnion_iff] at hxspace,
+      obtain ⟨Y, hY, hxY⟩ := hxspace,
+      use [Y, hY], swap, use hxY,
+      obtain ⟨Z, hZ, hYZ⟩ := hsubdiv hY,
+      rintro y hyY,
+      have hXZ : X ⊆ Z,
+      {
+        rw finset.subset_iff_inter_eq_left,
+        have hZX : X ∩ Z ⊆ X := finset.inter_subset_left _ _,
+        apply finset.subset.antisymm hZX,
+        by_contra hXZ,
+        apply hxX.2,
+        rw mem_combi_frontier_iff,
+        have := S₂.disjoint hX hZ ⟨hxX.1, hYZ hxY.1⟩,
+        norm_cast at this,
+        exact ⟨X ∩ Z, ⟨hZX, hXZ⟩, this⟩,
+      },
+      by_cases hZX : Z ⊆ X,
+      {
+        have := finset.subset.antisymm hXZ hZX,
+        subst this,
+        use hYZ hyY.1,
+        simp,
+        rw mem_combi_frontier_iff,
+        rintro ⟨W, hWX, hyW⟩,
+        apply hyY.2,
+        rw mem_combi_frontier_iff,
+        use [finset.filter (λ w, w ∈ convex_hull (W : set E)) Y, finset.filter_subset _ _],
+        {
+          rintro hYW,
+          have hYW : (Y : set E) ⊆ convex_hull (W : set E) := sorry,
+          apply hxX.2,
+          rw mem_combi_frontier_iff,
+          use [W, hWX],
+          exact convex_hull_min hYW (convex_convex_hull _) hxY.1,
+        },
+        simp,
+        have : (Y : set E) ∩ convex_hull (W : set E) =
+          convex_hull (Y : set E) ∩ convex_hull (W : set E) := sorry,
+        rw this,
+        apply subset_convex_hull _,
+        exact ⟨hyY.1, hyW⟩,
+      },
+      {
+        sorry
+      }
+    },
+    { rw mem_bUnion_iff,
+      rintro ⟨Y, ⟨hY, hYX⟩, hxY⟩,
+      exact hYX hxY }},
   {
     rintro ⟨hspace, hpartition⟩,
     use hspace,
-    rintro X₁ hX₁,
-    cases finset.eq_empty_or_nonempty X₁ with hX₁empty hX₁nonempty,
-    { subst hX₁empty,
-      obtain ⟨X₂, hX₂⟩ := hS₂,
-      use [X₂, hX₂],
+    rintro X hX,
+    cases finset.eq_empty_or_nonempty X with hXempty hXnonempty,
+    { subst hXempty,
+      obtain ⟨Y, hY⟩ := hS₂,
+      use [Y, hY],
       simp },
-    obtain ⟨x, hx⟩ := hX₁nonempty,
-    have hxspace := mem_space_iff.2 ⟨X₁, hX₁, subset_convex_hull X₁ hx⟩,
+    obtain ⟨x, hx⟩ := hXnonempty,
+    have hxspace := mem_space_iff.2 ⟨X, hX, subset_convex_hull X hx⟩,
     rw [hspace, interiors_cover, mem_bUnion_iff] at hxspace,
-    obtain ⟨X₂, hX₂, hXhull⟩ := hxspace,
-    use [X₂, hX₂],
-    suffices h : (X₁ : set E) ⊆ convex_hull ↑X₂,
-    {
-      sorry
-    },
-    rintro x' (hx' : x' ∈ X₁),
-    have hxspace := mem_space_iff.2 ⟨X₁, hX₁, subset_convex_hull X₁ hx'⟩,
+    obtain ⟨Y, hY, hxY⟩ := hxspace,
+    use [Y, hY],
+    apply convex_hull_min _ (convex_convex_hull _),
+    rintro x' (hx' : x' ∈ X),
+    have hxspace := mem_space_iff.2 ⟨X, hX, subset_convex_hull X hx'⟩,
     rw [hspace, interiors_cover, mem_bUnion_iff] at hxspace,
-    obtain ⟨X₂', hX₂', hXhull'⟩ := hxspace,
-    suffices hX₂X₂' : X₂ = X₂',
-    {
-      rw hX₂X₂',
-      exact hXhull'.1,
-    },
-    obtain ⟨F, hF, hinterior⟩ := hpartition hX₂,
-    obtain ⟨F', hF', hinterior'⟩ := hpartition hX₂',
-    rw [hinterior, mem_bUnion_iff] at hXhull,
-    rw [hinterior', mem_bUnion_iff] at hXhull',
-    obtain ⟨Y, hY, hYint⟩ := hXhull,
-    obtain ⟨Y', hY', hYint'⟩ := hXhull',
+    obtain ⟨Y', hY', hxY'⟩ := hxspace,
+    suffices hYY' : Y = Y',
+    { rw hYY',
+      exact hxY'.1 },
+    obtain ⟨F, hF, hinterior⟩ := hpartition hY,
+    obtain ⟨F', hF', hinterior'⟩ := hpartition hY',
+    rw [hinterior, mem_bUnion_iff] at hxY,
+    rw [hinterior', mem_bUnion_iff] at hxY',
+    obtain ⟨Y, hY, hYint⟩ := hxY,
+    obtain ⟨Y', hY', hYint'⟩ := hxY',
     --have := disjoint_interiors (hF hY) (hF' hY') x (mem_inter hYint hY'int),
     sorry
-    }
   }
 end
 
@@ -453,6 +505,7 @@ begin
     {
       sorry
     },
+    sorry,
     sorry
   }
 end

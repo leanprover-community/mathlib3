@@ -51,12 +51,35 @@ begin
 end
 
 -- TODO: move to mathlib
-lemma subset_iff_inter_eq_left {ι : Type*} {X Y : finset ι} (h : Y ⊆ X) [decidable_eq ι] :
-  X ∩ Y = Y :=
+lemma finset.subset_iff_inter_eq_left {ι : Type*} {X Y : finset ι} [decidable_eq ι] :
+  X ⊆ Y ↔ X ∩ Y = X :=
 begin
-  ext t,
-  simp only [and_iff_right_iff_imp, finset.mem_inter],
-  apply h
+  split,
+  {
+    rintro h,
+    ext t,
+    simp only [and_iff_left_iff_imp, finset.mem_inter],
+    apply h
+  },
+  rintro h,
+  rw ← h,
+  exact finset.inter_subset_right _ _,
+end
+
+-- TODO: move to mathlib
+lemma finset.subset_iff_inter_eq_right {ι : Type*} {X Y : finset ι} [decidable_eq ι] :
+  X ⊆ Y ↔ Y ∩ X = X :=
+begin
+  split,
+  {
+    rintro h,
+    ext t,
+    simp only [and_iff_right_iff_imp, finset.mem_inter],
+    apply h
+  },
+  rintro h,
+  rw ← h,
+  exact finset.inter_subset_left _ _,
 end
 
 lemma set.subset_singleton_iff' {α : Type*} (s : set α) (a : α) : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=

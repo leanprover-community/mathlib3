@@ -8,6 +8,7 @@ import data.finset.sort
 import group_theory.perm.basic
 import group_theory.order_of_element
 import tactic.norm_swap
+import group_theory.quotient_group
 
 /-!
 # Sign of a permutation
@@ -688,12 +689,15 @@ have h₁ : l.map sign = list.repeat (-1) l.length :=
   hg.2 ▸ (hl _ hg.1).sign_eq⟩,
 by rw [← list.prod_repeat, ← h₁, list.prod_hom _ (@sign α _ _)]
 
-lemma sign_surjective (hα : 1 < fintype.card α) : function.surjective (sign : perm α → units ℤ) :=
+variable (α)
+
+lemma sign_surjective [nontrivial α] : function.surjective (sign : perm α → units ℤ) :=
 λ a, (int.units_eq_one_or a).elim
   (λ h, ⟨1, by simp [h]⟩)
-  (λ h, let ⟨x⟩ := fintype.card_pos_iff.1 (lt_trans zero_lt_one hα) in
-    let ⟨y, hxy⟩ := fintype.exists_ne_of_one_lt_card hα x in
-    ⟨swap y x, by rw [sign_swap hxy, h]⟩ )
+  (λ h, let ⟨x, y, hxy⟩ := exists_pair_ne α in
+    ⟨swap x y, by rw [sign_swap hxy, h]⟩ )
+
+variable {α}
 
 lemma eq_sign_of_surjective_hom {s : perm α →* units ℤ} (hs : surjective s) : s = sign :=
 have ∀ {f}, is_swap f → s f = -1 :=
@@ -945,3 +949,50 @@ end
 end disjoint
 
 end equiv.perm
+
+section alternating_subgroup
+open equiv.perm
+variables (α) [fintype α] [decidable_eq α]
+
+/-- The alternating group on a finite type, realized as a subgroup of `equiv.perm`.
+  For $A_n$, use `alternating_subgroup (fin n)`. -/
+@[derive fintype] def alternating_subgroup : subgroup (perm α) :=
+sign.ker
+
+variables {α}
+
+lemma alternating_subgroup_eq_sign_ker : alternating_subgroup α = sign.ker := rfl
+
+@[simp]
+lemma mem_alternating_subgroup {f : perm α} :
+  f ∈ alternating_subgroup α ↔ sign f = 1 :=
+sign.mem_ker
+
+lemma two_mul_card_alternating_subgroup [nontrivial α] :
+  2 * card (alternating_subgroup α) = card (perm α) :=
+begin
+  classical,
+  rw ← fintype.card_units_int,
+  convert (card_eq_card_quotient_mul_card_subgroup (alternating_subgroup α)).symm,
+  convert of_equiv_card (quotient_group.quotient_ker_equiv_of_surjective _
+    (sign_surjective α)).to_equiv,
+end
+
+@[simp]
+lemma card_alternating_subgroup_eq_one [h : subsingleton α] :
+  card (alternating_subgroup α) = 1 :=
+begin
+  apply le_antisymm,
+  { apply le_trans (card_subtype_le _),
+    rw card_perm,
+    cases eq_or_lt_of_le (fintype.card_le_one_iff_subsingleton.2 h) with h1 h0,
+    { simp [h1] },
+    { rw [nat.lt_succ_iff, nat.le_zero_iff] at h0,
+      simp [h0] } },
+  { apply card_pos_iff.2,
+    apply_instance, }
+end
+
+lemma alternating_subgroup_normal : (alternating_subgroup α).normal := sign.normal_ker
+
+end alternating_subgroup

@@ -162,8 +162,8 @@ attribute [norm_cast] add_subgroup.mem_coe
 attribute [norm_cast] add_subgroup.coe_coe
 
 @[to_additive]
-instance (K : subgroup G) [d : decidable_pred K.carrier] [fintype G] : fintype K :=
-show fintype {g : G // g ∈ K.carrier}, from infer_instance
+instance (K : subgroup G) [d : decidable_pred (∈ K)] [fintype G] : fintype K :=
+show fintype {g : G // g ∈ K}, from infer_instance
 
 end subgroup
 
@@ -1143,6 +1143,11 @@ def ker (f : G →* N) := (⊥ : subgroup N).comap f
 
 @[to_additive]
 lemma mem_ker (f : G →* N) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
+
+@[to_additive]
+instance decidable_mem_ker [decidable_eq N] (f : G →* N) :
+  decidable_pred (∈ f.ker) :=
+λ x, decidable_of_iff (f x = 1) f.mem_ker
 
 @[to_additive]
 lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl

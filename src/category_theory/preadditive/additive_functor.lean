@@ -105,10 +105,7 @@ has_biproduct_of_total
   π := λ j, F.map (biproduct.π f j),
   ι := λ j, F.map (biproduct.ι f j),
   ι_π := λ j j', by { simp only [←F.map_comp], split_ifs, { subst h, simp, }, { simp [h], }, }, }
-begin
-  dsimp,
-  simp_rw [←F.map_comp, ←F.map_sum, limits.biproduct.total, functor.map_id],
-end
+(by simp_rw [←F.map_comp, ←F.map_sum, biproduct.total, functor.map_id])
 
 /--
 An additive functor between preadditive categories preserves finite biproducts.
@@ -121,10 +118,7 @@ def map_biproduct {J : Type v} [fintype J] [decidable_eq J] (f : J → C) [has_b
 { hom := biproduct.lift (λ j, F.map (biproduct.π f j)),
   inv := biproduct.desc (λ j, F.map (biproduct.ι f j)),
   hom_inv_id' :=
-  begin
-    simp only [biproduct.lift_desc],
-    simp only [←F.map_comp, ←F.map_sum, limits.biproduct.total, functor.map_id],
-  end,
+  by simp only [biproduct.lift_desc, ←F.map_comp, ←F.map_sum, biproduct.total, F.map_id],
   inv_hom_id' :=
   begin
     ext j j',

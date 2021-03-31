@@ -1248,7 +1248,7 @@ lemma map_comap_eq_self {K : subgroup H} (h : K ≤ f.range) :
 by rwa [map_comap_eq, inf_eq_right]
 
 @[to_additive]
-lemma map_comap_eq_self_of_surjective (h : function.surjective f) {K : subgroup H} :
+lemma map_comap_eq_self_of_surjective (h : function.surjective f) (K : subgroup H) :
   map f (comap f K) = K :=
 map_comap_eq_self ((range_top_of_surjective _ h).symm ▸ le_top)
 
@@ -1258,7 +1258,7 @@ lemma comap_map_eq_self {K : subgroup G} (h : f.ker ≤ K) :
 by rwa [comap_map_eq, sup_eq_left]
 
 @[to_additive]
-lemma comap_map_eq_self_of_injective (h : function.injective f) {K : subgroup G} :
+lemma comap_map_eq_self_of_injective (h : function.injective f) (K : subgroup G) :
   comap f (map f K) = K :=
 comap_map_eq_self (((ker_eq_bot_iff _).mpr h).symm ▸ bot_le)
 
@@ -1528,22 +1528,17 @@ instance {C : Type*} [comm_group C] [is_simple_group C] :
   is_simple_lattice (subgroup C) :=
 ⟨λ H, H.normal_of_comm.eq_bot_or_eq_top⟩
 
+open subgroup
+
 @[to_additive]
 lemma is_simple_group_of_surjective {H : Type*} [group H] [is_simple_group G]
   [nontrivial H] (f : G →* H) (hf : function.surjective f) :
   is_simple_group H :=
 ⟨nontrivial.exists_pair_ne, λ H iH, begin
-  refine ((iH.comap f).eq_bot_or_eq_top).imp (λ h, _) (λ h, _),
-  { rw subgroup.eq_bot_iff_forall at *,
-    simp_rw subgroup.mem_comap at h,
-    intros x hx,
-    obtain ⟨y, hy⟩ := hf x,
-    rw ← hy at hx,
-    rw h y hx at hy,
-    rw [← hy, f.map_one] },
-  { rw [← top_le_iff, ← subgroup.map_le_iff_le_comap, ← monoid_hom.range_eq_map,
-      monoid_hom.range_top_of_surjective f hf, top_le_iff] at h,
-    exact h }
+  cases ((iH.comap f).eq_bot_or_eq_top),
+  { left, rw [←map_bot f, ←h, map_comap_eq_self_of_surjective hf] },
+  right, rw [←comap_top f] at h,
+  rw [←map_comap_eq_self_of_surjective hf ⊤, ←h, map_comap_eq_self_of_surjective hf],
 end⟩
 
 end is_simple_group

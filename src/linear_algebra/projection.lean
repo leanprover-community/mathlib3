@@ -52,8 +52,8 @@ lemma is_compl_of_proj {f : E →ₗ[R] p} (hf : ∀ x : p, f x = x) :
 begin
   split,
   { rintros x ⟨hpx, hfx⟩,
-    erw [mem_coe, mem_ker, hf ⟨x, hpx⟩, mk_eq_zero] at hfx,
-    simp only [hfx, mem_coe, zero_mem] },
+    erw [set_like.mem_coe, mem_ker, hf ⟨x, hpx⟩, mk_eq_zero] at hfx,
+    simp only [hfx, set_like.mem_coe, zero_mem] },
   { intros x hx,
     rw [mem_sup'],
     refine ⟨f x, ⟨x - f x, _⟩, add_sub_cancel'_right _ _⟩,

@@ -1667,43 +1667,6 @@ begin
   simp [equiv.set.image, equiv.set.image_of_inj_on, hf.eq_iff, this],
 end
 
-/-- If `f : α → β` has a left-inverse when `α` is nonempty, then `α` is computably equivalent to the
-range of `f`.
-
-While awkward, the `nonempty α` hypothesis on `f_inv` and `hf` allows this to be used when `α` is
-empty too. This hypothesis is absent on analogous definitions on stronger `equiv`s like
-`linear_equiv.of_left_inverse` and `ring_equiv.of_left_inverse` as their typeclass assumptions
-are already sufficient to ensure non-emptiness. -/
-@[simps]
-def range_of_left_inverse {α β : Sort*}
-  (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
-  α ≃ set.range f :=
-{ to_fun := λ a, ⟨f a, a, rfl⟩,
-  inv_fun := λ b, f_inv (let ⟨a, _⟩ := b.2 in ⟨a⟩) b,
-  left_inv := λ a, hf ⟨a⟩ a,
-  right_inv := λ ⟨b, a, ha⟩, subtype.eq $ show f (f_inv ⟨a⟩ b) = b,
-    from eq.trans (congr_arg f $ by exact ha ▸ (hf _ a)) ha }
-
-/-- If `f : α → β` has a left-inverse, then `α` is computably equivalent to the range of `f`.
-
-Note that if `α` is empty, no such `f_inv` exists and so this definition can't be used, unlike
-the stronger but less convenient `equiv.set.range_of_left_inverse`. -/
-abbreviation range_of_left_inverse' {α β : Sort*}
-  (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
-  α ≃ set.range f :=
-range_of_left_inverse f (λ _, f_inv) (λ _, hf)
-
-/-- If `f : α → β` is an injective function, then `α` is equivalent to the range of `f`. -/
-@[simps apply]
-protected noncomputable def range {α β} (f : α → β) (H : injective f) :
-  α ≃ range f :=
-equiv.set.range_of_left_inverse f
-  (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun H)
-
-theorem apply_range_symm {α β} (f : α → β) (H : injective f) (b : range f) :
-  f ((set.range f H).symm b) = b :=
-subtype.ext_iff.1 $ (set.range f H).apply_symm_apply b
-
 /-- If `α` is equivalent to `β`, then `set α` is equivalent to `set β`. -/
 @[simps]
 protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
@@ -1723,10 +1686,51 @@ protected def powerset {α} (S : set α) : 𝒫 S ≃ set S :=
 
 end set
 
+/-- If `f : α → β` has a left-inverse when `α` is nonempty, then `α` is computably equivalent to the
+range of `f`.
+
+While awkward, the `nonempty α` hypothesis on `f_inv` and `hf` allows this to be used when `α` is
+empty too. This hypothesis is absent on analogous definitions on stronger `equiv`s like
+`linear_equiv.of_left_inverse` and `ring_equiv.of_left_inverse` as their typeclass assumptions
+are already sufficient to ensure non-emptiness. -/
+@[simps]
+def of_left_inverse {α β : Sort*}
+  (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
+  α ≃ set.range f :=
+{ to_fun := λ a, ⟨f a, a, rfl⟩,
+  inv_fun := λ b, f_inv (let ⟨a, _⟩ := b.2 in ⟨a⟩) b,
+  left_inv := λ a, hf ⟨a⟩ a,
+  right_inv := λ ⟨b, a, ha⟩, subtype.eq $ show f (f_inv ⟨a⟩ b) = b,
+    from eq.trans (congr_arg f $ by exact ha ▸ (hf _ a)) ha }
+
+/-- If `f : α → β` has a left-inverse, then `α` is computably equivalent to the range of `f`.
+
+Note that if `α` is empty, no such `f_inv` exists and so this definition can't be used, unlike
+the stronger but less convenient `of_left_inverse`. -/
+abbreviation of_left_inverse' {α β : Sort*}
+  (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
+  α ≃ set.range f :=
+of_left_inverse f (λ _, f_inv) (λ _, hf)
+
+/-- If `f : α → β` is an injective function, then domain `α` is equivalent to the range of `f`. -/
+@[simps apply]
+noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=
+equiv.of_left_inverse f
+  (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun hf)
+
+theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : _root_.set.range f) :
+  f ((of_injective f hf).symm b) = b :=
+subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
+
+lemma of_left_inverse_eq_of_injective {α β : Type*} [nonempty α]
+  (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
+  of_left_inverse f f_inv hf = of_injective f (hf ‹_›).injective :=
+by { ext, simp }
+
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
 @[simps apply]
 noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α ≃ β :=
-(equiv.set.range f hf.1).trans $ (set_congr hf.2.range_eq).trans $ equiv.set.univ β
+(of_injective f hf.1).trans $ (set_congr hf.2.range_eq).trans $ equiv.set.univ β
 
 lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (x : β) :
   f ((of_bijective f hf).symm x) = x :=
@@ -1735,12 +1739,6 @@ lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (
 @[simp] lemma of_bijective_symm_apply_apply {α β} (f : α → β) (hf : bijective f) (x : α) :
   (of_bijective f hf).symm (f x) = x :=
 (of_bijective f hf).symm_apply_apply x
-
-/-- If `f` is an injective function, then its domain is equivalent to its range. -/
-@[simps apply]
-noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=
-of_bijective (λ x, ⟨f x, set.mem_range_self x⟩)
-  ⟨λ x y hxy, hf $ by injections, λ ⟨_, x, rfl⟩, ⟨x, rfl⟩⟩
 
 /-- Subtype of the quotient is equivalent to the quotient of the subtype. Let `α` be a setoid with
 equivalence relation `~`. Let `p₂` be a predicate on the quotient type `α/~`, and `p₁` be the lift

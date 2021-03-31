@@ -86,7 +86,7 @@ end
 theorem small_of_injective {α : Type*} {β : Type*} [small.{w} β]
   (f : α → β) (hf : function.injective f) : small.{w} α :=
 begin
-  rw small_congr (equiv.set.range f hf),
+  rw small_congr (equiv.of_injective f hf),
   apply_instance,
 end
 

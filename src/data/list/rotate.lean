@@ -119,4 +119,13 @@ end
 @[simp] lemma nodup_rotate {l : list α} {n : ℕ} : nodup (l.rotate n) ↔ nodup l :=
 (rotate_perm l n).nodup_iff
 
+@[simp] lemma rotate_eq_nil_iff {l : list α} {n : ℕ} : l.rotate n = [] ↔ l = [] :=
+begin
+  induction n with n hn generalizing l,
+  { simp },
+  { cases l with hd tl,
+    { simp },
+    { simp [rotate_cons_succ, hn] } }
+end
+
 end list

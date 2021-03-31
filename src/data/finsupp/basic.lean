@@ -1219,6 +1219,7 @@ begin
     (assume a' h', single_eq_of_ne $ assume eq, h $ eq ▸ set.mem_range_self _)
 end
 
+@[simp]
 lemma map_domain_id : map_domain id v = v :=
 sum_single _
 
@@ -1232,6 +1233,7 @@ begin
   { exact single_zero }
 end
 
+@[simp]
 lemma map_domain_single {f : α → β} {a : α} {b : M} : map_domain f (single a b) = single (f a) b :=
 sum_single_index single_zero
 
@@ -1245,13 +1247,28 @@ finset.sum_congr rfl $ λ _ H, by simp only [h _ H]
 lemma map_domain_add {f : α → β} : map_domain f (v₁ + v₂) = map_domain f v₁ + map_domain f v₂ :=
 sum_add_index (λ _, single_zero) (λ _ _ _, single_add)
 
+@[simps]
+def map_domain.add_monoid_hom (f : α → β) : (α →₀ M) →+ (β →₀ M) :=
+{ to_fun := map_domain f,
+  map_zero' := map_domain_zero,
+  map_add' := λ _ _, map_domain_add}
+
+@[simp]
+lemma map_domain.add_monoid_hom_id : map_domain.add_monoid_hom id = add_monoid_hom.id (α →₀ M) :=
+add_monoid_hom.ext $ λ _, map_domain_id
+
+lemma map_domain.add_monoid_hom_comp (f : β → γ) (g : α → β) :
+  (map_domain.add_monoid_hom (f ∘ g) : (α →₀ M) →+ (γ →₀ M)) =
+    (map_domain.add_monoid_hom f).comp (map_domain.add_monoid_hom g) :=
+add_monoid_hom.ext $ λ _, map_domain_comp
+
 lemma map_domain_finset_sum {f : α → β} {s : finset ι} {v : ι → α →₀ M} :
   map_domain f (∑ i in s, v i) = ∑ i in s, map_domain f (v i) :=
-eq.symm $ sum_finset_sum_index (λ _, single_zero) (λ _ _ _, single_add)
+(map_domain.add_monoid_hom f : (α →₀ M) →+ β →₀ M).map_sum _ _
 
 lemma map_domain_sum [has_zero N] {f : α → β} {s : α →₀ N} {v : α → N → α →₀ M} :
   map_domain f (s.sum v) = s.sum (λa b, map_domain f (v a b)) :=
-eq.symm $ sum_finset_sum_index (λ _, single_zero) (λ _ _ _, single_add)
+(map_domain.add_monoid_hom f : (α →₀ M) →+ β →₀ M).map_finsupp_sum _ _
 
 lemma map_domain_support [decidable_eq β] {f : α → β} {s : α →₀ M} :
   (s.map_domain f).support ⊆ s.support.image f :=
@@ -1303,6 +1320,16 @@ begin
   have : map_domain f v₁ (f a) = map_domain f v₂ (f a), { rw eq },
   rwa [map_domain_apply hf, map_domain_apply hf] at this,
 end
+
+lemma map_domain.add_monoid_hom_comp_map_range [add_comm_monoid N] (f : α → β) (g : M →+ N) :
+  (map_domain.add_monoid_hom f).comp (map_range.add_monoid_hom g) =
+    (map_range.add_monoid_hom g).comp (map_domain.add_monoid_hom f) :=
+by { ext, simp }
+
+/-- When `g` is an `add_monoid_hom`, `map_range` and `map_domain` commute. -/
+lemma map_domain_map_range [add_comm_monoid N] (f : α → β) (v : α →₀ M) (g : M →+ N) :
+  map_domain f (map_range g g.map_zero v) = map_range g g.map_zero (map_domain f v) :=
+add_monoid_hom.congr_fun (map_domain.add_monoid_hom_comp_map_range _ _) v
 
 end map_domain
 

@@ -124,8 +124,8 @@ end
 by simp only [witt_polynomial, X, sum_singleton, range_one, pow_zero]
 
 @[simp] lemma witt_polynomial_one : witt_polynomial p R 1 = C ↑p * X 1 + (X 0) ^ p :=
-by simp only [witt_polynomial_eq_sum_C_mul_X_pow, sum_range_succ, range_one,
-    sum_singleton, one_mul, pow_one, C_1, pow_zero, add_comm]
+by simp only [witt_polynomial_eq_sum_C_mul_X_pow, sum_range_succ_comm, range_one,
+    sum_singleton, one_mul, pow_one, C_1, pow_zero]
 
 lemma aeval_witt_polynomial {A : Type*} [comm_ring A] [algebra R A] (f : ℕ → A) (n : ℕ) :
   aeval f (W_ R n) = ∑ i in range (n+1), p^i * (f i) ^ (p ^ (n-i)) :=
@@ -276,7 +276,7 @@ by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, o
 begin
   rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
   simp only [alg_hom.map_pow, C_pow, alg_hom.map_mul, alg_hom_C],
-  rw [sum_range_succ, add_comm, nat.sub_self, pow_zero, pow_one, bind₁_X_right,
+  rw [sum_range_succ_comm, nat.sub_self, pow_zero, pow_one, bind₁_X_right,
       mul_comm, ← C_pow, X_in_terms_of_W_aux],
   simp only [C_pow, bind₁_X_right, sub_add_cancel],
 end
@@ -289,7 +289,7 @@ begin
   rw [X_in_terms_of_W_eq, alg_hom.map_mul, alg_hom.map_sub, bind₁_X_right, alg_hom_C,
       alg_hom.map_sum],
   have : W_ R n - ∑ i in range n, C (p ^ i : R) * (X i) ^ p ^ (n - i) = C (p ^ n : R) * X n,
-  by simp only [witt_polynomial_eq_sum_C_mul_X_pow, nat.sub_self, sum_range_succ, add_comm,
+  by simp only [witt_polynomial_eq_sum_C_mul_X_pow, nat.sub_self, sum_range_succ_comm,
     pow_one, add_sub_cancel, pow_zero],
   rw [sum_congr rfl, this],
   { -- this is really slow for some reason

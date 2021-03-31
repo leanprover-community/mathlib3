@@ -155,7 +155,7 @@ begin
   ... = f.coeff (m + k.succ) * (∏ i in range k, ↑(m + k.succ - i)) * ↑(m + 1) :
     by push_cast
   ... = f.coeff (m + k.succ) * (∏ i in range k.succ, ↑(m + k.succ - i)) :
-    by rw [prod_range_succ, nat.add_sub_assoc k.le_succ, succ_sub le_rfl, nat.sub_self, mul_assoc]
+    by rw [prod_range_succ_comm, nat.add_sub_assoc k.le_succ, succ_sub le_rfl, nat.sub_self]
 end
 
 lemma iterated_deriv_eq_zero_of_nat_degree_lt (h : f.nat_degree < n) : iterated_deriv f n = 0 :=

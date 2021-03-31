@@ -1289,7 +1289,7 @@ begin
     apply fintype.card_eq_zero_iff.mpr,
     intro i,
     exact nat.not_lt_zero (b i) (hn i) },
-  { rw [finset.prod_range_succ, mul_comm],
+  { rw [finset.prod_range_succ_comm],
     have h2 : (M.to_square_block_prop (λ (i : m), b i = n.succ)).det =
       (M.to_square_block' b n.succ).det,
     { dunfold to_square_block', dunfold to_square_block_prop, refl },

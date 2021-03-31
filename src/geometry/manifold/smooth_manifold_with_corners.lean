@@ -749,6 +749,14 @@ lemma ext_chart_continuous_on_symm :
   continuous_on (ext_chart_at I x).symm (ext_chart_at I x).target :=
 λ y hy, (ext_chart_continuous_at_symm'' _ _ hy).continuous_within_at
 
+lemma ext_chart_preimage_open_of_open' {s : set E} (hs : is_open s) :
+  is_open ((ext_chart_at I x).source ∩ ext_chart_at I x ⁻¹' s) :=
+(ext_chart_at_continuous_on I x).preimage_open_of_open (ext_chart_at_open_source _ _) hs
+
+lemma ext_chart_preimage_open_of_open {s : set E} (hs : is_open s) :
+  is_open ((chart_at H x).source ∩ ext_chart_at I x ⁻¹' s) :=
+by { rw ← ext_chart_at_source I, exact ext_chart_preimage_open_of_open' I x hs }
+
 lemma ext_chart_at_map_nhds_within_eq_image' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
   map (ext_chart_at I x) (𝓝[s] y) =
     𝓝[ext_chart_at I x '' ((ext_chart_at I x).source ∩ s)] (ext_chart_at I x y) :=

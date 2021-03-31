@@ -270,7 +270,7 @@ variables {f : α → β} (hf : function.injective f)
 /--
 The inverse of an `hf : injective` function `f : α → β`, of the type `↥(set.range f) → α`.
 This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`,
-or the function version of applying `(equiv.set.range f hf).symm`.
+or the function version of applying `(equiv.of_injective f hf).symm`.
 This function should not usually be used for actual computation because for most cases,
 an explicit inverse can be stated that has better computational properties.
 This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
@@ -308,7 +308,7 @@ variables (f : α ↪ β) (b : set.range f)
 /--
 The inverse of an embedding `f : α ↪ β`, of the type `↥(set.range f) → α`.
 This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`,
-or the function version of applying `(equiv.set.range f f.injective).symm`.
+or the function version of applying `(equiv.of_injective f f.injective).symm`.
 This function should not usually be used for actual computation because for most cases,
 an explicit inverse can be stated that has better computational properties.
 This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where

@@ -133,9 +133,7 @@ def lift {D : Type*} [category D] {Z : D} (F : C ⥤ D) (M : Π (x : C), F.obj x
     | of x, of y, f := F.map f
     | of x, star, punit.star := M x
     | star, star, punit.star := 𝟙 Z
-    end,
-  map_id' := by {rintros (X|X), tidy},
-  map_comp' := by {rintros (X|X) (Y|Y) (Z|Z) f g, tidy}, }
+    end }
 
 /-- The isomorphism between `incl ⋙ lift F _ _` with `F`. -/
 @[simps]
@@ -285,9 +283,7 @@ def lift {D : Type*} [category D] {Z : D} (F : C ⥤ D) (M : Π (x : C), Z ⟶ F
     | of x, of y, f := F.map f
     | star, of x, punit.star := M _
     | star, star, punit.star := 𝟙 _
-    end,
-  map_id' := by {rintros (X|X), tidy},
-  map_comp' := by {rintros (X|X) (Y|Y) (Z|Z) f g, tidy} }
+    end }
 
 /-- The isomorphism between `incl ⋙ lift F _ _` with `F`. -/
 @[simps]

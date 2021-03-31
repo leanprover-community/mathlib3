@@ -756,10 +756,10 @@ end
   (ep.subtype_congr en).sign = ep.sign * en.sign :=
 by simp [subtype_congr]
 
-@[simp] lemma via_set_range_sign {α β : Type*} (e : perm α) {f' : α → β} (f : α ≃ set.range f')
-  [decidable_eq α] [fintype α] [decidable_eq β] [fintype β] [decidable_pred (∈ set.range f')] :
-  equiv.perm.sign (e.via_set_range f) = equiv.perm.sign e :=
-by simp [equiv.perm.via_set_range]
+@[simp] lemma sign_extend_domain (e : perm α)
+  {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) :
+  equiv.perm.sign (e.extend_domain f) = equiv.perm.sign e :=
+by simp [equiv.perm.extend_domain]
 
 end congr
 

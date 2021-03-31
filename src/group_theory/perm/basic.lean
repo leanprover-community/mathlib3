@@ -179,6 +179,24 @@ end
 @[simp] lemma perm_congr_eq_mul (e p : perm α) :
   e.perm_congr p = e * p * e⁻¹ := rfl
 
+section extend_domain
+
+/-! Lemmas about `equiv.perm.extend_domain` re-expressed via the group structure. -/
+
+variables {β : Type*} (e : perm α) {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p)
+
+@[simp] lemma extend_domain_one : perm.extend_domain 1 f = 1 :=
+extend_domain_refl f
+
+@[simp] lemma extend_domain_inv : (e.extend_domain f)⁻¹ = e⁻¹.extend_domain f := rfl
+
+@[simp] lemma extend_domain_mul (e e' : perm α) :
+  (e.extend_domain f) * (e'.extend_domain f) = (e * e').extend_domain f :=
+extend_domain_trans _ _ _
+
+end extend_domain
+
+
 /-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation
   on `{x // p x}` induced by `f`. -/
 def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : perm {x // p x} :=

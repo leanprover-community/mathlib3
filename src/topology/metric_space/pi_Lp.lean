@@ -220,7 +220,7 @@ protected lemma edist {p : ℝ} {hp : 1 ≤ p} {β : ι → Type*}
 `L^p` distance, and having as uniformity the product uniformity. -/
 instance [∀ i, pseudo_metric_space (β i)] : pseudo_metric_space (pi_Lp p hp β) :=
 begin
-  /- we construct the instance from the emetric space instance to avoid checking again that the
+  /- we construct the instance from the pseudo emetric space instance to avoid checking again that the
   uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/
   have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,

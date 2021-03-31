@@ -98,7 +98,7 @@ satisfactory, as it does not register the fact that the topology and the uniform
 with the product one. Therefore, we do not register it as an instance. Using this as a temporary
 pseudoemetric space instance, we will show that the uniform structure is equal (but not defeq) to
 the product one, and then register an instance in which we replace the uniform structure by the
-product one using this pseudoemetric space and `emetric_space.replace_uniformity`. -/
+product one using this pseudoemetric space and `pseudo_emetric_space.replace_uniformity`. -/
 def pseudo_emetric_aux : pseudo_emetric_space (pi_Lp p hp β) :=
 have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
 { edist          := λ f g, (∑ (i : ι), (edist (f i) (g i)) ^ p) ^ (1/p),

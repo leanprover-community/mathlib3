@@ -998,6 +998,38 @@ f.has_mfderiv_within_at.mfderiv_within hs
 
 end continuous_linear_map
 
+namespace continuous_linear_equiv
+
+variables (f : E ≃L[𝕜] E') {s : set E} {x : E}
+
+protected lemma has_mfderiv_within_at :
+  has_mfderiv_within_at 𝓘(𝕜, E) 𝓘(𝕜, E') f s x (f : E →L[𝕜] E') :=
+f.has_fderiv_within_at.has_mfderiv_within_at
+
+protected lemma has_mfderiv_at : has_mfderiv_at 𝓘(𝕜, E) 𝓘(𝕜, E') f x (f : E →L[𝕜] E') :=
+f.has_fderiv_at.has_mfderiv_at
+
+protected lemma mdifferentiable_within_at : mdifferentiable_within_at 𝓘(𝕜, E) 𝓘(𝕜, E') f s x :=
+f.differentiable_within_at.mdifferentiable_within_at
+
+protected lemma mdifferentiable_on : mdifferentiable_on 𝓘(𝕜, E) 𝓘(𝕜, E') f s :=
+f.differentiable_on.mdifferentiable_on
+
+protected lemma mdifferentiable_at : mdifferentiable_at 𝓘(𝕜, E) 𝓘(𝕜, E') f x :=
+f.differentiable_at.mdifferentiable_at
+
+protected lemma mdifferentiable : mdifferentiable 𝓘(𝕜, E) 𝓘(𝕜, E') f :=
+f.differentiable.mdifferentiable
+
+lemma mfderiv_eq : mfderiv 𝓘(𝕜, E) 𝓘(𝕜, E') f x = (f : E →L[𝕜] E') :=
+f.has_mfderiv_at.mfderiv
+
+lemma mfderiv_within_eq (hs : unique_mdiff_within_at 𝓘(𝕜, E) s x)  :
+  mfderiv_within 𝓘(𝕜, E) 𝓘(𝕜, E') f s x = (f : E →L[𝕜] E') :=
+f.has_mfderiv_within_at.mfderiv_within hs
+
+end continuous_linear_equiv
+
 variables {s : set M} {x : M}
 
 section id

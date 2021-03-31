@@ -30,25 +30,6 @@ variables {p q : submodule R M}
 
 namespace submodule
 
-instance : partial_order (submodule R M) :=
-{ le := λ p q, ∀ ⦃x⦄, x ∈ p → x ∈ q,
-  ..partial_order.lift (coe : submodule R M → set M) coe_injective }
-
-lemma le_def : p ≤ q ↔ (p : set M) ⊆ q := iff.rfl
-
-@[simp, norm_cast] lemma coe_subset_coe : (p : set M) ⊆ q ↔ p ≤ q := iff.rfl
-
-lemma le_def' : p ≤ q ↔ ∀ x ∈ p, x ∈ q := iff.rfl
-
-lemma lt_def : p < q ↔ (p : set M) ⊂ q := iff.rfl
-
-lemma not_le_iff_exists : ¬ (p ≤ q) ↔ ∃ x ∈ p, x ∉ q := set.not_subset
-
-lemma exists_of_lt {p q : submodule R M} : p < q → ∃ x ∈ q, x ∉ p := set.exists_of_ssubset
-
-lemma lt_iff_le_and_exists : p < q ↔ p ≤ q ∧ ∃ x ∈ q, x ∉ p :=
-by rw [lt_iff_le_not_le, not_le_iff_exists]
-
 /-- The set `{0}` is the bottom element of the lattice of submodules. -/
 instance : has_bot (submodule R M) :=
 ⟨{ carrier := {0}, smul_mem' := by simp { contextual := tt }, .. (⊥ : add_submonoid M)}⟩
@@ -68,14 +49,14 @@ instance unique_bot : unique (⊥ : submodule R M) :=
 
 lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
 begin
-  have h := (submodule.lt_iff_le_and_exists.1 bot_lt).2,
+  have h := (set_like.lt_iff_le_and_exists.1 bot_lt).2,
   tidy,
 end
 
 instance : order_bot (submodule R M) :=
 { bot := ⊥,
   bot_le := λ p x, by simp {contextual := tt},
-  ..submodule.partial_order }
+  ..set_like.partial_order }
 
 protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0 : M) :=
 ⟨ λ h, h.symm ▸ λ x hx, (mem_bot R).mp hx,
@@ -97,7 +78,7 @@ instance : has_top (submodule R M) :=
 instance : order_top (submodule R M) :=
 { top := ⊤,
   le_top := λ p x _, trivial,
-  ..submodule.partial_order }
+  ..set_like.partial_order }
 
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, h trivial, λ h x _, h x⟩
@@ -157,7 +138,7 @@ set.mem_bInter_iff
 
 @[simp] theorem mem_infi {ι} (p : ι → submodule R M) {x} :
   x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=
-by rw [← mem_coe, infi_coe, set.mem_Inter]; refl
+by rw [← set_like.mem_coe, infi_coe, set.mem_Inter]; refl
 
 lemma mem_sup_left {S T : submodule R M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
 show S ≤ S ⊔ T, from le_sup_left

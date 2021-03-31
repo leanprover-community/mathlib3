@@ -144,8 +144,9 @@ begin
     -- we have our desired conclusion.
     exact t₄, },
   { intros S ι U,
-    -- Let `f` be the universal morphism from `F.obj U` to the equalizer of the sheaf condition fork,
-    -- whatever it is. Our goal is to show that this is an isomorphism.
+    -- Let `f` be the universal morphism from `F.obj U` to the equalizer
+    -- of the sheaf condition fork, whatever it is.
+    -- Our goal is to show that this is an isomorphism.
     let f := equalizer.lift _ (w F U),
     -- If we can do that,
     suffices : is_iso (G.map f),

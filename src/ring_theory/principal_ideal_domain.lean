@@ -145,7 +145,7 @@ is_noetherian_ring_iff.2 ⟨assume s : ideal R,
 begin
   rcases (is_principal_ideal_ring.principal s).principal with ⟨a, rfl⟩,
   rw [← finset.coe_singleton],
-  exact ⟨{a}, submodule.coe_injective rfl⟩
+  exact ⟨{a}, set_like.coe_injective rfl⟩
 end⟩
 
 lemma is_maximal_of_irreducible {p : R} (hp : irreducible p) :

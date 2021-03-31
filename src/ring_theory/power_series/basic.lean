@@ -459,7 +459,7 @@ end
 
 instance [nonempty σ] [nontrivial R] : nontrivial (subalgebra R (mv_power_series σ R)) :=
 ⟨⟨⊥, ⊤, begin
-  rw [ne.def, subalgebra.ext_iff, not_forall],
+  rw [ne.def, set_like.ext_iff, not_forall],
   inhabit σ,
   refine ⟨X (default σ), _⟩,
   simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],
@@ -656,7 +656,7 @@ instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
   rintros φ ⟨ψ, h⟩,
   replace h := congr_arg (constant_coeff σ S) h,
   rw constant_coeff_map at h,
-  have : is_unit (constant_coeff σ S ↑ψ) := @is_unit_constant_coeff σ S _ (↑ψ) (is_unit_unit ψ),
+  have : is_unit (constant_coeff σ S ↑ψ) := @is_unit_constant_coeff σ S _ (↑ψ) ψ.is_unit,
   rw h at this,
   rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
   exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc.symm)

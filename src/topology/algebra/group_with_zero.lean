@@ -61,7 +61,8 @@ hf.div_const
 lemma continuous_on.div_const (hf : continuous_on f s) {y : G₀} : continuous_on (λ x, f x / y) s :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_on_const
 
-lemma continuous.div_const (hf : continuous f) {y : G₀} : continuous (λ x, f x / y) :=
+@[continuity] lemma continuous.div_const (hf : continuous f) {y : G₀} :
+  continuous (λ x, f x / y) :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_const
 
 end div_const
@@ -110,7 +111,8 @@ lemma continuous_at.inv' (hf : continuous_at f a) (ha : f a ≠ 0) :
   continuous_at (λ x, (f x)⁻¹) a :=
 hf.inv' ha
 
-lemma continuous.inv' (hf : continuous f) (h0 : ∀ x, f x ≠ 0) : continuous (λ x, (f x)⁻¹) :=
+@[continuity] lemma continuous.inv' (hf : continuous f) (h0 : ∀ x, f x ≠ 0) :
+  continuous (λ x, (f x)⁻¹) :=
 continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).inv' (h0 x)
 
 lemma continuous_on.inv' (hf : continuous_on f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
@@ -153,7 +155,7 @@ lemma continuous_at.div (hf : continuous_at f a) (hg : continuous_at g a) (h₀ 
   continuous_at (f / g) a :=
 hf.div hg h₀
 
-lemma continuous.div (hf : continuous f) (hg : continuous g) (h₀ : ∀ x, g x ≠ 0) :
+@[continuity] lemma continuous.div (hf : continuous f) (hg : continuous g) (h₀ : ∀ x, g x ≠ 0) :
   continuous (f / g) :=
 by simpa only [div_eq_mul_inv] using hf.mul (hg.inv' h₀)
 
@@ -203,7 +205,7 @@ lemma continuous_at.fpow (hf : continuous_at f a) (ha : f a ≠ 0) (m : ℤ) :
   continuous_at (λ x, (f x) ^ m) a :=
 (continuous_at_fpow ha m).comp hf
 
-lemma continuous.fpow (hf : continuous f) (h0 : ∀ a, f a ≠ 0) (m : ℤ) :
+@[continuity] lemma continuous.fpow (hf : continuous f) (h0 : ∀ a, f a ≠ 0) (m : ℤ) :
   continuous (λ x, (f x) ^ m) :=
 continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).fpow (h0 x) m
 

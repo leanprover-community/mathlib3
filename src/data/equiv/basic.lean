@@ -1800,6 +1800,12 @@ by simp [swap_apply_def] {contextual := tt}
 @[simp] theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
 ext $ λ x, swap_core_swap_core _ _ _
 
+@[simp] lemma swap_eq_refl_iff {x y : α} : equiv.swap x y = equiv.refl _ ↔ x = y :=
+begin
+  refine ⟨λ h, (equiv.refl _).injective _, λ h, h ▸ (swap_self _)⟩,
+  rw [←h, swap_apply_left, h, refl_apply]
+end
+
 theorem swap_comp_apply {a b x : α} (π : perm α) :
   π.trans (swap a b) x = if π x = a then b else if π x = b then a else π x :=
 by { cases π, refl }

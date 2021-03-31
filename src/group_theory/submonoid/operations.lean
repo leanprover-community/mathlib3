@@ -324,7 +324,7 @@ attribute [norm_cast] add_submonoid.coe_add add_submonoid.coe_zero
 @[to_additive "An `add_submonoid` of an unital additive magma inherits an unital additive magma
 structure."]
 instance to_mul_one_class {M : Type*} [mul_one_class M] (S : submonoid M) : mul_one_class S :=
-S.coe_injective.mul_one_class coe rfl (λ _ _, rfl)
+subtype.coe_injective.mul_one_class coe rfl (λ _ _, rfl)
 
 /-- A submonoid of a monoid inherits a monoid structure. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`

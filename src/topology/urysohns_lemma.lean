@@ -82,6 +82,8 @@ open neighborhood `U`. -/
 (open_U : is_open U)
 (subset : C ⊆ U)
 
+instance : inhabited (CU X) := ⟨⟨∅, univ, is_closed_empty, is_open_univ, empty_subset _⟩⟩
+
 variable [normal_space X]
 
 namespace CU

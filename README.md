@@ -57,6 +57,7 @@ welcomed.
 * Floris van Doorn (@fpvandoorn): all
 * Gabriel Ebner (@gebner): all
 * Sébastien Gouëzel (@sgouezel): topology, calculus
+* Markus Himmel (@TwoFX):
 * Simon Hudon (@cipher1024): all
 * Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
 * Yury G. Kudryashov (@urkud): analysis, topology

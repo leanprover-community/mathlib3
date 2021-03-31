@@ -642,10 +642,10 @@ def homeomorph.smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_f
   (e : homeomorph M M') : @smooth_manifold_with_corners 𝕜 _ E _ _ H _ I M' _ (e.charted_space H) :=
 { compatible := λ f f' hf hf', begin rcases hf with ⟨ϕ, hϕ1, hϕ2⟩,
     rcases hf' with ⟨ψ, hψ1, hψ2⟩,
-    rw [hϕ2, hψ2, homeomorph.symm_to_local_homeomorph, local_homeomorph.trans_symm_eq_symm_trans_symm,
-    local_homeomorph.symm_symm, local_homeomorph.trans_assoc,
-    ←local_homeomorph.trans_assoc e.to_local_homeomorph, homeomorph.trans_symm_to_local_homeomorph,
-    local_homeomorph.refl_trans],
+    rw [hϕ2, hψ2, homeomorph.symm_to_local_homeomorph, 
+      local_homeomorph.trans_symm_eq_symm_trans_symm, local_homeomorph.symm_symm, 
+      local_homeomorph.trans_assoc, ←local_homeomorph.trans_assoc e.to_local_homeomorph, 
+      homeomorph.trans_symm_to_local_homeomorph, local_homeomorph.refl_trans],
     exact has_groupoid.compatible (times_cont_diff_groupoid ∞ I) hϕ1 hψ1 end }
 /-
 { ..e.has_groupoid (times_cont_diff_groupoid ∞ I) } does not work. Why!?

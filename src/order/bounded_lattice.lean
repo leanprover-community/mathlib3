@@ -565,11 +565,11 @@ by rw [← sup_eq_max, lattice_eq_DLO]
 theorem inf_eq_min [linear_order α] (x y : with_bot α) : x ⊓ y = min x y :=
 by rw [← inf_eq_min, lattice_eq_DLO]
 
-@[norm_cast] -- mark this as simp if the corresponding with_top lemmas don't apply
+@[norm_cast] -- this is not marked simp because the corresponding with_top lemmas are used
 lemma coe_min [linear_order α] (x y : α) : ((min x y : α) : with_bot α) = min x y :=
 by simp [min, ite_cast]
 
-@[norm_cast] -- mark this as simp if the corresponding with_top lemmas don't apply
+@[norm_cast] -- this is not marked simp because the corresponding with_top lemmas are used
 lemma coe_max [linear_order α] (x y : α) : ((max x y : α) : with_bot α) = max x y :=
 by simp [max, ite_cast]
 

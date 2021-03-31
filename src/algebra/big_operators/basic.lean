@@ -648,14 +648,23 @@ begin
   exact prod_congr rfl hfg
 end
 
+lemma sum_range_succ_comm {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
+  ∑ x in range (n + 1), f x = f n + ∑ x in range n, f x :=
+by rw [range_succ, sum_insert not_mem_range_self]
+
 lemma sum_range_succ {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
   ∑ x in range (n + 1), f x = ∑ x in range n, f x + f n :=
-by rw [range_succ, sum_insert not_mem_range_self, add_comm]
+by simp only [add_comm, sum_range_succ_comm]
+
+@[to_additive]
+lemma prod_range_succ_comm (f : ℕ → β) (n : ℕ) :
+  ∏ x in range (n + 1), f x = f n * ∏ x in range n, f x :=
+by rw [range_succ, prod_insert not_mem_range_self]
 
 @[to_additive]
 lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
   ∏ x in range (n + 1), f x = (∏ x in range n, f x) * f n :=
-by rw [range_succ, prod_insert not_mem_range_self, mul_comm]
+by simp only [mul_comm, prod_range_succ_comm]
 
 lemma prod_range_succ' (f : ℕ → β) :
   ∀ n : ℕ, (∏ k in range (n + 1), f k) = (∏ k in range n, f (k+1)) * f 0

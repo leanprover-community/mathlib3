@@ -31,7 +31,7 @@ such that `c.C ⊆ u ∧ closure u ⊆ c.U`. We define `c.left` and `c.right` to
 `urysohns.CU.approx (c : urysohns.CU X) (n : ℕ) : X → ℝ` by recursion on `n`:
 
 * `c.approx 0` is the indicator of `c.Uᶜ`;
-* `c.approx (n + 1) x = (c.left n x + c.right n x) / 2`.
+* `c.approx (n + 1) x = (c.left.approx n x + c.right.approx n x) / 2`.
 
 For each `x` this is a monotone family of functions that are equal to zero on `c.C` and are equal to
 one outside of `c.U`. We also have `c.approx n x ∈ [0, 1]` for all `c`, `n`, and `x`.

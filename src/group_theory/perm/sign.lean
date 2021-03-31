@@ -214,16 +214,19 @@ variable [fintype α]
 def support (f : perm α) : finset α := univ.filter (λ x, f x ≠ x)
 
 @[simp] lemma mem_support {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x :=
-by simp only [support, true_and, mem_filter, mem_univ]
+rw [support, mem_filter, and_iff_right (mem_univ x)]
 
-@[simp]
-lemma support_one : support (1 : perm α) = ∅ := by { ext, simp }
+@[simp] lemma support_eq_empty_iff {σ : perm α} : σ.support = ∅ ↔ σ = 1 :=
+by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_not,
+  equiv.perm.ext_iff, one_apply]
+
+@[simp] lemma support_one : (1 : perm α).support = ∅ :=
+by rw support_eq_empty_iff
 
 lemma support_mul_le {f g : perm α} :
   (f * g).support ≤ f.support ∪ g.support :=
 λ x, begin
-  simp only [mem_union, perm.coe_mul, comp_app, ne.def, mem_support],
-  contrapose!,
+  rw [mem_union, mem_support, mem_support, mem_support, mul_apply, ←not_and_distrib, not_imp_not],
   rintro ⟨hf, hg⟩,
   rw [hg, hf]
 end
@@ -232,16 +235,11 @@ lemma exists_mem_support_of_mem_support_prod {l : list (perm α)} {x : α}
   (hx : x ∈ l.prod.support) :
   ∃ f : perm α, f ∈ l ∧ x ∈ f.support :=
 begin
-  induction l with a t ih,
-  { contrapose! hx,
-    simp, },
-  { rw [list.prod_cons] at hx,
-    cases finset.mem_union.1 (support_mul_le hx) with ha ht,
-    { refine ⟨a, _, ha⟩,
-      simp },
-    { obtain ⟨f, ft, fx⟩ := ih ht,
-      refine ⟨f, _, fx⟩,
-      simp [ft] } }
+  contrapose! hx,
+  simp_rw [mem_support, not_not] at hx ⊢,
+  induction l with f l ih generalizing hx,
+  { refl },
+  { rw [list.prod_cons, mul_apply, ih (λ g hg, hx g (or.inr hg)), hx f (or.inl rfl)] },
 end
 
 lemma support_pow_le (σ : perm α) (n : ℤ) :
@@ -265,10 +263,7 @@ end
 @[simp]
 lemma apply_mem_support {f : perm α} {x : α} :
   f x ∈ f.support ↔ x ∈ f.support :=
-begin
-  rw [mem_support, mem_support, ne.def, ne.def, not_congr],
-  exact ⟨λ h, f.injective h, congr rfl⟩,
-end
+by rw [mem_support, mem_support, ne.def, ne.def, not_iff_not, apply_eq_iff_eq]
 
 end fintype
 
@@ -313,36 +308,28 @@ finset.ext $ λ y,
 @[simp]
 lemma card_support_eq_zero {f : perm α} :
   f.support.card = 0 ↔ f = 1 :=
-begin
-  rw [finset.card_eq_zero],
-  split; intro h,
-  { ext,
-    have hx := finset.not_mem_empty x,
-    rwa [← h, mem_support, not_not] at hx },
-  { simp [h] }
-end
+by rw [finset.card_eq_zero, support_eq_empty_iff]
 
 lemma one_lt_card_support_of_ne_one {f : perm α} (h : f ≠ 1) :
   1 < f.support.card :=
 begin
-  rw one_lt_card_iff,
+  simp_rw [one_lt_card_iff, mem_support, ←not_or_distrib],
   contrapose! h,
-  ext x,
-  dsimp,
-  have := h (f x) x,
-  contrapose! this,
-  simpa,
+  ext a,
+  specialize h (f a) a,
+  rwa [apply_eq_iff_eq, or_self, or_self] at h,
 end
 
-@[simp]
-lemma card_support_le_one {f : perm α} :
-  f.support.card ≤ 1 ↔ f = 1 :=
+lemma card_support_ne_one (f : perm α) : f.support.card ≠ 1 :=
 begin
-  rw [le_iff_lt_or_eq, nat.lt_succ_iff, nat.le_zero_iff, card_support_eq_zero],
-  simp only [or_iff_left_iff_imp],
-  contrapose!,
-  exact λ h, ne_of_gt (one_lt_card_support_of_ne_one h),
+  by_cases h : f = 1,
+  { exact ne_of_eq_of_ne (card_support_eq_zero.mpr h) zero_ne_one },
+  { exact ne_of_gt (one_lt_card_support_of_ne_one h) },
 end
+
+@[simp] lemma card_support_le_one {f : perm α} : f.support.card ≤ 1 ↔ f = 1 :=
+by rw [le_iff_lt_or_eq, nat.lt_succ_iff, nat.le_zero_iff, card_support_eq_zero,
+  or_iff_not_imp_right, imp_iff_right f.card_support_ne_one]
 
 lemma two_le_card_support_of_ne_one {f : perm α} (h : f ≠ 1) :
   2 ≤ f.support.card :=
@@ -773,18 +760,14 @@ begin
     rw mem_singleton at hmem,
     refine ⟨x, y, hmem, _⟩,
     ext a,
-    by_cases ha : a ∈ f.support,
-    { have hfa : f a ∈ f.support := apply_mem_support.2 ha,
-      have hafa : f a ≠ a := mem_support.1 ha,
-      rw [← hins, mem_insert, mem_singleton] at ha hfa,
-      obtain rfl | rfl := ha,
-      { rw [swap_apply_left],
-        exact hfa.resolve_left hafa },
-      { rw [swap_apply_right],
-        exact hfa.resolve_right hafa } },
-    rw [not_not.1 (λ con, ha (mem_support.2 con))],
-    rw ← support_swap hmem at hins,
-    rwa [← hins, mem_support, not_not, eq_comm] at ha },
+    have key : ∀ b, f b ≠ b ↔ _ := λ b, by rw [←mem_support, ←hins, mem_insert, mem_singleton],
+    by_cases ha : f a = a,
+    { have ha' := not_or_distrib.mp (mt (key a).mpr (not_not.mpr ha)),
+      rw [ha, swap_apply_of_ne_of_ne ha'.1 ha'.2] },
+    { have ha' := (key (f a)).mp (mt f.apply_eq_iff_eq.mp ha),
+      obtain rfl | rfl := ((key a).mp ha),
+      { rw [or.resolve_left ha' ha, swap_apply_left] },
+      { rw [or.resolve_right ha' ha, swap_apply_right] } } },
   { obtain ⟨x, y, hxy, rfl⟩ := h,
     exact card_support_swap hxy }
 end
@@ -886,60 +869,40 @@ end sign
 section disjoint
 variables [fintype α] {f g : perm α}
 
-lemma disjoint.disjoint_support (h : disjoint f g) :
-  _root_.disjoint f.support g.support :=
-begin
-  rw disjoint_iff,
-  ext,
-  have ha := h a,
-  simp only [inf_eq_inter, mem_support, mem_inter, ←decidable.not_or_iff_and_not, h a,
-    false_iff, not_true],
-  apply finset.not_mem_empty,
-end
-
 lemma disjoint_iff_disjoint_support :
   disjoint f g ↔ _root_.disjoint f.support g.support :=
-⟨disjoint.disjoint_support, λ h a, begin
-  by_contra con,
-  apply not_mem_empty a (h _),
-  simp only [inf_eq_inter, ne.def, mem_support, mem_inter, ←decidable.not_or_iff_and_not],
-  exact con,
-end⟩
+begin
+  change (∀ x, f x = x ∨ g x = x) ↔ (∀ x, x ∉ (f.support ∩ g.support)),
+  simp_rw [finset.mem_inter, not_and_distrib, mem_support, not_not],
+end
 
 lemma disjoint.support_mul (h : disjoint f g) :
   (f * g).support = f.support ∪ g.support :=
 begin
-  ext,
-  simp only [mem_union, perm.coe_mul, comp_app, ne.def, mem_support],
-  rw [← decidable.not_and_iff_or_not, not_congr],
-  cases h a with hf hg,
-  { rw [← perm.mul_apply, h.mul_comm],
-    simp [hf] },
-  { simp [hg] }
+  refine le_antisymm support_mul_le (λ a, _),
+  rw [mem_union, mem_support, mem_support, mem_support, mul_apply, ←not_and_distrib, not_imp_not],
+  exact (h a).elim (λ hf h, ⟨hf, f.apply_eq_iff_eq.mp (h.trans hf.symm)⟩)
+    (λ hg h, ⟨(congr_arg f hg).symm.trans h, hg⟩),
 end
 
 lemma disjoint.card_support_mul (h : disjoint f g) :
   (f * g).support.card = f.support.card + g.support.card :=
-begin
-  rw h.support_mul,
-  exact finset.card_disjoint_union h.disjoint_support,
-end
+(congr_arg card h.support_mul).trans (finset.card_disjoint_union h.disjoint_support)
 
 lemma card_support_prod_list_of_pairwise_disjoint {l : list (perm α)}
   (h : l.pairwise disjoint) :
   l.prod.support.card = (l.map (λ x : perm α, x.support.card)).sum :=
 begin
   induction l with a t ih,
-  { simp },
+  { exact card_support_eq_zero.mpr rfl, },
   { obtain ⟨ha, ht⟩ := list.pairwise_cons.1 h,
-    simp only [list.sum_cons, list.prod_cons, list.map],
-    rw [disjoint.card_support_mul, ih ht],
+    rw [list.prod_cons, list.map_cons, list.sum_cons, ←ih ht],
+    apply disjoint.card_support_mul,
     intro x,
     by_cases hx : t.prod x = x,
-    { exact or.intro_right _ hx },
-    rw [← ne.def, ← mem_support] at hx,
-    obtain ⟨f, ft, fx⟩ := exists_mem_support_of_mem_support_prod hx,
-    exact (ha f ft x).imp_right (λ x, ((mem_support.1 fx) x).elim) }
+    { exact or.inr hx },
+    { obtain ⟨f, ft, fx⟩ := exists_mem_support_of_mem_support_prod (mem_support.mpr hx),
+      exact (ha f ft x).imp_right (λ fx', ((mem_support.mp fx) fx').elim) } }
 end
 
 end disjoint

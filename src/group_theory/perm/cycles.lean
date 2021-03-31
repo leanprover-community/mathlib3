@@ -40,11 +40,7 @@ variables [fintype α]
 def is_cycle (f : perm β) : Prop := ∃ x, f x ≠ x ∧ ∀ y, f y ≠ y → ∃ i : ℤ, (f ^ i) x = y
 
 lemma is_cycle.ne_one {f : perm β} (h : is_cycle f) : f ≠ 1 :=
-begin
-  contrapose! h,
-  rw h,
-  simp [is_cycle],
-end
+λ hf, by simpa [hf, is_cycle] using h
 
 lemma is_cycle.two_le_card_support {f : perm α} (h : is_cycle f) :
   2 ≤ f.support.card :=

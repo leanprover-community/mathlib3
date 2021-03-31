@@ -521,11 +521,7 @@ by rw [finsupp.total_on, linear_map.range, linear_map.map_cod_restrict,
 
 theorem total_comp (f : α' → α) :
   (finsupp.total α' M R (v ∘ f)) = (finsupp.total α M R v).comp (lmap_domain R R f) :=
-begin
- ext l,
- simp [total_apply],
- rw sum_map_domain_index; simp [add_smul],
-end
+by { ext, simp [total_apply] }
 
 lemma total_comap_domain
  (f : α → α') (l : α' →₀ R) (hf : set.inj_on f (f ⁻¹' ↑l.support)) :

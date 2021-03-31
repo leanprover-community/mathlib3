@@ -576,7 +576,7 @@ theorem algebra_map_apply {r : R} :
 
 instance [nontrivial Γ] [nontrivial R] : nontrivial (subalgebra R (hahn_series Γ R)) :=
 ⟨⟨⊥, ⊤, begin
-  rw [ne.def, subalgebra.ext_iff, not_forall],
+  rw [ne.def, set_like.ext_iff, not_forall],
   obtain ⟨a, ha⟩ := exists_ne (0 : Γ),
   refine ⟨single a 1, _⟩,
   simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],

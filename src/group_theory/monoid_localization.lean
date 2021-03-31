@@ -927,7 +927,7 @@ a localization map for `S` and `k : P ≃* M` is an isomorphism of `comm_monoid`
 def of_mul_equiv_of_dom {k : P ≃* M} (H : T.map k.to_monoid_hom = S) :
   localization_map T N :=
 let H' : S.comap k.to_monoid_hom = T :=
-  H ▸ (submonoid.ext' $ T.1.preimage_image_eq k.to_equiv.injective) in
+  H ▸ (set_like.coe_injective $ T.1.preimage_image_eq k.to_equiv.injective) in
 (f.to_map.comp k.to_monoid_hom).to_localization_map
   (λ y, let ⟨z, hz⟩ := f.map_units ⟨k y, H ▸ set.mem_image_of_mem k y.2⟩ in ⟨z, hz⟩)
   (λ z, let ⟨x, hx⟩ := f.surj z in let ⟨v, hv⟩ := k.to_equiv.surjective x.1 in

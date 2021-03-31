@@ -446,8 +446,9 @@ alg_equiv.symm $ alg_equiv.of_bijective
   ⟨(alg_hom.injective_cod_restrict _ _ _).2 $ (alg_hom.injective_iff _).2 $ λ p,
     adjoin_root.induction_on _ p $ λ p hp, ideal.quotient.eq_zero_iff_mem.2 $
     ideal.mem_span_singleton.2 $ minpoly.dvd F x hp,
-  λ y, let ⟨p, _, hp⟩ := (subalgebra.ext_iff.1 (algebra.adjoin_singleton_eq_range F x) y).1 y.2 in
-  ⟨adjoin_root.mk _ p, subtype.eq hp⟩⟩
+  λ y,
+    let ⟨p, _, hp⟩ := (set_like.ext_iff.1 (algebra.adjoin_singleton_eq_range F x) (y : R)).1 y.2 in
+    ⟨adjoin_root.mk _ p, subtype.eq hp⟩⟩
 
 open finset
 
@@ -709,7 +710,7 @@ theorem splits_iff (f : polynomial K) [is_splitting_field K L f] :
 ⟨λ h, eq_bot_iff.2 $ adjoin_roots L f ▸ (roots_map (algebra_map K L) h).symm ▸
   algebra.adjoin_le_iff.2 (λ y hy,
     let ⟨x, hxs, hxy⟩ := finset.mem_image.1 (by rwa multiset.to_finset_map at hy) in
-    hxy ▸ subalgebra.mem_coe.2 $ subalgebra.algebra_map_mem _ _),
+    hxy ▸ set_like.mem_coe.2 $ subalgebra.algebra_map_mem _ _),
  λ h, @ring_equiv.to_ring_hom_refl K _ ▸
   ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
   by { rw ring_equiv.to_ring_hom_trans, exact splits_comp_of_splits _ _ (splits L f) }⟩

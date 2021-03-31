@@ -373,7 +373,7 @@ range of the isometry. -/
 def isometry.isometric_on_range [emetric_space α] [pseudo_emetric_space β] {f : α → β}
   (h : isometry f) : α ≃ᵢ range f :=
 { isometry_to_fun := λx y, by simpa [subtype.edist_eq] using h x y,
-  .. equiv.set.range f h.injective }
+  .. equiv.of_injective f h.injective }
 
 @[simp] lemma isometry.isometric_on_range_apply [emetric_space α] [pseudo_emetric_space β]
   {f : α → β} (h : isometry f) (x : α) : h.isometric_on_range x = ⟨f x, mem_range_self _⟩ :=

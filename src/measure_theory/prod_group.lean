@@ -150,7 +150,7 @@ lemma measure_mul_right_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : 
   (y : G) : μ ((λ x, x * y) ⁻¹' E) = 0 ↔ μ E = 0 :=
 begin
   rw [← measure_inv_null hμ hE, ← hμ y⁻¹ (measurable_inv hE),
-    ← measure_inv_null hμ (measurable_mul_right y hE)],
+    ← measure_inv_null hμ (measurable_mul_const y hE)],
   convert iff.rfl using 3, ext x, simp,
 end
 
@@ -175,22 +175,22 @@ begin
   have Em := hE.measurable_set,
   symmetry,
   set g := λ y, f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E),
-  have hg : measurable g := (hf.comp measurable_inv).ennreal_div
+  have hg : measurable g := (hf.comp measurable_inv).div
     ((measurable_measure_mul_right Em).comp measurable_inv),
   rw [← set_lintegral_one, ← lintegral_indicator _ Em,
     ← lintegral_lintegral_mul (measurable_const.indicator Em).ae_measurable hg.ae_measurable,
     ← lintegral_lintegral_mul_inv hμ hν],
-  swap, { exact (((measurable_const.indicator Em).comp measurable_fst).ennreal_mul
+  swap, { exact (((measurable_const.indicator Em).comp measurable_fst).mul
       (hg.comp measurable_snd)).ae_measurable },
   have mE : ∀ x : G, measurable (λ y, ((λ z, z * x) ⁻¹' E).indicator (λ z, (1 : ℝ≥0∞)) y) :=
-  λ x, measurable_const.indicator (measurable_mul_right _ Em),
+  λ x, measurable_const.indicator (measurable_mul_const _ Em),
   have : ∀ x y, E.indicator (λ (z : G), (1 : ℝ≥0∞)) (y * x) =
     ((λ z, z * x) ⁻¹' E).indicator (λ (b : G), 1) y,
   { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, simp },
   have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ∞ :=
   λ y, ennreal.lt_top_iff_ne_top.mp (h2ν.lt_top_of_is_compact $
     (homeomorph.mul_right _).compact_preimage.mpr hE),
-  simp_rw [this, lintegral_mul_const _ (mE _), lintegral_indicator _ (measurable_mul_right _ Em),
+  simp_rw [this, lintegral_mul_const _ (mE _), lintegral_indicator _ (measurable_mul_const _ Em),
     set_lintegral_one, g, inv_inv,
     ennreal.mul_div_cancel' (measure_mul_right_ne_zero hν Em h2E _) (h3E _)]
 end

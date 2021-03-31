@@ -655,7 +655,7 @@ lemma coe_comap (K : subgroup N) (f : G →* N) : (K.comap f : set G) = f ⁻¹'
 @[simp, to_additive]
 lemma mem_comap {K : subgroup N} {f : G →* N} {x : G} : x ∈ K.comap f ↔ f x ∈ K := iff.rfl
 
-@[simp, to_additive]
+@[to_additive]
 lemma comap_mono {f : G →* N} {K K' : subgroup N} : K ≤ K' → comap f K ≤ comap f K' :=
 preimage_mono
 
@@ -681,7 +681,7 @@ lemma mem_map {f : G →* N} {K : subgroup G} {y : N} :
   y ∈ K.map f ↔ ∃ x ∈ K, f x = y :=
 mem_image_iff_bex
 
-@[simp, to_additive]
+@[to_additive]
 lemma map_mono {f : G →* N} {K K' : subgroup G} : K ≤ K' → map f K ≤ map f K' :=
 image_subset _
 

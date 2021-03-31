@@ -45,7 +45,7 @@ are the same as those coming from the `L^∞` distance, we could argue that the 
 are equivalent on `ℝ^n` for abstract (norm equivalence) reasons. Instead, we give a more explicit
 (easy) proof which provides a comparison between these two norms with explicit constants.
 
-We also set up the theory for `pseudo_emtric_space` and `pseudo_metric_space`.
+We also set up the theory for `pseudo_emetric_space` and `pseudo_metric_space`.
 -/
 
 open real set filter

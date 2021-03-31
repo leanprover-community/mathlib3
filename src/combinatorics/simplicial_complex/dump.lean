@@ -192,12 +192,12 @@ begin
   rw finset.center_mass_eq_of_sum_1 _ _ hw₂,
 end
 
-lemma thingy {X Y : set E} (hY₁ : Y ⊆ X) : (λ p, p : X → E) '' {t : X | ↑t ∈ Y} = Y :=
-begin
-  ext y,
-  specialize @hY₁ y,
-  simpa [←and_assoc],
-end
+-- lemma thingy {X Y : set E} (hY₁ : Y ⊆ X) : (λ p, p : X → E) '' {t : X | ↑t ∈ Y} = Y :=
+-- begin
+--   ext y,
+--   specialize @hY₁ y,
+--   simpa [←and_assoc],
+-- end
 
 lemma nontrivial_sum_of_affine_independent {X : finset E}
   (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
@@ -212,6 +212,24 @@ begin
     simpa only [vsub_eq_sub, sub_zero, coe_sum X (λ i, w i • i)] },
   intros i hi,
   apply hX ⟨i, hi⟩ (finset.mem_univ _)
+end
+
+lemma unique_combination {X : finset E} (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
+  (w₁ w₂ : E → ℝ) (hw₁ : ∑ i in X, w₁ i = 1) (hw₂ : ∑ i in X, w₂ i = 1)
+  (same : X.center_mass w₁ id = X.center_mass w₂ id) :
+  ∀ i ∈ X, w₁ i = w₂ i :=
+begin
+  let w := w₁ - w₂,
+  suffices : ∀ i ∈ X, w i = 0,
+  { intros i hi,
+    apply eq_of_sub_eq_zero (this i hi) },
+  apply nontrivial_sum_of_affine_independent hX w,
+  { change ∑ i in X, (w₁ i - w₂ i) = _,
+    rw [finset.sum_sub_distrib, hw₁, hw₂, sub_self] },
+  { change ∑ i in X, (w₁ i - w₂ i) • i = _,
+    simp_rw [sub_smul, finset.sum_sub_distrib, ←finset.center_mass_eq_of_sum_1 _ _ hw₁,
+      ←finset.center_mass_eq_of_sum_1 _ _ hw₂],
+    apply sub_eq_zero_of_eq same }
 end
 
 -- TODO (Bhavik): Golf
@@ -236,41 +254,34 @@ begin
 
   have h₁w : ∑ i in X, w i = 0,
   { rw [finset.sum_sub_distrib, ←finset.sum_filter, finset.filter_mem_eq_inter,
-      ←finset.sum_filter, finset.filter_mem_eq_inter, subset_iff_inter_eq_left hY₁,
-      subset_iff_inter_eq_left hY₂, h₂w₁, h₂w₂],
+      ←finset.sum_filter, finset.filter_mem_eq_inter, finset.subset_iff_inter_eq_right.1 hY₁,
+      finset.subset_iff_inter_eq_right.1 hY₂, h₂w₁, h₂w₂],
     simp only [sub_self] },
-  have hX' := nontrivial_sum_of_affine_independent hX w h₁w,
-
-  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ h₁w (0 : E),
-    rw finset.weighted_vsub_of_point_apply,
-    simp only [vsub_eq_sub, sub_zero, coe_sum X (λ i, w i • i)],
-    simp only [sub_smul, zero_smul, ite_smul, finset.sum_sub_distrib, ←finset.sum_filter, h₃w₁,
-      finset.filter_mem_eq_inter, subset_iff_inter_eq_left hY₁, subset_iff_inter_eq_left hY₂, h₃w₂,
-      sub_self] },
-  simp only [finset.mem_univ, set_coe.forall, forall_true_left] at hX,
-  rw finset.convex_hull_eq,
+  have : ∑ (i : E) in X, w i • i = 0,
+  { simp only [sub_smul, zero_smul, ite_smul, finset.sum_sub_distrib, ←finset.sum_filter, h₃w₁,
+      finset.filter_mem_eq_inter, finset.subset_iff_inter_eq_right.1 hY₁,
+      finset.subset_iff_inter_eq_right.1 hY₂, h₃w₂, sub_self] },
+  have hX' := nontrivial_sum_of_affine_independent hX w h₁w this,
+  -- simp only [finset.mem_univ, set_coe.forall, forall_true_left] at hX,
   have t₁ : ∀ x, x ∈ Y₁ → x ∉ Y₂ → w₁ x = 0,
   { intros x hx₁ hx₂,
-    have : ite (x ∈ Y₁) (w₁ x) 0 - ite (x ∈ Y₂) (w₂ x) 0 = 0 := hX x (hY₁ hx₁),
+    have : ite (x ∈ Y₁) (w₁ x) 0 - ite (x ∈ Y₂) (w₂ x) 0 = 0 := hX' x (hY₁ hx₁),
     simpa [hx₁, hx₂] using this },
   have h₄w₁ : ∑ (y : E) in Y₁ ∩ Y₂, w₁ y = 1,
   { rw [finset.sum_subset (finset.inter_subset_left Y₁ Y₂), h₂w₁],
     simp_intros x hx₁ hx₂,
     exact t₁ x hx₁ (hx₂ hx₁)},
+  rw finset.convex_hull_eq,
   refine ⟨w₁, _, h₄w₁, _⟩,
   { simp only [and_imp, finset.mem_inter],
     intros y hy₁ hy₂,
-    apply h₁w₁,
-    apply hy₁ },
+    exact h₁w₁ y hy₁},
   { rw finset.center_mass_eq_of_sum_1 _ _ h₄w₁,
     dsimp only [id.def],
     rw [finset.sum_subset (finset.inter_subset_left Y₁ Y₂), h₃w₁],
     simp_intros x hx₁ hx₂,
     left,
-    apply t₁,
-    apply hx₁,
-    apply hx₂,
-    apply hx₁ },
+    exact t₁ x hx₁ (hx₂ hx₁) },
 end
 
 lemma affine_span_convex_hull_eq {X : set E} :

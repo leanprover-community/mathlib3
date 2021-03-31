@@ -169,6 +169,26 @@ lemma is_linear_map_matrix_vec_tail {n : ℕ} :
     simp [matrix.vec_tail],
   end }
 
+-- TODO: this generalises to affine subspaces
+lemma convex_hull_affine {m : ℕ} {X : finset (fin m.succ → ℝ)}
+  (hX₂ : ∀ (x : fin (m + 1) → ℝ), x ∈ X → x 0 = 0)
+  {x : fin m.succ → ℝ} (hx : x ∈ convex_hull (X : set (fin m.succ → ℝ))) :
+  x 0 = 0 :=
+begin
+  rw finset.convex_hull_eq at hx,
+  rcases hx with ⟨w, hw₀, hw₁, rfl⟩,
+  rw X.center_mass_eq_of_sum_1 _ hw₁,
+  dsimp,
+  rw finset.sum_apply 0 _ (λ i, w i • i),
+  dsimp,
+  replace hX₂ : ∀ x ∈ X, w x * x 0 = 0,
+  { intros x hx,
+    rw hX₂ x hx,
+    simp },
+  rw finset.sum_congr rfl hX₂,
+  simp,
+end
+
 def dimension_drop {S : simplicial_complex (m+1)} :
   simplicial_complex m :=
 { faces := {Y | ∃ X ∈ S.faces, finset.image matrix.vec_tail X = Y ∧ ∀ (x : fin (m+1) → ℝ), x ∈ X → x 0 = 0 },
@@ -240,15 +260,16 @@ def dimension_drop {S : simplicial_complex (m+1)} :
       rw ← matrix.cons_head_tail x,
       rw ← matrix.cons_head_tail y,
       rw h,
-      sorry -- want x 0 = 0 and y 0 = 0 because they're in the convex hull of points which are that
-
-      -- rw (show matrix.vec_head x = 0, from hY₂ _ _),
-      -- rw (show matrix.vec_head y = 0, from (convex_hull_face_subset _ hX hy).2)
-      },
+      suffices : matrix.vec_head x = 0 ∧ matrix.vec_head y = 0,
+      { rw [this.1, this.2] },
+      refine ⟨_, _⟩,
+      apply convex_hull_affine _ hx,
+      apply hY₂,
+      apply convex_hull_affine _ hy,
+      apply hX₂, },
     apply is_linear_map_matrix_vec_tail,
     apply is_linear_map_matrix_vec_tail,
-  end
-}
+  end }
 
 theorem strong_sperner {S : simplicial_complex (m+1)}
   (hS₁ : S.space = std_simplex (fin (m+1))) (hS₂ : S.finite) (hS₃ : S.pure_of (m+1))

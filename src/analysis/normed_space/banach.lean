@@ -329,7 +329,9 @@ end continuous_linear_equiv
 
 namespace continuous_linear_map
 
-private lemma closed_complemented_range_of_is_compl_aux (f : E →L[𝕜] F) (G : submodule 𝕜 F)
+/- TODO: remove the assumption `f.ker = ⊥` in the next lemma, by using the map induced by `f` on
+`E / f.ker`, once we have quotient normed spaces. -/
+lemma closed_complemented_range_of_is_compl_of_ker_eq_bot (f : E →L[𝕜] F) (G : submodule 𝕜 F)
   (h : is_compl f.range G) (hG : is_closed (G : set F)) (hker : f.ker = ⊥) :
   is_closed (f.range : set F) :=
 begin
@@ -341,31 +343,12 @@ begin
   have grange : g.range = ⊤,
     by simp only [range_coprod, h.sup_eq_top, submodule.range_subtypeL],
   have gker : g.ker = ⊥,
-  { apply le_antisymm _ bot_le,
-    rintros ⟨x, y⟩ hx,
-    simp at hx,
-    have fxy : f x = - y, by { rw [← sub_eq_zero], simpa only [sub_neg_eq_add], },
-    have : f x ∈ f.range ⊓ G,
-    { suffices : f x ∈ G, by simpa only [f.mem_range_self, true_and, submodule.mem_inf],
-      rw fxy,
-      simp only [submodule.neg_mem_iff, submodule.coe_mem] },
-    rw h.inf_eq_bot at this,
-    have : x ∈ f.ker, by simpa only,
-    rw hker at this,
-    have x0 : x = 0, by simpa only,
-    simp [x0] at hx,
-    simp [x0, hx] },
+  { rw [ker_coprod_of_disjoint_range, hker],
+    { simp only [submodule.ker_subtypeL, submodule.prod_bot] },
+    { convert h.disjoint,
+      exact submodule.range_subtypeL _ } },
   apply (continuous_linear_equiv.of_bijective g gker grange).to_homeomorph.is_closed_image.2,
   exact is_closed_univ.prod is_closed_singleton,
-end
-
-instance zoug (p : submodule 𝕜 E) [is_closed p] : normed_space 𝕜 p.quotient := by apply_instance
-
-lemma closed_complemented_range_of_is_compl (f : E →L[𝕜] F) (G : submodule 𝕜 F)
-  (h : is_compl f.range G) (hG : is_closed (G : set F)) :
-  is_closed (f.range : set F) :=
-begin
-  have Z := submodule.liftq,
 end
 
 end continuous_linear_map

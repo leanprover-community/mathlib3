@@ -614,6 +614,11 @@ lemma range_prod_eq {f : M →L[R] M₂} {g : M →L[R] M₃} (h : ker f ⊔ ker
   range (f.prod g) = (range f).prod (range g) :=
 linear_map.range_prod_eq h
 
+lemma ker_coprod_of_disjoint_range [has_continuous_add M₃]
+  (f : M →L[R] M₃) (g : M₂ →L[R] M₃) (hd : disjoint f.range g.range) :
+  ker (f.coprod g) = (ker f).prod (ker g) :=
+linear_map.ker_coprod_of_disjoint_range f.to_linear_map g.to_linear_map hd
+
 section
 variables [topological_add_group M₂]
 

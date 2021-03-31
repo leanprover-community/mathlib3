@@ -151,6 +151,9 @@ def subtypeL : p →L[R'] E := p.subtypeₗᵢ.to_continuous_linear_map
 @[simp] lemma range_subtypeL : p.subtypeL.range = p :=
 range_subtype _
 
+@[simp] lemma ker_subtypeL : p.subtypeL.ker = ⊥ :=
+ker_subtype _
+
 end submodule
 
 /-- A linear isometric equivalence between two normed vector spaces. -/

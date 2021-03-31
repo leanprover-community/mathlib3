@@ -251,6 +251,25 @@ begin
   exact ⟨⟨x, rfl⟩, ⟨x, rfl⟩⟩
 end
 
+lemma ker_coprod_of_disjoint_range {M₂ : Type*} [add_comm_group M₂] [semimodule R M₂]
+  {M₃ : Type*} [add_comm_group M₃] [semimodule R M₃]
+  (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (hd : disjoint f.range g.range) :
+  ker (f.coprod g) = (ker f).prod (ker g) :=
+begin
+  ext x,
+  rcases x with ⟨y, z⟩,
+  simp only [mem_ker, mem_prod, coprod_apply],
+  refine ⟨λ h, _, λ ⟨h₁, h₂⟩, by rw [h₁, h₂, zero_add]⟩,
+  have : f y ∈ f.range ⊓ g.range,
+  { simp only [true_and, mem_range, mem_inf, exists_apply_eq_apply],
+    use -z,
+    rwa [eq_comm, map_neg, ← sub_eq_zero, sub_neg_eq_add] },
+  rw hd.eq_bot at this,
+  simp only [mem_bot] at this,
+  rw [this] at h,
+  simpa [this] using h,
+end
+
 end linear_map
 
 namespace submodule

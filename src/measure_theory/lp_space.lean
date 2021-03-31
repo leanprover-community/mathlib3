@@ -6,7 +6,7 @@ Authors: Rémy Degenne, Sébastien Gouëzel
 import measure_theory.ess_sup
 import measure_theory.ae_eq_fun
 import analysis.mean_inequalities
-import topology.continuous_function.bounded
+import topology.continuous_function.compact
 
 /-!
 # ℒp space and Lp space
@@ -1762,6 +1762,8 @@ begin
   { apply_instance }
 end
 
+variables (E p μ)
+
 /-- The normed group homomorphism of considering a bounded continuous function on a finite-measure
 space as an element of `Lp`. -/
 def to_Lp_hom [fact (1 ≤ p)] : normed_group_hom (α →ᵇ E) (Lp E p μ) :=
@@ -1771,7 +1773,7 @@ def to_Lp_hom [fact (1 ≤ p)] : normed_group_hom (α →ᵇ E) (Lp E p μ) :=
       (Lp E p μ)
       mem_Lp }
 
-variables (𝕜 : Type*) (E p μ) [measurable_space 𝕜]
+variables (𝕜 : Type*) [measurable_space 𝕜]
 
 /-- The bounded linear map of considering a bounded continuous function on a finite-measure space
 as an element of `Lp`. -/
@@ -1785,9 +1787,60 @@ linear_map.mk_continuous
   _
   Lp_norm_le
 
+variables {E p 𝕜}
+
 lemma to_Lp_norm_le [nondiscrete_normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E]
   [fact (1 ≤ p)] :
   ∥to_Lp E p μ 𝕜∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=
 linear_map.mk_continuous_norm_le _ ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹).coe_nonneg _
 
 end bounded_continuous_function
+
+namespace continuous_map
+
+open_locale bounded_continuous_function
+
+variables [borel_space E] [second_countable_topology E]
+variables [topological_space α] [compact_space α] [borel_space α]
+variables [finite_measure μ]
+
+variables (𝕜 : Type*) [measurable_space 𝕜] (E p μ) [fact (1 ≤ p)]
+
+/-- The bounded linear map of considering a continuous function on a compact finite-measure
+space `α` as an element of `Lp`.  By definition, the norm on `C(α, E)` is the sup-norm, transferred
+from the space `α →ᵇ E` of bounded continuous functions, so this construction is just a matter of
+transferring the structure from `bounded_continuous_function.to_Lp` along the isometry. -/
+def to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] :
+  C(α, E) →L[𝕜] (Lp E p μ) :=
+(bounded_continuous_function.to_Lp E p μ 𝕜).comp
+  (linear_isometry_bounded_of_compact α E 𝕜).to_linear_isometry.to_continuous_linear_map
+
+variables {E p 𝕜}
+
+lemma to_Lp_def [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] (f : C(α, E)) :
+  to_Lp E p μ 𝕜 f
+  = bounded_continuous_function.to_Lp E p μ 𝕜 (linear_isometry_bounded_of_compact α E 𝕜 f) :=
+rfl
+
+@[simp] lemma to_Lp_comp_forget_boundedness [normed_field 𝕜] [opens_measurable_space 𝕜]
+  [normed_space 𝕜 E] (f : α →ᵇ E) :
+  to_Lp E p μ 𝕜 (bounded_continuous_function.forget_boundedness α E f)
+  = bounded_continuous_function.to_Lp E p μ 𝕜 f :=
+rfl
+
+@[simp] lemma coe_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E]
+  (f : C(α, E)) :
+  (to_Lp E p μ 𝕜 f : α →ₘ[μ] E) = f.to_ae_eq_fun μ :=
+rfl
+
+variables [nondiscrete_normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E]
+
+lemma to_Lp_norm_eq_to_Lp_norm_coe :
+  ∥to_Lp E p μ 𝕜∥ = ∥bounded_continuous_function.to_Lp E p μ 𝕜∥ :=
+(bounded_continuous_function.to_Lp E p μ 𝕜).op_norm_comp_linear_isometry_equiv _
+
+/-- Bound for the operator norm of `continuous_map.to_Lp`. -/
+lemma to_Lp_norm_le : ∥to_Lp E p μ 𝕜∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=
+by { rw to_Lp_norm_eq_to_Lp_norm_coe, exact bounded_continuous_function.to_Lp_norm_le μ }
+
+end continuous_map

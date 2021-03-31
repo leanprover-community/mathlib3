@@ -221,8 +221,8 @@ dsimp_result (do
     `[try { simp only with equiv_rw_simp }]
   else
     -- We may need to unfreeze `x` before we can `clear` it.
-    unfreezing_hyp x' (clear' tt [x']) <|>
-      fail format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",
+    unfreezing_hyp x' (clear' tt [x']) <|> fail
+      format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",
   skip)
   {fail_if_unchanged := ff} tt -- call `dsimp_result` with `no_defaults := tt`.
 

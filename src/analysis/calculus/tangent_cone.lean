@@ -309,7 +309,7 @@ begin
   have : _ ≤ submodule.span 𝕜 (tangent_cone_at 𝕜 (s.prod t) (x, y)) :=
     submodule.span_mono (union_subset (subset_tangent_cone_prod_left ht.2)
       (subset_tangent_cone_prod_right hs.2)),
-  rw [linear_map.span_inl_union_inr, submodule.le_def, submodule.prod_coe] at this,
+  rw [linear_map.span_inl_union_inr, set_like.le_def] at this,
   exact (hs.1.prod ht.1).mono this
 end
 

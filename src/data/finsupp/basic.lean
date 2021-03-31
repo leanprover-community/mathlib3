@@ -1897,6 +1897,7 @@ end
 
 /-- Given `add_comm_monoid M` and `e : α ≃ β`, `dom_congr e` is the corresponding `equiv` between
 `α →₀ M` and `β →₀ M`. -/
+@[simps apply]
 protected def dom_congr [add_comm_monoid M] (e : α ≃ β) : (α →₀ M) ≃+ (β →₀ M) :=
 { to_fun := map_domain e,
   inv_fun := map_domain e.symm,
@@ -1911,6 +1912,19 @@ protected def dom_congr [add_comm_monoid M] (e : α ≃ β) : (α →₀ M) ≃+
     exact map_domain_id
   end,
   map_add' := λ a b, map_domain_add, }
+
+@[simp] lemma dom_congr_refl [add_comm_monoid M] :
+  finsupp.dom_congr (equiv.refl α) = add_equiv.refl (α →₀ M) :=
+add_equiv.ext $ λ _, map_domain_id
+
+@[simp] lemma dom_congr_symm [add_comm_monoid M]  (e : α ≃ β) :
+  (finsupp.dom_congr e).symm = (finsupp.dom_congr e.symm : (β →₀ M) ≃+ (α →₀ M)):=
+add_equiv.ext $ λ _, rfl
+
+@[simp] lemma dom_congr_trans [add_comm_monoid M] (e : α ≃ β) (f : β ≃ γ) :
+  (finsupp.dom_congr e).trans (finsupp.dom_congr f) =
+    (finsupp.dom_congr (e.trans f) : (α →₀ M) ≃+ _) :=
+add_equiv.ext $ λ _, map_domain_comp.symm
 
 end finsupp
 

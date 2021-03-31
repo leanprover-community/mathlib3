@@ -459,7 +459,7 @@ end
 
 instance [nonempty σ] [nontrivial R] : nontrivial (subalgebra R (mv_power_series σ R)) :=
 ⟨⟨⊥, ⊤, begin
-  rw [ne.def, subalgebra.ext_iff, not_forall],
+  rw [ne.def, set_like.ext_iff, not_forall],
   inhabit σ,
   refine ⟨X (default σ), _⟩,
   simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],

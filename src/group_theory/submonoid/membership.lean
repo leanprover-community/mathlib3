@@ -99,7 +99,7 @@ lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → submonoid M} (hS
   {x : M} :
   x ∈ (⨆ i, S i) ↔ ∃ i, x ∈ S i :=
 begin
-  refine ⟨_, λ ⟨i, hi⟩, (le_def.1 $ le_supr S i) hi⟩,
+  refine ⟨_, λ ⟨i, hi⟩, (set_like.le_def.1 $ le_supr S i) hi⟩,
   suffices : x ∈ closure (⋃ i, (S i : set M)) → ∃ i, x ∈ S i,
     by simpa only [closure_Union, closure_eq (S _)] using this,
   refine (λ hx, closure_induction hx (λ _, mem_Union.1) _ _),
@@ -227,7 +227,7 @@ by rw [mrange, ← mrange_inl_sup_mrange_inr, map_sup, map_mrange, coprod_comp_i
 @[to_additive]
 lemma mem_sup {s t : submonoid N} {x : N} :
   x ∈ s ⊔ t ↔ ∃ (y ∈ s) (z ∈ t), y * z = x :=
-by simp only [sup_eq_range, mem_mrange, coprod_apply, prod.exists, submonoid.exists,
+by simp only [sup_eq_range, mem_mrange, coprod_apply, prod.exists, set_like.exists,
   coe_subtype, subtype.coe_mk]
 
 end submonoid

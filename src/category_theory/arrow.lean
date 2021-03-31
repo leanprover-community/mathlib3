@@ -104,6 +104,16 @@ lemma lift.fac_right {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : lift sq ≫ 
 by simp
 
 @[simp, reassoc]
+lemma lift.fac_right_of_to_mk {X Y : T} {f : arrow T} {g : X ⟶ Y} (sq : f ⟶ mk g) [has_lift sq] :
+  lift sq ≫ g = sq.right :=
+by simp only [←mk_hom g, lift.fac_right]
+
+@[simp, reassoc]
+lemma lift.fac_left_of_from_mk {X Y : T} {f : X ⟶ Y} {g : arrow T} (sq : mk f ⟶ g) [has_lift sq] :
+  f ≫ lift sq = sq.left :=
+by simp only [←mk_hom f, lift.fac_left]
+
+@[simp, reassoc]
 lemma lift_mk'_left {X Y P Q : T} {f : X ⟶ Y} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
   (h : u ≫ g = f ≫ v) [has_lift $ arrow.hom_mk' h] : f ≫ lift (arrow.hom_mk' h) = u :=
 by simp only [←arrow.mk_hom f, lift.fac_left, arrow.hom_mk'_left]

@@ -463,8 +463,8 @@ lemma exists_sum_is_basis (hs : linear_independent K v) :
 begin
   -- This is a hack: we jump through hoops to reuse `exists_subset_is_basis`.
   let s := set.range v,
-  let e : ι ≃ s := equiv.set.range v hs.injective,
-  have : (λ x, x : s → V) = v ∘ e.symm := by { funext, dsimp, rw [equiv.set.apply_range_symm v], },
+  let e : ι ≃ s := equiv.of_injective v hs.injective,
+  have : (λ x, x : s → V) = v ∘ e.symm := by { ext, dsimp, rw [equiv.apply_of_injective_symm v] },
   have : linear_independent K (λ x, x : s → V),
   { rw this,
     exact linear_independent.comp hs _ (e.symm.injective), },
@@ -535,7 +535,7 @@ open submodule linear_map
 lemma submodule.exists_le_ker_of_lt_top (p : submodule K V) (hp : p < ⊤) :
   ∃ f ≠ (0 : V →ₗ[K] K), p ≤ ker f :=
 begin
-  rcases submodule.exists_of_lt hp with ⟨v, -, hpv⟩, clear hp,
+  rcases set_like.exists_of_lt hp with ⟨v, -, hpv⟩, clear hp,
   rcases (linear_pmap.sup_span_singleton ⟨p, 0⟩ v (1 : K) hpv).to_fun.exists_extend with ⟨f, hf⟩,
   refine ⟨f, _, _⟩,
   { rintro rfl, rw [linear_map.zero_comp] at hf,

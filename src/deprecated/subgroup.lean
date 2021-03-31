@@ -659,54 +659,7 @@ theorem normal_closure_mono {s t : set G} : s ⊆ t → normal_closure s ⊆ nor
 
 end group
 
-section simple_group
-
-class simple_group (G : Type*) [group G] : Prop :=
-(simple : ∀ (N : set G) [normal_subgroup N], N = is_subgroup.trivial G ∨ N = set.univ)
-
-class simple_add_group (A : Type*) [add_group A] : Prop :=
-(simple : ∀ (N : set A) [normal_add_subgroup N], N = is_add_subgroup.trivial A ∨ N = set.univ)
-
-attribute [to_additive] simple_group
-
-theorem additive.simple_add_group_iff [group G] :
-  simple_add_group (additive G) ↔ simple_group G :=
-⟨λ hs, ⟨λ N h, @simple_add_group.simple _ _ hs _ (by exactI additive.normal_add_subgroup_iff.2 h)⟩,
-  λ hs, ⟨λ N h, @simple_group.simple _ _ hs _ (by exactI additive.normal_add_subgroup_iff.1 h)⟩⟩
-
-instance additive.simple_add_group [group G] [simple_group G] :
-  simple_add_group (additive G) := additive.simple_add_group_iff.2 (by apply_instance)
-
-theorem multiplicative.simple_group_iff [add_group A] :
-  simple_group (multiplicative A) ↔ simple_add_group A :=
-⟨λ hs, ⟨λ N h, @simple_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.2 h)⟩,
-  λ hs, ⟨λ N h,
-          @simple_add_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.1 h)⟩⟩
-
-instance multiplicative.simple_group [add_group A] [simple_add_group A] :
-simple_group (multiplicative A) := multiplicative.simple_group_iff.2 (by apply_instance)
-
-@[to_additive]
-lemma simple_group_of_surjective [group G] [group H] [simple_group G] (f : G → H)
-  [is_group_hom f] (hf : function.surjective f) : simple_group H :=
-⟨λ H iH, have normal_subgroup (f ⁻¹' H), by resetI; apply_instance,
-  begin
-    resetI,
-    cases simple_group.simple (f ⁻¹' H) with h h,
-    { refine or.inl (is_subgroup.eq_trivial_iff.2 (λ x hx, _)),
-      cases hf x with y hy,
-      rw ← hy at hx,
-      rw [← hy, is_subgroup.eq_trivial_iff.1 h y hx, is_group_hom.map_one f] },
-    { refine or.inr (set.eq_univ_of_forall (λ x, _)),
-      cases hf x with y hy,
-      rw set.eq_univ_iff_forall at h,
-      rw ← hy,
-      exact h y }
-  end⟩
-
-end simple_group
-
-/-- Create a bundled subgroup from a set `s` and `[is_subroup s]`. -/
+/-- Create a bundled subgroup from a set `s` and `[is_subgroup s]`. -/
 @[to_additive "Create a bundled additive subgroup from a set `s` and `[is_add_subgroup s]`."]
 def subgroup.of [group G] (s : set G) [h : is_subgroup s] : subgroup G :=
 { carrier := s,

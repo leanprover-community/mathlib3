@@ -148,7 +148,7 @@ end monoidal_category
 
 open monoidal_category
 
-instance Module.monoidal_category : monoidal_category (Module.{u} R) :=
+instance monoidal_category : monoidal_category (Module.{u} R) :=
 { -- data
   tensor_obj   := tensor_obj,
   tensor_hom   := @tensor_hom _ _,
@@ -224,7 +224,7 @@ begin
 end
 
 /-- The symmetric monoidal structure on `Module R`. -/
-instance Module.symmetric_category : symmetric_category (Module.{u} R) :=
+instance symmetric_category : symmetric_category (Module.{u} R) :=
 { braiding := braiding,
   braiding_naturality' := λ X₁ X₂ Y₁ Y₂ f g, braiding_naturality f g,
   hexagon_forward' := hexagon_forward,

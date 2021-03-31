@@ -576,7 +576,7 @@ lemma subset_iff_to_finset_subset (s t : set α) [fintype s] [fintype t] :
 
 lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
   [fintype (range f)] : fintype.card (range f) = fintype.card α :=
-eq.symm $ fintype.card_congr $ equiv.set.range f hf
+eq.symm $ fintype.card_congr $ equiv.of_injective f hf
 
 lemma finite.exists_maximal_wrt [partial_order β] (f : α → β) (s : set α) (h : set.finite s) :
   s.nonempty → ∃a∈s, ∀a'∈s, f a ≤ f a' → f a = f a' :=

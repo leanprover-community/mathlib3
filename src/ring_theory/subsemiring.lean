@@ -424,7 +424,7 @@ of a multiplicative submonoid `M`. -/
 lemma mem_closure_iff {s : set R} {x} :
   x ∈ closure s ↔ x ∈ add_submonoid.closure (submonoid.closure s : set R) :=
 begin
-  rw [← add_submonoid.mem_coe, ← submonoid.to_subsemiring_coe, submonoid.to_subsemiring_eq_closure],
+  rw [← to_subsemiring_to_add_submonoid, submonoid.to_subsemiring_eq_closure],
   refine ⟨λ hx, closure_mono (submonoid.subset_closure) hx, λ hx, (mem_closure.mp hx) _ _⟩,
   exact λ y hy, (submonoid.mem_closure.mp hy) (subsemiring.to_submonoid (closure s)) subset_closure
 end

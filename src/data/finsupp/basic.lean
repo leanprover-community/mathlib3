@@ -1326,10 +1326,12 @@ lemma map_domain.add_monoid_hom_comp_map_range [add_comm_monoid N] (f : α → �
     (map_range.add_monoid_hom g).comp (map_domain.add_monoid_hom f) :=
 by { ext, simp }
 
-/-- When `g` is an `add_monoid_hom`, `map_range` and `map_domain` commute. -/
-lemma map_domain_map_range [add_comm_monoid N] (f : α → β) (v : α →₀ M) (g : M →+ N) :
-  map_domain f (map_range g g.map_zero v) = map_range g g.map_zero (map_domain f v) :=
-add_monoid_hom.congr_fun (map_domain.add_monoid_hom_comp_map_range _ _) v
+/-- When `g` preserves addition, `map_range` and `map_domain` commute. -/
+lemma map_domain_map_range [add_comm_monoid N] (f : α → β) (v : α →₀ M) (g : M → N)
+  (h0 : g 0 = 0) (hadd : ∀ x y, g (x + y) = g x + g y) :
+  map_domain f (map_range g h0 v) = map_range g h0 (map_domain f v) :=
+let g' : M →+ N := { to_fun := g, map_zero' := h0, map_add' := hadd} in
+add_monoid_hom.congr_fun (map_domain.add_monoid_hom_comp_map_range f g') v
 
 end map_domain
 

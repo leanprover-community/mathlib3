@@ -11,7 +11,10 @@ open_locale big_operators
 open_locale classical
 open_locale real
 open_locale real_inner_product_space
+open_locale nnreal
+open_locale ennreal
 
+set_option pp.coercions true
 /-!
 # Triangles
 
@@ -349,6 +352,129 @@ begin
       ←vsub_sub_vsub_cancel_right p3 p2 p1, ←vsub_sub_vsub_cancel_right p2 p3 p1],
   exact angle_add_angle_sub_add_angle_sub_eq_pi (λ he, h3 (vsub_eq_zero_iff_eq.1 he))
                                                 (λ he, h2 (vsub_eq_zero_iff_eq.1 he))
+end
+
+lemma sin_eq_sqrt_one_minus_cos_sq (x : ℝ) (hl : x ≥ 0) (hu : x ≤ π) :
+  real.sin x = real.sqrt (1 - (real.cos x)^2) :=
+begin
+  rw ← real.sqrt_sqr (real.sin_nonneg_of_nonneg_of_le_pi hl hu),
+  exact congr_arg real.sqrt (real.sin_square x),
+end
+
+lemma rearrange_cos_rule (a b c d : ℝ) (a_nonzero : a ≠ 0) (b_nonzero : b ≠ 0):
+  c * c = a * a + b * b - 2 * a * b * d →
+    d = (a * a + b * b - c * c) / (2 * a * b) :=
+begin
+  intro hyp,
+  simp *,
+  field_simp,
+  ring,
+end
+
+lemma heron {p1 p2 p3 : P} (h2 : p1 ≠ p2) (h3 : p1 ≠ p3) (h4 : p3 ≠ p2) :
+  (1/2) * dist p1 p2 * dist p3 p2 * real.sin (∠ p1 p2 p3) =
+    real.sqrt (
+      ( ( (dist p1 p2) + (dist p1 p3) + (dist p3 p2) ) / 2 ) *
+      ( ( ( (dist p1 p2) + (dist p1 p3) + (dist p3 p2) ) / 2 ) - ( dist p1 p2 ) ) *
+      ( ( ( (dist p1 p2) + (dist p1 p3) + (dist p3 p2) ) / 2 ) - ( dist p1 p3 ) ) *
+      ( ( ( (dist p1 p2) + (dist p1 p3) + (dist p3 p2) ) / 2 ) - ( dist p3 p2 ) )
+    ) :=
+begin
+  let a := dist p1 p2,
+  let b := dist p3 p2,
+  let c := dist p1 p3,
+  let γ := ∠ p1 p2 p3,
+
+  have a_nonzero : a ≠ 0, exact ne_of_gt (dist_pos.mpr h2),
+  have b_nonzero : b ≠ 0, exact ne_of_gt (dist_pos.mpr h4),
+  have c_nonzero : c ≠ 0, exact ne_of_gt (dist_pos.mpr h3),
+
+  have cos_rule_1 := dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle p1 p2 p3,
+  have cos_rule_3 := rearrange_cos_rule a b c (real.cos γ) a_nonzero b_nonzero cos_rule_1,
+  have sin_to_cos := sin_eq_sqrt_one_minus_cos_sq γ (angle_nonneg p1 p2 p3) (angle_le_pi p1 p2 p3),
+
+  let s := (a + c + b) / 2,
+
+  have ab2_pos : 0 ≤ (2 * a * b), by {
+    have a_pos : 0 ≤ a, exact le_of_lt (dist_pos.mpr h2),
+    have b_pos : 0 ≤ b, exact le_of_lt (dist_pos.mpr h4),
+    have ab_pos : 0 ≤ a * b, exact mul_nonneg a_pos b_pos,
+    linarith,
+  },
+
+  have sqrt_four_squared : real.sqrt (4^2) = 4, apply real.sqrt_sqr; linarith,
+
+  have lemma1 :=
+  calc 1 - real.cos γ ^ 2 = 1 - ((a*a + b*b - c*c) / (2*a*b)) ^ 2 : by rw cos_rule_3
+  ... = 1 - (a*a + b*b - c*c)^2 / (2*a*b)^2 : by congr' ; exact div_pow (a*a + b*b - c*c) (2*a*b) 2
+  ... = (((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2) : by field_simp
+  ,
+  have lemma2 : (((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2) ≥ 0, by
+  calc (((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2) = 1 - real.cos γ ^ 2 : by rw ← lemma1
+  ... ≥ 0 : by {
+    have keyyy := real.cos_sq_le_one γ,
+    linarith,
+  },
+  have lemma3 : ((2*a*b)^2 - (a*a + b*b - c*c)^2) ≥ 0, by {
+    have denom_pos : (2*a*b)^2 ≥ 0, by {
+      rw pow_two,
+      exact mul_nonneg ab2_pos ab2_pos,
+    },
+    have flipit: 0 ≤ (((2*a*b)^2 - (a*a + b*b - c*c)^2)) / ((2*a*b)^2), exact lemma2,
+    rw div_nonneg_iff at flipit,
+    cases flipit,
+    exact flipit.left,
+    let clef := flipit.right,
+    exfalso,
+    have anotherc : (2*a*b)^2 = 0, by exact le_antisymm clef denom_pos ,
+    rw pow_two at anotherc,
+    field_simp at anotherc,
+    exact anotherc,
+  },
+
+  have pen_lemma : 1/4 * real.sqrt ( (s * (s - a) * (s - c) * (s - b) * 4) * 4) =
+  1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b) * 4) * real.sqrt (4), by {
+    rw real.sqrt_mul' (s * (s - a) * (s - c) * (s - b) * 4) _,
+    ring,
+    linarith,
+  },
+  have lastlemma : 1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b) * 4^2) =
+  1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b)) * real.sqrt (4^2), by {
+    rw pow_two,
+    have something : 1 / 4 * real.sqrt (s * (s - a) * (s - c) * (s - b) * (4 * 4))
+      = 1 / 4 * real.sqrt (s * (s - a) * (s - c) * (s - b) * 4 * 4), by ring,
+    rw something,
+    rw pen_lemma,
+    rw real.sqrt_mul' (s * (s - a) * (s - c) * (s - b)) _,
+    have yetanother : 1 / 4 * (real.sqrt (s * (s - a) * (s - c) * (s - b)) * real.sqrt 4) * real.sqrt 4
+      = 1 / 4 * (real.sqrt (s * (s - a) * (s - c) * (s - b))) * (real.sqrt 4 * real.sqrt 4), by ring,
+    rw yetanother,
+    rw ← real.sqrt_mul' _ _,
+    linarith,
+    linarith,
+  },
+
+  calc 1/2*a*b * real.sin γ = 1/2*a*b * real.sqrt (1 - real.cos γ ^ 2) : by rw sin_to_cos
+    ... = 1/2*a*b * real.sqrt (1 - ((a*a + b*b - c*c) / (2*a*b)) ^ 2) : by rw cos_rule_3
+    ... = 1/2*a*b * real.sqrt (1 - (a*a + b*b - c*c)^2 / (2*a*b)^2) : by congr' ; exact div_pow (a*a + b*b - c*c) (2*a*b) 2
+    ... = 1/2*a*b * real.sqrt (((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2) : by field_simp
+    ... = 1/2*a*b * real.sqrt ((2*a*b)^2 - (a*a + b*b - c*c)^2) / real.sqrt ((2*a*b)^2) : by {
+      rw real.sqrt_div lemma3,
+      ring,
+    }
+    ... = 1/2*a*b * real.sqrt ((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b) : by rw real.sqrt_sqr ab2_pos
+    ... = 1/4 * real.sqrt ((2*a*b)^2 - (a*a + b*b - c*c)^2) : by field_simp ; ring_nf
+    ... = 1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b) * 4^2) : by field_simp ; ring_nf
+    ... = 1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b)) * real.sqrt (4^2) : lastlemma  -- more nonzero shit: real.sqrt_mul' (s * (s - a) * (s - c) * (s - b)) (by linarith)
+    ... = 1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b)) * 4 : by rw sqrt_four_squared
+    ... = real.sqrt ( s * (s - a) * (s - c) * (s - b)) : by ring,
+
+  -- What the crap is this?!
+  exact V,
+  exact _inst_1,
+  exact V,
+  exact _inst_1,
+
 end
 
 end euclidean_geometry

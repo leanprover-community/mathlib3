@@ -485,8 +485,6 @@ apply_nolint is_subgroup.center doc_blame
 apply_nolint is_subgroup.normalizer doc_blame
 apply_nolint normal_add_subgroup doc_blame
 apply_nolint normal_subgroup doc_blame
-apply_nolint simple_add_group doc_blame
-apply_nolint simple_group doc_blame
 
 -- deprecated/subring.lean
 apply_nolint ring.closure doc_blame
@@ -1158,14 +1156,6 @@ apply_nolint Top.presheaf.pushforward_eq doc_blame
 
 -- topology/sheaves/stalks.lean
 apply_nolint Top.presheaf.stalk_pushforward doc_blame
-
--- topology/topological_fiber_bundle.lean
-apply_nolint bundle_trivialization has_inhabited_instance
-apply_nolint topological_fiber_bundle_core has_inhabited_instance
-apply_nolint topological_fiber_bundle_core.base has_inhabited_instance
-apply_nolint topological_fiber_bundle_core.fiber has_inhabited_instance
-apply_nolint topological_fiber_bundle_core.index has_inhabited_instance
-apply_nolint topological_fiber_bundle_core.total_space has_inhabited_instance
 
 -- topology/uniform_space/completion.lean
 apply_nolint Cauchy.extend doc_blame

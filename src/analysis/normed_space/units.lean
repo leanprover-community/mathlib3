@@ -82,7 +82,7 @@ begin
 end
 
 protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
-mem_nhds_sets units.is_open (is_unit_unit x)
+mem_nhds_sets units.is_open x.is_unit
 
 end units
 
@@ -125,14 +125,14 @@ begin
   simp only [inverse_one_sub t ht, set.mem_set_of_eq],
   have h : 1 = ((range n).sum (λ i, t ^ i)) * (units.one_sub t ht) + t ^ n,
   { simp only [units.one_sub_coe],
-    rw [← geom_series, geom_sum_mul_neg],
+    rw [← geom_sum, geom_sum_mul_neg],
     simp },
   rw [← one_mul ↑(units.one_sub t ht)⁻¹, h, add_mul],
   congr,
   { rw [mul_assoc, (units.one_sub t ht).mul_inv],
     simp },
   { simp only [units.one_sub_coe],
-    rw [← add_mul, ← geom_series, geom_sum_mul_neg],
+    rw [← add_mul, ← geom_sum, geom_sum_mul_neg],
     simp }
 end
 

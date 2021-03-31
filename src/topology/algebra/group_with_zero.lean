@@ -5,6 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import topology.algebra.monoid
 import algebra.group.pi
+import algebra.group_with_zero.power
 
 /-!
 # Topological group with zero
@@ -60,7 +61,8 @@ hf.div_const
 lemma continuous_on.div_const (hf : continuous_on f s) {y : G₀} : continuous_on (λ x, f x / y) s :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_on_const
 
-lemma continuous.div_const (hf : continuous f) {y : G₀} : continuous (λ x, f x / y) :=
+@[continuity] lemma continuous.div_const (hf : continuous f) {y : G₀} :
+  continuous (λ x, f x / y) :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_const
 
 end div_const
@@ -109,7 +111,8 @@ lemma continuous_at.inv' (hf : continuous_at f a) (ha : f a ≠ 0) :
   continuous_at (λ x, (f x)⁻¹) a :=
 hf.inv' ha
 
-lemma continuous.inv' (hf : continuous f) (h0 : ∀ x, f x ≠ 0) : continuous (λ x, (f x)⁻¹) :=
+@[continuity] lemma continuous.inv' (hf : continuous f) (h0 : ∀ x, f x ≠ 0) :
+  continuous (λ x, (f x)⁻¹) :=
 continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).inv' (h0 x)
 
 lemma continuous_on.inv' (hf : continuous_on f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
@@ -152,7 +155,7 @@ lemma continuous_at.div (hf : continuous_at f a) (hg : continuous_at g a) (h₀ 
   continuous_at (f / g) a :=
 hf.div hg h₀
 
-lemma continuous.div (hf : continuous f) (hg : continuous g) (h₀ : ∀ x, g x ≠ 0) :
+@[continuity] lemma continuous.div (hf : continuous f) (hg : continuous g) (h₀ : ∀ x, g x ≠ 0) :
   continuous (f / g) :=
 by simpa only [div_eq_mul_inv] using hf.mul (hg.inv' h₀)
 
@@ -160,3 +163,50 @@ lemma continuous_on_div : continuous_on (λ p : G₀ × G₀, p.1 / p.2) {p | p.
 continuous_on_fst.div continuous_on_snd $ λ _, id
 
 end div
+
+section fpow
+
+variables [group_with_zero G₀] [topological_space G₀] [has_continuous_inv' G₀]
+  [has_continuous_mul G₀]
+
+lemma tendsto_fpow {x : G₀} (hx : x ≠ 0) (m : ℤ) : tendsto (λ x, x ^ m) (𝓝 x) (𝓝 (x ^ m)) :=
+begin
+  have : ∀ y : G₀, ∀ m : ℤ, 0 < m → tendsto (λ x, x ^ m) (𝓝 y) (𝓝 (y ^ m)),
+  { assume y m hm,
+    lift m to ℕ using (le_of_lt hm) with k,
+    simp only [fpow_coe_nat],
+    exact (continuous_pow k).continuous_at.tendsto },
+  rcases lt_trichotomy m 0 with hm | hm | hm,
+  { have hm' : 0 < - m := by rwa neg_pos,
+    convert (this _ (-m) hm').comp (tendsto_inv' hx) using 1,
+    { ext y,
+      simp },
+    { congr' 1,
+      simp } },
+  { simpa [hm] using tendsto_const_nhds },
+  { exact this _ m hm }
+end
+
+lemma continuous_at_fpow {x : G₀} (hx : x ≠ 0) (m : ℤ) : continuous_at (λ x, x ^ m) x :=
+tendsto_fpow hx m
+
+lemma continuous_on_fpow (m : ℤ) : continuous_on (λ x : G₀, x ^ m) {0}ᶜ :=
+λ x hx, (continuous_at_fpow hx m).continuous_within_at
+
+variables {f : α → G₀}
+
+lemma filter.tendsto.fpow {l : filter α} {a : G₀} (hf : tendsto f l (𝓝 a)) (ha : a ≠ 0) (m : ℤ) :
+  tendsto (λ x, (f x) ^ m) l (𝓝 (a ^ m)) :=
+(tendsto_fpow ha m).comp hf
+
+variables [topological_space α] {a : α}
+
+lemma continuous_at.fpow (hf : continuous_at f a) (ha : f a ≠ 0) (m : ℤ) :
+  continuous_at (λ x, (f x) ^ m) a :=
+(continuous_at_fpow ha m).comp hf
+
+@[continuity] lemma continuous.fpow (hf : continuous f) (h0 : ∀ a, f a ≠ 0) (m : ℤ) :
+  continuous (λ x, (f x) ^ m) :=
+continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).fpow (h0 x) m
+
+end fpow

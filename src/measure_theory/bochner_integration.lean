@@ -1574,9 +1574,9 @@ calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
 
 end properties
 
-section has_continuous_mul
+section group
 
-variables {G : Type*} [measurable_space G] [topological_space G] [has_mul G] [has_continuous_mul G]
+variables {G : Type*} [measurable_space G] [topological_space G] [group G] [has_continuous_mul G]
   [borel_space G]
 variables {μ : measure G}
 
@@ -1585,34 +1585,34 @@ open measure
 /-- Translating a function by left-multiplication does not change its integral with respect to a
 left-invariant measure. -/
 @[to_additive]
-lemma integral_mul_left_eq_self (hμ : is_mul_left_invariant μ) {f : G → E} (hf : measurable f)
-  (g : G) :
+lemma integral_mul_left_eq_self (hμ : is_mul_left_invariant μ) {f : G → E} (g : G) :
   ∫ x, f (g * x) ∂μ = ∫ x, f x ∂μ :=
 begin
-  have : measure.map (has_mul.mul g) μ = μ,
+  have hgμ : measure.map (has_mul.mul g) μ = μ,
   { rw ← map_mul_left_eq_self at hμ,
     exact hμ g },
-  rw [← integral_map (measurable_const_mul g) hf.ae_measurable, this]
+  have h_mul : closed_embedding (λ x, g * x) := (homeomorph.mul_left g).closed_embedding,
+  rw [← integral_map_of_closed_embedding h_mul, hgμ]
 end
 
 /-- Translating a function by right-multiplication does not change its integral with respect to a
 right-invariant measure. -/
 @[to_additive]
-lemma integral_mul_right_eq_self (hμ : is_mul_right_invariant μ) {f : G → E} (hf : measurable f)
-  (g : G) :
+lemma integral_mul_right_eq_self (hμ : is_mul_right_invariant μ) {f : G → E} (g : G) :
   ∫ x, f (x * g) ∂μ = ∫ x, f x ∂μ :=
 begin
-  have : measure.map (λ x, has_mul.mul x g) μ = μ,
+  have hgμ : measure.map (λ x, x * g) μ = μ,
   { rw ← map_mul_right_eq_self at hμ,
     exact hμ g },
-  rw [← integral_map (measurable_mul_const g) hf.ae_measurable, this]
+  have h_mul : closed_embedding (λ x, x * g) := (homeomorph.mul_right g).closed_embedding,
+  rw [← integral_map_of_closed_embedding h_mul, hgμ]
 end
 
 /-- If some left-translate of a function negates it, then the integral of the function with respect
 to a left-invariant measure is 0. -/
 @[to_additive]
-lemma integral_zero_of_mul_left_eq_neg (hμ : is_mul_left_invariant μ) {f : G → E}
-  (hf : measurable f) {g : G} (hf' : ∀ x, f (g * x) = - f x) :
+lemma integral_zero_of_mul_left_eq_neg (hμ : is_mul_left_invariant μ) {f : G → E} {g : G}
+  (hf' : ∀ x, f (g * x) = - f x) :
   ∫ x, f x ∂μ = 0 :=
 begin
   refine eq_zero_of_eq_neg ℝ (eq.symm _),
@@ -1620,15 +1620,15 @@ begin
   { congr,
     ext x,
     exact hf' x },
-  convert integral_mul_left_eq_self hμ hf g using 1,
+  convert integral_mul_left_eq_self hμ g using 1,
   rw [this, integral_neg]
 end
 
 /-- If some right-translate of a function negates it, then the integral of the function with respect
 to a right-invariant measure is 0. -/
 @[to_additive]
-lemma integral_zero_of_mul_right_eq_neg (hμ : is_mul_right_invariant μ) {f : G → E}
-  (hf : measurable f) {g : G} (hf' : ∀ x, f (x * g) = - f x) :
+lemma integral_zero_of_mul_right_eq_neg (hμ : is_mul_right_invariant μ) {f : G → E} {g : G}
+  (hf' : ∀ x, f (x * g) = - f x) :
   ∫ x, f x ∂μ = 0 :=
 begin
   refine eq_zero_of_eq_neg ℝ (eq.symm _),
@@ -1636,11 +1636,11 @@ begin
   { congr,
     ext x,
     exact hf' x },
-  convert integral_mul_right_eq_self hμ hf g using 1,
+  convert integral_mul_right_eq_self hμ g using 1,
   rw [this, integral_neg]
 end
 
-end has_continuous_mul
+end group
 
 mk_simp_attribute integral_simps "Simp set for integral rules."
 

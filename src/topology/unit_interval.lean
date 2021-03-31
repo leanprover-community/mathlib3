@@ -5,6 +5,16 @@ Authors: Patrick Massot
 -/
 import topology.instances.real
 
+/-!
+# The unit interval, as a topological space
+
+Use `open_locale unit_interval` to turn on the notation `I := set.Icc (0 : ℝ) (1 : ℝ)`.
+
+We provide basic instances, as well as a custom tactic for discharging
+`0 ≤ x`, `0 ≤ 1 - x`, `x ≤ 1`, and `1 - x ≤ 1` when `x : I`.
+
+-/
+
 noncomputable theory
 open_locale classical topological_space filter
 open set

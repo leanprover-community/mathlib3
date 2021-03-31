@@ -137,6 +137,10 @@ by rw [sub_eq_add_neg, gpow_add, gpow_neg]
 lemma sub_gsmul (m n : ℤ) (a : A) : (m - n) •ℤ a = m •ℤ a - n •ℤ a :=
 by simpa only [sub_eq_add_neg] using @gpow_sub (multiplicative A) _ _ _ _
 
+lemma neg_nsmul_eq_gsmul (k : ℕ) (x : A) : - k •ℤ x = - (k •ℕ x) :=
+eq_neg_of_add_eq_zero (by rw [← gsmul_coe_nat, ← add_gsmul,
+  add_left_neg, zero_gsmul])
+
 theorem gpow_one_add (a : G) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [gpow_add, gpow_one]
 

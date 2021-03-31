@@ -385,6 +385,20 @@ variables {n : ℕ}
 
 open nat
 
+lemma exists_pow_eq_self_of_coprime {α : Type*} [monoid α] {a : α} (h : coprime n (order_of a)) :
+  ∃ m : ℕ, (a ^ n) ^ m = a :=
+begin
+  by_cases h0 : order_of a = 0,
+  { rw [h0, coprime_zero_right] at h,
+    exact ⟨1, by rw [h, pow_one, pow_one]⟩ },
+  by_cases h1 : order_of a = 1,
+  { rw order_of_eq_one_iff at h1,
+    exact ⟨37, by rw [h1, one_pow, one_pow]⟩ },
+  obtain ⟨m, hm⟩ :=
+    exists_mul_mod_eq_one_of_coprime h (one_lt_iff_ne_zero_and_ne_one.mpr ⟨h0, h1⟩),
+  exact ⟨m, by rw [←pow_mul, pow_eq_mod_order_of, hm, pow_one]⟩,
+end
+
 /-- This is the same as `order_of_pow'` and `order_of_pow''` but with one assumption less which is
 automatic in the case of a finite cancellative group.-/
 lemma order_of_pow (a : α) :
@@ -515,7 +529,7 @@ variable (a)
 /-- TODO: Generalise to `submonoid.powers`.-/
 lemma image_range_order_of [decidable_eq α] :
   finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a : set α).to_finset :=
-by { ext x, rw [set.mem_to_finset, mem_coe, mem_gpowers_iff_mem_range_order_of] }
+by { ext x, rw [set.mem_to_finset, set_like.mem_coe, mem_gpowers_iff_mem_range_order_of] }
 
 open nat
 
@@ -572,7 +586,7 @@ lemma is_cyclic_of_order_of_eq_card [fintype α]  (x : α)
 begin
   classical,
   use x,
-  simp_rw ← mem_coe,
+  simp_rw ← set_like.mem_coe,
   rw ← set.eq_univ_iff_forall,
   apply set.eq_of_subset_of_card_le (set.subset_univ _),
   rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers],
@@ -705,7 +719,7 @@ variables [decidable_eq α] [fintype α]
 lemma is_cyclic.image_range_order_of (ha : ∀ x : α, x ∈ gpowers a) :
   finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
 begin
-  simp_rw [←subgroup.mem_coe] at ha,
+  simp_rw [←set_like.mem_coe] at ha,
   simp only [image_range_order_of, set.eq_univ_iff_forall.mpr ha],
   convert set.to_finset_univ
 end

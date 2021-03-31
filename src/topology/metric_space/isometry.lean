@@ -150,7 +150,7 @@ infix ` ≃ᵢ `:25 := isometric
 namespace isometric
 variables [emetric_space α] [emetric_space β] [emetric_space γ]
 
-instance : has_coe_to_fun (α ≃ᵢ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
+instance : has_coe_to_fun (α ≃ᵢ β) (λ _, α → β) := ⟨λe, e.to_equiv⟩
 
 lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
 

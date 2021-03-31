@@ -38,8 +38,7 @@ structure closure_operator extends α →ₘ α :=
 (le_closure' : ∀ x, x ≤ to_fun x)
 (idempotent' : ∀ x, to_fun (to_fun x) = to_fun x)
 
-instance : has_coe_to_fun (closure_operator α) :=
-{ F := _, coe := λ c, c.to_fun }
+instance : has_coe_to_fun (closure_operator α) (λ _, α → α) := ⟨λ c, c.to_fun⟩
 
 initialize_simps_projections closure_operator (to_fun → apply)
 

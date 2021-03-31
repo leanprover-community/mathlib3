@@ -168,7 +168,7 @@ instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 
 /-- Coerce continuous linear maps to functions. -/
 -- see Note [function coercion]
-instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨λ _, M → M₂, λ f, f⟩
+instance to_fun : has_coe_to_fun (M →L[R] M₂) (λ _, M → M₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_mk (f : M →ₗ[R] M₂) (h) : (mk f h : M →ₗ[R] M₂) = f := rfl
 @[simp] lemma coe_mk' (f : M →ₗ[R] M₂) (h) : (mk f h : M → M₂) = f := rfl
@@ -841,7 +841,7 @@ instance : has_coe (M ≃L[R] M₂) (M →L[R] M₂) := ⟨to_continuous_linear_
 
 /-- Coerce continuous linear equivs to maps. -/
 -- see Note [function coercion]
-instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨λ _, M → M₂, λ f, f⟩
+instance : has_coe_to_fun (M ≃L[R] M₂) (λ _, M → M₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] theorem coe_def_rev (e : M ≃L[R] M₂) : e.to_continuous_linear_map = e := rfl
 

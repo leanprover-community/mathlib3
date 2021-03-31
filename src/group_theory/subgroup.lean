@@ -149,7 +149,7 @@ lemma coe_to_submonoid (K : subgroup G) : (K.to_submonoid : set G) = K := rfl
 instance : has_mem G (subgroup G) := ⟨λ m K, m ∈ (K : set G)⟩
 
 @[to_additive]
-instance : has_coe_to_sort (subgroup G) Type* := ⟨λ K, ↥(K : set G)⟩
+instance : has_coe_to_sort (subgroup G) Type* := ⟨λ K, {x // x ∈ K}⟩
 
 @[simp, norm_cast, to_additive]
 lemma mem_coe {K : subgroup G} {g : G} : g ∈ (K : set G) ↔ g ∈ K := iff.rfl

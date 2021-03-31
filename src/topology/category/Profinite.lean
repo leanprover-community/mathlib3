@@ -51,7 +51,7 @@ namespace Profinite
 
 instance : inhabited Profinite := ⟨{to_Top := { α := pempty }}⟩
 
-instance : has_coe_to_sort Profinite := ⟨Type*, λ X, X.to_Top⟩
+instance : has_coe_to_sort Profinite Type* := ⟨λ X, X.to_Top⟩
 instance {X : Profinite} : compact_space X := X.is_compact
 instance {X : Profinite} : t2_space X := X.is_t2
 instance {X : Profinite} : totally_disconnected_space X := X.is_totally_disconnected

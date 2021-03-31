@@ -305,8 +305,8 @@ structure {u v} pointed_map (Γ : Type u) (Γ' : Type v)
 instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : inhabited (pointed_map Γ Γ') :=
 ⟨⟨λ _, default _, rfl⟩⟩
 
-instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : has_coe_to_fun (pointed_map Γ Γ') :=
-⟨_, pointed_map.f⟩
+instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : has_coe_to_fun (pointed_map Γ Γ') (λ _, Γ → Γ') :=
+⟨pointed_map.f⟩
 
 @[simp] theorem pointed_map.mk_val {Γ Γ'} [inhabited Γ] [inhabited Γ']
   (f : Γ → Γ') (pt) : (pointed_map.mk f pt : Γ → Γ') = f := rfl

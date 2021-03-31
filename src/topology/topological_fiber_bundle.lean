@@ -161,7 +161,7 @@ structure bundle_trivialization (proj : Z → B) extends local_homeomorph Z (B �
 (target_eq     : target = set.prod base_set univ)
 (proj_to_fun   : ∀ p ∈ source, (to_local_homeomorph p).1 = proj p)
 
-instance : has_coe_to_fun (bundle_trivialization F proj) := ⟨_, λ e, e.to_fun⟩
+instance : has_coe_to_fun (bundle_trivialization F proj) (λ _, Z → (B × F)) := ⟨λ e, e.to_fun⟩
 
 variable {F}
 

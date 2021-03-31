@@ -82,7 +82,7 @@ structure sieve {C : Type u} [category.{v} C] (X : C) :=
 
 namespace sieve
 
-instance {X : C} : has_coe_to_fun (sieve X) := ⟨_, sieve.arrows⟩
+instance {X : C} : has_coe_to_fun (sieve X) (λ _, presieve X) := ⟨sieve.arrows⟩
 
 initialize_simps_projections sieve (arrows → apply)
 

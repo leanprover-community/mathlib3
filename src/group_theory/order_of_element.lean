@@ -112,11 +112,12 @@ by rw ← fintype.card_prod;
 
 lemma card_subgroup_dvd_card (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
-by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]
+by haveI := classical.prop_decidable;
+  simp only [card_eq_card_quotient_mul_card_subgroup s, dvd_mul_left]
 
 lemma card_quotient_dvd_card (s : subgroup α) [decidable_pred (λ a, a ∈ s)] [fintype s] :
   fintype.card (quotient s) ∣ fintype.card α :=
-by simp [card_eq_card_quotient_mul_card_subgroup s]
+by simp only [card_eq_card_quotient_mul_card_subgroup s, dvd_mul_right]
 
 end order_of
 

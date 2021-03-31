@@ -1198,10 +1198,10 @@ by simp [at_top, ← e.surjective.infi_comp]
 @[simp] lemma comap_at_bot (e : α ≃o β) : comap e at_bot = at_bot :=
 e.dual.comap_at_top
 
-@[simp] lemma map_at_top (e : α ≃o β) : map ⇑e at_top = at_top :=
+@[simp] lemma map_at_top (e : α ≃o β) : map (e : α → β) at_top = at_top :=
 by rw [← e.comap_at_top, map_comap_of_surjective e.surjective]
 
-@[simp] lemma map_at_bot (e : α ≃o β) : map ⇑e at_bot = at_bot :=
+@[simp] lemma map_at_bot (e : α ≃o β) : map (e : α → β) at_bot = at_bot :=
 e.dual.map_at_top
 
 lemma tendsto_at_top (e : α ≃o β) : tendsto e at_top at_top :=

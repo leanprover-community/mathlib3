@@ -29,7 +29,9 @@ namespace SemiRing
 instance bundled_hom : bundled_hom @ring_hom :=
 ⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.coe_inj⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] SemiRing
+attribute [derive [large_category, concrete_category]] SemiRing
+
+instance : has_coe_to_sort SemiRing Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled SemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [semiring R] : SemiRing := bundled.of R
@@ -60,7 +62,9 @@ namespace Ring
 
 instance : bundled_hom.parent_projection @ring.to_semiring := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Ring
+attribute [derive [large_category, concrete_category]] Ring
+
+instance : has_coe_to_sort Ring Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled Ring from the underlying type and typeclass. -/
 def of (R : Type u) [ring R] : Ring := bundled.of R
@@ -87,7 +91,9 @@ namespace CommSemiRing
 
 instance : bundled_hom.parent_projection @comm_semiring.to_semiring := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommSemiRing
+attribute [derive [large_category, concrete_category]] CommSemiRing
+
+instance : has_coe_to_sort CommSemiRing Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled CommSemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
@@ -115,7 +121,9 @@ namespace CommRing
 
 instance : bundled_hom.parent_projection @comm_ring.to_ring := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommRing
+attribute [derive [large_category, concrete_category]] CommRing
+
+instance : has_coe_to_sort CommRing Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R

@@ -27,10 +27,11 @@ open_locale classical
 open category_theory
 
 /-- The category of finite types. -/
-@[derive has_coe_to_sort]
 def Fintype := bundled fintype
 
 namespace Fintype
+
+instance : has_coe_to_sort Fintype Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `Fintype` from the underlying type and typeclass. -/
 def of (X : Type*) [fintype X] : Fintype := bundled.of X

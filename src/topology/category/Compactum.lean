@@ -93,7 +93,7 @@ def adj : free ⊣ forget := monad.adj _
 -- Basic instances
 instance : concrete_category Compactum := { forget := forget }
 instance : has_coe_to_sort Compactum := ⟨Type*,forget.obj⟩
-instance {X Y : Compactum} : has_coe_to_fun (X ⟶ Y) := ⟨λ f, X → Y, λ f, f.f⟩
+instance {X Y : Compactum} : has_coe_to_fun (X ⟶ Y) (λ f, X → Y) := ⟨λ f, f.f⟩
 instance : has_limits Compactum := has_limits_of_has_limits_creates_limits forget
 
 /-- The structure map for a compactum, essentially sending an ultrafilter to its limit. -/

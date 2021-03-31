@@ -336,11 +336,11 @@ theorem lt_of_mk_le {x : pgame} {yl yr yL yR i} :
 by cases x; exact λ h, h.2 i
 
 theorem mk_lt_of_le {xl xr xL xR y i} :
-  (by exact xR i ≤ y) → (⟨xl, xr, xL, xR⟩ : pgame) < y :=
+  ((xR : xr → pgame) i ≤ y) → (⟨xl, xr, xL, xR⟩ : pgame) < y :=
 by cases y; exact λ h, or.inr ⟨i, h⟩
 
 theorem lt_mk_of_le {x : pgame} {yl yr yL yR i} :
-  (by exact x ≤ yL i) → x < ⟨yl, yr, yL, yR⟩ :=
+  (x ≤ (yL : yl → pgame) i) → x < ⟨yl, yr, yL, yR⟩ :=
 by cases x; exact λ h, or.inl ⟨i, h⟩
 
 theorem not_le_lt {x y : pgame} :

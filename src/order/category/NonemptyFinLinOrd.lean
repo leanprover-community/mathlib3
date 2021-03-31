@@ -60,7 +60,9 @@ namespace NonemptyFinLinOrd
 
 instance : bundled_hom.parent_projection @nonempty_fin_lin_ord.to_linear_order := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] NonemptyFinLinOrd
+attribute [derive [large_category, concrete_category]] NonemptyFinLinOrd
+
+instance : has_coe_to_sort NonemptyFinLinOrd Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled NonemptyFinLinOrd from the underlying type and typeclass. -/
 def of (α : Type*) [nonempty_fin_lin_ord α] : NonemptyFinLinOrd := bundled.of α

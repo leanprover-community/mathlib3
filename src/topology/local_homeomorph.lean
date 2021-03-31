@@ -70,7 +70,7 @@ namespace local_homeomorph
 
 variables (e : local_homeomorph α β) (e' : local_homeomorph β γ)
 
-instance : has_coe_to_fun (local_homeomorph α β) := ⟨_, λ e, e.to_local_equiv.to_fun⟩
+instance : has_coe_to_fun (local_homeomorph α β) (λ _, α → β) := ⟨λ e, e.to_fun⟩
 
 /-- The inverse of a local homeomorphism -/
 protected def symm : local_homeomorph β α :=

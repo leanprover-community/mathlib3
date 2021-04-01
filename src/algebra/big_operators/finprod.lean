@@ -366,9 +366,9 @@ finprod_mem_mul_distrib' (hs.inter_of_left _) (hs.inter_of_left _)
   g (∏ᶠ i, f i) = ∏ᶠ i, g (f i) :=
 g.map_finprod_plift f $ hf.preimage $ equiv.plift.injective.inj_on _
 
-/-- A more general version of `finprod_mem_hom` that requires `s ∩ mul_support f` and instead of
-  `s` to be finite. -/
-@[to_additive] lemma monoid_hom.map_finprod_mem {f : α → M} (g : M →* N)
+/-- A more general version of `monoid_hom.map_finprod_mem` that requires `s ∩ mul_support f` and
+  instead of `s` to be finite. -/
+@[to_additive] lemma monoid_hom.map_finprod_mem' {f : α → M} (g : M →* N)
   (h₀ : (s ∩ mul_support f).finite) :
   g (∏ᶠ j ∈ s, f j) = ∏ᶠ i ∈ s, (g (f i)) :=
 begin
@@ -377,15 +377,11 @@ begin
   { simpa only [finprod_eq_mul_indicator_apply, mul_support_mul_indicator] }
 end
 
-/-- Given a monoid homomorphism `g : M →* N`, and a function `f : α → M`, the product of `(g ∘ f) i`
-over `s` equals the value of `g` at the product of `f i` over `i ∈ s`. -/
-@[to_additive] lemma finprod_mem_hom (f : α → M) (g : M →* N) (hs : s.finite) :
-  ∏ᶠ i ∈ s, (g ∘ f) i = g (∏ᶠ j ∈ s, f j) :=
-finprod_mem_hom' g (hs.inter_of_left _)
-
-@[to_additive] lemma finprod_mem_hom'' (f : α → M) (g : M →* N) (hs : s.finite) :
-  ∏ᶠ i ∈ s, g (f i) = g (∏ᶠ j ∈ s, f j) :=
-finprod_mem_hom f g hs
+/-- Given a monoid homomorphism `g : M →* N`, and a function `f : α → M`, the value of `g` at the
+product of `f i` over `i ∈ s` equals the product of `(g ∘ f) i` over `s`. -/
+@[to_additive] lemma monoid_hom.map_finprod_mem (f : α → M) (g : M →* N) (hs : s.finite) :
+  g (∏ᶠ j ∈ s, f j) = ∏ᶠ i ∈ s, g (f i) :=
+g.map_finprod_mem' (hs.inter_of_left _)
 
 /-!
 ### `∏ᶠ x ∈ s, f x` and set operations

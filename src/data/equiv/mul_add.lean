@@ -161,9 +161,21 @@ lemma symm_apply_apply (e : M ≃* N) : ∀ x, e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply
 
 @[simp, to_additive]
+theorem symm_comp_self (e : M ≃* N) : e.symm ∘ e = id := funext e.symm_apply_apply
+
+@[simp, to_additive]
+theorem self_comp_symm (e : M ≃* N) : e ∘ e.symm = id := funext e.apply_symm_apply
+
+@[simp, to_additive]
+theorem coe_refl : ⇑(refl M) = id := rfl
+
+@[to_additive]
 theorem refl_apply (m : M) : refl M m = m := rfl
 
 @[simp, to_additive]
+theorem coe_trans (e₁ : M ≃* N) (e₂ : N ≃* P) : ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
+
+@[to_additive]
 theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
 
 @[simp, to_additive] theorem apply_eq_iff_eq (e : M ≃* N) {x y : M} : e x = e y ↔ x = y :=

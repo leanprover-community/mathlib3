@@ -38,6 +38,8 @@ order of an element, cyclic group
 ## TODO
 
 * Move the first declarations until the definition of order to other files.
+* Yury's suggestion: Redefine `order_of x := minimal_period (* x) 1`, this should make `to_additive`
+  easier.
 * Add the attribute `@[to_additive]` to the declarations about `is_cyclic`, so that they work for
   additive groups.
 -/

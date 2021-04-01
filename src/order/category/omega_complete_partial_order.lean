@@ -41,7 +41,9 @@ instance : bundled_hom @continuous_hom :=
   comp := @continuous_hom.comp,
   hom_ext := @continuous_hom.coe_inj }
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] ωCPO
+attribute [derive [large_category, concrete_category]] ωCPO
+
+instance : has_coe_to_sort ωCPO Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled ωCPO from the underlying type and typeclass. -/
 def of (α : Type*) [omega_complete_partial_order α] : ωCPO := bundled.of α

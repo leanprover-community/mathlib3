@@ -295,6 +295,7 @@ rfl
 The explicit pullback given by `pullback_cone f g` is a limit.
 This is bundled with the cone itself as `pullback_limit_cone f g`.
 -/
+@[simps]
 def pullback_limit : is_limit (pullback_cone f g) :=
 { lift := pullback_lift f g,
 
@@ -333,6 +334,7 @@ def pullback_limit : is_limit (pullback_cone f g) :=
 The explicit pullback in the category of types, bundled up as a `limit_cone`
 for given `f` and `g`.
 -/
+@[simps]
 def pullback_limit_cone (f : X ⟶ Z) (g : Y ⟶ Z) : limits.limit_cone (cospan f g) :=
 { cone := pullback_cone f g,
   is_limit := pullback_limit f g, }

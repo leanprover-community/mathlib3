@@ -241,55 +241,13 @@ The full `limit_cone` data is bundled as `pullback_limit_cone f g`.
 -/
 def pullback_obj : Type u := { p : X × Y // f p.1 = g p.2 }
 
-def pullback_proj : Π (j : walking_cospan), (pullback_obj f g) ⟶ (limits.cospan f g).obj j
-| left  p := p.val.1
-| right p := p.val.2
-| one   p := f p.val.1
-
-def pullback_fst : pullback_obj f g ⟶ X := pullback_proj f g left
-def pullback_snd : pullback_obj f g ⟶ Y := pullback_proj f g right
-
-@[simp] lemma pullback_proj_fst  : pullback_proj f g left  = λ p, p.val.1   := rfl
-@[simp] lemma pullback_proj_snd  : pullback_proj f g right = λ p, p.val.2   := rfl
-@[simp] lemma pullback_proj_base : pullback_proj f g one   = λ p, f p.val.1 := rfl
-
-lemma pullback_commutes :
-  ∀ ⦃j j' : walking_cospan⦄ (h : j ⟶ j'),
-    pullback_proj f g j' = pullback_proj f g j ≫ (limits.cospan f g).map h
-| _ _  inl   := by funext; rw [types_comp_apply, cospan_map_inl]; refl
-| _ _  inr   := by funext; rw [types_comp_apply, cospan_map_inr]; exact x.prop
-| _ _ (id _) := by funext; rw [types_comp_apply]; refl
-
 /--
 The explicit pullback cone on `pullback_obj f g`.
 This is bundled with the `is_limit` data as `pullback_limit_cone f g`.
 -/
 @[simps]
-def pullback_cone : cone (cospan f g) :=
-{ X := pullback_obj f g,
-  π := { app := pullback_proj f g, naturality' := pullback_commutes f g } }
-
-instance : has_coe (pullback_cone f g).X (X × Y) := ⟨λ w, ⟨w.val.1, w.val.2⟩⟩
-
-@[simp] lemma pullback_cone_coe (x : (pullback_cone f g).X) : ↑x = prod.mk x.val.1 x.val.2 := rfl
-
-def pullback_lift : Π (s : limits.cone (limits.cospan f g)), s.X ⟶ (pullback_cone f g).X
-| ⟨W, ⟨π, commutes⟩⟩ :=
-λ w: W,
-let x : X := π left w in
-let y : Y := π right w in
-have π left ≫ f = π right ≫ g, from (commutes inl).symm.trans (commutes inr),
-have (π left ≫ f) w = (π right ≫ g) w, from congr_fun this w,
-have f x = g y, by rw [types_comp_apply] at this; assumption,
-⟨⟨x, y⟩, this⟩
-
-@[simp] lemma pullback_lift_val (s : limits.cone (limits.cospan f g)) (w : s.X)
-  : (pullback_lift f g s w).val = ⟨s.π.app left w, s.π.app right w⟩ :=
-begin rcases s with ⟨W, ⟨π, commutes⟩⟩, refl end
-
-@[simp] lemma pullback_lift_fst (s : limits.cone (limits.cospan f g)) (w : s.X)
-  : (↑(pullback_lift f g s w) : X × Y).fst = (pullback_lift f g s w).val.fst :=
-rfl
+def pullback_cone : limits.pullback_cone f g :=
+pullback_cone.mk (λ p : pullback_obj f g, p.1.1) (λ p, p.1.2) (by exact funext (λ p, p.2))
 
 /--
 The explicit pullback in the category of types, bundled up as a `limit_cone`
@@ -297,8 +255,7 @@ for given `f` and `g`.
 -/
 @[simps]
 def pullback_limit_cone (f : X ⟶ Z) (g : Y ⟶ Z) : limits.limit_cone (cospan f g) :=
-{ cone :=
-  pullback_cone.mk (λ p : pullback_obj f g, p.1.1) (λ p, p.1.2) (by exact funext (λ p, p.2)),
+{ cone := pullback_cone f g,
   is_limit :=
   begin
     fapply pullback_cone.is_limit_aux _,
@@ -315,8 +272,7 @@ def pullback_limit_cone (f : X ⟶ Z) (g : Y ⟶ Z) : limits.limit_cone (cospan 
 The pullback cone given by the instance `has_pullbacks (Type u)` is isomorphic to the
 explicit pullback cone given by `pullback_limit_cone`.
 -/
-noncomputable def pullback_cone_iso_pullback
-  : limit.cone (cospan f g) ≅ (pullback_limit_cone f g).cone :=
+noncomputable def pullback_cone_iso_pullback : limit.cone (cospan f g) ≅ pullback_cone f g :=
 (limit.is_limit _).unique_up_to_iso (pullback_limit_cone f g).is_limit
 
 /--
@@ -327,13 +283,11 @@ noncomputable def pullback_iso_pullback : pullback f g ≅ pullback_obj f g :=
 (cones.forget _).map_iso $ pullback_cone_iso_pullback f g
 
 @[simp] lemma pullback_fst'
-  : (pullback_iso_pullback f g).hom ≫ limits.pullback_cone.fst (pullback_limit_cone f g).cone
-    = limits.pullback.fst :=
+  : (pullback_iso_pullback f g).hom ≫ (pullback_cone f g).fst = limits.pullback.fst :=
 (pullback_cone_iso_pullback f g).hom.w _
 
 @[simp] lemma pullback_snd'
-  : (pullback_iso_pullback f g).hom ≫ limits.pullback_cone.snd (pullback_limit_cone f g).cone
-    = limits.pullback.snd :=
+  : (pullback_iso_pullback f g).hom ≫ (pullback_cone f g).snd = limits.pullback.snd :=
 (pullback_cone_iso_pullback f g).hom.w _
 
 end pullback

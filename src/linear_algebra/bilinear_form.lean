@@ -1242,7 +1242,7 @@ begin
     exact hx.2 _ submodule.mem_top }
 end
 
-lemma to_lin_restrict_range_eq_dual_annihilator
+lemma to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal
   (B : bilin_form K V) (W : subspace K V) :
   (B.to_lin.dom_restrict W).range.dual_annihilator_comap = B.orthogonal W :=
 begin
@@ -1266,7 +1266,7 @@ lemma findim_add_findim_orthogonal
   findim K V + findim K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
   rw [← to_lin_restrict_ker_eq_inf_orthogonal _ _ hB₁,
-      ← to_lin_restrict_range_eq_dual_annihilator _ _,
+      ← to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal _ _,
       ← subspace.findim_add_findim_dual_annihilator_comap_eq (B.to_lin.dom_restrict W).range,
       findim_map_subtype_eq],
   conv_rhs { rw [add_comm, ← add_assoc, add_comm (findim K ↥((B.to_lin.dom_restrict W).ker)),

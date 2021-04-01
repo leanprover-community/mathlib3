@@ -2138,8 +2138,8 @@ def equiv_subtype_map (p : submodule R M) (q : submodule R p) :
       assumption
     end,
   left_inv := λ ⟨⟨_, _⟩, _⟩, rfl,
-  right_inv := λ ⟨x, ⟨_, h⟩, _, rfl⟩, rfl, ..
-  (p.subtype.dom_restrict q).cod_restrict _
+  right_inv := λ ⟨x, ⟨_, h⟩, _, rfl⟩, rfl,
+  .. (p.subtype.dom_restrict q).cod_restrict _
     begin
       rintro ⟨x, hx⟩,
       refine ⟨x, hx, rfl⟩,

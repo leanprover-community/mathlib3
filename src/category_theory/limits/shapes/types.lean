@@ -245,8 +245,7 @@ def pullback_obj : Type u := { p : X × Y // f p.1 = g p.2 }
 The explicit pullback cone on `pullback_obj f g`.
 This is bundled with the `is_limit` data as `pullback_limit_cone f g`.
 -/
-@[simps]
-def pullback_cone : limits.pullback_cone f g :=
+abbreviation pullback_cone : limits.pullback_cone f g :=
 pullback_cone.mk (λ p : pullback_obj f g, p.1.1) (λ p, p.1.2) (funext (λ p, p.2))
 
 /--

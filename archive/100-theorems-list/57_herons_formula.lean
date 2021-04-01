@@ -61,9 +61,9 @@ begin
   let c := dist p1 p3,
   let γ := ∠ p1 p2 p3,
 
-  have a_nonzero : a ≠ 0, exact ne_of_gt (dist_pos.mpr h2),
-  have b_nonzero : b ≠ 0, exact ne_of_gt (dist_pos.mpr h4),
-  have c_nonzero : c ≠ 0, exact ne_of_gt (dist_pos.mpr h3),
+  have a_nonzero : a ≠ 0 := (dist_pos.mpr h2).ne',
+  have b_nonzero : b ≠ 0 := (dist_pos.mpr h4).ne',
+  have c_nonzero : c ≠ 0 := (dist_pos.mpr h3).ne',
 
   have cos_rule := rearrange_cos_rule a b c (real.cos γ) a_nonzero b_nonzero
     (dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle p1 p2 p3),

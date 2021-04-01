@@ -369,13 +369,12 @@ begin
   ring,
 end
 
-
-lemma heron {p1 p2 p3 : P} (h2 : p1 ≠ p2) (h3 : p1 ≠ p3) (h4 : p3 ≠ p2) :
+theorem heron {p1 p2 p3 : P} (h2 : p1 ≠ p2) (h3 : p1 ≠ p3) (h4 : p3 ≠ p2) :
   1/2 * dist p1 p2 * dist p3 p2 * real.sin (∠ p1 p2 p3) =
-    √ ( ( ( dist p1 p2 + dist p1 p3 + dist p3 p2 ) / 2 ) *
-        ( ( ( dist p1 p2 + dist p1 p3 + dist p3 p2 ) / 2 ) - dist p1 p2 ) *
-        ( ( ( dist p1 p2 + dist p1 p3 + dist p3 p2 ) / 2 ) - dist p1 p3 ) *
-        ( ( ( dist p1 p2 + dist p1 p3 + dist p3 p2 ) / 2 ) - dist p3 p2 ) ) :=
+    √ ( ( ( dist p1 p2 + dist p3 p2 + dist p1 p3 ) / 2 ) *
+        ( ( ( dist p1 p2 + dist p3 p2 + dist p1 p3 ) / 2 ) - dist p1 p2 ) *
+        ( ( ( dist p1 p2 + dist p3 p2 + dist p1 p3 ) / 2 ) - dist p3 p2 ) *
+        ( ( ( dist p1 p2 + dist p3 p2 + dist p1 p3 ) / 2 ) - dist p1 p3 ) ) :=
 begin
   let a := dist p1 p2,
   let b := dist p3 p2,
@@ -389,8 +388,6 @@ begin
   have cos_rule := rearrange_cos_rule a b c (real.cos γ) a_nonzero b_nonzero
     (dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle p1 p2 p3),
   have sin_to_cos := sin_eq_sqrt_one_minus_cos_sq γ (angle_nonneg p1 p2 p3) (angle_le_pi p1 p2 p3),
-
-  let s := (a + c + b) / 2,
 
   let numerator := (2*a*b)^2 - (a*a + b*b - c*c)^2,
   let denominator := (2*a*b)^2,
@@ -412,19 +409,20 @@ begin
     cases frac_nonneg,
     { exact frac_nonneg.left },
     { exfalso,
-      have ab2_sqr_zero : 2*a*b*(2*a*b) = 0,
+      have ab2_sqr_zero : (2*a*b)*(2*a*b) = 0,
         by { rw ← pow_two, exact le_antisymm frac_nonneg.right denom_nonneg },
       field_simp at ab2_sqr_zero,
       exact ab2_sqr_zero } },
 
-  let area_sqr := s * (s - a) * (s - c) * (s - b),
+  let s := (a + b + c) / 2,
+  let area_sqr := s * (s - a) * (s - b) * (s - c),
 
   calc    1/2*a*b * real.sin γ
         = 1/2*a*b * √( 1 - real.cos γ ^ 2 )           : by rw sin_to_cos
     ... = 1/2*a*b * √( numerator / denominator )      : by rw ← split_to_fraction
     ... = 1/2*a*b * √( numerator ) / √( denominator ) : by { rw real.sqrt_div numerator_nonneg, ring }
     ... = 1/2*a*b * √( (2*a*b)^2 - (a*a + b*b - c*c)^2 ) / √( (2*a*b)^2 ) : rfl
-    ... = 1/4 * √( s * (s - a) * (s - c) * (s - b) * 4^2 ) : by repeat { field_simp [ab2_pos] ; ring_nf }
+    ... = 1/4 * √( s * (s - a) * (s - b) * (s - c) * 4^2 ) : by repeat { field_simp [ab2_pos] ; ring_nf }
     ... = 1/4 * √( area_sqr * (4 * 4))      : by rw pow_two
     ... = 1/4 * √( area_sqr * 4 * 4)        : by ring_nf
     ... = 1/4 * √( area_sqr * 4) * √(4)     : by { rw real.sqrt_mul' _ _, ring, linarith }
@@ -433,7 +431,7 @@ begin
     ... = 1/4 * √( area_sqr ) * √(4*4)      : by { rw ← real.sqrt_mul' _ _, linarith }
     ... = 1/4 * √( area_sqr ) * √(4^2)      : by rw ← pow_two
     ... = 1/4 * √( area_sqr ) * 4           : by { congr', apply real.sqrt_sqr, linarith }
-    ... = √( s * (s - a) * (s - c) * (s - b) ) : by ring,
+    ... = √( s * (s - a) * (s - b) * (s - c) ) : by ring,
 
   -- What the crap is this?!
   exact V,

@@ -1763,7 +1763,7 @@ variables {α' β' : Type*} (e : perm α') {p : β' → Prop} [decidable_pred p]
 Extend the domain of `e : equiv.perm α` to one that is over `β` via `f : α → subtype p`,
 where `p : β → Prop`, permuting only the `b : β` that satisfy `p b`.
 This can be used to extend the domain across a function `f : α → β`,
-keeping everything outside of `set.range f` is kept fixed. The `equiv` given by `f` can
+keeping everything outside of `set.range f` fixed. For this use-case `equiv` given by `f` can
 be constructed by `equiv.of_left_inverse'` or `equiv.of_left_inverse` when there is a known
 inverse, or `equiv.of_injective` in the general case.`.
 -/
@@ -1785,7 +1785,8 @@ by simp [perm.extend_domain, h]
 @[simp] lemma perm.extend_domain_refl : perm.extend_domain (equiv.refl _) f = equiv.refl _ :=
 by simp [perm.extend_domain]
 
-lemma perm.extend_domain_symm : (e.extend_domain f).symm = perm.extend_domain e.symm f := rfl
+@[simp] lemma perm.extend_domain_symm :
+  (e.extend_domain f).symm = perm.extend_domain e.symm f := rfl
 
 lemma perm.extend_domain_trans (e e' : perm α') :
   (e.extend_domain f).trans (e'.extend_domain f) = perm.extend_domain (e.trans e') f :=

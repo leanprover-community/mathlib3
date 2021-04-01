@@ -1837,7 +1837,9 @@ lemma sum_elim_inl {α β γ : Type*} [has_zero γ]
 lemma sum_elim_inr {α β γ : Type*} [has_zero γ]
   (f : α →₀ γ) (g : β →₀ γ) (x : β) : sum_elim f g (sum.inr x) = g x := rfl
 
-/-- The equivalence between `(α ⊕ β) →₀ γ` and `(α →₀ γ) × (β →₀ γ)`. -/
+/-- The equivalence between `(α ⊕ β) →₀ γ` and `(α →₀ γ) × (β →₀ γ)`.
+
+This is the `finsupp` version of `equiv.sum_arrow_equiv_prod_arrow`. -/
 @[simps apply symm_apply]
 def sum_arrow_equiv_prod_arrow {α β γ : Type*} [has_zero γ] :
   ((α ⊕ β) →₀ γ) ≃ (α →₀ γ) × (β →₀ γ) :=

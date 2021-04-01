@@ -431,12 +431,12 @@ by simp only [← submonoid.to_subsemiring_to_add_submonoid, submonoid.to_subsem
 @[simp]
 lemma closure_add_submonoid_closure {s : set R} : closure ↑(add_submonoid.closure s) = closure s :=
 begin
-  ext,
-  refine ⟨λ h, _, λ h, closure_mono add_submonoid.subset_closure h⟩,
+  ext x,
+  refine ⟨λ hx, _, λ hx, closure_mono add_submonoid.subset_closure hx⟩,
   rintros - ⟨H, rfl⟩,
   rintros - ⟨J, rfl⟩,
-  refine (add_submonoid.mem_closure.mp (mem_closure_iff.mp h)) H.to_add_submonoid (λ y hy, _),
-  refine (submonoid.mem_closure.mp hy) (H.to_submonoid) (λ z hz, _),
+  refine (add_submonoid.mem_closure.mp (mem_closure_iff.mp hx)) H.to_add_submonoid (λ y hy, _),
+  refine (submonoid.mem_closure.mp hy) H.to_submonoid (λ z hz, _),
   exact (add_submonoid.mem_closure.mp hz) H.to_add_submonoid (λ w hw, J hw),
 end
 

@@ -601,7 +601,8 @@ elements of s. It is the smallest normal subgroup containing s. -/
 namespace group
 variables {s : set G} [group G]
 
-lemma conjugates_subset {t : set G} [normal_subgroup t] {a : G} (h : a ∈ t) : conjugates a ⊆ t :=
+lemma conjugates_of_subset {t : set G} [normal_subgroup t] {a : G} (h : a ∈ t) :
+  conjugates_of a ⊆ t :=
 λ x hc,
 begin
   obtain ⟨c, w⟩ := is_conj_iff.1 hc,
@@ -611,7 +612,7 @@ end
 
 theorem conjugates_of_set_subset' {s t : set G} [normal_subgroup t] (h : s ⊆ t) :
   conjugates_of_set s ⊆ t :=
-set.bUnion_subset (λ x H, conjugates_subset (h H))
+set.bUnion_subset (λ x H, conjugates_of_subset (h H))
 
 /-- The normal closure of a set s is the subgroup closure of all the conjugates of
 elements of s. It is the smallest normal subgroup containing s. -/

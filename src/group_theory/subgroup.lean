@@ -951,7 +951,7 @@ variables {s : set G}
 
 /-- Given a set `s`, `conjugates_of_set s` is the set of all conjugates of
 the elements of `s`. -/
-def conjugates_of_set (s : set G) : set G := ⋃ a ∈ s, conjugates a
+def conjugates_of_set (s : set G) : set G := ⋃ a ∈ s, conjugates_of a
 
 lemma mem_conjugates_of_set_iff {x : G} : x ∈ conjugates_of_set s ↔ ∃ a ∈ s, is_conj a x :=
 set.mem_bUnion_iff
@@ -964,7 +964,7 @@ theorem conjugates_of_set_mono {s t : set G} (h : s ⊆ t) :
 set.bUnion_subset_bUnion_left h
 
 lemma conjugates_subset_normal {N : subgroup G} [tn : N.normal] {a : G} (h : a ∈ N) :
-  conjugates a ⊆ N :=
+  conjugates_of a ⊆ N :=
 by { rintros a hc, obtain ⟨c, rfl⟩ := is_conj_iff.1 hc, exact tn.conj_mem a h c }
 
 theorem conjugates_of_set_subset {s : set G} {N : subgroup G} [N.normal] (h : s ⊆ N) :

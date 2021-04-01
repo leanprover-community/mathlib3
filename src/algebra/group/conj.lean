@@ -170,13 +170,20 @@ section monoid
 variables [monoid α]
 
 /-- Given an element `a`, `conjugates a` is the set of conjugates. -/
-def conjugates (a : α) : set α := {b | is_conj a b}
+def conjugates_of (a : α) : set α := {b | is_conj a b}
 
-lemma mem_conjugates_self {a : α} : a ∈ conjugates a := is_conj_refl _
+lemma mem_conjugates_of_self {a : α} : a ∈ conjugates_of a := is_conj_refl _
 
-lemma conjugates_eq_of_is_conj {a b : α} (ab : is_conj a b) :
-  conjugates a = conjugates b :=
+lemma is_conj.conjugates_of_eq {a b : α} (ab : is_conj a b) :
+  conjugates_of a = conjugates_of b :=
 set.ext (λ g, ⟨λ ag, is_conj_trans (is_conj_symm ab) ag, λ bg, is_conj_trans ab bg⟩)
+
+lemma is_conj_iff_conjugates_of_eq {a b : α} :
+  is_conj a b ↔ conjugates_of a = conjugates_of b :=
+⟨is_conj.conjugates_of_eq, λ h, begin
+  have ha := mem_conjugates_of_self,
+  rwa ← h at ha,
+end⟩
 
 end monoid
 
@@ -188,7 +195,7 @@ local attribute [instance] is_conj.setoid
 
 /-- Given a conjugacy class `a`, `carrier a` is the set it represents. -/
 def carrier : conj_classes α → set α :=
-quotient.lift conjugates (λ (a : α) b ab, conjugates_eq_of_is_conj ab)
+quotient.lift conjugates_of (λ (a : α) b ab, is_conj.conjugates_of_eq ab)
 
 lemma mem_carrier_mk {a : α} : a ∈ carrier (conj_classes.mk a) := is_conj_refl _
 

@@ -315,14 +315,10 @@ instance complete_space_separation [h : complete_space α] :
   complete_space (quotient (separation_setoid α)) :=
 ⟨assume f, assume hf : cauchy f,
   have cauchy (f.comap (λx, ⟦x⟧)), from
-    hf.comap' comap_quotient_le_uniformity $
-      hf.left.comap_of_surj $ assume b, quotient.exists_rep _,
+    hf.comap' comap_quotient_le_uniformity $ hf.left.comap_of_surj (surjective_quotient_mk _),
   let ⟨x, (hx : f.comap (λx, ⟦x⟧) ≤ 𝓝 x)⟩ := complete_space.complete this in
-  ⟨⟦x⟧, calc f = map (λx, ⟦x⟧) (f.comap (λx, ⟦x⟧)) :
-      (map_comap $ univ_mem_sets' $ assume b, quotient.exists_rep _).symm
-    ... ≤ map (λx, ⟦x⟧) (𝓝 x) : map_mono hx
-    ... ≤ _ : continuous_iff_continuous_at.mp uniform_continuous_quotient_mk.continuous _⟩⟩
-
+  ⟨⟦x⟧, (comap_le_comap_iff $ by simp).1
+    (hx.trans $ map_le_iff_le_comap.1 continuous_quotient_mk.continuous_at)⟩⟩
 
 /-- Hausdorff completion of `α` -/
 def completion := quotient (separation_setoid $ Cauchy α)

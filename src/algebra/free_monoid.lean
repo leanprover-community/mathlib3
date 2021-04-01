@@ -52,11 +52,13 @@ def of (x : α) : free_monoid α := [x]
 @[to_additive]
 lemma of_def (x : α) : of x = [x] := rfl
 
+@[to_additive]
 lemma of_injective : function.injective (@of α) :=
 λ a b, list.head_eq_of_cons_eq
 
 /-- Recursor for `free_monoid` using `1` and `of x * xs` instead of `[]` and `x :: xs`. -/
-@[to_additive "Recursor for `free_add_monoid` using `0` and `of x + xs` instead of `[]` and `x :: xs`."]
+@[to_additive
+  "Recursor for `free_add_monoid` using `0` and `of x + xs` instead of `[]` and `x :: xs`."]
 def rec_on {C : free_monoid α → Sort*} (xs : free_monoid α) (h0 : C 1)
   (ih : Π x xs, C xs → C (of x * xs)) : C xs := list.rec_on xs h0 ih
 
@@ -97,9 +99,11 @@ congr_fun (lift_comp_of f) x
 lemma lift_restrict (f : free_monoid α →* M) : lift (f ∘ of) = f :=
 lift.apply_symm_apply f
 
+@[to_additive]
 lemma comp_lift (g : M →* N) (f : α → M) : g.comp (lift f) = lift (g ∘ f) :=
 by { ext, simp }
 
+@[to_additive]
 lemma hom_map_lift (g : M →* N) (f : α → M) (x : free_monoid α) : g (lift f x) = lift (g ∘ f) x :=
 monoid_hom.ext_iff.1 (comp_lift g f) x
 

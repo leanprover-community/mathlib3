@@ -94,11 +94,13 @@ variables {C : Type u} [category.{v} C]
 
 /-- `cospan f g` is the functor from the walking cospan hitting `f` and `g`. -/
 def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan ⥤ C :=
-wide_pullback_shape.wide_cospan Z (λ j, walking_pair.cases_on j X Y) (λ j, walking_pair.cases_on j f g)
+wide_pullback_shape.wide_cospan Z
+  (λ j, walking_pair.cases_on j X Y) (λ j, walking_pair.cases_on j f g)
 
 /-- `span f g` is the functor from the walking span hitting `f` and `g`. -/
 def span {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) : walking_span ⥤ C :=
-wide_pushout_shape.wide_span X (λ j, walking_pair.cases_on j Y Z) (λ j, walking_pair.cases_on j f g)
+wide_pushout_shape.wide_span X
+  (λ j, walking_pair.cases_on j Y Z) (λ j, walking_pair.cases_on j f g)
 
 @[simp] lemma cospan_left {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
   (cospan f g).obj walking_cospan.left = X := rfl
@@ -176,7 +178,8 @@ def is_limit_aux (t : pullback_cone f g) (lift : Π (s : cone (cospan f g)), s.X
     same `s` for all parts. -/
 def is_limit_aux' (t : pullback_cone f g)
   (create : Π (s : pullback_cone f g),
-    {l // l ≫ t.fst = s.fst ∧ l ≫ t.snd = s.snd ∧ ∀ {m}, m ≫ t.fst = s.fst → m ≫ t.snd = s.snd → m = l}) :
+    {l // l ≫ t.fst = s.fst ∧ l ≫ t.snd = s.snd ∧
+            ∀ {m}, m ≫ t.fst = s.fst → m ≫ t.snd = s.snd → m = l}) :
 limits.is_limit t :=
 pullback_cone.is_limit_aux t
   (λ s, (create s).1)
@@ -237,7 +240,8 @@ def is_limit.mk {W : C} {fst : W ⟶ X} {snd : W ⟶ Y} (eq : fst ≫ f = snd �
   (uniq : ∀ (s : pullback_cone f g) (m : s.X ⟶ W)
     (w_fst : m ≫ fst = s.fst) (w_snd : m ≫ snd = s.snd), m = lift s) :
   is_limit (mk fst snd eq) :=
-is_limit_aux _ lift fac_left fac_right (λ s m w, uniq s m (w walking_cospan.left) (w walking_cospan.right))
+is_limit_aux _ lift fac_left fac_right
+  (λ s m w, uniq s m (w walking_cospan.left) (w walking_cospan.right))
 
 /-- The flip of a pullback square is a pullback square. -/
 def flip_is_limit {W : C} {h : W ⟶ X} {k : W ⟶ Y}
@@ -269,7 +273,8 @@ is_limit.mk _
 `f` is a mono if the pullback cone `(𝟙 X, 𝟙 X)` is a limit for the pair `(f, f)`. The converse is
 given in `pullback_cone.is_id_of_mono`.
 -/
-lemma mono_of_is_limit_mk_id_id (f : X ⟶ Y) (t : is_limit (mk (𝟙 X) (𝟙 X) rfl : pullback_cone f f)) :
+lemma mono_of_is_limit_mk_id_id (f : X ⟶ Y)
+  (t : is_limit (mk (𝟙 X) (𝟙 X) rfl : pullback_cone f f)) :
   mono f :=
 ⟨λ Z g h eq, by { rcases pullback_cone.is_limit.lift' t _ _ eq with ⟨_, rfl, rfl⟩, refl } ⟩
 
@@ -307,7 +312,8 @@ def is_colimit_aux (t : pushout_cocone f g) (desc : Π (s : pushout_cocone f g),
     same `s` for all parts. -/
 def is_colimit_aux' (t : pushout_cocone f g)
   (create : Π (s : pushout_cocone f g),
-    {l // t.inl ≫ l = s.inl ∧ t.inr ≫ l = s.inr ∧ ∀ {m}, t.inl ≫ m = s.inl → t.inr ≫ m = s.inr → m = l}) :
+    {l // t.inl ≫ l = s.inl ∧ t.inr ≫ l = s.inr ∧
+            ∀ {m}, t.inl ≫ m = s.inl → t.inr ≫ m = s.inr → m = l}) :
 is_colimit t :=
 is_colimit_aux t
   (λ s, (create s).1)
@@ -368,7 +374,8 @@ def is_colimit.mk {W : C} {inl : Y ⟶ W} {inr : Z ⟶ W} (eq : f ≫ inl = g �
   (uniq : ∀ (s : pushout_cocone f g) (m : W ⟶ s.X)
     (w_inl : inl ≫ m = s.inl) (w_inr : inr ≫ m = s.inr), m = desc s) :
   is_colimit (mk inl inr eq) :=
-is_colimit_aux _ desc fac_left fac_right (λ s m w, uniq s m (w walking_cospan.left) (w walking_cospan.right))
+is_colimit_aux _ desc fac_left fac_right
+  (λ s m w, uniq s m (w walking_cospan.left) (w walking_cospan.right))
 
 /-- The flip of a pushout square is a pushout square. -/
 def flip_is_colimit {W : C} {h : Y ⟶ W} {k : Z ⟶ W}

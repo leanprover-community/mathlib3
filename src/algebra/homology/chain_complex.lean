@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import data.int.basic
 import category_theory.graded_object
 import category_theory.differential_object
+import category_theory.abelian.additive_functor
 
 /-!
 # Chain complexes
@@ -65,7 +66,7 @@ namespace homological_complex
 variables {V}
 variables {β : Type} [add_comm_group β] {b : β}
 
-@[simp]
+@[simp, reassoc]
 lemma d_squared (C : homological_complex V b) (i : β) :
   C.d i ≫ C.d (i+b) = 0 :=
 congr_fun (C.d_squared) i
@@ -75,14 +76,31 @@ A convenience lemma for morphisms of cochain complexes,
 picking out one component of the commutation relation.
 -/
 -- I haven't been able to get this to work with projection notation: `f.comm_at i`
-@[simp]
+@[simp, reassoc]
 lemma comm_at {C D : homological_complex V b} (f : C ⟶ D) (i : β) :
     C.d i ≫ f.f (i+b) = f.f i ≫ D.d i :=
 congr_fun f.comm i
 
-@[simp]
+@[simp, reassoc]
 lemma comm {C D : homological_complex V b} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d :=
 differential_object.hom.comm _
+
+@[reassoc]
+lemma eq_to_hom_d (C : homological_complex V b) {i j : β} (h : i = j) :
+  eq_to_hom (congr_arg C.X h) ≫ C.d j =
+  C.d i ≫ eq_to_hom (congr_arg C.X (congr_arg (λ a, a + b) h) : _) :=
+begin
+  induction h,
+  simp,
+end
+
+@[reassoc]
+lemma eq_to_hom_f {C D : homological_complex V b} (f : C ⟶ D) {n m : β} (h : n = m) :
+  eq_to_hom (congr_arg C.X h) ≫ f.f m = f.f n ≫ eq_to_hom (congr_arg D.X h) :=
+begin
+  induction h,
+  simp
+end
 
 variables (V)
 
@@ -99,6 +117,36 @@ end
 end homological_complex
 
 open homological_complex
+
+namespace category_theory.functor
+
+variables {β : Type} [add_comm_group β] {b : β} {C D : Type*} [category C]
+  [category D] [preadditive C] [preadditive D] (F : C ⥤ D) [functor.additive F]
+
+/-- Map a `homological_complex` with respect to an additive functor. -/
+@[simps]
+def map_homological_complex (Cs : homological_complex C b) : homological_complex D b :=
+{ X := λ i, F.obj $ Cs.X i,
+  d := λ i, F.map $ Cs.d i,
+  d_squared' := begin
+    ext i,
+    dsimp,
+    simp [← F.map_comp]
+  end }
+
+/-- A functorial version of `map_homological_complex`. -/
+@[simps]
+def pushforward_homological_complex : homological_complex C b ⥤ homological_complex D b :=
+{ obj := λ Cs, F.map_homological_complex Cs,
+  map := λ X Y f,
+  { f := λ i, F.map $ f.f _,
+    comm' := begin
+      ext i,
+      dsimp,
+      simp_rw [← F.map_comp, comm_at],
+    end } }
+
+end category_theory.functor
 
 -- The components of a cochain map `f : C ⟶ D` are accessed as `f.f i`.
 example {C D : cochain_complex V} (f : C ⟶ D) : C.X 5 ⟶ D.X 5 := f.f 5

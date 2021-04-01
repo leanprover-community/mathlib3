@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import geometry.euclidean.circumcenter
 
@@ -43,9 +43,9 @@ generalization, the Monge point of a simplex.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Altitude_(triangle)
-* https://en.wikipedia.org/wiki/Monge_point
-* https://en.wikipedia.org/wiki/Orthocentric_system
+* <https://en.wikipedia.org/wiki/Altitude_(triangle)>
+* <https://en.wikipedia.org/wiki/Monge_point>
+* <https://en.wikipedia.org/wiki/Orthocentric_system>
 * Małgorzata Buba-Brzozowa, [The Monge Point and the 3(n+1) Point
   Sphere of an
   n-Simplex](https://pdfs.semanticscholar.org/6f8b/0f623459c76dac2e49255737f8f0f4725d16.pdf)

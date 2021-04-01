@@ -177,7 +177,7 @@ end
 instance separated_regular [separated_space α] : regular_space α :=
 { regular := λs a hs ha,
     have sᶜ ∈ 𝓝 a,
-      from mem_nhds_sets hs ha,
+      from mem_nhds_sets hs.is_open_compl ha,
     have {p : α × α | p.1 = a → p.2 ∈ sᶜ} ∈ 𝓤 α,
       from mem_nhds_uniformity_iff_right.mp this,
     let ⟨d, hd, h⟩ := comp_mem_uniformity_sets this in
@@ -198,7 +198,7 @@ instance separated_regular [separated_space α] : regular_space α :=
     have 𝓝 a ⊓ 𝓟 (closure e)ᶜ = ⊥,
       from (@inf_eq_bot_iff_le_compl _ _ _ (𝓟 (closure e)ᶜ) (𝓟 (closure e))
         (by simp [principal_univ, union_comm]) (by simp)).mpr (by simp [this]),
-    ⟨(closure e)ᶜ, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
+    ⟨(closure e)ᶜ, is_closed_closure.is_open_compl, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
     ..@t2_space.t1_space _ _ (separated_iff_t2.mp ‹_›) }
 
 /-!
@@ -302,7 +302,8 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
   comp := calc (map (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) u.uniformity).lift' (λs, comp_rel s s) =
           u.uniformity.lift' ((λs, comp_rel s s) ∘ image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧))) :
       map_lift'_eq2 $ monotone_comp_rel monotone_id monotone_id
-    ... ≤ u.uniformity.lift' (image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) ∘ (λs:set (α×α), comp_rel s (comp_rel s s))) :
+    ... ≤ u.uniformity.lift' (image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) ∘
+            (λs:set (α×α), comp_rel s (comp_rel s s))) :
       lift'_mono' $ assume s hs ⟨a, b⟩ ⟨c, ⟨⟨a₁, a₂⟩, ha, a_eq⟩, ⟨⟨b₁, b₂⟩, hb, b_eq⟩⟩,
       begin
         simp at a_eq,
@@ -312,7 +313,8 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
         simp [function.comp, set.image, comp_rel, and.comm, and.left_comm, and.assoc],
         exact ⟨a₁, a_eq.left, b₂, b_eq.right, a₂, ha, b₁, h s hs, hb⟩
       end
-    ... = map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) (u.uniformity.lift' (λs:set (α×α), comp_rel s (comp_rel s s))) :
+    ... = map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧))
+            (u.uniformity.lift' (λs:set (α×α), comp_rel s (comp_rel s s))) :
       by rw [map_lift'_eq];
         exact monotone_comp_rel monotone_id (monotone_comp_rel monotone_id monotone_id)
     ... ≤ map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) u.uniformity :
@@ -418,9 +420,10 @@ def lift [separated_space β] (f : α → β) : (separation_quotient α → β) 
 if h : uniform_continuous f then
   quotient.lift f (λ x y, eq_of_separated_of_uniform_continuous h)
 else
-  λ x, f (classical.inhabited_of_nonempty $ (nonempty_quotient_iff $ separation_setoid α).1 ⟨x⟩).default
+  λ x, f (nonempty.some ⟨x.out⟩)
 
-lemma lift_mk [separated_space β] {f : α → β} (h : uniform_continuous f) (a : α) : lift f ⟦a⟧ = f a :=
+lemma lift_mk [separated_space β] {f : α → β} (h : uniform_continuous f) (a : α) :
+  lift f ⟦a⟧ = f a :=
 by rw [lift, dif_pos h]; refl
 
 lemma uniform_continuous_lift [separated_space β] (f : α → β) : uniform_continuous (lift f) :=

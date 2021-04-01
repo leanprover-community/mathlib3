@@ -132,24 +132,27 @@ by split_ifs; refl
 
 end ite
 
-namespace mul_action
+section
 
 variables (α)
 
-/-- The regular action of a monoid on itself by left multiplication. -/
-def regular : mul_action α α :=
-{ smul := λ a₁ a₂, a₁ * a₂,
-  one_smul := λ a, one_mul a,
-  mul_smul := λ a₁ a₂ a₃, mul_assoc _ _ _, }
+/-- The regular action of a monoid on itself by left multiplication.
 
-section regular
+This is promoted to a semimodule by `semiring.to_semimodule`. -/
+@[priority 910] -- see Note [lower instance priority]
+instance monoid.to_mul_action : mul_action α α :=
+{ smul := (*),
+  one_smul := one_mul,
+  mul_smul := mul_assoc }
 
-local attribute [instance] regular
+@[simp] lemma smul_eq_mul {a a' : α} : a • a' = a * a' := rfl
 
 instance is_scalar_tower.left : is_scalar_tower α α β :=
 ⟨λ x y z, mul_smul x y z⟩
 
-end regular
+end
+
+namespace mul_action
 
 variables (α β)
 
@@ -221,6 +224,14 @@ protected def function.surjective.distrib_mul_action [add_monoid γ] [has_scalar
   .. hf.mul_action f smul }
 
 variable (β)
+
+/-- Compose a `distrib_mul_action` with a `monoid_hom`, with action `f r' • m` -/
+def distrib_mul_action.comp_hom [monoid γ] (f : γ →* α) :
+  distrib_mul_action γ β :=
+{ smul := (•) ∘ f,
+  smul_zero := λ x, smul_zero (f x),
+  smul_add := λ x, smul_add (f x),
+  .. mul_action.comp_hom β f }
 
 /-- Scalar multiplication by `r` as an `add_monoid_hom`. -/
 def const_smul_hom (r : α) : β →+ β :=

@@ -6,8 +6,10 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 import linear_algebra.finite_dimensional
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
+import analysis.normed_space.normed_group_hom
 import analysis.asymptotics.asymptotics
 import algebra.algebra.tower
+import data.equiv.transfer_instance
 
 /-!
 # Operator norm on the space of continuous linear maps
@@ -24,17 +26,12 @@ variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
 
 open metric continuous_linear_map
 
-lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤ M * ∥x∥) :
-  ∃ N, 0 < N ∧ ∀x, ∥f x∥ ≤ N * ∥x∥ :=
-⟨max M 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _), λx, calc
-  ∥f x∥ ≤ M * ∥x∥ : h x
-  ... ≤ max M 1 * ∥x∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) ⟩
-
 section normed_field
-/- Most statements in this file require the field to be non-discrete, as this is necessary
-to deduce an inequality `∥f x∥ ≤ C ∥x∥` from the continuity of f. However, the other direction always
-holds. In this section, we just assume that `𝕜` is a normed field. In the remainder of the file,
-it will be non-discrete. -/
+/-! Most statements in this file require the field to be non-discrete,
+as this is necessary to deduce an inequality `∥f x∥ ≤ C ∥x∥` from the continuity of f.
+However, the other direction always holds.
+In this section, we just assume that `𝕜` is a normed field.
+In the remainder of the file, it will be non-discrete. -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
 
@@ -89,7 +86,8 @@ let φ : E →ₗ[𝕜] F := ⟨f, h_add, h_smul⟩ in φ.continuous_of_bound C 
 @[simp] lemma linear_map.mk_continuous_apply (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.mk_continuous C h x = f x := rfl
 
-@[simp, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
+@[simp, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe
+  (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous_of_exists_bound h) : E →ₗ[𝕜] F) = f := rfl
 
 @[simp] lemma linear_map.mk_continuous_of_exists_bound_apply (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
@@ -129,7 +127,7 @@ begin
     { assume h,
       have : x₀ ∈ f.ker, by { rw h, exact (linear_map.ker f).zero_mem },
       exact x₀ker this },
-    have rx₀_ne_zero : r * ∥x₀∥ ≠ 0, by { simp [norm_eq_zero, this], norm_num },
+    have rx₀_ne_zero : r * ∥x₀∥ ≠ 0, by { simp [norm_eq_zero, this], },
     have : ∀x, ∥f x∥ ≤ (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥,
     { assume x,
       by_cases hx : f x = 0,
@@ -219,7 +217,8 @@ f.mk_continuous a (λ x, le_of_eq (hf x))
 
 variable (𝕜)
 
-lemma to_span_singleton_homothety (x : E) (c : 𝕜) : ∥linear_map.to_span_singleton 𝕜 E x c∥ = ∥x∥ * ∥c∥ :=
+lemma to_span_singleton_homothety (x : E) (c : 𝕜) :
+  ∥linear_map.to_span_singleton 𝕜 E x c∥ = ∥x∥ * ∥c∥ :=
 by {rw mul_comm, exact norm_smul _ _}
 
 /-- Given an element `x` of a normed space `E` over a field `𝕜`, the natural continuous
@@ -416,7 +415,7 @@ le_antisymm
 
 /-- `continuous_linear_map.prod` as a `linear_isometry_equiv`. -/
 def prodₗᵢ (R : Type*) [ring R] [topological_space R] [module R F] [module R G]
-  [topological_module R F] [topological_module R G]
+  [has_continuous_smul R F] [has_continuous_smul R G]
   [smul_comm_class 𝕜 R F] [smul_comm_class 𝕜 R G] :
   (E →L[𝕜] F) × (E →L[𝕜] G) ≃ₗᵢ[R] (E →L[𝕜] F × G) :=
 ⟨prodₗ R, λ ⟨f, g⟩, op_norm_prod f g⟩
@@ -424,6 +423,14 @@ def prodₗᵢ (R : Type*) [ring R] [topological_space R] [module R F] [module R
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
 f.lipschitz.uniform_continuous
+
+@[simp, nontriviality] lemma op_norm_subsingleton [subsingleton E] : ∥f∥ = 0 :=
+begin
+  refine le_antisymm _ (norm_nonneg _),
+  apply op_norm_le_bound _ rfl.ge,
+  intros x,
+  simp [subsingleton.elim x 0]
+end
 
 /-- A continuous linear map is an isometry if and only if it preserves the norm. -/
 lemma isometry_iff_norm : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
@@ -593,7 +600,7 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
 }
 
 lemma extend_unique (g : G →L[𝕜] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
-continuous_linear_map.injective_coe_fn $
+continuous_linear_map.coe_fn_injective $
   uniformly_extend_unique h_e h_dense (continuous_linear_map.ext_iff.1 H) g.continuous
 
 @[simp] lemma extend_zero : extend (0 : E →L[𝕜] F) e h_dense h_e = 0 :=
@@ -651,6 +658,28 @@ f.to_continuous_linear_map.op_norm_le_bound zero_le_one $ λ x, by simp
 f.to_continuous_linear_map.homothety_norm $ by simp
 
 end linear_isometry
+
+namespace continuous_linear_map
+
+/-- Precomposition with a linear isometry preserves the operator norm. -/
+lemma op_norm_comp_linear_isometry_equiv (f : F →L[𝕜] G) (g : E ≃ₗᵢ[𝕜] F) :
+  ∥f.comp g.to_linear_isometry.to_continuous_linear_map∥ = ∥f∥ :=
+begin
+  casesI subsingleton_or_nontrivial E,
+  { haveI := g.symm.to_linear_equiv.to_equiv.subsingleton,
+    simp },
+  refine le_antisymm _ _,
+  { convert f.op_norm_comp_le g.to_linear_isometry.to_continuous_linear_map,
+    simp [g.to_linear_isometry.norm_to_continuous_linear_map] },
+  { convert (f.comp g.to_linear_isometry.to_continuous_linear_map).op_norm_comp_le
+      g.symm.to_linear_isometry.to_continuous_linear_map,
+    { ext,
+      simp },
+    haveI := g.symm.to_linear_equiv.to_equiv.nontrivial,
+    simp [g.symm.to_linear_isometry.norm_to_continuous_linear_map] },
+end
+
+end continuous_linear_map
 
 namespace linear_map
 
@@ -854,7 +883,7 @@ le_antisymm
   (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] })
 
 @[simp] lemma op_norm_lmul_right : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
-(op_norm_flip (lmul 𝕜 𝕜')).trans $ op_norm_lmul _ _
+(op_norm_flip (@lmul 𝕜 _ 𝕜' _ _)).trans (op_norm_lmul _ _)
 
 /-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
 continuous linear maps. -/
@@ -909,7 +938,7 @@ le_antisymm (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
   (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
 
 variables (𝕜 E F 𝕜') (𝕜'' : Type*) [ring 𝕜''] [topological_space 𝕜''] [module 𝕜'' F]
-  [topological_module 𝕜'' F] [smul_comm_class 𝕜 𝕜'' F] [smul_comm_class 𝕜' 𝕜'' F]
+  [has_continuous_smul 𝕜'' F] [smul_comm_class 𝕜 𝕜'' F] [smul_comm_class 𝕜' 𝕜'' F]
 
 /-- `continuous_linear_map.restrict_scalars` as a `linear_isometry`. -/
 def restrict_scalars_isometry : (E →L[𝕜] F) →ₗᵢ[𝕜''] (E →L[𝕜'] F) :=
@@ -1146,10 +1175,14 @@ variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
 variables {𝕜}
 
-variables {E' F' : Type*} [normed_group E'] [normed_group F'] [normed_space 𝕜 E'] [normed_space 𝕜 F']
+variables {E' F' : Type*} [normed_group E'] [normed_group F']
+  [normed_space 𝕜 E'] [normed_space 𝕜 F']
 
-/-- Compose a bilinear map `E →L[𝕜] F →L[𝕜] G` with two linear maps `E' →L[𝕜] E` and `F' →L[𝕜] F`. -/
-def bilinear_comp (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F) : E' →L[𝕜] F' →L[𝕜] G :=
+/--
+Compose a bilinear map `E →L[𝕜] F →L[𝕜] G` with two linear maps `E' →L[𝕜] E` and `F' →L[𝕜] F`.
+-/
+def bilinear_comp (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F) :
+  E' →L[𝕜] F' →L[𝕜] G :=
 ((f.comp gE).flip.comp gF).flip
 
 @[simp] lemma bilinear_comp_apply (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F)

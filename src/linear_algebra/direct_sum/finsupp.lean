@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 import linear_algebra.finsupp
 import linear_algebra.direct_sum.tensor_product
@@ -21,7 +21,8 @@ noncomputable theory
 open_locale classical direct_sum
 
 open set linear_map submodule
-variables {R : Type u} {M : Type v} {N : Type w} [ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+variables {R : Type u} {M : Type v} {N : Type w} [ring R] [add_comm_group M] [module R M]
+  [add_comm_group N] [module R N]
 
 section finsupp_lequiv_direct_sum
 

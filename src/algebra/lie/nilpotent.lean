@@ -78,3 +78,70 @@ begin
   use k, rw ← le_bot_iff at h ⊢,
   exact le_trans (lie_module.derived_series_le_lower_central_series R L k) h,
 end
+
+section nilpotent_algebras
+
+-- TODO Generalise the below to Lie modules if / when we define morphisms, equivs of Lie modules
+-- covering a Lie algebra morphism of (possibly different) Lie algebras.
+
+variables (R : Type u) (L : Type v) (L' : Type w)
+variables [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
+
+/-- We say a Lie algebra is nilpotent when it is nilpotent as a Lie module over itself via the
+adjoint representation. -/
+abbreviation lie_algebra.is_nilpotent (R : Type u) (L : Type v)
+  [comm_ring R] [lie_ring L] [lie_algebra R L] : Prop :=
+lie_module.is_nilpotent R L L
+
+variables {R L L'}
+open lie_algebra
+open lie_module (lower_central_series)
+
+lemma lie_ideal.lower_central_series_map_le (k : ℕ) {f : L →ₗ⁅R⁆ L'} :
+  lie_ideal.map f (lower_central_series R L L k) ≤ lower_central_series R L' L' k :=
+begin
+  induction k with k ih,
+  { simp only [lie_module.lower_central_series_zero, le_top], },
+  { simp only [lie_module.lower_central_series_succ],
+    exact le_trans (lie_ideal.map_bracket_le f) (lie_submodule.mono_lie _ _ _ _ le_top ih), },
+end
+
+lemma lie_ideal.lower_central_series_map_eq (k : ℕ) {f : L →ₗ⁅R⁆ L'}
+  (h : function.surjective f) :
+  lie_ideal.map f (lower_central_series R L L k) = lower_central_series R L' L' k :=
+begin
+  have h' : (⊤ : lie_ideal R L).map f = ⊤, { exact f.ideal_range_eq_top_of_surjective h, },
+  induction k with k ih,
+  { simp only [lie_module.lower_central_series_zero], exact h', },
+  { simp only [lie_module.lower_central_series_succ, lie_ideal.map_bracket_eq f h, ih, h'], },
+end
+
+lemma function.injective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L'] {f : L →ₗ⁅R⁆ L'}
+  (h₂ : function.injective f) : is_nilpotent R L :=
+{ nilpotent :=
+  begin
+    tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+    use k,
+    apply lie_ideal.bot_of_map_eq_bot h₂, rw [eq_bot_iff, ← hk],
+    apply lie_ideal.lower_central_series_map_le,
+  end, }
+
+lemma function.surjective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L] {f : L →ₗ⁅R⁆ L'}
+  (h₂ : function.surjective f) : is_nilpotent R L' :=
+{ nilpotent :=
+  begin
+    tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+    use k,
+    rw [← lie_ideal.lower_central_series_map_eq k h₂, hk],
+    simp only [lie_ideal.map_eq_bot_iff, bot_le],
+  end, }
+
+lemma lie_algebra.nilpotent_iff_equiv_nilpotent (e : L ≃ₗ⁅R⁆ L') :
+  is_nilpotent R L ↔ is_nilpotent R L' :=
+begin
+  split; introsI h,
+  { exact e.symm.injective.lie_algebra_is_nilpotent, },
+  { exact e.injective.lie_algebra_is_nilpotent, },
+end
+
+end nilpotent_algebras

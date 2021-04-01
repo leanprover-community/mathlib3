@@ -53,6 +53,23 @@ instance pi.can_lift (ι : Type u) (α : Π i : ι, Type v) (β : Π i : ι, Typ
   prf := λ f hf, ⟨λ i, classical.some (can_lift.prf (f i) (hf i)), funext $ λ i,
     classical.some_spec (can_lift.prf (f i) (hf i))⟩ }
 
+instance pi_subtype.can_lift (ι : Type u) (α : Π i : ι, Type v) [ne : Π i, nonempty (α i)]
+  (p : ι → Prop) :
+  can_lift (Π i : subtype p, α i) (Π i, α i) :=
+{ coe := λ f i, f i,
+  cond := λ _, true,
+  prf :=
+    begin
+      classical,
+      refine λ f _, ⟨λ i, if hi : p i then f ⟨i, hi⟩ else classical.choice (ne i), funext _⟩,
+      rintro ⟨i, hi⟩,
+      exact dif_pos hi
+    end }
+
+instance pi_subtype.can_lift' (ι : Type u) (α : Type v) [ne : nonempty α] (p : ι → Prop) :
+  can_lift (subtype p → α) (ι → α) :=
+pi_subtype.can_lift ι (λ _, α) p
+
 namespace tactic
 
 /--

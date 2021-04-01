@@ -136,6 +136,9 @@ def cast_ring_hom (α : Type*) [semiring α] : ℕ →+* α :=
 lemma cast_commute [semiring α] (n : ℕ) (x : α) : commute ↑n x :=
 nat.rec_on n (commute.zero_left x) $ λ n ihn, ihn.add_left $ commute.one_left x
 
+lemma cast_comm [semiring α] (n : ℕ) (x : α) : (n : α) * x = x * n :=
+(cast_commute n x).eq
+
 lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 

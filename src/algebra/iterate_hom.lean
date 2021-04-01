@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 
 import algebra.group_power
 import logic.function.iterate
+import group_theory.perm.basic
 
 /-!
 # Iterates of monoid and ring homomorphisms
@@ -27,6 +28,12 @@ homomorphism, iterate
 open function
 
 variables {M : Type*} {N : Type*} {G : Type*} {H : Type*}
+
+/-- An auxiliary lemma that can be used to prove `⇑(f ^ n) = (⇑f^[n])`. -/
+lemma hom_coe_pow {F : Type*} [monoid F] (c : F → M → M) (h1 : c 1 = id)
+  (hmul : ∀ f g, c (f * g) = c f ∘ c g) (f : F) : ∀ n, c (f ^ n) = (c f^[n])
+| 0 := h1
+| (n + 1) := by rw [pow_succ, iterate_succ', hmul, hom_coe_pow]
 
 namespace monoid_hom
 
@@ -51,6 +58,9 @@ commute.iterate_left (λ x, f.map_pow x m) n a
 
 theorem iterate_map_gpow (f : G →* G) (a) (n : ℕ) (m : ℤ) : f^[n] (a^m) = (f^[n] a)^m :=
 commute.iterate_left (λ x, f.map_gpow x m) n a
+
+lemma coe_pow {M} [comm_monoid M] (f : monoid.End M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
+hom_coe_pow _ rfl (λ f g, rfl) _ _
 
 end monoid_hom
 
@@ -79,9 +89,8 @@ section semiring
 
 variables {R : Type*} [semiring R] (f : R →+* R) (n : ℕ) (x y : R)
 
-lemma coe_pow : ∀ n : ℕ, ⇑(f^n) = (f^[n])
-| 0 := rfl
-| (n+1) := by { simp only [function.iterate_succ, pow_succ', coe_mul, coe_pow n] }
+lemma coe_pow (n : ℕ) : ⇑(f^n) = (f^[n]) :=
+hom_coe_pow _ rfl (λ f g, rfl) f n
 
 theorem iterate_map_one : f^[n] 1 = 1 := f.to_monoid_hom.iterate_map_one n
 
@@ -115,6 +124,9 @@ theorem iterate_map_gsmul (n : ℕ) (m : ℤ) (x : R) :
 f.to_add_monoid_hom.iterate_map_gsmul n m x
 
 end ring_hom
+
+lemma equiv.perm.coe_pow {α : Type*} (f : equiv.perm α) (n : ℕ) : ⇑(f ^ n) = (f^[n]) :=
+hom_coe_pow _ rfl (λ _ _, rfl) _ _
 
 @[simp] lemma mul_left_iterate [monoid M] (a : M) (n : ℕ) : ((*) a)^[n] = (*) (a^n) :=
 nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,

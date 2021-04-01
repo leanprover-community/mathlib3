@@ -65,6 +65,12 @@ end multiplicative
 instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul (default α)⟩
 instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add (default α)⟩
 
+instance [nontrivial α] : nontrivial (additive α) :=
+additive.of_mul.injective.nontrivial
+
+instance [nontrivial α] : nontrivial (multiplicative α) :=
+multiplicative.of_add.injective.nontrivial
+
 instance additive.has_add [has_mul α] : has_add (additive α) :=
 { add := λ x y, additive.of_mul (x.to_mul * y.to_mul) }
 
@@ -131,16 +137,28 @@ instance [has_zero α] : has_one (multiplicative α) := ⟨multiplicative.of_add
 
 @[simp] lemma to_add_one [has_zero α] : (1 : multiplicative α).to_add = 0 := rfl
 
+instance [mul_one_class α] : add_zero_class (additive α) :=
+{ zero     := 0,
+  add      := (+),
+  zero_add := one_mul,
+  add_zero := mul_one }
+
+instance [add_zero_class α] : mul_one_class (multiplicative α) :=
+{ one     := 1,
+  mul     := (*),
+  one_mul := zero_add,
+  mul_one := add_zero }
+
 instance [monoid α] : add_monoid (additive α) :=
 { zero     := 0,
-  zero_add := @one_mul _ _,
-  add_zero := @mul_one _ _,
+  add      := (+),
+  ..additive.add_zero_class,
   ..additive.add_semigroup }
 
 instance [add_monoid α] : monoid (multiplicative α) :=
 { one     := 1,
-  one_mul := @zero_add _ _,
-  mul_one := @add_zero _ _,
+  mul     := (*),
+  ..multiplicative.mul_one_class,
   ..multiplicative.semigroup }
 
 instance [comm_monoid α] : add_comm_monoid (additive α) :=
@@ -208,31 +226,51 @@ instance [add_comm_group α] : comm_group (multiplicative α) :=
 { .. multiplicative.group, .. multiplicative.comm_monoid }
 
 /-- Reinterpret `α →+ β` as `multiplicative α →* multiplicative β`. -/
-def add_monoid_hom.to_multiplicative [add_monoid α] [add_monoid β] :
+def add_monoid_hom.to_multiplicative [add_zero_class α] [add_zero_class β] :
   (α →+ β) ≃ (multiplicative α →* multiplicative β) :=
 ⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
 
 /-- Reinterpret `α →* β` as `additive α →+ additive β`. -/
-def monoid_hom.to_additive [monoid α] [monoid β] :
+def monoid_hom.to_additive [mul_one_class α] [mul_one_class β] :
   (α →* β) ≃ (additive α →+ additive β) :=
 ⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
 
 /-- Reinterpret `additive α →+ β` as `α →* multiplicative β`. -/
-def add_monoid_hom.to_multiplicative' [monoid α] [add_monoid β] :
+def add_monoid_hom.to_multiplicative' [mul_one_class α] [add_zero_class β] :
   (additive α →+ β) ≃ (α →* multiplicative β) :=
 ⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
 
 /-- Reinterpret `α →* multiplicative β` as `additive α →+ β`. -/
-def monoid_hom.to_additive' [monoid α] [add_monoid β] :
+def monoid_hom.to_additive' [mul_one_class α] [add_zero_class β] :
   (α →* multiplicative β) ≃ (additive α →+ β) :=
 add_monoid_hom.to_multiplicative'.symm
 
 /-- Reinterpret `α →+ additive β` as `multiplicative α →* β`. -/
-def add_monoid_hom.to_multiplicative'' [add_monoid α] [monoid β] :
+def add_monoid_hom.to_multiplicative'' [add_zero_class α] [mul_one_class β] :
   (α →+ additive β) ≃ (multiplicative α →* β) :=
 ⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
 
 /-- Reinterpret `multiplicative α →* β` as `α →+ additive β`. -/
-def monoid_hom.to_additive'' [add_monoid α] [monoid β] :
+def monoid_hom.to_additive'' [add_zero_class α] [mul_one_class β] :
   (multiplicative α →* β) ≃ (α →+ additive β) :=
 add_monoid_hom.to_multiplicative''.symm
+
+/-- If `α` has some multiplicative structure and coerces to a function,
+then `additive α` should also coerce to the same function.
+
+This allows `additive` to be used on bundled function types with a multiplicative structure, which
+is often used for composition, without affecting the behavior of the function itself.
+-/
+instance additive.has_coe_to_fun {α : Type*} [has_coe_to_fun α] :
+  has_coe_to_fun (additive α) :=
+⟨λ a, has_coe_to_fun.F a.to_mul, λ a, coe_fn a.to_mul⟩
+
+/-- If `α` has some additive structure and coerces to a function,
+then `multiplicative α` should also coerce to the same function.
+
+This allows `multiplicative` to be used on bundled function types with an additive structure, which
+is often used for composition, without affecting the behavior of the function itself.
+-/
+instance multiplicative.has_coe_to_fun {α : Type*} [has_coe_to_fun α] :
+  has_coe_to_fun (multiplicative α) :=
+⟨λ a, has_coe_to_fun.F a.to_add, λ a, coe_fn a.to_add⟩

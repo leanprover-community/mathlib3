@@ -95,8 +95,8 @@ omit h₁ h₂ distrib
 then the group is commutative. -/
 @[to_additive "If a type carries an additive group structure that distributes
 over a unital binary operation, then the additive group is commutative."]
-def comm_group [G : group X] (distrib : ∀ a b c d, ((a * b) <m₁> (c * d)) = ((a <m₁> c) * (b <m₁> d))) :
-  comm_group X :=
+def comm_group [G : group X]
+  (distrib : ∀ a b c d, ((a * b) <m₁> (c * d)) = ((a <m₁> c) * (b <m₁> d))) : comm_group X :=
 { mul_comm := (eckmann_hilton.comm_monoid h₁ group.is_unital distrib).mul_comm,
   ..G }
 

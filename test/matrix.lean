@@ -61,7 +61,7 @@ example {α : Type*} [comm_ring α] {a b c d : α} :
   matrix.det ![![a, b], ![c, d]] = a * d - b * c :=
 begin
   -- TODO: can we make this require less steering?
-  simp [matrix.det, finset.univ_perm_fin_succ, ←finset.univ_product_univ, finset.sum_product,
+  simp [matrix.det_apply', finset.univ_perm_fin_succ, ←finset.univ_product_univ, finset.sum_product,
         fin.sum_univ_succ, fin.prod_univ_succ],
   ring
 end
@@ -71,7 +71,7 @@ example {α : Type*} [comm_ring α] (A : matrix (fin 3) (fin 3) α) {a b c d e f
           a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g :=
 begin
   -- We utilize the `norm_swap` plugin for `norm_num` to reduce swap terms
-  norm_num [matrix.det, finset.univ_perm_fin_succ, ←finset.univ_product_univ,
+  norm_num [matrix.det_apply', finset.univ_perm_fin_succ, ←finset.univ_product_univ,
             finset.sum_product, fin.sum_univ_succ, fin.prod_univ_succ],
   ring
 end

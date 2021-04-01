@@ -35,7 +35,7 @@ other choices can be made, and it is not a priori clear what the best interface 
 ## References
 
 * Paul Halmos (1950), Measure Theory, §53
-* https://en.wikipedia.org/wiki/Content_(measure_theory)
+* <https://en.wikipedia.org/wiki/Content_(measure_theory)>
 -/
 
 universe variables u v w

@@ -149,12 +149,8 @@ by resetI; apply e.injective.mul_one_class _; intros; exact e.apply_symm_apply _
 /-- Transfer `monoid` across an `equiv` -/
 @[to_additive "Transfer `add_monoid` across an `equiv`"]
 protected def monoid [monoid β] : monoid α :=
-{ one_mul := by simp [mul_def, one_def],
-  mul_one := by simp [mul_def, one_def],
-  ..equiv.has_mul e,
-  ..equiv.has_one e,
-  ..equiv.semigroup e,
-  ..equiv.mul_one_class e, }
+let one := e.has_one, mul := e.has_mul in
+by resetI; apply e.injective.monoid _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_monoid` across an `equiv` -/
 @[to_additive "Transfer `add_comm_monoid` across an `equiv`"]

@@ -428,6 +428,18 @@ lemma mem_closure_iff {s : set R} {x} :
 by simp only [← submonoid.to_subsemiring_to_add_submonoid, submonoid.to_subsemiring_eq_closure,
     closure_submonoid_closure, mem_to_add_submonoid]
 
+@[simp]
+lemma closure_add_submonoid_closure {s : set R} : closure ↑(add_submonoid.closure s) = closure s :=
+begin
+  ext,
+  refine ⟨λ h, _, λ h, closure_mono add_submonoid.subset_closure h⟩,
+  rintros - ⟨H, rfl⟩,
+  rintros - ⟨J, rfl⟩,
+  refine (add_submonoid.mem_closure.mp (mem_closure_iff.mp h)) H.to_add_submonoid (λ y hy, _),
+  refine (submonoid.mem_closure.mp hy) (H.to_submonoid) (λ z hz, _),
+  exact (add_submonoid.mem_closure.mp hz) H.to_add_submonoid (λ w hw, J hw),
+end
+
 /-- An induction principle for closure membership. If `p` holds for `0`, `1`, and all elements
 of `s`, and is preserved under addition and multiplication, then `p` holds for all elements
 of the closure of `s`. -/

@@ -883,9 +883,10 @@ lemma disjoint.card_support_mul (h : disjoint f g) :
   (f * g).support.card = f.support.card + g.support.card :=
 (congr_arg card h.support_mul).trans (finset.card_disjoint_union h.disjoint_support)
 
-lemma disjoint_prod_list_of_disjoint {f : perm α} {l : list (perm α)}
+lemma disjoint_prod_list_of_disjoint [fintype β] {f : perm β} {l : list (perm β)}
   (h : ∀ g, g ∈ l → disjoint f g) : disjoint f l.prod :=
 begin
+  classical,
   intro x,
   by_cases hx : l.prod x = x,
   { exact or.inr hx },

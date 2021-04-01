@@ -194,8 +194,8 @@ let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) (λ i, (hZc i).is_op
 
 /-- If `s` is a compact set in a topological space `α` and `f : ι → set α` is a locally finite
 family of sets, then `f i ∩ s` is nonempty only for a finitely many `i`. -/
-lemma locally_finite.finite_nonempty_inter_compact {ι : Type*} {f : ι → set α} (hf : locally_finite f)
-  {s : set α} (hs : is_compact s) :
+lemma locally_finite.finite_nonempty_inter_compact {ι : Type*} {f : ι → set α}
+  (hf : locally_finite f) {s : set α} (hs : is_compact s) :
   finite {i | (f i ∩ s).nonempty} :=
 begin
   choose U hxU hUf using hf,

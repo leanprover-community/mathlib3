@@ -1835,6 +1835,15 @@ def of_submodules (p : submodule R M) (q : submodule R M₂) (h : p.map ↑e = q
 @[simp] lemma of_submodules_symm_apply {p : submodule R M} {q : submodule R M₂}
   (h : p.map ↑e = q) (x : q) : ↑((e.of_submodules p q h).symm x) = e.symm x := rfl
 
+/-- Given `f : M₁ ≃ₗ[R] M₂` and `U` a submodule of `M₂`, `f.comap U` is the
+induced `linear_equiv` from `U.comap f.to_linear_map` to `U`. -/
+@[simps]
+def comap [semimodule R M] [semimodule R M₂] (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
+  U.comap (f : M →ₗ[R] M₂) ≃ₗ[R] U :=
+f.of_submodules _ _ $
+  linear_map.map_comap_eq_self $ le_top.trans_eq $ eq.symm $
+    linear_map.range_eq_top.mpr f.surjective
+
 variable (p)
 
 /-- The top submodule of `M` is linearly equivalent to `M`. -/
@@ -2101,16 +2110,6 @@ by rw [← to_span_nonzero_singleton_one K M x h, symm_apply_apply]
 end
 
 end field
-
-/-- Given `f : M₁ ≃ₗ[R] M₂` and `U` a submodule of `M₂`, `f.comap U` is the
-induced `linear_equiv` from `U.comap f.to_linear_map` to `U`. -/
-@[simps]
-def comap [semiring R] [add_comm_monoid M] [semimodule R M]
-  [add_comm_monoid M₂] [semimodule R M₂] (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
-  U.comap ↑f ≃ₗ[R] U :=
-f.of_submodules _ _ $
-  linear_map.map_comap_eq_self $ le_top.trans_eq $ eq.symm $
-    linear_map.range_eq_top.mpr f.surjective
 
 end linear_equiv
 

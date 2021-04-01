@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.big_operators.pi
-import algebra.module.pi
 import algebra.module.hom
+import algebra.module.pi
 import algebra.module.prod
 import algebra.module.submodule
 import algebra.module.submodule_lattice

@@ -1249,10 +1249,10 @@ begin
   ext x, split; rw [mem_orthogonal_iff]; intro hx,
   { intros y hy,
     rw submodule.mem_dual_annihilator_comap_iff at hx,
-    refine hx ⟨B.to_lin.dom_restrict W ⟨y, hy⟩, ⟨y, hy⟩, _, rfl⟩,
+    refine hx (B.to_lin.dom_restrict W ⟨y, hy⟩) ⟨⟨y, hy⟩, _, rfl⟩,
     simp only [submodule.top_coe] },
   { rw submodule.mem_dual_annihilator_comap_iff,
-    rintro ⟨_, ⟨w, hw⟩, _, rfl⟩,
+    rintro _ ⟨⟨w, hw⟩, _, rfl⟩,
     exact hx w hw }
 end
 

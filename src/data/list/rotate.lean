@@ -128,4 +128,12 @@ begin
     { simp [rotate_cons_succ, hn] } }
 end
 
+@[simp] lemma rotate_singleton (x : α) (n : ℕ) :
+  [x].rotate n = [x] :=
+begin
+  induction n with n hn,
+  { simp },
+  { rwa [rotate_cons_succ] }
+end
+
 end list

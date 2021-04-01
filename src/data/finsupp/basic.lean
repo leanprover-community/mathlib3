@@ -1235,11 +1235,11 @@ lemma map_range.add_equiv_refl :
 add_equiv.ext map_range_id
 
 lemma map_range.add_equiv_trans (f : M ≃+ N) (f₂ : N ≃+ P) :
-  (map_range.add_equiv (f.trans f₂) : add_equiv (α →₀ _) _) =
+  (map_range.add_equiv (f.trans f₂) : (α →₀ _) ≃+ _) =
     (map_range.add_equiv f).trans (map_range.add_equiv f₂) :=
 add_equiv.ext $ map_range_comp _ _ _ _ _
 
-lemma map_range.add_equiv_symm (f : M ≃+ N) (f₂ : N ≃+ P) :
+lemma map_range.add_equiv_symm (f : M ≃+ N) :
   ((map_range.add_equiv f).symm : (α →₀ _) ≃+ _) = map_range.add_equiv f.symm :=
 add_equiv.ext $ λ x, rfl
 
@@ -1936,6 +1936,18 @@ map_range_single
 @[simp] lemma smul_single' {_ : semiring R}
   (c : R) (a : α) (b : R) : c • finsupp.single a b = finsupp.single a (c * b) :=
 smul_single _ _ _
+
+lemma map_range_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M]
+  [add_comm_monoid N] [semimodule R N]
+  {f : M → N} {hf : f 0 = 0} (c : R) (v : α →₀ M) (hsmul : ∀ x, f (c • x) = c • f x) :
+  map_range f hf (c • v) = c • map_range f hf v :=
+begin
+  erw ←map_range_comp,
+  have : (f ∘ (•) c) = ((•) c ∘ f) := funext hsmul,
+  simp_rw this,
+  apply map_range_comp,
+  rw [function.comp_apply, smul_zero, hf],
+end
 
 lemma smul_single_one [semiring R] (a : α) (b : R) : b • single a 1 = single a b :=
 by rw [smul_single, smul_eq_mul, mul_one]

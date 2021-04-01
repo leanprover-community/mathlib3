@@ -1845,12 +1845,12 @@ f.of_submodules _ _ $
 
 @[simp]
 lemma comap_apply [semimodule R M] [semimodule R M₂]
-  {f : M ≃ₗ[R] M₂} {U : submodule R M₂} (x : U.comap (f : M →ₗ[R] M₂)) :
+  (f : M ≃ₗ[R] M₂) (U : submodule R M₂) (x : U.comap (f : M →ₗ[R] M₂)) :
 (f.comap U x : M₂) = f (x : M) := rfl
 
 @[simp]
-lemma comap_sym_apply [semimodule R M] [semimodule R M₂]
-  {f : M ≃ₗ[R] M₂} {U : submodule R M₂} (x : U) :
+lemma comap_symm_apply [semimodule R M] [semimodule R M₂]
+  (f : M ≃ₗ[R] M₂) (U : submodule R M₂) (x : U) :
 ((f.comap U).symm x : M) = f.symm (x : M₂) := rfl
 
 variable (p)

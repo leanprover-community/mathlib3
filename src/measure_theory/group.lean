@@ -214,33 +214,33 @@ end group
 
 section integration
 
-variables [has_mul G] [has_continuous_mul G]
+variables [group G] [has_continuous_mul G]
 open measure
 
 /-- Translating a function by left-multiplication does not change its `lintegral` with respect to
 a left-invariant measure. -/
 @[to_additive]
-lemma lintegral_mul_left_eq_self (hμ : is_mul_left_invariant μ) {f : G → ℝ≥0∞} (hf : measurable f)
-  (g : G) :
+lemma lintegral_mul_left_eq_self (hμ : is_mul_left_invariant μ) (f : G → ℝ≥0∞) (g : G) :
   ∫⁻ x, f (g * x) ∂μ = ∫⁻ x, f x ∂μ :=
 begin
   have : measure.map (has_mul.mul g) μ = μ,
   { rw ← map_mul_left_eq_self at hμ,
     exact hμ g },
-  rw [← lintegral_map hf (measurable_const_mul g), this]
+  convert (lintegral_map_equiv f (homeomorph.mul_left g).to_measurable_equiv).symm,
+  simp [this]
 end
 
 /-- Translating a function by right-multiplication does not change its `lintegral` with respect to
 a right-invariant measure. -/
 @[to_additive]
-lemma lintegral_mul_right_eq_self (hμ : is_mul_right_invariant μ) {f : G → ℝ≥0∞} (hf : measurable f)
-  (g : G) :
+lemma lintegral_mul_right_eq_self (hμ : is_mul_right_invariant μ) (f : G → ℝ≥0∞) (g : G) :
   ∫⁻ x, f (x * g) ∂μ = ∫⁻ x, f x ∂μ :=
 begin
-  have : measure.map (λ x, has_mul.mul x g) μ = μ,
+  have : measure.map (homeomorph.mul_right g) μ = μ,
   { rw ← map_mul_right_eq_self at hμ,
     exact hμ g },
-  rw [← lintegral_map hf (measurable_mul_const g), this]
+  convert (lintegral_map_equiv f (homeomorph.mul_right g).to_measurable_equiv).symm,
+  simp [this]
 end
 
 end integration

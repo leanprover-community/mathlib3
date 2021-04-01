@@ -211,21 +211,6 @@ mul_one_class.mul_one
 
 attribute [ematch] add_zero zero_add -- TODO(Mario): Make to_additive transfer this
 
-end mul_one_class
-
-/-- A `monoid` is a `semigroup` with an element `1` such that `1 * a = a * 1 = a`. -/
-@[ancestor semigroup mul_one_class]
-class monoid (M : Type u) extends semigroup M, mul_one_class M
-
-/-- An `add_monoid` is an `add_semigroup` with an element `0` such that `0 + a = a + 0 = a`. -/
-@[ancestor add_semigroup add_zero_class]
-class add_monoid (M : Type u) extends add_semigroup M, add_zero_class M
-
-attribute [to_additive] monoid
-
-section monoid
-variables {M : Type u} [monoid M]
-
 @[to_additive]
 instance mul_one_class.to_is_left_id : is_left_id M (*) 1 :=
 ⟨ mul_one_class.one_mul ⟩

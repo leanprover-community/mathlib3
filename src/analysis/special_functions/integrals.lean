@@ -90,6 +90,12 @@ continuous_sin.interval_integrable a b
 lemma interval_integrable_cos : interval_integrable cos μ a b :=
 continuous_cos.interval_integrable a b
 
+@[simp]
+lemma integral_cos_sq_sub_sin_sq :
+  ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
+by simpa only [pow_two, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub
+  (λ x hx, has_deriv_at_sin x) (λ x hx, has_deriv_at_cos x) continuous_on_cos continuous_on_sin.neg
+
 lemma interval_integrable_one_div_one_add_sq : interval_integrable (λ x:ℝ, 1 / (1 + x^2)) μ a b :=
 begin
   refine (continuous_const.div _ (λ x, _)).interval_integrable a b,

@@ -1262,18 +1262,16 @@ lemma to_ring_inverse (e : M ≃L[R] M₂) (f : M →L[R] M₂) :
   inverse f = (ring.inverse ((e.symm : (M₂ →L[R] M)).comp f)).comp e.symm :=
 begin
   by_cases h₁ : ∃ (e' : M ≃L[R] M₂), ↑e' = f,
-  { obtain ⟨e', he'⟩ := h₁,
-    rw ← he',
+  { obtain ⟨e', rfl⟩ := h₁,
     ext,
     simp },
   { suffices : ¬is_unit ((e.symm : M₂ →L[R] M).comp f),
     { simp [this, h₁] },
-    revert h₁,
-    contrapose!,
-    rintros ⟨F, hF⟩,
+    contrapose! h₁,
+    rcases h₁ with ⟨F, hF⟩,
     use (continuous_linear_equiv.units_equiv _ _ F).trans e,
     ext,
-    simp [hF] }
+    dsimp, erw [coe_fn_coe_base, hF], simp } -- TODO: why do we need `erw` here?
 end
 
 lemma ring_inverse_eq_map_inverse : ring.inverse = @inverse R M M _ _ _ _ _ _ _ :=

@@ -51,6 +51,8 @@ def mk {X Y : T} (f : X ⟶ Y) : arrow T :=
   right := Y,
   hom := f }
 
+instance {X Y : T} : has_coe (X ⟶ Y) (arrow T) := ⟨mk⟩
+
 /-- A morphism in the arrow category is a commutative square connecting two objects of the arrow
     category. -/
 @[simps]
@@ -70,11 +72,31 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
 
 @[simp, reassoc] lemma w {f g : arrow T} (sq : f ⟶ g) : sq.left ≫ g.hom = f.hom ≫ sq.right := sq.w
 
+-- `w_mk_left` is not needed, as it is a consequence of `w` and `mk_hom`.
+@[simp, reassoc] lemma w_mk_right {f : arrow T} {X Y : T} {g : X ⟶ Y} (sq : f ⟶ mk g) :
+  sq.left ≫ g = f.hom ≫ sq.right :=
+sq.w
+
+/-- Given a square from an arrow `i` to an isomorphism `p`, express the source part of `sq`
+in terms of the inverse of `p`. -/
+@[simp] lemma square_to_iso_invert (i : arrow T) {X Y : T} (p : X ≅ Y) (sq : i ⟶ arrow.mk p.hom) :
+  i.hom ≫ sq.right ≫ p.inv = sq.left :=
+by simpa only [category.assoc] using (iso.comp_inv_eq p).mpr ((arrow.w_mk_right sq).symm)
+
+/-- Given a square from an isomorphism `i` to an arrow `p`, express the target part of `sq`
+in terms of the inverse of `i`. -/
+lemma square_from_iso_invert {X Y : T} (i : X ≅ Y) (p : arrow T) (sq : arrow.mk i.hom ⟶ p) :
+  i.inv ≫ sq.left ≫ p.hom = sq.right :=
+by simp only [iso.inv_hom_id_assoc, arrow.w, arrow.mk_hom]
+
 /-- A lift of a commutative square is a diagonal morphism making the two triangles commute. -/
 @[ext] structure lift_struct {f g : arrow T} (sq : f ⟶ g) :=
 (lift : f.right ⟶ g.left)
-(fac_left : f.hom ≫ lift = sq.left)
-(fac_right : lift ≫ g.hom = sq.right)
+(fac_left' : f.hom ≫ lift = sq.left . obviously)
+(fac_right' : lift ≫ g.hom = sq.right . obviously)
+
+restate_axiom lift_struct.fac_left'
+restate_axiom lift_struct.fac_right'
 
 instance lift_struct_inhabited {X : T} : inhabited (lift_struct (𝟙 (arrow.mk (𝟙 X)))) :=
 ⟨⟨𝟙 _, category.id_comp _, category.comp_id _⟩⟩
@@ -134,6 +156,21 @@ instance subsingleton_lift_struct_of_mono {f g : arrow T} (sq : f ⟶ g) [mono g
 subsingleton.intro $ λ a b, lift_struct.ext a b $ (cancel_mono g.hom).1 $ by simp
 
 end
+
+variables {C : Type u} [category.{v} C]
+/-- A helper construction: given a square between `i` and `f ≫ g`, produce a square between
+`i` and `g`, whose top leg uses `f`:
+A  → X
+     ↓f
+↓i   Y             --> A → Y
+     ↓g                ↓i  ↓g
+B  → Z                 B → Z
+ -/
+@[simps] def square_to_snd {X Y Z: C} {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
+  (sq : i ⟶ arrow.mk (f ≫ g)) :
+  i ⟶ arrow.mk g :=
+{ left := sq.left ≫ f,
+  right := sq.right }
 
 end arrow
 

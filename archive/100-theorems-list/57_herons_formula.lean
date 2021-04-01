@@ -103,13 +103,13 @@ begin
     ... = 1/2*a*b * √(numerator) / √(denominator)   : by { rw real.sqrt_div numerator_nonneg, ring }
     ... = 1/2*a*b * √((2*a*b)^2 - (a*a + b*b - c*c)^2) / √((2*a*b)^2) : rfl
     ... = 1/4 * √(s * (s-a) * (s-b) * (s-c) * 4^2)  : by repeat { field_simp [ab2_pos] ; ring_nf }
-    ... = 1/4 * √(area_sqr * (4 * 4))      : by rw pow_two
-    ... = 1/4 * √(area_sqr * 4 * 4)        : by ring_nf
-    ... = 1/4 * √(area_sqr * 4) * √(4)     : by { rw real.sqrt_mul' _ _, ring, linarith }
-    ... = 1/4 * (√(area_sqr) * √4) * √4    : by { rw real.sqrt_mul' area_sqr _, linarith }
-    ... = 1/4 * √(area_sqr) * (√4 * √4)    : by ring
-    ... = 1/4 * √(area_sqr) * √(4*4)       : by { rw ← real.sqrt_mul' _ _, linarith }
-    ... = 1/4 * √(area_sqr) * √(4^2)       : by rw ← pow_two
-    ... = 1/4 * √(area_sqr) * 4            : by { congr', apply real.sqrt_sqr, linarith }
-    ... = √(s * (s-a) * (s-b) * (s-c))     : by ring,
+    ... = 1/4 * √(area_sqr * (4 * 4))               : by rw pow_two
+    ... = 1/4 * √(area_sqr * 4 * 4)                 : by ring_nf
+    ... = 1/4 * √(area_sqr * 4) * √(4)              : by { rw real.sqrt_mul', ring, linarith }
+    ... = 1/4 * (√(area_sqr) * √4) * √4             : by { rw real.sqrt_mul' area_sqr, linarith }
+    ... = 1/4 * √(area_sqr) * (√4 * √4)             : by ring
+    ... = 1/4 * √(area_sqr) * √(4*4)                : by { rw ← real.sqrt_mul', linarith }
+    ... = 1/4 * √(area_sqr) * √(4^2)                : by rw ← pow_two
+    ... = 1/4 * √(area_sqr) * 4                     : by { congr', apply real.sqrt_sqr, linarith }
+    ... = √(s * (s-a) * (s-b) * (s-c))              : by ring,
 end

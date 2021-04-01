@@ -351,8 +351,10 @@ begin
                                                 (λ he, h2 (vsub_eq_zero_iff_eq.1 he))
 end
 
+notation `√` := real.sqrt
+
 lemma sin_eq_sqrt_one_minus_cos_sq (x : ℝ) (hl : x ≥ 0) (hu : x ≤ π) :
-  real.sin x = real.sqrt (1 - (real.cos x)^2) :=
+  real.sin x = √ (1 - (real.cos x)^2) :=
 begin
   rw ← real.sqrt_sqr (real.sin_nonneg_of_nonneg_of_le_pi hl hu),
   exact congr_arg real.sqrt (real.sin_square x),
@@ -367,7 +369,6 @@ begin
   ring,
 end
 
-notation `√` := real.sqrt
 
 lemma heron {p1 p2 p3 : P} (h2 : p1 ≠ p2) (h3 : p1 ≠ p3) (h4 : p3 ≠ p2) :
   1/2 * dist p1 p2 * dist p3 p2 * real.sin (∠ p1 p2 p3) =
@@ -419,19 +420,19 @@ begin
   let area_sqr := s * (s - a) * (s - c) * (s - b),
 
   calc    1/2*a*b * real.sin γ
-        = 1/2*a*b * √( 1 - real.cos γ ^ 2 ) : by rw sin_to_cos
-    ... = 1/2*a*b * √( numerator / denominator ) : by rw ← split_to_fraction
+        = 1/2*a*b * √( 1 - real.cos γ ^ 2 )           : by rw sin_to_cos
+    ... = 1/2*a*b * √( numerator / denominator )      : by rw ← split_to_fraction
     ... = 1/2*a*b * √( numerator ) / √( denominator ) : by { rw real.sqrt_div numerator_nonneg, ring }
     ... = 1/2*a*b * √( (2*a*b)^2 - (a*a + b*b - c*c)^2 ) / √( (2*a*b)^2 ) : rfl
     ... = 1/4 * √( s * (s - a) * (s - c) * (s - b) * 4^2 ) : by repeat { field_simp [ab2_pos] ; ring_nf }
-    ... = 1/4 * √( area_sqr * (4 * 4)) : by rw pow_two
-    ... = 1/4 * √( area_sqr * 4 * 4) : by ring_nf
-    ... = 1/4 * √( area_sqr * 4) * √(4) : by { rw real.sqrt_mul' _ _, ring, linarith }
+    ... = 1/4 * √( area_sqr * (4 * 4))      : by rw pow_two
+    ... = 1/4 * √( area_sqr * 4 * 4)        : by ring_nf
+    ... = 1/4 * √( area_sqr * 4) * √(4)     : by { rw real.sqrt_mul' _ _, ring, linarith }
     ... = 1/4 * ( √( area_sqr ) * √4 ) * √4 : by { rw real.sqrt_mul' area_sqr _ , linarith }
-    ... = 1/4 * √( area_sqr ) * (√4 * √4) : by ring
-    ... = 1/4 * √( area_sqr ) * √(4*4) : by { rw ← real.sqrt_mul' _ _, linarith }
-    ... = 1/4 * √( area_sqr ) * √(4^2) : by rw ← pow_two
-    ... = 1/4 * √( area_sqr ) * 4 : by { congr', apply real.sqrt_sqr, linarith }
+    ... = 1/4 * √( area_sqr ) * (√4 * √4)   : by ring
+    ... = 1/4 * √( area_sqr ) * √(4*4)      : by { rw ← real.sqrt_mul' _ _, linarith }
+    ... = 1/4 * √( area_sqr ) * √(4^2)      : by rw ← pow_two
+    ... = 1/4 * √( area_sqr ) * 4           : by { congr', apply real.sqrt_sqr, linarith }
     ... = √( s * (s - a) * (s - c) * (s - b) ) : by ring,
 
   -- What the crap is this?!

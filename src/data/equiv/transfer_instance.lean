@@ -173,28 +173,23 @@ by resetI; apply e.injective.comm_group_div _; intros; exact e.apply_symm_apply 
 /-- Transfer `non_unital_non_assoc_semiring` across an `equiv` -/
 protected def non_unital_non_assoc_semiring [non_unital_non_assoc_semiring β] :
   non_unital_non_assoc_semiring α :=
-{ right_distrib := by simp [mul_def, add_def, add_mul],
-  left_distrib := by simp [mul_def, add_def, mul_add],
-  ..equiv.has_zero e,
-  ..equiv.has_mul e,
-  ..equiv.has_add e,
-  ..equiv.mul_zero_class e,
-  ..equiv.add_comm_monoid e }
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul in
+by resetI; apply e.injective.non_unital_non_assoc_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `non_unital_semiring` across an `equiv` -/
 protected def non_unital_semiring [non_unital_semiring β] :  non_unital_semiring α :=
-{ ..equiv.semigroup_with_zero e,
-  ..equiv.non_unital_non_assoc_semiring e }
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul in
+by resetI; apply e.injective.non_unital_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `non_assoc_semiring` across an `equiv` -/
 protected def non_assoc_semiring [non_assoc_semiring β] : non_assoc_semiring α :=
-{ ..equiv.mul_one_class e,
-  ..equiv.non_unital_non_assoc_semiring e }
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+by resetI; apply e.injective.non_assoc_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `semiring` across an `equiv` -/
 protected def semiring [semiring β] : semiring α :=
-{ ..equiv.non_unital_semiring e,
-  ..equiv.non_assoc_semiring e }
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+by resetI; apply e.injective.semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_semiring` across an `equiv` -/
 protected def comm_semiring [comm_semiring β] : comm_semiring α :=

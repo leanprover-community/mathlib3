@@ -284,7 +284,7 @@ namespace poly
 section
 parameter {α : Type u}
 
-instance : has_coe_to_fun (poly α) ((α → ℕ) → ℤ) := ⟨λ f, f.1⟩
+instance : has_coe_to_fun (poly α) (λ _, (α → ℕ) → ℤ) := ⟨λ f, f.1⟩
 
 /-- The underlying function of a `poly` is a polynomial -/
 lemma isp (f : poly α) : is_poly f := f.2

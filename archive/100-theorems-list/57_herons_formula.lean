@@ -75,9 +75,9 @@ begin
   have split_to_fraction :=
   calc    1 - real.cos γ ^ 2
         = 1 - ((a*a + b*b - c*c) / (2*a*b))^2           : by rw cos_rule
-    ... = 1 - (a*a + b*b - c*c)^2 / (2*a*b)^2             : by { congr', exact div_pow _ (2*a*b) 2 }
+    ... = 1 - (a*a + b*b - c*c)^2 / (2*a*b)^2           : by { congr', exact div_pow _ (2*a*b) 2 }
     ... = ((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2 : by field_simp
-    ... = numerator / denominator                         : rfl,
+    ... = numerator / denominator                       : rfl,
 
   have ab2_pos : 0 ≤ (2 * a * b), by { field_simp *, linarith },
 

@@ -140,7 +140,7 @@ structure hom (X Y : right_lifting L) :=
 [str : ∀ (l : D), has_lifting_property (L l) to_hom]
 
 namespace hom
-instance foo {X Y : right_lifting L} (f : hom X Y) (x : D) :
+instance {X Y : right_lifting L} (f : hom X Y) (x : D) :
   has_lifting_property (L x) f.to_hom :=
 f.str _
 end hom
@@ -173,7 +173,7 @@ structure hom (X Y : left_lifting R) :=
 [str : ∀ (l : D), has_lifting_property ↑to_hom (R l)]
 
 namespace hom
-instance foo {X Y : left_lifting R} (f : hom X Y) (x : D) :
+instance {X Y : left_lifting R} (f : hom X Y) (x : D) :
   has_lifting_property ↑f.to_hom (R x) :=
 f.str _
 end hom

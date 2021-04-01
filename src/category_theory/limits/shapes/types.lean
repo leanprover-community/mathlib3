@@ -259,11 +259,9 @@ def pullback_limit_cone (f : X ⟶ Z) (g : Y ⟶ Z) : limits.limit_cone (cospan 
     (λ s x, ⟨⟨s.fst x, s.snd x⟩, congr_fun s.condition x⟩)
     (by tidy)
     (by tidy)
-    begin
-      intros, ext,
-      exact congr_fun (w walking_cospan.left) x,
-      exact congr_fun (w walking_cospan.right) x,
-    end }
+    (λ s m w, funext $ λ x, subtype.ext $
+     prod.ext (congr_fun (w walking_cospan.left) x)
+              (congr_fun (w walking_cospan.right) x)) }
 
 /--
 The pullback cone given by the instance `has_pullbacks (Type u)` is isomorphic to the

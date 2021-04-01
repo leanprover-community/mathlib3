@@ -64,5 +64,5 @@ welcomed.
 * Heather Macbeth (@hrmacbeth): geometry, analysis
 * Patrick Massot (@patrickmassot): documentation, topology
 * Scott Morrison (@semorrison): category theory
-* Adam Topaz (@adamtopaz):
+* Adam Topaz (@adamtopaz): algebra, category theory
 * Eric Wieser (@eric-wieser): algebra, infrastructure

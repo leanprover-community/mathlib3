@@ -10,32 +10,34 @@ import data.set.finite
 /-!
 # IMO 2008 Q2
 (a) Prove that
-          ```x^2 / (x-1)^2 + y^2 / (y-1)^2 + z^2 / (z-1)^2 ≥ 1```
-for all real numbers x, y, z, each different from 1, and satisfying xyz = 1.
+          ```
+          x^2 / (x-1)^2 + y^2 / (y-1)^2 + z^2 / (z-1)^2 ≥ 1
+          ```
+for all real numbers `x`,`y`, `z`, each different from 1, and satisfying `xyz = 1`.
 
-(b) Prove that equality holds above for infinitely many triples of rational numbers x, y, z, each
-different from 1, and satisfying xyz = 1.
+(b) Prove that equality holds above for infinitely many triples of rational numbers `x`, `y`, `z`,
+each different from 1, and satisfying `xyz = 1`.
 
 # Solution
-(a) Since xyz = 1, we can apply the substitution x = a/b, y = b/c, z = c/a.
-Then we define m = c-b, n = b-a and rewrite the inequality as LHS - 1 ≥ 0
-using c, m and n. We factor LHS - 1 as a square, which finishes the proof.
+(a) Since `xyz = 1`, we can apply the substitution `x = a/b`, `y = b/c`, `z = c/a`.
+Then we define `m = c-b`, `n = b-a` and rewrite the inequality as `LHS - 1 ≥ 0`
+using `c`, `m` and `n`. We factor `LHS - 1` as a square, which finishes the proof.
 
-(b) We present a set W of rational triples. We prove that W is a subset of the
-set of rational solutions to the equation, and that W is infinite.
+(b) We present a set `W` of rational triples. We prove that `W` is a subset of the
+set of rational solutions to the equation, and that `W` is infinite.
 -/
 
 lemma subst_abc {x y z : ℝ} (h : x*y*z = 1) :
   ∃ a b c : ℝ, a ≠ 0 ∧ b ≠ 0 ∧ c ≠ 0 ∧ x = a/b ∧ y = b/c ∧ z = c /a :=
 begin
   use [x, 1, 1/y],
-  have h₁ : x ≠ 0,              exact left_ne_zero_of_mul (left_ne_zero_of_mul_eq_one h),
-  have h₂ : (1 : ℝ) ≠ (0 : ℝ),  exact one_ne_zero,
-  have hy_ne_zero : y ≠ 0,      exact right_ne_zero_of_mul (left_ne_zero_of_mul_eq_one h),
-  have h₃ : 1/y ≠ 0,            exact one_div_ne_zero hy_ne_zero,
-  have h₄ : x = x / 1,          exact (div_one x).symm,
-  have h₅ : y = 1 / (1 / y),    exact (one_div_one_div y).symm,
-  have h₆ : z = 1 / y / x,      { field_simp, linarith [h] },
+  have h₁ : x ≠ 0 := left_ne_zero_of_mul (left_ne_zero_of_mul_eq_one h),
+  have h₂ : (1 : ℝ) ≠ (0 : ℝ) := one_ne_zero,
+  have hy_ne_zero : y ≠ 0 := right_ne_zero_of_mul (left_ne_zero_of_mul_eq_one h),
+  have h₃ : 1/y ≠ 0 := one_div_ne_zero hy_ne_zero,
+  have h₄ : x = x / 1 := (div_one x).symm,
+  have h₅ : y = 1 / (1 / y) := (one_div_one_div y).symm,
+  have h₆ : z = 1 / y / x, { field_simp, linarith [h] },
   exact ⟨h₁, h₂, h₃, h₄, h₅, h₆⟩,
 end
 
@@ -46,11 +48,11 @@ begin
 
   set m := c-b with hm_abc,
   set n := b-a with hn_abc,
-  have ha_cmn : a = c - m - n,      linarith,
-  have hb_cmn : b = c - m,          linarith,
+  have ha_cmn : a = c - m - n,      { linarith },
+  have hb_cmn : b = c - m,          { linarith },
   have hab_mn : (a-b)^2 = n^2,      { rw [ha_cmn, hb_cmn], ring },
-  have hbc_mn : (b-c)^2 = m^2,      rw hb_cmn, ring,
-  have hca_mn : (c-a)^2 = (m+n)^2,  rw ha_cmn, ring,
+  have hbc_mn : (b-c)^2 = m^2,      { rw hb_cmn, ring },
+  have hca_mn : (c-a)^2 = (m+n)^2,  { rw ha_cmn, ring },
 
   have hm_ne_zero : m ≠ 0,
   { rw hm_abc, rw hy₂ at hy, intro p, apply hy, field_simp, linarith },
@@ -62,18 +64,18 @@ begin
   { rw hm_abc, rw hn_abc, rw hz₂ at hz, intro p, apply hz, field_simp, linarith },
 
   have key : x^2 / (x-1)^2 + y^2 / (y-1)^2 + z^2 / (z-1)^2 - 1 ≥ 0,
+  { calc  x^2 / (x-1)^2 + y^2 / (y-1)^2 + z^2 / (z-1)^2 - 1
+        = (a/b)^2 / (a/b-1)^2 + (b/c)^2 / (b/c-1)^2 + (c/a)^2 / (c/a-1)^2 - 1 :
+          by rw [hx₂, hy₂, hz₂]
+    ... = a^2/(a-b)^2 + b^2/(b-c)^2 + c^2/(c-a)^2 - 1 :
+          by field_simp [div_sub_one hb, div_sub_one hc, div_sub_one ha]
+    ... = (c-m-n)^2/n^2 + (c-m)^2/m^2 + c^2/(m+n)^2 - 1 :
+          by rw [hab_mn, hbc_mn, hca_mn, ha_cmn, hb_cmn]
+    ... = ( (c*(m^2+n^2+m*n) - m*(m+n)^2) / (m*n*(m+n)) )^2 :
+          by { ring_nf, field_simp, ring }
+    ... ≥ 0 :
+          pow_two_nonneg _ },
 
-  calc  x^2 / (x-1)^2 + y^2 / (y-1)^2 + z^2 / (z-1)^2 - 1
-      = (a/b)^2 / (a/b-1)^2 + (b/c)^2 / (b/c-1)^2 + (c/a)^2 / (c/a-1)^2 - 1 :
-        by rw [hx₂, hy₂, hz₂]
-  ... = a^2/(a-b)^2 + b^2/(b-c)^2 + c^2/(c-a)^2 - 1 :
-        by field_simp [div_sub_one hb, div_sub_one hc, div_sub_one ha]
-  ... = (c-m-n)^2/n^2 + (c-m)^2/m^2 + c^2/(m+n)^2 - 1 :
-        by rw [hab_mn, hbc_mn, hca_mn, ha_cmn, hb_cmn]
-  ... = ( (c*(m^2+n^2+m*n) - m*(m+n)^2) / (m*n*(m+n)) )^2 :
-        by { ring_nf, field_simp, ring }
-  ... ≥ 0 :
-        by exact pow_two_nonneg _ ,
 
   linarith [key],
 end
@@ -89,9 +91,8 @@ begin
   have hW_sub_S : W ⊆ rational_solutions,
   { intros s hs_in_W,
     rw rational_solutions,
-    simp at hs_in_W ⊢,
-    rcases hs_in_W with ⟨x, y, z, h₁, ht⟩,
-    rcases ht with ⟨t, ht_gt_zero, hx_t, hy_t, hz_t⟩,
+    simp only [set.mem_set_of_eq] at hs_in_W ⊢,
+    rcases hs_in_W with ⟨x, y, z, h₁, t, ht_gt_zero, hx_t, hy_t, hz_t⟩,
     use [x, y, z],
 
     have ht_ne_zero  : t ≠ 0,           exact ne_of_gt ht_gt_zero,
@@ -117,7 +118,7 @@ begin
     exact ⟨h₁, h₂, h₃, h₄, h₅, h₆⟩ },
 
   have hW_inf : set.infinite W,
-  { set g : ℚ×ℚ×ℚ → ℚ := (λs, -s.2.2) with hg_eval,
+  { let g : ℚ×ℚ×ℚ → ℚ := (λs, -s.2.2),
     let K := g '' W,
 
     have hK_not_bdd : ¬bdd_above K,
@@ -127,17 +128,20 @@ begin
       use t*(t+1),
 
       have h₁ : t * (t + 1) ∈ K,
-      { let x : ℚ := (-1 + -t)/t^2,
+      { let x : ℚ := -(t + 1)/t^2,
         let y : ℚ := t/(t+1)^2,
         set z : ℚ := -t*(t+1) with hz_def,
 
-        simp, use [x, y, z], split,
+        simp only [set.mem_image, prod.exists],
+        use [x, y, z], split,
+        simp only [set.mem_set_of_eq],
         { use [x, y, z], split,
-          exact ⟨refl x, refl y, refl z⟩,
+          refl,
           { use t, split,
-            { simp, right, exact zero_lt_one },
-            exact ⟨rfl, rfl, (by linarith[hz_def])⟩ } },
-        simp [hg_eval, hz_def] },
+            { simp only [gt_iff_lt, lt_max_iff], right, exact zero_lt_one },
+            exact ⟨rfl, rfl, rfl⟩ } },
+        { have hg : g(x, y, z) = -z := rfl,
+          rw [hg, hz_def], ring } },
 
       have h₂ : q < t * (t + 1),
       { calc q < q + 1    : by linarith

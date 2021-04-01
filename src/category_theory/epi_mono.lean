@@ -40,6 +40,22 @@ begin
     cancel_mono, equiv.apply_eq_iff_eq] at H
 end
 
+instance equivalence.epi_functor {e : C ≌ D} {X Y : C} {f : X ⟶ Y} [h : epi f] :
+  epi (e.functor.map f) :=
+left_adjoint_preserves_epi e.to_adjunction h
+
+instance equivalence.epi_inverse {e : C ≌ D} {X Y : D} {f : X ⟶ Y} [h : epi f] :
+  epi (e.inverse.map f) :=
+left_adjoint_preserves_epi e.symm.to_adjunction h
+
+instance equivalence.mono_functor {e : C ≌ D} {X Y : C} {f : X ⟶ Y} [h : mono f] :
+  mono (e.functor.map f) :=
+right_adjoint_preserves_mono e.symm.to_adjunction h
+
+instance equivalence.mono_inverse {e : C ≌ D} {X Y : D} {f : X ⟶ Y} [h : mono f] :
+  mono (e.inverse.map f) :=
+right_adjoint_preserves_mono e.to_adjunction h
+
 lemma faithful_reflects_epi (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
   (hf : epi (F.map f)) : epi f :=
 ⟨λ Z g h H, F.map_injective $

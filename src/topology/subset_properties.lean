@@ -192,9 +192,9 @@ let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) (λ i, (hZc i).is_op
 ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
     exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using ht⟩
 
-/-- If `s` is a compact set in a topological space `α` and `f : ι → set α` is a locally finite family
-of sets, then `f i ∩ s` is nonempty only for a finitely many `i`. -/
-lemma locally_finite.finite_nonempty_of_compact {ι : Type*} {f : ι → set α} (hf : locally_finite f)
+/-- If `s` is a compact set in a topological space `α` and `f : ι → set α` is a locally finite
+family of sets, then `f i ∩ s` is nonempty only for a finitely many `i`. -/
+lemma locally_finite.finite_nonempty_inter_compact {ι : Type*} {f : ι → set α} (hf : locally_finite f)
   {s : set α} (hs : is_compact s) :
   finite {i | (f i ∩ s).nonempty} :=
 begin
@@ -529,17 +529,17 @@ let ⟨t, ht⟩ := finite_cover_nhds_interior hU in ⟨t, univ_subset_iff.1 $
 
 /-- If `α` is a compact space, then a locally finite family of sets of `α` can have only finitely
 many nonempty elements. -/
-lemma locally_finite.finite_nonempty_of_compact_space {ι : Type*} [compact_space α] {f : ι → set α}
+lemma locally_finite.finite_nonempty_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
   (hf : locally_finite f) :
   finite {i | (f i).nonempty} :=
-by simpa only [inter_univ]  using hf.finite_nonempty_of_compact compact_univ
+by simpa only [inter_univ]  using hf.finite_nonempty_inter_compact compact_univ
 
 /-- If `α` is a compact space, then a locally finite family of nonempty sets of `α` can have only
 finitely many elements, `set.finite` version. -/
 lemma locally_finite.finite_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
   (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) :
   finite (univ : set ι) :=
-by simpa only [hne] using hf.finite_nonempty_of_compact_space
+by simpa only [hne] using hf.finite_nonempty_of_compact
 
 /-- If `α` is a compact space, then a locally finite family of nonempty sets of `α` can have only
 finitely many elements, `fintype` version. -/
@@ -892,7 +892,7 @@ lemma locally_finite.countable_of_sigma_compact {ι : Type*} {f : ι → set α}
   (hne : ∀ i, (f i).nonempty) :
   countable (univ : set ι) :=
 begin
-  have := λ n, hf.finite_nonempty_of_compact (is_compact_compact_covering α n),
+  have := λ n, hf.finite_nonempty_inter_compact (is_compact_compact_covering α n),
   refine (countable_Union (λ n, (this n).countable)).mono (λ i hi, _),
   rcases hne i with ⟨x, hx⟩,
   rcases Union_eq_univ_iff.1 (Union_compact_covering α) x with ⟨n, hn⟩,

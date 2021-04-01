@@ -240,6 +240,7 @@ end
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp
 
+/-
 @[simp] lemma ae_measurable_exp : ae_measurable exp := measurable_exp.ae_measurable
 
 @[simp] lemma ae_measurable_sin : ae_measurable sin := measurable_sin.ae_measurable
@@ -265,6 +266,7 @@ ae_measurable_one_add_sq.inv'
 
 lemma ae_measurable_one_div_one_add_sq : ae_measurable (λ x:ℝ, 1 / (1 + x^2)) :=
 by simp only [one_div, ae_measurable_inv_one_add_sq]
+-/
 
 lemma integral_sin_add_two_pi : ∫ x in a+2*π..b+2*π, sin x = ∫ x in a..b, sin x :=
 by simp [cos_add_two_pi]
@@ -291,7 +293,7 @@ begin
 end
 
 example : ∫ x:ℝ in 0..2, 3*(x + 1)^2 = 26 :=
-by norm_num [integral_comp_add_right _ (ae_measurable_pow 2)]
+by norm_num [integral_comp_add_right]
 
 example : ∫ x:ℝ in -1..0, (1 + (x+1)^2)⁻¹ = π/4 :=
-by simp [integral_comp_add_right 1 ae_measurable_inv_one_add_sq]
+by simp [integral_comp_add_right 1]

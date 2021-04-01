@@ -247,7 +247,7 @@ This is bundled with the `is_limit` data as `pullback_limit_cone f g`.
 -/
 @[simps]
 def pullback_cone : limits.pullback_cone f g :=
-pullback_cone.mk (λ p : pullback_obj f g, p.1.1) (λ p, p.1.2) (by exact funext (λ p, p.2))
+pullback_cone.mk (λ p : pullback_obj f g, p.1.1) (λ p, p.1.2) (funext (λ p, p.2))
 
 /--
 The explicit pullback in the category of types, bundled up as a `limit_cone`
@@ -283,11 +283,11 @@ noncomputable def pullback_iso_pullback : pullback f g ≅ pullback_obj f g :=
 (cones.forget _).map_iso $ pullback_cone_iso_pullback f g
 
 @[simp] lemma pullback_fst'
-  : (pullback_iso_pullback f g).hom ≫ (pullback_cone f g).fst = limits.pullback.fst :=
+  : (pullback_iso_pullback f g).hom ≫ (pullback_cone f g).fst = pullback.fst :=
 (pullback_cone_iso_pullback f g).hom.w _
 
 @[simp] lemma pullback_snd'
-  : (pullback_iso_pullback f g).hom ≫ (pullback_cone f g).snd = limits.pullback.snd :=
+  : (pullback_iso_pullback f g).hom ≫ (pullback_cone f g).snd = pullback.snd :=
 (pullback_cone_iso_pullback f g).hom.w _
 
 end pullback

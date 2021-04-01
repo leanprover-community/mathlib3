@@ -401,7 +401,14 @@ section map_range
 variables [has_zero M] [has_zero N] [has_zero P]
 
 /-- The composition of `f : M → N` and `g : α →₀ M` is
-`map_range f hf g : α →₀ N`, well-defined when `f 0 = 0`. -/
+`map_range f hf g : α →₀ N`, well-defined when `f 0 = 0`.
+
+This exists in various bundled forms for when `f` is itself bundled:
+
+* `finsupp.map_range.zero_hom`
+* `finsupp.map_range.add_monoid_hom`
+* `finsupp.map_range.add_equiv`
+-/
 def map_range (f : M → N) (hf : f 0 = 0) (g : α →₀ M) : α →₀ N :=
 on_finset g.support (f ∘ g) $
   assume a, by rw [mem_support_iff, not_imp_not]; exact λ H, (congr_arg f H).trans hf
@@ -1153,26 +1160,29 @@ lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : �
 
 section map_range
 
+section zero_hom
+variables [has_zero M] [has_zero N] [has_zero P]
 
 /-- Composition with a fixed zero-preserving homomorphism is itself an zero-preserving homomorphism
 on functions. -/
 @[simps]
-def map_range.zero_hom [has_zero M] [has_zero N] (f : zero_hom M N) : zero_hom (α →₀ M) (α →₀ N) :=
+def map_range.zero_hom (f : zero_hom M N) : zero_hom (α →₀ M) (α →₀ N) :=
 { to_fun := (map_range f f.map_zero : (α →₀ M) → (α →₀ N)),
   map_zero' := map_range_zero }
 
 @[simp]
-lemma map_range.zero_hom_id [has_zero M] :
+lemma map_range.zero_hom_id :
   map_range.zero_hom (zero_hom.id M) = zero_hom.id (α →₀ M) := zero_hom.ext map_range_id
 
-lemma map_range.zero_hom_comp [has_zero M] [has_zero N] [has_zero P]
-  (f : zero_hom N P) (f₂ : zero_hom M N) :
+lemma map_range.zero_hom_comp (f : zero_hom N P) (f₂ : zero_hom M N) :
   (map_range.zero_hom (f.comp f₂) : zero_hom (α →₀ _) _) =
     (map_range.zero_hom f).comp (map_range.zero_hom f₂) :=
 zero_hom.ext $ map_range_comp _ _ _ _ _
 
-variables
-  [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+end zero_hom
+
+section add_monoid_hom
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
 
 /--
 Composition with a fixed additive homomorphism is itself an additive homomorphism on functions.
@@ -1200,6 +1210,40 @@ lemma map_range_multiset_sum (f : M →+ N) (m : multiset (α →₀ M)) :
 lemma map_range_finset_sum (f : M →+ N) (s : finset ι) (g : ι → (α →₀ M))  :
   map_range f f.map_zero (∑ x in s, g x) = ∑ x in s, map_range f f.map_zero (g x) :=
 (map_range.add_monoid_hom f : (α →₀ _) →+ _).map_sum _ _
+
+
+/-- `finsupp.map_range.add_monoid_hom` as an equiv. -/
+@[simps apply]
+def map_range.add_equiv (f : M ≃+ N) : (α →₀ M) ≃+ (α →₀ N) :=
+{ to_fun := (map_range f f.map_zero : (α →₀ M) → (α →₀ N)),
+  inv_fun := (map_range f.symm f.symm.map_zero : (α →₀ N) → (α →₀ M)),
+  left_inv := λ x, begin
+    rw ←map_range_comp _ _ _ _; simp_rw add_equiv.symm_comp_self,
+    { exact map_range_id _ },
+    { refl },
+  end,
+  right_inv := λ x, begin
+    rw ←map_range_comp _ _ _ _; simp_rw add_equiv.self_comp_symm,
+    { exact map_range_id _ },
+    { refl },
+  end,
+  ..(map_range.add_monoid_hom f.to_add_monoid_hom) }
+
+@[simp]
+lemma map_range.add_equiv_refl :
+  map_range.add_equiv (add_equiv.refl M) = add_equiv.refl (α →₀ M) :=
+add_equiv.ext map_range_id
+
+lemma map_range.add_equiv_trans (f : M ≃+ N) (f₂ : N ≃+ P) :
+  (map_range.add_equiv (f.trans f₂) : add_equiv (α →₀ _) _) =
+    (map_range.add_equiv f).trans (map_range.add_equiv f₂) :=
+add_equiv.ext $ map_range_comp _ _ _ _ _
+
+lemma map_range.add_equiv_symm (f : M ≃+ N) (f₂ : N ≃+ P) :
+  ((map_range.add_equiv f).symm : (α →₀ _) ≃+ _) = map_range.add_equiv f.symm :=
+add_equiv.ext $ λ x, rfl
+
+end add_monoid_hom
 
 end map_range
 

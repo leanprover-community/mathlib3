@@ -463,9 +463,9 @@ lemma mem_dual_annihilator_comap_iff {Φ : submodule R (module.dual R M)} (x : M
   x ∈ Φ.dual_annihilator_comap ↔ ∀ φ ∈ Φ, (φ x : R) = 0 :=
 begin
   simp_rw [dual_annihilator_comap, mem_comap, mem_dual_annihilator],
-  split; intros h φ hφ,
-  { exact h φ hφ },
-  { refine h _ hφ }
+  split;
+  { intros h φ hφ,
+    exact h φ hφ },
 end
 
 end submodule

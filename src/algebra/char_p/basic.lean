@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Kenny Lau, Joey van Langen, Casper Putz
+Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
 import data.fintype.basic
@@ -110,20 +110,23 @@ theorem eq_iff {p : ℕ} : ring_char R = p ↔ char_p R p :=
 theorem dvd {x : ℕ} (hx : (x : R) = 0) : ring_char R ∣ x :=
 (spec R x).1 hx
 
+@[simp]
+lemma eq_zero [char_zero R] : ring_char R = 0 := (eq R (char_p.of_char_zero R)).symm
+
 end ring_char
 
-theorem add_pow_char_of_commute (R : Type u) [semiring R] {p : ℕ} [fact p.prime]
+theorem add_pow_char_of_commute (R : Type u) [semiring R] {p : ℕ} [hp : fact p.prime]
   [char_p R p] (x y : R) (h : commute x y) :
   (x + y)^p = x^p + y^p :=
 begin
   rw [commute.add_pow h, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
   rw [nat.cast_one, mul_one, mul_one], congr' 1,
   convert finset.sum_eq_single 0 _ _, { simp },
-  swap, { intro h1, contrapose! h1, rw finset.mem_range, apply nat.prime.pos, assumption },
+  swap, { intro h1, contrapose! h1, rw finset.mem_range, exact hp.1.pos },
   intros b h1 h2,
   suffices : (p.choose b : R) = 0, { rw this, simp },
   rw char_p.cast_eq_zero_iff R p,
-  refine nat.prime.dvd_choose_self (pos_iff_ne_zero.mpr h2) _ (by assumption),
+  refine nat.prime.dvd_choose_self (pos_iff_ne_zero.mpr h2) _ hp.1,
   rwa ← finset.mem_range
 end
 
@@ -185,7 +188,7 @@ begin
   rw [show (2 : R) = (2 : ℕ), by norm_cast] at h,
   have := (char_p.cast_eq_zero_iff R p 2).mp h,
   have := nat.le_of_dvd dec_trivial this,
-  rw fact at *, linarith,
+  rw fact_iff at *, linarith,
 end
 
 lemma ring_hom.char_p_iff_char_p {K L : Type*} [field K] [field L] (f : K →+* L) (p : ℕ) :
@@ -201,14 +204,14 @@ section frobenius
 section comm_semiring
 
 variables (R : Type u) [comm_semiring R] {S : Type v} [comm_semiring S] (f : R →* S) (g : R →+* S)
-  (p : ℕ) [fact p.prime] [char_p R p]  [char_p S p] (x y : R)
+  (p : ℕ) [fact p.prime] [char_p R p] [char_p S p] (x y : R)
 
 /-- The frobenius map that sends x to x^p -/
 def frobenius : R →+* R :=
 { to_fun := λ x, x^p,
   map_one' := one_pow p,
   map_mul' := λ x y, mul_pow x y p,
-  map_zero' := zero_pow (lt_trans zero_lt_one ‹nat.prime p›.one_lt),
+  map_zero' := zero_pow (lt_trans zero_lt_one (fact.out (nat.prime p)).one_lt),
   map_add' := add_pow_char R }
 
 variable {R}
@@ -225,8 +228,6 @@ theorem frobenius_mul : frobenius R p (x * y) = frobenius R p x * frobenius R p 
 (frobenius R p).map_mul x y
 
 theorem frobenius_one : frobenius R p 1 = 1 := one_pow _
-
-variable {R}
 
 theorem monoid_hom.map_frobenius : f (frobenius R p x) = frobenius S p (f x) :=
 f.map_pow x p
@@ -264,7 +265,7 @@ end comm_semiring
 section comm_ring
 
 variables (R : Type u) [comm_ring R] {S : Type v} [comm_ring S] (f : R →* S) (g : R →+* S)
-  (p : ℕ) [fact p.prime] [char_p R p]  [char_p S p] (x y : R)
+  (p : ℕ) [fact p.prime] [char_p R p] [char_p S p] (x y : R)
 
 theorem frobenius_neg : frobenius R p (-x) = -frobenius R p x := (frobenius R p).map_neg x
 
@@ -300,48 +301,67 @@ absurd (@nat.cast_injective α _ _ this) (not_injective_infinite_fintype coe)
 
 end
 
-section integral_domain
+section semiring
 open nat
 
-variables (α : Type u) [integral_domain α]
+variables (R : Type u) [semiring R]
 
-theorem char_ne_one (p : ℕ) [hc : char_p α p] : p ≠ 1 :=
+theorem char_ne_one [nontrivial R] (p : ℕ) [hc : char_p R p] : p ≠ 1 :=
 assume hp : p = 1,
-have ( 1 : α) = 0, by simpa using (cast_eq_zero_iff α p 1).mpr (hp ▸ dvd_refl p),
+have ( 1 : R) = 0, by simpa using (cast_eq_zero_iff R p 1).mpr (hp ▸ dvd_refl p),
 absurd this one_ne_zero
 
-theorem char_is_prime_of_two_le (p : ℕ) [hc : char_p α p] (hp : 2 ≤ p) : nat.prime p :=
+section no_zero_divisors
+
+variable [no_zero_divisors R]
+
+theorem char_is_prime_of_two_le (p : ℕ) [hc : char_p R p] (hp : 2 ≤ p) : nat.prime p :=
 suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
 assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
-have (p : α) = 0, from (cast_eq_zero_iff α p p).mpr (dvd_refl p),
-have (d : α) * e = 0, from (@cast_mul α _ d e) ▸ (hmul ▸ this),
+have (p : R) = 0, from (cast_eq_zero_iff R p p).mpr (dvd_refl p),
+have (d : R) * e = 0, from (@cast_mul R _ d e) ▸ (hmul ▸ this),
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero this)
-  (assume hd : (d : α) = 0,
-  have p ∣ d, from (cast_eq_zero_iff α p d).mp hd,
+  (assume hd : (d : R) = 0,
+  have p ∣ d, from (cast_eq_zero_iff R p d).mp hd,
   show d = 1 ∨ d = p, from or.inr (dvd_antisymm ⟨e, hmul⟩ this))
-  (assume he : (e : α) = 0,
-  have p ∣ e, from (cast_eq_zero_iff α p e).mp he,
+  (assume he : (e : R) = 0,
+  have p ∣ e, from (cast_eq_zero_iff R p e).mp he,
   have e ∣ p, from dvd_of_mul_left_eq d (eq.symm hmul),
   have e = p, from dvd_antisymm ‹e ∣ p› ‹p ∣ e›,
   have h₀ : p > 0, from gt_of_ge_of_gt hp (nat.zero_lt_succ 1),
   have d * p = 1 * p, by rw ‹e = p› at hmul; rw [one_mul]; exact eq.symm hmul,
   show d = 1 ∨ d = p, from or.inl (eq_of_mul_eq_mul_right h₀ this))
 
-theorem char_is_prime_or_zero (p : ℕ) [hc : char_p α p] : nat.prime p ∨ p = 0 :=
+section nontrivial
+
+variables [nontrivial R]
+
+theorem char_is_prime_or_zero (p : ℕ) [hc : char_p R p] : nat.prime p ∨ p = 0 :=
 match p, hc with
 | 0,     _  := or.inr rfl
-| 1,     hc := absurd (eq.refl (1 : ℕ)) (@char_ne_one α _ (1 : ℕ) hc)
-| (m+2), hc := or.inl (@char_is_prime_of_two_le α _ (m+2) hc (nat.le_add_left 2 m))
+| 1,     hc := absurd (eq.refl (1 : ℕ)) (@char_ne_one R _ _ (1 : ℕ) hc)
+| (m+2), hc := or.inl (@char_is_prime_of_two_le R _ _ (m+2) hc (nat.le_add_left 2 m))
 end
 
-lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p α p] : fact p.prime :=
-(char_p.char_is_prime_or_zero α _).resolve_right (pos_iff_ne_zero.1 h)
+lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p R p] : fact p.prime :=
+⟨(char_p.char_is_prime_or_zero R _).resolve_right (pos_iff_ne_zero.1 h.1)⟩
 
-theorem char_is_prime [fintype α] (p : ℕ) [char_p α p] : p.prime :=
-or.resolve_right (char_is_prime_or_zero α p) (char_ne_zero_of_fintype α p)
+end nontrivial
 
-end integral_domain
+end no_zero_divisors
+
+end semiring
+
+section ring
+
+variables (R : Type*) [ring R] [no_zero_divisors R] [nontrivial R] [fintype R]
+
+theorem char_is_prime (p : ℕ) [char_p R p] :
+  p.prime :=
+or.resolve_right (char_is_prime_or_zero R p) (char_ne_zero_of_fintype R p)
+
+end ring
 
 section char_one
 
@@ -387,7 +407,7 @@ lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 �
       rw [← nat.mod_add_div k n, nat.cast_add, nat.cast_mul, H, zero_mul, add_zero] at h,
       rw nat.dvd_iff_mod_eq_zero,
       apply hR _ (nat.mod_lt _ _) h,
-      rw [← hn, gt, fintype.card_pos_iff],
+      rw [← hn, fintype.card_pos_iff],
       exact ⟨0⟩, },
     { rintro ⟨k, rfl⟩, rw [nat.cast_mul, H, zero_mul] }
   end }
@@ -399,7 +419,7 @@ begin
   obtain ⟨c, hc⟩ := char_p.exists R, resetI,
   have hcpn : c ∣ p ^ n,
   { rw [← char_p.cast_eq_zero_iff R c, ← hn, char_p.cast_card_eq_zero], },
-  obtain ⟨i, hi, hc⟩ : ∃ i ≤ n, c = p ^ i, by rwa nat.dvd_prime_pow hp at hcpn,
+  obtain ⟨i, hi, hc⟩ : ∃ i ≤ n, c = p ^ i, by rwa nat.dvd_prime_pow hp.1 at hcpn,
   obtain rfl : i = n,
   { apply hR i hi, rw [← nat.cast_pow, ← hc, char_p.cast_eq_zero] },
   rwa ← hc

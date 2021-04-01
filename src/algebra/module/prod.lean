@@ -47,4 +47,12 @@ instance {r : semiring R} [add_comm_monoid M] [add_comm_monoid N]
   zero_smul := λ ⟨b, c⟩, mk.inj_iff.mpr ⟨zero_smul _ _, zero_smul _ _⟩,
   .. prod.distrib_mul_action }
 
+instance {r : semiring R} [add_comm_monoid M] [add_comm_monoid N]
+  [semimodule R M] [semimodule R N]
+  [no_zero_smul_divisors R M] [no_zero_smul_divisors R N] :
+  no_zero_smul_divisors R (M × N) :=
+⟨λ c ⟨x, y⟩ h, or_iff_not_imp_left.mpr (λ hc, mk.inj_iff.mpr
+  ⟨(smul_eq_zero.mp (congr_arg fst h)).resolve_left hc,
+   (smul_eq_zero.mp (congr_arg snd h)).resolve_left hc⟩)⟩
+
 end prod

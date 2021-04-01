@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import linear_algebra.affine_space.basic
 import linear_algebra.tensor_product
@@ -125,7 +125,7 @@ end
 
 lemma ext_iff {f g : P1 →ᵃ[k] P2} : f = g ↔ ∀ p, f p = g p := ⟨λ h p, h ▸ rfl, ext⟩
 
-lemma injective_coe_fn : function.injective (λ (f : P1 →ᵃ[k] P2) (x : P1), f x) :=
+lemma coe_fn_injective : function.injective (λ (f : P1 →ᵃ[k] P2) (x : P1), f x) :=
 λ f g H, ext $ congr_fun H
 
 protected lemma congr_arg (f : P1 →ᵃ[k] P2) {x y : P1} (h : x = y) : f x = f y :=

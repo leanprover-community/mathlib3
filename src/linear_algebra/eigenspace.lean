@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Alexander Bentkamp.
+Authors: Alexander Bentkamp
 -/
 
 import field_theory.algebraic_closure
@@ -106,7 +106,7 @@ begin
   { intro a, simp [module.algebra_map_End_apply] },
   { intros p q hp hq, simp [hp, hq, add_smul] },
   { intros n a hna,
-    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_app, mul_comm, hna],
+    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_apply, mul_comm, hna],
     simp [algebra_map_End_apply, mem_eigenspace_iff.1 h.2, smul_smul, mul_comm] }
 end
 

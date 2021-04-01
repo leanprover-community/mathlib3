@@ -650,6 +650,10 @@ lemma has_fderiv_within_at.congr (h : has_fderiv_within_at f f' s x) (hs : ∀x 
   (hx : f₁ x = f x) : has_fderiv_within_at f₁ f' s x :=
 h.congr_mono hs hx (subset.refl _)
 
+lemma has_fderiv_within_at.congr' (h : has_fderiv_within_at f f' s x) (hs : ∀x ∈ s, f₁ x = f x)
+  (hx : x ∈ s) : has_fderiv_within_at f₁ f' s x :=
+h.congr hs (hs x hx)
+
 lemma has_fderiv_within_at.congr_of_eventually_eq (h : has_fderiv_within_at f f' s x)
   (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) : has_fderiv_within_at f₁ f' s x :=
 has_fderiv_at_filter.congr_of_eventually_eq h h₁ hx
@@ -1219,7 +1223,7 @@ section fst
 
 variables {f₂ : E → F × G} {f₂' : E →L[𝕜] F × G} {p : E × F}
 
-lemma has_strict_fderiv_at_fst : has_strict_fderiv_at prod.fst (fst 𝕜 E F) p :=
+lemma has_strict_fderiv_at_fst : has_strict_fderiv_at (fst 𝕜 E F) (fst 𝕜 E F) p :=
 (fst 𝕜 E F).has_strict_fderiv_at
 
 protected lemma has_strict_fderiv_at.fst (h : has_strict_fderiv_at f₂ f₂' x) :
@@ -1227,14 +1231,14 @@ protected lemma has_strict_fderiv_at.fst (h : has_strict_fderiv_at f₂ f₂' x)
 has_strict_fderiv_at_fst.comp x h
 
 lemma has_fderiv_at_filter_fst {L : filter (E × F)} :
-  has_fderiv_at_filter prod.fst (fst 𝕜 E F) p L :=
+  has_fderiv_at_filter (fst 𝕜 E F) (fst 𝕜 E F) p L :=
 (fst 𝕜 E F).has_fderiv_at_filter
 
 protected lemma has_fderiv_at_filter.fst (h : has_fderiv_at_filter f₂ f₂' x L) :
   has_fderiv_at_filter (λ x, (f₂ x).1) ((fst 𝕜 F G).comp f₂') x L :=
 has_fderiv_at_filter_fst.comp x h
 
-lemma has_fderiv_at_fst : has_fderiv_at prod.fst (fst 𝕜 E F) p :=
+lemma has_fderiv_at_fst : has_fderiv_at (fst 𝕜 E F) (fst 𝕜 E F) p :=
 has_fderiv_at_filter_fst
 
 protected lemma has_fderiv_at.fst (h : has_fderiv_at f₂ f₂' x) :
@@ -1242,7 +1246,7 @@ protected lemma has_fderiv_at.fst (h : has_fderiv_at f₂ f₂' x) :
 h.fst
 
 lemma has_fderiv_within_at_fst {s : set (E × F)} :
-  has_fderiv_within_at prod.fst (fst 𝕜 E F) s p :=
+  has_fderiv_within_at (fst 𝕜 E F) (fst 𝕜 E F) s p :=
 has_fderiv_at_filter_fst
 
 protected lemma has_fderiv_within_at.fst (h : has_fderiv_within_at f₂ f₂' s x) :
@@ -1297,7 +1301,7 @@ section snd
 
 variables {f₂ : E → F × G} {f₂' : E →L[𝕜] F × G} {p : E × F}
 
-lemma has_strict_fderiv_at_snd : has_strict_fderiv_at prod.snd (snd 𝕜 E F) p :=
+lemma has_strict_fderiv_at_snd : has_strict_fderiv_at (snd 𝕜 E F) (snd 𝕜 E F) p :=
 (snd 𝕜 E F).has_strict_fderiv_at
 
 protected lemma has_strict_fderiv_at.snd (h : has_strict_fderiv_at f₂ f₂' x) :
@@ -1305,14 +1309,14 @@ protected lemma has_strict_fderiv_at.snd (h : has_strict_fderiv_at f₂ f₂' x)
 has_strict_fderiv_at_snd.comp x h
 
 lemma has_fderiv_at_filter_snd {L : filter (E × F)} :
-  has_fderiv_at_filter prod.snd (snd 𝕜 E F) p L :=
+  has_fderiv_at_filter (snd 𝕜 E F) (snd 𝕜 E F) p L :=
 (snd 𝕜 E F).has_fderiv_at_filter
 
 protected lemma has_fderiv_at_filter.snd (h : has_fderiv_at_filter f₂ f₂' x L) :
   has_fderiv_at_filter (λ x, (f₂ x).2) ((snd 𝕜 F G).comp f₂') x L :=
 has_fderiv_at_filter_snd.comp x h
 
-lemma has_fderiv_at_snd : has_fderiv_at prod.snd (snd 𝕜 E F) p :=
+lemma has_fderiv_at_snd : has_fderiv_at (snd 𝕜 E F) (snd 𝕜 E F) p :=
 has_fderiv_at_filter_snd
 
 protected lemma has_fderiv_at.snd (h : has_fderiv_at f₂ f₂' x) :
@@ -1320,7 +1324,7 @@ protected lemma has_fderiv_at.snd (h : has_fderiv_at f₂ f₂' x) :
 h.snd
 
 lemma has_fderiv_within_at_snd {s : set (E × F)} :
-  has_fderiv_within_at prod.snd (snd 𝕜 E F) s p :=
+  has_fderiv_within_at (snd 𝕜 E F) (snd 𝕜 E F) s p :=
 has_fderiv_at_filter_snd
 
 protected lemma has_fderiv_within_at.snd (h : has_fderiv_within_at f₂ f₂' s x) :
@@ -2766,32 +2770,28 @@ begin
   exact h.maps_to_tangent_cone.mono (subset.refl _) submodule.subset_span
 end
 
+lemma unique_diff_on.image {f' : E → E →L[𝕜] F} (hs : unique_diff_on 𝕜 s)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hd : ∀ x ∈ s, dense_range (f' x)) :
+  unique_diff_on 𝕜 (f '' s) :=
+ball_image_iff.2 $ λ x hx, (hf' x hx).unique_diff_within_at (hs x hx) (hd x hx)
+
 lemma has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv
   {x : E} (e' : E ≃L[𝕜] F) (h : has_fderiv_within_at f (e' : E →L[𝕜] F) s x)
   (hs : unique_diff_within_at 𝕜 s x) :
   unique_diff_within_at 𝕜 (f '' s) (f x) :=
 h.unique_diff_within_at hs e'.surjective.dense_range
 
-lemma continuous_linear_equiv.unique_diff_on_preimage_iff (e : F ≃L[𝕜] E) :
+lemma continuous_linear_equiv.unique_diff_on_image (e : E ≃L[𝕜] F) (h : unique_diff_on 𝕜 s) :
+  unique_diff_on 𝕜 (e '' s) :=
+h.image (λ x _, e.has_fderiv_within_at) (λ x hx, e.surjective.dense_range)
+
+@[simp] lemma continuous_linear_equiv.unique_diff_on_image_iff (e : E ≃L[𝕜] F) :
+  unique_diff_on 𝕜 (e '' s) ↔ unique_diff_on 𝕜 s :=
+⟨λ h, e.symm_image_image s ▸ e.symm.unique_diff_on_image h, e.unique_diff_on_image⟩
+
+@[simp] lemma continuous_linear_equiv.unique_diff_on_preimage_iff (e : F ≃L[𝕜] E) :
   unique_diff_on 𝕜 (e ⁻¹' s) ↔ unique_diff_on 𝕜 s :=
-begin
-  split,
-  { assume hs x hx,
-    have A : s = e '' (e.symm '' s) :=
-      (equiv.symm_image_image (e.symm.to_linear_equiv.to_equiv) s).symm,
-    have B : e.symm '' s = e⁻¹' s :=
-      equiv.image_eq_preimage e.symm.to_linear_equiv.to_equiv s,
-    rw [A, B, (e.apply_symm_apply x).symm],
-    refine has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv e
-      e.has_fderiv_within_at (hs _ _),
-    rwa [mem_preimage, e.apply_symm_apply x] },
-  { assume hs x hx,
-    have : e ⁻¹' s = e.symm '' s :=
-      (equiv.image_eq_preimage e.symm.to_linear_equiv.to_equiv s).symm,
-    rw [this, (e.symm_apply_apply x).symm],
-    exact has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv e.symm
-      e.symm.has_fderiv_within_at (hs _ hx) },
-end
+by rw [← e.image_symm_eq_preimage, e.symm.unique_diff_on_image_iff]
 
 end tangent_cone
 

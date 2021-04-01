@@ -22,8 +22,51 @@ local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
 
--- The order in this declaration matters: v often needs to be explicitly specified while u often
--- can be omitted
+/--
+The typeclass `category C` describes morphisms associated to objects of type `C : Type u`.
+
+The universe levels of the objects and morphisms are independent, and will often need to be
+specified explicitly, as `category.{v} C`.
+
+Typically any concrete example will either be a `small_category`, where `v = u`,
+which can be introduced as
+```
+universes u
+variables {C : Type u} [small_category C]
+```
+or a `large_category`, where `u = v+1`, which can be introduced as
+```
+universes u
+variables {C : Type (u+1)} [large_category C]
+```
+
+In order for the library to handle these cases uniformly,
+we generally work with the unconstrained `category.{v u}`,
+for which objects live in `Type u` and morphisms live in `Type v`.
+
+Because the universe parameter `u` for the objects can be inferred from `C`
+when we write `category C`, while the universe parameter `v` for the morphisms
+can not be automatically inferred, through the category theory library
+we introduce universe parameters with morphism levels listed first,
+as in
+```
+universes v u
+```
+or
+```
+universes v₁ v₂ u₁ u₂
+```
+when multiple independent universes are needed.
+
+This has the effect that we can simply write `category.{v} C`
+(that is, only specifying a single parameter) while `u` will be inferred.
+
+Often, however, it's not even necessary to include the `.{v}`.
+(Although it was in earlier versions of Lean.)
+If it is omitted a "free" universe will be used.
+-/
+library_note "category_theory universes"
+
 universes v u
 
 namespace category_theory

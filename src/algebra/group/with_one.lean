@@ -6,7 +6,19 @@ Authors: Mario Carneiro, Johan Commelin
 import algebra.ring.basic
 import data.equiv.basic
 
-universes u v
+/-!
+# Adjoining a zero/one to semigroups and related algebraic structures
+
+This file contains different results about adjoining an element to an algebraic structure which then
+behaves like a zero or a one. An example is adjoining a one to a semigroup to obtain a monoid. That
+this provides an example of an adjunction is proved in `algebra.category.Mon.adjunctions`.
+
+Another result says that adjoining to a group an element `zero` gives a `group_with_zero`. For more
+information about these structures (which are not that standard in informal mathematics, see
+`algebra.group_with_zero.basic`)
+-/
+
+universes u v w
 variable {α : Type u}
 
 /-- Add an extra element `1` to a type -/
@@ -64,16 +76,16 @@ protected lemma cases_on {P : with_one α → Prop} :
 option.cases_on
 
 @[to_additive]
-instance [has_mul α] : has_mul (with_one α) :=
-{ mul := option.lift_or_get (*) }
+instance [has_mul α] : mul_one_class (with_one α) :=
+{ mul := option.lift_or_get (*),
+  one := (1),
+  one_mul   := (option.lift_or_get_is_left_id _).1,
+  mul_one   := (option.lift_or_get_is_right_id _).1 }
 
 @[to_additive]
 instance [semigroup α] : monoid (with_one α) :=
 { mul_assoc := (option.lift_or_get_assoc _).1,
-  one_mul   := (option.lift_or_get_is_left_id _).1,
-  mul_one   := (option.lift_or_get_is_right_id _).1,
-  ..with_one.has_one,
-  ..with_one.has_mul }
+  ..with_one.mul_one_class }
 
 @[to_additive]
 instance [comm_semigroup α] : comm_monoid (with_one α) :=
@@ -81,13 +93,13 @@ instance [comm_semigroup α] : comm_monoid (with_one α) :=
   ..with_one.monoid }
 
 /-- `coe` as a bundled morphism -/
-@[simps apply, to_additive "`coe` as a bundled morphism"]
+@[to_additive "`coe` as a bundled morphism", simps apply]
 def coe_mul_hom [has_mul α] : mul_hom α (with_one α) :=
 { to_fun := coe, map_mul' := λ x y, rfl }
 
 section lift
 
-variables [semigroup α] {β : Type v} [monoid β]
+variables [has_mul α] {β : Type v} [mul_one_class β]
 
 /-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism. -/
 @[to_additive "Lift an add_semigroup homomorphism `f` to a bundled add_monoid homorphism."]
@@ -119,7 +131,7 @@ end lift
 
 section map
 
-variables {β : Type v} [semigroup α] [semigroup β]
+variables {β : Type v} [has_mul α] [has_mul β]
 
 /-- Given a multiplicative map from `α → β` returns a monoid homomorphism
   from `with_one α` to `with_one β` -/
@@ -127,6 +139,15 @@ variables {β : Type v} [semigroup α] [semigroup β]
   from `with_zero α` to `with_zero β`"]
 def map (f : mul_hom α β) : with_one α →* with_one β :=
 lift (coe_mul_hom.comp f)
+
+@[simp, to_additive]
+lemma map_id : map (mul_hom.id α) = monoid_hom.id (with_one α) :=
+by { ext, cases x; refl }
+
+@[simp, to_additive]
+lemma map_comp {γ : Type w} [has_mul γ] (f : mul_hom α β) (g : mul_hom β γ) :
+map (g.comp f) = (map g).comp (map f) :=
+by { ext, cases x; refl }
 
 end map
 

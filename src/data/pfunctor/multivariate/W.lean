@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Simon Hudon
+Authors: Jeremy Avigad, Simon Hudon
 -/
 import data.pfunctor.multivariate.basic
 
@@ -24,7 +24,8 @@ as the least fixpoint of a polynomial functor.
 Three views of M-types:
 
  * `Wp`: polynomial functor
- * `W`: data type inductively defined by a triple: shape of the root, data in the root and children of the root
+ * `W`: data type inductively defined by a triple:
+     shape of the root, data in the root and children of the root
  * `W`: least fixed point of a polynomial functor
 
 Specifically, we define the polynomial functor `Wp` as:

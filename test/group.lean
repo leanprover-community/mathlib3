@@ -17,9 +17,11 @@ def commutator {G} [group G] : G → G → G := λ g h, g * h * g⁻¹ * h⁻¹
 def commutator3 {G} [group G] : G → G → G → G := λ g h k, commutator (commutator g h) k
 
 -- The following is known as the Hall-Witt identity,
--- see e.g. https://en.wikipedia.org/wiki/Three_subgroups_lemma#Proof_and_the_Hall%E2%80%93Witt_identity
+-- see e.g.
+-- https://en.wikipedia.org/wiki/Three_subgroups_lemma#Proof_and_the_Hall%E2%80%93Witt_identity
 example (g h k : G) :
-  g * (commutator3 g⁻¹ h k) * g⁻¹ * k * (commutator3 k⁻¹ g h) * k⁻¹ * h * (commutator3 h⁻¹ k g) * h⁻¹ = 1 :=
+  g * (commutator3 g⁻¹ h k) * g⁻¹ * k * (commutator3 k⁻¹ g h) * k⁻¹ *
+    h * (commutator3 h⁻¹ k g) * h⁻¹ = 1 :=
 by { dsimp [commutator3, commutator], group }
 
 example (a : G) : a^2*a = a^3 :=

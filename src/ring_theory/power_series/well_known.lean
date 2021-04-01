@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import ring_theory.power_series.basic
 import data.nat.parity
@@ -118,5 +118,25 @@ end
 /-- Shows that $e^{x} * e^{-x} = 1$ -/
 theorem exp_mul_exp_neg_eq_one [algebra ℚ A] : exp A * eval_neg_hom (exp A) = 1 :=
 by convert exp_mul_exp_eq_exp_add (1 : A) (-1); simp
+
+/-- Shows that $(e^{X})^k = e^{kX}$. -/
+theorem exp_pow_eq_rescale_exp [algebra ℚ A] (k : ℕ) : (exp A)^k = rescale (k : A) (exp A) :=
+begin
+  induction k with k h,
+  { simp only [rescale_zero, constant_coeff_exp, function.comp_app, map_one, cast_zero,
+      pow_zero, coe_comp], },
+  simpa only [succ_eq_add_one, cast_add, ←exp_mul_exp_eq_exp_add (k : A), ←h, cast_one,
+    id_apply, rescale_one] using pow_succ' (exp A) k,
+end
+
+/-- Shows that
+$\sum_{k = 0}^{n - 1} (e^{X})^k = \sum_{p = 0}^{\infty} \sum_{k = 0}^{n - 1} \frac{k^p}{p!}X^p$. -/
+theorem exp_pow_sum [algebra ℚ A] (n : ℕ) : (finset.range n).sum (λ k, (exp A)^k) =
+  power_series.mk (λ p, (finset.range n).sum (λ k, k^p * algebra_map ℚ A p.factorial⁻¹)) :=
+begin
+  simp only [exp_pow_eq_rescale_exp, rescale],
+  ext,
+  simp only [one_div, coeff_mk, coe_mk, coeff_exp, factorial, linear_map.map_sum],
+end
 
 end power_series

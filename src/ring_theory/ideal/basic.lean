@@ -55,7 +55,8 @@ end ideal
 
 variables {a b : α}
 
--- A separate namespace definition is needed because the variables were historically in a different order
+-- A separate namespace definition is needed because the variables were historically in a different
+-- order.
 namespace ideal
 variables [comm_semiring α] (I : ideal α)
 
@@ -251,9 +252,13 @@ theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
 let ⟨m, hm⟩ := (eq_top_or_exists_le_coatom I).resolve_left hI in ⟨m, ⟨⟨hm.1⟩, hm.2⟩⟩
 
+variables (α)
+
 /-- Krull's theorem: a nontrivial ring has a maximal ideal. -/
 theorem exists_maximal [nontrivial α] : ∃ M : ideal α, M.is_maximal :=
-let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) submodule.bot_ne_top in ⟨I, hI⟩
+let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) bot_ne_top in ⟨I, hI⟩
+
+variables {α}
 
 instance [nontrivial α] : nontrivial (ideal α) :=
 begin
@@ -603,7 +608,7 @@ begin
     rw [bot_lt_iff_ne_bot, lt_top_iff_ne_top],
     exact ⟨mt ideal.span_singleton_eq_bot.mp nz, mt ideal.span_singleton_eq_top.mp nu⟩ },
   { rintros ⟨I, bot_lt, lt_top⟩ hf,
-    obtain ⟨x, mem, ne_zero⟩ := submodule.exists_of_lt bot_lt,
+    obtain ⟨x, mem, ne_zero⟩ := set_like.exists_of_lt bot_lt,
     rw submodule.mem_bot at ne_zero,
     obtain ⟨y, hy⟩ := hf.mul_inv_cancel ne_zero,
     rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ← hy] at lt_top,
@@ -888,6 +893,6 @@ instance : local_ring α :=
 { is_local := λ a,
   if h : a = 0
   then or.inr (by rw [h, sub_zero]; exact is_unit_one)
-  else or.inl $ is_unit_of_mul_eq_one a a⁻¹ $ div_self h }
+  else or.inl $ is_unit.mk0 a h }
 
 end field

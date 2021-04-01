@@ -171,6 +171,21 @@ begin
   exact lie_submodule.lie_mem_lie _ _ fy₁ fy₂,
 end
 
+lemma map_bracket_eq {I₁ I₂ : lie_ideal R L} (h : function.surjective f) :
+  map f ⁅I₁, I₂⁆ = ⁅map f I₁, map f I₂⁆ :=
+begin
+  suffices : ⁅map f I₁, map f I₂⁆ ≤ map f ⁅I₁, I₂⁆, { exact le_antisymm (map_bracket_le f) this, },
+  rw [← lie_submodule.coe_submodule_le_coe_submodule, coe_map_of_surjective h,
+    lie_submodule.lie_ideal_oper_eq_linear_span,
+    lie_submodule.lie_ideal_oper_eq_linear_span, submodule.map_span],
+  apply submodule.span_mono,
+  rintros x ⟨⟨z₁, h₁⟩, ⟨z₂, h₂⟩, rfl⟩,
+  obtain ⟨y₁, rfl⟩ := mem_map_of_surjective h h₁,
+  obtain ⟨y₂, rfl⟩ := mem_map_of_surjective h h₂,
+  use [⁅(y₁ : L), (y₂ : L)⁆, y₁, y₂],
+  apply f.map_lie,
+end
+
 lemma comap_bracket_le {J₁ J₂ : lie_ideal R L'} : ⁅comap f J₁, comap f J₂⁆ ≤ comap f ⁅J₁, J₂⁆ :=
 begin
   rw ← map_le_iff_le_comap,

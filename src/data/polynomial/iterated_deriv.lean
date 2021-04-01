@@ -43,7 +43,8 @@ begin
   { rw [iterated_deriv_succ, hn, derivative_zero] },
 end
 
-@[simp] lemma iterated_deriv_add : iterated_deriv (p + q) n = iterated_deriv p n + iterated_deriv q n :=
+@[simp] lemma iterated_deriv_add :
+  iterated_deriv (p + q) n = iterated_deriv p n + iterated_deriv q n :=
 begin
   induction n with n ih,
   { simp only [iterated_deriv_zero_right], },
@@ -109,7 +110,8 @@ begin
   { simp only [iterated_deriv_succ, ih, derivative_neg] }
 end
 
-@[simp] lemma iterated_deriv_sub : iterated_deriv (p - q) n = iterated_deriv p n - iterated_deriv q n :=
+@[simp] lemma iterated_deriv_sub :
+  iterated_deriv (p - q) n = iterated_deriv p n - iterated_deriv q n :=
 by rw [sub_eq_add_neg, iterated_deriv_add, iterated_deriv_neg, ←sub_eq_add_neg]
 
 
@@ -194,7 +196,7 @@ begin
         C ↑1 * p.iterated_deriv n.succ * q.iterated_deriv 0 :
     by ring
   ... = ∑ (i : ℕ) in range n.succ,
-          C ↑(n.succ.choose (i + 1)) * p.iterated_deriv (n + 1 - (i + 1)) * q.iterated_deriv (i + 1) +
+          C ↑((n+1).choose (i+1)) * p.iterated_deriv (n + 1 - (i+1)) * q.iterated_deriv (i+1) +
         C ↑1 * p.iterated_deriv n.succ * q.iterated_deriv 0 :
     by simp_rw [choose_succ_succ, succ_sub_succ, cast_add, C.map_add, add_mul, sum_add_distrib]
   ... = ∑ (k : ℕ) in range n.succ.succ,

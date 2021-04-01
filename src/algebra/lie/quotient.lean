@@ -74,7 +74,7 @@ instance lie_quotient_lie_ring_module : lie_ring_module L N.quotient :=
   lie_add     := λ x m n, by { simp only [linear_map.map_add, linear_map.add_apply], },
   leibniz_lie := λ x y m, show action_as_endo_map _ _ _ = _,
   { simp only [lie_hom.map_lie, lie_ring.of_associative_ring_bracket, sub_add_cancel,
-      lie_hom.coe_to_linear_map, linear_map.mul_app, linear_map.sub_apply], } }
+      lie_hom.coe_to_linear_map, linear_map.mul_apply, linear_map.sub_apply], } }
 
 /-- The quotient of a Lie module by a Lie submodule, is a Lie module. -/
 instance lie_quotient_lie_module : lie_module R L N.quotient :=

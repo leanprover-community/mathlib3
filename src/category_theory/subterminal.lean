@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
+import category_theory.subobject.basic
 
 /-!
 # Subterminal objects
@@ -83,10 +84,9 @@ lemma is_subterminal_of_terminal [has_terminal C] : is_subterminal (⊤_ C) :=
 If `A` is subterminal, its diagonal morphism is an isomorphism.
 The converse of `is_subterminal_of_is_iso_diag`.
 -/
-def is_subterminal.is_iso_diag (hA : is_subterminal A) [has_binary_product A A] :
+lemma is_subterminal.is_iso_diag (hA : is_subterminal A) [has_binary_product A A] :
   is_iso (diag A) :=
-{ inv := limits.prod.fst,
-  inv_hom_id' := by { rw is_subterminal.def at hA, tidy } }
+⟨⟨limits.prod.fst, ⟨by simp, by { rw is_subterminal.def at hA, tidy }⟩⟩⟩
 
 /--
 If the diagonal morphism of `A` is an isomorphism, then it is subterminal.
@@ -125,7 +125,42 @@ instance [has_terminal C] : inhabited (subterminals C) :=
 ⟨⟨⊤_ C, is_subterminal_of_terminal⟩⟩
 
 /-- The inclusion of the subterminal objects into the original category. -/
-@[derive [full, faithful]]
+@[derive [full, faithful], simps]
 def subterminal_inclusion : subterminals C ⥤ C := full_subcategory_inclusion _
+
+instance subterminals_thin (X Y : subterminals C) : subsingleton (X ⟶ Y) :=
+⟨λ f g, Y.2 f g⟩
+
+/--
+The category of subterminal objects is equivalent to the category of monomorphisms to the terminal
+object (which is in turn equivalent to the subobjects of the terminal object).
+-/
+@[simps]
+def subterminals_equiv_mono_over_terminal [has_terminal C] :
+  subterminals C ≌ mono_over (⊤_ C) :=
+{ functor :=
+  { obj := λ X, ⟨over.mk (terminal.from X.1), X.2.mono_terminal_from⟩,
+    map := λ X Y f, mono_over.hom_mk f (by ext1 ⟨⟩) },
+  inverse :=
+  { obj := λ X, ⟨X.val.left, λ Z f g, by { rw ← cancel_mono X.arrow, apply subsingleton.elim }⟩,
+    map := λ X Y f, f.1 },
+  unit_iso :=
+  { hom := { app := λ X, 𝟙 _ },
+    inv := { app := λ X, 𝟙 _ } },
+  counit_iso :=
+  { hom := { app := λ X, over.hom_mk (𝟙 _) },
+    inv := { app := λ X, over.hom_mk (𝟙 _) } } }
+
+@[simp]
+lemma subterminals_to_mono_over_terminal_comp_forget [has_terminal C] :
+  (subterminals_equiv_mono_over_terminal C).functor ⋙ mono_over.forget _ ⋙ over.forget _ =
+    subterminal_inclusion C :=
+rfl
+
+@[simp]
+lemma mono_over_terminal_to_subterminals_comp [has_terminal C] :
+  (subterminals_equiv_mono_over_terminal C).inverse ⋙ subterminal_inclusion C =
+    mono_over.forget _ ⋙ over.forget _ :=
+rfl
 
 end category_theory

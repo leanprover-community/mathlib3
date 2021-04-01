@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2018 Mario Carneiro and Kevin Buzzard. All rights reserved.
+Copyright (c) 2018 Mario Carneiro, Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
@@ -109,6 +109,12 @@ end
 theorem fg_bot : (⊥ : submodule R M).fg :=
 ⟨∅, by rw [finset.coe_empty, span_empty]⟩
 
+theorem fg_span {s : set M} (hs : finite s) : fg (span R s) :=
+⟨hs.to_finset, by rw [hs.coe_to_finset]⟩
+
+theorem fg_span_singleton (x : M) : fg (R ∙ x) :=
+fg_span (finite_singleton x)
+
 theorem fg_sup {N₁ N₂ : submodule R M}
   (hN₁ : N₁.fg) (hN₂ : N₂.fg) : (N₁ ⊔ N₂).fg :=
 let ⟨t₁, ht₁⟩ := fg_def.1 hN₁, ⟨t₂, ht₂⟩ := fg_def.1 hN₂ in
@@ -176,7 +182,8 @@ begin
   have : f x ∈ map f s, { rw mem_map, exact ⟨x, hx, rfl⟩ },
   rw [← ht1,← set.image_id ↑t1, finsupp.mem_span_iff_total] at this,
   rcases this with ⟨l, hl1, hl2⟩,
-  refine mem_sup.2 ⟨(finsupp.total M M R id).to_fun ((finsupp.lmap_domain R R g : (P →₀ R) → M →₀ R) l), _,
+  refine mem_sup.2 ⟨(finsupp.total M M R id).to_fun
+    ((finsupp.lmap_domain R R g : (P →₀ R) → M →₀ R) l), _,
     x - finsupp.total M M R id ((finsupp.lmap_domain R R g : (P →₀ R) → M →₀ R) l),
     _, add_sub_cancel'_right _ _⟩,
   { rw [← set.image_id (g '' ↑t1), finsupp.mem_span_iff_total], refine ⟨_, _, rfl⟩,
@@ -198,6 +205,30 @@ begin
     unfold id,
     rw [f.map_smul, (hg y (hl1 hy)).2],
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
+end
+
+/-- The image of a finitely generated ideal is finitely generated. -/
+lemma map_fg_of_fg {R S : Type*} [comm_ring R] [comm_ring S] (I : ideal R) (h : I.fg) (f : R →+* S)
+  : (I.map f).fg :=
+begin
+  obtain ⟨X, hXfin, hXgen⟩ := fg_def.1 h,
+  apply fg_def.2,
+  refine ⟨set.image f X, finite.image ⇑f hXfin, _⟩,
+  rw [ideal.map, ideal.span, ← hXgen],
+  refine le_antisymm (submodule.span_mono (image_subset _ ideal.subset_span)) _,
+  rw [submodule.span_le, image_subset_iff],
+  intros i hi,
+  refine submodule.span_induction hi (λ x hx, _) _ (λ x y hx hy, _) (λ r x hx, _),
+  { simp only [set_like.mem_coe, mem_preimage],
+    suffices : f x ∈ f '' X, { exact ideal.subset_span this },
+    exact mem_image_of_mem ⇑f hx },
+  { simp only [set_like.mem_coe, ring_hom.map_zero, mem_preimage, zero_mem] },
+  { simp only [set_like.mem_coe, mem_preimage] at hx hy,
+    simp only [ring_hom.map_add, set_like.mem_coe, mem_preimage],
+    exact submodule.add_mem _ hx hy },
+  { simp only [set_like.mem_coe, mem_preimage] at hx,
+    simp only [algebra.id.smul_eq_mul, set_like.mem_coe, mem_preimage, ring_hom.map_mul],
+    exact submodule.smul_mem _ _ hx }
 end
 
 /-- The kernel of the composition of two linear maps is finitely generated if both kernels are and
@@ -258,7 +289,7 @@ begin
     { suffices : u.sup id ≤ s, from le_antisymm husup this,
       rw [sSup, finset.sup_eq_Sup], exact Sup_le_Sup huspan, },
     obtain ⟨t, ⟨hts, rfl⟩⟩ := finset.subset_image_iff.mp huspan,
-    rw [←finset.sup_finset_image, function.comp.left_id, finset.sup_eq_supr, supr_rw,
+    rw [finset.sup_finset_image, function.comp.left_id, finset.sup_eq_supr, supr_rw,
       ←span_eq_supr_of_singleton_spans, eq_comm] at ssup,
     exact ⟨t, ssup⟩, },
 end
@@ -389,8 +420,9 @@ lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
   ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=
 is_noetherian_iff_well_founded.mp
 
-lemma finite_of_linear_independent {R M} [comm_ring R] [nontrivial R] [add_comm_group M] [module R M]
-  [is_noetherian R M] {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
+lemma finite_of_linear_independent {R M} [comm_ring R] [nontrivial R] [add_comm_group M]
+  [module R M] [is_noetherian R M] {s : set M} (hs : linear_independent R (coe : s → M)) :
+  s.finite :=
 begin
   refine classical.by_contradiction (λ hf, rel_embedding.well_founded_iff_no_descending_seq.1
     (well_founded_submodule_gt R M) ⟨_⟩),
@@ -409,9 +441,11 @@ begin
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
 
-/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them. -/
+/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them.
+-/
 theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] :
-  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔ is_noetherian R M :=
+  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔
+  is_noetherian R M :=
 by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
 
 /-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/
@@ -578,11 +612,12 @@ end
 variables {A : Type*} [integral_domain A] [is_noetherian_ring A]
 
 /--In a noetherian integral domain which is not a field, every non-zero ideal contains a non-zero
-  product of prime ideals; in a field, the whole ring is a non-zero ideal containing only 0 as product
-  or prime ideals ([samuel, § 3.3, Lemma 3])
+  product of prime ideals; in a field, the whole ring is a non-zero ideal containing only 0 as
+  product or prime ideals ([samuel, § 3.3, Lemma 3])
 -/
 
-lemma exists_prime_spectrum_prod_le_and_ne_bot_of_domain (h_fA : ¬ is_field A) {I : ideal A} (h_nzI: I ≠ ⊥) :
+lemma exists_prime_spectrum_prod_le_and_ne_bot_of_domain (h_fA : ¬ is_field A) {I : ideal A}
+  (h_nzI: I ≠ ⊥) :
   ∃ (Z : multiset (prime_spectrum A)), multiset.prod (Z.map (coe : subtype _ → ideal A)) ≤ I ∧
     multiset.prod (Z.map (coe : subtype _ → ideal A)) ≠ ⊥ :=
 begin

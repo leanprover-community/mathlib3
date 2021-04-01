@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
 import data.string.defs
+import data.option.defs
 import tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
@@ -372,6 +373,36 @@ e.replace $ λ e d,
   | _ := none
   end
 
+/-- Implementation of `expr.mreplace`. -/
+meta def mreplace_aux {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) :
+  expr → ℕ → m expr
+| (app f x) n := option.mget_or_else (R (app f x) n)
+  (do Rf ← mreplace_aux f n, Rx ← mreplace_aux x n, return $ app Rf Rx)
+| (lam nm bi ty bd) n := option.mget_or_else (R (lam nm bi ty bd) n)
+  (do Rty ← mreplace_aux ty n, Rbd ← mreplace_aux bd (n+1), return $ lam nm bi Rty Rbd)
+| (pi nm bi ty bd) n := option.mget_or_else (R (pi nm bi ty bd) n)
+  (do Rty ← mreplace_aux ty n, Rbd ← mreplace_aux bd (n+1), return $ pi nm bi Rty Rbd)
+| (elet nm ty a b) n := option.mget_or_else (R (elet nm ty a b) n)
+  (do Rty ← mreplace_aux ty n,
+    Ra ← mreplace_aux a n,
+    Rb ← mreplace_aux b n,
+    return $ elet nm Rty Ra Rb)
+| e n := option.mget_or_else (R e n) (return e)
+
+/--
+Monadic analogue of `expr.replace`.
+
+The `mreplace R e` visits each subexpression `s` of `e`, and is called with `R s n`, where
+`n` is the number of binders above `e`.
+If `R s n` fails, the whole replacement fails.
+If `R s n` returns `some t`, `s` is replaced with `t` (and `mreplace` does not visit
+its subexpressions).
+If `R s n` return `none`, then `mreplace` continues visiting subexpressions of `s`.
+-/
+meta def mreplace {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) (e : expr) :
+  m expr :=
+mreplace_aux R e 0
+
 /-- Match a variable. -/
 meta def match_var {elab} : expr elab → option ℕ
 | (var n) := some n
@@ -462,7 +493,8 @@ meta def to_implicit_local_const : expr → expr
 | e := e
 
 /-- If `e` is a local constant, lamda, or pi expression, `to_implicit_binder e` changes the binder
-info of `e` to `implicit`. See also `to_implicit_local_const`, which only changes local constants. -/
+info of `e` to `implicit`. See also `to_implicit_local_const`, which only changes local constants.
+-/
 meta def to_implicit_binder : expr → expr
 | (local_const n₁ n₂ _ d) := local_const n₁ n₂ binder_info.implicit d
 | (lam n _ d b) := lam n binder_info.implicit d b
@@ -717,7 +749,8 @@ meta def unsafe_cast {elab₁ elab₂ : bool} : expr elab₁ → expr elab₂ :=
 /-- `replace_subexprs e mappings` takes an `e : expr` and interprets a `list (expr × expr)` as
 a collection of rules for variable replacements. A pair `(f, t)` encodes a rule which says "whenever
 `f` is encountered in `e` verbatim, replace it with `t`". -/
-meta def replace_subexprs {elab : bool} (e : expr elab) (mappings : list (expr × expr)) : expr elab :=
+meta def replace_subexprs {elab : bool} (e : expr elab) (mappings : list (expr × expr)) :
+  expr elab :=
 unsafe_cast $ e.unsafe_cast.replace $ λ e n,
   (mappings.filter $ λ ent : expr × expr, ent.1 = e).head'.map prod.snd
 
@@ -752,7 +785,8 @@ private meta def all_implicitly_included_variables_aux
 | []          vs rs tt := all_implicitly_included_variables_aux rs vs [] ff
 | []          vs rs ff := vs
 | (e :: rest) vs rs b :=
-  let (vs, rs, b) := if e.is_implicitly_included_variable vs then (e :: vs, rs, tt) else (vs, e :: rs, b) in
+  let (vs, rs, b) :=
+    if e.is_implicitly_included_variable vs then (e :: vs, rs, tt) else (vs, e :: rs, b) in
   all_implicitly_included_variables_aux rest vs rs b
 
 /-- `all_implicitly_included_variables es vs` accepts `es`, a list of `expr.local_const`, and `vs`,
@@ -973,8 +1007,8 @@ do tp ← pp tp, body ← pp body.get,
 private meta def print_defn (nm : name) (tp : expr) (body : expr) (is_trusted : bool) :
   tactic format :=
 do tp ← pp tp, body ← pp body,
-   return $ "<" ++ (if is_trusted then "def " else "meta def ") ++ to_fmt nm ++ " : " ++ tp ++ " := "
-     ++ body ++ ">"
+   return $ "<" ++ (if is_trusted then "def " else "meta def ") ++ to_fmt nm ++ " : " ++ tp ++
+     " := " ++ body ++ ">"
 
 /-- formats the arguments of a `declaration.cnst` -/
 private meta def print_cnst (nm : name) (tp : expr) (is_trusted : bool) : tactic format :=

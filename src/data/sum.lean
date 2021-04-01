@@ -49,10 +49,10 @@ end⟩
 
 namespace sum
 
-lemma injective_inl : function.injective (sum.inl : α → α ⊕ β) :=
+lemma inl_injective : function.injective (sum.inl : α → α ⊕ β) :=
 λ x y, sum.inl.inj
 
-lemma injective_inr : function.injective (sum.inr : β → α ⊕ β) :=
+lemma inr_injective : function.injective (sum.inr : β → α ⊕ β) :=
 λ x y, sum.inr.inj
 
 /-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
@@ -127,7 +127,7 @@ update_eq_iff.2 ⟨by simp, by simp { contextual := tt }⟩
 @[simp] lemma update_inl_comp_inl {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
   {f : α ⊕ β → γ} {i : α} {x : γ} :
   update f (inl i) x ∘ inl = update (f ∘ inl) i x :=
-update_comp_eq_of_injective _ injective_inl _ _
+update_comp_eq_of_injective _ inl_injective _ _
 
 @[simp] lemma update_inl_apply_inl {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
   {f : α ⊕ β → γ} {i j : α} {x : γ} :
@@ -157,7 +157,7 @@ function.update_noteq inl_ne_inr _ _
 @[simp] lemma update_inr_comp_inr {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
   {f : α ⊕ β → γ} {i : β} {x : γ} :
   update f (inr i) x ∘ inr = update (f ∘ inr) i x :=
-update_comp_eq_of_injective _ injective_inr _ _
+update_comp_eq_of_injective _ inr_injective _ _
 
 @[simp] lemma update_inr_apply_inr {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
   {f : α ⊕ β → γ} {i j : β} {x : γ} :
@@ -195,7 +195,8 @@ section
     exact IH _ h'
   end
 
-  theorem lex_acc_inr (aca : ∀ a, acc (lex ra rb) (inl a)) {b} (acb : acc rb b) : acc (lex ra rb) (inr b) :=
+  theorem lex_acc_inr (aca : ∀ a, acc (lex ra rb) (inl a)) {b} (acb : acc rb b) :
+    acc (lex ra rb) (inr b) :=
   begin
     induction acb with b H IH,
     constructor, intros y h,

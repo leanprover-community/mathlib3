@@ -392,8 +392,8 @@ begin
 
   have lemma1 :=
   calc    1 - real.cos γ ^ 2
-        = 1 - ((a*a + b*b - c*c) / (2*a*b)) ^ 2 : by rw cos_rule
-    ... = 1 - (a*a + b*b - c*c)^2 / (2*a*b)^2 : by { congr', exact div_pow (a*a + b*b - c*c) (2*a*b) 2 }
+        = 1 - ((a*a + b*b - c*c) / (2*a*b)) ^ 2           : by rw cos_rule
+    ... = 1 - (a*a + b*b - c*c)^2 / (2*a*b)^2             : by { congr', exact div_pow _ (2*a*b) 2 }
     ... = (((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2) : by field_simp,
 
   have ab2_pos : 0 ≤ (2 * a * b), by { field_simp *, linarith },
@@ -412,35 +412,32 @@ begin
     exact anotherc,
   },
 
+  let area_sqr := s * (s - a) * (s - c) * (s - b),
+
   have pen_lemma :
-    1/4 * real.sqrt ( (s * (s - a) * (s - c) * (s - b) * 4) * 4) =
-      1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b) * 4) * real.sqrt (4),
+    1/4 * real.sqrt ( (area_sqr * 4) * 4) =
+      1/4 * real.sqrt ( area_sqr * 4) * real.sqrt (4),
     by { rw real.sqrt_mul' _ _, ring, linarith },
 
   have lastlemma :
-    1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b) * 4^2) =
-      1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b)) * real.sqrt (4^2),
-    by { rw pow_two,
-         have something : 1 / 4 * real.sqrt (s * (s - a) * (s - c) * (s - b) * (4 * 4))
-           = 1 / 4 * real.sqrt (s * (s - a) * (s - c) * (s - b) * 4 * 4), by ring_nf,
-         rw something,
-         rw pen_lemma,
-         rw real.sqrt_mul' (s * (s - a) * (s - c) * (s - b)) _,
-         have yetanother : 1 / 4 * (real.sqrt (s * (s - a) * (s - c) * (s - b)) * real.sqrt 4) * real.sqrt 4
-             = 1 / 4 * (real.sqrt (s * (s - a) * (s - c) * (s - b))) * (real.sqrt 4 * real.sqrt 4),
-           by ring,
-         rw yetanother,
-         rw ← real.sqrt_mul' _ _,
-         linarith,
-         linarith },
+          1/4 * real.sqrt ( area_sqr * 4^2) =
+          1/4 * real.sqrt ( area_sqr) * real.sqrt (4*4),
+    calc  1/4 * real.sqrt ( area_sqr * 4^2)
+        = 1/4 * real.sqrt ( area_sqr * (4 * 4)) : by rw pow_two
+    ... = 1/4 * real.sqrt (area_sqr * 4 * 4) : by ring_nf
+    ... = 1/4 * real.sqrt ( area_sqr * 4) * real.sqrt (4) : pen_lemma
+    ... = 1/4 * (real.sqrt (area_sqr) * real.sqrt 4) * real.sqrt 4 : by { rw real.sqrt_mul' (area_sqr) _ , linarith }
+    ... = 1/4 * (real.sqrt (area_sqr)) * (real.sqrt 4 * real.sqrt 4) : by ring
+    ... = 1/4 * real.sqrt ( area_sqr) * real.sqrt (4*4) : by { rw ← real.sqrt_mul' _ _, linarith },
 
   calc    1/2*a*b * real.sin γ
         = 1/2*a*b * real.sqrt (1 - real.cos γ ^ 2) : by rw sin_to_cos
     ... = 1/2*a*b * real.sqrt (((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2) : by rw ← lemma1
     ... = 1/2*a*b * real.sqrt ((2*a*b)^2 - (a*a + b*b - c*c)^2) / real.sqrt ((2*a*b)^2) : by rw real.sqrt_div lemma3 ; ring
     ... = 1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b) * 4^2 ) : by repeat { field_simp [ab2_pos] ; ring_nf }
-    ... = 1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b) ) * real.sqrt (4^2) : lastlemma
-    ... = 1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b) ) * 4 : by { congr', apply real.sqrt_sqr, linarith }
+    ... = 1/4 * real.sqrt ( area_sqr ) * real.sqrt (4*4) : lastlemma
+    ... = 1/4 * real.sqrt ( area_sqr ) * real.sqrt (4^2) : by rw ← pow_two
+    ... = 1/4 * real.sqrt ( area_sqr ) * 4 : by { congr', apply real.sqrt_sqr, linarith }
     ... = real.sqrt ( s * (s - a) * (s - c) * (s - b) ) : by ring,
 
   -- What the crap is this?!

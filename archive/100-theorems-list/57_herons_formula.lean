@@ -98,14 +98,14 @@ begin
       exact ab2_sqr_zero } },
 
   let s := (a + b + c) / 2,
-  let area_sqr := s * (s - a) * (s - b) * (s - c),
+  let area_sqr := s * (s-a) * (s-b) * (s-c),
 
   calc    1/2*a*b * real.sin γ
-        = 1/2*a*b * √( 1 - real.cos γ ^ 2 )           : by rw sin_to_cos
-    ... = 1/2*a*b * √( numerator / denominator )      : by rw ← split_to_fraction
-    ... = 1/2*a*b * √( numerator ) / √( denominator ) : by { rw real.sqrt_div numerator_nonneg, ring }
+        = 1/2*a*b * √( 1 - real.cos γ ^ 2 )         : by rw sin_to_cos
+    ... = 1/2*a*b * √( numerator / denominator )    : by rw ← split_to_fraction
+    ... = 1/2*a*b * √(numerator) / √(denominator)   : by { rw real.sqrt_div numerator_nonneg, ring }
     ... = 1/2*a*b * √( (2*a*b)^2 - (a*a + b*b - c*c)^2 ) / √( (2*a*b)^2 ) : rfl
-    ... = 1/4 * √( s * (s - a) * (s - b) * (s - c) * 4^2 ) : by repeat { field_simp [ab2_pos] ; ring_nf }
+    ... = 1/4 * √( s * (s-a) * (s-b) * (s-c) * 4^2 ) : by repeat { field_simp [ab2_pos] ; ring_nf }
     ... = 1/4 * √( area_sqr * (4 * 4))      : by rw pow_two
     ... = 1/4 * √( area_sqr * 4 * 4)        : by ring_nf
     ... = 1/4 * √( area_sqr * 4) * √(4)     : by { rw real.sqrt_mul' _ _, ring, linarith }
@@ -114,5 +114,5 @@ begin
     ... = 1/4 * √( area_sqr ) * √(4*4)      : by { rw ← real.sqrt_mul' _ _, linarith }
     ... = 1/4 * √( area_sqr ) * √(4^2)      : by rw ← pow_two
     ... = 1/4 * √( area_sqr ) * 4           : by { congr', apply real.sqrt_sqr, linarith }
-    ... = √( s * (s - a) * (s - b) * (s - c) ) : by ring,
+    ... = √( s * (s-a) * (s-b) * (s-c) ) : by ring,
 end

@@ -41,7 +41,7 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 universes u v w x
 
 open set finite_dimensional topological_space
-open_locale classical big_operators
+open_locale classical big_operators filter topological_space
 
 noncomputable theory
 
@@ -200,6 +200,23 @@ def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E �
     exact e.symm.to_linear_map.continuous_of_finite_dimensional
   end,
   ..e }
+
+lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F)
+  (hf : f.ker = ⊥) : ∃ K > 0, antilipschitz_with K f :=
+begin
+  cases subsingleton_or_nontrivial E; resetI,
+  { exact ⟨1, zero_lt_one, antilipschitz_with.of_subsingleton⟩ },
+  { let e : E ≃L[𝕜] f.range := (linear_equiv.of_injective f hf).to_continuous_linear_equiv,
+    exact ⟨_, e.nnnorm_symm_pos, e.antilipschitz⟩ }
+end
+
+protected lemma linear_independent.eventually {ι} [fintype ι] {f : ι → E}
+  (hf : linear_independent 𝕜 f) : ∀ᶠ g in 𝓝 f, linear_independent 𝕜 g :=
+begin
+  rw linear_independent at hf,
+  haveI : finite_dimensional 𝕜 (ι →₀ 𝕜) := by apply_instance,
+  rcases (finsupp.total ι E 𝕜 f).exists_antilipschitz_with hf
+end
 
 /-- Two finite-dimensional normed spaces are continuously linearly equivalent if they have the same
 (finite) dimension. -/

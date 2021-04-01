@@ -96,8 +96,8 @@ inductive path {V} (G : quiver.{v u} V) (a : V) : V → Sort (max (u+1) v)
 | cons : Π {b c : V}, path b → G.arrow b c → path c
 
 /-- An arrow viewed as a path of length one. -/
-def arrow.to_path {V} {G : quiver V} {a b} : G.arrow a b → G.path a b :=
-λ e, path.nil.cons e
+def arrow.to_path {V} {G : quiver V} {a b} (e : G.arrow a b) : G.path a b :=
+path.nil.cons e
 
 namespace path
 
@@ -244,10 +244,10 @@ instance : has_reverse H.symmetrify := ⟨λ a b e, e.swap⟩
 /-- Two vertices are related in the zigzag setoid if there is a
     zigzag of arrows from one to the other. -/
 def zigzag_setoid : setoid V :=
-⟨ λ a b, nonempty (H.symmetrify.path a b),
-  λ a, ⟨path.nil⟩,
-  λ a b ⟨p⟩, ⟨p.reverse⟩,
-  λ a b c ⟨p⟩ ⟨q⟩, ⟨p.comp q⟩ ⟩
+⟨λ a b, nonempty (H.symmetrify.path a b),
+ λ a, ⟨path.nil⟩,
+ λ a b ⟨p⟩, ⟨p.reverse⟩,
+ λ a b c ⟨p⟩ ⟨q⟩, ⟨p.comp q⟩⟩
 
 /-- The type of weakly connected components of a directed graph. Two vertices are
     in the same weakly connected component if there is a zigzag of arrows from one

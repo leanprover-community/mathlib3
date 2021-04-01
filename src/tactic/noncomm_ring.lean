@@ -23,6 +23,9 @@ meta def noncomm_ring :=
              mul_assoc,
              -- Expand powers to numerals.
              pow_bit0, pow_bit1, pow_one,
+             -- Expand powers of add_one, preferring to multiply on the left,
+             -- and commuting multiplications on the right to the left across powers
+             pow_succ, ←pow_succ', pow_zero,
              -- Replace multiplication by numerals with `gsmul`.
              bit0_mul, mul_bit0, bit1_mul, mul_bit1, one_mul, mul_one, zero_mul, mul_zero,
              -- Pull `gsmul n` out the front so `abel` can see them.

@@ -1,3 +1,4 @@
+import data.matrix.basic
 import tactic.noncomm_ring
 
 local notation `⁅`a`,` b`⁆` := a * b - b * a
@@ -53,3 +54,8 @@ example : ⁅a ⚬ b, c⁆ = a ⚬ ⁅b, c⁆ + ⁅a, c⁆ ⚬ b := by noncomm_r
 example : (a ⚬ b) ⚬ c - a ⚬ (b ⚬ c) = -⁅⁅a, b⁆, c⁆ + ⁅a, ⁅b, c⁆⁆ := by noncomm_ring
 
 example : a + -b = -b + a := by noncomm_ring
+
+variables {K ι : Type*} [comm_ring K] [fintype ι] [decidable_eq ι] (m : ℕ) (A : matrix ι ι K)
+
+example : 1 - A ^ m.succ = (1 - A) * A ^ m + (1 - A ^ m) := by noncomm_ring
+example : 1 - A ^ m.succ = A ^ m * 1 - A ^ m * A + (1 - A ^ m) := by noncomm_ring

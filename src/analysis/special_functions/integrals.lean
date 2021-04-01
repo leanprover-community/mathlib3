@@ -293,7 +293,7 @@ begin
 end
 
 example : ∫ x:ℝ in 0..2, 3*(x + 1)^2 = 26 :=
-by norm_num [integral_comp_add_right]
+by norm_num [integral_comp_add_right (λ x, x^2)]
 
 example : ∫ x:ℝ in -1..0, (1 + (x+1)^2)⁻¹ = π/4 :=
-by simp [integral_comp_add_right 1]
+by simp [integral_comp_add_right (λ x, (1 + x^2)⁻¹)]

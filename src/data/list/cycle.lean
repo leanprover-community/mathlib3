@@ -11,6 +11,8 @@ notation l ` ~r ` l' := is_rotated l l'
 
 lemma is_rotated.def {l l' : list α} (h : l ~r l') : ∃ n, l.rotate n = l' := h
 
+lemma is_rotated_iff {l l' : list α} : (l ~r l') ↔ ∃ n, l.rotate n = l' := iff.rfl
+
 @[refl] lemma is_rotated.refl (l : list α) : l ~r l :=
 ⟨0, by simp⟩
 
@@ -70,33 +72,28 @@ lemma is_rotated_concat (hd : α) (tl : list α) :
   tl ++ [hd] ~r hd :: tl :=
 is_rotated.symm ⟨1, by simp [rotate_cons_succ]⟩
 
-lemma is_rotated.foldr_eq {f : α → β → β} {l₁ l₂ : list α} (lcomm : left_commutative f)
-  (p : l₁ ~r l₂) :
-  ∀ b, foldr f b l₁ = foldr f b l₂ :=
-perm_induction_on p
-  (λ b, rfl)
-  (λ x t₁ t₂ p r b, by simp; rw [r b])
-  (λ x y t₁ t₂ p r b, by simp; rw [lcomm, r b])
-  (λ t₁ t₂ t₃ p₁ p₂ r₁ r₂ a, eq.trans (r₁ a) (r₂ a))
-
 def cycle (α : Type*) : Type* := quotient (@is_rotated.setoid α)
 
 section cycle_zip_with
 
-variables [decidable_eq α] (l : list α) (f : α → α → β)
+variables (l : list α) (f : α → α → β)
 
-def list.cycle_zip_with : list β :=
-if h : l = [] then [] else zip_with f (l.last h :: l) l
+def list.cycle_zip_with : list β := zip_with f l l.tail
 
 @[simp] lemma list.cycle_zip_with_nil : list.cycle_zip_with [] f = [] := rfl
 
-@[simp] lemma list.cycle_zip_with_eq_nil_iff {l : list α} {f : α → α → β} :
-  list.cycle_zip_with l f = [] ↔ l = [] :=
+lemma list.rotate_cycle_zip_with_comm [decidable_eq α] (l : list α) (n : ℕ) (f : α → α → β) :
+  (l.rotate n).cycle_zip_with f = (l.cycle_zip_with f).rotate n :=
 begin
-  rw [list.cycle_zip_with],
-  split_ifs with h,
-  { simp [h] },
-  { simp }
+  induction n with n hn generalizing l,
+  { simp },
+  { have : l.rotate n.succ = (l.rotate 1).rotate n },
+  -- induction l with hd tl hl generalizing n,
+  -- { simp },
+  -- { cases n,
+  --   { simp },
+  --   { rw [list.cycle_zip_with_cons], },
+  -- },
 end
 
 end cycle_zip_with
@@ -104,43 +101,47 @@ end cycle_zip_with
 lemma list.cycle_zip_with_rotate_is_rotated [decidable_eq α] (l : list α) (f : α → α → β) (n : ℕ) :
   (l.rotate n).cycle_zip_with f ~r (l.cycle_zip_with f) :=
 begin
-  induction n with n hn generalizing l,
-  { simp },
-  { cases l with hd tl,
-    { simp },
-    { rw [rotate_cons_succ],
-      refine (hn _).trans _,
-      suffices : is_rotated (zip_with f (hd :: (tl ++ [hd])) (tl ++ [hd]))
-        (f ((hd :: tl).last (by simp)) hd :: zip_with f (hd :: tl) tl),
-        { simpa [list.cycle_zip_with] },
-      refine is_rotated.trans _ (is_rotated_concat _ _),
-      convert is_rotated.refl _,
-      apply list.ext,
-      intro n,
-      rw ←cons_append,
-      have l0 : tl.length ≤ (hd :: tl).length := by simp,
-      rcases lt_trichotomy (hd :: tl).length n with hn|rfl|hn,
-      { have : tl.length < n,
-          { refine nat.lt_of_succ_lt _,
-            simpa using hn },
-        obtain ⟨k, hk⟩ : ∃ k, n - tl.length = k + 2,
-          { convert nat.exists_eq_add_of_lt hn,
-            ext,
-            rw [nat.sub_eq_iff_eq_add this.le],
-            simp [add_comm, add_assoc, add_left_comm, bit0] },
-        rw [nth_append_right, length_zip_with, min_eq_right l0, nth_zip_with,
-            nth_append_right hn.le],
-        { simp [nat.sub_succ, hk] },
-        { simpa using this.le } },
-      { rw [nth_append_right, length_zip_with, min_eq_right l0, nth_zip_with, nth_append_right,
-            nth_append_right];
-        simp, },
-      { rcases (nat.le_of_lt_succ hn).eq_or_lt with rfl|H,
-        { rw [nth_append_right, length_zip_with, min_eq_right l0, nth_zip_with, nth_append,
-              nth_append_right (le_refl _)];
-          simp [last_eq_nth_le, nth_le_nth] },
-        { rw [nth_append, nth_zip_with, nth_zip_with, nth_append hn, nth_append H],
-          simpa } } } }
+  -- induction n with n hn generalizing l,
+  -- { simp },
+  -- { cases l with hd tl,
+  --   { simp },
+  --   { rw [rotate_cons_succ],
+  --     refine (hn _).trans _,
+  --     rw is_rotated_iff,
+
+  --   }
+  -- }
+      -- suffices : is_rotated (zip_with f (hd :: (tl ++ [hd])) (tl ++ [hd]))
+      --   (f ((hd :: tl).last (by simp)) hd :: zip_with f (hd :: tl) tl),
+      --   { simpa [list.cycle_zip_with] },
+      -- refine is_rotated.trans _ (is_rotated_concat _ _),
+      -- convert is_rotated.refl _,
+      -- apply list.ext,
+      -- intro n,
+      -- rw ←cons_append,
+      -- have l0 : tl.length ≤ (hd :: tl).length := by simp,
+      -- rcases lt_trichotomy (hd :: tl).length n with hn|rfl|hn,
+      -- { have : tl.length < n,
+      --     { refine nat.lt_of_succ_lt _,
+      --       simpa using hn },
+      --   obtain ⟨k, hk⟩ : ∃ k, n - tl.length = k + 2,
+      --     { convert nat.exists_eq_add_of_lt hn,
+      --       ext,
+      --       rw [nat.sub_eq_iff_eq_add this.le],
+      --       simp [add_comm, add_assoc, add_left_comm, bit0] },
+      --   rw [nth_append_right, length_zip_with, min_eq_right l0, nth_zip_with,
+      --       nth_append_right hn.le],
+      --   { simp [nat.sub_succ, hk] },
+      --   { simpa using this.le } },
+      -- { rw [nth_append_right, length_zip_with, min_eq_right l0, nth_zip_with, nth_append_right,
+      --       nth_append_right];
+      --   simp, },
+      -- { rcases (nat.le_of_lt_succ hn).eq_or_lt with rfl|H,
+      --   { rw [nth_append_right, length_zip_with, min_eq_right l0, nth_zip_with, nth_append,
+      --         nth_append_right (le_refl _)];
+      --     simp [last_eq_nth_le, nth_le_nth] },
+      --   { rw [nth_append, nth_zip_with, nth_zip_with, nth_append hn, nth_append H],
+      --     simpa } } } }
 end
 
 lemma is_rotated.cycle_zip_with [decidable_eq α] {l l' : list α} (h : l ~r l') (f : α → α → β) :
@@ -148,6 +149,20 @@ lemma is_rotated.cycle_zip_with [decidable_eq α] {l l' : list α} (h : l ~r l')
 begin
   obtain ⟨n, rfl⟩ := h.def,
   exact (list.cycle_zip_with_rotate_is_rotated _ _ _).symm
+end
+
+lemma is_rotated.cycle_with_equiv_swap_prod_eq [decidable_eq α] {l l' : list α} (h : l ~r l') :
+  (l.cycle_zip_with equiv.swap).prod = (l'.cycle_zip_with equiv.swap).prod :=
+begin
+  -- induction
+  obtain ⟨n, rfl⟩ := h.def,
+  obtain ⟨m, hm⟩ := h.symm.cycle_zip_with equiv.swap,
+  rw ←hm,
+  induction l.rotate n with hd tl hl generalizing m n,
+  { simp },
+  {
+    rw [list.cycle_zip_with, dif_neg, zip_with_cons_cons, prod_cons],
+  },
 end
 
 namespace cycle

@@ -255,16 +255,15 @@ for given `f` and `g`.
 @[simps]
 def pullback_limit_cone (f : X ⟶ Z) (g : Y ⟶ Z) : limits.limit_cone (cospan f g) :=
 { cone := pullback_cone f g,
-  is_limit :=
-  begin
-    fapply pullback_cone.is_limit_aux _,
-    exact λ s x, ⟨⟨s.fst x, s.snd x⟩, congr_fun s.condition x⟩,
-    { tidy, },
-    { tidy, },
-    intros, ext,
-    exact congr_fun (w walking_cospan.left) x,
-    exact congr_fun (w walking_cospan.right) x,
-  end }
+  is_limit := pullback_cone.is_limit_aux _
+    (λ s x, ⟨⟨s.fst x, s.snd x⟩, congr_fun s.condition x⟩)
+    (by tidy)
+    (by tidy)
+    begin
+      intros, ext,
+      exact congr_fun (w walking_cospan.left) x,
+      exact congr_fun (w walking_cospan.right) x,
+    end }
 
 /--
 The pullback cone given by the instance `has_pullbacks (Type u)` is isomorphic to the

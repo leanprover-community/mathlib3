@@ -49,7 +49,7 @@ end
   We show this by equating this formula to `a * b * sin γ`, where `γ` is the angle opposite
   the side `c`.
  -/
-theorem heron {p1 p2 p3 : P} (h2 : p1 ≠ p2) (h3 : p1 ≠ p3) (h4 : p3 ≠ p2) :
+theorem heron {p1 p2 p3 : P} (h1 : p1 ≠ p2) (h2 : p3 ≠ p2) :
   1/2 * dist p1 p2 * dist p3 p2 * real.sin (∠ p1 p2 p3) =
     √ (((dist p1 p2 + dist p3 p2 + dist p1 p3) / 2) *
         (((dist p1 p2 + dist p3 p2 + dist p1 p3) / 2) - dist p1 p2) *
@@ -61,9 +61,8 @@ begin
   let c := dist p1 p3,
   let γ := ∠ p1 p2 p3,
 
-  have a_nonzero : a ≠ 0 := (dist_pos.mpr h2).ne',
-  have b_nonzero : b ≠ 0 := (dist_pos.mpr h4).ne',
-  have c_nonzero : c ≠ 0 := (dist_pos.mpr h3).ne',
+  have a_nonzero : a ≠ 0 := (dist_pos.mpr h1).ne',
+  have b_nonzero : b ≠ 0 := (dist_pos.mpr h2).ne',
 
   have cos_rule := rearrange_cos_rule a b c (real.cos γ) a_nonzero b_nonzero
     (dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle p1 p2 p3),

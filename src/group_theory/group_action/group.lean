@@ -45,6 +45,14 @@ def units.smul_perm_hom : units α →* equiv.perm β :=
   map_one' := equiv.ext $ one_smul α,
   map_mul' := λ u₁ u₂, equiv.ext $ mul_smul (u₁:α) u₂ }
 
+/-- If an additive monoid `α` acts on `β`, then each `u : add_units α` defines a permutation
+of `β`. -/
+def add_units.vadd_perm_hom {M : Type*} [add_monoid M] [add_action M β] :
+  add_units M →+ additive (equiv.perm β) :=
+{ to_fun := λ u, additive.of_mul u.vadd_perm,
+  map_zero' := equiv.ext $ zero_vadd M,
+  map_add' := λ u₁ u₂, equiv.ext $ add_vadd (u₁:M) u₂ }
+
 @[simp, to_additive] lemma units.smul_left_cancel (u : units α) {x y : β} :
   (u:α) • x = (u:α) • y ↔ x = y :=
 u.smul_perm.apply_eq_iff_eq

@@ -15,11 +15,6 @@ variables {R : Type*} {S : Type*} {M : Type*} {N : Type*}
 
 namespace prod
 
-instance {r : monoid R} [add_monoid M] [add_monoid N]
-  [distrib_mul_action R M] [distrib_mul_action R N] : distrib_mul_action R (M × N) :=
-{ smul_add  := λ a p₁ p₂, mk.inj_iff.mpr ⟨smul_add _ _ _, smul_add _ _ _⟩,
-  smul_zero := λ a, mk.inj_iff.mpr ⟨smul_zero _, smul_zero _⟩ }
-
 instance {r : semiring R} [add_comm_monoid M] [add_comm_monoid N]
   [semimodule R M] [semimodule R N] : semimodule R (M × N) :=
 { add_smul  := λ a p₁ p₂, mk.inj_iff.mpr ⟨add_smul _ _ _, add_smul _ _ _⟩,

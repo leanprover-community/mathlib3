@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
 import group_theory.group_action.defs
+import algebra.group.prod
+
 /-!
 # Prod instances for additive and multiplicative actions
 
@@ -37,5 +39,10 @@ end
 @[to_additive] instance {m : monoid M} [mul_action M α] [mul_action M β] : mul_action M (α × β) :=
 { mul_smul  := λ a₁ a₂ p, mk.inj_iff.mpr ⟨mul_smul _ _ _, mul_smul _ _ _⟩,
   one_smul  := λ ⟨b, c⟩, mk.inj_iff.mpr ⟨one_smul _ _, one_smul _ _⟩ }
+
+instance {R M N : Type*} {r : monoid R} [add_monoid M] [add_monoid N]
+  [distrib_mul_action R M] [distrib_mul_action R N] : distrib_mul_action R (M × N) :=
+{ smul_add  := λ a p₁ p₂, mk.inj_iff.mpr ⟨smul_add _ _ _, smul_add _ _ _⟩,
+  smul_zero := λ a, mk.inj_iff.mpr ⟨smul_zero _, smul_zero _⟩ }
 
 end prod

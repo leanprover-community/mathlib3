@@ -712,7 +712,7 @@ instance tendsto_Ixx_nhds_within {α : Type*} [preorder α] [topological_space �
   tendsto_Ixx_class Ixx (𝓝[s] a) (𝓝[t] a) :=
 filter.tendsto_Ixx_class_inf
 
-instance tendsto_Icc_class_nhds_pi {ι : Type*} {α : ι → Type*} [nonempty ι]
+instance tendsto_Icc_class_nhds_pi {ι : Type*} {α : ι → Type*}
   [Π i, partial_order (α i)] [Π i, topological_space (α i)] [∀ i, order_topology (α i)]
   (f : Π i, α i) :
   tendsto_Ixx_class Icc (𝓝 f) (𝓝 f) :=

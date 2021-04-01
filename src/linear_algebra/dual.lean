@@ -40,10 +40,13 @@ noncomputable theory
 namespace module
 
 variables (R : Type*) (M : Type*)
-variables [comm_ring R] [add_comm_group M] [module R M]
+variables [comm_semiring R] [add_comm_monoid M] [semimodule R M]
 
 /-- The dual space of an R-module M is the R-module of linear maps `M → R`. -/
-@[derive [add_comm_group, module R]] def dual := M →ₗ[R] R
+@[derive [add_comm_monoid, semimodule R]] def dual := M →ₗ[R] R
+
+instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
+  add_comm_group (dual S N) := by {unfold dual, apply_instance}
 
 namespace dual
 
@@ -61,7 +64,7 @@ begin
   rw [linear_map.flip_apply, linear_map.id_apply]
 end
 
-variables {R M} {M' : Type*} [add_comm_group M'] [module R M']
+variables {R M} {M' : Type*} [add_comm_monoid M'] [semimodule R M']
 
 /-- The transposition of linear maps, as a linear map from `M →ₗ[R] M'` to
 `dual R M' →ₗ[R] dual R M`. -/
@@ -70,7 +73,7 @@ def transpose : (M →ₗ[R] M') →ₗ[R] (dual R M' →ₗ[R] dual R M) :=
 
 lemma transpose_apply (u : M →ₗ[R] M') (l : dual R M') : transpose u l = l.comp u := rfl
 
-variables {M'' : Type*} [add_comm_group M''] [module R M'']
+variables {M'' : Type*} [add_comm_monoid M''] [semimodule R M'']
 
 lemma transpose_comp (u : M' →ₗ[R] M'') (v : M →ₗ[R] M') :
   transpose (u.comp v) = (transpose v).comp (transpose u) := rfl
@@ -96,7 +99,7 @@ include de h
 /-- The linear map from a vector space equipped with basis to its dual vector space,
 taking basis elements to corresponding dual basis elements. -/
 def to_dual : V →ₗ[K] module.dual K V :=
-h.constr $ λ v, h.constr $ λ w, if w = v then 1 else 0
+h.constr $ λ v, h.constr $ λ w, if w = v then (1 : K) else 0
 
 variable {B}
 
@@ -573,3 +576,122 @@ end
 end
 
 end subspace
+
+variables {R : Type*} [comm_ring R] {M₁ : Type*} {M₂ : Type*}
+variables [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂]
+
+open module
+
+/-- Given a linear map `f : M₁ →ₗ[R] M₂`, `f.dual_map` is the linear map between the dual of
+`M₂` and `M₁` such that it maps the functional `φ` to `φ ∘ f`. -/
+def linear_map.dual_map (f : M₁ →ₗ[R] M₂) : dual R M₂ →ₗ[R] dual R M₁ :=
+linear_map.lcomp R R f
+
+@[simp] lemma linear_map.dual_map_apply (f : M₁ →ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
+  f.dual_map g x = g (f x) :=
+linear_map.lcomp_apply f g x
+
+@[simp] lemma linear_map.dual_map_id :
+  (linear_map.id : M₁ →ₗ[R] M₁).dual_map = linear_map.id :=
+by { ext, refl }
+
+lemma linear_map.dual_map_comp_dual_map {M₃ : Type*} [add_comm_group M₃] [module R M₃]
+  (f : M₁ →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) :
+  f.dual_map.comp g.dual_map = (g.comp f).dual_map :=
+rfl
+
+/-- The `linear_equiv` version of `linear_map.dual_map`. -/
+def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual R M₁ :=
+{ inv_fun := f.symm.to_linear_map.dual_map,
+  left_inv :=
+    begin
+      intro φ, ext x,
+      simp only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
+                 linear_map.to_fun_eq_coe, linear_equiv.apply_symm_apply]
+    end,
+  right_inv :=
+    begin
+      intro φ, ext x,
+      simp only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
+                 linear_map.to_fun_eq_coe, linear_equiv.symm_apply_apply]
+    end,
+  .. f.to_linear_map.dual_map }
+
+@[simp] lemma linear_equiv.dual_map_apply (f : M₁ ≃ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
+  f.dual_map g x = g (f x) :=
+linear_map.lcomp_apply f g x
+
+@[simp] lemma linear_equiv.dual_map_refl :
+  (linear_equiv.refl R M₁).dual_map = linear_equiv.refl R (dual R M₁) :=
+by { ext, refl }
+
+@[simp] lemma linear_equiv.dual_map_symm {f : M₁ ≃ₗ[R] M₂} :
+  (linear_equiv.dual_map f).symm = linear_equiv.dual_map f.symm := rfl
+
+lemma linear_equiv.dual_map_trans {M₃ : Type*} [add_comm_group M₃] [module R M₃]
+  (f : M₁ ≃ₗ[R] M₂) (g : M₂ ≃ₗ[R] M₃) :
+  g.dual_map.trans f.dual_map = (f.trans g).dual_map :=
+rfl
+
+namespace linear_map
+
+variable (f : M₁ →ₗ[R] M₂)
+
+lemma ker_dual_map_eq_dual_annihilator_range :
+  f.dual_map.ker = f.range.dual_annihilator :=
+begin
+  ext φ, split; intro hφ,
+  { rw mem_ker at hφ,
+    rw submodule.mem_dual_annihilator,
+    rintro y ⟨x, _, rfl⟩,
+    rw [← dual_map_apply, hφ, zero_apply] },
+  { ext x,
+    rw dual_map_apply,
+    rw submodule.mem_dual_annihilator at hφ,
+    exact hφ (f x) ⟨x, set_like.mem_coe.mpr submodule.mem_top, rfl⟩ }
+end
+
+lemma range_dual_map_le_dual_annihilator_ker :
+  f.dual_map.range ≤ f.ker.dual_annihilator :=
+begin
+  rintro _ ⟨ψ, _, rfl⟩,
+  simp_rw [submodule.mem_dual_annihilator, mem_ker],
+  rintro x hx,
+  rw [dual_map_apply, hx, map_zero]
+end
+
+section finite_dimensional
+
+variables {K : Type*} [field K] {V₁ : Type*} {V₂ : Type*}
+variables [add_comm_group V₁] [vector_space K V₁] [add_comm_group V₂] [vector_space K V₂]
+
+open finite_dimensional
+
+variable [finite_dimensional K V₂]
+
+@[simp] lemma findim_range_dual_map_eq_findim_range (f : V₁ →ₗ[K] V₂) :
+  findim K f.dual_map.range = findim K f.range :=
+begin
+  have := submodule.findim_quotient_add_findim f.range,
+  rw [(subspace.quot_equiv_annihilator f.range).findim_eq,
+      ← ker_dual_map_eq_dual_annihilator_range] at this,
+  conv_rhs at this { rw ← subspace.dual_findim_eq },
+  refine add_left_injective (findim K f.dual_map.ker) _,
+  change _ + _ = _ + _,
+  rw [findim_range_add_findim_ker f.dual_map, add_comm, this],
+end
+
+lemma range_dual_map_eq_dual_annihilator_ker [finite_dimensional K V₁] (f : V₁ →ₗ[K] V₂) :
+  f.dual_map.range = f.ker.dual_annihilator :=
+begin
+  refine eq_of_le_of_findim_eq f.range_dual_map_le_dual_annihilator_ker _,
+  have := submodule.findim_quotient_add_findim f.ker,
+  rw (subspace.quot_equiv_annihilator f.ker).findim_eq at this,
+  refine add_left_injective (findim K f.ker) _,
+  simp_rw [this, findim_range_dual_map_eq_findim_range],
+  exact findim_range_add_findim_ker f,
+end
+
+end finite_dimensional
+
+end linear_map

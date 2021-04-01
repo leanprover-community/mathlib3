@@ -500,7 +500,7 @@ begin
     contrapose! hx, rw [hx, mul_zero], },
   { rw [unit_coeff_spec hx] { occs := occurrences.pos [2] },
     lift x.valuation to ℕ using x.valuation_nonneg with k hk,
-    simp only [int.nat_abs_of_nat, is_unit_unit, is_unit.dvd_mul_left, int.coe_nat_le],
+    simp only [int.nat_abs_of_nat, units.is_unit, is_unit.dvd_mul_left, int.coe_nat_le],
     intro H,
     obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le H,
     simp only [pow_add, dvd_mul_right], }

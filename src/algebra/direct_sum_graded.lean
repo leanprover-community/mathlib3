@@ -422,7 +422,7 @@ section comm_ring
 variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_monoid A]
 
 /-- The `comm_ring` derived from `gcomm_monoid A`. -/
-instance comm_ring : ring (⨁ i, A i) := {
+instance comm_ring : comm_ring (⨁ i, A i) := {
   one := 1,
   mul := (*),
   zero := 0,

@@ -332,7 +332,7 @@ def sum {ι} (f : ι → outer_measure α) : outer_measure α :=
 
 theorem smul_dirac_apply (a : ℝ≥0∞) (b : α) (s : set α) :
   (a • dirac b) s = indicator s (λ _, a) b :=
-by simp
+by simp only [smul_apply, dirac_apply, ← indicator_mul_right _ (λ _, a), mul_one]
 
 /-- Pullback of an `outer_measure`: `comap f μ s = μ (f '' s)`. -/
 def comap {β} (f : α → β) : outer_measure β →ₗ[ℝ≥0∞] outer_measure α :=

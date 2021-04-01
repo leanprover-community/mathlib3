@@ -72,16 +72,16 @@ open fin nat function
 /-- Elimination principle for the empty set `fin 0`, dependent version. -/
 def fin_zero_elim {α : fin 0 → Sort u} (x : fin 0) : α x := x.elim0
 
-lemma fact.succ.pos {n} : fact (0 < succ n) := zero_lt_succ _
+lemma fact.succ.pos {n} : fact (0 < succ n) := ⟨zero_lt_succ _⟩
 
 lemma fact.bit0.pos {n} [h : fact (0 < n)] : fact (0 < bit0 n) :=
-nat.zero_lt_bit0 $ ne_of_gt h
+⟨nat.zero_lt_bit0 $ ne_of_gt h.1⟩
 
 lemma fact.bit1.pos {n} : fact (0 < bit1 n) :=
-nat.zero_lt_bit1 _
+⟨nat.zero_lt_bit1 _⟩
 
 lemma fact.pow.pos {p n : ℕ} [h : fact $ 0 < p] : fact (0 < p ^ n) :=
-pow_pos h _
+⟨pow_pos h.1 _⟩
 
 localized "attribute [instance] fact.succ.pos" in fin_fact
 localized "attribute [instance] fact.bit0.pos" in fin_fact
@@ -311,7 +311,7 @@ section add
 -/
 
 /-- convert a `ℕ` to `fin n`, provided `n` is positive -/
-def of_nat' [h : fact (0 < n)] (i : ℕ) : fin n := ⟨i%n, mod_lt _ h⟩
+def of_nat' [h : fact (0 < n)] (i : ℕ) : fin n := ⟨i%n, mod_lt _ h.1⟩
 
 lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
 lemma coe_one' {n : ℕ} : ((1 : fin (n+1)) : ℕ) = 1 % (n+1) := rfl
@@ -1282,7 +1282,7 @@ begin
       { have : update (snoc p x) j (_root_.cast C1 y) j = _root_.cast C1 y, by simp,
         convert this,
         { exact h'.symm },
-        { exact heq_of_eq_mp (congr_arg α (eq.symm h')) rfl } },
+        { exact heq_of_cast_eq (congr_arg α (eq.symm h')) rfl } },
       have C2 : α i.cast_succ = α (cast_succ (cast_lt j h)),
         by rw [cast_succ_cast_lt, h'],
       have E2 : update p i y (cast_lt j h) = _root_.cast C2 y,
@@ -1290,7 +1290,7 @@ begin
           by simp,
         convert this,
         { simp [h, h'] },
-        { exact heq_of_eq_mp C2 rfl } },
+        { exact heq_of_cast_eq C2 rfl } },
       rw [E1, E2],
       exact eq_rec_compose _ _ _ },
     { have : ¬(cast_lt j h = i),

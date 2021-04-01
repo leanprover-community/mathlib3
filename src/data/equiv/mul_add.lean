@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 import algebra.group.hom
 import algebra.group.type_tags
 import algebra.group.units_hom
+import algebra.group_with_zero
 
 /-!
 # Multiplicative and additive equivs
@@ -33,6 +34,16 @@ equiv, mul_equiv, add_equiv
 
 variables {A : Type*} {B : Type*} {M : Type*} {N : Type*}
   {P : Type*} {Q : Type*} {G : Type*} {H : Type*}
+
+/-- Makes a multiplicative inverse from a bijection which preserves multiplication. -/
+@[to_additive "Makes an additive inverse from a bijection which preserves addition."]
+def mul_hom.inverse [has_mul M] [has_mul N] (f : mul_hom M N) (g : N → M)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) : mul_hom N M :=
+{ to_fun   := g,
+  map_mul' := λ x y,
+    calc g (x * y) = g (f (g x) * f (g y)) : by rw [h₂ x, h₂ y]
+               ... = g (f (g x * g y)) : by rw f.map_mul
+               ... = g x * g y : h₁ _, }
 
 set_option old_structure_cmd true
 
@@ -102,11 +113,7 @@ instance : inhabited (M ≃* M) := ⟨refl M⟩
 /-- The inverse of an isomorphism is an isomorphism. -/
 @[symm, to_additive "The inverse of an isomorphism is an isomorphism."]
 def symm (h : M ≃* N) : N ≃* M :=
-{ map_mul' := λ n₁ n₂, h.injective $
-    begin
-      have : ∀ x, h (h.to_equiv.symm.to_fun x) = x := h.to_equiv.apply_symm_apply,
-      simp only [this, h.map_mul]
-    end,
+{ map_mul' := (h.to_mul_hom.inverse h.to_equiv.symm h.left_inv h.right_inv).map_mul,
   .. h.to_equiv.symm}
 
 /-- See Note [custom simps projection] -/
@@ -356,6 +363,8 @@ def to_units {G} [group G] : G ≃* units G :=
   right_inv := λ u, units.ext rfl,
   map_mul' := λ x y, units.ext rfl }
 
+protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
+
 namespace units
 
 variables [monoid M] [monoid N] [monoid P]
@@ -456,6 +465,37 @@ lemma coe_inv : ⇑(equiv.inv G) = has_inv.inv := rfl
 lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
 
 end group
+
+section group_with_zero
+variables [group_with_zero G]
+
+/-- Left multiplication by a nonzero element in a `group_with_zero` is a permutation of the
+underlying type. -/
+protected def mul_left' (a : G) (ha : a ≠ 0) : perm G :=
+{ to_fun := λ x, a * x,
+  inv_fun := λ x, a⁻¹ * x,
+  left_inv := λ x, by { dsimp, rw [← mul_assoc, inv_mul_cancel ha, one_mul] },
+  right_inv := λ x, by { dsimp, rw [← mul_assoc, mul_inv_cancel ha, one_mul] } }
+
+@[simp] lemma coe_mul_left' (a : G) (ha : a ≠ 0) : ⇑(equiv.mul_left' a ha) = (*) a := rfl
+
+@[simp] lemma mul_left'_symm_apply (a : G) (ha : a ≠ 0) :
+  ((equiv.mul_left' a ha).symm : G → G) = (*) a⁻¹ := rfl
+
+/-- Right multiplication by a nonzero element in a `group_with_zero` is a permutation of the
+underlying type. -/
+protected def mul_right' (a : G) (ha : a ≠ 0) : perm G :=
+{ to_fun := λ x, x * a,
+  inv_fun := λ x, x * a⁻¹,
+  left_inv := λ x, by { dsimp, rw [mul_assoc, mul_inv_cancel ha, mul_one] },
+  right_inv := λ x, by { dsimp, rw [mul_assoc, inv_mul_cancel ha, mul_one] } }
+
+@[simp] lemma coe_mul_right' (a : G) (ha : a ≠ 0) : ⇑(equiv.mul_right' a ha) = λ x, x * a := rfl
+
+@[simp] lemma mul_right'_symm_apply (a : G) (ha : a ≠ 0) :
+  ((equiv.mul_right' a ha).symm : G → G) = λ x, x * a⁻¹ := rfl
+
+end group_with_zero
 
 end equiv
 

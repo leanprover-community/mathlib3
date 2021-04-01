@@ -1446,7 +1446,8 @@ lemma has_deriv_within_at.div
   has_deriv_within_at (λ y, c y / d y) ((c' * d x - c x * d') / (d x)^2) s x :=
 begin
   convert hc.mul ((has_deriv_at_inv hx).comp_has_deriv_within_at x hd),
-  field_simp, ring
+  { simp only [div_eq_mul_inv] },
+  { field_simp, ring }
 end
 
 lemma has_strict_deriv_at.div (hc : has_strict_deriv_at c c' x) (hd : has_strict_deriv_at d d' x)
@@ -1454,7 +1455,8 @@ lemma has_strict_deriv_at.div (hc : has_strict_deriv_at c c' x) (hd : has_strict
   has_strict_deriv_at (λ y, c y / d y) ((c' * d x - c x * d') / (d x)^2) x :=
 begin
   convert hc.mul ((has_strict_deriv_at_inv hx).comp x hd),
-  field_simp, ring
+  { simp only [div_eq_mul_inv] },
+  { field_simp, ring }
 end
 
 lemma has_deriv_at.div (hc : has_deriv_at c c' x) (hd : has_deriv_at d d' x) (hx : d x ≠ 0) :
@@ -1502,7 +1504,7 @@ by simp [div_eq_inv_mul, differentiable_within_at.const_mul, hc]
 
 @[simp] lemma differentiable_at.div_const (hc : differentiable_at 𝕜 c x) {d : 𝕜} :
   differentiable_at 𝕜 (λ x, c x / d) x :=
-(hc.has_deriv_at.mul_const d⁻¹).differentiable_at
+by simpa only [div_eq_mul_inv] using (hc.has_deriv_at.mul_const d⁻¹).differentiable_at
 
 lemma differentiable_on.div_const (hc : differentiable_on 𝕜 c s) {d : 𝕜} :
   differentiable_on 𝕜 (λx, c x / d) s :=

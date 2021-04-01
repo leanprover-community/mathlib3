@@ -352,7 +352,7 @@ begin
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
       (polynomial.map_surjective _ (((quotient.mk I).comp C).range_restrict_surjective)) this,
     refine sub_add_cancel (C y) f ▸ I.add_mem (hi' _ : (C y - f) ∈ I) hf.1,
-    rw [ring_hom.mem_ker, ring_hom.map_sub, hf.2, sub_eq_zero_iff_eq, coe_map_ring_hom, map_C] },
+    rw [ring_hom.mem_ker, ring_hom.map_sub, hf.2, sub_eq_zero, coe_map_ring_hom, map_C] },
   exact hx,
 end
 

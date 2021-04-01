@@ -451,12 +451,12 @@ def bilin_form_of_real_inner : bilin_form ℝ F :=
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ :=
-sesq_form.map_sum_right (sesq_form_of_inner) _ _ _
+sesq_form.sum_right (sesq_form_of_inner) _ _ _
 
 /-- An inner product with a sum on the right. -/
 lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ :=
-sesq_form.map_sum_left (sesq_form_of_inner) _ _ _
+sesq_form.sum_left (sesq_form_of_inner) _ _ _
 
 /-- An inner product with a sum on the left, `finsupp` version. -/
 lemma finsupp.sum_inner {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :

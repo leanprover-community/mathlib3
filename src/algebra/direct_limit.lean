@@ -479,7 +479,7 @@ theorem of_injective [directed_system G (λ i j h, f' i j h)]
   function.injective (of G (λ i j h, f' i j h) i) :=
 begin
   suffices : ∀ x, of G (λ i j h, f' i j h) i x = 0 → x = 0,
-  { intros x y hxy, rw ← sub_eq_zero_iff_eq, apply this,
+  { intros x y hxy, rw ← sub_eq_zero, apply this,
     rw [(of G _ i).map_sub, hxy, sub_self] },
   intros x hx, rcases of.zero_exact hx with ⟨j, hij, hfx⟩,
   apply hf i j hij, rw [hfx, (f' i j hij).map_zero]

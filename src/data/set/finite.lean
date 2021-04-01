@@ -319,6 +319,20 @@ theorem infinite_of_inj_on_maps_to {s : set α} {t : set β} {f : α → β}
   (hi : inj_on f s) (hm : maps_to f s t) (hs : infinite s) : infinite t :=
 infinite_mono (maps_to'.mp hm) $ (infinite_image_iff hi).2 hs
 
+theorem infinite.exists_ne_map_eq_of_maps_to {s : set α} {t : set β} {f : α → β}
+  (hs : infinite s) (hf : maps_to f s t) (ht : finite t) :
+  ∃ (x ∈ s) (y ∈ s), x ≠ y ∧ f x = f y :=
+begin
+  unfreezingI { contrapose! ht },
+  exact infinite_of_inj_on_maps_to (λ x hx y hy, not_imp_not.1 (ht x hx y hy)) hf hs
+end
+
+theorem infinite.exists_lt_map_eq_of_maps_to [linear_order α] {s : set α} {t : set β} {f : α → β}
+  (hs : infinite s) (hf : maps_to f s t) (ht : finite t) :
+  ∃ (x ∈ s) (y ∈ s), x < y ∧ f x = f y :=
+let ⟨x, hx, y, hy, hxy, hf⟩ := hs.exists_ne_map_eq_of_maps_to hf ht
+in hxy.lt_or_lt.elim (λ hxy, ⟨x, hx, y, hy, hxy, hf⟩) (λ hyx, ⟨y, hy, x, hx, hyx, hf.symm⟩)
+
 theorem infinite_range_of_injective [_root_.infinite α] {f : α → β} (hi : injective f) :
   infinite (range f) :=
 by { rw [←image_univ, infinite_image_iff (inj_on_of_injective hi _)], exact infinite_univ }
@@ -336,8 +350,8 @@ finite.preimage (λ _ _ _ _ h', f.injective h') h
 
 lemma finite_option {s : set (option α)} : finite s ↔ finite {x : α | some x ∈ s} :=
 ⟨λ h, h.preimage_embedding embedding.some,
-  λ h, ((h.image some).union (finite_singleton none)).subset $
-    λ x, option.cases_on x (λ _, or.inr rfl) (λ x hx, or.inl $ mem_image_of_mem _ hx)⟩
+  λ h, ((h.image some).insert none).subset $
+    λ x, option.cases_on x (λ _, or.inl rfl) (λ x hx, or.inr $ mem_image_of_mem _ hx)⟩
 
 instance fintype_Union [decidable_eq α] {ι : Type*} [fintype ι]
   (f : ι → set α) [∀ i, fintype (f i)] : fintype (⋃ i, f i) :=

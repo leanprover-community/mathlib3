@@ -336,7 +336,8 @@ have ue' : uniform_embedding (dense_embedding.subtype_emb p e),
   from uniform_embedding_subtype_emb _ he de,
 have b ∈ closure (e '' {x | p x}),
   from (closure_mono $ monotone_image $ hp) (mem_of_nhds hb),
-let ⟨c, (hc : tendsto (f ∘ subtype.val) (comap (dense_embedding.subtype_emb p e) (𝓝 ⟨b, this⟩)) (𝓝 c))⟩ :=
+let ⟨c, (hc : tendsto (f ∘ subtype.val)
+     (comap (dense_embedding.subtype_emb p e) (𝓝 ⟨b, this⟩)) (𝓝 c))⟩ :=
   uniformly_extend_exists ue'.to_uniform_inducing de'.dense hf _ in
 begin
   rw [nhds_subtype_eq_comap] at hc,
@@ -381,14 +382,16 @@ end
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] : uniform_continuous ψ :=
 assume d hd,
 let ⟨s, hs, hs_comp⟩ := (mem_lift'_sets $
-  monotone_comp_rel monotone_id $ monotone_comp_rel monotone_id monotone_id).mp (comp_le_uniformity3 hd) in
+  monotone_comp_rel monotone_id $ monotone_comp_rel monotone_id monotone_id).mp
+    (comp_le_uniformity3 hd) in
 have h_pnt : ∀{a m}, m ∈ 𝓝 a → ∃c, c ∈ f '' preimage e m ∧ (c, ψ a) ∈ s ∧ (ψ a, c) ∈ s,
   from assume a m hm,
   have nb : ne_bot (map f (comap e (𝓝 a))),
     from ((h_e.dense_inducing h_dense).comap_nhds_ne_bot _).map _,
   have (f '' preimage e m) ∩ ({c | (c, ψ a) ∈ s } ∩ {c | (ψ a, c) ∈ s }) ∈ map f (comap e (𝓝 a)),
     from inter_mem_sets (image_mem_map $ preimage_mem_comap $ hm)
-      (uniformly_extend_spec h_e h_dense h_f _ (inter_mem_sets (mem_nhds_right _ hs) (mem_nhds_left _ hs))),
+      (uniformly_extend_spec h_e h_dense h_f _
+        (inter_mem_sets (mem_nhds_right _ hs) (mem_nhds_left _ hs))),
   nb.nonempty_of_mem this,
 have preimage (λp:β×β, (f p.1, f p.2)) s ∈ 𝓤 β,
   from h_f hs,

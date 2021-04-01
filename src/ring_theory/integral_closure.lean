@@ -89,7 +89,7 @@ begin
 end
 
 theorem is_integral_of_submodule_noetherian (S : subalgebra R A)
-  (H : is_noetherian R (S : submodule R A)) (x : A) (hx : x ∈ S) :
+  (H : is_noetherian R S.to_submodule) (x : A) (hx : x ∈ S) :
   is_integral R x :=
 begin
   suffices : is_integral R (show S, from ⟨x, hx⟩),
@@ -150,7 +150,7 @@ end
 end
 
 theorem fg_adjoin_singleton_of_integral (x : A) (hx : is_integral R x) :
-  (algebra.adjoin R ({x} : set A) : submodule R A).fg :=
+  (algebra.adjoin R ({x} : set A)).to_submodule.fg :=
 begin
   rcases hx with ⟨f, hfm, hfx⟩,
   existsi finset.image ((^) x) (finset.range (nat_degree f + 1)),
@@ -178,7 +178,7 @@ begin
 end
 
 theorem fg_adjoin_of_finite {s : set A} (hfs : s.finite)
-  (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s : submodule R A).fg :=
+  (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s).to_submodule.fg :=
 set.finite.induction_on hfs (λ _, ⟨{1}, submodule.ext $ λ x,
   by { erw [algebra.adjoin_empty, finset.coe_singleton, ← one_eq_span, one_eq_map_top,
       map_top, linear_map.mem_range, algebra.mem_bot], refl }⟩)
@@ -187,15 +187,15 @@ set.finite.induction_on hfs (λ _, ⟨{1}, submodule.ext $ λ x,
     (fg_adjoin_singleton_of_integral _ $ his a $ set.mem_insert a s)) his
 
 theorem is_integral_of_mem_of_fg (S : subalgebra R A)
-  (HS : (S : submodule R A).fg) (x : A) (hx : x ∈ S) : is_integral R x :=
+  (HS : S.to_submodule.fg) (x : A) (hx : x ∈ S) : is_integral R x :=
 begin
   cases HS with y hy,
   obtain ⟨lx, hlx1, hlx2⟩ :
     ∃ (l : A →₀ R) (H : l ∈ finsupp.supported R R ↑y), (finsupp.total A A R id) l = x,
   { rwa [←(@finsupp.mem_span_iff_total A A R _ _ _ id ↑y x), set.image_id ↑y, hy] },
-  have hyS : ∀ {p}, p ∈ y → p ∈ S := λ p hp, show p ∈ (S : submodule R A),
+  have hyS : ∀ {p}, p ∈ y → p ∈ S := λ p hp, show p ∈ S.to_submodule,
     by { rw ← hy, exact subset_span hp },
-  have : ∀ (jk : (↑(y.product y) : set (A × A))), jk.1.1 * jk.1.2 ∈ (S : submodule R A) :=
+  have : ∀ (jk : (↑(y.product y) : set (A × A))), jk.1.1 * jk.1.2 ∈ S.to_submodule :=
     λ jk, S.mul_mem (hyS (finset.mem_product.1 jk.2).1) (hyS (finset.mem_product.1 jk.2).2),
   rw [← hy, ← set.image_id ↑y] at this, simp only [finsupp.mem_span_iff_total] at this,
   choose ly hly1 hly2,
@@ -224,7 +224,7 @@ begin
     zero_mem := (span S₀ (insert 1 ↑y : set A)).zero_mem,
     add_mem := λ _ _, (span S₀ (insert 1 ↑y : set A)).add_mem,
     neg_mem := λ _, (span S₀ (insert 1 ↑y : set A)).neg_mem },
-  have : span S₀ (insert 1 ↑y : set A) = algebra.adjoin S₀ (↑y : set A),
+  have : span S₀ (insert 1 ↑y : set A) = (algebra.adjoin S₀ (↑y : set A)).to_submodule,
   { refine le_antisymm (span_le.2 $ set.insert_subset.2
         ⟨(algebra.adjoin S₀ ↑y).one_mem, algebra.subset_adjoin⟩) (λ z hz, _),
     rw [subalgebra.mem_to_submodule, algebra.mem_adjoin_iff] at hz, rw ← submodule.mem_coe,
@@ -321,7 +321,7 @@ def integral_closure : subalgebra R A :=
   algebra_map_mem' := λ x, is_integral_algebra_map }
 
 theorem mem_integral_closure_iff_mem_fg {r : A} :
-  r ∈ integral_closure R A ↔ ∃ M : subalgebra R A, (M : submodule R A).fg ∧ r ∈ M :=
+  r ∈ integral_closure R A ↔ ∃ M : subalgebra R A, M.to_submodule.fg ∧ r ∈ M :=
 ⟨λ hr, ⟨algebra.adjoin R {r}, fg_adjoin_singleton_of_integral _ hr, algebra.subset_adjoin rfl⟩,
 λ ⟨M, Hf, hrM⟩, is_integral_of_mem_of_fg M Hf _ hrM⟩
 

@@ -61,7 +61,7 @@ lemma map_mul_left_eq_self [topological_space G] [has_mul G] [has_continuous_mul
   {μ : measure G} : (∀ g, measure.map ((*) g) μ = μ) ↔ is_mul_left_invariant μ :=
 begin
   apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
-  apply forall_congr, intro hA, rw [map_apply (measurable_mul_left g) hA]
+  apply forall_congr, intro hA, rw [map_apply (measurable_const_mul g) hA]
 end
 
 @[to_additive]
@@ -69,7 +69,7 @@ lemma map_mul_right_eq_self [topological_space G] [has_mul G] [has_continuous_mu
   {μ : measure G} : (∀ g, measure.map (λ h, h * g) μ = μ) ↔ is_mul_right_invariant μ :=
 begin
   apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
-  apply forall_congr, intro hA, rw [map_apply (measurable_mul_right g) hA]
+  apply forall_congr, intro hA, rw [map_apply (measurable_mul_const g) hA]
 end
 
 /-- The measure `A ↦ μ (A⁻¹)`, where `A⁻¹` is the pointwise inverse of `A`. -/
@@ -110,7 +110,7 @@ lemma is_mul_left_invariant.inv (h : is_mul_left_invariant μ) :
   is_mul_right_invariant μ.inv :=
 begin
   intros g A hA,
-  rw [μ.inv_apply (measurable_mul_right g hA), μ.inv_apply hA],
+  rw [μ.inv_apply (measurable_mul_const g hA), μ.inv_apply hA],
   convert h g⁻¹ (measurable_inv hA) using 2,
   simp only [←preimage_comp, ← inv_preimage],
   apply preimage_congr,
@@ -122,7 +122,7 @@ end
 lemma is_mul_right_invariant.inv (h : is_mul_right_invariant μ) : is_mul_left_invariant μ.inv :=
 begin
   intros g A hA,
-  rw [μ.inv_apply (measurable_mul_left g hA), μ.inv_apply hA],
+  rw [μ.inv_apply (measurable_const_mul g hA), μ.inv_apply hA],
   convert h g⁻¹ (measurable_inv hA) using 2,
   simp only [←preimage_comp, ← inv_preimage],
   apply preimage_congr,

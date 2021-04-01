@@ -314,7 +314,7 @@ begin
   rw mul_inv_cancel (mt (λ key, _) h),
   rw ← ϕ.map_zero at key,
   change ↑(⟨x, hx⟩ : algebra.adjoin F {α}) = _,
-  rw [ϕ.injective key, submodule.coe_zero]
+  rw [ϕ.injective key, subalgebra.coe_zero]
 end
 
 end adjoin_simple

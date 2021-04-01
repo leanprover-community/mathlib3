@@ -1701,15 +1701,11 @@ end ring
 end submodule
 
 namespace linear_map
-variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
-variables [module R M] [module R M₂] [module R M₃]
 
-lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
-linear_map.ext $ λ x, by simp
+section semiring
 
-lemma ker_le_range_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} :
-  g.ker ≤ f.range ↔ f.range.mkq.comp g.ker.subtype = 0 :=
-by rw [←range_le_ker_iff, submodule.ker_mkq, submodule.range_subtype]
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 
 /-- A monomorphism is injective. -/
 lemma ker_eq_bot_of_cancel {f : M →ₗ[R] M₂}
@@ -1720,6 +1716,28 @@ begin
   exact range_zero
 end
 
+lemma range_comp_of_range_eq_top {f : M →ₗ[R] M₂} (g : M₂ →ₗ[R] M₃) (hf : range f = ⊤) :
+  range (g.comp f) = range g :=
+by rw [range_comp, hf, submodule.map_top]
+
+lemma ker_comp_of_ker_eq_bot (f : M →ₗ[R] M₂) {g : M₂ →ₗ[R] M₃} (hg : ker g = ⊥) :
+  ker (g.comp f) = ker f :=
+by rw [ker_comp, hg, submodule.comap_bot]
+
+end semiring
+
+section ring
+
+variables [ring R] [add_comm_monoid M] [add_comm_group M₂] [add_comm_monoid M₃]
+variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
+
+lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
+linear_map.ext $ λ x, by simp
+
+lemma ker_le_range_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} :
+  g.ker ≤ f.range ↔ f.range.mkq.comp g.ker.subtype = 0 :=
+by rw [←range_le_ker_iff, submodule.ker_mkq, submodule.range_subtype]
+
 /-- An epimorphism is surjective. -/
 lemma range_eq_top_of_cancel {f : M →ₗ[R] M₂}
   (h : ∀ (u v : M₂ →ₗ[R] f.range.quotient), u.comp f = v.comp f → u = v) : f.range = ⊤ :=
@@ -1728,6 +1746,8 @@ begin
   rw [←submodule.ker_mkq f.range, ←h 0 f.range.mkq (eq.trans h₁ (range_mkq_comp _).symm)],
   exact ker_zero
 end
+
+end ring
 
 end linear_map
 
@@ -1789,7 +1809,8 @@ end uncurry
 
 section
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
-variables (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M) (e : M ≃ₗ[R] M₂)
+  {semimodule_M₃ : semimodule R M₃}
+variables (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M) (e : M ≃ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) (l : M₃ →ₗ[R] M)
 
 variables (p q : submodule R M)
 
@@ -1852,6 +1873,12 @@ end
 
 @[simp] protected theorem ker : (e : M →ₗ[R] M₂).ker = ⊥ :=
 linear_map.ker_eq_bot_of_injective e.to_equiv.injective
+
+@[simp] theorem range_comp : (h.comp (e : M →ₗ[R] M₂)).range = h.range :=
+linear_map.range_comp_of_range_eq_top _ e.range
+
+@[simp] theorem ker_comp : ((e : M →ₗ[R] M₂).comp l).ker = l.ker :=
+linear_map.ker_comp_of_ker_eq_bot _ e.ker
 
 variables {f g}
 

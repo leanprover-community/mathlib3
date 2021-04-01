@@ -120,6 +120,16 @@ protected def function.surjective.mul_action [has_scalar α γ] (f : β → γ) 
   one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
   mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
 
+variables (β)
+
+/-- Compose a `mul_action` with a `monoid_hom`, with action `f r' • m` -/
+def monoid_hom.comp_mul_action [monoid γ] (f : γ →* α) : mul_action γ β :=
+{ smul := (•) ∘ f,
+  one_smul := λ m, by simp,
+  mul_smul := λ r s m, by simp [mul_smul] }
+
+variables {β}
+
 section ite
 
 variables (p : Prop) [decidable p]
@@ -224,6 +234,14 @@ protected def function.surjective.distrib_mul_action [add_monoid γ] [has_scalar
   .. hf.mul_action f smul }
 
 variable (β)
+
+/-- Compose a `distrib_mul_action` with a `monoid_hom`, with action `f r' • m` -/
+def monoid_hom.comp_distrib_mul_action [monoid γ] (f : γ →* α) :
+  distrib_mul_action γ β :=
+{ smul := (•) ∘ f,
+  smul_zero := λ x, smul_zero (f x),
+  smul_add := λ x, smul_add (f x),
+  ..f.comp_mul_action β }
 
 /-- Scalar multiplication by `r` as an `add_monoid_hom`. -/
 def const_smul_hom (r : α) : β →+ β :=

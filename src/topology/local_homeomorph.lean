@@ -564,7 +564,8 @@ eq_of_local_equiv_eq $ local_equiv.eq_of_eq_on_source_univ _ _ h s t
 section prod
 
 /-- The product of two local homeomorphisms, as a local homeomorphism on the product space. -/
-def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) : local_homeomorph (α × γ) (β × δ) :=
+def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
+  local_homeomorph (α × γ) (β × δ) :=
 { open_source := e.open_source.prod e'.open_source,
   open_target := e.open_target.prod e'.open_target,
   continuous_to_fun := continuous_on.prod
@@ -575,7 +576,8 @@ def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) : local_home
     (e'.continuous_inv_fun.comp continuous_snd.continuous_on (prod_subset_preimage_snd _ _)),
   to_local_equiv := e.to_local_equiv.prod e'.to_local_equiv }
 
-@[simp, mfld_simps] lemma prod_to_local_equiv (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
+@[simp, mfld_simps] lemma prod_to_local_equiv
+  (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').to_local_equiv = e.to_local_equiv.prod e'.to_local_equiv := rfl
 
 lemma prod_source (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :

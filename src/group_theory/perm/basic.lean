@@ -263,6 +263,9 @@ end
 lemma mul_swap_eq_swap_mul (f : perm α) (x y : α) : f * swap x y = swap (f x) (f y) * f :=
 by rw [swap_mul_eq_mul_swap, perm.inv_apply_self, perm.inv_apply_self]
 
+lemma swap_apply_apply (f : perm α) (x y : α) : swap (f x) (f y) = f * swap x y * f⁻¹ :=
+by rw [mul_swap_eq_swap_mul, mul_inv_cancel_right]
+
 /-- Left-multiplying a permutation with `swap i j` twice gives the original permutation.
 
   This specialization of `swap_mul_self` is useful when using cosets of permutations.

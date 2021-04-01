@@ -209,7 +209,7 @@ begin
 end
 
 /-! ### Properties about inversion -/
-@[to_additive set.has_neg'] -- todo: remove prime once name becomes available
+@[to_additive set.has_neg]
 instance [has_inv α] : has_inv (set α) :=
 ⟨preimage has_inv.inv⟩
 

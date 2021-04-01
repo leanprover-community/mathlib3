@@ -414,28 +414,17 @@ begin
 
   let area_sqr := s * (s - a) * (s - c) * (s - b),
 
-  have pen_lemma :
-    1/4 * real.sqrt ( (area_sqr * 4) * 4) =
-      1/4 * real.sqrt ( area_sqr * 4) * real.sqrt (4),
-    by { rw real.sqrt_mul' _ _, ring, linarith },
-
-  have lastlemma :
-          1/4 * real.sqrt ( area_sqr * 4^2) =
-          1/4 * real.sqrt ( area_sqr) * real.sqrt (4*4),
-    calc  1/4 * real.sqrt ( area_sqr * 4^2)
-        = 1/4 * real.sqrt ( area_sqr * (4 * 4)) : by rw pow_two
-    ... = 1/4 * real.sqrt (area_sqr * 4 * 4) : by ring_nf
-    ... = 1/4 * real.sqrt ( area_sqr * 4) * real.sqrt (4) : pen_lemma
-    ... = 1/4 * (real.sqrt (area_sqr) * real.sqrt 4) * real.sqrt 4 : by { rw real.sqrt_mul' (area_sqr) _ , linarith }
-    ... = 1/4 * (real.sqrt (area_sqr)) * (real.sqrt 4 * real.sqrt 4) : by ring
-    ... = 1/4 * real.sqrt ( area_sqr) * real.sqrt (4*4) : by { rw ← real.sqrt_mul' _ _, linarith },
-
   calc    1/2*a*b * real.sin γ
         = 1/2*a*b * real.sqrt (1 - real.cos γ ^ 2) : by rw sin_to_cos
     ... = 1/2*a*b * real.sqrt (((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2) : by rw ← lemma1
     ... = 1/2*a*b * real.sqrt ((2*a*b)^2 - (a*a + b*b - c*c)^2) / real.sqrt ((2*a*b)^2) : by rw real.sqrt_div lemma3 ; ring
     ... = 1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b) * 4^2 ) : by repeat { field_simp [ab2_pos] ; ring_nf }
-    ... = 1/4 * real.sqrt ( area_sqr ) * real.sqrt (4*4) : lastlemma
+    ... = 1/4 * real.sqrt ( area_sqr * (4 * 4)) : by rw pow_two
+    ... = 1/4 * real.sqrt (area_sqr * 4 * 4) : by ring_nf
+    ... = 1/4 * real.sqrt ( area_sqr * 4) * real.sqrt (4) : by { rw real.sqrt_mul' _ _, ring, linarith }
+    ... = 1/4 * (real.sqrt (area_sqr) * real.sqrt 4) * real.sqrt 4 : by { rw real.sqrt_mul' (area_sqr) _ , linarith }
+    ... = 1/4 * (real.sqrt (area_sqr)) * (real.sqrt 4 * real.sqrt 4) : by ring
+    ... = 1/4 * real.sqrt ( area_sqr ) * real.sqrt (4*4) : by { rw ← real.sqrt_mul' _ _, linarith }
     ... = 1/4 * real.sqrt ( area_sqr ) * real.sqrt (4^2) : by rw ← pow_two
     ... = 1/4 * real.sqrt ( area_sqr ) * 4 : by { congr', apply real.sqrt_sqr, linarith }
     ... = real.sqrt ( s * (s - a) * (s - c) * (s - b) ) : by ring,
@@ -445,7 +434,6 @@ begin
   exact _inst_1,
   exact V,
   exact _inst_1,
-
 end
 
 end euclidean_geometry

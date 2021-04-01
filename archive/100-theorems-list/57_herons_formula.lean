@@ -45,16 +45,16 @@ begin
 end
 
 /-- Heron's formula: The area of a triangle with side lengths `a`, `b`, and `c` is
-  `√( s * (s - a) * (s - b) * (s - c) )` where `s = ( a + b + c) / 2` is the semiperimeter.
+  `√(s * (s - a) * (s - b) * (s - c))` where `s = (a + b + c) / 2` is the semiperimeter.
   We show this by equating this formula to `a * b * sin γ`, where `γ` is the angle opposite
   the side `c`.
  -/
 theorem heron {p1 p2 p3 : P} (h2 : p1 ≠ p2) (h3 : p1 ≠ p3) (h4 : p3 ≠ p2) :
   1/2 * dist p1 p2 * dist p3 p2 * real.sin (∠ p1 p2 p3) =
-    √ ( ( ( dist p1 p2 + dist p3 p2 + dist p1 p3 ) / 2 ) *
-        ( ( ( dist p1 p2 + dist p3 p2 + dist p1 p3 ) / 2 ) - dist p1 p2 ) *
-        ( ( ( dist p1 p2 + dist p3 p2 + dist p1 p3 ) / 2 ) - dist p3 p2 ) *
-        ( ( ( dist p1 p2 + dist p3 p2 + dist p1 p3 ) / 2 ) - dist p1 p3 ) ) :=
+    √ (((dist p1 p2 + dist p3 p2 + dist p1 p3) / 2) *
+        (((dist p1 p2 + dist p3 p2 + dist p1 p3) / 2) - dist p1 p2) *
+        (((dist p1 p2 + dist p3 p2 + dist p1 p3) / 2) - dist p3 p2) *
+        (((dist p1 p2 + dist p3 p2 + dist p1 p3) / 2) - dist p1 p3)) :=
 begin
   let a := dist p1 p2,
   let b := dist p3 p2,
@@ -77,9 +77,9 @@ begin
 
   have split_to_fraction :=
   calc    1 - real.cos γ ^ 2
-        = 1 - ( (a*a + b*b - c*c) / (2*a*b) )^2           : by rw cos_rule
+        = 1 - ((a*a + b*b - c*c) / (2*a*b))^2           : by rw cos_rule
     ... = 1 - (a*a + b*b - c*c)^2 / (2*a*b)^2             : by { congr', exact div_pow _ (2*a*b) 2 }
-    ... = ( (2*a*b)^2 - (a*a + b*b - c*c)^2 ) / (2*a*b)^2 : by field_simp
+    ... = ((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2 : by field_simp
     ... = numerator / denominator                         : rfl,
 
   have ab2_pos : 0 ≤ (2 * a * b), by { field_simp *, linarith },
@@ -101,18 +101,18 @@ begin
   let area_sqr := s * (s-a) * (s-b) * (s-c),
 
   calc    1/2*a*b * real.sin γ
-        = 1/2*a*b * √( 1 - real.cos γ ^ 2 )         : by rw sin_to_cos
-    ... = 1/2*a*b * √( numerator / denominator )    : by rw ← split_to_fraction
+        = 1/2*a*b * √(1 - real.cos γ ^ 2)           : by rw sin_to_cos
+    ... = 1/2*a*b * √(numerator / denominator)      : by rw ← split_to_fraction
     ... = 1/2*a*b * √(numerator) / √(denominator)   : by { rw real.sqrt_div numerator_nonneg, ring }
-    ... = 1/2*a*b * √( (2*a*b)^2 - (a*a + b*b - c*c)^2 ) / √( (2*a*b)^2 ) : rfl
-    ... = 1/4 * √( s * (s-a) * (s-b) * (s-c) * 4^2 ) : by repeat { field_simp [ab2_pos] ; ring_nf }
-    ... = 1/4 * √( area_sqr * (4 * 4))      : by rw pow_two
-    ... = 1/4 * √( area_sqr * 4 * 4)        : by ring_nf
-    ... = 1/4 * √( area_sqr * 4) * √(4)     : by { rw real.sqrt_mul' _ _, ring, linarith }
-    ... = 1/4 * ( √( area_sqr ) * √4 ) * √4 : by { rw real.sqrt_mul' area_sqr _ , linarith }
-    ... = 1/4 * √( area_sqr ) * (√4 * √4)   : by ring
-    ... = 1/4 * √( area_sqr ) * √(4*4)      : by { rw ← real.sqrt_mul' _ _, linarith }
-    ... = 1/4 * √( area_sqr ) * √(4^2)      : by rw ← pow_two
-    ... = 1/4 * √( area_sqr ) * 4           : by { congr', apply real.sqrt_sqr, linarith }
-    ... = √( s * (s-a) * (s-b) * (s-c) ) : by ring,
+    ... = 1/2*a*b * √((2*a*b)^2 - (a*a + b*b - c*c)^2) / √((2*a*b)^2) : rfl
+    ... = 1/4 * √(s * (s-a) * (s-b) * (s-c) * 4^2)  : by repeat { field_simp [ab2_pos] ; ring_nf }
+    ... = 1/4 * √(area_sqr * (4 * 4))      : by rw pow_two
+    ... = 1/4 * √(area_sqr * 4 * 4)        : by ring_nf
+    ... = 1/4 * √(area_sqr * 4) * √(4)     : by { rw real.sqrt_mul' _ _, ring, linarith }
+    ... = 1/4 * (√(area_sqr) * √4) * √4    : by { rw real.sqrt_mul' area_sqr _ , linarith }
+    ... = 1/4 * √(area_sqr) * (√4 * √4)    : by ring
+    ... = 1/4 * √(area_sqr) * √(4*4)       : by { rw ← real.sqrt_mul' _ _, linarith }
+    ... = 1/4 * √(area_sqr) * √(4^2)       : by rw ← pow_two
+    ... = 1/4 * √(area_sqr) * 4            : by { congr', apply real.sqrt_sqr, linarith }
+    ... = √(s * (s-a) * (s-b) * (s-c))     : by ring,
 end

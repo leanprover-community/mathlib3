@@ -367,13 +367,14 @@ begin
   ring,
 end
 
+notation `√` := real.sqrt
+
 lemma heron {p1 p2 p3 : P} (h2 : p1 ≠ p2) (h3 : p1 ≠ p3) (h4 : p3 ≠ p2) :
-  (1/2) * dist p1 p2 * dist p3 p2 * real.sin (∠ p1 p2 p3) =
-    real.sqrt (
-      ( ( (dist p1 p2) + (dist p1 p3) + (dist p3 p2) ) / 2 ) *
-      ( ( ( (dist p1 p2) + (dist p1 p3) + (dist p3 p2) ) / 2 ) - ( dist p1 p2 ) ) *
-      ( ( ( (dist p1 p2) + (dist p1 p3) + (dist p3 p2) ) / 2 ) - ( dist p1 p3 ) ) *
-      ( ( ( (dist p1 p2) + (dist p1 p3) + (dist p3 p2) ) / 2 ) - ( dist p3 p2 ) ) ) :=
+  1/2 * dist p1 p2 * dist p3 p2 * real.sin (∠ p1 p2 p3) =
+    √ ( ( ( dist p1 p2 + dist p1 p3 + dist p3 p2 ) / 2 ) *
+        ( ( ( dist p1 p2 + dist p1 p3 + dist p3 p2 ) / 2 ) - dist p1 p2 ) *
+        ( ( ( dist p1 p2 + dist p1 p3 + dist p3 p2 ) / 2 ) - dist p1 p3 ) *
+        ( ( ( dist p1 p2 + dist p1 p3 + dist p3 p2 ) / 2 ) - dist p3 p2 ) ) :=
 begin
   let a := dist p1 p2,
   let b := dist p3 p2,
@@ -415,19 +416,19 @@ begin
   let area_sqr := s * (s - a) * (s - c) * (s - b),
 
   calc    1/2*a*b * real.sin γ
-        = 1/2*a*b * real.sqrt (1 - real.cos γ ^ 2) : by rw sin_to_cos
-    ... = 1/2*a*b * real.sqrt (((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2) : by rw ← lemma1
-    ... = 1/2*a*b * real.sqrt ((2*a*b)^2 - (a*a + b*b - c*c)^2) / real.sqrt ((2*a*b)^2) : by rw real.sqrt_div lemma3 ; ring
-    ... = 1/4 * real.sqrt ( s * (s - a) * (s - c) * (s - b) * 4^2 ) : by repeat { field_simp [ab2_pos] ; ring_nf }
-    ... = 1/4 * real.sqrt ( area_sqr * (4 * 4)) : by rw pow_two
-    ... = 1/4 * real.sqrt (area_sqr * 4 * 4) : by ring_nf
-    ... = 1/4 * real.sqrt ( area_sqr * 4) * real.sqrt (4) : by { rw real.sqrt_mul' _ _, ring, linarith }
-    ... = 1/4 * (real.sqrt (area_sqr) * real.sqrt 4) * real.sqrt 4 : by { rw real.sqrt_mul' (area_sqr) _ , linarith }
-    ... = 1/4 * (real.sqrt (area_sqr)) * (real.sqrt 4 * real.sqrt 4) : by ring
-    ... = 1/4 * real.sqrt ( area_sqr ) * real.sqrt (4*4) : by { rw ← real.sqrt_mul' _ _, linarith }
-    ... = 1/4 * real.sqrt ( area_sqr ) * real.sqrt (4^2) : by rw ← pow_two
-    ... = 1/4 * real.sqrt ( area_sqr ) * 4 : by { congr', apply real.sqrt_sqr, linarith }
-    ... = real.sqrt ( s * (s - a) * (s - c) * (s - b) ) : by ring,
+        = 1/2*a*b * √( 1 - real.cos γ ^ 2 ) : by rw sin_to_cos
+    ... = 1/2*a*b * √( ((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2 ) : by rw ← lemma1
+    ... = 1/2*a*b * √( (2*a*b)^2 - (a*a + b*b - c*c)^2 ) / √( (2*a*b)^2 ) : by rw real.sqrt_div lemma3 ; ring
+    ... = 1/4 * √( s * (s - a) * (s - c) * (s - b) * 4^2 ) : by repeat { field_simp [ab2_pos] ; ring_nf }
+    ... = 1/4 * √( area_sqr * (4 * 4)) : by rw pow_two
+    ... = 1/4 * √( area_sqr * 4 * 4) : by ring_nf
+    ... = 1/4 * √( area_sqr * 4) * √(4) : by { rw real.sqrt_mul' _ _, ring, linarith }
+    ... = 1/4 * ( √( area_sqr ) * √4 ) * √4 : by { rw real.sqrt_mul' (area_sqr) _ , linarith }
+    ... = 1/4 * √( area_sqr ) * (√4 * √4) : by ring
+    ... = 1/4 * √( area_sqr ) * √(4*4) : by { rw ← real.sqrt_mul' _ _, linarith }
+    ... = 1/4 * √( area_sqr ) * √(4^2) : by rw ← pow_two
+    ... = 1/4 * √( area_sqr ) * 4 : by { congr', apply real.sqrt_sqr, linarith }
+    ... = √( s * (s - a) * (s - c) * (s - b) ) : by ring,
 
   -- What the crap is this?!
   exact V,

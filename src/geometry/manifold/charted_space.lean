@@ -861,7 +861,7 @@ instance [closed_under_restriction G] : has_groupoid s G :=
 
 end topological_space.opens
 
-def homeomorph.has_groupoid {H : Type*} [topological_space H]
+lemma homeomorph.has_groupoid {H : Type*} [topological_space H]
   {M : Type*} [topological_space M] [charted_space H M]
   {M' : Type*} [topological_space M'] (G : structure_groupoid H) [has_groupoid M G]
   (e : homeomorph M M') : @has_groupoid H _ M' _ (e.charted_space H) G :=

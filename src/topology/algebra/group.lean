@@ -681,7 +681,7 @@ instance multiplicative.topological_group {G} [h : topological_space G]
 
 section embedding
 
-variables [topological_space G] [group G] [topological_group G]
+variables [topological_space G] [group G]
 
 @[to_additive]
 lemma function.injective_inv [group β] {f : β →* G} (h : function.injective f) (a : β) :
@@ -702,6 +702,8 @@ begin
   exact congr_arg (h.to_local_homeomorph f).symm (f.map_inv a),
 end
 
+variable [topological_group G]
+
 @[to_additive]
 lemma open_embedding.continuous_inv [topological_space β] [group β]
   {f : β →* G} (h : open_embedding f) :
@@ -718,7 +720,7 @@ begin
 end
 
 @[to_additive]
-def open_embedding.topological_group [topological_space β] [group β]
+lemma open_embedding.topological_group [topological_space β] [group β]
   {f : β →* G} (h : open_embedding f) : topological_group β :=
 { continuous_inv := h.continuous_inv,
   ..h.has_continuous_mul }

@@ -291,8 +291,11 @@ by cases ha with a ha; rw [←ha, units.mul_left_inj]
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
 classical.some h
 
+/-- Equivalence between the unit subype and the type `units`. Handy to transfer structures from
+one to the other.-/
 @[to_additive]
-noncomputable def is_unit.subtype_equiv (M : Type*) [monoid M] : subtype (is_unit : M → Prop) ≃ (units M) :=
+noncomputable def is_unit.subtype_equiv (M : Type*) [monoid M] :
+  subtype (is_unit : M → Prop) ≃ (units M) :=
 (equiv.of_injective _ units.ext).symm
 
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=

@@ -340,7 +340,7 @@ set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
 (e.image_eq_preimage s).symm
 
 @[simp] lemma symm_image_eq_preimage {α β} (e : α ≃ β) (s : set β) : e.symm '' s = e ⁻¹' s :=
-by conv_lhs {rw [←symm_symm e, symm_preimage_eq_image]}
+by conv_lhs {rw [←symm_preimage_eq_image, symm_symm e]}
 
 protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
   t ⊆ e '' s ↔ e.symm '' t ⊆ s :=

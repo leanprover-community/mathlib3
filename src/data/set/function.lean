@@ -812,7 +812,6 @@ open set
 
 variables {fa : α → α} {fb : β → β} {f : α → β} {g : β → γ} {s t : set α}
 
-
 lemma injective.comp_inj_on (hg : injective g) (hf : s.inj_on f) : s.inj_on (g ∘ f) :=
 (hg.inj_on univ).comp hf (maps_to_univ _ _)
 

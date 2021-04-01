@@ -273,6 +273,12 @@ lemma continuous.pow {f : α → M} [topological_space α] (h : continuous f) (n
   continuous (λ b, (f b) ^ n) :=
 continuous.comp (continuous_pow n) h
 
+end has_continuous_mul
+
+section embedding
+
+variables [topological_space M] [monoid M]
+
 @[to_additive]
 lemma function.injective_mul [monoid β] {f : β →* M} (h : function.injective f) (a b : β) :
   a * b = h.to_local_equiv.symm ((f a) * (f b)) :=
@@ -292,6 +298,8 @@ begin
   exact congr_arg (h.to_local_homeomorph f).symm (f.map_mul a b),
 end
 
+variable [has_continuous_mul M]
+
 @[to_additive]
 lemma open_embedding.continuous_mul [topological_space β] [monoid β]
   {f : β →* M} (h : open_embedding f) :
@@ -308,36 +316,31 @@ begin
 end
 
 @[to_additive]
-def open_embedding.has_continuous_mul [topological_space β] [monoid β]
+lemma open_embedding.has_continuous_mul [topological_space β] [monoid β]
   {f : β →* M} (h : open_embedding f) : has_continuous_mul β :=
 { continuous_mul := h.continuous_mul }
 
-end has_continuous_mul
+end embedding
 
 section units
 
-@[to_additive]
-noncomputable instance units.topological_space {α : Type*} [topological_space α] [monoid α] :
-  topological_space (units α) :=
-topological_space.induced (is_unit.equiv α).symm (subtype.topological_space)
+variables {α : Type*} [monoid α]
+open opposite
 
-lemma open_units_coe_open_embedding' {α : Type*} [topological_space α] [monoid α]
+def embed_product : units α →* α × αᵒᵖ :=
+{ to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
+  map_one' := by simp,
+  map_mul' := λ x y, by simp }
+
+@[to_additive]
+noncomputable instance units.topological_space [topological_space α] :
+  topological_space (units α) :=
+topological_space.induced embed_product
+
+lemma open_units_coe_open_embedding [topological_space α]
   (h : is_open {a : α | is_unit a}) : open_embedding (λ a : {a : α | is_unit a}, (a : α)) :=
 { open_range := by { simp only [mem_set_of_eq, subtype.range_coe_subtype], exact h, },
   ..embedding_subtype_coe }
-
-lemma open_units_coe_open_embedding {α : Type*} [topological_space α] [monoid α]
-  (h : is_open {a : α | is_unit a}) : open_embedding (λ a : units α, (a : α)) :=
-(open_units_coe_open_embedding' h).comp (is_unit.equiv α).homeomorph.symm.open_embedding
-
-lemma open_units_has_continuous_mul {α : Type*} [topological_space α] [monoid α]
-  [has_continuous_mul α] (h : is_open {a : α | is_unit a}) : has_continuous_mul (units α) :=
-begin
-  let f : (units α) →* α := ⟨λ a, a, rfl,
-    by { simp only [forall_const, eq_self_iff_true, units.coe_mul] }⟩,
-  have hf : open_embedding f := open_units_coe_open_embedding h,
-  exact open_embedding.has_continuous_mul hf,
-end
 
 end units
 

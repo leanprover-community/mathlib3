@@ -324,6 +324,10 @@ end distrib
 
 end homeomorph
 
+section equiv
+
+/-- If the topology is transferred from one type to another via an equivalence, the equivalence
+will clearly also be a homeomorphism. -/
 def equiv.homeomorph {α : Type*} {β : Type*} [tα : topological_space α] (e : α ≃ β) :
   @homeomorph α β _ (tα.induced e.symm) :=
 { to_fun := e,
@@ -337,3 +341,5 @@ def equiv.homeomorph {α : Type*} {β : Type*} [tα : topological_space α] (e :
     exact hb,
   end,
   ..e }
+
+  end equiv

@@ -716,6 +716,10 @@ lemma eq_singleton_iff_nonempty_unique_mem {s : set α} {a : α} :
   s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
 eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩, λ ⟨x, h⟩, H x h ▸ h⟩
 
+-- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.
+@[simp] lemma default_coe_singleton (x : α) :
+  default ({x} : set α) = ⟨x, rfl⟩ := rfl
+
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
 theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
@@ -965,10 +969,10 @@ lemma insert_diff_self_of_not_mem {a : α} {s : set α} (h : a ∉ s) :
   insert a s \ {a} = s :=
 by { ext, simp [and_iff_left_of_imp (λ hx : x ∈ s, show x ≠ a, from λ hxa, h $ hxa ▸ hx)] }
 
-theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
+@[simp] theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
 by finish [ext_iff, iff_def]
 
-theorem diff_union_self {s t : set α} : (s \ t) ∪ t = s ∪ t :=
+@[simp] theorem diff_union_self {s t : set α} : (s \ t) ∪ t = s ∪ t :=
 by rw [union_comm, union_diff_self, union_comm]
 
 theorem diff_inter_self {a b : set α} : (b \ a) ∩ a = ∅ :=
@@ -1048,6 +1052,10 @@ ite_inter_compl_self t s s'
 
 @[simp] lemma ite_same (t s : set α) : t.ite s s = s := inter_union_diff _ _
 
+@[simp] lemma ite_left (s t : set α) : s.ite s t = s ∪ t := by simp [set.ite]
+
+@[simp] lemma ite_right (s t : set α) : s.ite t s = t ∩ s := by simp [set.ite]
+
 @[simp] lemma ite_empty (s s' : set α) : set.ite ∅ s s' = s' :=
 by simp [set.ite]
 
@@ -1077,6 +1085,17 @@ by { ext x, finish [set.ite, iff_def] }
 lemma ite_inter (t s₁ s₂ s : set α) :
   t.ite (s₁ ∩ s) (s₂ ∩ s) = t.ite s₁ s₂ ∩ s :=
 by rw [ite_inter_inter, ite_same]
+
+lemma ite_inter_of_inter_eq (t : set α) {s₁ s₂ s : set α} (h : s₁ ∩ s = s₂ ∩ s) :
+  t.ite s₁ s₂ ∩ s = s₁ ∩ s :=
+by rw [← ite_inter, ← h, ite_same]
+
+lemma subset_ite {t s s' u : set α} : u ⊆ t.ite s s' ↔ u ∩ t ⊆ s ∧ u \ t ⊆ s' :=
+begin
+  simp only [subset_def, ← forall_and_distrib],
+  refine forall_congr (λ x, _),
+  by_cases hx : x ∈ t; simp [*, set.ite]
+end
 
 /-! ### Inverse image -/
 
@@ -1111,6 +1130,10 @@ theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 
 @[simp] theorem preimage_diff (f : α → β) (s t : set β) :
   f ⁻¹' (s \ t) = f ⁻¹' s \ f ⁻¹' t := rfl
+
+@[simp] theorem preimage_ite (f : α → β) (s t₁ t₂ : set β) :
+  f ⁻¹' (s.ite t₁ t₂) = (f ⁻¹' s).ite (f ⁻¹' t₁) (f ⁻¹' t₂) :=
+rfl
 
 @[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
 rfl

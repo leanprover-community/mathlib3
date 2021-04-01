@@ -42,19 +42,8 @@ to register the ring structure on `zmod n` as type class instance.
 
 open nat nat.modeq int
 
-/-- Negation on `fin n` -/
-def has_neg (n : ℕ) : has_neg (fin n) :=
-⟨λ a, ⟨nat_mod (-(a.1 : ℤ)) n,
-begin
-  have npos : 0 < n := lt_of_le_of_lt (nat.zero_le _) a.2,
-  have h : (n : ℤ) ≠ 0 := int.coe_nat_ne_zero_iff_pos.2 npos,
-  have := int.mod_lt (-(a.1 : ℤ)) h,
-  rw [(abs_of_nonneg (int.coe_nat_nonneg n))] at this,
-  rwa [← int.coe_nat_lt, nat_mod, to_nat_of_nonneg (int.mod_nonneg _ h)]
-end⟩⟩
-
 /-- Multiplicative commutative semigroup structure on `fin (n+1)`. -/
-def comm_semigroup (n : ℕ) : comm_semigroup (fin (n+1)) :=
+instance (n : ℕ) : comm_semigroup (fin (n+1)) :=
 { mul_assoc := λ ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, fin.eq_of_veq
     (calc ((a * b) % (n+1) * c) ≡ a * b * c [MOD (n+1)] : modeq_mul (nat.mod_mod _ _) rfl
       ... ≡ a * (b * c) [MOD (n+1)] : by rw mul_assoc
@@ -62,17 +51,6 @@ def comm_semigroup (n : ℕ) : comm_semigroup (fin (n+1)) :=
   mul_comm := λ ⟨a, _⟩ ⟨b, _⟩,
     fin.eq_of_veq (show (a * b) % (n+1) = (b * a) % (n+1), by rw mul_comm),
   ..fin.has_mul }
-
-local attribute [instance] fin.comm_semigroup
-
-private lemma one_mul_aux (n : ℕ) (a : fin (n+1)) : (1 : fin (n+1)) * a = a :=
-begin
-  cases n with n,
-  { exact subsingleton.elim _ _ },
-  { have h₁ : (a : ℕ) % n.succ.succ = a := nat.mod_eq_of_lt a.2,
-    apply fin.ext,
-    simp only [coe_mul, coe_one, h₁, one_mul], }
-end
 
 private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin (n+1), a * (b + c) = a * b + a * c :=
 λ ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, fin.eq_of_veq
@@ -82,35 +60,13 @@ private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin (n+1), a * (b + c) = 
         modeq_add (nat.mod_mod _ _).symm (nat.mod_mod _ _).symm)
 
 /-- Commutative ring structure on `fin (n+1)`. -/
-def comm_ring (n : ℕ) : comm_ring (fin (n+1)) :=
-{ add_left_neg :=
-    λ ⟨a, ha⟩, fin.eq_of_veq (show (((-a : ℤ) % (n+1)).to_nat + a) % (n+1) = 0,
-      from int.coe_nat_inj
-      begin
-        have npos : 0 < n+1 := lt_of_le_of_lt (nat.zero_le _) ha,
-        have hn : ((n+1) : ℤ) ≠ 0 := (ne_of_lt (int.coe_nat_lt.2 npos)).symm,
-        rw [int.coe_nat_mod, int.coe_nat_add, to_nat_of_nonneg (int.mod_nonneg _ hn), add_comm],
-        simp,
-      end),
-  one_mul := fin.one_mul,
+instance (n : ℕ) : comm_ring (fin (n+1)) :=
+{ one_mul := fin.one_mul,
   mul_one := fin.mul_one,
   left_distrib := left_distrib_aux n,
   right_distrib := λ a b c, by rw [mul_comm, left_distrib_aux, mul_comm _ b, mul_comm]; refl,
-  sub_eq_add_neg := λ ⟨a, ha⟩ ⟨b, hb⟩, subtype.eq $
-    show (a + (n + 1 - b)) % (n + 1) = (a + nat_mod (-b : ℤ) _) % (n + 1),
-    from int.coe_nat_inj
-    begin
-      have npos : 0 < n+1 := lt_of_le_of_lt (nat.zero_le _) ha,
-      have hn : ((n+1 : _) : ℤ) ≠ 0 := (ne_of_lt (int.coe_nat_lt.2 npos)).symm,
-      rw [int.coe_nat_mod, int.coe_nat_mod, int.coe_nat_add a, int.coe_nat_add a,
-        int.mod_add_cancel_left, int.nat_mod, to_nat_of_nonneg (int.mod_nonneg (-b : ℤ) hn),
-        int.coe_nat_sub hb.le, sub_eq_add_neg],
-      simp,
-    end,
-  sub := fin.sub,
   ..fin.has_one,
-  ..fin.has_neg (n+1),
-  ..fin.add_comm_monoid n,
+  ..fin.add_comm_group n,
   ..fin.comm_semigroup n }
 
 end fin

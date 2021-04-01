@@ -6,7 +6,7 @@ Authors: Kexing Ying
 import group_theory.submonoid
 import algebra.group.conj
 import algebra.pointwise
-import order.modular_lattice
+import order.atoms
 
 /-!
 # Subgroups
@@ -69,6 +69,8 @@ Definitions in the file:
 
 * `monoid_hom.eq_locus f g` : given group homomorphisms `f`, `g`, the elements of `G` such that
   `f x = g x` form a subgroup of `G`
+
+* `is_simple_group G` : a class indicating that a group has exactly two normal subgroups
 
 ## Implementation notes
 
@@ -140,42 +142,21 @@ subgroup G ≃ add_subgroup (additive G) :=
 namespace subgroup
 
 @[to_additive]
-instance : has_coe (subgroup G) (set G) := { coe := subgroup.carrier }
+instance : set_like (subgroup G) G :=
+⟨subgroup.carrier, λ p q h, by cases p; cases q; congr'⟩
+
+@[simp, to_additive]
+lemma mem_carrier {s : subgroup G} {x : G} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
 @[simp, to_additive]
 lemma coe_to_submonoid (K : subgroup G) : (K.to_submonoid : set G) = K := rfl
 
 @[to_additive]
-instance : has_mem G (subgroup G) := ⟨λ m K, m ∈ (K : set G)⟩
-
-@[to_additive]
-instance : has_coe_to_sort (subgroup G) := ⟨_, λ G, (G : Type*)⟩
-
-@[simp, norm_cast, to_additive]
-lemma mem_coe {K : subgroup G} {g : G} : g ∈ (K : set G) ↔ g ∈ K := iff.rfl
-
-@[simp, norm_cast, to_additive]
-lemma coe_coe (K : subgroup G) : ↥(K : set G) = K := rfl
-
--- note that `to_additive` transfers the `simp` attribute over but not the `norm_cast` attribute
-attribute [norm_cast] add_subgroup.mem_coe
-attribute [norm_cast] add_subgroup.coe_coe
-
-@[to_additive]
-instance (K : subgroup G) [d : decidable_pred K.carrier] [fintype G] : fintype K :=
-show fintype {g : G // g ∈ K.carrier}, from infer_instance
+instance (K : subgroup G) [d : decidable_pred (∈ K)] [fintype G] : fintype K :=
+show fintype {g : G // g ∈ K}, from infer_instance
 
 end subgroup
 
-@[to_additive]
-protected lemma subgroup.exists {K : subgroup G} {p : K → Prop} :
-  (∃ x : K, p x) ↔ ∃ x ∈ K, p ⟨x, ‹x ∈ K›⟩ :=
-set_coe.exists
-
-@[to_additive]
-protected lemma subgroup.forall {K : subgroup G} {p : K → Prop} :
-  (∀ x : K, p x) ↔ ∀ x ∈ K, p ⟨x, ‹x ∈ K›⟩ :=
-set_coe.forall
 
 namespace subgroup
 
@@ -191,20 +172,9 @@ protected def copy (K : subgroup G) (s : set G) (hs : s = K) : subgroup G :=
   mul_mem' := hs.symm ▸ K.mul_mem',
   inv_mem' := hs.symm ▸ K.inv_mem' }
 
-/- Two subgroups are equal if the underlying set are the same. -/
-@[to_additive "Two `add_group`s are equal if the underlying subsets are equal."]
-theorem ext' {H K : subgroup G} (h : (H : set G) = K) : H = K :=
-by { cases H, cases K, congr, exact h }
-
-/- Two subgroups are equal if and only if the underlying subsets are equal. -/
-@[to_additive "Two `add_subgroup`s are equal if and only if the underlying subsets are equal."]
-protected theorem ext'_iff {H K : subgroup G} :
-  H = K ↔ (H : set G) = K := ⟨λ h, h ▸ rfl, ext'⟩
-
 /-- Two subgroups are equal if they have the same elements. -/
 @[ext, to_additive "Two `add_subgroup`s are equal if they have the same elements."]
-theorem ext {H K : subgroup G}
-  (h : ∀ x, x ∈ H ↔ x ∈ K) : H = K := ext' $ set.ext h
+theorem ext {H K : subgroup G} (h : ∀ x, x ∈ H ↔ x ∈ K) : H = K := set_like.ext h
 
 attribute [ext] add_subgroup.ext
 
@@ -334,15 +304,6 @@ coe_subtype H ▸ monoid_hom.map_pow _ _ _
 @[simp, norm_cast] lemma coe_gpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
 coe_subtype H ▸ monoid_hom.map_gpow _ _ _
 
-@[to_additive]
-instance : has_le (subgroup G) := ⟨λ H K, ∀ ⦃x⦄, x ∈ H → x ∈ K⟩
-
-@[to_additive]
-lemma le_def {H K : subgroup G} : H ≤ K ↔ ∀ ⦃x : G⦄, x ∈ H → x ∈ K := iff.rfl
-
-@[simp, to_additive]
-lemma coe_subset_coe {H K : subgroup G} : (H : set G) ⊆ K ↔ H ≤ K := iff.rfl
-
 /-- The inclusion homomorphism from a subgroup `H` contained in `K` to `K`. -/
 @[to_additive "The inclusion homomorphism from a additive subgroup `H` contained in `K` to `K`."]
 def inclusion {H K : subgroup G} (h : H ≤ K) : H →* K :=
@@ -357,10 +318,6 @@ lemma subtype_comp_inclusion {H K : subgroup G} (hH : H ≤ K) :
   K.subtype.comp (inclusion hH) = H.subtype :=
 by { ext, simp }
 
-@[to_additive]
-instance : partial_order (subgroup G) :=
-{ le := (≤),
-  .. partial_order.lift (coe : subgroup G → set G) (λ a b, ext') }
 
 /-- The subgroup `G` of the group `G`. -/
 @[to_additive "The `add_subgroup G` of the `add_group G`."]
@@ -384,14 +341,23 @@ instance : inhabited (subgroup G) := ⟨⊥⟩
 @[simp, to_additive] lemma coe_bot : ((⊥ : subgroup G) : set G) = {1} := rfl
 
 @[to_additive] lemma eq_bot_iff_forall : H = ⊥ ↔ ∀ x ∈ H, x = (1 : G) :=
-by simp only [subgroup.ext'_iff, coe_bot, set.eq_singleton_iff_unique_mem, mem_coe, H.one_mem,
-  true_and]
+begin
+  rw set_like.ext'_iff,
+  simp only [coe_bot, set.eq_singleton_iff_unique_mem, set_like.mem_coe, H.one_mem, true_and],
+end
+
+@[to_additive] lemma eq_bot_of_subsingleton [subsingleton H] : H = ⊥ :=
+begin
+  rw subgroup.eq_bot_iff_forall,
+  intros y hy,
+  rw [← subgroup.coe_mk H y hy, subsingleton.elim (⟨y, hy⟩ : H) 1, subgroup.coe_one],
+end
 
 @[to_additive] lemma eq_top_of_card_eq [fintype H] [fintype G]
   (h : fintype.card H = fintype.card G) : H = ⊤ :=
 begin
   haveI : fintype (H : set G) := ‹fintype H›,
-  rw [subgroup.ext'_iff, coe_top, ← finset.coe_univ, ← (H : set G).coe_to_finset, finset.coe_inj,
+  rw [set_like.ext'_iff, coe_top, ← finset.coe_univ, ← (H : set G).coe_to_finset, finset.coe_inj,
     ← finset.card_eq_iff_eq_univ, ← h, set.to_finset_card],
   congr
 end
@@ -468,7 +434,7 @@ instance : complete_lattice (subgroup G) :=
   inf_le_left  := λ a b x, and.left,
   inf_le_right := λ a b x, and.right,
   .. complete_lattice_of_Inf (subgroup G) $ λ s, is_glb.of_image
-    (λ H K, show (H : set G) ≤ K ↔ H ≤ K, from coe_subset_coe) is_glb_binfi }
+    (λ H K, show (H : set G) ≤ K ↔ H ≤ K, from set_like.coe_subset_coe) is_glb_binfi }
 
 @[to_additive]
 lemma mem_sup_left {S T : subgroup G} : ∀ {x : G}, x ∈ S → x ∈ S ⊔ T :=
@@ -646,7 +612,7 @@ lemma mem_supr_of_directed {ι} [hι : nonempty ι] {K : ι → subgroup G} (hK 
   {x : G} :
   x ∈ (supr K : subgroup G) ↔ ∃ i, x ∈ K i :=
 begin
-  refine ⟨_, λ ⟨i, hi⟩, (le_def.1 $ le_supr K i) hi⟩,
+  refine ⟨_, λ ⟨i, hi⟩, (set_like.le_def.1 $ le_supr K i) hi⟩,
   suffices : x ∈ closure (⋃ i, (K i : set G)) → ∃ i, x ∈ K i,
     by simpa only [closure_Union, closure_eq (K _)] using this,
   refine (λ hx, closure_induction hx (λ _, mem_Union.1) _ _ _),
@@ -713,7 +679,7 @@ mem_image_iff_bex
 
 @[to_additive]
 lemma map_map (g : N →* P) (f : G →* N) : (K.map f).map g = K.map (g.comp f) :=
-ext' $ image_image _ _ _
+set_like.coe_injective $ image_image _ _ _
 
 @[to_additive]
 lemma map_le_iff_le_comap {f : G →* N} {K : subgroup G} {H : subgroup N} :
@@ -798,7 +764,7 @@ lemma top_prod_top : (⊤ : subgroup G).prod (⊤ : subgroup N) = ⊤ :=
 (top_prod _).trans $ comap_top _
 
 @[to_additive] lemma bot_prod_bot : (⊥ : subgroup G).prod (⊥ : subgroup N) = ⊥ :=
-ext' $ by simp [coe_prod, prod.one_eq_mk]
+set_like.coe_injective $ by simp [coe_prod, prod.one_eq_mk]
 
 /-- Product of subgroups is isomorphic to their product as groups. -/
 @[to_additive prod_equiv "Product of additive subgroups is isomorphic to their product
@@ -1111,7 +1077,7 @@ by rw [range_eq_map, range_eq_map]; exact (⊤ : subgroup G).map_map g f
 @[to_additive]
 lemma range_top_iff_surjective {N} [group N] {f : G →* N} :
   f.range = (⊤ : subgroup N) ↔ function.surjective f :=
-subgroup.ext'_iff.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_surjective
+set_like.ext'_iff.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective monoid homomorphism is the whole of the codomain. -/
 @[to_additive "The range of a surjective `add_monoid` homomorphism is the whole of the codomain."]
@@ -1187,7 +1153,7 @@ eq_of_eq_on_top $ hs ▸ eq_on_closure h
 @[to_additive]
 lemma gclosure_preimage_le (f : G →* N) (s : set N) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
-(closure_le _).2 $ λ x hx, by rw [mem_coe, mem_comap]; exact subset_closure hx
+(closure_le _).2 $ λ x hx, by rw [set_like.mem_coe, mem_comap]; exact subset_closure hx
 
 /-- The image under a monoid homomorphism of the subgroup generated by a set equals the subgroup
 generated by the image of the set. -/
@@ -1409,7 +1375,7 @@ variables {H K : subgroup G}
 @[to_additive "Makes the identity additive isomorphism from a proof
 two subgroups of an additive group are equal."]
 def subgroup_congr (h : H = K) : H ≃* K :=
-{ map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ subgroup.ext'_iff.1 h }
+{ map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
 end mul_equiv
 
@@ -1439,7 +1405,7 @@ by rintro ⟨y, hy, z, hz, rfl⟩; exact mul_mem _
 
 @[to_additive]
 lemma mem_sup' : x ∈ s ⊔ t ↔ ∃ (y : s) (z : t), (y:C) * z = x :=
-mem_sup.trans $ by simp only [subgroup.exists, coe_mk]
+mem_sup.trans $ by simp only [set_like.exists, coe_mk]
 
 @[to_additive]
 instance : is_modular_lattice (subgroup C) :=
@@ -1454,6 +1420,55 @@ end⟩
 
 end subgroup
 
+section
+variables (G) (A)
+
+/-- A `group` is simple when it has exactly two normal `subgroup`s. -/
+class is_simple_group extends nontrivial G : Prop :=
+(eq_bot_or_eq_top_of_normal : ∀ H : subgroup G, H.normal → H = ⊥ ∨ H = ⊤)
+
+/-- An `add_group` is simple when it has exactly two normal `add_subgroup`s. -/
+class is_simple_add_group extends nontrivial A : Prop :=
+(eq_bot_or_eq_top_of_normal : ∀ H : add_subgroup A, H.normal → H = ⊥ ∨ H = ⊤)
+
+attribute [to_additive] is_simple_group
+
+variables {G} {A}
+
+@[to_additive]
+lemma subgroup.normal.eq_bot_or_eq_top [is_simple_group G] {H : subgroup G} (Hn : H.normal) :
+  H = ⊥ ∨ H = ⊤ :=
+is_simple_group.eq_bot_or_eq_top_of_normal H Hn
+
+namespace is_simple_group
+
+@[to_additive]
+instance {C : Type*} [comm_group C] [is_simple_group C] :
+  is_simple_lattice (subgroup C) :=
+⟨λ H, H.normal_of_comm.eq_bot_or_eq_top⟩
+
+@[to_additive]
+lemma is_simple_group_of_surjective {H : Type*} [group H] [is_simple_group G]
+  [nontrivial H] (f : G →* H) (hf : function.surjective f) :
+  is_simple_group H :=
+⟨nontrivial.exists_pair_ne, λ H iH, begin
+  refine ((iH.comap f).eq_bot_or_eq_top).imp (λ h, _) (λ h, _),
+  { rw subgroup.eq_bot_iff_forall at *,
+    simp_rw subgroup.mem_comap at h,
+    intros x hx,
+    obtain ⟨y, hy⟩ := hf x,
+    rw ← hy at hx,
+    rw h y hx at hy,
+    rw [← hy, f.map_one] },
+  { rw [← top_le_iff, ← subgroup.map_le_iff_le_comap, ← monoid_hom.range_eq_map,
+      monoid_hom.range_top_of_surjective f hf, top_le_iff] at h,
+    exact h }
+end⟩
+
+end is_simple_group
+
+end
+
 section pointwise
 
 namespace subgroup
@@ -1461,8 +1476,8 @@ namespace subgroup
 @[to_additive]
 lemma closure_mul_le (S T : set G) : closure (S * T) ≤ closure S ⊔ closure T :=
 Inf_le $ λ x ⟨s, t, hs, ht, hx⟩, hx ▸ (closure S ⊔ closure T).mul_mem
-    (le_def.mp le_sup_left $ subset_closure hs)
-    (le_def.mp le_sup_right $ subset_closure ht)
+    (set_like.le_def.mp le_sup_left $ subset_closure hs)
+    (set_like.le_def.mp le_sup_right $ subset_closure ht)
 
 @[to_additive]
 lemma sup_eq_closure (H K : subgroup G) : H ⊔ K = closure (H * K) :=

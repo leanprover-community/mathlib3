@@ -3,11 +3,8 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.equiv.basic
-import algebra.group.basic
-import algebra.group.hom
 import algebra.group.pi
-import algebra.group.prod
+import algebra.group_power
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -53,6 +50,10 @@ lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply
 
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.symm_apply_eq
+
+lemma gpow_apply_comm {α : Type*} (σ : equiv.perm α) (m n : ℤ) {x : α} :
+  (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
+by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, gpow_mul_comm]
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
 `equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
@@ -291,6 +292,9 @@ swap_mul_self_mul i j
 @[simp]
 lemma mul_swap_involutive (i j : α) : function.involutive (* (equiv.swap i j)) :=
 mul_swap_mul_self i j
+
+@[simp] lemma swap_eq_one_iff {i j : α} : swap i j = (1 : perm α) ↔ i = j :=
+swap_eq_refl_iff
 
 lemma swap_mul_eq_iff {i j : α} {σ : perm α} : swap i j * σ = σ ↔ i = j :=
 ⟨(assume h, have swap_id : swap i j = 1 := mul_right_cancel (trans h (one_mul σ).symm),

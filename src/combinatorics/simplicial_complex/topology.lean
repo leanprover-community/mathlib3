@@ -183,6 +183,10 @@ begin
   sorry
 end
 
+lemma closure_combi_interior_eq_convex_hull {X : finset E} :
+  closure (combi_interior X) = convex_hull (X : set E) := sorry
+
+
 lemma combi_interior_eq {X : finset E} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
   combi_interior X =
     {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ X, 0 < w y) (hw₁ : ∑ y in X, w y = 1),
@@ -249,7 +253,7 @@ begin
   exact ⟨hxX, mem_singleton x⟩,
 end
 
-lemma simplex_interior_covers (X : finset E) :
+lemma simplex_combi_interiors_cover (X : finset E) :
   convex_hull ↑X = ⋃ (Y ⊆ X), combi_interior Y :=
 begin
   apply subset.antisymm _ _,
@@ -267,13 +271,17 @@ begin
   { exact bUnion_subset (λ Y hY, subset.trans (diff_subset _ _) (convex_hull_mono hY)) },
 end
 
+lemma simplex_combi_interiors_split_interiors {X Y : finset E}
+  (hXY : convex_hull (X : set E) ⊆ convex_hull ↑Y) :
+  ∃ Z ⊆ Y, combi_interior X ⊆ combi_interior Z := sorry
+
 lemma combi_interiors_cover (S : simplicial_complex m) :
   S.space = ⋃ X ∈ S.faces, combi_interior X :=
 begin
   apply subset.antisymm _ _,
   { apply bUnion_subset,
     rintro X hX,
-    rw simplex_interior_covers,
+    rw simplex_combi_interiors_cover,
     exact Union_subset (λ Y, Union_subset (λ YX, subset_bUnion_of_mem (S.down_closed hX YX)))},
   { apply bUnion_subset,
     rintro Y hY,
@@ -414,73 +422,57 @@ def subdivision_order : partial_order (simplicial_complex m) :=
     exact ⟨λ hX, aux_lemma h₁ h₂ hX, λ hX, aux_lemma h₂ h₁ hX⟩,
   end}
 
+lemma subdivision_iff_combi_interiors_subset_combi_interiors {S₁ S₂ : simplicial_complex m} :
+  S₁ ≤ S₂ ↔ S₂.space ⊆ S₁.space ∧
+  ∀ {X₁}, X₁ ∈ S₁.faces → ∃ {X₂}, X₂ ∈ S₂.faces ∧ combi_interior X₁ ⊆ combi_interior X₂ :=
+begin
+  split,
+  { rintro ⟨hspace, hS⟩,
+    use ge_of_eq hspace,
+    rintro X hX,
+    obtain ⟨Y, hY, hXY⟩ := hS hX,
+    obtain ⟨Z, hZY, hXZ⟩ := simplex_combi_interiors_split_interiors hXY,
+    exact ⟨Z, S₂.down_closed hY hZY, hXZ⟩ },
+  { rintro ⟨hspace, hS⟩,
+    split,
+    { apply subset.antisymm _ hspace,
+      rintro x hx,
+      obtain ⟨X₁, hX₁, hx⟩ := mem_space_iff.1 hx,
+      obtain ⟨X₂, hX₂, hX₁X₂⟩ := hS hX₁,
+      exact mem_space_iff.2
+        ⟨X₂, hX₂, convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior hX₁X₂ hx⟩ },
+    { rintro X₁ hX₁,
+      obtain ⟨X₂, hX₂, hX₁X₂⟩ := hS hX₁,
+      exact ⟨X₂, hX₂,
+        convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior hX₁X₂⟩ }}
+end
+
 lemma subdivision_iff_partitionable {S₁ S₂ : simplicial_complex m} (hS₂ : S₂.faces.nonempty) :
   S₁ ≤ S₂ ↔ S₁.space = S₂.space ∧ ∀ {X₂}, X₂ ∈ S₂.faces →
   ∃ {F}, F ⊆ S₁.faces ∧ combi_interior X₂ = ⋃ (X₁ ∈ F), combi_interior X₁ :=
 begin
   split,
-  {
-    rintro ⟨hspace, hsubdiv⟩,
+  { rintro ⟨hspace, hsubdiv⟩,
     use hspace,
     rintro X hX,
     use [{Y | Y ∈ S₁.faces ∧ combi_interior Y ⊆ combi_interior X}, (λ Y hY, hY.1)],
     ext x,
     split,
-    {
-      rintro hxX,
-      rw mem_bUnion_iff,
+    { rintro hxX,
       have hxspace := mem_space_iff.2 ⟨X, hX, hxX.1⟩,
       rw [←hspace, combi_interiors_cover, mem_bUnion_iff] at hxspace,
       obtain ⟨Y, hY, hxY⟩ := hxspace,
-      use [Y, hY], swap, use hxY,
-      obtain ⟨Z, hZ, hYZ⟩ := hsubdiv hY,
-      have hXZ : X ⊆ Z,
-      {
-        rw finset.subset_iff_inter_eq_left,
-        have hZX : X ∩ Z ⊆ X := finset.inter_subset_left _ _,
-        apply finset.subset.antisymm hZX,
-        by_contra hXZ,
-        apply hxX.2,
-        rw mem_combi_frontier_iff,
-        have := S₂.disjoint hX hZ ⟨hxX.1, hYZ hxY.1⟩,
-        norm_cast at this,
-        exact ⟨X ∩ Z, ⟨hZX, hXZ⟩, this⟩,
-      },
+      apply mem_bUnion _ hxY,
+      use hY,
       rintro y hyY,
-      by_cases hZX : Z ⊆ X,
-      {
-        have := finset.subset.antisymm hXZ hZX,
-        subst this,
-        use hYZ hyY.1,
-        simp,
-        rw mem_combi_frontier_iff,
-        rintro ⟨W, hWX, hyW⟩,
-        apply hyY.2,
-        rw mem_combi_frontier_iff,
-        use [finset.filter (λ w, w ∈ convex_hull (W : set E)) Y, finset.filter_subset _ _],
-        {
-          rintro hYW,
-          have hYW : (Y : set E) ⊆ convex_hull (W : set E) := sorry,
-          apply hxX.2,
-          rw mem_combi_frontier_iff,
-          use [W, hWX],
-          exact convex_hull_min hYW (convex_convex_hull _) hxY.1,
-        },
-        simp,
-        have : convex_hull((Y : set E) ∩ convex_hull (W : set E)) =
-          convex_hull (Y : set E) ∩ convex_hull (W : set E) := sorry,
-        rw this,
-        exact ⟨hyY.1, hyW⟩,
-      },
-      {
-        sorry
-      }
-    },
+      obtain ⟨Z, hZ, hYZ⟩ := hsubdiv hY,
+      obtain ⟨W, hWZ, hYW⟩ := simplex_combi_interiors_split_interiors hYZ,
+      rw disjoint_interiors hX (S₂.down_closed hZ hWZ) x ⟨hxX, hYW hxY⟩,
+      exact hYW hyY },
     { rw mem_bUnion_iff,
       rintro ⟨Y, ⟨hY, hYX⟩, hxY⟩,
       exact hYX hxY }},
-  {
-    rintro ⟨hspace, hpartition⟩,
+  { rintro ⟨hspace, hpartition⟩,
     use hspace,
     rintro X hX,
     cases finset.eq_empty_or_nonempty X with hXempty hXnonempty,
@@ -493,9 +485,8 @@ begin
     rw [hspace, combi_interiors_cover, mem_bUnion_iff] at hxspace,
     obtain ⟨Y, hY, hxY⟩ := hxspace,
     use [Y, hY],
-    apply convex_hull_min _ (convex_convex_hull _),
-    suffices lemmathatneedsBhavik : combi_interior X ⊆ convex_hull ↑Y,
-    { sorry},
+    rw ← closure_combi_interior_eq_convex_hull,
+    apply closure_minimal _ is_closed_convex_hull,
     rintro x' hx',
     have hxspace := mem_space_iff.2 ⟨X, hX, hx'.1⟩,
     rw [hspace, combi_interiors_cover, mem_bUnion_iff] at hxspace,
@@ -505,29 +496,15 @@ begin
       exact hxY'.1 },
     obtain ⟨F, hF, hinterior⟩ := hpartition hY,
     obtain ⟨F', hF', hinterior'⟩ := hpartition hY',
-    suffices hXF : X ∈ F ∩ F',
-    { apply disjoint_interiors hY hY' x (mem_inter _ _),
-      { rw [hinterior, mem_bUnion_iff],
-        exact ⟨X, hXF.1, hx⟩ },
-      { rw [hinterior', mem_bUnion_iff],
-        exact ⟨X, hXF.2, hx⟩ }},
-    split,
-    { rw [hinterior, mem_bUnion_iff] at hxY,
+    apply disjoint_interiors hY hY' x (mem_inter _ _),
+    { rw [hinterior, mem_bUnion_iff] at ⊢ hxY,
       obtain ⟨Z, hZ, hxZ⟩ := hxY,
-      rw disjoint_interiors hX (hF hZ) x ⟨hx, hxZ⟩,
-      exact hZ },
-    { rw [hinterior', mem_bUnion_iff] at hxY',
+      use [Z, hZ, hxZ] },
+    { rw [hinterior', mem_bUnion_iff] at ⊢ hxY',
       obtain ⟨Z, hZ, hxZ⟩ := hxY',
-      rw disjoint_interiors hX (hF' hZ) x' ⟨hx', hxZ⟩,
-      exact hZ }}
-end
-
-lemma subdivision_refinement {S₁ S₂ : simplicial_complex m} (hS : S₁ ≤ S₂) :
-  ∀ {X₁}, X₁ ∈ S₁.faces → ∃ {X₂}, X₂ ∈ S₂.faces ∧ combi_interior X₁ ⊆ combi_interior X₂ :=
-begin
-  rintro X₁ hX₁,
-  obtain ⟨X₂, hX₂, hX₁X₂hull⟩ := hS.2 hX₁,
-  sorry
+      use [Z, hZ],
+      rw ← disjoint_interiors hX (hF' hZ) x' ⟨hx', hxZ⟩,
+      exact hx }}
 end
 
 lemma boundary_mono {S₁ S₂ : simplicial_complex m} (hS : S₁ ≤ S₂) : S₁.boundary ≤ S₂.boundary :=
@@ -538,7 +515,8 @@ begin
   },
   {
     rintro X₁ ⟨Y₁, Z₁, hY₁, hZ₁, hX₁Y₁, hY₁Z₁, hZ₁max⟩,
-    obtain ⟨X₂, hX₂, hX₁X₂⟩ := subdivision_refinement hS (S₁.down_closed hY₁ hX₁Y₁),
+    obtain ⟨X₂, hX₂, hX₁X₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2
+      (S₁.down_closed hY₁ hX₁Y₁),
     use X₂,
     obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := hS.2 hY₁,
     obtain ⟨Z₂, hZ₂, hZ₁Z₂⟩ := hS.2 hZ₁,

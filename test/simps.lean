@@ -816,8 +816,14 @@ def monoid_hom.my_comp {M N P : Type*} [mul_one_class M] [mul_one_class N] [mul_
   (hnp : N →* P) (hmn : M →* N) : M →* P :=
 { to_fun := hnp ∘ hmn, map_one' := by simp, map_mul' := by simp, }
 
+-- `simps` adds the `_refl_lemma` attribute to `monoid_hom.my_comp_apply`
+example {M N P : Type*} [mul_one_class M] [mul_one_class N] [mul_one_class P]
+  (hnp : N →* P) (hmn : M →* N) (m : M) : hnp.my_comp hmn m = hnp (hmn m) :=
+by { dsimp, guard_target (hnp (hmn m) = hnp (hmn m)), refl }
+
+-- `to_additive` adds the `_refl_lemma` attribute to `add_monoid_hom.my_comp_apply`
 example {M N P : Type*} [add_zero_class M] [add_zero_class N] [add_zero_class P]
   (hnp : N →+ P) (hmn : M →+ N) (m : M) : hnp.my_comp hmn m = hnp (hmn m) :=
-by dsimp
+by { dsimp, guard_target (hnp (hmn m) = hnp (hmn m)), refl }
 
 end

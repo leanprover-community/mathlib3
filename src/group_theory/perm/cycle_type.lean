@@ -5,83 +5,85 @@ open equiv
 
 variables {α : Type*} [fintype α] [decidable_eq α]
 
-def count_cycles (l : list (perm α)) (n : ℕ) :=
-multiset.count n (l.map (finset.card ∘ support))
-
-lemma lem3 (l : list (perm α)) (σ : perm α) (n : ℕ) :
-  count_cycles (σ :: l) n = (ite (n = σ.support.card) 1 0) + count_cycles l n :=
-eq.trans (multiset.count_cons n σ.support.card (l.map (finset.card ∘ support))) (add_comm _ _)
-
-noncomputable def count_cycle_elements (σ : perm α) (n : ℕ) :=
-(finset.univ.filter (λ a, (σ.cycle_of a).support.card = n)).card
-
-lemma lem5 (n : ℕ) : count_cycle_elements (1 : perm α) n = 0 :=
+lemma thm1
+  (σ : perm α)
+  (hσ : σ.is_cycle)
+  (c : perm α)
+  (a : α)
+  (hc : c a ≠ a) :
+  σ.cycle_of a = c ↔ c = σ :=
 begin
-  simp_rw [count_cycle_elements, cycle_of_one],
-  --simp_rw [support_one, finset.card_empty],
+  split,
+  { rintro rfl,
+    rw [hσ.cycle_of, ite_eq_right_iff],
+    intro h,
+    rw [hσ.cycle_of, if_pos h] at hc,
+    exact (hc rfl).elim },
+  { rintro rfl,
+    rw [hσ.cycle_of, if_neg hc] },
+end
+
+lemma thm2
+  (σ τ : perm α)
+  (h : disjoint σ τ)
+  (c : perm α)
+  (a : α)
+  (hc : c a ≠ a) :
+  (σ * τ).cycle_of a = c ↔ (σ.cycle_of a = c ∨ τ.cycle_of a = c) :=
+begin
   sorry
 end
 
-lemma lem4 (σ : perm α) (hσ : is_cycle σ) (n : ℕ) :
-  count_cycle_elements σ n = ite (n = σ.support.card) n 0 :=
+lemma thm3
+  (l : list (perm α))
+  (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
+  (h2 : l.pairwise disjoint)
+  (c : perm α) (a : α) (hc : c a ≠ a) :
+  c ∈ l ↔ l.prod.cycle_of a = c :=
 begin
-  rw [count_cycle_elements],
-  simp_rw [hσ.cycle_of, apply_ite support, apply_ite finset.card],
-  by_cases h : n = σ.support.card,
-  { rw [if_pos h],
-    sorry },
-  { rw [if_neg h, finset.card_eq_zero],
-    apply finset.filter_false_of_mem,
-    intros x hx,
-    sorry },
-end
-
-lemma lem2 (σ τ : perm α) (h : disjoint σ τ) (n : ℕ) :
-  count_cycle_elements (σ * τ) n = count_cycle_elements σ n + count_cycle_elements τ n :=
-begin
-  rw [count_cycle_elements, count_cycle_elements, count_cycle_elements,
-      ←finset.card_disjoint_union, ←finset.filter_or],
-  { congr,
-    ext a,
-    sorry },
-  { rw [disjoint_iff, finset.inf_eq_inter, ←finset.filter_and],
-    sorry },
-end
-
-lemma lem1 (n : ℕ) (l : list (perm α)) (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
-  (h2 : l.pairwise disjoint) : n * count_cycles l n = count_cycle_elements l.prod n :=
-begin
-  revert h1 h2,
   induction l with σ l ih,
-  { exact λ _ _, (lem5 n).symm },
-  { intros h1 h2,
-    rw [lem3, mul_add, mul_ite, mul_one, mul_zero, list.prod_cons, lem2],
-    apply congr_arg2 has_add.add,
-    { exact (lem4 σ (h1 σ (list.mem_cons_self σ l)) n).symm },
-    { refine ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2) },
-    { -- lemma from PR
-      sorry } }
+  { exact ⟨false.elim, λ h, hc (ext_iff.mp (h.symm.trans (cycle_of_one a)) a)⟩ },
+  { have x := ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2),
+    have y := thm2 σ l.prod (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h2).1) c a hc,
+    have z := thm1 σ (h1 σ (l.mem_cons_self σ)) c a hc,
+    rw [list.mem_cons_iff, list.prod_cons, x, y, z] },
 end
 
-noncomputable def cycle_type (σ : perm α) : multiset ℕ :=
-σ.trunc_cycle_factors.lift (λ l, l.1.map (finset.card ∘ support)) (λ l₁ l₂,
+lemma thm4
+  (l : list (perm α))
+  (h1 : (1 : perm α) ∉ l)
+  (h2 : l.pairwise disjoint) :
+  l.nodup :=
 begin
-  ext n,
-  let s := {l : list (perm α) // l.prod = σ ∧ (∀ τ : perm α, τ ∈ l → τ.is_cycle) ∧
-    l.pairwise disjoint},
-  by_cases hn : n ≤ 1,
-  { suffices : ∀ l : s, count_cycles l.1 n = 0,
-    { rw [←count_cycles, ←count_cycles, this, this] },
-    refine λ l, multiset.count_eq_zero_of_not_mem (λ h0, _),
-    obtain ⟨τ, h1, h2⟩ := list.mem_map.mp h0,
-    -- use stuff from PR to finish off (τ is a cycle with τ.support.card ≤ 1)
-    sorry },
-  { rw not_le at hn,
-    suffices : ∀ l : s, n * count_cycles l.1 n = count_cycle_elements σ n,
-    { exact (nat.mul_right_inj (zero_lt_one.trans hn)).mp ((this l₁).trans (this l₂).symm) },
-    intro l,
-    simp_rw ← l.2.1,
-    exact lem1 n l.1 l.2.2.1 l.2.2.2 },
-end)
+  refine list.pairwise.imp_of_mem _ h2,
+  rintros σ - h_mem - h_disjoint rfl,
+  suffices : σ = 1,
+  { rw this at h_mem,
+    exact h1 h_mem },
+  exact ext (λ a, (or_self _).mp (h_disjoint a)),
+end
+
+lemma thm5
+  (l₁ l₂ : list (perm α))
+  (h₁l₁ : ∀ σ : perm α, σ ∈ l₁ → σ.is_cycle)
+  (h₁l₂ : ∀ σ : perm α, σ ∈ l₂ → σ.is_cycle)
+  (h₂l₁ : l₁.pairwise disjoint)
+  (h₂l₂ : l₂.pairwise disjoint)
+  (h₃ : l₁.prod = l₂.prod) :
+l₁ ~ l₂ :=
+begin
+  have h₃l₁ : (1 : perm α) ∉ l₁ := λ h, (h₁l₁ 1 h).ne_one rfl,
+  have h₃l₂ : (1 : perm α) ∉ l₂ := λ h, (h₁l₂ 1 h).ne_one rfl,
+  refine (list.perm_ext (thm4 l₁ h₃l₁ h₂l₁) (thm4 l₂ h₃l₂ h₂l₂)).mpr (λ c, _),
+  by_cases hc : c = 1,
+  { rw hc,
+    exact iff_of_false h₃l₁ h₃l₂ },
+  { obtain ⟨a, hc⟩ := not_forall.mp (mt ext hc),
+    rw [thm3 l₁ h₁l₁ h₂l₁ c a hc, thm3 l₂ h₁l₂ h₂l₂ c a hc, h₃] },
+end
+
+def cycle_type (σ : perm α) : multiset ℕ :=
+σ.trunc_cycle_factors.lift (λ l, l.1.map (finset.card ∘ support)) (λ l₁ l₂, multiset.coe_eq_coe.mpr
+(list.perm.map _ (thm5 l₁.1 l₂.1 l₁.2.2.1 l₂.2.2.1 l₁.2.2.2 l₂.2.2.2 (l₁.2.1.trans l₂.2.1.symm))))
 
 end equiv.perm

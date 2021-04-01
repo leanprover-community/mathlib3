@@ -2107,16 +2107,10 @@ induced `linear_equiv` from `U.comap f.to_linear_map` to `U`. -/
 @[simps]
 def comap [semiring R] [add_comm_monoid M] [semimodule R M]
   [add_comm_monoid M₂] [semimodule R M₂] (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
-  U.comap f.to_linear_map ≃ₗ[R] U :=
-f.of_submodules _ _ begin
-  ext x,
-  simp_rw [submodule.mem_map, submodule.mem_comap],
-  split; intro hx,
-  { rcases hx with ⟨y, hy, rfl⟩,
-    exact hy },
-  { refine ⟨f.inv_fun x, _⟩,
-    simpa }
-end
+  U.comap ↑f ≃ₗ[R] U :=
+f.of_submodules _ _ $
+  linear_map.map_comap_eq_self $ le_top.trans_eq $ eq.symm $
+    linear_map.range_eq_top.mpr f.surjective
 
 end linear_equiv
 

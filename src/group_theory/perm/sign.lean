@@ -883,6 +883,16 @@ lemma disjoint.card_support_mul (h : disjoint f g) :
   (f * g).support.card = f.support.card + g.support.card :=
 (congr_arg card h.support_mul).trans (finset.card_disjoint_union h.disjoint_support)
 
+lemma disjoint_prod_list_of_disjoint {f : perm α} {l : list (perm α)}
+  (h : ∀ g, g ∈ l → disjoint f g) : disjoint f l.prod :=
+begin
+  intro x,
+  by_cases hx : l.prod x = x,
+  { exact or.inr hx },
+  { obtain ⟨f, fl, fx⟩ := exists_mem_support_of_mem_support_prod (mem_support.mpr hx),
+    exact (h f fl x).imp_right (λ fx', ((mem_support.mp fx) fx').elim) }
+end
+
 lemma card_support_prod_list_of_pairwise_disjoint {l : list (perm α)}
   (h : l.pairwise disjoint) :
   l.prod.support.card = (l.map (finset.card ∘ support)).sum :=
@@ -891,12 +901,7 @@ begin
   { exact card_support_eq_zero.mpr rfl, },
   { obtain ⟨ha, ht⟩ := list.pairwise_cons.1 h,
     rw [list.prod_cons, list.map_cons, list.sum_cons, ←ih ht],
-    apply disjoint.card_support_mul,
-    intro x,
-    by_cases hx : t.prod x = x,
-    { exact or.inr hx },
-    { obtain ⟨f, ft, fx⟩ := exists_mem_support_of_mem_support_prod (mem_support.mpr hx),
-      exact (ha f ft x).imp_right (λ fx', ((mem_support.mp fx) fx').elim) } }
+    exact (disjoint_prod_list_of_disjoint ha).card_support_mul }
 end
 
 end disjoint

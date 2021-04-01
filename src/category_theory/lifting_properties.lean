@@ -139,10 +139,6 @@ structure hom (X Y : right_lifting L) :=
 (to_hom : X.drop ⟶ Y.drop)
 [str : ∀ (l : D), has_lifting_property (L l) to_hom]
 
-@[ext]
-lemma ext {X Y : right_lifting L} (f g : hom X Y) :
-  f.to_hom = g.to_hom → f = g := by {cases f, cases g, simp}
-
 namespace hom
 instance foo {X Y : right_lifting L} (f : hom X Y) (x : D) :
   has_lifting_property (L x) f.to_hom :=
@@ -175,10 +171,6 @@ def drop (X : left_lifting R) : C := X
 structure hom (X Y : left_lifting R) :=
 (to_hom : X.drop ⟶ Y.drop)
 [str : ∀ (l : D), has_lifting_property ↑to_hom (R l)]
-
-@[ext]
-lemma ext {X Y : left_lifting R} (f g : hom X Y) :
-  f.to_hom = g.to_hom → f = g := by {cases f, cases g, simp}
 
 namespace hom
 instance foo {X Y : left_lifting R} (f : hom X Y) (x : D) :

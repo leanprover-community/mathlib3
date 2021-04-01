@@ -316,8 +316,25 @@ equiv.ext $ λ y,
   if h : same_cycle f x y then by rw [h.cycle_of_apply]
   else by rw [cycle_of_apply_of_not_same_cycle h, not_not.1 (mt ((same_cycle_cycle hx).1 hf).2 h)]
 
+lemma cycle_of_eq_one_iff [fintype α] (f : perm α) {x : α} : cycle_of f x = 1 ↔ f x = x :=
+begin
+  simp_rw [ext_iff, cycle_of_apply, one_apply],
+  refine ⟨λ h, (if_pos (same_cycle.refl f x)).symm.trans (h x), λ h y, _⟩,
+  by_cases hy : f y = y,
+  { rw [hy, if_t_t] },
+  { exact if_neg (mt same_cycle.apply_eq_self_iff (by tauto)) },
+end
+
+lemma is_cycle.cycle_of [fintype α] {f : perm α} (hf : is_cycle f) {x : α} :
+  cycle_of f x = ite (f x = x) 1 f :=
+begin
+  by_cases hx : f x = x,
+  { rwa [if_pos hx, cycle_of_eq_one_iff] },
+  { rwa [if_neg hx, hf.cycle_of_eq] },
+end
+
 lemma cycle_of_one [fintype α] (x : α) : cycle_of 1 x = 1 :=
-by rw [cycle_of, subtype_perm_one (same_cycle 1 x), of_subtype.map_one]
+(cycle_of_eq_one_iff 1).mpr rfl
 
 lemma is_cycle_cycle_of [fintype α] (f : perm α) {x : α} (hx : f x ≠ x) : is_cycle (cycle_of f x) :=
 have cycle_of f x x ≠ x, by rwa [(same_cycle.refl _ _).cycle_of_apply],
@@ -371,6 +388,12 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
 noncomputable def cycle_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
+
+noncomputable def trunc_cycle_factors [fintype α] (f : perm α) :
+  trunc {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
+quotient.rec_on_subsingleton (@univ α _).1
+  (λ l h, trunc.mk (cycle_factors_aux l f h))
+  (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
 
 section fixed_points
 

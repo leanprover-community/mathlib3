@@ -391,39 +391,43 @@ begin
 
   let s := (a + c + b) / 2,
 
-  have lemma1 :=
+  let numerator := (2*a*b)^2 - (a*a + b*b - c*c)^2,
+  let denominator := (2*a*b)^2,
+
+  have split_to_fraction :=
   calc    1 - real.cos γ ^ 2
-        = 1 - ((a*a + b*b - c*c) / (2*a*b)) ^ 2           : by rw cos_rule
+        = 1 - ( (a*a + b*b - c*c) / (2*a*b) )^2           : by rw cos_rule
     ... = 1 - (a*a + b*b - c*c)^2 / (2*a*b)^2             : by { congr', exact div_pow _ (2*a*b) 2 }
-    ... = (((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2) : by field_simp,
+    ... = ( (2*a*b)^2 - (a*a + b*b - c*c)^2 ) / (2*a*b)^2 : by field_simp
+    ... = numerator / denominator                         : rfl,
 
   have ab2_pos : 0 ≤ (2 * a * b), by { field_simp *, linarith },
-  have lemma3 : ((2*a*b)^2 - (a*a + b*b - c*c)^2) ≥ 0, by
-  {
-    have denom_pos : (2*a*b)^2 ≥ 0, by { rw pow_two, exact mul_nonneg ab2_pos ab2_pos },
-    have flipit: 0 ≤ (((2*a*b)^2 - (a*a + b*b - c*c)^2)) / ((2*a*b)^2),
-      by {rw ← lemma1 ; linarith [real.cos_sq_le_one γ] },
-    rw div_nonneg_iff at flipit,
-    cases flipit,
-    exact flipit.left,
-    exfalso,
-    have anotherc : (2*a*b)^2 = 0, by exact le_antisymm flipit.right denom_pos,
-    rw pow_two at anotherc,
-    field_simp at anotherc,
-    exact anotherc,
-  },
+
+  have numerator_nonneg : numerator ≥ 0, by
+  { have denom_nonneg : (2*a*b)^2 ≥ 0, by { rw pow_two, exact mul_nonneg ab2_pos ab2_pos },
+    have frac_nonneg: 0 ≤ numerator / denominator,
+      by { rw ← split_to_fraction, linarith [real.cos_sq_le_one γ] },
+    rw div_nonneg_iff at frac_nonneg,
+    cases frac_nonneg,
+    { exact frac_nonneg.left },
+    { exfalso,
+      have ab2_sqr_zero : 2*a*b*(2*a*b) = 0,
+        by { rw ← pow_two, exact le_antisymm frac_nonneg.right denom_nonneg },
+      field_simp at ab2_sqr_zero,
+      exact ab2_sqr_zero } },
 
   let area_sqr := s * (s - a) * (s - c) * (s - b),
 
   calc    1/2*a*b * real.sin γ
         = 1/2*a*b * √( 1 - real.cos γ ^ 2 ) : by rw sin_to_cos
-    ... = 1/2*a*b * √( ((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2 ) : by rw ← lemma1
-    ... = 1/2*a*b * √( (2*a*b)^2 - (a*a + b*b - c*c)^2 ) / √( (2*a*b)^2 ) : by rw real.sqrt_div lemma3 ; ring
+    ... = 1/2*a*b * √( numerator / denominator ) : by rw ← split_to_fraction
+    ... = 1/2*a*b * √( numerator ) / √( denominator ) : by { rw real.sqrt_div numerator_nonneg, ring }
+    ... = 1/2*a*b * √( (2*a*b)^2 - (a*a + b*b - c*c)^2 ) / √( (2*a*b)^2 ) : rfl
     ... = 1/4 * √( s * (s - a) * (s - c) * (s - b) * 4^2 ) : by repeat { field_simp [ab2_pos] ; ring_nf }
     ... = 1/4 * √( area_sqr * (4 * 4)) : by rw pow_two
     ... = 1/4 * √( area_sqr * 4 * 4) : by ring_nf
     ... = 1/4 * √( area_sqr * 4) * √(4) : by { rw real.sqrt_mul' _ _, ring, linarith }
-    ... = 1/4 * ( √( area_sqr ) * √4 ) * √4 : by { rw real.sqrt_mul' (area_sqr) _ , linarith }
+    ... = 1/4 * ( √( area_sqr ) * √4 ) * √4 : by { rw real.sqrt_mul' area_sqr _ , linarith }
     ... = 1/4 * √( area_sqr ) * (√4 * √4) : by ring
     ... = 1/4 * √( area_sqr ) * √(4*4) : by { rw ← real.sqrt_mul' _ _, linarith }
     ... = 1/4 * √( area_sqr ) * √(4^2) : by rw ← pow_two

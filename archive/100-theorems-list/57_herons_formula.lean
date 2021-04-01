@@ -5,6 +5,19 @@ Authors: Matt Kempster
 -/
 import geometry.euclidean.triangle
 
+/-!
+# Freek № 57: Heron's Formula
+
+This file proves Theorem 57 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/),
+also known as Heron's formula, which gives the area of a triangle based only on its three sides'
+lengths.
+
+## References
+
+* https://en.wikipedia.org/wiki/Herons_formula
+
+-/
+
 open euclidean_geometry
 open_locale real euclidean_geometry
 
@@ -14,6 +27,7 @@ variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 include V
 
+/-- The sine of a real number `x` is the square root of one minus the cosine squared of `x`. -/
 lemma sin_eq_sqrt_one_minus_cos_sq (x : ℝ) (hl : x ≥ 0) (hu : x ≤ π) :
   real.sin x = √ (1 - (real.cos x)^2) :=
 begin
@@ -25,11 +39,16 @@ lemma rearrange_cos_rule (a b c d : ℝ) (a_nonzero : a ≠ 0) (b_nonzero : b �
   c * c = a * a + b * b - 2 * a * b * d → d = (a * a + b * b - c * c) / (2 * a * b) :=
 begin
   intro hyp,
-  simp *,
+  simp only [*, sub_sub_cancel],
   field_simp,
   ring,
 end
 
+/-- Heron's formula: The area of a triangle with side lengths `a`, `b`, and `c` is
+  `√( s * (s - a) * (s - b) * (s - c) )` where `s = ( a + b + c) / 2` is the semiperimeter.
+  We show this by equating this formula to `a * b * sin γ`, where `γ` is the angle opposite
+  the side `c`.
+ -/
 theorem heron {p1 p2 p3 : P} (h2 : p1 ≠ p2) (h3 : p1 ≠ p3) (h4 : p3 ≠ p2) :
   1/2 * dist p1 p2 * dist p3 p2 * real.sin (∠ p1 p2 p3) =
     √ ( ( ( dist p1 p2 + dist p3 p2 + dist p1 p3 ) / 2 ) *
@@ -48,7 +67,10 @@ begin
 
   have cos_rule := rearrange_cos_rule a b c (real.cos γ) a_nonzero b_nonzero
     (dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle p1 p2 p3),
+  rotate, { exact V }, { exact _inst_1 },
+
   have sin_to_cos := sin_eq_sqrt_one_minus_cos_sq γ (angle_nonneg p1 p2 p3) (angle_le_pi p1 p2 p3),
+  rotate, { exact V }, { exact _inst_1 },
 
   let numerator := (2*a*b)^2 - (a*a + b*b - c*c)^2,
   let denominator := (2*a*b)^2,
@@ -93,10 +115,4 @@ begin
     ... = 1/4 * √( area_sqr ) * √(4^2)      : by rw ← pow_two
     ... = 1/4 * √( area_sqr ) * 4           : by { congr', apply real.sqrt_sqr, linarith }
     ... = √( s * (s - a) * (s - b) * (s - c) ) : by ring,
-
-  -- What the crap is this?!
-  exact V,
-  exact _inst_1,
-  exact V,
-  exact _inst_1,
 end

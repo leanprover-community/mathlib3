@@ -31,96 +31,169 @@ open category_theory.limits
 
 namespace category_theory
 
-universes v u v₁
+universes v u
 variables {C : Type u} [category.{v} C]
-variables {D : Type v₁}
 
-variables {X Y Z : C}
+-- TODO: Move this to arrow file.
+@[simp]
+lemma arrow.coe_hom_eq {a b : C} (f : a ⟶ b) : (f : arrow C).hom = f := rfl
 
-/-- The lifting property of a morphism `i` with respect to a morphism `p`.
-This can be interpreted as the right lifting property of `i` with respect to `p`,
-or the left lifting property of `p` with respect to `i`. -/
-class has_lifting_property (i p : arrow C) : Prop :=
-(sq_has_lift : ∀ (sq : i ⟶ p), arrow.has_lift sq)
+class has_lifting_property (l r : arrow C) : Prop :=
+(has_lift : ∀ sq : l ⟶ r, arrow.has_lift sq)
 
-@[priority 100] -- see Note [lower instance priority]
-instance has_lifting_property' {i p : arrow C} [has_lifting_property i p] (sq : i ⟶ p) :
-  arrow.has_lift sq :=
-has_lifting_property.sq_has_lift sq
+instance arrow.has_lift.of_has_lifting_property {l r : arrow C}
+  [has_lifting_property l r] (sq : l ⟶ r) : arrow.has_lift sq :=
+has_lifting_property.has_lift sq
 
-/-- Any isomorphism has the right lifting property with respect to any map.
-A    → X
-↓i    ↓p≅
-B    → Y
--/
-lemma iso_has_right_lifting_property (i : arrow C) (p : X ≅ Y) :
-  has_lifting_property i (arrow.mk p.hom) :=
-⟨λ sq, ⟨⟨{ lift := sq.right ≫ p.inv, }⟩⟩⟩ -- the lift is obtained by p⁻¹ ∘ (B → Y)
+instance has_lifting_property.of_is_iso_left {a b : C} (l : a ⟶ b) [is_iso l] (r : arrow C) :
+  has_lifting_property ↑l r :=
+{ has_lift := λ sq, { exists_lift := nonempty.intro { lift := inv l ≫ sq.left } } }
 
-/-- Any identity has the right lifting property with respect to any map. -/
-lemma id_has_right_lifting_property (i : arrow C) : has_lifting_property i (arrow.mk (𝟙 X)) :=
-iso_has_right_lifting_property i (iso.refl _)
+instance has_lifting_property.of_is_iso_left' (l r : arrow C) [is_iso l.hom] :
+  has_lifting_property l r :=
+{ has_lift := λ sq, { exists_lift := nonempty.intro { lift := inv l.hom ≫ sq.left } } }
 
-/-- An equivalent characterization for right lifting with respect to a map `i` whose source is
-initial.
-∅ → X
-↓   ↓
-B → Y has a lifting iff there is a map B → X making the right part commute.
--/
-lemma right_lifting_property_initial_iff (i p : arrow C) (h : is_initial i.left) :
-  has_lifting_property i p ↔ ∀ {e : i.right ⟶ p.right}, ∃ l : i.right ⟶ p.left, l ≫ p.hom = e :=
+instance has_lifting_property.of_is_iso_right (l : arrow C) {a b : C} (r : a ⟶ b) [is_iso r] :
+  has_lifting_property l r :=
+{ has_lift := λ sq, { exists_lift := nonempty.intro
+  { lift := sq.right ≫ inv r,
+    fac_left' := by { rw [← category.assoc, is_iso.comp_inv_eq], simp } } } }
+
+instance has_lifting_property.of_is_iso_right' (l r : arrow C) [is_iso r.hom] :
+  has_lifting_property l r :=
+{ has_lift := λ sq, { exists_lift := nonempty.intro
+  { lift := sq.right ≫ inv r.hom,
+    fac_left' := by { rw [← category.assoc, is_iso.comp_inv_eq], simp } } } }
+
+instance has_lifting_property.of_comp_left (r : arrow C) {a b c : C} (l1 : a ⟶ b) (l2 : b ⟶ c)
+  [has_lifting_property ↑l1 r] [has_lifting_property ↑l2 r] :
+  has_lifting_property ↑(l1 ≫ l2) r :=
+{ has_lift := λ sq, { exists_lift := nonempty.intro
+  { lift := let
+      sq1 : (l1 : arrow C) ⟶ r := ⟨sq.left, l2 ≫ sq.right⟩,
+      lift1 := arrow.lift sq1,
+      sq2 : (l2 : arrow C) ⟶ r := ⟨lift1, sq.right⟩,
+      lift2 := arrow.lift sq2 in lift2 } } }
+
+instance has_lifting_property.of_comp_right (l : arrow C) {a b c : C} (r1 : a ⟶ b) (r2 : b ⟶ c)
+  [has_lifting_property l r1] [has_lifting_property l r2] : has_lifting_property l (r1 ≫ r2) :=
+{ has_lift := λ sq, { exists_lift := nonempty.intro
+  { lift := let
+      sq2 : l ⟶ r2 := ⟨sq.left ≫ r1, sq.right⟩,
+      lift2 := arrow.lift sq2,
+      sq1 : l ⟶ r1 := ⟨sq.left, lift2⟩,
+      lift1 := arrow.lift sq1 in lift1 } } }
+
+example {a b : C} (f : a ≅ b) (r : arrow C) : has_lifting_property (f.hom : arrow C) r :=
+by apply_instance
+
+example {a : C} (r : arrow C) : has_lifting_property (𝟙 a : arrow C) r :=
+by apply_instance
+
+example {a b : C} (f : a ≅ b) (l : arrow C) : has_lifting_property l f.hom :=
+by apply_instance
+
+example {a : C} (l : arrow C) : has_lifting_property l (𝟙 a) :=
+by apply_instance
+
+lemma has_lifting_property_of_initial {a b : C} (l : a ⟶ b) (r : arrow C) (ha : is_initial a) :
+  has_lifting_property ↑l r ↔ ∀ (e : b ⟶ r.right), ∃ (g : b ⟶ r.left), g ≫ r.hom = e :=
 begin
   fsplit,
   { introsI hlift e,
-    have comm : (is_initial.to h p.left) ≫ p.hom = i.hom ≫ e :=
-      is_initial.hom_ext h _ _,
-    use arrow.lift (arrow.hom_mk comm),
+    have comm : (ha.to r.left) ≫ r.hom = l ≫ e := ha.hom_ext _ _,
+    use arrow.lift (arrow.hom_mk comm : (l : arrow C) ⟶ r),
     simp },
   { refine λ hlift, ⟨λ sq, _⟩,
-    obtain ⟨l, hl⟩ : ∃ (l : i.right ⟶ p.left), l ≫ p.hom = sq.right := hlift,
-    exact arrow.has_lift.mk ⟨l, is_initial.hom_ext h _ _⟩, }
+    obtain ⟨l, hl⟩ : ∃ (l : b ⟶ r.left), l ≫ r.hom = sq.right := hlift _,
+    exact arrow.has_lift.mk ⟨l, ha.hom_ext _ _, hl⟩, }
 end
 
-/-- The condition of having the rlp with respect to a morphism `i` is stable under composition. -/
-lemma has_right_lifting_property_comp {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
-  (hf : has_lifting_property i (arrow.mk f))
-  (hg : has_lifting_property i (arrow.mk g)) :
-  has_lifting_property i (arrow.mk (f ≫ g)) :=
-{ sq_has_lift := λ sq1,
-    -- construct a square i ⟶ f
-    let sq2 : i ⟶ (arrow.mk f) := ⟨sq1.left, arrow.lift (arrow.square_to_snd sq1)⟩ in
-    -- show that the lift of this square is a lift of i with respect to g ∘ f
-    ⟨⟨⟨(arrow.lift sq2 : _ ⟶ _), by simp⟩⟩⟩ }
+lemma has_lifting_property_of_terminal (l : arrow C) {a b : C} (r : a ⟶ b) (hb : is_terminal b) :
+  has_lifting_property l r ↔ ∀ (e : l.left ⟶ a), ∃ (g : l.right ⟶ a), l.hom ≫ g = e :=
+begin
+  fsplit,
+  { introsI hlift e,
+    have comm : e ≫ r = l.hom ≫ (hb.from l.right) := hb.hom_ext _ _,
+    use arrow.lift (arrow.hom_mk comm : l ⟶ r),
+    simp },
+  { refine λ hlift, ⟨λ sq, _⟩,
+    obtain ⟨r, hr⟩ : ∃ (g : l.right ⟶ a), l.hom ≫ g = sq.left := hlift _,
+    exact arrow.has_lift.mk ⟨r, hr, hb.hom_ext _ _⟩ }
+end
 
-/-- The objects of the subcategory `right_lifting_subcategory` are the ones in the
-underlying category. -/
-def right_lifting_subcat (R : Type u) := R
+section right_lifting_subcat
 
-instance right_lifting_subcat.inhabited  (R : Type u) [inhabited R] :
-  inhabited (right_lifting_subcat R) :=
-{ default := (default R : R) }
+def right_lifting {D} (L : D → arrow C) := C
 
-/-- The objects of the subcategory `right_lifting_subcategory` are the ones in the
-underlying category. -/
-def right_lifting_subcat.X {R : Type u} (x : right_lifting_subcat R) : R := x
+namespace right_lifting
 
-lemma id_has_right_lifting_property' {F : D → arrow C} (X : C) :
-  ∀ i : D, has_lifting_property (F i) (arrow.mk (𝟙 X)) :=
-λ i, id_has_right_lifting_property (F i)
+variables {D : Type*} {L : D → arrow C}
 
-lemma has_right_lifting_property_comp'
-  {F : D → arrow C} {f : X ⟶ Y} (hf : ∀ i : D, has_lifting_property (F i) (arrow.mk f))
-  {g : Y ⟶ Z} (hg : ∀ i : D, has_lifting_property (F i) (arrow.mk g)) :
-  ∀ i : D,  has_lifting_property (F i) (arrow.mk (f ≫ g)) :=
-λ i, has_right_lifting_property_comp (hf i) (hg i)
+def of (X : C) : right_lifting L := X
 
-/-- Given a set of arrows in C, indexed by `F : D → arrow C`,
-we construct the (non-full) subcategory of `C`
-spanned by those morphisms that have the right lifting property relative to all maps
-of the form `F i`, where `i` is any element in `D`. -/
-def right_lifting_subcategory (F : D → arrow C) : category (right_lifting_subcat C) :=
-{ hom := λ X Y, { p : X ⟶ Y // ∀ {i : D}, has_lifting_property (F i) (arrow.mk p) },
-  id := λ X, ⟨𝟙 X, id_has_right_lifting_property' X⟩,
-  comp := λ X Y Z f g, ⟨f.val ≫ g.val, has_right_lifting_property_comp' f.property g.property⟩ }
+def drop (X : right_lifting L) : C := X
+
+@[ext]
+structure hom (X Y : right_lifting L) :=
+(to_hom : X.drop ⟶ Y.drop)
+[str : ∀ (l : D), has_lifting_property (L l) to_hom]
+
+@[ext]
+lemma ext {X Y : right_lifting L} (f g : hom X Y) :
+  f.to_hom = g.to_hom → f = g := by {cases f, cases g, simp}
+
+namespace hom
+instance foo {X Y : right_lifting L} (f : hom X Y) (x : D) :
+  has_lifting_property (L x) f.to_hom :=
+f.str _
+end hom
+
+@[simps]
+instance : category (right_lifting L) :=
+{ hom := hom,
+  id := λ X, ⟨𝟙 _⟩,
+  comp := λ X Y Z f g, ⟨f.to_hom ≫ g.to_hom⟩ }
+
+end right_lifting
+
+end right_lifting_subcat
+
+section left_lifting_subcat
+
+def left_lifting {D} (R : D → arrow C) := C
+
+namespace left_lifting
+
+variables {D : Type*} {R : D → arrow C}
+
+def of (X : C) : left_lifting R := X
+
+def drop (X : left_lifting R) : C := X
+
+@[ext]
+structure hom (X Y : left_lifting R) :=
+(to_hom : X.drop ⟶ Y.drop)
+[str : ∀ (l : D), has_lifting_property ↑to_hom (R l)]
+
+@[ext]
+lemma ext {X Y : left_lifting R} (f g : hom X Y) :
+  f.to_hom = g.to_hom → f = g := by {cases f, cases g, simp}
+
+namespace hom
+instance foo {X Y : left_lifting R} (f : hom X Y) (x : D) :
+  has_lifting_property ↑f.to_hom (R x) :=
+f.str _
+end hom
+
+@[simps]
+instance : category (left_lifting R) :=
+{ hom := hom,
+  id := λ X, ⟨𝟙 _⟩,
+  comp := λ X Y Z f g, ⟨f.to_hom ≫ g.to_hom⟩ }
+
+end left_lifting
+
+end left_lifting_subcat
 
 end category_theory

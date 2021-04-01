@@ -258,8 +258,7 @@ def pullback_limit_cone (f : X ⟶ Z) (g : Y ⟶ Z) : limits.limit_cone (cospan 
   is_limit :=
   begin
     fapply pullback_cone.is_limit_aux _,
-    exact λ (s : limits.pullback_cone _ _) x,
-            ⟨⟨s.fst x, s.snd x⟩, congr_fun s.condition x⟩,
+    exact λ s x, ⟨⟨s.fst x, s.snd x⟩, congr_fun s.condition x⟩,
     { tidy, },
     { tidy, },
     intros, ext,

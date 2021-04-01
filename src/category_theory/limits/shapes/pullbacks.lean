@@ -161,7 +161,7 @@ abbreviation snd (t : pullback_cone f g) : t.X ⟶ Y := t.π.app walking_cospan.
 
 /-- This is a slightly more convenient method to verify that a pullback cone is a limit cone. It
     only asks for a proof of facts that carry any mathematical content -/
-def is_limit_aux (t : pullback_cone f g) (lift : Π (s : cone (cospan f g)), s.X ⟶ t.X)
+def is_limit_aux (t : pullback_cone f g) (lift : Π (s : pullback_cone f g), s.X ⟶ t.X)
   (fac_left : ∀ (s : pullback_cone f g), lift s ≫ t.fst = s.fst)
   (fac_right : ∀ (s : pullback_cone f g), lift s ≫ t.snd = s.snd)
   (uniq : ∀ (s : pullback_cone f g) (m : s.X ⟶ t.X)

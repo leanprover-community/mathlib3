@@ -159,7 +159,7 @@ begin
 end
 
 /-- The uniqueness of `lift`. -/
-@[simps]
+@[simp]
 def lift_unique {D : Type*} [category D] {Z : D} (F : C ⥤ D)
   (M : Π (x : C), F.obj x ⟶ Z) (hM : ∀ (x y : C) (f : x ⟶ y), F.map f ≫ M y = M x)
   (G : with_terminal C ⥤ D) (h : incl ⋙ G ≅ F) (hG : G.obj star ≅ Z)

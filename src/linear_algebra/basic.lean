@@ -2105,8 +2105,8 @@ end field
 /-- Given `f : M₁ ≃ₗ[R] M₂` and `U` a submodule of `M₂`, `f.comap U` is the
 induced `linear_equiv` from `U.comap f.to_linear_map` to `U`. -/
 @[simps]
-def comap [ring R] [add_comm_group M] [module R M]
-  [add_comm_group M₂] [module R M₂] (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
+def comap [semiring R] [add_comm_monoid M] [semimodule R M]
+  [add_comm_monoid M₂] [semimodule R M₂] (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
   U.comap f.to_linear_map ≃ₗ[R] U := f.of_submodules _ _
 begin
   ext x,

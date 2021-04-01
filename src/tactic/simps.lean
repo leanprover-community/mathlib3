@@ -323,6 +323,9 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
     recursively apply projections. For example, given an equivalence `α × β ≃ β × α` one usually
     wants to only apply the projections for `equiv`, and not also those for `×`. This option is
     only relevant if no explicit projection names are given as argument to `@[simps]`.
+  * The option `trace` is set to `tt` when you write `@[simps?]`. In this case, the attribute will
+    print all generated lemmas. It is almost the same as setting the option `trace.simps.verbose`,
+    except that it doesn't print information about the found projections.
 -/
 @[derive [has_reflect, inhabited]] structure simps_cfg :=
 (attrs         := [`simp])

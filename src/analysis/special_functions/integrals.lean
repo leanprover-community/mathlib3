@@ -14,6 +14,7 @@ This file contains proofs of the integrals of various simple functions, includin
 There are also facts about more complicated integrals:
 * `sin x ^ n`: We prove a recursive formula for `sin x ^ (n + 2)` in terms of `sin x ^ n`,
   along with explicit product formulas for even and odd `n`.
+* `cos x ^ 2 - sin x ^ 2`
 
 With these lemmas, many simple integrals can be computed by `simp` or `norm_num`.
 See `test/integration.lean` for specific examples.
@@ -90,12 +91,6 @@ continuous_sin.interval_integrable a b
 @[simp]
 lemma interval_integrable_cos : interval_integrable cos μ a b :=
 continuous_cos.interval_integrable a b
-
-@[simp]
-lemma integral_cos_sq_sub_sin_sq :
-  ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
-by simpa only [pow_two, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub
-  (λ x hx, has_deriv_at_sin x) (λ x hx, has_deriv_at_cos x) continuous_on_cos continuous_on_sin.neg
 
 lemma interval_integrable_one_div_one_add_sq : interval_integrable (λ x:ℝ, 1 / (1 + x^2)) μ a b :=
 begin
@@ -231,6 +226,12 @@ end
 @[simp]
 lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=
 by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
+
+@[simp]
+lemma integral_cos_sq_sub_sin_sq :
+  ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
+by simpa only [pow_two, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub
+  (λ x hx, has_deriv_at_sin x) (λ x hx, has_deriv_at_cos x) continuous_on_cos continuous_on_sin.neg
 
 @[simp]
 lemma integral_inv_one_add_sq : ∫ x : ℝ in a..b, (1 + x^2)⁻¹ = arctan b - arctan a :=

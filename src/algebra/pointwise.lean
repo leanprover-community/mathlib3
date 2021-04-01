@@ -125,6 +125,12 @@ lemma singleton_mul [has_mul α] : {a} * t = (λ b, a * b) '' t := image2_single
 @[simp, to_additive]
 lemma singleton_mul_singleton [has_mul α] : ({a} : set α) * {b} = {a * b} := image2_singleton
 
+@[to_additive set.add_zero_class]
+instance [mul_one_class α] : mul_one_class (set α) :=
+{ mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
+  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
+  ..set.has_one, ..set.has_mul }
+
 @[to_additive set.add_semigroup]
 instance [semigroup α] : semigroup (set α) :=
 { mul_assoc := λ _ _ _, image2_assoc mul_assoc,
@@ -132,10 +138,8 @@ instance [semigroup α] : semigroup (set α) :=
 
 @[to_additive set.add_monoid]
 instance [monoid α] : monoid (set α) :=
-{ mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
-  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
-  ..set.semigroup,
-  ..set.has_one }
+{ ..set.semigroup,
+  ..set.mul_one_class }
 
 @[to_additive]
 protected lemma mul_comm [comm_semigroup α] : s * t = t * s :=

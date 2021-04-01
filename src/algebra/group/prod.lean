@@ -52,7 +52,7 @@ lemma mk_eq_one [has_one M] [has_one N] {x : M} {y : N} : (x, y) = 1 ↔ x = 1 �
 mk.inj_iff
 
 @[to_additive]
-lemma fst_mul_snd [monoid M] [monoid N] (p : M × N) :
+lemma fst_mul_snd [mul_one_class M] [mul_one_class N] (p : M × N) :
   (p.fst, 1) * (1, p.snd) = p :=
 ext (mul_one p.1) (one_mul p.2)
 
@@ -73,6 +73,11 @@ instance [has_div M] [has_div N] : has_div (M × N) := ⟨λ p q, ⟨p.1 / q.1, 
 @[simp] lemma snd_sub [add_group A] [add_group B] (a b : A × B) : (a - b).2 = a.2 - b.2 := rfl
 @[simp] lemma mk_sub_mk [add_group A] [add_group B] (x₁ x₂ : A) (y₁ y₂ : B) :
 (x₁, y₁) - (x₂, y₂) = (x₁ - x₂, y₁ - y₂) := rfl
+
+instance [mul_zero_class M] [mul_zero_class N] : mul_zero_class (M × N) :=
+{ zero_mul := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
+  mul_zero := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨mul_zero _, mul_zero _⟩,
+  .. prod.has_zero, .. prod.has_mul }
 
 @[to_additive]
 instance [semigroup M] [semigroup N] : semigroup (M × N) :=
@@ -120,8 +125,30 @@ instance [right_cancel_semigroup G] [right_cancel_semigroup H] :
   .. prod.semigroup }
 
 @[to_additive]
+instance [left_cancel_monoid M] [left_cancel_monoid N] : left_cancel_monoid (M × N) :=
+{ .. prod.left_cancel_semigroup, .. prod.monoid }
+
+@[to_additive]
+instance [right_cancel_monoid M] [right_cancel_monoid N] : right_cancel_monoid (M × N) :=
+{ .. prod.right_cancel_semigroup, .. prod.monoid }
+
+@[to_additive]
+instance [cancel_monoid M] [cancel_monoid N] : cancel_monoid (M × N) :=
+{ .. prod.right_cancel_monoid, .. prod.left_cancel_monoid }
+
+@[to_additive]
 instance [comm_monoid M] [comm_monoid N] : comm_monoid (M × N) :=
 { .. prod.comm_semigroup, .. prod.monoid }
+
+@[to_additive]
+instance [cancel_comm_monoid M] [cancel_comm_monoid N] : cancel_comm_monoid (M × N) :=
+{ .. prod.left_cancel_monoid, .. prod.right_cancel_monoid, .. prod.comm_monoid }
+
+instance [monoid_with_zero M] [monoid_with_zero N] : monoid_with_zero (M × N) :=
+{ .. prod.monoid, .. prod.mul_zero_class }
+
+instance [comm_monoid_with_zero M] [comm_monoid_with_zero N] : comm_monoid_with_zero (M × N) :=
+{ .. prod.comm_monoid, .. prod.mul_zero_class }
 
 @[to_additive]
 instance [comm_group G] [comm_group H] : comm_group (G × H) :=
@@ -131,7 +158,7 @@ end prod
 
 namespace monoid_hom
 
-variables (M N) [monoid M] [monoid N]
+variables (M N) [mul_one_class M] [mul_one_class N]
 
 /-- Given monoids `M`, `N`, the natural projection homomorphism from `M × N` to `M`.-/
 @[to_additive "Given additive monoids `A`, `B`, the natural projection homomorphism
@@ -170,7 +197,7 @@ variables {M N}
 
 section prod
 
-variable [monoid P]
+variable [mul_one_class P]
 
 /-- Combine two `monoid_hom`s `f : M →* N`, `g : M →* P` into `f.prod g : M →* N × P`
 given by `(f.prod g) x = (f x, g x)` -/
@@ -201,7 +228,7 @@ end prod
 
 section prod_map
 
-variables {M' : Type*} {N' : Type*} [monoid M'] [monoid N'] [monoid P]
+variables {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class N'] [mul_one_class P]
   (f : M →* M') (g : N →* N')
 
 /-- `prod.map` as a `monoid_hom`. -/
@@ -259,7 +286,9 @@ end coprod
 end monoid_hom
 
 namespace mul_equiv
-variables {M N} [monoid M] [monoid N]
+
+section
+variables {M N} [mul_one_class M] [mul_one_class N]
 
 /-- The equivalence between `M × N` and `N × M` given by swapping the components
 is multiplicative. -/
@@ -274,6 +303,11 @@ def prod_comm : M × N ≃* N × M :=
 @[simp, to_additive coe_prod_comm_symm] lemma coe_prod_comm_symm :
   ⇑((prod_comm : M × N ≃* N × M).symm) = prod.swap := rfl
 
+end
+
+section
+variables {M N} [monoid M] [monoid N]
+
 /-- The monoid equivalence between units of a product of two monoids, and the product of the
     units of each monoid. -/
 @[to_additive prod_add_units "The additive monoid equivalence between additive units of a product
@@ -284,5 +318,7 @@ def prod_units : units (M × N) ≃* units M × units N :=
   left_inv := λ u, by simp,
   right_inv := λ ⟨u₁, u₂⟩, by simp [units.map],
   map_mul' := monoid_hom.map_mul _ }
+
+end
 
 end mul_equiv

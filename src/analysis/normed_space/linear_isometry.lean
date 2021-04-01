@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import topology.metric_space.isometry
 
@@ -184,6 +184,8 @@ def of_bounds (e : E ≃ₗ[R] F) (h₁ : ∀ x, ∥e x∥ ≤ ∥x∥) (h₂ : 
 
 /-- Reinterpret a `linear_isometry_equiv` as a `linear_isometry`. -/
 def to_linear_isometry : E →ₗᵢ[R] F := ⟨e.1, e.2⟩
+
+@[simp] lemma coe_to_linear_isometry : ⇑e.to_linear_isometry = e := rfl
 
 protected lemma isometry : isometry e := e.to_linear_isometry.isometry
 

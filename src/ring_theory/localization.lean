@@ -299,11 +299,11 @@ begin
   split;
   intro h,
   { rw [← mk'_spec f x y, mul_comm],
-    exact I.smul_mem (f.to_map y) h },
+    exact I.mul_mem_left (f.to_map y) h },
   { rw ← mk'_spec f x y at h,
     obtain ⟨b, hb⟩ := is_unit_iff_exists_inv.1 (map_units f y),
-    have := I.smul_mem b h,
-    rwa [smul_eq_mul, mul_comm, mul_assoc, hb, mul_one] at this }
+    have := I.mul_mem_left b h,
+    rwa [mul_comm, mul_assoc, hb, mul_one] at this }
 end
 
 protected lemma eq {a₁ b₁} {a₂ b₂ : M} :
@@ -596,7 +596,7 @@ begin
   cases h with t ht,
   use t,
   rw [neg_mul_eq_neg_mul_symm, neg_mul_eq_neg_mul_symm, ht],
-  ring,
+  ring_nf,
 end⟩
 
 instance : has_zero (localization M) :=
@@ -794,7 +794,7 @@ private def to_map_ideal (I : ideal R) : ideal S :=
   zero_mem' := ⟨⟨0, 1⟩, by simp⟩,
   add_mem' := begin
     rintros a b ⟨a', ha⟩ ⟨b', hb⟩,
-    use ⟨a'.2 * b'.1 + b'.2 * a'.1, I.add_mem (I.smul_mem _ b'.1.2) (I.smul_mem _ a'.1.2)⟩,
+    use ⟨a'.2 * b'.1 + b'.2 * a'.1, I.add_mem (I.mul_mem_left _ b'.1.2) (I.mul_mem_left _ a'.1.2)⟩,
     use a'.2 * b'.2,
     simp only [ring_hom.map_add, submodule.coe_mk, submonoid.coe_mul, ring_hom.map_mul],
     rw [add_mul, ← mul_assoc a, ha, mul_comm (f.to_map a'.2) (f.to_map b'.2), ← mul_assoc b, hb],
@@ -803,7 +803,7 @@ private def to_map_ideal (I : ideal R) : ideal S :=
   smul_mem' := begin
     rintros c x ⟨x', hx⟩,
     obtain ⟨c', hc⟩ := localization_map.surj f c,
-    use ⟨c'.1 * x'.1, I.smul_mem c'.1 x'.1.2⟩,
+    use ⟨c'.1 * x'.1, I.mul_mem_left c'.1 x'.1.2⟩,
     use c'.2 * x'.2,
     simp only [←hx, ←hc, smul_eq_mul, submodule.coe_mk, submonoid.coe_mul, ring_hom.map_mul],
     ring
@@ -926,8 +926,8 @@ begin
   { have : I = ⊤,
     { rw ideal.eq_top_iff_one,
       rw [ideal.quotient.eq_zero_iff_mem, ideal.mem_comap] at hM,
-      convert I.smul_mem (f.mk' 1 ⟨m, hm⟩) hM,
-      rw [smul_eq_mul, mul_comm, ← f.mk'_eq_mul_mk'_one, f.mk'_self] },
+      convert I.mul_mem_right (f.mk' 1 ⟨m, hm⟩) hM,
+      rw [← f.mk'_eq_mul_mk'_one, f.mk'_self] },
     exact ⟨0, eq_comm.1 (by simp [ideal.quotient.eq_zero_iff_mem, this])⟩ },
   { rw ideal.quotient.maximal_ideal_iff_is_field_quotient at hI,
     obtain ⟨n, hn⟩ := hI.3 hM,
@@ -937,9 +937,9 @@ begin
     rw ← ring_hom.map_mul at hn,
     replace hn := congr_arg (ideal.quotient_map I f.to_map le_rfl) hn,
     simp only [ring_hom.map_one, ideal.quotient_map_mk, ring_hom.map_mul] at hn,
-    rw [ideal.quotient_map_mk, ← sub_eq_zero_iff_eq, ← ring_hom.map_sub,
+    rw [ideal.quotient_map_mk, ← sub_eq_zero, ← ring_hom.map_sub,
       ideal.quotient.eq_zero_iff_mem, ← ideal.quotient.eq_zero_iff_mem, ring_hom.map_sub,
-      sub_eq_zero_iff_eq, localization_map.mk'_eq_mul_mk'_one],
+      sub_eq_zero, localization_map.mk'_eq_mul_mk'_one],
     simp only [mul_eq_mul_left_iff, ring_hom.map_mul],
     exact or.inl (mul_left_cancel' (λ hn, hM (ideal.quotient.eq_zero_iff_mem.2
       (ideal.mem_comap.2 (ideal.quotient.eq_zero_iff_mem.1 hn)))) (trans hn

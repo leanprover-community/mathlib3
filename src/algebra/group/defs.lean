@@ -139,6 +139,10 @@ theorem mul_right_injective (a : G) : function.injective ((*) a) :=
 theorem mul_right_inj (a : G) {b c : G} : a * b = a * c ↔ b = c :=
 (mul_right_injective a).eq_iff
 
+@[to_additive]
+theorem mul_ne_mul_right (a : G) {b c : G} : a * b ≠ a * c ↔ b ≠ c :=
+(mul_right_injective a).ne_iff
+
 end left_cancel_semigroup
 
 /-- A `right_cancel_semigroup` is a semigroup such that `a * b = c * b` implies `a = c`. -/
@@ -171,6 +175,10 @@ theorem mul_left_injective (a : G) : function.injective (λ x, x * a) :=
 @[simp, to_additive]
 theorem mul_left_inj (a : G) {b c : G} : b * a = c * a ↔ b = c :=
 (mul_left_injective a).eq_iff
+
+@[to_additive]
+theorem mul_ne_mul_left (a : G) {b c : G} : b * a ≠ c * a ↔ b ≠ c :=
+(mul_left_injective a).ne_iff
 
 end right_cancel_semigroup
 
@@ -219,12 +227,27 @@ section monoid
 variables {M : Type u} [monoid M]
 
 @[to_additive]
-instance monoid_to_is_left_id : is_left_id M (*) 1 :=
-⟨ monoid.one_mul ⟩
+instance mul_one_class.to_is_left_id : is_left_id M (*) 1 :=
+⟨ mul_one_class.one_mul ⟩
 
 @[to_additive]
-instance monoid_to_is_right_id : is_right_id M (*) 1 :=
-⟨ monoid.mul_one ⟩
+instance mul_one_class.to_is_right_id : is_right_id M (*) 1 :=
+⟨ mul_one_class.mul_one ⟩
+
+end mul_one_class
+
+/-- A `monoid` is a `semigroup` with an element `1` such that `1 * a = a * 1 = a`. -/
+@[ancestor semigroup mul_one_class]
+class monoid (M : Type u) extends semigroup M, mul_one_class M
+
+/-- An `add_monoid` is an `add_semigroup` with an element `0` such that `0 + a = a + 0 = a`. -/
+@[ancestor add_semigroup add_zero_class]
+class add_monoid (M : Type u) extends add_semigroup M, add_zero_class M
+
+attribute [to_additive] monoid
+
+section monoid
+variables {M : Type u} [monoid M]
 
 @[to_additive]
 lemma left_inv_eq_right_inv {a b c : M} (hba : b * a = 1) (hac : a * c = 1) : b = c :=

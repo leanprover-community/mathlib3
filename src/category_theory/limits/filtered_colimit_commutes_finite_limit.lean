@@ -295,10 +295,9 @@ begin
     simp only [bifunctor.map_id_comp, types_comp_apply, bifunctor.map_id, types_id_apply], },
 end
 
-noncomputable
 instance colimit_limit_to_limit_colimit_is_iso :
   is_iso (colimit_limit_to_limit_colimit F) :=
-(is_iso_equiv_bijective _).symm
+(is_iso_iff_bijective _).mpr
   ⟨colimit_limit_to_limit_colimit_injective F, colimit_limit_to_limit_colimit_surjective F⟩
 
 end category_theory.limits

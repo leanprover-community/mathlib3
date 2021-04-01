@@ -388,6 +388,26 @@ le_antisymm
     (f.op_norm_le_bound (norm_nonneg _) $ λ m, (le_max_left _ _).trans ((f.prod g).le_op_norm _))
     (g.op_norm_le_bound (norm_nonneg _) $ λ m, (le_max_right _ _).trans ((f.prod g).le_op_norm _))
 
+lemma norm_pi {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', normed_group (E' i')]
+  [Π i', normed_space 𝕜 (E' i')] (f : Π i', continuous_multilinear_map 𝕜 E (E' i')) :
+  ∥pi f∥ = ∥f∥ :=
+begin
+  apply le_antisymm,
+  { refine (op_norm_le_bound _ (norm_nonneg f) (λ m, _)),
+    dsimp,
+    rw pi_norm_le_iff,
+    exacts [λ i, (f i).le_of_op_norm_le m (norm_le_pi_norm f i),
+      mul_nonneg (norm_nonneg f) (prod_nonneg $ λ _ _, norm_nonneg _)] },
+  { refine (pi_norm_le_iff (norm_nonneg _)).2 (λ i, _),
+    refine (op_norm_le_bound _ (norm_nonneg _) (λ m, _)),
+    refine le_trans _ ((pi f).le_op_norm m),
+    convert norm_le_pi_norm (λ j, f j m) i }
+end
+
+section
+
+variables (𝕜 E E' G G')
+
 /-- `continuous_multilinear_map.prod` as a `linear_isometry_equiv`. -/
 def prodL :
   (continuous_multilinear_map 𝕜 E G) × (continuous_multilinear_map 𝕜 E G') ≃ₗᵢ[𝕜]
@@ -400,6 +420,23 @@ def prodL :
   left_inv := λ f, by ext; refl,
   right_inv := λ f, by ext; refl,
   norm_map' := λ f, op_norm_prod f.1 f.2 }
+
+/-- `continuous_multilinear_map.pi` as a `linear_isometry_equiv`. -/
+def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', normed_group (E' i')]
+  [Π i', normed_space 𝕜 (E' i')] :
+  @linear_isometry_equiv 𝕜 (Π i', continuous_multilinear_map 𝕜 E (E' i'))
+    (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _ _
+      (@pi.semimodule ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
+{ to_fun := pi,
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  inv_fun := λ f i,
+    (@continuous_linear_map.proj 𝕜 _ _ E' _ _ _ i).comp_continuous_multilinear_map f,
+  left_inv := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl },
+  norm_map' := norm_pi }
+
+end
 
 section restrict_scalars
 

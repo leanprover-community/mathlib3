@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson, Jalex Stark, Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov
+Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov
 -/
 import data.fintype.basic
 import data.sym2
@@ -174,7 +174,9 @@ fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
-@[symm] lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
+lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
+
+@[symm] lemma edge_symm' {u v : V} (h : G.adj u v) : G.adj v u := G.sym h
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 iff.rfl
@@ -355,16 +357,98 @@ lemma complete_graph_is_regular [decidable_eq V] :
 by { intro v, simp }
 
 /--
-The minimum degree of all vertices
+The minimum degree of all vertices (and `0` if there are no vertices).
+The key properties of this are given in `exists_minimal_degree_vertex`, `min_degree_le_degree`
+and `le_min_degree_of_forall_le_degree`.
 -/
-def min_degree (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
-finset.min' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
+def min_degree [decidable_rel G.adj] : ℕ :=
+option.get_or_else (univ.image (λ v, G.degree v)).min 0
 
 /--
-The maximum degree of all vertices
+There exists a vertex of minimal degree. Note the assumption of being nonempty is necessary, as
+the lemma implies there exists a vertex.
 -/
-def max_degree (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
-finset.max' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
+lemma exists_minimal_degree_vertex [decidable_rel G.adj] [nonempty V] :
+  ∃ v, G.min_degree = G.degree v :=
+begin
+  obtain ⟨t, ht : _ = _⟩ := min_of_nonempty (univ_nonempty.image (λ v, G.degree v)),
+  obtain ⟨v, _, rfl⟩ := mem_image.mp (mem_of_min ht),
+  refine ⟨v, by simp [min_degree, ht]⟩,
+end
+
+/-- The minimum degree in the graph is at most the degree of any particular vertex. -/
+lemma min_degree_le_degree [decidable_rel G.adj] (v : V) : G.min_degree ≤ G.degree v :=
+begin
+  obtain ⟨t, ht⟩ := finset.min_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
+  have := finset.min_le_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
+  rw option.mem_def at ht,
+  rwa [min_degree, ht, option.get_or_else_some],
+end
+
+/--
+In a nonempty graph, if `k` is at most the degree of every vertex, it is at most the minimum
+degree. Note the assumption that the graph is nonempty is necessary as long as `G.min_degree` is
+defined to be a natural.
+-/
+lemma le_min_degree_of_forall_le_degree [decidable_rel G.adj] [nonempty V] (k : ℕ)
+  (h : ∀ v, k ≤ G.degree v) :
+  k ≤ G.min_degree :=
+begin
+  rcases G.exists_minimal_degree_vertex with ⟨v, hv⟩,
+  rw hv,
+  apply h
+end
+
+/--
+The maximum degree of all vertices (and `0` if there are no vertices).
+The key properties of this are given in `exists_maximal_degree_vertex`, `degree_le_max_degree`
+and `max_degree_le_of_forall_degree_le`.
+-/
+def max_degree [decidable_rel G.adj] : ℕ :=
+option.get_or_else (univ.image (λ v, G.degree v)).max 0
+
+/--
+There exists a vertex of maximal degree. Note the assumption of being nonempty is necessary, as
+the lemma implies there exists a vertex.
+-/
+lemma exists_maximal_degree_vertex [decidable_rel G.adj] [nonempty V] :
+  ∃ v, G.max_degree = G.degree v :=
+begin
+  obtain ⟨t, ht⟩ := max_of_nonempty (univ_nonempty.image (λ v, G.degree v)),
+  have ht₂ := mem_of_max ht,
+  simp only [mem_image, mem_univ, exists_prop_of_true] at ht₂,
+  rcases ht₂ with ⟨v, rfl⟩,
+  rw option.mem_def at ht,
+  refine ⟨v, _⟩,
+  rw [max_degree, ht],
+  refl
+end
+
+/-- The maximum degree in the graph is at least the degree of any particular vertex. -/
+lemma degree_le_max_degree [decidable_rel G.adj] (v : V) : G.degree v ≤ G.max_degree :=
+begin
+  obtain ⟨t, ht : _ = _⟩ := finset.max_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
+  have := finset.le_max_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
+  rwa [max_degree, ht, option.get_or_else_some],
+end
+
+/--
+In a graph, if `k` is at least the degree of every vertex, then it is at least the maximum
+degree.
+-/
+lemma max_degree_le_of_forall_degree_le [decidable_rel G.adj] (k : ℕ)
+  (h : ∀ v, G.degree v ≤ k) :
+  G.max_degree ≤ k :=
+begin
+  by_cases hV : (univ : finset V).nonempty,
+  { haveI : nonempty V := univ_nonempty_iff.mp hV,
+    obtain ⟨v, hv⟩ := G.exists_maximal_degree_vertex,
+    rw hv,
+    apply h },
+  { rw not_nonempty_iff_eq_empty at hV,
+    rw [max_degree, hV, image_empty],
+    exact zero_le k },
+end
 
 lemma degree_lt_card_verts [decidable_rel G.adj] (v : V) : G.degree v < fintype.card V :=
 begin
@@ -372,6 +456,18 @@ begin
   apply finset.card_lt_card,
   rw finset.ssubset_iff,
   exact ⟨v, by simp, finset.subset_univ _⟩,
+end
+
+/--
+The maximum degree of a nonempty graph is less than the number of vertices. Note that the assumption
+that `V` is nonempty is necessary, as otherwise this would assert the existence of a natural less
+than zero.
+-/
+lemma max_degree_lt_card_verts [decidable_rel G.adj] [nonempty V] : G.max_degree < fintype.card V :=
+begin
+  cases G.exists_maximal_degree_vertex with v hv,
+  rw hv,
+  apply G.degree_lt_card_verts v,
 end
 
 lemma card_common_neighbors_le_degree_left [decidable_rel G.adj] (v w : V) :

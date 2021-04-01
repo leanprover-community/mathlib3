@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.closeds
 import set_theory.cardinal
 import topology.metric_space.gromov_hausdorff_realized
 import topology.metric_space.completion
+import topology.metric_space.kuratowski
 
 /-!
 # Gromov-Hausdorff distance
@@ -58,7 +59,8 @@ Using the Kuratwoski embedding, we get a canonical map `to_GH_space` mapping any
 compact type to `GH_space`. -/
 
 /-- Equivalence relation identifying two nonempty compact sets which are isometric -/
-private definition isometry_rel : nonempty_compacts ℓ_infty_ℝ → nonempty_compacts ℓ_infty_ℝ → Prop :=
+private definition isometry_rel :
+  nonempty_compacts ℓ_infty_ℝ → nonempty_compacts ℓ_infty_ℝ → Prop :=
   λx y, nonempty (x.val ≃ᵢ y.val)
 
 /-- This is indeed an equivalence relation -/

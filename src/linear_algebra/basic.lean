@@ -7,6 +7,7 @@ import algebra.big_operators.pi
 import algebra.module.pi
 import algebra.module.prod
 import algebra.module.submodule
+import algebra.module.submodule_lattice
 import algebra.group.prod
 import data.finsupp.basic
 import data.dfinsupp
@@ -17,8 +18,7 @@ import order.compactly_generated
 # Linear algebra
 
 This file defines the basics of linear algebra. It sets up the "categorical/lattice structure" of
-modules over a ring, submodules, and linear maps. If `p` and `q` are submodules of a module, `p ≤ q`
-means that `p ⊆ q`.
+modules over a ring, submodules, and linear maps.
 
 Many of the relevant definitions, including `module`, `submodule`, and `linear_map`, are found in
 `src/algebra/module`.
@@ -106,12 +106,6 @@ variables [semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R
 variables (f g : M →ₗ[R] M₂)
 include R
 
-@[simp] theorem comp_id : f.comp id = f :=
-linear_map.ext $ λ x, rfl
-
-@[simp] theorem id_comp : id.comp f = f :=
-linear_map.ext $ λ x, rfl
-
 theorem comp_assoc (g : M₂ →ₗ[R] M₃) (h : M₃ →ₗ[R] M₄) : (h.comp g).comp f = h.comp (g.comp f) :=
 rfl
 
@@ -140,7 +134,7 @@ ext $ assume b, rfl
 
 /-- Restrict domain and codomain of an endomorphism. -/
 def restrict (f : M →ₗ[R] M) {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) : p →ₗ[R] p :=
-(f.dom_restrict p).cod_restrict p $ submodule.forall.2 hf
+(f.dom_restrict p).cod_restrict p $ set_like.forall.2 hf
 
 lemma restrict_apply
   {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) (x : p) :
@@ -249,6 +243,32 @@ end
 
 lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 by { ext m, apply pow_apply, }
+
+section
+variables {f' : M →ₗ[R] M}
+
+lemma iterate_succ (n : ℕ) : (f' ^ (n + 1)) = comp (f' ^ n) f' :=
+by rw [pow_succ', mul_eq_comp]
+
+lemma iterate_surjective (h : surjective f') : ∀ n : ℕ, surjective ⇑(f' ^ n)
+| 0       := surjective_id
+| (n + 1) := by { rw [iterate_succ], exact surjective.comp (iterate_surjective n) h, }
+
+lemma iterate_injective (h : injective f') : ∀ n : ℕ, injective ⇑(f' ^ n)
+| 0       := injective_id
+| (n + 1) := by { rw [iterate_succ], exact injective.comp (iterate_injective n) h, }
+
+lemma iterate_bijective (h : bijective f') : ∀ n : ℕ, bijective ⇑(f' ^ n)
+| 0       := bijective_id
+| (n + 1) := by { rw [iterate_succ], exact bijective.comp (iterate_bijective n) h, }
+
+lemma injective_of_iterate_injective {n : ℕ} (hn : n ≠ 0) (h : injective ⇑(f' ^ n)) :
+  injective f' :=
+begin
+  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), iterate_succ, ←comp_coe] at h,
+  exact injective.of_comp h,
+end
+end
 
 section
 open_locale classical
@@ -487,26 +507,7 @@ variables (p p' : submodule R M) (q q' : submodule R M₂)
 variables {r : R} {x y : M}
 open set
 
-instance : partial_order (submodule R M) :=
-{ le := λ p p', ∀ ⦃x⦄, x ∈ p → x ∈ p',
-  ..partial_order.lift (coe : submodule R M → set M) coe_injective }
-
 variables {p p'}
-
-lemma le_def : p ≤ p' ↔ (p : set M) ⊆ p' := iff.rfl
-
-@[simp, norm_cast] lemma coe_subset_coe : (p : set M) ⊆ p' ↔ p ≤ p' := iff.rfl
-
-lemma le_def' : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
-
-lemma lt_def : p < p' ↔ (p : set M) ⊂ p' := iff.rfl
-
-lemma not_le_iff_exists : ¬ (p ≤ p') ↔ ∃ x ∈ p, x ∉ p' := not_subset
-
-lemma exists_of_lt {p p' : submodule R M} : p < p' → ∃ x ∈ p', x ∉ p := exists_of_ssubset
-
-lemma lt_iff_le_and_exists : p < p' ↔ p ≤ p' ∧ ∃ x ∈ p', x ∉ p :=
-by rw [lt_iff_le_not_le, not_le_iff_exists]
 
 /-- If two submodules `p` and `p'` satisfy `p ⊆ p'`, then `of_le p p'` is the linear map version of
 this inclusion. -/
@@ -524,90 +525,6 @@ lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
   q.subtype.comp (of_le h) = p.subtype :=
 by { ext ⟨b, hb⟩, refl }
 
-/-- The set `{0}` is the bottom element of the lattice of submodules. -/
-instance : has_bot (submodule R M) :=
-⟨{ carrier := {0}, smul_mem' := by simp { contextual := tt }, .. (⊥ : add_submonoid M)}⟩
-
-instance inhabited' : inhabited (submodule R M) := ⟨⊥⟩
-
-@[simp] lemma bot_coe : ((⊥ : submodule R M) : set M) = {0} := rfl
-
-section
-variables (R)
-@[simp] lemma mem_bot : x ∈ (⊥ : submodule R M) ↔ x = 0 := mem_singleton_iff
-end
-
-instance unique_bot : unique (⊥ : submodule R M) :=
-⟨infer_instance, λ x, subtype.ext $ (mem_bot R).1 x.mem⟩
-
-lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
-begin
-  have h := (submodule.lt_iff_le_and_exists.1 bot_lt).2,
-  tidy,
-end
-
-instance : order_bot (submodule R M) :=
-{ bot := ⊥,
-  bot_le := λ p x, by simp {contextual := tt},
-  ..submodule.partial_order }
-
-protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0 : M) :=
-⟨ λ h, h.symm ▸ λ x hx, (mem_bot R).mp hx,
-  λ h, eq_bot_iff.mpr (λ x hx, (mem_bot R).mpr (h x hx)) ⟩
-
-protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x ≠ (0 : M) :=
-by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
-
-/-- The universal set is the top element of the lattice of submodules. -/
-instance : has_top (submodule R M) :=
-⟨{ carrier := univ, smul_mem' := λ _ _ _, trivial, .. (⊤ : add_submonoid M)}⟩
-
-@[simp] lemma top_coe : ((⊤ : submodule R M) : set M) = univ := rfl
-
-@[simp] lemma mem_top : x ∈ (⊤ : submodule R M) := trivial
-
-instance : order_top (submodule R M) :=
-{ top := ⊤,
-  le_top := λ p x _, trivial,
-  ..submodule.partial_order }
-
-instance : has_Inf (submodule R M) :=
-⟨λ S, {
-  carrier   := ⋂ s ∈ S, (s : set M),
-  zero_mem' := by simp,
-  add_mem'  := by simp [add_mem] {contextual := tt},
-  smul_mem' := by simp [smul_mem] {contextual := tt} }⟩
-
-private lemma Inf_le' {S : set (submodule R M)} {p} : p ∈ S → Inf S ≤ p :=
-bInter_subset_of_mem
-
-private lemma le_Inf' {S : set (submodule R M)} {p} : (∀p' ∈ S, p ≤ p') → p ≤ Inf S :=
-subset_bInter
-
-instance : has_inf (submodule R M) :=
-⟨λ p p', {
-  carrier   := p ∩ p',
-  zero_mem' := by simp,
-  add_mem'  := by simp [add_mem] {contextual := tt},
-  smul_mem' := by simp [smul_mem] {contextual := tt} }⟩
-
-instance : complete_lattice (submodule R M) :=
-{ sup          := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
-  le_sup_left  := λ a b, le_Inf' $ λ x ⟨ha, hb⟩, ha,
-  le_sup_right := λ a b, le_Inf' $ λ x ⟨ha, hb⟩, hb,
-  sup_le       := λ a b c h₁ h₂, Inf_le' ⟨h₁, h₂⟩,
-  inf          := (⊓),
-  le_inf       := λ a b c, subset_inter,
-  inf_le_left  := λ a b, inter_subset_left _ _,
-  inf_le_right := λ a b, inter_subset_right _ _,
-  Sup          := λtt, Inf {t | ∀t'∈tt, t' ≤ t},
-  le_Sup       := λ s p hs, le_Inf' $ λ p' hp', hp' _ hs,
-  Sup_le       := λ s p hs, Inf_le' hs,
-  Inf          := Inf,
-  le_Inf       := λ s a, le_Inf',
-  Inf_le       := λ s a, Inf_le',
-  ..submodule.order_top,
-  ..submodule.order_bot }
 
 instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 { add := (⊔),
@@ -620,14 +537,7 @@ instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 @[simp] lemma add_eq_sup (p q : submodule R M) : p + q = p ⊔ q := rfl
 @[simp] lemma zero_eq_bot : (0 : submodule R M) = ⊥ := rfl
 
-lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
-eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
-
 variables (R)
-
-@[simp] lemma bot_to_add_submonoid : (⊥ : submodule R M).to_add_submonoid = ⊥ := rfl
-
-@[simp] lemma top_to_add_submonoid : (⊤ : submodule R M).to_add_submonoid = ⊤ := rfl
 
 lemma subsingleton_iff : subsingleton M ↔ subsingleton (submodule R M) :=
 add_submonoid.subsingleton_iff.trans $ begin
@@ -649,25 +559,6 @@ instance unique' [subsingleton R] : unique (submodule R M) :=
 by haveI := semimodule.subsingleton R M; apply_instance
 
 instance [nontrivial M] : nontrivial (submodule R M) := (nontrivial_iff R).mp ‹_›
-
-@[simp] theorem inf_coe : (p ⊓ p' : set M) = p ∩ p' := rfl
-
-@[simp] theorem mem_inf {p p' : submodule R M} :
-  x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' := iff.rfl
-
-@[simp] theorem Inf_coe (P : set (submodule R M)) : (↑(Inf P) : set M) = ⋂ p ∈ P, ↑p := rfl
-
-@[simp] theorem infi_coe {ι} (p : ι → submodule R M) :
-  (↑⨅ i, p i : set M) = ⋂ i, ↑(p i) :=
-by rw [infi, Inf_coe]; ext a; simp; exact
-⟨λ h i, h _ i rfl, λ h i x e, e ▸ h _⟩
-
-@[simp] lemma mem_Inf {S : set (submodule R M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
-set.mem_bInter_iff
-
-@[simp] theorem mem_infi {ι} (p : ι → submodule R M) :
-  x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=
-by rw [← mem_coe, infi_coe, mem_Inter]; refl
 
 theorem disjoint_def {p p' : submodule R M} :
   disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:M) :=
@@ -706,7 +597,7 @@ submodule.ext $ λ a, by simp
 
 lemma map_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) (p : submodule R M) :
   map (g.comp f) p = map g (map f p) :=
-submodule.coe_injective $ by simp [map_coe]; rw ← image_comp
+set_like.coe_injective $ by simp [map_coe]; rw ← image_comp
 
 lemma map_mono {f : M →ₗ[R] M₂} {p p' : submodule R M} : p ≤ p' → map f p ≤ map f p' :=
 image_subset _
@@ -732,7 +623,7 @@ def comap (f : M →ₗ[R] M₂) (p : submodule R M₂) : submodule R M :=
   x ∈ comap f p ↔ f x ∈ p := iff.rfl
 
 lemma comap_id : comap linear_map.id p = p :=
-submodule.coe_injective rfl
+set_like.coe_injective rfl
 
 lemma comap_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) (p : submodule R M₃) :
   comap (g.comp f) p = comap f (comap g p) := rfl
@@ -848,7 +739,7 @@ end
 (submodule.gi R M).gc.l_bot
 
 @[simp] lemma span_univ : span R (univ : set M) = ⊤ :=
-eq_top_iff.2 $ le_def.2 $ subset_span
+eq_top_iff.2 $ set_like.le_def.2 $ subset_span
 
 lemma span_union (s t : set M) : span R (s ∪ t) = span R s ⊔ span R t :=
 (submodule.gi R M).gc.l_sup
@@ -875,17 +766,6 @@ begin
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
 
-lemma mem_sup_left {S T : submodule R M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
-show S ≤ S ⊔ T, from le_sup_left
-
-lemma mem_sup_right {S T : submodule R M} : ∀ {x : M}, x ∈ T → x ∈ S ⊔ T :=
-show T ≤ S ⊔ T, from le_sup_right
-
-lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (h : b ∈ p i) :
-  b ∈ (⨆i, p i) :=
-have p i ≤ (⨆i, p i) := le_supr p i,
-@this b h
-
 lemma sum_mem_bsupr {ι : Type*} {s : finset ι} {f : ι → M} {p : ι → submodule R M}
   (h : ∀ i ∈ s, f i ∈ p i) :
   ∑ i in s, f i ∈ ⨆ i ∈ s, p i :=
@@ -896,14 +776,10 @@ lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodul
   ∑ i, f i ∈ ⨆ i, p i :=
 sum_mem _ $ λ i hi, mem_supr_of_mem i (h i)
 
-lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
-  (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
-show s ≤ Sup S, from le_Sup hs
-
 @[simp] theorem mem_supr_of_directed {ι} [nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) {x} :
   x ∈ supr S ↔ ∃ i, x ∈ S i :=
-by { rw [← mem_coe, coe_supr_of_directed S H, mem_Union], refl }
+by { rw [← set_like.mem_coe, coe_supr_of_directed S H, mem_Union], refl }
 
 theorem mem_Sup_of_directed {s : set (submodule R M)}
   {z} (hs : s.nonempty) (hdir : directed_on (≤) s) :
@@ -935,7 +811,7 @@ by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem _
   ((le_sup_right : p' ≤ p ⊔ p') hz)⟩
 
 lemma mem_sup' : x ∈ p ⊔ p' ↔ ∃ (y : p) (z : p'), (y:M) + z = x :=
-mem_sup.trans $ by simp only [submodule.exists, coe_mk]
+mem_sup.trans $ by simp only [set_like.exists, coe_mk]
 
 end
 
@@ -966,7 +842,7 @@ by rintro ⟨a, y, rfl⟩; exact
 
 lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
   s ≤ (R ∙ v₀) ↔ ∀ v ∈ s, ∃ r : R, r • v₀ = v :=
-by simp_rw [le_def', mem_span_singleton]
+by simp_rw [set_like.le_def, mem_span_singleton]
 
 @[simp] lemma span_zero_singleton : (R ∙ (0:M)) = ⊥ :=
 by { ext, simp [mem_span_singleton, eq_comm] }
@@ -976,7 +852,7 @@ set.ext $ λ x, mem_span_singleton
 
 lemma span_singleton_smul_le (r : R) (x : M) : (R ∙ (r • x)) ≤ R ∙ x :=
 begin
-  rw [span_le, set.singleton_subset_iff, mem_coe],
+  rw [span_le, set.singleton_subset_iff, set_like.mem_coe],
   exact smul_mem _ _ (mem_span_singleton_self _)
 end
 
@@ -1054,14 +930,14 @@ le_antisymm
   (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem i hm)
 
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) : (R ∙ m) ≤ p ↔ m ∈ p :=
-by rw [span_le, singleton_subset_iff, mem_coe]
+by rw [span_le, singleton_subset_iff, set_like.mem_coe]
 
 lemma singleton_span_is_compact_element (x : M) :
   complete_lattice.is_compact_element (span R {x} : submodule R M) :=
 begin
   rw complete_lattice.is_compact_element_iff_le_of_directed_Sup_le,
   intros d hemp hdir hsup,
-  have : x ∈ Sup d, from (le_def.mp hsup) (mem_span_singleton_self x),
+  have : x ∈ Sup d, from (set_like.le_def.mp hsup) (mem_span_singleton_self x),
   obtain ⟨y, ⟨hyd, hxy⟩⟩ := (mem_Sup_of_directed hemp hdir).mp this,
   exact ⟨y, ⟨hyd, by simpa only [span_le, singleton_subset_iff]⟩⟩,
 end
@@ -1085,7 +961,7 @@ begin
     have h2 := gt_of_ge_of_gt h1 h,
     exact lt_irrefl I h2, },
   { intro h,
-    apply lt_iff_le_and_exists.mpr, split,
+    apply set_like.lt_iff_le_and_exists.mpr, split,
     simp only [add_eq_sup, le_sup_left],
     use a,
     split, swap, { assumption, },
@@ -1153,14 +1029,14 @@ lemma prod_mono {p p' : submodule R M} {q q' : submodule R M₂} :
   p ≤ p' → q ≤ q' → prod p q ≤ prod p' q' := prod_mono
 
 @[simp] lemma prod_inf_prod : prod p q ⊓ prod p' q' = prod (p ⊓ p') (q ⊓ q') :=
-coe_injective set.prod_inter_prod
+set_like.coe_injective set.prod_inter_prod
 
 @[simp] lemma prod_sup_prod : prod p q ⊔ prod p' q' = prod (p ⊔ p') (q ⊔ q') :=
 begin
   refine le_antisymm (sup_le
     (prod_mono le_sup_left le_sup_left)
     (prod_mono le_sup_right le_sup_right)) _,
-  simp [le_def'], intros xx yy hxx hyy,
+  simp [set_like.le_def], intros xx yy hxx hyy,
   rcases mem_sup.1 hxx with ⟨x, hx, x', hx', rfl⟩,
   rcases mem_sup.1 hyy with ⟨y, hy, y', hy', rfl⟩,
   refine mem_sup.2 ⟨(x, y), ⟨hx, hy⟩, (x', y'), ⟨hx', hy'⟩, rfl⟩
@@ -1265,7 +1141,7 @@ by { rintros ⟨x⟩, exact ⟨x, rfl⟩ }
 
 lemma nontrivial_of_lt_top (h : p < ⊤) : nontrivial (p.quotient) :=
 begin
-  obtain ⟨x, _, not_mem_s⟩ := exists_of_lt h,
+  obtain ⟨x, _, not_mem_s⟩ := set_like.exists_of_lt h,
   refine ⟨⟨mk x, 0, _⟩⟩,
   simpa using not_mem_s
 end
@@ -1396,7 +1272,7 @@ theorem range_comp_le_range (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : r
 by rw range_comp; exact map_mono le_top
 
 theorem range_eq_top {f : M →ₗ[R] M₂} : range f = ⊤ ↔ surjective f :=
-by rw [submodule.ext'_iff, range_coe, top_coe, set.range_iff_surjective]
+by rw [set_like.ext'_iff, range_coe, top_coe, set.range_iff_surjective]
 
 lemma range_le_iff_comap {f : M →ₗ[R] M₂} {p : submodule R M₂} : range f ≤ p ↔ comap f p = ⊤ :=
 by rw [range, map_le_iff_le_comap, eq_top_iff]
@@ -1577,10 +1453,10 @@ by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ f ⊤
 lemma ker_le_iff {p : submodule R M} : ker f ≤ p ↔ ∃ (y ∈ range f), f ⁻¹' {y} ⊆ p :=
 begin
   split,
-  { intros h, use 0, rw [← mem_coe, f.range_coe], exact ⟨⟨0, map_zero f⟩, h⟩, },
+  { intros h, use 0, rw [← set_like.mem_coe, f.range_coe], exact ⟨⟨0, map_zero f⟩, h⟩, },
   { rintros ⟨y, h₁, h₂⟩,
-    rw le_def, intros z hz, simp only [mem_ker, mem_coe] at hz,
-    rw [← mem_coe, f.range_coe, set.mem_range] at h₁, obtain ⟨x, hx⟩ := h₁,
+    rw set_like.le_def, intros z hz, simp only [mem_ker, set_like.mem_coe] at hz,
+    rw [← set_like.mem_coe, f.range_coe, set.mem_range] at h₁, obtain ⟨x, hx⟩ := h₁,
     have hx' : x ∈ p, { exact h₂ hx, },
     have hxz : z + x ∈ p, { apply h₂, simp [hx, hz], },
     suffices : z + x - x ∈ p, { simpa only [this, add_sub_cancel],  },
@@ -1825,15 +1701,11 @@ end ring
 end submodule
 
 namespace linear_map
-variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
-variables [module R M] [module R M₂] [module R M₃]
 
-lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
-linear_map.ext $ λ x, by simp
+section semiring
 
-lemma ker_le_range_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} :
-  g.ker ≤ f.range ↔ f.range.mkq.comp g.ker.subtype = 0 :=
-by rw [←range_le_ker_iff, submodule.ker_mkq, submodule.range_subtype]
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 
 /-- A monomorphism is injective. -/
 lemma ker_eq_bot_of_cancel {f : M →ₗ[R] M₂}
@@ -1844,6 +1716,28 @@ begin
   exact range_zero
 end
 
+lemma range_comp_of_range_eq_top {f : M →ₗ[R] M₂} (g : M₂ →ₗ[R] M₃) (hf : range f = ⊤) :
+  range (g.comp f) = range g :=
+by rw [range_comp, hf, submodule.map_top]
+
+lemma ker_comp_of_ker_eq_bot (f : M →ₗ[R] M₂) {g : M₂ →ₗ[R] M₃} (hg : ker g = ⊥) :
+  ker (g.comp f) = ker f :=
+by rw [ker_comp, hg, submodule.comap_bot]
+
+end semiring
+
+section ring
+
+variables [ring R] [add_comm_monoid M] [add_comm_group M₂] [add_comm_monoid M₃]
+variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
+
+lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
+linear_map.ext $ λ x, by simp
+
+lemma ker_le_range_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} :
+  g.ker ≤ f.range ↔ f.range.mkq.comp g.ker.subtype = 0 :=
+by rw [←range_le_ker_iff, submodule.ker_mkq, submodule.range_subtype]
+
 /-- An epimorphism is surjective. -/
 lemma range_eq_top_of_cancel {f : M →ₗ[R] M₂}
   (h : ∀ (u v : M₂ →ₗ[R] f.range.quotient), u.comp f = v.comp f → u = v) : f.range = ⊤ :=
@@ -1852,6 +1746,8 @@ begin
   rw [←submodule.ker_mkq f.range, ←h 0 f.range.mkq (eq.trans h₁ (range_mkq_comp _).symm)],
   exact ker_zero
 end
+
+end ring
 
 end linear_map
 
@@ -1872,7 +1768,7 @@ variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (e e' : M ≃ₗ[R] M₂)
 
 lemma map_eq_comap {p : submodule R M} : (p.map e : submodule R M₂) = p.comap e.symm :=
-submodule.coe_injective $ by simp [e.image_eq_preimage]
+set_like.coe_injective $ by simp [e.image_eq_preimage]
 
 /-- A linear equivalence of two modules restricts to a linear equivalence from any submodule
 of the domain onto the image of the submodule. -/
@@ -1913,7 +1809,8 @@ end uncurry
 
 section
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
-variables (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M) (e : M ≃ₗ[R] M₂)
+  {semimodule_M₃ : semimodule R M₃}
+variables (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M) (e : M ≃ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) (l : M₃ →ₗ[R] M)
 
 variables (p q : submodule R M)
 
@@ -1969,13 +1866,19 @@ linear_map.range_eq_top.2 e.to_equiv.surjective
 
 lemma eq_bot_of_equiv [semimodule R M₂] (e : p ≃ₗ[R] (⊥ : submodule R M₂)) : p = ⊥ :=
 begin
-  refine bot_unique (submodule.le_def'.2 $ assume b hb, (submodule.mem_bot R).2 _),
+  refine bot_unique (set_like.le_def.2 $ assume b hb, (submodule.mem_bot R).2 _),
   rw [← p.mk_eq_zero hb, ← e.map_eq_zero_iff],
   apply submodule.eq_zero_of_bot_submodule
 end
 
 @[simp] protected theorem ker : (e : M →ₗ[R] M₂).ker = ⊥ :=
 linear_map.ker_eq_bot_of_injective e.to_equiv.injective
+
+@[simp] theorem range_comp : (h.comp (e : M →ₗ[R] M₂)).range = h.range :=
+linear_map.range_comp_of_range_eq_top _ e.range
+
+@[simp] theorem ker_comp : ((e : M →ₗ[R] M₂).comp l).ker = l.ker :=
+linear_map.ker_comp_of_ker_eq_bot _ e.ker
 
 variables {f g}
 
@@ -2181,7 +2084,7 @@ linear_equiv.trans
 lemma to_span_nonzero_singleton_one (x : M) (h : x ≠ 0) : to_span_nonzero_singleton K M x h 1
   = (⟨x, submodule.mem_span_singleton_self x⟩ : K ∙ x) :=
 begin
-  apply submodule.coe_eq_coe.mp,
+  apply set_like.coe_eq_coe.mp,
   have : ↑(to_span_nonzero_singleton K M x h 1) = to_span_singleton K M x 1 := rfl,
   rw [this, to_span_singleton_one, submodule.coe_mk],
 end
@@ -2213,8 +2116,8 @@ def comap_subtype_equiv_of_le {p q : submodule R M} (hpq : p ≤ q) :
 comap q.subtype p ≃ₗ[R] p :=
 { to_fun := λ x, ⟨x, x.2⟩,
   inv_fun := λ x, ⟨⟨x, hpq x.2⟩, x.2⟩,
-  left_inv := λ x, by simp only [coe_mk, submodule.eta, coe_coe],
-  right_inv := λ x, by simp only [subtype.coe_mk, submodule.eta, coe_coe],
+  left_inv := λ x, by simp only [coe_mk, set_like.eta, coe_coe],
+  right_inv := λ x, by simp only [subtype.coe_mk, set_like.eta, coe_coe],
   map_add' := λ x y, rfl,
   map_smul' := λ c x, rfl }
 
@@ -2264,7 +2167,7 @@ end
 lemma comap_le_comap_smul (f : M →ₗ[R] M₂) (c : R) :
   comap f q ≤ comap (c • f) q :=
 begin
-  rw le_def',
+  rw set_like.le_def,
   intros m h,
   change c • (f m) ∈ q,
   change f m ∈ q at h,
@@ -2274,7 +2177,7 @@ end
 lemma inf_comap_le_comap_add (f₁ f₂ : M →ₗ[R] M₂) :
   comap f₁ q ⊓ comap f₂ q ≤ comap (f₁ + f₂) q :=
 begin
-  rw le_def',
+  rw set_like.le_def,
   intros m h,
   change f₁ m + f₂ m ∈ q,
   change f₁ m ∈ q ∧ f₂ m ∈ q at h,

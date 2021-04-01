@@ -34,10 +34,9 @@ we formulate the definitions and lemmas for any model.
 
 3. While smoothness of an operation implies its continuity, lemmas like
 `has_continuous_mul_of_smooth` can't be instances becausen otherwise Lean would have to search for
-`has_smooth_mul I G` with unknown `𝕜`, `E`, `H`, and
-`I : model_with_corners 𝕜 E H`. If users needs `[has_continuous_mul G]` in a proof about a smooth
-monoid, then they need to either add `[has_continuous_mul G]` as an assumption (worse) or use `haveI`
-in the proof (better). -/
+`has_smooth_mul I G` with unknown `𝕜`, `E`, `H`, and `I : model_with_corners 𝕜 E H`. If users needs
+`[has_continuous_mul G]` in a proof about a smooth monoid, then they need to either add
+`[has_continuous_mul G]` as an assumption (worse) or use `haveI` in the proof (better). -/
 library_note "Design choices about smooth algebraic structures"
 
 /-- Basic hypothesis to talk about a smooth (Lie) additive monoid or a smooth additive

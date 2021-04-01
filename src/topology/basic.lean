@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
 import order.filter.partial
+import data.support
 
 noncomputable theory
 
@@ -437,6 +438,8 @@ lemma frontier_eq_closure_inter_closure {s : set α} :
   frontier s = closure s ∩ closure sᶜ :=
 by rw [closure_compl, frontier, diff_eq]
 
+lemma frontier_subset_closure {s : set α} : frontier s ⊆ closure s := diff_subset _ _
+
 /-- The complement of a set has the same frontier as the original set. -/
 @[simp] lemma frontier_compl (s : set α) : frontier sᶜ = frontier s :=
 by simp only [frontier_eq_closure_inter_closure, compl_compl, inter_comm]
@@ -466,6 +469,9 @@ by rw [frontier, hs.closure_eq]
 lemma is_open.frontier_eq {s : set α} (hs : is_open s) : frontier s = closure s \ s :=
 by rw [frontier, hs.interior_eq]
 
+lemma is_open.inter_frontier_eq {s : set α} (hs : is_open s) : s ∩ frontier s = ∅ :=
+by rw [hs.frontier_eq, inter_diff_self]
+
 /-- The frontier of a set is closed. -/
 lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=
 by rw frontier_eq_closure_inter_closure; exact is_closed_inter is_closed_closure is_closed_closure
@@ -486,6 +492,15 @@ lemma closure_eq_interior_union_frontier (s : set α) : closure s = interior s �
 
 lemma closure_eq_self_union_frontier (s : set α) : closure s = s ∪ frontier s :=
 (union_diff_cancel' interior_subset subset_closure).symm
+
+lemma is_open.inter_frontier_eq_empty_of_disjoint {s t : set α} (ht : is_open t)
+  (hd : disjoint s t) :
+  t ∩ frontier s = ∅ :=
+begin
+  rw [inter_comm, ← subset_compl_iff_disjoint],
+  exact subset.trans frontier_subset_closure (closure_minimal (λ _, disjoint_left.1 hd)
+    (is_closed_compl_iff.2 ht))
+end
 
 /-!
 ### Neighborhoods
@@ -1050,6 +1065,10 @@ lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h :
   (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ 𝓝 x :=
 h ht
 
+lemma eventually_eq_zero_nhds {M₀} [has_zero M₀] {a : α} {f : α → M₀} :
+  f =ᶠ[𝓝 a] 0 ↔ a ∉ closure (function.support f) :=
+by rw [← mem_compl_eq, ← interior_compl, mem_interior_iff_mem_nhds, function.compl_support]; refl
+
 lemma cluster_pt.map {x : α} {la : filter α} {lb : filter β} (H : cluster_pt x la)
   {f : α → β} (hfc : continuous_at f x) (hf : tendsto f la lb) :
   cluster_pt (f x) lb :=
@@ -1176,6 +1195,10 @@ end
 lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
   f '' closure s ⊆ closure (f '' s) :=
 ((maps_to_image f s).closure h).image_subset
+
+lemma closure_subset_preimage_closure_image {f : α → β} {s : set α} (h : continuous f) :
+  closure s ⊆ f ⁻¹' (closure (f '' s)) :=
+by { rw ← set.image_subset_iff, exact image_closure_subset_closure_image h }
 
 lemma map_mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
   (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=

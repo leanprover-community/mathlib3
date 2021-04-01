@@ -185,7 +185,17 @@ protected lemma unique_diff : unique_diff_on 𝕜 (range I) := I.unique_diff'
 
 @[continuity] protected lemma continuous : continuous I := I.continuous_to_fun
 
+protected lemma continuous_at {x} : continuous_at I x := I.continuous.continuous_at
+
+protected lemma continuous_within_at {s x} : continuous_within_at I s x :=
+I.continuous_at.continuous_within_at
+
 @[continuity] lemma continuous_symm : continuous I.symm := I.continuous_inv_fun
+
+lemma continuous_at_symm {x} : continuous_at I.symm x := I.continuous_symm.continuous_at
+
+lemma continuous_within_at_symm {s x} : continuous_within_at I.symm s x :=
+I.continuous_symm.continuous_within_at
 
 @[simp, mfld_simps] lemma target_eq : I.target = range (I : H → E) :=
 by { rw [← image_univ, ← I.source_eq], exact (I.to_local_equiv.image_source_eq_target).symm }
@@ -738,6 +748,14 @@ ext_chart_continuous_at_symm' I x (mem_ext_chart_source I x)
 lemma ext_chart_continuous_on_symm :
   continuous_on (ext_chart_at I x).symm (ext_chart_at I x).target :=
 λ y hy, (ext_chart_continuous_at_symm'' _ _ hy).continuous_within_at
+
+lemma ext_chart_preimage_open_of_open' {s : set E} (hs : is_open s) :
+  is_open ((ext_chart_at I x).source ∩ ext_chart_at I x ⁻¹' s) :=
+(ext_chart_at_continuous_on I x).preimage_open_of_open (ext_chart_at_open_source _ _) hs
+
+lemma ext_chart_preimage_open_of_open {s : set E} (hs : is_open s) :
+  is_open ((chart_at H x).source ∩ ext_chart_at I x ⁻¹' s) :=
+by { rw ← ext_chart_at_source I, exact ext_chart_preimage_open_of_open' I x hs }
 
 lemma ext_chart_at_map_nhds_within_eq_image' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
   map (ext_chart_at I x) (𝓝[s] y) =

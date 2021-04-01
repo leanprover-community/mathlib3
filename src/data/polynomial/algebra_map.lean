@@ -46,7 +46,7 @@ rfl
 
 instance [nontrivial A] : nontrivial (subalgebra R (polynomial A)) :=
 ⟨⟨⊥, ⊤, begin
-  rw [ne.def, subalgebra.ext_iff, not_forall],
+  rw [ne.def, set_like.ext_iff, not_forall],
   refine ⟨X, _⟩,
   simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top,
     algebra_map_apply, not_forall],
@@ -170,6 +170,10 @@ alg_hom.ext $ λ p, by rw [eval_unique (f.comp (aeval x)), alg_hom.comp_apply, a
 theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p : polynomial R) :
   aeval (f x) p = f (aeval x p) :=
 alg_hom.ext_iff.1 (aeval_alg_hom f x) p
+
+lemma aeval_algebra_map_apply (x : R) (p : polynomial R) :
+  aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
+aeval_alg_hom_apply (algebra.of_id R A) x p
 
 @[simp] lemma coe_aeval_eq_eval (r : R) :
   (aeval r : polynomial R → R) = eval r := rfl

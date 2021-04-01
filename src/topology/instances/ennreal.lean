@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 import topology.instances.nnreal
 /-!
@@ -296,8 +296,8 @@ begin
   exact le_of_tendsto this (eventually_nhds_within_iff.2 $ eventually_of_forall h)
 end
 
-lemma infi_mul_left {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
-  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
+lemma infi_mul_left' {ι} {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) (h0 : a = 0 → nonempty ι) :
   (⨅ i, a * f i) = a * ⨅ i, f i :=
 begin
   by_cases H : a = ⊤ ∧ (⨅ i, f i) = 0,
@@ -305,14 +305,28 @@ begin
     rw [H.2, mul_zero, ← bot_eq_zero, infi_eq_bot],
     exact λ b hb, ⟨i, by rwa [hi, mul_zero, ← bot_eq_zero]⟩ },
   { rw not_and_distrib at H,
-    exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
-      ennreal.mul_left_mono).symm }
+    by_cases hι : nonempty ι,
+    { resetI,
+      exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
+        ennreal.mul_left_mono).symm },
+    { rw [infi_of_empty hι, infi_of_empty hι, mul_top, if_neg],
+      exact mt h0 hι } }
 end
+
+lemma infi_mul_left {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
+  (⨅ i, a * f i) = a * ⨅ i, f i :=
+infi_mul_left' h (λ _, ‹nonempty ι›)
+
+lemma infi_mul_right' {ι} {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) (h0 : a = 0 → nonempty ι) :
+  (⨅ i, f i * a) = (⨅ i, f i) * a :=
+by simpa only [mul_comm a] using infi_mul_left' h h0
 
 lemma infi_mul_right {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
   (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
   (⨅ i, f i * a) = (⨅ i, f i) * a :=
-by simpa only [mul_comm a] using infi_mul_left h
+infi_mul_right' h (λ _, ‹nonempty ι›)
 
 protected lemma continuous_inv : continuous (has_inv.inv : ℝ≥0∞ → ℝ≥0∞) :=
 continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
@@ -380,7 +394,7 @@ begin
     simpa [add_supr, supr_add] using
       λ i j:ι, show f i + g j ≤ ⨆ a, f a + g a, from
       let ⟨k, hk⟩ := h i j in le_supr_of_le k hk },
-  { have : ∀f:ι → ℝ≥0∞, (⨆i, f i) = 0 := λ f, bot_unique (supr_le $ assume i, (hι ⟨i⟩).elim),
+  { have : ∀f:ι → ℝ≥0∞, (⨆i, f i) = 0 := λ f, supr_eq_zero.mpr (λ i, (hι ⟨i⟩).elim),
     rw [this, this, this, zero_add] }
 end
 
@@ -394,8 +408,7 @@ lemma finset_sum_supr_nat {α} {ι} [semilattice_sup ι] {s : finset α} {f : α
   ∑ a in s, supr (f a) = (⨆ n, ∑ a in s, f a n) :=
 begin
   refine finset.induction_on s _ _,
-  { simp,
-    exact (bot_unique $ supr_le $ assume i, le_refl ⊥).symm },
+  { simp, },
   { assume a s has ih,
     simp only [finset.sum_insert has],
     rw [ih, supr_add_supr_of_monotone (hf a)],
@@ -544,6 +557,9 @@ le_tsum' ennreal.summable a
 
 protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → ∑' a, f a = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
+
+@[simp] protected lemma tsum_top [nonempty α] : ∑' a : α, ∞ = ∞ :=
+let ⟨a⟩ := ‹nonempty α› in ennreal.tsum_eq_top_of_eq_top ⟨a, rfl⟩
 
 protected lemma ne_top_of_tsum_ne_top (h : ∑' a, f a ≠ ∞) (a : α) : f a ≠ ∞ :=
 λ ha, h $ ennreal.tsum_eq_top_of_eq_top ⟨a, ha⟩
@@ -729,13 +745,10 @@ namespace ennreal
 lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0∞) (hf : ∑' i, f i ≠ ∞) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
-  have : ∀ i, ∑' k, (((ennreal.to_nnreal ∘ f) (k + i) : ℝ≥0) : ℝ≥0∞) =
-    (∑' k, (ennreal.to_nnreal ∘ f) (k + i) : ℝ≥0) :=
-    λ i, (ennreal.coe_tsum
-      (nnreal.summable_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf) _)).symm,
-  simp only [λ x, (to_nnreal_apply_of_tsum_ne_top hf x).symm, ←ennreal.coe_zero,
-    this, ennreal.tendsto_coe] { single_pass := tt },
-  exact nnreal.tendsto_sum_nat_add _
+  lift f to ℕ → ℝ≥0 using ennreal.ne_top_of_tsum_ne_top hf,
+  replace hf : summable f := tsum_coe_ne_top_iff_summable.1 hf,
+  simp only [← ennreal.coe_tsum, nnreal.summable_nat_add _ hf, ← ennreal.coe_zero],
+  exact_mod_cast nnreal.tendsto_sum_nat_add f
 end
 
 end ennreal
@@ -974,6 +987,14 @@ end
 
 lemma emetric.is_closed_ball {a : α} {r : ℝ≥0∞} : is_closed (closed_ball a r) :=
 is_closed_le (continuous_id.edist continuous_const) continuous_const
+
+@[simp] lemma emetric.diam_closure (s : set α) : diam (closure s) = diam s :=
+begin
+  refine le_antisymm (diam_le $ λ x hx y hy, _) (diam_mono subset_closure),
+  have : edist x y ∈ closure (Iic (diam s)),
+    from  map_mem_closure2 (@continuous_edist α _) hx hy (λ _ _, edist_le_diam_of_mem),
+  rwa closure_Iic at this
+end
 
 /-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ℝ≥0∞`,
 then the distance from `f n` to the limit is bounded by `∑'_{k=n}^∞ d k`. -/

@@ -169,7 +169,7 @@ lemma span_le_of_coeff_mem_C_inverse (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹
 begin
   refine bInter_subset_of_mem _,
   rintros _ ⟨i, rfl⟩,
-  exact (mem_coe _).mpr (cf i),
+  exact set_like.mem_coe.mpr (cf i),
 end
 
 lemma mem_span_C_coeff :
@@ -178,7 +178,7 @@ begin
   rw [← f.sum_single] {occs := occurrences.pos [1]},
   refine sum_mem _ (λ i hi, _),
   change monomial i _ ∈ span _ _,
-  rw [← C_mul_X_pow_eq_monomial, ← X_pow_mul],
+  rw [← C_mul_X_pow_eq_monomial, ← X_pow_mul, ← smul_eq_mul],
   exact smul_mem _ _ (subset_span ⟨i, rfl⟩),
 end
 

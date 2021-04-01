@@ -24,8 +24,8 @@ submodule, subspace, linear map
 open function
 open_locale big_operators
 
-universes u v w
-variables {R : Type u} {M : Type v} {ι : Type w}
+universes u' u v w
+variables {S : Type u'} {R : Type u} {M : Type v} {ι : Type w}
 
 set_option old_structure_cmd true
 
@@ -45,42 +45,26 @@ namespace submodule
 
 variables [semiring R] [add_comm_monoid M] [semimodule R M]
 
-instance : has_coe_t (submodule R M) (set M) := ⟨λ s, s.carrier⟩
-instance : has_mem M (submodule R M) := ⟨λ x p, x ∈ (p : set M)⟩
-instance : has_coe_to_sort (submodule R M) := ⟨_, λ p, {x : M // x ∈ p}⟩
+instance : set_like (submodule R M) M :=
+⟨submodule.carrier, λ p q h, by cases p; cases q; congr'⟩
 
-variables (p q : submodule R M)
-
-@[simp, norm_cast] theorem coe_sort_coe : ↥(p : set M) = p := rfl
-
-variables {p q}
-
-protected theorem «exists» {q : p → Prop} : (∃ x, q x) ↔ (∃ x ∈ p, q ⟨x, ‹_›⟩) := set_coe.exists
-
-protected theorem «forall» {q : p → Prop} : (∀ x, q x) ↔ (∀ x ∈ p, q ⟨x, ‹_›⟩) := set_coe.forall
-
-theorem coe_injective : injective (coe : submodule R M → set M) :=
-λ p q h, by cases p; cases q; congr'
-
-@[simp, norm_cast] theorem coe_set_eq : (p : set M) = q ↔ p = q := coe_injective.eq_iff
+variables {p q : submodule R M}
 
 @[simp] lemma mk_coe (S : set M) (h₁ h₂ h₃) :
   ((⟨S, h₁, h₂, h₃⟩ : submodule R M) : set M) = S := rfl
 
-theorem ext'_iff : p = q ↔ (p : set M) = q := coe_set_eq.symm
-
-@[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := coe_injective $ set.ext h
+@[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
 theorem to_add_submonoid_injective :
   injective (to_add_submonoid : submodule R M → add_submonoid M) :=
-λ p q h, ext'_iff.2 $ add_submonoid.ext'_iff.1 h
+λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)
 
 @[simp] theorem to_add_submonoid_eq : p.to_add_submonoid = q.to_add_submonoid ↔ p = q :=
 to_add_submonoid_injective.eq_iff
 
 theorem to_sub_mul_action_injective :
   injective (to_sub_mul_action : submodule R M → sub_mul_action R M) :=
-λ p q h, ext'_iff.2 $ sub_mul_action.ext'_iff.1 h
+λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)
 
 @[simp] theorem to_sub_mul_action_eq : p.to_sub_mul_action = q.to_sub_mul_action ↔ p = q :=
 to_sub_mul_action_injective.eq_iff
@@ -91,7 +75,7 @@ namespace submodule
 
 section add_comm_monoid
 
-variables [semiring R] [add_comm_monoid M]
+variables [semiring S] [semiring R] [add_comm_monoid M]
 
 -- We can infer the module structure implicitly from the bundled submodule,
 -- rather than via typeclass resolution.
@@ -99,16 +83,18 @@ variables {semimodule_M : semimodule R M}
 variables {p q : submodule R M}
 variables {r : R} {x y : M}
 
+variables [has_scalar S R] [semimodule S M] [is_scalar_tower S R M]
+
 variables (p)
 @[simp] lemma mem_carrier : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
-
-@[simp] theorem mem_coe : x ∈ (p : set M) ↔ x ∈ p := iff.rfl
 
 @[simp] lemma zero_mem : (0 : M) ∈ p := p.zero_mem'
 
 lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add_mem' h₁ h₂
 
 lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
+lemma smul_of_tower_mem (r : S) (h : x ∈ p) : r • x ∈ p :=
+p.to_sub_mul_action.smul_of_tower_mem r h
 
 lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
 p.to_add_submonoid.sum_mem
@@ -117,37 +103,40 @@ lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
     (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
 submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
 
-@[simp] lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
+@[simp] lemma smul_mem_iff' (u : units S) : (u:S) • x ∈ p ↔ x ∈ p :=
 p.to_sub_mul_action.smul_mem_iff' u
 
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
-instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
+instance : has_scalar S p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
 
 protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext_iff_val
 
 variables {p}
-@[simp, norm_cast] lemma coe_eq_coe {x y : p} : (x : M) = y ↔ x = y := subtype.ext_iff_val.symm
-@[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 := @coe_eq_coe _ _ _ _ _ _ x 0
+@[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 :=
+(set_like.coe_eq_coe : (x : M) = (0 : p) ↔ x = 0)
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
-@[simp, norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
+@[norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
+@[simp, norm_cast] lemma coe_smul_of_tower (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
 @[simp] lemma coe_mem (x : p) : (x : M) ∈ p := x.2
-
-@[simp] protected lemma eta (x : p) (hx : (x : M) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
 
 variables (p)
 
 instance : add_comm_monoid p :=
 { add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }
 
-instance : semimodule R p :=
-by refine {smul := (•), ..p.to_sub_mul_action.mul_action, ..};
+instance semimodule' : semimodule S p :=
+by refine {smul := (•), ..p.to_sub_mul_action.mul_action', ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
+instance : semimodule R p := p.semimodule'
+
+instance : is_scalar_tower S R p :=
+p.to_sub_mul_action.is_scalar_tower
 
 instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_divisors R p :=
 ⟨λ c x h,
@@ -253,11 +242,13 @@ end submodule
 
 namespace submodule
 
-variables [division_ring R] [add_comm_group M] [module R M]
-variables (p : submodule R M) {r : R} {x y : M}
+variables [division_ring S] [semiring R] [add_comm_monoid M] [semimodule R M]
+variables [has_scalar S R] [semimodule S M] [is_scalar_tower S R M]
 
-theorem smul_mem_iff (r0 : r ≠ 0) : r • x ∈ p ↔ x ∈ p :=
-p.to_sub_mul_action.smul_mem_iff r0
+variables (p : submodule R M) {s : S} {x y : M}
+
+theorem smul_mem_iff (s0 : s ≠ 0) : s • x ∈ p ↔ x ∈ p :=
+p.to_sub_mul_action.smul_mem_iff s0
 
 end submodule
 

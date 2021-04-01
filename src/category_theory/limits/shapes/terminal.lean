@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.pempty
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 
 /-!
 # Initial and terminal objects in a category.
@@ -32,6 +32,14 @@ variables {C : Type u} [category.{v} C]
 abbreviation is_terminal (X : C) := is_limit (as_empty_cone X)
 /-- `X` is initial if the cocone it induces on the empty diagram is colimiting. -/
 abbreviation is_initial (X : C) := is_colimit (as_empty_cocone X)
+
+/-- An object `Y` is terminal if for every `X` there is a unique morphism `X ⟶ Y`. -/
+def is_terminal.of_unique (Y : C) [h : Π X : C, unique (X ⟶ Y)] : is_terminal Y :=
+{ lift := λ s, (h s.X).default }
+
+/-- An object `X` is initial if for every `Y` there is a unique morphism `X ⟶ Y`. -/
+def is_initial.of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : is_initial X :=
+{ desc := λ s, (h s.X).default }
 
 /-- Give the morphism to a terminal object from any other. -/
 def is_terminal.from {X : C} (t : is_terminal X) (Y : C) : Y ⟶ X :=

@@ -132,8 +132,8 @@ is_cau_series_of_abv_cau
 begin
   simp only [abv_pow abv] {eta := ff},
   have : (λ (m : ℕ), ∑ n in range m, (abv x) ^ n) =
-   λ m, geom_series (abv x) m := rfl,
-  simp only [this, geom_sum hx1'] {eta := ff},
+   λ m, geom_sum (abv x) m := rfl,
+  simp only [this, geom_sum_eq hx1'] {eta := ff},
   conv in (_ / _) { rw [← neg_div_neg_eq, neg_sub, neg_sub] },
   refine @is_cau_of_mono_bounded _ _ _ _ ((1 : α) / (1 - abv x)) 0 _ _,
   { assume n hn,
@@ -673,10 +673,10 @@ lemma tanh_mul_I : tanh (x * I) = tan x * I :=
 by rw [tanh_eq_sinh_div_cosh, cosh_mul_I, sinh_mul_I, mul_div_right_comm, tan]
 
 lemma cos_mul_I : cos (x * I) = cosh x :=
-by rw ← cosh_mul_I; ring; simp
+by rw ← cosh_mul_I; ring_nf; simp
 
 lemma sin_mul_I : sin (x * I) = sinh x * I :=
-have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring, simp },
+have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring_nf, simp },
 by simpa only [neg_mul_eq_neg_mul_symm, div_I, neg_neg]
   using cancel_factors.cancel_factors_eq_div h I_ne_zero
 
@@ -1194,7 +1194,7 @@ end real
 namespace complex
 
 lemma sum_div_factorial_le {α : Type*} [linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
-  ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α) ≤ n.succ * (n! * n)⁻¹ :=
+  ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α) ≤ n.succ / (n! * n) :=
 calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
     = ∑ m in range (j - n), 1 / (m + n)! :
   sum_bij (λ m _, m - n)
@@ -1228,7 +1228,7 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
     from mul_ne_zero (nat.cast_ne_zero.2 (pos_iff_ne_zero.1 (nat.factorial_pos _)))
     (nat.cast_ne_zero.2 (pos_iff_ne_zero.1 hn)),
   have h₄ : (n.succ - 1 : α) = n, by simp,
-  by rw [← geom_series_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq h₃,
+  by rw [← geom_sum_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq h₃,
       mul_comm _ (n! * n : α), ← mul_assoc (n!⁻¹ : α), ← mul_inv_rev', h₄,
       ← mul_assoc (n! * n : α), mul_comm (n : α) n!, mul_inv_cancel h₃];
     simp [mul_add, add_mul, mul_assoc, mul_comm]
@@ -1252,7 +1252,11 @@ begin
   rw sum_range_sub_sum_range hj,
   exact calc abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ m / m! : ℂ))
       = abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ n * (x ^ (m - n) / m!) : ℂ)) :
-    congr_arg abs (sum_congr rfl (λ m hm, by rw [← mul_div_assoc, ← pow_add, nat.add_sub_cancel']; simp at hm; tauto))
+    begin
+      refine congr_arg abs (sum_congr rfl (λ m hm, _)),
+      rw [mem_filter, mem_range] at hm,
+      rw [← mul_div_assoc, ← pow_add, nat.add_sub_cancel' hm.2]
+    end
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs (x ^ n * (_ / m!)) : abv_sum_le_sum_abv _ _
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs x ^ n * (1 / m!) :
     begin

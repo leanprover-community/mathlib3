@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
-import data.finset.basic
+import data.finset.lattice
 
 /-!
 # The powerset of a finset
@@ -106,6 +106,45 @@ theorem powerset_len_eq_filter {n} {s : finset α} :
   powerset_len n s = (powerset s).filter (λ x, x.card = n) :=
 by { ext, simp [mem_powerset_len] }
 
+lemma powerset_len_succ_insert [decidable_eq α] {x : α} {s : finset α} (h : x ∉ s) (n : ℕ) :
+  powerset_len n.succ (insert x s) = powerset_len n.succ s ∪ (powerset_len n s).image (insert x) :=
+begin
+  rw [powerset_len_eq_filter, powerset_insert, filter_union, ←powerset_len_eq_filter],
+  congr,
+  rw [powerset_len_eq_filter, image_filter],
+  congr' 1,
+  ext t,
+  simp only [mem_powerset, mem_filter, function.comp_app, and.congr_right_iff],
+  intro ht,
+  have : x ∉ t := λ H, h (ht H),
+  simp [card_insert_of_not_mem this, nat.succ_inj']
+end
+
+lemma powerset_len_nonempty {n : ℕ} {s : finset α} (h : n < s.card) :
+  (powerset_len n s).nonempty :=
+begin
+  classical,
+  induction s using finset.induction_on with x s hx IH generalizing n,
+  { simpa using h },
+  { cases n,
+    { simp },
+    { rw [card_insert_of_not_mem hx, nat.succ_lt_succ_iff] at h,
+      rw powerset_len_succ_insert hx,
+      refine nonempty.mono _ ((IH h).image (insert x)),
+      convert (subset_union_right _ _) } }
+end
+
+@[simp] lemma powerset_len_self (s : finset α) :
+  powerset_len s.card s = {s} :=
+begin
+  ext,
+  rw [mem_powerset_len, mem_singleton],
+  split,
+  { exact λ ⟨hs, hc⟩, eq_of_subset_of_card_le hs hc.ge },
+  { rintro rfl,
+    simp }
+end
+
 lemma powerset_card_bUnion [decidable_eq (finset α)] (s : finset α) :
   finset.powerset s = (range (s.card + 1)).bUnion (λ i, powerset_len i s) :=
 begin
@@ -115,6 +154,23 @@ begin
       mem_powerset_len.mpr ⟨mem_powerset.mp ha, rfl⟩⟩ },
   { rcases mem_bUnion.mp ha with ⟨i, hi, ha⟩,
     exact mem_powerset.mpr (mem_powerset_len.mp ha).1, }
+end
+
+lemma powerset_len_sup [decidable_eq α] (u : finset α) (n : ℕ) (hn : n < u.card) :
+  (powerset_len n.succ u).sup id = u :=
+begin
+  apply le_antisymm,
+  { simp [mem_powerset_len, and.comm] },
+  { rw [sup_eq_bUnion, le_iff_subset, subset_iff],
+    cases (nat.succ_le_of_lt hn).eq_or_lt with h' h',
+    { simp [h'] },
+    { intros x hx,
+      simp only [mem_bUnion, exists_prop, id.def],
+      obtain ⟨t, ht⟩ : ∃ t, t ∈ powerset_len n (u.erase x) := powerset_len_nonempty _,
+      { refine ⟨insert x t, _, mem_insert_self _ _⟩,
+        rw [←insert_erase hx, powerset_len_succ_insert (not_mem_erase _ _)],
+        exact mem_union_right _ (mem_image_of_mem _ ht) },
+      { rwa [card_erase_of_mem hx, nat.lt_pred_iff] } } }
 end
 
 end powerset_len

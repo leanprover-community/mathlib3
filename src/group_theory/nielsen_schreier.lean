@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import category_theory.action
+import category_theory.is_connected
+import combinatorics.quiver
 import group_theory.free_group
 import group_theory.semidirect_product
-import combinatorics.quiver
 /-!
 # The Nielsen-Schreier theorem
 
-This file will eventually prove that a subgroup of a free group is itself free.
+A subgroup of a free group is itself free.
 
 ## Proof sketch
 
@@ -38,6 +39,15 @@ but we work directly with groupoids instead of spaces. The main steps are as fol
   the complement of `T`. (This corresponds to retracting `T` to a point.)
 
 This finishes the proof, modulo finding an appropriate rooted subtree.
+
+## References
+
+https://ncatlab.org/nlab/show/Nielsen-Schreier+theorem
+
+## Tags
+
+free group, Nielsen-Schreier
+
 -/
 
 noncomputable theory
@@ -66,11 +76,11 @@ namespace is_free_group
 lemma end_is_id {G} [group G] [is_free_group G] (f : G →* G)
   (h : ∀ a, f (of a) = of a) : ∀ g, f g = g :=
 let ⟨_, _, u⟩ := unique_lift (f ∘ of) in
-have claim : f = monoid_hom.id G := (u _ (λ _, rfl)).trans (u _ (by simp [h])).symm,
+have claim : f = monoid_hom.id G := trans (u _ (λ _, rfl)) (u _ (by simp [h])).symm,
 monoid_hom.ext_iff.mp claim
 
 /-- An abstract free group is isomorphic to a concrete free group. -/
-noncomputable def iso_free_group_of_is_free_group (G) [group G] [is_free_group G] :
+def iso_free_group_of_is_free_group (G) [group G] [is_free_group G] :
   G ≃* free_group (generators G) :=
 let ⟨F, hF, uF⟩ := classical.indefinite_description _ (unique_lift free_group.of) in
 { to_fun := F,
@@ -81,7 +91,8 @@ let ⟨F, hF, uF⟩ := classical.indefinite_description _ (unique_lift free_grou
   map_mul' := F.map_mul }
 
 /-- Being a free group transports across group isomorphisms. -/
-def of_mul_equiv {G H} [group G] [group H] (h : G ≃* H) [is_free_group G] : is_free_group H :=
+def of_mul_equiv {G H : Type u} [group G] [group H] (h : G ≃* H) [is_free_group G] :
+  is_free_group H :=
 { generators := generators G,
   of := h ∘ of,
   unique_lift := begin
@@ -110,6 +121,15 @@ class is_free_groupoid (G) [groupoid.{v} G] :=
                   F.map (of g) = f g)
 
 namespace is_free_groupoid
+
+@[ext]
+lemma ext_functor {G X} [groupoid.{v} G] [is_free_groupoid G] [group.{v} X]
+  (f g : G ⥤ single_obj X)
+  (h : ∀ a b (e : generators.arrow a b), f.map (of e) = g.map (of e)) :
+  f = g :=
+match unique_lift (show generators.labelling X, from λ a b e, g.map (of e)) with
+| ⟨m, _, um⟩ := trans (um _ h) (um _ (λ _ _ _, rfl)).symm
+end
 
 namespace covering
 
@@ -153,7 +173,7 @@ def hom_op_equiv_op_hom {G H} [monoid G] [monoid H] :
 def curry {G A X} [group G] [mul_action G A] [group X]
   (F : action_category G A ⥤ single_obj X) :
   G →* ((A → Xᵒᵖ) ⋊[mul_aut_of_action G A Xᵒᵖ] Gᵒᵖ)ᵒᵖ :=
-have F_map_eq : ∀ {a b} {f : a ⟶ b}, F.map f = (F.map (hom_of_pair a.snd f.val) : X) :=
+have F_map_eq : ∀ {a b} {f : a ⟶ b}, F.map f = (F.map (hom_of_pair a.back f.val) : X) :=
   action_category.cases (λ _ _, rfl),
 { to_fun := λ g, op ⟨λ a, op (F.map (hom_of_pair a g)), op g⟩,
   map_one' := begin
@@ -178,7 +198,7 @@ def uncurry {G A X} [group G] [mul_action G A] [group X]
   (sane : ∀ g, (F g).unop.right.unop = g) :
   action_category G A ⥤ single_obj X :=
 { obj := λ _, (),
-  map := λ a b f, ((F f.val).unop.left a.snd).unop,
+  map := λ a b f, ((F f.val).unop.left a.back).unop,
   map_id' := by { intro x, rw [action_category.id_val, F.map_one], refl },
   map_comp' := by {
     intros x y z f, revert x y f,
@@ -189,9 +209,9 @@ def uncurry {G A X} [group G] [mul_action G A] [group X]
 
 open is_free_group as fgp
 
-noncomputable instance {G A} [group G] [is_free_group G] [mul_action G A] :
+instance {G A : Type u} [group G] [is_free_group G] [mul_action G A] :
   is_free_groupoid (action_category G A) :=
-{ generators := ⟨λ a b, { e : fgp.generators G // (fgp.of e • a.snd : A) = b.snd }⟩,
+{ generators := ⟨λ a b, { e : fgp.generators G // fgp.of e • a.back = b.back }⟩,
   of := λ a b e, ⟨fgp.of e, e.property⟩,
   unique_lift := begin
     introsI X _ f,
@@ -249,7 +269,7 @@ lemma tree_hom_eq {a : G} (p q : T♯.path T♯.root a) : hom_of_path T p = hom_
 by congr
 
 @[simp] lemma tree_hom_root : tree_hom T T♯.root = 𝟙 _ :=
-(tree_hom_eq T _ path.nil).trans rfl
+trans (tree_hom_eq T _ path.nil) rfl -- ???
 
 /-- Any hom in `G` can be made into a loop, by conjugating with `tree_hom`s. -/
 @[simp] def loop_of_hom {a b : G} (p : a ⟶ b) : End T♯.root :=
@@ -327,5 +347,85 @@ def End_is_free_group_of_arborescence : is_free_group (End T♯.root) :=
   end }
 
 end retract
+
+open is_free_groupoid quotient_group
+
+/-- `G` acts pretransitively on `X` if for any `x y` there is `g` such that `g • x = y`. -/
+class is_pretransitive (G X) [monoid G] [mul_action G X] : Prop :=
+(exists_smul_eq : ∀ x y : X, ∃ g : G, g • x = y)
+
+lemma exists_smul_eq (M) {X} [monoid M] [mul_action M X] [is_pretransitive M X] (x y : X) :
+  ∃ m : M, m • x = y := is_pretransitive.exists_smul_eq x y
+
+instance is_transitive_quotient (G) [group G] (H : subgroup G) : is_pretransitive G (quotient H) :=
+{ exists_smul_eq := by { rintros ⟨x⟩ ⟨y⟩, refine ⟨y * x⁻¹, quotient_group.eq.mpr _⟩,
+    simp only [mul_left_inv, inv_mul_cancel_right, H.one_mem] } }
+
+instance (G X) [monoid G] [mul_action G X] [is_pretransitive G X] [nonempty X] :
+  is_connected (action_category G X) :=
+zigzag_is_connected $ λ x y, relation.refl_trans_gen.single $ or.inl $
+  nonempty_subtype.mpr (show _, from exists_smul_eq G x.back y.back)
+
+instance (G) [groupoid G] [is_connected G] (x y : G) : nonempty (x ⟶ y) :=
+begin
+  have h := is_connected_zigzag x y,
+  induction h with z w _ h ih,
+  { exact ⟨𝟙 x⟩ },
+  { refine nonempty.map (λ f, f ≫ classical.choice _) ih,
+    cases h,
+    { assumption },
+    { apply nonempty.map (λ f, inv f) h } }
+end
+
+/-- Given a function `f : C → G` from a category to a group, we get a functor
+    `C ⥤ G` sending any morphism `x ⟶ y` to `f y * (f x)⁻¹`. -/
+def difference_functor {C G} [category C] [group G] (f : C → G) : C ⥤ single_obj G :=
+{ obj := λ _, (),
+  map := λ x y _, f y * (f x)⁻¹,
+  map_id' := by { intro, rw [single_obj.id_as_one, mul_right_inv] },
+  map_comp' := by { intros, rw single_obj.comp_as_mul, group } }
+
+@[simp]
+lemma difference_functor_map {C G} [category C] [group G] (f : C → G) (x y : C) (p : x ⟶ y) :
+  (difference_functor f).map p = f y * (f x)⁻¹ := rfl
+
+instance generators_connected (G) [groupoid.{u u} G] [is_connected G] [is_free_groupoid G] (r : G) :
+  (generators : quiver G).symmetrify.rooted_connected r :=
+begin
+  let X := free_group (generators : quiver G).weakly_connected_component,
+  set f : G → X := λ g, free_group.of ↑g with hf,
+  set F : G ⥤ single_obj X := difference_functor f with hF,
+  have claim : F = (category_theory.functor.const G).obj (),
+  { ext,
+    rw [functor.const.obj_map, single_obj.id_as_one, hF,
+      difference_functor_map, mul_inv_eq_one, hf],
+    apply congr_arg free_group.of,
+    rw quiver.weakly_connected_component.eq,
+    exact ⟨quiver.arrow.to_path (sum.inr e)⟩ },
+  refine ⟨λ b, _⟩,
+  rw ←quiver.weakly_connected_component.eq,
+  apply free_group.of_injective,
+  rw ←mul_inv_eq_one,
+  rcases (infer_instance : nonempty (b ⟶ r)) with ⟨p⟩,
+  change F.map p = _,
+  rw [claim, functor.const.obj_map, single_obj.id_as_one],
+end
+
+lemma stabilizer_quotient {G} [group G] (H : subgroup G) :
+  mul_action.stabilizer G ((1 : G) : quotient H) = H :=
+by { ext, change _ = _ ↔ _, rw eq_comm, convert quotient_group.eq, simp }
+
+/-- Any subgroup of `G` is a vertex group in its action groupoid. -/
+def End_mul_equiv_subgroup {G} [group G] (H : subgroup G) :
+  End (obj_equiv G (quotient H) (1 : G)) ≃* H :=
+mul_equiv.trans
+  (stabilizer_iso_End G ((1 : G) : quotient H)).symm
+  (mul_equiv.subgroup_congr $ stabilizer_quotient H)
+
+instance {G} [groupoid G] [is_free_groupoid G] [is_connected G] (r : G) : is_free_group (End r) :=
+End_is_free_group_of_arborescence (quiver.geodesic_subtree _ r)
+
+instance {G} [group.{u} G] [is_free_group G] (H : subgroup G) : is_free_group H :=
+is_free_group.of_mul_equiv (End_mul_equiv_subgroup H)
 
 end is_free_groupoid

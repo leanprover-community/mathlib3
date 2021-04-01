@@ -646,6 +646,45 @@ begin
     split_ifs; simp, },
 end
 
+section sum
+
+variables (R)
+
+/-- The linear equivalence between `(α ⊕ β) →₀ M` and `(α →₀ M) × (β →₀ M)`. -/
+@[simps apply symm_apply] def sum_arrow_lequiv_prod_arrow {α β : Type*} :
+  ((α ⊕ β) →₀ M) ≃ₗ[R] (α →₀ M) × (β →₀ M) :=
+{ map_add' :=
+    by { intros, ext;
+          simp only [equiv.to_fun_as_coe, prod.fst_add, prod.snd_add, add_apply,
+              snd_sum_arrow_equiv_prod_arrow, fst_sum_arrow_equiv_prod_arrow] },
+  map_smul' :=
+    by { intros, ext;
+          simp only [equiv.to_fun_as_coe, prod.smul_fst, prod.smul_snd, smul_apply,
+              snd_sum_arrow_equiv_prod_arrow, fst_sum_arrow_equiv_prod_arrow] },
+  .. sum_arrow_equiv_prod_arrow }
+
+lemma fst_sum_arrow_lequiv_prod_arrow {α β : Type*}
+  (f : (α ⊕ β) →₀ M) (x : α) :
+  (sum_arrow_lequiv_prod_arrow R f).1 x = f (sum.inl x) :=
+rfl
+
+lemma snd_sum_arrow_lequiv_prod_arrow {α β : Type*}
+  (f : (α ⊕ β) →₀ M) (y : β) :
+  (sum_arrow_lequiv_prod_arrow R f).2 y = f (sum.inr y) :=
+rfl
+
+lemma sum_arrow_lequiv_prod_arrow_symm_inl {α β : Type*}
+  (fg : (α →₀ M) × (β →₀ M)) (x : α) :
+  ((sum_arrow_lequiv_prod_arrow R).symm fg) (sum.inl x) = fg.1 x :=
+rfl
+
+lemma sum_arrow_lequiv_prod_arrow_symm_inr {α β : Type*}
+  (fg : (α →₀ M) × (β →₀ M)) (y : β) :
+  ((sum_arrow_lequiv_prod_arrow R).symm fg) (sum.inr y) = fg.2 y :=
+rfl
+
+end sum
+
 end finsupp
 
 variables {R : Type*} {M : Type*} {N : Type*}

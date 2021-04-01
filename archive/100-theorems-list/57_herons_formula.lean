@@ -106,7 +106,7 @@ begin
     ... = 1/4 * √(area_sqr * (4 * 4))      : by rw pow_two
     ... = 1/4 * √(area_sqr * 4 * 4)        : by ring_nf
     ... = 1/4 * √(area_sqr * 4) * √(4)     : by { rw real.sqrt_mul' _ _, ring, linarith }
-    ... = 1/4 * (√(area_sqr) * √4) * √4    : by { rw real.sqrt_mul' area_sqr _ , linarith }
+    ... = 1/4 * (√(area_sqr) * √4) * √4    : by { rw real.sqrt_mul' area_sqr _, linarith }
     ... = 1/4 * √(area_sqr) * (√4 * √4)    : by ring
     ... = 1/4 * √(area_sqr) * √(4*4)       : by { rw ← real.sqrt_mul' _ _, linarith }
     ... = 1/4 * √(area_sqr) * √(4^2)       : by rw ← pow_two

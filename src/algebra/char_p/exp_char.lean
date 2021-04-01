@@ -40,7 +40,7 @@ class inductive exp_char (R : Type u) [semiring R] : ℕ → Prop
 
 /-- The exponential characteristic is one if the characteristic is zero. -/
 lemma exp_char_one_of_char_zero (q : ℕ) [hp : char_p R 0] [hq : exp_char R q] :
-q = 1 :=
+  q = 1 :=
 begin
   casesI hq with q hq_one hq_prime,
   { refl },
@@ -49,7 +49,7 @@ end
 
 /-- The characteristic equals the exponential characteristic iff the former is prime. -/
 theorem char_eq_exp_char_iff (p q : ℕ) [hp : char_p R p] [hq : exp_char R q] :
-p = q ↔ p.prime :=
+  p = q ↔ p.prime :=
 begin
   casesI hq with q hq_one hq_prime,
   { split,
@@ -70,7 +70,7 @@ variables [nontrivial R]
 
 /-- The exponential characteristic is one if the characteristic is zero. -/
 lemma char_zero_of_exp_char_one (p : ℕ) [hp : char_p R p] [hq : exp_char R 1] :
-p = 0 :=
+  p = 0 :=
 begin
   casesI hq,
   { exact char_p.eq R hp infer_instance, },
@@ -88,7 +88,7 @@ end
 
 /-- The exponential characteristic is one iff the characteristic is zero. -/
 theorem exp_char_one_iff_char_zero (p q : ℕ) [char_p R p] [exp_char R q] :
-q = 1 ↔ p = 0 :=
+  q = 1 ↔ p = 0 :=
 begin
   split,
   { unfreezingI {rintro rfl},

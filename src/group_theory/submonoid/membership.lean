@@ -276,7 +276,9 @@ attribute [to_additive add_submonoid.multiples_subset] submonoid.powers_subset
 
 end add_submonoid
 
-lemma of_mul_image_powers_eq_multiples_of_mul {x : M} :
+section mul_add
+
+lemma of_mul_image_powers_eq_multiples_of_mul [monoid M] {x : M} :
   additive.of_mul '' ((submonoid.powers x) : set M) = add_submonoid.multiples (additive.of_mul x) :=
 begin
   ext,
@@ -289,7 +291,7 @@ begin
     rwa of_mul_pow }
 end
 
-lemma of_add_image_multiples_eq_powers_of_add {x : A} :
+lemma of_add_image_multiples_eq_powers_of_add [add_monoid A] {x : A} :
   multiplicative.of_add '' ((add_submonoid.multiples x) : set A) =
   submonoid.powers (multiplicative.of_add x) :=
 begin
@@ -297,3 +299,5 @@ begin
   rw equiv.eq_image_iff_symm_image_eq,
   exact of_mul_image_powers_eq_multiples_of_mul,
 end
+
+end mul_add

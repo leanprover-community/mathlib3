@@ -264,11 +264,10 @@ lemma pullback_commutes :
 The explicit pullback cone on `pullback_obj f g`.
 This is bundled with the `is_limit` data as `pullback_limit_cone f g`.
 -/
+@[simps]
 def pullback_cone : cone (cospan f g) :=
 { X := pullback_obj f g,
   π := { app := pullback_proj f g, naturality' := pullback_commutes f g } }
-
-@[simp] lemma pullback_cone_app : (pullback_cone f g).π.app = pullback_proj f g := rfl
 
 instance : has_coe (pullback_cone f g).X (X × Y) := ⟨λ w, ⟨w.val.1, w.val.2⟩⟩
 
@@ -309,7 +308,7 @@ def pullback_limit : is_limit (pullback_cone f g) :=
 
     all_goals {
       funext w,
-      rw [pullback_cone_app, types_comp_apply],
+      rw [types_comp_apply, pullback_cone_π_app],
       try { rw [types_comp_apply, cospan_map_inl] },
       rw pullback_proj_base <|> rw pullback_proj_fst <|> rw pullback_proj_snd,
       dsimp only [],
@@ -321,7 +320,7 @@ def pullback_limit : is_limit (pullback_cone f g) :=
     intro s,
     rintros (lift: s.X ⟶ pullback_obj f g) h_lift,
     funext w,
-    rw pullback_cone_app at h_lift,
+    rw pullback_cone_app at h_lift, -- TODO broken now -- but going away anyway
     have h_fst : (lift w).val.fst = (pullback_lift f g s w).val.fst,
       by rw [pullback_lift_val, ←h_lift left, types_comp_apply, pullback_proj_fst],
     have h_snd : (lift w).val.snd = (pullback_lift f g s w).val.snd,
@@ -350,15 +349,15 @@ The pullback given by the instance `has_pullbacks (Type u)` is isomorphic to the
 explicit pullback object given by `pullback_limit_obj`.
 -/
 noncomputable def pullback_iso_pullback : pullback f g ≅ pullback_obj f g :=
-cones.hom_iso_of_cone_iso (pullback_cone_iso_pullback f g)
+(cones.forget _).map_iso $ pullback_cone_iso_pullback f g
 
 @[simp] lemma pullback_fst'
-  : limits.pullback.fst = (pullback_iso_pullback f g).hom ≫ pullback_fst f g :=
-eq.symm $ (pullback_cone_iso_pullback f g).hom.w _
+  : (pullback_iso_pullback f g).hom ≫ pullback_fst f g = limits.pullback.fst :=
+(pullback_cone_iso_pullback f g).hom.w _
 
 @[simp] lemma pullback_snd'
-  : limits.pullback.snd = (pullback_iso_pullback f g).hom ≫ pullback_snd f g :=
-eq.symm $ (pullback_cone_iso_pullback f g).hom.w _
+  : (pullback_iso_pullback f g).hom ≫ pullback_snd f g = limits.pullback.snd :=
+(pullback_cone_iso_pullback f g).hom.w _
 
 end pullback
 

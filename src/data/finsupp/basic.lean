@@ -403,11 +403,14 @@ variables [has_zero M] [has_zero N] [has_zero P]
 /-- The composition of `f : M → N` and `g : α →₀ M` is
 `map_range f hf g : α →₀ N`, well-defined when `f 0 = 0`.
 
-This exists in various bundled forms for when `f` is itself bundled:
+This preserves the structure on `f`, and exists in various bundled forms for when `f` is itself
+bundled:
 
 * `finsupp.map_range.zero_hom`
 * `finsupp.map_range.add_monoid_hom`
 * `finsupp.map_range.add_equiv`
+* `finsupp.map_range.linear_map`
+* `finsupp.map_range.linear_equiv`
 -/
 def map_range (f : M → N) (hf : f 0 = 0) (g : α →₀ M) : α →₀ N :=
 on_finset g.support (f ∘ g) $
@@ -1199,7 +1202,7 @@ lemma map_range.add_monoid_hom_id :
 add_monoid_hom.ext map_range_id
 
 lemma map_range.add_monoid_hom_comp (f : N →+ P) (f₂ : M →+ N) :
-  (map_range.add_monoid_hom (f.comp f₂) : add_monoid_hom (α →₀ _) _) =
+  (map_range.add_monoid_hom (f.comp f₂) : (α →₀ _) →+ _) =
     (map_range.add_monoid_hom f).comp (map_range.add_monoid_hom f₂) :=
 add_monoid_hom.ext $ map_range_comp _ _ _ _ _
 

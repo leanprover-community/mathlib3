@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 import data.fintype.basic
 import data.finset.sort
+import data.nat.parity
 import group_theory.perm.basic
 import group_theory.order_of_element
 import tactic.norm_swap
@@ -403,6 +404,17 @@ begin
     rw [← hl.1, list.prod_cons, hxy.2],
     exact hmul_swap _ _ _ hxy.1
       (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
+end
+
+lemma closure_swaps_eq_top [fintype α] :
+  subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
+begin
+  ext σ,
+  simp only [subgroup.mem_top, iff_true],
+  apply swap_induction_on σ,
+  { exact subgroup.one_mem _ },
+  { intros σ a b ab hσ,
+    refine subgroup.mul_mem _ (subgroup.subset_closure ⟨_, _, ab, rfl⟩) hσ }
 end
 
 /-- Like `swap_induction_on`, but with the composition on the right of `f`.
@@ -959,6 +971,9 @@ variables (α) [fintype α] [decidable_eq α]
 @[derive fintype] def alternating_subgroup : subgroup (perm α) :=
 sign.ker
 
+instance [subsingleton α] : unique (alternating_subgroup α) :=
+⟨⟨1⟩, λ ⟨p, hp⟩, subtype.eq (subsingleton.elim p _)⟩
+
 variables {α}
 
 lemma alternating_subgroup_eq_sign_ker : alternating_subgroup α = sign.ker := rfl
@@ -968,6 +983,15 @@ lemma mem_alternating_subgroup {f : perm α} :
   f ∈ alternating_subgroup α ↔ sign f = 1 :=
 sign.mem_ker
 
+lemma prod_list_swap_mem_alternating_subgroup_iff_even_length {l : list (perm α)}
+  (hl : ∀ g ∈ l, is_swap g) :
+  l.prod ∈ alternating_subgroup α ↔ even l.length :=
+begin
+  rw [mem_alternating_subgroup, sign_prod_list_swap hl, ← units.coe_eq_one, units.coe_pow,
+    units.coe_neg_one, nat.neg_one_pow_eq_one_iff_even],
+  dec_trivial
+end
+
 lemma two_mul_card_alternating_subgroup [nontrivial α] :
   2 * card (alternating_subgroup α) = card (perm α) :=
 begin
@@ -976,21 +1000,6 @@ begin
   convert (card_eq_card_quotient_mul_card_subgroup (alternating_subgroup α)).symm,
   convert of_equiv_card (quotient_group.quotient_ker_equiv_of_surjective _
     (sign_surjective α)).to_equiv,
-end
-
-@[simp]
-lemma card_alternating_subgroup_eq_one [h : subsingleton α] :
-  card (alternating_subgroup α) = 1 :=
-begin
-  apply le_antisymm,
-  { apply le_trans (card_subtype_le _),
-    rw card_perm,
-    cases eq_or_lt_of_le (fintype.card_le_one_iff_subsingleton.2 h) with h1 h0,
-    { simp [h1] },
-    { rw [nat.lt_succ_iff, nat.le_zero_iff] at h0,
-      simp [h0] } },
-  { apply card_pos_iff.2,
-    apply_instance, }
 end
 
 lemma alternating_subgroup_normal : (alternating_subgroup α).normal := sign.normal_ker

@@ -1771,7 +1771,7 @@ lemma map_eq_comap {p : submodule R M} : (p.map e : submodule R M₂) = p.comap 
 submodule.coe_injective $ by simp [e.image_eq_preimage]
 
 /-- A linear equivalence of two modules restricts to a linear equivalence from any submodule
-of the domain onto the image of the submodule.
+`p` of the domain onto the image of that submodule.
 
 This is `linear_equiv.of_submodule'` but with `map` on the right instead of `comap` on the left. -/
 def of_submodule (p : submodule R M) : p ≃ₗ[R] ↥(p.map ↑e : submodule R M₂) :=

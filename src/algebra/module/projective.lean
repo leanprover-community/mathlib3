@@ -24,13 +24,13 @@ Let `R` be a ring (or a semiring) and let `M` be an `R`-module (or a semimodule)
 
 ## Main theorems
 
-* `lifting_property` : a map from a projective module can be lifted along
+* `is_projective.lifting_property` : a map from a projective module can be lifted along
   a surjection.
 
-* `of_lifting_property` : If for all R-module surjections `A →ₗ B`, all
+* `is_projective.of_lifting_property` : If for all R-module surjections `A →ₗ B`, all
   maps `M →ₗ B` lift to `M →ₗ A`, then `M` is projective.
 
-* `of_free` : Free modules are projective
+* `is_projective.of_free` : Free modules are projective
 
 ## Implementation notes
 
@@ -42,7 +42,7 @@ and also universe-polymorphic (the ring and module can be in different universes
 Everything works for semirings and semimodules except that apparently
 we don't have free semimodules, so here we stick to rings.
 
-`of_lifting_property` is not universe polymorphic.
+`is_projective.of_lifting_property` is not universe polymorphic.
 
 ## References
 
@@ -74,7 +74,7 @@ variables {R : Type u} [semiring R] {M : Type v} [add_comm_monoid M] [semimodule
 
 /-- A projective R-module has the property that maps from it lift along surjections. -/
 theorem lifting_property (h : is_projective R M) (f : A →ₗ[R] B) (g : M →ₗ[R] B)
-(hf : function.surjective f) : ∃ (h : M →ₗ[R] A), f.comp h = g :=
+  (hf : function.surjective f) : ∃ (h : M →ₗ[R] A), f.comp h = g :=
 begin
   /-
   Recall that `X →₀ R` is Lean's way of talking about the free `R`-module

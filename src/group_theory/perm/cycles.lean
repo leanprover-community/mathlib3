@@ -326,7 +326,7 @@ begin
 end
 
 lemma is_cycle.cycle_of [fintype α] {f : perm α} (hf : is_cycle f) {x : α} :
-  cycle_of f x = ite (f x = x) 1 f :=
+  cycle_of f x = if f x = x then 1 else f :=
 begin
   by_cases hx : f x = x,
   { rwa [if_pos hx, cycle_of_eq_one_iff] },

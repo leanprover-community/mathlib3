@@ -2257,6 +2257,14 @@ begin
   exact Exists.imp (λ a ha, ⟨h ha.1, ha.2⟩)
 end
 
+theorem subset_bUnion_of_mem {β : Type*} [decidable_eq β] {s : finset α}
+  {u : α → finset β} {x : α} (xs : x ∈ s) :
+  u x ⊆ s.bUnion u :=
+begin
+  apply subset.trans _ (bUnion_subset_bUnion_of_subset_left u (singleton_subset_iff.2 xs)),
+  exact subset_of_eq singleton_bUnion.symm,
+end
+
 lemma bUnion_singleton {f : α → β} : s.bUnion (λa, {f a}) = s.image f :=
 ext $ λ x, by simp only [mem_bUnion, mem_image, mem_singleton, eq_comm]
 

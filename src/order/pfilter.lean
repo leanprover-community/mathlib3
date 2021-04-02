@@ -53,7 +53,6 @@ lemma is_pfilter.of_def [preorder P] {F : set P} (nonempty : F.nonempty)
 (directed : directed_on (≥) F) (mem_of_le : ∀ {x y : P}, x ≤ y → x ∈ F → y ∈ F) : is_pfilter F :=
 by { use [nonempty, directed], exact λ _ _ _ _, mem_of_le ‹_› ‹_›}
 
-
 /-- Create an element of type `order.pfilter` from a set satisfying the predicate
 `order.is_pfilter`. -/
 def is_pfilter.to_pfilter [preorder P] {F : set P} (h : is_pfilter F) : pfilter P :=

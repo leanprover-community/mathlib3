@@ -36,7 +36,7 @@ lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator
 begin
   revert f,
   have h_mul_indicator : ∀ g, measurable g → measurable (λ a, g a * T.indicator (λ x, c) a) :=
-  λ g h_mg, h_mg.ennreal_mul (measurable_const.indicator h_meas_T),
+  λ g h_mg, h_mg.mul (measurable_const.indicator h_meas_T),
   apply measurable.ennreal_induction,
   { intros c' s' h_meas_s',
     simp_rw [← inter_indicator_mul],
@@ -89,15 +89,14 @@ begin
     have h_measM_g := h_meas_Mg h_measMg_g,
     simp_rw [pi.add_apply, left_distrib],
     rw [lintegral_add h_measM_f' h_measM_g,
-        lintegral_add (measurable.ennreal_mul h_measM_f h_measM_f')
-          (measurable.ennreal_mul h_measM_f h_measM_g),
+        lintegral_add (h_measM_f.mul h_measM_f') (h_measM_f.mul h_measM_g),
         left_distrib, h_ind_f', h_ind_g'] },
   { intros f' h_meas_f' h_mono_f' h_ind_f',
     have h_measM_f' := λ n, h_meas_Mg (h_meas_f' n),
     simp_rw [ennreal.mul_supr],
     rw [lintegral_supr, lintegral_supr h_measM_f' h_mono_f', ennreal.mul_supr],
     { simp_rw [← h_ind_f'] },
-    { apply λ (n : ℕ), measurable.ennreal_mul h_measM_f (h_measM_f' n) },
+    { apply λ (n : ℕ), h_measM_f.mul (h_measM_f' n) },
     { apply λ (n : ℕ) (m : ℕ) (h_le : n ≤ m) a, ennreal.mul_le_mul le_rfl
       (h_mono_f' h_le a) } }
 end

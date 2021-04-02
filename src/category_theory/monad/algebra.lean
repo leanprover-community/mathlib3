@@ -142,8 +142,8 @@ adjunction.mk_of_hom_equiv
 Given an algebra morphism whose carrier part is an isomorphism, we get an algebra isomorphism.
 -/
 lemma algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
-⟨{ f := inv f.f,
-   h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], dsimp, simp } }, by tidy⟩
+⟨⟨{ f := inv f.f,
+    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], dsimp, simp } }, by tidy⟩⟩
 
 instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
 { reflects := λ A B, algebra_iso_of_iso T }
@@ -303,8 +303,8 @@ structure. -/
 Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalgebra isomorphism.
 -/
 lemma coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
-⟨{ f := inv f.f,
-   h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], dsimp, simp } }, by tidy⟩
+⟨⟨{ f := inv f.f,
+    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], dsimp, simp } }, by tidy⟩⟩
 
 instance forget_reflects_iso : reflects_isomorphisms (forget G) :=
 { reflects := λ A B, coalgebra_iso_of_iso G }

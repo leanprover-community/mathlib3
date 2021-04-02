@@ -61,40 +61,29 @@ variables {K L} (S : intermediate_field K L)
 
 namespace intermediate_field
 
-instance : has_coe (intermediate_field K L) (set L) :=
-⟨intermediate_field.carrier⟩
+instance : set_like (intermediate_field K L) L :=
+⟨intermediate_field.carrier, λ p q h, by cases p; cases q; congr'⟩
+
+@[simp]
+lemma mem_carrier {s : intermediate_field K L} {x : L} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
+
+/-- Two intermediate fields are equal if they have the same elements. -/
+@[ext] theorem ext {S T : intermediate_field K L} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T :=
+set_like.ext h
 
 @[simp] lemma coe_to_subalgebra : (S.to_subalgebra : set L) = S := rfl
 
 @[simp] lemma coe_to_subfield : (S.to_subfield : set L) = S := rfl
 
-instance : has_coe_to_sort (intermediate_field K L) := ⟨Type*, λ S, S.carrier⟩
-
-instance : has_mem L (intermediate_field K L) := ⟨λ m S, m ∈ (S : set L)⟩
-
 @[simp] lemma mem_mk (s : set L) (hK : ∀ x, algebra_map K L x ∈ s)
   (ho hm hz ha hn hi) (x : L) :
   x ∈ intermediate_field.mk s ho hm hz ha hK hn hi ↔ x ∈ s := iff.rfl
-
-@[simp] lemma mem_coe (x : L) : x ∈ (S : set L) ↔ x ∈ S := iff.rfl
 
 @[simp] lemma mem_to_subalgebra (s : intermediate_field K L) (x : L) :
   x ∈ s.to_subalgebra ↔ x ∈ s := iff.rfl
 
 @[simp] lemma mem_to_subfield (s : intermediate_field K L) (x : L) :
   x ∈ s.to_subfield ↔ x ∈ s := iff.rfl
-
-/-- Two intermediate fields are equal if the underlying subsets are equal. -/
-theorem ext' ⦃s t : intermediate_field K L⦄ (h : (s : set L) = t) : s = t :=
-by { cases s, cases t, congr' }
-
-/-- Two intermediate fields are equal if and only if the underlying subsets are equal. -/
-protected theorem ext'_iff {s t : intermediate_field K L} : s = t ↔ (s : set L) = t :=
-⟨λ h, h ▸ rfl, λ h, ext' h⟩
-
-/-- Two intermediate fields are equal if they have the same elements. -/
-@[ext] theorem ext {S T : intermediate_field K L} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T :=
-ext' $ set.ext h
 
 /-- An intermediate field contains the image of the smaller field. -/
 theorem algebra_map_mem (x : K) : algebra_map K L x ∈ S :=
@@ -247,12 +236,6 @@ lemma to_subalgebra_injective {S S' : intermediate_field K L}
   (h : S.to_subalgebra = S'.to_subalgebra) : S = S' :=
 by { ext, rw [← mem_to_subalgebra, ← mem_to_subalgebra, h] }
 
-instance : partial_order (intermediate_field K L) :=
-{ le := λ S T, (S : set L) ⊆ T,
-  le_refl := λ S, set.subset.refl S,
-  le_trans := λ _ _ _, set.subset.trans,
-  le_antisymm := λ S T hst hts, ext $ λ x, ⟨@hst x, @hts x⟩ }
-
 variables (S)
 
 lemma set_range_subset : set.range (algebra_map K L) ⊆ S :=
@@ -341,12 +324,11 @@ right K F L
 variables {F} {E}
 
 @[simp] lemma to_subalgebra_eq_iff : F.to_subalgebra = E.to_subalgebra ↔ F = E :=
-by { rw [subalgebra.ext_iff, intermediate_field.ext'_iff, set.ext_iff], refl }
+by { rw [set_like.ext_iff, set_like.ext'_iff, set.ext_iff], refl }
 
 lemma eq_of_le_of_findim_le [finite_dimensional K L] (h_le : F ≤ E)
   (h_findim : findim K E ≤ findim K F) : F = E :=
-intermediate_field.ext'_iff.mpr (submodule.ext'_iff.mp (eq_of_le_of_findim_le
-  (show F.to_subalgebra.to_submodule ≤ E.to_subalgebra.to_submodule, by exact h_le) h_findim))
+to_subalgebra_injective $ subalgebra.to_submodule_injective $ eq_of_le_of_findim_le h_le h_findim
 
 lemma eq_of_le_of_findim_eq [finite_dimensional K L] (h_le : F ≤ E)
   (h_findim : findim K F = findim K E) : F = E :=

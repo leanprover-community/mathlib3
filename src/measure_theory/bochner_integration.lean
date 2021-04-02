@@ -466,7 +466,7 @@ lemma coe_sub (f g : α →₁ₛ[μ] E) : ((f - g : α →₁ₛ[μ] E) : α �
 
 lemma norm_eq (f : α →₁ₛ[μ] E) : ∥f∥ = ∥(f : α →₁[μ] E)∥ := rfl
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 /-- Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the
 Bochner integral. -/
@@ -529,7 +529,7 @@ lemma to_L1_sub (f g : α →ₛ E) (hf : integrable f μ) (hg : integrable g μ
   to_L1 (f - g) (hf.sub hg) = to_L1 f hf - to_L1 g hg :=
 by { simp only [sub_eq_add_neg, ← to_L1_neg, ← to_L1_add], refl }
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 lemma to_L1_smul (f : α →ₛ E) (hf : integrable f μ) (c : 𝕜) :
   to_L1 (c • f) (hf.smul c) = c • to_L1 f hf := rfl
@@ -614,7 +614,7 @@ begin
   repeat { assume h, rw h }
 end
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 lemma smul_to_simple_func (k : 𝕜) (f : α →₁ₛ[μ] E) :
   to_simple_func (k • f) =ᵐ[μ] k • to_simple_func f :=
@@ -701,7 +701,7 @@ simple_func.dense_embedding.to_dense_inducing
 protected lemma dense_range : dense_range (coe : (α →₁ₛ[μ] E) → (α →₁[μ] E)) :=
 simple_func.dense_inducing.dense
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 variables (α E 𝕜)
 
@@ -764,7 +764,8 @@ begin
   apply add_to_simple_func
 end
 
-lemma integral_smul (c : 𝕜) (f : α →₁ₛ[μ] E) : integral (c • f) = c • integral f :=
+lemma integral_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] (c : 𝕜) (f : α →₁ₛ[μ] E) :
+  integral (c • f) = c • integral f :=
 begin
   simp only [integral],
   rw ← simple_func.integral_smul _ (simple_func.integrable f),
@@ -779,7 +780,7 @@ begin
   exact (to_simple_func f).norm_integral_le_integral_norm (simple_func.integrable f)
 end
 
-variables (α E μ 𝕜)
+variables (α E μ 𝕜) [measurable_space 𝕜] [opens_measurable_space 𝕜]
 /-- The Bochner integral over simple functions in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁ₛ[μ] E) →L[𝕜] E :=
 linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
@@ -879,7 +880,7 @@ local attribute [instance] simple_func.normed_group simple_func.normed_space
 
 open continuous_linear_map
 
-variables (𝕜)
+variables (𝕜) [measurable_space 𝕜] [opens_measurable_space 𝕜]
 /-- The Bochner integral in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁[μ] E) →L[𝕜] E :=
 (integral_clm' α E 𝕜 μ).extend
@@ -1041,7 +1042,8 @@ lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
 integral_sub hf hg
 
-lemma integral_smul (c : 𝕜) (f : α → E) : ∫ a, c • (f a) ∂μ = c • ∫ a, f a ∂μ :=
+lemma integral_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] (c : 𝕜) (f : α → E) :
+  ∫ a, c • (f a) ∂μ = c • ∫ a, f a ∂μ :=
 begin
   by_cases hf : integrable f μ,
   { rw [integral_eq f hf, integral_eq (λa, c • (f a)), integrable.to_L1_smul, L1.integral_smul], },

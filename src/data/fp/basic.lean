@@ -65,7 +65,7 @@ begin
   rw ← int.coe_nat_le at this,
   rw ← sub_nonneg at *,
   simp only [emin, emax] at *,
-  ring,
+  ring_nf,
   assumption
 end, le_trans C.prec_max (nat.le_mul_of_pos_left dec_trivial),
 by rw max_eq_right; simp [sub_eq_add_neg]⟩

@@ -48,7 +48,7 @@ noncomputable theory
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
   {E : Type v}  [add_comm_group E] [vector_space 𝕜 E] [topological_space E]
-  [topological_add_group E] [topological_vector_space 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
+  [topological_add_group E] [has_continuous_smul 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
 begin
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
   -- function.
@@ -66,7 +66,7 @@ variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 {E : Type v} [normed_group E] [normed_space 𝕜 E]
 {F : Type w} [normed_group F] [normed_space 𝕜 F]
 {F' : Type x} [add_comm_group F'] [vector_space 𝕜 F'] [topological_space F']
-[topological_add_group F'] [topological_vector_space 𝕜 F']
+[topological_add_group F'] [has_continuous_smul 𝕜 F']
 [complete_space 𝕜]
 
 /-- In finite dimension over a complete field, the canonical identification (in terms of a basis)

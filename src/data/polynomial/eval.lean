@@ -789,7 +789,7 @@ eval₂_neg _
 eval₂_sub _
 
 lemma root_X_sub_C : is_root (X - C a) b ↔ a = b :=
-by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
+by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero, eq_comm]
 
 @[simp] lemma neg_comp : (-p).comp q = -p.comp q := eval₂_neg _
 

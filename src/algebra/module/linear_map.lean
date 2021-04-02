@@ -217,6 +217,12 @@ def comp : M →ₗ[R] M₃ := ⟨f ∘ g, by simp, by simp⟩
 @[norm_cast]
 lemma comp_coe : (f : M₂ → M₃) ∘ (g : M → M₂) = f.comp g := rfl
 
+@[simp] theorem comp_id : f.comp id = f :=
+linear_map.ext $ λ x, rfl
+
+@[simp] theorem id_comp : id.comp f = f :=
+linear_map.ext $ λ x, rfl
+
 end
 
 /-- If a function `g` is a left and right inverse of a linear map `f`, then `g` is linear itself. -/

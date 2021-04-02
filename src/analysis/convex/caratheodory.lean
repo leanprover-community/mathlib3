@@ -72,8 +72,7 @@ begin
       { apply div_nonneg (fpos i₀ (mem_of_subset (filter_subset _ t) mem)) (le_of_lt hg) },
       { simpa only [mem_filter, het, true_and, not_lt] using hes }, } },
   { simp only [subtype.coe_mk, center_mass_eq_of_sum_1 _ id ksum, id],
-    calc ∑ e in t.erase i₀, k e • e = ∑ e in t, k e • e :
-      by conv_rhs { rw [← insert_erase hi₀, sum_insert (not_mem_erase i₀ t), hk, zero_smul, zero_add], }
+    calc ∑ e in t.erase i₀, k e • e = ∑ e in t, k e • e : sum_erase _ (by rw [hk, zero_smul])
     ... = ∑ e in t, (f e - f i₀ / g i₀ * g e) • e : rfl
     ... = t.center_mass f id : _,
     simp only [sub_smul, mul_smul, sum_sub_distrib, ← smul_sum, gcombo, smul_zero,

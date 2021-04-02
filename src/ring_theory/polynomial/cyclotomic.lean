@@ -531,9 +531,9 @@ begin
     exact monic.ne_zero prod_monic (degree_eq_bot.1 h) },
 end
 
-/-- If `p` is prime, then `cyclotomic p R = geom_series X p`. -/
-lemma cyclotomic_eq_geom_series {R : Type*} [comm_ring R] [nontrivial R] {p : ℕ}
-  (hp : nat.prime p) : cyclotomic p R = geom_series X p :=
+/-- If `p` is prime, then `cyclotomic p R = geom_sum X p`. -/
+lemma cyclotomic_eq_geom_sum {R : Type*} [comm_ring R] [nontrivial R] {p : ℕ}
+  (hp : nat.prime p) : cyclotomic p R = geom_sum X p :=
 begin
   symmetry,
   refine (eq_cyclotomic_iff hp.pos _).mpr _,
@@ -581,7 +581,7 @@ lemma coprime_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fa
   a.coprime p :=
 begin
   apply nat.coprime.symm,
-  rw [nat.prime.coprime_iff_not_dvd hprime],
+  rw [hprime.1.coprime_iff_not_dvd],
   by_contra h,
   replace h := (zmod.nat_coe_zmod_eq_zero_iff_dvd a p).2 h,
   rw [is_root.def, ring_hom.eq_nat_cast, h, ← coeff_zero_eq_eval_zero] at hroot,
@@ -600,7 +600,7 @@ section order
 
 /-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, then the multiplicative order of `a` modulo
 `p` divides `n`. -/
-lemma order_of_root_cyclotomic_dvd {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact p.prime]
+lemma order_of_root_cyclotomic_dvd {n : ℕ} (hpos : 0 < n) {p : ℕ} [fact p.prime]
   {a : ℕ} (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
   order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) ∣ n :=
 begin
@@ -617,7 +617,7 @@ end
 
 /-- If `(a : ℕ)` is a root of `cyclotomic n (zmod p)`, where `p` is a prime that does not divide
 `n`, then the multiplicative order of `a` modulo `p` is exactly `n`. -/
-lemma order_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [hprime : fact p.prime] {a : ℕ}
+lemma order_of_root_cyclotomic {n : ℕ} (hpos : 0 < n) {p : ℕ} [fact p.prime] {a : ℕ}
   (hn : ¬ p ∣ n) (hroot : is_root (cyclotomic n (zmod p)) (nat.cast_ring_hom (zmod p) a)) :
   order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) = n :=
 begin

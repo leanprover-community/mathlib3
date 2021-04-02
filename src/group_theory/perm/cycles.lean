@@ -405,6 +405,26 @@ quotient.rec_on_subsingleton (@univ α _).1
   (λ l h, trunc.mk (cycle_factors_aux l f h))
   (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
 
+lemma induction_on_cycles [fintype α] (P : perm α → Prop) (base_one : P 1)
+  (base_cycles : ∀ σ : perm α, σ.is_cycle → P σ)
+  (induction_disjoint : ∀ σ τ : perm α, disjoint σ τ → P σ → P τ → P (σ * τ)) (σ : perm α) :
+  P σ :=
+begin
+  suffices :
+    ∀ l : list (perm α), (∀ τ : perm α, τ ∈ l → τ.is_cycle) → l.pairwise disjoint → P l.prod,
+  { let x := σ.trunc_cycle_factors.out,
+    exact (congr_arg P x.2.1).mp (this x.1 x.2.2.1 x.2.2.2) },
+  intro l,
+  induction l with σ l ih,
+  { exact λ _ _, base_one },
+  { intros h1 h2,
+    rw list.prod_cons,
+    exact induction_disjoint σ l.prod
+      (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h2).1)
+      (base_cycles σ (h1 σ (l.mem_cons_self σ)))
+      (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
+end
+
 section fixed_points
 
 /-!

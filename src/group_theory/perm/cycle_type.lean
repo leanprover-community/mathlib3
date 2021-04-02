@@ -7,23 +7,6 @@ open equiv
 
 variables {α : Type*} [fintype α] [decidable_eq α]
 
-lemma cycle_induction (P : perm α → Prop) (h1 : P 1) (h2 : ∀ σ : perm α, σ.is_cycle → P σ)
-  (h3 : ∀ σ τ : perm α, disjoint σ τ → P σ → P τ → P (σ * τ)) (σ : perm α) : P σ :=
-begin
-  suffices : ∀ l : list (perm α), (∀ τ : perm α, τ ∈ l → τ.is_cycle) →
-    l.pairwise disjoint → P l.prod,
-  { let x := σ.trunc_cycle_factors.out,
-    exact (congr_arg P x.2.1).mp (this x.1 x.2.2.1 x.2.2.2) },
-  intro l,
-  induction l with σ l ih,
-  { exact λ _ _, h1 },
-  { intros h4 h5,
-    rw list.prod_cons,
-    exact h3 σ l.prod (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h5).1)
-      (h2 σ (h4 σ (l.mem_cons_self σ)))
-      (ih (λ τ hτ, h4 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h5)) },
-end
-
 lemma thm0
   (σ τ : perm α)
   (h : disjoint σ τ)
@@ -174,7 +157,7 @@ lemma one_lt_of_mem_cycle_type (σ : perm α) {n : ℕ} (h : n ∈ σ.cycle_type
 
 lemma sum_cycle_type (σ : perm α) : σ.cycle_type.sum = σ.support.card :=
 begin
-  apply cycle_induction (λ τ : perm α, τ.cycle_type.sum = τ.support.card),
+  apply induction_on_cycles (λ τ : perm α, τ.cycle_type.sum = τ.support.card),
   { rw [cycle_type_one, multiset.sum_zero, support_one, finset.card_empty] },
   { intros σ hσ,
     rw [hσ.cycle_type, multiset.coe_sum, list.sum_singleton] },
@@ -200,7 +183,7 @@ instance : gcd_monoid ℕ :=
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 begin
-  apply cycle_induction (λ τ : perm α, τ.cycle_type.lcm = order_of τ),
+  apply induction_on_cycles (λ τ : perm α, τ.cycle_type.lcm = order_of τ),
   { rw [cycle_type_one, multiset.lcm_zero, order_of_one] },
   { intros σ hσ,
     rw [hσ.cycle_type, ←multiset.singleton_coe, multiset.lcm_singleton, order_of_is_cycle hσ],

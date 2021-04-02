@@ -46,7 +46,7 @@ downward closed.
 /--
 A constructor for simplicial complexes by specifying a set of faces to close downward.
 -/
-def simplicial_complex.of_set_closure {A : set (finset E)}
+@[simp] def simplicial_complex.of_set_closure {A : set (finset E)}
   (indep : ∀ {X}, X ∈ A → affine_independent ℝ (λ p, p : (X : set E) → E))
   (disjoint : ∀ {X Y}, X ∈ A → Y ∈ A →
     convex_hull ↑X ∩ convex_hull ↑Y ⊆ convex_hull (X ∩ Y : set E)) :
@@ -82,6 +82,29 @@ def simplicial_complex.of_set_closure {A : set (finset E)}
       (finset.inter_subset_inter_right (finset.inter_subset_left W Z))
       (finset.inter_subset_inter_left (finset.inter_subset_right Y X))) hxWX,
   end}
+
+/--
+A constructor for simplicial complexes by specifying a face to close downward.
+-/
+@[simp] def simplicial_complex.of_simplex {X : finset E}
+  (indep : affine_independent ℝ (λ p, p : (X : set E) → E)) :
+  simplicial_complex m :=
+  simplicial_complex.of_set_closure m
+  begin rintro Y (hY : Y = X), rw hY, exact indep end
+  begin rintro Y Z (hY : Y = X) (hZ : Z = X), rw [hY, hZ, inter_self _, inter_self _],
+    exact subset.refl _ end
+
+lemma mem_simplex_complex_iff {X Y : finset E}
+  (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
+  Y ∈ (simplicial_complex.of_simplex m hX).faces ↔ Y ⊆ X :=
+begin
+  split,
+  { rintro ⟨Z, (hZ : Z = X), hYX⟩,
+    rw ← hZ,
+    exact hYX },
+  { rintro hYX,
+    exact ⟨X, rfl, hYX⟩ }
+end
 
 /--
 The empty simplicial complex is made up of only the empty simplex
@@ -1070,6 +1093,20 @@ begin
     exact hYunique hZ ⟨subset.trans hXW hWZ.1, (λ hZX, hWZ.2 (finset.subset.trans hZX hXW))⟩ },
   rw [nat.succ_sub_one, ← hWcard, hX.2 hW hXW],
 end
+
+/--
+A simplicial complex is locally finite iff it has finitely many faces.
+-/
+def simplicial_complex.finite (S : simplicial_complex m) : Prop := S.faces.finite
+
+noncomputable def simplicial_complex.faces_finset (S : simplicial_complex m) (hS : S.finite) :
+  finset (finset E) :=
+hS.to_finset
+
+@[simp]
+lemma mem_faces_finset (hS : S.finite) (X : finset E) :
+  X ∈ S.faces_finset hS ↔ X ∈ S.faces :=
+set.finite.mem_to_finset _
 
 /--
 A simplicial complex is locally finite iff each of its faces belongs to finitely many faces.

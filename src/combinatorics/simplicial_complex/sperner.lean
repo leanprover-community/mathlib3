@@ -19,17 +19,6 @@ open set
 variables {m n : ℕ} {S : simplicial_complex m}
 local notation `E` := fin m → ℝ
 
-def simplicial_complex.finite (S : simplicial_complex m) : Prop := S.faces.finite
-
-noncomputable def simplicial_complex.faces_finset (S : simplicial_complex m) (hS : S.finite) :
-  finset (finset E) :=
-hS.to_finset
-
-@[simp]
-lemma mem_faces_finset (hS : S.finite) (X : finset E) :
-  X ∈ S.faces_finset hS ↔ X ∈ S.faces :=
-set.finite.mem_to_finset _
-
 def is_sperner_colouring (S : simplicial_complex (m+1))
   (f : (fin (m+1) → ℝ) → fin (m+1)) : Prop :=
 ∀ (X : fin (m+1) → ℝ) i, X ∈ S.points → X i = 0 → f X ≠ i

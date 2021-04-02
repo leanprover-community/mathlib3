@@ -16,6 +16,54 @@ MATHLIB DEPARTURE ZONE
 A few PRs to be done
 -/
 
+lemma list.exists_min {α : Type*} [semilattice_inf α] :
+  ∀ {s : list α} (hs₁ : s ≠ []), ∃ z, ∀ y ∈ s, z ≤ y
+| [] h := (h rfl).elim
+| [x] h := ⟨x, by simp⟩
+| (x :: y :: ys) _ :=
+  begin
+    rcases list.exists_min (list.cons_ne_nil y ys) with ⟨t, ht⟩,
+    refine ⟨t ⊓ x, _⟩,
+    rintro z (rfl | rfl | hz),
+    { apply inf_le_right },
+    { apply le_trans inf_le_left (ht z (list.mem_cons_self z ys)) },
+    { apply le_trans inf_le_left (ht z (list.mem_cons_of_mem _ hz)) }
+  end
+
+lemma list.exists_min_of_inf_closed {α : Type*} [semilattice_inf α] {s : list α}
+  (hs₁ : s ≠ []) (hs₂ : ∀ x y ∈ s, x ⊓ y ∈ s) :
+  ∃ z ∈ s, ∀ y ∈ s, z ≤ y :=
+begin
+  let s' := s.attach,
+  have hs'₁ : s' ≠ [] := by simpa using hs₁,
+  letI : semilattice_inf {y // y ∈ s} := subtype.semilattice_inf (λ x y hx hy, hs₂ x y hx hy),
+  rcases list.exists_min hs'₁ with ⟨⟨x, hx₁⟩, hx₂⟩,
+  refine ⟨x, hx₁, λ y hy, _⟩,
+  apply hx₂ ⟨y, hy⟩ _,
+  simp only [list.mem_attach],
+end
+
+lemma multiset.exists_min_of_inf_closed {α : Type*} [semilattice_inf α] {s : multiset α}
+  (hs₁ : s ≠ 0) (hs₂ : ∀ x y ∈ s, x ⊓ y ∈ s) :
+  ∃ z ∈ s, ∀ y ∈ s, z ≤ y :=
+begin
+  revert hs₁ hs₂,
+  apply quotient.induction_on s,
+  intros s hs₁ hs₂,
+  apply list.exists_min_of_inf_closed _ hs₂,
+  intro t,
+  rw ←multiset.coe_eq_zero at t,
+  apply hs₁ t,
+end
+
+@[simp] lemma attach_nonempty_iff {α : Type*} (s : finset α) : s.attach.nonempty ↔ s.nonempty :=
+by simp [←finset.card_pos]
+
+lemma finset.exists_min {α : Type*} [semilattice_inf α]
+  {s : finset α} (hs₁ : s.nonempty) (hs₂ : ∀ x y ∈ s, x ⊓ y ∈ s):
+  ∃ z ∈ s, ∀ y ∈ s, z ≤ y :=
+@multiset.exists_min_of_inf_closed _ _ s.1 (by simpa using hs₁.ne_empty) hs₂
+
 --Probably belongs in mathlib
 lemma set.eq_empty_of_ssubset_singleton {x : α} {X : set α} : X ⊂ {x} → X = ∅ :=
 begin

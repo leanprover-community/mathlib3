@@ -166,9 +166,6 @@ interior of the underlying space.
 def combi_interior (X : finset E) : set E :=
 convex_hull X \ combi_frontier X
 
-example {p q : Prop} : (p → ¬q) → q → ¬p :=
-function.swap
-
 lemma combi_interior_singleton {x : E} : combi_interior ({x} : finset E) = {x} :=
 begin
   unfold combi_interior,
@@ -184,8 +181,11 @@ begin
   sorry
 end
 
+lemma combi_interior_subset_convex_hull {X : finset E} : combi_interior X ⊆ convex_hull X :=
+  diff_subset _ _
+
 lemma closure_combi_interior_eq_convex_hull {X : finset E} :
-  closure (combi_interior X) = convex_hull (X : set E) := sorry
+  closure (combi_interior X) = convex_hull (X : set E) := sorry --@Bhavik, this one is for you :)
 
 
 lemma combi_interior_eq {X : finset E} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
@@ -275,77 +275,75 @@ begin
   { exact bUnion_subset (λ Y hY, subset.trans (diff_subset _ _) (convex_hull_mono hY)) },
 end
 
-lemma list.exists_min {α : Type*} [semilattice_inf α] :
-  ∀ {s : list α} (hs₁ : s ≠ []), ∃ z, ∀ y ∈ s, z ≤ y
-| [] h := (h rfl).elim
-| [x] h := ⟨x, by simp⟩
-| (x :: y :: ys) _ :=
-  begin
-    rcases list.exists_min (list.cons_ne_nil y ys) with ⟨t, ht⟩,
-    refine ⟨t ⊓ x, _⟩,
-    rintro z (rfl | rfl | hz),
-    { apply inf_le_right },
-    { apply le_trans inf_le_left (ht z (list.mem_cons_self z ys)) },
-    { apply le_trans inf_le_left (ht z (list.mem_cons_of_mem _ hz)) }
-  end
+lemma mem_convex_hull_iff {X : finset E} {x : E} :
+  x ∈ convex_hull (X : set E) ↔ ∃ Y ⊆ X, x ∈ combi_interior Y := sorry
 
-lemma list.exists_min_of_inf_closed {α : Type*} [semilattice_inf α] {s : list α}
-  (hs₁ : s ≠ []) (hs₂ : ∀ x y ∈ s, x ⊓ y ∈ s) :
-  ∃ z ∈ s, ∀ y ∈ s, z ≤ y :=
+lemma mem_combi_frontier_iff' {X : finset E} {x : E} :
+  x ∈ combi_frontier X ↔ ∃ {Y}, Y ⊂ X ∧ x ∈ combi_interior Y :=
 begin
-  let s' := s.attach,
-  have hs'₁ : s' ≠ [] := by simpa using hs₁,
-  letI : semilattice_inf {y // y ∈ s} := subtype.semilattice_inf (λ x y hx hy, hs₂ x y hx hy),
-  rcases list.exists_min hs'₁ with ⟨⟨x, hx₁⟩, hx₂⟩,
-  refine ⟨x, hx₁, λ y hy, _⟩,
-  apply hx₂ ⟨y, hy⟩ _,
-  simp only [list.mem_attach],
+  rw mem_combi_frontier_iff,
+  split,
+  {
+    rintro ⟨Y, hYX, hxY⟩,
+    --rw [simplex_combi_interiors_cover, mem_bUnion_iff] at hxY,
+    --obtain ⟨Z, hZ⟩ := simplex_combi_interiors_cover
+    sorry
+  },
+  { rintro ⟨Y, hYX, hxY⟩,
+    exact ⟨Y, hYX, hxY.1⟩ }
 end
-
-lemma multiset.exists_min_of_inf_closed {α : Type*} [semilattice_inf α] {s : multiset α}
-  (hs₁ : s ≠ 0) (hs₂ : ∀ x y ∈ s, x ⊓ y ∈ s) :
-  ∃ z ∈ s, ∀ y ∈ s, z ≤ y :=
-begin
-  revert hs₁ hs₂,
-  apply quotient.induction_on s,
-  intros s hs₁ hs₂,
-  apply list.exists_min_of_inf_closed _ hs₂,
-  intro t,
-  rw ←multiset.coe_eq_zero at t,
-  apply hs₁ t,
-end
-
-@[simp] lemma attach_nonempty_iff {α : Type*} (s : finset α) : s.attach.nonempty ↔ s.nonempty :=
-by simp [←finset.card_pos]
-
-lemma finset.exists_min {α : Type*} [semilattice_inf α]
-  {s : finset α} (hs₁ : s.nonempty) (hs₂ : ∀ x y ∈ s, x ⊓ y ∈ s):
-  ∃ z ∈ s, ∀ y ∈ s, z ≤ y :=
-@multiset.exists_min_of_inf_closed _ _ s.1 (by simpa using hs₁.ne_empty) hs₂
 
 lemma simplex_combi_interiors_split_interiors {X Y : finset E}
+  (hY : affine_independent ℝ (λ p, p : (Y : set E) → E))
   (hXY : convex_hull (X : set E) ⊆ convex_hull ↑Y) :
   ∃ Z ⊆ Y, combi_interior X ⊆ combi_interior Z :=
 begin
-  --@Bhavik, the finset.inf problem
-  --have := finset.inf (Y.powerset.filter (λ W : finset E,
-  --  combi_interior X ⊆ convex_hull (W : set E))) id,
-  sorry
-  --Previous attempt by induction below
-  /-apply finset.strong_induction_on Y,
-  clear hXY Y,
-  rintro Y h,
-  by_cases g : ∀ W ⊂ Y, ¬convex_hull (X : set E) ⊆ convex_hull ↑W,
+  let S := simplicial_complex.of_simplex m hY,
+  let F := Y.powerset.filter (λ W : finset E, (X : set E) ⊆ convex_hull W),
+  obtain ⟨Z, hZ, hZmin⟩ := finset.exists_min
+  (begin
+    use Y,
+    simp,
+    exact subset.trans (subset_convex_hull _) hXY
+  end : F.nonempty)
+  begin
+    rintro A B hA hB,
+    simp at ⊢ hA hB,
+    exact ⟨finset.subset.trans (finset.inter_subset_left _ _) hA.1,
+      subset.trans (subset_inter hA.2 hB.2) (S.disjoint ((mem_simplex_complex_iff m hY).2 hA.1)
+      ((mem_simplex_complex_iff m hY).2 hB.1))⟩
+  end,
+  simp at hZ,
+  use [Z, hZ.1],
+  rintro x hxX,
+  use convex_hull_min hZ.2 (convex_convex_hull _) hxX.1,
+  rintro hxZ,
+  rw mem_combi_frontier_iff' at hxZ,
+  obtain ⟨W, hWZ, hxW⟩ := hxZ,
+  apply hxX.2,
+  rw mem_combi_frontier_iff at ⊢,
+  use [X.filter (λ w : E, w ∈ convex_hull (W : set E)), finset.filter_subset _ _],
   {
-    use [Y, subset.refl _],
-    sorry
+    rintro hXW,
+    apply hWZ.2 (hZmin W _),
+    simp,
+    use [subset.trans hWZ.1 hZ.1],
+    rintro y (hyX : y ∈ X),
+    have := hXW hyX,
+    simp at this,
+    exact this.2,
   },
   {
-    push_neg at g,
-    obtain ⟨W, hWY, hW⟩ := g,
-    obtain ⟨Z, hZW, hZ⟩ := h W hWY,
-    exact ⟨Z, finset.subset.trans hZW hWY.1, hZ⟩,
-  }-/
+    simp,
+    sorry
+  }
+  /-apply hWZ.2 (hZmin W _),
+  simp,
+  use [subset.trans hWZ.1 hZ.1],
+  rintro y (hyX : y ∈ X),
+  have := hZ.2 hyX,
+  obtain ⟨V, hVY, hyV⟩ := mem_convex_hull_iff.1 this,
+  sorry-/
 end
 
 lemma combi_interiors_cover (S : simplicial_complex m) :
@@ -392,7 +390,8 @@ lemma interiors_agree_of_full_dimensional {S : simplicial_complex m}
   {X} (hX : X ∈ S.faces) (hXdim : X.card = m + 1) :
   combi_interior X = interior (convex_hull X) :=
 begin
-  unfold combi_interior interior,
+  --rw ← closure_combi_interior_eq_convex_hull,
+  unfold combi_interior,
   sorry
 end
 
@@ -504,7 +503,7 @@ begin
     use ge_of_eq hspace,
     rintro X hX,
     obtain ⟨Y, hY, hXY⟩ := hS hX,
-    obtain ⟨Z, hZY, hXZ⟩ := simplex_combi_interiors_split_interiors hXY,
+    obtain ⟨Z, hZY, hXZ⟩ := simplex_combi_interiors_split_interiors (S₂.indep hY) hXY,
     exact ⟨Z, S₂.down_closed hY hZY, hXZ⟩ },
   { rintro ⟨hspace, hS⟩,
     split,
@@ -539,7 +538,7 @@ begin
       use hY,
       rintro y hyY,
       obtain ⟨Z, hZ, hYZ⟩ := hsubdiv hY,
-      obtain ⟨W, hWZ, hYW⟩ := simplex_combi_interiors_split_interiors hYZ,
+      obtain ⟨W, hWZ, hYW⟩ := simplex_combi_interiors_split_interiors (S₂.indep hZ) hYZ,
       rw disjoint_interiors hX (S₂.down_closed hZ hWZ) x ⟨hxX, hYW hxY⟩,
       exact hYW hyY },
     { rw mem_bUnion_iff,
@@ -589,27 +588,51 @@ begin
       exact hx }}
 end
 
-lemma boundary_mono {S₁ S₂ : simplicial_complex m} (hS : S₁ ≤ S₂) : S₁.boundary ≤ S₂.boundary :=
+lemma boundary_face_iff_subset_space_frontier_of_full_dimensional {S : simplicial_complex m}
+  (hS : S.pure_of (m + 1)) {X : finset E} :
+  X ∈ S.boundary.faces ↔ X ∈ S.faces ∧ ↑X ⊆ frontier S.space :=
 begin
   split,
   {
-    sorry --hard?
+    rintro ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩,
+    use S.down_closed hY hXY,
+    sorry
   },
   {
-    rintro X₁ ⟨Y₁, Z₁, hY₁, hZ₁, hX₁Y₁, hY₁Z₁, hZ₁max⟩,
-    obtain ⟨X₂, hX₂, hX₁X₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2
-      (S₁.down_closed hY₁ hX₁Y₁),
-    use X₂,
-    obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := hS.2 hY₁,
-    obtain ⟨Z₂, hZ₂, hZ₁Z₂⟩ := hS.2 hZ₁,
-    use Y₂,
-    split,
-    {
-      sorry
-    },
-    sorry,
+    rintro ⟨hX, hXspace⟩,
     sorry
   }
+end
+
+lemma space_frontier_eq {S : simplicial_complex m} :
+  frontier S.space = (⋃ (X ∈ S.facets) (H : (X : finset E).card ≤ m), combi_interior X)
+  ∪ (⋃ (X ∈ S.boundary.faces), combi_interior X) :=
+begin
+  sorry
+end
+
+lemma boundary_space_eq_of_full_dimensional {S : simplicial_complex m}
+  (hS : S.pure_of (m + 1)) {X : finset E} :
+  frontier S.space = S.boundary.space :=
+begin
+  sorry
+end
+
+lemma boundary_mono {S₁ S₂ : simplicial_complex m} (hS : S₁ ≤ S₂) :
+  S₁.boundary ≤ S₂.boundary :=
+begin
+  have hspace : S₁.boundary.space = S₂.boundary.space,
+  {
+    sorry
+  },
+  use hspace,
+  rintro X₁ ⟨Y₁, Z₁, hY₁, hZ₁, hX₁Y₁, hY₁Z₁, hZ₁max⟩,
+  obtain ⟨X₂, hX₂, hX₁X₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2
+    (S₁.down_closed hY₁ hX₁Y₁),
+  use X₂,
+  rw and.comm,
+  use convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior hX₁X₂,
+  sorry
 end
 
 /-A simplicial complex is connected iff its space is-/
@@ -644,6 +667,7 @@ lemma locally_compact_realisation_iff_locally_finite (S : simplicial_complex m) 
     {
       rintro hS x,
       --obtain ⟨a, b⟩ := hS x,
+      sorry
     }
   end
 

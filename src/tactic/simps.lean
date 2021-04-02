@@ -32,7 +32,7 @@ There are three attributes being defined here
 structures, projections, simp, simplifier, generates declarations
 -/
 
-open tactic expr option
+open option tactic expr
 
 setup_tactic_parser
 declare_trace simps.verbose

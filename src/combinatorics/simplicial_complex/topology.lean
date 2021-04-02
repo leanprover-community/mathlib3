@@ -581,12 +581,23 @@ begin
   }
 end
 
-lemma locally_compact_realisation_of_locally_finite (S : simplicial_complex m)
-  (hS : S.locally_finite) : locally_compact_space S.space :=
-  {local_compact_nhds := begin
-    rintro x X hX,
-    sorry
-  end}
+lemma locally_compact_realisation_iff_locally_finite (S : simplicial_complex m) :
+  S.locally_finite ↔  locally_compact_space S.space :=
+  begin
+    rw locally_finite_iff_mem_finitely_many_faces,
+    split,
+    {
+      rintro hS,
+      apply locally_compact_of_compact_nhds,
+      rintro ⟨x, hx⟩,
+      specialize hS x,
+      sorry
+    },
+    {
+      rintro hS x,
+      --obtain ⟨a, b⟩ := hS x,
+    }
+  end
 
 /-The pyramid of a vertex v with respect to a simplicial complex S is the surcomplex consisting of
 all faces of S along with all faces of S with v added -/

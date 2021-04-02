@@ -181,6 +181,17 @@ lemma disjoint_prod_perm {l₁ l₂ : list (perm α)} (hl : l₁.pairwise disjoi
   (hp : l₁ ~ l₂) : l₁.prod = l₂.prod :=
 hp.prod_eq' $ hl.imp $ λ f g, disjoint.mul_comm
 
+lemma nodup_of_pairwise_disjoint {l : list (perm α)} (h1 : (1 : perm α) ∉ l)
+  (h2 : l.pairwise disjoint) : l.nodup :=
+begin
+  refine list.pairwise.imp_of_mem _ h2,
+  rintros σ - h_mem - h_disjoint rfl,
+  suffices : σ = 1,
+  { rw this at h_mem,
+    exact h1 h_mem },
+  exact ext (λ a, (or_self _).mp (h_disjoint a)),
+end
+
 lemma pow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) :
   ∀ n : ℕ, (f ^ n) x = x
 | 0     := rfl

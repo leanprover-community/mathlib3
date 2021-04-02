@@ -106,7 +106,7 @@ instance : has_coe (ideal P) (set P) := ⟨carrier⟩
 /-- For the notation `x ∈ I`. -/
 instance : has_mem P (ideal P) := ⟨λ x I, x ∈ (I : set P)⟩
 
-@[simp] lemma mem_def : x ∈ I ↔ x ∈ (I : set P) := iff_of_eq rfl
+lemma mem_def : x ∈ I ↔ x ∈ (I : set P) := iff_of_eq rfl
 
 @[simp] lemma mem_principal : y ∈ principal x ↔ y ≤ x := by refl
 

@@ -293,7 +293,8 @@ classical.some h
 
 /-- Equivalence between the unit subype and the type `units`. Handy to transfer structures from
 one to the other.-/
-@[to_additive]
+@[to_additive "Equivalence between the unit subype and the type `units`. Handy to transfer
+structures from one to the other."]
 noncomputable def is_unit.subtype_equiv (M : Type*) [monoid M] :
   subtype (is_unit : M → Prop) ≃ (units M) :=
 (equiv.of_injective _ units.ext).symm

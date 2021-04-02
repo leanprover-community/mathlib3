@@ -86,6 +86,26 @@ mem_nhds_sets units.is_open x.is_unit
 
 end units
 
+namespace is_units
+
+variable (R)
+
+noncomputable def subtype_homeomorph :
+  subtype (is_unit : R → Prop) ≃ₜ (units R) :=
+{
+  continuous_to_fun := begin
+    dsimp only,
+    sorry,
+  end,
+  continuous_inv_fun := continuous_induced_dom.comp (continuous_subtype_mk
+    (λ (x : units R), equiv.set.range_of_left_inverse._proof_1 (λ (x : units R),
+    ⟨↑x, set.mem_range_self x⟩) x) (continuous_subtype_mk (λ (x : units R), set.mem_range_self x)
+    continuous_coe)),
+  ..is_unit.subtype_equiv R,
+}
+
+end is_units
+
 namespace normed_ring
 open_locale classical big_operators
 open asymptotics filter metric finset ring

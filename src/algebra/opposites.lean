@@ -8,6 +8,7 @@ import algebra.field
 import algebra.group.commute
 import group_theory.group_action.defs
 import data.equiv.mul_add
+import algebra.group.prod
 
 /-!
 # Algebraic operations on `αᵒᵖ`
@@ -278,3 +279,10 @@ def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
 
 @[simp] lemma ring_hom.coe_to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
   (hf : ∀ x y, commute (f x) (f y)) : ⇑(f.to_opposite hf) = op ∘ f := rfl
+
+/-- Used mainly to define the natural topology of `units α`. -/
+def embed_product (α : Type*) [monoid α] : units α →* α × αᵒᵖ :=
+{ to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
+  map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
+    and_self],
+  map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk]}

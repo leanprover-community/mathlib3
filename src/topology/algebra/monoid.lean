@@ -277,7 +277,7 @@ end has_continuous_mul
 
 section embedding
 
-variables [topological_space M] [monoid M]
+variable [monoid M]
 
 @[to_additive]
 lemma function.injective_mul [monoid β] {f : β →* M} (h : function.injective f) (a b : β) :
@@ -287,6 +287,8 @@ begin
     function.injective_to_local_equiv_apply h],
   exact congr_arg h.to_local_equiv.symm (f.map_mul a b),
 end
+
+variable [topological_space M]
 
 @[to_additive]
 lemma embedding_mul [monoid β] [topological_space β] [nonempty β]
@@ -325,13 +327,12 @@ end embedding
 section op
 
 open opposite
-variables [monoid α]
 
 /-- Put the same topological space structure on the opposite monoid as on the original space. -/
 instance [_i : topological_space α] : topological_space αᵒᵖ :=
 topological_space.induced (unop : αᵒᵖ → α) _i
 
-variables [topological_space α]
+variables [topological_space α] [monoid α]
 
 lemma continuous_unop : continuous (unop : αᵒᵖ → α) := continuous_induced_dom
 lemma continuous_op : continuous (op : α → αᵒᵖ) := continuous_induced_rng continuous_id
@@ -349,16 +350,8 @@ end op
 section units
 
 open opposite
-variable [monoid α]
 
--- move this to `algebra.group.units`
-def embed_product (α : Type*) [monoid α] : units α →* α × αᵒᵖ :=
-{ to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
-  map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
-    and_self],
-  map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk]}
-
-variable [topological_space α]
+variables [topological_space α] [monoid α]
 
 /-- The units of a monoid are equipped with a topology, via the embedding into `α × α`. -/
 instance : topological_space (units α) :=

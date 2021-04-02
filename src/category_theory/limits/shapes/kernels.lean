@@ -228,7 +228,7 @@ instance has_kernel_comp_mono {X Y Z : C} (f : X ⟶ Y) [has_kernel f] (g : Y �
       (by tidy) (by tidy) }⟩ }
 
 /--
-When `g` is an monomorphism, the kernel of `f ≫ g` is isomorphic to the kernel of `f`.
+When `g` is a monomorphism, the kernel of `f ≫ g` is isomorphic to the kernel of `f`.
 -/
 @[simps]
 def kernel_comp_mono {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [has_kernel f] [mono g] :

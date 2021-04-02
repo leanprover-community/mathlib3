@@ -324,23 +324,25 @@ end embedding
 
 section units
 
-variables {α : Type*} [monoid α]
 open opposite
 
+instance [tα : topological_space α] : topological_space αᵒᵖ := induced unop tα
+
+variables [monoid α]
+
+/- @[to_additive] the theory of opposites is not compatible with to_additive -/
 def embed_product : units α →* α × αᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
-  map_one' := by simp,
-  map_mul' := λ x y, by simp }
+  map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
+    and_self],
+  map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk]}
 
-@[to_additive]
-noncomputable instance units.topological_space [topological_space α] :
+variable [topological_space α]
+
+/- @[to_additive] -/
+instance :
   topological_space (units α) :=
-topological_space.induced embed_product
-
-lemma open_units_coe_open_embedding [topological_space α]
-  (h : is_open {a : α | is_unit a}) : open_embedding (λ a : {a : α | is_unit a}, (a : α)) :=
-{ open_range := by { simp only [mem_set_of_eq, subtype.range_coe_subtype], exact h, },
-  ..embedding_subtype_coe }
+topological_space.induced embed_product prod.topological_space
 
 end units
 

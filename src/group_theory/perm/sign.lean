@@ -205,17 +205,18 @@ lemma gpow_apply_eq_of_apply_apply_eq_self {f : perm α} {x : α} (hffx : f (f x
     ← pow_succ, eq_comm, inv_eq_iff_eq, ← mul_apply, ← pow_succ', @eq_comm _ x, or.comm],
   exact pow_apply_eq_of_apply_apply_eq_self hffx _ }
 
-lemma disjoint.mul_eq_one_iff {σ τ : perm α} (hστ : disjoint σ τ) :
-  σ * τ = 1 ↔ σ = 1 ∧ τ = 1 :=
+lemma disjoint.mul_apply_eq_iff {σ τ : perm α} (hστ : disjoint σ τ) {a : α} :
+  (σ * τ) a = a ↔ σ a = a ∧ τ a = a :=
 begin
-  refine ⟨λ h, _, λ h, by rw [h.1, h.2, mul_one]⟩,
-  rw [ext_iff, ext_iff, ←forall_and_distrib],
-  intro x,
-  replace h := (mul_apply σ τ x).symm.trans (ext_iff.mp h x),
-  cases hστ x with hσ hτ,
+  refine ⟨λ h, _, λ h, by rw [mul_apply, h.2, h.1]⟩,
+  cases hστ a with hσ hτ,
   { exact ⟨hσ, σ.injective (h.trans hσ.symm)⟩ },
   { exact ⟨(congr_arg σ hτ).symm.trans h, hτ⟩ },
 end
+
+lemma disjoint.mul_eq_one_iff {σ τ : perm α} (hστ : disjoint σ τ) :
+  σ * τ = 1 ↔ σ = 1 ∧ τ = 1 :=
+by simp_rw [ext_iff, one_apply, hστ.mul_apply_eq_iff, forall_and_distrib]
 
 lemma disjoint.order_of {σ τ : perm α} (hστ : disjoint σ τ) :
   order_of (σ * τ) = nat.lcm (order_of σ) (order_of τ) :=

@@ -176,6 +176,11 @@ begin
   simpa using equiv.congr_fun h i
 end
 
+/-- If `e` is also a permutation, we can write `perm_congr` 
+completely in terms of the group structure. -/
+@[simp] lemma perm_congr_eq_mul (e p : perm α) :
+  e.perm_congr p = e * p * e⁻¹ := rfl
+
 /-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation
   on `{x // p x}` induced by `f`. -/
 def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : perm {x // p x} :=

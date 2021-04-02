@@ -177,7 +177,7 @@ begin
       = C (1 / p ^ n : ℚ) * (witt_structure_rat p Φ n * C (p ^ n : ℚ)) : _
   ... = _ : by rw witt_structure_rat_rec_aux,
   rw [mul_left_comm, ← C_mul, div_mul_cancel, C_1, mul_one],
-  exact pow_ne_zero _ (nat.cast_ne_zero.2 $ ne_of_gt (nat.prime.pos ‹_›)),
+  exact pow_ne_zero _ (nat.cast_ne_zero.2 hp.1.ne_zero),
 end
 
 /-- `witt_structure_int Φ` is a family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℚ`
@@ -283,7 +283,7 @@ begin
     ← map_rename, ← map_bind₁, ← ring_hom.map_sub, coeff_map],
   rw show (p : ℚ)^n = ((p^n : ℕ) : ℤ), by norm_cast,
   rw [← rat.denom_eq_one_iff, ring_hom.eq_int_cast, rat.denom_div_cast_eq_one_iff],
-  swap, { exact_mod_cast pow_ne_zero n hp.ne_zero },
+  swap, { exact_mod_cast pow_ne_zero n hp.1.ne_zero },
   revert c, rw [← C_dvd_iff_dvd_coeff],
   exact C_p_pow_dvd_bind₁_rename_witt_polynomial_sub_sum Φ n IH,
 end

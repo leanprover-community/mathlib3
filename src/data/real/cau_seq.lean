@@ -267,6 +267,7 @@ instance : inhabited (cau_seq β abv) := ⟨0⟩
 
 @[simp] theorem zero_apply (i) : (0 : cau_seq β abv) i = 0 := rfl
 @[simp] theorem one_apply (i) : (1 : cau_seq β abv) i = 1 := rfl
+@[simp] theorem const_zero : const 0 = 0 := rfl
 
 theorem const_add (x y : β) : const (x + y) = const x + const y :=
 ext $ λ i, rfl

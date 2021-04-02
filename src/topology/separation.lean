@@ -381,6 +381,11 @@ lemma tendsto_nhds_unique' [t2_space α] {f : β → α} {l : filter β} {a b : 
   (hl : ne_bot l) (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
 eq_of_nhds_ne_bot $ ne_bot_of_le $ le_inf ha hb
 
+lemma tendsto_nhds_unique_of_eventually_eq [t2_space α] {f g : β → α} {l : filter β} {a b : α}
+  [ne_bot l] (ha : tendsto f l (𝓝 a)) (hb : tendsto g l (𝓝 b)) (hfg : f =ᶠ[l] g) :
+  a = b :=
+tendsto_nhds_unique (ha.congr' hfg) hb
+
 section lim
 variables [t2_space α] {f : filter α}
 

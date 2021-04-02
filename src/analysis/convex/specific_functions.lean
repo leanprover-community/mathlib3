@@ -94,7 +94,7 @@ begin
     exact (differentiable_on_fpow (lt_irrefl _)).const_mul _ },
   { intros x hx,
     simp only [iter_deriv_fpow (ne_of_gt hx)],
-    refine mul_nonneg (int.cast_nonneg.2 _) (fpow_nonneg_of_nonneg (le_of_lt hx) _),
+    refine mul_nonneg (int.cast_nonneg.2 _) (fpow_nonneg (le_of_lt hx) _),
     exact int_prod_range_nonneg _ _ (nat.even_bit0 1) }
 end
 

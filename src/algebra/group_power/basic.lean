@@ -394,11 +394,24 @@ f.to_monoid_hom.map_pow a
 
 end ring_hom
 
+section
+variables (R)
+
 theorem neg_one_pow_eq_or [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := or.inl rfl
 | (n+1) := (neg_one_pow_eq_or n).swap.imp
   (λ h, by rw [pow_succ, h, neg_one_mul, neg_neg])
   (λ h, by rw [pow_succ, h, mul_one])
+
+end
+
+@[simp]
+lemma neg_one_pow_mul_eq_zero_iff [ring R] {n : ℕ} {r : R} : (-1)^n * r = 0 ↔ r = 0 :=
+by rcases neg_one_pow_eq_or R n; simp [h]
+
+@[simp]
+lemma mul_neg_one_pow_eq_zero_iff [ring R] {n : ℕ} {r : R} : r * (-1)^n = 0 ↔ r = 0 :=
+by rcases neg_one_pow_eq_or R n; simp [h]
 
 lemma pow_dvd_pow [monoid R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, nat.sub_add_cancel h]⟩
@@ -647,7 +660,7 @@ pow_bit0_pos h 1
 
 variables {x y : R}
 
-@[simp] theorem sqr_abs (x : R) : abs x ^ 2 = x ^ 2 :=
+theorem sqr_abs (x : R) : abs x ^ 2 = x ^ 2 :=
 by simpa only [pow_two] using abs_mul_abs_self x
 
 theorem abs_sqr (x : R) : abs (x ^ 2) = x ^ 2 :=
@@ -719,6 +732,13 @@ lemma of_add_nsmul [add_monoid A] (x : A) (n : ℕ) :
 
 lemma of_add_gsmul [add_group A] (x : A) (n : ℤ) :
   multiplicative.of_add (n •ℤ x) = (multiplicative.of_add x)^n := rfl
+
+lemma of_mul_pow {A : Type*} [monoid A] (x : A) (n : ℕ) :
+  additive.of_mul (x ^ n) = n •ℕ (additive.of_mul x) :=
+(congr_arg additive.of_mul (of_add_nsmul (additive.of_mul x) n)).symm
+
+lemma of_mul_gpow [group G] (x : G) (n : ℤ) : additive.of_mul (x ^ n) = n •ℤ additive.of_mul x :=
+by { cases n; simp [gsmul_of_nat, gpow_of_nat, of_mul_pow] }
 
 @[simp] lemma semiconj_by.gpow_right [group G] {a x y : G} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (x^m) (y^m)

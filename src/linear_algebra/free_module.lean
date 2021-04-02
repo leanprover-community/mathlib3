@@ -342,7 +342,7 @@ lemma linear_independent.restrict_scalars {R S M ι : Type*} [comm_semiring R] [
   linear_independent R v :=
 begin
   refine linear_independent_iff'.mpr (λ s g hg i hi, hinj (eq.trans _ (ring_hom.map_zero _).symm)),
-  refine (((@linear_independent_iff' _ _ _ v _ _ _).mp li) _ _ _) i hi,
+  refine (linear_independent_iff'.mp li : _) _ _ _ i hi,
   simp_rw algebra_map_smul,
   exact hg,
 end

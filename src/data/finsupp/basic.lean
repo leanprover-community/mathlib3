@@ -1828,7 +1828,10 @@ on_finset
   (sum.elim f g)
   (λ ab h, by { cases ab with a b; simp only [sum.elim_inl, sum.elim_inr] at h; simpa })
 
-@[simp] lemma sum_elim_apply {α β γ : Type*} [has_zero γ]
+@[simp] lemma coe_sum_elim {α β γ : Type*} [has_zero γ]
+  (f : α →₀ γ) (g : β →₀ γ) : ⇑(sum_elim f g) = sum.elim f g := rfl
+  
+lemma sum_elim_apply {α β γ : Type*} [has_zero γ]
   (f : α →₀ γ) (g : β →₀ γ) (x : α ⊕ β) : sum_elim f g x = sum.elim f g x := rfl
 
 lemma sum_elim_inl {α β γ : Type*} [has_zero γ]

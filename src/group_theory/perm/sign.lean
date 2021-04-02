@@ -800,11 +800,7 @@ lemma card_alternating_subgroup_eq_one [h : subsingleton α] :
 begin
   apply le_antisymm,
   { apply le_trans (card_subtype_le _),
-    rw card_perm,
-    cases eq_or_lt_of_le (fintype.card_le_one_iff_subsingleton.2 h) with h1 h0,
-    { simp [h1] },
-    { rw [nat.lt_succ_iff, nat.le_zero_iff] at h0,
-      simp [h0] } },
+    convert (card_of_subsingleton (1 : perm α)).le },
   { apply card_pos_iff.2,
     apply_instance, }
 end

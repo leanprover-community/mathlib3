@@ -7,7 +7,7 @@ import category_theory.subobject.basic
 import category_theory.essentially_small
 
 /-!
-# Well powered categories
+# Well-powered categories
 
 A category `(C : Type u) [category.{v} C]` is `[well_powered C]` if
 for every `X : C`, we have `small.{v} (subobject X)`.

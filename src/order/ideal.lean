@@ -254,7 +254,7 @@ def inf (I J : ideal P) : ideal P :=
 /-- There is a smallest ideal containing two ideals, when it is nonempty and `P` has joins. -/
 def sup (I J : ideal P) : ideal P :=
 { carrier   := {x | ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j},
-  nonempty  := by {cases inter_nonempty I J, refine ⟨w, w, h.1, w, h.2, le_sup_left⟩},
+  nonempty  := by { cases inter_nonempty I J, exact ⟨w, w, h.1, w, h.2, le_sup_left⟩ },
   directed  := λ x ⟨xi, _, xj, _, _⟩ y ⟨yi, _, yj, _, _⟩,
     ⟨x ⊔ y,
      ⟨xi ⊔ yi, sup_mem xi yi ‹_› ‹_›,

@@ -174,7 +174,7 @@ by { simp only [mul_indicator], split_ifs with has has, exacts [ha has, h1] }
 end has_one
 
 section monoid
-variables [monoid M] {s t : set α} {f g : α → M} {a : α}
+variables [mul_one_class M] {s t : set α} {f g : α → M} {a : α}
 
 @[to_additive] lemma mul_indicator_union_mul_inter_apply (f : α → M) (s t : set α) (a : α) :
   mul_indicator (s ∪ t) f a * mul_indicator (s ∩ t) f a =
@@ -233,7 +233,7 @@ end
 
 /-- `set.mul_indicator` as a `monoid_hom`. -/
 @[to_additive "`set.indicator` as an `add_monoid_hom`."]
-def mul_indicator_hom {α} (M) [monoid M] (s : set α) : (α → M) →* (α → M) :=
+def mul_indicator_hom {α} (M) [mul_one_class M] (s : set α) : (α → M) →* (α → M) :=
 { to_fun := mul_indicator s,
   map_one' := mul_indicator_one M s,
   map_mul' := mul_indicator_mul s }

@@ -1861,11 +1861,6 @@ lemma of_submodule'_symm_apply [semimodule R M] [semimodule R M₂]
   (f : M ≃ₗ[R] M₂) (U : submodule R M₂) (x : U) :
 ((f.of_submodule' U).symm x : M) = f.symm (x : M₂) := rfl
 
-lemma of_submodule'_trans_of_submodule_apply [semimodule R M] [semimodule R M₂]
-  (f : M ≃ₗ[R] M₂) (U : submodule R M₂) (x : U.comap (f : M →ₗ[R] M₂)) :
-  ((f.of_submodule' U).trans (f.symm.of_submodule U) x : M) = x :=
-by simp only [of_submodule_apply, symm_apply_apply, trans_apply, of_submodule'_apply]
-
 variable (p)
 
 /-- The top submodule of `M` is linearly equivalent to `M`. -/

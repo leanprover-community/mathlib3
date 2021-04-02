@@ -127,7 +127,7 @@ section order_of
 
 section monoid
 variables {α} [monoid α]
-variables {H : Type u} [add_monoid H] {x y : H}
+variables {H : Type u} [add_monoid H] {x : H}
 
 open_locale classical
 

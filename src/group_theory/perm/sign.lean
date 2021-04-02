@@ -827,11 +827,6 @@ begin
     (sign_surjective α)).to_equiv,
 end
 
-@[simp]
-lemma card_alternating_subgroup_eq_one [h : subsingleton α] :
-  card (alternating_subgroup α) = 1 :=
-by convert card_of_subsingleton (1 : alternating_subgroup α)
-
 lemma alternating_subgroup_normal : (alternating_subgroup α).normal := sign.normal_ker
 
 end alternating_subgroup

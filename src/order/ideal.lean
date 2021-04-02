@@ -273,8 +273,8 @@ K.mem_of_le hxij $ sup_mem i j (mem_of_mem_of_le hiI hIK) (mem_of_mem_of_le hjJ 
 
 instance : lattice (ideal P) :=
 { sup          := sup,
-  le_sup_left  := λ I J (i ∈ I), by { cases nonempty J, refine ⟨i, ‹_›, w, ‹_›, le_sup_left⟩},
-  le_sup_right := λ I J (j ∈ J), by { cases nonempty I, refine ⟨w, ‹_›, j, ‹_›, le_sup_right⟩},
+  le_sup_left  := λ I J (i ∈ I), by { cases nonempty J, exact ⟨i, ‹_›, w, ‹_›, le_sup_left⟩ },
+  le_sup_right := λ I J (j ∈ J), by { cases nonempty I, exact ⟨w, ‹_›, j, ‹_›, le_sup_right⟩ },
   sup_le       := sup_le,
   inf          := inf,
   inf_le_left  := λ I J, set.inter_subset_left I J,

@@ -143,7 +143,7 @@ begin
   apply hynI,
   let J := I ⊔ principal x,
   have hJuniv : (J : set P) = set.univ :=
-  is_maximal.maximal_proper (gt_sup_principal_of_not_mem ‹_›),
+    is_maximal.maximal_proper (gt_sup_principal_of_not_mem ‹_›),
   have hyJ : y ∈ ↑J := set.eq_univ_iff_forall.mp hJuniv y,
   rw sup_coe_eq_sup_set at hyJ,
   rcases hyJ with ⟨a, ha, b, hb, hy⟩,

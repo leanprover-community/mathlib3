@@ -987,5 +987,4 @@ end semiring
 
 end summable_family
 
-
 end hahn_series

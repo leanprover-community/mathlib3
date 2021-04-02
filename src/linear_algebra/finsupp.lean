@@ -655,15 +655,11 @@ variables (R)
 This is the `linear_equiv` version of `finsupp.sum_arrow_equiv_prod_arrow`. -/
 @[simps apply symm_apply] def sum_arrow_lequiv_prod_arrow {α β : Type*} :
   ((α ⊕ β) →₀ M) ≃ₗ[R] (α →₀ M) × (β →₀ M) :=
-{ map_add' :=
-    by { intros, ext;
-          simp only [equiv.to_fun_as_coe, prod.fst_add, prod.snd_add, add_apply,
-              snd_sum_arrow_equiv_prod_arrow, fst_sum_arrow_equiv_prod_arrow] },
-  map_smul' :=
+{ map_smul' :=
     by { intros, ext;
           simp only [equiv.to_fun_as_coe, prod.smul_fst, prod.smul_snd, smul_apply,
               snd_sum_arrow_equiv_prod_arrow, fst_sum_arrow_equiv_prod_arrow] },
-  .. sum_arrow_equiv_prod_arrow }
+  .. sum_arrow_add_equiv_prod_arrow }
 
 lemma fst_sum_arrow_lequiv_prod_arrow {α β : Type*}
   (f : (α ⊕ β) →₀ M) (x : α) :

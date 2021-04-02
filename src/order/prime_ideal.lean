@@ -109,7 +109,7 @@ begin
 end
 
 lemma is_prime.of_mem_or_mem [is_proper I] (hI : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I) :
-is_prime I :=
+  is_prime I :=
 begin
   rw is_prime_iff,
   use ‹_›,

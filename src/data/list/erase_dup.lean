@@ -59,4 +59,13 @@ begin
     rw [erase_dup_cons_of_not_mem' h, insert_of_not_mem h]]
 end
 
+@[simp] lemma erase_dup_eq_nil {l : list α} : l.erase_dup = [] ↔ l = [] :=
+begin
+  induction l with hd tl hl,
+  { simp },
+  { by_cases h : hd ∈ tl,
+    { simpa [erase_dup_cons_of_mem h, hl] using ne_nil_of_mem h },
+    { simp [erase_dup_cons_of_not_mem h] } }
+end
+
 end list

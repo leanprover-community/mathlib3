@@ -41,11 +41,7 @@ variables [fintype α]
 def is_cycle (f : perm β) : Prop := ∃ x, f x ≠ x ∧ ∀ y, f y ≠ y → ∃ i : ℤ, (f ^ i) x = y
 
 lemma is_cycle.ne_one {f : perm β} (h : is_cycle f) : f ≠ 1 :=
-begin
-  contrapose! h,
-  rw h,
-  simp [is_cycle],
-end
+λ hf, by simpa [hf, is_cycle] using h
 
 lemma is_cycle.two_le_card_support {f : perm α} (h : is_cycle f) :
   2 ≤ f.support.card :=
@@ -219,15 +215,16 @@ lemma is_cycle.same_cycle {f : perm β} (hf : is_cycle f) {x y : β}
   (hx : f x ≠ x) (hy : f y ≠ y) : same_cycle f x y :=
 hf.exists_gpow_eq hx hy
 
-noncomputable instance [fintype α] (f : perm α) : decidable_rel (same_cycle f) :=
-λ x y, decidable_of_iff (∃ n ∈ list.range (order_of f), (f ^ n) x = y)
+instance [fintype α] (f : perm α) : decidable_rel (same_cycle f) :=
+λ x y, decidable_of_iff (∃ n ∈ list.range (fintype.card (perm α)), (f ^ n) x = y)
 ⟨λ ⟨n, _, hn⟩, ⟨n, hn⟩, λ ⟨i, hi⟩, ⟨(i % order_of f).nat_abs, list.mem_range.2
   (int.coe_nat_lt.1 $
     by { rw int.nat_abs_of_nonneg (int.mod_nonneg _
         (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))),
-      calc _ < _ : int.mod_lt _ (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))
-          ... = _ : by simp,
-          exact fintype_perm, }),
+      { apply lt_of_lt_of_le (int.mod_lt _ (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))),
+        { simp [order_of_le_card_univ] },
+        exact fintype_perm },
+      exact fintype_perm, }),
   by { rw [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
       (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of, hi],
     exact fintype_perm }⟩⟩
@@ -256,7 +253,7 @@ by rw [← same_cycle_inv, same_cycle_apply, same_cycle_inv]
 -/
 
 /-- `f.cycle_of x` is the cycle of the permutation `f` to which `x` belongs. -/
-noncomputable def cycle_of [fintype α] (f : perm α) (x : α) : perm α :=
+def cycle_of [fintype α] (f : perm α) (x : α) : perm α :=
 of_subtype (@subtype_perm _ f (same_cycle f x) (λ _, same_cycle_apply.symm))
 
 lemma cycle_of_apply [fintype α] (f : perm α) (x y : α) :
@@ -315,7 +312,7 @@ have cycle_of f x x ≠ x, by rwa [(same_cycle.refl _ _).cycle_of_apply],
 
 /-- Given a list `l : list α` and a permutation `f : perm α` whose nonfixed points are all in `l`,
   recursively factors `f` into cycles. -/
-noncomputable def cycle_factors_aux [fintype α] : Π (l : list α) (f : perm α),
+def cycle_factors_aux [fintype α] : Π (l : list α) (f : perm α),
   (∀ {x}, f x ≠ x → x ∈ l) →
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint}
 | []     f h := ⟨[], by { simp only [imp_false, list.pairwise.nil, list.not_mem_nil, forall_const,
@@ -349,17 +346,38 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
         hm₃⟩⟩
 
 /-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`. -/
-noncomputable def cycle_factors [fintype α] [linear_order α] (f : perm α) :
+def cycle_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 
 /-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`,
   without a linear order. -/
-noncomputable def trunc_cycle_factors [fintype α] (f : perm α) :
+def trunc_cycle_factors [fintype α] (f : perm α) :
   trunc {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 quotient.rec_on_subsingleton (@univ α _).1
   (λ l h, trunc.mk (cycle_factors_aux l f h))
   (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
+
+lemma induction_on_cycles [fintype β] (P : perm β → Prop) (base_one : P 1)
+  (base_cycles : ∀ σ : perm β, σ.is_cycle → P σ)
+  (induction_disjoint : ∀ σ τ : perm β, disjoint σ τ → P σ → P τ → P (σ * τ)) (σ : perm β) :
+  P σ :=
+begin
+  classical,
+  suffices :
+    ∀ l : list (perm β), (∀ τ : perm β, τ ∈ l → τ.is_cycle) → l.pairwise disjoint → P l.prod,
+  { let x := σ.trunc_cycle_factors.out,
+    exact (congr_arg P x.2.1).mp (this x.1 x.2.2.1 x.2.2.2) },
+  intro l,
+  induction l with σ l ih,
+  { exact λ _ _, base_one },
+  { intros h1 h2,
+    rw list.prod_cons,
+    exact induction_disjoint σ l.prod
+      (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h2).1)
+      (base_cycles σ (h1 σ (l.mem_cons_self σ)))
+      (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
+end
 
 section fixed_points
 

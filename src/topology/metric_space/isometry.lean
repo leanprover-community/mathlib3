@@ -81,7 +81,7 @@ theorem isometry.uniform_embedding {α : Type u} {β : Type v} [emetric_space α
   uniform_embedding f :=
 hf.antilipschitz.uniform_embedding hf.lipschitz.uniform_continuous
 
-/-- An isometry from a metric space to a complete space is a closed embedding -/
+/-- An isometry from a complete emetric space is a closed embedding -/
 theorem isometry.closed_embedding {α : Type u} {β : Type v} [emetric_space α] [complete_space α]
   [emetric_space β] {f : α → β} (hf : isometry f) : closed_embedding f :=
 hf.antilipschitz.closed_embedding hf.lipschitz.uniform_continuous

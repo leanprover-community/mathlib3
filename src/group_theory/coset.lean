@@ -130,11 +130,11 @@ mem_right_coset a (one_mem s)
 
 @[to_additive mem_left_add_coset_left_add_coset]
 lemma mem_left_coset_left_coset {a : α} (ha : a *l s = s) : a ∈ s :=
-by rw [←submonoid.mem_coe, ←ha]; exact mem_own_left_coset s a
+by rw [←set_like.mem_coe, ←ha]; exact mem_own_left_coset s a
 
 @[to_additive mem_right_add_coset_right_add_coset]
 lemma mem_right_coset_right_coset {a : α} (ha : (s : set α) *r a = s) : a ∈ s :=
-by rw [←submonoid.mem_coe, ←ha]; exact mem_own_right_coset s a
+by rw [←set_like.mem_coe, ←ha]; exact mem_own_right_coset s a
 
 end coset_submonoid
 
@@ -284,7 +284,7 @@ lemma preimage_image_coe (N : subgroup α) (s : set α) :
   coe ⁻¹' ((coe : α → quotient N) '' s) = ⋃ x : N, (λ y : α, y * x) '' s :=
 begin
   ext x,
-  simp only [quotient_group.eq, subgroup.exists, exists_prop, set.mem_preimage, set.mem_Union,
+  simp only [quotient_group.eq, set_like.exists, exists_prop, set.mem_preimage, set.mem_Union,
     set.mem_image, subgroup.coe_mk, ← eq_inv_mul_iff_mul_eq],
   exact ⟨λ ⟨y, hs, hN⟩, ⟨_, hN, y, hs, rfl⟩, λ ⟨z, hN, y, hs, hyz⟩, ⟨y, hs, hyz ▸ hN⟩⟩
 end

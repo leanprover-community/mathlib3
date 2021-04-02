@@ -247,7 +247,7 @@ only if it is the subtraction of two vectors in the subspace. -/
 lemma mem_direction_iff_eq_vsub {s : affine_subspace k P} (h : (s : set P).nonempty) (v : V) :
   v ∈ s.direction ↔ ∃ p1 ∈ s, ∃ p2 ∈ s, v = p1 -ᵥ p2 :=
 begin
-  rw [←submodule.mem_coe, coe_direction_eq_vsub_set h],
+  rw [←set_like.mem_coe, coe_direction_eq_vsub_set h],
   exact ⟨λ ⟨p1, p2, hp1, hp2, hv⟩, ⟨p1, hp1, p2, hp2, hv.symm⟩,
          λ ⟨p1, hp1, p2, hp2, hv⟩, ⟨p1, p2, hp1, hp2, hv.symm⟩⟩
 end
@@ -299,7 +299,7 @@ lemma coe_direction_eq_vsub_set_left {s : affine_subspace k P} {p : P} (hp : p �
   (s.direction : set V) = (-ᵥ) p '' s :=
 begin
   ext v,
-  rw [submodule.mem_coe, ←submodule.neg_mem_iff, ←submodule.mem_coe,
+  rw [set_like.mem_coe, ←submodule.neg_mem_iff, ←set_like.mem_coe,
       coe_direction_eq_vsub_set_right hp, set.mem_image_iff_bex, set.mem_image_iff_bex],
   conv_lhs { congr, funext, rw [←neg_vsub_eq_vsub_rev, neg_inj] }
 end
@@ -309,7 +309,7 @@ if and only if it results from subtracting that point on the right. -/
 lemma mem_direction_iff_eq_vsub_right {s : affine_subspace k P} {p : P} (hp : p ∈ s) (v : V) :
   v ∈ s.direction ↔ ∃ p2 ∈ s, v = p2 -ᵥ p :=
 begin
-  rw [←submodule.mem_coe, coe_direction_eq_vsub_set_right hp],
+  rw [←set_like.mem_coe, coe_direction_eq_vsub_set_right hp],
   exact ⟨λ ⟨p2, hp2, hv⟩, ⟨p2, hp2, hv.symm⟩, λ ⟨p2, hp2, hv⟩, ⟨p2, hp2, hv.symm⟩⟩
 end
 
@@ -318,7 +318,7 @@ if and only if it results from subtracting that point on the left. -/
 lemma mem_direction_iff_eq_vsub_left {s : affine_subspace k P} {p : P} (hp : p ∈ s) (v : V) :
   v ∈ s.direction ↔ ∃ p2 ∈ s, v = p -ᵥ p2 :=
 begin
-  rw [←submodule.mem_coe, coe_direction_eq_vsub_set_left hp],
+  rw [←set_like.mem_coe, coe_direction_eq_vsub_set_left hp],
   exact ⟨λ ⟨p2, hp2, hv⟩, ⟨p2, hp2, hv.symm⟩, λ ⟨p2, hp2, hv⟩, ⟨p2, hp2, hv.symm⟩⟩
 end
 
@@ -455,8 +455,8 @@ begin
   have hp1s1 : p1 ∈ (s1 : set P) := set.mem_of_mem_of_subset hp1 h,
   refine vadd_mem_of_mem_direction _ hp1s1,
   have hs : vector_span k s ≤ s1.direction := vector_span_mono k h,
-  rw submodule.le_def at hs,
-  rw ←submodule.mem_coe,
+  rw set_like.le_def at hs,
+  rw ←set_like.mem_coe,
   exact set.mem_of_mem_of_subset hv hs
 end
 
@@ -493,7 +493,7 @@ begin
   apply le_antisymm,
   { refine submodule.span_le.2 _,
     rintros v ⟨p1, p3, ⟨p2, hp2, v1, hv1, hp1⟩, ⟨p4, hp4, v2, hv2, hp3⟩, rfl⟩,
-    rw [hp1, hp3, vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, submodule.mem_coe],
+    rw [hp1, hp3, vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, set_like.mem_coe],
     exact (vector_span k s).sub_mem ((vector_span k s).add_mem hv1
       (vsub_mem_vector_span k hp2 hp4)) hv2 },
   { exact vector_span_mono k (subset_span_points k s) }
@@ -748,7 +748,7 @@ begin
   cases hn with p hp,
   rw lt_iff_le_and_exists at h,
   rcases h with ⟨hle, p2, hp2, hp2s1⟩,
-  rw submodule.lt_iff_le_and_exists,
+  rw set_like.lt_iff_le_and_exists,
   use [direction_le hle, p2 -ᵥ p, vsub_mem_direction hp2 (hle hp)],
   intro hm,
   rw vsub_right_mem_direction_iff_mem hp p2 at hm,
@@ -774,7 +774,7 @@ lemma sup_direction_lt_of_nonempty_of_inter_empty {s1 s2 : affine_subspace k P}
 begin
   cases h1 with p1 hp1,
   cases h2 with p2 hp2,
-  rw submodule.lt_iff_le_and_exists,
+  rw set_like.lt_iff_le_and_exists,
   use [sup_direction_le s1 s2, p2 -ᵥ p1,
        vsub_mem_direction ((le_sup_right : s2 ≤ s1 ⊔ s2) hp2) ((le_sup_left : s1 ≤ s1 ⊔ s2) hp1)],
   intro h,
@@ -850,7 +850,7 @@ begin
   { rw submodule.span_le,
     rintros v ⟨p1, p2, hp1, hp2, hv⟩,
     rw ←vsub_sub_vsub_cancel_left p1 p2 p at hv,
-    rw [←hv, submodule.mem_coe, submodule.mem_span],
+    rw [←hv, set_like.mem_coe, submodule.mem_span],
     exact λ m hm, submodule.sub_mem _ (hm ⟨p2, hp2, rfl⟩) (hm ⟨p1, hp1, rfl⟩) },
   { rintros v ⟨p2, hp2, hv⟩,
     exact ⟨p, p2, hp, hp2, hv⟩ }
@@ -866,7 +866,7 @@ begin
   { rw submodule.span_le,
     rintros v ⟨p1, p2, hp1, hp2, hv⟩,
     rw ←vsub_sub_vsub_cancel_right p1 p2 p at hv,
-    rw [←hv, submodule.mem_coe, submodule.mem_span],
+    rw [←hv, set_like.mem_coe, submodule.mem_span],
     exact λ m hm, submodule.sub_mem _ (hm ⟨p1, hp1, rfl⟩) (hm ⟨p2, hp2, rfl⟩) },
   { rintros v ⟨p2, hp2, hv⟩,
     exact ⟨p2, p, hp2, hp, hv⟩ }
@@ -1036,10 +1036,10 @@ begin
         submodule.span_le],
     rintros v ⟨p3, hp3, rfl⟩,
     cases hp3,
-    { rw [sup_assoc, sup_comm, submodule.mem_coe, submodule.mem_sup],
+    { rw [sup_assoc, sup_comm, set_like.mem_coe, submodule.mem_sup],
       use [0, submodule.zero_mem _, p3 -ᵥ p1, vsub_mem_direction hp3 hp1],
       rw zero_add },
-    { rw [sup_assoc, submodule.mem_coe, submodule.mem_sup],
+    { rw [sup_assoc, set_like.mem_coe, submodule.mem_sup],
       use [0, submodule.zero_mem _, p3 -ᵥ p1],
       rw [and_comm, zero_add],
       use rfl,

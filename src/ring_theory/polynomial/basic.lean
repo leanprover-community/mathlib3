@@ -441,7 +441,7 @@ theorem leading_coeff_nth_mono {m n : ℕ} (H : m ≤ n) :
   I.leading_coeff_nth m ≤ I.leading_coeff_nth n :=
 begin
   intros r hr,
-  simp only [submodule.mem_coe, mem_leading_coeff_nth] at hr ⊢,
+  simp only [set_like.mem_coe, mem_leading_coeff_nth] at hr ⊢,
   rcases hr with ⟨p, hpI, hpdeg, rfl⟩,
   refine ⟨p * X ^ (n - m), I.mul_mem_right _ hpI, _, leading_coeff_mul_X_pow⟩,
   refine le_trans (degree_mul_le _ _) _,

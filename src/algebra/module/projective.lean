@@ -126,7 +126,7 @@ section ring
 
 variables {R : Type u} [ring R] {M : Type v} [add_comm_group M] [module R M]
 
-/-- Free modules are projective -/
+/-- Free modules are projective. -/
 theorem of_free {ι : Type*} {b : ι → M} (hb : is_basis R b) : is_projective R M :=
 begin
   -- need M →ₗ[R] (M →₀ R) for definition of projective.

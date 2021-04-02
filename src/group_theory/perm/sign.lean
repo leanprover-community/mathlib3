@@ -775,6 +775,9 @@ variables (α) [fintype α] [decidable_eq α]
 @[derive fintype] def alternating_subgroup : subgroup (perm α) :=
 sign.ker
 
+instance [subsingleton α] : unique (alternating_subgroup α) :=
+⟨⟨1⟩, λ ⟨p, hp⟩, subtype.eq (subsingleton.elim p _)⟩
+
 variables {α}
 
 lemma alternating_subgroup_eq_sign_ker : alternating_subgroup α = sign.ker := rfl
@@ -797,13 +800,7 @@ end
 @[simp]
 lemma card_alternating_subgroup_eq_one [h : subsingleton α] :
   card (alternating_subgroup α) = 1 :=
-begin
-  apply le_antisymm,
-  { apply le_trans (card_subtype_le _),
-    convert (card_of_subsingleton (1 : perm α)).le },
-  { apply card_pos_iff.2,
-    apply_instance, }
-end
+by convert card_of_subsingleton (1 : alternating_subgroup α)
 
 lemma alternating_subgroup_normal : (alternating_subgroup α).normal := sign.normal_ker
 

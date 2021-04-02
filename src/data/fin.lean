@@ -540,11 +540,11 @@ by simp [eq_iff_veq]
   set.range (cast_le h) = {i | (i : ℕ) < n} :=
 set.ext (λ x, ⟨λ ⟨y, hy⟩, hy ▸ y.2, λ hx, ⟨⟨x, hx⟩, fin.ext rfl⟩⟩)
 
-@[simp] lemma coe_set_range_cast_le_symm {n k : ℕ} (h : n ≤ k) (i : fin k) (hi) :
-  ((equiv.set.range _ (cast_le h).injective).symm ⟨i, hi⟩ : ℕ) = i :=
+@[simp] lemma coe_of_injective_cast_le_symm {n k : ℕ} (h : n ≤ k) (i : fin k) (hi) :
+  ((equiv.of_injective _ (cast_le h).injective).symm ⟨i, hi⟩ : ℕ) = i :=
 begin
   rw ← coe_cast_le,
-  exact congr_arg coe (equiv.set.apply_range_symm _ _ _)
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
 end
 
 /-- `cast eq i` embeds `i` into a equal `fin` type. -/
@@ -640,11 +640,11 @@ by { rw [cast_succ, lt_iff_coe_lt_coe, coe_cast_add, coe_succ], exact lt_add_one
   set.range (cast_succ : fin n → fin n.succ) = {i | (i : ℕ) < n} :=
 range_cast_le _
 
-@[simp] lemma coe_set_range_cast_succ_symm {n : ℕ} (i : fin n.succ) (hi) :
-  ((equiv.set.range cast_succ (cast_succ_injective _)).symm ⟨i, hi⟩ : ℕ) = i :=
+@[simp] lemma coe_of_injective_cast_succ_symm {n : ℕ} (i : fin n.succ) (hi) :
+  ((equiv.of_injective cast_succ (cast_succ_injective _)).symm ⟨i, hi⟩ : ℕ) = i :=
 begin
   rw ← coe_cast_succ,
-  exact congr_arg coe (equiv.set.apply_range_symm _ _ _)
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
 end
 
 /-- `add_nat m i` adds `m` to `i`, generalizes `fin.succ`. -/

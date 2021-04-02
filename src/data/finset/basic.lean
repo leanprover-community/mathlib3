@@ -2257,8 +2257,8 @@ begin
   exact Exists.imp (λ a ha, ⟨h ha.1, ha.2⟩)
 end
 
-theorem subset_bUnion_of_mem {β : Type*} [decidable_eq β] {s : finset α}
-  {u : α → finset β} {x : α} (xs : x ∈ s) :
+lemma subset_bUnion_of_mem [decidable_eq β] {s : finset α}
+  (u : α → finset β) {x : α} (xs : x ∈ s) :
   u x ⊆ s.bUnion u :=
 begin
   apply subset.trans _ (bUnion_subset_bUnion_of_subset_left u (singleton_subset_iff.2 xs)),

@@ -94,12 +94,12 @@ begin
   simp [φ, finsupp.total_apply, function.surj_inv_eq hf],
 end
 
-/-- A module which satisfies the universal property is projective. Note that this result
-only has one universe variable. -/
+/-- A module which satisfies the universal property is projective. Note that the universe variables
+in `huniv` are somewhat restricted. -/
 theorem of_lifting_property {R : Type u} [semiring R]
-  {M : Type u} [add_comm_monoid M] [semimodule R M]
+  {M : Type v} [add_comm_monoid M] [semimodule R M]
   -- If for all surjections of R-modules A →ₗ B, all maps M →ₗ B lift to M →ₗ A,
-  (huniv : ∀ {A B : Type u} [add_comm_monoid A] [add_comm_monoid B],
+  (huniv : ∀ {A : Type (max v u)} {B : Type v} [add_comm_monoid A] [add_comm_monoid B],
     by exactI
     ∀ [semimodule R A] [semimodule R B],
     by exactI

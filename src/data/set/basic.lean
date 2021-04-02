@@ -2173,9 +2173,9 @@ end prod
 section pi
 variables {ι : Type*} {α : ι → Type*} {s s₁ : set ι} {t t₁ t₂ : Π i, set (α i)}
 
-/-- Given an index set `i` and a family of sets `s : Π i, set (α i)`, `pi i s`
-is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `s a`
-whenever `a ∈ i`. -/
+/-- Given an index set `ι` and a family of sets `t : Π i, set (α i)`, `pi s t`
+is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `t a`
+whenever `a ∈ s`. -/
 def pi (s : set ι) (t : Π i, set (α i)) : set (Π i, α i) := { f | ∀i ∈ s, f i ∈ t i }
 
 @[simp] lemma mem_pi {f : Π i, α i} : f ∈ s.pi t ↔ ∀ i ∈ s, f i ∈ t i :=

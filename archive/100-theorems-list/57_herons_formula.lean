@@ -81,8 +81,8 @@ begin
 
   have ab2_pos : 0 ≤ (2 * a * b), by { field_simp *, linarith },
 
-  have numerator_nonneg : numerator ≥ 0, by
-  { have denom_nonneg : (2*a*b)^2 ≥ 0, by { rw pow_two, exact mul_nonneg ab2_pos ab2_pos },
+  have numerator_nonneg : 0 ≤ numerator, by
+  { have denom_nonneg : 0 ≤ (2*a*b)^2, by { rw pow_two, exact mul_nonneg ab2_pos ab2_pos },
     have frac_nonneg: 0 ≤ numerator / denominator,
       by { rw ← split_to_fraction, linarith [real.cos_sq_le_one γ] },
     rw div_nonneg_iff at frac_nonneg,
@@ -94,22 +94,15 @@ begin
       field_simp at ab2_sqr_zero,
       exact ab2_sqr_zero } },
 
-  let s := (a + b + c) / 2,
-  let area_sqr := s * (s-a) * (s-b) * (s-c),
+  set s := (a + b + c) / 2 with hs,
 
   calc    1/2*a*b * real.sin γ
         = 1/2*a*b * √(1 - real.cos γ ^ 2)           : by rw sin_to_cos
     ... = 1/2*a*b * √(numerator / denominator)      : by rw ← split_to_fraction
     ... = 1/2*a*b * √(numerator) / √(denominator)   : by { rw real.sqrt_div numerator_nonneg, ring }
     ... = 1/2*a*b * √((2*a*b)^2 - (a*a + b*b - c*c)^2) / √((2*a*b)^2) : rfl
-    ... = 1/4 * √(s * (s-a) * (s-b) * (s-c) * 4^2)  : by repeat { field_simp [ab2_pos] ; ring_nf }
-    ... = 1/4 * √(area_sqr * (4 * 4))               : by rw pow_two
-    ... = 1/4 * √(area_sqr * 4 * 4)                 : by ring_nf
-    ... = 1/4 * √(area_sqr * 4) * √(4)              : by { rw real.sqrt_mul', ring, linarith }
-    ... = 1/4 * (√(area_sqr) * √4) * √4             : by { rw real.sqrt_mul' area_sqr, linarith }
-    ... = 1/4 * √(area_sqr) * (√4 * √4)             : by ring
-    ... = 1/4 * √(area_sqr) * √(4*4)                : by { rw ← real.sqrt_mul', linarith }
-    ... = 1/4 * √(area_sqr) * √(4^2)                : by rw ← pow_two
-    ... = 1/4 * √(area_sqr) * 4                     : by { congr', apply real.sqrt_sqr, linarith }
-    ... = √(s * (s-a) * (s-b) * (s-c))              : by ring,
+    ... = 1/4 * √((2*a*b)^2 - (a*a + b*b - c*c)^2)  : by { field_simp [ab2_pos], ring }
+    ... = 1/4 * √(s * (s-a) * (s-b) * (s-c) * 4^2)  : by { rw hs, ring_nf }
+    ... = √(s * (s-a) * (s-b) * (s-c))              : by
+      rw [real.sqrt_mul', real.sqrt_sqr, div_mul_eq_mul_div, one_mul, mul_div_cancel]; norm_num,
 end

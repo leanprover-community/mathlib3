@@ -75,8 +75,7 @@ structure grothendieck_topology :=
 
 namespace grothendieck_topology
 
-instance : has_coe_to_fun (grothendieck_topology C) :=
-⟨_, λ J, J.sieves⟩
+instance : has_coe_to_fun (grothendieck_topology C) (λ _, Π X : C, set (sieve X)) := ⟨sieves⟩
 
 variables {C} {X Y : C} {S R : sieve X}
 variables (J : grothendieck_topology C)

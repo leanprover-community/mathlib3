@@ -1308,7 +1308,7 @@ sum_add_index (λ _, single_zero) (λ _ _ _, single_add)
 @[simp] lemma map_domain_equiv_apply {f : α ≃ β} (x : α →₀ M) (a : β) :
   map_domain f x a = x (f.symm a) :=
 begin
-  conv_lhs { rw ←f.apply_symm_apply a},
+  conv_lhs { rw ←f.apply_symm_apply a },
   exact map_domain_apply f.injective _ _,
 end
 

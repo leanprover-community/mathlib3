@@ -216,7 +216,10 @@ def smul_right (f : M₂ →ₗ[R] S) (x : M) : M₂ →ₗ[R] M :=
   map_add' := λ x y, by rw [f.map_add, add_smul],
   map_smul' := λ b y, by rw [f.map_smul, smul_assoc] }
 
-@[simp] theorem smul_right_apply (f : M₂ →ₗ[R] S) (x : M) (c : M₂) :
+@[simp] theorem coe_smul_right (f : M₂ →ₗ[R] S) (x : M) :
+  (smul_right f x : M₂ → M) = λ c, f c • x := rfl
+
+theorem smul_right_apply (f : M₂ →ₗ[R] S) (x : M) (c : M₂) :
   smul_right f x c = f c • x := rfl
 
 end smul_right
@@ -278,7 +281,7 @@ lemma iterate_bijective (h : bijective f') : ∀ n : ℕ, bijective ⇑(f' ^ n)
 lemma injective_of_iterate_injective {n : ℕ} (hn : n ≠ 0) (h : injective ⇑(f' ^ n)) :
   injective f' :=
 begin
-  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), iterate_succ, ←comp_coe] at h,
+  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), iterate_succ, coe_comp] at h,
   exact injective.of_comp h,
 end
 end

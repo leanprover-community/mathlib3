@@ -686,9 +686,9 @@ end
 
 end linear_equiv
 
-instance finite_dimensional_finsupp {ι : Type*} [finite_dimensional K V] :
+instance finite_dimensional_finsupp {ι : Type*} [fintype ι] [finite_dimensional K V] :
   finite_dimensional K (ι →₀ V) :=
-(finsupp.linear_equiv_fun_on_fintype K).symm.finite_dimensional
+(finsupp.linear_equiv_fun_on_fintype K : (ι →₀ V) ≃ₗ[K] (ι → V)).symm.finite_dimensional
 
 namespace finite_dimensional
 

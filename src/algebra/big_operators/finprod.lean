@@ -69,7 +69,6 @@ is finite, and 0 otherwise.
 finsum, finprod, finite sum, finite product
 -/
 
-open_locale classical
 open function set
 
 /-!
@@ -80,6 +79,12 @@ section sort
 variables {α β ι : Sort*} {M N : Type*} [comm_monoid M] [comm_monoid N]
 
 open_locale big_operators
+
+section
+
+/- Note: we use classical logic only for these definitions, to ensure that we do not write lemmas
+with `classical.dec` in their statement. -/
+open_locale classical
 
 /-- Sum of `f x` as `x` ranges over the elements of the support of `f`, if it's finite. Zero
 otherwise. -/
@@ -92,6 +97,8 @@ finite. One otherwise. -/
 noncomputable def finprod (f : α → M) : M :=
 if h : finite (mul_support (f ∘ plift.down)) then ∏ i in h.to_finset, f i.down else 1
 
+end
+
 localized "notation `∑ᶠ` binders `, ` r:(scoped:67 f, finsum f) := r" in big_operators
 
 localized "notation `∏ᶠ` binders `, ` r:(scoped:67 f, finprod f) := r" in big_operators
@@ -101,7 +108,7 @@ localized "notation `∏ᶠ` binders `, ` r:(scoped:67 f, finprod f) := r" in bi
   (hs : hf.to_finset ⊆ s) :
   ∏ᶠ i, f i = ∏ i in s, f i.down :=
 begin
-  rw [finprod, dif_pos hf],
+  rw [finprod, dif_pos],
   refine finset.prod_subset hs (λ x hx hxf, _),
   rwa [hf.mem_to_finset, nmem_mul_support] at hxf
 end
@@ -137,7 +144,7 @@ end
 @[simp, to_additive] lemma finprod_true (f : true → M) : ∏ᶠ i, f i = f trivial :=
 @finprod_unique true M _ ⟨⟨trivial⟩, λ _, rfl⟩ f
 
-@[to_additive] lemma finprod_eq_dif {p : Prop} (f : p → M) :
+@[to_additive] lemma finprod_eq_dif {p : Prop} [decidable p] (f : p → M) :
   ∏ᶠ i, f i = if h : p then f h else 1 :=
 begin
   split_ifs,
@@ -146,7 +153,8 @@ begin
   { exact finprod_of_empty h f }
 end
 
-@[to_additive] lemma finprod_eq_if {p : Prop} {x : M} : ∏ᶠ i : p, x = if p then x else 1 :=
+@[to_additive] lemma finprod_eq_if {p : Prop} [decidable p] {x : M} :
+  ∏ᶠ i : p, x = if p then x else 1 :=
 finprod_eq_dif (λ _, x)
 
 @[to_additive] lemma finprod_congr {f g : α → M} (h : ∀ x, f x = g x) :
@@ -182,9 +190,10 @@ variables {α β ι M N : Type*} [comm_monoid M] [comm_monoid N]
 
 open_locale big_operators
 
-@[to_additive] lemma finprod_eq_mul_indicator_apply (s : set α) (f : α → M) (a : α) :
+@[to_additive] lemma finprod_eq_mul_indicator_apply (s : set α)
+  (f : α → M) (a : α) :
   ∏ᶠ (h : a ∈ s), f a = mul_indicator s f a :=
-finprod_eq_if
+by convert finprod_eq_if
 
 @[to_additive] lemma finprod_mem_def (s : set α) (f : α → M) :
   ∏ᶠ a ∈ s, f a = ∏ᶠ a, mul_indicator s f a :=
@@ -208,7 +217,7 @@ end
   ∏ᶠ i, f i = ∏ i in s, f i :=
 finprod_eq_prod_of_mul_support_subset _ $ λ x hx, h $ hf.mem_to_finset.2 hx
 
-@[to_additive] lemma finprod_def (f : α → M) :
+@[to_additive] lemma finprod_def (f : α → M) [decidable (mul_support f).finite] :
   ∏ᶠ i : α, f i = if h : (mul_support f).finite then ∏ i in h.to_finset, f i else 1 :=
 begin
   split_ifs,
@@ -220,11 +229,11 @@ end
 
 @[to_additive] lemma finprod_of_infinite_mul_support {f : α → M} (hf : (mul_support f).infinite) :
   ∏ᶠ i, f i = 1 :=
-by rw [finprod_def, dif_neg hf]
+by { classical, rw [finprod_def, dif_neg hf] }
 
 @[to_additive] lemma finprod_eq_prod (f : α → M) (hf : (mul_support f).finite) :
   ∏ᶠ i : α, f i = ∏ i in hf.to_finset, f i :=
-by rw [finprod_def, dif_pos hf]
+by { classical, rw [finprod_def, dif_pos hf] }
 
 @[to_additive] lemma finprod_eq_prod_of_fintype [fintype α] (f : α → M) :
   ∏ᶠ i : α, f i = ∏ i, f i :=
@@ -257,7 +266,7 @@ finprod_mem_eq_prod_of_mem_iff _ $ λ x hx, ⟨λ h, h₁ ⟨h, hx⟩, λ h, h�
   ∏ᶠ i ∈ s, f i = ∏ i in hf.to_finset, f i :=
 finprod_mem_eq_prod_of_inter_mul_support_eq _ $ by simp [inter_assoc]
 
-@[to_additive] lemma finprod_mem_eq_prod_filter (f : α → M) (s : set α)
+@[to_additive] lemma finprod_mem_eq_prod_filter (f : α → M) (s : set α) [decidable_pred (∈ s)]
   (hf : (mul_support f).finite) :
   ∏ᶠ i ∈ s, f i = ∏ i in finset.filter (∈ s) hf.to_finset, f i :=
 finprod_mem_eq_prod_of_inter_mul_support_eq _ $ by simp [inter_comm, inter_left_comm]
@@ -323,6 +332,7 @@ the product of `f i` multiplied by the product over `g i`. -/
   (hg : (mul_support g).finite) :
   ∏ᶠ i, (f i * g i) = (∏ᶠ i, f i) * ∏ᶠ i, g i :=
 begin
+  classical,
   rw [finprod_eq_prod_of_mul_support_to_finset_subset _ hf (finset.subset_union_left _ _),
     finprod_eq_prod_of_mul_support_to_finset_subset _ hg (finset.subset_union_right _ _),
     ← finset.prod_mul_distrib],
@@ -401,6 +411,7 @@ over `i ∈ t`. -/
   (∏ᶠ i ∈ s ∪ t, f i) * ∏ᶠ i ∈ s ∩ t, f i = (∏ᶠ i ∈ s, f i) * ∏ᶠ i ∈ t, f i :=
 begin
   unfreezingI { lift s to finset α using hs, lift t to finset α using ht },
+  classical,
   rw [← finset.coe_union, ← finset.coe_inter],
   simp only [finprod_mem_coe_finset, finset.prod_union_inter]
 end
@@ -493,6 +504,7 @@ provided that `g` is injective on `s ∩ mul_support (f ∘ g)`. -/
   (hg : set.inj_on g (s ∩ mul_support (f ∘ g))) :
   ∏ᶠ i ∈ (g '' s), f i = ∏ᶠ j ∈ s, f (g j) :=
 begin
+  classical,
   by_cases hs : finite (s ∩ mul_support (f ∘ g)),
   { have hg : ∀ (x ∈ hs.to_finset) (y ∈ hs.to_finset), g x = g y → x = y,
       by simpa only [hs.mem_to_finset],
@@ -578,6 +590,7 @@ of the products of `f a` over `a ∈ t i`. -/
   ∏ᶠ a ∈ (⋃ i : ι, t i), f a = ∏ᶠ i, (∏ᶠ a ∈ t i, f a) :=
 begin
   unfreezingI { lift t to ι → finset α using ht },
+  classical,
   rw [← bUnion_univ, ← finset.coe_univ, ← finset.coe_bUnion,
     finprod_mem_coe_finset, finset.prod_bUnion],
   { simp only [finprod_mem_coe_finset, finprod_eq_prod_of_fintype] },

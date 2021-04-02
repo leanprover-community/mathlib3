@@ -48,6 +48,13 @@ we don't have free semimodules, so here we stick to rings.
 
 https://en.wikipedia.org/wiki/Projective_module
 
+## TODO
+
+Direct sum of two projective modules is projective. Arbitrary
+sum of projective modules is projective. Any module admits
+a surjection from a projective module. All of these should
+be relatively straightforward.
+
 ## Tags
 
 projective module

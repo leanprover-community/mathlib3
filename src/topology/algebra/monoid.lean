@@ -7,7 +7,6 @@ import topology.continuous_on
 import group_theory.submonoid.operations
 import algebra.group.prod
 import algebra.pointwise
-import topology.local_homeomorph
 
 /-!
 # Theory of topological monoids
@@ -275,74 +274,62 @@ continuous.comp (continuous_pow n) h
 
 end has_continuous_mul
 
-section embedding
+section op
 
-variables [topological_space M] [monoid M]
+open opposite
+variables [monoid α]
 
-@[to_additive]
-lemma function.injective_mul [monoid β] {f : β →* M} (h : function.injective f) (a b : β) :
-  a * b = h.to_local_equiv.symm ((f a) * (f b)) :=
-begin
-  rw [←local_equiv.left_inv h.to_local_equiv (mem_univ (a * b)),
-    function.injective_to_local_equiv_apply h],
-  exact congr_arg h.to_local_equiv.symm (f.map_mul a b),
-end
+/-- Put the same topological space structure on the opposite monoid as on the original space. -/
+instance [_i : topological_space α] : topological_space αᵒᵖ :=
+topological_space.induced (unop : αᵒᵖ → α) _i
 
-@[to_additive]
-lemma embedding_mul [monoid β] [topological_space β] [nonempty β]
-  {f : β →* M} (h : open_embedding f) (a b : β) :
-  a * b = ((h.to_local_homeomorph f).symm) ((f a) * (f b)) :=
-begin
-  rw [←local_homeomorph.left_inv (h.to_local_homeomorph f) (mem_univ (a * b)),
-    open_embedding.to_local_homeomorph_coe],
-  exact congr_arg (h.to_local_homeomorph f).symm (f.map_mul a b),
-end
+variables [topological_space α]
 
-variable [has_continuous_mul M]
+lemma continuous_unop : continuous (unop : αᵒᵖ → α) := continuous_induced_dom
+lemma continuous_op : continuous (op : α → αᵒᵖ) := continuous_induced_rng continuous_id
 
-@[to_additive]
-lemma open_embedding.continuous_mul [topological_space β] [monoid β]
-  {f : β →* M} (h : open_embedding f) :
-  continuous (λ p : β × β, p.1 * p.2) :=
-begin
-  rw continuous_iff_continuous_at,
-  intro x,
-  simp only [embedding_mul h],
-  have h' : (f x.fst) * (f x.snd) ∈ (h.to_local_homeomorph f).target :=
-    by { rw [←monoid_hom.map_mul, open_embedding.target], exact mem_range_self (x.fst * x.snd), },
-  exact continuous_at.comp ((h.to_local_homeomorph f).continuous_inv_fun.continuous_at
-    (mem_nhds_sets (h.to_local_homeomorph f).open_target h')) (continuous_mul.continuous_at.comp
-    (h.continuous.continuous_at.prod_map h.continuous.continuous_at)),
-end
+variables [has_continuous_mul α]
 
-@[to_additive]
-lemma open_embedding.has_continuous_mul [topological_space β] [monoid β]
-  {f : β →* M} (h : open_embedding f) : has_continuous_mul β :=
-{ continuous_mul := h.continuous_mul }
+/-- If multiplication is continuous in the monoid `α`, then it also is in the monoid `αᵒᵖ`. -/
+instance : has_continuous_mul αᵒᵖ :=
+⟨ let h₁ := @continuous_mul α _ _ _ in
+  let h₂ : continuous (λ p : α × α, _) := continuous_snd.prod_mk continuous_fst in
+  continuous_induced_rng $ (h₁.comp h₂).comp (continuous_unop.prod_map continuous_unop) ⟩
 
-end embedding
+end op
 
 section units
 
 open opposite
+variables [monoid α] [topological_space α]
 
-instance [tα : topological_space α] : topological_space αᵒᵖ := induced unop tα
-
-variables [monoid α]
-
-/- @[to_additive] the theory of opposites is not compatible with to_additive -/
-def embed_product : units α →* α × αᵒᵖ :=
+-- move this to `algebra.group.units`
+def embed_product {α : Type*} [monoid α] : units α →* α × αᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
   map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
     and_self],
   map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk]}
 
-variable [topological_space α]
+/-- The units of a monoid are equipped with a topology, via the embedding into `α × α`. -/
+instance : topological_space (units α) :=
+topological_space.induced embed_product (by apply_instance)
 
-/- @[to_additive] -/
-instance :
-  topological_space (units α) :=
-topological_space.induced embed_product prod.topological_space
+lemma continuous_embed_product : @continuous (units α) (α × αᵒᵖ) _ _ embed_product :=
+continuous_induced_dom
+
+lemma continuous_coe : continuous (coe : units α → α) :=
+by convert continuous_fst.comp continuous_induced_dom
+
+variables [has_continuous_mul α]
+
+/-- If multiplication on a monoid is continuous, then multiplication on the units of the monoid,
+with respect to the induced topology, is continuous.
+
+Inversion is also continuous, but we register this in a later file, `topology.algebra.group`,
+because the predicate `has_continuous_inv` has not yet been defined. -/
+instance : has_continuous_mul (units α) :=
+⟨ let h := @continuous_mul (α × αᵒᵖ) _ _ _ in
+  continuous_induced_rng $ h.comp $ continuous_embed_product.prod_map continuous_embed_product ⟩
 
 end units
 

@@ -5,7 +5,45 @@ open equiv
 
 variables {α : Type*} [fintype α] [decidable_eq α]
 
+lemma thm0
+  (σ τ : perm α)
+  (h : disjoint σ τ)
+  (a : α) (ha : τ a = a) :
+  (σ * τ).cycle_of a = σ.cycle_of a :=
+begin
+  ext b,
+  simp_rw [cycle_of_apply, same_cycle, commute.mul_gpow h.mul_comm, mul_apply,
+    gpow_apply_eq_self_of_apply_eq_self ha],
+  by_cases h : ∃ i : ℤ, (σ ^ i) a = b,
+  { rw [if_pos, if_pos],
+    { obtain ⟨i, rfl⟩ := h,
+      rw [←mul_apply, ←mul_apply, mul_assoc],
+      simp_rw show τ * σ ^ i = σ ^ i * τ, from commute.gpow_right h.mul_comm.symm i,
+      rw [mul_apply, mul_apply, ha] },
+    { exact h },
+    { exact h} },
+  { rw [if_neg, if_neg],
+    { exact h },
+    { exact h } },
+end
+
 lemma thm1
+  (σ τ : perm α)
+  (h : disjoint σ τ)
+  (c : perm α)
+  (a : α)
+  (hc : c a ≠ a) :
+  (σ * τ).cycle_of a = c ↔ (σ.cycle_of a = c ∨ τ.cycle_of a = c) :=
+begin
+  have hc' : c ≠ 1 := λ h, hc (ext_iff.mp h a),
+  cases (h a) with ha ha,
+  { rw [σ.cycle_of_eq_one_iff.mpr ha, or_iff_right_of_imp (λ h, false.elim (hc'.symm h))],
+    rw [h.mul_comm, thm0 τ σ h.symm a ha] },
+  { rw [τ.cycle_of_eq_one_iff.mpr ha, or_iff_left_of_imp (λ h, false.elim (hc'.symm h))],
+    rw [thm0 σ τ h a ha] },
+end
+
+lemma thm2
   (σ : perm α)
   (hσ : σ.is_cycle)
   (c : perm α)
@@ -23,17 +61,6 @@ begin
     rw [hσ.cycle_of, if_neg hc] },
 end
 
-lemma thm2
-  (σ τ : perm α)
-  (h : disjoint σ τ)
-  (c : perm α)
-  (a : α)
-  (hc : c a ≠ a) :
-  (σ * τ).cycle_of a = c ↔ (σ.cycle_of a = c ∨ τ.cycle_of a = c) :=
-begin
-  sorry
-end
-
 lemma thm3
   (l : list (perm α))
   (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
@@ -44,8 +71,8 @@ begin
   induction l with σ l ih,
   { exact ⟨false.elim, λ h, hc (ext_iff.mp (h.symm.trans (cycle_of_one a)) a)⟩ },
   { have x := ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2),
-    have y := thm2 σ l.prod (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h2).1) c a hc,
-    have z := thm1 σ (h1 σ (l.mem_cons_self σ)) c a hc,
+    have y := thm1 σ l.prod (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h2).1) c a hc,
+    have z := thm2 σ (h1 σ (l.mem_cons_self σ)) c a hc,
     rw [list.mem_cons_iff, list.prod_cons, x, y, z] },
 end
 

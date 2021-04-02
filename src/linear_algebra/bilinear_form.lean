@@ -1380,9 +1380,10 @@ lemma findim_add_findim_orthogonal
 begin
   rw [← to_lin_restrict_ker_eq_inf_orthogonal _ _ hB₁,
       ← to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal _ _,
-      ← subspace.findim_add_findim_dual_annihilator_comap_eq (B.to_lin.dom_restrict W).range,
       findim_map_subtype_eq],
-  conv_rhs { rw [add_comm, ← add_assoc, add_comm (findim K ↥((B.to_lin.dom_restrict W).ker)),
+  conv_rhs { rw [← @subspace.findim_add_findim_dual_annihilator_comap_eq K V _ _ _ _
+                  (B.to_lin.dom_restrict W).range,
+                 add_comm, ← add_assoc, add_comm (findim K ↥((B.to_lin.dom_restrict W).ker)),
                  linear_map.findim_range_add_findim_ker] },
 end
 

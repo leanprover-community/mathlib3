@@ -40,13 +40,13 @@ begin
     cancel_mono, equiv.apply_eq_iff_eq] at H
 end
 
-instance is_equivalence.epi_map {F : C ⥤ D} [is_equivalence F] {X Y : C} {f : X ⟶ Y} [h : epi f] :
-  epi (F.map f) :=
-left_adjoint_preserves_epi F.as_equivalence.to_adjunction h
+instance is_equivalence.epi_map {F : C ⥤ D} [is_left_adjoint F] {X Y : C} {f : X ⟶ Y}
+  [h : epi f] : epi (F.map f) :=
+left_adjoint_preserves_epi (adjunction.of_left_adjoint F) h
 
-instance is_equivalence.mono_map {F : C ⥤ D} [is_equivalence F] {X Y : C} {f : X ⟶ Y} [h : mono f] :
-  mono (F.map f) :=
-right_adjoint_preserves_mono F.as_equivalence.symm.to_adjunction h
+instance is_equivalence.mono_map {F : C ⥤ D} [is_right_adjoint F] {X Y : C} {f : X ⟶ Y}
+  [h : mono f] : mono (F.map f) :=
+right_adjoint_preserves_mono (adjunction.of_right_adjoint F) h
 
 lemma faithful_reflects_epi (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
   (hf : epi (F.map f)) : epi f :=

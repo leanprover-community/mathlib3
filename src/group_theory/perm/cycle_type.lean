@@ -189,8 +189,7 @@ begin
     rw [hσ.cycle_type, ←multiset.singleton_coe, multiset.lcm_singleton, order_of_is_cycle hσ],
     exact mul_one _ },--hacky normalize stuff
   { intros σ τ hστ hσ hτ,
-    rw [hστ.cycle_type, multiset.lcm_add],
-    sorry, },
+    rw [hστ.cycle_type, multiset.lcm_add, hστ.order_of, hσ, hτ] },
 end
 
 lemma dvd_of_mem_cycle_type (σ : perm α) {n : ℕ} (h : n ∈ σ.cycle_type) : n ∣ order_of σ :=

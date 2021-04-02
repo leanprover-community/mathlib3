@@ -46,7 +46,7 @@ rfl
 
 instance [nontrivial A] : nontrivial (subalgebra R (polynomial A)) :=
 ⟨⟨⊥, ⊤, begin
-  rw [ne.def, subalgebra.ext_iff, not_forall],
+  rw [ne.def, set_like.ext_iff, not_forall],
   refine ⟨X, _⟩,
   simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top,
     algebra_map_apply, not_forall],

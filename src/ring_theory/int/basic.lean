@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 
+import data.int.basic
 import data.int.gcd
 import ring_theory.multiplicity
 import ring_theory.principal_ideal_domain
@@ -341,3 +342,37 @@ instance decidable_int : decidable_rel (λ a b : ℤ, (multiplicity a b).dom) :=
 λ a b, decidable_of_iff _ finite_int_iff.symm
 
 end multiplicity
+
+lemma induction_on_primes {P : ℕ → Prop} (h₀ : P 0) (h₁ : P 1)
+  (h : ∀ p a : ℕ, p.prime → P a → P (p * a)) (n : ℕ) : P n :=
+begin
+  apply unique_factorization_monoid.induction_on_prime,
+  exact h₀,
+  { intros n h,
+    rw nat.is_unit_iff.1 h,
+    exact h₁, },
+  { intros a p _ hp ha,
+    exact h p a (nat.prime_iff_prime.2 hp) ha, },
+end
+
+lemma int.associated_nat_abs (k : ℤ) : associated k k.nat_abs :=
+associated_of_dvd_dvd (int.coe_nat_dvd_right.mpr (dvd_refl _)) (int.nat_abs_dvd.mpr (dvd_refl _))
+
+lemma int.prime_iff_nat_abs_prime {k : ℤ} : prime k ↔ nat.prime k.nat_abs :=
+begin
+  rw nat.prime_iff_prime_int,
+  rw prime_iff_of_associated (int.associated_nat_abs k),
+end
+
+theorem int.associated_iff_nat_abs {a b : ℤ} : associated a b ↔ a.nat_abs = b.nat_abs :=
+begin
+  rw [←dvd_dvd_iff_associated, ←int.nat_abs_dvd_abs_iff, ←int.nat_abs_dvd_abs_iff,
+    dvd_dvd_iff_associated],
+  exact associated_iff_eq,
+end
+
+lemma int.associated_iff {a b : ℤ} : associated a b ↔ (a = b ∨ a = -b) :=
+begin
+  rw int.associated_iff_nat_abs,
+  exact int.nat_abs_eq_nat_abs_iff,
+end

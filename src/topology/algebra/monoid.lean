@@ -292,13 +292,9 @@ variables [has_continuous_mul α]
 
 /-- If multiplication is continuous in the monoid `α`, then it also is in the monoid `αᵒᵖ`. -/
 instance : has_continuous_mul αᵒᵖ :=
-⟨ begin
-    have h₁ : continuous (λ p : α × α, p.snd * p.fst),
-    { have : continuous (λ p : α × α, (p.snd,  p.fst)) := continuous_snd.prod_mk continuous_fst,
-      exact continuous_mul.comp this },
-    have h₂ : continuous (λ p : αᵒᵖ, unop p) := continuous_induced_dom,
-    exact continuous_induced_rng (h₁.comp (continuous.prod_map h₂ h₂))
-  end ⟩
+⟨ let h₁ := @continuous_mul α _ _ _ in
+  let h₂ : continuous (λ p : α × α, _) := continuous_snd.prod_mk continuous_fst in
+  continuous_induced_rng $ (h₁.comp h₂).comp (continuous_unop.prod_map continuous_unop) ⟩
 
 end op
 
@@ -317,6 +313,9 @@ def embed_product {α : Type*} [monoid α] : units α →* α × αᵒᵖ :=
 instance : topological_space (units α) :=
 topological_space.induced embed_product (by apply_instance)
 
+lemma continuous_embed_product : @continuous (units α) (α × αᵒᵖ) _ _ embed_product :=
+continuous_induced_dom
+
 lemma continuous_coe : continuous (coe : units α → α) :=
 by convert continuous_fst.comp continuous_induced_dom
 
@@ -328,15 +327,8 @@ with respect to the induced topology, is continuous.
 Inversion is also continuous, but we register this in a later file, `topology.algebra.group`,
 because the predicate `has_continuous_inv` has not yet been defined. -/
 instance : has_continuous_mul (units α) :=
-⟨ begin
-    refine continuous_induced_rng (continuous.prod_mk _ _),
-    { have h₁ : continuous (λ p, p.fst * p.snd : α × α → α) := continuous_mul,
-      exact h₁.comp (continuous_coe.prod_map continuous_coe) },
-    { have h₂ : continuous (λ p, op p.inv : units α → αᵒᵖ),
-      { convert continuous_snd.comp continuous_induced_dom },
-      have h₃ : continuous (λ p, p.fst * p.snd : αᵒᵖ × αᵒᵖ → αᵒᵖ) := continuous_mul,
-      exact h₃.comp (h₂.prod_map h₂) },
-  end ⟩
+⟨ let h := @continuous_mul (α × αᵒᵖ) _ _ _ in
+  continuous_induced_rng $ h.comp $ continuous_embed_product.prod_map continuous_embed_product ⟩
 
 end units
 

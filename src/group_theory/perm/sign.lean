@@ -218,21 +218,23 @@ lemma disjoint.mul_eq_one_iff {σ τ : perm α} (hστ : disjoint σ τ) :
   σ * τ = 1 ↔ σ = 1 ∧ τ = 1 :=
 by simp_rw [ext_iff, one_apply, hστ.mul_apply_eq_iff, forall_and_distrib]
 
+lemma disjoint.gpow_disjoint_gpow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℤ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+λ x, or.imp (λ h, gpow_apply_eq_self_of_apply_eq_self h m)
+  (λ h, gpow_apply_eq_self_of_apply_eq_self h n) (hστ x)
+
+lemma disjoint.pow_disjoint_pow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℕ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+hστ.gpow_disjoint_gpow m n
+
 lemma disjoint.order_of {σ τ : perm α} (hστ : disjoint σ τ) :
   order_of (σ * τ) = nat.lcm (order_of σ) (order_of τ) :=
 begin
-  have h : ∀ n : ℕ, (σ * τ) ^ n = 1 ↔ σ ^ n = 1 ∧ τ ^ n = 1,
-  { intro n,
-    rw commute.mul_pow hστ.mul_comm,
-    exact disjoint.mul_eq_one_iff (λ x, or.imp (λ h, pow_apply_eq_self_of_apply_eq_self h n)
-      (λ h, pow_apply_eq_self_of_apply_eq_self h n) (hστ x)) },
-  exact nat.dvd_antisymm
-    (order_of_dvd_of_pow_eq_one ((h (nat.lcm (order_of σ) (order_of τ))).mpr
-      ⟨order_of_dvd_iff_pow_eq_one.mp (nat.dvd_lcm_left (order_of σ) (order_of τ)),
-      order_of_dvd_iff_pow_eq_one.mp (nat.dvd_lcm_right (order_of σ) (order_of τ))⟩))
-    (nat.lcm_dvd
-      (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).1)
-      (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
+  have h : ∀ n : ℕ, (σ * τ) ^ n = 1 ↔ σ ^ n = 1 ∧ τ ^ n = 1 :=
+  λ n, by rw [commute.mul_pow hστ.mul_comm, disjoint.mul_eq_one_iff (hστ.pow_disjoint_pow n n)],
+  exact nat.dvd_antisymm (commute.order_of_mul_dvd_lcm hστ.mul_comm) (nat.lcm_dvd
+    (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).1)
+    (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
 end
 
 variable [decidable_eq α]

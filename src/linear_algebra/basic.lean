@@ -1771,7 +1771,9 @@ lemma map_eq_comap {p : submodule R M} : (p.map e : submodule R M₂) = p.comap 
 submodule.coe_injective $ by simp [e.image_eq_preimage]
 
 /-- A linear equivalence of two modules restricts to a linear equivalence from any submodule
-of the domain onto the image of the submodule. -/
+of the domain onto the image of the submodule.
+
+This is `linear_equiv.of_submodule'` but with `map` on the right instead of `comap` on the left. -/
 def of_submodule (p : submodule R M) : p ≃ₗ[R] ↥(p.map ↑e : submodule R M₂) :=
 { inv_fun   := λ y, ⟨e.symm y, by {
     rcases y with ⟨y', hy⟩, rw submodule.mem_map at hy, rcases hy with ⟨x, hx, hxy⟩, subst hxy,
@@ -1835,8 +1837,10 @@ def of_submodules (p : submodule R M) (q : submodule R M₂) (h : p.map ↑e = q
 @[simp] lemma of_submodules_symm_apply {p : submodule R M} {q : submodule R M₂}
   (h : p.map ↑e = q) (x : q) : ↑((e.of_submodules p q h).symm x) = e.symm x := rfl
 
-/-- Given `f : M₁ ≃ₗ[R] M₂` and `U` a submodule of `M₂`, `f.comap U` is the
-induced `linear_equiv` from `U.comap f.to_linear_map` to `U`. -/
+/-- A linear equivalence of two modules restricts to a linear equivalence from the preimage of any
+submodule to that submodule.
+
+This is `linear_equiv.of_submodule` but with `comap` on the left instead of `map` on the right. -/
 def of_submodule' [semimodule R M] [semimodule R M₂] (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
   U.comap (f : M →ₗ[R] M₂) ≃ₗ[R] U :=
 (f.symm.of_submodules _ _ f.symm.map_eq_comap).symm

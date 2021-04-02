@@ -31,8 +31,8 @@ import ring_theory.power_series.basic
 -/
 
 open finset
-open_locale big_operators classical
 noncomputable theory
+open_locale big_operators classical
 
 /-- If `Γ` is linearly ordered and `R` has zero, then `hahn_series Γ R` consists of
   formal series over `Γ` with coefficients in `R`, whose supports are well-founded. -/
@@ -70,6 +70,7 @@ instance [subsingleton R] : subsingleton (hahn_series Γ R) :=
 @[simp]
 lemma zero_coeff {a : Γ} : (0 : hahn_series Γ R).coeff a = 0 := rfl
 
+@[simp]
 lemma support_zero : support (0 : hahn_series Γ R) = ∅ := function.support_zero
 
 @[simp]
@@ -762,24 +763,20 @@ s.is_wf_Union_support'
 lemma mem_co_support {s : summable_family Γ R α} {a : α} {g : Γ} :
   a ∈ s.co_support g ↔ (s a).coeff g ≠ 0 := mem_co_support' _ _ _
 
+lemma coe_injective : @function.injective (summable_family Γ R α) (α → hahn_series Γ R) coe_fn
+| ⟨f1, hU1, c1, hc1⟩ ⟨f2, hU2, c2, hc2⟩ h :=
+begin
+  change f1 = f2 at h,
+  subst h,
+  simp only,
+  refine ⟨rfl, _⟩,
+  ext g a,
+  rw [hc1, hc2]
+end
+
 @[ext]
 lemma ext {s t : summable_family Γ R α} (h : ∀ (a : α), s a = t a) : s = t :=
-begin
-  have hs := s.mem_co_support',
-  have ht := t.mem_co_support',
-  cases s,
-  cases t,
-  simp only,
-  split,
-  { ext,
-    exact congr (congr rfl (h _)) rfl },
-  { ext g a,
-    refine (hs a g).trans (iff.trans _ (ht a g).symm),
-    simp only [ne.def, not_iff_not],
-    split; intro h',
-    { exact eq.trans (congr (congr rfl (h _).symm) rfl) h' },
-    { exact eq.trans (congr (congr rfl (h _)) rfl) h' } }
-end
+coe_injective $ funext h
 
 instance : has_add (summable_family Γ R α) :=
 ⟨λ x y, { to_fun := x + y,
@@ -803,9 +800,13 @@ instance : has_zero (summable_family Γ R α) :=
 instance : inhabited (summable_family Γ R α) := ⟨0⟩
 
 @[simp]
+lemma coe_add {s t : summable_family Γ R α} : ⇑(s + t) = s + t := rfl
+
 lemma add_apply {s t : summable_family Γ R α} {a : α} : (s + t) a = s a + t a := rfl
 
 @[simp]
+lemma coe_zero : ((0 : summable_family Γ R α) : α → hahn_series Γ R) = 0 := rfl
+
 lemma zero_apply {a : α} : (0 : summable_family Γ R α) a = 0 := rfl
 
 instance : add_comm_monoid (summable_family Γ R α) :=
@@ -818,8 +819,10 @@ instance : add_comm_monoid (summable_family Γ R α) :=
 
 end add_comm_monoid
 
-instance [linear_order Γ] [add_comm_group R] {α : Type*} :
-  add_comm_group (summable_family Γ R α) :=
+section add_comm_group
+variables [linear_order Γ] [add_comm_group R] {α : Type*} {s t : summable_family Γ R α} {a : α}
+
+instance : add_comm_group (summable_family Γ R α) :=
 { neg := λ s, { to_fun := λ a, - s a,
     is_wf_Union_support' := by { simp_rw [support_neg], exact s.is_wf_Union_support' },
     co_support := s.co_support,
@@ -828,8 +831,15 @@ instance [linear_order Γ] [add_comm_group R] {α : Type*} :
   .. summable_family.add_comm_monoid }
 
 @[simp]
-lemma neg_apply [linear_order Γ] [add_comm_group R] {α : Type*}
-  {s t : summable_family Γ R α} {a : α} : (s - t) a = s a - t a := rfl
+lemma coe_neg : ⇑(-s) = - s := rfl
+
+lemma neg_apply : (-s) a = - (s a) := rfl
+
+lemma coe_sub : ⇑(s - t) = s - t := rfl
+
+lemma sub_apply : (s - t) a = s a - t a := rfl
+
+end add_comm_group
 
 section semiring
 
@@ -957,6 +967,7 @@ begin
     refine sum_congr rfl (λ ij hij, _),
     rw [hsum_coeff, ← mul_sum],
     apply congr rfl (sum_subset (subset_bUnion_of_mem _ hij) _).symm,
+    { apply_instance },
     intros a h1 h2,
     contrapose! h2,
     rw [mem_co_support],

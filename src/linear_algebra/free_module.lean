@@ -336,7 +336,7 @@ submodule.exists_is_basis_of_le le (is_basis_span hb)
 
 end principal_ideal_domain
 
-lemma algebra_map.injective.linear_independent {R S M ι : Type*} [comm_semiring R] [semiring S]
+lemma linear_independent.restrict_scalars {R S M ι : Type*} [comm_semiring R] [semiring S]
   [add_comm_monoid M] [algebra R S] [semimodule R M] [semimodule S M] [is_scalar_tower R S M]
   (hinj : function.injective (algebra_map R S)) {v : ι → M} (li : linear_independent S v) :
   linear_independent R v :=

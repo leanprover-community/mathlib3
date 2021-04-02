@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 Finite types.
 -/
@@ -146,6 +146,10 @@ instance decidable_exists_fintype {p : α → Prop} [decidable_pred p] [fintype 
   decidable (∃ a, p a) :=
 decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
 
+instance decidable_mem_range_fintype [fintype α] [decidable_eq β] (f : α → β) :
+  decidable_pred (∈ set.range f) :=
+λ x, fintype.decidable_exists_fintype
+
 instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ≃ β) :=
 λ a b, decidable_of_iff (a.1 = b.1) ⟨λ h, equiv.ext (congr_fun h), congr_arg _⟩
@@ -266,7 +270,7 @@ variables {f : α → β} (hf : function.injective f)
 /--
 The inverse of an `hf : injective` function `f : α → β`, of the type `↥(set.range f) → α`.
 This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`,
-or the function version of applying `(equiv.set.range f hf).symm`.
+or the function version of applying `(equiv.of_injective f hf).symm`.
 This function should not usually be used for actual computation because for most cases,
 an explicit inverse can be stated that has better computational properties.
 This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
@@ -304,7 +308,7 @@ variables (f : α ↪ β) (b : set.range f)
 /--
 The inverse of an embedding `f : α ↪ β`, of the type `↥(set.range f) → α`.
 This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`,
-or the function version of applying `(equiv.set.range f f.injective).symm`.
+or the function version of applying `(equiv.of_injective f f.injective).symm`.
 This function should not usually be used for actual computation because for most cases,
 an explicit inverse can be stated that has better computational properties.
 This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
@@ -366,7 +370,7 @@ theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β �
      ... ≃ β : (trunc.out (equiv_fin β)).symm⟩,
 λ ⟨f⟩, card_congr f⟩
 
-/-- Subsingleton types are fintypes (with zero or one terms). -/
+/-- Any subsingleton type with a witness is a fintype (with one term). -/
 def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 ⟨{a}, λ b, finset.mem_singleton.2 (subsingleton.elim _ _)⟩
 
@@ -375,6 +379,17 @@ def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 
 @[simp] theorem card_of_subsingleton (a : α) [subsingleton α] :
   @fintype.card _ (of_subsingleton a) = 1 := rfl
+
+open_locale classical
+variables (α)
+
+/-- Any subsingleton type is (noncomputably) a fintype (with zero or one terms). -/
+@[priority 100]
+noncomputable instance of_subsingleton' [subsingleton α] : fintype α :=
+if h : nonempty α then
+  of_subsingleton (nonempty.some h)
+else
+  ⟨∅, (λ a, false.elim (h ⟨a⟩))⟩
 
 end fintype
 
@@ -636,14 +651,17 @@ finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 lemma card_le_of_embedding (f : α ↪ β) : card α ≤ card β := card_le_of_injective f f.2
 
 lemma card_lt_of_injective_of_not_mem (f : α → β) (h : function.injective f)
-  {b : β} (w : b ∉ set.range f) : fintype.card α < fintype.card β :=
+  {b : β} (w : b ∉ set.range f) : card α < card β :=
 calc card α = (univ.map ⟨f, h⟩).card : (card_map _).symm
 ... < card β : finset.card_lt_univ_of_not_mem $
                  by rwa [← mem_coe, coe_map, coe_univ, set.image_univ]
 
 lemma card_lt_of_injective_not_surjective (f : α → β) (h : function.injective f)
-  (h' : ¬function.surjective f) : fintype.card α < fintype.card β :=
+  (h' : ¬function.surjective f) : card α < card β :=
 let ⟨y, hy⟩ := not_forall.1 h' in card_lt_of_injective_of_not_mem f h hy
+
+lemma card_le_of_surjective (f : α → β) (h : function.surjective f) : card β ≤ card α :=
+card_le_of_injective _ (function.injective_surj_inv h)
 
 /--
 The pigeonhole principle for finitely many pigeons and pigeonholes.
@@ -864,6 +882,12 @@ by rw [← e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_emb
 
 namespace fintype
 
+lemma card_lt_of_surjective_not_injective [fintype α] [fintype β] (f : α → β)
+  (h : function.surjective f) (h' : ¬function.injective f) : card β < card α :=
+card_lt_of_injective_not_surjective _ (function.injective_surj_inv h) $ λ hg,
+have w : function.bijective (function.surj_inv h) := ⟨function.injective_surj_inv h, hg⟩,
+h' $ (injective_iff_surjective_of_equiv (equiv.of_bijective _ w).symm).mpr h
+
 variables [decidable_eq α] [fintype α] {δ : α → Type*}
 
 /-- Given for all `a : α` a finset `t a` of `δ a`, then one can define the
@@ -947,6 +971,15 @@ fintype.card_le_of_embedding (function.embedding.subtype _)
 theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p]
   {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
 fintype.card_lt_of_injective_of_not_mem coe subtype.coe_injective $ by rwa subtype.range_coe_subtype
+
+theorem fintype.card_quotient_le [fintype α] (s : setoid α) [decidable_rel ((≈) : α → α → Prop)] :
+  fintype.card (quotient s) ≤ fintype.card α :=
+fintype.card_le_of_surjective _ (surjective_quotient_mk _)
+
+theorem fintype.card_quotient_lt [fintype α] {s : setoid α} [decidable_rel ((≈) : α → α → Prop)]
+  {x y : α} (h1 : x ≠ y) (h2 : x ≈ y) : fintype.card (quotient s) < fintype.card α :=
+fintype.card_lt_of_surjective_not_injective _ (surjective_quotient_mk _) $ λ w,
+h1 (w $ quotient.eq.mpr h2)
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
@@ -1427,3 +1460,13 @@ def trunc_sigma_of_exists {α} [fintype α] {P : α → Prop} [decidable_pred P]
 @trunc_of_nonempty_fintype (Σ' a, P a) (exists.elim h $ λ a ha, ⟨⟨a, ha⟩⟩) _
 
 end trunc
+
+namespace multiset
+
+variables [fintype α] [decidable_eq α]
+
+@[simp] lemma count_univ (a : α) :
+  count a finset.univ.val = 1 :=
+count_eq_one_of_mem finset.univ.nodup (finset.mem_univ _)
+
+end multiset

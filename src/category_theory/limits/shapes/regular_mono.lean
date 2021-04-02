@@ -115,7 +115,7 @@ regular_mono f :=
 regular_of_is_pullback_snd_of_regular comm.symm (pullback_cone.flip_is_limit t)
 
 /-- A regular monomorphism is an isomorphism if it is an epimorphism. -/
-def is_iso_of_regular_mono_of_epi (f : X ⟶ Y) [regular_mono f] [e : epi f] : is_iso f :=
+lemma is_iso_of_regular_mono_of_epi (f : X ⟶ Y) [regular_mono f] [e : epi f] : is_iso f :=
 @is_iso_limit_cone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_mono.is_limit e
 
 /-- A regular epimorphism is a morphism which is the coequalizer of some parallel pair. -/
@@ -201,7 +201,7 @@ regular_epi k :=
 regular_of_is_pushout_snd_of_regular comm.symm (pushout_cocone.flip_is_colimit t)
 
 /-- A regular epimorphism is an isomorphism if it is a monomorphism. -/
-def is_iso_of_regular_epi_of_mono (f : X ⟶ Y) [regular_epi f] [m : mono f] : is_iso f :=
+lemma is_iso_of_regular_epi_of_mono (f : X ⟶ Y) [regular_epi f] [m : mono f] : is_iso f :=
 @is_iso_limit_cocone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_epi.is_colimit m
 
 @[priority 100]

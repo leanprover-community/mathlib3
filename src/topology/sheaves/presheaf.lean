@@ -37,7 +37,8 @@ variables {C}
 
 namespace presheaf
 
-/-- Pushforward a presheaf on `X` along a continuous map `f : X ⟶ Y`, obtaining a presheaf on `Y`. -/
+/-- Pushforward a presheaf on `X` along a continuous map `f : X ⟶ Y`, obtaining a presheaf
+on `Y`. -/
 def pushforward_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C :=
 (opens.map f).op ⋙ ℱ
 
@@ -54,16 +55,18 @@ def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf
   f _* ℱ ≅ g _* ℱ :=
 iso_whisker_right (nat_iso.op (opens.map_iso f g h).symm) ℱ
 
-@[simp] lemma pushforward_eq_hom_app {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
-  (pushforward_eq h ℱ).hom.app U = ℱ.map (begin dsimp [functor.op], apply has_hom.hom.op, apply eq_to_hom, rw h, end) :=
-rfl
+@[simp] lemma pushforward_eq_hom_app
+  {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
+  (pushforward_eq h ℱ).hom.app U =
+    ℱ.map (begin dsimp [functor.op], apply has_hom.hom.op, apply eq_to_hom, rw h, end) :=
+by simp [pushforward_eq]
 
 @[simp]
 lemma pushforward_eq_rfl {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U) :
   (pushforward_eq (rfl : f = f) ℱ).hom.app (op U) = 𝟙 _ :=
 begin
   dsimp [pushforward_eq],
-  erw ℱ.map_id,
+  simp,
 end
 
 lemma pushforward_eq_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h₁ h₂ : f = g) (ℱ : X.presheaf C) :
@@ -91,10 +94,12 @@ by { dsimp [id], simp, }
 def comp {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g) _* ℱ ≅ g _* (f _* ℱ) :=
 iso_whisker_right (nat_iso.op (opens.map_comp f g).symm) ℱ
 
-@[simp] lemma comp_hom_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).hom.app U = 𝟙 _ :=
+@[simp] lemma comp_hom_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (comp ℱ f g).hom.app U = 𝟙 _ :=
 by { dsimp [comp], tidy, }
 
-@[simp] lemma comp_inv_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).inv.app U = 𝟙 _ :=
+@[simp] lemma comp_inv_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (comp ℱ f g).inv.app U = 𝟙 _ :=
 by { dsimp [comp], tidy, }
 
 end pushforward
@@ -103,7 +108,8 @@ end pushforward
 A morphism of presheaves gives rise to a morphisms of the pushforwards of those presheaves.
 -/
 @[simps]
-def pushforward_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : X.presheaf C} (α : ℱ ⟶ 𝒢) : f _* ℱ ⟶ f _* 𝒢 :=
+def pushforward_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : X.presheaf C} (α : ℱ ⟶ 𝒢) :
+  f _* ℱ ⟶ f _* 𝒢 :=
 { app := λ U, α.app _,
   naturality' := λ U V i, by { erw α.naturality, refl, } }
 

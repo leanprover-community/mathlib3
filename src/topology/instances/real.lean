@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.ring
-import topology.algebra.continuous_functions
 import ring_theory.subring
 import group_theory.archimedean
 /-!
@@ -109,6 +108,11 @@ instance : topological_add_group ℚ := by apply_instance
 instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
+instance : proper_space ℝ :=
+{ compact_ball := λx r, by { rw closed_ball_Icc, apply compact_Icc } }
+
+instance : second_countable_topology ℝ := second_countable_of_proper
+
 lemma real.is_topological_basis_Ioo_rat :
   @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 is_topological_basis_of_open_of_nhds
@@ -121,11 +125,6 @@ is_topological_basis_of_open_of_nhds
       by { simp only [mem_Union], exact ⟨q, p, rat.cast_lt.1 $ hqa.trans hap, rfl⟩ },
       ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h ⟨hlq.trans hqa', ha'p.trans hpu⟩⟩)
 
-instance : second_countable_topology ℝ :=
-⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo a b}),
-  by simp [countable_Union, countable_Union_Prop],
-  real.is_topological_basis_Ioo_rat.2.2⟩⟩
-
 /- TODO(Mario): Prove that these are uniform isomorphisms instead of uniform embeddings
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=
 _
@@ -133,7 +132,8 @@ _
 lemma uniform_embedding_mul_rat {q : ℚ} (hq : q ≠ 0) : uniform_embedding ((*) q) :=
 _ -/
 
-lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} : x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
+lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} :
+  x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
 by simp [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
 
 lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
@@ -216,48 +216,6 @@ by rw [real.ball_eq_Ioo, ← sub_div, add_comm, ← sub_add,
   add_sub_cancel', add_self_div_two, ← add_div,
   add_assoc, add_sub_cancel'_right, add_self_div_two]
 
-lemma real.totally_bounded_Ioo (a b : ℝ) : totally_bounded (Ioo a b) :=
-metric.totally_bounded_iff.2 $ λ ε ε0, begin
-  rcases exists_nat_gt ((b - a) / ε) with ⟨n, ba⟩,
-  rw [div_lt_iff' ε0, sub_lt_iff_lt_add'] at ba,
-  let s := (λ i:ℕ, a + ε * i) '' {i:ℕ | i < n},
-  refine ⟨s, (set.finite_lt_nat _).image _, _⟩,
-  rintro x ⟨ax, xb⟩,
-  let i : ℕ := ⌊(x - a) / ε⌋.to_nat,
-  have : (i : ℤ) = ⌊(x - a) / ε⌋ :=
-    int.to_nat_of_nonneg (floor_nonneg.2 $ le_of_lt (div_pos (sub_pos.2 ax) ε0)),
-  simp, use i, split,
-  { rw [← int.coe_nat_lt, this],
-    refine int.cast_lt.1 (lt_of_le_of_lt (floor_le _) _),
-    rw [int.cast_coe_nat, div_lt_iff' ε0, sub_lt_iff_lt_add'],
-    exact lt_trans xb ba },
-  { rw [real.dist_eq, ← int.cast_coe_nat, this, abs_of_nonneg,
-        ← sub_sub, sub_lt_iff_lt_add'],
-    { have := lt_floor_add_one ((x - a) / ε),
-      rwa [div_lt_iff' ε0, mul_add, mul_one] at this },
-    { have := floor_le ((x - a) / ε),
-      rwa [sub_nonneg, ← le_sub_iff_add_le', ← le_div_iff' ε0] } }
-end
-
-lemma real.totally_bounded_ball (x ε : ℝ) : totally_bounded (ball x ε) :=
-by rw real.ball_eq_Ioo; apply real.totally_bounded_Ioo
-
-lemma real.totally_bounded_Ico (a b : ℝ) : totally_bounded (Ico a b) :=
-let ⟨c, ac⟩ := no_bot a in totally_bounded_subset
-  (by exact λ x ⟨h₁, h₂⟩, ⟨lt_of_lt_of_le ac h₁, h₂⟩)
-  (real.totally_bounded_Ioo c b)
-
-lemma real.totally_bounded_Icc (a b : ℝ) : totally_bounded (Icc a b) :=
-let ⟨c, bc⟩ := no_top b in totally_bounded_subset
-  (by exact λ x ⟨h₁, h₂⟩, ⟨h₁, lt_of_le_of_lt h₂ bc⟩)
-  (real.totally_bounded_Ico a c)
-
-lemma rat.totally_bounded_Icc (a b : ℚ) : totally_bounded (Icc a b) :=
-begin
-  have := totally_bounded_preimage uniform_embedding_of_rat (real.totally_bounded_Icc a b),
-  rwa (set.ext (λ q, _) : Icc _ _ = _), simp
-end
-
 instance : complete_space ℝ :=
 begin
   apply complete_of_cauchy_seq_tendsto,
@@ -268,6 +226,15 @@ begin
   have := c.equiv_lim ε ε0,
   simp only [mem_map, mem_at_top_sets, mem_set_of_eq],
   refine this.imp (λ N hN n hn, hε (hN n hn))
+end
+
+lemma real.totally_bounded_ball (x ε : ℝ) : totally_bounded (ball x ε) :=
+by rw real.ball_eq_Ioo; apply totally_bounded_Ioo
+
+lemma rat.totally_bounded_Icc (a b : ℚ) : totally_bounded (Icc a b) :=
+begin
+  have := totally_bounded_preimage uniform_embedding_of_rat (totally_bounded_Icc a b),
+  rwa (set.ext (λ q, _) : Icc _ _ = _), simp
 end
 
 section
@@ -291,23 +258,6 @@ lemma closure_of_rat_image_le_le_eq {a b : ℚ} (hab : a ≤ b) :
   closure (of_rat '' {q:ℚ | a ≤ q ∧ q ≤ b}) = {r:ℝ | of_rat a ≤ r ∧ r ≤ of_rat b} :=
 _-/
 
-lemma compact_Icc {a b : ℝ} : is_compact (Icc a b) :=
-compact_of_totally_bounded_is_closed
-  (real.totally_bounded_Icc a b)
-  (is_closed_inter (is_closed_ge' a) (is_closed_le' b))
-
-instance {a b : ℝ} : compact_space (Icc a b) :=
-compact_iff_compact_space.mp compact_Icc
-
-lemma compact_pi_Icc {ι : Type*} {a b : ι → ℝ} : is_compact (Icc a b) :=
-pi_univ_Icc a b ▸ compact_univ_pi $ λ i, compact_Icc
-
-instance compact_space_pi_Icc {ι : Type*} {a b : ι → ℝ} : compact_space (Icc a b) :=
-compact_iff_compact_space.mp compact_pi_Icc
-
-instance : proper_space ℝ :=
-{ compact_ball := λx r, by rw closed_ball_Icc; apply compact_Icc }
-
 lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_below s ∧ bdd_above s :=
 ⟨begin
   assume bdd,
@@ -330,11 +280,6 @@ eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc
   (compact_Icc.image_of_continuous_on h)
 
 end
-
-instance reals_semimodule : topological_semimodule ℝ ℝ := ⟨continuous_mul⟩
-
-instance real_maps_algebra {α : Type*} [topological_space α] :
-  algebra ℝ C(α, ℝ) := continuous_map_algebra
 
 section subgroups
 

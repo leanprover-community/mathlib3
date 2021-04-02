@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import algebra.order
 import data.fintype.basic
@@ -101,7 +101,7 @@ begin
   rw [list.append_assoc, ← list.repeat_add, nat.sub_add_cancel],
   apply_fun list.length at e,
   simp only [list.length_append, list.length_repeat] at e,
-  rwa [ge, ← add_le_add_iff_left, e, add_le_add_iff_right]
+  rwa [← add_le_add_iff_left, e, add_le_add_iff_right]
 end
 
 /-- `blank_rel` is the symmetric closure of `blank_extends`, turning it into an equivalence

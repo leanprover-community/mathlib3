@@ -59,42 +59,42 @@ In this file we define various operations on `submonoid`s and `monoid_hom`s.
 submonoid, range, product, map, comap
 -/
 
-variables {M N P : Type*} [monoid M] [monoid N] [monoid P] (S : submonoid M)
+variables {M N P : Type*} [mul_one_class M] [mul_one_class N] [mul_one_class P] (S : submonoid M)
 
 /-!
 ### Conversion to/from `additive`/`multiplicative`
 -/
 
 /-- Map from submonoids of monoid `M` to `add_submonoid`s of `additive M`. -/
-def submonoid.to_add_submonoid {M : Type*} [monoid M] (S : submonoid M) :
+def submonoid.to_add_submonoid {M : Type*} [mul_one_class M] (S : submonoid M) :
   add_submonoid (additive M) :=
 { carrier := S.carrier,
   zero_mem' := S.one_mem',
   add_mem' := S.mul_mem' }
 
 /-- Map from `add_submonoid`s of `additive M` to submonoids of `M`. -/
-def submonoid.of_add_submonoid {M : Type*} [monoid M] (S : add_submonoid (additive M)) :
+def submonoid.of_add_submonoid {M : Type*} [mul_one_class M] (S : add_submonoid (additive M)) :
   submonoid M :=
 { carrier := S.carrier,
   one_mem' := S.zero_mem',
   mul_mem' := S.add_mem' }
 
-/-- Map from `add_submonoid`s of `add_monoid M` to submonoids of `multiplicative M`. -/
-def add_submonoid.to_submonoid {M : Type*} [add_monoid M] (S : add_submonoid M) :
+/-- Map from `add_submonoid`s of `M` to submonoids of `multiplicative M`. -/
+def add_submonoid.to_submonoid {M : Type*} [add_zero_class M] (S : add_submonoid M) :
   submonoid (multiplicative M) :=
 { carrier := S.carrier,
   one_mem' := S.zero_mem',
   mul_mem' := S.add_mem' }
 
-/-- Map from submonoids of `multiplicative M` to `add_submonoid`s of `add_monoid M`. -/
-def add_submonoid.of_submonoid {M : Type*} [add_monoid M] (S : submonoid (multiplicative M)) :
+/-- Map from submonoids of `M` to `add_submonoid`s of `add_monoid M`. -/
+def add_submonoid.of_submonoid {M : Type*} [add_zero_class M] (S : submonoid (multiplicative M)) :
   add_submonoid M :=
 { carrier := S.carrier,
   zero_mem' := S.one_mem',
   add_mem' := S.mul_mem' }
 
 /-- Submonoids of monoid `M` are isomorphic to additive submonoids of `additive M`. -/
-def submonoid.add_submonoid_equiv (M : Type*) [monoid M] :
+def submonoid.add_submonoid_equiv (M : Type*) [mul_one_class M] :
   submonoid M ≃ add_submonoid (additive M) :=
 { to_fun := submonoid.to_add_submonoid,
   inv_fun := submonoid.of_add_submonoid,
@@ -157,7 +157,7 @@ mem_image_of_mem f x.2
 
 @[to_additive]
 lemma map_map (g : N →* P) (f : M →* N) : (S.map f).map g = S.map (g.comp f) :=
-ext' $ image_image _ _ _
+set_like.coe_injective $ image_image _ _ _
 
 @[to_additive]
 lemma map_le_iff_le_comap {f : M →* N} {S : submonoid M} {T : submonoid N} :
@@ -320,38 +320,44 @@ instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
 attribute [norm_cast] coe_mul coe_one
 attribute [norm_cast] add_submonoid.coe_add add_submonoid.coe_zero
 
+/-- A submonoid of a unital magma inherits a unital magma structure. -/
+@[to_additive "An `add_submonoid` of an unital additive magma inherits an unital additive magma
+structure."]
+instance to_mul_one_class {M : Type*} [mul_one_class M] (S : submonoid M) : mul_one_class S :=
+subtype.coe_injective.mul_one_class coe rfl (λ _ _, rfl)
+
 /-- A submonoid of a monoid inherits a monoid structure. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`
 structure."]
 instance to_monoid {M : Type*} [monoid M] (S : submonoid M) : monoid S :=
-S.coe_injective.monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.monoid coe rfl (λ _ _, rfl)
 
 /-- A submonoid of a `comm_monoid` is a `comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `add_comm_monoid` is
 an `add_comm_monoid`."]
 instance to_comm_monoid {M} [comm_monoid M] (S : submonoid M) : comm_monoid S :=
-S.coe_injective.comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.comm_monoid coe rfl (λ _ _, rfl)
 
 /-- A submonoid of an `ordered_comm_monoid` is an `ordered_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `ordered_add_comm_monoid` is
 an `ordered_add_comm_monoid`."]
 instance to_ordered_comm_monoid {M} [ordered_comm_monoid M] (S : submonoid M) :
   ordered_comm_monoid S :=
-S.coe_injective.ordered_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_monoid coe rfl (λ _ _, rfl)
 
 /-- A submonoid of a `linear_ordered_comm_monoid` is a `linear_ordered_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of a `linear_ordered_add_comm_monoid` is
 a `linear_ordered_add_comm_monoid`."]
 instance to_linear_ordered_comm_monoid {M} [linear_ordered_comm_monoid M] (S : submonoid M) :
   linear_ordered_comm_monoid S :=
-S.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl)
 
 /-- A submonoid of an `ordered_cancel_comm_monoid` is an `ordered_cancel_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `ordered_cancel_add_comm_monoid` is
 an `ordered_cancel_add_comm_monoid`."]
 instance to_ordered_cancel_comm_monoid {M} [ordered_cancel_comm_monoid M] (S : submonoid M) :
   ordered_cancel_comm_monoid S :=
-S.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
 
 /-- A submonoid of a `linear_ordered_cancel_comm_monoid` is a `linear_ordered_cancel_comm_monoid`.
 -/
@@ -359,7 +365,7 @@ S.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
 a `linear_ordered_cancel_add_comm_monoid`."]
 instance to_linear_ordered_cancel_comm_monoid {M} [linear_ordered_cancel_comm_monoid M]
   (S : submonoid M) : linear_ordered_cancel_comm_monoid S :=
-S.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
 
 /-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
@@ -433,7 +439,7 @@ lemma top_prod_top : (⊤ : submonoid M).prod (⊤ : submonoid N) = ⊤ :=
 (top_prod _).trans $ comap_top _
 
 @[to_additive] lemma bot_prod_bot : (⊥ : submonoid M).prod (⊥ : submonoid N) = ⊥ :=
-ext' $ by simp [coe_prod, prod.one_eq_mk]
+set_like.coe_injective $ by simp [coe_prod, prod.one_eq_mk]
 
 /-- The product of submonoids is isomorphic to their product as monoids. -/
 @[to_additive prod_equiv "The product of additive submonoids is isomorphic to their product
@@ -484,13 +490,13 @@ lemma map_mrange (g : N →* P) (f : M →* N) : f.mrange.map g = (g.comp f).mra
 (⊤ : submonoid M).map_map g f
 
 @[to_additive]
-lemma mrange_top_iff_surjective {N} [monoid N] {f : M →* N} :
+lemma mrange_top_iff_surjective {N} [mul_one_class N] {f : M →* N} :
   f.mrange = (⊤ : submonoid N) ↔ function.surjective f :=
-submonoid.ext'_iff.trans $ iff.trans (by rw [coe_mrange, coe_top]) set.range_iff_surjective
+set_like.ext'_iff.trans $ iff.trans (by rw [coe_mrange, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective monoid hom is the whole of the codomain. -/
 @[to_additive "The range of a surjective `add_monoid` hom is the whole of the codomain."]
-lemma mrange_top_of_surjective {N} [monoid N] (f : M →* N) (hf : function.surjective f) :
+lemma mrange_top_of_surjective {N} [mul_one_class N] (f : M →* N) (hf : function.surjective f) :
   f.mrange = (⊤ : submonoid N) :=
 mrange_top_iff_surjective.2 hf
 
@@ -500,7 +506,7 @@ lemma mrange_eq_map (f : M →* N) : f.mrange = map f ⊤ := rfl
 @[to_additive]
 lemma mclosure_preimage_le (f : M →* N) (s : set N) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
-closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
+closure_le.2 $ λ x hx, set_like.mem_coe.2 $ mem_comap.2 $ subset_closure hx
 
 /-- The image under a monoid hom of the submonoid generated by a set equals the submonoid generated
     by the image of the set. -/
@@ -515,10 +521,12 @@ le_antisymm
 
 /-- Restriction of a monoid hom to a submonoid of the domain. -/
 @[to_additive "Restriction of an add_monoid hom to an `add_submonoid` of the domain."]
-def mrestrict {N : Type*} [monoid N] (f : M →* N) (S : submonoid M) : S →* N := f.comp S.subtype
+def mrestrict {N : Type*} [mul_one_class N] (f : M →* N) (S : submonoid M) : S →* N :=
+f.comp S.subtype
 
 @[simp, to_additive]
-lemma mrestrict_apply {N : Type*} [monoid N] (f : M →* N) (x : S) : f.mrestrict S x = f x := rfl
+lemma mrestrict_apply {N : Type*} [mul_one_class N] (f : M →* N) (x : S) : f.mrestrict S x = f x :=
+rfl
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]
@@ -529,11 +537,11 @@ def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M �
 
 /-- Restriction of a monoid hom to its range interpreted as a submonoid. -/
 @[to_additive "Restriction of an `add_monoid` hom to its range interpreted as a submonoid."]
-def mrange_restrict {N} [monoid N] (f : M →* N) : M →* f.mrange :=
+def mrange_restrict {N} [mul_one_class N] (f : M →* N) : M →* f.mrange :=
 f.cod_mrestrict f.mrange $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
 
 @[simp, to_additive]
-lemma coe_mrange_restrict {N} [monoid N] (f : M →* N) (x : M) :
+lemma coe_mrange_restrict {N} [mul_one_class N] (f : M →* N) (x : M) :
   (f.mrange_restrict x : N) = f x :=
 rfl
 
@@ -573,7 +581,10 @@ S.subtype.cod_mrestrict _ (λ x, h x.2)
 
 @[simp, to_additive]
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
-ext' $ (coe_mrange _).trans $ subtype.range_coe
+set_like.coe_injective $ (coe_mrange _).trans $ subtype.range_coe
+
+@[to_additive] lemma eq_top_iff' : S = ⊤ ↔ ∀ x : M, x ∈ S :=
+eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
 
 @[to_additive] lemma eq_bot_iff_forall : S = ⊥ ↔ ∀ x ∈ S, x = (1 : M) :=
 begin
@@ -633,6 +644,6 @@ variables {S} {T : submonoid M}
 @[to_additive "Makes the identity additive isomorphism from a proof two
 submonoids of an additive monoid are equal."]
 def submonoid_congr (h : S = T) : S ≃* T :=
-{ map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ submonoid.ext'_iff.1 h }
+{ map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
 end mul_equiv

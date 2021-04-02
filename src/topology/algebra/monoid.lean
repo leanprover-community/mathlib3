@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.continuous_on
-import group_theory.submonoid.basic
+import group_theory.submonoid.operations
 import algebra.group.prod
 import algebra.pointwise
 
@@ -102,6 +102,12 @@ instance [topological_space N] [has_mul N] [has_continuous_mul N] : has_continuo
 ⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
  ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
 
+@[to_additive]
+instance pi.has_continuous_mul {C : β → Type*} [∀ b, topological_space (C b)]
+  [∀ b, has_mul (C b)] [∀ b, has_continuous_mul (C b)] : has_continuous_mul (Π b, C b) :=
+{ continuous_mul := continuous_pi (λ i, continuous.mul
+    ((continuous_apply i).comp continuous_fst) ((continuous_apply i).comp continuous_snd)) }
+
 @[priority 100, to_additive]
 instance has_continuous_mul_of_discrete_topology [topological_space N]
   [has_mul N] [discrete_topology N] : has_continuous_mul N :=
@@ -174,6 +180,16 @@ def submonoid.topological_closure (s : submonoid M) : submonoid M :=
 { carrier := closure (s : set M),
   one_mem' := subset_closure s.one_mem,
   mul_mem' := λ a b ha hb, s.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩ }
+
+@[to_additive]
+instance submonoid.topological_closure_has_continuous_mul (s : submonoid M) :
+  has_continuous_mul (s.topological_closure) :=
+{ continuous_mul :=
+  begin
+    apply continuous_induced_rng,
+    change continuous (λ p : s.topological_closure × s.topological_closure, (p.1 : M) * (p.2 : M)),
+    continuity,
+  end }
 
 lemma submonoid.submonoid_topological_closure (s : submonoid M) :
   s ≤ s.topological_closure :=

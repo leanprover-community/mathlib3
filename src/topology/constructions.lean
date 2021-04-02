@@ -641,6 +641,10 @@ lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
   continuous (λp:Πi, π i, p i) :=
 continuous_infi_dom continuous_induced_dom
 
+lemma continuous_pi_iff [topological_space α] [∀ i, topological_space (π i)] {f : α → Π i, π i} :
+  continuous f ↔ ∀ i, continuous (λ y, f y i) :=
+iff.intro (λ h i, (continuous_apply i).comp h) continuous_pi
+
 /-- Embedding a factor into a product space (by fixing arbitrarily all the other coordinates) is
 continuous. -/
 @[continuity]
@@ -750,7 +754,7 @@ lemma is_open_sigma_iff {s : set (sigma σ)} : is_open s ↔ ∀ i, is_open (sig
 by simp only [is_open_supr_iff, is_open_coinduced]
 
 lemma is_closed_sigma_iff {s : set (sigma σ)} : is_closed s ↔ ∀ i, is_closed (sigma.mk i ⁻¹' s) :=
-is_open_sigma_iff
+by simp [← is_open_compl_iff, is_open_sigma_iff]
 
 lemma is_open_map_sigma_mk {i : ι} : is_open_map (@sigma.mk ι σ i) :=
 begin

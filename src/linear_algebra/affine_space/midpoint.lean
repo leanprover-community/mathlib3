@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
-import algebra.invertible
+import algebra.char_p.invertible
 import linear_algebra.affine_space.affine_equiv
 
 /-!

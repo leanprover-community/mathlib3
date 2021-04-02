@@ -3,11 +3,8 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.equiv.basic
-import algebra.group.basic
-import algebra.group.hom
 import algebra.group.pi
-import algebra.group.prod
+import algebra.group_power
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -23,15 +20,13 @@ variables {α : Type u}
 namespace perm
 
 instance perm_group : group (perm α) :=
-begin
-  refine { mul := λ f g, equiv.trans g f,
-           one := equiv.refl α,
-           inv := equiv.symm,
-           div_eq_mul_inv := λ _ _, rfl,
-           ..};
-  intros; apply equiv.ext; try { apply trans_apply },
-  apply symm_apply_apply
-end
+{ mul := λ f g, equiv.trans g f,
+  one := equiv.refl α,
+  inv := equiv.symm,
+  mul_assoc := λ f g h, (trans_assoc _ _ _).symm,
+  one_mul := trans_refl,
+  mul_one := refl_trans,
+  mul_left_inv := trans_symm }
 
 theorem mul_apply (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
@@ -55,6 +50,10 @@ lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply
 
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.symm_apply_eq
+
+lemma gpow_apply_comm {α : Type*} (σ : equiv.perm α) (m n : ℤ) {x : α} :
+  (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
+by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, gpow_mul_comm]
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
 `equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
@@ -177,6 +176,11 @@ begin
   simpa using equiv.congr_fun h i
 end
 
+/-- If `e` is also a permutation, we can write `perm_congr` 
+completely in terms of the group structure. -/
+@[simp] lemma perm_congr_eq_mul (e p : perm α) :
+  e.perm_congr p = e * p * e⁻¹ := rfl
+
 /-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation
   on `{x // p x}` induced by `f`. -/
 def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : perm {x // p x} :=
@@ -265,6 +269,9 @@ end
 lemma mul_swap_eq_swap_mul (f : perm α) (x y : α) : f * swap x y = swap (f x) (f y) * f :=
 by rw [swap_mul_eq_mul_swap, perm.inv_apply_self, perm.inv_apply_self]
 
+lemma swap_apply_apply (f : perm α) (x y : α) : swap (f x) (f y) = f * swap x y * f⁻¹ :=
+by rw [mul_swap_eq_swap_mul, mul_inv_cancel_right]
+
 /-- Left-multiplying a permutation with `swap i j` twice gives the original permutation.
 
   This specialization of `swap_mul_self` is useful when using cosets of permutations.
@@ -290,6 +297,9 @@ swap_mul_self_mul i j
 @[simp]
 lemma mul_swap_involutive (i j : α) : function.involutive (* (equiv.swap i j)) :=
 mul_swap_mul_self i j
+
+@[simp] lemma swap_eq_one_iff {i j : α} : swap i j = (1 : perm α) ↔ i = j :=
+swap_eq_refl_iff
 
 lemma swap_mul_eq_iff {i j : α} {σ : perm α} : swap i j * σ = σ ↔ i = j :=
 ⟨(assume h, have swap_id : swap i j = 1 := mul_right_cancel (trans h (one_mul σ).symm),

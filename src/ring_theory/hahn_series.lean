@@ -66,12 +66,11 @@ instance [subsingleton R] : subsingleton (hahn_series Γ R) :=
 @[simp]
 lemma zero_coeff {a : Γ} : (0 : hahn_series Γ R).coeff a = 0 := rfl
 
-@[simp]
 lemma support_zero : support (0 : hahn_series Γ R) = ∅ := function.support_zero
 
 @[simp]
 lemma support_nonempty_iff {x : hahn_series Γ R} :
-  {a | x.coeff a ≠ 0}.nonempty ↔ x ≠ 0 :=
+  x.support.nonempty ↔ x ≠ 0 :=
 begin
   split,
   { rintro ⟨a, ha⟩ rfl,
@@ -81,7 +80,7 @@ begin
     intro h,
     ext a,
     have ha := set.not_mem_empty a,
-    rw [← h, set.mem_set_of_eq, not_not] at ha,
+    rw [← h, mem_support, not_not] at ha,
     rw [ha, zero_coeff] }
 end
 
@@ -273,8 +272,9 @@ lemma one_coeff [has_zero R] [has_one R] {a : Γ} :
 @[simp]
 lemma single_zero_one [has_zero R] [has_one R] : (single 0 (1 : R)) = 1 := rfl
 
+@[simp]
 lemma support_one [semiring R] [nontrivial R] :
-  {a | (1 : hahn_series Γ R).coeff a ≠ 0} = {0} :=
+  support (1 : hahn_series Γ R) = {0} :=
 support_single_of_ne one_ne_zero
 
 instance [semiring R] : has_mul (hahn_series Γ R) :=
@@ -440,7 +440,7 @@ lemma mul_coeff_min_add_min [semiring R] {x y : hahn_series Γ R} (hx : x ≠ 0)
     y.is_wf_support.min (support_nonempty_iff.2 hy)) =
     (x.coeff (x.is_wf_support.min (support_nonempty_iff.2 hx))) *
     y.coeff (y.is_wf_support.min (support_nonempty_iff.2 hy)) :=
-by rw [mul_coeff, add_antidiagonal_min_add_min, sum_singleton]
+by rw [mul_coeff, finset.add_antidiagonal_min_add_min, finset.sum_singleton]
 
 private lemma mul_assoc' [semiring R] (x y z : hahn_series Γ R) :
   x * y * z = x * (y * z) :=
@@ -586,7 +586,7 @@ theorem algebra_map_apply {r : R} :
 
 instance [nontrivial Γ] [nontrivial R] : nontrivial (subalgebra R (hahn_series Γ R)) :=
 ⟨⟨⊥, ⊤, begin
-  rw [ne.def, subalgebra.ext_iff, not_forall],
+  rw [ne.def, set_like.ext_iff, not_forall],
   obtain ⟨a, ha⟩ := exists_ne (0 : Γ),
   refine ⟨single a 1, _⟩,
   simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],
@@ -687,24 +687,12 @@ def add_val : add_valuation (hahn_series Γ R) (with_top Γ) :=
 add_valuation.of (λ x, if h : x = (0 : hahn_series Γ R) then (⊤ : with_top Γ)
     else x.is_wf_support.min (support_nonempty_iff.2 h))
   (dif_pos rfl)
-  ((dif_neg one_ne_zero).trans begin
-    rw [← with_top.coe_zero, with_top.coe_eq_coe],
-    transitivity (set.is_wf_singleton (0 : Γ)).min (set.singleton_nonempty 0),
-    { congr,
-      exact support_one },
-    { apply set.is_wf_min_singleton }
-  end)
+  ((dif_neg one_ne_zero).trans (by simp))
   (λ x y, begin
     by_cases hx : x = 0,
+    { by_cases hy : y = 0; { simp [hx, hy] } },
     { by_cases hy : y = 0,
       { simp [hx, hy] },
-      { simp only [hx, hy, support_nonempty_iff, dif_pos, with_top.coe_le_coe,
-          eq_self_iff_true, le_top, dif_neg, zero_add, not_false_iff, min_eq_right, is_wf_support],
-        refl } },
-    { by_cases hy : y = 0,
-      { simp only [hx, hy, support_nonempty_iff, add_zero, dif_pos, min_eq_left,
-          with_top.coe_le_coe, eq_self_iff_true, le_top, dif_neg, not_false_iff, is_wf_support],
-        refl },
       { simp only [hx, hy, support_nonempty_iff, dif_neg, not_false_iff, is_wf_support, min_le_iff],
         by_cases hxy : x + y = 0,
         { simp [hxy] },

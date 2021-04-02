@@ -136,7 +136,7 @@ lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
 lemma is_open_compl_singleton [t1_space α] {x : α} : is_open ({x}ᶜ : set α) :=
-is_closed_singleton
+is_closed_singleton.is_open_compl
 
 lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
 is_open_compl_singleton
@@ -151,11 +151,19 @@ instance t1_space.t0_space [t1_space α] : t0_space α :=
 ⟨λ x y h, ⟨{z | z ≠ y}, is_open_ne, or.inl ⟨h, not_not_intro rfl⟩⟩⟩
 
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : {x}ᶜ ∈ 𝓝 y :=
-mem_nhds_sets is_closed_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
+mem_nhds_sets is_open_compl_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
 
 @[simp] lemma closure_singleton [t1_space α] {a : α} :
   closure ({a} : set α) = {a} :=
 is_closed_singleton.closure_eq
+
+lemma set.subsingleton.closure [t1_space α] {s : set α} (hs : s.subsingleton) :
+  (closure s).subsingleton :=
+hs.induction_on (by simp) $ λ x, by simp
+
+@[simp] lemma subsingleton_closure [t1_space α] {s : set α} :
+  (closure s).subsingleton ↔ s.subsingleton :=
+⟨λ h, h.mono subset_closure, λ h, h.closure⟩
 
 lemma is_closed_map_const {α β} [topological_space α] [topological_space β] [t1_space β] {y : β} :
   is_closed_map (function.const α y) :=
@@ -280,7 +288,7 @@ t2_space.t2 x y h
 
 @[priority 100] -- see Note [lower instance priority]
 instance t2_space.t1_space [t2_space α] : t1_space α :=
-⟨λ x, is_open_iff_forall_mem_open.2 $ λ y hxy,
+⟨λ x, is_open_compl_iff.1 $ is_open_iff_forall_mem_open.2 $ λ y hxy,
 let ⟨u, v, hu, hv, hyu, hxv, huv⟩ := t2_separation (mt mem_singleton_of_eq hxy) in
 ⟨u, λ z hz1 hz2, (ext_iff.1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
 
@@ -326,7 +334,7 @@ begin
     intros x y hxy,
     have : (x, y) ∈ (diagonal α)ᶜ, by rwa [mem_compl_iff],
     obtain ⟨t, t_sub, t_op, xyt⟩ : ∃ t ⊆ (diagonal α)ᶜ, is_open t ∧ (x, y) ∈ t :=
-      is_open_iff_forall_mem_open.mp h _ this,
+      is_open_iff_forall_mem_open.mp h.is_open_compl _ this,
     rcases is_open_prod_iff.mp t_op x y xyt with ⟨U, V, U_op, V_op, xU, yV, H⟩,
     use [U, V, U_op, V_op, xU, yV],
     have := subset.trans H t_sub,
@@ -372,6 +380,11 @@ eq_of_nhds_ne_bot $ ne_bot_of_le $ le_inf ha hb
 lemma tendsto_nhds_unique' [t2_space α] {f : β → α} {l : filter β} {a b : α}
   (hl : ne_bot l) (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
 eq_of_nhds_ne_bot $ ne_bot_of_le $ le_inf ha hb
+
+lemma tendsto_nhds_unique_of_eventually_eq [t2_space α] {f g : β → α} {l : filter β} {a b : α}
+  [ne_bot l] (ha : tendsto f l (𝓝 a)) (hb : tendsto g l (𝓝 b)) (hfg : f =ᶠ[l] g) :
+  a = b :=
+tendsto_nhds_unique (ha.congr' hfg) hb
 
 section lim
 variables [t2_space α] {f : filter α}
@@ -480,6 +493,10 @@ instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
     (λ h₁, separated_by_continuous continuous_fst h₁)
     (λ h₂, separated_by_continuous continuous_snd h₂)⟩
 
+lemma embedding.t2_space [topological_space β] [t2_space β] {f : α → β} (hf : embedding f) :
+  t2_space α :=
+⟨λ x y h, separated_by_continuous hf.continuous (hf.inj.ne h)⟩
+
 instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
   [t₂ : topological_space β] [t2_space β] : t2_space (α ⊕ β) :=
 begin
@@ -560,11 +577,11 @@ lemma compact_compact_separated [t2_space α] {s t : set α}
   (hs : is_compact s) (ht : is_compact t) (hst : s ∩ t = ∅) :
   ∃u v : set α, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ u ∩ v = ∅ :=
 by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
-   exact generalized_tube_lemma hs ht is_closed_diagonal hst
+   exact generalized_tube_lemma hs ht is_closed_diagonal.is_open_compl hst
 
 /-- In a `t2_space`, every compact set is closed. -/
 lemma is_compact.is_closed [t2_space α] {s : set α} (hs : is_compact s) : is_closed s :=
-is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
+is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   let ⟨u, v, uo, vo, su, xv, uv⟩ :=
     compact_compact_separated hs (compact_singleton : is_compact {x})
       (by rwa [inter_comm, ←subset_compl_iff_disjoint, singleton_subset_iff]) in

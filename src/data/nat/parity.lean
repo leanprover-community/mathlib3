@@ -36,6 +36,9 @@ by rw [not_odd_iff, even_iff]
 @[simp] lemma odd_iff_not_even : odd n ↔ ¬ even n :=
 by rw [not_even_iff, odd_iff]
 
+lemma is_compl_even_odd : is_compl {n : ℕ | even n} {n | odd n} :=
+by simp [← set.compl_set_of, is_compl_compl]
+
 lemma even_or_odd (n : ℕ) : even n ∨ odd n :=
 or.imp_right (odd_iff_not_even.2) (em (even n))
 

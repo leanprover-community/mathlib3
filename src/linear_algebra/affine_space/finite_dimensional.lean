@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import linear_algebra.affine_space.independent
 import linear_algebra.finite_dimensional
@@ -316,13 +316,13 @@ begin
     have hs : vector_span k s ≤ k ∙ v,
     { rw [vector_span_eq_span_vsub_set_right k h, submodule.span_le, set.subset_def],
       intros x hx,
-      rw [submodule.mem_coe, submodule.mem_span_singleton],
+      rw [set_like.mem_coe, submodule.mem_span_singleton],
       rw set.mem_image at hx,
       rcases hx with ⟨p, hp, rfl⟩,
       rcases hp₀v p hp with ⟨r, rfl⟩,
       use r,
       simp },
-    have hw' := submodule.le_def'.1 hs w hw,
+    have hw' := set_like.le_def.1 hs hw,
     rwa submodule.mem_span_singleton at hw' }
 end
 

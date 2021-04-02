@@ -221,13 +221,13 @@ lemma coeff_rename_eq_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →
   (h : ∀ u : σ →₀ ℕ, u.map_domain f = d → φ.coeff u = 0) :
   (rename f φ).coeff d = 0 :=
 begin
-  rw [rename_eq, coeff, ← not_mem_support_iff],
+  rw [rename_eq, ← not_mem_support_iff],
   intro H,
   replace H := map_domain_support H,
   rw [finset.mem_image] at H,
   obtain ⟨u, hu, rfl⟩ := H,
   specialize h u rfl,
-  simp [mem_support_iff, coeff] at h hu,
+  simp at h hu,
   contradiction
 end
 

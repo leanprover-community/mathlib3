@@ -224,7 +224,7 @@ h ▸ linear_independent_equiv e
 
 theorem linear_independent_subtype_range {ι} {f : ι → M} (hf : injective f) :
   linear_independent R (coe : range f → M) ↔ linear_independent R f :=
-iff.symm $ linear_independent_equiv' (equiv.set.range f hf) rfl
+iff.symm $ linear_independent_equiv' (equiv.of_injective f hf) rfl
 
 alias linear_independent_subtype_range ↔ linear_independent.of_subtype_range _
 
@@ -423,13 +423,13 @@ lemma linear_independent_sum {v : ι ⊕ ι' → M} :
       disjoint (submodule.span R (range (v ∘ sum.inl))) (submodule.span R (range (v ∘ sum.inr))) :=
 begin
   rw [range_comp v, range_comp v],
-  refine ⟨λ h, ⟨h.comp _ sum.injective_inl, h.comp _ sum.injective_inr,
+  refine ⟨λ h, ⟨h.comp _ sum.inl_injective, h.comp _ sum.inr_injective,
     h.disjoint_span_image is_compl_range_inl_range_inr.1⟩, _⟩,
   rintro ⟨hl, hr, hlr⟩,
   rw [linear_independent_iff'] at *,
   intros s g hg i hi,
-  have : ∑ i in s.preimage sum.inl (sum.injective_inl.inj_on _), (λ x, g x • v x) (sum.inl i) +
-    ∑ i in s.preimage sum.inr (sum.injective_inr.inj_on _), (λ x, g x • v x) (sum.inr i) = 0,
+  have : ∑ i in s.preimage sum.inl (sum.inl_injective.inj_on _), (λ x, g x • v x) (sum.inl i) +
+    ∑ i in s.preimage sum.inr (sum.inr_injective.inj_on _), (λ x, g x • v x) (sum.inr i) = 0,
   { rw [finset.sum_preimage', finset.sum_preimage', ← finset.sum_union, ← finset.filter_or],
     { simpa only [← mem_union, range_inl_union_range_inr, mem_univ, finset.filter_true] },
     { exact finset.disjoint_filter.2 (λ x hx, disjoint_left.1 is_compl_range_inl_range_inr.1) } },

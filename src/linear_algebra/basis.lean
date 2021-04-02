@@ -274,7 +274,7 @@ def linear_equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g
   (linear_equiv_of_is_basis hv hv' e).trans (linear_equiv_of_is_basis hv' hv'' f) =
   linear_equiv_of_is_basis hv hv'' (e.trans f) :=
 begin
-  apply linear_equiv.injective_to_linear_map,
+  apply linear_equiv.to_linear_map_injective,
   apply hv.ext,
   intros i,
   simp [linear_equiv_of_is_basis]
@@ -283,7 +283,7 @@ end
 @[simp] lemma linear_equiv_of_is_basis_refl :
   linear_equiv_of_is_basis hv hv (equiv.refl ι) = linear_equiv.refl R M :=
 begin
-  apply linear_equiv.injective_to_linear_map,
+  apply linear_equiv.to_linear_map_injective,
   apply hv.ext,
   intros i,
   simp [linear_equiv_of_is_basis]
@@ -463,8 +463,8 @@ lemma exists_sum_is_basis (hs : linear_independent K v) :
 begin
   -- This is a hack: we jump through hoops to reuse `exists_subset_is_basis`.
   let s := set.range v,
-  let e : ι ≃ s := equiv.set.range v hs.injective,
-  have : (λ x, x : s → V) = v ∘ e.symm := by { funext, dsimp, rw [equiv.set.apply_range_symm v], },
+  let e : ι ≃ s := equiv.of_injective v hs.injective,
+  have : (λ x, x : s → V) = v ∘ e.symm := by { ext, dsimp, rw [equiv.apply_of_injective_symm v] },
   have : linear_independent K (λ x, x : s → V),
   { rw this,
     exact linear_independent.comp hs _ (e.symm.injective), },
@@ -535,7 +535,7 @@ open submodule linear_map
 lemma submodule.exists_le_ker_of_lt_top (p : submodule K V) (hp : p < ⊤) :
   ∃ f ≠ (0 : V →ₗ[K] K), p ≤ ker f :=
 begin
-  rcases submodule.exists_of_lt hp with ⟨v, -, hpv⟩, clear hp,
+  rcases set_like.exists_of_lt hp with ⟨v, -, hpv⟩, clear hp,
   rcases (linear_pmap.sup_span_singleton ⟨p, 0⟩ v (1 : K) hpv).to_fun.exists_extend with ⟨f, hf⟩,
   refine ⟨f, _, _⟩,
   { rintro rfl, rw [linear_map.zero_comp] at hf,

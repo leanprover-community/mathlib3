@@ -140,8 +140,9 @@ calc ∑ i in finset.Ico 1 b, n / p ^ i
     = ∑ i in finset.Ico 1 b, (k + (n - k)) / p ^ i :
     by simp only [nat.add_sub_cancel' hkn]
 ... = ∑ i in finset.Ico 1 b, (k / p ^ i + (n - k) / p ^ i +
-      if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) : by simp only [nat.add_div (pow_pos hp.pos _)]
-... = _ : begin simp only [sum_add_distrib], simp [sum_boole], end -- we have to use `sum_add_distrib` before `add_ite` fires.
+      if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) :
+    by simp only [nat.add_div (pow_pos hp.pos _)]
+... = _ : by simp [sum_add_distrib, sum_boole]
 
 /-- The multiplity of `p` in `choose n k` is the number of carries when `k` and `n - k`
   are added in base `p`. The set is expressed by filtering `Ico 1 b` where `b`
@@ -162,7 +163,8 @@ have h₁ : multiplicity p (choose n k) + multiplicity p (k! * (n - k)!) =
   end,
 (enat.add_right_cancel_iff
   (enat.ne_top_iff_dom.2 $
-    by exact finite_nat_iff.2 ⟨ne_of_gt hp.one_lt, mul_pos (factorial_pos k) (factorial_pos (n - k))⟩)).1
+    by exact finite_nat_iff.2
+      ⟨ne_of_gt hp.one_lt, mul_pos (factorial_pos k) (factorial_pos (n - k))⟩)).1
   h₁
 
 /-- A lower bound on the multiplicity of `p` in `choose n k`. -/

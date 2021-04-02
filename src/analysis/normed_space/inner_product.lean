@@ -451,12 +451,12 @@ def bilin_form_of_real_inner : bilin_form ℝ F :=
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ :=
-sesq_form.map_sum_right (sesq_form_of_inner) _ _ _
+sesq_form.sum_right (sesq_form_of_inner) _ _ _
 
 /-- An inner product with a sum on the right. -/
 lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ :=
-sesq_form.map_sum_left (sesq_form_of_inner) _ _ _
+sesq_form.sum_left (sesq_form_of_inner) _ _ _
 
 /-- An inner product with a sum on the left, `finsupp` version. -/
 lemma finsupp.sum_inner {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :
@@ -1148,8 +1148,7 @@ begin
     have hx0 : x ≠ 0,
     { intro hx0,
       rw [hx0, inner_zero_left, zero_div] at h,
-      norm_num at h,
-      exact h },
+      norm_num at h, },
     refine and.intro hx0 _,
     set r := ⟪x, y⟫ / (∥x∥ * ∥x∥) with hr,
     use r,
@@ -1414,6 +1413,11 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
 rfl
 
+lemma pi_Lp.norm_eq_of_L2 {ι : Type*} [fintype ι] {f : ι → Type*}
+  [Π i, inner_product_space 𝕜 (f i)] (x : pi_Lp 2 one_le_two f) :
+  ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
+by { rw [pi_Lp.norm_eq_of_nat 2]; simp [sqrt_eq_rpow] }
+
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 { inner := (λ x y, (conj x) * y),
@@ -1430,6 +1434,10 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 @[reducible, nolint unused_arguments]
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
+
+lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
+pi_Lp.norm_eq_of_L2 x
 
 /-! ### Inner product space structure on subspaces -/
 
@@ -1741,6 +1749,19 @@ lemma measurable.inner [measurable_space α] [measurable_space E] [opens_measura
   measurable (λ t, ⟪f t, g t⟫) :=
 continuous.measurable2 continuous_inner hf hg
 
+lemma ae_measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
+  [topological_space.second_countable_topology E] [measurable_space 𝕜] [borel_space 𝕜]
+  {μ : measure_theory.measure α} {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  ae_measurable (λ x, ⟪f x, g x⟫) μ :=
+begin
+  refine ⟨λ x, ⟪hf.mk f x, hg.mk g x⟫, hf.measurable_mk.inner hg.measurable_mk, _⟩,
+  refine hf.ae_eq_mk.mp (hg.ae_eq_mk.mono (λ x hxg hxf, _)),
+  dsimp only,
+  congr,
+  { exact hxf, },
+  { exact hxg, },
+end
+
 variables [topological_space α] {f g : α → E} {x : α} {s : set α}
 
 include 𝕜
@@ -1792,6 +1813,37 @@ begin
   { rw [← h.equiv_fun.symm_apply_apply x, h.equiv_fun_symm_apply] },
   { rw [← h.equiv_fun.symm_apply_apply y, h.equiv_fun_symm_apply] }
 end
+
+/-- `ℂ` is isometric to ℝ² with the Euclidean inner product. -/
+def complex.isometry_euclidean : ℂ ≃ₗᵢ[ℝ] (euclidean_space ℝ (fin 2)) :=
+complex.is_basis_one_I.isometry_euclidean_of_orthonormal
+begin
+  rw orthonormal_iff_ite,
+  intros i, fin_cases i;
+  intros j; fin_cases j;
+  simp [real_inner_eq_re_inner]
+end
+
+@[simp] lemma complex.isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
+  complex.isometry_euclidean.symm x = (x 0) + (x 1) * I :=
+begin
+  convert complex.is_basis_one_I.equiv_fun_symm_apply x,
+  { simpa },
+  { simp },
+end
+
+lemma complex.isometry_euclidean_proj_eq_self (z : ℂ) :
+  ↑(complex.isometry_euclidean z 0) + ↑(complex.isometry_euclidean z 1) * (I : ℂ) = z :=
+by rw [← complex.isometry_euclidean_symm_apply (complex.isometry_euclidean z),
+  complex.isometry_euclidean.symm_apply_apply z]
+
+@[simp] lemma complex.isometry_euclidean_apply_zero (z : ℂ) :
+  complex.isometry_euclidean z 0 = z.re :=
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+
+@[simp] lemma complex.isometry_euclidean_apply_one (z : ℂ) :
+  complex.isometry_euclidean z 1 = z.im :=
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
 
 end pi_Lp
 

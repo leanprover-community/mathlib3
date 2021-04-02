@@ -34,6 +34,16 @@ equiv, mul_equiv, add_equiv
 variables {A : Type*} {B : Type*} {M : Type*} {N : Type*}
   {P : Type*} {Q : Type*} {G : Type*} {H : Type*}
 
+/-- Makes a multiplicative inverse from a bijection which preserves multiplication. -/
+@[to_additive "Makes an additive inverse from a bijection which preserves addition."]
+def mul_hom.inverse [has_mul M] [has_mul N] (f : mul_hom M N) (g : N → M)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) : mul_hom N M :=
+{ to_fun   := g,
+  map_mul' := λ x y,
+    calc g (x * y) = g (f (g x) * f (g y)) : by rw [h₂ x, h₂ y]
+               ... = g (f (g x * g y)) : by rw f.map_mul
+               ... = g x * g y : h₁ _, }
+
 set_option old_structure_cmd true
 
 /-- add_equiv α β is the type of an equiv α ≃ β which preserves addition. -/
@@ -102,11 +112,7 @@ instance : inhabited (M ≃* M) := ⟨refl M⟩
 /-- The inverse of an isomorphism is an isomorphism. -/
 @[symm, to_additive "The inverse of an isomorphism is an isomorphism."]
 def symm (h : M ≃* N) : N ≃* M :=
-{ map_mul' := λ n₁ n₂, h.injective $
-    begin
-      have : ∀ x, h (h.to_equiv.symm.to_fun x) = x := h.to_equiv.apply_symm_apply,
-      simp only [this, h.map_mul]
-    end,
+{ map_mul' := (h.to_mul_hom.inverse h.to_equiv.symm h.left_inv h.right_inv).map_mul,
   .. h.to_equiv.symm}
 
 /-- See Note [custom simps projection] -/
@@ -155,9 +161,21 @@ lemma symm_apply_apply (e : M ≃* N) : ∀ x, e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply
 
 @[simp, to_additive]
+theorem symm_comp_self (e : M ≃* N) : e.symm ∘ e = id := funext e.symm_apply_apply
+
+@[simp, to_additive]
+theorem self_comp_symm (e : M ≃* N) : e ∘ e.symm = id := funext e.apply_symm_apply
+
+@[simp, to_additive]
+theorem coe_refl : ⇑(refl M) = id := rfl
+
+@[to_additive]
 theorem refl_apply (m : M) : refl M m = m := rfl
 
 @[simp, to_additive]
+theorem coe_trans (e₁ : M ≃* N) (e₂ : N ≃* P) : ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
+
+@[to_additive]
 theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
 
 @[simp, to_additive] theorem apply_eq_iff_eq (e : M ≃* N) {x y : M} : e x = e y ↔ x = y :=
@@ -225,22 +243,22 @@ def mul_equiv_of_unique_of_unique {M N}
 
 /-- A multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism). -/
 @[simp, to_additive]
-lemma map_one {M N} [monoid M] [monoid N] (h : M ≃* N) : h 1 = 1 :=
+lemma map_one {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) : h 1 = 1 :=
 by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
 
 @[simp, to_additive]
-lemma map_eq_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :
+lemma map_eq_one_iff {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) {x : M} :
   h x = 1 ↔ x = 1 :=
 h.map_one ▸ h.to_equiv.apply_eq_iff_eq
 
 @[to_additive]
-lemma map_ne_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :
+lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) {x : M} :
   h x ≠ 1 ↔ x ≠ 1 :=
 ⟨mt h.map_eq_one_iff.2, mt h.map_eq_one_iff.1⟩
 
 /-- A bijective `monoid` homomorphism is an isomorphism -/
 @[to_additive "A bijective `add_monoid` homomorphism is an isomorphism"]
-noncomputable def of_bijective {M N} [monoid M] [monoid N] (f : M →* N)
+noncomputable def of_bijective {M N} [mul_one_class M] [mul_one_class N] (f : M →* N)
   (hf : function.bijective f) : M ≃* N :=
 { map_mul' := f.map_mul',
   ..equiv.of_bijective f hf }
@@ -251,16 +269,16 @@ as a multiplication-preserving function.
 -/
 @[to_additive "Extract the forward direction of an additive equivalence
 as an addition-preserving function."]
-def to_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) : (M →* N) :=
+def to_monoid_hom {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) : (M →* N) :=
 { map_one' := h.map_one, .. h }
 
 @[simp, to_additive]
-lemma coe_to_monoid_hom {M N} [monoid M] [monoid N] (e : M ≃* N) :
+lemma coe_to_monoid_hom {M N} [mul_one_class M] [mul_one_class N] (e : M ≃* N) :
   ⇑e.to_monoid_hom = e :=
 rfl
 
-@[to_additive] lemma to_monoid_hom_injective
-  {M N} [monoid M] [monoid N] : function.injective (to_monoid_hom : (M ≃* N) → M →* N) :=
+@[to_additive] lemma to_monoid_hom_injective {M N} [mul_one_class M] [mul_one_class N] :
+  function.injective (to_monoid_hom : (M ≃* N) → M →* N) :=
 λ f g h, mul_equiv.ext (monoid_hom.ext_iff.1 h)
 
 
@@ -271,7 +289,7 @@ where the equivalence between the targets is multiplicative.
 @[simps apply,
   to_additive "An additive analogue of `equiv.arrow_congr`,
 where the equivalence between the targets is additive."]
-def arrow_congr {M N P Q : Type*} [monoid P] [monoid Q]
+def arrow_congr {M N P Q : Type*} [mul_one_class P] [mul_one_class Q]
   (f : M ≃ N) (g : P ≃* Q) : (M → P) ≃* (N → Q) :=
 { to_fun := λ h n, g (h (f.symm n)),
   inv_fun := λ k m, g.symm (k (f m)),
@@ -286,7 +304,7 @@ for multiplicative maps from a monoid to a commutative monoid.
 @[simps apply,
   to_additive "An additive analogue of `equiv.arrow_congr`,
 for additive maps from an additive monoid to a commutative additive monoid."]
-def monoid_hom_congr {M N P Q} [monoid M] [monoid N] [comm_monoid P] [comm_monoid Q]
+def monoid_hom_congr {M N P Q} [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
   (f : M ≃* N) (g : P ≃* Q) : (M →* P) ≃* (N →* Q) :=
 { to_fun := λ h,
   g.to_monoid_hom.comp (h.comp f.symm.to_monoid_hom),
@@ -314,7 +332,7 @@ end mul_equiv
 `f.comp g = id`, returns an additive equivalence with `to_fun = f` and `inv_fun = g`.  This
 constructor is useful if the underlying type(s) have specialized `ext` lemmas for additive
 monoid homomorphisms. -/
-def add_monoid_hom.to_add_equiv [add_monoid M] [add_monoid N] (f : M →+ N) (g : N →+ M)
+def add_monoid_hom.to_add_equiv [add_zero_class M] [add_zero_class N] (f : M →+ N) (g : N →+ M)
   (h₁ : g.comp f = add_monoid_hom.id _) (h₂ : f.comp g = add_monoid_hom.id _) :
   M ≃+ N :=
 { to_fun := f,
@@ -327,7 +345,7 @@ def add_monoid_hom.to_add_equiv [add_monoid M] [add_monoid N] (f : M →+ N) (g 
 returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`.  This constructor is
 useful if the underlying type(s) have specialized `ext` lemmas for monoid homomorphisms. -/
 @[to_additive]
-def monoid_hom.to_mul_equiv [monoid M] [monoid N] (f : M →* N) (g : N →* M)
+def monoid_hom.to_mul_equiv [mul_one_class M] [mul_one_class N] (f : M →* N) (g : N →* M)
   (h₁ : g.comp f = monoid_hom.id _) (h₂ : f.comp g = monoid_hom.id _) :
   M ≃* N :=
 { to_fun := f,
@@ -337,7 +355,8 @@ def monoid_hom.to_mul_equiv [monoid M] [monoid N] (f : M →* N) (g : N →* M)
   map_mul' := f.map_mul }
 
 @[simp, to_additive]
-lemma monoid_hom.coe_to_mul_equiv [monoid M] [monoid N] (f : M →* N) (g : N →* M) (h₁ h₂) :
+lemma monoid_hom.coe_to_mul_equiv [mul_one_class M] [mul_one_class N]
+  (f : M →* N) (g : N →* M) (h₁ h₂) :
   ⇑(f.to_mul_equiv g h₁ h₂) = f := rfl
 
 /-- An additive equivalence of additive groups preserves subtraction. -/
@@ -355,6 +374,8 @@ def to_units {G} [group G] : G ≃* units G :=
   left_inv := λ x, rfl,
   right_inv := λ u, units.ext rfl,
   map_mul' := λ x y, units.ext rfl }
+
+protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
 
 namespace units
 
@@ -462,7 +483,7 @@ end equiv
 section type_tags
 
 /-- Reinterpret `G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/
-def add_equiv.to_multiplicative [add_monoid G] [add_monoid H] :
+def add_equiv.to_multiplicative [add_zero_class G] [add_zero_class H] :
   (G ≃+ H) ≃ (multiplicative G ≃* multiplicative H) :=
 { to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative,
                   f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩,
@@ -471,7 +492,7 @@ def add_equiv.to_multiplicative [add_monoid G] [add_monoid H] :
   right_inv := λ x, by { ext, refl, }, }
 
 /-- Reinterpret `G ≃* H` as `additive G ≃+ additive H`. -/
-def mul_equiv.to_additive [monoid G] [monoid H] :
+def mul_equiv.to_additive [mul_one_class G] [mul_one_class H] :
   (G ≃* H) ≃ (additive G ≃+ additive H) :=
 { to_fun := λ f, ⟨f.to_monoid_hom.to_additive, f.symm.to_monoid_hom.to_additive, f.3, f.4, f.5⟩,
   inv_fun := λ f, ⟨f.to_add_monoid_hom, f.symm.to_add_monoid_hom, f.3, f.4, f.5⟩,
@@ -479,7 +500,7 @@ def mul_equiv.to_additive [monoid G] [monoid H] :
   right_inv := λ x, by { ext, refl, }, }
 
 /-- Reinterpret `additive G ≃+ H` as `G ≃* multiplicative H`. -/
-def add_equiv.to_multiplicative' [monoid G] [add_monoid H] :
+def add_equiv.to_multiplicative' [mul_one_class G] [add_zero_class H] :
   (additive G ≃+ H) ≃ (G ≃* multiplicative H) :=
 { to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative',
                   f.symm.to_add_monoid_hom.to_multiplicative'', f.3, f.4, f.5⟩,
@@ -488,12 +509,12 @@ def add_equiv.to_multiplicative' [monoid G] [add_monoid H] :
   right_inv := λ x, by { ext, refl, }, }
 
 /-- Reinterpret `G ≃* multiplicative H` as `additive G ≃+ H` as. -/
-def mul_equiv.to_additive' [monoid G] [add_monoid H] :
+def mul_equiv.to_additive' [mul_one_class G] [add_zero_class H] :
   (G ≃* multiplicative H) ≃ (additive G ≃+ H) :=
 add_equiv.to_multiplicative'.symm
 
 /-- Reinterpret `G ≃+ additive H` as `multiplicative G ≃* H`. -/
-def add_equiv.to_multiplicative'' [add_monoid G] [monoid H] :
+def add_equiv.to_multiplicative'' [add_zero_class G] [mul_one_class H] :
   (G ≃+ additive H) ≃ (multiplicative G ≃* H) :=
 { to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative'',
                   f.symm.to_add_monoid_hom.to_multiplicative', f.3, f.4, f.5⟩,
@@ -502,7 +523,7 @@ def add_equiv.to_multiplicative'' [add_monoid G] [monoid H] :
   right_inv := λ x, by { ext, refl, }, }
 
 /-- Reinterpret `multiplicative G ≃* H` as `G ≃+ additive H` as. -/
-def mul_equiv.to_additive'' [add_monoid G] [monoid H] :
+def mul_equiv.to_additive'' [add_zero_class G] [mul_one_class H] :
   (multiplicative G ≃* H) ≃ (G ≃+ additive H) :=
 add_equiv.to_multiplicative''.symm
 

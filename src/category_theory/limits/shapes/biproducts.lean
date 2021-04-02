@@ -163,12 +163,12 @@ attribute [instance, priority 100] has_finite_biproducts.has_biproducts_of_shape
 @[priority 100]
 instance has_finite_products_of_has_finite_biproducts [has_finite_biproducts C] :
   has_finite_products C :=
-λ J _ _, ⟨λ F, by exactI has_limit_of_iso discrete.nat_iso_functor.symm⟩
+⟨λ J _ _, ⟨λ F, by exactI has_limit_of_iso discrete.nat_iso_functor.symm⟩⟩
 
 @[priority 100]
 instance has_finite_coproducts_of_has_finite_biproducts [has_finite_biproducts C] :
   has_finite_coproducts C :=
-λ J _ _, ⟨λ F, by exactI has_colimit_of_iso discrete.nat_iso_functor⟩
+⟨λ J _ _, ⟨λ F, by exactI has_colimit_of_iso discrete.nat_iso_functor⟩⟩
 
 variables {J C}
 

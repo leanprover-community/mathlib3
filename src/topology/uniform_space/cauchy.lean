@@ -558,7 +558,7 @@ begin
     h_basis : (𝓤 α).has_antimono_basis (λ _, true) t⟩ :=
     H.exists_antimono_subbasis uniformity_has_basis_open_symmetric,
   refine ⟨⟨⋃ (x ∈ s), range (λ k, ball x (t k)), hsc.bUnion (λ x hx, countable_range _), _⟩⟩,
-  refine (is_topological_basis_of_open_of_nhds _ _).2.2,
+  refine (is_topological_basis_of_open_of_nhds _ _).eq_generate_from,
   { simp only [mem_bUnion_iff, mem_range],
     rintros _ ⟨x, hxs, k, rfl⟩,
     exact is_open_ball x (hto k).2.1 },

@@ -119,6 +119,11 @@ instance pi_set_coe.can_lift' (ι : Type u) (α : Type v) [ne : nonempty α] (s 
   can_lift (s → α) (ι → α) :=
 pi_set_coe.can_lift ι (λ _, α) s
 
+instance set_coe.can_lift (s : set α) : can_lift α s :=
+{ coe := coe,
+  cond := λ a, a ∈ s,
+  prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
+
 end set
 
 section set_coe
@@ -710,6 +715,10 @@ subset.antisymm_iff.trans $ and.comm.trans $ and_congr_left' singleton_subset_if
 lemma eq_singleton_iff_nonempty_unique_mem {s : set α} {a : α} :
   s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
 eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩, λ ⟨x, h⟩, H x h ▸ h⟩
+
+-- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.
+@[simp] lemma default_coe_singleton (x : α) :
+  default ({x} : set α) = ⟨x, rfl⟩ := rfl
 
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
@@ -2069,6 +2078,10 @@ ext $ by simp [-exists_and_distrib_right, exists_and_distrib_right.symm, and.lef
 theorem prod_range_range_eq {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} :
   (range m₁).prod (range m₂) = range (λp:α×β, (m₁ p.1, m₂ p.2)) :=
 ext $ by simp [range]
+
+@[simp] theorem range_prod_map {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} :
+  range (prod.map m₁ m₂) = (range m₁).prod (range m₂) :=
+prod_range_range_eq.symm
 
 theorem prod_range_univ_eq {α β γ} {m₁ : α → γ} :
   (range m₁).prod (univ : set β) = range (λp:α×β, (m₁ p.1, p.2)) :=

@@ -153,7 +153,7 @@ e.injective.has_sum_iff $ by simp
 
 lemma function.injective.has_sum_range_iff {g : γ → β} (hg : injective g) :
   has_sum (λ x : set.range g, f x) a ↔ has_sum (f ∘ g) a :=
-(equiv.set.range g hg).has_sum_iff.symm
+(equiv.of_injective g hg).has_sum_iff.symm
 
 lemma equiv.summable_iff (e : γ ≃ β) :
   summable (f ∘ e) ↔ summable f :=

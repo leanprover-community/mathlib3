@@ -1839,9 +1839,7 @@ def of_submodules (p : submodule R M) (q : submodule R M₂) (h : p.map ↑e = q
 induced `linear_equiv` from `U.comap f.to_linear_map` to `U`. -/
 def of_submodule' [semimodule R M] [semimodule R M₂] (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
   U.comap (f : M →ₗ[R] M₂) ≃ₗ[R] U :=
-f.of_submodules _ _ $
-  linear_map.map_comap_eq_self $ le_top.trans_eq $ eq.symm $
-    linear_map.range_eq_top.mpr f.surjective
+(f.symm.of_submodules _ _ f.symm.map_eq_comap).symm
 
 lemma of_submodule'_to_linear_map [semimodule R M] [semimodule R M₂]
   (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :

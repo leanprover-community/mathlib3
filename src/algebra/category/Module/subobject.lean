@@ -54,7 +54,7 @@ noncomputable def subobject_Module : subobject M ≃o submodule R M := order_iso
     { exact (submodule.range_subtype _).symm }
   end })
 
-instance well_powered_Module : well_powered.{v} (Module.{v} R) :=
+instance well_powered_Module : well_powered (Module.{v} R) :=
 ⟨λ M, ⟨⟨_, ⟨(subobject_Module M).to_equiv⟩⟩⟩⟩
 
 end Module

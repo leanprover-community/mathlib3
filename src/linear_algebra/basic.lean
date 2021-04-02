@@ -1837,21 +1837,27 @@ def of_submodules (p : submodule R M) (q : submodule R M₂) (h : p.map ↑e = q
 
 /-- Given `f : M₁ ≃ₗ[R] M₂` and `U` a submodule of `M₂`, `f.comap U` is the
 induced `linear_equiv` from `U.comap f.to_linear_map` to `U`. -/
-def comap [semimodule R M] [semimodule R M₂] (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
+def of_submodule' [semimodule R M] [semimodule R M₂] (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
   U.comap (f : M →ₗ[R] M₂) ≃ₗ[R] U :=
 f.of_submodules _ _ $
   linear_map.map_comap_eq_self $ le_top.trans_eq $ eq.symm $
     linear_map.range_eq_top.mpr f.surjective
 
-@[simp]
-lemma comap_apply [semimodule R M] [semimodule R M₂]
-  (f : M ≃ₗ[R] M₂) (U : submodule R M₂) (x : U.comap (f : M →ₗ[R] M₂)) :
-(f.comap U x : M₂) = f (x : M) := rfl
+lemma of_submodule'_to_linear_map [semimodule R M] [semimodule R M₂]
+  (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
+  (f.of_submodule' U).to_linear_map =
+  (f.to_linear_map.dom_restrict _).cod_restrict _ subtype.prop :=
+by { ext, refl }
 
 @[simp]
-lemma comap_symm_apply [semimodule R M] [semimodule R M₂]
+lemma of_submodule'_apply [semimodule R M] [semimodule R M₂]
+  (f : M ≃ₗ[R] M₂) (U : submodule R M₂) (x : U.comap (f : M →ₗ[R] M₂)) :
+(f.of_submodule' U x : M₂) = f (x : M) := rfl
+
+@[simp]
+lemma of_submodule'_symm_apply [semimodule R M] [semimodule R M₂]
   (f : M ≃ₗ[R] M₂) (U : submodule R M₂) (x : U) :
-((f.comap U).symm x : M) = f.symm (x : M₂) := rfl
+((f.of_submodule' U).symm x : M) = f.symm (x : M₂) := rfl
 
 variable (p)
 

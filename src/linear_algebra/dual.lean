@@ -591,7 +591,7 @@ lemma findim_dual_annihilator_comap_eq {Φ : subspace K (module.dual K V)} :
   findim K Φ.dual_annihilator_comap = findim K Φ.dual_annihilator :=
 begin
   rw [submodule.dual_annihilator_comap, ← vector_space.eval_equiv_to_linear_map],
-  exact linear_equiv.findim_eq (linear_equiv.comap _ _),
+  exact linear_equiv.findim_eq (linear_equiv.of_submodule' _ _),
 end
 
 lemma findim_add_findim_dual_annihilator_comap_eq

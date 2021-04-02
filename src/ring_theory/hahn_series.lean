@@ -907,15 +907,6 @@ lemma support_hsum_subset {s : summable_family Γ R α} :
   exact ⟨a, h2⟩,
 end
 
---move
-theorem subset_bUnion_of_mem {β : Type*} {s : finset α}
-  {u : α → finset β} {x : α} (xs : x ∈ s) :
-  u x ⊆ s.bUnion u :=
-begin
-  apply subset.trans _ (bUnion_subset_bUnion_of_subset_left u (singleton_subset_iff.2 xs)),
-  exact subset_of_eq singleton_bUnion.symm,
-end
-
 lemma co_support_add_subset {s t : summable_family Γ R α} {g : Γ} :
   (s + t).co_support g ⊆ s.co_support g ∪ t.co_support g :=
 λ a ha, begin
@@ -991,54 +982,6 @@ def lsum : (summable_family Γ R α) →ₗ[hahn_series Γ R] (hahn_series Γ R)
 
 @[simp]
 lemma lsum_apply {s : summable_family Γ R α} : lsum s = hsum s := rfl
-
-/-- A family consisting of one nonzero element as a summable family. -/
-def single (a : α) (x : hahn_series Γ R) : summable_family Γ R α :=
-{ to_fun := pi.single a x,
-  is_wf_Union_support' := begin
-    apply x.is_wf_support.mono (λ g hg, _),
-    obtain ⟨b, hb⟩ := set.mem_Union.1 hg,
-    by_cases ab : b = a,
-    { subst ab,
-      rwa pi.single_eq_same at hb },
-    { rw [pi.single_eq_of_ne ab] at hb,
-      contrapose! hb,
-      simp }
-  end,
-  co_support := λ g, if x.coeff g ≠ 0 then {a} else ∅,
-  mem_co_support' := λ b g, begin
-    split_ifs,
-    { rw [mem_singleton],
-      split,
-      { rintro rfl,
-        rwa pi.single_eq_same },
-      { intro h1,
-        contrapose! h1,
-        rw [pi.single_eq_of_ne h1, zero_coeff] } },
-    { simp only [false_iff, not_not, not_mem_empty],
-      by_cases ab : b = a,
-      { subst ab,
-        rw pi.single_eq_same,
-        rwa not_not at h },
-      { rw [pi.single_eq_of_ne ab, zero_coeff] } }
-  end }
-
-@[simp]
-lemma single_apply_same {a : α} {x : hahn_series Γ R} : (single a x) a = x :=
-pi.single_eq_same a x
-
-@[simp]
-lemma co_support_single {a : α} {x : hahn_series Γ R} {g : Γ} :
-  co_support (single a x) g = if x.coeff g ≠ 0 then {a} else ∅ := rfl
-
-@[simp]
-lemma hsum_single {a : α} {x : hahn_series Γ R} :
-  (single a x).hsum = x :=
-begin
-  ext g,
-  by_cases hx : x.coeff g = 0;
-  simp [hx]
-end
 
 end semiring
 

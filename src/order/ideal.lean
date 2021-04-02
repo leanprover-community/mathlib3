@@ -311,13 +311,11 @@ variable [semilattice_inf P]
 
 @[priority 100]
 instance semilattice_inf.ideal_inter_nonempty : ideal_inter_nonempty P :=
-{
-  inter_nonempty := λ I J, begin
+{ inter_nonempty := λ I J, begin
     cases I.nonempty with i _,
     cases J.nonempty with j _,
     exact ⟨i ⊓ j, I.mem_of_le inf_le_left ‹_›, J.mem_of_le inf_le_right ‹_›⟩
-  end
-}
+  end }
 
 end semilattice_inf
 

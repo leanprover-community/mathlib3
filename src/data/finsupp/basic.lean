@@ -1305,6 +1305,13 @@ finset.sum_congr rfl $ λ _ H, by simp only [h _ H]
 lemma map_domain_add {f : α → β} : map_domain f (v₁ + v₂) = map_domain f v₁ + map_domain f v₂ :=
 sum_add_index (λ _, single_zero) (λ _ _ _, single_add)
 
+@[simp] lemma map_domain_equiv_apply {f : α ≃ β} (x : α →₀ M) (a : β) :
+  map_domain f x a = x (f.symm a) :=
+begin
+  conv_lhs { rw ←f.apply_symm_apply a},
+  exact map_domain_apply f.injective _ _,
+end
+
 /-- `finsupp.map_domain` is an `add_monoid_hom`. -/
 @[simps]
 def map_domain.add_monoid_hom (f : α → β) : (α →₀ M) →+ (β →₀ M) :=

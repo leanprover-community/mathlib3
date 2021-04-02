@@ -64,6 +64,14 @@ lemma prod_eq_single {f : α → M} (a : α) (h : ∀ x ≠ a, f x = 1) :
 finset.prod_eq_single a (λ x _ hx, h x hx) $ λ ha, (ha (finset.mem_univ a)).elim
 
 @[to_additive]
+lemma prod_eq_mul {f : α → M} (a b : α) (h₁ : a ≠ b) (h₂ : ∀ x, x ≠ a ∧ x ≠ b → f x = 1) :
+  (∏ x, f x) = (f a) * (f b) :=
+begin
+  apply finset.prod_eq_mul a b h₁ (λ x _ hx, h₂ x hx);
+  exact λ hc, (hc (finset.mem_univ _)).elim
+end
+
+@[to_additive]
 lemma prod_unique [unique β] (f : β → M) :
   (∏ x, f x) = f (default β) :=
 by simp only [finset.prod_singleton, univ_unique]

@@ -95,8 +95,7 @@ lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) 
   a • monomial n b = monomial n (a • b) :=
 finsupp.smul_single _ _ _
 
-lemma support_add : (p + q).support ⊆ p.support ∪ q.support :=
-by convert @support_add _ _ _ p q
+lemma support_add : (p + q).support ⊆ p.support ∪ q.support := support_add
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1

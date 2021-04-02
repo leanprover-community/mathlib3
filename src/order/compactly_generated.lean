@@ -144,7 +144,7 @@ begin
   classical,
   rw is_compact_element_iff_le_of_directed_Sup_le,
   intros d hemp hdir hsup,
-  change f with id ∘ f, rw finset.sup_finset_image,
+  change f with id ∘ f, rw ←finset.sup_finset_image,
   apply finset.sup_le_of_le_directed d hemp hdir,
   rintros x hx,
   obtain ⟨p, ⟨hps, rfl⟩⟩ := finset.mem_image.mp hx,

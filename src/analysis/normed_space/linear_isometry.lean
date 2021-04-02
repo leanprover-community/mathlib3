@@ -185,6 +185,8 @@ def of_bounds (e : E ≃ₗ[R] F) (h₁ : ∀ x, ∥e x∥ ≤ ∥x∥) (h₂ : 
 /-- Reinterpret a `linear_isometry_equiv` as a `linear_isometry`. -/
 def to_linear_isometry : E →ₗᵢ[R] F := ⟨e.1, e.2⟩
 
+@[simp] lemma coe_to_linear_isometry : ⇑e.to_linear_isometry = e := rfl
+
 protected lemma isometry : isometry e := e.to_linear_isometry.isometry
 
 /-- Reinterpret a `linear_isometry_equiv` as an `isometric`. -/

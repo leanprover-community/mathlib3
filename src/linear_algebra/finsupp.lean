@@ -650,7 +650,9 @@ section sum
 
 variables (R)
 
-/-- The linear equivalence between `(α ⊕ β) →₀ M` and `(α →₀ M) × (β →₀ M)`. -/
+/-- The linear equivalence between `(α ⊕ β) →₀ M` and `(α →₀ M) × (β →₀ M)`.
+
+This is the `linear_equiv` version of `finsupp.sum_arrow_equiv_prod_arrow`. -/
 @[simps apply symm_apply] def sum_arrow_lequiv_prod_arrow {α β : Type*} :
   ((α ⊕ β) →₀ M) ≃ₗ[R] (α →₀ M) × (β →₀ M) :=
 { map_add' :=

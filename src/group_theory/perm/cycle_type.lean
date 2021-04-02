@@ -25,7 +25,7 @@ In this file we define the cycle type of a partition.
 -/
 
 namespace equiv.perm
-open equiv
+open equiv list multiset
 
 variables {α : Type*} [fintype α] [decidable_eq α]
 
@@ -83,16 +83,16 @@ lemma mem_list_cycles_iff_prod_cycle_of_eq {l : list (perm α)}
 begin
   induction l with σ l ih,
   { exact ⟨false.elim, λ h, hc (ext_iff.mp (h.symm.trans (cycle_of_one a)) a)⟩ },
-  { have x := ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2),
-    have y := cycle_of_mul_eq_iff (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h2).1) hc,
+  { have x := ih (λ τ hτ, h1 τ (mem_cons_of_mem σ hτ)) (pairwise_of_pairwise_cons h2),
+    have y := cycle_of_mul_eq_iff (disjoint_prod_list_of_disjoint (pairwise_cons.mp h2).1) hc,
     have z := (h1 σ (l.mem_cons_self σ)).cycle_of_eq_iff hc,
-    rw [list.mem_cons_iff, list.prod_cons, x, y, z] },
+    rw [mem_cons_iff, list.prod_cons, x, y, z] },
 end
 
 lemma nodup_of_pairwise_disjoint {l : list (perm α)} (h1 : (1 : perm α) ∉ l)
   (h2 : l.pairwise disjoint) : l.nodup :=
 begin
-  refine list.pairwise.imp_of_mem _ h2,
+  refine pairwise.imp_of_mem _ h2,
   rintros σ - h_mem - h_disjoint rfl,
   suffices : σ = 1,
   { rw this at h_mem,
@@ -107,7 +107,7 @@ lemma list_cycles_perm_list_cycles {l₁ l₂ : list (perm α)} (h₀ : l₁.pro
 begin
   have h₃l₁ : (1 : perm α) ∉ l₁ := λ h, (h₁l₁ 1 h).ne_one rfl,
   have h₃l₂ : (1 : perm α) ∉ l₂ := λ h, (h₁l₂ 1 h).ne_one rfl,
-  refine (list.perm_ext (nodup_of_pairwise_disjoint h₃l₁ h₂l₁)
+  refine (perm_ext (nodup_of_pairwise_disjoint h₃l₁ h₂l₁)
     (nodup_of_pairwise_disjoint h₃l₂ h₂l₂)).mpr (λ c, _),
   by_cases hc : c = 1,
   { rw hc,
@@ -120,7 +120,7 @@ end
 /-- The cycle type of a permutation -/
 def cycle_type (σ : perm α) : multiset ℕ :=
 σ.trunc_cycle_factors.lift (λ l, l.1.map (finset.card ∘ support))
-  (λ l₁ l₂, multiset.coe_eq_coe.mpr (list.perm.map _
+  (λ l₁ l₂, coe_eq_coe.mpr (perm.map _
   (list_cycles_perm_list_cycles (l₁.2.1.trans l₂.2.1.symm) l₁.2.2.1 l₂.2.2.1 l₁.2.2.2 l₂.2.2.2)))
 
 lemma cycle_type_eq {σ : perm α} (l : list (perm α)) (h0 : l.prod = σ)
@@ -129,36 +129,36 @@ lemma cycle_type_eq {σ : perm α} (l : list (perm α)) (h0 : l.prod = σ)
 by rw [cycle_type, trunc.eq σ.trunc_cycle_factors (trunc.mk ⟨l, h0, h1, h2⟩), trunc.lift_mk]
 
 lemma cycle_type_one : (1 : perm α).cycle_type = 0 :=
-cycle_type_eq [] rfl (λ _, false.elim) list.pairwise.nil
+cycle_type_eq [] rfl (λ _, false.elim) pairwise.nil
 
 lemma cycle_type_eq_zero {σ : perm α} : σ.cycle_type = 0 ↔ σ = 1 :=
 begin
   split,
   { intro h,
     let x := σ.trunc_cycle_factors.out,
-    rw [cycle_type_eq x.1 x.2.1 x.2.2.1 x.2.2.2, multiset.coe_eq_zero, list.map_eq_nil] at h,
-    exact x.2.1.symm.trans (congr_arg list.prod h) },
+    rw [cycle_type_eq x.1 x.2.1 x.2.2.1 x.2.2.2, coe_eq_zero, map_eq_nil] at h,
+    exact x.2.1.symm.trans (congr_arg _ h) },
   { exact λ h, by rw [h, cycle_type_one] },
 end
 
 lemma card_cycle_type_eq_zero {σ : perm α} : σ.cycle_type.card = 0 ↔ σ = 1 :=
-by rw [multiset.card_eq_zero, cycle_type_eq_zero]
+by rw [card_eq_zero, cycle_type_eq_zero]
 
 lemma is_cycle.cycle_type {σ : perm α} (hσ : is_cycle σ) : σ.cycle_type = [σ.support.card] :=
 cycle_type_eq [σ] (mul_one σ) (λ τ hτ, (congr_arg is_cycle (list.mem_singleton.mp hτ)).mpr hσ)
-  (list.pairwise_singleton disjoint σ)
+  (pairwise_singleton disjoint σ)
 
 lemma card_cycle_type_eq_one {σ : perm α} : σ.cycle_type.card = 1 ↔ σ.is_cycle :=
 begin
   split,
   { intro hσ,
     let x := σ.trunc_cycle_factors.out,
-    rw [cycle_type_eq x.1 x.2.1 x.2.2.1 x.2.2.2, multiset.coe_card, list.length_map] at hσ,
-    obtain ⟨τ, hτ⟩ := list.length_eq_one.mp hσ,
+    rw [cycle_type_eq x.1 x.2.1 x.2.2.1 x.2.2.2, coe_card, length_map] at hσ,
+    obtain ⟨τ, hτ⟩ := length_eq_one.mp hσ,
     rw [←x.2.1, hτ, list.prod_singleton],
     apply x.2.2.1,
     rw [hτ, list.mem_singleton] },
-  { exact λ hσ, by rw [hσ.cycle_type, multiset.coe_card, list.length_singleton] },
+  { exact λ hσ, by rw [hσ.cycle_type, coe_card, length_singleton] },
 end
 
 lemma disjoint.cycle_type_aux {l : list (perm α)} (h1 : l.pairwise disjoint) {a : α}
@@ -169,10 +169,10 @@ begin
   { exact λ _ _, false.elim },
   { intros h1 h2 h3,
     rw [list.prod_cons,
-        (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h1).1).mul_apply_eq_iff] at h2,
+        (disjoint_prod_list_of_disjoint (pairwise_cons.mp h1).1).mul_apply_eq_iff] at h2,
     cases ((l.mem_cons_iff σ τ).mp h3) with h4 h4,
     { rw [h4, h2.1] },
-    { exact ih (list.pairwise_of_pairwise_cons h1) h2.2 h4 } },
+    { exact ih (pairwise_of_pairwise_cons h1) h2.2 h4 } },
 end
 
 lemma disjoint.cycle_type {σ τ : perm α} (h : disjoint σ τ) :
@@ -181,10 +181,10 @@ begin
   let x := σ.trunc_cycle_factors.out,
   let y := τ.trunc_cycle_factors.out,
   rw [cycle_type_eq x.1 x.2.1 x.2.2.1 x.2.2.2, cycle_type_eq y.1 y.2.1 y.2.2.1 y.2.2.2,
-      cycle_type_eq (x.1 ++ y.1) _ _ _, list.map_append, ←multiset.coe_add],
-  { rw [list.prod_append, x.2.1, y.2.1] },
-  { exact λ f hf, (list.mem_append.mp hf).elim (x.2.2.1 f) (y.2.2.1 f) },
-  { refine list.pairwise_append.mpr ⟨x.2.2.2, y.2.2.2, λ f hf g hg, _⟩,
+      cycle_type_eq (x.1 ++ y.1) _ _ _, map_append, ←coe_add],
+  { rw [prod_append, x.2.1, y.2.1] },
+  { exact λ f hf, (mem_append.mp hf).elim (x.2.2.1 f) (y.2.2.1 f) },
+  { refine pairwise_append.mpr ⟨x.2.2.2, y.2.2.2, λ f hf g hg, _⟩,
     rw [←x.2.1, ←y.2.1] at h,
     intro a,
     cases h a with ha ha,
@@ -205,11 +205,11 @@ two_le_of_mem_cycle_type h
 lemma sum_cycle_type (σ : perm α) : σ.cycle_type.sum = σ.support.card :=
 begin
   apply induction_on_cycles (λ τ : perm α, τ.cycle_type.sum = τ.support.card),
-  { rw [cycle_type_one, multiset.sum_zero, support_one, finset.card_empty] },
+  { rw [cycle_type_one, sum_zero, support_one, finset.card_empty] },
   { intros σ hσ,
-    rw [hσ.cycle_type, multiset.coe_sum, list.sum_singleton] },
+    rw [hσ.cycle_type, coe_sum, list.sum_singleton] },
   { intros σ τ hστ hσ hτ,
-    rw [hστ.cycle_type, multiset.sum_add, hστ.card_support_mul, hσ, hτ] },
+    rw [hστ.cycle_type, sum_add, hστ.card_support_mul, hσ, hτ] },
 end
 
 /-- `ℕ` is a `gcd_monoid` -/
@@ -230,27 +230,23 @@ instance : gcd_monoid ℕ :=
     (by rw [one_inv, units.ext_iff, units.coe_one, nat.is_unit_iff.mp u.is_unit]) }
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
-begin
-  apply induction_on_cycles (λ τ : perm α, τ.cycle_type.lcm = order_of τ),
-  { rw [cycle_type_one, multiset.lcm_zero, order_of_one] },
-  { intros σ hσ,
-    rw [hσ.cycle_type, ←multiset.singleton_coe, multiset.lcm_singleton, order_of_is_cycle hσ],
-    exact mul_one σ.support.card },
-  { intros σ τ hστ hσ hτ,
-    rw [hστ.cycle_type, multiset.lcm_add, hστ.order_of, hσ, hτ],
-    refl },
-end
+induction_on_cycles
+  (λ τ : perm α, τ.cycle_type.lcm = order_of τ)
+  (by rw [cycle_type_one, lcm_zero, order_of_one])
+  (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, lcm_singleton, order_of_is_cycle hσ,
+    nat.normalize_eq])
+  (λ σ τ hστ hσ hτ, by rw [hστ.cycle_type, lcm_add, nat.lcm_eq_lcm, hστ.order_of, hσ, hτ]) σ
 
 lemma dvd_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : n ∣ order_of σ :=
 begin
   rw ← lcm_cycle_type,
-  exact multiset.dvd_lcm h,
+  exact dvd_lcm h,
 end
 
 lemma cycle_type_prime_order {σ : perm α} (hσ : (order_of σ).prime) :
-  ∃ n : ℕ, σ.cycle_type = multiset.repeat (order_of σ) n.succ :=
+  ∃ n : ℕ, σ.cycle_type = repeat (order_of σ) n.succ :=
 begin
-  rw multiset.eq_repeat_of_mem (λ n hn, or_iff_not_imp_left.mp
+  rw eq_repeat_of_mem (λ n hn, or_iff_not_imp_left.mp
     (hσ.2 n (dvd_of_mem_cycle_type hn)) (ne_of_gt (one_lt_of_mem_cycle_type hn))),
   use σ.cycle_type.card.pred,
   rw nat.succ_pred_eq_of_pos,
@@ -266,7 +262,7 @@ begin
   obtain ⟨n, hn⟩ := cycle_type_prime_order h1,
   rw [←σ.sum_cycle_type, hn, multiset.sum_repeat, nsmul_eq_mul, nat.cast_id, mul_lt_mul_right
       (order_of_pos σ), nat.succ_lt_succ_iff, nat.lt_succ_iff, nat.le_zero_iff] at h2,
-  rw [←card_cycle_type_eq_one, hn, multiset.card_repeat, h2],
+  rw [←card_cycle_type_eq_one, hn, card_repeat, h2],
 end
 
 lemma is_cycle_of_prime_order' {σ : perm α} (h1 : (order_of σ).prime)
@@ -283,14 +279,14 @@ end
 
 /-- The partition corresponding to a permutation -/
 def partition (σ : perm α) : partition (fintype.card α) :=
-{ parts := σ.cycle_type + multiset.repeat 1 (fintype.card α - σ.support.card),
+{ parts := σ.cycle_type + repeat 1 (fintype.card α - σ.support.card),
   parts_pos := λ n hn,
   begin
-    cases multiset.mem_add.mp hn with hn hn,
+    cases mem_add.mp hn with hn hn,
     { exact zero_lt_one.trans (one_lt_of_mem_cycle_type hn) },
     { exact lt_of_lt_of_le zero_lt_one (ge_of_eq (multiset.eq_of_mem_repeat hn)) },
   end,
-  parts_sum := by rw [multiset.sum_add, sum_cycle_type, multiset.sum_repeat, nsmul_eq_mul,
+  parts_sum := by rw [sum_add, sum_cycle_type, multiset.sum_repeat, nsmul_eq_mul,
     nat.cast_id, mul_one, nat.add_sub_cancel' σ.support.card_le_univ] }
 
 end equiv.perm

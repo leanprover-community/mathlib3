@@ -2257,7 +2257,7 @@ begin
   exact Exists.imp (λ a ha, ⟨h ha.1, ha.2⟩)
 end
 
-lemma subset_bUnion_of_mem [decidable_eq β] {s : finset α}
+lemma subset_bUnion_of_mem {s : finset α}
   (u : α → finset β) {x : α} (xs : x ∈ s) :
   u x ⊆ s.bUnion u :=
 begin

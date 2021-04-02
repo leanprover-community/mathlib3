@@ -464,10 +464,7 @@ def dual_annihilator_comap (Φ : submodule R (module.dual R M)) : submodule R M 
 
 lemma mem_dual_annihilator_comap_iff {Φ : submodule R (module.dual R M)} (x : M) :
   x ∈ Φ.dual_annihilator_comap ↔ ∀ φ ∈ Φ, (φ x : R) = 0 :=
-begin
-  simp_rw [dual_annihilator_comap, mem_comap, mem_dual_annihilator],
-  refl
-end
+by simp_rw [dual_annihilator_comap, mem_comap, mem_dual_annihilator, module.dual.eval_apply]
 
 end submodule
 

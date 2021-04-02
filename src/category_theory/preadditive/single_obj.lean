@@ -22,6 +22,6 @@ instance : preadditive (single_obj α) :=
 { add_comp' := λ _ _ _ f f' g, mul_add g f f',
   comp_add' := λ _ _ _ f g g', add_mul g g' f, }
 
--- TODO define `PreAddCat` (with additive functors as morphisms), and `Ring ⥤ PreAdditiveCat`.
+-- TODO define `PreAddCat` (with additive functors as morphisms), and `Ring ⥤ PreAddCat`.
 
 end category_theory

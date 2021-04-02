@@ -1,6 +1,28 @@
+/-
+Copyright (c) 2020 Thomas Browning. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Thomas Browning
+-/
+
 import group_theory.perm.cycles
 import combinatorics.partition
 import data.multiset.gcd
+
+/-!
+# Cycle Types
+
+In this file we define the cycle type of a partition.
+
+## Main definitions
+
+- `σ.cycle_type` where `σ` is a permutation of a `fintype`
+- `σ.partition` where `σ` is a permutation of a `fintype`
+
+## Main results
+
+- `sum_cycle_type` : The sum of `σ.cycle_type` equals `σ.support.card`
+- `lcm_cycle_type` : The lcm of `σ.cycle_type` equals `order_of σ`
+-/
 
 namespace equiv.perm
 open equiv
@@ -95,6 +117,7 @@ begin
         mem_list_cycles_iff_prod_cycle_of_eq h₁l₂ h₂l₂ hc, h₀] },
 end
 
+/-- The cycle type of a permutation -/
 def cycle_type (σ : perm α) : multiset ℕ :=
 σ.trunc_cycle_factors.lift (λ l, l.1.map (finset.card ∘ support))
   (λ l₁ l₂, multiset.coe_eq_coe.mpr (list.perm.map _
@@ -189,6 +212,7 @@ begin
     rw [hστ.cycle_type, multiset.sum_add, hστ.card_support_mul, hσ, hτ] },
 end
 
+/-- `ℕ` is a `gcd_monoid` -/
 instance : gcd_monoid ℕ :=
 { gcd            := nat.gcd,
   lcm            := nat.lcm,
@@ -202,8 +226,8 @@ instance : gcd_monoid ℕ :=
   norm_unit := λ _, 1,
   norm_unit_zero := rfl,
   norm_unit_mul := λ _ _ _ _, rfl,
-  norm_unit_coe_units := λ u,
-    by rw [(show u = 1, from units.ext (nat.is_unit_iff.mp u.is_unit)), one_inv] }
+  norm_unit_coe_units := λ u, eq_inv_of_eq_inv
+    (by rw [one_inv, units.ext_iff, units.coe_one, nat.is_unit_iff.mp u.is_unit]) }
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 begin
@@ -257,6 +281,7 @@ begin
   exact one_lt_two,
 end
 
+/-- The partition corresponding to a permutation -/
 def partition (σ : perm α) : partition (fintype.card α) :=
 { parts := σ.cycle_type + multiset.repeat 1 (fintype.card α - σ.support.card),
   parts_pos := λ n hn,

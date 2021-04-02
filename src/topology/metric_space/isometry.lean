@@ -56,7 +56,7 @@ lipschitz_with.of_edist_le $ λ x y, le_of_eq (h x y)
 lemma isometry.antilipschitz (h : isometry f) : antilipschitz_with 1 f :=
 λ x y, by simp only [h x y, ennreal.coe_one, one_mul, le_refl]
 
-/-- An isometry from a metric space is injective -/
+/-- An isometry from an emetric space is injective -/
 lemma isometry.injective {α : Type u} [emetric_space α] {f : α → β} (h : isometry f) :
   injective f := h.antilipschitz.injective
 

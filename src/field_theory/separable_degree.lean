@@ -50,9 +50,8 @@ https://stacks.math.columbia.edu/tag/09H0 -/
 lemma irreducible_has_separable_contraction {F : Type} [field F] (q : ℕ) [hF : exp_char F q]
   (f : polynomial F) [irred : irreducible f] (fn : f ≠ 0) : has_separable_contraction q f :=
 begin
-  casesI hF.exp_char_def with h_one h_prime,
-  { haveI := h_one.2,
-    use f,
+  casesI hF,
+  { use f,
     exact ⟨irreducible.separable irred, ⟨0, by rw [pow_zero, polynomial.expand_one]⟩⟩ },
   { haveI qp : fact (nat.prime q) := fact_iff.mpr hF_hprime,
     rcases polynomial.exists_separable_of_irreducible q irred fn with ⟨n, g, hg⟩,
@@ -74,18 +73,9 @@ end
 /-- The separable degree divides the degree. -/
 lemma separable_degree_dvd_degree (f : polynomial F) [hf : has_separable_contraction q f] :
   (separable_degree q f) ∣ f.nat_degree :=
-
-begin
-  cases separable_degree_dvd_degree' q f with m hm,
-  use q^m,
-  rw hm,
-end
+exists.elim (separable_degree_dvd_degree' q f) (λ a, λ ha, dvd.intro (q ^ a) ha)
 
 /-- In exponential characteristic one, the separable degree equals the degree. -/
 lemma separable_degree_eq_degree (f : polynomial F) [exp_char F 1]
   [hf : has_separable_contraction 1 f] : (separable_degree 1 f) = f.nat_degree :=
-begin
-  cases separable_degree_dvd_degree' 1 f with m hm,
-  rw [one_pow m, mul_one] at hm,
-  exact hm,
-end
+exists.elim (separable_degree_dvd_degree' 1 f) (λ a, λ ha, by rw [←ha, one_pow a, mul_one])

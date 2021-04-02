@@ -31,7 +31,7 @@ open_locale classical
 variables {F : Type} [comm_semiring F]
   (q : ℕ) [exp_char F q]
 
-/-- A separable contraction of a polynomial `f` is a separable polynomial `g` such that 
+/-- A separable contraction of a polynomial `f` is a separable polynomial `g` such that
 `g(x^(q^m)) = f(x)` for some `m : ℕ`.-/
 class has_separable_contraction (f : polynomial F) : Prop :=
 (has_separable_contraction' : ∃ g : polynomial F,
@@ -48,11 +48,12 @@ polynomial.nat_degree (separable_contraction q f)
 /-- Every irreducible polynomial can be contracted to a separable polynomial.
 https://stacks.math.columbia.edu/tag/09H0 -/
 lemma irreducible_has_separable_contraction {F : Type} [field F] (q : ℕ) [hF : exp_char F q]
-  (f : polynomial F) (irred : irreducible f) (fn : f ≠ 0) : has_separable_contraction q f :=
+  (f : polynomial F) [irred : irreducible f] (fn : f ≠ 0) : has_separable_contraction q f :=
 begin
-  casesI hF,
-  { use f,
-    exact ⟨irreducible.separable irred, ⟨0, by rw [one_pow, polynomial.expand_one]⟩⟩ },
+  casesI hF.exp_char_def with h_one h_prime,
+  { haveI := h_one.2,
+    use f,
+    exact ⟨irreducible.separable irred, ⟨0, by rw [pow_zero, polynomial.expand_one]⟩⟩ },
   { haveI qp : fact (nat.prime q) := fact_iff.mpr hF_hprime,
     rcases polynomial.exists_separable_of_irreducible q irred fn with ⟨n, g, hg⟩,
     use g,
@@ -73,6 +74,7 @@ end
 /-- The separable degree divides the degree. -/
 lemma separable_degree_dvd_degree (f : polynomial F) [hf : has_separable_contraction q f] :
   (separable_degree q f) ∣ f.nat_degree :=
+
 begin
   cases separable_degree_dvd_degree' q f with m hm,
   use q^m,

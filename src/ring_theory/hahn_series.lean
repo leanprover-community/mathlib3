@@ -967,7 +967,6 @@ begin
     refine sum_congr rfl (λ ij hij, _),
     rw [hsum_coeff, ← mul_sum],
     apply congr rfl (sum_subset (subset_bUnion_of_mem _ hij) _).symm,
-    { apply_instance },
     intros a h1 h2,
     contrapose! h2,
     rw [mem_co_support],

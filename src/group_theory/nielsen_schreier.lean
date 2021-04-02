@@ -109,10 +109,10 @@ def of_mul_equiv {G H : Type u} [group G] [group H] (h : G ≃* H) [is_free_grou
 end is_free_group
 
 /-- A groupoid `G` is free when we have the following data:
- - a quiver `generators G` whose vertices are objects of `G`
- - a function `of` sending an arrow in `generators G` to a morphism in `G`
+ - a quiver `generators` whose vertices are objects of `G`
+ - a function `of` sending an arrow in `generators` to a morphism in `G`
  - such that a functor from `G` to any group `X` is uniquely determined
-   by assigning labels in `X` to the vertices of `X`. -/
+   by assigning labels in `X` to the arrows in `generators. -/
 class is_free_groupoid (G) [groupoid.{v} G] :=
 (generators : quiver.{v+1} G)
 (of : Π ⦃a b⦄, generators.arrow a b → (a ⟶ b))
@@ -157,15 +157,11 @@ def mul_aut_of_action (G A X) [group G] [mul_action G A] [has_mul X] :
 @[simp] lemma mul_aut_of_action_apply {G A X : Type*} [group G] [mul_action G A] [has_mul X]
   (g : Gᵒᵖ) (F : A → X) (a : A) : mul_aut_of_action G A X g F a = F (g.unop • a) := rfl
 
-/-- A group homomorphisms `G →* Hᵒᵖ` is the sa-/
-def hom_op_equiv_op_hom {G H} [monoid G] [monoid H] :
-  (G →* Hᵒᵖ) ≃ (Gᵒᵖ →* H) :=
-{ to_fun := λ f, { to_fun := λ g', (f g'.unop).unop,
-    map_one' := by simp, map_mul' := by simp },
-  inv_fun := λ f, { to_fun := λ g, op (f (op g)),
-    map_one' := by simp, map_mul' := by simp },
-  left_inv := by { intro, ext, simp },
-  right_inv := by { intro, ext, simp } }
+/-- A group homomorphisms `G →* Hᵒᵖ` is the same as a group homomorphism `Gᵒᵖ →* H`. -/
+def op_hom_of_hom_op {G H} [monoid G] [monoid H] (f : G →* Hᵒᵖ) : (Gᵒᵖ →* H) :=
+{ to_fun := λ g', (f g'.unop).unop,
+  map_one' := by simp only [unop_one, monoid_hom.map_one],
+  map_mul' := by simp only [forall_const, unop_mul, monoid_hom.map_mul, eq_self_iff_true] }
 
 /-- Given `G` acting on `A`, a functor from the corresponding action groupoid to a group `X`
     can be curried to a group homomorphism `G →* G ⋉ (A → X)`.
@@ -238,7 +234,7 @@ instance {G A : Type u} [group G] [is_free_group G] [mul_action G A] :
       { refine action_category.cases _, intros,
         change _ == ((F' _).unop.left _).unop,
         rw ←this, refl } },
-    { apply fgp.end_is_id ((hom_op_equiv_op_hom (right_hom : _ →* Gᵒᵖ)).comp F'),
+    { apply fgp.end_is_id ((op_hom_of_hom_op (right_hom : _ →* Gᵒᵖ)).comp F'),
       intro, rw [monoid_hom.comp_apply, hF'], refl }
   end }
 
@@ -357,7 +353,8 @@ class is_pretransitive (G X) [monoid G] [mul_action G X] : Prop :=
 lemma exists_smul_eq (M) {X} [monoid M] [mul_action M X] [is_pretransitive M X] (x y : X) :
   ∃ m : M, m • x = y := is_pretransitive.exists_smul_eq x y
 
-instance is_transitive_quotient (G) [group G] (H : subgroup G) : is_pretransitive G (quotient H) :=
+instance is_pretransitive_quotient (G) [group G] (H : subgroup G) :
+  is_pretransitive G (quotient H) :=
 { exists_smul_eq := by { rintros ⟨x⟩ ⟨y⟩, refine ⟨y * x⁻¹, quotient_group.eq.mpr _⟩,
     simp only [mul_left_inv, inv_mul_cancel_right, H.one_mem] } }
 

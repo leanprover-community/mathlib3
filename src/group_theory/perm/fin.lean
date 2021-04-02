@@ -99,16 +99,16 @@ namespace fin
 
 /-- `fin.cycle_range i` is the cycle `(0 1 2 ... i)` leaving `(i+1 ... (n-1))` unchanged. -/
 def cycle_range {n : ℕ} (i : fin n) : perm (fin n) :=
-((equiv.set.range_of_left_inverse' (fin.cast_le (nat.succ_le_of_lt i.is_lt)).to_embedding
-  coe (by { intros x, ext, simp }))
-  .perm_congr (fin_rotate (i + 1)))
-  .subtype_congr (equiv.refl _)
+(fin_rotate (i + 1))
+  .extend_domain (equiv.of_left_inverse' (fin.cast_le (nat.succ_le_of_lt i.is_lt)).to_embedding
+    coe (by { intros x, ext, simp }))
 
 lemma cycle_range_of_gt {n : ℕ} {i j : fin n.succ} (h : i < j) :
   cycle_range i j = j :=
 begin
-  rw [cycle_range, set.range_of_left_inverse'_eq_range, ←function.embedding.to_equiv_range_eq_range,
-      ←via_embedding, via_embedding_apply_not_image],
+  rw [cycle_range, of_left_inverse'_eq_of_injective,
+      ←function.embedding.to_equiv_range_eq_of_injective,
+      ←via_embedding, via_embedding_apply_not_mem_range],
   simpa
 end
 
@@ -120,12 +120,12 @@ begin
   have : j = (fin.cast_le (nat.succ_le_of_lt i.is_lt)).to_embedding
     ⟨j, lt_of_le_of_lt h (nat.lt_succ_self i)⟩,
     { simp },
-  rw [this, cycle_range, set.range_of_left_inverse'_eq_range,
-      ←function.embedding.to_equiv_range_eq_range, ←via_embedding, via_embedding_apply_image],
+  rw [this, cycle_range, of_left_inverse'_eq_of_injective,
+      ←function.embedding.to_equiv_range_eq_of_injective,
+      ←via_embedding, via_embedding_apply_image],
   rcases h.eq_or_lt with rfl|h,
   { simp },
-  { simp,
-    suffices : (j : ℕ) + 1 = ((j + 1) : fin _),
+  { suffices : (j : ℕ) + 1 = ((j + 1) : fin _),
       { simp [h, h.ne, this], },
     rw [fin.coe_add, fin.coe_one, nat.mod_eq_of_lt],
     exact (lt_of_le_of_lt (nat.succ_le_of_lt h) i.is_lt) }

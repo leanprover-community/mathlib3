@@ -1750,6 +1750,11 @@ lemma of_left_inverse_eq_of_injective {α β : Type*} [nonempty α]
   of_left_inverse f f_inv hf = of_injective f (hf ‹_›).injective :=
 by { ext, simp }
 
+lemma of_left_inverse'_eq_of_injective {α β : Type*} [nonempty α]
+  (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
+  of_left_inverse' f f_inv hf = of_injective f hf.injective :=
+of_left_inverse_eq_of_injective _ _ _
+
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
 @[simps apply]
 noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α ≃ β :=

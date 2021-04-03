@@ -654,19 +654,6 @@ lemma continuous_pi_iff [topological_space α] [∀ i, topological_space (π i)]
   continuous f ↔ ∀ i, continuous (λ y, f y i) :=
 iff.intro (λ h i, (continuous_apply i).comp h) continuous_pi
 
-/-- Embedding a factor into a product space (by fixing arbitrarily all the other coordinates) is
-continuous. -/
-@[continuity]
-lemma continuous_update [decidable_eq ι] [∀i, topological_space (π i)] {i : ι} {f : Πi:ι, π i} :
-  continuous (λ x : π i, function.update f i x) :=
-begin
-  refine continuous_pi (λj, _),
-  by_cases h : j = i,
-  { rw h,
-    simpa using continuous_id },
-  { simpa [h] using continuous_const }
-end
-
 lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
   𝓝 a = (⨅i, comap (λx, x i) (𝓝 (a i))) :=
 calc 𝓝 a = (⨅i, @nhds _ (@topological_space.induced _ _ (λx:Πi, π i, x i) (t i)) a) : nhds_infi
@@ -699,8 +686,7 @@ lemma continuous.update [∀i, topological_space (π i)] [topological_space α] 
 continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.update i hg.continuous_at
 
 /-- `function.update f i x` is continuous in `(f, x)`. -/
-@[continuity]
-lemma continuous_update [∀i, topological_space (π i)] [decidable_eq ι] (i : ι) :
+@[continuity] lemma continuous_update [∀i, topological_space (π i)] [decidable_eq ι] (i : ι) :
   continuous (λ f : (Π j, π j) × π i, function.update f.1 i f.2) :=
 continuous_fst.update i continuous_snd
 

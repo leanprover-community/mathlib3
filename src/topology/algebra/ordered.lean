@@ -282,6 +282,14 @@ is_open_Iio.interior_eq
 @[simp] lemma interior_Ioo : interior (Ioo a b) = Ioo a b :=
 is_open_Ioo.interior_eq
 
+lemma eventually_le_of_tendsto_lt {l : filter γ} {f : γ → α} {u v : α} (hv : v < u) :
+  tendsto f l (𝓝 v) → ∀ᶠ a in l, f a ≤ u :=
+λ h, eventually.mono (tendsto_nhds.1 h (< u) is_open_Iio hv) (λ v, le_of_lt)
+
+lemma eventually_ge_of_tendsto_gt {l : filter γ} {f : γ → α} {u v : α} (hv : u < v) :
+  tendsto f l (𝓝 v) → ∀ᶠ a in l, u ≤ f a :=
+λ h, eventually.mono (tendsto_nhds.1 h (> u) is_open_Ioi hv) (λ v, le_of_lt)
+
 variables [topological_space γ]
 
 /-- Intermediate value theorem for two functions: if `f` and `g` are two continuous functions
@@ -297,32 +305,17 @@ begin
   exact ⟨x, le_antisymm hfg hgf⟩
 end
 
-lemma intermediate_value_univ₂_cl_snd {s : set γ} (hs : is_preconnected s)
-  {a b : γ} (ha : a ∈ s) (hb : b ∈ closure s) {f g : γ → α} (hf : continuous f)
-  (hg : continuous g) (ha' : f a ≤ g a) (hb' : g b < f b) : ∃ x ∈ s, f x = g x :=
-begin
-  replace hb : (s ∩ {x | g x ≤ f x}).nonempty,
-  { rcases mem_closure_iff.1 hb _ (is_open_lt hg hf) hb' with ⟨x, hlt, hx⟩,
-    exact ⟨x, hx, le_of_lt hlt⟩, },
-  obtain ⟨x, hx, hfg, hgf⟩ := is_preconnected_closed_iff.1 hs _ _
-    (is_closed_le hf hg) (is_closed_le hg hf) (λ x _, le_total (f x) (g x)) ⟨a, ha, ha'⟩ hb,
-  exact ⟨x, hx, le_antisymm hfg hgf⟩,
-end
+lemma intermediate_value_univ₂_eventually₁ [preconnected_space γ] {a : γ} {l : filter γ} [ne_bot l]
+  {f g : γ → α} (hf : continuous f) (hg : continuous g) (ha : f a ≤ g a) (hl : g ≤ᶠ[l] f) :
+  ∃ x, f x = g x :=
+let ⟨c, hc⟩ := hl.frequently.exists in intermediate_value_univ₂ hf hg ha hc
 
-lemma intermediate_value_univ₂_cl_fst_snd {s : set γ} (hs : is_preconnected s)
-  {a b : γ} (ha : a ∈ closure s) (hb : b ∈ closure s) {f g : γ → α} (hf : continuous f)
-  (hg : continuous g) (ha' : f a < g a) (hb' : g b < f b) : ∃ x ∈ s, f x = g x :=
-begin
-  replace ha : (s ∩ {x | f x ≤ g x}).nonempty,
-  { rcases mem_closure_iff.1 ha _ (is_open_lt hf hg) ha' with ⟨x, hlt, hx⟩,
-    exact ⟨x, hx, le_of_lt hlt⟩, },
-  replace hb : (s ∩ {x | g x ≤ f x}).nonempty,
-  { rcases mem_closure_iff.1 hb _ (is_open_lt hg hf) hb' with ⟨x, hlt, hx⟩,
-    exact ⟨x, hx, le_of_lt hlt⟩, },
-  obtain ⟨x, hx, hfg, hgf⟩ := is_preconnected_closed_iff.1 hs _ _
-    (is_closed_le hf hg) (is_closed_le hg hf) (λ x _, le_total (f x) (g x)) ha hb,
-  exact ⟨x, hx, le_antisymm hfg hgf⟩,
-end
+lemma intermediate_value_univ₂_eventually₂ [preconnected_space γ] {l₁ l₂ : filter γ}
+  [ne_bot l₁] [ne_bot l₂] {f g : γ → α} (hf : continuous f) (hg : continuous g)
+  (hl₁ : f ≤ᶠ[l₁] g ) (hl₂ : g ≤ᶠ[l₂] f) :
+  ∃ x, f x = g x :=
+let ⟨c₁, h₁⟩ := hl₁.frequently.exists, ⟨c₂, h₂⟩ := hl₂.frequently.exists in
+intermediate_value_univ₂ hf hg h₁ h₂
 
 /-- Intermediate value theorem for two functions: if `f` and `g` are two functions continuous
 on a preconnected set `s` and for some `a b ∈ s` we have `f a ≤ g a` and `g b ≤ f b`,
@@ -336,28 +329,27 @@ let ⟨x, hx⟩ := @intermediate_value_univ₂ α s _ _ _ _ (subtype.preconnecte
   ha' hb'
 in ⟨x, x.2, hx⟩
 
-lemma is_preconnected.intermediate_value₂_cl_snd
-  {s : set γ} (hs : is_preconnected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ closure s)
-  {f g : γ → α} (hf : continuous_on f (closure s)) (hg : continuous_on g (closure s))
-  (ha' : f a ≤ g a) (hb' : g b < f b) : ∃ x ∈ s, f x = g x :=
+lemma is_preconnected.intermediate_value₂_eventually₁ {s : set γ} (hs : is_preconnected s)
+  {a : γ} (ha : a ∈ s) {l : filter γ} [ne_bot l] (h' : l ≤ 𝓟 s) {f g : γ → α}
+  (hf : continuous_on f s) (hg : continuous_on g s) (ha' : f a ≤ g a) (hl : g ≤ᶠ[l] f) :
+  ∃ x ∈ s, f x = g x :=
 begin
-  have h := @intermediate_value_univ₂_cl_snd α (closure s) _ _ _ _ _
-    (subtype.is_preconnected subset_closure hs) ⟨a, subset_closure ha⟩ ⟨b, hb⟩,
   rw continuous_on_iff_continuous_restrict at hf hg,
-  rcases h ha closure_subtype_closure hf hg ha' hb' with ⟨x, hx, hx'⟩,
-  exact ⟨x, hx, hx'⟩,
+  obtain ⟨b, h⟩ := @intermediate_value_univ₂_eventually₁ _ _ _ _ _ _ (subtype.preconnected_space hs)
+    ⟨a, ha⟩ _ (comap_coe_ne_bot_of_le_principal h') _ _ hf hg ha' (eventually_comap' hl),
+  exact ⟨b, b.prop, h⟩,
 end
 
-lemma is_preconnected.intermediate_value₂_cl_fst_snd
-  {s : set γ} (hs : is_preconnected s) {a b : γ} (ha : a ∈ closure s) (hb : b ∈ closure s)
-  {f g : γ → α} (hf : continuous_on f (closure s)) (hg : continuous_on g (closure s))
-  (ha' : f a < g a) (hb' : g b < f b) : ∃ x ∈ s, f x = g x :=
+lemma is_preconnected.intermediate_value₂_eventually₂ {s : set γ} (hs : is_preconnected s)
+  {l₁ l₂ : filter γ} [ne_bot l₁] [ne_bot l₂] (h₁ : l₁ ≤ 𝓟 s) (h₂ : l₂ ≤ 𝓟 s) {f g : γ → α}
+  (hf : continuous_on f s) (hg : continuous_on g s) (hl₁ : f ≤ᶠ[l₁] g) (hl₂ : g ≤ᶠ[l₂] f) :
+  ∃ x ∈ s, f x = g x :=
 begin
-  have h := @intermediate_value_univ₂_cl_fst_snd α (closure s) _ _ _ _ _
-    (subtype.is_preconnected subset_closure hs) ⟨a, ha⟩ ⟨b, hb⟩,
   rw continuous_on_iff_continuous_restrict at hf hg,
-  rcases h closure_subtype_closure closure_subtype_closure hf hg ha' hb' with ⟨x, hx, hx'⟩,
-  exact ⟨x, hx, hx'⟩,
+  obtain ⟨b, h⟩ := @intermediate_value_univ₂_eventually₂ _ _ _ _ _ _ (subtype.preconnected_space hs)
+    _ _ (comap_coe_ne_bot_of_le_principal h₁) (comap_coe_ne_bot_of_le_principal h₂)
+    _ _ hf hg (eventually_comap' hl₁) (eventually_comap' hl₂),
+  exact ⟨b, b.prop, h⟩,
 end
 
 /-- Intermediate Value Theorem for continuous functions on connected sets. -/
@@ -366,21 +358,61 @@ lemma is_preconnected.intermediate_value {s : set γ} (hs : is_preconnected s)
   Icc (f a) (f b) ⊆ f '' s :=
 λ x hx, mem_image_iff_bex.2 $ hs.intermediate_value₂ ha hb hf continuous_on_const hx.1 hx.2
 
-lemma is_preconnected.intermediate_value_cl_fst {s : set γ} (hs : is_preconnected s)
-  {a b : γ} (ha : a ∈ closure s) (hb : b ∈ s) {f : γ → α} (hf : continuous_on f (closure s)) :
-  Ioc (f a) (f b) ⊆ f '' s :=
-λ y hy, bex_def.1 $ bex.imp_right (λ x h, eq.symm)
-(hs.intermediate_value₂_cl_snd hb ha continuous_on_const hf hy.2 hy.1)
+lemma is_preconnected.intermediate_value_Ico {s : set γ} (hs : is_preconnected s)
+  {a : γ} (ha : a ∈ s) {l : filter γ} [ne_bot l] (hl : l ≤ 𝓟 s) {f : γ → α}
+  (hf : continuous_on f s) {v : α} (ht : tendsto f l (𝓝 v)) :
+  Ico (f a) v ⊆ f '' s :=
+λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₁ ha hl
+  hf continuous_on_const h.1 (eventually_ge_of_tendsto_gt h.2 ht)
 
-lemma is_preconnected.intermediate_value_cl_snd {s : set γ} (hs : is_preconnected s)
-  {a b : γ} (ha : a ∈ s) (hb : b ∈ closure s) {f : γ → α} (hf : continuous_on f (closure s)) :
-  Ico (f a) (f b) ⊆ f '' s :=
-λ y hy, bex_def.1 (hs.intermediate_value₂_cl_snd ha hb hf continuous_on_const hy.1 hy.2)
+lemma is_preconnected.intermediate_value_Ioc {s : set γ} (hs : is_preconnected s)
+  {a : γ} (ha : a ∈ s) {l : filter γ} [ne_bot l] (hl : l ≤ 𝓟 s) {f : γ → α}
+  (hf : continuous_on f s) {v : α} (ht : tendsto f l (𝓝 v)) :
+  Ioc v (f a) ⊆ f '' s :=
+λ y h, bex_def.1 $ bex.imp_right (λ x _, eq.symm) $ hs.intermediate_value₂_eventually₁ ha hl
+  continuous_on_const hf h.2 (eventually_le_of_tendsto_lt h.1 ht)
 
-lemma is_preconnected.intermediate_value_cl_fst_snd {s : set γ} (hs : is_preconnected s) {a b : γ}
-  (ha : a ∈ closure s) (hb : b ∈ closure s) {f : γ → α} (hf : continuous_on f (closure s)) :
-  Ioo (f a) (f b) ⊆ f '' s :=
-λ y hy, bex_def.1 (hs.intermediate_value₂_cl_fst_snd ha hb hf continuous_on_const hy.1 hy.2)
+lemma is_preconnected.intermediate_value_Ici {s : set γ} (hs : is_preconnected s)
+  {a : γ} (ha : a ∈ s) {l : filter γ} [ne_bot l] (hl : l ≤ 𝓟 s) {f : γ → α}
+  (hf : continuous_on f s) (ht : tendsto f l at_top) :
+  Ici (f a) ⊆ f '' s :=
+λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₁ ha hl
+  hf continuous_on_const h (tendsto_at_top.1 ht y)
+
+lemma is_preconnected.intermediate_value_Iic {s : set γ} (hs : is_preconnected s)
+  {a : γ} (ha : a ∈ s) {l : filter γ} [ne_bot l] (hl : l ≤ 𝓟 s) {f : γ → α}
+  (hf : continuous_on f s) (ht : tendsto f l at_bot) :
+  Iic (f a) ⊆ f '' s :=
+λ y h, bex_def.1 $ bex.imp_right (λ x _, eq.symm) $ hs.intermediate_value₂_eventually₁ ha hl
+  continuous_on_const hf h (tendsto_at_bot.1 ht y)
+
+lemma is_preconnected.intermediate_value_Ioo {s : set γ} (hs : is_preconnected s)
+  {l₁ l₂ : filter γ} [ne_bot l₁] [ne_bot l₂] (hl₁ : l₁ ≤ 𝓟 s) (hl₂ : l₂ ≤ 𝓟 s) {f : γ → α}
+  (hf : continuous_on f s) {v₁ v₂ : α} (ht₁ : tendsto f l₁ (𝓝 v₁)) (ht₂ : tendsto f l₂ (𝓝 v₂)) :
+  Ioo v₁ v₂ ⊆ f '' s :=
+λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₂ hl₁ hl₂
+  hf continuous_on_const (eventually_le_of_tendsto_lt h.1 ht₁) (eventually_ge_of_tendsto_gt h.2 ht₂)
+
+lemma is_preconnected.intermediate_value_Ioi {s : set γ} (hs : is_preconnected s)
+  {l₁ l₂ : filter γ} [ne_bot l₁] [ne_bot l₂] (hl₁ : l₁ ≤ 𝓟 s) (hl₂ : l₂ ≤ 𝓟 s) {f : γ → α}
+  (hf : continuous_on f s) {v : α} (ht₁ : tendsto f l₁ (𝓝 v)) (ht₂ : tendsto f l₂ at_top) :
+  Ioi v ⊆ f '' s :=
+λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₂ hl₁ hl₂
+  hf continuous_on_const (eventually_le_of_tendsto_lt h ht₁) (tendsto_at_top.1 ht₂ y)
+
+lemma is_preconnected.intermediate_value_Iio {s : set γ} (hs : is_preconnected s)
+  {l₁ l₂ : filter γ} [ne_bot l₁] [ne_bot l₂] (hl₁ : l₁ ≤ 𝓟 s) (hl₂ : l₂ ≤ 𝓟 s) {f : γ → α}
+  (hf : continuous_on f s) {v : α} (ht₁ : tendsto f l₁ at_bot) (ht₂ : tendsto f l₂ (𝓝 v)) :
+  Iio v ⊆ f '' s :=
+λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₂ hl₁ hl₂
+  hf continuous_on_const (tendsto_at_bot.1 ht₁ y) (eventually_ge_of_tendsto_gt h ht₂)
+
+lemma is_preconnected.intermediate_value_Iii {s : set γ} (hs : is_preconnected s)
+  {l₁ l₂ : filter γ} [ne_bot l₁] [ne_bot l₂] (hl₁ : l₁ ≤ 𝓟 s) (hl₂ : l₂ ≤ 𝓟 s) {f : γ → α}
+  (hf : continuous_on f s) (ht₁ : tendsto f l₁ at_bot) (ht₂ : tendsto f l₂ at_top) :
+  univ ⊆ f '' s :=
+λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₂ hl₁ hl₂
+  hf continuous_on_const (tendsto_at_bot.1 ht₁ y) (tendsto_at_top.1 ht₂ y)
 
 /-- Intermediate Value Theorem for continuous functions on connected spaces. -/
 lemma intermediate_value_univ [preconnected_space γ] (a b : γ) {f : γ → α} (hf : continuous f) :
@@ -1995,6 +2027,18 @@ lemma nhds_within_Iio_self_ne_bot [no_bot_order α] (a : α) :
   ne_bot (𝓝[Iio a] a) :=
 nhds_within_Iio_ne_bot (le_refl a)
 
+lemma right_nhds_within_Ico_ne_bot {a b : α} (H : a < b) : ne_bot (𝓝[Ico a b] b) :=
+(is_lub_Ico H).nhds_within_ne_bot (nonempty_Ico.2 H)
+
+lemma left_nhds_within_Ioc_ne_bot {a b : α} (H : a < b) : ne_bot (𝓝[Ioc a b] a) :=
+(is_glb_Ioc H).nhds_within_ne_bot (nonempty_Ioc.2 H)
+
+lemma left_nhds_within_Ioo_ne_bot {a b : α} (H : a < b) : ne_bot (𝓝[Ioo a b] a) :=
+(is_glb_Ioo H).nhds_within_ne_bot (nonempty_Ioo.2 H)
+
+lemma right_nhds_within_Ioo_ne_bot {a b : α} (H : a < b) : ne_bot (𝓝[Ioo a b] b) :=
+(is_lub_Ioo H).nhds_within_ne_bot (nonempty_Ioo.2 H)
+
 end linear_order
 
 section linear_order
@@ -2495,38 +2539,48 @@ is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab
 lemma intermediate_value_Ico {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Ico (f a) (f b) ⊆ f '' (Ico a b) :=
 or.elim (eq_or_lt_of_le hab) (λ he y h, absurd h.2 (not_lt_of_le (he ▸ h.1)))
-(λ hlt, have h : Icc a b = closure (Ico a b), from (closure_Ico hlt).symm,
-is_preconnected_Ico.intermediate_value_cl_snd ⟨refl a, hlt⟩ (h ▸ ⟨hab, refl b⟩) (h ▸ hf))
+(λ hlt, @is_preconnected.intermediate_value_Ico _ _ _ _ _ _ _ (is_preconnected_Ico)
+  _ ⟨refl a, hlt⟩ _ (right_nhds_within_Ico_ne_bot hlt) inf_le_right _ (hf.mono Ico_subset_Icc_self)
+  _ ((hf.continuous_within_at ⟨hab, refl b⟩).mono Ico_subset_Icc_self))
 
 lemma intermediate_value_Ico' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Ioc (f b) (f a) ⊆ f '' (Ico a b) :=
 or.elim (eq_or_lt_of_le hab) (λ he y h, absurd h.1 (not_lt_of_le (he ▸ h.2)))
-(λ hlt, have h : Icc a b = closure (Ico a b), from (closure_Ico hlt).symm,
-is_preconnected_Ico.intermediate_value_cl_fst (h ▸ ⟨hab, refl b⟩) ⟨refl a, hlt⟩ (h ▸ hf))
+(λ hlt, @is_preconnected.intermediate_value_Ioc _ _ _ _ _ _ _ (is_preconnected_Ico)
+  _ ⟨refl a, hlt⟩ _ (right_nhds_within_Ico_ne_bot hlt) inf_le_right _ (hf.mono Ico_subset_Icc_self)
+  _ ((hf.continuous_within_at ⟨hab, refl b⟩).mono Ico_subset_Icc_self))
 
 lemma intermediate_value_Ioc {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Ioc (f a) (f b) ⊆ f '' (Ioc a b) :=
 or.elim (eq_or_lt_of_le hab) (λ he y h, absurd h.2 (not_le_of_lt (he ▸ h.1)))
-(λ hlt, have h : Icc a b = closure (Ioc a b), from (closure_Ioc hlt).symm,
-is_preconnected_Ioc.intermediate_value_cl_fst (h ▸ ⟨refl a, hab⟩) ⟨hlt, refl b⟩ (h ▸ hf))
+(λ hlt, @is_preconnected.intermediate_value_Ioc _ _ _ _ _ _ _ (is_preconnected_Ioc)
+  _ ⟨hlt, refl b⟩ _ (left_nhds_within_Ioc_ne_bot hlt) inf_le_right _ (hf.mono Ioc_subset_Icc_self)
+  _ ((hf.continuous_within_at ⟨refl a, hab⟩).mono Ioc_subset_Icc_self))
 
 lemma intermediate_value_Ioc' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Ico (f b) (f a) ⊆ f '' (Ioc a b) :=
 or.elim (eq_or_lt_of_le hab) (λ he y h, absurd h.1 (not_le_of_lt (he ▸ h.2)))
-(λ hlt, have h : Icc a b = closure (Ioc a b), from (closure_Ioc hlt).symm,
-is_preconnected_Ioc.intermediate_value_cl_snd ⟨hlt, refl b⟩ (h ▸ ⟨refl a, hab⟩) (h ▸ hf))
+(λ hlt, @is_preconnected.intermediate_value_Ico _ _ _ _ _ _ _ (is_preconnected_Ioc)
+  _ ⟨hlt, refl b⟩ _ (left_nhds_within_Ioc_ne_bot hlt) inf_le_right _ (hf.mono Ioc_subset_Icc_self)
+  _ ((hf.continuous_within_at ⟨refl a, hab⟩).mono Ioc_subset_Icc_self))
 
 lemma intermediate_value_Ioo {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Ioo (f a) (f b) ⊆ f '' (Ioo a b) :=
 or.elim (eq_or_lt_of_le hab) (λ he y h, absurd h.2 (not_lt_of_lt (he ▸ h.1)))
-(λ hlt, have h : Icc a b = closure (Ioo a b), from (closure_Ioo hlt).symm,
-is_preconnected_Ioo.intermediate_value_cl_fst_snd (h ▸ ⟨refl a, hab⟩) (h ▸ ⟨hab, refl b⟩) (h ▸ hf))
+(λ hlt, @is_preconnected.intermediate_value_Ioo _ _ _ _ _ _ _ (is_preconnected_Ioo)
+  _ _ (left_nhds_within_Ioo_ne_bot hlt) (right_nhds_within_Ioo_ne_bot hlt)
+  inf_le_right inf_le_right _ (hf.mono Ioo_subset_Icc_self)
+  _ _ ((hf.continuous_within_at ⟨refl a, hab⟩).mono Ioo_subset_Icc_self)
+  ((hf.continuous_within_at ⟨hab, refl b⟩).mono Ioo_subset_Icc_self))
 
 lemma intermediate_value_Ioo' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Ioo (f b) (f a) ⊆ f '' (Ioo a b) :=
 or.elim (eq_or_lt_of_le hab) (λ he y h, absurd h.1 (not_lt_of_lt (he ▸ h.2)))
-(λ hlt, have h : Icc a b = closure (Ioo a b), from (closure_Ioo hlt).symm,
-is_preconnected_Ioo.intermediate_value_cl_fst_snd (h ▸ ⟨hab, refl b⟩) (h ▸ ⟨refl a, hab⟩) (h ▸ hf))
+(λ hlt, @is_preconnected.intermediate_value_Ioo _ _ _ _ _ _ _ (is_preconnected_Ioo)
+  _ _ (right_nhds_within_Ioo_ne_bot hlt) (left_nhds_within_Ioo_ne_bot hlt)
+  inf_le_right inf_le_right _ (hf.mono Ioo_subset_Icc_self)
+  _ _ ((hf.continuous_within_at ⟨hab, refl b⟩).mono Ioo_subset_Icc_self)
+  ((hf.continuous_within_at ⟨refl a, hab⟩).mono Ioo_subset_Icc_self))
 
 /-- A continuous function which tendsto `at_top` `at_top` and to `at_bot` `at_bot` is surjective. -/
 lemma continuous.surjective {f : α → δ} (hf : continuous f) (h_top : tendsto f at_top at_top)

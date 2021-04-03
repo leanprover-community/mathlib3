@@ -22,7 +22,6 @@ and deletion of the minimum element (i.e., popping the root).
 variables {α : Type*} [linear_order α]
 #check with_top α
 
-
 namespace heap
 open tree
 
@@ -84,7 +83,8 @@ def sift_down : tree α → tree α → tree α
   if x ≤ y
     then node x (sift_down t₁ t₂) (node y s₁ s₂)
     else node y (node x t₁ t₂) (sift_down s₁ s₂)
-using_well_founded { rel_tac := λ _ _, `[exact ⟨ _, measure_wf (λ ⟨ arg1, arg2⟩, max (sizeof arg1) (sizeof arg2))⟩] }
+using_well_founded { rel_tac := λ _ _, 
+  `[exact ⟨ _, measure_wf (λ ⟨ arg1, arg2⟩, max (sizeof arg1) (sizeof arg2))⟩] }
 
 /-- Removing root from heap and rebalncing to preserve heap invariant. See also `sift_down`
 -/
@@ -101,7 +101,8 @@ by simp [min, ite_cast]
 
 /-- Lemma: root of heap after insertion equals min(heap root, new element) -/
 @[simp]
-lemma heap_root_val_after_insertion (x : α) (t : tree α) : heap_root (insert x t) = min x (heap_root t) :=
+lemma heap_root_val_after_insertion (x : α) (t : tree α) : 
+  heap_root (insert x t) = min x (heap_root t) :=
 begin
 cases t with y₁ t₁ t₂,
 {
@@ -166,7 +167,8 @@ end
 
 /-- Lemma: heap root of `sift_down` holds minimum value between the child subtrees-/
 @[simp]
-lemma sift_down_heap_root {H₁ H₂ : tree α} : heap_root (sift_down H₁ H₂) = min (heap_root H₁) (heap_root H₂) :=
+lemma sift_down_heap_root {H₁ H₂ : tree α} : 
+  heap_root (sift_down H₁ H₂) = min (heap_root H₁) (heap_root H₂) :=
 begin
   cases H₁; cases H₂;
   simp [sift_down],
@@ -177,7 +179,8 @@ begin
 end
 
 /- Lemma: Sifting down two heaps gives a heap-/
-lemma sift_down_heaps_is_heap {H₁ H₂ : tree α} : is_heap H₁ ∧ is_heap H₂ → is_heap (sift_down H₁ H₂) :=
+lemma sift_down_heaps_is_heap {H₁ H₂ : tree α} : 
+  is_heap H₁ ∧ is_heap H₂ → is_heap (sift_down H₁ H₂) :=
 begin
 generalize hn : max (size H₁) (size H₂) = n, 
 have := hn.le, clear hn,

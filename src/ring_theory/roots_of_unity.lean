@@ -6,7 +6,7 @@ Authors: Johan Commelin
 
 import data.nat.parity
 import data.polynomial.ring_division
-import group_theory.order_of_element
+import group_theory.specific_groups.cyclic_group
 import ring_theory.integral_domain
 import number_theory.divisors
 import data.zmod.basic

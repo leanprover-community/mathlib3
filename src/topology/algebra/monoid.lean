@@ -7,7 +7,6 @@ import topology.continuous_on
 import group_theory.submonoid.operations
 import algebra.group.prod
 import algebra.pointwise
-import topology.homeomorph
 
 /-!
 # Theory of topological monoids

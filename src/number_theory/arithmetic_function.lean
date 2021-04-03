@@ -54,7 +54,7 @@ variable (R : Type*)
 /-- An arithmetic function is a function from `ℕ` that maps 0 to 0. In the literature, they are
   often instead defined as functions from `ℕ+`. Multiplication on `arithmetic_functions` is by
   Dirichlet convolution. -/
-@[derive [has_coe_to_fun, has_zero, inhabited]]
+@[derive [has_zero, inhabited]]
 def arithmetic_function [has_zero R] := zero_hom ℕ R
 
 variable {R}
@@ -63,6 +63,8 @@ namespace arithmetic_function
 
 section has_zero
 variable [has_zero R]
+
+instance : has_coe_to_fun (arithmetic_function R) (λ _, ℕ → R) := zero_hom.has_coe_to_fun
 
 @[simp] lemma to_fun_eq (f : arithmetic_function R) : f.to_fun = f := rfl
 

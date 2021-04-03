@@ -98,7 +98,7 @@ f.isometry.uniform_embedding.to_uniform_inducing.inducing.continuous_iff.symm
 /-- The identity linear isometry. -/
 def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
 
-@[simp] lemma coe_id : ⇑(id : E →ₗᵢ[R] E) = id := rfl
+@[simp] lemma coe_id : ((id : E →ₗᵢ[R] E) : E → E) = _root_.id := rfl
 
 instance : inhabited (E →ₗᵢ[R] E) := ⟨id⟩
 
@@ -125,7 +125,7 @@ instance : monoid (E →ₗᵢ[R] E) :=
   one_mul := id_comp,
   mul_one := comp_id }
 
-@[simp] lemma coe_one : ⇑(1 : E →ₗᵢ[R] E) = id := rfl
+@[simp] lemma coe_one : ((1 : E →ₗᵢ[R] E) : E → E) = _root_.id := rfl
 @[simp] lemma coe_mul (f g : E →ₗᵢ[R] E) : ⇑(f * g) = f ∘ g := rfl
 
 end linear_isometry

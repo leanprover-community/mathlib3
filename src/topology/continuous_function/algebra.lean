@@ -24,7 +24,7 @@ namespace continuous_functions
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 variables {f g : {f : α → β | continuous f }}
 
-instance : has_coe_to_fun {f : α → β | continuous f} :=  ⟨_, subtype.val⟩
+instance : has_coe_to_fun {f : α → β | continuous f} (λ _, α → β) :=  ⟨subtype.val⟩
 
 end continuous_functions
 

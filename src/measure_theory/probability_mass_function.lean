@@ -33,7 +33,7 @@ def {u} pmf (α : Type u) : Type u := { f : α → ℝ≥0 // has_sum f 1 }
 
 namespace pmf
 
-instance : has_coe_to_fun (pmf α) := ⟨λ p, α → ℝ≥0, λ p a, p.1 a⟩
+instance : has_coe_to_fun (pmf α) (λ p, α → ℝ≥0) := ⟨λ p a, p.1 a⟩
 
 @[ext] protected lemma ext : ∀ {p q : pmf α}, (∀ a, p a = q a) → p = q
 | ⟨f, hf⟩ ⟨g, hg⟩ eq :=  subtype.eq $ funext eq

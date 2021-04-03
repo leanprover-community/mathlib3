@@ -666,7 +666,8 @@ begin
   obtain ⟨a, ha, C, hC, hp : ∀ n, ∥p n∥ * (∥x∥ + ↑r) ^ n ≤ C * a ^ n⟩ :=
     p.norm_mul_pow_le_mul_pow_of_lt_radius h,
   set B : (Σ n, finset (fin n)) → ℝ := λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card,
-  have H : ∀ n s, 0 ≤ B ⟨n, s⟩ := λ n s, by apply_rules [mul_nonneg, pow_nonneg, norm_nonneg, r.2],
+  have H : ∀ n s, (0 : ℝ) ≤ B ⟨n, s⟩ := λ n s,
+    by apply_rules [mul_nonneg, pow_nonneg, norm_nonneg, r.2],
   rw summable_sigma_of_nonneg (λ ⟨n, s⟩, H n s),
   have : ∀ n, has_sum (λ s, B ⟨n, s⟩) (∥p n∥ * (∥x∥ + r) ^ n),
   { simpa only [← fin.sum_pow_mul_eq_add_pow, finset.mul_sum, ← mul_assoc,

@@ -48,9 +48,10 @@ variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 variables (E : Type*) [normed_group E] [normed_space 𝕜 E]
 
 /-- The topological dual of a normed space `E`. -/
-@[derive [has_coe_to_fun, normed_group, normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
+@[derive [normed_group, normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
 
 instance : inhabited (dual 𝕜 E) := ⟨0⟩
+instance : has_coe_to_fun (dual 𝕜 E) (λ _, E → 𝕜) := continuous_linear_map.to_fun
 
 /-- The inclusion of a normed space in its double (topological) dual. -/
 def inclusion_in_double_dual' (x : E) : (dual 𝕜 (dual 𝕜 E)) :=

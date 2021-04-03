@@ -49,9 +49,8 @@ variables (X : LocallyRingedSpace)
 /-- The underlying topological space of a locally ringed space. -/
 def to_Top : Top := X.1.carrier
 
-instance : has_coe_to_sort LocallyRingedSpace :=
-{ S := Type u,
-  coe := λ X : LocallyRingedSpace, (X.to_Top : Type u), }
+instance : has_coe_to_sort LocallyRingedSpace (Type u) :=
+⟨λ X : LocallyRingedSpace, (X.to_Top : Type u)⟩
 
 -- PROJECT: how about a typeclass "has_structure_sheaf" to mediate the 𝒪 notation, rather
 -- than defining it over and over for PresheafedSpace, LRS, Scheme, etc.

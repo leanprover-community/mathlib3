@@ -55,9 +55,9 @@ namespace simple_func
 
 section measurable
 variables [measurable_space α]
-instance has_coe_to_fun : has_coe_to_fun (α →ₛ β) := ⟨_, to_fun⟩
+instance has_coe_to_fun : has_coe_to_fun (α →ₛ β) (λ _, α → β) := ⟨to_fun⟩
 
-lemma coe_injective ⦃f g : α →ₛ β⦄ (H : ⇑f = g) : f = g :=
+lemma coe_injective ⦃f g : α →ₛ β⦄ (H : (f : α → β) = g) : f = g :=
 by cases f; cases g; congr; exact H
 
 @[ext] theorem ext {f g : α →ₛ β} (H : ∀ a, f a = g a) : f = g :=

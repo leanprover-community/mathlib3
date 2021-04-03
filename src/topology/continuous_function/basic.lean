@@ -30,7 +30,7 @@ attribute [continuity] continuous_map.continuous_to_fun
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
 
-instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
+instance : has_coe_to_fun (C(α, β)) (λ _, α → β) := ⟨continuous_map.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : C(α, β)} : f.to_fun = (f : α → β) := rfl
 

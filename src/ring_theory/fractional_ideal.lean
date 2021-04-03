@@ -568,7 +568,7 @@ def map_equiv (g : f.codomain ≃ₐ[R] f'.codomain) :
   right_inv := λ I, by { rw [←map_comp, alg_equiv.comp_symm, map_id] } }
 
 @[simp] lemma coe_fun_map_equiv (g : f.codomain ≃ₐ[R] f'.codomain) :
-  ⇑(map_equiv g) = map g :=
+  (map_equiv g : fractional_ideal f → fractional_ideal f') = map g :=
 rfl
 
 @[simp] lemma map_equiv_apply (g : f.codomain ≃ₐ[R] f'.codomain) (I : fractional_ideal f) :

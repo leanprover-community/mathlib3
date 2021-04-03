@@ -908,7 +908,7 @@ namespace Lp
 
 variables [borel_space E] [second_countable_topology E]
 
-instance : has_coe_to_fun (Lp E p μ) := ⟨λ _, α → E, λ f, ((f : α →ₘ[μ] E) : α → E)⟩
+instance : has_coe_to_fun (Lp E p μ) (λ _, α → E) := ⟨λ f, ((f : α →ₘ[μ] E) : α → E)⟩
 
 @[ext] lemma ext {f g : Lp E p μ} (h : f =ᵐ[μ] g) : f = g :=
 begin

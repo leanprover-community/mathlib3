@@ -428,7 +428,7 @@ section instances
 /-! Simple functions in L1 space form a `normed_space`. -/
 
 instance : has_coe (α →₁ₛ[μ] E) (α →₁[μ] E) := coe_subtype
-instance : has_coe_to_fun (α →₁ₛ[μ] E) := ⟨λ f, α → E, λ f, ⇑(f : α →₁[μ] E)⟩
+instance : has_coe_to_fun (α →₁ₛ[μ] E) (λ f, α → E) := ⟨λ f, ⇑(f : α →₁[μ] E)⟩
 
 @[simp, norm_cast] lemma coe_coe (f : α →₁ₛ[μ] E) : ⇑(f : α →₁[μ] E) = f := rfl
 protected lemma eq {f g : α →₁ₛ[μ] E} : (f : α →₁[μ] E) = (g : α →₁[μ] E) → f = g := subtype.eq

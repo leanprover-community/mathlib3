@@ -38,7 +38,7 @@ namespace CompHaus
 
 instance : inhabited CompHaus := ⟨{to_Top := { α := pempty }}⟩
 
-instance : has_coe_to_sort CompHaus := ⟨Type*, λ X, X.to_Top⟩
+instance : has_coe_to_sort CompHaus Type* := ⟨λ X, X.to_Top⟩
 instance {X : CompHaus} : compact_space X := X.is_compact
 instance {X : CompHaus} : t2_space X := X.is_hausdorff
 
@@ -96,7 +96,7 @@ noncomputable def stone_cech_equivalence (X : Top) (Y : CompHaus) :
   end,
   right_inv :=
   begin
-    rintro ⟨f : ↥X ⟶ Y, hf : continuous f⟩,
+    rintro ⟨f : X → Y, hf : continuous f⟩,
     ext,
     exact congr_fun (stone_cech_extend_extends hf) x,
   end }

@@ -46,7 +46,7 @@ variables {M : Type*} [add_cancel_comm_monoid M] [semimodule A M] [semimodule R 
 variables [is_scalar_tower R A M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
-instance : has_coe_to_fun (derivation R A M) := ⟨_, λ D, D.to_linear_map.to_fun⟩
+instance : has_coe_to_fun (derivation R A M) (λ _, A → M) := ⟨λ D, D.to_linear_map.to_fun⟩
 
 instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 ⟨λ D, D.to_linear_map⟩
@@ -57,7 +57,7 @@ instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 lemma coe_fn_coe (f : derivation R A M) :
   ⇑(f : A →ₗ[R] M) = f := rfl
 
-lemma coe_injective (H : ⇑D1 = D2) : D1 = D2 :=
+lemma coe_injective (H : (D1 : A → M) = D2) : D1 = D2 :=
 by { cases D1, cases D2, congr', exact linear_map.coe_injective H }
 
 @[ext] theorem ext (H : ∀ a, D1 a = D2 a) : D1 = D2 :=

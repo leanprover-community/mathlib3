@@ -421,7 +421,7 @@ rfl
 
 lemma alternatization_coe (m : multilinear_map R (λ i : ι, M) N') :
   ↑m.alternatization = (∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ : _) :=
-coe_inj rfl
+coe_injective rfl
 
 lemma alternatization_apply (m : multilinear_map R (λ i : ι, M) N') (v : ι → M) :
   alternatization m v = ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v :=
@@ -436,7 +436,7 @@ where `n` is the number of inputs. -/
 lemma coe_alternatization [fintype ι] (a : alternating_map R M N' ι) :
   (↑a : multilinear_map R (λ ι, M) N').alternatization = nat.factorial (fintype.card ι) • a :=
 begin
-  apply alternating_map.coe_inj,
+  apply alternating_map.coe_injective,
   rw multilinear_map.alternatization_def,
   simp_rw [coe_dom_dom_congr, smul_smul, int.units_coe_mul_self, one_smul,
     finset.sum_const, finset.card_univ, fintype.card_perm, nsmul_eq_smul],

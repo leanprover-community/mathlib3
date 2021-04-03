@@ -29,7 +29,9 @@ namespace UniformSpace
 instance : unbundled_hom @uniform_continuous :=
 ⟨@uniform_continuous_id, @uniform_continuous.comp⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] UniformSpace
+attribute [derive [large_category, concrete_category]] UniformSpace
+
+instance : has_coe_to_sort UniformSpace Type* := bundled.has_coe_to_sort
 
 instance (x : UniformSpace) : uniform_space x := x.str
 
@@ -40,8 +42,8 @@ instance : inhabited UniformSpace := ⟨UniformSpace.of empty⟩
 
 @[simp] lemma coe_of (X : Type u) [uniform_space X] : (of X : Type u) = X := rfl
 
-instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
-{ F := λ _, X → Y, coe := category_theory.functor.map (forget UniformSpace) }
+instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) (λ _, X → Y) :=
+⟨category_theory.functor.map (forget UniformSpace)⟩
 
 @[simp] lemma coe_comp {X Y Z : UniformSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g : X → Z) = g ∘ f := rfl
@@ -69,8 +71,7 @@ structure CpltSepUniformSpace :=
 
 namespace CpltSepUniformSpace
 
-instance : has_coe_to_sort CpltSepUniformSpace :=
-{ S := Type u, coe := CpltSepUniformSpace.α }
+instance : has_coe_to_sort CpltSepUniformSpace (Type u) := ⟨CpltSepUniformSpace.α⟩
 
 attribute [instance] is_uniform_space is_complete_space is_separated
 

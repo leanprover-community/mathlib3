@@ -106,8 +106,9 @@ For measurable sets this returns the measure assigned by the `measure_of` field 
 But we can extend this to _all_ sets, but using the outer measure. This gives us monotonicity and
 subadditivity for all sets.
 -/
-instance measure.has_coe_to_fun [measurable_space α] : has_coe_to_fun (measure α) (λ _, set α → ℝ≥0∞) :=
-⟨λ _, set α → ℝ≥0∞, λ m, m.to_outer_measure⟩
+instance measure.has_coe_to_fun [measurable_space α] :
+  has_coe_to_fun (measure α) (λ _, set α → ℝ≥0∞) :=
+⟨λ m, m.to_outer_measure⟩
 
 section
 
@@ -1887,7 +1888,7 @@ lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
   sigma_finite μ :=
 begin
   obtain ⟨s, hμ, hs⟩ : ∃ s : ℕ → set α, (∀ n, μ (s n) < ∞) ∧ (⋃ n, s n) = univ,
-    from (exists_seq_cover_iff_countable ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
+  { refine (exists_seq_cover_iff_countable ⟨∅, _⟩).2 ⟨S, hc, hμ, hU⟩, simp },
   refine ⟨⟨⟨λ n, to_measurable μ (s n), λ n, measurable_set_to_measurable _ _, by simpa, _⟩⟩⟩,
   exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
 end

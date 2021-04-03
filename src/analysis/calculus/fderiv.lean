@@ -2129,7 +2129,8 @@ begin
   { rintros ⟨w, hw⟩,
     use (units_equiv 𝕜 E w).trans e,
     ext x,
-    simp [hw] }
+    have : w x = O f' x, by { rw [← hw], refl },
+    simp [this] }
 end
 
 protected lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :

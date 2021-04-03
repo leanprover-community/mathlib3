@@ -224,9 +224,10 @@ by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_no
 by rw support_eq_empty_iff
 
 lemma support_mul_le (f g : perm α) :
-  (f * g).support ≤ f.support ∪ g.support :=
+  (f * g).support ≤ f.support ⊔ g.support :=
 λ x, begin
-  rw [mem_union, mem_support, mem_support, mem_support, mul_apply, ←not_and_distrib, not_imp_not],
+  rw [sup_eq_union, mem_union, mem_support, mem_support,
+    mem_support, mul_apply, ←not_and_distrib, not_imp_not],
   rintro ⟨hf, hg⟩,
   rw [hg, hf]
 end

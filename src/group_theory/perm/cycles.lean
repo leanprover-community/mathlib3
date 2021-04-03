@@ -362,10 +362,10 @@ quotient.rec_on_subsingleton (@univ α _).1
   (induction_disjoint : ∀ σ τ : perm β, disjoint σ τ → P σ → P τ → P (σ * τ)) :
   P σ :=
 begin
-  classical,
   suffices :
     ∀ l : list (perm β), (∀ τ : perm β, τ ∈ l → τ.is_cycle) → l.pairwise disjoint → P l.prod,
-  { let x := σ.trunc_cycle_factors.out,
+  { classical,
+    let x := σ.trunc_cycle_factors.out,
     exact (congr_arg P x.2.1).mp (this x.1 x.2.2.1 x.2.2.2) },
   intro l,
   induction l with σ l ih,

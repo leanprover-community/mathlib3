@@ -655,27 +655,30 @@ begin
   exact mem_powers_iff_mem_range_order_of
 end
 
-noncomputable def fin_equiv_powers [decidable_eq α] {a : α} :
+/-- The equivalence between `fin (order_of a)` and `submonoid.powers a`, sending `i` to `a ^ i`. -/
+noncomputable def fin_equiv_powers {a : α} :
   fin (order_of a) ≃ (submonoid.powers a : set α) :=
 equiv.of_bijective (λ n, ⟨a ^ ↑n, ⟨n, rfl⟩⟩) ⟨λ ⟨i, hi⟩ ⟨j, hj⟩ ij,
   subtype.mk_eq_mk.2 (pow_injective_of_lt_order_of a hi hj (subtype.mk_eq_mk.1 ij)),
   λ ⟨_, i, rfl⟩, ⟨⟨i % order_of a, mod_lt i (order_of_pos a)⟩, subtype.eq pow_eq_mod_order_of.symm⟩⟩
 
-@[simp] lemma fin_equiv_powers_apply [decidable_eq α] {a : α} {n : fin (order_of a)} :
+@[simp] lemma fin_equiv_powers_apply {a : α} {n : fin (order_of a)} :
   fin_equiv_powers n = ⟨a ^ ↑n, n, rfl⟩ := rfl
 
-@[simp] lemma fin_equiv_powers_symm_apply [decidable_eq α] (a : α) (n : ℕ)
+@[simp] lemma fin_equiv_powers_symm_apply (a : α) (n : ℕ)
   {hn : ∃ (m : ℕ), a ^ m = a ^ n} :
   (fin_equiv_powers.symm ⟨a ^ n, hn⟩) = ⟨n % order_of a, nat.mod_lt _ (order_of_pos a)⟩ :=
 by rw [equiv.symm_apply_eq, fin_equiv_powers_apply, subtype.mk_eq_mk,
   pow_eq_mod_order_of, fin.coe_mk]
 
-noncomputable def powers_equiv_powers [decidable_eq α] {a b : α} (h : order_of a = order_of b) :
+/-- The equivalence between `submonoid.powers` of two elements `a, b` of the same order, mapping
+  `a ^ i` to `b ^ i`. -/
+noncomputable def powers_equiv_powers {a b : α} (h : order_of a = order_of b) :
   (submonoid.powers a : set α) ≃ (submonoid.powers b : set α) :=
 fin_equiv_powers.symm.trans ((fin.cast h).to_equiv.trans fin_equiv_powers)
 
 @[simp]
-lemma powers_equiv_powers_apply [decidable_eq α] {a b : α} (h : order_of a = order_of b)
+lemma powers_equiv_powers_apply {a b : α} (h : order_of a = order_of b)
   (n : ℕ) : powers_equiv_powers h ⟨a ^ n, n, rfl⟩ = ⟨b ^ n, n, rfl⟩ :=
 begin
   rw [powers_equiv_powers, equiv.trans_apply, equiv.trans_apply,
@@ -772,7 +775,8 @@ begin
   exact decidable_powers,
 end
 
-noncomputable def fin_equiv_gpowers [decidable_eq α] {a : α} :
+/-- The equivalence between `fin (order_of a)` and `subgroup.gpowers a`, sending `i` to `a ^ i`. -/
+noncomputable def fin_equiv_gpowers {a : α} :
   fin (order_of a) ≃ (subgroup.gpowers a : set α) :=
 equiv.of_bijective (λ n, ⟨a ^ (n : ℤ), ⟨n, rfl⟩⟩) ⟨λ ⟨i, hi⟩ ⟨j, hj⟩ ij,
   subtype.mk_eq_mk.2 (pow_injective_of_lt_order_of a hi hj (subtype.mk_eq_mk.1 ij)),
@@ -787,21 +791,23 @@ equiv.of_bijective (λ n, ⟨a ^ (n : ℤ), ⟨n, rfl⟩⟩) ⟨λ ⟨i, hi⟩ �
       exact gpow_eq_mod_order_of.symm }
   end⟩
 
-@[simp] lemma fin_equiv_gpowers_apply [decidable_eq α] {a : α} {n : fin (order_of a)} :
+@[simp] lemma fin_equiv_gpowers_apply {a : α} {n : fin (order_of a)} :
   fin_equiv_gpowers n = ⟨a ^ ↑n, n, rfl⟩ := rfl
 
-@[simp] lemma fin_equiv_gpowers_symm_apply [decidable_eq α] (a : α) (n : ℕ)
+@[simp] lemma fin_equiv_gpowers_symm_apply (a : α) (n : ℕ)
   {hn : ∃ (m : ℤ), a ^ m = a ^ n} :
   (fin_equiv_gpowers.symm ⟨a ^ n, hn⟩) = ⟨n % order_of a, nat.mod_lt _ (order_of_pos a)⟩ :=
 by rw [equiv.symm_apply_eq, fin_equiv_gpowers_apply, subtype.mk_eq_mk, pow_eq_mod_order_of,
     coe_coe, fin.coe_mk, gpow_coe_nat]
 
-noncomputable def gpowers_equiv_gpowers [decidable_eq α] {a b : α} (h : order_of a = order_of b) :
+/-- The equivalence between `subgroup.gpowers` of two elements `a, b` of the same order, mapping
+  `a ^ i` to `b ^ i`. -/
+noncomputable def gpowers_equiv_gpowers {a b : α} (h : order_of a = order_of b) :
   (subgroup.gpowers a : set α) ≃ (subgroup.gpowers b : set α) :=
 fin_equiv_gpowers.symm.trans ((fin.cast h).to_equiv.trans fin_equiv_gpowers)
 
 @[simp]
-lemma gpowers_equiv_gpowers_apply [decidable_eq α] {a b : α} (h : order_of a = order_of b)
+lemma gpowers_equiv_gpowers_apply {a b : α} (h : order_of a = order_of b)
   (n : ℕ) : gpowers_equiv_gpowers h ⟨a ^ n, n, rfl⟩ = ⟨b ^ n, n, rfl⟩ :=
 begin
   rw [gpowers_equiv_gpowers, equiv.trans_apply, equiv.trans_apply,

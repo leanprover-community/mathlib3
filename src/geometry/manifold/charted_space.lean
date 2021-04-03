@@ -493,15 +493,6 @@ by simp [atlas, charted_space.atlas]
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
-/-- Transfers the instance of charted space through equivalences. -/
-def homeomorph.charted_space (H : Type*) [topological_space H]
-  {M : Type*} [topological_space M] [charted_space H M]
-  {M' : Type*} [topological_space M'] (e : homeomorph M M') : charted_space H M' :=
-{ atlas := {ϕ : local_homeomorph M' H | ∃ ψ ∈ atlas H M, ϕ = e.symm.to_local_homeomorph.trans ψ},
-  chart_at := λ y, e.symm.to_local_homeomorph.trans (chart_at H (e.symm y)),
-  mem_chart_source := λ y, by simp only with mfld_simps,
-  chart_mem_atlas := λ y, ⟨chart_at H (e.symm y), chart_mem_atlas H (e.symm y), rfl⟩ }
-
 section
 
 variables (H) [topological_space H] [topological_space M] [charted_space H M]
@@ -806,7 +797,7 @@ variables (e : local_homeomorph α H)
 space `α`, then that local homeomorphism induces an `H`-charted space structure on `α`.
 (This condition is equivalent to `e` being an open embedding of `α` into `H`; see
 `local_homeomorph.to_open_embedding` and `open_embedding.to_local_homeomorph`.) -/
-def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
+def local_homeomorph.singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
 { atlas := {e},
   chart_at := λ _, e,
   mem_chart_source := λ _, by simp only [h] with mfld_simps,
@@ -815,15 +806,15 @@ def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
 namespace local_homeomorph.singleton_charted_space
 
 @[simp, mfld_simps] lemma chart_at.apply (h : e.source = set.univ) {x : α} {y : α} :
-  @chart_at H _ α _ (singleton_charted_space e h) x y = e y := rfl
+  @chart_at H _ α _ (e.singleton_charted_space h) x y = e y := rfl
 
 lemma chart_at.source (h : e.source = set.univ) {x : α} {y : α} :
-  (@chart_at H _ α _ (singleton_charted_space e h) x).source = set.univ := h
+  (@chart_at H _ α _ (e.singleton_charted_space h) x).source = set.univ := h
 
 end local_homeomorph.singleton_charted_space
 
 def open_embedding.charted_space [nonempty α] {f : α → H} (h : open_embedding f) :
-  charted_space H α := singleton_charted_space (h.to_local_homeomorph f) (h.source f)
+  charted_space H α := (h.to_local_homeomorph f).singleton_charted_space (h.source f)
 
 namespace open_embedding.singleton_charted_space
 
@@ -834,14 +825,14 @@ variable [nonempty α]
 
 end open_embedding.singleton_charted_space
 
-lemma singleton_charted_space_one_chart (h : e.source = set.univ) (e' : local_homeomorph α H)
-  (h' : e' ∈ (singleton_charted_space e h).atlas) : e' = e := h'
+lemma singleton_charted_space_one_chart (h : e.source = set.univ)
+  (e' : local_homeomorph α H) (h' : e' ∈ (e.singleton_charted_space h).atlas) : e' = e := h'
 
 /-- Given a local homeomorphism `e` from a space `α` into `H`, if its source covers the whole
 space `α`, then the induced charted space structure on `α` is `has_groupoid G` for any structure
 groupoid `G` which is closed under restrictions. -/
-lemma singleton_has_groupoid (h : e.source = set.univ) (G : structure_groupoid H)
-  [closed_under_restriction G] : @has_groupoid _ _ _ _ (singleton_charted_space e h) G :=
+lemma local_homeomorph.singleton_has_groupoid (h : e.source = set.univ) (G : structure_groupoid H)
+  [closed_under_restriction G] : @has_groupoid _ _ _ _ (e.singleton_charted_space h) G :=
 { compatible := begin
     intros e' e'' he' he'',
     rw singleton_charted_space_one_chart e h e' he',
@@ -888,17 +879,6 @@ instance [closed_under_restriction G] : has_groupoid s G :=
   end }
 
 end topological_space.opens
-
-lemma homeomorph.has_groupoid {H : Type*} [topological_space H]
-  {M : Type*} [topological_space M] [charted_space H M]
-  {M' : Type*} [topological_space M'] (G : structure_groupoid H) [has_groupoid M G]
-  (e : homeomorph M M') : @has_groupoid H _ M' _ (e.charted_space H) G :=
-{ compatible := λ f f' hf hf', begin rcases hf with ⟨ϕ, hϕ1, hϕ2⟩,
-    rcases hf' with ⟨ψ, hψ1, hψ2⟩,
-    rw [hϕ2, hψ2, homeomorph.symm_to_local_homeomorph, trans_symm_eq_symm_trans_symm, symm_symm,
-    trans_assoc, ←trans_assoc e.to_local_homeomorph, homeomorph.trans_symm_to_local_homeomorph,
-    refl_trans],
-    exact has_groupoid.compatible G hϕ1 hψ1 end }
 
 /-! ### Structomorphisms -/
 

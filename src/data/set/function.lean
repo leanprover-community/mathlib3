@@ -232,8 +232,6 @@ theorem eq_on.inj_on_iff (H : eq_on f₁ f₂ s) : inj_on f₁ s ↔ inj_on f₂
 theorem inj_on.mono (h : s₁ ⊆ s₂) (ht : inj_on f s₂) : inj_on f s₁ :=
 λ x hx y hy H, ht (h hx) (h hy) H
 
-lemma inj_on.injective (h : inj_on f univ) : injective f := λ _ _ heq, h trivial trivial heq
-
 theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
   set.inj_on f (insert a s) ↔ set.inj_on f s ∧ f a ∉ f '' s :=
 ⟨λ hf, ⟨hf.mono $ subset_insert a s,
@@ -247,7 +245,7 @@ theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
     (λ hys : y ∈ s, h1 hxs hys hfxy))⟩
 
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
-⟨λ h x hx y hy hxy, h hxy, inj_on.injective⟩
+⟨λ h x hx y hy hxy, h hxy, λ h _ _ heq, h trivial trivial heq⟩
 
 lemma inj_on_of_injective (h : injective f) (s : set α) : inj_on f s :=
 λ x hx y hy hxy, h hxy

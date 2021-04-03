@@ -634,30 +634,13 @@ instance : smooth_manifold_with_corners I s :=
 
 end topological_space.opens
 
-lemma homeomorph.smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-  {M' : Type*} [topological_space M']
-  (e : homeomorph M M') : @smooth_manifold_with_corners 𝕜 _ E _ _ H _ I M' _ (e.charted_space H) :=
-{ compatible := λ f f' hf hf', begin rcases hf with ⟨ϕ, hϕ1, hϕ2⟩,
-    rcases hf' with ⟨ψ, hψ1, hψ2⟩,
-    rw [hϕ2, hψ2, homeomorph.symm_to_local_homeomorph,
-      local_homeomorph.trans_symm_eq_symm_trans_symm, local_homeomorph.symm_symm,
-      local_homeomorph.trans_assoc, ←local_homeomorph.trans_assoc e.to_local_homeomorph,
-      homeomorph.trans_symm_to_local_homeomorph, local_homeomorph.refl_trans],
-    exact has_groupoid.compatible (times_cont_diff_groupoid ∞ I) hϕ1 hψ1 end }
-/-
-{ ..e.has_groupoid (times_cont_diff_groupoid ∞ I) } does not work. Why!?
--/
-
 lemma local_homeomorph.singleton_smooth_manifold_with_corners
   {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   {M : Type*} [topological_space M]
   (e : local_homeomorph M H) (h : e.source = set.univ) :
-  @smooth_manifold_with_corners 𝕜 _ E _ _ H _ I M _ (singleton_charted_space e h) :=
+  @smooth_manifold_with_corners 𝕜 _ E _ _ H _ I M _ (e.singleton_charted_space h) :=
 { compatible := begin
     intros e' e'' he' he'',
     rw singleton_charted_space_one_chart e h e' he',
@@ -668,7 +651,7 @@ lemma local_homeomorph.singleton_smooth_manifold_with_corners
     exact structure_groupoid.le_iff.mp hle _ (id_restr_groupoid_mem _),
   end }
 /-
-{ ..(singleton_has_groupoid e h (times_cont_diff_groupoid ∞ I)) } does not work. Why!?
+{ ..(e.singleton_has_groupoid h (times_cont_diff_groupoid ∞ I)) } does not work. Why!?
 -/
 
 lemma open_embedding.singleton_smooth_manifold_with_corners

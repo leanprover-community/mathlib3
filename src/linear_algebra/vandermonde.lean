@@ -37,10 +37,10 @@ open_locale big_operators
 namespace matrix
 
 /-- Definition of a Vandermonde matrix -/
-def vandermonde : matrix (fin (n + 1)) (fin (n + 1)) R :=
+def vandermonde : matrix (fin n) (fin n) R :=
 λ i j, (a i) ^ (j : ℕ)
 
-@[simp] lemma vandermonde_def (i j : fin (n + 1)) :
+@[simp] lemma vandermonde_def (i j : fin n) :
   vandermonde R n a i j = (a i) ^ (j : ℕ) := rfl
 
 /-- The Vandermonde matrix after the step 1 transformation -/
@@ -84,20 +84,20 @@ begin
   simp
 end
 
-lemma vandermonde_step1_det : (vandermonde R n a).det = (vandermonde_step1 R n a).det :=
+lemma vandermonde_step1_det : (vandermonde R (n + 1) a).det = (vandermonde_step1 R n a).det :=
 begin
-  have h : vandermonde_step1 R n a = (vandermonde_step1_op R n) * (vandermonde R n a),
+  have h : vandermonde_step1 R n a = (vandermonde_step1_op R n) * (vandermonde R (n + 1) a),
   { ext i k,
     rw [mul_eq_mul, mul_apply],
     by_cases hi : i = 0,
     { rw hi,
-      have hj : ∀ j ≠ 0, vandermonde_step1_op R n 0 j * vandermonde R n a j k = 0,
+      have hj : ∀ j ≠ 0, vandermonde_step1_op R n 0 j * vandermonde R (n + 1) a j k = 0,
       { intros j hj,
         dunfold vandermonde_step1_op,
         rw [if_neg hj, if_neg (ne.symm hj), zero_mul] },
       rw fintype.sum_eq_single 0 hj,
       simp },
-    { have hj : ∀ j, j ≠ 0 ∧ j ≠ i → vandermonde_step1_op R n i j * vandermonde R n a j k = 0,
+    { have hj : ∀ j, j ≠ 0 ∧ j ≠ i → vandermonde_step1_op R n i j * vandermonde R (n + 1) a j k = 0,
       { intros j h2,
         dunfold vandermonde_step1_op,
         rw [if_neg (h2.left), if_neg (ne.symm h2.right), zero_mul] },
@@ -111,7 +111,7 @@ def vandermonde_step2 : matrix (fin (n + 1)) (fin (n + 1)) R :=
 λ i j, if i = 0 then (a 0) ^ (j : ℕ) else geom_sum₂ (a i) (a 0) (j : ℕ)
 
 lemma vandermonde_step2_det :
-  (vandermonde R n a).det =
+  (vandermonde R (n + 1) a).det =
     (∏ i in range n, (a (i + 1) - a 0)) * (vandermonde_step2 R n a).det :=
 begin
   let d : fin (n + 1) → R := λ i, if ↑i = 0 then 1 else (a i) - (a 0),
@@ -229,11 +229,11 @@ begin
 end
 
 lemma vandermonde_step3_det' :
-  (vandermonde_step3 R n.succ a).det = (vandermonde R n (λ i, a (i + 1))).det :=
+  (vandermonde_step3 R n a).det = (vandermonde R n (λ i, a (i + 1))).det :=
 begin
   transitivity
     (matrix.from_blocks (1 : matrix (fin 1) (fin 1) R) 0 0 (vandermonde R n (λ i, a (i + 1)))).det,
-  { convert det_reindex_self' (equiv.trans fin_sum_fin_equiv (fin_congr (add_comm 1 (n + 1))))
+  { convert det_reindex_self' (equiv.trans fin_sum_fin_equiv (fin_congr (add_comm 1 n)))
       (matrix.from_blocks (1 : matrix (fin 1) (fin 1) R) 0 0 (vandermonde R n (λ i, a (i + 1)))),
     dunfold vandermonde_step3,
     ext i j,
@@ -256,20 +256,58 @@ begin
 end
 
 lemma vandermonde_det :
-  det (vandermonde R n a) = ∏ i in range (n + 1), ∏ j in range i, ((a i) - (a j)) :=
+  det (vandermonde R n a) = ∏ i in range n, ∏ j in range i, ((a i) - (a j)) :=
 begin
   induction n with n hn generalizing a,
-  { simp },
+  { apply matrix.det_eq_one_of_card_eq_zero (fintype.card_fin 0) },
   { rw [vandermonde_step2_det, vandermonde_step3_det, vandermonde_step3_det',
       hn (λ (i : ℕ), a (i + 1))],
     simp only [],
-    nth_rewrite 2 prod_range_succ',
+    nth_rewrite 0 prod_range_succ',
     rw [range_zero, finset.prod_empty, mul_one],
     have hr : ∀ (k : ℕ), ∏ (j : ℕ) in range (k + 1), (a (k + 1) - a j) =
       (∏ (j : ℕ) in range k, (a (k + 1) - a (j + 1))) * (a (k + 1) - a 0),
     { intro k, apply prod_range_succ' },
     simp_rw hr,
     rw [prod_mul_distrib, mul_comm] }
+end
+
+/-- Definition of a Vandermonde matrix, using a : fin (n + 1) → R -/
+def vandermonde_fin (a : fin n → R) : matrix (fin n) (fin n) R :=
+λ i j, (a i) ^ (j : ℕ)
+
+lemma vandermonde_fin_det (a : fin n → R) : det (vandermonde_fin R n a) =
+  ∏ i : fin n, ∏ j : {j : fin n // j < i}, ((a i) - (a j)) :=
+begin
+  cases n,
+  { apply matrix.det_eq_one_of_card_eq_zero (fintype.card_fin 0) },
+  { have h : vandermonde_fin R (n + 1) a = vandermonde R (n + 1) (λ i, a i),
+    { dunfold vandermonde_fin,
+      dunfold vandermonde,
+      ext,
+      simp },
+    rw [h, vandermonde_det],
+    erw ← fin.prod_univ_eq_prod_range _ (n + 1),
+    apply fintype.prod_congr,
+    intro i,
+    let ii : Π a ∈ range ↑i, {j : fin (n + 1) // j < i} :=
+      (λ a ha, ⟨⟨a, (mem_range.mp ha).trans i.2⟩ , fin.mk_lt_of_lt_coe (mem_range.mp ha)⟩),
+    apply prod_bij ii,
+    { exact λ k hk, mem_univ (ii k hk) },
+    { intros k hk,
+      rw fin.coe_coe_eq_self,
+      refine sub_right_inj.mpr (congr_arg a _),
+      rw subtype.coe_mk,
+      apply fin.eq_of_veq,
+      rw [fin.val_eq_coe, fin.coe_of_nat_eq_mod,
+        nat.mod_eq_of_lt ((mem_range.mp hk).trans i.is_lt)] },
+    { intros a₁ a₂ h1 h2 h3,
+      rw [subtype.mk_eq_mk, subtype.mk_eq_mk] at h3,
+      exact h3 },
+    { intros k hk,
+      use [(k.val : ℕ), mem_range.mpr (fin.lt_iff_coe_lt_coe.mp k.2)],
+      dsimp only [ii],
+      simp }}
 end
 
 end matrix

@@ -62,12 +62,24 @@ theorem to_add_submonoid_injective :
 @[simp] theorem to_add_submonoid_eq : p.to_add_submonoid = q.to_add_submonoid ↔ p = q :=
 to_add_submonoid_injective.eq_iff
 
+lemma to_add_submonoid_strict_mono :
+  strict_mono (to_add_submonoid : submodule R M → add_submonoid M) := λ _ _, id
+
+lemma to_add_submonoid_mono : monotone (to_add_submonoid : submodule R M → add_submonoid M) :=
+to_add_submonoid_strict_mono.monotone
+
 theorem to_sub_mul_action_injective :
   injective (to_sub_mul_action : submodule R M → sub_mul_action R M) :=
 λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)
 
 @[simp] theorem to_sub_mul_action_eq : p.to_sub_mul_action = q.to_sub_mul_action ↔ p = q :=
 to_sub_mul_action_injective.eq_iff
+
+lemma to_sub_mul_action_strict_mono :
+  strict_mono (to_sub_mul_action : submodule R M → sub_mul_action R M) := λ _ _, id
+
+lemma to_sub_mul_action_mono : monotone (to_sub_mul_action : submodule R M → sub_mul_action R M) :=
+to_sub_mul_action_strict_mono.monotone
 
 end submodule
 
@@ -168,6 +180,19 @@ def to_add_subgroup : add_subgroup M :=
 { neg_mem' := λ _, p.neg_mem , .. p.to_add_submonoid }
 
 @[simp] lemma coe_to_add_subgroup : (p.to_add_subgroup : set M) = p := rfl
+
+include semimodule_M
+
+theorem to_add_subgroup_injective : injective (to_add_subgroup : submodule R M → add_subgroup M)
+| p q h := set_like.ext (set_like.ext_iff.1 h : _)
+
+lemma to_add_subgroup_strict_mono :
+  strict_mono (to_add_subgroup : submodule R M → add_subgroup M) := λ _ _, id
+
+lemma to_add_subgroup_mono : monotone (to_add_subgroup : submodule R M → add_subgroup M) :=
+to_add_subgroup_strict_mono.monotone
+
+omit semimodule_M
 
 lemma sub_mem : x ∈ p → y ∈ p → x - y ∈ p := p.to_add_subgroup.sub_mem
 

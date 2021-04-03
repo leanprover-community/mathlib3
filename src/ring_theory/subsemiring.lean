@@ -45,6 +45,25 @@ lemma mem_carrier {s : subsemiring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := i
 /-- Two subsemirings are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subsemiring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
+lemma to_submonoid_injective : function.injective (to_submonoid : subsemiring R → submonoid R)
+| r s h := ext (set_like.ext_iff.mp h : _)
+
+lemma to_submonoid_strict_mono : strict_mono (to_submonoid : subsemiring R → submonoid R) :=
+λ _ _, id
+
+lemma to_submonoid_mono : monotone (to_submonoid : subsemiring R → submonoid R) :=
+to_submonoid_strict_mono.monotone
+
+lemma to_add_submonoid_injective :
+  function.injective (to_add_submonoid : subsemiring R → add_submonoid R)
+| r s h := ext (set_like.ext_iff.mp h : _)
+
+lemma to_add_submonoid_strict_mono :
+  strict_mono (to_add_submonoid : subsemiring R → add_submonoid R) := λ _ _, id
+
+lemma to_add_submonoid_mono : monotone (to_add_submonoid : subsemiring R → add_submonoid R) :=
+to_add_submonoid_strict_mono.monotone
+
 /-- Construct a `subsemiring R` from a set `s`, a submonoid `sm`, and an additive
 submonoid `sa` such that `x ∈ s ↔ x ∈ sm ↔ x ∈ sa`. -/
 protected def mk' (s : set R) (sm : submonoid R) (hm : ↑sm = s)

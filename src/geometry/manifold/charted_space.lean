@@ -812,6 +812,28 @@ def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
   mem_chart_source := λ _, by simp only [h] with mfld_simps,
   chart_mem_atlas := λ _, by tauto }
 
+namespace local_homeomorph.singleton_charted_space
+
+@[simp, mfld_simps] lemma chart_at.apply (h : e.source = set.univ) {x : α} {y : α} :
+  @chart_at H _ α _ (singleton_charted_space e h) x y = e y := rfl
+
+lemma chart_at.source (h : e.source = set.univ) {x : α} {y : α} :
+  (@chart_at H _ α _ (singleton_charted_space e h) x).source = set.univ := h
+
+end local_homeomorph.singleton_charted_space
+
+def open_embedding.charted_space [nonempty α] {f : α → H} (h : open_embedding f) :
+  charted_space H α := singleton_charted_space (h.to_local_homeomorph f) (h.source f)
+
+namespace open_embedding.singleton_charted_space
+
+variable [nonempty α]
+
+@[simp, mfld_simps] lemma chart_at.apply {f : α → H} (h : open_embedding f) {x : α} {y : α} :
+  @chart_at H _ α _ (h.charted_space) x y = f y := rfl
+
+end open_embedding.singleton_charted_space
+
 lemma singleton_charted_space_one_chart (h : e.source = set.univ) (e' : local_homeomorph α H)
   (h' : e' ∈ (singleton_charted_space e h).atlas) : e' = e := h'
 
@@ -828,6 +850,11 @@ lemma singleton_has_groupoid (h : e.source = set.univ) (G : structure_groupoid H
     have hle : id_restr_groupoid ≤ G := (closed_under_restriction_iff_id_le G).mp (by assumption),
     exact structure_groupoid.le_iff.mp hle _ (id_restr_groupoid_mem _),
   end }
+
+lemma open_embedding.has_groupoid [nonempty α] {f : α → H} (h : open_embedding f)
+  (G : structure_groupoid H) [closed_under_restriction G] :
+  @has_groupoid _ _ _ _ h.charted_space G :=
+singleton_has_groupoid (h.to_local_homeomorph f) (h.source f) G
 
 end singleton
 

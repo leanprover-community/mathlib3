@@ -1210,6 +1210,10 @@ lemma times_cont_diff_within_at.times_cont_diff_at {n : with_top ℕ}
   times_cont_diff_at 𝕜 n f x :=
 by rwa [times_cont_diff_at, ← times_cont_diff_within_at_inter hx, univ_inter]
 
+lemma times_cont_diff_on_of_times_cont_diff_at {n : with_top ℕ}
+  (h : ∀ x ∈ s, times_cont_diff_at 𝕜 n f x) : times_cont_diff_on 𝕜 n f s :=
+λ x hx, times_cont_diff_at.times_cont_diff_within_at (h x hx)
+
 lemma times_cont_diff_at.congr_of_eventually_eq {n : with_top ℕ}
   (h : times_cont_diff_at 𝕜 n f x) (hg : f₁ =ᶠ[𝓝 x] f) :
   times_cont_diff_at 𝕜 n f₁ x :=

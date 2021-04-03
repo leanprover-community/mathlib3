@@ -984,3 +984,14 @@ have finite s, from u.finite_to_set.subset hsu,
 ⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
 
 end vector_space
+
+lemma linear_independent.restrict_scalars {R S M ι : Type*} [semiring R] [semiring S]
+  [add_comm_monoid M] [smul_with_zero R S] [semimodule R M] [semimodule S M] [is_scalar_tower R S M]
+  (hinj : function.injective (λ r : R, r • (1 : S))) {v : ι → M} (li : linear_independent S v) :
+  linear_independent R v :=
+begin
+  refine linear_independent_iff'.mpr (λ s g hg i hi, hinj (eq.trans _ (zero_smul _ _).symm)),
+  refine (linear_independent_iff'.mp li : _) _ _ _ i hi,
+  simp_rw [smul_assoc, one_smul],
+  exact hg,
+end

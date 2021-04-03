@@ -812,10 +812,10 @@ lemma two_mul_card_alternating_subgroup [nontrivial α] :
   2 * card (alternating_subgroup α) = card (perm α) :=
 begin
   classical,
-  rw ← fintype.card_units_int,
+  rw [← fintype.card_units_int,
+    ← (fintype.card_congr (quotient_group.quotient_ker_equiv_of_surjective _
+    (sign_surjective α)).to_equiv)],
   convert (card_eq_card_quotient_mul_card_subgroup (alternating_subgroup α)).symm,
-  convert of_equiv_card (quotient_group.quotient_ker_equiv_of_surjective _
-    (sign_surjective α)).to_equiv,
 end
 
 lemma alternating_subgroup_normal : (alternating_subgroup α).normal := sign.normal_ker

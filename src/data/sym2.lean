@@ -170,7 +170,8 @@ begin
   apply eq_iff.mpr,
   have hx := h x, have hy := h y, have hx' := h x', have hy' := h y',
   simp only [true_iff, true_or, eq_self_iff_true, iff_true, or_true] at hx hy hx' hy',
-  cases hx; subst x; cases hy; subst y; cases hx'; try { subst x' }; cases hy'; try { subst y' }; cc,
+  cases hx; subst x; cases hy; subst y; cases hx'; try { subst x' }; cases hy'; try { subst y' };
+  cc,
 end
 
 instance mem.decidable [decidable_eq α] (x : α) (z : sym2 α) : decidable (x ∈ z) :=

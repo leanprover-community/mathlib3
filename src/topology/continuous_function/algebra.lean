@@ -413,7 +413,7 @@ begin
   refine ⟨f', _, _, _⟩,
   { simp only [set.mem_image, coe_coe],
     refine ⟨f', _, rfl⟩,
-    simp only [f', submodule.mem_coe, subalgebra.mem_to_submodule],
+    simp only [f', set_like.mem_coe, subalgebra.mem_to_submodule],
     -- TODO should there be a tactic for this?
     -- We could add an attribute `@[subobject_mem]`, and a tactic
     -- ``def subobject_mem := `[solve_by_elim with subobject_mem { max_depth := 10 }]``

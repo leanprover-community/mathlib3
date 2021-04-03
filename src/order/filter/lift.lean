@@ -150,7 +150,8 @@ le_antisymm
 
 lemma lift_lift_same_le_lift {g : set α → set α → filter β} :
   f.lift (λs, f.lift (g s)) ≤ f.lift (λs, g s s) :=
-le_infi $ assume s, le_infi $ assume hs, infi_le_of_le s $ infi_le_of_le hs $ infi_le_of_le s $ infi_le _ hs
+le_infi $ assume s, le_infi $ assume hs, infi_le_of_le s $ infi_le_of_le hs $ infi_le_of_le s $
+  infi_le _ hs
 
 lemma lift_lift_same_eq_lift {g : set α → set α → filter β}
   (hg₁ : ∀s, monotone (λt, g s t)) (hg₂ : ∀t, monotone (λs, g s t)) :
@@ -258,7 +259,8 @@ lemma lift'_mono' (hh : ∀s∈f, h₁ s ⊆ h₂ s) : f.lift' h₁ ≤ f.lift' 
 infi_le_infi $ assume s, infi_le_infi $ assume hs, principal_mono.mpr $ hh s hs
 
 lemma lift'_cong (hh : ∀s∈f, h₁ s = h₂ s) : f.lift' h₁ = f.lift' h₂ :=
-le_antisymm (lift'_mono' $ assume s hs, le_of_eq $ hh s hs) (lift'_mono' $ assume s hs, le_of_eq $ (hh s hs).symm)
+le_antisymm (lift'_mono' $ assume s hs, le_of_eq $ hh s hs)
+  (lift'_mono' $ assume s hs, le_of_eq $ (hh s hs).symm)
 
 lemma map_lift'_eq {m : β → γ} (hh : monotone h) : map m (f.lift' h) = f.lift' (image m ∘ h) :=
 calc map m (f.lift' h) = f.lift (map m ∘ 𝓟 ∘ h) :
@@ -273,7 +275,8 @@ theorem comap_lift'_eq {m : γ → β} (hh : monotone h) :
   comap m (f.lift' h) = f.lift' (preimage m ∘ h) :=
 calc comap m (f.lift' h) = f.lift (comap m ∘ 𝓟 ∘ h) :
     comap_lift_eq $ monotone_principal.comp hh
-  ... = f.lift' (preimage m ∘ h) : by simp only [(∘), filter.lift', comap_principal, eq_self_iff_true]
+  ... = f.lift' (preimage m ∘ h) :
+    by simp only [(∘), filter.lift', comap_principal, eq_self_iff_true]
 
 theorem comap_lift'_eq2 {m : β → α} {g : set β → set γ} (hg : monotone g) :
   (comap m f).lift' g = f.lift' (g ∘ preimage m) :=
@@ -339,7 +342,8 @@ lift_principal2
 
 lemma le_lift' {f : filter α} {h : set α → set β} {g : filter β}
   (h_le : ∀s∈f, h s ∈ g) : g ≤ f.lift' h :=
-le_infi $ assume s, le_infi $ assume hs, by simp only [h_le, le_principal_iff, function.comp_app]; exact h_le s hs
+le_infi $ assume s, le_infi $ assume hs,
+  by simpa only [h_le, le_principal_iff, function.comp_app] using h_le s hs
 
 lemma lift_infi' {f : ι → filter α} {g : set α → filter β}
   [nonempty ι] (hf : directed (≥) f) (hg : monotone g) : (infi f).lift g = (⨅i, (f i).lift g) :=

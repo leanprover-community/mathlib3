@@ -2551,6 +2551,20 @@ lemma map_prod_map_Coprod_le {μ : δ → Type*}
   map (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) ≤ filter.Coprod (λ d, map (m d) (f d)) :=
 begin
   intros s h,
+  rw mem_Coprod_iff at h,
+  rw mem_map,
+  rw mem_Coprod_iff,
+  intros d,
+  obtain ⟨t, ht⟩ := h d,
+  obtain ⟨H, hH⟩ := ht,
+  rw mem_map at H,
+  use {x : κ d | m d x ∈ t},
+  split,
+  exact H,
+  intros x hx,
+  simp at hx,
+  simp,
+
   -- Alex homework
   sorry,
   simp only [mem_map, mem_coprod_iff],

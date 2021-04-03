@@ -56,7 +56,7 @@ lipschitz_with.of_edist_le $ λ x y, le_of_eq (h x y)
 lemma isometry.antilipschitz (h : isometry f) : antilipschitz_with 1 f :=
 λ x y, by simp only [h x y, ennreal.coe_one, one_mul, le_refl]
 
-/-- An isometry from a metric space is injective -/
+/-- An isometry from an emetric space is injective -/
 lemma isometry.injective {α : Type u} [emetric_space α] {f : α → β} (h : isometry f) :
   injective f := h.antilipschitz.injective
 
@@ -81,7 +81,7 @@ theorem isometry.uniform_embedding {α : Type u} {β : Type v} [emetric_space α
   uniform_embedding f :=
 hf.antilipschitz.uniform_embedding hf.lipschitz.uniform_continuous
 
-/-- An isometry from a metric space to a complete space is a closed embedding -/
+/-- An isometry from a complete emetric space is a closed embedding -/
 theorem isometry.closed_embedding {α : Type u} {β : Type v} [emetric_space α] [complete_space α]
   [emetric_space β] {f : α → β} (hf : isometry f) : closed_embedding f :=
 hf.antilipschitz.closed_embedding hf.lipschitz.uniform_continuous

@@ -661,9 +661,7 @@ instance has_strong_epi_images_of_has_pullbacks_of_has_equalizers [has_pullbacks
       { I := pullback h y,
         m := pullback.snd ≫ image.ι f,
         m_mono := by exactI mono_comp _ _,
-        e := pullback.lift _ _ w } ≫ pullback.fst,
-      fac_left := by simp,
-      fac_right := by tidy } } }
+        e := pullback.lift _ _ w } ≫ pullback.fst } } }
 
 end has_strong_epi_images
 

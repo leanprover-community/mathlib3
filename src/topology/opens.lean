@@ -126,8 +126,11 @@ by { rw supr_def, simp }
 @[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
 by simp [supr_def]
 
-theorem mem_supr {ι} {x : α} {s : ι → opens α} : x ∈ supr s ↔ ∃ i, x ∈ s i :=
+@[simp] theorem mem_supr {ι} {x : α} {s : ι → opens α} : x ∈ supr s ↔ ∃ i, x ∈ s i :=
 by { rw [←mem_coe], simp, }
+
+@[simp] lemma mem_Sup {Us : set (opens α)} {x : α} : x ∈ Sup Us ↔ ∃ u ∈ Us, x ∈ u :=
+by simp_rw [Sup_eq_supr, mem_supr]
 
 lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
   open_embedding (set.inclusion i) :=
@@ -146,7 +149,7 @@ lemma is_basis_iff_nbhd {B : set (opens α)} :
 begin
   split; intro h,
   { rintros ⟨sU, hU⟩ x hx,
-    rcases (mem_nhds_of_is_topological_basis h).mp (mem_nhds_sets hU hx)
+    rcases h.mem_nhds_iff.mp (mem_nhds_sets hU hx)
       with ⟨sV, ⟨⟨V, H₁, H₂⟩, hsV⟩⟩,
     refine ⟨V, H₁, _⟩,
     cases V, dsimp at H₂, subst H₂, exact hsV },
@@ -162,33 +165,17 @@ lemma is_basis_iff_cover {B : set (opens α)} :
 begin
   split,
   { intros hB U,
-    rcases sUnion_basis_of_is_open hB U.prop with ⟨sUs, H, hU⟩,
-    existsi {U : opens α | U ∈ B ∧ ↑U ∈ sUs},
-    split,
-    { intros U hU, exact hU.left },
-    { apply ext,
-      rw [Sup_s, hU],
-      congr' with s; split; intro hs,
-      { rcases H hs with ⟨V, hV⟩,
-        rw ← hV.right at hs,
-        refine ⟨V, ⟨⟨hV.left, hs⟩, hV.right⟩⟩ },
-      { rcases hs with ⟨V, ⟨⟨H₁, H₂⟩, H₃⟩⟩,
-        subst H₃, exact H₂ } } },
+    refine ⟨{V : opens α | V ∈ B ∧ V ⊆ U}, λ U hU, hU.left, _⟩,
+    apply ext,
+    rw [Sup_s, hB.open_eq_sUnion' U.prop],
+    simp_rw [sUnion_image, sUnion_eq_bUnion, Union, supr_and, supr_image],
+    refl },
   { intro h,
     rw is_basis_iff_nbhd,
     intros U x hx,
-    rcases h U with ⟨Us, hUs, H⟩,
-    replace H := congr_arg (coe : _ → set α) H,
-    rw Sup_s at H,
-    change x ∈ ↑U at hx,
-    rw H at hx,
-    rcases set.mem_sUnion.mp hx with ⟨sV, ⟨⟨V, H₁, H₂⟩, hsV⟩⟩,
-    refine ⟨V,hUs H₁,_⟩,
-    cases V with V hV,
-    dsimp at H₂, subst H₂,
-    refine ⟨hsV,_⟩,
-    change V ⊆ U, rw H,
-    exact set.subset_sUnion_of_mem ⟨⟨V, _⟩, ⟨H₁, rfl⟩⟩ }
+    rcases h U with ⟨Us, hUs, rfl⟩,
+    rcases mem_Sup.1 hx with ⟨U, Us, xU⟩,
+    exact ⟨U, hUs Us, xU, le_Sup Us⟩ }
 end
 
 /-- The preimage of an open set, as an open set. -/

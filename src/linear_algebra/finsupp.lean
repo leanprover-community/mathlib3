@@ -652,8 +652,8 @@ variables (R)
 
 /-- The linear equivalence between `(α ⊕ β) →₀ M` and `(α →₀ M) × (β →₀ M)`.
 
-This is the `linear_equiv` version of `finsupp.sum_arrow_equiv_prod_arrow`. -/
-@[simps apply symm_apply] def sum_arrow_lequiv_prod_arrow {α β : Type*} :
+This is the `linear_equiv` version of `finsupp.sum_finsupp_equiv_prod_finsupp`. -/
+@[simps apply symm_apply] def sum_finsupp_lequiv_prod_finsupp {α β : Type*} :
   ((α ⊕ β) →₀ M) ≃ₗ[R] (α →₀ M) × (β →₀ M) :=
 { map_smul' :=
     by { intros, ext;
@@ -661,24 +661,24 @@ This is the `linear_equiv` version of `finsupp.sum_arrow_equiv_prod_arrow`. -/
               snd_sum_arrow_equiv_prod_arrow, fst_sum_arrow_equiv_prod_arrow] },
   .. sum_arrow_add_equiv_prod_arrow }
 
-lemma fst_sum_arrow_lequiv_prod_arrow {α β : Type*}
+lemma fst_sum_finsupp_lequiv_prod_finsupp {α β : Type*}
   (f : (α ⊕ β) →₀ M) (x : α) :
-  (sum_arrow_lequiv_prod_arrow R f).1 x = f (sum.inl x) :=
+  (sum_finsupp_lequiv_prod_finsupp R f).1 x = f (sum.inl x) :=
 rfl
 
-lemma snd_sum_arrow_lequiv_prod_arrow {α β : Type*}
+lemma snd_sum_finsupp_lequiv_prod_finsupp {α β : Type*}
   (f : (α ⊕ β) →₀ M) (y : β) :
-  (sum_arrow_lequiv_prod_arrow R f).2 y = f (sum.inr y) :=
+  (sum_finsupp_lequiv_prod_finsupp R f).2 y = f (sum.inr y) :=
 rfl
 
-lemma sum_arrow_lequiv_prod_arrow_symm_inl {α β : Type*}
+lemma sum_finsupp_lequiv_prod_finsupp_symm_inl {α β : Type*}
   (fg : (α →₀ M) × (β →₀ M)) (x : α) :
-  ((sum_arrow_lequiv_prod_arrow R).symm fg) (sum.inl x) = fg.1 x :=
+  ((sum_finsupp_lequiv_prod_finsupp R).symm fg) (sum.inl x) = fg.1 x :=
 rfl
 
-lemma sum_arrow_lequiv_prod_arrow_symm_inr {α β : Type*}
+lemma sum_finsupp_lequiv_prod_finsupp_symm_inr {α β : Type*}
   (fg : (α →₀ M) × (β →₀ M)) (y : β) :
-  ((sum_arrow_lequiv_prod_arrow R).symm fg) (sum.inr y) = fg.2 y :=
+  ((sum_finsupp_lequiv_prod_finsupp R).symm fg) (sum.inr y) = fg.2 y :=
 rfl
 
 end sum

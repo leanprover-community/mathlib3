@@ -1844,7 +1844,7 @@ lemma sum_elim_inr {α β γ : Type*} [has_zero γ]
 
 This is the `finsupp` version of `equiv.sum_arrow_equiv_prod_arrow`. -/
 @[simps apply symm_apply]
-def sum_arrow_equiv_prod_arrow {α β γ : Type*} [has_zero γ] :
+def sum_finsupp_equiv_prod_finsupp {α β γ : Type*} [has_zero γ] :
   ((α ⊕ β) →₀ γ) ≃ (α →₀ γ) × (β →₀ γ) :=
 { to_fun := λ f,
     ⟨f.comap_domain sum.inl (sum.inl_injective.inj_on _),
@@ -1853,55 +1853,57 @@ def sum_arrow_equiv_prod_arrow {α β γ : Type*} [has_zero γ] :
   left_inv := λ f, by { ext ab, cases ab with a b; simp },
   right_inv := λ fg, by { ext; simp } }
 
-lemma fst_sum_arrow_equiv_prod_arrow {α β γ : Type*} [has_zero γ]
+lemma fst_sum_finsupp_equiv_prod_finsupp {α β γ : Type*} [has_zero γ]
   (f : (α ⊕ β) →₀ γ) (x : α) :
-  (sum_arrow_equiv_prod_arrow f).1 x = f (sum.inl x) :=
+  (sum_finsupp_equiv_prod_finsupp f).1 x = f (sum.inl x) :=
 rfl
 
-lemma snd_sum_arrow_equiv_prod_arrow {α β γ : Type*} [has_zero γ]
+lemma snd_sum_finsupp_equiv_prod_finsupp {α β γ : Type*} [has_zero γ]
   (f : (α ⊕ β) →₀ γ) (y : β) :
-  (sum_arrow_equiv_prod_arrow f).2 y = f (sum.inr y) :=
+  (sum_finsupp_equiv_prod_finsupp f).2 y = f (sum.inr y) :=
 rfl
 
-lemma sum_arrow_equiv_prod_arrow_symm_inl {α β γ : Type*} [has_zero γ]
+lemma sum_finsupp_equiv_prod_finsupp_symm_inl {α β γ : Type*} [has_zero γ]
   (fg : (α →₀ γ) × (β →₀ γ)) (x : α) :
-  (sum_arrow_equiv_prod_arrow.symm fg) (sum.inl x) = fg.1 x :=
+  (sum_finsupp_equiv_prod_finsupp.symm fg) (sum.inl x) = fg.1 x :=
 rfl
 
-lemma sum_arrow_equiv_prod_arrow_symm_inr {α β γ : Type*} [has_zero γ]
+lemma sum_finsupp_equiv_prod_finsupp_symm_inr {α β γ : Type*} [has_zero γ]
   (fg : (α →₀ γ) × (β →₀ γ)) (y : β) :
-  (sum_arrow_equiv_prod_arrow.symm fg) (sum.inr y) = fg.2 y :=
+  (sum_finsupp_equiv_prod_finsupp.symm fg) (sum.inr y) = fg.2 y :=
 rfl
 
 variables [add_monoid M]
 
-/-- The additive equivalence between `(α ⊕ β) →₀ M` and `(α →₀ M) × (β →₀ M)`. -/
-@[simps apply symm_apply] def sum_arrow_add_equiv_prod_arrow {α β : Type*} :
+/-- The additive equivalence between `(α ⊕ β) →₀ M` and `(α →₀ M) × (β →₀ M)`.
+
+This is the `finsupp` version of `equiv.sum_arrow_equiv_prod_arrow`. -/
+@[simps apply symm_apply] def sum_finsupp_add_equiv_prod_finsupp {α β : Type*} :
   ((α ⊕ β) →₀ M) ≃+ (α →₀ M) × (β →₀ M) :=
 { map_add' :=
     by { intros, ext;
           simp only [equiv.to_fun_as_coe, prod.fst_add, prod.snd_add, add_apply,
-              snd_sum_arrow_equiv_prod_arrow, fst_sum_arrow_equiv_prod_arrow] },
-  .. sum_arrow_equiv_prod_arrow }
+              snd_sum_finsupp_equiv_prod_finsupp, fst_sum_finsupp_equiv_prod_finsupp] },
+  .. sum_finsupp_equiv_prod_finsupp }
 
-lemma fst_sum_arrow_add_equiv_prod_arrow {α β : Type*}
+lemma fst_sum_finsupp_add_equiv_prod_finsupp {α β : Type*}
   (f : (α ⊕ β) →₀ M) (x : α) :
-  (sum_arrow_add_equiv_prod_arrow f).1 x = f (sum.inl x) :=
+  (sum_finsupp_add_equiv_prod_finsupp f).1 x = f (sum.inl x) :=
 rfl
 
-lemma snd_sum_arrow_add_equiv_prod_arrow {α β : Type*}
+lemma snd_sum_finsupp_add_equiv_prod_finsupp {α β : Type*}
   (f : (α ⊕ β) →₀ M) (y : β) :
-  (sum_arrow_add_equiv_prod_arrow f).2 y = f (sum.inr y) :=
+  (sum_finsupp_add_equiv_prod_finsupp f).2 y = f (sum.inr y) :=
 rfl
 
-lemma sum_arrow_add_equiv_prod_arrow_symm_inl {α β : Type*}
+lemma sum_finsupp_add_equiv_prod_finsupp_symm_inl {α β : Type*}
   (fg : (α →₀ M) × (β →₀ M)) (x : α) :
-  (sum_arrow_add_equiv_prod_arrow.symm fg) (sum.inl x) = fg.1 x :=
+  (sum_finsupp_add_equiv_prod_finsupp.symm fg) (sum.inl x) = fg.1 x :=
 rfl
 
-lemma sum_arrow_add_equiv_prod_arrow_symm_inr {α β : Type*}
+lemma sum_finsupp_add_equiv_prod_finsupp_symm_inr {α β : Type*}
   (fg : (α →₀ M) × (β →₀ M)) (y : β) :
-  (sum_arrow_add_equiv_prod_arrow.symm fg) (sum.inr y) = fg.2 y :=
+  (sum_finsupp_add_equiv_prod_finsupp.symm fg) (sum.inr y) = fg.2 y :=
 rfl
 
 end sum

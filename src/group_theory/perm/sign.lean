@@ -223,7 +223,7 @@ by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_no
 @[simp] lemma support_one : (1 : perm α).support = ∅ :=
 by rw support_eq_empty_iff
 
-lemma support_mul_le {f g : perm α} :
+lemma support_mul_le (f g : perm α) :
   (f * g).support ≤ f.support ∪ g.support :=
 λ x, begin
   rw [mem_union, mem_support, mem_support, mem_support, mul_apply, ←not_and_distrib, not_imp_not],
@@ -873,7 +873,7 @@ disjoint_iff_disjoint_support.1 h
 lemma disjoint.support_mul (h : disjoint f g) :
   (f * g).support = f.support ∪ g.support :=
 begin
-  refine le_antisymm support_mul_le (λ a, _),
+  refine le_antisymm (support_mul_le _ _) (λ a, _),
   rw [mem_union, mem_support, mem_support, mem_support, mul_apply, ←not_and_distrib, not_imp_not],
   exact (h a).elim (λ hf h, ⟨hf, f.apply_eq_iff_eq.mp (h.trans hf.symm)⟩)
     (λ hg h, ⟨(congr_arg f hg).symm.trans h, hg⟩),

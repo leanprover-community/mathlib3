@@ -98,7 +98,7 @@ Group Theory:
   Permutation group:
     permutation group of a type: 'equiv.perm'
     decomposition into transpositions: ''
-    decomposition into cycles with disjoint support: 'equiv.perm.cycle_factors'
+    decomposition into cycles with disjoint support: 'equiv.perm.trunc_cycle_factors'
     signature: 'equiv.perm.sign'
     alternating group: ''
   Classical automorphism groups:

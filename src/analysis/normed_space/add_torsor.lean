@@ -43,6 +43,7 @@ class normed_add_torsor (V : out_param $ Type*) (P : Type*)
 (dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
 
 /-- A `normed_add_torsor` is a `semi_normed_add_torsor`. -/
+@[priority 100]
 instance normed_add_torsor.to_semi_normed_add_torsor {V P : Type*} [normed_group V] [metric_space P]
   [β : normed_add_torsor V P] : semi_normed_add_torsor V P := { ..β }
 

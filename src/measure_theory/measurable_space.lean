@@ -551,6 +551,11 @@ begin
   exact eq_empty_of_not_nonempty h _,
 end
 
+@[to_additive] lemma measurable_set_mul_support [has_one β]
+  [measurable_singleton_class β] {f : α → β} (hf : measurable f) :
+  measurable_set (mul_support f) :=
+hf (measurable_set_singleton 1).compl
+
 end measurable_functions
 
 section constructions
@@ -739,6 +744,18 @@ end
 lemma measurable_set_swap_iff {s : set (α × β)} :
   measurable_set (prod.swap ⁻¹' s) ↔ measurable_set s :=
 ⟨λ hs, by { convert measurable_swap hs, ext ⟨x, y⟩, refl }, λ hs, measurable_swap hs⟩
+
+lemma measurable_from_prod_encodable [encodable β] [measurable_singleton_class β]
+  {f : α × β → γ} (hf : ∀ y, measurable (λ x, f (x, y))) :
+  measurable f :=
+begin
+  intros s hs,
+  have : f ⁻¹' s = ⋃ y, ((λ x, f (x, y)) ⁻¹' s).prod {y},
+  { ext1 ⟨x, y⟩,
+    simp [and_assoc, and.left_comm] },
+  rw this,
+  exact measurable_set.Union (λ y, (hf y hs).prod (measurable_set_singleton y))
+end
 
 end prod
 

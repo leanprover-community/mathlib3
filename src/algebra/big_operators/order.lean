@@ -264,9 +264,9 @@ end
 
 end linear_ordered_cancel_comm_monoid
 
-section ordered_comm_ring
+section ordered_comm_semiring
 
-variables [ordered_comm_ring β]
+variables [ordered_comm_semiring β]
 open_locale classical
 
 /- this is also true for a ordered commutative multiplicative monoid -/
@@ -285,11 +285,11 @@ lemma prod_le_prod {s : finset α} {f g : α → β} (h0 : ∀(x ∈ s), 0 ≤ f
 begin
   induction s using finset.induction with a s has ih h,
   { simp },
-  { simp [has], apply mul_le_mul,
-      exact h1 a (mem_insert_self a s),
-      apply ih (λ x H, h0 _ _) (λ x H, h1 _ _); exact (mem_insert_of_mem H),
-      apply prod_nonneg (λ x H, h0 x (mem_insert_of_mem H)),
-      apply le_trans (h0 a (mem_insert_self a s)) (h1 a (mem_insert_self a s)) }
+  { simp only [prod_insert has], apply mul_le_mul,
+    { exact h1 a (mem_insert_self a s) },
+    { apply ih (λ x H, h0 _ _) (λ x H, h1 _ _); exact (mem_insert_of_mem H) },
+    { apply prod_nonneg (λ x H, h0 x (mem_insert_of_mem H)) },
+    { apply le_trans (h0 a (mem_insert_self a s)) (h1 a (mem_insert_self a s)) } }
 end
 
 lemma prod_le_one {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
@@ -300,7 +300,7 @@ begin
 end
 
 /-- If `g, h ≤ f` and `g i + h i ≤ f i`, then the product of `f` over `s` is at least the
-  sum of the products of `g` and `h`. This is the version for `linear_ordered_comm_ring`. -/
+  sum of the products of `g` and `h`. This is the version for `ordered_comm_semiring`. -/
 lemma prod_add_prod_le {s : finset α} {i : α} {f g h : α → β}
   (hi : i ∈ s) (h2i : g i + h i ≤ f i) (hgf : ∀ j ∈ s, j ≠ i → g j ≤ f j)
   (hhf : ∀ j ∈ s, j ≠ i → h j ≤ f j) (hg : ∀ i ∈ s, 0 ≤ g i) (hh : ∀ i ∈ s, 0 ≤ h i) :
@@ -309,13 +309,13 @@ begin
   simp_rw [← mul_prod_diff_singleton hi],
   refine le_trans _ (mul_le_mul_of_nonneg_right h2i _),
   { rw [right_distrib],
-    apply add_le_add; apply mul_le_mul_of_nonneg_left; try { apply prod_le_prod };
-    simp only [and_imp, mem_sdiff, mem_singleton]; intros; apply_assumption; assumption },
+    apply add_le_add; apply mul_le_mul_of_nonneg_left; try { apply_assumption; assumption };
+      apply prod_le_prod; simp * { contextual := tt } },
   { apply prod_nonneg, simp only [and_imp, mem_sdiff, mem_singleton],
-    intros j h1j h2j, refine le_trans (hg j h1j) (hgf j h1j h2j) }
+    intros j h1j h2j, exact le_trans (hg j h1j) (hgf j h1j h2j) }
 end
 
-end ordered_comm_ring
+end ordered_comm_semiring
 
 section canonically_ordered_comm_semiring
 

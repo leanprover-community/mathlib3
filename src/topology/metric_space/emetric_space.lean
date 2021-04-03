@@ -418,7 +418,7 @@ instance prod.pseudo_emetric_space_max [pseudo_emetric_space β] : pseudo_emetri
   end,
   to_uniform_space := prod.uniform_space }
 
-lemma prod.pesudoedist_eq [pseudo_emetric_space β] (x y : α × β) :
+lemma prod.edist_eq [pseudo_emetric_space β] (x y : α × β) :
   edist x y = max (edist x.1 y.1) (edist x.2 y.2) :=
 rfl
 
@@ -452,11 +452,11 @@ instance pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] :
     simp [set.ext_iff, εpos]
   end }
 
-lemma pseudo_edist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
+lemma edist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
-@[priority 1100]
-lemma pseudo_edist_pi_const [nonempty β] (a b : α) :
+@[simp]
+lemma edist_pi_const [nonempty β] (a b : α) :
   edist (λ x : β, a) (λ _, b) = edist a b := finset.sup_const univ_nonempty (edist a b)
 
 end pi
@@ -740,6 +740,45 @@ begin
     exact not_lt.1 (λ hlt, Hgt I.1 hlt I.2 hI.some_spec) }
 end
 
+/-- For a set `s` in a pseudo emetric space, if for every `ε > 0` there exists a countable
+set that is `ε`-dense in `s`, then there exists a countable subset `t ⊆ s` that is dense in `s`. -/
+lemma subset_countable_closure_of_almost_dense_set (s : set α)
+  (hs : ∀ ε > 0, ∃ t : set α, countable t ∧ s ⊆ ⋃ x ∈ t, closed_ball x ε) :
+  ∃ t ⊆ s, (countable t ∧ s ⊆ closure t) :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl|⟨x₀, hx₀⟩,
+  { exact ⟨∅, empty_subset _, countable_empty, empty_subset _⟩ },
+  choose! T hTc hsT using (λ n : ℕ, hs n⁻¹ (by simp)),
+  have : ∀ r x, ∃ y ∈ s, closed_ball x r ∩ s ⊆ closed_ball y (r * 2),
+  { intros r x,
+    rcases (closed_ball x r ∩ s).eq_empty_or_nonempty with he|⟨y, hxy, hys⟩,
+    { refine ⟨x₀, hx₀, _⟩, rw he, exact empty_subset _ },
+    { refine ⟨y, hys, λ z hz, _⟩,
+      calc edist z y ≤ edist z x + edist y x : edist_triangle_right _ _ _
+      ... ≤ r + r : add_le_add hz.1 hxy
+      ... = r * 2 : (mul_two r).symm } },
+  choose f hfs hf,
+  refine ⟨⋃ n : ℕ, (f n⁻¹) '' (T n), Union_subset $ λ n, image_subset_iff.2 (λ z hz, hfs _ _),
+    countable_Union $ λ n, (hTc n).image _, _⟩,
+  refine λ x hx, mem_closure_iff.2 (λ ε ε0, _),
+  rcases ennreal.exists_inv_nat_lt (ennreal.half_pos ε0).ne' with ⟨n, hn⟩,
+  rcases mem_bUnion_iff.1 (hsT n hx) with ⟨y, hyn, hyx⟩,
+  refine ⟨f n⁻¹ y, mem_Union.2 ⟨n, mem_image_of_mem _ hyn⟩, _⟩,
+  calc edist x (f n⁻¹ y) ≤ n⁻¹ * 2 : hf _ _ ⟨hyx, hx⟩
+                     ... < ε      : ennreal.mul_lt_of_lt_div hn
+end
+
+/-- A compact set in a pseudo emetric space is separable, i.e., it is a subset of the closure of a
+countable set.  -/
+lemma subset_countable_closure_of_compact {s : set α} (hs : is_compact s) :
+  ∃ t ⊆ s, (countable t ∧ s ⊆ closure t) :=
+begin
+  refine subset_countable_closure_of_almost_dense_set s (λ ε hε, _),
+  rcases totally_bounded_iff'.1 hs.totally_bounded ε hε with ⟨t, hts, htf, hst⟩,
+  exact ⟨t, htf.countable,
+    subset.trans hst (bUnion_subset_bUnion_right $ λ _ _, ball_subset_closed_ball)⟩
+end
+
 end compact
 
 section first_countable
@@ -754,13 +793,42 @@ end first_countable
 section second_countable
 open topological_space
 
+variables (α)
+
 /-- A separable pseudoemetric space is second countable: one obtains a countable basis by taking
 the balls centered at points in a dense subset, and with rational radii. We do not register
 this as an instance, as there is already an instance going in the other direction
 from second countable spaces to separable spaces, and we want to avoid loops. -/
-lemma second_countable_of_separable (α : Type u) [pseudo_emetric_space α] [separable_space α] :
+lemma second_countable_of_separable [separable_space α] :
   second_countable_topology α :=
 uniform_space.second_countable_of_separable uniformity_has_countable_basis
+
+/-- A sigma compact pseudo emetric space has second countable topology. This is not an instance
+to avoid a loop with `sigma_compact_space_of_locally_compact_second_countable`.  -/
+lemma second_countable_of_sigma_compact [sigma_compact_space α] :
+  second_countable_topology α :=
+begin
+  suffices : separable_space α, by exactI second_countable_of_separable α,
+  choose T hTsub hTc hsubT
+    using λ n, subset_countable_closure_of_compact (is_compact_compact_covering α n),
+  refine ⟨⟨⋃ n, T n, countable_Union hTc, λ x, _⟩⟩,
+  rcases Union_eq_univ_iff.1 (Union_compact_covering α) x with ⟨n, hn⟩,
+  exact closure_mono (subset_Union _ n) (hsubT _ hn)
+end
+
+variable {α}
+
+lemma second_countable_of_almost_dense_set
+  (hs : ∀ ε > 0, ∃ t : set α, countable t ∧ (⋃ x ∈ t, closed_ball x ε) = univ) :
+  second_countable_topology α :=
+begin
+  suffices : separable_space α, by exactI second_countable_of_separable α,
+  rcases subset_countable_closure_of_almost_dense_set (univ : set α) (λ ε ε0, _)
+    with ⟨t, -, htc, ht⟩,
+  { exact ⟨⟨t, htc, λ x, ht (mem_univ x)⟩⟩ },
+  { rcases hs ε ε0 with ⟨t, htc, ht⟩,
+    exact ⟨t, htc, univ_subset_iff.2 ht⟩ }
+end
 
 end second_countable
 
@@ -769,24 +837,29 @@ section diam
 /-- The diameter of a set in a pseudoemetric space, named `emetric.diam` -/
 def diam (s : set α) := ⨆ (x ∈ s) (y ∈ s), edist x y
 
-lemma diam_le_iff_forall_edist_le {d : ℝ≥0∞} :
+lemma diam_le_iff {d : ℝ≥0∞} :
   diam s ≤ d ↔ ∀ (x ∈ s) (y ∈ s), edist x y ≤ d :=
 by simp only [diam, supr_le_iff]
 
+lemma diam_image_le_iff {d : ℝ≥0∞} {f : β → α} {s : set β} :
+  diam (f '' s) ≤ d ↔ ∀ (x ∈ s) (y ∈ s), edist (f x) (f y) ≤ d :=
+by simp only [diam_le_iff, ball_image_iff]
+
+lemma edist_le_of_diam_le {d} (hx : x ∈ s) (hy : y ∈ s) (hd : diam s ≤ d) : edist x y ≤ d :=
+diam_le_iff.1 hd x hx y hy
+
 /-- If two points belong to some set, their edistance is bounded by the diameter of the set -/
 lemma edist_le_diam_of_mem (hx : x ∈ s) (hy : y ∈ s) : edist x y ≤ diam s :=
-diam_le_iff_forall_edist_le.1 (le_refl _) x hx y hy
+edist_le_of_diam_le hx hy le_rfl
 
 /-- If the distance between any two points in a set is bounded by some constant, this constant
 bounds the diameter. -/
-lemma diam_le_of_forall_edist_le {d : ℝ≥0∞} (h : ∀ (x ∈ s) (y ∈ s), edist x y ≤ d) :
-  diam s ≤ d :=
-diam_le_iff_forall_edist_le.2 h
+lemma diam_le {d : ℝ≥0∞} (h : ∀ (x ∈ s) (y ∈ s), edist x y ≤ d) : diam s ≤ d := diam_le_iff.2 h
 
 /-- The diameter of a subsingleton vanishes. -/
 lemma diam_subsingleton (hs : s.subsingleton) : diam s = 0 :=
-nonpos_iff_eq_zero.1 $ diam_le_of_forall_edist_le $
-λ x hx y hy, (hs hx hy).symm ▸ edist_self y ▸ le_refl _
+nonpos_iff_eq_zero.1 $ diam_le $
+λ x hx y hy, (hs hx hy).symm ▸ edist_self y ▸ le_rfl
 
 /-- The diameter of the empty set vanishes -/
 @[simp] lemma diam_empty : diam (∅ : set α) = 0 :=
@@ -797,7 +870,7 @@ diam_subsingleton subsingleton_empty
 diam_subsingleton subsingleton_singleton
 
 lemma diam_insert : diam (insert x s) = max (⨆ y ∈ s, edist x y) (diam s) :=
-eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_insert_iff,
+eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff, ball_insert_iff,
   edist_self, edist_comm x, max_le_iff, supr_le_iff, zero_le, true_and,
   forall_and_distrib, and_self, ← and_assoc]
 
@@ -811,7 +884,7 @@ by simp only [diam_insert, supr_insert, supr_singleton, diam_singleton,
 
 /-- The diameter is monotonous with respect to inclusion -/
 lemma diam_mono {s t : set α} (h : s ⊆ t) : diam s ≤ diam t :=
-diam_le_of_forall_edist_le $ λ x hx y hy, edist_le_diam_of_mem (h hx) (h hy)
+diam_le $ λ x hx y hy, edist_le_diam_of_mem (h hx) (h hy)
 
 /-- The diameter of a union is controlled by the diameter of the sets, and the edistance
 between two points in the sets. -/
@@ -822,7 +895,7 @@ begin
     edist a b ≤ edist a x + edist x y + edist y b : edist_triangle4 _ _ _ _
     ... ≤ diam s + edist x y + diam t :
       add_le_add (add_le_add (edist_le_diam_of_mem ha xs) (le_refl _)) (edist_le_diam_of_mem yt hb),
-  refine diam_le_of_forall_edist_le (λa ha b hb, _),
+  refine diam_le (λa ha b hb, _),
   cases (mem_union _ _ _).1 ha with h'a h'a; cases (mem_union _ _ _).1 hb with h'b h'b,
   { calc edist a b ≤ diam s : edist_le_diam_of_mem h'a h'b
         ... ≤ diam s + (edist x y + diam t) : le_add_right (le_refl _)
@@ -837,10 +910,10 @@ lemma diam_union' {t : set α} (h : (s ∩ t).nonempty) : diam (s ∪ t) ≤ dia
 let ⟨x, ⟨xs, xt⟩⟩ := h in by simpa using diam_union xs xt
 
 lemma diam_closed_ball {r : ℝ≥0∞} : diam (closed_ball x r) ≤ 2 * r :=
-diam_le_of_forall_edist_le $ λa ha b hb, calc
+diam_le $ λa ha b hb, calc
   edist a b ≤ edist a x + edist b x : edist_triangle_right _ _ _
   ... ≤ r + r : add_le_add ha hb
-  ... = 2 * r : by simp [mul_two, mul_comm]
+  ... = 2 * r : (two_mul r).symm
 
 lemma diam_ball {r : ℝ≥0∞} : diam (ball x r) ≤ 2 * r :=
 le_trans (diam_mono ball_subset_closed_ball) diam_closed_ball
@@ -971,10 +1044,6 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (γ × β) :=
   end,
   ..prod.pseudo_emetric_space_max }
 
-  lemma prod.edist_eq [emetric_space β] (x y : α × β) :
-  edist x y = max (edist x.1 y.1) (edist x.2 y.2) :=
-rfl
-
 /-- Reformulation of the uniform structure in terms of the extended distance -/
 theorem uniformity_edist :
   𝓤 γ = ⨅ ε>0, 𝓟 {p:γ×γ | edist p.1 p.2 < ε} :=
@@ -998,59 +1067,20 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
   end,
   ..pseudo_emetric_space_pi }
 
-lemma edist_pi_def [Π b, emetric_space (π b)] (f g : Π b, π b) :
-  edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
-
-@[simp] lemma edist_pi_const [nonempty β] (a b : α) : edist (λ x : β, a) (λ _, b) = edist a b :=
-finset.sup_const univ_nonempty (edist a b)
-
 end pi
 
 namespace emetric
 
-section compact
-
 @[priority 100] -- see Note [lower instance priority]
 instance normal_of_emetric : normal_space γ := normal_of_paracompact_t2
 
-/-- A compact set in an emetric space is separable, i.e., it is the closure of a countable set -/
-lemma countable_closure_of_compact {α : Type u} [emetric_space α] {s : set α}
-  (hs : is_compact s) : ∃ t ⊆ s, (countable t ∧ s = closure t) :=
+/-- A compact set in an emetric space is separable, i.e., it is the closure of a countable set. -/
+lemma countable_closure_of_compact {s : set γ} (hs : is_compact s) :
+  ∃ t ⊆ s, (countable t ∧ s = closure t) :=
 begin
-  have A : ∀ (e:ℝ≥0∞), e > 0 → ∃ t ⊆ s, (finite t ∧ s ⊆ (⋃x∈t, ball x e)) :=
-    totally_bounded_iff'.1 (compact_iff_totally_bounded_complete.1 hs).1,
---    assume e, finite_cover_balls_of_compact hs,
-  have B : ∀ (e:ℝ≥0∞), ∃ t ⊆ s, finite t ∧ (e > 0 → s ⊆ (⋃x∈t, ball x e)),
-  { intro e,
-    cases le_or_gt e 0 with h,
-    { exact ⟨∅, by finish⟩ },
-    { rcases A e h with ⟨s, ⟨finite_s, closure_s⟩⟩, existsi s, finish }},
-  /-The desired countable set is obtained by taking for each `n` the centers of a finite cover
-  by balls of radius `1/n`, and then the union over `n`. -/
-  choose T T_in_s finite_T using B,
-  let t := ⋃n:ℕ, T n⁻¹,
-  have T₁ : t ⊆ s := begin apply Union_subset, assume n, apply T_in_s end,
-  have T₂ : countable t := by finish [countable_Union, finite.countable],
-  have T₃ : s ⊆ closure t,
-  { intros x x_in_s,
-    apply emetric.mem_closure_iff.2,
-    intros ε εpos,
-    rcases ennreal.exists_inv_nat_lt (bot_lt_iff_ne_bot.1 εpos) with ⟨n, hn⟩,
-    have inv_n_pos : (0 : ℝ≥0∞) < (n : ℕ)⁻¹ := by simp [ennreal.bot_lt_iff_ne_bot],
-    have C : x ∈ (⋃y∈ T (n : ℕ)⁻¹, ball y (n : ℕ)⁻¹) :=
-      mem_of_mem_of_subset x_in_s ((finite_T (n : ℕ)⁻¹).2 inv_n_pos),
-    rcases mem_Union.1 C with ⟨y, _, ⟨y_in_T, rfl⟩, Dxy⟩,
-    simp at Dxy,  -- Dxy : edist x y < 1 / ↑n
-    have : y ∈ t := mem_of_mem_of_subset y_in_T (by apply subset_Union (λ (n:ℕ), T (n : ℕ)⁻¹)),
-    have : edist x y < ε := lt_trans Dxy hn,
-    exact ⟨y, ‹y ∈ t›, ‹edist x y < ε›⟩ },
-  have T₄ : closure t ⊆ s := calc
-    closure t ⊆ closure s : closure_mono T₁
-    ... = s : hs.is_closed.closure_eq,
-  exact ⟨t, ⟨T₁, T₂, subset.antisymm T₃ T₄⟩⟩
+  rcases subset_countable_closure_of_compact hs with ⟨t, hts, htc, hsub⟩,
+  exact ⟨t, hts, htc, subset.antisymm hsub (closure_minimal hts hs.is_closed)⟩
 end
-
-end compact
 
 section diam
 

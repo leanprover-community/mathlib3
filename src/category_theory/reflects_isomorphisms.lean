@@ -43,7 +43,7 @@ reflects_isomorphisms.reflects F f
 @[priority 100]
 instance of_full_and_faithful (F : C ⥤ D) [full F] [faithful F] : reflects_isomorphisms F :=
 { reflects := λ X Y f i, by exactI
-  ⟨F.preimage (inv (F.map f)), ⟨F.map_injective (by simp), F.map_injective (by simp)⟩⟩ }
+  ⟨⟨F.preimage (inv (F.map f)), ⟨F.map_injective (by simp), F.map_injective (by simp)⟩⟩⟩ }
 
 end reflects_iso
 

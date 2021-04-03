@@ -242,8 +242,8 @@ begin
   have p_dvd_d_pred := (zmod.nat_coe_zmod_eq_zero_iff_dvd _ _).mpr (d - 1).min_fac_dvd,
   have dpos : 0 < d := by linarith,
   have d_cast : ↑(d - 1) = (d : ℤ) - 1 := by norm_cast,
-  haveI : fact p.prime := nat.min_fac_prime (by linarith),
-  have hp2 : 2 ≤ p, { apply nat.prime.two_le, assumption },
+  haveI : fact p.prime := ⟨nat.min_fac_prime (by linarith)⟩,
+  have hp2 : 2 ≤ p := (fact.out p.prime).two_le,
   have dmod : (d : zmod p) = 1,
   { rw [← nat.succ_pred_eq_of_pos dpos, nat.succ_eq_add_one, nat.pred_eq_sub_one],
     simp only [add_left_eq_self, nat.cast_add, nat.cast_one],
@@ -253,8 +253,7 @@ begin
   have := zmod.trace_pow_card (G.adj_matrix (zmod p)),
   contrapose! this, clear this,
   -- the trace is 0 mod p when computed one way
-  rw [trace_adj_matrix, zero_pow],
-  swap, { apply nat.prime.pos, assumption, },
+  rw [trace_adj_matrix, zero_pow (fact.out p.prime).pos],
   -- but the trace is 1 mod p when computed the other way
   rw adj_matrix_pow_mod_p_of_regular hG dmod hd hp2,
   dunfold fintype.card at Vmod,

@@ -68,11 +68,11 @@ lemma mod_part_lt_p : mod_part p r < p :=
 begin
   convert int.mod_lt _ _,
   { simp },
-  { exact_mod_cast hp_prime.ne_zero }
+  { exact_mod_cast hp_prime.1.ne_zero }
 end
 
 lemma mod_part_nonneg : 0 ≤ mod_part p r :=
-int.mod_nonneg _ $ by exact_mod_cast hp_prime.ne_zero
+int.mod_nonneg _ $ by exact_mod_cast hp_prime.1.ne_zero
 
 lemma is_unit_denom (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) : is_unit (r.denom : ℤ_[p]) :=
 begin
@@ -90,7 +90,7 @@ begin
   have : ↑p ∣ r.num ∧ (p : ℤ) ∣ r.denom,
   { simp only [← norm_int_lt_one_iff_dvd, ← padic_norm_e_of_padic_int],
     norm_cast, exact ⟨key, norm_denom_lt⟩ },
-  apply hp_prime.not_dvd_one,
+  apply hp_prime.1.not_dvd_one,
   rwa [← r.cop.gcd_eq_one, nat.dvd_gcd_iff, ← int.coe_nat_dvd_left, ← int.coe_nat_dvd],
 end
 
@@ -107,7 +107,7 @@ begin
   suffices rdcp : r.denom.coprime p,
   { rw rdcp.gcd_eq_one, simp only [mul_one, cast_one, sub_self], },
   apply coprime.symm,
-  apply (coprime_or_dvd_of_prime ‹_› _).resolve_right,
+  apply (coprime_or_dvd_of_prime hp_prime.1 _).resolve_right,
   rw [← int.coe_nat_dvd, ← norm_int_lt_one_iff_dvd, not_lt],
   apply ge_of_eq,
   rw ← is_unit_iff,
@@ -173,7 +173,7 @@ begin
   obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) zero_lt_one,
   have H : ∥(r : ℚ_[p])∥ ≤ 1,
   { rw norm_sub_rev at hr,
-    calc _ = ∥(r : ℚ_[p]) - x + x∥ : by ring
+    calc _ = ∥(r : ℚ_[p]) - x + x∥ : by ring_nf
        ... ≤ _ : padic_norm_e.nonarchimedean _ _
        ... ≤ _ :  max_le (le_of_lt hr) x.2 },
   obtain ⟨n, hzn, hnp, hn⟩ := exists_mem_range_of_norm_rat_le_one r H,
@@ -265,9 +265,9 @@ lemma to_zmod_spec (z : ℤ_[p]) : z - (to_zmod z : ℤ_[p]) ∈ maximal_ideal �
 begin
   convert sub_zmod_repr_mem z using 2,
   dsimp [to_zmod, to_zmod_hom],
-  unfreezingI { rcases (exists_eq_add_of_lt (hp_prime.pos)) with ⟨p', rfl⟩ },
+  unfreezingI { rcases (exists_eq_add_of_lt (hp_prime.1.pos)) with ⟨p', rfl⟩ },
   change ↑(zmod.val _) = _,
-  simp only [zmod.val_nat_cast, add_zero, add_def, cast_inj, zero_add],
+  simp only [zmod.val_nat_cast, add_zero, add_def, nat.cast_inj, zero_add],
   apply mod_eq_of_lt,
   simpa only [zero_add] using zmod_repr_lt_p z,
 end
@@ -305,7 +305,7 @@ begin
   simp only [appr, ring_hom.map_nat_cast, zmod.nat_cast_self, ring_hom.map_pow, int.nat_abs,
     ring_hom.map_mul],
   have hp : p ^ n < p ^ (n + 1),
-  { apply pow_lt_pow hp_prime.one_lt (lt_add_one n) },
+  { apply pow_lt_pow hp_prime.1.one_lt (lt_add_one n) },
   split_ifs with h,
   { apply lt_trans (ih _) hp, },
   { calc _ < p ^ n + p ^ n * (p - 1) : _
@@ -491,13 +491,13 @@ include f_compat
 lemma pow_dvd_nth_hom_sub (r : R) (i j : ℕ) (h : i ≤ j) :
   ↑p ^ i ∣ nth_hom f r j - nth_hom f r i :=
 begin
-  specialize f_compat (i) (j) h,
+  specialize f_compat i j h,
   rw [← int.coe_nat_pow, ← zmod.int_coe_zmod_eq_zero_iff_dvd,
       int.cast_sub],
   dsimp [nth_hom],
   rw [← f_compat, ring_hom.comp_apply],
-  have : fact (p ^ (i) > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have : fact (p ^ (j) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ i > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  have : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
   unfreezingI { simp only [zmod.cast_id, zmod.cast_hom_apply, sub_self, zmod.nat_cast_val], },
 end
 
@@ -526,7 +526,7 @@ begin
   change _ < _ at hε,
   use 1,
   intros j hj,
-  haveI : fact (1 < p^j) := nat.one_lt_pow _ _ (by linarith) (nat.prime.one_lt ‹_›),
+  haveI : fact (1 < p^j) := ⟨nat.one_lt_pow _ _ (by linarith) hp_prime.1.one_lt⟩,
   simp [nth_hom_seq, nth_hom, zmod.val_one, hε],
 end
 
@@ -542,8 +542,8 @@ begin
   rw [← int.cast_add, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
      ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   dsimp [nth_hom],
-  have : fact (p ^ n > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have : fact (p ^ j > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ n > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  have : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
   unfreezingI
   { simp only [int.cast_coe_nat, int.cast_add, ring_hom.map_add, int.cast_sub, zmod.nat_cast_val] },
   rw [zmod.cast_add (show p ^ n ∣ p ^ j, from _), sub_self],
@@ -563,8 +563,8 @@ begin
   rw [← int.cast_mul, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
      ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   dsimp [nth_hom],
-  have : fact (p ^ n > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have : fact (p ^ j > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ n > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  have : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
   unfreezingI
   { simp only [int.cast_coe_nat, int.cast_mul, int.cast_sub, ring_hom.map_mul, zmod.nat_cast_val] },
   rw [zmod.cast_mul (show p ^ n ∣ p ^ j, from _), sub_self],
@@ -627,7 +627,7 @@ lemma lift_sub_val_mem_span (r : R) (n : ℕ) :
   (lift f_compat r - (f n r).val) ∈ (ideal.span {↑p ^ n} : ideal ℤ_[p]) :=
 begin
   obtain ⟨k, hk⟩ := lim_nth_hom_spec f_compat r _
-    (show (0 : ℝ) < p ^ (-n : ℤ), from nat.fpow_pos_of_pos hp_prime.pos _),
+    (show (0 : ℝ) < p ^ (-n : ℤ), from nat.fpow_pos_of_pos hp_prime.1.pos _),
   have := le_of_lt (hk (max n k) (le_max_right _ _)),
   rw norm_le_pow_iff_mem_span_pow at this,
   dsimp [lift],
@@ -646,7 +646,7 @@ See also `padic_int.lift_unique`.
 lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
 begin
   ext r,
-  haveI : fact (0 < p ^ n) := pow_pos (nat.prime.pos ‹_›) n,
+  haveI : fact (0 < p ^ n) := ⟨pow_pos hp_prime.1.pos n⟩,
   rw [ring_hom.comp_apply, ← zmod.nat_cast_zmod_val (f n r), ← (to_zmod_pow n).map_nat_cast,
       ← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker, ker_to_zmod_pow],
   apply lift_sub_val_mem_span,

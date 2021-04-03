@@ -1222,6 +1222,14 @@ lemma eventually_eq_empty {s : set α} {l : filter α} :
   s =ᶠ[l] (∅ : set α) ↔ ∀ᶠ x in l, x ∉ s :=
 eventually_eq_set.trans $ by simp
 
+lemma inter_eventually_eq_left {s t : set α} {l : filter α} :
+  (s ∩ t : set α) =ᶠ[l] s ↔ ∀ᶠ x in l, x ∈ s → x ∈ t :=
+by simp only [eventually_eq_set, mem_inter_eq, and_iff_left_iff_imp]
+
+lemma inter_eventually_eq_right {s t : set α} {l : filter α} :
+  (s ∩ t : set α) =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ t → x ∈ s :=
+by rw [inter_comm, inter_eventually_eq_left]
+
 @[simp] lemma eventually_eq_principal {s : set α} {f g : α → β} :
   f =ᶠ[𝓟 s] g ↔ eq_on f g s :=
 iff.rfl

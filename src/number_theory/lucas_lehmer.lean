@@ -161,8 +161,8 @@ def lucas_lehmer_test (p : ℕ) : Prop := lucas_lehmer_residue p = 0
 /-- `q` is defined as the minimum factor of `mersenne p`, bundled as an `ℕ+`. -/
 def q (p : ℕ) : ℕ+ := ⟨nat.min_fac (mersenne p), nat.min_fac_pos (mersenne p)⟩
 
-instance fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) :=
-q.2
+local attribute [instance]
+lemma fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) := ⟨q.2⟩
 
 /-- We construct the ring `X q` as ℤ/qℤ + √3 ℤ/qℤ. -/
 -- It would be nice to define this as (ℤ/qℤ)[x] / (x^2 - 3),
@@ -273,7 +273,7 @@ end
 /-- There are strictly fewer than `q^2` units, since `0` is not a unit. -/
 lemma units_card (w : 1 < q) : fintype.card (units (X q)) < q^2 :=
 begin
-  haveI : fact (1 < (q : ℕ)) := w,
+  haveI : fact (1 < (q:ℕ)) := ⟨w⟩,
   convert card_units_lt (X q),
   rw X_card,
 end
@@ -403,7 +403,7 @@ begin
     simp at ω_pow,
     have h : (1 : zmod (q (p'+2))) = -1 :=
       congr_arg (prod.fst) ((ω_pow.symm).trans (ω_pow_eq_neg_one p' h)),
-    haveI : fact (2 < (q (p'+2) : ℕ)) := two_lt_q _,
+    haveI : fact (2 < (q (p'+2) : ℕ)) := ⟨two_lt_q _⟩,
     apply zmod.neg_one_ne_one h.symm, },
   { apply order_of_dvd_iff_pow_eq_one.2,
     apply units.ext,

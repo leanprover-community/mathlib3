@@ -213,7 +213,7 @@ begin
     { rw mul_one, exact subset_span (set.mem_insert _ _) },
     { rw one_mul, exact subset_span (set.mem_insert_of_mem _ hyj) },
     { rw mul_one, exact subset_span (set.mem_insert_of_mem _ hyi) },
-    { rw ← hf (yi * yj), exact (submodule.mem_coe _).2 (sum_mem _ $ λ yk hyk, smul_mem
+    { rw ← hf (yi * yj), exact set_like.mem_coe.2 (sum_mem _ $ λ yk hyk, smul_mem
         (span (algebra.adjoin A (↑s : set B)) (insert 1 ↑y : set C))
         ⟨f (yi * yj) yk, algebra.subset_adjoin $ hsy yi yj yk hyi hyj hyk⟩
         (subset_span $ set.mem_insert_of_mem _ hyk : yk ∈ _)) } },

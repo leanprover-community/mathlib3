@@ -108,6 +108,41 @@ lemma prod [sigma_finite μb] [sigma_finite μd] {f : α → β} {g : γ → δ}
 have measurable (uncurry $ λ _ : α, g), from (hg.1.comp measurable_snd),
 hf.skew_product this $ filter.eventually_of_forall $ λ _, hg.map_eq
 
+variables {μ : measure α} {f : α → α} {s : set α}
+
+/-- If `μ univ < n * μ s` and `f` is a map preserving measure `μ`,
+then for some `x ∈ s` and `0 < m < n`, `f^[m] x ∈ s`. -/
+lemma exists_mem_image_mem_of_volume_lt_mul_volume (hf : measure_preserving f μ μ)
+  (hs : measurable_set s) {n : ℕ} (hvol : μ (univ : set α) < n * μ s) :
+  ∃ (x ∈ s) (m ∈ Ioo 0 n), f^[m] x ∈ s :=
+begin
+  have A : ∀ m, measurable_set (f^[m] ⁻¹' s) := λ m, (hf.iterate m).measurable hs,
+  have B : ∀ m, μ (f^[m] ⁻¹' s) = μ s, from λ m, (hf.iterate m).measure_preimage hs,
+  have : μ (univ : set α) < (finset.range n).sum (λ m, μ (f^[m] ⁻¹' s)),
+    by simpa only [B, nsmul_eq_mul, finset.sum_const, finset.card_range],
+  rcases exists_nonempty_inter_of_measure_univ_lt_sum_measure μ (λ m hm, A m) this
+    with ⟨i, hi, j, hj, hij, x, hxi, hxj⟩,
+  -- without `tactic.skip` Lean closes the extra goal but it takes a long time; not sure why
+  wlog hlt : i < j := hij.lt_or_lt using [i j, j i] tactic.skip,
+  { simp only [set.mem_preimage, finset.mem_range] at hi hj hxi hxj,
+    refine ⟨f^[i] x, hxi, j - i, ⟨nat.sub_pos_of_lt hlt, lt_of_le_of_lt (j.sub_le i) hj⟩, _⟩,
+    rwa [← iterate_add_apply, nat.sub_add_cancel hlt.le] },
+  { exact λ hi hj hij hxi hxj, this hj hi hij.symm hxj hxi }
+end
+
+/-- A self-map preserving a finite measure is conservative: if `μ s ≠ 0`, then at least one point
+`x ∈ s` comes back to `s` under iterations of `f`. Actually, a.e. point of `s` comes back to `s`
+infinitely many times, see `measure_theory.measure_preserving.conservative` and theorems about
+`measure_theory.conservative`. -/
+lemma exists_mem_image_mem [finite_measure μ] (hf : measure_preserving f μ μ)
+  (hs : measurable_set s) (hs' : μ s ≠ 0) :
+  ∃ (x ∈ s) (m ≠ 0), f^[m] x ∈ s :=
+begin
+  rcases ennreal.exists_nat_mul_gt hs' (measure_ne_top μ (univ : set α)) with ⟨N, hN⟩,
+  rcases hf.exists_mem_image_mem_of_volume_lt_mul_volume hs hN with ⟨x, hx, m, hm, hmx⟩,
+  exact ⟨x, hx, m, hm.1.ne', hmx⟩
+end
+
 end measure_preserving
 
 end measure_theory

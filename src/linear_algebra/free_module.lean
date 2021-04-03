@@ -351,5 +351,4 @@ lemma linear_independent.restrict_scalars_algebras {R S M ι : Type*} [comm_semi
   [add_comm_monoid M] [algebra R S] [semimodule R M] [semimodule S M] [is_scalar_tower R S M]
   (hinj : function.injective (algebra_map R S)) {v : ι → M} (li : linear_independent S v) :
   linear_independent R v :=
-linear_independent.restrict_scalars (λ x y xy, hinj ((algebra.algebra_map_eq_smul_one _).trans
-  (xy.trans (algebra.algebra_map_eq_smul_one _).symm))) li
+linear_independent.restrict_scalars (by rwa algebra.algebra_map_eq_smul_one' at hinj) li

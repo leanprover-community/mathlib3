@@ -735,6 +735,18 @@ hf.bij_on_image.to_local_equiv f s (f '' s)
 
 end set
 
+namespace function
+
+/-- A map injective provides a local equivalence. -/
+@[simp, mfld_simps] noncomputable def injective.to_local_equiv [nonempty α] {f : α → β}
+  (hf : injective f) : local_equiv α β :=
+(hf.inj_on univ).bij_on_image.to_local_equiv f univ (f '' univ)
+
+lemma injective_to_local_equiv_apply [nonempty α] {f : α → β} (hf : injective f) (a : α) :
+  hf.to_local_equiv a = f a := rfl
+
+end function
+
 namespace equiv
 /- equivs give rise to local_equiv. We set up simp lemmas to reduce most properties of the local
 equiv to that of the equiv. -/

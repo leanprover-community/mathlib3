@@ -493,6 +493,15 @@ by simp [atlas, charted_space.atlas]
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
+/-- Transfers the instance of charted space through equivalences. -/
+def homeomorph.charted_space (H : Type*) [topological_space H]
+  {M : Type*} [topological_space M] [charted_space H M]
+  {M' : Type*} [topological_space M'] (e : homeomorph M M') : charted_space H M' :=
+{ atlas := {ϕ : local_homeomorph M' H | ∃ ψ ∈ atlas H M, ϕ = e.symm.to_local_homeomorph.trans ψ},
+  chart_at := λ y, e.symm.to_local_homeomorph.trans (chart_at H (e.symm y)),
+  mem_chart_source := λ y, by simp only with mfld_simps,
+  chart_mem_atlas := λ y, ⟨chart_at H (e.symm y), chart_mem_atlas H (e.symm y), rfl⟩ }
+
 section
 
 variables (H) [topological_space H] [topological_space M] [charted_space H M]
@@ -852,6 +861,17 @@ instance [closed_under_restriction G] : has_groupoid s G :=
   end }
 
 end topological_space.opens
+
+lemma homeomorph.has_groupoid {H : Type*} [topological_space H]
+  {M : Type*} [topological_space M] [charted_space H M]
+  {M' : Type*} [topological_space M'] (G : structure_groupoid H) [has_groupoid M G]
+  (e : homeomorph M M') : @has_groupoid H _ M' _ (e.charted_space H) G :=
+{ compatible := λ f f' hf hf', begin rcases hf with ⟨ϕ, hϕ1, hϕ2⟩,
+    rcases hf' with ⟨ψ, hψ1, hψ2⟩,
+    rw [hϕ2, hψ2, homeomorph.symm_to_local_homeomorph, trans_symm_eq_symm_trans_symm, symm_symm,
+    trans_assoc, ←trans_assoc e.to_local_homeomorph, homeomorph.trans_symm_to_local_homeomorph,
+    refl_trans],
+    exact has_groupoid.compatible G hϕ1 hψ1 end }
 
 /-! ### Structomorphisms -/
 

@@ -308,3 +308,23 @@ homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
 end distrib
 
 end homeomorph
+
+section equiv
+
+/-- If the topology is transferred from one type to another via an equivalence, the equivalence
+will clearly also be a homeomorphism. -/
+def equiv.homeomorph {α : Type*} {β : Type*} [tα : topological_space α] (e : α ≃ β) :
+  @homeomorph α β _ (tα.induced e.symm) :=
+{ to_fun := e,
+  continuous_to_fun := begin
+    dsimp,
+    rw continuous_iff_le_induced,
+    rintros a ⟨c, ⟨⟨b, ⟨hb, hbc⟩⟩, hca⟩⟩,
+    induction hca,
+    induction hbc,
+    simp only [equiv.preimage_image, equiv.symm_preimage_eq_image],
+    exact hb,
+  end,
+  ..e }
+
+  end equiv

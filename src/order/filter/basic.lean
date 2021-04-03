@@ -2524,11 +2524,10 @@ map_prod_map_coprod_le.trans (coprod_mono hf hg)
 
 end coprod
 
-
-/-! ### Finitary coproducts of filters -/
+/-! ### `n`-ary coproducts of filters -/
 
 section Coprod
-variables {δ : Type*} [fintype δ] {κ : δ → Type*}  -- {f : Π d, filter (κ d)}
+variables {δ : Type*} {κ : δ → Type*}  -- {f : Π d, filter (κ d)}
 
 /-- Coproduct of filters. -/
 protected def Coprod (f : Π d, filter (κ d)) : filter (Π d, κ d) :=
@@ -2540,11 +2539,7 @@ by simp [filter.Coprod]
 
 @[mono] lemma Coprod_mono {f₁ f₂ : Π d, filter (κ d)} (hf : ∀ d, f₁ d ≤ f₂ d) :
   filter.Coprod f₁ ≤ filter.Coprod f₂ :=
-Sup_le_Sup begin
-  have := (λ d : δ, comap_mono (hf d)) ,
-  -- Heather homework
-  repeat {sorry},
-end
+supr_le_supr $ λ d, comap_mono (hf d)
 
 lemma map_prod_map_Coprod_le {μ : δ → Type*}
   {f : Π d, filter (κ d)} {m : Π d, κ d → μ d} :
@@ -2578,7 +2573,6 @@ lemma tendsto.prod_map_Coprod {μ : δ → Type*} {f : Π d, filter (κ d)} {m :
 map_prod_map_Coprod_le.trans (Coprod_mono hf)
 
 end Coprod
-
 
 end filter
 

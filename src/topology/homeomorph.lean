@@ -65,11 +65,23 @@ rfl
 @[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
 
-@[simp] lemma apply_symm_apply (h : α ≃ₜ β) (x : β) : h (h.symm x) = x :=
-h.to_equiv.apply_symm_apply x
+@[simp] lemma refl_apply (x : α) : homeomorph.refl α x = x := rfl
+@[simp] lemma coe_trans (f : α ≃ₜ β) (g : β ≃ₜ γ) : ⇑(f.trans g) = g ∘ f := rfl
+@[simp] lemma trans_apply (f : α ≃ₜ β) (g : β ≃ₜ γ) (a : α) : (f.trans g) a = g (f a) := rfl
+@[simp] lemma apply_symm_apply  (e : α ≃ₜ β) (x : β) : e (e.symm x) = x := e.right_inv x
+@[simp] lemma symm_apply_apply (e : α ≃ₜ β) (x : α) : e.symm (e x) = x := e.left_inv x
 
-@[simp] lemma symm_apply_apply (h : α ≃ₜ β) (x : α) : h.symm (h x) = x :=
-h.to_equiv.symm_apply_apply x
+@[simp] lemma refl_trans (e : α ≃ₜ β) : (homeomorph.refl α).trans e = e :=
+by { ext, simp only [trans_apply, refl_apply] }
+
+@[simp] lemma symm_trans (e : α ≃ₜ β) : e.symm.trans e = homeomorph.refl β :=
+by { ext, simp only [trans_apply, refl_apply, apply_symm_apply] }
+
+@[simp] lemma trans_symm (e : α ≃ₜ β) : e.trans e.symm = homeomorph.refl α :=
+by { ext, simp only [symm_apply_apply, trans_apply, refl_apply] }
+
+@[simp] lemma symm_trans_apply (f : α ≃ₜ β) (g : β ≃ₜ γ) (a : γ) :
+  (f.trans g).symm a = f.symm (g.symm a) := rfl
 
 protected lemma bijective (h : α ≃ₜ β) : function.bijective h := h.to_equiv.bijective
 protected lemma injective (h : α ≃ₜ β) : function.injective h := h.to_equiv.injective
@@ -153,6 +165,9 @@ lemma image_closure (h : α ≃ₜ β) (s : set α) : h '' (closure s) = closure
 by rw [← preimage_symm, preimage_closure]
 
 protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h := λ s, h.is_open_image.2
+
+protected lemma open_embedding (h : α ≃ₜ β) : open_embedding h :=
+open_embedding_of_embedding_open h.embedding h.is_open_map
 
 protected lemma is_closed_map (h : α ≃ₜ β) : is_closed_map h := λ s, h.is_closed_image.2
 

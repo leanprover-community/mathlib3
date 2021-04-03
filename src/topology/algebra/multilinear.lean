@@ -128,7 +128,8 @@ end has_continuous_add
 linear map obtained by fixing all coordinates but `i` equal to those of `m`, and varying the
 `i`-th coordinate. -/
 def to_continuous_linear_map (m : Πi, M₁ i) (i : ι) : M₁ i →L[R] M₂ :=
-{ cont := f.cont.comp continuous_update, ..(f.to_multilinear_map.to_linear_map m i) }
+{ cont := f.cont.comp (continuous_const.update i continuous_id),
+  .. f.to_multilinear_map.to_linear_map m i }
 
 /-- The cartesian product of two continuous multilinear maps, as a continuous multilinear map. -/
 def prod (f : continuous_multilinear_map R M₁ M₂) (g : continuous_multilinear_map R M₁ M₃) :

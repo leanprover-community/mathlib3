@@ -63,9 +63,8 @@ variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 instance coe_matrix : has_coe (special_linear_group n R) (matrix n n R) :=
 ⟨λ A, A.val⟩
 
-instance coe_fun : has_coe_to_fun (special_linear_group n R) :=
-{ F   := λ _, n → n → R,
-  coe := λ A, A.val }
+instance coe_fun : has_coe_to_fun (special_linear_group n R) (λ _, n → n → R) :=
+{ coe := λ A, A.val }
 
 /--
   `to_lin' A` is matrix multiplication of vectors by `A`, as a linear map.

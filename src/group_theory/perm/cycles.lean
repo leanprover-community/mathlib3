@@ -91,6 +91,25 @@ begin
     exact ⟨⟨σ ^ n, n, rfl⟩, rfl⟩ },
 end
 
+lemma pow_apply_mem_support {σ : perm α} {n : ℕ} {a : α} (h : a ∈ σ.support) :
+  (σ ^ n) a ∈ σ.support :=
+begin
+  rw [mem_support, ← perm.mul_apply, ← pow_succ, pow_succ', perm.mul_apply],
+  contrapose! h,
+  rw [mem_support, equiv.injective _ h, not_not],
+end
+
+@[simp] lemma is_cycle.gpowers_equiv_support_apply {σ : perm α} (hσ : is_cycle σ) {n : ℕ} :
+  hσ.gpowers_equiv_support ⟨σ ^ n, n, rfl⟩ = ⟨(σ ^ n) (classical.some hσ),
+    pow_apply_mem_support (mem_support.2 (classical.some_spec hσ).1)⟩ :=
+rfl
+
+@[simp] lemma is_cycle.gpowers_equiv_support_symm_apply {σ : perm α} (hσ : is_cycle σ) (n : ℕ) :
+  hσ.gpowers_equiv_support.symm ⟨(σ ^ n) (classical.some hσ),
+    pow_apply_mem_support (mem_support.2 (classical.some_spec hσ).1)⟩ =
+    ⟨σ ^ n, n, rfl⟩ :=
+(equiv.symm_apply_eq _).2 hσ.gpowers_equiv_support_apply
+
 lemma order_of_is_cycle {σ : perm α} (hσ : is_cycle σ) : order_of σ = σ.support.card :=
 begin
   rw [order_eq_card_gpowers, ←fintype.card_coe],
@@ -371,6 +390,64 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
 noncomputable def cycle_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
+
+section
+variables [fintype α] {σ τ : perm α}
+
+noncomputable theory
+
+def foo (hσ : is_cycle σ) (hτ : is_cycle τ) (h : σ.support.card = τ.support.card) :
+  (σ.support : set α) ≃ (τ.support : set α) :=
+hσ.gpowers_equiv_support.symm.trans ((gpowers_equiv_gpowers begin
+  rw [order_of_is_cycle hσ, h, order_of_is_cycle hτ],
+end).trans hτ.gpowers_equiv_support)
+
+theorem is_cycle.is_conj (hσ : is_cycle σ) (hτ : is_cycle τ) (h : σ.support.card = τ.support.card) :
+  is_conj σ τ :=
+begin
+  classical,
+  replace h : σ.support.card = τ.support.card, { convert h },
+  have hc : fintype.card ((σ.support : set α)ᶜ : set α) =
+    fintype.card ((τ.support : set α)ᶜ : set α),
+  { refine (fintype.card_of_subtype σ.supportᶜ (λ x, _)).trans
+      (eq.trans _ (fintype.card_of_subtype τ.supportᶜ (λ x, _)).symm),
+    { rw [← coe_compl, finset.mem_coe] },
+    { rw [finset.card_compl, finset.card_compl, h] },
+    { rw [← coe_compl, finset.mem_coe] } },
+  rw fintype.card_eq at hc,
+  obtain ⟨cequiv⟩ := hc,
+  refine ⟨(equiv.set.sum_compl _).symm.trans ((equiv.sum_congr (foo hσ hτ h) cequiv).trans
+    (equiv.set.sum_compl _)), _⟩,
+  rw mul_inv_eq_iff_eq_mul,
+  ext,
+  simp only [perm.mul_apply, equiv.trans_apply, equiv.sum_congr_apply],
+  by_cases hx : x ∈ σ.support,
+  { rw [equiv.set.sum_compl_symm_apply_of_mem (finset.mem_coe.2 hx), sum.map_inl,
+      equiv.set.sum_compl_apply_inl, equiv.set.sum_compl_symm_apply_of_mem (finset.mem_coe.2 _),
+      sum.map_inl, equiv.set.sum_compl_apply_inl],
+    swap, { rw mem_support at *, contrapose! hx, exact σ.injective hx },
+    rw [foo],
+    simp only [equiv.trans_apply],
+    obtain ⟨n, rfl⟩ := hσ.exists_pow_eq (classical.some_spec hσ).1 (mem_support.1 hx),
+    apply eq.trans _ (congr rfl (congr rfl (congr rfl
+      (congr rfl (hσ.gpowers_equiv_support_symm_apply n).symm)))),
+    apply (congr rfl (congr rfl (congr rfl (hσ.gpowers_equiv_support_symm_apply (n + 1))))).trans _,
+    simp only [ne.def, is_cycle.gpowers_equiv_support_apply,
+      subtype.coe_mk, gpowers_equiv_gpowers_apply],
+    rw [pow_succ, perm.mul_apply] },
+  { have hx' : x ∉ (σ.support : set α) := λ c, hx (finset.mem_coe.1 c),
+    rw [mem_support, not_not] at hx,
+    have hx'' : σ x ∉ (σ.support : set α),
+    { rw [finset.mem_coe, mem_support, not_not, hx, hx] },
+    rw [equiv.set.sum_compl_symm_apply_of_not_mem hx',
+      equiv.set.sum_compl_symm_apply_of_not_mem hx''],
+    simp only [sum.map_inr, set.sum_compl_apply_inr],
+    { have h := (set.mem_compl_iff _ _).1 (cequiv ⟨σ x, _⟩).2,
+      rw [finset.mem_coe, mem_support, not_not, subtype.val_eq_coe, eq_comm] at h,
+      exact h.trans (congr rfl (congr rfl (congr rfl (subtype.mk_eq_mk.2 hx)))) } }
+end
+
+end
 
 section fixed_points
 

@@ -816,6 +816,8 @@ mem_sup.trans $ by simp only [set_like.exists, coe_mk]
 
 end
 
+/- This is the character `∙`, with escape sequence `\.`, and is thus different from the scalar
+multiplication character `•`, with escape sequence `\bub`. -/
 notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
 
 lemma mem_span_singleton_self (x : M) : x ∈ R ∙ x := subset_span rfl

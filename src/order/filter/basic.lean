@@ -1395,7 +1395,7 @@ def comap (m : α → β) (f : filter β) : filter α :=
   inter_sets       := assume a b ⟨a', ha₁, ha₂⟩ ⟨b', hb₁, hb₂⟩,
     ⟨a' ∩ b', inter_mem_sets ha₁ hb₁, inter_subset_inter ha₂ hb₂⟩ }
 
-lemma eventually_comap' {f : filter β} {φ : α → β} {p : β → Sort*} (hf : ∀ᶠ b in f, p b) :
+lemma eventually_comap' {f : filter β} {φ : α → β} {p : β → Prop} (hf : ∀ᶠ b in f, p b) :
   ∀ᶠ a in comap φ f, p (φ a) :=
 ⟨_, hf, (λ a h, h)⟩
 
@@ -1707,8 +1707,8 @@ begin
   exact absurd hxs (hts hxt)
 end
 
-lemma comap_coe_ne_bot_of_le_principal {s : set γ}
-  {l : filter γ} [h : ne_bot l] (h' : l ≤ 𝓟 s) : ne_bot (comap (coe : s → γ) l) :=
+lemma comap_coe_ne_bot_of_le_principal {s : set γ} {l : filter γ} [h : ne_bot l] (h' : l ≤ 𝓟 s) :
+  ne_bot (comap (coe : s → γ) l) :=
 ne_bot.comap_of_range_mem h $ (@subtype.range_coe γ s).symm ▸ h' (mem_principal_self s)
 
 lemma ne_bot.comap_of_surj {f : filter β} {m : α → β}

@@ -31,8 +31,8 @@ import ring_theory.power_series.basic
 -/
 
 open finset
-noncomputable theory
 open_locale big_operators classical
+noncomputable theory
 
 /-- If `Γ` is linearly ordered and `R` has zero, then `hahn_series Γ R` consists of
   formal series over `Γ` with coefficients in `R`, whose supports are well-founded. -/

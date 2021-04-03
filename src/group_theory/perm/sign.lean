@@ -812,7 +812,7 @@ lemma two_mul_card_alternating_subgroup [nontrivial α] :
   2 * card (alternating_subgroup α) = card (perm α) :=
 begin
   let := (quotient_group.quotient_ker_equiv_of_surjective _ (sign_surjective α)).to_equiv,
-  rw [←fintype.card_units_int, ←fintype.card_congr (this)],
+  rw [←fintype.card_units_int, ←fintype.card_congr this],
   exact (card_eq_card_quotient_mul_card_subgroup _).symm,
 end
 

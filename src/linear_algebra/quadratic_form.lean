@@ -100,8 +100,7 @@ namespace quadratic_form
 
 variables {Q : quadratic_form R M}
 
-instance : has_coe_to_fun (quadratic_form R M) :=
-⟨_, λ B, B.to_fun⟩
+instance : has_coe_to_fun (quadratic_form R M) (λ _, M → R) := ⟨λ B, B.to_fun⟩
 
 /-- The `simp` normal form for a quadratic form is `coe_fn`, not `to_fun`. -/
 @[simp] lemma to_fun_eq_apply : Q.to_fun = ⇑ Q := rfl
@@ -645,8 +644,7 @@ variables {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} {Q₃ : 
 
 instance : has_coe (Q₁.isometry Q₂) (M₁ ≃ₗ[R] M₂) := ⟨isometry.to_linear_equiv⟩
 
-instance : has_coe_to_fun (Q₁.isometry Q₂) :=
-{ F := λ _, M₁ → M₂, coe := λ f, ⇑(f : M₁ ≃ₗ[R] M₂) }
+instance : has_coe_to_fun (Q₁.isometry Q₂) (λ _, M₁ → M₂) := ⟨λ f, ⇑(f : M₁ ≃ₗ[R] M₂)⟩
 
 @[simp] lemma map_app (f : Q₁.isometry Q₂) (m : M₁) : Q₂ (f m) = Q₁ m := f.map_app' m
 

@@ -627,7 +627,7 @@ begin
   -- in the `ε`-dense set `s p`.
   let F : GH_space → Σn:ℕ, (fin n → fin n → ℤ) :=
     λp, ⟨N p, λa b, floor (ε⁻¹ * dist ((E p).symm a) ((E p).symm b))⟩,
-  refine ⟨_, by apply_instance, F, λp q hpq, _⟩,
+  refine ⟨Σ n, fin n → fin n → ℤ, by apply_instance, F, λp q hpq, _⟩,
   /- As the target space of F is countable, it suffices to show that two points
   `p` and `q` with `F p = F q` are at distance `≤ δ`.
   For this, we construct a map `Φ` from `s p ⊆ p.rep` (representing `p`)
@@ -775,7 +775,7 @@ begin
     λp, ⟨⟨N p, lt_of_le_of_lt (hN p) (nat.lt_succ_self _)⟩,
          λa b, ⟨min M (floor (ε⁻¹ * dist ((E p).symm a) ((E p).symm b))).to_nat,
                 lt_of_le_of_lt ( min_le_left _ _) (nat.lt_succ_self _) ⟩ ⟩,
-  refine ⟨_, by apply_instance, (λp, F p), _⟩,
+  refine ⟨_, _, (λp, F p), _⟩, apply_instance,
   -- It remains to show that if `F p = F q`, then `p` and `q` are `ε`-close
   rintros ⟨p, pt⟩ ⟨q, qt⟩ hpq,
   have Npq : N p = N q := (fin.ext_iff _ _).1 (sigma.mk.inj_iff.1 hpq).1,

@@ -69,8 +69,9 @@ section
 structure topological_vector_bundle.trivialization extends bundle_trivialization F (proj E) :=
 (linear : ∀ x ∈ base_set, is_linear_map 𝕜 (λ y : (E x), (to_fun y).2))
 
-instance : has_coe_to_fun (topological_vector_bundle.trivialization 𝕜 F E) :=
-⟨λ _, (total_space E → B × F), λ e, e.to_bundle_trivialization⟩
+instance : has_coe_to_fun (topological_vector_bundle.trivialization 𝕜 F E)
+  (λ _, total_space E → B × F) :=
+⟨λ e, e.to_bundle_trivialization⟩
 
 instance : has_coe (topological_vector_bundle.trivialization 𝕜 F E)
   (bundle_trivialization F (proj E)) :=

@@ -400,7 +400,8 @@ namespace smooth_bump_covering
 
 variables {s : set M} {U : M → set M} (fs : smooth_bump_covering I s) {I}
 
-instance : has_coe_to_fun (smooth_bump_covering I s) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (smooth_bump_covering I s) (λ f, Π i, smooth_bump_function I (f.c i)) :=
+⟨to_fun⟩
 
 @[simp] lemma coe_mk (ι : Type uM) (c : ι → M) (to_fun : Π i, smooth_bump_function I (c i))
   (h₁ h₂ h₃) : ⇑(mk ι c to_fun h₁ h₂ h₃ : smooth_bump_covering I s) = to_fun :=

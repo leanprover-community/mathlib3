@@ -363,6 +363,7 @@ instance : add_semigroup surreal :=
 -- TODO show this is a group homomorphism, and injective
 
 -- TODO define the field structure on the surreals
--- TODO show the maps from the dyadic rationals and from the reals into the surreals are multiplicative
+-- TODO show the maps from the dyadic rationals and from the reals
+-- into the surreals are multiplicative
 
 end surreal

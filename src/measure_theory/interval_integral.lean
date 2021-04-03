@@ -379,18 +379,17 @@ variables {a b c : ℝ} (f : ℝ → E)
 lemma integral_comp_mul_right_of_pos (hc : 0 < c) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
 begin
-  have A : closed_embedding (λ (x : ℝ), x * c) :=
-    (homeomorph.mul_right' c (ne_of_gt hc)).closed_embedding,
-  conv_rhs { rw [← real.smul_map_volume_mul_right (ne_of_gt hc)] },
+  have A : closed_embedding (λ x, x * c) := (homeomorph.mul_right' c hc.ne').closed_embedding,
+  conv_rhs { rw [← real.smul_map_volume_mul_right hc.ne'] },
   rw [integral_smul_measure],
-  simp only [interval_integral, hc, preimage_mul_const_Ioc, mul_div_cancel _ (ne_of_gt hc),
+  simp only [interval_integral, hc, preimage_mul_const_Ioc, mul_div_cancel _ hc.ne',
     abs_of_pos, set_integral_map_of_closed_embedding measurable_set_Ioc A,
-    ennreal.to_real_of_real (le_of_lt hc), inv_smul_smul' (ne_of_gt hc)],
+    ennreal.to_real_of_real hc.le, inv_smul_smul' hc.ne'],
 end
 
 lemma integral_comp_neg : ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=
 begin
-  have A : closed_embedding (λ (x : ℝ), - x) := (homeomorph.neg ℝ).closed_embedding,
+  have A : closed_embedding (λ x, -x) := (homeomorph.neg ℝ).closed_embedding,
   conv_rhs { rw ← real.map_volume_neg },
   simp only [interval_integral, set_integral_map_of_closed_embedding measurable_set_Ioc A,
     neg_preimage, preimage_neg_Ioc, neg_neg, restrict_congr_set Ico_ae_eq_Ioc],
@@ -422,7 +421,7 @@ by simpa only [inv_inv'] using integral_comp_mul_right f (inv_ne_zero hc)
 
 lemma integral_comp_add_right (d : ℝ) :
   ∫ x in a..b, f (x + d) = ∫ x in a+d..b+d, f x :=
-have A : closed_embedding (λ x : ℝ, x + d) := (homeomorph.add_right d).closed_embedding,
+have A : closed_embedding (λ x, x + d) := (homeomorph.add_right d).closed_embedding,
 calc ∫ x in a..b, f (x + d) = ∫ x in a+d..b+d, f x ∂(measure.map (λ x, x + d) volume) :
   by simp only [interval_integral, set_integral_map_of_closed_embedding measurable_set_Ioc A,
     preimage_add_const_Ioc, add_sub_cancel]
@@ -488,7 +487,7 @@ variables [topological_space α] [order_closed_topology α] [opens_measurable_sp
   {a b c d : α} {f g : α → E} {μ : measure α}
 
 /-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
-lemma integral_congr {a b : α} {f g : α → E} (h : eq_on f g (interval a b)) :
+lemma integral_congr {a b : α} (h : eq_on f g (interval a b)) :
   ∫ x in a..b, f x ∂μ = ∫ x in a..b, g x ∂μ :=
 by cases le_total a b with hab hab; simpa [hab, integral_of_le, integral_of_ge]
   using set_integral_congr measurable_set_Ioc (h.mono Ioc_subset_Icc_self)

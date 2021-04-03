@@ -116,7 +116,7 @@ theorem mk_le_of_surjective {α β : Type u} {f : α → β} (hf : surjective f)
 theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
   c ≤ mk α ↔ ∃ p : set α, mk p = c :=
 ⟨quotient.induction_on c $ λ β ⟨⟨f, hf⟩⟩,
-  ⟨set.range f, eq.symm $ quot.sound ⟨equiv.set.range f hf⟩⟩,
+  ⟨set.range f, eq.symm $ quot.sound ⟨equiv.of_injective f hf⟩⟩,
 λ ⟨p, e⟩, e ▸ ⟨⟨subtype.val, λ a b, subtype.eq⟩⟩⟩
 
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
@@ -289,7 +289,7 @@ cardinal.add_le_add (le_refl _)
 protected theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
 ⟨quotient.induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
   have (α ⊕ ((range f)ᶜ : set β)) ≃ β, from
-    (equiv.sum_congr (equiv.set.range f hf) (equiv.refl _)).trans $
+    (equiv.sum_congr (equiv.of_injective f hf) (equiv.refl _)).trans $
     (equiv.set.sum_compl (range f)),
   ⟨⟦↥(range f)ᶜ⟧, quotient.sound ⟨this.symm⟩⟩,
  λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ cardinal.add_le_add_left _ (cardinal.zero_le _)⟩
@@ -1029,19 +1029,19 @@ theorem mk_range_le {α β : Type u} {f : α → β} : mk (range f) ≤ mk α :=
 mk_le_of_surjective surjective_onto_range
 
 lemma mk_range_eq (f : α → β) (h : injective f) : mk (range f) = mk α :=
-quotient.sound ⟨(equiv.set.range f h).symm⟩
+quotient.sound ⟨(equiv.of_injective f h).symm⟩
 
 lemma mk_range_eq_of_injective {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
   lift.{v u} (mk (range f)) = lift.{u v} (mk α) :=
 begin
-  have := (@lift_mk_eq.{v u max u v} (range f) α).2 ⟨(equiv.set.range f hf).symm⟩,
+  have := (@lift_mk_eq.{v u max u v} (range f) α).2 ⟨(equiv.of_injective f hf).symm⟩,
   simp only [lift_umax.{u v}, lift_umax.{v u}] at this,
   exact this
 end
 
 lemma mk_range_eq_lift {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
   lift.{v (max u w)} (# (range f)) = lift.{u (max v w)} (# α) :=
-lift_mk_eq.mpr ⟨(equiv.set.range f hf).symm⟩
+lift_mk_eq.mpr ⟨(equiv.of_injective f hf).symm⟩
 
 theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injective f) :
   mk (f '' s) = mk s :=

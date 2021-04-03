@@ -28,7 +28,7 @@ notation `⊥` := has_bot.bot
 
 attribute [pattern] has_bot.bot has_top.top
 
-/-- An `order_top` is a partial order with a maximal element.
+/-- An `order_top` is a partial order with a greatest element.
   (We could state this on preorders, but then it wouldn't be unique
   so distinguishing one would seem odd.) -/
 class order_top (α : Type u) extends has_top α, partial_order α :=
@@ -69,6 +69,9 @@ lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
 theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ :=
 assume ha, hb $ top_unique $ ha ▸ hab
 
+lemma eq_top_of_maximal (h : ∀ b, ¬ a < b) : a = ⊤ :=
+or.elim (lt_or_eq_of_le le_top) (λ hlt, absurd hlt (h ⊤)) (λ he, he)
+
 end order_top
 
 lemma strict_mono.top_preimage_top' [linear_order α] [order_top β]
@@ -90,7 +93,7 @@ begin
   injection this; congr'
 end
 
-/-- An `order_bot` is a partial order with a minimal element.
+/-- An `order_bot` is a partial order with a least element.
   (We could state this on preorders, but then it wouldn't be unique
   so distinguishing one would seem odd.) -/
 class order_bot (α : Type u) extends has_bot α, partial_order α :=
@@ -129,6 +132,9 @@ end
 
 lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ :=
 bot_lt_iff_ne_bot.1 $ lt_of_le_of_lt bot_le h
+
+lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
+or.elim (lt_or_eq_of_le bot_le) (λ hlt, absurd hlt (h ⊥)) (λ he, he.symm)
 
 end order_bot
 
@@ -512,6 +518,13 @@ instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with
   else is_false $ by simp *
 | x none := is_false $ by rintro ⟨a,⟨⟨⟩⟩⟩
 
+instance [partial_order α] [is_total α (≤)] : is_total (with_bot α) (≤) :=
+{ total := λ a b, match a, b with
+  | none  , _      := or.inl bot_le
+  | _     , none   := or.inr bot_le
+  | some x, some y := by simp only [some_le_some, total_of]
+  end }
+
 instance linear_order [linear_order α] : linear_order (with_bot α) :=
 { le_total := λ o₁ o₂, begin
     cases o₁ with a, {exact or.inl bot_le},
@@ -538,6 +551,8 @@ instance semilattice_sup [semilattice_sup α] : semilattice_sup_bot (with_bot α
   end,
   ..with_bot.order_bot }
 
+lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_bot α) = a ⊔ b := rfl
+
 instance semilattice_inf [semilattice_inf α] : semilattice_inf_bot (with_bot α) :=
 { inf          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊓ b)),
   inf_le_left  := λ o₁ o₂ a ha, begin
@@ -555,6 +570,8 @@ instance semilattice_inf [semilattice_inf α] : semilattice_inf_bot (with_bot α
     exact ⟨_, rfl, le_inf ab ac⟩
   end,
   ..with_bot.order_bot }
+
+lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_bot α) = a ⊓ b := rfl
 
 instance lattice [lattice α] : lattice (with_bot α) :=
 { ..with_bot.semilattice_sup, ..with_bot.semilattice_inf }
@@ -729,6 +746,13 @@ instance decidable_le [preorder α] [@decidable_rel α (≤)] : @decidable_rel (
 
 instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_top α) (<) :=
 λ x y, @with_bot.decidable_lt (order_dual α) _ _ y x
+
+instance [partial_order α] [is_total α (≤)] : is_total (with_top α) (≤) :=
+{ total := λ a b, match a, b with
+  | none  , _      := or.inr le_top
+  | _     , none   := or.inl le_top
+  | some x, some y := by simp only [some_le_some, total_of]
+  end }
 
 instance linear_order [linear_order α] : linear_order (with_top α) :=
 { le_total := λ o₁ o₂, begin

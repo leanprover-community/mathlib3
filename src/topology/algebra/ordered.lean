@@ -282,13 +282,13 @@ is_open_Iio.interior_eq
 @[simp] lemma interior_Ioo : interior (Ioo a b) = Ioo a b :=
 is_open_Ioo.interior_eq
 
-lemma eventually_le_of_tendsto_lt {l : filter γ} {f : γ → α} {u v : α} (hv : v < u) :
-  tendsto f l (𝓝 v) → ∀ᶠ a in l, f a ≤ u :=
-λ h, eventually.mono (tendsto_nhds.1 h (< u) is_open_Iio hv) (λ v, le_of_lt)
+lemma eventually_le_of_tendsto_lt {l : filter γ} {f : γ → α} {u v : α} (hv : v < u)
+  (h : tendsto f l (𝓝 v)) : ∀ᶠ a in l, f a ≤ u :=
+eventually.mono (tendsto_nhds.1 h (< u) is_open_Iio hv) (λ v, le_of_lt)
 
-lemma eventually_ge_of_tendsto_gt {l : filter γ} {f : γ → α} {u v : α} (hv : u < v) :
-  tendsto f l (𝓝 v) → ∀ᶠ a in l, u ≤ f a :=
-λ h, eventually.mono (tendsto_nhds.1 h (> u) is_open_Ioi hv) (λ v, le_of_lt)
+lemma eventually_ge_of_tendsto_gt {l : filter γ} {f : γ → α} {u v : α} (hv : u < v)
+  (h : tendsto f l (𝓝 v)) : ∀ᶠ a in l, u ≤ f a :=
+eventually.mono (tendsto_nhds.1 h (> u) is_open_Ioi hv) (λ v, le_of_lt)
 
 variables [topological_space γ]
 

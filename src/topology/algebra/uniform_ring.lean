@@ -145,7 +145,8 @@ lemma ring_sep_rel (α) [comm_ring α] [uniform_space α] [uniform_add_group α]
   separation_setoid α = submodule.quotient_rel (ideal.closure ⊥) :=
 setoid.ext $ assume x y, group_separation_rel x y
 
-lemma ring_sep_quot (α) [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
+lemma ring_sep_quot
+  (α) [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   quotient (separation_setoid α) = (⊥ : ideal α).closure.quotient :=
 by rw [@ring_sep_rel α r]; refl
 

@@ -176,14 +176,14 @@ variables {G : Type*} [group G] [topological_space G] [has_continuous_mul G] (H 
 lemma is_open_of_mem_nhds {g : G} (hg : (H : set G) ∈ 𝓝 g) :
   is_open (H : set G) :=
 begin
-  simp only [is_open_iff_mem_nhds, subgroup.mem_coe] at hg ⊢,
+  simp only [is_open_iff_mem_nhds, set_like.mem_coe] at hg ⊢,
   intros x hx,
   have : filter.tendsto (λ y, y * (x⁻¹ * g)) (𝓝 x) (𝓝 $ x * (x⁻¹ * g)) :=
     (continuous_id.mul continuous_const).tendsto _,
   rw [mul_inv_cancel_left] at this,
   have := filter.mem_map.1 (this hg),
-  replace hg : g ∈ H := subgroup.mem_coe.1 (mem_of_nhds hg),
-  simp only [subgroup.mem_coe, H.mul_mem_cancel_right (H.mul_mem (H.inv_mem hx) hg)] at this,
+  replace hg : g ∈ H := set_like.mem_coe.1 (mem_of_nhds hg),
+  simp only [set_like.mem_coe, H.mul_mem_cancel_right (H.mul_mem (H.inv_mem hx) hg)] at this,
   exact this
 end
 

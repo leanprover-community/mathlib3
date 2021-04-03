@@ -11,7 +11,7 @@ import category_theory.limits.types
 A simplicial set is just a simplicial object in `Type`,
 i.e. a `Type`-valued presheaf on the simplex category.
 
-(One might be tempted to all these "simplicial types" when working in type-theoretic foundations,
+(One might be tempted to call these "simplicial types" when working in type-theoretic foundations,
 but this would be unnecessarily confusing given the existing notion of a simplicial type in
 homotopy type theory.)
 

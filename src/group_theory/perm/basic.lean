@@ -3,11 +3,8 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.equiv.basic
-import algebra.group.basic
-import algebra.group.hom
 import algebra.group.pi
-import algebra.group.prod
+import algebra.group_power
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -53,6 +50,10 @@ lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply
 
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.symm_apply_eq
+
+lemma gpow_apply_comm {α : Type*} (σ : equiv.perm α) (m n : ℤ) {x : α} :
+  (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
+by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, gpow_mul_comm]
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
 `equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
@@ -175,6 +176,28 @@ begin
   simpa using equiv.congr_fun h i
 end
 
+/-- If `e` is also a permutation, we can write `perm_congr`
+completely in terms of the group structure. -/
+@[simp] lemma perm_congr_eq_mul (e p : perm α) :
+  e.perm_congr p = e * p * e⁻¹ := rfl
+
+section extend_domain
+
+/-! Lemmas about `equiv.perm.extend_domain` re-expressed via the group structure. -/
+
+variables {β : Type*} (e : perm α) {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p)
+
+@[simp] lemma extend_domain_one : extend_domain 1 f = 1 :=
+extend_domain_refl f
+
+@[simp] lemma extend_domain_inv : (e.extend_domain f)⁻¹ = e⁻¹.extend_domain f := rfl
+
+@[simp] lemma extend_domain_mul (e e' : perm α) :
+  (e.extend_domain f) * (e'.extend_domain f) = (e * e').extend_domain f :=
+extend_domain_trans _ _ _
+
+end extend_domain
+
 /-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation
   on `{x // p x}` induced by `f`. -/
 def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : perm {x // p x} :=
@@ -291,6 +314,9 @@ swap_mul_self_mul i j
 @[simp]
 lemma mul_swap_involutive (i j : α) : function.involutive (* (equiv.swap i j)) :=
 mul_swap_mul_self i j
+
+@[simp] lemma swap_eq_one_iff {i j : α} : swap i j = (1 : perm α) ↔ i = j :=
+swap_eq_refl_iff
 
 lemma swap_mul_eq_iff {i j : α} {σ : perm α} : swap i j * σ = σ ↔ i = j :=
 ⟨(assume h, have swap_id : swap i j = 1 := mul_right_cancel (trans h (one_mul σ).symm),

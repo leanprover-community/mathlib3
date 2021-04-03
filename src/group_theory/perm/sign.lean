@@ -122,21 +122,21 @@ begin
     rw ← hb, exact ⟨b, rfl⟩ },
   let σ₁' := subtype_perm_of_fintype σ h1,
   let σ₂' := subtype_perm_of_fintype σ h3,
-  let σ₁ := perm_congr (equiv.set.range (@sum.inl m n) sum.inl_injective).symm σ₁',
-  let σ₂ := perm_congr (equiv.set.range (@sum.inr m n) sum.inr_injective).symm σ₂',
+  let σ₁ := perm_congr (equiv.of_injective (@sum.inl m n) sum.inl_injective).symm σ₁',
+  let σ₂ := perm_congr (equiv.of_injective (@sum.inr m n) sum.inr_injective).symm σ₂',
   rw [monoid_hom.mem_range, prod.exists],
   use [σ₁, σ₂],
   rw [perm.sum_congr_hom_apply],
   ext,
   cases x with a b,
   { rw [equiv.sum_congr_apply, sum.map_inl, perm_congr_apply, equiv.symm_symm,
-      set.apply_range_symm (@sum.inl m n)],
+        apply_of_injective_symm (@sum.inl m n)],
     erw subtype_perm_apply,
-    rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] },
+    rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] },
   { rw [equiv.sum_congr_apply, sum.map_inr, perm_congr_apply, equiv.symm_symm,
-      set.apply_range_symm (@sum.inr m n)],
+        apply_of_injective_symm (@sum.inr m n)],
     erw subtype_perm_apply,
-    rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] }
+    rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] }
 end
 
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,
@@ -755,6 +755,11 @@ end
   (ep : perm {a // p a}) (en : perm {a // ¬ p a}) :
   (ep.subtype_congr en).sign = ep.sign * en.sign :=
 by simp [subtype_congr]
+
+@[simp] lemma sign_extend_domain (e : perm α)
+  {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) :
+  equiv.perm.sign (e.extend_domain f) = equiv.perm.sign e :=
+by simp [equiv.perm.extend_domain]
 
 end congr
 

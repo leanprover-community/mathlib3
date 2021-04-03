@@ -405,15 +405,6 @@ lemma finite.image2 (f : α → β → γ) {s : set α} {t : set β} (hs : finit
   finite (image2 f s t) :=
 by { rw ← image_prod, exact (hs.prod ht).image _ }
 
-/-- Finite product of finite sets is finite -/
-lemma finite.pi [fintype δ] {t : Π d, set (κ  d)} (ht : ∀ d, (t d).finite) :
-  (pi univ t).finite :=
-begin
-  convert (fintype.pi_finset (λ d, (ht d).to_finset)).finite_to_set,
-  ext,
-  simp,
-end
-
 /-- If `s : set α` is a set with `fintype` instance and `f : α → set β` is a function such that
 each `f a`, `a ∈ s`, has a `fintype` structure, then `s >>= f` has a `fintype` structure. -/
 def fintype_bUnion {α β} [decidable_eq β] (s : set α) [fintype s]
@@ -478,6 +469,16 @@ by { ext, rw [set.finite.mem_to_finset, mem_coe] }
 end finset
 
 namespace set
+
+/-- Finite product of finite sets is finite -/
+lemma finite.pi {δ : Type*} [decidable_eq δ] [fintype δ] {κ : δ → Type*} {t : Π d, set (κ d)}
+  (ht : ∀ d, (t d).finite) :
+  (pi univ t).finite :=
+begin
+  convert (fintype.pi_finset (λ d, (ht d).to_finset)).finite_to_set,
+  ext,
+  simp,
+end
 
 lemma finite_subset_Union {s : set α} (hs : finite s)
   {ι} {t : ι → set α} (h : s ⊆ ⋃ i, t i) : ∃ I : set ι, finite I ∧ s ⊆ ⋃ i ∈ I, t i :=

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.set.basic
-import logic.small
 
 /-!
 # Girard's paradox
@@ -68,13 +67,3 @@ this {y | ¬ ∀ p, p ∈ σ y → τ (σ y) ∈ p}
   (λ p h, this {y | τ (σ y) ∈ p} (by simpa using h))
 
 end girard
-
-theorem {v} not_small_type : ¬ small.{u} (Type (max u v)) :=
-by rintro ⟨⟨U, ⟨e⟩⟩⟩; exact
-@girard.paradox {
-  pi := λ f, Π y, f (e.symm y),
-  lam := λ A p t, p _,
-  app := λ A p t, by simpa using p (e t),
-  beta := λ A p t, by simp [cast_eq_iff_heq]; exact congr_arg_heq _ (e.left_inv _) }
-
-theorem {v} small_type : small.{max (u+1) v} (Type u) := small_max.{max (u+1) v} _

@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import data.equiv.encodable.basic
 import data.fintype.basic
+import logic.girard
 
 /-!
 # Small types
@@ -18,7 +19,7 @@ A subsingleton type is `w`-small for any `w`.
 If `α ≃ β`, then `small.{w} α ↔ small.{w} β`.
 -/
 
-universes w v
+universes u w v
 
 /--
 A type is `small.{w}` if there exists an equivalence to some `S : Type w`.
@@ -57,6 +58,8 @@ small.mk' equiv.ulift.{w}.symm
 instance small_ulift (α : Type v) : small.{v} (ulift.{w} α) :=
 small.mk' equiv.ulift
 
+theorem small_type : small.{max (u+1) v} (Type u) := small_max.{max (u+1) v} _
+
 section
 open_locale classical
 
@@ -93,5 +96,13 @@ end
 @[priority 100]
 instance small_of_encodable (α : Type v) [encodable α] : small.{w} α :=
 small_of_injective _ (encodable.encode_injective)
+
+theorem not_small_type : ¬ small.{u} (Type (max u v)) :=
+by rintro ⟨⟨U, ⟨e⟩⟩⟩; exact
+@girard.paradox {
+  pi := λ f, Π y, f (e.symm y),
+  lam := λ A p t, p _,
+  app := λ A p t, by simpa using p (e t),
+  beta := λ A p t, by simp [cast_eq_iff_heq]; exact congr_arg_heq _ (e.left_inv _) }
 
 end

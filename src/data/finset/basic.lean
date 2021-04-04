@@ -693,6 +693,27 @@ begin
   exact union_of singletons (symm hi),
 end
 
+lemma exists_mem_subset_of_subset_bUnion_of_directed_on {α ι : Type*}
+  {f : ι → set α}  {c : set ι} {a : ι} (hac : a ∈ c) (hc : directed_on (λ i j, f i ⊆ f j) c)
+  {s : finset α} (hs : (s : set α) ⊆ ⋃ i ∈ c, f i) : ∃ i ∈ c, (s : set α) ⊆ f i :=
+begin
+  classical,
+  revert hs,
+  apply s.induction_on,
+  { intros,
+    use [a, hac],
+    simp },
+  { intros b t hbt htc hbtc,
+    obtain ⟨i : ι , hic : i ∈ c, hti : (t : set α) ⊆ f i⟩ :=
+      htc (set.subset.trans (t.subset_insert b) hbtc),
+    obtain ⟨j, hjc, hbj⟩ : ∃ j ∈ c, b ∈ f j,
+      by simpa [set.mem_bUnion_iff] using hbtc (t.mem_insert_self b),
+    rcases hc j hjc i hic with ⟨k, hkc, hk, hk'⟩,
+    use [k, hkc],
+    rw [coe_insert, set.insert_subset],
+    exact ⟨hk hbj, trans hti hk'⟩ }
+end
+
 /-! ### inter -/
 
 /-- `s ∩ t` is the set such that `a ∈ s ∩ t` iff `a ∈ s` and `a ∈ t`. -/

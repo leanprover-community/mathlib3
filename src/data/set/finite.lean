@@ -72,6 +72,15 @@ theorem exists_finite_iff_finset {p : set α → Prop} :
 ⟨λ ⟨s, hs, hps⟩, ⟨hs.to_finset, hs.coe_to_finset.symm ▸ hps⟩,
   λ ⟨s, hs⟩, ⟨↑s, finite_mem_finset s, hs⟩⟩
 
+lemma finite.fin_param {s : set α} (h : finite s) :
+  ∃ (n : ℕ) (f : fin n → α), injective f ∧ range f = s :=
+begin
+  classical,
+  obtain ⟨f⟩ := nonempty_of_trunc (fintype.equiv_fin (h.to_finset : set α)),
+  exact ⟨_, coe ∘ f.symm, subtype.coe_injective.comp (equiv.injective _),
+    set.ext $ λ x, ⟨λ ⟨y, h⟩, by simpa [ ← h] using (f.symm y).2, λ hs, ⟨f ⟨x, by simpa⟩, by simp⟩⟩⟩
+end
+
 /-- Membership of a subset of a finite type is decidable.
 
 Using this as an instance leads to potential loops with `subtype.fintype` under certain decidability

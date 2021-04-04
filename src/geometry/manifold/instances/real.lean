@@ -38,7 +38,7 @@ typeclass. We provide it as `[fact (x < y)]`.
 -/
 
 noncomputable theory
-open set
+open set function
 open_locale manifold
 
 /--
@@ -82,16 +82,16 @@ a model for manifolds with boundary. In the locale `manifold`, use the shortcut 
 def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
   model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n) :=
 { to_fun      := λx, x.val,
-  inv_fun     := λx, ⟨function.update x 0 (max (x 0) 0), by simp [le_refl]⟩,
+  inv_fun     := λx, ⟨update x 0 (max (x 0) 0), by simp [le_refl]⟩,
   source      := univ,
   target      := {x | 0 ≤ x 0},
   map_source' := λx hx, x.property,
   map_target' := λx hx, mem_univ _,
   left_inv'   := λ ⟨xval, xprop⟩ hx, begin
-    rw [subtype.mk_eq_mk, function.update_eq_iff],
+    rw [subtype.mk_eq_mk, update_eq_iff],
     exact ⟨max_eq_left xprop, λ i _, rfl⟩
   end,
-  right_inv'  := λx hx, function.update_eq_iff.2 ⟨max_eq_left hx, λ i _, rfl⟩,
+  right_inv'  := λx hx, update_eq_iff.2 ⟨max_eq_left hx, λ i _, rfl⟩,
   source_eq    := rfl,
   unique_diff' := by simpa only [singleton_pi]
     using unique_diff_on.pi (λ i (hi : i ∈ ({0} : set (fin n))), unique_diff_on_Ici 0),
@@ -268,29 +268,27 @@ begin
     exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_times_cont_diff_groupoid _ _ _)).1 },
   { -- `e = left chart`, `e' = right chart`
     apply M.congr_mono _ (subset_univ _),
-    assume z hz,
-    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, dif_pos,
-      lt_add_iff_pos_left, max_lt_iff, lt_min_iff, sub_pos, lt_max_iff, subtype.range_val]
-      with mfld_simps at hz,
-    have A : 0 ≤ z 0 := hz.2,
-    have B : z 0 + x ≤ y, by { dsimp only at hz ⊢, linarith, },
+    rintro _ ⟨⟨hz₁, hz₂⟩, ⟨⟨z, hz₀⟩, rfl⟩⟩,
+    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart,
+      update_same, max_eq_left, hz₀, lt_sub_iff_add_lt] with mfld_simps at hz₁ hz₂,
+    rw [min_eq_left hz₁.le, lt_add_iff_pos_left] at hz₂,
     ext i,
     rw subsingleton.elim i 0,
-    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
-      pi_Lp.add_apply, dif_pos, min_eq_left, max_eq_left, pi_Lp.neg_apply] with mfld_simps,
-    ring },
+    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, *,
+      pi_Lp.add_apply, pi_Lp.neg_apply, max_eq_left, min_eq_left hz₁.le, update_same]
+      with mfld_simps,
+    abel },
   { -- `e = right chart`, `e' = left chart`
     apply M.congr_mono _ (subset_univ _),
-    assume z hz,
-    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, dif_pos,
-      max_lt_iff, sub_pos, subtype.range_val] with mfld_simps at hz,
-    have A : 0 ≤ z 0 := hz.2,
-    have B : x ≤ y - z 0, by { have := hz.1.1.1, dsimp at this, linarith },
+    rintro _ ⟨⟨hz₁, hz₂⟩, ⟨z, hz₀⟩, rfl⟩,
+    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, max_lt_iff,
+      update_same, max_eq_left hz₀] with mfld_simps at hz₁ hz₂,
+    rw lt_sub at hz₁,
     ext i,
     rw subsingleton.elim i 0,
-    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
-      pi_Lp.add_apply, dif_pos, max_eq_left, pi_Lp.neg_apply] with mfld_simps,
-    ring },
+    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart,
+      pi_Lp.add_apply, pi_Lp.neg_apply, update_same, max_eq_left, hz₀, hz₁.le] with mfld_simps,
+    abel },
   { -- `e = right chart`, `e' = right chart`
     exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_times_cont_diff_groupoid _ _ _)).1 }
 end

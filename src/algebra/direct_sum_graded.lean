@@ -272,7 +272,7 @@ instance : distrib (⨁ i, A i) :=
 { mul := (*),
   add := (+),
   left_distrib := λ a b c, by { unfold has_mul.mul, simp only [map_add]},
-  right_distrib := λ a b c, by { unfold has_mul.mul, simp only [map_add, add_monoid_hom.add_apply]} }
+  right_distrib := λ a b c, by { unfold has_mul.mul, simp only [map_add, add_monoid_hom.add_apply]}}
 
 variables {A}
 

@@ -1777,6 +1777,34 @@ by simp only [insert_eq, image_singleton, image_union]
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_image_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
 
+lemma mem_range_iff_mem_finset_range_of_mod_eq' [decidable_eq α] {f : ℕ → α} {a : α} {n : ℕ}
+  (hn : 0 < n) (h : ∀i, f (i % n) = f i) :
+  a ∈ set.range f ↔ a ∈ (finset.range n).image (λi, f i) :=
+begin
+  split,
+  { rintros ⟨i, hi⟩,
+    simp only [mem_image, exists_prop, mem_range],
+    exact ⟨i % n, nat.mod_lt i hn, (rfl.congr hi).mp (h i)⟩ },
+  { rintro h,
+    simp only [mem_image, exists_prop, set.mem_range, mem_range] at *,
+    rcases h with ⟨i, hi, ha⟩,
+    use ⟨i, ha⟩ },
+end
+
+lemma mem_range_iff_mem_finset_range_of_mod_eq [decidable_eq α] {f : ℤ → α} {a : α} {n : ℕ}
+  (hn : 0 < n) (h : ∀i, f (i % n) = f i) :
+  a ∈ set.range f ↔ a ∈ (finset.range n).image (λi, f i) :=
+suffices (∃i, f (i % n) = a) ↔ ∃i, i < n ∧ f ↑i = a, by simpa [h],
+have hn' : 0 < (n : ℤ), from int.coe_nat_lt.mpr hn,
+iff.intro
+  (assume ⟨i, hi⟩,
+    have 0 ≤ i % ↑n, from int.mod_nonneg _ (ne_of_gt hn'),
+    ⟨int.to_nat (i % n),
+      by rw [←int.coe_nat_lt, int.to_nat_of_nonneg this]; exact ⟨int.mod_lt_of_pos i hn', hi⟩⟩)
+  (assume ⟨i, hi, ha⟩,
+    ⟨i, by rw [int.mod_eq_of_lt (int.coe_zero_le _) (int.coe_nat_lt_coe_nat_of_lt hi), ha]⟩)
+
+
 lemma attach_image_val [decidable_eq α] {s : finset α} : s.attach.image subtype.val = s :=
 eq_of_veq $ by rw [image_val, attach_val, multiset.attach_map_val, erase_dup_eq_self]
 

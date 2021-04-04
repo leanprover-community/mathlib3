@@ -282,12 +282,12 @@ open opposite
 instance [_i : topological_space α] : topological_space αᵒᵖ :=
 topological_space.induced (unop : αᵒᵖ → α) _i
 
-variables [topological_space α] [monoid α]
+variables [topological_space α]
 
 lemma continuous_unop : continuous (unop : αᵒᵖ → α) := continuous_induced_dom
 lemma continuous_op : continuous (op : α → αᵒᵖ) := continuous_induced_rng continuous_id
 
-variables [has_continuous_mul α]
+variables [monoid α] [has_continuous_mul α]
 
 /-- If multiplication is continuous in the monoid `α`, then it also is in the monoid `αᵒᵖ`. -/
 instance : has_continuous_mul αᵒᵖ :=

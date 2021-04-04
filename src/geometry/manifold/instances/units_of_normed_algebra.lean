@@ -54,8 +54,8 @@ variables {R : Type*} [normed_ring R] [complete_space R]
 
 instance : charted_space R (units R) := open_embedding_coe.singleton_charted_space
 
-@[simp, mfld_simps] lemma chart_at_apply {a : units R} {b : units R} : chart_at R a b = b := rfl
-@[simp, mfld_simps] lemma chart_at_source {a : units R} : (chart_at R a).source = set.univ := rfl
+lemma chart_at_apply {a : units R} {b : units R} : chart_at R a b = b := rfl
+lemma chart_at_source {a : units R} : (chart_at R a).source = set.univ := rfl
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_algebra 𝕜 R]
 

@@ -628,8 +628,8 @@ lemma local_homeomorph.singleton_smooth_manifold_with_corners
   @smooth_manifold_with_corners 𝕜 _ E _ _ H _ I M _ (e.singleton_charted_space h) :=
 { compatible := begin
     intros e' e'' he' he'',
-    rw singleton_charted_space_one_chart e h e' he',
-    rw singleton_charted_space_one_chart e h e'' he'',
+    rw e.singleton_charted_space_mem_atlas_eq h e' he',
+    rw e.singleton_charted_space_mem_atlas_eq h e'' he'',
     refine (times_cont_diff_groupoid ∞ I).eq_on_source _ e.trans_symm_self,
     have hle : id_restr_groupoid ≤ (times_cont_diff_groupoid ∞ I) :=
       (closed_under_restriction_iff_id_le (times_cont_diff_groupoid ∞ I)).mp (by apply_instance),
@@ -645,7 +645,7 @@ lemma open_embedding.singleton_smooth_manifold_with_corners
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   {M : Type*} [topological_space M]
   [nonempty M] {f : M → H} (h : open_embedding f) :
-  @smooth_manifold_with_corners 𝕜 _ E _ _ H _ I M _ h.charted_space :=
+  @smooth_manifold_with_corners 𝕜 _ E _ _ H _ I M _ h.singleton_charted_space :=
 (h.to_local_homeomorph f).singleton_smooth_manifold_with_corners I (h.source f)
 
 namespace topological_space.opens

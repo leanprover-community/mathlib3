@@ -803,15 +803,18 @@ def local_homeomorph.singleton_charted_space (h : e.source = set.univ) : charted
   mem_chart_source := λ _, by simp only [h] with mfld_simps,
   chart_mem_atlas := λ _, by tauto }
 
-namespace local_homeomorph.singleton_charted_space
+namespace local_homeomorph
 
-@[simp, mfld_simps] lemma chart_at_eq (h : e.source = set.univ) {x : α} :
+@[simp, mfld_simps] lemma singleton_charted_space_chart_at_eq (h : e.source = set.univ) {x : α} :
   @chart_at H _ α _ (e.singleton_charted_space h) x = e := rfl
 
-lemma chart_at_source (h : e.source = set.univ) {x : α} :
+lemma singleton_charted_space_chart_at_source (h : e.source = set.univ) {x : α} :
   (@chart_at H _ α _ (e.singleton_charted_space h) x).source = set.univ := h
 
-end local_homeomorph.singleton_charted_space
+lemma singleton_charted_space_mem_atlas_eq (h : e.source = set.univ)
+  (e' : local_homeomorph α H) (h' : e' ∈ (e.singleton_charted_space h).atlas) : e' = e := h'
+
+end local_homeomorph
 
 def open_embedding.singleton_charted_space [nonempty α] {f : α → H} (h : open_embedding f) :
   charted_space H α := (h.to_local_homeomorph f).singleton_charted_space (h.source f)
@@ -824,9 +827,6 @@ variable [nonempty α]
   ⇑(@chart_at H _ α _ (h.singleton_charted_space) x) = f := rfl
 
 end open_embedding.singleton_charted_space
-
-lemma local_homeomorph.singleton_charted_space_mem_atlas_eq (h : e.source = set.univ)
-  (e' : local_homeomorph α H) (h' : e' ∈ (e.singleton_charted_space h).atlas) : e' = e := h'
 
 /-- Given a local homeomorphism `e` from a space `α` into `H`, if its source covers the whole
 space `α`, then the induced charted space structure on `α` is `has_groupoid G` for any structure

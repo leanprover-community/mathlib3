@@ -10,7 +10,8 @@ import group_theory.order_of_element
 # Cyclic groups
 
 A group `G` is called cyclic if there exists an element `g : G` such that every element of `G` is of
-the form `g ^ n` for some `n : ℕ`.
+the form `g ^ n` for some `n : ℕ`. This file only deals with the predicate on a group to be cyclic.
+For the concrete cyclic group of order `n`, see `data.zmod.basic`.
 
 ## Main definitions
 

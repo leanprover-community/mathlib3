@@ -7,8 +7,8 @@ import data.zmod.basic
 import group_theory.order_of_element
 import data.nat.basic
 import tactic.interval_cases
-import group_theory.specific_groups.dihedral_group
-import group_theory.specific_groups.cyclic_group
+import group_theory.specific_groups.dihedral
+import group_theory.specific_groups.cyclic
 
 /-!
 # Quaternion Groups

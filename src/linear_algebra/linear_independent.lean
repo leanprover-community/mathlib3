@@ -354,6 +354,11 @@ lemma linear_independent_bUnion_of_directed {η} {s : set η} {t : η → set M}
 by rw bUnion_eq_Union; exact
 linear_independent_Union_of_directed (directed_comp.2 $ hs.directed_coe) (by simpa using h)
 
+/-- A set of linearly independent vectors in a semimodule `M` over a semiring `K` is also linearly
+independent over a subring `R` of `K`.
+The implementation uses minimal assumptions about the relationship between `R`, `K` and `M`.
+The version where `K` is an `R`-algebra is `linear_independent.restrict_scalars_algebras`.
+ -/
 lemma linear_independent.restrict_scalars [semiring K] [smul_with_zero R K] [semimodule K M]
   [is_scalar_tower R K M]
   (hinj : function.injective (λ r : R, r • (1 : K))) (li : linear_independent K v) :

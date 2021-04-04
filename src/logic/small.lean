@@ -97,8 +97,8 @@ end
 instance small_of_encodable (α : Type v) [encodable α] : small.{w} α :=
 small_of_injective _ (encodable.encode_injective)
 
-theorem not_small_type : ¬ small.{u} (Type (max u v)) :=
-by rintro ⟨⟨U, ⟨e⟩⟩⟩; exact girard
+theorem not_small_type : ¬ small.{u} (Type (max u v))
+| ⟨⟨S, ⟨e⟩⟩⟩ := girard
   (λ f, Π y, f (e.symm y))
   (λ A p t, p _)
   (λ A p t, by simpa using p (e t))

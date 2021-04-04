@@ -45,6 +45,7 @@ local attribute [simp] girard.beta
 
 /-- Embeds a universe into `Type u`, assuming that universe `u` is a Girard universe. -/
 def univ : Type u := pi (λ X, (set (set X) → X) → set (set X))
+instance : inhabited univ := ⟨lam $ λ _ _, ∅⟩
 
 /-- A diagonal embedding `set (set univ) → univ`, part of the proof. -/
 def τ (T : set (set univ)) : univ :=

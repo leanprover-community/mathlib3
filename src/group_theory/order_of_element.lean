@@ -84,45 +84,6 @@ iff.intro
 
 end finset
 
-lemma mem_normalizer_fintype [group α] {s : set α} [fintype s] {x : α}
-  (h : ∀ n, n ∈ s → x * n * x⁻¹ ∈ s) : x ∈ subgroup.set_normalizer s :=
-by haveI := classical.prop_decidable;
-haveI := set.fintype_image s (λ n, x * n * x⁻¹); exact
-λ n, ⟨h n, λ h₁,
-have heq : (λ n, x * n * x⁻¹) '' s = s := set.eq_of_subset_of_card_le
-  (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1) (by rw set.card_image_of_injective s conj_injective),
-have x * n * x⁻¹ ∈ (λ n, x * n * x⁻¹) '' s := heq.symm ▸ h₁,
-let ⟨y, hy⟩ := this in conj_injective hy.2 ▸ hy.1⟩
-
-section order_of
-variable [group α]
-open quotient_group set
-
-instance fintype_bot : fintype (⊥ : subgroup α) := ⟨{1},
-by {rintro ⟨x, ⟨hx⟩⟩, exact finset.mem_singleton_self _}⟩
-
-@[simp] lemma card_trivial :
-  fintype.card (⊥ : subgroup α) = 1 :=
-fintype.card_eq_one_iff.2
-  ⟨⟨(1 : α), set.mem_singleton 1⟩, λ ⟨y, hy⟩, subtype.eq $ subgroup.mem_bot.1 hy⟩
-
-variables [fintype α] [dec : decidable_eq α]
-
-lemma card_eq_card_quotient_mul_card_subgroup (s : subgroup α) [fintype s]
-  [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
-by rw ← fintype.card_prod;
-  exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
-
-lemma card_subgroup_dvd_card (s : subgroup α) [fintype s] :
-  fintype.card s ∣ fintype.card α :=
-by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]
-
-lemma card_quotient_dvd_card (s : subgroup α) [decidable_pred (λ a, a ∈ s)] [fintype s] :
-  fintype.card (quotient s) ∣ fintype.card α :=
-by simp [card_eq_card_quotient_mul_card_subgroup s]
-
-end order_of
-
 section order_of
 
 section monoid

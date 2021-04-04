@@ -39,32 +39,18 @@ class girard :=
 (beta {A : Type u → Type u} (f : ∀ x, A x) (x) : app (lam f) x = f x)
 
 namespace girard
-variable [girard.{u}]
-
-local attribute [simp] girard.beta
-
-/-- Embeds a universe into `Type u`, assuming that universe `u` is a Girard universe. -/
-def univ : Type u := pi (λ X, (set (set X) → X) → set (set X))
-instance : inhabited univ := ⟨lam $ λ _ _, ∅⟩
-
-/-- A diagonal embedding `set (set univ) → univ`, part of the proof. -/
-def τ (T : set (set univ)) : univ :=
-lam $ λ X f, {p | {x : univ | f (app x _ f) ∈ p} ∈ T}
-
-/-- We can map `univ` to `set (set univ)` using the definition of `univ`. -/
-def σ (S : univ) : set (set univ) := app S _ τ
-
-/-- The action of `σ (τ S)` simplifies in terms of `τ (σ x)`. -/
-local attribute [simp]
-theorem τ_σ_def (s S) : s ∈ σ (τ S) ↔ {x : univ | τ (σ x) ∈ s} ∈ S :=
-by simp [σ, τ]
 
 /-- Girard's paradox: there are no Girard universes. -/
-theorem paradox : false :=
-have ∀ p, (∀ x, p ∈ σ x → x ∈ p) → τ {p | ∀ x : univ, p ∈ σ x → x ∈ p} ∈ p, from
-  λ p d, d _ (by simpa using λ x h, d (τ (σ x)) (by simpa)),
-this {y | ¬ ∀ p, p ∈ σ y → τ (σ y) ∈ p}
-  (λ x e f, f _ e (λ p h, f {y | τ (σ y) ∈ p} (by rwa [τ_σ_def] at h)))
-  (λ p h, this {y | τ (σ y) ∈ p} (by simpa using h))
+theorem paradox (G : girard.{u}) : false :=
+let univ := pi (λ X, (set (set X) → X) → set (set X)) in
+let τ (T : set (set univ)) : univ :=
+  lam $ λ X f, {p | {x : univ | f (app x _ f) ∈ p} ∈ T} in
+let σ (S : univ) : set (set univ) := app S _ τ in
+have τσ : ∀ s S, s ∈ σ (τ S) ↔ {x | τ (σ x) ∈ s} ∈ S := by simp [σ, τ, beta],
+let ω := {p | ∀ x, p ∈ σ x → x ∈ p}, δ (S) := ∀ p, p ∈ S → τ S ∈ p in
+have δ ω, from λ p d, d _ (by simpa [τσ] using λ x h, d (τ (σ x)) (by simpa)),
+this {y | ¬ δ (σ y)}
+  (λ x e f, f _ e (λ p h, f (τ ∘ σ ⁻¹' p) (by rwa [τσ] at h)))
+  (λ p h, this (τ ∘ σ ⁻¹' p) (by simpa [τσ] using h))
 
 end girard

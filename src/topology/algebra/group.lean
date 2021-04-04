@@ -679,12 +679,12 @@ instance multiplicative.topological_group {G} [h : topological_space G]
   [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
 { continuous_inv := @continuous_neg G _ _ _ }
 
-section units
+namespace units
 
 variables [monoid α] [topological_space α] [has_continuous_mul α]
 
 instance : topological_group (units α) :=
-⟨continuous_induced_rng (continuous.prod_mk (continuous_unop.comp
-  (continuous_snd.comp (@continuous_embed_product α _ _))) (continuous_op.comp continuous_coe))⟩
+{ continuous_inv := continuous_induced_rng ((continuous_unop.comp (continuous_snd.comp
+    (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
 
 end units

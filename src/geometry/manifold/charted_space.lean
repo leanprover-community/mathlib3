@@ -805,27 +805,27 @@ def local_homeomorph.singleton_charted_space (h : e.source = set.univ) : charted
 
 namespace local_homeomorph.singleton_charted_space
 
-@[simp, mfld_simps] lemma chart_at.apply (h : e.source = set.univ) {x : α} {y : α} :
-  @chart_at H _ α _ (e.singleton_charted_space h) x y = e y := rfl
+@[simp, mfld_simps] lemma chart_at_eq (h : e.source = set.univ) {x : α} :
+  @chart_at H _ α _ (e.singleton_charted_space h) x = e := rfl
 
-lemma chart_at.source (h : e.source = set.univ) {x : α} {y : α} :
+lemma chart_at_source (h : e.source = set.univ) {x : α} :
   (@chart_at H _ α _ (e.singleton_charted_space h) x).source = set.univ := h
 
 end local_homeomorph.singleton_charted_space
 
-def open_embedding.charted_space [nonempty α] {f : α → H} (h : open_embedding f) :
+def open_embedding.singleton_charted_space [nonempty α] {f : α → H} (h : open_embedding f) :
   charted_space H α := (h.to_local_homeomorph f).singleton_charted_space (h.source f)
 
 namespace open_embedding.singleton_charted_space
 
 variable [nonempty α]
 
-@[simp, mfld_simps] lemma chart_at.apply {f : α → H} (h : open_embedding f) {x : α} {y : α} :
-  @chart_at H _ α _ (h.charted_space) x y = f y := rfl
+@[simp, mfld_simps] lemma chart_at_eq {f : α → H} (h : open_embedding f) {x : α} :
+  ⇑(@chart_at H _ α _ (h.singleton_charted_space) x) = f := rfl
 
 end open_embedding.singleton_charted_space
 
-lemma singleton_charted_space_one_chart (h : e.source = set.univ)
+lemma local_homeomorph.singleton_charted_space_mem_atlas_eq (h : e.source = set.univ)
   (e' : local_homeomorph α H) (h' : e' ∈ (e.singleton_charted_space h).atlas) : e' = e := h'
 
 /-- Given a local homeomorphism `e` from a space `α` into `H`, if its source covers the whole
@@ -835,8 +835,8 @@ lemma local_homeomorph.singleton_has_groupoid (h : e.source = set.univ) (G : str
   [closed_under_restriction G] : @has_groupoid _ _ _ _ (e.singleton_charted_space h) G :=
 { compatible := begin
     intros e' e'' he' he'',
-    rw singleton_charted_space_one_chart e h e' he',
-    rw singleton_charted_space_one_chart e h e'' he'',
+    rw e.singleton_charted_space_mem_atlas_eq h e' he',
+    rw e.singleton_charted_space_mem_atlas_eq h e'' he'',
     refine G.eq_on_source _ e.trans_symm_self,
     have hle : id_restr_groupoid ≤ G := (closed_under_restriction_iff_id_le G).mp (by assumption),
     exact structure_groupoid.le_iff.mp hle _ (id_restr_groupoid_mem _),
@@ -844,8 +844,8 @@ lemma local_homeomorph.singleton_has_groupoid (h : e.source = set.univ) (G : str
 
 lemma open_embedding.has_groupoid [nonempty α] {f : α → H} (h : open_embedding f)
   (G : structure_groupoid H) [closed_under_restriction G] :
-  @has_groupoid _ _ _ _ h.charted_space G :=
-singleton_has_groupoid (h.to_local_homeomorph f) (h.source f) G
+  @has_groupoid _ _ _ _ h.singleton_charted_space G :=
+(h.to_local_homeomorph f).singleton_has_groupoid (h.source f) G
 
 end singleton
 

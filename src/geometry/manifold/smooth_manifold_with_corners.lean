@@ -619,21 +619,6 @@ instance prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 end smooth_manifold_with_corners
 
-namespace topological_space.opens
-
-open topological_space
-
-variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-  (s : opens M)
-
-instance : smooth_manifold_with_corners I s :=
-{ ..topological_space.opens.has_groupoid (times_cont_diff_groupoid ∞ I) s }
-
-end topological_space.opens
-
 lemma local_homeomorph.singleton_smooth_manifold_with_corners
   {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -662,6 +647,21 @@ lemma open_embedding.singleton_smooth_manifold_with_corners
   [nonempty M] {f : M → H} (h : open_embedding f) :
   @smooth_manifold_with_corners 𝕜 _ E _ _ H _ I M _ h.charted_space :=
 (h.to_local_homeomorph f).singleton_smooth_manifold_with_corners I (h.source f)
+
+namespace topological_space.opens
+
+open topological_space
+
+variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+  (s : opens M)
+
+instance : smooth_manifold_with_corners I s :=
+{ ..s.has_groupoid (times_cont_diff_groupoid ∞ I) }
+
+end topological_space.opens
 
 section extended_charts
 open_locale topological_space

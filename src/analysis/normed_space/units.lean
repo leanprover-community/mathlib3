@@ -295,6 +295,6 @@ end
 /-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
 embedding in `R × R`) to `R` is an open embedding. -/
 lemma open_embedding_coe : open_embedding (coe : units R → R) :=
-open_embedding_of_continuous_injective_open continuous_coe units.ext is_open_map_coe
+open_embedding_of_continuous_injective_open continuous_coe ext is_open_map_coe
 
 end units

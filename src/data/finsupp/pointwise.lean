@@ -8,10 +8,7 @@ import data.finsupp.basic
 /-!
 # The pointwise product on `finsupp`.
 
-TODO per issue #1864:
-We intend to remove the convolution product on finsupp, and define
-it only on a type synonym `add_monoid_algebra`. After we've done this,
-it would be good to make this the default product on `finsupp`.
+See also `monoid_algebra.has_mul` for the convolution product.
 -/
 
 noncomputable theory
@@ -48,17 +45,22 @@ begin
 end
 end
 
-instance [semigroup_with_zero β] : semigroup (α →₀ β) :=
+instance [mul_zero_class β] : mul_zero_class (α →₀ β) :=
+{ zero      := 0,
+  mul       := (*),
+  mul_zero  := λ f, by { ext, simp only [mul_apply, zero_apply, mul_zero], },
+  zero_mul  := λ f, by { ext, simp only [mul_apply, zero_apply, zero_mul], }, }
+
+instance [semigroup_with_zero β] : semigroup_with_zero (α →₀ β) :=
 { mul       := (*),
-  mul_assoc := λ f g h, by { ext, simp only [mul_apply, mul_assoc], }, }
+  mul_assoc := λ f g h, by { ext, simp only [mul_apply, mul_assoc], },
+  ..(infer_instance : mul_zero_class (α →₀ β)) }
 
 instance [non_unital_non_assoc_semiring β] : non_unital_non_assoc_semiring (α →₀ β) :=
-{ zero_mul := λ f, by { ext, simp [mul_apply, zero_apply] {proj := ff}, },
-  mul_zero := λ f, by { ext, simp [mul_apply, zero_apply] {proj := ff}, },
-  left_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, left_distrib] {proj := ff} },
+{ left_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, left_distrib] {proj := ff} },
   right_distrib := λ f g h,
     by { ext, simp only [mul_apply, add_apply, right_distrib] {proj := ff} },
-  ..(infer_instance : has_mul (α →₀ β)),
+  ..(infer_instance : mul_zero_class (α →₀ β)),
   ..(infer_instance : add_comm_monoid (α →₀ β)) }
 
 instance [non_unital_semiring β] : non_unital_semiring (α →₀ β) :=

@@ -178,6 +178,28 @@ protected lemma pullback_nonzero [has_zero M₀'] [has_one M₀']
 
 end
 
+section semigroup_with_zero
+
+/-- Pullback a `semigroup_with_zero` class along an injective function. -/
+protected def function.injective.semigroup_with_zero
+  [has_zero M₀'] [has_mul M₀'] [semigroup_with_zero M₀] (f : M₀' → M₀) (hf : injective f)
+  (zero : f 0 = 0) (mul : ∀ x y, f (x * y) = f x * f y) :
+  semigroup_with_zero M₀' :=
+{ .. hf.mul_zero_class f zero mul,
+  .. ‹has_zero M₀'›,
+  .. hf.semigroup f mul }
+
+/-- Pushforward a `semigroup_with_zero` class along an surjective function. -/
+protected def function.surjective.semigroup_with_zero
+  [semigroup_with_zero M₀] [has_zero M₀'] [has_mul M₀'] (f : M₀ → M₀') (hf : surjective f)
+  (zero : f 0 = 0) (mul : ∀ x y, f (x * y) = f x * f y) :
+  semigroup_with_zero M₀' :=
+{ .. hf.mul_zero_class f zero mul,
+  .. ‹has_zero M₀'›,
+  .. hf.semigroup f mul }
+
+end semigroup_with_zero
+
 section monoid_with_zero
 
 /-- Pullback a `monoid_with_zero` class along an injective function. -/

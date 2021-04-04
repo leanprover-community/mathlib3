@@ -875,7 +875,7 @@ def set_normalizer (S : set G) : subgroup G :=
   inv_mem' := λ a (ha : ∀ n, n ∈ S ↔ a * n * a⁻¹ ∈ S) n,
     by { rw [ha (a⁻¹ * n * a⁻¹⁻¹)], simp [mul_assoc] } }
 
-lemma mem_normalizer_fintype [group G] {S : set G} [fintype S] {x : G}
+lemma mem_normalizer_fintype {S : set G} [fintype S] {x : G}
   (h : ∀ n, n ∈ S → x * n * x⁻¹ ∈ S) : x ∈ subgroup.set_normalizer S :=
 by haveI := classical.prop_decidable;
 haveI := set.fintype_image S (λ n, x * n * x⁻¹); exact

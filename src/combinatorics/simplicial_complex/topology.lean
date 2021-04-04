@@ -187,26 +187,39 @@ lemma combi_interior_subset_convex_hull {X : finset E} : combi_interior X ⊆ co
 lemma closure_combi_interior_eq_convex_hull {X : finset E} :
   closure (combi_interior X) = convex_hull (X : set E) := sorry --@Bhavik, this one is for you :)
 
+lemma space_eq {S : simplicial_complex m} : S.space = ⋃ (X ∈ S.faces), combi_interior X :=
+begin
+  sorry
+end
+
+lemma combi_interior_subset_positive_weighings {X : finset E} :
+  combi_interior X ⊆
+    {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ X, 0 < w y) (hw₁ : ∑ y in X, w y = 1),
+      X.center_mass w id = x} :=
+begin
+  rw [combi_interior, finset.convex_hull_eq, combi_frontier_eq],
+  rintro x,
+  simp only [not_exists, and_imp, not_and, mem_set_of_eq, mem_diff, exists_imp_distrib],
+  rintro w hw₁ hw₂ hw₃ q,
+  refine ⟨w, λ y hy, _, hw₂, hw₃⟩,
+  exact lt_of_le_of_ne (hw₁ _ hy) (ne.symm (λ t, q w hw₁ hw₂ y hy t hw₃))
+end
 
 lemma combi_interior_eq {X : finset E} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
   combi_interior X =
     {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ X, 0 < w y) (hw₁ : ∑ y in X, w y = 1),
       X.center_mass w id = x} :=
 begin
+  apply subset.antisymm combi_interior_subset_positive_weighings,
+  rintro x,
   rw [combi_interior, finset.convex_hull_eq, combi_frontier_eq],
-  ext x,
-  split,
-  { simp only [not_exists, and_imp, not_and, mem_set_of_eq, mem_diff, exists_imp_distrib],
-    rintro w hw₁ hw₂ hw₃ q,
-    refine ⟨w, λ y hy, _, hw₂, hw₃⟩,
-    exact lt_of_le_of_ne (hw₁ _ hy) (ne.symm (λ t, q w hw₁ hw₂ y hy t hw₃)) },
-  { simp only [not_exists, and_imp, not_and, mem_set_of_eq, mem_diff, exists_imp_distrib],
-    intros w hw₁ hw₂ hw₃,
-    refine ⟨⟨w, λ y hy, le_of_lt (hw₁ y hy), hw₂, hw₃⟩, _⟩,
-    intros w' hw'₁ hw'₂ y hy₁ hy₂ hw'₃,
-    rw ← hw₃ at hw'₃,
-    rw (unique_combination hX w' w hw'₂ hw₂ hw'₃) y hy₁ at hy₂,
-    exact ne_of_gt (hw₁ y hy₁) hy₂ }
+  simp only [not_exists, and_imp, not_and, mem_set_of_eq, mem_diff, exists_imp_distrib],
+  intros w hw₁ hw₂ hw₃,
+  refine ⟨⟨w, λ y hy, le_of_lt (hw₁ y hy), hw₂, hw₃⟩, _⟩,
+  intros w' hw'₁ hw'₂ y hy₁ hy₂ hw'₃,
+  rw ← hw₃ at hw'₃,
+  rw (unique_combination hX w' w hw'₂ hw₂ hw'₃) y hy₁ at hy₂,
+  exact ne_of_gt (hw₁ y hy₁) hy₂
 end
 
 lemma combi_frontier_subset_convex_hull {X : finset E} : combi_frontier X ⊆ convex_hull X :=
@@ -225,6 +238,22 @@ begin
   --exact topology.basic.closure_mono,
 end
 
+lemma mem_of_mem_convex_hull {S : simplicial_complex m} {x : E} {X : finset E} (hx : {x} ∈ S.faces)
+  (hX : X ∈ S.faces) (hxX : x ∈ convex_hull (X : set E)) : x ∈ X :=
+begin
+  have h := S.disjoint hx hX ⟨by simp, hxX⟩,
+  by_contra H,
+  norm_cast at h,
+  rw [finset.inter_comm, finset.disjoint_iff_inter_eq_empty.1 (finset.disjoint_singleton.2 H)] at h,
+  simp at h,
+  exact h,
+end
+
+lemma subset_of_convex_hull_subset_convex_hull {S : simplicial_complex m} {X Y : finset E}
+  (hX : X ∈ S.faces) (hY : Y ∈ S.faces) (hXY : convex_hull (X : set E) ⊆ convex_hull ↑Y) : X ⊆ Y :=
+λ x hxX, mem_of_mem_convex_hull (S.down_closed hX (finset.singleton_subset_iff.2 hxX)) hY
+  (hXY (subset_convex_hull ↑X hxX))
+
 lemma disjoint_interiors {S : simplicial_complex m} {X Y : finset E}
   (hX : X ∈ S.faces) (hY : Y ∈ S.faces) (x : E) :
   x ∈ combi_interior X ∩ combi_interior Y → X = Y :=
@@ -234,12 +263,8 @@ begin
   have hXY : X ∩ Y ⊂ X,
   { use finset.inter_subset_left X Y,
     intro H,
-    apply hYbound,
-    apply set.mem_bUnion _ _,
-    exact X,
-    exact ⟨subset.trans H (finset.inter_subset_right X Y),
-      (λ H2, h (finset.subset.antisymm (subset.trans H (finset.inter_subset_right X Y)) H2))⟩,
-    exact hxX },
+    exact hYbound (set.mem_bUnion ⟨subset.trans H (finset.inter_subset_right X Y),
+      (λ H2, h (finset.subset.antisymm (subset.trans H (finset.inter_subset_right X Y)) H2))⟩ hxX) },
   refine hXbound (mem_bUnion hXY _),
   exact_mod_cast S.disjoint hX hY ⟨hxX, hyY⟩,
 end
@@ -320,7 +345,36 @@ begin
   rintro hxZ,
   rw mem_combi_frontier_iff' at hxZ,
   obtain ⟨W, hWZ, hxW⟩ := hxZ,
-  apply hxX.2,
+  apply hWZ.2 (hZmin W _),
+  simp,
+  use [subset.trans hWZ.1 hZ.1],
+  rw finset.convex_hull_eq _ at ⊢ hZ,
+  obtain ⟨v, hvpos, hvsum, hvcenter⟩ := combi_interior_subset_positive_weighings hxX,
+  obtain ⟨w, hwpos, hwsum, hwcenter⟩ := combi_interior_subset_positive_weighings hxW,
+  let u : E → E → ℝ := λ a, if ha : a ∈ X then classical.some (hZ.2 ha) else (λ b, 0),
+  have hupos : ∀ {a}, a ∈ X → ∀ (b : fin m → ℝ), b ∈ Z → 0 < u a b,
+  {
+    rintro a ha,
+    have := classical.some_spec (hZ.2 ha),
+    sorry
+  },
+  have husum : ∀ {a}, a ∈ X → ∑ (b : fin m → ℝ) in Z, u a b = 1,
+  {
+    sorry
+  },
+  have hucenter : ∀ {a}, a ∈ X → Z.center_mass (u a) id = a,
+  {
+    sorry
+  },
+  let t : E → ℝ := λ b, if hb : b ∈ Z then ∑ (a : fin m → ℝ) in X, v a * u a b else 0,
+  sorry
+  /-rintro y (hyX : y ∈ X),
+  obtain ⟨v, hvpos, hvsum, hvcenter⟩ := combi_interior_subset_positive_weighings hxX,
+  obtain ⟨w, hwpos, hwsum, hwcenter⟩ := combi_interior_subset_positive_weighings hxW,-/
+  --rw mem_convex_hull,
+  /-by_contra hXW,
+  obtain ⟨y, hyX, hyW⟩ := not_subset.1 hXW,-/
+  /-apply hxX.2,
   rw mem_combi_frontier_iff at ⊢,
   use [X.filter (λ w : E, w ∈ convex_hull (W : set E)), finset.filter_subset _ _],
   {
@@ -335,15 +389,15 @@ begin
   },
   {
     simp,
+    apply convex_hull_mono (subset_inter (subset.refl _) _) hxX.1,
+    by_contra hXW,
+    rw not_subset at hXW,
+    /-suffices hXW : ↑X ⊆ convex_hull ↑W,
+    {
+      apply convex_hull_mono (subset_inter (subset.refl _) hXW) hxX.1,
+    },-/
     sorry
-  }
-  /-apply hWZ.2 (hZmin W _),
-  simp,
-  use [subset.trans hWZ.1 hZ.1],
-  rintro y (hyX : y ∈ X),
-  have := hZ.2 hyX,
-  obtain ⟨V, hVY, hyV⟩ := mem_convex_hull_iff.1 this,
-  sorry-/
+  }-/
 end
 
 lemma combi_interiors_cover (S : simplicial_complex m) :
@@ -443,8 +497,7 @@ begin
       {Y : finset (fin m → ℝ) | Y ∈ S.faces ∧ x ∈ convex_hull ↑Y},
     { exact finite.subset (hS x) h },
     rintro Y ⟨hY, hXY⟩,
-    use hY,
-    exact subset_convex_hull Y (hXY hx) }
+    exact ⟨hY, subset_convex_hull Y (hXY hx)⟩ }
 end
 
 /--
@@ -519,12 +572,16 @@ begin
         convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior hX₁X₂⟩ }}
 end
 
-lemma subdivision_iff_partitionable {S₁ S₂ : simplicial_complex m} (hS₂ : S₂.faces.nonempty) :
-  S₁ ≤ S₂ ↔ S₁.space ⊆ S₂.space ∧ ∀ {X₂}, X₂ ∈ S₂.faces →
+lemma subdivision_iff_partition {S₁ S₂ : simplicial_complex m} :
+  S₁ ≤ S₂ ↔ (S₁.faces.nonempty → S₂.faces.nonempty) ∧ S₁.space ⊆ S₂.space ∧ ∀ {X₂}, X₂ ∈ S₂.faces →
   ∃ {F}, F ⊆ S₁.faces ∧ combi_interior X₂ = ⋃ (X₁ ∈ F), combi_interior X₁ :=
 begin
   split,
   { rintro ⟨hspace, hsubdiv⟩,
+    split,
+    { rintro ⟨X₁, hX₁⟩,
+      obtain ⟨X₂, hX₂, hX₁X₂⟩ := hsubdiv hX₁,
+      exact ⟨X₂, hX₂⟩ },
     use le_of_eq hspace,
     rintro X hX,
     use [{Y | Y ∈ S₁.faces ∧ combi_interior Y ⊆ combi_interior X}, (λ Y hY, hY.1)],
@@ -544,7 +601,7 @@ begin
     { rw mem_bUnion_iff,
       rintro ⟨Y, ⟨hY, hYX⟩, hxY⟩,
       exact hYX hxY }},
-  { rintro ⟨hspace, hpartition⟩,
+  { rintro ⟨hempty, hspace, hpartition⟩,
     have hspace : S₁.space = S₂.space,
     { apply subset.antisymm hspace,
       rintro x hx,
@@ -557,9 +614,9 @@ begin
     use hspace,
     rintro X hX,
     cases finset.eq_empty_or_nonempty X with hXempty hXnonempty,
-    { subst hXempty,
-      obtain ⟨Y, hY⟩ := hS₂,
+    { obtain ⟨Y, hY⟩ := hempty ⟨X, hX⟩,
       use [Y, hY],
+      rw hXempty,
       simp },
     obtain ⟨x, hx⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hX) hXnonempty,
     have hxspace := mem_space_iff.2 ⟨X, hX, hx.1⟩,
@@ -604,36 +661,89 @@ begin
   }
 end
 
+lemma closed_space_of_locally_finite {S : simplicial_complex m} (hS : S.locally_finite) :
+  is_closed S.space :=
+begin
+  sorry
+end
+
 lemma space_frontier_eq {S : simplicial_complex m} :
-  frontier S.space = (⋃ (X ∈ S.facets) (H : (X : finset E).card ≤ m), combi_interior X)
+  frontier S.space = (⋃ (X ∈ S.facets) (H : (X : finset E).card ≤ m), convex_hull ↑X)
   ∪ (⋃ (X ∈ S.boundary.faces), combi_interior X) :=
 begin
   sorry
 end
 
 lemma boundary_space_eq_of_full_dimensional {S : simplicial_complex m}
-  (hS : S.pure_of (m + 1)) {X : finset E} :
+  (hS : S.full_dimensional) {X : finset E} :
   frontier S.space = S.boundary.space :=
 begin
+  rw space_frontier_eq,
+  rw space_eq,
+  ext x,
+  split,
+  {
+    sorry
+  },
   sorry
 end
 
 lemma boundary_mono {S₁ S₂ : simplicial_complex m} (hS : S₁ ≤ S₂) :
   S₁.boundary ≤ S₂.boundary :=
 begin
+  /-cases S₂.faces.eq_empty_or_nonempty with hS₂empty hS₂nonempty,
+  {
+    rw hS₂empty,
+  },
+  rw subdivision_iff_partition at ⊢ hS,-/
   have hspace : S₁.boundary.space = S₂.boundary.space,
   {
     sorry
   },
+  /-rw subdivision_iff_partition,
+  split,
+  {
+    sorry
+  },
+  use le_of_eq hspace,
+  rintro X₂ ⟨Y₂, Z₂, hY₂, hZ₂, hX₂Y₂, hY₂Z₂, hZ₂max⟩,
+  obtain ⟨hempty, hspace, hpartition⟩ := subdivision_iff_partition.1 hS,
+  obtain ⟨F, hF, hX₂F⟩ := hpartition (S₂.down_closed hY₂ hX₂Y₂),
+  use F, rw and.comm, use hX₂F,
+  rintro X₁ hX₁,-/
+
   use hspace,
   rintro X₁ ⟨Y₁, Z₁, hY₁, hZ₁, hX₁Y₁, hY₁Z₁, hZ₁max⟩,
   obtain ⟨X₂, hX₂, hX₁X₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2
     (S₁.down_closed hY₁ hX₁Y₁),
+  obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hY₁,
+  obtain ⟨Z₂, hZ₂, hZ₁Z₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hZ₁,
   use X₂,
   rw and.comm,
   use convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior hX₁X₂,
+  use [Y₂, Z₂, hY₂, hZ₂],
+  split,
+  {
+    apply subset_of_convex_hull_subset_convex_hull hX₂ hY₂,
+    sorry
+  },
   sorry
 end
+
+/--
+A m-simplex not on the boundary of a full dimensional complex belongs to exactly two cells.
+-/
+/-lemma two_surfaces_of_non_boundary_subcell_of_full_dimensional {S : simplicial_complex m}
+  {X : finset E} (hS : S.full_dimensional) (hX : X ∉ S.boundary.faces) (hXcard : X.card = m) :
+  fincard {Y | Y ∈ S.faces ∧ X ⊂ Y} = 2 :=
+begin
+  have aux_lemma : ∀ {a b : E}, a ≠ b → a ∉ X → b ∉ X → X ∪ {a} ∈ S.faces → X ∪ {b} ∈ S.faces →
+    ∃ w : E → ℝ, w a < 0 ∧ ∑ y in X ∪ {a}, w y = 1 ∧ (X ∪ {a}).center_mass w id = b,
+  {
+    sorry
+  },
+
+end-/
 
 /-A simplicial complex is connected iff its space is-/
 def simplicial_complex.connected (S : simplicial_complex m) : Prop := connected_space S.space
@@ -653,7 +763,7 @@ begin
 end
 
 lemma locally_compact_realisation_iff_locally_finite (S : simplicial_complex m) :
-  S.locally_finite ↔  locally_compact_space S.space :=
+  S.locally_finite ↔ locally_compact_space S.space :=
   begin
     rw locally_finite_iff_mem_finitely_many_faces,
     split,

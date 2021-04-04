@@ -316,6 +316,8 @@ begin
   exact finset.eq_of_subset_of_card_le hXY this,
 end
 
+def simplicial_complex.full_dimensional (S : simplicial_complex m) : Prop := S.pure_of (m + 1)
+
 /--
 The cells of a simplicial complex are its simplices whose dimension matches the one of the space
 -/
@@ -332,6 +334,11 @@ begin
   linarith,
 end
 
+
+/--
+The k-skeleton of a simplicial complex is the simplicial complex made of its simplices of dimension
+less than k.
+-/
 def simplicial_complex.skeleton (S : simplicial_complex m) (k : ℕ) :
   simplicial_complex m :=
 simplicial_complex.of_surcomplex
@@ -1125,6 +1132,9 @@ lemma locally_finite_at_up_closed {S : simplicial_complex m} {X Y : finset E}
 
 lemma locally_infinite_at_down_closed {S : simplicial_complex m} {X Y : finset E}
   (hY : Y ∈ S.locally_infinite_at) (hXY : X ⊆ Y) : X ∈ S.locally_infinite_at := sorry
+
+lemma locally_finite_of_finite {S : simplicial_complex m} (hS : S.finite) : S.locally_finite :=
+  λ X hX _, finite.subset hS (λ Y (hY : Y ∈ S.faces ∧ X ⊆ Y), hY.1)
 
 lemma boundary_boundary {S : simplicial_complex m} (hS : S.pure_of n) (hS' : ∀ {X}, X ∈ S.faces →
   (X : finset E).card = n - 1 → equiv {Y | Y ∈ S.faces ∧ X ⊆ Y} (fin 2)) :

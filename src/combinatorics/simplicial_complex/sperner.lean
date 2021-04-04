@@ -276,9 +276,7 @@ theorem sperner {S : simplicial_complex (m+1)}
   {f} (hf : is_sperner_colouring S f) :
   ∃ X ∈ S.faces, panchromatic f X :=
 begin
-  have := nat.odd_gt_zero (strong_sperner hS₁ hS₂ hS₃ hf),
-  rw finset.card_pos at this,
-  rcases this with ⟨X, hX⟩,
+  obtain ⟨X, hX⟩ := finset.card_pos.1 (nat.odd_gt_zero (strong_sperner hS₁ hS₂ hS₃ hf)),
   simp only [mem_faces_finset, finset.mem_filter] at hX,
   exact ⟨_, hX.1, hX.2⟩,
 end

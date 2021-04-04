@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.set.basic
+import logic.small
 
 /-!
 # Girard's paradox
@@ -15,7 +16,7 @@ so instead we axiomatize the behavior of the Pi type and application if the typi
 
 Furthermore, we don't actually want false axioms in mathlib, so rather than introducing the axioms
 using `axiom` or `constant` declarations, we declare a `girard` class, which bundles up the
-hypotheses in Girard's paradox, such that an instance of `girard.{u]` asserts that universe `u`
+hypotheses in Girard's paradox, such that an instance of `girard.{u}` asserts that universe `u`
 satisfies the assumptions, i.e. `Type u : Type u`, give or take. Then the paradox amounts to a
 proof that the `girard` class is empty.
 
@@ -67,3 +68,13 @@ this {y | ¬ ∀ p, p ∈ σ y → τ (σ y) ∈ p}
   (λ p h, this {y | τ (σ y) ∈ p} (by simpa using h))
 
 end girard
+
+theorem {v} not_small_type : ¬ small.{u} (Type (max u v)) :=
+by rintro ⟨⟨U, ⟨e⟩⟩⟩; exact
+@girard.paradox {
+  pi := λ f, Π y, f (e.symm y),
+  lam := λ A p t, p _,
+  app := λ A p t, by simpa using p (e t),
+  beta := λ A p t, by simp [cast_eq_iff_heq]; exact congr_arg_heq _ (e.left_inv _) }
+
+theorem {v} small_type : small.{max (u+1) v} (Type u) := small_max.{max (u+1) v} _

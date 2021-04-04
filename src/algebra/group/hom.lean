@@ -709,7 +709,7 @@ def comp_hom [mul_one_class M] [comm_monoid N] [comm_monoid P] :
 /-- Flipping arguments of monoid morphisms (`monoid_hom.flip`) as a monoid morphism. -/
 @[to_additive "Flipping arguments of additive monoid morphisms (`add_monoid_hom.flip`)
 as an additive monoid morphism.", simps]
-def flip_hom {mM : monoid M} {mN : monoid N} {mP : comm_monoid P}
+def flip_hom {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
   : (M →* N →* P) →* (N →* M →* P) :=
 { to_fun := monoid_hom.flip, map_one' := rfl, map_mul' := λ f g, rfl }
 

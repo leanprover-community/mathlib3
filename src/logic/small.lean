@@ -98,11 +98,10 @@ instance small_of_encodable (α : Type v) [encodable α] : small.{w} α :=
 small_of_injective _ (encodable.encode_injective)
 
 theorem not_small_type : ¬ small.{u} (Type (max u v)) :=
-by rintro ⟨⟨U, ⟨e⟩⟩⟩; exact
-@girard.paradox {
-  pi := λ f, Π y, f (e.symm y),
-  lam := λ A p t, p _,
-  app := λ A p t, by simpa using p (e t),
-  beta := λ A p t, by simp [cast_eq_iff_heq]; exact congr_arg_heq _ (e.left_inv _) }
+by rintro ⟨⟨U, ⟨e⟩⟩⟩; exact girard
+  (λ f, Π y, f (e.symm y))
+  (λ A p t, p _)
+  (λ A p t, by simpa using p (e t))
+  (λ A p t, by simp [cast_eq_iff_heq]; exact congr_arg_heq _ (e.left_inv _))
 
 end

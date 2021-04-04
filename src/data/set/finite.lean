@@ -436,6 +436,22 @@ lemma exists_max_image [linear_order β] (s : set α) (f : α → β) (h1 : fini
 | ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
   using h1.to_finset.exists_max_image f ⟨x, h1.mem_to_finset.2 hx⟩
 
+theorem exists_lower_bound_image [hα : nonempty α] [linear_order β] (s : set α) (f : α → β)
+  (h : s.finite) : ∃ (a : α), ∀ b ∈ s, f a ≤ f b :=
+begin
+  by_cases hs : set.nonempty s,
+  { exact let ⟨x₀, H, hx₀⟩ := set.exists_min_image s f h hs in ⟨x₀, λ x hx, hx₀ x hx⟩ },
+  { exact nonempty.elim hα (λ a, ⟨a, λ x hx, absurd (set.nonempty_of_mem hx) hs⟩) }
+end
+
+theorem exists_upper_bound_image [hα : nonempty α] [linear_order β] (s : set α) (f : α → β)
+  (h : s.finite) : ∃ (a : α), ∀ b ∈ s, f b ≤ f a :=
+begin
+  by_cases hs : set.nonempty s,
+  { exact let ⟨x₀, H, hx₀⟩ := set.exists_max_image s f h hs in ⟨x₀, λ x hx, hx₀ x hx⟩ },
+  { exact nonempty.elim hα (λ a, ⟨a, λ x hx, absurd (set.nonempty_of_mem hx) hs⟩) }
+end
+
 end set
 
 namespace finset

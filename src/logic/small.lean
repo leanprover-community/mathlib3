@@ -101,7 +101,7 @@ theorem not_small_type : ¬ small.{u} (Type (max u v))
 | ⟨⟨S, ⟨e⟩⟩⟩ := girard
   (λ f, Π y, f (e.symm y))
   (λ A p t, p _)
-  (λ A p t, by simpa using p (e t))
-  (λ A p t, by simp [cast_eq_iff_heq]; exact congr_arg_heq _ (e.left_inv _))
+  (λ A p t, cast (congr_arg A (e.3 t)) (p (e t)))
+  (λ A p t, cast_eq_iff_heq.2 (congr_arg_heq _ (e.3 _)))
 
 end

@@ -424,11 +424,15 @@ variables [fintype α] {σ τ : perm α}
 
 noncomputable theory
 
-theorem is_cycle.is_conj (hσ : is_cycle σ) (hτ : is_cycle τ) (h : σ.support.card = τ.support.card) :
+lemma foo (f : {x // x ∈ (σ.support : set α)} ≃ {x // x ∈ (τ.support : set α)})
+  (hf : ∀ (x : α) (hx : x ∈ (σ.support : set α)), (f ⟨σ x, apply_mem_support.2 hx⟩ : α) =
+    τ ↑(f ⟨x,hx⟩)) :
   is_conj σ τ :=
 begin
-  classical,
-  replace h : σ.support.card = τ.support.card, { convert h },
+  have h := fintype.card_congr f,
+  rw [fintype.card_of_subtype σ.support (λ x, _), fintype.card_of_subtype τ.support (λ x, _)] at h,
+  swap, { rw finset.mem_coe },
+  swap, { rw finset.mem_coe },
   have hc : fintype.card ((σ.support : set α)ᶜ : set α) =
     fintype.card ((τ.support : set α)ᶜ : set α),
   { refine (fintype.card_of_subtype σ.supportᶜ (λ x, _)).trans
@@ -438,37 +442,46 @@ begin
     { rw [← coe_compl, finset.mem_coe] } },
   rw fintype.card_eq at hc,
   obtain ⟨cequiv⟩ := hc,
-  refine ⟨(equiv.set.sum_compl _).symm.trans ((equiv.sum_congr (hσ.gpowers_equiv_support.symm.trans
-    ((gpowers_equiv_gpowers begin
-      rw [order_of_is_cycle hσ, h, order_of_is_cycle hτ],
-  end).trans hτ.gpowers_equiv_support)) cequiv).trans
+  classical,
+  refine ⟨(equiv.set.sum_compl _).symm.trans ((equiv.sum_congr f cequiv).trans
     (equiv.set.sum_compl _)), _⟩,
   rw mul_inv_eq_iff_eq_mul,
   ext,
   simp only [perm.mul_apply, equiv.trans_apply, equiv.sum_congr_apply],
   by_cases hx : x ∈ σ.support,
-  { rw [equiv.set.sum_compl_symm_apply_of_mem (finset.mem_coe.2 hx), sum.map_inl,
+  { rw [equiv.set.sum_compl_symm_apply_of_mem (finset.mem_coe.2 _), sum.map_inl,
       equiv.set.sum_compl_apply_inl, equiv.set.sum_compl_symm_apply_of_mem (finset.mem_coe.2 _),
       sum.map_inl, equiv.set.sum_compl_apply_inl],
-    swap, { rw mem_support at *, contrapose! hx, exact σ.injective hx },
-    simp only [equiv.trans_apply],
-    obtain ⟨n, rfl⟩ := hσ.exists_pow_eq (classical.some_spec hσ).1 (mem_support.1 hx),
-    apply eq.trans _ (congr rfl (congr rfl (congr rfl
-      (congr rfl (hσ.gpowers_equiv_support_symm_apply n).symm)))),
-    apply (congr rfl (congr rfl (congr rfl (hσ.gpowers_equiv_support_symm_apply (n + 1))))).trans _,
-    simp only [ne.def, is_cycle.gpowers_equiv_support_apply,
-      subtype.coe_mk, gpowers_equiv_gpowers_apply],
-    rw [pow_succ, perm.mul_apply] },
-  { have hx' : x ∉ (σ.support : set α) := λ c, hx (finset.mem_coe.1 c),
-    rw [mem_support, not_not] at hx,
-    have hx'' : σ x ∉ (σ.support : set α),
-    { rw [finset.mem_coe, mem_support, not_not, hx, hx] },
-    rw [equiv.set.sum_compl_symm_apply_of_not_mem hx',
-      equiv.set.sum_compl_symm_apply_of_not_mem hx''],
+    { refine hf x (finset.mem_coe.2 _),
+      convert hx, },
+    { rw apply_mem_support,
+      convert hx } },
+  { rw [mem_support, not_not] at hx,
+    rw [equiv.set.sum_compl_symm_apply_of_not_mem, equiv.set.sum_compl_symm_apply_of_not_mem],
+    swap, { rw [finset.mem_coe, mem_support, not_not, hx] },
+    swap, { rw [finset.mem_coe, mem_support, not_not, hx, hx] },
     simp only [sum.map_inr, set.sum_compl_apply_inr],
-    { have h := (set.mem_compl_iff _ _).1 (cequiv ⟨σ x, _⟩).2,
-      rw [finset.mem_coe, mem_support, not_not, subtype.val_eq_coe, eq_comm] at h,
-      exact h.trans (congr rfl (congr rfl (congr rfl (subtype.mk_eq_mk.2 hx)))) } }
+    have h := (set.mem_compl_iff _ _).1 (cequiv ⟨σ x, _⟩).2,
+    rw [finset.mem_coe, mem_support, not_not, subtype.val_eq_coe, eq_comm] at h,
+    exact h.trans (congr rfl (congr rfl (congr rfl (subtype.mk_eq_mk.2 hx)))) }
+end
+
+theorem is_cycle.is_conj (hσ : is_cycle σ) (hτ : is_cycle τ) (h : σ.support.card = τ.support.card) :
+  is_conj σ τ :=
+begin
+  refine foo (hσ.gpowers_equiv_support.symm.trans
+    ((gpowers_equiv_gpowers begin
+      rw [order_of_is_cycle hσ, h, order_of_is_cycle hτ],
+  end).trans hτ.gpowers_equiv_support)) _,
+  intros x hx,
+  simp only [perm.mul_apply, equiv.trans_apply, equiv.sum_congr_apply],
+  obtain ⟨n, rfl⟩ := hσ.exists_pow_eq (classical.some_spec hσ).1 (mem_support.1 hx),
+  apply eq.trans _ (congr rfl (congr rfl (congr rfl
+    (congr rfl (hσ.gpowers_equiv_support_symm_apply n).symm)))),
+  apply (congr rfl (congr rfl (congr rfl (hσ.gpowers_equiv_support_symm_apply (n + 1))))).trans _,
+  simp only [ne.def, is_cycle.gpowers_equiv_support_apply,
+    subtype.coe_mk, gpowers_equiv_gpowers_apply],
+  rw [pow_succ, perm.mul_apply],
 end
 
 theorem is_cycle.is_conj_iff (hσ : is_cycle σ) (hτ : is_cycle τ) :
@@ -482,6 +495,63 @@ theorem is_cycle.is_conj_iff (hσ : is_cycle σ) (hτ : is_cycle τ) :
     rw [mem_support, not_not] at hb,
     rw [mem_support, not_not, perm.mul_apply, perm.mul_apply, hb, perm.apply_inv_self] }
 end, hσ.is_conj hτ⟩
+
+@[simp]
+lemma support_conj : (σ * τ * σ⁻¹).support = τ.support.map σ.to_embedding :=
+begin
+  ext,
+  simp only [mem_map_equiv, perm.coe_mul, comp_app, ne.def, perm.mem_support, equiv.eq_symm_apply],
+  refl,
+end
+
+lemma card_support_conj : (σ * τ * σ⁻¹).support.card = τ.support.card :=
+by simp
+
+theorem disjoint.is_conj_mul {π ρ : perm α} (hc1 : is_conj σ π) (hc2 : is_conj τ ρ)
+  (hd1 : disjoint σ τ) (hd2 : disjoint π ρ) :
+  is_conj (σ * τ) (π * ρ) :=
+begin
+  obtain ⟨f, rfl⟩ := hc1,
+  obtain ⟨g, rfl⟩ := hc2,
+  have hd1' := coe_inj.2 hd1.support_mul,
+  have hd2' := coe_inj.2 hd2.support_mul,
+  rw [coe_union] at *,
+  have hd1'' := disjoint_iff_disjoint_coe.1 (disjoint_iff_disjoint_support.1 hd1),
+  have hd2'' := disjoint_iff_disjoint_coe.1 (disjoint_iff_disjoint_support.1 hd2),
+  refine foo _ _,
+  { refine ((equiv.set.of_eq hd1').trans (equiv.set.union hd1'')).trans
+      ((equiv.sum_congr (subtype_equiv f (λ a, _)) (subtype_equiv g (λ a, _))).trans
+      ((equiv.set.of_eq hd2').trans (equiv.set.union hd2'')).symm);
+    { simp only [set.mem_image, to_embedding_apply, exists_eq_right,
+        support_conj, coe_map, apply_eq_iff_eq] } },
+  { intros x hx,
+    simp only [trans_apply, symm_trans_apply, set.of_eq_apply,
+      set.of_eq_symm_apply, equiv.sum_congr_apply],
+    rw [hd1', set.mem_union] at hx,
+    cases hx with hxσ hxτ,
+    { rw [mem_coe, mem_support] at hxσ,
+      rw [set.union_apply_left hd1'' _, set.union_apply_left hd1'' _],
+      simp only [subtype_equiv_apply, perm.coe_mul, sum.map_inl, comp_app,
+        set.union_symm_apply_left, subtype.coe_mk, apply_eq_iff_eq],
+      { have h := (hd2 (f x)).resolve_left _,
+        { rw [mul_apply, mul_apply] at h,
+          rw [h, inv_apply_self, (hd1 x).resolve_left hxσ] },
+        { rwa [mul_apply, mul_apply, inv_apply_self, apply_eq_iff_eq] } },
+      { rwa [subtype.coe_mk, subtype.coe_mk, mem_coe, mem_support] },
+      { rwa [subtype.coe_mk, subtype.coe_mk, perm.mul_apply,
+          (hd1 x).resolve_left hxσ, mem_coe, apply_mem_support, mem_support] } },
+    { rw [mem_coe, ← apply_mem_support, mem_support] at hxτ,
+      rw [set.union_apply_right hd1'' _, set.union_apply_right hd1'' _],
+      simp only [subtype_equiv_apply, perm.coe_mul, sum.map_inr, comp_app,
+        set.union_symm_apply_right, subtype.coe_mk, apply_eq_iff_eq],
+      { have h := (hd2 (g (τ x))).resolve_right _,
+        { rw [mul_apply, mul_apply] at h,
+          rw [inv_apply_self, h, (hd1 (τ x)).resolve_right hxτ] },
+        { rwa [mul_apply, mul_apply, inv_apply_self, apply_eq_iff_eq] } },
+      { rwa [subtype.coe_mk, subtype.coe_mk, mem_coe, ← apply_mem_support, mem_support] },
+      { rwa [subtype.coe_mk, subtype.coe_mk, perm.mul_apply,
+          (hd1 (τ x)).resolve_right hxτ, mem_coe, mem_support] } } }
+end
 
 end
 

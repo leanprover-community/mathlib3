@@ -583,8 +583,7 @@ instance prod_charted_space (H : Type*) [topological_space H]
   (M' : Type*) [topological_space M'] [charted_space H' M'] :
   charted_space (model_prod H H') (M × M') :=
 { atlas            := image2 local_homeomorph.prod (atlas H M) (atlas H' M'),
-  chart_at         := λ x: (M × M'),
-    (charted_space.chart_at H x.1).prod (charted_space.chart_at H' x.2),
+  chart_at         := λ x: (M × M'), (chart_at H x.1).prod (chart_at H' x.2),
   mem_chart_source := λ x, ⟨mem_chart_source _ _, mem_chart_source _ _⟩,
   chart_mem_atlas  := λ x, mem_image2_of_mem (chart_mem_atlas _ _) (chart_mem_atlas _ _) }
 

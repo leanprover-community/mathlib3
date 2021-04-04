@@ -16,7 +16,7 @@ This file proves that a subgroup of a free group is itself free.
 ## Main definitions
 
 - `is_free_group G`: a class expressing that `G` has the universal property of a free group.
-- `subgroup_is_free H`: an instance saying that a subgroup of a free group is free.
+- `subgroup_is_free_of_free H`: an instance saying that a subgroup of a free group is free.
 
 ## Proof overview
 
@@ -100,12 +100,16 @@ def of_mul_equiv {G H : Type u} [group G] [group H] (h : G ≃* H) [is_free_grou
   unique_lift := begin
     introsI X _ f,
     rcases unique_lift f with ⟨F, hF, uF⟩,
-    refine ⟨F.comp h.symm.to_monoid_hom, by simp [hF], _⟩,
+    refine ⟨F.comp h.symm.to_monoid_hom, _, _⟩,
+    { simp only [hF, mul_equiv.coe_to_monoid_hom, mul_equiv.symm_apply_apply,
+      implies_true_iff, eq_self_iff_true, function.comp_app, monoid_hom.coe_comp] },
     intros F' hF',
     suffices : F'.comp h.to_monoid_hom = F,
-    { rw ←this, ext, simp },
+    { rw ←this, ext, simp only [mul_equiv.apply_symm_apply, mul_equiv.coe_to_monoid_hom,
+      function.comp_app, monoid_hom.coe_comp]},
     apply uF,
-    simp [hF'],
+    simp only [hF', mul_equiv.coe_to_monoid_hom, implies_true_iff, eq_self_iff_true,
+      function.comp_app, monoid_hom.coe_comp],
   end }
 
 end is_free_group
@@ -129,61 +133,33 @@ lemma ext_functor {G X} [groupoid.{v} G] [is_free_groupoid G] [group.{v} X]
   (f g : G ⥤ single_obj X)
   (h : ∀ a b (e : generators.arrow a b), f.map (of e) = g.map (of e)) :
   f = g :=
-match unique_lift (show generators.labelling X, from λ a b e, g.map (of e)) with
-| ⟨m, _, um⟩ := trans (um _ h) (um _ (λ _ _ _, rfl)).symm
-end
+let ⟨_, _, um⟩ := unique_lift (show generators.labelling X, from λ a b e, g.map (of e)) in
+trans (um _ h) (um _ (λ _ _ _, rfl)).symm
 
 namespace covering
 
-@[simps] def arrow_action {G A X : Type*} [group G] [mul_action G A] : mul_action G (A → X) :=
-{ smul := λ g F a, F (g⁻¹ • a),
-  one_smul := by simp only [one_inv, implies_true_iff, eq_self_iff_true, one_smul],
-  mul_smul := by simp only [mul_smul, mul_inv_rev,
-    forall_const, implies_true_iff, eq_self_iff_true] }
-
-local attribute [instance] arrow_action
-
-/-- Given groups `G X` with `G` acting on `A`,
-    `G` acts by multiplicative automorphisms on `A → X`. -/
-def mul_aut_arrow {G A X} [group G] [mul_action G A] [group X] :
-  G →* mul_aut (A → X) :=
-{ to_fun := λ g,
-  { to_fun := λ F, g • F,
-    inv_fun := λ F, g⁻¹ • F,
-    left_inv := λ F, inv_smul_smul g F,
-    right_inv := λ F, smul_inv_smul g F,
-    map_mul' := by { intros, funext, simp only [arrow_action_to_has_scalar_smul, pi.mul_apply] } },
-  map_one' := by { ext, simp only [mul_aut.one_apply, mul_equiv.coe_mk, one_smul]},
-  map_mul' := by {intros, ext, simp only [mul_smul, mul_equiv.coe_mk, mul_aut.mul_apply] } }
-
-@[simp] lemma mul_aut_arrow_apply {G A X : Type*} [group G] [mul_action G A] [group X]
-  (g : G) (F : A → X) (a : A) : mul_aut_arrow g F a = F (g⁻¹ • a) := rfl
-
 /-- Given `G` acting on `A`, a functor from the corresponding action groupoid to a group `X`
     can be curried to a group homomorphism `G →* (A → X) ⋊ G`. -/
-def curry {G A X} [group G] [mul_action G A] [group X]
+@[simps] def curry {G A X} [group G] [mul_action G A] [group X]
   (F : action_category G A ⥤ single_obj X) :
   G →* (A → X) ⋊[mul_aut_arrow] G :=
 have F_map_eq : ∀ {a b} {f : a ⟶ b}, F.map f = (F.map (hom_of_pair b.back f.val) : X) :=
   action_category.cases (λ _ _, rfl),
-{ to_fun := λ g, ⟨λ b, (F.map (hom_of_pair b g)), g⟩,
+{ to_fun := λ g, ⟨λ b, F.map (hom_of_pair b g), g⟩,
   map_one' := begin
     congr, funext,
-    rw pi.one_apply,
     exact F_map_eq.symm.trans (F.map_id b),
   end,
   map_mul' := begin
     intros g h,
     congr, funext,
-    rw pi.mul_apply,
     exact F_map_eq.symm.trans (F.map_comp (hom_of_pair (g⁻¹ • b) h) (hom_of_pair b g)),
   end }
 
 /-- Given `G` acting on `A`, a group homomorphism `φ : G →* (A → X) ⋊ G` can be uncurried to
     a functor from the action groupoid to `X`, provided that `φ g = (_, g)` for all `g`. -/
-def uncurry {G A X} [group G] [mul_action G A] [group X]
-  (F : G →* (A → X) ⋊[mul_aut_arrow] G)
-  (sane : ∀ g, (F g).right = g) :
+@[simps] def uncurry {G A X} [group G] [mul_action G A] [group X]
+  (F : G →* (A → X) ⋊[mul_aut_arrow] G) (sane : ∀ g, (F g).right = g) :
   action_category G A ⥤ single_obj X :=
 { obj := λ _, (),
   map := λ a b f, ((F f.val).left b.back),
@@ -202,33 +178,30 @@ instance action_category_is_free {G A : Type u} [group G] [is_free_group G] [mul
   of := λ a b e, ⟨fgp.of e, e.property⟩,
   unique_lift := begin
     introsI X _ f,
-    let X' := (A → X) ⋊[mul_aut_arrow] G,
-    let f' : fgp.generators G → X' := λ e, ⟨λ b, (@f (_ : A) b ⟨e, smul_inv_smul _ b⟩), fgp.of e⟩,
+    let f' : fgp.generators G → (A → X) ⋊[mul_aut_arrow] G :=
+      λ e, ⟨λ b, @f (_ : A) b ⟨e, smul_inv_smul _ b⟩, fgp.of e⟩,
     rcases fgp.unique_lift f' with ⟨F', hF', uF'⟩,
-    let F : action_category G A ⥤ single_obj X := uncurry F' _,
-    refine ⟨F, _, _⟩,
+    refine ⟨uncurry F' _, _, _⟩,
+    { apply fgp.end_is_id (right_hom.comp F'),
+      intro,
+      rw [monoid_hom.comp_apply, hF'],
+      refl },
     { rintros ⟨⟨⟩, a : A⟩ ⟨⟨⟩, b⟩ ⟨e, h : fgp.of e • a = b⟩,
       change (F' (fgp.of _)).left _ = _,
       rw hF',
       cases (inv_smul_eq_iff.mpr h.symm),
       refl },
     { intros E hE,
-      let E' := curry E,
-      have : E' = F',
+      have : curry E = F',
       { apply uF',
         intro e,
-        refine semidirect_product.ext _ _ _ rfl,
-        funext,
-        exact hE _ _ ⟨e, _⟩ },
+        ext,
+        { exact hE _ _ ⟨e, _⟩ },
+        { refl } },
       apply functor.hext,
       { intro, apply unit.ext },
       { refine action_category.cases _, intros,
-        change _ == (F' _).left _,
-        rw ←this, refl } },
-    { apply fgp.end_is_id (right_hom.comp F'),
-      intro,
-      rw [monoid_hom.comp_apply, hF'],
-      refl }
+        simp only [←this, uncurry_map, curry_apply_left, coe_back, hom_of_pair.val] } },
   end }
 
 end covering
@@ -268,8 +241,7 @@ lemma loop_of_hom_eq_id {a b : G} {e : generators.arrow a b} :
 begin
   rw [loop_of_hom, ←category.assoc, is_iso.comp_inv_eq, category.id_comp],
   rintro (h | h),
-  { refine eq.trans _ (tree_hom_eq T (path.cons (default _) ⟨sum.inl e, h⟩)).symm,
-    rw hom_of_path, refl },
+  { rw [tree_hom_eq T (path.cons (default _) ⟨sum.inl e, h⟩), hom_of_path], refl },
   { rw tree_hom_eq T (path.cons (default _) ⟨sum.inr e, h⟩),
     simp only [hom_of_path, is_iso.inv_hom_id, category.comp_id, category.assoc, tree_hom] }
 end
@@ -280,7 +252,9 @@ end
   G ⥤ single_obj X :=
 { obj := λ _, (),
   map := λ a b p, f (loop_of_hom T p),
-  map_id' := begin intro a, convert f.map_one, simp end,
+  map_id' := begin intro a, rw [loop_of_hom, category.id_comp, is_iso.hom_inv_id,
+    ←End.one_def, f.map_one, single_obj.id_as_one],
+ end,
   map_comp' := by { intros, rw [single_obj.comp_as_mul, ←f.map_mul],
     simp only [is_iso.inv_hom_id_assoc, loop_of_hom, End.mul_def, category.assoc] } }
 
@@ -292,74 +266,69 @@ def End_is_free_group_of_arborescence : is_free_group (End T♯.root) :=
   of := λ e, loop_of_hom T (of e.val.arrow),
   unique_lift := begin
     introsI X _ f,
-    let f' : Π ⦃a b : G⦄, generators.arrow a b → X := λ a b e,
+    let f' : (generators : quiver G).labelling X := λ a b e,
       if h : sum.inl e ∈ T a b ∨ sum.inr e ∈ T b a then 1
       else f ⟨⟨a, b, e⟩, h⟩,
     rcases unique_lift f' with ⟨F', hF', uF'⟩,
-    let F : End T♯.root →* X := F'.map_End _,
-    have sane : ∀ {a b} (p : a ⟶ b), (functor_of_monoid_hom T F).map p = F'.map p,
-    { intros a b p,
-      change F'.map _ = _,
+    refine ⟨F'.map_End _, _, _⟩,
+    { suffices : ∀ {x y} (q : x ⟶ y), F'.map (loop_of_hom T q) = (F'.map q : X),
+      { rintro ⟨⟨a, b, e⟩, h⟩,
+        rw [F'.map_End_apply T♯.root, this, hF'],
+        exact dif_neg h },
+      intros,
       suffices : ∀ {a} (p : T♯.path T♯.root a), F'.map (hom_of_path T p) = 1,
-      { simp [this, tree_hom, single_obj.comp_as_mul, single_obj.inv_as_inv] },
+      { simp only [this, tree_hom, single_obj.comp_as_mul, single_obj.inv_as_inv, loop_of_hom,
+        one_inv, mul_one, one_mul, functor.map_inv, functor.map_comp] },
       intros a p, induction p with b c p e ih,
-      { apply F'.map_id },
+      { rw [hom_of_path, F'.map_id, single_obj.id_as_one] },
       rcases e with ⟨e | e, eT⟩,
-      { have : f' e = 1 := dif_pos (or.inl eT),
-        simp only [hom_of_path, ih, hF', this, single_obj.comp_as_mul, mul_one, F'.map_comp] },
-      { have : f' e = 1 := dif_pos (or.inr eT),
-        simp [hom_of_path, ih, hF', this, single_obj.comp_as_mul, single_obj.inv_as_inv] } },
-    refine ⟨F, _, _⟩,
-    { intro e,
-      convert sane _,
-      rw hF',
-      change _ = dite _ _ _,
-      convert (dif_neg e.property).symm,
-      apply congr_arg, ext; refl },
+      { rw [hom_of_path, F'.map_comp, single_obj.comp_as_mul, ih, mul_one, hF'],
+        exact dif_pos (or.inl eT) },
+      { rw [hom_of_path, F'.map_comp, single_obj.comp_as_mul, ih, mul_one, F'.map_inv,
+          single_obj.inv_as_inv, inv_eq_one, hF'],
+        exact dif_pos (or.inr eT) } },
     { intros E hE,
-      have : functor_of_monoid_hom T E = F',
-      { apply uF',
-        intros a b e,
-        change E (loop_of_hom T _) = dite _ _ _,
-        split_ifs,
-        { rw loop_of_hom_eq_id T h, apply E.map_one },
-        exact hE ⟨⟨a, b, e⟩, h⟩ },
       ext,
-      have : (functor_of_monoid_hom T E).map x = (functor_of_monoid_hom T F).map x,
-      { rw [this, sane] },
-      simpa using this }
+      suffices : (functor_of_monoid_hom T E).map x = F'.map x,
+      { simpa only [loop_of_hom, functor_of_monoid_hom_map, is_iso.inv_id, tree_hom_root,
+          category.id_comp, category.comp_id] using this },
+      congr,
+      apply uF',
+      intros a b e,
+      change E (loop_of_hom T _) = dite _ _ _,
+      split_ifs,
+      { rw [loop_of_hom_eq_id T h, ←End.one_def, E.map_one] },
+      { exact hE ⟨⟨a, b, e⟩, h⟩ } }
   end }
 
 end retract
 
-open is_free_groupoid quotient_group
+open is_free_groupoid quotient_group quiver
 
 instance generators_connected (G) [groupoid.{u u} G] [is_connected G] [is_free_groupoid G] (r : G) :
   (generators : quiver G).symmetrify.rooted_connected r :=
 begin
+  refine ⟨λ b, _⟩,
+  rw [←quiver.weakly_connected_component.eq, ←free_group.of_injective.eq_iff, ←mul_inv_eq_one],
+  rcases category_theory.nonempty_hom_of_connected_groupoid b r with ⟨p⟩,
   let X := free_group (generators : quiver G).weakly_connected_component,
   let f : G → X := λ g, free_group.of ↑g,
   let F : G ⥤ single_obj X := single_obj.difference_functor f,
-  have claim : F = (category_theory.functor.const G).obj (),
-  { ext,
-    rw [functor.const.obj_map, single_obj.id_as_one,
-      single_obj.difference_functor_map, mul_inv_eq_one],
-    apply congr_arg free_group.of,
-    rw quiver.weakly_connected_component.eq,
-    exact ⟨quiver.arrow.to_path (sum.inr e)⟩ },
-  refine ⟨λ b, _⟩,
-  rw ←quiver.weakly_connected_component.eq,
-  apply free_group.of_injective,
-  rw ←mul_inv_eq_one,
-  rcases (infer_instance : nonempty (b ⟶ r)) with ⟨p⟩,
-  change F.map p = _,
-  rw [claim, functor.const.obj_map, single_obj.id_as_one],
+  change F.map p = ((category_theory.functor.const G).obj ()).map p,
+  congr, ext,
+  rw [functor.const.obj_map, single_obj.id_as_one,
+    single_obj.difference_functor_map, mul_inv_eq_one],
+  apply congr_arg free_group.of,
+  rw quiver.weakly_connected_component.eq,
+  exact ⟨quiver.arrow.to_path (sum.inr e)⟩,
 end
 
-instance {G} [groupoid G] [is_free_groupoid G] [is_connected G] (r : G) : is_free_group (End r) :=
+instance End_is_free_group_of_connected_free {G} [groupoid G] [is_connected G] [is_free_groupoid G]
+  (r : G) : is_free_group (End r) :=
 End_is_free_group_of_arborescence (quiver.geodesic_subtree _ r)
 
-instance subgroup_is_free {G} [group.{u} G] [is_free_group G] (H : subgroup G) : is_free_group H :=
+instance subgroup_is_free_of_free {G} [group.{u} G] [is_free_group G]
+  (H : subgroup G) : is_free_group H :=
 is_free_group.of_mul_equiv (End_mul_equiv_subgroup H)
 
 end is_free_groupoid

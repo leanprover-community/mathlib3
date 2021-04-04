@@ -319,7 +319,8 @@ lemma nat_trans_from_is_connected [is_preconnected J] {X Y : C}
   (λ j, α.app j)
   (λ _ _ f, (by { have := α.naturality f, erw [id_comp, comp_id] at this, exact this.symm }))
 
-instance (G) [groupoid G] [is_connected G] (x y : G) : nonempty (x ⟶ y) :=
+instance nonempty_hom_of_connected_groupoid {G} [groupoid G] [is_connected G] (x y : G) :
+  nonempty (x ⟶ y) :=
 begin
   have h := is_connected_zigzag x y,
   induction h with z w _ h ih,

@@ -19,6 +19,9 @@ hypotheses in Girard's paradox, such that an instance of `girard.{u]` asserts th
 satisfies the assumptions, i.e. `Type u : Type u`, give or take. Then the paradox amounts to a
 proof that the `girard` class is empty.
 
+Based on Watkins' LF implementation of Hurkens' simplification of Girard's paradox:
+<http://www.cs.cmu.edu/~kw/research/hurkens95tlca.elf>.
+
 ## Main statements
 
 * `girard.paradox : girard → false`: there are no Girard universes.

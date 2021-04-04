@@ -412,6 +412,12 @@ lemma compact_iff_totally_bounded_complete {s : set α} :
  λ ⟨ht, hc⟩, compact_iff_ultrafilter_le_nhds.2
    (λf hf, hc _ (totally_bounded_iff_ultrafilter.1 ht f hf) hf)⟩
 
+lemma is_compact.totally_bounded {s : set α} (h : is_compact s) : totally_bounded s :=
+(compact_iff_totally_bounded_complete.1 h).1
+
+lemma is_compact.is_complete {s : set α} (h : is_compact s) : is_complete s :=
+(compact_iff_totally_bounded_complete.1 h).2
+
 @[priority 100] -- see Note [lower instance priority]
 instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α] : complete_space α :=
 ⟨λf hf, by simpa using (compact_iff_totally_bounded_complete.1 compact_univ).2 f hf⟩
@@ -552,7 +558,7 @@ begin
     h_basis : (𝓤 α).has_antimono_basis (λ _, true) t⟩ :=
     H.exists_antimono_subbasis uniformity_has_basis_open_symmetric,
   refine ⟨⟨⋃ (x ∈ s), range (λ k, ball x (t k)), hsc.bUnion (λ x hx, countable_range _), _⟩⟩,
-  refine (is_topological_basis_of_open_of_nhds _ _).2.2,
+  refine (is_topological_basis_of_open_of_nhds _ _).eq_generate_from,
   { simp only [mem_bUnion_iff, mem_range],
     rintros _ ⟨x, hxs, k, rfl⟩,
     exact is_open_ball x (hto k).2.1 },

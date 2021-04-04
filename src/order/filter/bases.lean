@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
+Authors: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import order.filter.basic
 import data.set.countable
@@ -224,6 +224,9 @@ lemma has_basis_iff : l.has_basis p s ↔ ∀ t, t ∈ l ↔ ∃ i (hi : p i), s
 lemma has_basis.ex_mem (h : l.has_basis p s) : ∃ i, p i :=
 let ⟨i, pi, h⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, pi⟩
 
+protected lemma has_basis.nonempty (h : l.has_basis p s) : nonempty ι :=
+nonempty_of_exists h.ex_mem
+
 protected lemma is_basis.has_basis (h : is_basis p s) : has_basis h.filter p s :=
 ⟨λ t, by simp only [h.mem_filter_iff, exists_prop]⟩
 
@@ -265,22 +268,22 @@ by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq]
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
 by rw [← (filter_basis.of_sets s).generate, generate_eq_generate_inter s] ; refl
 
+lemma has_basis.to_has_basis' (hl : l.has_basis p s) (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
+  (h' : ∀ i', p' i' → s' i' ∈ l) : l.has_basis p' s' :=
+begin
+  refine ⟨λ t, ⟨λ ht, _, λ ⟨i', hi', ht⟩, mem_sets_of_superset (h' i' hi') ht⟩⟩,
+  rcases hl.mem_iff.1 ht with ⟨i, hi, ht⟩,
+  rcases h i hi with ⟨i', hi', hs's⟩,
+  exact ⟨i', hi', subset.trans hs's ht⟩
+end
+
 lemma has_basis.to_has_basis (hl : l.has_basis p s) (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
   (h' : ∀ i', p' i' → ∃ i, p i ∧ s i ⊆ s' i') : l.has_basis p' s' :=
-begin
-  constructor,
-  intro t,
-  rw hl.mem_iff,
-  split,
-  { rintros ⟨i, pi, hi⟩,
-    rcases h i pi with ⟨i', pi', hi'⟩,
-    use [i', pi'],
-    tauto },
-  { rintros ⟨i', pi', hi'⟩,
-    rcases h' i' pi' with ⟨i, pi, hi⟩,
-    use [i, pi],
-    tauto },
-end
+hl.to_has_basis' h $ λ i' hi', let ⟨i, hi, hss'⟩ := h' i' hi' in hl.mem_iff.2 ⟨i, hi, hss'⟩
+
+lemma has_basis.to_subset (hl : l.has_basis p s) {t : ι → set α} (h : ∀ i, p i → t i ⊆ s i)
+  (ht : ∀ i, p i → t i ∈ l) : l.has_basis p t :=
+hl.to_has_basis' (λ i hi, ⟨i, hi, h i hi⟩) ht
 
 lemma has_basis.eventually_iff (hl : l.has_basis p s) {q : α → Prop} :
   (∀ᶠ x in l, q x) ↔ ∃ i, p i ∧ ∀ ⦃x⦄, x ∈ s i → q x :=
@@ -315,8 +318,11 @@ lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_sets_subset_iff.symm⟩
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
-  has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
-by simp only [has_basis_iff, exists_prop, id, and_assoc]
+  has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t ∈ l, ∃ r ∈ l, P r ∧ r ⊆ t :=
+begin
+  simp only [has_basis_iff, exists_prop, id, and_assoc],
+  exact forall_congr (λ s, ⟨λ h, h.1, λ h, ⟨h, λ ⟨t, hl, hP, hts⟩, mem_sets_of_superset hl hts⟩⟩)
+end
 
 /-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that
 `p j ∧ q j`, then `{s j | p j ∧ q j}` is a basis of `l`. -/

@@ -36,6 +36,9 @@ by rw [not_odd_iff, even_iff]
 @[simp] lemma odd_iff_not_even : odd n ↔ ¬ even n :=
 by rw [not_even_iff, odd_iff]
 
+lemma is_compl_even_odd : is_compl {n : ℕ | even n} {n | odd n} :=
+by simp [← set.compl_set_of, is_compl_compl]
+
 lemma even_or_odd (n : ℕ) : even n ∨ odd n :=
 or.imp_right (odd_iff_not_even.2) (em (even n))
 
@@ -103,8 +106,8 @@ by simp [bit1] with parity_simps
 lemma two_not_dvd_two_mul_add_one (n : ℕ) : ¬(2 ∣ 2 * n + 1) :=
 by convert not_even_bit1 n; exact two_mul n
 
-lemma two_not_dvd_two_mul_sub_one : Π {n} (w : 0 < n), ¬(2 ∣ 2 * n - 1) | (n + 1) _ :=
-two_not_dvd_two_mul_add_one n
+lemma two_not_dvd_two_mul_sub_one : Π {n} (w : 0 < n), ¬(2 ∣ 2 * n - 1)
+| (n + 1) _ := two_not_dvd_two_mul_add_one n
 
 @[parity_simps] theorem even_sub (h : n ≤ m) : even (m - n) ↔ (even m ↔ even n) :=
 begin
@@ -138,12 +141,30 @@ begin
   exact @modeq.modeq_mul _ _ 1 _ 1 h₁ h₂
 end
 
+theorem odd_mul : odd (m * n) ↔ odd m ∧ odd n :=
+by simp [not_or_distrib] with parity_simps
+
+theorem even.mul_left (hm : even m) (n) : even (m * n) :=
+even_mul.mpr $ or.inl hm
+
+theorem even.mul_right (m) (hn : even n) : even (m * n) :=
+even_mul.mpr $ or.inr hn
+
+theorem odd.mul (hm : odd m) (hn : odd n) : odd (m * n) :=
+odd_mul.mpr ⟨hm, hn⟩
+
+theorem odd.of_mul_left (h : odd (m * n)) : odd m :=
+(odd_mul.mp h).1
+
+theorem odd.of_mul_right (h : odd (m * n)) : odd n :=
+(odd_mul.mp h).2
+
 /-- If `m` and `n` are natural numbers, then the natural number `m^n` is even
 if and only if `m` is even and `n` is positive. -/
 @[parity_simps] theorem even_pow : even (m^n) ↔ even m ∧ n ≠ 0 :=
 by { induction n with n ih; simp [*, pow_succ', even_mul], tauto }
 
-lemma even_div  : even (m / n) ↔ m % (2 * n) / n = 0 :=
+theorem even_div  : even (m / n) ↔ m % (2 * n) / n = 0 :=
 by rw [even_iff_two_dvd, dvd_iff_mod_eq_zero, nat.div_mod_eq_mod_mul_div, mul_comm]
 
 @[parity_simps] theorem odd_add : odd (m + n) ↔ (odd m ↔ even n) :=
@@ -182,6 +203,13 @@ end
 
 theorem even.sub_odd (h : n ≤ m) (hm : even m) (hn : odd n) : odd (m - n) :=
 (odd_sub' h).mpr (iff_of_true hn hm)
+
+lemma even_mul_succ_self (n : ℕ) : even (n * (n + 1)) :=
+begin
+  rw even_mul,
+  convert n.even_or_odd,
+  simp with parity_simps
+end
 
 variables {R : Type*} [ring R]
 

@@ -143,6 +143,9 @@ cons_val_succ x u 0
   vec_cons x u i = x :=
 by { fin_cases i, refl }
 
+lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
+funext (cons_val_fin_one x u)
+
 /-! ### Numeral (`bit0` and `bit1`) indices
 The following definitions and `simp` lemmas are to allow any
 numeral-indexed element of a vector given with matrix notation to

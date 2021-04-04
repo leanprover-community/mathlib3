@@ -11,9 +11,10 @@ import data.rat.floor
 -/
 
 namespace nat
-namespace prime
 
 open_locale nat
+
+namespace prime
 
 lemma dvd_choose_add {p a b : ℕ} (hap : a < p) (hbp : b < p) (h : p ≤ a + b)
   (hp : prime p) : p ∣ choose (a + b) a :=
@@ -35,6 +36,8 @@ begin
   rwa r at e,
 end
 
+end prime
+
 lemma choose_eq_factorial_div_factorial' {a b : ℕ}
   (hab : a ≤ b) : (b.choose a : ℚ) = b! / (a! * (b - a)!) :=
 begin
@@ -53,5 +56,4 @@ begin
     rw sub_sub_sub_cancel_right hs, ring, },
 end
 
-end prime
 end nat

@@ -6,7 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.extend_deriv
 import analysis.calculus.iterated_deriv
 import analysis.special_functions.exp_log
-import analysis.normed_space.inner_product
+import analysis.normed_space.euclidean_dist
 import topology.algebra.polynomial
 
 /-!
@@ -17,16 +17,36 @@ function cannot have:
 
 * `exp_neg_inv_glue` is equal to zero for `x ≤ 0` and is strictly positive otherwise; it is given by
   `x ↦ exp (-1/x)` for `x > 0`;
-* `smooth_transition` is equal to zero for `x ≤ 0` and is equal to one for `x ≥ 1`; it is given by
-  `exp_neg_inv_glue x / (exp_neg_inv_glue x + exp_neg_inv_glue (1 - x))`;
-* `smooth_bump_function` is equal to one on the closed ball of radius `1` and is equal to `0`
-  outside of the open ball of radius `2`.
+
+* `real.smooth_transition` is equal to zero for `x ≤ 0` and is equal to one for `x ≥ 1`; it is given
+  by `exp_neg_inv_glue x / (exp_neg_inv_glue x + exp_neg_inv_glue (1 - x))`;
+
+* `f : times_cont_diff_bump_of_inner c`, where `c` is a point in an inner product space, is
+  a bundled smooth function such that
+
+  - `f` is equal to `1` in `metric.closed_ball c f.r`;
+  - `support f = metric.ball c f.R`;
+  - `0 ≤ f x ≤ 1` for all `x`.
+
+  The structure `times_cont_diff_bump_of_inner` contains the data required to construct the
+  function: real numbers `r`, `R`, and proofs of `0 < r < R`. The function itself is available
+  through `coe_fn`.
+
+* `f : times_cont_diff_bump c`, where `c` is a point in a finite dimensional real vector space, is a
+  bundled smooth function such that
+
+  - `f` is equal to `1` in `euclidean.closed_ball c f.r`;
+  - `support f = euclidean.ball c f.R`;
+  - `0 ≤ f x ≤ 1` for all `x`.
+
+  The structure `times_cont_diff_bump` contains the data required to construct the function: real
+  numbers `r`, `R`, and proofs of `0 < r < R`. The function itself is available through `coe_fn`.
 -/
 
 noncomputable theory
 open_locale classical topological_space
 
-open polynomial real filter set
+open polynomial real filter set function
 
 /-- `exp_neg_inv_glue` is the real function given by `x ↦ exp (-1/x)` for `x > 0` and `0`
 for `x ≤ 0`. It is a basic building block to construct smooth partitions of unity. Its main property
@@ -197,8 +217,10 @@ end exp_neg_inv_glue
 
 /-- An infinitely smooth function `f : ℝ → ℝ` such that `f x = 0` for `x ≤ 0`,
 `f x = 1` for `1 ≤ x`, and `0 < f x < 1` for `0 < x < 1`. -/
-def smooth_transition (x : ℝ) : ℝ :=
+def real.smooth_transition (x : ℝ) : ℝ :=
 exp_neg_inv_glue x / (exp_neg_inv_glue x + exp_neg_inv_glue (1 - x))
+
+namespace real
 
 namespace smooth_transition
 
@@ -240,75 +262,190 @@ smooth_transition.times_cont_diff.times_cont_diff_at
 
 end smooth_transition
 
-variables {E : Type*}
+end real
 
-/-- A function `f : E → ℝ` defined on a real inner product space with the following properties:
+variable {E : Type*}
 
-- `f` is infinitely smooth on `E`;
-- `f` is positive on `ball 0 2` and equals zero otherwise;
-- `f` is equal to `1` on `closed_ball 0 1`. -/
-def smooth_bump_function [inner_product_space ℝ E] (x : E) :=
-smooth_transition (2 - ∥x∥)
+/-- `f : times_cont_diff_bump_of_inner c`, where `c` is a point in an inner product space, is a
+bundled smooth function such that
 
-namespace smooth_bump_function
+- `f` is equal to `1` in `metric.closed_ball c f.r`;
+- `support f = metric.ball c f.R`;
+- `0 ≤ f x ≤ 1` for all `x`.
 
-variable [inner_product_space ℝ E]
+The structure `times_cont_diff_bump_of_inner` contains the data required to construct the function:
+real numbers `r`, `R`, and proofs of `0 < r < R`. The function itself is available through
+`coe_fn`. -/
+structure times_cont_diff_bump_of_inner (c : E) :=
+(r R : ℝ)
+(r_pos : 0 < r)
+(r_lt_R : r < R)
 
-open smooth_transition
+namespace times_cont_diff_bump_of_inner
 
-lemma one_of_norm_le_one {x : E} (hx : ∥x∥ ≤ 1) : smooth_bump_function x = 1 :=
-one_of_one_le (le_sub.2 $ by { norm_num1, assumption })
+lemma R_pos {c : E} (f : times_cont_diff_bump_of_inner c) : 0 < f.R := f.r_pos.trans f.r_lt_R
 
-lemma nonneg (x : E) : 0 ≤ smooth_bump_function x :=
-nonneg _
+instance (c : E) : inhabited (times_cont_diff_bump_of_inner c) := ⟨⟨1, 2, zero_lt_one, one_lt_two⟩⟩
 
-lemma le_one (x : E) : smooth_bump_function x ≤ 1 :=
-le_one _
+variables [inner_product_space ℝ E] {c : E} (f : times_cont_diff_bump_of_inner c) {x : E}
 
-lemma pos_of_norm_lt_two {x : E} (hx : ∥x∥ < 2) : 0 < smooth_bump_function x :=
-pos_of_pos $ sub_pos.2 hx
+/-- The function defined by `f : times_cont_diff_bump_of_inner c`. Use automatic coercion to
+function instead. -/
+def to_fun (f : times_cont_diff_bump_of_inner c) : E → ℝ :=
+λ x, real.smooth_transition ((f.R - dist x c) / (f.R - f.r))
 
-lemma lt_one_of_one_lt_norm {x : E} (hx : 1 < ∥x∥) : smooth_bump_function x < 1 :=
-lt_one_of_lt_one $ sub_lt.2 $ by norm_num [hx]
+instance : has_coe_to_fun (times_cont_diff_bump_of_inner c) := ⟨_, to_fun⟩
 
-lemma zero_of_two_le_norm {x : E} (hx : 2 ≤ ∥x∥) : smooth_bump_function x = 0 :=
-zero_of_nonpos $ sub_nonpos.2 hx
+open real (smooth_transition) real.smooth_transition metric
 
-lemma support_eq : function.support (smooth_bump_function : E → ℝ) = metric.ball 0 2 :=
+lemma one_of_mem_closed_ball (hx : x ∈ closed_ball c f.r) :
+  f x = 1 :=
+one_of_one_le $ (one_le_div (sub_pos.2 f.r_lt_R)).2 $ sub_le_sub_left hx _
+
+lemma nonneg : 0 ≤ f x := nonneg _
+
+lemma le_one : f x ≤ 1 := le_one _
+
+lemma pos_of_mem_ball (hx : x ∈ ball c f.R) : 0 < f x :=
+pos_of_pos $ div_pos (sub_pos.2 hx) (sub_pos.2 f.r_lt_R)
+
+lemma lt_one_of_lt_dist (h : f.r < dist x c) : f x < 1 :=
+lt_one_of_lt_one $ (div_lt_one (sub_pos.2 f.r_lt_R)).2 $ sub_lt_sub_left h _
+
+lemma zero_of_le_dist (hx : f.R ≤ dist x c) : f x = 0 :=
+zero_of_nonpos $ div_nonpos_of_nonpos_of_nonneg (sub_nonpos.2 hx) (sub_nonneg.2 f.r_lt_R.le)
+
+lemma support_eq : support ⇑f = metric.ball c f.R :=
 begin
   ext x,
-  suffices : smooth_bump_function x ≠ 0 ↔ ∥x∥ < 2, by simpa [function.mem_support],
-  cases lt_or_le (∥x∥) 2 with hx hx,
-  { simp [hx, (pos_of_norm_lt_two hx).ne'] },
-  { simp [hx.not_lt, zero_of_two_le_norm hx] }
+  suffices : f x ≠ 0 ↔ dist x c < f.R, by simpa [mem_support],
+  cases lt_or_le (dist x c) f.R with hx hx,
+  { simp [hx, (f.pos_of_mem_ball hx).ne'] },
+  { simp [hx.not_lt, f.zero_of_le_dist hx] }
 end
 
-lemma eventually_eq_one_of_norm_lt_one {x : E} (hx : ∥x∥ < 1) :
-  smooth_bump_function =ᶠ[𝓝 x] (λ _, 1) :=
-((is_open_lt continuous_norm continuous_const).eventually_mem hx).mono $
-  λ y hy, one_of_norm_le_one (le_of_lt hy)
+lemma eventually_eq_one_of_mem_ball (h : x ∈ ball c f.r) :
+  f =ᶠ[𝓝 x] 1 :=
+((is_open_lt (continuous_id.dist continuous_const) continuous_const).eventually_mem h).mono $
+  λ z hz, f.one_of_mem_closed_ball (le_of_lt hz)
 
-lemma eventually_eq_one : smooth_bump_function =ᶠ[𝓝 (0 : E)] (λ _, 1) :=
-eventually_eq_one_of_norm_lt_one (by simp only [norm_zero, zero_lt_one])
+lemma eventually_eq_one : f =ᶠ[𝓝 c] 1 :=
+f.eventually_eq_one_of_mem_ball (mem_ball_self f.r_pos)
 
-protected lemma times_cont_diff_at {x : E} {n} : times_cont_diff_at ℝ n smooth_bump_function x :=
+protected lemma times_cont_diff_at {n} :
+  times_cont_diff_at ℝ n f x :=
 begin
-  rcases em (x = 0) with rfl|hx,
-  { exact times_cont_diff_at.congr_of_eventually_eq times_cont_diff_at_const eventually_eq_one },
-  { exact smooth_transition.times_cont_diff_at.comp x
-      (times_cont_diff_at_const.sub $ times_cont_diff_at_norm hx) }
+  rcases em (x = c) with rfl|hx,
+  { refine times_cont_diff_at.congr_of_eventually_eq _ f.eventually_eq_one,
+    rw pi.one_def,
+    exact times_cont_diff_at_const },
+  { exact real.smooth_transition.times_cont_diff_at.comp x
+      (times_cont_diff_at.div_const $ times_cont_diff_at_const.sub $
+        times_cont_diff_at_id.dist times_cont_diff_at_const hx) }
 end
 
-protected lemma times_cont_diff {n} : times_cont_diff ℝ n (smooth_bump_function : E → ℝ) :=
-times_cont_diff_iff_times_cont_diff_at.2 $ λ x, smooth_bump_function.times_cont_diff_at
+protected lemma times_cont_diff {n} :
+  times_cont_diff ℝ n f :=
+times_cont_diff_iff_times_cont_diff_at.2 $ λ y, f.times_cont_diff_at
 
-protected lemma times_cont_diff_within_at {x : E} {s n} :
-  times_cont_diff_within_at ℝ n smooth_bump_function s x :=
-smooth_bump_function.times_cont_diff_at.times_cont_diff_within_at
+protected lemma times_cont_diff_within_at {s n} :
+  times_cont_diff_within_at ℝ n f s x :=
+f.times_cont_diff_at.times_cont_diff_within_at
 
-end smooth_bump_function
+end times_cont_diff_bump_of_inner
 
-open function finite_dimensional metric
+/-- `f : times_cont_diff_bump c`, where `c` is a point in a finite dimensional real vector space, is
+a bundled smooth function such that
+
+  - `f` is equal to `1` in `euclidean.closed_ball c f.r`;
+  - `support f = euclidean.ball c f.R`;
+  - `0 ≤ f x ≤ 1` for all `x`.
+
+The structure `times_cont_diff_bump` contains the data required to construct the function: real
+numbers `r`, `R`, and proofs of `0 < r < R`. The function itself is available through `coe_fn`.-/
+structure times_cont_diff_bump [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] (c : E)
+  extends times_cont_diff_bump_of_inner (to_euclidean c)
+
+namespace times_cont_diff_bump
+
+variables [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] {c x : E}
+  (f : times_cont_diff_bump c)
+
+/-- The function defined by `f : times_cont_diff_bump c`. Use automatic coercion to function
+instead. -/
+def to_fun (f : times_cont_diff_bump c) : E → ℝ := f.to_times_cont_diff_bump_of_inner ∘ to_euclidean
+
+instance : has_coe_to_fun (times_cont_diff_bump c) :=
+⟨λ f, E → ℝ, to_fun⟩
+
+instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default _⟩⟩
+
+lemma R_pos : 0 < f.R := f.to_times_cont_diff_bump_of_inner.R_pos
+
+lemma coe_eq_comp : ⇑f = f.to_times_cont_diff_bump_of_inner ∘ to_euclidean := rfl
+
+lemma one_of_mem_closed_ball (hx : x ∈ euclidean.closed_ball c f.r) :
+  f x = 1 :=
+f.to_times_cont_diff_bump_of_inner.one_of_mem_closed_ball hx
+
+lemma nonneg : 0 ≤ f x := f.to_times_cont_diff_bump_of_inner.nonneg
+
+lemma le_one : f x ≤ 1 := f.to_times_cont_diff_bump_of_inner.le_one
+
+lemma pos_of_mem_ball (hx : x ∈ euclidean.ball c f.R) : 0 < f x :=
+f.to_times_cont_diff_bump_of_inner.pos_of_mem_ball hx
+
+lemma lt_one_of_lt_dist (h : f.r < euclidean.dist x c) : f x < 1 :=
+f.to_times_cont_diff_bump_of_inner.lt_one_of_lt_dist h
+
+lemma zero_of_le_dist (hx : f.R ≤ euclidean.dist x c) : f x = 0 :=
+f.to_times_cont_diff_bump_of_inner.zero_of_le_dist hx
+
+lemma support_eq : support ⇑f = euclidean.ball c f.R :=
+by rw [euclidean.ball_eq_preimage, ← f.to_times_cont_diff_bump_of_inner.support_eq,
+  ← support_comp_eq_preimage, coe_eq_comp]
+
+lemma closure_support_eq : closure (support f) = euclidean.closed_ball c f.R :=
+by rw [f.support_eq, euclidean.closure_ball _ f.R_pos]
+
+lemma compact_closure_support : is_compact (closure (support f)) :=
+by { rw f.closure_support_eq, exact euclidean.compact_ball }
+
+lemma eventually_eq_one_of_mem_ball (h : x ∈ euclidean.ball c f.r) :
+  f =ᶠ[𝓝 x] 1 :=
+to_euclidean.continuous_at (f.to_times_cont_diff_bump_of_inner.eventually_eq_one_of_mem_ball h)
+
+lemma eventually_eq_one : f =ᶠ[𝓝 c] 1 :=
+f.eventually_eq_one_of_mem_ball $ euclidean.mem_ball_self f.r_pos
+
+protected lemma times_cont_diff {n} :
+  times_cont_diff ℝ n f :=
+f.to_times_cont_diff_bump_of_inner.times_cont_diff.comp (to_euclidean : E ≃L[ℝ] _).times_cont_diff
+
+protected lemma times_cont_diff_at {n} :
+  times_cont_diff_at ℝ n f x :=
+f.times_cont_diff.times_cont_diff_at
+
+protected lemma times_cont_diff_within_at {s n} :
+  times_cont_diff_within_at ℝ n f s x :=
+f.times_cont_diff_at.times_cont_diff_within_at
+
+lemma exists_closure_support_subset {s : set E} (hs : s ∈ 𝓝 c) :
+  ∃ f : times_cont_diff_bump c, closure (support f) ⊆ s :=
+let ⟨R, h0, hR⟩ := euclidean.nhds_basis_closed_ball.mem_iff.1 hs
+in ⟨⟨⟨R / 2, R, half_pos h0, half_lt_self h0⟩⟩, by rwa closure_support_eq⟩
+
+lemma exists_closure_subset {R : ℝ} (hR : 0 < R)
+  {s : set E} (hs : is_closed s) (hsR : s ⊆ euclidean.ball c R) :
+  ∃ f : times_cont_diff_bump c, f.R = R ∧ s ⊆ euclidean.ball c f.r :=
+begin
+  rcases euclidean.exists_pos_lt_subset_ball hR hs hsR with ⟨r, hr, hsr⟩,
+  exact ⟨⟨⟨r, R, hr.1, hr.2⟩⟩, rfl, hsr⟩
+end
+
+end times_cont_diff_bump
+
+open finite_dimensional metric
 
 /-- If `E` is a finite dimensional normed space over `ℝ`, then for any point `x : E` and its
 neighborhood `s` there exists an infinitely smooth function with the following properties:
@@ -317,34 +454,13 @@ neighborhood `s` there exists an infinitely smooth function with the following p
 * `f y = 0` outside of `s`;
 *  moreover, `closure (support f) ⊆ s` and `closure (support f)` is a compact set;
 * `f y ∈ [0, 1]` for all `y`.
--/
+
+This lemma is a simple wrapper around lemmas about bundled smooth bump functions, see
+`times_cont_diff_bump`. -/
 lemma exists_times_cont_diff_bump_function_of_mem_nhds [normed_group E] [normed_space ℝ E]
   [finite_dimensional ℝ E] {x : E} {s : set E} (hs : s ∈ 𝓝 x) :
   ∃ f : E → ℝ, f =ᶠ[𝓝 x] 1 ∧ (∀ y, f y ∈ Icc (0 : ℝ) 1) ∧ times_cont_diff ℝ ⊤ f ∧
     is_compact (closure $ support f) ∧ closure (support f) ⊆ s :=
-begin
-  have e : E ≃L[ℝ] euclidean_space ℝ (fin $ findim ℝ E) :=
-    continuous_linear_equiv.of_findim_eq findim_euclidean_space_fin.symm,
-  have : e '' s ∈ 𝓝 (e x) := e.to_homeomorph.is_open_map.image_mem_nhds hs,
-  rcases nhds_basis_closed_ball.mem_iff.1 this with ⟨ε, ε0 : 0 < ε, hε⟩,
-  set g : E → euclidean_space ℝ (fin $ findim ℝ E) := λ y, (2 / ε) • (e y - e x),
-  have hg : times_cont_diff ℝ ⊤ g,
-    from times_cont_diff_const.smul (e.times_cont_diff.sub times_cont_diff_const),
-  have hg0 : g x = 0 := by { simp only [g], simp }, -- `simp [g]` fails
-  have hsupp : closure (support (smooth_bump_function ∘ g)) ⊆ e.symm '' closed_ball (e x) ε,
-  { simp only [support_comp_eq_preimage, smooth_bump_function.support_eq, preimage, ball_0_eq,
-      mem_set_of_eq, e.image_symm_eq_preimage],
-    refine subset.trans (closure_lt_subset_le hg.continuous.norm continuous_const) _,
-    intros y hy,
-    have : 2 / ε * ∥e y - e x∥ ≤ 2, by simpa [g, norm_smul, real.norm_of_nonneg ε0.le] using hy,
-    rwa [mul_comm, ← mul_div_assoc, div_le_iff ε0, mul_comm, mul_le_mul_left (@zero_lt_two ℝ _ _),
-      ← dist_eq_norm] at this },
-  refine ⟨smooth_bump_function ∘ g, _, _, _, _, _⟩,
-  { exact (hg.continuous.tendsto' _ _ hg0).eventually smooth_bump_function.eventually_eq_one },
-  { exact λ y, ⟨smooth_bump_function.nonneg _, smooth_bump_function.le_one _⟩ },
-  { exact smooth_bump_function.times_cont_diff.comp hg },
-  { exact compact_of_is_closed_subset ((proper_space.compact_ball _ _).image e.symm.continuous)
-      is_closed_closure hsupp },
-  { refine subset.trans hsupp _,
-    rwa [image_subset_iff, ← e.image_eq_preimage] }
-end
+let ⟨f, hf⟩ := times_cont_diff_bump.exists_closure_support_subset hs in
+⟨f, f.eventually_eq_one, λ y, ⟨f.nonneg, f.le_one⟩, f.times_cont_diff,
+  f.compact_closure_support, hf⟩

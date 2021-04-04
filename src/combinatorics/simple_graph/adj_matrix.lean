@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author:  Aaron Anderson, Jalex Stark.
+Authors: Aaron Anderson, Jalex Stark
 -/
 import linear_algebra.matrix
 import data.rel

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import data.set.intervals.basic
 import data.set.lattice
@@ -30,6 +30,17 @@ ext $ λ y, by simp [pi.le_def]
 
 @[simp] lemma pi_univ_Icc : pi univ (λ i, Icc (x i) (y i)) = Icc x y :=
 ext $ λ y, by simp [pi.le_def, forall_and_distrib]
+
+lemma piecewise_mem_Icc {s : set ι} [Π j, decidable (j ∈ s)] {f₁ f₂ g₁ g₂ : Π i, α i}
+  (h₁ : ∀ i ∈ s, f₁ i ∈ Icc (g₁ i) (g₂ i)) (h₂ : ∀ i ∉ s, f₂ i ∈ Icc (g₁ i) (g₂ i)) :
+  s.piecewise f₁ f₂ ∈ Icc g₁ g₂ :=
+⟨le_piecewise (λ i hi, (h₁ i hi).1) (λ i hi, (h₂ i hi).1),
+  piecewise_le (λ i hi, (h₁ i hi).2) (λ i hi, (h₂ i hi).2)⟩
+
+lemma piecewise_mem_Icc' {s : set ι} [Π j, decidable (j ∈ s)] {f₁ f₂ g₁ g₂ : Π i, α i}
+  (h₁ : f₁ ∈ Icc g₁ g₂) (h₂ : f₂ ∈ Icc g₁ g₂) :
+  s.piecewise f₁ f₂ ∈ Icc g₁ g₂ :=
+piecewise_mem_Icc (λ i hi, ⟨h₁.1 _, h₁.2 _⟩) (λ i hi, ⟨h₂.1 _, h₂.2 _⟩)
 
 section nonempty
 

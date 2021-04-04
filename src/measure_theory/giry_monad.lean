@@ -76,9 +76,9 @@ lemma measurable_lintegral {f : α → ℝ≥0∞} (hf : measurable f) :
   measurable (λμ : measure α, ∫⁻ x, f x ∂μ) :=
 begin
   simp only [lintegral_eq_supr_eapprox_lintegral, hf, simple_func.lintegral],
-  refine measurable_supr (λ n, finset.measurable_sum _ (λ i, _)),
-    refine measurable_const.ennreal_mul _,
-    exact measurable_coe ((simple_func.eapprox f n).measurable_set_preimage _)
+  refine measurable_supr (λ n, finset.measurable_sum _ (λ i _, _)),
+  refine measurable.const_mul _ _,
+  exact measurable_coe ((simple_func.eapprox f n).measurable_set_preimage _)
 end
 
 /-- Monadic join on `measure` in the category of measurable spaces and measurable
@@ -97,6 +97,9 @@ measure.of_measurable
 @[simp] lemma join_apply {m : measure (measure α)} :
   ∀{s : set α}, measurable_set s → join m s = ∫⁻ μ, μ s ∂m :=
 measure.of_measurable_apply
+
+@[simp] lemma join_zero : (0 : measure (measure α)).join = 0 :=
+by { ext1 s hs, simp [hs] }
 
 lemma measurable_join : measurable (join : measure (measure α) → measure α) :=
 measurable_of_measurable_coe _ $ assume s hs,
@@ -121,12 +124,12 @@ begin
     transitivity,
     apply lintegral_supr,
     { assume n,
-      exact finset.measurable_sum _ (assume r, measurable_const.ennreal_mul (hf _ _)) },
+      exact finset.measurable_sum _ (assume r _, (hf _ _).const_mul _) },
     { exact hm },
     congr, funext n,
     transitivity,
     apply lintegral_finset_sum,
-    { assume r, exact measurable_const.ennreal_mul (hf _ _) },
+    { assume r _, exact (hf _ _).const_mul _ },
     congr, funext r,
     apply lintegral_const_mul,
     exact hf _ _ },
@@ -151,6 +154,22 @@ end
 /-- Monadic bind on `measure`, only works in the category of measurable spaces and measurable
 functions. When the function `f` is not measurable the result is not well defined. -/
 def bind (m : measure α) (f : α → measure β) : measure β := join (map f m)
+
+@[simp] lemma bind_zero_left (f : α → measure β) : bind 0 f = 0 :=
+by simp [bind]
+
+@[simp] lemma bind_zero_right (m : measure α) :
+  bind m (0 : α → measure β) = 0 :=
+begin
+  ext1 s hs,
+  simp only [bind, hs, join_apply, coe_zero, pi.zero_apply],
+  rw [lintegral_map (measurable_coe hs) measurable_zero],
+  simp
+end
+
+@[simp] lemma bind_zero_right' (m : measure α) :
+  bind m (λ _, 0 : α → measure β) = 0 :=
+bind_zero_right m
 
 @[simp] lemma bind_apply {m : measure α} {f : α → measure β} {s : set β}
   (hs : measurable_set s) (hf : measurable f) :

@@ -107,9 +107,9 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
     { dsimp, simp only [id_comp] },  -- See note [dsimp, simp].
     { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, id_comp, map_id, presheaf.pushforward.comp_inv_app],
+      simp only [presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
       dsimp,
-      simp only [comp_id], },
+      simp only [comp_id, comp_id, map_id], },
   end,
   comp_id' := λ X Y f,
   begin
@@ -117,9 +117,9 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
     { dsimp, simp only [comp_id] },
     { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, id_comp, map_id, presheaf.pushforward.comp_inv_app],
+      simp only [presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
       dsimp,
-      simp only [comp_id], }
+      simp only [id_comp, comp_id, map_id], }
   end,
   assoc' := λ W X Y Z f g h,
   begin
@@ -127,9 +127,9 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
      refl,
      { ext U, op_induction, cases U,
        dsimp,
-       simp only [assoc, map_id, comp_id, presheaf.pushforward.comp_inv_app],
+       simp only [assoc, presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
        dsimp,
-       simp only [comp_id, id_comp], }
+       simp only [comp_id, id_comp, map_id], }
   end }
 
 end
@@ -225,9 +225,8 @@ def restrict_top_iso (X : PresheafedSpace C) :
     dsimp only [nat_trans.comp_app, comp_c_app, of_restrict, to_restrict_top,
         whisker_right_app, comp_base, nat_trans.op_app, opens.map_iso_inv_app],
     erw [← X.presheaf.map_comp, ← X.presheaf.map_comp, ← X.presheaf.map_comp, id_c_app],
-    convert eq_to_hom_map X.presheaf _, swap,
-    { erw [op_obj, id_base, opens.map_id_obj], refl },
-    { refine has_hom.hom.unop_inj _, exact subsingleton.elim _ _ } } }
+    convert eq_to_hom_map X.presheaf _,
+    erw [op_obj, id_base, opens.map_id_obj], refl } }
 
 /--
 The global sections, notated Gamma.

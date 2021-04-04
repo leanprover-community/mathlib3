@@ -80,6 +80,12 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
+@[simp] theorem coe_mk (e e' h₁ h₂ h₃ h₄) :
+  ⇑(⟨e, e', h₁, h₂, h₃, h₄⟩ : R ≃+* S) = e := rfl
+
+@[simp] theorem mk_coe (e : R ≃+* S) (e' h₁ h₂ h₃ h₄) :
+  (⟨e, e', h₁, h₂, h₃, h₄⟩ : R ≃+* S) = e := ext $ λ _, rfl
+
 protected lemma congr_arg {f : R ≃+* S} : Π {x x' : R}, x = x' → f x = f x'
 | _ _ rfl := rfl
 
@@ -137,7 +143,16 @@ initialize_simps_projections ring_equiv (to_fun → apply, inv_fun → symm_appl
 
 @[simp] lemma symm_symm (e : R ≃+* S) : e.symm.symm = e := ext $ λ x, rfl
 
-@[simp] lemma coe_symm_mk (f : R → S) (g h₁ h₂ h₃ h₄) : ⇑(mk f g h₁ h₂ h₃ h₄).symm = g := rfl
+lemma symm_bijective : function.bijective (ring_equiv.symm : (R ≃+* S) → (S ≃+* R)) :=
+equiv.bijective ⟨ring_equiv.symm, ring_equiv.symm, symm_symm, symm_symm⟩
+
+@[simp] lemma mk_coe' (e : R ≃+* S) (f h₁ h₂ h₃ h₄) :
+  (ring_equiv.mk f ⇑e h₁ h₂ h₃ h₄ : S ≃+* R) = e.symm :=
+symm_bijective.injective $ ext $ λ x, rfl
+
+@[simp] lemma symm_mk (f : R → S) (g h₁ h₂ h₃ h₄) :
+  (mk f g h₁ h₂ h₃ h₄).symm =
+  { to_fun := g, inv_fun := f, ..(mk f g h₁ h₂ h₃ h₄).symm} := rfl
 
 /-- Transitivity of `ring_equiv`. -/
 @[trans] protected def trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') : R ≃+* S' :=
@@ -240,6 +255,21 @@ abbreviation to_monoid_hom (e : R ≃+* S) : R →* S := e.to_ring_hom.to_monoid
 
 /-- Reinterpret a ring equivalence as an `add_monoid` homomorphism. -/
 abbreviation to_add_monoid_hom (e : R ≃+* S) : R →+ S := e.to_ring_hom.to_add_monoid_hom
+
+/-- The two paths coercion can take to an `add_monoid_hom` are equivalent -/
+lemma to_add_monoid_hom_commutes (f : R ≃+* S) :
+  (f : R →+* S).to_add_monoid_hom = (f : R ≃+ S).to_add_monoid_hom :=
+rfl
+
+/-- The two paths coercion can take to an `monoid_hom` are equivalent -/
+lemma to_monoid_hom_commutes (f : R ≃+* S) :
+  (f : R →+* S).to_monoid_hom = (f : R ≃* S).to_monoid_hom :=
+rfl
+
+/-- The two paths coercion can take to an `equiv` are equivalent -/
+lemma to_equiv_commutes (f : R ≃+* S) :
+  (f : R ≃+ S).to_equiv = (f : R ≃* S).to_equiv :=
+rfl
 
 @[simp]
 lemma to_ring_hom_refl : (ring_equiv.refl R).to_ring_hom = ring_hom.id R := rfl

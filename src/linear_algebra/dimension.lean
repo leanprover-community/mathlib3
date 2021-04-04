@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Johannes Hölzl, Sander Dahmen
+Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen
 -/
 import linear_algebra.basis
 import linear_algebra.std_basis
@@ -379,7 +379,7 @@ begin
   { rw [eq_top_iff, range_cod_restrict, ← map_le_iff_le_comap, map_top, range_subtype],
     rintros ⟨d, e⟩,
     have h := eq₂ d (-e),
-    simp only [add_eq_zero_iff_eq_neg, prod_apply, mem_ker, mem_coe, prod.mk.inj_iff,
+    simp only [add_eq_zero_iff_eq_neg, prod_apply, mem_ker, set_like.mem_coe, prod.mk.inj_iff,
       coprod_apply, map_neg, neg_apply, linear_map.mem_range] at ⊢ h,
     assume hde,
     rcases h hde with ⟨c, h₁, h₂⟩,
@@ -522,6 +522,20 @@ begin
     { ext x, simp [h x] },
     rw [←dim_top, this, dim_bot] }
 end
+
+lemma dim_zero_iff : vector_space.dim K V = 0 ↔ subsingleton V :=
+dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
+
+lemma is_basis_of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι)
+  (hV : dim K V = 0) : is_basis K (λ x : ι, (0 : V)) :=
+begin
+  haveI : subsingleton V := dim_zero_iff.1 hV,
+  exact is_basis_empty _ h
+end
+
+lemma is_basis_of_dim_eq_zero'
+  (hV : dim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
+is_basis_of_dim_eq_zero (finset.univ_eq_empty.mp rfl) hV
 
 lemma dim_pos_iff_exists_ne_zero : 0 < vector_space.dim K V ↔ ∃ x : V, x ≠ 0 :=
 begin

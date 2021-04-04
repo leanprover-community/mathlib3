@@ -49,12 +49,14 @@ def is_limit_equiv_sections {F : J ⥤ Type u} {c : cone F} (t : is_limit c) :
 (is_limit.cone_point_unique_up_to_iso t (limit_cone_is_limit F)).to_equiv
 
 @[simp]
-lemma is_limit_equiv_sections_apply {F : J ⥤ Type u} {c : cone F} (t : is_limit c) (j : J) (x : c.X) :
+lemma is_limit_equiv_sections_apply
+  {F : J ⥤ Type u} {c : cone F} (t : is_limit c) (j : J) (x : c.X) :
   (((is_limit_equiv_sections t) x) : Π j, F.obj j) j = c.π.app j x :=
 rfl
 
 @[simp]
-lemma is_limit_equiv_sections_symm_apply {F : J ⥤ Type u} {c : cone F} (t : is_limit c) (x : F.sections) (j : J) :
+lemma is_limit_equiv_sections_symm_apply
+  {F : J ⥤ Type u} {c : cone F} (t : is_limit c) (x : F.sections) (j : J) :
   c.π.app j ((is_limit_equiv_sections t).symm x) = (x : Π j, F.obj j) j :=
 begin
   equiv_rw (is_limit_equiv_sections t).symm at x,
@@ -90,7 +92,8 @@ def limit.mk (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j
 (limit_equiv_sections F).symm ⟨x, h⟩
 
 @[simp]
-lemma limit.π_mk (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') (j) :
+lemma limit.π_mk
+  (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') (j) :
   limit.π F j (limit.mk F x h) = x j :=
 by { dsimp [limit.mk], simp, }
 
@@ -176,7 +179,9 @@ and the "concrete" definition as a quotient.
 -/
 noncomputable
 def colimit_equiv_quot (F : J ⥤ Type u) : (colimit F : Type u) ≃ quot F :=
-(is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit F) (colimit_cocone_is_colimit F)).to_equiv
+(is_colimit.cocone_point_unique_up_to_iso
+  (colimit.is_colimit F)
+  (colimit_cocone_is_colimit F)).to_equiv
 
 @[simp]
 lemma colimit_equiv_quot_symm_apply (F : J ⥤ Type u) (j : J) (x : F.obj j) :

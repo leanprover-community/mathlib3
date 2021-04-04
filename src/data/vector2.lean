@@ -121,7 +121,7 @@ begin
   simp only [list.nodup_iff_nth_le_inj],
   split,
   { intros h i j hij,
-    cases i, cases j, simp [nth_eq_nth_le] at *, tauto },
+    cases i, cases j, ext, apply h, simpa },
   { intros h i j hi hj hij,
     have := @h ⟨i, hi⟩ ⟨j, hj⟩, simp [nth_eq_nth_le] at *, tauto }
 end
@@ -331,7 +331,8 @@ rfl
   ∀{v : vector α n}, (remove_nth i v).val = v.val.remove_nth i
 | ⟨l, hl⟩ := rfl
 
-lemma remove_nth_insert_nth {v : vector α n} {i : fin (n+1)} : remove_nth i (insert_nth a i v) = v :=
+lemma remove_nth_insert_nth {v : vector α n} {i : fin (n+1)} :
+  remove_nth i (insert_nth a i v) = v :=
 subtype.eq $ list.remove_nth_insert_nth i.1 v.1
 
 lemma remove_nth_insert_nth' {v : vector α (n+1)} :
@@ -354,7 +355,8 @@ lemma remove_nth_insert_nth' {v : vector α (n+1)} :
   end
 
 lemma insert_nth_comm (a b : α) (i j : fin (n+1)) (h : i ≤ j) :
-  ∀(v : vector α n), (v.insert_nth a i).insert_nth b j.succ = (v.insert_nth b j).insert_nth a i.cast_succ
+  ∀(v : vector α n),
+    (v.insert_nth a i).insert_nth b j.succ = (v.insert_nth b j).insert_nth a i.cast_succ
 | ⟨l, hl⟩ :=
   begin
     refine subtype.eq _,

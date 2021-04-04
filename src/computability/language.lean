@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fox Thomson.
+Authors: Fox Thomson
 -/
 import data.finset.basic
 
@@ -204,11 +204,11 @@ begin
     { use 0,
       tauto },
     { specialize ih _,
+      { exact λ y hy, hS _ (list.mem_cons_of_mem _ hy) },
       { cases ih with i ih,
         use i.succ,
         rw [pow_succ, mem_mul],
-        exact ⟨ x, S.join, hS x (list.mem_cons_self _ _), ih, rfl ⟩ },
-      { exact λ y hy, hS _ (list.mem_cons_of_mem _ hy) } } },
+        exact ⟨ x, S.join, hS x (list.mem_cons_self _ _), ih, rfl ⟩ } } },
   { rintro ⟨ i, hx ⟩,
     induction i with i ih generalizing x,
     { rw [pow_zero, mem_one] at hx,

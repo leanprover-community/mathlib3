@@ -100,4 +100,14 @@ lemma limsup_add_le [countable_Inter_filter f] (u v : α → ℝ≥0∞) :
 Inf_le ((eventually_le_limsup u).mp ((eventually_le_limsup v).mono
   (λ _ hxg hxf, add_le_add hxf hxg)))
 
+lemma limsup_liminf_le_liminf_limsup {β} [encodable β] {f : filter α} [countable_Inter_filter f]
+  {g : filter β} (u : α → β → ℝ≥0∞) :
+  f.limsup (λ (a : α), g.liminf (λ (b : β), u a b)) ≤ g.liminf (λ b, f.limsup (λ a, u a b)) :=
+begin
+  have h1 : ∀ᶠ a in f, ∀ b, u a b ≤ f.limsup (λ a', u a' b),
+    by { rw eventually_countable_forall, exact λ b, ennreal.eventually_le_limsup (λ a, u a b), },
+  refine Inf_le (h1.mono (λ x hx, filter.liminf_le_liminf (filter.eventually_of_forall hx) _)),
+  filter.is_bounded_default,
+end
+
 end ennreal

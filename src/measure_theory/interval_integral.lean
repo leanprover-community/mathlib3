@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import measure_theory.set_integral
 import measure_theory.lebesgue_measure
@@ -181,17 +181,17 @@ end
 
 variables [borel_space E] {f g : α → E} {a b : α} {μ : measure α}
 
-lemma smul [normed_field 𝕜] [normed_space 𝕜 E] {f : α → E} {a b : α} {μ : measure α}
-  (h : interval_integrable f μ a b) (r : 𝕜) :
+lemma smul [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  {f : α → E} {a b : α} {μ : measure α} (h : interval_integrable f μ a b) (r : 𝕜) :
   interval_integrable (r • f) μ a b :=
 ⟨h.1.smul r, h.2.smul r⟩
 
-lemma add [second_countable_topology E] (hf : interval_integrable f μ a b)
-  (hg : interval_integrable g μ a b) : interval_integrable (f + g) μ a b :=
+@[simp] lemma add [second_countable_topology E] (hf : interval_integrable f μ a b)
+  (hg : interval_integrable g μ a b) : interval_integrable (λ x, f x + g x) μ a b :=
 ⟨hf.1.add hg.1, hf.2.add hg.2⟩
 
-lemma sub [second_countable_topology E] (hf : interval_integrable f μ a b)
-  (hg : interval_integrable g μ a b) : interval_integrable (f - g) μ a b :=
+@[simp] lemma sub [second_countable_topology E] (hf : interval_integrable f μ a b)
+  (hg : interval_integrable g μ a b) : interval_integrable (λ x, f x - g x) μ a b :=
 ⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
 
 end interval_integrable
@@ -303,9 +303,14 @@ lemma integral_cases (f : α → E) (a b) :
 (le_total a b).imp (λ h, by simp [h, integral_of_le]) (λ h, by simp [h, integral_of_ge])
 
 lemma integral_non_ae_measurable {f : α → E} {a b}
-  (h : a < b) (hf : ¬ ae_measurable f (μ.restrict (Ioc a b))) :
+  (hf : ¬ ae_measurable f (μ.restrict (Ioc (min a b) (max a b)))) :
   ∫ x in a..b, f x ∂μ = 0 :=
-by rw [integral_of_le h.le, integral_non_ae_measurable hf]
+by cases le_total a b; simpa [integral_of_le, integral_of_ge, h] using integral_non_ae_measurable hf
+
+lemma integral_non_ae_measurable_of_le {f : α → E} {a b} (h : a ≤ b)
+  (hf : ¬ ae_measurable f (μ.restrict (Ioc a b))) :
+  ∫ x in a..b, f x ∂μ = 0 :=
+integral_non_ae_measurable $ by simpa [h] using hf
 
 lemma norm_integral_eq_norm_integral_Ioc :
   ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ioc (min a b) (max a b), f x ∂μ∥ :=
@@ -339,14 +344,14 @@ lemma norm_integral_le_of_norm_le_const {a b C : ℝ} {f : ℝ → E}
   ∥∫ x in a..b, f x∥ ≤ C * abs (b - a) :=
 norm_integral_le_of_norm_le_const_ae $ eventually_of_forall h
 
-lemma integral_add (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
+@[simp] lemma integral_add (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
   ∫ x in a..b, f x + g x ∂μ = ∫ x in a..b, f x ∂μ + ∫ x in a..b, g x ∂μ :=
 by { simp only [interval_integral, integral_add hf.1 hg.1, integral_add hf.2 hg.2], abel }
 
 @[simp] lemma integral_neg : ∫ x in a..b, -f x ∂μ = -∫ x in a..b, f x ∂μ :=
 by { simp only [interval_integral, integral_neg], abel }
 
-lemma integral_sub (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
+@[simp] lemma integral_sub (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
   ∫ x in a..b, f x - g x ∂μ = ∫ x in a..b, f x ∂μ - ∫ x in a..b, g x ∂μ :=
 by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _ integral_neg)
 
@@ -365,27 +370,31 @@ lemma integral_smul_measure (c : ℝ≥0∞) :
   ∫ x in a..b, f x ∂(c • μ) = c.to_real • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, measure.restrict_smul, integral_smul_measure, smul_sub]
 
-lemma integral_comp_add_right (a b c : ℝ) (f : ℝ → E) (hfm : ae_measurable f) :
+lemma integral_comp_add_right {a b : ℝ} (c : ℝ) {f : ℝ → E} (hfm : ae_measurable f) :
   ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x :=
 have A : ae_measurable f (measure.map (λ x, x + c) volume), by rwa [real.map_volume_add_right],
 calc ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x ∂(measure.map (λ x, x + c) volume) :
-  by simp only [interval_integral, set_integral_map measurable_set_Ioc A (measurable_add_right _),
+  by simp only [interval_integral, set_integral_map measurable_set_Ioc A (measurable_add_const _),
     preimage_add_const_Ioc, add_sub_cancel]
 ... = ∫ x in a+c..b+c, f x : by rw [real.map_volume_add_right]
 
-lemma integral_comp_mul_right {c : ℝ} (hc : 0 < c) (a b : ℝ) (f : ℝ → E) (hfm : ae_measurable f) :
+lemma integral_comp_mul_right {a b c : ℝ} {f : ℝ → E} (hc : 0 < c) (hfm : ae_measurable f) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
 begin
   have A : ae_measurable f (measure.map (λ (x : ℝ), x*c) volume),
     by { rw real.map_volume_mul_right (ne_of_gt hc), exact hfm.smul_measure _ },
   conv_rhs { rw [← real.smul_map_volume_mul_right (ne_of_gt hc)] },
   rw [integral_smul_measure],
-  simp only [interval_integral, set_integral_map measurable_set_Ioc A (measurable_mul_right _),
+  simp only [interval_integral, set_integral_map measurable_set_Ioc A (measurable_mul_const _),
     hc, preimage_mul_const_Ioc, mul_div_cancel _ (ne_of_gt hc), abs_of_pos,
     ennreal.to_real_of_real (le_of_lt hc), inv_smul_smul' (ne_of_gt hc)],
 end
 
-lemma integral_comp_neg (a b : ℝ) (f : ℝ → E) (hfm : ae_measurable f) :
+lemma integral_comp_mul_left {a b c : ℝ} {f : ℝ → E} (hc : 0 < c) (hfm : ae_measurable f) :
+  ∫ x in a..b, f (c * x) = c⁻¹ • ∫ x in c*a..c*b, f x :=
+by simpa only [mul_comm c] using integral_comp_mul_right hc hfm
+
+lemma integral_comp_neg {a b : ℝ} {f : ℝ → E} (hfm : ae_measurable f) :
   ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=
 begin
   have A : ae_measurable f (measure.map (λ (x : ℝ), -x) volume), by rwa real.map_volume_neg,
@@ -525,6 +534,66 @@ lemma integral_pos_iff_support_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ}
   (hf : 0 ≤ᵐ[volume] f) (hfi : interval_integrable f volume a b) :
   0 < ∫ x in a..b, f x ↔ a < b ∧ 0 < volume (function.support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
+
+section mono
+
+variables {μ : measure ℝ} {f g : ℝ → ℝ} {a b : ℝ}
+  (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
+  (hab : a ≤ b)
+
+include hf hg hab
+
+lemma integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict (interval a b)] g) :
+  ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+begin
+  rw [integral_of_le hab, integral_of_le hab],
+  rw interval_of_le hab at h,
+  exact set_integral_mono_ae_restrict hf.1 hg.1
+    (h.filter_mono (ae_mono $ measure.restrict_mono Ioc_subset_Icc_self (le_refl μ)))
+end
+
+lemma integral_mono_ae (h : f ≤ᵐ[μ] g) :
+  ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+by simpa only [integral_of_le hab] using set_integral_mono_ae hf.1 hg.1 h
+
+lemma integral_mono_on (h : ∀ x ∈ interval a b, f x ≤ g x) :
+  ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+begin
+  rw [integral_of_le hab, integral_of_le hab],
+  rw interval_of_le hab at h,
+  exact set_integral_mono_on hf.1 hg.1 measurable_set_Ioc (λ x hx, h x (Ioc_subset_Icc_self hx)),
+end
+
+lemma integral_mono (h : f ≤ g) :
+  ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+integral_mono_ae hf hg hab (ae_of_all _ h)
+
+end mono
+
+section nonneg
+
+variables {μ : measure ℝ} {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b)
+
+include hab
+
+lemma integral_nonneg_of_ae_restrict (hf : 0 ≤ᵐ[μ.restrict (interval a b)] f) :
+  (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
+begin
+  rw integral_of_le hab,
+  rw interval_of_le hab at hf,
+  exact set_integral_nonneg_of_ae_restrict
+    (ae_restrict_of_ae_restrict_of_subset (Ioc_subset_Icc_self) hf)
+end
+
+lemma integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) : (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
+integral_nonneg_of_ae_restrict hab (ae_restrict_of_ae hf)
+
+lemma integral_nonneg (hf : ∀ u, u ∈ interval a b → 0 ≤ f u) :
+  (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
+integral_nonneg_of_ae_restrict hab
+  ((ae_restrict_iff' measurable_set_interval).mpr (ae_of_all μ hf))
+
+end nonneg
 
 /-!
 ### Fundamental theorem of calculus, part 1, for any measure
@@ -1364,7 +1433,16 @@ begin
         simpa only [← nhds_within_Icc_eq_nhds_within_Ici hy.2, interval, hy.1] using h },
       have h := eventually_of_mem (Ioo_mem_nhds_within_Ioi hy') (λ x hx, (hderiv x hx).deriv),
       rwa tendsto_congr' h } },
-  end
+end
+
+/-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` (where `a ≤ b`) and
+  has a derivative at `f' x` for all `x` in `(a, b)`, and `f'` is continuous on `[a, b]`, then
+  `∫ y in a..b, f' y` equals `f b - f a`. -/
+theorem integral_eq_sub_of_has_deriv_at'_of_le (hab : a ≤ b)
+  (hcont : continuous_on f (interval a b))
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hcont' : continuous_on f' (interval a b)) :
+  ∫ y in a..b, f' y = f b - f a :=
+integral_eq_sub_of_has_deriv_at' hcont (by rwa [min_eq_left hab, max_eq_right hab]) hcont'
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` has a derivative at `f' x` for all `x` in
   `[a, b]` and `f'` is continuous on `[a, b]`, then `∫ y in a..b, f' y` equals `f b - f a`. -/
@@ -1380,6 +1458,12 @@ theorem integral_deriv_eq_sub (hderiv : ∀ x ∈ interval a b, differentiable_a
   (hcont' : continuous_on (deriv f) (interval a b)) :
   ∫ y in a..b, deriv f y = f b - f a :=
 integral_eq_sub_of_has_deriv_at (λ x hx, (hderiv x hx).has_deriv_at) hcont'
+
+theorem integral_deriv_eq_sub' (f) (hderiv : deriv f = f')
+  (hdiff : ∀ x ∈ interval a b, differentiable_at ℝ f x)
+  (hcont' : continuous_on f' (interval a b)) :
+  ∫ y in a..b, f' y = f b - f a :=
+by rw [← hderiv, integral_deriv_eq_sub hdiff]; cc
 
 /-!
 ### Integration by parts

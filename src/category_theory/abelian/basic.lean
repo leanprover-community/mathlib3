@@ -144,7 +144,7 @@ variables {X Y : C} (f : X ⟶ Y)
 local attribute [instance] strong_epi_of_epi
 
 /-- In an abelian category, a monomorphism which is also an epimorphism is an isomorphism. -/
-def is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
+lemma is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
 is_iso_of_mono_of_strong_epi _
 
 end mono_epi_iso

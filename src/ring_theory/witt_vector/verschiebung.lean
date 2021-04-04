@@ -26,9 +26,6 @@ local notation `𝕎` := witt_vector p -- type as `\bbW`
 
 noncomputable theory
 
--- unfortunately, without this attribute, some of the code breaks for reasons I don't understand
-local attribute [semireducible] witt_vector
-
 /--
 `verschiebung_fun x` shifts the coefficients of `x` up by one,
 by inserting 0 as the 0th coefficient.
@@ -61,7 +58,7 @@ by rw [ghost_component_apply, aeval_witt_polynomial, finset.range_one, finset.su
   ghost_component (n + 1) (verschiebung_fun x) = p * ghost_component n x :=
 begin
   simp only [ghost_component_apply, aeval_witt_polynomial],
-  rw [finset.sum_range_succ', verschiebung_fun_coeff, if_pos rfl, zero_pow (pow_pos hp.pos _),
+  rw [finset.sum_range_succ', verschiebung_fun_coeff, if_pos rfl, zero_pow (pow_pos hp.1.pos _),
       mul_zero, add_zero, finset.mul_sum, finset.sum_congr rfl],
   rintro i -,
   simp only [pow_succ, mul_assoc, verschiebung_fun_coeff, if_neg (nat.succ_ne_zero i),

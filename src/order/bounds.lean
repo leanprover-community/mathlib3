@@ -285,6 +285,15 @@ lemma is_greatest.union [linear_order γ] {a b : γ} {s t : set γ}
 ⟨by cases (le_total a b) with h h; simp [h, ha.1, hb.1],
   (ha.is_lub.union hb.is_lub).1⟩
 
+lemma is_lub.inter_Ici_of_mem [linear_order γ] {s : set γ} {a b : γ} (ha : is_lub s a)
+  (hb : b ∈ s) : is_lub (s ∩ Ici b) a :=
+⟨λ x hx, ha.1 hx.1, λ c hc, have hbc : b ≤ c, from hc ⟨hb, le_rfl⟩,
+  ha.2 $ λ x hx, (le_total x b).elim (λ hxb, hxb.trans hbc) $ λ hbx, hc ⟨hx, hbx⟩⟩
+
+lemma is_glb.inter_Iic_of_mem [linear_order γ] {s : set γ} {a b : γ} (ha : is_glb s a)
+  (hb : b ∈ s) : is_glb (s ∩ Iic b) a :=
+@is_lub.inter_Ici_of_mem (order_dual γ) _ _ _ _ ha hb
+
 /-!
 ### Specific sets
 

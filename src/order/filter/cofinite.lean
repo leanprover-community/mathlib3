@@ -48,6 +48,24 @@ lemma frequently_cofinite_iff_infinite {p : α → Prop} :
 by simp only [filter.frequently, filter.eventually, mem_cofinite, compl_set_of, not_not,
   set.infinite]
 
+/-- The coproduct of the cofinite filters on two types is the cofinite filter on their product. -/
+lemma coprod_cofinite {β : Type*} :
+  (cofinite : filter α).coprod (cofinite : filter β) = cofinite :=
+begin
+  ext S,
+  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, mem_cofinite],
+  split,
+  { rintro ⟨⟨A, hAf, hAS⟩, B, hBf, hBS⟩,
+    rw [← compl_subset_compl, ← preimage_compl] at hAS hBS,
+    exact (hAf.prod hBf).subset (subset_inter hAS hBS) },
+  { intro hS,
+    refine ⟨⟨(prod.fst '' Sᶜ)ᶜ, _, _⟩, ⟨(prod.snd '' Sᶜ)ᶜ, _, _⟩⟩,
+    { simpa using hS.image prod.fst },
+    { simpa [compl_subset_comm] using subset_preimage_image prod.fst Sᶜ },
+    { simpa using hS.image prod.snd },
+    { simpa [compl_subset_comm] using subset_preimage_image prod.snd Sᶜ } },
+end
+
 end filter
 
 open filter
@@ -78,7 +96,7 @@ begin
     use (hs.to_finset.sup id) + 1,
     assume b hb,
     by_contradiction hbs,
-    have := hs.to_finset.subset_range_sup_succ (finite.mem_to_finset.2 hbs),
+    have := hs.to_finset.subset_range_sup_succ (hs.mem_to_finset.2 hbs),
     exact not_lt_of_le hb (finset.mem_range.1 this) },
   { rintros ⟨N, hN⟩,
     apply (finite_lt_nat N).subset,
@@ -90,3 +108,24 @@ end
 lemma nat.frequently_at_top_iff_infinite {p : ℕ → Prop} :
   (∃ᶠ n in at_top, p n) ↔ set.infinite {n | p n} :=
 by simp only [← nat.cofinite_eq_at_top, frequently_cofinite_iff_infinite]
+
+lemma filter.tendsto.exists_forall_le {α β : Type*} [nonempty α] [linear_order β]
+  {f : α → β} (hf : tendsto f cofinite at_top) :
+  ∃ a₀, ∀ a, f a₀ ≤ f a :=
+begin
+  rcases em (∃ y, ∃ x, f y < x) with ⟨y, x, hx⟩|not_all_top,
+  { -- the set of points `{y | f y < x}` is nonempty and finite, so we take `min` over this set
+    have : finite {y | ¬x ≤ f y} := (filter.eventually_cofinite.mp (tendsto_at_top.1 hf x)),
+    simp only [not_le] at this,
+    obtain ⟨a₀, ha₀ : f a₀ < x, others_bigger⟩ := exists_min_image _ f this ⟨y, hx⟩,
+    exact ⟨a₀, λ a, (lt_or_le (f a) x).elim (others_bigger _) (le_trans ha₀.le)⟩ },
+  { -- in this case, f is constant because all values are at top
+    push_neg at not_all_top,
+    inhabit α,
+    exact ⟨default α, λ a, not_all_top a (f $ default α)⟩ }
+end
+
+lemma filter.tendsto.exists_forall_ge {α β : Type*} [nonempty α] [linear_order β]
+  {f : α → β} (hf : tendsto f cofinite at_bot) :
+  ∃ a₀, ∀ a, f a ≤ f a₀ :=
+@filter.tendsto.exists_forall_le _ (order_dual β) _ _ _ hf

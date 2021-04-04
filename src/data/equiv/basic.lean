@@ -372,7 +372,7 @@ begin
   { exact equiv.symm_image_image _ _ }
 end
 
-@[simp] lemma image_symm_image {α β} (e : α ≃ β) (s : set β) : e '' (e.symm '' s) = s :=
+lemma image_symm_image {α β} (e : α ≃ β) (s : set β) : e '' (e.symm '' s) = s :=
 e.symm.symm_image_image s
 
 @[simp] lemma image_preimage {α β} (e : α ≃ β) (s : set β) : e '' (e ⁻¹' s) = s :=
@@ -387,11 +387,11 @@ set.image_compl_eq f.bijective
 
 lemma symm_preimage_preimage {α β} (e : α ≃ β) (s : set β) :
   e.symm ⁻¹' (e ⁻¹' s) = s :=
-by ext; simp
+by rw [symm_preimage_eq_image, image_preimage]
 
-@[simp] lemma preimage_symm_preimage {α β} (e : α ≃ β) (s : set α) :
+lemma preimage_symm_preimage {α β} (e : α ≃ β) (s : set α) :
   e ⁻¹' (e.symm ⁻¹' s) = s :=
-by ext; simp
+by rw [symm_preimage_eq_image, preimage_image]
 
 @[simp] lemma preimage_subset {α β} (e : α ≃ β) (s t : set β) : e ⁻¹' s ⊆ e ⁻¹' t ↔ s ⊆ t :=
 e.surjective.preimage_subset_preimage_iff

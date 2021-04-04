@@ -9,7 +9,7 @@ import data.set.basic
 # Girard's paradox
 
 Girard's paradox is a proof that `Type : Type` entails a contradiction. We can't say this directly
-in lean because `Type : Type 1` and it's not possible to give `Type` a different type via an axiom,
+in Lean because `Type : Type 1` and it's not possible to give `Type` a different type via an axiom,
 so instead we axiomatize the behavior of the Pi type and application if the typing rule for Pi was
 `(Type → Type) → Type` instead of `(Type → Type) → Type 1`.
 
@@ -25,7 +25,7 @@ Based on Watkins' LF implementation of Hurkens' simplification of Girard's parad
 -/
 
 /-- Girard's paradox: there are no universes `u` such that `Type u : Type u`.
-Since we can't actually change the type of lean's `Π` operator, we assume the existence of
+Since we can't actually change the type of Lean's `Π` operator, we assume the existence of
 `pi`, `lam`, `app` and the `beta` rule equivalent to the `Π` and `app` constructors of type theory.
 -/
 theorem {u} girard

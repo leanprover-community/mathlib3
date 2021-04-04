@@ -290,18 +290,14 @@ of_mul_of' a b
 
 end mul
 
--- Like `add_monoid_hom.congr_fun`, but convenient for a simple argument and complicated equality.
--- A non-private version might be called `add_monoid_hom.congr_at`.
-private abbreviation congr_at {M N : Type*} {mM : add_monoid M} {mN : add_monoid N}
- {f g : M →+ N} := λ x (h : f = g), add_monoid_hom.congr_fun h x
-
 section semiring
 variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gmonoid A]
 
 open add_monoid_hom (flip_hom coe_comp comp_hom_apply_apply flip_apply flip_hom_apply)
 
 private lemma one_mul (x : ⨁ i, A i) : 1 * x = x :=
-congr_at x $ show mul_hom A 1 = add_monoid_hom.id (⨁ i, A i),
+suffices mul_hom A 1 = add_monoid_hom.id (⨁ i, A i),
+  from add_monoid_hom.congr_fun this x,
 begin
   apply add_hom_ext, intros i xi,
   unfold has_one.one,
@@ -310,7 +306,8 @@ begin
 end
 
 private lemma mul_one (x : ⨁ i, A i) : x * 1 = x :=
-congr_at x $ show (mul_hom A).flip 1 = add_monoid_hom.id (⨁ i, A i),
+suffices (mul_hom A).flip 1 = add_monoid_hom.id (⨁ i, A i),
+  from add_monoid_hom.congr_fun this x,
 begin
   apply add_hom_ext, intros i xi,
   unfold has_one.one,
@@ -319,10 +316,10 @@ begin
 end
 
 private lemma mul_assoc (a b c : ⨁ i, A i) : a * b * c = a * (b * c) :=
-congr_at c $ congr_at b $ congr_at a $
-show (mul_hom A).comp_hom.comp (mul_hom A)               -- `λ a b c, a * b * c` as a bundled hom
-   = (add_monoid_hom.comp_hom flip_hom $
-       (mul_hom A).flip.comp_hom.comp (mul_hom A)).flip, -- `λ a b c, a * (b * c)` as a bundled hom
+suffices (mul_hom A).comp_hom.comp (mul_hom A)            -- `λ a b c, a * b * c` as a bundled hom
+       = (add_monoid_hom.comp_hom flip_hom $              -- `λ a b c, a * (b * c)` as a bundled hom
+             (mul_hom A).flip.comp_hom.comp (mul_hom A)).flip,
+  from add_monoid_hom.congr_fun (add_monoid_hom.congr_fun (add_monoid_hom.congr_fun this a) b) c,
 begin
   apply add_hom_ext, intros ai ax, apply add_hom_ext, intros bi bx, apply add_hom_ext, intros ci cx,
   -- simplify lhs
@@ -354,7 +351,8 @@ section comm_semiring
 variables [Π i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_monoid A]
 
 private lemma mul_comm (a b : ⨁ i, A i) : a * b = b * a :=
-congr_at b $ congr_at a $ show mul_hom A = (mul_hom A).flip,
+suffices mul_hom A = (mul_hom A).flip,
+  from add_monoid_hom.congr_fun (add_monoid_hom.congr_fun this a) b,
 begin
   apply add_hom_ext, intros ai ax, apply add_hom_ext, intros bi bx,
   rw [add_monoid_hom.flip_apply, of_mul_of', of_mul_of'],

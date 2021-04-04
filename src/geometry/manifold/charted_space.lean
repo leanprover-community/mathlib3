@@ -809,7 +809,8 @@ def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
 @[simp, mfld_simps] lemma singleton_charted_space_chart_at_eq (h : e.source = set.univ) {x : α} :
   @chart_at H _ α _ (e.singleton_charted_space h) x = e := rfl
 
-@[simp, mfld_simps] lemma singleton_charted_space_chart_at_source (h : e.source = set.univ) {x : α} :
+@[simp, mfld_simps] lemma singleton_charted_space_chart_at_source
+  (h : e.source = set.univ) {x : α} :
   (@chart_at H _ α _ (e.singleton_charted_space h) x).source = set.univ := h
 
 lemma singleton_charted_space_mem_atlas_eq (h : e.source = set.univ)

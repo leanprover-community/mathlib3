@@ -319,9 +319,15 @@ end
 
 end mul_equiv
 
+section units
+
+open opposite
+
 /-- Used mainly to define the natural topology of `units α`. -/
 def embed_product (α : Type*) [monoid α] : units α →* α × αᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
   map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
     and_self],
   map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk]}
+
+end units

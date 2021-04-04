@@ -54,23 +54,42 @@ def mul_equiv [semigroup α] : ulift α ≃* α :=
 instance comm_semigroup [comm_semigroup α] : comm_semigroup (ulift α) :=
 by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
 
-@[to_additive]
 instance monoid [monoid α] : monoid (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), .. }; tactic.pi_instance_derive_field
+begin
+  refine_struct { one := (1 : ulift α), mul := (*), nspow := λ n f, ⟨nspow n f.down⟩, .. };
+  try { tactic.pi_instance_derive_field },
+  apply eq_nspow_rec,
+  { simp only [forall_const, nspow_zero], refl },
+  { simp only [nspow_one], assume x, ext, refl },
+  { simp only [nspow_add, nspow_one], assume n x, ext, refl }
+end
+
+instance add_monoid [add_monoid α] : add_monoid (ulift α) :=
+begin
+  refine_struct { zero := (0 : ulift α), add := (+), nsmul := λ n f, ⟨nsmul n f.down⟩, .. };
+  try { tactic.pi_instance_derive_field },
+  apply eq_nsmul_rec,
+  { simp only [forall_const, nsmul_zero'], refl },
+  { simp only [nsmul_one'], assume x, ext, refl },
+  { simp only [nsmul_add', nsmul_one'], assume n x, ext, refl }
+end
+
+attribute [to_additive] ulift.monoid
 
 @[to_additive]
 instance comm_monoid [comm_monoid α] : comm_monoid (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), .. }; tactic.pi_instance_derive_field
+by refine_struct { one := (1 : ulift α), mul := (*), nspow := λ n f, ⟨nspow n f.down⟩,
+  .. ulift.monoid }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance group [group α] : group (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div };
-  tactic.pi_instance_derive_field
+by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div,
+  nspow := λ n f, ⟨nspow n f.down⟩, .. ulift.monoid }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [comm_group α] : comm_group (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div };
-  tactic.pi_instance_derive_field
+by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div,
+  nspow := λ n f, ⟨nspow n f.down⟩, .. ulift.monoid }; tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [left_cancel_semigroup α] :

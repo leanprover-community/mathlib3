@@ -1709,7 +1709,7 @@ end
 
 lemma comap_coe_ne_bot_of_le_principal {s : set γ} {l : filter γ} [h : ne_bot l] (h' : l ≤ 𝓟 s) :
   ne_bot (comap (coe : s → γ) l) :=
-ne_bot.comap_of_range_mem h $ (@subtype.range_coe γ s).symm ▸ h' (mem_principal_self s)
+h.comap_of_range_mem $ (@subtype.range_coe γ s).symm ▸ h' (mem_principal_self s)
 
 lemma ne_bot.comap_of_surj {f : filter β} {m : α → β}
   (hf : ne_bot f) (hm : function.surjective m) :
@@ -2478,7 +2478,7 @@ begin
   simp ; tauto,
 end
 
--- this inequality can be strict; see `map_const_principal_coprod_map_id_principal` and 
+-- this inequality can be strict; see `map_const_principal_coprod_map_id_principal` and
 -- `map_prod_map_const_id_principal_coprod_principal` below.
 lemma map_prod_map_coprod_le {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : α₁ → β₁} {m₂ : α₂ → β₂} :

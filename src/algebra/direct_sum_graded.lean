@@ -251,105 +251,86 @@ end one
 section mul
 variables [has_add ι] [Π i, add_comm_monoid (A i)] [ghas_mul A]
 
+open add_monoid_hom (map_zero map_add flip_apply coe_comp comp_hom_apply_apply)
+
+/-- The multiplication from the `has_mul` instance, as a bundled homomorphism. -/
+def mul_hom : (⨁ i, A i) →+ (⨁ i, A i) →+ ⨁ i, A i :=
+direct_sum.to_add_monoid $ λ i,
+  add_monoid_hom.flip $ direct_sum.to_add_monoid $ λ j, add_monoid_hom.flip $
+    (direct_sum.of A _).comp_hom.comp ghas_mul.mul
+
 instance : has_mul (⨁ i, A i) :=
-{ mul := λ a b, begin
-    -- the elaborator struggles here, so use tactics to assemble the expression
-    refine direct_sum.to_add_monoid (λ j,
-      direct_sum.to_add_monoid (λ i,
-        (add_monoid_hom.comp_hom (direct_sum.of A $ i + j)).comp _
-      ) a
-    ) b,
-    exact ghas_mul.mul,
-  end }
+{ mul := λ a b, mul_hom A a b }
 
 instance : mul_zero_class (⨁ i, A i) :=
 { mul := (*),
   zero := 0,
-  zero_mul := by { unfold has_mul.mul, simp [direct_sum.to_add_monoid, direct_sum.of] },
-  mul_zero := by { unfold has_mul.mul, simp [direct_sum.to_add_monoid, direct_sum.of] } }
+  zero_mul := λ a, by { unfold has_mul.mul, simp only [map_zero, add_monoid_hom.zero_apply]},
+  mul_zero := λ a, by { unfold has_mul.mul, simp only [map_zero] } }
 
 instance : distrib (⨁ i, A i) :=
 { mul := (*),
   add := (+),
-  left_distrib := by { unfold has_mul.mul, simp, },
-  right_distrib := by { unfold has_mul.mul, simp [direct_sum.to_add_monoid, direct_sum.of], } }
+  left_distrib := λ a b c, by { unfold has_mul.mul, simp only [map_add]},
+  right_distrib := λ a b c, by { unfold has_mul.mul, simp only [map_add, add_monoid_hom.add_apply]} }
+
+variables {A}
+
+lemma of_mul_of' {i j} (a : A i) (b : A j) :
+  mul_hom A (of _ i a) (of _ j b) = of _ (i + j) (ghas_mul.mul a b) :=
+begin
+  unfold mul_hom,
+  rw [to_add_monoid_of, flip_apply, to_add_monoid_of, flip_apply, coe_comp, function.comp_app,
+      comp_hom_apply_apply, coe_comp, function.comp_app],
+end
 
 lemma of_mul_of {i j} (a : A i) (b : A j) :
   of _ i a * of _ j b = of _ (i + j) (ghas_mul.mul a b) :=
-begin
-  unfold has_one.one has_mul.mul,
-  simp,
-end
+of_mul_of' a b
 
 end mul
 
-/-! The various semiring fields are proved separately because the proofs are slow. -/
+-- Like `add_monoid_hom.congr_fun`, but convenient for a simple argument and complicated equality.
+-- A non-private version might be called `add_monoid_hom.congr_at`.
+private abbreviation congr_at {M N : Type*} {mM : add_monoid M} {mN : add_monoid N}
+ {f g : M →+ N} := λ x (h : f = g), add_monoid_hom.congr_fun h x
 
 section semiring
 variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gmonoid A]
 
+open add_monoid_hom (flip_hom coe_comp comp_hom_apply_apply flip_apply flip_hom_apply)
+
 private lemma one_mul (x : ⨁ i, A i) : 1 * x = x :=
+congr_at x $ show mul_hom A 1 = add_monoid_hom.id (⨁ i, A i),
 begin
-  unfold has_one.one has_mul.mul,
-  rw [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply],
-  convert add_monoid_hom.congr_fun dfinsupp.sum_add_hom_single_add_hom x,
-  ext i xi : 2,
-  rw to_add_monoid_of,
+  apply add_hom_ext, intros i xi,
+  unfold has_one.one,
+  rw of_mul_of',
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.one_mul ⟨i, xi⟩),
 end
 
 private lemma mul_one (x : ⨁ i, A i) : x * 1 = x :=
+congr_at x $ show (mul_hom A).flip 1 = add_monoid_hom.id (⨁ i, A i),
 begin
-  unfold has_one.one has_mul.mul,
-  rw [to_add_monoid_of, direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply,
-    add_monoid_hom.dfinsupp_sum_add_hom_apply x _],
-  convert add_monoid_hom.congr_fun dfinsupp.sum_add_hom_single_add_hom x,
-  ext i xi : 2,
+  apply add_hom_ext, intros i xi,
+  unfold has_one.one,
+  rw [flip_apply, of_mul_of'],
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_one ⟨i, xi⟩),
 end
 
--- In this proof, we use `conv` even when not necessary, because otherwise it's hard to see which
--- side the rewrite takes place on.
 private lemma mul_assoc (a b c : ⨁ i, A i) : a * b * c = a * (b * c) :=
+congr_at c $ congr_at b $ congr_at a $
+show (mul_hom A).comp_hom.comp (mul_hom A)               -- `λ a b c, a * b * c` as a bundled hom
+   = (add_monoid_hom.comp_hom flip_hom $
+       (mul_hom A).flip.comp_hom.comp (mul_hom A)).flip, -- `λ a b c, a * (b * c)` as a bundled hom
 begin
-  unfold has_one.one has_mul.mul,
-  simp only [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply, direct_sum.of],
-  rw [←add_monoid_hom.comp_apply, dfinsupp.comp_sum_add_hom],
-
-  -- unpack `c`
-  refine add_monoid_hom.congr_fun _ c,
-  congr' 1, ext ci cx : 2,
-  rw add_monoid_hom.comp_apply,
-
-  conv_lhs {
-    rw [add_monoid_hom.dfinsupp_sum_add_hom_apply, ←add_monoid_hom.comp_apply,
-      dfinsupp.comp_sum_add_hom], },
-  conv_rhs {
-    rw [add_monoid_hom.dfinsupp_sum_add_hom_apply, ←add_monoid_hom.comp_apply,
-      dfinsupp.comp_sum_add_hom], },
-
-  -- unpack `b`
-  refine add_monoid_hom.congr_fun _ b,
-  congr' 1, ext bi bx : 2,
-
-  conv_lhs {
-    rw [add_monoid_hom.comp_apply, add_monoid_hom.dfinsupp_sum_add_hom_apply,
-      ←add_monoid_hom.comp_apply, dfinsupp.comp_sum_add_hom], },
-  conv_rhs {
-    rw [add_monoid_hom.comp_apply, add_monoid_hom.comp_apply, add_monoid_hom.comp_apply,
-      add_monoid_hom.eval_apply, add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply,
-      dfinsupp.single_add_hom_apply, dfinsupp.sum_add_hom_single,
-      add_monoid_hom.dfinsupp_sum_add_hom_apply], },
-
-  -- unpack `a`
-  refine add_monoid_hom.congr_fun _ a,
-  congr' 1, ext ai ax : 2,
-
-  conv_lhs {
-    rw [add_monoid_hom.comp_apply, add_monoid_hom.comp_apply, add_monoid_hom.comp_apply,
-      add_monoid_hom.eval_apply, add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply,
-      dfinsupp.single_add_hom_apply, dfinsupp.sum_add_hom_single], },
-
+  apply add_hom_ext, intros ai ax, apply add_hom_ext, intros bi bx, apply add_hom_ext, intros ci cx,
+  -- simplify lhs
+  rw [coe_comp, function.comp_app, comp_hom_apply_apply, coe_comp, function.comp_app],
+  -- simplify rhs
+  rw [flip_apply, comp_hom_apply_apply, coe_comp, function.comp_app, flip_hom_apply, coe_comp,
+      function.comp_app, comp_hom_apply_apply, flip_apply, coe_comp, function.comp_app, flip_apply],
+  rw [of_mul_of', of_mul_of', of_mul_of', of_mul_of'],
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_assoc ⟨ai, ax⟩ ⟨bi, bx⟩ ⟨ci, cx⟩),
 end
 
@@ -373,21 +354,10 @@ section comm_semiring
 variables [Π i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_monoid A]
 
 private lemma mul_comm (a b : ⨁ i, A i) : a * b = b * a :=
+congr_at b $ congr_at a $ show mul_hom A = (mul_hom A).flip,
 begin
-  unfold has_one.one has_mul.mul,
-  simp only [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply, direct_sum.of],
-  rw dfinsupp.sum_add_hom_comm,
-
-  -- unpack `a`
-  refine add_monoid_hom.congr_fun _ a,
-  congr' 1, ext ai ax : 2,
-
-  rw [add_monoid_hom.dfinsupp_sum_add_hom_apply, add_monoid_hom.dfinsupp_sum_add_hom_apply],
-
-  -- unpack `b`
-  refine add_monoid_hom.congr_fun _ b,
-  congr' 1, ext bi bx : 2,
-
+  apply add_hom_ext, intros ai ax, apply add_hom_ext, intros bi bx,
+  rw [add_monoid_hom.flip_apply, of_mul_of', of_mul_of'],
   exact dfinsupp.single_eq_of_sigma_eq (gcomm_monoid.mul_comm ⟨ai, ax⟩ ⟨bi, bx⟩),
 end
 

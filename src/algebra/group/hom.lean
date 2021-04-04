@@ -706,6 +706,13 @@ def comp_hom [mul_one_class M] [comm_monoid N] [comm_monoid P] :
   map_one' := by { ext1 f, exact one_comp f },
   map_mul' := λ g₁ g₂, by { ext1 f, exact mul_comp g₁ g₂ f } }
 
+/-- Flipping arguments of monoid morphisms (`monoid_hom.flip`) as a monoid morphism. -/
+@[to_additive "Flipping arguments of additive monoid morphisms (`add_monoid_hom.flip`)
+as an additive monoid morphism.", simps]
+def flip_hom {mM : monoid M} {mN : monoid N} {mP : comm_monoid P}
+  : (M →* N →* P) →* (N →* M →* P) :=
+{ to_fun := monoid_hom.flip, map_one' := rfl, map_mul' := λ f g, rfl }
+
 /-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
 @[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
 then they are equal at `-x`." ]

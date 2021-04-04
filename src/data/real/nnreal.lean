@@ -117,7 +117,7 @@ instance : comm_semiring ℝ≥0 :=
   add := (+),
   one := 1,
   mul := (*),
-  .. nnreal.injective_coe.comm_semiring _ rfl rfl (λ _ _, rfl) (λ _ _, rfl) }
+  .. nnreal.coe_injective.comm_semiring _ rfl rfl (λ _ _, rfl) (λ _ _, rfl) }
 
 /-- Coercion `ℝ≥0 → ℝ` as a `ring_hom`. -/
 def to_real_hom : ℝ≥0 →+* ℝ :=
@@ -133,7 +133,7 @@ instance : comm_group_with_zero ℝ≥0 :=
   mul := (*),
   one := 1,
   inv := has_inv.inv,
-  .. nnreal.injective_coe.comm_group_with_zero _ rfl rfl (λ _ _, rfl) (λ _, rfl) }
+  .. nnreal.coe_injective.comm_group_with_zero _ rfl rfl (λ _ _, rfl) (λ _, rfl) }
 
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
   ((s.indicator f a : ℝ≥0) : ℝ) = s.indicator (λ x, f x) a :=

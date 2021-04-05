@@ -559,8 +559,7 @@ begin
     rintro h,
     rw mem_star_singleton_iff,
     split,
-    {
-      --rw mem_bInter_iff at h, @Bhavik, bug here, maybe there's a workaround?
+    { simp only [mem_Inter] at h,
       sorry
     },
     rintro x hx,

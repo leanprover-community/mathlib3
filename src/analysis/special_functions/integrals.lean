@@ -27,7 +27,7 @@ variables {a b : ℝ}
 
 namespace interval_integral
 open measure_theory
-variables {f : ℝ → ℝ} {μ ν : measure ℝ} [locally_finite_measure μ]
+variables {f g : ℝ → ℝ} {μ ν : measure ℝ} [locally_finite_measure μ]
 
 @[simp]
 lemma integral_const_mul (c : ℝ) : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
@@ -78,6 +78,11 @@ lemma interval_integrable_inv (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0
   (hf : continuous_on f (interval a b)) :
   interval_integrable (λ x, (f x)⁻¹) μ a b :=
 by simpa only [one_div] using interval_integrable_one_div h hf
+
+@[simp]
+lemma interval_integrable.comp (hf : continuous f) (hg : continuous g) :
+  interval_integrable (λ x, (f ∘ g) x) μ a b :=
+(hf.comp hg).interval_integrable a b
 
 @[simp]
 lemma interval_integrable_exp : interval_integrable exp μ a b :=
@@ -239,3 +244,21 @@ end
 
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp
+
+open measure_theory
+
+@[simp]
+lemma integral_cos_sq : ∫ x in a..b, cos x ^ 2 = (sin (2 * b) - sin (2 * a)) / 4 + (b - a) / 2 :=
+begin
+  have : interval_integrable (λ x : ℝ, cos (2*x)) volume a b,
+  { apply interval_integrable.comp; continuity },
+  simp [cos_square, this, integral_comp_mul_left],
+  ring,
+end
+
+@[simp]
+lemma integral_sin_sq : ∫ x in a..b, sin x ^ 2 = (sin (2 * a) - sin (2 * b)) / 4 + (b - a) / 2 :=
+begin
+  simp [sin_square, interval_integrable.comp (continuous_pow 2) continuous_cos],
+  ring,
+end

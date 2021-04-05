@@ -100,7 +100,7 @@ Group Theory:
     decomposition into transpositions: ''
     decomposition into cycles with disjoint support: 'equiv.perm.cycle_factors'
     signature: 'equiv.perm.sign'
-    alternating group: ''
+    alternating group: 'alternating_subgroup'
   Classical automorphism groups:
     general linear group: 'linear_map.general_linear_group'
     special linear group: 'matrix.special_linear_group'

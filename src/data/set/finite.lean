@@ -72,14 +72,16 @@ theorem exists_finite_iff_finset {p : set α → Prop} :
 ⟨λ ⟨s, hs, hps⟩, ⟨hs.to_finset, hs.coe_to_finset.symm ▸ hps⟩,
   λ ⟨s, hs⟩, ⟨↑s, finite_mem_finset s, hs⟩⟩
 
-lemma finite.fin_param {s : set α} (h : finite s) :
-  ∃ (n : ℕ) (f : fin n → α), injective f ∧ range f = s :=
+lemma finite.fin_embedding {s : set α} (h : finite s) : ∃ (n : ℕ) (f : fin n ↪ α), range f = s :=
 begin
   classical,
   obtain ⟨f⟩ := nonempty_of_trunc (fintype.equiv_fin (h.to_finset : set α)),
-  exact ⟨_, coe ∘ f.symm, subtype.coe_injective.comp (equiv.injective _),
-    set.ext $ λ x, ⟨λ ⟨y, h⟩, by simpa [ ← h] using (f.symm y).2, λ hs, ⟨f ⟨x, by simpa⟩, by simp⟩⟩⟩
+  exact ⟨_, f.symm.as_embedding, by simp⟩
 end
+
+lemma finite.fin_param {s : set α} (h : finite s) :
+  ∃ (n : ℕ) (f : fin n → α), injective f ∧ range f = s :=
+let ⟨n, f, hf⟩ := h.fin_embedding in ⟨n, f, f.injective, hf⟩
 
 /-- Membership of a subset of a finite type is decidable.
 

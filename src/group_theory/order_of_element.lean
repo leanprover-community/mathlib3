@@ -655,17 +655,40 @@ begin
   exact mem_powers_iff_mem_range_order_of
 end
 
+/-- The equivalence between `fin (order_of a)` and `submonoid.powers a`, sending `i` to `a ^ i`. -/
+noncomputable def fin_equiv_powers {a : α} :
+  fin (order_of a) ≃ (submonoid.powers a : set α) :=
+equiv.of_bijective (λ n, ⟨a ^ ↑n, ⟨n, rfl⟩⟩) ⟨λ ⟨i, hi⟩ ⟨j, hj⟩ ij,
+  subtype.mk_eq_mk.2 (pow_injective_of_lt_order_of a hi hj (subtype.mk_eq_mk.1 ij)),
+  λ ⟨_, i, rfl⟩, ⟨⟨i % order_of a, mod_lt i (order_of_pos a)⟩, subtype.eq pow_eq_mod_order_of.symm⟩⟩
+
+@[simp] lemma fin_equiv_powers_apply {a : α} {n : fin (order_of a)} :
+  fin_equiv_powers n = ⟨a ^ ↑n, n, rfl⟩ := rfl
+
+@[simp] lemma fin_equiv_powers_symm_apply (a : α) (n : ℕ)
+  {hn : ∃ (m : ℕ), a ^ m = a ^ n} :
+  (fin_equiv_powers.symm ⟨a ^ n, hn⟩) = ⟨n % order_of a, nat.mod_lt _ (order_of_pos a)⟩ :=
+by rw [equiv.symm_apply_eq, fin_equiv_powers_apply, subtype.mk_eq_mk,
+  pow_eq_mod_order_of, fin.coe_mk]
+
+/-- The equivalence between `submonoid.powers` of two elements `a, b` of the same order, mapping
+  `a ^ i` to `b ^ i`. -/
+noncomputable def powers_equiv_powers {a b : α} (h : order_of a = order_of b) :
+  (submonoid.powers a : set α) ≃ (submonoid.powers b : set α) :=
+fin_equiv_powers.symm.trans ((fin.cast h).to_equiv.trans fin_equiv_powers)
+
+@[simp]
+lemma powers_equiv_powers_apply {a b : α} (h : order_of a = order_of b)
+  (n : ℕ) : powers_equiv_powers h ⟨a ^ n, n, rfl⟩ = ⟨b ^ n, n, rfl⟩ :=
+begin
+  rw [powers_equiv_powers, equiv.trans_apply, equiv.trans_apply,
+    fin_equiv_powers_symm_apply, ← equiv.eq_symm_apply, fin_equiv_powers_symm_apply],
+  simp [h]
+end
+
 lemma order_eq_card_powers [decidable_eq α] {a : α} :
   order_of a = fintype.card (submonoid.powers a : set α) :=
-begin
-  refine (finset.card_eq_of_bijective _ _ _ _).symm,
-  { exact λn hn, ⟨a ^ n, ⟨n, rfl⟩⟩ },
-  { rintros ⟨_, i, rfl⟩ _,
-    exact ⟨i % order_of a, mod_lt i (order_of_pos a), subtype.eq pow_eq_mod_order_of.symm⟩ },
-  { intros, exact finset.mem_univ _ },
-  { intros i j hi hj eq,
-    exact pow_injective_of_lt_order_of a hi hj ( by simpa using eq ) }
-end
+(fintype.card_fin (order_of a)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_powers⟩)
 
 lemma add_order_of_eq_card_multiples [decidable_eq H] {x : H} :
   add_order_of x = fintype.card (add_submonoid.multiples x : set H) :=
@@ -752,20 +775,49 @@ begin
   exact decidable_powers,
 end
 
+/-- The equivalence between `fin (order_of a)` and `subgroup.gpowers a`, sending `i` to `a ^ i`. -/
+noncomputable def fin_equiv_gpowers {a : α} :
+  fin (order_of a) ≃ (subgroup.gpowers a : set α) :=
+equiv.of_bijective (λ n, ⟨a ^ (n : ℤ), ⟨n, rfl⟩⟩) ⟨λ ⟨i, hi⟩ ⟨j, hj⟩ ij,
+  subtype.mk_eq_mk.2 (pow_injective_of_lt_order_of a hi hj (subtype.mk_eq_mk.1 ij)),
+  begin
+    rintro ⟨_, i, rfl⟩,
+    have pos : (0 : ℤ) < order_of a := int.coe_nat_lt.mpr (order_of_pos a),
+    have nn := int.mod_nonneg _ (ne_of_gt pos),
+    refine ⟨⟨int.to_nat (i % order_of a), _⟩, subtype.mk_eq_mk.2 _⟩,
+    { rw [← int.coe_nat_lt, int.to_nat_of_nonneg nn],
+      exact int.mod_lt_of_pos _ pos },
+    { simp only [fin.coe_mk, coe_coe, gpow_coe_nat, int.to_nat_of_nonneg nn],
+      exact gpow_eq_mod_order_of.symm }
+  end⟩
+
+@[simp] lemma fin_equiv_gpowers_apply {a : α} {n : fin (order_of a)} :
+  fin_equiv_gpowers n = ⟨a ^ ↑n, n, rfl⟩ := rfl
+
+@[simp] lemma fin_equiv_gpowers_symm_apply (a : α) (n : ℕ)
+  {hn : ∃ (m : ℤ), a ^ m = a ^ n} :
+  (fin_equiv_gpowers.symm ⟨a ^ n, hn⟩) = ⟨n % order_of a, nat.mod_lt _ (order_of_pos a)⟩ :=
+by rw [equiv.symm_apply_eq, fin_equiv_gpowers_apply, subtype.mk_eq_mk, pow_eq_mod_order_of,
+    coe_coe, fin.coe_mk, gpow_coe_nat]
+
+/-- The equivalence between `subgroup.gpowers` of two elements `a, b` of the same order, mapping
+  `a ^ i` to `b ^ i`. -/
+noncomputable def gpowers_equiv_gpowers {a b : α} (h : order_of a = order_of b) :
+  (subgroup.gpowers a : set α) ≃ (subgroup.gpowers b : set α) :=
+fin_equiv_gpowers.symm.trans ((fin.cast h).to_equiv.trans fin_equiv_gpowers)
+
+@[simp]
+lemma gpowers_equiv_gpowers_apply {a b : α} (h : order_of a = order_of b)
+  (n : ℕ) : gpowers_equiv_gpowers h ⟨a ^ n, n, rfl⟩ = ⟨b ^ n, n, rfl⟩ :=
+begin
+  rw [gpowers_equiv_gpowers, equiv.trans_apply, equiv.trans_apply,
+    fin_equiv_gpowers_symm_apply, ← equiv.eq_symm_apply, fin_equiv_gpowers_symm_apply],
+  simp [h]
+end
+
 lemma order_eq_card_gpowers [decidable_eq α] {a : α} :
   order_of a = fintype.card (subgroup.gpowers a : set α) :=
-begin
-  refine (finset.card_eq_of_bijective _ _ _ _).symm,
-  { exact λn hn, ⟨a ^ (n : ℤ), ⟨n, rfl⟩⟩ },
-  { exact assume ⟨_, i, rfl⟩ _,
-    have pos : (0 : ℤ) < order_of a := int.coe_nat_lt.mpr $ order_of_pos a,
-    have 0 ≤ i % (order_of a) := int.mod_nonneg _ $ ne_of_gt pos,
-    ⟨int.to_nat (i % order_of a),
-      by rw [← int.coe_nat_lt, int.to_nat_of_nonneg this];
-        exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gpow_eq_mod_order_of.symm⟩⟩ },
-  { intros, exact finset.mem_univ _ },
-  { exact assume i j hi hj eq, pow_injective_of_lt_order_of a hi hj $ by simpa using eq }
-end
+(fintype.card_fin (order_of a)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_gpowers⟩)
 
 lemma add_order_eq_card_gmultiples [decidable_eq H] {x : H} :
   add_order_of x = fintype.card (add_subgroup.gmultiples x : set H) :=

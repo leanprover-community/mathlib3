@@ -39,6 +39,13 @@ variables [fintype α]
   application of the permutation. -/
 def is_cycle (f : perm β) : Prop := ∃ x, f x ≠ x ∧ ∀ y, f y ≠ y → ∃ i : ℤ, (f ^ i) x = y
 
+lemma is_cycle.ne_one {f : perm β} (h : is_cycle f) : f ≠ 1 :=
+λ hf, by simpa [hf, is_cycle] using h
+
+lemma is_cycle.two_le_card_support {f : perm α} (h : is_cycle f) :
+  2 ≤ f.support.card :=
+two_le_card_support_of_ne_one h.ne_one
+
 lemma is_cycle.swap {α : Type*} [decidable_eq α] {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=
 ⟨y, by rwa swap_apply_right,
   λ a (ha : ite (a = x) y (ite (a = y) x a) ≠ a),
@@ -72,9 +79,8 @@ noncomputable def is_cycle.gpowers_equiv_support {σ : perm α} (hσ : is_cycle 
 equiv.of_bijective (λ τ, ⟨τ (classical.some hσ),
 begin
   obtain ⟨τ, n, rfl⟩ := τ,
-  rw [finset.mem_coe, mem_support],
-  refine λ h, (classical.some_spec hσ).1 ((σ ^ n).injective _),
-  rwa [←mul_apply, mul_gpow_self, ←mul_self_gpow],
+  rw [finset.mem_coe, coe_fn_coe_base, subtype.coe_mk, gpow_apply_mem_support, mem_support],
+  exact (classical.some_spec hσ).1,
 end⟩)
 begin
   split,
@@ -90,6 +96,17 @@ begin
     obtain ⟨n, rfl⟩ := (classical.some_spec hσ).2 y hy,
     exact ⟨⟨σ ^ n, n, rfl⟩, rfl⟩ },
 end
+
+@[simp] lemma is_cycle.gpowers_equiv_support_apply {σ : perm α} (hσ : is_cycle σ) {n : ℕ} :
+  hσ.gpowers_equiv_support ⟨σ ^ n, n, rfl⟩ = ⟨(σ ^ n) (classical.some hσ),
+    pow_apply_mem_support.2 (mem_support.2 (classical.some_spec hσ).1)⟩ :=
+rfl
+
+@[simp] lemma is_cycle.gpowers_equiv_support_symm_apply {σ : perm α} (hσ : is_cycle σ) (n : ℕ) :
+  hσ.gpowers_equiv_support.symm ⟨(σ ^ n) (classical.some hσ),
+    pow_apply_mem_support.2 (mem_support.2 (classical.some_spec hσ).1)⟩ =
+    ⟨σ ^ n, n, rfl⟩ :=
+(equiv.symm_apply_eq _).2 hσ.gpowers_equiv_support_apply
 
 lemma order_of_is_cycle {σ : perm α} (hσ : is_cycle σ) : order_of σ = σ.support.card :=
 begin
@@ -238,15 +255,16 @@ lemma is_cycle.same_cycle {f : perm β} (hf : is_cycle f) {x y : β}
   (hx : f x ≠ x) (hy : f y ≠ y) : same_cycle f x y :=
 hf.exists_gpow_eq hx hy
 
-noncomputable instance [fintype α] (f : perm α) : decidable_rel (same_cycle f) :=
-λ x y, decidable_of_iff (∃ n ∈ list.range (order_of f), (f ^ n) x = y)
+instance [fintype α] (f : perm α) : decidable_rel (same_cycle f) :=
+λ x y, decidable_of_iff (∃ n ∈ list.range (fintype.card (perm α)), (f ^ n) x = y)
 ⟨λ ⟨n, _, hn⟩, ⟨n, hn⟩, λ ⟨i, hi⟩, ⟨(i % order_of f).nat_abs, list.mem_range.2
   (int.coe_nat_lt.1 $
     by { rw int.nat_abs_of_nonneg (int.mod_nonneg _
         (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))),
-      calc _ < _ : int.mod_lt _ (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))
-          ... = _ : by simp,
-          exact fintype_perm, }),
+      { apply lt_of_lt_of_le (int.mod_lt _ (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))),
+        { simp [order_of_le_card_univ] },
+        exact fintype_perm },
+      exact fintype_perm, }),
   by { rw [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
       (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of, hi],
     exact fintype_perm }⟩⟩
@@ -275,7 +293,7 @@ by rw [← same_cycle_inv, same_cycle_apply, same_cycle_inv]
 -/
 
 /-- `f.cycle_of x` is the cycle of the permutation `f` to which `x` belongs. -/
-noncomputable def cycle_of [fintype α] (f : perm α) (x : α) : perm α :=
+def cycle_of [fintype α] (f : perm α) (x : α) : perm α :=
 of_subtype (@subtype_perm _ f (same_cycle f x) (λ _, same_cycle_apply.symm))
 
 lemma cycle_of_apply [fintype α] (f : perm α) (x y : α) :
@@ -334,7 +352,7 @@ have cycle_of f x x ≠ x, by rwa [(same_cycle.refl _ _).cycle_of_apply],
 
 /-- Given a list `l : list α` and a permutation `f : perm α` whose nonfixed points are all in `l`,
   recursively factors `f` into cycles. -/
-noncomputable def cycle_factors_aux [fintype α] : Π (l : list α) (f : perm α),
+def cycle_factors_aux [fintype α] : Π (l : list α) (f : perm α),
   (∀ {x}, f x ≠ x → x ∈ l) →
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint}
 | []     f h := ⟨[], by { simp only [imp_false, list.pairwise.nil, list.not_mem_nil, forall_const,
@@ -368,9 +386,174 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
         hm₃⟩⟩
 
 /-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`. -/
-noncomputable def cycle_factors [fintype α] [linear_order α] (f : perm α) :
+def cycle_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
+
+/-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`,
+  without a linear order. -/
+def trunc_cycle_factors [fintype α] (f : perm α) :
+  trunc {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
+quotient.rec_on_subsingleton (@univ α _).1
+  (λ l h, trunc.mk (cycle_factors_aux l f h))
+  (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
+
+@[elab_as_eliminator] lemma cycle_induction_on [fintype β] {P : perm β → Prop} (σ : perm β)
+  (base_one : P 1) (base_cycles : ∀ σ : perm β, σ.is_cycle → P σ)
+  (induction_disjoint : ∀ σ τ : perm β, disjoint σ τ → P σ → P τ → P (σ * τ)) :
+  P σ :=
+begin
+  suffices :
+    ∀ l : list (perm β), (∀ τ : perm β, τ ∈ l → τ.is_cycle) → l.pairwise disjoint → P l.prod,
+  { classical,
+    let x := σ.trunc_cycle_factors.out,
+    exact (congr_arg P x.2.1).mp (this x.1 x.2.2.1 x.2.2.2) },
+  intro l,
+  induction l with σ l ih,
+  { exact λ _ _, base_one },
+  { intros h1 h2,
+    rw list.prod_cons,
+    exact induction_disjoint σ l.prod
+      (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h2).1)
+      (base_cycles σ (h1 σ (l.mem_cons_self σ)))
+      (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
+end
+
+section
+variables [fintype α] {σ τ : perm α}
+
+noncomputable theory
+
+lemma foo (f : {x // x ∈ (σ.support : set α)} ≃ {x // x ∈ (τ.support : set α)})
+  (hf : ∀ (x : α) (hx : x ∈ (σ.support : set α)), (f ⟨σ x, apply_mem_support.2 hx⟩ : α) =
+    τ ↑(f ⟨x,hx⟩)) :
+  is_conj σ τ :=
+begin
+  have h := fintype.card_congr f,
+  rw [fintype.card_of_subtype σ.support (λ x, _), fintype.card_of_subtype τ.support (λ x, _)] at h,
+  swap, { rw finset.mem_coe },
+  swap, { rw finset.mem_coe },
+  have hc : fintype.card ((σ.support : set α)ᶜ : set α) =
+    fintype.card ((τ.support : set α)ᶜ : set α),
+  { refine (fintype.card_of_subtype σ.supportᶜ (λ x, _)).trans
+      (eq.trans _ (fintype.card_of_subtype τ.supportᶜ (λ x, _)).symm),
+    { rw [← coe_compl, finset.mem_coe] },
+    { rw [finset.card_compl, finset.card_compl, h] },
+    { rw [← coe_compl, finset.mem_coe] } },
+  rw fintype.card_eq at hc,
+  obtain ⟨cequiv⟩ := hc,
+  classical,
+  refine ⟨(equiv.set.sum_compl _).symm.trans ((equiv.sum_congr f cequiv).trans
+    (equiv.set.sum_compl _)), _⟩,
+  rw mul_inv_eq_iff_eq_mul,
+  ext,
+  simp only [perm.mul_apply, equiv.trans_apply, equiv.sum_congr_apply],
+  by_cases hx : x ∈ σ.support,
+  { rw [equiv.set.sum_compl_symm_apply_of_mem (finset.mem_coe.2 _), sum.map_inl,
+      equiv.set.sum_compl_apply_inl, equiv.set.sum_compl_symm_apply_of_mem (finset.mem_coe.2 _),
+      sum.map_inl, equiv.set.sum_compl_apply_inl],
+    { refine hf x (finset.mem_coe.2 _),
+      convert hx, },
+    { rw apply_mem_support,
+      convert hx } },
+  { rw [mem_support, not_not] at hx,
+    rw [equiv.set.sum_compl_symm_apply_of_not_mem, equiv.set.sum_compl_symm_apply_of_not_mem],
+    swap, { rw [finset.mem_coe, mem_support, not_not, hx] },
+    swap, { rw [finset.mem_coe, mem_support, not_not, hx, hx] },
+    simp only [sum.map_inr, set.sum_compl_apply_inr],
+    have h := (set.mem_compl_iff _ _).1 (cequiv ⟨σ x, _⟩).2,
+    rw [finset.mem_coe, mem_support, not_not, subtype.val_eq_coe, eq_comm] at h,
+    exact h.trans (congr rfl (congr rfl (congr rfl (subtype.mk_eq_mk.2 hx)))) }
+end
+
+theorem is_cycle.is_conj (hσ : is_cycle σ) (hτ : is_cycle τ) (h : σ.support.card = τ.support.card) :
+  is_conj σ τ :=
+begin
+  refine foo (hσ.gpowers_equiv_support.symm.trans
+    ((gpowers_equiv_gpowers begin
+      rw [order_of_is_cycle hσ, h, order_of_is_cycle hτ],
+  end).trans hτ.gpowers_equiv_support)) _,
+  intros x hx,
+  simp only [perm.mul_apply, equiv.trans_apply, equiv.sum_congr_apply],
+  obtain ⟨n, rfl⟩ := hσ.exists_pow_eq (classical.some_spec hσ).1 (mem_support.1 hx),
+  apply eq.trans _ (congr rfl (congr rfl (congr rfl
+    (congr rfl (hσ.gpowers_equiv_support_symm_apply n).symm)))),
+  apply (congr rfl (congr rfl (congr rfl (hσ.gpowers_equiv_support_symm_apply (n + 1))))).trans _,
+  simp only [ne.def, is_cycle.gpowers_equiv_support_apply,
+    subtype.coe_mk, gpowers_equiv_gpowers_apply],
+  rw [pow_succ, perm.mul_apply],
+end
+
+theorem is_cycle.is_conj_iff (hσ : is_cycle σ) (hτ : is_cycle τ) :
+  is_conj σ τ ↔ σ.support.card = τ.support.card :=
+⟨begin
+  rintro ⟨π, rfl⟩,
+  apply finset.card_congr (λ a ha, π a) (λ _ ha, _) (λ _ _ _ _ ab, π.injective ab) (λ b hb, _),
+  { simp [mem_support.1 ha] },
+  { refine ⟨π⁻¹ b, ⟨_, π.apply_inv_self b⟩⟩,
+    contrapose! hb,
+    rw [mem_support, not_not] at hb,
+    rw [mem_support, not_not, perm.mul_apply, perm.mul_apply, hb, perm.apply_inv_self] }
+end, hσ.is_conj hτ⟩
+
+@[simp]
+lemma support_conj : (σ * τ * σ⁻¹).support = τ.support.map σ.to_embedding :=
+begin
+  ext,
+  simp only [mem_map_equiv, perm.coe_mul, comp_app, ne.def, perm.mem_support, equiv.eq_symm_apply],
+  refl,
+end
+
+lemma card_support_conj : (σ * τ * σ⁻¹).support.card = τ.support.card :=
+by simp
+
+theorem disjoint.is_conj_mul {π ρ : perm α} (hc1 : is_conj σ π) (hc2 : is_conj τ ρ)
+  (hd1 : disjoint σ τ) (hd2 : disjoint π ρ) :
+  is_conj (σ * τ) (π * ρ) :=
+begin
+  obtain ⟨f, rfl⟩ := hc1,
+  obtain ⟨g, rfl⟩ := hc2,
+  have hd1' := coe_inj.2 hd1.support_mul,
+  have hd2' := coe_inj.2 hd2.support_mul,
+  rw [coe_union] at *,
+  have hd1'' := disjoint_iff_disjoint_coe.1 (disjoint_iff_disjoint_support.1 hd1),
+  have hd2'' := disjoint_iff_disjoint_coe.1 (disjoint_iff_disjoint_support.1 hd2),
+  refine foo _ _,
+  { refine ((equiv.set.of_eq hd1').trans (equiv.set.union hd1'')).trans
+      ((equiv.sum_congr (subtype_equiv f (λ a, _)) (subtype_equiv g (λ a, _))).trans
+      ((equiv.set.of_eq hd2').trans (equiv.set.union hd2'')).symm);
+    { simp only [set.mem_image, to_embedding_apply, exists_eq_right,
+        support_conj, coe_map, apply_eq_iff_eq] } },
+  { intros x hx,
+    simp only [trans_apply, symm_trans_apply, set.of_eq_apply,
+      set.of_eq_symm_apply, equiv.sum_congr_apply],
+    rw [hd1', set.mem_union] at hx,
+    cases hx with hxσ hxτ,
+    { rw [mem_coe, mem_support] at hxσ,
+      rw [set.union_apply_left hd1'' _, set.union_apply_left hd1'' _],
+      simp only [subtype_equiv_apply, perm.coe_mul, sum.map_inl, comp_app,
+        set.union_symm_apply_left, subtype.coe_mk, apply_eq_iff_eq],
+      { have h := (hd2 (f x)).resolve_left _,
+        { rw [mul_apply, mul_apply] at h,
+          rw [h, inv_apply_self, (hd1 x).resolve_left hxσ] },
+        { rwa [mul_apply, mul_apply, inv_apply_self, apply_eq_iff_eq] } },
+      { rwa [subtype.coe_mk, subtype.coe_mk, mem_coe, mem_support] },
+      { rwa [subtype.coe_mk, subtype.coe_mk, perm.mul_apply,
+          (hd1 x).resolve_left hxσ, mem_coe, apply_mem_support, mem_support] } },
+    { rw [mem_coe, ← apply_mem_support, mem_support] at hxτ,
+      rw [set.union_apply_right hd1'' _, set.union_apply_right hd1'' _],
+      simp only [subtype_equiv_apply, perm.coe_mul, sum.map_inr, comp_app,
+        set.union_symm_apply_right, subtype.coe_mk, apply_eq_iff_eq],
+      { have h := (hd2 (g (τ x))).resolve_right _,
+        { rw [mul_apply, mul_apply] at h,
+          rw [inv_apply_self, h, (hd1 (τ x)).resolve_right hxτ] },
+        { rwa [mul_apply, mul_apply, inv_apply_self, apply_eq_iff_eq] } },
+      { rwa [subtype.coe_mk, subtype.coe_mk, mem_coe, ← apply_mem_support, mem_support] },
+      { rwa [subtype.coe_mk, subtype.coe_mk, perm.mul_apply,
+          (hd1 (τ x)).resolve_right hxτ, mem_coe, mem_support] } } }
+end
+
+end
 
 section fixed_points
 
@@ -378,24 +561,12 @@ section fixed_points
 ### Fixed points
 -/
 
-lemma one_lt_nonfixed_point_card_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
-  1 < (filter (λ x, σ x ≠ x) univ).card :=
-begin
-  rw one_lt_card_iff,
-  contrapose! h,
-  ext x,
-  dsimp,
-  have := h (σ x) x,
-  contrapose! this,
-  simpa,
-end
-
 lemma fixed_point_card_lt_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
   (filter (λ x, σ x = x) univ).card < fintype.card α - 1 :=
 begin
   rw [nat.lt_sub_left_iff_add_lt, ← nat.lt_sub_right_iff_add_lt, ← finset.card_compl,
     finset.compl_filter],
-  exact one_lt_nonfixed_point_card_of_ne_one h
+  exact one_lt_card_support_of_ne_one h
 end
 
 end fixed_points

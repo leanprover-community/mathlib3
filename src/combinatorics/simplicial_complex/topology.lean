@@ -1,4 +1,5 @@
 import tactic
+import data.fincard
 import data.real.basic
 import linear_algebra.affine_space.independent
 import linear_algebra.std_basis
@@ -733,9 +734,11 @@ end
 /--
 A m-simplex not on the boundary of a full dimensional complex belongs to exactly two cells.
 -/
-/-lemma two_surfaces_of_non_boundary_subcell_of_full_dimensional {S : simplicial_complex m}
+lemma two_surfaces_of_non_boundary_subcell_of_full_dimensional {S : simplicial_complex m}
   {X : finset E} (hS : S.full_dimensional) (hX : X ∉ S.boundary.faces) (hXcard : X.card = m) :
-  fincard {Y | Y ∈ S.faces ∧ X ⊂ Y} = 2 :=
+  nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 2 :=
+  -- It's probably a bad idea to use `nat.card` since it's incredibly underdeveloped for doing
+  -- actual maths in
 begin
   have aux_lemma : ∀ {a b : E}, a ≠ b → a ∉ X → b ∉ X → X ∪ {a} ∈ S.faces → X ∪ {b} ∈ S.faces →
     ∃ w : E → ℝ, w a < 0 ∧ ∑ y in X ∪ {a}, w y = 1 ∧ (X ∪ {a}).center_mass w id = b,
@@ -743,7 +746,7 @@ begin
     sorry
   },
 
-end-/
+end
 
 /-A simplicial complex is connected iff its space is-/
 def simplicial_complex.connected (S : simplicial_complex m) : Prop := connected_space S.space

@@ -578,6 +578,14 @@ theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ {a} := repeat_s
 theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.repeat a n <+ l :=
 ⟨λ ⟨l', p, s⟩, (perm_repeat.1 p) ▸ s, sublist.subperm⟩
 
+lemma nsmul_repeat {a : α} (n m : ℕ) : n • (repeat a m) = repeat a (n * m) :=
+begin
+  rw eq_repeat,
+  split,
+  { rw [card_nsmul, card_repeat] },
+  { exact λ b hb, eq_of_mem_repeat (mem_of_mem_nsmul hb) },
+end
+
 /-! ### Erasing one copy of an element -/
 section erase
 variables [decidable_eq α] {s t : multiset α} {a b : α}

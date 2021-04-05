@@ -17,13 +17,19 @@ is a very permissive notion of directed graph.
 universes v u
 
 /-- A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
-    a type `G.arrow a b` of arrows from `a` to `b`. -/
+    a sort `G.arrow a b` of arrows from `a` to `b`.
+
+    For graphs with no repeated edges, one can use `quiver.{0} V`, which ensures
+    `G.arrow a b : Prop`. For multigraphs, one can use `quiver.{v+1} V`, which ensures
+    `G.arrow a b : Type v`. -/
 structure quiver (V : Type u) :=
 (arrow : V → V → Sort v)
 
 /-- A wide subquiver `H` of `G` picks out a set `H a b` of arrows from `a` to `b`
-    for every pair of vertices `a b`. -/
-def wide_subquiver {V} (G : quiver.{v+1} V) :=
+    for every pair of vertices `a b`.
+
+    NB: this does not work for `Prop`-valued quivers. It requires `G : quiver.{v+1} V`. -/
+def wide_subquiver {V} (G : quiver V) :=
 Π a b : V, set (G.arrow a b)
 
 /-- A wide subquiver viewed as a quiver on its own. -/
@@ -48,8 +54,10 @@ protected def sum {V} (G H : quiver V) : quiver V :=
 protected def opposite {V} (G : quiver V) : quiver V :=
 ⟨flip G.arrow⟩
 
-/-- `G.symmetrify` adds to `G` the reversal of all arrows of `G`. -/
-def symmetrify {V} (G : quiver.{v+1} V) : quiver V :=
+/-- `G.symmetrify` adds to `G` the reversal of all arrows of `G`.
+
+    NB: this does not work for `Prop`-valued quivers. It requires `G : quiver.{v+1} V`. -/
+def symmetrify {V} (G : quiver V) : quiver V :=
 G.sum G.opposite
 
 @[simp] lemma empty_arrow {V} (a b : V) : (quiver.empty V).arrow a b = pempty := rfl
@@ -78,12 +86,14 @@ instance {V} [inhabited V] {G : quiver V} [inhabited (G.arrow (default V) (defau
 
 /-- A wide subquiver `H` of `G.symmetrify` determines a wide subquiver of `G`, containing an
     an arrow `e` if either `e` or its reversal is in `H`. -/
+-- Without the explicit universe level in `quiver.{v+1}` Lean comes up with
+-- `quiver.{max u_2 u_3 + 1}`. This causes problems elsewhere, so we write `quiver.{v+1}`.
 def wide_subquiver_symmetrify {V} {G : quiver.{v+1} V} :
   wide_subquiver G.symmetrify → wide_subquiver G :=
 λ H a b, { e | sum.inl e ∈ H a b ∨ sum.inr e ∈ H b a }
 
 /-- A wide subquiver of `G` can equivalently be viewed as a total set of arrows. -/
-def wide_subquiver_equiv_set_total {V} {G : quiver.{v+1} V} :
+def wide_subquiver_equiv_set_total {V} {G : quiver V} :
   wide_subquiver G ≃ set G.total :=
 { to_fun := λ H, { e | e.arrow ∈ H e.source e.target },
   inv_fun := λ S a b, { e | total.mk a b e ∈ S },

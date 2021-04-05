@@ -70,8 +70,12 @@ class is_free_group (G) [group.{u} G] :=
 instance free_group_is_free_group {A} : is_free_group (free_group A) :=
 { generators := A,
   of := free_group.of,
-  unique_lift := by { introsI X _ f, exact ⟨free_group.lift f, λ _, free_group.lift.of,
-      λ g hg, monoid_hom.ext (λ _, free_group.lift.unique g hg)⟩ } }
+  unique_lift := begin
+    introsI X _ f,
+    exact ⟨free_group.lift f,
+      λ _, free_group.lift.of,
+      λ g hg, monoid_hom.ext (λ _, free_group.lift.unique g hg)⟩
+  end }
 
 namespace is_free_group
 
@@ -88,8 +92,11 @@ let ⟨F, hF, uF⟩ := classical.indefinite_description _ (unique_lift free_grou
 { to_fun := F,
   inv_fun := free_group.lift of,
   left_inv := end_is_id ((free_group.lift of).comp F) (by simp [hF]),
-  right_inv := by { suffices : F.comp (free_group.lift of) = monoid_hom.id _,
-    { rwa monoid_hom.ext_iff at this }, apply free_group.ext_hom, simp [hF] },
+  right_inv := begin
+    have : F.comp (free_group.lift of) = monoid_hom.id _,
+    { apply free_group.ext_hom, simp [hF] },
+    rwa monoid_hom.ext_iff at this,
+  end,
   map_mul' := F.map_mul }
 
 /-- Being a free group transports across group isomorphisms. -/
@@ -118,7 +125,10 @@ end is_free_group
  - a quiver `generators` whose vertices are objects of `G`
  - a function `of` sending an arrow in `generators` to a morphism in `G`
  - such that a functor from `G` to any group `X` is uniquely determined
-   by assigning labels in `X` to the arrows in `generators. -/
+   by assigning labels in `X` to the arrows in `generators.
+
+   This definition is nonstandard. Normally one would require that functors `G ⥤ X`
+   to any _groupoid_ `X` are given by graph homomorphisms from `generators`. -/
 class is_free_groupoid (G) [groupoid.{v} G] :=
 (generators : quiver.{v+1} G)
 (of : Π ⦃a b⦄, generators.arrow a b → (a ⟶ b))
@@ -137,38 +147,6 @@ let ⟨_, _, um⟩ := unique_lift (show generators.labelling X, from λ a b e, g
 trans (um _ h) (um _ (λ _ _ _, rfl)).symm
 
 namespace covering
-
-/-- Given `G` acting on `A`, a functor from the corresponding action groupoid to a group `X`
-    can be curried to a group homomorphism `G →* (A → X) ⋊ G`. -/
-@[simps] def curry {G A X} [group G] [mul_action G A] [group X]
-  (F : action_category G A ⥤ single_obj X) :
-  G →* (A → X) ⋊[mul_aut_arrow] G :=
-have F_map_eq : ∀ {a b} {f : a ⟶ b}, F.map f = (F.map (hom_of_pair b.back f.val) : X) :=
-  action_category.cases (λ _ _, rfl),
-{ to_fun := λ g, ⟨λ b, F.map (hom_of_pair b g), g⟩,
-  map_one' := begin
-    congr, funext,
-    exact F_map_eq.symm.trans (F.map_id b),
-  end,
-  map_mul' := begin
-    intros g h,
-    congr, funext,
-    exact F_map_eq.symm.trans (F.map_comp (hom_of_pair (g⁻¹ • b) h) (hom_of_pair b g)),
-  end }
-
-/-- Given `G` acting on `A`, a group homomorphism `φ : G →* (A → X) ⋊ G` can be uncurried to
-    a functor from the action groupoid to `X`, provided that `φ g = (_, g)` for all `g`. -/
-@[simps] def uncurry {G A X} [group G] [mul_action G A] [group X]
-  (F : G →* (A → X) ⋊[mul_aut_arrow] G) (sane : ∀ g, (F g).right = g) :
-  action_category G A ⥤ single_obj X :=
-{ obj := λ _, (),
-  map := λ a b f, ((F f.val).left b.back),
-  map_id' := by { intro x, rw [action_category.id_val, F.map_one], refl },
-  map_comp' := by {
-    intros x y z f g, revert y z g,
-    refine action_category.cases _, intros,
-    rw [action_category.comp_val, F.map_mul, mul_left, pi.mul_apply, mul_aut_arrow_apply, sane],
-    refl } }
 
 open is_free_group as fgp
 
@@ -218,8 +196,7 @@ variables {G : Type u} [groupoid.{u} G] [is_free_groupoid G]
 /-- A path in the tree gives a hom, by composition. -/
 noncomputable def hom_of_path : Π {a : G}, T♯.path T♯.root a → (T♯.root ⟶ a)
 | _ path.nil := 𝟙 _
-| a (path.cons p ⟨sum.inl e, h⟩) := hom_of_path p ≫ of e
-| a (path.cons p ⟨sum.inr e, h⟩) := hom_of_path p ≫ inv (of e)
+| a (path.cons p f) := hom_of_path p ≫ sum.rec_on f.val (λ e, of e) (λ e, inv (of e))
 
 /-- For every vertex `a`, there is a canonical hom from the root, given by the
     path in the tree. -/
@@ -229,7 +206,7 @@ lemma tree_hom_eq {a : G} (p : T♯.path T♯.root a) : tree_hom T a = hom_of_pa
 by rw [tree_hom, unique.default_eq]
 
 @[simp] lemma tree_hom_root : tree_hom T T♯.root = 𝟙 _ :=
-trans (tree_hom_eq T path.nil) rfl -- ???
+by rw [tree_hom_eq T path.nil, hom_of_path]
 
 /-- Any hom in `G` can be made into a loop, by conjugating with `tree_hom`s. -/
 @[simp] def loop_of_hom {a b : G} (p : a ⟶ b) : End T♯.root :=
@@ -252,11 +229,16 @@ end
   G ⥤ single_obj X :=
 { obj := λ _, (),
   map := λ a b p, f (loop_of_hom T p),
-  map_id' := begin intro a, rw [loop_of_hom, category.id_comp, is_iso.hom_inv_id,
-    ←End.one_def, f.map_one, single_obj.id_as_one],
+  map_id' := begin
+    intro a,
+    rw [loop_of_hom, category.id_comp, is_iso.hom_inv_id, ←End.one_def,
+      f.map_one, single_obj.id_as_one],
  end,
-  map_comp' := by { intros, rw [single_obj.comp_as_mul, ←f.map_mul],
-    simp only [is_iso.inv_hom_id_assoc, loop_of_hom, End.mul_def, category.assoc] } }
+  map_comp' := begin
+    intros,
+    rw [single_obj.comp_as_mul, ←f.map_mul],
+    simp only [is_iso.inv_hom_id_assoc, loop_of_hom, End.mul_def, category.assoc]
+  end }
 
 /-- Given a free groupoid and an arborescence of its generating quiver, the vertex
     group at the root is freely generated by loops coming from generating arrows
@@ -281,11 +263,10 @@ def End_is_free_group_of_arborescence : is_free_group (End T♯.root) :=
         one_inv, mul_one, one_mul, functor.map_inv, functor.map_comp] },
       intros a p, induction p with b c p e ih,
       { rw [hom_of_path, F'.map_id, single_obj.id_as_one] },
+      rw [hom_of_path, F'.map_comp, single_obj.comp_as_mul, ih, mul_one],
       rcases e with ⟨e | e, eT⟩,
-      { rw [hom_of_path, F'.map_comp, single_obj.comp_as_mul, ih, mul_one, hF'],
-        exact dif_pos (or.inl eT) },
-      { rw [hom_of_path, F'.map_comp, single_obj.comp_as_mul, ih, mul_one, F'.map_inv,
-          single_obj.inv_as_inv, inv_eq_one, hF'],
+      { rw hF', exact dif_pos (or.inl eT) },
+      { rw [F'.map_inv, single_obj.inv_as_inv, inv_eq_one, hF'],
         exact dif_pos (or.inr eT) } },
     { intros E hE,
       ext,
@@ -327,6 +308,7 @@ instance End_is_free_group_of_connected_free {G} [groupoid G] [is_connected G] [
   (r : G) : is_free_group (End r) :=
 End_is_free_group_of_arborescence (quiver.geodesic_subtree _ r)
 
+/-- The Nielsen-Schreier theorem: a subgroup of a free group is free. -/
 instance subgroup_is_free_of_free {G} [group.{u} G] [is_free_group G]
   (H : subgroup G) : is_free_group H :=
 is_free_group.of_mul_equiv (End_mul_equiv_subgroup H)

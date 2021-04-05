@@ -287,4 +287,62 @@ begin
     { simp [hl, mul_add] } }
 end
 
+section distrib
+
+variables (f : α → β → γ) (l : list α) (l' : list β) (n : ℕ)
+
+lemma zip_with_distrib_take :
+  (zip_with f l l').take n = zip_with f (l.take n) (l'.take n) :=
+begin
+  induction l with hd tl hl generalizing l' n,
+  { simp },
+  { cases l',
+    { simp },
+    { cases n,
+      { simp },
+      { simp [hl] } } }
+end
+
+lemma zip_with_distrib_drop :
+  (zip_with f l l').drop n = zip_with f (l.drop n) (l'.drop n) :=
+begin
+  induction l with hd tl hl generalizing l' n,
+  { simp },
+  { cases l',
+    { simp },
+    { cases n,
+      { simp },
+      { simp [hl] } } }
+end
+
+lemma zip_with_distrib_tail :
+  (zip_with f l l').tail = zip_with f l.tail l'.tail :=
+by simp_rw [←drop_one, zip_with_distrib_drop]
+
+lemma zip_with_append (f : α → β → γ) (l la : list α) (l' lb : list β) (h : l.length = l'.length) :
+  zip_with f (l ++ la) (l' ++ lb) = zip_with f l l' ++ zip_with f la lb :=
+begin
+  induction l with hd tl hl generalizing l',
+  { have : l' = [] := eq_nil_of_length_eq_zero (by simpa using h.symm),
+    simp [this], },
+  { cases l',
+    { simpa using h },
+    { simp only [add_left_inj, length] at h,
+      simp [hl _ h] } }
+end
+
+lemma zip_with_distrib_reverse (h : l.length = l'.length) :
+  (zip_with f l l').reverse = zip_with f l.reverse l'.reverse :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l' with hd' tl',
+    { simp },
+    { simp only [add_left_inj, length] at h,
+      have : tl.reverse.length = tl'.reverse.length := by simp [h],
+      simp [hl _ h, zip_with_append _ _ _ _ _ this] } }
+end
+
+end distrib
+
 end list

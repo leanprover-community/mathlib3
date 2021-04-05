@@ -68,4 +68,6 @@ begin
     { simp [erase_dup_cons_of_not_mem h] } }
 end
 
+@[simp] lemma erase_dup_singleton (x : α) : [x].erase_dup = [x] := rfl
+
 end list

@@ -96,6 +96,10 @@ by rw [rotate_eq_rotate', rotate'_length]
 @[simp] lemma rotate_length_mul (l : list α) (n : ℕ) : l.rotate (l.length * n) = l :=
 by rw [rotate_eq_rotate', rotate'_length_mul]
 
+/-- A version of `rotate_length_mul` useful for rewriting. -/
+lemma rotate_length_mul' (l : list α) (m n : ℕ) (h : l.length = m) : l.rotate (m * n) = l :=
+h ▸ rotate_length_mul _ _
+
 lemma prod_rotate_eq_one_of_prod_eq_one [group α] : ∀ {l : list α} (hl : l.prod = 1) (n : ℕ),
   (l.rotate n).prod = 1
 | []     _  _ := by simp
@@ -134,6 +138,22 @@ begin
   induction n with n hn,
   { simp },
   { rwa [rotate_cons_succ] }
+end
+
+lemma zip_with_rotate_distrib {α β γ : Type*} (f : α → β → γ) (l : list α) (l' : list β) (n : ℕ)
+  (h : l.length = l'.length) :
+  (zip_with f l l').rotate n = zip_with f (l.rotate n) (l'.rotate n) :=
+begin
+  cases l.length.zero_le.eq_or_lt with hl hl,
+  { simp [eq_nil_of_length_eq_zero hl.symm] },
+  { have : n = n % l.length + l.length * (n / l.length) := (nat.mod_add_div _ _).symm,
+    have hn : n % l.length < l.length := nat.mod_lt _ hl,
+    rw [this, ←rotate_rotate, ←rotate_rotate, ←rotate_rotate, rotate_length_mul',
+        rotate_length_mul', rotate_length_mul',
+        rotate_eq_take_append_drop, rotate_eq_take_append_drop,
+        rotate_eq_take_append_drop, zip_with_append, ←zip_with_distrib_drop,
+        ←zip_with_distrib_take],
+    all_goals { simp [←h, hn.le] } }
 end
 
 end list

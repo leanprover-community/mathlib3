@@ -213,7 +213,7 @@ theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
 lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
 
-@[simp] lemma nat.max_eq_zero (n m : ℕ) : max n m = 0 ↔ n = 0 ∧ m = 0 :=
+@[simp] lemma max_eq_zero (n m : ℕ) : max n m = 0 ↔ n = 0 ∧ m = 0 :=
 by simp [max_eq_iff] {contextual := tt}
 
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=

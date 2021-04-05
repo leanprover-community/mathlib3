@@ -75,7 +75,7 @@ theorem exists_finite_iff_finset {p : set α → Prop} :
 lemma finite.fin_embedding {s : set α} (h : finite s) : ∃ (n : ℕ) (f : fin n ↪ α), range f = s :=
 begin
   classical,
-  obtain ⟨f⟩ := nonempty_of_trunc (fintype.equiv_fin (h.to_finset : set α)),
+  obtain ⟨f⟩ := (fintype.equiv_fin (h.to_finset : set α)).nonempty,
   exact ⟨_, f.symm.as_embedding, by simp⟩
 end
 

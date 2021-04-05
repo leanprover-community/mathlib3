@@ -155,9 +155,28 @@ variables [comm_monoid β]
 @[simp, to_additive]
 lemma prod_empty {α : Type u} {f : α → β} : (∏ x in (∅:finset α), f x) = 1 := rfl
 
+section decidable_eq
+variables [decidable_eq α]
+
 @[simp, to_additive]
-lemma prod_insert [decidable_eq α] :
-  a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x := fold_insert
+lemma prod_insert : a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x :=
+fold_insert
+
+@[to_additive]
+lemma prod_eq_mul_prod_erase {s : finset α} {a : α} (h : a ∈ s) (f : α → β) :
+∏ i in s, f i = (f a) * ∏ i in erase s a, f i :=
+begin
+  conv_lhs { rw ← insert_erase h },
+  rw finset.prod_insert,
+  exact not_mem_erase a s
+end
+
+@[to_additive]
+lemma prod_eq_prod_erase_mul {s : finset α} {a : α} (h : a ∈ s) (f : α → β) :
+∏ i in s, f i = (∏ i in erase s a, f i) * f a :=
+by rw [finset.prod_eq_mul_prod_erase h, mul_comm]
+
+end decidable_eq
 
 /--
 The product of `f` over `insert a s` is the same as
@@ -228,12 +247,30 @@ end comm_monoid
 end finset
 
 section
+open finset
 variables [fintype α] [decidable_eq α] [comm_monoid β]
 
 @[to_additive]
 lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → β) :
   (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
 (finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+
+@[to_additive]
+lemma fintype.prod_eq_mul_prod_erase [fintype α] (a : α) (f : α → β) :
+∏ i, f i = (f a) * ∏ i in univ.erase a, f i :=
+begin
+  rw finset.prod_eq_mul_prod_erase,
+  exact mem_univ a
+end
+
+@[to_additive]
+lemma fintype.prod_eq_prod_erase_mul [fintype α] (a : α) (f : α → β) :
+∏ i, f i = (∏ i in univ.erase a, f i) * f a :=
+begin
+  rw finset.prod_eq_prod_erase_mul,
+  exact mem_univ a
+end
+
 end
 
 namespace finset

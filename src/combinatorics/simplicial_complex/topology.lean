@@ -74,7 +74,8 @@ def combi_frontier (X : finset E) : set E :=
   ⋃ Y ⊂ X, convex_hull Y
 
 lemma mem_combi_frontier_iff {X : finset E} {x : E} :
-  x ∈ combi_frontier X ↔ ∃ {Y}, Y ⊂ X ∧ x ∈ convex_hull (Y : set E) := sorry
+  x ∈ combi_frontier X ↔ ∃ Y, Y ⊂ X ∧ x ∈ convex_hull (Y : set E) :=
+by simp [combi_frontier]
 
 lemma combi_frontier_singleton {x : E} : combi_frontier ({x} : finset E) = ∅ :=
 begin
@@ -174,25 +175,6 @@ begin
   simp,
 end
 
-lemma nonempty_combi_interior_of_nonempty {X : finset E}
-  (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) (hXnonempty : X.nonempty) :
-  (combi_interior X).nonempty :=
-begin
-  --use centroid
-  sorry
-end
-
-lemma combi_interior_subset_convex_hull {X : finset E} : combi_interior X ⊆ convex_hull X :=
-  diff_subset _ _
-
-lemma closure_combi_interior_eq_convex_hull {X : finset E} :
-  closure (combi_interior X) = convex_hull (X : set E) := sorry --@Bhavik, this one is for you :)
-
-lemma space_eq {S : simplicial_complex m} : S.space = ⋃ (X ∈ S.faces), combi_interior X :=
-begin
-  sorry
-end
-
 lemma combi_interior_subset_positive_weighings {X : finset E} :
   combi_interior X ⊆
     {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ X, 0 < w y) (hw₁ : ∑ y in X, w y = 1),
@@ -222,6 +204,29 @@ begin
   rw (unique_combination hX w' w hw'₂ hw₂ hw'₃) y hy₁ at hy₂,
   exact ne_of_gt (hw₁ y hy₁) hy₂
 end
+
+lemma nonempty_combi_interior_of_nonempty {X : finset E}
+  (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) (hXnonempty : X.nonempty) :
+  (combi_interior X).nonempty :=
+begin
+  refine ⟨X.centroid ℝ id, _⟩,
+  rw finset.centroid_def,
+  have hXweights := X.sum_centroid_weights_eq_one_of_nonempty ℝ hXnonempty,
+  rw finset.affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ _ _ hXweights (0 : E),
+  simp only [vadd_eq_add, finset.weighted_vsub_of_point_apply, vsub_eq_sub, sub_zero, add_zero],
+  rw ←finset.center_mass_eq_of_sum_1 _ _ hXweights,
+  rw combi_interior_eq hX,
+  refine ⟨_, _, hXweights, rfl⟩,
+  intros y hy,
+  simpa [finset.card_pos] using hXnonempty,
+end
+
+lemma combi_interior_subset_convex_hull {X : finset E} : combi_interior X ⊆ convex_hull X :=
+  diff_subset _ _
+
+lemma closure_combi_interior_eq_convex_hull {X : finset E} :
+  closure (combi_interior X) = convex_hull (X : set E) := sorry --@Bhavik, this one is for you :)
+
 
 lemma combi_frontier_subset_convex_hull {X : finset E} : combi_frontier X ⊆ convex_hull X :=
   bUnion_subset (λ Y hY, convex_hull_mono hY.1)
@@ -299,6 +304,30 @@ begin
       exact ⟨_, subset.trans Zt st.1, hZ⟩ },
     { exact subset_bUnion_of_mem (λ _ t, t) ⟨hx, h⟩ } },
   { exact bUnion_subset (λ Y hY, subset.trans (diff_subset _ _) (convex_hull_mono hY)) },
+end
+
+lemma combi_interiors_cover (S : simplicial_complex m) :
+  S.space = ⋃ X ∈ S.faces, combi_interior X :=
+begin
+  apply subset.antisymm _ _,
+  { apply bUnion_subset,
+    rintro X hX,
+    rw simplex_combi_interiors_cover,
+    exact Union_subset (λ Y, Union_subset (λ YX, subset_bUnion_of_mem (S.down_closed hX YX)))},
+  { apply bUnion_subset,
+    rintro Y hY,
+    exact subset.trans (diff_subset _ _) (subset_bUnion_of_mem hY) }
+end
+
+/- The simplices interiors form a partition of the underlying space (except that they contain the
+empty set) -/
+lemma combi_interiors_partition {S : simplicial_complex m} {x} (hx : x ∈ S.space) :
+  ∃! X, X ∈ S.faces ∧ x ∈ combi_interior X :=
+begin
+  rw combi_interiors_cover S at hx,
+  simp only [set.mem_bUnion_iff] at hx,
+  obtain ⟨X, hX, hxX⟩ := hx,
+  exact ⟨X, ⟨⟨hX, hxX⟩, (λ Y ⟨hY, hxY⟩, disjoint_interiors hY hX x ⟨hxY, hxX⟩)⟩⟩,
 end
 
 lemma mem_convex_hull_iff {X : finset E} {x : E} :
@@ -401,29 +430,6 @@ begin
   }-/
 end
 
-lemma combi_interiors_cover (S : simplicial_complex m) :
-  S.space = ⋃ X ∈ S.faces, combi_interior X :=
-begin
-  apply subset.antisymm _ _,
-  { apply bUnion_subset,
-    rintro X hX,
-    rw simplex_combi_interiors_cover,
-    exact Union_subset (λ Y, Union_subset (λ YX, subset_bUnion_of_mem (S.down_closed hX YX)))},
-  { apply bUnion_subset,
-    rintro Y hY,
-    exact subset.trans (diff_subset _ _) (subset_bUnion_of_mem hY) }
-end
-
-/- The simplices interiors form a partition of the underlying space (except that they contain the
-empty set) -/
-lemma combi_interiors_partition {S : simplicial_complex m} {x} (hx : x ∈ S.space) :
-  ∃! X, X ∈ S.faces ∧ x ∈ combi_interior X :=
-begin
-  rw combi_interiors_cover S at hx,
-  simp only [set.mem_bUnion_iff] at hx,
-  obtain ⟨X, hX, hxX⟩ := hx,
-  exact ⟨X, ⟨⟨hX, hxX⟩, (λ Y ⟨hY, hxY⟩, disjoint_interiors hY hX x ⟨hxY, hxX⟩)⟩⟩,
-end
 
 lemma is_closed_convex_hull {X : finset E} : is_closed (convex_hull (X : set E)) :=
 X.finite_to_set.is_closed_convex_hull
@@ -679,7 +685,7 @@ lemma boundary_space_eq_of_full_dimensional {S : simplicial_complex m}
   frontier S.space = S.boundary.space :=
 begin
   rw space_frontier_eq,
-  rw space_eq,
+  rw combi_interiors_cover,
   ext x,
   split,
   {

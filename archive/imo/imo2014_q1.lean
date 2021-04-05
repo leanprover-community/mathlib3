@@ -10,10 +10,10 @@ import data.pnat.basic
 /-!
 # IMO 2014 Q1
 
-Let a₀ < a₁ < a₂ < ⋯ be an infinite sequence of positive integers.
-Prove that there exists a unique n ≥ 1 such that
+Let `a₀ < a₁ < a₂ < ⋯` be an infinite sequence of positive integers.
+Prove that there exists a unique `n ≥ 1` such that
 
-  aₙ < (a₀ + a₁ + ⋯ + aₙ) / n < aₙ₊₁.
+  `aₙ < (a₀ + a₁ + ⋯ + aₙ) / n < aₙ₊₁`.
 
 This solutions is a translation of the official solution, which may be found as the
 solution to problem A1 [here](https://www.imo-official.org/problems/IMO2014SL.pdf).
@@ -23,29 +23,25 @@ open_locale big_operators
 
 noncomputable theory
 
-/- The integer sequence. -/
+/-- The integer sequence. -/
 variable (a : ℕ → ℤ)
 
-/- We define an auxiliary sequence `d a : ℕ+ → ℤ` by
+/-- We define an auxiliary sequence `d a : ℕ+ → ℤ` by
   `d a n = (a 0 + a 1 + ⋯ + a n) - n * (a n)`. -/
 def d (n : ℕ+) : ℤ := (∑ i : fin (n + 1), a i) - n * (a n)
 
 lemma first_ineq_iff {n : ℕ+} :
   (a n : ℚ) < (↑∑ i : fin (n + 1), a i : ℚ) / n ↔ 0 < d a n :=
-begin
+show _ < _ / ↑(n : ℤ) ↔ _, begin
   have : (↑(a n) : ℚ) = ↑(a n) / ↑(1 : ℤ) := by simp,
-  change _ < _ / ↑(n : ℤ) ↔ _,
-  rw [this, rat.div_lt_div_iff_mul_lt_mul], swap,
-  { norm_num }, swap,
-  { norm_cast, have : 1 ≤ ↑n := pnat.one_le n, linarith },
-  simp [d, mul_comm],
+  rw [this, rat.div_lt_div_iff_mul_lt_mul (int.zero_lt_one)],
+  { simp [d, mul_comm] }, simp,
 end
 
 lemma second_ineq_iff {n : ℕ+} :
   (↑∑ i : fin (n + 1), a i : ℚ) / n ≤ a (n + 1) ↔ d a (n + 1) ≤ 0 :=
-begin
-  have : (↑(a (n + 1)) : ℚ) = ↑(a (n + 1)) / ↑(1 : ℤ) := by simp,
-  change _ / ↑(n : ℤ) ≤ _ ↔ _, rw this,
+show _ / ↑(n : ℤ) ≤ _ ↔ _, begin
+  have : (↑(a (n + 1)) : ℚ) = ↑(a (n + 1)) / ↑(1 : ℤ) := by simp, rw this,
   simp only [rat.div_num_denom, mul_one, rat.num_one, one_mul, rat.coe_int_denom, int.coe_nat_zero,
     rat.coe_int_num, int.coe_nat_succ, zero_add, coe_coe],
   rw rat.le_def, swap,
@@ -56,7 +52,7 @@ begin
   rw [add_le_add_iff_right,	mul_comm], refl,
 end
 
-/- We rephrase the original question into a question about `d a`. -/
+/-- We rephrase the original question into a question about `d a`. -/
 lemma ineq_iff {n : ℕ+} :
   (a n : ℚ) < (↑∑ i : fin (n + 1), a i : ℚ) / n ∧
   (↑∑ i : fin (n + 1), a i : ℚ) / n ≤ a (n + 1)
@@ -65,25 +61,18 @@ lemma ineq_iff {n : ℕ+} :
   λ h, ⟨(first_ineq_iff a).2 h.1, (second_ineq_iff a).2 h.2⟩⟩
 
 lemma d_one : d a 1 = a 0 :=
-show a 0 + (a 1 + 0) - 1 * (a 1) = a 0, by ring
+show a 0 + (a 1 + 0) - 1 * a 1 = a 0, by simp
 
-/- If `a` is strictly increasing, then `d a` is strictly decreasing. -/
-lemma ddes (hinc : ∀ n, a n < a (n + 1)) : ∀ n, d a (n + 1) < d a n :=
-begin
-  intro n,
-  have : ↑n * (a n - a (n + 1)) < 0 :=
-    mul_neg_iff.mpr (or.inl ⟨by simp, sub_lt_zero.mpr (hinc n)⟩),
-  have hneg : d a (n + 1) - d a n < 0, from
-    calc ((∑ i : fin (n + 2), a i) - (n + 1) * (a (n + 1)))
-          - ((∑ i : fin (n + 1), a i) - n * (a n))
-          = ((∑ i : fin (n + 1), a i) + a (n + 1) - (n + 1) * (a (n + 1)))
-          - ((∑ i : fin (n + 1), a i) - n * (a n))
-      : by simp [fin.sum_univ_cast_succ]
-    ... = a (n + 1) - (n + 1) * (a (n + 1)) + n * (a n)  : by ring
-    ... = n * (a n - a (n + 1))                          : by ring
-    ... < 0                                              : this,
-  linarith,
-end
+/-- If `a` is strictly increasing, then `d a` is strictly decreasing. -/
+lemma ddes (hinc : ∀ n, a n < a (n + 1)) (n : ℕ+) : d a (n + 1) < d a n :=
+lt_of_sub_neg $
+  calc ((∑ i : fin (n + 2), a i) - (n + 1) * a (n + 1))
+        - ((∑ i : fin (n + 1), a i) - n * a n)
+      = ((∑ i : fin (n + 1), a i) + a (n + 1) - (n + 1) * a (n + 1))
+        - ((∑ i : fin (n + 1), a i) - n * a n) : by simp [fin.sum_univ_cast_succ]
+  ... = n * (a n - a (n + 1))                  : by ring
+  ... < 0
+    : mul_neg_iff.mpr (or.inl ⟨by simp, sub_neg_of_lt (hinc n)⟩)
 
 section descending
 
@@ -97,12 +86,10 @@ include hdes
 theorem lt_of_lt_of_des {n m : ℕ+} (hnm : n < m) :
   f m < f n :=
 begin
-  have : ∀ k : ℕ, f (n + ⟨k + 1, by linarith⟩) < f n,
+  have : ∀ k : ℕ, f (n + ⟨k + 1, nat.succ_pos k⟩) < f n,
   { intro k, induction k with k ih,
     { exact hdes n },
-    apply lt_trans _ ih,
-    change f (n + ⟨k + 1, by linarith⟩ + 1) < _,
-    exact hdes _ },
+    apply lt_trans (hdes _) ih },
   convert this (↑(m - n) - 1),
   have : 1 ≤ ↑(m - n) := (pnat.coe_le_coe 1 _).mpr (pnat.one_le _),
   simp [nat.sub_add_cancel this, pnat.add_sub_of_lt hnm],

@@ -25,6 +25,7 @@ groups.
 # Project:
 
 - Prove that a functor is additive if it preserves finite biproducts
+  (See https://stacks.math.columbia.edu/tag/010M.)
 -/
 
 namespace category_theory

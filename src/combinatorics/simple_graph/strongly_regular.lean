@@ -46,20 +46,50 @@ structure is_SRG_of (n k l m : ℕ) : Prop :=
 (card : fintype.card V = n)
 (regular : G.is_regular_of_degree k)
 (adj_common : ∀ (v w : V), G.adj v w → fintype.card (G.common_neighbors v w) = l)
-(nadj_common : ∀ (v w : V), ¬ G.adj v w → fintype.card (G.common_neighbors v w) = m)
+(nadj_common : ∀ (v w : V), ¬ G.adj v w ∧ v ≠ w → fintype.card (G.common_neighbors v w) = m)
 
-lemma complete_strongly_regular :
-  (complete_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) 0 :=
+lemma complete_strongly_regular (x : ℕ) :
+  (complete_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) x :=
 { card := rfl,
   regular := complete_graph_degree,
   adj_common := λ v w h,
     begin
-      unfold common_neighbors,
-      simp,
+      simp only [finset.filter_congr_decidable, fintype.card_of_finset, mem_common_neighbors],
+      have h2 : (finset.filter (λ (x : V), ¬ (v ≠ x ∧ w ≠ x)) finset.univ).card = 2,
+      { simp_rw [not_and_distrib, not_not, finset.filter_or],
+        convert_to finset.card (insert v {w}) = 2,
+        { congr' 1,
+          ext; simp,
+          split,
 
-      sorry,
+          intros h,
+          cases h with av aw,
+          rw ← av,
+          refine finset.mem_insert_self v {w},
+          rw ← aw,
+          rw finset.insert_singleton_comm,
+          refine finset.mem_insert_self w {v},
+
+          intros h,
+          finish },
+        rw finset.card_insert_of_not_mem,
+        refl,
+        rw finset.not_mem_singleton,
+        apply ne_of_adj _ h },
+      apply @nat.add_right_cancel _ 2 _,
+      rw nat.sub_add_cancel,
+      rw ← finset.card_univ,
+      change (finset.filter (λ (x : V), v ≠ x ∧ w ≠ x) finset.univ).card + 2 = finset.univ.card,
+      rw [← h2, finset.filter_card_add_filter_neg_card_eq_card],
+      rw [← h2, ← finset.card_univ],
+      apply finset.card_filter_le,
     end,
-  nadj_common := sorry }
+  nadj_common := λ v w h,
+    begin
+      cases h with hnadj hne,
+      by_contra,
+      sorry
+    end }
 
 -- Prove that the complement of a strongly regular graph is strongly regular with parameters
   -- `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (v - 2k + l)`

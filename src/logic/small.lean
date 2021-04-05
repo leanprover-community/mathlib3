@@ -94,4 +94,25 @@ end
 instance small_of_encodable (α : Type v) [encodable α] : small.{w} α :=
 small_of_injective _ (encodable.encode_injective)
 
+instance small_Pi {α} (β : α → Type*) [small.{w} α] [∀ a, small.{w} (β a)] :
+  small.{w} (Π a, β a) :=
+⟨⟨Π a' : shrink α, shrink (β ((equiv_shrink α).symm a')),
+  ⟨equiv.Pi_congr (equiv_shrink α) (λ a, by simpa using equiv_shrink (β a))⟩⟩⟩
+
+instance small_sigma {α} (β : α → Type*) [small.{w} α] [∀ a, small.{w} (β a)] :
+  small.{w} (Σ a, β a) :=
+⟨⟨Σ a' : shrink α, shrink (β ((equiv_shrink α).symm a')),
+  ⟨equiv.sigma_congr (equiv_shrink α) (λ a, by simpa using equiv_shrink (β a))⟩⟩⟩
+
+instance small_prod {α β} [small.{w} α] [small.{w} β] : small.{w} (α × β) :=
+⟨⟨shrink α × shrink β,
+  ⟨equiv.prod_congr (equiv_shrink α) (equiv_shrink β)⟩⟩⟩
+
+instance small_sum {α β} [small.{w} α] [small.{w} β] : small.{w} (α ⊕ β) :=
+⟨⟨shrink α ⊕ shrink β,
+  ⟨equiv.sum_congr (equiv_shrink α) (equiv_shrink β)⟩⟩⟩
+
+instance small_set {α} [small.{w} α] : small.{w} (set α) :=
+⟨⟨set (shrink α), ⟨equiv.set.congr (equiv_shrink α)⟩⟩⟩
+
 end

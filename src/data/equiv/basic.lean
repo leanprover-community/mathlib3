@@ -1737,11 +1737,11 @@ of_left_inverse f (λ _, f_inv) (λ _, hf)
 
 /-- If `f : α → β` is an injective function, then domain `α` is equivalent to the range of `f`. -/
 @[simps apply]
-noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=
+noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ set.range f :=
 equiv.of_left_inverse f
   (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun hf)
 
-theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : _root_.set.range f) :
+theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : set.range f) :
   f ((of_injective f hf).symm b) = b :=
 subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
 
@@ -1762,6 +1762,46 @@ lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (
 @[simp] lemma of_bijective_symm_apply_apply {α β} (f : α → β) (hf : bijective f) (x : α) :
   (of_bijective f hf).symm (f x) = x :=
 (of_bijective f hf).symm_apply_apply x
+
+section
+
+variables {α' β' : Type*} (e : perm α') {p : β' → Prop} [decidable_pred p]
+  (f : α' ≃ subtype p)
+
+/--
+Extend the domain of `e : equiv.perm α` to one that is over `β` via `f : α → subtype p`,
+where `p : β → Prop`, permuting only the `b : β` that satisfy `p b`.
+This can be used to extend the domain across a function `f : α → β`,
+keeping everything outside of `set.range f` fixed. For this use-case `equiv` given by `f` can
+be constructed by `equiv.of_left_inverse'` or `equiv.of_left_inverse` when there is a known
+inverse, or `equiv.of_injective` in the general case.`.
+-/
+def perm.extend_domain : perm β' :=
+(perm_congr f e).subtype_congr (equiv.refl _)
+
+@[simp] lemma perm.extend_domain_apply_image (a : α') :
+  e.extend_domain f (f a) = f (e a) :=
+by simp [perm.extend_domain]
+
+lemma perm.extend_domain_apply_subtype {b : β'} (h : p b) :
+  e.extend_domain f b = f (e (f.symm ⟨b, h⟩)) :=
+by simp [perm.extend_domain, h]
+
+lemma perm.extend_domain_apply_not_subtype {b : β'} (h : ¬ p b) :
+  e.extend_domain f b = b :=
+by simp [perm.extend_domain, h]
+
+@[simp] lemma perm.extend_domain_refl : perm.extend_domain (equiv.refl _) f = equiv.refl _ :=
+by simp [perm.extend_domain]
+
+@[simp] lemma perm.extend_domain_symm :
+  (e.extend_domain f).symm = perm.extend_domain e.symm f := rfl
+
+lemma perm.extend_domain_trans (e e' : perm α') :
+  (e.extend_domain f).trans (e'.extend_domain f) = perm.extend_domain (e.trans e') f :=
+by simp [perm.extend_domain, perm_congr_trans]
+
+end
 
 /-- Subtype of the quotient is equivalent to the quotient of the subtype. Let `α` be a setoid with
 equivalence relation `~`. Let `p₂` be a predicate on the quotient type `α/~`, and `p₁` be the lift

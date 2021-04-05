@@ -23,8 +23,8 @@ import data.set.finite
   `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (v - 2k + l)`
 - Prove that the parameters of a strongly regular graph
   obey relation `(n - k - 1) * m = k * (k - l - 1)`
-- Prove that if I is the identity matrix and J is the all-one matrix,
-  then the adj matrix A of SRG obeys relation A^2 = kI + lA + m(J - I - A)
+- Prove that if `I` is the identity matrix and `J` is the all-one matrix,
+  then the adj matrix `A` of SRG obeys relation `A^2 = kI + lA + m(J - I - A)`
 -/
 
 universes u

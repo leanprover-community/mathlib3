@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import data.equiv.encodable.basic
 import data.fintype.basic
-import logic.girard
 
 /-!
 # Small types
@@ -98,10 +97,8 @@ instance small_of_encodable (α : Type v) [encodable α] : small.{w} α :=
 small_of_injective _ (encodable.encode_injective)
 
 theorem not_small_type : ¬ small.{u} (Type (max u v))
-| ⟨⟨S, ⟨e⟩⟩⟩ := girard
-  (λ f, Π y, f (e.symm y))
-  (λ A p t, p _)
-  (λ A p t, cast (congr_arg A (e.3 t)) (p (e t)))
-  (λ A p t, cast_eq_iff_heq.2 (congr_arg_heq _ (e.3 _)))
+| ⟨⟨S, ⟨e⟩⟩⟩ := @function.cantor_injective (Σ α, e.symm α)
+  (λ a, ⟨_, cast (e.3 _).symm a⟩)
+  (λ a b e, (cast_inj _).1 $ eq_of_heq (sigma.mk.inj e).2)
 
 end

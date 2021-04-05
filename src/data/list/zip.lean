@@ -185,6 +185,17 @@ by { rw ←zip_map', congr, exact map_id _ }
 lemma map_prod_right_eq_zip {l : list α} (f : α → β) : l.map (λ x, (f x, x)) = (l.map f).zip l :=
 by { rw ←zip_map', congr, exact map_id _ }
 
+lemma zip_with_comm (f : α → α → β) (comm : ∀ (x y : α), f x y = f y x)
+  (l l' : list α) :
+  zip_with f l l' = zip_with f l' l :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l',
+    { simp },
+    { simp [comm, hl] } }
+end
+
 @[simp] theorem length_revzip (l : list α) : length (revzip l) = length l :=
 by simp only [revzip, length_zip, length_reverse, min_self]
 

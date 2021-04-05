@@ -94,6 +94,7 @@ meta def tr : bool → list string → list string
 | is_comm ("mul" :: "support" :: s)   := add_comm_prefix is_comm "support"   :: tr ff s
 | is_comm ("mul" :: "indicator" :: s) := add_comm_prefix is_comm "indicator" :: tr ff s
 | is_comm ("mul" :: s)                := add_comm_prefix is_comm "add"       :: tr ff s
+| is_comm ("smul" :: s)               := add_comm_prefix is_comm "vadd"      :: tr ff s
 | is_comm ("inv" :: s)                := add_comm_prefix is_comm "neg"       :: tr ff s
 | is_comm ("div" :: s)                := add_comm_prefix is_comm "sub"       :: tr ff s
 | is_comm ("one" :: s)                := add_comm_prefix is_comm "zero"      :: tr ff s

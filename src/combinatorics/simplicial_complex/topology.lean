@@ -7,6 +7,7 @@ import linear_algebra.affine_space.finite_dimensional
 import linear_algebra.affine_space.combination
 import linear_algebra.finite_dimensional
 import analysis.convex.topology
+import analysis.specific_limits
 import combinatorics.simplicial_complex.dump
 import combinatorics.simplicial_complex.extreme_point
 import combinatorics.simplicial_complex.basic
@@ -205,21 +206,23 @@ begin
   exact ne_of_gt (hw₁ y hy₁) hy₂
 end
 
-lemma nonempty_combi_interior_of_nonempty {X : finset E}
+lemma centroid_mem_combi_interior {X : finset E}
   (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) (hXnonempty : X.nonempty) :
-  (combi_interior X).nonempty :=
+  X.centroid ℝ id ∈ combi_interior X :=
 begin
-  refine ⟨X.centroid ℝ id, _⟩,
   rw finset.centroid_def,
   have hXweights := X.sum_centroid_weights_eq_one_of_nonempty ℝ hXnonempty,
-  rw finset.affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ _ _ hXweights (0 : E),
-  simp only [vadd_eq_add, finset.weighted_vsub_of_point_apply, vsub_eq_sub, sub_zero, add_zero],
-  rw ←finset.center_mass_eq_of_sum_1 _ _ hXweights,
+  rw center_mass_eq_affine_combination hXweights,
   rw combi_interior_eq hX,
   refine ⟨_, _, hXweights, rfl⟩,
   intros y hy,
   simpa [finset.card_pos] using hXnonempty,
 end
+
+lemma nonempty_combi_interior_of_nonempty {X : finset E}
+  (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) (hXnonempty : X.nonempty) :
+  (combi_interior X).nonempty :=
+⟨X.centroid ℝ id, centroid_mem_combi_interior hX hXnonempty⟩
 
 lemma combi_interior_subset_convex_hull {X : finset E} : combi_interior X ⊆ convex_hull X :=
   diff_subset _ _
@@ -239,11 +242,83 @@ begin
     apply is_closed_convex_hull }
 end
 
-lemma subset_closure_combi_interior {X : finset E} : (X : set E) ⊆ closure (combi_interior X) :=
+-- /-- A sequence converges in the sence of topological spaces iff the associated statement for filter
+-- holds. -/
+-- lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
+--   tendsto x at_top (𝓝 limit) ↔
+--     ∀ U : set α, limit ∈ U → is_open U → ∃ N, ∀ n ≥ N, (x n) ∈ U :=
+
+-- /-- The sequential closure of a subset M ⊆ α of a topological space α is
+-- the set of all p ∈ α which arise as limit of sequences in M. -/
+-- def sequential_closure (M : set α) : set α :=
+-- {p | ∃ x : ℕ → α, (∀ n : ℕ, x n ∈ M) ∧ (x ⟶ p)}
+
+-- lemma combi_interior_eq {X : finset E} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
+--   combi_interior X =
+--     {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ X, 0 < w y) (hw₁ : ∑ y in X, w y = 1),
+--       X.center_mass w id = x} :=
+
+example {n : ℕ} : 1 ≤ n + 2 :=
 begin
-  sorry
-  -- One idea is to use the weightings (1 - k/n, 1/n, 1/n, ..., 1/n)
-  -- where n → ∞ and `k+1 = X.card`
+  apply nat.succ_pos,
+end
+
+lemma subset_closure_combi_interior {X : finset E}
+  (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
+  (X : set E) ⊆ closure (combi_interior X) :=
+begin
+  rintro x (hx : x ∈ X),
+  apply sequential_closure_subset_closure,
+  have hXnonempty : X.nonempty := ⟨x, hx⟩,
+  have centroid_weights : ∑ (i : fin m → ℝ) in X, finset.centroid_weights ℝ X i = 1,
+  { apply finset.sum_centroid_weights_eq_one_of_nonempty ℝ _ hXnonempty },
+  refine ⟨_, _, _⟩,
+  { intro n,
+    apply ((n:ℝ)+2)⁻¹ • X.centroid ℝ id + (1-((n:ℝ)+2)⁻¹) • x },
+  { intro n,
+    rw finset.centroid_def,
+    rw center_mass_eq_affine_combination _,
+    { rw ←id.def x,
+      rw ←finset.center_mass_ite_eq _ _ id hx,
+      rw finset.center_mass_segment,
+      { rw combi_interior_eq hX,
+        refine ⟨_, _, _, rfl⟩,
+        { simp only [mul_boole, finset.centroid_weights_apply],
+          intros y hy,
+          apply add_pos_of_pos_of_nonneg,
+          { apply mul_pos,
+            { rw inv_pos,
+              norm_cast,
+              simp, },
+            { rw inv_pos,
+              norm_cast,
+              rwa finset.card_pos } },
+          { split_ifs,
+            { rw sub_nonneg,
+              apply inv_le_one,
+              norm_cast,
+              apply nat.succ_pos },
+            { refl } } },
+        rw [finset.sum_add_distrib, ←finset.mul_sum, centroid_weights, ←finset.mul_sum,
+          finset.sum_boole, finset.filter_eq],
+        simp [hx] },
+      { apply centroid_weights },
+      { simp [finset.sum_boole, finset.filter_eq, hx] },
+      { simp only [add_sub_cancel'_right] } },
+    apply finset.sum_centroid_weights_eq_one_of_nonempty ℝ _ hXnonempty },
+  { rw tendsto_iff_norm_tendsto_zero,
+    convert_to filter.tendsto (λ (e:ℕ), ((e:ℝ)+2)⁻¹ * ∥X.centroid ℝ id - x∥) filter.at_top _,
+    { ext n,
+      rw [add_sub_assoc, sub_smul, sub_right_comm, one_smul, sub_self, zero_sub, ←smul_neg,
+        ←smul_add, norm_smul_of_nonneg, ←sub_eq_add_neg],
+      rw inv_nonneg,
+      norm_cast,
+      apply nat.zero_le },
+    suffices : filter.tendsto (λ (e : ℕ), ((↑(e + 2):ℝ))⁻¹) filter.at_top (nhds 0),
+    { simpa using this.mul_const _ },
+    refine tendsto_inv_at_top_zero.comp _,
+    rw tendsto_coe_nat_at_top_iff,
+    apply filter.tendsto_add_at_top_nat }
 end
 
 lemma convex_combi_interior {X : finset E} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
@@ -269,7 +344,7 @@ begin
   apply set.subset.antisymm,
   { rw is_closed.closure_subset_iff is_closed_convex_hull,
     apply combi_interior_subset_convex_hull },
-  refine convex_hull_min subset_closure_combi_interior _,
+  refine convex_hull_min (subset_closure_combi_interior hX) _,
   apply convex.closure,
   apply convex_combi_interior hX,
 end

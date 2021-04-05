@@ -443,6 +443,9 @@ begin
   exact or.inl h
 end
 
+lemma nsmul_cons {s : multiset α} (n : ℕ) (a : α) : n • (a ::ₘ s) = n • {a} + n • s :=
+by rw [←singleton_add, nsmul_add]
+
 /-! ### Cardinality -/
 
 /-- The cardinality of a multiset is the sum of the multiplicities

@@ -425,6 +425,24 @@ by rw [add_comm, cons_add, add_comm]
 @[simp] theorem mem_add {a : α} {s t : multiset α} : a ∈ s + t ↔ a ∈ s ∨ a ∈ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, mem_append
 
+lemma mem_of_mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h : a ∈ n • s) : a ∈ s :=
+begin
+  induction n with n ih,
+  { rw zero_nsmul at h,
+    exact absurd h (not_mem_zero _) },
+  { rw [succ_nsmul, mem_add] at h,
+    exact h.elim id ih },
+end
+
+@[simp]
+lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) : a ∈ n • s ↔ a ∈ s :=
+begin
+  refine ⟨mem_of_mem_nsmul, λ h, _⟩,
+  obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero h0,
+  rw [succ_nsmul, mem_add],
+  exact or.inl h
+end
+
 /-! ### Cardinality -/
 
 /-- The cardinality of a multiset is the sum of the multiplicities
@@ -2053,17 +2071,6 @@ instance : semilattice_sup_bot (multiset α) :=
   bot_le := zero_le,
   ..multiset.lattice }
 
-end
-
-@[simp]
-lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
-  a ∈ n • s ↔ a ∈ s :=
-begin
-  classical,
-  cases n,
-  { exfalso, apply h0 rfl },
-  rw [← not_iff_not, ← count_eq_zero, ← count_eq_zero],
-  simp [h0],
 end
 
 /-! ### Lift a relation to `multiset`s -/

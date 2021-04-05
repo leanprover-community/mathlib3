@@ -90,7 +90,7 @@ theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
 @[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 is_lub_le_iff (is_lub_Sup s)
 
-lemma le_Sup_iff (a : α) (s : set α) :
+lemma le_Sup_iff :
   a ≤ Sup s ↔ (∀ b, (∀ x ∈ s, x ≤ b) → a ≤ b) :=
 ⟨λ h b hb, le_trans h (Sup_le hb), λ hb, hb _ (λ x, le_Sup)⟩
 
@@ -139,7 +139,7 @@ theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
 @[simp] theorem le_Inf_iff : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
 le_is_glb_iff (is_glb_Inf s)
 
-lemma Inf_le_iff (a : α) (s : set α) :
+lemma Inf_le_iff :
   Inf s ≤ a ↔ (∀ b, (∀ x ∈ s, b ≤ x) → b ≤ a) :=
 ⟨λ h b hb, le_trans (le_Inf hb) h, λ hb, hb _ (λ x, Inf_le)⟩
 

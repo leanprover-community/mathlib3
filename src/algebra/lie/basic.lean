@@ -48,7 +48,7 @@ lie bracket, jacobi identity, lie ring, lie algebra, lie module
 universes u v w w₁ w₂
 
 /-- A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
-Jacobi identity. The bracket is not associative unless it is identically zero. -/
+Jacobi identity. -/
 @[protect_proj] class lie_ring (L : Type v) extends add_comm_group L, has_bracket L L :=
 (add_lie : ∀ (x y z : L), ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆)
 (lie_add : ∀ (x y z : L), ⁅x, y + z⁆ = ⁅x, y⁆ + ⁅x, z⁆)

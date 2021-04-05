@@ -1111,6 +1111,11 @@ def ker (f : G →* N) := (⊥ : subgroup N).comap f
 lemma mem_ker (f : G →* N) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
 @[to_additive]
+instance decidable_mem_ker [decidable_eq N] (f : G →* N) :
+  decidable_pred (∈ f.ker) :=
+λ x, decidable_of_iff (f x = 1) f.mem_ker
+
+@[to_additive]
 lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl
 
 @[to_additive] lemma to_range_ker (f : G →* N) : ker (to_range f) = ker f :=
@@ -1365,6 +1370,29 @@ attribute [to_additive add_subgroup.range_gmultiples_hom] subgroup.range_gpowers
 attribute [to_additive add_subgroup.gmultiples_subset] subgroup.gpowers_subset
 
 end add_subgroup
+
+lemma of_mul_image_gpowers_eq_gmultiples_of_mul { x : G } :
+  additive.of_mul '' ((subgroup.gpowers x) : set G) = add_subgroup.gmultiples (additive.of_mul x) :=
+begin
+  ext y,
+  split,
+  { rintro ⟨z, ⟨m, hm⟩, hz2⟩,
+    use m,
+    simp only,
+    rwa [← of_mul_gpow, hm] },
+  { rintros ⟨n, hn⟩,
+    refine ⟨x ^ n, ⟨n, rfl⟩, _⟩,
+    rwa of_mul_gpow }
+end
+
+lemma of_add_image_gmultiples_eq_gpowers_of_add {x : A} :
+  multiplicative.of_add '' ((add_subgroup.gmultiples x) : set A) =
+  subgroup.gpowers (multiplicative.of_add x) :=
+begin
+  symmetry,
+  rw equiv.eq_image_iff_symm_image_eq,
+  exact of_mul_image_gpowers_eq_gmultiples_of_mul,
+end
 
 namespace mul_equiv
 

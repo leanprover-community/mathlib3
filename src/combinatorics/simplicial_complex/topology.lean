@@ -465,9 +465,9 @@ begin
       simp at hXunique,
       use [X, hX],
       split,
-      { rintro rfl,
-        simp at hXhull,
-        exact hXhull },
+      { apply finset.nonempty_of_ne_empty,
+        rintro rfl,
+        simpa using hXhull },
       rintro hXlocallyfinite,
       apply hx,
       suffices h : {X : finset (fin m → ℝ) | X ∈ S.faces ∧ x ∈ convex_hull ↑X} ⊆
@@ -493,10 +493,10 @@ begin
       rintro X ⟨hX, h⟩,
       exact hxspace (mem_bUnion hX h) }},
   { rintro hS X hX h,
-    obtain ⟨x, hx⟩ := finset.nonempty_iff_ne_empty.2 h,
+    obtain ⟨x, hx⟩ := h,
     suffices h : {Y : finset (fin m → ℝ) | Y ∈ S.faces ∧ X ⊆ Y} ⊆
       {Y : finset (fin m → ℝ) | Y ∈ S.faces ∧ x ∈ convex_hull ↑Y},
-    { exact finite.subset (hS x) h },
+    { exact (hS x).subset h },
     rintro Y ⟨hY, hXY⟩,
     exact ⟨hY, subset_convex_hull Y (hXY hx)⟩ }
 end
@@ -651,8 +651,7 @@ lemma boundary_face_iff_subset_space_frontier_of_full_dimensional {S : simplicia
   X ∈ S.boundary.faces ↔ X ∈ S.faces ∧ ↑X ⊆ frontier S.space :=
 begin
   split,
-  {
-    rintro ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩,
+  { rintro ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩,
     use S.down_closed hY hXY,
     sorry
   },
@@ -714,18 +713,14 @@ begin
   rintro X₁ hX₁,-/
 
   use hspace,
-  rintro X₁ ⟨Y₁, Z₁, hY₁, hZ₁, hX₁Y₁, hY₁Z₁, hZ₁max⟩,
+  rintro X₁ ⟨Y₁, hY₁, hX₁Y₁, Z₁, hZ₁, hY₁Z₁, hZ₁max⟩,
   obtain ⟨X₂, hX₂, hX₁X₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2
     (S₁.down_closed hY₁ hX₁Y₁),
   obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hY₁,
   obtain ⟨Z₂, hZ₂, hZ₁Z₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hZ₁,
-  use X₂,
-  rw and.comm,
-  use convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior hX₁X₂,
-  use [Y₂, Z₂, hY₂, hZ₂],
-  split,
-  {
-    apply subset_of_convex_hull_subset_convex_hull hX₂ hY₂,
+  refine ⟨X₂, _, convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior hX₁X₂⟩,
+  refine ⟨Y₂, hY₂, _, Z₂, hZ₂, _⟩,
+  { apply subset_of_convex_hull_subset_convex_hull hX₂ hY₂,
     sorry
   },
   sorry
@@ -739,12 +734,14 @@ lemma two_surfaces_of_non_boundary_subcell_of_full_dimensional {S : simplicial_c
   nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 2 :=
   -- It's probably a bad idea to use `nat.card` since it's incredibly underdeveloped for doing
   -- actual maths in
+  -- Does this lemma need you to assume locally finite (at X)? If so, the set you care about is a
+  -- subset of the set we know is finite, so we can convert to a finset and use normal card
 begin
-  have aux_lemma : ∀ {a b : E}, a ≠ b → a ∉ X → b ∉ X → X ∪ {a} ∈ S.faces → X ∪ {b} ∈ S.faces →
-    ∃ w : E → ℝ, w a < 0 ∧ ∑ y in X ∪ {a}, w y = 1 ∧ (X ∪ {a}).center_mass w id = b,
-  {
-    sorry
-  },
+  -- have aux_lemma : ∀ {a b : E}, a ≠ b → a ∉ X → b ∉ X → X ∪ {a} ∈ S.faces → X ∪ {b} ∈ S.faces →
+  --   ∃ w : E → ℝ, w a < 0 ∧ ∑ y in X ∪ {a}, w y = 1 ∧ (X ∪ {a}).center_mass w id = b,
+  -- {
+  --   sorry
+  -- },
 
 end
 

@@ -31,7 +31,7 @@ TODO: generalise to normed affine spaces `E`, so this is `simplicial_complex E`.
 variables {m} {S : simplicial_complex m}
 
 /--
-A constructor for simplicial complexes by specifying a surcomplex and making the set of faces
+A constructor for simplicial complexes by specifying a surcomplex whose set of faces is
 downward closed.
 -/
 @[simp] def simplicial_complex.of_surcomplex {S : simplicial_complex m}
@@ -951,12 +951,16 @@ begin
     exact hX.1, }
 end
 
+def simplicial_complex.on_boundary (S : simplicial_complex m) (X : finset E) : Prop :=
+∃ (Z ∈ S.faces), X ⊂ Z ∧ ∀ {Z'}, Z' ∈ S.faces → X ⊂ Z' → Z = Z'
 
 def simplicial_complex.boundary (S : simplicial_complex m) : simplicial_complex m :=
 simplicial_complex.of_surcomplex
-  {X | ∃ {Y Z}, Y ∈ S.faces ∧ Z ∈ S.faces ∧ X ⊆ Y ∧ Y ⊂ Z ∧ ∀ {Z'}, Z' ∈ S.faces → Y ⊂ Z' → Z = Z'}
-  (λ X ⟨Y, Z, hY, hZ, hXY, _⟩, S.down_closed hY hXY)
-  (λ X W ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩ hWX, ⟨Y, Z, hY, hZ, subset.trans hWX hXY, hYZ, (λ Z', hZunique)⟩)
+  {X | ∃ Y ∈ S.faces, X ⊆ Y ∧ S.on_boundary Y}
+  (λ X ⟨Y, hY, hXY, _⟩, S.down_closed hY hXY)
+  (λ X W ⟨Y, hY, hXY, Z⟩ hWX, ⟨Y, hY, subset.trans hWX hXY, Z⟩)
+  -- (λ X ⟨Y, Z, hY, hZ, hXY, _⟩, S.down_closed hY hXY)
+  -- (λ X W ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩ hWX, ⟨Y, Z, hY, hZ, subset.trans hWX hXY, hYZ, (λ Z', hZunique)⟩)
 /-Previous def
 def simplicial_complex.boundary (S : simplicial_complex m) : simplicial_complex m :=
 simplicial_complex.of_surcomplex
@@ -982,65 +986,54 @@ lemma boundary_singleton_empty {S : simplicial_complex m} (hS : S.faces = {∅})
   S.boundary.faces = ∅ :=
 begin
   ext X,
-  unfold simplicial_complex.boundary,
+  unfold simplicial_complex.boundary simplicial_complex.on_boundary,
   simp,
   rw hS,
-  rintro _ _ Y (hY : Y = ∅) _ hY',
-  rw hY at hY',
-  exfalso,
-  exact hY'.2 (empty_subset _),
+  rintro _ (rfl : _ = ∅) XY Y (rfl : _ = ∅) t,
+  apply (t.2 (empty_subset _)).elim,
 end
 
 lemma boundary_subset {S : simplicial_complex m} : S.boundary.faces ⊆ S.faces :=
-  λ X ⟨Y, Z, hY, hZ, hXY, _⟩, S.down_closed hY hXY
+  λ X ⟨Y, hY, hXY, _⟩, S.down_closed hY hXY
 
 lemma mem_boundary_iff_subset_unique_facet {S : simplicial_complex m} {X : finset E} :
   X ∈ S.boundary.faces ↔ ∃ {Y Z}, Y ∈ S.faces ∧ Z ∈ S.facets ∧ X ⊆ Y ∧ Y ⊂ Z ∧
   ∀ {Z'}, Z' ∈ S.faces → Y ⊂ Z' → Z = Z' :=
 begin
   split,
-  {
-    rintro ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩,
+  { rintro ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩,
     suffices hZ' : Z ∈ S.facets,
     { exact ⟨Y, Z, hY, hZ', hXY, hYZ, (λ Z', hZunique)⟩ },
     use hZ,
     rintro Z' hZ' hZZ',
     exact hZunique hZ' ⟨finset.subset.trans hYZ.1 hZZ',
-      (λ hZ'Y, hYZ.2 (finset.subset.trans hZZ' hZ'Y))⟩,
-  },
-  {
-    rintro ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩,
-    exact ⟨Y, Z, hY, hZ.1, hXY, hYZ, (λ Z', hZunique)⟩,
-  }
+      (λ hZ'Y, hYZ.2 (finset.subset.trans hZZ' hZ'Y))⟩ },
+  { rintro ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩,
+    refine ⟨Y, hY, hXY, Z, hZ.1, hYZ, λ Z', hZunique⟩ }
 end
 
 lemma facets_disjoint_boundary {S : simplicial_complex m} : disjoint S.facets S.boundary.faces :=
 begin
-  rintro X ⟨⟨hX, hXunique⟩, ⟨Y, Z, hY, hZ, hXY, hYZ, hZunique⟩⟩,
+  rintro X ⟨⟨hX, hXunique⟩, ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩⟩,
   apply hYZ.2,
   rw ← hXunique hZ (subset.trans hXY hYZ.1),
   exact hXY,
 end
 
 lemma boundary_facet_iff {S : simplicial_complex m} {X : finset E} :
-  X ∈ S.boundary.facets ↔ ∃ {Y}, Y ∈ S.faces ∧ X ⊂ Y ∧ ∀ {Y'}, Y' ∈ S.faces → X ⊂ Y' → Y = Y' :=
+  X ∈ S.boundary.facets ↔ S.on_boundary X :=
 begin
   split,
-  {
-    rintro ⟨⟨X', Y, hX', hY, hXX', hXY, hYunique⟩, hXmax⟩,
-    have hX' : X' ∈ S.boundary.faces,
-    { exact ⟨X', Y, hX', hY, subset.refl X', hXY, (λ Y', hYunique)⟩, },
-    have hXX' := hXmax hX' hXX',
+  { rintro ⟨⟨Y, hY, XY, Z, hZ, hYZ, hZunique⟩, hXmax⟩,
+    refine ⟨Z, hZ, finset.ssubset_of_subset_of_ssubset XY hYZ, λ Z', _⟩,
+    have hX' : Y ∈ S.boundary.faces,
+    { refine ⟨_, hY, subset.refl _, _, hZ, hYZ, λ Z', hZunique⟩ },
+    have hXX' := hXmax hX' XY,
     subst hXX',
-    use [Y, hY, hXY],
-    rintro Z hZ hXZ,
-    exact hYunique hZ hXZ,
-  },
-  {
-    rintro ⟨Y, hY, hXY, hYunique⟩,
-    use [X, Y, S.down_closed hY hXY.1, hY, subset.refl X, hXY, (λ Y',
-      hYunique)],
-    rintro V ⟨W, Z, hW, hZ, hVW, hWZ, hZunique⟩ hXV,
+    apply hZunique },
+  { rintro ⟨Y, hY, hXY, hYunique⟩,
+    refine ⟨⟨X, S.down_closed hY hXY.1, subset.refl _, _, hY, hXY, λ Y', hYunique⟩, _⟩,
+    rintro V ⟨W, hW, hVW, Z, hZ, hWZ, hZunique⟩ hXV,
     apply finset.subset.antisymm hXV,
     by_contra hVX,
     have := hYunique (S.down_closed hW hVW) ⟨hXV, hVX⟩,
@@ -1085,7 +1078,7 @@ begin
   have : n - X.card + X.card ≤ Y.card,
   { rw [hS hY, nat.sub_add_cancel hXcard, nat.succ_eq_add_one],
     linarith },
-  obtain ⟨W, hXW, hWZ, hWcard⟩ := finset.exists_intermediate_set (n - X.card) this hXY.1,
+  obtain ⟨W, hXW, hWY, hWcard⟩ := finset.exists_intermediate_set (n - X.card) this hXY.1,
   rw nat.sub_add_cancel hXcard at hWcard,
   have hW : W ∈ S.boundary.faces,
   { have hYW : ¬Y ⊆ W,
@@ -1095,14 +1088,14 @@ begin
       have : n.succ = n := by rw [← hS hY, ← hWcard,
         finset.eq_of_subset_of_card_le hYW (le_of_lt hWYcard)],
       exact nat.succ_ne_self n this },
-    use [W, Y, S.down_closed (facets_subset hY) hWZ, hY.1, subset.refl W, ⟨hWZ, hYW⟩],
+    refine ⟨W, S.down_closed (facets_subset hY) hWY, subset.refl W, Y, hY.1, ⟨hWY, hYW⟩, _⟩,
     rintro Z hZ hWZ,
     exact hYunique hZ ⟨subset.trans hXW hWZ.1, (λ hZX, hWZ.2 (finset.subset.trans hZX hXW))⟩ },
   rw [nat.succ_sub_one, ← hWcard, hX.2 hW hXW],
 end
 
 /--
-A simplicial complex is locally finite iff it has finitely many faces.
+A simplicial complex is finite iff it has finitely many faces.
 -/
 def simplicial_complex.finite (S : simplicial_complex m) : Prop := S.faces.finite
 
@@ -1116,25 +1109,50 @@ lemma mem_faces_finset (hS : S.finite) (X : finset E) :
 set.finite.mem_to_finset _
 
 /--
+A simplicial complex `S` is locally finite at the face `X` iff `X` is a subface of finitely many
+faces in `S`.
+-/
+def simplicial_complex.locally_finite_at (S : simplicial_complex m) (X : finset E) : Prop :=
+set.finite {Y ∈ S.faces | X ⊆ Y}
+
+/--
+A simplicial complex `S` is locally finite at the face `X` iff `X` is a subface of infinitely many
+faces in `S`.
+-/
+def simplicial_complex.locally_infinite_at (S : simplicial_complex m) (X : finset E) : Prop :=
+set.infinite {Y ∈ S.faces | X ⊆ Y}
+
+lemma simplicial_complex.locally_finite_at_iff_not_locally_infinite_at {S : simplicial_complex m}
+  (X : finset E) :
+  ¬S.locally_infinite_at X ↔ S.locally_finite_at X :=
+not_not
+
+/--
 A simplicial complex is locally finite iff each of its faces belongs to finitely many faces.
 -/
 def simplicial_complex.locally_finite (S : simplicial_complex m) : Prop :=
-  ∀ {X}, X ∈ S.faces → X ≠ ∅ → finite {Y | Y ∈ S.faces ∧ X ⊆ Y} --@Bhavik replace ≠ ∅ by nonempty
+∀ {X : finset _}, X ∈ S.faces → X.nonempty → S.locally_finite_at X
 
-def simplicial_complex.locally_finite_at (S : simplicial_complex m) : set (finset E) :=
-  {X | X ∈ S.faces ∧ set.finite {Y | Y ∈ S.faces ∧ X ⊆ Y}}
-
-def simplicial_complex.locally_infinite_at (S : simplicial_complex m) : set (finset E) :=
-  {X | X ∈ S.faces ∧ set.infinite {Y | Y ∈ S.faces ∧ X ⊆ Y}}
+example {α : Type*} {s : set α} {p q : α → Prop} (h : ∀ x, p x → q x) :
+  {x ∈ s | p x} ⊆ {x ∈ s | q x} :=
+begin
+  refine inter_subset_inter_right s h,
+end
 
 lemma locally_finite_at_up_closed {S : simplicial_complex m} {X Y : finset E}
-  (hX : X ∈ S.locally_finite_at) (hXY : X ⊆ Y) : Y ∈ S.locally_finite_at := sorry
+  (hX : S.locally_finite_at X) (hXY : X ⊆ Y) : S.locally_finite_at Y :=
+begin
+  apply hX.subset,
+  rintro Z ⟨_, _⟩,
+  exact ⟨‹Z ∈ S.faces›, finset.subset.trans hXY ‹Y ⊆ Z›⟩,
+end
 
 lemma locally_infinite_at_down_closed {S : simplicial_complex m} {X Y : finset E}
-  (hY : Y ∈ S.locally_infinite_at) (hXY : X ⊆ Y) : X ∈ S.locally_infinite_at := sorry
+  (hY : S.locally_infinite_at Y) (hXY : X ⊆ Y) : S.locally_infinite_at X :=
+λ t, hY (locally_finite_at_up_closed t hXY)
 
 lemma locally_finite_of_finite {S : simplicial_complex m} (hS : S.finite) : S.locally_finite :=
-  λ X hX _, finite.subset hS (λ Y (hY : Y ∈ S.faces ∧ X ⊆ Y), hY.1)
+  λ X hX _, hS.subset (λ Y hY, hY.1)
 
 lemma boundary_boundary {S : simplicial_complex m} (hS : S.pure_of n) (hS' : ∀ {X}, X ∈ S.faces →
   (X : finset E).card = n - 1 → equiv {Y | Y ∈ S.faces ∧ X ⊆ Y} (fin 2)) :
@@ -1197,7 +1215,7 @@ begin
   exact this.2 (hS this.1),-/
 end
 
-def simplicial_complex.full_dimensional (S : simplicial_complex m) : Prop :=
-  ∃ {X}, X ∈ S.faces ∧ (X : finset _).card = m + 1
+-- def simplicial_complex.full_dimensional (S : simplicial_complex m) : Prop :=
+--   ∃ {X}, X ∈ S.faces ∧ (X : finset _).card = m + 1
 
 end affine

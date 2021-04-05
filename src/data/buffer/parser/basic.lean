@@ -2141,7 +2141,12 @@ end
 end many
 
 section nat
-
+/--
+The `val : ℕ` produced by a successful parse of a `cb : char_buffer` is the numerical value
+represented by the string of decimal digits (possibly padded with 0s on the left)
+starting from the parsing position `n` and ending at position `n'`. The number
+of characters parsed in is necessarily `n' - n`.
+-/
 lemma nat_of_done {val : ℕ} (h : nat cb n = done n' val) :
   val = (nat.of_digits 10 ((((cb.to_list.drop n).take (n' - n)).reverse.map
           (λ c, c.to_nat - '0'.to_nat)))) :=

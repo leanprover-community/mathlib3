@@ -224,9 +224,55 @@ end
 lemma combi_interior_subset_convex_hull {X : finset E} : combi_interior X ⊆ convex_hull X :=
   diff_subset _ _
 
-lemma closure_combi_interior_eq_convex_hull {X : finset E} :
-  closure (combi_interior X) = convex_hull (X : set E) := sorry --@Bhavik, this one is for you :)
+lemma is_closed_convex_hull {X : finset E} : is_closed (convex_hull (X : set E)) :=
+X.finite_to_set.is_closed_convex_hull
 
+lemma is_closed_combi_frontier {X : finset E} : is_closed (combi_frontier X) :=
+begin
+  apply is_closed_bUnion,
+  { suffices : set.finite {Y | Y ⊆ X},
+    { exact this.subset (λ i h, h.1) },
+    convert X.powerset.finite_to_set using 1,
+    ext,
+    simp },
+  { intros i hi,
+    apply is_closed_convex_hull }
+end
+
+lemma subset_closure_combi_interior {X : finset E} : (X : set E) ⊆ closure (combi_interior X) :=
+begin
+  sorry
+  -- One idea is to use the weightings (1 - k/n, 1/n, 1/n, ..., 1/n)
+  -- where n → ∞ and `k+1 = X.card`
+end
+
+lemma convex_combi_interior {X : finset E} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
+  convex (combi_interior X) :=
+begin
+  rw convex_iff_forall_pos,
+  intros x y hx hy t₁ t₂ ht₁ ht₂ h,
+  rw combi_interior_eq hX at hx hy ⊢,
+  rcases hx with ⟨h₁, h₂, h₃, rfl⟩,
+  rcases hy with ⟨h₄, h₅, h₆, rfl⟩,
+  refine ⟨λ x, t₁ * h₁ x + t₂ * h₄ x, λ x hx, _, _, _⟩,
+  { exact add_pos (mul_pos ht₁ (h₂ x hx)) (mul_pos ht₂ (h₅ x hx)) },
+  { rw [finset.sum_add_distrib, ←finset.mul_sum, ←finset.mul_sum, h₃, h₆],
+    simp [h] },
+  rw finset.center_mass_segment _ _ _ _ h₃ h₆ _ _ h,
+end
+
+-- Affine indep is necessary, since if not combi_interior can be empty
+lemma closure_combi_interior_eq_convex_hull {X : finset E}
+  (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
+  closure (combi_interior X) = convex_hull (X : set E) :=
+begin
+  apply set.subset.antisymm,
+  { rw is_closed.closure_subset_iff is_closed_convex_hull,
+    apply combi_interior_subset_convex_hull },
+  refine convex_hull_min subset_closure_combi_interior _,
+  apply convex.closure,
+  apply convex_combi_interior hX,
+end
 
 lemma combi_frontier_subset_convex_hull {X : finset E} : combi_frontier X ⊆ convex_hull X :=
   bUnion_subset (λ Y hY, convex_hull_mono hY.1)
@@ -235,13 +281,15 @@ lemma convex_hull_eq_interior_union_combi_frontier (X : finset E) :
   convex_hull ↑X = combi_interior X ∪ combi_frontier X :=
 (sdiff_union_of_subset combi_frontier_subset_convex_hull).symm
 
-lemma convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior {X Y : finset E} :
+lemma convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior {X Y : finset E}
+  (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
+  (hY : affine_independent ℝ (λ p, p : (Y : set E) → E)) :
   combi_interior X ⊆ combi_interior Y → convex_hull (X : set E) ⊆ convex_hull (Y : set E) :=
 begin
-  rw ← closure_combi_interior_eq_convex_hull,
-  rw ← closure_combi_interior_eq_convex_hull,
-  sorry
-  --exact topology.basic.closure_mono,
+  rw ← closure_combi_interior_eq_convex_hull hX,
+  rw ← closure_combi_interior_eq_convex_hull hY,
+  intro h,
+  apply closure_mono h,
 end
 
 lemma mem_of_mem_convex_hull {S : simplicial_complex m} {x : E} {X : finset E} (hx : {x} ∈ S.faces)
@@ -431,21 +479,6 @@ begin
 end
 
 
-lemma is_closed_convex_hull {X : finset E} : is_closed (convex_hull (X : set E)) :=
-X.finite_to_set.is_closed_convex_hull
-
-lemma is_closed_combi_frontier {X : finset E} : is_closed (combi_frontier X) :=
-begin
-  apply is_closed_bUnion,
-  { suffices : set.finite {Y | Y ⊆ X},
-    { exact this.subset (λ i h, h.1) },
-    convert X.powerset.finite_to_set using 1,
-    ext,
-    simp },
-  { intros i hi,
-    apply is_closed_convex_hull }
-end
-
 /- combi_interior X is the topological interior iff X is of dimension m -/
 lemma interiors_agree_of_full_dimensional {S : simplicial_complex m}
   {X} (hX : X ∈ S.faces) (hXdim : X.card = m + 1) :
@@ -571,12 +604,17 @@ begin
       rintro x hx,
       obtain ⟨X₁, hX₁, hx⟩ := mem_space_iff.1 hx,
       obtain ⟨X₂, hX₂, hX₁X₂⟩ := hS hX₁,
-      exact mem_space_iff.2
-        ⟨X₂, hX₂, convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior hX₁X₂ hx⟩ },
+      rw mem_space_iff,
+      refine ⟨X₂, hX₂, _⟩,
+      apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior _ _ hX₁X₂ hx,
+      { apply S₁.indep hX₁ },
+      { apply S₂.indep hX₂ } },
     { rintro X₁ hX₁,
       obtain ⟨X₂, hX₂, hX₁X₂⟩ := hS hX₁,
-      exact ⟨X₂, hX₂,
-        convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior hX₁X₂⟩ }}
+      refine ⟨_, hX₂, convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior _ _ _⟩,
+      { apply S₁.indep hX₁ },
+      { apply S₂.indep hX₂ },
+      { apply hX₁X₂ }}}
 end
 
 lemma subdivision_iff_partition {S₁ S₂ : simplicial_complex m} :
@@ -649,7 +687,8 @@ begin
       obtain ⟨Z, hZ, hxZ⟩ := hxY',
       use [Z, hZ],
       rw ← disjoint_interiors hX (hF' hZ) x' ⟨hx', hxZ⟩,
-      exact hx }}
+      exact hx },
+    apply S₁.indep hX }
 end
 
 lemma boundary_face_iff_subset_space_frontier_of_full_dimensional {S : simplicial_complex m}
@@ -724,12 +763,15 @@ begin
     (S₁.down_closed hY₁ hX₁Y₁),
   obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hY₁,
   obtain ⟨Z₂, hZ₂, hZ₁Z₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hZ₁,
-  refine ⟨X₂, _, convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior hX₁X₂⟩,
+  refine ⟨X₂, _, convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior _ _ hX₁X₂⟩,
   refine ⟨Y₂, hY₂, _, Z₂, hZ₂, _⟩,
   { apply subset_of_convex_hull_subset_convex_hull hX₂ hY₂,
     sorry
   },
-  sorry
+  { sorry,
+  },
+  { apply S₁.indep (S₁.down_closed hY₁ hX₁Y₁), },
+  { apply S₂.indep hX₂ }
 end
 
 /--

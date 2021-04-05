@@ -477,7 +477,8 @@ lemma closure_subset {S : simplicial_complex m} {A : set (finset (fin m → ℝ)
 lemma faces_subset_closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} :
   S.faces ∩ A ⊆ (S.closure A).faces := λ X hX, ⟨hX.1, X, hX.2, subset.refl _⟩
 
-lemma closure_mono {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))} (hAB : A ⊆ B) :
+lemma closure_faces_subset_of_subset {S : simplicial_complex m} {A B : set (finset (fin m → ℝ))}
+  (hAB : A ⊆ B) :
   (S.closure A).faces ⊆ (S.closure B).faces := λ X ⟨hX, Y, hY, hXY⟩, ⟨hX, Y, hAB hY, hXY⟩
 
 /--

@@ -987,6 +987,19 @@ begin
   simp,
 end
 
+lemma prod_nonneg [ordered_comm_semiring α] {m : multiset α} (h : ∀ a ∈ m, (0 : α) ≤ a) :
+  0 ≤ m.prod :=
+begin
+  revert h,
+  refine m.induction_on _ _,
+  { rintro -, rw prod_zero, exact zero_le_one },
+  { intros a s hs ih,
+    rw prod_cons,
+    apply mul_nonneg,
+    { exact ih _ (mem_cons_self _ _) },
+    { exact hs (λ a ha, ih _ (mem_cons_of_mem ha)) } }
+end
+
 @[to_additive sum_nonneg]
 lemma one_le_prod_of_one_le [ordered_comm_monoid α] {m : multiset α} :
   (∀ x ∈ m, (1 : α) ≤ x) → 1 ≤ m.prod :=

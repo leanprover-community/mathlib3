@@ -48,46 +48,19 @@ structure is_SRG_of (n k l m : ℕ) : Prop :=
 (adj_common : ∀ (v w : V), G.adj v w → fintype.card (G.common_neighbors v w) = l)
 (nadj_common : ∀ (v w : V), ¬ G.adj v w ∧ v ≠ w → fintype.card (G.common_neighbors v w) = m)
 
+open finset
+
 lemma complete_strongly_regular (x : ℕ) :
   (complete_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) x :=
 { card := rfl,
   regular := complete_graph_degree,
-  adj_common := λ v w h,
+  adj_common := λ v w (h : v ≠ w),
     begin
-      simp only [finset.filter_congr_decidable, fintype.card_of_finset, mem_common_neighbors],
-      have h2 : (finset.filter (λ (x : V), ¬ (v ≠ x ∧ w ≠ x)) finset.univ).card = 2,
-      { simp_rw [not_and_distrib, not_not, finset.filter_or],
-        convert_to finset.card (insert v {w}) = 2,
-        { congr' 1,
-          ext; simp,
-          split,
-          { intros h,
-            cases h with av aw,
-            { rw ← av,
-              refine finset.mem_insert_self v {w} },
-            { rw ← aw,
-              rw finset.insert_singleton_comm,
-              refine finset.mem_insert_self w {v} } },
-          intros h,
-          finish },
-        rw finset.card_insert_of_not_mem,
-        { refl },
-        { rw finset.not_mem_singleton,
-          apply ne_of_adj _ h } },
-      apply @nat.add_right_cancel _ 2 _,
-      rw nat.sub_add_cancel,
-      { rw ← finset.card_univ,
-        change (finset.filter (λ (x : V), v ≠ x ∧ w ≠ x) finset.univ).card + 2 = finset.univ.card,
-        rw [← h2, finset.filter_card_add_filter_neg_card_eq_card] },
-      { rw [← h2, ← finset.card_univ],
-        apply finset.card_filter_le },
+      simp only [fintype.card_of_finset, mem_common_neighbors, complete_graph, ne.def, filter_not,
+        ←not_or_distrib, filter_eq, filter_or, card_univ_diff, mem_univ, if_pos, ←insert_eq],
+      rw [card_insert_of_not_mem, card_singleton],
+      simpa,
     end,
-  nadj_common := λ v w h,
-    begin
-      cases h with hnadj hne,
-      rw [complete_graph, not_not] at hnadj,
-      exfalso,
-      apply hne hnadj,
-    end }
+  nadj_common := λ v w (h : ¬(v ≠ w) ∧ _), (h.1 h.2).elim }
 
 end simple_graph

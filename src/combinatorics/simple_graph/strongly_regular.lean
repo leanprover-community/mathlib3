@@ -50,10 +50,10 @@ structure is_SRG_of (n k l m : ℕ) : Prop :=
 
 open finset
 
-/-- Complete graphs are strongly regular. Note that the fourth parameter can take any value
+/-- Complete graphs are strongly regular. Note that the parameter `m` can take any value
   for complete graphs, since there are no distinct pairs of nonadjacent vertices. -/
-lemma complete_strongly_regular (x : ℕ) :
-  (complete_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) x :=
+lemma complete_strongly_regular (m : ℕ) :
+  (complete_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) m :=
 { card := rfl,
   regular := complete_graph_degree,
   adj_common := λ v w (h : v ≠ w),

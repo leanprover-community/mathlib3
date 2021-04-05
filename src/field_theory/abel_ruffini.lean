@@ -81,7 +81,7 @@ lemma gal_is_solvable_tower (p q : polynomial F)
 begin
   let K := p.splitting_field,
   let L := q.splitting_field,
-  haveI : fact (p.splits (algebra_map F L)) := hpq,
+  haveI : fact (p.splits (algebra_map F L)) := ⟨hpq⟩,
   let ϕ : (L ≃ₐ[K] L) ≃* (q.map (algebra_map F K)).gal :=
     (is_splitting_field.alg_equiv L (q.map (algebra_map F K))).aut_congr,
   have ϕ_inj : function.injective ϕ.to_monoid_hom := ϕ.injective,
@@ -103,7 +103,7 @@ begin
   apply is_solvable_of_comm,
   intros σ τ,
   ext a ha,
-  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero_iff_eq] at ha,
+  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
   have key : ∀ σ : (X ^ n - 1 : polynomial F).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
     obtain ⟨m, hm⟩ := σ.to_alg_hom.to_ring_hom.map_root_of_unity_eq_pow_self
@@ -136,11 +136,11 @@ begin
   have mem_range : ∀ {c}, c ^ n = 1 → ∃ d, algebra_map F (X ^ n - C a).splitting_field d = c :=
     λ c hc, ring_hom.mem_range.mp (minpoly.mem_range_of_degree_eq_one F c (or.resolve_left h hn'''
       (minpoly.irreducible ((splitting_field.normal (X ^ n - C a)).is_integral c)) (minpoly.dvd F c
-      (by rwa [map_id, alg_hom.map_sub, sub_eq_zero_iff_eq, aeval_X_pow, aeval_one])))),
+      (by rwa [map_id, alg_hom.map_sub, sub_eq_zero, aeval_X_pow, aeval_one])))),
   apply is_solvable_of_comm,
   intros σ τ,
   ext b hb,
-  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_C, sub_eq_zero_iff_eq] at hb,
+  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_C, sub_eq_zero] at hb,
   have hb' : b ≠ 0,
   { intro hb',
     rw [hb', zero_pow hn'] at hb,
@@ -168,7 +168,7 @@ begin
   have hn'' : (X ^ n - C a).degree ≠ 0 :=
     ne_of_eq_of_ne (degree_X_pow_sub_C hn' a) (mt with_bot.coe_eq_coe.mp hn),
   obtain ⟨b, hb⟩ := exists_root_of_splits i h hn'',
-  rw [eval₂_sub, eval₂_X_pow, eval₂_C, sub_eq_zero_iff_eq] at hb,
+  rw [eval₂_sub, eval₂_X_pow, eval₂_C, sub_eq_zero] at hb,
   have hb' : b ≠ 0,
   { intro hb',
     rw [hb', zero_pow hn'] at hb,
@@ -306,8 +306,8 @@ begin
     { exact minpoly.ne_zero (is_integral (α ^ n)) h' },
     { exact hn (by rw [←nat_degree_C _, ←h'.2, nat_degree_X_pow]) } },
   apply gal_is_solvable_of_splits,
-  { exact splits_of_splits_of_dvd _ hp (splitting_field.splits (p.comp (X ^ n)))
-      (minpoly.dvd F α (by rw [aeval_comp, aeval_X_pow, minpoly.aeval])) },
+  { exact ⟨splits_of_splits_of_dvd _ hp (splitting_field.splits (p.comp (X ^ n)))
+      (minpoly.dvd F α (by rw [aeval_comp, aeval_X_pow, minpoly.aeval]))⟩ },
   { refine gal_is_solvable_tower p (p.comp (X ^ n)) _ hα _,
     { exact gal.splits_in_splitting_field_of_comp _ _ (by rwa [nat_degree_X_pow]) },
     { obtain ⟨s, hs⟩ := exists_multiset_of_splits _ (splitting_field.splits p),
@@ -349,7 +349,7 @@ begin
       exact minpoly.aeval F γ,
     end (minpoly.monic (is_integral γ)),
   rw [P, key],
-  exact gal_is_solvable_of_splits (normal.splits (splitting_field.normal _) _)
+  exact gal_is_solvable_of_splits ⟨normal.splits (splitting_field.normal _) _⟩
     (gal_mul_is_solvable hα hβ),
 end
 

@@ -163,12 +163,14 @@ have hdzne' : (↑(F.derivative.eval z) : ℚ_[p]) ≠ 0, from
   λ h, hdzne $ subtype.ext_iff_val.2 h,
 let ⟨q, hq⟩ := F.binom_expansion z (-z1) in
 have ∥(↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)) : ℚ_[p])∥ ≤ 1,
-  by {rw padic_norm_e.mul, apply mul_le_one, apply padic_int.norm_le_one, apply norm_nonneg, apply h1},
+  by { rw padic_norm_e.mul, exact mul_le_one (padic_int.norm_le_one _) (norm_nonneg _) h1 },
 have F.derivative.eval z * (-z1) = -F.eval z, from calc
   F.derivative.eval z * (-z1)
     = (F.derivative.eval z) * -⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩ : by rw [hzeq]
-... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) : by simp [subtype.ext_iff_val]
-... = -(⟨↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)), this⟩) : subtype.ext_iff_val.2 $ by simp
+... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) :
+  by simp [subtype.ext_iff_val]
+... = -(⟨↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)), this⟩) :
+  subtype.ext $ by simp
 ... = -(F.eval z) : by simp [mul_div_cancel' _ hdzne'],
 have heq : F.eval z' = q * z1^2, by simpa [sub_eq_add_neg, this, hz'] using hq,
 ⟨q, heq⟩
@@ -178,7 +180,8 @@ private def calc_eval_z'_norm {z z' z1 : ℤ_[p]} {n} (hz : ih n z) {q}
   (hzeq : z1 = ⟨_, h1⟩) : ∥F.eval z'∥ ≤ ∥F.derivative.eval a∥^2 * T^(2^(n+1)) :=
 calc ∥F.eval z'∥
     = ∥q∥ * ∥z1∥^2 : by simp [heq]
-... ≤ 1 * ∥z1∥^2 : mul_le_mul_of_nonneg_right (padic_int.norm_le_one _) (pow_nonneg (norm_nonneg _) _)
+... ≤ 1 * ∥z1∥^2 :
+  mul_le_mul_of_nonneg_right (padic_int.norm_le_one _) (pow_nonneg (norm_nonneg _) _)
 ... = ∥F.eval z∥^2 / ∥F.derivative.eval a∥^2 :
   by simp [hzeq, hz.1, div_pow]
 ... ≤ (∥F.derivative.eval a∥^2 * T^(2^n))^2 / ∥F.derivative.eval a∥^2 :
@@ -227,7 +230,8 @@ private lemma newton_seq_norm_le (n : ℕ) :
 (newton_seq_aux n).2.2
 
 private lemma newton_seq_norm_eq (n : ℕ) :
-  ∥newton_seq (n+1) - newton_seq n∥ = ∥F.eval (newton_seq n)∥ / ∥F.derivative.eval (newton_seq n)∥ :=
+  ∥newton_seq (n+1) - newton_seq n∥ =
+    ∥F.eval (newton_seq n)∥ / ∥F.derivative.eval (newton_seq n)∥ :=
 by simp [newton_seq, newton_seq_aux, ih_n, sub_eq_add_neg, add_comm]
 
 private lemma newton_seq_succ_dist (n : ℕ) :
@@ -253,11 +257,11 @@ have 2 ≤ 2^(n+1),
     by simpa using this,
 calc ∥newton_seq (n+2) - newton_seq (n+1)∥
     ≤ ∥F.derivative.eval a∥ * T^(2^(n+1)) : newton_seq_succ_dist _
-... ≤ ∥F.derivative.eval a∥ * T^2 : mul_le_mul_of_nonneg_left
-                                      (pow_le_pow_of_le_one (norm_nonneg _) (le_of_lt T_lt_one) this)
-                                      (norm_nonneg _)
-... < ∥F.derivative.eval a∥ * T^1 : mul_lt_mul_of_pos_left (pow_lt_pow_of_lt_one T_pos T_lt_one (by norm_num))
-                                                           deriv_norm_pos
+... ≤ ∥F.derivative.eval a∥ * T^2 :
+  mul_le_mul_of_nonneg_left (pow_le_pow_of_le_one (norm_nonneg _) (le_of_lt T_lt_one) this)
+    (norm_nonneg _)
+... < ∥F.derivative.eval a∥ * T^1 :
+  mul_lt_mul_of_pos_left (pow_lt_pow_of_lt_one T_pos T_lt_one (by norm_num)) deriv_norm_pos
 ... = ∥F.eval a∥ / ∥F.derivative.eval a∥ :
   begin
     rw [T, pow_two, pow_one, normed_field.norm_div, ←mul_div_assoc, padic_norm_e.mul],
@@ -274,12 +278,15 @@ private lemma newton_seq_dist_aux (n : ℕ) :
   calc
   ∥newton_seq (n + (k + 1)) - newton_seq n∥
     = ∥newton_seq ((n + k) + 1) - newton_seq n∥ : by rw add_assoc
-... = ∥(newton_seq ((n + k) + 1) - newton_seq (n+k)) + (newton_seq (n+k) - newton_seq n)∥ : by rw ←sub_add_sub_cancel
-... ≤ max (∥newton_seq ((n + k) + 1) - newton_seq (n+k)∥) (∥newton_seq (n+k) - newton_seq n∥) : padic_int.nonarchimedean _ _
+... = ∥(newton_seq ((n + k) + 1) - newton_seq (n+k)) + (newton_seq (n+k) - newton_seq n)∥ :
+  by rw ←sub_add_sub_cancel
+... ≤ max (∥newton_seq ((n + k) + 1) - newton_seq (n+k)∥) (∥newton_seq (n+k) - newton_seq n∥) :
+  padic_int.nonarchimedean _ _
 ... ≤ max (∥F.derivative.eval a∥ * T^(2^((n + k)))) (∥F.derivative.eval a∥ * T^(2^n)) :
   max_le_max (newton_seq_succ_dist _) (newton_seq_dist_aux _)
 ... = ∥F.derivative.eval a∥ * T^(2^n) :
-  max_eq_right $ mul_le_mul_of_nonneg_left (pow_le_pow_of_le_one (norm_nonneg _) (le_of_lt T_lt_one) this) (norm_nonneg _)
+  max_eq_right $ mul_le_mul_of_nonneg_left
+    (pow_le_pow_of_le_one (norm_nonneg _) (le_of_lt T_lt_one) this) (norm_nonneg _)
 
 private lemma newton_seq_dist {n k : ℕ} (hnk : n ≤ k) :
   ∥newton_seq k - newton_seq n∥ ≤ ∥F.derivative.eval a∥ * T^(2^n) :=
@@ -287,17 +294,20 @@ have hex : ∃ m, k = n + m, from exists_eq_add_of_le hnk,
 let ⟨_, hex'⟩ := hex in
 by rw hex'; apply newton_seq_dist_aux; assumption
 
-private lemma newton_seq_dist_to_a : ∀ n : ℕ, 0 < n → ∥newton_seq n - a∥ = ∥F.eval a∥ / ∥F.derivative.eval a∥
-| 1 h := by simp [sub_eq_add_neg, add_assoc, newton_seq, newton_seq_aux, ih_n]; apply normed_field.norm_div
+private lemma newton_seq_dist_to_a :
+  ∀ n : ℕ, 0 < n → ∥newton_seq n - a∥ = ∥F.eval a∥ / ∥F.derivative.eval a∥
+| 1 h := by simp [sub_eq_add_neg, add_assoc, newton_seq, newton_seq_aux, ih_n]
 | (k+2) h :=
   have hlt : ∥newton_seq (k+2) - newton_seq (k+1)∥ < ∥newton_seq (k+1) - a∥,
     by rw newton_seq_dist_to_a (k+1) (succ_pos _); apply newton_seq_succ_dist_weak; assumption,
   have hne' : ∥newton_seq (k + 2) - newton_seq (k+1)∥ ≠ ∥newton_seq (k+1) - a∥, from ne_of_lt hlt,
   calc  ∥newton_seq (k + 2) - a∥
     = ∥(newton_seq (k + 2) - newton_seq (k+1)) + (newton_seq (k+1) - a)∥ : by rw ←sub_add_sub_cancel
-... = max (∥newton_seq (k + 2) - newton_seq (k+1)∥) (∥newton_seq (k+1) - a∥) : padic_int.norm_add_eq_max_of_ne hne'
+... = max (∥newton_seq (k + 2) - newton_seq (k+1)∥) (∥newton_seq (k+1) - a∥) :
+  padic_int.norm_add_eq_max_of_ne hne'
 ... = ∥newton_seq (k+1) - a∥ : max_eq_right_of_lt hlt
-... = ∥polynomial.eval a F∥ / ∥polynomial.eval a (polynomial.derivative F)∥ : newton_seq_dist_to_a (k+1) (succ_pos _)
+... = ∥polynomial.eval a F∥ / ∥polynomial.eval a (polynomial.derivative F)∥ :
+  newton_seq_dist_to_a (k+1) (succ_pos _)
 
 private lemma bound' : tendsto (λ n : ℕ, ∥F.derivative.eval a∥ * T^(2^n)) at_top (𝓝 0) :=
 begin
@@ -351,7 +361,8 @@ setoid.symm (cau_seq.equiv_lim newton_cau_seq) _ hε
 private lemma soln_deriv_norm : ∥F.derivative.eval soln∥ = ∥F.derivative.eval a∥ :=
 norm_deriv_eq newton_seq_deriv_norm
 
-private lemma newton_seq_norm_tendsto_zero : tendsto (λ i, ∥F.eval (newton_cau_seq i)∥) at_top (𝓝 0) :=
+private lemma newton_seq_norm_tendsto_zero :
+  tendsto (λ i, ∥F.eval (newton_cau_seq i)∥) at_top (𝓝 0) :=
 squeeze_zero (λ _, norm_nonneg _) newton_seq_norm_le bound'_sq
 
 private lemma newton_seq_dist_tendsto :
@@ -375,12 +386,13 @@ end
 private lemma eval_soln : F.eval soln = 0 :=
 limit_zero_of_norm_tendsto_zero newton_seq_norm_tendsto_zero
 
-private lemma soln_unique (z : ℤ_[p]) (hev : F.eval z = 0) (hnlt : ∥z - a∥ < ∥F.derivative.eval a∥) :
+private lemma soln_unique (z : ℤ_[p]) (hev : F.eval z = 0)
+  (hnlt : ∥z - a∥ < ∥F.derivative.eval a∥) :
   z = soln :=
 have soln_dist : ∥z - soln∥ < ∥F.derivative.eval a∥, from calc
   ∥z - soln∥ = ∥(z - a) + (a - soln)∥ : by rw sub_add_sub_cancel
         ... ≤ max (∥z - a∥) (∥a - soln∥) : padic_int.nonarchimedean _ _
-        ... < ∥F.derivative.eval a∥ : max_lt hnlt (by rw norm_sub_rev; apply soln_dist_to_a_lt_deriv),
+        ... < ∥F.derivative.eval a∥ : max_lt hnlt (norm_sub_rev soln a ▸ soln_dist_to_a_lt_deriv),
 let h := z - soln,
     ⟨q, hq⟩ := F.binom_expansion soln h in
 have (F.derivative.eval soln + q * h) * h = 0, from eq.symm (calc
@@ -388,11 +400,14 @@ have (F.derivative.eval soln + q * h) * h = 0, from eq.symm (calc
 ... = F.derivative.eval soln * h + q * h^2 : by rw [hq, eval_soln, zero_add]
 ... = (F.derivative.eval soln + q * h) * h : by rw [pow_two, right_distrib, mul_assoc]),
 have h = 0, from by_contradiction $ λ hne,
-  have F.derivative.eval soln + q * h = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hne,
+  have F.derivative.eval soln + q * h = 0,
+    from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hne,
   have F.derivative.eval soln = (-q) * h, by simpa using eq_neg_of_add_eq_zero this,
   lt_irrefl ∥F.derivative.eval soln∥ (calc
   ∥F.derivative.eval soln∥ = ∥(-q) * h∥ : by rw this
-... ≤ 1 * ∥h∥ : by rw [padic_int.norm_mul]; exact mul_le_mul_of_nonneg_right (padic_int.norm_le_one _) (norm_nonneg _)
+... ≤ 1 * ∥h∥ :
+  by { rw padic_int.norm_mul,
+       exact mul_le_mul_of_nonneg_right (padic_int.norm_le_one _) (norm_nonneg _) }
 ... = ∥z - soln∥ : by simp [h]
 ... < ∥F.derivative.eval soln∥ : by rw soln_deriv_norm; apply soln_dist),
 eq_of_sub_eq_zero (by rw ←this; refl)
@@ -410,7 +425,8 @@ have (F.derivative.eval a + q * h) * h = 0, from eq.symm (calc
 ... = F.derivative.eval a * h + q * h^2 : by rw [hq, ha, zero_add]
 ... = (F.derivative.eval a + q * h) * h : by rw [pow_two, right_distrib, mul_assoc]),
 have h = 0, from by_contradiction $ λ hne,
-  have F.derivative.eval a + q * h = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hne,
+  have F.derivative.eval a + q * h = 0,
+    from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hne,
   have F.derivative.eval a = (-q) * h, by simpa using eq_neg_of_add_eq_zero this,
   lt_irrefl ∥F.derivative.eval a∥ (calc
     ∥F.derivative.eval a∥ = ∥q∥*∥h∥ : by simp [this]
@@ -430,5 +446,5 @@ lemma hensels_lemma : ∃ z : ℤ_[p], F.eval z = 0 ∧ ∥z - a∥ < ∥F.deriv
   ∥F.derivative.eval z∥ = ∥F.derivative.eval a∥ ∧
   ∀ z', F.eval z' = 0 → ∥z' - a∥ < ∥F.derivative.eval a∥ → z' = z :=
 if ha : F.eval a = 0 then ⟨a, a_is_soln hnorm ha⟩ else
-by refine ⟨soln _ _, eval_soln _ _, soln_dist_to_a_lt_deriv _ _, soln_deriv_norm _ _, soln_unique _ _⟩;
-   assumption
+by refine ⟨soln _ _, eval_soln _ _, soln_dist_to_a_lt_deriv _ _, soln_deriv_norm _ _,
+  soln_unique _ _⟩; assumption

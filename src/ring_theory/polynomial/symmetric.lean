@@ -188,6 +188,55 @@ end
 lemma esymm_is_symmetric (n : ℕ) : is_symmetric (esymm σ R n) :=
 by { intro, rw rename_esymm }
 
+lemma support_esymm'' (n : ℕ) [decidable_eq σ] [nontrivial R] :
+  (esymm σ R n).support = (powerset_len n (univ : finset σ)).bUnion
+    (λ t, (finsupp.single (∑ (i : σ) in t, finsupp.single i 1) (1:R)).support) :=
+begin
+  rw esymm_eq_sum_monomial,
+  simp only [monomial],
+  convert finsupp.support_sum_eq_bUnion (powerset_len n (univ : finset σ)) _,
+  intros s t hst d,
+  simp only [finsupp.support_single_ne_zero one_ne_zero, and_imp, inf_eq_inter, mem_inter,
+             mem_singleton],
+  rintro h rfl,
+  have := congr_arg finsupp.support h,
+  rw [finsupp.support_sum_eq_bUnion, finsupp.support_sum_eq_bUnion] at this,
+  { simp only [finsupp.support_single_ne_zero one_ne_zero, bUnion_singleton_eq_self] at this,
+    exact absurd this hst.symm },
+  all_goals { intros x y, simp [finsupp.support_single_disjoint] }
+end
+
+lemma support_esymm' (n : ℕ) [decidable_eq σ] [nontrivial R] :
+  (esymm σ R n).support =
+  (powerset_len n (univ : finset σ)).bUnion (λ t, {∑ (i : σ) in t, finsupp.single i 1}) :=
+begin
+  rw support_esymm'',
+  congr,
+  funext,
+  exact finsupp.support_single_ne_zero one_ne_zero
+end
+
+lemma support_esymm (n : ℕ) [decidable_eq σ] [nontrivial R] :
+  (esymm σ R n).support =
+  (powerset_len n (univ : finset σ)).image (λ t, ∑ (i : σ) in t, finsupp.single i 1) :=
+by { rw support_esymm', exact bUnion_singleton }
+
+lemma degrees_esymm [nontrivial R]
+  (n : ℕ) (hpos : 0 < n) (hn : n ≤ fintype.card σ) :
+  (esymm σ R n).degrees = (univ : finset σ).val :=
+begin
+  classical,
+  have : (finsupp.to_multiset ∘ λ (t : finset σ), ∑ (i : σ) in t, finsupp.single i 1) = finset.val,
+    { funext, simp [finsupp.to_multiset_sum_single] },
+  rw [degrees, support_esymm, sup_finset_image, this, ←comp_sup_eq_sup_comp],
+  { obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hpos.ne',
+    simpa using powerset_len_sup _ _ (nat.lt_of_succ_le hn) },
+  { intros,
+    simp only [union_val, sup_eq_union],
+    congr },
+  { simpa }
+end
+
 end elementary_symmetric
 
 end mv_polynomial

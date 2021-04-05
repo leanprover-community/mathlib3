@@ -318,7 +318,11 @@ by { rw nonempty_iff_ne_empty, exact not_not, }
 theorem eq_empty_or_nonempty (s : finset α) : s = ∅ ∨ s.nonempty :=
 classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 
-@[simp] lemma coe_empty : ((∅ : finset α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_empty : ((∅ : finset α) : set α) = ∅ := rfl
+
+@[simp, norm_cast] lemma coe_eq_empty {s : finset α} :
+  (s : set α) = ∅ ↔ s = ∅ :=
+by rw [← coe_empty, coe_inj]
 
 /-- A `finset` for an empty type is empty. -/
 lemma eq_empty_of_not_nonempty (h : ¬ nonempty α) (s : finset α) : s = ∅ :=
@@ -1720,7 +1724,7 @@ theorem image_to_finset [decidable_eq α] {s : multiset α} :
   s.to_finset.image f = (s.map f).to_finset :=
 ext $ λ _, by simp only [mem_image, multiset.mem_to_finset, exists_prop, multiset.mem_map]
 
-theorem image_val_of_inj_on (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : (image f s).1 = s.1.map f :=
+theorem image_val_of_inj_on (H : set.inj_on f s) : (image f s).1 = s.1.map f :=
 multiset.erase_dup_eq_self.2 (nodup_map_on H s.2)
 
 @[simp]
@@ -1991,8 +1995,26 @@ theorem card_image_le [decidable_eq β] {f : α → β} {s : finset α} : card (
 by simpa only [card_map] using (s.1.map f).to_finset_card_le
 
 theorem card_image_of_inj_on [decidable_eq β] {f : α → β} {s : finset α}
-  (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : card (image f s) = card s :=
+  (H : set.inj_on f s) : card (image f s) = card s :=
 by simp only [card, image_val_of_inj_on H, card_map]
+
+theorem inj_on_of_card_image_eq [decidable_eq β] {f : α → β} {s : finset α}
+  (H : card (image f s) = card s) :
+  set.inj_on f s :=
+begin
+  change (s.1.map f).erase_dup.card = s.1.card at H,
+  have : (s.1.map f).erase_dup = s.1.map f,
+  { apply multiset.eq_of_le_of_card_le,
+    { apply multiset.erase_dup_le },
+    rw H,
+    simp only [multiset.card_map] },
+  rw multiset.erase_dup_eq_self at this,
+  apply inj_on_of_nodup_map this,
+end
+
+theorem card_image_eq_iff_inj_on [decidable_eq β] {f : α → β} {s : finset α} :
+  (s.image f).card = s.card ↔ set.inj_on f s :=
+⟨inj_on_of_card_image_eq, card_image_of_inj_on⟩
 
 theorem card_image_of_injective [decidable_eq β] {f : α → β} (s : finset α)
   (H : injective f) : card (image f s) = card s :=
@@ -2083,10 +2105,23 @@ calc n = card (range n) : (card_range n).symm
 /-- Suppose that, given objects defined on all strict subsets of any finset `s`, one knows how to
 define an object on `s`. Then one can inductively define an object on all finsets, starting from
 the empty set and iterating. This can be used either to define data, or to prove properties. -/
+def strong_induction {p : finset α → Sort*} (H : ∀ s, (∀ t ⊂ s, p t) → p s) :
+  ∀ (s : finset α), p s
+| s := H s (λ t h, have card t < card s, from card_lt_card h, strong_induction t)
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf card⟩]}
+
+lemma strong_induction_eq {p : finset α → Sort*} (H : ∀ s, (∀ t ⊂ s, p t) → p s) (s : finset α) :
+  strong_induction H s = H s (λ t h, strong_induction H t) :=
+by rw strong_induction
+
+/-- Analogue of `strong_induction` with order of arguments swapped. -/
 @[elab_as_eliminator] def strong_induction_on {p : finset α → Sort*} :
-  ∀ (s : finset α), (∀s, (∀t ⊂ s, p t) → p s) → p s
-| ⟨s, nd⟩ ih := multiset.strong_induction_on s
-  (λ s IH nd, ih ⟨s, nd⟩ (λ ⟨t, nd'⟩ ss, IH t (val_lt_iff.2 ss) nd')) nd
+  ∀ (s : finset α), (∀s, (∀ t ⊂ s, p t) → p s) → p s :=
+λ s H, strong_induction H s
+
+lemma strong_induction_on_eq {p : finset α → Sort*} (s : finset α) (H : ∀ s, (∀ t ⊂ s, p t) → p s) :
+  s.strong_induction_on H = H s (λ t h, t.strong_induction_on H) :=
+by { dunfold strong_induction_on, rw strong_induction }
 
 @[elab_as_eliminator] lemma case_strong_induction_on [decidable_eq α] {p : finset α → Prop}
   (s : finset α) (h₀ : p ∅) (h₁ : ∀ a s, a ∉ s → (∀t ⊆ s, p t) → p (insert a s)) : p s :=
@@ -2238,6 +2273,14 @@ begin
   intro x,
   simp only [and_imp, mem_bUnion, exists_prop],
   exact Exists.imp (λ a ha, ⟨h ha.1, ha.2⟩)
+end
+
+lemma subset_bUnion_of_mem {s : finset α}
+  (u : α → finset β) {x : α} (xs : x ∈ s) :
+  u x ⊆ s.bUnion u :=
+begin
+  apply subset.trans _ (bUnion_subset_bUnion_of_subset_left u (singleton_subset_iff.2 xs)),
+  exact subset_of_eq singleton_bUnion.symm,
 end
 
 lemma bUnion_singleton {f : α → β} : s.bUnion (λa, {f a}) = s.image f :=

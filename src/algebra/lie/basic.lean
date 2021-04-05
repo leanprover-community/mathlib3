@@ -48,7 +48,7 @@ lie bracket, jacobi identity, lie ring, lie algebra, lie module
 universes u v w w₁ w₂
 
 /-- A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
-Jacobi identity. The bracket is not associative unless it is identically zero. -/
+Jacobi identity. -/
 @[protect_proj] class lie_ring (L : Type v) extends add_comm_group L, has_bracket L L :=
 (add_lie : ∀ (x y z : L), ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆)
 (lie_add : ∀ (x y z : L), ⁅x, y + z⁆ = ⁅x, y⁆ + ⁅x, z⁆)
@@ -114,10 +114,10 @@ instance lie_algebra_self_module : lie_module R L L :=
   lie_smul := by apply lie_algebra.lie_smul, }
 
 @[simp] lemma neg_lie : ⁅-x, m⁆ = -⁅x, m⁆ :=
-by { rw [←sub_eq_zero_iff_eq, sub_neg_eq_add, ←add_lie], simp, }
+by { rw [←sub_eq_zero, sub_neg_eq_add, ←add_lie], simp, }
 
 @[simp] lemma lie_neg : ⁅x, -m⁆ = -⁅x, m⁆ :=
-by { rw [←sub_eq_zero_iff_eq, sub_neg_eq_add, ←lie_add], simp, }
+by { rw [←sub_eq_zero, sub_neg_eq_add, ←lie_add], simp, }
 
 @[simp] lemma gsmul_lie (a : ℤ) : ⁅a • x, m⁆ = a • ⁅x, m⁆ :=
 add_monoid_hom.map_gsmul ⟨λ (x : L), ⁅x, m⁆, zero_lie m, λ _ _, add_lie _ _ _⟩ _ _

@@ -148,17 +148,6 @@ theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
 
 namespace rel_embedding
 
-/--
-To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it
-suffices to give a function together with a proof that it satisfies `s (f a) (f b) ↔ r a b`.
--/
-@[simps]
-def of_map_rel_iff (f : α → β) [is_antisymm α r] [is_refl β s]
-  (hf : ∀ a b, s (f a) (f b) ↔ r a b) : r ↪r s :=
-{ to_fun := f,
-  inj' := λ x y h, antisymm ((hf _ _).1 (h ▸ refl _)) ((hf _ _).1 (h ▸ refl _)),
-  map_rel_iff' := hf }
-
 /-- A relation embedding is also a relation homomorphism -/
 def to_rel_hom (f : r ↪r s) : (r →r s) :=
 { to_fun := f.to_embedding.to_fun,
@@ -167,6 +156,22 @@ def to_rel_hom (f : r ↪r s) : (r →r s) :=
 instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ↪r s) := ⟨λ _, α → β, λ o, o.to_embedding⟩
+
+/--
+To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it
+suffices to give a function together with a proof that it satisfies `s (f a) (f b) ↔ r a b`.
+-/
+def of_map_rel_iff (f : α → β) [is_antisymm α r] [is_refl β s]
+  (hf : ∀ a b, s (f a) (f b) ↔ r a b) : r ↪r s :=
+{ to_fun := f,
+  inj' := λ x y h, antisymm ((hf _ _).1 (h ▸ refl _)) ((hf _ _).1 (h ▸ refl _)),
+  map_rel_iff' := hf }
+
+@[simp]
+lemma of_map_rel_iff_coe (f : α → β) [is_antisymm α r] [is_refl β s]
+  (hf : ∀ a b, s (f a) (f b) ↔ r a b) :
+  ⇑(of_map_rel_iff f hf : r ↪r s) = f :=
+rfl
 
 @[simp] lemma to_rel_hom_eq_coe (f : r ↪r s) : f.to_rel_hom = f := rfl
 

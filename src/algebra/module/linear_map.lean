@@ -212,10 +212,9 @@ variables (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂)
 /-- Composition of two linear maps is a linear map -/
 def comp : M →ₗ[R] M₃ := ⟨f ∘ g, by simp, by simp⟩
 
-@[simp] lemma comp_apply (x : M) : f.comp g x = f (g x) := rfl
+lemma comp_apply (x : M) : f.comp g x = f (g x) := rfl
 
-@[norm_cast]
-lemma comp_coe : (f : M₂ → M₃) ∘ (g : M → M₂) = f.comp g := rfl
+@[simp, norm_cast] lemma coe_comp : (f.comp g : M → M₃) = f ∘ g := rfl
 
 @[simp] theorem comp_id : f.comp id = f :=
 linear_map.ext $ λ x, rfl

@@ -96,7 +96,7 @@ mem_inf_sets_of_right (mem_principal_self s)
 
 theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ 𝓝 a) :
   s ∩ t ∈ 𝓝[s] a :=
-inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_left h)
+inter_mem_sets self_mem_nhds_within (mem_inf_sets_of_left h)
 
 theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : 𝓝[s] a ≤ 𝓝[t] a :=
 inf_le_inf_left _ (principal_mono.mpr h)

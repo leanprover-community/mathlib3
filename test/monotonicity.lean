@@ -430,3 +430,15 @@ begin
   mono,
   linarith
 end
+
+section definitions
+/-! Check that `monotone` and `strict_mono` accept the `@[mono]` attribute -/
+
+def all_mono (α β : Type*) [partial_order α] [partial_order β] (f : α → β) :
+  monotone f := sorry
+def all_strict_mono (α β : Type*) [partial_order α] [partial_order β] (f : α → β) :
+  strict_mono f := sorry
+
+local attribute [mono] all_mono all_strict_mono
+
+end definitions

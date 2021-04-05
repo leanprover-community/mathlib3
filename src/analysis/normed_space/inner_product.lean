@@ -1814,6 +1814,37 @@ begin
   { rw [← h.equiv_fun.symm_apply_apply y, h.equiv_fun_symm_apply] }
 end
 
+/-- `ℂ` is isometric to ℝ² with the Euclidean inner product. -/
+def complex.isometry_euclidean : ℂ ≃ₗᵢ[ℝ] (euclidean_space ℝ (fin 2)) :=
+complex.is_basis_one_I.isometry_euclidean_of_orthonormal
+begin
+  rw orthonormal_iff_ite,
+  intros i, fin_cases i;
+  intros j; fin_cases j;
+  simp [real_inner_eq_re_inner]
+end
+
+@[simp] lemma complex.isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
+  complex.isometry_euclidean.symm x = (x 0) + (x 1) * I :=
+begin
+  convert complex.is_basis_one_I.equiv_fun_symm_apply x,
+  { simpa },
+  { simp },
+end
+
+lemma complex.isometry_euclidean_proj_eq_self (z : ℂ) :
+  ↑(complex.isometry_euclidean z 0) + ↑(complex.isometry_euclidean z 1) * (I : ℂ) = z :=
+by rw [← complex.isometry_euclidean_symm_apply (complex.isometry_euclidean z),
+  complex.isometry_euclidean.symm_apply_apply z]
+
+@[simp] lemma complex.isometry_euclidean_apply_zero (z : ℂ) :
+  complex.isometry_euclidean z 0 = z.re :=
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+
+@[simp] lemma complex.isometry_euclidean_apply_one (z : ℂ) :
+  complex.isometry_euclidean z 1 = z.im :=
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+
 end pi_Lp
 
 

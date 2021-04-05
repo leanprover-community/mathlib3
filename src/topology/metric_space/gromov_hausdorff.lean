@@ -59,7 +59,8 @@ Using the Kuratwoski embedding, we get a canonical map `to_GH_space` mapping any
 compact type to `GH_space`. -/
 
 /-- Equivalence relation identifying two nonempty compact sets which are isometric -/
-private definition isometry_rel : nonempty_compacts ℓ_infty_ℝ → nonempty_compacts ℓ_infty_ℝ → Prop :=
+private definition isometry_rel :
+  nonempty_compacts ℓ_infty_ℝ → nonempty_compacts ℓ_infty_ℝ → Prop :=
   λx y, nonempty (x.val ≃ᵢ y.val)
 
 /-- This is indeed an equivalence relation -/

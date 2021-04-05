@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Zhouhang Zhou
 -/
 import measure_theory.integration
 import order.filter.germ
+import topology.continuous_function.algebra
 
 /-!
 

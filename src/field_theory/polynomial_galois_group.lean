@@ -43,21 +43,21 @@ namespace gal
 @[ext] lemma ext {σ τ : p.gal} (h : ∀ x ∈ p.root_set p.splitting_field, σ x = τ x) : σ = τ :=
 begin
   refine alg_equiv.ext (λ x, (alg_hom.mem_equalizer σ.to_alg_hom τ.to_alg_hom x).mp
-      ((subalgebra.ext_iff.mp _ x).mpr algebra.mem_top)),
+      ((set_like.ext_iff.mp _ x).mpr algebra.mem_top)),
   rwa [eq_top_iff, ←splitting_field.adjoin_roots, algebra.adjoin_le_iff],
 end
 
 instance [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
 { default := 1,
   uniq := λ f, alg_equiv.ext (λ x, by { obtain ⟨y, rfl⟩ := algebra.mem_bot.mp
-    ((subalgebra.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h.1) x).mp algebra.mem_top),
+    ((set_like.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h.1) x).mp algebra.mem_top),
     rw [alg_equiv.commutes, alg_equiv.commutes] }) }
 
 /-- If `p` splits in `F` then the `p.gal` is trivial. -/
 def unique_gal_of_splits (h : p.splits (ring_hom.id F)) : unique p.gal :=
 { default := 1,
   uniq := λ f, alg_equiv.ext (λ x, by { obtain ⟨y, rfl⟩ := algebra.mem_bot.mp
-    ((subalgebra.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h) x).mp algebra.mem_top),
+    ((set_like.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h) x).mp algebra.mem_top),
     rw [alg_equiv.commutes, alg_equiv.commutes] }) }
 
 instance unique_gal_zero : unique (0 : polynomial F).gal :=
@@ -172,7 +172,7 @@ begin
   intros ϕ hϕ,
   let equalizer := alg_hom.equalizer ϕ.to_alg_hom (alg_hom.id F p.splitting_field),
   suffices : equalizer = ⊤,
-  { exact alg_equiv.ext (λ x, (subalgebra.ext_iff.mp this x).mpr algebra.mem_top) },
+  { exact alg_equiv.ext (λ x, (set_like.ext_iff.mp this x).mpr algebra.mem_top) },
   rw [eq_top_iff, ←splitting_field.adjoin_roots, algebra.adjoin_le_iff],
   intros x hx,
   have key := equiv.perm.ext_iff.mp hϕ (roots_equiv_roots p E ⟨x, hx⟩),
@@ -210,7 +210,7 @@ begin
   dsimp only [restrict_prod, restrict_dvd] at hfg,
   simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
   suffices : alg_hom.equalizer f.to_alg_hom g.to_alg_hom = ⊤,
-  { exact alg_equiv.ext (λ x, (subalgebra.ext_iff.mp this x).mpr algebra.mem_top) },
+  { exact alg_equiv.ext (λ x, (set_like.ext_iff.mp this x).mpr algebra.mem_top) },
   rw [eq_top_iff, ←splitting_field.adjoin_roots, algebra.adjoin_le_iff],
   intros x hx,
   rw [map_mul, polynomial.roots_mul] at hx,

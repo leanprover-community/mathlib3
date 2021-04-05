@@ -46,7 +46,7 @@ end
 theorem dvd_factorial : ∀ {m n}, 0 < m → m ≤ n → m ∣ n!
 | (succ m) n _ h := dvd_of_mul_right_dvd (factorial_dvd_factorial h)
 
-theorem factorial_le {m n} (h : m ≤ n) : m! ≤ n! :=
+@[mono] theorem factorial_le {m n} (h : m ≤ n) : m! ≤ n! :=
 le_of_dvd (factorial_pos _) (factorial_dvd_factorial h)
 
 lemma factorial_mul_pow_le_factorial : ∀ {m n : ℕ}, m! * m.succ ^ n ≤ (m + n)!

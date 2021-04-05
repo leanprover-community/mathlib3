@@ -12,8 +12,8 @@ import data.indicator_function
 /-!
 # Finite products and sums over types and sets
 
-We define products sums over types and subsets of types, with no finiteness hypotheses. All infinite
-product and sums are defined to be junk values (i.e. one or zero). This approach is sometimes easier
+We define products and sums over types and subsets of types, with no finiteness hypotheses. All infinite
+products and sums are defined to be junk values (i.e. one or zero). This approach is sometimes easier
 to use than `finset.sum` when issues arise with `finset` and `fintype` being data.
 
 ## Main definitions

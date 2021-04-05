@@ -42,8 +42,6 @@ and also universe-polymorphic (the ring and module can be in different universes
 Everything works for semirings and semimodules except that apparently
 we don't have free semimodules, so here we stick to rings.
 
-`is_projective.of_lifting_property` is not universe polymorphic.
-
 ## References
 
 https://en.wikipedia.org/wiki/Projective_module

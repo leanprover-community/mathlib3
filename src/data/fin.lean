@@ -359,19 +359,28 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = (a + b) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
-lemma coe_add_one {n : ℕ} {i : fin n.succ} (h : (i : ℕ) < n) :
+lemma coe_add_one_of_lt {n : ℕ} {i : fin n.succ} (h : i < last _) :
   (↑(i + 1) : ℕ) = i + 1 :=
 begin
   -- First show that `((1 : fin n.succ) : ℕ) = 1`, because `n.succ` is at least 2.
   cases n,
   { cases h },
   -- Then just unfold the definitions.
-  rw [fin.coe_add, fin.coe_one, nat.mod_eq_of_lt (nat.succ_lt_succ h)]
+  rw [fin.coe_add, fin.coe_one, nat.mod_eq_of_lt (nat.succ_lt_succ _)],
+  exact h
 end
 
 @[simp] lemma last_add_one : ∀ n, last n + 1 = 0
 | 0 := subsingleton.elim _ _
 | (n + 1) := by { ext, rw [coe_add, coe_zero, coe_last, coe_one, nat.mod_self] }
+
+lemma coe_add_one {n : ℕ} (i : fin (n + 1)) :
+  ((i + 1 : fin (n + 1)) : ℕ) = if i = last _ then 0 else i + 1 :=
+begin
+  rcases (le_last i).eq_or_lt with rfl|h,
+  { simp },
+  { simpa [h.ne] using coe_add_one_of_lt h }
+end
 
 section bit
 

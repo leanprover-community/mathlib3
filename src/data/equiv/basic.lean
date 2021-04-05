@@ -1745,15 +1745,17 @@ theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : 
   f ((of_injective f hf).symm b) = b :=
 subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
 
-lemma of_left_inverse_eq_of_injective {α β : Type*} [nonempty α]
+lemma of_left_inverse_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
-  of_left_inverse f f_inv hf = of_injective f (hf ‹_›).injective :=
+  of_left_inverse f f_inv hf = of_injective f
+    ((em (nonempty α)).elim (λ h, (hf h).injective) (λ h _ _ _, by {
+      haveI : subsingleton α := subsingleton_of_not_nonempty h, simp })) :=
 by { ext, simp }
 
-lemma of_left_inverse'_eq_of_injective {α β : Type*} [nonempty α]
+lemma of_left_inverse'_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
   of_left_inverse' f f_inv hf = of_injective f hf.injective :=
-of_left_inverse_eq_of_injective _ _ _
+by { ext, simp }
 
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
 @[simps apply]

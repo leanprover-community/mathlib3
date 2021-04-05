@@ -249,7 +249,7 @@ end
 @[simp] lemma fin_rotate_one : fin_rotate 1 = equiv.refl _ :=
 subsingleton.elim _ _
 
-lemma fin_rotate_succ_apply {n : ℕ} (i : fin n.succ) :
+@[simp] lemma fin_rotate_succ_apply {n : ℕ} (i : fin n.succ) :
   fin_rotate n.succ i = i + 1 :=
 begin
   cases n,

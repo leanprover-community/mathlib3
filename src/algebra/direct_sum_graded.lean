@@ -483,13 +483,13 @@ variables [add_monoid ι] [Π i, add_comm_monoid (A i)] [ghas_mul A]
 an `eq.rec` to turn `A (0 + i)` into `A i`.
 -/
 instance grade_zero.has_scalar (i : ι) : has_scalar (A 0) (A i) :=
-{ smul := λ x y, (zero_add i).rec (ghas_mul.mul x y)}
+{ smul := λ x y, (zero_add i).rec (ghas_mul.mul x y) }
 
 /-- `(*) : A 0 → A 0 → A 0` is the value provided in `direct_sum.ghas_mul.mul`, composed with
 an `eq.rec` to turn `A (0 + 0)` into `A 0`.
 -/
 instance grade_zero.has_mul : has_mul (A 0) :=
-{ mul := (•)}
+{ mul := (•) }
 
 lemma grade_zero.smul_eq_mul (a b : A 0) : a • b = a * b := rfl
 
@@ -531,7 +531,7 @@ function.injective.semiring (of A 0) dfinsupp.single_injective
 
 /-- `of A 0` is a `ring_hom`, using the `direct_sum.grade_zero.semiring` structure. -/
 def of_zero_ring_hom : A 0 →+* (⨁ i, A i) :=
-{ map_one' := of_zero_one A, map_mul' := of_zero_mul A, ..(of _ 0)}
+{ map_one' := of_zero_one A, map_mul' := of_zero_mul A, ..(of _ 0) }
 
 /-- Each grade `A i` derives a `A 0`-semimodule structure from `gmonoid A`. Note that this results
 in an overall `semimodule (A 0) (⨁ i, A i)` structure via `direct_sum.semimodule`.

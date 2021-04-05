@@ -30,6 +30,10 @@ instance comm_semigroup [∀ i, comm_semigroup $ f i] : comm_semigroup (Π i : I
 by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
 
 @[to_additive]
+instance mul_one_class [∀ i, mul_one_class $ f i] : mul_one_class (Π i : I, f i) :=
+by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
+
+@[to_additive]
 instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
 
@@ -135,7 +139,7 @@ See also `monoid_hom.eval`. -/
 @[simps, to_additive "Coercion of an `add_monoid_hom` into a function is itself a `add_monoid_hom`.
 
 See also `add_monoid_hom.eval`. "]
-def monoid_hom.coe_fn (α β : Type*) [monoid α] [comm_monoid β] : (α →* β) →* (α → β) :=
+def monoid_hom.coe_fn (α β : Type*) [mul_one_class α] [comm_monoid β] : (α →* β) →* (α → β) :=
 { to_fun := λ g, g,
   map_one' := rfl,
   map_mul' := λ x y, rfl, }
@@ -160,7 +164,7 @@ This is the `zero_hom` version of `pi.single`. -/
 into a dependent family of additive monoids, as functions supported at a point.
 
 This is the `add_monoid_hom` version of `pi.single`. -/
-@[simps] def add_monoid_hom.single [Π i, add_monoid $ f i] (i : I) : f i →+ Π i, f i :=
+@[simps] def add_monoid_hom.single [Π i, add_zero_class $ f i] (i : I) : f i →+ Π i, f i :=
 { to_fun := single i,
   map_add' := single_op₂ (λ _, (+)) (λ _, zero_add _) _,
   .. (zero_hom.single f i) }
@@ -175,7 +179,7 @@ This is the `mul_hom` version of `pi.single`. -/
 
 variables {f}
 
-lemma pi.single_add [Π i, add_monoid $ f i] (i : I) (x y : f i) :
+lemma pi.single_add [Π i, add_zero_class $ f i] (i : I) (x y : f i) :
   single i (x + y) = single i x + single i y :=
 (add_monoid_hom.single f i).map_add x y
 

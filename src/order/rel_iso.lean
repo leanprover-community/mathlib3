@@ -619,7 +619,7 @@ protected noncomputable def strict_mono_incr_on.order_iso {α β} [linear_order 
 its range. -/
 protected noncomputable def strict_mono.order_iso {α β} [linear_order α] [preorder β] (f : α → β)
   (h_mono : strict_mono f) : α ≃o set.range f :=
-{ to_equiv := equiv.set.range f h_mono.injective,
+{ to_equiv := equiv.of_injective f h_mono.injective,
   map_rel_iff' := λ a b, h_mono.le_iff_le }
 
 /-- A strictly monotone surjective function from a linear order is an order isomorphism. -/

@@ -608,7 +608,7 @@ begin
     rw [bot_lt_iff_ne_bot, lt_top_iff_ne_top],
     exact ⟨mt ideal.span_singleton_eq_bot.mp nz, mt ideal.span_singleton_eq_top.mp nu⟩ },
   { rintros ⟨I, bot_lt, lt_top⟩ hf,
-    obtain ⟨x, mem, ne_zero⟩ := submodule.exists_of_lt bot_lt,
+    obtain ⟨x, mem, ne_zero⟩ := set_like.exists_of_lt bot_lt,
     rw submodule.mem_bot at ne_zero,
     obtain ⟨y, hy⟩ := hf.mul_inv_cancel ne_zero,
     rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ← hy] at lt_top,

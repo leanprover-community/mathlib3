@@ -373,6 +373,14 @@ lemma coe_le_iff : ↑r ≤ a ↔ (∀p:ℝ≥0, a = p → r ≤ p) := with_top.
 
 lemma lt_iff_exists_coe : a < b ↔ (∃p:ℝ≥0, a = p ∧ ↑p < b) := with_top.lt_iff_exists_coe
 
+lemma to_real_le_coe_of_le_coe {a : ℝ≥0∞} {b : ℝ≥0} (h : a ≤ b) : a.to_real ≤ b :=
+show ↑a.to_nnreal ≤ ↑b,
+begin
+  have : ↑a.to_nnreal = a := ennreal.coe_to_nnreal (lt_of_le_of_lt h coe_lt_top).ne,
+  rw ← this at h,
+  exact_mod_cast h
+end
+
 @[simp, norm_cast] lemma coe_finset_sup {s : finset α} {f : α → ℝ≥0} :
   ↑(s.sup f) = s.sup (λ x, (f x : ℝ≥0∞)) :=
 finset.comp_sup_eq_sup_comp_of_is_total _ coe_mono rfl
@@ -1473,6 +1481,9 @@ section supr
 
 @[simp] lemma supr_eq_zero {ι : Sort*} {f : ι → ℝ≥0∞} : (⨆ i, f i) = 0 ↔ ∀ i, f i = 0 :=
 supr_eq_bot
+
+@[simp] lemma supr_zero_eq_zero {ι : Sort*} : (⨆ i : ι, (0 : ℝ≥0∞)) = 0 :=
+by simp
 
 lemma sup_eq_zero {a b : ℝ≥0∞} : a ⊔ b = 0 ↔ a = 0 ∧ b = 0 := sup_eq_bot_iff
 

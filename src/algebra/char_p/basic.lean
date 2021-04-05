@@ -110,6 +110,9 @@ theorem eq_iff {p : ℕ} : ring_char R = p ↔ char_p R p :=
 theorem dvd {x : ℕ} (hx : (x : R) = 0) : ring_char R ∣ x :=
 (spec R x).1 hx
 
+@[simp]
+lemma eq_zero [char_zero R] : ring_char R = 0 := (eq R (char_p.of_char_zero R)).symm
+
 end ring_char
 
 theorem add_pow_char_of_commute (R : Type u) [semiring R] {p : ℕ} [hp : fact p.prime]

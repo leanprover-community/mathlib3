@@ -100,7 +100,7 @@ Group Theory:
     decomposition into transpositions: ''
     decomposition into cycles with disjoint support: 'equiv.perm.cycle_factors'
     signature: 'equiv.perm.sign'
-    alternating group: ''
+    alternating group: 'alternating_subgroup'
   Classical automorphism groups:
     general linear group: 'linear_map.general_linear_group'
     special linear group: 'matrix.special_linear_group'
@@ -294,8 +294,8 @@ Single Variable Real Analysis:
     additive subgroups of $\R$: 'real.subgroup_dense_or_cyclic'
   Numerical series:
     Convergence of real valued-series:
-    Geometric series:
-    convergence of $p$-series for $p>1$:
+    Geometric series: 'tsum_geometric_of_norm_lt_1'
+    convergence of $p$-series for $p>1$: 'nnreal.summable_one_rpow_inv'
     positive valued series:
     summation of comparison relations:
     comparison of a series and an integral:
@@ -412,7 +412,7 @@ Topology:
     complete metric spaces: 'metric.complete_of_cauchy_seq_tendsto'
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
   Normed vector spaces on $\R$ and $\C$:
-    topology on a normed vector space: 'normed_space.has_continuous_smul'
+    topology on a normed vector space: 'semi_normed_space.has_continuous_smul'
     equivalent norms:
     Banach open mapping theorem: 'open_mapping'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'

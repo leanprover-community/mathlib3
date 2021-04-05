@@ -114,7 +114,7 @@ lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by norm_cast
 
 instance : comm_semiring ℝ≥0 :=
 begin
-  refine { zero := 0, add := (+), one := 1, mul := (*), ..};
+  refine_struct { zero := (0 : ℝ≥0), add := (+), one := 1, mul := (*), nsmul := _, nspow := _, ..};
   { intros;
     apply nnreal.eq;
     simp [mul_comm, mul_assoc, add_comm_monoid.add, left_distrib, right_distrib,

@@ -132,8 +132,10 @@ by refine_struct
     neg := has_neg.neg,
     sub := has_sub.sub,
     mul := (*),
-    one := 1 };
-  intros; ext; simp; ring_exp
+    one := 1,
+    nsmul := _,
+    nspow := _ };
+  intros; try { refl }; ext; simp; ring_exp
 
 instance : algebra R ℍ[R, c₁, c₂] :=
 { smul := λ r a, ⟨r * a.1, r * a.2, r * a.3, r * a.4⟩,

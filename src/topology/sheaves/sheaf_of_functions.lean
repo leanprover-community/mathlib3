@@ -165,7 +165,8 @@ end Top.presheaf
 namespace Top
 
 /--
-The sheaf of not-necessarily-continuous functions on `X` with values in type family `T : X → Type u`.
+The sheaf of not-necessarily-continuous functions on `X` with values in type family
+`T : X → Type u`.
 -/
 def sheaf_to_Types (T : X → Type u) : sheaf (Type u) X :=
 { presheaf := presheaf_to_Types X T,

@@ -292,7 +292,7 @@ f.to_multilinear_map.map_smul_univ _ _
 
 variables {R' A : Type*} [comm_semiring R'] [semiring A] [algebra R' A]
   [Π i, semimodule A (M₁ i)] [semimodule R' M₂] [semimodule A M₂] [is_scalar_tower R' A M₂]
-  [topological_space R'] [topological_semimodule R' M₂]
+  [topological_space R'] [has_continuous_smul R' M₂]
 
 instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
 ⟨λ c f, { cont := continuous_const.smul f.cont, .. c • f.to_multilinear_map }⟩
@@ -306,7 +306,7 @@ rfl
 
 instance {R''} [comm_semiring R''] [has_scalar R' R''] [algebra R'' A]
   [semimodule R'' M₂] [is_scalar_tower R'' A M₂] [is_scalar_tower R' R'' M₂]
-  [topological_space R''] [topological_semimodule R'' M₂]:
+  [topological_space R''] [has_continuous_smul R'' M₂]:
   is_scalar_tower R' R'' (continuous_multilinear_map A M₁ M₂) :=
 ⟨λ c₁ c₂ f, ext $ λ x, smul_assoc _ _ _⟩
 

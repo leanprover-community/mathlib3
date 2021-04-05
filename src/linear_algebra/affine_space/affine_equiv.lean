@@ -253,7 +253,7 @@ tangent space `V`. -/
 def vadd_const (b : P₁) : V₁ ≃ᵃ[k] P₁ :=
 { to_equiv := equiv.vadd_const b,
   linear := linear_equiv.refl _ _,
-  map_vadd' := λ p v, (vadd_assoc _ _ _).symm }
+  map_vadd' := λ p v, add_vadd _ _ _  }
 
 @[simp] lemma linear_vadd_const (b : P₁) : (vadd_const k b).linear = linear_equiv.refl k V₁ := rfl
 
@@ -277,7 +277,7 @@ variable (P₁)
 def const_vadd (v : V₁) : P₁ ≃ᵃ[k] P₁ :=
 { to_equiv := equiv.const_vadd P₁ v,
   linear := linear_equiv.refl _ _,
-  map_vadd' := λ p w, vadd_comm _ _ _ _ }
+  map_vadd' := λ p w, vadd_comm _ _ _ }
 
 @[simp] lemma linear_const_vadd (v : V₁) : (const_vadd k P₁ v).linear = linear_equiv.refl _ _ := rfl
 

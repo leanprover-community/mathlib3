@@ -31,9 +31,18 @@ add_decl_doc AddMon
 
 namespace Mon
 
+/-- `monoid_hom` doesn't actually assume associativity. This alias is needed to make the category
+theory machinery work. -/
+@[to_additive "`add_monoid_hom` doesn't actually assume associativity. This alias is needed to make
+the category theory machinery work."]
+abbreviation assoc_monoid_hom (M N : Type*) [monoid M] [monoid N] := monoid_hom M N
+
 @[to_additive]
-instance bundled_hom : bundled_hom @monoid_hom :=
-⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.coe_inj⟩
+instance bundled_hom : bundled_hom assoc_monoid_hom :=
+⟨λ M N [monoid M] [monoid N], by exactI @monoid_hom.to_fun M N _ _,
+ λ M [monoid M], by exactI @monoid_hom.id M _,
+ λ M N P [monoid M] [monoid N] [monoid P], by exactI @monoid_hom.comp M N P _ _ _,
+ λ M N [monoid M] [monoid N], by exactI @monoid_hom.coe_inj M N _ _⟩
 
 attribute [derive [has_coe_to_sort, large_category, concrete_category]] Mon AddMon
 

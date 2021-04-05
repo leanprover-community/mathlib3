@@ -356,11 +356,12 @@ end
 @[to_additive] instance fintype_bot : fintype (⊥ : subgroup G) := ⟨{1},
 by {rintro ⟨x, ⟨hx⟩⟩, exact finset.mem_singleton_self _}⟩
 
-@[simp] lemma card_trivial_add : fintype.card (⊥ : add_subgroup A) = 1 :=
+@[simp] lemma addsubgroup.card_bot : fintype.card (⊥ : add_subgroup A) = 1 :=
 fintype.card_eq_one_iff.2
   ⟨⟨(0 : A), set.mem_singleton 0⟩, λ ⟨y, hy⟩, subtype.eq $ add_subgroup.mem_bot.1 hy⟩
 
-@[simp] lemma card_trivial : fintype.card (⊥ : subgroup G) = 1 :=
+-- `@[to_additive]` doesn't work, because it converts the `1 : ℕ` to `0`.
+@[simp] lemma subgroup.card_bot : fintype.card (⊥ : subgroup G) = 1 :=
 fintype.card_eq_one_iff.2
   ⟨⟨(1 : G), set.mem_singleton 1⟩, λ ⟨y, hy⟩, subtype.eq $ subgroup.mem_bot.1 hy⟩
 

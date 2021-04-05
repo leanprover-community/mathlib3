@@ -82,17 +82,17 @@ lemma dist_le_of_nonempty [nonempty α] :
 @bounded_continuous_function.dist_le_of_nonempty  _ _ _ _
   ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _
 
-lemma dist_lt_of_nonempty_compact [nonempty α] [compact_space α]
+lemma dist_lt_of_nonempty [nonempty α]
   (w : ∀x:α, dist (f x) (g x) < C) : dist f g < C :=
 @bounded_continuous_function.dist_lt_of_nonempty_compact  _ _ _ _
   ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _ _ w
 
-lemma dist_lt_iff_of_compact [compact_space α] (C0 : (0 : ℝ) < C) :
+lemma dist_lt_iff (C0 : (0 : ℝ) < C) :
   dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
 @bounded_continuous_function.dist_lt_iff_of_compact  _ _ _ _
   ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _ C0
 
-lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
+lemma dist_lt_iff_of_nonempty [nonempty α] :
   dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
 @bounded_continuous_function.dist_lt_iff_of_nonempty_compact  _ _ _ _
   ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _ _
@@ -146,11 +146,11 @@ lemma norm_le_of_nonempty [nonempty α] {M : ℝ} : ∥f∥ ≤ M ↔ ∀ x, ∥
 @bounded_continuous_function.norm_le_of_nonempty _ _ _ _ _
   ((equiv_bounded_of_compact α β) f) _
 
-lemma norm_lt_iff_of_compact [compact_space α] {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
+lemma norm_lt_iff {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 @bounded_continuous_function.norm_lt_iff_of_compact _ _ _ _ _
   ((equiv_bounded_of_compact α β) f) _ M0
 
-lemma norm_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] {M : ℝ} :
+lemma norm_lt_iff_of_nonempty [nonempty α] {M : ℝ} :
   ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 @bounded_continuous_function.norm_lt_iff_of_nonempty_compact _ _ _ _ _ _
   ((equiv_bounded_of_compact α β) f) _

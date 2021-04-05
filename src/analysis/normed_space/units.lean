@@ -82,7 +82,7 @@ begin
 end
 
 protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
-mem_nhds_sets units.is_open (is_unit_unit x)
+mem_nhds_sets units.is_open x.is_unit
 
 end units
 

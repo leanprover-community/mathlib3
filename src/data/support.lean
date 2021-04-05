@@ -257,4 +257,8 @@ begin
   simp
 end
 
+lemma support_single_disjoint {b' : B} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : A} :
+  disjoint (function.support (single i b)) (function.support (single j b')) ↔ i ≠ j :=
+by simpa [support_single, hb, hb'] using ne_comm
+
 end pi

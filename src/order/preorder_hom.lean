@@ -120,16 +120,22 @@ instance {β : Type*} [order_top β] : order_top (α →ₘ β) :=
 @[simps]
 instance {β : Type*} [complete_lattice β] : has_Inf (α →ₘ β) :=
 { Inf := λ s, ⟨ λ x, Inf ((λ f : _ →ₘ _, f x) '' s), λ x y h,
-      Inf_le_Inf_of_forall_exists_le
-        (by simp only [and_imp, exists_prop, set.mem_image, exists_exists_and_eq_and, exists_imp_distrib];
-            intros; subst_vars; refine ⟨_,by assumption, monotone _ h⟩) ⟩ }
+    Inf_le_Inf_of_forall_exists_le begin
+      simp only [and_imp, exists_prop, set.mem_image, exists_exists_and_eq_and, exists_imp_distrib],
+      intros,
+      subst_vars,
+      refine ⟨_,by assumption, monotone _ h⟩
+    end ⟩ }
 
 @[simps]
 instance {β : Type*} [complete_lattice β] : has_Sup (α →ₘ β) :=
 { Sup := λ s, ⟨ λ x, Sup ((λ f : _ →ₘ _, f x) '' s), λ x y h,
-      Sup_le_Sup_of_forall_exists_le
-        (by simp only [and_imp, exists_prop, set.mem_image, exists_exists_and_eq_and, exists_imp_distrib];
-            intros; subst_vars; refine ⟨_,by assumption, monotone _ h⟩) ⟩ }
+    Sup_le_Sup_of_forall_exists_le begin
+      simp only [and_imp, exists_prop, set.mem_image, exists_exists_and_eq_and, exists_imp_distrib],
+      intros,
+      subst_vars,
+      refine ⟨_,by assumption, monotone _ h⟩
+    end ⟩ }
 
 @[simps Sup Inf]
 instance {β : Type*} [complete_lattice β] : complete_lattice (α →ₘ β) :=

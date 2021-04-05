@@ -8,11 +8,12 @@ import category_theory.shift
 import category_theory.abelian.additive_functor
 
 /-!
-# Triangulated Categories
+# Triangles
 
-This file contains the definition of triangulated categories.
+This file contains the definition of triangles in an additive category with an additive shift.
+It also defines morphisms between these triangles.
 
-TODO: generalise this to n-angulated categories as in https://arxiv.org/abs/1006.4592
+TODO: generalise this to n-angles in n-angulated categories as in https://arxiv.org/abs/1006.4592
 -/
 
 noncomputable theory
@@ -26,11 +27,16 @@ universes v v₀ v₁ v₂ u u₀ u₁ u₂
 namespace category_theory.triangulated
 open category_theory.category
 
-/--
+/-
 We work in an additive category C equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [additive_category C]
-  [has_shift C] [functor.additive (shift C).functor]
+
+  [has_shift C] [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
+/-
+Eventually can remove conditions on shift functor and inverse, as all equivalences of additive
+categories are additive functors
+-/
 
 /--
 A triangle in C is a sextuple (X,Y,Z,f,g,h) where X,Y,Z are objects of C,
@@ -49,6 +55,17 @@ local attribute [instance] has_zero_object.has_zero
 instance [has_zero_object C] : inhabited (triangle C) :=
 ⟨⟨0,0,0,0,0,0⟩⟩
 
+/--
+For each object in C, there is a triangle of the form (X,X,0,𝟙_X,0,0)
+-/
+def contractible_triangle (X : C) : triangle C :=
+{ obj₁ := X,
+  obj₂ := X,
+  obj₃ := 0,
+  mor₁ := 𝟙 X,
+  mor₂ := 0,
+  mor₃ := 0 }
+
 variable {C}
 
 /--
@@ -56,6 +73,7 @@ A morphism of triangles `(X,Y,Z,f,g,h) ⟶ (X',Y',Z',f',g',h')` in `C` is a trip
 `a : X ⟶ X'`, `b : Y ⟶ Y'`, `c : Z ⟶ Z'` such that
 `a ≫ f' = f ≫ b`, `b ≫ g' = g ≫ c`, and `a⟦1⟧' ≫ h = h' ≫ c`.
 In other words, we have a commutative diagram:
+```
      f      g      h
   X  --> Y  --> Z  --> X⟦1⟧
   |      |      |       |
@@ -63,7 +81,7 @@ In other words, we have a commutative diagram:
   V      V      V       V
   X' --> Y' --> Z' --> X'⟦1⟧
      f'     g'     h'
-
+```
 See https://stacks.math.columbia.edu/tag/0144.
 -/
 @[ext]

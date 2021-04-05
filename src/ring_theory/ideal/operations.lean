@@ -633,7 +633,7 @@ begin
   { exact hs (or.inl $ or.inr $ add_sub_cancel' r s ▸ (f b).sub_mem hb hrb) },
   { exact hri (add_sub_cancel r s ▸ (f i).sub_mem hi hsi) },
   { rw set.mem_bUnion_iff at ht, rcases ht with ⟨j, hjt, hj⟩,
-    simp only [finset.inf_eq_infi, submodule.mem_coe, submodule.mem_infi] at hr,
+    simp only [finset.inf_eq_infi, set_like.mem_coe, submodule.mem_infi] at hr,
     exact hs (or.inr $ set.mem_bUnion hjt $ add_sub_cancel' r s ▸ (f j).sub_mem hj $ hr j hjt) }
 end
 
@@ -1068,10 +1068,10 @@ lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
 lemma ker_eq_comap_bot (f : R →+* S) : f.ker = ideal.comap f ⊥ := rfl
 
 lemma injective_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
-by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.injective_iff_trivial_ker f
+by rw [set_like.ext'_iff, ker_eq]; exact is_add_group_hom.injective_iff_trivial_ker f
 
 lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
-by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
+by rw [set_like.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
 
 /-- If the target is not the zero ring, then one is not in the kernel.-/
 lemma not_one_mem_ker [nontrivial S] (f : R →+* S) : (1:R) ∉ ker f :=
@@ -1232,8 +1232,11 @@ lemma quotient.alg_map_eq (I : ideal A) :
   algebra_map R I.quotient = (algebra_map A I.quotient).comp (algebra_map R A) :=
 by simp only [ring_hom.algebra_map_to_algebra, ring_hom.comp_id]
 
-instance {I : ideal A} : is_scalar_tower R A (ideal.quotient I) :=
-is_scalar_tower.of_algebra_map_eq' (quotient.alg_map_eq R I)
+instance [algebra S A] [algebra S R] [is_scalar_tower S R A]
+  {I : ideal A} : is_scalar_tower S R (ideal.quotient I) :=
+is_scalar_tower.of_algebra_map_eq' $ by
+  rw [quotient.alg_map_eq R, quotient.alg_map_eq S, ring_hom.comp_assoc,
+    is_scalar_tower.algebra_map_eq S R A]
 
 lemma quotient.mkₐ_to_ring_hom (I : ideal A) :
   (quotient.mkₐ R I).to_ring_hom = ideal.quotient.mk I := rfl

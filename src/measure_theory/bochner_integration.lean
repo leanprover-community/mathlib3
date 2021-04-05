@@ -466,7 +466,7 @@ lemma coe_sub (f g : α →₁ₛ[μ] E) : ((f - g : α →₁ₛ[μ] E) : α �
 
 lemma norm_eq (f : α →₁ₛ[μ] E) : ∥f∥ = ∥(f : α →₁[μ] E)∥ := rfl
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 /-- Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the
 Bochner integral. -/
@@ -529,7 +529,7 @@ lemma to_L1_sub (f g : α →ₛ E) (hf : integrable f μ) (hg : integrable g μ
   to_L1 (f - g) (hf.sub hg) = to_L1 f hf - to_L1 g hg :=
 by { simp only [sub_eq_add_neg, ← to_L1_neg, ← to_L1_add], refl }
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 lemma to_L1_smul (f : α →ₛ E) (hf : integrable f μ) (c : 𝕜) :
   to_L1 (c • f) (hf.smul c) = c • to_L1 f hf := rfl
@@ -614,7 +614,7 @@ begin
   repeat { assume h, rw h }
 end
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 lemma smul_to_simple_func (k : 𝕜) (f : α →₁ₛ[μ] E) :
   to_simple_func (k • f) =ᵐ[μ] k • to_simple_func f :=
@@ -701,7 +701,7 @@ simple_func.dense_embedding.to_dense_inducing
 protected lemma dense_range : dense_range (coe : (α →₁ₛ[μ] E) → (α →₁[μ] E)) :=
 simple_func.dense_inducing.dense
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 variables (α E 𝕜)
 
@@ -764,7 +764,8 @@ begin
   apply add_to_simple_func
 end
 
-lemma integral_smul (c : 𝕜) (f : α →₁ₛ[μ] E) : integral (c • f) = c • integral f :=
+lemma integral_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] (c : 𝕜) (f : α →₁ₛ[μ] E) :
+  integral (c • f) = c • integral f :=
 begin
   simp only [integral],
   rw ← simple_func.integral_smul _ (simple_func.integrable f),
@@ -779,7 +780,7 @@ begin
   exact (to_simple_func f).norm_integral_le_integral_norm (simple_func.integrable f)
 end
 
-variables (α E μ 𝕜)
+variables (α E μ 𝕜) [measurable_space 𝕜] [opens_measurable_space 𝕜]
 /-- The Bochner integral over simple functions in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁ₛ[μ] E) →L[𝕜] E :=
 linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
@@ -879,7 +880,7 @@ local attribute [instance] simple_func.normed_group simple_func.normed_space
 
 open continuous_linear_map
 
-variables (𝕜)
+variables (𝕜) [measurable_space 𝕜] [opens_measurable_space 𝕜]
 /-- The Bochner integral in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁[μ] E) →L[𝕜] E :=
 (integral_clm' α E 𝕜 μ).extend
@@ -1041,7 +1042,8 @@ lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
 integral_sub hf hg
 
-lemma integral_smul (c : 𝕜) (f : α → E) : ∫ a, c • (f a) ∂μ = c • ∫ a, f a ∂μ :=
+lemma integral_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] (c : 𝕜) (f : α → E) :
+  ∫ a, c • (f a) ∂μ = c • ∫ a, f a ∂μ :=
 begin
   by_cases hf : integrable f μ,
   { rw [integral_eq f hf, integral_eq (λa, c • (f a)), integrable.to_L1_smul, L1.integral_smul], },
@@ -1093,8 +1095,7 @@ by { simp_rw [← of_real_norm_eq_coe_nnnorm], apply ennreal.of_real_le_of_le_to
   exact norm_integral_le_lintegral_norm f }
 
 lemma integral_eq_zero_of_ae {f : α → E} (hf : f =ᵐ[μ] 0) : ∫ a, f a ∂μ = 0 :=
-if hfm : ae_measurable f μ then by simp [integral_congr_ae hf, integral_zero]
-else integral_non_ae_measurable hfm
+by simp [integral_congr_ae hf, integral_zero]
 
 /-- If `f` has finite integral, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
 to zero as `μ s` tends to zero. -/
@@ -1546,6 +1547,17 @@ let g := hfm.mk f in calc
 ∫ y, f y ∂(measure.map φ μ) = ∫ y, g y ∂(measure.map φ μ) : integral_congr_ae hfm.ae_eq_mk
 ... = ∫ x, g (φ x) ∂μ : integral_map_of_measurable hφ hfm.measurable_mk
 ... = ∫ x, f (φ x) ∂μ : integral_congr_ae $ ae_eq_comp hφ (hfm.ae_eq_mk).symm
+
+lemma integral_map_of_closed_embedding {β} [topological_space α] [borel_space α]
+  [topological_space β] [measurable_space β] [borel_space β]
+  {φ : α → β} (hφ : closed_embedding φ) (f : β → E) :
+  ∫ y, f y ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
+begin
+  by_cases hfm : ae_measurable f (measure.map φ μ),
+  { exact integral_map hφ.continuous.measurable hfm },
+  { rw [integral_non_ae_measurable hfm, integral_non_ae_measurable],
+    rwa ae_measurable_comp_right_iff_of_closed_embedding hφ }
+end
 
 lemma integral_dirac' (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=

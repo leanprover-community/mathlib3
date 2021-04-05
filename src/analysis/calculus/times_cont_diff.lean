@@ -2314,19 +2314,19 @@ times_cont_diff_mul.comp (hf.prod hg)
 lemma times_cont_diff_within_at.div_const {f : E → 𝕜} {n} {c : 𝕜}
   (hf : times_cont_diff_within_at 𝕜 n f s x) :
   times_cont_diff_within_at 𝕜 n (λ x, f x / c) s x :=
-hf.mul times_cont_diff_within_at_const
+by simpa only [div_eq_mul_inv] using hf.mul times_cont_diff_within_at_const
 
 lemma times_cont_diff_at.div_const {f : E → 𝕜} {n} {c : 𝕜} (hf : times_cont_diff_at 𝕜 n f x) :
   times_cont_diff_at 𝕜 n (λ x, f x / c) x :=
-hf.mul times_cont_diff_at_const
+by simpa only [div_eq_mul_inv] using hf.mul times_cont_diff_at_const
 
 lemma times_cont_diff_on.div_const {f : E → 𝕜} {n} {c : 𝕜} (hf : times_cont_diff_on 𝕜 n f s) :
   times_cont_diff_on 𝕜 n (λ x, f x / c) s :=
-hf.mul times_cont_diff_on_const
+by simpa only [div_eq_mul_inv] using hf.mul times_cont_diff_on_const
 
 lemma times_cont_diff.div_const {f : E → 𝕜} {n} {c : 𝕜} (hf : times_cont_diff 𝕜 n f) :
   times_cont_diff 𝕜 n (λ x, f x / c) :=
-hf.mul times_cont_diff_const
+by simpa only [div_eq_mul_inv] using hf.mul times_cont_diff_const
 
 lemma times_cont_diff.pow {n : with_top ℕ} {f : E → 𝕜}
   (hf : times_cont_diff 𝕜 n f) :
@@ -2516,7 +2516,7 @@ lemma times_cont_diff_within_at.div [complete_space 𝕜] {f g : E → 𝕜} {n}
   (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g s x)
   (hx : g x ≠ 0) :
   times_cont_diff_within_at 𝕜 n (λ x, f x / g x) s x :=
-hf.mul (hg.inv hx)
+by simpa only [div_eq_mul_inv] using hf.mul (hg.inv hx)
 
 lemma times_cont_diff_on.div [complete_space 𝕜] {f g : E → 𝕜} {n}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) (h₀ : ∀ x ∈ s, g x ≠ 0) :

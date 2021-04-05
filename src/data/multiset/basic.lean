@@ -1754,6 +1754,28 @@ theorem le_filter {s t} : s ≤ filter p t ↔ s ≤ t ∧ ∀ a ∈ s, p a :=
 ⟨λ h, ⟨le_trans h (filter_le _ _), λ a m, of_mem_filter (mem_of_le h m)⟩,
  λ ⟨h, al⟩, filter_eq_self.2 al ▸ filter_le_filter p h⟩
 
+theorem filter_cons {a : α} (s : multiset α) :
+  filter p (a ::ₘ s) = (if p a then {a} else 0) + filter p s :=
+begin
+  split_ifs with h,
+  { rw [filter_cons_of_pos _ h, singleton_add] },
+  { rw [filter_cons_of_neg _ h, zero_add] },
+end
+
+lemma nsmul_filter (s : multiset α) (n : ℕ) :
+  filter p (n • s) = n • filter p s :=
+begin
+  refine s.induction_on _ _,
+  { simp only [filter_zero, nsmul_zero] },
+  { intros a ha ih,
+    rw [nsmul_cons, filter_add, ih, filter_cons, nsmul_add],
+    congr,
+    split_ifs with hp;
+    { simp only [filter_eq_self, nsmul_zero, filter_eq_nil],
+      intros b hb,
+      rwa (mem_singleton.mp (mem_of_mem_nsmul hb)) } }
+end
+
 variable (p)
 
 @[simp] theorem filter_sub [decidable_eq α] (s t : multiset α) :

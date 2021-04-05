@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 import data.finsupp.basic
 import linear_algebra.basic
@@ -58,9 +58,10 @@ open_locale classical big_operators
 
 namespace finsupp
 
-variables {α : Type*} {M : Type*} {N : Type*} {R : Type*} {S : Type*}
+variables {α : Type*} {M : Type*} {N : Type*} {P : Type*} {R : Type*} {S : Type*}
 variables [semiring R] [semiring S] [add_comm_monoid M] [semimodule R M]
 variables [add_comm_monoid N] [semimodule R N]
+variables [add_comm_monoid P] [semimodule R P]
 
 /-- Interpret `finsupp.single a` as a linear map. -/
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
@@ -109,7 +110,7 @@ lemma lsingle_range_le_ker_lapply (s t : set α) (h : disjoint s t) :
   (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) ≤ (⨅a∈t, ker (lapply a)) :=
 begin
   refine supr_le (assume a₁, supr_le $ assume h₁, range_le_iff_comap.2 _),
-  simp only [(ker_comp _ _).symm, eq_top_iff, le_def', mem_ker, comap_infi, mem_infi],
+  simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
   assume b hb a₂ h₂,
   have : a₁ ≠ a₂ := assume eq, h ⟨h₁, eq.symm ▸ h₂⟩,
   exact single_eq_of_ne this
@@ -117,13 +118,13 @@ end
 
 lemma infi_ker_lapply_le_bot : (⨅a, ker (lapply a : (α →₀ M) →ₗ[R] M)) ≤ ⊥ :=
 begin
-  simp only [le_def', mem_infi, mem_ker, mem_bot, lapply_apply],
+  simp only [set_like.le_def, mem_infi, mem_ker, mem_bot, lapply_apply],
   exact assume a h, finsupp.ext h
 end
 
 lemma supr_lsingle_range : (⨆a, (lsingle a : M →ₗ[R] (α →₀ M)).range) = ⊤ :=
 begin
-  refine (eq_top_iff.2 $ le_def'.2 $ assume f _, _),
+  refine (eq_top_iff.2 $ set_like.le_def.2 $ assume f _, _),
   rw [← sum_single f],
   refine sum_mem _ (assume a ha, submodule.mem_supr_of_mem a $ set.mem_image_of_mem _ trivial)
 end
@@ -180,7 +181,7 @@ set.subset.trans support_single_subset (finset.singleton_subset_set_iff.2 h)
 lemma supported_eq_span_single (s : set α) :
   supported R R s = span R ((λ i, single i 1) '' s) :=
 begin
-  refine (span_eq_of_le _ _ (le_def'.2 $ λ l hl, _)).symm,
+  refine (span_eq_of_le _ _ (set_like.le_def.2 $ λ l hl, _)).symm,
   { rintro _ ⟨_, hp, rfl ⟩ , exact single_mem_supported R 1 hp },
   { rw ← l.sum_single,
     refine sum_mem _ (λ i il, _),
@@ -391,7 +392,7 @@ theorem lmap_domain_disjoint_ker (f : α → α') {s : set α}
   disjoint (supported M R s) (lmap_domain M R f).ker :=
 begin
   rintro l ⟨h₁, h₂⟩,
-  rw [mem_coe, mem_ker, lmap_domain_apply, map_domain] at h₂,
+  rw [set_like.mem_coe, mem_ker, lmap_domain_apply, map_domain] at h₂,
   simp, ext x,
   haveI := classical.dec_pred (λ x, x ∈ s),
   by_cases xs : x ∈ s,
@@ -455,7 +456,7 @@ begin
   { apply span_le.2,
     intros x hx,
     rcases hx with ⟨i, hi⟩,
-    rw [mem_coe, linear_map.mem_range],
+    rw [set_like.mem_coe, linear_map.mem_range],
     use finsupp.single i 1,
     simp [hi] }
 end
@@ -521,11 +522,7 @@ by rw [finsupp.total_on, linear_map.range, linear_map.map_cod_restrict,
 
 theorem total_comp (f : α' → α) :
   (finsupp.total α' M R (v ∘ f)) = (finsupp.total α M R v).comp (lmap_domain R R f) :=
-begin
- ext l,
- simp [total_apply],
- rw sum_map_domain_index; simp [add_smul],
-end
+by { ext, simp [total_apply] }
 
 lemma total_comap_domain
  (f : α → α') (l : α' →₀ R) (hf : set.inj_on f (f ⁻¹' ↑l.support)) :
@@ -567,23 +564,50 @@ begin
   exact finsupp.dom_lcongr e
 end
 
+/-- `finsupp.map_range` as a `linear_map`. -/
+@[simps]
+def map_range.linear_map (f : M →ₗ[R] N) : (α →₀ M) →ₗ[R] (α →₀ N) :=
+{ to_fun := (map_range f f.map_zero : (α →₀ M) → (α →₀ N)),
+  map_smul' := λ c v, map_range_smul c v (f.map_smul c),
+  ..map_range.add_monoid_hom f.to_add_monoid_hom }
+
+@[simp]
+lemma map_range.linear_map_id :
+  map_range.linear_map linear_map.id = (linear_map.id : (α →₀ M) →ₗ[R] _):=
+linear_map.ext map_range_id
+
+lemma map_range.linear_map_comp (f : N →ₗ[R] P) (f₂ : M →ₗ[R] N) :
+  (map_range.linear_map (f.comp f₂) : (α →₀ _) →ₗ[R] _) =
+    (map_range.linear_map f).comp (map_range.linear_map f₂) :=
+linear_map.ext $ map_range_comp _ _ _ _ _
+
+/-- `finsupp.map_range` as a `linear_equiv`. -/
+@[simps apply]
+def map_range.linear_equiv (e : M ≃ₗ[R] N) : (α →₀ M) ≃ₗ[R] (α →₀ N) :=
+{ to_fun := map_range e e.map_zero,
+  inv_fun := map_range e.symm e.symm.map_zero,
+  ..map_range.linear_map e.to_linear_map,
+  ..map_range.add_equiv e.to_add_equiv}
+
+@[simp]
+lemma map_range.linear_equiv_refl :
+  map_range.linear_equiv (linear_equiv.refl R M) = linear_equiv.refl R (α →₀ M) :=
+linear_equiv.ext map_range_id
+
+lemma map_range.linear_equiv_trans (f : M ≃ₗ[R] N) (f₂ : N ≃ₗ[R] P) :
+  (map_range.linear_equiv (f.trans f₂) : linear_equiv R (α →₀ _) _) =
+    (map_range.linear_equiv f).trans (map_range.linear_equiv f₂) :=
+linear_equiv.ext $ map_range_comp _ _ _ _ _
+
+@[simp]
+lemma map_range.linear_equiv_symm (f : M ≃ₗ[R] N) :
+  ((map_range.linear_equiv f).symm : (α →₀ _) ≃ₗ[R] _) = map_range.linear_equiv f.symm :=
+linear_equiv.ext $ λ x, rfl
+
 /-- An equivalence of domain and a linear equivalence of codomain induce a linear equivalence of the
 corresponding finitely supported functions. -/
 def lcongr {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) : (ι →₀ M) ≃ₗ[R] (κ →₀ N) :=
-(finsupp.dom_lcongr e₁).trans
-{ to_fun := map_range e₂ e₂.map_zero,
-  inv_fun := map_range e₂.symm e₂.symm.map_zero,
-  left_inv := λ f, finsupp.induction f (by simp_rw map_range_zero) $ λ a b f ha hb ih,
-    by rw [map_range_add e₂.map_add, map_range_add e₂.symm.map_add,
-      map_range_single, map_range_single, e₂.symm_apply_apply, ih],
-  right_inv := λ f, finsupp.induction f (by simp_rw map_range_zero) $ λ a b f ha hb ih,
-    by rw [map_range_add e₂.symm.map_add, map_range_add e₂.map_add,
-      map_range_single, map_range_single, e₂.apply_symm_apply, ih],
-  map_add' := map_range_add e₂.map_add,
-  map_smul' := λ c f, finsupp.induction f
-    (by rw [smul_zero, map_range_zero, smul_zero]) $ λ a b f ha hb ih,
-    by rw [smul_add, smul_single, map_range_add e₂.map_add, map_range_single, e₂.map_smul, ih,
-      map_range_add e₂.map_add, smul_add, map_range_single, smul_single] }
+(finsupp.dom_lcongr e₁).trans (map_range.linear_equiv e₂)
 
 @[simp] theorem lcongr_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N)
   (i : ι) (m : M) : lcongr e₁ e₂ (finsupp.single i m) = finsupp.single (e₁ i) (e₂ m) :=
@@ -617,7 +641,7 @@ begin
   use s,
   simp only [mem_supr, supr_le_iff],
   assume N hN,
-  rw [finsupp.total_apply, finsupp.sum, ← submodule.mem_coe],
+  rw [finsupp.total_apply, finsupp.sum, ← set_like.mem_coe],
   apply N.sum_mem,
   assume x hx,
   apply submodule.smul_mem,

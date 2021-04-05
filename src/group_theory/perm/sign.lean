@@ -5,9 +5,11 @@ Authors: Chris Hughes
 -/
 import data.fintype.basic
 import data.finset.sort
+import data.nat.parity
 import group_theory.perm.basic
 import group_theory.order_of_element
 import tactic.norm_swap
+import group_theory.quotient_group
 
 /-!
 # Sign of a permutation
@@ -122,21 +124,21 @@ begin
     rw ← hb, exact ⟨b, rfl⟩ },
   let σ₁' := subtype_perm_of_fintype σ h1,
   let σ₂' := subtype_perm_of_fintype σ h3,
-  let σ₁ := perm_congr (equiv.set.range (@sum.inl m n) sum.injective_inl).symm σ₁',
-  let σ₂ := perm_congr (equiv.set.range (@sum.inr m n) sum.injective_inr).symm σ₂',
+  let σ₁ := perm_congr (equiv.of_injective (@sum.inl m n) sum.inl_injective).symm σ₁',
+  let σ₂ := perm_congr (equiv.of_injective (@sum.inr m n) sum.inr_injective).symm σ₂',
   rw [monoid_hom.mem_range, prod.exists],
   use [σ₁, σ₂],
   rw [perm.sum_congr_hom_apply],
   ext,
   cases x with a b,
   { rw [equiv.sum_congr_apply, sum.map_inl, perm_congr_apply, equiv.symm_symm,
-      set.apply_range_symm (@sum.inl m n)],
+        apply_of_injective_symm (@sum.inl m n)],
     erw subtype_perm_apply,
-    rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] },
+    rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] },
   { rw [equiv.sum_congr_apply, sum.map_inr, perm_congr_apply, equiv.symm_symm,
-      set.apply_range_symm (@sum.inr m n)],
+        apply_of_injective_symm (@sum.inr m n)],
     erw subtype_perm_apply,
-    rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] }
+    rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] }
 end
 
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,
@@ -212,6 +214,10 @@ def support [fintype α] (f : perm α) : finset α := univ.filter (λ x, f x ≠
 
 @[simp] lemma mem_support [fintype α] {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x :=
 by simp only [support, true_and, mem_filter, mem_univ]
+
+lemma support_pow_le [fintype α] (σ : perm α) (n : ℤ) :
+  (σ ^ n).support ≤ σ.support :=
+λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
 
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/
 def is_swap (f : perm α) : Prop := ∃ x y, x ≠ y ∧ f = swap x y
@@ -300,6 +306,17 @@ begin
     rw [← hl.1, list.prod_cons, hxy.2],
     exact hmul_swap _ _ _ hxy.1
       (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
+end
+
+lemma closure_swaps_eq_top [fintype α] :
+  subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
+begin
+  ext σ,
+  simp only [subgroup.mem_top, iff_true],
+  apply swap_induction_on σ,
+  { exact subgroup.one_mem _ },
+  { intros σ a b ab hσ,
+    refine subgroup.mul_mem _ (subgroup.subset_closure ⟨_, _, ab, rfl⟩) hσ }
 end
 
 /-- Like `swap_induction_on`, but with the composition on the right of `f`.
@@ -586,12 +603,15 @@ have h₁ : l.map sign = list.repeat (-1) l.length :=
   hg.2 ▸ (hl _ hg.1).sign_eq⟩,
 by rw [← list.prod_repeat, ← h₁, list.prod_hom _ (@sign α _ _)]
 
-lemma sign_surjective (hα : 1 < fintype.card α) : function.surjective (sign : perm α → units ℤ) :=
+variable (α)
+
+lemma sign_surjective [nontrivial α] : function.surjective (sign : perm α → units ℤ) :=
 λ a, (int.units_eq_one_or a).elim
   (λ h, ⟨1, by simp [h]⟩)
-  (λ h, let ⟨x⟩ := fintype.card_pos_iff.1 (lt_trans zero_lt_one hα) in
-    let ⟨y, hxy⟩ := fintype.exists_ne_of_one_lt_card hα x in
-    ⟨swap y x, by rw [sign_swap hxy, h]⟩ )
+  (λ h, let ⟨x, y, hxy⟩ := exists_pair_ne α in
+    ⟨swap x y, by rw [sign_swap hxy, h]⟩ )
+
+variable {α}
 
 lemma eq_sign_of_surjective_hom {s : perm α →* units ℤ} (hs : surjective s) : s = sign :=
 have ∀ {f}, is_swap f → s f = -1 :=
@@ -740,11 +760,11 @@ begin
   { apply σa.swap_induction_on _ (λ σa' a₁ a₂ ha ih, _),
     { simp },
     { rw [←one_mul (1 : perm β), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_swap_one,
-          sign_swap ha, sign_swap (sum.injective_inl.ne_iff.mpr ha)], }, },
+          sign_swap ha, sign_swap (sum.inl_injective.ne_iff.mpr ha)], }, },
   { apply σb.swap_induction_on _ (λ σb' b₁ b₂ hb ih, _),
     { simp },
     { rw [←one_mul (1 : perm α), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_one_swap,
-          sign_swap hb, sign_swap (sum.injective_inr.ne_iff.mpr hb)], }, }
+          sign_swap hb, sign_swap (sum.inr_injective.ne_iff.mpr hb)], }, }
 end
 
 @[simp] lemma sign_subtype_congr {p : α → Prop} [decidable_pred p]
@@ -752,8 +772,55 @@ end
   (ep.subtype_congr en).sign = ep.sign * en.sign :=
 by simp [subtype_congr]
 
+@[simp] lemma sign_extend_domain (e : perm α)
+  {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) :
+  equiv.perm.sign (e.extend_domain f) = equiv.perm.sign e :=
+by simp [equiv.perm.extend_domain]
+
 end congr
 
 end sign
 
 end equiv.perm
+
+section alternating_subgroup
+open equiv.perm
+variables (α) [fintype α] [decidable_eq α]
+
+/-- The alternating group on a finite type, realized as a subgroup of `equiv.perm`.
+  For $A_n$, use `alternating_subgroup (fin n)`. -/
+@[derive fintype] def alternating_subgroup : subgroup (perm α) :=
+sign.ker
+
+instance [subsingleton α] : unique (alternating_subgroup α) :=
+⟨⟨1⟩, λ ⟨p, hp⟩, subtype.eq (subsingleton.elim p _)⟩
+
+variables {α}
+
+lemma alternating_subgroup_eq_sign_ker : alternating_subgroup α = sign.ker := rfl
+
+@[simp]
+lemma mem_alternating_subgroup {f : perm α} :
+  f ∈ alternating_subgroup α ↔ sign f = 1 :=
+sign.mem_ker
+
+lemma prod_list_swap_mem_alternating_subgroup_iff_even_length {l : list (perm α)}
+  (hl : ∀ g ∈ l, is_swap g) :
+  l.prod ∈ alternating_subgroup α ↔ even l.length :=
+begin
+  rw [mem_alternating_subgroup, sign_prod_list_swap hl, ← units.coe_eq_one, units.coe_pow,
+    units.coe_neg_one, nat.neg_one_pow_eq_one_iff_even],
+  dec_trivial
+end
+
+lemma two_mul_card_alternating_subgroup [nontrivial α] :
+  2 * card (alternating_subgroup α) = card (perm α) :=
+begin
+  let := (quotient_group.quotient_ker_equiv_of_surjective _ (sign_surjective α)).to_equiv,
+  rw [←fintype.card_units_int, ←fintype.card_congr this],
+  exact (card_eq_card_quotient_mul_card_subgroup _).symm,
+end
+
+lemma alternating_subgroup_normal : (alternating_subgroup α).normal := sign.normal_ker
+
+end alternating_subgroup

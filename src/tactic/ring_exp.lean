@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Tim Baanen.
+Authors: Tim Baanen
 
 Solve equations in commutative (semi)rings with exponents.
 -/
@@ -1546,7 +1546,8 @@ open tactic.ring_exp (normalize)
 local postfix `?`:9001 := optional
 
 /--
-Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic `ring_exp`.
+Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic
+`ring_exp`.
 -/
 meta def ring_exp (red : parse (lean.parser.tk "!")?) : conv unit :=
 let transp := if red.is_some then semireducible else reducible in

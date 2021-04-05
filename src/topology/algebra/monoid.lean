@@ -102,6 +102,12 @@ instance [topological_space N] [has_mul N] [has_continuous_mul N] : has_continuo
 ⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
  ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
 
+@[to_additive]
+instance pi.has_continuous_mul {C : β → Type*} [∀ b, topological_space (C b)]
+  [∀ b, has_mul (C b)] [∀ b, has_continuous_mul (C b)] : has_continuous_mul (Π b, C b) :=
+{ continuous_mul := continuous_pi (λ i, continuous.mul
+    ((continuous_apply i).comp continuous_fst) ((continuous_apply i).comp continuous_snd)) }
+
 @[priority 100, to_additive]
 instance has_continuous_mul_of_discrete_topology [topological_space N]
   [has_mul N] [discrete_topology N] : has_continuous_mul N :=

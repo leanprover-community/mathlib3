@@ -30,7 +30,7 @@ See
 instance unit_is_iso_of_L_fully_faithful [full L] [faithful L] : is_iso (adjunction.unit h) :=
 @nat_iso.is_iso_of_is_iso_app _ _ _ _ _ _ (adjunction.unit h) $ λ X,
 @yoneda.is_iso _ _ _ _ ((adjunction.unit h).app X)
-⟨{ app := λ Y f, L.preimage ((h.hom_equiv (unop Y) (L.obj X)).symm f) },
+⟨⟨{ app := λ Y f, L.preimage ((h.hom_equiv (unop Y) (L.obj X)).symm f) },
   ⟨begin
     ext x f, dsimp,
     apply L.map_injective,
@@ -40,7 +40,7 @@ instance unit_is_iso_of_L_fully_faithful [full L] [faithful L] : is_iso (adjunct
     simp only [adjunction.hom_equiv_counit, preimage_comp, preimage_map, category.assoc],
     rw ←h.unit_naturality,
     simp,
-  end⟩⟩
+  end⟩⟩⟩
 
 /--
 If the right adjoint is fully faithful, then the counit is an isomorphism.
@@ -51,7 +51,7 @@ instance counit_is_iso_of_R_fully_faithful [full R] [faithful R] : is_iso (adjun
 @nat_iso.is_iso_of_is_iso_app _ _ _ _ _ _ (adjunction.counit h) $ λ X,
 @is_iso_of_op _ _ _ _ _ $
 @coyoneda.is_iso _ _ _ _ ((adjunction.counit h).app X).op
-⟨{ app := λ Y f, R.preimage ((h.hom_equiv (R.obj X) Y) f) },
+⟨⟨{ app := λ Y f, R.preimage ((h.hom_equiv (R.obj X) Y) f) },
   ⟨begin
     ext x f, dsimp,
     apply R.map_injective,
@@ -61,7 +61,7 @@ instance counit_is_iso_of_R_fully_faithful [full R] [faithful R] : is_iso (adjun
     simp only [adjunction.hom_equiv_unit, preimage_comp, preimage_map],
     rw ←h.counit_naturality,
     simp,
-  end⟩⟩
+  end⟩⟩⟩
 
 -- TODO also prove the converses?
 -- def L_full_of_unit_is_iso [is_iso (adjunction.unit h)] : full L := sorry

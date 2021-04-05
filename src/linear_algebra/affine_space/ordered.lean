@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import linear_algebra.affine_space.midpoint
 import algebra.module.ordered
@@ -181,6 +181,18 @@ lemma right_lt_line_map_iff_lt (h : r < 1) : b < line_map a b r ↔ b < a :=
 @line_map_lt_right_iff_lt k (order_dual E) _ _ _ _ _ _ _ h
 
 end ordered_ring
+
+section linear_ordered_ring
+
+variables [linear_ordered_ring k] [ordered_add_comm_group E] [semimodule k E]
+  [ordered_semimodule k E] [invertible (2:k)] {a a' b b' : E} {r r' : k}
+
+lemma midpoint_le_midpoint (ha : a ≤ a') (hb : b ≤ b') :
+  midpoint k a b ≤ midpoint k a' b' :=
+line_map_mono_endpoints ha hb (inv_of_nonneg.2 zero_le_two) $
+  inv_of_le_one one_le_two
+
+end linear_ordered_ring
 
 section linear_ordered_field
 

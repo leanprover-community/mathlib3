@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 A model of ZFC in Lean.
 -/
@@ -259,7 +259,7 @@ end resp
 /-- A set function is "definable" if it is the image of some n-ary pre-set
   function. This isn't exactly definability, but is useful as a sufficient
   condition for functions that have a computable image. -/
-@[class] inductive definable (n) : arity Set.{u} n → Type (u+1)
+class inductive definable (n) : arity Set.{u} n → Type (u+1)
 | mk (f) : definable (resp.eval _ f)
 attribute [instance] definable.mk
 

@@ -554,7 +554,7 @@ lemma is_mul_left_invariant_haar_measure (K₀ : positive_compacts G) :
   is_mul_left_invariant (haar_measure K₀) :=
 begin
   intros g A hA,
-  rw [haar_measure_apply hA, haar_measure_apply (measurable_mul_left g hA)],
+  rw [haar_measure_apply hA, haar_measure_apply (measurable_const_mul g hA)],
   congr' 1,
   exact outer_measure.is_mul_left_invariant_of_content echaar_sup_le is_left_invariant_echaar g A
 end

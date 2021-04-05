@@ -7,7 +7,7 @@ import category_theory.epi_mono
 
 namespace category_theory
 
-universes v v₂ u u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₂ u u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 /-- A `groupoid` is a category such that all morphisms are isomorphisms. -/
 class groupoid (obj : Type u) extends category.{v} obj : Type (max u (v+1)) :=
@@ -37,7 +37,7 @@ variables {C : Type u} [groupoid.{v} C] {X Y : C}
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f :=
-⟨groupoid.inv f, by simp⟩
+⟨⟨groupoid.inv f, by simp⟩⟩
 
 variables (X Y)
 

@@ -1,7 +1,7 @@
 /-
 Copyright © 2020 Nicolò Cavalleri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Nicolò Cavalleri, Yury Kudryashov.
+Authors: Nicolò Cavalleri, Yury Kudryashov
 -/
 
 import geometry.manifold.times_cont_mdiff_map
@@ -116,7 +116,7 @@ to_equiv_injective.eq_iff
 
 /-- Coercion to function `λ h : M ≃ₘ^n⟮I, I'⟯ M', (h : M → M')` is injective. -/
 lemma coe_fn_injective : injective (λ (h : M ≃ₘ^n⟮I, I'⟯ M') (x : M), h x) :=
-equiv.injective_coe_fn.comp to_equiv_injective
+equiv.coe_fn_injective.comp to_equiv_injective
 
 @[ext] lemma ext {h h' : M ≃ₘ^n⟮I, I'⟯ M'} (Heq : ∀ x, h x = h' x) : h = h' :=
 coe_fn_injective $ funext Heq

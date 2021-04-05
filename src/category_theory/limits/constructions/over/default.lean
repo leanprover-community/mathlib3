@@ -14,7 +14,7 @@ import category_theory.limits.constructions.equalizers
 Declare instances for limits in the over category: If `C` has finite wide pullbacks, `over B` has
 finite limits, and if `C` has arbitrary wide pullbacks then `over B` has limits.
 -/
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 open category_theory category_theory.limits
 

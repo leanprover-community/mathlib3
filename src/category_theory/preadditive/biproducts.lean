@@ -56,7 +56,7 @@ is invertible, then `f` is invertible.
 -/
 lemma is_iso_left_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso f :=
-⟨biprod.inl ≫ inv (biprod.map f g) ≫ biprod.fst,
+⟨⟨biprod.inl ≫ inv (biprod.map f g) ≫ biprod.fst,
   ⟨begin
     have t := congr_arg (λ p : W ⊞ X ⟶ W ⊞ X, biprod.inl ≫ p ≫ biprod.fst)
       (is_iso.hom_inv_id (biprod.map f g)),
@@ -69,7 +69,7 @@ lemma is_iso_left_of_is_iso_biprod_map
     simp only [category.id_comp, category.assoc, biprod.map_fst] at t,
     simp only [category.assoc],
     simp [t],
-  end⟩⟩
+  end⟩⟩⟩
 
 /--
 If

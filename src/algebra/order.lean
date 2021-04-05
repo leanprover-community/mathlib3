@@ -131,6 +131,9 @@ h.lt_or_eq.symm
 
 alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 
+lemma le_iff_eq_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ↔ b ≤ a :=
+by simp [le_antisymm_iff, h]
+
 lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
 

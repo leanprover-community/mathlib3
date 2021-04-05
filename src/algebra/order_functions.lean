@@ -68,6 +68,12 @@ inf_le_iff
 @[simp] lemma le_max_iff : a ≤ max b c ↔ a ≤ b ∨ a ≤ c :=
 @min_le_iff (order_dual α) _ _ _ _
 
+lemma max_eq_iff (a b c : α) : max a b = c ↔ a ≤ c ∧ b ≤ c ∧ (a = c ∨ b = c) :=
+by simp [and_assoc, le_antisymm_iff] {contextual := tt}
+
+lemma min_eq_iff (a b c : α) : min a b = c ↔ c ≤ a ∧ c ≤ b ∧ (a = c ∨ b = c) :=
+@max_eq_iff (order_dual α) _ _ _ _
+
 lemma max_lt_max (h₁ : a < c) (h₂ : b < d) : max a b < max c d :=
 by simp [lt_max_iff, max_lt_iff, *]
 

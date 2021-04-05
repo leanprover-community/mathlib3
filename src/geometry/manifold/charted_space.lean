@@ -809,7 +809,7 @@ def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
 @[simp, mfld_simps] lemma singleton_charted_space_chart_at_eq (h : e.source = set.univ) {x : α} :
   @chart_at H _ α _ (e.singleton_charted_space h) x = e := rfl
 
-@[simp, mfld_simps] lemma singleton_charted_space_chart_at_source
+lemma singleton_charted_space_chart_at_source
   (h : e.source = set.univ) {x : α} :
   (@chart_at H _ α _ (e.singleton_charted_space h) x).source = set.univ := h
 
@@ -844,7 +844,7 @@ def singleton_charted_space {f : α → H} (h : open_embedding f) :
 lemma singleton_charted_space_chart_at_eq {f : α → H} (h : open_embedding f) {x : α} :
   ⇑(@chart_at H _ α _ (h.singleton_charted_space) x) = f := rfl
 
-lemma has_groupoid {f : α → H} (h : open_embedding f)
+lemma singleton_has_groupoid {f : α → H} (h : open_embedding f)
   (G : structure_groupoid H) [closed_under_restriction G] :
   @has_groupoid _ _ _ _ h.singleton_charted_space G :=
 (h.to_local_homeomorph f).singleton_has_groupoid (h.source f) G

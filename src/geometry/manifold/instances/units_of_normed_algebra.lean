@@ -18,7 +18,7 @@ This manifold is actually a Lie group, which eventually should be the main resul
 
 An important special case of this construction is the general linear group.  For a normed space `V`
 over a field `𝕜`, the general linear group GL(`𝕜`, `V`) is a normed `𝕜`-algebra (see
-`continuous_linear_map.to_normed_algebra `), so this construction provides a Lie group structure on
+`continuous_linear_map.to_normed_algebra`), so this construction provides a Lie group structure on
 GL(`𝕜`, `V`).
 
 ## TODO

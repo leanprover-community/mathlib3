@@ -959,12 +959,12 @@ lemma prod_eq_prod_diff_singleton_mul [decidable_eq α] {s : finset α} {i : α}
 by { rw [prod_eq_mul_prod_diff_singleton h, mul_comm] }
 
 @[to_additive]
-lemma _root_.fintype.prod_eq_mul_prod_erase [decidable_eq α] [fintype α] (a : α) (f : α → β) :
+lemma _root_.fintype.prod_eq_mul_prod_compl [decidable_eq α] [fintype α] (a : α) (f : α → β) :
   ∏ i, f i = (f a) * ∏ i in {a}ᶜ, f i :=
 prod_eq_mul_prod_diff_singleton (mem_univ a) f
 
 @[to_additive]
-lemma _root_.fintype.prod_eq_prod_erase_mul [decidable_eq α] [fintype α] (a : α) (f : α → β) :
+lemma _root_.fintype.prod_eq_prod_erase_compl [decidable_eq α] [fintype α] (a : α) (f : α → β) :
   ∏ i, f i = (∏ i in {a}ᶜ, f i) * f a :=
 prod_eq_prod_diff_singleton_mul (mem_univ a) f
 

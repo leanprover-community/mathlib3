@@ -20,11 +20,13 @@ variables (x y : punit.{u+1}) (s : set punit.{u+1})
 
 @[to_additive]
 instance : comm_group punit :=
-by refine
+by refine_struct
 { mul := λ _ _, star,
   one := star,
   inv := λ _, star,
-  div := λ _ _, star, .. };
+  div := λ _ _, star,
+  nspow := λ _ _, star,
+  .. };
 intros; exact subsingleton.elim _ _
 
 instance : comm_ring punit :=

@@ -96,7 +96,7 @@ section powers
 /-- The set of natural number powers `1, x, x², ...` of an element `x` of a monoid. -/
 def powers (x : M) : set M := {y | ∃ n:ℕ, x^n = y}
 /-- The set of natural number multiples `0, x, 2x, ...` of an element `x` of an `add_monoid`. -/
-def multiples (x : A) : set A := {y | ∃ n:ℕ, n •ℕ x = y}
+def multiples (x : A) : set A := {y | ∃ n:ℕ, n • x = y}
 attribute [to_additive multiples] powers
 
 /-- 1 is in the set of natural number powers of an element of a monoid. -/
@@ -162,12 +162,12 @@ by rw ← set.image_univ; apply_instance
 
 /-- Submonoids are closed under natural powers. -/
 lemma is_submonoid.pow_mem {a : M} [is_submonoid s] (h : a ∈ s) : ∀ {n : ℕ}, a ^ n ∈ s
-| 0 := is_submonoid.one_mem
-| (n + 1) := is_submonoid.mul_mem h is_submonoid.pow_mem
+| 0 := by { rw pow_zero, exact is_submonoid.one_mem }
+| (n + 1) := by { rw pow_succ, exact is_submonoid.mul_mem h is_submonoid.pow_mem }
 
 /-- An `add_submonoid` is closed under multiplication by naturals. -/
 lemma is_add_submonoid.smul_mem {a : A} [is_add_submonoid t] :
-  ∀ (h : a ∈ t) {n : ℕ}, n •ℕ a ∈ t :=
+  ∀ (h : a ∈ t) {n : ℕ}, n • a ∈ t :=
 @is_submonoid.pow_mem (multiplicative A) _ _ _ (multiplicative.is_submonoid _)
 attribute [to_additive smul_mem] is_submonoid.pow_mem
 
@@ -257,8 +257,8 @@ by induction n; simp [*, pow_succ]
 
 /-- An `add_submonoid` inherits the multiplication by naturals of the `add_monoid`. -/
 @[simp, norm_cast] lemma is_add_submonoid.smul_coe {A : Type*} [add_monoid A] {s : set A}
-  [is_add_submonoid s] (a : s) (n : ℕ) : ((n •ℕ a : s) : A) = n •ℕ a :=
-by {induction n, refl, simp [*, succ_nsmul]}
+  [is_add_submonoid s] (a : s) (n : ℕ) : ((n • a : s) : A) = n • a :=
+by induction n; simp [*, succ_nsmul]
 
 attribute [to_additive smul_coe] is_submonoid.coe_pow
 

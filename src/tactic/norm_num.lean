@@ -1065,7 +1065,7 @@ meta def prove_pow (a : expr) (na : ℚ) :
 
 end
 
-/-- Evaluates expressions of the form `a ^ b`, `monoid.pow a b` or `nat.pow a b`. -/
+/-- Evaluates expressions of the form `a ^ b`, `monoid.nspow a b` or `nat.pow a b`. -/
 meta def eval_pow : expr → tactic (expr × expr)
 | `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
@@ -1074,7 +1074,7 @@ meta def eval_pow : expr → tactic (expr × expr)
   | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
   | _ := failed
   end
-| `(monoid.pow %%e₁ %%e₂) := do
+| `(monoid.nspow %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,
   prod.snd <$> prove_pow e₁ n₁ c e₂

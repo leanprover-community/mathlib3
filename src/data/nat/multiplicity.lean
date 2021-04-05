@@ -67,7 +67,7 @@ lemma multiplicity_mul {p m n : ℕ} (hp : p.prime) :
 multiplicity.mul $ prime_iff_prime.mp hp
 
 lemma multiplicity_pow {p m n : ℕ} (hp : p.prime) :
-  multiplicity p (m ^ n) = n •ℕ (multiplicity p m) :=
+  multiplicity p (m ^ n) = n • (multiplicity p m) :=
 multiplicity.pow $ prime_iff_prime.mp hp
 
 lemma multiplicity_self {p : ℕ} (hp : p.prime) : multiplicity p p = 1 :=

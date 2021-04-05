@@ -43,7 +43,6 @@ begin
   try { tactic.pi_instance_derive_field },
   apply eq_nspow_rec,
   { assume x, ext i, simp },
-  { assume x, ext i, simp },
   { assume n x, ext i, simp [nspow_add], }
 end
 
@@ -56,7 +55,6 @@ begin
     .. };
   try { tactic.pi_instance_derive_field },
   apply eq_nsmul_rec,
-  { assume x, ext i, simp },
   { assume x, ext i, simp },
   { assume n x, ext i, simp [nsmul_add'], }
 end

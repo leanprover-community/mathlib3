@@ -517,7 +517,7 @@ calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (coeff p i
       exact add_le_add (le_degree_of_ne_zero ha) (le_degree_of_ne_zero hb)
     end
 
-lemma degree_pow_le (p : polynomial R) : ∀ n, degree (p ^ n) ≤ n •ℕ (degree p)
+lemma degree_pow_le (p : polynomial R) : ∀ n, degree (p ^ n) ≤ n • (degree p)
 | 0     := by rw [pow_zero, zero_nsmul]; exact degree_one_le
 | (n+1) := calc degree (p ^ (n + 1)) ≤ degree p + degree (p ^ n) :
     by rw pow_succ; exact degree_mul_le _ _
@@ -641,7 +641,7 @@ have h₂ : leading_coeff p * leading_coeff (p ^ n) ≠ 0 :=
 by rw [pow_succ, pow_succ, leading_coeff_mul' h₂, ih h₁]
 
 lemma degree_pow' : ∀ {n}, leading_coeff p ^ n ≠ 0 →
-  degree (p ^ n) = n •ℕ (degree p)
+  degree (p ^ n) = n • (degree p)
 | 0     := λ h, by rw [pow_zero, ← C_1] at *;
   rw [degree_C h, zero_nsmul]
 | (n+1) := λ h,
@@ -895,7 +895,7 @@ else degree_mul' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
     (mt leading_coeff_eq_zero.1 hq0)
 
 @[simp] lemma degree_pow [nontrivial R] (p : polynomial R) (n : ℕ) :
-  degree (p ^ n) = n •ℕ (degree p) :=
+  degree (p ^ n) = n • (degree p) :=
 by induction n; [simp only [pow_zero, degree_one, zero_nsmul],
 simp only [*, pow_succ, succ_nsmul, degree_mul]]
 

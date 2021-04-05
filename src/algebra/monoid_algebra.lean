@@ -820,7 +820,7 @@ lemma single_mul_single [has_add G] {a₁ a₂ : G} {b₁ b₂ : k} :
 -- Probably the correct fix is to make a `[add_]monoid_algebra.single` with the correct type,
 -- instead of relying on `finsupp.single`.
 lemma single_pow [add_monoid G] {a : G} {b : k} :
-  ∀ n : ℕ, ((single a b)^n : add_monoid_algebra k G) = single (n •ℕ a) (b ^ n)
+  ∀ n : ℕ, ((single a b)^n : add_monoid_algebra k G) = single (n • a) (b ^ n)
 | 0 := rfl
 | (n+1) :=
 by rw [pow_succ, pow_succ, single_pow n, single_mul_single, add_comm, add_nsmul, one_nsmul]

@@ -344,18 +344,15 @@ instance : has_mul (poly α) := ⟨poly.mul⟩
 @[simp] theorem mul_eval : Π (f g x), (f * g : poly α) x = f x * g x
 | ⟨f, pf⟩ ⟨g, pg⟩ x := rfl
 
-instance : comm_ring (poly α) := by refine
+instance : comm_ring (poly α) := by refine_struct
 { add  := (+),
-  zero := 0,
+  zero := (0 : poly α),
   neg  := has_neg.neg,
   mul  := (*),
   one  := 1,
-  sub  := has_sub.sub,
-  sub_eq_add_neg := _,
-  .. };
-  { intros,
-    refine ext (λ _, _),
-    simp [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc] }
+  sub  := has_sub.sub };
+intros; try { refl }; refine ext (λ _, _);
+simp [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc]
 
 lemma induction {C : poly α → Prop}
   (H1 : ∀i, C (proj i)) (H2 : ∀n, C (const n))

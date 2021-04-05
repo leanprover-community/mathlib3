@@ -297,13 +297,15 @@ example (n : num) (m : num) : n ≤ n + m := by num.transfer
 meta def transfer : tactic unit := `[intros, transfer_rw, try {simp}]
 
 instance : comm_semiring num :=
-by refine {
+by refine_struct {
   add      := (+),
   zero     := 0,
   zero_add := zero_add,
   add_zero := add_zero,
   mul      := (*),
-  one      := 1, .. }; try {transfer}; simp [mul_add, mul_left_comm, mul_comm, add_comm]
+  one      := 1,
+  nsmul    := _,
+  .. }; try {transfer}; simp [mul_add, mul_left_comm, mul_comm, add_comm]
 
 instance : ordered_cancel_add_comm_monoid num :=
 { add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
@@ -417,7 +419,7 @@ instance : add_comm_semigroup pos_num :=
 by refine {add := (+), ..}; transfer
 
 instance : comm_monoid pos_num :=
-by refine {mul := (*), one := 1, ..}; transfer
+by refine_struct {mul := (*), one := (1 : pos_num), nspow := _, ..}; transfer
 
 instance : distrib pos_num :=
 by refine {add := (+), mul := (*), ..}; {transfer, simp [mul_add, mul_comm]}

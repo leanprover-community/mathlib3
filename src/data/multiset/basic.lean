@@ -424,7 +424,7 @@ theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
 card.map_add s t
 
 lemma card_nsmul (s : multiset α) (n : ℕ) :
-  (n •ℕ s).card = n * s.card :=
+  (n • s).card = n * s.card :=
 by rw [card.map_nsmul s n, nat.nsmul_eq_mul]
 
 @[simp] theorem card_cons (a : α) (s : multiset α) : card (a ::ₘ s) = card s + 1 :=
@@ -653,7 +653,7 @@ quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 instance (f : α → β) : is_add_monoid_hom (map f) :=
 { map_add := map_add _, map_zero := map_zero _ }
 
-theorem map_nsmul (f : α → β) (n s) : map f (n •ℕ s) = n •ℕ map f s :=
+theorem map_nsmul (f : α → β) (n :ℕ) (s) : map f (n • s) = n • map f s :=
 (add_monoid_hom.of (map f)).map_nsmul _ _
 
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :
@@ -828,15 +828,15 @@ instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : m
 { map_add := sum_add, map_zero := sum_zero }
 
 lemma prod_nsmul {α : Type*} [comm_monoid α] (m : multiset α) :
-  ∀n, (n •ℕ m).prod = m.prod ^ n
-| 0       := rfl
+  ∀ (n : ℕ), (n • m).prod = m.prod ^ n
+| 0       := by { rw [zero_nsmul, pow_zero], refl }
 | (n + 1) :=
   by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_nsmul n]
 
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
 @[simp] theorem sum_repeat [add_comm_monoid α] :
-  ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n •ℕ a :=
+  ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n • a :=
 @prod_repeat (multiplicative α) _
 attribute [to_additive] prod_repeat
 
@@ -1824,7 +1824,7 @@ countp_add _
 instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
 countp.is_add_monoid_hom _
 
-@[simp] theorem count_nsmul (a : α) (n s) : count a (n •ℕ s) = n * count a s :=
+@[simp] theorem count_nsmul (a : α) (n s) : count a (n • s) = n * count a s :=
 by induction n; simp [*, succ_nsmul', succ_mul]
 
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=
@@ -1937,7 +1937,7 @@ end
 
 @[simp]
 lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
-  a ∈ n •ℕ s ↔ a ∈ s :=
+  a ∈ n • s ↔ a ∈ s :=
 begin
   classical,
   cases n,

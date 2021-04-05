@@ -235,7 +235,7 @@ def nspow_rec [has_mul M] [has_one M] : ℕ → M → M
 | (n+1) a := a * nspow_rec n a
 
 /-- The fundamental scalar multiplication in an additive monoid.
-`n •ℕ a = a+a+...+a` n times. -/
+`n • a = a+a+...+a` n times. -/
 def nsmul_rec [has_add M] [has_zero M] : ℕ → M → M
 | 0     a := 0
 | (n+1) a := a + nsmul_rec n a
@@ -243,7 +243,7 @@ def nsmul_rec [has_add M] [has_zero M] : ℕ → M → M
 attribute [to_additive] nspow_rec
 
 lemma eq_nspow_rec [has_mul M] [has_one M] (f : ℕ → M → M)
-  (hzero : ∀ x, f 0 x = 1) (hone : ∀ x, f 1 x = x) (hadd : ∀ n x, f (1 + n) x = x * f n x)
+  (hzero : ∀ x, f 0 x = 1) (hadd : ∀ n x, f (1 + n) x = x * f n x)
   (n : ℕ) (x : M) : f n x = nspow_rec n x:=
 begin
   induction n with n ih,
@@ -252,7 +252,7 @@ begin
 end
 
 lemma eq_nsmul_rec [has_add M] [has_zero M] (f : ℕ → M → M)
-  (hzero : ∀ x, f 0 x = 0) (hone : ∀ x, f 1 x = x) (hadd : ∀ n x, f (1 + n) x = x + f n x)
+  (hzero : ∀ x, f 0 x = 0) (hadd : ∀ n x, f (1 + n) x = x + f n x)
   (n : ℕ) (x : M) : f n x = nsmul_rec n x :=
 begin
   induction n with n ih,

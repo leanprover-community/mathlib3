@@ -150,7 +150,7 @@ begin
 end
 
 lemma degrees_pow (p : mv_polynomial σ R) :
-  ∀(n : ℕ), (p^n).degrees ≤ n •ℕ p.degrees
+  ∀(n : ℕ), (p^n).degrees ≤ n • p.degrees
 | 0       := begin rw [pow_zero, degrees_one], exact multiset.zero_le _ end
 | (n + 1) := le_trans (degrees_mul _ _) (add_le_add_left (degrees_pow n) _)
 

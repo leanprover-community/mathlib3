@@ -60,7 +60,6 @@ begin
   try { tactic.pi_instance_derive_field },
   apply eq_nspow_rec,
   { simp only [forall_const, nspow_zero], refl },
-  { simp only [nspow_one], assume x, ext, refl },
   { simp only [nspow_add, nspow_one], assume n x, ext, refl }
 end
 
@@ -70,7 +69,6 @@ begin
   try { tactic.pi_instance_derive_field },
   apply eq_nsmul_rec,
   { simp only [forall_const, nsmul_zero'], refl },
-  { simp only [nsmul_one'], assume x, ext, refl },
   { simp only [nsmul_add', nsmul_one'], assume n x, ext, refl }
 end
 

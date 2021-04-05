@@ -56,13 +56,12 @@ lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : ℝ) = ⟨a * b⟩ := show mul _ _
 instance : comm_ring ℝ :=
 begin
   refine_struct { zero := 0, one := 1, mul := (*),
-    add := (+), neg := @has_neg.neg ℝ _, sub := λ a b, a + (-b) },
-  all_goals {
-    repeat { rintro ⟨_⟩, },
-    simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy],
-    apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
-      apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
-  },
+    add := (+), neg := @has_neg.neg ℝ _, sub := λ a b, a + (-b) };
+  repeat { rintro ⟨_⟩, };
+  try { refl };
+  simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy];
+  apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
+    apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
 end
 
 /- Extra instances to short-circuit type class resolution -/

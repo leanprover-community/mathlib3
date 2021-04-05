@@ -12,7 +12,7 @@ import data.rat
 
 This file defines the archimedean property for ordered groups and proves several results connected
 to this notion. Being archimedean means that for all elements `x` and `y>0` there exists a natural
-number `n` such that `x ≤ n •ℕ y`.
+number `n` such that `x ≤ n • y`.
 
 ## Main definitions
 
@@ -31,9 +31,9 @@ number `n` such that `x ≤ n •ℕ y`.
 variables {α : Type*}
 
 /-- An ordered additive commutative monoid is called `archimedean` if for any two elements `x`, `y`
-such that `0 < y` there exists a natural number `n` such that `x ≤ n •ℕ y`. -/
+such that `0 < y` there exists a natural number `n` such that `x ≤ n • y`. -/
 class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
-(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n •ℕ y)
+(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)
 
 namespace linear_ordered_add_comm_group
 variables [linear_ordered_add_comm_group α] [archimedean α]
@@ -44,7 +44,7 @@ lemma exists_int_smul_near_of_pos {a : α} (ha : 0 < a) (g : α) :
   ∃ k, k •ℤ a ≤ g ∧ g < (k + 1) •ℤ a :=
 begin
   let s : set ℤ := {n : ℤ | n •ℤ a ≤ g},
-  obtain ⟨k, hk : -g ≤ k •ℕ a⟩ := archimedean.arch (-g) ha,
+  obtain ⟨k, hk : -g ≤ k • a⟩ := archimedean.arch (-g) ha,
   have h_ne : s.nonempty := ⟨-k, by simpa using neg_le_neg hk⟩,
   obtain ⟨k, hk⟩ := archimedean.arch g ha,
   have h_bdd : ∀ n ∈ s, n ≤ (k : ℤ) :=
@@ -84,7 +84,7 @@ lemma add_one_pow_unbounded_of_pos [ordered_semiring α] [nontrivial α] [archim
   ∃ n : ℕ, x < (y + 1) ^ n :=
 have 0 ≤ 1 + y, from add_nonneg zero_le_one hy.le,
 let ⟨n, h⟩ := archimedean.arch x hy in
-⟨n, calc x ≤ n •ℕ y : h
+⟨n, calc x ≤ n • y : h
        ... = n * y : nsmul_eq_mul _ _
        ... < 1 + n * y : lt_one_add _
        ... ≤ (1 + y) ^ n : one_add_mul_le_pow' (mul_nonneg hy.le hy.le) (mul_nonneg this this)

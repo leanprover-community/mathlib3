@@ -49,7 +49,7 @@ meta def add_g : name → name
 meta def cache.iapp (c : cache) (n : name) : list expr → expr :=
 c.app (if c.is_group then add_g n else n) c.inst
 
-def term {α} [add_comm_monoid α] (n : ℕ) (x a : α) : α := n •ℕ x + a
+def term {α} [add_comm_monoid α] (n : ℕ) (x a : α) : α := n • x + a
 def termg {α} [add_comm_group α] (n : ℤ) (x a : α) : α := n •ℤ x + a
 
 meta def cache.mk_term (c : cache) (n x a : expr) : expr := c.iapp ``term [n, x, a]
@@ -160,7 +160,7 @@ meta def eval_neg (c : cache) : normal_expr → tactic (normal_expr × expr)
   return (term' c (n', -n.2) x a',
     c.app ``term_neg c.inst [n.1, x, a, n', a', h₁, h₂])
 
-def smul {α} [add_comm_monoid α] (n : ℕ) (x : α) : α := n •ℕ x
+def smul {α} [add_comm_monoid α] (n : ℕ) (x : α) : α := n • x
 def smulg {α} [add_comm_group α] (n : ℤ) (x : α) : α := n •ℤ x
 
 theorem zero_smul {α} [add_comm_monoid α] (c) : smul c (0 : α) = 0 :=
@@ -203,10 +203,10 @@ lemma unfold_sub {α} [add_group α] (a b c : α)
 by rw [sub_eq_add_neg, h]
 
 theorem unfold_smul {α} [add_comm_monoid α] (n) (x y : α)
-  (h : smul n x = y) : n •ℕ x = y := h
+  (h : smul n x = y) : n • x = y := h
 
 theorem unfold_smulg {α} [add_comm_group α] (n : ℕ) (x y : α)
-  (h : smulg (int.of_nat n) x = y) : n •ℕ x = y := h
+  (h : smulg (int.of_nat n) x = y) : n • x = y := h
 
 theorem unfold_gsmul {α} [add_comm_group α] (n : ℤ) (x y : α)
   (h : smulg n x = y) : gsmul n x = y := h

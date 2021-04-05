@@ -76,12 +76,12 @@ lemma app_inv {F G : C ⥤ D} (α : F ≅ G) (X : C) : (α.app X).inv = α.inv.a
 variables {F G : C ⥤ D}
 
 instance hom_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.hom.app X) :=
-⟨α.inv.app X,
-  ⟨by rw [←comp_app, iso.hom_inv_id, ←id_app], by rw [←comp_app, iso.inv_hom_id, ←id_app]⟩⟩
+⟨⟨α.inv.app X,
+  ⟨by rw [←comp_app, iso.hom_inv_id, ←id_app], by rw [←comp_app, iso.inv_hom_id, ←id_app]⟩⟩⟩
 
 instance inv_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.inv.app X) :=
-⟨α.hom.app X,
-  ⟨by rw [←comp_app, iso.inv_hom_id, ←id_app], by rw [←comp_app, iso.hom_inv_id, ←id_app]⟩⟩
+⟨⟨α.hom.app X,
+  ⟨by rw [←comp_app, iso.inv_hom_id, ←id_app], by rw [←comp_app, iso.hom_inv_id, ←id_app]⟩⟩⟩
 
 section
 /-!
@@ -137,9 +137,9 @@ by rw [naturality, ←category.assoc, ←nat_trans.comp_app, α.hom_inv_id, id_a
 The components of a natural isomorphism are isomorphisms.
 -/
 instance is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X) :=
-⟨(inv α).app X,
+⟨⟨(inv α).app X,
   ⟨congr_fun (congr_arg nat_trans.app (is_iso.hom_inv_id α)) X,
-   congr_fun (congr_arg nat_trans.app (is_iso.inv_hom_id α)) X⟩⟩
+   congr_fun (congr_arg nat_trans.app (is_iso.inv_hom_id α)) X⟩⟩⟩
 
 @[simp] lemma is_iso_inv_app (α : F ⟶ G) [is_iso α] (X) : (inv α).app X = inv (α.app X) :=
 by { ext, rw ←nat_trans.comp_app, simp, }
@@ -175,7 +175,7 @@ A natural transformation is an isomorphism if all its components are isomorphism
 -/
 -- Making this an instance would cause a typeclass inference loop with `is_iso_app_of_is_iso`.
 lemma is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
-is_iso.of_iso (of_components (λ X, as_iso (α.app X)) (by tidy))
+⟨(is_iso.of_iso (of_components (λ X, as_iso (α.app X)) (by tidy))).1⟩
 
 /-- Horizontal composition of natural isomorphisms. -/
 def hcomp {F G : C ⥤ D} {H I : D ⥤ E} (α : F ≅ G) (β : H ≅ I) : F ⋙ H ≅ G ⋙ I :=

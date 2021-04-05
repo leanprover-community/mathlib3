@@ -287,7 +287,7 @@ mk_simp_attribute transport_simps "simps useful inside `transport`"
 
 attribute [transport_simps]
   eq_rec_constant
-  eq_mpr_rfl
+  cast_eq
   equiv.to_fun_as_coe
   equiv.arrow_congr'_apply
   equiv.symm_apply_apply

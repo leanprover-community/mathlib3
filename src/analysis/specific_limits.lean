@@ -296,9 +296,9 @@ lemma has_sum_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
 have r ≠ 1, from ne_of_lt h₂,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (𝓝 ((0 - 1) * (r - 1)⁻¹)),
   from ((tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂).sub tendsto_const_nhds).mul tendsto_const_nhds,
-have (λ n, (∑ i in range n, r ^ i)) = (λ n, geom_series r n) := rfl,
+have (λ n, (∑ i in range n, r ^ i)) = (λ n, geom_sum r n) := rfl,
 (has_sum_iff_tendsto_nat_of_nonneg (pow_nonneg h₁) _).mpr $
-  by simp [neg_inv, geom_sum, div_eq_mul_inv, *] at *
+  by simp [neg_inv, geom_sum_eq, div_eq_mul_inv, *] at *
 
 lemma summable_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : summable (λn:ℕ, r ^ n) :=
 ⟨_, has_sum_geometric_of_lt_1 h₁ h₂⟩
@@ -376,9 +376,9 @@ begin
   have xi_ne_one : ξ ≠ 1, by { contrapose! h, simp [h] },
   have A : tendsto (λn, (ξ ^ n - 1) * (ξ - 1)⁻¹) at_top (𝓝 ((0 - 1) * (ξ - 1)⁻¹)),
     from ((tendsto_pow_at_top_nhds_0_of_norm_lt_1 h).sub tendsto_const_nhds).mul tendsto_const_nhds,
-  have B : (λ n, (∑ i in range n, ξ ^ i)) = (λ n, geom_series ξ n) := rfl,
+  have B : (λ n, (∑ i in range n, ξ ^ i)) = (λ n, geom_sum ξ n) := rfl,
   rw [has_sum_iff_tendsto_nat_of_summable_norm, B],
-  { simpa [geom_sum, xi_ne_one, neg_inv] using A },
+  { simpa [geom_sum_eq, xi_ne_one, neg_inv, div_eq_mul_inv] using A },
   { simp [normed_field.norm_pow, summable_geometric_of_lt_1 (norm_nonneg _) h] }
 end
 
@@ -678,7 +678,7 @@ begin
   { simpa using tendsto_const_nhds.sub (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
-  rw [←geom_sum_mul_neg, geom_series_def, finset.sum_mul],
+  rw [←geom_sum_mul_neg, geom_sum_def, finset.sum_mul],
 end
 
 lemma mul_neg_geom_series (x : R) (h : ∥x∥ < 1) :
@@ -691,7 +691,7 @@ begin
       (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
-  rw [←mul_neg_geom_sum, geom_series_def, finset.mul_sum]
+  rw [←mul_neg_geom_sum, geom_sum_def, finset.mul_sum]
 end
 
 end normed_ring_geometric

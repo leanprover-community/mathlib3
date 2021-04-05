@@ -45,7 +45,7 @@ lemma mem_normalizer_iff (x : L) : x ∈ H.normalizer ↔ ∀ (y : L), (y ∈ H)
 lemma le_normalizer : H ≤ H.normalizer :=
 begin
   rw le_def, intros x hx,
-  simp only [submodule.mem_coe, mem_coe_submodule, coe_coe, mem_normalizer_iff] at ⊢ hx,
+  simp only [set_like.mem_coe, mem_coe_submodule, coe_coe, mem_normalizer_iff] at ⊢ hx,
   intros y, exact H.lie_mem hx,
 end
 

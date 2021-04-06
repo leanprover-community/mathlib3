@@ -839,11 +839,11 @@ theorem union_distrib_right (s t u : finset α) : (s ∩ t) ∪ u = (s ∪ u) �
 
 lemma union_eq_empty_iff (A B : finset α) : A ∪ B = ∅ ↔ A = ∅ ∧ B = ∅ := sup_eq_bot_iff
 
-theorem subset_iff_inter_eq_left (s t : finset α) :
+theorem inter_eq_left_iff_subset (s t : finset α) :
   s ∩ t = s ↔ s ⊆ t :=
 (inf_eq_left : s ⊓ t = s ↔ s ≤ t)
 
-theorem subset_iff_inter_eq_right (s t : finset α) :
+theorem inter_eq_right_iff_subset (s t : finset α) :
   t ∩ s = s ↔ s ⊆ t :=
 (inf_eq_right : t ⊓ s = s ↔ s ≤ t)
 

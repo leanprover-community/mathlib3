@@ -836,6 +836,14 @@ theorem union_distrib_right (s t u : finset α) : (s ∩ t) ∪ u = (s ∪ u) �
 
 lemma union_eq_empty_iff (A B : finset α) : A ∪ B = ∅ ↔ A = ∅ ∧ B = ∅ := sup_eq_bot_iff
 
+theorem subset_iff_inter_eq_left (s t : finset α) :
+  s ⊆ t ↔ s ∩ t = s :=
+(inf_eq_left.symm : s ≤ t ↔ s ⊓ t = s)
+
+theorem subset_iff_inter_eq_right (s t : finset α) :
+  s ⊆ t ↔ t ∩ s = s :=
+(inf_eq_right.symm : s ≤ t ↔ t ⊓ s = s)
+
 /-! ### erase -/
 
 /-- `erase s a` is the set `s - {a}`, that is, the elements of `s` which are

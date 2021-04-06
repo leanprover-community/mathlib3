@@ -97,7 +97,7 @@ Group Theory:
     primitive complex roots of unity: 'complex.is_primitive_root_iff'
   Permutation group:
     permutation group of a type: 'equiv.perm'
-    decomposition into transpositions: ''
+    decomposition into transpositions: 'equiv.perm.trunc_swap_factors'
     decomposition into cycles with disjoint support: 'equiv.perm.trunc_cycle_factors'
     signature: 'equiv.perm.sign'
     alternating group: 'alternating_subgroup'

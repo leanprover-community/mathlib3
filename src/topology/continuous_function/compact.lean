@@ -214,6 +214,14 @@ rfl
 
 end
 
+section
+variables {𝕜 : Type*} {γ : Type*} [normed_field 𝕜] [normed_ring γ] [normed_algebra 𝕜 γ]
+
+instance [nonempty α] : normed_algebra 𝕜 C(α, γ) :=
+{ norm_algebra_map_eq := λ c, (norm_algebra_map_eq (α →ᵇ γ) c : _), }
+
+end
+
 end continuous_map
 
 namespace continuous_map

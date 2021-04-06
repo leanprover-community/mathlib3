@@ -1,9 +1,11 @@
 import algebra.algebra.subalgebra
-import topology.algebra.continuous_functions
+import topology.continuous_function.algebra
 import topology.algebra.polynomial
-import topology.bounded_continuous_function
+import topology.continuous_function.bounded
 import topology.algebra.affine
 import linear_algebra.affine_space.ordered
+import analysis.special_functions.bernstein
+import topology.unit_interval
 
 noncomputable theory
 
@@ -12,61 +14,8 @@ open continuous_map
 variables {X : Type*} [topological_space X]
 variables {R : Type*} [comm_ring R] [topological_space R] [topological_ring R]
 
-/--
-The algebra map from `polynomial R` to continuous functions `C(X, R)`, for any subset `X` of `R`.
--/
-@[simps]
-def polynomial.as_continuous_map (X : set R) : polynomial R →ₐ[R] C(X, R) :=
-{ to_fun := λ p,
-  { to_fun := λ x, polynomial.aeval (x : R) p,
-    continuous_to_fun :=
-    begin
-      change continuous ((λ x, polynomial.aeval x p) ∘ (λ x: X, (x : R))),
-      continuity,
-    end },
-  map_zero' := by { ext, simp, },
-  map_add' := by { intros, ext, simp, },
-  map_one' := by { ext, simp, },
-  map_mul' := by { intros, ext, simp, },
-  commutes' := by { intros, ext, simp [algebra.algebra_map_eq_smul_one], }, }
-
--- TODO: when is this injective? When `X` is infinite and `R = ℝ`, at least.
-
-/--
-The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological ring `R`.
--/
-def polynomial_functions (X : set R) : subalgebra R C(X, R) :=
-(⊤ : subalgebra R (polynomial R)).map (polynomial.as_continuous_map X)
-
-@[simp]
-lemma polynomial_functions_coe (X : set R) :
-  (polynomial_functions X : set C(X, R)) = set.range (polynomial.as_continuous_map X) :=
-by { ext, simp [polynomial_functions], }
-
--- if `f : R → R` is an affine equivalence, then pulling back along `f`
--- induces an normed algebra isomorphism between `polynomial_functions X` and
--- `polynomial_functions (f ⁻¹' X)`, intertwining the pullback along `f` of `C(R, R)` to itself.
-
-lemma polynomial_functions_separates_points (X : set R) :
-  (polynomial_functions X).separates_points :=
-λ x y h,
-begin
-  -- We use `polynomial.X`, then clean up.
-  refine ⟨_, ⟨⟨_, ⟨⟨polynomial.X, ⟨algebra.mem_top, rfl⟩⟩, rfl⟩⟩, _⟩⟩,
-  dsimp, simp only [polynomial.eval_X],
-  exact (λ h', h (subtype.ext h')),
-end
-
-abbreviation I := (set.Icc 0 1 : set ℝ)
-
 open filter
-open_locale topological_space
-
-def bernstein_approximation (n : ℕ) (f : C(I, ℝ)) : C(I, ℝ) := sorry
-theorem bernstein_approximation_uniform (f : C(I, ℝ)) :
-  tendsto (λ n : ℕ, bernstein_approximation n f) at_top (𝓝 f) := sorry
-
-instance : nonempty I := ⟨⟨0, le_refl 0, zero_le_one⟩⟩
+open_locale topological_space unit_interval
 
 /--
 The special case of the Weierstrass approximation theorem for the interval `[0,1]`.
@@ -170,7 +119,8 @@ begin
         ring_hom.map_neg, ring_hom.map_mul, alg_hom.coe_to_ring_hom,
         polynomial.eval_X, polynomial.eval_neg, polynomial.eval_C, polynomial.eval_smul,
         polynomial.eval_mul, polynomial.eval_add, polynomial.coe_aeval_eq_eval,
-        polynomial.eval_comp, polynomial.as_continuous_map_apply_to_fun],
+        polynomial.eval_comp, polynomial.as_continuous_map_on_alg_hom_apply,
+        polynomial.as_continuous_map_on_to_fun, polynomial.as_continuous_map_to_fun],
       convert w ⟨_, _⟩; clear w,
       { -- FIXME why does `comm_ring.add` appear here?
         change x = line_map_Icc _ _ _ ⟨_ + _, _⟩,
@@ -190,8 +140,7 @@ begin
         fsplit,
         { exact mul_nonneg w₂ (le_of_lt w₁), },
         { rw [←div_eq_mul_inv, div_le_one (sub_pos.mpr h)],
-          exact w₃, }, }, },
-  },
+          exact w₃, }, }, }, },
   { rintro ⟨p, ⟨-,rfl⟩⟩,
     let q := p.comp ((b - a) • polynomial.X + polynomial.C a),
     refine ⟨q, ⟨_, _⟩⟩,

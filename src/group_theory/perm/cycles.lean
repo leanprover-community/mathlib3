@@ -324,7 +324,7 @@ equiv.ext $ λ y,
   if h : same_cycle f x y then by rw [h.cycle_of_apply]
   else by rw [cycle_of_apply_of_not_same_cycle h, not_not.1 (mt ((same_cycle_cycle hx).1 hf).2 h)]
 
-lemma cycle_of_eq_one_iff [fintype α] (f : perm α) {x : α} : cycle_of f x = 1 ↔ f x = x :=
+@[simp] lemma cycle_of_eq_one_iff [fintype α] (f : perm α) {x : α} : cycle_of f x = 1 ↔ f x = x :=
 begin
   simp_rw [ext_iff, cycle_of_apply, one_apply],
   refine ⟨λ h, (if_pos (same_cycle.refl f x)).symm.trans (h x), λ h y, _⟩,
@@ -334,7 +334,7 @@ begin
 end
 
 lemma is_cycle.cycle_of [fintype α] {f : perm α} (hf : is_cycle f) {x : α} :
-  cycle_of f x = ite (f x = x) 1 f :=
+  cycle_of f x = if f x = x then 1 else f :=
 begin
   by_cases hx : f x = x,
   { rwa [if_pos hx, cycle_of_eq_one_iff] },

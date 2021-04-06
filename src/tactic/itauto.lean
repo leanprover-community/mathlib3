@@ -355,6 +355,7 @@ meta def reify (atoms : ref (buffer expr)) : expr → tactic prop
 | `(%%a ∨ %%b) := prop.or <$> reify a <*> reify b
 | `(%%a ↔ %%b) := prop.and and_kind.iff <$> reify a <*> reify b
 | `(@eq Prop %%a %%b) := prop.and and_kind.eq <$> reify a <*> reify b
+| `(@ne Prop %%a %%b) := do a ← reify a, b ← reify b, pure $ (a.and and_kind.eq b).imp prop.false
 | e@`(%%a → %%b) :=
   if b.has_var then reify_atom atoms e else prop.imp <$> reify a <*> reify b
 | e := reify_atom atoms e

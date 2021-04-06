@@ -293,6 +293,11 @@ lemma add_order_of_dvd_iff_nsmul_eq_zero {n : ℕ} : add_order_of x ∣ n ↔ n 
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
 ⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
 
+lemma commute.order_of_mul_dvd_lcm (h : commute a b) :
+  order_of (a * b) ∣ nat.lcm (order_of a) (order_of b) :=
+by rw [order_of_dvd_iff_pow_eq_one, h.mul_pow, order_of_dvd_iff_pow_eq_one.mp
+  (nat.dvd_lcm_left _ _), order_of_dvd_iff_pow_eq_one.mp (nat.dvd_lcm_right _ _), one_mul]
+
 lemma add_order_of_eq_prime {p : ℕ} [hp : fact p.prime]
 (hg : p •ℕ x = 0) (hg1 : x ≠ 0) : add_order_of x = p :=
 (hp.out.2 _ (add_order_of_dvd_of_nsmul_eq_zero hg)).resolve_left (mt add_order_of_eq_one_iff.1 hg1)

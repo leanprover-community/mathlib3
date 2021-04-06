@@ -1486,16 +1486,16 @@ begin
     rw [sub_left, ← hφ v w, ← hψ v w, sub_self] }
 end
 
-/-- Given the nondegenerate bilinear form `B` the linear map `φ`, `is_adjoint_pair_of_nondegenerate`
+/-- Given the nondegenerate bilinear form `B` the linear map `φ`, `left_adjoint_of_nondegenerate`
 provides the left adjoint of `φ` with respect to `B`. The lemma proving this property is
-`is_adjoint_pair_is_adjoint_pair_of_nondegenerate`. -/
-noncomputable def is_adjoint_pair_of_nondegenerate
+`is_adjoint_pair_left_adjoint_of_nondegenerate`. -/
+noncomputable def left_adjoint_of_nondegenerate
   (B : bilin_form K V) (hB₁ : B.nondegenerate) (φ : V →ₗ[K] V) : V →ₗ[K] V :=
 symm_comp_of_nondegenerate (B.comp_right φ) B hB₁
 
-lemma is_adjoint_pair_is_adjoint_pair_of_nondegenerate
+lemma is_adjoint_pair_left_adjoint_of_nondegenerate
   (B : bilin_form K V) (hB : B.nondegenerate) (φ : V →ₗ[K] V) :
-  is_adjoint_pair B B (B.is_adjoint_pair_of_nondegenerate hB φ) φ :=
+  is_adjoint_pair B B (B.left_adjoint_of_nondegenerate hB φ) φ :=
 λ x y, symm_comp_of_nondegenerate_left_apply (B.comp_right φ) B hB y x
 
 lemma is_adjoint_pair_unique_of_nondegenerate (B : bilin_form K V) (hB₁ : B.nondegenerate)
@@ -1510,13 +1510,13 @@ begin
 end
 
 /-- Given the nondegenerate bilinear form `B`, the linear map `φ` has an unique left adjoint. -/
-theorem exists_unique_is_adjoint_pair_of_nondegenerate
+theorem exists_unique_left_adjoint_of_nondegenerate
   (B : bilin_form K V) (hB : B.nondegenerate) (φ : V →ₗ[K] V) :
   ∃! ψ : V →ₗ[K] V, is_adjoint_pair B B ψ φ :=
-⟨B.is_adjoint_pair_of_nondegenerate hB φ,
- is_adjoint_pair_is_adjoint_pair_of_nondegenerate _ _ _,
+⟨B.left_adjoint_of_nondegenerate hB φ,
+ is_adjoint_pair_left_adjoint_of_nondegenerate _ _ _,
  λ ψ hψ, B.is_adjoint_pair_unique_of_nondegenerate hB φ ψ _ hψ
-   (is_adjoint_pair_is_adjoint_pair_of_nondegenerate _ _ _)⟩
+   (is_adjoint_pair_left_adjoint_of_nondegenerate _ _ _)⟩
 
 end linear_adjoints
 

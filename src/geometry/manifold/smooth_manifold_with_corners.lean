@@ -626,7 +626,7 @@ instance prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 end smooth_manifold_with_corners
 
-instance local_homeomorph.singleton_smooth_manifold_with_corners
+lemma local_homeomorph.singleton_smooth_manifold_with_corners
   {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)

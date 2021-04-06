@@ -662,6 +662,43 @@ begin
     split_ifs; simp, },
 end
 
+section sum
+
+variables (R)
+
+/-- The linear equivalence between `(α ⊕ β) →₀ M` and `(α →₀ M) × (β →₀ M)`.
+
+This is the `linear_equiv` version of `finsupp.sum_finsupp_equiv_prod_finsupp`. -/
+@[simps apply symm_apply] def sum_finsupp_lequiv_prod_finsupp {α β : Type*} :
+  ((α ⊕ β) →₀ M) ≃ₗ[R] (α →₀ M) × (β →₀ M) :=
+{ map_smul' :=
+    by { intros, ext;
+          simp only [add_equiv.to_fun_eq_coe, prod.smul_fst, prod.smul_snd, smul_apply,
+              snd_sum_finsupp_add_equiv_prod_finsupp, fst_sum_finsupp_add_equiv_prod_finsupp] },
+  .. sum_finsupp_add_equiv_prod_finsupp }
+
+lemma fst_sum_finsupp_lequiv_prod_finsupp {α β : Type*}
+  (f : (α ⊕ β) →₀ M) (x : α) :
+  (sum_finsupp_lequiv_prod_finsupp R f).1 x = f (sum.inl x) :=
+rfl
+
+lemma snd_sum_finsupp_lequiv_prod_finsupp {α β : Type*}
+  (f : (α ⊕ β) →₀ M) (y : β) :
+  (sum_finsupp_lequiv_prod_finsupp R f).2 y = f (sum.inr y) :=
+rfl
+
+lemma sum_finsupp_lequiv_prod_finsupp_symm_inl {α β : Type*}
+  (fg : (α →₀ M) × (β →₀ M)) (x : α) :
+  ((sum_finsupp_lequiv_prod_finsupp R).symm fg) (sum.inl x) = fg.1 x :=
+rfl
+
+lemma sum_finsupp_lequiv_prod_finsupp_symm_inr {α β : Type*}
+  (fg : (α →₀ M) × (β →₀ M)) (y : β) :
+  ((sum_finsupp_lequiv_prod_finsupp R).symm fg) (sum.inr y) = fg.2 y :=
+rfl
+
+end sum
+
 end finsupp
 
 variables {R : Type*} {M : Type*} {N : Type*}

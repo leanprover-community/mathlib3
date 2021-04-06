@@ -938,11 +938,7 @@ disjoint_iff_disjoint_support.1 h
 lemma disjoint.support_mul (h : disjoint f g) :
   (f * g).support = f.support ∪ g.support :=
 begin
-<<<<<<< HEAD
-  refine le_antisymm support_mul_le (λ a, _),
-=======
   refine le_antisymm (support_mul_le _ _) (λ a, _),
->>>>>>> master
   rw [mem_union, mem_support, mem_support, mem_support, mul_apply, ←not_and_distrib, not_imp_not],
   exact (h a).elim (λ hf h, ⟨hf, f.apply_eq_iff_eq.mp (h.trans hf.symm)⟩)
     (λ hg h, ⟨(congr_arg f hg).symm.trans h, hg⟩),

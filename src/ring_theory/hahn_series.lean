@@ -21,7 +21,10 @@ import ring_theory.power_series.basic
   * A `hahn_series.summable_family` is a family of Hahn series such that the union of their supports
   is well-founded and only finitely many are nonzero at any given coefficient. They have a formal
   sum, `hahn_series.summable_family.hsum`, which can be bundled as a `linear_map` as
-  `hahn_series.summable_family.lsum`.
+  `hahn_series.summable_family.lsum`. Note that this is different from `summable` in the valuation
+  topology, because there are topologically summable families that do not satisfy the axioms of
+  `hahn_series.summable_family`, and formally summable families whose sums do not converge
+  topologically.
 
 ## TODO
   * Given `[linear_ordered_add_comm_group Γ]` and `[field R]`, define `field (hahn_series Γ R)`.

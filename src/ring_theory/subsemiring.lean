@@ -394,6 +394,12 @@ end subsemiring
 
 namespace submonoid
 
+/-- The additive closure of a submonoid is a subsemiring. -/
+def to_subsemiring (M : submonoid R) : subsemiring R :=
+{ one_mem' := add_submonoid.mem_closure.mpr (λ y hy, hy M.one_mem),
+  mul_mem' := λ x y, M.mul_mem_add_closure,
+  ..add_submonoid.closure (M : set R)}
+
 lemma to_subsemiring_coe :
   (M.subsemiring_closure : set R) = add_submonoid.closure (M : set R) := rfl
 
@@ -417,16 +423,20 @@ end submonoid
 namespace subsemiring
 
 @[simp]
-lemma closure_submonoid_closure {s : set R} : closure ↑(submonoid.closure s) = closure s :=
-ext (λ x, ⟨λ hx, (mem_closure.mp hx) _ (λ y hy, (submonoid.mem_closure.mp hy)
-  (closure s).to_submonoid subset_closure), λ hx, closure_mono (submonoid.subset_closure) hx⟩)
+lemma closure_submonoid_closure (s : set R) : closure ↑(submonoid.closure s) = closure s :=
+le_antisymm
+  (closure_le.mpr (λ y hy, (submonoid.mem_closure.mp hy) (closure s).to_submonoid subset_closure))
+  (closure_mono (submonoid.subset_closure))
 
 /-- The elements of the subsemiring closure of `M` are exactly the elements of the additive closure
 of a multiplicative submonoid `M`. -/
+lemma coe_closure_eq (s : set R) :
+  (closure s : set R) = add_submonoid.closure (submonoid.closure s : set R) :=
+by simp [← submonoid.to_subsemiring_to_add_submonoid, submonoid.to_subsemiring_eq_closure]
+
 lemma mem_closure_iff {s : set R} {x} :
   x ∈ closure s ↔ x ∈ add_submonoid.closure (submonoid.closure s : set R) :=
-by simp only [← submonoid.to_subsemiring_to_add_submonoid, submonoid.to_subsemiring_eq_closure,
-    closure_submonoid_closure, mem_to_add_submonoid]
+set.ext_iff.mp (coe_closure_eq s) x
 
 @[simp]
 lemma closure_add_submonoid_closure {s : set R} : closure ↑(add_submonoid.closure s) = closure s :=

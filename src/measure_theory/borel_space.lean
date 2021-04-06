@@ -87,6 +87,11 @@ le_antisymm
   (generate_from_le $ assume u hu, generate_measurable.basic _ $
     show t.is_open u, by rw [hs]; exact generate_open.basic _ hu)
 
+lemma topological_space.is_topological_basis.borel_eq_generate_from [topological_space α]
+  [second_countable_topology α] {s : set (set α)} (hs : is_topological_basis s) :
+  borel α = generate_from s :=
+borel_eq_generate_from_of_subbasis hs.eq_generate_from
+
 lemma is_pi_system_is_open [topological_space α] : is_pi_system (is_open : set α → Prop) :=
 λ s t hs ht hst, is_open_inter hs ht
 
@@ -253,15 +258,15 @@ instance pi.opens_measurable_space {ι : Type*} {π : ι → Type*} [fintype ι]
   opens_measurable_space (Π i, π i) :=
 begin
   constructor,
-  choose g hc he ho hu hinst using λ i, is_open_generated_countable_inter (π i),
   have : Pi.topological_space =
-    generate_from {t | ∃(s:Πa, set (π a)) (i : finset ι), (∀a∈i, s a ∈ g a) ∧ t = pi ↑i s},
-  { rw [funext hinst, pi_generate_from_eq] },
+    generate_from {t | ∃(s:Πa, set (π a)) (i : finset ι), (∀a∈i, s a ∈ countable_basis (π a)) ∧
+      t = pi ↑i s},
+  { rw [funext (λ a, @eq_generate_from_countable_basis (π a) _ _), pi_generate_from_eq] },
   rw [borel_eq_generate_from_of_subbasis this],
   apply generate_from_le,
   rintros _ ⟨s, i, hi, rfl⟩,
   refine measurable_set.pi i.countable_to_set (λ a ha, is_open.measurable_set _),
-  rw [hinst],
+  rw [eq_generate_from_countable_basis (π a)],
   exact generate_open.basic _ (hi a ha)
 end
 
@@ -269,16 +274,11 @@ instance prod.opens_measurable_space [second_countable_topology α] [second_coun
   opens_measurable_space (α × β) :=
 begin
   constructor,
-  rcases is_open_generated_countable_inter α with ⟨a, ha₁, ha₂, ha₃, ha₄, ha₅⟩,
-  rcases is_open_generated_countable_inter β with ⟨b, hb₁, hb₂, hb₃, hb₄, hb₅⟩,
-  have : prod.topological_space = generate_from {g | ∃u∈a, ∃v∈b, g = set.prod u v},
-  { rw [ha₅, hb₅], exact prod_generate_from_generate_from_eq ha₄ hb₄ },
-  rw [borel_eq_generate_from_of_subbasis this],
+  rw [((is_basis_countable_basis α).prod (is_basis_countable_basis β)).borel_eq_generate_from],
   apply generate_from_le,
-  rintros _ ⟨u, hu, v, hv, rfl⟩,
-  have hu : is_open u, by { rw [ha₅], exact generate_open.basic _ hu },
-  have hv : is_open v, by { rw [hb₅], exact generate_open.basic _ hv },
-  exact hu.measurable_set.prod hv.measurable_set
+  rintros _ ⟨u, v, hu, hv, rfl⟩,
+  exact (is_open_of_mem_countable_basis hu).measurable_set.prod
+    (is_open_of_mem_countable_basis hv).measurable_set
 end
 
 section preorder
@@ -922,7 +922,7 @@ open measurable_space measure_theory
 
 lemma borel_eq_generate_from_Ioo_rat :
   borel ℝ = generate_from (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
-borel_eq_generate_from_of_subbasis is_topological_basis_Ioo_rat.2.2
+is_topological_basis_Ioo_rat.borel_eq_generate_from
 
 lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]
   (h : ∀ a b : ℚ, μ (Ioo a b) = ν (Ioo a b)) : μ = ν :=
@@ -936,7 +936,7 @@ begin
     refine ⟨_, _, _, rfl⟩,
     assumption_mod_cast },
   { exact countable_Union (λ a, (countable_encodable _).bUnion $ λ _ _, countable_singleton _) },
-  { exact is_topological_basis_Ioo_rat.2.1 },
+  { exact is_topological_basis_Ioo_rat.sUnion_eq },
   { simp only [mem_Union, mem_singleton_iff],
     rintros _ ⟨a, b, h, rfl⟩,
     refine (measure_mono subset_closure).trans_lt _,

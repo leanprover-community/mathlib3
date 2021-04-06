@@ -465,7 +465,7 @@ by refine {mul := (*), one := 1, ..linear_map.add_comm_monoid, ..};
 
 lemma one_def : (1 : M →ₗ[R] M) = id := rfl
 
-lemma coe_one : ((1 : M →ₗ[R] M) : M → M) = id := rfl
+lemma coe_one : ⇑(1 : M →ₗ[R] M) = id := rfl
 
 lemma one_apply (x : M) : (1 : M →ₗ[R] M) x = x := rfl
 

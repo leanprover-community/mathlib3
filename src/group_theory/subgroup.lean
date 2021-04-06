@@ -353,6 +353,18 @@ begin
   rw [← subgroup.coe_mk H y hy, subsingleton.elim (⟨y, hy⟩ : H) 1, subgroup.coe_one],
 end
 
+@[to_additive] instance fintype_bot : fintype (⊥ : subgroup G) := ⟨{1},
+by {rintro ⟨x, ⟨hx⟩⟩, exact finset.mem_singleton_self _}⟩
+
+@[simp] lemma _root_.add_subgroup.card_bot : fintype.card (⊥ : add_subgroup A) = 1 :=
+fintype.card_eq_one_iff.2
+  ⟨⟨(0 : A), set.mem_singleton 0⟩, λ ⟨y, hy⟩, subtype.eq $ add_subgroup.mem_bot.1 hy⟩
+
+-- `@[to_additive]` doesn't work, because it converts the `1 : ℕ` to `0`.
+@[simp] lemma card_bot : fintype.card (⊥ : subgroup G) = 1 :=
+fintype.card_eq_one_iff.2
+  ⟨⟨(1 : G), set.mem_singleton 1⟩, λ ⟨y, hy⟩, subtype.eq $ subgroup.mem_bot.1 hy⟩
+
 @[to_additive] lemma eq_top_of_card_eq [fintype H] [fintype G]
   (h : fintype.card H = fintype.card G) : H = ⊤ :=
 begin
@@ -871,6 +883,16 @@ def set_normalizer (S : set G) : subgroup G :=
     by { rw [hb, ha], simp [mul_assoc] },
   inv_mem' := λ a (ha : ∀ n, n ∈ S ↔ a * n * a⁻¹ ∈ S) n,
     by { rw [ha (a⁻¹ * n * a⁻¹⁻¹)], simp [mul_assoc] } }
+
+lemma mem_normalizer_fintype {S : set G} [fintype S] {x : G}
+  (h : ∀ n, n ∈ S → x * n * x⁻¹ ∈ S) : x ∈ subgroup.set_normalizer S :=
+by haveI := classical.prop_decidable;
+haveI := set.fintype_image S (λ n, x * n * x⁻¹); exact
+λ n, ⟨h n, λ h₁,
+have heq : (λ n, x * n * x⁻¹) '' S = S := set.eq_of_subset_of_card_le
+  (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1) (by rw set.card_image_of_injective S conj_injective),
+have x * n * x⁻¹ ∈ (λ n, x * n * x⁻¹) '' S := heq.symm ▸ h₁,
+let ⟨y, hy⟩ := this in conj_injective hy.2 ▸ hy.1⟩
 
 variable {H}
 @[to_additive] lemma mem_normalizer_iff {g : G} :

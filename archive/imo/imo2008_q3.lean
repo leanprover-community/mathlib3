@@ -25,8 +25,10 @@ and we can take this `n` such that `n ≤ p/2`. Let `k = p - 2n ≥ 0`. Then we 
 Then `p = 2n + k ≥ 2n + √(p - 4) = 2n + √(2n + k - 4) > √(2n)` and we are done.
 -/
 
+open real
+
 lemma p_lemma (p : ℕ) (hpp : nat.prime p) (hp_mod_4_eq_1 : p ≡ 1 [MOD 4]) (hp_gt_20 : p > 20) :
-  ∃ n : ℕ, p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + real.sqrt(2 * n) :=
+  ∃ n : ℕ, p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + sqrt(2 * n) :=
 begin
   haveI := fact.mk hpp,
   have hp_mod_4_ne_3 : p % 4 ≠ 3, { linarith [(show p % 4 = 1, by exact hp_mod_4_eq_1)]},
@@ -69,30 +71,29 @@ begin
   have hreal₂ : p₀ > 20,          { assumption_mod_cast },
   have hreal₃ : k₀ ^ 2 + 4 ≥ p₀,  { assumption_mod_cast },
 
-  have hreal₄ : k₀ ≥ real.sqrt(p₀ - 4),
-  { calc  k₀ = real.sqrt(k₀ ^ 2)    : eq.symm (real.sqrt_sqr (nat.cast_nonneg k))
-    ...      ≥ real.sqrt(p₀ - 4)    : real.sqrt_le_sqrt (by linarith [hreal₃]) },
+  have hreal₄ : k₀ ≥ sqrt(p₀ - 4),
+  { calc k₀ = sqrt(k₀ ^ 2) : eq.symm (sqrt_sqr (nat.cast_nonneg k))
+    ...     ≥ sqrt(p₀ - 4) : sqrt_le_sqrt (by linarith [hreal₃]) },
 
   have hreal₅ : k₀ > 4,
-  { calc k₀ ≥ real.sqrt(p₀ - 4)     : hreal₄
-    ...     > real.sqrt(4 ^ 2)      : (real.sqrt_lt (by linarith)).mpr (by linarith [hreal₂])
-    ...     = 4                     : real.sqrt_sqr (by linarith) },
+  { calc k₀ ≥ sqrt(p₀ - 4) : hreal₄
+    ...     > sqrt(4 ^ 2)  : (sqrt_lt (by linarith)).mpr (by linarith [hreal₂])
+    ...     = 4            : sqrt_sqr (by linarith) },
 
-  have hreal₆ : p₀ > 2 * n₀ + real.sqrt(2 * n),
-  { calc p₀ = 2 * n₀ + k₀                         : hreal₁
-    ...     ≥ 2 * n₀ + real.sqrt(p₀ - 4)          : by linarith [hreal₄]
-    ...     = 2 * n₀ + real.sqrt(2 * n₀ + k₀ - 4) : by rw hreal₁
-    ...     > 2 * n₀ + real.sqrt(2 * n₀) : by { refine add_lt_add_left _ (2 * n₀),
-                                                refine (real.sqrt_lt _).mpr _,
-                                                refine mul_nonneg zero_le_two (nat.cast_nonneg n),
-                                                linarith [hreal₅] } },
+  have hreal₆ : p₀ > 2 * n₀ + sqrt(2 * n),
+  { calc p₀ = 2 * n₀ + k₀                    : hreal₁
+    ...     ≥ 2 * n₀ + sqrt(p₀ - 4)          : by linarith [hreal₄]
+    ...     = 2 * n₀ + sqrt(2 * n₀ + k₀ - 4) : by rw hreal₁
+    ...     > 2 * n₀ + sqrt(2 * n₀)     : by { refine add_lt_add_left _ (2 * n₀),
+                                               refine (sqrt_lt _).mpr _,
+                                               refine mul_nonneg zero_le_two (nat.cast_nonneg n),
+                                               linarith [hreal₅] } },
 
   exact ⟨n, hnat₁, hreal₆⟩,
 end
 
-
 theorem imo2008_q3 : ∀ N : ℕ, ∃ n : ℕ, n ≥ N ∧
-  ∃ p : ℕ, nat.prime p ∧ p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + real.sqrt(2 * n) :=
+  ∃ p : ℕ, nat.prime p ∧ p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + sqrt(2 * n) :=
 begin
   intro N,
   obtain ⟨p, hpp, hineq₁, hpmod4⟩ := nat.exists_prime_ge_modeq_one 4 (N ^ 2 + 21) zero_lt_four,

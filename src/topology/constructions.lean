@@ -642,7 +642,7 @@ lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
 continuous_infi_dom continuous_induced_dom
 
 lemma continuous_at_apply [∀i, topological_space (π i)] (i : ι) (x : Π i, π i) :
-  continuous_at (λp:Πi, π i, p i) x :=
+  continuous_at (λ p : Π i, π i, p i) x :=
 (continuous_apply i).continuous_at
 
 lemma filter.tendsto.apply [∀i, topological_space (π i)] {l : filter α} {f : α → Π i, π i}

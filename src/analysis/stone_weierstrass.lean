@@ -73,6 +73,9 @@ begin
   { intros n a, simp, },
 end
 
+example (f : C(X, ℝ)) : ℝ := ∥f∥
+example (A : subalgebra ℝ C(X, ℝ)) (f : A) : ℝ := ∥f∥
+
 lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
   ((polynomial.as_continuous_map (set.Icc (-∥f∥) ∥f∥)) g).comp (f : C(X, ℝ)).attach_bound =
     polynomial.aeval f g :=

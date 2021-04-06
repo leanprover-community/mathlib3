@@ -490,8 +490,8 @@ to make the diagram small.)
 -/
 def wide_cospan {A : C} (s : set (subobject A)) :
   wide_pullback_shape (equiv_shrink _ '' s) ⥤ C :=
-@wide_pullback_shape.wide_cospan (equiv_shrink _ '' s) _ _ A
-  (λ j, (((equiv_shrink (subobject A)).symm j) : C))
+wide_pullback_shape.wide_cospan A
+  (λ j : equiv_shrink _ '' s, (((equiv_shrink (subobject A)).symm j) : C))
   (λ j, ((equiv_shrink (subobject A)).symm j).arrow)
 
 @[simp] lemma wide_cospan_map_term {A : C} (s : set (subobject A)) (j) :
@@ -502,14 +502,9 @@ rfl
 /-- Auxilliary construction of a cone for `le_Inf`. -/
 def le_Inf_cone {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ≤ g) :
   cone (wide_cospan s) :=
-{ X := (f : C),
-  π :=
-  { app := λ j, match j with
-      | none := f.arrow
-      | (some j) :=
-        underlying.map (hom_of_le (k _ (by { rcases j with ⟨-, ⟨g, ⟨m, rfl⟩⟩⟩, simpa using m, })))
-      end,
-    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp, }, }, }
+wide_pullback_shape.mk_cone f.arrow
+  (λ j, underlying.map (hom_of_le (k _ (by { rcases j with ⟨-, ⟨g, ⟨m, rfl⟩⟩⟩, simpa using m, }))))
+  (by tidy)
 
 @[simp] lemma le_Inf_cone_π_app_none
   {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ≤ g) :

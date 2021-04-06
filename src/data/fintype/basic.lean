@@ -1258,7 +1258,7 @@ variables [fintype α]
 variables [decidable_eq β]
 variables {f : α → β}
 
-/-- `
+/--
 `bij_inv f` is the unique inverse to a bijection `f`. This acts
   as a computable alternative to `function.inv_fun`. -/
 def bij_inv (f_bij : bijective f) (b : β) : α :=

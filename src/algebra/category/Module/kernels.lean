@@ -78,8 +78,7 @@ noncomputable def kernel_iso_ker {G H : Module.{v} R} (f : G ⟶ H) :
   kernel f ≅ Module.of R (f.ker) :=
 limit.iso_limit_cone ⟨_, kernel_is_limit f⟩
 
--- We now show this isomorphism commutes with the inclusion of the kernel into the source,
--- stating this both at the morphism level, and elementwise
+-- We now show this isomorphism commutes with the inclusion of the kernel into the source.
 
 @[simp, elementwise] lemma kernel_iso_ker_inv_kernel_ι :
   (kernel_iso_ker f).inv ≫ kernel.ι f = f.ker.subtype :=
@@ -97,8 +96,7 @@ noncomputable def cokernel_iso_range_quotient {G H : Module.{v} R} (f : G ⟶ H)
   cokernel f ≅ Module.of R (f.range.quotient) :=
 colimit.iso_colimit_cocone ⟨_, cokernel_is_colimit f⟩
 
--- We now show this isomorphism commutes with the projection of target to the cokernel,
--- stating this both at the morphism level, and elementwise
+-- We now show this isomorphism commutes with the projection of target to the cokernel.
 
 @[simp, elementwise] lemma cokernel_π_cokernel_iso_range_quotient_hom :
   cokernel.π f ≫ (cokernel_iso_range_quotient f).hom = f.range.mkq :=

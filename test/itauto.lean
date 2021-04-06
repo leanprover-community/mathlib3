@@ -53,3 +53,15 @@ example : x = y := by itauto
 end modulo_symmetry
 
 end itauto₃
+example (p1 p2 p3 p4 p5 p6 f : Prop)
+  (h : (
+      (p1 ∧ p2 ∧ p3 ∧ p4 ∧ p5 ∧ p6 ∧ true) ∨
+      (((p1 → f) → f) → f) ∨
+      (p2 → f) ∨
+      (p3 → f) ∨
+      (p4 → f) ∨
+      (p5 → f) ∨
+      (p6 → f) ∨
+      false
+    ) → f) : f :=
+by itauto

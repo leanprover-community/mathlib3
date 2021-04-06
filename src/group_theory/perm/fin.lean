@@ -117,18 +117,21 @@ lemma cycle_range_of_le {n : ℕ} {i j : fin n.succ} (h : j ≤ i) :
 begin
   cases n,
   { simp },
+
   have : j = (fin.cast_le (nat.succ_le_of_lt i.is_lt)).to_embedding
     ⟨j, lt_of_le_of_lt h (nat.lt_succ_self i)⟩,
-    { simp },
+  { simp },
+
+  ext,
   rw [this, cycle_range, of_left_inverse'_eq_of_injective,
       ←function.embedding.to_equiv_range_eq_of_injective,
-      ←via_embedding, via_embedding_apply_image],
-  rcases h.eq_or_lt with rfl|h,
-  { simp },
-  { suffices : (j : ℕ) + 1 = ((j + 1) : fin _),
-      { simp [h, h.ne, this], },
-    rw [fin.coe_add, fin.coe_one, nat.mod_eq_of_lt],
-    exact (lt_of_le_of_lt (nat.succ_le_of_lt h) i.is_lt) }
+      ←via_embedding, via_embedding_apply_image, rel_embedding.coe_fn_to_embedding,
+      coe_cast_le, coe_fin_rotate],
+  simp only [fin.ext_iff, coe_last, coe_mk, coe_zero, fin.eta, apply_ite coe, cast_le_mk],
+  split_ifs with heq,
+  { refl },
+  { rw fin.coe_add_one_of_lt,
+    exact lt_of_lt_of_le (lt_of_le_of_ne h (mt (congr_arg coe) heq)) (le_last i) }
 end
 
 lemma coe_cycle_range_of_le {n : ℕ} {i j : fin n.succ} (h : j ≤ i) :

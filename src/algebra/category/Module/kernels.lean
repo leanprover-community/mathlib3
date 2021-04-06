@@ -68,6 +68,8 @@ open_locale Module
 local attribute [instance] has_kernels_Module
 local attribute [instance] has_cokernels_Module
 
+variables {G H : Module.{v} R} (f : G ⟶ H)
+
 /--
 The categorical kernel of a morphism in `Module`
 agrees with the usual module-theoretical kernel.
@@ -79,21 +81,13 @@ limit.iso_limit_cone ⟨_, kernel_is_limit f⟩
 -- We now show this isomorphism commutes with the inclusion of the kernel into the source,
 -- stating this both at the morphism level, and elementwise
 
-@[simp] lemma kernel_iso_ker_inv_kernel_ι {G H : Module.{v} R} (f : G ⟶ H) :
+@[simp, elementwise] lemma kernel_iso_ker_inv_kernel_ι :
   (kernel_iso_ker f).inv ≫ kernel.ι f = f.ker.subtype :=
 limit.iso_limit_cone_inv_π _ _
 
-@[simp] lemma kernel_ι_kernel_iso_ker_symm {G H : Module.{v} R} (f : G ⟶ H) (x : f.ker) :
-  kernel.ι f ((kernel_iso_ker f).inv x) = f.ker.subtype x :=
-concrete_category.congr_hom (kernel_iso_ker_inv_kernel_ι f) x
-
-@[simp] lemma kernel_iso_ker_hom_ker_subtype {G H : Module.{v} R} (f : G ⟶ H) :
+@[simp, elementwise] lemma kernel_iso_ker_hom_ker_subtype :
   (kernel_iso_ker f).hom ≫ f.ker.subtype = kernel.ι f :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ (limit.is_limit _) zero
-
-@[simp] lemma ker_subtype_kernel_iso_ker {G H : Module.{v} R} (f : G ⟶ H) (x : kernel f) :
-  f.ker.subtype ((kernel_iso_ker f).hom x) = kernel.ι f x :=
-concrete_category.congr_hom (kernel_iso_ker_hom_ker_subtype f) x
 
 /--
 The categorical cokernel of a morphism in `Module`
@@ -106,20 +100,12 @@ colimit.iso_colimit_cocone ⟨_, cokernel_is_colimit f⟩
 -- We now show this isomorphism commutes with the projection of target to the cokernel,
 -- stating this both at the morphism level, and elementwise
 
-@[simp] lemma cokernel_iso_range_quotient_inv_kernel_ι {G H : Module.{v} R} (f : G ⟶ H) :
+@[simp, elementwise] lemma cokernel_π_cokernel_iso_range_quotient_hom :
   cokernel.π f ≫ (cokernel_iso_range_quotient f).hom = f.range.mkq :=
 by { convert colimit.iso_colimit_cocone_ι_hom _ _; refl, }
 
-@[simp] lemma cokernel_iso_range_quotient_cokernel_π {G H : Module.{v} R} (f : G ⟶ H) (x : H) :
-  (cokernel_iso_range_quotient f).hom (cokernel.π f x) = f.range.mkq x :=
-concrete_category.congr_hom (cokernel_iso_range_quotient_inv_kernel_ι f) x
-
-@[simp] lemma range_mkq_cokernel_iso_range_quotient_inv {G H : Module.{v} R} (f : G ⟶ H) :
+@[simp, elementwise] lemma range_mkq_cokernel_iso_range_quotient_inv :
   ↿f.range.mkq ≫ (cokernel_iso_range_quotient f).inv = cokernel.π f :=
 by { convert colimit.iso_colimit_cocone_ι_inv ⟨_, cokernel_is_colimit f⟩ _; refl, }
-
-@[simp] lemma cokernel_iso_range_quotient_symm_range_mkq {G H : Module.{v} R} (f : G ⟶ H) (x : H) :
-  (cokernel_iso_range_quotient f).inv (submodule.quotient.mk x) = cokernel.π f x :=
-concrete_category.congr_hom (range_mkq_cokernel_iso_range_quotient_inv f) x
 
 end Module

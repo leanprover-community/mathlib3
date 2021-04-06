@@ -80,11 +80,6 @@ lemma interval_integrable_inv (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0
 by simpa only [one_div] using interval_integrable_one_div h hf
 
 @[simp]
-lemma interval_integrable.comp (hf : continuous f) (hg : continuous g) :
-  interval_integrable (λ x, (f ∘ g) x) μ a b :=
-(hf.comp hg).interval_integrable a b
-
-@[simp]
 lemma interval_integrable_exp : interval_integrable exp μ a b :=
 continuous_exp.interval_integrable a b
 

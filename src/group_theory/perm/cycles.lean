@@ -426,7 +426,7 @@ noncomputable theory
 
 theorem is_cycle.is_conj (hσ : is_cycle σ) (hτ : is_cycle τ) (h : σ.support.card = τ.support.card) :
   is_conj σ τ :=
-begin
+is_conj_iff.2 begin
   classical,
   replace h : σ.support.card = τ.support.card, { convert h },
   have hc : fintype.card ((σ.support : set α)ᶜ : set α) =
@@ -474,7 +474,8 @@ end
 theorem is_cycle.is_conj_iff (hσ : is_cycle σ) (hτ : is_cycle τ) :
   is_conj σ τ ↔ σ.support.card = τ.support.card :=
 ⟨begin
-  rintro ⟨π, rfl⟩,
+  intro h,
+  obtain ⟨π, rfl⟩ := is_conj_iff.1 h,
   apply finset.card_congr (λ a ha, π a) (λ _ ha, _) (λ _ _ _ _ ab, π.injective ab) (λ b hb, _),
   { simp [mem_support.1 ha] },
   { refine ⟨π⁻¹ b, ⟨_, π.apply_inv_self b⟩⟩,

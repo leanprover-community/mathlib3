@@ -289,6 +289,14 @@ noncomputable def pullback_iso_pullback : pullback f g ≅ pullback_obj f g :=
   (pullback_iso_pullback f g).hom ≫ (λ p, (p : X × Y).snd) = pullback.snd :=
 (pullback_cone_iso_pullback f g).hom.w right
 
+@[simp] lemma pullback_fst :
+  (pullback_iso_pullback f g).inv ≫ pullback.fst = (λ p, (p : X × Y).fst) :=
+(pullback_cone_iso_pullback f g).inv.w left
+
+@[simp] lemma pullback_snd :
+  (pullback_iso_pullback f g).inv ≫ pullback.snd = (λ p, (p : X × Y).snd) :=
+(pullback_cone_iso_pullback f g).inv.w right
+
 end pullback
 
 end category_theory.limits.types

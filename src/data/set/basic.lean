@@ -537,10 +537,10 @@ theorem subset_inter {s t r : set α} (rs : r ⊆ s) (rt : r ⊆ t) : r ⊆ s �
 (forall_congr (by exact λ x, imp_and_distrib)).trans forall_and_distrib
 
 theorem inter_eq_left_iff_subset {s t : set α} : s ∩ t = s ↔ s ⊆ t :=
-(ext_iff.trans $ forall_congr $ λ x, and_iff_left_iff_imp)
+ext_iff.trans $ forall_congr $ λ x, and_iff_left_iff_imp
 
 theorem inter_eq_right_iff_subset {s t : set α} : s ∩ t = t ↔ t ⊆ s :=
-(ext_iff.trans $ forall_congr $ λ x, and_iff_right_iff_imp)
+ext_iff.trans $ forall_congr $ λ x, and_iff_right_iff_imp
 
 theorem inter_eq_self_of_subset_left {s t : set α} : s ⊆ t → s ∩ t = s :=
 inter_eq_left_iff_subset.mpr

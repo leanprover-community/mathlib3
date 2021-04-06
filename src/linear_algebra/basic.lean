@@ -212,7 +212,7 @@ end smul_right
 instance : has_one (M →ₗ[R] M) := ⟨linear_map.id⟩
 instance : has_mul (M →ₗ[R] M) := ⟨linear_map.comp⟩
 
-lemma one_eq_id (1 : M →ₗ[R] M) = id := rfl
+lemma one_eq_id : (1 : M →ₗ[R] M) = id := rfl
 lemma mul_eq_comp (f g : M →ₗ[R] M) : f * g = f.comp g := rfl
 
 @[simp] lemma one_apply (x : M) : (1 : M →ₗ[R] M) x = x := rfl

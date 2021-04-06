@@ -544,10 +544,26 @@ end
 
 end total
 
-/-- An equivalence of domains induces a linear equivalence of finitely supported functions. -/
+/-- An equivalence of domains induces a linear equivalence of finitely supported functions.
+
+This is `finsupp.dom_congr` as a `linear_equiv`.-/
 protected def dom_lcongr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
 (finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv (lmap_domain M R e).map_smul
+
+@[simp]
+lemma dom_lcongr_refl : finsupp.dom_lcongr (equiv.refl α) = linear_equiv.refl R (α →₀ M) :=
+linear_equiv.ext $ λ _, map_domain_id
+
+lemma dom_lcongr_trans {α₁ α₂ α₃ : Type*} (f : α₁ ≃ α₂) (f₂ : α₂ ≃ α₃) :
+  (finsupp.dom_lcongr f).trans (finsupp.dom_lcongr f₂) =
+    (finsupp.dom_lcongr (f.trans f₂) : (_ →₀ M) ≃ₗ[R] _) :=
+linear_equiv.ext $ λ _, map_domain_comp.symm
+
+@[simp]
+lemma dom_lcongr_symm {α₁ α₂ : Type*} (f : α₁ ≃ α₂) :
+  ((finsupp.dom_lcongr f).symm : (_ →₀ M) ≃ₗ[R] _) = finsupp.dom_lcongr f.symm :=
+linear_equiv.ext $ λ x, rfl
 
 @[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (i : α₁) (m : M) :
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=
@@ -609,9 +625,42 @@ corresponding finitely supported functions. -/
 def lcongr {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) : (ι →₀ M) ≃ₗ[R] (κ →₀ N) :=
 (finsupp.dom_lcongr e₁).trans (map_range.linear_equiv e₂)
 
-@[simp] theorem lcongr_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N)
-  (i : ι) (m : M) : lcongr e₁ e₂ (finsupp.single i m) = finsupp.single (e₁ i) (e₂ m) :=
+@[simp] theorem lcongr_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (i : ι) (m : M) :
+  lcongr e₁ e₂ (finsupp.single i m) = finsupp.single (e₁ i) (e₂ m) :=
 by simp [lcongr]
+
+@[simp] lemma lcongr_apply_apply {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (f : ι →₀ M) (k : κ) :
+  lcongr e₁ e₂ f k = e₂ (f (e₁.symm k)) :=
+begin
+  apply finsupp.induction_linear f,
+  { simp, },
+  { intros f g hf hg, simp [map_add, hf, hg], },
+  { intros i m,
+    simp only [finsupp.lcongr_single],
+    simp only [finsupp.single, equiv.eq_symm_apply, finsupp.coe_mk],
+    split_ifs; simp, },
+end
+
+theorem lcongr_symm_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (k : κ) (n : N) :
+  (lcongr e₁ e₂).symm (finsupp.single k n) = finsupp.single (e₁.symm k) (e₂.symm n) :=
+begin
+  apply_fun lcongr e₁ e₂ using (lcongr e₁ e₂).injective,
+  simp,
+end
+
+@[simp] lemma lcongr_symm {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) :
+  (lcongr e₁ e₂).symm = lcongr e₁.symm e₂.symm :=
+begin
+  ext f i,
+  simp only [equiv.symm_symm, finsupp.lcongr_apply_apply],
+  apply finsupp.induction_linear f,
+  { simp, },
+  { intros f g hf hg, simp [map_add, hf, hg], },
+  { intros k m,
+    simp only [finsupp.lcongr_symm_single],
+    simp only [finsupp.single, equiv.symm_apply_eq, finsupp.coe_mk],
+    split_ifs; simp, },
+end
 
 end finsupp
 

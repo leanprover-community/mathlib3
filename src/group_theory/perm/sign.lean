@@ -207,6 +207,38 @@ lemma gpow_apply_eq_of_apply_apply_eq_self {f : perm α} {x : α} (hffx : f (f x
     ← pow_succ, eq_comm, inv_eq_iff_eq, ← mul_apply, ← pow_succ', @eq_comm _ x, or.comm],
   exact pow_apply_eq_of_apply_apply_eq_self hffx _ }
 
+lemma disjoint.mul_apply_eq_iff {σ τ : perm α} (hστ : disjoint σ τ) {a : α} :
+  (σ * τ) a = a ↔ σ a = a ∧ τ a = a :=
+begin
+  refine ⟨λ h, _, λ h, by rw [mul_apply, h.2, h.1]⟩,
+  cases hστ a with hσ hτ,
+  { exact ⟨hσ, σ.injective (h.trans hσ.symm)⟩ },
+  { exact ⟨(congr_arg σ hτ).symm.trans h, hτ⟩ },
+end
+
+lemma disjoint.mul_eq_one_iff {σ τ : perm α} (hστ : disjoint σ τ) :
+  σ * τ = 1 ↔ σ = 1 ∧ τ = 1 :=
+by simp_rw [ext_iff, one_apply, hστ.mul_apply_eq_iff, forall_and_distrib]
+
+lemma disjoint.gpow_disjoint_gpow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℤ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+λ x, or.imp (λ h, gpow_apply_eq_self_of_apply_eq_self h m)
+  (λ h, gpow_apply_eq_self_of_apply_eq_self h n) (hστ x)
+
+lemma disjoint.pow_disjoint_pow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℕ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+hστ.gpow_disjoint_gpow m n
+
+lemma disjoint.order_of {σ τ : perm α} (hστ : disjoint σ τ) :
+  order_of (σ * τ) = nat.lcm (order_of σ) (order_of τ) :=
+begin
+  have h : ∀ n : ℕ, (σ * τ) ^ n = 1 ↔ σ ^ n = 1 ∧ τ ^ n = 1 :=
+  λ n, by rw [commute.mul_pow hστ.mul_comm, disjoint.mul_eq_one_iff (hστ.pow_disjoint_pow n n)],
+  exact nat.dvd_antisymm (commute.order_of_mul_dvd_lcm hστ.mul_comm) (nat.lcm_dvd
+    (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).1)
+    (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
+end
+
 variable [decidable_eq α]
 
 /-- The `finset` of nonfixed points of a permutation. -/
@@ -818,7 +850,7 @@ lemma two_mul_card_alternating_subgroup [nontrivial α] :
 begin
   let := (quotient_group.quotient_ker_equiv_of_surjective _ (sign_surjective α)).to_equiv,
   rw [←fintype.card_units_int, ←fintype.card_congr this],
-  exact (card_eq_card_quotient_mul_card_subgroup _).symm,
+  exact (subgroup.card_eq_card_quotient_mul_card_subgroup _).symm,
 end
 
 lemma alternating_subgroup_normal : (alternating_subgroup α).normal := sign.normal_ker

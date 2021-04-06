@@ -22,9 +22,10 @@ for every two objects `X` and `Y`, the map
 `F.map : (X ⟶ Y) → (F.obj X ⟶ F.obj Y)` is a morphism of abelian
 groups.
 
-# Project (in the case of abelian categories):
+# Project:
 
 - Prove that a functor is additive if it preserves finite biproducts
+  (See https://stacks.math.columbia.edu/tag/010M.)
 -/
 
 namespace category_theory

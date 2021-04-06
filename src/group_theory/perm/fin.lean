@@ -135,8 +135,8 @@ lemma coe_cycle_range_of_le {n : ℕ} {i j : fin n.succ} (h : j ≤ i) :
   (cycle_range i j : ℕ) = if j = i then 0 else j + 1 :=
 by { rw [cycle_range_of_le h],
      split_ifs with h', { refl },
-     exact coe_add_one (calc (j : ℕ) < i : fin.lt_iff_coe_lt_coe.mp (lt_of_le_of_ne h h')
-                                 ... ≤ n : nat.lt_succ_iff.mp i.2) }
+     exact coe_add_one_of_lt (calc (j : ℕ) < i : fin.lt_iff_coe_lt_coe.mp (lt_of_le_of_ne h h')
+                                       ... ≤ n : nat.lt_succ_iff.mp i.2) }
 
 lemma cycle_range_of_lt {n : ℕ} {i j : fin n.succ} (h : j < i) :
   cycle_range i j = j + 1 :=

@@ -106,7 +106,7 @@ variables [monoid α] [monoid β]
 
 /-- The canonical quotient map from a monoid `α` into the `conj_classes` of `α` -/
 protected def mk {α : Type*} [monoid α] (a : α) : conj_classes α :=
-⟦ a ⟧
+⟦a⟧
 
 instance : inhabited (conj_classes α) := ⟨⟦1⟧⟩
 

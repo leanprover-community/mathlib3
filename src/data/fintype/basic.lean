@@ -60,13 +60,11 @@ instance : order_top (finset α) :=
 
 instance [decidable_eq α] : boolean_algebra (finset α) :=
 { compl := λ s, univ \ s,
-  sdiff_eq := λ s t, by simp [ext_iff],
   inf_compl_le_bot := λ s x hx, by simpa using hx,
   top_le_sup_compl := λ s x hx, by simp,
-  ..finset.distrib_lattice,
-  ..finset.semilattice_inf_bot,
+  sdiff_eq := λ s t, by simp [ext_iff, compl],
   ..finset.order_top,
-  ..finset.has_sdiff }
+  ..finset.generalized_boolean_algebra }
 
 lemma compl_eq_univ_sdiff [decidable_eq α] (s : finset α) : sᶜ = univ \ s := rfl
 
@@ -210,7 +208,7 @@ quot.rec_on_subsingleton (@univ α _).1
   mem_univ_val univ.2
 
 theorem exists_equiv_fin (α) [fintype α] : ∃ n, nonempty (α ≃ fin n) :=
-by haveI := classical.dec_eq α; exact ⟨card α, nonempty_of_trunc (equiv_fin α)⟩
+by haveI := classical.dec_eq α; exact ⟨card α, (equiv_fin α).nonempty⟩
 
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext_iff, h₁, h₂]⟩
@@ -1258,7 +1256,7 @@ variables [fintype α]
 variables [decidable_eq β]
 variables {f : α → β}
 
-/-- `
+/--
 `bij_inv f` is the unique inverse to a bijection `f`. This acts
   as a computable alternative to `function.inv_fun`. -/
 def bij_inv (f_bij : bijective f) (b : β) : α :=

@@ -341,7 +341,7 @@ begin
     exact ⟨is_integral β, hpq.2⟩,
   end),
   have key : minpoly F γ = minpoly F (f ⟨γ, hγ⟩) := minpoly.unique'
-    (normal.is_integral (splitting_field.normal _) _) (minpoly.irreducible (is_integral γ)) begin
+    (minpoly.irreducible (is_integral γ)) begin
       suffices : aeval (⟨γ, hγ⟩ : F ⟮α, β⟯) (minpoly F γ) = 0,
       { rw [aeval_alg_hom_apply, this, alg_hom.map_zero] },
       apply (algebra_map F⟮α, β⟯ (solvable_by_rad F E)).injective,

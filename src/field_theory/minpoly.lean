@@ -322,7 +322,7 @@ lemma gcd_domain_eq_field_fractions {A K R : Type*} [integral_domain A]
   [algebra A R] [is_scalar_tower A f.codomain R] {x : R} (hx : is_integral A x) :
   minpoly f.codomain x = (minpoly A x).map (localization_map.to_ring_hom f) :=
 begin
-  refine (unique' (@is_integral_of_is_scalar_tower A f.codomain R _ _ _ _ _ _ _ x hx) _ _ _).symm,
+  refine (unique' _ _ _).symm,
   { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map f
   (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
   { have htower := is_scalar_tower.aeval_apply A f.codomain R x (minpoly A x),
@@ -338,7 +338,7 @@ lemma over_int_eq_over_rat {A : Type*} [integral_domain A] {x : A} [hℚA : alge
   (hx : is_integral ℤ x) :
   minpoly ℚ x = map (int.cast_ring_hom ℚ) (minpoly ℤ x) :=
 begin
-  refine (unique' (@is_integral_of_is_scalar_tower ℤ ℚ A _ _ _ _ _ _ _ x hx) _ _ _).symm,
+  refine (unique' _ _ _).symm,
   { exact (is_primitive.int.irreducible_iff_irreducible_map_cast
   (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
   { have htower := is_scalar_tower.aeval_apply ℤ ℚ A x (minpoly ℤ x),

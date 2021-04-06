@@ -1,4 +1,4 @@
-src/algebra/ordered_ring.lean : line 9 : ERR_MOD : Module docstring missing, or too late
+src/algebra/ordered_ring.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/analysis/normed_space/bounded_linear_maps.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/fully_faithful.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -253,8 +253,8 @@ src/tactic/rewrite.lean : line 9 : ERR_MOD : Module docstring missing, or too la
 src/tactic/rewrite_all/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/show_term.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/simpa.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/tactic/simps.lean : line 430 : ERR_LIN : Line has more than 100 characters
-src/tactic/simps.lean : line 464 : ERR_LIN : Line has more than 100 characters
+src/tactic/simps.lean : line 437 : ERR_LIN : Line has more than 100 characters
+src/tactic/simps.lean : line 471 : ERR_LIN : Line has more than 100 characters
 src/tactic/slice.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/slim_check.lean : line 186 : ERR_LIN : Line has more than 100 characters
 src/tactic/slim_check.lean : line 188 : ERR_LIN : Line has more than 100 characters

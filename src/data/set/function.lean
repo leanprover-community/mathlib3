@@ -260,7 +260,7 @@ lemma inj_on_iff_injective : inj_on f s ↔ injective (restrict f s) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
-lemma inj_on_preimage {B : set (set β)} (hB : B ⊆ powerset (range f)) :
+lemma inj_on_preimage {B : set (set β)} (hB : B ⊆ 𝒫 (range f)) :
   inj_on (preimage f) B :=
 λ s hs t ht hst, (preimage_eq_preimage' (hB hs) (hB ht)).1 hst
 
@@ -436,7 +436,7 @@ theorem left_inv_on.inj_on (h : left_inv_on f₁' f s) : inj_on f s :=
 calc
   x₁    = f₁' (f x₁) : eq.symm $ h h₁
   ...   = f₁' (f x₂) : congr_arg f₁' heq
-  ...   = x₂       : h h₂
+  ...   = x₂         : h h₂
 
 theorem left_inv_on.surj_on (h : left_inv_on f' f s) (hf : maps_to f s t) : surj_on f' t s :=
 λ x hx, ⟨f x, hf hx, h hx⟩
@@ -475,7 +475,7 @@ theorem left_inv_on.image_image (hf : left_inv_on f' f s) :
   f' '' (f '' s) = s :=
 by rw [image_image, image_congr hf, image_id']
 
-theorem left_inv_on.image_image' (hf : left_inv_on f' f s)  (hs : s₁ ⊆ s) :
+theorem left_inv_on.image_image' (hf : left_inv_on f' f s) (hs : s₁ ⊆ s) :
   f' '' (f '' s₁) = s₁ :=
 (hf.mono hs).image_image
 

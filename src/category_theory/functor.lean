@@ -90,6 +90,11 @@ infixr ` ⋙ `:80 := comp
 protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl
 protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
 
+@[simp] lemma map_dite (F : C ⥤ D) {X Y : C} {P : Prop} [decidable P]
+  (f : P → (X ⟶ Y)) (g : ¬P → (X ⟶ Y)) :
+  F.map (if h : P then f h else g h) = if h : P then F.map (f h) else F.map (g h) :=
+by { split_ifs; refl, }
+
 end
 
 @[mono] lemma monotone {α β : Type*} [preorder α] [preorder β] (F : α ⥤ β) :

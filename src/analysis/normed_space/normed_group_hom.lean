@@ -292,7 +292,7 @@ space is non-trivial.) It means that one can not do better than an inequality in
 lemma norm_id_le : ∥(id : normed_group_hom V V)∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
 
-/-- If the is an element with norm different from `0`, then the norm of the identity equals `1`.
+/-- If there is an element with norm different from `0`, then the norm of the identity equals `1`.
 (Since we are working with seminorms supposing that the space is non-trivial is not enough.) -/
 lemma norm_id_of_nontrivial_seminorm (h : ∃ (x : V), ∥x∥ ≠ 0 ) :
   ∥(id : normed_group_hom V V)∥ = 1 :=

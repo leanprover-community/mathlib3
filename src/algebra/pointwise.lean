@@ -136,26 +136,6 @@ instance [semigroup α] : semigroup (set α) :=
 { mul_assoc := λ _ _ _, image2_assoc mul_assoc,
   ..set.has_mul }
 
-@[to_additive]
-lemma singleton.is_mul_hom [has_mul α] : is_mul_hom (singleton : α → set α) :=
-{ map_mul := λ a b, singleton_mul_singleton.symm }
-
-@[simp, to_additive]
-lemma empty_mul [has_mul α] : ∅ * s = ∅ := image2_empty_left
-
-@[simp, to_additive]
-lemma mul_empty [has_mul α] : s * ∅ = ∅ := image2_empty_right
-
-instance [has_mul α] : mul_zero_class (set α) :=
-{ zero := ∅,
-  zero_mul := λ s, empty_mul,
-  mul_zero := λ s, mul_empty,
-  ..set.has_mul }
-
-instance [semigroup_with_zero α] : semigroup_with_zero (set α) :=
-{ ..set.mul_zero_class,
-  ..set.semigroup }
-
 @[to_additive set.add_monoid]
 instance [monoid α] : monoid (set α) :=
 { ..set.semigroup,
@@ -168,6 +148,16 @@ by simp only [← image2_mul, image2_swap _ s, mul_comm]
 @[to_additive set.add_comm_monoid]
 instance [comm_monoid α] : comm_monoid (set α) :=
 { mul_comm := λ _ _, set.mul_comm, ..set.monoid }
+
+@[to_additive]
+lemma singleton.is_mul_hom [has_mul α] : is_mul_hom (singleton : α → set α) :=
+{ map_mul := λ a b, singleton_mul_singleton.symm }
+
+@[simp, to_additive]
+lemma empty_mul [has_mul α] : ∅ * s = ∅ := image2_empty_left
+
+@[simp, to_additive]
+lemma mul_empty [has_mul α] : s * ∅ = ∅ := image2_empty_right
 
 @[to_additive]
 lemma mul_subset_mul [has_mul α] (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ * s₂ ⊆ t₁ * t₂ :=
@@ -325,17 +315,21 @@ protected def set_semiring.down (s : set_semiring α) : set α := s
 @[simp] protected lemma down_up {s : set α} : s.up.down = s := rfl
 @[simp] protected lemma up_down {s : set_semiring α} : s.down.up = s := rfl
 
-instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
-  non_unital_non_assoc_semiring (set_semiring α) :=
+instance set_semiring.add_comm_monoid : add_comm_monoid (set_semiring α) :=
 { add := λ s t, (s ∪ t : set α),
   zero := (∅ : set α),
   add_assoc := union_assoc,
   zero_add := empty_union,
   add_zero := union_empty,
-  add_comm := union_comm,
+  add_comm := union_comm, }
+
+instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
+  non_unital_non_assoc_semiring (set_semiring α) :=
+{ zero_mul := λ s, empty_mul,
+  mul_zero := λ s, mul_empty,
   left_distrib := λ _ _ _, mul_union,
   right_distrib := λ _ _ _, union_mul,
-  ..set.has_mul, ..set.mul_zero_class }
+  ..set.has_mul, ..set_semiring.add_comm_monoid }
 
 instance set_semiring.non_unital_semiring [semigroup α] : non_unital_semiring (set_semiring α) :=
 { ..set.semigroup,

@@ -398,10 +398,18 @@ theorem linear_independent.to_subtype_range' {ι} {f : ι → M} (hf : linear_in
   linear_independent R (coe : t → M) :=
 ht ▸ hf.to_subtype_range
 
+theorem linear_independent.image_of_comp {ι ι'} (s : set ι) (f : ι → ι') (g : ι' → M)
+  (hs : linear_independent R (λ x : s, g (f x))) :
+  linear_independent R (λ x : f '' s, g x) :=
+begin
+  nontriviality R,
+  have : inj_on f s, from inj_on_iff_injective.2 hs.injective.of_comp,
+  exact (linear_independent_equiv' (equiv.set.image_of_inj_on f s this) rfl).1 hs
+end
+
 theorem linear_independent.image {ι} {s : set ι} {f : ι → M}
   (hs : linear_independent R (λ x : s, f x)) : linear_independent R (λ x : f '' s, (x : M)) :=
-(linear_independent_equiv' (equiv.set.of_eq $ by rw [range_comp, subtype.range_coe]) rfl).1
-  hs.to_subtype_range
+by convert linear_independent.image_of_comp s f id hs
 
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/

@@ -111,8 +111,15 @@ instance continuous_map_monoid {α : Type*} {β : Type*} [topological_space α] 
   ..continuous_map_semigroup,
   ..continuous_map.has_one }
 
+/-- Coercion to a function as an `monoid_hom`. Similar to `monoid_hom.coe_fn`. -/
+@[simps,
+  to_additive "Coercion to a function as an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn`."]
+def coe_fn_monoid_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [monoid β] [has_continuous_mul β] : C(α, β) →* (α → β) :=
+{ to_fun := coe_fn, map_one' := continuous_map.one_coe, map_mul' := continuous_map.mul_coe }
+
 @[simp, norm_cast]
-lemma pow_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+lemma continuous_map.pow_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
   ((f^n : C(α, β)) : α → β) = (f : α → β)^n :=
 begin
@@ -141,6 +148,20 @@ instance continuous_map_comm_monoid {α : Type*} {β : Type*} [topological_space
   ..continuous_map_semigroup,
   ..continuous_map.has_one }
 
+open_locale big_operators
+@[simp, to_additive] lemma continuous_map.coe_prod {α : Type*} {β : Type*} [comm_monoid β]
+  [topological_space α] [topological_space β] [has_continuous_mul β]
+  {ι : Type*} (s : finset ι) (f : ι → C(α, β)) :
+  ⇑(∏ i in s, f i) = (∏ i in s, (f i : α → β)) :=
+(@coe_fn_monoid_hom α β _ _ _ _).map_prod f s
+
+@[to_additive]
+lemma continuous_map.prod_apply {α : Type*} {β : Type*} [comm_monoid β]
+  [topological_space α] [topological_space β] [has_continuous_mul β]
+  {ι : Type*} (s : finset ι) (f : ι → C(α, β)) (a : α) :
+  (∏ i in s, f i) a = (∏ i in s, f i a) :=
+by simp
+
 @[to_additive]
 instance continuous_map_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] : group C(α, β) :=
@@ -149,13 +170,13 @@ instance continuous_map_group {α : Type*} {β : Type*} [topological_space α] [
   ..continuous_map_monoid }
 
 @[simp, norm_cast, to_additive]
-lemma inv_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+lemma continuous_map.inv_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] (f : C(α, β)) :
   ((f⁻¹ : C(α, β)) : α → β) = (f⁻¹ : α → β) :=
 rfl
 
 @[simp, norm_cast, to_additive]
-lemma div_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+lemma continuous_map.div_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] (f g : C(α, β)) :
   ((f / g : C(α, β)) : α → β) = (f : α → β) / (g : α → β) :=
 by { simp only [div_eq_mul_inv], refl, }
@@ -247,17 +268,19 @@ topological semiring `R` inherit the structure of a semimodule.
 
 section subtype
 
-instance continuous_has_scalar {α : Type*} [topological_space α]
-  {R : Type*} [semiring R] [topological_space R]
-  {M : Type*} [topological_space M] [add_comm_group M]
-  [semimodule R M] [has_continuous_smul R M] :
-  has_scalar R { f : α → M | continuous f } :=
+variables {α : Type*} [topological_space α]
+variables {R : Type*} [semiring R] [topological_space R]
+variables {M : Type*} [topological_space M] [add_comm_group M]
+variables [semimodule R M] [has_continuous_smul R M]
+
+instance continuous_has_scalar : has_scalar R { f : α → M | continuous f } :=
 ⟨λ r f, ⟨r • f, f.property.const_smul r⟩⟩
 
-instance continuous_semimodule {α : Type*} [topological_space α]
-{R : Type*} [semiring R] [topological_space R]
-{M : Type*} [topological_space M] [add_comm_group M] [topological_add_group M]
-[semimodule R M] [has_continuous_smul R M] :
+@[simp, norm_cast]
+lemma continuous_functions.smul_coe (f : { f : α → M | continuous f }) (r : R) :
+  ⇑(r • f) = r • f := rfl
+
+instance continuous_semimodule [topological_add_group M] :
   semimodule R { f : α → M | continuous f } :=
   semimodule.of_core $
 { smul     := (•),
@@ -278,9 +301,13 @@ instance continuous_map_has_scalar
   has_scalar R C(α, M) :=
 ⟨λ r f, ⟨r • f, f.continuous.const_smul r⟩⟩
 
-@[simp] lemma continuous_map.smul_apply [semimodule R M] [has_continuous_smul R M]
+@[simp, norm_cast]
+lemma continuous_map.smul_coe [semimodule R M] [has_continuous_smul R M]
+  (c : R) (f : C(α, M)) : ⇑(c • f) = c • f := rfl
+
+lemma continuous_map.smul_apply [semimodule R M] [has_continuous_smul R M]
   (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) :=
-rfl
+by simp
 
 @[simp] lemma continuous_map.smul_comp {α : Type*} {β : Type*}
   [topological_space α] [topological_space β]

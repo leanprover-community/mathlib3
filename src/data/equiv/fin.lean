@@ -213,21 +213,21 @@ def fin_rotate : Π n, equiv.perm (fin n)
 | 0 := equiv.refl _
 | (n+1) := fin_add_flip.trans (fin_congr (add_comm _ _))
 
-@[simp] lemma fin_rotate_of_lt {k : ℕ} (h : k < n) :
+lemma fin_rotate_of_lt {k : ℕ} (h : k < n) :
   fin_rotate (n+1) ⟨k, lt_of_lt_of_le h (nat.le_succ _)⟩ = ⟨k + 1, nat.succ_lt_succ h⟩ :=
 begin
   dsimp [fin_rotate],
   simp [h, add_comm],
 end
 
-@[simp] lemma fin_rotate_last' : fin_rotate (n+1) ⟨n, lt_add_one _⟩ = ⟨0, nat.zero_lt_succ _⟩ :=
+lemma fin_rotate_last' : fin_rotate (n+1) ⟨n, lt_add_one _⟩ = ⟨0, nat.zero_lt_succ _⟩ :=
 begin
   dsimp [fin_rotate],
   rw fin_add_flip_apply_right,
   simp,
 end
 
-@[simp] lemma fin_rotate_last : fin_rotate (n+1) (fin.last _) = 0 :=
+lemma fin_rotate_last : fin_rotate (n+1) (fin.last _) = 0 :=
 fin_rotate_last'
 
 lemma fin.snoc_eq_cons_rotate {α : Type*} (v : fin n → α) (a : α) :
@@ -255,7 +255,7 @@ begin
   cases n,
   { simp },
   rcases i.le_last.eq_or_lt with rfl|h,
-  { simp },
+  { simp [fin_rotate_last] },
   { cases i,
     simp only [fin.lt_iff_coe_lt_coe, fin.coe_last, fin.coe_mk] at h,
     simp [fin_rotate_of_lt h, fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt (nat.succ_lt_succ h)] },

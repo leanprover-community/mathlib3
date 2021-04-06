@@ -698,6 +698,9 @@ end
 /-- `s ∩ t` is the set such that `a ∈ s ∩ t` iff `a ∈ s` and `a ∈ t`. -/
 instance : has_inter (finset α) := ⟨λ s₁ s₂, ⟨_, nodup_ndinter s₂.1 s₁.2⟩⟩
 
+-- TODO: some of these results may have simpler proofs, once there are enough results
+-- to obtain the `lattice` instance.
+
 theorem inter_val_nd (s₁ s₂ : finset α) : (s₁ ∩ s₂).1 = ndinter s₁.1 s₂.1 := rfl
 
 @[simp] theorem inter_val (s₁ s₂ : finset α) : (s₁ ∩ s₂).1 = s₁.1 ∩ s₂.1 :=
@@ -837,12 +840,12 @@ theorem union_distrib_right (s t u : finset α) : (s ∩ t) ∪ u = (s ∪ u) �
 lemma union_eq_empty_iff (A B : finset α) : A ∪ B = ∅ ↔ A = ∅ ∧ B = ∅ := sup_eq_bot_iff
 
 theorem subset_iff_inter_eq_left (s t : finset α) :
-  s ⊆ t ↔ s ∩ t = s :=
-(inf_eq_left.symm : s ≤ t ↔ s ⊓ t = s)
+  s ∩ t = s ↔ s ⊆ t :=
+(inf_eq_left : s ⊓ t = s ↔ s ≤ t)
 
 theorem subset_iff_inter_eq_right (s t : finset α) :
-  s ⊆ t ↔ t ∩ s = s :=
-(inf_eq_right.symm : s ≤ t ↔ t ⊓ s = s)
+  t ∩ s = s ↔ s ⊆ t :=
+(inf_eq_right : t ⊓ s = s ↔ s ≤ t)
 
 /-! ### erase -/
 

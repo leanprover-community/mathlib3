@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import data.pi
 import data.prod
+import data.subtype
 import logic.unique
 import logic.function.basic
 
@@ -49,6 +50,13 @@ lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
 -- `x` and `y` are explicit here, as they are often needed to guide typechecking of `h`.
 lemma nontrivial_of_lt [preorder α] (x y : α) (h : x < y) : nontrivial α :=
 ⟨⟨x, y, ne_of_lt h⟩⟩
+
+lemma nontrivial_iff_exists_ne (x : α) : nontrivial α ↔ ∃ y, y ≠ x :=
+⟨λ h, @exists_ne α h x, λ ⟨y, hy⟩, nontrivial_of_ne _ _ hy⟩
+
+lemma subtype.nontrivial_iff_exists_ne (p : α → Prop) (x : subtype p) :
+  nontrivial (subtype p) ↔ ∃ (y : α) (hy : p y), y ≠ x :=
+by simp only [nontrivial_iff_exists_ne x, subtype.exists, ne.def, subtype.ext_iff, subtype.coe_mk]
 
 @[priority 100] -- see Note [lower instance priority]
 instance nontrivial.to_nonempty [nontrivial α] : nonempty α :=
@@ -164,7 +172,8 @@ do
   tactic.cases alternative [n, n],
   (solve1 $ do
     reset_instance_cache,
-    interactive.simp none ff lems [`nontriviality] (interactive.loc.ns [none])) <|>
+    apply_instance <|>
+      interactive.simp none none ff lems [`nontriviality] (interactive.loc.ns [none])) <|>
       fail format!"Could not prove goal assuming `subsingleton {α}`",
   reset_instance_cache
 
@@ -261,3 +270,9 @@ add_tactic_doc
   tags                     := ["logic", "type class"] }
 
 end tactic.interactive
+
+namespace bool
+
+instance : nontrivial bool := ⟨⟨tt,ff, tt_eq_ff_eq_false⟩⟩
+
+end bool

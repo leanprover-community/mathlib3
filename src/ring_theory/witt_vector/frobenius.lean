@@ -38,14 +38,17 @@ that `witt_vector.frobenius_fun` is equal to `witt_vector.map (frobenius R p)`.
 TODO: Show that `witt_vector.frobenius_fun` is a ring homomorphism,
 and bundle it into `witt_vector.frobenius`.
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 namespace witt_vector
 
 variables {p : ℕ} {R S : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 local notation `𝕎` := witt_vector p -- type as `\bbW`
-
-local attribute [semireducible] witt_vector
 
 noncomputable theory
 open mv_polynomial finset
@@ -71,7 +74,7 @@ end
 /-- An auxilliary definition, to avoid an excessive amount of finiteness proofs
 for `multiplicity p n`. -/
 private def pnat_multiplicity (n : ℕ+) : ℕ :=
-(multiplicity p n).get $ multiplicity.finite_nat_iff.mpr $ ⟨ne_of_gt hp.one_lt, n.2⟩
+(multiplicity p n).get $ multiplicity.finite_nat_iff.mpr $ ⟨ne_of_gt hp.1.one_lt, n.2⟩
 
 local notation `v` := pnat_multiplicity
 
@@ -118,10 +121,10 @@ begin
   apply multiplicity.pow_dvd_of_le_multiplicity,
   have aux : (multiplicity p ((p ^ n).choose (j + 1))).dom,
   { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
-    exact ⟨hp.ne_one, nat.choose_pos hj⟩, },
+    exact ⟨hp.1.ne_one, nat.choose_pos hj⟩, },
   rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add,
       ← enat.coe_le_coe, enat.coe_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
-  exact (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos).ge,
+  exact (hp.1.multiplicity_choose_prime_pow hj j.succ_pos).ge,
 end
 
 /-- A key numerical identity needed for the proof of `witt_vector.map_frobenius_poly`. -/
@@ -134,7 +137,7 @@ begin
   { cases this, unfreezingI { clear_dependent p }, omega },
   split,
   { rw [← h, ← enat.coe_le_coe, pnat_multiplicity, enat.coe_get,
-        ← (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos)],
+        ← hp.1.multiplicity_choose_prime_pow hj j.succ_pos],
     apply le_add_left, refl },
   { obtain ⟨c, hc⟩ : p ^ m ∣ j + 1,
     { rw [← h], exact multiplicity.pow_multiplicity_dvd _, },
@@ -142,7 +145,7 @@ begin
     { apply nat.exists_eq_succ_of_ne_zero, rintro rfl, simpa only using hc },
     rw [mul_add, mul_one] at hc,
     apply nat.le_of_lt_succ,
-    calc m < p ^ m : nat.lt_pow_self hp.one_lt m
+    calc m < p ^ m : nat.lt_pow_self hp.1.one_lt m
        ... ≤ j + 1 : by { rw ← nat.sub_eq_of_eq_add hc, apply nat.sub_le } }
 end
 
@@ -190,7 +193,7 @@ begin
   suffices : ((p ^ (n - i)).choose (j + 1) * p ^ (j - v p ⟨j + 1, j.succ_pos⟩) * p * p ^ n : ℚ) =
     p ^ j * p * ((p ^ (n - i)).choose (j + 1) * p ^ i) * p ^ (n - i - v p ⟨j + 1, j.succ_pos⟩),
   { have aux : ∀ k : ℕ, (p ^ k : ℚ) ≠ 0,
-    { intro, apply pow_ne_zero, exact_mod_cast hp.ne_zero },
+    { intro, apply pow_ne_zero, exact_mod_cast hp.1.ne_zero },
     simpa [aux, -one_div] with field_simps using this.symm },
   rw [mul_comm _ (p : ℚ), mul_assoc, mul_assoc, ← pow_add, map_frobenius_poly.key₂ p hi hj],
   ring_exp
@@ -200,7 +203,7 @@ lemma frobenius_poly_zmod (n : ℕ) :
   mv_polynomial.map (int.cast_ring_hom (zmod p)) (frobenius_poly p n) = X n ^ p :=
 begin
   rw [frobenius_poly, ring_hom.map_add, ring_hom.map_pow, ring_hom.map_mul, map_X, map_C],
-  simp only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.cast_self, zero_mul, C_0],
+  simp only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.nat_cast_self, zero_mul, C_0],
 end
 
 @[simp]
@@ -230,7 +233,7 @@ variables (p)
 
 See also `frobenius_is_poly`. -/
 @[is_poly] lemma frobenius_fun_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) :=
-⟨frobenius_poly p, by { introsI, funext n, apply coeff_frobenius_fun }⟩
+⟨⟨frobenius_poly p, by { introsI, funext n, apply coeff_frobenius_fun }⟩⟩
 
 variable {p}
 

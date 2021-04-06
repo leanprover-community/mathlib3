@@ -247,10 +247,7 @@ def kernel_iso_ker {G H : AddCommGroup} (f : G ⟶ H) :
 @[simp]
 lemma kernel_iso_ker_hom_comp_subtype {G H : AddCommGroup} (f : G ⟶ H) :
   (kernel_iso_ker f).hom ≫ add_subgroup.subtype f.ker = kernel.ι f :=
-begin
-  ext,
-  simp [kernel_iso_ker],
-end
+by ext; refl
 
 @[simp]
 lemma kernel_iso_ker_inv_comp_ι {G H : AddCommGroup} (f : G ⟶ H) :
@@ -264,7 +261,7 @@ end
 The categorical kernel inclusion for `f : G ⟶ H`, as an object over `G`,
 agrees with the `subtype` map.
 -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def kernel_iso_ker_over {G H : AddCommGroup.{u}} (f : G ⟶ H) :
   over.mk (kernel.ι f) ≅ @over.mk _ _ G (AddCommGroup.of f.ker) (add_subgroup.subtype f.ker) :=
 over.iso_mk (kernel_iso_ker f) (by simp)

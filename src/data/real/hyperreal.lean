@@ -503,8 +503,7 @@ is_st_iff_abs_sub_lt_delta.mpr $ λ d hd,
       { push_cast [-filter.germ.const_div], -- TODO: Why wasn't `hyperreal.coe_div` used?
         have : (abs s : ℝ*) ≠ 0, by simpa,
         have : (2 : ℝ*) ≠ 0 := two_ne_zero,
-        field_simp [*, add_mul, mul_add, mul_assoc],
-        simp_rw [mul_left_comm _ (d : ℝ*), mul_left_comm (abs (s : ℝ*))] }
+        field_simp [*, add_mul, mul_add, mul_assoc, mul_comm, mul_left_comm] }
   ... < (d / 2 * 1 + d / 2 : ℝ*) :
         add_lt_add_right (mul_lt_mul_of_pos_left
         ((div_lt_one $ lt_of_le_of_lt (abs_nonneg x) ht).mpr ht) $

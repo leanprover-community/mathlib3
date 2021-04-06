@@ -44,8 +44,9 @@ def stalk_map {X Y : PresheafedSpace C} (α : X ⟶ Y) (x : X) : Y.stalk (α.bas
 section restrict
 
 -- PROJECT: restriction preserves stalks.
--- We'll want to define cofinal functors, show precomposing with a cofinal functor preserves colimits,
--- and (easily) verify that "open neighbourhoods of x within U" is cofinal in "open neighbourhoods of x".
+-- We'll want to define cofinal functors, show precomposing with a cofinal functor preserves
+-- colimits, and (easily) verify that "open neighbourhoods of x within U" is cofinal in "open
+-- neighbourhoods of x".
 /-
 def restrict_stalk_iso {U : Top} (X : PresheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) (x : U) :

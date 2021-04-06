@@ -96,7 +96,7 @@ that respect the directed system structure (i.e. make some diagram commute) give
 to a unique map out of the direct limit. -/
 def lift : direct_limit G f →ₗ[R] P :=
 liftq _ (direct_sum.to_module R ι P g)
-  (span_le.2 $ λ a ⟨i, j, hij, x, hx⟩, by rw [← hx, mem_coe, linear_map.sub_mem_ker_iff,
+  (span_le.2 $ λ a ⟨i, j, hij, x, hx⟩, by rw [← hx, set_like.mem_coe, linear_map.sub_mem_ker_iff,
     direct_sum.to_module_lof, direct_sum.to_module_lof, Hg])
 variables {R ι G f}
 
@@ -239,7 +239,8 @@ module.direct_limit.induction_on z ih
 
 /-- A component that corresponds to zero in the direct limit is already zero in some
 bigger module in the directed system. -/
-theorem of.zero_exact [directed_system G (λ i j h, f i j h)] (i x) (h : of G f i x = 0) : ∃ j hij, f i j hij x = 0 :=
+theorem of.zero_exact [directed_system G (λ i j h, f i j h)] (i x) (h : of G f i x = 0) :
+  ∃ j hij, f i j hij x = 0 :=
 module.direct_limit.of.zero_exact h
 
 variables (P : Type u₁) [add_comm_group P]
@@ -461,7 +462,8 @@ end
 
 /-- A component that corresponds to zero in the direct limit is already zero in some
 bigger module in the directed system. -/
-lemma of.zero_exact {i x} (hix : of G (λ i j h, f' i j h) i x = 0) : ∃ j, ∃ hij : i ≤ j, f' i j hij x = 0 :=
+lemma of.zero_exact {i x} (hix : of G (λ i j h, f' i j h) i x = 0) :
+  ∃ j (hij : i ≤ j), f' i j hij x = 0 :=
 by haveI : nonempty ι := ⟨i⟩; exact
 let ⟨j, s, H, hxs, hx⟩ := of.zero_exact_aux hix in
 have hixs : (⟨i, x⟩ : Σ i, G i) ∈ s, from is_supported_of.1 hxs,
@@ -477,7 +479,7 @@ theorem of_injective [directed_system G (λ i j h, f' i j h)]
   function.injective (of G (λ i j h, f' i j h) i) :=
 begin
   suffices : ∀ x, of G (λ i j h, f' i j h) i x = 0 → x = 0,
-  { intros x y hxy, rw ← sub_eq_zero_iff_eq, apply this,
+  { intros x y hxy, rw ← sub_eq_zero, apply this,
     rw [(of G _ i).map_sub, hxy, sub_self] },
   intros x hx, rcases of.zero_exact hx with ⟨j, hij, hfx⟩,
   apply hf i j hij, rw [hfx, (f' i j hij).map_zero]
@@ -496,12 +498,12 @@ that respect the directed system structure (i.e. make some diagram commute) give
 to a unique map out of the direct limit.
 -/
 def lift : direct_limit G f →+* P :=
-ideal.quotient.lift _ (free_comm_ring.lift $ λ x, g x.1 x.2) begin
+ideal.quotient.lift _ (free_comm_ring.lift $ λ (x : Σ i, G i), g x.1 x.2) begin
   suffices : ideal.span _ ≤
     ideal.comap (free_comm_ring.lift (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
   { intros x hx, exact (mem_bot P).1 (this hx) },
   rw ideal.span_le, intros x hx,
-  rw [mem_coe, ideal.mem_comap, mem_bot],
+  rw [set_like.mem_coe, ideal.mem_comap, mem_bot],
   rcases hx with ⟨i, j, hij, x, rfl⟩ | ⟨i, rfl⟩ | ⟨i, x, y, rfl⟩ | ⟨i, x, y, rfl⟩;
   simp only [ring_hom.map_sub, lift_of, Hg, ring_hom.map_one, ring_hom.map_add, ring_hom.map_mul,
       (g i).map_one, (g i).map_add, (g i).map_mul, sub_self]

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Neil Strickland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Neil Strickland
+Authors: Neil Strickland
 -/
 import data.pnat.prime
 import data.multiset.sort
@@ -345,7 +345,7 @@ begin
   congr' 2,
   apply multiset.eq_repeat.mpr,
   split,
-  { rw [multiset.card_smul, prime_multiset.card_of_prime, mul_one] },
+  { rw [multiset.card_nsmul, prime_multiset.card_of_prime, mul_one] },
   { have : ∀ (m : ℕ), m •ℕ (p ::ₘ 0) = multiset.repeat p m :=
     λ m, by {induction m with m ih, { refl },
              rw [succ_nsmul, multiset.repeat_succ, ih],

@@ -483,20 +483,24 @@ with rcases_hint_core : ℕ → expr → tactic (rcases_patt × list expr)
   (do
     let c := env.constructors_of I,
     some l ← try_core (guard (depth ≠ 0) >> cases_core e) |
-      prod.mk (rcases_patt.one e.local_pp_name) <$> get_goals,
+      let n := match e.local_pp_name with name.anonymous := `_ | n := n end in
+      prod.mk (rcases_patt.one n) <$> get_goals,
     gs ← get_goals,
-    (ps, gs') ← rcases_hint.process_constructors (depth - 1) c (gs.zip l),
-    pure (rcases_patt.alts₁ ps, gs'))
+    if gs.empty then
+      pure (rcases_patt.tuple [], [])
+    else do
+      (ps, gs') ← rcases_hint.process_constructors (depth - 1) c (gs.zip l),
+      pure (rcases_patt.alts₁ ps, gs'))
 
 with rcases_hint.process_constructors : ℕ → listΣ name →
   list (expr × name × listΠ expr × list (name × expr)) →
   tactic (listΣ (listΠ rcases_patt) × list expr)
 | depth [] _  := pure ([], [])
 | depth cs [] := pure (cs.map (λ _, []), [])
-| depth (c::cs) ((g, c', hs, _) :: l) :=
+| depth (c::cs) ls@((g, c', hs, _) :: l) :=
   if c ≠ c' then do
-    (ps, gs) ← rcases_hint.process_constructors depth cs l,
-    pure (default _ :: ps, gs)
+    (ps, gs) ← rcases_hint.process_constructors depth cs ls,
+    pure ([] :: ps, gs)
   else do
     (p, gs) ← set_goals [g] >> rcases_hint.continue depth hs,
     (ps, gs') ← rcases_hint.process_constructors depth cs l,

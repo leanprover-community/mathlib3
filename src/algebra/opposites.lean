@@ -5,11 +5,16 @@ Authors: Kenny Lau
 -/
 import data.opposite
 import algebra.field
+import algebra.group.commute
 import group_theory.group_action.defs
 import data.equiv.mul_add
 
 /-!
 # Algebraic operations on `αᵒᵖ`
+
+This file records several basic facts about the opposite of an algebraic structure, e.g. the
+opposite of a ring is a ring (with multiplication `x * y = yx`). Use is made of the identity
+functions `op : α → αᵒᵖ` and `unop : αᵒᵖ → α`.
 -/
 
 namespace opposite
@@ -54,10 +59,13 @@ iff.refl _
 iff.refl _
 end
 
-instance [add_monoid α] : add_monoid (opposite α) :=
+instance [add_zero_class α] : add_zero_class (opposite α) :=
 { zero_add := λ x, unop_injective $ zero_add $ unop x,
   add_zero := λ x, unop_injective $ add_zero $ unop x,
-  .. opposite.add_semigroup α, .. opposite.has_zero α }
+  .. opposite.has_add α, .. opposite.has_zero α }
+
+instance [add_monoid α] : add_monoid (opposite α) :=
+{ .. opposite.add_semigroup α, .. opposite.add_zero_class α }
 
 instance [add_comm_monoid α] : add_comm_monoid (opposite α) :=
 { .. opposite.add_monoid α, .. opposite.add_comm_semigroup α }
@@ -104,10 +112,13 @@ iff.refl _
 iff.refl _
 end
 
-instance [monoid α] : monoid (opposite α) :=
+instance [mul_one_class α] : mul_one_class (opposite α) :=
 { one_mul := λ x, unop_injective $ mul_one $ unop x,
   mul_one := λ x, unop_injective $ one_mul $ unop x,
-  .. opposite.semigroup α, .. opposite.has_one α }
+  .. opposite.has_mul α, .. opposite.has_one α }
+
+instance [monoid α] : monoid (opposite α) :=
+{ .. opposite.semigroup α, .. opposite.mul_one_class α }
 
 instance [comm_monoid α] : comm_monoid (opposite α) :=
 { .. opposite.monoid α, .. opposite.comm_semigroup α }
@@ -138,11 +149,13 @@ instance [ring α] : ring (opposite α) :=
 instance [comm_ring α] : comm_ring (opposite α) :=
 { .. opposite.ring α, .. opposite.comm_semigroup α }
 
-instance [integral_domain α] : integral_domain (opposite α) :=
+instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors (opposite α) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y (H : op (_ * _) = op (0:α)),
     or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ op_injective H)
-      (λ hy, or.inr $ unop_injective $ hy) (λ hx, or.inl $ unop_injective $ hx),
-  .. opposite.comm_ring α, .. opposite.nontrivial α }
+      (λ hy, or.inr $ unop_injective $ hy) (λ hx, or.inl $ unop_injective $ hx), }
+
+instance [integral_domain α] : integral_domain (opposite α) :=
+{ .. opposite.no_zero_divisors α, .. opposite.comm_ring α, .. opposite.nontrivial α }
 
 instance [field α] : field (opposite α) :=
 { mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ λ hx', hx $ unop_injective hx',
@@ -189,6 +202,61 @@ variable {α}
 @[simp] lemma op_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : op (c • a) = c • op a := rfl
 @[simp] lemma unop_smul {R : Type*} [has_scalar R α] (c : R) (a : αᵒᵖ) :
   unop (c • a) = c • unop a := rfl
+
+lemma semiconj_by.op [has_mul α] {a x y : α} (h : semiconj_by a x y) :
+  semiconj_by (op a) (op y) (op x) :=
+begin
+  dunfold semiconj_by,
+  rw [← op_mul, ← op_mul, h.eq]
+end
+
+lemma semiconj_by.unop [has_mul α] {a x y : αᵒᵖ} (h : semiconj_by a x y) :
+  semiconj_by (unop a) (unop y) (unop x) :=
+begin
+  dunfold semiconj_by,
+  rw [← unop_mul, ← unop_mul, h.eq]
+end
+
+@[simp] lemma semiconj_by_op [has_mul α] {a x y : α} :
+  semiconj_by (op a) (op y) (op x) ↔ semiconj_by a x y :=
+begin
+  split,
+  { intro h,
+    rw [← unop_op a, ← unop_op x, ← unop_op y],
+    exact semiconj_by.unop h },
+  { intro h,
+    exact semiconj_by.op h }
+end
+
+@[simp] lemma semiconj_by_unop [has_mul α] {a x y : αᵒᵖ} :
+  semiconj_by (unop a) (unop y) (unop x) ↔ semiconj_by a x y :=
+by conv_rhs { rw [← op_unop a, ← op_unop x, ← op_unop y, semiconj_by_op] }
+
+lemma commute.op [has_mul α] {x y : α} (h : commute x y) : commute (op x) (op y) :=
+begin
+  dunfold commute at h ⊢,
+  exact semiconj_by.op h
+end
+
+lemma commute.unop [has_mul α] {x y : αᵒᵖ} (h : commute x y) : commute (unop x) (unop y) :=
+begin
+  dunfold commute at h ⊢,
+  exact semiconj_by.unop h
+end
+
+@[simp] lemma commute_op [has_mul α] {x y : α} :
+  commute (op x) (op y) ↔ commute x y :=
+begin
+  dunfold commute,
+  rw semiconj_by_op
+end
+
+@[simp] lemma commute_unop [has_mul α] {x y : αᵒᵖ} :
+  commute (unop x) (unop y) ↔ commute x y :=
+begin
+  dunfold commute,
+  rw semiconj_by_unop
+end
 
 /-- The function `op` is an additive equivalence. -/
 def op_add_equiv [has_add α] : α ≃+ αᵒᵖ :=

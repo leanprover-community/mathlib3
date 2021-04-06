@@ -88,12 +88,12 @@ unfreezing intros,
 (lhs, rhs) ← target >>= simp_lhs_rhs,
 sls ← simp_lemmas.mk_default,
 let sls' := sls.erase [d.to_name],
-(lhs', prf1) ← decorate_error "simplify fails on left-hand side:" $
+(lhs', prf1, ns1) ← decorate_error "simplify fails on left-hand side:" $
   simplify sls [] lhs {fail_if_unchanged := ff},
 prf1_lems ← heuristic_simp_lemma_extraction prf1,
 if d.to_name ∈ prf1_lems then pure none else do
 is_cond ← simp_is_conditional d.type,
-(rhs', prf2) ← decorate_error "simplify fails on right-hand side:" $
+(rhs', prf2, ns2) ← decorate_error "simplify fails on right-hand side:" $
   simplify sls [] rhs {fail_if_unchanged := ff},
 lhs'_eq_rhs' ← is_simp_eq lhs' rhs',
 lhs_in_nf ← is_simp_eq lhs' lhs,
@@ -118,11 +118,12 @@ else
   pure none
 
 /--
-This note gives you some tips to debug any errors that the simp-normal form linter raises
+This note gives you some tips to debug any errors that the simp-normal form linter raises.
+
 The reason that a lemma was considered faulty is because its left-hand side is not in simp-normal form.
 These lemmas are hence never used by the simplifier.
 
-This linter gives you a list of other simp lemmas, look at them!
+This linter gives you a list of other simp lemmas: look at them!
 
 Here are some tips depending on the error raised by the linter:
 
@@ -133,20 +134,21 @@ Here are some tips depending on the error raised by the linter:
      This typically means that lemma is a duplicate, or is shadowed by another lemma:
 
      2a. Always put more general lemmas after specific ones:
-
+      ```
       @[simp] lemma zero_add_zero : 0 + 0 = 0 := rfl
       @[simp] lemma add_zero : x + 0 = x := rfl
+      ```
 
       And not the other way around!  The simplifier always picks the last matching lemma.
 
-     2b. You can also use @[priority] instead of moving simp-lemmas around in the file.
+     2b. You can also use `@[priority]` instead of moving simp-lemmas around in the file.
 
       Tip: the default priority is 1000.
       Use `@[priority 1100]` instead of moving a lemma down,
       and `@[priority 900]` instead of moving a lemma up.
 
-     2c. Conditional simp lemmas are tried last, if they are shadowed
-         just remove the simp attribute.
+     2c. Conditional simp lemmas are tried last. If they are shadowed
+         just remove the `simp` attribute.
 
      2d. If two lemmas are duplicates, the linter will complain about the first one.
          Try to fix the second one instead!

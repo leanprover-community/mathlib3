@@ -40,7 +40,7 @@ instance {X : Fintype} : fintype X := X.2
 instance : category Fintype := induced_category.category bundled.α
 
 /-- The fully faithful embedding of `Fintype` into the category of types. -/
-@[derive [full, faithful], simps {rhs_md:=semireducible}]
+@[derive [full, faithful], simps]
 def incl : Fintype ⥤ Type* := induced_functor _
 
 instance : concrete_category Fintype := ⟨incl⟩

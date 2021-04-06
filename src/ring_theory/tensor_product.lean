@@ -7,8 +7,6 @@ Authors: Scott Morrison, Johan Commelin
 import linear_algebra.tensor_product
 import algebra.algebra.tower
 
-universes u v₁ v₂ v₃ v₄
-
 /-!
 # The tensor product of R-algebras
 
@@ -28,6 +26,8 @@ In this file we:
 - `linear_map.base_change A f` is the `A`-linear map `A ⊗ f`, for an `R`-linear map `f`.
 
 -/
+
+universes u v₁ v₂ v₃ v₄
 
 open_locale tensor_product
 open tensor_product
@@ -694,7 +694,7 @@ section
 variables {R A B C}
 
 lemma assoc_aux_1 (a₁ a₂ : A) (b₁ b₂ : B) (c₁ c₂ : C) :
-  (tensor_product.assoc R A B C) (((a₁ * a₂) ⊗ₜ[R] b₁ * b₂) ⊗ₜ[R] c₁ * c₂) =
+  (tensor_product.assoc R A B C) (((a₁ * a₂) ⊗ₜ[R] (b₁ * b₂)) ⊗ₜ[R] (c₁ * c₂)) =
     (tensor_product.assoc R A B C) ((a₁ ⊗ₜ[R] b₁) ⊗ₜ[R] c₁) *
       (tensor_product.assoc R A B C) ((a₂ ⊗ₜ[R] b₂) ⊗ₜ[R] c₂) :=
 rfl
@@ -717,7 +717,8 @@ lemma assoc_aux_2 (r : R) :
 -- variables {R A B C}
 
 -- @[simp] theorem assoc_tmul (a : A) (b : B) (c : C) :
---   ((tensor_product.assoc R A B C) : (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
+--   ((tensor_product.assoc R A B C) :
+--   (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
 -- rfl
 
 end

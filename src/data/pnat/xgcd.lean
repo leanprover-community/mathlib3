@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Neil Strickland.  All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Neil Strickland
+Authors: Neil Strickland
 
 This file sets up a version of the Euclidean algorithm that works
 only with natural numbers.  Given a, b > 0, it computes the unique
@@ -270,12 +270,12 @@ def gcd_a' : ℕ+ := succ_pnat ((xgcd a b).wp + (xgcd a b).x)
 def gcd_b' : ℕ+ := succ_pnat ((xgcd a b).y + (xgcd a b).zp)
 
 theorem gcd_a'_coe : ((gcd_a' a b) : ℕ) = (gcd_w a b) + (gcd_x a b) :=
-by { dsimp [gcd_a', gcd_w, xgcd_type.w],
-     rw [nat.succ_eq_add_one, nat.succ_eq_add_one], ring }
+by { dsimp [gcd_a', gcd_x, gcd_w, xgcd_type.w],
+     rw [nat.succ_eq_add_one, nat.succ_eq_add_one, add_right_comm] }
 
 theorem gcd_b'_coe : ((gcd_b' a b) : ℕ) = (gcd_y a b) + (gcd_z a b) :=
-by { dsimp [gcd_b', gcd_z, xgcd_type.z],
-     rw [nat.succ_eq_add_one, nat.succ_eq_add_one], ring }
+by { dsimp [gcd_b', gcd_y, gcd_z, xgcd_type.z],
+     rw [nat.succ_eq_add_one, nat.succ_eq_add_one, add_assoc] }
 
 theorem gcd_props :
  let d := gcd_d a b,
@@ -324,8 +324,10 @@ begin
   { apply dvd_gcd,
     exact dvd.intro (gcd_a' a b) (h₁.trans (mul_comm _ _)).symm,
     exact dvd.intro (gcd_b' a b) (h₂.trans (mul_comm _ _)).symm},
-  { have h₇ : (gcd a b : ℕ) ∣ (gcd_z a b) * a := dvd_trans (nat.gcd_dvd_left a b) (dvd_mul_left _ _),
-    have h₈ : (gcd a b : ℕ) ∣ (gcd_x a b) * b := dvd_trans (nat.gcd_dvd_right a b) (dvd_mul_left _ _),
+  { have h₇ : (gcd a b : ℕ) ∣ (gcd_z a b) * a :=
+      dvd_trans (nat.gcd_dvd_left a b) (dvd_mul_left _ _),
+    have h₈ : (gcd a b : ℕ) ∣ (gcd_x a b) * b :=
+      dvd_trans (nat.gcd_dvd_right a b) (dvd_mul_left _ _),
     rw[h₅] at h₇, rw dvd_iff,
     exact (nat.dvd_add_iff_right h₈).mpr h₇,}
 end

@@ -93,8 +93,6 @@ ext $ λ x, by rw [comp_apply, id_apply]
 @[simp] lemma comp_id (f : X →[M'] Y) : f.comp (mul_action_hom.id M') = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
-local attribute [instance] mul_action.regular
-
 variables {G} (H)
 
 /-- The canonical map to the left cosets. -/
@@ -267,7 +265,8 @@ local attribute [instance] subset.ring
 def is_invariant_subring.subtype_hom : U →+*[M] R' :=
 { map_smul' := λ m s, rfl, .. is_subring.subtype U }
 
-@[simp] theorem is_invariant_subring.coe_subtype_hom : (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
+@[simp] theorem is_invariant_subring.coe_subtype_hom :
+  (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
 
 @[simp] theorem is_invariant_subring.coe_subtype_hom' :
   (is_invariant_subring.subtype_hom M U : U →+* R') = is_subring.subtype U := rfl

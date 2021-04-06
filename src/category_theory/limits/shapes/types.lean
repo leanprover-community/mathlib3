@@ -37,7 +37,8 @@ namespace category_theory.limits.types
 
 /-- A restatement of `types.lift_π_apply` that uses `pi.π` and `pi.lift`. -/
 @[simp]
-lemma pi_lift_π_apply {β : Type u} (f : β → Type u) {P : Type u} (s : Π b, P ⟶ f b) (b : β) (x : P) :
+lemma pi_lift_π_apply
+  {β : Type u} (f : β → Type u) {P : Type u} (s : Π b, P ⟶ f b) (b : β) (x : P) :
   (pi.π f b : (∏ f) → f b) (@pi.lift β _ _ f _ P s x) = s b x :=
 congr_fun (limit.lift_π (fan.mk P s) b) x
 
@@ -66,7 +67,7 @@ open category_theory.limits.walking_pair
 /-- The product type `X × Y` forms a cone for the binary product of `X` and `Y`. -/
 -- We manually generate the other projection lemmas since the simp-normal form for the legs is
 -- otherwise not created correctly.
-@[simps X {rhs_md := semireducible}]
+@[simps X]
 def binary_product_cone (X Y : Type u) : binary_fan X Y :=
 binary_fan.mk prod.fst prod.snd
 
@@ -95,7 +96,9 @@ def binary_product_limit_cone (X Y : Type u) : limits.limit_cone (pair X Y) :=
 ⟨_, binary_product_limit X Y⟩
 
 /-- The functor which sends `X, Y` to the product type `X × Y`. -/
-@[simps]
+-- We add the option `type_md` to tell `@[simps]` to not treat homomorphisms `X ⟶ Y` in `Type*` as
+-- a function type
+@[simps {type_md := reducible}]
 def binary_product_functor : Type u ⥤ Type u ⥤ Type u :=
 { obj := λ X,
   { obj := λ Y, X × Y,
@@ -121,7 +124,7 @@ begin
 end
 
 /-- The sum type `X ⊕ Y` forms a cocone for the binary coproduct of `X` and `Y`. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def binary_coproduct_cocone (X Y : Type u) : cocone (pair X Y) :=
 binary_cofan.mk sum.inl sum.inr
 

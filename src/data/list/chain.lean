@@ -72,6 +72,29 @@ theorem chain_map_of_chain {S : β → β → Prop} (f : α → β)
   (p : chain R a l) : chain S (f a) (map f l) :=
 (chain_map f).2 $ p.imp H
 
+theorem chain_pmap_of_chain {S : β → β → Prop} {p : α → Prop}
+  {f : Π a, p a → β}
+  (H : ∀ a b ha hb, R a b → S (f a ha) (f b hb))
+  {a : α} {l : list α}
+  (hl₁ : chain R a l) (ha : p a) (hl₂ : ∀ a ∈ l, p a) :
+  chain S (f a ha) (list.pmap f l hl₂) :=
+begin
+  induction l with lh lt l_ih generalizing a,
+  { simp },
+  { simp [H _ _ _ _ (rel_of_chain_cons hl₁), l_ih _ (chain_of_chain_cons hl₁)] }
+end
+
+theorem chain_of_chain_pmap {S : β → β → Prop} {p : α → Prop}
+  (f : Π a, p a → β) {l : list α} (hl₁ : ∀ a ∈ l, p a)
+  {a : α} (ha : p a) (hl₂ : chain S (f a ha) (list.pmap f l hl₁))
+  (H : ∀ a b ha hb, S (f a ha) (f b hb) → R a b) :
+  chain R a l :=
+begin
+  induction l with lh lt l_ih generalizing a,
+  { simp },
+  { simp [H _ _ _ _ (rel_of_chain_cons hl₂), l_ih _ _ (chain_of_chain_cons hl₂)] }
+end
+
 theorem chain_of_pairwise {a : α} {l : list α} (p : pairwise R (a::l)) : chain R a l :=
 begin
   cases pairwise_cons.1 p with r p', clear p,
@@ -109,7 +132,7 @@ begin
     { apply h0, simp, },
     { split,
       { apply h 0, },
-      { intros i w, convert h (i+1) _,
+      { intros i w, convert h (i+1) _ using 1,
         exact lt_pred_iff.mp w, } } },
 end
 
@@ -228,7 +251,7 @@ begin
    },
   { rintros h, split,
     { apply h 0, simp, },
-    { intros i w, convert h (i+1) _,
+    { intros i w, convert h (i+1) _ using 1,
       simp only [add_zero, length, add_succ_sub_one] at w,
       simpa using w, }
     },

@@ -36,7 +36,8 @@ open_locale tensor_product
 /-- (implementation) tensor product of R-modules -/
 def tensor_obj (M N : Module R) : Module R := Module.of R (M ⊗[R] N)
 /-- (implementation) tensor product of morphisms R-modules -/
-def tensor_hom {M N M' N' : Module R} (f : M ⟶ N) (g : M' ⟶ N') : tensor_obj M M' ⟶ tensor_obj N N' :=
+def tensor_hom {M N M' N' : Module R} (f : M ⟶ N) (g : M' ⟶ N') :
+  tensor_obj M M' ⟶ tensor_obj N N' :=
 tensor_product.map f g
 
 lemma tensor_id (M N : Module R) : tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (Module.of R (↥M ⊗ ↥N)) :=
@@ -100,7 +101,8 @@ lemma associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : Module R}
 by convert associator_naturality_aux f₁ f₂ f₃ using 1
 
 lemma pentagon (W X Y Z : Module R) :
-  tensor_hom (associator W X Y).hom (𝟙 Z) ≫ (associator W (tensor_obj X Y) Z).hom ≫ tensor_hom (𝟙 W) (associator X Y Z).hom =
+  tensor_hom (associator W X Y).hom (𝟙 Z) ≫ (associator W (tensor_obj X Y) Z).hom
+  ≫ tensor_hom (𝟙 W) (associator X Y Z).hom =
     (associator (tensor_obj W X) Y Z).hom ≫ (associator W X (tensor_obj Y Z)).hom :=
 by convert pentagon_aux R W X Y Z using 1
 
@@ -146,7 +148,7 @@ end monoidal_category
 
 open monoidal_category
 
-instance Module.monoidal_category : monoidal_category (Module.{u} R) :=
+instance monoidal_category : monoidal_category (Module.{u} R) :=
 { -- data
   tensor_obj   := tensor_obj,
   tensor_hom   := @tensor_hom _ _,
@@ -164,7 +166,8 @@ instance Module.monoidal_category : monoidal_category (Module.{u} R) :=
   triangle'                := λ M N, triangle M N, }
 
 /-- Remind ourselves that the monoidal unit, being just `R`, is still a commutative ring. -/
-instance : comm_ring ((𝟙_ (Module.{u} R) : Module.{u} R) : Type u) := (by apply_instance : comm_ring R)
+instance : comm_ring ((𝟙_ (Module.{u} R) : Module.{u} R) : Type u) :=
+(by apply_instance : comm_ring R)
 
 namespace monoidal_category
 
@@ -221,7 +224,7 @@ begin
 end
 
 /-- The symmetric monoidal structure on `Module R`. -/
-instance Module.symmetric_category : symmetric_category (Module.{u} R) :=
+instance symmetric_category : symmetric_category (Module.{u} R) :=
 { braiding := braiding,
   braiding_naturality' := λ X₁ X₂ Y₁ Y₂ f g, braiding_naturality f g,
   hexagon_forward' := hexagon_forward,

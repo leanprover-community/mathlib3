@@ -587,7 +587,7 @@ theorem prime_of_irreducible {x : α} (hi: irreducible x) : prime x :=
 ⟨hi.ne_zero, ⟨hi.1, λ a b h,
 begin
   cases gcd_dvd_left x a with y hy,
-  cases hi.2 _ _ hy with hu hu; cases hu with u hu,
+  cases hi.is_unit_or_is_unit hy with hu hu; cases hu with u hu,
   { right, transitivity (gcd (x * b) (a * b)), apply dvd_gcd (dvd_mul_right x b) h,
     rw gcd_mul_right, rw ← hu,
     apply dvd_of_associated, transitivity (normalize b), symmetry, use u, apply mul_comm,

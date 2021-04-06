@@ -42,7 +42,8 @@ instance (x : X) : order_top (open_nhds x) :=
   le_top := λ U, @le_top _ _ U.1.1,
   ..open_nhds.partial_order x }
 
-instance open_nhds_category (x : X) : category.{u} (open_nhds x) := by {unfold open_nhds, apply_instance}
+instance open_nhds_category (x : X) : category.{u} (open_nhds x) :=
+by {unfold open_nhds, apply_instance}
 
 instance opens_nhds_hom_has_coe_to_fun {x : X} {U V : open_nhds x} : has_coe_to_fun (U ⟶ V) :=
 { F := λ f, U.1 → V.1,

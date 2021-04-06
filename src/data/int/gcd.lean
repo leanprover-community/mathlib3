@@ -46,6 +46,28 @@ def gcd_a (x y : ℕ) : ℤ := (xgcd x y).1
 /-- The extended GCD `b` value in the equation `gcd x y = x * a + y * b`. -/
 def gcd_b (x y : ℕ) : ℤ := (xgcd x y).2
 
+@[simp] theorem gcd_a_zero_left {s : ℕ} : gcd_a 0 s = 0 :=
+by { unfold gcd_a, rw [xgcd, xgcd_zero_left] }
+
+@[simp] theorem gcd_b_zero_left {s : ℕ} : gcd_b 0 s = 1 :=
+by { unfold gcd_b, rw [xgcd, xgcd_zero_left] }
+
+@[simp] theorem gcd_a_zero_right {s : ℕ} (h : s ≠ 0) : gcd_a s 0 = 1 :=
+begin
+  unfold gcd_a xgcd,
+  induction s,
+  { exact absurd rfl h, },
+  { simp [xgcd_aux], }
+end
+
+@[simp] theorem gcd_b_zero_right {s : ℕ} (h : s ≠ 0) : gcd_b s 0 = 0 :=
+begin
+  unfold gcd_b xgcd,
+  induction s,
+  { exact absurd rfl h, },
+  { simp [xgcd_aux], }
+end
+
 @[simp] theorem xgcd_aux_fst (x y) : ∀ s t s' t',
   (xgcd_aux x s t y s' t').1 = gcd x y :=
 gcd.induction x y (by simp) (λ x y h IH s t s' t', by simp [xgcd_aux_rec, h, IH]; rw ← gcd_rec)
@@ -79,10 +101,44 @@ by have := @xgcd_aux_P x y x y 1 0 0 1 (by simp [P]) (by simp [P]);
    rwa [xgcd_aux_val, xgcd_val] at this
 end
 
+lemma exists_mul_mod_eq_gcd {k n : ℕ} (hk : gcd n k < k) :
+  ∃ m, n * m % k = gcd n k :=
+begin
+  have hk' := int.coe_nat_ne_zero.mpr (ne_of_gt (lt_of_le_of_lt (zero_le (gcd n k)) hk)),
+  have key := congr_arg (λ m, int.nat_mod m k) (gcd_eq_gcd_ab n k),
+  simp_rw int.nat_mod at key,
+  rw [int.add_mul_mod_self_left, ←int.coe_nat_mod, int.to_nat_coe_nat, mod_eq_of_lt hk] at key,
+  refine ⟨(n.gcd_a k % k).to_nat, eq.trans (int.coe_nat_inj _) key.symm⟩,
+  rw [int.coe_nat_mod, int.coe_nat_mul, int.to_nat_of_nonneg (int.mod_nonneg _ hk'),
+      int.to_nat_of_nonneg (int.mod_nonneg _ hk'), int.mul_mod, int.mod_mod, ←int.mul_mod],
+end
+
+lemma exists_mul_mod_eq_one_of_coprime {k n : ℕ} (hkn : coprime n k) (hk : 1 < k) :
+  ∃ m, n * m % k = 1 :=
+Exists.cases_on (exists_mul_mod_eq_gcd (lt_of_le_of_lt (le_of_eq hkn) hk))
+  (λ m hm, ⟨m, hm.trans hkn⟩)
+
 end nat
 
 /-! ### Divisibility over ℤ -/
 namespace int
+
+/-- The extended GCD `a` value in the equation `gcd x y = x * a + y * b`. -/
+def gcd_a : ℤ → ℤ → ℤ
+| (of_nat m) n := m.gcd_a n.nat_abs
+| -[1+ m]    n := -m.succ.gcd_a n.nat_abs
+
+/-- The extended GCD `b` value in the equation `gcd x y = x * a + y * b`. -/
+def gcd_b : ℤ → ℤ → ℤ
+| m (of_nat n) := m.nat_abs.gcd_b n
+| m -[1+ n]    := -m.nat_abs.gcd_b n.succ
+
+theorem gcd_eq_gcd_ab : ∀ x y : ℤ, (gcd x y : ℤ) = x * gcd_a x y + y * gcd_b x y
+| (m : ℕ) (n : ℕ) := nat.gcd_eq_gcd_ab _ _
+| (m : ℕ) -[1+ n] := show (_ : ℤ) = _ + -(n+1) * -_, by rw neg_mul_neg; apply nat.gcd_eq_gcd_ab
+| -[1+ m] (n : ℕ) := show (_ : ℤ) = -(m+1) * -_ + _ , by rw neg_mul_neg; apply nat.gcd_eq_gcd_ab
+| -[1+ m] -[1+ n] := show (_ : ℤ) = -(m+1) * -_ + -(n+1) * -_,
+  by { rw [neg_mul_neg, neg_mul_neg], apply nat.gcd_eq_gcd_ab }
 
 theorem nat_abs_div (a b : ℤ) (H : b ∣ a) : nat_abs (a / b) = (nat_abs a) / (nat_abs b) :=
 begin
@@ -290,4 +346,12 @@ begin
   simp only [← units.coe_pow] at *,
   rw [← units.coe_one, ← gpow_coe_nat, ← units.ext_iff] at *,
   simp only [nat.gcd_eq_gcd_ab, gpow_add, gpow_mul, hm, hn, one_gpow, one_mul]
+end
+
+lemma gcd_nsmul_eq_zero {M : Type*} [add_monoid M] (x : M) {m n : ℕ} (hm : m •ℕ x = 0)
+  (hn : n •ℕ x = 0) : (m.gcd n) •ℕ x = 0 :=
+begin
+  apply multiplicative.of_add.injective,
+  rw [of_add_nsmul, of_add_zero, pow_gcd_eq_one];
+  rwa [←of_add_nsmul, ←of_add_zero, equiv.apply_eq_iff_eq]
 end

@@ -5,15 +5,13 @@ Authors: Johannes Hölzl, Jens Wagemaker
 -/
 import data.multiset.basic
 import algebra.divisibility
+import algebra.invertible
 
 /-!
 # Associated, prime, and irreducible elements.
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-
-lemma is_unit.pow [monoid α] {a : α} (n : ℕ) : is_unit a → is_unit (a ^ n) :=
-λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
 
 theorem is_unit_iff_dvd_one [comm_monoid α] {x : α} : is_unit x ↔ x ∣ 1 :=
 ⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,
@@ -125,8 +123,9 @@ end
 We explicitly avoid stating that `p` is non-zero, this would require a semiring. Assuming only a
 monoid allows us to reuse irreducible for associated elements.
 -/
-@[class] def irreducible [monoid α] (p : α) : Prop :=
-¬ is_unit p ∧ ∀a b, p = a * b → is_unit a ∨ is_unit b
+class irreducible [monoid α] (p : α) : Prop :=
+(not_unit' : ¬ is_unit p)
+(is_unit_or_is_unit' : ∀a b, p = a * b → is_unit a ∨ is_unit b)
 
 namespace irreducible
 
@@ -135,12 +134,16 @@ hp.1
 
 lemma is_unit_or_is_unit [monoid α] {p : α} (hp : irreducible p) {a b : α} (h : p = a * b) :
   is_unit a ∨ is_unit b :=
-hp.2 a b h
+irreducible.is_unit_or_is_unit' a b h
 
 end irreducible
 
+lemma irreducible_iff [monoid α] {p : α} :
+  irreducible p ↔ ¬ is_unit p ∧ ∀a b, p = a * b → is_unit a ∨ is_unit b :=
+⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+
 @[simp] theorem not_irreducible_one [monoid α] : ¬ irreducible (1 : α) :=
-by simp [irreducible]
+by simp [irreducible_iff]
 
 @[simp] theorem not_irreducible_zero [monoid_with_zero α] : ¬ irreducible (0 : α)
 | ⟨hn0, h⟩ := have is_unit (0:α) ∨ is_unit (0:α), from h 0 0 ((mul_zero 0).symm),
@@ -158,7 +161,7 @@ theorem irreducible_or_factor {α} [monoid α] (x : α) (h : ¬ is_unit x) :
 begin
   haveI := classical.dec,
   refine or_iff_not_imp_right.2 (λ H, _),
-  simp [h, irreducible] at H ⊢,
+  simp [h, irreducible_iff] at H ⊢,
   refine λ a b h, classical.by_contradiction $ λ o, _,
   simp [not_or_distrib] at o,
   exact H _ o.1 _ o.2 h.symm
@@ -287,7 +290,7 @@ multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
     { use [a, by simp],
       cases h with u hu,
       cases ((irreducible_of_prime (hs a (multiset.mem_cons.2
-        (or.inl rfl)))).2 p u hu).resolve_left hp.not_unit with v hv,
+        (or.inl rfl)))).is_unit_or_is_unit hu).resolve_left hp.not_unit with v hv,
       exact ⟨v, by simp [hu, hv]⟩ },
     { rcases ih (λ r hr, hs _ (multiset.mem_cons.2 (or.inr hr))) h with ⟨q, hq₁, hq₂⟩,
       exact ⟨q, multiset.mem_cons.2 (or.inr hq₁), hq₂⟩ }
@@ -313,6 +316,14 @@ lemma prime_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~ᵤ q) (
     ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv, hu.symm]⟩,
       hu ▸ by { simp [units.mul_right_dvd], intros a b, exact hp.div_or_div }⟩⟩
 
+lemma associated_of_irreducible_of_dvd [comm_cancel_monoid_with_zero α] {p q : α}
+  (p_irr : irreducible p) (q_irr : irreducible q) (dvd : p ∣ q) : associated p q :=
+associated_of_dvd_dvd dvd (dvd_symm_of_irreducible p_irr q_irr dvd)
+
+lemma associated_of_prime_of_dvd [comm_cancel_monoid_with_zero α] {p q : α}
+  (p_prime : prime p) (q_prime : prime q) (dvd : p ∣ q) : associated p q :=
+associated_of_irreducible_of_dvd (irreducible_of_prime p_prime) (irreducible_of_prime q_prime) dvd
+
 lemma prime_iff_of_associated [comm_monoid_with_zero α] {p q : α}
   (h : p ~ᵤ q) : prime p ↔ prime q :=
 ⟨prime_of_associated h, prime_of_associated h.symm⟩
@@ -328,7 +339,7 @@ lemma irreducible_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~�
   have hpab : p = a * (b * (u⁻¹ : units α)),
     from calc p = (p * u) * (u ⁻¹ : units α) : by simp
       ... = _ : by rw hu; simp [hab, mul_assoc],
-  (hp.2 _ _ hpab).elim or.inl (λ ⟨v, hv⟩, or.inr ⟨v * u, by simp [hv]⟩)⟩
+  (hp.is_unit_or_is_unit hpab).elim or.inl (λ ⟨v, hv⟩, or.inr ⟨v * u, by simp [hv]⟩)⟩
 
 lemma irreducible_iff_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~ᵤ q) :
   irreducible p ↔ irreducible q :=
@@ -453,8 +464,7 @@ multiset.induction_on p (by simp; refl) $ assume a s ih, by simp [ih]; refl
 
 theorem rel_associated_iff_map_eq_map {p q : multiset α} :
   multiset.rel associated p q ↔ p.map associates.mk = q.map associates.mk :=
-by rw [← multiset.rel_eq];
-  simp [multiset.rel_map_left, multiset.rel_map_right, mk_eq_mk_iff_associated]
+by { rw [← multiset.rel_eq, multiset.rel_map], simp only [mk_eq_mk_iff_associated] }
 
 theorem mul_eq_one_iff {x y : associates α} : x * y = 1 ↔ (x = 1 ∧ y = 1) :=
 iff.intro
@@ -592,7 +602,7 @@ end
 
 theorem irreducible_mk (a : α) : irreducible (associates.mk a) ↔ irreducible a :=
 begin
-  simp only [irreducible, is_unit_mk],
+  simp only [irreducible_iff, is_unit_mk],
   apply and_congr iff.rfl,
   split,
   { rintro h x y rfl,

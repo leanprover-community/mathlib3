@@ -25,7 +25,7 @@ real, ereal, complete lattice
 
 ## TODO
 
-abs : ereal → ennreal
+abs : ereal → ℝ≥0∞
 
 In Isabelle they define + - * and / (making junk choices for things like -∞ + ∞)
 and then prove whatever bits of the ordered ring/field axioms still hold. They

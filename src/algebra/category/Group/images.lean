@@ -55,7 +55,7 @@ noncomputable def image.lift (F' : mono_factorisation f) : image f ⟶ F'.I :=
     apply injective_of_mono F'.m,
     change (F'.e ≫ F'.m) _ = _,
     rw [F'.fac, add_monoid_hom.map_zero],
-    convert (classical.indefinite_description (λ y, f y = 0) _).2,
+    exact (classical.indefinite_description (λ y, f y = 0) _).2,
   end,
   map_add' :=
   begin

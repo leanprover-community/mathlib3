@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Johannes Hölzl, Simon Hudon, Kenny Lau
+Authors: Mario Carneiro, Johannes Hölzl, Simon Hudon, Kenny Lau
 -/
 import data.multiset.basic
 import control.traversable.lemmas
@@ -67,10 +67,10 @@ open functor
 open traversable is_lawful_traversable
 
 @[simp]
-lemma lift_beta {α β : Type*} (x : list α) (f : list α → β)
+lemma lift_coe {α β : Type*} (x : list α) (f : list α → β)
   (h : ∀ a b : list α, a ≈ b → f a = f b) :
   quotient.lift f h (x : multiset α) = f x :=
-quotient.lift_beta _ _ _
+quotient.lift_mk _ _ _
 
 @[simp]
 lemma map_comp_coe {α β} (h : α → β) :

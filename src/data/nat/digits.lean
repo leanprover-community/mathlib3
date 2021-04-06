@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
+import data.list.indexes
 import tactic.interval_cases
 import tactic.linarith
 
@@ -148,6 +149,30 @@ begin
   { dsimp [of_digits], rw ih, },
 end
 
+lemma of_digits_eq_sum_map_with_index_aux (b : ℕ) (l : list ℕ) :
+  ((list.range l.length).zip_with ((λ (i a : ℕ), a * b ^ i) ∘ succ) l).sum =
+  b * ((list.range l.length).zip_with (λ i a, a * b ^ i) l).sum :=
+begin
+  suffices : (list.range l.length).zip_with (((λ (i a : ℕ), a * b ^ i) ∘ succ)) l =
+      (list.range l.length).zip_with (λ i a, b * (a * b ^ i)) l,
+    { simp [this] },
+  congr,
+  ext,
+  simp [pow_succ],
+  ring
+end
+
+lemma of_digits_eq_sum_map_with_index (b : ℕ) (L : list ℕ):
+  of_digits b L = (L.map_with_index (λ i a, a * b ^ i)).sum :=
+begin
+  rw [list.map_with_index_eq_enum_map, list.enum_eq_zip_range,
+      list.map_uncurry_zip_eq_zip_with, of_digits_eq_foldr],
+  induction L with hd tl hl,
+  { simp },
+  { simpa [list.range_succ_eq_map, list.zip_with_map_left, of_digits_eq_sum_map_with_index_aux]
+      using or.inl hl }
+end
+
 @[simp] lemma of_digits_singleton {b n : ℕ} : of_digits b [n] = n := by simp [of_digits]
 
 @[simp] lemma of_digits_one_cons {α : Type*} [semiring α] (h : ℕ) (L : list ℕ) :
@@ -288,6 +313,13 @@ lemma digits_last {b m : ℕ} (h : 2 ≤ b) (hm : 0 < m) (p q) :
   (digits b m).last p = (digits b (m/b)).last q :=
 by { simp only [digits_last_aux h hm], rw list.last_cons }
 
+lemma digits.injective (b : ℕ) : function.injective b.digits :=
+function.left_inverse.injective (of_digits_digits b)
+
+@[simp] lemma digits_inj_iff {b n m : ℕ} :
+  b.digits n = b.digits m ↔ n = m :=
+(digits.injective b).eq_iff
+
 lemma last_digit_ne_zero (b : ℕ) {m : ℕ} (hm : m ≠ 0) :
   (digits b m).last (digits_ne_nil_iff_ne_zero.mpr hm) ≠ 0 :=
 begin
@@ -302,10 +334,10 @@ begin
   have hnpos : 0 < n := nat.pos_of_ne_zero hn,
   by_cases hnb : n < b + 2,
   { simp_rw [digits_of_lt b.succ.succ n hnpos hnb],
-    exact nat.pos_iff_ne_zero.mp hnpos },
+    exact pos_iff_ne_zero.mp hnpos },
   { rw digits_last (show 2 ≤ b + 2, from dec_trivial) hnpos,
     refine IH _ (nat.div_lt_self hnpos dec_trivial) _,
-    { rw ←nat.pos_iff_ne_zero,
+    { rw ←pos_iff_ne_zero,
       exact nat.div_pos (le_of_not_lt hnb) dec_trivial } },
 end
 
@@ -406,7 +438,7 @@ begin
     list.length_init, of_digits_singleton, add_comm (l.length - 1), pow_add, pow_one],
   apply nat.mul_le_mul_left,
   refine le_trans _ (nat.le_add_left _ _),
-  have : 0 < l.last hl, { rwa [nat.pos_iff_ne_zero] },
+  have : 0 < l.last hl, { rwa [pos_iff_ne_zero] },
   convert nat.mul_le_mul_left _ this, rw [mul_one]
 end
 
@@ -627,7 +659,7 @@ example : nat.digits 10 123 = [3,2,1] := by norm_num
     ic ← mk_instance_cache `(ℕ),
     (_, pn0) ← norm_num.prove_pos ic en,
     s ← simp_lemmas.add_simp simp_lemmas.mk `list.repeat,
-    (rhs, p2) ← simplify s [] `(list.repeat 1 %%en),
+    (rhs, p2, _) ← simplify s [] `(list.repeat 1 %%en),
     p ← mk_eq_trans `(nat.digits_one %%en) p2,
     return (rhs, p)
   else do

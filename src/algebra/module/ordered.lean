@@ -179,7 +179,8 @@ instance [semiring R] [ordered_add_comm_monoid M] [semimodule R M] : mul_action 
 { one_smul := @mul_action.one_smul R M _ _,
   mul_smul := @mul_action.mul_smul R M _ _ }
 
-instance [semiring R] [ordered_add_comm_monoid M] [semimodule R M] : distrib_mul_action R (order_dual M) :=
+instance [semiring R] [ordered_add_comm_monoid M] [semimodule R M] :
+  distrib_mul_action R (order_dual M) :=
 { smul_add := @distrib_mul_action.smul_add R M _ _ _,
   smul_zero := @distrib_mul_action.smul_zero R M _ _ _ }
 
@@ -187,9 +188,11 @@ instance [semiring R] [ordered_add_comm_monoid M] [semimodule R M] : semimodule 
 { add_smul := @semimodule.add_smul R M _ _ _,
   zero_smul := @semimodule.zero_smul R M _ _ _ }
 
-instance [ordered_semiring R] [ordered_add_comm_monoid M] [semimodule R M] [ordered_semimodule R M] :
+instance [ordered_semiring R] [ordered_add_comm_monoid M] [semimodule R M]
+  [ordered_semimodule R M] :
   ordered_semimodule R (order_dual M) :=
 { smul_lt_smul_of_pos := λ a b, @ordered_semimodule.smul_lt_smul_of_pos R M _ _ _ _ b a,
-  lt_of_smul_lt_smul_of_pos := λ a b, @ordered_semimodule.lt_of_smul_lt_smul_of_pos R M _ _ _ _ b a }
+  lt_of_smul_lt_smul_of_pos := λ a b,
+    @ordered_semimodule.lt_of_smul_lt_smul_of_pos R M _ _ _ _ b a }
 
 end order_dual

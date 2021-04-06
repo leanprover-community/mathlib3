@@ -651,7 +651,7 @@ by simpa only [mul_comm] using hf.const_mul_at_top hr
 constant also tends to infinity. -/
 lemma tendsto.at_top_div_const (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, f x / r) l at_top :=
-hf.at_top_mul_const (inv_pos.2 hr)
+by simpa only [div_eq_mul_inv] using hf.at_top_mul_const (inv_pos.2 hr)
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a negative
 constant (on the left) tends to negative infinity. -/
@@ -683,7 +683,7 @@ by simpa only [mul_comm] using hf.const_mul_at_bot hr
 a positive constant also tends to negative infinity. -/
 lemma tendsto.at_bot_div_const (hr : 0 < r) (hf : tendsto f l at_bot) :
   tendsto (λx, f x / r) l at_bot :=
-hf.at_bot_mul_const (inv_pos.2 hr)
+by simpa only [div_eq_mul_inv] using hf.at_bot_mul_const (inv_pos.2 hr)
 
 /-- If a function tends to negative infinity along a filter, then this function multiplied by
 a negative constant (on the left) tends to positive infinity. -/
@@ -697,6 +697,15 @@ a negative constant (on the right) tends to positive infinity. -/
 lemma tendsto.at_bot_mul_neg_const (hr : r < 0) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x * r) l at_top :=
 by simpa only [mul_comm] using hf.neg_const_mul_at_bot hr
+
+lemma tendsto_const_mul_pow_at_top {c : α} {n : ℕ}
+  (hn : 1 ≤ n) (hc : 0 < c) : tendsto (λ x, c * x^n) at_top at_top :=
+tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
+
+lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}
+  (hn : 1 ≤ n) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=
+tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
+
 
 end linear_ordered_field
 

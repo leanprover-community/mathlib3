@@ -5,7 +5,6 @@ Authors: Chris Hughes, Patrick Stevens
 -/
 import data.nat.choose.basic
 import tactic.linarith
-import tactic.omega
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
 import algebra.big_operators.order
@@ -22,13 +21,13 @@ open finset
 
 open_locale big_operators
 
-variables {α : Type*}
+variables {R : Type*}
 
 /-- A version of the binomial theorem for noncommutative semirings. -/
-theorem commute.add_pow [semiring α] {x y : α} (h : commute x y) (n : ℕ) :
+theorem commute.add_pow [semiring R] {x y : R} (h : commute x y) (n : ℕ) :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 begin
-  let t : ℕ → ℕ → α := λ n m, x ^ m * (y ^ (n - m)) * (choose n m),
+  let t : ℕ → ℕ → R := λ n m, x ^ m * (y ^ (n - m)) * (choose n m),
   change (x + y) ^ n = ∑ m in range (n + 1), t n m,
   have h_first : ∀ n, t n 0 = y ^ n :=
     λ n, by { dsimp [t], rw[choose_zero_right, nat.cast_one, mul_one, one_mul] },
@@ -61,7 +60,7 @@ begin
 end
 
 /-- The binomial theorem -/
-theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
+theorem add_pow [comm_semiring R] (x y : R) (n : ℕ) :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 (commute.all x y).add_pow n
 
@@ -83,9 +82,17 @@ calc 2 * (∑ i in range (m + 1), choose (2 * m + 1) i) =
     ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) :
   by rw [two_mul, this]
 ... = (∑ i in range (m + 1), choose (2 * m + 1) i) +
-  ∑ i in Ico (m + 1) (2 * m + 2), choose (2 * m + 1) i :
-  by { rw [range_eq_Ico, sum_Ico_reflect], { congr, omega }, omega }
-... = ∑ i in range (2 * m + 2), choose (2 * m + 1) i : sum_range_add_sum_Ico _ (by omega)
+  ∑ i in Ico (m + 1) (2 * m + 2), choose (2 * m + 1) i : begin
+    rw [range_eq_Ico, sum_Ico_reflect],
+    { congr,
+      have A : m + 1 ≤ 2 * m + 1, by linarith,
+      rw [add_comm, nat.add_sub_assoc A, ← add_comm],
+      congr,
+      rw nat.sub_eq_iff_eq_add A,
+      ring, },
+   { linarith }
+  end
+... = ∑ i in range (2 * m + 2), choose (2 * m + 1) i : sum_range_add_sum_Ico _ (by linarith)
 ... = 2^(2 * m + 1) : sum_range_choose (2 * m + 1)
 ... = 2 * 4^m : by { rw [pow_succ, pow_mul], refl }
 
@@ -117,17 +124,15 @@ theorem sum_powerset_apply_card {α β : Type*} [add_comm_monoid α] (f : ℕ �
   ∑ m in x.powerset, f m.card = ∑ m in range (x.card + 1), (x.card.choose m) •ℕ f m :=
 begin
   transitivity ∑ m in range (x.card + 1), ∑ j in x.powerset.filter (λ z, z.card = m), f j.card,
-  rw sum_fiberwise_of_maps_to,
-  { intros y hy,
+  { refine (sum_fiberwise_of_maps_to _ _).symm,
+    intros y hy,
     rw [mem_range, nat.lt_succ_iff],
     rw mem_powerset at hy,
     exact card_le_of_subset hy },
-  apply sum_congr rfl,
-  intros y hy,
-  rw [← card_powerset_len, ← sum_const],
-  apply sum_congr powerset_len_eq_filter.symm,
-  intros z hz,
-  rw (mem_powerset_len.1 hz).2,
+  { refine sum_congr rfl (λ y hy, _),
+    rw [← card_powerset_len, ← sum_const],
+    refine sum_congr powerset_len_eq_filter.symm (λ z hz, _),
+    rw (mem_powerset_len.1 hz).2 }
 end
 
 theorem sum_powerset_neg_one_pow_card {α : Type*} [decidable_eq α] {x : finset α} :

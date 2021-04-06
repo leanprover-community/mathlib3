@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Heather Macbeth
+Authors: Heather Macbeth
 -/
 import data.set.intervals.basic
 import data.set.function
@@ -9,7 +9,7 @@ import data.set.function
 /-!
 # Monotone surjective functions are surjective on intervals
 
-A monotone surjective function sends any interval in the range onto the interval with corresponding
+A monotone surjective function sends any interval in the domain onto the interval with corresponding
 endpoints in the range.  This is expressed in this file using `set.surj_on`, and provided for all
 permutations of interval endpoints.
 -/

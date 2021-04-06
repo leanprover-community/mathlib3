@@ -38,7 +38,7 @@ decidable_of_decidable_of_iff (bool.decidable_eq _ _) is_none_iff_eq_none
 
 instance decidable_forall_mem {p : α → Prop} [decidable_pred p] :
   ∀ o : option α, decidable (∀ a ∈ o, p a)
-| none     := is_true (by simp)
+| none     := is_true (by simp [false_implies_iff])
 | (some a) := if h : p a
   then is_true $ λ o e, some_inj.1 e ▸ h
   else is_false $ mt (λ H, H _ rfl) h
@@ -104,6 +104,29 @@ inductive rel (r : α → β → Prop) : option α → option β → Prop
 | some {a b} : r a b → rel (some a) (some b)
 | none       : rel none none
 
+/-- Partial bind. If for some `x : option α`, `f : Π (a : α), a ∈ x → option β` is a
+  partial function defined on `a : α` giving an `option β`, where `some a = x`,
+  then `pbind x f h` is essentially the same as `bind x f`
+  but is defined only when all `x = some a`, using the proof to apply `f`. -/
+@[simp] def pbind : Π (x : option α), (Π (a : α), a ∈ x → option β) → option β
+| none     _ := none
+| (some a) f := f a rfl
+
+/-- Partial map. If `f : Π a, p a → β` is a partial function defined on
+  `a : α` satisfying `p`, then `pmap f x h` is essentially the same as `map f x`
+  but is defined only when all members of `x` satisfy `p`, using the proof
+  to apply `f`. -/
+@[simp] def pmap {p : α → Prop} (f : Π (a : α), p a → β) :
+  Π x : option α, (∀ a ∈ x, p a) → option β
+| none     _ := none
+| (some a) H := some (f a (H a (mem_def.mpr rfl)))
+
+/--
+Flatten an `option` of `option`, a specialization of `mjoin`.
+-/
+@[simp] def join : option (option α) → option α :=
+λ x, bind x id
+
 protected def {u v} traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
   option α → F (option β)
 | none := pure none
@@ -121,5 +144,19 @@ def {u v} maybe {m : Type u → Type v} [monad m] {α : Type u} : option (m α) 
 /-- Map a monadic function `f : α → m β` over an `o : option α`, maybe producing a result. -/
 def {u v w} mmap {m : Type u → Type v} [monad m] {α : Type w} {β : Type u} (f : α → m β)
   (o : option α) : m (option β) := (o.map f).maybe
+
+/--
+A monadic analogue of `option.elim`.
+-/
+def melim {α β : Type*} {m : Type* → Type*} [monad m] (x : m (option α)) (y : m β) (z : α → m β) :
+  m β :=
+x >>= λ o, option.elim o y z
+
+/--
+A monadic analogue of `option.get_or_else`.
+-/
+def mget_or_else {α : Type*} {m : Type* → Type*} [monad m] (x : m (option α)) (y : m α) : m α :=
+melim x y pure
+
 
 end option

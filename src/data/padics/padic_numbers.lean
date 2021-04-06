@@ -10,9 +10,10 @@ import analysis.normed_space.basic
 /-!
 # p-adic numbers
 
-This file defines the p-adic numbers (rationals) `ℚ_p` as the completion of `ℚ` with respect to the
-p-adic norm. We show that the p-adic norm on ℚ extends to `ℚ_p`, that `ℚ` is embedded in `ℚ_p`, and that
-`ℚ_p` is Cauchy complete.
+This file defines the p-adic numbers (rationals) `ℚ_p` as
+the completion of `ℚ` with respect to the p-adic norm.
+We show that the p-adic norm on ℚ extends to `ℚ_p`, that `ℚ` is embedded in `ℚ_p`,
+and that `ℚ_p` is Cauchy complete.
 
 ## Important definitions
 
@@ -28,16 +29,17 @@ We introduce the notation `ℚ_[p]` for the p-adic numbers.
 Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
 by taking `[fact (prime p)]` as a type class argument.
 
-We use the same concrete Cauchy sequence construction that is used to construct ℝ. `ℚ_p` inherits a
-field structure from this construction. The extension of the norm on ℚ to `ℚ_p` is *not* analogous to
-extending the absolute value to ℝ, and hence the proof that `ℚ_p` is complete is different from the
-proof that ℝ is complete.
+We use the same concrete Cauchy sequence construction that is used to construct ℝ.
+`ℚ_p` inherits a field structure from this construction.
+The extension of the norm on ℚ to `ℚ_p` is *not* analogous to extending the absolute value to ℝ,
+and hence the proof that `ℚ_p` is complete is different from the proof that ℝ is complete.
 
 A small special-purpose simplification tactic, `padic_index_simp`, is used to manipulate sequence
 indices in the proof that the norm extends.
 
-`padic_norm_e` is the rational-valued p-adic norm on `ℚ_p`. To instantiate `ℚ_p` as a normed field,
-we must cast this into a ℝ-valued norm. The `ℝ`-valued norm, using notation `∥ ∥` from normed spaces,
+`padic_norm_e` is the rational-valued p-adic norm on `ℚ_p`.
+To instantiate `ℚ_p` as a normed field, we must cast this into a ℝ-valued norm.
+The `ℝ`-valued norm, using notation `∥ ∥` from normed spaces,
 is the canonical representation of this norm.
 
 `simp` prefers `padic_norm` to `padic_norm_e` when possible.
@@ -102,8 +104,8 @@ lemma stationary_point_spec {f : padic_seq p} (hf : ¬ f ≈ 0) :
     padic_norm p (f n) = padic_norm p (f m) :=
 classical.some_spec $ stationary hf
 
-/-- Since the norm of the entries of a Cauchy sequence is eventually stationary, we can lift the norm
-to sequences. -/
+/-- Since the norm of the entries of a Cauchy sequence is eventually stationary,
+we can lift the norm to sequences. -/
 def norm (f : padic_seq p) : ℚ :=
 if hf : f ≈ 0 then 0 else padic_norm p (f (stationary_point hf))
 
@@ -220,8 +222,8 @@ lemma val_eq_iff_norm_eq {f g : padic_seq p} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0)
   f.valuation = g.valuation ↔ f.norm = g.norm :=
 begin
   rw [norm_eq_pow_val hf, norm_eq_pow_val hg, ← neg_inj, fpow_inj],
-  { exact_mod_cast nat.prime.pos ‹_› },
-  { exact_mod_cast nat.prime.ne_one ‹_› },
+  { exact_mod_cast (fact.out p.prime).pos },
+  { exact_mod_cast (fact.out p.prime).ne_one },
 end
 
 end valuation
@@ -239,7 +241,7 @@ do [v1, v2, v3] ← [hh, hf, hg].mmap
    e2 ← tactic.mk_app ``lift_index_left [hf, v1, v3] <|> return `(true),
    e3 ← tactic.mk_app ``lift_index_right [hg, v1, v2] <|> return `(true),
    sl ← [e1, e2, e3].mfoldl (λ s e, simp_lemmas.add s e) simp_lemmas.mk,
-   when at_.include_goal (tactic.simp_target sl),
+   when at_.include_goal (tactic.simp_target sl >> tactic.skip),
    hs ← at_.get_locals, hs.mmap' (tactic.simp_hyp sl [])
 
 /--
@@ -297,7 +299,7 @@ by simpa [hk] using padic_norm.values_discrete p hk'
 
 lemma norm_one : norm (1 : padic_seq p) = 1 :=
 have h1 : ¬ (1 : padic_seq p) ≈ 0, from one_not_equiv_zero _,
-by simp [h1, norm, hp.one_lt]
+by simp [h1, norm, hp.1.one_lt]
 
 private lemma norm_eq_of_equiv_aux {f g : padic_seq p} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) (hfg : f ≈ g)
   (h : padic_norm p (f (stationary_point hf)) ≠ padic_norm p (g (stationary_point hg)))
@@ -685,7 +687,7 @@ begin
   intros j hj,
   suffices :
     padic_norm_e ((↑(lim_seq f j) - f (max N N2)) + (f (max N N2) - lim_seq f (max N N2))) < ε,
-  { ring at this ⊢,
+  { ring_nf at this ⊢,
     rw [← padic_norm_e.eq_padic_norm', ← padic.cast_eq_of_rat],
     exact_mod_cast this },
   { apply lt_of_le_of_lt,
@@ -723,7 +725,7 @@ theorem complete' : ∃ q : ℚ_[p], ∀ ε > 0, ∃ N, ∀ i ≥ N, padic_norm_
     existsi max N N2,
     intros i hi,
     suffices : padic_norm_e ((lim f - lim' f i) + (lim' f i - f i)) < ε,
-    { ring at this; exact this },
+    { ring_nf at this; exact this },
     { apply lt_of_le_of_lt,
       { apply padic_norm_e.add },
       { have : ε = ε / 2 + ε / 2, by rw ←(add_self_div_two ε); simp,
@@ -813,8 +815,8 @@ end
 
 instance : nondiscrete_normed_field ℚ_[p] :=
 { non_trivial := ⟨padic.of_rat p (p⁻¹), begin
-    have h0 : p ≠ 0 := ne_of_gt (hp.pos),
-    have h1 : 1 < p := hp.one_lt,
+    have h0 : p ≠ 0 := ne_of_gt (hp.1.pos),
+    have h1 : 1 < p := hp.1.one_lt,
     rw [← padic.cast_eq_of_rat, eq_padic_norm],
     simp only [padic_norm, inv_eq_zero],
     simp only [if_neg] {discharger := `[exact_mod_cast h0]},
@@ -827,16 +829,16 @@ instance : nondiscrete_normed_field ℚ_[p] :=
 
 @[simp] lemma norm_p : ∥(p : ℚ_[p])∥ = p⁻¹ :=
 begin
-  have p₀ : p ≠ 0 := nat.prime.ne_zero ‹_›,
-  have p₁ : p ≠ 1 := nat.prime.ne_one ‹_›,
+  have p₀ : p ≠ 0 := hp.1.ne_zero,
+  have p₁ : p ≠ 1 := hp.1.ne_one,
   simp [p₀, p₁, norm, padic_norm, padic_val_rat, fpow_neg, padic.cast_eq_of_rat_of_nat],
 end
 
 lemma norm_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=
 begin
   rw [norm_p, inv_eq_one_div, div_lt_iff, one_mul],
-  { exact_mod_cast nat.prime.one_lt ‹_› },
-  { exact_mod_cast nat.prime.pos ‹_› }
+  { exact_mod_cast hp.1.one_lt },
+  { exact_mod_cast hp.1.pos }
 end
 
 @[simp] lemma norm_p_pow (n : ℤ) : ∥(p^n : ℚ_[p])∥ = p^-n :=
@@ -867,7 +869,8 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
     by norm_num [this]
   else
     begin
-      have hnz' : {rat . num := n, denom := d, pos := hn, cop := hd} ≠ 0, from mt rat.zero_iff_num_zero.1 hnz,
+      have hnz' : { rat . num := n, denom := d, pos := hn, cop := hd } ≠ 0,
+        from mt rat.zero_iff_num_zero.1 hnz,
       rw [padic_norm_e.eq_padic_norm],
       norm_cast,
       rw [padic_norm.eq_fpow_of_nonzero p hnz', padic_val_rat_def p hnz'],
@@ -875,13 +878,13 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
       simp only, norm_cast,
       rw_mod_cast [h, sub_zero],
       apply fpow_le_one_of_nonpos,
-      { exact_mod_cast le_of_lt hp.one_lt, },
+      { exact_mod_cast le_of_lt hp.1.one_lt, },
       { apply neg_nonpos_of_nonneg, norm_cast, simp, }
     end
 
 theorem norm_int_le_one (z : ℤ) : ∥(z : ℚ_[p])∥ ≤ 1 :=
 suffices ∥((z : ℚ) : ℚ_[p])∥ ≤ 1, by simpa,
-norm_rat_le_one $ by simp [nat.prime.ne_one ‹_›]
+norm_rat_le_one $ by simp [hp.1.ne_one]
 
 lemma norm_int_lt_one_iff_dvd (k : ℤ) : ∥(k : ℚ_[p])∥ < 1 ↔ ↑p ∣ k :=
 begin
@@ -903,7 +906,7 @@ begin
     { norm_cast at H ⊢,
       convert fpow_zero _,
       simp only [neg_eq_zero],
-      rw padic_val_rat.padic_val_rat_of_int _ (nat.prime.ne_one ‹_›) H,
+      rw padic_val_rat.padic_val_rat_of_int _ hp.1.ne_one H,
       norm_cast,
       rw [← enat.coe_inj, enat.coe_get, enat.coe_zero],
       apply multiplicity.multiplicity_eq_zero_of_not_dvd h } },
@@ -915,7 +918,7 @@ begin
     ... < 1 : _,
     { rw [mul_one, padic_norm_e.norm_p],
       apply inv_lt_one,
-      exact_mod_cast nat.prime.one_lt ‹_› }, },
+      exact_mod_cast hp.1.one_lt }, },
 end
 
 lemma norm_int_le_pow_iff_dvd (k : ℤ) (n : ℕ) : ∥(k : ℚ_[p])∥ ≤ ((↑p)^(-n : ℤ)) ↔ ↑(p^n) ∣ k :=
@@ -1019,13 +1022,13 @@ end
 
 @[simp] lemma valuation_p : valuation (p : ℚ_[p]) = 1 :=
 begin
-  have h : (1 : ℝ) < p := by exact_mod_cast nat.prime.one_lt ‹_›,
+  have h : (1 : ℝ) < p := by exact_mod_cast (fact.out p.prime).one_lt,
   rw ← neg_inj,
   apply (fpow_strict_mono h).injective,
   dsimp only,
   rw ← norm_eq_pow_val,
   { simp },
-  { exact_mod_cast nat.prime.ne_zero ‹_›, }
+  { exact_mod_cast (fact.out p.prime).ne_zero }
 end
 
 end padic

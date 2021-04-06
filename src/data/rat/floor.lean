@@ -56,7 +56,7 @@ begin
         by rwa [n_eq_c_mul_num, d_eq_c_mul_denom],
       suffices : c > 0, by solve_by_elim [int.mul_div_mul_of_pos],
       have q_denom_mul_c_pos : (0 : ℤ) < q.denom * c, by
-      { have : (d : ℤ) > 0, by exact_mod_cast (nat.pos_iff_ne_zero.elim_right d_ne_zero),
+      { have : (d : ℤ) > 0, by exact_mod_cast (pos_iff_ne_zero.elim_right d_ne_zero),
         rwa [d_eq_c_mul_denom, mul_comm] at this },
       suffices : (0 : ℤ) ≤ q.denom, from pos_of_mul_pos_left q_denom_mul_c_pos this,
       exact_mod_cast (le_of_lt q.pos) } }

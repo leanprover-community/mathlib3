@@ -5,6 +5,14 @@ Authors: Scott Morrison
 -/
 import category_theory.products.bifunctor
 
+/-!
+# Curry and uncurry, as functors.
+
+We define `curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E))` and `uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E)`,
+and verify that they provide an equivalence of categories
+`currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E)`.
+
+-/
 namespace category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
@@ -89,11 +97,11 @@ def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
 /--
 The equivalence of functor categories given by currying/uncurrying.
 -/
-@[simps {rhs_md := semireducible}] -- create projection simp lemmas even though this isn't a `{ .. }`.
+@[simps] -- create projection simp lemmas even though this isn't a `{ .. }`.
 def currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E) :=
 equivalence.mk uncurry curry
   (nat_iso.of_components (λ F, nat_iso.of_components
-    (λ X, nat_iso.of_components (λ Y, as_iso (𝟙 _)) (by tidy)) (by tidy)) (by tidy))
+    (λ X, nat_iso.of_components (λ Y, iso.refl _) (by tidy)) (by tidy)) (by tidy))
   (nat_iso.of_components (λ F, nat_iso.of_components
     (λ X, eq_to_iso (by simp)) (by tidy)) (by tidy))
 

@@ -181,10 +181,10 @@ begin
       exact h' },
     exact ⟨0, by simp [hℓ]⟩ },
   { have Ycomplete := is_complete_ker ℓ,
-    rw [submodule.eq_top_iff_orthogonal_eq_bot Ycomplete, ←hY] at htriv,
-    change Y.orthogonal ≠ ⊥ at htriv,
+    rw [← submodule.orthogonal_eq_bot_iff Ycomplete, ←hY] at htriv,
+    change Yᗮ ≠ ⊥ at htriv,
     rw [submodule.ne_bot_iff] at htriv,
-    obtain ⟨z : E, hz : z ∈ Y.orthogonal, z_ne_0 : z ≠ 0⟩ := htriv,
+    obtain ⟨z : E, hz : z ∈ Yᗮ, z_ne_0 : z ≠ 0⟩ := htriv,
     refine ⟨((ℓ z)† / ⟪z, z⟫) • z, _⟩,
     ext x,
     have h₁ : (ℓ z) • x - (ℓ x) • z ∈ Y,
@@ -241,7 +241,7 @@ lemma to_dual_map_isometry : isometry (@to_dual_map F _) :=
 add_monoid_hom.isometry_of_norm _ norm_to_dual_map_apply
 
 lemma to_dual_map_injective : function.injective (@to_dual_map F _) :=
-to_dual_map_isometry.injective
+(@to_dual_map_isometry F _).injective
 
 @[simp] lemma ker_to_dual_map : (@to_dual_map F _).ker = ⊥ :=
 linear_map.ker_eq_bot.mpr to_dual_map_injective

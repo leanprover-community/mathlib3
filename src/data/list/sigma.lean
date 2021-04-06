@@ -472,7 +472,8 @@ else if ha₁ : a₁ ∈ l.keys then
 else
   by simp [ha₁, mt mem_keys_of_mem_keys_kerase ha₁]
 
-lemma sizeof_kerase {α} {β : α → Type*} [decidable_eq α] [has_sizeof (sigma β)] (x : α) (xs : list (sigma β)) :
+lemma sizeof_kerase {α} {β : α → Type*} [decidable_eq α] [has_sizeof (sigma β)] (x : α)
+  (xs : list (sigma β)) :
   sizeof (list.kerase x xs) ≤ sizeof xs :=
 begin
   unfold_wf,
@@ -556,7 +557,8 @@ begin
   { rw [erase_dupkeys_cons,lookup_kinsert_ne h,l_ih,lookup_cons_ne], exact h },
 end
 
-lemma sizeof_erase_dupkeys {α} {β : α → Type*} [decidable_eq α] [has_sizeof (sigma β)] (xs : list (sigma β)) :
+lemma sizeof_erase_dupkeys {α} {β : α → Type*} [decidable_eq α] [has_sizeof (sigma β)]
+  (xs : list (sigma β)) :
   sizeof (list.erase_dupkeys xs) ≤ sizeof xs :=
 begin
   unfold_wf,

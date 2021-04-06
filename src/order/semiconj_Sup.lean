@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import order.conditionally_complete_lattice
 import logic.function.conjugate
@@ -74,7 +74,7 @@ lemma semiconj.symm_adjoint [partial_order α] [preorder β]
 begin
   refine λ y, (hg' _).unique _,
   rw [← fa.surjective.image_preimage {x | g x ≤ fb y}, preimage_set_of_eq],
-  simp only [h.eq, ← fb.map_rel_iff, fa.left_ord_continuous (hg' _)]
+  simp only [h.eq, fb.le_iff_le, fa.left_ord_continuous (hg' _)]
 end
 
 variable {G : Type*}

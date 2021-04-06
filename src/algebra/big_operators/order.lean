@@ -22,13 +22,46 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
-lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]
-  (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : finset γ) (g : γ → α) :
-  f (∑ x in s, g x) ≤ ∑ x in s, f (g x) :=
+@[to_additive le_sum_nonempty_of_subadditive_on_pred]
+lemma le_prod_nonempty_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (p : α → Prop) (h_mul : ∀ x y, p x → p y → f (x * y) ≤ f x * f y)
+  (hp_mul : ∀ x y, p x → p y → p (x * y)) (g : γ → α) (s : finset γ) (hs_nonempty : s.nonempty)
+  (hs : ∀ x, x ∈ s → p (g x)) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
 begin
-  refine le_trans (multiset.le_sum_of_subadditive f h_zero h_add _) _,
-  rw [multiset.map_map],
-  refl
+  refine le_trans (multiset.le_prod_nonempty_of_submultiplicative_on_pred f p h_mul hp_mul _ _ _) _,
+  { simp [nonempty_iff_ne_empty.mp hs_nonempty], },
+  { exact multiset.forall_mem_map_iff.mpr hs, },
+  rw multiset.map_map,
+  refl,
+end
+
+@[to_additive le_sum_nonempty_of_subadditive]
+lemma le_prod_nonempty_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) {s : finset γ} (hs : s.nonempty) (g : γ → α) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
+le_prod_nonempty_of_submultiplicative_on_pred f (λ i, true) (by simp [h_mul]) (by simp) g s hs
+  (by simp)
+
+@[to_additive le_sum_of_subadditive_on_pred]
+lemma le_prod_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (p : α → Prop) (h_one : f 1 = 1) (h_mul : ∀ x y, p x → p y → f (x * y) ≤ f x * f y)
+  (hp_mul : ∀ x y, p x → p y → p (x * y)) (g : γ → α) {s : finset γ} (hs : ∀ x, x ∈ s → p (g x)) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
+begin
+  by_cases hs_nonempty : s.nonempty,
+  { exact le_prod_nonempty_of_submultiplicative_on_pred f p h_mul hp_mul g s hs_nonempty hs, },
+  { simp [not_nonempty_iff_eq_empty.mp hs_nonempty, h_one], },
+end
+
+@[to_additive le_sum_of_subadditive]
+lemma le_prod_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_one : f 1 = 1) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) (s : finset γ) (g : γ → α) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
+begin
+  refine le_trans (multiset.le_prod_of_submultiplicative f h_one h_mul _) _,
+  rw multiset.map_map,
+  refl,
 end
 
 lemma abs_sum_le_sum_abs [linear_ordered_field α] {f : β → α} {s : finset β} :
@@ -231,8 +264,9 @@ end
 
 end linear_ordered_cancel_comm_monoid
 
-section linear_ordered_comm_ring
-variables [linear_ordered_comm_ring β]
+section ordered_comm_semiring
+
+variables [ordered_comm_semiring β]
 open_locale classical
 
 /- this is also true for a ordered commutative multiplicative monoid -/
@@ -240,11 +274,10 @@ lemma prod_nonneg {s : finset α} {f : α → β}
   (h0 : ∀(x ∈ s), 0 ≤ f x) : 0 ≤ (∏ x in s, f x) :=
 prod_induction f (λ x, 0 ≤ x) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
 
-
 /- this is also true for a ordered commutative multiplicative monoid -/
-lemma prod_pos {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) : 0 < (∏ x in s, f x) :=
+lemma prod_pos [nontrivial β] {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) :
+  0 < (∏ x in s, f x) :=
 prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
-
 
 /- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_le_prod {s : finset α} {f g : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
@@ -252,11 +285,11 @@ lemma prod_le_prod {s : finset α} {f g : α → β} (h0 : ∀(x ∈ s), 0 ≤ f
 begin
   induction s using finset.induction with a s has ih h,
   { simp },
-  { simp [has], apply mul_le_mul,
-      exact h1 a (mem_insert_self a s),
-      apply ih (λ x H, h0 _ _) (λ x H, h1 _ _); exact (mem_insert_of_mem H),
-      apply prod_nonneg (λ x H, h0 x (mem_insert_of_mem H)),
-      apply le_trans (h0 a (mem_insert_self a s)) (h1 a (mem_insert_self a s)) }
+  { simp only [prod_insert has], apply mul_le_mul,
+    { exact h1 a (mem_insert_self a s) },
+    { apply ih (λ x H, h0 _ _) (λ x H, h1 _ _); exact (mem_insert_of_mem H) },
+    { apply prod_nonneg (λ x H, h0 x (mem_insert_of_mem H)) },
+    { apply le_trans (h0 a (mem_insert_self a s)) (h1 a (mem_insert_self a s)) } }
 end
 
 lemma prod_le_one {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
@@ -267,7 +300,7 @@ begin
 end
 
 /-- If `g, h ≤ f` and `g i + h i ≤ f i`, then the product of `f` over `s` is at least the
-  sum of the products of `g` and `h`. This is the version for `linear_ordered_comm_ring`. -/
+  sum of the products of `g` and `h`. This is the version for `ordered_comm_semiring`. -/
 lemma prod_add_prod_le {s : finset α} {i : α} {f g h : α → β}
   (hi : i ∈ s) (h2i : g i + h i ≤ f i) (hgf : ∀ j ∈ s, j ≠ i → g j ≤ f j)
   (hhf : ∀ j ∈ s, j ≠ i → h j ≤ f j) (hg : ∀ i ∈ s, 0 ≤ g i) (hh : ∀ i ∈ s, 0 ≤ h i) :
@@ -276,13 +309,13 @@ begin
   simp_rw [← mul_prod_diff_singleton hi],
   refine le_trans _ (mul_le_mul_of_nonneg_right h2i _),
   { rw [right_distrib],
-    apply add_le_add; apply mul_le_mul_of_nonneg_left; try { apply prod_le_prod };
-    simp only [and_imp, mem_sdiff, mem_singleton]; intros; apply_assumption; assumption },
+    apply add_le_add; apply mul_le_mul_of_nonneg_left; try { apply_assumption; assumption };
+      apply prod_le_prod; simp * { contextual := tt } },
   { apply prod_nonneg, simp only [and_imp, mem_sdiff, mem_singleton],
-    intros j h1j h2j, refine le_trans (hg j h1j) (hgf j h1j h2j) }
+    intros j h1j h2j, exact le_trans (hg j h1j) (hgf j h1j h2j) }
 end
 
-end linear_ordered_comm_ring
+end ordered_comm_semiring
 
 section canonically_ordered_comm_semiring
 
@@ -318,15 +351,32 @@ end canonically_ordered_comm_semiring
 
 end finset
 
+namespace fintype
+
+variables [fintype α]
+
+@[mono] lemma sum_mono [ordered_add_comm_monoid β] : monotone (λ f : α → β, ∑ x, f x) :=
+λ f g hfg, finset.sum_le_sum $ λ x _, hfg x
+
+lemma sum_strict_mono [ordered_cancel_add_comm_monoid β] : strict_mono (λ f : α → β, ∑ x, f x) :=
+λ f g hfg, let ⟨hle, i, hlt⟩ := pi.lt_def.mp hfg in
+  finset.sum_lt_sum (λ i _, hle i) ⟨i, finset.mem_univ i, hlt⟩
+
+end fintype
+
 namespace with_top
 open finset
-open_locale classical
+
+/-- A product of finite numbers is still finite -/
+lemma prod_lt_top [canonically_ordered_comm_semiring β] [nontrivial β] [decidable_eq β]
+  {s : finset α} {f : α → with_top β} (h : ∀ a ∈ s, f a < ⊤) :
+  (∏ x in s, f x) < ⊤ :=
+prod_induction f (λ a, a < ⊤) (λ a b, mul_lt_top) (coe_lt_top 1) h
 
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top [ordered_add_comm_monoid β] {s : finset α} {f : α → with_top β} :
   (∀a∈s, f a < ⊤) → (∑ x in s, f x) < ⊤ :=
 λ h, sum_induction f (λ a, a < ⊤) (by { simp_rw add_lt_top, tauto }) zero_lt_top h
-
 
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top_iff [canonically_ordered_add_monoid β] {s : finset α} {f : α → with_top β} :

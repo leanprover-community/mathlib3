@@ -18,7 +18,8 @@ Throughout most of this file, `K` denotes a finite field
 and `q` is notation for the cardinality of `K`.
 
 See `ring_theory.integral_domain` for the fact that the unit group of a finite field is a
-cyclic group, as well as the fact that every finite integral domain is a field (`field_of_integral_domain`).
+cyclic group, as well as the fact that every finite integral domain is a field
+(`field_of_integral_domain`).
 
 ## Main results
 
@@ -51,8 +52,8 @@ open polynomial
 
 /-- The cardinality of a field is at most `n` times the cardinality of the image of a degree `n`
   polynomial -/
-lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : polynomial R} (hp : 0 < p.degree) :
-  fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
+lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : polynomial R}
+  (hp : 0 < p.degree) : fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
   (λ a _, calc _ = (p - C a).roots.to_finset.card : congr_arg card
     (by simp [finset.ext_iff, mem_roots_sub_C hp])
@@ -73,7 +74,7 @@ end,
 assume hd : disjoint _ _,
 lt_irrefl (2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-g)))).card) $
 calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-g)))).card
-    ≤ 2 * fintype.card R : nat.mul_le_mul_left _ (finset.card_le_of_subset (subset_univ _))
+    ≤ 2 * fintype.card R : nat.mul_le_mul_left _ (finset.card_le_univ _)
 ... = fintype.card R + fintype.card R : two_mul _
 ... < nat_degree f * (univ.image (λ x : R, eval x f)).card +
       nat_degree (-g) * (univ.image (λ x : R, eval x (-g))).card :
@@ -130,11 +131,11 @@ variable (K)
 
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
-  haveI hp : fact p.prime := char_p.char_is_prime K p,
+  haveI hp : fact p.prime := ⟨char_p.char_is_prime K p⟩,
   letI : vector_space (zmod p) K := { .. (zmod.cast_hom (dvd_refl _) K).to_semimodule },
   obtain ⟨n, h⟩ := vector_space.card_fintype (zmod p) K,
   rw zmod.card at h,
-  refine ⟨⟨n, _⟩, hp, h⟩,
+  refine ⟨⟨n, _⟩, hp.1, h⟩,
   apply or.resolve_left (nat.eq_zero_or_pos n),
   rintro rfl,
   rw pow_zero at h,
@@ -228,7 +229,7 @@ lemma expand_card (f : polynomial K) :
   expand K q f = f ^ q :=
 begin
   cases char_p.exists K with p hp, letI := hp,
-  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, letI : fact p.prime := hp,
+  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, haveI : fact p.prime := ⟨hp⟩,
   dsimp at hn, rw hn at *,
   rw ← map_expand_pow_char,
   rw [frobenius_pow hn, ring_hom.one_def, map_id],
@@ -243,7 +244,7 @@ open finite_field polynomial
 lemma sum_two_squares (p : ℕ) [hp : fact p.prime] (x : zmod p) :
   ∃ a b : zmod p, a^2 + b^2 = x :=
 begin
-  cases hp.eq_two_or_odd with hp2 hp_odd,
+  cases hp.1.eq_two_or_odd with hp2 hp_odd,
   { substI p, revert x, exact dec_trivial },
   let f : polynomial (zmod p) := X^2,
   let g : polynomial (zmod p) := X^2 - C x,
@@ -288,7 +289,7 @@ begin
   have := zmod.pow_totient x',
   apply_fun (coe : units (zmod (n+1)) → zmod (n+1)) at this,
   simpa only [-zmod.pow_totient, nat.succ_eq_add_one, nat.cast_pow, units.coe_one,
-    nat.cast_one, cast_unit_of_coprime, units.coe_pow],
+    nat.cast_one, coe_unit_of_coprime, units.coe_pow],
 end
 
 open finite_field
@@ -298,7 +299,7 @@ namespace zmod
 @[simp] lemma pow_card {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
 by { have h := finite_field.pow_card x, rwa zmod.card p at h }
 
-@[simp] lemma frobenius_zmod (p : ℕ) [hp : fact p.prime] :
+@[simp] lemma frobenius_zmod (p : ℕ) [fact p.prime] :
   frobenius (zmod p) p = ring_hom.id _ :=
 by { ext a, rw [frobenius_def, zmod.pow_card, ring_hom.id_apply] }
 

@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Johannes Hölzl, Sander Dahmen
+Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen
 -/
 import linear_algebra.basis
+import linear_algebra.std_basis
 import set_theory.cardinal_ordinal
 
 /-!
@@ -145,17 +146,65 @@ hb.mk_eq_dim'' ▸ cardinal.card_le_of (λ s, @finset.card_map _ _ ⟨_, subtype
 
 variables [add_comm_group V'] [vector_space K V']
 
+/-- Two linearly equivalent vector spaces have the same dimension, a version with different
+universes. -/
+theorem linear_equiv.lift_dim_eq (f : V ≃ₗ[K] V') :
+  cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K V') :=
+let ⟨b, hb⟩ := exists_is_basis K V in
+calc cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v v'} (cardinal.mk b) :
+  congr_arg _ hb.mk_eq_dim''.symm
+... = cardinal.lift.{v' v} (dim K V') : (f.is_basis hb).mk_eq_dim
+
 /-- Two linearly equivalent vector spaces have the same dimension. -/
 theorem linear_equiv.dim_eq (f : V ≃ₗ[K] V₁) :
   dim K V = dim K V₁ :=
-by letI := classical.dec_eq V;
-letI := classical.dec_eq V₁; exact
-let ⟨b, hb⟩ := exists_is_basis K V in
-cardinal.lift_inj.1 $ hb.mk_eq_dim.symm.trans (f.is_basis hb).mk_eq_dim
+cardinal.lift_inj.1 f.lift_dim_eq
+
+/-- Two vector spaces are isomorphic if they have the same dimension. -/
+theorem nonempty_linear_equiv_of_lift_dim_eq
+  (cond : cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K V')) :
+  nonempty (V ≃ₗ[K] V') :=
+begin
+  obtain ⟨B, h⟩ := exists_is_basis K V,
+  obtain ⟨B', h'⟩ := exists_is_basis K V',
+  have : cardinal.lift.{v v'} (cardinal.mk B) = cardinal.lift.{v' v} (cardinal.mk B'),
+    by rw [h.mk_eq_dim'', cond, h'.mk_eq_dim''],
+  exact (cardinal.lift_mk_eq.{v v' 0}.1 this).map (linear_equiv_of_is_basis h h')
+end
+
+/-- Two vector spaces are isomorphic if they have the same dimension. -/
+theorem nonempty_linear_equiv_of_dim_eq (cond : dim K V = dim K V₁) :
+  nonempty (V ≃ₗ[K] V₁) :=
+nonempty_linear_equiv_of_lift_dim_eq $ congr_arg _ cond
+
+section
+
+variables (V V' V₁)
+
+/-- Two vector spaces are isomorphic if they have the same dimension. -/
+def linear_equiv.of_lift_dim_eq
+  (cond : cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K V')) :
+  V ≃ₗ[K] V' :=
+classical.choice (nonempty_linear_equiv_of_lift_dim_eq cond)
+
+/-- Two vector spaces are isomorphic if they have the same dimension. -/
+def linear_equiv.of_dim_eq (cond : dim K V = dim K V₁) : V ≃ₗ[K] V₁ :=
+classical.choice (nonempty_linear_equiv_of_dim_eq cond)
+
+end
+
+/-- Two vector spaces are isomorphic if and only if they have the same dimension. -/
+theorem linear_equiv.nonempty_equiv_iff_lift_dim_eq :
+  nonempty (V ≃ₗ[K] V') ↔ cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K V') :=
+⟨λ ⟨h⟩, linear_equiv.lift_dim_eq h, λ h, nonempty_linear_equiv_of_lift_dim_eq h⟩
+
+/-- Two vector spaces are isomorphic if and only if they have the same dimension. -/
+theorem linear_equiv.nonempty_equiv_iff_dim_eq : nonempty (V ≃ₗ[K] V₁) ↔ dim K V = dim K V₁ :=
+⟨λ ⟨h⟩, linear_equiv.dim_eq h, λ h, nonempty_linear_equiv_of_dim_eq h⟩
 
 @[simp] lemma dim_bot : dim K (⊥ : submodule K V) = 0 :=
 by letI := classical.dec_eq V;
-  rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty K V _ _ _ not_nonempty_pempty).mk_eq_dim,
+  rw [← cardinal.lift_inj, ← (is_basis_empty (⊥ : submodule K V) not_nonempty_pempty).mk_eq_dim,
     cardinal.mk_pempty]
 
 @[simp] lemma dim_top : dim K (⊤ : submodule K V) = dim K V :=
@@ -192,12 +241,7 @@ by simpa using cardinal_lift_le_dim_of_linear_independent hv
 lemma cardinal_le_dim_of_linear_independent'
   {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
   cardinal.mk s ≤ dim K V :=
-begin
-  -- extend s to a basis
-  obtain ⟨b, ss, h⟩ := exists_subset_is_basis hs,
-  rw [←h.mk_range_eq_dim, subtype.range_coe],
-  apply cardinal.mk_le_of_injective (inclusion_injective ss),
-end
+cardinal_le_dim_of_linear_independent hs
 
 lemma dim_span_le (s : set V) : dim K (span K s) ≤ cardinal.mk s :=
 begin
@@ -219,8 +263,6 @@ calc dim K (span K (↑s : set V)) ≤ cardinal.mk (↑s : set V) : dim_span_le 
 
 theorem dim_prod : dim K (V × V₁) = dim K V + dim K V₁ :=
 begin
-  letI := classical.dec_eq V,
-  letI := classical.dec_eq V₁,
   rcases exists_is_basis K V with ⟨b, hb⟩,
   rcases exists_is_basis K V₁ with ⟨c, hc⟩,
   rw [← cardinal.lift_inj,
@@ -239,7 +281,7 @@ by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm
 
 theorem dim_quotient_le (p : submodule K V) :
   dim K p.quotient ≤ dim K V :=
-by { rw ← dim_quotient_add_dim p, exact cardinal.le_add_right _ _ }
+by { rw ← dim_quotient_add_dim p, exact self_le_add_right _ _ }
 
 /-- rank-nullity theorem -/
 theorem dim_range_add_dim_ker (f : V →ₗ[K] V₁) : dim K f.range + dim K f.ker = dim K V :=
@@ -249,7 +291,7 @@ begin
 end
 
 lemma dim_range_le (f : V →ₗ[K] V₁) : dim K f.range ≤ dim K V :=
-by rw ← dim_range_add_dim_ker f; exact le_add_right (le_refl _)
+by { rw ← dim_range_add_dim_ker f, exact self_le_add_right _ _ }
 
 lemma dim_map_le (f : V →ₗ V₁) (p : submodule K V) : dim K (p.map f) ≤ dim K p :=
 begin
@@ -258,23 +300,19 @@ begin
 end
 
 lemma dim_range_of_surjective (f : V →ₗ[K] V') (h : surjective f) : dim K f.range = dim K V' :=
-begin
-  refine linear_equiv.dim_eq (linear_equiv.of_bijective (submodule.subtype _) _ _),
-  exact linear_map.ker_eq_bot.2 subtype.val_injective,
-  rwa [range_subtype, linear_map.range_eq_top]
-end
+by rw [linear_map.range_eq_top.2 h, dim_top]
 
 lemma dim_eq_of_surjective (f : V →ₗ[K] V₁) (h : surjective f) : dim K V = dim K V₁ + dim K f.ker :=
 by rw [← dim_range_add_dim_ker f, ← dim_range_of_surjective f h]
 
 lemma dim_le_of_surjective (f : V →ₗ[K] V₁) (h : surjective f) : dim K V₁ ≤ dim K V :=
-by rw [dim_eq_of_surjective f h]; refine le_add_right (le_refl _)
+by { rw [dim_eq_of_surjective f h], refine self_le_add_right _ _ }
 
 lemma dim_eq_of_injective (f : V →ₗ[K] V₁) (h : injective f) : dim K V = dim K f.range :=
 by rw [← dim_range_add_dim_ker f, linear_map.ker_eq_bot.2 h]; simp [dim_bot]
 
 lemma dim_submodule_le (s : submodule K V) : dim K s ≤ dim K V :=
-by { rw ← dim_quotient_add_dim s, exact cardinal.le_add_left _ _ }
+by { rw ← dim_quotient_add_dim s, exact self_le_add_left _ _ }
 
 lemma dim_le_of_injective (f : V →ₗ[K] V₁) (h : injective f) :
   dim K V ≤ dim K V₁ :=
@@ -330,7 +368,7 @@ begin
   { rw [eq_top_iff, range_cod_restrict, ← map_le_iff_le_comap, map_top, range_subtype],
     rintros ⟨d, e⟩,
     have h := eq₂ d (-e),
-    simp only [add_eq_zero_iff_eq_neg, prod_apply, mem_ker, mem_coe, prod.mk.inj_iff,
+    simp only [add_eq_zero_iff_eq_neg, prod_apply, mem_ker, set_like.mem_coe, prod.mk.inj_iff,
       coprod_apply, map_neg, neg_apply, linear_map.mem_range] at ⊢ h,
     assume hde,
     rcases h hde with ⟨c, h₁, h₂⟩,
@@ -358,7 +396,7 @@ dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (
 
 lemma dim_add_le_dim_add_dim (s t : submodule K V) :
   dim K (s ⊔ t : submodule K V) ≤ dim K s + dim K t :=
-by rw [← dim_sup_add_dim_inf_eq]; exact le_add_right (le_refl _)
+by { rw [← dim_sup_add_dim_inf_eq], exact self_le_add_right _ _ }
 
 end
 
@@ -421,7 +459,7 @@ section rank
 def rank (f : V →ₗ[K] V') : cardinal := dim K f.range
 
 lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ dim K V :=
-by rw [← dim_range_add_dim_ker f]; exact le_add_right (le_refl _)
+by { rw [← dim_range_add_dim_ker f], exact self_le_add_right _ _ }
 
 lemma rank_le_range (f : V →ₗ[K] V₁) : rank f ≤ dim K V₁ :=
 dim_submodule_le _
@@ -474,6 +512,20 @@ begin
     rw [←dim_top, this, dim_bot] }
 end
 
+lemma dim_zero_iff : vector_space.dim K V = 0 ↔ subsingleton V :=
+dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
+
+lemma is_basis_of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι)
+  (hV : dim K V = 0) : is_basis K (λ x : ι, (0 : V)) :=
+begin
+  haveI : subsingleton V := dim_zero_iff.1 hV,
+  exact is_basis_empty _ h
+end
+
+lemma is_basis_of_dim_eq_zero'
+  (hV : dim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
+is_basis_of_dim_eq_zero (finset.univ_eq_empty.mp rfl) hV
+
 lemma dim_pos_iff_exists_ne_zero : 0 < vector_space.dim K V ↔ ∃ x : V, x ≠ 0 :=
 begin
   rw ←not_iff_not,
@@ -481,15 +533,68 @@ begin
 end
 
 lemma dim_pos_iff_nontrivial : 0 < vector_space.dim K V ↔ nontrivial V :=
-begin
-  rw dim_pos_iff_exists_ne_zero,
-  split,
-  { rintros ⟨x, h⟩, exact ⟨⟨x, 0, h⟩⟩ },
-  { introsI, exact exists_ne 0 }
-end
+dim_pos_iff_exists_ne_zero.trans (nontrivial_iff_exists_ne 0).symm
 
 lemma dim_pos [h : nontrivial V] : 0 < vector_space.dim K V :=
 dim_pos_iff_nontrivial.2 h
+
+lemma le_dim_iff_exists_linear_independent {c : cardinal} :
+  c ≤ dim K V ↔ ∃ s : set V, cardinal.mk s = c ∧ linear_independent K (coe : s → V) :=
+begin
+  split,
+  { intro h,
+    rcases exists_is_basis K V with ⟨t, ht⟩,
+    rw [← ht.mk_eq_dim'', cardinal.le_mk_iff_exists_subset] at h,
+    rcases h with ⟨s, hst, hsc⟩,
+    exact ⟨s, hsc, ht.1.mono hst⟩ },
+  { rintro ⟨s, rfl, si⟩,
+    exact cardinal_le_dim_of_linear_independent si }
+end
+
+lemma le_dim_iff_exists_linear_independent_finset {n : ℕ} :
+  ↑n ≤ dim K V ↔ ∃ s : finset V, s.card = n ∧ linear_independent K (coe : (s : set V) → V) :=
+begin
+  simp only [le_dim_iff_exists_linear_independent, cardinal.mk_eq_nat_iff_finset],
+  split,
+  { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
+    exact ⟨t, rfl, si⟩ },
+  { rintro ⟨s, rfl, si⟩,
+    exact ⟨s, ⟨s, rfl, rfl⟩, si⟩ }
+end
+
+lemma le_rank_iff_exists_linear_independent {c : cardinal} {f : V →ₗ[K] V'} :
+  c ≤ rank f ↔
+  ∃ s : set V, cardinal.lift.{v v'} (cardinal.mk s) = cardinal.lift.{v' v} c ∧
+    linear_independent K (λ x : s, f x) :=
+begin
+  rcases f.range_restrict.exists_right_inverse_of_surjective f.range_range_restrict with ⟨g, hg⟩,
+  have fg : left_inverse f.range_restrict g, from linear_map.congr_fun hg,
+  refine ⟨λ h, _, _⟩,
+  { rcases le_dim_iff_exists_linear_independent.1 h with ⟨s, rfl, si⟩,
+    refine ⟨g '' s, cardinal.mk_image_eq_lift _ _ fg.injective, _⟩,
+    replace fg : ∀ x, f (g x) = x, by { intro x, convert congr_arg subtype.val (fg x) },
+    replace si : linear_independent K (λ x : s, f (g x)),
+      by simpa only [fg] using si.map' _ (ker_subtype _),
+    exact si.image_of_comp s g f },
+  { rintro ⟨s, hsc, si⟩,
+    have : linear_independent K (λ x : s, f.range_restrict x),
+      from linear_independent.of_comp (f.range.subtype) (by convert si),
+    convert cardinal_le_dim_of_linear_independent this.image,
+    rw [← cardinal.lift_inj, ← hsc, cardinal.mk_image_eq_of_inj_on_lift],
+    exact inj_on_iff_injective.2 this.injective }
+end
+
+lemma le_rank_iff_exists_linear_independent_finset {n : ℕ} {f : V →ₗ[K] V'} :
+  ↑n ≤ rank f ↔ ∃ s : finset V, s.card = n ∧ linear_independent K (λ x : (s : set V), f x) :=
+begin
+  simp only [le_rank_iff_exists_linear_independent, cardinal.lift_nat_cast,
+    cardinal.lift_eq_nat_iff, cardinal.mk_eq_nat_iff_finset],
+  split,
+  { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
+    exact ⟨t, rfl, si⟩ },
+  { rintro ⟨s, rfl, si⟩,
+    exact ⟨s, ⟨s, rfl, rfl⟩, si⟩ }
+end
 
 /-- A vector space has dimension at most `1` if and only if there is a
 single vector of which all vectors are multiples. -/
@@ -505,12 +610,12 @@ begin
       intro v,
       simp [h' v] },
     { use v₀,
-      have h' : span K {v₀} = ⊤, { simpa [hd.eq_singleton_of_mem hv₀] using h.2 },
+      have h' : (K ∙ v₀) = ⊤, { simpa [hd.eq_singleton_of_mem hv₀] using h.2 },
       intro v,
       have hv : v ∈ (⊤ : submodule K V) := mem_top,
       rwa [←h', mem_span_singleton] at hv } },
   { rintros ⟨v₀, hv₀⟩,
-    have h : span K ({v₀} : set V) = ⊤,
+    have h : (K ∙ v₀) = ⊤,
     { ext, simp [mem_span_singleton, hv₀] },
     rw [←dim_top, ←h],
     convert dim_span_le _,
@@ -520,7 +625,7 @@ end
 /-- A submodule has dimension at most `1` if and only if there is a
 single vector in the submodule such that the submodule is contained in
 its span. -/
-lemma dim_submodule_le_one_iff (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀ ∈ s, s ≤ span K {v₀} :=
+lemma dim_submodule_le_one_iff (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀ ∈ s, s ≤ K ∙ v₀ :=
 begin
   simp_rw [dim_le_one_iff, le_span_singleton_iff],
   split,
@@ -543,7 +648,7 @@ end
 /-- A submodule has dimension at most `1` if and only if there is a
 single vector, not necessarily in the submodule, such that the
 submodule is contained in its span. -/
-lemma dim_submodule_le_one_iff' (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀, s ≤ span K {v₀} :=
+lemma dim_submodule_le_one_iff' (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀, s ≤ K ∙ v₀ :=
 begin
   rw dim_submodule_le_one_iff,
   split,

@@ -198,13 +198,13 @@ namespace category_theory.iso
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Group`. -/
 @[to_additive AddGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
-`AddGroup`.", simps {rhs_md := semireducible}]
+`AddGroup`.", simps]
 def Group_iso_to_mul_equiv {X Y : Group} (i : X ≅ Y) : X ≃* Y :=
 i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
 /-- Build a `mul_equiv` from an isomorphism in the category `CommGroup`. -/
 @[to_additive AddCommGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism
-in the category `AddCommGroup`.", simps {rhs_md := semireducible}]
+in the category `AddCommGroup`.", simps]
 def CommGroup_iso_to_mul_equiv {X Y : CommGroup} (i : X ≅ Y) : X ≃* Y :=
 i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
@@ -250,7 +250,7 @@ instance Group.forget_reflects_isos : reflects_isomorphisms (forget Group.{u}) :
     resetI,
     let i := as_iso ((forget Group).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_Group_iso },
+    exact ⟨(is_iso.of_iso e.to_Group_iso).1⟩,
   end }
 
 @[to_additive]
@@ -260,5 +260,5 @@ instance CommGroup.forget_reflects_isos : reflects_isomorphisms (forget CommGrou
     resetI,
     let i := as_iso ((forget CommGroup).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_CommGroup_iso },
+    exact ⟨(is_iso.of_iso e.to_CommGroup_iso).1⟩,
   end }

@@ -68,15 +68,9 @@ do
 
 /-- List of all rewrites of an expression `e` by `r : expr × bool`.
 Here `r.1` is the substituting expression and `r.2` flags the direction of the rewrite. -/
-meta def nth_rewrite (e : expr) (r : expr × bool) (cfg : nth_rewrite.cfg := {}) :
+meta def all_rewrites (e : expr) (r : expr × bool) (cfg : nth_rewrite.cfg := {}) :
   tactic (list tracked_rewrite) :=
 e.app_map (rewrite_at_lens cfg r)
-
-/-- Lazy list of all rewrites of an expression `e` by `r : expr × bool`.
-Here `r.1` is the substituting expression and `r.2` flags the direction of the rewrite. -/
-meta def nth_rewrite_lazy (e : expr) (r : expr × bool) (cfg : nth_rewrite.cfg := {}) :
-  mllist tactic tracked_rewrite :=
-mllist.squash $ mllist.of_list <$> nth_rewrite e r cfg
 
 end nth_rewrite.congr
 

@@ -282,7 +282,7 @@ lemma coe_mul (x y : M) : (↑(x * y) : c.quotient) = ↑x * ↑y := rfl
     that is constant on `c`'s equivalence classes. -/
 @[simp, to_additive "Definition of the function on the quotient by an additive congruence
 relation `c` induced by a function that is constant on `c`'s equivalence classes."]
-protected lemma lift_on_beta {β} (c : con M) (f : M → β)
+protected lemma lift_on_coe {β} (c : con M) (f : M → β)
   (h : ∀ a b, c a b → f a = f b) (x : M) :
   con.lift_on (x : c.quotient) f h = f x := rfl
 
@@ -535,38 +535,26 @@ def correspondence : {d // c ≤ d} ≃o (con c.quotient) :=
       λ x y h, show d _ _, by rw mul_ker_mk_eq at h; exact c.eq.2 h ▸ d.refl _ in
     ext $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
       con.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-  map_rel_iff' := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
-    λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨_, _, rfl, rfl, hs⟩ in
-      t.1.trans (t.1.symm $ t.2 $ eq_rel.1 hx) $ t.1.trans ht $ t.2 $ eq_rel.1 hy⟩ }
+  map_rel_iff' := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨_, _, rfl, rfl, hs⟩ in
+      t.1.trans (t.1.symm $ t.2 $ eq_rel.1 hx) $ t.1.trans ht $ t.2 $ eq_rel.1 hy,
+      λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
 
 end
 
 end
 
--- Monoids
-section monoids
+section mul_one_class
 
-variables {M} [monoid M] [monoid N] [monoid P] (c : con M)
+variables {M} [mul_one_class M] [mul_one_class N] [mul_one_class P] (c : con M)
 
 /-- The quotient of a monoid by a congruence relation is a monoid. -/
 @[to_additive "The quotient of an `add_monoid` by an additive congruence relation is
 an `add_monoid`."]
-instance monoid : monoid c.quotient :=
+instance mul_one_class : mul_one_class c.quotient :=
 { one := ((1 : M) : c.quotient),
   mul := (*),
-  mul_assoc := λ x y z, quotient.induction_on₃' x y z
-               $ λ _ _ _, congr_arg coe $ mul_assoc _ _ _,
   mul_one := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ mul_one _,
   one_mul := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ one_mul _ }
-
-
-/-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
-@[to_additive "The quotient of an `add_comm_monoid` by an additive congruence
-relation is an `add_comm_monoid`."]
-instance comm_monoid {α : Type*} [comm_monoid α] (c : con α) :
-  comm_monoid c.quotient :=
-{ mul_comm := λ x y, con.induction_on₂ x y $ λ w z, by rw [←coe_mul, ←coe_mul, mul_comm],
-  ..c.monoid}
 
 variables {c}
 
@@ -846,6 +834,28 @@ def quotient_quotient_equiv_quotient (c d : con M) (h : c ≤ d) :
 { map_mul' := λ x y, con.induction_on₂ x y $ λ w z, con.induction_on₂ w z $ λ a b,
     show _ = d.mk' a * d.mk' b, by rw ←d.mk'.map_mul; refl,
   ..quotient_quotient_equiv_quotient c.to_setoid d.to_setoid h }
+
+end mul_one_class
+
+section monoids
+
+/-- The quotient of a monoid by a congruence relation is a monoid. -/
+@[to_additive "The quotient of an `add_monoid` by an additive congruence relation is
+an `add_monoid`."]
+instance monoid {M : Type*} [monoid M] (c : con M): monoid c.quotient :=
+{ one := ((1 : M) : c.quotient),
+  mul := (*),
+  mul_assoc := λ x y z, quotient.induction_on₃' x y z
+               $ λ _ _ _, congr_arg coe $ mul_assoc _ _ _,
+  .. c.mul_one_class }
+
+/-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
+@[to_additive "The quotient of an `add_comm_monoid` by an additive congruence
+relation is an `add_comm_monoid`."]
+instance comm_monoid {M : Type*} [comm_monoid M] (c : con M) :
+  comm_monoid c.quotient :=
+{ mul_comm := λ x y, con.induction_on₂ x y $ λ w z, by rw [←coe_mul, ←coe_mul, mul_comm],
+  ..c.monoid}
 
 end monoids
 

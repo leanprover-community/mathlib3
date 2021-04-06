@@ -85,10 +85,12 @@ def self [mono f] : mono_factorisation f :=
   m := f,
   e := 𝟙 X }
 
--- I'm not sure we really need this, but the linter says that an inhabited instance ought to exist...
+-- I'm not sure we really need this, but the linter says that an inhabited instance
+-- ought to exist...
 instance [mono f] : inhabited (mono_factorisation f) := ⟨self f⟩
 
-/-- The morphism `m` in a factorisation `f = e ≫ m` through a monomorphism is uniquely determined. -/
+/-- The morphism `m` in a factorisation `f = e ≫ m` through a monomorphism is uniquely
+determined. -/
 @[ext]
 lemma ext
   {F F' : mono_factorisation f} (hI : F.I = F'.I) (hm : F.m = (eq_to_hom hI) ≫ F'.m) : F = F' :=
@@ -172,7 +174,9 @@ variable [has_image f]
 /-- The chosen factorisation of `f` through a monomorphism. -/
 def image.mono_factorisation : mono_factorisation f :=
 (classical.choice (has_image.exists_image)).F
-/-- The witness of the universal property for the chosen factorisation of `f` through a monomorphism. -/
+
+/-- The witness of the universal property for the chosen factorisation of `f` through
+a monomorphism. -/
 def image.is_image : is_image (image.mono_factorisation f) :=
 (classical.choice (has_image.exists_image)).is_image
 
@@ -192,7 +196,9 @@ lemma as_factor_thru_image : (image.mono_factorisation f).e = factor_thru_image 
 lemma image.fac : factor_thru_image f ≫ image.ι f = f := (image.mono_factorisation f).fac'
 
 variable {f}
-/-- Any other factorisation of the morphism `f` through a monomorphism receives a map from the image. -/
+
+/-- Any other factorisation of the morphism `f` through a monomorphism receives a map from the
+image. -/
 def image.lift (F' : mono_factorisation f) : image f ⟶ F'.I := (image.is_image f).lift F'
 @[simp, reassoc]
 lemma image.lift_fac (F' : mono_factorisation f) : image.lift F' ≫ F'.m = image.ι f :=
@@ -219,6 +225,15 @@ lemma has_image.uniq
   (F' : mono_factorisation f) (l : image f ⟶ F'.I) (w : l ≫ F'.m = image.ι f) :
   l = image.lift F' :=
 (cancel_mono F'.m).1 (by simp [w])
+
+/-- If `has_image g`, then `has_image (f ≫ g)` when `f` is an isomorphism. -/
+instance {X Y Z : C} (f : X ⟶ Y) [is_iso f] (g : Y ⟶ Z) [has_image g] : has_image (f ≫ g) :=
+{ exists_image := ⟨{
+  F :=
+  { I := image g,
+    m := image.ι g,
+    e := f ≫ factor_thru_image g, },
+  is_image := { lift := λ F', image.lift { I := F'.I, m := F'.m, e := inv f ≫ F'.e, }, }, }⟩ }
 
 end
 
@@ -249,7 +264,7 @@ begin
 end
 
 -- This is the proof that `factor_thru_image f` is an epimorphism
--- from https://en.wikipedia.org/wiki/Image_(category_theory), which is in turn taken from:
+-- from https://en.wikipedia.org/wiki/Image_%28category_theory%29, which is in turn taken from:
 -- Mitchell, Barry (1965), Theory of categories, MR 0202787, p.12, Proposition 10.1
 @[ext]
 lemma image.ext {W : C} {g h : image f ⟶ W} [has_limit (parallel_pair g h)]
@@ -308,9 +323,9 @@ image.lift
   e := factor_thru_image f', }.
 
 instance (h : f = f') : is_iso (image.eq_to_hom h) :=
-{ inv := image.eq_to_hom h.symm,
-  hom_inv_id' := (cancel_mono (image.ι f)).1 (by simp [image.eq_to_hom]),
-  inv_hom_id' := (cancel_mono (image.ι f')).1 (by simp [image.eq_to_hom]), }
+⟨⟨image.eq_to_hom h.symm,
+  ⟨(cancel_mono (image.ι f)).1 (by simp [image.eq_to_hom]),
+   (cancel_mono (image.ι f')).1 (by simp [image.eq_to_hom])⟩⟩⟩
 
 /-- An equation between morphisms gives an isomorphism between the images. -/
 def image.eq_to_iso (h : f = f') : image f ≅ image f' := as_iso (image.eq_to_hom h)
@@ -334,6 +349,11 @@ image.lift
 { I := image g,
   m := image.ι g,
   e := f ≫ factor_thru_image g }
+
+@[simp, reassoc]
+lemma image.pre_comp_ι [has_image g] [has_image (f ≫ g)] :
+  image.pre_comp f g ≫ image.ι g = image.ι (f ≫ g) :=
+by simp [image.pre_comp]
 
 @[simp, reassoc]
 lemma image.factor_thru_image_pre_comp [has_image g] [has_image (f ≫ g)] :
@@ -362,14 +382,13 @@ variables [has_equalizers C]
 `image.pre_comp f g` is an isomorphism when `f` is an isomorphism
 (we need `C` to have equalizers to prove this).
 -/
-instance image.is_iso_precomp_iso (f : X ≅ Y) [has_image g] [has_image (f.hom ≫ g)] :
-  is_iso (image.pre_comp f.hom g) :=
-{ inv := image.lift
-  { I := image (f.hom ≫ g),
-    m := image.ι (f.hom ≫ g),
-    e := f.inv ≫ factor_thru_image (f.hom ≫ g) },
-  hom_inv_id' := by { ext, simp [image.pre_comp], },
-  inv_hom_id' := by { ext, simp [image.pre_comp], }, }
+instance image.is_iso_precomp_iso (f : X ⟶ Y) [is_iso f] [has_image g] [has_image (f ≫ g)] :
+  is_iso (image.pre_comp f g) :=
+⟨⟨image.lift
+  { I := image (f ≫ g),
+    m := image.ι (f ≫ g),
+    e := inv f ≫ factor_thru_image (f ≫ g) },
+  ⟨by { ext, simp [image.pre_comp], }, by { ext, simp [image.pre_comp], }⟩⟩⟩
 
 -- Note that in general we don't have the other comparison map you might expect
 -- `image f ⟶ image (f ≫ g)`.
@@ -642,9 +661,7 @@ instance has_strong_epi_images_of_has_pullbacks_of_has_equalizers [has_pullbacks
       { I := pullback h y,
         m := pullback.snd ≫ image.ι f,
         m_mono := by exactI mono_comp _ _,
-        e := pullback.lift _ _ w } ≫ pullback.fst,
-      fac_left := by simp,
-      fac_right := by tidy } } }
+        e := pullback.lift _ _ w } ≫ pullback.fst } } }
 
 end has_strong_epi_images
 
@@ -656,17 +673,21 @@ If `C` has strong epi mono factorisations, then the image is unique up to isomor
 `f` factors as a strong epi followed by a mono, this factorisation is essentially the image
 factorisation.
 -/
-def image.iso_strong_epi_mono {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
+def image.iso_strong_epi_mono {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e]
+  [mono m] :
   I' ≅ image f :=
-is_image.iso_ext {strong_epi_mono_factorisation . I := I', m := m, e := e}.to_mono_is_image (image.is_image f)
+is_image.iso_ext {strong_epi_mono_factorisation . I := I', m := m, e := e}.to_mono_is_image $
+  image.is_image f
 
 @[simp]
-lemma image.iso_strong_epi_mono_hom_comp_ι {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
+lemma image.iso_strong_epi_mono_hom_comp_ι {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f)
+  [strong_epi e] [mono m] :
   (image.iso_strong_epi_mono e m comm).hom ≫ image.ι f = m :=
 is_image.lift_fac _ _
 
 @[simp]
-lemma image.iso_strong_epi_mono_inv_comp_mono {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
+lemma image.iso_strong_epi_mono_inv_comp_mono {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f)
+  [strong_epi e] [mono m] :
   (image.iso_strong_epi_mono e m comm).inv ≫ m = image.ι f :=
 image.lift_fac _
 

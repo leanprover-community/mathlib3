@@ -483,6 +483,33 @@ end
 protected lemma Inf_le {s : set ℕ} {m : ℕ} (hm : m ∈ s) : Inf s ≤ m :=
 by { rw [nat.Inf_def ⟨m, hm⟩], exact nat.find_min' ⟨m, hm⟩ hm }
 
+lemma nonempty_of_pos_Inf {s : set ℕ} (h : 0 < Inf s) : s.nonempty :=
+begin
+  by_contradiction contra, rw set.not_nonempty_iff_eq_empty at contra,
+  have h' : Inf s ≠ 0, { exact ne_of_gt h, }, apply h',
+  rw nat.Inf_eq_zero, right, assumption,
+end
+
+lemma nonempty_of_Inf_eq_succ {s : set ℕ} {k : ℕ} (h : Inf s = k + 1) : s.nonempty :=
+nonempty_of_pos_Inf (h.symm ▸ (succ_pos k) : Inf s > 0)
+
+lemma eq_Ici_of_nonempty_of_upward_closed {s : set ℕ} (hs : s.nonempty)
+  (hs' : ∀ (k₁ k₂ : ℕ), k₁ ≤ k₂ → k₁ ∈ s → k₂ ∈ s) : s = Ici (Inf s) :=
+ext (λ n, ⟨λ H, nat.Inf_le H, λ H, hs' (Inf s) n H (Inf_mem hs)⟩)
+
+lemma Inf_upward_closed_eq_succ_iff {s : set ℕ}
+  (hs : ∀ (k₁ k₂ : ℕ), k₁ ≤ k₂ → k₁ ∈ s → k₂ ∈ s) (k : ℕ) :
+  Inf s = k + 1 ↔ k + 1 ∈ s ∧ k ∉ s :=
+begin
+  split,
+  { intro H,
+    rw [eq_Ici_of_nonempty_of_upward_closed (nonempty_of_Inf_eq_succ H) hs, H, mem_Ici, mem_Ici],
+    exact ⟨le_refl _, k.not_succ_le_self⟩, },
+  { rintro ⟨H, H'⟩,
+    rw [Inf_def (⟨_, H⟩ : s.nonempty), find_eq_iff],
+    exact ⟨H, λ n hnk hns, H' $ hs n k (lt_succ_iff.mp hnk) hns⟩, },
+end
+
 /-- This instance is necessary, otherwise the lattice operations would be derived via
 conditionally_complete_linear_order_bot and marked as noncomputable. -/
 instance : lattice ℕ := lattice_of_linear_order
@@ -496,7 +523,8 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   cInf_le    := assume s a hb ha, by rw [Inf_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
   cSup_empty :=
   begin
-    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff, exists_const],
+    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff,
+      exists_const],
     apply bot_unique (nat.find_min' _ _),
     trivial
   end,
@@ -718,7 +746,8 @@ This result can be used to show that the extended reals [-∞, ∞] are a comple
 
 open_locale classical
 
-/-- Adding a top element to a conditionally complete lattice gives a conditionally complete lattice -/
+/-- Adding a top element to a conditionally complete lattice
+gives a conditionally complete lattice -/
 noncomputable instance with_top.conditionally_complete_lattice
   {α : Type*} [conditionally_complete_lattice α] :
   conditionally_complete_lattice (with_top α) :=
@@ -730,7 +759,8 @@ noncomputable instance with_top.conditionally_complete_lattice
   ..with_top.has_Sup,
   ..with_top.has_Inf }
 
-/-- Adding a bottom element to a conditionally complete lattice gives a conditionally complete lattice -/
+/-- Adding a bottom element to a conditionally complete lattice
+gives a conditionally complete lattice -/
 noncomputable instance with_bot.conditionally_complete_lattice
   {α : Type*} [conditionally_complete_lattice α] :
   conditionally_complete_lattice (with_bot α) :=
@@ -861,7 +891,8 @@ noncomputable def subset_conditionally_complete_linear_order [inhabited s]
 { le_cSup := begin
     rintros t c h_bdd hct,
     -- The following would be a more natural way to finish, but gives a "deep recursion" error:
-    -- simpa [subset_Sup_of_within (h_Sup t)] using (strict_mono_coe s).monotone.le_cSup_image hct h_bdd,
+    -- simpa [subset_Sup_of_within (h_Sup t)] using
+    --   (strict_mono_coe s).monotone.le_cSup_image hct h_bdd,
     have := (subtype.mono_coe s).le_cSup_image hct h_bdd,
     rwa subset_Sup_of_within s (h_Sup ⟨c, hct⟩ h_bdd) at this,
   end,
@@ -895,7 +926,7 @@ lemma Sup_within_of_ord_connected
 begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
   obtain ⟨B, hB⟩ : ∃ B, B ∈ upper_bounds t := h_bdd,
-  refine hs c.2 B.2 ⟨_, _⟩,
+  refine hs.out c.2 B.2 ⟨_, _⟩,
   { exact (subtype.mono_coe s).le_cSup_image hct ⟨B, hB⟩ },
   { exact (subtype.mono_coe s).cSup_image_le ⟨c, hct⟩ hB },
 end
@@ -908,7 +939,7 @@ lemma Inf_within_of_ord_connected
 begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
   obtain ⟨B, hB⟩ : ∃ B, B ∈ lower_bounds t := h_bdd,
-  refine hs B.2 c.2 ⟨_, _⟩,
+  refine hs.out B.2 c.2 ⟨_, _⟩,
   { exact (subtype.mono_coe s).le_cInf_image ⟨c, hct⟩ hB },
   { exact (subtype.mono_coe s).cInf_image_le hct ⟨B, hB⟩ },
 end

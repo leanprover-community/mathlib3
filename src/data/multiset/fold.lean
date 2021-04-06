@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.multiset.erase_dup
 
@@ -22,14 +22,16 @@ include hc ha
   the multiset `s`. -/
 def fold : α → multiset α → α := foldr op (left_comm _ hc.comm ha.assoc)
 
-theorem fold_eq_foldr (b : α) (s : multiset α) : fold op b s = foldr op (left_comm _ hc.comm ha.assoc) b s := rfl
+theorem fold_eq_foldr (b : α) (s : multiset α) :
+  fold op b s = foldr op (left_comm _ hc.comm ha.assoc) b s := rfl
 
 @[simp] theorem coe_fold_r (b : α) (l : list α) : fold op b l = l.foldr op b := rfl
 
 theorem coe_fold_l (b : α) (l : list α) : fold op b l = l.foldl op b :=
 (coe_foldr_swap op _ b l).trans $ by simp [hc.comm]
 
-theorem fold_eq_foldl (b : α) (s : multiset α) : fold op b s = foldl op (right_comm _ hc.comm ha.assoc) b s :=
+theorem fold_eq_foldl (b : α) (s : multiset α) :
+  fold op b s = foldl op (right_comm _ hc.comm ha.assoc) b s :=
 quot.induction_on s $ λ l, coe_fold_l _ _ _
 
 @[simp] theorem fold_zero (b : α) : (0 : multiset α).fold op b = b := rfl
@@ -46,7 +48,8 @@ by rw [fold_eq_foldl, foldl_cons, ← fold_eq_foldl]
 theorem fold_cons'_left (b a : α) (s : multiset α) : (a ::ₘ s).fold op b = s.fold op (a * b) :=
 by rw [fold_cons'_right, hc.comm]
 
-theorem fold_add (b₁ b₂ : α) (s₁ s₂ : multiset α) : (s₁ + s₂).fold op (b₁ * b₂) = s₁.fold op b₁ * s₂.fold op b₂ :=
+theorem fold_add (b₁ b₂ : α) (s₁ s₂ : multiset α) :
+  (s₁ + s₂).fold op (b₁ * b₂) = s₁.fold op b₁ * s₂.fold op b₂ :=
 multiset.induction_on s₂
   (by rw [add_zero, fold_zero, ← fold_cons'_right, ← fold_cons_right op])
   (by simp {contextual := tt}; cc)
@@ -66,7 +69,8 @@ theorem fold_union_inter [decidable_eq α] (s₁ s₂ : multiset α) (b₁ b₂ 
   (s₁ ∪ s₂).fold op b₁ * (s₁ ∩ s₂).fold op b₂ = s₁.fold op b₁ * s₂.fold op b₂ :=
 by rw [← fold_add op, union_add_inter, fold_add op]
 
-@[simp] theorem fold_erase_dup_idem [decidable_eq α] [hi : is_idempotent α op] (s : multiset α) (b : α) :
+@[simp] theorem fold_erase_dup_idem [decidable_eq α] [hi : is_idempotent α op] (s : multiset α)
+  (b : α) :
   (erase_dup s).fold op b = s.fold op b :=
 multiset.induction_on s (by simp) $ λ a s IH, begin
   by_cases a ∈ s; simp [IH, h],
@@ -81,7 +85,7 @@ open nat
 theorem le_smul_erase_dup [decidable_eq α] (s : multiset α) :
   ∃ n : ℕ, s ≤ n •ℕ erase_dup s :=
 ⟨(s.map (λ a, count a s)).fold max 0, le_iff_count.2 $ λ a, begin
-  rw count_smul, by_cases a ∈ s,
+  rw count_nsmul, by_cases a ∈ s,
   { refine le_trans _ (mul_le_mul_left _ $ count_pos.2 $ mem_erase_dup.2 h),
     have : count a s ≤ fold max 0 (map (λ a, count a s) (a ::ₘ erase s a));
     [simp [le_max_left], simpa [cons_erase h]] },

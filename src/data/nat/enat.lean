@@ -370,7 +370,8 @@ by convert to_with_top_zero
 
 lemma to_with_top_coe (n : ℕ) : to_with_top n = n := rfl
 
-@[simp] lemma to_with_top_coe' (n : ℕ) {h : decidable (n : enat).dom} : to_with_top (n : enat) = n :=
+@[simp] lemma to_with_top_coe' (n : ℕ) {h : decidable (n : enat).dom} :
+  to_with_top (n : enat) = n :=
 by convert to_with_top_coe n
 
 @[simp] lemma to_with_top_le {x y : enat} : Π [decidable x.dom]
@@ -379,7 +380,7 @@ enat.cases_on y (by simp) (enat.cases_on x (by simp) (by intros; simp))
 
 @[simp] lemma to_with_top_lt {x y : enat} [decidable x.dom] [decidable y.dom] :
   to_with_top x < to_with_top y ↔ x < y :=
-by simp only [lt_iff_le_not_le, to_with_top_le]
+lt_iff_lt_of_le_iff_le to_with_top_le
 
 end with_top
 
@@ -421,8 +422,8 @@ to_with_top_lt
 
 /-- `to_with_top` induces an order isomorphism between `enat` and `with_top ℕ`. -/
 noncomputable def with_top_order_iso : enat ≃o with_top ℕ :=
-{ map_rel_iff' := λ _ _, with_top_equiv_le.symm,
-  ..with_top_equiv}
+{ map_rel_iff' := λ _ _, with_top_equiv_le,
+  .. with_top_equiv}
 
 @[simp] lemma with_top_equiv_symm_top : with_top_equiv.symm ⊤ = ⊤ :=
 rfl
@@ -491,5 +492,11 @@ lemma find_eq_top_iff : find P = ⊤ ↔ ∀ n, ¬P n :=
 ⟨λ h n, (lt_find_iff P n).mp (h n) _ le_rfl, λ h n, lt_find P n $ λ _ _, h _⟩
 
 end find
+
+noncomputable instance : linear_ordered_add_comm_monoid_with_top enat :=
+{ top_add' := top_add,
+  .. enat.linear_order,
+  .. enat.ordered_add_comm_monoid,
+  .. enat.order_top }
 
 end enat

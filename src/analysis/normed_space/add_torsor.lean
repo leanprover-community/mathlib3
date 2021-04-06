@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Joseph Myers, Yury Kudryashov.
+Authors: Joseph Myers, Yury Kudryashov
 -/
 import linear_algebra.affine_space.midpoint
 import topology.metric_space.isometry
@@ -226,10 +226,10 @@ calc edist (f x -ᵥ g x) (f y -ᵥ g y) ≤ edist (f x) (f y) + edist (g x) (g 
   (add_mul _ _ _).symm
 
 lemma uniform_continuous_vadd : uniform_continuous (λ x : V × P, x.1 +ᵥ x.2) :=
-(lipschitz_with.prod_fst.vadd lipschitz_with.prod_snd).uniform_continuous
+((@lipschitz_with.prod_fst V P _ _).vadd lipschitz_with.prod_snd).uniform_continuous
 
 lemma uniform_continuous_vsub : uniform_continuous (λ x : P × P, x.1 -ᵥ x.2) :=
-(lipschitz_with.prod_fst.vsub lipschitz_with.prod_snd).uniform_continuous
+((@lipschitz_with.prod_fst P P _ _).vsub lipschitz_with.prod_snd).uniform_continuous
 
 lemma continuous_vadd : continuous (λ x : V × P, x.1 +ᵥ x.2) :=
 uniform_continuous_vadd.continuous
@@ -280,6 +280,22 @@ hf.vsub hg
 
 end
 
+section
+
+variables {R : Type*} [ring R] [topological_space R] [semimodule R V] [has_continuous_smul R V]
+
+lemma filter.tendsto.line_map {l : filter α} {f₁ f₂ : α → P} {g : α → R} {p₁ p₂ : P} {c : R}
+  (h₁ : tendsto f₁ l (𝓝 p₁)) (h₂ : tendsto f₂ l (𝓝 p₂)) (hg : tendsto g l (𝓝 c)) :
+  tendsto (λ x, affine_map.line_map (f₁ x) (f₂ x) (g x)) l (𝓝 $ affine_map.line_map p₁ p₂ c) :=
+(hg.smul (h₂.vsub h₁)).vadd h₁
+
+lemma filter.tendsto.midpoint [invertible (2:R)] {l : filter α} {f₁ f₂ : α → P} {p₁ p₂ : P}
+  (h₁ : tendsto f₁ l (𝓝 p₁)) (h₂ : tendsto f₂ l (𝓝 p₂)) :
+  tendsto (λ x, midpoint R (f₁ x) (f₂ x)) l (𝓝 $ midpoint R p₁ p₂) :=
+h₁.line_map h₂ tendsto_const_nhds
+
+end
+
 variables {V' : Type*} {P' : Type*} [normed_group V'] [metric_space P'] [normed_add_torsor V' P']
 
 /-- The map `g` from `V1` to `V2` corresponding to a map `f` from `P1`
@@ -297,6 +313,19 @@ section normed_space
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V]
 
 open affine_map
+
+/-- If `f` is an affine map, then its linear part is continuous iff `f` is continuous. -/
+lemma affine_map.continuous_linear_iff [normed_space 𝕜 V'] {f : P →ᵃ[𝕜] P'} :
+  continuous f.linear ↔ continuous f :=
+begin
+  inhabit P,
+  have : (f.linear : V → V') =
+    (isometric.vadd_const $ f $ default P).to_homeomorph.symm ∘ f ∘
+      (isometric.vadd_const $ default P).to_homeomorph,
+  { ext v, simp },
+  rw this,
+  simp only [homeomorph.comp_continuous_iff, homeomorph.comp_continuous_iff'],
+end
 
 @[simp] lemma dist_center_homothety (p₁ p₂ : P) (c : 𝕜) :
   dist p₁ (homothety p₁ c p₂) = ∥c∥ * dist p₁ p₂ :=
@@ -334,9 +363,23 @@ by rw [midpoint_comm, dist_midpoint_left, dist_comm]
   dist p₂ (midpoint 𝕜 p₁ p₂) = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
 by rw [dist_comm, dist_midpoint_right]
 
+lemma dist_midpoint_midpoint_le' (p₁ p₂ p₃ p₄ : P) :
+  dist (midpoint 𝕜 p₁ p₂) (midpoint 𝕜 p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / ∥(2 : 𝕜)∥ :=
+begin
+  rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, midpoint_vsub_midpoint];
+    try { apply_instance },
+  rw [midpoint_eq_smul_add, norm_smul, inv_of_eq_inv, normed_field.norm_inv, ← div_eq_inv_mul],
+  exact div_le_div_of_le_of_nonneg (norm_add_le _ _) (norm_nonneg _),
+end
+
 end normed_space
 
 variables [normed_space ℝ V] [normed_space ℝ V']
+
+lemma dist_midpoint_midpoint_le (p₁ p₂ p₃ p₄ : V) :
+  dist (midpoint ℝ p₁ p₂) (midpoint ℝ p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / 2 :=
+by simpa using dist_midpoint_midpoint_le' p₁ p₂ p₃ p₄
+
 include V'
 
 /-- A continuous map between two normed affine spaces is an affine map provided that

@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
-import algebra.invertible
+import algebra.char_p.invertible
 import linear_algebra.affine_space.affine_equiv
 
 /-!
@@ -60,7 +60,7 @@ omit V'
 @[simp] lemma affine_equiv.point_reflection_midpoint_left (x y : P) :
   point_reflection R (midpoint R x y) x = y :=
 by rw [midpoint, point_reflection_apply, line_map_apply, vadd_vsub,
-  vadd_assoc, ← add_smul, ← two_mul, mul_inv_of_self, one_smul, vsub_vadd]
+  vadd_vadd, ← add_smul, ← two_mul, mul_inv_of_self, one_smul, vsub_vadd]
 
 lemma midpoint_comm (x y : P) : midpoint R x y = midpoint R y x :=
 by rw [midpoint, ← line_map_apply_one_sub, one_sub_inv_of_two, midpoint]
@@ -80,6 +80,30 @@ line_map_vadd_line_map _ _ _ _ _
 lemma midpoint_eq_iff {x y z : P} : midpoint R x y = z ↔ point_reflection R z x = y :=
 eq_comm.trans ((injective_point_reflection_left_of_module R x).eq_iff'
   (affine_equiv.point_reflection_midpoint_left x y)).symm
+
+@[simp] lemma midpoint_vsub_left (p₁ p₂ : P) : midpoint R p₁ p₂ -ᵥ p₁ = (⅟2:R) • (p₂ -ᵥ p₁) :=
+line_map_vsub_left _ _ _
+
+@[simp] lemma midpoint_vsub_right (p₁ p₂ : P) : midpoint R p₁ p₂ -ᵥ p₂ = (⅟2:R) • (p₁ -ᵥ p₂) :=
+by rw [midpoint_comm, midpoint_vsub_left]
+
+@[simp] lemma left_vsub_midpoint (p₁ p₂ : P) : p₁ -ᵥ midpoint R p₁ p₂ = (⅟2:R) • (p₁ -ᵥ p₂) :=
+left_vsub_line_map _ _ _
+
+@[simp] lemma right_vsub_midpoint (p₁ p₂ : P) : p₂ -ᵥ midpoint R p₁ p₂ = (⅟2:R) • (p₂ -ᵥ p₁) :=
+by rw [midpoint_comm, left_vsub_midpoint]
+
+@[simp] lemma midpoint_sub_left (v₁ v₂ : V) : midpoint R v₁ v₂ - v₁ = (⅟2:R) • (v₂ - v₁) :=
+midpoint_vsub_left v₁ v₂
+
+@[simp] lemma midpoint_sub_right (v₁ v₂ : V) : midpoint R v₁ v₂ - v₂ = (⅟2:R) • (v₁ - v₂) :=
+midpoint_vsub_right v₁ v₂
+
+@[simp] lemma left_sub_midpoint (v₁ v₂ : V) : v₁ - midpoint R v₁ v₂ = (⅟2:R) • (v₁ - v₂) :=
+left_vsub_midpoint v₁ v₂
+
+@[simp] lemma right_sub_midpoint (v₁ v₂ : V) : v₂ - midpoint R v₁ v₂ = (⅟2:R) • (v₂ - v₁) :=
+right_vsub_midpoint v₁ v₂
 
 variable (R)
 
@@ -105,6 +129,10 @@ calc midpoint R x y +ᵥ midpoint R x y = midpoint R x y +ᵥ midpoint R y x : b
 
 lemma midpoint_zero_add (x y : V) : midpoint R 0 (x + y) = midpoint R x y :=
 (midpoint_eq_midpoint_iff_vsub_eq_vsub R).2 $ by simp [sub_add_eq_sub_sub_swap]
+
+lemma midpoint_eq_smul_add (x y : V) : midpoint R x y = (⅟2 : R) • (x + y) :=
+by rw [midpoint_eq_iff, point_reflection_apply, vsub_eq_sub, vadd_eq_add, sub_add_eq_add_sub,
+  ← two_smul R, smul_smul, mul_inv_of_self, one_smul, add_sub_cancel']
 
 end
 

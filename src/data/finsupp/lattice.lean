@@ -82,7 +82,7 @@ variable [partial_order β]
 def order_embedding_to_fun :
   (α →₀ β) ↪o (α → β) :=
 ⟨⟨λ (f : α →₀ β) (a : α), f a,  λ f g h, finsupp.ext (λ a, by { dsimp at h, rw h,} )⟩,
-  λ a b, le_def⟩
+  λ a b, (@le_def _ _ _ _ a b).symm⟩
 
 @[simp] lemma order_embedding_to_fun_apply {f : α →₀ β} {a : α} :
   order_embedding_to_fun f a = f a := rfl

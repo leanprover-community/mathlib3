@@ -20,8 +20,12 @@ propositional logic, intuitionistic logic, decision procedure
 namespace tactic
 namespace itauto
 
+/-- Different propositional constructors that are variants of "and" for the purposes of the
+theorem prover. -/
 @[derive [has_reflect, decidable_eq]]
 inductive and_kind | and | iff | eq
+
+instance : inhabited and_kind := ⟨and_kind.and⟩
 
 /-- A reified inductive type for propositional logic. -/
 @[derive [has_reflect, decidable_eq]]
@@ -35,6 +39,7 @@ inductive prop : Type
 
 instance : inhabited prop := ⟨prop.true⟩
 
+/-- Given the contents of an `and` variant, return the two conjuncts. -/
 def and_kind.sides : and_kind → prop → prop → prop × prop
 | and_kind.and A B := (A, B)
 | _ A B := (A.imp B, B.imp A)

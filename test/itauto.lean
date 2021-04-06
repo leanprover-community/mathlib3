@@ -16,6 +16,9 @@ end itauto₀
 
 section itauto₃
 
+example (p : Prop) : ¬ (p ↔ ¬ p) := by itauto
+example (p : Prop) : ¬ (p = ¬ p) := by itauto
+example (p : Prop) : p ≠ ¬ p := by itauto
 
 example (p : Prop) : p ∧ true ↔ p := by itauto
 example (p : Prop) : p ∨ false ↔ p := by itauto

@@ -21,7 +21,9 @@ open set
 
 /-! ### The unit interval -/
 
-localized "notation `I` := set.Icc (0 : ℝ) 1" in unit_interval
+abbreviation unit_interval : set ℝ := set.Icc 0 1
+
+localized "notation `I` := unit_interval" in unit_interval
 
 lemma Icc_zero_one_symm {t : ℝ} : t ∈ I ↔ 1 - t ∈ I :=
 begin

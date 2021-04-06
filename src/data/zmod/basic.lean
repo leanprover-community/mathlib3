@@ -260,7 +260,7 @@ begin
   simp only [coe_coe],
   symmetry,
   erw [fin.coe_add, ← nat.cast_add, ← sub_eq_zero, ← nat.cast_sub (nat.mod_le _ _),
-      @char_p.cast_eq_zero_iff R _ m],
+      @char_p.cast_eq_zero_iff R _ _ m],
   exact dvd_trans h (nat.dvd_sub_mod _),
 end
 
@@ -271,7 +271,7 @@ begin
   simp only [coe_coe],
   symmetry,
   erw [fin.coe_mul, ← nat.cast_mul, ← sub_eq_zero, ← nat.cast_sub (nat.mod_le _ _),
-      @char_p.cast_eq_zero_iff R _ m],
+      @char_p.cast_eq_zero_iff R _ _ m],
   exact dvd_trans h (nat.dvd_sub_mod _),
 end
 

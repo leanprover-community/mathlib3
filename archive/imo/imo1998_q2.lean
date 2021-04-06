@@ -175,7 +175,7 @@ begin
   have hst' : (s \ t).card = 2*z + 1, { rw [hst, finset.diag_card, ← hJ], refl, },
   rw [finset.filter_and, ← finset.sdiff_sdiff_self_left s t, finset.card_sdiff],
   { rw hst', rw add_assoc at hs, apply nat.le_sub_right_of_add_le hs, },
-  { apply finset.sdiff_subset_self, },
+  { apply finset.sdiff_subset, },
 end
 
 lemma A_card_lower_bound [fintype C] {z : ℕ} (hJ : fintype.card J = 2*z + 1) :

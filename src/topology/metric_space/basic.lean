@@ -381,6 +381,11 @@ theorem uniformity_basis_dist_inv_nat_pos :
 metric.mk_uniformity_basis (λ n hn, div_pos zero_lt_one $ nat.cast_pos.2 hn)
   (λ ε ε0, let ⟨n, hn⟩ := exists_nat_one_div_lt ε0 in ⟨n+1, nat.succ_pos n, hn.le⟩)
 
+theorem uniformity_basis_dist_pow {r : ℝ} (h0 : 0 < r) (h1 : r < 1) :
+  (𝓤 α).has_basis (λ n:ℕ, true) (λ n:ℕ, {p:α×α | dist p.1 p.2 < r ^ n }) :=
+metric.mk_uniformity_basis (λ n hn, pow_pos h0 _)
+  (λ ε ε0, let ⟨n, hn⟩ := exists_pow_lt_of_lt_one ε0 h1 in ⟨n, trivial, hn.le⟩)
+
 theorem uniformity_basis_dist_lt {R : ℝ} (hR : 0 < R) :
   (𝓤 α).has_basis (λ r : ℝ, 0 < r ∧ r < R) (λ r, {p : α × α | dist p.1 p.2 < r}) :=
 metric.mk_uniformity_basis (λ r, and.left) $ λ r hr,
@@ -411,6 +416,11 @@ of the uniformity filter. -/
 theorem uniformity_basis_dist_le :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 ≤ ε}) :=
 metric.mk_uniformity_basis_le (λ _, id) (λ ε ε₀, ⟨ε, ε₀, le_refl ε⟩)
+
+theorem uniformity_basis_dist_le_pow {r : ℝ} (h0 : 0 < r) (h1 : r < 1) :
+  (𝓤 α).has_basis (λ n:ℕ, true) (λ n:ℕ, {p:α×α | dist p.1 p.2 ≤ r ^ n }) :=
+metric.mk_uniformity_basis_le (λ n hn, pow_pos h0 _)
+  (λ ε ε0, let ⟨n, hn⟩ := exists_pow_lt_of_lt_one ε0 h1 in ⟨n, trivial, hn.le⟩)
 
 theorem mem_uniformity_dist {s : set (α×α)} :
   s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, dist a b < ε → (a, b) ∈ s) :=
@@ -558,6 +568,14 @@ nhds_basis_uniformity uniformity_basis_dist_inv_nat_succ
 theorem nhds_basis_ball_inv_nat_pos :
   (𝓝 x).has_basis (λ n, 0<n) (λ n:ℕ, ball x (1 / ↑n)) :=
 nhds_basis_uniformity uniformity_basis_dist_inv_nat_pos
+
+theorem nhds_basis_ball_pow {r : ℝ} (h0 : 0 < r) (h1 : r < 1) :
+  (𝓝 x).has_basis (λ n, true) (λ n:ℕ, ball x (r ^ n)) :=
+nhds_basis_uniformity (uniformity_basis_dist_pow h0 h1)
+
+theorem nhds_basis_closed_ball_pow {r : ℝ} (h0 : 0 < r) (h1 : r < 1) :
+  (𝓝 x).has_basis (λ n, true) (λ n:ℕ, closed_ball x (r ^ n)) :=
+nhds_basis_uniformity (uniformity_basis_dist_le_pow h0 h1)
 
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
 by simp only [is_open_iff_mem_nhds, mem_nhds_iff]
@@ -819,6 +837,26 @@ theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
 
 theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = abs x :=
 by simp [real.dist_eq]
+
+theorem real.dist_left_le_of_mem_interval {x y z : ℝ} (h : y ∈ interval x z) :
+  dist x y ≤ dist x z :=
+by simpa only [dist_comm x] using abs_sub_left_of_mem_interval h
+
+theorem real.dist_right_le_of_mem_interval {x y z : ℝ} (h : y ∈ interval x z) :
+  dist y z ≤ dist x z :=
+by simpa only [dist_comm _ z] using abs_sub_right_of_mem_interval h
+
+theorem real.dist_le_of_mem_interval {x y x' y' : ℝ} (hx : x ∈ interval x' y')
+  (hy : y ∈ interval x' y') : dist x y ≤ dist x' y' :=
+abs_sub_le_of_subinterval $ interval_subset_interval (by rwa interval_swap) (by rwa interval_swap)
+
+theorem real.dist_le_of_mem_Icc {x y x' y' : ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
+  dist x y ≤ dist x' y' :=
+real.dist_le_of_mem_interval (Icc_subset_interval hx) (Icc_subset_interval hy)
+
+theorem real.dist_le_of_mem_Icc_01 {x y : ℝ} (hx : x ∈ Icc (0:ℝ) 1) (hy : y ∈ Icc (0:ℝ) 1) :
+  dist x y ≤ 1 :=
+by simpa [real.dist_eq] using real.dist_le_of_mem_Icc hx hy
 
 instance : order_topology ℝ :=
 order_topology_of_nhds_abs $ λ x,

@@ -38,78 +38,6 @@ universe u
 
 variables {α : Type u} {s : set α} {a a₁ a₂ b c: α}
 
--- TODO mem_range_iff_mem_finset_range_of_mod_eq should be moved elsewhere.
-namespace finset
-open finset
-
-lemma mem_range_iff_mem_finset_range_of_mod_eq' [decidable_eq α] {f : ℕ → α} {a : α} {n : ℕ}
-  (hn : 0 < n) (h : ∀i, f (i % n) = f i) :
-  a ∈ set.range f ↔ a ∈ (finset.range n).image (λi, f i) :=
-begin
-  split,
-  { rintros ⟨i, hi⟩,
-    simp only [mem_image, exists_prop, mem_range],
-    exact ⟨i % n, nat.mod_lt i hn, (rfl.congr hi).mp (h i)⟩ },
-  { rintro h,
-    simp only [mem_image, exists_prop, set.mem_range, mem_range] at *,
-    rcases h with ⟨i, hi, ha⟩,
-    use ⟨i, ha⟩ },
-end
-
-lemma mem_range_iff_mem_finset_range_of_mod_eq [decidable_eq α] {f : ℤ → α} {a : α} {n : ℕ}
-  (hn : 0 < n) (h : ∀i, f (i % n) = f i) :
-  a ∈ set.range f ↔ a ∈ (finset.range n).image (λi, f i) :=
-suffices (∃i, f (i % n) = a) ↔ ∃i, i < n ∧ f ↑i = a, by simpa [h],
-have hn' : 0 < (n : ℤ), from int.coe_nat_lt.mpr hn,
-iff.intro
-  (assume ⟨i, hi⟩,
-    have 0 ≤ i % ↑n, from int.mod_nonneg _ (ne_of_gt hn'),
-    ⟨int.to_nat (i % n),
-      by rw [←int.coe_nat_lt, int.to_nat_of_nonneg this]; exact ⟨int.mod_lt_of_pos i hn', hi⟩⟩)
-  (assume ⟨i, hi, ha⟩,
-    ⟨i, by rw [int.mod_eq_of_lt (int.coe_zero_le _) (int.coe_nat_lt_coe_nat_of_lt hi), ha]⟩)
-
-end finset
-
-lemma mem_normalizer_fintype [group α] {s : set α} [fintype s] {x : α}
-  (h : ∀ n, n ∈ s → x * n * x⁻¹ ∈ s) : x ∈ subgroup.set_normalizer s :=
-by haveI := classical.prop_decidable;
-haveI := set.fintype_image s (λ n, x * n * x⁻¹); exact
-λ n, ⟨h n, λ h₁,
-have heq : (λ n, x * n * x⁻¹) '' s = s := set.eq_of_subset_of_card_le
-  (λ n ⟨y, hy⟩, hy.2 ▸ h y hy.1) (by rw set.card_image_of_injective s conj_injective),
-have x * n * x⁻¹ ∈ (λ n, x * n * x⁻¹) '' s := heq.symm ▸ h₁,
-let ⟨y, hy⟩ := this in conj_injective hy.2 ▸ hy.1⟩
-
-section order_of
-variable [group α]
-open quotient_group set
-
-instance fintype_bot : fintype (⊥ : subgroup α) := ⟨{1},
-by {rintro ⟨x, ⟨hx⟩⟩, exact finset.mem_singleton_self _}⟩
-
-@[simp] lemma card_trivial :
-  fintype.card (⊥ : subgroup α) = 1 :=
-fintype.card_eq_one_iff.2
-  ⟨⟨(1 : α), set.mem_singleton 1⟩, λ ⟨y, hy⟩, subtype.eq $ subgroup.mem_bot.1 hy⟩
-
-variables [fintype α] [dec : decidable_eq α]
-
-lemma card_eq_card_quotient_mul_card_subgroup (s : subgroup α) [fintype s]
-  [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
-by rw ← fintype.card_prod;
-  exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
-
-lemma card_subgroup_dvd_card (s : subgroup α) [fintype s] :
-  fintype.card s ∣ fintype.card α :=
-by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]
-
-lemma card_quotient_dvd_card (s : subgroup α) [decidable_pred (λ a, a ∈ s)] [fintype s] :
-  fintype.card (quotient s) ∣ fintype.card α :=
-by simp [card_eq_card_quotient_mul_card_subgroup s]
-
-end order_of
-
 section order_of
 
 section monoid
@@ -279,6 +207,11 @@ lemma add_order_of_dvd_iff_nsmul_eq_zero {n : ℕ} : add_order_of x ∣ n ↔ n 
 @[to_additive add_order_of_dvd_iff_nsmul_eq_zero]
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
 ⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
+
+lemma commute.order_of_mul_dvd_lcm (h : commute a b) :
+  order_of (a * b) ∣ nat.lcm (order_of a) (order_of b) :=
+by rw [order_of_dvd_iff_pow_eq_one, h.mul_pow, order_of_dvd_iff_pow_eq_one.mp
+  (nat.dvd_lcm_left _ _), order_of_dvd_iff_pow_eq_one.mp (nat.dvd_lcm_right _ _), one_mul]
 
 lemma add_order_of_eq_prime {p : ℕ} [hp : fact p.prime]
 (hg : p •ℕ x = 0) (hg1 : x ≠ 0) : add_order_of x = p :=

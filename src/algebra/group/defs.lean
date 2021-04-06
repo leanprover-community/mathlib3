@@ -230,9 +230,9 @@ variables {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : 
   {R : Type u₁} {S : Type u₂}
 
 /-- The fundamental power operation in a monoid. `a^n = a*a*...*a` n times. -/
-def nspow_rec [has_mul M] [has_one M] : ℕ → M → M
+def npow_rec [has_mul M] [has_one M] : ℕ → M → M
 | 0     a := 1
-| (n+1) a := a * nspow_rec n a
+| (n+1) a := a * npow_rec n a
 
 /-- The fundamental scalar multiplication in an additive monoid.
 `n • a = a+a+...+a` n times. -/
@@ -240,15 +240,15 @@ def nsmul_rec [has_add M] [has_zero M] : ℕ → M → M
 | 0     a := 0
 | (n+1) a := a + nsmul_rec n a
 
-attribute [to_additive] nspow_rec
+attribute [to_additive] npow_rec
 
-lemma eq_nspow_rec [has_mul M] [has_one M] (f : ℕ → M → M)
+lemma eq_npow_rec [has_mul M] [has_one M] (f : ℕ → M → M)
   (hzero : ∀ x, f 0 x = 1) (hadd : ∀ n x, f (1 + n) x = x * f n x)
-  (n : ℕ) (x : M) : f n x = nspow_rec n x:=
+  (n : ℕ) (x : M) : f n x = npow_rec n x:=
 begin
   induction n with n ih,
-  { simp [hzero, nspow_rec] },
-  { rw [nat.succ_eq_add_one, nspow_rec, ← ih, ← hadd, nat.add_comm], }
+  { simp [hzero, npow_rec] },
+  { rw [nat.succ_eq_add_one, npow_rec, ← ih, ← hadd, nat.add_comm], }
 end
 
 lemma eq_nsmul_rec [has_add M] [has_zero M] (f : ℕ → M → M)
@@ -260,7 +260,7 @@ begin
   { rw [nat.succ_eq_add_one, nsmul_rec, ← ih, ← hadd, nat.add_comm] }
 end
 
-attribute [to_additive] eq_nspow_rec
+attribute [to_additive] eq_npow_rec
 
 end
 
@@ -271,10 +271,10 @@ meta def try_refl_tac : tactic unit := `[intros; refl]
 /-- A `monoid` is a `semigroup` with an element `1` such that `1 * a = a * 1 = a`. -/
 @[ancestor semigroup mul_one_class]
 class monoid (M : Type u) extends semigroup M, mul_one_class M :=
-(nspow : ℕ → M → M := nspow_rec)
-(nspow_eq_rec : ∀ n x, nspow n x = nspow_rec n x . try_refl_tac)
+(npow : ℕ → M → M := npow_rec)
+(npow_eq_rec : ∀ n x, npow n x = npow_rec n x . try_refl_tac)
 
-export monoid (nspow)
+export monoid (npow)
 
 /-- An `add_monoid` is an `add_semigroup` with an element `0` such that `0 + a = a + 0 = a`. -/
 @[ancestor add_semigroup add_zero_class]
@@ -296,27 +296,27 @@ by rw [←one_mul c, ←hba, mul_assoc, hac, mul_one b]
 end monoid
 
 @[simp, to_additive nsmul_zero']
-lemma nspow_zero {M : Type u} [monoid M] (x : M) :
-  nspow 0 x = 1 :=
-by simp [monoid.nspow_eq_rec, nspow_rec]
+lemma npow_zero {M : Type u} [monoid M] (x : M) :
+  npow 0 x = 1 :=
+by simp [monoid.npow_eq_rec, npow_rec]
 
-@[simp] lemma nspow_one {M : Type u} [monoid M] (x : M) :
-  nspow 1 x = x :=
-by simp [monoid.nspow_eq_rec, nspow_rec]
+@[simp] lemma npow_one {M : Type u} [monoid M] (x : M) :
+  npow 1 x = x :=
+by simp [monoid.npow_eq_rec, npow_rec]
 
 @[simp] lemma nsmul_one' {M : Type u} [add_monoid M] (x : M) :
   nsmul 1 x = x :=
 by simp [add_monoid.nsmul_eq_rec, nsmul_rec]
 
-attribute [to_additive nsmul_one'] nspow_one
+attribute [to_additive nsmul_one'] npow_one
 
-lemma nspow_add {M : Type u} [monoid M] (m n : ℕ) (x : M) :
-  nspow (m + n) x = nspow m x * nspow n x :=
+lemma npow_add {M : Type u} [monoid M] (m n : ℕ) (x : M) :
+  npow (m + n) x = npow m x * npow n x :=
 begin
-  simp only [monoid.nspow_eq_rec],
+  simp only [monoid.npow_eq_rec],
   induction m with m ih,
-  { rw [nat.zero_add, nspow_rec, one_mul], },
-  { rw [nat.succ_add, nspow_rec, ih, nspow_rec, ← mul_assoc] }
+  { rw [nat.zero_add, npow_rec, one_mul], },
+  { rw [nat.succ_add, npow_rec, ih, npow_rec, ← mul_assoc] }
 end
 
 lemma nsmul_add' {M : Type u} [add_monoid M] (m n : ℕ) (x : M) :
@@ -328,7 +328,7 @@ begin
   { rw [nat.succ_add, nsmul_rec, ih, nsmul_rec, ← add_assoc] }
 end
 
-attribute [to_additive nsmul_add'] nspow_add
+attribute [to_additive nsmul_add'] npow_add
 
 /-- A commutative monoid is a monoid with commutative `(*)`. -/
 @[protect_proj, ancestor monoid comm_semigroup]

@@ -42,11 +42,11 @@ universes u v w x y z u₁ u₂
 variables {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : Type z}
   {R : Type u₁} {S : Type u₂}
 
-instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨λ x n, nspow n x⟩
+instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨λ x n, npow n x⟩
 
 instance add_monoid.has_scalar_nat [add_monoid M] : has_scalar ℕ M := ⟨nsmul⟩
 
-@[simp] lemma nspow_eq_pow {M : Type*} [monoid M] (n : ℕ) (x : M) : nspow n x = x^n := rfl
+@[simp] lemma npow_eq_pow {M : Type*} [monoid M] (n : ℕ) (x : M) : npow n x = x^n := rfl
 
 @[simp] lemma nsmul_eq_smul {M : Type*} [add_monoid M] (n : ℕ) (x : M) : nsmul n x = n • x := rfl
 
@@ -65,8 +65,8 @@ variables [monoid M]
 @[simp] lemma pow_right {a x y : M} (h : semiconj_by a x y) (n : ℕ) : semiconj_by a (x^n) (y^n) :=
 begin
   induction n with n ih,
-  { simp [← nspow_eq_pow] },
-  { simp only [← nspow_eq_pow, nat.succ_eq_add_one, nspow_one, nspow_add] at ⊢ ih,
+  { simp [← npow_eq_pow] },
+  { simp only [← npow_eq_pow, nat.succ_eq_add_one, npow_one, npow_add] at ⊢ ih,
     exact ih.mul_right h }
 end
 
@@ -91,17 +91,17 @@ end commute
 section monoid
 variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
-@[simp] theorem pow_zero (a : M) : a^0 = 1 := nspow_zero _
+@[simp] theorem pow_zero (a : M) : a^0 = 1 := npow_zero _
 @[simp] theorem zero_nsmul (a : A) : 0 • a = 0 := nsmul_zero' _
 
 theorem pow_succ (a : M) (n : ℕ) : a^(n+1) = a * a^n :=
-by rw [← nspow_eq_pow, nat.add_comm, nspow_add, nspow_one, nspow_eq_pow]
+by rw [← npow_eq_pow, nat.add_comm, npow_add, npow_one, npow_eq_pow]
 
 theorem succ_nsmul (a : A) (n : ℕ) : (n+1) • a = a + n • a :=
 by rw [← nsmul_eq_smul, nat.add_comm, nsmul_add', nsmul_one', nsmul_eq_smul]
 
 theorem pow_two (a : M) : a^2 = a * a :=
-by rw [← nspow_eq_pow, show 2 = 1 + 1, by refl, nspow_add, nspow_one]
+by rw [← npow_eq_pow, show 2 = 1 + 1, by refl, npow_add, npow_one]
 
 theorem two_nsmul (a : A) : 2 • a = a + a :=
 @pow_two (multiplicative A) _ a
@@ -122,7 +122,7 @@ theorem add_nsmul : ∀ (a : A) (m n : ℕ), (m + n) • a = m • a + n • a :
 @pow_add (multiplicative A) _
 
 @[simp] theorem pow_one (a : M) : a^1 = a :=
-by rw [← nspow_eq_pow, nspow_one]
+by rw [← npow_eq_pow, npow_one]
 
 @[simp] theorem one_nsmul (a : A) : 1 • a = a :=
 by rw [← nsmul_eq_smul, nsmul_one']

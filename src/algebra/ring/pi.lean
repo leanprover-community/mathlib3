@@ -24,23 +24,23 @@ by refine_struct { add := (+), mul := (*), .. }; tactic.pi_instance_derive_field
 
 instance semiring [∀ i, semiring $ f i] : semiring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
-  nsmul := λ n x i, nsmul n (x i), nspow := λ n x i, nspow n (x i),
+  nsmul := λ n x i, nsmul n (x i), npow := λ n x i, npow n (x i),
   .. pi.add_comm_monoid, ..pi.monoid };
   tactic.pi_instance_derive_field
 
 instance comm_semiring [∀ i, comm_semiring $ f i] : comm_semiring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
-  nsmul := λ n x i, nsmul n (x i), nspow := λ n x i, nspow n (x i),
+  nsmul := λ n x i, nsmul n (x i), npow := λ n x i, npow n (x i),
   .. pi.semiring }; tactic.pi_instance_derive_field
 
 instance ring [∀ i, ring $ f i] : ring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
-  neg := has_neg.neg, nsmul := λ n x i, nsmul n (x i), nspow := λ n x i, nspow n (x i),
+  neg := has_neg.neg, nsmul := λ n x i, nsmul n (x i), npow := λ n x i, npow n (x i),
   .. pi.semiring }; tactic.pi_instance_derive_field
 
 instance comm_ring [∀ i, comm_ring $ f i] : comm_ring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
-  neg := has_neg.neg, nsmul := λ n x i, nsmul n (x i), nspow := λ n x i, nspow n (x i),
+  neg := has_neg.neg, nsmul := λ n x i, nsmul n (x i), npow := λ n x i, npow n (x i),
   .. pi.semiring }; tactic.pi_instance_derive_field
 
 /-- A family of ring homomorphisms `f a : γ →+* β a` defines a ring homomorphism

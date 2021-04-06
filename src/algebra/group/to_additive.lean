@@ -100,7 +100,7 @@ meta def tr : bool → list string → list string
 | is_comm ("one" :: s)                := add_comm_prefix is_comm "zero"      :: tr ff s
 | is_comm ("prod" :: s)               := add_comm_prefix is_comm "sum"       :: tr ff s
 | is_comm ("finprod" :: s)            := add_comm_prefix is_comm "finsum"    :: tr ff s
-| is_comm ("nspow" :: s)              := add_comm_prefix is_comm "nsmul"     :: tr ff s
+| is_comm ("npow" :: s)              := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
 | is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
 | is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s

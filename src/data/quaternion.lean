@@ -134,7 +134,7 @@ by refine_struct
     mul := (*),
     one := 1,
     nsmul := _,
-    nspow := _ };
+    npow := _ };
   intros; try { refl }; ext; simp; ring_exp
 
 instance : algebra R ℍ[R, c₁, c₂] :=

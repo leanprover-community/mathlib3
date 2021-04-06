@@ -656,7 +656,7 @@ begin
     { by_cases o₂ = 0; simp [pow, power, *]; apply_instance },
     { by_cases m = 0,
       { simp only [pow, power, *, zero_def], apply_instance },
-      { simp [pow, power, *, - nspow_eq_pow], apply_instance } } },
+      { simp [pow, power, *, - npow_eq_pow], apply_instance } } },
   { simp [pow, power, e₁, e₂, split_eq_scale_split' e₂],
     have := na.fst,
     cases k with k; simp [succ_eq_add_one, power]; resetI; apply_instance }

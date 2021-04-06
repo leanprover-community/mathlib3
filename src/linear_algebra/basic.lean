@@ -240,7 +240,7 @@ rfl
 add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 
 instance : monoid (M →ₗ[R] M) :=
-by refine_struct { mul := (*), one := (1 : M →ₗ[R] M), nspow := _ };
+by refine_struct { mul := (*), one := (1 : M →ₗ[R] M), npow := _ };
 intros; try { refl }; apply linear_map.ext; simp {proj := ff}
 
 @[simp] lemma pow_apply (f : M →ₗ[R] M) (n : ℕ) (m : M) :
@@ -476,7 +476,7 @@ by refine_struct
     one := (1 : M →ₗ[R] M),
     zero := 0,
     add := (+),
-    nspow := _,
+    npow := _,
     .. linear_map.add_comm_monoid, .. };
 intros; try { refl }; apply linear_map.ext; simp {proj := ff}
 

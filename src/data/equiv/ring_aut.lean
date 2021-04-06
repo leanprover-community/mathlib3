@@ -42,7 +42,7 @@ by refine_struct
   one := ring_equiv.refl R,
   inv := ring_equiv.symm,
   div := _,
-  nspow := _ };
+  npow := _ };
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (ring_aut R) := ⟨1⟩

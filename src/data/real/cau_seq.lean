@@ -309,7 +309,7 @@ by refine_struct
        mul := (*),
        one := 1,
        sub := has_sub.sub,
-       nspow := _,
+       npow := _,
        nsmul := _ };
 intros; try { refl }; apply ext;
 simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]

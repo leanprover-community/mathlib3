@@ -29,7 +29,7 @@ by refine_struct { add := (+), mul := (*), .. }; tactic.pi_instance_derive_field
 
 instance semiring [semiring α] : semiring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),
-  nsmul := λ n f, ⟨nsmul n f.down⟩, nspow := λ n f, ⟨nspow n f.down⟩,
+  nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩,
   .. ulift.add_monoid, .. ulift.monoid }; tactic.pi_instance_derive_field
 
 /--
@@ -45,17 +45,17 @@ def ring_equiv [semiring α] : ulift α ≃+* α :=
 
 instance comm_semiring [comm_semiring α] : comm_semiring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),
-  nsmul := λ n f, ⟨nsmul n f.down⟩, nspow := λ n f, ⟨nspow n f.down⟩,
+  nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩,
   .. ulift.semiring }; tactic.pi_instance_derive_field
 
 instance ring [ring α] : ring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), sub := has_sub.sub,
-  neg := has_neg.neg, nsmul := λ n f, ⟨nsmul n f.down⟩, nspow := λ n f, ⟨nspow n f.down⟩,
+  neg := has_neg.neg, nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩,
   .. ulift.semiring }; tactic.pi_instance_derive_field
 
 instance comm_ring [comm_ring α] : comm_ring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), sub := has_sub.sub,
-  neg := has_neg.neg, nsmul := λ n f, ⟨nsmul n f.down⟩, nspow := λ n f, ⟨nspow n f.down⟩,
+  neg := has_neg.neg, nsmul := λ n f, ⟨nsmul n f.down⟩, npow := λ n f, ⟨npow n f.down⟩,
   .. ulift.semiring }; tactic.pi_instance_derive_field
 
 end ulift

@@ -1455,6 +1455,26 @@ end
 
 section linear_adjoints
 
+lemma comp_left_apply_eq_unique (B₁ B₂ : bilin_form K V) (hB₂ : B₂.nondegenerate) {φ ψ : V →ₗ[K] V}
+  (hφ : ∀ v w, B₁ w v = B₂ (φ w) v) (hψ : ∀ v w, B₁ w v = B₂ (ψ w) v) : φ = ψ :=
+begin
+  ext w,
+  refine eq_of_sub_eq_zero (hB₂ _ _),
+  { intro v,
+    rw [sub_left, ← hφ v w, ← hψ v w, sub_self] }
+end
+
+lemma is_adjoint_pair_unique_of_nondegenerate (B : bilin_form K V) (hB₁ : B.nondegenerate)
+  (φ ψ₁ ψ₂ : V →ₗ[K] V) (hψ₁ : is_adjoint_pair B B ψ₁ φ) (hψ₂ : is_adjoint_pair B B ψ₂ φ) :
+  ψ₁ = ψ₂ :=
+begin
+  apply comp_left_apply_eq_unique (B.comp_right φ) _ hB₁,
+  { intros _ _,
+    rw hψ₁, refl },
+  { intros _ _,
+    rw hψ₂, refl }
+end
+
 variable [finite_dimensional K V]
 
 /-- Given bilinear forms `B₁, B₂` where `B₂` is nondegenerate, `symm_comp_of_nondegenerate`
@@ -1477,15 +1497,6 @@ begin
   refl,
 end
 
-lemma comp_left_apply_eq_unique (B₁ B₂ : bilin_form K V) (hB₂ : B₂.nondegenerate) {φ ψ : V →ₗ[K] V}
-  (hφ : ∀ v w, B₁ w v = B₂ (φ w) v) (hψ : ∀ v w, B₁ w v = B₂ (ψ w) v) : φ = ψ :=
-begin
-  ext w,
-  refine eq_of_sub_eq_zero (hB₂ _ _),
-  { intro v,
-    rw [sub_left, ← hφ v w, ← hψ v w, sub_self] }
-end
-
 /-- Given the nondegenerate bilinear form `B` and the linear map `φ`,
 `left_adjoint_of_nondegenerate` provides the left adjoint of `φ` with respect to `B`.
 The lemma proving this property is `is_adjoint_pair_left_adjoint_of_nondegenerate`. -/
@@ -1497,17 +1508,6 @@ lemma is_adjoint_pair_left_adjoint_of_nondegenerate
   (B : bilin_form K V) (hB : B.nondegenerate) (φ : V →ₗ[K] V) :
   is_adjoint_pair B B (B.left_adjoint_of_nondegenerate hB φ) φ :=
 λ x y, symm_comp_of_nondegenerate_left_apply (B.comp_right φ) B hB y x
-
-lemma is_adjoint_pair_unique_of_nondegenerate (B : bilin_form K V) (hB₁ : B.nondegenerate)
-  (φ ψ₁ ψ₂ : V →ₗ[K] V) (hψ₁ : is_adjoint_pair B B ψ₁ φ) (hψ₂ : is_adjoint_pair B B ψ₂ φ) :
-  ψ₁ = ψ₂ :=
-begin
-  apply comp_left_apply_eq_unique (B.comp_right φ) _ hB₁,
-  { intros _ _,
-    rw hψ₁, refl },
-  { intros _ _,
-    rw hψ₂, refl }
-end
 
 /-- Given the nondegenerate bilinear form `B`, the linear map `φ` has a unique left adjoint. -/
 theorem exists_unique_left_adjoint_of_nondegenerate

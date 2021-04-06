@@ -220,7 +220,6 @@ begin
   have w₂ : 0 ≤ 2 * ∥f∥ * δ^(-2 : ℤ) := mul_nonneg w₁ pow_minus_two_nonneg,
   -- As `[0,1]` is compact, it suffices to check the inequality pointwise.
   rw (continuous_map.norm_lt_iff _ h),
-  swap, apply_instance, -- FIXME why isn't this found by `apply` in the line above?
   intro x,
   -- The idea is to split up the sum over `k` into two sets,
   -- `S`, where `x - k/n < δ`, and its complement.

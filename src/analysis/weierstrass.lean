@@ -1,11 +1,7 @@
 import algebra.algebra.subalgebra
-import topology.continuous_function.algebra
 import topology.algebra.polynomial
 import topology.continuous_function.bounded
-import topology.algebra.affine
-import linear_algebra.affine_space.ordered
 import analysis.special_functions.bernstein
-import topology.unit_interval
 
 noncomputable theory
 
@@ -16,6 +12,36 @@ variables {R : Type*} [comm_ring R] [topological_space R] [topological_ring R]
 
 open filter
 open_locale topological_space unit_interval
+
+
+-- We could construct this using `equiv.set.image e s e.injective`,
+-- but this definition provides an explicit inverse.
+@[simps]
+def equiv.image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
+{ to_fun := λ x, ⟨e x.1, by simp⟩,
+  inv_fun := λ y, ⟨e.symm y.1, by { rcases y with ⟨-, ⟨a, ⟨m, rfl⟩⟩⟩, simpa using m, }⟩,
+  left_inv := λ x, by tidy,
+  right_inv := λ y, by tidy, }.
+
+@[simp]
+lemma foo {α β : Type*} [topological_space α] [topological_space β]
+  (e : α ≃ₜ β) : (e.to_equiv.symm : β → α) = e.symm := rfl
+
+@[continuity]
+lemma foo' {α β : Type*} [topological_space α] [topological_space β]
+  (e : α ≃ₜ β) : continuous (e.to_equiv.symm) :=
+by { simp, continuity, }
+
+def homeomorph.image {α β : Type*} [topological_space α] [topological_space β]
+  (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
+{ continuous_to_fun := by continuity!,
+  continuous_inv_fun := by continuity!,
+  ..e.to_equiv.image s, }
+
+@[simps]
+def homeomorph.to_continuous_map {α β : Type*} [topological_space α] [topological_space β]
+  (e : α ≃ₜ β) : C(α, β) := ⟨e⟩
+
 
 /--
 The special case of the Weierstrass approximation theorem for the interval `[0,1]`.
@@ -77,64 +103,85 @@ def pullback_as_continuous_map
   (pullback_as_continuous_map f) g = g.comp f :=
 rfl
 
-open affine_map
+def pullback_as_homeomorph
+  {X Y : Type*} [topological_space X] [compact_space X] [topological_space Y] [compact_space Y]
+  (f : X ≃ₜ Y) : C(Y, ℝ) ≃ₜ C(X, ℝ) :=
+{ to_fun := pullback_as_continuous_map f.to_continuous_map,
+  inv_fun := pullback_as_continuous_map f.symm.to_continuous_map,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+/-- The map `λ x, a * x + b`, as a homeomorphism from `ℝ` to itself, when `a ≠ 0`. -/
+@[simps]
+def affine_homeo (a b : ℝ) (h : a ≠ 0) : ℝ ≃ₜ ℝ :=
+{ to_fun := λ x, a * x + b,
+  inv_fun := λ y, (y - b) / a,
+  left_inv := λ x, by { simp only [add_sub_cancel], exact mul_div_cancel_left x h, },
+  right_inv := λ y, by { simp [mul_div_cancel' _ h], }, }
+
+-- FIXME should be generated directly by `@[simps]`.
+-- See https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/How.20do.20I.20configure.20an.20.60equiv.60.20to.20work.20with.20.60simps.60.3F/near/233291764
+@[simp] lemma affine_homeo_apply (a b : ℝ) (h : a ≠ 0) (x : ℝ) :
+  affine_homeo a b h x = a * x + b := rfl
+
+@[simp] lemma affine_homeo_symm_apply (a b : ℝ) (h : a ≠ 0) (y : ℝ) :
+  (affine_homeo a b h).symm y = (y - b) / a := rfl
 
 /--
-A version of `affine_map.line_map`, bundled as a continuous function `set.Icc 0 1` to `set.Icc a b`.
+The image of `[0,1]` under the homeomorphism `λ x, a * x + b` is `[b, a+b]`.
 -/
-def line_map_Icc (a b : ℝ) (h : a < b) : C(I, set.Icc a b) :=
+@[simp]
+lemma affine_homeo_image_I (a b : ℝ) (h : 0 < a) (w) :
+  affine_homeo a b w '' set.Icc 0 1 = set.Icc b (a + b) :=
 begin
-  let f₁ : ℝ →ᵃ[ℝ] ℝ := affine_map.line_map a b,
-  let f₂ : I → set.Icc a b :=
-    λ x, ⟨f₁ x, begin
-      rcases x with ⟨x, zero_le, le_one⟩,
-      simp only [subtype.coe_mk, set.mem_Icc],
+  ext,
+  fsplit,
+  { rintro ⟨x,⟨⟨zero_le,le_one⟩,rfl⟩⟩,
+    simp only [add_le_add_iff_right, affine_homeo_apply, le_add_iff_nonneg_left, set.mem_Icc],
+    exact ⟨mul_nonneg h.le zero_le, (mul_le_iff_le_one_right h).mpr le_one⟩, },
+  { intro m,
+    simp only [set.image_congr, set.mem_image, affine_homeo_apply],
+    use (x - b) / a,
+    fsplit,
+    { simp only [set.mem_Icc],
       fsplit,
-      apply left_le_line_map_of_nonneg_of_le zero_le (le_of_lt h),
-      apply line_map_le_right_of_le_one_of_le le_one (le_of_lt h),
-    end⟩,
-  have c : continuous f₂ :=
-  begin
-    apply continuous_subtype_mk,
-    change continuous (f₁ ∘ subtype.val),
-    continuity,
-  end,
-  exact ⟨f₂, c⟩,
+      { apply div_nonneg,
+        apply sub_nonneg.mpr,
+        exact m.1,
+        exact h.le, },
+      { apply (div_le_one _).mpr,
+        apply sub_le_iff_le_add.mpr,
+        exact m.2,
+        exact h, } },
+    { rw mul_div_cancel' _ w,
+      simp, } },
 end
-
-@[simp] lemma line_map_Icc_apply (a b : ℝ) (h : a < b) (x : I) :
-  (line_map_Icc a b h x : ℝ) = affine_map.line_map a b (x : ℝ) := rfl
 
 /--
-A version of `affine_map.line_map`, bundled as a continuous function `set.Icc 0 1` to `set.Icc a b`.
+The affine homeomorphism from a nontrivial interval `[a,b]` to `[0,1]`.
 -/
-def line_map_Icc_inv (a b : ℝ) (h : a < b) : C(set.Icc a b, I) :=
+def Icc_homeo (a b : ℝ) (h : a < b) : set.Icc a b ≃ₜ I :=
 begin
-  let f₁ : ℝ →ᵃ[ℝ] ℝ := affine_map.line_map (-a/(b-a)) ((1-a)/(b-a)),
-  let f₂ : set.Icc a b → I :=
-    λ x, ⟨f₁ x, begin
-      rcases x with ⟨x, a_le, le_b⟩,
-      simp only [subtype.coe_mk, set.mem_Icc],
-      fsplit,
-      dsimp [f₁, affine_map.line_map],
-      simp only [linear_map.id_coe, id.def, vadd_eq_add],
-      simp_rw [neg_div, sub_neg_eq_add, ←add_div, sub_add_cancel],
-      sorry,
-      sorry,
-    end⟩,
-  have c : continuous f₂ :=
-  begin
-    apply continuous_subtype_mk,
-    change continuous (f₁ ∘ subtype.val),
-    continuity,
-  end,
-  exact ⟨f₂, c⟩,
+  let e := homeomorph.image (affine_homeo (b-a) a (sub_pos.mpr h).ne.symm) (set.Icc 0 1),
+  refine (e.trans _).symm,
+  apply homeomorph.set_congr,
+  rw affine_homeo_image_I _ _ (sub_pos.mpr h),
+  rw sub_add_cancel,
 end
+
+@[simp] lemma Icc_homeo_apply_coe (a b : ℝ) (h : a < b) (x : set.Icc a b) :
+  ((Icc_homeo a b h) x : ℝ) = (x - a) / (b - a) :=
+rfl
+
+@[simp] lemma Icc_homeo_symm_apply_coe (a b : ℝ) (h : a < b) (x : I) :
+  ((Icc_homeo a b h).symm x : ℝ) = (b - a) * x + a :=
+rfl
+
 
 /-- The preimage of polynomials on `[0,1]` under the pullback map by `x ↦ (b-a) * x + a`
 is the polynomials on `[a,b]`. -/
-lemma polynomial_functions.comap'_pullback_line_map_Icc (a b : ℝ) (h : a < b) :
-  (polynomial_functions I).comap' (pullback (line_map_Icc a b h)) =
+lemma polynomial_functions.comap'_pullback_Icc_homeo (a b : ℝ) (h : a < b) :
+  (polynomial_functions I).comap' (pullback (Icc_homeo a b h).symm.to_continuous_map) =
     polynomial_functions (set.Icc a b) :=
 begin
   ext f,
@@ -154,15 +201,12 @@ begin
         polynomial.as_continuous_map_on_to_fun, polynomial.as_continuous_map_to_fun],
       convert w ⟨_, _⟩; clear w,
       { -- FIXME why does `comm_ring.add` appear here?
-        change x = line_map_Icc _ _ _ ⟨_ + _, _⟩,
+        change x = (Icc_homeo a b h).symm ⟨_ + _, _⟩,
         ext,
-        simp only [line_map, line_map_Icc_apply,
-          vsub_eq_sub, vadd_eq_add, function.const_apply, pi.add_apply, subtype.coe_mk,
-          algebra.id.smul_eq_mul, affine_map.coe_add, affine_map.coe_const,
-          linear_map.id_coe, id.def, linear_map.smul_right_apply, linear_map.coe_to_affine_map],
+        simp only [Icc_homeo_symm_apply_coe, subtype.coe_mk],
         replace h : b - a ≠ 0 := sub_ne_zero_of_ne h.ne.symm,
-        simp only [add_mul],
-        field_simp, },
+        simp only [mul_add],
+        field_simp, ring, },
       { change _ + _ ∈ I,
         rw [mul_comm (b-a)⁻¹, ←neg_mul_eq_neg_mul_symm, ←add_mul, ←sub_eq_add_neg],
         have w₁ : 0 < (b-a)⁻¹ := inv_pos.mpr (sub_pos.mpr h),
@@ -176,7 +220,7 @@ begin
     let q := p.comp ((b - a) • polynomial.X + polynomial.C a),
     refine ⟨q, ⟨_, _⟩⟩,
     { simp, },
-    { ext x, simp [line_map, mul_comm], }, },
+    { ext x, simp [mul_comm], }, },
 end
 
 lemma continuous_map.subsingleton_subalgebra_ext [subsingleton X] (s₁ s₂ : subalgebra R C(X, R)) :
@@ -210,11 +254,11 @@ begin
   by_cases h : a < b, -- (Otherwise it's easy; we'll deal with that later.)
   { -- We can pullback continuous functions to `[a,b]` to continuous functions on `[0,1]`,
     -- by precomposing with an affine map.
-    let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) := pullback (line_map_Icc a b h),
+    let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) := pullback (Icc_homeo a b h).symm.to_continuous_map,
     -- This operation is itself a homeomorphism
     -- (with respect to the norm topologies on continuous functions).
-    let W' : C(set.Icc a b, ℝ) ≃ₜ C(I, ℝ) := sorry,
-    have w : (W : C(set.Icc a b, ℝ) → C(I, ℝ)) = W' := sorry,
+    let W' : C(set.Icc a b, ℝ) ≃ₜ C(I, ℝ) := pullback_as_homeomorph (Icc_homeo a b h).symm,
+    have w : (W : C(set.Icc a b, ℝ) → C(I, ℝ)) = W' := rfl,
     -- Thus we take the statement of the Weierstrass approximation theorem for `[0,1]`,
     have p := polynomial_functions_closure_eq_top',
     -- and pullback both sides, obtaining an equation between subalgebras of `C([a,b], ℝ)`.
@@ -223,7 +267,7 @@ begin
     -- Since the pullback operation is continuous, it commutes with taking `topological_closure`,
     rw subalgebra.topological_closure_comap'_homeomorph _ W W' w at p,
     -- and precomposing with an affine map takes polynomial functions to polynomial functions.
-    rw polynomial_functions.comap'_pullback_line_map_Icc at p,
+    rw polynomial_functions.comap'_pullback_Icc_homeo at p,
     -- 🎉
     exact p },
   { -- Otherwise, `b ≤ a`, and the interval is a subsingleton,
@@ -233,6 +277,10 @@ begin
     apply continuous_map.subsingleton_subalgebra_ext, }
 end
 
+/--
+An alternative statement of Weierstrass' theorem.
+Every real-valued continuous function on `[a,b]` is a uniform limit of polynomials.
+-/
 theorem mem_polynomial_functions_closure (a b : ℝ) (f : C(set.Icc a b, ℝ)) :
   f ∈ (polynomial_functions (set.Icc a b)).topological_closure :=
 begin

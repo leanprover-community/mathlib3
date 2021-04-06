@@ -92,9 +92,9 @@ lemma injective.of_comp_iff' (f : α → β) {g : γ → α} (hg : bijective g) 
     hx ▸ hy ▸ λ hf, h hf ▸ rfl,
   λ h, h.comp hg.injective⟩
 
-lemma injective.of_subsingleton {α β : Type*} [h : subsingleton α] (f : α → β) :
+lemma injective_of_subsingleton {α β : Sort*} [subsingleton α] (f : α → β) :
   function.injective f :=
-λ a b ab, (eq_iff_true_of_subsingleton _ _).mpr trivial
+λ a b ab, subsingleton.elim _ _
 
 lemma injective.dite (p : α → Prop) [decidable_pred p]
   {f : {a : α // p a} → β} {f' : {a : α // ¬ p a} → β}
@@ -357,7 +357,7 @@ lemma injective_surj_inv (h : surjective f) : injective (surj_inv h) :=
 lemma surjective.to_subsingleton [na : nonempty α] [subsingleton β]
   (f : α → β) :
   function.surjective f :=
-λ y, ⟨nonempty.some na, (eq_iff_true_of_subsingleton _ _).mpr trivial⟩
+λ y, let ⟨a⟩ := na in ⟨a, subsingleton.elim _ _⟩
 
 end surj_inv
 

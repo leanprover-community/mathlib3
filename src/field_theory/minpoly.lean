@@ -290,11 +290,10 @@ by { refine minpoly.dvd K x _, rw [← is_scalar_tower.aeval_apply, minpoly.aeva
 
 variables {A x}
 
-theorem unique' [nontrivial B] {p : polynomial A} (hx : is_integral A x)
-  (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval x p = 0) (hp3 : p.monic) :
-  p = minpoly A x :=
+theorem unique' [nontrivial B] {p : polynomial A} (hp1 : _root_.irreducible p)
+  (hp2 : polynomial.aeval x p = 0) (hp3 : p.monic) : p = minpoly A x :=
 let ⟨q, hq⟩ := dvd A x hp2 in
-eq_of_monic_of_associated hp3 (monic hx) $
+eq_of_monic_of_associated hp3 (monic ⟨p, ⟨hp3, hp2⟩⟩) $
 mul_one (minpoly A x) ▸ hq.symm ▸ associated_mul_mul (associated.refl _) $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit A x
 

@@ -1194,7 +1194,7 @@ end real
 namespace complex
 
 lemma sum_div_factorial_le {α : Type*} [linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
-  ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α) ≤ n.succ * (n! * n)⁻¹ :=
+  ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α) ≤ n.succ / (n! * n) :=
 calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
     = ∑ m in range (j - n), 1 / (m + n)! :
   sum_bij (λ m _, m - n)
@@ -1252,7 +1252,11 @@ begin
   rw sum_range_sub_sum_range hj,
   exact calc abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ m / m! : ℂ))
       = abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ n * (x ^ (m - n) / m!) : ℂ)) :
-    congr_arg abs (sum_congr rfl (λ m hm, by rw [← mul_div_assoc, ← pow_add, nat.add_sub_cancel']; simp at hm; tauto))
+    begin
+      refine congr_arg abs (sum_congr rfl (λ m hm, _)),
+      rw [mem_filter, mem_range] at hm,
+      rw [← mul_div_assoc, ← pow_add, nat.add_sub_cancel' hm.2]
+    end
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs (x ^ n * (_ / m!)) : abv_sum_le_sum_abv _ _
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs x ^ n * (1 / m!) :
     begin

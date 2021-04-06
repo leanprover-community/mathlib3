@@ -351,6 +351,10 @@ topological_space_eq $ funext $ assume s, propext $
   ⟨assume ⟨s', ⟨s, hs, h₂⟩, h₁⟩, h₁ ▸ h₂ ▸ ⟨s, hs, rfl⟩,
     assume ⟨s, hs, h⟩, ⟨preimage g s, ⟨s, hs, rfl⟩, h ▸ rfl⟩⟩
 
+lemma induced_const [t : topological_space α] {x : α} :
+  t.induced (λ y : β, x) = ⊤ :=
+le_antisymm le_top (@continuous_const β α ⊤ t x).le_induced
+
 lemma coinduced_id [t : topological_space α] : t.coinduced id = t :=
 topological_space_eq rfl
 

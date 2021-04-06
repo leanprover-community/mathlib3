@@ -490,15 +490,6 @@ instance has_cokernel_epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [
       (λ s, cokernel.desc _ s.π ((cancel_epi f).mp (by { rw ← category.assoc, simp })))
       (by tidy) (by tidy) }⟩ }
 
-instance has_cokernel_epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [has_cokernel g] :
-  has_cokernel (f ≫ g) :=
-{ exists_colimit := ⟨{
-  cocone := cokernel_cofork.of_π (cokernel.π g) (by simp),
-  is_colimit := is_colimit_aux _
-    (λ s, cokernel.desc _ s.π ((cancel_epi f).mp (by { rw ← category.assoc, simp })))
-    (by tidy) (by tidy)
-}⟩ }
-
 /--
 When `f` is an epimorphism, the cokernel of `f ≫ g` is isomorphic to the cokernel of `g`.
 -/

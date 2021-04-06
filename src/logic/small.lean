@@ -18,7 +18,7 @@ A subsingleton type is `w`-small for any `w`.
 If `α ≃ β`, then `small.{w} α ↔ small.{w} β`.
 -/
 
-universes w v
+universes u w v
 
 /--
 A type is `small.{w}` if there exists an equivalence to some `S : Type w`.
@@ -56,6 +56,8 @@ small.mk' equiv.ulift.{w}.symm
 
 instance small_ulift (α : Type v) : small.{v} (ulift.{w} α) :=
 small.mk' equiv.ulift
+
+theorem small_type : small.{max (u+1) v} (Type u) := small_max.{max (u+1) v} _
 
 section
 open_locale classical
@@ -114,5 +116,10 @@ instance small_sum {α β} [small.{w} α] [small.{w} β] : small.{w} (α ⊕ β)
 
 instance small_set {α} [small.{w} α] : small.{w} (set α) :=
 ⟨⟨set (shrink α), ⟨equiv.set.congr (equiv_shrink α)⟩⟩⟩
+
+theorem not_small_type : ¬ small.{u} (Type (max u v))
+| ⟨⟨S, ⟨e⟩⟩⟩ := @function.cantor_injective (Σ α, e.symm α)
+  (λ a, ⟨_, cast (e.3 _).symm a⟩)
+  (λ a b e, (cast_inj _).1 $ eq_of_heq (sigma.mk.inj e).2)
 
 end

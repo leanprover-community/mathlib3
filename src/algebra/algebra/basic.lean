@@ -1428,13 +1428,7 @@ module structure over `R`.
 The preferred way of setting this up is `[module R M] [module A M] [is_scalar_tower R A M]`.
 -/
 instance : semimodule R (restrict_scalars R A M) :=
-{ smul      := λ c x, (algebra_map R A c) • x,
-  one_smul  := by simp,
-  mul_smul  := by simp [mul_smul],
-  smul_add  := by simp [smul_add],
-  smul_zero := by simp [smul_zero],
-  add_smul  := by simp [add_smul],
-  zero_smul := by simp [zero_smul] }
+semimodule.comp_hom M (algebra_map R A)
 
 lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R A M) :
   c • x = ((algebra_map R A c) • x : M) := rfl
@@ -1486,7 +1480,7 @@ variables (R S M)
 
 lemma restrict_scalars_injective :
   function.injective (restrict_scalars R : submodule S M → submodule R M) :=
-λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (ext'_iff.1 h); refl
+λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (set_like.ext'_iff.1 h); refl
 
 @[simp] lemma restrict_scalars_inj {V₁ V₂ : submodule S M} :
   restrict_scalars R V₁ = restrict_scalars R V₂ ↔ V₁ = V₂ :=

@@ -182,6 +182,18 @@ lemma right_lt_line_map_iff_lt (h : r < 1) : b < line_map a b r ↔ b < a :=
 
 end ordered_ring
 
+section linear_ordered_ring
+
+variables [linear_ordered_ring k] [ordered_add_comm_group E] [semimodule k E]
+  [ordered_semimodule k E] [invertible (2:k)] {a a' b b' : E} {r r' : k}
+
+lemma midpoint_le_midpoint (ha : a ≤ a') (hb : b ≤ b') :
+  midpoint k a b ≤ midpoint k a' b' :=
+line_map_mono_endpoints ha hb (inv_of_nonneg.2 zero_le_two) $
+  inv_of_le_one one_le_two
+
+end linear_ordered_ring
+
 section linear_ordered_field
 
 variables [linear_ordered_field k] [ordered_add_comm_group E]

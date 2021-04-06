@@ -964,7 +964,7 @@ lemma _root_.fintype.prod_eq_mul_prod_compl [decidable_eq α] [fintype α] (a : 
 prod_eq_mul_prod_diff_singleton (mem_univ a) f
 
 @[to_additive]
-lemma _root_.fintype.prod_eq_prod_erase_compl [decidable_eq α] [fintype α] (a : α) (f : α → β) :
+lemma _root_.fintype.prod_eq_prod_compl_mul [decidable_eq α] [fintype α] (a : α) (f : α → β) :
   ∏ i, f i = (∏ i in {a}ᶜ, f i) * f a :=
 prod_eq_prod_diff_singleton_mul (mem_univ a) f
 

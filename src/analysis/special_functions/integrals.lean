@@ -27,7 +27,7 @@ variables {a b : ℝ}
 
 namespace interval_integral
 open measure_theory
-variables {f g : ℝ → ℝ} {μ ν : measure ℝ} [locally_finite_measure μ]
+variables {f : ℝ → ℝ} {μ ν : measure ℝ} [locally_finite_measure μ]
 
 @[simp]
 lemma integral_const_mul (c : ℝ) : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=

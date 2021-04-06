@@ -213,7 +213,15 @@ lemma sum_cycle_type (σ : perm α) : σ.cycle_type.sum = σ.support.card :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card) σ
   (by rw [cycle_type_one, sum_zero, support_one, finset.card_empty])
   (λ σ hσ, by rw [hσ.cycle_type, coe_sum, list.sum_singleton])
-  (λ σ τ hστ hσ hτ, by rw [hστ.cycle_type, sum_add, hστ.card_support_mul, hσ, hτ])
+  (λ σ τ hστ hσ hτ, by rw [hστ.cycle_type, sum_add, hσ, hτ, hστ.card_support_mul])
+
+lemma sign_of_cycle_type (σ : perm α) :
+  sign σ = (σ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod :=
+cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod) σ
+  (by rw [sign_one, cycle_type_one, map_zero, prod_zero])
+  (λ σ hσ, by rw [hσ.sign, hσ.cycle_type, coe_map, coe_prod,
+    list.map_singleton, list.prod_singleton])
+  (λ σ τ hστ hσ hτ, by rw [sign_mul, hσ, hτ, hστ.cycle_type, map_add, prod_add])
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ

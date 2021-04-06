@@ -274,11 +274,7 @@ end
 
 lemma coe_fin_rotate {n : ℕ} (i : fin n.succ) :
   (fin_rotate n.succ i : ℕ) = if i = fin.last n then 0 else i + 1 :=
-begin
-  split_ifs with h,
-  { simp [fin_rotate_succ_apply, h] },
-  exact coe_fin_rotate_of_ne_last h
-end
+by rw [fin_rotate_succ_apply, fin.coe_add_one i]
 
 /-- Equivalence between `fin m × fin n` and `fin (m * n)` -/
 def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=

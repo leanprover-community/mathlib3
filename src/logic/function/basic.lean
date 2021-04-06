@@ -354,8 +354,7 @@ lemma bijective_iff_has_inverse : bijective f ↔ ∃ g, left_inverse g f ∧ ri
 lemma injective_surj_inv (h : surjective f) : injective (surj_inv h) :=
 (right_inverse_surj_inv h).injective
 
-lemma surjective_to_subsingleton [na : nonempty α] [subsingleton β]
-  (f : α → β) :
+lemma surjective_to_subsingleton [na : nonempty α] [subsingleton β] (f : α → β) :
   surjective f :=
 λ y, let ⟨a⟩ := na in ⟨a, subsingleton.elim _ _⟩
 

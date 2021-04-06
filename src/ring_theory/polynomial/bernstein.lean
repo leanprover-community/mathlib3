@@ -26,12 +26,10 @@ We prove the basic identities
 * `(finset.range (n + 1)).sum (λ ν, ν • bernstein_polynomial R n ν) = n • X`
 * `(finset.range (n + 1)).sum (λ ν, (ν * (ν-1)) • bernstein_polynomial R n ν) = (n * (n-1)) • X^2`
 
-## Future work
+## Notes
 
-The fact that the Bernstein approximations
-of a continuous function `f` on `[0,1]` converge uniformly.
-This will give a constructive proof of Weierstrass' theorem that
-polynomials are dense in `C([0,1], ℝ)`.
+See also `analysis.special_functions.bernstein`, which defines the Bernstein approximations
+of a continuous function `f : C([0,1], ℝ)`, and shows that these converge uniformly to `f`.
 -/
 
 noncomputable theory
@@ -451,6 +449,34 @@ begin
     simp [e, nat_cast_mul, smul_smul],
   },
   exact h,
+end
+
+/--
+A certain linear combination of the previous three identities,
+which we'll want later.
+-/
+lemma variance (n : ℕ) :
+  (finset.range (n+1)).sum (λ ν, (n • polynomial.X - ν)^2 * bernstein_polynomial R n ν) =
+    n • polynomial.X * (1 - polynomial.X) :=
+begin
+  have p :
+    (finset.range (n+1)).sum (λ ν, (ν * (ν-1)) • bernstein_polynomial R n ν) +
+    (1 - (2 * n) • polynomial.X) * (finset.range (n+1)).sum (λ ν, ν • bernstein_polynomial R n ν) +
+    (n^2 • X^2) * (finset.range (n+1)).sum (λ ν, bernstein_polynomial R n ν) = _ := rfl,
+  conv at p { to_lhs,
+    rw [finset.mul_sum, finset.mul_sum, ←finset.sum_add_distrib, ←finset.sum_add_distrib],
+    simp only [←nat_cast_mul],
+    simp only [←mul_assoc],
+    simp only [←add_mul], },
+  conv at p { to_rhs,
+    rw [sum, sum_smul, sum_mul_smul, ←nat_cast_mul], },
+  calc _ = _ : finset.sum_congr rfl (λ k m, _)
+     ... = _ : p
+     ... = _ : _,
+  { congr' 1, simp only [←nat_cast_mul] with push_cast,
+    cases k; { simp, ring, }, },
+  { simp only [←nat_cast_mul] with push_cast,
+    cases n; { simp, ring, }, },
 end
 
 end bernstein_polynomial

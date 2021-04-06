@@ -137,6 +137,16 @@ def cycle_type (σ : perm α) : multiset ℕ :=
   (λ l₁ l₂, coe_eq_coe.mpr (perm.map _
   (list_cycles_perm_list_cycles (l₁.2.1.trans l₂.2.1.symm) l₁.2.2.1 l₂.2.2.1 l₁.2.2.2 l₂.2.2.2)))
 
+lemma two_le_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : 2 ≤ n :=
+begin
+  rw [cycle_type, ←σ.trunc_cycle_factors.out_eq] at h,
+  obtain ⟨τ, hτ, rfl⟩ := list.mem_map.mp h,
+  exact (σ.trunc_cycle_factors.out.2.2.1 τ hτ).two_le_card_support,
+end
+
+lemma one_lt_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : 1 < n :=
+two_le_of_mem_cycle_type h
+
 lemma cycle_type_eq {σ : perm α} (l : list (perm α)) (h0 : l.prod = σ)
   (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle) (h2 : l.pairwise disjoint) :
   σ.cycle_type = l.map (finset.card ∘ support) :=
@@ -191,16 +201,6 @@ begin
     { exact or.inl (disjoint.cycle_type_aux x.2.2.2 ha hf) },
     { exact or.inr (disjoint.cycle_type_aux y.2.2.2 ha hg) } },
 end
-
-lemma two_le_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : 2 ≤ n :=
-begin
-  rw [cycle_type, ←σ.trunc_cycle_factors.out_eq] at h,
-  obtain ⟨τ, hτ, rfl⟩ := list.mem_map.mp h,
-  exact (σ.trunc_cycle_factors.out.2.2.1 τ hτ).two_le_card_support,
-end
-
-lemma one_lt_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : 1 < n :=
-two_le_of_mem_cycle_type h
 
 lemma sum_cycle_type (σ : perm α) : σ.cycle_type.sum = σ.support.card :=
 begin

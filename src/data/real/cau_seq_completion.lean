@@ -79,8 +79,6 @@ private lemma zero_def : 0 = mk 0 := rfl
 
 private lemma one_def : 1 = mk 1 := rfl
 
-set_option pp.all true
-
 instance : comm_ring Cauchy :=
 by refine { neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _,
     add := (+), zero := (0 : Cauchy), mul := (*), one := 1, nsmul := nsmul_rec, nspow := nspow_rec,

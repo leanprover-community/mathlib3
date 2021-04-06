@@ -323,7 +323,8 @@ section units
 
 open opposite
 
-/-- Used mainly to define the natural topology of `units α`. -/
+/-- Canonical homomorphism of monoids from `units α` into `α × αᵒᵖ`.
+Used mainly to define the natural topology of `units α`. -/
 def embed_product (α : Type*) [monoid α] : units α →* α × αᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
   map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,

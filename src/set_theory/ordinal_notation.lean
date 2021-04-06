@@ -645,6 +645,8 @@ instance NF_power_aux (e a0 a) [NF e] [NF a0] [NF a] : ∀ k m, NF (power_aux e 
 | (k+1) (m+1) := by haveI := NF_power_aux k;
   simp [power_aux, nat.succ_ne_zero]; apply_instance
 
+#print prefix onote.power
+
 instance NF_power (o₁ o₂) [NF o₁] [NF o₂] : NF (o₁ ^ o₂) :=
 begin
   cases e₁ : split o₁ with a m,
@@ -656,7 +658,7 @@ begin
     { by_cases o₂ = 0; simp [pow, power, *]; apply_instance },
     { by_cases m = 0,
       { simp only [pow, power, *, zero_def], apply_instance },
-      { sorry } } },
+      { simp [pow, power, *, - nspow_eq_pow], apply_instance } } },
   { simp [pow, power, e₁, e₂, split_eq_scale_split' e₂],
     have := na.fst,
     cases k with k; simp [succ_eq_add_one, power]; resetI; apply_instance }

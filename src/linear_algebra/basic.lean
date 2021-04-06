@@ -266,7 +266,7 @@ lemma iterate_bijective (h : bijective f') : ∀ n : ℕ, bijective ⇑(f' ^ n)
 lemma injective_of_iterate_injective {n : ℕ} (hn : n ≠ 0) (h : injective ⇑(f' ^ n)) :
   injective f' :=
 begin
-  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), iterate_succ, ←comp_coe] at h,
+  rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), iterate_succ, coe_comp] at h,
   exact injective.of_comp h,
 end
 end
@@ -816,6 +816,8 @@ mem_sup.trans $ by simp only [set_like.exists, coe_mk]
 
 end
 
+/- This is the character `∙`, with escape sequence `\.`, and is thus different from the scalar
+multiplication character `•`, with escape sequence `\bub`. -/
 notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
 
 lemma mem_span_singleton_self (x : M) : x ∈ R ∙ x := subset_span rfl
@@ -1772,7 +1774,9 @@ lemma map_eq_comap {p : submodule R M} : (p.map e : submodule R M₂) = p.comap 
 set_like.coe_injective $ by simp [e.image_eq_preimage]
 
 /-- A linear equivalence of two modules restricts to a linear equivalence from any submodule
-of the domain onto the image of the submodule. -/
+`p` of the domain onto the image of that submodule.
+
+This is `linear_equiv.of_submodule'` but with `map` on the right instead of `comap` on the left. -/
 def of_submodule (p : submodule R M) : p ≃ₗ[R] ↥(p.map ↑e : submodule R M₂) :=
 { inv_fun   := λ y, ⟨e.symm y, by {
     rcases y with ⟨y', hy⟩, rw submodule.mem_map at hy, rcases hy with ⟨x, hx, hxy⟩, subst hxy,
@@ -1835,6 +1839,30 @@ def of_submodules (p : submodule R M) (q : submodule R M₂) (h : p.map ↑e = q
 
 @[simp] lemma of_submodules_symm_apply {p : submodule R M} {q : submodule R M₂}
   (h : p.map ↑e = q) (x : q) : ↑((e.of_submodules p q h).symm x) = e.symm x := rfl
+
+/-- A linear equivalence of two modules restricts to a linear equivalence from the preimage of any
+submodule to that submodule.
+
+This is `linear_equiv.of_submodule` but with `comap` on the left instead of `map` on the right. -/
+def of_submodule' [semimodule R M] [semimodule R M₂] (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
+  U.comap (f : M →ₗ[R] M₂) ≃ₗ[R] U :=
+(f.symm.of_submodules _ _ f.symm.map_eq_comap).symm
+
+lemma of_submodule'_to_linear_map [semimodule R M] [semimodule R M₂]
+  (f : M ≃ₗ[R] M₂) (U : submodule R M₂) :
+  (f.of_submodule' U).to_linear_map =
+  (f.to_linear_map.dom_restrict _).cod_restrict _ subtype.prop :=
+by { ext, refl }
+
+@[simp]
+lemma of_submodule'_apply [semimodule R M] [semimodule R M₂]
+  (f : M ≃ₗ[R] M₂) (U : submodule R M₂) (x : U.comap (f : M →ₗ[R] M₂)) :
+(f.of_submodule' U x : M₂) = f (x : M) := rfl
+
+@[simp]
+lemma of_submodule'_symm_apply [semimodule R M] [semimodule R M₂]
+  (f : M ≃ₗ[R] M₂) (U : submodule R M₂) (x : U) :
+((f.of_submodule' U).symm x : M) = f.symm (x : M₂) := rfl
 
 variable (p)
 
@@ -2110,6 +2138,35 @@ namespace submodule
 section semimodule
 
 variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
+/-- Given `p` a submodule of the module `M` and `q` a submodule of `p`, `p.equiv_subtype_map q`
+is the natural `linear_equiv` between `q` and `q.map p.subtype`. -/
+def equiv_subtype_map (p : submodule R M) (q : submodule R p) :
+  q ≃ₗ[R] q.map p.subtype :=
+{ inv_fun :=
+    begin
+      rintro ⟨x, hx⟩,
+      refine ⟨⟨x, _⟩, _⟩;
+      rcases hx with ⟨⟨_, h⟩, _, rfl⟩;
+      assumption
+    end,
+  left_inv := λ ⟨⟨_, _⟩, _⟩, rfl,
+  right_inv := λ ⟨x, ⟨_, h⟩, _, rfl⟩, rfl,
+  .. (p.subtype.dom_restrict q).cod_restrict _
+    begin
+      rintro ⟨x, hx⟩,
+      refine ⟨x, hx, rfl⟩,
+    end }
+
+@[simp]
+lemma equiv_subtype_map_apply {p : submodule R M} {q : submodule R p} (x : q) :
+  (p.equiv_subtype_map q x : M) = p.subtype.dom_restrict q x :=
+rfl
+
+@[simp]
+lemma equiv_subtype_map_symm_apply {p : submodule R M} {q : submodule R p} (x : q.map p.subtype) :
+  ((p.equiv_subtype_map q).symm x : M) = x :=
+by { cases x, refl }
 
 /-- If `s ≤ t`, then we can view `s` as a submodule of `t` by taking the comap
 of `t.subtype`. -/

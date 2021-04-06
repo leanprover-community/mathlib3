@@ -1079,7 +1079,7 @@ begin
   refine ⟨λ h, is_unit_eq_one_or h, λ h, _⟩,
   rcases h with rfl | rfl,
   { exact is_unit_one },
-  { exact is_unit_of_mul_eq_one _ (- 1 : ℤ) (neg_one_mul _) }
+  { exact is_unit_one.neg }
 end
 
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=

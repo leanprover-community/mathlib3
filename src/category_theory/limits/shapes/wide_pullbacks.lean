@@ -107,7 +107,7 @@ def mk_cone {F : wide_pullback_shape J ⥤ C} {X : C}
     | none := f
     | (some j) := π j
     end,
-    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp [w], }, }}
+    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp [w], }, } }
 
 end wide_pullback_shape
 
@@ -177,7 +177,7 @@ def mk_cocone {F : wide_pushout_shape J ⥤ C} {X : C}
     | none := f
     | (some j) := ι j
     end,
-    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp [w], }, }}
+    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp [w], }, } }
 
 end wide_pushout_shape
 

@@ -281,27 +281,19 @@ explicit pullback object given by `pullback_limit_obj`.
 noncomputable def pullback_iso_pullback : pullback f g ≅ pullback_obj f g :=
 (cones.forget _).map_iso $ pullback_cone_iso_pullback f g
 
-@[simp] lemma pullback_fst'' (p : pullback f g) :
+@[simp] lemma pullback_iso_fst_eq_fst (p : pullback f g) :
   ((pullback_iso_pullback f g).hom p : X × Y).fst = (pullback.fst : _ ⟶ X) p :=
 congr_fun ((pullback_cone_iso_pullback f g).hom.w left) p
 
-@[simp] lemma pullback_snd'' (p : pullback f g) :
+@[simp] lemma pullback_iso_snd_eq_snd (p : pullback f g) :
   ((pullback_iso_pullback f g).hom p : X × Y).snd = (pullback.snd : _ ⟶ Y) p :=
 congr_fun ((pullback_cone_iso_pullback f g).hom.w right) p
 
-@[simp] lemma pullback_fst' :
-  (pullback_iso_pullback f g).hom ≫ (λ p, (p : X × Y).fst) = pullback.fst :=
-(pullback_cone_iso_pullback f g).hom.w left
-
-@[simp] lemma pullback_snd' :
-  (pullback_iso_pullback f g).hom ≫ (λ p, (p : X × Y).snd) = pullback.snd :=
-(pullback_cone_iso_pullback f g).hom.w right
-
-@[simp] lemma pullback_fst :
+@[simp] lemma iso_pullback_fst_eq_coe_fst :
   (pullback_iso_pullback f g).inv ≫ pullback.fst = (λ p, (p : X × Y).fst) :=
 (pullback_cone_iso_pullback f g).inv.w left
 
-@[simp] lemma pullback_snd :
+@[simp] lemma iso_pullback_snd_eq_coe_snd :
   (pullback_iso_pullback f g).inv ≫ pullback.snd = (λ p, (p : X × Y).snd) :=
 (pullback_cone_iso_pullback f g).inv.w right
 

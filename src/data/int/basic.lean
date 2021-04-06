@@ -1072,7 +1072,7 @@ units.ext_iff.1 $ nat.units_eq_one ⟨nat_abs u, nat_abs ↑u⁻¹,
 theorem units_eq_one_or (u : units ℤ) : u = 1 ∨ u = -1 :=
 by simpa only [units.ext_iff, units_nat_abs] using nat_abs_eq u
 
-lemma is_unit.eq_one_or {a : ℤ} : is_unit a → a = 1 ∨ a = -1
+lemma _root_.is_unit.eq_one_or {a : ℤ} : is_unit a → a = 1 ∨ a = -1
 | ⟨x, hx⟩ := hx ▸ (units_eq_one_or _).imp (congr_arg coe) (congr_arg coe)
 
 lemma is_unit_iff {a : ℤ} : is_unit a ↔ a = 1 ∨ a = -1 :=

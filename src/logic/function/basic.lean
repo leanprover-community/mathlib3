@@ -92,7 +92,7 @@ lemma injective.of_comp_iff' (f : α → β) {g : γ → α} (hg : bijective g) 
     hx ▸ hy ▸ λ hf, h hf ▸ rfl,
   λ h, h.comp hg.injective⟩
 
-lemma injective_of_subsingleton {α β : Sort*} [subsingleton α] (f : α → β) :
+lemma injective_of_subsingleton [subsingleton α] (f : α → β) :
   injective f :=
 λ a b ab, subsingleton.elim _ _
 

@@ -485,8 +485,6 @@ apply_nolint is_subgroup.center doc_blame
 apply_nolint is_subgroup.normalizer doc_blame
 apply_nolint normal_add_subgroup doc_blame
 apply_nolint normal_subgroup doc_blame
-apply_nolint simple_add_group doc_blame
-apply_nolint simple_group doc_blame
 
 -- deprecated/subring.lean
 apply_nolint ring.closure doc_blame

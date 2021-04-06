@@ -295,6 +295,13 @@ theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
 
+lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
+begin
+  rw [← lt_succ_iff, div_lt_iff_lt_mul _ _ n0, succ_mul, mul_comm],
+  cases n, {cases n0},
+  exact lt_succ_iff,
+end
+
 /-! ### `add` -/
 
 -- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding
@@ -1119,6 +1126,37 @@ begin
         refine eq_zero_of_le_half _,
         simp * at * } } },
   { rintros (rfl|rfl); simp }
+end
+
+lemma lt_iff_le_pred : ∀ {m n : ℕ}, 0 < n → (m < n ↔ m ≤ n - 1)
+| m (n+1) _ := lt_succ_iff
+
+lemma div_eq_sub_mod_div {m n : ℕ} : m / n = (m - m % n) / n :=
+begin
+  by_cases n0 : n = 0,
+  { rw [n0, nat.div_zero, nat.div_zero] },
+  { rw [← mod_add_div m n] { occs := occurrences.pos [2] },
+    rw [nat.add_sub_cancel_left, mul_div_right _ (nat.pos_of_ne_zero n0)] }
+end
+
+lemma mul_div_le (m n : ℕ) : n * (m / n) ≤ m :=
+begin
+  cases nat.eq_zero_or_pos n with n0 h,
+  { rw [n0, zero_mul], exact m.zero_le },
+  { rw [mul_comm, ← nat.le_div_iff_mul_le' h] },
+end
+
+lemma lt_mul_div_succ (m : ℕ) {n : ℕ} (n0 : 0 < n) : m < n * ((m / n) + 1) :=
+begin
+  rw [mul_comm, ← nat.div_lt_iff_lt_mul' n0],
+  exact lt_succ_self _
+end
+
+@[simp] lemma mod_div_self (m n : ℕ) : m % n / n = 0 :=
+begin
+  cases n,
+  { exact (m % 0).div_zero },
+  { exact nat.div_eq_zero (m.mod_lt n.succ_pos) }
 end
 
 /-! ### `pow` -/

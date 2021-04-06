@@ -296,6 +296,9 @@ end
 def eval_equiv [finite_dimensional K V] : V ≃ₗ[K] dual K (dual K V) :=
 linear_equiv.of_bijective (eval K V) eval_ker (erange_coe)
 
+lemma eval_equiv_to_linear_map [finite_dimensional K V] :
+  eval_equiv.to_linear_map = dual.eval K V := rfl
+
 end vector_space
 
 section dual_pair
@@ -458,6 +461,14 @@ begin
     rw [linear_map.map_add, h.1 _ hx, h.2 _ hy, add_zero] }
 end
 
+/-- The pullback of a submodule in the dual space along the evaluation map. -/
+def dual_annihilator_comap (Φ : submodule R (module.dual R M)) : submodule R M :=
+Φ.dual_annihilator.comap (module.dual.eval R M)
+
+lemma mem_dual_annihilator_comap_iff {Φ : submodule R (module.dual R M)} (x : M) :
+  x ∈ Φ.dual_annihilator_comap ↔ ∀ φ ∈ Φ, (φ x : R) = 0 :=
+by simp_rw [dual_annihilator_comap, mem_comap, mem_dual_annihilator, module.dual.eval_apply]
+
 end submodule
 
 namespace subspace
@@ -573,6 +584,24 @@ begin
     exact is_basis.to_dual_equiv _ hB.1 },
 end
 
+open finite_dimensional
+
+@[simp]
+lemma findim_dual_annihilator_comap_eq {Φ : subspace K (module.dual K V)} :
+  findim K Φ.dual_annihilator_comap = findim K Φ.dual_annihilator :=
+begin
+  rw [submodule.dual_annihilator_comap, ← vector_space.eval_equiv_to_linear_map],
+  exact linear_equiv.findim_eq (linear_equiv.of_submodule' _ _),
+end
+
+lemma findim_add_findim_dual_annihilator_comap_eq
+  (W : subspace K (module.dual K V)) :
+  findim K W + findim K W.dual_annihilator_comap = findim K V :=
+begin
+  rw [findim_dual_annihilator_comap_eq, W.quot_equiv_annihilator.findim_eq.symm, add_comm,
+      submodule.findim_quotient_add_findim, subspace.dual_findim_eq],
+end
+
 end
 
 end subspace
@@ -648,7 +677,7 @@ begin
   { ext x,
     rw dual_map_apply,
     rw submodule.mem_dual_annihilator at hφ,
-    exact hφ (f x) ⟨x, (submodule.mem_coe _).mpr submodule.mem_top, rfl⟩ }
+    exact hφ (f x) ⟨x, set_like.mem_coe.mpr submodule.mem_top, rfl⟩ }
 end
 
 lemma range_dual_map_le_dual_annihilator_ker :

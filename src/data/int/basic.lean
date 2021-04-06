@@ -1083,7 +1083,7 @@ begin
   { exact is_unit_of_mul_eq_one _ (- 1 : ℤ) (neg_one_mul _) }
 end
 
-theorem is_unit_int {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
+theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
 by simp [nat_abs_eq_iff, is_unit_iff]
 
 lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=

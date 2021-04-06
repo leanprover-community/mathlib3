@@ -720,6 +720,10 @@ end mul_one_class
 /-! #### Semiring structure -/
 section semiring
 
+instance {R : Type*} [semiring R] [semiring k] [semimodule R k] :
+  has_scalar R (add_monoid_algebra k G) :=
+finsupp.has_scalar
+
 variables [semiring k] [add_monoid G]
 
 instance : semiring (add_monoid_algebra k G) :=
@@ -727,6 +731,8 @@ instance : semiring (add_monoid_algebra k G) :=
   mul       := (*),
   zero      := 0,
   add       := (+),
+  nsmul     := λ n f, n • f,
+  nsmul_eq_rec := by apply eq_nsmul_rec; { intros, ext, simp [-nsmul_eq_mul, add_smul] },
   .. add_monoid_algebra.mul_one_class,
   .. add_monoid_algebra.semigroup,
   .. add_monoid_algebra.mul_zero_class,
@@ -773,9 +779,6 @@ instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) 
 { mul_comm := mul_comm, .. add_monoid_algebra.ring}
 
 variables {R S : Type*}
-
-instance [semiring R] [semiring k] [semimodule R k] : has_scalar R (add_monoid_algebra k G) :=
-finsupp.has_scalar
 
 instance [semiring R] [semiring k] [semimodule R k] : semimodule R (add_monoid_algebra k G) :=
 finsupp.semimodule G k

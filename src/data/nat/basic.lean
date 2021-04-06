@@ -44,7 +44,10 @@ instance : comm_semiring nat :=
   right_distrib  := nat.right_distrib,
   zero_mul       := nat.zero_mul,
   mul_zero       := nat.mul_zero,
-  mul_comm       := nat.mul_comm }
+  mul_comm       := nat.mul_comm,
+  nsmul          := λ m n, m * n,
+  nsmul_eq_rec   := by apply eq_nsmul_rec; intros;
+                      simp [nat.right_distrib, nat.one_mul, nat.zero_mul] }
 
 instance : linear_ordered_semiring nat :=
 { add_left_cancel            := @nat.add_left_cancel,

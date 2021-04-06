@@ -46,6 +46,25 @@ add_monoid_algebra.is_scalar_tower
 
 instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
 
+lemma zoug : has_scalar ℕ (polynomial ℕ) := add_monoid.has_scalar_nat
+
+lemma zoug2 : semimodule ℕ (polynomial ℕ) := polynomial.semimodule
+lemma zoug3 : has_scalar ℕ (polynomial ℕ) := polynomial.semimodule.to_has_scalar
+
+#print zoug2
+#print zoug3
+
+-- set_option pp.all true
+
+lemma foo (n : ℕ) (f : polynomial ℕ) : nsmul n f = has_scalar.smul n f :=
+begin
+  let Z := @add_monoid_algebra.semimodule ℕ ℕ ℕ _ _ _,
+  let T : semiring ℕ := by apply_instance,
+end
+
+
+#exit
+
 /--
 The set of all `n` such that `X^n` has a non-zero coefficient.
 -/

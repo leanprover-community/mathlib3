@@ -405,7 +405,7 @@ quotient.rec_on_subsingleton (@univ α _).1
   (λ l h, trunc.mk (cycle_factors_aux l f h))
   (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
 
-@[elab_as_eliminator] lemma cycle_induction_on [fintype β] {P : perm β → Prop} (σ : perm β)
+@[elab_as_eliminator] lemma cycle_induction_on [fintype β] (P : perm β → Prop) (σ : perm β)
   (base_one : P 1) (base_cycles : ∀ σ : perm β, σ.is_cycle → P σ)
   (induction_disjoint : ∀ σ τ : perm β, disjoint σ τ → P σ → P τ → P (σ * τ)) :
   P σ :=

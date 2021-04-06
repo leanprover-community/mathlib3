@@ -204,7 +204,7 @@ end
 
 lemma sum_cycle_type (σ : perm α) : σ.cycle_type.sum = σ.support.card :=
 begin
-  apply induction_on_cycles (λ τ : perm α, τ.cycle_type.sum = τ.support.card),
+  apply cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card),
   { rw [cycle_type_one, sum_zero, support_one, finset.card_empty] },
   { intros σ hσ,
     rw [hσ.cycle_type, coe_sum, list.sum_singleton] },
@@ -213,12 +213,12 @@ begin
 end
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
-induction_on_cycles
-  (λ τ : perm α, τ.cycle_type.lcm = order_of τ)
+cycle_induction_on
+  (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
   (by rw [cycle_type_one, lcm_zero, order_of_one])
   (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, lcm_singleton, order_of_is_cycle hσ,
     nat.normalize_eq])
-  (λ σ τ hστ hσ hτ, by rw [hστ.cycle_type, lcm_add, nat.lcm_eq_lcm, hστ.order_of, hσ, hτ]) σ
+  (λ σ τ hστ hσ hτ, by rw [hστ.cycle_type, lcm_add, nat.lcm_eq_lcm, hστ.order_of, hσ, hτ])
 
 lemma dvd_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : n ∣ order_of σ :=
 begin

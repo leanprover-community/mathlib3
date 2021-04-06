@@ -248,7 +248,10 @@ instance : linear_ordered_semiring ℝ≥0 :=
   zero_le_one                := @zero_le_one ℝ _,
   exists_pair_ne             := ⟨0, 1, ne_of_lt (@zero_lt_one ℝ _ _)⟩,
   .. nnreal.canonically_linear_ordered_add_monoid,
-  .. nnreal.comm_semiring, }
+  .. nnreal.comm_semiring }
+
+instance : ordered_comm_semiring ℝ≥0 :=
+{ .. nnreal.linear_ordered_semiring, .. nnreal.comm_semiring }
 
 instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
 { mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),

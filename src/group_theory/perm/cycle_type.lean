@@ -202,19 +202,21 @@ begin
     { exact or.inr (disjoint.cycle_type_aux y.2.2.2 ha hg) } },
 end
 
+lemma cycle_type_inv (σ : perm α) : σ⁻¹.cycle_type = σ.cycle_type :=
+cycle_induction_on (λ τ : perm α, τ⁻¹.cycle_type = τ.cycle_type) σ rfl
+  (λ σ hσ, by rw [hσ.cycle_type, hσ.inv.cycle_type, support_inv])
+  (λ σ τ hστ hσ hτ, by rw [mul_inv_rev, hστ.cycle_type, ←hσ, ←hτ, add_comm,
+    disjoint.cycle_type (λ x, or.imp (λ h : τ x = x, inv_eq_iff_eq.mpr h.symm)
+    (λ h : σ x = x, inv_eq_iff_eq.mpr h.symm) (hστ x).symm)])
+
 lemma sum_cycle_type (σ : perm α) : σ.cycle_type.sum = σ.support.card :=
-begin
-  apply cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card),
-  { rw [cycle_type_one, sum_zero, support_one, finset.card_empty] },
-  { intros σ hσ,
-    rw [hσ.cycle_type, coe_sum, list.sum_singleton] },
-  { intros σ τ hστ hσ hτ,
-    rw [hστ.cycle_type, sum_add, hστ.card_support_mul, hσ, hτ] },
-end
+cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card) σ
+  (by rw [cycle_type_one, sum_zero, support_one, finset.card_empty])
+  (λ σ hσ, by rw [hσ.cycle_type, coe_sum, list.sum_singleton])
+  (λ σ τ hστ hσ hτ, by rw [hστ.cycle_type, sum_add, hστ.card_support_mul, hσ, hτ])
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
-cycle_induction_on
-  (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
+cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
   (by rw [cycle_type_one, lcm_zero, order_of_one])
   (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, lcm_singleton, order_of_is_cycle hσ,
     nat.normalize_eq])

@@ -50,14 +50,14 @@ def types.mono_over_equivalence_set (α : Type u) : mono_over α ≌ set α :=
       (by { ext, simp, }), },
   unit_iso := nat_iso.of_components
     (λ f, mono_over.iso_mk
-      (equiv.set.range f.1.hom ((mono_iff_injective _).mp f.2)).to_iso (by tidy))
+      (equiv.of_injective f.1.hom ((mono_iff_injective _).mp f.2)).to_iso (by tidy))
     (by tidy),
   counit_iso := nat_iso.of_components
     (λ s, eq_to_iso subtype.range_val)
     (by tidy), }
 
 instance : well_powered (Type u) :=
-well_powered_of_mono_over_essentially_small
+well_powered_of_essentially_small_mono_over
   (λ α, essentially_small.mk' (types.mono_over_equivalence_set α))
 
 /--

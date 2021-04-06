@@ -133,6 +133,9 @@ variables {α β} (f : C(α, β))
 -- The corresponding lemmas for `bounded_continuous_function` are stated with `{f}`,
 -- and so can not be used in dot notation.
 
+lemma norm_coe_le_norm (x : α) : ∥f x∥ ≤ ∥f∥ :=
+((equiv_bounded_of_compact α β) f).norm_coe_le_norm x
+
 /-- Distance between the images of any two points is at most twice the norm of the function. -/
 lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ∥f∥ :=
 ((equiv_bounded_of_compact α β) f).dist_le_two_norm x y

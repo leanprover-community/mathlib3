@@ -27,13 +27,10 @@ variables [topological_space X] [compact_space X]
 variables {R : Type*} [comm_ring R] [topological_space R] [topological_ring R]
 
 lemma apply_le_norm (f : C(X, ℝ)) (x : X) : f x ≤ ∥f∥ :=
-begin
-  -- transitivity,
-  -- swap,
-  -- apply bounded_continuous_function.norm_coe_le_norm f x,
-  sorry,
-end
-lemma neg_norm_le_apply (f : C(X, ℝ)) (x : X) : -∥f∥ ≤ f x := sorry
+le_trans (le_abs.mpr (or.inl (le_refl (f x)))) (f.norm_coe_le_norm x)
+
+lemma neg_norm_le_apply (f : C(X, ℝ)) (x : X) : -∥f∥ ≤ f x :=
+le_trans (neg_le_neg (f.norm_coe_le_norm x)) (neg_le.mp (neg_le_abs_self (f x)))
 
 def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-∥f∥) (∥f∥)) :=
 { to_fun := λ x, ⟨f x, ⟨neg_norm_le_apply f x, apply_le_norm f x⟩⟩ }
@@ -41,7 +38,6 @@ def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-∥f∥) (∥f∥)) :=
 @[simp] lemma attach_bound_apply_coe (f : C(X, ℝ)) (x : X) : ((attach_bound f) x : ℝ) = f x := rfl
 
 attribute [simp] polynomial.aeval_monomial
-
 
 
 @[simp] lemma polynomial.aeval_fn_apply (g : polynomial ℝ)

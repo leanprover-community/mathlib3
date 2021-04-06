@@ -1509,7 +1509,7 @@ begin
     rw hψ₂, refl }
 end
 
-/-- Given the nondegenerate bilinear form `B`, the linear map `φ` has an unique left adjoint. -/
+/-- Given the nondegenerate bilinear form `B`, the linear map `φ` has a unique left adjoint. -/
 theorem exists_unique_left_adjoint_of_nondegenerate
   (B : bilin_form K V) (hB : B.nondegenerate) (φ : V →ₗ[K] V) :
   ∃! ψ : V →ₗ[K] V, is_adjoint_pair B B ψ φ :=

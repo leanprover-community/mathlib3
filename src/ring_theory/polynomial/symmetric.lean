@@ -234,7 +234,7 @@ begin
   { intros,
     simp only [union_val, sup_eq_union],
     congr },
-  { simpa }
+  { refl }
 end
 
 end elementary_symmetric

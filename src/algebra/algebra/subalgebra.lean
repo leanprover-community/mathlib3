@@ -40,6 +40,9 @@ instance : set_like (subalgebra R A) A :=
 @[simp]
 lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
+@[simp]
+lemma mem_coe {s : subalgebra R A} {x : A} : x ∈ (s : set A) ↔ x ∈ s := iff.rfl
+
 @[ext] theorem ext {S T : subalgebra R A} (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
 theorem ext_set {S T : subalgebra R A}

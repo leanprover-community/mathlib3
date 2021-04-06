@@ -19,7 +19,7 @@ open_locale topological_space unit_interval
 
 /--
 The special case of the Weierstrass approximation theorem for the interval `[0,1]`.
-We do this first, because the Bernstein polynomials are specifically adapted to this interval.
+This is just a matter of unravelling definitions and using the Bernstein approximations.
 -/
 theorem polynomial_functions_closure_eq_top' :
   (polynomial_functions I).topological_closure = ⊤ :=
@@ -30,7 +30,12 @@ begin
   refine filter.tendsto.frequently (bernstein_approximation_uniform f) _,
   apply frequently_of_forall,
   intro n,
-  sorry,
+  simp only [subalgebra.mem_coe],
+  apply subalgebra.sum_mem,
+  rintro n -,
+  apply subalgebra.smul_mem,
+  dsimp [bernstein, polynomial_functions],
+  simp,
 end
 
 def pullback {X Y : Type*} [topological_space X] [topological_space Y] (f : C(X, Y)) :
@@ -56,11 +61,8 @@ begin
   refine metric.continuous_iff.mpr _,
   intros g ε ε_pos,
   refine ⟨ε, ε_pos, λ g' h, _⟩,
-  -- FIXME shouldn't need `erw`
-  erw bounded_continuous_function.dist_lt_iff_of_compact ε_pos at h ⊢,
+  rw continuous_map.dist_lt_iff _ _ ε_pos at h ⊢,
   { exact λ x, h (f x), },
-  { assumption, },
-  { assumption, },
 end
 
 def pullback_as_continuous_map
@@ -77,10 +79,13 @@ rfl
 
 open affine_map
 
-def line_map_Icc (a b : ℝ) (h : a < b) : C(set.Icc (0 : ℝ) (1 : ℝ), set.Icc a b) :=
+/--
+A version of `affine_map.line_map`, bundled as a continuous function `set.Icc 0 1` to `set.Icc a b`.
+-/
+def line_map_Icc (a b : ℝ) (h : a < b) : C(I, set.Icc a b) :=
 begin
   let f₁ : ℝ →ᵃ[ℝ] ℝ := affine_map.line_map a b,
-  let f₂ : set.Icc (0 : ℝ) 1 → set.Icc a b :=
+  let f₂ : I → set.Icc a b :=
     λ x, ⟨f₁ x, begin
       rcases x with ⟨x, zero_le, le_one⟩,
       simp only [subtype.coe_mk, set.mem_Icc],
@@ -99,6 +104,32 @@ end
 
 @[simp] lemma line_map_Icc_apply (a b : ℝ) (h : a < b) (x : I) :
   (line_map_Icc a b h x : ℝ) = affine_map.line_map a b (x : ℝ) := rfl
+
+/--
+A version of `affine_map.line_map`, bundled as a continuous function `set.Icc 0 1` to `set.Icc a b`.
+-/
+def line_map_Icc_inv (a b : ℝ) (h : a < b) : C(set.Icc a b, I) :=
+begin
+  let f₁ : ℝ →ᵃ[ℝ] ℝ := affine_map.line_map (-a/(b-a)) ((1-a)/(b-a)),
+  let f₂ : set.Icc a b → I :=
+    λ x, ⟨f₁ x, begin
+      rcases x with ⟨x, a_le, le_b⟩,
+      simp only [subtype.coe_mk, set.mem_Icc],
+      fsplit,
+      dsimp [f₁, affine_map.line_map],
+      simp only [linear_map.id_coe, id.def, vadd_eq_add],
+      simp_rw [neg_div, sub_neg_eq_add, ←add_div, sub_add_cancel],
+      sorry,
+      sorry,
+    end⟩,
+  have c : continuous f₂ :=
+  begin
+    apply continuous_subtype_mk,
+    change continuous (f₁ ∘ subtype.val),
+    continuity,
+  end,
+  exact ⟨f₂, c⟩,
+end
 
 /-- The preimage of polynomials on `[0,1]` under the pullback map by `x ↦ (b-a) * x + a`
 is the polynomials on `[a,b]`. -/

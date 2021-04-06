@@ -205,7 +205,12 @@ variables {a b : E} {r r' : k}
 
 lemma line_map_le_line_map_of_le_of_le (h : r ≤ r') (w : a ≤ b) :
   line_map a b r ≤ line_map a b r' :=
-sorry
+begin
+  dsimp [line_map],
+  simp only [linear_map.id_coe, id.def, vadd_eq_add, add_le_add_iff_right],
+
+  sorry,
+end
 
 lemma left_le_line_map_of_nonneg_of_le (h : 0 ≤ r) (w : a ≤ b) :
   a ≤ line_map a b r :=

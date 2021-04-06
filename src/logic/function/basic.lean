@@ -350,6 +350,15 @@ lemma bijective_iff_has_inverse : bijective f ↔ ∃ g, left_inverse g f ∧ ri
 lemma injective_surj_inv (h : surjective f) : injective (surj_inv h) :=
 (right_inverse_surj_inv h).injective
 
+lemma function.surjective.to_subsingleton {α β : Type*} (f : α → β) [nonempty α] [subsingleton β] :
+  function.surjective f :=
+begin
+  refine function.surjective_iff_has_right_inverse.mpr ⟨function.inv_fun f, _⟩,
+
+--  refine ⟨function.inv_fun f, _⟩,
+--  ⟨function.inv_fun f, by finish⟩
+end
+
 end surj_inv
 
 section update

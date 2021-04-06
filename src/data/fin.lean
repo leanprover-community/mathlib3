@@ -566,6 +566,8 @@ lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.
 
 @[simp] lemma cast_succ_zero : cast_succ (0 : fin (n + 1)) = 0 := rfl
 
+@[simp] lemma cast_succ_one {n : ℕ} : fin.cast_succ (1 : fin (n + 2)) = 1 := rfl
+
 /-- `cast_succ i` is positive when `i` is positive -/
 lemma cast_succ_pos {i : fin (n + 1)} (h : 0 < i) : 0 < cast_succ i :=
 by simpa [lt_iff_coe_lt_coe] using h
@@ -985,6 +987,8 @@ def cast_pred (i : fin (n + 2)) : fin (n + 1) :=
 pred_above (last n) i
 
 @[simp] lemma cast_pred_zero : cast_pred (0 : fin (n + 2)) = 0 := rfl
+
+@[simp] lemma cast_pred_one : cast_pred (1 : fin (n + 3)) = 1 := rfl
 
 @[simp] theorem pred_above_zero {i : fin (n + 2)} (hi : i ≠ 0) :
   pred_above 0 i = i.pred hi :=

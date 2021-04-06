@@ -1074,6 +1074,18 @@ by rw [fintype_card, nat_cast_inj, fintype.card_coe]
 lemma finset_card_lt_omega (s : finset α) : mk (↑s : set α) < omega :=
 by { rw [lt_omega_iff_fintype], exact ⟨finset.subtype.fintype s⟩ }
 
+theorem mk_eq_nat_iff_finset {α} {s : set α} {n : ℕ} :
+  mk s = n ↔ ∃ t : finset α, (t : set α) = s ∧ t.card = n :=
+begin
+  split,
+  { intro h,
+    have : # s < omega, by { rw h, exact nat_lt_omega n },
+    refine ⟨(lt_omega_iff_finite.1 this).to_finset, finite.coe_to_finset _, nat_cast_inj.1 _⟩,
+    rwa [finset_card, finite.coe_to_finset] },
+  { rintro ⟨t, rfl, rfl⟩,
+    exact finset_card.symm }
+end
+
 theorem mk_union_add_mk_inter {α : Type u} {S T : set α} :
   mk (S ∪ T : set α) + mk (S ∩ T : set α) = mk S + mk T :=
 quot.sound ⟨equiv.set.union_sum_inter S T⟩

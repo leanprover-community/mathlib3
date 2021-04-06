@@ -24,8 +24,6 @@ In this file we define
 * `vector_space k M` : same as `semimodule k M` and `module k M` but assumes that `k` is a `field`
   and `M` is an additive commutative group.
 
-* `linear_map R M M₂`, `M →ₗ[R] M₂` : a linear map between two R-`semimodule`s.
-
 ## Implementation notes
 
 * `vector_space` and `module` are abbreviations for `semimodule R M`.

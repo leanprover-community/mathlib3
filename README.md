@@ -57,11 +57,14 @@ welcomed.
 * Floris van Doorn (@fpvandoorn): all
 * Gabriel Ebner (@gebner): all
 * Sébastien Gouëzel (@sgouezel): topology, calculus
+* Markus Himmel (@TwoFX): category theory
 * Simon Hudon (@cipher1024): all
 * Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
 * Yury G. Kudryashov (@urkud): analysis, topology
 * Robert Y. Lewis (@robertylewis): all
 * Heather Macbeth (@hrmacbeth): geometry, analysis
 * Patrick Massot (@patrickmassot): documentation, topology
+* Bhavik Mehta (@b-mehta): category theory, combinatorics
 * Scott Morrison (@semorrison): category theory
+* Adam Topaz (@adamtopaz): algebra, category theory
 * Eric Wieser (@eric-wieser): algebra, infrastructure

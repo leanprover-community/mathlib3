@@ -5,9 +5,11 @@ Authors: Chris Hughes
 -/
 import data.fintype.basic
 import data.finset.sort
+import data.nat.parity
 import group_theory.perm.basic
 import group_theory.order_of_element
 import tactic.norm_swap
+import group_theory.quotient_group
 
 /-!
 # Sign of a permutation
@@ -229,21 +231,23 @@ lemma disjoint.mul_eq_one_iff {σ τ : perm α} (hστ : disjoint σ τ) :
   σ * τ = 1 ↔ σ = 1 ∧ τ = 1 :=
 by simp_rw [ext_iff, one_apply, hστ.mul_apply_eq_iff, forall_and_distrib]
 
+lemma disjoint.gpow_disjoint_gpow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℤ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+λ x, or.imp (λ h, gpow_apply_eq_self_of_apply_eq_self h m)
+  (λ h, gpow_apply_eq_self_of_apply_eq_self h n) (hστ x)
+
+lemma disjoint.pow_disjoint_pow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℕ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+hστ.gpow_disjoint_gpow m n
+
 lemma disjoint.order_of {σ τ : perm α} (hστ : disjoint σ τ) :
   order_of (σ * τ) = nat.lcm (order_of σ) (order_of τ) :=
 begin
-  have h : ∀ n : ℕ, (σ * τ) ^ n = 1 ↔ σ ^ n = 1 ∧ τ ^ n = 1,
-  { intro n,
-    rw commute.mul_pow hστ.mul_comm,
-    exact disjoint.mul_eq_one_iff (λ x, or.imp (λ h, pow_apply_eq_self_of_apply_eq_self h n)
-      (λ h, pow_apply_eq_self_of_apply_eq_self h n) (hστ x)) },
-  exact nat.dvd_antisymm
-    (order_of_dvd_of_pow_eq_one ((h (nat.lcm (order_of σ) (order_of τ))).mpr
-      ⟨order_of_dvd_iff_pow_eq_one.mp (nat.dvd_lcm_left (order_of σ) (order_of τ)),
-      order_of_dvd_iff_pow_eq_one.mp (nat.dvd_lcm_right (order_of σ) (order_of τ))⟩))
-    (nat.lcm_dvd
-      (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).1)
-      (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
+  have h : ∀ n : ℕ, (σ * τ) ^ n = 1 ↔ σ ^ n = 1 ∧ τ ^ n = 1 :=
+  λ n, by rw [commute.mul_pow hστ.mul_comm, disjoint.mul_eq_one_iff (hστ.pow_disjoint_pow n n)],
+  exact nat.dvd_antisymm (commute.order_of_mul_dvd_lcm hστ.mul_comm) (nat.lcm_dvd
+    (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).1)
+    (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
 end
 
 variable [decidable_eq α]
@@ -264,10 +268,11 @@ by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_no
 @[simp] lemma support_one : (1 : perm α).support = ∅ :=
 by rw support_eq_empty_iff
 
-lemma support_mul_le {f g : perm α} :
-  (f * g).support ≤ f.support ∪ g.support :=
+lemma support_mul_le (f g : perm α) :
+  (f * g).support ≤ f.support ⊔ g.support :=
 λ x, begin
-  rw [mem_union, mem_support, mem_support, mem_support, mul_apply, ←not_and_distrib, not_imp_not],
+  rw [sup_eq_union, mem_union, mem_support, mem_support,
+    mem_support, mul_apply, ←not_and_distrib, not_imp_not],
   rintro ⟨hf, hg⟩,
   rw [hg, hf]
 end
@@ -420,6 +425,17 @@ begin
     rw [← hl.1, list.prod_cons, hxy.2],
     exact hmul_swap _ _ _ hxy.1
       (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
+end
+
+lemma closure_swaps_eq_top [fintype α] :
+  subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
+begin
+  ext σ,
+  simp only [subgroup.mem_top, iff_true],
+  apply swap_induction_on σ,
+  { exact subgroup.one_mem _ },
+  { intros σ a b ab hσ,
+    refine subgroup.mul_mem _ (subgroup.subset_closure ⟨_, _, ab, rfl⟩) hσ }
 end
 
 /-- Like `swap_induction_on`, but with the composition on the right of `f`.
@@ -706,12 +722,15 @@ have h₁ : l.map sign = list.repeat (-1) l.length :=
   hg.2 ▸ (hl _ hg.1).sign_eq⟩,
 by rw [← list.prod_repeat, ← h₁, list.prod_hom _ (@sign α _ _)]
 
-lemma sign_surjective (hα : 1 < fintype.card α) : function.surjective (sign : perm α → units ℤ) :=
+variable (α)
+
+lemma sign_surjective [nontrivial α] : function.surjective (sign : perm α → units ℤ) :=
 λ a, (int.units_eq_one_or a).elim
   (λ h, ⟨1, by simp [h]⟩)
-  (λ h, let ⟨x⟩ := fintype.card_pos_iff.1 (lt_trans zero_lt_one hα) in
-    let ⟨y, hxy⟩ := fintype.exists_ne_of_one_lt_card hα x in
-    ⟨swap y x, by rw [sign_swap hxy, h]⟩ )
+  (λ h, let ⟨x, y, hxy⟩ := exists_pair_ne α in
+    ⟨swap x y, by rw [sign_swap hxy, h]⟩ )
+
+variable {α}
 
 lemma eq_sign_of_surjective_hom {s : perm α →* units ℤ} (hs : surjective s) : s = sign :=
 have ∀ {f}, is_swap f → s f = -1 :=
@@ -893,6 +912,11 @@ end
   (ep.subtype_congr en).sign = ep.sign * en.sign :=
 by simp [subtype_congr]
 
+@[simp] lemma sign_extend_domain (e : perm α)
+  {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) :
+  equiv.perm.sign (e.extend_domain f) = equiv.perm.sign e :=
+by simp [equiv.perm.extend_domain]
+
 end congr
 
 end sign
@@ -914,7 +938,11 @@ disjoint_iff_disjoint_support.1 h
 lemma disjoint.support_mul (h : disjoint f g) :
   (f * g).support = f.support ∪ g.support :=
 begin
+<<<<<<< HEAD
   refine le_antisymm support_mul_le (λ a, _),
+=======
+  refine le_antisymm (support_mul_le _ _) (λ a, _),
+>>>>>>> master
   rw [mem_union, mem_support, mem_support, mem_support, mul_apply, ←not_and_distrib, not_imp_not],
   exact (h a).elim (λ hf h, ⟨hf, f.apply_eq_iff_eq.mp (h.trans hf.symm)⟩)
     (λ hg h, ⟨(congr_arg f hg).symm.trans h, hg⟩),
@@ -949,3 +977,45 @@ end
 end disjoint
 
 end equiv.perm
+
+section alternating_subgroup
+open equiv.perm
+variables (α) [fintype α] [decidable_eq α]
+
+/-- The alternating group on a finite type, realized as a subgroup of `equiv.perm`.
+  For $A_n$, use `alternating_subgroup (fin n)`. -/
+@[derive fintype] def alternating_subgroup : subgroup (perm α) :=
+sign.ker
+
+instance [subsingleton α] : unique (alternating_subgroup α) :=
+⟨⟨1⟩, λ ⟨p, hp⟩, subtype.eq (subsingleton.elim p _)⟩
+
+variables {α}
+
+lemma alternating_subgroup_eq_sign_ker : alternating_subgroup α = sign.ker := rfl
+
+@[simp]
+lemma mem_alternating_subgroup {f : perm α} :
+  f ∈ alternating_subgroup α ↔ sign f = 1 :=
+sign.mem_ker
+
+lemma prod_list_swap_mem_alternating_subgroup_iff_even_length {l : list (perm α)}
+  (hl : ∀ g ∈ l, is_swap g) :
+  l.prod ∈ alternating_subgroup α ↔ even l.length :=
+begin
+  rw [mem_alternating_subgroup, sign_prod_list_swap hl, ← units.coe_eq_one, units.coe_pow,
+    units.coe_neg_one, nat.neg_one_pow_eq_one_iff_even],
+  dec_trivial
+end
+
+lemma two_mul_card_alternating_subgroup [nontrivial α] :
+  2 * card (alternating_subgroup α) = card (perm α) :=
+begin
+  let := (quotient_group.quotient_ker_equiv_of_surjective _ (sign_surjective α)).to_equiv,
+  rw [←fintype.card_units_int, ←fintype.card_congr this],
+  exact (subgroup.card_eq_card_quotient_mul_card_subgroup _).symm,
+end
+
+lemma alternating_subgroup_normal : (alternating_subgroup α).normal := sign.normal_ker
+
+end alternating_subgroup

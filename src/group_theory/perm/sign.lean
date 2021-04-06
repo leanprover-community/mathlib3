@@ -124,21 +124,21 @@ begin
     rw ← hb, exact ⟨b, rfl⟩ },
   let σ₁' := subtype_perm_of_fintype σ h1,
   let σ₂' := subtype_perm_of_fintype σ h3,
-  let σ₁ := perm_congr (equiv.set.range (@sum.inl m n) sum.inl_injective).symm σ₁',
-  let σ₂ := perm_congr (equiv.set.range (@sum.inr m n) sum.inr_injective).symm σ₂',
+  let σ₁ := perm_congr (equiv.of_injective (@sum.inl m n) sum.inl_injective).symm σ₁',
+  let σ₂ := perm_congr (equiv.of_injective (@sum.inr m n) sum.inr_injective).symm σ₂',
   rw [monoid_hom.mem_range, prod.exists],
   use [σ₁, σ₂],
   rw [perm.sum_congr_hom_apply],
   ext,
   cases x with a b,
   { rw [equiv.sum_congr_apply, sum.map_inl, perm_congr_apply, equiv.symm_symm,
-      set.apply_range_symm (@sum.inl m n)],
+        apply_of_injective_symm (@sum.inl m n)],
     erw subtype_perm_apply,
-    rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] },
+    rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] },
   { rw [equiv.sum_congr_apply, sum.map_inr, perm_congr_apply, equiv.symm_symm,
-      set.apply_range_symm (@sum.inr m n)],
+        apply_of_injective_symm (@sum.inr m n)],
     erw subtype_perm_apply,
-    rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] }
+    rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] }
 end
 
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,
@@ -207,6 +207,38 @@ lemma gpow_apply_eq_of_apply_apply_eq_self {f : perm α} {x : α} (hffx : f (f x
     ← pow_succ, eq_comm, inv_eq_iff_eq, ← mul_apply, ← pow_succ', @eq_comm _ x, or.comm],
   exact pow_apply_eq_of_apply_apply_eq_self hffx _ }
 
+lemma disjoint.mul_apply_eq_iff {σ τ : perm α} (hστ : disjoint σ τ) {a : α} :
+  (σ * τ) a = a ↔ σ a = a ∧ τ a = a :=
+begin
+  refine ⟨λ h, _, λ h, by rw [mul_apply, h.2, h.1]⟩,
+  cases hστ a with hσ hτ,
+  { exact ⟨hσ, σ.injective (h.trans hσ.symm)⟩ },
+  { exact ⟨(congr_arg σ hτ).symm.trans h, hτ⟩ },
+end
+
+lemma disjoint.mul_eq_one_iff {σ τ : perm α} (hστ : disjoint σ τ) :
+  σ * τ = 1 ↔ σ = 1 ∧ τ = 1 :=
+by simp_rw [ext_iff, one_apply, hστ.mul_apply_eq_iff, forall_and_distrib]
+
+lemma disjoint.gpow_disjoint_gpow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℤ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+λ x, or.imp (λ h, gpow_apply_eq_self_of_apply_eq_self h m)
+  (λ h, gpow_apply_eq_self_of_apply_eq_self h n) (hστ x)
+
+lemma disjoint.pow_disjoint_pow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℕ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+hστ.gpow_disjoint_gpow m n
+
+lemma disjoint.order_of {σ τ : perm α} (hστ : disjoint σ τ) :
+  order_of (σ * τ) = nat.lcm (order_of σ) (order_of τ) :=
+begin
+  have h : ∀ n : ℕ, (σ * τ) ^ n = 1 ↔ σ ^ n = 1 ∧ τ ^ n = 1 :=
+  λ n, by rw [commute.mul_pow hστ.mul_comm, disjoint.mul_eq_one_iff (hστ.pow_disjoint_pow n n)],
+  exact nat.dvd_antisymm (commute.order_of_mul_dvd_lcm hστ.mul_comm) (nat.lcm_dvd
+    (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).1)
+    (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
+end
+
 variable [decidable_eq α]
 
 section fintype
@@ -225,10 +257,11 @@ by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_no
 @[simp] lemma support_one : (1 : perm α).support = ∅ :=
 by rw support_eq_empty_iff
 
-lemma support_mul_le {f g : perm α} :
-  (f * g).support ≤ f.support ∪ g.support :=
+lemma support_mul_le (f g : perm α) :
+  (f * g).support ≤ f.support ⊔ g.support :=
 λ x, begin
-  rw [mem_union, mem_support, mem_support, mem_support, mul_apply, ←not_and_distrib, not_imp_not],
+  rw [sup_eq_union, mem_union, mem_support, mem_support,
+    mem_support, mul_apply, ←not_and_distrib, not_imp_not],
   rintro ⟨hf, hg⟩,
   rw [hg, hf]
 end
@@ -868,6 +901,11 @@ end
   (ep.subtype_congr en).sign = ep.sign * en.sign :=
 by simp [subtype_congr]
 
+@[simp] lemma sign_extend_domain (e : perm α)
+  {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) :
+  equiv.perm.sign (e.extend_domain f) = equiv.perm.sign e :=
+by simp [equiv.perm.extend_domain]
+
 end congr
 
 end sign
@@ -889,7 +927,7 @@ disjoint_iff_disjoint_support.1 h
 lemma disjoint.support_mul (h : disjoint f g) :
   (f * g).support = f.support ∪ g.support :=
 begin
-  refine le_antisymm support_mul_le (λ a, _),
+  refine le_antisymm (support_mul_le _ _) (λ a, _),
   rw [mem_union, mem_support, mem_support, mem_support, mul_apply, ←not_and_distrib, not_imp_not],
   exact (h a).elim (λ hf h, ⟨hf, f.apply_eq_iff_eq.mp (h.trans hf.symm)⟩)
     (λ hg h, ⟨(congr_arg f hg).symm.trans h, hg⟩),
@@ -960,7 +998,7 @@ lemma two_mul_card_alternating_subgroup [nontrivial α] :
 begin
   let := (quotient_group.quotient_ker_equiv_of_surjective _ (sign_surjective α)).to_equiv,
   rw [←fintype.card_units_int, ←fintype.card_congr this],
-  exact (card_eq_card_quotient_mul_card_subgroup _).symm,
+  exact (subgroup.card_eq_card_quotient_mul_card_subgroup _).symm,
 end
 
 lemma alternating_subgroup_normal : (alternating_subgroup α).normal := sign.normal_ker

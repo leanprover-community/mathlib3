@@ -73,6 +73,8 @@ variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f�
 @[reducible] def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f₁ x = f₂ x
 
+@[simp] lemma eq_on_empty (f₁ f₂ : α → β) : eq_on f₁ f₂ ∅ := λ x, false.elim
+
 @[symm] lemma eq_on.symm (h : eq_on f₁ f₂ s) : eq_on f₂ f₁ s :=
 λ x hx, (h hx).symm
 
@@ -258,7 +260,7 @@ lemma inj_on_iff_injective : inj_on f s ↔ injective (restrict f s) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
-lemma inj_on_preimage {B : set (set β)} (hB : B ⊆ powerset (range f)) :
+lemma inj_on_preimage {B : set (set β)} (hB : B ⊆ 𝒫 (range f)) :
   inj_on (preimage f) B :=
 λ s hs t ht hst, (preimage_eq_preimage' (hB hs) (hB ht)).1 hst
 
@@ -434,7 +436,7 @@ theorem left_inv_on.inj_on (h : left_inv_on f₁' f s) : inj_on f s :=
 calc
   x₁    = f₁' (f x₁) : eq.symm $ h h₁
   ...   = f₁' (f x₂) : congr_arg f₁' heq
-  ...   = x₂       : h h₂
+  ...   = x₂         : h h₂
 
 theorem left_inv_on.surj_on (h : left_inv_on f' f s) (hf : maps_to f s t) : surj_on f' t s :=
 λ x hx, ⟨f x, hf hx, h hx⟩
@@ -473,7 +475,7 @@ theorem left_inv_on.image_image (hf : left_inv_on f' f s) :
   f' '' (f '' s) = s :=
 by rw [image_image, image_congr hf, image_id']
 
-theorem left_inv_on.image_image' (hf : left_inv_on f' f s)  (hs : s₁ ⊆ s) :
+theorem left_inv_on.image_image' (hf : left_inv_on f' f s) (hs : s₁ ⊆ s) :
   f' '' (f '' s₁) = s₁ :=
 (hf.mono hs).image_image
 
@@ -649,12 +651,10 @@ begin
 end
 
 @[simp, priority 990]
-lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
-by simp [piecewise, hi]
+lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i := if_pos hi
 
 @[simp, priority 990]
-lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
-by simp [piecewise, hi]
+lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i := if_neg hi
 
 lemma piecewise_singleton (x : α) [Π y, decidable (y ∈ ({x} : set α))] [decidable_eq α]
   (f g : α → β) : piecewise {x} f g = function.update g x (f x) :=

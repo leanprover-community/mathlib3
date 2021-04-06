@@ -26,7 +26,7 @@ We also add an `instance`:
 * any `monoid_with_zero` has a `mul_action_with_zero R R` acting on itself.
 -/
 
-variables {R M M' : Type*}
+variables {R R' M M' : Type*}
 
 section has_zero
 
@@ -51,29 +51,37 @@ variables {R} (M)
 /-- Note that this lemma has different typeclass assumptions to `smul_zero`. -/
 @[simp] lemma smul_zero' (r : R) : r • (0 : M) = 0 := smul_with_zero.smul_zero r
 
-variables {R M} [has_zero M'] [has_scalar R M']
+variables {R M} [has_zero R'] [has_zero M'] [has_scalar R M']
 
-/-- Pullback a `smul_zero_class` structure along an injective zero-preserving homomorphism. -/
-protected def function.injective.smul_zero_class
+/-- Pullback a `smul_with_zero` structure along an injective zero-preserving homomorphism. -/
+protected def function.injective.smul_with_zero
   (f : zero_hom M' M) (hf : function.injective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   smul_with_zero R M' :=
 { smul := (•),
   zero_smul := λ a, hf $ by simp [smul],
   smul_zero := λ a, hf $ by simp [smul]}
 
-/-- Pushforward a `smul_zero_class` structure along a surjective zero-preserving homomorphism. -/
-protected def function.surjective.smul_zero_class
+/-- Pushforward a `smul_with_zero` structure along a surjective zero-preserving homomorphism. -/
+protected def function.surjective.smul_with_zero
   (f : zero_hom M M') (hf : function.surjective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   smul_with_zero R M' :=
 { smul := (•),
   zero_smul := λ m, by { rcases hf m with ⟨x, rfl⟩, simp [←smul] },
   smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero'] }
 
+variables (M)
+
+/-- Compose a `smul_with_zero` with a `zero_hom`, with action `f r' • m` -/
+def smul_with_zero.comp_hom (f : zero_hom R' R) : smul_with_zero R' M :=
+{ smul := (•) ∘ f,
+  smul_zero := λ m, by simp,
+  zero_smul := λ m, by simp }
+
 end has_zero
 
 section monoid_with_zero
 
-variables [monoid_with_zero R] [has_zero M]
+variables [monoid_with_zero R] [monoid_with_zero R'] [has_zero M]
 
 variables (R M)
 /--  An action of a monoid with zero `R` on a Type `M`, also with `0`, extends `mul_action` and
@@ -99,13 +107,23 @@ variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_scalar R M']
 protected def function.injective.mul_action_with_zero
   (f : zero_hom M' M) (hf : function.injective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   mul_action_with_zero R M' :=
-{ ..hf.mul_action f smul, ..hf.smul_zero_class f smul }
+{ ..hf.mul_action f smul, ..hf.smul_with_zero f smul }
 
 /-- Pushforward a `mul_action_with_zero` structure along a surjective zero-preserving homomorphism.
 -/
 protected def function.surjective.mul_action_with_zero
   (f : zero_hom M M') (hf : function.surjective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   mul_action_with_zero R M' :=
-{ ..hf.mul_action f smul, ..hf.smul_zero_class f smul }
+{ ..hf.mul_action f smul, ..hf.smul_with_zero f smul }
+
+variables (M)
+
+/-- Compose a `mul_action_with_zero` with a `monoid_with_zero_hom`, with action `f r' • m` -/
+def mul_action_with_zero.comp_hom (f : monoid_with_zero_hom R' R) :
+  mul_action_with_zero R' M :=
+{ smul := (•) ∘ f,
+  mul_smul := λ r s m, by simp [mul_smul],
+  one_smul := λ m, by simp,
+  .. smul_with_zero.comp_hom M f.to_zero_hom}
 
 end monoid_with_zero

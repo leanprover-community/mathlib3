@@ -18,7 +18,7 @@ A subsingleton type is `w`-small for any `w`.
 If `α ≃ β`, then `small.{w} α ↔ small.{w} β`.
 -/
 
-universes w v
+universes u w v
 
 /--
 A type is `small.{w}` if there exists an equivalence to some `S : Type w`.
@@ -57,6 +57,8 @@ small.mk' equiv.ulift.{w}.symm
 instance small_ulift (α : Type v) : small.{v} (ulift.{w} α) :=
 small.mk' equiv.ulift
 
+theorem small_type : small.{max (u+1) v} (Type u) := small_max.{max (u+1) v} _
+
 section
 open_locale classical
 
@@ -86,12 +88,38 @@ end
 theorem small_of_injective {α : Type*} {β : Type*} [small.{w} β]
   (f : α → β) (hf : function.injective f) : small.{w} α :=
 begin
-  rw small_congr (equiv.set.range f hf),
+  rw small_congr (equiv.of_injective f hf),
   apply_instance,
 end
 
 @[priority 100]
 instance small_of_encodable (α : Type v) [encodable α] : small.{w} α :=
 small_of_injective _ (encodable.encode_injective)
+
+instance small_Pi {α} (β : α → Type*) [small.{w} α] [∀ a, small.{w} (β a)] :
+  small.{w} (Π a, β a) :=
+⟨⟨Π a' : shrink α, shrink (β ((equiv_shrink α).symm a')),
+  ⟨equiv.Pi_congr (equiv_shrink α) (λ a, by simpa using equiv_shrink (β a))⟩⟩⟩
+
+instance small_sigma {α} (β : α → Type*) [small.{w} α] [∀ a, small.{w} (β a)] :
+  small.{w} (Σ a, β a) :=
+⟨⟨Σ a' : shrink α, shrink (β ((equiv_shrink α).symm a')),
+  ⟨equiv.sigma_congr (equiv_shrink α) (λ a, by simpa using equiv_shrink (β a))⟩⟩⟩
+
+instance small_prod {α β} [small.{w} α] [small.{w} β] : small.{w} (α × β) :=
+⟨⟨shrink α × shrink β,
+  ⟨equiv.prod_congr (equiv_shrink α) (equiv_shrink β)⟩⟩⟩
+
+instance small_sum {α β} [small.{w} α] [small.{w} β] : small.{w} (α ⊕ β) :=
+⟨⟨shrink α ⊕ shrink β,
+  ⟨equiv.sum_congr (equiv_shrink α) (equiv_shrink β)⟩⟩⟩
+
+instance small_set {α} [small.{w} α] : small.{w} (set α) :=
+⟨⟨set (shrink α), ⟨equiv.set.congr (equiv_shrink α)⟩⟩⟩
+
+theorem not_small_type : ¬ small.{u} (Type (max u v))
+| ⟨⟨S, ⟨e⟩⟩⟩ := @function.cantor_injective (Σ α, e.symm α)
+  (λ a, ⟨_, cast (e.3 _).symm a⟩)
+  (λ a b e, (cast_inj _).1 $ eq_of_heq (sigma.mk.inj e).2)
 
 end

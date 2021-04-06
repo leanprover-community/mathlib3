@@ -1453,4 +1453,71 @@ begin
   erw [add_right, show B m.1 y = 0, by rw hB₂; exact m.2 y hy, hm, add_zero]
 end
 
+section linear_adjoints
+
+variable [finite_dimensional K V]
+
+/-- Given bilinear forms `B₁, B₂` where `B₂` is nondegenerate, `symm_comp_of_nondegenerate`
+is the linear map `B₂.to_lin⁻¹ ∘ B₁.to_lin`. -/
+noncomputable def symm_comp_of_nondegenerate
+  (B₁ B₂ : bilin_form K V) (hB₂ : B₂.nondegenerate) : V →ₗ[K] V :=
+(B₂.to_dual hB₂).symm.to_linear_map.comp B₁.to_lin
+
+lemma comp_symm_comp_of_nondegenerate_apply {B₁ B₂ : bilin_form K V}
+  (hB₂ : B₂.nondegenerate) (v : V) :
+  to_lin B₂ (B₁.symm_comp_of_nondegenerate B₂ hB₂ v) = to_lin B₁ v :=
+by erw [symm_comp_of_nondegenerate, linear_equiv.apply_symm_apply (B₂.to_dual hB₂) _]
+
+@[simp]
+lemma symm_comp_of_nondegenerate_left_apply (B₁ B₂ : bilin_form K V)
+  (hB₂ : B₂.nondegenerate) (v w : V) :
+  B₂ (symm_comp_of_nondegenerate B₁ B₂ hB₂ w) v = B₁ w v :=
+begin
+  conv_lhs { rw [← bilin_form.to_lin_apply, comp_symm_comp_of_nondegenerate_apply] },
+  refl,
+end
+
+lemma comp_left_apply_eq_unique (B₁ B₂ : bilin_form K V) (hB₂ : B₂.nondegenerate) {φ ψ : V →ₗ[K] V}
+  (hφ : ∀ v w, B₁ w v = B₂ (φ w) v) (hψ : ∀ v w, B₁ w v = B₂ (ψ w) v) : φ = ψ :=
+begin
+  ext w,
+  refine eq_of_sub_eq_zero (hB₂ _ _),
+  { intro v,
+    rw [sub_left, ← hφ v w, ← hψ v w, sub_self] }
+end
+
+/-- Given the nondegenerate bilinear form `B` the linear map `φ`, `is_adjoint_pair_of_nondegenerate`
+provides the left adjoint of `φ` with respect to `B`. The lemma proving this property is
+`is_adjoint_pair_is_adjoint_pair_of_nondegenerate`. -/
+noncomputable def is_adjoint_pair_of_nondegenerate
+  (B : bilin_form K V) (hB₁ : B.nondegenerate) (φ : V →ₗ[K] V) : V →ₗ[K] V :=
+symm_comp_of_nondegenerate (B.comp_right φ) B hB₁
+
+lemma is_adjoint_pair_is_adjoint_pair_of_nondegenerate
+  (B : bilin_form K V) (hB : B.nondegenerate) (φ : V →ₗ[K] V) :
+  is_adjoint_pair B B (B.is_adjoint_pair_of_nondegenerate hB φ) φ :=
+λ x y, symm_comp_of_nondegenerate_left_apply (B.comp_right φ) B hB y x
+
+lemma is_adjoint_pair_unique_of_nondegenerate (B : bilin_form K V) (hB₁ : B.nondegenerate)
+  (φ ψ₁ ψ₂ : V →ₗ[K] V) (hψ₁ : is_adjoint_pair B B ψ₁ φ) (hψ₂ : is_adjoint_pair B B ψ₂ φ) :
+  ψ₁ = ψ₂ :=
+begin
+  apply comp_left_apply_eq_unique (B.comp_right φ) _ hB₁,
+  { intros _ _,
+    rw hψ₁, refl },
+  { intros _ _,
+    rw hψ₂, refl }
+end
+
+/-- Given the nondegenerate bilinear form `B`, the linear map `φ` has an unique left adjoint. -/
+theorem exists_unique_is_adjoint_pair_of_nondegenerate
+  (B : bilin_form K V) (hB : B.nondegenerate) (φ : V →ₗ[K] V) :
+  ∃! ψ : V →ₗ[K] V, is_adjoint_pair B B ψ φ :=
+⟨B.is_adjoint_pair_of_nondegenerate hB φ,
+ is_adjoint_pair_is_adjoint_pair_of_nondegenerate _ _ _,
+ λ ψ hψ, B.is_adjoint_pair_unique_of_nondegenerate hB φ ψ _ hψ
+   (is_adjoint_pair_is_adjoint_pair_of_nondegenerate _ _ _)⟩
+
+end linear_adjoints
+
 end bilin_form

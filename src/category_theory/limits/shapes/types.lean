@@ -281,6 +281,14 @@ explicit pullback object given by `pullback_limit_obj`.
 noncomputable def pullback_iso_pullback : pullback f g ≅ pullback_obj f g :=
 (cones.forget _).map_iso $ pullback_cone_iso_pullback f g
 
+@[simp] lemma pullback_fst'' (p : pullback f g) :
+  ((pullback_iso_pullback f g).hom p : X × Y).fst = (pullback.fst : _ ⟶ X) p :=
+congr_fun ((pullback_cone_iso_pullback f g).hom.w left) p
+
+@[simp] lemma pullback_snd'' (p : pullback f g) :
+  ((pullback_iso_pullback f g).hom p : X × Y).snd = (pullback.snd : _ ⟶ Y) p :=
+congr_fun ((pullback_cone_iso_pullback f g).hom.w right) p
+
 @[simp] lemma pullback_fst' :
   (pullback_iso_pullback f g).hom ≫ (λ p, (p : X × Y).fst) = pullback.fst :=
 (pullback_cone_iso_pullback f g).hom.w left

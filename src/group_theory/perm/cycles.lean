@@ -325,8 +325,25 @@ equiv.ext $ λ y,
   if h : same_cycle f x y then by rw [h.cycle_of_apply]
   else by rw [cycle_of_apply_of_not_same_cycle h, not_not.1 (mt ((same_cycle_cycle hx).1 hf).2 h)]
 
+lemma cycle_of_eq_one_iff [fintype α] (f : perm α) {x : α} : cycle_of f x = 1 ↔ f x = x :=
+begin
+  simp_rw [ext_iff, cycle_of_apply, one_apply],
+  refine ⟨λ h, (if_pos (same_cycle.refl f x)).symm.trans (h x), λ h y, _⟩,
+  by_cases hy : f y = y,
+  { rw [hy, if_t_t] },
+  { exact if_neg (mt same_cycle.apply_eq_self_iff (by tauto)) },
+end
+
+lemma is_cycle.cycle_of [fintype α] {f : perm α} (hf : is_cycle f) {x : α} :
+  cycle_of f x = ite (f x = x) 1 f :=
+begin
+  by_cases hx : f x = x,
+  { rwa [if_pos hx, cycle_of_eq_one_iff] },
+  { rwa [if_neg hx, hf.cycle_of_eq] },
+end
+
 lemma cycle_of_one [fintype α] (x : α) : cycle_of 1 x = 1 :=
-by rw [cycle_of, subtype_perm_one (same_cycle 1 x), of_subtype.map_one]
+(cycle_of_eq_one_iff 1).mpr rfl
 
 lemma is_cycle_cycle_of [fintype α] (f : perm α) {x : α} (hx : f x ≠ x) : is_cycle (cycle_of f x) :=
 have cycle_of f x x ≠ x, by rwa [(same_cycle.refl _ _).cycle_of_apply],
@@ -389,7 +406,7 @@ quotient.rec_on_subsingleton (@univ α _).1
   (λ l h, trunc.mk (cycle_factors_aux l f h))
   (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
 
-@[elab_as_eliminator] lemma cycle_induction_on [fintype β] {P : perm β → Prop} (σ : perm β)
+@[elab_as_eliminator] lemma cycle_induction_on [fintype β] (P : perm β → Prop) (σ : perm β)
   (base_one : P 1) (base_cycles : ∀ σ : perm β, σ.is_cycle → P σ)
   (induction_disjoint : ∀ σ τ : perm β, disjoint σ τ → P σ → P τ → P (σ * τ)) :
   P σ :=
@@ -425,124 +442,5 @@ begin
 end
 
 end fixed_points
-
-/-!
-### 3-cycles
--/
-
-section is_three_cycle
-
-variables [fintype α] {σ : perm α}
-
-/-- A three-cycle is a cycle of length 3. -/
-def is_three_cycle (σ : perm α) : Prop := σ.support.card = 3
-
-lemma is_three_cycle.card_support (h : is_three_cycle σ) : σ.support.card = 3 := h
-
-lemma is_three_cycle.is_cycle (h : is_three_cycle σ) : is_cycle σ :=
-begin
-  obtain ⟨l, rfl, hl, hd⟩ := trunc_cycle_factors σ,
-  have hle := card_support_prod_list_of_pairwise_disjoint hd,
-  rw [h.card_support] at hle,
-  cases l with a l',
-  { contrapose! h,
-    simp [is_three_cycle] },
-  cases l' with a' l'',
-  { simp only [mul_one, list.prod_cons, list.prod_nil],
-    apply hl,
-    simp },
-  { contrapose! hle,
-    simp only [list.sum_cons, ne.def, list.map],
-    apply ne_of_lt,
-    rw [← nat.succ_le_iff],
-    transitivity 2 + (2 + 0), { refl },
-    refine add_le_add _ (add_le_add _ (nat.zero_le _));
-    { apply (hl _ _).two_le_card_support,
-      simp } },
-end
-
-lemma is_three_cycle.sign {f : perm α} (h : is_three_cycle f) : sign f = 1 :=
-begin
-  rw [h.is_cycle.sign, h.card_support],
-  dec_trivial
-end
-
-lemma is_three_cycle.inv {f : perm α} (h : is_three_cycle f) : is_three_cycle (f⁻¹) :=
-begin
-  rw is_three_cycle at *,
-  rw [support_inv, h],
-end
-
-lemma is_three_cycle_swap_mul_swap_same {a b c : α} (ab : a ≠ b) (ac : a ≠ c) (bc : b ≠ c) :
-  is_three_cycle (swap a b * swap a c) :=
-begin
-  suffices h : support (swap a b * swap a c) = {a, b, c},
-  { rw [is_three_cycle, h],
-    simp [ab, ac, bc] },
-  apply le_antisymm (support_mul_le.trans (λ x, _)) (λ x hx, _),
-  { simp [ab, ac, bc] },
-  { simp only [mem_insert, mem_singleton] at hx,
-    rw mem_support,
-    simp only [perm.coe_mul, comp_app, ne.def],
-    obtain rfl | rfl | rfl := hx,
-    { rw [swap_apply_left, swap_apply_of_ne_of_ne ac.symm bc.symm],
-      exact ac.symm },
-    { rw [swap_apply_of_ne_of_ne ab.symm bc, swap_apply_right],
-      exact ab },
-    { rw [swap_apply_right, swap_apply_left],
-      exact bc } }
-end
-
-open subgroup
-
-lemma swap_mul_swap_same_mem_closure_three_cycles {a b c : α} (ab : a ≠ b) (ac : a ≠ c) :
-  (swap a b * swap a c) ∈ closure {σ : perm α | is_three_cycle σ } :=
-begin
-  by_cases bc : b = c,
-  { subst bc,
-    simp [one_mem] },
-  exact subset_closure (is_three_cycle_swap_mul_swap_same ab ac bc)
-end
-
-lemma is_swap.mul_mem_closure_three_cycles {σ τ : perm α}
-  (hσ : is_swap σ) (hτ : is_swap τ) :
-  σ * τ ∈ closure {σ : perm α | is_three_cycle σ } :=
-begin
-  obtain ⟨a, b, ab, rfl⟩ := hσ,
-  obtain ⟨c, d, cd, rfl⟩ := hτ,
-  by_cases ac : a = c,
-  { subst ac,
-    exact swap_mul_swap_same_mem_closure_three_cycles ab cd },
-  have h' : swap a b * swap c d = swap a b * swap a c * (swap c a * swap c d),
-  { simp [swap_comm c a, mul_assoc] },
-  rw h',
-  exact mul_mem _ (swap_mul_swap_same_mem_closure_three_cycles ab ac)
-    (swap_mul_swap_same_mem_closure_three_cycles (ne.symm ac) cd),
-end
-
-@[simp]
-theorem closure_three_cycles_eq_alternating :
-  closure {σ : perm α | is_three_cycle σ} = alternating_subgroup α :=
-closure_eq_of_le _ (λ σ hσ, mem_alternating_subgroup.2 hσ.sign) $ λ σ hσ, begin
-  suffices hind : ∀ (n : ℕ) (l : list (perm α)) (hl : ∀ g, g ∈ l → is_swap g)
-    (hn : l.length = 2 * n), l.prod ∈ closure {σ : perm α | is_three_cycle σ},
-  { obtain ⟨l, rfl, hl⟩ := trunc_swap_factors σ,
-    obtain ⟨n, hn⟩ := (prod_list_swap_mem_alternating_subgroup_iff_even_length hl).1 hσ,
-    exact hind n l hl hn },
-  intro n,
-  induction n with n ih; intros l hl hn,
-  { simp [list.length_eq_zero.1 hn, one_mem] },
-  rw [nat.mul_succ] at hn,
-  obtain ⟨a, l, rfl⟩ := l.exists_of_length_succ hn,
-  rw [list.length_cons, nat.succ_inj'] at hn,
-  obtain ⟨b, l, rfl⟩ := l.exists_of_length_succ hn,
-  rw [list.prod_cons, list.prod_cons, ← mul_assoc],
-  rw [list.length_cons, nat.succ_inj'] at hn,
-  exact mul_mem _ (is_swap.mul_mem_closure_three_cycles (hl a (list.mem_cons_self a _))
-    (hl b (list.mem_cons_of_mem a (l.mem_cons_self b))))
-    (ih _ (λ g hg, hl g (list.mem_cons_of_mem _ (list.mem_cons_of_mem _ hg))) hn),
-end
-
-end is_three_cycle
 
 end equiv.perm

@@ -1305,6 +1305,13 @@ finset.sum_congr rfl $ λ _ H, by simp only [h _ H]
 lemma map_domain_add {f : α → β} : map_domain f (v₁ + v₂) = map_domain f v₁ + map_domain f v₂ :=
 sum_add_index (λ _, single_zero) (λ _ _ _, single_add)
 
+@[simp] lemma map_domain_equiv_apply {f : α ≃ β} (x : α →₀ M) (a : β) :
+  map_domain f x a = x (f.symm a) :=
+begin
+  conv_lhs { rw ←f.apply_symm_apply a },
+  exact map_domain_apply f.injective _ _,
+end
+
 /-- `finsupp.map_domain` is an `add_monoid_hom`. -/
 @[simps]
 def map_domain.add_monoid_hom (f : α → β) : (α →₀ M) →+ (β →₀ M) :=
@@ -1810,6 +1817,96 @@ begin
 end
 
 end curry_uncurry
+
+section sum
+
+/-- `finsupp.sum_elim f g` maps `inl x` to `f x` and `inr y` to `g y`. -/
+def sum_elim {α β γ : Type*} [has_zero γ]
+  (f : α →₀ γ) (g : β →₀ γ) : α ⊕ β →₀ γ :=
+on_finset
+  ((f.support.map ⟨_, sum.inl_injective⟩) ∪ g.support.map ⟨_, sum.inr_injective⟩)
+  (sum.elim f g)
+  (λ ab h, by { cases ab with a b; simp only [sum.elim_inl, sum.elim_inr] at h; simpa })
+
+@[simp] lemma coe_sum_elim {α β γ : Type*} [has_zero γ]
+  (f : α →₀ γ) (g : β →₀ γ) : ⇑(sum_elim f g) = sum.elim f g := rfl
+  
+lemma sum_elim_apply {α β γ : Type*} [has_zero γ]
+  (f : α →₀ γ) (g : β →₀ γ) (x : α ⊕ β) : sum_elim f g x = sum.elim f g x := rfl
+
+lemma sum_elim_inl {α β γ : Type*} [has_zero γ]
+  (f : α →₀ γ) (g : β →₀ γ) (x : α) : sum_elim f g (sum.inl x) = f x := rfl
+
+lemma sum_elim_inr {α β γ : Type*} [has_zero γ]
+  (f : α →₀ γ) (g : β →₀ γ) (x : β) : sum_elim f g (sum.inr x) = g x := rfl
+
+/-- The equivalence between `(α ⊕ β) →₀ γ` and `(α →₀ γ) × (β →₀ γ)`.
+
+This is the `finsupp` version of `equiv.sum_arrow_equiv_prod_arrow`. -/
+@[simps apply symm_apply]
+def sum_finsupp_equiv_prod_finsupp {α β γ : Type*} [has_zero γ] :
+  ((α ⊕ β) →₀ γ) ≃ (α →₀ γ) × (β →₀ γ) :=
+{ to_fun := λ f,
+    ⟨f.comap_domain sum.inl (sum.inl_injective.inj_on _),
+     f.comap_domain sum.inr (sum.inr_injective.inj_on _)⟩,
+  inv_fun := λ fg, sum_elim fg.1 fg.2,
+  left_inv := λ f, by { ext ab, cases ab with a b; simp },
+  right_inv := λ fg, by { ext; simp } }
+
+lemma fst_sum_finsupp_equiv_prod_finsupp {α β γ : Type*} [has_zero γ]
+  (f : (α ⊕ β) →₀ γ) (x : α) :
+  (sum_finsupp_equiv_prod_finsupp f).1 x = f (sum.inl x) :=
+rfl
+
+lemma snd_sum_finsupp_equiv_prod_finsupp {α β γ : Type*} [has_zero γ]
+  (f : (α ⊕ β) →₀ γ) (y : β) :
+  (sum_finsupp_equiv_prod_finsupp f).2 y = f (sum.inr y) :=
+rfl
+
+lemma sum_finsupp_equiv_prod_finsupp_symm_inl {α β γ : Type*} [has_zero γ]
+  (fg : (α →₀ γ) × (β →₀ γ)) (x : α) :
+  (sum_finsupp_equiv_prod_finsupp.symm fg) (sum.inl x) = fg.1 x :=
+rfl
+
+lemma sum_finsupp_equiv_prod_finsupp_symm_inr {α β γ : Type*} [has_zero γ]
+  (fg : (α →₀ γ) × (β →₀ γ)) (y : β) :
+  (sum_finsupp_equiv_prod_finsupp.symm fg) (sum.inr y) = fg.2 y :=
+rfl
+
+variables [add_monoid M]
+
+/-- The additive equivalence between `(α ⊕ β) →₀ M` and `(α →₀ M) × (β →₀ M)`.
+
+This is the `finsupp` version of `equiv.sum_arrow_equiv_prod_arrow`. -/
+@[simps apply symm_apply] def sum_finsupp_add_equiv_prod_finsupp {α β : Type*} :
+  ((α ⊕ β) →₀ M) ≃+ (α →₀ M) × (β →₀ M) :=
+{ map_add' :=
+    by { intros, ext;
+          simp only [equiv.to_fun_as_coe, prod.fst_add, prod.snd_add, add_apply,
+              snd_sum_finsupp_equiv_prod_finsupp, fst_sum_finsupp_equiv_prod_finsupp] },
+  .. sum_finsupp_equiv_prod_finsupp }
+
+lemma fst_sum_finsupp_add_equiv_prod_finsupp {α β : Type*}
+  (f : (α ⊕ β) →₀ M) (x : α) :
+  (sum_finsupp_add_equiv_prod_finsupp f).1 x = f (sum.inl x) :=
+rfl
+
+lemma snd_sum_finsupp_add_equiv_prod_finsupp {α β : Type*}
+  (f : (α ⊕ β) →₀ M) (y : β) :
+  (sum_finsupp_add_equiv_prod_finsupp f).2 y = f (sum.inr y) :=
+rfl
+
+lemma sum_finsupp_add_equiv_prod_finsupp_symm_inl {α β : Type*}
+  (fg : (α →₀ M) × (β →₀ M)) (x : α) :
+  (sum_finsupp_add_equiv_prod_finsupp.symm fg) (sum.inl x) = fg.1 x :=
+rfl
+
+lemma sum_finsupp_add_equiv_prod_finsupp_symm_inr {α β : Type*}
+  (fg : (α →₀ M) × (β →₀ M)) (y : β) :
+  (sum_finsupp_add_equiv_prod_finsupp.symm fg) (sum.inr y) = fg.2 y :=
+rfl
+
+end sum
 
 section
 variables [group G] [mul_action G α] [add_comm_monoid M]

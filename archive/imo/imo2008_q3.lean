@@ -31,11 +31,11 @@ lemma p_lemma (p : ℕ) (hpp : nat.prime p) (hp_mod_4_eq_1 : p ≡ 1 [MOD 4]) (h
   ∃ n : ℕ, p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + sqrt(2 * n) :=
 begin
   haveI := fact.mk hpp,
-  have hp_mod_4_ne_3 : p % 4 ≠ 3, { linarith [(show p % 4 = 1, by exact hp_mod_4_eq_1)]},
+  have hp_mod_4_ne_3 : p % 4 ≠ 3, { linarith [(show p % 4 = 1, by exact hp_mod_4_eq_1)] },
   obtain ⟨y, hy⟩ := (zmod.exists_pow_two_eq_neg_one_iff_mod_four_ne_three p).mpr hp_mod_4_ne_3,
 
   let m := zmod.val_min_abs y,
-  let n := int.nat_abs (m),
+  let n := int.nat_abs m,
 
   have hnat₁ : p ∣ n ^ 2 + 1,
   { refine int.coe_nat_dvd.mp _,

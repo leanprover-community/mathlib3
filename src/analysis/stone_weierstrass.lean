@@ -77,7 +77,7 @@ example (f : C(X, ℝ)) : ℝ := ∥f∥
 example (A : subalgebra ℝ C(X, ℝ)) (f : A) : ℝ := ∥f∥
 
 lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
-  ((polynomial.as_continuous_map (set.Icc (-∥f∥) ∥f∥)) g).comp (f : C(X, ℝ)).attach_bound =
+  (g.as_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound =
     polynomial.aeval f g :=
 by { ext, simp, }
 
@@ -91,10 +91,10 @@ and then postcompose with a polynomial function on that interval.
 This is in fact the same situation as above, and so also gives a function in `A`.
 -/
 lemma polynomial_comp_attach_bound_mem (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
-  ((polynomial.as_continuous_map (set.Icc (-∥f∥) ∥f∥)) g).comp (f : C(X, ℝ)).attach_bound ∈ A :=
+  (g.as_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound ∈ A :=
 begin
   rw polynomial_comp_attach_bound,
-  apply submodule.coe_mem,
+  apply set_like.coe_mem,
 end
 
 theorem comp_attach_bound_mem_closure (A : subalgebra ℝ C(X, ℝ)) (f : A) (p : C(set.Icc (-∥f∥) (∥f∥), ℝ)) :

@@ -125,17 +125,23 @@ instance : has_one ℤ_[p] :=
 @[simp, norm_cast] lemma coe_zero : ((0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
 
 instance : ring ℤ_[p] :=
-begin
-  refine { add := (+),
-           mul := (*),
-           neg := has_neg.neg,
-           zero := 0,
-           one := 1,
-           sub := has_sub.sub,
-           sub_eq_add_neg := _,
-           .. };
-  intros; ext; simp; ring
-end
+{ add := (+),
+  mul := (*),
+  neg := has_neg.neg,
+  zero := 0,
+  one := 1,
+  sub := has_sub.sub,
+  zero_add       := by intros; ext; simp; ring,
+  add_zero       := by intros; ext; simp; ring,
+  add_assoc      := by intros; ext; simp; ring,
+  add_left_neg   := by intros; ext; simp; ring,
+  add_comm       := by intros; ext; simp; ring,
+  mul_assoc      := by intros; ext; simp; ring,
+  one_mul        := by intros; ext; simp; ring,
+  mul_one        := by intros; ext; simp; ring,
+  left_distrib   := by intros; ext; simp; ring,
+  right_distrib  := by intros; ext; simp; ring,
+  sub_eq_add_neg := by intros; ext; simp; ring, }
 
 /-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
 def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
@@ -259,7 +265,7 @@ by simp [norm_def]
 
 @[simp] lemma norm_pow (z : ℤ_[p]) : ∀ n : ℕ, ∥z^n∥ = ∥z∥^n
 | 0 := by simp
-| (k+1) := show ∥z*z^k∥ = ∥z∥*∥z∥^k, by {rw norm_mul, congr, apply norm_pow}
+| (k+1) := by { rw [pow_succ, pow_succ, norm_mul], congr, apply norm_pow }
 
 theorem nonarchimedean : ∀ (q r : ℤ_[p]), ∥q + r∥ ≤ max (∥q∥) (∥r∥)
 | ⟨_, _⟩ ⟨_, _⟩ := padic_norm_e.nonarchimedean _ _

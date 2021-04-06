@@ -46,25 +46,6 @@ add_monoid_algebra.is_scalar_tower
 
 instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
 
-lemma zoug : has_scalar ℕ (polynomial ℕ) := add_monoid.has_scalar_nat
-
-lemma zoug2 : semimodule ℕ (polynomial ℕ) := polynomial.semimodule
-lemma zoug3 : has_scalar ℕ (polynomial ℕ) := polynomial.semimodule.to_has_scalar
-
-#print zoug2
-#print zoug3
-
--- set_option pp.all true
-
-lemma foo (n : ℕ) (f : polynomial ℕ) : nsmul n f = has_scalar.smul n f :=
-begin
-  let Z := @add_monoid_algebra.semimodule ℕ ℕ ℕ _ _ _,
-  let T : semiring ℕ := by apply_instance,
-end
-
-
-#exit
-
 /--
 The set of all `n` such that `X^n` has a non-zero coefficient.
 -/
@@ -105,9 +86,7 @@ lemma monomial_pow (n : ℕ) (r : R) (k : ℕ) :
   (monomial n r)^k = monomial (n*k) (r^k) :=
 begin
   rw mul_comm,
-  convert add_monoid_algebra.single_pow k,
-  simp only [nat.cast_id, nsmul_eq_mul],
-  refl,
+  exact add_monoid_algebra.single_pow k,
 end
 
 lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :
@@ -248,11 +227,7 @@ finsupp.single_left_inj ha
 
 lemma nat_cast_mul {R : Type*} [semiring R] (n : ℕ) (p : polynomial R) :
   (n : polynomial R) * p = n • p :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [ih, nat.succ_eq_add_one, add_smul, add_mul], },
-end
+(nsmul_eq_mul _ _).symm
 
 end semiring
 

@@ -294,7 +294,7 @@ end
 end linear_ordered_add_comm_group
 
 @[simp] lemma with_bot.coe_nsmul [add_monoid A] (a : A) (n : ℕ) :
-  ((nsmul n a : A) : with_bot A) = nsmul n a :=
+  ((n • a : A) : with_bot A) = n • a :=
 add_monoid_hom.map_nsmul ⟨(coe : A → with_bot A), with_bot.coe_zero, with_bot.coe_add⟩ a n
 
 theorem nsmul_eq_mul' [semiring R] (a : R) (n : ℕ) : n • a = a * n :=

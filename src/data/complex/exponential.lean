@@ -45,9 +45,9 @@ have h : ∃ l, ∀ n ≥ m, a - l • ε < f n :=
   ⟨k + k + 1, λ n hnm, lt_of_lt_of_le
     (show a - (k + (k + 1)) • ε < -abs (f n),
       from lt_neg.1 $ lt_of_le_of_lt (ham n hnm) (begin
-        rw [neg_sub, lt_sub_iff_add_lt, add_nsmul],
+        rw [neg_sub, lt_sub_iff_add_lt, add_nsmul, add_nsmul, one_nsmul],
         exact add_lt_add_of_le_of_lt hk (lt_of_le_of_lt hk
-          (lt_add_of_pos_left _ ε0)),
+          (lt_add_of_pos_right _ ε0)),
       end))
     (neg_le.2 $ (abs_neg (f n)) ▸ le_abs_self _)⟩,
 let l := nat.find h in

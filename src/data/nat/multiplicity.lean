@@ -123,8 +123,10 @@ lemma multiplicity_factorial_mul {n p : ℕ} (hp : p.prime) :
 begin
   induction n with n ih,
   { simp },
-  { simp [succ_eq_add_one, multiplicity.mul, hp, prime_iff_prime.mp hp, ih,
-      multiplicity_factorial_mul_succ, add_assoc, add_left_comm] }
+  { simp only [succ_eq_add_one, multiplicity.mul, hp, prime_iff_prime.mp hp, ih,
+      multiplicity_factorial_mul_succ, ←add_assoc, enat.coe_one, enat.coe_add, factorial_succ],
+    congr' 1,
+    rw [add_comm, add_assoc] }
 end
 
 /-- A prime power divides `n!` iff it is at most the sum of the quotients `n / p ^ i`.

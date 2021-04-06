@@ -20,52 +20,61 @@ propositional logic, intuitionistic logic, decision procedure
 namespace tactic
 namespace itauto
 
+@[derive [has_reflect, decidable_eq]]
+inductive and_kind | and | iff | eq
+
 /-- A reified inductive type for propositional logic. -/
 @[derive [has_reflect, decidable_eq]]
 inductive prop : Type
 | var : ℕ → prop            -- propositional atoms P_i
 | true : prop               -- ⊤
 | false : prop              -- ⊥
-| and : prop → prop → prop  -- p ∧ q
+| and : and_kind → prop → prop → prop  -- p ∧ q, p ↔ q, p = q
 | or : prop → prop → prop   -- p ∨ q
 | imp : prop → prop → prop  -- p → q
-| iff : prop → prop → prop  -- p ↔ q
 
 instance : inhabited prop := ⟨prop.true⟩
+
+def and_kind.sides : and_kind → prop → prop → prop × prop
+| and_kind.and A B := (A, B)
+| _ A B := (A.imp B, B.imp A)
 
 /-- Debugging printer for propositions. -/
 meta def prop.to_format : prop → format
 | (prop.var i) := format!"v{i}"
 | prop.true := format!"⊤"
 | prop.false := format!"⊥"
-| (prop.and p q) := format!"({p.to_format} ∧ {q.to_format})"
+| (prop.and and_kind.and p q) := format!"({p.to_format} ∧ {q.to_format})"
+| (prop.and and_kind.iff p q) := format!"({p.to_format} ↔ {q.to_format})"
+| (prop.and and_kind.eq p q) := format!"({p.to_format} = {q.to_format})"
 | (prop.or p q) := format!"({p.to_format} ∨ {q.to_format})"
 | (prop.imp p q) := format!"({p.to_format} → {q.to_format})"
-| (prop.iff p q) := format!"({p.to_format} ↔ {q.to_format})"
 
 meta instance : has_to_format prop := ⟨prop.to_format⟩
 
 section
 open ordering
 
+/-- A comparator for `and_kind`. (There should really be a derive handler for this.) -/
+def and_kind.cmp (p q : and_kind) : ordering :=
+by { cases p; cases q, exacts [eq, lt, lt, gt, eq, lt, gt, gt, eq] }
+
 /-- A comparator for propositions. (There should really be a derive handler for this.) -/
 def prop.cmp (p q : prop) : ordering :=
 begin
-  induction p with _ _ _ p₁ p₂ _ _ p₁ p₂ _ _ p₁ p₂ _ _ p₁ p₂ generalizing q; cases q,
+  induction p with _ ap _ _ p₁ p₂ _ _ p₁ p₂ _ _ p₁ p₂ _ _ p₁ p₂ generalizing q; cases q,
   case var var { exact cmp p q },
   case true true { exact eq },
   case false false { exact eq },
-  case and and : q₁ q₂ { exact (p₁ q₁).or_else (p₂ q₂) },
+  case and and : aq q₁ q₂ { exact (ap.cmp aq).or_else ((p₁ q₁).or_else (p₂ q₂)) },
   case or or : q₁ q₂ { exact (p₁ q₁).or_else (p₂ q₂) },
   case imp imp : q₁ q₂ { exact (p₁ q₁).or_else (p₂ q₂) },
-  case iff iff : q₁ q₂ { exact (p₁ q₁).or_else (p₂ q₂) },
-  exacts [lt, lt, lt, lt, lt, lt,
-          gt, lt, lt, lt, lt, lt,
-          gt, gt, lt, lt, lt, lt,
-          gt, gt, gt, lt, lt, lt,
-          gt, gt, gt, gt, lt, lt,
-          gt, gt, gt, gt, gt, lt,
-          gt, gt, gt, gt, gt, gt]
+  exacts [lt, lt, lt, lt, lt,
+          gt, lt, lt, lt, lt,
+          gt, gt, lt, lt, lt,
+          gt, gt, gt, lt, lt,
+          gt, gt, gt, gt, lt,
+          gt, gt, gt, gt, gt]
 end
 
 instance : has_lt prop := ⟨λ p q, p.cmp q = lt⟩
@@ -86,17 +95,27 @@ inductive proof
 -- (p: (x: A) ⊢ B) ⊢ A → B
 | intro (x : name) (A : prop) (p : proof) : proof
 -- The boolean in the next few lemmas is true for ↔ , false for ∧ .
--- b = ff:  (p: A ∧ B) ⊢ A     b = tt:  (p: A ↔ B) ⊢ A → B
-| and_left (iff : bool) (p : proof) : proof
--- b = ff:  (p: A ∧ B) ⊢ B     b = tt:  (p: A ↔ B) ⊢ B → A
-| and_right (iff : bool) (p : proof) : proof
--- b = ff:  (p₁: A) (p₂: B) ⊢ A ∧ B     b = tt:  (p₁: A → B) (p₁: B → A) ⊢ A ↔ B
-| and_intro (iff : bool) (p₁ p₂ : proof) : proof
--- b = ff:  (p: A ∧ B → C) ⊢ A → B → C   b = tt:  (p: (A ↔ B) → C) ⊢ (A → B) → (B → A) → C
-| curry (iff : bool) (A B : prop) (p : proof) : proof
+-- ak = and:  (p: A ∧ B) ⊢ A
+-- ak = iff:  (p: A ↔ B) ⊢ A → B
+-- ak = eq:  (p: A = B) ⊢ A → B
+| and_left (ak : and_kind) (p : proof) : proof
+-- ak = and:  (p: A ∧ B) ⊢ B
+-- ak = iff:  (p: A ↔ B) ⊢ B → A
+-- ak = eq:  (p: A = B) ⊢ B → A
+| and_right (ak : and_kind) (p : proof) : proof
+-- ak = and:  (p₁: A) (p₂: B) ⊢ A ∧ B
+-- ak = iff:  (p₁: A → B) (p₁: B → A) ⊢ A ↔ B
+-- ak = eq:  (p₁: A → B) (p₁: B → A) ⊢ A = B
+| and_intro (ak : and_kind) (p₁ p₂ : proof) : proof
+-- ak = and:  (p: A ∧ B → C) ⊢ A → B → C
+-- ak = iff:  (p: (A ↔ B) → C) ⊢ (A → B) → (B → A) → C
+-- ak = eq:  (p: (A = B) → C) ⊢ (A → B) → (B → A) → C
+| curry (ak : and_kind) (A B : prop) (p : proof) : proof
 -- This is a partial application of curry.
--- b = ff:  (p: A ∧ B → C) (q : A) ⊢ B → C   b = tt:  (p: (A ↔ B) → C) (q: A → B) ⊢ (B → A) → C
-| curry₂ (iff : bool) (B : prop) (p q : proof) : proof
+-- ak = and:  (p: A ∧ B → C) (q : A) ⊢ B → C
+-- ak = iff:  (p: (A ↔ B) → C) (q: A → B) ⊢ (B → A) → C
+-- ak = eq:  (p: (A ↔ B) → C) (q: A → B) ⊢ (B → A) → C
+| curry₂ (ak : and_kind) (B : prop) (p q : proof) : proof
 -- (p: A → B) (q: A) ⊢ B
 | app' : proof → proof → proof
 -- (p: A ∨ B → C) |- A → C
@@ -146,8 +165,8 @@ meta def proof.exfalso : prop → proof → proof
 /-- A variant on `proof.app'` that performs opportunistic simplification.
 (This doesn't do full normalization because we don't want the proof size to blow up.) -/
 meta def proof.app : proof → proof → proof
-| (proof.curry b _ B p) q := proof.curry₂ b B p q
-| (proof.curry₂ b _ p q) r := p.app (q.and_intro b r)
+| (proof.curry ak _ B p) q := proof.curry₂ ak B p q
+| (proof.curry₂ ak _ p q) r := p.app (q.and_intro ak r)
 | (proof.or_imp_left _ B p) q := p.app (q.or_inl B)
 | (proof.or_imp_right A _ p) q := p.app (q.or_inr A)
 | (proof.imp_imp_simp x A _ p) q := p.app (proof.intro x A q)
@@ -160,26 +179,24 @@ meta def proof.check : name_map prop → proof → option prop
 | Γ proof.triv := some prop.true
 | Γ (proof.exfalso' A p) := guard (p.check Γ = some prop.false) $> A
 | Γ (proof.intro x A p) := do B ← p.check (Γ.insert x A), pure (prop.imp A B)
-| Γ (proof.and_left ff p) := do prop.and A B ← p.check Γ | none, pure A
-| Γ (proof.and_left tt p) := do prop.iff A B ← p.check Γ | none, pure (A.imp B)
-| Γ (proof.and_right ff p) := do prop.and A B ← p.check Γ | none, pure B
-| Γ (proof.and_right tt p) := do prop.iff A B ← p.check Γ | none, pure (B.imp A)
-| Γ (proof.and_intro ff p q) := do A ← p.check Γ, B ← q.check Γ, pure (A.and B)
-| Γ (proof.and_intro tt p q) := do
+| Γ (proof.and_left ak p) := do
+  prop.and ak' A B ← p.check Γ | none,
+  guard (ak = ak') $> (ak.sides A B).1
+| Γ (proof.and_right ak p) := do
+  prop.and ak' A B ← p.check Γ | none,
+  guard (ak = ak') $> (ak.sides A B).2
+| Γ (proof.and_intro and_kind.and p q) := do
+  A ← p.check Γ, B ← q.check Γ,
+  pure (A.and and_kind.and B)
+| Γ (proof.and_intro ak p q) := do
   prop.imp A B ← p.check Γ | none,
-  C ← q.check Γ, guard (C = prop.imp B A) $> (A.iff B)
-| Γ (proof.curry ff A' B' p) := do
-  prop.imp (prop.and A B) C ← p.check Γ | none,
-  guard (A = A' ∧ B = B') $> (A.imp $ B.imp C)
-| Γ (proof.curry tt A' B' p) := do
-  prop.imp (prop.iff A B) C ← p.check Γ | none,
-  guard (A.imp B = A' ∧ B.imp A = B') $> ((A.imp B).imp $ (B.imp A).imp C)
-| Γ (proof.curry₂ ff B' p q) := do
-  prop.imp (prop.and A B) C ← p.check Γ | none,
-  A' ← q.check Γ, guard (A = A' ∧ B = B') $> (B.imp C)
-| Γ (proof.curry₂ tt B' p q) := do
-  prop.imp (prop.iff A B) C ← p.check Γ | none,
-  A' ← q.check Γ, guard (A' = A.imp B ∧ B' = B.imp A) $> ((B.imp A).imp C)
+  C ← q.check Γ, guard (C = prop.imp B A) $> (A.and ak B)
+| Γ (proof.curry ak A' B' p) := do
+  prop.imp (prop.and ak' A B) C ← p.check Γ | none,
+  guard (ak = ak' ∧ ak.sides A B = (A', B')) $> (A'.imp $ B'.imp C)
+| Γ (proof.curry₂ ak B' p q) := do
+  prop.imp (prop.and ak' A B) C ← p.check Γ | none,
+  A' ← q.check Γ, guard (ak = ak' ∧ ak.sides A B = (A', B')) $> (B'.imp C)
 | Γ (proof.app' p q) := do prop.imp A B ← p.check Γ | none, A' ← q.check Γ, guard (A = A') $> B
 | Γ (proof.or_imp_left A B p) := do
   prop.imp (prop.or A' B') C ← p.check Γ | none,
@@ -219,17 +236,15 @@ hypothesis, split all conjunctions, and also simplify `⊥ → A` (drop), `⊤ �
 meta def context.add : prop → proof → context → except (prop → proof) context
 | prop.true p Γ := pure Γ
 | prop.false p Γ := except.error (λ A, proof.exfalso A p)
-| (prop.and A B) p Γ := do
-  Γ ← Γ.add A (p.and_left ff),
-  Γ.add B (p.and_right ff)
-| (prop.iff A B) p Γ := do
-  Γ ← Γ.add (prop.imp A B) (p.and_left tt),
-  Γ.add (prop.imp B A) (p.and_right tt)
+| (prop.and ak A B) p Γ := do
+  let (A, B) := ak.sides A B,
+  Γ ← Γ.add A (p.and_left ak),
+  Γ.add B (p.and_right ak)
 | (prop.imp prop.false A) p Γ := pure Γ
 | (prop.imp prop.true A) p Γ := Γ.add A (p.app proof.triv)
-| (prop.imp (prop.and A B) C) p Γ := Γ.add (prop.imp A (prop.imp B C)) (p.curry ff A B)
-| (prop.imp (prop.iff A B) C) p Γ :=
-  Γ.add (prop.imp (prop.imp A B) ((prop.imp B A).imp C)) (p.curry tt (A.imp B) (B.imp A))
+| (prop.imp (prop.and ak A B) C) p Γ :=
+  let (A, B) := ak.sides A B in
+  Γ.add (prop.imp A (B.imp C)) (p.curry ak A B)
 | (prop.imp (prop.or A B) C) p Γ := do
   Γ ← Γ.add (A.imp C) (p.or_imp_left A B),
   Γ.add (B.imp C) (p.or_imp_right A B)
@@ -303,14 +318,11 @@ meta def prove : context → prop → state_t ℕ option proof
 | Γ (prop.imp A B) := do
   a ← fresh_name,
   proof.intro a A <$> Γ.with_add A (proof.hyp a) B prove
-| Γ (prop.and A B) := do
+| Γ (prop.and ak A B) := do
+  let (A, B) := ak.sides A B,
   p ← prove Γ A,
   q ← prove Γ B,
-  pure (p.and_intro ff q)
-| Γ (prop.iff A B) := do
-  p ← prove Γ (prop.imp A B),
-  q ← prove Γ (prop.imp B A),
-  pure (p.and_intro tt q)
+  pure (p.and_intro ak q)
 | Γ B := Γ.fold (search prove B) (λ A p IH Γ,
     match A with
     | prop.or A₁ A₂ := do
@@ -339,9 +351,10 @@ meta def reify (atoms : ref (buffer expr)) : expr → tactic prop
 | `(true) := pure prop.true
 | `(false) := pure prop.false
 | `(¬ %%a) := flip prop.imp prop.false <$> reify a
-| `(%%a ∧ %%b) := prop.and <$> reify a <*> reify b
+| `(%%a ∧ %%b) := prop.and and_kind.and <$> reify a <*> reify b
 | `(%%a ∨ %%b) := prop.or <$> reify a <*> reify b
-| `(%%a ↔ %%b) := prop.iff <$> reify a <*> reify b
+| `(%%a ↔ %%b) := prop.and and_kind.iff <$> reify a <*> reify b
+| `(@eq Prop %%a %%b) := prop.and and_kind.eq <$> reify a <*> reify b
 | e@`(%%a → %%b) :=
   if b.has_var then reify_atom atoms e else prop.imp <$> reify a <*> reify b
 | e := reify_atom atoms e
@@ -352,32 +365,43 @@ annoying because `applyc` gets the arguments wrong sometimes so we have to use `
 meta def apply_proof : name_map expr → proof → tactic unit
 | Γ (proof.hyp n) := do e ← Γ.find n, exact e
 | Γ proof.triv := triv
-| Γ (proof.exfalso' A p) := exfalso >> apply_proof Γ p
+| Γ (proof.exfalso' A p) := do
+  t ← mk_mvar, to_expr ``(false.elim %%t) tt ff >>= exact,
+  gs ← get_goals, set_goals (t::gs), apply_proof Γ p
 | Γ (proof.intro x A p) := do e ← intro_core x, apply_proof (Γ.insert x e) p
-| Γ (proof.and_left ff p) := do
+| Γ (proof.and_left and_kind.and p) := do
   t ← mk_mvar, to_expr ``(and.left %%t) tt ff >>= exact,
   gs ← get_goals, set_goals (t::gs), apply_proof Γ p
-| Γ (proof.and_left tt p) := do
+| Γ (proof.and_left and_kind.iff p) := do
   t ← mk_mvar, to_expr ``(iff.mp %%t) tt ff >>= exact,
   gs ← get_goals, set_goals (t::gs), apply_proof Γ p
-| Γ (proof.and_right ff p) := do
+| Γ (proof.and_left and_kind.eq p) := do
+  t ← mk_mvar, to_expr ``(cast %%t) tt ff >>= exact,
+  gs ← get_goals, set_goals (t::gs), apply_proof Γ p
+| Γ (proof.and_right and_kind.and p) := do
   t ← mk_mvar, to_expr ``(and.right %%t) tt ff >>= exact,
   gs ← get_goals, set_goals (t::gs), apply_proof Γ p
-| Γ (proof.and_right tt p) := do
+| Γ (proof.and_right and_kind.iff p) := do
   t ← mk_mvar, to_expr ``(iff.mpr %%t) tt ff >>= exact,
   gs ← get_goals, set_goals (t::gs), apply_proof Γ p
-| Γ (proof.and_intro ff p q) := do
+| Γ (proof.and_right and_kind.eq p) := do
+  t ← mk_mvar, to_expr ``(cast (eq.symm %%t)) tt ff >>= exact,
+  gs ← get_goals, set_goals (t::gs), apply_proof Γ p
+| Γ (proof.and_intro and_kind.and p q) := do
   t₁ ← mk_mvar, t₂ ← mk_mvar, to_expr ``(and.intro %%t₁ %%t₂) tt ff >>= exact,
   gs ← get_goals, set_goals (t₁::t₂::gs), apply_proof Γ p >> apply_proof Γ q
-| Γ (proof.and_intro tt p q) := do
+| Γ (proof.and_intro and_kind.iff p q) := do
   t₁ ← mk_mvar, t₂ ← mk_mvar, to_expr ``(iff.intro %%t₁ %%t₂) tt ff >>= exact,
   gs ← get_goals, set_goals (t₁::t₂::gs), apply_proof Γ p >> apply_proof Γ q
-| Γ (proof.curry b A B p) := do
+| Γ (proof.and_intro and_kind.eq p q) := do
+  t₁ ← mk_mvar, t₂ ← mk_mvar, to_expr ``(propext (iff.intro %%t₁ %%t₂)) tt ff >>= exact,
+  gs ← get_goals, set_goals (t₁::t₂::gs), apply_proof Γ p >> apply_proof Γ q
+| Γ (proof.curry ak A B p) := do
   e ← intro_core `_, let n := e.local_uniq_name,
-  apply_proof (Γ.insert n e) (proof.curry₂ b B p (proof.hyp n))
-| Γ (proof.curry₂ b B p q) := do
+  apply_proof (Γ.insert n e) (proof.curry₂ ak B p (proof.hyp n))
+| Γ (proof.curry₂ ak B p q) := do
   e ← intro_core `_, let n := e.local_uniq_name,
-  apply_proof (Γ.insert n e) (p.app (q.and_intro b (proof.hyp n)))
+  apply_proof (Γ.insert n e) (p.app (q.and_intro ak (proof.hyp n)))
 | Γ (proof.app' p q) := do
   A ← mk_meta_var (expr.sort level.zero),
   B ← mk_meta_var (expr.sort level.zero),

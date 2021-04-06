@@ -471,6 +471,16 @@ begin
     exact ⟨Y, hYX, hxY.1⟩ }
 end
 
+lemma subset_of_combi_interior_inter_convex_hull_nonempty {S : simplicial_complex m} {X Y}
+  (hX : X ∈ S.faces) (hY : Y ∈ S.faces)
+  (hXY : (combi_interior X ∩ convex_hull (Y : set E)).nonempty) : X ⊆ Y :=
+begin
+  obtain ⟨x, hxX, hxY⟩ := hXY,
+  obtain ⟨Z, hZY, hxZ⟩ := mem_convex_hull_iff.1 hxY,
+  rw disjoint_interiors hX (S.down_closed hY hZY) x ⟨hxX, hxZ⟩,
+  exact hZY,
+end
+
 lemma simplex_combi_interiors_split_interiors {X Y : finset E}
   (hY : affine_independent ℝ (λ p, p : (Y : set E) → E))
   (hXY : convex_hull (X : set E) ⊆ convex_hull ↑Y) :
@@ -834,19 +844,59 @@ begin
 
   use hspace,
   rintro X₁ ⟨Y₁, hY₁, hX₁Y₁, Z₁, hZ₁, hY₁Z₁, hZ₁max⟩,
+  cases X₁.eq_empty_or_nonempty with hX₁empty hX₁nonempty,
+  {
+    sorry},
   obtain ⟨X₂, hX₂, hX₁X₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2
     (S₁.down_closed hY₁ hX₁Y₁),
   obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hY₁,
   obtain ⟨Z₂, hZ₂, hZ₁Z₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hZ₁,
   refine ⟨X₂, _, convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior _ _ hX₁X₂⟩,
-  refine ⟨Y₂, hY₂, _, Z₂, hZ₂, _⟩,
-  { apply subset_of_convex_hull_subset_convex_hull hX₂ hY₂,
+  refine ⟨Y₂, hY₂, _, Z₂, hZ₂, ⟨_, _⟩⟩,
+  {
+    apply subset_of_combi_interior_inter_convex_hull_nonempty hX₂ hY₂,
+    obtain ⟨x, hxX₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep (S₁.down_closed hY₁ hX₁Y₁))
+      hX₁nonempty,
+    use [x, hX₁X₂ hxX₁],
+    apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (S₁.indep hY₁)
+      (S₂.indep hY₂) hY₁Y₂,
+    exact convex_hull_mono hX₁Y₁ hxX₁.1,
+  },
+  {
+    obtain ⟨x, hxX₁⟩ := hX₁nonempty,
+    obtain ⟨y, hyY₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hY₁) ⟨x, hX₁Y₁ hxX₁⟩,
+    split,
+    {
+      apply subset_of_combi_interior_inter_convex_hull_nonempty hY₂ hZ₂,
+      use [y, hY₁Y₂ hyY₁],
+      apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (S₁.indep hZ₁)
+        (S₂.indep hZ₂) hZ₁Z₂,
+      exact convex_hull_mono hY₁Z₁.1 hyY₁.1,
+    },
+    {
+      rintro hZ₂Y₂,
+      by_cases hY₂Z₂ : Y₂ ⊆ Z₂,
+      {
+        apply hY₁Z₁.2,
+        have := finset.subset.antisymm hY₂Z₂ hZ₂Y₂,
+        subst this,
+        sorry
+      },
+      {
+        apply (hY₁Y₂ hyY₁).2,
+        rw mem_combi_frontier_iff,
+        use [Z₂, ⟨hZ₂Y₂, hY₂Z₂⟩],
+        apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (S₁.indep hZ₁)
+          (S₂.indep hZ₂) hZ₁Z₂,
+        exact convex_hull_mono hY₁Z₁.1 hyY₁.1,
+      }
+    },
+  },
+  {
     sorry
   },
-  { sorry,
-  },
-  { apply S₁.indep (S₁.down_closed hY₁ hX₁Y₁), },
-  { apply S₂.indep hX₂ }
+  { exact S₁.indep (S₁.down_closed hY₁ hX₁Y₁) },
+  { exact S₂.indep hX₂ }
 end
 
 /--
@@ -865,7 +915,7 @@ begin
   -- {
   --   sorry
   -- },
-
+  sorry
 end
 
 /-A simplicial complex is connected iff its space is-/

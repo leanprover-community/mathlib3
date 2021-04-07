@@ -116,7 +116,7 @@ open_locale classical
 /-- `add_order_of x` is the order of the element `x`, i.e. the `n ≥ 1`, s.t. `n •ℕ x = 0` if it
 exists. Otherwise, i.e. if `x` is of infinite order, then `add_order_of x` is `0` by convention.-/
 noncomputable def add_order_of (x : H) : ℕ :=
-minimal_period ((+) x) 0
+minimal_period (+ x) 0
 
 /-- `order_of a` is the order of the element `a`, i.e. the `n ≥ 1`, s.t. `a ^ n = 1` if it exists.
 Otherwise, i.e. if `a` is of infinite order, then `order_of a` is `0` by convention.-/
@@ -145,7 +145,7 @@ end
 @[to_additive add_order_of_nsmul_eq_zero]
 lemma pow_order_of_eq_one (a : α): a ^ order_of a = 1 :=
 begin
-  rw [← mul_fpow_apply_one, ← is_fixed_pt, ← is_periodic_pt],
+  rw [← mul_fpow_apply_one, ← is_fixed_pt, ← is_periodic_pt, order_of],
   exact is_periodic_pt_minimal_period _ _,
 end
 

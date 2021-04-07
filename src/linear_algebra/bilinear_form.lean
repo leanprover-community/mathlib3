@@ -1455,8 +1455,9 @@ end
 
 section linear_adjoints
 
-lemma comp_left_apply_eq_unique (B₁ B₂ : bilin_form K V) (hB₂ : B₂.nondegenerate) {φ ψ : V →ₗ[K] V}
-  (hφ : ∀ v w, B₁ v w = B₂ (φ v) w) (hψ : ∀ v w, B₁ v w = B₂ (ψ v) w) : φ = ψ :=
+lemma comp_left_apply_eq_unique (B₁ B₂ : bilin_form R₁ M₁) (hB₂ : B₂.nondegenerate)
+  {φ ψ : M₁ →ₗ[R₁] M₁} (hφ : ∀ v w, B₁ v w = B₂ (φ v) w) (hψ : ∀ v w, B₁ v w = B₂ (ψ v) w) :
+  φ = ψ :=
 begin
   ext w,
   refine eq_of_sub_eq_zero (hB₂ _ _),
@@ -1464,8 +1465,8 @@ begin
     rw [sub_left, ← hφ w v, ← hψ w v, sub_self] }
 end
 
-lemma is_adjoint_pair_unique_of_nondegenerate (B : bilin_form K V) (hB₁ : B.nondegenerate)
-  (φ ψ₁ ψ₂ : V →ₗ[K] V) (hψ₁ : is_adjoint_pair B B ψ₁ φ) (hψ₂ : is_adjoint_pair B B ψ₂ φ) :
+lemma is_adjoint_pair_unique_of_nondegenerate (B : bilin_form R₁ M₁) (hB₁ : B.nondegenerate)
+  (φ ψ₁ ψ₂ : M₁ →ₗ[R₁] M₁) (hψ₁ : is_adjoint_pair B B ψ₁ φ) (hψ₂ : is_adjoint_pair B B ψ₂ φ) :
   ψ₁ = ψ₂ :=
 begin
   apply comp_left_apply_eq_unique (B.comp_right φ) _ hB₁,

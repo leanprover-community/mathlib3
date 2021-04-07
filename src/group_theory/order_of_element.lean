@@ -96,32 +96,12 @@ by refl
 
 lemma is_of_fin_add_order_iff_nsmul_eq_zero (x : H) :
   is_of_fin_add_order x ↔ ∃ n, 0 < n ∧ n •ℕ x = 0 :=
-begin
-  split,
-  { intro h,
-    rcases h with ⟨n, hnpos, hper⟩,
-    refine ⟨n, hnpos, _⟩,
-    rwa [is_periodic_pt, is_fixed_pt, add_fpow_apply_zero] at hper },
-  { intro h,
-    rcases h with ⟨n, hnpos, hpow⟩,
-    refine ⟨n, hnpos, _⟩,
-    rwa [is_periodic_pt, is_fixed_pt, add_fpow_apply_zero] },
-end
+by { convert iff.rfl, simp only [exists_prop, is_periodic_pt_add_iff_nsmul_eq_zero] }
 
 @[to_additive is_of_fin_add_order_iff_nsmul_eq_zero]
 lemma is_of_fin_order_iff_pow_eq_one (a : α) :
   is_of_fin_order a ↔ ∃ n, 0 < n ∧ a ^ n = 1 :=
-begin
-  split,
-  { intro h,
-    rcases h with ⟨n, hnpos, hper⟩,
-    refine ⟨n, hnpos, _⟩,
-    rwa [is_periodic_pt, is_fixed_pt, mul_fpow_apply_one] at hper },
-  { intro h,
-    rcases h with ⟨n, hnpos, hpow⟩,
-    refine ⟨n, hnpos, _⟩,
-    rwa [is_periodic_pt, is_fixed_pt, mul_fpow_apply_one] },
-end
+by { convert iff.rfl, simp [is_periodic_pt_mul_iff_pow_eq_one] }
 
 end is_of_fin_order
 

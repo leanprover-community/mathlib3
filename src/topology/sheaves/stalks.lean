@@ -376,10 +376,10 @@ begin
 end
 
 /--
-A morphism of `Type`-values sheaves `f : F ⟶ G` is an isomorphism if and only if all the stalk
+A morphism of `Type`-valued sheaves `f : F ⟶ G` is an isomorphism if and only if all the stalk
 maps are isomorphisms
 -/
-def is_iso_iff_stalk_maps_iso {F G : sheaf (Type v) X} (f : F ⟶ G) :
+lemma is_iso_iff_stalk_maps_iso {F G : sheaf (Type v) X} (f : F ⟶ G) :
   is_iso f ↔ ∀ x : X, is_iso (stalk_map x f) :=
 begin
   split,

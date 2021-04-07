@@ -2546,25 +2546,16 @@ lemma map_prod_map_Coprod_le {μ : δ → Type*}
   map (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) ≤ filter.Coprod (λ d, map (m d) (f d)) :=
 begin
   intros s h,
-  rw mem_Coprod_iff at h,
-  rw mem_map,
-  rw mem_Coprod_iff,
+  rw [mem_map, mem_Coprod_iff],
   intros d,
-  obtain ⟨t, ht⟩ := h d,
-  obtain ⟨H, hH⟩ := ht,
+  rw mem_Coprod_iff at h,
+  obtain ⟨t, H, hH⟩ := h d,
   rw mem_map at H,
-  use {x : κ d | m d x ∈ t},
-  split,
-  exact H,
+  refine ⟨{x : κ d | m d x ∈ t}, H, _⟩,
   intros x hx,
-  simp at hx,
-  simp,
-
-  -- Alex homework
-  sorry,
-  simp only [mem_map, mem_coprod_iff],
-  rintros ⟨u₁, hu₁, h₁⟩,
-  refine ⟨⟨m₁ ⁻¹' u₁, hu₁, λ _ hx, h₁ _⟩, ⟨m₂ ⁻¹' u₂, hu₂, λ _ hx, h₂ _⟩⟩; convert hx
+  simp only [mem_set_of_eq, preimage_set_of_eq] at hx,
+  rw mem_set_of_eq,
+  exact set.mem_of_subset_of_mem hH (mem_preimage.mpr hx),
 end
 
 lemma tendsto.prod_map_Coprod {μ : δ → Type*} {f : Π d, filter (κ d)} {m : Π d, κ d → μ d}

@@ -13,7 +13,7 @@ variables (V : Type u) [category.{v} V] [has_zero_morphisms V]
 structure homological_complex (c : complex_shape ι) :=
 (X : ι → V)
 (d : Π i j, X i ⟶ X j)
-(shape' : ∀ i j, ¬ c.r i j → d i j = 0 . obviously)
+(shape' : ∀ i j, ¬ c.rel i j → d i j = 0 . obviously)
 (d_comp_d' : ∀ i j k, d i j ≫ d j k = 0 . obviously)
 
 restate_axiom homological_complex.shape'
@@ -63,7 +63,7 @@ noncomputable theory
 variables [has_zero_object V]
 local attribute [instance] has_zero_object.has_zero
 
-lemma d_comp_eq_to_hom {i j j' : ι} (rij : c.r i j) (rij' : c.r i j') :
+lemma d_comp_eq_to_hom {i j j' : ι} (rij : c.rel i j) (rij' : c.rel i j') :
   C.d i j' ≫ eq_to_hom (congr_arg C.X (c.next_eq rij' rij)) = C.d i j :=
 begin
   have P : ∀ h : j' = j, C.d i j' ≫ eq_to_hom (congr_arg C.X h) = C.d i j,
@@ -71,7 +71,7 @@ begin
   apply P,
 end
 
-lemma eq_to_hom_comp_d {i i' j : ι} (rij : c.r i j) (rij' : c.r i' j) :
+lemma eq_to_hom_comp_d {i i' j : ι} (rij : c.rel i j) (rij' : c.rel i' j) :
   eq_to_hom (congr_arg C.X (c.prev_eq rij rij')) ≫ C.d i' j = C.d i j :=
 begin
   have P : ∀ h : i = i', eq_to_hom (congr_arg C.X h) ≫ C.d i' j = C.d i j,
@@ -79,7 +79,7 @@ begin
   apply P,
 end
 
-lemma kernel_eq_kernel [has_kernels V] {i j j' : ι} (r : c.r i j) (r' : c.r i j') :
+lemma kernel_eq_kernel [has_kernels V] {i j j' : ι} (r : c.rel i j) (r' : c.rel i j') :
   kernel_subobject (C.d i j) = kernel_subobject (C.d i j') :=
 begin
   rw ←d_comp_eq_to_hom C r r',
@@ -87,7 +87,7 @@ begin
 end
 
 lemma image_eq_image [has_images V] [has_equalizers V] [has_zero_object V]
-  {i i' j : ι} (r : c.r i j) (r' : c.r i' j) :
+  {i i' j : ι} (r : c.rel i j) (r' : c.rel i' j) :
   image_subobject (C.d i j) = image_subobject (C.d i' j) :=
 begin
   rw ←eq_to_hom_comp_d C r r',
@@ -100,7 +100,7 @@ match c.prev j with
 | (some ⟨i,_⟩) := C.X i
 end
 
-def X_pred_iso {i j : ι} (r : c.r i j) :
+def X_pred_iso {i j : ι} (r : c.rel i j) :
   C.X_pred j ≅ C.X i :=
 begin
   dsimp [X_pred],
@@ -124,7 +124,7 @@ match c.next i with
 | (some ⟨j,_⟩) := C.X j
 end
 
-def X_succ_iso {i j : ι} (r : c.r i j) :
+def X_succ_iso {i j : ι} (r : c.rel i j) :
   C.X_succ i ≅ C.X j :=
 begin
   dsimp [X_succ],
@@ -160,7 +160,7 @@ match c.next i with
 | (some ⟨j, w⟩) := C.d i j ≫ (C.X_succ_iso w).inv
 end
 
-lemma d_to_eq {i j : ι} (r : c.r i j) :
+lemma d_to_eq {i j : ι} (r : c.rel i j) :
   C.d_to j = (C.X_pred_iso r).hom ≫ C.d i j :=
 begin
   dsimp [d_to, X_pred_iso],
@@ -176,7 +176,7 @@ begin
   rw h, refl,
 end
 
-lemma d_from_eq {i j : ι} (r : c.r i j) :
+lemma d_from_eq {i j : ι} (r : c.rel i j) :
   C.d_from i = C.d i j ≫ (C.X_succ_iso r).inv :=
 begin
   dsimp [d_from, X_succ_iso],
@@ -203,7 +203,7 @@ begin
     { rw [d_to_eq _ w₂], simp, } }
 end
 
-lemma kernel_from_eq_kernel [has_kernels V] {i j : ι} (r : c.r i j) :
+lemma kernel_from_eq_kernel [has_kernels V] {i j : ι} (r : c.rel i j) :
   kernel_subobject (C.d_from i) = kernel_subobject (C.d i j) :=
 begin
   rw C.d_from_eq r,
@@ -211,7 +211,7 @@ begin
 end
 
 lemma image_to_eq_image [has_images V] [has_equalizers V] [has_zero_object V]
-  {i j : ι} (r : c.r i j) :
+  {i j : ι} (r : c.rel i j) :
   image_subobject (C.d_to j) = image_subobject (C.d i j) :=
 begin
   rw C.d_to_eq r,
@@ -254,7 +254,7 @@ match c.prev j with
 | some ⟨i,w⟩ := (C₁.X_pred_iso w).hom ≫ f.f i ≫ (C₂.X_pred_iso w).inv
 end
 
-lemma f_pred_eq (f : hom C₁ C₂) {i j : ι} (w : c.r i j) :
+lemma f_pred_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
   f.f_pred j = (C₁.X_pred_iso w).hom ≫ f.f i ≫ (C₂.X_pred_iso w).inv :=
 begin
   dsimp [f_pred],
@@ -269,7 +269,7 @@ match c.next i with
 | some ⟨j,w⟩ := (C₁.X_succ_iso w).hom ≫ f.f j ≫ (C₂.X_succ_iso w).inv
 end
 
-lemma f_succ_eq (f : hom C₁ C₂) {i j : ι} (w : c.r i j) :
+lemma f_succ_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
   f.f_succ i = (C₁.X_succ_iso w).hom ≫ f.f j ≫ (C₂.X_succ_iso w).inv :=
 begin
   dsimp [f_succ],

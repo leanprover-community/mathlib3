@@ -20,7 +20,7 @@ variables [has_zero_morphisms V]
 @[ext]
 structure ihom (k : ℤ) (C D : homological_complex V c) :=
 (hom : Π i j, C.X i ⟶ D.X j)
-(zero' : ∀ i j, ¬ c.r_step k i j → hom i j = 0 . obviously)
+(zero' : ∀ i j, ¬ c.rel_step k i j → hom i j = 0 . obviously)
 
 restate_axiom ihom.zero'
 attribute [simp] ihom.zero

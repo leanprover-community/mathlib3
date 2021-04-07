@@ -53,11 +53,11 @@ kernel_subobject (C.d_from i)
 lemma cycles_arrow_d_from (i : ι) : (C.cycles i).arrow ≫ C.d_from i = 0 :=
 by { dsimp [cycles], simp, }
 
-lemma cycles_eq_kernel_subobject {i j : ι} (r : c.r i j) :
+lemma cycles_eq_kernel_subobject {i j : ι} (r : c.rel i j) :
   C.cycles i = kernel_subobject (C.d i j) :=
 C.kernel_from_eq_kernel r
 
-def cycles_iso_kernel {i j : ι} (r : c.r i j) :
+def cycles_iso_kernel {i j : ι} (r : c.rel i j) :
   (C.cycles i : V) ≅ kernel (C.d i j) :=
 subobject.iso_of_eq _ _ (C.cycles_eq_kernel_subobject r) ≪≫
   kernel_subobject_iso (C.d i j)
@@ -77,11 +77,11 @@ variables [has_images V] [has_equalizers V]
 abbreviation boundaries (C : homological_complex V c) (j : ι) : subobject (C.X j) :=
 image_subobject (C.d_to j)
 
-lemma boundaries_eq_image_subobject {i j : ι} (r : c.r i j) :
+lemma boundaries_eq_image_subobject {i j : ι} (r : c.rel i j) :
   C.boundaries j = image_subobject (C.d i j) :=
 C.image_to_eq_image r
 
-def boundaries_iso_image {i j : ι} (r : c.r i j) :
+def boundaries_iso_image {i j : ι} (r : c.rel i j) :
   (C.boundaries j : V) ≅ image (C.d i j) :=
 subobject.iso_of_eq _ _ (C.boundaries_eq_image_subobject r) ≪≫
   image_subobject_iso (C.d i j)

@@ -15,24 +15,59 @@ A `c : complex_shape ι` describes the shape of a chain complex,
 with chain groups indexed by `ι`.
 Typically `ι` will be `ℕ`, `ℤ`, or `fin n`.
 
-There is a relation `r : ι → ι → Prop`,
-and we will only allow a non-zero differential from `i` to `j` when `r i j`.
+There is a relation `rel : ι → ι → Prop`,
+and we will only allow a non-zero differential from `i` to `j` when `rel i j`.
 
-There are axioms which imply `{ j // c.r i j }` and `{ i // c.r i j }` are subsingletons.
+There are axioms which imply `{ j // c.rel i j }` and `{ i // c.rel i j }` are subsingletons.
 This means that the shape consists of some union of lines, rays, intervals, and circles.
 
 Below we define `c.next` and `c.prev` which provide, as an `option`, these related elements.
 -/
+@[ext]
 structure complex_shape (ι : Type*) :=
-(r : ι → ι → Prop)
-(next_eq : ∀ {i j j'}, r i j → r i j' → j = j')
-(prev_eq : ∀ {i i' k}, r i k → r i' k → i = i')
+(rel : ι → ι → Prop)
+(next_eq : ∀ {i j j'}, rel i j → rel i j' → j = j')
+(prev_eq : ∀ {i i' j}, rel i j → rel i' j → i = i')
 
 namespace complex_shape
 variables {ι : Type*}
 
+@[simps]
+def refl (ι : Type*) : complex_shape ι :=
+{ rel := λ i j, i = j,
+  next_eq := λ i j j' w w', w.symm.trans w',
+  prev_eq := λ i i' j w w', w.trans w'.symm, }
+
+@[simps]
+def symm (c : complex_shape ι) : complex_shape ι :=
+{ rel := λ i j, c.rel j i,
+  next_eq := λ i j j' w w', c.prev_eq w w',
+  prev_eq := λ i i' j w w', c.next_eq w w', }
+
+lemma symm_symm (c : complex_shape ι) : c.symm.symm = c :=
+by { ext, simp, }
+
+-- We need this to define "related in k steps" later.
+@[simp]
+def trans (c₁ c₂ : complex_shape ι) : complex_shape ι :=
+{ rel := relation.comp c₁.rel c₂.rel,
+  next_eq := λ i j j' w w',
+  begin
+    obtain ⟨k, w₁, w₂⟩ := w,
+    obtain ⟨k', w₁', w₂'⟩ := w',
+    rw c₁.next_eq w₁ w₁' at w₂,
+    exact c₂.next_eq w₂ w₂',
+  end,
+  prev_eq := λ i i' j w w',
+  begin
+    obtain ⟨k, w₁, w₂⟩ := w,
+    obtain ⟨k', w₁', w₂'⟩ := w',
+    rw c₂.prev_eq w₂ w₂' at w₁,
+    exact c₁.prev_eq w₁ w₁',
+  end }
+
 instance subsingleton_next (c : complex_shape ι) (i : ι) :
-  subsingleton { j // c.r i j } :=
+  subsingleton { j // c.rel i j } :=
 begin
   fsplit,
   rintros ⟨j, rij⟩ ⟨k, rik⟩,
@@ -41,7 +76,7 @@ begin
 end
 
 instance subsingleton_prev (c : complex_shape ι) (j : ι) :
-  subsingleton { i // c.r i j } :=
+  subsingleton { i // c.rel i j } :=
 begin
   fsplit,
   rintros ⟨i, rik⟩ ⟨j, rjk⟩,
@@ -49,42 +84,54 @@ begin
   exact c.prev_eq rik rjk,
 end
 
-def next (c : complex_shape ι) (i : ι) : option { j // c.r i j } :=
+def next (c : complex_shape ι) (i : ι) : option { j // c.rel i j } :=
 option.choice _
 
-def prev (c : complex_shape ι) (j : ι) : option { i // c.r i j } :=
+def prev (c : complex_shape ι) (j : ι) : option { i // c.rel i j } :=
 option.choice _
 
-lemma next_eq_some (c : complex_shape ι) {i j : ι} (h : c.r i j) : c.next i = some ⟨j, h⟩ :=
+lemma next_eq_some (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.next i = some ⟨j, h⟩ :=
 begin
   dsimp [next, option.choice],
-  let w : nonempty { j // c.r i j } := ⟨⟨j, h⟩⟩,
+  let w : nonempty { j // c.rel i j } := ⟨⟨j, h⟩⟩,
   rw dif_pos w,
   simp only [option.map_some', subtype.val_eq_coe],
   apply subsingleton.elim,
 end
-lemma prev_eq_some (c : complex_shape ι) {i j : ι} (h : c.r i j) : c.prev j = some ⟨i, h⟩ :=
+lemma prev_eq_some (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.prev j = some ⟨i, h⟩ :=
 begin
   dsimp [prev, option.choice],
-  let w : nonempty { i // c.r i j } := ⟨⟨i, h⟩⟩,
+  let w : nonempty { i // c.rel i j } := ⟨⟨i, h⟩⟩,
   rw dif_pos w,
   simp only [option.map_some', subtype.val_eq_coe],
   apply subsingleton.elim,
 end
 
-def r_step (c : complex_shape ι) : ℤ → ι → ι → Prop
-| (int.of_nat 0) i j := i = j
-| (int.of_nat (n+1)) i j := ∃ k, c.r i k ∧ r_step (int.of_nat n) k j
-| (int.neg_succ_of_nat 0) i j := c.r j i
-| (int.neg_succ_of_nat (n+1)) i j := ∃ k, c.r j k ∧ r_step (int.neg_succ_of_nat n) k j
+/--
+The relation of being related in `k` steps.
+-/
+def rel_step (c : complex_shape ι) (k : ℤ) : ι → ι → Prop :=
+if h : 0 ≤ k then
+  ((complex_shape.trans c)^[k.nat_abs] (complex_shape.refl ι)).rel
+else
+  ((complex_shape.trans c.symm)^[k.nat_abs] (complex_shape.refl ι)).rel
+
+instance subsingleton_rel_step (c : complex_shape ι) (k : ℤ) (i : ι) :
+  subsingleton { j // c.rel_step k i j } :=
+begin
+  dsimp [rel_step],
+  split_ifs,
+  apply complex_shape.subsingleton_next,
+  apply complex_shape.subsingleton_next,
+end
 
 def up' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape α :=
-{ r := λ i j , i + a = j,
+{ rel := λ i j , i + a = j,
   next_eq := λ i j k hi hj, hi.symm.trans hj,
   prev_eq := λ i j k hi hj, add_right_cancel (hi.trans hj.symm), }
 
 def down' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape α :=
-{ r := λ i j , j + a = i,
+{ rel := λ i j , j + a = i,
   next_eq := λ i j k hi hj, add_right_cancel (hi.trans (hj.symm)),
   prev_eq := λ i j k hi hj, hi.symm.trans hj, }
 

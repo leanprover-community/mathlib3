@@ -164,8 +164,43 @@ lemma factor_thru_of_le
   Q.factor_thru f (factors_of_le f h w) = P.factor_thru f w ≫ of_le P Q h :=
 by { ext, simp, }
 
+-- TODO Should this section go in a different file?
 section preadditive
-#where
+
+variables [preadditive C]
+
+lemma factors_add {X Y : C} {P : subobject Y} (f g : X ⟶ Y) (wf : P.factors f) (wg : P.factors g) :
+  P.factors (f + g) :=
+(factors_iff _ _).mpr ⟨P.factor_thru f wf + P.factor_thru g wg, by simp⟩
+
+-- This can't be a `simp` lemma as `wf` and `wg` may not exist.
+lemma factor_thru_add {X Y : C} {P : subobject Y} (f g : X ⟶ Y)
+   (w : P.factors (f + g)) (wf : P.factors f) (wg : P.factors g) :
+  P.factor_thru (f + g) w = P.factor_thru f wf + P.factor_thru g wg :=
+by { ext, simp, }
+
+lemma factors_left_of_factors_add {X Y : C} {P : subobject Y} (f g : X ⟶ Y)
+  (w : P.factors (f + g)) (wg : P.factors g) : P.factors f :=
+(factors_iff _ _).mpr ⟨P.factor_thru (f + g) w - P.factor_thru g wg, by simp⟩
+
+@[simp]
+lemma factor_thru_add_sub_factor_thru_right {X Y : C} {P : subobject Y} (f g : X ⟶ Y)
+  (w : P.factors (f + g)) (wg : P.factors g) :
+  P.factor_thru (f + g) w - P.factor_thru g wg =
+    P.factor_thru f (factors_left_of_factors_add f g w wg) :=
+by { ext, simp, }
+
+lemma factors_right_of_factors_add {X Y : C} {P : subobject Y} (f g : X ⟶ Y)
+  (w : P.factors (f + g)) (wf : P.factors f) : P.factors g :=
+(factors_iff _ _).mpr ⟨P.factor_thru (f + g) w - P.factor_thru f wf, by simp⟩
+
+@[simp]
+lemma factor_thru_add_sub_factor_thru_left {X Y : C} {P : subobject Y} (f g : X ⟶ Y)
+  (w : P.factors (f + g)) (wf : P.factors f) :
+  P.factor_thru (f + g) w - P.factor_thru f wf =
+    P.factor_thru g (factors_right_of_factors_add f g w wf) :=
+by { ext, simp, }
+
 end preadditive
 
 end subobject

@@ -79,7 +79,7 @@ def matrix.reindex_lie_equiv {m : Type w₁} [decidable_eq m] [fintype m]
   matrix.reindex_lie_equiv e M = matrix.reindex e e M :=
 rfl
 
-@[simp] lemma matrix.reindex_lie_equiv_symm_apply {m : Type w₁} [decidable_eq m] [fintype m]
+@[simp] lemma matrix.reindex_lie_equiv_symm {m : Type w₁} [decidable_eq m] [fintype m]
   (e : n ≃ m) :
   (matrix.reindex_lie_equiv e : _ ≃ₗ⁅R⁆ _).symm = matrix.reindex_lie_equiv e.symm :=
 rfl

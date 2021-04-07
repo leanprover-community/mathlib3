@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 Matt Kempster. All rights reserved.
+Copyright (c) 2021 Matt Kempster. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Matt Kempster
 -/
@@ -29,6 +29,7 @@ variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 
 include V
+
 /-- Heron's formula: The area of a triangle with side lengths `a`, `b`, and `c` is
   `√(s * (s - a) * (s - b) * (s - c))` where `s = (a + b + c) / 2` is the semiperimeter.
   We show this by equating this formula to `a * b * sin γ`, where `γ` is the angle opposite
@@ -36,55 +37,35 @@ include V
  -/
 theorem heron {p1 p2 p3 : P} (h1 : p1 ≠ p2) (h2 : p3 ≠ p2) :
   let a := dist p1 p2, b := dist p3 p2, c := dist p1 p3, s := (a + b + c) / 2 in
-  1/2 * a * b * real.sin (∠ p1 p2 p3) = √(s * (s - a) * (s - b) * (s - c)) :=
+  1/2 * a * b * sin (∠ p1 p2 p3) = √(s * (s - a) * (s - b) * (s - c)) :=
 begin
   intros a b c s,
   let γ := ∠ p1 p2 p3,
 
-  have a_nonzero : a ≠ 0 := (dist_pos.mpr h1).ne',
-  have b_nonzero : b ≠ 0 := (dist_pos.mpr h2).ne',
+  obtain := ⟨(dist_pos.mpr h1).ne', (dist_pos.mpr h2).ne'⟩,
 
-  have cos_rule : cos γ = (a * a + b * b - c * c) / (2 * a * b), by
-    field_simp
-      [dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle p1 p2 p3,
-        mul_comm, a],
-
-  have sin_to_cos := sin_eq_sqrt_one_minus_cos_sq (angle_nonneg p1 p2 p3) (angle_le_pi p1 p2 p3),
+  have cos_rule : cos γ = (a * a + b * b - c * c) / (2 * a * b) := by field_simp [mul_comm, a,
+    dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle p1 p2 p3],
 
   let numerator := (2*a*b)^2 - (a*a + b*b - c*c)^2,
   let denominator := (2*a*b)^2,
+  have split_to_frac : 1 - cos γ ^ 2 = numerator / denominator := by field_simp [cos_rule],
 
-  have split_to_fraction :=
-  calc    1 - real.cos γ ^ 2
-        = 1 - ((a*a + b*b - c*c) / (2*a*b))^2           : by rw cos_rule
-    ... = 1 - (a*a + b*b - c*c)^2 / (2*a*b)^2           : by { congr', exact div_pow _ (2*a*b) 2 }
-    ... = ((2*a*b)^2 - (a*a + b*b - c*c)^2) / (2*a*b)^2 : by field_simp
-    ... = numerator / denominator                       : rfl,
+  have numerator_nonneg : 0 ≤ numerator,
+  { have frac_nonneg: 0 ≤ numerator / denominator := by linarith [split_to_frac, cos_sq_le_one γ],
+    cases div_nonneg_iff.mp frac_nonneg,
+    { exact h.left },
+    { simpa [h1, h2] using le_antisymm h.right (pow_two_nonneg _) } },
 
-  have ab2_pos : 0 ≤ (2 * a * b), by { field_simp *, linarith },
+  have ab2_nonneg : 0 ≤ (2 * a * b), by { field_simp *, linarith },
 
-  have numerator_nonneg : 0 ≤ numerator, by
-  { have denom_nonneg : 0 ≤ (2*a*b)^2, by { rw pow_two, exact mul_nonneg ab2_pos ab2_pos },
-    have frac_nonneg: 0 ≤ numerator / denominator,
-      by { rw ← split_to_fraction, linarith [real.cos_sq_le_one γ] },
-    rw div_nonneg_iff at frac_nonneg,
-    cases frac_nonneg,
-    { exact frac_nonneg.left },
-    { exfalso,
-      have ab2_sqr_zero : (2*a*b)*(2*a*b) = 0,
-        by { rw ← pow_two, exact le_antisymm frac_nonneg.right denom_nonneg },
-      field_simp at ab2_sqr_zero,
-      exact ab2_sqr_zero } },
-
-  set s := (a + b + c) / 2 with hs,
-
-  calc    1/2*a*b * real.sin γ
-        = 1/2*a*b * √(1 - real.cos γ ^ 2)           : by rw sin_to_cos
-    ... = 1/2*a*b * √(numerator / denominator)      : by rw ← split_to_fraction
-    ... = 1/2*a*b * √(numerator) / √(denominator)   : by { rw real.sqrt_div numerator_nonneg, ring }
-    ... = 1/2*a*b * √((2*a*b)^2 - (a*a + b*b - c*c)^2) / √((2*a*b)^2) : rfl
-    ... = 1/4 * √((2*a*b)^2 - (a*a + b*b - c*c)^2)  : by { field_simp [ab2_pos], ring }
-    ... = 1/4 * √(s * (s-a) * (s-b) * (s-c) * 4^2)  : by { rw hs, ring_nf }
-    ... = √(s * (s-a) * (s-b) * (s-c))              : by
-      rw [real.sqrt_mul', real.sqrt_sqr, div_mul_eq_mul_div, one_mul, mul_div_cancel]; norm_num,
+  calc  1/2 * a * b * sin γ
+      = 1/2 * a * b * (√numerator / √denominator) : by rw [sin_eq_sqrt_one_minus_cos_sq,
+                                                          split_to_frac, sqrt_div numerator_nonneg];
+                                                      simp [angle_nonneg, angle_le_pi]
+  ... = 1/4 * √((2*a*b)^2 - (a*a + b*b - c*c)^2)  : by { field_simp [ab2_nonneg], ring }
+  ... = 1/4 * √(s * (s-a) * (s-b) * (s-c) * 4^2)  : by { simp only [s], ring_nf }
+  ... = √(s * (s-a) * (s-b) * (s-c))              : by rw [sqrt_mul', sqrt_sqr, one_mul,
+                                                          div_mul_eq_mul_div, mul_div_cancel];
+                                                      norm_num,
 end

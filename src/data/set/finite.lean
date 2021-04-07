@@ -50,9 +50,6 @@ from exists_congr (λ _, h.mem_to_finset)
 @[simp] lemma finite_empty_to_finset (h : finite (∅ : set α)) : h.to_finset = ∅ :=
 by rw [← finset.coe_inj, h.coe_to_finset, finset.coe_empty]
 
-@[simp] lemma finite.card_to_finset {s : set α} (h : finite s) :
-  h.to_finset.card = finset.card (@set.to_finset _ s h.fintype) := rfl
-
 theorem finite.exists_finset {s : set α} : finite s →
   ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s
 | ⟨h⟩ := by exactI ⟨to_finset s, λ _, mem_to_finset⟩
@@ -616,6 +613,11 @@ begin
     { exact (h hbc).elim },
     { exact ih c hcs hbc } }
 end
+
+lemma finite.card_to_finset {s : set α} [fintype s] (h : s.finite) :
+  h.to_finset.card = fintype.card s :=
+by { rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card], congr' 2, funext,
+     rw set.finite.mem_to_finset }
 
 section decidable_eq
 

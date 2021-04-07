@@ -128,8 +128,8 @@ section
 variables [monoid X] [monoid Y]
 
 /-- Build an isomorphism in the category `Mon` from a `mul_equiv` between `monoid`s. -/
-@[simps, to_additive add_equiv.to_AddMon_iso "Build an isomorphism in the category `AddMon` from
-an `add_equiv` between `add_monoid`s."]
+@[to_additive add_equiv.to_AddMon_iso "Build an isomorphism in the category `AddMon` from
+an `add_equiv` between `add_monoid`s.", simps]
 def mul_equiv.to_Mon_iso (e : X ≃* Y) : Mon.of X ≅ Mon.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
@@ -140,8 +140,8 @@ section
 variables [comm_monoid X] [comm_monoid Y]
 
 /-- Build an isomorphism in the category `CommMon` from a `mul_equiv` between `comm_monoid`s. -/
-@[simps, to_additive add_equiv.to_AddCommMon_iso "Build an isomorphism in the category `AddCommMon`
-from an `add_equiv` between `add_comm_monoid`s."]
+@[to_additive add_equiv.to_AddCommMon_iso "Build an isomorphism in the category `AddCommMon`
+from an `add_equiv` between `add_comm_monoid`s.", simps]
 def mul_equiv.to_CommMon_iso (e : X ≃* Y) : CommMon.of X ≅ CommMon.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }

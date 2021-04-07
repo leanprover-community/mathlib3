@@ -2113,6 +2113,27 @@ lemma rel_repeat_right {m : multiset α} {a : α} {r : α → α → Prop} {n : 
   m.rel r (repeat a n) ↔ m.card = n ∧ ∀ x, x ∈ m → r x a :=
 by { rw [← rel_flip], exact rel_repeat_left }
 
+lemma rel_of_forall {m1 m2 : multiset α} {r : α → α → Prop} (h : ∀ a b, a ∈ m1 → b ∈ m2 → r a b)
+  (hc : card m1 = card m2) :
+  m1.rel r m2 :=
+begin
+  revert m2,
+  apply m1.induction_on,
+  { intros m h hc,
+    rw [card_zero, eq_comm, card_eq_zero] at hc,
+    rw [hc, rel_zero_left] },
+  { intros a t ih m h hc,
+    have h' := (card t).succ_pos,
+    rw [card_cons] at hc,
+    rw [nat.succ_eq_add_one, hc] at h',
+    obtain ⟨b, hb⟩ := card_pos_iff_exists_mem.1 h',
+    obtain ⟨t', rfl⟩ := exists_cons_of_mem hb,
+    rw card_cons at hc,
+    rw rel_cons_left,
+    refine ⟨b, t', h _ _ (mem_cons_self _ _) hb, ih _ (nat.succ_inj'.1 hc), rfl⟩,
+    exact λ a' b' ha' hb', h _ _ (mem_cons_of_mem ha') (mem_cons_of_mem hb') }
+end
+
 lemma sum_le_sum_of_rel_le [ordered_add_comm_monoid α]
   {m1 m2 : multiset α} (h : m1.rel (≤) m2) : m1.sum ≤ m2.sum :=
 begin
@@ -2129,13 +2150,41 @@ end
 
 end rel
 
-lemma card_nsmul_le_sum [ordered_add_comm_monoid α] {b : α}
-  {m : multiset α} (h : ∀ x, x ∈ m → b ≤ x) : (card m) •ℕ b ≤ m.sum :=
-le_trans (ge_of_eq (sum_repeat _ _)) (sum_le_sum_of_rel_le (rel_repeat_left.2 ⟨rfl, h⟩))
+section foo
 
-lemma sum_le_card_nsmul [ordered_add_comm_monoid α] {b : α}
+variables [ordered_add_comm_monoid α]
+
+lemma sum_map_le_sum
+  {m : multiset α} (f : α → α) (h : ∀ x, x ∈ m → f x ≤ x) : (m.map f).sum ≤ m.sum :=
+begin
+  apply sum_le_sum_of_rel_le (rel_map_left.2 _),
+  revert h,
+  apply multiset.induction_on m,
+  { exact λ _, rel_zero_left.2 rfl },
+  { intros a m ih h,
+    rw rel_cons_left,
+    exact ⟨a, m, h a (mem_cons_self _ _), ih (λ x hx, h x (mem_cons_of_mem hx)), rfl⟩ }
+end
+
+lemma sum_le_sum_map
+  {m : multiset α} (f : α → α) (h : ∀ x, x ∈ m → x ≤ f x) : m.sum ≤ (m.map f).sum :=
+@sum_map_le_sum (order_dual α) _ _ f h
+
+lemma card_nsmul_le_sum {b : α}
+  {m : multiset α} (h : ∀ x, x ∈ m → b ≤ x) : (card m) •ℕ b ≤ m.sum :=
+begin
+  rw [←multiset.sum_repeat, ←multiset.map_const],
+  exact sum_map_le_sum _ h,
+end
+
+lemma sum_le_card_nsmul {b : α}
   {m : multiset α} (h : ∀ x, x ∈ m → x ≤ b) : m.sum ≤ (card m) •ℕ b :=
-(sum_le_sum_of_rel_le (rel_repeat_right.2 ⟨rfl, h⟩)).trans (le_of_eq (sum_repeat _ _))
+begin
+  rw [←multiset.sum_repeat, ←multiset.map_const],
+  exact sum_le_sum_map _ h,
+end
+
+end foo
 
 section map
 

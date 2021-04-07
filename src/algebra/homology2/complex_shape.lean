@@ -17,6 +17,15 @@ if h : nonempty α then
 else
   none
 
+lemma option.choice_eq {α : Type*} [subsingleton α] (a : α) : option.choice α = some a :=
+begin
+  dsimp [option.choice],
+  let w : nonempty α := ⟨a⟩,
+  rw dif_pos w,
+  simp only [option.map_some', subtype.val_eq_coe],
+  apply subsingleton.elim,
+end
+
 /--
 A `c : complex_shape ι` describes the shape of a chain complex,
 with chain groups indexed by `ι`.
@@ -98,21 +107,10 @@ def prev (c : complex_shape ι) (j : ι) : option { i // c.rel i j } :=
 option.choice _
 
 lemma next_eq_some (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.next i = some ⟨j, h⟩ :=
-begin
-  dsimp [next, option.choice],
-  let w : nonempty { j // c.rel i j } := ⟨⟨j, h⟩⟩,
-  rw dif_pos w,
-  simp only [option.map_some', subtype.val_eq_coe],
-  apply subsingleton.elim,
-end
+option.choice_eq _
+
 lemma prev_eq_some (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.prev j = some ⟨i, h⟩ :=
-begin
-  dsimp [prev, option.choice],
-  let w : nonempty { i // c.rel i j } := ⟨⟨i, h⟩⟩,
-  rw dif_pos w,
-  simp only [option.map_some', subtype.val_eq_coe],
-  apply subsingleton.elim,
-end
+option.choice_eq _
 
 /--
 The relation of being related in `k` steps.
@@ -135,11 +133,13 @@ end
 -- TODO we may need to prove that `c.rel_step n i j → c.rel_step m j k → c.rel_step (n+m) i k`
 -- (and also the converse, when `n` and `m` are both non-negative).
 
+@[simps]
 def up' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape α :=
 { rel := λ i j , i + a = j,
   next_eq := λ i j k hi hj, hi.symm.trans hj,
   prev_eq := λ i j k hi hj, add_right_cancel (hi.trans hj.symm), }
 
+@[simps]
 def down' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape α :=
 { rel := λ i j , j + a = i,
   next_eq := λ i j k hi hj, add_right_cancel (hi.trans (hj.symm)),
@@ -148,12 +148,14 @@ def down' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape 
 /--
 The `complex_shape` appropriate for cohomology, so `d : X i ⟶ X j` only when `j = i + 1`.
 -/
+@[simps]
 def up {α : Type*} [add_right_cancel_semigroup α] [has_one α] : complex_shape α :=
 up' 1
 
 /--
 The `complex_shape` appropriate for homology, so `d : X i ⟶ X j` only when `i = j + 1`.
 -/
+@[simps]
 def down {α : Type*} [add_right_cancel_semigroup α] [has_one α] : complex_shape α :=
 down' 1
 

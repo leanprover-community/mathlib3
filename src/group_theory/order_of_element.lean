@@ -80,11 +80,11 @@ exists `n ≥ 1` such that `a ^ n = 1`.-/
 def is_of_fin_order (a : α) : Prop :=
 (1 : α) ∈ periodic_pts (* a)
 
-lemma foo {a : α} :
+lemma is_of_fin_add_order_of_mul_iff {a : α} :
 is_of_fin_add_order (additive.of_mul a) ↔ is_of_fin_order a :=
 by refl
 
-lemma foo' {x : H} :
+lemma is_of_fin_order_of_add_iff {x : H} :
 is_of_fin_order (multiplicative.of_add x) ↔ is_of_fin_add_order x :=
 by refl
 

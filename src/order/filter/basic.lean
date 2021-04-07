@@ -1222,6 +1222,14 @@ lemma eventually_eq_empty {s : set α} {l : filter α} :
   s =ᶠ[l] (∅ : set α) ↔ ∀ᶠ x in l, x ∉ s :=
 eventually_eq_set.trans $ by simp
 
+lemma inter_eventually_eq_left {s t : set α} {l : filter α} :
+  (s ∩ t : set α) =ᶠ[l] s ↔ ∀ᶠ x in l, x ∈ s → x ∈ t :=
+by simp only [eventually_eq_set, mem_inter_eq, and_iff_left_iff_imp]
+
+lemma inter_eventually_eq_right {s t : set α} {l : filter α} :
+  (s ∩ t : set α) =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ t → x ∈ s :=
+by rw [inter_comm, inter_eventually_eq_left]
+
 @[simp] lemma eventually_eq_principal {s : set α} {f g : α → β} :
   f =ᶠ[𝓟 s] g ↔ eq_on f g s :=
 iff.rfl
@@ -2515,10 +2523,10 @@ map_prod_map_coprod_le.trans (coprod_mono hf hg)
 
 end coprod
 
-/-! ### Finitary coproducts of filters -/
+/-! ### `n`-ary coproducts of filters -/
 
 section Coprod
-variables {δ : Type*} [fintype δ] {κ : δ → Type*}  -- {f : Π d, filter (κ d)}
+variables {δ : Type*} {κ : δ → Type*}  -- {f : Π d, filter (κ d)}
 
 /-- Coproduct of filters. -/
 protected def Coprod (f : Π d, filter (κ d)) : filter (Π d, κ d) :=
@@ -2530,22 +2538,23 @@ by simp [filter.Coprod]
 
 @[mono] lemma Coprod_mono {f₁ f₂ : Π d, filter (κ d)} (hf : ∀ d, f₁ d ≤ f₂ d) :
   filter.Coprod f₁ ≤ filter.Coprod f₂ :=
-Sup_le_Sup begin
-  have := (λ d : δ, comap_mono (hf d)) ,
-  -- Heather homework
-  repeat {sorry},
-end
+supr_le_supr $ λ d, comap_mono (hf d)
 
 lemma map_prod_map_Coprod_le {μ : δ → Type*}
   {f : Π d, filter (κ d)} {m : Π d, κ d → μ d} :
   map (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) ≤ filter.Coprod (λ d, map (m d) (f d)) :=
 begin
   intros s h,
-  -- Alex homework
-  sorry,
-  simp only [mem_map, mem_coprod_iff],
-  rintros ⟨u₁, hu₁, h₁⟩,
-  refine ⟨⟨m₁ ⁻¹' u₁, hu₁, λ _ hx, h₁ _⟩, ⟨m₂ ⁻¹' u₂, hu₂, λ _ hx, h₂ _⟩⟩; convert hx
+  rw [mem_map, mem_Coprod_iff],
+  intros d,
+  rw mem_Coprod_iff at h,
+  obtain ⟨t, H, hH⟩ := h d,
+  rw mem_map at H,
+  refine ⟨{x : κ d | m d x ∈ t}, H, _⟩,
+  intros x hx,
+  simp only [mem_set_of_eq, preimage_set_of_eq] at hx,
+  rw mem_set_of_eq,
+  exact set.mem_of_subset_of_mem hH (mem_preimage.mpr hx),
 end
 
 lemma tendsto.prod_map_Coprod {μ : δ → Type*} {f : Π d, filter (κ d)} {m : Π d, κ d → μ d}

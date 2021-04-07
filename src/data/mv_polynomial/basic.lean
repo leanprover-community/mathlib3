@@ -329,8 +329,7 @@ lemma support_monomial : (monomial s a).support = if a = 0 then ∅ else {s} := 
 lemma support_monomial_subset : (monomial s a).support ⊆ {s} :=
 support_single_subset
 
-lemma support_add : (p + q).support ⊆ p.support ∪ q.support :=
-by convert @finsupp.support_add _ _ _ p q
+lemma support_add : (p + q).support ⊆ p.support ∪ q.support := finsupp.support_add
 
 lemma support_X [nontrivial R] : (X n : mv_polynomial σ R).support = {single n 1} :=
 by rw [X, support_monomial, if_neg]; exact one_ne_zero

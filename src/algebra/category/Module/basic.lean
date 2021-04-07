@@ -10,10 +10,41 @@ import category_theory.preadditive
 import linear_algebra.basic
 
 /-!
-# Category instance for modules over a ring
+# The category of `R`-modules
 
-We introduce the bundled category `Module` along with relevant forgetful functor to `AddCommGroup`.
-We furthermore show that `Module` is a preadditive category.
+`Module.{v} R` is the category of bundled `R`-modules with carrier in the universe `v`. We show
+that it is preadditive and show that being an isomorphism, monomorphism and epimorphism is
+equivalent to being a linear equivalence, an injective linear map and a surjective linear map,
+respectively.
+
+## Implementation details
+
+To construct an object in the category of `R`-modules from a type `M` with an instance of the
+`module` typeclass, write `of R M`. There is a coercion in the other direction.
+
+Similarly, there is a coercion from morphisms in `Module R` to linear maps.
+
+Unfortunately, Lean is not smart enough to see that, given an object `M : Module R`, the expression
+`of R M`, where we coerce `M` to the carrier type, is definitionally equal to `M` itself.
+This means that to go the other direction, i.e., from linear maps/equivalences to (iso)morphisms
+in the category of `R`-modules, we have to take care not to inadvertently end up with an
+`of R M` where `M` is already an object. Hence, given `f : M →ₗ[R] N`,
+* if `M N : Module R`, simply use `f`;
+* if `M : Module R` and `N` is an unbundled `R`-module, use `↿f` or `as_hom_left f`;
+* if `M` is an unbundled `R`-module and `N : Module R`, use `↾f` or `as_hom_right f`;
+* if `M` and `N` are unbundled `R`-modules, use `↟f` or `as_hom f`.
+
+Similarly, given `f : M ≃ₗ[R] N`, use `to_Module_iso`, `to_Module_iso'_left`, `to_Module_iso'_right`
+or `to_Module_iso'`, respectively.
+
+The arrow notations are localized, so you may have to `open_locale Module` to use them. Note that
+the notation for `as_hom_left` clashes with the notation used to promote functions between types to
+morphisms in the category `Type`, so to avoid confusion, it is probably a good idea to avoid having
+the locales `Module` and `category_theory.Type` open at the same time.
+
+If you get an error when trying to apply a theorem and the `convert` tactic produces goals of the
+form `M = of R M`, then you probably used an incorrect variant of `as_hom` or `to_Module_iso`.
+
 -/
 
 open category_theory
@@ -34,7 +65,6 @@ attribute [instance] Module.is_add_comm_group Module.is_module
 
 namespace Module
 
--- TODO revisit this after #1438 merges, to check coercions and instances are handled consistently
 instance : has_coe_to_sort (Module.{v} R) :=
 { S := Type v, coe := Module.carrier }
 
@@ -90,6 +120,8 @@ variables {R} {M N U : Module.{v} R}
 @[simp] lemma coe_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g ∘ f := rfl
 
+lemma comp_def (f : M ⟶ N) (g : N ⟶ U) : f ≫ g = g.comp f := rfl
+
 end Module
 
 variables {R}
@@ -98,6 +130,20 @@ variables {X₁ X₂ : Type v}
 /-- Reinterpreting a linear map in the category of `R`-modules. -/
 def Module.as_hom [add_comm_group X₁] [module R X₁] [add_comm_group X₂] [module R X₂] :
   (X₁ →ₗ[R] X₂) → (Module.of R X₁ ⟶ Module.of R X₂) := id
+
+localized "notation `↟` f : 1024 := Module.as_hom f" in Module
+
+/-- Reinterpreting a linear map in the category of `R`-modules. -/
+def Module.as_hom_right [add_comm_group X₁] [module R X₁] {X₂ : Module.{v} R} :
+  (X₁ →ₗ[R] X₂) → (Module.of R X₁ ⟶ X₂) := id
+
+localized "notation `↾` f : 1024 := Module.as_hom_right f" in Module
+
+/-- Reinterpreting a linear map in the category of `R`-modules. -/
+def Module.as_hom_left {X₁ : Module.{v} R} [add_comm_group X₂] [module R X₂] :
+  (X₁ →ₗ[R] X₂) → (X₁ ⟶ Module.of R X₂) := id
+
+localized "notation `↿` f : 1024 := Module.as_hom_left f" in Module
 
 /-- Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s. -/
 @[simps]
@@ -119,6 +165,32 @@ This version is better than `linear_equiv_to_Module_iso` when applicable, becaus
 def linear_equiv.to_Module_iso' {M N : Module.{v} R} (i : M ≃ₗ[R] N) : M ≅ N :=
 { hom := i,
   inv := i.symm,
+  hom_inv_id' := linear_map.ext $ λ x, by simp,
+  inv_hom_id' := linear_map.ext $ λ x, by simp }
+
+/--
+Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s.
+
+This version is better than `linear_equiv_to_Module_iso` when applicable, because Lean can't see
+`Module.of R M` is defeq to `M` when `M : Module R`. -/
+@[simps]
+def linear_equiv.to_Module_iso'_left {X₁ : Module.{v} R} {g₂ : add_comm_group X₂} {m₂ : module R X₂}
+  (e : X₁ ≃ₗ[R] X₂) : X₁ ≅ Module.of R X₂ :=
+{ hom := (e : X₁ →ₗ[R] X₂),
+  inv := (e.symm : X₂ →ₗ[R] X₁),
+  hom_inv_id' := linear_map.ext $ λ x, by simp,
+  inv_hom_id' := linear_map.ext $ λ x, by simp }
+
+/--
+Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s.
+
+This version is better than `linear_equiv_to_Module_iso` when applicable, because Lean can't see
+`Module.of R M` is defeq to `M` when `M : Module R`. -/
+@[simps]
+def linear_equiv.to_Module_iso'_right {g₁ : add_comm_group X₁} {m₁ : module R X₁}
+  {X₂ : Module.{v} R} (e : X₁ ≃ₗ[R] X₂) : Module.of R X₁ ≅ X₂ :=
+{ hom := (e : X₁ →ₗ[R] X₂),
+  inv := (e.symm : X₂ →ₗ[R] X₁),
   hom_inv_id' := linear_map.ext $ λ x, by simp,
   inv_hom_id' := linear_map.ext $ λ x, by simp }
 
@@ -161,16 +233,22 @@ section epi_mono
 variables {M N : Module.{v} R} (f : M ⟶ N)
 
 lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
-linear_map.ker_eq_bot_of_cancel $ λ u v, (@cancel_mono _ _ _ _ _ f _ (as_hom u) (as_hom v)).1
+linear_map.ker_eq_bot_of_cancel $ λ u v, (@cancel_mono _ _ _ _ _ f _ ↟u ↟v).1
 
 lemma range_eq_top_of_epi [epi f] : f.range = ⊤ :=
-linear_map.range_eq_top_of_cancel $ λ u v, (@cancel_epi _ _ _ _ _ f _ (as_hom u) (as_hom v)).1
+linear_map.range_eq_top_of_cancel $ λ u v, (@cancel_epi _ _ _ _ _ f _ ↟u ↟v).1
 
 lemma mono_of_ker_eq_bot (hf : f.ker = ⊥) : mono f :=
 concrete_category.mono_of_injective _ $ linear_map.ker_eq_bot.1 hf
 
 lemma epi_of_range_eq_top (hf : f.range = ⊤) : epi f :=
 concrete_category.epi_of_surjective _ $ linear_map.range_eq_top.1 hf
+
+instance mono_as_hom'_subtype (U : submodule R M) : mono ↾U.subtype :=
+mono_of_ker_eq_bot _ (submodule.ker_subtype U)
+
+instance epi_as_hom''_mkq (U : submodule R M) : epi ↿U.mkq :=
+epi_of_range_eq_top _ $ submodule.range_mkq _
 
 end epi_mono
 

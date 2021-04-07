@@ -136,7 +136,7 @@ ext_iff.2 $ by simp
 instance : comm_ring ℂ :=
 by refine { zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1, mul := (*),
             sub_eq_add_neg := _, ..};
-   { intros, apply ext_iff.2; split; simp; ring }
+   { intros, apply ext_iff.2; split; simp; {ring1 <|> ring_nf} }
 
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
 { map_add := complex.add_re }

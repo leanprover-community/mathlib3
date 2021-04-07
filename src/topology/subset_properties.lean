@@ -734,6 +734,39 @@ by { convert compact_pi_infinite h, simp only [pi, forall_prop_of_true, mem_univ
 instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π i) :=
 ⟨by { rw [← pi_univ univ], exact compact_univ_pi (λ i, compact_univ) }⟩
 
+/-- Product of compact sets is compact -/
+lemma filter.Coprod_cocompact {δ : Type*} {κ : δ → Type*} [Π d, topological_space (κ d)] :
+  filter.Coprod (λ d, filter.cocompact (κ d)) = filter.cocompact (Π d, κ d) :=
+begin
+  ext S,
+  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, filter.mem_cocompact],
+  split,
+  { intros h,
+    rw filter.mem_Coprod_iff at h,
+    choose t ht1 ht2 using h,
+    choose t1 ht11 ht12 using λ d, filter.mem_cocompact.mp (ht1 d),
+    refine ⟨set.pi set.univ t1, _, _⟩,
+    { convert compact_pi_infinite ht11,
+      ext,
+      simp },
+    { refine subset.trans _ (set.Union_subset ht2),
+      intros x,
+      simp only [mem_Union, mem_univ_pi, exists_imp_distrib, mem_compl_eq, not_forall],
+      intros d h,
+      exact ⟨d, ht12 d h⟩ } },
+  { rintros ⟨t, h1, h2⟩,
+    rw filter.mem_Coprod_iff,
+    intros d,
+    refine ⟨((λ (k : Π (d : δ), κ d), k d) '' t)ᶜ, _, _⟩,
+    { rw filter.mem_cocompact,
+      refine ⟨(λ (k : Π (d : δ), κ d), k d) '' t, _, set.subset.refl _⟩,
+      exact is_compact.image h1 (continuous_pi_iff.mp (continuous_id) d) },
+    refine subset.trans _ h2,
+    intros x hx,
+    simp only [not_exists, mem_image, mem_preimage, mem_compl_eq] at hx,
+    simpa using mt (hx x) },
+end
+
 end tychonoff
 
 instance quot.compact_space {r : α → α → Prop} [compact_space α] :
@@ -1121,7 +1154,8 @@ and where there is no non-trivial pair of disjoint opens. -/
 class irreducible_space (α : Type u) [topological_space α] extends preirreducible_space α : Prop :=
 (to_nonempty [] : nonempty α)
 
-attribute [instance, priority 50] irreducible_space.to_nonempty -- see Note [lower instance priority]
+-- see Note [lower instance priority]
+attribute [instance, priority 50] irreducible_space.to_nonempty
 
 theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
   is_open s → is_open t → s.nonempty → t.nonempty → (s ∩ t).nonempty :=

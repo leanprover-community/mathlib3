@@ -317,8 +317,8 @@ lemma tendsto_locally_uniformly_on.tendsto_comp (h : tendsto_locally_uniformly_o
   tendsto (λ n, F n (g n)) p (𝓝 (f x)) :=
 tendsto_comp_of_locally_uniform_limit_within hf hg (λ u hu, h u hu x hx)
 
-/-- If `Fₙ` tends uniformly to `f` on a set `s`, and `gₙ` tends to `x` within `s`, then `Fₙ gₙ` tends
-to `f x` if `f` is continuous at `x` within `s`. -/
+/-- If `Fₙ` tends uniformly to `f` on a set `s`, and `gₙ` tends to `x` within `s`, then `Fₙ gₙ`
+tends to `f x` if `f` is continuous at `x` within `s`. -/
 lemma tendsto_uniformly_on.tendsto_comp (h : tendsto_uniformly_on F f p s)
   (hf : continuous_within_at f s x) (hg : tendsto g p (𝓝[s] x)) :
   tendsto (λ n, F n (g n)) p (𝓝 (f x)) :=

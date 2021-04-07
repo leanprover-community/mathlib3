@@ -445,7 +445,7 @@ lemma min'_insert (a : α) (s : finset α) (H : s.nonempty) :
 * for every `s : finset α` and an element `a` strictly greater than all elements of `s`, `p s`
   implies `p (insert a s)`. -/
 @[elab_as_eliminator]
-lemma induction_on_max {p : finset α → Prop} (s : finset α) (h0 : p ∅)
+lemma induction_on_max [decidable_eq α] {p : finset α → Prop} (s : finset α) (h0 : p ∅)
   (step : ∀ a s, (∀ x ∈ s, x < a) → p s → p (insert a s)) : p s :=
 begin
   induction hn : s.card with n ihn generalizing s,
@@ -465,12 +465,9 @@ end
 * for every `s : finset α` and an element `a` strictly less than all elements of `s`, `p s`
   implies `p (insert a s)`. -/
 @[elab_as_eliminator]
-lemma induction_on_min {p : finset α → Prop} (s : finset α) (h0 : p ∅)
+lemma induction_on_min [decidable_eq α] {p : finset α → Prop} (s : finset α) (h0 : p ∅)
   (step : ∀ a s, (∀ x ∈ s, a < x) → p s → p (insert a s)) : p s :=
-begin
-  refine @induction_on_max (order_dual α) _ _ s h0 (λ a s has hs, _),
-  convert step a s has hs
-end
+@induction_on_max (order_dual α) _ _ _ s h0 step
 
 end max_min
 
@@ -673,9 +670,16 @@ lemma supr_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
   (⨆ x ∈ s.image f, g x) = (⨆ y ∈ s, g (f y)) :=
 by rw [← supr_coe, coe_image, supr_image, supr_coe]
 
-lemma sup_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
-  s.sup (g ∘ f) = (s.image f).sup g :=
-by { simp_rw [sup_eq_supr, comp_app], rw supr_finset_image, }
+lemma sup_finset_image {β γ : Type*} [semilattice_sup_bot β]
+  (f : γ → α) (g : α → β) (s : finset γ) :
+  (s.image f).sup g = s.sup (g ∘ f) :=
+begin
+  classical,
+  apply finset.induction_on s,
+  { simp },
+  { intros a s' ha ih,
+    rw [sup_insert, image_insert, sup_insert, ih] }
+end
 
 lemma infi_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
   (⨅ x ∈ s.image f, g x) = (⨅ y ∈ s, g (f y)) :=

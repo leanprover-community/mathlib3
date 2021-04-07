@@ -246,10 +246,10 @@ not_lt.2 (hx.minimal_period_le hn0) hn
 lemma not_mem_periodic_pts_of_lt_minimal_period (hn : n < minimal_period f x) :
 ¬ (0 < n ∧ is_periodic_pt f n x) :=
 begin
-  rw minimal_period at hn,
-  split_ifs at hn with hfin,
-  { sorry },
-  { exact absurd hn n.zero_le.not_lt }
+  simp_rw [minimal_period] at hn,
+  refine not_and.mpr (λ n0, λ hm, not_le.mpr hn _),
+  rw dif_pos (mk_mem_periodic_pts n0 hm),
+  exact (nat.find_le_iff _ _).mpr ⟨n, rfl.le, n0, hm⟩,
 end
 
 lemma is_periodic_pt.minimal_period_dvd (hx : is_periodic_pt f n x) :

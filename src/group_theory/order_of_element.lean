@@ -172,11 +172,7 @@ end
 @[to_additive add_order_of_eq_zero]
 lemma order_of_eq_zero {a : α} (h : ¬ is_of_fin_order a) : order_of a = 0 :=
 begin
-  rw [order_of, minimal_period],
-  rw is_of_fin_order at h,
-  split_ifs with hper,
-  { exact absurd hper h },
-  { refl }
+rwa [order_of, minimal_period, dif_neg]
 end
 
 lemma add_order_of_le_of_nsmul_eq_zero' {m : ℕ} (h : m < add_order_of x) : ¬ (0 < m ∧ m •ℕ x = 0) :=

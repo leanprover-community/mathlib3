@@ -396,8 +396,8 @@ lemma integral_univ : ∫ x in univ, f x ∂μ = ∫ x, f x ∂μ := by rw [meas
 
 lemma integral_add_compl (hs : measurable_set s) (hfi : integrable f μ) :
   ∫ x in s, f x ∂μ + ∫ x in sᶜ, f x ∂μ = ∫ x, f x ∂μ :=
-by rw [← integral_union disjoint_compl_right hs hs.compl hfi.integrable_on hfi.integrable_on,
-  union_compl_self, integral_univ]
+by rw [← integral_union (@disjoint_compl_right (set α) _ _) hs hs.compl
+    hfi.integrable_on hfi.integrable_on, union_compl_self, integral_univ]
 
 /-- For a function `f` and a measurable set `s`, the integral of `indicator s f`
 over the whole space is equal to `∫ x in s, f x ∂μ` defined as `∫ x, f x ∂(μ.restrict s)`. -/
@@ -434,6 +434,12 @@ begin
   rw [measure.restrict_map hg hs, integral_map hg (hf.mono_measure _)],
   exact measure.map_mono g measure.restrict_le_self
 end
+
+lemma set_integral_map_of_closed_embedding [topological_space α] [borel_space α]
+  {β} [measurable_space β] [topological_space β] [borel_space β]
+  {g : α → β} {f : β → E} {s : set β} (hs : measurable_set s) (hg : closed_embedding g) :
+  ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
+by rw [measure.restrict_map hg.measurable hs, integral_map_of_closed_embedding hg]
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :

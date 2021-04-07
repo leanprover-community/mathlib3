@@ -1247,6 +1247,39 @@ end exists_mul_eq
 
 /-! ### Miscellanous lemmas -/
 
+theorem div_is_bounded_under_of_is_O {α : Type*} {l : filter α}
+  {f g : α → 𝕜} (h : is_O f g l) :
+  is_bounded_under (≤) l (λ x, ∥f x / g x∥) :=
+begin
+  obtain ⟨c, hc⟩ := is_O_iff.mp h,
+  refine ⟨max c 0, eventually_map.2 (filter.mem_sets_of_superset hc (λ x hx, _))⟩,
+  simp only [mem_set_of_eq, normed_field.norm_div] at ⊢ hx,
+  by_cases hgx : g x = 0,
+  { rw [hgx, norm_zero, div_zero, le_max_iff],
+    exact or.inr le_rfl },
+  { exact le_max_iff.2 (or.inl ((div_le_iff (norm_pos_iff.2 hgx)).2 hx)) }
+end
+
+theorem is_O_iff_div_is_bounded_under {α : Type*} {l : filter α}
+  {f g : α → 𝕜} (hgf : ∀ᶠ x in l, g x = 0 → f x = 0) :
+  is_O f g l ↔ is_bounded_under (≤) l (λ x, ∥f x / g x∥) :=
+begin
+  refine ⟨div_is_bounded_under_of_is_O, λ h, _⟩,
+  obtain ⟨c, hc⟩ := h,
+  rw filter.eventually_iff at hgf hc,
+  simp only [mem_set_of_eq, mem_map, normed_field.norm_div] at hc,
+  refine is_O_iff.2 ⟨c, filter.eventually_of_mem (inter_mem_sets hgf hc) (λ x hx, _)⟩,
+  by_cases hgx : g x = 0,
+  { simp [hx.1 hgx, hgx] },
+  { refine (div_le_iff (norm_pos_iff.2 hgx)).mp hx.2 },
+end
+
+theorem is_O_of_div_tendsto_nhds {α : Type*} {l : filter α}
+  {f g : α → 𝕜} (hgf : ∀ᶠ x in l, g x = 0 → f x = 0)
+  (c : 𝕜) (H : filter.tendsto (f / g) l (𝓝 c)) :
+  is_O f g l :=
+(is_O_iff_div_is_bounded_under hgf).2 $ is_bounded_under_of_tendsto H
+
 lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
   {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : is_o u v l) (hv : tendsto v l (𝓝 y)) :
   tendsto u l (𝓝 0) :=

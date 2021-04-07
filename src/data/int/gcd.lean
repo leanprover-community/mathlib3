@@ -101,6 +101,23 @@ by have := @xgcd_aux_P x y x y 1 0 0 1 (by simp [P]) (by simp [P]);
    rwa [xgcd_aux_val, xgcd_val] at this
 end
 
+lemma exists_mul_mod_eq_gcd {k n : ℕ} (hk : gcd n k < k) :
+  ∃ m, n * m % k = gcd n k :=
+begin
+  have hk' := int.coe_nat_ne_zero.mpr (ne_of_gt (lt_of_le_of_lt (zero_le (gcd n k)) hk)),
+  have key := congr_arg (λ m, int.nat_mod m k) (gcd_eq_gcd_ab n k),
+  simp_rw int.nat_mod at key,
+  rw [int.add_mul_mod_self_left, ←int.coe_nat_mod, int.to_nat_coe_nat, mod_eq_of_lt hk] at key,
+  refine ⟨(n.gcd_a k % k).to_nat, eq.trans (int.coe_nat_inj _) key.symm⟩,
+  rw [int.coe_nat_mod, int.coe_nat_mul, int.to_nat_of_nonneg (int.mod_nonneg _ hk'),
+      int.to_nat_of_nonneg (int.mod_nonneg _ hk'), int.mul_mod, int.mod_mod, ←int.mul_mod],
+end
+
+lemma exists_mul_mod_eq_one_of_coprime {k n : ℕ} (hkn : coprime n k) (hk : 1 < k) :
+  ∃ m, n * m % k = 1 :=
+Exists.cases_on (exists_mul_mod_eq_gcd (lt_of_le_of_lt (le_of_eq hkn) hk))
+  (λ m hm, ⟨m, hm.trans hkn⟩)
+
 end nat
 
 /-! ### Divisibility over ℤ -/
@@ -329,4 +346,12 @@ begin
   simp only [← units.coe_pow] at *,
   rw [← units.coe_one, ← gpow_coe_nat, ← units.ext_iff] at *,
   simp only [nat.gcd_eq_gcd_ab, gpow_add, gpow_mul, hm, hn, one_gpow, one_mul]
+end
+
+lemma gcd_nsmul_eq_zero {M : Type*} [add_monoid M] (x : M) {m n : ℕ} (hm : m •ℕ x = 0)
+  (hn : n •ℕ x = 0) : (m.gcd n) •ℕ x = 0 :=
+begin
+  apply multiplicative.of_add.injective,
+  rw [of_add_nsmul, of_add_zero, pow_gcd_eq_one];
+  rwa [←of_add_nsmul, ←of_add_zero, equiv.apply_eq_iff_eq]
 end

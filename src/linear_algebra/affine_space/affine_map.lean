@@ -158,7 +158,7 @@ def mk' (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p : P1) (h : ∀ p' : P1, f p' =
   P1 →ᵃ[k] P2 :=
 { to_fun := f,
   linear := f',
-  map_vadd' := λ p' v, by rw [h, h p', vadd_vsub_assoc, f'.map_add, vadd_assoc] }
+  map_vadd' := λ p' v, by rw [h, h p', vadd_vsub_assoc, f'.map_add, vadd_vadd] }
 
 @[simp] lemma coe_mk' (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p h) : ⇑(mk' f f' p h) = f := rfl
 
@@ -185,9 +185,9 @@ lemma add_linear (f g : P1 →ᵃ[k] V2) : (f + g).linear = f.linear + g.linear 
 from `P1` to the vector space `V2` corresponding to `P2`. -/
 instance : affine_space (P1 →ᵃ[k] V2) (P1 →ᵃ[k] P2) :=
 { vadd := λ f g, ⟨λ p, f p +ᵥ g p, f.linear + g.linear, λ p v,
-    by simp [vadd_assoc, add_right_comm]⟩,
-  zero_vadd' := λ f, ext $ λ p, zero_vadd _ (f p),
-  vadd_assoc' := λ f₁ f₂ f₃, ext $ λ p, vadd_assoc (f₁ p) (f₂ p) (f₃ p),
+    by simp [vadd_vadd, add_right_comm]⟩,
+  zero_vadd := λ f, ext $ λ p, zero_vadd _ (f p),
+  add_vadd := λ f₁ f₂ f₃, ext $ λ p, add_vadd (f₁ p) (f₂ p) (f₃ p),
   vsub := λ f g, ⟨λ p, f p -ᵥ g p, f.linear - g.linear, λ p v,
     by simp [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub, sub_add_eq_add_sub]⟩,
   vsub_vadd' := λ f g, ext $ λ p, vsub_vadd (f p) (g p),
@@ -483,7 +483,7 @@ by { ext p, simp [homothety_apply] }
 
 @[simp] lemma homothety_add (c : P1) (r₁ r₂ : k) :
   homothety c (r₁ + r₂) = r₁ • (id k P1 -ᵥ const k P1 c) +ᵥ homothety c r₂ :=
-by simp only [homothety_def, add_smul, vadd_assoc]
+by simp only [homothety_def, add_smul, vadd_vadd]
 
 /-- `homothety` as a multiplicative monoid homomorphism. -/
 def homothety_hom (c : P1) : k →* P1 →ᵃ[k] P1 :=

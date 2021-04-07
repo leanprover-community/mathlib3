@@ -1125,7 +1125,10 @@ variables [has_zero α]
 
 /-- `matrix.block_diagonal M` turns a homogenously-indexed collection of matrices
 `M : o → matrix m n α'` into a `m × o`-by-`n × o` block matrix which has the entries of `M` along
-the diagonal and zero elsewhere. -/
+the diagonal and zero elsewhere.
+
+See also `matrix.block_diagonal'` if the matrices may not have the same size everywhere.
+-/
 def block_diagonal : matrix (m × o) (n × o) α
 | ⟨i, k⟩ ⟨j, k'⟩ := if k = k' then M k i j else 0
 
@@ -1216,7 +1219,7 @@ section has_zero
 variables [has_zero α]
 
 /-- `matrix.block_diagonal' M` turns `M : Π i, matrix (m i) (n i) α` into a
-`Σ i, m i`-by-`Σ i, n i)` block matrix which has the entries of `M` along the diagonal
+`Σ i, m i`-by-`Σ i, n i` block matrix which has the entries of `M` along the diagonal
 and zero elsewhere.
 
 This is the dependently-typed version of `matrix.block_diagonal`. -/
@@ -1247,7 +1250,7 @@ lemma block_diagonal'_apply_ne {k k'} (i j) (h : k ≠ k') :
 dif_neg h
 
 @[simp] lemma block_diagonal'_transpose :
-  (block_diagonal' M)ᵀ = (block_diagonal' (λ k, (M k)ᵀ)) :=
+  (block_diagonal' M)ᵀ = block_diagonal' (λ k, (M k)ᵀ) :=
 begin
   ext ⟨ii, ix⟩ ⟨ji, jx⟩,
   simp only [transpose_apply, block_diagonal'_apply, eq_comm],
@@ -1264,7 +1267,7 @@ end
 by { ext, simp [block_diagonal'_apply] }
 
 @[simp] lemma block_diagonal'_diagonal [∀ i, decidable_eq (m' i)] (d : Π i, m' i → α) :
-  (block_diagonal' (λ k, diagonal (d k))) = diagonal (λ ik, d ik.1 ik.2) :=
+  block_diagonal' (λ k, diagonal (d k)) = diagonal (λ ik, d ik.1 ik.2) :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
   simp only [block_diagonal'_apply, diagonal],
@@ -1304,24 +1307,12 @@ by simp [sub_eq_add_neg]
 begin
   ext ⟨k, i⟩ ⟨k', j⟩,
   simp only [block_diagonal'_apply, mul_apply, ← finset.univ_sigma_univ, finset.sum_sigma],
-  dsimp,
-  split_ifs with h,
-  { subst h,
-    convert (fintype.sum_eq_single k (λ i hi, _)).symm,
-    { congr' 1,
-      ext x,
-      simp, },
-    simp [dif_neg hi, dif_neg hi.symm], },
-  { symmetry,
-    apply fintype.sum_eq_zero,
-    intro i,
-    apply fintype.sum_eq_zero,
-    intro x,
-    rcases decidable.em (k = i) with rfl | hki,
-    { simp [dif_neg h] },
-    rcases decidable.em (i = k') with rfl | hik',
-    { simp [dif_neg h] },
-    { simp [dif_neg hki, dif_neg hik'] } }
+  rw finset.sum_eq_single k,
+  { split_ifs; simp },
+  { intros j' _ hj', exact finset.sum_eq_zero (λ _ _, by rw [dif_neg hj'.symm, zero_mul]) },
+  { intros,
+    have := finset.mem_univ k,
+    contradiction }
 end
 
 @[simp] lemma block_diagonal'_smul {R : Type*} [semiring R] [add_comm_monoid α] [semimodule R α]

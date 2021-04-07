@@ -168,6 +168,8 @@ begin
     { simp only [not_lt, nonpos_iff_eq_zero] at hnpos,
       rw hnpos,
       apply order_of_eq_zero,
+      rw is_of_fin_order_iff_pow_eq_one,
+      push_neg,
       intros m hm,
       rw [r_one_pow, one_def],
       by_contradiction,

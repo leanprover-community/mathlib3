@@ -1148,6 +1148,18 @@ lemma cos_nonpos_of_pi_div_two_le_of_le {x : ℝ} (hx₁ : π / 2 ≤ x) (hx₂ 
   cos x ≤ 0 :=
 neg_nonneg.1 $ cos_pi_sub x ▸ cos_nonneg_of_mem_Icc ⟨by linarith, by linarith⟩
 
+lemma cos_nonneg_of_nonneg_of_le_of_le {x : ℝ} (hl : -(π / 2) ≤ x) (hu : x ≤ π / 2) :
+  0 ≤ cos x :=
+cos_nonneg_of_mem_Icc ⟨hl, hu⟩
+
+lemma sin_eq_sqrt_one_minus_cos_sq {x : ℝ} (hl : 0 ≤ x) (hu : x ≤ π) :
+  sin x = sqrt (1 - cos x ^ 2) :=
+by rw [← abs_sin_eq_sqrt_one_minus_cos_sq, abs_of_nonneg (sin_nonneg_of_nonneg_of_le_pi hl hu)]
+
+lemma cos_eq_sqrt_one_minus_sin_sq {x : ℝ} (hl : -(π / 2) ≤ x) (hu : x ≤ π / 2) :
+  cos x = sqrt (1 - sin x ^ 2) :=
+by rw [← abs_cos_eq_sqrt_one_minus_sin_sq, abs_of_nonneg (cos_nonneg_of_nonneg_of_le_of_le hl hu)]
+
 lemma sin_nat_mul_pi (n : ℕ) : sin (n * π) = 0 :=
 by induction n; simp [add_mul, sin_add, *]
 

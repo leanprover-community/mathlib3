@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Matt Kempster
 -/
 import geometry.euclidean.triangle
+import analysis.special_functions.trigonometric
 
 /-!
 # Freek № 57: Heron's Formula
@@ -25,14 +26,6 @@ notation `√` := real.sqrt
 
 variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
-
-/-- The sine of a real number `x` is the square root of one minus the cosine squared of `x`. -/
-lemma sin_eq_sqrt_one_minus_cos_sq (x : ℝ) (hl : 0 ≤ x) (hu : x ≤ π) :
-  real.sin x = √ (1 - (real.cos x)^2) :=
-begin
-  rw ← real.sqrt_sqr (real.sin_nonneg_of_nonneg_of_le_pi hl hu),
-  exact congr_arg real.sqrt (real.sin_square x),
-end
 
 lemma rearrange_cos_rule (a b c d : ℝ) (a_nonzero : a ≠ 0) (b_nonzero : b ≠ 0):
   c * c = a * a + b * b - 2 * a * b * d → d = (a * a + b * b - c * c) / (2 * a * b) :=

@@ -65,6 +65,14 @@ by rw [add_fpow_apply, zero_add]
 @[simp, to_additive] lemma mul_fpow_apply_one (a : α) {n : ℕ} : (* a)^[n] 1 = a ^ n :=
 by rw [mul_fpow_apply, one_mul]
 
+lemma is_periodic_pt_add_iff_nsmul_eq_zero (x : H) {n : ℕ} :
+  is_periodic_pt (+ x) n 0 ↔ n •ℕ x = 0 :=
+by rw [is_periodic_pt, is_fixed_pt, add_fpow_apply_zero]
+
+@[to_additive is_periodic_pt_add_iff_nsmul_eq_zero]
+lemma is_periodic_pt_mul_iff_pow_eq_one (a : α) {n : ℕ} : is_periodic_pt (* a) n 1 ↔ a ^ n = 1 :=
+by rw [is_periodic_pt, is_fixed_pt, mul_fpow_apply_one]
+
 /-- `is_of_fin_add_order` is a predicate on an element `x` of an additive monoid to be of finite
 order, i.e. there exists `n ≥ 1` such that `n •ℕ x = 0`.-/
 def is_of_fin_add_order (x : H) : Prop :=
@@ -146,20 +154,18 @@ attribute [to_additive add_order_of] order_of
 lemma order_of_pos' {a : α} (h : is_of_fin_order a) : 0 < order_of a :=
 minimal_period_pos_of_mem_periodic_pts h
 
+lemma add_order_of_nsmul_eq_zero (x : H) : (add_order_of x) •ℕ x = 0 :=
+begin
+  rw [← add_fpow_apply_zero, ← is_fixed_pt, ← is_periodic_pt],
+  exact is_periodic_pt_minimal_period _ _,
+end
+
+@[to_additive add_order_of_nsmul_eq_zero]
 lemma pow_order_of_eq_one (a : α): a ^ order_of a = 1 :=
 begin
   rw [← mul_fpow_apply_one, ← is_fixed_pt, ← is_periodic_pt],
   exact is_periodic_pt_minimal_period _ _,
 end
-
-lemma add_order_of_nsmul_eq_zero (x : H) : (add_order_of x) •ℕ x = 0 :=
-begin
-  apply multiplicative.of_add.injective,
-  rw of_add_nsmul,
-  exact pow_order_of_eq_one _,
-end
-
-attribute [to_additive add_order_of_nsmul_eq_zero] pow_order_of_eq_one
 
 lemma add_order_of_eq_zero {x : H} (h : ¬ is_of_fin_add_order x) : add_order_of x = 0 :=
 begin
@@ -192,9 +198,10 @@ le_of_not_lt (mt order_of_le_of_pow_eq_one' (by simp [hn, h]))
 
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin
-  apply le_antisymm,
-  { exact order_of_le_of_pow_eq_one (nat.one_pos) (pow_one 1) },
-  { exact nat.succ_le_of_lt ( order_of_pos' ⟨1, ⟨nat.one_pos, pow_one 1⟩⟩) }
+  rw order_of,
+  convert minimal_period_id,
+  simp_rw mul_one,
+  refl,
 end
 
 @[simp] lemma add_order_of_zero : add_order_of (0 : H) = 1 :=
@@ -222,29 +229,20 @@ end
 
 attribute [to_additive nsmul_eq_mod_add_order_of] pow_eq_mod_order_of
 
-lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
-begin
-  rcases n.zero_le.eq_or_lt with rfl|h₁,
-  { simp },
-  { apply nat.dvd_of_mod_eq_zero,
-    by_contradiction h₂,
-    have h₃ : ¬ (0 < n % order_of a ∧ a ^ (n % order_of a) = 1) := order_of_le_of_pow_eq_one'
-      ( nat.mod_lt _ ( order_of_pos' ⟨n, h₁, h⟩)),
-    push_neg at h₃,
-    specialize h₃ (nat.pos_of_ne_zero h₂),
-    rw ← pow_eq_mod_order_of at h₃,
-    exact h₃ h },
-end
-
 lemma add_order_of_dvd_of_nsmul_eq_zero {n : ℕ} (h : n •ℕ x = 0) : add_order_of x ∣ n :=
 begin
-  apply_fun multiplicative.of_add at h,
-  rw ← order_of_of_add_eq_add_order_of,
-  rw of_add_nsmul at h,
-  exact order_of_dvd_of_pow_eq_one h,
+  apply is_periodic_pt.minimal_period_dvd,
+  rw is_periodic_pt_add_iff_nsmul_eq_zero,
+  exact h,
 end
 
-attribute [to_additive add_order_of_dvd_of_nsmul_eq_zero] order_of_dvd_of_pow_eq_one
+@[to_additive add_order_of_dvd_of_nsmul_eq_zero]
+lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
+begin
+  apply is_periodic_pt.minimal_period_dvd,
+  rw is_periodic_pt_mul_iff_pow_eq_one,
+  exact h,
+end
 
 lemma add_order_of_dvd_iff_nsmul_eq_zero {n : ℕ} : add_order_of x ∣ n ↔ n •ℕ x = 0 :=
 ⟨λ h, by rw [nsmul_eq_mod_add_order_of, nat.mod_eq_zero_of_dvd h, zero_nsmul],

@@ -229,6 +229,13 @@ begin
   exact nat.find_min' (mk_mem_periodic_pts hn hx) ⟨hn, hx⟩
 end
 
+lemma minimal_period_id : minimal_period id x = 1 :=
+begin
+  apply le_antisymm,
+  { exact is_periodic_pt.minimal_period_le (nat.one_pos) (is_periodic_id _ _ ) },
+  { exact nat.succ_le_of_lt (is_periodic_pt.minimal_period_pos (nat.one_pos) (is_periodic_id _ _)) }
+end
+
 lemma is_periodic_pt.eq_zero_of_lt_minimal_period (hx : is_periodic_pt f n x)
   (hn : n < minimal_period f x) :
   n = 0 :=

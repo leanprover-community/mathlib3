@@ -282,7 +282,8 @@ lemma eq_of_locally_eq' (V : opens X) (iUV : Π i : ι, U i ⟶ V)
   (∀ i, F.presheaf.map (iUV i).op s = F.presheaf.map (iUV i).op t) → s = t := λ h_eq,
 begin
   have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, le_of_hom (iUV i))),
-  suffices : F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op s = F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op t,
+  suffices : F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op s =
+             F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op t,
   { convert congr_arg (F.presheaf.map (eq_to_hom V_eq_supr_U).op) this ;
     rw ← functor_to_types.map_comp_apply ;
     exact (functor_to_types.map_id_apply _ _).symm },

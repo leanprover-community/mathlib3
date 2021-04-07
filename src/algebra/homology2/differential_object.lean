@@ -1,0 +1,101 @@
+/-
+Copyright (c) 2021 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
+import algebra.homology2.homological_complex
+import category_theory.differential_object
+import category_theory.graded_object
+
+/-!
+# Homological complexes are differential graded objects.
+
+We verify that `homological_complex` indexed by an `add_comm_group` is
+essentially the same thing as a differential graded object.
+-/
+
+open category_theory
+open category_theory.limits
+
+variables {β : Type*} [add_comm_group β] [decidable_eq β] (b : β)
+variables (V : Type*) [category V] [has_zero_morphisms V]
+
+/--
+The functor from differential graded objects to homological complexes.
+-/
+@[simps]
+def dgo_to_homological_complex :
+  differential_object (graded_object_with_shift b V) ⥤
+    homological_complex V (complex_shape.up' b) :=
+{ obj := λ X,
+  { X := λ i, X.X i,
+    d := λ i j, if h : i + b = j then X.d i ≫ eq_to_hom (congr_arg X.X h) else 0,
+    shape' := λ i j w, by { dsimp at w, rw dif_neg w, },
+    d_comp_d' := λ i j k, begin
+      split_ifs with h h',
+      { substs h h',
+        simp only [category.comp_id, eq_to_hom_refl],
+        exact congr_fun (X.d_squared) i, },
+      all_goals { simp, },
+    end },
+  map := λ X Y f,
+  { f := f.f,
+    comm' := λ i j, begin
+      dsimp,
+      split_ifs with h,
+      { subst h,
+        simp only [category.comp_id, eq_to_hom_refl],
+        exact (congr_fun f.comm i).symm, },
+      { simp, },
+    end, } }
+
+@[simps]
+def homological_complex_to_dgo :
+  homological_complex V (complex_shape.up' b) ⥤
+    differential_object (graded_object_with_shift b V) :=
+{ obj := λ X,
+  { X := λ i, X.X i,
+    d := λ i, X.d i (i + b),
+    d_squared' := by { ext i, dsimp, simp, } },
+  map := λ X Y f,
+  { f := f.f,
+    comm' := by { ext i, dsimp, simp, }, } }
+
+@[simps]
+def dgo_equiv_homological_complex_unit_iso :
+  𝟭 (differential_object (graded_object_with_shift b V)) ≅
+    dgo_to_homological_complex b V ⋙ homological_complex_to_dgo b V :=
+nat_iso.of_components (λ X,
+  { hom := { f := λ i, 𝟙 (X.X i), },
+    inv := { f := λ i, 𝟙 (X.X i), }, }) (by tidy)
+
+@[simps]
+def dgo_equiv_homological_complex_counit_iso :
+  homological_complex_to_dgo b V ⋙ dgo_to_homological_complex b V ≅
+    𝟭 (homological_complex V (complex_shape.up' b)) :=
+nat_iso.of_components (λ X,
+  { hom :=
+    { f := λ i, 𝟙 (X.X i),
+      comm' := λ i j, begin
+        dsimp, simp only [category.comp_id, category.id_comp],
+        split_ifs,
+        { subst h, simp, },
+        { exact X.shape _ _ h, }
+      end },
+    inv :=
+    { f := λ i, 𝟙 (X.X i),
+      comm' := λ i j, begin
+        dsimp, simp only [category.comp_id, category.id_comp],
+        split_ifs,
+        { subst h, simp, },
+        { exact (X.shape _ _ h).symm, }
+      end }, }) (by tidy)
+
+@[simps]
+def dgo_equiv_homological_complex :
+  differential_object (graded_object_with_shift b V) ≌
+    homological_complex V (complex_shape.up' b) :=
+{ functor := dgo_to_homological_complex b V,
+  inverse := homological_complex_to_dgo b V,
+  unit_iso := dgo_equiv_homological_complex_unit_iso b V,
+  counit_iso := dgo_equiv_homological_complex_counit_iso b V, }

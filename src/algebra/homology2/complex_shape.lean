@@ -11,6 +11,7 @@ import algebra.group.defs
 open_locale classical
 noncomputable theory
 
+/-- An arbitrary `some a` with `a : α` if `α` is nonempty, and otherwise `none`. -/
 def option.choice (α : Type*) : option α :=
 if h : nonempty α then
   some h.some
@@ -24,6 +25,12 @@ begin
   rw dif_pos w,
   simp only [option.map_some', subtype.val_eq_coe],
   apply subsingleton.elim,
+end
+
+lemma option.choice_eq_none {α : Type*} (h : α → false) : option.choice α = none :=
+begin
+  dsimp [option.choice],
+  rw dif_neg (not_nonempty_iff_imp_false.mpr h),
 end
 
 /--

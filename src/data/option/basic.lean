@@ -384,4 +384,29 @@ def cases_on' : option α → β → (α → β) → β
   cases_on' o (f none) (f ∘ coe) = f o :=
 by cases o; refl
 
+section
+open_locale classical
+
+/-- An arbitrary `some a` with `a : α` if `α` is nonempty, and otherwise `none`. -/
+noncomputable def option.choice (α : Type*) : option α :=
+if h : nonempty α then
+  some h.some
+else
+  none
+
+lemma option.choice_eq {α : Type*} [subsingleton α] (a : α) : option.choice α = some a :=
+begin
+  dsimp [option.choice],
+  rw dif_pos (⟨a⟩ : nonempty α),
+  congr,
+end
+
+lemma option.choice_eq_none {α : Type*} (h : α → false) : option.choice α = none :=
+begin
+  dsimp [option.choice],
+  rw dif_neg (not_nonempty_iff_imp_false.mpr h),
+end
+
+end
+
 end option

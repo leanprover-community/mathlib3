@@ -39,6 +39,82 @@ universe u
 
 variables {α : Type u} {s : set α} {a a₁ a₂ b c: α}
 
+section is_of_fin_order
+
+variables {α} [monoid α]
+variables {H : Type u} [add_monoid H]
+
+-- Move the following four lemmas somewhere else?
+@[simp] lemma add_fpow_apply (x y : H) {n : ℕ} : (+ x)^[n] y = y + n •ℕ x :=
+begin
+  induction n with d hd,
+  { rw [zero_nsmul, iterate_zero, add_zero, id] },
+  { rw [iterate_succ', succ_nsmul', ← add_assoc, ← hd] }
+end
+
+@[simp, to_additive] lemma mul_fpow_apply (a b : α) {n : ℕ} : (* a)^[n] b = b * a ^ n :=
+begin
+  induction n with d hd,
+  { rw [pow_zero, mul_one, iterate_zero, id] },
+  { rw [iterate_succ', pow_succ', ← mul_assoc, ← hd] }
+end
+
+@[simp] lemma add_fpow_apply_zero (x : H) {n : ℕ} : (+ x)^[n] 0 = n •ℕ x :=
+by rw [add_fpow_apply, zero_add]
+
+@[simp, to_additive] lemma mul_fpow_apply_one (a : α) {n : ℕ} : (* a)^[n] 1 = a ^ n :=
+by rw [mul_fpow_apply, one_mul]
+
+/-- `is_of_fin_add_order` is a predicate on an element `x` of an additive monoid to be of finite
+order, i.e. there exists `n ≥ 1` such that `n •ℕ x = 0`.-/
+def is_of_fin_add_order (x : H) : Prop :=
+(0 : H) ∈ periodic_pts (+ x)
+
+/-- `is_of_fin_order` is a predicate on an element `a` of a monoid to be of finite order, i.e. there
+exists `n ≥ 1` such that `a ^ n = 1`.-/
+@[to_additive is_of_fin_add_order]
+def is_of_fin_order (a : α) : Prop :=
+(1 : α) ∈ periodic_pts (* a)
+
+lemma foo {a : α} :
+is_of_fin_add_order (additive.of_mul a) ↔ is_of_fin_order a :=
+by refl
+
+lemma foo' {x : H} :
+is_of_fin_order (multiplicative.of_add x) ↔ is_of_fin_add_order x :=
+by refl
+
+lemma is_of_fin_add_order_iff_nsmul_eq_zero (x : H) :
+  is_of_fin_add_order x ↔ ∃ n, 0 < n ∧ n •ℕ x = 0 :=
+begin
+  split,
+  { intro h,
+    rcases h with ⟨n, hnpos, hper⟩,
+    refine ⟨n, hnpos, _⟩,
+    rwa [is_periodic_pt, is_fixed_pt, add_fpow_apply_zero] at hper },
+  { intro h,
+    rcases h with ⟨n, hnpos, hpow⟩,
+    refine ⟨n, hnpos, _⟩,
+    rwa [is_periodic_pt, is_fixed_pt, add_fpow_apply_zero] },
+end
+
+@[to_additive is_of_fin_add_order_iff_nsmul_eq_zero]
+lemma is_of_fin_order_iff_pow_eq_one (a : α) :
+  is_of_fin_order a ↔ ∃ n, 0 < n ∧ a ^ n = 1 :=
+begin
+  split,
+  { intro h,
+    rcases h with ⟨n, hnpos, hper⟩,
+    refine ⟨n, hnpos, _⟩,
+    rwa [is_periodic_pt, is_fixed_pt, mul_fpow_apply_one] at hper },
+  { intro h,
+    rcases h with ⟨n, hnpos, hpow⟩,
+    refine ⟨n, hnpos, _⟩,
+    rwa [is_periodic_pt, is_fixed_pt, mul_fpow_apply_one] },
+end
+
+end is_of_fin_order
+
 section order_of
 
 section monoid
@@ -66,68 +142,9 @@ attribute [to_additive add_order_of] order_of
 @[simp] lemma order_of_of_add_eq_add_order_of (x : H) :
   order_of (multiplicative.of_add x) = add_order_of x := rfl
 
--- Move the following four lemmas somewhere else?
-@[simp] lemma add_fpow_apply (x y : H) {n : ℕ} : (+ x)^[n] y = y + n •ℕ x :=
-begin
-  induction n with d hd,
-  { rw [zero_nsmul, iterate_zero, add_zero, id] },
-  { rw [iterate_succ', succ_nsmul', ← add_assoc, ← hd] }
-end
-
-@[simp, to_additive] lemma mul_fpow_apply (a b : α) {n : ℕ} : (* a)^[n] b = b * a ^ n :=
-begin
-  induction n with d hd,
-  { rw [pow_zero, mul_one, iterate_zero, id] },
-  { rw [iterate_succ', pow_succ', ← mul_assoc, ← hd] }
-end
-
-@[simp] lemma add_fpow_apply_zero (x : H) {n : ℕ} : (+ x)^[n] 0 = n •ℕ x :=
-by rw [add_fpow_apply, zero_add]
-
-@[simp, to_additive] lemma mul_fpow_apply_one (a : α) {n : ℕ} : (* a)^[n] 1 = a ^ n :=
-by rw [mul_fpow_apply, one_mul]
-
-lemma in_periodic_pts_add_iff_nsmul_eq_zero (x : H) :
-  (0 : H) ∈ periodic_pts (+ x) ↔ ∃ n, 0 < n ∧ n •ℕ x = 0 :=
-begin
-  split,
-  { intro h,
-    rcases h with ⟨n, hnpos, hper⟩,
-    refine ⟨n, hnpos, _⟩,
-    rwa [is_periodic_pt, is_fixed_pt, add_fpow_apply_zero] at hper },
-  { intro h,
-    rcases h with ⟨n, hnpos, hpow⟩,
-    refine ⟨n, hnpos, _⟩,
-    rwa [is_periodic_pt, is_fixed_pt, add_fpow_apply_zero] },
-end
-
-@[to_additive in_periodic_pts_add_iff_nsmul_eq_zero]
-lemma in_periodic_pts_mul_iff_pow_eq_one (a : α) :
-  (1 : α) ∈ periodic_pts (* a) ↔ ∃ n, 0 < n ∧ a ^ n = 1 :=
-begin
-  split,
-  { intro h,
-    rcases h with ⟨n, hnpos, hper⟩,
-    refine ⟨n, hnpos, _⟩,
-    rwa [is_periodic_pt, is_fixed_pt, mul_fpow_apply_one] at hper },
-  { intro h,
-    rcases h with ⟨n, hnpos, hpow⟩,
-    refine ⟨n, hnpos, _⟩,
-    rwa [is_periodic_pt, is_fixed_pt, mul_fpow_apply_one] },
-end
-
-lemma add_order_of_pos' {x : H} (h : ∃ n, 0 < n ∧ n •ℕ x = 0) : 0 < add_order_of x :=
-begin
-  refine minimal_period_pos_of_mem_periodic_pts _,
-  rwa in_periodic_pts_add_iff_nsmul_eq_zero
-end
-
 @[to_additive add_order_of_pos']
-lemma order_of_pos' {a : α} (h : ∃ n, 0 < n ∧ a ^ n = 1) : 0 < order_of a :=
-begin
-  refine minimal_period_pos_of_mem_periodic_pts _,
-  rwa in_periodic_pts_mul_iff_pow_eq_one,
-end
+lemma order_of_pos' {a : α} (h : is_of_fin_order a) : 0 < order_of a :=
+minimal_period_pos_of_mem_periodic_pts h
 
 lemma pow_order_of_eq_one (a : α): a ^ order_of a = 1 :=
 begin
@@ -144,27 +161,15 @@ end
 
 attribute [to_additive add_order_of_nsmul_eq_zero] pow_order_of_eq_one
 
-lemma add_order_of_eq_zero {x : H} (h : ∀n, 0 < n → n •ℕ x ≠ 0) : add_order_of x = 0 :=
+lemma add_order_of_eq_zero {x : H} (h : ¬ is_of_fin_add_order x) : add_order_of x = 0 :=
 begin
-  rw [add_order_of, minimal_period],
-  split_ifs with hx,
-  { exfalso,
-    rw in_periodic_pts_add_iff_nsmul_eq_zero at hx,
-    rcases hx with ⟨n, hn1, hn2⟩,
-    exact (h n) hn1 hn2 },
-  { refl }
+  sorry
 end
 
 @[to_additive add_order_of_eq_zero]
-lemma order_of_eq_zero {a : α} (h : ∀n, 0 < n → a ^ n ≠ 1) : order_of a = 0 :=
+lemma order_of_eq_zero {a : α} (h : ¬ is_of_fin_order a) : order_of a = 0 :=
 begin
-  rw [order_of, minimal_period],
-  split_ifs with hx,
-  { exfalso,
-    rw in_periodic_pts_mul_iff_pow_eq_one at hx,
-    rcases hx with ⟨n, hn1, hn2⟩,
-    exact (h n) hn1 hn2 },
-  { refl }
+  sorry
 end
 
 lemma add_order_of_le_of_nsmul_eq_zero' {m : ℕ} (h : m < add_order_of x) : ¬ (0 < m ∧ m •ℕ x = 0) :=
@@ -348,7 +353,7 @@ attribute [to_additive add_order_of_nsmul'] order_of_pow'
 
 variable (n)
 
-lemma order_of_pow'' (h : ∃ n, 0 < n ∧ a ^ n = 1) :
+lemma order_of_pow'' (h : is_of_fin_order a) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
   apply dvd_antisymm,
@@ -364,7 +369,7 @@ begin
     rw [pow_mul, pow_order_of_eq_one] }
 end
 
-lemma add_order_of_nsmul'' (h : ∃n, 0 < n ∧ n •ℕ x = 0) :
+lemma add_order_of_nsmul'' (h : is_of_fin_add_order x) :
   add_order_of (n •ℕ x) = add_order_of x / gcd (add_order_of x) n :=
 begin
   repeat { rw ← order_of_of_add_eq_add_order_of },
@@ -476,13 +481,14 @@ end))
 end finite_monoid
 
 section finite_cancel_monoid
-/-- TODO: Of course everything also works for right_cancel_monoids. -/
+-- TODO: Of course everything also works for right_cancel_monoids.
 variables {α} [fintype α] [left_cancel_monoid α]
 variables {H : Type u} [fintype H] [add_left_cancel_monoid H]
 
-/-- TODO: Use this to show that a finite left cancellative monoid is a group.-/
-lemma exists_pow_eq_one (a : α) : ∃i, 0 < i ∧ a ^ i = 1 :=
+-- TODO: Use this to show that a finite left cancellative monoid is a group.
+lemma exists_pow_eq_one (a : α) : is_of_fin_order a :=
 begin
+  rw is_of_fin_order_iff_pow_eq_one,
   have h : ¬ injective (λi:ℕ, a^i) := not_injective_infinite_fintype _,
   have h' : ∃(i j : ℕ), a ^ i = a ^ j ∧ i ≠ j,
   { rw injective at h,

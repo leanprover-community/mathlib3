@@ -293,7 +293,6 @@ section is_three_cycle
 variables [decidable_eq α] {σ : perm α}
 
 /-- A three-cycle is a cycle of length 3. -/
-/-- A three-cycle is a cycle of length 3. -/
 def is_three_cycle (σ : perm α) : Prop := σ.cycle_type = {3}
 
 lemma is_three_cycle.cycle_type (h : is_three_cycle σ) : σ.cycle_type = {3} := h
@@ -333,59 +332,6 @@ lemma is_three_cycle_swap_mul_swap_same {a b c : α} (ab : a ≠ b) (ac : a ≠ 
 begin
   suffices h : support (swap a b * swap a c) = {a, b, c},
   { rw [←card_support_eq_three_iff, h],
-    simp [ab, ac, bc] },
-  apply le_antisymm ((support_mul_le _ _).trans (λ x, _)) (λ x hx, _),
-  { simp [ab, ac, bc] },
-  { simp only [finset.mem_insert, finset.mem_singleton] at hx,
-    rw mem_support,
-    simp only [perm.coe_mul, function.comp_app, ne.def],
-    obtain rfl | rfl | rfl := hx,
-    { rw [swap_apply_left, swap_apply_of_ne_of_ne ac.symm bc.symm],
-      exact ac.symm },
-    { rw [swap_apply_of_ne_of_ne ab.symm bc, swap_apply_right],
-      exact ab },
-    { rw [swap_apply_right, swap_apply_left],
-      exact bc } }
-end
-
-lemma is_three_cycle.card_support (h : is_three_cycle σ) : σ.support.card = 3 := h
-
-lemma is_three_cycle.is_cycle (h : is_three_cycle σ) : is_cycle σ :=
-begin
-  rw [is_three_cycle, ← sum_cycle_type] at h,
-  rw ← card_cycle_type_eq_one,
-  have hle : _ ≤ σ.cycle_type.sum := card_nsmul_le_sum (λ x, two_le_of_mem_cycle_type),
-  rw [nat.nsmul_eq_mul, mul_comm] at hle,
-  contrapose! h,
-  cases lt_or_gt_of_ne h with hlt hgt,
-  { rw [nat.lt_succ_iff, nat.le_zero_iff, card_eq_zero] at hlt,
-    simp [hlt] },
-  { apply ne_of_gt,
-    rw [gt_iff_lt, ← nat.succ_le_iff] at hgt,
-    rw ← nat.succ_le_iff,
-    exact le_trans (mul_le_mul (le_refl 2) hgt dec_trivial dec_trivial) hle }
-end
-
-lemma is_three_cycle.cycle_type (h : is_three_cycle σ) : σ.cycle_type = [(3 : ℕ)] :=
-by rw [h.is_cycle.cycle_type, h.card_support]
-
-lemma is_three_cycle.sign {f : perm α} (h : is_three_cycle f) : sign f = 1 :=
-begin
-  rw [h.is_cycle.sign, h.card_support],
-  dec_trivial
-end
-
-lemma is_three_cycle.inv {f : perm α} (h : is_three_cycle f) : is_three_cycle (f⁻¹) :=
-begin
-  rw is_three_cycle at *,
-  rw [support_inv, h],
-end
-
-lemma is_three_cycle_swap_mul_swap_same {a b c : α} (ab : a ≠ b) (ac : a ≠ c) (bc : b ≠ c) :
-  is_three_cycle (swap a b * swap a c) :=
-begin
-  suffices h : support (swap a b * swap a c) = {a, b, c},
-  { rw [is_three_cycle, h],
     simp [ab, ac, bc] },
   apply le_antisymm ((support_mul_le _ _).trans (λ x, _)) (λ x hx, _),
   { simp [ab, ac, bc] },

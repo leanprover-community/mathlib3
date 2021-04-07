@@ -98,13 +98,15 @@ meta def projections_info (l : list (name × expr × list ℕ × bool)) (pref : 
   let to_print := string.join $ to_print.intersperse "\n        > ",
   return format!"[simps] > {pref} {str}:\n        > {to_print}"
 
-
+/-- Auxilliary function of `get_composite_of_projections`. -/
 meta def get_composite_of_projections_aux : Π (str : name) (proj : string) (x : expr)
   (pos : list ℕ) (args : list expr), tactic (expr × list ℕ) | str proj x pos args := do
   e ← get_env,
   projs ← e.structure_fields str,
   let proj_info := projs.map_with_index $ λ n p, (λ x, (x, n, p)) <$> proj.get_rest ("_" ++ p.last),
-  (proj_rest, index, proj_nm) ← return (proj_info.filter_map id).head,
+  when (proj_info.filter_map id = []) $
+    fail!"Failed to find constructor {proj.popn 1} in structure {str}.",
+  (proj_rest, index, proj_nm) ← return (proj_info.filter_map id).ilast,
   str_d ← e.get str,
   let proj_e : expr := const (str ++ proj_nm) str_d.univ_levels,
   proj_d ← e.get (str ++ proj_nm),
@@ -114,10 +116,14 @@ meta def get_composite_of_projections_aux : Π (str : name) (proj : string) (x :
   let new_x := (proj_e.instantiate_univ_params univs).mk_app $ params ++ [x],
   let new_pos := pos ++ [index],
   if proj_rest.is_empty then return (new_x.lambdas args, new_pos) else do
+    type ← infer_type new_x,
     (type_args, tgt) ← open_pis_whnf type,
     let new_str := tgt.get_app_fn.const_name,
     get_composite_of_projections_aux new_str proj_rest new_x new_pos (args ++ type_args)
 
+/-- Given a structure `str` and a projection `proj`, that could be multiple nested projections
+  (separated by `_`), returns an expression that is the composition of these projections and a
+  list of natural numbers, that are the projection numbers of the applied projections. -/
 meta def get_composite_of_projections (str : name) (proj : string) : tactic (expr × list ℕ) := do
   e ← get_env,
   str_d ← e.get str,
@@ -127,7 +133,6 @@ meta def get_composite_of_projections (str : name) (proj : string) : tactic (exp
   let str_ap := str_e.mk_app type_args,
   x ← mk_local' `x binder_info.default str_ap,
   get_composite_of_projections_aux str ("_" ++ proj) x [] $ type_args ++ [x]
-
 
 /--
   Get the projections used by `simps` associated to a given structure `str`.
@@ -188,27 +193,30 @@ meta def simps_get_raw_projections (e : environment) (str : name) (trace_if_exis
       "Already found projection information for structure" str >>= trace,
     return data
   else do
-    when trc trace!
-      "[simps] > generating projection information for structure {str}.",
+    when trc trace!"[simps] > generating projection information for structure {str}.",
+    when_tracing `simps.debug trace!"[simps] > Applying the rules {rules}.",
     d_str ← e.get str,
     let raw_univs := d_str.univ_params,
     let raw_levels := level.param <$> raw_univs,
     /- Figure out projections, including renamings. The information for a projection is (before we
     figure out the `expr` of the projection:
-    `(original name, given name, is default)`. -/
+    `(original name, given name, is default)`.
+    The first projections are always the actual projections of the structure, but `rules` could
+    specify custom projections that are compositions of multiple projections. -/
     projs ← e.structure_fields str,
     let projs := projs.map_with_index (λ n nm, (nm, nm, tt)),
-    let projs : list (name × name × bool) := rules.foldr (λ rule projs,
+    let projs : list (name × name × bool) := rules.foldl (λ projs rule,
       match rule with
-      | (inl (old_nm, new_nm)) := if old_nm ∈ projs.map prod.fst then
+      | (inl (old_nm, new_nm)) := if old_nm ∈ projs.map (λ x, x.2.1) then
          projs.map $ λ proj,
-          if proj.2.1 = old_nm then (proj.1, new_nm, ff) else proj else
+          if proj.2.1 = old_nm then (proj.1, new_nm, proj.2.2) else proj else
         projs ++ [(old_nm, new_nm, tt)]
-      | (inr nm) := if nm ∈ projs.map prod.fst then
+      | (inr nm) := if nm ∈ projs.map (λ x, x.2.1) then
         projs.map $ λ proj,
           if proj.2.1 = nm then (proj.1, proj.2.1, ff) else proj else
         projs ++ [(nm, nm, ff)]
       end) projs,
+    when_tracing `simps.debug trace!"[simps] > Projection info after applying the rules: {projs}.",
     /- Define the raw expressions for the projections, by default as the projections
     (as an expression), but this can be overriden by the user. -/
     raw_exprs_and_nrs ← projs.mmap $ λ ⟨orig_nm, new_nm, _⟩, do {
@@ -229,7 +237,7 @@ meta def simps_get_raw_projections (e : environment) (str : name) (trace_if_exis
           if b then fail!"Invalid custom projection:\n  {custom_proj}
 Expression is not definitionally equal to {raw_expr}."
           else fail!"Invalid custom projection:\n  {custom_proj}
-Expression has different type than {raw_expr}. Given type:\n  {custom_proj_type}
+Expression has different type than {str ++ orig_nm}. Given type:\n  {custom_proj_type}
 Expected type:\n  {raw_expr_type}" },
       return (custom_proj, nrs) },
     let raw_exprs := raw_exprs_and_nrs.map prod.fst,
@@ -244,7 +252,7 @@ Expected type:\n  {raw_expr_type}" },
         and `lambda_raw_expr` has the arguments `args` abstracted. -/
       (raw_expr, lambda_raw_expr) ← if is_class then (do
         guard $ args.length = 1,
-        let e_inst_type := (expr.const class_nm raw_levels).mk_app args,
+        let e_inst_type := (const class_nm raw_levels).mk_app args,
         (hyp, e_inst) ← try_for 1000 (mk_conditional_instance e_str e_inst_type),
         raw_expr ← mk_mapp proj_nm [args.head, e_inst],
         clear hyp,
@@ -252,7 +260,7 @@ Expected type:\n  {raw_expr_type}" },
         raw_expr_lambda ← lambdas [hyp] raw_expr,
         return (raw_expr, raw_expr_lambda.lambdas args))
       else (do
-        e_inst_type ← to_expr ((expr.const class_nm []).app (pexpr.of_expr e_str)),
+        e_inst_type ← to_expr ((const class_nm []).app (pexpr.of_expr e_str)),
         e_inst ← try_for 1000 (mk_instance e_inst_type),
         raw_expr ← mk_mapp proj_nm [e_str, e_inst],
         return (raw_expr, raw_expr.lambdas args)),
@@ -260,17 +268,12 @@ Expected type:\n  {raw_expr_type}" },
       let relevant_proj := raw_expr_whnf.binding_body.get_app_fn.const_name,
       /- Use this as projection, if the function reduces to a projection, and this projection has
         not been overrriden by the user. -/
-      guard (projs.any (λ x, x.1 = relevant_proj ∧ ¬ e.contains (str ++ `simps ++ x.2.1.last))),
-      let pos := projs.find_index (λ x, x.1 = relevant_proj),
+      guard (projs.any (λ x, x.1 = relevant_proj.last ∧ ¬ e.contains (str ++ `simps ++ x.2.1.last))),
+      let pos := projs.find_index (λ x, x.1 = relevant_proj.last),
       when trc trace!
         "        > using {proj_nm} instead of the default projection {relevant_proj.last}.",
+      when_tracing `simps.debug trace!"[simps] > The raw projection is:\n  {lambda_raw_expr}",
       return $ raw_exprs.update_nth pos lambda_raw_expr } <|> return raw_exprs) raw_exprs,
-    -- proj_names ← e.structure_fields str,
-    -- -- if we find the name in name_changes, change the name
-    -- let name_changes : list (name × name) := rules.filter_map get_left,
-    -- let nondefaults : list name := rules.filter_map get_right,
-    -- let proj_names : list name :=
-    --   proj_names.map $ λ nm, (name_changes.find $ λ p : _ × _, p.1 = nm).elim nm prod.snd,
     let positions := raw_exprs_and_nrs.map prod.snd,
     let defaults := projs.map (λ x, x.2.2),
     let proj_names := projs.map (λ x, x.2.1),
@@ -371,22 +374,25 @@ library_note "custom simps projection"
 
 /--
   Get the projections of a structure used by `@[simps]` applied to the appropriate arguments.
-  Returns a list of triples
-  (projection expression, given projection name, corresponding right-hand-side),
+  Returns a list of quintuples
+  ```
+  (projection expression, given projection name, corresponding right-hand-side, projection numbers,
+    used by default)
+  ```
   one for each projection. The given projection name is the name for the projection used by the user
   used to generate (and parse) projection names. For example, in the structure
 
   Example 1: ``simps_get_projection_exprs env `(α × β) `(⟨x, y⟩)`` will give the output
   ```
-    [(`(@prod.fst.{u v} α β), `fst, `(x)),
-     (`(@prod.snd.{u v} α β), `snd, `(y))]
+    [(`(@prod.fst.{u v} α β), `fst, `(x), [0], tt),
+     (`(@prod.snd.{u v} α β), `snd, `(y), [1], tt)]
   ```
 
   Example 2: ``simps_get_projection_exprs env `(α ≃ α) `(⟨id, id, λ _, rfl, λ _, rfl⟩)``
   will give the output
   ```
-    [(`(@equiv.to_fun.{u u} α α), `apply, `(id)),
-     (`(@equiv.inv_fun.{u u} α α), `symm_apply, `(id)),
+    [(`(@equiv.to_fun.{u u} α α), `apply, `(id), [0], tt),
+     (`(@equiv.inv_fun.{u u} α α), `symm_apply, `(id), [1], tt),
      ...,
      ...]
   ```
@@ -396,21 +402,21 @@ library_note "custom simps projection"
 -- This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the the given arguments
 -- might not uniquely specify the universe levels yet.
 meta def simps_get_projection_exprs (e : environment) (tgt : expr)
-  (rhs : expr) (cfg : simps_cfg) : tactic $ list $ expr × name × expr := do
+  (rhs : expr) (cfg : simps_cfg) : tactic $ list $ expr × name × expr × list ℕ × bool := do
   let params := get_app_args tgt, -- the parameters of the structure
   (params.zip $ (get_app_args rhs).take params.length).mmap' (λ ⟨a, b⟩, is_def_eq a b)
     <|> fail "unreachable code (1)",
   let str := tgt.get_app_fn.const_name,
   let rhs_args := (get_app_args rhs).drop params.length, -- the fields of the object
-  (raw_univs, projs_and_raw_exprs) ← simps_get_raw_projections e str cfg.trace,
-  guard (rhs_args.length = projs_and_raw_exprs.length) <|> fail "unreachable code (2)", -- remove
+  (raw_univs, proj_data) ← simps_get_raw_projections e str ff [] cfg.trace,
   let univs := raw_univs.zip tgt.get_app_fn.univ_levels,
-  let projs := projs_and_raw_exprs.map prod.fst,
-  let raw_exprs := projs_and_raw_exprs.map $ λ p, p.2.1,
+  let projs := proj_data.map prod.fst,
+  let raw_exprs := proj_data.map $ λ p, p.2.1,
+  let nrs_and_default := proj_data.map $ λ p, p.2.2,
   let proj_exprs := raw_exprs.map $
     λ raw_expr, (raw_expr.instantiate_univ_params univs).instantiate_lambdas_or_apps params,
-  return $ proj_exprs.zip $ projs.zip rhs_args
-
+  let rhs_exprs := nrs_and_default.map $ λ x, rhs_args.inth x.1.head,
+  return $ proj_exprs.zip $ projs.zip $ rhs_exprs.zip $ nrs_and_default.map (λ x, (x.1.tail, x.2))
 
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
   `args` is the list of local constants occurring, and `univs` is the list of universe variables.
@@ -442,27 +448,14 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   when (b ∧ `simp ∈ cfg.attrs) (set_basic_attribute `_refl_lemma decl_name tt),
   cfg.attrs.mmap' $ λ nm, set_attribute nm decl_name tt
 
-namespace simps
-/-- A custom type for projections that still need to be generated.
-  Defined so that we can add a nicer instance for `∈`.
-  The first component contains the name of a projection to add, and the second component contains
-  -/
-def todo_type : Type := list (string × ℕ)
-
-instance : has_mem string todo_type := ⟨λ x l, x ∈ l.map prod.fst⟩
-
-/-- Test whether we have just done the last task in `l`. -/
-def todo_type.done (l : todo_type) : bool := l.map prod.fst = [""]
-
-end simps
-open simps
-
 /-- Derive lemmas specifying the projections of the declaration.
-  If `todo` is non-empty, it will generate exactly the names in `todo`. -/
+  If `todo` is non-empty, it will generate exactly the names in `todo`.
+  `to_apply` is non-empty after a custom projection that is a composition of multiple projections
+  was just used. In that case we need to apply these projections before we continue changing lhs. -/
 meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : string)
   (type lhs rhs : expr) (args : list expr) (univs : list name) (must_be_str : bool)
-  (cfg : simps_cfg) (todo : todo_type), tactic unit
-| e nm suffix type lhs rhs args univs must_be_str cfg todo := do
+  (cfg : simps_cfg) (todo : list string) (to_apply : list ℕ), tactic unit
+| e nm suffix type lhs rhs args univs must_be_str cfg todo to_apply := do
   -- we don't want to unfold non-reducible definitions (like `set`) to apply more arguments
   when_tracing `simps.debug trace!
     "[simps] > Trying to add simp-lemmas for\n        > {lhs}
@@ -474,53 +467,56 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
   let new_args := args ++ type_args,
   let lhs_ap := lhs.mk_app type_args,
   let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,
-  when_tracing `simps.debug trace!"[simps] > rhs: {rhs}",
-  when_tracing `simps.debug trace!"[simps] > rhs_ap: {rhs_ap}",
   let str := tgt.get_app_fn.const_name,
   let new_nm := nm.append_suffix suffix,
   /- We want to generate the current projection if it is in `todo` -/
-  let todo_next : todo_type := todo.filter (λ y, y.1 ≠ ""),
+  let todo_next := todo.filter (≠ ""),
   /- Don't recursively continue if `str` is not a structure or if the structure is in
     `not_recursive`. -/
   if e.is_structure str ∧ ¬(todo = [] ∧ str ∈ cfg.not_recursive ∧ ¬must_be_str) then do
     [intro] ← return $ e.constructors_of str | fail "unreachable code (3)",
     rhs_whnf ← whnf rhs_ap cfg.rhs_md,
-    when_tracing `simps.debug trace!"[simps] > rhs: {rhs_ap}\n{rhs_whnf}",
     (rhs_ap, todo_now) ← -- `todo_now` means that we still have to generate the current simp lemma
       if h : ¬ is_constant_of rhs_ap.get_app_fn intro ∧
         is_constant_of rhs_whnf.get_app_fn intro then
       /- If this was a desired projection, we want to apply it before taking the whnf.
         However, if the current field is an eta-expansion (see below), we first want
         to eta-reduce it and only then construct the projection.
-        This makes the flow of this function hard to follow. -/
-      when ("" ∈ todo) (if cfg.fully_applied then
+        This makes the flow of this function messy. -/
+      when ("" ∈ todo ∧ to_apply = []) (if cfg.fully_applied then
         simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
         simps_add_projection new_nm type lhs rhs args univs cfg) >>
       return (rhs_whnf, ff) else
-      return (rhs_ap, "" ∈ todo),
+      return (rhs_ap, "" ∈ todo ∧ to_apply = []),
     if is_constant_of (get_app_fn rhs_ap) intro then do -- if the value is a constructor application
-      tuples ← simps_get_projection_exprs e tgt rhs_ap,
-      when_tracing `simps.debug trace!"[simps] > Tuples: {tuples}",
+      tuples ← simps_get_projection_exprs e tgt rhs_ap cfg,
+      when_tracing `simps.debug trace!"[simps] > Raw projection information:\n  {tuples}",
       let projs := tuples.map $ λ x, x.2.1,
       eta ← rhs_ap.is_eta_expansion, -- check whether `rhs_ap` is an eta-expansion
       let rhs_ap := eta.lhoare rhs_ap, -- eta-reduce `rhs_ap`
       /- As a special case, we want to automatically generate the current projection if `rhs_ap`
         was an eta-expansion. Also, when this was a desired projection, we need to generate the
         current projection if we haven't done it above. -/
-      when (todo_now ∨ (todo = [] ∧ eta.is_some)) $
+      when (todo_now ∨ (todo = [] ∧ eta.is_some ∧ to_apply = [])) $
         if cfg.fully_applied then
           simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
           simps_add_projection new_nm type lhs rhs args univs cfg,
+      /- If we are in the middle of a composite projection. -/
+      when (to_apply ≠ []) $ do {
+        (proj_expr, proj, new_rhs, proj_nrs, is_default) ← return $ tuples.inth to_apply.head,
+        new_type ← infer_type new_rhs,
+        simps_add_projections e nm suffix new_type lhs new_rhs new_args univs ff cfg todo
+          to_apply.tail },
       /- We stop if no further projection is specified or if we just reduced an eta-expansion and we
       automatically choose projections -/
-      when ¬(todo.done ∨ (eta.is_some ∧ todo = [])) $ do
-        let todo := todo_next,
+      when ¬(to_apply ≠ [] ∨ todo = [""] ∨ (eta.is_some ∧ todo = [])) $ do
+        let todo := if to_apply = [] then todo_next else todo,
+
         -- check whether all elements in `todo` have a projection as prefix
-        guard (todo.all $ λ x, projs.any $ λ proj, ("_" ++ proj.last).is_prefix_of x.1) <|>
-          let x := (todo.find $
-            λ x : _ × _, projs.all $ λ proj, ¬ ("_" ++ proj.last).is_prefix_of x.1).iget,
-          simp_lemma := nm.append_suffix $ suffix ++ x.1,
-          needed_proj := (x.1.split_on '_').tail.head in
+        guard (todo.all $ λ x, projs.any $ λ proj, ("_" ++ proj.last).is_prefix_of x) <|>
+          let x := (todo.find $ λ x, projs.all $ λ proj, ¬ ("_" ++ proj.last).is_prefix_of x).iget,
+          simp_lemma := nm.append_suffix $ suffix ++ x,
+          needed_proj := (x.split_on '_').tail.head in
           fail!
 "Invalid simp-lemma {simp_lemma}. Structure {str} does not have projection {needed_proj}.
 The known projections are:
@@ -528,32 +524,34 @@ The known projections are:
 You can also see this information by running
   `initialize_simps_projections? {str}`.
 Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
-        tuples.mmap' $ λ ⟨proj_expr, proj, new_rhs⟩, do
+        tuples.mmap_with_index' $ λ proj_nr ⟨proj_expr, proj, new_rhs, proj_nrs, is_default⟩, do
           new_type ← infer_type new_rhs,
-          let new_todo : todo_type :=
-            todo.filter_map $ λ x, (λ s, ⟨s, x.2.pred⟩) <$> x.1.get_rest ("_" ++ proj.last),
-          b ← is_prop new_type,
+          let new_todo :=
+            todo.filter_map $ λ x, x.get_rest ("_" ++ proj.last),
           -- we only continue with this field if it is non-propositional or mentioned in todo
-          when ((¬ b ∧ todo = []) ∨ new_todo ≠ []) $ do
+          when ((is_default ∧ todo = []) ∨ new_todo ≠ []) $ do
             let new_lhs := proj_expr.instantiate_lambdas_or_apps [lhs_ap],
             let new_suffix := if cfg.short_name then "_" ++ proj.last else
               suffix ++ "_" ++ proj.last,
             when_tracing `simps.debug trace!"[simps] > Recursively add projections for: {new_lhs}",
             simps_add_projections e nm new_suffix new_type new_lhs new_rhs new_args univs
-              ff cfg new_todo
+              ff cfg new_todo proj_nrs
     -- if I'm about to run into an error, try to set the transparency for `rhs_md` higher.
-    else if cfg.rhs_md = transparency.none ∧ (must_be_str ∨ todo_next ≠ []) then do
+    else if cfg.rhs_md = transparency.none ∧ (must_be_str ∨ todo_next ≠ [] ∨ to_apply ≠ []) then do
       when cfg.trace trace!
         "[simps] > The given definition is not a constructor application:
         >   {rhs_ap}
         > Retrying with the options {{ rhs_md := semireducible, simp_rhs := tt}.",
       simps_add_projections e nm suffix type lhs rhs args univs must_be_str
-        { rhs_md := semireducible, simp_rhs := tt, ..cfg} todo
+        { rhs_md := semireducible, simp_rhs := tt, ..cfg} todo to_apply
     else do
+      when (to_apply ≠ []) $
+        fail!"Invalid simp-lemma {nm}.
+The given definition is not a constructor application:\n  {rhs_ap}",
       when must_be_str $
         fail!"Invalid `simps` attribute. The body is not a constructor application:\n  {rhs_ap}",
       when (todo_next ≠ []) $
-        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head.1}.
+        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}.
 The given definition is not a constructor application:\n  {rhs_ap}",
       if cfg.fully_applied then
         simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
@@ -562,7 +560,7 @@ The given definition is not a constructor application:\n  {rhs_ap}",
     when must_be_str $
       fail!"Invalid `simps` attribute. Target {str} is not a structure",
     when (todo_next ≠ [] ∧ str ∉ cfg.not_recursive) $
-        let first_todo := todo_next.head.1 in
+        let first_todo := todo_next.head in
         fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ first_todo}.
 Projection {(first_todo.split_on '_').tail.head} doesn't exist, because target is not a structure.",
     if cfg.fully_applied then
@@ -579,13 +577,13 @@ do
   e ← get_env,
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),
-  let todo : todo_type := todo.erase_dup.map $ λ proj, ⟨"_" ++ proj, 0⟩,
+  let todo := todo.erase_dup.map $ λ proj, "_" ++ proj,
   b ← has_attribute' `to_additive nm,
   let cfg := if b then { attrs := cfg.attrs ++ [`to_additive], ..cfg } else cfg,
   let cfg := { trace := cfg.trace || is_trace_enabled_for `simps.verbose || trc, ..cfg },
   when (cfg.trace ∧ `to_additive ∈ cfg.attrs)
     trace!"[simps] > @[to_additive] will be added to all generated lemmas.",
-  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params tt cfg todo
+  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params tt cfg todo []
 
 /-- The parser for the `@[simps]` attribute. -/
 meta def simps_parser : parser (bool × list string × simps_cfg) := do

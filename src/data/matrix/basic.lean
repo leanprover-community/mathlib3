@@ -25,6 +25,8 @@ def matrix (m : Type u) (n : Type u') [fintype m] [fintype n] (α : Type v) : Ty
 m → n → α
 
 variables {l m n o : Type*} [fintype l] [fintype m] [fintype n] [fintype o]
+variables {m' : o → Type*} [∀ i, fintype (m' i)]
+variables {n' : o → Type*} [∀ i, fintype (n' i)]
 variables {α : Type v}
 
 namespace matrix
@@ -1210,8 +1212,6 @@ end block_diagonal
 
 section block_diagonal'
 
-variables {n' : o → Type*} [∀ i, fintype (n' i)]
-variables {m' : o → Type*} [∀ i, fintype (m' i)]
 variables (M N : Π i, matrix (m' i) (n' i) α) [decidable_eq o]
 
 section has_zero

@@ -472,6 +472,10 @@ of_repr
   basis.singleton ι R i = 1 :=
 apply_eq_iff.mpr (by simp [basis.singleton])
 
+@[simp] lemma singleton_repr (ι R : Type*) [unique ι] [semiring R] (x i) :
+  (basis.singleton ι R).repr x i = x :=
+by simp [basis.singleton, unique.eq_default i]
+
 lemma smul_right_injective
   {R M : Type*} [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
   {x : M} (hx : x ≠ 0) :

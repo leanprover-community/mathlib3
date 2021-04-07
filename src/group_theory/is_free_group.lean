@@ -15,10 +15,10 @@ universes u w
 /-- `is_free_group G` means that `G` has the universal property of a free group.
     That is, it has a family `generators G` of elements, such that a group homomorphism
     `G →* X` is uniquely determined by a function `generators G → X`. -/
-class is_free_group (G) [group.{u} G] : Type (u+1) :=
+class is_free_group (G : Type u) [group G] : Type (u+1) :=
 (generators : Type u)
 (of : generators → G)
-(unique_lift : ∀ {X} [group.{u} X] (f : generators → X),
+(unique_lift : ∀ {X : Type u} [group X] (f : generators → X),
                 ∃! F : G →* X, ∀ a, F (of a) = f a)
 
 instance free_group_is_free_group {A} : is_free_group (free_group A) :=
@@ -79,7 +79,7 @@ def of_mul_equiv (h : G ≃* H) : is_free_group H :=
   end }
 
 /-- A universe-polymorphic version of `unique_lift`. -/
-lemma unique_lift' {X} [group.{w} X] (f : generators G → X) :
+lemma unique_lift' {X : Type w} [group X] (f : generators G → X) :
   ∃! F : G →* X, ∀ a, F (of a) = f a :=
 ⟨(free_group.lift f).comp (iso_free_group_of_is_free_group G).to_monoid_hom, by simp,
   begin

@@ -421,7 +421,7 @@ begin
   { intros h1 h2,
     rw list.prod_cons,
     exact induction_disjoint σ l.prod
-      (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h2).1)
+      (disjoint_prod_right _ (list.pairwise_cons.mp h2).1)
       (base_cycles σ (h1 σ (l.mem_cons_self σ)))
       (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
 end

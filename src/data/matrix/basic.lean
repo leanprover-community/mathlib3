@@ -1146,7 +1146,7 @@ lemma block_diagonal_apply_ne (i j) {k k'} (h : k ≠ k') :
 if_neg h
 
 @[simp] lemma block_diagonal_transpose :
-  (block_diagonal M)ᵀ = (block_diagonal (λ k, (M k)ᵀ)) :=
+  (block_diagonal M)ᵀ = block_diagonal (λ k, (M k)ᵀ) :=
 begin
   ext,
   simp only [transpose_apply, block_diagonal_apply, eq_comm],
@@ -1160,7 +1160,7 @@ end
 by { ext, simp [block_diagonal_apply] }
 
 @[simp] lemma block_diagonal_diagonal [decidable_eq m] (d : o → m → α) :
-  (block_diagonal (λ k, diagonal (d k))) = diagonal (λ ik, d ik.2 ik.1) :=
+  block_diagonal (λ k, diagonal (d k)) = diagonal (λ ik, d ik.2 ik.1) :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
   simp only [block_diagonal_apply, diagonal],
@@ -1168,8 +1168,8 @@ begin
 end
 
 @[simp] lemma block_diagonal_one [decidable_eq m] [has_one α] :
-  (block_diagonal (1 : o → matrix m m α)) = 1 :=
-show (block_diagonal (λ (_ : o), diagonal (λ (_ : m), (1 : α)))) = diagonal (λ _, 1),
+  block_diagonal (1 : o → matrix m m α) = 1 :=
+show block_diagonal (λ (_ : o), diagonal (λ (_ : m), (1 : α))) = diagonal (λ _, 1),
 by rw [block_diagonal_diagonal]
 
 end has_zero
@@ -1194,8 +1194,8 @@ end
   block_diagonal (M - N) = block_diagonal M - block_diagonal N :=
 by simp [sub_eq_add_neg]
 
-@[simp] lemma block_diagonal_mul {p : Type*} [fintype p] [semiring α]
-  (N : o → matrix n p α) : block_diagonal (λ k, M k ⬝ N k) = block_diagonal M ⬝ block_diagonal N :=
+@[simp] lemma block_diagonal_mul {p : Type*} [fintype p] [semiring α] (N : o → matrix n p α) :
+  block_diagonal (λ k, M k ⬝ N k) = block_diagonal M ⬝ block_diagonal N :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
   simp only [block_diagonal_apply, mul_apply, ← finset.univ_product_univ, finset.sum_product],
@@ -1275,8 +1275,8 @@ begin
 end
 
 @[simp] lemma block_diagonal'_one [∀ i, decidable_eq (m' i)] [has_one α] :
-  (block_diagonal' (1 : Π i, matrix (m' i) (m' i) α)) = 1 :=
-show (block_diagonal' (λ (i : o), diagonal (λ (_ : m' i), (1 : α)))) = diagonal (λ _, 1),
+  block_diagonal' (1 : Π i, matrix (m' i) (m' i) α) = 1 :=
+show block_diagonal' (λ (i : o), diagonal (λ (_ : m' i), (1 : α))) = diagonal (λ _, 1),
 by rw [block_diagonal'_diagonal]
 
 end has_zero

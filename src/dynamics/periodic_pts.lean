@@ -6,6 +6,7 @@ Authors: Yury G. Kudryashov
 import dynamics.fixed_points.basic
 import data.set.lattice
 import data.pnat.basic
+import data.int.gcd
 
 /-!
 # Periodic points
@@ -262,5 +263,16 @@ lemma is_periodic_pt_iff_minimal_period_dvd :
   is_periodic_pt f n x ↔ minimal_period f x ∣ n :=
 ⟨is_periodic_pt.minimal_period_dvd,
   λ h, (is_periodic_pt_minimal_period f x).trans_dvd h⟩
+
+lemma function.commute.minimal_period_of_comp_dvd_lcm {g : α → α} (h : function.commute f g) :
+  minimal_period (f ∘ g) x ∣ nat.lcm (minimal_period f x) (minimal_period g x) :=
+begin
+  rw [← is_periodic_pt_iff_minimal_period_dvd, is_periodic_pt, h.comp_iterate],
+  apply is_fixed_pt.comp,
+  { rw [← is_periodic_pt, is_periodic_pt_iff_minimal_period_dvd],
+    exact nat.dvd_lcm_left _ _ },
+  { rw [← is_periodic_pt, is_periodic_pt_iff_minimal_period_dvd],
+    exact nat.dvd_lcm_right _ _ }
+end
 
 end function

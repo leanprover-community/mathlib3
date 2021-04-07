@@ -51,58 +51,6 @@ begin
   sorry
 end
 
-/--
-A simplicial complex is locally finite iff each point belongs to finitely many faces.
--/
-lemma locally_finite_iff_mem_finitely_many_faces {S : simplicial_complex m} :
-  S.locally_finite ↔ ∀ (x : fin m → ℝ), finite {X | X ∈ S.faces ∧ x ∈ convex_hull (X : set E)} :=
-begin
-  split,
-  { unfold simplicial_complex.locally_finite,
-    contrapose!,
-    rintro ⟨x, hx⟩,
-    by_cases hxspace : x ∈ S.space,
-    { obtain ⟨X, ⟨hX, hXhull, hXbound⟩, hXunique⟩ := combi_interiors_partition hxspace,
-      simp at hXunique,
-      use [X, hX],
-      split,
-      { apply finset.nonempty_of_ne_empty,
-        rintro rfl,
-        simpa using hXhull },
-      rintro hXlocallyfinite,
-      apply hx,
-      suffices h : {X : finset (fin m → ℝ) | X ∈ S.faces ∧ x ∈ convex_hull ↑X} ⊆
-        {Y : finset (fin m → ℝ) | Y ∈ S.faces ∧ X ⊆ Y},
-      { exact finite.subset hXlocallyfinite h },
-      rintro Y ⟨hY, hYhull⟩,
-      use hY,
-      have hXYhull := S.disjoint hX hY ⟨hXhull, hYhull⟩,
-      norm_cast at hXYhull,
-      by_contra hXY,
-      apply hXbound,
-      have hYX : X ∩ Y ⊂ X,
-      { use finset.inter_subset_left X Y,
-        rintro hXXY,
-        exact hXY (finset.subset_inter_iff.1 hXXY).2 },
-      exact mem_combi_frontier_iff.2 ⟨X ∩ Y, hYX, hXYhull⟩ },
-    { exfalso,
-      apply hx,
-      suffices h : {X : finset (fin m → ℝ) | X ∈ S.faces ∧ x ∈ convex_hull ↑X} = ∅,
-      { rw h,
-        exact finite_empty },
-      apply eq_empty_of_subset_empty,
-      rintro X ⟨hX, h⟩,
-      exact hxspace (mem_bUnion hX h) }},
-  { rintro hS X hX h,
-    obtain ⟨x, hx⟩ := h,
-    suffices h : {Y : finset (fin m → ℝ) | Y ∈ S.faces ∧ X ⊆ Y} ⊆
-      {Y : finset (fin m → ℝ) | Y ∈ S.faces ∧ x ∈ convex_hull ↑Y},
-    { exact (hS x).subset h },
-    rintro Y ⟨hY, hXY⟩,
-    exact ⟨hY, subset_convex_hull Y (hXY hx)⟩ }
-end
-
-
 lemma boundary_face_iff_subset_space_frontier_of_full_dimensional {S : simplicial_complex m}
   (hS : S.pure_of (m + 1)) {X : finset E} :
   X ∈ S.boundary.faces ↔ X ∈ S.faces ∧ ↑X ⊆ frontier S.space :=

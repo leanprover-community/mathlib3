@@ -305,7 +305,7 @@ To avoid boilerplate, there are some designs that can automatically fill the poo
 creating a rich structure if one doesn't want to do something special about them. For instance,
 in the definition of metric spaces, default tactics fill the uniform space fields if they are
 not given explicitly. One can also have a helper function creating the rich structure from a
-structure with less fields, where the helper function fills the remaining fields. See for instance
+structure with fewer fields, where the helper function fills the remaining fields. See for instance
 `uniform_space.of_core` or `real_inner_product.of_core`.
 
 For more details on this question, called the forgetful inheritance pattern, see [Competing

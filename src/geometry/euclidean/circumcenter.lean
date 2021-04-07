@@ -7,12 +7,6 @@ import geometry.euclidean.basic
 import linear_algebra.affine_space.finite_dimensional
 import tactic.derive_fintype
 
-noncomputable theory
-open_locale big_operators
-open_locale classical
-open_locale real
-open_locale real_inner_product_space
-
 /-!
 # Circumcenter and circumradius
 
@@ -32,6 +26,12 @@ the circumcenter.
 * https://en.wikipedia.org/wiki/Circumscribed_circle
 
 -/
+
+noncomputable theory
+open_locale big_operators
+open_locale classical
+open_locale real
+open_locale real_inner_product_space
 
 namespace euclidean_geometry
 

@@ -85,9 +85,11 @@ by simp [to_kernel]
 def to_kernel_subobject {M N : Module R} {f : M ⟶ N} (m : M) (w : f m = 0) : kernel_subobject f :=
 (kernel_subobject_iso f ≪≫ Module.kernel_iso_ker f).inv ⟨m, w⟩
 
+attribute [elementwise] kernel_subobject_arrow'
+
 @[simp] lemma to_kernel_subobject_arrow {M N : Module R} {f : M ⟶ N} (m : M) (w : f m = 0) :
   (kernel_subobject f).arrow (to_kernel_subobject m w) = m :=
-sorry
+by simp [to_kernel_subobject]
 
 /--
 To prove that two maps out of a homology group are equal,

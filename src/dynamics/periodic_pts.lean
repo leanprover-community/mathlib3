@@ -279,6 +279,18 @@ lemma is_periodic_pt_iff_minimal_period_dvd :
 
 open nat
 
+lemma minimal_period_eq_prime {p : ℕ} [hp : fact p.prime] (hper : is_periodic_pt f p x)
+  (hfix : ¬ is_fixed_pt f x) : minimal_period f x = p :=
+(hp.out.2 _ (hper.minimal_period_dvd)).resolve_left
+  (mt is_fixed_point_iff_minimal_period_eq_one.1 hfix)
+
+lemma minimal_period_eq_prime_pow {p k : ℕ} [hp : fact p.prime] (hk : ¬ is_periodic_pt f (p ^ k) x)
+(hk1 : is_periodic_pt f (p ^ (k + 1)) x) : minimal_period f x = p ^ (k + 1) :=
+begin
+  apply nat.eq_prime_pow_of_dvd_least_prime_pow hp.out;
+  rwa ← is_periodic_pt_iff_minimal_period_dvd
+end
+
 lemma function.commute.minimal_period_of_comp_dvd_lcm {g : α → α} (h : function.commute f g) :
   minimal_period (f ∘ g) x ∣ nat.lcm (minimal_period f x) (minimal_period g x) :=
 begin

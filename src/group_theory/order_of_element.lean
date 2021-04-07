@@ -234,13 +234,14 @@ by rw [order_of_dvd_iff_pow_eq_one, h.mul_pow, order_of_dvd_iff_pow_eq_one.mp
   (nat.dvd_lcm_left _ _), order_of_dvd_iff_pow_eq_one.mp (nat.dvd_lcm_right _ _), one_mul]
 
 lemma add_order_of_eq_prime {p : ℕ} [hp : fact p.prime]
-(hg : p •ℕ x = 0) (hg1 : x ≠ 0) : add_order_of x = p :=
-(hp.out.2 _ (add_order_of_dvd_of_nsmul_eq_zero hg)).resolve_left (mt add_order_of_eq_one_iff.1 hg1)
+  (hg : p •ℕ x = 0) (hg1 : x ≠ 0) : add_order_of x = p :=
+minimal_period_eq_prime (by rwa is_periodic_pt_add_iff_nsmul_eq_zero)
+  (by rwa [is_fixed_pt, zero_add])
 
 @[to_additive add_order_of_eq_prime]
 lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
-  (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
-(hp.out.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
+  (hg : a ^ p = 1) (hg1 : a ≠ 1) : order_of a = p :=
+minimal_period_eq_prime (by rwa is_periodic_pt_mul_iff_pow_eq_one) (by rwa [is_fixed_pt, one_mul])
 
 open nat
 
@@ -284,19 +285,19 @@ order_of_injective H.subtype subtype.coe_injective σ
   (σ : H) : order_of (σ : G) = order_of σ :=
 order_of_injective H.subtype subtype.coe_injective σ
 
-lemma add_order_of_eq_prime_pow {p k : ℕ} (hprime : prime p)
+lemma add_order_of_eq_prime_pow {p k : ℕ} [hp : fact p.prime]
   (hnot : ¬ (p ^ k) •ℕ x = 0) (hfin : (p ^ (k + 1)) •ℕ x = 0) : add_order_of x = p ^ (k + 1) :=
 begin
-  apply nat.eq_prime_pow_of_dvd_least_prime_pow hprime;
-  { rwa add_order_of_dvd_iff_nsmul_eq_zero }
+  apply minimal_period_eq_prime_pow;
+  rwa is_periodic_pt_add_iff_nsmul_eq_zero,
 end
 
 @[to_additive add_order_of_eq_prime_pow]
-lemma order_of_eq_prime_pow {p k : ℕ} (hprime : prime p)
+lemma order_of_eq_prime_pow {p k : ℕ} [hp : fact p.prime]
   (hnot : ¬ a ^ p ^ k = 1) (hfin : a ^ p ^ (k + 1) = 1) : order_of a = p ^ (k + 1) :=
 begin
-  apply nat.eq_prime_pow_of_dvd_least_prime_pow hprime;
-  { rwa order_of_dvd_iff_pow_eq_one }
+  apply minimal_period_eq_prime_pow;
+  rwa is_periodic_pt_mul_iff_pow_eq_one,
 end
 
 variables (a) {n : ℕ}

@@ -175,6 +175,9 @@ instance : has_mul (truncated_witt_vector p n R) :=
 instance : has_neg (truncated_witt_vector p n R) :=
 ⟨λ x, truncate_fun n (- x.out)⟩
 
+instance : has_sub (truncated_witt_vector p n R) :=
+⟨λ x y, truncate_fun n (x.out - y.out)⟩
+
 @[simp] lemma coeff_zero (i : fin n) :
   (0 : truncated_witt_vector p n R).coeff i = 0 :=
 begin
@@ -189,7 +192,7 @@ meta def tactic.interactive.witt_truncate_fun_tac : tactic unit :=
 `[show _ = truncate_fun n _,
   apply truncated_witt_vector.out_injective,
   iterate { rw [out_truncate_fun] },
-  rw init_add <|> rw init_mul <|> rw init_neg]
+  rw init_add <|> rw init_mul <|> rw init_neg <|> rw init_sub]
 
 namespace witt_vector
 
@@ -224,6 +227,10 @@ lemma truncate_fun_neg (x : 𝕎 R) :
   truncate_fun n (-x) = -truncate_fun n x :=
 by witt_truncate_fun_tac
 
+lemma truncate_fun_sub (x y : 𝕎 R) :
+  truncate_fun n (x - y) = truncate_fun n x - truncate_fun n y :=
+by witt_truncate_fun_tac
+
 end witt_vector
 
 namespace truncated_witt_vector
@@ -239,6 +246,7 @@ instance : comm_ring (truncated_witt_vector p n R) :=
   (truncate_fun_add n)
   (truncate_fun_mul n)
   (truncate_fun_neg n)
+  (truncate_fun_sub n)
 
 end truncated_witt_vector
 

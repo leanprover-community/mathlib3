@@ -7,6 +7,7 @@ Authors: Adam Topaz, Bhavik Mehta
 import category_theory.adjunction.reflective
 import topology.category.Top
 import topology.stone_cech
+import category_theory.monad.limits
 
 /-!
 
@@ -118,3 +119,6 @@ The category of compact Hausdorff spaces is reflective in the category of topolo
 -/
 noncomputable instance CompHaus_to_Top.reflective : reflective CompHaus_to_Top :=
 { to_is_right_adjoint := ⟨Top_to_CompHaus, adjunction.adjunction_of_equiv_left _ _⟩ }
+
+noncomputable instance CompHaus_to_Top.creates_limits : creates_limits CompHaus_to_Top :=
+monadic_creates_limits _

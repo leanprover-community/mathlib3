@@ -134,6 +134,10 @@ instance Profinite.to_CompHaus.reflective : reflective Profinite.to_CompHaus :=
 { to_is_right_adjoint := ⟨CompHaus.to_Profinite, Profinite.to_Profinite_adj_to_CompHaus⟩ }
 
 noncomputable
+instance Profinite.to_CompHaus.creates_limits : creates_limits Profinite.to_CompHaus :=
+monadic_creates_limits _
+
+noncomputable
 instance Profinite.to_Top.reflective : reflective (Profinite_to_Top : Profinite ⥤ Top) :=
 reflective.comp Profinite.to_CompHaus CompHaus_to_Top
 

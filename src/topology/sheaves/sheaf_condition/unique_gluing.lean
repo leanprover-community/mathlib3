@@ -5,6 +5,7 @@ Authors: Justus Springer
 -/
 import topology.sheaves.sheaf
 import category_theory.limits.shapes.types
+import category_theory.types
 
 /-!
 # The sheaf condition for a type-valued presheaf
@@ -177,8 +178,7 @@ def sheaf_condition_unique_gluing_of_sheaf_condition :
     choose gl gl_spec gl_uniq using types.unique_of_type_equalizer _ _ (Fsh U) sf' hsf',
     refine eq.trans (gl_uniq s.1 _) (gl_uniq t.1 _).symm ;
       rw [← is_gluing_iff_eq_res F U _ _, inv_hom_id_apply],
-    { exact s.2 },
-    { exact t.2 }
+    exacts [s.2, t.2]
   end
 }
 
@@ -211,8 +211,7 @@ sheaf_condition_of_sheaf_condition_unique_gluing F $ λ ι U sf hsf,
     ext,
     choose gl gl_spec gl_uniq using h U sf hsf,
     refine eq.trans (gl_uniq s.1 _) (gl_uniq t.1 _).symm,
-    { exact s.2 },
-    { exact t.2 }
+    exacts [s.2, t.2]
   },
 }
 
@@ -221,20 +220,76 @@ end presheaf
 
 namespace sheaf
 open presheaf
+open category_theory
 
 variables {X : Top.{u}} (F : sheaf (Type u) X) {ι : Type u} (U : ι → opens X)
 
 /--
 A more convenient way of obtaining a unique gluing of sections for a sheaf
 -/
-lemma exists_unique_gluing (sf : Π i : ι, F.presheaf.obj (op (U i)))
- (hsf : is_compatible F.presheaf U sf) :
- ∃! s : F.presheaf.obj (op (supr U)), is_gluing F.presheaf U sf s  :=
+lemma exists_unique_gluing (sf : Π i : ι, F.presheaf.obj (op (U i))) :
+  is_compatible F.presheaf U sf →
+  ∃! s : F.presheaf.obj (op (supr U)), is_gluing F.presheaf U sf s := λ sf_comp,
 begin
-  have := (sheaf_condition_unique_gluing_of_sheaf_condition _ F.sheaf_condition U sf hsf),
+  have := (sheaf_condition_unique_gluing_of_sheaf_condition _ F.sheaf_condition U sf sf_comp),
   refine ⟨this.default.1,this.default.2,_⟩,
   intros s hs,
   exact congr_arg subtype.val (this.uniq ⟨s,hs⟩),
+end
+
+/--
+In this version of the lemma, the inclusion homs `iUV` can be specified directly by the user,
+which can be more convenient in practice.
+-/
+lemma exists_unique_gluing' (V : opens X) (iUV : Π i : ι, U i ⟶ V)
+  (hcover : V ≤ supr U) (sf : Π i : ι, F.presheaf.obj (op (U i))) :
+  is_compatible F.presheaf U sf →
+  ∃! s : F.presheaf.obj (op V), ∀ i : ι, F.presheaf.map (iUV i).op s = sf i := λ sf_comp,
+begin
+  have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, le_of_hom (iUV i))),
+  obtain ⟨gl, gl_spec, gl_uniq⟩ := F.exists_unique_gluing U sf sf_comp,
+  refine ⟨F.presheaf.map (eq_to_hom V_eq_supr_U).op gl, (λ i,_), (λ gl' gl'_spec,_)⟩,
+  { rw ← functor_to_types.map_comp_apply,
+    exact gl_spec i },
+  { convert congr_arg _ (gl_uniq (F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op gl') (λ i,_)) ;
+      rw ← functor_to_types.map_comp_apply,
+    { exact (functor_to_types.map_id_apply _ _).symm },
+    { convert gl'_spec i }}
+end
+
+lemma eq_of_locally_eq (s t : F.presheaf.obj (op (supr U))) :
+  (∀ i : ι, F.presheaf.map (opens.le_supr U i).op s = F.presheaf.map (opens.le_supr U i).op t)
+  → s = t :=
+begin
+  intro h,
+  let sf : Π i : ι, F.presheaf.obj (op (U i)) :=
+    λ i, F.presheaf.map (opens.le_supr U i).op t,
+  have sf_comp : F.presheaf.is_compatible U sf := λ i j, by {
+    rw [← functor_to_types.map_comp_apply, ← functor_to_types.map_comp_apply],
+    congr,
+  },
+  obtain ⟨gl,gl_spec,gl_uniq⟩ := F.exists_unique_gluing U sf sf_comp,
+  transitivity,
+  exacts [gl_uniq s (λ i, h i), (gl_uniq t (λ i, rfl)).symm],
+end
+
+/--
+In this version of the lemma, the inclusion homs `iUV` can be specified directly by the user,
+which can be more convenient in practice.
+-/
+lemma eq_of_locally_eq' (V : opens X) (iUV : Π i : ι, U i ⟶ V)
+  (hcover : V ≤ supr U) (s t : F.presheaf.obj (op V)) :
+  (∀ i, F.presheaf.map (iUV i).op s = F.presheaf.map (iUV i).op t) → s = t := λ h_eq,
+begin
+  have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, le_of_hom (iUV i))),
+  suffices : F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op s = F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op t,
+  { convert congr_arg (F.presheaf.map (eq_to_hom V_eq_supr_U).op) this ;
+    rw ← functor_to_types.map_comp_apply ;
+    exact (functor_to_types.map_id_apply _ _).symm },
+  apply eq_of_locally_eq,
+  intro i,
+  rw [← functor_to_types.map_comp_apply, ← functor_to_types.map_comp_apply],
+  convert h_eq i
 end
 
 end sheaf

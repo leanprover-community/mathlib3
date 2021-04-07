@@ -48,22 +48,24 @@ variables {H : Type u} [add_monoid H]
 @[simp] lemma add_right_fpow_apply (x : H) {n : ℕ} : (+ x)^[n] = (+ n •ℕ x) :=
 begin
   induction n with d hd,
-  { rw [zero_nsmul, iterate_zero, add_zero, id] },
-  { rw [iterate_succ', succ_nsmul', ← add_assoc, ← hd] }
+  { simp_rw [zero_nsmul, add_zero, iterate_zero],
+    refl },
+  { simp_rw [iterate_succ', succ_nsmul', ← add_assoc, hd] }
 end
 
-@[simp, to_additive] lemma mul_fpow_apply (a b : α) {n : ℕ} : (* a)^[n] b = b * a ^ n :=
+@[simp, to_additive] lemma mul_right_fpow_apply (a : α) {n : ℕ} : (* a)^[n] = (* a ^ n) :=
 begin
   induction n with d hd,
-  { rw [pow_zero, mul_one, iterate_zero, id] },
-  { rw [iterate_succ', pow_succ', ← mul_assoc, ← hd] }
+  { simp_rw [pow_zero, mul_one, iterate_zero],
+    refl },
+  { simp_rw [iterate_succ', pow_succ', ← mul_assoc, hd] }
 end
 
 @[simp] lemma add_fpow_apply_zero (x : H) {n : ℕ} : (+ x)^[n] 0 = n •ℕ x :=
-by rw [add_fpow_apply, zero_add]
+by simp
 
 @[simp, to_additive] lemma mul_fpow_apply_one (a : α) {n : ℕ} : (* a)^[n] 1 = a ^ n :=
-by rw [mul_fpow_apply, one_mul]
+by simp
 
 lemma is_periodic_pt_add_iff_nsmul_eq_zero (x : H) {n : ℕ} :
   is_periodic_pt (+ x) n 0 ↔ n •ℕ x = 0 :=

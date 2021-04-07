@@ -245,12 +245,11 @@ begin
 end
 
 lemma add_order_of_dvd_iff_nsmul_eq_zero {n : ℕ} : add_order_of x ∣ n ↔ n •ℕ x = 0 :=
-⟨λ h, by rw [nsmul_eq_mod_add_order_of, nat.mod_eq_zero_of_dvd h, zero_nsmul],
-  add_order_of_dvd_of_nsmul_eq_zero⟩
+by rw [← is_periodic_pt_add_iff_nsmul_eq_zero, is_periodic_pt_iff_minimal_period_dvd, add_order_of]
 
 @[to_additive add_order_of_dvd_iff_nsmul_eq_zero]
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
-⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
+by rw [← is_periodic_pt_mul_iff_pow_eq_one, is_periodic_pt_iff_minimal_period_dvd, order_of]
 
 lemma commute.order_of_mul_dvd_lcm (h : commute a b) :
   order_of (a * b) ∣ nat.lcm (order_of a) (order_of b) :=

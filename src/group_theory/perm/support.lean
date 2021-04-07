@@ -446,7 +446,7 @@ begin
       letI : fintype (a * t.prod).support := hpf.fintype,
       specialize ih (λ s hs, hl s (list.mem_cons_of_mem _ hs)) ht,
       simp only [←ih, ←(disjoint_prod_right t ha).card_support_mul, list.pmap, list.sum_cons,
-                 finite.card_to_finset, list.prod_cons, list.map],
+                 finite.card_to_finset, ←to_finset_card, list.prod_cons, list.map],
       congr } }
 end
 

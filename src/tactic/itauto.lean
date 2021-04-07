@@ -99,7 +99,6 @@ inductive proof
 | exfalso' (A : prop) (p : proof) : proof
 -- (p: (x: A) ⊢ B) ⊢ A → B
 | intro (x : name) (A : prop) (p : proof) : proof
--- The boolean in the next few lemmas is true for ↔ , false for ∧ .
 -- ak = and:  (p: A ∧ B) ⊢ A
 -- ak = iff:  (p: A ↔ B) ⊢ A → B
 -- ak = eq:  (p: A = B) ⊢ A → B

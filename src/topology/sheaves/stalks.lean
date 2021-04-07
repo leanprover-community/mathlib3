@@ -14,7 +14,7 @@ import category_theory.limits.types
 For a presheaf `F` on a topological space `X`, valued in some category `C`, the *stalk* of `F`
 at the point `x : X` is defined as the colimit of the following functor
 
-nbhds x ⥤ opens X ⥤ C
+(nbhds x)ᵒᵖ ⥤ (opens X)ᵒᵖ ⥤ C
 
 where the functor on the left is the inclusion of categories and the functor on the right is `F`.
 For an open neighborhood `U` of `x`, we define the map `F.germ x : F.obj (op U) ⟶ F.stalk x` as the
@@ -132,6 +132,7 @@ lemma stalk_hom_ext (F : X.presheaf C) {x} {Y : C} {f₁ f₂ : F.stalk x ⟶ Y}
   (ih : ∀ (U : opens X) (hxU : x ∈ U), F.germ ⟨x, hxU⟩ ≫ f₁ = F.germ ⟨x, hxU⟩ ≫ f₂) : f₁ = f₂ :=
 colimit.hom_ext $ λ U, by { op_induction U, cases U with U hxU, exact ih U hxU }
 
+/-- If two sections agree on all stalks, they must be equal -/
 lemma section_ext (F : sheaf (Type v) X) (U : opens X) (s t : F.presheaf.obj (op U)) :
   (∀ x : U, F.presheaf.germ x s = F.presheaf.germ x t) → s = t :=
 begin
@@ -359,9 +360,12 @@ end
 If all the stalk maps of map `f : F ⟶ G` of `Type`-valued sheaves are isomorphisms, then `f` is
 an isomorphism.
 -/
-instance is_iso_of_stalk_maps_iso {F G : sheaf (Type v) X} (f : F ⟶ G)
+-- Making this an instance would cause a loop in typeclass resolution with `stalk_map.is_iso`
+lemma is_iso_of_stalk_maps_iso {F G : sheaf (Type v) X} (f : F ⟶ G)
   [∀ x : X, is_iso (stalk_map x f)] : is_iso f :=
 begin
+  -- Rather annoyingly, an isomorphism of presheaves isn't quite the same as an isomorphism of
+  -- sheaves. We have to use that the induced functor from sheaves to presheaves is fully faithful
   haveI : is_iso ((induced_functor sheaf.presheaf).map f) :=
   @nat_iso.is_iso_of_is_iso_app _ _ _ _ F.presheaf G.presheaf f (by {
     intro U, op_induction U,
@@ -369,6 +373,20 @@ begin
     exact app_bijective_of_stalk_maps_bijective f (λ x, (is_iso_iff_bijective _).mp (_inst_3 x)) U,
   }),
   exact is_iso_of_fully_faithful (induced_functor sheaf.presheaf) f,
+end
+
+/--
+A morphism of `Type`-values sheaves `f : F ⟶ G` is an isomorphism if and only if all the stalk
+maps are isomorphisms
+-/
+def is_iso_iff_stalk_maps_iso {F G : sheaf (Type v) X} (f : F ⟶ G) :
+  is_iso f ↔ ∀ x : X, is_iso (stalk_map x f) :=
+begin
+  split,
+  { intros h x, resetI,
+    exact @stalk_map.is_iso _ _ _ _ x _ _ f ((induced_functor sheaf.presheaf).map_is_iso f) },
+  { intro h, resetI,
+    exact is_iso_of_stalk_maps_iso f }
 end
 
 

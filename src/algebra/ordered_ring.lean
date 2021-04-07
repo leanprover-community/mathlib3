@@ -681,7 +681,7 @@ def function.injective.ordered_ring {β : Type*}
   ordered_ring β :=
 { mul_pos := λ a b a0 b0, show f 0 < f (a * b), by { rw [zero, mul], apply mul_pos; rwa ← zero },
   ..hf.ordered_semiring f zero one add mul,
-  ..hf.ring_sub f zero one add mul neg sub }
+  ..hf.ring f zero one add mul neg sub }
 
 end ordered_ring
 
@@ -701,7 +701,7 @@ def function.injective.ordered_comm_ring [ordered_comm_ring α] {β : Type*}
   ordered_comm_ring β :=
 { ..hf.ordered_comm_semiring f zero one add mul,
   ..hf.ordered_ring f zero one add mul neg sub,
-  ..hf.comm_ring_sub f zero one add mul neg sub }
+  ..hf.comm_ring f zero one add mul neg sub }
 
 end ordered_comm_ring
 

@@ -335,8 +335,8 @@ protected def function.injective.division_ring [division_ring K] {K'}
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
   division_ring K' :=
-{ .. hf.group_with_zero_div f zero one mul inv div,
-  .. hf.ring_sub f zero one add mul neg sub }
+{ .. hf.group_with_zero f zero one mul inv div,
+  .. hf.ring f zero one add mul neg sub }
 
 /-- Pullback a `field` along an injective function. -/
 protected def function.injective.field [field K] {K'}
@@ -347,5 +347,5 @@ protected def function.injective.field [field K] {K'}
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
   field K' :=
-{ .. hf.comm_group_with_zero_div f zero one mul inv div,
-  .. hf.comm_ring_sub f zero one add mul neg sub }
+{ .. hf.comm_group_with_zero f zero one mul inv div,
+  .. hf.comm_ring f zero one add mul neg sub }

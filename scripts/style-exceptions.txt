@@ -132,7 +132,6 @@ src/logic/relator.lean : line 11 : ERR_MOD : Module docstring missing, or too la
 src/measure_theory/decomposition.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/order/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/order/boolean_algebra.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/bounded_lattice.lean : line 15 : ERR_MOD : Module docstring missing, or too late
 src/order/complete_boolean_algebra.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/directed.lean : line 9 : ERR_MOD : Module docstring missing, or too late

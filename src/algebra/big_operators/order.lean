@@ -310,7 +310,7 @@ lemma prod_add_prod_le {s : finset α} {i : α} {f g h : α → β}
   (hhf : ∀ j ∈ s, j ≠ i → h j ≤ f j) (hg : ∀ i ∈ s, 0 ≤ g i) (hh : ∀ i ∈ s, 0 ≤ h i) :
   ∏ i in s, g i + ∏ i in s, h i ≤ ∏ i in s, f i :=
 begin
-  simp_rw [← mul_prod_diff_singleton hi],
+  simp_rw [prod_eq_mul_prod_diff_singleton hi],
   refine le_trans _ (mul_le_mul_of_nonneg_right h2i _),
   { rw [right_distrib],
     apply add_le_add; apply mul_le_mul_of_nonneg_left; try { apply_assumption; assumption };
@@ -344,7 +344,7 @@ lemma prod_add_prod_le' {s : finset α} {i : α} {f g h : α → β} (hi : i ∈
   (hgf : ∀ j ∈ s, j ≠ i → g j ≤ f j) (hhf : ∀ j ∈ s, j ≠ i → h j ≤ f j) :
   ∏ i in s, g i + ∏ i in s, h i ≤ ∏ i in s, f i :=
 begin
-  classical, simp_rw [← mul_prod_diff_singleton hi],
+  classical, simp_rw [prod_eq_mul_prod_diff_singleton hi],
   refine le_trans _ (canonically_ordered_semiring.mul_le_mul_right' h2i _),
   rw [right_distrib],
   apply add_le_add; apply canonically_ordered_semiring.mul_le_mul_left'; apply prod_le_prod';

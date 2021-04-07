@@ -21,6 +21,7 @@ open set
 
 /-! ### The unit interval -/
 
+/-- The unit interval `[0,1]` in ℝ. -/
 abbreviation unit_interval : set ℝ := set.Icc 0 1
 
 localized "notation `I` := unit_interval" in unit_interval

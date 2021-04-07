@@ -193,11 +193,11 @@ begin
 end
 
 lemma add_order_of_le_of_nsmul_eq_zero {n : ℕ} (hn : 0 < n) (h : n •ℕ x = 0) : add_order_of x ≤ n :=
-le_of_not_lt (mt add_order_of_le_of_nsmul_eq_zero' (by simp [hn, h]))
+is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_add_iff_nsmul_eq_zero)
 
 @[to_additive add_order_of_le_of_nsmul_eq_zero]
 lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
-le_of_not_lt (mt order_of_le_of_pow_eq_one' (by simp [hn, h]))
+is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_mul_iff_pow_eq_one)
 
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin

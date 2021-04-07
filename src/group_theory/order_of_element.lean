@@ -8,6 +8,7 @@ import group_theory.coset
 import data.nat.totient
 import data.int.gcd
 import data.set.finite
+import dynamics.periodic_pts
 
 /-!
 # Order of an element
@@ -59,48 +60,92 @@ variables {H : Type u} [add_monoid H] {x : H}
 
 open_locale classical
 
-/-- `add_order_of h` is the additive order of the element `x`, i.e. the `n ≥ 1`, s. t. `n •ℕ x = 0`
-if it exists. Otherwise, i.e. if `x` is of infinite order, then `add_order_of x` is `0` by
-convention.-/
+/-- `add_order_of x` is the order of the element `x`, i.e. the `n ≥ 1`, s.t. `n •ℕ x = 0` if it
+exists. Otherwise, i.e. if `x` is of infinite order, then `add_order_of x` is `0` by convention.-/
 noncomputable def add_order_of (x : H) : ℕ :=
-if h : ∃ n, 0 < n ∧ n •ℕ x = 0 then nat.find h else 0
+minimal_period (+ x) 0
 
 /-- `order_of a` is the order of the element `a`, i.e. the `n ≥ 1`, s.t. `a ^ n = 1` if it exists.
 Otherwise, i.e. if `a` is of infinite order, then `order_of a` is `0` by convention.-/
+@[to_additive add_order_of]
 noncomputable def order_of (a : α) : ℕ :=
-if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
+minimal_period (* a) 1
 
 attribute [to_additive add_order_of] order_of
 
 @[simp] lemma add_order_of_of_mul_eq_order_of (a : α) :
-  add_order_of (additive.of_mul a) = order_of a :=
-by simp [add_order_of, order_of, ← of_mul_pow]
+  add_order_of (additive.of_mul a) = order_of a := rfl
 
 @[simp] lemma order_of_of_add_eq_add_order_of (x : H) :
-  order_of (multiplicative.of_add x) = add_order_of x :=
-by simp [add_order_of, order_of, ← of_add_nsmul]
+  order_of (multiplicative.of_add x) = add_order_of x := rfl
+
+-- Move the following four lemmas somewhere else?
+@[simp] lemma add_fpow_apply (x y : H) {n : ℕ} : (+ x)^[n] y = y + n •ℕ x :=
+begin
+  induction n with d hd,
+  { rw [zero_nsmul, iterate_zero, add_zero, id] },
+  { rw [iterate_succ', succ_nsmul', ← add_assoc, ← hd] }
+end
+
+@[simp, to_additive] lemma mul_fpow_apply (a b : α) {n : ℕ} : (* a)^[n] b = b * a ^ n :=
+begin
+  induction n with d hd,
+  { rw [pow_zero, mul_one, iterate_zero, id] },
+  { rw [iterate_succ', pow_succ', ← mul_assoc, ← hd] }
+end
+
+@[simp] lemma add_fpow_apply_zero (x : H) {n : ℕ} : (+ x)^[n] 0 = n •ℕ x :=
+by rw [add_fpow_apply, zero_add]
+
+@[simp, to_additive] lemma mul_fpow_apply_one (a : α) {n : ℕ} : (* a)^[n] 1 = a ^ n :=
+by rw [mul_fpow_apply, one_mul]
+
+lemma in_periodic_pts_add_iff_nsmul_eq_zero (x : H) :
+  (0 : H) ∈ periodic_pts (+ x) ↔ ∃ n, 0 < n ∧ n •ℕ x = 0 :=
+begin
+  split,
+  { intro h,
+    rcases h with ⟨n, hnpos, hper⟩,
+    refine ⟨n, hnpos, _⟩,
+    rwa [is_periodic_pt, is_fixed_pt, add_fpow_apply_zero] at hper },
+  { intro h,
+    rcases h with ⟨n, hnpos, hpow⟩,
+    refine ⟨n, hnpos, _⟩,
+    rwa [is_periodic_pt, is_fixed_pt, add_fpow_apply_zero] },
+end
+
+@[to_additive in_periodic_pts_add_iff_nsmul_eq_zero]
+lemma in_periodic_pts_mul_iff_pow_eq_one (a : α) :
+  (1 : α) ∈ periodic_pts (* a) ↔ ∃ n, 0 < n ∧ a ^ n = 1 :=
+begin
+  split,
+  { intro h,
+    rcases h with ⟨n, hnpos, hper⟩,
+    refine ⟨n, hnpos, _⟩,
+    rwa [is_periodic_pt, is_fixed_pt, mul_fpow_apply_one] at hper },
+  { intro h,
+    rcases h with ⟨n, hnpos, hpow⟩,
+    refine ⟨n, hnpos, _⟩,
+    rwa [is_periodic_pt, is_fixed_pt, mul_fpow_apply_one] },
+end
 
 lemma add_order_of_pos' {x : H} (h : ∃ n, 0 < n ∧ n •ℕ x = 0) : 0 < add_order_of x :=
 begin
-  rw add_order_of,
-  split_ifs,
-  exact (nat.find_spec h).1
+  refine minimal_period_pos_of_mem_periodic_pts _,
+  rwa in_periodic_pts_add_iff_nsmul_eq_zero
 end
 
 @[to_additive add_order_of_pos']
 lemma order_of_pos' {a : α} (h : ∃ n, 0 < n ∧ a ^ n = 1) : 0 < order_of a :=
 begin
-  rw order_of,
-  split_ifs,
-  exact (nat.find_spec h).1
+  refine minimal_period_pos_of_mem_periodic_pts _,
+  rwa in_periodic_pts_mul_iff_pow_eq_one,
 end
 
 lemma pow_order_of_eq_one (a : α): a ^ order_of a = 1 :=
 begin
-  rw order_of,
-  split_ifs with hfin,
-  { exact (nat.find_spec hfin).2 },
-  { exact pow_zero a }
+  rw [← mul_fpow_apply_one, ← is_fixed_pt, ← is_periodic_pt],
+  exact is_periodic_pt_minimal_period _ _,
 end
 
 lemma add_order_of_nsmul_eq_zero (x : H) : (add_order_of x) •ℕ x = 0 :=
@@ -112,42 +157,38 @@ end
 
 attribute [to_additive add_order_of_nsmul_eq_zero] pow_order_of_eq_one
 
-lemma add_order_of_eq_zero {a : H} (h : ∀n, 0 < n → n •ℕ a ≠ 0) : add_order_of a = 0 :=
+lemma add_order_of_eq_zero {x : H} (h : ∀n, 0 < n → n •ℕ x ≠ 0) : add_order_of x = 0 :=
 begin
-  rw add_order_of,
+  rw [add_order_of, minimal_period],
   split_ifs with hx,
   { exfalso,
-    cases hx with n hn,
-    exact (h n) hn.1 hn.2 },
+    rw in_periodic_pts_add_iff_nsmul_eq_zero at hx,
+    rcases hx with ⟨n, hn1, hn2⟩,
+    exact (h n) hn1 hn2 },
   { refl }
 end
 
 @[to_additive add_order_of_eq_zero]
 lemma order_of_eq_zero {a : α} (h : ∀n, 0 < n → a ^ n ≠ 1) : order_of a = 0 :=
 begin
-  rw order_of,
+  rw [order_of, minimal_period],
   split_ifs with hx,
   { exfalso,
-    cases hx with n hn,
-    exact (h n) hn.1 hn.2 },
+    rw in_periodic_pts_mul_iff_pow_eq_one at hx,
+    rcases hx with ⟨n, hn1, hn2⟩,
+    exact (h n) hn1 hn2 },
   { refl }
 end
 
 lemma add_order_of_le_of_nsmul_eq_zero' {m : ℕ} (h : m < add_order_of x) : ¬ (0 < m ∧ m •ℕ x = 0) :=
 begin
-  rw add_order_of at h,
-  split_ifs at h with hfin,
-  { exact nat.find_min hfin h },
-  { exact absurd h m.zero_le.not_lt }
+  sorry
 end
 
 @[to_additive add_order_of_le_of_nsmul_eq_zero']
 lemma order_of_le_of_pow_eq_one' {m : ℕ} (h : m < order_of a) : ¬ (0 < m ∧ a ^ m = 1) :=
 begin
-  rw order_of at h,
-  split_ifs at h with hfin,
-  { exact nat.find_min hfin h },
-  { exact absurd h m.zero_le.not_lt }
+  sorry
 end
 
 lemma add_order_of_le_of_nsmul_eq_zero {n : ℕ} (hn : 0 < n) (h : n •ℕ x = 0) : add_order_of x ≤ n :=

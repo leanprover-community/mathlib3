@@ -318,7 +318,8 @@ library_note "forgetful inheritance"
 if they hold by definition. -/
 meta def try_refl_tac : tactic unit := `[intros; refl]
 
-/- Design note on `add_monoid` and `monoid`.
+/-!
+### Design note on `add_monoid` and `monoid`
 
 An `add_monoid` has a natural `ℕ`-action, defined by `n • a = a + ... + a`, that we want to declare
 as an instance as it makes it possible to use the language of linear algebra. However, there are

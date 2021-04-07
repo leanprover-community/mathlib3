@@ -236,6 +236,8 @@ fintype.of_finset (s.to_finset ∪ t.to_finset) $ by simp
 theorem finite.union {s t : set α} : finite s → finite t → finite (s ∪ t)
 | ⟨hs⟩ ⟨ht⟩ := ⟨@set.fintype_union _ (classical.dec_eq α) _ _ hs ht⟩
 
+lemma finite.sup {s t : set α} : finite s → finite t → finite (s ⊔ t) := finite.union
+
 lemma infinite_of_finite_compl {α : Type} [_root_.infinite α] {s : set α}
   (hs : sᶜ.finite) : s.infinite :=
 λ h, set.infinite_univ (by simpa using hs.union h)

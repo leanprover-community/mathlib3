@@ -221,9 +221,7 @@ end
 For the `simp` version of this lemma, see `det_minor_equiv_self`; this one is unsuitable because
 `matrix.reindex_apply` unfolds `reindex` first.
 -/
-lemma det_reindex_self [comm_ring R]
-  (e : m ≃ n) (A : matrix m m R) :
-  det (reindex e e A) = det A :=
+lemma det_reindex_self (e : m ≃ n) (A : matrix m m R) : det (reindex e e A) = det A :=
 det_minor_equiv_self e.symm A
 
 /-- The determinant of a permutation matrix equals its sign. -/

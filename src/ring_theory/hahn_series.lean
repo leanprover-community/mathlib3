@@ -1003,6 +1003,7 @@ end semiring
 section of_finsupp
 variables [linear_order Γ] [add_comm_monoid R] {α : Type*}
 
+/-- A family with only finitely many nonzero elements is summable. -/
 def of_finsupp (f : α →₀ (hahn_series Γ R)) :
   summable_family Γ R α :=
 { to_fun := f,

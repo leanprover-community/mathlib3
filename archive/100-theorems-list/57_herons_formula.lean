@@ -27,7 +27,7 @@ variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 
 /-- The sine of a real number `x` is the square root of one minus the cosine squared of `x`. -/
-lemma sin_eq_sqrt_one_minus_cos_sq (x : ℝ) (hl : x ≥ 0) (hu : x ≤ π) :
+lemma sin_eq_sqrt_one_minus_cos_sq (x : ℝ) (hl : 0 ≤ x) (hu : x ≤ π) :
   real.sin x = √ (1 - (real.cos x)^2) :=
 begin
   rw ← real.sqrt_sqr (real.sin_nonneg_of_nonneg_of_le_pi hl hu),
@@ -50,15 +50,10 @@ include V
   the side `c`.
  -/
 theorem heron {p1 p2 p3 : P} (h1 : p1 ≠ p2) (h2 : p3 ≠ p2) :
-  1/2 * dist p1 p2 * dist p3 p2 * real.sin (∠ p1 p2 p3) =
-    √ (((dist p1 p2 + dist p3 p2 + dist p1 p3) / 2) *
-        (((dist p1 p2 + dist p3 p2 + dist p1 p3) / 2) - dist p1 p2) *
-        (((dist p1 p2 + dist p3 p2 + dist p1 p3) / 2) - dist p3 p2) *
-        (((dist p1 p2 + dist p3 p2 + dist p1 p3) / 2) - dist p1 p3)) :=
+  let a := dist p1 p2, b := dist p3 p2, c := dist p1 p3, s := (a + b + c) / 2 in
+  1/2 * a * b * real.sin (∠ p1 p2 p3) = √(s * (s - a) * (s - b) * (s - c)) :=
 begin
-  let a := dist p1 p2,
-  let b := dist p3 p2,
-  let c := dist p1 p3,
+  intros a b c s,
   let γ := ∠ p1 p2 p3,
 
   have a_nonzero : a ≠ 0 := (dist_pos.mpr h1).ne',

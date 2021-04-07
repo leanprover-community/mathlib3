@@ -3,6 +3,7 @@ import algebra.homology2.internal_hom
 import algebra.category.Module.abelian
 import algebra.category.Module.subobject
 import category_theory.limits.shapes.concrete_category
+import algebra.category.Module.epi_mono
 
 universes v u
 
@@ -18,9 +19,6 @@ variables {V : Type u} [category.{v} V] [has_zero_object V] [preadditive V]
 
 variables {c : complex_shape ι} {C D E : homological_complex V c}
 variables (f g : C ⟶ D) (h k : D ⟶ E) (i : ι)
-
-def ihom.to_pred {k : ℤ} (f : ihom k C D) (i j : ι) : C.X i ⟶ D.X_pred j := sorry
-def ihom.from_succ {k : ℤ} (f : ihom k C D) (i j : ι) : C.X_succ i ⟶ D.X j := sorry
 
 structure homotopy (f g : C ⟶ D) extends ihom (-1) C D :=
 (comm' : ∀ i, to_ihom.to_pred i i ≫ D.d_to i + C.d_from i ≫ to_ihom.from_succ i i + g.f i = f.f i)
@@ -129,7 +127,8 @@ end
 begin
   apply_fun (C.cycles i).arrow,
   exact w,
-  sorry,
+  apply (Module.mono_iff_injective _).mp,
+  exact (cycles C i).arrow_mono,
 end
 
 end homological_complex

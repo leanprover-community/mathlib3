@@ -125,6 +125,9 @@ begin
   apply complex_shape.subsingleton_next,
 end
 
+-- TODO we may need to prove that `c.rel_step n i j → c.rel_step m j k → c.rel_step (n+m) i k`
+-- (and also the converse, when `n` and `m` are both non-negative).
+
 def up' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape α :=
 { rel := λ i j , i + a = j,
   next_eq := λ i j k hi hj, hi.symm.trans hj,
@@ -135,9 +138,15 @@ def down' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape 
   next_eq := λ i j k hi hj, add_right_cancel (hi.trans (hj.symm)),
   prev_eq := λ i j k hi hj, hi.symm.trans hj, }
 
+/--
+The `complex_shape` appropriate for cohomology, so `d : X i ⟶ X j` only when `j = i + 1`.
+-/
 def up {α : Type*} [add_right_cancel_semigroup α] [has_one α] : complex_shape α :=
 up' 1
 
+/--
+The `complex_shape` appropriate for homology, so `d : X i ⟶ X j` only when `i = j + 1`.
+-/
 def down {α : Type*} [add_right_cancel_semigroup α] [has_one α] : complex_shape α :=
 down' 1
 

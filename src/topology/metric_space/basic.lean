@@ -16,6 +16,26 @@ This file defines metric spaces. Many definitions and theorems expected
 on metric spaces are already introduced on uniform spaces and topological spaces.
 For example: open and closed sets, compactness, completeness, continuity and uniform continuity
 
+## Main definitions
+
+* `has_dist α`: Endows a space `α` with a function `dist a b`.
+* `pseudo_metric_space α`: A space endowed with a distance function, which can
+  be zero even if the two elements are non-equal.
+* `metric.ball x ε`: The set of all points `y` with `dist y x < ε`.
+* `metric.bounded s`: Whether a subset of a `pseudo_metric_space` is bounded.
+* `metric_space α`: A `pseudo_metric_space` with the guarantee `dist x y = 0 → x = y`.
+
+Additional useful definitions:
+
+* `nndist a b`: `dist` as a function to the non-negative reals.
+* `metric.closed_ball x ε`: The set of all points `y` with `dist y x ≤ ε`.
+* `metric.sphere x ε`: The set of all points `y` with `dist y x = ε`.
+* `proper_space α`: A `pseudo_metric_space` where all closed balls are compact.
+* `metric.diam s` : The `supr` of the distances of members of `s`.
+  Defined in terms of `emetric.diam`, for better handling of the case when it should be infinite.
+
+TODO (anyone): Add "Main results" section.
+
 ## Implementation notes
 
 Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the

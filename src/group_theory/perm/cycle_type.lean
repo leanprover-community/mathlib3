@@ -293,7 +293,60 @@ section is_three_cycle
 variables [decidable_eq α] {σ : perm α}
 
 /-- A three-cycle is a cycle of length 3. -/
-def is_three_cycle (σ : perm α) : Prop := σ.support.card = 3
+/-- A three-cycle is a cycle of length 3. -/
+def is_three_cycle (σ : perm α) : Prop := σ.cycle_type = {3}
+
+lemma is_three_cycle.cycle_type (h : is_three_cycle σ) : σ.cycle_type = {3} := h
+
+lemma is_three_cycle.card_support (h : is_three_cycle σ) : σ.support.card = 3 :=
+by rw [←sum_cycle_type, h.cycle_type, singleton_eq_singleton, multiset.sum_cons, sum_zero]
+
+lemma card_support_eq_three_iff : σ.support.card = 3 ↔ σ.is_three_cycle :=
+begin
+  refine ⟨λ h, _, is_three_cycle.card_support⟩,
+  by_cases h0 : σ.cycle_type = 0,
+  { rw [←sum_cycle_type, h0, sum_zero] at h,
+    exact (ne_of_lt zero_lt_three h).elim },
+  obtain ⟨n, hn⟩ := exists_mem_of_ne_zero h0,
+  by_cases h1 : σ.cycle_type.erase n = 0,
+  { rw [←sum_cycle_type, ←cons_erase hn, h1, multiset.sum_singleton] at h,
+    rw [is_three_cycle, ←cons_erase hn, h1, h, singleton_eq_singleton] },
+  obtain ⟨m, hm⟩ := exists_mem_of_ne_zero h1,
+  rw [←sum_cycle_type, ←cons_erase hn, ←cons_erase hm, multiset.sum_cons, multiset.sum_cons] at h,
+  linarith [two_le_of_mem_cycle_type hn, two_le_of_mem_cycle_type (mem_of_mem_erase hm)],
+end
+
+lemma is_three_cycle.is_cycle (h : is_three_cycle σ) : is_cycle σ :=
+by rw [←card_cycle_type_eq_one, h.cycle_type, singleton_eq_singleton, card_singleton]
+
+lemma is_three_cycle.sign (h : is_three_cycle σ) : sign σ = 1 :=
+begin
+  rw [sign_of_cycle_type, h.cycle_type],
+  refl,
+end
+
+lemma is_three_cycle.inv {f : perm α} (h : is_three_cycle f) : is_three_cycle (f⁻¹) :=
+by rwa [is_three_cycle, cycle_type_inv]
+
+lemma is_three_cycle_swap_mul_swap_same {a b c : α} (ab : a ≠ b) (ac : a ≠ c) (bc : b ≠ c) :
+  is_three_cycle (swap a b * swap a c) :=
+begin
+  suffices h : support (swap a b * swap a c) = {a, b, c},
+  { rw [←card_support_eq_three_iff, h],
+    simp [ab, ac, bc] },
+  apply le_antisymm ((support_mul_le _ _).trans (λ x, _)) (λ x hx, _),
+  { simp [ab, ac, bc] },
+  { simp only [finset.mem_insert, finset.mem_singleton] at hx,
+    rw mem_support,
+    simp only [perm.coe_mul, function.comp_app, ne.def],
+    obtain rfl | rfl | rfl := hx,
+    { rw [swap_apply_left, swap_apply_of_ne_of_ne ac.symm bc.symm],
+      exact ac.symm },
+    { rw [swap_apply_of_ne_of_ne ab.symm bc, swap_apply_right],
+      exact ab },
+    { rw [swap_apply_right, swap_apply_left],
+      exact bc } }
+end
 
 lemma is_three_cycle.card_support (h : is_three_cycle σ) : σ.support.card = 3 := h
 

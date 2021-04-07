@@ -106,8 +106,8 @@ end
 def X_pred_iso {i j : ι} (r : c.rel i j) :
   C.X_pred j ≅ C.X i :=
 begin
-  dsimp [X_pred],
   apply eq_to_iso,
+  dsimp [X_pred],
   rw c.prev_eq_some r,
   refl,
 end
@@ -115,8 +115,8 @@ end
 def X_pred_iso_zero {j : ι} (h : c.prev j = none) :
   C.X_pred j ≅ 0 :=
 begin
-  dsimp [X_pred],
   apply eq_to_iso,
+  dsimp [X_pred],
   rw h,
   refl,
 end
@@ -130,8 +130,8 @@ end
 def X_succ_iso {i j : ι} (r : c.rel i j) :
   C.X_succ i ≅ C.X j :=
 begin
-  dsimp [X_succ],
   apply eq_to_iso,
+  dsimp [X_succ],
   rw c.next_eq_some r,
   refl,
 end
@@ -139,8 +139,8 @@ end
 def X_succ_iso_zero {i : ι} (h : c.next i = none) :
   C.X_succ i ≅ 0 :=
 begin
-  dsimp [X_succ],
   apply eq_to_iso,
+  dsimp [X_succ],
   rw h,
   refl,
 end

@@ -149,14 +149,14 @@ def down' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape 
 The `complex_shape` appropriate for cohomology, so `d : X i ⟶ X j` only when `j = i + 1`.
 -/
 @[simps]
-def up {α : Type*} [add_right_cancel_semigroup α] [has_one α] : complex_shape α :=
+def up (α : Type*) [add_right_cancel_semigroup α] [has_one α] : complex_shape α :=
 up' 1
 
 /--
 The `complex_shape` appropriate for homology, so `d : X i ⟶ X j` only when `i = j + 1`.
 -/
 @[simps]
-def down {α : Type*} [add_right_cancel_semigroup α] [has_one α] : complex_shape α :=
+def down (α : Type*) [add_right_cancel_semigroup α] [has_one α] : complex_shape α :=
 down' 1
 
 end complex_shape

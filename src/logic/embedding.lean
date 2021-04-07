@@ -34,8 +34,17 @@ end function
 protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : α ↪ β :=
 ⟨f, f.injective⟩
 
+/-- Convert an `α ↬ β` to `α ↪ β`. -/
+@[simps]
+protected def injection.to_embedding {α : Sort u} {β : Sort v} (f : α ↬ β) : α ↪ β :=
+⟨f, f.injective⟩
+
 namespace function
 namespace embedding
+
+/-- Convert an `α ↪ β` to `α ↬ β` by using `function.inv_fun` as the left-inverse. -/
+noncomputable def to_injection {α β} [nonempty α] (f : α ↪ β) : α ↬ β :=
+{ to_fun := f, ..f.inj'.to_injection }
 
 @[ext] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; simpa using funext h

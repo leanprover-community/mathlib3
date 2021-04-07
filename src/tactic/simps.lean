@@ -322,48 +322,6 @@ library_note "custom simps projection"
     simps_get_raw_projections env nm tt (data.2.get_or_else []) trc
 
 /--
-  Get the projections of a structure used by `@[simps]` applied to the appropriate arguments.
-  Returns a list of triples
-  (projection expression, given projection name, corresponding right-hand-side),
-  one for each projection. The given projection name is the name for the projection used by the user
-  used to generate (and parse) projection names. For example, in the structure
-
-  Example 1: ``simps_get_projection_exprs env `(α × β) `(⟨x, y⟩)`` will give the output
-  ```
-    [(`(@prod.fst.{u v} α β), `fst, `(x)),
-     (`(@prod.snd.{u v} α β), `snd, `(y))]
-  ```
-
-  Example 2: ``simps_get_projection_exprs env `(α ≃ α) `(⟨id, id, λ _, rfl, λ _, rfl⟩)``
-  will give the output
-  ```
-    [(`(@equiv.to_fun.{u u} α α), `apply, `(id)),
-     (`(@equiv.inv_fun.{u u} α α), `symm_apply, `(id)),
-     ...,
-     ...]
-  ```
-  The last two fields of the list correspond to the propositional fields of the structure,
-  and are rarely/never used.
--/
--- This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the the given arguments
--- might not uniquely specify the universe levels yet.
-meta def simps_get_projection_exprs (e : environment) (tgt : expr)
-  (rhs : expr) (cfg : simps_cfg) : tactic $ list $ expr × name × expr := do
-  let params := get_app_args tgt, -- the parameters of the structure
-  (params.zip $ (get_app_args rhs).take params.length).mmap' (λ ⟨a, b⟩, is_def_eq a b)
-    <|> fail "unreachable code (1)",
-  let str := tgt.get_app_fn.const_name,
-  let rhs_args := (get_app_args rhs).drop params.length, -- the fields of the object
-  (raw_univs, projs_and_raw_exprs) ← simps_get_raw_projections e str cfg.trace,
-  guard (rhs_args.length = projs_and_raw_exprs.length) <|> fail "unreachable code (2)", -- remove
-  let univs := raw_univs.zip tgt.get_app_fn.univ_levels,
-  let projs := projs_and_raw_exprs.map prod.fst,
-  let raw_exprs := projs_and_raw_exprs.map $ λ p, p.2.1,
-  let proj_exprs := raw_exprs.map $
-    λ raw_expr, (raw_expr.instantiate_univ_params univs).instantiate_lambdas_or_apps params,
-  return $ proj_exprs.zip $ projs.zip rhs_args
-
-/--
   Configuration options for the `@[simps]` attribute.
   * `attrs` specifies the list of attributes given to the generated lemmas. Default: ``[`simp]``.
     The attributes can be either basic attributes, or user attributes without parameters.
@@ -410,6 +368,49 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
 (fully_applied := tt)
 (not_recursive := [`prod, `pprod])
 (trace         := ff)
+
+/--
+  Get the projections of a structure used by `@[simps]` applied to the appropriate arguments.
+  Returns a list of triples
+  (projection expression, given projection name, corresponding right-hand-side),
+  one for each projection. The given projection name is the name for the projection used by the user
+  used to generate (and parse) projection names. For example, in the structure
+
+  Example 1: ``simps_get_projection_exprs env `(α × β) `(⟨x, y⟩)`` will give the output
+  ```
+    [(`(@prod.fst.{u v} α β), `fst, `(x)),
+     (`(@prod.snd.{u v} α β), `snd, `(y))]
+  ```
+
+  Example 2: ``simps_get_projection_exprs env `(α ≃ α) `(⟨id, id, λ _, rfl, λ _, rfl⟩)``
+  will give the output
+  ```
+    [(`(@equiv.to_fun.{u u} α α), `apply, `(id)),
+     (`(@equiv.inv_fun.{u u} α α), `symm_apply, `(id)),
+     ...,
+     ...]
+  ```
+  The last two fields of the list correspond to the propositional fields of the structure,
+  and are rarely/never used.
+-/
+-- This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the the given arguments
+-- might not uniquely specify the universe levels yet.
+meta def simps_get_projection_exprs (e : environment) (tgt : expr)
+  (rhs : expr) (cfg : simps_cfg) : tactic $ list $ expr × name × expr := do
+  let params := get_app_args tgt, -- the parameters of the structure
+  (params.zip $ (get_app_args rhs).take params.length).mmap' (λ ⟨a, b⟩, is_def_eq a b)
+    <|> fail "unreachable code (1)",
+  let str := tgt.get_app_fn.const_name,
+  let rhs_args := (get_app_args rhs).drop params.length, -- the fields of the object
+  (raw_univs, projs_and_raw_exprs) ← simps_get_raw_projections e str cfg.trace,
+  guard (rhs_args.length = projs_and_raw_exprs.length) <|> fail "unreachable code (2)", -- remove
+  let univs := raw_univs.zip tgt.get_app_fn.univ_levels,
+  let projs := projs_and_raw_exprs.map prod.fst,
+  let raw_exprs := projs_and_raw_exprs.map $ λ p, p.2.1,
+  let proj_exprs := raw_exprs.map $
+    λ raw_expr, (raw_expr.instantiate_univ_params univs).instantiate_lambdas_or_apps params,
+  return $ proj_exprs.zip $ projs.zip rhs_args
+
 
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
   `args` is the list of local constants occurring, and `univs` is the list of universe variables.

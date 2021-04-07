@@ -886,28 +886,8 @@ variables {l m n : Type*} [fintype l] [fintype m] [fintype n]
 variables {l' m' n' : Type*} [fintype l'] [fintype m'] [fintype n']
 variables {R : Type v}
 
-/-- The natural map that reindexes a matrix's rows and columns with equivalent types is an
-equivalence. -/
-def reindex (eₘ : m ≃ m') (eₙ : n ≃ n') : matrix m n R ≃ matrix m' n' R :=
-{ to_fun    := λ M i j, M (eₘ.symm i) (eₙ.symm j),
-  inv_fun   := λ M i j, M (eₘ i) (eₙ j),
-  left_inv  := λ M, by simp,
-  right_inv := λ M, by simp, }
-
-@[simp] lemma reindex_apply (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
-  reindex eₘ eₙ M = λ i j, M (eₘ.symm i) (eₙ.symm j) :=
-rfl
-
-@[simp] lemma reindex_symm_apply (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) :
-  (reindex eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
-rfl
-
-@[simp] lemma reindex_refl_refl (A : matrix m n R) :
-  (reindex (equiv.refl _) (equiv.refl _) A) = A :=
-by { ext, simp only [reindex_apply, equiv.refl_symm, equiv.refl_apply] }
-
-/-- The natural map that reindexes a matrix's rows and columns with equivalent types is a linear
-equivalence. -/
+/-- The natural map that reindexes a matrix's rows and columns with equivalent types,
+`matrix.reindex`, is a linear equivalence. -/
 def reindex_linear_equiv [semiring R] (eₘ : m ≃ m') (eₙ : n ≃ n') :
   matrix m n R ≃ₗ[R] matrix m' n' R :=
 { map_add'  := λ M N, rfl,
@@ -981,10 +961,6 @@ rfl
 @[simp] lemma reindex_alg_equiv_refl [comm_semiring R] [decidable_eq m]
   (A : matrix m m R) : (reindex_alg_equiv (equiv.refl m) A) = A :=
 reindex_linear_equiv_refl_refl A
-
-lemma reindex_transpose (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
-  (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
-rfl
 
 /-- `simp` version of `det_reindex_self`
 

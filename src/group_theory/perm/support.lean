@@ -247,6 +247,20 @@ begin
   { split_ifs at hy; cc }
 end
 
+lemma pow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) (n : ℕ) :
+  (f ^ n) x = x :=
+begin
+  rw ←not_mem_support at hfx ⊢,
+  exact λ H, hfx (support_pow_le _ _ H)
+end
+
+lemma gpow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) (n : ℤ) :
+  (f ^ n) x = x :=
+begin
+  rw ←not_mem_support at hfx ⊢,
+  exact λ H, hfx (support_gpow_le _ _ H)
+end
+
 section fintype
 
 variables {f : perm α} [fintype f.support]

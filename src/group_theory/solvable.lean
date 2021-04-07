@@ -45,7 +45,7 @@ begin
     exact subgroup.normal_closure_normal },
   apply set.subset.antisymm group.subset_conjugates_of_set,
   intros a h,
-  rw group.mem_conjugates_of_set_iff at h,
+  simp_rw [group.mem_conjugates_of_set_iff, is_conj_iff] at h,
   rcases h with ⟨b, ⟨c, hc, e, he, rfl⟩, d, rfl⟩,
   exact ⟨d * c * d⁻¹, h₁.conj_mem c hc d, d * e * d⁻¹, h₂.conj_mem e he d, by group⟩,
 end

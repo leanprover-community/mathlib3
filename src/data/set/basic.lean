@@ -536,17 +536,17 @@ theorem subset_inter {s t r : set α} (rs : r ⊆ s) (rt : r ⊆ t) : r ⊆ s �
 @[simp] theorem subset_inter_iff {s t r : set α} : r ⊆ s ∩ t ↔ r ⊆ s ∧ r ⊆ t :=
 (forall_congr (by exact λ x, imp_and_distrib)).trans forall_and_distrib
 
-theorem subset_iff_inter_eq_left {s t : set α} : s ⊆ t ↔ s ∩ t = s :=
-(ext_iff.trans $ forall_congr $ λ x, and_iff_left_iff_imp).symm
+theorem inter_eq_left_iff_subset {s t : set α} : s ∩ t = s ↔ s ⊆ t :=
+ext_iff.trans $ forall_congr $ λ x, and_iff_left_iff_imp
 
-theorem subset_iff_inter_eq_right {s t : set α} : t ⊆ s ↔ s ∩ t = t :=
-(ext_iff.trans $ forall_congr $ λ x, and_iff_right_iff_imp).symm
+theorem inter_eq_right_iff_subset {s t : set α} : s ∩ t = t ↔ t ⊆ s :=
+ext_iff.trans $ forall_congr $ λ x, and_iff_right_iff_imp
 
 theorem inter_eq_self_of_subset_left {s t : set α} : s ⊆ t → s ∩ t = s :=
-subset_iff_inter_eq_left.1
+inter_eq_left_iff_subset.mpr
 
 theorem inter_eq_self_of_subset_right {s t : set α} : t ⊆ s → s ∩ t = t :=
-subset_iff_inter_eq_right.1
+inter_eq_right_iff_subset.mpr
 
 @[simp] theorem inter_univ (a : set α) : a ∩ univ = a :=
 inter_eq_self_of_subset_left $ subset_univ _
@@ -564,10 +564,10 @@ theorem inter_subset_inter_right {s t : set α} (u : set α) (H : s ⊆ t) : u �
 inter_subset_inter subset.rfl H
 
 theorem union_inter_cancel_left {s t : set α} : (s ∪ t) ∩ s = s :=
-subset_iff_inter_eq_right.1 $ subset_union_left _ _
+inter_eq_self_of_subset_right $ subset_union_left _ _
 
 theorem union_inter_cancel_right {s t : set α} : (s ∪ t) ∩ t = t :=
-subset_iff_inter_eq_right.1 $ subset_union_right _ _
+inter_eq_self_of_subset_right $ subset_union_right _ _
 
 /-! ### Distributivity laws -/
 
@@ -742,7 +742,7 @@ theorem mem_sep_iff {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p
 iff.rfl
 
 theorem eq_sep_of_subset {s t : set α} (h : s ⊆ t) : s = {x ∈ t | x ∈ s} :=
-(subset_iff_inter_eq_right.1 h).symm
+(inter_eq_self_of_subset_right h).symm
 
 theorem sep_subset (s : set α) (p : α → Prop) : {x ∈ s | p x} ⊆ s := λ x, and.left
 

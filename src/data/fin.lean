@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import data.nat.cast
+import data.int.basic
 import tactic.localized
 import tactic.apply_fun
 import order.rel_iso
@@ -72,16 +73,16 @@ open fin nat function
 /-- Elimination principle for the empty set `fin 0`, dependent version. -/
 def fin_zero_elim {α : fin 0 → Sort u} (x : fin 0) : α x := x.elim0
 
-lemma fact.succ.pos {n} : fact (0 < succ n) := zero_lt_succ _
+lemma fact.succ.pos {n} : fact (0 < succ n) := ⟨zero_lt_succ _⟩
 
 lemma fact.bit0.pos {n} [h : fact (0 < n)] : fact (0 < bit0 n) :=
-nat.zero_lt_bit0 $ ne_of_gt h
+⟨nat.zero_lt_bit0 $ ne_of_gt h.1⟩
 
 lemma fact.bit1.pos {n} : fact (0 < bit1 n) :=
-nat.zero_lt_bit1 _
+⟨nat.zero_lt_bit1 _⟩
 
 lemma fact.pow.pos {p n : ℕ} [h : fact $ 0 < p] : fact (0 < p ^ n) :=
-pow_pos h _
+⟨pow_pos h.1 _⟩
 
 localized "attribute [instance] fact.succ.pos" in fin_fact
 localized "attribute [instance] fact.bit0.pos" in fin_fact
@@ -311,7 +312,7 @@ section add
 -/
 
 /-- convert a `ℕ` to `fin n`, provided `n` is positive -/
-def of_nat' [h : fact (0 < n)] (i : ℕ) : fin n := ⟨i%n, mod_lt _ h⟩
+def of_nat' [h : fact (0 < n)] (i : ℕ) : fin n := ⟨i%n, mod_lt _ h.1⟩
 
 lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
 lemma coe_one' {n : ℕ} : ((1 : fin (n+1)) : ℕ) = 1 % (n+1) := rfl
@@ -768,6 +769,49 @@ by simp [eq_iff_veq]
 
 end pred
 
+section add_group
+
+open nat int
+
+/-- Negation on `fin n` -/
+instance (n : ℕ) : has_neg (fin n) :=
+⟨λ a, ⟨nat_mod (-(a.1 : ℤ)) n,
+begin
+  have npos : 0 < n := lt_of_le_of_lt (nat.zero_le _) a.2,
+  have h : (n : ℤ) ≠ 0 := int.coe_nat_ne_zero_iff_pos.2 npos,
+  have := int.mod_lt (-(a.1 : ℤ)) h,
+  rw [(abs_of_nonneg (int.coe_nat_nonneg n))] at this,
+  rwa [← int.coe_nat_lt, nat_mod, to_nat_of_nonneg (int.mod_nonneg _ h)]
+end⟩⟩
+
+/-- Abelian group structure on `fin (n+1)`. -/
+instance (n : ℕ) : add_comm_group (fin (n+1)) :=
+{ add_left_neg :=
+    λ ⟨a, ha⟩, fin.eq_of_veq (show (((-a : ℤ) % (n+1)).to_nat + a) % (n+1) = 0,
+      from int.coe_nat_inj
+      begin
+        have npos : 0 < n+1 := lt_of_le_of_lt (nat.zero_le _) ha,
+        have hn : ((n+1) : ℤ) ≠ 0 := (ne_of_lt (int.coe_nat_lt.2 npos)).symm,
+        rw [int.coe_nat_mod, int.coe_nat_add, to_nat_of_nonneg (int.mod_nonneg _ hn), add_comm],
+        simp [int.zero_mod],
+      end),
+  sub_eq_add_neg := λ ⟨a, ha⟩ ⟨b, hb⟩, subtype.eq $
+    show (a + (n + 1 - b)) % (n + 1) = (a + nat_mod (-b : ℤ) _) % (n + 1),
+    from int.coe_nat_inj
+    begin
+      have npos : 0 < n+1 := lt_of_le_of_lt (nat.zero_le _) ha,
+      have hn : ((n+1 : _) : ℤ) ≠ 0 := (ne_of_lt (int.coe_nat_lt.2 npos)).symm,
+      rw [int.coe_nat_mod, int.coe_nat_mod, int.coe_nat_add a, int.coe_nat_add a,
+        int.mod_add_cancel_left, int.nat_mod, to_nat_of_nonneg (int.mod_nonneg (-b : ℤ) hn),
+        int.coe_nat_sub hb.le, sub_eq_add_neg],
+      simp,
+    end,
+  sub := fin.sub,
+  ..fin.add_comm_monoid n,
+  ..fin.has_neg n.succ  }
+
+end add_group
+
 section succ_above
 
 lemma succ_above_aux (p : fin (n + 1)) :
@@ -1105,6 +1149,9 @@ variables {α : fin (n+1) → Type u} (x : α 0) (q : Πi, α i) (p : Π(i : fin
 /-- The tail of an `n+1` tuple, i.e., its last `n` entries. -/
 def tail (q : Πi, α i) : (Π(i : fin n), α (i.succ)) := λ i, q i.succ
 
+lemma tail_def {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
+  tail (λ k : fin (n+1), q k) = (λ k : fin n, q k.succ) := rfl
+
 /-- Adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple. -/
 def cons (x : α 0) (p : Π(i : fin n), α (i.succ)) : Πi, α i :=
 λ j, fin.cases x p j
@@ -1238,6 +1285,9 @@ variables {α : fin (n+1) → Type u} (x : α (last n)) (q : Πi, α i) (p : Π(
 def init (q : Πi, α i) (i : fin n) : α i.cast_succ :=
 q i.cast_succ
 
+lemma init_def {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
+  init (λ k : fin (n+1), q k) = (λ k : fin n, q k.cast_succ) := rfl
+
 /-- Adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc` comes from
 `cons` (i.e., adding an element to the left of a tuple) read in reverse order. -/
 def snoc (p : Π(i : fin n), α i.cast_succ) (x : α (last n)) (i : fin (n+1)) : α i :=
@@ -1276,7 +1326,7 @@ begin
       { have : update (snoc p x) j (_root_.cast C1 y) j = _root_.cast C1 y, by simp,
         convert this,
         { exact h'.symm },
-        { exact heq_of_eq_mp (congr_arg α (eq.symm h')) rfl } },
+        { exact heq_of_cast_eq (congr_arg α (eq.symm h')) rfl } },
       have C2 : α i.cast_succ = α (cast_succ (cast_lt j h)),
         by rw [cast_succ_cast_lt, h'],
       have E2 : update p i y (cast_lt j h) = _root_.cast C2 y,
@@ -1284,7 +1334,7 @@ begin
           by simp,
         convert this,
         { simp [h, h'] },
-        { exact heq_of_eq_mp C2 rfl } },
+        { exact heq_of_cast_eq C2 rfl } },
       rw [E1, E2],
       exact eq_rec_compose _ _ _ },
     { have : ¬(cast_lt j h = i),

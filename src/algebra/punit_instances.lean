@@ -49,7 +49,7 @@ by refine
   compl := λ _, star,
   sdiff := λ _ _, star,
   .. };
-intros; simp only [eq_iff_true_of_subsingleton]
+intros; trivial <|> simp only [eq_iff_true_of_subsingleton]
 
 instance : canonically_ordered_add_monoid punit :=
 by refine

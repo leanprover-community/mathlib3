@@ -91,6 +91,10 @@ theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) :
   (∏ x in s, f x) = s.fold (*) 1 f :=
 rfl
 
+@[simp] lemma sum_multiset_singleton (s : finset α) :
+  s.sum (λ x, x ::ₘ 0) = s.val :=
+by simp [sum_eq_multiset_sum]
+
 end finset
 
 
@@ -132,13 +136,13 @@ lemma ring_hom.map_sum [semiring β] [semiring γ]
 g.to_add_monoid_hom.map_sum f s
 
 @[to_additive]
-lemma monoid_hom.coe_prod [monoid β] [comm_monoid γ] (f : α → β →* γ) (s : finset α) :
+lemma monoid_hom.coe_prod [mul_one_class β] [comm_monoid γ] (f : α → β →* γ) (s : finset α) :
   ⇑(∏ x in s, f x) = ∏ x in s, f x :=
 (monoid_hom.coe_fn β γ).map_prod _ _
 
 @[simp, to_additive]
-lemma monoid_hom.finset_prod_apply [monoid β] [comm_monoid γ] (f : α → β →* γ) (s : finset α)
-  (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
+lemma monoid_hom.finset_prod_apply [mul_one_class β] [comm_monoid γ] (f : α → β →* γ)
+  (s : finset α) (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
 (monoid_hom.eval b).map_prod _ _
 
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
@@ -152,8 +156,8 @@ variables [comm_monoid β]
 lemma prod_empty {α : Type u} {f : α → β} : (∏ x in (∅:finset α), f x) = 1 := rfl
 
 @[simp, to_additive]
-lemma prod_insert [decidable_eq α] :
-  a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x := fold_insert
+lemma prod_insert [decidable_eq α] : a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x :=
+fold_insert
 
 /--
 The product of `f` over `insert a s` is the same as
@@ -224,12 +228,14 @@ end comm_monoid
 end finset
 
 section
+open finset
 variables [fintype α] [decidable_eq α] [comm_monoid β]
 
 @[to_additive]
 lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → β) :
   (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
 (finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+
 end
 
 namespace finset
@@ -404,21 +410,69 @@ calc (∏ a in s.filter p, f a) = ∏ a in s.filter p, if p a then f a else 1 :
     end
 
 @[to_additive]
-lemma prod_eq_single {s : finset α} {f : α → β} (a : α)
-  (h₀ : ∀b∈s, b ≠ a → f b = 1) (h₁ : a ∉ s → f a = 1) : (∏ x in s, f x) = f a :=
-by haveI := classical.dec_eq α;
-from classical.by_cases
-  (assume : a ∈ s,
-    calc (∏ x in s, f x) = ∏ x in {a}, f x :
+lemma prod_eq_single_of_mem {s : finset α} {f : α → β} (a : α) (h : a ∈ s)
+  (h₀ : ∀ b ∈ s, b ≠ a → f b = 1) : (∏ x in s, f x) = f a :=
+begin
+  haveI := classical.dec_eq α,
+  calc (∏ x in s, f x) = ∏ x in {a}, f x :
       begin
         refine (prod_subset _ _).symm,
         { intros _ H, rwa mem_singleton.1 H },
         { simpa only [mem_singleton] }
       end
-      ... = f a : prod_singleton)
+      ... = f a : prod_singleton
+end
+
+@[to_additive]
+lemma prod_eq_single {s : finset α} {f : α → β} (a : α)
+  (h₀ : ∀b∈s, b ≠ a → f b = 1) (h₁ : a ∉ s → f a = 1) : (∏ x in s, f x) = f a :=
+by haveI := classical.dec_eq α;
+from classical.by_cases
+  (assume : a ∈ s, prod_eq_single_of_mem a this h₀)
   (assume : a ∉ s,
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
       prod_const_one.trans (h₁ this).symm)
+
+@[to_additive]
+lemma prod_eq_mul_of_mem {s : finset α} {f : α → β} (a b : α) (ha : a ∈ s) (hb : b ∈ s) (hn : a ≠ b)
+  (h₀ : ∀ c ∈ s, c ≠ a ∧ c ≠ b → f c = 1) : (∏ x in s, f x) = (f a) * (f b) :=
+begin
+  haveI := classical.dec_eq α;
+  let s' := ({a, b} : finset α),
+  have hu : s' ⊆ s,
+  { refine insert_subset.mpr _, apply and.intro ha, apply singleton_subset_iff.mpr hb },
+  have hf : ∀ c ∈ s, c ∉ s' → f c = 1,
+  { intros c hc hcs,
+    apply h₀ c hc,
+    apply not_or_distrib.mp,
+    intro hab,
+    apply hcs,
+    apply mem_insert.mpr,
+    rw mem_singleton,
+    exact hab },
+  rw ←prod_subset hu hf,
+  exact finset.prod_pair hn
+end
+
+@[to_additive]
+lemma prod_eq_mul {s : finset α} {f : α → β} (a b : α) (hn : a ≠ b)
+  (h₀ : ∀ c ∈ s, c ≠ a ∧ c ≠ b → f c = 1) (ha : a ∉ s → f a = 1) (hb : b ∉ s → f b = 1) :
+  (∏ x in s, f x) = (f a) * (f b) :=
+begin
+  haveI := classical.dec_eq α;
+  by_cases h₁ : a ∈ s; by_cases h₂ : b ∈ s,
+  { exact prod_eq_mul_of_mem a b h₁ h₂ hn h₀ },
+  { rw [hb h₂, mul_one],
+    apply prod_eq_single_of_mem a h₁,
+    exact λ c hc hca, h₀ c hc ⟨hca, ne_of_mem_of_not_mem hc h₂⟩ },
+  { rw [ha h₁, one_mul],
+    apply prod_eq_single_of_mem b h₂,
+    exact λ c hc hcb, h₀ c hc ⟨ne_of_mem_of_not_mem hc h₁, hcb⟩ },
+  { rw [ha h₁, hb h₂, mul_one],
+    exact trans
+      (prod_congr rfl (λ c hc, h₀ c hc ⟨ne_of_mem_of_not_mem hc h₁, ne_of_mem_of_not_mem hc h₂⟩))
+      prod_const_one }
+end
 
 @[to_additive]
 lemma prod_attach {f : α → β} : (∏ x in s.attach, f x) = (∏ x in s, f x) :=
@@ -895,9 +949,24 @@ lemma prod_inter_mul_prod_diff [decidable_eq α] (s t : finset α) (f : α → �
 by { convert (s.prod_piecewise t f f).symm, simp [finset.piecewise] }
 
 @[to_additive]
-lemma mul_prod_diff_singleton [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s)
-  (f : α → β) : f i * (∏ x in s \ {i}, f x) = ∏ x in s, f x :=
-by { convert s.prod_inter_mul_prod_diff {i} f, simp [h] }
+lemma prod_eq_mul_prod_diff_singleton [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s)
+  (f : α → β) : ∏ x in s, f x = f i * ∏ x in s \ {i}, f x :=
+by { convert (s.prod_inter_mul_prod_diff {i} f).symm, simp [h] }
+
+@[to_additive]
+lemma prod_eq_prod_diff_singleton_mul [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s)
+  (f : α → β) : ∏ x in s, f x = (∏ x in s \ {i}, f x) * f i :=
+by { rw [prod_eq_mul_prod_diff_singleton h, mul_comm] }
+
+@[to_additive]
+lemma _root_.fintype.prod_eq_mul_prod_compl [decidable_eq α] [fintype α] (a : α) (f : α → β) :
+  ∏ i, f i = (f a) * ∏ i in {a}ᶜ, f i :=
+prod_eq_mul_prod_diff_singleton (mem_univ a) f
+
+@[to_additive]
+lemma _root_.fintype.prod_eq_prod_compl_mul [decidable_eq α] [fintype α] (a : α) (f : α → β) :
+  ∏ i, f i = (∏ i in {a}ᶜ, f i) * f a :=
+prod_eq_prod_diff_singleton_mul (mem_univ a) f
 
 /-- A product can be partitioned into a product of products, each equivalent under a setoid. -/
 @[to_additive "A sum can be partitioned into a sum of sums, each equivalent under a setoid."]
@@ -1014,7 +1083,7 @@ end comm_monoid
 lemma prod_add_prod_eq [comm_semiring β] {s : finset α} {i : α} {f g h : α → β}
   (hi : i ∈ s) (h1 : g i + h i = f i) (h2 : ∀ j ∈ s, j ≠ i → g j = f j)
   (h3 : ∀ j ∈ s, j ≠ i → h j = f j) : ∏ i in s, g i + ∏ i in s, h i = ∏ i in s, f i :=
-by { classical, simp_rw [← mul_prod_diff_singleton hi, ← h1, right_distrib],
+by { classical, simp_rw [prod_eq_mul_prod_diff_singleton hi, ← h1, right_distrib],
      congr' 2; apply prod_congr rfl; simpa }
 
 lemma sum_update_of_mem [add_comm_monoid β] [decidable_eq α] {s : finset α} {i : α}

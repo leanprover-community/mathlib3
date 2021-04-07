@@ -7,6 +7,7 @@ Authors: Johan Commelin
 import data.mv_polynomial
 import algebra.algebra.operations
 import data.fintype.card
+import algebra.direct_sum_graded
 
 /-!
 # Homogeneous polynomials
@@ -204,6 +205,18 @@ begin
     exact finset.le_sup hd, }
 end
 
+/--
+The homogenous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`.
+-/
+noncomputable instance homogeneous_submodule.gcomm_monoid :
+  direct_sum.gcomm_monoid (λ i, homogeneous_submodule σ R i) :=
+direct_sum.gcomm_monoid.of_submodules _
+  (is_homogeneous_one σ R)
+  (λ i j hi hj, is_homogeneous.mul hi.prop hj.prop)
+
+open_locale direct_sum
+noncomputable example : comm_semiring (⨁ i, homogeneous_submodule σ R i) := infer_instance
+
 end is_homogeneous
 
 section
@@ -243,7 +256,7 @@ lemma homogeneous_component_zero : homogeneous_component 0 φ = C (coeff 0 φ) :
 begin
   ext1 d,
   rcases em (d = 0) with (rfl|hd),
-  { simp only [coeff_homogeneous_component, sum_eq_zero_iff, finsupp.coe_zero, if_true, coeff_C,
+  { simp only [coeff_homogeneous_component, sum_eq_zero_iff, finsupp.zero_apply, if_true, coeff_C,
       eq_self_iff_true, forall_true_iff] },
   { rw [coeff_homogeneous_component, if_neg, coeff_C, if_neg (ne.symm hd)],
     simp only [finsupp.ext_iff, finsupp.zero_apply] at hd,

@@ -119,6 +119,11 @@ instance pi_set_coe.can_lift' (ι : Type u) (α : Type v) [ne : nonempty α] (s 
   can_lift (s → α) (ι → α) :=
 pi_set_coe.can_lift ι (λ _, α) s
 
+instance set_coe.can_lift (s : set α) : can_lift α s :=
+{ coe := coe,
+  cond := λ a, a ∈ s,
+  prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
+
 end set
 
 section set_coe
@@ -531,17 +536,17 @@ theorem subset_inter {s t r : set α} (rs : r ⊆ s) (rt : r ⊆ t) : r ⊆ s �
 @[simp] theorem subset_inter_iff {s t r : set α} : r ⊆ s ∩ t ↔ r ⊆ s ∧ r ⊆ t :=
 (forall_congr (by exact λ x, imp_and_distrib)).trans forall_and_distrib
 
-theorem subset_iff_inter_eq_left {s t : set α} : s ⊆ t ↔ s ∩ t = s :=
-(ext_iff.trans $ forall_congr $ λ x, and_iff_left_iff_imp).symm
+theorem inter_eq_left_iff_subset {s t : set α} : s ∩ t = s ↔ s ⊆ t :=
+ext_iff.trans $ forall_congr $ λ x, and_iff_left_iff_imp
 
-theorem subset_iff_inter_eq_right {s t : set α} : t ⊆ s ↔ s ∩ t = t :=
-(ext_iff.trans $ forall_congr $ λ x, and_iff_right_iff_imp).symm
+theorem inter_eq_right_iff_subset {s t : set α} : s ∩ t = t ↔ t ⊆ s :=
+ext_iff.trans $ forall_congr $ λ x, and_iff_right_iff_imp
 
 theorem inter_eq_self_of_subset_left {s t : set α} : s ⊆ t → s ∩ t = s :=
-subset_iff_inter_eq_left.1
+inter_eq_left_iff_subset.mpr
 
 theorem inter_eq_self_of_subset_right {s t : set α} : t ⊆ s → s ∩ t = t :=
-subset_iff_inter_eq_right.1
+inter_eq_right_iff_subset.mpr
 
 @[simp] theorem inter_univ (a : set α) : a ∩ univ = a :=
 inter_eq_self_of_subset_left $ subset_univ _
@@ -559,10 +564,10 @@ theorem inter_subset_inter_right {s t : set α} (u : set α) (H : s ⊆ t) : u �
 inter_subset_inter subset.rfl H
 
 theorem union_inter_cancel_left {s t : set α} : (s ∪ t) ∩ s = s :=
-subset_iff_inter_eq_right.1 $ subset_union_left _ _
+inter_eq_self_of_subset_right $ subset_union_left _ _
 
 theorem union_inter_cancel_right {s t : set α} : (s ∪ t) ∩ t = t :=
-subset_iff_inter_eq_right.1 $ subset_union_right _ _
+inter_eq_self_of_subset_right $ subset_union_right _ _
 
 /-! ### Distributivity laws -/
 
@@ -719,6 +724,10 @@ lemma eq_singleton_iff_nonempty_unique_mem {s : set α} {a : α} :
   s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
 eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩, λ ⟨x, h⟩, H x h ▸ h⟩
 
+-- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.
+@[simp] lemma default_coe_singleton (x : α) :
+  default ({x} : set α) = ⟨x, rfl⟩ := rfl
+
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
 theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
@@ -733,7 +742,7 @@ theorem mem_sep_iff {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p
 iff.rfl
 
 theorem eq_sep_of_subset {s t : set α} (h : s ⊆ t) : s = {x ∈ t | x ∈ s} :=
-(subset_iff_inter_eq_right.1 h).symm
+(inter_eq_self_of_subset_right h).symm
 
 theorem sep_subset (s : set α) (p : α → Prop) : {x ∈ s | p x} ⊆ s := λ x, and.left
 
@@ -953,10 +962,22 @@ lemma insert_diff_self_of_not_mem {a : α} {s : set α} (h : a ∉ s) :
   insert a s \ {a} = s :=
 by { ext, simp [and_iff_left_of_imp (λ hx : x ∈ s, show x ≠ a, from λ hxa, h $ hxa ▸ hx)] }
 
-theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
+lemma insert_inter_of_mem {s₁ s₂ : set α} {a : α} (h : a ∈ s₂) :
+  insert a s₁ ∩ s₂ = insert a (s₁ ∩ s₂) :=
+by simp [set.insert_inter, h]
+
+lemma insert_inter_of_not_mem {s₁ s₂ : set α} {a : α} (h : a ∉ s₂) :
+  insert a s₁ ∩ s₂ = s₁ ∩ s₂ :=
+begin
+  ext x,
+  simp only [mem_inter_iff, mem_insert_iff, mem_inter_eq, and.congr_left_iff, or_iff_right_iff_imp],
+  cc,
+end
+
+@[simp] theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
 sup_sdiff_self_right
 
-theorem diff_union_self {s t : set α} : (s \ t) ∪ t = s ∪ t :=
+@[simp] theorem diff_union_self {s t : set α} : (s \ t) ∪ t = s ∪ t :=
 sup_sdiff_self_left
 
 theorem diff_inter_self {a b : set α} : (b \ a) ∩ a = ∅ :=
@@ -1017,6 +1038,9 @@ theorem monotone_powerset : monotone (powerset : set α → set (set α)) :=
 @[simp] theorem powerset_empty : 𝒫 (∅ : set α) = {∅} :=
 ext $ λ s, subset_empty_iff
 
+@[simp] theorem powerset_univ : 𝒫 (univ : set α) = univ :=
+eq_univ_of_forall subset_univ
+
 /-! ### If-then-else for sets -/
 
 /-- `ite` for sets: `set.ite t s s' ∩ t = s ∩ t`, `set.ite t s s' ∩ tᶜ = s' ∩ tᶜ`.
@@ -1036,6 +1060,10 @@ by rw [← ite_compl, ite_inter_self]
 ite_inter_compl_self t s s'
 
 @[simp] lemma ite_same (t s : set α) : t.ite s s = s := inter_union_diff _ _
+
+@[simp] lemma ite_left (s t : set α) : s.ite s t = s ∪ t := by simp [set.ite]
+
+@[simp] lemma ite_right (s t : set α) : s.ite t s = t ∩ s := by simp [set.ite]
 
 @[simp] lemma ite_empty (s s' : set α) : set.ite ∅ s s' = s' :=
 by simp [set.ite]
@@ -1066,6 +1094,17 @@ by { ext x, finish [set.ite, iff_def] }
 lemma ite_inter (t s₁ s₂ s : set α) :
   t.ite (s₁ ∩ s) (s₂ ∩ s) = t.ite s₁ s₂ ∩ s :=
 by rw [ite_inter_inter, ite_same]
+
+lemma ite_inter_of_inter_eq (t : set α) {s₁ s₂ s : set α} (h : s₁ ∩ s = s₂ ∩ s) :
+  t.ite s₁ s₂ ∩ s = s₁ ∩ s :=
+by rw [← ite_inter, ← h, ite_same]
+
+lemma subset_ite {t s s' u : set α} : u ⊆ t.ite s s' ↔ u ∩ t ⊆ s ∧ u \ t ⊆ s' :=
+begin
+  simp only [subset_def, ← forall_and_distrib],
+  refine forall_congr (λ x, _),
+  by_cases hx : x ∈ t; simp [*, set.ite]
+end
 
 /-! ### Inverse image -/
 
@@ -1100,6 +1139,10 @@ theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 
 @[simp] theorem preimage_diff (f : α → β) (s t : set β) :
   f ⁻¹' (s \ t) = f ⁻¹' s \ f ⁻¹' t := rfl
+
+@[simp] theorem preimage_ite (f : α → β) (s t₁ t₂ : set β) :
+  f ⁻¹' (s.ite t₁ t₂) = (f ⁻¹' s).ite (f ⁻¹' t₁) (f ⁻¹' t₂) :=
+rfl
 
 @[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
 rfl
@@ -1740,6 +1783,28 @@ begin
     rw [hz x hx, hz y hy] }
 end
 
+@[simp] lemma pairwise_on_empty {α} (r : α → α → Prop) :
+  (∅ : set α).pairwise_on r :=
+λ _, by simp
+
+lemma pairwise_on_insert_of_symmetric {α} {s : set α} {a : α} {r : α → α → Prop}
+  (hr : symmetric r) :
+  (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b :=
+begin
+  refine ⟨λ h, ⟨_, _⟩, λ h, _⟩,
+  { exact h.mono (s.subset_insert a) },
+  { intros b hb hn,
+    exact h a (s.mem_insert _) b (set.mem_insert_of_mem _ hb) hn },
+  { intros b hb c hc hn,
+    rw [mem_insert_iff] at hb hc,
+    rcases hb with (rfl | hb);
+    rcases hc with (rfl | hc),
+    { exact absurd rfl hn },
+    { exact h.right _ hc hn },
+    { exact hr (h.right _ hb hn.symm) },
+    { exact h.left _ hb _ hc hn } }
+end
+
 end set
 
 open set
@@ -1968,6 +2033,10 @@ lemma prod_preimage_left {f : γ → α} : (f ⁻¹' s).prod t = (λp, (f p.1, p
 
 lemma prod_preimage_right {g : δ → β} : s.prod (g ⁻¹' t) = (λp, (p.1, g p.2)) ⁻¹' (s.prod t) := rfl
 
+lemma preimage_prod_map_prod (f : α → β) (g : γ → δ) (s : set β) (t : set δ) :
+  prod.map f g ⁻¹' (s.prod t) = (f ⁻¹' s).prod (g ⁻¹' t) :=
+rfl
+
 lemma mk_preimage_prod (f : γ → α) (g : γ → β) :
   (λ x, (f x, g x)) ⁻¹' s.prod t = f ⁻¹' s ∩ g ⁻¹' t := rfl
 
@@ -2011,13 +2080,17 @@ theorem image_swap_prod : prod.swap '' t.prod s = s.prod t :=
 by rw [image_swap_eq_preimage_swap, preimage_swap_prod]
 
 theorem prod_image_image_eq {m₁ : α → γ} {m₂ : β → δ} :
-  (image m₁ s).prod (image m₂ t) = image (λp:α×β, (m₁ p.1, m₂ p.2)) (s.prod t) :=
+  (m₁ '' s).prod (m₂ '' t) = image (λp:α×β, (m₁ p.1, m₂ p.2)) (s.prod t) :=
 ext $ by simp [-exists_and_distrib_right, exists_and_distrib_right.symm, and.left_comm,
   and.assoc, and.comm]
 
 theorem prod_range_range_eq {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} :
   (range m₁).prod (range m₂) = range (λp:α×β, (m₁ p.1, m₂ p.2)) :=
 ext $ by simp [range]
+
+@[simp] theorem range_prod_map {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} :
+  range (prod.map m₁ m₂) = (range m₁).prod (range m₂) :=
+prod_range_range_eq.symm
 
 theorem prod_range_univ_eq {α β γ} {m₁ : α → γ} :
   (range m₁).prod (univ : set β) = range (λp:α×β, (m₁ p.1, p.2)) :=
@@ -2442,7 +2515,7 @@ iff.rfl
 @[congr] lemma image3_congr (h : ∀ (a ∈ s) (b ∈ t) (c ∈ u), g a b c = g' a b c) :
   image3 g s t u = image3 g' s t u :=
 by { ext x,
-     split; rintro ⟨a, b, c, ha, hb, hc, rfl⟩; refine ⟨a, b, c, ha, hb, hc, by rw h a ha b hb c hc⟩ }
+     split; rintro ⟨a, b, c, ha, hb, hc, rfl⟩; exact ⟨a, b, c, ha, hb, hc, by rw h a ha b hb c hc⟩ }
 
 /-- A common special case of `image3_congr` -/
 lemma image3_congr' (h : ∀ a b c, g a b c = g' a b c) : image3 g s t u = image3 g' s t u :=

@@ -95,8 +95,7 @@ lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) 
   a • monomial n b = monomial n (a • b) :=
 finsupp.smul_single _ _ _
 
-lemma support_add : (p + q).support ⊆ p.support ∪ q.support :=
-by convert @support_add _ _ _ p q
+lemma support_add : (p + q).support ⊆ p.support ∪ q.support := support_add
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
@@ -227,6 +226,14 @@ end
 lemma monomial_left_inj {R : Type*} [semiring R] {a : R} (ha : a ≠ 0) {i j : ℕ} :
   (monomial i a) = (monomial j a) ↔ i = j :=
 finsupp.single_left_inj ha
+
+lemma nat_cast_mul {R : Type*} [semiring R] (n : ℕ) (p : polynomial R) :
+  (n : polynomial R) * p = n • p :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [ih, nat.succ_eq_add_one, add_smul, add_mul], },
+end
 
 end semiring
 

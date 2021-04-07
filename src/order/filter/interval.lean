@@ -107,8 +107,8 @@ lemma has_basis.tendsto_Ixx_class {ι : Type*} {p : ι → Prop} {s} {l : filter
   ⟨i, hi, λ x hx, H i hi _ hx.1 _ hx.2⟩⟩
 
 instance tendsto_Icc_at_top_at_top : tendsto_Ixx_class Icc (at_top : filter α) at_top :=
-(has_basis_infi_principal_finite _).tendsto_Ixx_class $ λ s hs, ord_connected_bInter $
-  λ i hi, ord_connected_Ici
+(has_basis_infi_principal_finite _).tendsto_Ixx_class $ λ s hs,
+set.ord_connected.out $ ord_connected_bInter $ λ i hi, ord_connected_Ici
 
 instance tendsto_Ico_at_top_at_top : tendsto_Ixx_class Ico (at_top : filter α) at_top :=
 tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)
@@ -120,8 +120,8 @@ instance tendsto_Ioo_at_top_at_top : tendsto_Ixx_class Ioo (at_top : filter α) 
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Icc_self)
 
 instance tendsto_Icc_at_bot_at_bot : tendsto_Ixx_class Icc (at_bot : filter α) at_bot :=
-(has_basis_infi_principal_finite _).tendsto_Ixx_class $ λ s hs, ord_connected_bInter $
-  λ i hi, ord_connected_Iic
+(has_basis_infi_principal_finite _).tendsto_Ixx_class $ λ s hs,
+set.ord_connected.out $ ord_connected_bInter $ λ i hi, ord_connected_Iic
 
 instance tendsto_Ico_at_bot_at_bot : tendsto_Ixx_class Ico (at_bot : filter α) at_bot :=
 tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)
@@ -132,9 +132,9 @@ tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
 instance tendsto_Ioo_at_bot_at_bot : tendsto_Ixx_class Ioo (at_bot : filter α) at_bot :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Icc_self)
 
-instance ord_connected.tendsto_Icc {s : set α} [ord_connected s] :
+instance ord_connected.tendsto_Icc {s : set α} [hs : ord_connected s] :
   tendsto_Ixx_class Icc (𝓟 s) (𝓟 s) :=
-tendsto_Ixx_class_principal.2 ‹_›
+tendsto_Ixx_class_principal.2 hs.out
 
 instance tendsto_Ico_Ici_Ici {a : α} : tendsto_Ixx_class Ico (𝓟 (Ici a)) (𝓟 (Ici a)) :=
 tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)
@@ -175,7 +175,7 @@ tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
 variable [partial_order β]
 
 instance tendsto_Icc_pure_pure {a : β} : tendsto_Ixx_class Icc (pure a) (pure a : filter β) :=
-by { rw ← principal_singleton, exact tendsto_Ixx_class_principal.2 ord_connected_singleton }
+by { rw ← principal_singleton, exact tendsto_Ixx_class_principal.2 ord_connected_singleton.out }
 
 instance tendsto_Ico_pure_bot {a : β} : tendsto_Ixx_class Ico (pure a) ⊥ :=
 ⟨by simp [lift'_bot monotone_powerset]⟩

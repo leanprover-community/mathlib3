@@ -425,7 +425,7 @@ def function.injective.ordered_comm_group {β : Type*}
   ordered_comm_group β :=
 { ..partial_order.lift f hf,
   ..hf.ordered_comm_monoid f one mul,
-  ..hf.comm_group_div f one mul inv div }
+  ..hf.comm_group f one mul inv div }
 
 end ordered_comm_group
 
@@ -682,6 +682,20 @@ end linear_ordered_comm_group
 section linear_ordered_add_comm_group
 
 variables [linear_ordered_add_comm_group α] {a b c : α}
+
+@[simp]
+lemma sub_le_sub_flip : a - b ≤ b - a ↔ a ≤ b :=
+begin
+  rw [sub_le_iff_le_add, sub_add_eq_add_sub, le_sub_iff_add_le],
+  split,
+  { intro h,
+    by_contra H,
+    rw not_le at H,
+    apply not_lt.2 h,
+    exact add_lt_add H H, },
+  { intro h,
+    exact add_le_add h h, }
+end
 
 lemma le_of_forall_pos_le_add [densely_ordered α] (h : ∀ ε : α, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ λ c hc,

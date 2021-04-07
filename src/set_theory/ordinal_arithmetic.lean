@@ -753,8 +753,10 @@ begin
 end
 
 theorem div_eq_zero_of_lt {a b : ordinal} (h : a < b) : a / b = 0 :=
-by rw [← ordinal.le_zero, div_le $ ordinal.pos_iff_ne_zero.1 $ lt_of_le_of_lt (ordinal.zero_le _) h];
-   simpa only [succ_zero, mul_one] using h
+begin
+  rw [← ordinal.le_zero, div_le $ ordinal.pos_iff_ne_zero.1 $ lt_of_le_of_lt (ordinal.zero_le _) h],
+  simpa only [succ_zero, mul_one] using h
+end
 
 @[simp] theorem mul_div_cancel (a) {b : ordinal} (b0 : b ≠ 0) : b * a / b = a :=
 by simpa only [add_zero, zero_div] using mul_add_div a b0 0
@@ -1268,7 +1270,8 @@ begin
   { by_cases o0 : o = 0,
     { simp only [o0, CNF_zero, list.pairwise.nil, and_true], exact λ _, false.elim },
     rw [← b1, one_CNF o0],
-    simp only [list.mem_singleton, log_not_one_lt (lt_irrefl _), forall_eq, le_refl, true_and, list.pairwise_singleton] }
+    simp only [list.mem_singleton, log_not_one_lt (lt_irrefl _), forall_eq, le_refl, true_and,
+      list.pairwise_singleton] }
 end
 
 theorem CNF_pairwise (b := omega) (o) :
@@ -1575,7 +1578,8 @@ theorem mul_omega_power_power {a b : ordinal} (a0 : 0 < a) (h : a < omega ^ omeg
   a * omega ^ omega ^ b = omega ^ omega ^ b :=
 begin
   by_cases b0 : b = 0, {rw [b0, power_zero, power_one] at h ⊢, exact mul_omega a0 h},
-  refine le_antisymm _ (by simpa only [one_mul] using mul_le_mul_right (omega^omega^b) (one_le_iff_pos.2 a0)),
+  refine le_antisymm _
+    (by simpa only [one_mul] using mul_le_mul_right (omega^omega^b) (one_le_iff_pos.2 a0)),
   rcases (lt_power_of_limit omega_ne_zero (power_is_limit_left omega_is_limit b0)).1 h
     with ⟨x, xb, ax⟩,
   refine le_trans (mul_le_mul_right _ (le_of_lt ax)) _,

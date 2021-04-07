@@ -1307,12 +1307,9 @@ by simp [sub_eq_add_neg]
 begin
   ext ⟨k, i⟩ ⟨k', j⟩,
   simp only [block_diagonal'_apply, mul_apply, ← finset.univ_sigma_univ, finset.sum_sigma],
-  rw finset.sum_eq_single k,
+  rw fintype.sum_eq_single k,
   { split_ifs; simp },
-  { intros j' _ hj', exact finset.sum_eq_zero (λ _ _, by rw [dif_neg hj'.symm, zero_mul]) },
-  { intros,
-    have := finset.mem_univ k,
-    contradiction }
+  { intros j' hj', exact finset.sum_eq_zero (λ _ _, by rw [dif_neg hj'.symm, zero_mul]) },
 end
 
 @[simp] lemma block_diagonal'_smul {R : Type*} [semiring R] [add_comm_monoid α] [semimodule R α]

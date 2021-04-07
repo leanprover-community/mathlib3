@@ -116,7 +116,7 @@ open_locale classical
 /-- `add_order_of x` is the order of the element `x`, i.e. the `n ≥ 1`, s.t. `n •ℕ x = 0` if it
 exists. Otherwise, i.e. if `x` is of infinite order, then `add_order_of x` is `0` by convention.-/
 noncomputable def add_order_of (x : H) : ℕ :=
-minimal_period (+ x) 0
+minimal_period ((+) x) 0
 
 /-- `order_of a` is the order of the element `a`, i.e. the `n ≥ 1`, s.t. `a ^ n = 1` if it exists.
 Otherwise, i.e. if `a` is of infinite order, then `order_of a` is `0` by convention.-/

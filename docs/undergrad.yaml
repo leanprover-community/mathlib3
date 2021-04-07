@@ -205,7 +205,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     polar form of a quadratic: 'quadratic_form.polar'
   Orthogonality:
     orthogonal elements: 'bilin_form.is_ortho'
-    adjoint endomorphism:
+    adjoint endomorphism: 'bilin_form.left_adjoint_of_nondegenerate'
     Sylvester's law of inertia:
     real classification:
     complex classification:

@@ -179,6 +179,16 @@ def single.add_monoid_hom (a : Γ) : R →+ (hahn_series Γ R) :=
 @[simp]
 lemma single.add_monoid_hom_apply {a : Γ} {r : R} : single.add_monoid_hom a r = single a r := rfl
 
+/-- `coeff g` as an additive monoid/group homomorphism -/
+def coeff.add_monoid_hom (g : Γ) : (hahn_series Γ R) →+ R :=
+{ to_fun := λ f, f.coeff g,
+  map_zero' := zero_coeff,
+  map_add' := λ x y, add_coeff }
+
+@[simp]
+lemma coeff.add_monoid_hom_apply {x : hahn_series Γ R} {g : Γ} :
+  coeff.add_monoid_hom g x = x.coeff g := rfl
+
 end add_monoid
 
 instance [add_comm_monoid R] : add_comm_monoid (hahn_series Γ R) :=
@@ -820,6 +830,51 @@ instance : add_comm_monoid (summable_family Γ R α) :=
   add_comm := λ s t, by { ext, apply add_comm },
   add_assoc := λ r s t, by { ext, apply add_assoc } }
 
+/-- The infinite sum of a `summable_family` of Hahn series. -/
+def hsum (s : summable_family Γ R α) :
+  hahn_series Γ R :=
+{ coeff := λ g, ∑ i in s.co_support g, (s i).coeff g,
+  is_wf_support' := s.is_wf_Union_support.mono (λ g, begin
+    contrapose,
+    rw [set.mem_Union, not_exists, function.mem_support, not_not],
+    simp_rw [mem_support, not_not],
+    exact λ h, sum_eq_zero (λ a ha, h _),
+  end) }
+
+@[simp]
+lemma hsum_coeff {s : summable_family Γ R α} {g : Γ} :
+  s.hsum.coeff g = ∑ i in s.co_support g, (s i).coeff g := rfl
+
+lemma support_hsum_subset {s : summable_family Γ R α} :
+  s.hsum.support ⊆ ⋃ (a : α), (s a).support :=
+λ g hg, begin
+  rw [mem_support, hsum_coeff] at hg,
+  obtain ⟨a, h1, h2⟩ := exists_ne_zero_of_sum_ne_zero hg,
+  rw [set.mem_Union],
+  exact ⟨a, h2⟩,
+end
+
+lemma co_support_add_subset {s t : summable_family Γ R α} {g : Γ} :
+  (s + t).co_support g ⊆ s.co_support g ∪ t.co_support g :=
+λ a ha, begin
+  rw mem_co_support at ha,
+  rw [mem_union, mem_co_support, mem_co_support],
+  contrapose! ha,
+  obtain ⟨hs, ht⟩ := ha,
+  simp [hs, ht],
+end
+
+@[simp]
+lemma hsum_add {s t : summable_family Γ R α} : (s + t).hsum = s.hsum + t.hsum :=
+begin
+  ext g,
+  simp only [add_apply, pi.add_apply, hsum_coeff, ne.def, add_coeff'],
+  rw [sum_subset co_support_add_subset, finset.sum_add_distrib,
+    ← sum_subset (subset_union_left _ _), ← sum_subset (subset_union_right _ _)];
+  { intros x h1 h2,
+    rwa [mem_co_support, not_not] at h2, }
+end
+
 end add_comm_monoid
 
 section add_comm_group
@@ -888,51 +943,6 @@ instance : semimodule (hahn_series Γ R) (summable_family Γ R α) :=
   smul_add := λ x s t, ext (λ a, mul_add _ _ _),
   mul_smul := λ x y s, ext (λ a, mul_assoc _ _ _) }
 
-/-- The infinite sum of a `summable_family` of Hahn series. -/
-def hsum (s : summable_family Γ R α) :
-  hahn_series Γ R :=
-{ coeff := λ g, ∑ i in s.co_support g, (s i).coeff g,
-  is_wf_support' := s.is_wf_Union_support.mono (λ g, begin
-    contrapose,
-    rw [set.mem_Union, not_exists, function.mem_support, not_not],
-    simp_rw [mem_support, not_not],
-    exact λ h, sum_eq_zero (λ a ha, h _),
-  end) }
-
-@[simp]
-lemma hsum_coeff {s : summable_family Γ R α} {g : Γ} :
-  s.hsum.coeff g = ∑ i in s.co_support g, (s i).coeff g := rfl
-
-lemma support_hsum_subset {s : summable_family Γ R α} :
-  s.hsum.support ⊆ ⋃ (a : α), (s a).support :=
-λ g hg, begin
-  rw [mem_support, hsum_coeff] at hg,
-  obtain ⟨a, h1, h2⟩ := exists_ne_zero_of_sum_ne_zero hg,
-  rw [set.mem_Union],
-  exact ⟨a, h2⟩,
-end
-
-lemma co_support_add_subset {s t : summable_family Γ R α} {g : Γ} :
-  (s + t).co_support g ⊆ s.co_support g ∪ t.co_support g :=
-λ a ha, begin
-  rw mem_co_support at ha,
-  rw [mem_union, mem_co_support, mem_co_support],
-  contrapose! ha,
-  obtain ⟨hs, ht⟩ := ha,
-  simp [hs, ht],
-end
-
-@[simp]
-lemma hsum_add {s t : summable_family Γ R α} : (s + t).hsum = s.hsum + t.hsum :=
-begin
-  ext g,
-  simp only [add_apply, pi.add_apply, hsum_coeff, ne.def, add_coeff'],
-  rw [sum_subset co_support_add_subset, finset.sum_add_distrib,
-    ← sum_subset (subset_union_left _ _), ← sum_subset (subset_union_right _ _)];
-  { intros x h1 h2,
-    rwa [mem_co_support, not_not] at h2, }
-end
-
 @[simp]
 lemma hsum_smul {x : hahn_series Γ R} {s : summable_family Γ R α} :
   (x • s).hsum = x * s.hsum :=
@@ -989,6 +999,53 @@ def lsum : (summable_family Γ R α) →ₗ[hahn_series Γ R] (hahn_series Γ R)
 lemma lsum_apply {s : summable_family Γ R α} : lsum s = hsum s := rfl
 
 end semiring
+
+section of_finsupp
+variables [linear_order Γ] [add_comm_monoid R] {α : Type*}
+
+def of_finsupp (f : α →₀ (hahn_series Γ R)) :
+  summable_family Γ R α :=
+{ to_fun := f,
+  is_wf_Union_support' := begin
+      apply (f.support.is_wf_sup (λ a, (f a).support) (λ a ha, (f a).is_wf_support)).mono,
+      intros g hg,
+      obtain ⟨a, ha⟩ := set.mem_Union.1 hg,
+      have haf : a ∈ f.support,
+      { rw finsupp.mem_support_iff,
+        contrapose! ha,
+        rw [ha, support_zero],
+        exact set.not_mem_empty _ },
+      have h : (λ i, (f i).support) a ≤ _ := le_sup haf,
+      exact h ha,
+    end,
+  co_support := λ g, f.support.filter (λ a, (f a).coeff g ≠ 0),
+  mem_co_support' := λ a g, begin
+    simp only [mem_filter, and_iff_right_iff_imp, finsupp.mem_support_iff, ne.def],
+    contrapose!,
+    intro h,
+    simp [h]
+  end }
+
+@[simp]
+lemma coe_of_finsupp {f : α →₀ (hahn_series Γ R)} : ⇑(summable_family.of_finsupp f) = f := rfl
+
+@[simp]
+lemma co_support_of_finsupp {f : α →₀ (hahn_series Γ R)} {g : Γ} :
+  (summable_family.of_finsupp f).co_support g = f.support.filter (λ a, (f a).coeff g ≠ 0) := rfl
+
+@[simp]
+lemma hsum_of_finsupp {f : α →₀ (hahn_series Γ R)} :
+  (of_finsupp f).hsum = f.sum (λ a, id) :=
+begin
+  ext g,
+  simp only [filter_congr_decidable, hsum_coeff, coe_of_finsupp, ne.def, co_support_of_finsupp],
+  rw [sum_filter_ne_zero],
+  simp_rw [← coeff.add_monoid_hom_apply],
+  rw ← add_monoid_hom.map_sum,
+  refl
+end
+
+end of_finsupp
 
 end summable_family
 

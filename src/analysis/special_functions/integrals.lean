@@ -205,8 +205,8 @@ theorem integral_sin_pow_even (n : ℕ) :
 begin
   induction n with k ih,
   { norm_num },
-  rw [finset.prod_range_succ, ←mul_assoc, ← ih, nat.mul_succ, integral_sin_pow_succ_succ],
-  simp [mul_comm],
+  rw [finset.prod_range_succ_comm, mul_left_comm, ← ih, nat.mul_succ, integral_sin_pow_succ_succ],
+  norm_cast,
 end
 
 lemma integral_sin_pow_pos (n : ℕ) : 0 < ∫ x in 0..π, sin x ^ n :=

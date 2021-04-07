@@ -45,7 +45,7 @@ variables {α} [monoid α]
 variables {H : Type u} [add_monoid H]
 
 -- Move the following four lemmas somewhere else?
-@[simp] lemma add_fpow_apply (x y : H) {n : ℕ} : (+ x)^[n] y = y + n •ℕ x :=
+@[simp] lemma add_right_fpow_apply (x : H) {n : ℕ} : (+ x)^[n] = (+ n •ℕ x) :=
 begin
   induction n with d hd,
   { rw [zero_nsmul, iterate_zero, add_zero, id] },

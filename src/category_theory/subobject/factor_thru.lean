@@ -319,6 +319,8 @@ lemma image_subobject_le_mk {A B : C} {X : C} (g : X ⟶ B) [mono g] (f : A ⟶ 
   image_subobject f ≤ subobject.mk g :=
 image_subobject_le f (h ≫ (subobject.underlying_iso g).inv) (by simp [w])
 
+/-- Given a commutative square between morphisms `f` and `g`,
+we have a morphism in the category from `image_subobject f` to `image_subobject g`. -/
 def image_subobject_map {W X Y Z : C} {f : W ⟶ X} [has_image f] {g : Y ⟶ Z} [has_image g]
   (sq : arrow.mk f ⟶ arrow.mk g) [has_image_map sq] :
   (image_subobject f : C) ⟶ (image_subobject g : C) :=

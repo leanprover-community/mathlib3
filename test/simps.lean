@@ -244,14 +244,14 @@ The known projections are:
   [fst, snd]
 You can also see this information by running
   `initialize_simps_projections? prod`.
-Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
+Note: these projection names might not correspond to the projection names of the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["snd_bar"])
     "Invalid simp-lemma specify.specify1_snd_bar. Structure prod does not have projection bar.
 The known projections are:
   [fst, snd]
 You can also see this information by running
   `initialize_simps_projections? prod`.
-Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
+Note: these projection names might not correspond to the projection names of the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
     "Invalid simp-lemma specify.specify5_snd_snd.
 The given definition is not a constructor application:

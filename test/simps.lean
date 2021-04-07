@@ -1,9 +1,9 @@
 import tactic.simps
-import algebra.group.to_additive
+-- import algebra.group.to_additive
 
 universe variables v u w
--- set_option trace.simps.verbose true
--- set_option trace.simps.debug true
+set_option trace.simps.verbose true
+set_option trace.simps.debug true
 -- set_option trace.app_builder true
 
 open function tactic expr
@@ -25,7 +25,7 @@ def myprod.map {α α' β β'} (f : α → α') (g : β → β') (x : my_prod α
 ⟨f x.1, g x.2⟩
 
 namespace foo
-
+set_option pp.all true
 @[simps] protected def rfl {α} : α ≃ α :=
 ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
 
@@ -191,10 +191,10 @@ run_cmd do
 structure very_partially_applied_str :=
 (data : ∀β, ℕ → β → my_prod ℕ β)
 
-/- if we have a partially applied constructor, we treat it as if it were eta-expanded -/
+/- if we have a partially applied constructor, we treat it as if it were eta-expanded.
+  (this is not very useful, and we could remove this behavior if convenient) -/
 @[simps]
--- def very_partially_applied_term : very_partially_applied_str := ⟨@my_prod.mk ℕ⟩
-def very_partially_applied_term : very_partially_applied_str := ⟨λ x y z, my_prod.mk y z⟩
+def very_partially_applied_term : very_partially_applied_str := ⟨@my_prod.mk ℕ⟩
 
 run_cmd do
   e ← get_env,
@@ -242,14 +242,14 @@ Projection fst doesn't exist, because target is not a structure.",
 The known projections are:
   [fst, snd]
 You can also see this information by running
-  `initialize_simps_projections prod`.
+  `initialize_simps_projections? prod`.
 Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["snd_bar"])
     "Invalid simp-lemma specify.specify1_snd_bar. Structure prod does not have projection bar.
 The known projections are:
   [fst, snd]
 You can also see this information by running
-  `initialize_simps_projections prod`.
+  `initialize_simps_projections? prod`.
 Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
     "Invalid simp-lemma specify.specify5_snd_snd.
@@ -811,3 +811,39 @@ begin
 end
 
 end
+
+section comp_projs
+
+/- Test custom projections that are compositions of projections. -/
+
+structure decorated_equiv (α : Sort*) (β : Sort*) extends equiv α β :=
+(P_to_fun    : function.injective to_fun )
+(Q_inv_fun   : function.surjective inv_fun)
+
+def foo (α : Type) : decorated_equiv α α :=
+{ to_fun    := id,
+  inv_fun   := id,
+  left_inv  := λ x, rfl,
+  right_inv := λ x, rfl,
+  P_to_fun  := λ x y h, h,
+  Q_inv_fun := λ y, ⟨y, rfl⟩ }
+
+structure further_decorated_equiv (α : Sort*) (β : Sort*) extends decorated_equiv α β :=
+(Q_to_fun    : function.surjective to_fun )
+
+def foo2 (α : Type) : further_decorated_equiv α α :=
+{ to_fun    := id,
+  inv_fun   := id,
+  left_inv  := λ x, rfl,
+  right_inv := λ x, rfl,
+  P_to_fun  := λ x y h, h,
+  Q_to_fun  := λ y, ⟨y, rfl⟩,
+  Q_inv_fun := λ y, ⟨y, rfl⟩ }
+
+def foo3 (α : Type) : further_decorated_equiv α α :=
+{ Q_to_fun  := λ y, ⟨y, rfl⟩, .. foo α }
+
+def foo4 (α : Type) : further_decorated_equiv α α :=
+{ Q_to_fun  := λ y, ⟨y, rfl⟩, to_decorated_equiv := foo α }
+
+end comp_projs

@@ -1,5 +1,5 @@
 import algebra.homology2.homology
-import category_theory.abelian.additive_functor
+import category_theory.preadditive.additive_functor
 
 universes v u
 

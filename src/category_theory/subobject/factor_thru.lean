@@ -164,7 +164,13 @@ lemma factor_thru_of_le
   Q.factor_thru f (factors_of_le f h w) = P.factor_thru f w ≫ of_le P Q h :=
 by { ext, simp, }
 
+section preadditive
+#where
+end preadditive
+
 end subobject
+
+-- TODO move the following sections to `category_theory.subobject.limits`.
 
 namespace limits
 

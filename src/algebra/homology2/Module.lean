@@ -1,4 +1,11 @@
+/-
+Copyright (c) 2021 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebra.homology2.homotopy
+import algebra.category.Module.abelian
+import algebra.category.Module.epi_mono
 
 universes v u
 

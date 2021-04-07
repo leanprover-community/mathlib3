@@ -1,9 +1,10 @@
+/-
+Copyright (c) 2021 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebra.homology2.additive
 import algebra.homology2.internal_hom
-import algebra.category.Module.abelian
-import algebra.category.Module.subobject
-import category_theory.limits.shapes.concrete_category
-import algebra.category.Module.epi_mono
 
 universes v u
 
@@ -29,23 +30,19 @@ theorem homology_map_eq_of_homotopy (h : homotopy f g) (i : ι) :
   (homology_functor V c i).map f = (homology_functor V c i).map g :=
 begin
   dsimp [homology_functor],
+  apply eq_of_sub_eq_zero,
   ext,
-  simp only [cokernel.π_desc],
   dunfold cycles_map,
-  simp only [←h.comm' i],
-  simp only [add_zero, zero_comp,
-    cycles_arrow_d_from_assoc, preadditive.comp_add],
-  apply eq_of_sub_eq_zero, -- move this higher, needs some lemmas
+  simp only [comp_zero, preadditive.comp_sub, cokernel.π_desc],
+  simp_rw [←h.comm' i],
+  simp only [add_zero, zero_comp, cycles_arrow_d_from_assoc, preadditive.comp_add],
   rw [←preadditive.sub_comp],
-  suffices h :
-    (D.cycles i).factor_thru ((C.cycles i).arrow ≫ h.to_ihom.to_pred i i ≫ D.d_to i) _ ≫
-      cokernel.π (D.boundaries_to_cycles i) = 0,
-  { simp [h], },
-  { dsimp [cycles],
-    erw [subobject.factor_thru_of_le (D.boundaries_le_cycles i)],
-    { simp, },
-    { rw [←category.assoc],
-      apply image_subobject_factors_comp_self, }, },
+  simp only [category_theory.subobject.factor_thru_add_sub_factor_thru_right],
+  dsimp [cycles],
+  erw [subobject.factor_thru_of_le (D.boundaries_le_cycles i)],
+  { simp, },
+  { rw [←category.assoc],
+    apply image_subobject_factors_comp_self, },
 end
 
 end

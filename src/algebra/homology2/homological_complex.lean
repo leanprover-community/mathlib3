@@ -1,6 +1,9 @@
+/-
+Copyright (c) 2021 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Scott Morrison
+-/
 import algebra.homology2.complex_shape
-import category_theory.limits.shapes.zero
-import category_theory.subobject.lattice
 import category_theory.subobject.factor_thru
 
 universes v u

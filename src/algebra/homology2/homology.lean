@@ -1,5 +1,5 @@
 import algebra.homology2.homological_complex
-import tactic.elementwise
+import category_theory.subobject.lattice
 
 universes v u
 

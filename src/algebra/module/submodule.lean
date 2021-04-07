@@ -186,10 +186,10 @@ include semimodule_M
 theorem to_add_subgroup_injective : injective (to_add_subgroup : submodule R M → add_subgroup M)
 | p q h := set_like.ext (set_like.ext_iff.1 h : _)
 
-lemma to_add_subgroup_strict_mono :
+@[mono] lemma to_add_subgroup_strict_mono :
   strict_mono (to_add_subgroup : submodule R M → add_subgroup M) := λ _ _, id
 
-lemma to_add_subgroup_mono : monotone (to_add_subgroup : submodule R M → add_subgroup M) :=
+@[mono] lemma to_add_subgroup_mono : monotone (to_add_subgroup : submodule R M → add_subgroup M) :=
 to_add_subgroup_strict_mono.monotone
 
 omit semimodule_M

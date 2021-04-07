@@ -49,19 +49,20 @@ lemma mem_carrier {s : subsemiring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := i
 lemma to_submonoid_injective : function.injective (to_submonoid : subsemiring R → submonoid R)
 | r s h := ext (set_like.ext_iff.mp h : _)
 
-lemma to_submonoid_strict_mono : strict_mono (to_submonoid : subsemiring R → submonoid R) :=
+@[mono] lemma to_submonoid_strict_mono : strict_mono (to_submonoid : subsemiring R → submonoid R) :=
 λ _ _, id
 
-lemma to_submonoid_mono : monotone (to_submonoid : subsemiring R → submonoid R) :=
+@[mono] lemma to_submonoid_mono : monotone (to_submonoid : subsemiring R → submonoid R) :=
 to_submonoid_strict_mono.monotone
 
 lemma to_add_submonoid_injective :
   function.injective (to_add_submonoid : subsemiring R → add_submonoid R)
 | r s h := ext (set_like.ext_iff.mp h : _)
 
-lemma to_add_submonoid_strict_mono :
+@[mono] lemma to_add_submonoid_strict_mono :
   strict_mono (to_add_submonoid : subsemiring R → add_submonoid R) := λ _ _, id
 
+@[mono]
 lemma to_add_submonoid_mono : monotone (to_add_submonoid : subsemiring R → add_submonoid R) :=
 to_add_submonoid_strict_mono.monotone
 

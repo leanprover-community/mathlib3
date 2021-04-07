@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import data.set.basic
+import tactic.monotonicity.basic
 
 /-!
 # Typeclass for a type `A` with an injective map to `set B`
 
-This typecalss is primary for use by subobjects like `submonoid` and `submodule`.
+This typeclass is primary for use by subobjects like `submonoid` and `submodule`.
 
 A typical subobject should be declared as:
 ```
@@ -101,12 +102,12 @@ lemma le_def {S T : A} : S ≤ T ↔ ∀ ⦃x : B⦄, x ∈ S → x ∈ T := iff
 @[simp, norm_cast]
 lemma coe_subset_coe {S T : A} : (S : set B) ⊆ T ↔ S ≤ T := iff.rfl
 
-lemma coe_mono : monotone (coe : A → set B) := λ a b, coe_subset_coe.mpr
+@[mono] lemma coe_mono : monotone (coe : A → set B) := λ a b, coe_subset_coe.mpr
 
 @[simp, norm_cast]
 lemma coe_ssubset_coe {S T : A} : (S : set B) ⊂ T ↔ S < T := iff.rfl
 
-lemma coe_strict_mono : strict_mono (coe : A → set B) := λ a b, coe_ssubset_coe.mpr
+@[mono] lemma coe_strict_mono : strict_mono (coe : A → set B) := λ a b, coe_ssubset_coe.mpr
 
 lemma not_le_iff_exists : ¬(p ≤ q) ↔ ∃ x ∈ p, x ∉ q := set.not_subset
 

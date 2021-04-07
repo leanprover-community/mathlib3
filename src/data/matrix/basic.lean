@@ -838,6 +838,21 @@ ext $ λ _ _, rfl
   (A.minor row col)ᵀ = Aᵀ.minor col row :=
 ext $ λ _ _, rfl
 
+lemma minor_add [has_add α] (A B : matrix m n α) :
+  ((A + B).minor : (l → m) → (o → n) → matrix l o α) = A.minor + B.minor := rfl
+
+lemma minor_neg [has_neg α] (A : matrix m n α) :
+  ((-A).minor : (l → m) → (o → n) → matrix l o α) = -A.minor := rfl
+
+lemma minor_sub [has_sub α] (A B : matrix m n α) :
+  ((A - B).minor : (l → m) → (o → n) → matrix l o α) = A.minor - B.minor := rfl
+
+lemma minor_zero [has_zero α] :
+  ((0 : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = 0 := rfl
+
+lemma minor_smul [semiring α] (r : α) (A : matrix m n α) :
+  ((r • A : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = r • A.minor := rfl
+
 /-- The natural map that reindexes a matrix's rows and columns with equivalent types is an
 equivalence. -/
 def reindex (eₘ : m ≃ l) (eₙ : n ≃ o) : matrix m n α ≃ matrix l o α :=

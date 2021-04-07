@@ -460,7 +460,7 @@ using_new_ref mk_name_map $ λ hs, do
       e ← infer_type h,
       mcond (is_prop e)
         (do A ← reify atoms e,
-          let n := h.local_pp_name,
+          let n := h.local_uniq_name,
           read_ref hs >>= λ Γ, write_ref hs (Γ.insert n h),
           pure (Γ >>= λ Γ', Γ'.add A (proof.hyp n)))
         (pure Γ))

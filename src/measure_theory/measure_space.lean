@@ -943,7 +943,7 @@ rfl
 by simp [← restrictₗ_apply, restrictₗ, ht]
 
 lemma restrict_eq_self (h_meas_t : measurable_set t) (h : t ⊆ s) : μ.restrict s t = μ t :=
-by rw [restrict_apply h_meas_t, subset_iff_inter_eq_left.1 h]
+by rw [restrict_apply h_meas_t, inter_eq_left_iff_subset.mpr h]
 
 lemma restrict_apply_self (μ:measure α) (h_meas_s : measurable_set s) :
   (μ.restrict s) s = μ s := (restrict_eq_self h_meas_s (set.subset.refl _))

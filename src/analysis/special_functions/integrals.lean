@@ -232,20 +232,6 @@ end
 lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=
 by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
 
-open measure_theory
---variables {μ : measure ℝ} [locally_finite_measure μ]
-lemma integral_cos_sq : ∫ x in a..b, cos x ^ 2 = (sin (2 * b) + 2 * b - sin (2 * a) - 2 * a) / 4 :=
-begin
-  have : (λ x, x) (1 : ℝ) = 1 := rfl,
-  simp only [cos_square], --integral_comp_mul_left],
-  have : interval_integrable (λ x : ℝ, cos (2*x) / 2) volume a b := sorry,
-  simp [interval_integral.integral_add, this, integral_comp_mul_left],
-
-  --rw ← this,
-end
-#check integral_sub
-
-@[simp]
 lemma integral_cos_sq_sub_sin_sq :
   ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
 by simpa only [pow_two, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub

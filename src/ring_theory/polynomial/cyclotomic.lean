@@ -531,9 +531,9 @@ begin
     exact monic.ne_zero prod_monic (degree_eq_bot.1 h) },
 end
 
-/-- If `p` is prime, then `cyclotomic p R = geom_series X p`. -/
-lemma cyclotomic_eq_geom_series {R : Type*} [comm_ring R] [nontrivial R] {p : ℕ}
-  (hp : nat.prime p) : cyclotomic p R = geom_series X p :=
+/-- If `p` is prime, then `cyclotomic p R = geom_sum X p`. -/
+lemma cyclotomic_eq_geom_sum {R : Type*} [comm_ring R] [nontrivial R] {p : ℕ}
+  (hp : nat.prime p) : cyclotomic p R = geom_sum X p :=
 begin
   symmetry,
   refine (eq_cyclotomic_iff hp.pos _).mpr _,

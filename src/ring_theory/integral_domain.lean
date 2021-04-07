@@ -151,7 +151,7 @@ begin
       (λ b hb, let ⟨n, hn⟩ := hx b in ⟨n % order_of x, mem_range.2 (nat.mod_lt _ (order_of_pos _)),
         by rw [← pow_eq_mod_order_of, hn]⟩)
   ... = 0 : _,
-  rw [← mul_left_inj' hx1, zero_mul, ← geom_series, geom_sum_mul, coe_coe],
+  rw [← mul_left_inj' hx1, zero_mul, ← geom_sum, geom_sum_mul, coe_coe],
   norm_cast,
   rw [pow_order_of_eq_one, is_submonoid.coe_one, units.coe_one, sub_self],
 end

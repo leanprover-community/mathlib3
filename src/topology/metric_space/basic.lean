@@ -19,7 +19,7 @@ import topology.shrinking_lemma
 import topology.algebra.ordered
 import data.fintype.intervals
 
-open set filter classical topological_space
+open set filter topological_space
 noncomputable theory
 
 open_locale uniformity topological_space big_operators filter nnreal ennreal
@@ -381,6 +381,11 @@ theorem uniformity_basis_dist_inv_nat_pos :
 metric.mk_uniformity_basis (λ n hn, div_pos zero_lt_one $ nat.cast_pos.2 hn)
   (λ ε ε0, let ⟨n, hn⟩ := exists_nat_one_div_lt ε0 in ⟨n+1, nat.succ_pos n, hn.le⟩)
 
+theorem uniformity_basis_dist_pow {r : ℝ} (h0 : 0 < r) (h1 : r < 1) :
+  (𝓤 α).has_basis (λ n:ℕ, true) (λ n:ℕ, {p:α×α | dist p.1 p.2 < r ^ n }) :=
+metric.mk_uniformity_basis (λ n hn, pow_pos h0 _)
+  (λ ε ε0, let ⟨n, hn⟩ := exists_pow_lt_of_lt_one ε0 h1 in ⟨n, trivial, hn.le⟩)
+
 theorem uniformity_basis_dist_lt {R : ℝ} (hR : 0 < R) :
   (𝓤 α).has_basis (λ r : ℝ, 0 < r ∧ r < R) (λ r, {p : α × α | dist p.1 p.2 < r}) :=
 metric.mk_uniformity_basis (λ r, and.left) $ λ r hr,
@@ -411,6 +416,11 @@ of the uniformity filter. -/
 theorem uniformity_basis_dist_le :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 ≤ ε}) :=
 metric.mk_uniformity_basis_le (λ _, id) (λ ε ε₀, ⟨ε, ε₀, le_refl ε⟩)
+
+theorem uniformity_basis_dist_le_pow {r : ℝ} (h0 : 0 < r) (h1 : r < 1) :
+  (𝓤 α).has_basis (λ n:ℕ, true) (λ n:ℕ, {p:α×α | dist p.1 p.2 ≤ r ^ n }) :=
+metric.mk_uniformity_basis_le (λ n hn, pow_pos h0 _)
+  (λ ε ε0, let ⟨n, hn⟩ := exists_pow_lt_of_lt_one ε0 h1 in ⟨n, trivial, hn.le⟩)
 
 theorem mem_uniformity_dist {s : set (α×α)} :
   s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, dist a b < ε → (a, b) ∈ s) :=
@@ -558,6 +568,14 @@ nhds_basis_uniformity uniformity_basis_dist_inv_nat_succ
 theorem nhds_basis_ball_inv_nat_pos :
   (𝓝 x).has_basis (λ n, 0<n) (λ n:ℕ, ball x (1 / ↑n)) :=
 nhds_basis_uniformity uniformity_basis_dist_inv_nat_pos
+
+theorem nhds_basis_ball_pow {r : ℝ} (h0 : 0 < r) (h1 : r < 1) :
+  (𝓝 x).has_basis (λ n, true) (λ n:ℕ, ball x (r ^ n)) :=
+nhds_basis_uniformity (uniformity_basis_dist_pow h0 h1)
+
+theorem nhds_basis_closed_ball_pow {r : ℝ} (h0 : 0 < r) (h1 : r < 1) :
+  (𝓝 x).has_basis (λ n, true) (λ n:ℕ, closed_ball x (r ^ n)) :=
+nhds_basis_uniformity (uniformity_basis_dist_le_pow h0 h1)
 
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
 by simp only [is_open_iff_mem_nhds, mem_nhds_iff]
@@ -819,6 +837,26 @@ theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
 
 theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = abs x :=
 by simp [real.dist_eq]
+
+theorem real.dist_left_le_of_mem_interval {x y z : ℝ} (h : y ∈ interval x z) :
+  dist x y ≤ dist x z :=
+by simpa only [dist_comm x] using abs_sub_left_of_mem_interval h
+
+theorem real.dist_right_le_of_mem_interval {x y z : ℝ} (h : y ∈ interval x z) :
+  dist y z ≤ dist x z :=
+by simpa only [dist_comm _ z] using abs_sub_right_of_mem_interval h
+
+theorem real.dist_le_of_mem_interval {x y x' y' : ℝ} (hx : x ∈ interval x' y')
+  (hy : y ∈ interval x' y') : dist x y ≤ dist x' y' :=
+abs_sub_le_of_subinterval $ interval_subset_interval (by rwa interval_swap) (by rwa interval_swap)
+
+theorem real.dist_le_of_mem_Icc {x y x' y' : ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
+  dist x y ≤ dist x' y' :=
+real.dist_le_of_mem_interval (Icc_subset_interval hx) (Icc_subset_interval hy)
+
+theorem real.dist_le_of_mem_Icc_01 {x y : ℝ} (hx : x ∈ Icc (0:ℝ) 1) (hy : y ∈ Icc (0:ℝ) 1) :
+  dist x y ≤ 1 :=
+by simpa [real.dist_eq] using real.dist_le_of_mem_Icc hx hy
 
 instance : order_topology ℝ :=
 order_topology_of_nhds_abs $ λ x,
@@ -1254,6 +1292,20 @@ open metric
 class proper_space (α : Type u) [pseudo_metric_space α] : Prop :=
 (compact_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
 
+/-- A proper pseudo metric space is sigma compact, and therefore second countable. -/
+@[priority 100] -- see Note [lower instance priority]
+instance second_countable_of_proper [proper_space α] :
+  second_countable_topology α :=
+begin
+  -- We already have `sigma_compact_space_of_locally_compact_second_countable`, so we don't
+  -- add an instance for `sigma_compact_space`.
+  suffices : sigma_compact_space α, by exactI emetric.second_countable_of_sigma_compact α,
+  rcases em (nonempty α) with ⟨⟨x⟩⟩|hn,
+  { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.compact_ball _ _,
+      Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)⟩⟩ },
+  { exact ⟨⟨λ n, ∅, λ n, compact_empty, Union_eq_univ_iff.2 $ λ x, (hn ⟨x⟩).elim⟩⟩ }
+end
+
 lemma tendsto_dist_right_cocompact_at_top [proper_space α] (x : α) :
   tendsto (λ y, dist y x) (cocompact α) at_top :=
 (has_basis_cocompact.tendsto_iff at_top_basis).2 $ λ r hr,
@@ -1299,13 +1351,12 @@ instance complete_of_proper [proper_space α] : complete_space α :=
   intros f hf,
   /- We want to show that the Cauchy filter `f` is converging. It suffices to find a closed
   ball (therefore compact by properness) where it is nontrivial. -/
-  have A : ∃ t ∈ f, ∀ x y ∈ t, dist x y < 1 := (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
-  rcases A with ⟨t, ⟨t_fset, ht⟩⟩,
+  obtain ⟨t, t_fset, ht⟩ : ∃ t ∈ f, ∀ x y ∈ t, dist x y < 1 :=
+    (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
   rcases hf.1.nonempty_of_mem t_fset with ⟨x, xt⟩,
-  have : t ⊆ closed_ball x 1 := by intros y yt; simp [dist_comm]; apply le_of_lt (ht x y xt yt),
-  have : closed_ball x 1 ∈ f := f.sets_of_superset t_fset this,
+  have : closed_ball x 1 ∈ f := mem_sets_of_superset t_fset (λ y yt, (ht y x yt xt).le),
   rcases (compact_iff_totally_bounded_complete.1 (proper_space.compact_ball x 1)).2 f hf
-    (le_principal_iff.2 this) with ⟨y, _, hy⟩,
+    (le_principal_iff.2 this) with ⟨y, -, hy⟩,
   exact ⟨y, hy⟩
 end⟩
 
@@ -1361,22 +1412,11 @@ lemma second_countable_of_almost_dense_set
   (H : ∀ε > (0 : ℝ), ∃ s : set α, countable s ∧ (∀x, ∃y ∈ s, dist x y ≤ ε)) :
   second_countable_topology α :=
 begin
-  choose T T_dense using H,
-  have I1 : ∀n:ℕ, (n:ℝ) + 1 > 0 :=
-    λn, lt_of_lt_of_le zero_lt_one (le_add_of_nonneg_left (nat.cast_nonneg _)),
-  have I : ∀n:ℕ, (n+1 : ℝ)⁻¹ > 0 := λn, inv_pos.2 (I1 n),
-  let t := ⋃n:ℕ, T (n+1)⁻¹ (I n),
-  have count_t : countable t := by finish [countable_Union],
-  have dense_t : dense t,
-  { refine (λx, mem_closure_iff.2 (λε εpos, _)),
-    rcases exists_nat_gt ε⁻¹ with ⟨n, hn⟩,
-    have : ε⁻¹ < n + 1 := lt_of_lt_of_le hn (le_add_of_nonneg_right zero_le_one),
-    have nε : ((n:ℝ)+1)⁻¹ < ε := (inv_lt (I1 n) εpos).2 this,
-    rcases (T_dense (n+1)⁻¹ (I n)).2 x with ⟨y, yT, Dxy⟩,
-    have : y ∈ t := mem_of_mem_of_subset yT (by apply subset_Union (λ (n:ℕ), T (n+1)⁻¹ (I n))),
-    exact ⟨y, this, lt_of_le_of_lt Dxy nε⟩ },
-  haveI : separable_space α := ⟨⟨t, ⟨count_t, dense_t⟩⟩⟩,
-  exact emetric.second_countable_of_separable α
+  refine emetric.second_countable_of_almost_dense_set (λ ε ε0, _),
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 ε0 with ⟨ε', ε'0, ε'ε⟩,
+  choose s hsc y hys hyx using H ε' (by exact_mod_cast ε'0),
+  refine ⟨s, hsc, bUnion_eq_univ_iff.2 (λ x, ⟨y x, hys _, le_trans _ ε'ε.le⟩)⟩,
+  exact_mod_cast hyx x
 end
 
 end second_countable
@@ -1447,22 +1487,13 @@ begin
 end
 
 lemma bounded_closure_of_bounded (h : bounded s) : bounded (closure s) :=
-begin
-  cases h with C h,
-  replace h : ∀ p : α × α, p ∈ set.prod s s → dist p.1 p.2 ∈ { d | d ≤ C },
-  { rintros ⟨x, y⟩ ⟨x_in, y_in⟩,
-    exact h x y x_in y_in },
-  use C,
-  suffices : ∀ p : α × α, p ∈ closure (set.prod s s) → dist p.1 p.2 ∈ { d | d ≤ C },
-  { rw closure_prod_eq at this,
-    intros x y x_in y_in,
-    exact this (x, y) (mk_mem_prod x_in y_in) },
-  intros p p_in,
-  have := map_mem_closure continuous_dist p_in h,
-  rwa (is_closed_le' C).closure_eq at this
-end
+let ⟨C, h⟩ := h in
+⟨C, λ a b ha hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb h⟩
 
-alias bounded_closure_of_bounded ← bounded.closure
+alias bounded_closure_of_bounded ← metric.bounded.closure
+
+@[simp] lemma bounded_closure_iff : bounded (closure s) ↔ bounded s :=
+⟨λ h, h.subset subset_closure, λ h, h.closure⟩
 
 /-- The union of two bounded sets is bounded iff each of the sets is bounded -/
 @[simp] lemma bounded_union :
@@ -1496,6 +1527,8 @@ alias bounded_of_compact ← is_compact.bounded
 /-- A finite set is bounded -/
 lemma bounded_of_finite {s : set α} (h : finite s) : bounded s :=
 h.is_compact.bounded
+
+alias bounded_of_finite ← set.finite.bounded
 
 /-- A singleton is bounded -/
 lemma bounded_singleton {x : α} : bounded ({x} : set α) :=
@@ -1563,7 +1596,7 @@ end
 then `ennreal.of_real C`  bounds the emetric diameter of this set. -/
 lemma ediam_le_of_forall_dist_le {C : ℝ} (h : ∀ (x ∈ s) (y ∈ s), dist x y ≤ C) :
   emetric.diam s ≤ ennreal.of_real C :=
-emetric.diam_le_of_forall_edist_le $
+emetric.diam_le $
 λ x hx y hy, (edist_dist x y).symm ▸ ennreal.of_real_le_of_real (h x hx y hy)
 
 /-- If the distance between any two points in a set is bounded by some non-negative constant,
@@ -1624,7 +1657,7 @@ obviously true if `s ∪ t` is unbounded. -/
 lemma diam_union {t : set α} (xs : x ∈ s) (yt : y ∈ t) :
   diam (s ∪ t) ≤ diam s + dist x y + diam t :=
 begin
-  classical, by_cases H : bounded (s ∪ t),
+  by_cases H : bounded (s ∪ t),
   { have hs : bounded s, from H.subset (subset_union_left _ _),
     have ht : bounded t, from H.subset (subset_union_right _ _),
     rw [bounded_iff_ediam_ne_top] at H hs ht,
@@ -1823,7 +1856,7 @@ end real
 
 section nnreal
 
-instance : metric_space ℝ≥0 := by unfold nnreal; apply_instance
+instance : metric_space ℝ≥0 := subtype.metric_space
 
 end nnreal
 
@@ -1858,37 +1891,6 @@ instance metric_space_pi : metric_space (Πb, π b) :=
 
 end pi
 
-/-- A proper metric space is separable, and therefore second countable. Indeed, any ball is
-compact, and therefore admits a countable dense subset. Taking a countable union over the balls
-centered at a fixed point and with integer radius, one obtains a countable set which is
-dense in the whole space. -/
-@[priority 100] -- see Note [lower instance priority]
-instance second_countable_of_proper [proper_space γ] :
-  second_countable_topology γ :=
-begin
-  /- It suffices to show that `γ` admits a countable dense subset. -/
-  suffices : separable_space γ,
-  { resetI, apply emetric.second_countable_of_separable },
-  constructor,
-  /- We show that the space admits a countable dense subset. The case where the space is empty
-  is special, and trivial. -/
-  rcases _root_.em (nonempty γ) with (⟨⟨x⟩⟩|hγ), swap,
-  { exact ⟨∅, countable_empty, λ x, (hγ ⟨x⟩).elim⟩ },
-  /- When the space is not empty, we take a point `x` in the space, and then a countable set
-    `T r` which is dense in the closed ball `closed_ball x r` for each `r`. Then the set
-    `t = ⋃ T n` (where the union is over all integers `n`) is countable, as a countable union
-    of countable sets, and dense in the space by construction. -/
-  choose T T_sub T_count T_closure using
-    show ∀ (r:ℝ), ∃ t ⊆ closed_ball x r, (countable (t : set γ) ∧ closed_ball x r = closure t),
-      from assume r, emetric.countable_closure_of_compact (proper_space.compact_ball _ _),
-  use [⋃n:ℕ, T (n : ℝ), countable_Union (λ n, T_count n)],
-  intro y,
-  rcases exists_nat_gt (dist y x) with ⟨n, n_large⟩,
-  have h : y ∈ closed_ball x (n : ℝ) := n_large.le,
-  rw [T_closure] at h,
-  exact closure_mono (subset_Union _ _) h
-end
-
 section proper_space
 
 variables {ι : Type*} {c : ι → γ}
@@ -1903,11 +1905,11 @@ lemma exists_subset_Union_ball_radius_lt {r : ι → ℝ} (hs : is_closed s)
   (uf : ∀ x ∈ s, finite {i | x ∈ ball (c i) (r i)}) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
   ∃ r' : ι → ℝ, s ⊆ (⋃ i, ball (c i) (r' i)) ∧ ∀ i, r' i < r i :=
 begin
-  choose v hsv hvo hcv
-    using exists_subset_Union_closure_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us,
-  have := λ i, exists_lt_subset_ball is_closed_closure (hcv i),
+  rcases exists_subset_Union_closed_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us
+    with ⟨v, hsv, hvc, hcv⟩,
+  have := λ i, exists_lt_subset_ball (hvc i) (hcv i),
   choose r' hlt hsub,
-  exact ⟨r', subset.trans hsv $ Union_subset_Union $ λ i, subset.trans subset_closure (hsub i), hlt⟩
+  exact ⟨r', subset.trans hsv $ Union_subset_Union $ hsub, hlt⟩
 end
 
 /-- Shrinking lemma for coverings by open balls in a proper metric space. A point-finite open cover
@@ -1926,11 +1928,11 @@ lemma exists_subset_Union_ball_radius_pos_lt {r : ι → ℝ} (hr : ∀ i, 0 < r
   (uf : ∀ x ∈ s, finite {i | x ∈ ball (c i) (r i)}) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
   ∃ r' : ι → ℝ, s ⊆ (⋃ i, ball (c i) (r' i)) ∧ ∀ i, r' i ∈ Ioo 0 (r i) :=
 begin
-  choose v hsv hvo hcv
-    using exists_subset_Union_closure_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us,
-  have := λ i, exists_pos_lt_subset_ball (hr i) is_closed_closure (hcv i),
+  rcases exists_subset_Union_closed_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us
+    with ⟨v, hsv, hvc, hcv⟩,
+  have := λ i, exists_pos_lt_subset_ball (hr i) (hvc i) (hcv i),
   choose r' hlt hsub,
-  exact ⟨r', subset.trans hsv $ Union_subset_Union $ λ i, subset.trans subset_closure (hsub i), hlt⟩
+  exact ⟨r', subset.trans hsv $ Union_subset_Union hsub, hlt⟩
 end
 
 /-- Shrinking lemma for coverings by open balls in a proper metric space. A point-finite open cover

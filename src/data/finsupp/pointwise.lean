@@ -46,6 +46,13 @@ begin
   apply h,
   cases w; { rw w, simp },
 end
+
+instance : mul_zero_class (α →₀ β) :=
+{ zero      := 0,
+  mul       := (*),
+  mul_zero  := λ f, by { ext, simp only [mul_apply, zero_apply, mul_zero], },
+  zero_mul  := λ f, by { ext, simp only [mul_apply, zero_apply, zero_mul], }, }
+
 end
 
 instance [semiring β] : semigroup (α →₀ β) :=

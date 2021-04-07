@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import category_theory.yoneda
 import topology.sheaves.presheaf
 import topology.category.TopCommRing
-import topology.algebra.continuous_functions
+import topology.continuous_function.algebra
 
 /-!
 # Presheaves of functions
@@ -77,7 +77,8 @@ rfl
   (presheaf_to_Type X T).map i f = f ∘ i.unop :=
 rfl
 
-/-- The presheaf of continuous functions on `X` with values in fixed target topological space `T`. -/
+/-- The presheaf of continuous functions on `X` with values in fixed target topological space
+`T`. -/
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 (opens.to_Top X).op ⋙ (yoneda.obj T)
 

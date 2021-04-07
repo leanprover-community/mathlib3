@@ -96,7 +96,7 @@ mem_inf_sets_of_right (mem_principal_self s)
 
 theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ 𝓝 a) :
   s ∩ t ∈ 𝓝[s] a :=
-inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_left h)
+inter_mem_sets self_mem_nhds_within (mem_inf_sets_of_left h)
 
 theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : 𝓝[s] a ≤ 𝓝[t] a :=
 inf_le_inf_left _ (principal_mono.mpr h)
@@ -925,6 +925,35 @@ lemma is_open.ite {s s' t : set α} (hs : is_open s) (hs' : is_open s')
   (ht : s ∩ frontier t = s' ∩ frontier t) :
   is_open (t.ite s s') :=
 hs.ite' hs' $ λ x hx, by simpa [hx] using ext_iff.1 ht x
+
+lemma ite_inter_closure_eq_of_inter_frontier_eq {s s' t : set α}
+  (ht : s ∩ frontier t = s' ∩ frontier t) :
+  t.ite s s' ∩ closure t = s ∩ closure t :=
+by rw [closure_eq_self_union_frontier, inter_union_distrib_left, inter_union_distrib_left,
+  ite_inter_self, ite_inter_of_inter_eq _ ht]
+
+lemma ite_inter_closure_compl_eq_of_inter_frontier_eq {s s' t : set α}
+  (ht : s ∩ frontier t = s' ∩ frontier t) :
+  t.ite s s' ∩ closure tᶜ = s' ∩ closure tᶜ :=
+by { rw [← ite_compl, ite_inter_closure_eq_of_inter_frontier_eq], rwa [frontier_compl, eq_comm] }
+
+lemma continuous_on_piecewise_ite' {s s' t : set α} {f f' : α → β} [∀ x, decidable (x ∈ t)]
+  (h : continuous_on f (s ∩ closure t)) (h' : continuous_on f' (s' ∩ closure tᶜ))
+  (H : s ∩ frontier t = s' ∩ frontier t) (Heq : eq_on f f' (s ∩ frontier t)) :
+  continuous_on (t.piecewise f f') (t.ite s s') :=
+begin
+  apply continuous_on.piecewise,
+  { rwa ite_inter_of_inter_eq _ H },
+  { rwa ite_inter_closure_eq_of_inter_frontier_eq H },
+  { rwa ite_inter_closure_compl_eq_of_inter_frontier_eq H }
+end
+
+lemma continuous_on_piecewise_ite {s s' t : set α} {f f' : α → β} [∀ x, decidable (x ∈ t)]
+  (h : continuous_on f s) (h' : continuous_on f' s')
+  (H : s ∩ frontier t = s' ∩ frontier t) (Heq : eq_on f f' (s ∩ frontier t)) :
+  continuous_on (t.piecewise f f') (t.ite s s') :=
+continuous_on_piecewise_ite' (h.mono (inter_subset_left _ _)) (h'.mono (inter_subset_left _ _))
+  H Heq
 
 lemma continuous_on_fst {s : set (α × β)} : continuous_on prod.fst s :=
 continuous_fst.continuous_on

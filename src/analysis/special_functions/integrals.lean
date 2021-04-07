@@ -47,11 +47,6 @@ lemma interval_integrable_pow (n : ℕ) : interval_integrable (λ x, x^n) μ a b
 (continuous_pow n).interval_integrable a b
 
 @[simp]
-lemma interval_integrable.pow (n : ℕ) (h : continuous f) :
-  interval_integrable (λ x, f x ^ n) μ a b :=
-(h.pow n).interval_integrable a b
-
-@[simp]
 lemma interval_integrable_id : interval_integrable (λ x, x) μ a b :=
 continuous_id.interval_integrable a b
 

@@ -1,23 +1,31 @@
 /-
 Copyright (c) 2015, 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Metric spaces.
-
 Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébastien Gouëzel
+-/
 
-Many definitions and theorems expected on metric spaces are already introduced on uniform spaces and
-topological spaces. For example:
-  open and closed sets, compactness, completeness, continuity and uniform continuity
+import topology.metric_space.emetric_space
+import topology.shrinking_lemma
+import topology.algebra.ordered
+import data.fintype.intervals
+
+/-!
+# Metric spaces
+
+This file defines metric spaces. Many definitions and theorems expected
+on metric spaces are already introduced on uniform spaces and topological spaces.
+For example: open and closed sets, compactness, completeness, continuity and uniform continuity
+
+## Implementation notes
 
 Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the
 theory of `pseudo_metric_space`, where we don't require `dist x y = 0 → x = y` and we specialize
 to `metric_space` at the end.
 
+## Tags
+
+metric, pseudo_metric, dist
 -/
-import topology.metric_space.emetric_space
-import topology.shrinking_lemma
-import topology.algebra.ordered
-import data.fintype.intervals
 
 open set filter topological_space
 noncomputable theory

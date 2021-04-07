@@ -123,6 +123,28 @@ to_submodule_injective.eq_iff
 @[norm_cast]
 lemma coe_to_submodule : ((L' : submodule R L) : set L) = L' := rfl
 
+section lie_module
+
+variables {M : Type w} [add_comm_group M] [lie_ring_module L M]
+
+/-- Given a Lie algebra `L` containing a Lie subalgebra `L' ⊆ L`, together with a Lie ring module
+`M` of `L`, we may regard `M` as a Lie ring module of `L'` by restriction. -/
+instance : lie_ring_module L' M :=
+{ bracket     := λ x m, ⁅(x : L), m⁆,
+  add_lie     := λ x y m, add_lie x y m,
+  lie_add     := λ x y m, lie_add x y m,
+  leibniz_lie := λ x y m, leibniz_lie x y m, }
+
+@[simp] lemma coe_bracket_of_module (x : L') (m : M) : ⁅x, m⁆ = ⁅(x : L), m⁆ := rfl
+
+/-- Given a Lie algebra `L` containing a Lie subalgebra `L' ⊆ L`, together with a Lie module `M` of
+`L`, we may regard `M` as a Lie module of `L'` by restriction. -/
+instance [module R M] [lie_module R L M] : lie_module R L' M :=
+{ smul_lie := λ t x m, by simp only [coe_bracket_of_module, smul_lie, submodule.coe_smul_of_tower],
+  lie_smul := λ t x m, by simp only [coe_bracket_of_module, lie_smul], }
+
+end lie_module
+
 end lie_subalgebra
 
 variables {R L} {L₂ : Type w} [lie_ring L₂] [lie_algebra R L₂]

@@ -187,7 +187,7 @@ by simp [← order_of_of_add_eq_add_order_of]
 attribute [to_additive add_order_of_zero] order_of_one
 
 @[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
-⟨λ h, by conv_lhs { rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
+by rw [order_of, is_fixed_point_iff_minimal_period_eq_one, is_fixed_pt, one_mul]
 
 @[simp] lemma add_order_of_eq_one_iff : add_order_of x = 1 ↔ x = 0 :=
 by simp [← order_of_of_add_eq_add_order_of]

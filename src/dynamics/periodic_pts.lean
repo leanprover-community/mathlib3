@@ -237,6 +237,19 @@ begin
   { exact nat.succ_le_of_lt (is_periodic_pt.minimal_period_pos (nat.one_pos) (is_periodic_id _ _)) }
 end
 
+lemma is_fixed_point_iff_minimal_period_eq_one : minimal_period f x = 1 ↔ is_fixed_pt f x :=
+begin
+  split,
+  { intro h,
+    rw ← iterate_one f,
+    apply function.is_periodic_pt.is_fixed_pt,
+    convert is_periodic_pt_minimal_period f x,
+    exact h.symm },
+  { intro h,
+    exact le_antisymm (is_periodic_pt.minimal_period_le (nat.one_pos) (h.is_periodic_pt 1))
+      (nat.succ_le_of_lt (is_periodic_pt.minimal_period_pos (nat.one_pos) (h.is_periodic_pt 1))) }
+end
+
 lemma is_periodic_pt.eq_zero_of_lt_minimal_period (hx : is_periodic_pt f n x)
   (hn : n < minimal_period f x) :
   n = 0 :=

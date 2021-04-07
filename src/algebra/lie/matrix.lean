@@ -66,21 +66,22 @@ by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, linear_map.to_matrix'_co
          linear_map.to_matrix'_to_lin']
 
 /-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
-types is an equivalence of Lie algebras. -/
+types, `matrix.reindex`, is an equivalence of Lie algebras. -/
 def matrix.reindex_lie_equiv {m : Type w₁} [decidable_eq m] [fintype m]
   (e : n ≃ m) : matrix n n R ≃ₗ⁅R⁆ matrix m m R :=
-{ map_lie' := λ M N, by simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_mul,
-    matrix.mul_eq_mul, linear_equiv.map_sub, linear_equiv.to_fun_eq_coe],
-..(matrix.reindex_linear_equiv e e) }
+{ to_fun := matrix.reindex e e,
+  map_lie' := λ M N, by { simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_mul,
+    matrix.mul_eq_mul], refl },
+  ..(matrix.reindex_linear_equiv e e) }
 
 @[simp] lemma matrix.reindex_lie_equiv_apply {m : Type w₁} [decidable_eq m] [fintype m]
   (e : n ≃ m) (M : matrix n n R) :
-  matrix.reindex_lie_equiv e M = λ i j, M (e.symm i) (e.symm j) :=
+  matrix.reindex_lie_equiv e M = matrix.reindex e e M :=
 rfl
 
 @[simp] lemma matrix.reindex_lie_equiv_symm_apply {m : Type w₁} [decidable_eq m] [fintype m]
-  (e : n ≃ m) (M : matrix m m R) :
-  (matrix.reindex_lie_equiv e).symm M = λ i j, M (e i) (e j) :=
+  (e : n ≃ m) :
+  (matrix.reindex_lie_equiv e : _ ≃ₗ⁅R⁆ _).symm = matrix.reindex_lie_equiv e.symm :=
 rfl
 
 end matrices

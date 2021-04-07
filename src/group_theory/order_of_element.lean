@@ -24,12 +24,6 @@ This file defines the order of an element of a finite group. For a finite group 
 ## Tags
 
 order of an element
-
-## TODO
-
-* Move the first declarations until the definition of order to other files.
-* Yury's suggestion: Redefine `order_of x := minimal_period (* x) 1`, this should make `to_additive`
-  easier.
 -/
 
 open function
@@ -45,7 +39,7 @@ variables {α} [monoid α]
 variables {H : Type u} [add_monoid H]
 
 -- Move the following four lemmas somewhere else?
-@[simp] lemma add_right_fpow_apply (x : H) {n : ℕ} : (+ x)^[n] = (+ n •ℕ x) :=
+@[simp] lemma iterate_add_right_apply (x : H) {n : ℕ} : (+ x)^[n] = (+ n •ℕ x) :=
 begin
   induction n with d hd,
   { simp_rw [zero_nsmul, add_zero, iterate_zero],
@@ -53,7 +47,7 @@ begin
   { simp_rw [iterate_succ', succ_nsmul', ← add_assoc, hd] }
 end
 
-@[simp, to_additive] lemma mul_right_fpow_apply (a : α) {n : ℕ} : (* a)^[n] = (* a ^ n) :=
+@[simp, to_additive] lemma iterate_mul_right_apply (a : α) {n : ℕ} : (* a)^[n] = (* a ^ n) :=
 begin
   induction n with d hd,
   { simp_rw [pow_zero, mul_one, iterate_zero],
@@ -61,19 +55,19 @@ begin
   { simp_rw [iterate_succ', pow_succ', ← mul_assoc, hd] }
 end
 
-@[simp] lemma add_fpow_apply_zero (x : H) {n : ℕ} : (+ x)^[n] 0 = n •ℕ x :=
+@[simp] lemma iterate_add_apply_zero (x : H) {n : ℕ} : (+ x)^[n] 0 = n •ℕ x :=
 by simp
 
-@[simp, to_additive] lemma mul_fpow_apply_one (a : α) {n : ℕ} : (* a)^[n] 1 = a ^ n :=
+@[simp, to_additive] lemma iterate_mul_apply_one (a : α) {n : ℕ} : (* a)^[n] 1 = a ^ n :=
 by simp
 
 lemma is_periodic_pt_add_iff_nsmul_eq_zero (x : H) {n : ℕ} :
   is_periodic_pt (+ x) n 0 ↔ n •ℕ x = 0 :=
-by rw [is_periodic_pt, is_fixed_pt, add_fpow_apply_zero]
+by rw [is_periodic_pt, is_fixed_pt, iterate_add_apply_zero]
 
 @[to_additive is_periodic_pt_add_iff_nsmul_eq_zero]
 lemma is_periodic_pt_mul_iff_pow_eq_one (a : α) {n : ℕ} : is_periodic_pt (* a) n 1 ↔ a ^ n = 1 :=
-by rw [is_periodic_pt, is_fixed_pt, mul_fpow_apply_one]
+by rw [is_periodic_pt, is_fixed_pt, iterate_mul_apply_one]
 
 /-- `is_of_fin_add_order` is a predicate on an element `x` of an additive monoid to be of finite
 order, i.e. there exists `n ≥ 1` such that `n •ℕ x = 0`.-/
@@ -138,14 +132,14 @@ minimal_period_pos_of_mem_periodic_pts h
 
 lemma add_order_of_nsmul_eq_zero (x : H) : (add_order_of x) •ℕ x = 0 :=
 begin
-  rw [← add_fpow_apply_zero, ← is_fixed_pt, ← is_periodic_pt],
+  rw [← iterate_add_apply_zero, ← is_fixed_pt, ← is_periodic_pt],
   exact is_periodic_pt_minimal_period _ _,
 end
 
 @[to_additive add_order_of_nsmul_eq_zero]
 lemma pow_order_of_eq_one (a : α): a ^ order_of a = 1 :=
 begin
-  rw [← mul_fpow_apply_one, ← is_fixed_pt, ← is_periodic_pt, order_of],
+  rw [← iterate_mul_apply_one, ← is_fixed_pt, ← is_periodic_pt, order_of],
   exact is_periodic_pt_minimal_period _ _,
 end
 
@@ -307,7 +301,7 @@ lemma order_of_pow' (h : n ≠ 0) :
 begin
   simp only [order_of],
   convert minimal_period_iterate_eq_div_gcd h,
-  exact (mul_right_fpow_apply a).symm
+  exact (iterate_mul_right_apply a).symm
 end
 
 variables (x)
@@ -325,7 +319,7 @@ lemma order_of_pow'' (h : is_of_fin_order a) :
 begin
   simp only [order_of],
   convert minimal_period_iterate_eq_div_gcd' h,
-  exact (mul_right_fpow_apply a).symm
+  exact (iterate_mul_right_apply a).symm
 end
 
 lemma add_order_of_nsmul'' (h : is_of_fin_add_order x) :

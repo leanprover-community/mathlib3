@@ -116,16 +116,12 @@ rfl
 
 /-- Given a function `f : C → G` from a category to a group, we get a functor
     `C ⥤ G` sending any morphism `x ⟶ y` to `f y * (f x)⁻¹`. -/
-def difference_functor {C G} [category C] [group G] (f : C → G) : C ⥤ single_obj G :=
+@[simps] def difference_functor {C G} [category C] [group G] (f : C → G) : C ⥤ single_obj G :=
 { obj := λ _, (),
   map := λ x y _, f y * (f x)⁻¹,
   map_id' := by { intro, rw [single_obj.id_as_one, mul_right_inv] },
   map_comp' := by { intros, rw [single_obj.comp_as_mul, ←mul_assoc,
     mul_left_inj, mul_assoc, inv_mul_self, mul_one] } }
-
-@[simp]
-lemma difference_functor_map {C G} [category C] [group G] (f : C → G) (x y : C) (p : x ⟶ y) :
-  (difference_functor f).map p = f y * (f x)⁻¹ := rfl
 
 end single_obj
 

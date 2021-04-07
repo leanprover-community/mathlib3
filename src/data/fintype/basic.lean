@@ -420,6 +420,14 @@ set.ext $ λ _, mem_to_finset
   s.to_finset = t.to_finset ↔ s = t :=
 ⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩
 
+@[simp] theorem to_finset.mono {s t : set α} [fintype s] [fintype t] :
+  s.to_finset ≤ t.to_finset ↔ s ≤ t :=
+by simp [finset.subset_iff, set.subset_def]
+
+@[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
+  disjoint s.to_finset t.to_finset ↔ disjoint s t :=
+⟨λ h x hx, h (by simpa using hx), λ h x hx, h (by simpa using hx)⟩
+
 end set
 
 lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=

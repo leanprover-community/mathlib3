@@ -3,8 +3,11 @@ Copyright (c) 2020 Matúš Behun. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Matúš Behun
 -/
-
 import order.lattice
+
+/-!
+    Definition of sublattice based on typeclass of lattice
+-/
 
 variables { L : Type* } [ lattice L ] { s : set L }
 

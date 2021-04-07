@@ -1,4 +1,5 @@
 import algebra.homology2.additive
+import algebra.homology2.internal_hom
 import algebra.category.Module.abelian
 import algebra.category.Module.subobject
 import category_theory.limits.shapes.concrete_category
@@ -17,11 +18,6 @@ variables {V : Type u} [category.{v} V] [has_zero_object V] [preadditive V]
 
 variables {c : complex_shape ι} {C D E : homological_complex V c}
 variables (f g : C ⟶ D) (h k : D ⟶ E) (i : ι)
-
-@[ext]
-structure ihom (k : ℤ) (C D : homological_complex V c) :=
-(h : Π i j, C.X i ⟶ D.X j)
-(zero' : ∀ i j, ¬ c.r' k i j → h i j = 0 . obviously)
 
 def ihom.to_pred {k : ℤ} (f : ihom k C D) (i j : ι) : C.X i ⟶ D.X_pred j := sorry
 def ihom.from_succ {k : ℤ} (f : ihom k C D) (i j : ι) : C.X_succ i ⟶ D.X j := sorry
@@ -69,10 +65,7 @@ end
 @[ext]
 lemma cokernel_π_ext {M N : Module.{v} R} (f : M ⟶ N) {x y : N} (m : M) (w : f m + x = y) :
   cokernel.π f x = cokernel.π f y :=
-begin
-  subst w,
-  simp,
-end
+by { subst w, simp, }
 
 @[ext]
 lemma cokernel_π_image_subobject_ext {L M N : Module.{v} R}
@@ -145,12 +138,15 @@ end homological_complex
   (cycles_map f i) (C.to_cycles x p) = D.to_cycles (f.f i x) (by simp [p]) :=
 by { ext, simp, }
 
-def homological_complex.to_homology (C : homological_complex (Module.{v} R) c) {i : ι} (x : C.X i) (p : C.d_from i x = 0) : C.homology i :=
+def homological_complex.to_homology
+  (C : homological_complex (Module.{v} R) c) {i : ι} (x : C.X i) (p : C.d_from i x = 0) :
+  C.homology i :=
 cokernel.π (C.boundaries_to_cycles i) (C.to_cycles x p)
 
 @[ext]
 lemma homological_complex.ext {M : Module R} (i : ι) {h k : C.homology i ⟶ M}
-  (w : ∀ (x : C.X i) (p : C.d_from i x = 0), h (C.to_homology x p) = k (C.to_homology x p)) : h = k :=
+  (w : ∀ (x : C.X i) (p : C.d_from i x = 0), h (C.to_homology x p) = k (C.to_homology x p)) :
+  h = k :=
 homology_ext _ w
 
 variables (f g : C ⟶ D)
@@ -159,7 +155,7 @@ attribute [elementwise] cokernel.π_desc
 open category_theory.limits
 
 @[simp]
-lemma add_left_eq_self_foo {M : Type*} [add_right_cancel_monoid M] {a b c : M} :
+lemma add_left_eq_self_assoc {M : Type*} [add_right_cancel_monoid M] {a b c : M} :
   a + (b + c) = c ↔ a + b = 0 :=
 by rw [←add_assoc, add_left_eq_self]
 
@@ -171,13 +167,11 @@ begin
   -- To check two morphisms out of a homology group agree, it suffices to check on cycles:
   ext,
   dsimp [homology_functor, homological_complex.to_homology],
-  simp only [cokernel.π_desc_apply],
-  simp only [coe_comp],
+  simp only [cokernel.π_desc_apply, coe_comp],
   -- To check that two elements are equal mod coboundaries, it suffices to exhibit a coboundary:
   ext1,
   swap, exact -(h.to_ihom.to_pred i i) x,
   -- Moreover, to check that two cycles are equal, it suffices to check their underlying elements:
   ext1,
   simp [←h.comm' i, p],
-
 end

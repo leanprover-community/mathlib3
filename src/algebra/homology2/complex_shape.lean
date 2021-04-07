@@ -1,24 +1,114 @@
 import tactic.basic
 import tactic.linarith
 
+open_locale classical
+noncomputable theory
+
+def option.choice (α : Type*) : option α :=
+if h : nonempty α then
+  some h.some
+else
+  none
+
 /--
 A `c : complex_shape ι` describes the shape of a chain complex,
 with chain groups indexed by `ι`.
 Typically `ι` will be `ℕ`, `ℤ`, or `fin n`.
 
-There is a relation `r : ι → ι → Prop`, and we will only allow a non-zero differential from `i` to `j`
-when `r i j`.
+There is a relation `r : ι → ι → Prop`,
+and we will only allow a non-zero differential from `i` to `j` when `r i j`.
 
 There are axioms which imply `{ j // c.r i j }` and `{ i // c.r i j }` are subsingletons.
 This means that the shape consists of some union of lines, rays, intervals, and circles.
 -/
 structure complex_shape (ι : Type*) :=
 (r : ι → ι → Prop)
-(succ_eq : ∀ {i j k}, r i j → r i k → j = k)
-(pred_eq : ∀ {i j k}, r i k → r j k → i = j)
+(succ_eq : ∀ {i j j'}, r i j → r i j' → j = j')
+(pred_eq : ∀ {i i' k}, r i k → r i' k → i = i')
 
 namespace complex_shape
 variables {ι : Type*}
+
+instance subsingleton_next (c : complex_shape ι) (i : ι) :
+  subsingleton { j // c.r i j } :=
+begin
+  fsplit,
+  rintros ⟨j, rij⟩ ⟨k, rik⟩,
+  congr,
+  exact c.succ_eq rij rik,
+end
+
+instance subsingleton_prev (c : complex_shape ι) (j : ι) :
+  subsingleton { i // c.r i j } :=
+begin
+  fsplit,
+  rintros ⟨i, rik⟩ ⟨j, rjk⟩,
+  congr,
+  exact c.pred_eq rik rjk,
+end
+
+def next' (c : complex_shape ι) (i : ι) : option { j // c.r i j } :=
+option.choice _
+
+def next (c : complex_shape ι) (i : ι) : option ι :=
+(c.next' i).map (λ p, p.1)
+
+def prev' (c : complex_shape ι) (j : ι) : option { i // c.r i j } :=
+option.choice _
+
+def prev (c : complex_shape ι) (j : ι) : option ι :=
+(c.prev' j).map (λ p, p.1)
+
+lemma r_next (c : complex_shape ι) (i j : ι) (w : j ∈ c.next i) : c.r i j :=
+begin
+  dsimp [next, next', option.choice] at w,
+  split_ifs at w,
+  { simp at w, subst w,
+    exact h.some.2, },
+  { cases w, },
+end
+lemma prev_r (c : complex_shape ι) (i j : ι) (w : i ∈ c.prev j) : c.r i j :=
+begin
+  dsimp [prev, prev', option.choice] at w,
+  split_ifs at w,
+  { simp at w, subst w,
+    exact h.some.2, },
+  { cases w, },
+end
+
+lemma next'_eq_some (c : complex_shape ι) {i j : ι} (h : c.r i j) : c.next' i = some ⟨j, h⟩ :=
+begin
+  dsimp [next, next', option.choice],
+  let w : nonempty { j // c.r i j } := ⟨⟨j, h⟩⟩,
+  rw dif_pos w,
+  simp only [option.map_some', subtype.val_eq_coe],
+  apply subsingleton.elim,
+end
+lemma prev'_eq_some (c : complex_shape ι) {i j : ι} (h : c.r i j) : c.prev' j = some ⟨i, h⟩ :=
+begin
+  dsimp [prev, prev', option.choice],
+  let w : nonempty { i // c.r i j } := ⟨⟨i, h⟩⟩,
+  rw dif_pos w,
+  simp only [option.map_some', subtype.val_eq_coe],
+  apply subsingleton.elim,
+end
+
+lemma next_eq_some (c : complex_shape ι) {i j : ι} (h : c.r i j) : c.next i = some j :=
+begin
+  dsimp [next, next', option.choice],
+  let w : nonempty { j // c.r i j } := ⟨⟨j, h⟩⟩,
+  rw dif_pos w,
+  simp only [option.map_some', subtype.val_eq_coe],
+  apply c.succ_eq w.some.2 h,
+end
+lemma prev_eq_some (c : complex_shape ι) {i j : ι} (h : c.r i j) : c.prev j = some i :=
+begin
+  dsimp [prev, prev', option.choice],
+  let w : nonempty { i // c.r i j } := ⟨⟨i, h⟩⟩,
+  rw dif_pos w,
+  simp only [option.map_some', subtype.val_eq_coe],
+  apply c.pred_eq w.some.2 h,
+end
 
 def succ (c : complex_shape ι) (i : ι) := { j // c.r i j }
 def pred (c : complex_shape ι) (j : ι) := { i // c.r i j }

@@ -1,5 +1,4 @@
 import algebra.homology2.additive
-import category_theory.graded_object
 
 universes v u
 
@@ -20,14 +19,14 @@ variables [has_zero_morphisms V]
 
 @[ext]
 structure ihom (k : ℤ) (C D : homological_complex V c) :=
-(f : Π i j, C.X i ⟶ D.X j)
-(zero' : ∀ i j, ¬ c.r' k i j → f i j = 0 . obviously)
+(hom : Π i j, C.X i ⟶ D.X j)
+(zero' : ∀ i j, ¬ c.r' k i j → hom i j = 0 . obviously)
 
 restate_axiom ihom.zero'
 attribute [simp] ihom.zero
 
 lemma ihom_f_injective {k : ℤ} {C₁ C₂ : homological_complex V c} :
-  function.injective (λ f : ihom k C₁ C₂, ihom.f f) :=
+  function.injective (λ f : ihom k C₁ C₂, ihom.hom f) :=
 by tidy
 
 namespace ihom
@@ -48,14 +47,14 @@ section
 variables [preadditive V]
 variables {k : ℤ} {C D : homological_complex V c}
 
-instance : has_zero (ihom k C D) := ⟨{ f := λ i j, 0 }⟩
+instance : has_zero (ihom k C D) := ⟨{ hom := λ i j, 0 }⟩
 instance : has_add (ihom k C D) :=
-⟨λ f g, { f := λ i j, f.f i j + g.f i j, zero' := λ i j w, by simp [w] }⟩
+⟨λ f g, { hom := λ i j, f.hom i j + g.hom i j, zero' := λ i j w, by simp [w] }⟩
 instance : has_neg (ihom k C D) :=
-⟨λ f, { f := λ i j, -(f.f i j), zero' := λ i j w, by simp [w] }⟩
+⟨λ f, { hom := λ i j, -(f.hom i j), zero' := λ i j w, by simp [w] }⟩
 
 instance : add_comm_group (ihom k C D) :=
-function.injective.add_comm_group ihom.f
+function.injective.add_comm_group ihom.hom
   homological_complex.ihom_f_injective (by tidy) (by tidy) (by tidy)
 
 def sign (k : ℤ) : ℤ := @gpow (units ℤ) _ (-1 : units ℤ) k
@@ -64,9 +63,9 @@ variables [has_zero_object V]
 
 def δ : ihom k C D →+ ihom (k+1) C D :=
 { to_fun := λ f,
-  { f := λ i j, C.d_from i ≫ f.from_succ i j + (sign k) •ℤ f.to_pred i j ≫ D.d_to j,
+  { hom := λ i j, C.d_from i ≫ f.from_succ i j + (sign k) •ℤ f.to_pred i j ≫ D.d_to j,
     zero' := sorry, },
-  map_zero' := sorry,
+  map_zero' := begin ext, dsimp, sorry, end,
   map_add' := sorry, }
 
 -- Now: δ^2 = 0

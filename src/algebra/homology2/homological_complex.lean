@@ -95,115 +95,112 @@ begin
 end
 
 def X_pred (j : ι) : V :=
-if h : nonempty (c.pred j) then
-  C.X h.some.1
-else
-  0
+match c.prev j with
+| none := 0
+| (some i) := C.X i
+end
 
 def X_pred_iso {i j : ι} (r : c.r i j) :
   C.X_pred j ≅ C.X i :=
 begin
   dsimp [X_pred],
   apply eq_to_iso,
-  rw [dif_pos (c.nonempty_pred r)],
-  exact congr_arg C.X (c.nonempty_pred_some r),
+  rw c.prev_eq_some r,
+  refl,
 end
 
-def X_pred_iso_zero {j : ι} (h : c.pred j → false) :
+def X_pred_iso_zero {j : ι} (h : c.prev j = none) :
   C.X_pred j ≅ 0 :=
 begin
   dsimp [X_pred],
   apply eq_to_iso,
-  rw [dif_neg (not_nonempty_iff_imp_false.mpr h)],
+  rw h,
+  refl,
 end
 
 def X_succ (i : ι) : V :=
-if h : nonempty (c.succ i) then
-  C.X h.some.1
-else
-  0
+match c.next i with
+| none := 0
+| (some j) := C.X j
+end
 
 def X_succ_iso {i j : ι} (r : c.r i j) :
   C.X_succ i ≅ C.X j :=
 begin
   dsimp [X_succ],
   apply eq_to_iso,
-  rw [dif_pos (c.nonempty_succ r)],
-  exact congr_arg C.X (c.nonempty_succ_some r),
+  rw c.next_eq_some r,
+  refl,
 end
 
-def X_succ_iso_zero {i : ι} (h : c.succ i → false) :
+def X_succ_iso_zero {i : ι} (h : c.next i = none) :
   C.X_succ i ≅ 0 :=
 begin
   dsimp [X_succ],
   apply eq_to_iso,
-  rw [dif_neg (not_nonempty_iff_imp_false.mpr h)],
+  rw h,
+  refl,
 end
 
 /--
 The differential mapping into `C.X j`, or zero if there isn't one.
 -/
 def d_to (j : ι) : C.X_pred j ⟶ C.X j :=
-if h : nonempty (c.pred j) then
-  (C.X_pred_iso h.some.2).hom ≫ C.d h.some.1 j
-else
-  (0 : C.X_pred j ⟶ C.X j)
+match c.prev' j with
+| none := (0 : C.X_pred j ⟶ C.X j)
+| (some ⟨i, w⟩) := (C.X_pred_iso w).hom ≫ C.d i j
+end
 
 /--
 The differential mapping out of `C.X i`, or zero if there isn't one.
 -/
 def d_from (i : ι) : C.X i ⟶ C.X_succ i :=
-if h : nonempty (c.succ i) then
-  C.d i h.some.1 ≫ (C.X_succ_iso h.some.2).inv
-else
-  (0 : C.X i ⟶ C.X_succ i)
+match c.next' i with
+| none := (0 : C.X i ⟶ C.X_succ i)
+| (some ⟨j, w⟩) := C.d i j ≫ (C.X_succ_iso w).inv
+end
 
 lemma d_to_eq {i j : ι} (r : c.r i j) :
   C.d_to j = (C.X_pred_iso r).hom ≫ C.d i j :=
 begin
   dsimp [d_to, X_pred_iso],
-  rw [dif_pos (c.nonempty_pred r), ←is_iso.inv_comp_eq, inv_eq_to_hom, eq_to_hom_trans_assoc],
-  rw C.eq_to_hom_comp_d r _,
-  apply c.r_of_nonempty_pred,
+  rw c.prev'_eq_some r,
+  refl,
 end
 
-lemma d_to_eq_zero {j : ι} (h : c.pred j → false) :
+@[simp]
+lemma d_to_eq_zero {j : ι} (h : c.prev' j = none) :
   C.d_to j = 0 :=
 begin
   dsimp [d_to],
-  rw [dif_neg (not_nonempty_iff_imp_false.mpr h)]
+  rw h, refl,
 end
 
 lemma d_from_eq {i j : ι} (r : c.r i j) :
   C.d_from i = C.d i j ≫ (C.X_succ_iso r).inv :=
 begin
   dsimp [d_from, X_succ_iso],
-  rw [dif_pos (c.nonempty_succ r), ←is_iso.comp_inv_eq, inv_eq_to_hom, category.assoc,
-    eq_to_hom_trans],
-  rw C.d_comp_eq_to_hom r _,
-  apply c.r_of_nonempty_succ,
+  rw c.next'_eq_some r,
+  refl,
 end
 
-lemma d_from_eq_zero {i : ι} (h : c.succ i → false) :
+@[simp]
+lemma d_from_eq_zero {i : ι} (h : c.next' i = none) :
   C.d_from i = 0 :=
 begin
   dsimp [d_from],
-  rw [dif_neg (not_nonempty_iff_imp_false.mpr h)]
+  rw h, refl,
 end
 
 @[simp]
 lemma d_to_comp_d_from (j : ι) : C.d_to j ≫ C.d_from j = 0 :=
 begin
-  by_cases h : nonempty (c.pred j),
-  { obtain ⟨⟨i, rij⟩⟩ := h,
-    by_cases h' : nonempty (c.succ j),
-    { obtain ⟨⟨k, rjk⟩⟩ := h',
-      rw [C.d_to_eq rij, C.d_from_eq rjk],
-      simp, },
-    { rw [C.d_from_eq_zero (not_nonempty_iff_imp_false.mp h')],
-      simp, }, },
-  { rw [C.d_to_eq_zero (not_nonempty_iff_imp_false.mp h)],
-    simp, },
+  rcases h₁ : c.next' j with _ | ⟨k,w₁⟩,
+  { rw [d_from_eq_zero _ h₁], simp, },
+  { rw [d_from_eq _ w₁],
+    rcases h₂ : c.prev' j with _ | ⟨i,w₂⟩,
+    { rw [d_to_eq_zero _ h₂], simp, },
+    { rw [d_to_eq _ w₂], simp, } }
 end
 
 lemma kernel_from_eq_kernel [has_kernels V] {i j : ι} (r : c.r i j) :
@@ -252,32 +249,50 @@ image.map (f.sq i j)
 
 /-- `f.f_pred j` is `f.f i` if there is some `r i j`, and zero otherwise. -/
 def f_pred (f : hom C₁ C₂) (j : ι) : C₁.X_pred j ⟶ C₂.X_pred j :=
-if h : nonempty (c.pred j) then
-  (C₁.X_pred_iso h.some.2).hom ≫ f.f h.some.1 ≫ (C₂.X_pred_iso h.some.2).inv
-else
-  0
+match c.prev' j with
+| none := 0
+| some ⟨i,w⟩ := (C₁.X_pred_iso w).hom ≫ f.f i ≫ (C₂.X_pred_iso w).inv
+end
+
+lemma f_pred_eq (f : hom C₁ C₂) {i j : ι} (w : c.r i j) :
+  f.f_pred j = (C₁.X_pred_iso w).hom ≫ f.f i ≫ (C₂.X_pred_iso w).inv :=
+begin
+  dsimp [f_pred],
+  rw c.prev'_eq_some w,
+  refl,
+end
 
 /-- `f.f_succ i` is `f.f j` if there is some `r i j`, and zero otherwise. -/
 def f_succ (f : hom C₁ C₂) (i : ι) : C₁.X_succ i ⟶ C₂.X_succ i :=
-if h : nonempty (c.succ i) then
-  (C₁.X_succ_iso h.some.2).hom ≫ f.f h.some.1 ≫ (C₂.X_succ_iso h.some.2).inv
-else
-  0
+match c.next' i with
+| none := 0
+| some ⟨j,w⟩ := (C₁.X_succ_iso w).hom ≫ f.f j ≫ (C₂.X_succ_iso w).inv
+end
+
+lemma f_succ_eq (f : hom C₁ C₂) {i j : ι} (w : c.r i j) :
+  f.f_succ i = (C₁.X_succ_iso w).hom ≫ f.f j ≫ (C₂.X_succ_iso w).inv :=
+begin
+  dsimp [f_succ],
+  rw c.next'_eq_some w,
+  refl,
+end
 
 @[simp, reassoc, elementwise]
 lemma comm_from (f : hom C₁ C₂) (i : ι) :
   f.f i ≫ C₂.d_from i = C₁.d_from i ≫ f.f_succ i :=
 begin
-  dsimp [d_from, f_succ],
-  split_ifs; simp
+  rcases h : c.next' i with _ | ⟨j,w⟩,
+  { simp [h], },
+  { simp [d_from_eq _ w, f_succ_eq _ w], }
 end
 
 @[simp, reassoc, elementwise]
 lemma comm_to (f : hom C₁ C₂) (j : ι) :
   f.f_pred j ≫ C₂.d_to j = C₁.d_to j ≫ f.f j :=
 begin
-  dsimp [d_to, f_pred],
-  split_ifs; simp
+  rcases h : c.prev' j with _ | ⟨j,w⟩,
+  { simp [h], },
+  { simp [d_to_eq _ w, f_pred_eq _ w], }
 end
 
 def sq_to (f : hom C₁ C₂) (j : ι) : arrow.mk (C₁.d_to j) ⟶ arrow.mk (C₂.d_to j) :=

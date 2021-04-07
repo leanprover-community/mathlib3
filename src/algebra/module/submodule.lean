@@ -62,9 +62,10 @@ theorem to_add_submonoid_injective :
 @[simp] theorem to_add_submonoid_eq : p.to_add_submonoid = q.to_add_submonoid ↔ p = q :=
 to_add_submonoid_injective.eq_iff
 
-lemma to_add_submonoid_strict_mono :
+@[mono] lemma to_add_submonoid_strict_mono :
   strict_mono (to_add_submonoid : submodule R M → add_submonoid M) := λ _ _, id
 
+@[mono]
 lemma to_add_submonoid_mono : monotone (to_add_submonoid : submodule R M → add_submonoid M) :=
 to_add_submonoid_strict_mono.monotone
 
@@ -75,9 +76,10 @@ theorem to_sub_mul_action_injective :
 @[simp] theorem to_sub_mul_action_eq : p.to_sub_mul_action = q.to_sub_mul_action ↔ p = q :=
 to_sub_mul_action_injective.eq_iff
 
-lemma to_sub_mul_action_strict_mono :
+@[mono] lemma to_sub_mul_action_strict_mono :
   strict_mono (to_sub_mul_action : submodule R M → sub_mul_action R M) := λ _ _, id
 
+@[mono]
 lemma to_sub_mul_action_mono : monotone (to_sub_mul_action : submodule R M → sub_mul_action R M) :=
 to_sub_mul_action_strict_mono.monotone
 

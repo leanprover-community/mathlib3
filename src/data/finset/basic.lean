@@ -526,6 +526,15 @@ protected theorem induction {α : Type*} {p : finset α → Prop} [decidable_eq 
     { rw [insert_val, ndinsert_of_not_mem m] }
   end) nd
 
+protected theorem induction' {α : Type*} {p : finset α → Prop}
+  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α} (h : a ∉ s), p s → p (cons a s h)) : ∀ s, p s
+| ⟨s, nd⟩ := multiset.induction_on s (λ _, h₁) (λ a s IH nd, begin
+    cases nodup_cons.1 nd with m nd',
+    rw [← (eq_of_veq _ : cons a (finset.mk s _) m = ⟨a ::ₘ s, nd⟩)],
+    { exact h₂ (by exact m) (IH nd') },
+    { rw [cons_val] }
+  end) nd
+
 /--
 To prove a proposition about an arbitrary `finset α`,
 it suffices to prove it for the empty `finset`,

@@ -169,26 +169,27 @@ begin
   exact is_periodic_pt_minimal_period _ _,
 end
 
-lemma add_order_of_eq_zero {x : H} (h : ¬ is_of_fin_add_order x) : add_order_of x = 0 :=
-begin
-  sorry
-end
-
 @[to_additive add_order_of_eq_zero]
 lemma order_of_eq_zero {a : α} (h : ¬ is_of_fin_order a) : order_of a = 0 :=
 begin
-  sorry
+  rw [order_of, minimal_period],
+  rw is_of_fin_order at h,
+  split_ifs with hper,
+  { exact absurd hper h },
+  { refl }
 end
 
 lemma add_order_of_le_of_nsmul_eq_zero' {m : ℕ} (h : m < add_order_of x) : ¬ (0 < m ∧ m •ℕ x = 0) :=
 begin
-  sorry
+  rw ← is_periodic_pt_add_iff_nsmul_eq_zero,
+  exact not_mem_periodic_pts_of_lt_minimal_period h,
 end
 
 @[to_additive add_order_of_le_of_nsmul_eq_zero']
 lemma order_of_le_of_pow_eq_one' {m : ℕ} (h : m < order_of a) : ¬ (0 < m ∧ a ^ m = 1) :=
 begin
-  sorry
+  rw ← is_periodic_pt_mul_iff_pow_eq_one,
+  exact not_mem_periodic_pts_of_lt_minimal_period h,
 end
 
 lemma add_order_of_le_of_nsmul_eq_zero {n : ℕ} (hn : 0 < n) (h : n •ℕ x = 0) : add_order_of x ≤ n :=
@@ -512,6 +513,7 @@ end
 lemma exists_nsmul_eq_zero (x : H) : ∃ i, 0 < i ∧ i •ℕ x = 0 :=
 begin
   rcases exists_pow_eq_one (multiplicative.of_add x) with ⟨i, hi1, hi2⟩,
+  rw is_periodic_pt_mul_iff_pow_eq_one at hi2,
   refine ⟨i, hi1, multiplicative.of_add.injective _⟩,
   rw [of_add_nsmul, hi2, of_add_zero],
 end
@@ -653,10 +655,9 @@ variables {H : Type u} [fintype H] [add_group H]
 lemma exists_gpow_eq_one (a : α) : ∃ i ≠ 0, a ^ (i : ℤ) = 1 :=
 begin
   rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
-  use w,
-  split,
-  { exact_mod_cast ne_of_gt hw1 },
-  { exact_mod_cast hw2 }
+  rw is_periodic_pt_mul_iff_pow_eq_one at hw2,
+  refine ⟨w, by exact_mod_cast ne_of_gt hw1, _⟩,
+  exact_mod_cast hw2,
 end
 
 lemma exists_gsmul_eq_zero (x : H) : ∃ i ≠ 0, i •ℤ x = 0 :=

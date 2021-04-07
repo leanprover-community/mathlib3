@@ -37,9 +37,9 @@ lemma mem_list_cycles_iff {l : list (perm α)} (h1 : ∀ σ : perm α, σ ∈ l 
 begin
   induction l with τ l ih,
   { exact ⟨false.elim, λ h, h4 (h 1)⟩ },
-  { have key := disjoint_prod_list_of_disjoint (pairwise_cons.mp h2).1,
-    rw [mem_cons_iff, list.prod_cons,
+  { rw [mem_cons_iff, list.prod_cons,
         ih (λ σ hσ, h1 σ (list.mem_cons_of_mem τ hσ)) (pairwise_of_pairwise_cons h2)],
+    have key := disjoint_prod_list_of_disjoint (pairwise_cons.mp h2).1,
     cases key a,
     { simp_rw [key.mul_comm, commute.mul_pow key.mul_comm.symm, mul_apply,
         pow_apply_eq_self_of_apply_eq_self h, or_iff_right_iff_imp],
@@ -75,20 +75,6 @@ begin
   { obtain ⟨a, ha⟩ := not_forall.mp (mt ext hσ.ne_one),
     rw [mem_list_cycles_iff h₁l₁ h₂l₁ hσ ha, mem_list_cycles_iff h₁l₂ h₂l₂ hσ ha, h₀] },
   { exact iff_of_false (mt (h₁l₁ σ) hσ) (mt (h₁l₂ σ) hσ) },
-end
-
-lemma disjoint.cycle_type_aux {l : list (perm α)} (h1 : l.pairwise disjoint) {a : α}
-  (h2 : l.prod a = a) {σ : perm α} (h3 : σ ∈ l) : σ a = a :=
-begin
-  revert h1 h2 h3,
-  induction l with τ l ih,
-  { exact λ _ _, false.elim },
-  { intros h1 h2 h3,
-    rw [list.prod_cons,
-        (disjoint_prod_list_of_disjoint (pairwise_cons.mp h1).1).mul_apply_eq_iff] at h2,
-    cases ((l.mem_cons_iff σ τ).mp h3) with h4 h4,
-    { rw [h4, h2.1] },
-    { exact ih (pairwise_of_pairwise_cons h1) h2.2 h4 } },
 end
 
 variables [decidable_eq α]
@@ -156,12 +142,11 @@ begin
       cycle_type_eq (x.1 ++ y.1) _ _ _, map_append, ←coe_add],
   { rw [prod_append, x.2.1, y.2.1] },
   { exact λ f hf, (mem_append.mp hf).elim (x.2.2.1 f) (y.2.2.1 f) },
-  { refine pairwise_append.mpr ⟨x.2.2.2, y.2.2.2, λ f hf g hg, _⟩,
-    rw [←x.2.1, ←y.2.1] at h,
-    intro a,
-    cases h a with ha ha,
-    { exact or.inl (disjoint.cycle_type_aux x.2.2.2 ha hf) },
-    { exact or.inr (disjoint.cycle_type_aux y.2.2.2 ha hg) } },
+  { refine pairwise_append.mpr ⟨x.2.2.2, y.2.2.2, λ f hf g hg a, by_contra (λ H, _)⟩,
+    rw not_or_distrib at H,
+    exact ((congr_arg2 disjoint x.2.1 y.2.1).mpr h a).elim
+      (ne_of_eq_of_ne ((mem_list_cycles_iff x.2.2.1 x.2.2.2 (x.2.2.1 f hf) H.1).1 hf 1).symm H.1)
+      (ne_of_eq_of_ne ((mem_list_cycles_iff y.2.2.1 y.2.2.2 (y.2.2.1 g hg) H.2).1 hg 1).symm H.2) }
 end
 
 lemma cycle_type_inv (σ : perm α) : σ⁻¹.cycle_type = σ.cycle_type :=

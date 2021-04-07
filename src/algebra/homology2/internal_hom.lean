@@ -58,10 +58,12 @@ instance : has_add (ihom k C D) :=
 ⟨λ f g, { hom := λ i j, f.hom i j + g.hom i j, zero' := λ i j w, by simp [w] }⟩
 instance : has_neg (ihom k C D) :=
 ⟨λ f, { hom := λ i j, -(f.hom i j), zero' := λ i j w, by simp [w] }⟩
+instance : has_sub (ihom k C D) :=
+⟨λ f g, { hom := λ i j, f.hom i j - g.hom i j, zero' := λ i j w, by simp [w] }⟩
 
 instance : add_comm_group (ihom k C D) :=
 function.injective.add_comm_group ihom.hom
-  homological_complex.ihom_f_injective (by tidy) (by tidy) (by tidy)
+  homological_complex.ihom_f_injective (by tidy) (by tidy) (by tidy) (by tidy)
 
 -- def sign (k : ℤ) : ℤ := @gpow (units ℤ) _ (-1 : units ℤ) k
 

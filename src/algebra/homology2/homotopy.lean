@@ -40,7 +40,7 @@ begin
   suffices h :
     (D.cycles i).factor_thru ((C.cycles i).arrow ≫ h.to_ihom.to_pred i i ≫ D.d_to i) _ ≫
       cokernel.π (D.boundaries_to_cycles i) = 0,
-  { sorry, }, -- interaction of factor_thru and preadditive
+  { simp [h], },
   { dsimp [cycles],
     erw [subobject.factor_thru_of_le (D.boundaries_le_cycles i)],
     { simp, },

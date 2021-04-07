@@ -322,17 +322,9 @@ variable (n)
 lemma order_of_pow'' (h : is_of_fin_order a) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
-  apply dvd_antisymm,
-  { apply order_of_dvd_of_pow_eq_one,
-    rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
-        nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow] },
-  { have gcd_pos : 0 < gcd (order_of a) n := gcd_pos_of_pos_left n (order_of_pos' h),
-    apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos),
-    apply dvd_of_mul_dvd_mul_right gcd_pos,
-    rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc,
-            nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm],
-    apply order_of_dvd_of_pow_eq_one,
-    rw [pow_mul, pow_order_of_eq_one] }
+  simp only [order_of],
+  convert minimal_period_iterate_eq_div_gcd' h,
+  exact (mul_right_fpow_apply a).symm
 end
 
 lemma add_order_of_nsmul'' (h : is_of_fin_add_order x) :

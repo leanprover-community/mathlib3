@@ -222,10 +222,24 @@ by rw [← is_periodic_pt_add_iff_nsmul_eq_zero, is_periodic_pt_iff_minimal_peri
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
 by rw [← is_periodic_pt_mul_iff_pow_eq_one, is_periodic_pt_iff_minimal_period_dvd, order_of]
 
+-- Move somewhere else
+@[to_additive]
+lemma commute.function_commute_mul (h : commute a b) : function.commute (*a) (*b) :=
+begin
+  rw [function.commute, function.semiconj],
+  intro x,
+  rw [mul_assoc, mul_assoc, h.eq]
+end
+
+@[to_additive]
 lemma commute.order_of_mul_dvd_lcm (h : commute a b) :
   order_of (a * b) ∣ nat.lcm (order_of a) (order_of b) :=
-by rw [order_of_dvd_iff_pow_eq_one, h.mul_pow, order_of_dvd_iff_pow_eq_one.mp
-  (nat.dvd_lcm_left _ _), order_of_dvd_iff_pow_eq_one.mp (nat.dvd_lcm_right _ _), one_mul]
+begin
+  simp only [order_of, ← mul_assoc],
+  convert function.commute.minimal_period_of_comp_dvd_lcm h.function_commute_mul,
+  ext,
+  simp [mul_assoc, h.eq],
+end
 
 lemma add_order_of_eq_prime {p : ℕ} [hp : fact p.prime]
   (hg : p •ℕ x = 0) (hg1 : x ≠ 0) : add_order_of x = p :=

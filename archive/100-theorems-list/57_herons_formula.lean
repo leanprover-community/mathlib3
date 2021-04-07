@@ -19,6 +19,7 @@ lengths.
 
 -/
 
+open real
 open euclidean_geometry
 open_locale real euclidean_geometry
 

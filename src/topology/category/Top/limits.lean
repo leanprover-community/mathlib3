@@ -44,25 +44,6 @@ def limit_cone (F : J ⥤ Top.{u}) : cone F :=
                    continuous_map.coe_inj ((types.limit_cone (F ⋙ forget)).π.naturality f) } }
 
 /--
-An alternative choice of limit cone for a functor `F : J ⥤ Top`.
-Generally you should just use `limit.cone F`, unless you need the actual definition
-(which is in terms of `types.limit_cone`).
-This differs from `limit_cone` only in the definition of the topology itself,
-which is defined as a subspace topology as opposed to an infemum as in limit_cone.
--/
-def limit_cone' (F : J ⥤ Top.{u}) : cone F :=
-{ X :=
-  { α := (types.limit_cone (F ⋙ forget)).X,
-    str := by {dsimp [types.limit_cone, functor.sections], apply_instance} },
-  π :=
-  { app := λ j,
-    { to_fun := (types.limit_cone (F ⋙ forget)).π.app j,
-      continuous_to_fun := begin
-        change continuous ((λ t : (Π j : J, F.obj j), t j) ∘ subtype.val),
-        continuity,
-      end } } }
-
-/--
 The chosen cone `Top.limit_cone F` for a functor `F : J ⥤ Top` is a limit cone.
 Generally you should just use `limit.is_limit F`, unless you need the actual definition
 (which is in terms of `types.limit_cone_is_limit`).
@@ -72,20 +53,6 @@ by { refine is_limit.of_faithful forget (types.limit_cone_is_limit _) (λ s, ⟨
      exact continuous_iff_coinduced_le.mpr (le_infi $ λ j,
        coinduced_le_iff_le_induced.mp $ (continuous_iff_coinduced_le.mp (s.π.app j).continuous :
          _) ) }
-
-/--
-The alternative cone `Top.limit_cone' F`, for a functor `F : J ⥤ Top`, is a limit cone.
-Generally you should just use `limit.is_limit F`, unless you need the actual definition
-(which is in terms of `types.limit_cone_is_limit`).
--/
-def limit_cone'_is_limit (F : J ⥤ Top.{u}) : is_limit (limit_cone' F) :=
-begin
-  refine is_limit.of_faithful forget (types.limit_cone_is_limit _) (λ s, ⟨_, _⟩) (λ s, rfl),
-  apply continuous_subtype_mk,
-  rw continuous_pi_iff,
-  intros j,
-  apply (s.π.app j).continuous,
-end
 
 instance Top_has_limits : has_limits.{u} Top.{u} :=
 { has_limits_of_shape := λ J 𝒥, by exactI

@@ -8,7 +8,7 @@ import topology.category.CompHaus
 import topology.connected
 import topology.subset_properties
 import category_theory.adjunction.reflective
-import category_theory.limits.creates
+import category_theory.monad.limits
 
 /-!
 # The category of Profinite Types
@@ -67,71 +67,6 @@ end Profinite
 /-- The fully faithful embedding of `Profinite` in `Top`. -/
 @[simps, derive [full, faithful]]
 def Profinite_to_Top : Profinite ⥤ Top := induced_functor _
-
-namespace Profinite
-
-universe u
-
-/-- An explicit limit cone for a functor to `Profinite`. -/
-def limit_cone {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) : limits.cone F :=
-{ X :=
-  { to_Top := (Top.limit_cone' $ F ⋙ Profinite_to_Top).X,
-    is_compact := begin
-      erw ← compact_iff_compact_space,
-      dsimp [functor.sections],
-      apply is_closed.compact,
-      have : {u : Π (j : J), (F.obj j) | ∀ {j j' : J} (f : j ⟶ j'), (F.map f) (u j) = u j'} =
-        ⋂ (a b : J) (f : a ⟶ b), { u : Π (j : J), F.obj j | F.map f (u a) = u b }, by tidy,
-      rw this, clear this,
-      apply is_closed_Inter,
-      intros a,
-      apply is_closed_Inter,
-      intros b,
-      apply is_closed_Inter,
-      intros f,
-      let π : (Π (j : J), F.obj j) → F.obj a × F.obj b := λ x, (x a, x b),
-      change is_closed (π ⁻¹' { x | F.map f x.1 = x.2 }),
-      refine is_closed.preimage (continuous.prod_mk (continuous_apply _) (continuous_apply _)) _,
-      refine is_closed_eq _ continuous_snd,
-      continuity,
-    end,
-    is_t2 := begin
-      dsimp [Top.limit_cone', limits.types.limit_cone, functor.sections],
-      apply_instance
-    end,
-    is_totally_disconnected := begin
-      dsimp [Top.limit_cone', limits.types.limit_cone, functor.sections],
-      apply_instance
-    end },
-  π := { app := λ j, (Top.limit_cone' $ F ⋙ Profinite_to_Top).π.app j } }
-
-/-- An auxiliary definition used in `creates_limit`. -/
-def limit_cone_to_Top {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
-  Profinite_to_Top.map_cone (limit_cone F) ≅ Top.limit_cone' _ := eq_to_iso rfl
-
-/-- `Profinite_to_Top` creates a limit of a functor. -/
-def creates_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
-  creates_limit F Profinite_to_Top :=
-{ reflects := λ C hC,
-  { lift := λ S, hC.lift (Profinite_to_Top.map_cone _),
-    fac' := λ A j, hC.fac _ _,
-  uniq' := λ A m h, hC.uniq (Profinite_to_Top.map_cone A) m h },
-  lifts := λ A hA,
-  { lifted_cone := limit_cone _,
-    valid_lift := let I := limit_cone_to_Top F in I ≪≫ limits.is_limit.unique_up_to_iso
-      (Top.limit_cone'_is_limit _) hA } }
-
-instance : creates_limits Profinite_to_Top :=
-{ creates_limits_of_shape := λ J hJ, { creates_limit := λ F, by exactI creates_limit _ } }
-
-/-- `limit_cone` is indeed a limit cone. -/
-def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
-  limits.is_limit (limit_cone F) :=
-limits.is_limit_of_reflects Profinite_to_Top (Top.limit_cone'_is_limit _)
-
-instance : limits.has_limits Profinite := has_limits_of_has_limits_creates_limits Profinite_to_Top
-
-end Profinite
 
 /-- The fully faithful embedding of `Profinite` in `CompHaus`. -/
 @[simps] def Profinite.to_CompHaus : Profinite ⥤ CompHaus :=
@@ -197,5 +132,16 @@ lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
 /-- The category of profinite sets is reflective in the category of compact hausdroff spaces -/
 instance Profinite.to_CompHaus.reflective : reflective Profinite.to_CompHaus :=
 { to_is_right_adjoint := ⟨CompHaus.to_Profinite, Profinite.to_Profinite_adj_to_CompHaus⟩ }
+
+noncomputable
+instance Profinite.to_Top.reflective : reflective (Profinite_to_Top : Profinite ⥤ Top) :=
+reflective.comp Profinite.to_CompHaus CompHaus_to_Top
+
+noncomputable
+instance Profinite.to_Top.creates_limits : creates_limits Profinite_to_Top :=
+monadic_creates_limits _
+
+instance Profinite.has_limits : limits.has_limits Profinite :=
+has_limits_of_has_limits_creates_limits Profinite_to_Top
 
 end Profinite

@@ -26,6 +26,8 @@ introduced.
 
 -/
 
+universe u
+
 open category_theory
 
 /-- The type of Compact Hausdorff topological spaces. -/
@@ -64,7 +66,7 @@ end CompHaus
 
 /-- The fully faithful embedding of `CompHaus` in `Top`. -/
 @[simps {rhs_md := semireducible}, derive [full, faithful]]
-def CompHaus_to_Top : CompHaus ⥤ Top := induced_functor _
+def CompHaus_to_Top : CompHaus.{u} ⥤ Top.{u} := induced_functor _
 
 /--
 (Implementation) The object part of the compactification functor from topological spaces to
@@ -105,8 +107,8 @@ noncomputable def stone_cech_equivalence (X : Top) (Y : CompHaus) :
 The Stone-Cech compactification functor from topological spaces to compact Hausdorff spaces,
 left adjoint to the inclusion functor.
 -/
-noncomputable def Top_to_CompHaus : Top ⥤ CompHaus :=
-adjunction.left_adjoint_of_equiv stone_cech_equivalence (λ _ _ _ _ _, rfl)
+noncomputable def Top_to_CompHaus : Top.{u} ⥤ CompHaus.{u} :=
+adjunction.left_adjoint_of_equiv stone_cech_equivalence.{u u} (λ _ _ _ _ _, rfl)
 
 lemma Top_to_CompHaus_obj (X : Top) : ↥(Top_to_CompHaus.obj X) = stone_cech X :=
 rfl

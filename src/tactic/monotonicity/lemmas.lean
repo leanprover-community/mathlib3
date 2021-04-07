@@ -83,6 +83,5 @@ attribute [mono] add_le_add mul_le_mul neg_le_neg
          imp_imp_imp le_implies_le_of_le_of_le
          sub_le_sub abs_le_abs sup_le_sup
          inf_le_inf
-         set_like.coe_mono set_like.coe_strict_mono
 attribute [mono left] add_lt_add_of_le_of_lt mul_lt_mul'
 attribute [mono right] add_lt_add_of_lt_of_le mul_lt_mul

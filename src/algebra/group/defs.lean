@@ -224,18 +224,16 @@ end mul_one_class
 
 
 section
-universes v w x y z u₁ u₂
+variables {M : Type u}
 
-variables {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : Type z}
-  {R : Type u₁} {S : Type u₂}
-
-/-- The fundamental power operation in a monoid. `a^n = a*a*...*a` n times. -/
+/-- The fundamental power operation in a monoid. `npow_rec n a = a*a*...*a` n times.
+Use instead `a ^ n`,  which has better definitional behavior. -/
 def npow_rec [has_mul M] [has_one M] : ℕ → M → M
 | 0     a := 1
 | (n+1) a := a * npow_rec n a
 
-/-- The fundamental scalar multiplication in an additive monoid.
-`n • a = a+a+...+a` n times. -/
+/-- The fundamental scalar multiplication in an additive monoid. `nsmul_rec n a = a+a+...+a` n
+times. Use instead `n • a`, which has better definitional behavior. -/
 def nsmul_rec [has_add M] [has_zero M] : ℕ → M → M
 | 0     a := 0
 | (n+1) a := a + nsmul_rec n a
@@ -264,9 +262,90 @@ attribute [to_additive] eq_npow_rec
 
 end
 
+
+/-- Suppose that one can put two mathematical structures on a type, a rich one `R` and a poor one
+`P`, and that one can deduce the poor structure from the rich structure through a map `F` (called a
+forgetful functor) (think `R = metric_space` and `P = topological_space`). A possible
+implementation would be to have a type class `rich` containing a field `R`, a type class `poor`
+containing a field `P`, and an instance from `rich` to `poor`. However, this creates diamond
+problems, and a better approach is to let `rich` extend `poor` and have a field saying that
+`F R = P`.
+
+To illustrate this, consider the pair `metric_space` / `topological_space`. Consider the topology
+on a product of two metric spaces. With the first approach, it could be obtained by going first from
+each metric space to its topology, and then taking the product topology. But it could also be
+obtained by considering the product metric space (with its sup distance) and then the topology
+coming from this distance. These would be the same topology, but not definitionally, which means
+that from the point of view of Lean's kernel, there would be two different `topological_space`
+instances on the product. This is not compatible with the way instances are designed and used:
+there should be at most one instance of a kind on each type. This approach has created an instance
+diamond that does not commute definitionally.
+
+The second approach solves this issue. Now, a metric space contains both a distance, a topology, and
+a proof that the topology coincides with the one coming from the distance. When one defines the
+product of two metric spaces, one uses the sup distance and the product topology, and one has to
+give the proof that the sup distance induces the product topology. Following both sides of the
+instance diamond then gives rise (definitionally) to the product topology on the product space.
+
+Another approach would be to have the rich type class take the poor type class as an instance
+parameter. It would solve the diamond problem, but it would lead to a blow up of the number
+of type classes one would need to declare to work with complicated classes, say a real inner
+product space, and would create exponential complexity when working with products of
+such complicated spaces, that are avoided by bundling things carefully as above.
+
+Note that this description of this specific case of the product of metric spaces is oversimplified
+compared to mathlib, as there is an intermediate typeclass between `metric_space` and
+`topological_space` called `uniform_space`. The above scheme is used at both levels, embedding a
+topology in the uniform space structure, and a uniform structure in the metric space structure.
+
+Note also that, when `P` is a proposition, there is no such issue as any two proofs of `P` are
+definitionally equivalent in Lean.
+
+To avoid boilerplate, there are some designs that can automatically fill the poor fields when
+creating a rich structure if one doesn't want to do something special about them. For instance,
+in the definition of metric spaces, default tactics fill the uniform space fields if they are
+not given explicitly. One can also have a helper function creating the rich structure from a
+structure with less fields, where the helper function fills the remaining fields. See for instance
+`uniform_space.of_core` or `real_inner_product.of_core`.
+
+For more details on this question, called the forgetful inheritance pattern, see [Competing
+inheritance paths in dependent type theory: a case study in functional
+analysis](https://hal.inria.fr/hal-02463336).
+-/
+library_note "forgetful inheritance"
+
 /-- `try_refl_tac` solves goals of the form `∀ a b, f a b = g a b`,
 if they hold by definition. -/
 meta def try_refl_tac : tactic unit := `[intros; refl]
+
+/- Design note on `add_monoid` and `monoid`.
+
+An `add_monoid` has a natural `ℕ`-action, defined by `n • a = a + ... + a`, that we want to declare
+as an instance as it makes it possible to use the language of linear algebra. However, there are
+often other natural `ℕ`-actions. For instance, for any semiring `R`, the space of polynomials
+`polynomial R` has a natural `R`-action defined by multiplication on the coefficients. This means
+that `polynomial ℕ` would have two natural `ℕ`-actions, which are equal but not defeq. The same
+goes for linear maps, tensor products, and so on (and even for `ℕ` itself).
+
+To solve this issue, we embed an `ℕ`-action in the definition of an `add_monoid` (which is by
+default equal to the naive action `a + ... + a`, but can be adjusted when needed), and declare
+a `has_scalar ℕ α` instance using this action. See Note [forgetful inheritance] for more
+explanations on this pattern.
+
+For example, when we define `polynomial R`, then we declare the `ℕ`-action to be by multiplication
+on each coefficient (using the `ℕ`-action on `R` that comes from the fact that `R` is
+an `add_monoid`). In this way, the two natural `has_scalar ℕ (polynomial ℕ)` instances are defeq.
+
+The tactic `to_additive` transfers definitions and results from multiplicative monoids to additive
+monoids. To work, it has to map fields to fields. This means that we should also add corresponding
+fields to the multiplicative structure `monoid`, which could solve defeq problems for powers if
+needed. These problems do not come up in practice, so most of the time we will not need to adjust
+the `npow` field when defining multiplicative objects.
+
+Nice notation and a basic theory for the power function on monoids and the `ℕ`-action on additive
+monoids are built in the file `algebra.group_power.basic`. For now, we only register the most basic
+properties that we need right away.
+-/
 
 /-- A `monoid` is a `semigroup` with an element `1` such that `1 * a = a * 1 = a`. -/
 @[ancestor semigroup mul_one_class]

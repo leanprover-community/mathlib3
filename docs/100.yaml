@@ -242,7 +242,7 @@
   author : Aaron Anderson
 71:
   title  : Order of a Subgroup
-  decl   : card_subgroup_dvd_card
+  decl   : subgroup.card_subgroup_dvd_card
   author : mathlib
 72:
   title  : Sylow’s Theorem

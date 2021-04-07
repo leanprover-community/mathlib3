@@ -5,9 +5,11 @@ Authors: Chris Hughes
 -/
 import data.fintype.basic
 import data.finset.sort
+import data.nat.parity
 import group_theory.perm.basic
 import group_theory.order_of_element
 import tactic.norm_swap
+import group_theory.quotient_group
 
 /-!
 # Sign of a permutation
@@ -205,17 +207,90 @@ lemma gpow_apply_eq_of_apply_apply_eq_self {f : perm α} {x : α} (hffx : f (f x
     ← pow_succ, eq_comm, inv_eq_iff_eq, ← mul_apply, ← pow_succ', @eq_comm _ x, or.comm],
   exact pow_apply_eq_of_apply_apply_eq_self hffx _ }
 
+lemma disjoint.mul_apply_eq_iff {σ τ : perm α} (hστ : disjoint σ τ) {a : α} :
+  (σ * τ) a = a ↔ σ a = a ∧ τ a = a :=
+begin
+  refine ⟨λ h, _, λ h, by rw [mul_apply, h.2, h.1]⟩,
+  cases hστ a with hσ hτ,
+  { exact ⟨hσ, σ.injective (h.trans hσ.symm)⟩ },
+  { exact ⟨(congr_arg σ hτ).symm.trans h, hτ⟩ },
+end
+
+lemma disjoint.mul_eq_one_iff {σ τ : perm α} (hστ : disjoint σ τ) :
+  σ * τ = 1 ↔ σ = 1 ∧ τ = 1 :=
+by simp_rw [ext_iff, one_apply, hστ.mul_apply_eq_iff, forall_and_distrib]
+
+lemma disjoint.gpow_disjoint_gpow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℤ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+λ x, or.imp (λ h, gpow_apply_eq_self_of_apply_eq_self h m)
+  (λ h, gpow_apply_eq_self_of_apply_eq_self h n) (hστ x)
+
+lemma disjoint.pow_disjoint_pow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℕ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+hστ.gpow_disjoint_gpow m n
+
+lemma disjoint.order_of {σ τ : perm α} (hστ : disjoint σ τ) :
+  order_of (σ * τ) = nat.lcm (order_of σ) (order_of τ) :=
+begin
+  have h : ∀ n : ℕ, (σ * τ) ^ n = 1 ↔ σ ^ n = 1 ∧ τ ^ n = 1 :=
+  λ n, by rw [commute.mul_pow hστ.mul_comm, disjoint.mul_eq_one_iff (hστ.pow_disjoint_pow n n)],
+  exact nat.dvd_antisymm (commute.order_of_mul_dvd_lcm hστ.mul_comm) (nat.lcm_dvd
+    (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).1)
+    (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
+end
+
 variable [decidable_eq α]
 
+section fintype
+variable [fintype α]
+
 /-- The `finset` of nonfixed points of a permutation. -/
-def support [fintype α] (f : perm α) : finset α := univ.filter (λ x, f x ≠ x)
+def support (f : perm α) : finset α := univ.filter (λ x, f x ≠ x)
 
-@[simp] lemma mem_support [fintype α] {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x :=
-by simp only [support, true_and, mem_filter, mem_univ]
+@[simp] lemma mem_support {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x :=
+by rw [support, mem_filter, and_iff_right (mem_univ x)]
 
-lemma support_pow_le [fintype α] (σ : perm α) (n : ℤ) :
+@[simp] lemma support_eq_empty_iff {σ : perm α} : σ.support = ∅ ↔ σ = 1 :=
+by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_not,
+  equiv.perm.ext_iff, one_apply]
+
+@[simp] lemma support_one : (1 : perm α).support = ∅ :=
+by rw support_eq_empty_iff
+
+lemma support_mul_le (f g : perm α) :
+  (f * g).support ≤ f.support ⊔ g.support :=
+λ x, begin
+  rw [sup_eq_union, mem_union, mem_support, mem_support,
+    mem_support, mul_apply, ←not_and_distrib, not_imp_not],
+  rintro ⟨hf, hg⟩,
+  rw [hg, hf]
+end
+
+lemma exists_mem_support_of_mem_support_prod {l : list (perm α)} {x : α}
+  (hx : x ∈ l.prod.support) :
+  ∃ f : perm α, f ∈ l ∧ x ∈ f.support :=
+begin
+  contrapose! hx,
+  simp_rw [mem_support, not_not] at hx ⊢,
+  induction l with f l ih generalizing hx,
+  { refl },
+  { rw [list.prod_cons, mul_apply, ih (λ g hg, hx g (or.inr hg)), hx f (or.inl rfl)] },
+end
+
+lemma support_pow_le (σ : perm α) (n : ℤ) :
   (σ ^ n).support ≤ σ.support :=
 λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
+
+@[simp] lemma support_inv (σ : perm α) : support (σ⁻¹) = σ.support :=
+by simp_rw [finset.ext_iff, mem_support, not_iff_not,
+  (inv_eq_iff_eq).trans eq_comm, iff_self, imp_true_iff]
+
+@[simp]
+lemma apply_mem_support {f : perm α} {x : α} :
+  f x ∈ f.support ↔ x ∈ f.support :=
+by rw [mem_support, mem_support, ne.def, ne.def, not_iff_not, apply_eq_iff_eq]
+
+end fintype
 
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/
 def is_swap (f : perm α) : Prop := ∃ x y, x ≠ y ∧ f = swap x y
@@ -240,7 +315,10 @@ begin
   { split_ifs at hy; cc }
 end
 
-lemma support_swap_mul_eq [fintype α] {f : perm α} {x : α}
+section fintype
+variables [fintype α]
+
+lemma support_swap_mul_eq {f : perm α} {x : α}
   (hffx : f (f x) ≠ x) : (swap x (f x) * f).support = f.support.erase x :=
 have hfx : f x ≠ x, from λ hfx, by simpa [hfx] using hffx,
 finset.ext $ λ y,
@@ -252,11 +330,43 @@ finset.ext $ λ y,
   λ hy, by simp only [mem_erase, mem_support, swap_apply_def, mul_apply] at *;
     intro; split_ifs at *; simp only [*, eq_self_iff_true, not_true, ne.def] at *⟩
 
-lemma card_support_swap_mul [fintype α] {f : perm α} {x : α}
+@[simp]
+lemma card_support_eq_zero {f : perm α} :
+  f.support.card = 0 ↔ f = 1 :=
+by rw [finset.card_eq_zero, support_eq_empty_iff]
+
+lemma one_lt_card_support_of_ne_one {f : perm α} (h : f ≠ 1) :
+  1 < f.support.card :=
+begin
+  simp_rw [one_lt_card_iff, mem_support, ←not_or_distrib],
+  contrapose! h,
+  ext a,
+  specialize h (f a) a,
+  rwa [apply_eq_iff_eq, or_self, or_self] at h,
+end
+
+lemma card_support_ne_one (f : perm α) : f.support.card ≠ 1 :=
+begin
+  by_cases h : f = 1,
+  { exact ne_of_eq_of_ne (card_support_eq_zero.mpr h) zero_ne_one },
+  { exact ne_of_gt (one_lt_card_support_of_ne_one h) },
+end
+
+@[simp] lemma card_support_le_one {f : perm α} : f.support.card ≤ 1 ↔ f = 1 :=
+by rw [le_iff_lt_or_eq, nat.lt_succ_iff, nat.le_zero_iff, card_support_eq_zero,
+  or_iff_not_imp_right, imp_iff_right f.card_support_ne_one]
+
+lemma two_le_card_support_of_ne_one {f : perm α} (h : f ≠ 1) :
+  2 ≤ f.support.card :=
+one_lt_card_support_of_ne_one h
+
+lemma card_support_swap_mul {f : perm α} {x : α}
   (hx : f x ≠ x) : (swap x (f x) * f).support.card < f.support.card :=
 finset.card_lt_card
   ⟨λ z hz, mem_support.2 (ne_and_ne_of_swap_mul_apply_ne_self (mem_support.1 hz)).1,
     λ h, absurd (h (mem_support.2 hx)) (mt mem_support.1 (by simp))⟩
+
+end fintype
 
 /-- Given a list `l : list α` and a permutation `f : perm α` such that the nonfixed points of `f`
   are in `l`, recursively factors `f` as a product of transpositions. -/
@@ -306,6 +416,17 @@ begin
       (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
 end
 
+lemma closure_swaps_eq_top [fintype α] :
+  subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
+begin
+  ext σ,
+  simp only [subgroup.mem_top, iff_true],
+  apply swap_induction_on σ,
+  { exact subgroup.one_mem _ },
+  { intros σ a b ab hσ,
+    refine subgroup.mul_mem _ (subgroup.subset_closure ⟨_, _, ab, rfl⟩) hσ }
+end
+
 /-- Like `swap_induction_on`, but with the composition on the right of `f`.
 
 An induction principle for permutations. If `P` holds for the identity permutation, and
@@ -315,15 +436,15 @@ is preserved under composition with a non-trivial swap, then `P` holds for all p
 λ h1 IH, inv_inv f ▸ swap_induction_on f⁻¹ h1 (λ f, IH f⁻¹)
 
 lemma is_conj_swap {w x y z : α} (hwx : w ≠ x) (hyz : y ≠ z) : is_conj (swap w x) (swap y z) :=
-have h : ∀ {y z : α}, y ≠ z → w ≠ z →
-    (swap w y * swap x z) * swap w x * (swap w y * swap x z)⁻¹ = swap y z :=
-  λ y z hyz hwz, by rw [mul_inv_rev, swap_inv, swap_inv, mul_assoc (swap w y),
-    mul_assoc (swap w y), ← mul_assoc _ (swap x z), swap_mul_swap_mul_swap hwx hwz,
-    ← mul_assoc, swap_mul_swap_mul_swap hwz.symm hyz.symm],
-if hwz : w = z
-then have hwy : w ≠ y, by cc,
-  ⟨swap w z * swap x y, by rw [swap_comm y z, h hyz.symm hwy]⟩
-else ⟨swap w y * swap x z, h hyz hwz⟩
+is_conj_iff.2 (have h : ∀ {y z : α}, y ≠ z → w ≠ z →
+      (swap w y * swap x z) * swap w x * (swap w y * swap x z)⁻¹ = swap y z :=
+    λ y z hyz hwz, by rw [mul_inv_rev, swap_inv, swap_inv, mul_assoc (swap w y),
+      mul_assoc (swap w y), ← mul_assoc _ (swap x z), swap_mul_swap_mul_swap hwx hwz,
+      ← mul_assoc, swap_mul_swap_mul_swap hwz.symm hyz.symm],
+  if hwz : w = z
+  then have hwy : w ≠ y, by cc,
+    ⟨swap w z * swap x y, by rw [swap_comm y z, h hyz.symm hwy]⟩
+  else ⟨swap w y * swap x z, h hyz hwz⟩)
 
 /-- set of all pairs (⟨a, b⟩ : Σ a : fin n, fin n) such that b < a -/
 def fin_pairs_lt (n : ℕ) : finset (Σ a : fin n, fin n) :=
@@ -590,12 +711,15 @@ have h₁ : l.map sign = list.repeat (-1) l.length :=
   hg.2 ▸ (hl _ hg.1).sign_eq⟩,
 by rw [← list.prod_repeat, ← h₁, list.prod_hom _ (@sign α _ _)]
 
-lemma sign_surjective (hα : 1 < fintype.card α) : function.surjective (sign : perm α → units ℤ) :=
+variable (α)
+
+lemma sign_surjective [nontrivial α] : function.surjective (sign : perm α → units ℤ) :=
 λ a, (int.units_eq_one_or a).elim
   (λ h, ⟨1, by simp [h]⟩)
-  (λ h, let ⟨x⟩ := fintype.card_pos_iff.1 (lt_trans zero_lt_one hα) in
-    let ⟨y, hxy⟩ := fintype.exists_ne_of_one_lt_card hα x in
-    ⟨swap y x, by rw [sign_swap hxy, h]⟩ )
+  (λ h, let ⟨x, y, hxy⟩ := exists_pair_ne α in
+    ⟨swap x y, by rw [sign_swap hxy, h]⟩ )
+
+variable {α}
 
 lemma eq_sign_of_surjective_hom {s : perm α →* units ℤ} (hs : surjective s) : s = sign :=
 have ∀ {f}, is_swap f → s f = -1 :=
@@ -665,6 +789,27 @@ finset.ext $ λ a, by { simp only [swap_apply_def, mem_insert, ne.def, mem_suppo
 lemma card_support_swap {x y : α} (hxy : x ≠ y) : (swap x y).support.card = 2 :=
 show (swap x y).support.card = finset.card ⟨x ::ₘ y ::ₘ 0, by simp [hxy]⟩,
 from congr_arg card $ by simp [support_swap hxy, *, finset.ext_iff]
+
+@[simp]
+lemma card_support_eq_two {f : perm α} : f.support.card = 2 ↔ is_swap f :=
+begin
+  split; intro h,
+  { obtain ⟨x, t, hmem, hins, ht⟩ := card_eq_succ.1 h,
+    obtain ⟨y, rfl⟩ := card_eq_one.1 ht,
+    rw mem_singleton at hmem,
+    refine ⟨x, y, hmem, _⟩,
+    ext a,
+    have key : ∀ b, f b ≠ b ↔ _ := λ b, by rw [←mem_support, ←hins, mem_insert, mem_singleton],
+    by_cases ha : f a = a,
+    { have ha' := not_or_distrib.mp (mt (key a).mpr (not_not.mpr ha)),
+      rw [ha, swap_apply_of_ne_of_ne ha'.1 ha'.2] },
+    { have ha' := (key (f a)).mp (mt f.apply_eq_iff_eq.mp ha),
+      obtain rfl | rfl := ((key a).mp ha),
+      { rw [or.resolve_left ha' ha, swap_apply_left] },
+      { rw [or.resolve_right ha' ha, swap_apply_right] } } },
+  { obtain ⟨x, y, hxy, rfl⟩ := h,
+    exact card_support_swap hxy }
+end
 
 /-- If we apply `prod_extend_right a (σ a)` for all `a : α` in turn,
 we get `prod_congr_right σ`. -/
@@ -765,4 +910,97 @@ end congr
 
 end sign
 
+section disjoint
+variables [fintype α] {f g : perm α}
+
+lemma disjoint_iff_disjoint_support :
+  disjoint f g ↔ _root_.disjoint f.support g.support :=
+begin
+  change (∀ x, f x = x ∨ g x = x) ↔ (∀ x, x ∉ (f.support ∩ g.support)),
+  simp_rw [finset.mem_inter, not_and_distrib, mem_support, not_not],
+end
+
+lemma disjoint.disjoint_support (h : disjoint f g) :
+  _root_.disjoint f.support g.support :=
+disjoint_iff_disjoint_support.1 h
+
+lemma disjoint.support_mul (h : disjoint f g) :
+  (f * g).support = f.support ∪ g.support :=
+begin
+  refine le_antisymm (support_mul_le _ _) (λ a, _),
+  rw [mem_union, mem_support, mem_support, mem_support, mul_apply, ←not_and_distrib, not_imp_not],
+  exact (h a).elim (λ hf h, ⟨hf, f.apply_eq_iff_eq.mp (h.trans hf.symm)⟩)
+    (λ hg h, ⟨(congr_arg f hg).symm.trans h, hg⟩),
+end
+
+lemma disjoint.card_support_mul (h : disjoint f g) :
+  (f * g).support.card = f.support.card + g.support.card :=
+(congr_arg card h.support_mul).trans (finset.card_disjoint_union h.disjoint_support)
+
+lemma disjoint_prod_list_of_disjoint [fintype β] {f : perm β} {l : list (perm β)}
+  (h : ∀ g, g ∈ l → disjoint f g) : disjoint f l.prod :=
+begin
+  classical,
+  intro x,
+  by_cases hx : l.prod x = x,
+  { exact or.inr hx },
+  { obtain ⟨f, fl, fx⟩ := exists_mem_support_of_mem_support_prod (mem_support.mpr hx),
+    exact (h f fl x).imp_right (λ fx', ((mem_support.mp fx) fx').elim) }
+end
+
+lemma card_support_prod_list_of_pairwise_disjoint {l : list (perm α)}
+  (h : l.pairwise disjoint) :
+  l.prod.support.card = (l.map (finset.card ∘ support)).sum :=
+begin
+  induction l with a t ih,
+  { exact card_support_eq_zero.mpr rfl, },
+  { obtain ⟨ha, ht⟩ := list.pairwise_cons.1 h,
+    rw [list.prod_cons, list.map_cons, list.sum_cons, ←ih ht],
+    exact (disjoint_prod_list_of_disjoint ha).card_support_mul }
+end
+
+end disjoint
+
 end equiv.perm
+
+section alternating_subgroup
+open equiv.perm
+variables (α) [fintype α] [decidable_eq α]
+
+/-- The alternating group on a finite type, realized as a subgroup of `equiv.perm`.
+  For $A_n$, use `alternating_subgroup (fin n)`. -/
+@[derive fintype] def alternating_subgroup : subgroup (perm α) :=
+sign.ker
+
+instance [subsingleton α] : unique (alternating_subgroup α) :=
+⟨⟨1⟩, λ ⟨p, hp⟩, subtype.eq (subsingleton.elim p _)⟩
+
+variables {α}
+
+lemma alternating_subgroup_eq_sign_ker : alternating_subgroup α = sign.ker := rfl
+
+@[simp]
+lemma mem_alternating_subgroup {f : perm α} :
+  f ∈ alternating_subgroup α ↔ sign f = 1 :=
+sign.mem_ker
+
+lemma prod_list_swap_mem_alternating_subgroup_iff_even_length {l : list (perm α)}
+  (hl : ∀ g ∈ l, is_swap g) :
+  l.prod ∈ alternating_subgroup α ↔ even l.length :=
+begin
+  rw [mem_alternating_subgroup, sign_prod_list_swap hl, ← units.coe_eq_one, units.coe_pow,
+    units.coe_neg_one, nat.neg_one_pow_eq_one_iff_even],
+  dec_trivial
+end
+
+lemma two_mul_card_alternating_subgroup [nontrivial α] :
+  2 * card (alternating_subgroup α) = card (perm α) :=
+begin
+  let := (quotient_group.quotient_ker_equiv_of_surjective _ (sign_surjective α)).to_equiv,
+  rw [←fintype.card_units_int, ←fintype.card_congr this],
+  exact (subgroup.card_eq_card_quotient_mul_card_subgroup _).symm,
+end
+
+lemma alternating_subgroup_normal : (alternating_subgroup α).normal := sign.normal_ker
+
+end alternating_subgroup

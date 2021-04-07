@@ -943,7 +943,7 @@ rfl
 by simp [← restrictₗ_apply, restrictₗ, ht]
 
 lemma restrict_eq_self (h_meas_t : measurable_set t) (h : t ⊆ s) : μ.restrict s t = μ t :=
-by rw [restrict_apply h_meas_t, subset_iff_inter_eq_left.1 h]
+by rw [restrict_apply h_meas_t, inter_eq_left_iff_subset.mpr h]
 
 lemma restrict_apply_self (μ:measure α) (h_meas_s : measurable_set s) :
   (μ.restrict s) s = μ s := (restrict_eq_self h_meas_s (set.subset.refl _))
@@ -1020,7 +1020,8 @@ end
 
 @[simp] lemma restrict_add_restrict_compl (hs : measurable_set s) :
   μ.restrict s + μ.restrict sᶜ = μ :=
-by rw [← restrict_union disjoint_compl_right hs hs.compl, union_compl_self, restrict_univ]
+by rw [← restrict_union (@disjoint_compl_right (set α) _ _) hs hs.compl,
+    union_compl_self, restrict_univ]
 
 @[simp] lemma restrict_compl_add_restrict (hs : measurable_set s) :
   μ.restrict sᶜ + μ.restrict s = μ :=
@@ -1519,9 +1520,32 @@ lemma mem_ae_map_iff {f : α → β} (hf : measurable f) {s : set β} (hs : meas
   s ∈ (map f μ).ae ↔ (f ⁻¹' s) ∈ μ.ae :=
 by simp only [mem_ae_iff, map_apply hf hs.compl, preimage_compl]
 
+lemma mem_ae_of_mem_ae_map {f : α → β} (hf : measurable f) {s : set β} (hs : s ∈ (map f μ).ae) :
+  f ⁻¹' s ∈ μ.ae :=
+begin
+  apply le_antisymm _ bot_le,
+  calc μ (f ⁻¹' sᶜ) ≤ (map f μ) sᶜ : le_map_apply hf sᶜ
+  ... = 0 : hs
+end
+
 lemma ae_map_iff {f : α → β} (hf : measurable f) {p : β → Prop} (hp : measurable_set {x | p x}) :
   (∀ᵐ y ∂ (map f μ), p y) ↔ ∀ᵐ x ∂ μ, p (f x) :=
 mem_ae_map_iff hf hp
+
+lemma ae_of_ae_map {f : α → β} (hf : measurable f) {p : β → Prop} (h : ∀ᵐ y ∂ (map f μ), p y) :
+  ∀ᵐ x ∂ μ, p (f x) :=
+mem_ae_of_mem_ae_map hf h
+
+lemma ae_map_mem_range (f : α → β) (hf : measurable_set (range f)) (μ : measure α) :
+  ∀ᵐ x ∂(map f μ), x ∈ range f :=
+begin
+  by_cases h : measurable f,
+  { change range f ∈ (map f μ).ae,
+    rw mem_ae_map_iff h hf,
+    apply eventually_of_forall,
+    exact mem_range_self },
+  { simp [map_of_not_measurable h] }
+end
 
 lemma ae_restrict_iff {p : α → Prop} (hp : measurable_set {x | p x}) :
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
@@ -1534,7 +1558,7 @@ lemma ae_imp_of_ae_restrict {s : set α} {p : α → Prop} (h : ∀ᵐ x ∂(μ.
   ∀ᵐ x ∂μ, x ∈ s → p x :=
 begin
   simp only [ae_iff] at h ⊢,
-  simpa [set_of_and, inter_comm] using  measure_inter_eq_zero_of_restrict h
+  simpa [set_of_and, inter_comm] using measure_inter_eq_zero_of_restrict h
 end
 
 lemma ae_restrict_iff' {s : set α} {p : α → Prop} (hp : measurable_set s) :

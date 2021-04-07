@@ -2150,7 +2150,7 @@ end
 
 end rel
 
-section foo
+section sum_inequalities
 
 variables [ordered_add_comm_monoid α]
 
@@ -2184,7 +2184,7 @@ begin
   exact sum_le_sum_map _ h,
 end
 
-end foo
+end sum_inequalities
 
 section map
 

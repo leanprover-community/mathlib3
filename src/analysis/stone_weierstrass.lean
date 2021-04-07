@@ -172,6 +172,12 @@ theorem sublattice_closure_eq_top
   closure A = ⊤ :=
 begin
   -- Here's the fun part of Stone-Weierstrass!
+  apply eq_top_iff.mpr,
+  rintros f -,
+  refine filter.frequently.mem_closure _,
+  refine (filter.has_basis.frequently_iff metric.nhds_basis_ball).mpr _,
+  intros ε pos,
+  simp only [exists_prop, metric.mem_ball],
   sorry
 end
 

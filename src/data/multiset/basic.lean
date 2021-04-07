@@ -2088,7 +2088,54 @@ begin
       exact ⟨b, mem_cons.2 (or.inr hbt), hab⟩ } }
 end
 
+lemma rel_repeat_left {m : multiset α} {a : α} {r : α → α → Prop} {n : ℕ} :
+  (repeat a n).rel r m ↔ m.card = n ∧ ∀ x, x ∈ m → r a x :=
+begin
+  split,
+  { intro h,
+    refine ⟨(card_eq_card_of_rel h).symm.trans (card_repeat a n), λ x hx, _⟩,
+    obtain ⟨t, rfl⟩ := exists_cons_of_mem hx,
+    obtain ⟨a', t', ha', ra'x, h'⟩ := rel_cons_right.1 h,
+    have h := mem_cons_self a' t',
+    rw [← h'] at h,
+    rwa ← eq_of_mem_repeat h },
+  revert n,
+  apply m.induction_on,
+  { intro n,
+    rw [rel_zero_right, ← card_eq_zero, card_repeat, card_zero, eq_comm],
+    simp },
+  { rintros a' m' h1 _ ⟨rfl, h2⟩,
+    rw [card_cons, repeat_succ, rel_cons_right],
+    exact ⟨_, _, h2 a' (mem_cons_self _ _), h1 ⟨rfl, λ x hx, h2 x (mem_cons_of_mem hx)⟩, rfl⟩ }
+end
+
+lemma rel_repeat_right {m : multiset α} {a : α} {r : α → α → Prop} {n : ℕ} :
+  m.rel r (repeat a n) ↔ m.card = n ∧ ∀ x, x ∈ m → r x a :=
+by { rw [← rel_flip], exact rel_repeat_left }
+
+lemma sum_le_sum_of_rel_le [ordered_add_comm_monoid α]
+  {m1 m2 : multiset α} (h : m1.rel (≤) m2) : m1.sum ≤ m2.sum :=
+begin
+  revert m2,
+  apply m1.induction_on,
+  { intros m2 h,
+    rw rel_zero_left at h,
+    rw h },
+  { intros a m1 ih m2 h,
+    obtain ⟨b, m2, ab, h', rfl⟩ := rel_cons_left.1 h,
+    rw [sum_cons, sum_cons],
+    exact add_le_add ab (ih h') }
+end
+
 end rel
+
+lemma card_nsmul_le_sum [ordered_add_comm_monoid α] {b : α}
+  {m : multiset α} (h : ∀ x, x ∈ m → b ≤ x) : (card m) •ℕ b ≤ m.sum :=
+le_trans (ge_of_eq (sum_repeat _ _)) (sum_le_sum_of_rel_le (rel_repeat_left.2 ⟨rfl, h⟩))
+
+lemma sum_le_card_nsmul [ordered_add_comm_monoid α] {b : α}
+  {m : multiset α} (h : ∀ x, x ∈ m → x ≤ b) : m.sum ≤ (card m) •ℕ b :=
+(sum_le_sum_of_rel_le (rel_repeat_right.2 ⟨rfl, h⟩)).trans (le_of_eq (sum_repeat _ _))
 
 section map
 

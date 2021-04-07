@@ -290,7 +290,7 @@ end partition
 
 section is_three_cycle
 
-variables [fintype α] {σ : perm α}
+variables [decidable_eq α] {σ : perm α}
 
 /-- A three-cycle is a cycle of length 3. -/
 def is_three_cycle (σ : perm α) : Prop := σ.support.card = 3
@@ -299,25 +299,22 @@ lemma is_three_cycle.card_support (h : is_three_cycle σ) : σ.support.card = 3 
 
 lemma is_three_cycle.is_cycle (h : is_three_cycle σ) : is_cycle σ :=
 begin
-  obtain ⟨l, rfl, hl, hd⟩ := trunc_cycle_factors σ,
-  have hle := card_support_prod_list_of_pairwise_disjoint hd,
-  rw [h.card_support] at hle,
-  cases l with a l',
-  { contrapose! h,
-    simp [is_three_cycle] },
-  cases l' with a' l'',
-  { simp only [mul_one, list.prod_cons, list.prod_nil],
-    apply hl,
-    simp },
-  { contrapose! hle,
-    simp only [list.sum_cons, ne.def, list.map],
-    apply ne_of_lt,
-    rw [← nat.succ_le_iff],
-    transitivity 2 + (2 + 0), { refl },
-    refine add_le_add _ (add_le_add _ (nat.zero_le _));
-    { apply (hl _ _).two_le_card_support,
-      simp } },
+  rw [is_three_cycle, ← sum_cycle_type] at h,
+  rw ← card_cycle_type_eq_one,
+  have hle : _ ≤ σ.cycle_type.sum := card_nsmul_le_sum (λ x, two_le_of_mem_cycle_type),
+  rw [nat.nsmul_eq_mul, mul_comm] at hle,
+  contrapose! h,
+  cases lt_or_gt_of_ne h with hlt hgt,
+  { rw [nat.lt_succ_iff, nat.le_zero_iff, card_eq_zero] at hlt,
+    simp [hlt] },
+  { apply ne_of_gt,
+    rw [gt_iff_lt, ← nat.succ_le_iff] at hgt,
+    rw ← nat.succ_le_iff,
+    exact le_trans (mul_le_mul (le_refl 2) hgt dec_trivial dec_trivial) hle }
 end
+
+lemma is_three_cycle.cycle_type (h : is_three_cycle σ) : σ.cycle_type = [(3 : ℕ)] :=
+by rw [h.is_cycle.cycle_type, h.card_support]
 
 lemma is_three_cycle.sign {f : perm α} (h : is_three_cycle f) : sign f = 1 :=
 begin
@@ -339,9 +336,9 @@ begin
     simp [ab, ac, bc] },
   apply le_antisymm ((support_mul_le _ _).trans (λ x, _)) (λ x hx, _),
   { simp [ab, ac, bc] },
-  { simp only [mem_insert, mem_singleton] at hx,
+  { simp only [finset.mem_insert, finset.mem_singleton] at hx,
     rw mem_support,
-    simp only [perm.coe_mul, comp_app, ne.def],
+    simp only [perm.coe_mul, function.comp_app, ne.def],
     obtain rfl | rfl | rfl := hx,
     { rw [swap_apply_left, swap_apply_of_ne_of_ne ac.symm bc.symm],
       exact ac.symm },

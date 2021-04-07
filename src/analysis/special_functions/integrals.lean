@@ -196,8 +196,7 @@ theorem integral_sin_pow_odd (n : ℕ) :
 begin
   induction n with k ih,
   { norm_num },
-  rw [finset.prod_range_succ, ←mul_assoc, ← ih, nat.mul_succ, integral_sin_pow_succ_succ,
-      mul_comm (∫ x in 0..π, _)],
+  rw [finset.prod_range_succ_comm, mul_left_comm, ← ih, nat.mul_succ, integral_sin_pow_succ_succ],
   norm_cast,
 end
 

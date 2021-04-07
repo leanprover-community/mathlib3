@@ -125,7 +125,7 @@ instance inhabited' : inhabited (α ≃ α) := ⟨equiv.refl α⟩
 @[symm] protected def symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩
 
 /-- See Note [custom simps projection] -/
-def simps.inv_fun (e : α ≃ β) : β → α := e.symm
+def simps.symm_apply (e : α ≃ β) : β → α := e.symm
 
 initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
 

@@ -472,7 +472,7 @@ variables [has_zero ι] [ghas_one A] [Π i, add_comm_monoid (A i)]
 instance grade_zero.has_one : has_one (A 0) :=
 ⟨ghas_one.one⟩
 
-lemma of_zero_one : of _ 0 (1 : A 0) = 1 := rfl
+@[simp] lemma of_zero_one : of _ 0 (1 : A 0) = 1 := rfl
 
 end one
 
@@ -491,9 +491,9 @@ an `eq.rec` to turn `A (0 + 0)` into `A 0`.
 instance grade_zero.has_mul : has_mul (A 0) :=
 { mul := (•) }
 
-lemma grade_zero.smul_eq_mul (a b : A 0) : a • b = a * b := rfl
+@[simp]lemma grade_zero.smul_eq_mul (a b : A 0) : a • b = a * b := rfl
 
-lemma of_zero_smul {i} (a : A 0) (b : A i) : of _ _ (a • b) = of _ _ a * of _ _ b :=
+@[simp] lemma of_zero_smul {i} (a : A 0) (b : A i) : of _ _ (a • b) = of _ _ a * of _ _ b :=
 begin
   rw of_mul_of,
   dsimp [has_mul.mul, direct_sum.of, dfinsupp.single_add_hom_apply],
@@ -502,7 +502,7 @@ begin
   apply eq_rec_heq,
 end
 
-lemma of_zero_mul (a b : A 0) : of _ 0 (a * b) = of _ 0 a * of _ 0 b:=
+@[simp] lemma of_zero_mul (a b : A 0) : of _ 0 (a * b) = of _ 0 a * of _ 0 b:=
 of_zero_smul A a b
 
 instance grade_zero.mul_zero_class : mul_zero_class (A 0) :=

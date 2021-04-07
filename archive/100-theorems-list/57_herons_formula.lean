@@ -28,15 +28,6 @@ notation `√` := real.sqrt
 variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 
-lemma rearrange_cos_rule (a b c d : ℝ) (a_nonzero : a ≠ 0) (b_nonzero : b ≠ 0):
-  c * c = a * a + b * b - 2 * a * b * d → d = (a * a + b * b - c * c) / (2 * a * b) :=
-begin
-  intro hyp,
-  simp only [*, sub_sub_cancel],
-  field_simp,
-  ring,
-end
-
 include V
 /-- Heron's formula: The area of a triangle with side lengths `a`, `b`, and `c` is
   `√(s * (s - a) * (s - b) * (s - c))` where `s = (a + b + c) / 2` is the semiperimeter.
@@ -53,10 +44,12 @@ begin
   have a_nonzero : a ≠ 0 := (dist_pos.mpr h1).ne',
   have b_nonzero : b ≠ 0 := (dist_pos.mpr h2).ne',
 
-  have cos_rule := rearrange_cos_rule a b c (real.cos γ) a_nonzero b_nonzero
-    (dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle p1 p2 p3),
+  have cos_rule : cos γ = (a * a + b * b - c * c) / (2 * a * b), by
+    field_simp
+      [dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle p1 p2 p3,
+        mul_comm, a],
 
-  have sin_to_cos := sin_eq_sqrt_one_minus_cos_sq γ (angle_nonneg p1 p2 p3) (angle_le_pi p1 p2 p3),
+  have sin_to_cos := sin_eq_sqrt_one_minus_cos_sq (angle_nonneg p1 p2 p3) (angle_le_pi p1 p2 p3),
 
   let numerator := (2*a*b)^2 - (a*a + b*b - c*c)^2,
   let denominator := (2*a*b)^2,

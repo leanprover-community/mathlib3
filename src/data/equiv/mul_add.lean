@@ -119,8 +119,8 @@ def symm (h : M ≃* N) : N ≃* M :=
 /-- See Note [custom simps projection] -/
 -- we don't hyperlink the note in the additive version, since that breaks syntax highlighting
 -- in the whole file.
-@[to_additive add_equiv.simps.inv_fun "See Note custom simps projection"]
-def simps.inv_fun (e : M ≃* N) : N → M := e.symm
+@[to_additive "See Note custom simps projection"]
+def simps.symm_apply (e : M ≃* N) : N → M := e.symm
 
 initialize_simps_projections add_equiv (to_fun → apply, inv_fun → symm_apply)
 initialize_simps_projections mul_equiv (to_fun → apply, inv_fun → symm_apply)

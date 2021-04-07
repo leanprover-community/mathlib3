@@ -335,3 +335,11 @@ lemma submodule.exists_is_basis_of_le_span
 submodule.exists_is_basis_of_le le (is_basis_span hb)
 
 end principal_ideal_domain
+
+/-- A set of linearly independent vectors in a module `M` over a semiring `S` is also linearly
+independent over a subring `R` of `K`. -/
+lemma linear_independent.restrict_scalars_algebras {R S M ι : Type*} [comm_semiring R] [semiring S]
+  [add_comm_monoid M] [algebra R S] [semimodule R M] [semimodule S M] [is_scalar_tower R S M]
+  (hinj : function.injective (algebra_map R S)) {v : ι → M} (li : linear_independent S v) :
+  linear_independent R v :=
+linear_independent.restrict_scalars (by rwa algebra.algebra_map_eq_smul_one' at hinj) li

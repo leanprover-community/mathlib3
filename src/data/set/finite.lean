@@ -44,8 +44,11 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 show (∃ x, x ∈ h.to_finset) ↔ (∃ x, x ∈ s),
 from exists_congr (λ _, h.mem_to_finset)
 
-@[simp] lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
+@[simp] lemma finite.coe_to_finset {s : set α} (h : finite s) : ↑h.to_finset = s :=
 @set.coe_to_finset _ s h.fintype
+
+@[simp] lemma finite_empty_to_finset (h : finite (∅ : set α)) : h.to_finset = ∅ :=
+by rw [← finset.coe_inj, h.coe_to_finset, finset.coe_empty]
 
 theorem finite.exists_finset {s : set α} : finite s →
   ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s
@@ -71,6 +74,17 @@ theorem exists_finite_iff_finset {p : set α → Prop} :
   (∃ s, finite s ∧ p s) ↔ ∃ s : finset α, p ↑s :=
 ⟨λ ⟨s, hs, hps⟩, ⟨hs.to_finset, hs.coe_to_finset.symm ▸ hps⟩,
   λ ⟨s, hs⟩, ⟨↑s, finite_mem_finset s, hs⟩⟩
+
+lemma finite.fin_embedding {s : set α} (h : finite s) : ∃ (n : ℕ) (f : fin n ↪ α), range f = s :=
+begin
+  classical,
+  obtain ⟨f⟩ := (fintype.equiv_fin (h.to_finset : set α)).nonempty,
+  exact ⟨_, f.symm.as_embedding, by simp⟩
+end
+
+lemma finite.fin_param {s : set α} (h : finite s) :
+  ∃ (n : ℕ) (f : fin n → α), injective f ∧ range f = s :=
+let ⟨n, f, hf⟩ := h.fin_embedding in ⟨n, f, f.injective, hf⟩
 
 /-- Membership of a subset of a finite type is decidable.
 
@@ -255,6 +269,12 @@ by rw ← inter_eq_self_of_subset_right h; apply_instance
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
 | ⟨hs⟩ t h := ⟨@set.fintype_subset _ _ _ hs (classical.dec_pred t) h⟩
 
+theorem finite.inter_of_left {s : set α} (h : finite s) (t : set α) : finite (s ∩ t) :=
+h.subset (inter_subset_left _ _)
+
+theorem finite.inter_of_right {s : set α} (h : finite s) (t : set α) : finite (t ∩ s) :=
+h.subset (inter_subset_right _ _)
+
 theorem infinite_mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
 mt (λ ht, ht.subset h)
 
@@ -281,6 +301,10 @@ begin
   convert finite_range (λ x : s, F x x.2),
   simp only [set_coe.exists, subtype.coe_mk, eq_comm],
 end
+
+theorem finite.of_preimage {f : α → β} {s : set β} (h : finite (f ⁻¹' s)) (hf : surjective f) :
+  finite s :=
+hf.image_preimage s ▸ h.image _
 
 instance fintype_map {α β} [decidable_eq β] :
   ∀ (s : set α) (f : α → β) [fintype s], fintype (f <$> s) := set.fintype_image

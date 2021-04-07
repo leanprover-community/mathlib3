@@ -163,7 +163,7 @@ by resetI; apply e.injective.group _; intros; exact e.apply_symm_apply _
 @[to_additive "Transfer `add_comm_group` across an `equiv`"]
 protected def comm_group [comm_group β] : comm_group α :=
 let one := e.has_one, mul := e.has_mul, inv := e.has_inv, div := e.has_div in
-by resetI; apply e.injective.comm_group_div _; intros; exact e.apply_symm_apply _
+by resetI; apply e.injective.comm_group _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `semiring` across an `equiv` -/
 protected def semiring [semiring β] : semiring α :=
@@ -179,13 +179,13 @@ by resetI; apply e.injective.comm_semiring _; intros; exact e.apply_symm_apply _
 protected def ring [ring β] : ring α :=
 let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
   sub := e.has_sub in
-by resetI; apply e.injective.ring_sub _; intros; exact e.apply_symm_apply _
+by resetI; apply e.injective.ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_ring` across an `equiv` -/
 protected def comm_ring [comm_ring β] : comm_ring α :=
 let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
   sub := e.has_sub in
-by resetI; apply e.injective.comm_ring_sub _; intros; exact e.apply_symm_apply _
+by resetI; apply e.injective.comm_ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `nonzero` across an `equiv` -/
 protected theorem nontrivial [nontrivial β] : nontrivial α :=

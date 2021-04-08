@@ -60,13 +60,11 @@ instance : order_top (finset α) :=
 
 instance [decidable_eq α] : boolean_algebra (finset α) :=
 { compl := λ s, univ \ s,
-  sdiff_eq := λ s t, by simp [ext_iff],
   inf_compl_le_bot := λ s x hx, by simpa using hx,
   top_le_sup_compl := λ s x hx, by simp,
-  ..finset.distrib_lattice,
-  ..finset.semilattice_inf_bot,
+  sdiff_eq := λ s t, by simp [ext_iff, compl],
   ..finset.order_top,
-  ..finset.has_sdiff }
+  ..finset.generalized_boolean_algebra }
 
 lemma compl_eq_univ_sdiff [decidable_eq α] (s : finset α) : sᶜ = univ \ s := rfl
 
@@ -377,8 +375,15 @@ def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 @[simp] theorem univ_of_subsingleton (a : α) [subsingleton α] :
   @univ _ (of_subsingleton a) = {a} := rfl
 
+/-- Note: this lemma is specifically about `fintype.of_subsingleton`. For a statement about
+arbitrary `fintype` instances, use either `fintype.card_le_one_iff_subsingleton` or
+`fintype.card_unique`. -/
 @[simp] theorem card_of_subsingleton (a : α) [subsingleton α] :
   @fintype.card _ (of_subsingleton a) = 1 := rfl
+
+@[simp] theorem card_unique [unique α] [h : fintype α] :
+  fintype.card α = 1 :=
+subsingleton.elim (of_subsingleton $ default α) h ▸ card_of_subsingleton _
 
 open_locale classical
 variables (α)
@@ -419,6 +424,21 @@ set.ext $ λ _, mem_to_finset
 @[simp] theorem to_finset_inj {s t : set α} [fintype s] [fintype t] :
   s.to_finset = t.to_finset ↔ s = t :=
 ⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩
+
+@[simp, mono] theorem to_finset_mono {s t : set α} [fintype s] [fintype t] :
+  s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
+by simp [finset.subset_iff, set.subset_def]
+
+@[simp, mono] theorem to_finset_strict_mono {s t : set α} [fintype s] [fintype t] :
+  s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
+begin
+  rw [←lt_eq_ssubset, ←finset.lt_iff_ssubset, lt_iff_le_and_ne, lt_iff_le_and_ne],
+  simp
+end
+
+@[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
+  disjoint s.to_finset t.to_finset ↔ disjoint s t :=
+⟨λ h x hx, h (by simpa using hx), λ h x hx, h (by simpa using hx)⟩
 
 end set
 

@@ -44,8 +44,19 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 show (∃ x, x ∈ h.to_finset) ↔ (∃ x, x ∈ s),
 from exists_congr (λ _, h.mem_to_finset)
 
-@[simp] lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
+@[simp] lemma finite.coe_to_finset {s : set α} (h : finite s) : ↑h.to_finset = s :=
 @set.coe_to_finset _ s h.fintype
+
+@[simp] lemma finite_empty_to_finset (h : finite (∅ : set α)) : h.to_finset = ∅ :=
+by rw [← finset.coe_inj, h.coe_to_finset, finset.coe_empty]
+
+@[simp] lemma finite.to_finset_inj {s t : set α} {hs : finite s} {ht : finite t} :
+  hs.to_finset = ht.to_finset ↔ s = t :=
+by simp [←finset.coe_inj]
+
+@[simp] lemma finite_to_finset_eq_empty_iff {s : set α} {h : finite s} :
+  h.to_finset = ∅ ↔ s = ∅ :=
+by simp [←finset.coe_inj]
 
 theorem finite.exists_finset {s : set α} : finite s →
   ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s
@@ -138,6 +149,10 @@ end
 lemma to_finset_insert [decidable_eq α] {a : α} {s : set α} (hs : finite s) :
   (hs.insert a).to_finset = insert a hs.to_finset :=
 finset.ext $ by simp
+
+@[simp] lemma insert_to_finset [decidable_eq α] {a : α} {s : set α} [fintype s] :
+  (insert a s).to_finset = insert a s.to_finset :=
+by simp [finset.ext_iff, mem_insert_iff]
 
 @[elab_as_eliminator]
 theorem finite.induction_on {C : set α → Prop} {s : set α} (h : finite s)
@@ -255,6 +270,22 @@ by rw ← inter_eq_self_of_subset_right h; apply_instance
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
 | ⟨hs⟩ t h := ⟨@set.fintype_subset _ _ _ hs (classical.dec_pred t) h⟩
 
+lemma finite.union_iff {s t : set α} : finite (s ∪ t) ↔ finite s ∧ finite t :=
+⟨λ h, ⟨h.subset (subset_union_left _ _), h.subset (subset_union_right _ _)⟩,
+ λ ⟨hs, ht⟩, hs.union ht⟩
+
+lemma finite.diff {s t u : set α} (hs : s.finite) (ht : t.finite) (h : u \ t ≤ s) : u.finite :=
+begin
+  refine finite.subset (ht.union hs) _,
+  exact diff_subset_iff.mp h
+end
+
+theorem finite.inter_of_left {s : set α} (h : finite s) (t : set α) : finite (s ∩ t) :=
+h.subset (inter_subset_left _ _)
+
+theorem finite.inter_of_right {s : set α} (h : finite s) (t : set α) : finite (t ∩ s) :=
+h.subset (inter_subset_right _ _)
+
 theorem infinite_mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
 mt (λ ht, ht.subset h)
 
@@ -281,6 +312,10 @@ begin
   convert finite_range (λ x : s, F x x.2),
   simp only [set_coe.exists, subtype.coe_mk, eq_comm],
 end
+
+theorem finite.of_preimage {f : α → β} {s : set β} (h : finite (f ⁻¹' s)) (hf : surjective f) :
+  finite s :=
+hf.image_preimage s ▸ h.image _
 
 instance fintype_map {α β} [decidable_eq β] :
   ∀ (s : set α) (f : α → β) [fintype s], fintype (f <$> s) := set.fintype_image
@@ -571,8 +606,26 @@ lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
 
 lemma subset_iff_to_finset_subset (s t : set α) [fintype s] [fintype t] :
   s ⊆ t ↔ s.to_finset ⊆ t.to_finset :=
-⟨λ h x hx, set.mem_to_finset.mpr $ h $ set.mem_to_finset.mp hx,
-  λ h x hx, set.mem_to_finset.mp $ h $ set.mem_to_finset.mpr hx⟩
+by simp
+
+@[simp, mono] lemma finite.to_finset_mono {s t : set α} {hs : finite s} {ht : finite t} :
+  hs.to_finset ⊆ ht.to_finset ↔ s ⊆ t :=
+begin
+  split,
+  { intros h x,
+    rw [←finite.mem_to_finset hs, ←finite.mem_to_finset ht],
+    exact λ hx, h hx },
+  { intros h x,
+    rw [finite.mem_to_finset hs, finite.mem_to_finset ht],
+    exact λ hx, h hx }
+end
+
+@[simp, mono] lemma finite.to_finset_strict_mono {s t : set α} {hs : finite s} {ht : finite t} :
+  hs.to_finset ⊂ ht.to_finset ↔ s ⊂ t :=
+begin
+  rw [←lt_eq_ssubset, ←finset.lt_iff_ssubset, lt_iff_le_and_ne, lt_iff_le_and_ne],
+  simp
+end
 
 lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
   [fintype (range f)] : fintype.card (range f) = fintype.card α :=

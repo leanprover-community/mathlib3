@@ -160,7 +160,9 @@ lemma powerset_len_sup [decidable_eq α] (u : finset α) (n : ℕ) (hn : n < u.c
   (powerset_len n.succ u).sup id = u :=
 begin
   apply le_antisymm,
-  { simp [mem_powerset_len, and.comm] },
+  { simp_rw [sup_le_iff, mem_powerset_len],
+    rintros x ⟨h, -⟩,
+    exact h },
   { rw [sup_eq_bUnion, le_iff_subset, subset_iff],
     cases (nat.succ_le_of_lt hn).eq_or_lt with h' h',
     { simp [h'] },

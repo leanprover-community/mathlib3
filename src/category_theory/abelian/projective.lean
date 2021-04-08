@@ -45,7 +45,7 @@ from some projective object `P`.
 -/
 structure projective_presentation (X : C) :=
 (P : C)
-[projective : projective P]
+(projective : projective P)
 (f : P ⟶ X)
 (epi : epi f)
 

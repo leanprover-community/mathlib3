@@ -13,7 +13,9 @@ variables {R : Type*} [comm_ring R] [topological_space R] [topological_ring R]
 open filter
 open_locale topological_space unit_interval
 
-
+/--
+A set is equivalent to its image under an equivalence.
+-/
 -- We could construct this using `equiv.set.image e s e.injective`,
 -- but this definition provides an explicit inverse.
 @[simps]
@@ -24,7 +26,7 @@ def equiv.image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
   right_inv := λ y, by tidy, }.
 
 @[simp]
-lemma foo {α β : Type*} [topological_space α] [topological_space β]
+lemma homeomorph.to_equiv_symm_coe {α β : Type*} [topological_space α] [topological_space β]
   (e : α ≃ₜ β) : (e.to_equiv.symm : β → α) = e.symm := rfl
 
 @[continuity]
@@ -32,12 +34,18 @@ lemma foo' {α β : Type*} [topological_space α] [topological_space β]
   (e : α ≃ₜ β) : continuous (e.to_equiv.symm) :=
 by { simp, continuity, }
 
+/--
+A subset of a topological space is homeomorphic to its image under a homeomorphism.
+-/
 def homeomorph.image {α β : Type*} [topological_space α] [topological_space β]
   (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
 { continuous_to_fun := by continuity!,
   continuous_inv_fun := by continuity!,
   ..e.to_equiv.image s, }
 
+/--
+The forward direction of a homeomorphism, as a bundled continuous map.
+-/
 @[simps]
 def homeomorph.to_continuous_map {α β : Type*} [topological_space α] [topological_space β]
   (e : α ≃ₜ β) : C(α, β) := ⟨e⟩
@@ -64,8 +72,50 @@ begin
   simp,
 end
 
-def pullback {X Y : Type*} [topological_space X] [topological_space Y] (f : C(X, Y)) :
-  C(Y, ℝ) →ₐ[ℝ] C(X, ℝ) :=
+/-!
+We now setup variations on `pullback_*` (that is, precomposition by a continuous map),
+as a morphism `C(Y, T) → C(X, T)`, respecting various types of structure.
+
+In particular:
+* `pullback_continuous_map`, the bundled continuous map (for this we need `X Y` compact).
+* `pullback_homeomorph`, when we precompose by a homeomorphism.
+* `pullback_alg_hom`, when `T = R` is a topological ring.
+-/
+section
+
+/--
+Precomposition by a continuous map is itself a continuous map between spaces of continuous maps.
+-/
+def pullback_continuous_map {X Y : Type*} (T : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+  (f : C(X, Y)) : C(C(Y, T), C(X, T)) :=
+{ to_fun := λ g, g.comp f,
+  continuous_to_fun :=
+  begin
+    refine metric.continuous_iff.mpr _,
+    intros g ε ε_pos,
+    refine ⟨ε, ε_pos, λ g' h, _⟩,
+    rw continuous_map.dist_lt_iff _ _ ε_pos at h ⊢,
+    { exact λ x, h (f x), },
+  end }
+
+@[simp] lemma pullback_continuous_map_apply {X Y : Type*} (T : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+  (f : C(X, Y)) (g : C(Y, T)) :
+  (pullback_continuous_map T f) g = g.comp f :=
+rfl
+
+def pullback_homeomorph {X Y : Type*} (T : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+  (f : X ≃ₜ Y) : C(Y, T) ≃ₜ C(X, T) :=
+{ to_fun := pullback_continuous_map T f.to_continuous_map,
+  inv_fun := pullback_continuous_map T f.symm.to_continuous_map,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+def pullback_alg_hom {X Y : Type*} (R : Type*)
+  [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) :
+  C(Y, R) →ₐ[R] C(X, R) :=
 { to_fun := λ g, g.comp f,
   map_zero' := by { ext, simp, },
   map_add' := λ g₁ g₂, by { ext, simp, },
@@ -73,43 +123,21 @@ def pullback {X Y : Type*} [topological_space X] [topological_space Y] (f : C(X,
   map_mul' := λ g₁ g₂, by { ext, simp, },
   commutes' := λ r, by { ext, simp, }, }
 
-@[simp] lemma pullback_apply
-  {X Y : Type*} [topological_space X] [topological_space Y] (f : C(X, Y)) (g : C(Y, ℝ)):
-  (pullback f) g = g.comp f :=
+@[simp] lemma pullback_alg_hom_apply {X Y : Type*} (R : Type*)
+  [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) (g : C(Y, R)) :
+  (pullback_alg_hom R f) g = g.comp f :=
 rfl
 
-lemma pullback_continuous
-  {X Y : Type*} [topological_space X] [compact_space X] [topological_space Y] [compact_space Y]
-  (f : C(X, Y)) :
-  continuous (pullback f) :=
+lemma pullback_alg_hom_continuous {X Y : Type*} (R : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y]
+  [normed_comm_ring R] (f : C(X, Y)) :
+  continuous (pullback_alg_hom R f) :=
 begin
-  change continuous (λ g : C(Y, ℝ), g.comp f),
-  refine metric.continuous_iff.mpr _,
-  intros g ε ε_pos,
-  refine ⟨ε, ε_pos, λ g' h, _⟩,
-  rw continuous_map.dist_lt_iff _ _ ε_pos at h ⊢,
-  { exact λ x, h (f x), },
+  change continuous (pullback_continuous_map R f),
+  continuity,
 end
 
-def pullback_as_continuous_map
-  {X Y : Type*} [topological_space X] [compact_space X] [topological_space Y] [compact_space Y]
-  (f : C(X, Y)) : C(C(Y, ℝ), C(X, ℝ)) :=
-{ to_fun := pullback f,
-  continuous_to_fun := pullback_continuous f }
-
-@[simp] lemma pullback_as_continuous_map_apply
-  {X Y : Type*} [topological_space X] [compact_space X] [topological_space Y] [compact_space Y]
-  (f : C(X, Y)) (g : C(Y, ℝ)) :
-  (pullback_as_continuous_map f) g = g.comp f :=
-rfl
-
-def pullback_as_homeomorph
-  {X Y : Type*} [topological_space X] [compact_space X] [topological_space Y] [compact_space Y]
-  (f : X ≃ₜ Y) : C(Y, ℝ) ≃ₜ C(X, ℝ) :=
-{ to_fun := pullback_as_continuous_map f.to_continuous_map,
-  inv_fun := pullback_as_continuous_map f.symm.to_continuous_map,
-  left_inv := by tidy,
-  right_inv := by tidy, }
+end
 
 /-- The map `λ x, a * x + b`, as a homeomorphism from `ℝ` to itself, when `a ≠ 0`. -/
 @[simps]
@@ -180,8 +208,8 @@ rfl
 
 /-- The preimage of polynomials on `[0,1]` under the pullback map by `x ↦ (b-a) * x + a`
 is the polynomials on `[a,b]`. -/
-lemma polynomial_functions.comap'_pullback_Icc_homeo (a b : ℝ) (h : a < b) :
-  (polynomial_functions I).comap' (pullback (Icc_homeo a b h).symm.to_continuous_map) =
+lemma polynomial_functions.comap'_pullback_alg_hom_Icc_homeo (a b : ℝ) (h : a < b) :
+  (polynomial_functions I).comap' (pullback_alg_hom ℝ (Icc_homeo a b h).symm.to_continuous_map) =
     polynomial_functions (set.Icc a b) :=
 begin
   ext f,
@@ -254,10 +282,11 @@ begin
   by_cases h : a < b, -- (Otherwise it's easy; we'll deal with that later.)
   { -- We can pullback continuous functions to `[a,b]` to continuous functions on `[0,1]`,
     -- by precomposing with an affine map.
-    let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) := pullback (Icc_homeo a b h).symm.to_continuous_map,
+    let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) :=
+      pullback_alg_hom ℝ (Icc_homeo a b h).symm.to_continuous_map,
     -- This operation is itself a homeomorphism
     -- (with respect to the norm topologies on continuous functions).
-    let W' : C(set.Icc a b, ℝ) ≃ₜ C(I, ℝ) := pullback_as_homeomorph (Icc_homeo a b h).symm,
+    let W' : C(set.Icc a b, ℝ) ≃ₜ C(I, ℝ) := pullback_homeomorph ℝ (Icc_homeo a b h).symm,
     have w : (W : C(set.Icc a b, ℝ) → C(I, ℝ)) = W' := rfl,
     -- Thus we take the statement of the Weierstrass approximation theorem for `[0,1]`,
     have p := polynomial_functions_closure_eq_top',
@@ -267,7 +296,7 @@ begin
     -- Since the pullback operation is continuous, it commutes with taking `topological_closure`,
     rw subalgebra.topological_closure_comap'_homeomorph _ W W' w at p,
     -- and precomposing with an affine map takes polynomial functions to polynomial functions.
-    rw polynomial_functions.comap'_pullback_Icc_homeo at p,
+    rw polynomial_functions.comap'_pullback_alg_hom_Icc_homeo at p,
     -- 🎉
     exact p },
   { -- Otherwise, `b ≤ a`, and the interval is a subsingleton,

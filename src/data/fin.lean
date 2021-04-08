@@ -988,7 +988,8 @@ pred_above (last n) i
 
 @[simp] lemma cast_pred_zero : cast_pred (0 : fin (n + 2)) = 0 := rfl
 
-@[simp] lemma cast_pred_one : cast_pred (1 : fin (n + 3)) = 1 := rfl
+@[simp] lemma cast_pred_one : cast_pred (1 : fin (n + 2)) = 1 := 
+by { cases n, apply subsingleton.elim, refl }
 
 @[simp] theorem pred_above_zero {i : fin (n + 2)} (hi : i ≠ 0) :
   pred_above 0 i = i.pred hi :=

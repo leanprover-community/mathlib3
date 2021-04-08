@@ -18,7 +18,7 @@ and `projective.π X : projective.over X ⟶ X` is the corresponding epimorphism
 
 Given a morphism `f : X ⟶ Y`, `projective.left f` is a projective object over `kernel f`,
 and `projective.d f : projective.left f ⟶ X` is the morphism `π (kernel f) ≫ kernel.ι f`.
-When `C` is abelian `projective.d f` and `f` are exact.
+When `C` is abelian `projective.d f` and `f` are exact. Hence, starting from an epimorphism `P ⟶ X`, where `P` is projective, we can apply `projective.d` repeatedly to obtain a projective resolution of `X`.
 -/
 
 noncomputable theory

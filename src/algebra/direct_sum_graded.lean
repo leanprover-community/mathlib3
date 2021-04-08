@@ -299,8 +299,9 @@ private lemma one_mul (x : ⨁ i, A i) : 1 * x = x :=
 suffices mul_hom A 1 = add_monoid_hom.id (⨁ i, A i),
   from add_monoid_hom.congr_fun this x,
 begin
-  apply add_hom_ext, intros i xi,
-  unfold has_one.one,
+  -- short but slow (860ms, vs 180ms with `apply`, `intros`, `unfold`)
+  ext i xi : 2,
+  dsimp [has_one.one],
   rw of_mul_of',
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.one_mul ⟨i, xi⟩),
 end
@@ -309,7 +310,8 @@ private lemma mul_one (x : ⨁ i, A i) : x * 1 = x :=
 suffices (mul_hom A).flip 1 = add_monoid_hom.id (⨁ i, A i),
   from add_monoid_hom.congr_fun this x,
 begin
-  apply add_hom_ext, intros i xi,
+  -- fast enough (220ms), but not really shorter than explicit version
+  ext i xi : 2, dsimp only [coe_comp, function.comp_app],
   unfold has_one.one,
   rw [flip_apply, of_mul_of'],
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_one ⟨i, xi⟩),
@@ -321,12 +323,8 @@ suffices (mul_hom A).comp_hom.comp (mul_hom A)            -- `λ a b c, a * b * 
              (mul_hom A).flip.comp_hom.comp (mul_hom A)).flip,
   from add_monoid_hom.congr_fun (add_monoid_hom.congr_fun (add_monoid_hom.congr_fun this a) b) c,
 begin
-  apply add_hom_ext, intros ai ax, apply add_hom_ext, intros bi bx, apply add_hom_ext, intros ci cx,
-  -- simplify lhs
-  rw [coe_comp, function.comp_app, comp_hom_apply_apply, coe_comp, function.comp_app],
-  -- simplify rhs
-  rw [flip_apply, comp_hom_apply_apply, coe_comp, function.comp_app, flip_hom_apply, coe_comp,
-      function.comp_app, comp_hom_apply_apply, flip_apply, coe_comp, function.comp_app, flip_apply],
+  ext ai ax bi bx ci cx : 6,
+  dsimp only [coe_comp, function.comp_app, comp_hom_apply_apply, flip_apply, flip_hom_apply],
   rw [of_mul_of', of_mul_of', of_mul_of', of_mul_of'],
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_assoc ⟨ai, ax⟩ ⟨bi, bx⟩ ⟨ci, cx⟩),
 end
@@ -354,7 +352,7 @@ private lemma mul_comm (a b : ⨁ i, A i) : a * b = b * a :=
 suffices mul_hom A = (mul_hom A).flip,
   from add_monoid_hom.congr_fun (add_monoid_hom.congr_fun this a) b,
 begin
-  apply add_hom_ext, intros ai ax, apply add_hom_ext, intros bi bx,
+  ext ai ax bi bx : 4, dsimp only [add_monoid_hom.coe_comp, function.comp_app],
   rw [add_monoid_hom.flip_apply, of_mul_of', of_mul_of'],
   exact dfinsupp.single_eq_of_sigma_eq (gcomm_monoid.mul_comm ⟨ai, ax⟩ ⟨bi, bx⟩),
 end

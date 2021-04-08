@@ -261,15 +261,11 @@ lemma eq_of_locally_eq (s t : F.presheaf.obj (op (supr U)))
   (h : ∀ i, F.presheaf.map (opens.le_supr U i).op s = F.presheaf.map (opens.le_supr U i).op t) :
   s = t :=
 begin
-  let sf : Π i : ι, F.presheaf.obj (op (U i)) :=
-    λ i, F.presheaf.map (opens.le_supr U i).op t,
-  have sf_comp : F.presheaf.is_compatible U sf := λ i j, by {
-    rw [← functor_to_types.map_comp_apply, ← functor_to_types.map_comp_apply],
-    congr,
-  },
-  obtain ⟨gl,gl_spec,gl_uniq⟩ := F.exists_unique_gluing U sf sf_comp,
-  transitivity,
-  exacts [gl_uniq s (λ i, h i), (gl_uniq t (λ i, rfl)).symm],
+  apply (mono_iff_injective _).mp (mono_of_is_limit_parallel_pair (F.sheaf_condition U)),
+  ext,
+  dsimp [sheaf_condition_equalizer_products.res],
+  simp,
+  apply h,
 end
 
 /--

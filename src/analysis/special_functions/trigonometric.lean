@@ -1066,10 +1066,44 @@ lemma sin_add_pi (x : ℝ) : sin (x + π) = -sin x :=
 by simp [sin_add]
 
 lemma sin_add_two_pi (x : ℝ) : sin (x + 2 * π) = sin x :=
-by simp [sin_add_pi, sin_add, sin_two_pi, cos_two_pi]
+by simp [sin_add]
+
+lemma sin_sub_two_pi (x : ℝ) : sin (x - 2 * π) = sin x :=
+by simp [sin_sub]
+
+lemma sin_add_two_pi_mul_int (x : ℝ) (n : ℤ) : sin (x + 2 * π * n) = sin x :=
+begin
+  cases n;
+  induction n with n ih,
+  { simp },
+  { simpa [mul_add, ← add_assoc, sin_add_two_pi] },
+  { simp [← sub_eq_add_neg, sin_sub_two_pi] },
+  { have h : x + 2 * π * (-1 + (-1 - ↑n)) = x + 2 * π * (-1 - ↑n) - 2 * π := by ring,
+    simpa [← sub_eq_add_neg, h, sin_sub_two_pi] using ih },
+end
+
+lemma sin_sub_two_pi_mul_int (x : ℝ) (n : ℤ) : sin (x - 2 * π * n) = sin x :=
+by simpa using sin_add_two_pi_mul_int x (-n)
 
 lemma cos_add_two_pi (x : ℝ) : cos (x + 2 * π) = cos x :=
-by simp [cos_add, cos_two_pi, sin_two_pi]
+by simp [cos_add]
+
+lemma cos_sub_two_pi (x : ℝ) : cos (x - 2 * π) = cos x :=
+by simp [cos_sub]
+
+lemma cos_add_two_pi_mul_int (x : ℝ) (n : ℤ) : cos (x + 2 * π * n) = cos x :=
+begin
+  cases n;
+  induction n with n ih,
+  { simp },
+  { simpa [mul_add, ← add_assoc, cos_add_two_pi] },
+  { simp [← sub_eq_add_neg, cos_sub_two_pi] },
+  { have h : x + 2 * π * (-1 + (-1 - ↑n)) = x + 2 * π * (-1 - ↑n) - 2 * π := by ring,
+    simpa [← sub_eq_add_neg, h, cos_sub_two_pi] using ih },
+end
+
+lemma cos_sub_two_pi_mul_int (x : ℝ) (n : ℤ) : cos (x - 2 * π * n) = cos x :=
+by simpa using cos_add_two_pi_mul_int x (-n)
 
 lemma sin_pi_sub (x : ℝ) : sin (π - x) = sin x :=
 by simp [sub_eq_add_neg, sin_add]

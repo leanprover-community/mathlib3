@@ -169,10 +169,8 @@ is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_mul_iff_pow_eq_one)
 
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin
-  rw order_of,
-  convert minimal_period_id,
-  simp_rw mul_one,
-  refl,
+  simp_rw [order_of, mul_one],
+  exact minimal_period_id,
 end
 
 @[simp] lemma add_order_of_zero : add_order_of (0 : H) = 1 :=
@@ -235,10 +233,8 @@ end
 lemma commute.order_of_mul_dvd_lcm (h : commute a b) :
   order_of (a * b) ∣ nat.lcm (order_of a) (order_of b) :=
 begin
-  simp only [order_of, ← mul_assoc],
   convert function.commute.minimal_period_of_comp_dvd_lcm h.function_commute_mul,
-  ext,
-  simp [mul_assoc, h.eq],
+  rw [h.eq, order_of, comp_mul_right],
 end
 
 lemma add_order_of_eq_prime {p : ℕ} [hp : fact p.prime]

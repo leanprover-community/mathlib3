@@ -28,7 +28,7 @@ variables {α : Type*}
   ..(infer_instance : semilattice_sup_bot α) }
 
 @[priority 100] noncomputable instance fintype.complete_lattice_of_semilattice_sup_bot
-[fintype α] [semilattice_sup_bot α]:
+  [fintype α] [semilattice_sup_bot α] :
   complete_lattice α :=
 complete_lattice_of_complete_semilattice_Sup _
 

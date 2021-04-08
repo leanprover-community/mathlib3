@@ -315,9 +315,9 @@ lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι :
 begin
   obtain ⟨n, e⟩ := fintype.exists_equiv_fin ι,
   replace e := (mv_polynomial.rename_equiv A (nonempty.some e)).restrict_scalars R,
-  refine equiv _ e.symm,
+  apply equiv _ e.symm,
   obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
-  refine equiv _ (mv_polynomial.map_alg_equiv (fin n) e),
+  apply equiv _ (mv_polynomial.map_alg_equiv (fin n) e),
   -- typeclass inference seems to struggle to find this path
   letI : is_scalar_tower R
     (_root_.mv_polynomial (fin m) R) (_root_.mv_polynomial (fin m) R) :=
@@ -330,7 +330,8 @@ begin
   refine equiv _ ((@mv_polynomial.quotient_equiv_quotient_mv_polynomial
     _ (fin n) _ I).restrict_scalars R).symm,
   refine quotient (submodule.map_fg_of_fg I hfg _) _,
-  refine equiv _ (mv_polynomial.sum_alg_equiv _ _ _),
+  let := mv_polynomial.sum_alg_equiv R (fin n) (fin m),
+  refine equiv _ this,
   exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R fin_sum_fin_equiv).symm
 end
 

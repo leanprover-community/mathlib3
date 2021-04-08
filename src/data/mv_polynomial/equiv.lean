@@ -243,8 +243,6 @@ begin
     { rw [sum_to_iter_Xr, iter_to_sum_C_X] } },
 end
 
-set_option profiler true
-
 /--
 The algebra isomorphism between multivariable polynomials in a sum of two types,
 and multivariable polynomials in one of the types,
@@ -252,21 +250,14 @@ with coefficents in multivariable polynomials in the other type.
 -/
 def sum_alg_equiv : mv_polynomial (S₁ ⊕ S₂) R ≃ₐ[R]
   mv_polynomial S₁ (mv_polynomial S₂ R) :=
-begin
-  refine { commutes' := _,
-  ..sum_ring_equiv R S₁ S₂ },
-  intro r,
-  simp,
---    change algebra_map R (mv_polynomial S₁ (mv_polynomial S₂ R)) r with C (C r),
-  sorry,
---    change algebra_map R (mv_polynomial (S₁ ⊕ S₂) R) r with C r,
---    simp only [sum_ring_equiv, sum_to_iter_C, mv_polynomial_equiv_mv_polynomial_apply,
---      ring_equiv.to_fun_eq_coe],
-end
-
-#exit
-
-
+{ commutes' := begin
+    intro r,
+    have A : algebra_map R (mv_polynomial S₁ (mv_polynomial S₂ R)) r = (C (C r) : _), by refl,
+    have B : algebra_map R (mv_polynomial (S₁ ⊕ S₂) R) r = C r, by refl,
+    simp only [sum_ring_equiv, sum_to_iter_C, mv_polynomial_equiv_mv_polynomial_apply,
+      ring_equiv.to_fun_eq_coe, A, B],
+  end,
+  ..sum_ring_equiv R S₁ S₂ }
 
 /--
 The algebra isomorphism between multivariable polynomials in `option S₁` and

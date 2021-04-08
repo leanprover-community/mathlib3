@@ -793,7 +793,7 @@ end range_add_comm_group
 
 section add_comm_group
 
-variables [semiring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
+variables [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
 [∀i, semimodule R (M₁ i)] [semimodule R M₂]
 (f : multilinear_map R M₁ M₂)
 

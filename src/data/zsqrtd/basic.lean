@@ -291,7 +291,7 @@ lemma norm_def (n : ℤ√d) : n.norm = n.re * n.re - d * n.im * n.im := rfl
 by { simp only [norm, mul_im, mul_re], ring }
 
 /-- `norm` as a `monoid_hom`. -/
-def norm_hom : ℤ√d →* ℤ :=
+def norm_monoid_hom : ℤ√d →* ℤ :=
 { to_fun := norm,
   map_mul' := norm_mul,
   map_one' := norm_one }

@@ -77,7 +77,7 @@ sup_le $ assume b hb, le_sup (h hb)
 iff.intro (λ hs b hb, lt_of_le_of_lt (le_sup hb) hs)
 begin
   intro hs,
-  induction s using finset.induction' with c s hc ih,
+  induction s using finset.cons_induction with c s hc ih,
   { exact ha, },
   { rw [sup_cons, _root_.sup_lt_iff],
     exact ⟨hs c (mem_cons.2 (or.inl rfl)), ih (λ b h, hs b (mem_cons.2 (or.inr h)))⟩, },
@@ -87,7 +87,7 @@ lemma comp_sup_eq_sup_comp [semilattice_sup_bot γ] {s : finset β}
   {f : β → α} (g : α → γ) (g_sup : ∀ x y, g (x ⊔ y) = g x ⊔ g y) (bot : g ⊥ = ⊥) :
   g (s.sup f) = s.sup (g ∘ f) :=
 begin
-  induction s using finset.induction' with c s hc ih,
+  induction s using finset.cons_induction with c s hc ih,
   { exact bot, },
   { rw [sup_cons, sup_cons, g_sup, ih], },
 end
@@ -101,7 +101,7 @@ lemma sup_coe {P : α → Prop}
   {Pbot : P ⊥} {Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)}
   (t : finset β) (f : β → {x : α // P x}) :
   (@sup _ _ (subtype.semilattice_sup_bot Pbot Psup) t f : α) = t.sup (λ x, f x) :=
-by { classical, rw [comp_sup_eq_sup_comp coe]; intros; refl }
+by { rw [comp_sup_eq_sup_comp coe]; intros; refl }
 
 @[simp] lemma sup_to_finset {α β} [decidable_eq β]
   (s : finset α) (f : α → multiset β) :
@@ -124,7 +124,7 @@ calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst
 lemma of_sup_of_forall {p : α → Prop} (hb : p ⊥)
   (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊔ a₂)) (hs : ∀ b ∈ s, p (f b)) : p (s.sup f) :=
 begin
-  induction s using finset.induction' with c s hc ih,
+  induction s using finset.cons_induction with c s hc ih,
   { exact hb, },
   { rw sup_cons,
     apply hp,
@@ -268,7 +268,7 @@ section sup'
 variables [semilattice_sup α]
 
 lemma sup_of_mem {s : finset β} (f : β → α) {b : β} (h : b ∈ s) :
-  ∃ (a : α), @sup (with_bot α) _ _ s (coe ∘ f) = ↑a :=
+  ∃ (a : α), s.sup (coe ∘ f : β → with_bot α) = ↑a :=
 Exists.imp (λ a, Exists.fst) (@le_sup (with_bot α) _ _ _ _ _ h (f b) rfl)
 
 /-- Given nonempty finset `s` in (possibly unbounded) join-semilattice `α` then `s.sup' H` is its
@@ -326,7 +326,7 @@ section inf'
 variables [semilattice_inf α]
 
 lemma inf_of_mem {s : finset β} (f : β → α) {b : β} (h : b ∈ s) :
-  ∃ (a : α), @inf (with_top α) _ _ s (coe ∘ f) = ↑a :=
+  ∃ (a : α), s.inf (coe ∘ f : β → with_top α) = ↑a :=
 @sup_of_mem (order_dual α) _ _ _ f _ h
 
 /-- Given nonempty finset `s` in (possibly unbounded) meet-semilattice `α` then `s.inf' H` is its
@@ -399,7 +399,7 @@ variables {C : β → Type*} [Π (b : β), semilattice_sup_bot (C b)]
 protected lemma sup_apply (s : finset α) (f : α → Π (b : β), C b) (b : β) :
   s.sup f b = s.sup (λ a, f a b) :=
 begin
-  induction s using finset.induction' with c s hc ih,
+  induction s using finset.cons_induction with c s hc ih,
   { refl, },
   { rw [sup_cons, sup_cons, _root_.sup_apply, ih], },
 end

@@ -38,7 +38,8 @@ section is_of_fin_order
 variables {α} [monoid α]
 variables {H : Type u} [add_monoid H]
 
--- Move the following four lemmas somewhere else?
+-- The next two lemmas exist in `iterate_hom`, but this file is needed for that?
+-- How to resolve this?
 @[simp] lemma iterate_add_right_apply (x : H) {n : ℕ} : (+ x)^[n] = (+ n •ℕ x) :=
 begin
   induction n with d hd,

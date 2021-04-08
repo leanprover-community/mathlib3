@@ -28,9 +28,9 @@ primed definition names in this file refer to the non-polymorphic versions.
 noncomputable theory
 universes u w
 
-/-- `is_free_group G` means that `G` has the universal property of a free group.
-    That is, it has a family `generators G` of elements, such that a group homomorphism
-    `G →* X` is uniquely determined by a function `generators G → X`. -/
+/-- `is_free_group G` means that `G` has the universal property of a free group,
+That is, it has a family `generators G` of elements, such that a group homomorphism
+`G →* X` is uniquely determined by a function `generators G → X`. -/
 class is_free_group (G : Type u) [group G] : Type (u+1) :=
 (generators : Type u)
 (of : generators → G)
@@ -49,7 +49,7 @@ instance free_group_is_free_group {A} : is_free_group (free_group A) :=
 
 namespace is_free_group
 
-variables {G H : Type u} [group G] [group H] [is_free_group G]
+variables {G H : Type u} {X : Type w} [group G] [group H] [group X] [is_free_group G]
 
 /-- The equivalence between functions on the generators and group homomorphisms from a free group
 given by those generators. -/
@@ -64,10 +64,10 @@ def lift' : (generators G → H) ≃ (G →* H) :=
 congr_fun (lift'.symm_apply_apply f) a
 
 @[simp] lemma lift'_eq_free_group_lift {A : Type u} :
-  (@lift' (free_group A) G _ _ _) = free_group.lift :=
+  (@lift' (free_group A) H _ _ _) = free_group.lift :=
 begin
   -- TODO: `apply equiv.symm_bijective.injective`,
-  rw [←free_group.lift.symm_symm, ←(@lift' (free_group A) G _ _ _).symm_symm],
+  rw [←free_group.lift.symm_symm, ←(@lift' (free_group A) H _ _ _).symm_symm],
   congr' 1,
   ext,
   refl,
@@ -76,19 +76,36 @@ end
 @[simp] lemma of_eq_free_group_of {A : Type u} : (@of (free_group A) _ _) = free_group.of :=
 rfl
 
-lemma eq_lift' (f : generators G → H) (F : G →* H) (h : ∀ a, F (of a) = f a) : F = lift' f :=
-lift'.symm_apply_eq.mp (funext h)
-
 @[ext]
-lemma ext_hom ⦃f g : G →* G⦄ (h : ∀ a, f (of a) = g (of a)) :
+lemma ext_hom' ⦃f g : G →* H⦄ (h : ∀ a, f (of a) = g (of a)) :
   f = g :=
 lift'.symm.injective $ funext h
 
-lemma end_is_id (f : G →* G) (h : ∀ a, f (of a) = of a) : ∀ g, f g = g :=
-suffices f = monoid_hom.id G, from monoid_hom.congr_fun this,
-ext_hom h
+/-- Being a free group transports across group isomorphisms within a universe. -/
+def of_mul_equiv (h : G ≃* H) : is_free_group H :=
+{ generators := generators G,
+  of := h ∘ of,
+  unique_lift' := begin
+    introsI X _ f,
+    refine ⟨(lift' f).comp h.symm.to_monoid_hom, _, _⟩,
+    { simp },
+    intros F' hF',
+    suffices : F'.comp h.to_monoid_hom = lift' f,
+    { rw ←this, ext, apply congr_arg, symmetry, apply mul_equiv.apply_symm_apply },
+    ext,
+    simp [hF'],
+  end }
+
+/-!
+### Universe-polymorphic definitions
+
+
+The primed definitions and lemmas above require `G` and `H` to be in the same universe `u`.
+The lemmas below use `X` in a different universe `w`
+-/
 
 variable (G)
+
 /-- Any free group is isomorphic to "the" free group. -/
 @[simps] def to_free_group : G ≃* free_group (generators G) :=
 { to_fun := lift' free_group.of,
@@ -106,27 +123,13 @@ variable (G)
 
 variable {G}
 
-/-- Being a free group transports across group isomorphisms. -/
-def of_mul_equiv (h : G ≃* H) : is_free_group H :=
-{ generators := generators G,
-  of := h ∘ of,
-  unique_lift' := begin
-    introsI X _ f,
-    refine ⟨(lift' f).comp h.symm.to_monoid_hom, _, _⟩,
-    { simp },
-    intros F' hF',
-    suffices : F'.comp h.to_monoid_hom = lift' f,
-    { rw ←this, ext, apply congr_arg, symmetry, apply mul_equiv.apply_symm_apply },
-    apply eq_lift',
-    apply hF',
-  end }
-
-private lemma lift_right_inv_aux  {X : Type w} [group X] (F : G →* X) :
+private lemma lift_right_inv_aux (F : G →* X) :
   free_group.lift.symm (F.comp (to_free_group G).symm.to_monoid_hom) = F ∘ of :=
 by { ext, simp }
 
 /-- A universe-polymorphic version of `is_free_group.lift'`. -/
-protected def lift {X : Type w} [group X] : (generators G → X) ≃ (G →* X) :=
+@[simps symm_apply]
+def lift : (generators G → X) ≃ (G →* X) :=
 { to_fun := λ f, (free_group.lift f).comp (to_free_group G).to_monoid_hom,
   inv_fun := λ F, F ∘ of,
   left_inv := λ f, free_group.lift.injective begin
@@ -142,18 +145,29 @@ protected def lift {X : Type w} [group X] : (generators G → X) ≃ (G →* X) 
     rw mul_equiv.symm_apply_apply,
   end}
 
-@[simp] lemma lift_symm_apply {X : Type w} [group X] (F : G →* X) :
-  is_free_group.lift.symm F = F ∘ of :=
+@[ext]
+lemma ext_hom ⦃f g : G →* X⦄ (h : ∀ a, f (of a) = g (of a)) :
+  f = g :=
+is_free_group.lift.symm.injective $ funext h
+
+@[simp] lemma lift_of (f : generators G → X) (a : generators G) : (lift f) (of a) = f a :=
+congr_fun (lift.symm_apply_apply f) a
+
+@[simp] lemma lift_eq_free_group_lift {A : Type u} :
+  (@lift (free_group A) H _ _ _) = free_group.lift :=
 begin
+  -- TODO: `apply equiv.symm_bijective.injective`,
+  rw [←free_group.lift.symm_symm, ←(@lift (free_group A) H _ _ _).symm_symm],
+  congr' 1,
   ext,
-  simp [is_free_group.lift],
+  refl,
 end
 
 /-- A universe-polymorphic version of `unique_lift`. -/
 lemma unique_lift {X : Type w} [group X] (f : generators G → X) :
   ∃! F : G →* X, ∀ a, F (of a) = f a :=
 begin
-  have := is_free_group.lift.symm.bijective.exists_unique f,
+  have := lift.symm.bijective.exists_unique f,
   simp_rw function.funext_iff at this,
   exact this,
 end

@@ -291,7 +291,7 @@ begin
   rwa ← is_periodic_pt_iff_minimal_period_dvd
 end
 
-lemma function.commute.minimal_period_of_comp_dvd_lcm {g : α → α} (h : function.commute f g) :
+lemma commute.minimal_period_of_comp_dvd_lcm {g : α → α} (h : function.commute f g) :
   minimal_period (f ∘ g) x ∣ nat.lcm (minimal_period f x) (minimal_period g x) :=
 begin
   rw [← is_periodic_pt_iff_minimal_period_dvd, is_periodic_pt, h.comp_iterate],
@@ -300,7 +300,7 @@ begin
   exact nat.dvd_lcm_left _ _ <|> exact dvd_lcm_right _ _
 end
 
-lemma minimal_period_iterate_eq_div_gcd (h : n ≠ 0) :
+private lemma minimal_period_iterate_eq_div_gcd_aux (h : 0 < gcd (minimal_period f x) n) :
   minimal_period (f ^[n]) x = minimal_period f x / nat.gcd (minimal_period f x) n :=
 begin
   apply nat.dvd_antisymm,
@@ -308,34 +308,22 @@ begin
     rw [is_periodic_pt, is_fixed_pt, ← iterate_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _),
         mul_comm, nat.mul_div_assoc _ (gcd_dvd_right _ _), mul_comm, iterate_mul],
     exact is_periodic_pt.iterate (is_periodic_pt_minimal_period f x) _ },
-  { have gcd_pos : 0 < gcd (minimal_period f x) n := gcd_pos_of_pos_right _ (nat.pos_of_ne_zero h),
-    apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos),
-    apply dvd_of_mul_dvd_mul_right gcd_pos,
-    rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc, nat.div_mul_cancel (gcd_dvd_right _ _),
-        mul_comm],
-    apply is_periodic_pt.minimal_period_dvd,
-    rw [is_periodic_pt, is_fixed_pt, iterate_mul],
-    exact is_periodic_pt_minimal_period _ _ },
-end
-
-lemma minimal_period_iterate_eq_div_gcd' (h : x ∈ periodic_pts f) :
-  minimal_period (f ^[n]) x = minimal_period f x / nat.gcd (minimal_period f x) n :=
-begin
-  apply dvd_antisymm,
-  { apply is_periodic_pt.minimal_period_dvd,
-    rw [is_periodic_pt, is_fixed_pt, ← iterate_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _),
-        mul_comm, nat.mul_div_assoc _ (gcd_dvd_right _ _), mul_comm, iterate_mul, ← is_fixed_pt,
-        ← is_periodic_pt],
-    exact is_periodic_pt.iterate (is_periodic_pt_minimal_period f x) _ },
-  { have gcd_pos : 0 < gcd (minimal_period f x) n :=
-      gcd_pos_of_pos_left n (minimal_period_pos_iff_mem_periodic_pts.mpr h),
-    apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos),
-    apply dvd_of_mul_dvd_mul_right gcd_pos,
+  { apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd h),
+    apply dvd_of_mul_dvd_mul_right h,
     rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc, nat.div_mul_cancel (gcd_dvd_right _ _),
         mul_comm],
     apply is_periodic_pt.minimal_period_dvd,
     rw [is_periodic_pt, is_fixed_pt, iterate_mul],
     exact is_periodic_pt_minimal_period _ _ }
 end
+
+lemma minimal_period_iterate_eq_div_gcd (h : n ≠ 0) :
+  minimal_period (f ^[n]) x = minimal_period f x / nat.gcd (minimal_period f x) n :=
+minimal_period_iterate_eq_div_gcd_aux $ gcd_pos_of_pos_right _ (nat.pos_of_ne_zero h)
+
+lemma minimal_period_iterate_eq_div_gcd' (h : x ∈ periodic_pts f) :
+  minimal_period (f ^[n]) x = minimal_period f x / nat.gcd (minimal_period f x) n :=
+minimal_period_iterate_eq_div_gcd_aux $
+  gcd_pos_of_pos_left n (minimal_period_pos_iff_mem_periodic_pts.mpr h)
 
 end function

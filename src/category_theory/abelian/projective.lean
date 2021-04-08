@@ -91,7 +91,7 @@ from the arbitrarily chosen projective object over `X`.
 def π (X : C) : over X ⟶ X :=
 (enough_projectives.presentation X).some.f
 
-instance (X : C) : epi (π X) :=
+instance π_epi (X : C) : epi (π X) :=
 (enough_projectives.presentation X).some.epi
 
 section
@@ -119,6 +119,67 @@ When `C` is abelian, `projective.d f` and `f` are exact.
 lemma exact_d_f {X Y : C} (f : X ⟶ Y) : exact (d f) f :=
 (abelian.exact_iff _ _).2 $
   ⟨by simp, zero_of_epi_comp (π _) $ by rw [←category.assoc, cokernel.condition]⟩
+
+/--
+A `projective.resolution Z` is an exact sequence `... ⟶ X 2 ⟶ X 1 ⟶ X 0`,
+where `X 0 = Z`, and the `X (n+1)` are projective.
+
+For simplicity we define a structure here independent of our implementation of chain complexes,
+and will later connect that up.
+-/
+structure resolution (Z : C) :=
+(X : ℕ → C)
+(d : Π n, X (n+1) ⟶ X n)
+(zero : X 0 = Z)
+(projective : ∀ n, projective (X (n+1)))
+(epi : epi (d 0))
+(exact : ∀ n, exact (d (n+1)) (d n))
+
+namespace resolution
+
+/- We have to jump through some hoops to get `resolution.of` to typecheck! -/
+section
+variables (O : C → C) (π : Π X, O X ⟶ X)
+variables (L : Π {X Y : C} (f : X ⟶ Y), C) (δ : Π {X Y : C} (f : X ⟶ Y), L f ⟶ X)
+
+/-- An auxiliary construction for `resolution.of`. -/
+def B' (Z : C) : ℕ → Σ (X Y : C), X ⟶ Y
+| 0 := ⟨O Z, Z, π Z⟩
+| (n+1) := ⟨L (B' n).2.2, (B' n).1, δ (B' n).2.2⟩
+
+/-- An auxiliary construction for `resolution.of`. -/
+def X' (Z : C) (n : ℕ) : C := (B' O π @L @δ Z n).2.1
+
+/-- An auxiliary construction for `resolution.of`. -/
+def d' (Z : C) (n : ℕ) : X' O π @L @δ Z (n+1) ⟶ X' O π @L @δ Z n :=
+(B' O π @L @δ Z n).2.2
+
+end
+
+/--
+In any category with enough projectives,
+`projective.resolution.of Z` constructs a projection resolution of the object `Z`.
+-/
+def of (Z : C) : resolution Z :=
+{ X := λ n, X' projective.over projective.π
+    (λ (X Y : C) (f : X ⟶ Y), projective.left f)
+    (λ (X Y : C) (f : X ⟶ Y), projective.d f)
+    Z n,
+  d := λ n, d' projective.over projective.π
+    (λ (X Y : C) (f : X ⟶ Y), projective.left f)
+    (λ (X Y : C) (f : X ⟶ Y), projective.d f)
+    Z n,
+  zero := rfl,
+  projective := λ n,
+  begin
+    induction n;
+    { dsimp [X, X', B'],
+      apply_instance, },
+  end,
+  epi := projective.π_epi _,
+  exact := λ n, exact_d_f _ }
+
+end resolution
 
 end enough_projectives
 

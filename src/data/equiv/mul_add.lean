@@ -287,9 +287,8 @@ rfl
 A multiplicative analogue of `equiv.arrow_congr`,
 where the equivalence between the targets is multiplicative.
 -/
-@[simps apply,
-  to_additive "An additive analogue of `equiv.arrow_congr`,
-where the equivalence between the targets is additive."]
+@[to_additive "An additive analogue of `equiv.arrow_congr`,
+where the equivalence between the targets is additive.", simps apply]
 def arrow_congr {M N P Q : Type*} [mul_one_class P] [mul_one_class Q]
   (f : M ≃ N) (g : P ≃* Q) : (M → P) ≃* (N → Q) :=
 { to_fun := λ h n, g (h (f.symm n)),
@@ -302,9 +301,8 @@ def arrow_congr {M N P Q : Type*} [mul_one_class P] [mul_one_class Q]
 A multiplicative analogue of `equiv.arrow_congr`,
 for multiplicative maps from a monoid to a commutative monoid.
 -/
-@[simps apply,
-  to_additive "An additive analogue of `equiv.arrow_congr`,
-for additive maps from an additive monoid to a commutative additive monoid."]
+@[to_additive "An additive analogue of `equiv.arrow_congr`,
+for additive maps from an additive monoid to a commutative additive monoid.", simps apply]
 def monoid_hom_congr {M N P Q} [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
   (f : M ≃* N) (g : P ≃* Q) : (M →* P) ≃* (N →* Q) :=
 { to_fun := λ h,

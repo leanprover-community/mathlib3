@@ -77,9 +77,9 @@ lemma dist_le (C0 : (0 : ℝ) ≤ C) : dist f g ≤ C ↔ ∀x:α, dist (f x) (g
 @bounded_continuous_function.dist_le  _ _ _ _
   ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ C0
 
-lemma dist_le_of_nonempty [nonempty α] :
+lemma dist_le_iff_of_nonempty [nonempty α] :
   dist f g ≤ C ↔ ∀ x, dist (f x) (g x) ≤ C :=
-@bounded_continuous_function.dist_le_of_nonempty  _ _ _ _
+@bounded_continuous_function.dist_le_iff_of_nonempty  _ _ _ _
   ((equiv_bounded_of_compact α β) f) ((equiv_bounded_of_compact α β) g) _ _
 
 lemma dist_lt_of_nonempty [nonempty α]

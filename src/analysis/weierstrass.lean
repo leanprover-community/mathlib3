@@ -77,7 +77,7 @@ In particular:
 * `pullback_homeomorph`, when we precompose by a homeomorphism.
 * `pullback_alg_hom`, when `T = R` is a topological ring.
 -/
-section
+section pullback
 
 /--
 Precomposition by a continuous map is itself a continuous map between spaces of continuous maps.
@@ -139,11 +139,16 @@ begin
   continuity,
 end
 
-end
+end pullback
 
-/-- The map `λ x, a * x + b`, as a homeomorphism from `ℝ` to itself, when `a ≠ 0`. -/
+section
+variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
+
+/--
+The map `λ x, a * x + b`, as a homeomorphism from `𝕜` (a topological field) to itself, when `a ≠ 0`.
+-/
 @[simps]
-def affine_homeomorph (a b : ℝ) (h : a ≠ 0) : ℝ ≃ₜ ℝ :=
+def affine_homeomorph (a b : 𝕜) (h : a ≠ 0) : 𝕜 ≃ₜ 𝕜 :=
 { to_fun := λ x, a * x + b,
   inv_fun := λ y, (y - b) / a,
   left_inv := λ x, by { simp only [add_sub_cancel], exact mul_div_cancel_left x h, },
@@ -151,22 +156,28 @@ def affine_homeomorph (a b : ℝ) (h : a ≠ 0) : ℝ ≃ₜ ℝ :=
 
 -- FIXME should be generated directly by `@[simps]`.
 -- See https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/How.20do.20I.20configure.20an.20.60equiv.60.20to.20work.20with.20.60simps.60.3F/near/233291764
-@[simp] lemma affine_homeomorph_apply (a b : ℝ) (h : a ≠ 0) (x : ℝ) :
+@[simp] lemma affine_homeomorph_apply (a b : 𝕜) (h : a ≠ 0) (x : 𝕜) :
   affine_homeomorph a b h x = a * x + b := rfl
 
-@[simp] lemma affine_homeomorph_symm_apply (a b : ℝ) (h : a ≠ 0) (y : ℝ) :
+@[simp] lemma affine_homeomorph_symm_apply (a b : 𝕜) (h : a ≠ 0) (y : 𝕜) :
   (affine_homeomorph a b h).symm y = (y - b) / a := rfl
+
+end
+
+section
+variables {𝕜 : Type*} [linear_ordered_field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
 
 /--
 The image of `[0,1]` under the homeomorphism `λ x, a * x + b` is `[b, a+b]`.
 -/
+-- We only need the ordering on `𝕜` here to avoid talking about flipping the interval over.
 @[simp]
-lemma affine_homeomorph_image_I (a b : ℝ) (h : 0 < a) (w) :
+lemma affine_homeomorph_image_I (a b : 𝕜) (h : 0 < a) (w) :
   affine_homeomorph a b w '' set.Icc 0 1 = set.Icc b (a + b) :=
 begin
   ext,
   fsplit,
-  { rintro ⟨x,⟨⟨zero_le,le_one⟩,rfl⟩⟩,
+  { rintro ⟨x, ⟨⟨zero_le, le_one⟩, rfl⟩⟩,
     simp only [add_le_add_iff_right, affine_homeomorph_apply, le_add_iff_nonneg_left, set.mem_Icc],
     exact ⟨mul_nonneg h.le zero_le, (mul_le_iff_le_one_right h).mpr le_one⟩, },
   { intro m,
@@ -190,7 +201,7 @@ end
 /--
 The affine homeomorphism from a nontrivial interval `[a,b]` to `[0,1]`.
 -/
-def Icc_homeo (a b : ℝ) (h : a < b) : set.Icc a b ≃ₜ I :=
+def Icc_homeo (a b : 𝕜) (h : a < b) : set.Icc a b ≃ₜ set.Icc (0 : 𝕜) (1 : 𝕜) :=
 begin
   let e := homeomorph.image (affine_homeomorph (b-a) a (sub_pos.mpr h).ne.symm) (set.Icc 0 1),
   refine (e.trans _).symm,
@@ -199,13 +210,15 @@ begin
   rw sub_add_cancel,
 end
 
-@[simp] lemma Icc_homeo_apply_coe (a b : ℝ) (h : a < b) (x : set.Icc a b) :
-  ((Icc_homeo a b h) x : ℝ) = (x - a) / (b - a) :=
+@[simp] lemma Icc_homeo_apply_coe (a b : 𝕜) (h : a < b) (x : set.Icc a b) :
+  ((Icc_homeo a b h) x : 𝕜) = (x - a) / (b - a) :=
 rfl
 
-@[simp] lemma Icc_homeo_symm_apply_coe (a b : ℝ) (h : a < b) (x : I) :
-  ((Icc_homeo a b h).symm x : ℝ) = (b - a) * x + a :=
+@[simp] lemma Icc_homeo_symm_apply_coe (a b : 𝕜) (h : a < b) (x : set.Icc (0 : 𝕜) (1 : 𝕜)) :
+  ((Icc_homeo a b h).symm x : 𝕜) = (b - a) * x + a :=
 rfl
+
+end
 
 
 /-- The preimage of polynomials on `[0,1]` under the pullback map by `x ↦ (b-a) * x + a`

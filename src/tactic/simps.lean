@@ -416,7 +416,7 @@ def lemmas_only : simps_cfg := {attrs := []}
   The last two fields of the list correspond to the propositional fields of the structure,
   and are rarely/never used.
 -/
--- This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the the given arguments
+-- This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the given arguments
 -- might not uniquely specify the universe levels yet.
 meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   (rhs : expr) (cfg : simps_cfg) : tactic $ list $ expr × name × expr × list ℕ × bool := do

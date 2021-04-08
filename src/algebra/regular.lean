@@ -120,7 +120,10 @@ by simp [is_left_regular, ← mul_left_iterate, rla.iterate n]
 
 /--  Any power of a right-regular element is right-regular. -/
 lemma is_right_regular.pow (n : ℕ) (rra : is_right_regular a) : is_right_regular (a ^ n) :=
-by simp [is_right_regular, ← mul_right_iterate, rra.iterate n]
+begin
+  rw [is_right_regular, ← mul_right_iterate],
+  exact rra.iterate n,
+end
 
 /--  Any power of a regular element is regular. -/
 lemma is_regular.pow (n : ℕ) (ra : is_regular a) : is_regular (a ^ n) :=

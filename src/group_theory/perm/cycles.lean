@@ -463,8 +463,8 @@ variables [fintype α] {σ τ : perm α}
 
 noncomputable theory
 
-lemma foo (f : {x // x ∈ (σ.support : set α)} ≃ {x // x ∈ (τ.support : set α)})
-  (hf : ∀ (x : α) (hx : x ∈ (σ.support : set α)), (f ⟨σ x, apply_mem_support.2 hx⟩ : α) =
+lemma foo (f : {x // x ∈ σ.support} ≃ {x // x ∈ τ.support})
+  (hf : ∀ (x : α) (hx : x ∈ σ.support), (f ⟨σ x, apply_mem_support.2 hx⟩ : α) =
     τ ↑(f ⟨x,hx⟩)) :
   is_conj σ τ :=
 begin

@@ -65,8 +65,10 @@ instance : has_coe (mono_over X) C :=
 @[simp]
 lemma forget_obj_left {f} : ((forget X).obj f).left = (f : C) := rfl
 
+@[simp] lemma mk'_coe' {X A : C} (f : A ⟶ X) [hf : mono f] : (mk' f : C) = A := rfl
+
 /-- Convenience notation for the underlying arrow of a monomorphism over X. -/
-abbreviation arrow (f : mono_over X) : _ ⟶ X := ((forget X).obj f).hom
+abbreviation arrow (f : mono_over X) : (f : C) ⟶ X := ((forget X).obj f).hom
 
 @[simp] lemma mk'_arrow {X A : C} (f : A ⟶ X) [hf : mono f] : (mk' f).arrow = f := rfl
 

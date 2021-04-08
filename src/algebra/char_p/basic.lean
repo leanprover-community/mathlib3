@@ -120,7 +120,7 @@ theorem add_pow_char_of_commute [semiring R] {p : ℕ} [fact p.prime]
   [char_p R p] (x y : R) (h : commute x y) :
   (x + y)^p = x^p + y^p :=
 begin
-  rw [commute.add_pow h, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
+  rw [commute.add_pow h, finset.sum_range_succ_comm, nat.sub_self, pow_zero, nat.choose_self],
   rw [nat.cast_one, mul_one, mul_one], congr' 1,
   convert finset.sum_eq_single 0 _ _,
   { simp only [mul_one, one_mul, nat.choose_zero_right, nat.sub_zero, nat.cast_one, pow_zero] },

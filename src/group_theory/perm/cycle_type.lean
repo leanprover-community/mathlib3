@@ -29,73 +29,37 @@ open equiv list multiset
 
 variables {α : Type*} [fintype α]
 
-section cycle_of_disjoint
-
-variables [decidable_eq α]
-
-lemma cycle_of_mul_eq_cycle_of_left {σ τ : perm α} (hστ : disjoint σ τ) {a : α} (ha : τ a = a) :
-  (σ * τ).cycle_of a = σ.cycle_of a :=
-begin
-  ext b,
-  simp_rw [cycle_of_apply, same_cycle, commute.mul_gpow hστ.mul_comm, mul_apply,
-    gpow_apply_eq_self_of_apply_eq_self ha],
-  by_cases h : ∃ i : ℤ, (σ ^ i) a = b,
-  { rw [if_pos, if_pos],
-    { obtain ⟨i, rfl⟩ := h,
-      rw [←mul_apply, ←mul_apply, mul_assoc],
-      simp_rw show τ * σ ^ i = σ ^ i * τ, from commute.gpow_right hστ.mul_comm.symm i,
-      rw [mul_apply, mul_apply, ha] },
-    { exact h },
-    { exact h} },
-  { rw [if_neg, if_neg],
-    { exact h },
-    { exact h } },
-end
-
-lemma cycle_of_mul_eq_cycle_of_right {σ τ : perm α} (hστ : disjoint σ τ) {a : α} (ha : σ a = a) :
-  (σ * τ).cycle_of a = τ.cycle_of a :=
-by rw [hστ.mul_comm, cycle_of_mul_eq_cycle_of_left hστ.symm ha]
-
-lemma cycle_of_mul_eq_iff {σ τ : perm α} (h : disjoint σ τ) {c : perm α} {a : α} (hc : c a ≠ a) :
-  (σ * τ).cycle_of a = c ↔ (σ.cycle_of a = c ∨ τ.cycle_of a = c) :=
-begin
-  have hc' : c ≠ 1 := λ h, hc (ext_iff.mp h a),
-  cases (h a) with ha ha,
-  { rw [σ.cycle_of_eq_one_iff.mpr ha, or_iff_right_of_imp (λ h, false.elim (hc'.symm h)),
-        cycle_of_mul_eq_cycle_of_right h ha] },
-  { rw [τ.cycle_of_eq_one_iff.mpr ha, or_iff_left_of_imp (λ h, false.elim (hc'.symm h)),
-        cycle_of_mul_eq_cycle_of_left h ha] },
-end
-
-lemma is_cycle.cycle_of_eq_iff {σ : perm α} {c : perm α} {a : α} (hc : c a ≠ a) (hσ : σ.is_cycle) :
-  σ.cycle_of a = c ↔ c = σ :=
-begin
-  split,
-  { rintro rfl,
-    rw [hσ.cycle_of, ite_eq_right_iff],
-    intro h,
-    rw [hσ.cycle_of, if_pos h] at hc,
-    exact (hc rfl).elim },
-  { rintro rfl,
-    rw [hσ.cycle_of, if_neg hc] },
-end
-
-lemma mem_list_cycles_iff_prod_cycle_of_eq {l : list (perm α)}
-  (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
-  (h2 : l.pairwise disjoint) {c : perm α} {a : α} (hc : c a ≠ a) :
-  c ∈ l ↔ l.prod.cycle_of a = c :=
-begin
-  induction l with σ l ih,
-  { exact ⟨false.elim, λ h, hc (ext_iff.mp (h.symm.trans (cycle_of_one a)) a)⟩ },
-  { have x := ih (λ τ hτ, h1 τ (mem_cons_of_mem σ hτ)) (pairwise_of_pairwise_cons h2),
-    have y := cycle_of_mul_eq_iff (disjoint_prod_list_of_disjoint (pairwise_cons.mp h2).1) hc,
-    have z := (h1 σ (l.mem_cons_self σ)).cycle_of_eq_iff hc,
-    rw [mem_cons_iff, list.prod_cons, x, y, z] },
-end
-
-end cycle_of_disjoint
-
 section cycle_type
+
+lemma mem_list_cycles_iff {l : list (perm α)} (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
+ (h2 : l.pairwise disjoint) {σ : perm α} (h3 : σ.is_cycle) {a : α} (h4 : σ a ≠ a) :
+ σ ∈ l ↔ ∀ k : ℕ, (σ ^ k) a = (l.prod ^ k) a :=
+begin
+  induction l with τ l ih,
+  { exact ⟨false.elim, λ h, h4 (h 1)⟩ },
+  { rw [mem_cons_iff, list.prod_cons,
+        ih (λ σ hσ, h1 σ (list.mem_cons_of_mem τ hσ)) (pairwise_of_pairwise_cons h2)],
+    have key := disjoint_prod_list_of_disjoint (pairwise_cons.mp h2).1,
+    cases key a,
+    { simp_rw [key.mul_comm, commute.mul_pow key.mul_comm.symm, mul_apply,
+        pow_apply_eq_self_of_apply_eq_self h, or_iff_right_iff_imp],
+      rintro rfl,
+      exact (h4 h).elim },
+    { simp_rw [commute.mul_pow key.mul_comm, mul_apply, pow_apply_eq_self_of_apply_eq_self h],
+      rw [or_iff_left_of_imp (λ h : (∀ k : ℕ, (σ ^ k) a = a), (h4 (h 1)).elim)],
+      split,
+      { exact λ h k, by rw h },
+      { intro h5,
+        have hτa : τ a ≠ a := ne_of_eq_of_ne (h5 1).symm h4,
+        ext b,
+        by_cases hσb : σ b = b,
+        { by_cases hτb : τ b = b,
+          { rw [hσb, hτb] },
+          { obtain ⟨n, rfl⟩ := ((h1 τ (list.mem_cons_self τ l))).exists_pow_eq hτa hτb,
+            rw [←mul_apply τ, ←pow_succ, ←h5, ←h5, pow_succ, mul_apply] } },
+        { obtain ⟨n, rfl⟩ := h3.exists_pow_eq h4 hσb,
+          rw [←mul_apply, ←pow_succ, h5, h5, pow_succ, mul_apply] } } } },
+end
 
 lemma list_cycles_perm_list_cycles {l₁ l₂ : list (perm α)} (h₀ : l₁.prod = l₂.prod)
   (h₁l₁ : ∀ σ : perm α, σ ∈ l₁ → σ.is_cycle) (h₁l₂ : ∀ σ : perm α, σ ∈ l₂ → σ.is_cycle)
@@ -106,27 +70,11 @@ begin
   have h₃l₁ : (1 : perm α) ∉ l₁ := λ h, (h₁l₁ 1 h).ne_one rfl,
   have h₃l₂ : (1 : perm α) ∉ l₂ := λ h, (h₁l₂ 1 h).ne_one rfl,
   refine (perm_ext (nodup_of_pairwise_disjoint h₃l₁ h₂l₁)
-    (nodup_of_pairwise_disjoint h₃l₂ h₂l₂)).mpr (λ c, _),
-  by_cases hc : c = 1,
-  { rw hc,
-    exact iff_of_false h₃l₁ h₃l₂ },
-  { obtain ⟨a, hc⟩ := not_forall.mp (mt ext hc),
-    rw [mem_list_cycles_iff_prod_cycle_of_eq h₁l₁ h₂l₁ hc,
-        mem_list_cycles_iff_prod_cycle_of_eq h₁l₂ h₂l₂ hc, h₀] },
-end
-
-lemma disjoint.cycle_type_aux {l : list (perm α)} (h1 : l.pairwise disjoint) {a : α}
-  (h2 : l.prod a = a) {σ : perm α} (h3 : σ ∈ l) : σ a = a :=
-begin
-  revert h1 h2 h3,
-  induction l with τ l ih,
-  { exact λ _ _, false.elim },
-  { intros h1 h2 h3,
-    rw [list.prod_cons,
-        (disjoint_prod_list_of_disjoint (pairwise_cons.mp h1).1).mul_apply_eq_iff] at h2,
-    cases ((l.mem_cons_iff σ τ).mp h3) with h4 h4,
-    { rw [h4, h2.1] },
-    { exact ih (pairwise_of_pairwise_cons h1) h2.2 h4 } },
+    (nodup_of_pairwise_disjoint h₃l₂ h₂l₂)).mpr (λ σ, _),
+  by_cases hσ : σ.is_cycle,
+  { obtain ⟨a, ha⟩ := not_forall.mp (mt ext hσ.ne_one),
+    rw [mem_list_cycles_iff h₁l₁ h₂l₁ hσ ha, mem_list_cycles_iff h₁l₂ h₂l₂ hσ ha, h₀] },
+  { exact iff_of_false (mt (h₁l₁ σ) hσ) (mt (h₁l₂ σ) hσ) },
 end
 
 variables [decidable_eq α]
@@ -194,27 +142,36 @@ begin
       cycle_type_eq (x.1 ++ y.1) _ _ _, map_append, ←coe_add],
   { rw [prod_append, x.2.1, y.2.1] },
   { exact λ f hf, (mem_append.mp hf).elim (x.2.2.1 f) (y.2.2.1 f) },
-  { refine pairwise_append.mpr ⟨x.2.2.2, y.2.2.2, λ f hf g hg, _⟩,
-    rw [←x.2.1, ←y.2.1] at h,
-    intro a,
-    cases h a with ha ha,
-    { exact or.inl (disjoint.cycle_type_aux x.2.2.2 ha hf) },
-    { exact or.inr (disjoint.cycle_type_aux y.2.2.2 ha hg) } },
+  { refine pairwise_append.mpr ⟨x.2.2.2, y.2.2.2, λ f hf g hg a, by_contra (λ H, _)⟩,
+    rw not_or_distrib at H,
+    exact ((congr_arg2 disjoint x.2.1 y.2.1).mpr h a).elim
+      (ne_of_eq_of_ne ((mem_list_cycles_iff x.2.2.1 x.2.2.2 (x.2.2.1 f hf) H.1).1 hf 1).symm H.1)
+      (ne_of_eq_of_ne ((mem_list_cycles_iff y.2.2.1 y.2.2.2 (y.2.2.1 g hg) H.2).1 hg 1).symm H.2) }
 end
+
+lemma cycle_type_inv (σ : perm α) : σ⁻¹.cycle_type = σ.cycle_type :=
+cycle_induction_on (λ τ : perm α, τ⁻¹.cycle_type = τ.cycle_type) σ rfl
+  (λ σ hσ, by rw [hσ.cycle_type, hσ.inv.cycle_type, support_inv])
+  (λ σ τ hστ hσ hτ, by rw [mul_inv_rev, hστ.cycle_type, ←hσ, ←hτ, add_comm,
+    disjoint.cycle_type (λ x, or.imp (λ h : τ x = x, inv_eq_iff_eq.mpr h.symm)
+    (λ h : σ x = x, inv_eq_iff_eq.mpr h.symm) (hστ x).symm)])
 
 lemma sum_cycle_type (σ : perm α) : σ.cycle_type.sum = σ.support.card :=
-begin
-  apply cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card),
-  { rw [cycle_type_one, sum_zero, support_one, finset.card_empty] },
-  { intros σ hσ,
-    rw [hσ.cycle_type, coe_sum, list.sum_singleton] },
-  { intros σ τ hστ hσ hτ,
-    rw [hστ.cycle_type, sum_add, hστ.card_support_mul, hσ, hτ] },
-end
+cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card) σ
+  (by rw [cycle_type_one, sum_zero, support_one, finset.card_empty])
+  (λ σ hσ, by rw [hσ.cycle_type, coe_sum, list.sum_singleton])
+  (λ σ τ hστ hσ hτ, by rw [hστ.cycle_type, sum_add, hσ, hτ, hστ.card_support_mul])
+
+lemma sign_of_cycle_type (σ : perm α) :
+  sign σ = (σ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod :=
+cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod) σ
+  (by rw [sign_one, cycle_type_one, map_zero, prod_zero])
+  (λ σ hσ, by rw [hσ.sign, hσ.cycle_type, coe_map, coe_prod,
+    list.map_singleton, list.prod_singleton])
+  (λ σ τ hστ hσ hτ, by rw [sign_mul, hσ, hτ, hστ.cycle_type, map_add, prod_add])
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
-cycle_induction_on
-  (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
+cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
   (by rw [cycle_type_one, lcm_zero, order_of_one])
   (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, lcm_singleton, order_of_is_cycle hσ,
     nat.normalize_eq])

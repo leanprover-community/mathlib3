@@ -1906,8 +1906,8 @@ begin
   rw swap_apply_of_ne_of_ne hi hj,
 end
 
-lemma swap_apply_eq_swap_apply_iff [decidable_eq α] {x y z w : α} :
-  swap x y z = w ↔ swap x y w = z :=
+lemma swap_apply_eq_iff [decidable_eq α] {x y z w : α} :
+  swap x y z = w ↔ z = swap x y w :=
 begin
   split;
   { intro h,

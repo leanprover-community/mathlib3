@@ -59,7 +59,7 @@ on `(-∞, 0]` and to `y` on `[1, +∞)`.
 
 noncomputable theory
 open_locale classical topological_space filter unit_interval
-open filter set function
+open filter set function unit_interval
 
 variables {X : Type*} [topological_space X] {x y z : X} {ι : Type*}
 
@@ -126,9 +126,9 @@ by { ext, refl }
   range γ.symm = range γ :=
 begin
   ext x,
-  simp only [ mem_range, path.symm, has_coe_to_fun.coe, coe_fn, I_symm, set_coe.exists, comp_app,
-              subtype.coe_mk, subtype.val_eq_coe ],
-  split; rintros ⟨y, hy, hxy⟩; refine ⟨1-y, Icc_zero_one_symm.mp hy, _⟩; convert hxy,
+  simp only [mem_range, path.symm, has_coe_to_fun.coe, coe_fn, unit_interval.symm, set_coe.exists,
+    comp_app, subtype.coe_mk, subtype.val_eq_coe],
+  split; rintros ⟨y, hy, hxy⟩; refine ⟨1-y, mem_iff_one_sub_mem.mp hy, _⟩; convert hxy,
   simp
 end
 
@@ -280,7 +280,7 @@ rfl
 lemma symm_continuous_family {X ι : Type*} [topological_space X] [topological_space ι]
   {a b : ι → X} (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).symm) :=
-h.comp (continuous_id.prod_map continuous_I_symm)
+h.comp (continuous_id.prod_map continuous_symm)
 
 lemma continuous_uncurry_extend_of_continuous_family {X ι : Type*} [topological_space X]
   [topological_space ι] {a b : ι → X}  (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :

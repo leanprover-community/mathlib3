@@ -16,14 +16,15 @@ namespace affine
 
 open_locale classical affine big_operators
 open set
-variables {m n : ℕ} {S : simplicial_complex m}
+variables {m n : ℕ}
 local notation `E` := fin m → ℝ
+variables {S : simplicial_complex E} {f : E → fin m}
 
-def is_sperner_colouring (S : simplicial_complex (m+1))
-  (f : (fin (m+1) → ℝ) → fin (m+1)) : Prop :=
-∀ (X : fin (m+1) → ℝ) i, X ∈ S.points → X i = 0 → f X ≠ i
+def is_sperner_colouring (S : simplicial_complex E)
+  (f : E → fin m) : Prop :=
+∀ (x : E) i, x ∈ S.points → x i = 0 → f x ≠ i
 
-def panchromatic {n m : ℕ} (f : (fin n → ℝ) → fin m) (X : finset (fin n → ℝ)) :=
+def panchromatic (f : (fin n → ℝ) → fin m) (X : finset (fin n → ℝ)) :=
   X.image f = finset.univ
 
 lemma panchromatic_iff (f : E → fin m) (X : finset E) :
@@ -38,7 +39,8 @@ begin
     simp [h] }
 end
 
-lemma std_simplex_one : std_simplex (fin 1) = { ![(1 : ℝ)]} :=
+lemma std_simplex_one :
+  std_simplex (fin 1) = { ![(1 : ℝ)]} :=
 begin
   ext x,
   simp [std_simplex_eq_inter],
@@ -54,7 +56,7 @@ begin
     apply zero_le_one }
 end
 
-lemma strong_sperner_zero_aux {S : simplicial_complex 1}
+lemma strong_sperner_zero_aux {S : simplicial_complex (fin 1 → ℝ)}
   (hS₁ : S.space = std_simplex (fin 1)) :
   S.faces = {∅, { ![1]}} :=
 begin
@@ -89,7 +91,7 @@ begin
     exact S.down_closed hY₁ hX },
 end
 
-theorem strong_sperner_zero {S : simplicial_complex 1}
+theorem strong_sperner_zero {S : simplicial_complex (fin 1 → ℝ)}
   (hS₁ : S.space = std_simplex (fin 1)) (hS₂ : S.finite)
   (f : (fin 1 → ℝ) → fin 1) :
   odd ((S.faces_finset hS₂).filter (panchromatic f)).card :=
@@ -118,7 +120,7 @@ end
 -- { faces := {X ∈ S.faces | ∀ (x : fin (m+1) → ℝ), x ∈ X → x 0 = 0 },
 -- := finset.image matrix.vec_tail '' S.faces,
 
-lemma affine_independent_proj {n : ℕ} {ι : Type*}
+lemma affine_independent_proj {ι : Type*}
   {p : ι → fin (n+1) → ℝ}
   (hp₁ : ∀ i, p i 0 = 0)
   (hp₂ : affine_independent ℝ p) :
@@ -149,7 +151,7 @@ begin
   exact hp₂ s w hw this i hi,
 end
 
-lemma is_linear_map_matrix_vec_tail {n : ℕ} :
+lemma is_linear_map_matrix_vec_tail :
   is_linear_map ℝ (matrix.vec_tail : (fin n.succ → ℝ) → (fin n → ℝ)) :=
 { map_add := by simp,
   map_smul := λ c x,
@@ -159,7 +161,7 @@ lemma is_linear_map_matrix_vec_tail {n : ℕ} :
   end }
 
 -- TODO: this generalises to affine subspaces
-lemma convex_hull_affine {m : ℕ} {X : finset (fin m.succ → ℝ)}
+lemma convex_hull_affine {X : finset (fin m.succ → ℝ)}
   (hX₂ : ∀ (x : fin (m + 1) → ℝ), x ∈ X → x 0 = 0)
   {x : fin m.succ → ℝ} (hx : x ∈ convex_hull (X : set (fin m.succ → ℝ))) :
   x 0 = 0 :=
@@ -178,9 +180,10 @@ begin
   simp,
 end
 
-def dimension_drop {S : simplicial_complex (m+1)} :
-  simplicial_complex m :=
-{ faces := {Y | ∃ X ∈ S.faces, finset.image matrix.vec_tail X = Y ∧ ∀ (x : fin (m+1) → ℝ), x ∈ X → x 0 = 0 },
+noncomputable def simplicial_complex.dimension_drop (S : simplicial_complex (fin m.succ → ℝ)) :
+  simplicial_complex E :=
+{ faces := {Y | ∃ X ∈ S.faces, finset.image matrix.vec_tail X = Y ∧
+    ∀ (x : fin (m+1) → ℝ), x ∈ X → x 0 = 0 },
   down_closed :=
   begin
     rintro _ Y ⟨X, hX₁, rfl, hX₂⟩ YX,
@@ -190,7 +193,7 @@ def dimension_drop {S : simplicial_complex (m+1)} :
       rintro y hY,
       have := YX hY,
       simp only [exists_prop, finset.mem_image] at this,
-      rcases this with ⟨x, hx, rfl⟩,
+      obtain ⟨x, hx, rfl⟩ := this,
       suffices : matrix.vec_head x = 0,
       { rw ← this,
         simpa },
@@ -201,18 +204,17 @@ def dimension_drop {S : simplicial_complex (m+1)} :
       { ext x,
         dsimp,
         simp, },
-      { exact classical.dec_eq (fin m → ℝ) } },
+      { exact classical.dec_eq E } },
     simp,
   end,
   indep :=
   begin
     rintro _ ⟨X, hX₁, rfl, hX₂⟩,
     let f : ((finset.image matrix.vec_tail X : set (fin m → ℝ))) → (X : set (fin (m+1) → ℝ)),
-    { intro t,
-      refine ⟨matrix.vec_cons 0 t.1, _⟩,
-      rcases t with ⟨t, ht⟩,
+    { rintro ⟨t, ht⟩,
       simp only [set.mem_image, finset.mem_coe, finset.coe_image] at ht,
-      rcases ht with ⟨x, hx, rfl⟩,
+      refine ⟨matrix.vec_cons 0 t, _⟩,
+      obtain ⟨x, hx, rfl⟩ := ht,
       suffices : matrix.vec_head x = 0,
       { rw ← this,
         simpa },
@@ -260,9 +262,9 @@ def dimension_drop {S : simplicial_complex (m+1)} :
     apply is_linear_map_matrix_vec_tail,
   end }
 
-theorem strong_sperner {S : simplicial_complex (m+1)}
-  (hS₁ : S.space = std_simplex (fin (m+1))) (hS₂ : S.finite) (hS₃ : S.pure_of (m+1))
-  {f} (hf : is_sperner_colouring S f) :
+theorem strong_sperner {S : simplicial_complex (fin (m+1) → ℝ)} {f}
+  (hS₁ : S.space = std_simplex (fin (m+1))) (hS₂ : S.finite) (hS₃ : S.full_dimensional)
+  (hf : is_sperner_colouring S f) :
   odd ((S.faces_finset hS₂).filter (panchromatic f)).card :=
 begin
   tactic.unfreeze_local_instances,
@@ -271,8 +273,8 @@ begin
   sorry
 end
 
-theorem sperner {S : simplicial_complex (m+1)}
-  (hS₁ : S.space = std_simplex (fin (m+1))) (hS₂ : S.finite) (hS₃ : S.pure_of (m+1))
+theorem sperner {S : simplicial_complex (fin (m+1) → ℝ)}
+  (hS₁ : S.space = std_simplex (fin (m+1))) (hS₂ : S.finite) (hS₃ : S.full_dimensional)
   {f} (hf : is_sperner_colouring S f) :
   ∃ X ∈ S.faces, panchromatic f X :=
 begin

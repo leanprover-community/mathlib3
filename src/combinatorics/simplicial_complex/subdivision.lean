@@ -15,18 +15,20 @@ import combinatorics.simplicial_complex.simplex
 
 open affine set
 
-variables {m : ℕ}
+variables {m : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]
+  {S₁ S₂ : simplicial_complex E}
 
 /--
 S₁ ≤ S₂ (S₁ is a subdivision of S₂) iff their underlying space is the same and each face of S₁ is
 contained in some face of S₂
 -/
-instance : has_le (simplicial_complex m) := ⟨λ S₁ S₂, S₁.space = S₂.space ∧
-  ∀ {X₁ : finset (fin m → ℝ)}, X₁ ∈ S₁.faces → ∃ X₂ ∈ S₂.faces,
-  convex_hull (X₁ : set(fin m → ℝ)) ⊆ convex_hull (X₂ : set(fin m → ℝ))⟩
+instance : has_le (simplicial_complex E) := ⟨λ S₁ S₂, S₁.space = S₂.space ∧
+  ∀ {X₁ : finset  E}, X₁ ∈ S₁.faces → ∃ X₂ ∈ S₂.faces,
+  convex_hull (X₁ : set E) ⊆ convex_hull (X₂ : set E)⟩
 
-def subdivision_order : partial_order (simplicial_complex m) :=
-  {le := λ S₁ S₂, S₁ ≤ S₂,
+def subdivision_preorder :
+  preorder (simplicial_complex E) :=
+{ le := λ S₁ S₂, S₁ ≤ S₂,
   le_refl := (λ S, ⟨rfl, (λ X hX, ⟨X, hX, subset.refl _⟩)⟩),
   le_trans := begin
     rintro S₁ S₂ S₃ h₁₂ h₂₃,
@@ -35,36 +37,41 @@ def subdivision_order : partial_order (simplicial_complex m) :=
     obtain ⟨X₂, hX₂, hX₁₂⟩ := h₁₂.2 hX₁,
     obtain ⟨X₃, hX₃, hX₂₃⟩ := h₂₃.2 hX₂,
     exact ⟨X₃, hX₃, subset.trans hX₁₂ hX₂₃⟩,
-  end,
+  end}
+
+def subdivision_order [finite_dimensional ℝ E] [decidable_eq E] :
+  partial_order (simplicial_complex E) :=
+{ le := subdivision_preorder.le,
+  le_refl := subdivision_preorder.le_refl,
+  le_trans := subdivision_preorder.le_trans,
   le_antisymm := begin
-    have aux_lemma : ∀ {S₁ S₂ : simplicial_complex m}, S₁ ≤ S₂ → S₂ ≤ S₁ → ∀ {X},
+    have aux_lemma : ∀ {S₁ S₂ : simplicial_complex E}, S₁ ≤ S₂ → S₂ ≤ S₁ → ∀ {X},
       X ∈ S₁.faces → X ∈ S₂.faces,
     { rintro S₁ S₂ h₁ h₂ W hW,
-      apply finset.strong_downward_induction_on' (λ X hX, simplex_dimension_le_space_dimension hX)
+      apply finset.strong_downward_induction_on' (λ X hX, face_dimension_le_space_dimension hX)
         hW,
       { rintro X hX h,
         obtain ⟨Y, hY, hXYhull⟩ := h₁.2 hX,
         obtain ⟨Z, hZ, hYZhull⟩ := h₂.2 hY,
         have hXZhull := subset.trans (inter_subset_inter_right (convex_hull ↑X)
           (subset.trans hXYhull hYZhull)) (S₁.disjoint hX hZ),
-        rw inter_self at hXZhull,
-        norm_cast at hXZhull,
+        rw [inter_self, ←finset.coe_inter] at hXZhull,
         have hXZ : X ⊆ Z := subset.trans
           (subset_of_convex_hull_eq_convex_hull_of_linearly_independent (S₁.indep hX)
           (subset.antisymm hXZhull (convex_hull_mono (finset.inter_subset_left X Z))))
           (finset.inter_subset_right _ _),
         by_cases hZX : Z ⊆ X,
         { rw finset.subset.antisymm hZX hXZ at hYZhull,
-          rw eq_of_convex_hull_eq_convex_hull_of_linearly_independent_of_linearly_independent
+          rw eq_of_convex_hull_eq_convex_hull_of_linearly_independent
             (S₁.indep hX) (S₂.indep hY) (subset.antisymm hXYhull hYZhull),
           exact hY },
         { exact S₂.down_closed (h hZ ⟨hXZ, hZX⟩) hXZ }}},
     rintro S₁ S₂ h₁ h₂,
     ext X,
     exact ⟨λ hX, aux_lemma h₁ h₂ hX, λ hX, aux_lemma h₂ h₁ hX⟩,
-  end}
+  end }
 
-lemma subdivision_iff_combi_interiors_subset_combi_interiors {S₁ S₂ : simplicial_complex m} :
+lemma subdivision_iff_combi_interiors_subset_combi_interiors :
   S₁ ≤ S₂ ↔ S₂.space ⊆ S₁.space ∧
   ∀ {X₁}, X₁ ∈ S₁.faces → ∃ {X₂}, X₂ ∈ S₂.faces ∧ combi_interior X₁ ⊆ combi_interior X₂ :=
 begin
@@ -94,7 +101,7 @@ begin
       { apply hX₁X₂ }}}
 end
 
-lemma subdivision_iff_partition {S₁ S₂ : simplicial_complex m} :
+lemma subdivision_iff_partition :
   S₁ ≤ S₂ ↔ (S₁.faces.nonempty → S₂.faces.nonempty) ∧ S₁.space ⊆ S₂.space ∧ ∀ {X₂}, X₂ ∈ S₂.faces →
   ∃ {F}, F ⊆ S₁.faces ∧ combi_interior X₂ = ⋃ (X₁ ∈ F), combi_interior X₁ :=
 begin
@@ -167,3 +174,14 @@ begin
       exact hx },
     apply S₁.indep hX }
 end
+
+/-def simplicial_complex.mesh_size (S : simplicial_complex E) : ℝ := sorry --max diameter of simplices
+
+def barycentrisation : list (fin m → ℝ) → fin m → ℝ :=
+  λ L,
+
+def simplicial_complex.barycentric_subdivision (S : simplicial_complex E) : simplicial_complex E :=
+{ faces := {X | ∃ {L : list (fin m → ℝ)}, list.to_finset L ∈ S.faces ∧ X = },
+  indep := _,
+  down_closed := _,
+  disjoint := _ }-/

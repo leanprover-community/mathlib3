@@ -1,12 +1,14 @@
 import combinatorics.simplicial_complex.star
+import combinatorics.simplicial_complex.closure
 
 namespace affine
 open set
-variables {m : ℕ}
+variables {m n k : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]
+  {S : simplicial_complex E} {X Y : finset E} {A : set (finset E)}
 
-def simplicial_complex.link (S : simplicial_complex m) (A : set (finset (fin m → ℝ))) :
-  simplicial_complex m := {
-  faces := {X | (∀ {W}, W ∈ A → disjoint W X) ∧ ∃ {Y Z}, Y ∈ A ∧ Z ∈ S.faces ∧ X ⊆ Z ∧ Y ⊆ Z},
+def simplicial_complex.link (S : simplicial_complex E) (A : set (finset E)) :
+  simplicial_complex E :=
+{ faces := {X | (∀ {W}, W ∈ A → disjoint W X) ∧ ∃ {Y Z}, Y ∈ A ∧ Z ∈ S.faces ∧ X ⊆ Z ∧ Y ⊆ Z},
   indep := λ X ⟨hXdisj, Y, Z, hY, hZ, hXZ, hYZ⟩, S.indep (S.down_closed hZ hXZ),
   down_closed := begin
     rintro X W ⟨hXdisj, Y, Z, hY, hZ, hXZ, hYZ⟩ hWX,
@@ -18,13 +20,15 @@ def simplicial_complex.link (S : simplicial_complex m) (A : set (finset (fin m �
   disjoint := λ X X' ⟨hXdisj, Y, Z, hY, hZ, hXZ, hYZ⟩ ⟨hXdisj', Y', Z', hY', hZ', hXZ', hYZ'⟩,
     S.disjoint (S.down_closed hZ hXZ) (S.down_closed hZ' hXZ') }
 
-lemma link_empty {S : simplicial_complex m} : (S.link ∅).faces = ∅ :=
+lemma link_empty :
+  (S.link ∅).faces = ∅ :=
 begin
   unfold simplicial_complex.link,
   simp,
 end
 
-lemma link_singleton_empty {S : simplicial_complex m} : S.link {∅} = S :=
+lemma link_singleton_empty :
+  S.link {∅} = S :=
 begin
   ext X,
   split,
@@ -42,14 +46,14 @@ begin
   }
 end
 
-lemma mem_link_singleton_iff {S : simplicial_complex m} {X Y : finset (fin m → ℝ)} :
+lemma mem_link_singleton_iff :
   Y ∈ (S.link {X}).faces ↔ disjoint X Y ∧ ∃ {Z}, Z ∈ S.faces ∧ Y ⊆ Z ∧ X ⊆ Z :=
 begin
   unfold simplicial_complex.link,
   simp,
 end
 
-lemma link_singleton_subset {S : simplicial_complex m} {X : finset (fin m → ℝ)} (hX : X ≠ ∅) :
+lemma link_singleton_subset (hX : X ≠ ∅) :
   (S.link {X}).faces ⊆ (S.Star {X}).faces \ S.star {X} :=
 begin
   rintro Y ⟨hY, W, Z, (hWX : W = X), hZ, hYZ, hWZ⟩,
@@ -62,8 +66,7 @@ begin
     exact hX (disjoint_self.1 (finset.disjoint_of_subset_right h.2 hY)), }
 end
 
-lemma link_singleton_eq_Star_minus_star_iff_singleton {S : simplicial_complex m}
-  {X : finset (fin m → ℝ)} (hX : X ≠ ∅) :
+lemma link_singleton_eq_Star_minus_star_iff_singleton (hX : X ≠ ∅) :
   (S.link {X}).faces = (S.Star {X}).faces \ S.star {X} ↔ X.card = 1 :=
 begin
   split,
@@ -91,10 +94,11 @@ begin
   }
 end
 
-lemma link_subset {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} :
-  (S.link A).faces ⊆ S.faces := λ X ⟨hXdisj, Y, Z, hY, hZ, hXZ, hYZ⟩, S.down_closed hZ hXZ
+lemma link_subset :
+  (S.link A).faces ⊆ S.faces :=
+λ X ⟨hXdisj, Y, Z, hY, hZ, hXZ, hYZ⟩, S.down_closed hZ hXZ
 
-lemma link_eq_Star_sub_star_closure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} :
+lemma link_eq_Star_sub_star_closure {S : simplicial_complex E} {A : set (finset E)} :
   (S.link A).faces = (S.Star A).faces \ S.star ((S.closure A).faces \ {∅}) :=
 begin
   ext X,
@@ -135,21 +139,21 @@ begin
 end
 /-
 
-lemma link_facet_iff {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} {n k : ℕ}
-  (hS : S.pure_of n) {X : finset (fin m → ℝ)} (hA : ∀ {W}, W ∈ A → (W : finset _).card = k) :
+lemma link_facet_iff {S : simplicial_complex E} {A : set (finset E)} {n k : ℕ}
+  (hS : S.pure_of n) {X : finset E} (hA : ∀ {W}, W ∈ A → (W : finset _).card = k) :
   X ∈ (S.link A).facets ↔ ∃ {W Y}, W ∈ A ∧ Y ∈ S.facets ∧ W ⊆ Y ∧ X = Y \ W :=-/
 
 -- X ∈ (S.link A).facets ↔ X ∉ S.facets ∧ (∀ {W}, W ∈ A → disjoint W X) ∧ ∃ {Y W Z}, Y ∈ S.facets ∧
 --   W ∈ A ∧ Z ∈ S.facets ∧ X ∪ W ⊆ Z ∧ ∀ {y}, y ∈ Y → y ∈ X ∨ ∃ {V}, V ∈ A ∧ y ∈ V
-lemma link_facet_iff {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} {n k : ℕ}
-  {X : finset (fin m → ℝ)} :
+lemma link_facet_iff :
   X ∈ (S.link A).facets ↔ X ∉ S.facets ∧ (∀ {W}, W ∈ A → disjoint W X) ∧ ∃ {W Y Z},
    W ∈ A ∧ Y ∈ S.facets ∧ Z ∈ S.faces ∧ X ∪ W ⊆ Z ∧ ∀ {y}, y ∈ Y → y ∈ X ∨ ∃ {V}, V ∈ A ∧ y ∈ V :=
 begin
   split,
   {
     rintro ⟨⟨hXdisj, W, Z, hW, hZ, hXZ, hWZ⟩, hXmax⟩,
-    obtain ⟨Y, hY, hZY⟩ := subfacet hZ,
+    sorry
+    /-obtain ⟨Y, hY, hZY⟩ := subfacet hZ,
     split,
     {
       sorry
@@ -158,7 +162,7 @@ begin
       use [(λ W, hXdisj), W, Y, Z, hW, hY, hZ, finset.union_subset hXZ hWZ],
       rintro y hy,
       sorry
-    }
+    }-/
   },
   {
     rintro ⟨stuff, hXdisj, W, Y, Z, hW, hY, hZ, hXYW, hunion⟩,
@@ -181,13 +185,12 @@ begin
       have := finset.card_le_of_subset (finset.union_subset hUV hXV),
       rw [finset.card_disjoint_union (hXdisj hU), hA hU] at this,
       rw [hA hW, hS hY],
-      exact nat.le_sub_left_of_add_le (le_trans this (simplex_dimension_le_pureness hS hV)),-/
+      exact nat.le_sub_left_of_add_le (le_trans this (face_card_le_pureness hS hV)),-/
     }
   }
 end
 
-lemma pure_link_of_pure {S : simplicial_complex m} {A : set (finset (fin m → ℝ))} {n k : ℕ}
-  (hA : ∀ {X}, X ∈ A → (X : finset _).card = k) (hS : S.pure_of n) :
+lemma pure_link_of_pure (hS : S.pure_of n) (hA : ∀ {X}, X ∈ A → (X : finset _).card = k) :
   (S.link A).pure_of (n - k) :=
 begin
   rintro X ⟨⟨hXdisj, W, Z, hW, hZ, hXZ, hWZ⟩, hXmax⟩, --easy once we have `link_facet_iff`

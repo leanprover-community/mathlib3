@@ -11,15 +11,14 @@ import combinatorics.simplicial_complex.dump
 
 open_locale classical affine big_operators
 open set
-variables {m n : ℕ}
-local notation `E` := fin m → ℝ
+variables {m : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {x : E}
 
 namespace affine
 
 def is_extreme (s : set E) (x : E) : Prop :=
 x ∈ s ∧ ∀ (x₁ x₂ ∈ s), x ∈ segment x₁ x₂ → x = x₁ ∨ x = x₂
 
-lemma convex_remove_iff_is_extreme {s : set E} {x : E} (hs : convex s) (hx : x ∈ s) :
+lemma convex_remove_iff_is_extreme {s : set E} (hs : convex s) (hx : x ∈ s) :
   convex (s \ {x}) ↔ is_extreme s x :=
 begin
   split,
@@ -47,7 +46,7 @@ end
 -- end
 
 
-lemma is_extreme_convex_hull_of_affine_independent {s : finset E} {x : E} (hx : x ∈ s)
+lemma is_extreme_convex_hull_of_affine_independent {s : finset E} (hx : x ∈ s)
   (hs : affine_independent ℝ (λ p, p : (s : set E) → E)) :
   is_extreme (convex_hull ↑s) x :=
 begin
@@ -57,12 +56,12 @@ begin
   refine ⟨subset_convex_hull _ hx, _⟩,
   rintro y y' hy hy' t,
   rw finset.convex_hull_eq at hy hy',
-  rcases hy with ⟨w, hw₀, hw₁, hy⟩,
-  rcases hy' with ⟨w', hw'₀, hw'₁, hy'⟩,
+  obtain ⟨w, hw₀, hw₁, hy⟩ := hy,
+  obtain ⟨w', hw'₀, hw'₁, hy'⟩ := hy',
   -- rcases hy with ⟨ι, q, w, z, hw₀, hw₁ : q.sum w = 1, hz, _⟩,
   -- rcases hy' with ⟨ι', q', w', z', hw'₀, hw'₁ : q'.sum w' = 1, hz', rfl⟩,
   rw segment_eq_image at t,
-  rcases t with ⟨θ, hθ₁, hθ₂ : _ + _ = _⟩,
+  obtain ⟨θ, hθ₁, hθ₂ : _ + _ = _⟩ := t,
   rw finset.center_mass_eq_of_sum_1 _ _ hw₁ at hy,
   rw finset.center_mass_eq_of_sum_1 _ _ hw'₁ at hy',
   change s.sum (λ i, w i • i) = y at hy,
@@ -138,15 +137,15 @@ end
 lemma mem_of_is_extreme_to_convex_hull {X : set E} {x : E} (hx : is_extreme (convex_hull X) x) :
   x ∈ X :=
 begin
-  have : x ∈ convex_hull (X : set E) := hx.1,
-  rw ←convex_remove_iff_is_extreme (convex_convex_hull _) this at hx,
+  have hxX : x ∈ convex_hull (X : set E) := hx.1,
+  rw ←convex_remove_iff_is_extreme (convex_convex_hull _) hxX at hx,
   by_contra,
   have : convex_hull X ⊆ convex_hull X \ {x},
   { apply convex_hull_min _ hx,
     rw subset_diff,
     exact ⟨subset_convex_hull _, disjoint_singleton_right.2 h⟩ },
   rw [subset_diff, disjoint_singleton_right] at this,
-  apply this.2 ‹x ∈ convex_hull X›,
+  apply this.2 hxX,
 end
 
 --probably belongs in the mathlib file of convex hulls
@@ -158,11 +157,11 @@ begin
   rintro x hx,
   have hxextreme := is_extreme_convex_hull_of_affine_independent hx hX,
   rw h at hxextreme,
-  exact mem_of_is_extreme_to_convex_hull hxextreme,
+  exact_mod_cast mem_of_is_extreme_to_convex_hull hxextreme,
 end
 
 --Keep two linearly_independent in the name?
-lemma eq_of_convex_hull_eq_convex_hull_of_linearly_independent_of_linearly_independent
+lemma eq_of_convex_hull_eq_convex_hull_of_linearly_independent
   {X Y : finset E}
   (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
   (hY : affine_independent ℝ (λ p, p : (Y : set E) → E))

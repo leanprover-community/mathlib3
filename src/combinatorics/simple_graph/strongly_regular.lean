@@ -10,8 +10,6 @@ import data.set.finite
 
 ## Main definitions
 
-* `common_neighbors` is the intersection of the neighbor sets of two given vertices
-
 * `G.is_SRG_of n k l m` (see `is_simple_graph.is_SRG_of`) is a structure for a `simple_graph`
   satisfying the following conditions:
   * The cardinality of the vertex set is `n`

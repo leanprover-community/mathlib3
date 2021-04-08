@@ -330,6 +330,26 @@ begin
   exact h linear_map.ker_id
 end
 
+/-- The union of the kernels of `(f - μ • id) ^ k` over all `k`. -/
+def maximal_generalized_eigenspace (f : End R M) (μ : R) : submodule R M :=
+⨆ k, f.generalized_eigenspace μ k
+
+/-- If there exists a natural number `k` such that the kernel of `(f - μ • id) ^ k` is the
+maximal generalized eigenspace, then this value is the least such `k`. If not, this value is not
+meaningful. -/
+noncomputable def maximal_generalized_eigenspace_index (f : End R M) (μ : R) :=
+monotonic_sequence_limit_index (f.generalized_eigenspace μ)
+
+/-- For an endomorphism of a Noetherian module, the maximal eigenspace is always of the form kernel
+`(f - μ • id) ^ k` for some `k`. -/
+lemma maximal_generalized_eigenspace_eq [h : is_noetherian R M] (f : End R M) (μ : R) :
+  maximal_generalized_eigenspace f μ =
+  f.generalized_eigenspace μ (maximal_generalized_eigenspace_index f μ) :=
+begin
+  rw is_noetherian_iff_well_founded at h,
+  exact (well_founded.supr_eq_monotonic_sequence_limit h (f.generalized_eigenspace μ) : _),
+end
+
 /-- A generalized eigenvalue for some exponent `k` is also
     a generalized eigenvalue for exponents larger than `k`. -/
 lemma has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le

@@ -299,9 +299,8 @@ private lemma one_mul (x : ⨁ i, A i) : 1 * x = x :=
 suffices mul_hom A 1 = add_monoid_hom.id (⨁ i, A i),
   from add_monoid_hom.congr_fun this x,
 begin
-  -- short but slow (860ms, vs 180ms with `apply`, `intros`, `unfold`)
-  ext i xi : 2,
-  dsimp [has_one.one],
+  apply add_hom_ext, intros i xi,
+  unfold has_one.one,
   rw of_mul_of',
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.one_mul ⟨i, xi⟩),
 end
@@ -310,8 +309,7 @@ private lemma mul_one (x : ⨁ i, A i) : x * 1 = x :=
 suffices (mul_hom A).flip 1 = add_monoid_hom.id (⨁ i, A i),
   from add_monoid_hom.congr_fun this x,
 begin
-  -- fast enough (220ms), but not really shorter than explicit version
-  ext i xi : 2, dsimp only [coe_comp, function.comp_app],
+  apply add_hom_ext, intros i xi,
   unfold has_one.one,
   rw [flip_apply, of_mul_of'],
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_one ⟨i, xi⟩),
@@ -352,7 +350,7 @@ private lemma mul_comm (a b : ⨁ i, A i) : a * b = b * a :=
 suffices mul_hom A = (mul_hom A).flip,
   from add_monoid_hom.congr_fun (add_monoid_hom.congr_fun this a) b,
 begin
-  ext ai ax bi bx : 4, dsimp only [add_monoid_hom.coe_comp, function.comp_app],
+  apply add_hom_ext, intros ai ax, apply add_hom_ext, intros bi bx,
   rw [add_monoid_hom.flip_apply, of_mul_of', of_mul_of'],
   exact dfinsupp.single_eq_of_sigma_eq (gcomm_monoid.mul_comm ⟨ai, ax⟩ ⟨bi, bx⟩),
 end

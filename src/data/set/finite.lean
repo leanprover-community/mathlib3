@@ -681,6 +681,11 @@ begin
     { exact ih c hcs hbc } }
 end
 
+lemma finite.card_to_finset {s : set α} [fintype s] (h : s.finite) :
+  h.to_finset.card = fintype.card s :=
+by { rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card], congr' 2, funext,
+     rw set.finite.mem_to_finset }
+
 section decidable_eq
 
 lemma to_finset_compl {α : Type*} [fintype α] [decidable_eq α]

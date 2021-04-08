@@ -299,6 +299,12 @@ h.subset (inter_subset_left _ _)
 theorem finite.inter_of_right {s : set α} (h : finite s) (t : set α) : finite (t ∩ s) :=
 h.subset (inter_subset_right _ _)
 
+theorem finite.inf_of_left {s : set α} (h : finite s) (t : set α) : finite (s ⊓ t) :=
+h.inter_of_left t
+
+theorem finite.inf_of_right {s : set α} (h : finite s) (t : set α) : finite (t ⊓ s) :=
+h.inter_of_right t
+
 theorem infinite_mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
 mt (λ ht, ht.subset h)
 

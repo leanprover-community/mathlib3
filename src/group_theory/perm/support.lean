@@ -302,7 +302,6 @@ include hf
 @[simp]
 lemma card_support_eq_zero :
   hf.to_finset.card = 0 ↔ f = 1 :=
--- by rw [←to_finset_card, finset.card_eq_zero, to_finset_eq_empty_iff, support_eq_empty_iff]
 by simp
 
 lemma one_lt_card_support_of_ne_one (h : f ≠ 1) :

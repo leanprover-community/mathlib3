@@ -164,7 +164,6 @@ lemma factor_thru_of_le
   Q.factor_thru f (factors_of_le f h w) = P.factor_thru f w ≫ of_le P Q h :=
 by { ext, simp, }
 
--- TODO Should this section go in a different file?
 section preadditive
 
 variables [preadditive C]
@@ -174,6 +173,7 @@ lemma factors_add {X Y : C} {P : subobject Y} (f g : X ⟶ Y) (wf : P.factors f)
 (factors_iff _ _).mpr ⟨P.factor_thru f wf + P.factor_thru g wg, by simp⟩
 
 -- This can't be a `simp` lemma as `wf` and `wg` may not exist.
+-- However you can `rw` by it to assert that `f` anf `g` factor through `P` separately.
 lemma factor_thru_add {X Y : C} {P : subobject Y} (f g : X ⟶ Y)
    (w : P.factors (f + g)) (wf : P.factors f) (wg : P.factors g) :
   P.factor_thru (f + g) w = P.factor_thru f wf + P.factor_thru g wg :=

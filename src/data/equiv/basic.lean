@@ -1906,6 +1906,15 @@ begin
   rw swap_apply_of_ne_of_ne hi hj,
 end
 
+lemma swap_apply_eq_swap_apply_iff [decidable_eq α] {x y z w : α} :
+  swap x y z = w ↔ swap x y w = z :=
+begin
+  split;
+  { intro h,
+    rw ←h,
+    simp }
+end
+
 namespace perm
 
 @[simp] lemma sum_congr_swap_refl {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : α) :

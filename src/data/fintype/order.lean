@@ -36,7 +36,7 @@ complete_lattice_of_complete_semilattice_Sup _
 [fintype α] [nonempty α] [linear_order α] :
   semilattice_sup_bot α :=
 { bot := classical.some (fintype.exists_min id),
-  bot_le := λ a, classical.some_spec (fintype.exists_min id) _,
+  bot_le := classical.some_spec (fintype.exists_min id),
   sup := max,
   le_sup_left := le_max_left,
   le_sup_right := le_max_right,

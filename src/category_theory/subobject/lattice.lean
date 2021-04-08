@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
 import category_theory.subobject.factor_thru
+import category_theory.subobject.well_powered
 
 /-!
 # The lattice of subobjects
@@ -237,7 +238,7 @@ instance order_bot {X : C} : order_bot (subobject X) :=
     refine quotient.ind' (λ f, _),
     exact ⟨mono_over.bot_le f⟩,
   end,
-  ..subobject.partial_order X}
+  ..subobject.partial_order X }
 
 lemma bot_eq_zero {B : C} : (⊥ : subobject B) = subobject.mk (0 : 0 ⟶ B) := rfl
 
@@ -477,6 +478,173 @@ instance {B : C} : bounded_lattice (subobject B) :=
   ..subobject.semilattice_sup_bot }
 
 end lattice
+
+section Inf
+
+variables [well_powered C]
+
+/--
+The "wide cospan" diagram, with a small indexing type, constructed from a set of subobjects.
+(This is just the diagram of all the subobjects pasted together, but using `well_powered C`
+to make the diagram small.)
+-/
+def wide_cospan {A : C} (s : set (subobject A)) :
+  wide_pullback_shape (equiv_shrink _ '' s) ⥤ C :=
+wide_pullback_shape.wide_cospan A
+  (λ j : equiv_shrink _ '' s, (((equiv_shrink (subobject A)).symm j) : C))
+  (λ j, ((equiv_shrink (subobject A)).symm j).arrow)
+
+@[simp] lemma wide_cospan_map_term {A : C} (s : set (subobject A)) (j) :
+  (wide_cospan s).map (wide_pullback_shape.hom.term j) =
+    ((equiv_shrink (subobject A)).symm j).arrow :=
+rfl
+
+/-- Auxilliary construction of a cone for `le_Inf`. -/
+def le_Inf_cone {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ≤ g) :
+  cone (wide_cospan s) :=
+wide_pullback_shape.mk_cone f.arrow
+  (λ j, underlying.map (hom_of_le (k _ (by { rcases j with ⟨-, ⟨g, ⟨m, rfl⟩⟩⟩, simpa using m, }))))
+  (by tidy)
+
+@[simp] lemma le_Inf_cone_π_app_none
+  {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ≤ g) :
+  (le_Inf_cone s f k).π.app none = f.arrow :=
+rfl
+
+variables [has_wide_pullbacks C]
+
+/--
+The limit of `wide_cospan s`. (This will be the supremum of the set of subobjects.)
+-/
+def wide_pullback {A : C} (s : set (subobject A)) : C :=
+limits.limit (wide_cospan s)
+
+/--
+The inclusion map from `wide_pullback s` to `A`
+-/
+def wide_pullback_ι {A : C} (s : set (subobject A)) :
+  wide_pullback s ⟶ A :=
+limits.limit.π (wide_cospan s) none
+
+instance wide_pullback_ι_mono {A : C} (s : set (subobject A)) :
+  mono (wide_pullback_ι s) :=
+⟨λ W u v h, limit.hom_ext (λ j, begin
+  cases j,
+  { exact h, },
+  { apply (cancel_mono ((equiv_shrink (subobject A)).symm j).arrow).1,
+    rw [assoc, assoc],
+    erw limit.w (wide_cospan s) (wide_pullback_shape.hom.term j),
+    exact h, },
+end)⟩
+
+/--
+When `[well_powered C]` and `[has_wide_pullbacks C]`, `subobject A` has arbitrary infimums.
+-/
+def Inf {A : C} (s : set (subobject A)) : subobject A :=
+subobject.mk (wide_pullback_ι s)
+
+lemma Inf_le {A : C} (s : set (subobject A)) (f ∈ s) :
+  Inf s ≤ f :=
+begin
+  fapply le_of_comm,
+  { refine (underlying_iso _).hom ≫
+      (limits.limit.π
+        (wide_cospan s)
+        (some ⟨equiv_shrink _ f, set.mem_image_of_mem (equiv_shrink (subobject A)) H⟩)) ≫ _,
+    apply eq_to_hom,
+    apply (congr_arg (λ X : subobject A, (X : C))),
+    exact (equiv.symm_apply_apply _ _), },
+  { dsimp [Inf],
+    simp only [category.comp_id, category.assoc, ←underlying_iso_hom_comp_eq_mk,
+      subobject.arrow_congr, congr_arg_mpr_hom_left, iso.cancel_iso_hom_left],
+    convert limit.w (wide_cospan s) (wide_pullback_shape.hom.term _), },
+end.
+
+lemma le_Inf {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ≤ g) :
+  f ≤ Inf s :=
+begin
+  fapply le_of_comm,
+  { exact limits.limit.lift _ (le_Inf_cone s f k) ≫ (underlying_iso _).inv, },
+  { dsimp [Inf, wide_pullback_ι],
+    simp, },
+end
+
+instance {B : C} : complete_semilattice_Inf (subobject B) :=
+{ Inf := Inf,
+  Inf_le := Inf_le,
+  le_Inf := le_Inf,
+  ..subobject.partial_order B }
+
+end Inf
+
+section Sup
+
+variables [well_powered C] [has_coproducts C]
+
+/--
+The univesal morphism out of the coproduct of a set of subobjects,
+after using `[well_powered C]` to reindex by a small type.
+-/
+def small_coproduct_desc {A : C} (s : set (subobject A)) : _ ⟶ A :=
+limits.sigma.desc (λ j : equiv_shrink _ '' s, ((equiv_shrink (subobject A)).symm j).arrow)
+
+variables [has_images C]
+
+/-- When `[well_powered C] [has_images C] [has_coproducts C]`,
+`subobject A` has arbitrary supremums. -/
+def Sup {A : C} (s : set (subobject A)) : subobject A :=
+subobject.mk (image.ι (small_coproduct_desc s))
+
+lemma le_Sup {A : C} (s : set (subobject A)) (f ∈ s)  :
+  f ≤ Sup s :=
+begin
+  fapply le_of_comm,
+  { dsimp [Sup],
+    refine _ ≫ factor_thru_image _ ≫ (underlying_iso _).inv,
+    refine _ ≫ sigma.ι _ ⟨equiv_shrink _ f, (by simpa [set.mem_image] using H)⟩,
+    exact eq_to_hom (congr_arg (λ X : subobject A, (X : C)) (equiv.symm_apply_apply _ _).symm), },
+  { dsimp [Sup, small_coproduct_desc],
+    simp, dsimp, simp, },
+end
+
+lemma symm_apply_mem_iff_mem_image {α β : Type*} (e : α ≃ β) (s : set α) (x : β) :
+  e.symm x ∈ s ↔ x ∈ e '' s :=
+⟨λ h, ⟨e.symm x, h, by simp⟩, by { rintro ⟨a, m, rfl⟩, simpa using m, }⟩
+
+lemma Sup_le {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), g ≤ f) :
+  Sup s ≤ f :=
+begin
+  fapply le_of_comm,
+  { dsimp [Sup],
+    refine (underlying_iso _).hom ≫ image.lift ⟨_, f.arrow, _, _⟩,
+    { refine sigma.desc _,
+      rintro ⟨g, m⟩,
+      refine underlying.map (hom_of_le (k _ _)),
+      simpa [symm_apply_mem_iff_mem_image] using m, },
+    { ext j, rcases j with ⟨j, m⟩, dsimp [small_coproduct_desc], simp, dsimp, simp, }, },
+  { dsimp [Sup],
+    simp, },
+end
+
+instance {B : C} : complete_semilattice_Sup (subobject B) :=
+{ Sup := Sup,
+  le_Sup := le_Sup,
+  Sup_le := Sup_le,
+  ..subobject.partial_order B }
+
+end Sup
+
+section complete_lattice
+variables [well_powered C] [has_wide_pullbacks C] [has_images C] [has_coproducts C]
+  [has_zero_morphisms C] [has_zero_object C]
+
+instance {B : C} : complete_lattice (subobject B) :=
+{ ..subobject.semilattice_inf_top,
+  ..subobject.semilattice_sup_bot,
+  ..subobject.complete_semilattice_Inf,
+  ..subobject.complete_semilattice_Sup, }
+
+end complete_lattice
 
 end subobject
 

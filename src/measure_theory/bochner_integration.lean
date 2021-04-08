@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel
 import measure_theory.simple_func_dense
 import analysis.normed_space.bounded_linear_maps
 import measure_theory.l1_space
+import measure_theory.group
 import topology.sequences
 
 /-!
@@ -1572,6 +1573,74 @@ calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
 end properties
+
+section group
+
+variables {G : Type*} [measurable_space G] [topological_space G] [group G] [has_continuous_mul G]
+  [borel_space G]
+variables {μ : measure G}
+
+open measure
+
+/-- Translating a function by left-multiplication does not change its integral with respect to a
+left-invariant measure. -/
+@[to_additive]
+lemma integral_mul_left_eq_self (hμ : is_mul_left_invariant μ) {f : G → E} (g : G) :
+  ∫ x, f (g * x) ∂μ = ∫ x, f x ∂μ :=
+begin
+  have hgμ : measure.map (has_mul.mul g) μ = μ,
+  { rw ← map_mul_left_eq_self at hμ,
+    exact hμ g },
+  have h_mul : closed_embedding (λ x, g * x) := (homeomorph.mul_left g).closed_embedding,
+  rw [← integral_map_of_closed_embedding h_mul, hgμ]
+end
+
+/-- Translating a function by right-multiplication does not change its integral with respect to a
+right-invariant measure. -/
+@[to_additive]
+lemma integral_mul_right_eq_self (hμ : is_mul_right_invariant μ) {f : G → E} (g : G) :
+  ∫ x, f (x * g) ∂μ = ∫ x, f x ∂μ :=
+begin
+  have hgμ : measure.map (λ x, x * g) μ = μ,
+  { rw ← map_mul_right_eq_self at hμ,
+    exact hμ g },
+  have h_mul : closed_embedding (λ x, x * g) := (homeomorph.mul_right g).closed_embedding,
+  rw [← integral_map_of_closed_embedding h_mul, hgμ]
+end
+
+/-- If some left-translate of a function negates it, then the integral of the function with respect
+to a left-invariant measure is 0. -/
+@[to_additive]
+lemma integral_zero_of_mul_left_eq_neg (hμ : is_mul_left_invariant μ) {f : G → E} {g : G}
+  (hf' : ∀ x, f (g * x) = - f x) :
+  ∫ x, f x ∂μ = 0 :=
+begin
+  refine eq_zero_of_eq_neg ℝ (eq.symm _),
+  have : ∫ x, f (g * x) ∂μ = ∫ x, - f x ∂μ,
+  { congr,
+    ext x,
+    exact hf' x },
+  convert integral_mul_left_eq_self hμ g using 1,
+  rw [this, integral_neg]
+end
+
+/-- If some right-translate of a function negates it, then the integral of the function with respect
+to a right-invariant measure is 0. -/
+@[to_additive]
+lemma integral_zero_of_mul_right_eq_neg (hμ : is_mul_right_invariant μ) {f : G → E} {g : G}
+  (hf' : ∀ x, f (x * g) = - f x) :
+  ∫ x, f x ∂μ = 0 :=
+begin
+  refine eq_zero_of_eq_neg ℝ (eq.symm _),
+  have : ∫ x, f (x * g) ∂μ = ∫ x, - f x ∂μ,
+  { congr,
+    ext x,
+    exact hf' x },
+  convert integral_mul_right_eq_self hμ g using 1,
+  rw [this, integral_neg]
+end
+
+end group
 
 mk_simp_attribute integral_simps "Simp set for integral rules."
 

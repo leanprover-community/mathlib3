@@ -49,6 +49,8 @@ structure is_SRG_of (n k l m : ℕ) : Prop :=
 
 open finset
 
+/-- Empty graphs are strongly regular. Note that the parameter `l` can take any value
+  for empty graphs, since there are no pairs of adjacent vertices. -/
 lemma empty_strongly_regular (l : ℕ) : (empty_graph V).is_SRG_of (fintype.card V) 0 l 0 :=
 { card := rfl,
   regular := empty_graph_degree,

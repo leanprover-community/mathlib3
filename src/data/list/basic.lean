@@ -1971,19 +1971,19 @@ begin
     { exact hl b hb hd (mem_cons_self hd tl) } }
 end
 
-@[simp] lemma foldr_induction_nil {C : β → Sort*} (op : α → β → β) (b) (hb : C b) (hl) :
+@[simp] lemma foldr_rec_on_nil {C : β → Sort*} (op : α → β → β) (b) (hb : C b) (hl) :
   foldr_rec_on [] op b hb hl = hb := rfl
 
-@[simp] lemma foldr_induction_cons {C : β → Sort*} (x : α) (l : list α)
+@[simp] lemma foldr_rec_on_cons {C : β → Sort*} (x : α) (l : list α)
   (op : α → β → β) (b) (hb : C b)
   (hl : ∀ (b : β) (hb : C b) (a : α) (ha : a ∈ (x :: l)), C (op a b)) :
   foldr_rec_on (x :: l) op b hb hl = hl _ (foldr_rec_on l op b hb
     (λ b hb a ha, hl b hb a (mem_cons_of_mem _ ha))) x (mem_cons_self _ _) := rfl
 
-@[simp] lemma foldl_induction_nil {C : β → Sort*} (op : β → α → β) (b) (hb : C b) (hl) :
+@[simp] lemma foldl_rec_on_nil {C : β → Sort*} (op : β → α → β) (b) (hb : C b) (hl) :
   foldl_rec_on [] op b hb hl = hb := rfl
 
--- TODO: add foldl_induction_cons
+-- TODO: add foldl_rec_on_cons
 
 /- scanl -/
 

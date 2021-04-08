@@ -25,7 +25,7 @@ open_locale real euclidean_geometry
 local notation `√` := real.sqrt
 
 variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
+  [normed_add_torsor V P]
 
 include V
 

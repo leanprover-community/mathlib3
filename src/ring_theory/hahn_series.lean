@@ -172,22 +172,15 @@ lemma support_add_subset {x y : hahn_series Γ R} :
 end
 
 /-- `single` as an additive monoid/group homomorphism -/
-def single.add_monoid_hom (a : Γ) : R →+ (hahn_series Γ R) :=
+@[simps] def single.add_monoid_hom (a : Γ) : R →+ (hahn_series Γ R) :=
 { map_add' := λ x y, by { ext b, by_cases h : b = a; simp [h] },
   ..single a }
 
-@[simp]
-lemma single.add_monoid_hom_apply {a : Γ} {r : R} : single.add_monoid_hom a r = single a r := rfl
-
 /-- `coeff g` as an additive monoid/group homomorphism -/
-def coeff.add_monoid_hom (g : Γ) : (hahn_series Γ R) →+ R :=
+@[simps] def coeff.add_monoid_hom (g : Γ) : (hahn_series Γ R) →+ R :=
 { to_fun := λ f, f.coeff g,
   map_zero' := zero_coeff,
   map_add' := λ x y, add_coeff }
-
-@[simp]
-lemma coeff.add_monoid_hom_apply {x : hahn_series Γ R} {g : Γ} :
-  coeff.add_monoid_hom g x = x.coeff g := rfl
 
 end add_monoid
 
@@ -267,12 +260,14 @@ instance : semimodule R (hahn_series Γ V) :=
   .. hahn_series.distrib_mul_action }
 
 /-- `single` as a linear map -/
-def single.linear_map (a : Γ) : R →ₗ[R] (hahn_series Γ R) :=
+@[simps] def single.linear_map (a : Γ) : R →ₗ[R] (hahn_series Γ R) :=
 { map_smul' := λ r s, by { ext b, by_cases h : b = a; simp [h] },
   ..single.add_monoid_hom a }
 
-@[simp]
-lemma single.linear_map_apply {a : Γ} {r : R} : single.linear_map a r = single a r := rfl
+/-- `coeff g` as a linear map -/
+@[simps] def coeff.linear_map (g : Γ) : (hahn_series Γ R) →ₗ[R] R :=
+{ map_smul' := λ r s, rfl,
+  ..coeff.add_monoid_hom g }
 
 end semimodule
 
@@ -566,15 +561,12 @@ begin
 end
 
 /-- `C a` is the constant Hahn Series `a`. `C` is provided as a ring homomorphism. -/
-def C : R →+* (hahn_series Γ R) :=
+@[simps] def C : R →+* (hahn_series Γ R) :=
 { to_fun := single 0,
   map_zero' := single_eq_zero,
   map_one' := rfl,
   map_add' := λ x y, by { ext a, by_cases h : a = 0; simp [h] },
   map_mul' := λ x y, by rw [single_mul_single, zero_add] }
-
-@[simp]
-lemma C_apply (r : R) : C r = single (0 : Γ) r := rfl
 
 @[simp]
 lemma C_zero : C (0 : R) = (0 : hahn_series Γ R) := C.map_zero
@@ -623,7 +615,7 @@ section semiring
 variables [semiring R]
 
 /-- The ring `hahn_series ℕ R` is isomorphic to `power_series R`. -/
-def to_power_series : (hahn_series ℕ R) ≃+* power_series R :=
+@[simps] def to_power_series : (hahn_series ℕ R) ≃+* power_series R :=
 { to_fun := λ f, power_series.mk f.coeff,
   inv_fun := λ f, ⟨λ n, power_series.coeff R n f, nat.lt_wf.is_wf _⟩,
   left_inv := λ f, by { ext, simp },
@@ -644,15 +636,12 @@ def to_power_series : (hahn_series ℕ R) ≃+* power_series R :=
     cases h1; simp [h1]
   end }
 
-@[simp]
 lemma coeff_to_power_series {f : hahn_series ℕ R} {n : ℕ} :
   power_series.coeff R n f.to_power_series = f.coeff n :=
 power_series.coeff_mk _ _
 
-@[simp]
 lemma coeff_to_power_series_symm {f : power_series R} {n : ℕ} :
-  (hahn_series.to_power_series.symm f).coeff n = power_series.coeff R n f :=
-rfl
+  (hahn_series.to_power_series.symm f).coeff n = power_series.coeff R n f := rfl
 
 end semiring
 
@@ -660,7 +649,7 @@ section algebra
 variables (R) [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
 
 /-- The `R`-algebra `hahn_series ℕ A` is isomorphic to `power_series A`. -/
-def to_power_series_alg : (hahn_series ℕ A) ≃ₐ[R] power_series A :=
+@[simps] def to_power_series_alg : (hahn_series ℕ A) ≃ₐ[R] power_series A :=
 { commutes' := λ r, begin
     ext n,
     simp only [algebra_map_apply, power_series.algebra_map_apply, ring_equiv.to_fun_eq_coe, C_apply,
@@ -674,11 +663,7 @@ def to_power_series_alg : (hahn_series ℕ A) ≃ₐ[R] power_series A :=
   .. to_power_series }
 
 @[simp]
-lemma to_power_series_alg_apply {f : hahn_series ℕ A} :
-  hahn_series.to_power_series_alg R f = f.to_power_series := rfl
-
-@[simp]
-lemma to_power_series_alg_symm_apply {f : power_series A} :
+lemma to_power_series_alg_symm_apply' {f : power_series A} :
   (hahn_series.to_power_series_alg R).symm f = hahn_series.to_power_series.symm f := rfl
 
 end algebra
@@ -992,11 +977,8 @@ begin
 end
 
 /-- The summation of a `summable_family` as a `linear_map`. -/
-def lsum : (summable_family Γ R α) →ₗ[hahn_series Γ R] (hahn_series Γ R) :=
+@[simps] def lsum : (summable_family Γ R α) →ₗ[hahn_series Γ R] (hahn_series Γ R) :=
 ⟨hsum, λ _ _, hsum_add, λ _ _, hsum_smul⟩
-
-@[simp]
-lemma lsum_apply {s : summable_family Γ R α} : lsum s = hsum s := rfl
 
 end semiring
 

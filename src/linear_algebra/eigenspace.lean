@@ -7,6 +7,7 @@ Authors: Alexander Bentkamp
 import field_theory.algebraic_closure
 import linear_algebra.finsupp
 import linear_algebra.matrix
+import order.preorder_hom
 
 /-!
 # Eigenvectors and eigenvalues
@@ -295,9 +296,16 @@ begin
 end
 
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
-    kernel of `(f - μ • id) ^ k`. (Def 8.10 of [axler2015])-/
-def generalized_eigenspace (f : End R M) (μ : R) (k : ℕ) : submodule R M :=
-((f - algebra_map R (End R M) μ) ^ k).ker
+kernel of `(f - μ • id) ^ k`. (Def 8.10 of [axler2015]). Furthermore, a generalized eigenspace for
+some exponent `k` is contained in the generalized eigenspace for exponents larger than `k`. -/
+def generalized_eigenspace (f : End R M) (μ : R) : ℕ →ₘ submodule R M :=
+{ to_fun    := λ k, ((f - algebra_map R (End R M) μ) ^ k).ker,
+  monotone' := λ k m hm,
+  begin
+    simp only [← pow_sub_mul_pow _ hm],
+    exact linear_map.ker_le_ker_comp
+      ((f - algebra_map R (End R M) μ) ^ k) ((f - algebra_map R (End R M) μ) ^ (m - k)),
+  end }
 
 /-- A nonzero element of a generalized eigenspace is a generalized eigenvector.
     (Def 8.9 of [axler2015])-/
@@ -322,16 +330,6 @@ begin
   exact h linear_map.ker_id
 end
 
-/-- A generalized eigenspace for some exponent `k` is contained in
-    the generalized eigenspace for exponents larger than `k`. -/
-lemma generalized_eigenspace_mono {f : End R M} {μ : R} {k : ℕ} {m : ℕ} (hm : k ≤ m) :
-  f.generalized_eigenspace μ k ≤ f.generalized_eigenspace μ m :=
-begin
-  simp only [generalized_eigenspace, ←pow_sub_mul_pow _ hm],
-  exact linear_map.ker_le_ker_comp
-    ((f - algebra_map R (End R M) μ) ^ k) ((f - algebra_map R (End R M) μ) ^ (m - k)),
-end
-
 /-- A generalized eigenvalue for some exponent `k` is also
     a generalized eigenvalue for exponents larger than `k`. -/
 lemma has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le
@@ -341,13 +339,13 @@ begin
   unfold has_generalized_eigenvalue at *,
   contrapose! hk,
   rw [←le_bot_iff, ←hk],
-  exact generalized_eigenspace_mono hm
+  exact (f.generalized_eigenspace μ).monotone hm,
 end
 
 /-- The eigenspace is a subspace of the generalized eigenspace. -/
-lemma eigenspace_le_generalized_eigenspace {f : End K V} {μ : K} {k : ℕ} (hk : 0 < k) :
+lemma eigenspace_le_generalized_eigenspace {f : End R M} {μ : R} {k : ℕ} (hk : 0 < k) :
   f.eigenspace μ ≤ f.generalized_eigenspace μ k :=
-generalized_eigenspace_mono (nat.succ_le_of_lt hk)
+(f.generalized_eigenspace μ).monotone (nat.succ_le_of_lt hk)
 
 /-- All eigenvalues are generalized eigenvalues. -/
 lemma has_generalized_eigenvalue_of_has_eigenvalue
@@ -355,7 +353,8 @@ lemma has_generalized_eigenvalue_of_has_eigenvalue
   f.has_generalized_eigenvalue μ k :=
 begin
   apply has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le hk,
-  rwa [has_generalized_eigenvalue, generalized_eigenspace, pow_one]
+  rw [has_generalized_eigenvalue, generalized_eigenspace, preorder_hom.coe_fun_mk, pow_one],
+  exact hμ,
 end
 
 /-- All generalized eigenvalues are eigenvalues. -/
@@ -390,11 +389,11 @@ ker_pow_eq_ker_pow_findim_of_le hk
 /-- If `f` maps a subspace `p` into itself, then the generalized eigenspace of the restriction
     of `f` to `p` is the part of the generalized eigenspace of `f` that lies in `p`. -/
 lemma generalized_eigenspace_restrict
-  (f : End K V) (p : submodule K V) (k : ℕ) (μ : K) (hfp : ∀ (x : V), x ∈ p → f x ∈ p) :
+  (f : End R M) (p : submodule R M) (k : ℕ) (μ : R) (hfp : ∀ (x : M), x ∈ p → f x ∈ p) :
   generalized_eigenspace (linear_map.restrict f hfp) μ k =
     submodule.comap p.subtype (f.generalized_eigenspace μ k) :=
 begin
-  rw [generalized_eigenspace, generalized_eigenspace, ←linear_map.ker_comp],
+  simp only [generalized_eigenspace, preorder_hom.coe_fun_mk, ← linear_map.ker_comp],
   induction k with k ih,
   { rw [pow_zero,pow_zero],
     convert linear_map.ker_id,
@@ -410,7 +409,7 @@ begin
   have h := calc
     submodule.comap ((f - algebra_map _ _ μ) ^ findim K V) (f.generalized_eigenspace μ (findim K V))
       = ((f - algebra_map _ _ μ) ^ findim K V * (f - algebra_map K (End K V) μ) ^ findim K V).ker :
-        by { rw [generalized_eigenspace, ←linear_map.ker_comp], refl }
+        by { simpa only [generalized_eigenspace, preorder_hom.coe_fun_mk, ← linear_map.ker_comp], }
   ... = f.generalized_eigenspace μ (findim K V + findim K V) :
         by { rw ←pow_add, refl }
   ... = f.generalized_eigenspace μ (findim K V) :
@@ -428,7 +427,7 @@ calc
     0 = findim K (⊥ : submodule K V) : by rw findim_bot
   ... < findim K (f.eigenspace μ) : submodule.findim_lt_findim_of_lt (bot_lt_iff_ne_bot.2 hx)
   ... ≤ findim K (f.generalized_eigenspace μ k) :
-    submodule.findim_mono (generalized_eigenspace_mono (nat.succ_le_of_lt hk))
+    submodule.findim_mono ((f.generalized_eigenspace μ).monotone (nat.succ_le_of_lt hk))
 
 /-- A linear map maps a generalized eigenrange into itself. -/
 lemma map_generalized_eigenrange_le {f : End K V} {μ : K} {n : ℕ} :

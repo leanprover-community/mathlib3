@@ -196,12 +196,8 @@ theorem integral_sin_pow_odd (n : ℕ) :
 begin
   induction n with k ih,
   { norm_num },
-  rw [finset.prod_range_succ, ← mul_assoc, mul_comm (2:ℝ) ((2 * k + 2) / (2 * k + 3)),
-    mul_assoc, ← ih],
-  have h₁ : 2 * k.succ + 1 = 2 * k + 1 + 2, { ring },
-  have h₂ : (2:ℝ) * k + 1 + 1 = 2 * k + 2, { norm_cast },
-  have h₃ : (2:ℝ) * k + 1 + 2 = 2 * k + 3, { norm_cast },
-  simp [h₁, h₂, h₃, integral_sin_pow_succ_succ (2 * k + 1)],
+  rw [finset.prod_range_succ_comm, mul_left_comm, ← ih, nat.mul_succ, integral_sin_pow_succ_succ],
+  norm_cast,
 end
 
 theorem integral_sin_pow_even (n : ℕ) :
@@ -209,8 +205,8 @@ theorem integral_sin_pow_even (n : ℕ) :
 begin
   induction n with k ih,
   { norm_num },
-  rw [finset.prod_range_succ, ← mul_assoc, mul_comm π ((2 * k + 1) / (2 * k + 2)), mul_assoc, ← ih],
-  simp [nat.succ_eq_add_one, mul_add, mul_one, integral_sin_pow_succ_succ _],
+  rw [finset.prod_range_succ_comm, mul_left_comm, ← ih, nat.mul_succ, integral_sin_pow_succ_succ],
+  norm_cast,
 end
 
 lemma integral_sin_pow_pos (n : ℕ) : 0 < ∫ x in 0..π, sin x ^ n :=

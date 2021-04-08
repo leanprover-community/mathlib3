@@ -65,12 +65,7 @@ section fourier
 continuous maps from `circle` to `ℂ`. -/
 def fourier (n : ℤ) : C(circle, ℂ) :=
 { to_fun := λ z, z ^ n,
-  continuous_to_fun := begin
-    rw continuous_iff_continuous_at,
-    intros z,
-    exact (continuous_at_fpow (nonzero_of_mem_circle z) n).comp
-      continuous_subtype_coe.continuous_at,
-  end }
+  continuous_to_fun := continuous_subtype_coe.fpow nonzero_of_mem_circle n }
 
 @[simp] lemma fourier_apply {n : ℤ} {z : circle} : fourier n z = z ^ n := rfl
 

@@ -137,7 +137,7 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
     (λ A,
     { hom := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, } },
       inv := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, } } })
-    (by tidy),
+    (by { intros, refl }),
   counit_iso := nat_iso.of_components (λ A,
   { hom :=
     { to_fun := id,
@@ -152,7 +152,7 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
       map_add' := λ x y, rfl,
       map_one' := (algebra_map R A).map_one.symm,
       map_mul' := λ x y, algebra.lmul'_apply.symm,
-      commutes' := λ r, rfl } }) (by tidy), }.
+      commutes' := λ r, rfl } }) (by { intros, refl }), }.
 
 /--
 The equivalence `Mon_ (Module R) ≌ Algebra R`

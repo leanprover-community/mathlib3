@@ -9,6 +9,7 @@ import data.nat.totient
 import data.int.gcd
 import data.set.finite
 import dynamics.periodic_pts
+import algebra.iterate_hom
 
 /-!
 # Order of an element
@@ -37,29 +38,6 @@ section is_of_fin_order
 
 variables {α} [monoid α]
 variables {H : Type u} [add_monoid H]
-
--- Move the following four lemmas somewhere else?
-@[simp] lemma iterate_add_right_apply (x : H) {n : ℕ} : (+ x)^[n] = (+ n •ℕ x) :=
-begin
-  induction n with d hd,
-  { simp_rw [zero_nsmul, add_zero, iterate_zero],
-    refl },
-  { simp_rw [iterate_succ', succ_nsmul', ← add_assoc, hd] }
-end
-
-@[simp, to_additive] lemma iterate_mul_right_apply (a : α) {n : ℕ} : (* a)^[n] = (* a ^ n) :=
-begin
-  induction n with d hd,
-  { simp_rw [pow_zero, mul_one, iterate_zero],
-    refl },
-  { simp_rw [iterate_succ', pow_succ', ← mul_assoc, hd] }
-end
-
-@[simp] lemma iterate_add_apply_zero (x : H) {n : ℕ} : (+ x)^[n] 0 = n •ℕ x :=
-by simp
-
-@[simp, to_additive] lemma iterate_mul_apply_one (a : α) {n : ℕ} : (* a)^[n] 1 = a ^ n :=
-by simp
 
 lemma is_periodic_pt_add_iff_nsmul_eq_zero (x : H) {n : ℕ} :
   is_periodic_pt (+ x) n 0 ↔ n •ℕ x = 0 :=

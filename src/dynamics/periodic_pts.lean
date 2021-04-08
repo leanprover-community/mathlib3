@@ -306,11 +306,9 @@ begin
   apply nat.dvd_antisymm,
   { apply is_periodic_pt.minimal_period_dvd,
     rw [is_periodic_pt, is_fixed_pt, ← iterate_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _),
-        mul_comm, nat.mul_div_assoc _ (gcd_dvd_right _ _), mul_comm, iterate_mul, ← is_fixed_pt,
-        ← is_periodic_pt],
+        mul_comm, nat.mul_div_assoc _ (gcd_dvd_right _ _), mul_comm, iterate_mul],
     exact is_periodic_pt.iterate (is_periodic_pt_minimal_period f x) _ },
-  { have gcd_pos : 0 < gcd (minimal_period f x) n :=
-      gcd_pos_of_pos_right _ (nat.pos_of_ne_zero h),
+  { have gcd_pos : 0 < gcd (minimal_period f x) n := gcd_pos_of_pos_right _ (nat.pos_of_ne_zero h),
     apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos),
     apply dvd_of_mul_dvd_mul_right gcd_pos,
     rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc, nat.div_mul_cancel (gcd_dvd_right _ _),

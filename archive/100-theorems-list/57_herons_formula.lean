@@ -19,11 +19,10 @@ lengths.
 
 -/
 
-open real
-open euclidean_geometry
+open real euclidean_geometry
 open_locale real euclidean_geometry
 
-notation `√` := real.sqrt
+local notation `√` := real.sqrt
 
 variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
@@ -41,24 +40,18 @@ theorem heron {p1 p2 p3 : P} (h1 : p1 ≠ p2) (h2 : p3 ≠ p2) :
 begin
   intros a b c s,
   let γ := ∠ p1 p2 p3,
-
   obtain := ⟨(dist_pos.mpr h1).ne', (dist_pos.mpr h2).ne'⟩,
-
   have cos_rule : cos γ = (a * a + b * b - c * c) / (2 * a * b) := by field_simp [mul_comm, a,
     dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle p1 p2 p3],
-
   let numerator := (2*a*b)^2 - (a*a + b*b - c*c)^2,
   let denominator := (2*a*b)^2,
   have split_to_frac : 1 - cos γ ^ 2 = numerator / denominator := by field_simp [cos_rule],
-
   have numerator_nonneg : 0 ≤ numerator,
   { have frac_nonneg: 0 ≤ numerator / denominator := by linarith [split_to_frac, cos_sq_le_one γ],
     cases div_nonneg_iff.mp frac_nonneg,
     { exact h.left },
     { simpa [h1, h2] using le_antisymm h.right (pow_two_nonneg _) } },
-
-  have ab2_nonneg : 0 ≤ (2 * a * b), by { field_simp *, linarith },
-
+  have ab2_nonneg : 0 ≤ (2 * a * b) := by norm_num [mul_nonneg, dist_nonneg],
   calc  1/2 * a * b * sin γ
       = 1/2 * a * b * (√numerator / √denominator) : by rw [sin_eq_sqrt_one_minus_cos_sq,
                                                           split_to_frac, sqrt_div numerator_nonneg];

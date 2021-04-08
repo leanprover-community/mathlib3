@@ -33,7 +33,7 @@ variables {α : Type*}
 complete_lattice_of_complete_semilattice_Sup _
 
 @[priority 100] noncomputable instance fintype.semilattice_sup_bot_of_linear_order
-[fintype α] [nonempty α] [linear_order α] :
+  [fintype α] [nonempty α] [linear_order α] :
   semilattice_sup_bot α :=
 { bot := classical.some (fintype.exists_min id),
   bot_le := classical.some_spec (fintype.exists_min id),

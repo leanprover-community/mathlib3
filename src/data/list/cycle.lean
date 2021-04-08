@@ -13,15 +13,6 @@ lemma set.mem_disjoint_imp {α : Type*} {s t : set α} {x : α} (h : x ∈ s) (h
 
 lemma set.not_mem_compl_iff {α : Type*} (s : set α) (x : α) : x ∉ sᶜ ↔ x ∈ s := set.not_not_mem
 
-@[simp] lemma function.fixed_points.id {α : Type*} : function.fixed_points (@id α) = set.univ :=
-by { ext, simpa using function.is_fixed_pt_id _ }
-
-namespace equiv
-
-variables {α : Type*}
-
-end equiv
-
 namespace list
 
 variables {α β : Type*}
@@ -135,34 +126,35 @@ def reverse_induction_on (l : list α) {C : list α → Sort*}
   C l :=
 reverse_induction hn ha l
 
-@[elab_as_eliminator]
-def bidirection_induction
-  {C : list α → Sort*}
-  (hn : C [])
-  (hs : ∀ (x : α), C [x])
-  (hca : ∀ (x : α) (xs : list α) (y : α), C (x :: xs) → C (x :: (xs ++ [y]))) :
-  Π (l : list α), C l :=
-begin
-  intro l,
-  induction l using list.reverse_induction with xs y IH,
-  { exact hn },
-  { cases xs with x xs,
-    { simpa using hs y },
-    { rw cons_append,
-      apply hca,
-      exact IH } }
-end
+-- @[elab_as_eliminator]
+-- def bidirection_induction
+--   {C : list α → Sort*}
+--   (hn : C [])
+--   (hs : ∀ (x : α), C [x])
+--   (hca : ∀ (x : α) (xs : list α) (y : α), C xs → C (x :: (xs ++ [y]))) :
+--   Π (l : list α), C l :=
+-- begin
+--   intro l,
+--   induction l using list.reverse_induction with xs y IH,
+--   { exact hn },
+--   {
+--     ases xs with x xs,
+--     { simpa using hs y },
+--     { rw cons_append,
+--       apply hca,
+--       exact IH } }
+-- end
 
 section form_perm
-
-variables [decidable_eq α] (l : list α)
-
-open equiv equiv.perm
 
 @[simp] lemma zip_with_rotate_one (f : α → α → β) (x y : α) (l : list α) :
   zip_with f (x :: y :: l) ((x :: y :: l).rotate 1) =
   f x y :: zip_with f (y :: l) (l ++ [x]) :=
 by simp [rotate_cons_succ]
+
+variables [decidable_eq α] (l : list α)
+
+open equiv equiv.perm
 
 instance {α : Type*} : mul_action (equiv.perm α) α :=
 { smul := λ e x, e x,
@@ -176,14 +168,83 @@ def form_perm : equiv.perm α :=
 
 @[simp] lemma form_perm_singleton (x : α) : form_perm [x] = 1 := rfl
 
--- lemma form_perm_cons_cons (x y : α) (h : nodup (x :: y :: l)) :
---   form_perm (x :: y :: l) = swap y x * form_perm l :=
--- begin
---   induction l with hd tl generalizing x y,
---   { simp [form_perm] },
---   { simp [form_perm], },
--- end
+lemma map_zip_with {α β γ δ : Type*} (f : α → β) (g : γ → δ → α) (l : list γ) (l' : list δ) :
+  map f (zip_with g l l') = zip_with (λ x y, f (g x y)) l l' :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l',
+    { simp },
+    { simp [hl] } }
+end
 
+def to_set {α : Type*} (l : list α) : set α := {x | x ∈ l}
+
+@[simp] lemma mem_to_set {α : Type*} {x : α} {l : list α} : x ∈ l.to_set ↔ x ∈ l := iff.rfl
+
+@[simp] lemma to_set_nil {α : Type*} : (@nil α).to_set = ∅ := rfl
+
+@[simp] lemma to_set_cons {α : Type*} {x : α} {l : list α} : (x :: l).to_set = {x} ∪ l.to_set := rfl
+
+@[simp] lemma exists_or_eq_left {α : Sort*} (y : α) (p : α → Prop) : ∃ (x : α), x = y ∨ p x :=
+⟨y, or.inl rfl⟩
+
+@[simp] lemma exists_or_eq_right {α : Sort*} (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ x = y :=
+⟨y, or.inr rfl⟩
+
+@[simp] lemma exists_or_eq_left' {α : Sort*} (y : α) (p : α → Prop) : ∃ (x : α), y = x ∨ p x :=
+⟨y, or.inl rfl⟩
+
+@[simp] lemma exists_or_eq_right' {α : Sort*} (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ y = x :=
+⟨y, or.inr rfl⟩
+
+@[simp] lemma to_set_eq_empty_iff {α : Type*} {l : list α} : l.to_set = ∅ ↔ l = [] :=
+by { cases l; simp [set.ext_iff] }
+
+@[simp] lemma to_set_mono {α : Type*} {l l' : list α} : l.to_set ⊆ l'.to_set ↔ l ⊆ l' := iff.rfl
+
+lemma to_set_finite {α : Type*} (l : list α) : l.to_set.finite :=
+begin
+  classical,
+  exact ⟨subtype.fintype l⟩
+end
+
+lemma zip_with_swap_prod_support (l l' : list α) :
+  (zip_with swap l l').prod.support ≤ l.to_set ⊔ l'.to_set :=
+begin
+  refine (support_prod_le (zip_with swap l l')).trans _,
+  rw map_zip_with,
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l' with hd' tl',
+    { simp },
+    { simp only [set.union_subset_iff, mem_cons_iff, set.sup_eq_union, set.bot_eq_empty,
+                 zip_with_cons_cons, foldr, set.le_eq_subset],
+      split,
+      { by_cases h : hd = hd',
+        { simp [h] },
+        { rw support_swap h,
+          rintro x (hx | hx),
+          { exact or.inl (or.inl hx) },
+          { exact or.inr (or.inl hx) } } },
+      { refine (hl _).trans _,
+        rintro x (hx | hx),
+        { exact or.inl (or.inr hx) },
+        { exact or.inr (or.inr hx) } } } }
+end
+
+lemma support_form_perm_le : support (form_perm l) ≤ l.to_set :=
+begin
+  rw [form_perm, zip_with_distrib_tail],
+  refine (zip_with_swap_prod_support l.tail _).trans _,
+  rintro x (hx | hx),
+  { exact tail_subset l hx },
+  { refine (list.subset.trans (tail_subset _) (perm.subset _)) hx,
+    exact rotate_perm l 1 }
+end
+
+lemma support_form_perm_finite : (support (form_perm l)).finite :=
+set.finite.subset (l.to_set_finite) (support_form_perm_le _)
 
 lemma form_perm_rotation_invariant (n : ℕ) (l : list α) (h : nodup l) :
   form_perm (l.rotate n) = form_perm l :=
@@ -200,7 +261,6 @@ begin
   -- },
 end
 #exit
-
 
 lemma form_perm_apply_head (hd : α) (tl : list α) (h : nodup (tl ++ [hd])) :
   form_perm (tl ++ [hd]) hd = (tl ++ [hd]).nth_le 0 (by simp) :=

@@ -54,14 +54,30 @@ lemma circle_def : ↑circle = {z : ℂ | abs z = 1} := by { ext, simp }
 
 @[simp] lemma abs_eq_of_mem_circle (z : circle) : abs z = 1 := by { convert z.2, simp }
 
+@[simp] lemma norm_sq_eq_of_mem_circle (z : circle) : norm_sq z = 1 := by simp [norm_sq_eq_abs]
+
+lemma nonzero_of_mem_circle (z : circle) : (z:ℂ) ≠ 0 := nonzero_of_mem_unit_sphere z
+
 instance : group circle :=
 { inv := λ z, ⟨conj z, by simp⟩,
   mul_left_inv := λ z, subtype.ext $ by { simp [has_inv.inv, ← norm_sq_eq_conj_mul_self,
     ← mul_self_abs] },
   .. circle.to_monoid }
 
-@[simp] lemma coe_inv_circle (z : circle) : ↑(z⁻¹) = conj z := rfl
-@[simp] lemma coe_div_circle (z w : circle) : ↑(z / w) = ↑z * conj w := rfl
+lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj z := rfl
+
+@[simp] lemma coe_inv_circle (z : circle) : ↑(z⁻¹) = (z : ℂ)⁻¹ :=
+begin
+  rw coe_inv_circle_eq_conj,
+  apply eq_inv_of_mul_right_eq_one,
+  rw [mul_comm, ← complex.norm_sq_eq_conj_mul_self],
+  simp,
+end
+
+@[simp] lemma coe_div_circle (z w : circle) : ↑(z / w) = (z:ℂ) / w :=
+show ↑(z * w⁻¹) = (z:ℂ) * w⁻¹, by simp
+
+instance : compact_space circle := metric.sphere.compact_space _ _
 
 -- the following result could instead be deduced from the Lie group structure on the circle using
 -- `topological_group_of_lie_group`, but that seems a little awkward since one has to first provide
@@ -97,6 +113,9 @@ instance : lie_group (𝓡 1) circle :=
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ`. -/
 def exp_map_circle (t : ℝ) : circle :=
 ⟨exp (t * I), by simp [exp_mul_I, abs_cos_add_sin_mul_I]⟩
+
+@[simp] lemma exp_map_circle_apply (t : ℝ) : ↑(exp_map_circle t) = complex.exp (t * complex.I) :=
+rfl
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ`, considered as a homomorphism of
 groups. -/

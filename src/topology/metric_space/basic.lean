@@ -1292,6 +1292,17 @@ open metric
 class proper_space (α : Type u) [pseudo_metric_space α] : Prop :=
 (compact_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
 
+/-- In a proper pseudometric space, all spheres are compact. -/
+lemma is_compact_sphere {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
+  is_compact (sphere x r) :=
+compact_of_is_closed_subset (proper_space.compact_ball x r) is_closed_sphere
+  sphere_subset_closed_ball
+
+/-- In a proper pseudometric space, the subtype of any sphere is a `compact_space`. -/
+instance {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
+  compact_space (sphere x r) :=
+compact_iff_compact_space.mp (is_compact_sphere _ _)
+
 /-- A proper pseudo metric space is sigma compact, and therefore second countable. -/
 @[priority 100] -- see Note [lower instance priority]
 instance second_countable_of_proper [proper_space α] :

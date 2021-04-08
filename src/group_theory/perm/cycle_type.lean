@@ -7,6 +7,7 @@ Authors: Thomas Browning
 import group_theory.perm.cycles
 import combinatorics.partition
 import data.multiset.gcd
+import tactic.linarith
 
 /-!
 # Cycle Types
@@ -302,56 +303,6 @@ begin
       exact ab },
     { rw [swap_apply_right, swap_apply_left],
       exact bc } }
-end
-
-open subgroup
-
-lemma swap_mul_swap_same_mem_closure_three_cycles {a b c : α} (ab : a ≠ b) (ac : a ≠ c) :
-  (swap a b * swap a c) ∈ closure {σ : perm α | is_three_cycle σ } :=
-begin
-  by_cases bc : b = c,
-  { subst bc,
-    simp [one_mem] },
-  exact subset_closure (is_three_cycle_swap_mul_swap_same ab ac bc)
-end
-
-lemma is_swap.mul_mem_closure_three_cycles {σ τ : perm α}
-  (hσ : is_swap σ) (hτ : is_swap τ) :
-  σ * τ ∈ closure {σ : perm α | is_three_cycle σ } :=
-begin
-  obtain ⟨a, b, ab, rfl⟩ := hσ,
-  obtain ⟨c, d, cd, rfl⟩ := hτ,
-  by_cases ac : a = c,
-  { subst ac,
-    exact swap_mul_swap_same_mem_closure_three_cycles ab cd },
-  have h' : swap a b * swap c d = swap a b * swap a c * (swap c a * swap c d),
-  { simp [swap_comm c a, mul_assoc] },
-  rw h',
-  exact mul_mem _ (swap_mul_swap_same_mem_closure_three_cycles ab ac)
-    (swap_mul_swap_same_mem_closure_three_cycles (ne.symm ac) cd),
-end
-
-@[simp]
-theorem closure_three_cycles_eq_alternating :
-  closure {σ : perm α | is_three_cycle σ} = alternating_subgroup α :=
-closure_eq_of_le _ (λ σ hσ, mem_alternating_subgroup.2 hσ.sign) $ λ σ hσ, begin
-  suffices hind : ∀ (n : ℕ) (l : list (perm α)) (hl : ∀ g, g ∈ l → is_swap g)
-    (hn : l.length = 2 * n), l.prod ∈ closure {σ : perm α | is_three_cycle σ},
-  { obtain ⟨l, rfl, hl⟩ := trunc_swap_factors σ,
-    obtain ⟨n, hn⟩ := (prod_list_swap_mem_alternating_subgroup_iff_even_length hl).1 hσ,
-    exact hind n l hl hn },
-  intro n,
-  induction n with n ih; intros l hl hn,
-  { simp [list.length_eq_zero.1 hn, one_mem] },
-  rw [nat.mul_succ] at hn,
-  obtain ⟨a, l, rfl⟩ := l.exists_of_length_succ hn,
-  rw [list.length_cons, nat.succ_inj'] at hn,
-  obtain ⟨b, l, rfl⟩ := l.exists_of_length_succ hn,
-  rw [list.prod_cons, list.prod_cons, ← mul_assoc],
-  rw [list.length_cons, nat.succ_inj'] at hn,
-  exact mul_mem _ (is_swap.mul_mem_closure_three_cycles (hl a (list.mem_cons_self a _))
-    (hl b (list.mem_cons_of_mem a (l.mem_cons_self b))))
-    (ih _ (λ g hg, hl g (list.mem_cons_of_mem _ (list.mem_cons_of_mem _ hg))) hn),
 end
 
 end is_three_cycle

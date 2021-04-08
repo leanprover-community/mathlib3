@@ -580,7 +580,7 @@ calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
       (λ ⟨x, _⟩, subtype.eq (h x _ _))
 ... = sign g : sign_subtype_perm _ _ (λ _, id)
 
-@[simp]
+@[simp, nolint unused_arguments]
 lemma card_support_eq_two {f : perm α} (hf : f.support.finite) :
   hf.to_finset.card = 2 ↔ is_swap f :=
 begin

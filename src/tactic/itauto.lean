@@ -12,6 +12,14 @@ import tactic.hint
 The `itauto` tactic will prove any intuitionistic tautology. It implements the well known
 `G4ip` algorithm: <http://www.cs.cmu.edu/~crary/317-f20/homeworks/g4ip.pdf>
 
+All built in propositional connectives are supported: `true`, `false`, `and`, `or`, `not`, `iff`,
+`xor`, as well as `eq` and `ne` on propositions. Anything else, including definitions and
+predicate logical connectives (`forall` and `exists`), are not supported, and will have to be
+simplified or instantiated before calling this tactic.
+
+The resulting proofs will never use any axioms except possibly `propext`, and `propext` is only
+used if the input formula contains an equality of propositions `p = q`.
+
 ## Tags
 
 propositional logic, intuitionistic logic, decision procedure
@@ -33,9 +41,15 @@ inductive prop : Type
 | var : ℕ → prop            -- propositional atoms P_i
 | true : prop               -- ⊤
 | false : prop              -- ⊥
-| and : and_kind → prop → prop → prop  -- p ∧ q, p ↔ q, p = q
+| and' : and_kind → prop → prop → prop  -- p ∧ q, p ↔ q, p = q
 | or : prop → prop → prop   -- p ∨ q
 | imp : prop → prop → prop  -- p → q
+
+@[pattern] def prop.and : prop → prop → prop := prop.and' and_kind.and
+@[pattern] def prop.iff : prop → prop → prop := prop.and' and_kind.iff
+@[pattern] def prop.eq : prop → prop → prop := prop.and' and_kind.eq
+@[pattern] def prop.not (a : prop) : prop := a.imp prop.false
+@[pattern] def prop.xor (a b : prop) : prop := (a.and b.not).or (b.and a.not)
 
 instance : inhabited prop := ⟨prop.true⟩
 
@@ -49,9 +63,9 @@ meta def prop.to_format : prop → format
 | (prop.var i) := format!"v{i}"
 | prop.true := format!"⊤"
 | prop.false := format!"⊥"
-| (prop.and and_kind.and p q) := format!"({p.to_format} ∧ {q.to_format})"
-| (prop.and and_kind.iff p q) := format!"({p.to_format} ↔ {q.to_format})"
-| (prop.and and_kind.eq p q) := format!"({p.to_format} = {q.to_format})"
+| (prop.and p q) := format!"({p.to_format} ∧ {q.to_format})"
+| (prop.iff p q) := format!"({p.to_format} ↔ {q.to_format})"
+| (prop.eq p q) := format!"({p.to_format} = {q.to_format})"
 | (prop.or p q) := format!"({p.to_format} ∨ {q.to_format})"
 | (prop.imp p q) := format!"({p.to_format} → {q.to_format})"
 
@@ -71,7 +85,7 @@ begin
   case var var { exact cmp p q },
   case true true { exact eq },
   case false false { exact eq },
-  case and and : aq q₁ q₂ { exact (ap.cmp aq).or_else ((p₁ q₁).or_else (p₂ q₂)) },
+  case and' and' : aq q₁ q₂ { exact (ap.cmp aq).or_else ((p₁ q₁).or_else (p₂ q₂)) },
   case or or : q₁ q₂ { exact (p₁ q₁).or_else (p₂ q₂) },
   case imp imp : q₁ q₂ { exact (p₁ q₁).or_else (p₂ q₂) },
   exacts [lt, lt, lt, lt, lt,
@@ -184,22 +198,22 @@ meta def proof.check : name_map prop → proof → option prop
 | Γ (proof.exfalso' A p) := guard (p.check Γ = some prop.false) $> A
 | Γ (proof.intro x A p) := do B ← p.check (Γ.insert x A), pure (prop.imp A B)
 | Γ (proof.and_left ak p) := do
-  prop.and ak' A B ← p.check Γ | none,
+  prop.and' ak' A B ← p.check Γ | none,
   guard (ak = ak') $> (ak.sides A B).1
 | Γ (proof.and_right ak p) := do
-  prop.and ak' A B ← p.check Γ | none,
+  prop.and' ak' A B ← p.check Γ | none,
   guard (ak = ak') $> (ak.sides A B).2
 | Γ (proof.and_intro and_kind.and p q) := do
   A ← p.check Γ, B ← q.check Γ,
-  pure (A.and and_kind.and B)
+  pure (A.and B)
 | Γ (proof.and_intro ak p q) := do
   prop.imp A B ← p.check Γ | none,
-  C ← q.check Γ, guard (C = prop.imp B A) $> (A.and ak B)
+  C ← q.check Γ, guard (C = prop.imp B A) $> (A.and' ak B)
 | Γ (proof.curry ak A' B' p) := do
-  prop.imp (prop.and ak' A B) C ← p.check Γ | none,
+  prop.imp (prop.and' ak' A B) C ← p.check Γ | none,
   guard (ak = ak' ∧ ak.sides A B = (A', B')) $> (A'.imp $ B'.imp C)
 | Γ (proof.curry₂ ak B' p q) := do
-  prop.imp (prop.and ak' A B) C ← p.check Γ | none,
+  prop.imp (prop.and' ak' A B) C ← p.check Γ | none,
   A' ← q.check Γ, guard (ak = ak' ∧ ak.sides A B = (A', B')) $> (B'.imp C)
 | Γ (proof.app' p q) := do prop.imp A B ← p.check Γ | none, A' ← q.check Γ, guard (A = A') $> B
 | Γ (proof.or_imp_left A B p) := do
@@ -240,13 +254,13 @@ hypothesis, split all conjunctions, and also simplify `⊥ → A` (drop), `⊤ �
 meta def context.add : prop → proof → context → except (prop → proof) context
 | prop.true p Γ := pure Γ
 | prop.false p Γ := except.error (λ A, proof.exfalso A p)
-| (prop.and ak A B) p Γ := do
+| (prop.and' ak A B) p Γ := do
   let (A, B) := ak.sides A B,
   Γ ← Γ.add A (p.and_left ak),
   Γ.add B (p.and_right ak)
 | (prop.imp prop.false A) p Γ := pure Γ
 | (prop.imp prop.true A) p Γ := Γ.add A (p.app proof.triv)
-| (prop.imp (prop.and ak A B) C) p Γ :=
+| (prop.imp (prop.and' ak A B) C) p Γ :=
   let (A, B) := ak.sides A B in
   Γ.add (prop.imp A (B.imp C)) (p.curry ak A B)
 | (prop.imp (prop.or A B) C) p Γ := do
@@ -322,7 +336,7 @@ meta def prove : context → prop → state_t ℕ option proof
 | Γ (prop.imp A B) := do
   a ← fresh_name,
   proof.intro a A <$> Γ.with_add A (proof.hyp a) B prove
-| Γ (prop.and ak A B) := do
+| Γ (prop.and' ak A B) := do
   let (A, B) := ak.sides A B,
   p ← prove Γ A,
   q ← prove Γ B,
@@ -354,12 +368,13 @@ meta def reify_atom (atoms : ref (buffer expr)) (e : expr) : tactic prop := do
 meta def reify (atoms : ref (buffer expr)) : expr → tactic prop
 | `(true) := pure prop.true
 | `(false) := pure prop.false
-| `(¬ %%a) := flip prop.imp prop.false <$> reify a
-| `(%%a ∧ %%b) := prop.and and_kind.and <$> reify a <*> reify b
+| `(¬ %%a) := prop.not <$> reify a
+| `(%%a ∧ %%b) := prop.and <$> reify a <*> reify b
 | `(%%a ∨ %%b) := prop.or <$> reify a <*> reify b
-| `(%%a ↔ %%b) := prop.and and_kind.iff <$> reify a <*> reify b
-| `(@eq Prop %%a %%b) := prop.and and_kind.eq <$> reify a <*> reify b
-| `(@ne Prop %%a %%b) := do a ← reify a, b ← reify b, pure $ (a.and and_kind.eq b).imp prop.false
+| `(%%a ↔ %%b) := prop.iff <$> reify a <*> reify b
+| `(xor %%a %%b) := prop.xor <$> reify a <*> reify b
+| `(@eq Prop %%a %%b) := prop.eq <$> reify a <*> reify b
+| `(@ne Prop %%a %%b) := prop.not <$> (prop.eq <$> reify a <*> reify b)
 | e@`(%%a → %%b) :=
   if b.has_var then reify_atom atoms e else prop.imp <$> reify a <*> reify b
 | e := reify_atom atoms e

@@ -26,21 +26,26 @@ example (p q r : Prop) : p ∨ (q ∧ r) → (p ∨ q) ∧ (r ∨ p ∨ r) := by
 example (p q r : Prop) : p ∨ (q ∧ r) → (p ∨ q) ∧ (r ∨ p ∨ r) := by itauto
 example (p q : Prop) (h : ¬ (p ↔ q)) (h' : p) : ¬ q := by itauto
 example (p q : Prop) (h : ¬ (p ↔ q)) (h' : q) : ¬ p := by itauto
-example (p q : Prop) (h : ¬ (p ↔ q)) (h' : ¬ p) : true :=
-by { have : q, success_if_fail {itauto}, sorry, itauto }
-example (p q : Prop) (h : ¬ (p ↔ q)) (h' : ¬ q) : true :=
-by { have : p, success_if_fail {itauto}, sorry, itauto }
 example (p q : Prop) (h : ¬ (p ↔ q)) (h' : ¬ q) (h'' : ¬ p) : false := by itauto
 example (p q r : Prop) (h : p ↔ q) (h' : r ↔ q) (h'' : ¬ r) : ¬ p := by itauto
 example (p q r : Prop) (h : p ↔ q) (h' : r ↔ q) : p ↔ r := by itauto
+example (p q : Prop) : xor p q → (p ↔ ¬ q) := by itauto
+example (p q : Prop) : xor p q → xor q p := by itauto
 
-example (p q r : Prop) (h : ¬ (p ↔ q)) (h' : r ↔ q) : true :=
-by { have : p ↔ ¬ r, success_if_fail {itauto}, sorry, itauto }
 example (p q r : Prop) (h : ¬ (p ↔ q)) (h' : r ↔ q) : ¬ (p ↔ r) := by itauto
 
 example (p : Prop) : p → ¬ (p → ¬ p) := by itauto
 
 example (p : Prop) (em : p ∨ ¬ p) : ¬ (p ↔ ¬ p) := by itauto
+
+-- failure tests
+example (p q r : Prop) : true :=
+begin
+  have : p ∨ ¬ p, {success_if_fail {itauto}, sorry}, clear this,
+  have : ¬ (p ↔ q) → ¬ p → q, {success_if_fail {itauto}, sorry}, clear this,
+  have : ¬ (p ↔ q) → (r ↔ q) → (p ↔ ¬ r), {success_if_fail {itauto}, sorry}, clear this,
+  trivial
+end
 
 example (P : ℕ → Prop) (n : ℕ) (h : ¬ (n = 7 ∨ n = 0) ∧ P n) : ¬ (P n → n = 7 ∨ n = 0) :=
 by itauto

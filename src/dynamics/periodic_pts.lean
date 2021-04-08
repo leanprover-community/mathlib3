@@ -231,23 +231,18 @@ begin
 end
 
 lemma minimal_period_id : minimal_period id x = 1 :=
-begin
-  apply le_antisymm,
-  { exact is_periodic_pt.minimal_period_le (nat.one_pos) (is_periodic_id _ _ ) },
-  { exact nat.succ_le_of_lt (is_periodic_pt.minimal_period_pos (nat.one_pos) (is_periodic_id _ _)) }
-end
+((is_periodic_id _ _ ).minimal_period_le (nat.one_pos)).antisymm
+  (nat.succ_le_of_lt ((is_periodic_id _ _ ).minimal_period_pos (nat.one_pos)))
 
 lemma is_fixed_point_iff_minimal_period_eq_one : minimal_period f x = 1 ↔ is_fixed_pt f x :=
 begin
-  split,
-  { intro h,
-    rw ← iterate_one f,
-    apply function.is_periodic_pt.is_fixed_pt,
-    convert is_periodic_pt_minimal_period f x,
-    exact h.symm },
-  { intro h,
-    exact le_antisymm (is_periodic_pt.minimal_period_le (nat.one_pos) (h.is_periodic_pt 1))
-      (nat.succ_le_of_lt (is_periodic_pt.minimal_period_pos (nat.one_pos) (h.is_periodic_pt 1))) }
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw ← iterate_one f,
+    refine function.is_periodic_pt.is_fixed_pt _,
+    rw ← h,
+    exact is_periodic_pt_minimal_period f x },
+  { exact ((h.is_periodic_pt 1).minimal_period_le (nat.one_pos)).antisymm
+      (nat.succ_le_of_lt ((h.is_periodic_pt 1).minimal_period_pos (nat.one_pos))) }
 end
 
 lemma is_periodic_pt.eq_zero_of_lt_minimal_period (hx : is_periodic_pt f n x)
@@ -257,7 +252,7 @@ eq.symm $ (eq_or_lt_of_le $ n.zero_le).resolve_right $ λ hn0,
 not_lt.2 (hx.minimal_period_le hn0) hn
 
 lemma not_mem_periodic_pts_of_lt_minimal_period (hn : n < minimal_period f x) :
-¬ (0 < n ∧ is_periodic_pt f n x) :=
+  ¬ (0 < n ∧ is_periodic_pt f n x) :=
 begin
   rw [minimal_period] at hn,
   refine not_and.mpr (λ n0, λ hm, not_le.mpr hn _),
@@ -274,8 +269,7 @@ nat.mod_lt _ $ hx.minimal_period_pos hn0
 
 lemma is_periodic_pt_iff_minimal_period_dvd :
   is_periodic_pt f n x ↔ minimal_period f x ∣ n :=
-⟨is_periodic_pt.minimal_period_dvd,
-  λ h, (is_periodic_pt_minimal_period f x).trans_dvd h⟩
+⟨is_periodic_pt.minimal_period_dvd, λ h, (is_periodic_pt_minimal_period f x).trans_dvd h⟩
 
 open nat
 

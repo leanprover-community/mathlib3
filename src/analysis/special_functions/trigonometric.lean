@@ -1158,7 +1158,8 @@ by rw [← abs_sin_eq_sqrt_one_sub_cos_sq, abs_of_nonneg (sin_nonneg_of_nonneg_o
 
 lemma cos_eq_sqrt_one_sub_sin_sq {x : ℝ} (hl : -(π / 2) ≤ x) (hu : x ≤ π / 2) :
   cos x = sqrt (1 - sin x ^ 2) :=
-by rw [← abs_cos_eq_sqrt_one_sub_sin_sq, abs_of_nonneg (cos_nonneg_of_neg_pi_div_two_le_of_le hl hu)]
+by rw [← abs_cos_eq_sqrt_one_sub_sin_sq,
+  abs_of_nonneg (cos_nonneg_of_neg_pi_div_two_le_of_le hl hu)]
 
 lemma sin_nat_mul_pi (n : ℕ) : sin (n * π) = 0 :=
 by induction n; simp [add_mul, sin_add, *]

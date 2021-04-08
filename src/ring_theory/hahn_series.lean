@@ -662,10 +662,6 @@ variables (R) [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
   end,
   .. to_power_series }
 
-@[simp]
-lemma to_power_series_alg_symm_apply' {f : power_series A} :
-  (hahn_series.to_power_series_alg R).symm f = hahn_series.to_power_series.symm f := rfl
-
 end algebra
 
 section valuation

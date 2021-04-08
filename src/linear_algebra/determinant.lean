@@ -125,10 +125,7 @@ begin
     (λ σ _, σ * swap i j)
     (λ σ _,
       have ∏ x, M (σ x) (p x) = ∏ x, M ((σ * swap i j) x) (p x),
-        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _)
-          (by simp [apply_swap_eq_self hpij])
-          (λ _ _ _ _ h, (swap i j).injective h)
-          (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
+        from fintype.prod_equiv (swap i j) _ _ (by simp [apply_swap_eq_self hpij]),
       by simp [this, sign_swap hij, prod_mul_distrib])
     (λ σ _ _, (not_congr mul_swap_eq_iff).mpr hij)
     (λ _ _, mem_univ _)
@@ -150,16 +147,15 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
 ... = ∑ σ : perm n, ∑ τ : perm n, (∏ i, N (σ i) i) * ε τ * (∏ j, M (τ j) (σ j)) :
   by simp [mul_sum, det_apply', mul_comm, mul_left_comm, prod_mul_distrib, mul_assoc]
 ... = ∑ σ : perm n, ∑ τ : perm n, (((∏ i, N (σ i) i) * (ε σ * ε τ)) * ∏ i, M (τ i) i) :
-  sum_congr rfl (λ σ _, sum_bij (λ τ _, τ * σ⁻¹) (λ _ _, mem_univ _)
-    (λ τ _,
+  sum_congr rfl (λ σ _, fintype.sum_equiv (equiv.mul_right σ⁻¹) _ _
+    (λ τ,
       have ∏ j, M (τ j) (σ j) = ∏ j, M ((τ * σ⁻¹) j) j,
         by rw ← σ⁻¹.prod_comp; simp [mul_apply],
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
           by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp
         ... = ε τ : by simp,
-      by rw h; simp [this, mul_comm, mul_assoc, mul_left_comm])
-    (λ _ _ _ _, mul_right_cancel) (λ τ _, ⟨τ * σ, by simp⟩))
+      by simp_rw [equiv.coe_mul_right, h]; simp [this, mul_comm, mul_assoc, mul_left_comm]))
 ... = det M * det N : by simp [det_apply', mul_assoc, mul_sum, mul_comm, mul_left_comm]
 
 instance : is_monoid_hom (det : matrix n n R → R) :=
@@ -170,18 +166,13 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
 @[simp] lemma det_transpose (M : matrix n n R) : Mᵀ.det = M.det :=
 begin
   rw [det_apply', det_apply'],
-  apply sum_bij (λ σ _, σ⁻¹),
-  { intros σ _, apply mem_univ },
-  { intros σ _,
-    rw [sign_inv],
-    congr' 1,
-    apply prod_bij (λ i _, σ i),
-    { intros i _, apply mem_univ },
-    { intros i _, simp },
-    { intros i j _ _ h, simp at h, assumption },
-    { intros i _, use σ⁻¹ i, finish } },
-  { intros σ σ' _ _ h, simp at h, assumption },
-  { intros σ _, use σ⁻¹, finish }
+  refine fintype.sum_equiv (inv_involutive.to_equiv _) _ _ _,
+  intros σ,
+  rw [involutive.to_equiv_apply, sign_inv],
+  congr' 1,
+  apply fintype.prod_equiv σ,
+  intros,
+  simp
 end
 
 

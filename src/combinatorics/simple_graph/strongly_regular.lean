@@ -10,9 +10,8 @@ import data.set.finite
 
 ## Main definitions
 
-* `common_neighbors` is the intersection of the neighbor sets of two given vertices
-
-* `G.is_SRG_of n k l m` is a structure for a `simple_graph` with conditions
+* `G.is_SRG_of n k l m` (see `is_simple_graph.is_SRG_of`) is a structure for a `simple_graph`
+  satisfying the following conditions:
   * The cardinality of the vertex set is `n`
   * `G` is a regular graph with degree `k`
   * The number of common neighbors between any two adjacent vertices in `G` is `l`
@@ -22,9 +21,9 @@ import data.set.finite
 - Prove that the complement of a strongly regular graph is strongly regular with parameters
   `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (v - 2k + l)`
 - Prove that the parameters of a strongly regular graph
-  obey relation `(n - k - 1) * m = k * (k - l - 1)`
-- Prove that if I is the identity matrix and J is the all-one matrix,
-  then the adj matrix A of SRG obeys relation A^2 = kI + lA + m(J - I - A)
+  obey the relation `(n - k - 1) * m = k * (k - l - 1)`
+- Prove that if `I` is the identity matrix and `J` is the all-one matrix,
+  then the adj matrix `A` of SRG obeys relation `A^2 = kI + lA + m(J - I - A)`
 -/
 
 universes u
@@ -48,47 +47,22 @@ structure is_SRG_of (n k l m : ℕ) : Prop :=
 (adj_common : ∀ (v w : V), G.adj v w → fintype.card (G.common_neighbors v w) = l)
 (nadj_common : ∀ (v w : V), ¬ G.adj v w ∧ v ≠ w → fintype.card (G.common_neighbors v w) = m)
 
-lemma complete_strongly_regular (x : ℕ) :
-  (complete_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) x :=
+open finset
+
+/-- Complete graphs are strongly regular. Note that the parameter `m` can take any value
+  for complete graphs, since there are no distinct pairs of nonadjacent vertices. -/
+lemma complete_strongly_regular (m : ℕ) :
+  (complete_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) m :=
 { card := rfl,
   regular := complete_graph_degree,
-  adj_common := λ v w h,
+  adj_common := λ v w (h : v ≠ w),
     begin
-      simp only [finset.filter_congr_decidable, fintype.card_of_finset, mem_common_neighbors],
-      have h2 : (finset.filter (λ (x : V), ¬ (v ≠ x ∧ w ≠ x)) finset.univ).card = 2,
-      { simp_rw [not_and_distrib, not_not, finset.filter_or],
-        convert_to finset.card (insert v {w}) = 2,
-        { congr' 1,
-          ext; simp,
-          split,
-          { intros h,
-            cases h with av aw,
-            { rw ← av,
-              refine finset.mem_insert_self v {w} },
-            { rw ← aw,
-              rw finset.insert_singleton_comm,
-              refine finset.mem_insert_self w {v} } },
-          intros h,
-          finish },
-        rw finset.card_insert_of_not_mem,
-        { refl },
-        { rw finset.not_mem_singleton,
-          apply ne_of_adj _ h } },
-      apply @nat.add_right_cancel _ 2 _,
-      rw nat.sub_add_cancel,
-      { rw ← finset.card_univ,
-        change (finset.filter (λ (x : V), v ≠ x ∧ w ≠ x) finset.univ).card + 2 = finset.univ.card,
-        rw [← h2, finset.filter_card_add_filter_neg_card_eq_card] },
-      { rw [← h2, ← finset.card_univ],
-        apply finset.card_filter_le },
+      simp only [fintype.card_of_finset, mem_common_neighbors, complete_graph, ne.def, filter_not,
+        ←not_or_distrib, filter_eq, filter_or, card_univ_diff, mem_univ, if_pos, ←insert_eq],
+      rw [card_insert_of_not_mem, card_singleton],
+      simpa,
     end,
-  nadj_common := λ v w h,
-    begin
-      cases h with hnadj hne,
-      rw [complete_graph, not_not] at hnadj,
-      exfalso,
-      apply hne hnadj,
-    end }
+  nadj_common := λ v w (h : ¬(v ≠ w) ∧ _), (h.1 h.2).elim }
 
 -- Prove that the complement of a strongly regular graph is strongly regular with parameters
   -- `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (v - 2k + l)`

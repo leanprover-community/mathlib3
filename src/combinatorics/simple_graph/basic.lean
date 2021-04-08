@@ -696,18 +696,10 @@ begin
   rw is_regular_of_degree,
   intros v,
   specialize h v,
-  have h2 := degree_lt_card_verts G v,
-  rw nat.sub_sub,
-  rw add_comm,
-  rw ← nat.sub_sub,
-  rw ← neighbor_set_union_compl_neighbor_set_card G v,
-  rw ← h,
-  simp,
-  rw card_disjoint_union,
-  simp only [card_disjoint_union, degree, neighbor_finset, nat.add_sub_cancel_left],
-
-  rw set.to_finset_disjoint_iff,
-  exact compl_neighbor_set_disjoint G v,
+  rw [nat.sub_sub, add_comm, ← nat.sub_sub, ← neighbor_set_union_compl_neighbor_set_card G v, ← h,
+      fintype.card_of_finset],
+  rw card_disjoint_union (set.to_finset_disjoint_iff.2 (compl_neighbor_set_disjoint G v)),
+  simp only [degree, neighbor_finset, nat.add_sub_cancel_left],
 end
 
 end complement

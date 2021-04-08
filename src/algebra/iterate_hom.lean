@@ -136,7 +136,7 @@ funext $ λ x, by simp [iterate_succ, ihn, pow_succ', mul_assoc]
 @[simp] lemma add_left_iterate [add_monoid M] (a : M) (n : ℕ) : ((+) a)^[n] = (+) (n •ℕ a) :=
 @mul_left_iterate (multiplicative M) _ a n
 
-@[simp] lemma iterate_mul_right_apply [monoid M] (a : M) {n : ℕ} :
+lemma iterate_mul_right_apply [monoid M] (a : M) {n : ℕ} :
   (* a)^[n] = (* a ^ n) :=
 begin
   induction n with d hd,
@@ -144,7 +144,7 @@ begin
   { simpa [hd] }
 end
 
-@[simp] lemma iterate_add_right_apply [add_monoid M] (x : M) {n : ℕ} :
+lemma iterate_add_right_apply [add_monoid M] (x : M) {n : ℕ} :
     (+ x)^[n] = λ (_x : M), _x + n •ℕ x :=
 begin
   induction n with d hd,
@@ -153,14 +153,14 @@ begin
 end
 
 @[simp] lemma iterate_mul_apply_one [monoid M] (a : M) {n : ℕ} : (* a)^[n] 1 = a ^ n :=
-by simp
+by simp [iterate_mul_right_apply]
 
 @[simp] lemma iterate_add_apply_zero [add_monoid M] (x : M) {n : ℕ} : (+ x)^[n] 0 = n •ℕ x :=
-by simp
+by simp [iterate_add_right_apply]
 
 @[simp] lemma mul_right_iterate [monoid M] (a : M) (n : ℕ) :
   (λ x, x * a)^[n] = (λ x, x * a^n) :=
-by simp
+by simp [iterate_mul_right_apply]
 
 @[simp] lemma add_right_iterate [add_monoid M] (a : M) (n : ℕ) :
   (λ x, x + a)^[n] = λ x, x + (n •ℕ a) :=

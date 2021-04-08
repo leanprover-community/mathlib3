@@ -40,9 +40,9 @@ def is_cycle (f : perm β) : Prop := ∃ x, f x ≠ x ∧ ∀ y, f y ≠ y → �
 lemma is_cycle.ne_one {f : perm β} (h : is_cycle f) : f ≠ 1 :=
 λ hf, by simpa [hf, is_cycle] using h
 
-lemma is_cycle.two_le_card_support {f : perm α} (h : is_cycle f) [fintype f.support] :
-  2 ≤ f.support.to_finset.card :=
-two_le_card_support_of_ne_one h.ne_one
+lemma is_cycle.two_le_card_support {f : perm α} (h : is_cycle f) (hf : f.support.finite) :
+  2 ≤ hf.to_finset.card :=
+two_le_card_support_of_ne_one hf h.ne_one
 
 lemma is_cycle.swap {α : Type*} [decidable_eq α] {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=
 ⟨y, by rwa swap_apply_right,
@@ -96,11 +96,12 @@ begin
     exact ⟨⟨σ ^ n, n, rfl⟩, rfl⟩ },
 end
 
-lemma order_of_is_cycle {σ : perm α} (hσ : is_cycle σ) [fintype α] [fintype σ.support] :
-  order_of σ = σ.support.to_finset.card :=
+lemma order_of_is_cycle [fintype α] {σ : perm α} (hσ : is_cycle σ) (hf : σ.support.finite) :
+  order_of σ = hf.to_finset.card :=
 begin
   rw [order_eq_card_gpowers, ←fintype.card_coe],
-  convert fintype.card_congr (is_cycle.gpowers_equiv_support hσ),
+  letI := hf.fintype,
+  convert fintype.card_congr (is_cycle.gpowers_equiv_support hσ) using 3,
   simp
 end
 
@@ -177,71 +178,52 @@ lemma is_cycle.swap_mul {α : Type*} [decidable_eq α] {f : perm α} (hf : is_cy
     ... = y : by rwa [← gpow_add, sub_add_cancel],
   is_cycle_swap_mul_aux₂ (i - 1) hy hi⟩
 
-lemma is_cycle.sign [fintype α] {f : perm α} (hf : is_cycle f) [fintype f.support] :
-  sign f = -(-1) ^ f.support.to_finset.card
-  :=
-begin
-  unfreezingI {
-    revert f,
-    intro f,
-    apply swap_induction_on f,
-    { rintro ⟨x, hx⟩,
-      simpa using hx },
-    { intros f x y hxy IH hf hfs,
-      by_cases hd : disjoint (swap x y) f,
-      { have hm : (swap x y * f).support = (swap x y).support ∪ f.support := hd.support_mul,
-        have : (swap x y * f).support.finite := ⟨hfs⟩,
-      },
-      {  },
-    },
-  }
-  -- have hf' := hf,
-  -- obtain ⟨x, hx⟩ := hf',
-  -- have : sign f = sign (swap x (f x) * (swap x (f x) * f)),
-  --   { simp },
-  -- rw this,
-  -- by_cases h1 : f (f x) = x,
-  -- { have : f = swap x (f x) := hf.eq_swap_of_apply_apply_eq_self hx.left h1,
-  --   have h : swap x (f x) * f = 1,
-  --   { rw this,
-  --     simp },
-  --   have hp : ((-1) : units ℤ) = -((-1) ^ 2),
-  --     { simp [pow_succ] },
-  --   rw [sign_mul, h, sign_one, mul_one, sign_swap hx.left.symm, hp],
-  --   congr,
-  --   simp_rw [congr_arg support this, support_swap hx.left.symm],
-  --   rw [set.to_finset_card, fintype.card_of_finset' {x, f x}, card_insert_of_not_mem,
-  --       card_singleton];
-  --   simp [hx.left.symm] },
-  -- {
-  --   have
-  --   have h : card (support (swap x (f x) * f)).to_finset + 1 = card (support f).to_finset,
-  -- },
-end
--- | f := λ hf hff,
--- let ⟨x, hx⟩ := hf in
--- calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
---   by rw [← mul_assoc, mul_def, mul_def, swap_swap, trans_refl]
--- ... = -(-1) ^ f.support.to_finset.card :
---   if h1 : f (f x) = x
---   then
---     have h : swap x (f x) * f = 1,
---       begin
---         rw hf.eq_swap_of_apply_apply_eq_self hx.1 h1,
---         simp only [perm.mul_def, perm.one_def, swap_apply_left, swap_swap]
---       end,
---     by { rw [sign_mul, sign_swap hx.1.symm, h, sign_one, hf.eq_swap_of_apply_apply_eq_self hx.1 h1,
---       card_support_swap hx.1.symm], refl }
---   else
---     have h : card (support (swap x (f x) * f)).to_finset + 1 = card (support f).to_finset,
---       by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_eq h1,
---         card_insert_of_not_mem (not_mem_erase _ _)],
---     have wf : card (support (swap x (f x) * f)).to_finset < card (support f).to_finset,
---       by {  },
---     by { rw [sign_mul, sign_swap hx.1.symm, (hf.swap_mul hx.1 h1).sign, ← h],
---       simp only [pow_add, mul_one, units.neg_neg, one_mul, units.mul_neg, eq_self_iff_true,
---         pow_one, units.neg_mul_neg] }
--- using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support.to_finset.card)⟩]}
+lemma is_cycle.sign [fintype α] : Π {f : perm α} (hf : is_cycle f) (hs : f.support.finite),
+  sign f = -(-1) ^ hs.to_finset.card
+| f := λ hf hs,
+let ⟨x, hx⟩ := hf in
+calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
+  by rw [← mul_assoc, mul_def, mul_def, swap_swap, trans_refl]
+... = -(-1) ^ hs.to_finset.card :
+  if h1 : f (f x) = x
+  then
+    have h : swap x (f x) * f = 1,
+      begin
+        rw hf.eq_swap_of_apply_apply_eq_self hx.1 h1,
+        simp only [perm.mul_def, perm.one_def, swap_apply_left, swap_swap]
+      end,
+    by {
+      rw [←inv_mul_self f, mul_right_cancel_iff, ←inv_inj, swap_inv, inv_inv] at h,
+      have : hs.to_finset.card = 2,
+        { convert card_support_swap hx.left.symm,
+          exact h.symm },
+      rw [this, ←h],
+      simp [hx.left.symm, pow_two] }
+  else
+    have hm : (support (swap x (f x) * f)).finite :=
+      ((support_swap_finite x (f x)).union hs).subset (support_mul_le _ _),
+    have h : card hm.to_finset + 1 = card hs.to_finset,
+      { rw [←card_singleton x, ←card_disjoint_union],
+        { congr,
+          ext z,
+          simp_rw [mem_union, set.finite.mem_to_finset, support_swap_mul_eq _ _ h1],
+          split,
+          { rintro (hz | hz),
+            { exact set.diff_subset _ _ hz },
+            { rw ←mem_support at hx,
+              rw mem_singleton at hz,
+              exact hz.symm ▸ hx.left } },
+          { by_cases hxz : z = x;
+            simp [hxz] } },
+        { simp } },
+    have wf : card hm.to_finset < card hs.to_finset := h ▸ nat.lt_succ_self _,
+    by { rw [sign_mul, sign_swap hx.1.symm, (hf.swap_mul hx.1 h1).sign, ← h],
+      simp only [pow_add, mul_one, units.neg_neg, one_mul, units.mul_neg, eq_self_iff_true,
+        pow_one, units.neg_mul_neg],
+        exact hm
+        }
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, (show f.support.finite,
+  from set.finite.of_fintype (perm.support f)).to_finset.card)⟩]}
 
 -- The lemma `support_pow_le` is relevant. It means that `h2` is equivalent to
 -- `σ.support = (σ ^ n).support`, as well as to `σ.support.card ≤ (σ ^ n).support.card`.
@@ -404,44 +386,32 @@ def cycle_factors_aux [fintype α] : Π (l : list α) (f : perm α),
 | []     f h := ⟨[], by { simp only [imp_false, list.pairwise.nil, list.not_mem_nil, forall_const,
     and_true, forall_prop_of_false, not_not, not_false_iff, list.prod_nil] at *,
   ext, simp * }⟩
-| (x::l) f h := begin
-  by_cases hx : f x = x,
-  { exact cycle_factors_aux l f (λ y hy, list.mem_of_ne_of_mem (λ h, hy (by rwa h)) (h hy)) },
-  { obtain ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻¹ * f) _,
-    { sorry },
-    { intros y hy,
-      refine list.mem_of_ne_of_mem _ (h _),
-      { rintro rfl,
-        simpa [inv_eq_iff_eq] using hy },
-      { intro H,
-        simpa [H, inv_eq_iff_eq, cycle_of_apply] using hy } } },
-end
--- if hx : f x = x then
---   cycle_factors_aux l f (λ y hy, list.mem_of_ne_of_mem (λ h, hy (by rwa h)) (h hy))
--- else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻¹ * f)
---   (λ y hy, list.mem_of_ne_of_mem
---     (λ h : y = x,
---       by { rw [h, mul_apply, ne.def, inv_eq_iff_eq, cycle_of_apply_self] at hy, exact hy rfl })
---     (h (λ h : f y = y, by { rw [mul_apply, h, ne.def, inv_eq_iff_eq, cycle_of_apply] at hy,
---         split_ifs at hy; cc }))) in
---     ⟨(cycle_of f x) :: m, by { rw [list.prod_cons, hm₁], simp },
---       λ g hg, ((list.mem_cons_iff _ _ _).1 hg).elim (λ hg, hg.symm ▸ is_cycle_cycle_of _ hx)
---         (hm₂ g),
---       list.pairwise_cons.2 ⟨λ g hg y,
---         or_iff_not_imp_left.2 (λ hfy,
---           have hxy : same_cycle f x y := not_not.1 (mt cycle_of_apply_of_not_same_cycle hfy),
---           have hgm : g :: m.erase g ~ m := list.cons_perm_iff_perm_erase.2 ⟨hg, list.perm.refl _⟩,
---           have ∀ h ∈ m.erase g, disjoint g h, from
---             (list.pairwise_cons.1 ((hgm.pairwise_iff (λ a b (h : disjoint a b), h.symm)).2 hm₃)).1,
-          -- _
-          -- classical.by_cases id $ λ hgy : g y ≠ y,
-          --   (disjoint_prod_right _ this _).resolve_right $
-          --   have hsc : same_cycle f⁻¹ x (f y), by rwa [same_cycle_inv, same_cycle_apply],
-          --   by { rw [disjoint_prod_perm hm₃ hgm.symm, list.prod_cons,
-          --       ← eq_inv_mul_iff_mul_eq] at hm₁,
-          --     rwa [hm₁, mul_apply, mul_apply, cycle_of_inv, hsc.cycle_of_apply,
-          --       inv_apply_self, inv_eq_iff_eq, eq_comm] }),
-        -- hm₃⟩⟩
+| (x::l) f h :=
+if hx : f x = x then
+  cycle_factors_aux l f (λ y hy, list.mem_of_ne_of_mem (λ h, hy (by rwa h)) (h hy))
+else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻¹ * f)
+  (λ y hy, list.mem_of_ne_of_mem
+    (λ h : y = x,
+      by { rw [h, mul_apply, ne.def, inv_eq_iff_eq, cycle_of_apply_self] at hy, exact hy rfl })
+    (h (λ h : f y = y, by { rw [mul_apply, h, ne.def, inv_eq_iff_eq, cycle_of_apply] at hy,
+        split_ifs at hy; cc }))) in
+    ⟨(cycle_of f x) :: m, by { rw [list.prod_cons, hm₁], simp },
+      λ g hg, ((list.mem_cons_iff _ _ _).1 hg).elim (λ hg, hg.symm ▸ is_cycle_cycle_of _ hx)
+        (hm₂ g),
+      list.pairwise_cons.2 ⟨λ g hg, disjoint_iff_eq_or_eq.mpr $ λ y,
+        or_iff_not_imp_left.2 (λ hfy,
+          have hxy : same_cycle f x y := not_not.1 (mt cycle_of_apply_of_not_same_cycle hfy),
+          have hgm : g :: m.erase g ~ m := list.cons_perm_iff_perm_erase.2 ⟨hg, list.perm.refl _⟩,
+          have ∀ h ∈ m.erase g, disjoint g h, from
+            (list.pairwise_cons.1 ((hgm.pairwise_iff (λ a b (h : disjoint a b), h.symm)).2 hm₃)).1,
+          classical.by_cases id $ λ hgy : g y ≠ y,
+            ((disjoint_prod_right _ this).def y).resolve_right $
+            have hsc : same_cycle f⁻¹ x (f y), by rwa [same_cycle_inv, same_cycle_apply],
+            by { rw [disjoint_prod_perm hm₃ hgm.symm, list.prod_cons,
+                ← eq_inv_mul_iff_mul_eq] at hm₁,
+              rwa [hm₁, mul_apply, mul_apply, cycle_of_inv, hsc.cycle_of_apply,
+                inv_apply_self, inv_eq_iff_eq, eq_comm] }),
+        hm₃⟩⟩
 
 /-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`. -/
 def cycle_factors [fintype α] [linear_order α] (f : perm α) :
@@ -483,15 +453,16 @@ section fixed_points
 ### Fixed points
 -/
 
-lemma fixed_point_card_lt_of_ne_one [fintype α] {σ : perm α} [fintype σ.support] (h : σ ≠ 1) :
+lemma fixed_point_card_lt_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
   (filter (λ x, σ x = x) univ).card < fintype.card α - 1 :=
 begin
   rw [nat.lt_sub_left_iff_add_lt, ← nat.lt_sub_right_iff_add_lt, ← finset.card_compl,
       finset.compl_filter],
-  have : (filter (λ x, σ x ≠ x) univ) = σ.support.to_finset,
+  have hf : σ.support.finite := set.finite.of_fintype (perm.support σ),
+  have : (filter (λ x, σ x ≠ x) univ) = hf.to_finset,
     { simp [finset.ext_iff] },
   rw this,
-  exact one_lt_card_support_of_ne_one h
+  exact one_lt_card_support_of_ne_one hf h
 end
 
 end fixed_points

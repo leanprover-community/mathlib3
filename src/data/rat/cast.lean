@@ -278,28 +278,27 @@ end
 instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
 ⟨ring_hom.ext_rat⟩
 
-/-- Integer values of a morphism `φ` completely determine `φ`. -/
-theorem ext_hom_int {α} [group_with_zero α] {φ₁ φ₂ : monoid_with_zero_hom ℚ α}
-  (same_on_int : φ₁.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom =
-    φ₂.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom) : φ₁ = φ₂ :=
+namespace monoid_with_zero_hom
+
+variables {M : Type*} [group_with_zero M]
+
+/-- If `f` and `g` agree on the integers then they are equal `φ`.
+
+See note [partially-applied ext lemmas] for why `comp` is used here. -/
+@[ext]
+theorem ext_rat {f g : monoid_with_zero_hom ℚ M}
+  (same_on_int : f.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom =
+    g.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom) : f = g :=
 begin
-  have same_on_int' : ∀ k : ℤ, φ₁ k = φ₂ k,
-  from monoid_with_zero_hom.congr_fun same_on_int,
+  have same_on_int' : ∀ k : ℤ, f k = g k := congr_fun same_on_int,
   ext x,
-  rw ← @rat.num_denom x,
-  rw rat.mk_eq_div,
-  repeat { rw div_eq_mul_inv, },
-  rw ← coe_coe,
-  rw monoid_with_zero_hom.map_mul φ₁,
-  rw monoid_with_zero_hom.map_inv' φ₁ x.denom,
-  rw monoid_with_zero_hom.map_mul φ₂,
-  rw monoid_with_zero_hom.map_inv' φ₂ x.denom,
-  rw same_on_int' x.num,
-  have := same_on_int' x.denom, rw ← coe_coe at this,
-  rw this,
+  rw [← @rat.num_denom x, rat.mk_eq_div, f.map_div, g.map_div,
+    same_on_int' x.num, same_on_int' x.denom],
 end
 
 /-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
-theorem ext_rat_hom_pnat {α} [group_with_zero α] {φ₁ φ₂ : monoid_with_zero_hom ℚ α}
-  (same_on_neg_one : φ₁ (-1) = φ₂ (-1)) (same_on_pnat : ∀ (n: ℕ), 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
-ext_hom_int $ ext_hom_pnat same_on_neg_one same_on_pnat
+theorem ext_rat_on_pnat {f g : monoid_with_zero_hom ℚ M}
+  (same_on_neg_one : f (-1) = g (-1)) (same_on_pnat : ∀ (n: ℕ), 0 < n → f n = g n) : f = g :=
+ext_rat $ ext_int' same_on_neg_one same_on_pnat
+
+end monoid_with_zero_hom

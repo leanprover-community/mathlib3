@@ -200,9 +200,7 @@ by rw [←matrix.mul_one (σ.to_pequiv.to_matrix : matrix n n R), pequiv.to_pequ
   det_permute, det_one, mul_one]
 
 @[simp] lemma det_smul {A : matrix n n R} {c : R} : det (c • A) = c ^ fintype.card n * det A :=
-calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_diagonal_mul]
-             ... = det (diagonal (λ _, c)) * det A        : det_mul _ _
-             ... = c ^ fintype.card n * det A             : by simp [card_univ]
+matrix.det_row_multilinear.map_smul_univ_const c A
 
 section hom_map
 

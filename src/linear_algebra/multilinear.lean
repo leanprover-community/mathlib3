@@ -571,6 +571,11 @@ lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
   f (λi, c i • m i) = (∏ i, c i) • f m :=
 by simpa using map_piecewise_smul f c m finset.univ
 
+/-- A variant of `multilinear_map.map_smul_univ` for when `c` is constant. -/
+lemma map_smul_univ_const [fintype ι] (c : R) (m : Πi, M₁ i) :
+  f (c • m) = (c ^ fintype.card ι) • f m :=
+(f.map_smul_univ (λ _, c) m).trans $ by { dsimp only, rw [finset.prod_const, fintype.card] }
+
 section distrib_mul_action
 
 variables {R' A : Type*} [monoid R'] [semiring A]

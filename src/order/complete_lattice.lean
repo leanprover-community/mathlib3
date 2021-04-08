@@ -90,6 +90,10 @@ theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
 @[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 is_lub_le_iff (is_lub_Sup s)
 
+lemma le_Sup_iff :
+  a ≤ Sup s ↔ (∀ b, (∀ x ∈ s, x ≤ b) → a ≤ b) :=
+⟨λ h b hb, le_trans h (Sup_le hb), λ hb, hb _ (λ x, le_Sup)⟩
+
 theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
 le_of_forall_le' begin
   simp only [Sup_le_iff],
@@ -134,6 +138,10 @@ theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
 
 @[simp] theorem le_Inf_iff : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
 le_is_glb_iff (is_glb_Inf s)
+
+lemma Inf_le_iff :
+  Inf s ≤ a ↔ (∀ b, (∀ x ∈ s, b ≤ x) → b ≤ a) :=
+⟨λ h b hb, le_trans (le_Inf hb) h, λ hb, hb _ (λ x, Inf_le)⟩
 
 theorem Inf_le_Inf_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, y ≤ x) : Inf t ≤ Inf s :=
 le_of_forall_le begin
@@ -490,10 +498,9 @@ by { convert h1.supr_comp g, exact (funext h2).symm }
 @[congr] theorem supr_congr_Prop {α : Type*} [has_Sup α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
 begin
-  have : f₁ ∘ pq.mpr = f₂ := funext f,
-  rw [← this],
-  refine (function.surjective.supr_comp (λ h, ⟨pq.1 h, _⟩) f₁).symm,
-  refl
+  have := propext pq, subst this,
+  congr' with x,
+  apply f
 end
 
 theorem infi_le (s : ι → α) (i : ι) : infi s ≤ s i :=

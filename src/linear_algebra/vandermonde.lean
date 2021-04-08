@@ -104,7 +104,8 @@ begin
   ... = (∏ (i : fin n), (v (fin.succ i) - v 0)) * det (λ (i j : fin n), v (fin.succ i) ^ (j : ℕ)) :
     congr_arg ((*) _) _
   ... = ∏ i : fin n.succ, ∏ j in finset.univ.filter (λ j, i < j), (v j - v i) :
-    by { simp_rw [ih (v ∘ fin.succ), fin.prod_univ_succ, prod_filter_zero_lt, prod_filter_succ_lt] },
+    by { simp_rw [ih (v ∘ fin.succ), fin.prod_univ_succ, fin.prod_filter_zero_lt,
+                  fin.prod_filter_succ_lt] },
   { intros i j,
     rw fin.cons_zero,
     refine fin.cases _ (λ i, _) i,

@@ -1,7 +1,25 @@
+/-
+Copyright (c) 2021 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebra.algebra.subalgebra
 import topology.algebra.polynomial
 import topology.continuous_function.bounded
 import analysis.special_functions.bernstein
+
+/-!
+# The Weierstrass approximation theorem for continuous functions on `[a,b]`
+
+We've already proved the Weierstrass approximation theorem
+in the sense that we've shown that the Bernstein approximations
+to a continuous function on `[0,1]` converge uniformly.
+
+Here we rephrase this more abstractly as
+`polynomial_functions_closure_eq_top' : (polynomial_functions I).topological_closure = ⊤`
+and then, by precomposing with suitable affine functions,
+`polynomial_functions_closure_eq_top : (polynomial_functions (set.Icc a b)).topological_closure = ⊤`
+-/
 
 noncomputable theory
 

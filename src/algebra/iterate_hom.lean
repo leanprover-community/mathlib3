@@ -152,10 +152,10 @@ begin
   { simpa [hd] }
 end
 
-@[simp] lemma iterate_mul_apply_one [monoid M] (a : M) {n : ℕ} : (* a)^[n] 1 = a ^ n :=
+lemma iterate_mul_apply_one [monoid M] (a : M) {n : ℕ} : (* a)^[n] 1 = a ^ n :=
 by simp [iterate_mul_right_apply]
 
-@[simp] lemma iterate_add_apply_zero [add_monoid M] (x : M) {n : ℕ} : (+ x)^[n] 0 = n •ℕ x :=
+lemma iterate_add_apply_zero [add_monoid M] (x : M) {n : ℕ} : (+ x)^[n] 0 = n •ℕ x :=
 by simp [iterate_add_right_apply]
 
 @[simp] lemma mul_right_iterate [monoid M] (a : M) (n : ℕ) :

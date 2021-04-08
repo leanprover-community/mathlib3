@@ -22,8 +22,8 @@ A set is equivalent to its image under an equivalence.
 def equiv.image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
 { to_fun := λ x, ⟨e x.1, by simp⟩,
   inv_fun := λ y, ⟨e.symm y.1, by { rcases y with ⟨-, ⟨a, ⟨m, rfl⟩⟩⟩, simpa using m, }⟩,
-  left_inv := λ x, by tidy,
-  right_inv := λ y, by tidy, }.
+  left_inv := λ x, by simp,
+  right_inv := λ y, by simp, }.
 
 @[continuity]
 lemma homeomorph.continuous_symm {α β : Type*} [topological_space α] [topological_space β]

@@ -242,6 +242,21 @@ lemma map_nat_cast (f : A →+ B) (h1 : f 1 = 1) (n : ℕ) : f n = n :=
 
 end add_monoid_hom
 
+namespace monoid_with_zero_hom
+
+variables {A : Type*} [monoid_with_zero A]
+
+/-- If two `monoid_with_zero_hom`s agree on the positive naturals they are equal. -/
+theorem ext_nat {f g : monoid_with_zero_hom ℕ A}
+  (h_pos : ∀ {n : ℕ}, 0 < n → f n = g n) : f = g :=
+begin
+  ext (_ | n),
+  { rw [f.map_zero, g.map_zero] },
+  { exact h_pos n.zero_lt_succ, },
+end
+
+end monoid_with_zero_hom
+
 namespace ring_hom
 
 variables {R : Type*} {S : Type*} [semiring R] [semiring S]

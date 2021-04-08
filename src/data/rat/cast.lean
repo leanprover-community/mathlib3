@@ -299,29 +299,6 @@ begin
   rw this,
 end
 
-theorem ext_hom_pnat {α} [group_with_zero α] {φ₁ φ₂ : monoid_with_zero_hom ℤ α}
-  (same_on_neg_one : φ₁ (-1) = φ₂ (-1)) (same_on_pnat : ∀ {n: ℕ}, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
-begin
-  ext x, revert x,
-  suffices : ∀ n : ℕ, φ₁ n = φ₂ n,
-  { intro x,
-    induction x,
-    { from this _, },
-    { rw int.neg_succ_of_nat_eq,
-      rw neg_eq_neg_one_mul,
-      rw monoid_with_zero_hom.map_mul φ₁,
-      rw monoid_with_zero_hom.map_mul φ₂,
-      rw same_on_neg_one,
-      apply mul_eq_mul_left_iff.2,
-      left,
-      norm_cast,
-      exact this _, }, },
-  intro n,
-  cases n,
-  { simp, },
-  { exact same_on_pnat n.zero_lt_succ, },
-end
-
 /-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
 theorem ext_rat_hom_pnat {α} [group_with_zero α] {φ₁ φ₂ : monoid_with_zero_hom ℚ α}
   (same_on_neg_one : φ₁ (-1) = φ₂ (-1)) (same_on_pnat : ∀ (n: ℕ), 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=

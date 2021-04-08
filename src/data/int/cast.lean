@@ -209,7 +209,7 @@ namespace monoid_hom
 variables {M : Type*} [monoid M]
 open multiplicative
 
-theorem ext_int {f g : multiplicative ℤ →* M}
+theorem ext_mint {f g : multiplicative ℤ →* M}
   (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
 begin
   ext,
@@ -217,7 +217,45 @@ begin
     (@add_monoid_hom.ext_int _ _ f.to_additive g.to_additive h1) _,
 end
 
+/-- If two `monoid_hom`s agree on `-1` and the naturals then they are equal. -/
+theorem ext_int {f g : ℤ →* M}
+  (h_neg_one : f (-1) = g (-1))
+  (h_nat : f.comp int.of_nat_hom.to_monoid_hom = g.comp int.of_nat_hom.to_monoid_hom) :
+  f = g :=
+begin
+  ext (x | x),
+  { exact (monoid_hom.congr_fun h_nat x : _), },
+  { rw [int.neg_succ_of_nat_eq, ← neg_one_mul, f.map_mul, g.map_mul],
+    congr' 1,
+    exact_mod_cast (monoid_hom.congr_fun h_nat (x + 1) : _), }
+end
+
 end monoid_hom
+
+namespace monoid_with_zero_hom
+
+variables {M : Type*} [monoid_with_zero M]
+
+/-- If two `monoid_with_zero_hom`s agree on `-1` and the naturals then they are equal. -/
+theorem ext_int {f g : monoid_with_zero_hom ℤ M}
+  (h_neg_one : f (-1) = g (-1))
+  (h_nat : f.comp int.of_nat_hom.to_monoid_with_zero_hom =
+           g.comp int.of_nat_hom.to_monoid_with_zero_hom) :
+  f = g :=
+-- TODO: `monoid_with_zero_hom.to_monoid_hom_injective`
+suffices f.to_monoid_hom = g.to_monoid_hom,
+by {
+  rw monoid_hom.ext_iff at this,
+  ext,
+  simpa using this x },
+monoid_hom.ext_int h_neg_one (monoid_hom.ext (monoid_with_zero_hom.congr_fun h_nat : _))
+
+/-- If two `monoid_with_zero_hom`s agree on `-1` and the _positive_ naturals then they are equal. -/
+theorem ext_int' {φ₁ φ₂ : monoid_with_zero_hom ℤ M}
+  (h_neg_one : φ₁ (-1) = φ₂ (-1)) (h_pos : ∀ {n : ℕ}, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
+ext_int h_neg_one $ ext_nat $ λ n, h_pos
+
+end monoid_with_zero_hom
 
 namespace ring_hom
 

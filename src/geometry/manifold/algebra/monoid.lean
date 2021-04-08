@@ -173,3 +173,54 @@ instance : inhabited (smooth_monoid_morphism I I' G G') := ⟨1⟩
 instance : has_coe_to_fun (smooth_monoid_morphism I I' G G') := ⟨_, λ a, a.to_fun⟩
 
 end monoid
+
+section comm_monoid
+
+open_locale big_operators
+
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+{H : Type*} [topological_space H]
+{E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
+{G : Type*} [comm_monoid G] [topological_space G] [charted_space H G] [has_smooth_mul I G]
+{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+{H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
+{M : Type*} [topological_space M] [charted_space H' M]
+
+@[to_additive]
+lemma smooth_finset_prod' {ι} {s : finset ι} {f : ι → M → G} (h : ∀ i ∈ s, smooth I' I (f i)) :
+  smooth I' I (∏ i in s, f i) :=
+finset.prod_induction _ _ (λ f g hf hg, hf.mul hg)
+  (@smooth_const _ _ _ _ _ _ _ I' _ _ _ _ _ _ _ _ I _ _ _ 1) h
+
+@[to_additive]
+lemma smooth_finset_prod {ι} {s : finset ι} {f : ι → M → G} (h : ∀ i ∈ s, smooth I' I (f i)) :
+  smooth I' I (λ x, ∏ i in s, f i x) :=
+by { simp only [← finset.prod_apply], exact smooth_finset_prod' h }
+
+open function filter
+
+@[to_additive]
+lemma smooth_finprod {ι} {f : ι → M → G} (h : ∀ i, smooth I' I (f i))
+  (hfin : locally_finite (λ i, mul_support (f i))) :
+  smooth I' I (λ x, ∏ᶠ i, f i x) :=
+begin
+  intro x,
+  rcases hfin x with ⟨U, hxU, hUf⟩,
+  have : smooth_at I' I (λ x, ∏ i in hUf.to_finset, f i x) x,
+    from smooth_finset_prod (λ i hi, h i) x,
+  refine this.congr_of_eventually_eq (mem_sets_of_superset hxU $ λ y hy, _),
+  refine finprod_eq_prod_of_mul_support_subset _ (λ i hi, _),
+  rw [hUf.coe_to_finset],
+  exact ⟨y, hi, hy⟩
+end
+
+@[to_additive]
+lemma smooth_finprod_cond {ι} {f : ι → M → G} {p : ι → Prop} (hc : ∀ i, p i → smooth I' I (f i))
+  (hf : locally_finite (λ i, mul_support (f i))) :
+  smooth I' I (λ x, ∏ᶠ i (hi : p i), f i x) :=
+begin
+  simp only [← finprod_subtype_eq_finprod_cond],
+  exact smooth_finprod (λ i, hc i i.2) (hf.comp_injective subtype.coe_injective)
+end
+
+end comm_monoid

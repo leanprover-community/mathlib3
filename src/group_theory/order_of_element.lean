@@ -276,9 +276,8 @@ variables (a) {n : ℕ}
 lemma order_of_pow' (h : n ≠ 0) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
-  simp only [order_of],
   convert minimal_period_iterate_eq_div_gcd h,
-  exact (iterate_mul_right_apply a).symm
+  simp only [order_of, mul_right_iterate],
 end
 
 variables (x)
@@ -321,18 +320,13 @@ by_contradiction $ assume ne : n ≠ m,
   have le : order_of a ≤ m - n, from order_of_le_of_pow_eq_one h₁ h₃,
   have lt : m - n < order_of a,
     from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
-  lt_irrefl _ (lt_of_le_of_lt le lt)
+  lt_irrefl _ (le.trans_lt lt)
 
 -- TODO: This lemma was originally private, but this doesn't seem to work with `to_additive`,
 -- therefore the private got removed.
 lemma nsmul_injective_aux {n m : ℕ} (h : n ≤ m)
   (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=
-begin
-  apply_fun multiplicative.of_add at eq,
-  rw [of_add_nsmul, of_add_nsmul] at eq,
-  rw ← order_of_of_add_eq_add_order_of at hm,
-  exact pow_injective_aux (multiplicative.of_add x) h hm eq,
-end
+pow_injective_aux (multiplicative.of_add x) h hm eq
 
 attribute [to_additive nsmul_injective_aux] pow_injective_aux
 
@@ -415,26 +409,12 @@ variables {H : Type u} [fintype H] [add_left_cancel_monoid H]
 -- TODO: Use this to show that a finite left cancellative monoid is a group.
 lemma exists_pow_eq_one (a : α) : is_of_fin_order a :=
 begin
-  rw is_of_fin_order_iff_pow_eq_one,
-  have h : ¬ injective (λi:ℕ, a^i) := not_injective_infinite_fintype _,
-  have h' : ∃(i j : ℕ), a ^ i = a ^ j ∧ i ≠ j,
-  { rw injective at h,
-    simp only [not_forall, exists_prop] at h,
-    exact h },
-  rcases h' with ⟨i, j, a_eq, ne⟩,
+  refine (is_of_fin_order_iff_pow_eq_one _).mpr _,
+  obtain ⟨i, j, a_eq, ne⟩ : ∃(i j : ℕ), a ^ i = a ^ j ∧ i ≠ j :=
+    by simpa only [not_forall, exists_prop] using (not_injective_infinite_fintype (λi:ℕ, a^i)),
   wlog h'' : j ≤ i,
-  have h''' : a ^ (i - j) = 1,
-  { rw [(nat.add_sub_of_le h'').symm, pow_add, ← mul_one (a ^ j), mul_assoc] at a_eq,
-    convert mul_left_cancel a_eq,
-    rw one_mul },
-  use (i - j),
-  split,
-  { apply lt_of_le_of_ne (zero_le (i - j)),
-    by_contradiction,
-    rw not_not at h,
-    apply ne,
-    rw [(nat.add_sub_of_le h'').symm, ← h, add_zero] },
-  { exact h''' },
+  refine ⟨i - j, nat.sub_pos_of_lt (lt_of_le_of_ne h'' ne.symm), mul_right_injective (a ^j) _⟩,
+  rw [mul_one, ← pow_add, ← a_eq, nat.add_sub_cancel' h''],
 end
 
 lemma exists_nsmul_eq_zero (x : H) : ∃ i, 0 < i ∧ i •ℕ x = 0 :=
@@ -481,8 +461,7 @@ begin
   { rw [h0, coprime_zero_right] at h,
     exact ⟨1, by rw [h, pow_one, pow_one]⟩ },
   by_cases h1 : order_of a = 1,
-  { rw order_of_eq_one_iff at h1,
-    exact ⟨37, by rw [h1, one_pow, one_pow]⟩ },
+  { exact ⟨37, by rw [order_of_eq_one_iff.mp h1, one_pow, one_pow]⟩ },
   obtain ⟨m, hm⟩ :=
     exists_mul_mod_eq_one_of_coprime h (one_lt_iff_ne_zero_and_ne_one.mpr ⟨h0, h1⟩),
   exact ⟨m, by rw [←pow_mul, pow_eq_mod_order_of, hm, pow_one]⟩,
@@ -491,13 +470,8 @@ end
 lemma exists_nsmul_eq_self_of_coprime {H : Type*} [add_monoid H] (x : H)
   (h : coprime n (add_order_of x)) : ∃ m : ℕ, m •ℕ (n •ℕ x) = x :=
 begin
-  have h' : coprime n (order_of (multiplicative.of_add x)),
-  { simp_rw order_of_of_add_eq_add_order_of,
-    exact h },
-  cases exists_pow_eq_self_of_coprime h' with m hpow,
-  use m,
-  apply multiplicative.of_add.injective,
-  simpa [of_add_nsmul],
+  change coprime n (order_of (multiplicative.of_add x)) at h,
+  exact exists_pow_eq_self_of_coprime h,
 end
 
 attribute [to_additive exists_nsmul_eq_self_of_coprime] exists_pow_eq_self_of_coprime
@@ -555,9 +529,8 @@ begin
   { exact λn hn, ⟨a ^ n, ⟨n, rfl⟩⟩ },
   { rintros ⟨_, i, rfl⟩ _,
     exact ⟨i % order_of a, mod_lt i (order_of_pos a), subtype.eq pow_eq_mod_order_of.symm⟩ },
-  { intros, exact finset.mem_univ _ },
-  { intros i j hi hj eq,
-    exact pow_injective_of_lt_order_of a hi hj ( by simpa using eq ) }
+  { exact λ _ _, finset.mem_univ _ },
+  { exact λ i j hi hj eq, pow_injective_of_lt_order_of a hi hj (subtype.mk_eq_mk.mp eq) }
 end
 
 lemma add_order_of_eq_card_multiples [decidable_eq H] {x : H} :
@@ -591,9 +564,10 @@ attribute [to_additive exists_gsmul_eq_zero] exists_gpow_eq_one
 lemma mem_multiples_iff_mem_gmultiples {x y : H} :
   y ∈ add_submonoid.multiples x ↔ y ∈ add_subgroup.gmultiples x :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩, λ ⟨i, hi⟩, ⟨(i % add_order_of x).nat_abs,
-  by { simp only at hi ⊢,
+  by { convert hi,
+       change (i % (add_order_of x)).nat_abs •ℕ x = (λ y, y •ℤ x) i,
        rwa  [← gsmul_coe_nat,
-       int.nat_abs_of_nonneg (int.mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2
+          int.nat_abs_of_nonneg (int.mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2
           (add_order_of_pos x))), ← gsmul_eq_mod_add_order_of] } ⟩⟩
 
 open subgroup
@@ -649,8 +623,8 @@ begin
     ⟨int.to_nat (i % order_of a),
       by rw [← int.coe_nat_lt, int.to_nat_of_nonneg this];
         exact ⟨int.mod_lt_of_pos _ pos, subtype.eq gpow_eq_mod_order_of.symm⟩⟩ },
-  { intros, exact finset.mem_univ _ },
-  { exact assume i j hi hj eq, pow_injective_of_lt_order_of a hi hj $ by simpa using eq }
+  { exact λ _ _, finset.mem_univ _ },
+  { exact λ i j hi hj eq, pow_injective_of_lt_order_of a hi hj $ subtype.mk_eq_mk.mp eq }
 end
 
 lemma add_order_eq_card_gmultiples [decidable_eq H] {x : H} :
@@ -703,11 +677,7 @@ let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
 @[simp] lemma card_nsmul_eq_zero {x : H} : fintype.card H •ℕ x = 0 :=
-begin
-  apply multiplicative.of_add.injective,
-  rw [of_add_nsmul, of_add_zero],
-  exact pow_card_eq_one,
-end
+multiplicative.of_add.injective pow_card_eq_one
 
 attribute [to_additive card_nsmul_eq_zero] pow_card_eq_one
 

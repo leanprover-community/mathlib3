@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Alena Gusakov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Alena Gusakov
+Authors: Alena Gusakov
 -/
 import combinatorics.simple_graph.basic
 import data.set.finite
@@ -97,8 +97,7 @@ lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_SRG_of n k l m) :
 { card := h.card,
   regular := λ v,
     begin
-      rw ← h.card,
-      rw ← h.regular v,
+      rw [← h.card, ← h.regular v],
 
       sorry,
     end,

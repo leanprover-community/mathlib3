@@ -88,6 +88,12 @@ The complete graph on a type `V` is the simple graph with all pairs of distinct 
 def complete_graph (V : Type u) : simple_graph V :=
 { adj := ne }
 
+/--
+The empty graph on a type `V` is the simple graph with no vertices adjacent.
+-/
+def empty_graph (V : Type u) : simple_graph V :=
+{ adj := λ v w, false }
+
 instance (V : Type u) : inhabited (simple_graph V) :=
 ⟨complete_graph V⟩
 
@@ -540,6 +546,12 @@ lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬
 
 instance compl_adj_decidable (V : Type u) [decidable_eq V] (G : simple_graph V)
   [decidable_rel G.adj] : decidable_rel Gᶜ.adj := λ v w, and.decidable
+
+lemma compl_empty : (empty_graph V)ᶜ = complete_graph V :=
+begin
+  ext v w,
+  exact ⟨λ h, h.1, λ h, ⟨h, λ h2, h2⟩⟩,
+end
 
 @[simp]
 lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=

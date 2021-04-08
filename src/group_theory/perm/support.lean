@@ -223,6 +223,18 @@ begin
   simpa
 end
 
+lemma support_swap_mul_ge_support_diff [decidable_eq α] (f : perm α) (x y : α) :
+  f.support \ {x, y} ≤ (swap x y * f).support :=
+begin
+  intro,
+  simp only [and_imp, perm.coe_mul, mem_singleton_iff, mem_insert_iff, function.comp_app, ne.def,
+             mem_diff, mem_support],
+  push_neg,
+  rintro ha ⟨hx, hy⟩ H,
+  rw [swap_apply_eq_swap_apply_iff, swap_apply_of_ne_of_ne hx hy] at H,
+  exact ha H.symm
+end
+
 lemma support_swap_mul_eq [decidable_eq α] (f : perm α) (x : α) (h : f (f x) ≠ x) :
   (swap x (f x) * f).support = f.support \ {x} :=
 begin
@@ -247,72 +259,114 @@ begin
   { split_ifs at hy; cc }
 end
 
-section fintype
+lemma pow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) (n : ℕ) :
+  (f ^ n) x = x :=
+begin
+  rw ←not_mem_support at hfx ⊢,
+  exact λ H, hfx (support_pow_le _ _ H)
+end
 
-variables {f : perm α} [fintype f.support]
+lemma gpow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) (n : ℤ) :
+  (f ^ n) x = x :=
+begin
+  rw ←not_mem_support at hfx ⊢,
+  exact λ H, hfx (support_gpow_le _ _ H)
+end
+
+lemma pow_apply_eq_of_apply_apply_eq_self {f : perm α} {x : α} (hffx : f (f x) = x) (n : ℕ) :
+  (f ^ n) x = x ∨ (f ^ n) x = f x :=
+begin
+  induction n with n hn,
+  { simp },
+  { cases hn;
+    simp [pow_succ, hn, hffx] }
+end
+
+lemma gpow_apply_eq_of_apply_apply_eq_self {f : perm α} {x : α} (hffx : f (f x) = x) (n : ℤ) :
+  (f ^ n) x = x ∨ (f ^ n) x = f x :=
+begin
+  cases n,
+  { simpa using pow_apply_eq_of_apply_apply_eq_self hffx _ },
+  { cases pow_apply_eq_of_apply_apply_eq_self hffx n.succ with h h,
+    { simp [apply_eq_iff_eq_symm_apply, ←inv_def, h] },
+    { replace h := congr_arg f h,
+      rw [hffx, ←mul_apply, ←pow_succ, pow_succ', mul_apply] at h,
+      simp [apply_eq_iff_eq_symm_apply, inv_def, h] } }
+end
+
+section finite
+
+variables {f : perm α} (hf : f.support.finite)
+include hf
 
 @[simp]
 lemma card_support_eq_zero :
-  fintype.card f.support = 0 ↔ f = 1 :=
-by rw [←to_finset_card, finset.card_eq_zero, to_finset_eq_empty_iff, support_eq_empty_iff]
+  hf.to_finset.card = 0 ↔ f = 1 :=
+-- by rw [←to_finset_card, finset.card_eq_zero, to_finset_eq_empty_iff, support_eq_empty_iff]
+by simp
 
 lemma one_lt_card_support_of_ne_one (h : f ≠ 1) :
-  1 < f.support.to_finset.card :=
+  1 < hf.to_finset.card :=
 begin
-  simp_rw [finset.one_lt_card_iff, mem_to_finset, mem_support, ←not_or_distrib],
+  simp_rw [finset.one_lt_card_iff, finite.mem_to_finset, mem_support, ←not_or_distrib],
   contrapose! h,
   ext a,
   specialize h (f a) a,
   rwa [apply_eq_iff_eq, or_self, or_self] at h,
 end
 
-variable (f)
-
-lemma card_support_ne_one : f.support.to_finset.card ≠ 1 :=
+lemma card_support_ne_one : hf.to_finset.card ≠ 1 :=
 begin
   by_cases h : f = 1,
-  { rw to_finset_card,
-    exact ne_of_eq_of_ne (card_support_eq_zero.mpr h) zero_ne_one },
-  { exact ne_of_gt (one_lt_card_support_of_ne_one h) }
+  { exact ne_of_eq_of_ne ((card_support_eq_zero hf).mpr h) zero_ne_one },
+  { exact ne_of_gt (one_lt_card_support_of_ne_one hf h) }
 end
 
-variable {f}
-
-@[simp] lemma card_support_le_one : f.support.to_finset.card ≤ 1 ↔ f = 1 :=
+@[simp] lemma card_support_le_one : hf.to_finset.card ≤ 1 ↔ f = 1 :=
 begin
-  rw [le_iff_lt_or_eq, nat.lt_succ_iff, nat.le_zero_iff, to_finset_card, card_support_eq_zero,
-      or_iff_not_imp_right, ←to_finset_card, imp_iff_right],
-  exact f.card_support_ne_one
+  rw [le_iff_lt_or_eq, nat.lt_succ_iff, nat.le_zero_iff, card_support_eq_zero,
+      or_iff_not_imp_right, imp_iff_right],
+  exact card_support_ne_one hf
 end
 
 lemma two_le_card_support_of_ne_one (h : f ≠ 1) :
-  2 ≤ f.support.to_finset.card :=
-one_lt_card_support_of_ne_one h
+  2 ≤ hf.to_finset.card :=
+one_lt_card_support_of_ne_one hf h
 
-lemma card_support_swap_mul [decidable_eq α] {x : α} [fintype ↥((swap x (f x) * f).support)]
-  (hx : f x ≠ x) : (swap x (f x) * f).support.to_finset.card < f.support.to_finset.card :=
+lemma card_support_swap_mul [decidable_eq α] {x : α} (h : finite ((swap x (f x) * f).support))
+  (hx : f x ≠ x) : h.to_finset.card < hf.to_finset.card :=
 begin
   apply finset.card_lt_card,
   split,
   { intros z hz,
-    rw mem_to_finset at hz ⊢,
+    rw finite.mem_to_finset at hz ⊢,
     exact (mem_support_swap_mul_imp_mem_support_ne hz).left },
   { rw ←mem_support at hx,
     have : x ∉ (swap x (f x) * f).support := by simp,
-    rw [←finset.le_iff_subset, to_finset.mono],
+    rw [←finset.le_eq_subset, finite.to_finset.mono],
     exact λ H, this (H hx) }
 end
 
-instance [decidable_eq α] {x y : α} : fintype (swap x y).support :=
-if h : x = y then fintype.of_finset ∅ (by simp [h])
-  else fintype.of_finset {x, y} (by simp [support_swap h])
+omit hf
+
+lemma support_swap_finite [decidable_eq α] (x y : α) : finite (swap x y).support :=
+begin
+  by_cases h : x = y,
+  { simp [h] },
+  { simp [support_swap h] }
+end
 
 lemma card_support_swap [decidable_eq α] {x y : α} (hxy : x ≠ y) :
-  (swap x y).support.to_finset.card = 2 :=
-show (swap x y).support.to_finset.card = finset.card ⟨x ::ₘ y ::ₘ 0, by simp [hxy]⟩,
-from congr_arg finset.card $ by simp [support_swap hxy, *, finset.ext_iff]
+  (support_swap_finite x y).to_finset.card = 2 :=
+begin
+  letI := (support_swap_finite x y).fintype,
+  simp_rw [finite.card_to_finset, ←to_finset_card, support_swap hxy],
+  convert congr_arg finset.card (@set.insert_to_finset _ _ x {y} _),
+  rw finset.card_insert_of_not_mem;
+  simp [hxy]
+end
 
-end fintype
+end finite
 
 end support
 
@@ -446,7 +500,7 @@ begin
       letI : fintype (a * t.prod).support := hpf.fintype,
       specialize ih (λ s hs, hl s (list.mem_cons_of_mem _ hs)) ht,
       simp only [←ih, ←(disjoint_prod_right t ha).card_support_mul, list.pmap, list.sum_cons,
-                 finite.card_to_finset, list.prod_cons, list.map],
+                 finite.card_to_finset, ←to_finset_card, list.prod_cons, list.map],
       congr } }
 end
 

@@ -719,11 +719,3 @@ protected lemma bdd_below [semilattice_inf α] [nonempty α] (s : finset α) :
 s.finite_to_set.bdd_below
 
 end finset
-
-lemma fintype.exists_max [fintype α] [nonempty α]
-  {β : Type*} [linear_order β] (f : α → β) :
-  ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
-begin
-  rcases set.finite_univ.exists_maximal_wrt f _ univ_nonempty with ⟨x, _, hx⟩,
-  exact ⟨x, λ y, (le_total (f x) (f y)).elim (λ h, ge_of_eq $ hx _ trivial h) id⟩
-end

@@ -8,7 +8,7 @@ import data.set.basic
 /-!
 # Typeclass for a type `A` with an injective map to `set B`
 
-This typecalss is primary for use by subobjects like `submonoid` and `submodule`.
+This typeclass is primarily for use by subobjects like `submonoid` and `submodule`.
 
 A typical subobject should be declared as:
 ```

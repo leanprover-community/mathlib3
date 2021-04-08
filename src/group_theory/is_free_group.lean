@@ -39,10 +39,10 @@ variables {G H : Type u} [group G] [group H] [is_free_group G]
 given by those generators. -/
 @[simps symm_apply]
 def lift' : (generators G → H) ≃ (G →* H) :=
-{ to_fun := λ f, classical.some (unique_lift f),
+{ to_fun := λ f, classical.some (unique_lift' f),
   inv_fun := λ F, F ∘ of,
-  left_inv := λ f, funext (classical.some_spec (unique_lift f)).left,
-  right_inv := λ F, ((classical.some_spec (unique_lift (F ∘ of))).right F (λ _, rfl)).symm }
+  left_inv := λ f, funext (classical.some_spec (unique_lift' f)).left,
+  right_inv := λ F, ((classical.some_spec (unique_lift' (F ∘ of))).right F (λ _, rfl)).symm }
 
 @[simp] lemma lift'_of (f : generators G → H) (a : generators G) : (lift' f) (of a) = f a :=
 congr_fun (lift'.symm_apply_apply f) a

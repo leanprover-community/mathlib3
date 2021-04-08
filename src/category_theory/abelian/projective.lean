@@ -43,6 +43,7 @@ section
 A projective presentation of an object `X` consists of an epimorphism `f : P ⟶ X`
 from some projective object `P`.
 -/
+@[nolint has_inhabited_instance]
 structure projective_presentation (X : C) :=
 (P : C)
 [projective : projective P]
@@ -111,6 +112,7 @@ abbreviation d : left f ⟶ X :=
 
 end
 
+section
 variables [abelian C]
 
 /--
@@ -120,6 +122,11 @@ lemma exact_d_f {X Y : C} (f : X ⟶ Y) : exact (d f) f :=
 (abelian.exact_iff _ _).2 $
   ⟨by simp, zero_of_epi_comp (π _) $ by rw [←category.assoc, cokernel.condition]⟩
 
+end
+
+section
+variables [has_zero_morphisms C] [has_equalizers C] [has_images C]
+
 /--
 A `projective.resolution Z` is an exact sequence `... ⟶ X 2 ⟶ X 1 ⟶ X 0`,
 where `X 0 = Z`, and the `X (n+1)` are projective.
@@ -127,6 +134,7 @@ where `X 0 = Z`, and the `X (n+1)` are projective.
 For simplicity we define a structure here independent of our implementation of chain complexes,
 and will later connect that up.
 -/
+@[nolint has_inhabited_instance]
 structure resolution (Z : C) :=
 (X : ℕ → C)
 (d : Π n, X (n+1) ⟶ X n)
@@ -134,6 +142,8 @@ structure resolution (Z : C) :=
 (projective : ∀ n, projective (X (n+1)))
 (epi : epi (d 0))
 (exact : ∀ n, exact (d (n+1)) (d n))
+
+end
 
 namespace resolution
 
@@ -155,6 +165,8 @@ def d' (Z : C) (n : ℕ) : X' O π @L @δ Z (n+1) ⟶ X' O π @L @δ Z n :=
 (B' O π @L @δ Z n).2.2
 
 end
+
+variables [abelian C]
 
 /--
 In any category with enough projectives,

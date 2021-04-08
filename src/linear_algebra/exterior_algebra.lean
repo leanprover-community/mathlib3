@@ -9,6 +9,8 @@ import linear_algebra.tensor_algebra
 import linear_algebra.alternating
 import group_theory.perm.sign
 
+set_option profiler true
+
 /-!
 # Exterior Algebras
 

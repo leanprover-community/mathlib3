@@ -72,13 +72,40 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
   one_mul       := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (one_mul _), },
   mul_one       := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (mul_one _), },
   left_distrib  := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (left_distrib _ _ _), },
-  right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (right_distrib _ _ _), }, }
+  right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (right_distrib _ _ _), },
+  nsmul         := λ n, quot.map ((•) n) (rel.smul n),
+  nsmul_eq_rec  := begin
+    apply eq_nsmul_rec,
+    { rintro ⟨x⟩, exact congr_arg (quot.mk _) (zero_nsmul _) },
+    { rintros n ⟨x⟩, refine congr_arg (quot.mk _) _, simp [add_smul] }
+  end }
+
+-- Copying the fields instead of referring to the semiring structure gives a huge speedup
+-- down the road. But this is just an unsatisfactory hack.
+-- TODO: do this properly.
 
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : ring (ring_quot r) :=
-{ neg           := quot.map (λ a, -a)
-    rel.neg,
-  add_left_neg  := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (add_left_neg _), },
-  .. (ring_quot.semiring r) }
+{ add           := quot.map₂ (+) rel.add_right rel.add_left,
+  add_assoc     := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (add_assoc _ _ _), },
+  zero          := quot.mk _ 0,
+  zero_add      := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (zero_add _), },
+  add_zero      := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (add_zero _), },
+  add_comm      := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (add_comm _ _), },
+  mul           := quot.map₂ (*) rel.mul_right rel.mul_left,
+  mul_assoc     := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (mul_assoc _ _ _), },
+  one           := quot.mk _ 1,
+  one_mul       := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (one_mul _), },
+  mul_one       := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (mul_one _), },
+  left_distrib  := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (left_distrib _ _ _), },
+  right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (right_distrib _ _ _), },
+  nsmul         := λ n, quot.map ((•) n) (rel.smul n),
+  nsmul_eq_rec  := begin
+    apply eq_nsmul_rec,
+    { rintro ⟨x⟩, exact congr_arg (quot.mk _) (zero_nsmul _) },
+    { rintros n ⟨x⟩, refine congr_arg (quot.mk _) _, simp [add_smul] },
+  end,
+  neg           := quot.map (λ a, -a) rel.neg,
+  add_left_neg  := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (add_left_neg _), } }
 
 instance {R : Type u₁} [comm_semiring R] (r : R → R → Prop) : comm_semiring (ring_quot r) :=
 { mul_comm := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (mul_comm _ _), }

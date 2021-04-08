@@ -14,7 +14,7 @@ import category_theory.limits.types
 For a presheaf `F` on a topological space `X`, valued in some category `C`, the *stalk* of `F`
 at the point `x : X` is defined as the colimit of the following functor
 
-(nbhds x)ᵒᵖ ⥤ (opens X)ᵒᵖ ⥤ C
+(nhds x)ᵒᵖ ⥤ (opens X)ᵒᵖ ⥤ C
 
 where the functor on the left is the inclusion of categories and the functor on the right is `F`.
 For an open neighborhood `U` of `x`, we define the map `F.germ x : F.obj (op U) ⟶ F.stalk x` as the
@@ -23,7 +23,7 @@ canonical morphism into this colimit.
 For a map `f : X ⟶ Y` between topological spaces, we define `stalk_pushforward` as the induced map
 on the stalks `(f _* ℱ).stalk (f x) ⟶ ℱ.stalk x`.
 
-Furhtermore, for a morphism of presheaves `f : F ⟶ G` (over a fixed space `X`), we define
+Furthermore, for a morphism of presheaves `f : F ⟶ G` (over a fixed space `X`), we define
 `stalk_map x f` as the induced map on the stalks `F.stalk x ⟶ G.stalk x`. For a map between
 `Type`-valued sheaves, we show in `is_iso_of_stalk_maps_iso` that if all stalk_maps of `f` are
 isomorphisms, then `f` must be an isomorphism.
@@ -275,7 +275,7 @@ end
 /-
 Note that the analogous statement for surjectivity is false: Surjectivity on stalks does not
 imply surjectivity of the components of a sheaf morphism. However it does imply that the morphism
-is an epi, but this fact it not yet formalized.
+is an epi, but this fact is not yet formalized.
 -/
 lemma app_injective_of_stalk_maps_injective {F : sheaf (Type v) X }
   {G : presheaf (Type v) X} (f : F.presheaf ⟶ G) :

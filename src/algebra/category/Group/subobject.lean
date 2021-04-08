@@ -17,6 +17,6 @@ universe u
 namespace AddCommGroup
 
 instance well_powered_AddCommGroup : well_powered (AddCommGroup.{u}) :=
-(well_powered_congr (forget₂ (Module.{u} ℤ) AddCommGroup.{u}).as_equivalence).1 $ by apply_instance
+well_powered_of_equiv (forget₂ (Module.{u} ℤ) AddCommGroup.{u}).as_equivalence
 
 end AddCommGroup

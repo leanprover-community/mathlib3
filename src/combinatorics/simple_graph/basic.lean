@@ -103,6 +103,14 @@ instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
   decidable_rel (complete_graph V).adj :=
 λ v w, not.decidable
 
+instance empty_graph_adj_decidable (V : Type u) [decidable_eq V] :
+  decidable_rel (empty_graph V).adj :=
+λ v w,
+begin
+  fconstructor,
+  tidy,
+end
+
 namespace simple_graph
 variables {V : Type u} (G : simple_graph V)
 
@@ -358,6 +366,13 @@ lemma complete_graph_degree [decidable_eq V] (v : V) :
 begin
   convert univ.card.pred_eq_sub_one,
   erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
+end
+
+lemma empty_graph_degree [decidable_eq V] (v : V) :
+  (empty_graph V).degree v = 0 :=
+begin
+  erw [degree, neighbor_finset_eq_filter, filter_false],
+  exact finset.card_empty,
 end
 
 lemma complete_graph_is_regular [decidable_eq V] :

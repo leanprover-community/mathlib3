@@ -106,7 +106,7 @@ instance : has_coe (ideal P) (set P) := ⟨carrier⟩
 /-- For the notation `x ∈ I`. -/
 instance : has_mem P (ideal P) := ⟨λ x I, x ∈ (I : set P)⟩
 
-lemma mem_def : x ∈ I ↔ x ∈ (I : set P) := iff_of_eq rfl
+@[simp] lemma mem_coe : x ∈ (I : set P) ↔ x ∈ I := iff_of_eq rfl
 
 @[simp] lemma mem_principal : y ∈ principal x ↔ y ≤ x := by refl
 
@@ -336,7 +336,7 @@ end
 lemma sup_coe_eq_sup_set : ↑(I ⊔ J) = {x | ∃ i ∈ I, ∃ j ∈ J, x = i ⊔ j} :=
 begin
   ext,
-  rw [← mem_def, mem_sup],
+  rw [mem_coe, mem_sup],
   exact ⟨λ ⟨_, _, _, _, _⟩, eq_sup_of_le_sup ‹_› ‹_› ‹_›,
   λ ⟨i, _, j, _, _⟩, ⟨i, ‹_›, j, ‹_›, le_of_eq ‹_›⟩⟩
 end

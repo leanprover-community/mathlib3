@@ -69,7 +69,7 @@ instance : has_coe (pfilter P) (set P) := ⟨λ F, F.dual.carrier⟩
 /-- For the notation `x ∈ F`. -/
 instance : has_mem P (pfilter P) := ⟨λ x F, x ∈ (F : set P)⟩
 
-@[simp] lemma mem_def : x ∈ F ↔ x ∈ (F : set P) := iff_of_eq rfl
+@[simp] lemma mem_coe : x ∈ (F : set P) ↔ x ∈ F := iff_of_eq rfl
 
 lemma is_pfilter : is_pfilter (F : set P) :=
 F.dual.is_ideal

@@ -27,7 +27,7 @@ proof, it is defined using the third point of view, i.e., as `is_noetherian`. Ho
 that all these points of view are equivalent, with the following lemmas
 (in the namespace `finite_dimensional`):
 
-- `exists_is_basis_finite` states that a finite-dimensional vector space has a finite basis
+- `exists_basis_finite` states that a finite-dimensional vector space has a finite basis
 - `of_fintype_basis` states that the existence of a basis indexed by a finite type implies
   finite-dimensionality
 - `of_finset_basis` states that the existence of a basis indexed by a `finset` implies
@@ -87,17 +87,21 @@ open is_noetherian
 less than the first infinite cardinal `omega`. -/
 lemma finite_dimensional_iff_dim_lt_omega : finite_dimensional K V ↔ module.rank K V < omega.{v} :=
 begin
-  cases exists_is_basis K V with b hb,
-  have := is_basis.mk_eq_dim hb,
+  let b := basis.of_vector_space K V,
+  have := b.mk_eq_dim,
   simp only [lift_id] at this,
-  rw [← this, lt_omega_iff_fintype, ← @set.set_of_mem_eq _ b, ← subtype.range_coe_subtype],
+  rw [← this, lt_omega_iff_fintype, ← @set.set_of_mem_eq _ (basis.of_vector_space_index K V),
+      ← subtype.range_coe_subtype],
   split,
-  { intro, resetI, convert finite_of_linear_independent hb.1, simp },
+  { intro,
+    resetI,
+    convert finite_of_linear_independent (basis.of_vector_space_index.linear_independent K V),
+    simp },
   { assume hbfinite,
     refine @is_noetherian_of_linear_equiv K (⊤ : submodule K V) V _
       _ _ _ _ (linear_equiv.of_top _ rfl) (id _),
     refine is_noetherian_of_fg_of_noetherian _ ⟨set.finite.to_finset hbfinite, _⟩,
-    rw [set.finite.coe_to_finset, ← hb.2], refl }
+    rw [set.finite.coe_to_finset, ← b.span_eq, basis.coe_of_vector_space] }
 end
 
 /-- The dimension of a finite-dimensional vector space, as a cardinal, is strictly less than the
@@ -112,28 +116,25 @@ a function), and use as parametrizing type this set (and as a function the coerc
   `coe : s → V`).
 -/
 variables (K V)
-lemma exists_is_basis_finite [finite_dimensional K V] :
-  ∃ s : set V, (is_basis K (coe : s → V)) ∧ s.finite :=
-begin
-  cases exists_is_basis K V with s hs,
-  exact ⟨s, hs, finite_of_linear_independent hs.1⟩
-end
+lemma exists_basis_finite [finite_dimensional K V] :
+  ∃ (s : set V) (b : basis s K V), s.finite :=
+exists_basis_finite (dim_lt_omega K V)
 
 /-- In a finite dimensional space, there exists a finite basis. Provides the basis as a finset.
-This is in contrast to `exists_is_basis_finite`, which provides a set and a `set.finite`.
+This is in contrast to `exists_basis_finite`, which provides a set and a `set.finite`.
 -/
-lemma exists_is_basis_finset [finite_dimensional K V] :
-  ∃ b : finset V, is_basis K (coe : (↑b : set V) → V) :=
+noncomputable def exists_basis_finset [finite_dimensional K V] :
+  Σ b : finset V, (basis (↑b : set V) K V) :=
 begin
-  obtain ⟨s, s_basis, s_finite⟩ := exists_is_basis_finite K V,
+  choose s s_basis s_finite using exists_basis_finite K V,
   refine ⟨s_finite.to_finset, _⟩,
   rw set.finite.coe_to_finset,
-  exact s_basis,
+  exact s_basis
 end
 
 /-- A finite dimensional vector space over a finite field is finite -/
 noncomputable def fintype_of_fintype [fintype K] [finite_dimensional K V] : fintype V :=
-module.fintype_of_fintype (classical.some_spec (finite_dimensional.exists_is_basis_finset K V) : _)
+module.fintype_of_fintype (finite_dimensional.exists_basis_finset K V).2
 
 variables {K V}
 
@@ -145,7 +146,7 @@ lemma iff_fg :
 begin
   split,
   { introI h,
-    rcases exists_is_basis_finite K V with ⟨s, s_basis, s_finite⟩,
+    rcases exists_basis_finite K V with ⟨s, s_basis, s_finite⟩,
     exact ⟨s_finite.to_finset, by { convert s_basis.2, simp }⟩ },
   { rintros ⟨s, hs⟩,
     rw [finite_dimensional_iff_dim_lt_omega, ← dim_top, ← hs],
@@ -153,18 +154,18 @@ begin
 end
 
 /-- If a vector space has a finite basis, then it is finite-dimensional. -/
-lemma of_fintype_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
+lemma of_fintype_basis {ι : Type w} [fintype ι] {b : ι → V} (h : basis K b) :
   finite_dimensional K V :=
 iff_fg.2 $ ⟨finset.univ.image b, by {convert h.2, simp} ⟩
 
 /-- If a vector space has a basis indexed by elements of a finite set, then it is
 finite-dimensional. -/
-lemma of_finite_basis {ι} {s : set ι} {b : s → V} (h : is_basis K b) (hs : set.finite s) :
+lemma of_finite_basis {ι} {s : set ι} {b : s → V} (h : basis K b) (hs : set.finite s) :
   finite_dimensional K V :=
 by haveI := hs.fintype; exact of_fintype_basis h
 
 /-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
-lemma of_finset_basis {ι} {s : finset ι} {b : (↑s : set ι) → V} (h : is_basis K b) :
+lemma of_finset_basis {ι} {s : finset ι} {b : (↑s : set ι) → V} (h : basis K b) :
   finite_dimensional K V :=
 of_finite_basis h s.finite_to_set
 
@@ -220,14 +221,14 @@ finite_dimensional_of_finrank $ by convert nat.succ_pos n; apply fact.out
 
 /-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
 cardinality of the basis. -/
-lemma dim_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
+lemma dim_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : basis K b) :
   module.rank K V = fintype.card ι :=
 by rw [←h.mk_range_eq_dim, cardinal.fintype_card,
        set.card_range_of_injective h.injective]
 
 /-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
 basis. -/
-lemma finrank_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
+lemma finrank_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : basis K b) :
   finrank K V = fintype.card ι :=
 begin
   haveI : finite_dimensional K V := of_fintype_basis h,
@@ -238,10 +239,10 @@ end
 
 /-- If a vector space is finite-dimensional, then the cardinality of any basis is equal to its
 `finrank`. -/
-lemma finrank_eq_card_basis' [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : is_basis K b) :
+lemma finrank_eq_card_basis' [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : basis K b) :
   (finrank K V : cardinal.{w}) = cardinal.mk ι :=
 begin
-  rcases exists_is_basis_finite K V with ⟨s, s_basis, s_finite⟩,
+  rcases exists_basis_finite K V with ⟨s, s_basis, s_finite⟩,
   letI: fintype s := s_finite.fintype,
   have A : cardinal.mk s = fintype.card s := fintype_card _,
   have B : finrank K V = fintype.card s := finrank_eq_card_basis s_basis,
@@ -256,12 +257,12 @@ end
 /-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
 basis. This lemma uses a `finset` instead of indexed types. -/
 lemma finrank_eq_card_finset_basis {b : finset V}
-  (h : is_basis K (subtype.val : (↑b : set V) -> V)) :
+  (h : basis K (subtype.val : (↑b : set V) -> V)) :
   finrank K V = finset.card b :=
 by { rw [finrank_eq_card_basis h, fintype.subtype_card], intros x, refl }
 
-lemma equiv_fin {ι : Type*} [finite_dimensional K V] {v : ι → V} (hv : is_basis K v) :
-  ∃ g : fin (finrank K V) ≃ ι, is_basis K (v ∘ g) :=
+lemma equiv_fin {ι : Type*} [finite_dimensional K V] {v : ι → V} (hv : basis K v) :
+  ∃ g : fin (finrank K V) ≃ ι, basis K (v ∘ g) :=
 begin
   have : (cardinal.mk (fin $ finrank K V)).lift = (cardinal.mk ι).lift,
   { simp [cardinal.mk_fin (finrank K V), ← finrank_eq_card_basis' hv] },
@@ -270,15 +271,15 @@ begin
 end
 
 lemma equiv_fin_of_dim_eq {ι : Type*} [finite_dimensional K V] {n : ℕ} (hn : finrank K V = n)
-  {v : ι → V} (hv : is_basis K v) :
-  ∃ g : fin n ≃ ι, is_basis K (v ∘ g) :=
+  {v : ι → V} (hv : basis K v) :
+  ∃ g : fin n ≃ ι, basis K (v ∘ g) :=
 let ⟨g₁, hg₁⟩ := equiv_fin hv, ⟨g₂⟩ := fin.equiv_iff_eq.mpr hn in
 ⟨g₂.symm.trans g₁, hv.comp _ (g₂.symm.trans g₁).bijective⟩
 
 variables (K V)
 
-lemma fin_basis [finite_dimensional K V] : ∃ v : fin (finrank K V) → V, is_basis K v :=
-let ⟨B, hB, B_fin⟩ := exists_is_basis_finite K V, ⟨g, hg⟩ := finite_dimensional.equiv_fin hB in
+lemma fin_basis [finite_dimensional K V] : ∃ v : fin (finrank K V) → V, basis K v :=
+let ⟨B, hB, B_fin⟩ := exists_basis_finite K V, ⟨g, hg⟩ := finite_dimensional.equiv_fin hB in
 ⟨coe ∘ g, hg⟩
 
 variables {K V}
@@ -489,11 +490,11 @@ whole space. -/
 lemma eq_top_of_finrank_eq [finite_dimensional K V] {S : submodule K V}
   (h : finrank K S = finrank K V) : S = ⊤ :=
 begin
-  cases exists_is_basis K S with bS hbS,
+  cases exists_basis K S with bS hbS,
   have : linear_independent K (subtype.val : (subtype.val '' bS : set V) → V),
     from @linear_independent.image_subtype _ _ _ _ _ _ _ _ _
       (submodule.subtype S) hbS.1 (by simp),
-  cases exists_subset_is_basis this with b hb,
+  cases exists_subset_basis this with b hb,
   letI : fintype b := classical.choice (finite_of_linear_independent hb.2.1),
   letI : fintype (subtype.val '' bS) := classical.choice (finite_of_linear_independent this),
   letI : fintype bS := classical.choice (finite_of_linear_independent hbS.1),
@@ -558,8 +559,8 @@ begin
 end
 
 lemma finrank_eq_zero_of_not_exists_basis
-  (h : ¬ ∃ s : finset V, is_basis K (λ x, x : (↑s : set V) → V)) : finrank K V = 0 :=
-dif_neg (mt (λ h, @exists_is_basis_finset K V _ _ _ (finite_dimensional_iff_dim_lt_omega.mpr h)) h)
+  (h : ¬ ∃ s : finset V, basis K (λ x, x : (↑s : set V) → V)) : finrank K V = 0 :=
+dif_neg (mt (λ h, @exists_basis_finset K V _ _ _ (finite_dimensional_iff_dim_lt_omega.mpr h)) h)
 
 variables (K V)
 
@@ -897,17 +898,17 @@ lemma finrank_zero_iff_forall_zero [finite_dimensional K V] :
   finrank K V = 0 ↔ ∀ x : V, x = 0 :=
 finrank_zero_iff.trans (subsingleton_iff_forall_eq 0)
 
-lemma is_basis_of_finrank_zero [finite_dimensional K V]
+lemma basis_of_finrank_zero [finite_dimensional K V]
   {ι : Type*} (h : ¬ nonempty ι) (hV : finrank K V = 0) :
-  is_basis K (λ x : ι, (0 : V)) :=
+  basis K (λ x : ι, (0 : V)) :=
 begin
   haveI : subsingleton V := finrank_zero_iff.1 hV,
-  exact is_basis_empty _ h
+  exact basis_empty _ h
 end
 
-lemma is_basis_of_finrank_zero' [finite_dimensional K V]
-  (hV : finrank K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
-is_basis_of_finrank_zero (finset.univ_eq_empty.mp rfl) hV
+lemma basis_of_finrank_zero' [finite_dimensional K V]
+  (hV : finrank K V = 0) : basis K (λ x : fin 0, (0 : V)) :=
+basis_of_finrank_zero (finset.univ_eq_empty.mp rfl) hV
 
 namespace linear_map
 
@@ -1077,7 +1078,7 @@ end
 
 end span
 
-section is_basis
+section basis
 
 lemma linear_independent_of_span_eq_top_of_card_eq_finrank {ι : Type*} [fintype ι] {b : ι → V}
   (span_eq : span K (set.range b) = ⊤) (card_eq : fintype.card ι = finrank K V) :
@@ -1151,22 +1152,22 @@ begin
     convert (linear_independent_of_span_eq_top_of_card_eq_finrank hs hc).map' _ hi }
 end
 
-lemma is_basis_of_span_eq_top_of_card_eq_finrank {ι : Type*} [fintype ι] {b : ι → V}
+lemma basis_of_span_eq_top_of_card_eq_finrank {ι : Type*} [fintype ι] {b : ι → V}
   (span_eq : span K (set.range b) = ⊤) (card_eq : fintype.card ι = finrank K V) :
-  is_basis K b :=
+  basis K b :=
 ⟨linear_independent_of_span_eq_top_of_card_eq_finrank span_eq card_eq, span_eq⟩
 
-lemma finset_is_basis_of_span_eq_top_of_card_eq_finrank {s : finset V}
+lemma finset_basis_of_span_eq_top_of_card_eq_finrank {s : finset V}
   (span_eq : span K (↑s : set V) = ⊤) (card_eq : s.card = finrank K V) :
-  is_basis K (coe : (↑s : set V) → V) :=
-is_basis_of_span_eq_top_of_card_eq_finrank
+  basis K (coe : (↑s : set V) → V) :=
+basis_of_span_eq_top_of_card_eq_finrank
   ((@subtype.range_coe_subtype _ (λ x, x ∈ s)).symm ▸ span_eq)
   (trans (fintype.card_coe _) card_eq)
 
-lemma set_is_basis_of_span_eq_top_of_card_eq_finrank {s : set V} [fintype s]
+lemma set_basis_of_span_eq_top_of_card_eq_finrank {s : set V} [fintype s]
   (span_eq : span K s = ⊤) (card_eq : s.to_finset.card = finrank K V) :
-  is_basis K (λ (x : s), (x : V)) :=
-is_basis_of_span_eq_top_of_card_eq_finrank
+  basis K (λ (x : s), (x : V)) :=
+basis_of_span_eq_top_of_card_eq_finrank
   ((@subtype.range_coe_subtype _ s).symm ▸ span_eq)
   (trans s.to_finset_card.symm card_eq)
 
@@ -1187,33 +1188,28 @@ begin
                     ... = 0 : dif_neg (mt finite_dimensional_iff_dim_lt_omega.mpr fin) }
 end
 
-lemma is_basis_of_linear_independent_of_card_eq_finrank
+lemma basis_of_linear_independent_of_card_eq_finrank
   {ι : Type*} [nonempty ι] [fintype ι] {b : ι → V}
   (lin_ind : linear_independent K b) (card_eq : fintype.card ι = finrank K V) :
-  is_basis K b :=
+  basis K b :=
 ⟨lin_ind, span_eq_top_of_linear_independent_of_card_eq_finrank lin_ind card_eq⟩
 
-lemma finset_is_basis_of_linear_independent_of_card_eq_finrank
+lemma finset_basis_of_linear_independent_of_card_eq_finrank
   {s : finset V} (hs : s.nonempty)
   (lin_ind : linear_independent K (coe : (↑s : set V) → V)) (card_eq : s.card = finrank K V) :
-  is_basis K (coe : (↑s : set V) → V) :=
-@is_basis_of_linear_independent_of_card_eq_finrank _ _ _ _ _ _
+  basis K (coe : (↑s : set V) → V) :=
+@basis_of_linear_independent_of_card_eq_finrank _ _ _ _ _ _
   ⟨(⟨hs.some, hs.some_spec⟩ : (↑s : set V))⟩ _ _
   lin_ind
   (trans (fintype.card_coe _) card_eq)
 
-lemma set_is_basis_of_linear_independent_of_card_eq_finrank
+lemma set_basis_of_linear_independent_of_card_eq_finrank
   {s : set V} [nonempty s] [fintype s]
   (lin_ind : linear_independent K (coe : s → V)) (card_eq : s.to_finset.card = finrank K V) :
-  is_basis K (coe : s → V) :=
-is_basis_of_linear_independent_of_card_eq_finrank lin_ind (trans s.to_finset_card.symm card_eq)
+  basis K (coe : s → V) :=
+basis_of_linear_independent_of_card_eq_finrank lin_ind (trans s.to_finset_card.symm card_eq)
 
-lemma singleton_is_basis (v : V) (nz : v ≠ 0) (h : finrank K V = 1) :
-  is_basis K (coe : ({v} : set V) → V) :=
-set_is_basis_of_linear_independent_of_card_eq_finrank
-  (linear_independent_singleton nz) (by simp [h])
-
-end is_basis
+end basis
 
 /-!
 We now give characterisations of `finrank K V = 1` and `finrank K V ≤ 1`.
@@ -1361,7 +1357,7 @@ begin
   have : fintype b := unique.fintype,
   have b_lin_ind : linear_independent F (coe : b → S) := linear_independent_singleton one_ne_zero,
   have b_card : fintype.card b = 1 := fintype.card_of_subsingleton _,
-  obtain ⟨_, b_spans⟩ := set_is_basis_of_linear_independent_of_card_eq_finrank
+  obtain ⟨_, b_spans⟩ := set_basis_of_linear_independent_of_card_eq_finrank
     b_lin_ind (by simp only [*, set.to_finset_card]),
   intros x hx,
   rw [algebra.mem_bot],

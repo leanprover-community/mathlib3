@@ -984,6 +984,10 @@ by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
   (∅ : set α).to_finset = ∅ :=
 by { ext, simp only [set.mem_empty_eq, set.mem_to_finset, not_mem_empty] }
 
+@[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] :
+  s.to_finset = ∅ ↔ s = ∅ :=
+by simp [ext_iff, set.ext_iff]
+
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=
 fintype.card_le_of_embedding (function.embedding.subtype _)

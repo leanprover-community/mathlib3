@@ -1580,8 +1580,27 @@ end
 /-- If `∑' i, ∥f i∥` is summable, then `∥∑' i, f i∥ ≤ (∑' i, ∥f i∥)`. Note that we do not assume
 that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
 lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) :
-  ∥∑'i, f i∥ ≤ ∑' i, ∥f i∥ :=
+  ∥∑' i, f i∥ ≤ ∑' i, ∥f i∥ :=
 tsum_of_norm_bounded hf.has_sum $ λ i, le_rfl
+
+/-- Quantitative result associated to the direct comparison test for series: If `∑' i, g i` is
+summable, and for all `i`, `nnnorm (f i) ≤ g i`, then `nnnorm (∑' i, f i) ≤ ∑' i, g i`. Note that we
+do not assume that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete
+space. -/
+lemma tsum_of_nnnorm_bounded {f : ι → α} {g : ι → ℝ≥0} {a : ℝ≥0} (hg : has_sum g a)
+  (h : ∀ i, nnnorm (f i) ≤ g i) :
+  nnnorm (∑' i : ι, f i) ≤ a :=
+begin
+  simp only [← nnreal.coe_le_coe, ← nnreal.has_sum_coe, coe_nnnorm] at *,
+  exact tsum_of_norm_bounded hg h
+end
+
+/-- If `∑' i, nnnorm (f i)` is summable, then `nnnorm (∑' i, f i) ≤ ∑' i, nnnorm (f i)`. Note that
+we do not assume that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete
+space. -/
+lemma nnnorm_tsum_le {f : ι → α} (hf : summable (λi, nnnorm (f i))) :
+  nnnorm (∑' i, f i) ≤ ∑' i, nnnorm (f i) :=
+tsum_of_nnnorm_bounded hf.has_sum (λ i, le_rfl)
 
 variable [complete_space α]
 

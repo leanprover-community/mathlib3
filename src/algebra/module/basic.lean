@@ -580,3 +580,7 @@ attribute [instance] add_comm_monoid.nat_semimodule add_comm_group.int_module
 lemma nat.smul_one_eq_coe {R : Type*} [semiring R] [semimodule ℕ R] (m : ℕ) :
   m • (1 : R) = ↑m :=
 by rw [←nsmul_eq_smul, nsmul_eq_mul, mul_one]
+
+lemma int.smul_one_eq_coe {R : Type*} [ring R] [semimodule ℤ R] (m : ℤ) :
+  m • (1 : R) = ↑m :=
+by rw [← gsmul_eq_smul, gsmul_eq_mul, mul_one]

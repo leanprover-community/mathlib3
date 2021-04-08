@@ -176,7 +176,7 @@ begin
       not_false_iff] }
 end
 
-@[simp] lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
+@[simp] lemma finite_field.char_poly_pow_card {K : Type u} [field K] [fintype K] (M : matrix n n K) :
   char_poly (M ^ (fintype.card K)) = char_poly M :=
 begin
   by_cases hn : nonempty n,
@@ -193,9 +193,10 @@ begin
     apply mat_poly_equiv.injective, swap, { apply_instance },
     rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
           mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
-    { exact mat_poly_equiv_eq_X_pow_sub_C (p ^ k) M },
+    { exact (id (mat_poly_equiv_eq_X_pow_sub_C (p ^ k) M) : _) },
     { exact (C M).commute_X } },
-  { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
+  { apply congr_arg,
+    apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _ }
 end
 
 @[simp] lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :

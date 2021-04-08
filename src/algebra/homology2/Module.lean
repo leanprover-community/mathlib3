@@ -137,8 +137,8 @@ begin
   simp only [cokernel.π_desc_apply, coe_comp],
   -- To check that two elements are equal mod coboundaries, it suffices to exhibit a coboundary:
   ext1,
-  swap, exact -(h.to_ihom.to_pred i i) x,
+  swap, exact -(h.to_prev i i) x,
   -- Moreover, to check that two cycles are equal, it suffices to check their underlying elements:
   ext1,
-  simp [←h.comm' i, p],
+  simp [h.comm i, p],
 end

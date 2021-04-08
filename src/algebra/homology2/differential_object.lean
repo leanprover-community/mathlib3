@@ -17,6 +17,8 @@ essentially the same thing as a differential graded object.
 open category_theory
 open category_theory.limits
 
+namespace homological_complex
+
 variables {β : Type*} [add_comm_group β] [decidable_eq β] (b : β)
 variables (V : Type*) [category V] [has_zero_morphisms V]
 
@@ -49,6 +51,9 @@ def dgo_to_homological_complex :
       { simp, },
     end, } }
 
+/--
+The functor from homological complexes to differential graded objects.
+-/
 @[simps]
 def homological_complex_to_dgo :
   homological_complex V (complex_shape.up' b) ⥤
@@ -61,6 +66,9 @@ def homological_complex_to_dgo :
   { f := f.f,
     comm' := by { ext i, dsimp, simp, }, } }
 
+/--
+The unit isomorphism for `dgo_equiv_homological_complex`.
+-/
 @[simps]
 def dgo_equiv_homological_complex_unit_iso :
   𝟭 (differential_object (graded_object_with_shift b V)) ≅
@@ -69,6 +77,9 @@ nat_iso.of_components (λ X,
   { hom := { f := λ i, 𝟙 (X.X i), },
     inv := { f := λ i, 𝟙 (X.X i), }, }) (by tidy)
 
+/--
+The counit isomorphism for `dgo_equiv_homological_complex`.
+-/
 @[simps]
 def dgo_equiv_homological_complex_counit_iso :
   homological_complex_to_dgo b V ⋙ dgo_to_homological_complex b V ≅
@@ -91,6 +102,10 @@ nat_iso.of_components (λ X,
         { exact (X.shape _ _ h).symm, }
       end }, }) (by tidy)
 
+/--
+The category of differential graded objects in `V` is equivalent
+to the category of homological complexes in `V`.
+-/
 @[simps]
 def dgo_equiv_homological_complex :
   differential_object (graded_object_with_shift b V) ≌
@@ -99,3 +114,5 @@ def dgo_equiv_homological_complex :
   inverse := homological_complex_to_dgo b V,
   unit_iso := dgo_equiv_homological_complex_unit_iso b V,
   counit_iso := dgo_equiv_homological_complex_counit_iso b V, }
+
+end homological_complex

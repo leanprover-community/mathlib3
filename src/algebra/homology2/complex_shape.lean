@@ -11,28 +11,6 @@ import algebra.group.defs
 open_locale classical
 noncomputable theory
 
-/-- An arbitrary `some a` with `a : α` if `α` is nonempty, and otherwise `none`. -/
-def option.choice (α : Type*) : option α :=
-if h : nonempty α then
-  some h.some
-else
-  none
-
-lemma option.choice_eq {α : Type*} [subsingleton α] (a : α) : option.choice α = some a :=
-begin
-  dsimp [option.choice],
-  let w : nonempty α := ⟨a⟩,
-  rw dif_pos w,
-  simp only [option.map_some', subtype.val_eq_coe],
-  apply subsingleton.elim,
-end
-
-lemma option.choice_eq_none {α : Type*} (h : α → false) : option.choice α = none :=
-begin
-  dsimp [option.choice],
-  rw dif_neg (not_nonempty_iff_imp_false.mpr h),
-end
-
 /--
 A `c : complex_shape ι` describes the shape of a chain complex,
 with chain groups indexed by `ι`.
@@ -140,12 +118,20 @@ end
 -- TODO we may need to prove that `c.rel_step n i j → c.rel_step m j k → c.rel_step (n+m) i k`
 -- (and also the converse, when `n` and `m` are both non-negative).
 
+/--
+The `complex_shape` allowing differentials from `X i` to `X (i+a)`.
+(For example when `a = 1`, a cohomology theory indexed by `ℕ` or `ℤ`)
+-/
 @[simps]
 def up' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape α :=
 { rel := λ i j , i + a = j,
   next_eq := λ i j k hi hj, hi.symm.trans hj,
   prev_eq := λ i j k hi hj, add_right_cancel (hi.trans hj.symm), }
 
+/--
+The `complex_shape` allowing differentials from `X (j+a)` to `X j`.
+(For example when `a = 1`, a homology theory indexed by `ℕ` or `ℤ`)
+-/
 @[simps]
 def down' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape α :=
 { rel := λ i j , j + a = i,

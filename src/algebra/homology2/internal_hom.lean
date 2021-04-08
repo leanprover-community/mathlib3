@@ -38,16 +38,16 @@ namespace ihom
 variables [has_zero_object V]
 variables {k : ℤ} {C D : homological_complex V c}
 
-def from_succ (f : ihom k C D) (i j : ι) : C.X_succ i ⟶ D.X j :=
+def from_next (f : ihom k C D) (i j : ι) : C.X_next i ⟶ D.X j :=
 match c.next i with
 | none := 0
-| some ⟨i',w⟩ := (C.X_succ_iso w).hom ≫ f.hom i' j
+| some ⟨i',w⟩ := (C.X_next_iso w).hom ≫ f.hom i' j
 end
 
-def to_pred (f : ihom k C D) (i j : ι) : C.X i ⟶ D.X_pred j :=
+def to_prev (f : ihom k C D) (i j : ι) : C.X i ⟶ D.X_prev j :=
 match c.prev j with
 | none := 0
-| some ⟨j',w⟩ := f.hom i j' ≫ (D.X_pred_iso w).inv
+| some ⟨j',w⟩ := f.hom i j' ≫ (D.X_prev_iso w).inv
 end
 
 end ihom

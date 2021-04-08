@@ -231,8 +231,8 @@ begin
              mem_diff, mem_support],
   push_neg,
   rintro ha ⟨hx, hy⟩ H,
-  rw [swap_apply_eq_swap_apply_iff, swap_apply_of_ne_of_ne hx hy] at H,
-  exact ha H.symm
+  rw [swap_apply_eq_iff, swap_apply_of_ne_of_ne hx hy] at H,
+  exact ha H
 end
 
 lemma support_swap_mul_eq [decidable_eq α] (f : perm α) (x : α) (h : f (f x) ≠ x) :
@@ -343,7 +343,7 @@ begin
     exact (mem_support_swap_mul_imp_mem_support_ne hz).left },
   { rw ←mem_support at hx,
     have : x ∉ (swap x (f x) * f).support := by simp,
-    rw [←finset.le_eq_subset, finite.to_finset.mono],
+    rw finite.to_finset_mono,
     exact λ H, this (H hx) }
 end
 
@@ -458,24 +458,26 @@ begin
     (λ hg h, ⟨(congr_arg f hg).symm.trans h, hg⟩),
 end
 
-lemma disjoint.card_support_mul (h : disjoint f g) [fintype f.support] [fintype g.support]
-  [fintype (f * g).support] :
-  (f * g).support.to_finset.card = f.support.to_finset.card + g.support.to_finset.card :=
+lemma disjoint.card_support_mul (h : disjoint f g) (hf : f.support.finite) (hg : g.support.finite)
+  (hfg : (f * g).support.finite) :
+  hfg.to_finset.card = hf.to_finset.card + hg.to_finset.card :=
 begin
-  have := h.disjoint_support,
+  letI := hf.fintype,
+  letI := hg.fintype,
+  letI := hfg.fintype,
+  simp_rw [finite.card_to_finset, ←to_finset_card],
   classical,
-  rw ←to_finset_disjoint_iff at this,
-  rw ←finset.card_disjoint_union this,
-  congr,
-  ext,
-  simp [h.support_mul]
+  rw ←finset.card_disjoint_union,
+  { congr,
+    ext,
+    simp [h.support_mul] },
+  { simpa using h.disjoint_support }
 end
 
--- TODO: figure out how to get list.pmap to understand element-wise fintype
-lemma card_support_prod_list_of_pairwise_disjoint {l : list (perm α)} [hf : fintype l.prod.support]
+lemma card_support_prod_list_of_pairwise_disjoint {l : list (perm α)} (hf : l.prod.support.finite)
   (hl : ∀ (s : set α), s ∈ (l.map support) → s.finite)
   (h : l.pairwise disjoint) :
-  l.prod.support.to_finset.card =
+  hf.to_finset.card =
   list.sum (list.map finset.card (list.pmap (λ (s : set α) (hs : s.finite),
     hs.to_finset) (l.map support) hl)) :=
 begin
@@ -483,25 +485,21 @@ begin
   { induction l with a t ih,
     { simp },
     { obtain ⟨ha, ht⟩ := list.pairwise_cons.1 h,
+      have hd : a.disjoint t.prod := disjoint_prod_right t ha,
       have htf : t.prod.support.finite,
         { suffices : ((t.map support).foldr (⊔) ∅).finite,
             { exact this.subset (support_prod_le t) },
-          apply list.foldr_induction,
+          apply list.foldr_rec_on,
+          { simp },
           { intros b hbf a haf,
-            exact (hl a (list.mem_cons_of_mem _ haf)).sup hbf },
-          { simp } },
+            exact (hl a (list.mem_cons_of_mem _ haf)).sup hbf } },
       have haf : a.support.finite,
         { apply hl,
           simp },
       have hpf : (a * t.prod).support.finite :=
         set.finite.subset (haf.sup htf) (support_mul_le _ _),
-      letI : fintype t.prod.support := htf.fintype,
-      letI : fintype a.support := haf.fintype,
-      letI : fintype (a * t.prod).support := hpf.fintype,
-      specialize ih (λ s hs, hl s (list.mem_cons_of_mem _ hs)) ht,
-      simp only [←ih, ←(disjoint_prod_right t ha).card_support_mul, list.pmap, list.sum_cons,
-                 finite.card_to_finset, ←to_finset_card, list.prod_cons, list.map],
-      congr } }
+      specialize ih htf (λ s hs, hl s (list.mem_cons_of_mem _ hs)) ht,
+      simpa [←ih] using hd.card_support_mul _ _ _ } }
 end
 
 end disjoint

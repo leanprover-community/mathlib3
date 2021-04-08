@@ -581,25 +581,17 @@ calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
 ... = sign g : sign_subtype_perm _ _ (λ _, id)
 
 @[simp]
-lemma card_support_eq_two {f : perm α} [hf : fintype f.support] :
-  fintype.card f.support = 2 ↔ is_swap f :=
+lemma card_support_eq_two {f : perm α} (hf : f.support.finite) :
+  hf.to_finset.card = 2 ↔ is_swap f :=
 begin
   split; intro h,
-  { obtain ⟨⟨x, hx⟩, t, hmem, hins, ht⟩ := card_eq_succ.1 h,
-    obtain ⟨⟨y, hy⟩, rfl⟩ := card_eq_one.1 ht,
+  { obtain ⟨x, t, hmem, hins, ht⟩ := card_eq_succ.1 h,
+    obtain ⟨y, rfl⟩ := card_eq_one.1 ht,
     rw mem_singleton at hmem,
-    refine ⟨x, y, subtype.coe_injective.ne hmem, _⟩,
+    refine ⟨x, y, hmem, _⟩,
     ext a,
-    have key : ∀ b, f b ≠ b ↔ (b = x ∨ b = y),
-      { intro b,
-        rw ←mem_support,
-        split,
-        { intro h,
-          suffices : (⟨b, h⟩ : f.support) ∈ ({⟨x, hx⟩, ⟨y, hy⟩} : finset (f.support)),
-            { simpa },
-          simp [hins] },
-        { rintro (rfl | rfl);
-          simpa } },
+    have key : ∀ b, f b ≠ b ↔ _ := λ b, by rw [←mem_support, ←hf.mem_to_finset,
+      ←hins, mem_insert, mem_singleton],
     by_cases ha : f a = a,
     { have ha' := not_or_distrib.mp (mt (key a).mpr (not_not.mpr ha)),
       rw [ha, swap_apply_of_ne_of_ne ha'.1 ha'.2] },
@@ -607,9 +599,8 @@ begin
       obtain rfl | rfl := ((key a).mp ha),
       { rw [or.resolve_left ha' ha, swap_apply_left] },
       { rw [or.resolve_right ha' ha, swap_apply_right] } } },
-  { unfreezingI { obtain ⟨x, y, hxy, rfl⟩ := h },
-    rw ←set.to_finset_card,
-    convert card_support_swap hxy }
+  { unfreezingI {obtain ⟨x, y, hxy, rfl⟩ := h},
+    exact card_support_swap hxy }
 end
 
 /-- If we apply `prod_extend_right a (σ a)` for all `a : α` in turn,

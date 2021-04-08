@@ -40,11 +40,11 @@ def is_cycle (f : perm β) : Prop := ∃ x, f x ≠ x ∧ ∀ y, f y ≠ y → �
 lemma is_cycle.ne_one {f : perm β} (h : is_cycle f) : f ≠ 1 :=
 λ hf, by simpa [hf, is_cycle] using h
 
-lemma is_cycle.two_le_card_support {f : perm α} (h : is_cycle f) (hf : f.support.finite) :
+lemma is_cycle.two_le_card_support {f : perm β} (h : is_cycle f) (hf : f.support.finite) :
   2 ≤ hf.to_finset.card :=
 two_le_card_support_of_ne_one hf h.ne_one
 
-lemma is_cycle.swap {α : Type*} [decidable_eq α] {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=
+lemma is_cycle.swap {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=
 ⟨y, by rwa swap_apply_right,
   λ a (ha : ite (a = x) y (ite (a = y) x a) ≠ a),
     if hya : y = a then ⟨0, hya⟩
@@ -96,9 +96,10 @@ begin
     exact ⟨⟨σ ^ n, n, rfl⟩, rfl⟩ },
 end
 
-lemma order_of_is_cycle [fintype α] {σ : perm α} (hσ : is_cycle σ) (hf : σ.support.finite) :
+lemma order_of_is_cycle [fintype β] {σ : perm β} (hσ : is_cycle σ) (hf : σ.support.finite) :
   order_of σ = hf.to_finset.card :=
 begin
+  classical,
   rw [order_eq_card_gpowers, ←fintype.card_coe],
   letI := hf.fintype,
   convert fintype.card_congr (is_cycle.gpowers_equiv_support hσ) using 3,
@@ -227,10 +228,10 @@ using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, (show f.s
 
 -- The lemma `support_pow_le` is relevant. It means that `h2` is equivalent to
 -- `σ.support = (σ ^ n).support`, as well as to `σ.support.card ≤ (σ ^ n).support.card`.
-lemma is_cycle_of_is_cycle_pow {σ : perm α} {n : ℤ}
+lemma is_cycle_of_is_cycle_pow {σ : perm β} {n : ℤ}
   (h1 : is_cycle (σ ^ n)) (h2 : σ.support ≤ (σ ^ n).support) : is_cycle σ :=
 begin
-  have key : ∀ x : α, (σ ^ n) x ≠ x ↔ σ x ≠ x,
+  have key : ∀ x : β, (σ ^ n) x ≠ x ↔ σ x ≠ x,
   { simp_rw [←mem_support],
     exact set.ext_iff.mp (le_antisymm (support_gpow_le σ n) h2) },
   obtain ⟨x, hx1, hx2⟩ := h1,

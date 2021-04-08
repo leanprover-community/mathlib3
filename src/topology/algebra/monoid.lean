@@ -312,7 +312,7 @@ attribute [continuity] continuous_finset_sum
 
 open function
 
-lemma continuous_finprod {f : ι → X → M} (hc : ∀ i, continuous (f i))
+@[to_additive] lemma continuous_finprod {f : ι → X → M} (hc : ∀ i, continuous (f i))
   (hf : locally_finite (λ i, mul_support (f i))) :
   continuous (λ x, ∏ᶠ i, f i x) :=
 begin
@@ -326,7 +326,7 @@ begin
   exact ⟨y, hi, hy⟩
 end
 
-lemma continuous_finprod_cond {f : ι → X → M} {p : ι → Prop}
+@[to_additive] lemma continuous_finprod_cond {f : ι → X → M} {p : ι → Prop}
   (hc : ∀ i, p i → continuous (f i)) (hf : locally_finite (λ i, mul_support (f i))) :
   continuous (λ x, ∏ᶠ i (hi : p i), f i x) :=
 begin

@@ -25,14 +25,10 @@ def equiv.image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
   left_inv := λ x, by tidy,
   right_inv := λ y, by tidy, }.
 
-@[simp]
-lemma homeomorph.to_equiv_symm_coe {α β : Type*} [topological_space α] [topological_space β]
-  (e : α ≃ₜ β) : (e.to_equiv.symm : β → α) = e.symm := rfl
-
 @[continuity]
-lemma foo' {α β : Type*} [topological_space α] [topological_space β]
-  (e : α ≃ₜ β) : continuous (e.to_equiv.symm) :=
-by { simp, continuity, }
+lemma homeomorph.continuous_symm {α β : Type*} [topological_space α] [topological_space β]
+  (e : α ≃ₜ β) : continuous (e.symm) :=
+by continuity
 
 /--
 A subset of a topological space is homeomorphic to its image under a homeomorphism.
@@ -105,6 +101,9 @@ def pullback_continuous_map {X Y : Type*} (T : Type*)
   (pullback_continuous_map T f) g = g.comp f :=
 rfl
 
+/--
+Precomposition by a homeomorphism is itself a homeomorphism between spaces of continuous maps.
+-/
 def pullback_homeomorph {X Y : Type*} (T : Type*)
   [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
   (f : X ≃ₜ Y) : C(Y, T) ≃ₜ C(X, T) :=
@@ -113,6 +112,9 @@ def pullback_homeomorph {X Y : Type*} (T : Type*)
   left_inv := by tidy,
   right_inv := by tidy, }
 
+/--
+Precomposition of functions into a normed ring by continuous map is an algebra homomorphism.
+-/
 def pullback_alg_hom {X Y : Type*} (R : Type*)
   [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) :
   C(Y, R) →ₐ[R] C(X, R) :=
@@ -141,7 +143,7 @@ end
 
 /-- The map `λ x, a * x + b`, as a homeomorphism from `ℝ` to itself, when `a ≠ 0`. -/
 @[simps]
-def affine_homeo (a b : ℝ) (h : a ≠ 0) : ℝ ≃ₜ ℝ :=
+def affine_homeomorph (a b : ℝ) (h : a ≠ 0) : ℝ ≃ₜ ℝ :=
 { to_fun := λ x, a * x + b,
   inv_fun := λ y, (y - b) / a,
   left_inv := λ x, by { simp only [add_sub_cancel], exact mul_div_cancel_left x h, },
@@ -149,26 +151,26 @@ def affine_homeo (a b : ℝ) (h : a ≠ 0) : ℝ ≃ₜ ℝ :=
 
 -- FIXME should be generated directly by `@[simps]`.
 -- See https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/How.20do.20I.20configure.20an.20.60equiv.60.20to.20work.20with.20.60simps.60.3F/near/233291764
-@[simp] lemma affine_homeo_apply (a b : ℝ) (h : a ≠ 0) (x : ℝ) :
-  affine_homeo a b h x = a * x + b := rfl
+@[simp] lemma affine_homeomorph_apply (a b : ℝ) (h : a ≠ 0) (x : ℝ) :
+  affine_homeomorph a b h x = a * x + b := rfl
 
-@[simp] lemma affine_homeo_symm_apply (a b : ℝ) (h : a ≠ 0) (y : ℝ) :
-  (affine_homeo a b h).symm y = (y - b) / a := rfl
+@[simp] lemma affine_homeomorph_symm_apply (a b : ℝ) (h : a ≠ 0) (y : ℝ) :
+  (affine_homeomorph a b h).symm y = (y - b) / a := rfl
 
 /--
 The image of `[0,1]` under the homeomorphism `λ x, a * x + b` is `[b, a+b]`.
 -/
 @[simp]
-lemma affine_homeo_image_I (a b : ℝ) (h : 0 < a) (w) :
-  affine_homeo a b w '' set.Icc 0 1 = set.Icc b (a + b) :=
+lemma affine_homeomorph_image_I (a b : ℝ) (h : 0 < a) (w) :
+  affine_homeomorph a b w '' set.Icc 0 1 = set.Icc b (a + b) :=
 begin
   ext,
   fsplit,
   { rintro ⟨x,⟨⟨zero_le,le_one⟩,rfl⟩⟩,
-    simp only [add_le_add_iff_right, affine_homeo_apply, le_add_iff_nonneg_left, set.mem_Icc],
+    simp only [add_le_add_iff_right, affine_homeomorph_apply, le_add_iff_nonneg_left, set.mem_Icc],
     exact ⟨mul_nonneg h.le zero_le, (mul_le_iff_le_one_right h).mpr le_one⟩, },
   { intro m,
-    simp only [set.image_congr, set.mem_image, affine_homeo_apply],
+    simp only [set.image_congr, set.mem_image, affine_homeomorph_apply],
     use (x - b) / a,
     fsplit,
     { simp only [set.mem_Icc],
@@ -190,10 +192,10 @@ The affine homeomorphism from a nontrivial interval `[a,b]` to `[0,1]`.
 -/
 def Icc_homeo (a b : ℝ) (h : a < b) : set.Icc a b ≃ₜ I :=
 begin
-  let e := homeomorph.image (affine_homeo (b-a) a (sub_pos.mpr h).ne.symm) (set.Icc 0 1),
+  let e := homeomorph.image (affine_homeomorph (b-a) a (sub_pos.mpr h).ne.symm) (set.Icc 0 1),
   refine (e.trans _).symm,
   apply homeomorph.set_congr,
-  rw affine_homeo_image_I _ _ (sub_pos.mpr h),
+  rw affine_homeomorph_image_I _ _ (sub_pos.mpr h),
   rw sub_add_cancel,
 end
 

@@ -257,16 +257,16 @@ end stalk_map
 
 open function
 
-lemma stalk_maps_injective_of_app_injective {F G : presheaf (Type v) X} (f : F ⟶ G) :
-  (∀ U : opens X, injective (f.app (op U))) → (∀ x : X, injective (stalk_map x f)) :=
+lemma stalk_map_injective_of_app_injective {F G : presheaf (Type v) X} (f : F ⟶ G)
+  (h : ∀ U : opens X, injective (f.app (op U))) (x : X) :
+  injective (stalk_map x f) := λ s t hst,
 begin
-  intros h_inj x s t hst,
   rcases germ_exist F x s with ⟨U₁, hxU₁, s, rfl⟩,
   rcases germ_exist F x t with ⟨U₂, hxU₂, t, rfl⟩,
   rw [stalk_map.germ_comp_apply U₁ ⟨x,hxU₁⟩, stalk_map.germ_comp_apply U₂ ⟨x,hxU₂⟩] at hst,
   obtain ⟨W, hxW, iWU₁, iWU₂, heq⟩ := G.germ_eq x hxU₁ hxU₂ _ _ hst,
   rw [← functor_to_types.naturality, ← functor_to_types.naturality] at heq,
-  replace heq := h_inj W heq,
+  replace heq := h W heq,
   convert congr_arg (F.germ ⟨x,hxW⟩) heq,
   exacts [(F.germ_res_apply iWU₁ ⟨x,hxW⟩ s).symm,
           (F.germ_res_apply iWU₂ ⟨x,hxW⟩ t).symm],
@@ -277,14 +277,13 @@ Note that the analogous statement for surjectivity is false: Surjectivity on sta
 imply surjectivity of the components of a sheaf morphism. However it does imply that the morphism
 is an epi, but this fact it not yet formalized.
 -/
-lemma app_injective_of_stalk_maps_injective {F : sheaf (Type v) X }
-  {G : presheaf (Type v) X} (f : F.presheaf ⟶ G) :
-  (∀ x : X, injective (stalk_map x f)) → (∀ U : opens X, injective (f.app (op U))) :=
+lemma app_injective_of_stalk_maps_injective {F : sheaf (Type v) X} {G : presheaf (Type v) X}
+  (f : F.presheaf ⟶ G) (h : ∀ x : X, injective (stalk_map x f)) (U : opens X) :
+  injective (f.app (op U)) := λ s t hst,
 begin
-  intros h_inj U s t hst,
   apply section_ext,
   intro x,
-  apply h_inj x.1,
+  apply h x.1,
   rw [stalk_map.germ_comp_apply, stalk_map.germ_comp_apply],
   exact congr_arg _ hst
 end
@@ -292,14 +291,15 @@ end
 lemma app_injective_iff_stalk_maps_injective {F : sheaf (Type v) X}
   {G : presheaf (Type v) X} (f : F.presheaf ⟶ G) :
   (∀ x : X, injective (stalk_map x f)) ↔ (∀ U : opens X, injective (f.app (op U))) :=
-⟨app_injective_of_stalk_maps_injective f, stalk_maps_injective_of_app_injective f⟩
+⟨app_injective_of_stalk_maps_injective f, stalk_map_injective_of_app_injective f⟩
 
-lemma app_bijective_of_stalk_maps_bijective {F G : sheaf (Type v) X} (f : F ⟶ G) :
-  (∀ x : X, bijective (stalk_map x f)) → (∀ U : opens X, bijective (f.app (op U))) := λ h_bij U,
+lemma app_bijective_of_stalk_maps_bijective {F G : sheaf (Type v) X} (f : F ⟶ G)
+  (h : ∀ x : X, bijective (stalk_map x f)) (U : opens X) :
+  bijective (f.app (op U)) :=
 begin
   -- We already know that `f.app (op U)` is injective. We save that fact here as we will
   -- need it again later.
-  have h_inj := app_injective_of_stalk_maps_injective f (λ x, (h_bij x).1),
+  have h_inj := app_injective_of_stalk_maps_injective f (λ x, (h x).1),
   refine ⟨h_inj U, (λ t,_)⟩,
   -- For surjectivity, we are given an arbitrary section `t` and need to find a preimage for it.
   -- First, we show that we can find preimages *locally*. That is, for each `x : U` we construct
@@ -308,7 +308,7 @@ begin
   have exists_local_preim : ∀ x : U, ∃ (V : open_nhds x.1) (iVU : V.1 ⟶ U)
     (s : F.presheaf.obj (op V.1)), f.app (op V.1) s = G.presheaf.map iVU.op t := λ x, by {
     -- Since `f` is surjective on stalks, we can find a preimage `s₀` of the germ of `t`
-    obtain ⟨s₀,hs₀⟩ := (h_bij x).2 (G.presheaf.germ x t),
+    obtain ⟨s₀,hs₀⟩ := (h x).2 (G.presheaf.germ x t),
     -- ... and this preimage must come from some section `s₁`
     obtain ⟨V₁,hxV₁,s₁,hs₁⟩ := F.presheaf.germ_exist x.1 s₀,
     subst hs₁, rename hs₀ hs₁,

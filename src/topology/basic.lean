@@ -7,8 +7,6 @@ import order.filter.ultrafilter
 import order.filter.partial
 import data.support
 
-noncomputable theory
-
 /-!
 # Basic theory of topological spaces.
 
@@ -47,6 +45,7 @@ Topology in mathlib heavily uses filters (even more than in Bourbaki). See expla
 topological space, interior, closure, frontier, neighborhood, continuity, continuous function
 -/
 
+noncomputable theory
 open set filter classical
 open_locale classical filter
 

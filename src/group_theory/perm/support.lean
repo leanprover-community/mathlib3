@@ -1,12 +1,35 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Aaron Anderson
+Authors: Chris Hughes, Aaron Anderson, Yakov Pechersky
 -/
 import data.set.finite
 import group_theory.perm.basic
 import data.list.perm
 import dynamics.fixed_points.basic
+
+/-!
+# Support of a permutation
+
+## Main definitions
+
+In the following, `f g : equiv.perm α`.
+
+* `equiv.perm.involutive`: `f.involutive` when it is its own inverse, and so are powers of it.
+* `equiv.perm.support`: the elements `x : α` that are not fixed by `f`.
+* `equiv.perm.disjoint`: two permutations `f` and `g` are `disjoint` iff their `support`
+  are disjoint.
+
+## Implementation details
+
+A perm's `support` need not necessarily be finite. To facilitate this, `f.support` is provided
+as a `set` rather than a `finset`. However, often we want to deal with the cardinality of a
+`support`. Since one can have finite support even if the underlying type if not `fintype`,
+instead of juggling `[fintype ↥(f.support)]`, we use instead `set.finite f.support`. That leads
+to lemma statements that mention `(h : set.finite f.support).to_finset.card`, and sometimes
+`letI : fintype ↥(f.support) := h.fintype` in proofs.
+
+-/
 
 open equiv set
 

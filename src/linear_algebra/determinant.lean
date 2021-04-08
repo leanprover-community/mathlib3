@@ -443,8 +443,7 @@ lemma det_succ_row_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
 by { rw [← det_transpose A, det_succ_column_zero],
      refine finset.sum_congr rfl (λ i _, _),
      rw [← det_transpose],
-     simp only [matrix.transpose_apply],
-     refl }
+     simp only [transpose_apply, transpose_minor, transpose_transpose] }
 
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along row `i`. -/
 lemma det_succ_row {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (i : fin n.succ) :
@@ -474,7 +473,6 @@ lemma det_succ_column {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (j : fi
     det (A.minor i.succ_above j.succ_above) :=
 by { rw [← det_transpose, det_succ_row _ j],
      refine finset.sum_congr rfl (λ i _, _),
-     rw [add_comm, ← det_transpose],
-     refl }
+     rw [add_comm, ← det_transpose, transpose_apply, transpose_minor, transpose_transpose] }
 
 end matrix

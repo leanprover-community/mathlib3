@@ -476,9 +476,7 @@ end
 lemma exists_nsmul_eq_zero (x : H) : ∃ i, 0 < i ∧ i •ℕ x = 0 :=
 begin
   rcases exists_pow_eq_one (multiplicative.of_add x) with ⟨i, hi1, hi2⟩,
-  rw is_periodic_pt_mul_iff_pow_eq_one at hi2,
-  refine ⟨i, hi1, multiplicative.of_add.injective _⟩,
-  rw [of_add_nsmul, hi2, of_add_zero],
+  exact ⟨i, hi1, (is_periodic_pt_mul_iff_pow_eq_one _).mp hi2⟩,
 end
 
 attribute [to_additive exists_nsmul_eq_zero] exists_pow_eq_one

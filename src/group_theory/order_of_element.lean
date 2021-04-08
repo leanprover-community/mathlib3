@@ -199,19 +199,11 @@ end
 attribute [to_additive nsmul_eq_mod_add_order_of] pow_eq_mod_order_of
 
 lemma add_order_of_dvd_of_nsmul_eq_zero {n : ℕ} (h : n •ℕ x = 0) : add_order_of x ∣ n :=
-begin
-  apply is_periodic_pt.minimal_period_dvd,
-  rw is_periodic_pt_add_iff_nsmul_eq_zero,
-  exact h,
-end
+is_periodic_pt.minimal_period_dvd ((is_periodic_pt_add_iff_nsmul_eq_zero _).mpr h)
 
 @[to_additive add_order_of_dvd_of_nsmul_eq_zero]
 lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
-begin
-  apply is_periodic_pt.minimal_period_dvd,
-  rw is_periodic_pt_mul_iff_pow_eq_one,
-  exact h,
-end
+is_periodic_pt.minimal_period_dvd ((is_periodic_pt_mul_iff_pow_eq_one _).mpr h)
 
 lemma add_order_of_dvd_iff_nsmul_eq_zero {n : ℕ} : add_order_of x ∣ n ↔ n •ℕ x = 0 :=
 by rw [← is_periodic_pt_add_iff_nsmul_eq_zero, is_periodic_pt_iff_minimal_period_dvd, add_order_of]
@@ -334,10 +326,8 @@ end
 
 lemma add_order_of_nsmul'' (h : is_of_fin_add_order x) :
   add_order_of (n •ℕ x) = add_order_of x / gcd (add_order_of x) n :=
-begin
-  repeat { rw ← order_of_of_add_eq_add_order_of },
-  rwa [of_add_nsmul, order_of_pow''],
-end
+by simp [← order_of_of_add_eq_add_order_of, of_add_nsmul,
+  order_of_pow'' _ n (is_of_fin_order_of_add_iff.mpr h)]
 
 attribute [to_additive add_order_of_nsmul''] order_of_pow''
 
@@ -616,17 +606,11 @@ variables {H : Type u} [fintype H] [add_group H]
 lemma exists_gpow_eq_one (a : α) : ∃ i ≠ 0, a ^ (i : ℤ) = 1 :=
 begin
   rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
-  rw is_periodic_pt_mul_iff_pow_eq_one at hw2,
-  refine ⟨w, by exact_mod_cast ne_of_gt hw1, _⟩,
-  exact_mod_cast hw2,
+  exact ⟨w, int.coe_nat_ne_zero.mpr (ne_of_gt hw1), (is_periodic_pt_mul_iff_pow_eq_one _).mp hw2⟩,
 end
 
 lemma exists_gsmul_eq_zero (x : H) : ∃ i ≠ 0, i •ℤ x = 0 :=
-begin
-  rcases exists_gpow_eq_one (multiplicative.of_add x) with ⟨i, hi1, hi2⟩,
-  refine ⟨i, hi1, multiplicative.of_add.injective _⟩,
-  { rw [of_add_gsmul, hi2, of_add_zero] }
-end
+exists_gpow_eq_one (multiplicative.of_add x)
 
 attribute [to_additive exists_gsmul_eq_zero] exists_gpow_eq_one
 

@@ -608,7 +608,7 @@ lemma subset_iff_to_finset_subset (s t : set α) [fintype s] [fintype t] :
   s ⊆ t ↔ s.to_finset ⊆ t.to_finset :=
 by simp
 
-@[simp, mono] lemma finite.to_finset.mono {s t : set α} {hs : finite s} {ht : finite t} :
+@[simp, mono] lemma finite.to_finset_mono {s t : set α} {hs : finite s} {ht : finite t} :
   hs.to_finset ⊆ ht.to_finset ↔ s ⊆ t :=
 begin
   split,
@@ -620,7 +620,7 @@ begin
     exact λ hx, h hx }
 end
 
-@[simp, mono] lemma finite.to_finset.strict_mono {s t : set α} {hs : finite s} {ht : finite t} :
+@[simp, mono] lemma finite.to_finset_strict_mono {s t : set α} {hs : finite s} {ht : finite t} :
   hs.to_finset ⊂ ht.to_finset ↔ s ⊂ t :=
 begin
   rw [←lt_eq_ssubset, ←finset.lt_iff_ssubset, lt_iff_le_and_ne, lt_iff_le_and_ne],

@@ -149,4 +149,7 @@ theorem right_inverse.iterate {g : α → α} (hg : right_inverse g f) (n : ℕ)
   right_inverse (g^[n]) (f^[n]) :=
 hg.iterate n
 
+lemma comm {m n : ℕ} : f^[n]^[m] = (f^[m]^[n] : α → α) :=
+(iterate_mul _ _ _).symm.trans (eq.trans (by rw nat.mul_comm) (iterate_mul _ _ _))
+
 end function

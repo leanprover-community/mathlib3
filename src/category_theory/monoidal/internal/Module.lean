@@ -158,8 +158,6 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
       map_mul' := λ x y, algebra.lmul'_apply.symm,
       commutes' := λ r, rfl } }) (by { intros, refl }), }.
 
-#exit
-
 /--
 The equivalence `Mon_ (Module R) ≌ Algebra R`
 is naturally compatible with the forgetful functors to `Module R`.

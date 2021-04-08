@@ -45,8 +45,10 @@ The exterior algebra of `M` is constructed as a quotient of the tensor algebra, 
 
 -/
 
-variables (R : Type*) [comm_semiring R]
-variables (M : Type*) [add_comm_monoid M] [semimodule R M]
+universes u1 u2 u3
+
+variables (R : Type u1) [comm_semiring R]
+variables (M : Type u2) [add_comm_monoid M] [semimodule R M]
 
 namespace exterior_algebra
 open tensor_algebra
@@ -70,10 +72,10 @@ namespace exterior_algebra
 
 variables {M}
 
--- typeclass resolution times out here, so we give it a hand
-instance {S : Type*} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
-let i : ring (tensor_algebra S M) := infer_instance in
-@ring_quot.ring (tensor_algebra S M) i (exterior_algebra.rel S M)
+open ring_quot
+
+instance {S : Type u3} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
+ring_quot.ring (exterior_algebra.rel S M)
 
 /--
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.

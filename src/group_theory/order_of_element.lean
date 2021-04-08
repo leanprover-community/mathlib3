@@ -164,17 +164,12 @@ by simp [← order_of_of_add_eq_add_order_of]
 
 attribute [to_additive add_order_of_eq_one_iff] order_of_eq_one_iff
 
-lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
-calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) : by rw [nat.mod_add_div]
-       ... = a ^ (n % order_of a) : by simp [pow_add, pow_mul, pow_order_of_eq_one]
-
 lemma nsmul_eq_mod_add_order_of {n : ℕ} : n •ℕ x = (n % add_order_of x) •ℕ x :=
-begin
-  apply multiplicative.of_add.injective,
-  rw [← order_of_of_add_eq_add_order_of, of_add_nsmul, of_add_nsmul, pow_eq_mod_order_of],
-end
+by rw [← iterate_add_apply_zero, iterate_eq_mod_minimal_period, iterate_add_apply_zero, ← add_order_of]
 
-attribute [to_additive nsmul_eq_mod_add_order_of] pow_eq_mod_order_of
+@[to_additive nsmul_eq_mod_add_order_of]
+lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
+by rw [← iterate_mul_apply_one, iterate_eq_mod_minimal_period, iterate_mul_apply_one, ← order_of]
 
 lemma add_order_of_dvd_of_nsmul_eq_zero {n : ℕ} (h : n •ℕ x = 0) : add_order_of x ∣ n :=
 is_periodic_pt.minimal_period_dvd ((is_periodic_pt_add_iff_nsmul_eq_zero _).mpr h)

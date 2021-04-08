@@ -40,7 +40,7 @@ complete_lattice_of_complete_semilattice_Sup _
   sup := max,
   le_sup_left := le_max_left,
   le_sup_right := le_max_right,
-  sup_le := λ _ _ _ h h', max_le h h',
+  sup_le := λ _ _ _, max_le,
   ..(infer_instance : linear_order α) }
 
 @[priority 100] noncomputable instance fintype.complete_linear_order_of_linear_order

@@ -1908,7 +1908,7 @@ begin
   rw swap_apply_of_ne_of_ne hi hj,
 end
 
-lemma swap_apply_eq_iff [decidable_eq α] {x y z w : α} :
+lemma swap_apply_eq_iff {x y z w : α} :
   swap x y z = w ↔ z = swap x y w :=
 by rw [apply_eq_iff_eq_symm_apply, symm_swap]
 

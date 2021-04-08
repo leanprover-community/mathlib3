@@ -53,7 +53,7 @@ begin
     { simpa [h1, h2] using le_antisymm h.right (pow_two_nonneg _) } },
   have ab2_nonneg : 0 ≤ (2 * a * b) := by norm_num [mul_nonneg, dist_nonneg],
   calc  1/2 * a * b * sin γ
-      = 1/2 * a * b * (√numerator / √denominator) : by rw [sin_eq_sqrt_one_minus_cos_sq,
+      = 1/2 * a * b * (√numerator / √denominator) : by rw [sin_eq_sqrt_one_sub_cos_sq,
                                                           split_to_frac, sqrt_div numerator_nonneg];
                                                       simp [angle_nonneg, angle_le_pi]
   ... = 1/4 * √((2*a*b)^2 - (a*a + b*b - c*c)^2)  : by { field_simp [ab2_nonneg], ring }

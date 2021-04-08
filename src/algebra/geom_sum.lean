@@ -111,11 +111,10 @@ begin
         rw [add_comm (i + 1)] at this,
         rw [← this, nat.add_sub_cancel, add_comm i 1, ← add_assoc,
             nat.add_sub_cancel] },
-    rw [pow_succ (x + y), add_mul, sum_range_succ, f_last, add_mul, add_assoc],
-    rw [(((commute.refl x).add_right h).pow_right n).eq],
+    rw [pow_succ (x + y), add_mul, sum_range_succ_comm, add_mul, f_last, add_assoc],
+    rw (((commute.refl x).add_right h).pow_right n).eq,
     congr' 1,
-    rw[sum_congr rfl f_succ, ← mul_sum, pow_succ y],
-    rw[mul_assoc, ← mul_add y, ih] }
+    rw [sum_congr rfl f_succ, ← mul_sum, pow_succ y, mul_assoc, ← mul_add y, ih] }
 end
 
 theorem geom_sum₂_self {α : Type*} [comm_ring α] (x : α) (n : ℕ) :
@@ -233,13 +232,10 @@ protected theorem commute.geom_sum₂_succ_eq {α : Type u} [ring α] {x y : α}
   (h : commute x y) {n : ℕ} :
   geom_sum₂ x y (n + 1) = x ^ n + y * (geom_sum₂ x y n) :=
 begin
-  dunfold geom_sum₂,
-  rw [mul_sum, sum_range_succ _ n, nat.add_succ_sub_one, add_zero, nat.sub_self, pow_zero, mul_one],
-  apply congr_arg (has_add.add (x ^ n)),
-  apply finset.sum_congr rfl,
-  intros i hi,
-  rw [←mul_assoc, (h.symm.pow_right i).eq, mul_assoc, ←pow_succ],
-  suffices : n - 1 - i + 1 = n - i , { rw this },
+  simp_rw [geom_sum₂, mul_sum, sum_range_succ_comm, nat.add_succ_sub_one, add_zero, nat.sub_self,
+    pow_zero, mul_one, add_right_inj, ←mul_assoc, (h.symm.pow_right _).eq, mul_assoc, ←pow_succ],
+  refine sum_congr rfl (λ i hi, _),
+  suffices : n - 1 - i + 1 = n - i, { rw this },
   cases n,
   { exact absurd (list.mem_range.mp hi) i.not_lt_zero },
   { rw [nat.sub_add_eq_add_sub (nat.le_pred_of_lt (list.mem_range.mp hi)),

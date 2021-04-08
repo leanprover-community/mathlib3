@@ -1863,6 +1863,8 @@ by simp [swap_apply_def] {contextual := tt}
 @[simp] theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
 ext $ λ x, swap_core_swap_core _ _ _
 
+@[simp] lemma symm_swap (a b : α) : (swap a b).symm = swap a b := rfl
+
 @[simp] lemma swap_eq_refl_iff {x y : α} : swap x y = equiv.refl _ ↔ x = y :=
 begin
   refine ⟨λ h, (equiv.refl _).injective _, λ h, h ▸ (swap_self _)⟩,
@@ -1906,14 +1908,9 @@ begin
   rw swap_apply_of_ne_of_ne hi hj,
 end
 
-lemma swap_apply_eq_swap_apply_iff [decidable_eq α] {x y z w : α} :
-  swap x y z = w ↔ swap x y w = z :=
-begin
-  split;
-  { intro h,
-    rw ←h,
-    simp }
-end
+lemma swap_apply_eq_iff [decidable_eq α] {x y z w : α} :
+  swap x y z = w ↔ z = swap x y w :=
+by rw [apply_eq_iff_eq_symm_apply, symm_swap]
 
 namespace perm
 

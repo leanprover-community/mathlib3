@@ -2131,8 +2131,8 @@ begin
         ennreal.sub_add_cancel_of_le (h₂ t h_t_measurable_set)] },
     have h_measure_sub_eq : (μ - ν) = measure_sub,
     { rw measure_theory.measure.sub_def, apply le_antisymm,
-      { apply @Inf_le (measure α) measure.complete_semilattice_Inf, simp [le_refl, add_comm,
-          h_measure_sub_add] },
+      { apply @Inf_le (measure α) measure.complete_semilattice_Inf,
+        simp [le_refl, add_comm, h_measure_sub_add] },
       apply @le_Inf (measure α) measure.complete_semilattice_Inf,
       intros d h_d, rw [← h_measure_sub_add, mem_set_of_eq, add_comm d] at h_d,
       apply measure.le_of_add_le_add_left h_d },
@@ -2193,7 +2193,6 @@ begin
               set.inter_assoc] } },
     { apply restrict_le_self } },
   { apply @Inf_le_Inf_of_forall_exists_le (measure α) _,
-
     intros s h_s_in, cases h_s_in with t h_t, cases h_t with h_t_in h_t_eq, subst s,
     apply exists.intro (t.restrict s), split,
     { rw [set.mem_set_of_eq, ← restrict_add],

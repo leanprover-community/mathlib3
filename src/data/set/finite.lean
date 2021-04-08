@@ -83,6 +83,17 @@ theorem exists_finite_iff_finset {p : set α → Prop} :
 ⟨λ ⟨s, hs, hps⟩, ⟨hs.to_finset, hs.coe_to_finset.symm ▸ hps⟩,
   λ ⟨s, hs⟩, ⟨↑s, finite_mem_finset s, hs⟩⟩
 
+lemma finite.fin_embedding {s : set α} (h : finite s) : ∃ (n : ℕ) (f : fin n ↪ α), range f = s :=
+begin
+  classical,
+  obtain ⟨f⟩ := (fintype.equiv_fin (h.to_finset : set α)).nonempty,
+  exact ⟨_, f.symm.as_embedding, by simp⟩
+end
+
+lemma finite.fin_param {s : set α} (h : finite s) :
+  ∃ (n : ℕ) (f : fin n → α), injective f ∧ range f = s :=
+let ⟨n, f, hf⟩ := h.fin_embedding in ⟨n, f, f.injective, hf⟩
+
 /-- Membership of a subset of a finite type is decidable.
 
 Using this as an instance leads to potential loops with `subtype.fintype` under certain decidability
@@ -486,6 +497,22 @@ lemma exists_max_image [linear_order β] (s : set α) (f : α → β) (h1 : fini
   s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f b ≤ f a
 | ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
   using h1.to_finset.exists_max_image f ⟨x, h1.mem_to_finset.2 hx⟩
+
+theorem exists_lower_bound_image [hα : nonempty α] [linear_order β] (s : set α) (f : α → β)
+  (h : s.finite) : ∃ (a : α), ∀ b ∈ s, f a ≤ f b :=
+begin
+  by_cases hs : set.nonempty s,
+  { exact let ⟨x₀, H, hx₀⟩ := set.exists_min_image s f h hs in ⟨x₀, λ x hx, hx₀ x hx⟩ },
+  { exact nonempty.elim hα (λ a, ⟨a, λ x hx, absurd (set.nonempty_of_mem hx) hs⟩) }
+end
+
+theorem exists_upper_bound_image [hα : nonempty α] [linear_order β] (s : set α) (f : α → β)
+  (h : s.finite) : ∃ (a : α), ∀ b ∈ s, f b ≤ f a :=
+begin
+  by_cases hs : set.nonempty s,
+  { exact let ⟨x₀, H, hx₀⟩ := set.exists_max_image s f h hs in ⟨x₀, λ x hx, hx₀ x hx⟩ },
+  { exact nonempty.elim hα (λ a, ⟨a, λ x hx, absurd (set.nonempty_of_mem hx) hs⟩) }
+end
 
 end set
 

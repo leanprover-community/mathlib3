@@ -123,7 +123,7 @@ le_cInf dist_set_exists (λ C, and.left)
 lemma dist_le (C0 : (0 : ℝ) ≤ C) : dist f g ≤ C ↔ ∀x:α, dist (f x) (g x) ≤ C :=
 ⟨λ h x, le_trans (dist_coe_le_dist x) h, λ H, cInf_le ⟨0, λ C, and.left⟩ ⟨C0, H⟩⟩
 
-lemma dist_le_of_nonempty [nonempty α] :
+lemma dist_le_iff_of_nonempty [nonempty α] :
   dist f g ≤ C ↔ ∀ x, dist (f x) (g x) ≤ C :=
 ⟨λ h x, le_trans (dist_coe_le_dist x) h,
  λ w, (dist_le (le_trans dist_nonneg (w (nonempty.some ‹_›)))).mpr w⟩
@@ -134,7 +134,7 @@ begin
   have c : continuous (λ x, dist (f x) (g x)), { continuity, },
   obtain ⟨x, -, le⟩ :=
     is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
-  exact lt_of_le_of_lt (dist_le_of_nonempty.mpr (λ y, le y trivial)) (w x),
+  exact lt_of_le_of_lt (dist_le_iff_of_nonempty.mpr (λ y, le y trivial)) (w x),
 end
 
 lemma dist_lt_iff_of_compact [compact_space α] (C0 : (0 : ℝ) < C) :
@@ -467,7 +467,7 @@ lemma norm_le_of_nonempty [nonempty α]
   {f : α →ᵇ β} {M : ℝ} : ∥f∥ ≤ M ↔ ∀ x, ∥f x∥ ≤ M :=
 begin
   simp_rw [norm_def, ←dist_zero_right],
-  exact dist_le_of_nonempty,
+  exact dist_le_iff_of_nonempty,
 end
 
 lemma norm_lt_iff_of_compact [compact_space α]

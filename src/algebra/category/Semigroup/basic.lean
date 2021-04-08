@@ -101,8 +101,8 @@ section
 variables [has_mul X] [has_mul Y]
 
 /-- Build an isomorphism in the category `Magma` from a `mul_equiv` between `has_mul`s. -/
-@[simps, to_additive add_equiv.to_AddMagma_iso "Build an isomorphism in the category `AddMagma` from
-an `add_equiv` between `has_add`s."]
+@[to_additive add_equiv.to_AddMagma_iso "Build an isomorphism in the category `AddMagma` from
+an `add_equiv` between `has_add`s.", simps]
 def mul_equiv.to_Magma_iso (e : X ≃* Y) : Magma.of X ≅ Magma.of Y :=
 { hom := e.to_mul_hom,
   inv := e.symm.to_mul_hom }
@@ -113,8 +113,8 @@ section
 variables [semigroup X] [semigroup Y]
 
 /-- Build an isomorphism in the category `Semigroup` from a `mul_equiv` between `semigroup`s. -/
-@[simps, to_additive add_equiv.to_AddSemigroup_iso "Build an isomorphism in the category
-`AddSemigroup` from an `add_equiv` between `add_semigroup`s."]
+@[to_additive add_equiv.to_AddSemigroup_iso "Build an isomorphism in the category
+`AddSemigroup` from an `add_equiv` between `add_semigroup`s.", simps]
 def mul_equiv.to_Semigroup_iso (e : X ≃* Y) : Semigroup.of X ≅ Semigroup.of Y :=
 { hom := e.to_mul_hom,
   inv := e.symm.to_mul_hom }

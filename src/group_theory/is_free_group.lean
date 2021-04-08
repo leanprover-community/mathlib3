@@ -1,13 +1,29 @@
 /-
 Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: David Wärn
+Authors: David Wärn, Eric Wieser
 -/
 import group_theory.free_group
 /-!
+# Free groups structures on arbitrary types
+
 This file defines the universal property of free groups, and proves some things about
 groups with this property. For an explicit construction of free groups, see
 `group_theory/free_group`.
+
+## Main definitions
+
+* `is_free_group G` - a typeclass to indicate that `G` is free over some generators
+* `is_free_group.lift` - the (noncomputable) universal property of the free group
+* `is_free_group.to_free_group` - any free group with generators `A` is equivalent to
+  `free_group A`.
+
+## Implementation notes
+
+While the typeclass only requires the universal property hold within a single universe `u`, our
+explicit construction of `free_group` allows this to be extended universe polymorphically. The
+primed definition names in this file refer to the non-polymorphic versions.
+
 -/
 noncomputable theory
 universes u w
@@ -74,7 +90,7 @@ ext_hom h
 
 variable (G)
 /-- Any free group is isomorphic to "the" free group. -/
-@[simps] def iso_free_group_of_is_free_group : G ≃* free_group (generators G) :=
+@[simps] def to_free_group : G ≃* free_group (generators G) :=
 { to_fun := lift' free_group.of,
   inv_fun := free_group.lift of,
   left_inv :=
@@ -106,12 +122,12 @@ def of_mul_equiv (h : G ≃* H) : is_free_group H :=
   end }
 
 private lemma lift_right_inv_aux  {X : Type w} [group X] (F : G →* X) :
-  free_group.lift.symm (F.comp (iso_free_group_of_is_free_group G).symm.to_monoid_hom) = F ∘ of :=
+  free_group.lift.symm (F.comp (to_free_group G).symm.to_monoid_hom) = F ∘ of :=
 by { ext, simp }
 
 /-- A universe-polymorphic version of `is_free_group.lift'`. -/
 protected def lift {X : Type w} [group X] : (generators G → X) ≃ (G →* X) :=
-{ to_fun := λ f, (free_group.lift f).comp (iso_free_group_of_is_free_group G).to_monoid_hom,
+{ to_fun := λ f, (free_group.lift f).comp (to_free_group G).to_monoid_hom,
   inv_fun := λ F, F ∘ of,
   left_inv := λ f, free_group.lift.injective begin
     ext x,

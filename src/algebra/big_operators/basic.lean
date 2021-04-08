@@ -1276,6 +1276,26 @@ end comm_group_with_zero
 
 end finset
 
+namespace fintype
+
+open finset
+
+/-- `fintype.prod_equiv` is a specialization of `finset.prod_bij` that
+automatically fills in most arguments. -/
+@[to_additive "`fintype.sum_equiv` is a specialization of `finset.sum_bij` that
+automatically fills in most arguments."]
+lemma prod_equiv {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
+  (e : α ≃ β) (f : α → M) (g : β → M) (h : ∀ x, f x = g (e x)) :
+  ∏ x : α, f x = ∏ x : β, g x :=
+prod_bij
+  (λ x _, e x)
+  (λ x _, mem_univ (e x))
+  (λ x _, h x)
+  (λ x x' _ _ h, e.injective h)
+  (λ y _, ⟨e.symm y, mem_univ _, (e.apply_symm_apply y).symm⟩)
+
+end fintype
+
 namespace list
 
 @[to_additive] lemma prod_to_finset {M : Type*} [decidable_eq α] [comm_monoid M]

@@ -118,9 +118,11 @@ namespace category_theory.abelian
 variables {C : Type u} [category.{v} C] [abelian C]
 
 /-- An abelian category has finite biproducts. -/
+@[priority 100]
 instance has_finite_biproducts : has_finite_biproducts C :=
 limits.has_finite_biproducts.of_has_finite_products
 
+@[priority 100]
 instance has_binary_biproducts : has_binary_biproducts C :=
 limits.has_binary_biproducts_of_finite_biproducts _
 
@@ -324,10 +326,12 @@ end cokernel_of_kernel
 
 section
 
+@[priority 100]
 instance has_equalizers : has_equalizers C :=
 preadditive.has_equalizers_of_has_kernels
 
 /-- Any abelian category has pullbacks -/
+@[priority 100]
 instance has_pullbacks : has_pullbacks C :=
 has_pullbacks_of_has_binary_products_of_has_equalizers C
 
@@ -335,10 +339,12 @@ end
 
 section
 
+@[priority 100]
 instance has_coequalizers : has_coequalizers C :=
 preadditive.has_coequalizers_of_has_cokernels
 
 /-- Any abelian category has pushouts -/
+@[priority 100]
 instance has_pushouts : has_pushouts C :=
 has_pushouts_of_has_binary_coproducts_of_has_coequalizers C
 

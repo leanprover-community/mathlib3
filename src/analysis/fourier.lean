@@ -106,7 +106,7 @@ begin
   { rw add_comm,
     exact sub_ne_zero.mpr (ne.symm h) },
   exact integral_zero_of_mul_left_eq_neg (is_mul_left_invariant_haar_measure _)
-    (fourier (-i + j)).continuous.measurable (fourier_add_half_inv_index hij)
+    (fourier_add_half_inv_index hij)
 end
 
 end fourier

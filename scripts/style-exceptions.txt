@@ -217,9 +217,9 @@ src/tactic/local_cache.lean : line 8 : ERR_MOD : Module docstring missing, or to
 src/tactic/monotonicity/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/interactive.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/interactive.lean : line 191 : ERR_LIN : Line has more than 100 characters
-src/tactic/monotonicity/interactive.lean : line 466 : ERR_LIN : Line has more than 100 characters
-src/tactic/monotonicity/interactive.lean : line 468 : ERR_LIN : Line has more than 100 characters
-src/tactic/monotonicity/interactive.lean : line 489 : ERR_LIN : Line has more than 100 characters
+src/tactic/monotonicity/interactive.lean : line 467 : ERR_LIN : Line has more than 100 characters
+src/tactic/monotonicity/interactive.lean : line 469 : ERR_LIN : Line has more than 100 characters
+src/tactic/monotonicity/interactive.lean : line 490 : ERR_LIN : Line has more than 100 characters
 src/tactic/monotonicity/lemmas.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/noncomm_ring.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/nth_rewrite/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late

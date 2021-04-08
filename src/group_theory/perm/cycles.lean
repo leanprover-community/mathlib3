@@ -217,12 +217,10 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
           { by_cases hxz : z = x;
             simp [hxz] } },
         { simp } },
-    have wf : card hm.to_finset < card hs.to_finset := h ▸ nat.lt_succ_self _,
-    by { rw [sign_mul, sign_swap hx.1.symm, (hf.swap_mul hx.1 h1).sign, ← h],
+    have wf : card hm.to_finset < card hs.to_finset := card_support_swap_mul _ _ hx.left,
+    by { rw [sign_mul, sign_swap hx.1.symm, (hf.swap_mul hx.1 h1).sign hm, ← h],
       simp only [pow_add, mul_one, units.neg_neg, one_mul, units.mul_neg, eq_self_iff_true,
-        pow_one, units.neg_mul_neg],
-        exact hm
-        }
+        pow_one, units.neg_mul_neg] }
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, (show f.support.finite,
   from set.finite.of_fintype (perm.support f)).to_finset.card)⟩]}
 

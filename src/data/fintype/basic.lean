@@ -425,9 +425,16 @@ set.ext $ λ _, mem_to_finset
   s.to_finset = t.to_finset ↔ s = t :=
 ⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩
 
-@[simp] theorem to_finset.mono {s t : set α} [fintype s] [fintype t] :
-  s.to_finset ≤ t.to_finset ↔ s ≤ t :=
+@[simp, mono] theorem to_finset.mono {s t : set α} [fintype s] [fintype t] :
+  s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
 by simp [finset.subset_iff, set.subset_def]
+
+@[simp, mono] theorem to_finset.strict_mono {s t : set α} [fintype s] [fintype t] :
+  s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
+begin
+  rw [←lt_eq_ssubset, ←finset.lt_iff_ssubset, lt_iff_le_and_ne, lt_iff_le_and_ne],
+  simp
+end
 
 @[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=

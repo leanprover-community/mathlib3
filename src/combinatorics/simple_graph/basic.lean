@@ -689,16 +689,6 @@ begin
   simp,-/
 end
 
-lemma to_finset_disjoint (s t : set V) [fintype s] [fintype t] :
-  disjoint s t ↔  disjoint s.to_finset t.to_finset :=
-begin
-  split,
-  intros h,
-  rw disjoint_iff_inter_eq_empty,
-  rw set.disjoint_iff_inter_eq_empty at h,
-  sorry,
-end
-
 lemma compl_regular_is_regular [fintype V] (G : simple_graph V) [decidable_rel G.adj]
   [decidable_rel Gᶜ.adj] [nonempty V] (k : ℕ) (h : G.is_regular_of_degree k) :
   Gᶜ.is_regular_of_degree (fintype.card V - k - 1) :=
@@ -716,10 +706,8 @@ begin
   rw card_disjoint_union,
   simp only [card_disjoint_union, degree, neighbor_finset, nat.add_sub_cancel_left],
 
-  have h3 := compl_neighbor_set_disjoint G v,
-  rw disjoint_val,
-  refine disjoint_val.mp _,
-  sorry,
+  rw set.to_finset_disjoint_iff,
+  exact compl_neighbor_set_disjoint G v,
 end
 
 end complement

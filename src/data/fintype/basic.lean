@@ -256,7 +256,7 @@ quot.rec_on_subsingleton (@univ α _).1
   (λ l (h : ∀ x:α, x ∈ l) (nd : l.nodup), trunc.mk (equiv_fin_of_forall_mem_list h nd))
   mem_univ_val univ.2
 
-/-- There is a (noncomputable0 )bijection between `α` and `fin n` where `n = card α`.
+/-- There is a (noncomputable) bijection between `α` and `fin n` where `n = card α`.
 
 See `fintype.trunc_equiv_fin` for the computable version,
 and `fintype.trunc_equiv_fin_of_card_eq` and `fintype.equiv_fin_of_card_eq`

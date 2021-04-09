@@ -1280,6 +1280,19 @@ namespace fintype
 
 open finset
 
+/-- `fintype.prod_bijective` is a variant of `finset.prod_bij` that accepts `function.bijective`. -/
+@[to_additive "`fintype.sum_equiv` is a variant of `finset.sum_bij` that accepts
+`function.bijective`"]
+lemma prod_bijective {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
+  (e : α → β) (he : function.bijective e) (f : α → M) (g : β → M) (h : ∀ x, f x = g (e x)) :
+  ∏ x : α, f x = ∏ x : β, g x :=
+prod_bij
+  (λ x _, e x)
+  (λ x _, mem_univ (e x))
+  (λ x _, h x)
+  (λ x x' _ _ h, he.injective h)
+  (λ y _, (he.surjective y).imp $ λ a h, ⟨mem_univ _, h.symm⟩)
+
 /-- `fintype.prod_equiv` is a specialization of `finset.prod_bij` that
 automatically fills in most arguments. -/
 @[to_additive "`fintype.sum_equiv` is a specialization of `finset.sum_bij` that
@@ -1287,12 +1300,7 @@ automatically fills in most arguments."]
 lemma prod_equiv {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
   (e : α ≃ β) (f : α → M) (g : β → M) (h : ∀ x, f x = g (e x)) :
   ∏ x : α, f x = ∏ x : β, g x :=
-prod_bij
-  (λ x _, e x)
-  (λ x _, mem_univ (e x))
-  (λ x _, h x)
-  (λ x x' _ _ h, e.injective h)
-  (λ y _, ⟨e.symm y, mem_univ _, (e.apply_symm_apply y).symm⟩)
+prod_bijective e e.bijective f g h
 
 end fintype
 

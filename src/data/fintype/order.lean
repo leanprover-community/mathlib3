@@ -21,7 +21,7 @@ open_locale classical
 
 variables {α : Type*}
 
-@[priority 100] noncomputable instance fintype.complete_semilattice_sup
+@[priority 100] noncomputable instance fintype.complete_semilattice_Sup
   [fintype α] [semilattice_sup_bot α] :
   complete_semilattice_Sup α :=
 { Sup := λ s, s.to_finset.sup id,

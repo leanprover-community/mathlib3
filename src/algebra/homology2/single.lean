@@ -1,5 +1,18 @@
+/-
+Copyright (c) 2021 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebra.homology2.homology
 import tactic.omega
+
+/-!
+# Chain complexes supported in a single degree
+
+We define `single V j c : V ⥤ homological_complex V c`,
+which constructs complexes in `V` of shape `c`, supported in degree `j`.
+
+-/
 
 open category_theory
 open category_theory.limits

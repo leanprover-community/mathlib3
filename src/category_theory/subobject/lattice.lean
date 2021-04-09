@@ -195,19 +195,17 @@ instance {X : C} : inhabited (subobject X) := ⟨⊤⟩
 
 lemma top_eq_id {B : C} : (⊤ : subobject B) = subobject.mk (𝟙 B) := rfl
 
-/-- The object underlying `⊤ : subobject B` is (up to isomorphism) `B`. -/
-def top_coe_iso_self {B : C} : ((⊤ : subobject B) : C) ≅ B := underlying_iso _
+lemma underlying_iso_top_hom {B : C} :
+  (underlying_iso (𝟙 B)).hom = (⊤ : subobject B).arrow :=
+by { convert underlying_iso_hom_comp_eq_mk (𝟙 B), simp only [comp_id], }
 
-@[simp]
-lemma underlying_iso_id_eq_top_coe_iso_self {B : C} : underlying_iso (𝟙 B) = top_coe_iso_self :=
-rfl
+instance top_arrow_is_iso {B : C} : is_iso ((⊤ : subobject B).arrow) :=
+by { rw ←underlying_iso_top_hom, apply_instance, }
 
 @[simp, reassoc]
 lemma underlying_iso_inv_top_arrow {B : C} :
-  top_coe_iso_self.inv ≫ (⊤ : subobject B).arrow = 𝟙 B :=
+  (underlying_iso _).inv ≫ (⊤ : subobject B).arrow = 𝟙 B :=
 underlying_iso_arrow _
-
-instance top_arrow_is_iso {B : C} : is_iso ((⊤ : subobject B).arrow) := sorry
 
 lemma map_top (f : X ⟶ Y) [mono f] : (map f).obj ⊤ = quotient.mk' (mono_over.mk' f) :=
 quotient.sound' ⟨mono_over.map_top f⟩
@@ -229,8 +227,12 @@ end
 
 @[simp]
 lemma kernel_subobject_zero [has_zero_morphisms C] {A B : C} : kernel_subobject (0 : A ⟶ B) = ⊤ :=
-eq_of_comm (kernel_subobject_iso _ ≪≫ kernel_zero_iso_source ≪≫ top_coe_iso_self.symm)
+eq_of_comm (kernel_subobject_iso _ ≪≫ kernel_zero_iso_source ≪≫ (underlying_iso _).symm)
   (by simp [←kernel_subobject_arrow])
+
+instance is_iso_kernel_subobject_zero_arrow [has_zero_morphisms C] {A B : C} :
+  is_iso (kernel_subobject (0 : A ⟶ B)).arrow :=
+by { rw kernel_subobject_zero, apply_instance, }
 
 end order_top
 

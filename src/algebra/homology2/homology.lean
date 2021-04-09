@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology2.image_to_kernel
+import category_theory.graded_object
 
 universes v u
 
@@ -176,6 +177,8 @@ def boundaries_to_cycles_transformation (i : ι) :
 { app := λ C, C.boundaries_to_cycles i,
   naturality' := λ C₁ C₂ f, boundaries_to_cycles_naturality f i, }
 
+/-- The `i`-th homology, as a functor to `V`. -/
+@[simps]
 def homology_functor [has_cokernels V] (i : ι) : homological_complex V c ⥤ V :=
 -- It would be nice if we could just write
 -- `cokernel (boundaries_to_cycles_transformation V c i)`
@@ -183,5 +186,11 @@ def homology_functor [has_cokernels V] (i : ι) : homological_complex V c ⥤ V 
 { obj := λ C, C.homology i,
   map := λ C₁ C₂ f, cokernel.desc _ (cycles_map f i ≫ cokernel.π _)
     (by rw [←boundaries_to_cycles_naturality_assoc, cokernel.condition, comp_zero]), }
+
+/-- The homology functor from `ι`-indexed complexes to `ι`-graded objects in `V`. -/
+@[simps]
+def graded_homology_functor [has_cokernels V] : homological_complex V c ⥤ graded_object ι V :=
+{ obj := λ C i, C.homology i,
+  map := λ C C' f i, (homology_functor V c i).map f }
 
 end

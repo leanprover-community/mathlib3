@@ -878,11 +878,7 @@ lemma minor_mul [semiring α] {p q : Type*} [fintype p] [fintype q]
   (M : matrix m n α) (N : matrix n p α)
   (e₁ : l → m) (e₂ : o → n) (e₃ : q → p) (he₂ : function.bijective e₂) :
   (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
-begin
-  ext i j,
-  dsimp only [matrix.mul, matrix.dot_product, matrix.minor_apply],
-  rw ←he₂.sum_comp,
-end
+ext $ λ _ _, (he₂.sum_comp _).symm
 
 /-! `simp` lemmas for `matrix.minor`s interaction with `matrix.diagonal`, `1`, and `matrix.mul` for
 when the mappings are bundled. -/

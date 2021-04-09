@@ -7,7 +7,7 @@ Authors: Omri Ben-Eliezer, Floris van Doorn
 import data.tree
 import order.bounded_lattice
 import algebra.order_functions
-import tactic
+import tactic.linarith
 
 /-!
 # Heap
@@ -18,7 +18,7 @@ call this the heap invariant or the heap condition). In this file we
 support some basic operations on heaps such as insertion of an element
 and deletion of the minimum element (i.e., popping the root).
 
-These are specification operations at this point and their running time is 
+These are specification operations at this point and their running time is
 not yet optimal. See the documentation for specific operations for more details.
 -/
 
@@ -44,14 +44,14 @@ def size : tree α → ℕ
 @[simp]
 lemma tree_sized_zero_is_nil {T : tree α} : size T = 0 ↔ T = nil :=
 begin
-cases T,
-simp only [size, eq_self_iff_true],
-simp,
+  cases T,
+  simp only [size, eq_self_iff_true],
+  simp,
 end
 
 /-- Minimum distance of node to a nil, walking down branches.
-Running time is O(n), where n is the size of the tree. In order to optimize 
-the overall implementation running time, the use of this function should 
+Running time is O(n), where n is the size of the tree. In order to optimize
+the overall implementation running time, the use of this function should
 be avoided and instead one should maintain depth / `dist_to_nil` information
 as part the heap definition - see `insert` documentation for more details.
 -/
@@ -61,7 +61,7 @@ def dist_to_nil : tree α → ℕ
 
 variables [linear_order α]
 
-/-- Check whether a given tree satisfies the heap invariant. 
+/-- Check whether a given tree satisfies the heap invariant.
 Running time: O(n) - optimal. -/
 def is_heap : tree α → Prop
 | nil            := true
@@ -81,27 +81,27 @@ lemma is_heap_single (x : α) : is_heap (node x nil nil) :=
 
 /-- Insertion of a new node with given value to heap.
 Note:
-The running time is O(n log m), where n is the heap size and m is the number 
+The running time is O(n log m), where n is the heap size and m is the number
 of `insert` and `pop` operations in the heap so far (where n is possibly much
 smaller than m). Indeed, one can show that the `dist_to_nil` is always O(log m):
-For a sequence of m insertions this follows since we only insert elements in a 
-location with minimal dist_to_nil, and one can also show that pops do not make 
+For a sequence of m insertions this follows since we only insert elements in a
+location with minimal dist_to_nil, and one can also show that pops do not make
 the situation more problematic.
 
-However, the optimal running time should be O(log n). 
+However, the optimal running time should be O(log n).
 One way to improve our implementation is as follows:
-1. Improvement from O(n log m) to O(log m): instead of using `dist_to_nil` computations 
-(which cost O(n) each), incorporate a field holding this information as part of the 
+1. Improvement from O(n log m) to O(log m): instead of using `dist_to_nil` computations
+(which cost O(n) each), incorporate a field holding this information as part of the
 definition of a heap.
 2. Improvement from O(log m) to O(log n): this can be done by making sure that heaps
 retain their balance when a `pop` operation is carried. In the current implementation,
 when an element is popped, we sift an element along one of the branches of the heap
-(not necessarily the longest) and this can be problematic for retaining balance. 
-A possible solution is to search for a node element with maximum depth in the heap 
-(where depth of node = distance from root), remove it, and add its value 
-to the node we just sifted rather than deleting the said node. To do this efficiently, 
-we need to maintain a depth of a node as part of the definition of a heap. 
-(I think with the correct implementation it is not required to maintain both the depth 
+(not necessarily the longest) and this can be problematic for retaining balance.
+A possible solution is to search for a node element with maximum depth in the heap
+(where depth of node = distance from root), remove it, and add its value
+to the node we just sifted rather than deleting the said node. To do this efficiently,
+we need to maintain a depth of a node as part of the definition of a heap.
+(I think with the correct implementation it is not required to maintain both the depth
 and the `dist_to_nil` as fields of a node, perhaps just the depth would be enough.)
 -/
 @[simp]
@@ -149,10 +149,10 @@ then continue to that child.
 
 Running time is probably not optimized, assuming the function sizeof has running time
 linear in the size of the relevant subtree. To optimize this, one could replace the use
-of sizeof with a `size` field in each node, that is continuously maintained. 
-This would yield an O(log m), where m is the total number of `insert` and `pop` 
+of sizeof with a `size` field in each node, that is continuously maintained.
+This would yield an O(log m), where m is the total number of `insert` and `pop`
 so far. This could be improved to O(log n), where n is the current number of elements
-in the heap, if we ensured the heap will always be balanced. 
+in the heap, if we ensured the heap will always be balanced.
 See the documentation for `insert` for more details on how to do so.
 -/
 def sift_down : tree α → tree α → tree α
@@ -211,9 +211,9 @@ begin
       split; linarith } },
 end
 
-/-- Removing `root` from heap and rebalncing to preserve heap invariant. See also `sift_down`.
-The implementation of this function is currently not ensuring that the heap is balanced at 
-all times. See the documention for `insert` for more details and suggestions for improvement. 
+/-- Removing `root` from heap and rebalancing to preserve heap invariant. See also `sift_down`.
+The implementation of this function is currently not ensuring that the heap is balanced at
+all times. See the documention for `insert` for more details and suggestions for improvement.
 -/
 def pop : tree α → tree α
 | nil := nil

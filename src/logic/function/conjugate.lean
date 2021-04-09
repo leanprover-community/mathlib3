@@ -55,10 +55,6 @@ end semiconj
 Given `h : function.commute f g` and `a : α`, the term `h a` has Type `h a : f (g a) = g (f a)`. -/
 def commute (f g : α → α) : Prop := semiconj f g g
 
-lemma commute.apply {f g : α → α} (h : function.commute f g) (x : α) :
-  f (g x) = g (f x) :=
-h _
-
 lemma semiconj.commute {f g : α → α} (h : semiconj f g g) : commute f g := h
 
 namespace commute

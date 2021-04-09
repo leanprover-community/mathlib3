@@ -10,7 +10,7 @@ import order.zorn
 # Extend a partial order to a linear order
 
 This file constructs a linear order which is an extension of the given partial order, using Zorn's
-lemma.
+lemma, and uses it to show the existence of a linear order on any type.
 -/
 
 universes u
@@ -73,4 +73,14 @@ begin
       { exact (h.2 (Tt yb bx)).elim } } },
   rw ←hT₃ _ T'S (λ x, or.inl) at h,
   exact h.1 (or.inr ⟨TR _ _ (refl _), TR _ _ (refl _)⟩),
+end
+
+/--
+There is a linear order on any type.
+-/
+lemma exists_linear_order {α : Type u} : ∃ (s : α → α → Prop), is_linear_order α s :=
+begin
+  rcases extend_partial_order (=) with ⟨s, hs₁, -⟩,
+  refine ⟨s, hs₁⟩,
+  exact { antisymm := λ _ _ h _, h },
 end

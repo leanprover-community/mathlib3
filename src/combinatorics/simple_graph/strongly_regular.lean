@@ -19,7 +19,7 @@ import data.set.finite
 
 ## TODO
 - Prove that the complement of a strongly regular graph is strongly regular with parameters
-  `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (v - 2k + l)`
+  `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (n - 2k + l)`
 - Prove that the parameters of a strongly regular graph
   obey the relation `(n - k - 1) * m = k * (k - l - 1)`
 - Prove that if `I` is the identity matrix and `J` is the all-one matrix,
@@ -78,15 +78,14 @@ lemma complete_strongly_regular (m : ℕ) :
   nadj_common := λ v w (h : ¬(v ≠ w) ∧ _), (h.1 h.2).elim }
 
 -- Prove that the complement of a strongly regular graph is strongly regular with parameters
-  -- `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (v - 2k + l)`
+  -- `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (n - 2k + l)`
 lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_SRG_of n k l m) :
   Gᶜ.is_SRG_of n (n - k - 1) (n - 2 - 2 * k + m) (n - 2 * k + l) :=
 { card := h.card,
-  regular := λ v,
+  regular :=
     begin
-      rw [← h.card, ← h.regular v],
-
-      sorry,
+      rw ← h.card,
+      exact compl_regular_is_regular G k h.regular,
     end,
   adj_common := sorry,
   nadj_common := sorry }

@@ -93,10 +93,6 @@ namespace commute
 
 variable {g : α → α}
 
-lemma apply (h : function.commute f g) (x : α) :
-  f (g x) = g (f x) :=
-h _
-
 lemma iterate_right (h : commute f g) (n : ℕ) : commute f (g^[n]) := h.iterate_right n
 
 lemma iterate_left (h : commute f g) (n : ℕ) : commute (f^[n]) g := (h.symm.iterate_right n).symm

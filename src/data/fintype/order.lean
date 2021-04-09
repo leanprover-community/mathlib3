@@ -46,7 +46,7 @@ complete_lattice_of_complete_semilattice_Sup _
   ..(infer_instance : linear_order α) }
 
 @[priority 100] noncomputable instance fintype.complete_linear_order_of_linear_order
-[fintype α] [nonempty α] [linear_order α] :
+  [fintype α] [nonempty α] [linear_order α] :
   complete_linear_order α :=
 { ..fintype.complete_lattice_of_semilattice_sup_bot,
   ..(infer_instance : linear_order α) }

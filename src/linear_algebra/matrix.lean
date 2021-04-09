@@ -907,22 +907,12 @@ rfl
   reindex_linear_equiv (equiv.refl m) (equiv.refl n) = linear_equiv.refl R _ :=
 linear_equiv.ext $ λ _, rfl
 
-lemma reindex_mul [semiring R]
-  (eₘ : m ≃ m') (eₙ : n ≃ n') (eₗ : l ≃ l') (M : matrix m n R) (N : matrix n l R) :
-  (reindex eₘ eₙ M) ⬝ (reindex eₙ eₗ N) = reindex eₘ eₗ (M ⬝ N) :=
-begin
-  ext i j,
-  dsimp only [matrix.mul, matrix.dot_product],
-  rw [←finset.univ_map_equiv_to_embedding eₙ, finset.sum_map finset.univ eₙ.to_embedding],
-  simp,
-end
-
 /-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
 types, `matrix.reindex`, is an equivalence of algebras. -/
 def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
 { to_fun    := reindex e e,
-  map_mul'  := λ M N, (reindex_mul e e e M N).symm,
+  map_mul'  := λ M N, minor_mul_equiv M N e e e,
   commutes' := λ r,
                  by { ext, simp [algebra_map, algebra.to_ring_hom], by_cases h : i = j; simp [h], },
 ..(reindex_linear_equiv e e) }

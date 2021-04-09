@@ -239,8 +239,8 @@ begin
 end
 
 lemma minimal_period_id : minimal_period id x = 1 :=
-((is_periodic_id _ _ ).minimal_period_le (nat.one_pos)).antisymm
-  (nat.succ_le_of_lt ((is_periodic_id _ _ ).minimal_period_pos (nat.one_pos)))
+((is_periodic_id _ _ ).minimal_period_le nat.one_pos).antisymm
+  (nat.succ_le_of_lt ((is_periodic_id _ _ ).minimal_period_pos nat.one_pos))
 
 lemma is_fixed_point_iff_minimal_period_eq_one : minimal_period f x = 1 ↔ is_fixed_pt f x :=
 begin
@@ -249,8 +249,8 @@ begin
     refine function.is_periodic_pt.is_fixed_pt _,
     rw ← h,
     exact is_periodic_pt_minimal_period f x },
-  { exact ((h.is_periodic_pt 1).minimal_period_le (nat.one_pos)).antisymm
-      (nat.succ_le_of_lt ((h.is_periodic_pt 1).minimal_period_pos (nat.one_pos))) }
+  { exact ((h.is_periodic_pt 1).minimal_period_le nat.one_pos).antisymm
+      (nat.succ_le_of_lt ((h.is_periodic_pt 1).minimal_period_pos nat.one_pos)) }
 end
 
 lemma is_periodic_pt.eq_zero_of_lt_minimal_period (hx : is_periodic_pt f n x)
@@ -316,7 +316,7 @@ begin
   { apply is_periodic_pt.minimal_period_dvd,
     rw [is_periodic_pt, is_fixed_pt, ← iterate_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _),
         mul_comm, nat.mul_div_assoc _ (gcd_dvd_right _ _), mul_comm, iterate_mul],
-    exact is_periodic_pt.iterate (is_periodic_pt_minimal_period f x) _ },
+    exact (is_periodic_pt_minimal_period f x).iterate _ },
   { apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd h),
     apply dvd_of_mul_dvd_mul_right h,
     rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc, nat.div_mul_cancel (gcd_dvd_right _ _),

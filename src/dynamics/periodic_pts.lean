@@ -263,12 +263,7 @@ not_lt.2 (hx.minimal_period_le hn0) hn
 
 lemma not_mem_periodic_pts_of_lt_minimal_period (hn : n < minimal_period f x) :
   ¬ (0 < n ∧ is_periodic_pt f n x) :=
-begin
-  rw [minimal_period] at hn,
-  refine not_and.mpr (λ n0, λ hm, not_le.mpr hn _),
-  rw dif_pos (mk_mem_periodic_pts n0 hm),
-  exact (nat.find_le_iff _ _).mpr ⟨n, rfl.le, n0, hm⟩,
-end
+not_and.mpr $ λ n0 hm, not_le.mpr hn (hm.minimal_period_le n0)
 
 lemma not_is__periodic_pt_of_pos_of_lt_minimal_period :
   ∀ {n: ℕ} (n0 : n ≠ 0) (hn : n < minimal_period f x), ¬ is_periodic_pt f n x

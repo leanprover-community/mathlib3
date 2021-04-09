@@ -281,8 +281,8 @@ lemma is_periodic_pt_iff_minimal_period_dvd :
 
 open nat
 
--- This lemma is part of a separate PR
-lemma nat_dvd_iff {m n : ℕ} : (∀ a : ℕ, m ∣ a ↔ n ∣ a) ↔ m = n :=
+-- This lemma is part of PR #7132
+lemma nat_dvd_iff_right {m n : ℕ} : (∀ a : ℕ, m ∣ a ↔ n ∣ a) ↔ m = n :=
 ⟨λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _)), λ h n, by rw h⟩
 
 lemma minimal_period_eq_minimal_period_iff {g : β → β} {y : β} :

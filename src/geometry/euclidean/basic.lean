@@ -253,12 +253,10 @@ if and only if the angle between the two vectors is π. -/
 lemma inner_eq_neg_mul_norm_iff_angle_eq_pi {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
   ⟪x, y⟫ = - (∥x∥ * ∥y∥) ↔ angle x y = π :=
 begin
-  split, swap,
-  { intro h,
-    exact inner_eq_neg_mul_norm_of_angle_eq_pi h },
-  { intro h,
-    have h₁ : (∥x∥ * ∥y∥) ≠ 0 := ne_of_gt (mul_pos (norm_pos_iff.mpr hx) (norm_pos_iff.mpr hy)),
-    rw [angle, h, neg_div, div_self h₁, real.arccos_neg_one] },
+  refine ⟨_, inner_eq_neg_mul_norm_of_angle_eq_pi⟩,
+  intro h,
+  have h₁ : (∥x∥ * ∥y∥) ≠ 0 := ne_of_gt (mul_pos (norm_pos_iff.mpr hx) (norm_pos_iff.mpr hy)),
+  rw [angle, h, neg_div, div_self h₁, real.arccos_neg_one],
 end
 
 /-- The inner product of two non-zero vectors equals the product of their norms
@@ -266,12 +264,10 @@ if and only if the angle between the two vectors is 0. -/
 lemma inner_eq_mul_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
   ⟪x, y⟫ = ∥x∥ * ∥y∥ ↔ angle x y = 0 :=
 begin
-  split, swap,
-  { intro h,
-    exact inner_eq_mul_norm_of_angle_eq_zero h },
-  { intro h,
-    have h₁ : (∥x∥ * ∥y∥) ≠ 0 := ne_of_gt (mul_pos (norm_pos_iff.mpr hx) (norm_pos_iff.mpr hy)),
-    rw [angle, h, div_self h₁, real.arccos_one] },
+  refine ⟨_, inner_eq_mul_norm_of_angle_eq_zero⟩,
+  intro h,
+  have h₁ : (∥x∥ * ∥y∥) ≠ 0 := ne_of_gt (mul_pos (norm_pos_iff.mpr hx) (norm_pos_iff.mpr hy)),
+  rw [angle, h, div_self h₁, real.arccos_one],
 end
 
 /-- If the angle between two vectors is π, the norm of their difference equals
@@ -297,9 +293,10 @@ the absolute value of the difference of their norms. -/
 lemma norm_sub_eq_abs_sub_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) :
   ∥x - y∥ = abs (∥x∥ - ∥y∥) :=
 begin
-  have h2even : even 2, exact even_bit0 1,
   rw ← eq_of_pow_two_eq_pow_two (norm_nonneg (x - y)) (abs_nonneg (∥x∥ - ∥y∥)),
-  rw [norm_sub_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h, pow_even_abs (∥x∥ - ∥y∥) h2even],
+  rw [norm_sub_pow_two_real,
+      inner_eq_mul_norm_of_angle_eq_zero h,
+      pow_even_abs (∥x∥ - ∥y∥) (even_bit0 1)],
   ring,
 end
 
@@ -308,15 +305,13 @@ if and only the angle between the two vectors is π. -/
 lemma norm_sub_eq_add_norm_iff_angle_eq_pi {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
   ∥x - y∥ = ∥x∥ + ∥y∥ ↔ angle x y = π :=
 begin
-  split, swap,
-  { intro h,
-    exact norm_sub_eq_add_norm_of_angle_eq_pi h },
-  { intro h,
-    rw ← inner_eq_neg_mul_norm_iff_angle_eq_pi hx hy,
-    obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x - y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
-    rw [← eq_of_pow_two_eq_pow_two hxy₁ hxy₂, norm_sub_pow_two_real] at h,
-    calc inner x y = (∥x∥ ^ 2 + ∥y∥ ^ 2 - (∥x∥ + ∥y∥) ^ 2) / 2 : by linarith
-    ...            = -(∥x∥ * ∥y∥) : by ring },
+  refine ⟨_, norm_sub_eq_add_norm_of_angle_eq_pi⟩,
+  intro h,
+  rw ← inner_eq_neg_mul_norm_iff_angle_eq_pi hx hy,
+  obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x - y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
+  rw [← eq_of_pow_two_eq_pow_two hxy₁ hxy₂, norm_sub_pow_two_real] at h,
+  calc inner x y = (∥x∥ ^ 2 + ∥y∥ ^ 2 - (∥x∥ + ∥y∥) ^ 2) / 2 : by linarith
+  ...            = -(∥x∥ * ∥y∥) : by ring,
 end
 
 /-- The norm of the sum of two non-zero vectors equals the sum of their norms
@@ -324,15 +319,13 @@ if and only the angle between the two vectors is 0. -/
 lemma norm_add_eq_add_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
   ∥x + y∥ = ∥x∥ + ∥y∥ ↔ angle x y = 0 :=
 begin
-  split, swap,
-  { intro h,
-    exact norm_add_eq_add_norm_of_angle_eq_zero h },
-  { intro h,
-    rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
-    obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x + y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
-    rw [← eq_of_pow_two_eq_pow_two hxy₁ hxy₂, norm_add_pow_two_real] at h,
-    calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
-    ...            = ∥x∥ * ∥y∥ : by ring },
+  refine ⟨_, norm_add_eq_add_norm_of_angle_eq_zero⟩,
+  intro h,
+  rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
+  obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x + y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
+  rw [← eq_of_pow_two_eq_pow_two hxy₁ hxy₂, norm_add_pow_two_real] at h,
+  calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
+  ...            = ∥x∥ * ∥y∥ : by ring,
 end
 
 /-- The norm of the difference of two non-zero vectors equals the absolute value
@@ -340,15 +333,13 @@ of the difference of their norms if and only the angle between the two vectors i
 lemma norm_sub_eq_abs_sub_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
   ∥x - y∥ = abs (∥x∥ - ∥y∥) ↔ angle x y = 0 :=
 begin
-  split, swap,
-  { intro h,
-    exact norm_sub_eq_abs_sub_norm_of_angle_eq_zero h },
-  { intro h,
-    rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
-    have h1 : ∥x - y∥ ^ 2 = (∥x∥ - ∥y∥) ^ 2, { rw h, exact pow_even_abs (∥x∥ - ∥y∥) (even_bit0 1) },
-    rw norm_sub_pow_two_real at h1,
-    calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
-    ...            = ∥x∥ * ∥y∥ : by ring },
+  refine ⟨_, norm_sub_eq_abs_sub_norm_of_angle_eq_zero⟩,
+  intro h,
+  rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
+  have h1 : ∥x - y∥ ^ 2 = (∥x∥ - ∥y∥) ^ 2, { rw h, exact pow_even_abs (∥x∥ - ∥y∥) (even_bit0 1) },
+  rw norm_sub_pow_two_real at h1,
+  calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
+  ...            = ∥x∥ * ∥y∥ : by ring,
 end
 
 /-- The norm of the sum of two vectors equals the norm of their difference if and only if

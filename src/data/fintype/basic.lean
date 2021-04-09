@@ -60,13 +60,11 @@ instance : order_top (finset α) :=
 
 instance [decidable_eq α] : boolean_algebra (finset α) :=
 { compl := λ s, univ \ s,
-  sdiff_eq := λ s t, by simp [ext_iff],
   inf_compl_le_bot := λ s x hx, by simpa using hx,
   top_le_sup_compl := λ s x hx, by simp,
-  ..finset.distrib_lattice,
-  ..finset.semilattice_inf_bot,
+  sdiff_eq := λ s t, by simp [ext_iff, compl],
   ..finset.order_top,
-  ..finset.has_sdiff }
+  ..finset.generalized_boolean_algebra }
 
 lemma compl_eq_univ_sdiff [decidable_eq α] (s : finset α) : sᶜ = univ \ s := rfl
 
@@ -171,6 +169,16 @@ instance decidable_right_inverse_fintype [decidable_eq β] [fintype β] (f : α 
   decidable (function.left_inverse f g) :=
 show decidable (∀ x, f (g x) = x), by apply_instance
 
+lemma exists_max [fintype α] [nonempty α]
+  {β : Type*} [linear_order β] (f : α → β) :
+  ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
+by simpa using exists_max_image univ f univ_nonempty
+
+lemma exists_min [fintype α] [nonempty α]
+  {β : Type*} [linear_order β] (f : α → β) :
+  ∃ x₀ : α, ∀ x, f x₀ ≤ f x :=
+by simpa using exists_min_image univ f univ_nonempty
+
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α)
   (H : ∀ x : α, x ∈ s) : fintype α :=
@@ -210,7 +218,7 @@ quot.rec_on_subsingleton (@univ α _).1
   mem_univ_val univ.2
 
 theorem exists_equiv_fin (α) [fintype α] : ∃ n, nonempty (α ≃ fin n) :=
-by haveI := classical.dec_eq α; exact ⟨card α, nonempty_of_trunc (equiv_fin α)⟩
+by haveI := classical.dec_eq α; exact ⟨card α, (equiv_fin α).nonempty⟩
 
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext_iff, h₁, h₂]⟩
@@ -270,7 +278,7 @@ variables {f : α → β} (hf : function.injective f)
 /--
 The inverse of an `hf : injective` function `f : α → β`, of the type `↥(set.range f) → α`.
 This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`,
-or the function version of applying `(equiv.set.range f hf).symm`.
+or the function version of applying `(equiv.of_injective f hf).symm`.
 This function should not usually be used for actual computation because for most cases,
 an explicit inverse can be stated that has better computational properties.
 This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
@@ -308,7 +316,7 @@ variables (f : α ↪ β) (b : set.range f)
 /--
 The inverse of an embedding `f : α ↪ β`, of the type `↥(set.range f) → α`.
 This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`,
-or the function version of applying `(equiv.set.range f f.injective).symm`.
+or the function version of applying `(equiv.of_injective f f.injective).symm`.
 This function should not usually be used for actual computation because for most cases,
 an explicit inverse can be stated that has better computational properties.
 This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
@@ -377,8 +385,15 @@ def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 @[simp] theorem univ_of_subsingleton (a : α) [subsingleton α] :
   @univ _ (of_subsingleton a) = {a} := rfl
 
+/-- Note: this lemma is specifically about `fintype.of_subsingleton`. For a statement about
+arbitrary `fintype` instances, use either `fintype.card_le_one_iff_subsingleton` or
+`fintype.card_unique`. -/
 @[simp] theorem card_of_subsingleton (a : α) [subsingleton α] :
   @fintype.card _ (of_subsingleton a) = 1 := rfl
+
+@[simp] theorem card_unique [unique α] [h : fintype α] :
+  fintype.card α = 1 :=
+subsingleton.elim (of_subsingleton $ default α) h ▸ card_of_subsingleton _
 
 open_locale classical
 variables (α)
@@ -419,6 +434,21 @@ set.ext $ λ _, mem_to_finset
 @[simp] theorem to_finset_inj {s t : set α} [fintype s] [fintype t] :
   s.to_finset = t.to_finset ↔ s = t :=
 ⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩
+
+@[simp, mono] theorem to_finset_mono {s t : set α} [fintype s] [fintype t] :
+  s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
+by simp [finset.subset_iff, set.subset_def]
+
+@[simp, mono] theorem to_finset_strict_mono {s t : set α} [fintype s] [fintype t] :
+  s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
+begin
+  rw [←lt_eq_ssubset, ←finset.lt_iff_ssubset, lt_iff_le_and_ne, lt_iff_le_and_ne],
+  simp
+end
+
+@[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
+  disjoint s.to_finset t.to_finset ↔ disjoint s t :=
+⟨λ h x hx, h (by simpa using hx), λ h x hx, h (by simpa using hx)⟩
 
 end set
 
@@ -651,14 +681,17 @@ finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 lemma card_le_of_embedding (f : α ↪ β) : card α ≤ card β := card_le_of_injective f f.2
 
 lemma card_lt_of_injective_of_not_mem (f : α → β) (h : function.injective f)
-  {b : β} (w : b ∉ set.range f) : fintype.card α < fintype.card β :=
+  {b : β} (w : b ∉ set.range f) : card α < card β :=
 calc card α = (univ.map ⟨f, h⟩).card : (card_map _).symm
 ... < card β : finset.card_lt_univ_of_not_mem $
                  by rwa [← mem_coe, coe_map, coe_univ, set.image_univ]
 
 lemma card_lt_of_injective_not_surjective (f : α → β) (h : function.injective f)
-  (h' : ¬function.surjective f) : fintype.card α < fintype.card β :=
+  (h' : ¬function.surjective f) : card α < card β :=
 let ⟨y, hy⟩ := not_forall.1 h' in card_lt_of_injective_of_not_mem f h hy
+
+lemma card_le_of_surjective (f : α → β) (h : function.surjective f) : card β ≤ card α :=
+card_le_of_injective _ (function.injective_surj_inv h)
 
 /--
 The pigeonhole principle for finitely many pigeons and pigeonholes.
@@ -879,6 +912,12 @@ by rw [← e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_emb
 
 namespace fintype
 
+lemma card_lt_of_surjective_not_injective [fintype α] [fintype β] (f : α → β)
+  (h : function.surjective f) (h' : ¬function.injective f) : card β < card α :=
+card_lt_of_injective_not_surjective _ (function.injective_surj_inv h) $ λ hg,
+have w : function.bijective (function.surj_inv h) := ⟨function.injective_surj_inv h, hg⟩,
+h' $ (injective_iff_surjective_of_equiv (equiv.of_bijective _ w).symm).mpr h
+
 variables [decidable_eq α] [fintype α] {δ : α → Type*}
 
 /-- Given for all `a : α` a finset `t a` of `δ a`, then one can define the
@@ -955,6 +994,10 @@ by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
   (∅ : set α).to_finset = ∅ :=
 by { ext, simp only [set.mem_empty_eq, set.mem_to_finset, not_mem_empty] }
 
+@[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] :
+  s.to_finset = ∅ ↔ s = ∅ :=
+by simp [ext_iff, set.ext_iff]
+
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=
 fintype.card_le_of_embedding (function.embedding.subtype _)
@@ -962,6 +1005,15 @@ fintype.card_le_of_embedding (function.embedding.subtype _)
 theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p]
   {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
 fintype.card_lt_of_injective_of_not_mem coe subtype.coe_injective $ by rwa subtype.range_coe_subtype
+
+theorem fintype.card_quotient_le [fintype α] (s : setoid α) [decidable_rel ((≈) : α → α → Prop)] :
+  fintype.card (quotient s) ≤ fintype.card α :=
+fintype.card_le_of_surjective _ (surjective_quotient_mk _)
+
+theorem fintype.card_quotient_lt [fintype α] {s : setoid α} [decidable_rel ((≈) : α → α → Prop)]
+  {x y : α} (h1 : x ≠ y) (h2 : x ≈ y) : fintype.card (quotient s) < fintype.card α :=
+fintype.card_lt_of_surjective_not_injective _ (surjective_quotient_mk _) $ λ w,
+h1 (w $ quotient.eq.mpr h2)
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
@@ -1240,7 +1292,7 @@ variables [fintype α]
 variables [decidable_eq β]
 variables {f : α → β}
 
-/-- `
+/--
 `bij_inv f` is the unique inverse to a bijection `f`. This acts
   as a computable alternative to `function.inv_fun`. -/
 def bij_inv (f_bij : bijective f) (b : β) : α :=

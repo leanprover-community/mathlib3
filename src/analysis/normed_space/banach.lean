@@ -193,15 +193,14 @@ begin
     ... = 2 * C * ∥y∥ : by rw [tsum_geometric_two, mul_assoc]
     ... ≤ 2 * C * ∥y∥ + ∥y∥ : le_add_of_nonneg_right (norm_nonneg y)
     ... = (2 * C + 1) * ∥y∥ : by ring,
-  have fsumeq : ∀n:ℕ, f (∑ i in finset.range n, u i) = y - (h^[n]) y,
+  have fsumeq : ∀n:ℕ, f (∑ i in range n, u i) = y - (h^[n]) y,
   { assume n,
     induction n with n IH,
     { simp [f.map_zero] },
-    { rw [sum_range_succ, f.map_add, IH, iterate_succ'],
-      simp [u, h, sub_eq_add_neg, add_comm, add_left_comm] } },
+    { rw [sum_range_succ, f.map_add, IH, iterate_succ', sub_add] } },
   have : tendsto (λn, ∑ i in range n, u i) at_top (𝓝 x) :=
     su.has_sum.tendsto_sum_nat,
-  have L₁ : tendsto (λn, f(∑ i in range n, u i)) at_top (𝓝 (f x)) :=
+  have L₁ : tendsto (λn, f (∑ i in range n, u i)) at_top (𝓝 (f x)) :=
     (f.continuous.tendsto _).comp this,
   simp only [fsumeq] at L₁,
   have L₂ : tendsto (λn, y - (h^[n]) y) at_top (𝓝 (y - 0)),

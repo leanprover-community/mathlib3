@@ -227,7 +227,7 @@ begin
   have : span S₀ (insert 1 ↑y : set A) = (algebra.adjoin S₀ (↑y : set A)).to_submodule,
   { refine le_antisymm (span_le.2 $ set.insert_subset.2
         ⟨(algebra.adjoin S₀ ↑y).one_mem, algebra.subset_adjoin⟩) (λ z hz, _),
-    rw [subalgebra.mem_to_submodule, algebra.mem_adjoin_iff] at hz, rw ← submodule.mem_coe,
+    rw [subalgebra.mem_to_submodule, algebra.mem_adjoin_iff] at hz, rw ← set_like.mem_coe,
     refine ring.closure_subset (set.union_subset (set.range_subset_iff.2 $ λ t, _)
       (λ t ht, subset_span $ or.inr ht)) hz,
     rw algebra.algebra_map_eq_smul_one,
@@ -533,7 +533,7 @@ begin
 
   -- Since `q(a) = 0` and `q(a) = q'(a) * a + 1`, we have `a * -q'(a) = 1`.
   -- TODO: we could use a lemma for `polynomial.div_X` here.
-  rw [finset.sum_range_succ, p_monic.coeff_nat_degree, one_mul, nat.sub_self, pow_zero,
+  rw [finset.sum_range_succ_comm, p_monic.coeff_nat_degree, one_mul, nat.sub_self, pow_zero,
       add_eq_zero_iff_eq_neg, eq_comm] at hq,
   rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
   convert hq using 2,

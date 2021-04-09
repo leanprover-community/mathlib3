@@ -326,10 +326,10 @@ noncomputable def out : trunc α → α := quot.out
 
 @[simp] theorem out_eq (q : trunc α) : mk q.out = q := trunc.eq _ _
 
-end trunc
+protected theorem nonempty (q : trunc α) : nonempty α :=
+nonempty_of_exists q.exists_rep
 
-theorem nonempty_of_trunc (q : trunc α) : nonempty α :=
-let ⟨a, _⟩ := q.exists_rep in ⟨a⟩
+end trunc
 
 namespace quotient
 variables {γ : Sort*} {φ : Sort*}

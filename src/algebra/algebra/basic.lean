@@ -757,7 +757,7 @@ def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
   ..e.to_ring_equiv.symm, }
 
 /-- See Note [custom simps projection] -/
-def simps.inv_fun (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
+def simps.symm_apply (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
 
 initialize_simps_projections alg_equiv (to_fun → apply, inv_fun → symm_apply)
 
@@ -1428,7 +1428,7 @@ module structure over `R`.
 The preferred way of setting this up is `[module R M] [module A M] [is_scalar_tower R A M]`.
 -/
 instance : semimodule R (restrict_scalars R A M) :=
-(algebra_map R A).comp_semimodule M
+semimodule.comp_hom M (algebra_map R A)
 
 lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R A M) :
   c • x = ((algebra_map R A c) • x : M) := rfl
@@ -1480,7 +1480,7 @@ variables (R S M)
 
 lemma restrict_scalars_injective :
   function.injective (restrict_scalars R : submodule S M → submodule R M) :=
-λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (ext'_iff.1 h); refl
+λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (set_like.ext'_iff.1 h); refl
 
 @[simp] lemma restrict_scalars_inj {V₁ V₂ : submodule S M} :
   restrict_scalars R V₁ = restrict_scalars R V₂ ↔ V₁ = V₂ :=

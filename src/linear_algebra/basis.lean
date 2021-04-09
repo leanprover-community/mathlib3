@@ -210,10 +210,13 @@ variables (e : ι ≃ ι')
 def reindex : basis ι' R M :=
 basis.of_repr (b.repr.trans (finsupp.dom_lcongr e))
 
-@[simp] lemma reindex_apply (i' : ι') : b.reindex e i' = b (e.symm i') :=
+lemma reindex_apply (i' : ι') : b.reindex e i' = b (e.symm i') :=
 show (b.repr.trans (finsupp.dom_lcongr e)).symm (finsupp.single i' 1) =
   b.repr.symm (finsupp.single (e.symm i') 1),
 by rw [linear_equiv.symm_trans_apply, finsupp.dom_lcongr_symm, finsupp.dom_lcongr_single]
+
+@[simp] lemma coe_reindex : (b.reindex e : ι' → M) = b ∘ e.symm :=
+funext (b.reindex_apply e)
 
 @[simp] lemma coe_reindex_repr : ((b.reindex e).repr x : ι' → R) = b.repr x ∘ e.symm :=
 funext $ λ i',
@@ -222,6 +225,9 @@ from finsupp.dom_lcongr_apply _ _ _
 
 @[simp] lemma reindex_repr (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
 by rw coe_reindex_repr
+
+@[simp] lemma range_reindex : set.range (b.reindex e) = set.range b :=
+by rw [coe_reindex, range_comp, equiv.range_eq_univ, set.image_univ]
 
 /-- `b.reindex_range` is a basis indexed by `range b`, the basis vectors themselves. -/
 def reindex_range [nontrivial R] : basis (range b) R M :=

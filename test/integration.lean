@@ -63,3 +63,16 @@ example : ∫ x : ℝ in 0..2, 3 * (x + 1) ^ 2 = 26 :=
   by norm_num [integral_comp_add_right (λ x, x ^ 2)]
 example : ∫ x : ℝ in -1..0, (1 + (x + 1) ^ 2)⁻¹ = π/4 :=
   by simp [integral_comp_add_right (λ x, (1 + x ^ 2)⁻¹)]
+
+/-! ### Compositions of functions -/
+
+/- `interval_integral.integral_deriv_comp_mul_deriv` can be used to compute integrals of the form
+  `∫ x in a..b, (g ∘ f) x * f' x`, where `f'` is derivative of `f`, provided that you also know that
+  `g` is the derivative of some function -/
+example : ∫ x : ℝ in 0..1, exp (x ^ 2) * (2 * x) = exp 1 - 1 :=
+begin
+  rw integral_deriv_comp_mul_deriv (λ x hx, _) (λ x hx, has_deriv_at_exp (x^2)) _ continuous_exp,
+  { simp },
+  { simpa using has_deriv_at_pow 2 x },
+  { exact continuous_on_const.mul continuous_on_id },
+end

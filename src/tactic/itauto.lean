@@ -10,7 +10,8 @@ import tactic.hint
 # Intuitionistic tautology (`itauto`) decision procedure
 
 The `itauto` tactic will prove any intuitionistic tautology. It implements the well known
-`G4ip` algorithm: <http://www.cs.cmu.edu/~crary/317-f20/homeworks/g4ip.pdf>
+`G4ip` algorithm:
+[Dyckhoff, *Contraction-free sequent calculi for intuitionistic logic*][dyckhoff_1992].
 
 All built in propositional connectives are supported: `true`, `false`, `and`, `or`, `implies`,
 `not`, `iff`, `xor`, as well as `eq` and `ne` on propositions. Anything else, including definitions

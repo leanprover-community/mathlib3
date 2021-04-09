@@ -173,7 +173,7 @@ calc vector_space.dim K (R σ K) =
     quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm⟩
   ... = cardinal.mk (σ → K) :
   begin
-    refine (trunc.induction_on (fintype.equiv_fin K) $ assume (e : K ≃ fin (fintype.card K)), _),
+    let e := fintype.equiv_fin K,
     refine quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) e.symm⟩
   end
   ... = fintype.card (σ → K) : cardinal.fintype_card _

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Joseph Myers
+Authors: Joseph Myers, Manuel Candales
 -/
 import analysis.normed_space.inner_product
 import algebra.quadratic_discriminant
@@ -233,6 +233,137 @@ them is π/2. -/
 lemma inner_eq_zero_iff_angle_eq_pi_div_two (x y : V) : ⟪x, y⟫ = 0 ↔ angle x y = π / 2 :=
 iff.symm $ by simp [angle, or_imp_distrib] { contextual := tt }
 
+/-- If the angle between two vectors is π, the inner product equals the negative product
+of the norms. -/
+lemma inner_eq_neg_mul_norm_of_angle_eq_pi {x y : V} (h : angle x y = π) : ⟪x, y⟫ = - (∥x∥ * ∥y∥) :=
+begin
+  rw [← cos_angle_mul_norm_mul_norm x y, h, real.cos_pi],
+  exact neg_one_mul (∥x∥ * ∥y∥),
+end
+
+/-- If the angle between two vectors is 0, the inner product equals the product of the norms. -/
+lemma inner_eq_mul_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) : ⟪x, y⟫ = ∥x∥ * ∥y∥ :=
+begin
+  rw [← cos_angle_mul_norm_mul_norm x y, h, real.cos_zero],
+  exact one_mul (∥x∥ * ∥y∥),
+end
+
+/-- The inner product of two non-zero vectors equals the negative product of their norms
+if and only if the angle between the two vectors is π. -/
+lemma inner_eq_neg_mul_norm_iff_angle_eq_pi {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  ⟪x, y⟫ = - (∥x∥ * ∥y∥) ↔ angle x y = π :=
+begin
+  split, swap,
+  { intro h,
+    exact inner_eq_neg_mul_norm_of_angle_eq_pi h },
+  { intro h,
+    have h₁ : (∥x∥ * ∥y∥) ≠ 0 := ne_of_gt (mul_pos (norm_pos_iff.mpr hx) (norm_pos_iff.mpr hy)),
+    rw [angle, h, neg_div, div_self h₁, real.arccos_neg_one] },
+end
+
+/-- The inner product of two non-zero vectors equals the product of their norms
+if and only if the angle between the two vectors is 0. -/
+lemma inner_eq_mul_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  ⟪x, y⟫ = ∥x∥ * ∥y∥ ↔ angle x y = 0 :=
+begin
+  split, swap,
+  { intro h,
+    exact inner_eq_mul_norm_of_angle_eq_zero h },
+  { intro h,
+    have h₁ : (∥x∥ * ∥y∥) ≠ 0 := ne_of_gt (mul_pos (norm_pos_iff.mpr hx) (norm_pos_iff.mpr hy)),
+    rw [angle, h, div_self h₁, real.arccos_one] },
+end
+
+/-- If the angle between two vectors is π, the norm of their difference equals
+the sum of their norms. -/
+lemma norm_sub_eq_add_norm_of_angle_eq_pi {x y : V} (h : angle x y = π) : ∥x - y∥ = ∥x∥ + ∥y∥ :=
+begin
+  rw ← eq_of_pow_two_eq_pow_two (norm_nonneg (x - y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
+  rw [norm_sub_pow_two_real, inner_eq_neg_mul_norm_of_angle_eq_pi h],
+  ring,
+end
+
+/-- If the angle between two vectors is 0, the norm of their sum equals
+the sum of their norms. -/
+lemma norm_add_eq_add_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) : ∥x + y∥ = ∥x∥ + ∥y∥ :=
+begin
+  rw ← eq_of_pow_two_eq_pow_two (norm_nonneg (x + y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
+  rw [norm_add_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h],
+  ring,
+end
+
+/-- If the angle between two vectors is 0, the norm of their difference equals
+the absolute value of the difference of their norms. -/
+lemma norm_sub_eq_abs_sub_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) :
+  ∥x - y∥ = abs (∥x∥ - ∥y∥) :=
+begin
+  have h2even : even 2, exact even_bit0 1,
+  rw ← eq_of_pow_two_eq_pow_two (norm_nonneg (x - y)) (abs_nonneg (∥x∥ - ∥y∥)),
+  rw [norm_sub_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h, pow_even_abs (∥x∥ - ∥y∥) h2even],
+  ring,
+end
+
+/-- The norm of the difference of two non-zero vectors equals the sum of their norms
+if and only the angle between the two vectors is π. -/
+lemma norm_sub_eq_add_norm_iff_angle_eq_pi {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  ∥x - y∥ = ∥x∥ + ∥y∥ ↔ angle x y = π :=
+begin
+  split, swap,
+  { intro h,
+    exact norm_sub_eq_add_norm_of_angle_eq_pi h },
+  { intro h,
+    rw ← inner_eq_neg_mul_norm_iff_angle_eq_pi hx hy,
+    obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x - y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
+    rw [← eq_of_pow_two_eq_pow_two hxy₁ hxy₂, norm_sub_pow_two_real] at h,
+    calc inner x y = (∥x∥ ^ 2 + ∥y∥ ^ 2 - (∥x∥ + ∥y∥) ^ 2) / 2 : by linarith
+    ...            = -(∥x∥ * ∥y∥) : by ring },
+end
+
+/-- The norm of the sum of two non-zero vectors equals the sum of their norms
+if and only the angle between the two vectors is 0. -/
+lemma norm_add_eq_add_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  ∥x + y∥ = ∥x∥ + ∥y∥ ↔ angle x y = 0 :=
+begin
+  split, swap,
+  { intro h,
+    exact norm_add_eq_add_norm_of_angle_eq_zero h },
+  { intro h,
+    rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
+    obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x + y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
+    rw [← eq_of_pow_two_eq_pow_two hxy₁ hxy₂, norm_add_pow_two_real] at h,
+    calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
+    ...            = ∥x∥ * ∥y∥ : by ring },
+end
+
+/-- The norm of the difference of two non-zero vectors equals the absolute value
+of the difference of their norms if and only the angle between the two vectors is 0. -/
+lemma norm_sub_eq_abs_sub_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  ∥x - y∥ = abs (∥x∥ - ∥y∥) ↔ angle x y = 0 :=
+begin
+  split, swap,
+  { intro h,
+    exact norm_sub_eq_abs_sub_norm_of_angle_eq_zero h },
+  { intro h,
+    rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
+    have h1 : ∥x - y∥ ^ 2 = (∥x∥ - ∥y∥) ^ 2, { rw h, exact pow_even_abs (∥x∥ - ∥y∥) (even_bit0 1) },
+    rw norm_sub_pow_two_real at h1,
+    calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
+    ...            = ∥x∥ * ∥y∥ : by ring },
+end
+
+/-- The norm of the sum of two vectors equals the norm of their difference if and only if
+the angle between them is π/2. -/
+lemma norm_add_eq_norm_sub_iff_angle_eq_pi_div_two (x y : V) :
+  ∥x + y∥ = ∥x - y∥ ↔ angle x y = π / 2 :=
+begin
+  rw [← eq_of_pow_two_eq_pow_two (norm_nonneg (x + y)) (norm_nonneg (x - y)),
+      ← inner_eq_zero_iff_angle_eq_pi_div_two x y,
+      norm_add_pow_two_real, norm_sub_pow_two_real],
+  split,
+  { intro h, linarith },
+  { intro h, linarith },
+end
+
 end inner_product_geometry
 
 namespace euclidean_geometry
@@ -329,6 +460,89 @@ begin
   rw [angle_comm p1 p3 p2, angle_comm p1 p3 p4],
   unfold angle,
   exact angle_add_angle_eq_pi_of_angle_eq_pi _ h
+end
+
+/-- If ∠ABC = π, then (dist A C) = (dist A B) + (dist B C). -/
+lemma dist_eq_add_dist_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) :
+  (dist p1 p3) = (dist p1 p2) + (dist p3 p2) :=
+begin
+  rw [dist_eq_norm_vsub V p1 p3, dist_eq_norm_vsub V p1 p2, dist_eq_norm_vsub V p3 p2],
+  rw ← vsub_sub_vsub_cancel_right p1 p3 p2,
+  unfold angle at h,
+  exact norm_sub_eq_add_norm_of_angle_eq_pi h,
+end
+
+/-- If A ≠ B and C ≠ B then ∠ABC = π if and only if (dist A C) = (dist A B) + (dist B C). -/
+lemma dist_eq_add_dist_iff_angle_eq_pi {p1 p2 p3 : P} (hp1p2 : p1 ≠ p2) (hp3p2 : p3 ≠ p2) :
+  (dist p1 p3) = (dist p1 p2) + (dist p3 p2) ↔ ∠ p1 p2 p3 = π :=
+begin
+  rw [dist_eq_norm_vsub V p1 p3, dist_eq_norm_vsub V p1 p2, dist_eq_norm_vsub V p3 p2],
+  rw ← vsub_sub_vsub_cancel_right p1 p3 p2,
+  unfold angle,
+  exact norm_sub_eq_add_norm_iff_angle_eq_pi
+    ((λ he, hp1p2 (vsub_eq_zero_iff_eq.1 he))) (λ he, hp3p2 (vsub_eq_zero_iff_eq.1 he)),
+end
+
+/-- If ∠ABC = 0, then (dist A C) = abs ((dist A B) - (dist B C)). -/
+lemma dist_eq_abs_sub_dist_of_angle_eq_zero {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = 0) :
+  (dist p1 p3) = abs ((dist p1 p2) - (dist p3 p2)) :=
+begin
+  rw [dist_eq_norm_vsub V p1 p3, dist_eq_norm_vsub V p1 p2, dist_eq_norm_vsub V p3 p2],
+  rw ← vsub_sub_vsub_cancel_right p1 p3 p2,
+  unfold angle at h,
+  exact norm_sub_eq_abs_sub_norm_of_angle_eq_zero h,
+end
+
+/-- If A ≠ B and C ≠ B then ∠ABC = 0 if and only if (dist A C) = abs ((dist A B) - (dist B C)). -/
+lemma dist_eq_abs_sub_dist_iff_angle_eq_zero {p1 p2 p3 : P} (hp1p2 : p1 ≠ p2) (hp3p2 : p3 ≠ p2) :
+  (dist p1 p3) = abs ((dist p1 p2) - (dist p3 p2)) ↔ ∠ p1 p2 p3 = 0 :=
+begin
+  rw [dist_eq_norm_vsub V p1 p3, dist_eq_norm_vsub V p1 p2, dist_eq_norm_vsub V p3 p2],
+  rw ← vsub_sub_vsub_cancel_right p1 p3 p2,
+  unfold angle,
+  exact norm_sub_eq_abs_sub_norm_iff_angle_eq_zero
+    ((λ he, hp1p2 (vsub_eq_zero_iff_eq.1 he))) (λ he, hp3p2 (vsub_eq_zero_iff_eq.1 he)),
+end
+
+/-- The midpoint of the segment AB is at the same distance from A than from B. -/
+lemma dist_left_midpoint_eq_dist_right_midpoint (p1 p2 : P) :
+  dist p1 (midpoint ℝ p1 p2) = dist p2 (midpoint ℝ p1 p2) :=
+begin
+  rw [dist_left_midpoint p1 p2, dist_right_midpoint p1 p2],
+end
+
+/-- If M is the midpoint of the segment AB, then ∠AMB = π. -/
+lemma angle_midpoint_eq_pi (p1 p2 : P) (hp1p2 : p1 ≠ p2): ∠ p1 (midpoint ℝ p1 p2) p2 = π :=
+begin
+  let m : P := midpoint ℝ p1 p2,
+  have h1 : p2 -ᵥ m = -(p1 -ᵥ m),
+  { rw [right_vsub_midpoint p1 p2, neg_vsub_eq_vsub_rev p1 m, midpoint_vsub_left p1 p2] },
+  unfold angle, rw h1,
+  refine angle_self_neg_of_nonzero _,
+  rw left_vsub_midpoint p1 p2, simp [hp1p2],
+end
+
+/-- If M is the midpoint of the segment AB and C is at the same distance from A than from B
+then ∠CMA = π / 2. -/
+lemma angle_left_midpoint_eq_pi_div_two_of_dist_eq {p1 p2 p3 : P} (h : dist p3 p1 = dist p3 p2) :
+  ∠ p3 (midpoint ℝ p1 p2) p1 = π / 2 :=
+begin
+  let m : P := midpoint ℝ p1 p2,
+  have h1 : p3 -ᵥ p1 = (p3 -ᵥ m) - (p1 -ᵥ m) := (vsub_sub_vsub_cancel_right p3 p1 m).symm,
+  have h2 : p3 -ᵥ p2 = (p3 -ᵥ m) + (p1 -ᵥ m),
+  { rw [left_vsub_midpoint p1 p2, ← midpoint_vsub_right p1 p2, vsub_add_vsub_cancel p3 m p2] },
+  unfold angle,
+  rw [dist_eq_norm_vsub V p3 p1, dist_eq_norm_vsub V p3 p2, h1, h2] at h,
+  exact (norm_add_eq_norm_sub_iff_angle_eq_pi_div_two (p3 -ᵥ m) (p1 -ᵥ m)).mp h.symm,
+end
+
+/-- If M is the midpoint of the segment AB and C is at the same distance from A than from B
+then ∠CMB = π / 2. -/
+lemma angle_right_midpoint_eq_pi_div_two_of_dist_eq {p1 p2 p3 : P} (h : dist p3 p1 = dist p3 p2) :
+  ∠ p3 (midpoint ℝ p1 p2) p2 = π / 2 :=
+begin
+  rw midpoint_comm p1 p2,
+  exact angle_left_midpoint_eq_pi_div_two_of_dist_eq h.symm,
 end
 
 /-- The inner product of two vectors given with `weighted_vsub`, in

@@ -69,12 +69,12 @@ begin
 
   calc  abs (∥z + y∥ ^ 2 - ∥z - x∥ ^ 2)
       = abs (- (∥x∥ ^ 2 - ∥y∥ ^ 2))          : by { rw [norm_add_pow_two_real, hzy,
-                                                      norm_sub_pow_two_real, hzx], ring }
+                                                      norm_sub_pow_two_real, hzx], ring_nf }
   ... = abs (∥x∥ ^ 2 - ∥y∥ ^ 2)              : by rw ← abs_neg (∥x∥ ^ 2 - ∥y∥ ^ 2)
   ... = abs (∥r • y∥ ^ 2 - ∥y∥ ^ 2)          : by rw hxy
   ... = abs (((abs r) * ∥y∥) ^ 2 - ∥y∥ ^ 2)  : by rw [norm_smul r y, real.norm_eq_abs r]
   ... = abs ((r ^ 2 * ∥y∥ ^ 2) - ∥y∥ ^ 2)    : by rw [mul_pow _ _ 2, pow_even_abs (_) (even_bit0 1)]
-  ... = abs ((r ^ 2 - 1) * ∥y∥ ^ 2)         : by ring
+  ... = abs ((r ^ 2 - 1) * ∥y∥ ^ 2)         : by ring_nf
   ... = abs ((r ^ 2 - l ^ 2) * ∥y∥ ^ 2)     : by norm_num
   ... = abs (r ^ 2 - l ^ 2) * abs (∥y∥ ^ 2) : by rw ← abs_mul _ _
   ... = abs (r ^ 2 - l ^ 2) * ∥y∥ ^ 2       : by rw abs_of_nonneg (pow_two_nonneg ∥y∥)

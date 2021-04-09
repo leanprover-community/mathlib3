@@ -22,6 +22,7 @@ example (p : Prop) : p ≠ ¬ p := by itauto
 
 example (p : Prop) : p ∧ true ↔ p := by itauto
 example (p : Prop) : p ∨ false ↔ p := by itauto
+example (p q : Prop) (h0 : q) : p → q := by itauto
 example (p q r : Prop) : p ∨ (q ∧ r) → (p ∨ q) ∧ (r ∨ p ∨ r) := by itauto
 example (p q r : Prop) : p ∨ (q ∧ r) → (p ∨ q) ∧ (r ∨ p ∨ r) := by itauto
 example (p q : Prop) (h : ¬ (p ↔ q)) (h' : p) : ¬ q := by itauto

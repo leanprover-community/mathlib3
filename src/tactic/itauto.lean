@@ -12,13 +12,61 @@ import tactic.hint
 The `itauto` tactic will prove any intuitionistic tautology. It implements the well known
 `G4ip` algorithm: <http://www.cs.cmu.edu/~crary/317-f20/homeworks/g4ip.pdf>
 
-All built in propositional connectives are supported: `true`, `false`, `and`, `or`, `not`, `iff`,
-`xor`, as well as `eq` and `ne` on propositions. Anything else, including definitions and
-predicate logical connectives (`forall` and `exists`), are not supported, and will have to be
+All built in propositional connectives are supported: `true`, `false`, `and`, `or`, `implies`,
+`not`, `iff`, `xor`, as well as `eq` and `ne` on propositions. Anything else, including definitions
+and predicate logical connectives (`forall` and `exists`), are not supported, and will have to be
 simplified or instantiated before calling this tactic.
 
 The resulting proofs will never use any axioms except possibly `propext`, and `propext` is only
 used if the input formula contains an equality of propositions `p = q`.
+
+## Implementation notes
+
+The core logic of the prover is in three functions:
+
+* `prove : context → prop → state_t ℕ option proof`: The main entry point.
+  Gets a context and a goal, and returns a `proof` object or fails, using `state_t ℕ` for the name
+  generator.
+* `search : context → prop → state_t ℕ option proof`: Same meaning as `proof`, called during the
+  search phase (see below).
+* `context.add : prop → proof → context → except (prop → proof) context`: Adds a proposition with
+  its proof into the context, but it also does some simplifications on the spot while doing so.
+  It will either return the new context, or if it happens to notice a proof of false, it will
+  return a function to compute a proof of any proposition in the original context.
+
+The intuitionistic logic rules are separated into three groups:
+
+* level 1: No splitting, validity preserving: apply whenever you can.
+  Left rules in `context.add`, right rules in `prove`.
+  * `context.add`:
+    * simplify `Γ, ⊤ ⊢ B` to `Γ ⊢ B`
+    * `Γ, ⊥ ⊢ B` is true
+    * simplify `Γ, A ∧ B ⊢ C` to `Γ, A, B ⊢ C`
+    * simplify `Γ, ⊥ → A ⊢ B` to `Γ ⊢ B`
+    * simplify `Γ, ⊤ → A ⊢ B` to `Γ, A ⊢ B`
+    * simplify `Γ, A ∧ B → C ⊢ D` to `Γ, A → B → C ⊢ D`
+    * simplify `Γ, A ∨ B → C ⊢ D` to `Γ, A → C, B → C ⊢ D`
+  * `prove`:
+    * `Γ ⊢ ⊤` is true
+    * simplify `Γ ⊢ A → B` to `Γ, A ⊢ B`
+  * `search`:
+    * `Γ, P ⊢ P` is true
+    * simplify `Γ, P, P → A ⊢ B` to `Γ, P, A ⊢ B`
+* level 2: Splitting rules, validity preserving: apply after level 1 rules. Done in `prove`
+  * simplify `Γ ⊢ A ∧ B` to `Γ ⊢ A` and `Γ ⊢ B`
+  * simplify `Γ, A ∨ B ⊢ C` to `Γ, A ⊢ C` and `Γ, B ⊢ C`
+* level 3: Splitting rules, not validity preserving: apply only if nothing else applies.
+  Done in `search`
+  * `Γ ⊢ A ∨ B` follows from `Γ ⊢ A`
+  * `Γ ⊢ A ∨ B` follows from `Γ ⊢ B`
+  * `Γ, (A₁ → A₂) → C ⊢ B` follows from `Γ, A₂ → C, A₁ ⊢ A₂` and `Γ, C ⊢ B`
+
+This covers the core algorithm, which only handles `true`, `false`, `and`, `or`, and `implies`.
+For `iff` and `eq`, we treat them essentially the same as `(p → q) ∧ (q → p)`, although we use
+a different `prop` representation because we have to remember to apply different theorems during
+replay. For definitions like `not` and `xor`, we just eagerly unfold them. (This could potentially
+cause a blowup issue for `xor`, but it isn't used very often anyway. We could add it to the `prop`
+grammar if it matters.)
 
 ## Tags
 
@@ -136,19 +184,19 @@ inductive proof
 | curry₂ (ak : and_kind) (B : prop) (p q : proof) : proof
 -- (p: A → B) (q: A) ⊢ B
 | app' : proof → proof → proof
--- (p: A ∨ B → C) |- A → C
+-- (p: A ∨ B → C) ⊢ A → C
 | or_imp_left (A B : prop) (p : proof) : proof
--- (p: A ∨ B → C) |- B → C
+-- (p: A ∨ B → C) ⊢ B → C
 | or_imp_right (A B : prop) (p : proof) : proof
--- (p: A) |- A ∨ B
+-- (p: A) ⊢ A ∨ B
 | or_inl (B : prop) (p : proof) : proof
--- (p: B) |- A ∨ B
+-- (p: B) ⊢ A ∨ B
 | or_inr (A : prop) (p : proof) : proof
--- (p: B) |- A ∨ B
--- (p₁: A ∨ B) (p₂: (x: A) |- C) (p₃: (x: B) |- C) |- C
+-- (p: B) ⊢ A ∨ B
+-- (p₁: A ∨ B) (p₂: (x: A) ⊢ C) (p₃: (x: B) ⊢ C) ⊢ C
 | or_elim (A B : prop) (p₁ : proof) (x : name) (p₂ p₃ : proof) : proof
 -- The variable x here names the variable that will be used in the elaborated proof
--- (p: ((x:A) → B) → C) |- B → C
+-- (p: ((x:A) → B) → C) ⊢ B → C
 | imp_imp_simp (x : name) (A B : prop) (p : proof) : proof
 
 instance : inhabited proof := ⟨proof.triv⟩
@@ -375,6 +423,7 @@ meta def reify (atoms : ref (buffer expr)) : expr → tactic prop
 | `(xor %%a %%b) := prop.xor <$> reify a <*> reify b
 | `(@eq Prop %%a %%b) := prop.eq <$> reify a <*> reify b
 | `(@ne Prop %%a %%b) := prop.not <$> (prop.eq <$> reify a <*> reify b)
+| `(implies %%a %%b) := prop.imp <$> reify a <*> reify b
 | e@`(%%a → %%b) :=
   if b.has_var then reify_atom atoms e else prop.imp <$> reify a <*> reify b
 | e := reify_atom atoms e

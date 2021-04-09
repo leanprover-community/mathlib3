@@ -912,10 +912,9 @@ types, `matrix.reindex`, is an equivalence of algebras. -/
 def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
 { to_fun    := reindex e e,
-  map_mul'  := λ M N, minor_mul_equiv M N e e e,
-  commutes' := λ r,
-                 by { ext, simp [algebra_map, algebra.to_ring_hom], by_cases h : i = j; simp [h], },
-..(reindex_linear_equiv e e) }
+  map_mul'  := λ M N, minor_mul_equiv M N e.symm e.symm e.symm,
+  commutes' := λ r, by simp [algebra_map, algebra.to_ring_hom, minor_smul],
+  ..(reindex_linear_equiv e e) }
 
 @[simp] lemma reindex_alg_equiv_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) (M : matrix m m R) :

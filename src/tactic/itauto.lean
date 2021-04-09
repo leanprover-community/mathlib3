@@ -176,28 +176,28 @@ inductive proof
 -- ak = and:  (p: A ∧ B → C) ⊢ A → B → C
 -- ak = iff:  (p: (A ↔ B) → C) ⊢ (A → B) → (B → A) → C
 -- ak = eq:  (p: (A = B) → C) ⊢ (A → B) → (B → A) → C
-| curry (ak : and_kind) (A B : prop) (p : proof) : proof
+| curry (ak : and_kind) (p : proof) : proof
 -- This is a partial application of curry.
 -- ak = and:  (p: A ∧ B → C) (q : A) ⊢ B → C
 -- ak = iff:  (p: (A ↔ B) → C) (q: A → B) ⊢ (B → A) → C
 -- ak = eq:  (p: (A ↔ B) → C) (q: A → B) ⊢ (B → A) → C
-| curry₂ (ak : and_kind) (B : prop) (p q : proof) : proof
+| curry₂ (ak : and_kind) (p q : proof) : proof
 -- (p: A → B) (q: A) ⊢ B
 | app' : proof → proof → proof
 -- (p: A ∨ B → C) ⊢ A → C
-| or_imp_left (A B : prop) (p : proof) : proof
+| or_imp_left (B : prop) (p : proof) : proof
 -- (p: A ∨ B → C) ⊢ B → C
-| or_imp_right (A B : prop) (p : proof) : proof
+| or_imp_right (A : prop) (p : proof) : proof
 -- (p: A) ⊢ A ∨ B
 | or_inl (B : prop) (p : proof) : proof
 -- (p: B) ⊢ A ∨ B
 | or_inr (A : prop) (p : proof) : proof
 -- (p: B) ⊢ A ∨ B
 -- (p₁: A ∨ B) (p₂: (x: A) ⊢ C) (p₃: (x: B) ⊢ C) ⊢ C
-| or_elim (A B : prop) (p₁ : proof) (x : name) (p₂ p₃ : proof) : proof
+| or_elim (p₁ : proof) (x : name) (p₂ p₃ : proof) : proof
 -- The variable x here names the variable that will be used in the elaborated proof
 -- (p: ((x:A) → B) → C) ⊢ B → C
-| imp_imp_simp (x : name) (A B : prop) (p : proof) : proof
+| imp_imp_simp (x : name) (A : prop) (p : proof) : proof
 
 instance : inhabited proof := ⟨proof.triv⟩
 
@@ -210,16 +210,16 @@ meta def proof.to_format : proof → format
 | (proof.and_left _ p) := format!"{p.to_format} .1"
 | (proof.and_right _ p) := format!"{p.to_format} .2"
 | (proof.and_intro _ p q) := format!"⟨{p.to_format}, {q.to_format}⟩"
-| (proof.curry _ _ _ p) := format!"(curry {p.to_format})"
-| (proof.curry₂ _ _ p q) := format!"(curry {p.to_format} {q.to_format})"
+| (proof.curry _ p) := format!"(curry {p.to_format})"
+| (proof.curry₂ _ p q) := format!"(curry {p.to_format} {q.to_format})"
 | (proof.app' p q) := format!"({p.to_format} {q.to_format})"
-| (proof.or_imp_left _ _ p) := format!"(or_imp_left {p.to_format})"
-| (proof.or_imp_right _ _ p) := format!"(or_imp_right {p.to_format})"
+| (proof.or_imp_left _ p) := format!"(or_imp_left {p.to_format})"
+| (proof.or_imp_right _ p) := format!"(or_imp_right {p.to_format})"
 | (proof.or_inl _ p) := format!"(or.inl {p.to_format})"
 | (proof.or_inr _ p) := format!"(or.inr {p.to_format})"
-| (proof.or_elim _ _ p x q r) :=
+| (proof.or_elim p x q r) :=
   format!"({p.to_format}.elim (λ {x}, {q.to_format}) (λ {x}, {r.to_format})"
-| (proof.imp_imp_simp _ _ _ p) := format!"(imp_imp_simp {p.to_format})"
+| (proof.imp_imp_simp _ _ p) := format!"(imp_imp_simp {p.to_format})"
 
 meta instance : has_to_format proof := ⟨proof.to_format⟩
 
@@ -231,11 +231,11 @@ meta def proof.exfalso : prop → proof → proof
 /-- A variant on `proof.app'` that performs opportunistic simplification.
 (This doesn't do full normalization because we don't want the proof size to blow up.) -/
 meta def proof.app : proof → proof → proof
-| (proof.curry ak _ B p) q := proof.curry₂ ak B p q
-| (proof.curry₂ ak _ p q) r := p.app (q.and_intro ak r)
-| (proof.or_imp_left _ B p) q := p.app (q.or_inl B)
-| (proof.or_imp_right A _ p) q := p.app (q.or_inr A)
-| (proof.imp_imp_simp x A _ p) q := p.app (proof.intro x A q)
+| (proof.curry ak p) q := proof.curry₂ ak p q
+| (proof.curry₂ ak p q) r := p.app (q.and_intro ak r)
+| (proof.or_imp_left B p) q := p.app (q.or_inl B)
+| (proof.or_imp_right A p) q := p.app (q.or_inr A)
+| (proof.imp_imp_simp x A p) q := p.app (proof.intro x A q)
 | p q := p.app' q
 
 /-- A typechecker for the `proof` type. This is not used by the tactic but can be used for
@@ -257,29 +257,32 @@ meta def proof.check : name_map prop → proof → option prop
 | Γ (proof.and_intro ak p q) := do
   prop.imp A B ← p.check Γ | none,
   C ← q.check Γ, guard (C = prop.imp B A) $> (A.and' ak B)
-| Γ (proof.curry ak A' B' p) := do
+| Γ (proof.curry ak p) := do
   prop.imp (prop.and' ak' A B) C ← p.check Γ | none,
-  guard (ak = ak' ∧ ak.sides A B = (A', B')) $> (A'.imp $ B'.imp C)
-| Γ (proof.curry₂ ak B' p q) := do
+  let (A', B') := ak.sides A B,
+  guard (ak = ak') $> (A'.imp $ B'.imp C)
+| Γ (proof.curry₂ ak p q) := do
   prop.imp (prop.and' ak' A B) C ← p.check Γ | none,
-  A' ← q.check Γ, guard (ak = ak' ∧ ak.sides A B = (A', B')) $> (B'.imp C)
+  A₂ ← q.check Γ,
+  let (A', B') := ak.sides A B,
+  guard (ak = ak' ∧ A₂ = A') $> (B'.imp C)
 | Γ (proof.app' p q) := do prop.imp A B ← p.check Γ | none, A' ← q.check Γ, guard (A = A') $> B
-| Γ (proof.or_imp_left A B p) := do
-  prop.imp (prop.or A' B') C ← p.check Γ | none,
-  guard (A = A' ∧ B = B') $> (A.imp C)
-| Γ (proof.or_imp_right A B p) := do
-  prop.imp (prop.or A' B') C ← p.check Γ | none,
-  guard (A = A' ∧ B = B') $> (B.imp C)
+| Γ (proof.or_imp_left B p) := do
+  prop.imp (prop.or A B') C ← p.check Γ | none,
+  guard (B = B') $> (A.imp C)
+| Γ (proof.or_imp_right A p) := do
+  prop.imp (prop.or A' B) C ← p.check Γ | none,
+  guard (A = A') $> (B.imp C)
 | Γ (proof.or_inl B p) := do A ← p.check Γ | none, pure (A.or B)
 | Γ (proof.or_inr A p) := do B ← p.check Γ | none, pure (A.or B)
-| Γ (proof.or_elim A' B' p x q r) := do
+| Γ (proof.or_elim p x q r) := do
   prop.or A B ← p.check Γ | none,
   C ← q.check (Γ.insert x A),
   C' ← r.check (Γ.insert x B),
-  guard (A = A' ∧ B = B' ∧ C = C') $> C
-| Γ (proof.imp_imp_simp x A B p) := do
-  prop.imp (prop.imp A' B') C ← p.check Γ | none,
-  guard (A = A' ∧ B = B') $> (B.imp C)
+  guard (C = C') $> C
+| Γ (proof.imp_imp_simp x A p) := do
+  prop.imp (prop.imp A' B) C ← p.check Γ | none,
+  guard (A = A') $> (B.imp C)
 
 /-- Get a new name in the pattern `h0, h1, h2, ...` -/
 @[inline] meta def fresh_name {m} [monad m] : state_t ℕ m name :=
@@ -310,10 +313,10 @@ meta def context.add : prop → proof → context → except (prop → proof) co
 | (prop.imp prop.true A) p Γ := Γ.add A (p.app proof.triv)
 | (prop.imp (prop.and' ak A B) C) p Γ :=
   let (A, B) := ak.sides A B in
-  Γ.add (prop.imp A (B.imp C)) (p.curry ak A B)
+  Γ.add (prop.imp A (B.imp C)) (p.curry ak)
 | (prop.imp (prop.or A B) C) p Γ := do
-  Γ ← Γ.add (A.imp C) (p.or_imp_left A B),
-  Γ.add (B.imp C) (p.or_imp_right A B)
+  Γ ← Γ.add (A.imp C) (p.or_imp_left B),
+  Γ.add (B.imp C) (p.or_imp_right B)
 | (prop.imp A prop.true) p Γ := pure Γ
 | A p Γ := pure (Γ.insert A p)
 
@@ -353,7 +356,7 @@ meta def search (prove : context → prop → state_t ℕ option proof) :
               let Γ : context := Γ.erase A,
               a ← fresh_name,
               p₁ ← Γ.with_add A₁ (proof.hyp a) A₂ $ λ Γ_A₁ A₂,
-                Γ_A₁.with_add (prop.imp A₂ C) (proof.imp_imp_simp a A₁ A₂ p) A₂ prove,
+                Γ_A₁.with_add (prop.imp A₂ C) (proof.imp_imp_simp a A₁ p) A₂ prove,
               Γ.with_add C (p.app (proof.intro a A₁ p₁)) B prove
             } : state_t ℕ option proof).1 n
           | _ := none
@@ -396,7 +399,7 @@ meta def prove : context → prop → state_t ℕ option proof
       a ← fresh_name,
       p₁ ← Γ.with_add A₁ (proof.hyp a) B (λ Γ _, IH Γ),
       p₂ ← Γ.with_add A₂ (proof.hyp a) B (λ Γ _, IH Γ),
-      pure (proof.or_elim A₁ A₂ p a p₁ p₂)
+      pure (proof.or_elim p a p₁ p₂)
     | _ := IH Γ
     end) Γ
 
@@ -465,10 +468,10 @@ meta def apply_proof : name_map expr → proof → tactic unit
 | Γ (proof.and_intro and_kind.eq p q) := do
   t₁ ← mk_mvar, t₂ ← mk_mvar, to_expr ``(propext (iff.intro %%t₁ %%t₂)) tt ff >>= exact,
   gs ← get_goals, set_goals (t₁::t₂::gs), apply_proof Γ p >> apply_proof Γ q
-| Γ (proof.curry ak A B p) := do
+| Γ (proof.curry ak p) := do
   e ← intro_core `_, let n := e.local_uniq_name,
-  apply_proof (Γ.insert n e) (proof.curry₂ ak B p (proof.hyp n))
-| Γ (proof.curry₂ ak B p q) := do
+  apply_proof (Γ.insert n e) (proof.curry₂ ak p (proof.hyp n))
+| Γ (proof.curry₂ ak p q) := do
   e ← intro_core `_, let n := e.local_uniq_name,
   apply_proof (Γ.insert n e) (p.app (q.and_intro ak (proof.hyp n)))
 | Γ (proof.app' p q) := do
@@ -479,10 +482,10 @@ meta def apply_proof : name_map expr → proof → tactic unit
   g :: gs ← get_goals,
   unify (g₁ g₂) g,
   set_goals (g₁::g₂::gs) >> apply_proof Γ p >> apply_proof Γ q
-| Γ (proof.or_imp_left A B p) := do
+| Γ (proof.or_imp_left B p) := do
   e ← intro_core `_, let n := e.local_uniq_name,
   apply_proof (Γ.insert n e) (p.app $ (proof.hyp n).or_inl B)
-| Γ (proof.or_imp_right A B p) := do
+| Γ (proof.or_imp_right A p) := do
   e ← intro_core `_, let n := e.local_uniq_name,
   apply_proof (Γ.insert n e) (p.app $ (proof.hyp n).or_inr A)
 | Γ (proof.or_inl _ p) := do
@@ -491,12 +494,12 @@ meta def apply_proof : name_map expr → proof → tactic unit
 | Γ (proof.or_inr _ p) := do
   t ← mk_mvar, to_expr ``(or.inr %%t) tt ff >>= exact,
   gs ← get_goals, set_goals (t::gs), apply_proof Γ p
-| Γ (proof.or_elim A B p x p₁ p₂) := do
+| Γ (proof.or_elim p x p₁ p₂) := do
   t₁ ← mk_mvar, t₂ ← mk_mvar, t₃ ← mk_mvar, to_expr ``(or.elim %%t₁ %%t₂ %%t₃) tt ff >>= exact,
   gs ← get_goals, set_goals (t₁::t₂::t₃::gs), apply_proof Γ p,
   e ← intro_core x, apply_proof (Γ.insert x e) p₁,
   e ← intro_core x, apply_proof (Γ.insert x e) p₂
-| Γ (proof.imp_imp_simp x A B p) := do
+| Γ (proof.imp_imp_simp x A p) := do
   e ← intro_core `_, let n := e.local_uniq_name,
   apply_proof (Γ.insert n e) (p.app (proof.intro x A (proof.hyp n)))
 

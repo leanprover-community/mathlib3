@@ -1,92 +1,16 @@
-import algebra.homology2.homology
+import algebra.homology2.single
 import tactic.omega
 import tactic.linarith
 
 open category_theory
 open category_theory.limits
+open homological_complex
 
 universes v u
 
-variables (V : Type u) [category.{v} V] [has_zero_morphisms V] [has_zero_object V]
+variables {V : Type u} [category.{v} V] [has_zero_morphisms V] [has_zero_object V]
 
-section
-variables {ι : Type*} [decidable_eq ι] (c : complex_shape ι)
-
-local attribute [instance] has_zero_object.has_zero
-
-@[simps]
-def single (j : ι) : V ⥤ homological_complex V c :=
-{ obj := λ A,
-  { X := λ i, if i = j then A else 0,
-    d := λ i j, 0, },
-  map := λ A B f,
-  { f := λ i, if h : i = j then
-      eq_to_hom (by { dsimp, rw if_pos h, }) ≫ f ≫ eq_to_hom (by { dsimp, rw if_pos h, })
-    else
-      0, },
-  map_id' := λ A, begin
-    ext,
-    dsimp,
-    split_ifs with h,
-    { subst h, simp, },
-    { rw if_neg h, simp, },
-  end,
-  map_comp' := λ A B C f g, begin
-    ext,
-    dsimp,
-    split_ifs with h,
-    { subst h, simp, },
-    { simp, },
-  end, }.
-
-@[simp] lemma single_obj_X_self (j : ι) (A : V) : ((single V c j).obj A).X j = A :=
-by simp
-
-@[simp] lemma single_map_f_self (j : ι) {A B : V} (f : A ⟶ B) :
-  ((single V c j).map f).f j = eq_to_hom (by simp) ≫ f ≫ eq_to_hom (by simp) :=
-by { simp, refl, }
-
-end
-
-variables {V}
-
-/--
-Morphisms from a `ℕ`-indexed chain complex `C`
-to a single object chain complex with `X` concentrated in degree 0
-are the same as morphisms `f : C.X 0 ⟶ X` such that `C.d 1 0 ≫ f = 0`.
--/
-def to_single_equiv (C : chain_complex V ℕ) (X : V) :
-  (C ⟶ (single V _ 0).obj X) ≃ { f : C.X 0 ⟶ X // C.d 1 0 ≫ f = 0 } :=
-{ to_fun := λ f, ⟨f.f 0, by { rw ←f.comm 1 0, simp, }⟩,
-  inv_fun := λ f,
-  { f := λ i, if h : i = 0 then
-      eq_to_hom (congr_arg C.X h) ≫ f.1 ≫ eq_to_hom (by { subst h, refl, })
-    else
-      0,
-    comm' := λ i j, begin
-      split_ifs with hi hj hj,
-      { substs hi hj, simp, },
-      { simp, },
-      { subst hj,
-        simp only [category.comp_id, category.id_comp, single_obj_d, eq_to_hom_refl, zero_comp],
-        cases i,
-        { simp, },
-        { cases i,
-          { exact f.2.symm, },
-          { rw [C.shape, zero_comp],
-            simp only [complex_shape.down_rel],
-            omega, } }, },
-      { simp, },
-    end, },
-  left_inv := λ f, begin
-    ext i,
-    dsimp,
-    split_ifs with h,
-    { subst h, simp, },
-    { refine (zero_of_target_iso_zero _ _).symm,
-      rw if_neg h, },
-  end,
-  right_inv := by tidy, }
+namespace chain_complex
 
 /--
 The truncation of a `ℕ`-indexed chain complex,
@@ -111,6 +35,10 @@ def truncate_to_single (C : chain_complex V ℕ) : truncate.obj C ⟶ (single V 
 
 -- TODO: `C` is exact iff `truncate_to_single` is a quasi-isomorphism.
 
+/--
+We can "augment" a chain complex by inserting an arbitrary object in degree zero
+(shifting everything else up), along with a suitable differential.
+-/
 def augment (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.d 1 0 ≫ f = 0) :
   chain_complex V ℕ :=
 { X := λ i, match i with
@@ -152,6 +80,10 @@ def augment (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.d 1 0 ≫
   (augment C f w).d (i+1) (j+1) = C.d i j :=
 by { dsimp [augment], rcases i with _|i, refl, refl, }
 
+/--
+Truncating an augmented chain complex is isomorphic (with components the identity)
+to the original complex.
+-/
 def truncate_augment (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.d 1 0 ≫ f = 0) :
   truncate.obj (augment C f w) ≅ C :=
 { hom :=
@@ -174,6 +106,10 @@ by { cases i; refl, }
   C.d (i+2) 0 = 0 :=
 by { rw C.shape, simp, omega, }
 
+/--
+Augmenting a truncated complex with the original object and morphism is isomorphic
+(with components the identity) to the original complex.
+-/
 def augment_truncate (C : chain_complex V ℕ) :
   augment (truncate.obj C) (C.d 1 0) (C.d_comp_d _ _ _) ≅ C :=
 { hom :=
@@ -197,3 +133,15 @@ rfl
 @[simp] lemma augment_truncate_inv_f_succ (C : chain_complex V ℕ) (i : ℕ) :
   (augment_truncate C).inv.f (i+1) = 𝟙 (C.X (i+1)) :=
 rfl
+
+/--
+A chain map from a chain complex to a single object chain complex in degree zero
+can be reinterpreted as a chain complex.
+
+Ths is the inverse construction of `truncate_to_single`.
+-/
+def to_single_as_complex (C : chain_complex V ℕ) (X : V) (f : C ⟶ (single V _ 0).obj X) :
+  chain_complex V ℕ :=
+let ⟨f, w⟩ := to_single_equiv C X f in augment C f w
+
+end chain_complex

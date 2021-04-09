@@ -226,6 +226,8 @@ lemma mul_eq_comp (f g : M →ₗ[R] M) : f * g = f.comp g := rfl
 @[simp] lemma one_apply (x : M) : (1 : M →ₗ[R] M) x = x := rfl
 @[simp] lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
 
+lemma one_eq_id : (1 : M →ₗ[R] M) = linear_map.id := rfl
+
 lemma coe_one : ⇑(1 : M →ₗ[R] M) = _root_.id := rfl
 lemma coe_mul (f g : M →ₗ[R] M) : ⇑(f * g) = f ∘ g := rfl
 

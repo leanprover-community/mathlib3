@@ -169,6 +169,16 @@ instance decidable_right_inverse_fintype [decidable_eq β] [fintype β] (f : α 
   decidable (function.left_inverse f g) :=
 show decidable (∀ x, f (g x) = x), by apply_instance
 
+lemma exists_max [fintype α] [nonempty α]
+  {β : Type*} [linear_order β] (f : α → β) :
+  ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
+by simpa using exists_max_image univ f univ_nonempty
+
+lemma exists_min [fintype α] [nonempty α]
+  {β : Type*} [linear_order β] (f : α → β) :
+  ∃ x₀ : α, ∀ x, f x₀ ≤ f x :=
+by simpa using exists_min_image univ f univ_nonempty
+
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α)
   (H : ∀ x : α, x ∈ s) : fintype α :=

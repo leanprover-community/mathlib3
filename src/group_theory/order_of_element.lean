@@ -165,7 +165,8 @@ by simp [← order_of_of_add_eq_add_order_of]
 attribute [to_additive add_order_of_eq_one_iff] order_of_eq_one_iff
 
 lemma nsmul_eq_mod_add_order_of {n : ℕ} : n •ℕ x = (n % add_order_of x) •ℕ x :=
-by rw [← iterate_add_apply_zero, iterate_eq_mod_minimal_period, iterate_add_apply_zero, ← add_order_of]
+by rw [← iterate_add_apply_zero, iterate_eq_mod_minimal_period, iterate_add_apply_zero,
+  ← add_order_of]
 
 @[to_additive nsmul_eq_mod_add_order_of]
 lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=

@@ -249,7 +249,7 @@ by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
 lemma function.bijective.prod_comp [fintype α] [fintype β] [comm_monoid γ] {f : α → β}
   (hf : function.bijective f) (g : β → γ) :
   ∏ i, g (f i) = ∏ i, g i :=
-fintype.prod_equiv (equiv.of_bijective f hf) _ _ (λ x, rfl)
+fintype.prod_bijective f hf _ _ (λ x, rfl)
 
 @[to_additive]
 lemma equiv.prod_comp [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :

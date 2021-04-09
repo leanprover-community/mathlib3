@@ -166,9 +166,9 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
 @[simp] lemma det_transpose (M : matrix n n R) : Mᵀ.det = M.det :=
 begin
   rw [det_apply', det_apply'],
-  refine fintype.sum_equiv (inv_involutive.to_equiv _) _ _ _,
+  refine fintype.sum_bijective _ inv_involutive.bijective _ _ _,
   intros σ,
-  rw [involutive.to_equiv_apply, sign_inv],
+  rw sign_inv,
   congr' 1,
   apply fintype.prod_equiv σ,
   intros,

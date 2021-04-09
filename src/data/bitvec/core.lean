@@ -12,7 +12,8 @@ import data.nat.basic
 
 This is a work-in-progress, and contains additions to other theories.
 
-This file was moved to mathlib from core Lean in the switch to Lean 3.20.0c. It is not fully in compliance with mathlib style standards.
+This file was moved to mathlib from core Lean in the switch to Lean 3.20.0c.
+It is not fully in compliance with mathlib style standards.
 -/
 
 /-- `bitvec n` is a `vector` of `bool` with length `n`. -/
@@ -58,7 +59,8 @@ bitvec.cong
   begin
     by_cases (i ≤ n),
     { have h₁ := sub_le n i,
-      rw [min_eq_right h], rw [min_eq_left h₁, ← nat.add_sub_assoc h, nat.add_comm, nat.add_sub_cancel] },
+      rw [min_eq_right h],
+      rw [min_eq_left h₁, ← nat.add_sub_assoc h, nat.add_comm, nat.add_sub_cancel] },
     { have h₁ := le_of_not_ge h,
       rw [min_eq_left h₁, sub_eq_zero_of_le h₁, zero_min, nat.add_zero] }
   end $

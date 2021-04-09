@@ -78,7 +78,7 @@ by rw [C_mul_X_pow_eq_monomial, self_sub_monomial_nat_degree_leading_coeff]
 
 lemma erase_lead_ne_zero (f0 : 2 ≤ f.support.card) : erase_lead f ≠ 0 :=
 begin
-  rw [ne.def, ← finsupp.card_support_eq_zero, erase_lead_support],
+  rw [ne.def, ← card_support_eq_zero, erase_lead_support],
   exact (zero_lt_one.trans_le $ (nat.sub_le_sub_right f0 1).trans
     finset.pred_card_le_card_erase).ne.symm
 end

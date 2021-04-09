@@ -3,7 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 import category_theory.thin
 
 /-!
@@ -81,7 +81,8 @@ Construct a functor out of the wide pullback shape given a J-indexed collection 
 fixed object.
 -/
 @[simps]
-def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) : wide_pullback_shape J ⥤ C :=
+def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) :
+  wide_pullback_shape J ⥤ C :=
 { obj := λ j, option.cases_on j B objs,
   map := λ X Y f,
   begin
@@ -94,6 +95,19 @@ def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) : w
 def diagram_iso_wide_cospan (F : wide_pullback_shape J ⥤ C) :
   F ≅ wide_cospan (F.obj none) (λ j, F.obj (some j)) (λ j, F.map (hom.term j)) :=
 nat_iso.of_components (λ j, eq_to_iso $ by tidy) $ by tidy
+
+/-- Construct a cone over a wide cospan. -/
+@[simps]
+def mk_cone {F : wide_pullback_shape J ⥤ C} {X : C}
+  (f : X ⟶ F.obj none) (π : Π j, X ⟶ F.obj (some j))
+  (w : ∀ j, π j ≫ F.map (hom.term j) = f) : cone F :=
+{ X := X,
+  π :=
+  { app := λ j, match j with
+    | none := f
+    | (some j) := π j
+    end,
+    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp [w], }, } }
 
 end wide_pullback_shape
 
@@ -151,6 +165,19 @@ def wide_span (B : C) (objs : J → C) (arrows : Π (j : J), B ⟶ objs j) : wid
 def diagram_iso_wide_span (F : wide_pushout_shape J ⥤ C) :
   F ≅ wide_span (F.obj none) (λ j, F.obj (some j)) (λ j, F.map (hom.init j)) :=
 nat_iso.of_components (λ j, eq_to_iso $ by tidy) $ by tidy
+
+/-- Construct a cocone over a wide span. -/
+@[simps]
+def mk_cocone {F : wide_pushout_shape J ⥤ C} {X : C}
+  (f : F.obj none ⟶ X) (ι : Π j, F.obj (some j) ⟶ X)
+  (w : ∀ j, F.map (hom.init j) ≫ ι j = f) : cocone F :=
+{ X := X,
+  ι :=
+  { app := λ j, match j with
+    | none := f
+    | (some j) := ι j
+    end,
+    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp [w], }, } }
 
 end wide_pushout_shape
 

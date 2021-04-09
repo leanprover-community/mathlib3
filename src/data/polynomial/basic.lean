@@ -37,17 +37,39 @@ instance : inhabited (polynomial R) := add_monoid_algebra.inhabited _ _
 instance : semiring (polynomial R) := add_monoid_algebra.semiring
 instance {S} [semiring S] [semimodule S R] : semimodule S (polynomial R) :=
 add_monoid_algebra.semimodule
+instance {S₁ S₂} [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
+  [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ (polynomial R) :=
+add_monoid_algebra.smul_comm_class
+instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
+  [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
+add_monoid_algebra.is_scalar_tower
 
 instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
 
+/--
+The set of all `n` such that `X^n` has a non-zero coefficient.
+-/
+def support (p : polynomial R) : finset ℕ :=
+p.support
+
 @[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl
+
+@[simp] lemma support_eq_empty : p.support = ∅ ↔ p = 0 :=
+by simp [support]
+
+lemma card_support_eq_zero : p.support.card = 0 ↔ p = 0 :=
+by simp
 
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (n : ℕ) : R →ₗ[R] polynomial R := finsupp.lsingle n
 
+@[simp]
 lemma monomial_zero_right (n : ℕ) :
   monomial n (0 : R) = 0 :=
 finsupp.single_zero
+
+-- This is not a `simp` lemma as `monomial_zero_left` is more general.
+lemma monomial_zero_one : monomial 0 (1 : R) = 1 := rfl
 
 lemma monomial_def (n : ℕ) (a : R) : monomial n a = finsupp.single n a := rfl
 
@@ -59,12 +81,32 @@ lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
   monomial n r * monomial m s = monomial (n + m) (r * s) :=
 add_monoid_algebra.single_mul_single
 
+@[simp]
+lemma monomial_pow (n : ℕ) (r : R) (k : ℕ) :
+  (monomial n r)^k = monomial (n*k) (r^k) :=
+begin
+  rw mul_comm,
+  convert add_monoid_algebra.single_pow k,
+  simp only [nat.cast_id, nsmul_eq_mul],
+  refl,
+end
+
 lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :
   a • monomial n b = monomial n (a • b) :=
 finsupp.smul_single _ _ _
 
+lemma support_add : (p + q).support ⊆ p.support ∪ q.support := support_add
+
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
+
+lemma monomial_one_one_eq_X : monomial 1 (1 : R) = X := rfl
+lemma monomial_one_right_eq_X_pow (n : ℕ) : monomial n 1 = X^n :=
+begin
+  induction n with n ih,
+  { simp [monomial_zero_one], },
+  { rw [pow_succ, ←ih, ←monomial_one_one_eq_X, monomial_mul_monomial, add_comm, one_mul], }
+end
 
 /-- `X` commutes with everything, even when the coefficients are noncommutative. -/
 lemma X_mul : X * p = p * X :=
@@ -82,6 +124,26 @@ lemma X_pow_mul_assoc {n : ℕ} : (p * X^n) * q = (p * q) * X^n :=
 by rw [mul_assoc, X_pow_mul, ←mul_assoc]
 
 lemma commute_X (p : polynomial R) : commute X p := X_mul
+
+@[simp]
+lemma monomial_mul_X (n : ℕ) (r : R) : monomial n r * X = monomial (n+1) r :=
+by erw [monomial_mul_monomial, mul_one]
+
+@[simp]
+lemma monomial_mul_X_pow (n : ℕ) (r : R) (k : ℕ) : monomial n r * X^k = monomial (n+k) r :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp [ih, pow_succ', ←mul_assoc, add_assoc], },
+end
+
+@[simp]
+lemma X_mul_monomial (n : ℕ) (r : R) : X * monomial n r = monomial (n+1) r :=
+by rw [X_mul, monomial_mul_X]
+
+@[simp]
+lemma X_pow_mul_monomial (k n : ℕ) (r : R) : X^k * monomial n r = monomial (n+k) r :=
+by rw [X_pow_mul, monomial_mul_X_pow]
 
 /-- coeff p n is the coefficient of X^n in p -/
 def coeff (p : polynomial R) : ℕ → R := @coe_fn (ℕ →₀ R) _ p
@@ -165,6 +227,14 @@ lemma monomial_left_inj {R : Type*} [semiring R] {a : R} (ha : a ≠ 0) {i j : �
   (monomial i a) = (monomial j a) ↔ i = j :=
 finsupp.single_left_inj ha
 
+lemma nat_cast_mul {R : Type*} [semiring R] (n : ℕ) (p : polynomial R) :
+  (n : polynomial R) * p = n • p :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [ih, nat.succ_eq_add_one, add_smul, add_mul], },
+end
+
 end semiring
 
 section comm_semiring
@@ -186,6 +256,9 @@ lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - c
 
 @[simp] lemma monomial_neg (n : ℕ) (a : R) : monomial n (-a) = -(monomial n a) :=
 by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_right]
+
+@[simp] lemma support_neg {p : polynomial R} : (-p).support = p.support :=
+by simp [support]
 
 end ring
 

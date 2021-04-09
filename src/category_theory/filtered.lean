@@ -181,7 +181,8 @@ begin
 end
 
 /--
-An arbitrary choice of object "to the right" of a finite collection of objects `O` and morphisms `H`,
+An arbitrary choice of object "to the right"
+of a finite collection of objects `O` and morphisms `H`,
 making all the triangles commute.
 -/
 noncomputable

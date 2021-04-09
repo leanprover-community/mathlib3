@@ -1,7 +1,7 @@
 /-
 Copyright © 2020 Nicolò Cavalleri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Nicolò Cavalleri.
+Authors: Nicolò Cavalleri
 -/
 
 import algebra.lie.of_associative
@@ -159,7 +159,7 @@ variables (D : derivation R A A) {D1 D2 : derivation R A A} (r : R) (a b : A)
 /-- The commutator of derivations is again a derivation. -/
 def commutator (D1 D2 : derivation R A A) : derivation R A A :=
 { leibniz' := λ a b, by
-  { simp only [ring.lie_def, map_add, id.smul_eq_mul, linear_map.mul_app, leibniz,
+  { simp only [ring.lie_def, map_add, id.smul_eq_mul, linear_map.mul_apply, leibniz,
                linear_map.to_fun_eq_coe, coe_fn_coe, linear_map.sub_apply], ring, },
   ..⁅(D1 : module.End R A), (D2 : module.End R A)⁆, }
 
@@ -173,7 +173,7 @@ lemma commutator_apply : ⁅D1, D2⁆ a = D1 (D2 a) - D2 (D1 a) := rfl
 instance : lie_ring (derivation R A A) :=
 { add_lie     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
   lie_add     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
-  lie_self    := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
+  lie_self    := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring_nf, },
   leibniz_lie := λ d e f,
     by { ext a, simp only [commutator_apply, add_apply, sub_apply, map_sub], ring, } }
 

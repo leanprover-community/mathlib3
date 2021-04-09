@@ -83,7 +83,8 @@ lemma lie_algebra.is_lie_abelian_bot (R : Type u) (L : Type v)
   [comm_ring R] [lie_ring L] [lie_algebra R L] : is_lie_abelian (⊥ : lie_ideal R L) :=
 ⟨begin
   rintros ⟨x, hx⟩ ⟨y, hy⟩,
-  suffices : ⁅x, y⁆ = 0, { ext, simp [this], },
+  suffices : ⁅x, y⁆ = 0,
+  { ext, simp only [this, lie_subalgebra.coe_bracket, submodule.coe_mk, submodule.coe_zero], },
   change x ∈ (⊥ : lie_ideal R L) at hx, rw lie_submodule.mem_bot at hx, rw [hx, zero_lie],
 end⟩
 
@@ -181,14 +182,14 @@ variables (N N' : lie_submodule R L M) (I J : lie_ideal R L)
 @[simp] lemma lie_submodule.trivial_lie_oper_zero [lie_module.is_trivial L M] : ⁅I, N⁆ = ⊥ :=
 begin
   suffices : ⁅I, N⁆ ≤ ⊥, { exact le_bot_iff.mp this, },
-  rw [lie_ideal_oper_eq_span, lie_span_le],
+  rw [lie_ideal_oper_eq_span, lie_submodule.lie_span_le],
   rintros m ⟨x, n, h⟩, rw trivial_lie_zero at h, simp [← h],
 end
 
 lemma lie_submodule.lie_abelian_iff_lie_self_eq_bot : is_lie_abelian I ↔ ⁅I, I⁆ = ⊥ :=
 begin
-  simp only [_root_.eq_bot_iff, lie_ideal_oper_eq_span, lie_span_le, lie_submodule.bot_coe,
-    set.subset_singleton_iff, set.mem_set_of_eq, exists_imp_distrib],
+  simp only [_root_.eq_bot_iff, lie_ideal_oper_eq_span, lie_submodule.lie_span_le,
+    lie_submodule.bot_coe, set.subset_singleton_iff, set.mem_set_of_eq, exists_imp_distrib],
   split; intros h,
   { intros z x y hz, rw [← hz, ← coe_bracket, coe_zero_iff_zero], apply h.trivial, },
   { exact ⟨λ x y, by { rw ← coe_zero_iff_zero, apply h _ x y, refl, }⟩, },

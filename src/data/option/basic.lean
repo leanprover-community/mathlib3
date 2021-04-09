@@ -12,6 +12,13 @@ lemma coe_def : (coe : α → option α) = some := rfl
 
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
 
+protected lemma «forall» {p : option α → Prop} : (∀ x, p x) ↔ p none ∧ ∀ x, p (some x) :=
+⟨λ h, ⟨h _, λ x, h _⟩, λ h x, option.cases_on x h.1 h.2⟩
+
+protected lemma «exists» {p : option α → Prop} : (∃ x, p x) ↔ p none ∨ ∃ x, p (some x) :=
+⟨λ ⟨x, hx⟩, (option.cases_on x or.inl $ λ x hx, or.inr ⟨x, hx⟩) hx,
+  λ h, h.elim (λ h, ⟨_, h⟩) (λ ⟨x, hx⟩, ⟨_, hx⟩)⟩
+
 @[simp] theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o
 | (some a) _ := rfl
 
@@ -376,5 +383,41 @@ def cases_on' : option α → β → (α → β) → β
 @[simp] lemma cases_on'_none_coe (f : option α → β) (o : option α) :
   cases_on' o (f none) (f ∘ coe) = f o :=
 by cases o; refl
+
+section
+open_locale classical
+
+/-- An arbitrary `some a` with `a : α` if `α` is nonempty, and otherwise `none`. -/
+noncomputable def choice (α : Type*) : option α :=
+if h : nonempty α then
+  some h.some
+else
+  none
+
+lemma choice_eq {α : Type*} [subsingleton α] (a : α) : choice α = some a :=
+begin
+  dsimp [choice],
+  rw dif_pos (⟨a⟩ : nonempty α),
+  congr,
+end
+
+lemma choice_eq_none {α : Type*} (h : α → false) : choice α = none :=
+begin
+  dsimp [choice],
+  rw dif_neg (not_nonempty_iff_imp_false.mpr h),
+end
+
+lemma choice_is_some_iff_nonempty {α : Type*} : (choice α).is_some ↔ nonempty α :=
+begin
+  fsplit,
+  { intro h, exact ⟨option.get h⟩, },
+  { rintro ⟨a⟩,
+    dsimp [choice],
+    rw dif_pos,
+    fsplit,
+    exact ⟨a⟩, },
+end
+
+end
 
 end option

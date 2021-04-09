@@ -136,7 +136,8 @@ def CommMon_to_lax_braided : CommMon_ C ⥤ lax_braided_functor (discrete punit)
 /-- Implementation of `CommMon_.equiv_lax_braided_functor_punit`. -/
 @[simps]
 def unit_iso :
-  𝟭 (lax_braided_functor (discrete punit) C) ≅ lax_braided_to_CommMon C ⋙ CommMon_to_lax_braided C :=
+  𝟭 (lax_braided_functor (discrete punit) C) ≅
+    lax_braided_to_CommMon C ⋙ CommMon_to_lax_braided C :=
 nat_iso.of_components (λ F, lax_braided_functor.mk_iso
   (monoidal_nat_iso.of_components
     (λ _, F.to_lax_monoidal_functor.to_functor.map_iso (eq_to_iso (by ext)))

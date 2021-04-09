@@ -144,7 +144,7 @@ begin
   classical,
   rw is_compact_element_iff_le_of_directed_Sup_le,
   intros d hemp hdir hsup,
-  change f with id ∘ f, rw finset.sup_finset_image,
+  change f with id ∘ f, rw ←finset.sup_finset_image,
   apply finset.sup_le_of_le_directed d hemp hdir,
   rintros x hx,
   obtain ⟨p, ⟨hps, rfl⟩⟩ := finset.mem_image.mp hx,
@@ -328,7 +328,7 @@ begin
     obtain ⟨I, fi, hI⟩ := set.finite_subset_Union t.finite_to_set ht,
     obtain ⟨i, hi⟩ := hs.finset_le fi.to_finset,
     exact (h i).mono (set.subset.trans hI $ set.bUnion_subset $
-      λ j hj, hi j (set.finite.mem_to_finset.2 hj)) },
+      λ j hj, hi j (fi.mem_to_finset.2 hj)) },
   { rintros a ⟨_, ⟨i, _⟩, _⟩,
     exfalso, exact hη ⟨i⟩, },
 end

@@ -220,7 +220,7 @@ begin
 
   have h2 := calc f x + f (a^N - x)
                         ≤ f (x + (a^N - x)) : H2 x (a^N - x) hxp (zero_lt_one.trans h_big_enough)
-                    ... = f (a^N)           : by ring
+                    ... = f (a^N)           : by ring_nf
                     ... = a^N               : fixed_point_of_pos_nat_pow hNp H1 H4 H5 ha1 hae
                     ... = x + (a^N - x)     : by ring,
 

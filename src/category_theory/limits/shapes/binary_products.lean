@@ -3,7 +3,6 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.limits.limits
 import category_theory.limits.shapes.terminal
 import category_theory.discrete_category
 import category_theory.epi_mono
@@ -815,7 +814,7 @@ def prod_comparison_nat_iso [has_binary_products C] [has_binary_products D]
   (A : C) [∀ B, is_iso (prod_comparison F A B)] :
   prod.functor.obj A ⋙ F ≅ F ⋙ prod.functor.obj (F.obj A) :=
 { hom := prod_comparison_nat_trans F A
-  ..nat_iso.is_iso_of_is_iso_app ⟨_, _⟩ }
+  ..(@as_iso _ _ _ _ _ (nat_iso.is_iso_of_is_iso_app ⟨_, _⟩)) }
 
 end prod_comparison
 

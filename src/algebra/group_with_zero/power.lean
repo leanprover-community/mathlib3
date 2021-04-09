@@ -87,6 +87,13 @@ lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : G₀) ^ z = 0
 | (of_nat n) h := zero_pow' _ $ by rintro rfl; exact h rfl
 | -[1+n]     h := show (0*0 ^ n)⁻¹ = (0 : G₀), by simp
 
+lemma fzero_pow_eq (n : ℤ) : (0 : G₀) ^ n = if n = 0 then 1 else 0 :=
+begin
+  split_ifs with h,
+  { rw [h, fpow_zero] },
+  { rw [zero_fpow _ h] }
+end
+
 @[simp] theorem fpow_neg (a : G₀) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := rfl
 | 0       := inv_one.symm

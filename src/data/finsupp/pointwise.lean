@@ -46,6 +46,13 @@ begin
   apply h,
   cases w; { rw w, simp },
 end
+
+instance : mul_zero_class (α →₀ β) :=
+{ zero      := 0,
+  mul       := (*),
+  mul_zero  := λ f, by { ext, simp only [mul_apply, zero_apply, mul_zero], },
+  zero_mul  := λ f, by { ext, simp only [mul_apply, zero_apply, zero_mul], }, }
+
 end
 
 instance [semiring β] : semigroup (α →₀ β) :=
@@ -54,7 +61,8 @@ instance [semiring β] : semigroup (α →₀ β) :=
 
 instance [semiring β] : distrib (α →₀ β) :=
 { left_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, left_distrib] {proj := ff} },
-  right_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, right_distrib] {proj := ff} },
+  right_distrib := λ f g h,
+    by { ext, simp only [mul_apply, add_apply, right_distrib] {proj := ff} },
   ..(infer_instance : semigroup (α →₀ β)),
   ..(infer_instance : add_comm_monoid (α →₀ β)) }
 

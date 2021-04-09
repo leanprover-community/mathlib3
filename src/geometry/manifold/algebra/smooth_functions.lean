@@ -22,21 +22,29 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-{N : Type*} [topological_space N] [charted_space H N] [smooth_manifold_with_corners I N]
+{N : Type*} [topological_space N] [charted_space H N]
 
 namespace smooth_map
 
 @[to_additive]
-instance has_mul {G : Type*} [has_mul G] [topological_space G] [has_continuous_mul G]
-  [charted_space H' G] [has_smooth_mul I' G] :
+instance has_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H' G]
+  [has_smooth_mul I' G] :
   has_mul C^∞⟮I, N; I', G⟯ :=
-⟨λ f g, ⟨f * g, smooth_mul.comp (f.smooth.prod_mk g.smooth)⟩⟩
+⟨λ f g, ⟨f * g, f.smooth.mul g.smooth⟩⟩
+
+@[simp, to_additive]
+lemma coe_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H' G]
+  [has_smooth_mul I' G] (f g : C^∞⟮I, N; I', G⟯) :
+  ⇑(f * g) = f * g := rfl
 
 @[to_additive]
-instance has_one {G : Type*} [monoid G] [topological_space G]
-  [charted_space H' G] [smooth_manifold_with_corners I' G] :
+instance has_one {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
   has_one C^∞⟮I, N; I', G⟯ :=
 ⟨times_cont_mdiff_map.const (1 : G)⟩
+
+@[simp, to_additive]
+lemma coe_one {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
+  ⇑(1 : C^∞⟮I, N; I', G⟯) = 1 := rfl
 
 end smooth_map
 
@@ -51,14 +59,14 @@ under pointwise multiplication.
 
 @[to_additive]
 instance smooth_map_semigroup {G : Type*} [semigroup G] [topological_space G]
-  [has_continuous_mul G] [charted_space H' G] [has_smooth_mul I' G] :
+  [charted_space H' G] [has_smooth_mul I' G] :
   semigroup C^∞⟮I, N; I', G⟯ :=
 { mul_assoc := λ a b c, by ext; exact mul_assoc _ _ _,
   ..smooth_map.has_mul}
 
 @[to_additive]
 instance smooth_map_monoid {G : Type*} [monoid G] [topological_space G]
-  [has_continuous_mul G] [charted_space H' G] [has_smooth_mul I' G] :
+  [charted_space H' G] [has_smooth_mul I' G] :
   monoid C^∞⟮I, N; I', G⟯ :=
 { one_mul := λ a, by ext; exact one_mul _,
   mul_one := λ a, by ext; exact mul_one _,
@@ -67,23 +75,36 @@ instance smooth_map_monoid {G : Type*} [monoid G] [topological_space G]
 
 @[to_additive]
 instance smooth_map_comm_monoid {G : Type*} [comm_monoid G] [topological_space G]
-  [has_continuous_mul G] [charted_space H' G] [has_smooth_mul I' G] :
+  [charted_space H' G] [has_smooth_mul I' G] :
   comm_monoid C^∞⟮I, N; I', G⟯ :=
 { mul_comm := λ a b, by ext; exact mul_comm _ _,
   ..smooth_map_monoid,
   ..smooth_map.has_one }
 
 @[to_additive]
-instance smooth_map_group {G : Type*} [group G] [topological_space G] [topological_group G]
-  [charted_space H' G] [smooth_manifold_with_corners I' G] [lie_group I' G] :
+instance smooth_map_group {G : Type*} [group G] [topological_space G]
+  [charted_space H' G] [lie_group I' G] :
   group C^∞⟮I, N; I', G⟯ :=
-{ inv := λ f, ⟨λ x, (f x)⁻¹, smooth_inv.comp f.smooth⟩,
+{ inv := λ f, ⟨λ x, (f x)⁻¹, f.smooth.inv⟩,
   mul_left_inv := λ a, by ext; exact mul_left_inv _,
-  ..smooth_map_monoid }
+  div := λ f g, ⟨f / g, f.smooth.div g.smooth⟩,
+  div_eq_mul_inv := λ f g, by ext; exact div_eq_mul_inv _ _,
+  .. smooth_map_monoid }
+
+@[simp, to_additive]
+lemma smooth_map.coe_inv {G : Type*} [group G] [topological_space G]
+  [charted_space H' G] [lie_group I' G] (f : C^∞⟮I, N; I', G⟯) :
+  ⇑f⁻¹ = f⁻¹ := rfl
+
+@[simp, to_additive]
+lemma smooth_map.coe_div {G : Type*} [group G] [topological_space G]
+  [charted_space H' G] [lie_group I' G] (f g : C^∞⟮I, N; I', G⟯) :
+  ⇑(f / g) = f / g :=
+rfl
 
 @[to_additive]
 instance smooth_map_comm_group {G : Type*} [comm_group G] [topological_space G]
-  [topological_group G] [charted_space H' G] [lie_group I' G] :
+  [charted_space H' G] [lie_group I' G] :
   comm_group C^∞⟮I, N; I', G⟯ :=
 { ..smooth_map_group,
   ..smooth_map_comm_monoid }
@@ -100,7 +121,7 @@ under pointwise multiplication.
 -/
 
 instance smooth_map_semiring {R : Type*} [semiring R] [topological_space R]
-  [topological_semiring R] [charted_space H' R] [smooth_semiring I' R] :
+  [charted_space H' R] [smooth_semiring I' R] :
   semiring C^∞⟮I, N; I', R⟯ :=
 { left_distrib := λ a b c, by ext; exact left_distrib _ _ _,
   right_distrib := λ a b c, by ext; exact right_distrib _ _ _,
@@ -110,13 +131,13 @@ instance smooth_map_semiring {R : Type*} [semiring R] [topological_space R]
   ..smooth_map_monoid }
 
 instance smooth_map_ring {R : Type*} [ring R] [topological_space R]
-  [topological_ring R] [charted_space H' R] [smooth_ring I' R] :
+  [charted_space H' R] [smooth_ring I' R] :
   ring C^∞⟮I, N; I', R⟯ :=
 { ..smooth_map_semiring,
   ..smooth_map_add_comm_group, }
 
 instance smooth_map_comm_ring {R : Type*} [comm_ring R] [topological_space R]
-  [topological_ring R] [charted_space H' R] [smooth_ring I' R] :
+  [charted_space H' R] [smooth_ring I' R] :
   comm_ring C^∞⟮I, N; I', R⟯ :=
 { ..smooth_map_semiring,
   ..smooth_map_add_comm_group,
@@ -137,6 +158,11 @@ instance smooth_map_has_scalar
   {V : Type*} [normed_group V] [normed_space 𝕜 V] :
   has_scalar 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ r f, ⟨r • f, smooth_const.smul f.smooth⟩⟩
+
+@[simp]
+lemma smooth_map.coe_smul
+  {V : Type*} [normed_group V] [normed_space 𝕜 V] (r : 𝕜) (f : C^∞⟮I, N; 𝓘(𝕜, V), V⟯) :
+  ⇑(r • f) = r • f := rfl
 
 instance smooth_map_semimodule
   {V : Type*} [normed_group V] [normed_space 𝕜 V] :

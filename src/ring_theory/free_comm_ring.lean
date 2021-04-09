@@ -332,9 +332,12 @@ ring_equiv.of_hom_inv
 def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃+* ℤ :=
 ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.pempty_ring_equiv _)
 
+-- this messes with the next definition
+local attribute [-instance] algebra_int
+
 /-- The free commutative ring on a type with one term is isomorphic to `ℤ[X]`. -/
 def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃+* polynomial ℤ :=
-ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.punit_ring_equiv _)
+(free_comm_ring_equiv_mv_polynomial_int _).trans (mv_polynomial.punit_alg_equiv ℤ).to_ring_equiv
 
 open free_ring
 

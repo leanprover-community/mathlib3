@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.finset.basic
 import data.multiset.fold
@@ -115,7 +115,6 @@ begin
   { intros a s has ih, rw [fold_insert has, ih, insert_eq], }
 end
 
-@[simp]
 lemma fold_sup_bot_singleton [decidable_eq α] (s : finset α) :
   finset.fold (⊔) ⊥ singleton s = s :=
 fold_union_empty_singleton s

@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.nat.basic
 import data.equiv.denumerable
 import data.set.finite
 import order.rel_iso
+import order.preorder_hom
 import logic.function.iterate
 
 namespace rel_embedding
@@ -110,8 +111,8 @@ begin
     obtain ⟨m, hm⟩ : ∃ m, ∀ n, m ≤ n → ¬ n ∈ bad,
     { by_cases he : hbad.to_finset.nonempty,
       { refine ⟨(hbad.to_finset.max' he).succ, λ n hn nbad, nat.not_succ_le_self _
-        (hn.trans (hbad.to_finset.le_max' n (set.finite.mem_to_finset.2 nbad)))⟩ },
-      { exact ⟨0, λ n hn nbad, he ⟨n, set.finite.mem_to_finset.2 nbad⟩⟩ } },
+        (hn.trans (hbad.to_finset.le_max' n (hbad.mem_to_finset.2 nbad)))⟩ },
+      { exact ⟨0, λ n hn nbad, he ⟨n, hbad.mem_to_finset.2 nbad⟩⟩ } },
     have h : ∀ (n : ℕ), ∃ (n' : ℕ), n < n' ∧ r (f (n + m)) (f (n' + m)),
     { intro n,
       have h := hm _ (le_add_of_nonneg_left n.zero_le),
@@ -140,4 +141,19 @@ begin
     { apply is_trans.trans _ _ _ _ (hr _),
       exact ih (lt_of_lt_of_le m.lt_succ_self (nat.le_add_right _ _)) } },
   { exact ⟨g, or.intro_right _ hnr⟩ }
+end
+
+/-- The "monotone chain condition" below is sometimes a convenient form of well foundedness. -/
+lemma well_founded.monotone_chain_condition (α : Type*) [partial_order α] :
+  well_founded ((>) : α → α → Prop) ↔ ∀ (a : ℕ →ₘ α), ∃ n, ∀ m, n ≤ m → a n = a m :=
+begin
+  split; intros h,
+  { rw well_founded.well_founded_iff_has_max' at h,
+    intros a, have hne : (set.range a).nonempty, { use a 0, simp, },
+    obtain ⟨x, ⟨n, hn⟩, range_bounded⟩ := h _ hne,
+    use n, intros m hm, rw ← hn at range_bounded, symmetry,
+    apply range_bounded (a m) (set.mem_range_self _) (a.monotone hm), },
+  { rw rel_embedding.well_founded_iff_no_descending_seq, rintros ⟨a⟩,
+    obtain ⟨n, hn⟩ := h (a.swap : ((<) : ℕ → ℕ → Prop) →r ((<) : α → α → Prop)).to_preorder_hom,
+    exact n.succ_ne_self.symm (rel_embedding.to_preorder_hom_injective _ (hn _ n.le_succ)), },
 end

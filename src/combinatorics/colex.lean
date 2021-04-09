@@ -92,7 +92,7 @@ lemma nat.sum_pow_two_lt {k : ℕ} {A : finset ℕ} (h₁ : ∀ {x}, x ∈ A →
 begin
   apply lt_of_le_of_lt (sum_le_sum_of_subset (λ t, mem_range.2 ∘ h₁)),
   have z := geom_sum_mul_add 1 k,
-  rw [geom_series, mul_one, one_add_one_eq_two] at z,
+  rw [geom_sum, mul_one, one_add_one_eq_two] at z,
   rw ← z,
   apply nat.lt_succ_self,
 end
@@ -277,7 +277,7 @@ begin
     contrapose! p,
     rw (q p).1 rfl },
   { intro a,
-    exact ⟨λ z hz, iff_of_false (ne_of_gt (trans hz a)) (ne_of_gt hz), ne_of_gt a⟩ }
+    exact ⟨λ z hz, iff_of_false (ne_of_gt (trans a hz)) (ne_of_gt hz), ne_of_gt a⟩ }
 end
 
 /--

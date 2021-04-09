@@ -35,18 +35,6 @@ iff.rfl
 @[simp] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
 ⟨1, by simp [mul_action.one_smul]⟩
 
-variable (α)
-
-/-- The stabilizer of an element under an action, i.e. what sends the element to itself. Note
-that this is a set: for the group stabilizer see `stabilizer`. -/
-def stabilizer_carrier (b : β) : set α :=
-{x : α | x • b = b}
-
-variable {α}
-
-@[simp] lemma mem_stabilizer_iff {b : β} {x : α} :
-  x ∈ stabilizer_carrier α b ↔ x • b = b := iff.rfl
-
 variables (α) (β)
 
 /-- The set of elements fixed under the whole action. -/
@@ -70,16 +58,19 @@ variables {α} (β)
 lemma mem_fixed_points' {b : β} : b ∈ fixed_points α β ↔
   (∀ b', b' ∈ orbit α b → b' = b) :=
 ⟨λ h b h₁, let ⟨x, hx⟩ := mem_orbit_iff.1 h₁ in hx ▸ h x,
-λ h b, mem_stabilizer_iff.2 (h _ (mem_orbit _ _))⟩
+λ h b, h _ (mem_orbit _ _)⟩
 
 variables (α) {β}
 
 /-- The stabilizer of a point `b` as a submonoid of `α`. -/
 def stabilizer.submonoid (b : β) : submonoid α :=
-{ carrier := stabilizer_carrier α b,
+{ carrier := { a | a • b = b },
   one_mem' := one_smul _ b,
   mul_mem' := λ a a' (ha : a • b = b) (hb : a' • b = b),
-    by rw [mem_stabilizer_iff, ←smul_smul, hb, ha] }
+    show (a * a') • b = b, by rw [←smul_smul, hb, ha] }
+
+@[simp] lemma mem_stabilizer_submonoid_iff {b : β} {a : α} :
+  a ∈ stabilizer.submonoid α b ↔ a • b = b := iff.rfl
 
 end mul_action
 
@@ -95,6 +86,9 @@ def stabilizer (b : β) : subgroup α :=
 
 variables {α} {β}
 
+@[simp] lemma mem_stabilizer_iff {b : β} {a : α} :
+  a ∈ stabilizer α b ↔ a • b = b := iff.rfl
+
 lemma orbit_eq_iff {a b : β} :
    orbit α a = orbit α b ↔ a ∈ orbit α b:=
 ⟨λ h, h ▸ mem_orbit_self _,
@@ -106,14 +100,6 @@ lemma orbit_eq_iff {a b : β} :
         mul_action.mul_smul, hx]}⟩⟩)⟩
 
 variables (α) {β}
-
-/-- The stabilizer of a point `b` as a subgroup of `α`. -/
-def stabilizer.subgroup (b : β) : subgroup α :=
-{ inv_mem' := λ x (hx : x • b = b), show x⁻¹ • b = b,
-    by rw [← hx, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul, hx],
-  ..stabilizer.submonoid α b }
-
-variables {β}
 
 @[simp] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
 ⟨g⁻¹, by simp⟩
@@ -130,7 +116,7 @@ def orbit_rel : setoid β :=
 
 variables {α β}
 
-open quotient_group mul_action
+open quotient_group
 
 /-- Action on left cosets. -/
 def mul_left_cosets (H : subgroup α)
@@ -148,8 +134,8 @@ instance quotient (H : subgroup α) : mul_action α (quotient H) :=
 
 @[simp] lemma quotient.smul_mk (H : subgroup α) (a x : α) :
   (a • quotient_group.mk x : quotient_group.quotient H) = quotient_group.mk (a * x) := rfl
-  
-@[simp] lemma quotient.smul_coe {α : Type*} [comm_group α] (H : subgroup α) (a x : α) :
+
+@[simp] lemma quotient.smul_coe (H : subgroup α) (a x : α) :
   (a • x : quotient_group.quotient H) = ↑(a * x) := rfl
 
 instance mul_left_cosets_comp_subtype_val (H I : subgroup α) :

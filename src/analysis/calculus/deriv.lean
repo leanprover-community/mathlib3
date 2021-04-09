@@ -273,7 +273,7 @@ has_deriv_at_filter_iff_tendsto_slope
 
 @[simp] lemma has_deriv_within_at_diff_singleton :
   has_deriv_within_at f f' (s \ {x}) x ↔ has_deriv_within_at f f' s x :=
-by simp only [has_deriv_within_at_iff_tendsto_slope, sdiff_idem_right]
+by simp only [has_deriv_within_at_iff_tendsto_slope, sdiff_idem]
 
 @[simp] lemma has_deriv_within_at_Ioi_iff_Ici [partial_order 𝕜] :
   has_deriv_within_at f f' (Ioi x) x ↔ has_deriv_within_at f f' (Ici x) x :=
@@ -1172,7 +1172,7 @@ end
 end composition
 
 section composition_vector
-/-! ### Derivative of the composition of a function between vector spaces and of a function defined on `𝕜` -/
+/-! ### Derivative of the composition of a function between vector spaces and a function on `𝕜` -/
 
 variables {l : F → E} {l' : F →L[𝕜] E}
 variable (x)
@@ -1446,7 +1446,8 @@ lemma has_deriv_within_at.div
   has_deriv_within_at (λ y, c y / d y) ((c' * d x - c x * d') / (d x)^2) s x :=
 begin
   convert hc.mul ((has_deriv_at_inv hx).comp_has_deriv_within_at x hd),
-  field_simp, ring
+  { simp only [div_eq_mul_inv] },
+  { field_simp, ring }
 end
 
 lemma has_strict_deriv_at.div (hc : has_strict_deriv_at c c' x) (hd : has_strict_deriv_at d d' x)
@@ -1454,7 +1455,8 @@ lemma has_strict_deriv_at.div (hc : has_strict_deriv_at c c' x) (hd : has_strict
   has_strict_deriv_at (λ y, c y / d y) ((c' * d x - c x * d') / (d x)^2) x :=
 begin
   convert hc.mul ((has_strict_deriv_at_inv hx).comp x hd),
-  field_simp, ring
+  { simp only [div_eq_mul_inv] },
+  { field_simp, ring }
 end
 
 lemma has_deriv_at.div (hc : has_deriv_at c c' x) (hd : has_deriv_at d d' x) (hx : d x ≠ 0) :
@@ -1502,7 +1504,7 @@ by simp [div_eq_inv_mul, differentiable_within_at.const_mul, hc]
 
 @[simp] lemma differentiable_at.div_const (hc : differentiable_at 𝕜 c x) {d : 𝕜} :
   differentiable_at 𝕜 (λ x, c x / d) x :=
-(hc.has_deriv_at.mul_const d⁻¹).differentiable_at
+by simpa only [div_eq_mul_inv] using (hc.has_deriv_at.mul_const d⁻¹).differentiable_at
 
 lemma differentiable_on.div_const (hc : differentiable_on 𝕜 c s) {d : 𝕜} :
   differentiable_on 𝕜 (λx, c x / d) s :=
@@ -1724,8 +1726,7 @@ begin
       nat.cast_one] },
   { simp only [function.iterate_succ_apply', ihk, finset.prod_range_succ],
     ext x,
-    rw [((has_deriv_at_pow (n - k) x).const_mul _).deriv, nat.cast_mul, mul_left_comm, mul_assoc,
-      nat.succ_eq_add_one, nat.sub_sub] }
+    rw [((has_deriv_at_pow (n - k) x).const_mul _).deriv, nat.cast_mul, mul_assoc, nat.sub_sub] }
 end
 
 lemma iter_deriv_pow {k : ℕ} :
@@ -1826,7 +1827,7 @@ begin
   induction k with k ihk generalizing x hx,
   { simp only [one_mul, finset.prod_range_zero, function.iterate_zero_apply, int.coe_nat_zero,
       sub_zero, int.cast_one] },
-  { rw [function.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc, mul_left_comm,
+  { rw [function.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc,
       int.coe_nat_succ, ← sub_sub, ← ((has_deriv_at_fpow _ hx).const_mul _).deriv],
     exact filter.eventually_eq.deriv_eq (eventually.mono (mem_nhds_sets is_open_ne hx) @ihk) }
 end

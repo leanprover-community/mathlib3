@@ -121,4 +121,9 @@ limsup_const_mul
 lemma ess_sup_add_le (f g : α → ℝ≥0∞) : ess_sup (f + g) μ ≤ ess_sup f μ + ess_sup g μ :=
 limsup_add_le f g
 
+lemma ess_sup_liminf_le {ι} [encodable ι] [linear_order ι] (f : ι → α → ℝ≥0∞) :
+  ess_sup (λ x, filter.at_top.liminf (λ n, f n x)) μ
+    ≤ filter.at_top.liminf (λ n, ess_sup (λ x, f n x) μ) :=
+by { simp_rw ess_sup, exact ennreal.limsup_liminf_le_liminf_limsup (λ a b, f b a), }
+
 end ennreal

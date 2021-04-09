@@ -7,8 +7,6 @@ import set_theory.game.winner
 import tactic.nth_rewrite.default
 import tactic.equiv_rw
 
-universe u
-
 /-!
 # Basic definitions about impartial (pre-)games
 
@@ -17,6 +15,8 @@ Our definition differs slightly by saying that the game is always equivalent to 
 no matter what moves are played. This allows for games such as poker-nim to be classifed as
 impartial.
 -/
+
+universe u
 
 namespace pgame
 

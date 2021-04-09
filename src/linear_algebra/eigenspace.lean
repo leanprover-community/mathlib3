@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Alexander Bentkamp.
+Authors: Alexander Bentkamp
 -/
 
 import field_theory.algebraic_closure
@@ -106,7 +106,7 @@ begin
   { intro a, simp [module.algebra_map_End_apply] },
   { intros p q hp hq, simp [hp, hq, add_smul] },
   { intros n a hna,
-    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_app, mul_comm, hna],
+    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_apply, mul_comm, hna],
     simp [algebra_map_End_apply, mem_eigenspace_iff.1 h.2, smul_smul, mul_comm] }
 end
 
@@ -324,18 +324,18 @@ end
 
 /-- A generalized eigenspace for some exponent `k` is contained in
     the generalized eigenspace for exponents larger than `k`. -/
-lemma generalized_eigenspace_mono {f : End K V} {μ : K} {k : ℕ} {m : ℕ} (hm : k ≤ m) :
+lemma generalized_eigenspace_mono {f : End R M} {μ : R} {k : ℕ} {m : ℕ} (hm : k ≤ m) :
   f.generalized_eigenspace μ k ≤ f.generalized_eigenspace μ m :=
 begin
   simp only [generalized_eigenspace, ←pow_sub_mul_pow _ hm],
   exact linear_map.ker_le_ker_comp
-    ((f - algebra_map K (End K V) μ) ^ k) ((f - algebra_map K (End K V) μ) ^ (m - k))
+    ((f - algebra_map R (End R M) μ) ^ k) ((f - algebra_map R (End R M) μ) ^ (m - k)),
 end
 
 /-- A generalized eigenvalue for some exponent `k` is also
     a generalized eigenvalue for exponents larger than `k`. -/
 lemma has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le
-  {f : End K V} {μ : K} {k : ℕ} {m : ℕ} (hm : k ≤ m) (hk : f.has_generalized_eigenvalue μ k) :
+  {f : End R M} {μ : R} {k : ℕ} {m : ℕ} (hm : k ≤ m) (hk : f.has_generalized_eigenvalue μ k) :
   f.has_generalized_eigenvalue μ m :=
 begin
   unfold has_generalized_eigenvalue at *,
@@ -351,12 +351,28 @@ generalized_eigenspace_mono (nat.succ_le_of_lt hk)
 
 /-- All eigenvalues are generalized eigenvalues. -/
 lemma has_generalized_eigenvalue_of_has_eigenvalue
-  {f : End K V} {μ : K} {k : ℕ} (hk : 0 < k) (hμ : f.has_eigenvalue μ) :
+  {f : End R M} {μ : R} {k : ℕ} (hk : 0 < k) (hμ : f.has_eigenvalue μ) :
   f.has_generalized_eigenvalue μ k :=
 begin
   apply has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le hk,
   rwa [has_generalized_eigenvalue, generalized_eigenspace, pow_one]
 end
+
+/-- All generalized eigenvalues are eigenvalues. -/
+lemma has_eigenvalue_of_has_generalized_eigenvalue
+  {f : End R M} {μ : R} {k : ℕ} (hμ : f.has_generalized_eigenvalue μ k) :
+  f.has_eigenvalue μ :=
+begin
+  intros contra, apply hμ,
+  erw linear_map.ker_eq_bot at ⊢ contra, rw linear_map.coe_pow,
+  exact function.injective.iterate contra k,
+end
+
+/-- Generalized eigenvalues are actually just eigenvalues. -/
+@[simp] lemma has_generalized_eigenvalue_iff_has_eigenvalue
+  {f : End R M} {μ : R} {k : ℕ} (hk : 0 < k) :
+  f.has_generalized_eigenvalue μ k ↔ f.has_eigenvalue μ :=
+⟨has_eigenvalue_of_has_generalized_eigenvalue, has_generalized_eigenvalue_of_has_eigenvalue hk⟩
 
 /-- Every generalized eigenvector is a generalized eigenvector for exponent `findim K V`.
     (Lemma 8.11 of [axler2015]) -/

@@ -107,9 +107,9 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
     { dsimp, simp only [id_comp] },  -- See note [dsimp, simp].
     { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, id_comp, map_id, presheaf.pushforward.comp_inv_app],
+      simp only [presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
       dsimp,
-      simp only [comp_id], },
+      simp only [comp_id, comp_id, map_id], },
   end,
   comp_id' := λ X Y f,
   begin
@@ -117,9 +117,9 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
     { dsimp, simp only [comp_id] },
     { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, id_comp, map_id, presheaf.pushforward.comp_inv_app],
+      simp only [presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
       dsimp,
-      simp only [comp_id], }
+      simp only [id_comp, comp_id, map_id], }
   end,
   assoc' := λ W X Y Z f g h,
   begin
@@ -127,9 +127,9 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
      refl,
      { ext U, op_induction, cases U,
        dsimp,
-       simp only [assoc, map_id, comp_id, presheaf.pushforward.comp_inv_app],
+       simp only [assoc, presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
        dsimp,
-       simp only [comp_id, id_comp], }
+       simp only [comp_id, id_comp, map_id], }
   end }
 
 end

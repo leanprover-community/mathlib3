@@ -224,7 +224,7 @@ h ▸ linear_independent_equiv e
 
 theorem linear_independent_subtype_range {ι} {f : ι → M} (hf : injective f) :
   linear_independent R (coe : range f → M) ↔ linear_independent R f :=
-iff.symm $ linear_independent_equiv' (equiv.set.range f hf) rfl
+iff.symm $ linear_independent_equiv' (equiv.of_injective f hf) rfl
 
 alias linear_independent_subtype_range ↔ linear_independent.of_subtype_range _
 
@@ -236,6 +236,45 @@ lemma linear_independent_span (hs : linear_independent R v) :
   @linear_independent ι R (span R (range v))
       (λ i : ι, ⟨v i, subset_span (mem_range_self i)⟩) _ _ _ :=
 linear_independent.of_comp (span R (range v)).subtype hs
+
+/-- See `linear_independent.fin_cons` for a family of elements in a vector space. -/
+lemma linear_independent.fin_cons' {m : ℕ} (x : M) (v : fin m → M)
+  (hli : linear_independent R v)
+  (x_ortho : (∀ (c : R) (y : submodule.span R (set.range v)), c • x + y = (0 : M) → c = 0)) :
+  linear_independent R (fin.cons x v : fin m.succ → M) :=
+begin
+  rw fintype.linear_independent_iff at hli ⊢,
+  rintros g total_eq j,
+  have zero_not_mem : (0 : fin m.succ) ∉ finset.univ.image (fin.succ : fin m → fin m.succ),
+  { rw finset.mem_image,
+    rintro ⟨x, hx, succ_eq⟩,
+    exact fin.succ_ne_zero _ succ_eq },
+  simp only [submodule.coe_mk, fin.univ_succ, finset.sum_insert zero_not_mem,
+  fin.cons_zero, fin.cons_succ,
+  forall_true_iff, imp_self, fin.succ_inj, finset.sum_image] at total_eq,
+  have : g 0 = 0,
+  { refine x_ortho (g 0) ⟨∑ (i : fin m), g i.succ • v i, _⟩ total_eq,
+    exact sum_mem _ (λ i _, smul_mem _ _ (subset_span ⟨i, rfl⟩)) },
+  refine fin.cases this (λ j, _) j,
+  apply hli (λ i, g i.succ),
+  simpa only [this, zero_smul, zero_add] using total_eq
+end
+
+/-- A set of linearly independent vectors in a semimodule `M` over a semiring `K` is also linearly
+independent over a subring `R` of `K`.
+The implementation uses minimal assumptions about the relationship between `R`, `K` and `M`.
+The version where `K` is an `R`-algebra is `linear_independent.restrict_scalars_algebras`.
+ -/
+lemma linear_independent.restrict_scalars [semiring K] [smul_with_zero R K] [semimodule K M]
+  [is_scalar_tower R K M]
+  (hinj : function.injective (λ r : R, r • (1 : K))) (li : linear_independent K v) :
+  linear_independent R v :=
+begin
+  refine linear_independent_iff'.mpr (λ s g hg i hi, hinj (eq.trans _ (zero_smul _ _).symm)),
+  refine (linear_independent_iff'.mp li : _) _ _ _ i hi,
+  simp_rw [smul_assoc, one_smul],
+  exact hg,
+end
 
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
@@ -313,7 +352,7 @@ begin
     rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
     rcases hs.finset_le fi.to_finset with ⟨i, hi⟩,
     exact (h i).mono (subset.trans hI $ bUnion_subset $
-      λ j hj, hi j (finite.mem_to_finset.2 hj)) },
+      λ j hj, hi j (fi.mem_to_finset.2 hj)) },
   { refine (linear_independent_empty _ _).mono _,
     rintro _ ⟨_, ⟨i, _⟩, _⟩, exact hη ⟨i⟩ }
 end
@@ -375,10 +414,18 @@ theorem linear_independent.to_subtype_range' {ι} {f : ι → M} (hf : linear_in
   linear_independent R (coe : t → M) :=
 ht ▸ hf.to_subtype_range
 
+theorem linear_independent.image_of_comp {ι ι'} (s : set ι) (f : ι → ι') (g : ι' → M)
+  (hs : linear_independent R (λ x : s, g (f x))) :
+  linear_independent R (λ x : f '' s, g x) :=
+begin
+  nontriviality R,
+  have : inj_on f s, from inj_on_iff_injective.2 hs.injective.of_comp,
+  exact (linear_independent_equiv' (equiv.set.image_of_inj_on f s this) rfl).1 hs
+end
+
 theorem linear_independent.image {ι} {s : set ι} {f : ι → M}
   (hs : linear_independent R (λ x : s, f x)) : linear_independent R (λ x : f '' s, (x : M)) :=
-(linear_independent_equiv' (equiv.set.of_eq $ by rw [range_comp, subtype.range_coe]) rfl).1
-  hs.to_subtype_range
+by convert linear_independent.image_of_comp s f id hs
 
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
@@ -400,13 +447,13 @@ lemma linear_independent_sum {v : ι ⊕ ι' → M} :
       disjoint (submodule.span R (range (v ∘ sum.inl))) (submodule.span R (range (v ∘ sum.inr))) :=
 begin
   rw [range_comp v, range_comp v],
-  refine ⟨λ h, ⟨h.comp _ sum.injective_inl, h.comp _ sum.injective_inr,
+  refine ⟨λ h, ⟨h.comp _ sum.inl_injective, h.comp _ sum.inr_injective,
     h.disjoint_span_image is_compl_range_inl_range_inr.1⟩, _⟩,
   rintro ⟨hl, hr, hlr⟩,
   rw [linear_independent_iff'] at *,
   intros s g hg i hi,
-  have : ∑ i in s.preimage sum.inl (sum.injective_inl.inj_on _), (λ x, g x • v x) (sum.inl i) +
-    ∑ i in s.preimage sum.inr (sum.injective_inr.inj_on _), (λ x, g x • v x) (sum.inr i) = 0,
+  have : ∑ i in s.preimage sum.inl (sum.inl_injective.inj_on _), (λ x, g x • v x) (sum.inl i) +
+    ∑ i in s.preimage sum.inr (sum.inr_injective.inj_on _), (λ x, g x • v x) (sum.inr i) = 0,
   { rw [finset.sum_preimage', finset.sum_preimage', ← finset.sum_union, ← finset.filter_or],
     { simpa only [← mem_union, range_inl_union_range_inr, mem_univ, finset.filter_true] },
     { exact finset.disjoint_filter.2 (λ x hx, disjoint_left.1 is_compl_range_inl_range_inr.1) } },
@@ -851,6 +898,13 @@ begin
     rw [comp_app, comp_app, fin_succ_equiv_symm_coe, fin.cons_succ] }
 end
 
+lemma linear_independent_fin_snoc {n} {v : fin n → V} :
+  linear_independent K (fin.snoc v x : fin (n + 1) → V) ↔
+    linear_independent K v ∧ x ∉ submodule.span K (range v) :=
+by rw [fin.snoc_eq_cons_rotate, linear_independent_equiv, linear_independent_fin_cons]
+
+/-- See `linear_independent.fin_cons'` for an uglier version that works if you
+only have a semimodule. -/
 lemma linear_independent.fin_cons {n} {v : fin n → V} (hv : linear_independent K v)
   (hx : x ∉ submodule.span K (range v)) :
   linear_independent K (fin.cons x v : fin (n + 1) → V) :=
@@ -860,6 +914,11 @@ lemma linear_independent_fin_succ {n} {v : fin (n + 1) → V} :
   linear_independent K v ↔
     linear_independent K (fin.tail v) ∧ v 0 ∉ submodule.span K (range $ fin.tail v) :=
 by rw [← linear_independent_fin_cons, fin.cons_self_tail]
+
+lemma linear_independent_fin_succ' {n} {v : fin (n + 1) → V} :
+  linear_independent K v ↔
+    linear_independent K (fin.init v) ∧ v (fin.last _) ∉ submodule.span K (range $ fin.init v) :=
+by rw [← linear_independent_fin_snoc, fin.snoc_init_self]
 
 lemma linear_independent_fin2 {f : fin 2 → V} :
   linear_independent K f ↔ f 1 ≠ 0 ∧ ∀ a : K, a • f 1 ≠ f 0 :=

@@ -615,8 +615,8 @@ begin
   have : ∀p:GH_space, ∀t:set (p.rep), finite t → ∃n:ℕ, ∃e:equiv t (fin n), true,
   { assume p t ht,
     letI : fintype t := finite.fintype ht,
-    rcases fintype.exists_equiv_fin t with ⟨n, hn⟩,
-    rcases hn with ⟨e⟩,
+    let n := fintype.card t,
+    let e := fintype.equiv_fin t,
     exact ⟨n, e, trivial⟩ },
   choose N e hne using this,
   -- cardinality of the nice finite subset `s p` of `p.rep`, called `N p`

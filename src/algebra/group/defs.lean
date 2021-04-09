@@ -240,14 +240,14 @@ by rw [←one_mul c, ←hba, mul_assoc, hac, mul_one b]
 
 end monoid
 
-/-- A commutative monoid is a monoid with commutative `(*)`. -/
-@[protect_proj, ancestor monoid comm_semigroup]
-class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
-
 /-- An additive commutative monoid is an additive monoid with commutative `(+)`. -/
 @[protect_proj, ancestor add_monoid add_comm_semigroup]
 class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
-attribute [to_additive] comm_monoid
+
+/-- A commutative monoid is a monoid with commutative `(*)`. -/
+@[protect_proj, ancestor monoid comm_semigroup]
+class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
+attribute [to_additive] add_comm_monoid
 
 section left_cancel_monoid
 

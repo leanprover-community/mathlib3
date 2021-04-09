@@ -13,14 +13,16 @@ import data.fintype.basic
 This file provides instances showing that a `semilattice_sup_bot` on a `fintype` gives a
 `complete_lattice`, and that a `linear_order` on a nonempty `fintype` gives a
 `complete_linear_order`. The latter applies in particular to `fin (n+1)`. The instances are
-noncomputable because the definitions of `Sup` and `Inf` require passing from `set` to `finset`.
+noncomputable because the definition of `Sup` uses `set.to_finset`, which implicitly
+requires a `decidable_pred` instance for every `s : set α`.
 -/
 
 open_locale classical
 
 variables {α : Type*}
 
-@[priority 100] noncomputable instance fintype.has_Sup [fintype α] [semilattice_sup_bot α] :
+@[priority 100] noncomputable instance fintype.complete_semilattice_sup
+  [fintype α] [semilattice_sup_bot α] :
   complete_semilattice_Sup α :=
 { Sup := λ s, s.to_finset.sup id,
   le_Sup := λ _ _ ha, finset.le_sup (set.mem_to_finset.mpr ha),

@@ -886,62 +886,30 @@ variables {l m n : Type*} [fintype l] [fintype m] [fintype n]
 variables {l' m' n' : Type*} [fintype l'] [fintype m'] [fintype n']
 variables {R : Type v}
 
-/-- The natural map that reindexes a matrix's rows and columns with equivalent types is an
-equivalence. -/
-def reindex (eₘ : m ≃ m') (eₙ : n ≃ n') : matrix m n R ≃ matrix m' n' R :=
-{ to_fun    := λ M i j, M (eₘ.symm i) (eₙ.symm j),
-  inv_fun   := λ M i j, M (eₘ i) (eₙ j),
-  left_inv  := λ M, by simp,
-  right_inv := λ M, by simp, }
-
-@[simp] lemma reindex_apply (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
-  reindex eₘ eₙ M = λ i j, M (eₘ.symm i) (eₙ.symm j) :=
-rfl
-
-@[simp] lemma reindex_symm_apply (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) :
-  (reindex eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
-rfl
-
-@[simp] lemma reindex_refl_refl (A : matrix m n R) :
-  (reindex (equiv.refl _) (equiv.refl _) A) = A :=
-by { ext, simp only [reindex_apply, equiv.refl_symm, equiv.refl_apply] }
-
-/-- The natural map that reindexes a matrix's rows and columns with equivalent types is a linear
-equivalence. -/
+/-- The natural map that reindexes a matrix's rows and columns with equivalent types,
+`matrix.reindex`, is a linear equivalence. -/
 def reindex_linear_equiv [semiring R] (eₘ : m ≃ m') (eₙ : n ≃ n') :
   matrix m n R ≃ₗ[R] matrix m' n' R :=
 { map_add'  := λ M N, rfl,
   map_smul' := λ M N, rfl,
-..(reindex eₘ eₙ)}
+  ..(reindex eₘ eₙ)}
 
-@[simp] lemma coe_reindex_linear_equiv [semiring R]
+@[simp] lemma reindex_linear_equiv_apply [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
-  reindex_linear_equiv eₘ eₙ M = λ i j, M (eₘ.symm i) (eₙ.symm j) :=
+  reindex_linear_equiv eₘ eₙ M = reindex eₘ eₙ M :=
 rfl
 
-lemma reindex_linear_equiv_apply [semiring R]
-  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) (i j) :
-  reindex_linear_equiv eₘ eₙ M i j = M (eₘ.symm i) (eₙ.symm j) :=
+@[simp] lemma reindex_linear_equiv_symm [semiring R] (eₘ : m ≃ m') (eₙ : n ≃ n') :
+  (reindex_linear_equiv eₘ eₙ : _ ≃ₗ[R] _).symm = reindex_linear_equiv eₘ.symm eₙ.symm :=
 rfl
 
-@[simp] lemma coe_reindex_linear_equiv_symm [semiring R]
-  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) :
-  (reindex_linear_equiv eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
-rfl
-
-lemma reindex_linear_equiv_symm_apply [semiring R]
-  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) (i j) :
-  (reindex_linear_equiv eₘ eₙ).symm M i j = M (eₘ i) (eₙ j) :=
-rfl
-
-@[simp] lemma reindex_linear_equiv_refl_refl [semiring R] (A : matrix m n R) :
-  (reindex_linear_equiv (equiv.refl _) (equiv.refl _) A) = A :=
-reindex_refl_refl A
+@[simp] lemma reindex_linear_equiv_refl_refl [semiring R] :
+  reindex_linear_equiv (equiv.refl m) (equiv.refl n) = linear_equiv.refl R _ :=
+linear_equiv.ext $ λ _, rfl
 
 lemma reindex_mul [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (eₗ : l ≃ l') (M : matrix m n R) (N : matrix n l R) :
-  (reindex_linear_equiv eₘ eₙ M) ⬝ (reindex_linear_equiv eₙ eₗ N) =
-  reindex_linear_equiv eₘ eₗ (M ⬝ N) :=
+  (reindex eₘ eₙ M) ⬝ (reindex eₙ eₗ N) = reindex eₘ eₗ (M ⬝ N) :=
 begin
   ext i j,
   dsimp only [matrix.mul, matrix.dot_product],
@@ -950,95 +918,46 @@ begin
 end
 
 /-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
-types is an equivalence of algebras. -/
+types, `matrix.reindex`, is an equivalence of algebras. -/
 def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
-{ map_mul'  := λ M N, by simp only [reindex_mul, linear_equiv.to_fun_eq_coe, mul_eq_mul],
+{ to_fun    := reindex e e,
+  map_mul'  := λ M N, (reindex_mul e e e M N).symm,
   commutes' := λ r,
                  by { ext, simp [algebra_map, algebra.to_ring_hom], by_cases h : i = j; simp [h], },
 ..(reindex_linear_equiv e e) }
 
-@[simp] lemma coe_reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
-  (e : m ≃ n) (M : matrix m m R) :
-  reindex_alg_equiv e M = λ i j, M (e.symm i) (e.symm j) :=
-rfl
-
 @[simp] lemma reindex_alg_equiv_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
-  (e : m ≃ n) (M : matrix m m R) (i j) :
-  reindex_alg_equiv e M i j = M (e.symm i) (e.symm j) :=
+  (e : m ≃ n) (M : matrix m m R) :
+  reindex_alg_equiv e M = reindex e e M :=
 rfl
 
-@[simp] lemma coe_reindex_alg_equiv_symm [comm_semiring R] [decidable_eq m] [decidable_eq n]
-  (e : m ≃ n) (M : matrix n n R) :
-  (reindex_alg_equiv e).symm M = λ i j, M (e i) (e j) :=
+@[simp] lemma reindex_alg_equiv_symm [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (e : m ≃ n) :
+  (reindex_alg_equiv e : _ ≃ₐ[R] _).symm = reindex_alg_equiv e.symm :=
 rfl
 
-@[simp] lemma reindex_alg_equiv_symm_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
-  (e : m ≃ n) (M : matrix n n R) (i j):
-  (reindex_alg_equiv e).symm M i j = M (e i) (e j) :=
-rfl
-
-@[simp] lemma reindex_alg_equiv_refl [comm_semiring R] [decidable_eq m]
-  (A : matrix m m R) : (reindex_alg_equiv (equiv.refl m) A) = A :=
-reindex_linear_equiv_refl_refl A
-
-lemma reindex_transpose (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
-  (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
-rfl
-
-/-- `simp` version of `det_reindex_self`
-
-`det_reindex_self` is not a good simp lemma because `reindex_apply` fires before.
-So we have this lemma to continue from there. -/
-@[simp]
-lemma det_reindex_self' [decidable_eq m] [decidable_eq n] [comm_ring R]
-  (e : m ≃ n) (A : matrix m m R) :
-  det (λ i j, A (e.symm i) (e.symm j)) = det A :=
-begin
-  rw [det_apply', det_apply'],
-  apply finset.sum_bij' (λ σ _, equiv.perm_congr e.symm σ) _ _ (λ σ _, equiv.perm_congr e σ),
-  { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.apply_symm_apply] },
-  { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.symm_apply_apply] },
-  { intros σ _, apply finset.mem_univ },
-  { intros σ _, apply finset.mem_univ },
-  intros σ _,
-  simp_rw [equiv.perm_congr_apply, equiv.symm_symm],
-  congr,
-  { convert (equiv.perm.sign_perm_congr e.symm σ).symm },
-  apply finset.prod_bij' (λ i _, e.symm i) _ _ (λ i _, e i),
-  { intros, simp_rw equiv.apply_symm_apply },
-  { intros, simp_rw equiv.symm_apply_apply },
-  { intros, apply finset.mem_univ },
-  { intros, apply finset.mem_univ },
-  { intros, simp_rw equiv.apply_symm_apply },
-end
+@[simp] lemma reindex_alg_equiv_refl [comm_semiring R] [decidable_eq m] :
+  reindex_alg_equiv (equiv.refl m) = (alg_equiv.refl : _ ≃ₐ[R] _) :=
+alg_equiv.ext $ λ _, rfl
 
 /-- Reindexing both indices along the same equivalence preserves the determinant.
 
-For the `simp` version of this lemma, see `det_reindex_self'`.
--/
-lemma det_reindex_self [decidable_eq m] [decidable_eq n] [comm_ring R]
-  (e : m ≃ n) (A : matrix m m R) :
-  det (reindex e e A) = det A :=
-det_reindex_self' e A
-
-/-- Reindexing both indices along the same equivalence preserves the determinant.
-
-For the `simp` version of this lemma, see `det_reindex_self'`.
+For the `simp` version of this lemma, see `det_minor_equiv_self`.
 -/
 lemma det_reindex_linear_equiv_self [decidable_eq m] [decidable_eq n] [comm_ring R]
   (e : m ≃ n) (A : matrix m m R) :
   det (reindex_linear_equiv e e A) = det A :=
-det_reindex_self' e A
+det_reindex_self e A
 
 /-- Reindexing both indices along the same equivalence preserves the determinant.
 
-For the `simp` version of this lemma, see `det_reindex_self'`.
+For the `simp` version of this lemma, see `det_minor_equiv_self`.
 -/
 lemma det_reindex_alg_equiv [decidable_eq m] [decidable_eq n] [comm_ring R]
   (e : m ≃ n) (A : matrix m m R) :
   det (reindex_alg_equiv e A) = det A :=
-det_reindex_self' e A
+det_reindex_self e A
 
 end reindexing
 
@@ -1325,7 +1244,8 @@ begin
   cases x; cases y;
   simp only [matrix.reindex_apply, to_block_apply, equiv.symm_symm,
     equiv.sum_compl_apply_inr, equiv.sum_compl_apply_inl,
-    from_blocks_apply₁₁, from_blocks_apply₁₂, from_blocks_apply₂₁, from_blocks_apply₂₂],
+    from_blocks_apply₁₁, from_blocks_apply₁₂, from_blocks_apply₂₁, from_blocks_apply₂₂,
+    matrix.minor_apply],
 end
 
 lemma det_to_square_block (M : matrix m m R) {n : nat} (b : m → fin n) (k : fin n) :

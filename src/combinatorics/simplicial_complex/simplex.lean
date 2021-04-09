@@ -35,7 +35,8 @@ lemma mem_combi_frontier_iff :
   x ∈ combi_frontier X ↔ ∃ Y, Y ⊂ X ∧ x ∈ convex_hull (Y : set E) :=
 by simp [combi_frontier]
 
-lemma combi_frontier_singleton : combi_frontier ({x} : finset E) = ∅ :=
+lemma combi_frontier_singleton :
+  combi_frontier ({x} : finset E) = ∅ :=
 begin
   apply set.eq_empty_of_subset_empty,
   rintro y hy,
@@ -165,6 +166,10 @@ lemma combi_interior_subset_convex_hull :
   combi_interior X ⊆ convex_hull X :=
 diff_subset _ _
 
+lemma combi_interior.inj (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
+  (hY : affine_independent ℝ (λ p, p : (Y : set E) → E)) (h : combi_interior X = combi_interior Y) :
+  X = Y := sorry
+
 lemma is_closed_convex_hull :
   is_closed (convex_hull (X : set E)) :=
 X.finite_to_set.is_closed_convex_hull
@@ -268,7 +273,7 @@ end
 
 lemma combi_frontier_subset_convex_hull :
   combi_frontier X ⊆ convex_hull X :=
-  bUnion_subset (λ Y hY, convex_hull_mono hY.1)
+bUnion_subset (λ Y hY, convex_hull_mono hY.1)
 
 lemma convex_hull_eq_interior_union_combi_frontier :
   convex_hull ↑X = combi_interior X ∪ combi_frontier X :=

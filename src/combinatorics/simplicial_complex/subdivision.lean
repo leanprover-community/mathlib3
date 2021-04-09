@@ -26,51 +26,6 @@ instance : has_le (simplicial_complex E) := ⟨λ S₁ S₂, S₁.space = S₂.s
   ∀ {X₁ : finset  E}, X₁ ∈ S₁.faces → ∃ X₂ ∈ S₂.faces,
   convex_hull (X₁ : set E) ⊆ convex_hull (X₂ : set E)⟩
 
-def subdivision_preorder :
-  preorder (simplicial_complex E) :=
-{ le := λ S₁ S₂, S₁ ≤ S₂,
-  le_refl := (λ S, ⟨rfl, (λ X hX, ⟨X, hX, subset.refl _⟩)⟩),
-  le_trans := begin
-    rintro S₁ S₂ S₃ h₁₂ h₂₃,
-    use eq.trans h₁₂.1 h₂₃.1,
-    rintro X₁ hX₁,
-    obtain ⟨X₂, hX₂, hX₁₂⟩ := h₁₂.2 hX₁,
-    obtain ⟨X₃, hX₃, hX₂₃⟩ := h₂₃.2 hX₂,
-    exact ⟨X₃, hX₃, subset.trans hX₁₂ hX₂₃⟩,
-  end}
-
-def subdivision_order [finite_dimensional ℝ E] [decidable_eq E] :
-  partial_order (simplicial_complex E) :=
-{ le := subdivision_preorder.le,
-  le_refl := subdivision_preorder.le_refl,
-  le_trans := subdivision_preorder.le_trans,
-  le_antisymm := begin
-    have aux_lemma : ∀ {S₁ S₂ : simplicial_complex E}, S₁ ≤ S₂ → S₂ ≤ S₁ → ∀ {X},
-      X ∈ S₁.faces → X ∈ S₂.faces,
-    { rintro S₁ S₂ h₁ h₂ W hW,
-      apply finset.strong_downward_induction_on' (λ X hX, face_dimension_le_space_dimension hX)
-        hW,
-      { rintro X hX h,
-        obtain ⟨Y, hY, hXYhull⟩ := h₁.2 hX,
-        obtain ⟨Z, hZ, hYZhull⟩ := h₂.2 hY,
-        have hXZhull := subset.trans (inter_subset_inter_right (convex_hull ↑X)
-          (subset.trans hXYhull hYZhull)) (S₁.disjoint hX hZ),
-        rw [inter_self, ←finset.coe_inter] at hXZhull,
-        have hXZ : X ⊆ Z := subset.trans
-          (subset_of_convex_hull_eq_convex_hull_of_linearly_independent (S₁.indep hX)
-          (subset.antisymm hXZhull (convex_hull_mono (finset.inter_subset_left X Z))))
-          (finset.inter_subset_right _ _),
-        by_cases hZX : Z ⊆ X,
-        { rw finset.subset.antisymm hZX hXZ at hYZhull,
-          rw eq_of_convex_hull_eq_convex_hull_of_linearly_independent
-            (S₁.indep hX) (S₂.indep hY) (subset.antisymm hXYhull hYZhull),
-          exact hY },
-        { exact S₂.down_closed (h hZ ⟨hXZ, hZX⟩) hXZ }}},
-    rintro S₁ S₂ h₁ h₂,
-    ext X,
-    exact ⟨λ hX, aux_lemma h₁ h₂ hX, λ hX, aux_lemma h₂ h₁ hX⟩,
-  end }
-
 lemma subdivision_iff_combi_interiors_subset_combi_interiors :
   S₁ ≤ S₂ ↔ S₂.space ⊆ S₁.space ∧
   ∀ {X₁}, X₁ ∈ S₁.faces → ∃ {X₂}, X₂ ∈ S₂.faces ∧ combi_interior X₁ ⊆ combi_interior X₂ :=
@@ -125,7 +80,7 @@ begin
       rintro y hyY,
       obtain ⟨Z, hZ, hYZ⟩ := hsubdiv hY,
       obtain ⟨W, hWZ, hYW⟩ := simplex_combi_interiors_split_interiors (S₂.indep hZ) hYZ,
-      rw disjoint_interiors hX (S₂.down_closed hZ hWZ) x ⟨hxX, hYW hxY⟩,
+      rw disjoint_interiors hX (S₂.down_closed hZ hWZ) hxX (hYW hxY),
       exact hYW hyY },
     { rw mem_bUnion_iff,
       rintro ⟨Y, ⟨hY, hYX⟩, hxY⟩,
@@ -152,7 +107,7 @@ begin
     rw [hspace, combi_interiors_cover, mem_bUnion_iff] at hxspace,
     obtain ⟨Y, hY, hxY⟩ := hxspace,
     use [Y, hY],
-    rw ← closure_combi_interior_eq_convex_hull,
+    rw ←closure_combi_interior_eq_convex_hull (S₁.indep hX),
     apply closure_minimal _ is_closed_convex_hull,
     rintro x' hx',
     have hxspace := mem_space_iff.2 ⟨X, hX, hx'.1⟩,
@@ -163,17 +118,59 @@ begin
       exact hxY'.1 },
     obtain ⟨F, hF, hinterior⟩ := hpartition hY,
     obtain ⟨F', hF', hinterior'⟩ := hpartition hY',
-    apply disjoint_interiors hY hY' x (mem_inter _ _),
+    apply disjoint_interiors hY hY' (_ : x ∈ _) _,
     { rw [hinterior, mem_bUnion_iff] at ⊢ hxY,
       obtain ⟨Z, hZ, hxZ⟩ := hxY,
       use [Z, hZ, hxZ] },
     { rw [hinterior', mem_bUnion_iff] at ⊢ hxY',
       obtain ⟨Z, hZ, hxZ⟩ := hxY',
       use [Z, hZ],
-      rw ← disjoint_interiors hX (hF' hZ) x' ⟨hx', hxZ⟩,
-      exact hx },
-    apply S₁.indep hX }
+      rw ←disjoint_interiors hX (hF' hZ) hx' hxZ,
+      exact hx }}
 end
+
+def subdivision_order :
+  partial_order (simplicial_complex E) :=
+{ le := λ S₁ S₂, S₁ ≤ S₂,
+  le_refl := (λ S, ⟨rfl, (λ X hX, ⟨X, hX, subset.refl _⟩)⟩),
+  le_trans := begin
+    rintro S₁ S₂ S₃ h₁₂ h₂₃,
+    use eq.trans h₁₂.1 h₂₃.1,
+    rintro X₁ hX₁,
+    obtain ⟨X₂, hX₂, hX₁₂⟩ := h₁₂.2 hX₁,
+    obtain ⟨X₃, hX₃, hX₂₃⟩ := h₂₃.2 hX₂,
+    exact ⟨X₃, hX₃, subset.trans hX₁₂ hX₂₃⟩,
+  end,
+  le_antisymm := begin
+    suffices aux_lemma : ∀ {S₁ S₂ : simplicial_complex E}, S₁ ≤ S₂ → S₂ ≤ S₁ → ∀ {X},
+      X ∈ S₁.faces → X ∈ S₂.faces,
+    { rintro S₁ S₂ h₁ h₂,
+      ext X,
+      exact ⟨λ hX, aux_lemma h₁ h₂ hX, λ hX, aux_lemma h₂ h₁ hX⟩ },
+    rintro S₁ S₂ h₁ h₂ X hX,
+    rw subdivision_iff_partition at h₂ h₁,
+    cases finset.eq_empty_or_nonempty X with hXempty hXnonempty,
+    { rw hXempty,
+      exact empty_mem_faces_of_nonempty (h₁.1 ⟨X, hX⟩) },
+    obtain ⟨x, hxX⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hX) hXnonempty,
+    obtain ⟨F, hF, hFX⟩ := h₂.2.2 hX,
+    have hxX' := hxX,
+    rw [hFX, mem_bUnion_iff] at hxX',
+    obtain ⟨Y, hY, hxY⟩ := hxX',
+    obtain ⟨F', hF', hF'Y⟩ := h₁.2.2 (hF hY),
+    rw [hF'Y, mem_bUnion_iff] at hxY,
+    obtain ⟨Z, hZ, hxZ⟩ := hxY,
+    have := disjoint_interiors hX (hF' hZ) hxX hxZ,
+    subst this,
+    suffices h : X = Y,
+    { rw h,
+      exact hF hY },
+    apply combi_interior.inj (S₁.indep hX) (S₂.indep (hF hY)) (subset.antisymm _ _),
+    { rw hF'Y,
+      exact subset_bUnion_of_mem hZ },
+    { rw hFX,
+      exact subset_bUnion_of_mem hY }
+  end }
 
 /-def simplicial_complex.mesh_size (S : simplicial_complex E) : ℝ := sorry --max diameter of simplices
 

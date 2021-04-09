@@ -572,7 +572,7 @@ begin
   tauto,
 end
 
-lemma compl_neighbor_set (G : simple_graph V) [decidable_rel G.adj] (v : V) :
+lemma compl_neighbor_set (G : simple_graph V) (v : V) :
   Gᶜ.neighbor_set v = (G.neighbor_set v)ᶜ \ {v} :=
 begin
   ext w,

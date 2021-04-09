@@ -397,6 +397,7 @@ variables {α} [fintype α] [left_cancel_monoid α]
 variables {H : Type u} [fintype H] [add_left_cancel_monoid H]
 
 -- TODO: Use this to show that a finite left cancellative monoid is a group.
+
 lemma exists_pow_eq_one (a : α) : is_of_fin_order a :=
 begin
   refine (is_of_fin_order_iff_pow_eq_one _).mpr _,
@@ -407,10 +408,10 @@ begin
   rw [mul_one, ← pow_add, ← a_eq, nat.add_sub_cancel' h''],
 end
 
-lemma exists_nsmul_eq_zero (x : H) : ∃ i, 0 < i ∧ i •ℕ x = 0 :=
+lemma exists_nsmul_eq_zero (x : H) : is_of_fin_add_order x :=
 begin
   rcases exists_pow_eq_one (multiplicative.of_add x) with ⟨i, hi1, hi2⟩,
-  exact ⟨i, hi1, (is_periodic_pt_mul_iff_pow_eq_one _).mp hi2⟩,
+  exact ⟨i, hi1, hi2⟩,
 end
 
 attribute [to_additive exists_nsmul_eq_zero] exists_pow_eq_one

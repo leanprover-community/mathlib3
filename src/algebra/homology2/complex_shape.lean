@@ -8,6 +8,37 @@ import data.option.basic
 import data.subtype
 import algebra.group.defs
 
+/-!
+# Shapes of homological complexes
+
+We define a structure `complex_shape ι` for describing the shapes of homological complexes
+indexed by a type `ι`.
+This is intended to capture chain complexes and cochain complexes, indexed by either `ℕ` or `ℤ`,
+as well as more exotic examples.
+
+Rather than insisting that the indexing type has a `succ` function
+specifying where differentials should go,
+inside `c : complex_shape` we have `c.rel : ι → ι → Prop`,
+and when we define `homological_complex`
+we only allow nonzero differentials `d i j` from `i` to `j` if `c.rel i j`.
+Further, we require that `{ j // c.rel i j }` and `{ i // c.rel i j }` are subsingletons.
+This means that the shape consists of some union of lines, rays, intervals, and circles.
+
+Convenience functions `c.next` and `c.prev` provide, as an `option`, these related elements
+when they exist.
+
+This design aims to avoid certain problems arising from dependent type theory.
+In particular we never have to ensure morphisms `d i : X i ⟶ X (succ i)` compose as
+expected (which would often require rewriting by equations in the indexing type).
+Instead such identities become separate proof obligations when verifying that a
+complex we've constructed is of the desired shape.
+
+We define `up α : complex_shape α`, the shape appropriate for cohomology,
+so `d : X i ⟶ X j` is nonzero only when `j = i + 1`, as well as `down α : complex_shape α`,
+appropriate for homology, so `d : X i ⟶ X j` is nonzero only when `i = j + 1`.
+
+-/
+
 open_locale classical
 noncomputable theory
 

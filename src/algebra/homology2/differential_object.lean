@@ -10,8 +10,11 @@ import category_theory.graded_object
 /-!
 # Homological complexes are differential graded objects.
 
-We verify that `homological_complex` indexed by an `add_comm_group` is
+We verify that a `homological_complex` indexed by an `add_comm_group` is
 essentially the same thing as a differential graded object.
+
+This equivalence is probably not particularly useful in practice;
+it's here to check that definitions match up as expected.
 -/
 
 open category_theory

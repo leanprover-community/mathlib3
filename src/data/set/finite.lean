@@ -471,10 +471,11 @@ end finset
 namespace set
 
 /-- Finite product of finite sets is finite -/
-lemma finite.pi {δ : Type*} [decidable_eq δ] [fintype δ] {κ : δ → Type*} {t : Π d, set (κ d)}
+lemma finite.pi {δ : Type*} [fintype δ] {κ : δ → Type*} {t : Π d, set (κ d)}
   (ht : ∀ d, (t d).finite) :
   (pi univ t).finite :=
 begin
+  classical,
   convert (fintype.pi_finset (λ d, (ht d).to_finset)).finite_to_set,
   ext,
   simp,

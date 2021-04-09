@@ -259,11 +259,7 @@ lemma is_periodic_pt.eq_zero_of_lt_minimal_period (hx : is_periodic_pt f n x)
 eq.symm $ (eq_or_lt_of_le $ n.zero_le).resolve_right $ λ hn0,
 not_lt.2 (hx.minimal_period_le hn0) hn
 
-lemma not_mem_periodic_pts_of_lt_minimal_period (hn : n < minimal_period f x) :
-  ¬ (0 < n ∧ is_periodic_pt f n x) :=
-not_and.mpr $ λ n0 hm, not_le.mpr hn (hm.minimal_period_le n0)
-
-lemma not_is__periodic_pt_of_pos_of_lt_minimal_period :
+lemma not_is_periodic_pt_of_pos_of_lt_minimal_period :
   ∀ {n: ℕ} (n0 : n ≠ 0) (hn : n < minimal_period f x), ¬ is_periodic_pt f n x
 | 0 n0 _ := (n0 rfl).elim
 | (n + 1) _ hn := λ hp, nat.succ_ne_zero _ (hp.eq_zero_of_lt_minimal_period hn)

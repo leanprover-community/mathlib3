@@ -367,10 +367,13 @@ section
 
 open filter
 
-instance {α : Type*} [ring α] [topological_space α] {n m : Type*} [fintype n] [fintype m] :
-  topological_space (matrix n m α) :=
-Pi.topological_space
+--instance {α : Type*} [ring α] [topological_space α] {n m : Type*} [fintype n] [fintype m] :
+ -- topological_space (matrix n m α) :=
+--Pi.topological_space
 
+instance {α : Type*} [ring α] [metric_space α] {n m : Type*} [fintype n] [fintype m] :
+  metric_space (matrix n m α) :=
+metric_space_pi
 
 
 def inverse_image_fun {α β : Type*} (K : set β) (f : α → β) (a : f ⁻¹' K) : K :=
@@ -429,41 +432,19 @@ begin
 end
 
 
-lemma pi_prod_cofinite {ι : Type*} [fintype ι] {α : ι → Type*} {β : ι → Type*}
-  [∀ i, topological_space (β i)]
-  {f : Π i : ι, α i → β i} (hf : ∀ i, tendsto (f i) cofinite (cocompact (β i))) :
-  tendsto (λ (a : Π i, α i), λ i, f i (a i)) cofinite (cocompact (Π i, β i)) :=
-begin
-  rw tendsto_def,
-  intros s h,
-  rw mem_cofinite,
-  rw mem_cocompact' at h,
-  obtain ⟨t, ht1, ht2⟩ := h,
-
-  sorry,
-  have scbdd := metric.bounded.subset ht2 (is_compact.bounded ht1),
-  refine finite_of_is_compact_of_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ) _,
-  have scclosed := is_closed_discrete (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
-  have scbdd_coe : metric.bounded (((λ (p : fin k → ℤ), coe ∘ p) ⁻¹' s)ᶜ),
-  {
-    simp [scbdd],
-    ----- Help???
-    sorry,
-  },
-  refine metric.compact_iff_closed_bounded.mpr _,
-  split,
-  exact scclosed,
-  exact scbdd_coe,
-
-end
-
 lemma cocompact_ℝ_to_cofinite_ℤ (ι : Type*) [fintype ι] :
   tendsto ((λ (p : ι → ℤ), (coe : ℤ → ℝ) ∘ p)) cofinite (cocompact (ι → ℝ)) :=
- pi_prod_cofinite (λ i, int.tendsto_coe_cofinite)
+by simpa [←Coprod_cofinite,←Coprod_cocompact]
+  using tendsto.prod_map_Coprod (λ i, int.tendsto_coe_cofinite)
+
 
 lemma cocompact_ℝ_to_cofinite_ℤ_matrix {ι ι' : Type*} [fintype ι] [fintype ι']  :
   tendsto (λ m, matrix.map m (coe : ℤ → ℝ)) cofinite (cocompact (matrix ι ι' ℝ)) :=
- pi_prod_cofinite (λ i, cocompact_ℝ_to_cofinite_ℤ ι')
+begin
+  convert tendsto.prod_map_Coprod (λ i, cocompact_ℝ_to_cofinite_ℤ ι'),
+  { exact Coprod_cofinite.symm },
+  { exact Coprod_cocompact.symm }
+end
 
 
 /-- method 1 -/
@@ -538,15 +519,67 @@ begin
   { exact  pi_prod_cofinite (λ i, (pi_prod_cofinite (λ j, int.tendsto_coe_cofinite))) }
 end
 
+
 def smul_aux' : (matrix (fin 2) (fin 2) ℝ) → ℂ → ℂ := sorry
 
-lemma tendsto_action (cd : coprime_ints) (z : ℂ) :
+def acbd : (matrix (fin 2) (fin 2) ℝ) → ℝ := λ g, (g 0 0) * (g 1 0) + (g 0 1)*(g 1 1)
+
+
+lemma something1 (cd : coprime_ints) (z : H) (g : line cd) :
+∃ w , (smul_aux' ↑g z).re = (acbd g)/(real.sqrt ((cd.1.1)^2+(cd.1.2)^2)) + w :=
+begin
+  sorry,
+end
+
+lemma tendsto_acbd (cd : coprime_ints):
+  tendsto (λ g, acbd (↑g)) (cocompact (line cd)) (cocompact ℝ) :=
+begin
+  let cabs := _root_.abs cd.1.1,
+  let dabs := _root_.abs cd.1.2,
+  let maxCD := max cabs dabs,
+  intros K hK ,
+  rw mem_cocompact at hK,
+
+  obtain ⟨ K1, hK1, hK2⟩  := hK,
+
+  obtain ⟨ t, ht⟩  := (metric.bounded_iff_subset_ball 0).mp (is_compact.bounded hK1),
+  rw mem_map,
+  rw mem_cocompact,
+  refine ⟨
+  ((coe : line cd → (matrix (fin 2) (fin 2) ℝ)) ⁻¹'
+   (metric.closed_ball (0: matrix (fin 2) (fin 2) ℝ) (max (2*(_root_.abs t)+1) maxCD) )),
+   sorry, _⟩ ,
+   --simp,
+  rw set.compl_subset_comm,
+  rw set.compl_subset_comm at hK2,
+  intros g hg,
+  simp [dist_eq_norm] at hg,
+  simp only [set.mem_preimage, metric.mem_closed_ball,  int_cast_abs, subtype.val_eq_coe],
+  have : acbd ↑g ∈ metric.closed_ball (0:ℝ) t,
+  {
+    apply ht,
+    apply hK2,
+    exact hg,
+  },
+  rw dist_pi_def,
+  let a : nnreal := nnreal.of_real (max (2 * |t| + 1) ↑maxCD),
+  rw ← nnreal.coe_of_real (max (2 * |t| + 1) ↑maxCD),
+  norm_cast,
+  have : (∀ (b : fin 2), b ∈ finset.univ → (λ (b : fin 2), nndist ((↑g: matrix _ _ ℝ) b) 0) b ≤ a) := sorry,
+  refine @finset.sup_le nnreal (fin 2) _ (finset.univ) ((λ (b : fin 2), nndist ((↑g: matrix _ _ ℝ) b) (0))) a _,
+
+  sorry
+end
+
+lemma tendsto_action (cd : coprime_ints) (z : H) :
   tendsto (λ g, (smul_aux' ↑g z).re) (cocompact (line cd)) (cocompact ℝ) :=
 begin
   -- let g : ℝ → matrix (fin 2) (fin 2) ℝ :=
 
+  have := something1 cd z,
   sorry
 end
+
 
 lemma tendsto_at_top_abs :
   tendsto _root_.abs (cocompact ℝ) at_top :=

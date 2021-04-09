@@ -361,6 +361,16 @@ lemma image.factor_thru_image_pre_comp [has_image g] [has_image (f ≫ g)] :
 by simp [image.pre_comp]
 
 /--
+`image.pre_comp f g` is a monomorphism.
+-/
+instance image.pre_comp_mono [has_image g] [has_image (f ≫ g)] : mono (image.pre_comp f g) :=
+begin
+  apply mono_of_mono _ (image.ι g),
+  simp only [image.pre_comp_ι],
+  apply_instance,
+end
+
+/--
 The two step comparison map
   `image (f ≫ (g ≫ h)) ⟶ image (g ≫ h) ⟶ image h`
 agrees with the one step comparison map

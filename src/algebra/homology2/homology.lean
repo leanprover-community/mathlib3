@@ -3,50 +3,31 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.homology2.homological_complex
-import category_theory.subobject.lattice
+import algebra.homology2.image_to_kernel
 
 universes v u
 
 open category_theory category_theory.limits
 
 variables {ι : Type*}
-variables {V : Type u} [category.{v} V] [has_zero_object V] [has_zero_morphisms V]
+variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
 variables {c : complex_shape ι} (C : homological_complex V c)
 
 open_locale classical
 noncomputable theory
 
-section
-variables [has_images V] [has_kernels V]
+/--
+The homology of a pair of morphisms `f : A ⟶ B` and `g : B ⟶ C` satisfying `f ≫ g = 0`
+is the cokernel of the `image_to_kernel` morphism for `f` and `g`.
+-/
+def homology {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
+  (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)] : V :=
+cokernel (image_to_kernel f g w)
 
-def image_le_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) :
-  image_subobject f ≤ kernel_subobject g :=
-image_subobject_le_mk _ _ (kernel.lift _ _ w) (by simp)
-
-def image_to_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) :
-  (image_subobject f : V) ⟶ (kernel_subobject g : V) :=
-(subobject.of_le _ _ (image_le_kernel _ _ w))
-
-/-- Prefer `image_to_kernel`. -/
-@[simp] lemma subobject_of_le_as_image_to_kernel
-  {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) (h) :
-  subobject.of_le (image_subobject f) (kernel_subobject g) h = image_to_kernel f g w :=
-rfl
-
-@[simp, reassoc]
-lemma image_to_kernel_arrow {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) :
-  image_to_kernel f g w ≫ (kernel_subobject g).arrow = (image_subobject f).arrow :=
-by simp [image_to_kernel]
-
-variables [has_cokernels V]
-
-def homology {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) : V :=
-cokernel (image_to_kernel _ _ w)
-
-end
 
 namespace homological_complex
+
+variables [has_zero_object V]
 
 section cycles
 variables [has_kernels V]
@@ -134,7 +115,7 @@ open homological_complex
 
 /-! Computing the cycles is functorial. -/
 section
-variables [has_kernels V]
+variables [has_zero_object V] [has_kernels V]
 variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 
 abbreviation cycles_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.cycles i : V) ⟶ (C₂.cycles i : V) :=
@@ -162,7 +143,7 @@ end
 
 /-! Computing the boundaries is functorial. -/
 section
-variables [has_equalizers V] [has_images V] [has_image_maps V]
+variables [has_zero_object V] [has_equalizers V] [has_images V] [has_image_maps V]
 variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 
 abbreviation boundaries_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.boundaries i : V) ⟶ (C₂.boundaries i : V) :=
@@ -180,7 +161,7 @@ end
 section
 
 /-! The `boundaries_to_cycles` morphisms are natural. -/
-variables [has_equalizers V] [has_images V] [has_image_maps V]
+variables [has_zero_object V] [has_equalizers V] [has_images V] [has_image_maps V]
 variables {C₁ C₂ : homological_complex V c} (f : C₁ ⟶ C₂)
 
 @[simp, reassoc]

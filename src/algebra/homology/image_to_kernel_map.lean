@@ -64,14 +64,14 @@ lemma image_to_kernel_map_comp_left {Z : V} (h : Z ⟶ A) (w : f ≫ g = 0) :
 by { ext, simp }
 
 @[simp]
-lemma image_to_kernel_map_comp_iso {D : V} (h : C ⟶ D) [is_iso h] (w) :
+lemma image_to_kernel_map_comp_mono {D : V} (h : C ⟶ D) [mono h] (w) :
   image_to_kernel_map f (g ≫ h) w =
   image_to_kernel_map f g ((cancel_mono h).mp (by simpa using w : (f ≫ g) ≫ h = 0 ≫ h)) ≫
     (kernel_comp_mono g h).inv :=
 by { ext, simp, }
 
 @[simp]
-lemma image_to_kernel_map_iso_comp {Z : V} (h : Z ⟶ A) [is_iso h] (w) :
+lemma image_to_kernel_map_epi_comp {Z : V} (h : Z ⟶ A) [epi h] (w) :
   image_to_kernel_map (h ≫ f) g w =
   image.pre_comp h f ≫
     image_to_kernel_map f g ((cancel_epi h).mp (by simpa using w : h ≫ f ≫ g = h ≫ 0)) :=

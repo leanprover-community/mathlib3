@@ -285,14 +285,20 @@ kernel_subobject_factors f h⟩
 lemma le_kernel_subobject (A : subobject X) (h : A.arrow ≫ f = 0) : A ≤ kernel_subobject f :=
 subobject.le_mk_of_comm (kernel.lift f A.arrow h) (by simp)
 
+/-- The kernel of `f` is always a smaller subobject than the kernel of `f ≫ h`. -/
+lemma kernel_subobject_comp_le
+  (f : X ⟶ Y) [has_kernel f] {Z : C} (h : Y ⟶ Z) [has_kernel (f ≫ h)]:
+  kernel_subobject f ≤ kernel_subobject (f ≫ h) :=
+le_kernel_subobject _ _ (by simp)
+
 /-- Postcomposing by an monomorphism does not change the kernel subobject. -/
 @[simp]
 lemma kernel_subobject_comp_mono
-  {f : X ⟶ Y} [has_kernel f] {Z : C} (h : Y ⟶ Z) [mono h] :
+  (f : X ⟶ Y) [has_kernel f] {Z : C} (h : Y ⟶ Z) [mono h] :
   kernel_subobject (f ≫ h) = kernel_subobject f :=
 le_antisymm
   (le_kernel_subobject _ _ ((cancel_mono h).mp (by simp)))
-  (le_kernel_subobject _ _ (by simp))
+  (kernel_subobject_comp_le f h)
 
 end kernel
 
@@ -340,12 +346,23 @@ lemma factor_thru_image_subobject_comp_self_assoc {W W' : C} (k : W ⟶ W') (k' 
   (image_subobject f).factor_thru (k ≫ k' ≫ f) h = k ≫ k' ≫ factor_thru_image_subobject f :=
 by { ext, simp, }
 
+@[simp]
+lemma image_subobject_zero [has_zero_morphisms C] [has_zero_object C] :
+  (image_subobject (0 : X ⟶ Y)).arrow = 0 :=
+by { rw image_subobject_arrow, simp, }
+
+/-- The image of `h ≫ f` is always a smaller subobject than the image of `f`. -/
+lemma image_subobject_comp_le
+  {X' : C} (h : X' ⟶ X) (f : X ⟶ Y) [has_image f] [has_image (h ≫ f)] :
+  image_subobject (h ≫ f) ≤ image_subobject f :=
+subobject.mk_le_mk_of_comm (image.pre_comp h f) (by simp)
+
 /-- Precomposing by an isomorphism does not change the image subobject. -/
 lemma image_subobject_iso_comp [has_equalizers C]
-  {f : X ⟶ Y} [has_image f] {X' : C} (h : X' ⟶ X) [is_iso h] :
+  {X' : C} (h : X' ⟶ X) [is_iso h] (f : X ⟶ Y) [has_image f] :
   image_subobject (h ≫ f) = image_subobject f :=
 le_antisymm
-  (subobject.mk_le_mk_of_comm (image.pre_comp h f) (by simp))
+  (image_subobject_comp_le h f)
   (subobject.mk_le_mk_of_comm (inv (image.pre_comp h f)) (by simp))
 
 lemma image_subobject_le {A B : C} {X : subobject B} (f : A ⟶ B) [has_image f]

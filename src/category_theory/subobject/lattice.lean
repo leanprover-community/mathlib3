@@ -254,6 +254,10 @@ quotient.sound' ⟨mono_over.map_bot f⟩
 lemma bot_factors_iff_zero {A B : C} (f : A ⟶ B) : (⊥ : subobject B).factors f ↔ f = 0 :=
 ⟨by { rintro ⟨h, w⟩, simp at w, exact w.symm, }, by { rintro rfl, exact ⟨0, by simp⟩, }⟩
 
+@[simp]
+lemma image_subobject_zero {A B : C} : image_subobject (0 : A ⟶ B) = ⊥ :=
+eq_of_comm (image_subobject_iso _ ≪≫ image_zero ≪≫ bot_coe_iso_zero.symm) (by simp)
+
 end order_bot
 
 section functor

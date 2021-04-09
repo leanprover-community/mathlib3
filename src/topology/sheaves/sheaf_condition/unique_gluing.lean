@@ -44,6 +44,11 @@ namespace presheaf
 
 variables {X : Top.{u}} (F : presheaf (Type u) X) {ι : Type u} (U : ι → opens X)
 
+@[simp] lemma res_π_apply (i : ι) (s : F.obj (op (supr U))) :
+  limit.π (discrete.functor (λ i : ι, F.obj (op (U i)))) i (res F U s) =
+  F.map (opens.le_supr U i).op s :=
+congr_fun (res_π F U i) s
+
 /--
 A family of sections `sf` is compatible, if the restrictions of `sf i` and `sf j` to `U i ⊓ U j`
 agree, for all `i` and `j`
@@ -263,9 +268,7 @@ lemma eq_of_locally_eq (s t : F.presheaf.obj (op (supr U)))
 begin
   apply (mono_iff_injective _).mp (mono_of_is_limit_parallel_pair (F.sheaf_condition U)),
   ext,
-  dsimp [sheaf_condition_equalizer_products.res],
-  simp,
-  apply h,
+  simp only [fork_ι, res_π_apply, h],
 end
 
 /--

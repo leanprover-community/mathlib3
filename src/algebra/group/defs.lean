@@ -247,7 +247,7 @@ class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
 /-- A commutative monoid is a monoid with commutative `(*)`. -/
 @[protect_proj, ancestor monoid comm_semigroup]
 class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
-attribute [to_additive] add_comm_monoid
+attribute [to_additive] comm_monoid
 
 section left_cancel_monoid
 

@@ -207,6 +207,8 @@ lemma underlying_iso_inv_top_arrow {B : C} :
   top_coe_iso_self.inv ≫ (⊤ : subobject B).arrow = 𝟙 B :=
 underlying_iso_arrow _
 
+instance top_arrow_is_iso {B : C} : is_iso ((⊤ : subobject B).arrow) := sorry
+
 lemma map_top (f : X ⟶ Y) [mono f] : (map f).obj ⊤ = quotient.mk' (mono_over.mk' f) :=
 quotient.sound' ⟨mono_over.map_top f⟩
 
@@ -224,6 +226,11 @@ lemma pullback_self {A B : C} (f : A ⟶ B) [mono f] :
 quotient.sound' ⟨mono_over.pullback_self f⟩
 
 end
+
+@[simp]
+lemma kernel_subobject_zero [has_zero_morphisms C] {A B : C} : kernel_subobject (0 : A ⟶ B) = ⊤ :=
+eq_of_comm (kernel_subobject_iso _ ≪≫ kernel_zero_iso_source ≪≫ top_coe_iso_self.symm)
+  (by simp [←kernel_subobject_arrow])
 
 end order_top
 

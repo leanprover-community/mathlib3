@@ -260,8 +260,9 @@ class add_left_cancel_monoid (M : Type u) extends add_left_cancel_semigroup M, a
 -- Should we port more lemmas to this typeclass?
 
 /-- A monoid in which multiplication is left-cancellative. -/
-@[protect_proj, ancestor left_cancel_semigroup monoid, to_additive add_left_cancel_monoid]
+@[protect_proj, ancestor left_cancel_semigroup monoid]
 class left_cancel_monoid (M : Type u) extends left_cancel_semigroup M, monoid M
+attribute [to_additive] add_left_cancel_monoid
 
 end left_cancel_monoid
 
@@ -274,8 +275,9 @@ is useful to define the sum over the empty set, so `add_right_cancel_semigroup` 
 class add_right_cancel_monoid (M : Type u) extends add_right_cancel_semigroup M, add_monoid M
 
 /-- A monoid in which multiplication is right-cancellative. -/
-@[protect_proj, ancestor right_cancel_semigroup monoid, to_additive add_right_cancel_monoid]
+@[protect_proj, ancestor right_cancel_semigroup monoid]
 class right_cancel_monoid (M : Type u) extends right_cancel_semigroup M, monoid M
+attribute [to_additive] add_right_cancel_monoid
 
 end right_cancel_monoid
 

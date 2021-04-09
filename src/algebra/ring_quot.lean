@@ -76,12 +76,17 @@ variable (r : R → R → Prop)
 | ⟨a⟩ ⟨b⟩ := ⟨quot.map₂ (*) rel.mul_right rel.mul_left a b⟩
 @[irreducible] private def neg {R : Type u₁} [ring R] (r : R → R → Prop) : ring_quot r → ring_quot r
 | ⟨a⟩:= ⟨quot.map (λ a, -a) rel.neg a⟩
+@[irreducible] private def sub {R : Type u₁} [ring R] (r : R → R → Prop) :
+  ring_quot r → ring_quot r → ring_quot r
+| ⟨a⟩ ⟨b⟩ := ⟨quot.map₂ has_sub.sub rel.sub_right rel.sub_left a b⟩
+
 
 instance : has_zero (ring_quot r) := ⟨zero r⟩
 instance : has_one (ring_quot r) := ⟨one r⟩
 instance : has_add (ring_quot r) := ⟨add r⟩
 instance : has_mul (ring_quot r) := ⟨mul r⟩
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : has_neg (ring_quot r) := ⟨neg r⟩
+instance {R : Type u₁} [ring R] (r : R → R → Prop) : has_sub (ring_quot r) := ⟨sub r⟩
 
 lemma zero_quot : (⟨quot.mk _ 0⟩ : ring_quot r) = 0 := show _ = zero r, by rw zero
 lemma one_quot : (⟨quot.mk _ 1⟩ : ring_quot r) = 1 := show _ = one r, by rw one
@@ -92,6 +97,9 @@ by { show mul r _ _ = _, rw mul, refl }
 lemma neg_quot {R : Type u₁} [ring R] (r : R → R → Prop) {a} :
   (-⟨quot.mk _ a⟩ : ring_quot r) = ⟨quot.mk _ (-a)⟩ :=
 by { show neg r _ = _, rw neg, refl }
+lemma sub_quot {R : Type u₁} [ring R] (r : R → R → Prop) {a b} :
+  (⟨quot.mk _ a⟩ - ⟨ quot.mk _ b⟩ : ring_quot r) = ⟨quot.mk _ (a - b)⟩ :=
+by { show sub r _ _ = _, rw sub, refl }
 
 instance (r : R → R → Prop) : semiring (ring_quot r) :=
 { add           := (+),
@@ -113,8 +121,8 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : ring (ring_quot r) :=
 { neg           := has_neg.neg,
   add_left_neg  := by { rintros ⟨⟨⟩⟩, simp [neg_quot, add_quot, ← zero_quot], },
-  sub            := quot.map₂ (has_sub.sub) rel.sub_right rel.sub_left,
-  sub_eq_add_neg := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (sub_eq_add_neg _ _), },
+  sub            := has_sub.sub,
+  sub_eq_add_neg := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [neg_quot, sub_quot, add_quot, sub_eq_add_neg] },
   .. (ring_quot.semiring r) }
 
 instance {R : Type u₁} [comm_semiring R] (r : R → R → Prop) : comm_semiring (ring_quot r) :=

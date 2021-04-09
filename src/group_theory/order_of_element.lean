@@ -125,13 +125,13 @@ end
 lemma order_of_eq_zero {a : α} (h : ¬ is_of_fin_order a) : order_of a = 0 :=
 by rwa [order_of, minimal_period, dif_neg]
 
-lemma nsmul_ne_zero_of_lt_add_order' {m : ℕ} (m0 : m ≠ 0) (h : m < add_order_of x) :
+lemma nsmul_ne_zero_of_lt_add_order_of' {m : ℕ} (m0 : m ≠ 0) (h : m < add_order_of x) :
   m •ℕ x ≠ 0 :=
 λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period m0 h
   ((is_periodic_pt_add_iff_nsmul_eq_zero x).mpr j)
 
-@[to_additive nsmul_ne_zero_of_lt_add_order']
-lemma pow_eq_one_of_lt_order' {m : ℕ} (m0 : m ≠ 0) (h : m < order_of a) : a ^ m ≠ 1 :=
+@[to_additive nsmul_ne_zero_of_lt_add_order_of']
+lemma pow_eq_one_of_lt_order_of' {m : ℕ} (m0 : m ≠ 0) (h : m < order_of a) : a ^ m ≠ 1 :=
 λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period m0 h
   ((is_periodic_pt_mul_iff_pow_eq_one a).mpr j)
 

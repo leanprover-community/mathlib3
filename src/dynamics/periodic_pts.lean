@@ -270,6 +270,11 @@ begin
   exact (nat.find_le_iff _ _).mpr ⟨n, rfl.le, n0, hm⟩,
 end
 
+lemma not_is__periodic_pt_of_pos_of_lt_minimal_period :
+  ∀ {n: ℕ} (n0 : n ≠ 0) (hn : n < minimal_period f x), ¬ is_periodic_pt f n x
+| 0 n0 _ := (n0 rfl).elim
+| (n + 1) _ hn := λ hp, nat.succ_ne_zero _ (hp.eq_zero_of_lt_minimal_period hn)
+
 lemma is_periodic_pt.minimal_period_dvd (hx : is_periodic_pt f n x) :
   minimal_period f x ∣ n :=
 (eq_or_lt_of_le $ n.zero_le).elim (λ hn0, hn0 ▸ dvd_zero _) $ λ hn0,

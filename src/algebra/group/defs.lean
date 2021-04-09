@@ -262,7 +262,7 @@ class add_left_cancel_monoid (M : Type u) extends add_left_cancel_semigroup M, a
 /-- A monoid in which multiplication is left-cancellative. -/
 @[protect_proj, ancestor left_cancel_semigroup monoid]
 class left_cancel_monoid (M : Type u) extends left_cancel_semigroup M, monoid M
-attribute [to_additive] add_left_cancel_monoid
+attribute [to_additive] left_cancel_monoid
 
 end left_cancel_monoid
 
@@ -277,7 +277,7 @@ class add_right_cancel_monoid (M : Type u) extends add_right_cancel_semigroup M,
 /-- A monoid in which multiplication is right-cancellative. -/
 @[protect_proj, ancestor right_cancel_semigroup monoid]
 class right_cancel_monoid (M : Type u) extends right_cancel_semigroup M, monoid M
-attribute [to_additive] add_right_cancel_monoid
+attribute [to_additive] right_cancel_monoid
 
 end right_cancel_monoid
 
@@ -293,7 +293,7 @@ class add_cancel_monoid (M : Type u)
 /-- A monoid in which multiplication is cancellative. -/
 @[protect_proj, ancestor left_cancel_monoid right_cancel_monoid]
 class cancel_monoid (M : Type u) extends left_cancel_monoid M, right_cancel_monoid M
-attribute [to_additive] add_cancel_monoid
+attribute [to_additive] cancel_monoid
 
 /-- Commutative version of add_cancel_monoid. -/
 @[protect_proj, ancestor add_right_cancel_monoid add_left_cancel_monoid add_comm_monoid]
@@ -304,7 +304,7 @@ class add_cancel_comm_monoid (M : Type u) extends
 @[protect_proj, ancestor right_cancel_monoid left_cancel_monoid comm_monoid]
 class cancel_comm_monoid (M : Type u) extends
   right_cancel_monoid M, left_cancel_monoid M, comm_monoid M
-attribute [to_additive] add_cancel_comm_monoid
+attribute [to_additive] cancel_comm_monoid
 
 end cancel_monoid
 

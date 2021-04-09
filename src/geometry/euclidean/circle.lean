@@ -125,21 +125,6 @@ begin
   exact mul_norm_eq_sub_norm_pow_two hp hq,
 end
 
-/-- Every element of a set of four points belongs to the set. -/
-lemma four_set_mem (a b c d : P) :
-  a ∈ ({a, b, c, d} : set P) ∧ b ∈ ({a, b, c, d} : set P) ∧
-  c ∈ ({a, b, c, d} : set P) ∧ d ∈ ({a, b, c, d} : set P) :=
-begin
-  have ha : a ∈ {a, b, c, d} := set.mem_insert a {b, c, d},
-  have hb : b ∈ {a, b, c, d} := set.mem_insert_of_mem a (set.mem_insert b {c, d}),
-  have hc : c ∈ {a, b, c, d} := set.mem_insert_of_mem a
-                                  (set.mem_insert_of_mem b (set.mem_insert c {d})),
-  have hd : d ∈ {a, b, c, d} := set.mem_insert_of_mem a
-                                  (set.mem_insert_of_mem b
-                                    (set.mem_insert_of_mem c (set.mem_singleton d))),
-  exact ⟨ha, hb, hc, hd⟩,
-end
-
 /-- If `A`, `B`, `C`, `D` are cospherical and `P` is on boths lines `AB` and `CD`, then
 `AP * BP = CP * DP` .-/
 theorem mul_dist_eq_mul_dist_of_cospherical
@@ -150,7 +135,10 @@ theorem mul_dist_eq_mul_dist_of_cospherical
 begin
   set circle : set P := {a, b, c, d} with circle_def,
   obtain ⟨q, r, h⟩ := (cospherical_def circle).mp h,
-  obtain ⟨ha₀, hb₀, hc₀, hd₀⟩ := four_set_mem a b c d,
+  have ha₀ : a ∈ circle, finish,
+  have hb₀ : b ∈ circle, finish,
+  have hc₀ : c ∈ circle, finish,
+  have hd₀ : d ∈ circle, finish,
   obtain ⟨ha₁, hb₁, hc₁, hd₁⟩ := ⟨h a ha₀, h b hb₀, h c hc₀, h d hd₀⟩,
 
   have hqab : dist a q = dist b q, { rwa ← hb₁ at ha₁ },

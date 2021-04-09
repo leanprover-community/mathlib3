@@ -93,10 +93,15 @@ inductive prop : Type
 | or : prop → prop → prop   -- p ∨ q
 | imp : prop → prop → prop  -- p → q
 
+/-- Constructor for `p ∧ q`. -/
 @[pattern] def prop.and : prop → prop → prop := prop.and' and_kind.and
+/-- Constructor for `p ↔ q`. -/
 @[pattern] def prop.iff : prop → prop → prop := prop.and' and_kind.iff
+/-- Constructor for `p = q`. -/
 @[pattern] def prop.eq : prop → prop → prop := prop.and' and_kind.eq
+/-- Constructor for `¬ p`. -/
 @[pattern] def prop.not (a : prop) : prop := a.imp prop.false
+/-- Constructor for `xor p q`. -/
 @[pattern] def prop.xor (a b : prop) : prop := (a.and b.not).or (b.and a.not)
 
 instance : inhabited prop := ⟨prop.true⟩

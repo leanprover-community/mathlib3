@@ -149,7 +149,7 @@ begin
 end
 
 @[simp] lemma add_order_of_zero : add_order_of (0 : H) = 1 :=
-by simp [← order_of_of_add_eq_add_order_of]
+by simp only [←order_of_of_add_eq_add_order_of, order_of_one, of_add_zero]
 
 attribute [to_additive add_order_of_zero] order_of_one
 

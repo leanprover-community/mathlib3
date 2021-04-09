@@ -21,7 +21,7 @@ namespace fin
 @[simp]
 lemma univ_filter_zero_lt {n : ℕ} :
   (univ : finset (fin n.succ)).filter (λ i, 0 < i) =
-    univ.map ⟨_, succ_injective _⟩ :=
+    univ.map (fin.succ_embedding _).to_embedding :=
 begin
   ext i,
   simp only [mem_filter, mem_map, mem_univ, true_and,
@@ -37,7 +37,7 @@ end
 @[simp]
 lemma univ_filter_succ_lt {n : ℕ} (j : fin n) :
   (univ : finset (fin n.succ)).filter (λ i, j.succ < i) =
-    (univ.filter (λ i, j < i)).map ⟨_, succ_injective _⟩ :=
+    (univ.filter (λ i, j < i)).map (fin.succ_embedding _).to_embedding :=
 begin
   ext i,
   simp only [mem_filter, mem_map, mem_univ, true_and,

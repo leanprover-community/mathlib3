@@ -21,17 +21,17 @@ namespace fin
 -- of the `0` in the statement
 lemma sum_filter_zero_lt {M : Type*} [add_comm_monoid M] {n : ℕ} {v : fin n.succ → M} :
   ∑ i in univ.filter (λ (i : fin n.succ), 0 < i), v i = ∑ (j : fin n), v j.succ :=
-by rw [univ_filter_zero_lt, sum_map, function.embedding.coe_fn_mk]
+by rw [univ_filter_zero_lt, sum_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
 
 @[to_additive]
 lemma prod_filter_zero_lt {M : Type*} [comm_monoid M] {n : ℕ} {v : fin n.succ → M} :
   ∏ i in univ.filter (λ (i : fin n.succ), 0 < i), v i = ∏ (j : fin n), v j.succ :=
-by rw [univ_filter_zero_lt, finset.prod_map, function.embedding.coe_fn_mk]
+by rw [univ_filter_zero_lt, finset.prod_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
 
 @[to_additive]
 lemma prod_filter_succ_lt {M : Type*} [comm_monoid M] {n : ℕ} (j : fin n) (v : fin n.succ → M) :
   ∏ i in univ.filter (λ i, j.succ < i), v i =
     ∏ j in univ.filter (λ i, j < i), v j.succ :=
-by rw [univ_filter_succ_lt, finset.prod_map, function.embedding.coe_fn_mk]
+by rw [univ_filter_succ_lt, finset.prod_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
 
 end fin

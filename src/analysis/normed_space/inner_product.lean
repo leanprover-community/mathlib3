@@ -405,10 +405,7 @@ lemma inner_add_left {x y z : E} : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 inner_product_space.add_left _ _ _
 
 lemma inner_add_right {x y z : E} : ⟪x, y + z⟫ = ⟪x, y⟫ + ⟪x, z⟫ :=
-begin
-  rw [←inner_conj_sym, inner_add_left, ring_hom.map_add],
-  conv_rhs { rw ←inner_conj_sym, conv { congr, skip, rw ←inner_conj_sym } }
-end
+by { rw [←inner_conj_sym, inner_add_left, ring_hom.map_add], simp only [inner_conj_sym] }
 
 lemma inner_re_symm {x y : E} : re ⟪x, y⟫ = re ⟪y, x⟫ :=
 by rw [←inner_conj_sym, conj_re]
@@ -525,13 +522,9 @@ end
 
 lemma inner_self_re_abs {x : E} : re ⟪x, x⟫ = abs ⟪x, x⟫ :=
 begin
-  have H : ⟪x, x⟫ = (re ⟪x, x⟫ : 𝕜) + im ⟪x, x⟫ * I,
-  { rw re_add_im, },
-  rw [H, is_add_hom.map_add re ((re ⟪x, x⟫) : 𝕜) (((im ⟪x, x⟫) : 𝕜) * I)],
-  rw [mul_re, I_re, mul_zero, I_im, zero_sub, tactic.ring.add_neg_eq_sub],
-  rw [of_real_re, of_real_im, sub_zero, inner_self_nonneg_im],
-  simp only [abs_of_real, add_zero, of_real_zero, zero_mul],
-  exact (_root_.abs_of_nonneg inner_self_nonneg).symm,
+  symmetry,
+  rw [←inner_self_re_to_K] {occs := occurrences.pos [1]},
+  exact is_R_or_C.abs_of_nonneg inner_self_nonneg,
 end
 
 lemma inner_self_abs_to_K {x : E} : (absK ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=

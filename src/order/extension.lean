@@ -5,7 +5,13 @@ Author: Bhavik Mehta
 -/
 import data.set.lattice
 import order.zorn
-noncomputable theory
+
+/-!
+# Extend a partial order to a linear order
+
+This file constructs a linear order which is an extension of the given partial order, using Zorn's
+lemma.
+-/
 
 universes u
 open set classical

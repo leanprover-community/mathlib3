@@ -276,7 +276,7 @@ instance : distrib (⨁ i, A i) :=
 
 variables {A}
 
-lemma of_mul_of' {i j} (a : A i) (b : A j) :
+lemma mul_hom_of_of {i j} (a : A i) (b : A j) :
   mul_hom A (of _ i a) (of _ j b) = of _ (i + j) (ghas_mul.mul a b) :=
 begin
   unfold mul_hom,
@@ -286,7 +286,7 @@ end
 
 lemma of_mul_of {i j} (a : A i) (b : A j) :
   of _ i a * of _ j b = of _ (i + j) (ghas_mul.mul a b) :=
-of_mul_of' a b
+mul_hom_of_of a b
 
 end mul
 
@@ -301,7 +301,7 @@ suffices mul_hom A 1 = add_monoid_hom.id (⨁ i, A i),
 begin
   apply add_hom_ext, intros i xi,
   unfold has_one.one,
-  rw of_mul_of',
+  rw mul_hom_of_of,
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.one_mul ⟨i, xi⟩),
 end
 
@@ -311,7 +311,7 @@ suffices (mul_hom A).flip 1 = add_monoid_hom.id (⨁ i, A i),
 begin
   apply add_hom_ext, intros i xi,
   unfold has_one.one,
-  rw [flip_apply, of_mul_of'],
+  rw [flip_apply, mul_hom_of_of],
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_one ⟨i, xi⟩),
 end
 
@@ -323,7 +323,7 @@ suffices (mul_hom A).comp_hom.comp (mul_hom A)            -- `λ a b c, a * b * 
 begin
   ext ai ax bi bx ci cx : 6,
   dsimp only [coe_comp, function.comp_app, comp_hom_apply_apply, flip_apply, flip_hom_apply],
-  rw [of_mul_of', of_mul_of', of_mul_of', of_mul_of'],
+  rw [mul_hom_of_of, mul_hom_of_of, mul_hom_of_of, mul_hom_of_of],
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_assoc ⟨ai, ax⟩ ⟨bi, bx⟩ ⟨ci, cx⟩),
 end
 
@@ -351,7 +351,7 @@ suffices mul_hom A = (mul_hom A).flip,
   from add_monoid_hom.congr_fun (add_monoid_hom.congr_fun this a) b,
 begin
   apply add_hom_ext, intros ai ax, apply add_hom_ext, intros bi bx,
-  rw [add_monoid_hom.flip_apply, of_mul_of', of_mul_of'],
+  rw [add_monoid_hom.flip_apply, mul_hom_of_of, mul_hom_of_of],
   exact dfinsupp.single_eq_of_sigma_eq (gcomm_monoid.mul_comm ⟨ai, ax⟩ ⟨bi, bx⟩),
 end
 

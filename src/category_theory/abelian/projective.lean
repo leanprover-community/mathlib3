@@ -145,6 +145,8 @@ structure resolution (Z : C) :=
 
 end
 
+end enough_projectives
+
 namespace resolution
 
 /- We have to jump through some hoops to get `resolution.of` to typecheck! -/
@@ -166,7 +168,7 @@ def d' (Z : C) (n : ℕ) : X' O π @L @δ Z (n+1) ⟶ X' O π @L @δ Z n :=
 
 end
 
-variables [abelian C]
+variables [enough_projectives C] [abelian C]
 
 /--
 In any category with enough projectives,
@@ -192,8 +194,6 @@ def of (Z : C) : resolution Z :=
   exact := λ n, exact_d_f _ }
 
 end resolution
-
-end enough_projectives
 
 end projective
 

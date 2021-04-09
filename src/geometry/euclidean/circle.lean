@@ -9,6 +9,13 @@ import geometry.euclidean.monge_point
 import geometry.euclidean.triangle
 import linear_algebra.affine_space.midpoint
 
+/-!
+# Circles
+
+This file proves basic geometrical results about distances and angles
+in circles in real inner product spaces and Euclidean affine spaces.
+-/
+
 noncomputable theory
 open_locale big_operators
 open_locale euclidean_geometry
@@ -71,7 +78,7 @@ begin
   ... = abs ((r ^ 2 - l ^ 2) * ∥y∥ ^ 2)     : by norm_num
   ... = abs (r ^ 2 - l ^ 2) * abs (∥y∥ ^ 2) : by rw ← abs_mul _ _
   ... = abs (r ^ 2 - l ^ 2) * ∥y∥ ^ 2       : by rw abs_of_nonneg (pow_two_nonneg ∥y∥)
-  ... = abs ((r - l) * (r + l)) * ∥y∥ ^ 2   : by rw (show r ^ 2 - l ^ 2 = (r - l) * (r + l), by ring)
+  ... = abs ((r - l) * (r + l)) * ∥y∥ ^ 2  : by rw (show r ^ 2 - l ^ 2 = (r - l) * (r + l), by ring)
   ... = abs (r - l) * abs(r + l) * ∥y∥ ^ 2  : by rw abs_mul (r - l) (r + l)
   ... = (∥r - l∥ * ∥r + l∥) * ∥y∥ ^ 2         : by rw [← real.norm_eq_abs _, ← real.norm_eq_abs _]
   ... = (∥r - l∥ * ∥y∥) * (∥r + l∥ * ∥y∥)      : by ring

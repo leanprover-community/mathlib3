@@ -33,6 +33,7 @@ notation E ` →ₗᵢ[`:25 R:25 `] `:0 F:0 := linear_isometry R E F
 
 namespace linear_isometry
 
+/-- We use `f₁` when we need the domain to be a `normed_space`. -/
 variables (f : E →ₗᵢ[R] F) (f₁ : E₁ →ₗᵢ[R] F)
 
 instance : has_coe_to_fun (E →ₗᵢ[R] F) := ⟨_, λ f, f.to_fun⟩

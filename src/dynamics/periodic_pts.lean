@@ -283,10 +283,7 @@ lemma nat_dvd_iff_right {m n : ℕ} : (∀ a : ℕ, m ∣ a ↔ n ∣ a) ↔ m =
 
 lemma minimal_period_eq_minimal_period_iff {g : β → β} {y : β} :
   minimal_period f x = minimal_period g y ↔ ∀ n, is_periodic_pt f n x ↔ is_periodic_pt g n y :=
-begin
-  simp_rw is_periodic_pt_iff_minimal_period_dvd,
-  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
-end
+by simp_rw [is_periodic_pt_iff_minimal_period_dvd, nat_dvd_iff_right]
 
 lemma minimal_period_eq_prime {p : ℕ} [hp : fact p.prime] (hper : is_periodic_pt f p x)
   (hfix : ¬ is_fixed_pt f x) : minimal_period f x = p :=

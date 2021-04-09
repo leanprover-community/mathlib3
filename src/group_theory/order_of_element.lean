@@ -226,10 +226,7 @@ end
 @[to_additive add_order_of_eq_add_order_of_iff]
 lemma order_of_eq_order_of_iff {β : Type*} [monoid β] {b : β} :
   order_of a = order_of b ↔ ∀ n : ℕ, a ^ n = 1 ↔ b ^ n = 1 :=
-begin
-  simp_rw ← order_of_dvd_iff_pow_eq_one,
-  exact ⟨λ h n, by rw h, λ h, nat.dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _))⟩,
-end
+by simp_rw [← is_periodic_pt_mul_iff_pow_eq_one, ← minimal_period_eq_minimal_period_iff, order_of]
 
 lemma add_order_of_injective {A B : Type*} [add_monoid A] [add_monoid B] (f : A →+ B)
   (hf : function.injective f) (x : A) : add_order_of (f x) = add_order_of x :=

@@ -212,10 +212,8 @@ end
 lemma iterate_eq_mod_minimal_period : f^[n] x = (f^[n % minimal_period f x] x) :=
 begin
   conv_lhs { rw ← nat.mod_add_div n (minimal_period f x) },
-  rw [iterate_add, mul_comm, iterate_mul],
-  simp only [comp_app],
+  rw [iterate_add, mul_comm, iterate_mul, comp_app],
   congr,
-  rw [← is_fixed_pt, ← is_periodic_pt],
   exact is_periodic_pt.iterate (is_periodic_pt_minimal_period _ _) _,
 end
 

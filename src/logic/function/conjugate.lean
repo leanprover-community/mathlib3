@@ -52,7 +52,7 @@ lemma inverses_right (h : semiconj f ga gb) (ha : right_inverse ga' ga)
 end semiconj
 
 /-- Two maps `f g : α → α` commute if `f ∘ g = g ∘ f`.
-Given `h : function.commute f g` and `a : α`, the term `h a` has Type `h a : f (g a) = g (f a)`. -/
+Given `h : function.commute f g` and `a : α`, we have `h a : f (g a) = g (f a)`. -/
 def commute (f g : α → α) : Prop := semiconj f g g
 
 lemma semiconj.commute {f g : α → α} (h : semiconj f g g) : commute f g := h

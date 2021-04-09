@@ -265,7 +265,8 @@ end
 
 lemma app_injective_iff_stalk_maps_injective {F : sheaf (Type v) X}
   {G : presheaf (Type v) X} (f : F.presheaf ⟶ G) :
-  (∀ x : X, injective ((stalk_functor (Type v) x).map f)) ↔ (∀ U : opens X, injective (f.app (op U))) :=
+  (∀ x : X, injective ((stalk_functor (Type v) x).map f)) ↔
+  (∀ U : opens X, injective (f.app (op U))) :=
 ⟨app_injective_of_stalk_maps_injective f, stalk_map_injective_of_app_injective f⟩
 
 lemma app_bijective_of_stalk_maps_bijective {F G : sheaf (Type v) X} (f : F ⟶ G)

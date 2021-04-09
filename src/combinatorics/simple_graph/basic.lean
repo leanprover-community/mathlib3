@@ -576,8 +576,9 @@ lemma compl_neighbor_set (G : simple_graph V) (v : V) :
   Gᶜ.neighbor_set v = (G.neighbor_set v)ᶜ \ {v} :=
 begin
   ext w,
-  simp,
-  exact ⟨λ ⟨hne, hnadj⟩, ⟨hnadj, ne.symm hne⟩, λ ⟨hnadj, hne⟩, ⟨ne.symm hne, hnadj⟩⟩,
+  simp only [set.mem_diff, set.mem_singleton_iff, compl_adj, ne.def,
+              mem_neighbor_set, set.mem_compl_eq],
+  tauto,
 end
 
 variables [decidable_eq V]

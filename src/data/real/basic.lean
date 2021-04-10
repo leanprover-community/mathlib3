@@ -55,8 +55,14 @@ lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : ℝ) = ⟨a * b⟩ := show mul _ _
 
 instance : comm_ring ℝ :=
 begin
-  refine_struct { zero := 0, one := 1, mul := (*),
-    add := (+), neg := @has_neg.neg ℝ _, sub := λ a b, a + (-b) };
+  refine_struct { zero := 0,
+                  one   := 1,
+                  mul   := (*),
+                  add   := (+),
+                  neg   := @has_neg.neg ℝ _,
+                  sub   := λ a b, a + (-b),
+                  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
+                  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩ };
   repeat { rintro ⟨_⟩, };
   try { refl };
   simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy];

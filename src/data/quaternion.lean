@@ -133,8 +133,8 @@ by refine_struct
     sub := has_sub.sub,
     mul := (*),
     one := 1,
-    nsmul := _,
-    npow := _ };
+    nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
+    npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
   intros; try { refl }; ext; simp; ring_exp
 
 instance : algebra R ℍ[R, c₁, c₂] :=

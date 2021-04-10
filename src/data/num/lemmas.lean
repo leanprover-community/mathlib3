@@ -304,8 +304,9 @@ by refine_struct {
   add_zero := add_zero,
   mul      := (*),
   one      := 1,
-  nsmul    := _,
-  .. }; try {transfer}; simp [mul_add, mul_left_comm, mul_comm, add_comm]
+  nsmul    := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
+  npow     := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
+try { intros, refl }; try { transfer }; simp [mul_add, mul_left_comm, mul_comm, add_comm]
 
 instance : ordered_cancel_add_comm_monoid num :=
 { add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
@@ -419,7 +420,8 @@ instance : add_comm_semigroup pos_num :=
 by refine {add := (+), ..}; transfer
 
 instance : comm_monoid pos_num :=
-by refine_struct {mul := (*), one := (1 : pos_num), npow := _, ..}; transfer
+by refine_struct {mul := (*), one := (1 : pos_num), npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩};
+try { intros, refl}; transfer
 
 instance : distrib pos_num :=
 by refine {add := (+), mul := (*), ..}; {transfer, simp [mul_add, mul_comm]}

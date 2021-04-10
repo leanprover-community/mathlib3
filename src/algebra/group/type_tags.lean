@@ -159,12 +159,8 @@ instance [h : monoid α] : add_monoid (additive α) :=
 { zero     := 0,
   add      := (+),
   nsmul    := @npow α h,
-  nsmul_eq_rec := λ n x, begin
-    convert @monoid.npow_eq_rec α h n x,
-    induction n with n ih,
-    { refl },
-    { simp only [nsmul_rec, npow_rec, ih], refl }
-  end,
+  nsmul_zero' := monoid.npow_zero',
+  nsmul_succ' := monoid.npow_succ',
   ..additive.add_zero_class,
   ..additive.add_semigroup }
 
@@ -172,12 +168,8 @@ instance [h : add_monoid α] : monoid (multiplicative α) :=
 { one     := 1,
   mul     := (*),
   npow   := @nsmul α h,
-  npow_eq_rec := λ n x, begin
-    convert @add_monoid.nsmul_eq_rec α h n x,
-    induction n with n ih,
-    { refl },
-    { simp only [npow_rec, nsmul_rec, ih], refl }
-  end,
+  npow_zero' := add_monoid.nsmul_zero',
+  npow_succ' := add_monoid.nsmul_succ',
   ..multiplicative.mul_one_class,
   ..multiplicative.semigroup }
 

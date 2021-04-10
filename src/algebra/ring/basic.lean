@@ -606,6 +606,9 @@ protected theorem neg_eq_neg_one_mul (u : units α) : -u = -1 * u := by simp
 
 end units
 
+lemma is_unit.neg [ring α] {a : α} : is_unit a → is_unit (-a)
+| ⟨x, hx⟩ := hx ▸ (-x).is_unit
+
 namespace ring_hom
 
 /-- Ring homomorphisms preserve additive inverse. -/

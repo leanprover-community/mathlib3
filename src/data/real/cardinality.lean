@@ -119,7 +119,6 @@ begin
           ←tsum_geometric_of_lt_1 (le_of_lt h1) h3],
       apply zero_add },
     { convert tsum_eq_single 0 _,
-      { rw [cantor_function_aux, pow_zero], refl },
       { apply_instance },
       { intros n hn, cases n, contradiction, refl } } },
   rw [cantor_function_succ f (le_of_lt h1) h3, cantor_function_succ g (le_of_lt h1) h3],

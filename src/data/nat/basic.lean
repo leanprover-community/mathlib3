@@ -46,8 +46,8 @@ instance : comm_semiring nat :=
   mul_zero       := nat.mul_zero,
   mul_comm       := nat.mul_comm,
   nsmul          := λ m n, m * n,
-  nsmul_eq_rec   := by apply eq_nsmul_rec; intros;
-                      simp [nat.right_distrib, nat.one_mul, nat.zero_mul] }
+  nsmul_zero'    := nat.zero_mul,
+  nsmul_succ'    := nat.succ_mul }
 
 instance : linear_ordered_semiring nat :=
 { add_left_cancel            := @nat.add_left_cancel,
@@ -1196,7 +1196,7 @@ end
 
 -- TODO: Generalize?
 lemma pow_lt_pow_succ {p : ℕ} (h : 1 < p) (n : ℕ) : p^n < p^(n+1) :=
-suffices 1*p^n < p*p^n, by simpa,
+suffices 1*p^n < p*p^n, by simpa [pow_succ],
 nat.mul_lt_mul_of_pos_right h (pow_pos (lt_of_succ_lt h) n)
 
 lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
@@ -1316,7 +1316,7 @@ pow_dvd_pow_iff_le_right (nat.lt_of_sub_eq_succ rfl)
 
 lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
 | (succ p) (succ k) hp hk h :=
-  have succ p * (succ p)^k ∣ succ p * 1, by simpa,
+  have succ p * (succ p)^k ∣ succ p * 1, by  simpa [pow_succ] using h,
   have (succ p) ^ k ∣ 1, from dvd_of_mul_dvd_mul_left (succ_pos _) this,
   have he : (succ p) ^ k = 1, from eq_one_of_dvd_one this,
   have k < (succ p) ^ k, from lt_pow_self hp k,
@@ -1575,17 +1575,17 @@ eq.rec_on n.bit_decomp (H (bodd n) (div2 n))
 
 lemma shiftl_eq_mul_pow (m) : ∀ n, shiftl m n = m * 2 ^ n
 | 0     := (nat.mul_one _).symm
-| (k+1) := show bit0 (shiftl m k) = m * (2 * 2 ^ k),
-  by rw [bit0_val, shiftl_eq_mul_pow, mul_left_comm]
+| (k+1) := show bit0 (shiftl m k) = m * (2 ^ k * 2),
+  by rw [bit0_val, shiftl_eq_mul_pow, mul_left_comm, mul_comm 2 _]
 
 lemma shiftl'_tt_eq_mul_pow (m) : ∀ n, shiftl' tt m n + 1 = (m + 1) * 2 ^ n
 | 0     := by simp [shiftl, shiftl', pow_zero, nat.one_mul]
 | (k+1) :=
 begin
-  change bit1 (shiftl' tt m k) + 1 = (m + 1) * (2 * 2 ^ k),
+  change bit1 (shiftl' tt m k) + 1 = (m + 1) * (2 ^ k * 2),
   rw bit1_val,
   change 2 * (shiftl' tt m k + 1) = _,
-  rw [shiftl'_tt_eq_mul_pow, mul_left_comm]
+  rw [shiftl'_tt_eq_mul_pow, mul_left_comm, mul_comm 2],
 end
 
 lemma one_shiftl (n) : shiftl 1 n = 2 ^ n :=
@@ -1597,7 +1597,7 @@ lemma one_shiftl (n) : shiftl 1 n = 2 ^ n :=
 lemma shiftr_eq_div_pow (m) : ∀ n, shiftr m n = m / 2 ^ n
 | 0     := (nat.div_one _).symm
 | (k+1) := (congr_arg div2 (shiftr_eq_div_pow k)).trans $
-           by rw [div2_val, nat.div_div_eq_div_mul, mul_comm]; refl
+           by rw [div2_val, nat.div_div_eq_div_mul]; refl
 
 @[simp] lemma zero_shiftr (n) : shiftr 0 n = 0 :=
 (shiftr_eq_div_pow _ _).trans (nat.zero_div _)

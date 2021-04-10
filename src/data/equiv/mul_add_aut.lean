@@ -48,7 +48,7 @@ by refine_struct
   one := mul_equiv.refl M,
   inv := mul_equiv.symm,
   div := _,
-  npow := _ };
+  npow := @npow_rec _ ⟨mul_equiv.refl M⟩ ⟨λ g h, mul_equiv.trans h g⟩ };
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (mul_aut M) := ⟨1⟩
@@ -105,7 +105,7 @@ by refine_struct
   one := add_equiv.refl A,
   inv := add_equiv.symm,
   div := _,
-  npow := _ };
+  npow := @npow_rec _ ⟨add_equiv.refl A⟩ ⟨λ g h, add_equiv.trans h g⟩ };
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (add_aut A) := ⟨1⟩

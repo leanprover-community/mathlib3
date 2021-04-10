@@ -189,8 +189,9 @@ instance : add_comm_monoid (alternating_map R M N ι) :=
   add_comm := by intros; ext; simp [add_comm, add_left_comm],
   add_assoc := by intros; ext; simp [add_comm, add_left_comm],
   nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
-    ..((n • f : multilinear_map R (λ i : ι, M) N)) },
-  nsmul_eq_rec := by apply eq_nsmul_rec; { intros, ext, simp [add_smul], } }
+    .. ((n • f : multilinear_map R (λ i : ι, M) N)) },
+  nsmul_zero' := by { intros, ext, simp [add_smul], },
+  nsmul_succ' := by { intros, ext, simp [add_smul, nat.succ_eq_add_one], } }
 
 instance : has_neg (alternating_map R M N' ι) :=
 ⟨λ f,

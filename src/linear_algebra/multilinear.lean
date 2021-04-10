@@ -146,11 +146,8 @@ instance : add_comm_monoid (multilinear_map R M₁ M₂) :=
   add_zero := by intros; ext; simp [add_comm, add_left_comm],
   add_comm := by intros; ext; simp [add_comm, add_left_comm],
   nsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
-  nsmul_eq_rec := begin
-    apply eq_nsmul_rec,
-    { assume f, ext, simp },
-    { assume n f, ext, simp [add_smul] },
-  end }
+  nsmul_zero' := λ f, by { ext, simp },
+  nsmul_succ' := λ n f, by { ext, simp [add_smul, nat.succ_eq_add_one] } }
 
 @[simp] lemma sum_apply {α : Type*} (f : α → multilinear_map R M₁ M₂)
   (m : Πi, M₁ i) : ∀ {s : finset α}, (∑ a in s, f a) m = ∑ a in s, f a m :=
@@ -819,7 +816,7 @@ end add_comm_group
 
 section comm_semiring
 
-variables [comm_semiring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
+variables [comm_semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
 [∀i, semimodule R (M₁ i)] [semimodule R M₂]
 
 /-- When `ι` is finite, multilinear maps on `R^ι` with values in `M₂` are in bijection with `M₂`,

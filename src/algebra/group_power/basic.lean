@@ -65,7 +65,7 @@ variables [monoid M]
 @[simp] lemma pow_right {a x y : M} (h : semiconj_by a x y) (n : ℕ) : semiconj_by a (x^n) (y^n) :=
 begin
   induction n with n ih,
-  { simp [← npow_eq_pow] },
+  { simp [← npow_eq_pow, monoid.npow_zero'], },
   { simp only [← npow_eq_pow, nat.succ_eq_add_one, npow_one, npow_add] at ⊢ ih,
     exact ih.mul_right h }
 end
@@ -91,8 +91,8 @@ end commute
 section monoid
 variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
-@[simp] theorem pow_zero (a : M) : a^0 = 1 := npow_zero _
-@[simp] theorem zero_nsmul (a : A) : 0 • a = 0 := nsmul_zero' _
+@[simp] theorem pow_zero (a : M) : a^0 = 1 := monoid.npow_zero' _
+@[simp] theorem zero_nsmul (a : A) : 0 • a = 0 := add_monoid.nsmul_zero' _
 
 theorem pow_succ (a : M) (n : ℕ) : a^(n+1) = a * a^n :=
 by rw [← npow_eq_pow, nat.add_comm, npow_add, npow_one, npow_eq_pow]
@@ -143,7 +143,7 @@ by simp
 by induction n with n ih; [exact pow_zero _, rw [pow_succ, ih, one_mul]]
 
 @[simp] theorem nsmul_zero (n : ℕ) : n • (0 : A) = 0 :=
-by induction n with n ih; [exact nsmul_zero' _, rw [succ_nsmul, ih, zero_add]]
+by induction n with n ih; [exact add_monoid.nsmul_zero' _, rw [succ_nsmul, ih, zero_add]]
 
 theorem pow_mul (a : M) (m n : ℕ) : a^(m * n) = (a^m)^n :=
 begin

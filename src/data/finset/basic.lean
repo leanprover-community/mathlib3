@@ -696,10 +696,34 @@ begin
   exact union_of singletons (symm hi),
 end
 
+lemma exists_mem_subset_of_subset_bUnion_of_directed_on {α ι : Type*}
+  {f : ι → set α}  {c : set ι} {a : ι} (hac : a ∈ c) (hc : directed_on (λ i j, f i ⊆ f j) c)
+  {s : finset α} (hs : (s : set α) ⊆ ⋃ i ∈ c, f i) : ∃ i ∈ c, (s : set α) ⊆ f i :=
+begin
+  classical,
+  revert hs,
+  apply s.induction_on,
+  { intros,
+    use [a, hac],
+    simp },
+  { intros b t hbt htc hbtc,
+    obtain ⟨i : ι , hic : i ∈ c, hti : (t : set α) ⊆ f i⟩ :=
+      htc (set.subset.trans (t.subset_insert b) hbtc),
+    obtain ⟨j, hjc, hbj⟩ : ∃ j ∈ c, b ∈ f j,
+      by simpa [set.mem_bUnion_iff] using hbtc (t.mem_insert_self b),
+    rcases hc j hjc i hic with ⟨k, hkc, hk, hk'⟩,
+    use [k, hkc],
+    rw [coe_insert, set.insert_subset],
+    exact ⟨hk hbj, trans hti hk'⟩ }
+end
+
 /-! ### inter -/
 
 /-- `s ∩ t` is the set such that `a ∈ s ∩ t` iff `a ∈ s` and `a ∈ t`. -/
 instance : has_inter (finset α) := ⟨λ s₁ s₂, ⟨_, nodup_ndinter s₂.1 s₁.2⟩⟩
+
+-- TODO: some of these results may have simpler proofs, once there are enough results
+-- to obtain the `lattice` instance.
 
 theorem inter_val_nd (s₁ s₂ : finset α) : (s₁ ∩ s₂).1 = ndinter s₁.1 s₂.1 := rfl
 
@@ -840,6 +864,14 @@ theorem union_distrib_left (s t u : finset α) : s ∪ (t ∩ u) = (s ∪ t) ∩
 theorem union_distrib_right (s t u : finset α) : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) := sup_inf_right
 
 lemma union_eq_empty_iff (A B : finset α) : A ∪ B = ∅ ↔ A = ∅ ∧ B = ∅ := sup_eq_bot_iff
+
+theorem inter_eq_left_iff_subset (s t : finset α) :
+  s ∩ t = s ↔ s ⊆ t :=
+(inf_eq_left : s ⊓ t = s ↔ s ≤ t)
+
+theorem inter_eq_right_iff_subset (s t : finset α) :
+  t ∩ s = s ↔ s ⊆ t :=
+(inf_eq_right : t ⊓ s = s ↔ s ≤ t)
 
 /-! ### erase -/
 

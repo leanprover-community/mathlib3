@@ -308,7 +308,10 @@ protected meta def attr : user_attribute unit value_type :=
     then proceed_fields env src tgt prio
     else do
       transform_decl_with_prefix_dict dict src tgt
-        [`reducible, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator, `no_rsimp],
+        [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
+         `no_rsimp],
+      mwhen (has_attribute' `simps src)
+        (trace "Apply the simps attribute after the to_additive attribute"),
       match val.doc with
       | some doc := add_doc_string tgt doc
       | none := skip

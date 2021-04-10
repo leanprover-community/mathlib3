@@ -305,10 +305,9 @@ do    tgt ← target >>= whnf,
       gs ← with_enable_tags (
         mzip_with (λ (n : name × name) v, do
            set_goals [v],
-           try (dsimp_target simp_lemmas.mk),
            apply_auto_param
              <|> apply_opt_param
-             <|> (set_main_tag [`_field,n.2,n.1]),
+             <|> (try (dsimp_target simp_lemmas.mk) >> (set_main_tag [`_field,n.2,n.1])),
            get_goals)
         missing_f' vs),
       set_goals gs.join,
@@ -328,7 +327,7 @@ literals. It creates a goal for each missing field and tags it with the name of 
 field so that `have_field` can be used to generically refer to the field currently
 being refined.
 
-As an example, we can use `refine_struct` to automate the construction semigroup
+As an example, we can use `refine_struct` to automate the construction of semigroup
 instances:
 
 ```lean

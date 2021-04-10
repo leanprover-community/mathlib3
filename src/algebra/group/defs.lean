@@ -228,37 +228,17 @@ variables {M : Type u}
 
 /-- The fundamental power operation in a monoid. `npow_rec n a = a*a*...*a` n times.
 Use instead `a ^ n`,  which has better definitional behavior. -/
-def npow_rec [has_mul M] [has_one M] : ℕ → M → M
+def npow_rec [has_one M] [has_mul M] : ℕ → M → M
 | 0     a := 1
-| (n+1) a := a * npow_rec n a
+| (n+1) a := npow_rec n a * a
 
 /-- The fundamental scalar multiplication in an additive monoid. `nsmul_rec n a = a+a+...+a` n
 times. Use instead `n • a`, which has better definitional behavior. -/
-def nsmul_rec [has_add M] [has_zero M] : ℕ → M → M
+def nsmul_rec [has_zero M] [has_add M] : ℕ → M → M
 | 0     a := 0
-| (n+1) a := a + nsmul_rec n a
+| (n+1) a := nsmul_rec n a + a
 
 attribute [to_additive] npow_rec
-
-lemma eq_npow_rec [has_mul M] [has_one M] (f : ℕ → M → M)
-  (hzero : ∀ x, f 0 x = 1) (hadd : ∀ n x, f (1 + n) x = x * f n x)
-  (n : ℕ) (x : M) : f n x = npow_rec n x:=
-begin
-  induction n with n ih,
-  { simp [hzero, npow_rec] },
-  { rw [nat.succ_eq_add_one, npow_rec, ← ih, ← hadd, nat.add_comm], }
-end
-
-lemma eq_nsmul_rec [has_add M] [has_zero M] (f : ℕ → M → M)
-  (hzero : ∀ x, f 0 x = 0) (hadd : ∀ n x, f (1 + n) x = x + f n x)
-  (n : ℕ) (x : M) : f n x = nsmul_rec n x :=
-begin
-  induction n with n ih,
-  { simp [hzero, nsmul_rec] },
-  { rw [nat.succ_eq_add_one, nsmul_rec, ← ih, ← hadd, nat.add_comm] }
-end
-
-attribute [to_additive] eq_npow_rec
 
 end
 
@@ -348,11 +328,14 @@ monoids are built in the file `algebra.group_power.basic`. For now, we only regi
 properties that we need right away.
 -/
 
+-- use `n.succ` instead of `n + 1` in the `npow_succ'` field to make sure that `to_additive`
+-- is not lost (otherwise, it would try to convert `1 : ℕ` to `0 : ℕ`)
 /-- A `monoid` is a `semigroup` with an element `1` such that `1 * a = a * 1 = a`. -/
 @[ancestor semigroup mul_one_class]
 class monoid (M : Type u) extends semigroup M, mul_one_class M :=
 (npow : ℕ → M → M := npow_rec)
-(npow_eq_rec : ∀ n x, npow n x = npow_rec n x . try_refl_tac)
+(npow_zero' : ∀ x, npow 0 x = 1 . try_refl_tac)
+(npow_succ' : ∀ (n : ℕ) x, npow n.succ x = npow n x * x . try_refl_tac)
 
 export monoid (npow)
 
@@ -360,7 +343,8 @@ export monoid (npow)
 @[ancestor add_semigroup add_zero_class]
 class add_monoid (M : Type u) extends add_semigroup M, add_zero_class M :=
 (nsmul : ℕ → M → M := nsmul_rec)
-(nsmul_eq_rec : ∀ n (x : M), nsmul n x = nsmul_rec n x . try_refl_tac)
+(nsmul_zero' : ∀ x, nsmul 0 x = 0 . try_refl_tac)
+(nsmul_succ' : ∀ (n : ℕ) x, nsmul n.succ x = nsmul n x + x . try_refl_tac)
 
 export add_monoid (nsmul)
 
@@ -375,40 +359,24 @@ by rw [←one_mul c, ←hba, mul_assoc, hac, mul_one b]
 
 end monoid
 
-@[simp, to_additive nsmul_zero']
-lemma npow_zero {M : Type u} [monoid M] (x : M) :
-  npow 0 x = 1 :=
-by simp [monoid.npow_eq_rec, npow_rec]
-
-@[simp] lemma npow_one {M : Type u} [monoid M] (x : M) :
+lemma npow_one {M : Type u} [monoid M] (x : M) :
   npow 1 x = x :=
-by simp [monoid.npow_eq_rec, npow_rec]
+by simp [monoid.npow_succ', monoid.npow_zero']
 
 @[simp] lemma nsmul_one' {M : Type u} [add_monoid M] (x : M) :
   nsmul 1 x = x :=
-by simp [add_monoid.nsmul_eq_rec, nsmul_rec]
+by simp [add_monoid.nsmul_succ', add_monoid.nsmul_zero']
 
 attribute [to_additive nsmul_one'] npow_one
 
+@[to_additive nsmul_add']
 lemma npow_add {M : Type u} [monoid M] (m n : ℕ) (x : M) :
   npow (m + n) x = npow m x * npow n x :=
 begin
-  simp only [monoid.npow_eq_rec],
-  induction m with m ih,
-  { rw [nat.zero_add, npow_rec, one_mul], },
-  { rw [nat.succ_add, npow_rec, ih, npow_rec, ← mul_assoc] }
+  induction n with n ih,
+  { rw [nat.add_zero, monoid.npow_zero', mul_one], },
+  { rw [nat.add_succ, monoid.npow_succ', monoid.npow_succ', ih, ← mul_assoc] }
 end
-
-lemma nsmul_add' {M : Type u} [add_monoid M] (m n : ℕ) (x : M) :
-  nsmul (m + n) x = nsmul m x + nsmul n x :=
-begin
-  simp only [add_monoid.nsmul_eq_rec],
-  induction m with m ih,
-  { rw [nat.zero_add, nsmul_rec, zero_add] },
-  { rw [nat.succ_add, nsmul_rec, ih, nsmul_rec, ← add_assoc] }
-end
-
-attribute [to_additive nsmul_add'] npow_add
 
 /-- A commutative monoid is a monoid with commutative `(*)`. -/
 @[protect_proj, ancestor monoid comm_semigroup]

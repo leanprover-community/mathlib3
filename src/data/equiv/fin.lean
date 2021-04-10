@@ -209,25 +209,25 @@ begin
 end
 
 /-- Rotate `fin n` one step to the right. -/
-def fin_rotate : Π n, fin n ≃ fin n
+def fin_rotate : Π n, equiv.perm (fin n)
 | 0 := equiv.refl _
 | (n+1) := fin_add_flip.trans (fin_congr (add_comm _ _))
 
-@[simp] lemma fin_rotate_of_lt {k : ℕ} (h : k < n) :
+lemma fin_rotate_of_lt {k : ℕ} (h : k < n) :
   fin_rotate (n+1) ⟨k, lt_of_lt_of_le h (nat.le_succ _)⟩ = ⟨k + 1, nat.succ_lt_succ h⟩ :=
 begin
   dsimp [fin_rotate],
   simp [h, add_comm],
 end
 
-@[simp] lemma fin_rotate_last' : fin_rotate (n+1) ⟨n, lt_add_one _⟩ = ⟨0, nat.zero_lt_succ _⟩ :=
+lemma fin_rotate_last' : fin_rotate (n+1) ⟨n, lt_add_one _⟩ = ⟨0, nat.zero_lt_succ _⟩ :=
 begin
   dsimp [fin_rotate],
   rw fin_add_flip_apply_right,
   simp,
 end
 
-@[simp] lemma fin_rotate_last : fin_rotate (n+1) (fin.last _) = 0 :=
+lemma fin_rotate_last : fin_rotate (n+1) (fin.last _) = 0 :=
 fin_rotate_last'
 
 lemma fin.snoc_eq_cons_rotate {α : Type*} (v : fin n → α) (a : α) :
@@ -243,6 +243,38 @@ begin
     rw [fin_rotate_last', fin.snoc, fin.cons, dif_neg (lt_irrefl _)],
     refl, }
 end
+
+@[simp] lemma fin_rotate_zero : fin_rotate 0 = equiv.refl _ := rfl
+
+@[simp] lemma fin_rotate_one : fin_rotate 1 = equiv.refl _ :=
+subsingleton.elim _ _
+
+@[simp] lemma fin_rotate_succ_apply {n : ℕ} (i : fin n.succ) :
+  fin_rotate n.succ i = i + 1 :=
+begin
+  cases n,
+  { simp },
+  rcases i.le_last.eq_or_lt with rfl|h,
+  { simp [fin_rotate_last] },
+  { cases i,
+    simp only [fin.lt_iff_coe_lt_coe, fin.coe_last, fin.coe_mk] at h,
+    simp [fin_rotate_of_lt h, fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt (nat.succ_lt_succ h)] },
+end
+
+@[simp] lemma fin_rotate_apply_zero {n : ℕ} : fin_rotate n.succ 0 = 1 :=
+by rw [fin_rotate_succ_apply, zero_add]
+
+lemma coe_fin_rotate_of_ne_last {n : ℕ} {i : fin n.succ} (h : i ≠ fin.last n) :
+  (fin_rotate n.succ i : ℕ) = i + 1 :=
+begin
+  rw fin_rotate_succ_apply,
+  have : (i : ℕ) < n := lt_of_le_of_ne (nat.succ_le_succ_iff.mp i.2) (fin.coe_injective.ne h),
+  exact fin.coe_add_one_of_lt this
+end
+
+lemma coe_fin_rotate {n : ℕ} (i : fin n.succ) :
+  (fin_rotate n.succ i : ℕ) = if i = fin.last n then 0 else i + 1 :=
+by rw [fin_rotate_succ_apply, fin.coe_add_one i]
 
 /-- Equivalence between `fin m × fin n` and `fin (m * n)` -/
 def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=

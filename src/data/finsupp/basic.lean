@@ -859,7 +859,8 @@ instance : add_monoid (α →₀ M) :=
   add       := (+),
   add_assoc := assume ⟨s, f, hf⟩ ⟨t, g, hg⟩ ⟨u, h, hh⟩, ext $ assume a, add_assoc _ _ _,
   nsmul := λ n v, v.map_range ((•) n) (nsmul_zero _),
-  nsmul_eq_rec := by apply eq_nsmul_rec; { intros, ext, simp [add_nsmul], },
+  nsmul_zero' := λ v, by { ext i, simp },
+  nsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_add_one, add_nsmul] },
   .. finsupp.add_zero_class }
 
 end add_monoid
@@ -1832,7 +1833,7 @@ on_finset
 
 @[simp] lemma coe_sum_elim {α β γ : Type*} [has_zero γ]
   (f : α →₀ γ) (g : β →₀ γ) : ⇑(sum_elim f g) = sum.elim f g := rfl
-  
+
 lemma sum_elim_apply {α β γ : Type*} [has_zero γ]
   (f : α →₀ γ) (g : β →₀ γ) (x : α ⊕ β) : sum_elim f g x = sum.elim f g x := rfl
 

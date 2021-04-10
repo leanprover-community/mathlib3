@@ -98,25 +98,20 @@ instance [add_comm_semigroup α] : add_comm_semigroup (holor α ds) :=
 by refine_struct { add := (+), .. }; tactic.pi_instance_derive_field
 
 instance [add_monoid α] : add_monoid (holor α ds) :=
-begin
-  refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
-  try { tactic.pi_instance_derive_field },
-  apply eq_nsmul_rec,
-  { assume x, ext i, simp },
-  { assume n x, ext i, simp [nsmul_add'], }
-end
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+tactic.pi_instance_derive_field
 
 instance [add_comm_monoid α] : add_comm_monoid (holor α ds) :=
-by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i),
-  .. holor.add_monoid }; tactic.pi_instance_derive_field
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+tactic.pi_instance_derive_field
 
 instance [add_group α] : add_group (holor α ds) :=
-by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i),
-  .. holor.add_monoid }; tactic.pi_instance_derive_field
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+tactic.pi_instance_derive_field
 
 instance [add_comm_group α] : add_comm_group (holor α ds) :=
-by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i),
-  .. holor.add_monoid }; tactic.pi_instance_derive_field
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+tactic.pi_instance_derive_field
 
 /- scalar product -/
 

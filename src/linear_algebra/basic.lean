@@ -186,7 +186,8 @@ instance : add_comm_monoid (M →ₗ[R] M₂) :=
     to_fun := λ x, n • (f x),
     map_add' := λ x y, by rw [f.map_add, smul_add],
     map_smul' := λ c x, by rw [f.map_smul, smul_comm n c (f x)] },
-  nsmul_eq_rec := by apply eq_nsmul_rec; { intros, ext, dsimp, simp [add_smul] } }
+  nsmul_zero' := λ f, by { ext x, simp },
+  nsmul_succ' := λ n f, by { ext x, simp [nat.succ_eq_add_one, add_nsmul] } }
 
 instance linear_map_apply_is_add_monoid_hom (a : M) :
   is_add_monoid_hom (λ f : M →ₗ[R] M₂, f a) :=
@@ -221,12 +222,11 @@ end smul_right
 instance : has_one (M →ₗ[R] M) := ⟨linear_map.id⟩
 instance : has_mul (M →ₗ[R] M) := ⟨linear_map.comp⟩
 
+lemma one_eq_id : (1 : M →ₗ[R] M) = id := rfl
 lemma mul_eq_comp (f g : M →ₗ[R] M) : f * g = f.comp g := rfl
 
 @[simp] lemma one_apply (x : M) : (1 : M →ₗ[R] M) x = x := rfl
 @[simp] lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
-
-lemma one_eq_id : (1 : M →ₗ[R] M) = linear_map.id := rfl
 
 lemma coe_one : ⇑(1 : M →ₗ[R] M) = _root_.id := rfl
 lemma coe_mul (f g : M →ₗ[R] M) : ⇑(f * g) = f ∘ g := rfl
@@ -242,7 +242,7 @@ rfl
 add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 
 instance : monoid (M →ₗ[R] M) :=
-by refine_struct { mul := (*), one := (1 : M →ₗ[R] M), npow := _ };
+by refine_struct { mul := (*), one := (1 : M →ₗ[R] M), npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
 intros; try { refl }; apply linear_map.ext; simp {proj := ff}
 
 @[simp] lemma pow_apply (f : M →ₗ[R] M) (n : ℕ) (m : M) :
@@ -478,7 +478,7 @@ by refine_struct
     one := (1 : M →ₗ[R] M),
     zero := 0,
     add := (+),
-    npow := _,
+    npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
     .. linear_map.add_comm_monoid, .. };
 intros; try { refl }; apply linear_map.ext; simp {proj := ff}
 
@@ -1155,11 +1155,9 @@ instance : add_comm_group (quotient p) :=
     simp only [←mk_add p, ←mk_neg p, ←mk_sub p, sub_eq_add_neg, quot_mk_eq_mk] },
   nsmul := λ n x, quotient.lift_on' x (λ x, mk (n • x)) $
      λ x y h, (quotient.eq p).2 $ by simpa [smul_sub] using smul_of_tower_mem p n h,
-  nsmul_eq_rec := begin
-    apply eq_nsmul_rec,
-    { rintros ⟨x⟩, simp only [←mk_zero p, quot_mk_eq_mk, zero_smul], refl },
-    { rintros n ⟨x⟩, simp only [add_smul, quot_mk_eq_mk, one_nsmul], refl }
-  end }
+  nsmul_zero' := by { rintros ⟨⟩, simp only [mk_zero, quot_mk_eq_mk, zero_smul], refl },
+  nsmul_succ' := by { rintros n ⟨⟩,
+    simp only [nat.succ_eq_add_one, add_nsmul, mk_add, quot_mk_eq_mk, one_nsmul], refl } }
 
 instance : has_scalar R (quotient p) :=
 ⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $

@@ -21,7 +21,7 @@ open opposite
 
 -- We use the same universe order as in category theory.
 -- See note [category_theory universes]
-universes v u
+universes v v₁ v₂ u u₁ u₂
 
 /-- A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
     a type `a ⟶ b` of arrows from `a` to `b`. -/
@@ -29,6 +29,25 @@ class quiver (V : Type u) :=
 (hom : V → V → Type v)
 
 infixr ` ⟶ `:10 := quiver.hom -- type as \h
+
+structure prefunctor (V : Type u₁) [quiver.{v₁} V] (W : Type u₂) [quiver.{v₂} W] :=
+(obj [] : V → W)
+(map : Π {X Y : V}, (X ⟶ Y) → (obj X ⟶ obj Y))
+
+namespace prefunctor
+
+@[simps]
+def id (V : Type*) [quiver V] : prefunctor V V :=
+{ obj := id,
+  map := λ X Y f, f, }
+
+@[simps]
+def comp {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W]
+  (F : prefunctor U V) (G : prefunctor V W) : prefunctor U W :=
+{ obj := λ X, G.obj (F.obj X),
+  map := λ X Y f, G.map (F.map f), }
+
+end prefunctor
 
 /-- A wide subquiver `H` of `G` picks out a set `H a b` of arrows from `a` to `b`
     for every pair of vertices `a b`. -/
@@ -136,6 +155,33 @@ def comp {a b : V} : Π {c}, path a b → path b c → path a c
 | d p q (path.cons r e) := by rw [comp_cons, comp_cons, comp_cons, comp_assoc]
 
 end path
+
+end quiver
+
+namespace prefunctor
+
+open quiver
+
+variables {V : Type u₁} [quiver.{v₁} V] {W : Type u₂} [quiver.{v₂} W] (F : prefunctor V W)
+
+/-- The image of a path under a prefunctor. -/
+def map_path {a : V} :
+  Π {b : V}, path a b → path (F.obj a) (F.obj b)
+| _ path.nil := path.nil
+| _ (path.cons p e) := path.cons (map_path p) (F.map e)
+
+@[simp] lemma map_path_nil (a : V) : F.map_path (path.nil : path a a) = path.nil := rfl
+@[simp] lemma map_path_cons {a b c : V} (p : path a b) (e : b ⟶ c) :
+  F.map_path (path.cons p e) = path.cons (F.map_path p) (F.map e) := rfl
+
+@[simp] lemma map_path_comp {a b : V} (p : path a b) :
+  ∀ {c : V} (q : path b c), F.map_path (p.comp q) = (F.map_path p).comp (F.map_path q)
+| _ path.nil := rfl
+| _ (path.cons p e) := begin dsimp, rw [map_path_comp], end
+
+end prefunctor
+
+namespace quiver
 
 /-- A quiver is an arborescence when there is a unique path from the default vertex
     to every other vertex. -/

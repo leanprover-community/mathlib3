@@ -10,9 +10,9 @@ import category_theory.triangulated.basic
 import category_theory.triangulated.rotate
 
 /-!
-# Pre-triangulated Categories
+# Pretriangulated Categories
 
-This file contains the definition of pre-triangulated categories and triangulated functors
+This file contains the definition of pretriangulated categories and triangulated functors
 between them.
 
 TODO: generalise this to n-angulated categories as in https://arxiv.org/abs/1006.4592
@@ -29,7 +29,7 @@ namespace category_theory.triangulated
 open category_theory.category
 
 /-
-We work in an additive category C equipped with an additive shift.
+We work in an additive category `C` equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [has_shift C] [additive_category C]
 [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
@@ -75,18 +75,16 @@ Given any distinguished triangle `T`, then we know `T.rotate C` is also distingu
 -/
 lemma rot_of_dist_triangle [CT : pretriangulated C] (T ∈ CT.distinguished_triangles) :
   (T.rotate C ∈ CT.distinguished_triangles) :=
-by exact (pretriangulated.rotate_distinguished_triangle T).mp H
+(pretriangulated.rotate_distinguished_triangle T).mp H
 
 /--
 Given any distinguished triangle `T`, then we know `T.inv_rotate C` is also distinguished.
 -/
 lemma inv_rot_of_dist_triangle [CT : pretriangulated C] (T ∈ CT.distinguished_triangles) :
   (T.inv_rotate C ∈ CT.distinguished_triangles) :=
-begin
-  apply (pretriangulated.rotate_distinguished_triangle (T.inv_rotate C)).mpr,
-  exact pretriangulated.isomorphic_distinguished T H (triangulated.triangle.rotate C
-    (triangulated.triangle.inv_rotate C T)) T ((inv_rot_comp_rot C).symm.app T),
-end
+(pretriangulated.rotate_distinguished_triangle (T.inv_rotate C)).mpr
+  (pretriangulated.isomorphic_distinguished T H (triangulated.triangle.rotate C
+    (triangulated.triangle.inv_rotate C T)) T ((inv_rot_comp_rot C).symm.app T))
 
 /--
 Given any distinguished triangle
@@ -107,7 +105,6 @@ begin
     by refl,
   specialize f t,
   cases f with c f,
-  simp at c,
   rw ← f.left,
   simp only [limits.zero_comp, triangulated.contractible_triangle_mor₂],
 end -- TODO : tidy this proof up
@@ -149,7 +146,7 @@ end
 
 /-
 TODO: If `C` is pretriangulated with respect to a shift,
-then `C^{op}` is pretriangulated with respect to the inverse shift.
+then `Cᵒᵖ` is pretriangulated with respect to the inverse shift.
 -/
 
 end category_theory.triangulated
@@ -162,7 +159,7 @@ variables (D : Type u₂) [category.{v₂} D] [has_shift D] [additive_category D
 [functor.additive (shift D).functor] [functor.additive (shift D).inverse]
 
 /--
-A triangulated functor between pretriangulated categories C and D is a functor `F : C ⥤ D`
+A triangulated functor between pretriangulated categories `C` and `D` is a functor `F : C ⥤ D`
 together with given functorial isomorphisms `ξ X : F(X⟦1⟧) ⟶ F(X)⟦1⟧` with extra conditions
 involving images of triangles.
 -/
@@ -191,7 +188,7 @@ def triangulated_functor_struct.map_triangle (F : triangulated_functor_struct C 
 
 variables (C D)
 /--
-A triangulated functor between pretriangulated categories C and D is a functor `F : C ⥤ D`
+A triangulated functor between pretriangulated categories `C` and `D` is a functor `F : C ⥤ D`
 together with given functorial isomorphisms `ξ X : F(X⟦1⟧) ⟶ F(X)⟦1⟧` such that for every
 distinguished triangle `(X,Y,Z,f,g,h)` of `C`, the triangle
 `(F(X), F(Y), F(Z), F(f), F(g), F(h) ≫ (ξ X))` is a distinguished triangle of `D`.
@@ -210,8 +207,7 @@ instance [CT : pretriangulated C] : inhabited (triangulated_functor C C) :=
     intros T Tdt,
     cases T,
     dsimp at *,
-    rw category.comp_id,
-    assumption,
+    rwa category.comp_id,
   end
 }⟩
 

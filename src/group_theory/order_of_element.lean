@@ -185,7 +185,7 @@ by rw [← is_periodic_pt_add_iff_nsmul_eq_zero, is_periodic_pt_iff_minimal_peri
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
 by rw [← is_periodic_pt_mul_iff_pow_eq_one, is_periodic_pt_iff_minimal_period_dvd, order_of]
 
--- Move somewhere else
+-- This lemma is no longer used in this PR
 @[to_additive]
 lemma commute.function_commute_mul (h : commute a b) : function.commute (*a) (*b) :=
 by simp [function.commute, function.semiconj, mul_assoc, h.eq]

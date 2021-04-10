@@ -87,8 +87,8 @@ end
 
 variable (R)
 
-/-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear  between `α →₀ β`
-and `α → β`. -/
+/-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear equivalence between
+`α →₀ β` and `α → β`. -/
 @[simps apply] noncomputable def linear_equiv_fun_on_fintype {α} [fintype α] [add_comm_monoid M]
   [semiring R] [semimodule R M] :
   (α →₀ M) ≃ₗ[R] (α → M) :=

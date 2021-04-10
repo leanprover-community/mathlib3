@@ -29,11 +29,11 @@ open opposite
 universes v u
 
 /-- A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
-    a type `G.arrow a b` of arrows from `a` to `b`. -/
+    a type `a ⟶ b` of arrows from `a` to `b`. -/
 class quiver (V : Type u) :=
-(arrow : V → V → Type v)
+(hom : V → V → Type v)
 
-infixr ` ⟶ `:10 := quiver.arrow -- type as \h
+infixr ` ⟶ `:10 := quiver.hom -- type as \h
 
 /-- A wide subquiver `H` of `G` picks out a set `H a b` of arrows from `a` to `b`
     for every pair of vertices `a b`. -/
@@ -105,7 +105,7 @@ inductive path {V : Type u} [quiver.{v} V] (a : V) : V → Type (max u v)
 | cons : Π {b c : V}, path b → (b ⟶ c) → path c
 
 /-- An arrow viewed as a path of length one. -/
-def arrow.to_path {V} [quiver V] {a b : V} (e : a ⟶ b) : path a b :=
+def hom.to_path {V} [quiver V] {a b : V} (e : a ⟶ b) : path a b :=
 path.nil.cons e
 
 namespace path

@@ -74,14 +74,8 @@ lemma sup_mono (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
 sup_le $ assume b hb, le_sup (h hb)
 
 @[simp] lemma sup_lt_iff [is_total α (≤)] {a : α} (ha : ⊥ < a) : s.sup f < a ↔ (∀ b ∈ s, f b < a) :=
-iff.intro (λ hs b hb, lt_of_le_of_lt (le_sup hb) hs)
-begin
-  intro hs,
-  induction s using finset.cons_induction with c s hc ih,
-  { exact ha, },
-  { rw [sup_cons, _root_.sup_lt_iff],
-    exact ⟨hs c (mem_cons.2 (or.inl rfl)), ih (λ b h, hs b (mem_cons.2 (or.inr h)))⟩, },
-end
+⟨(λ hs b hb, lt_of_le_of_lt (le_sup hb) hs), finset.cons_induction_on s (λ _, ha)
+  (λ c t hc, by simpa only [sup_cons, sup_lt_iff, mem_cons, forall_eq_or_imp] using and.imp_right)⟩
 
 lemma comp_sup_eq_sup_comp [semilattice_sup_bot γ] {s : finset β}
   {f : β → α} (g : α → γ) (g_sup : ∀ x y, g (x ⊔ y) = g x ⊔ g y) (bot : g ⊥ = ⊥) :
@@ -121,8 +115,8 @@ calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst
          ... = s.sup f ⊔ t.sup f : by rw finset.sup_union
          ... ≥ s.sup f : le_sup_left
 
-lemma of_sup_of_forall {p : α → Prop} (hb : p ⊥)
-  (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊔ a₂)) (hs : ∀ b ∈ s, p (f b)) : p (s.sup f) :=
+lemma of_sup_of_forall {p : α → Prop} (hb : p ⊥) (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊔ a₂))
+  (hs : ∀ b ∈ s, p (f b)) : p (s.sup f) :=
 begin
   induction s using finset.cons_induction with c s hc ih,
   { exact hb, },
@@ -248,8 +242,8 @@ lemma inf_coe {P : α → Prop}
   (@inf _ _ (subtype.semilattice_inf_top Ptop Pinf) t f : α) = t.inf (λ x, f x) :=
 by { classical, rw [comp_inf_eq_inf_comp coe]; intros; refl }
 
-lemma of_inf_of_forall {p : α → Prop} (ht : p ⊤)
-  (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂)) (hs : ∀ b ∈ s, p (f b)) : p (s.inf f) :=
+lemma of_inf_of_forall {p : α → Prop} (ht : p ⊤) (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂))
+  (hs : ∀ b ∈ s, p (f b)) : p (s.inf f) :=
 @of_sup_of_forall (order_dual α) _ _ _ _ _ ht hp hs
 
 end inf

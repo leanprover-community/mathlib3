@@ -409,10 +409,7 @@ begin
 end
 
 lemma exists_nsmul_eq_zero (x : H) : is_of_fin_add_order x :=
-begin
-  rcases exists_pow_eq_one (multiplicative.of_add x) with ⟨i, hi1, hi2⟩,
-  exact ⟨i, hi1, hi2⟩,
-end
+exists_pow_eq_one (multiplicative.of_add x)
 
 attribute [to_additive exists_nsmul_eq_zero] exists_pow_eq_one
 

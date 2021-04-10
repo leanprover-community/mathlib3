@@ -107,8 +107,9 @@ instance action_category_is_free {G A : Type u} [group G] [is_free_group G] [mul
       λ e, ⟨λ b, @f (_ : A) b ⟨e, smul_inv_smul _ b⟩, fgp.of e⟩,
     rcases fgp.unique_lift f' with ⟨F', hF', uF'⟩,
     refine ⟨uncurry F' _, _, _⟩,
-    { apply fgp.end_is_id (semidirect_product.right_hom.comp F'),
-      intro,
+    { suffices : semidirect_product.right_hom.comp F' = monoid_hom.id _,
+      { exact monoid_hom.ext_iff.mp this },
+      ext,
       rw [monoid_hom.comp_apply, hF'],
       refl },
     { rintros ⟨⟨⟩, a : A⟩ ⟨⟨⟩, b⟩ ⟨e, h : fgp.of e • a = b⟩,
@@ -189,7 +190,7 @@ end
 def End_is_free : is_free_group (End T♯.root) :=
 { generators := set.compl (wide_subquiver_equiv_set_total $ wide_subquiver_symmetrify T),
   of := λ e, loop_of_hom T (of e.val.arrow),
-  unique_lift := begin
+  unique_lift' := begin
     introsI X _ f,
     let f' : (generators : quiver G).labelling X := λ a b e,
       if h : sum.inl e ∈ T a b ∨ sum.inr e ∈ T b a then 1

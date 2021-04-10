@@ -29,7 +29,7 @@ namespace category_theory.triangulated
 open category_theory.category
 
 /--
-We work in an additive category C equipped with an additive shift.
+We work in an additive category `C` equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [has_shift C] [additive_category C]
   [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
@@ -40,12 +40,12 @@ If you rotate a triangle, you get another triangle.
 Given a triangle of the form:
 ```
       f       g       h
-  X  ---> Y  ---> Z  ---> X[1]
+  X  ───> Y  ───> Z  ───> X⟦1⟧
 ```
 applying `rotate` gives a triangle of the form:
 ```
-      g        h       -f[1]
-  Y  ---> Z  --->  X[1] ---> Y[1]
+      g       h        -f⟦1⟧'
+  Y  ───> Z  ───>  X⟦1⟧ ───> Y⟦1⟧
 ```
 -/
 @[simps]
@@ -61,15 +61,15 @@ def triangle.rotate (T : triangle C) : triangle C :=
 Given a triangle of the form:
 ```
       f       g       h
-  X  ---> Y  ---> Z  ---> X[1]
+  X  ───> Y  ───> Z  ───> X⟦1⟧
 ```
 applying `inv_rotate` gives a triangle that can be thought of as:
 ```
-        -h[-1]     f       g
-  Z[-1]  --->  X  ---> Y  ---> Z
+        -h⟦-1⟧'     f       g
+  Z⟦-1⟧  ───>  X  ───> Y  ───> Z
 ```
-(note that this diagram doesn't technically fit the definition of triangle, as `Z[-1][1]` is
-not necessarily equal to `Z`, but it is isomorphic, by the counit_iso of (shift C))
+(note that this diagram doesn't technically fit the definition of triangle, as `Z⟦-1⟧⟦1⟧` is
+not necessarily equal to `Z`, but it is isomorphic, by the `counit_iso` of `shift C`)
 -/
 @[simps]
 def triangle.inv_rotate (T : triangle C) : triangle C :=
@@ -90,22 +90,23 @@ You can also rotate a triangle morphism to get a morphism between the two rotate
 Given a triangle morphism of the form:
 ```
       f       g       h
-  X  ---> Y  ---> Z  ---> X[1]
-  |       |       |        |
-  |a      |b      |c       |a[1]
+  X  ───> Y  ───> Z  ───> X⟦1⟧
+  │       │       │        │
+  │a      │b      │c       │a⟦1⟧
   V       V       V        V
-  X' ---> Y' ---> Z' ---> X'[1]
+  X' ───> Y' ───> Z' ───> X'⟦1⟧
       f'      g'      h'
 ```
 applying `rotate` gives a triangle morphism of the form:
+⟦⟧
 ```
-      g        h       -f[1]
-  Y  ---> Z  --->  X[1] ---> Y[1]
-  |       |         |         |
-  |b      |c        |a[1]     |b[1]
+      g        h       -f⟦1⟧
+  Y  ───> Z  ───>  X⟦1⟧ ───> Y⟦1⟧
+  │       │         │         │
+  │b      │c        │a⟦1⟧     │b⟦1⟧'
   V       V         V         V
-  Y' ---> Z' ---> X'[1] ---> Y'[1]
-      g'      h'       -f'[1]
+  Y' ───> Z' ───> X'⟦1⟧ ───> Y'⟦1⟧
+      g'      h'       -f'⟦1⟧
 ```
 -/
 @[simps]
@@ -120,25 +121,25 @@ def rotate (f : triangle_morphism T₁ T₂) :
 Given a triangle morphism of the form:
 ```
       f       g       h
-  X  ---> Y  ---> Z  ---> X[1]
-  |       |       |        |
-  |a      |b      |c       |a[1]
+  X  ───> Y  ───> Z  ───> X⟦1⟧
+  │       │       │        │
+  │a      │b      │c       │a⟦1⟧
   V       V       V        V
-  X' ---> Y' ---> Z' ---> X'[1]
+  X' ───> Y' ───> Z' ───> X'⟦1⟧
       f'      g'      h'
 ```
 applying `inv_rotate` gives a triangle morphism that can be thought of as:
 ```
-        -h[-1]      f         g
-  Z[-1]  --->  X   --->  Y   --->  Z
-    |          |         |         |
-    |a         |b        |c        |a[1]
+        -h⟦-1⟧      f         g
+  Z⟦-1⟧  ───>  X   ───>  Y   ───>  Z
+    │          │         │         │
+    │c⟦-1⟧'    │a        │b        │c
     V          V         V         V
-  Z'[-1] --->  X'  --->  Y'  --->  Z'
-        -h'[-1]     f'        g'
+  Z'⟦-1⟧ ───>  X'  ───>  Y'  ───>  Z'
+       -h'⟦-1⟧     f'        g'
 ```
 (note that this diagram doesn't technically fit the definition of triangle morphism,
-as `Z[-1][1]` is not necessarily equal to `Z`, and `Z'[-1][1]` is not necessarily equal to `Z'`,
+as `Z⟦-1⟧⟦1⟧` is not necessarily equal to `Z`, and `Z'⟦-1⟧⟦1⟧` is not necessarily equal to `Z'`,
 but they are isomorphic, by the `counit_iso` of `shift C`)
 -/
 @[simps]
@@ -158,7 +159,7 @@ def inv_rotate (f : triangle_morphism T₁ T₂) :
 end triangle_morphism
 
 /--
-Rotating triangles gives an endofunctor on the category of triangles in C.
+Rotating triangles gives an endofunctor on the category of triangles in `C`.
 -/
 @[simps]
 def rotate : (triangle C) ⥤ (triangle C) :=
@@ -174,7 +175,7 @@ def inv_rotate : (triangle C) ⥤ (triangle C) :=
   map := λ _ _ f, f.inv_rotate C }
 
 /--
-There is a natural transformation between the identity functor on triangles,
+There is a natural transformation between the identity functor on triangles in `C`,
 and the composition of a rotation with an inverse rotation.
 -/
 @[simps]
@@ -190,7 +191,7 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ (rotate C) ⋙ (inv_rotate C) :
 
 /--
 There is a natural transformation between the composition of a rotation with an inverse rotation
-on triangles, and the identity functor.
+on triangles in `C`, and the identity functor.
 -/
 @[simps]
 def rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :=
@@ -200,7 +201,7 @@ def rot_comp_inv_rot_inv : (rotate C) ⋙ (inv_rotate C) ⟶ 𝟭 (triangle C) :
     hom₃ := 𝟙 T.obj₃ } }
 
 /--
-The natural transformations between the identity functor on triangles and the composition
+The natural transformations between the identity functor on triangles in `C` and the composition
 of a rotation with an inverse rotation are natural isomorphisms (they are isomorphisms in the
 category of functors).
 -/
@@ -211,7 +212,7 @@ def rot_comp_inv_rot : 𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
 
 /--
 There is a natural transformation between the composition of an inverse rotation with a rotation
-on triangles, and the identity functor.
+on triangles in `C`, and the identity functor.
 -/
 @[simps]
 def inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C) :=
@@ -221,7 +222,7 @@ def inv_rot_comp_rot_hom : (inv_rotate C) ⋙ (rotate C) ⟶ 𝟭 (triangle C) :
     hom₃ := (shift C).counit.app T.obj₃ } }
 
 /--
-There is a natural transformation between the identity functor on triangles,
+There is a natural transformation between the identity functor on triangles in `C`,
 and  the composition of an inverse rotation with a rotation.
 -/
 @[simps]
@@ -233,7 +234,7 @@ def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ (inv_rotate C) ⋙ (rotate C) :
 
 /--
 The natural transformations between the composition of a rotation with an inverse rotation
-on triangles, and the identity functor on triangles are natural isomorphisms
+on triangles in `C`, and the identity functor on triangles are natural isomorphisms
 (they are isomorphisms in the category of functors).
 -/
 @[simps]
@@ -242,7 +243,7 @@ def inv_rot_comp_rot : (inv_rotate C) ⋙ (rotate C) ≅ 𝟭 (triangle C) :=
   inv := inv_rot_comp_rot_inv C }
 
 /--
-Rotating triangles gives an auto-equivalence on the category of triangles.
+Rotating triangles gives an auto-equivalence on the category of triangles in `C`.
 -/
 def triangle_rotation : equivalence (triangle C) (triangle C) :=
 { functor := rotate C,

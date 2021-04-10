@@ -28,7 +28,7 @@ namespace category_theory.triangulated
 open category_theory.category
 
 /-
-We work in an additive category C equipped with an additive shift.
+We work in an additive category `C` equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [additive_category C]
 
@@ -39,8 +39,8 @@ categories are additive functors
 -/
 
 /--
-A triangle in C is a sextuple (X,Y,Z,f,g,h) where X,Y,Z are objects of C,
-and f : X ⟶ Y, g : Y ⟶ Z, h : Z ⟶ X⟦1⟧ are morphisms in C.
+A triangle in `C` is a sextuple `(X,Y,Z,f,g,h)` where `X,Y,Z` are objects of `C`,
+and `f : X ⟶ Y`, `g : Y ⟶ Z`, `h : Z ⟶ X⟦1⟧` are morphisms in `C`.
 See https://stacks.math.columbia.edu/tag/0144.
 -/
 structure triangle :=
@@ -56,8 +56,9 @@ instance [has_zero_object C] : inhabited (triangle C) :=
 ⟨⟨0,0,0,0,0,0⟩⟩
 
 /--
-For each object in C, there is a triangle of the form (X,X,0,𝟙_X,0,0)
+For each object in `C`, there is a triangle of the form `(X,X,0,𝟙_X,0,0)`
 -/
+@[simps]
 def contractible_triangle (X : C) : triangle C :=
 { obj₁ := X,
   obj₂ := X,
@@ -75,11 +76,11 @@ A morphism of triangles `(X,Y,Z,f,g,h) ⟶ (X',Y',Z',f',g',h')` in `C` is a trip
 In other words, we have a commutative diagram:
 ```
      f      g      h
-  X  --> Y  --> Z  --> X⟦1⟧
-  |      |      |       |
-  |a     |b     |c      |a⟦1⟧'
-  V      V      V       V
-  X' --> Y' --> Z' --> X'⟦1⟧
+  X  ───> Y  ───> Z  ───> X⟦1⟧
+  │       │       │        │
+  │a      │b      │c       │a⟦1⟧'
+  V       V       V        V
+  X' ───> Y' ───> Z' ───> X'⟦1⟧
      f'     g'     h'
 ```
 See https://stacks.math.columbia.edu/tag/0144.

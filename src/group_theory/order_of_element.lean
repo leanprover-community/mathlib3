@@ -23,7 +23,6 @@ order of an element
 -/
 
 open function nat
-open_locale big_operators
 
 universes u v
 
@@ -382,6 +381,7 @@ variables [fintype α] [fintype H]
 
 section finite_monoid
 variables [monoid α] [add_monoid H]
+open_locale big_operators
 
 lemma sum_card_add_order_of_eq_card_nsmul_eq_zero [decidable_eq H] (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : H, add_order_of x = m)).card

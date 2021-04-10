@@ -178,3 +178,10 @@ instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
 end lattice
 
 end continuous_map
+
+/--
+The forward direction of a homeomorphism, as a bundled continuous map.
+-/
+@[simps]
+def homeomorph.to_continuous_map {α β : Type*} [topological_space α] [topological_space β]
+  (e : α ≃ₜ β) : C(α, β) := ⟨e⟩

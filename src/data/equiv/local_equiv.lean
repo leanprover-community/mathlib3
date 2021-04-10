@@ -157,7 +157,7 @@ protected def symm : local_equiv β α :=
 instance : has_coe_to_fun (local_equiv α β) := ⟨_, local_equiv.to_fun⟩
 
 /-- See Note [custom simps projection] -/
-def simps.inv_fun (e : local_equiv α β) : β → α := e.symm
+def simps.symm_apply (e : local_equiv α β) : β → α := e.symm
 
 initialize_simps_projections local_equiv (to_fun → apply, inv_fun → symm_apply)
 

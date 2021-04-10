@@ -489,40 +489,22 @@ instance ring.to_semiring : semiring α :=
   ..‹ring α› }
 
 /-- Pullback a `ring` instance along an injective function. -/
-protected def function.injective.ring [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β]
-  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) :
-  ring β :=
-{ .. hf.add_comm_group f zero add neg, .. hf.monoid f one mul, .. hf.distrib f add mul }
-
-/-- Pullback a `ring` instance along an injective function,
-with a subtraction (`-`) that is not necessarily defeq to `a + -b`. -/
-protected def function.injective.ring_sub
+protected def function.injective.ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   ring β :=
-{ .. hf.add_comm_group_sub f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
+{ .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
 /-- Pullback a `ring` instance along an injective function. -/
-protected def function.surjective.ring [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β]
-  (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) :
-  ring β :=
-{ .. hf.add_comm_group f zero add neg, .. hf.monoid f one mul, .. hf.distrib f add mul }
-
-/-- Pullback a `ring` instance along an injective function,
-with a subtraction (`-`) that is not necessarily defeq to `a + -b`. -/
-protected def function.surjective.ring_sub
+protected def function.surjective.ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   ring β :=
-{ .. hf.add_comm_group_sub f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
+{ .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
 lemma neg_mul_eq_neg_mul (a b : α) : -(a * b) = -a * b :=
 neg_eq_of_add_eq_zero
@@ -624,6 +606,9 @@ protected theorem neg_eq_neg_one_mul (u : units α) : -u = -1 * u := by simp
 
 end units
 
+lemma is_unit.neg [ring α] {a : α} : is_unit a → is_unit (-a)
+| ⟨x, hx⟩ := hx ▸ (-x).is_unit
+
 namespace ring_hom
 
 /-- Ring homomorphisms preserve additive inverse. -/
@@ -659,40 +644,22 @@ section comm_ring
 variables [comm_ring α] {a b c : α}
 
 /-- Pullback a `comm_ring` instance along an injective function. -/
-protected def function.injective.comm_ring [has_zero β] [has_one β] [has_add β] [has_mul β]
-  [has_neg β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) :
-  comm_ring β :=
-{ .. hf.ring f zero one add mul neg, .. hf.comm_semigroup f mul }
-
-/-- Pullback a `comm_ring` instance along an injective function,
-with a subtraction (`-`) that is not necessarily defeq to `a + -b`. -/
-protected def function.injective.comm_ring_sub
+protected def function.injective.comm_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   comm_ring β :=
-{ .. hf.ring_sub f zero one add mul neg sub, .. hf.comm_semigroup f mul }
+{ .. hf.ring f zero one add mul neg sub, .. hf.comm_semigroup f mul }
 
 /-- Pullback a `comm_ring` instance along an injective function. -/
-protected def function.surjective.comm_ring [has_zero β] [has_one β] [has_add β] [has_mul β]
-  [has_neg β] (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) :
-  comm_ring β :=
-{ .. hf.ring f zero one add mul neg, .. hf.comm_semigroup f mul }
-
-/-- Pullback a `comm_ring` instance along an injective function,
-with a subtraction (`-`) that is not necessarily defeq to `a + -b`. -/
-protected def function.surjective.comm_ring_sub
+protected def function.surjective.comm_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   comm_ring β :=
-{ .. hf.ring_sub f zero one add mul neg sub, .. hf.comm_semigroup f mul }
+{ .. hf.ring f zero one add mul neg sub, .. hf.comm_semigroup f mul }
 
 local attribute [simp] add_assoc add_comm add_left_comm mul_comm
 
@@ -827,11 +794,11 @@ instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
 
 /-- Pullback a `domain` instance along an injective function. -/
 protected def function.injective.domain [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β]
-  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  [has_sub β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   domain β :=
-{ .. hf.ring f zero one add mul neg, .. pullback_nonzero f zero one,
+{ .. hf.ring f zero one add mul neg sub, .. pullback_nonzero f zero one,
   .. hf.no_zero_divisors f zero mul }
 
 end domain
@@ -854,12 +821,12 @@ instance integral_domain.to_comm_cancel_monoid_with_zero : comm_cancel_monoid_wi
 { ..comm_semiring.to_comm_monoid_with_zero, ..domain.to_cancel_monoid_with_zero }
 
 /-- Pullback an `integral_domain` instance along an injective function. -/
-protected def function.injective.integral_domain [has_zero β] [has_one β] [has_add β]
-  [has_mul β] [has_neg β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+protected def function.injective.integral_domain [has_zero β] [has_one β] [has_add β] [has_mul β]
+  [has_neg β] [has_sub β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   integral_domain β :=
-{ .. hf.comm_ring f zero one add mul neg, .. hf.domain f zero one add mul neg }
+{ .. hf.comm_ring f zero one add mul neg sub, .. hf.domain f zero one add mul neg sub }
 
 lemma mul_self_eq_mul_self_iff {a b : α} : a * a = b * b ↔ a = b ∨ a = -b :=
 by rw [← sub_eq_zero, mul_self_sub_mul_self, mul_eq_zero, or_comm, sub_eq_zero,

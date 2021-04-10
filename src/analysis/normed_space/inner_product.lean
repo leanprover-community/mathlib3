@@ -522,8 +522,8 @@ end
 
 lemma inner_self_re_abs {x : E} : re ⟪x, x⟫ = abs ⟪x, x⟫ :=
 begin
+  conv_rhs { rw [←inner_self_re_to_K] },
   symmetry,
-  rw [←inner_self_re_to_K] {occs := occurrences.pos [1]},
   exact is_R_or_C.abs_of_nonneg inner_self_nonneg,
 end
 

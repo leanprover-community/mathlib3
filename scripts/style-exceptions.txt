@@ -201,13 +201,13 @@ src/tactic/lint/type_classes.lean : line 193 : ERR_LIN : Line has more than 100 
 src/tactic/lint/type_classes.lean : line 196 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/type_classes.lean : line 295 : ERR_LIN : Line has more than 100 characters
 src/tactic/local_cache.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/tactic/monotonicity/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
+src/tactic/monotonicity/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/interactive.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/interactive.lean : line 191 : ERR_LIN : Line has more than 100 characters
 src/tactic/monotonicity/interactive.lean : line 467 : ERR_LIN : Line has more than 100 characters
 src/tactic/monotonicity/interactive.lean : line 469 : ERR_LIN : Line has more than 100 characters
 src/tactic/monotonicity/interactive.lean : line 490 : ERR_LIN : Line has more than 100 characters
-src/tactic/monotonicity/lemmas.lean : line 10 : ERR_MOD : Module docstring missing, or too late
+src/tactic/monotonicity/lemmas.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/tactic/noncomm_ring.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/nth_rewrite/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/nth_rewrite/congr.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -239,8 +239,6 @@ src/tactic/rewrite.lean : line 9 : ERR_MOD : Module docstring missing, or too la
 src/tactic/rewrite_all/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/show_term.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/simpa.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/tactic/simps.lean : line 437 : ERR_LIN : Line has more than 100 characters
-src/tactic/simps.lean : line 471 : ERR_LIN : Line has more than 100 characters
 src/tactic/slice.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/slim_check.lean : line 186 : ERR_LIN : Line has more than 100 characters
 src/tactic/slim_check.lean : line 188 : ERR_LIN : Line has more than 100 characters

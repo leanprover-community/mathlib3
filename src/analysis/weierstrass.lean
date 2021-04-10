@@ -148,15 +148,14 @@ begin
 end
 
 @[simp] lemma Icc_homeo_I_apply_coe (a b : 𝕜) (h : a < b) (x : set.Icc a b) :
-  ((Icc_homeo a b h) x : 𝕜) = (x - a) / (b - a) :=
+  ((Icc_homeo_I a b h) x : 𝕜) = (x - a) / (b - a) :=
 rfl
 
 @[simp] lemma Icc_homeo_I_symm_apply_coe (a b : 𝕜) (h : a < b) (x : set.Icc (0 : 𝕜) (1 : 𝕜)) :
-  ((Icc_homeo a b h).symm x : 𝕜) = (b - a) * x + a :=
+  ((Icc_homeo_I a b h).symm x : 𝕜) = (b - a) * x + a :=
 rfl
 
 end
-
 
 /-- The preimage of polynomials on `[0,1]` under the pullback map by `x ↦ (b-a) * x + a`
 is the polynomials on `[a,b]`. -/
@@ -235,7 +234,7 @@ begin
   { -- We can pullback continuous functions to `[a,b]` to continuous functions on `[0,1]`,
     -- by precomposing with an affine map.
     let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) :=
-      comp_right_alg_hom ℝ (Icc_homeo a b h).symm.to_continuous_map,
+      comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map,
     -- This operation is itself a homeomorphism
     -- (with respect to the norm topologies on continuous functions).
     let W' : C(set.Icc a b, ℝ) ≃ₜ C(I, ℝ) := comp_right_homeomorph ℝ (Icc_homeo_I a b h).symm,

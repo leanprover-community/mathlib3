@@ -308,8 +308,6 @@ begin
     exact ring_hom.ker_coe_equiv (equiv.symm.to_ring_equiv), }
 end
 
-set_option profiler true
-
 /-- If `A` is a finitely presented `R`-algebra, then `mv_polynomial (fin n) A` is finitely presented
 as `R`-algebra. -/
 lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι : Type*)

@@ -22,24 +22,36 @@ This file defines the order of an element of a finite group. For a finite group 
 order of an element
 -/
 
-open function
+open function nat
 open_locale big_operators
 
-universe u
+universes u v
 
-variables {α : Type u} {s : set α} {a a₁ a₂ b c: α}
+variables {α : Type u} {a : α} {n m : ℕ} {H : Type v} {x : H}
+
+section monoid_add_monoid
+
+variables [monoid α] [add_monoid H]
 
 section is_of_fin_order
 
-variables {α} [monoid α]
-variables {H : Type u} [add_monoid H]
+-- Move somewhere else
+@[to_additive]
+lemma commute.function_commute_mul_left {b : α} (h : commute a b) :
+  function.commute ((*)a) ((*)b) :=
+λ j, by rw [← mul_assoc, h.eq, mul_assoc]
 
-lemma is_periodic_pt_add_iff_nsmul_eq_zero (x : H) {n : ℕ} :
+-- This lemma is no longer used in this PR and is never cited
+@[to_additive]
+lemma commute.function_commute_mul_right {b : α} (h : commute a b) : function.commute (*a) (*b) :=
+by simp [function.commute, function.semiconj, mul_assoc, h.eq]
+
+lemma is_periodic_pt_add_iff_nsmul_eq_zero (x : H) :
   is_periodic_pt ((+) x) n 0 ↔ n •ℕ x = 0 :=
 by rw [is_periodic_pt, is_fixed_pt, add_left_iterate, add_zero]
 
 @[to_additive is_periodic_pt_add_iff_nsmul_eq_zero]
-lemma is_periodic_pt_mul_iff_pow_eq_one (a : α) {n : ℕ} : is_periodic_pt ((*) a) n 1 ↔ a ^ n = 1 :=
+lemma is_periodic_pt_mul_iff_pow_eq_one (a : α) : is_periodic_pt ((*) a) n 1 ↔ a ^ n = 1 :=
 by rw [is_periodic_pt, is_fixed_pt, mul_left_iterate, mul_one]
 
 /-- `is_of_fin_add_order` is a predicate on an element `x` of an additive monoid to be of finite
@@ -53,11 +65,11 @@ exists `n ≥ 1` such that `a ^ n = 1`.-/
 def is_of_fin_order (a : α) : Prop :=
 (1 : α) ∈ periodic_pts ((*) a)
 
-lemma is_of_fin_add_order_of_mul_iff {a : α} :
+lemma is_of_fin_add_order_of_mul_iff :
 is_of_fin_add_order (additive.of_mul a) ↔ is_of_fin_order a :=
 by refl
 
-lemma is_of_fin_order_of_add_iff {x : H} :
+lemma is_of_fin_order_of_add_iff :
 is_of_fin_order (multiplicative.of_add x) ↔ is_of_fin_add_order x :=
 by refl
 
@@ -72,14 +84,6 @@ by { convert iff.rfl, simp [is_periodic_pt_mul_iff_pow_eq_one] }
 
 end is_of_fin_order
 
-section order_of
-
-section monoid
-variables {α} [monoid α]
-variables {H : Type u} [add_monoid H] {x : H}
-
-open_locale classical
-
 /-- `add_order_of x` is the order of the element `x`, i.e. the `n ≥ 1`, s.t. `n •ℕ x = 0` if it
 exists. Otherwise, i.e. if `x` is of infinite order, then `add_order_of x` is `0` by convention.-/
 noncomputable def add_order_of (x : H) : ℕ :=
@@ -93,6 +97,14 @@ minimal_period ((*) a) 1
 
 attribute [to_additive add_order_of] order_of
 
+@[to_additive]
+lemma commute.order_of_mul_dvd_lcm {b : α} (h : commute a b) :
+  order_of (a * b) ∣ nat.lcm (order_of a) (order_of b) :=
+begin
+  convert function.commute.minimal_period_of_comp_dvd_lcm h.function_commute_mul_left,
+  rw [order_of, comp_mul_left],
+end
+
 @[simp] lemma add_order_of_of_mul_eq_order_of (a : α) :
   add_order_of (additive.of_mul a) = order_of a := rfl
 
@@ -100,7 +112,7 @@ attribute [to_additive add_order_of] order_of
   order_of (multiplicative.of_add x) = add_order_of x := rfl
 
 @[to_additive add_order_of_pos']
-lemma order_of_pos' {a : α} (h : is_of_fin_order a) : 0 < order_of a :=
+lemma order_of_pos' (h : is_of_fin_order a) : 0 < order_of a :=
 minimal_period_pos_of_mem_periodic_pts h
 
 lemma add_order_of_nsmul_eq_zero (x : H) : (add_order_of x) •ℕ x = 0 :=
@@ -110,39 +122,40 @@ begin
 end
 
 @[to_additive add_order_of_nsmul_eq_zero]
-lemma pow_order_of_eq_one (a : α): a ^ order_of a = 1 :=
+lemma pow_order_of_eq_one (a : α) : a ^ order_of a = 1 :=
 begin
   convert  is_periodic_pt_minimal_period ((*) a) _,
   rw [order_of, mul_left_iterate, mul_one],
 end
 
 @[to_additive add_order_of_eq_zero]
-lemma order_of_eq_zero {a : α} (h : ¬ is_of_fin_order a) : order_of a = 0 :=
+lemma order_of_eq_zero (h : ¬ is_of_fin_order a) : order_of a = 0 :=
 by rwa [order_of, minimal_period, dif_neg]
 
-lemma nsmul_ne_zero_of_lt_add_order_of' {m : ℕ} (m0 : m ≠ 0) (h : m < add_order_of x) :
-  m •ℕ x ≠ 0 :=
-λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period m0 h
+lemma nsmul_ne_zero_of_lt_add_order_of' (n0 : n ≠ 0) (h : n < add_order_of x) :
+  n •ℕ x ≠ 0 :=
+λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period n0 h
   ((is_periodic_pt_add_iff_nsmul_eq_zero x).mpr j)
 
 @[to_additive nsmul_ne_zero_of_lt_add_order_of']
-lemma pow_eq_one_of_lt_order_of' {m : ℕ} (m0 : m ≠ 0) (h : m < order_of a) : a ^ m ≠ 1 :=
-λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period m0 h
+lemma pow_eq_one_of_lt_order_of' (n0 : n ≠ 0) (h : n < order_of a) : a ^ n ≠ 1 :=
+λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period n0 h
   ((is_periodic_pt_mul_iff_pow_eq_one a).mpr j)
 
-lemma add_order_of_le_of_nsmul_eq_zero {n : ℕ} (hn : 0 < n) (h : n •ℕ x = 0) : add_order_of x ≤ n :=
+lemma add_order_of_le_of_nsmul_eq_zero (hn : 0 < n) (h : n •ℕ x = 0) : add_order_of x ≤ n :=
 is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_add_iff_nsmul_eq_zero)
 
 @[to_additive add_order_of_le_of_nsmul_eq_zero]
-lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
+lemma order_of_le_of_pow_eq_one (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
 is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_mul_iff_pow_eq_one)
+
+lemma mul_one_eq_id : has_mul.mul (1 : α) = id :=
+by { funext, rwa [one_mul, id_def] }
 
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin
-  rw order_of,
-  convert minimal_period_id,
-  funext,
-  rwa [one_mul, id_def],
+  rw [order_of, mul_one_eq_id],
+  exact minimal_period_id,
 end
 
 @[simp] lemma add_order_of_zero : add_order_of (0 : H) = 1 :=
@@ -158,50 +171,32 @@ by simp [← order_of_of_add_eq_add_order_of]
 
 attribute [to_additive add_order_of_eq_one_iff] order_of_eq_one_iff
 
-lemma nsmul_eq_mod_add_order_of {n : ℕ} : n •ℕ x = (n % add_order_of x) •ℕ x :=
+lemma nsmul_eq_mod_add_order_of : n •ℕ x = (n % add_order_of x) •ℕ x :=
 begin
   nth_rewrite 0 [← nat.div_add_mod' n (add_order_of x)],
   rw [add_nsmul, mul_nsmul, add_order_of_nsmul_eq_zero, nsmul_zero, zero_add],
 end
 
 @[to_additive nsmul_eq_mod_add_order_of]
-lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
+lemma pow_eq_mod_order_of : a ^ n = a ^ (n % order_of a) :=
 begin
   nth_rewrite 0 [← nat.mod_add_div n (order_of a)],
   rw [pow_add, pow_mul, pow_order_of_eq_one, one_pow, mul_one],
 end
 
-lemma add_order_of_dvd_of_nsmul_eq_zero {n : ℕ} (h : n •ℕ x = 0) : add_order_of x ∣ n :=
+lemma add_order_of_dvd_of_nsmul_eq_zero (h : n •ℕ x = 0) : add_order_of x ∣ n :=
 is_periodic_pt.minimal_period_dvd ((is_periodic_pt_add_iff_nsmul_eq_zero _).mpr h)
 
 @[to_additive add_order_of_dvd_of_nsmul_eq_zero]
-lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
+lemma order_of_dvd_of_pow_eq_one (h : a ^ n = 1) : order_of a ∣ n :=
 is_periodic_pt.minimal_period_dvd ((is_periodic_pt_mul_iff_pow_eq_one _).mpr h)
 
-lemma add_order_of_dvd_iff_nsmul_eq_zero {n : ℕ} : add_order_of x ∣ n ↔ n •ℕ x = 0 :=
+lemma add_order_of_dvd_iff_nsmul_eq_zero : add_order_of x ∣ n ↔ n •ℕ x = 0 :=
 by rw [← is_periodic_pt_add_iff_nsmul_eq_zero, is_periodic_pt_iff_minimal_period_dvd, add_order_of]
 
 @[to_additive add_order_of_dvd_iff_nsmul_eq_zero]
-lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
+lemma order_of_dvd_iff_pow_eq_one : order_of a ∣ n ↔ a ^ n = 1 :=
 by rw [← is_periodic_pt_mul_iff_pow_eq_one, is_periodic_pt_iff_minimal_period_dvd, order_of]
-
--- This lemma is no longer used in this PR
-@[to_additive]
-lemma commute.function_commute_mul (h : commute a b) : function.commute (*a) (*b) :=
-by simp [function.commute, function.semiconj, mul_assoc, h.eq]
-
--- Move somewhere else
-@[to_additive]
-lemma commute.function_commute_mul_n (h : commute a b) : function.commute ((*)a) ((*)b) :=
-λ j, by rw [← mul_assoc, h.eq, mul_assoc]
-
-@[to_additive]
-lemma commute.order_of_mul_dvd_lcm (h : commute a b) :
-  order_of (a * b) ∣ nat.lcm (order_of a) (order_of b) :=
-begin
-  convert function.commute.minimal_period_of_comp_dvd_lcm h.function_commute_mul_n,
-  rw [order_of, comp_mul_left],
-end
 
 lemma add_order_of_eq_prime {p : ℕ} [hp : fact p.prime]
   (hg : p •ℕ x = 0) (hg1 : x ≠ 0) : add_order_of x = p :=
@@ -214,7 +209,18 @@ lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
 minimal_period_eq_prime ((is_periodic_pt_mul_iff_pow_eq_one _).mpr hg)
   (by rwa [is_fixed_pt, mul_one])
 
-open nat
+lemma exists_pow_eq_self_of_coprime (h : coprime n (order_of a)) :
+  ∃ m : ℕ, (a ^ n) ^ m = a :=
+begin
+  by_cases h0 : order_of a = 0,
+  { rw [h0, coprime_zero_right] at h,
+    exact ⟨1, by rw [h, pow_one, pow_one]⟩ },
+  by_cases h1 : order_of a = 1,
+  { exact ⟨37, by rw [order_of_eq_one_iff.mp h1, one_pow, one_pow]⟩ },
+  obtain ⟨m, hm⟩ :=
+    exists_mul_mod_eq_one_of_coprime h (one_lt_iff_ne_zero_and_ne_one.mpr ⟨h0, h1⟩),
+  exact ⟨m, by rw [←pow_mul, pow_eq_mod_order_of, hm, pow_one]⟩,
+end
 
 -- An example on how to determine the order of an element of a finite group.
 example : order_of (-1 : units ℤ) = 2 :=
@@ -268,7 +274,7 @@ begin
   rwa is_periodic_pt_mul_iff_pow_eq_one,
 end
 
-variables (a) {n : ℕ}
+variables (a)
 
 lemma order_of_pow' (h : n ≠ 0) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
@@ -301,13 +307,13 @@ by simp [← order_of_of_add_eq_add_order_of, of_add_nsmul,
 
 attribute [to_additive add_order_of_nsmul''] order_of_pow''
 
-end monoid
+end monoid_add_monoid
 
 section cancel_monoid
-variables {α} [left_cancel_monoid α] (a)
-variables {H : Type u} [add_left_cancel_monoid H] (x : H)
+variables [left_cancel_monoid α] (a)
+variables [add_left_cancel_monoid H] (x)
 
-lemma pow_injective_aux {n m : ℕ} (h : n ≤ m)
+lemma pow_injective_aux (h : n ≤ m)
   (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 by_contradiction $ assume ne : n ≠ m,
   have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
@@ -321,20 +327,20 @@ by_contradiction $ assume ne : n ≠ m,
 
 -- TODO: This lemma was originally private, but this doesn't seem to work with `to_additive`,
 -- therefore the private got removed.
-lemma nsmul_injective_aux {n m : ℕ} (h : n ≤ m)
+lemma nsmul_injective_aux (h : n ≤ m)
   (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=
 pow_injective_aux (multiplicative.of_add x) h hm eq
 
 attribute [to_additive nsmul_injective_aux] pow_injective_aux
 
-lemma nsmul_injective_of_lt_add_order_of {n m : ℕ}
+lemma nsmul_injective_of_lt_add_order_of
   (hn : n < add_order_of x) (hm : m < add_order_of x) (eq : n •ℕ x = m •ℕ x) : n = m :=
 (le_total n m).elim
   (assume h, nsmul_injective_aux x h hm eq)
   (assume h, (nsmul_injective_aux x h hn eq.symm).symm)
 
 @[to_additive nsmul_injective_of_lt_add_order_of]
-lemma pow_injective_of_lt_order_of {n m : ℕ}
+lemma pow_injective_of_lt_order_of
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 (le_total n m).elim
   (assume h, pow_injective_aux a h hm eq)
@@ -343,8 +349,8 @@ lemma pow_injective_of_lt_order_of {n m : ℕ}
 end cancel_monoid
 
 section group
-variables {α} [group α] {a}
-variables {H : Type u} [add_group H] {x : H}
+variables [group α]
+variables [add_group H] {x}
 
 
 lemma gpow_eq_mod_order_of {i : ℤ} : a ^ i = a ^ (i % order_of a) :=
@@ -363,11 +369,14 @@ attribute [to_additive gsmul_eq_mod_add_order_of] gpow_eq_mod_order_of
 
 end group
 
-section finite_monoid
-variables {α} [fintype α] [monoid α]
-variables {H : Type u} [fintype H] [add_monoid H]
+section fintype
+variables [fintype α] [fintype H]
 
-lemma sum_card_add_order_of_eq_card_nsmul_eq_zero [decidable_eq H] {n : ℕ} (hn : 0 < n) :
+section finite_monoid
+variables [monoid α]
+variables [add_monoid H]
+
+lemma sum_card_add_order_of_eq_card_nsmul_eq_zero [decidable_eq H] (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : H, add_order_of x = m)).card
   = (finset.univ.filter (λ x : H, n •ℕ x = 0)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n),
@@ -383,7 +392,7 @@ calc ∑ m in (finset.range n.succ).filter (∣ n),
 end))
 
 @[to_additive sum_card_add_order_of_eq_card_nsmul_eq_zero]
-lemma sum_card_order_of_eq_card_pow_eq_one [decidable_eq α] {n : ℕ} (hn : 0 < n) :
+lemma sum_card_order_of_eq_card_pow_eq_one [decidable_eq α] (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
@@ -400,8 +409,8 @@ end finite_monoid
 
 section finite_cancel_monoid
 -- TODO: Of course everything also works for right_cancel_monoids.
-variables {α} [fintype α] [left_cancel_monoid α]
-variables {H : Type u} [fintype H] [add_left_cancel_monoid H]
+variables [left_cancel_monoid α]
+variables [add_left_cancel_monoid H]
 
 -- TODO: Use this to show that a finite left cancellative monoid is a group.
 
@@ -426,7 +435,7 @@ finset.le_card_of_inj_on_range (•ℕ x)
   (assume i hi j hj, nsmul_injective_of_lt_add_order_of x hi hj)
 
 @[to_additive add_order_of_le_card_univ]
-lemma order_of_le_card_univ {a : α} : order_of a ≤ fintype.card α :=
+lemma order_of_le_card_univ : order_of a ≤ fintype.card α :=
 finset.le_card_of_inj_on_range ((^) a)
   (assume n _, finset.mem_univ _)
   (assume i hi j hj, pow_injective_of_lt_order_of a hi hj)
@@ -444,23 +453,6 @@ begin
 end
 
 attribute [to_additive add_order_of_pos] order_of_pos
-
-variables {n : ℕ}
-
-open nat
-
-lemma exists_pow_eq_self_of_coprime {α : Type*} [monoid α] {a : α} (h : coprime n (order_of a)) :
-  ∃ m : ℕ, (a ^ n) ^ m = a :=
-begin
-  by_cases h0 : order_of a = 0,
-  { rw [h0, coprime_zero_right] at h,
-    exact ⟨1, by rw [h, pow_one, pow_one]⟩ },
-  by_cases h1 : order_of a = 1,
-  { exact ⟨37, by rw [order_of_eq_one_iff.mp h1, one_pow, one_pow]⟩ },
-  obtain ⟨m, hm⟩ :=
-    exists_mul_mod_eq_one_of_coprime h (one_lt_iff_ne_zero_and_ne_one.mpr ⟨h0, h1⟩),
-  exact ⟨m, by rw [←pow_mul, pow_eq_mod_order_of, hm, pow_one]⟩,
-end
 
 lemma exists_nsmul_eq_self_of_coprime {H : Type*} [add_monoid H] (x : H)
   (h : coprime n (add_order_of x)) : ∃ m : ℕ, m •ℕ (n •ℕ x) = x :=
@@ -494,7 +486,7 @@ finset.mem_range_iff_mem_finset_range_of_mod_eq' (add_order_of_pos x)
   (assume i, nsmul_eq_mod_add_order_of.symm)
 
 @[to_additive mem_multiples_iff_mem_range_add_order_of]
-lemma mem_powers_iff_mem_range_order_of [decidable_eq α] {a a' : α} :
+lemma mem_powers_iff_mem_range_order_of [decidable_eq α] {a' : α} :
   a' ∈ submonoid.powers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq' (order_of_pos a)
   (assume i, pow_eq_mod_order_of.symm)
@@ -517,7 +509,7 @@ begin
   exact mem_powers_iff_mem_range_order_of
 end
 
-lemma order_eq_card_powers [decidable_eq α] {a : α} :
+lemma order_eq_card_powers [decidable_eq α] :
   order_of a = fintype.card (submonoid.powers a : set α) :=
 begin
   refine (finset.card_eq_of_bijective _ _ _ _).symm,
@@ -542,8 +534,8 @@ attribute [to_additive add_order_of_eq_card_multiples] order_eq_card_powers
 end finite_cancel_monoid
 
 section finite_group
-variables {α} [fintype α] [group α]
-variables {H : Type u} [fintype H] [add_group H]
+variables [group α]
+variables [add_group H]
 
 lemma exists_gpow_eq_one (a : α) : ∃ i ≠ 0, a ^ (i : ℤ) = 1 :=
 begin
@@ -568,7 +560,7 @@ lemma mem_multiples_iff_mem_gmultiples {x y : H} :
 open subgroup
 
 @[to_additive mem_multiples_iff_mem_gmultiples]
-lemma mem_powers_iff_mem_gpowers {a x : α} : x ∈ submonoid.powers a ↔ x ∈ gpowers a :=
+lemma mem_powers_iff_mem_gpowers {x : α} : x ∈ submonoid.powers a ↔ x ∈ gpowers a :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
 λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
   by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
@@ -588,7 +580,7 @@ lemma mem_gmultiples_iff_mem_range_add_order_of [decidable_eq H] {x x' : H} :
 by rw [← mem_multiples_iff_mem_gmultiples, mem_multiples_iff_mem_range_add_order_of]
 
 @[to_additive mem_gmultiples_iff_mem_range_add_order_of]
-lemma mem_gpowers_iff_mem_range_order_of [decidable_eq α] {a a' : α} :
+lemma mem_gpowers_iff_mem_range_order_of [decidable_eq α] {a' : α} :
   a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 by rw [← mem_powers_iff_mem_gpowers, mem_powers_iff_mem_range_order_of]
 
@@ -607,7 +599,7 @@ begin
   exact decidable_powers,
 end
 
-lemma order_eq_card_gpowers [decidable_eq α] {a : α} :
+lemma order_eq_card_gpowers [decidable_eq α] :
   order_of a = fintype.card (subgroup.gpowers a : set α) :=
 begin
   refine (finset.card_eq_of_bijective _ _ _ _).symm,
@@ -667,7 +659,7 @@ end
 
 attribute [to_additive add_order_of_dvd_card_univ] order_of_dvd_card_univ
 
-@[simp] lemma pow_card_eq_one {a : α} : a ^ fintype.card α = 1 :=
+@[simp] lemma pow_card_eq_one : a ^ fintype.card α = 1 :=
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
@@ -689,9 +681,7 @@ lemma image_range_order_of [decidable_eq α] :
   finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a : set α).to_finset :=
 by { ext x, rw [set.mem_to_finset, set_like.mem_coe, mem_gpowers_iff_mem_range_order_of] }
 
-open nat
-
-lemma gcd_nsmul_card_eq_zero_iff {x : H} {n : ℕ} :
+lemma gcd_nsmul_card_eq_zero_iff {x : H} :
   n •ℕ x = 0 ↔ (gcd n (fintype.card H)) •ℕ x = 0 :=
 ⟨λ h, gcd_nsmul_eq_zero _ h $ card_nsmul_eq_zero,
   λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card H) in
@@ -699,7 +689,7 @@ lemma gcd_nsmul_card_eq_zero_iff {x : H} {n : ℕ} :
 
 /-- TODO: Generalise to `finite_cancel_monoid`. -/
 @[to_additive gcd_nsmul_card_eq_zero_iff]
-lemma pow_gcd_card_eq_one_iff {n : ℕ} :
+lemma pow_gcd_card_eq_one_iff :
   a ^ n = 1 ↔ a ^ (gcd n (fintype.card α)) = 1 :=
 ⟨λ h, pow_gcd_eq_one _ h $ pow_card_eq_one,
   λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card α) in
@@ -707,4 +697,4 @@ lemma pow_gcd_card_eq_one_iff {n : ℕ} :
 
 end finite_group
 
-end order_of
+end fintype

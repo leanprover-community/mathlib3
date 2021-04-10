@@ -8,8 +8,6 @@ import order.well_founded
 import data.nat.basic
 import data.opposite
 
-open opposite
-
 /-!
 # Quivers
 
@@ -23,6 +21,8 @@ It would be interesting to try to replace `has_hom` with `quiver` in the definit
 This would be convenient for defining path categories.
 
 -/
+
+open opposite
 
 -- We use the same universe order as in category theory.
 -- See note [category_theory universes]

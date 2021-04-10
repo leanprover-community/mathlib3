@@ -164,15 +164,15 @@ lemma mat_poly_equiv_eq_X_pow_sub_C {K : Type*} (k : ℕ) [field K] (M : matrix 
 begin
   ext m,
   rw [coeff_sub, coeff_C, mat_poly_equiv_coeff_apply, ring_hom.map_matrix_apply, matrix.map_apply,
-    alg_hom.coe_to_ring_hom, matrix.sub_apply, coeff_X_pow],
+    alg_hom.coe_to_ring_hom, dmatrix.sub_apply, coeff_X_pow],
   by_cases hij : i = j,
   { rw [hij, char_matrix_apply_eq, alg_hom.map_sub, expand_C, expand_X, coeff_sub, coeff_X_pow,
      coeff_C],
     split_ifs with mp m0;
-    simp only [matrix.one_apply_eq, matrix.zero_apply] },
+    simp only [matrix.one_apply_eq, dmatrix.zero_apply] },
   { rw [char_matrix_apply_ne _ _ _ hij, alg_hom.map_neg, expand_C, coeff_neg, coeff_C],
     split_ifs with m0 mp;
-    simp only [hij, zero_sub, matrix.zero_apply, sub_zero, neg_zero, matrix.one_apply_ne, ne.def,
+    simp only [hij, zero_sub, dmatrix.zero_apply, sub_zero, neg_zero, matrix.one_apply_ne, ne.def,
       not_false_iff] }
 end
 

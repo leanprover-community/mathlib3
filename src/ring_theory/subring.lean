@@ -95,6 +95,39 @@ lemma mem_carrier {s : subring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.r
 /-- Two subrings are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
+lemma to_subsemiring_injective : function.injective (to_subsemiring : subring R → subsemiring R)
+| r s h := ext (set_like.ext_iff.mp h : _)
+
+@[mono]
+lemma to_subsemiring_strict_mono : strict_mono (to_subsemiring : subring R → subsemiring R) :=
+λ _ _, id
+
+@[mono]
+lemma to_subsemiring_mono : monotone (to_subsemiring : subring R → subsemiring R) :=
+to_subsemiring_strict_mono.monotone
+
+lemma to_add_subgroup_injective : function.injective (to_add_subgroup : subring R → add_subgroup R)
+| r s h := ext (set_like.ext_iff.mp h : _)
+
+@[mono]
+lemma to_add_subgroup_strict_mono : strict_mono (to_add_subgroup : subring R → add_subgroup R) :=
+λ _ _, id
+
+@[mono]
+lemma to_add_subgroup_mono : monotone (to_add_subgroup : subring R → add_subgroup R) :=
+to_add_subgroup_strict_mono.monotone
+
+lemma to_submonoid_injective : function.injective (to_submonoid : subring R → submonoid R)
+| r s h := ext (set_like.ext_iff.mp h : _)
+
+@[mono]
+lemma to_submonoid_strict_mono : strict_mono (to_submonoid : subring R → submonoid R) :=
+λ _ _, id
+
+@[mono]
+lemma to_submonoid_mono : monotone (to_submonoid : subring R → submonoid R) :=
+to_submonoid_strict_mono.monotone
+
 /-- Construct a `subring R` from a set `s`, a submonoid `sm`, and an additive
 subgroup `sa` such that `x ∈ s ↔ x ∈ sm ↔ x ∈ sa`. -/
 protected def mk' (s : set R) (sm : submonoid R) (sa : add_subgroup R)

@@ -84,7 +84,7 @@ begin
   letI : normed_space ℝ F := normed_space.restrict_scalars _ 𝕜 _,
   -- Let `fr: p →L[ℝ] ℝ` be the real part of `f`.
   let fr := re_clm.comp (f.restrict_scalars ℝ),
-  have fr_apply : ∀ x, fr x = re (f x), { assume x, refl },
+  have fr_apply : ∀ x, fr x = re (f x), by { assume x, refl },
   -- Use the real version to get a norm-preserving extension of `fr`, which
   -- we'll call `g : F →L[ℝ] ℝ`.
   rcases real.exists_extension_norm_eq (p.restrict_scalars ℝ) fr with ⟨g, ⟨hextends, hnormeq⟩⟩,

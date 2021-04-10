@@ -72,8 +72,6 @@ namespace exterior_algebra
 
 variables {M}
 
-open ring_quot
-
 instance {S : Type u3} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
 ring_quot.ring (exterior_algebra.rel S M)
 

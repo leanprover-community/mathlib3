@@ -149,7 +149,7 @@ def lifted_cone (F : J ⥤ CommSemiRing) : cone F :=
 { X := CommSemiRing.of (types.limit_cone (F ⋙ forget _)).X,
   π :=
   { app := SemiRing.limit_π_ring_hom (F ⋙ forget₂ CommSemiRing SemiRing),
-    naturality' := (SemiRing.has_limits.limit_cone (F ⋙ forget₂ _ _)).π.naturality, } }.
+    naturality' := (SemiRing.has_limits.limit_cone (F ⋙ forget₂ _ _)).π.naturality, } }
 
 /-- Auxiliary construction for the `creates_limit` instance below. -/
 def is_limit_lifted_cone (F : J ⥤ CommSemiRing) : is_limit (lifted_cone F) :=

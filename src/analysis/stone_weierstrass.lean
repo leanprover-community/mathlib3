@@ -105,7 +105,7 @@ begin
   -- we show there are polynomials arbitrarily close.
   apply mem_closure_iff_frequently.mpr,
   -- To show that, we pull back the polynomials close to `p`,
-  refine ((pullback_continuous_map ℝ (attach_bound (f : C(X, ℝ)))).continuous_at p).tendsto
+  refine ((comp_right_continuous_map ℝ (attach_bound (f : C(X, ℝ)))).continuous_at p).tendsto
     .frequently_map _ _ frequently_mem_polynomials,
   -- but need to show that those pullbacks are actually in `A`.
   rintros _ ⟨g, ⟨-,rfl⟩⟩,

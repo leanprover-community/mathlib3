@@ -58,14 +58,6 @@ def homeomorph.image {α β : Type*} [topological_space α] [topological_space �
   ..e.to_equiv.image s, }
 
 /--
-The forward direction of a homeomorphism, as a bundled continuous map.
--/
-@[simps]
-def homeomorph.to_continuous_map {α β : Type*} [topological_space α] [topological_space β]
-  (e : α ≃ₜ β) : C(α, β) := ⟨e⟩
-
-
-/--
 The special case of the Weierstrass approximation theorem for the interval `[0,1]`.
 This is just a matter of unravelling definitions and using the Bernstein approximations.
 -/
@@ -146,7 +138,7 @@ end
 /--
 The affine homeomorphism from a nontrivial interval `[a,b]` to `[0,1]`.
 -/
-def Icc_homeo (a b : 𝕜) (h : a < b) : set.Icc a b ≃ₜ set.Icc (0 : 𝕜) (1 : 𝕜) :=
+def Icc_homeo_I (a b : 𝕜) (h : a < b) : set.Icc a b ≃ₜ set.Icc (0 : 𝕜) (1 : 𝕜) :=
 begin
   let e := homeomorph.image (affine_homeomorph (b-a) a (sub_pos.mpr h).ne.symm) (set.Icc 0 1),
   refine (e.trans _).symm,
@@ -155,11 +147,11 @@ begin
   rw sub_add_cancel,
 end
 
-@[simp] lemma Icc_homeo_apply_coe (a b : 𝕜) (h : a < b) (x : set.Icc a b) :
+@[simp] lemma Icc_homeo_I_apply_coe (a b : 𝕜) (h : a < b) (x : set.Icc a b) :
   ((Icc_homeo a b h) x : 𝕜) = (x - a) / (b - a) :=
 rfl
 
-@[simp] lemma Icc_homeo_symm_apply_coe (a b : 𝕜) (h : a < b) (x : set.Icc (0 : 𝕜) (1 : 𝕜)) :
+@[simp] lemma Icc_homeo_I_symm_apply_coe (a b : 𝕜) (h : a < b) (x : set.Icc (0 : 𝕜) (1 : 𝕜)) :
   ((Icc_homeo a b h).symm x : 𝕜) = (b - a) * x + a :=
 rfl
 
@@ -168,8 +160,8 @@ end
 
 /-- The preimage of polynomials on `[0,1]` under the pullback map by `x ↦ (b-a) * x + a`
 is the polynomials on `[a,b]`. -/
-lemma polynomial_functions.comap'_comp_right_alg_hom_Icc_homeo (a b : ℝ) (h : a < b) :
-  (polynomial_functions I).comap' (comp_right_alg_hom ℝ (Icc_homeo a b h).symm.to_continuous_map) =
+lemma polynomial_functions.comap'_comp_right_alg_hom_Icc_homeo_I (a b : ℝ) (h : a < b) :
+  (polynomial_functions I).comap' (comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map) =
     polynomial_functions (set.Icc a b) :=
 begin
   ext f,
@@ -189,9 +181,9 @@ begin
         polynomial.as_continuous_map_on_to_fun, polynomial.as_continuous_map_to_fun],
       convert w ⟨_, _⟩; clear w,
       { -- FIXME why does `comm_ring.add` appear here?
-        change x = (Icc_homeo a b h).symm ⟨_ + _, _⟩,
+        change x = (Icc_homeo_I a b h).symm ⟨_ + _, _⟩,
         ext,
-        simp only [Icc_homeo_symm_apply_coe, subtype.coe_mk],
+        simp only [Icc_homeo_I_symm_apply_coe, subtype.coe_mk],
         replace h : b - a ≠ 0 := sub_ne_zero_of_ne h.ne.symm,
         simp only [mul_add],
         field_simp, ring, },
@@ -246,7 +238,7 @@ begin
       comp_right_alg_hom ℝ (Icc_homeo a b h).symm.to_continuous_map,
     -- This operation is itself a homeomorphism
     -- (with respect to the norm topologies on continuous functions).
-    let W' : C(set.Icc a b, ℝ) ≃ₜ C(I, ℝ) := comp_right_homeomorph ℝ (Icc_homeo a b h).symm,
+    let W' : C(set.Icc a b, ℝ) ≃ₜ C(I, ℝ) := comp_right_homeomorph ℝ (Icc_homeo_I a b h).symm,
     have w : (W : C(set.Icc a b, ℝ) → C(I, ℝ)) = W' := rfl,
     -- Thus we take the statement of the Weierstrass approximation theorem for `[0,1]`,
     have p := polynomial_functions_closure_eq_top',
@@ -256,7 +248,7 @@ begin
     -- Since the pullback operation is continuous, it commutes with taking `topological_closure`,
     rw subalgebra.topological_closure_comap'_homeomorph _ W W' w at p,
     -- and precomposing with an affine map takes polynomial functions to polynomial functions.
-    rw polynomial_functions.comap'_comp_right_alg_hom_Icc_homeo at p,
+    rw polynomial_functions.comap'_comp_right_alg_hom_Icc_homeo_I at p,
     -- 🎉
     exact p },
   { -- Otherwise, `b ≤ a`, and the interval is a subsingleton,
@@ -270,9 +262,11 @@ end
 An alternative statement of Weierstrass' theorem.
 Every real-valued continuous function on `[a,b]` is a uniform limit of polynomials.
 -/
-theorem mem_polynomial_functions_closure (a b : ℝ) (f : C(set.Icc a b, ℝ)) :
+theorem continuous_map_mem_polynomial_functions_closure (a b : ℝ) (f : C(set.Icc a b, ℝ)) :
   f ∈ (polynomial_functions (set.Icc a b)).topological_closure :=
 begin
   rw polynomial_functions_closure_eq_top _ _,
   simp,
 end
+
+-- TODO provide an epsilon version too, for convenience?

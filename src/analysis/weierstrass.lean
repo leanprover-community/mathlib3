@@ -32,32 +32,6 @@ open filter
 open_locale topological_space unit_interval
 
 /--
-A set is equivalent to its image under an equivalence.
--/
--- We could construct this using `equiv.set.image e s e.injective`,
--- but this definition provides an explicit inverse.
-@[simps]
-def equiv.image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
-{ to_fun := λ x, ⟨e x.1, by simp⟩,
-  inv_fun := λ y, ⟨e.symm y.1, by { rcases y with ⟨-, ⟨a, ⟨m, rfl⟩⟩⟩, simpa using m, }⟩,
-  left_inv := λ x, by simp,
-  right_inv := λ y, by simp, }.
-
-@[continuity]
-lemma homeomorph.continuous_symm {α β : Type*} [topological_space α] [topological_space β]
-  (e : α ≃ₜ β) : continuous (e.symm) :=
-by continuity
-
-/--
-A subset of a topological space is homeomorphic to its image under a homeomorphism.
--/
-def homeomorph.image {α β : Type*} [topological_space α] [topological_space β]
-  (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
-{ continuous_to_fun := by continuity!,
-  continuous_inv_fun := by continuity!,
-  ..e.to_equiv.image s, }
-
-/--
 The special case of the Weierstrass approximation theorem for the interval `[0,1]`.
 This is just a matter of unravelling definitions and using the Bernstein approximations.
 -/

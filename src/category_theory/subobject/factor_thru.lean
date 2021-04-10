@@ -174,7 +174,7 @@ lemma factors_add {X Y : C} {P : subobject Y} (f g : X ⟶ Y) (wf : P.factors f)
 (factors_iff _ _).mpr ⟨P.factor_thru f wf + P.factor_thru g wg, by simp⟩
 
 -- This can't be a `simp` lemma as `wf` and `wg` may not exist.
--- However you can `rw` by it to assert that `f` anf `g` factor through `P` separately.
+-- However you can `rw` by it to assert that `f` and `g` factor through `P` separately.
 lemma factor_thru_add {X Y : C} {P : subobject Y} (f g : X ⟶ Y)
    (w : P.factors (f + g)) (wf : P.factors f) (wg : P.factors g) :
   P.factor_thru (f + g) w = P.factor_thru f wf + P.factor_thru g wg :=

@@ -7,6 +7,7 @@ import tactic.ring_exp
 import tactic.chain
 import algebra.monoid_algebra
 import data.finset.sort
+import tactic.ring
 
 /-!
 # Theory of univariate polynomials
@@ -21,7 +22,8 @@ noncomputable theory
 
 Polynomials should be seen as (semi-)rings with the additional constructor `X`.
 The embedding from `R` is called `C`. -/
-def polynomial (R : Type*) [semiring R] := add_monoid_algebra R ℕ
+structure polynomial (R : Type*) [semiring R] :=
+(to_alg : add_monoid_algebra R ℕ)
 
 open finsupp add_monoid_algebra
 open_locale big_operators
@@ -33,69 +35,140 @@ variables {R : Type u} {a : R} {m n : ℕ}
 section semiring
 variables [semiring R] {p q : polynomial R}
 
-instance : inhabited (polynomial R) := add_monoid_algebra.inhabited _ _
-instance : semiring (polynomial R) := add_monoid_algebra.semiring
+@[irreducible] private def zero : polynomial R := ⟨0⟩
+@[irreducible] private def one : polynomial R := ⟨1⟩
+@[irreducible] private def add : polynomial R → polynomial R → polynomial R
+| ⟨a⟩ ⟨b⟩ := ⟨a + b⟩
+@[irreducible] private def neg {R : Type u} [ring R] : polynomial R → polynomial R
+| ⟨a⟩ := ⟨-a⟩
+@[irreducible] private def mul : polynomial R → polynomial R → polynomial R
+| ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
+@[irreducible] private def smul {S : Type*} [semiring S] [semimodule S R] :
+  S → polynomial R → polynomial R
+| a ⟨b⟩ := ⟨a • b⟩
+
+instance : has_zero (polynomial R) := ⟨zero⟩
+instance : has_one (polynomial R) := ⟨one⟩
+instance : has_add (polynomial R) := ⟨add⟩
+instance {R : Type u} [ring R] : has_neg (polynomial R) := ⟨neg⟩
+instance : has_mul (polynomial R) := ⟨mul⟩
+instance {S : Type*} [semiring S] [semimodule S R] : has_scalar S (polynomial R) := ⟨smul⟩
+
+lemma zero_cauchy : (⟨0⟩ : polynomial R) = 0 := show _ = zero, by rw zero
+lemma one_cauchy : (⟨1⟩ : polynomial R) = 1 := show _ = one, by rw one
+lemma add_cauchy {a b} : (⟨a⟩ + ⟨b⟩ : polynomial R) = ⟨a + b⟩ := show add _ _ = _, by rw add
+lemma neg_cauchy {R : Type u} [ring R] {a} : (-⟨a⟩ : polynomial R) = ⟨-a⟩ :=
+show neg _ = _, by rw neg
+lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : polynomial R) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
+lemma smul_cauchy {S : Type*} [semiring S] [semimodule S R] {a : S} {b} :
+  (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := show smul _ _ = _, by rw smul
+
+instance : inhabited (polynomial R) := ⟨0⟩
+
+instance : semiring (polynomial R) :=
+by refine_struct { zero := (0 : polynomial R), one := 1, mul := (*), add := (+),  };
+{ repeat { rintro ⟨_⟩, },
+  simp [← zero_cauchy, ← one_cauchy, add_cauchy, mul_cauchy, mul_assoc, mul_add, add_mul]; abel }
+
 instance {S} [semiring S] [semimodule S R] : semimodule S (polynomial R) :=
-add_monoid_algebra.semimodule
+{ smul := (•),
+  one_smul := by { rintros ⟨⟩, simp [smul_cauchy] },
+  mul_smul := by { rintros _ _ ⟨⟩, simp [smul_cauchy, mul_smul], },
+  smul_add := by { rintros _ ⟨⟩ ⟨⟩, simp [smul_cauchy, add_cauchy] },
+  smul_zero := by { rintros _, simp [← zero_cauchy, smul_cauchy] },
+  add_smul := by { rintros _ _ ⟨⟩, simp [smul_cauchy, add_cauchy, add_smul] },
+  zero_smul := by { rintros ⟨⟩, simp [smul_cauchy, ← zero_cauchy] } }
+
 instance {S₁ S₂} [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ (polynomial R) :=
-add_monoid_algebra.smul_comm_class
+⟨by { rintros _ _ ⟨⟩, simp [smul_cauchy, smul_comm] }⟩
+
 instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
   [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
-add_monoid_algebra.is_scalar_tower
+⟨by { rintros _ _ ⟨⟩, simp [smul_cauchy] }⟩
 
-instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
+instance [subsingleton R] : unique (polynomial R) :=
+{ uniq := by { rintros ⟨x⟩, change (⟨x⟩ : polynomial R) = 0, rw [← zero_cauchy], simp },
+.. polynomial.inhabited }
+
+/- Algebra isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
+implementation detail, but it can be useful to transfer results from `finsupp` to polynomials. -/
+variable (R)
+def to_alg_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
+{ to_fun := λ ⟨p⟩, p,
+  inv_fun := λ p, ⟨p⟩,
+  left_inv := λ ⟨p⟩, rfl,
+  right_inv := λ p, rfl,
+  map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_cauchy], refl },
+  map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_cauchy], refl } }
+variable {R}
 
 /--
 The set of all `n` such that `X^n` has a non-zero coefficient.
 -/
-def support (p : polynomial R) : finset ℕ :=
-p.support
+@[irreducible] def support : polynomial R → finset ℕ
+| ⟨p⟩ := p.support
 
-@[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl
+@[simp] lemma support_zero : (0 : polynomial R).support = ∅ :=
+by { rw [← zero_cauchy, support], refl }
 
 @[simp] lemma support_eq_empty : p.support = ∅ ↔ p = 0 :=
-by simp [support]
+by { rcases p, simp [support, ← zero_cauchy] }
 
 lemma card_support_eq_zero : p.support.card = 0 ↔ p = 0 :=
 by simp
 
+@[irreducible] def monomial_fun (n : ℕ) (a : R) : polynomial R := ⟨finsupp.single n a⟩
+
 /-- `monomial s a` is the monomial `a * X^s` -/
-def monomial (n : ℕ) : R →ₗ[R] polynomial R := finsupp.lsingle n
+def monomial (n : ℕ) : R →ₗ[R] polynomial R :=
+{ to_fun := monomial_fun n,
+  map_add' := by simp [monomial_fun, add_cauchy],
+  map_smul' := by simp [monomial_fun, smul_cauchy] }
 
 @[simp]
 lemma monomial_zero_right (n : ℕ) :
   monomial n (0 : R) = 0 :=
-finsupp.single_zero
+by simp [monomial, monomial_fun]
 
 -- This is not a `simp` lemma as `monomial_zero_left` is more general.
-lemma monomial_zero_one : monomial 0 (1 : R) = 1 := rfl
-
-lemma monomial_def (n : ℕ) (a : R) : monomial n a = finsupp.single n a := rfl
+lemma monomial_zero_one : monomial 0 (1 : R) = 1 :=
+by { simp [monomial, monomial_fun, ← one_cauchy], refl }
 
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
-finsupp.single_add
+by simp [monomial, monomial_fun]
 
 lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
   monomial n r * monomial m s = monomial (n + m) (r * s) :=
-add_monoid_algebra.single_mul_single
+by simp only [monomial, monomial_fun, linear_map.coe_mk, mul_cauchy,
+  add_monoid_algebra.single_mul_single]
 
 @[simp]
 lemma monomial_pow (n : ℕ) (r : R) (k : ℕ) :
   (monomial n r)^k = monomial (n*k) (r^k) :=
 begin
-  rw mul_comm,
-  convert add_monoid_algebra.single_pow k,
-  simp only [nat.cast_id, nsmul_eq_mul],
-  refl,
+  induction k with k ih,
+  { simp [pow_zero, monomial_zero_one], },
+  { simp [pow_succ, ih, monomial_mul_monomial, nat.succ_eq_add_one, mul_add, add_comm] },
 end
 
 lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :
   a • monomial n b = monomial n (a • b) :=
-finsupp.smul_single _ _ _
+by simp [monomial, monomial_fun, smul_cauchy]
 
-lemma support_add : (p + q).support ⊆ p.support ∪ q.support := support_add
+@[simp] lemma to_alg_iso_monomial : (to_alg_iso R) (monomial n a) = single n a :=
+by simp [to_alg_iso, monomial, monomial_fun]
+
+@[simp] lemma to_alg_iso_symm_single : (to_alg_iso R).symm (single n a) = monomial n a :=
+by simp [to_alg_iso, monomial, monomial_fun]
+
+lemma support_add : (p + q).support ⊆ p.support ∪ q.support :=
+begin
+  rcases p, rcases q,
+  simp only [add_cauchy, support],
+  exact support_add
+end
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
@@ -110,7 +183,12 @@ end
 
 /-- `X` commutes with everything, even when the coefficients are noncommutative. -/
 lemma X_mul : X * p = p * X :=
-by { ext, simp [X, monomial, add_monoid_algebra.mul_apply, sum_single_index, add_comm] }
+begin
+  rcases p,
+  simp only [X, monomial, monomial_fun, mul_cauchy, linear_map.coe_mk],
+  ext,
+  simp [add_monoid_algebra.mul_apply, sum_single_index, add_comm],
+end
 
 lemma X_pow_mul {n : ℕ} : X^n * p = p * X^n :=
 begin
@@ -146,16 +224,19 @@ lemma X_pow_mul_monomial (k n : ℕ) (r : R) : X^k * monomial n r = monomial (n+
 by rw [X_pow_mul, monomial_mul_X_pow]
 
 /-- coeff p n is the coefficient of X^n in p -/
-def coeff (p : polynomial R) : ℕ → R := @coe_fn (ℕ →₀ R) _ p
+@[irreducible] def coeff : polynomial R → ℕ → R
+| ⟨p⟩ n := p n
 
-@[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
+-- @[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
 
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
-by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }
+by { simp only [monomial, monomial_fun, coeff, linear_map.coe_mk], rw finsupp.single_apply, congr }
 
-@[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 := rfl
+@[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 :=
+by { rw [← monomial_zero_right n, coeff_monomial], simp }
 
-@[simp] lemma coeff_one_zero : coeff (1 : polynomial R) 0 = 1 := coeff_monomial
+@[simp] lemma coeff_one_zero : coeff (1 : polynomial R) 0 = 1 :=
+by { rw [← monomial_zero_one, coeff_monomial], simp }
 
 @[simp] lemma coeff_X_one : coeff (X : polynomial R) 1 = 1 := coeff_monomial
 
@@ -170,40 +251,48 @@ lemma coeff_X_of_ne_one {n : ℕ} (hn : n ≠ 1) : coeff (X : polynomial R) n = 
 by rw [coeff_X, if_neg hn.symm]
 
 theorem ext_iff {p q : polynomial R} : p = q ↔ ∀ n, coeff p n = coeff q n :=
-finsupp.ext_iff
+by { rcases p, rcases q, simp [coeff, finsupp.ext_iff] }
 
 @[ext] lemma ext {p q : polynomial R} : (∀ n, coeff p n = coeff q n) → p = q :=
-finsupp.ext
-
-@[ext] lemma add_hom_ext' {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
-  (h : ∀ n, f.comp (monomial n).to_add_monoid_hom = g.comp (monomial n).to_add_monoid_hom) :
-  f = g :=
-finsupp.add_hom_ext' h
+ext_iff.2
 
 lemma add_hom_ext {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
   (h : ∀ n a, f (monomial n a) = g (monomial n a)) :
   f = g :=
-finsupp.add_hom_ext h
+begin
+  set f' : add_monoid_algebra R ℕ →+ M := f.comp (to_alg_iso R).symm with hf',
+  set g' : add_monoid_algebra R ℕ →+ M := g.comp (to_alg_iso R).symm with hg',
+  have : ∀ n a, f' (single n a) = g' (single n a) := λ n, by simp [hf', hg', h n],
+  have A : f' = g' := finsupp.add_hom_ext this,
+  have B : f = f'.comp (to_alg_iso R), by { rw [hf', add_monoid_hom.comp_assoc], ext x, simp },
+  have C : g = g'.comp (to_alg_iso R), by { rw [hg', add_monoid_hom.comp_assoc], ext x, simp },
+  rw [B, C, A],
+end
+
+@[ext] lemma add_hom_ext' {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
+  (h : ∀ n, f.comp (monomial n).to_add_monoid_hom = g.comp (monomial n).to_add_monoid_hom) :
+  f = g :=
+add_hom_ext (λ n, add_monoid_hom.congr_fun (h n))
 
 @[ext] lemma lhom_ext' {M : Type*} [add_comm_monoid M] [semimodule R M] {f g : polynomial R →ₗ[R] M}
   (h : ∀ n, f.comp (monomial n) = g.comp (monomial n)) :
   f = g :=
-finsupp.lhom_ext' h
+linear_map.to_add_monoid_hom_injective $ add_hom_ext $ λ n, linear_map.congr_fun (h n)
 
 -- this has the same content as the subsingleton
 lemma eq_zero_of_eq_zero (h : (0 : R) = (1 : R)) (p : polynomial R) : p = 0 :=
 by rw [←one_smul R p, ←h, zero_smul]
 
 lemma support_monomial (n) (a : R) (H : a ≠ 0) : (monomial n a).support = singleton n :=
-finsupp.support_single_ne_zero H
+by simp [monomial, monomial_fun, support, finsupp.support_single_ne_zero H]
 
 lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
-finsupp.support_single_subset
+by simp [monomial, monomial_fun, support, finsupp.support_single_subset]
 
 lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1:R) :=
 begin
   induction n with n hn,
-  { refl, },
+  { rw [pow_zero, monomial_zero_one] },
   { rw [pow_succ', hn, X, monomial_mul_monomial, one_mul] },
 end
 
@@ -225,7 +314,7 @@ end
 
 lemma monomial_left_inj {R : Type*} [semiring R] {a : R} (ha : a ≠ 0) {i j : ℕ} :
   (monomial i a) = (monomial j a) ↔ i = j :=
-finsupp.single_left_inj ha
+by simp [monomial, monomial_fun, finsupp.single_left_inj ha]
 
 lemma nat_cast_mul {R : Type*} [semiring R] (n : ℕ) (p : polynomial R) :
   (n : polynomial R) * p = n • p :=
@@ -240,34 +329,47 @@ end semiring
 section comm_semiring
 variables [comm_semiring R]
 
-instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
+instance : comm_semiring (polynomial R) :=
+{ mul_comm := by { rintros ⟨⟩ ⟨⟩, simp [mul_cauchy, mul_comm] }, .. polynomial.semiring }
 
 end comm_semiring
 
 section ring
 variables [ring R]
 
-instance : ring (polynomial R) := add_monoid_algebra.ring
+instance : ring (polynomial R) :=
+{ neg := has_neg.neg,
+  add_left_neg := by { rintros ⟨⟩, simp [neg_cauchy, add_cauchy, ← zero_cauchy] },
+   .. polynomial.semiring }
 
-@[simp] lemma coeff_neg (p : polynomial R) (n : ℕ) : coeff (-p) n = -coeff p n := rfl
+@[simp] lemma coeff_neg (p : polynomial R) (n : ℕ) : coeff (-p) n = -coeff p n :=
+by { rcases p, simp [coeff, neg_cauchy] }
 
 @[simp]
-lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - coeff q n := rfl
+lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - coeff q n :=
+by { rcases p, rcases q, simp [coeff, sub_eq_add_neg, add_cauchy, neg_cauchy] }
 
 @[simp] lemma monomial_neg (n : ℕ) (a : R) : monomial n (-a) = -(monomial n a) :=
 by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_right]
 
 @[simp] lemma support_neg {p : polynomial R} : (-p).support = p.support :=
-by simp [support]
+by { rcases p, simp [support, neg_cauchy] }
 
 end ring
 
-instance [comm_ring R] : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
+instance [comm_ring R] : comm_ring (polynomial R) :=
+{ .. polynomial.comm_semiring, .. polynomial.ring }
 
 section nonzero_semiring
 
 variables [semiring R] [nontrivial R]
-instance : nontrivial (polynomial R) := add_monoid_algebra.nontrivial
+instance : nontrivial (polynomial R) :=
+begin
+  have h : nontrivial (add_monoid_algebra R ℕ) := by apply_instance,
+  rcases h.exists_pair_ne with ⟨x, y, hxy⟩,
+  refine ⟨⟨⟨x⟩, ⟨y⟩, _⟩⟩,
+  simp [hxy],
+end
 
 lemma X_ne_zero : (X : polynomial R) ≠ 0 :=
 mt (congr_arg (λ p, coeff p 1)) (by simp)

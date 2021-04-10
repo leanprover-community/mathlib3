@@ -449,7 +449,7 @@ by simpa only [sub_eq_add_neg] using integral_comp_add_right f (-d)
   ∫ x in a..b, f (d - x) = ∫ x in d-b..d-a, f x :=
 by simpa only [one_mul, one_smul, inv_one] using integral_comp_sub_mul f one_ne_zero d
 
-lemma integral_comp_neg : ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=
+@[simp] lemma integral_comp_neg : ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=
 by simpa only [zero_sub] using integral_comp_sub_left f 0
 
 end comp

@@ -280,7 +280,7 @@ attribute [to_additive add_order_of_nsmul''] order_of_pow''
 
 section p_prime
 
-variables {p : ℕ} [hp : fact p.prime] {a}
+variables {a n} {p : ℕ} [hp : fact p.prime]
 include hp
 
 lemma add_order_of_eq_prime (hg : p •ℕ x = 0) (hg1 : x ≠ 0) : add_order_of x = p :=
@@ -359,17 +359,15 @@ lemma pow_injective_of_lt_order_of
 end cancel_monoid
 
 section group
-variables [group α]
-variables [add_group H] {x}
+variables [group α] [add_group H] {x} {i : ℤ}
 
-
-lemma gpow_eq_mod_order_of {i : ℤ} : a ^ i = a ^ (i % order_of a) :=
+lemma gpow_eq_mod_order_of : a ^ i = a ^ (i % order_of a) :=
 calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
     by rw [int.mod_add_div]
        ... = a ^ (i % order_of a) :
     by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
 
-lemma gsmul_eq_mod_add_order_of {i : ℤ} : i •ℤ x = (i % add_order_of x) •ℤ x :=
+lemma gsmul_eq_mod_add_order_of : i •ℤ x = (i % add_order_of x) •ℤ x :=
 begin
   apply multiplicative.of_add.injective,
   simp [of_add_gsmul, gpow_eq_mod_order_of],
@@ -437,7 +435,7 @@ exists_pow_eq_one (multiplicative.of_add x)
 
 attribute [to_additive exists_nsmul_eq_zero] exists_pow_eq_one
 
-lemma add_order_of_le_card_univ {x : H} : add_order_of x ≤ fintype.card H :=
+lemma add_order_of_le_card_univ : add_order_of x ≤ fintype.card H :=
 finset.le_card_of_inj_on_range (•ℕ x)
   (assume n _, finset.mem_univ _)
   (assume i hi j hj, nsmul_injective_of_lt_add_order_of x hi hj)
@@ -487,7 +485,7 @@ end
 
 attribute [to_additive add_order_of_nsmul] order_of_pow
 
-lemma mem_multiples_iff_mem_range_add_order_of [decidable_eq H] {x x' : H} :
+lemma mem_multiples_iff_mem_range_add_order_of [decidable_eq H] {x' : H} :
   x' ∈ add_submonoid.multiples x ↔
   x' ∈ (finset.range (add_order_of x)).image ((•ℕ x) : ℕ → H)  :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq' (add_order_of_pos x)
@@ -499,7 +497,7 @@ lemma mem_powers_iff_mem_range_order_of [decidable_eq α] {a' : α} :
 finset.mem_range_iff_mem_finset_range_of_mod_eq' (order_of_pos a)
   (assume i, pow_eq_mod_order_of.symm)
 
-noncomputable instance decidable_multiples [decidable_eq H] {x : H} :
+noncomputable instance decidable_multiples [decidable_eq H] :
   decidable_pred (add_submonoid.multiples x : set H) :=
 begin
   assume x',
@@ -528,7 +526,7 @@ begin
   { exact λ i j hi hj eq, pow_injective_of_lt_order_of a hi hj (subtype.mk_eq_mk.mp eq) }
 end
 
-lemma add_order_of_eq_card_multiples [decidable_eq H] {x : H} :
+lemma add_order_of_eq_card_multiples [decidable_eq H] :
   add_order_of x = fintype.card (add_submonoid.multiples x : set H) :=
 begin
   rw [← order_of_of_add_eq_add_order_of, order_eq_card_powers],
@@ -555,7 +553,7 @@ exists_gpow_eq_one (multiplicative.of_add x)
 
 attribute [to_additive exists_gsmul_eq_zero] exists_gpow_eq_one
 
-lemma mem_multiples_iff_mem_gmultiples {x y : H} :
+lemma mem_multiples_iff_mem_gmultiples {y : H} :
   y ∈ add_submonoid.multiples x ↔ y ∈ add_subgroup.gmultiples x :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩, λ ⟨i, hi⟩, ⟨(i % add_order_of x).nat_abs,
   by { convert hi,
@@ -582,7 +580,7 @@ set.ext $ λ y, mem_multiples_iff_mem_gmultiples
 lemma powers_eq_gpowers (a : α) : (submonoid.powers a : set α) = gpowers a :=
 set.ext $ λ x, mem_powers_iff_mem_gpowers
 
-lemma mem_gmultiples_iff_mem_range_add_order_of [decidable_eq H] {x x' : H} :
+lemma mem_gmultiples_iff_mem_range_add_order_of [decidable_eq H] {x' : H} :
   x' ∈ add_subgroup.gmultiples x ↔ x' ∈ (finset.range (add_order_of x)).image (•ℕ x) :=
 by rw [← mem_multiples_iff_mem_gmultiples, mem_multiples_iff_mem_range_add_order_of]
 
@@ -591,7 +589,7 @@ lemma mem_gpowers_iff_mem_range_order_of [decidable_eq α] {a' : α} :
   a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 by rw [← mem_powers_iff_mem_gpowers, mem_powers_iff_mem_range_order_of]
 
-noncomputable instance decidable_gmultiples [decidable_eq H] {x : H}:
+noncomputable instance decidable_gmultiples [decidable_eq H] :
   decidable_pred (add_subgroup.gmultiples x : set H) :=
 begin
   rw ← multiples_eq_gmultiples,
@@ -621,7 +619,7 @@ begin
   { exact λ i j hi hj eq, pow_injective_of_lt_order_of a hi hj $ subtype.mk_eq_mk.mp eq }
 end
 
-lemma add_order_eq_card_gmultiples [decidable_eq H] {x : H} :
+lemma add_order_eq_card_gmultiples [decidable_eq H] :
   add_order_of x = fintype.card (add_subgroup.gmultiples x : set H) :=
 begin
   rw [← order_of_of_add_eq_add_order_of, order_eq_card_gpowers],
@@ -658,7 +656,7 @@ begin
           (by rw [eq₁, eq₂, mul_comm])
 end
 
-lemma add_order_of_dvd_card_univ {x : H} : add_order_of x ∣ fintype.card H :=
+lemma add_order_of_dvd_card_univ : add_order_of x ∣ fintype.card H :=
 begin
   rw ← order_of_of_add_eq_add_order_of,
   exact order_of_dvd_card_univ,
@@ -677,7 +675,7 @@ attribute [to_additive card_nsmul_eq_zero] pow_card_eq_one
 
 variable (a)
 
-lemma image_range_add_order_of [decidable_eq H] {x : H} :
+lemma image_range_add_order_of [decidable_eq H] :
   finset.image (λ i, i •ℕ x) (finset.range (add_order_of x)) =
   (add_subgroup.gmultiples x : set H).to_finset :=
 by {ext x, rw [set.mem_to_finset, set_like.mem_coe, mem_gmultiples_iff_mem_range_add_order_of] }
@@ -688,16 +686,14 @@ lemma image_range_order_of [decidable_eq α] :
   finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a : set α).to_finset :=
 by { ext x, rw [set.mem_to_finset, set_like.mem_coe, mem_gpowers_iff_mem_range_order_of] }
 
-lemma gcd_nsmul_card_eq_zero_iff {x : H} :
-  n •ℕ x = 0 ↔ (gcd n (fintype.card H)) •ℕ x = 0 :=
+lemma gcd_nsmul_card_eq_zero_iff : n •ℕ x = 0 ↔ (gcd n (fintype.card H)) •ℕ x = 0 :=
 ⟨λ h, gcd_nsmul_eq_zero _ h $ card_nsmul_eq_zero,
   λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card H) in
     by rw [hm, mul_comm, mul_nsmul, h, nsmul_zero]⟩
 
 /-- TODO: Generalise to `finite_cancel_monoid`. -/
 @[to_additive gcd_nsmul_card_eq_zero_iff]
-lemma pow_gcd_card_eq_one_iff :
-  a ^ n = 1 ↔ a ^ (gcd n (fintype.card α)) = 1 :=
+lemma pow_gcd_card_eq_one_iff : a ^ n = 1 ↔ a ^ (gcd n (fintype.card α)) = 1 :=
 ⟨λ h, pow_gcd_eq_one _ h $ pow_card_eq_one,
   λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card α) in
     by rw [hm, pow_mul, h, one_pow]⟩

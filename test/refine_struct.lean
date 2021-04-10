@@ -160,3 +160,14 @@ begin
     guard_target ∀ a b c : α, mul (mul a b) c = mul a (mul b c),
     exact h.elim }
 end
+
+meta def exact_zero : tactic unit := `[exact 0]
+
+structure param_test :=
+(n : ℤ := 0)
+(m : ℕ . exact_zero)
+
+example : param_test :=
+begin
+  refine_struct { .. },
+end

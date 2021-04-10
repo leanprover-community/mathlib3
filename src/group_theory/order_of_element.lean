@@ -44,14 +44,25 @@ lemma one_mul_eq_id : ((*) (1 : α)) = id := funext one_mul
 lemma mul_one_eq_id : (* (1 : α)) = id := funext mul_one
 
 @[to_additive]
-lemma commute.function_commute_mul_left {b : α} (h : commute a b) :
-  function.commute ((*)a) ((*)b) :=
+lemma semiconj_by.function_semiconj_mul_left {b c : α} (h : semiconj_by a b c) :
+  function.semiconj ((*)a) ((*)b) ((*)c) :=
 λ j, by rw [← mul_assoc, h.eq, mul_assoc]
 
--- This lemma is no longer used in this PR and is never cited
+@[to_additive]
+lemma commute.function_commute_mul_left {b : α} (h : commute a b) :
+  function.commute ((*)a) ((*)b) :=
+semiconj_by.function_semiconj_mul_left h
+
+-- These two lemmas are no longer used in this PR and is never cited (I would keep them anyway for
+-- completeness)
+@[to_additive]
+lemma semiconj_by.function_semiconj_mul_right_swap {b c : α} (h : semiconj_by a b c) :
+  function.semiconj (*a) (*c) (*b) :=
+λ j, by simp_rw [mul_assoc, ← h.eq]
+
 @[to_additive]
 lemma commute.function_commute_mul_right {b : α} (h : commute a b) : function.commute (*a) (*b) :=
-by simp [function.commute, function.semiconj, mul_assoc, h.eq]
+semiconj_by.function_semiconj_mul_right_swap h
 
 lemma is_periodic_pt_add_iff_nsmul_eq_zero (x : H) :
   is_periodic_pt ((+) x) n 0 ↔ n •ℕ x = 0 :=

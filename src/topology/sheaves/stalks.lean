@@ -21,8 +21,8 @@ For an open neighborhood `U` of `x`, we define the map `F.germ x : F.obj (op U) 
 canonical morphism into this colimit.
 
 Taking stalks is functorial: For every point `x : X` we define a functor `stalk_functor C x`,
-sending presheaves on `X` to objects of `C`. In `is_iso_iff_stalk_functor_map_iso`, we prove that a map
-`f : F ⟶ G` between `Type`-valued sheaves is an isomorphism if and only if all the maps
+sending presheaves on `X` to objects of `C`. In `is_iso_iff_stalk_functor_map_iso`, we prove that a
+map `f : F ⟶ G` between `Type`-valued sheaves is an isomorphism if and only if all the maps
 `F.stalk x ⟶ G.stalk x` (given by the stalk functor on `f`) are isomorphisms.
 
 For a map `f : X ⟶ Y` between topological spaces, we define `stalk_pushforward` as the induced map
@@ -153,74 +153,6 @@ begin
   rw [subtype.val_eq_coe, opens.mem_coe, opens.mem_supr],
   exact ⟨⟨x,hxU⟩,(V ⟨x,hxU⟩).1.2⟩,
 end
-
-variables (C)
-
-def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) : (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
-begin
-  -- This is a hack; Lean doesn't like to elaborate the term written directly.
-  transitivity,
-  swap,
-  exact colimit.pre _ (open_nhds.map f x).op,
-  exact colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ),
-end
-
--- Here are two other potential solutions, suggested by @fpvandoorn at
--- <https://github.com/leanprover-community/mathlib/pull/1018#discussion_r283978240>
--- However, I can't get the subsequent two proofs to work with either one.
-
--- def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) :
---   (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
--- colim.map ((functor.associator _ _ _).inv ≫
---   whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ) ≫
--- colimit.pre ((open_nhds.inclusion x).op ⋙ ℱ) (open_nhds.map f x).op
-
--- def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) :
---   (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
--- (colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ) :
---   colim.obj ((open_nhds.inclusion (f x) ⋙ opens.map f).op ⋙ ℱ) ⟶ _) ≫
--- colimit.pre ((open_nhds.inclusion x).op ⋙ ℱ) (open_nhds.map f x).op
-
-namespace stalk_pushforward
-local attribute [tidy] tactic.op_induction'
-
-@[simp] lemma id (ℱ : X.presheaf C) (x : X) :
-  ℱ.stalk_pushforward C (𝟙 X) x = (stalk_functor C x).map ((pushforward.id ℱ).hom) :=
-begin
-  dsimp [stalk_pushforward, stalk_functor],
-  ext1,
-  tactic.op_induction',
-  cases j, cases j_val,
-  rw [colimit.ι_map_assoc, colimit.ι_map, colimit.ι_pre, whisker_left_app, whisker_right_app,
-       pushforward.id_hom_app, eq_to_hom_map, eq_to_hom_refl],
-  dsimp,
-  -- FIXME A simp lemma which unfortunately doesn't fire:
-  erw [category_theory.functor.map_id],
-end
-
--- This proof is sadly not at all robust:
--- having to use `erw` at all is a bad sign.
-@[simp] lemma comp (ℱ : X.presheaf C) (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
-  ℱ.stalk_pushforward C (f ≫ g) x =
-  ((f _* ℱ).stalk_pushforward C g (f x)) ≫ (ℱ.stalk_pushforward C f x) :=
-begin
-  dsimp [stalk_pushforward, stalk_functor],
-  ext U,
-  op_induction U,
-  cases U,
-  cases U_val,
-  simp only [colimit.ι_map_assoc, colimit.ι_pre_assoc,
-             whisker_right_app, category.assoc],
-  dsimp,
-  -- FIXME: Some of these are simp lemmas, but don't fire successfully:
-  erw [category_theory.functor.map_id, category.id_comp, category.id_comp, category.id_comp,
-       colimit.ι_pre, colimit.ι_pre],
-  refl,
-end
-
-end stalk_pushforward
-
-variables {C}
 
 @[simp, reassoc] lemma stalk_functor_map_germ {F G : X.presheaf C} (U : opens X) (x : U)
   (f : F ⟶ G) : germ F x ≫ (stalk_functor C x.1).map f = f.app (op U) ≫ germ G x :=
@@ -367,5 +299,70 @@ begin
     exact is_iso_of_stalk_functor_map_iso f }
 end
 
+variables (C)
+
+def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) : (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
+begin
+  -- This is a hack; Lean doesn't like to elaborate the term written directly.
+  transitivity,
+  swap,
+  exact colimit.pre _ (open_nhds.map f x).op,
+  exact colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ),
+end
+
+-- Here are two other potential solutions, suggested by @fpvandoorn at
+-- <https://github.com/leanprover-community/mathlib/pull/1018#discussion_r283978240>
+-- However, I can't get the subsequent two proofs to work with either one.
+
+-- def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) :
+--   (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
+-- colim.map ((functor.associator _ _ _).inv ≫
+--   whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ) ≫
+-- colimit.pre ((open_nhds.inclusion x).op ⋙ ℱ) (open_nhds.map f x).op
+
+-- def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) :
+--   (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
+-- (colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ) :
+--   colim.obj ((open_nhds.inclusion (f x) ⋙ opens.map f).op ⋙ ℱ) ⟶ _) ≫
+-- colimit.pre ((open_nhds.inclusion x).op ⋙ ℱ) (open_nhds.map f x).op
+
+namespace stalk_pushforward
+local attribute [tidy] tactic.op_induction'
+
+@[simp] lemma id (ℱ : X.presheaf C) (x : X) :
+  ℱ.stalk_pushforward C (𝟙 X) x = (stalk_functor C x).map ((pushforward.id ℱ).hom) :=
+begin
+  dsimp [stalk_pushforward, stalk_functor],
+  ext1,
+  tactic.op_induction',
+  cases j, cases j_val,
+  rw [colimit.ι_map_assoc, colimit.ι_map, colimit.ι_pre, whisker_left_app, whisker_right_app,
+       pushforward.id_hom_app, eq_to_hom_map, eq_to_hom_refl],
+  dsimp,
+  -- FIXME A simp lemma which unfortunately doesn't fire:
+  erw [category_theory.functor.map_id],
+end
+
+-- This proof is sadly not at all robust:
+-- having to use `erw` at all is a bad sign.
+@[simp] lemma comp (ℱ : X.presheaf C) (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+  ℱ.stalk_pushforward C (f ≫ g) x =
+  ((f _* ℱ).stalk_pushforward C g (f x)) ≫ (ℱ.stalk_pushforward C f x) :=
+begin
+  dsimp [stalk_pushforward, stalk_functor],
+  ext U,
+  op_induction U,
+  cases U,
+  cases U_val,
+  simp only [colimit.ι_map_assoc, colimit.ι_pre_assoc,
+             whisker_right_app, category.assoc],
+  dsimp,
+  -- FIXME: Some of these are simp lemmas, but don't fire successfully:
+  erw [category_theory.functor.map_id, category.id_comp, category.id_comp, category.id_comp,
+       colimit.ι_pre, colimit.ι_pre],
+  refl,
+end
+
+end stalk_pushforward
 
 end Top.presheaf

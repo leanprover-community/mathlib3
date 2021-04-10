@@ -150,12 +150,12 @@ is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_add_iff_nsmul_eq_zero
 lemma order_of_le_of_pow_eq_one (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
 is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_mul_iff_pow_eq_one)
 
-lemma mul_one_eq_id : has_mul.mul (1 : α) = id :=
-by { funext, rwa [one_mul, id_def] }
+@[to_additive]
+lemma one_mul_eq_id : has_mul.mul (1 : α) = id := funext $ λ _, (one_mul _).trans (id.def _).symm
 
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin
-  rw [order_of, mul_one_eq_id],
+  rw [order_of, one_mul_eq_id],
   exact minimal_period_id,
 end
 

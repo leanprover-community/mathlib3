@@ -13,17 +13,12 @@ import algebra.iterate_hom
 
 /-!
 # Order of an element
-
 This file defines the order of an element of a finite group. For a finite group `G` the order of
 `g ∈ G` is the minimal `n ≥ 1` such that `g ^ n = 1`.
-
 ## Main definitions
-
 * `order_of` defines the order of an element `a` of a group `G`, by convention its value is `0` if
   `a` has infinite order.
-
 ## Tags
-
 order of an element
 -/
 
@@ -40,23 +35,23 @@ variables {α} [monoid α]
 variables {H : Type u} [add_monoid H]
 
 lemma is_periodic_pt_add_iff_nsmul_eq_zero (x : H) {n : ℕ} :
-  is_periodic_pt (+ x) n 0 ↔ n •ℕ x = 0 :=
-by rw [is_periodic_pt, is_fixed_pt, iterate_add_apply_zero]
+  is_periodic_pt ((+) x) n 0 ↔ n •ℕ x = 0 :=
+by rw [is_periodic_pt, is_fixed_pt, add_left_iterate, add_zero]
 
 @[to_additive is_periodic_pt_add_iff_nsmul_eq_zero]
-lemma is_periodic_pt_mul_iff_pow_eq_one (a : α) {n : ℕ} : is_periodic_pt (* a) n 1 ↔ a ^ n = 1 :=
-by rw [is_periodic_pt, is_fixed_pt, iterate_mul_apply_one]
+lemma is_periodic_pt_mul_iff_pow_eq_one (a : α) {n : ℕ} : is_periodic_pt ((*) a) n 1 ↔ a ^ n = 1 :=
+by rw [is_periodic_pt, is_fixed_pt, mul_left_iterate, mul_one]
 
 /-- `is_of_fin_add_order` is a predicate on an element `x` of an additive monoid to be of finite
 order, i.e. there exists `n ≥ 1` such that `n •ℕ x = 0`.-/
 def is_of_fin_add_order (x : H) : Prop :=
-(0 : H) ∈ periodic_pts (+ x)
+(0 : H) ∈ periodic_pts ((+) x)
 
 /-- `is_of_fin_order` is a predicate on an element `a` of a monoid to be of finite order, i.e. there
 exists `n ≥ 1` such that `a ^ n = 1`.-/
 @[to_additive is_of_fin_add_order]
 def is_of_fin_order (a : α) : Prop :=
-(1 : α) ∈ periodic_pts (* a)
+(1 : α) ∈ periodic_pts ((*) a)
 
 lemma is_of_fin_add_order_of_mul_iff {a : α} :
 is_of_fin_add_order (additive.of_mul a) ↔ is_of_fin_order a :=
@@ -88,13 +83,13 @@ open_locale classical
 /-- `add_order_of x` is the order of the element `x`, i.e. the `n ≥ 1`, s.t. `n •ℕ x = 0` if it
 exists. Otherwise, i.e. if `x` is of infinite order, then `add_order_of x` is `0` by convention.-/
 noncomputable def add_order_of (x : H) : ℕ :=
-minimal_period (+ x) 0
+minimal_period ((+) x) 0
 
 /-- `order_of a` is the order of the element `a`, i.e. the `n ≥ 1`, s.t. `a ^ n = 1` if it exists.
 Otherwise, i.e. if `a` is of infinite order, then `order_of a` is `0` by convention.-/
 @[to_additive add_order_of]
 noncomputable def order_of (a : α) : ℕ :=
-minimal_period (* a) 1
+minimal_period ((*) a) 1
 
 attribute [to_additive add_order_of] order_of
 
@@ -110,15 +105,15 @@ minimal_period_pos_of_mem_periodic_pts h
 
 lemma add_order_of_nsmul_eq_zero (x : H) : (add_order_of x) •ℕ x = 0 :=
 begin
-  rw [← iterate_add_apply_zero, ← is_fixed_pt, ← is_periodic_pt],
-  exact is_periodic_pt_minimal_period _ _,
+  convert  is_periodic_pt_minimal_period ((+) x) _,
+  rw [add_order_of, add_left_iterate, add_zero],
 end
 
 @[to_additive add_order_of_nsmul_eq_zero]
 lemma pow_order_of_eq_one (a : α): a ^ order_of a = 1 :=
 begin
-  rw [← iterate_mul_apply_one, ← is_fixed_pt, ← is_periodic_pt, order_of],
-  exact is_periodic_pt_minimal_period _ _,
+  convert  is_periodic_pt_minimal_period ((*) a) _,
+  rw [order_of, mul_left_iterate, mul_one],
 end
 
 @[to_additive add_order_of_eq_zero]
@@ -144,8 +139,10 @@ is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_mul_iff_pow_eq_one)
 
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin
-  simp_rw [order_of, mul_one],
-  exact minimal_period_id,
+  rw order_of,
+  convert minimal_period_id,
+  funext,
+  rwa [one_mul, id_def],
 end
 
 @[simp] lemma add_order_of_zero : add_order_of (0 : H) = 1 :=
@@ -154,7 +151,7 @@ by simp only [←order_of_of_add_eq_add_order_of, order_of_one, of_add_zero]
 attribute [to_additive add_order_of_zero] order_of_one
 
 @[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
-by rw [order_of, is_fixed_point_iff_minimal_period_eq_one, is_fixed_pt, one_mul]
+by rw [order_of, is_fixed_point_iff_minimal_period_eq_one, is_fixed_pt, mul_one]
 
 @[simp] lemma add_order_of_eq_one_iff : add_order_of x = 1 ↔ x = 0 :=
 by simp [← order_of_of_add_eq_add_order_of]
@@ -162,12 +159,17 @@ by simp [← order_of_of_add_eq_add_order_of]
 attribute [to_additive add_order_of_eq_one_iff] order_of_eq_one_iff
 
 lemma nsmul_eq_mod_add_order_of {n : ℕ} : n •ℕ x = (n % add_order_of x) •ℕ x :=
-by rw [← iterate_add_apply_zero, iterate_eq_mod_minimal_period, iterate_add_apply_zero,
-  ← add_order_of]
+begin
+  nth_rewrite 0 [← nat.div_add_mod' n (add_order_of x)],
+  rw [add_nsmul, mul_nsmul, add_order_of_nsmul_eq_zero, nsmul_zero, zero_add],
+end
 
 @[to_additive nsmul_eq_mod_add_order_of]
 lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
-by rw [← iterate_mul_apply_one, iterate_eq_mod_minimal_period, iterate_mul_apply_one, ← order_of]
+begin
+  nth_rewrite 0 [← nat.mod_add_div n (order_of a)],
+  rw [pow_add, pow_mul, pow_order_of_eq_one, one_pow, mul_one],
+end
 
 lemma add_order_of_dvd_of_nsmul_eq_zero {n : ℕ} (h : n •ℕ x = 0) : add_order_of x ∣ n :=
 is_periodic_pt.minimal_period_dvd ((is_periodic_pt_add_iff_nsmul_eq_zero _).mpr h)
@@ -188,24 +190,29 @@ by rw [← is_periodic_pt_mul_iff_pow_eq_one, is_periodic_pt_iff_minimal_period_
 lemma commute.function_commute_mul (h : commute a b) : function.commute (*a) (*b) :=
 by simp [function.commute, function.semiconj, mul_assoc, h.eq]
 
+-- Move somewhere else
+@[to_additive]
+lemma commute.function_commute_mul_n (h : commute a b) : function.commute ((*)a) ((*)b) :=
+λ j, by rw [← mul_assoc, h.eq, mul_assoc]
+
 @[to_additive]
 lemma commute.order_of_mul_dvd_lcm (h : commute a b) :
   order_of (a * b) ∣ nat.lcm (order_of a) (order_of b) :=
 begin
-  convert function.commute.minimal_period_of_comp_dvd_lcm h.function_commute_mul,
-  rw [h.eq, order_of, comp_mul_right],
+  convert function.commute.minimal_period_of_comp_dvd_lcm h.function_commute_mul_n,
+  rw [order_of, comp_mul_left],
 end
 
 lemma add_order_of_eq_prime {p : ℕ} [hp : fact p.prime]
   (hg : p •ℕ x = 0) (hg1 : x ≠ 0) : add_order_of x = p :=
 minimal_period_eq_prime ((is_periodic_pt_add_iff_nsmul_eq_zero _).mpr hg)
-  (by rwa [is_fixed_pt, zero_add])
+  (by rwa [is_fixed_pt, add_zero])
 
 @[to_additive add_order_of_eq_prime]
 lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
   (hg : a ^ p = 1) (hg1 : a ≠ 1) : order_of a = p :=
 minimal_period_eq_prime ((is_periodic_pt_mul_iff_pow_eq_one _).mpr hg)
-  (by rwa [is_fixed_pt, one_mul])
+  (by rwa [is_fixed_pt, mul_one])
 
 open nat
 
@@ -267,7 +274,7 @@ lemma order_of_pow' (h : n ≠ 0) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
   convert minimal_period_iterate_eq_div_gcd h,
-  simp only [order_of, mul_right_iterate],
+  simp only [order_of, mul_left_iterate],
 end
 
 variables (x)
@@ -284,7 +291,7 @@ lemma order_of_pow'' (h : is_of_fin_order a) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
   convert minimal_period_iterate_eq_div_gcd' h,
-  simp only [order_of, iterate_mul_right_apply],
+  simp only [order_of, mul_left_iterate],
 end
 
 lemma add_order_of_nsmul'' (h : is_of_fin_add_order x) :

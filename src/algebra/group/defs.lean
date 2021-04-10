@@ -296,14 +296,14 @@ class cancel_monoid (M : Type u) extends left_cancel_monoid M, right_cancel_mono
 attribute [to_additive add_cancel_monoid] cancel_monoid
 
 /-- Commutative version of add_cancel_monoid. -/
-@[protect_proj, ancestor add_right_cancel_monoid add_left_cancel_monoid add_comm_monoid]
+@[protect_proj, ancestor add_cancel_monoid add_comm_monoid]
 class add_cancel_comm_monoid (M : Type u) extends
-  add_right_cancel_monoid M, add_left_cancel_monoid M, add_comm_monoid M
+  add_cancel_monoid M, add_comm_monoid M
 
 /-- Commutative version of cancel_monoid. -/
-@[protect_proj, ancestor right_cancel_monoid left_cancel_monoid comm_monoid]
+@[protect_proj, ancestor cancel_monoid comm_monoid]
 class cancel_comm_monoid (M : Type u) extends
-  right_cancel_monoid M, left_cancel_monoid M, comm_monoid M
+  cancel_monoid M, comm_monoid M
 attribute [to_additive add_cancel_comm_monoid] cancel_comm_monoid
 
 end cancel_monoid

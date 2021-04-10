@@ -380,8 +380,7 @@ section fintype
 variables [fintype α] [fintype H]
 
 section finite_monoid
-variables [monoid α]
-variables [add_monoid H]
+variables [monoid α] [add_monoid H]
 
 lemma sum_card_add_order_of_eq_card_nsmul_eq_zero [decidable_eq H] (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : H, add_order_of x = m)).card
@@ -416,8 +415,7 @@ end finite_monoid
 
 section finite_cancel_monoid
 -- TODO: Of course everything also works for right_cancel_monoids.
-variables [left_cancel_monoid α]
-variables [add_left_cancel_monoid H]
+variables [left_cancel_monoid α] [add_left_cancel_monoid H]
 
 -- TODO: Use this to show that a finite left cancellative monoid is a group.
 
@@ -541,8 +539,7 @@ attribute [to_additive add_order_of_eq_card_multiples] order_eq_card_powers
 end finite_cancel_monoid
 
 section finite_group
-variables [group α]
-variables [add_group H]
+variables [group α] [add_group H]
 
 lemma exists_gpow_eq_one (a : α) : ∃ i ≠ 0, a ^ (i : ℤ) = 1 :=
 begin

@@ -396,9 +396,8 @@ lemma generalized_eigenspace_restrict
 begin
   rw [generalized_eigenspace, generalized_eigenspace, ←linear_map.ker_comp],
   induction k with k ih,
-  { rw [pow_zero,pow_zero],
-    convert linear_map.ker_id,
-    apply submodule.ker_subtype },
+  { rw [pow_zero, pow_zero, linear_map.one_eq_id],
+    apply (submodule.ker_subtype _).symm },
   { erw [pow_succ', pow_succ', linear_map.ker_comp,
       ih, ←linear_map.ker_comp, linear_map.comp_assoc], }
 end

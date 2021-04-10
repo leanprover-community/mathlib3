@@ -308,6 +308,8 @@ begin
     exact ring_hom.ker_coe_equiv (equiv.symm.to_ring_equiv), }
 end
 
+set_option profiler true
+
 /-- If `A` is a finitely presented `R`-algebra, then `mv_polynomial (fin n) A` is finitely presented
 as `R`-algebra. -/
 lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι : Type*)
@@ -330,7 +332,8 @@ begin
   refine equiv _ ((@mv_polynomial.quotient_equiv_quotient_mv_polynomial
     _ (fin n) _ I).restrict_scalars R).symm,
   refine quotient (submodule.map_fg_of_fg I hfg _) _,
-  refine equiv _ (mv_polynomial.sum_alg_equiv _ _ _),
+  let := mv_polynomial.sum_alg_equiv R (fin n) (fin m),
+  refine equiv _ this,
   exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R fin_sum_fin_equiv).symm
 end
 

@@ -75,6 +75,8 @@ open is_R_or_C
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [normed_group F] [normed_space 𝕜 F]
 
+set_option profiler true
+
 /-- Hahn-Banach theorem for continuous linear functions over `𝕜` satisyfing `is_R_or_C 𝕜`. -/
 theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :
   ∃ g : F →L[𝕜] 𝕜, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥ :=
@@ -84,7 +86,7 @@ begin
   letI : normed_space ℝ F := normed_space.restrict_scalars _ 𝕜 _,
   -- Let `fr: p →L[ℝ] ℝ` be the real part of `f`.
   let fr := re_clm.comp (f.restrict_scalars ℝ),
-  have fr_apply : ∀ x, fr x = re (f x) := λ x, rfl,
+  have fr_apply : ∀ x, fr x = re (f x), by { assume x, refl },
   -- Use the real version to get a norm-preserving extension of `fr`, which
   -- we'll call `g : F →L[ℝ] ℝ`.
   rcases real.exists_extension_norm_eq (p.restrict_scalars ℝ) fr with ⟨g, ⟨hextends, hnormeq⟩⟩,
@@ -94,7 +96,9 @@ begin
   have h : ∀ x : p, g.extend_to_𝕜 x = f x,
   { assume x,
     rw [continuous_linear_map.extend_to_𝕜_apply, ←submodule.coe_smul, hextends, hextends],
-    change (re (f x) : 𝕜) - (I : 𝕜) * (re (f ((I : 𝕜) • x))) = f x,
+    have : (fr x : 𝕜) - I * ↑(fr (I • x)) = (re (f x) : 𝕜) - (I : 𝕜) * (re (f ((I : 𝕜) • x))),
+      by refl,
+    rw this,
     apply ext,
     { simp only [add_zero, algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add,
         zero_sub, I_im', zero_mul, of_real_re, eq_self_iff_true, sub_zero, mul_neg_eq_neg_mul_symm,

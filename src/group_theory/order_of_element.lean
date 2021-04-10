@@ -629,7 +629,7 @@ end
 
 attribute [to_additive add_order_eq_card_gmultiples] order_eq_card_gpowers
 
-open quotient_group subgroup
+open quotient_group
 
 /- TODO: use cardinal theory, introduce `card : set α → ℕ`, or setup decidability for cosets -/
 lemma order_of_dvd_card_univ : order_of a ∣ fintype.card α :=

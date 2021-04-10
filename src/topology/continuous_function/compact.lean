@@ -262,4 +262,78 @@ classical.some_spec (classical.some_spec (uniform_continuity f ε h)) w
 
 end uniform_continuity
 
+/-!
+We now setup variations on `comp_right_* f`, where `f : C(X, Y)`
+(that is, precomposition by a continuous map),
+as a morphism `C(Y, T) → C(X, T)`, respecting various types of structure.
+
+In particular:
+* `comp_right_continuous_map`, the bundled continuous map (for this we need `X Y` compact).
+* `comp_right_homeomorph`, when we precompose by a homeomorphism.
+* `comp_right_alg_hom`, when `T = R` is a topological ring.
+-/
+section comp_right
+
+/--
+Precomposition by a continuous map is itself a continuous map between spaces of continuous maps.
+-/
+def comp_right_continuous_map {X Y : Type*} (T : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+  (f : C(X, Y)) : C(C(Y, T), C(X, T)) :=
+{ to_fun := λ g, g.comp f,
+  continuous_to_fun :=
+  begin
+    refine metric.continuous_iff.mpr _,
+    intros g ε ε_pos,
+    refine ⟨ε, ε_pos, λ g' h, _⟩,
+    rw continuous_map.dist_lt_iff _ _ ε_pos at h ⊢,
+    { exact λ x, h (f x), },
+  end }
+
+@[simp] lemma comp_right_continuous_map_apply {X Y : Type*} (T : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+  (f : C(X, Y)) (g : C(Y, T)) :
+  (comp_right_continuous_map T f) g = g.comp f :=
+rfl
+
+/--
+Precomposition by a homeomorphism is itself a homeomorphism between spaces of continuous maps.
+-/
+def comp_right_homeomorph {X Y : Type*} (T : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+  (f : X ≃ₜ Y) : C(Y, T) ≃ₜ C(X, T) :=
+{ to_fun := comp_right_continuous_map T f.to_continuous_map,
+  inv_fun := comp_right_continuous_map T f.symm.to_continuous_map,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+/--
+Precomposition of functions into a normed ring by continuous map is an algebra homomorphism.
+-/
+def comp_right_alg_hom {X Y : Type*} (R : Type*)
+  [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) :
+  C(Y, R) →ₐ[R] C(X, R) :=
+{ to_fun := λ g, g.comp f,
+  map_zero' := by { ext, simp, },
+  map_add' := λ g₁ g₂, by { ext, simp, },
+  map_one' := by { ext, simp, },
+  map_mul' := λ g₁ g₂, by { ext, simp, },
+  commutes' := λ r, by { ext, simp, }, }
+
+@[simp] lemma comp_right_alg_hom_apply {X Y : Type*} (R : Type*)
+  [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) (g : C(Y, R)) :
+  (comp_right_alg_hom R f) g = g.comp f :=
+rfl
+
+lemma comp_right_alg_hom_continuous {X Y : Type*} (R : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y]
+  [normed_comm_ring R] (f : C(X, Y)) :
+  continuous (comp_right_alg_hom R f) :=
+begin
+  change continuous (comp_right_continuous_map R f),
+  continuity,
+end
+
+end comp_right
+
 end continuous_map

@@ -21,7 +21,7 @@ For an open neighborhood `U` of `x`, we define the map `F.germ x : F.obj (op U) 
 canonical morphism into this colimit.
 
 Taking stalks is functorial: For every point `x : X` we define a functor `stalk_functor C x`,
-sending presheaves on `X` to objects of `C`. In `is_iso_iff_stalk_maps_iso`, we prove that a map
+sending presheaves on `X` to objects of `C`. In `is_iso_iff_stalk_functor_map_iso`, we prove that a map
 `f : F ⟶ G` between `Type`-valued sheaves is an isomorphism if and only if all the maps
 `F.stalk x ⟶ G.stalk x` (given by the stalk functor on `f`) are isomorphisms.
 
@@ -222,24 +222,24 @@ end stalk_pushforward
 
 variables {C}
 
-@[simp, reassoc] lemma stalk_map_germ {F G : X.presheaf C} (U : opens X) (x : U) (f : F ⟶ G) :
-  germ F x ≫ (stalk_functor C x.1).map f = f.app (op U) ≫ germ G x :=
+@[simp, reassoc] lemma stalk_functor_map_germ {F G : X.presheaf C} (U : opens X) (x : U)
+  (f : F ⟶ G) : germ F x ≫ (stalk_functor C x.1).map f = f.app (op U) ≫ germ G x :=
 colimit.ι_map (whisker_left ((open_nhds.inclusion x.1).op) f) (op ⟨U, x.2⟩)
 
-@[simp] lemma stalk_map_germ_apply (U : opens X) (x : U) {F G : X.presheaf (Type v)} (f : F ⟶ G)
-  (s : F.obj (op U)) :
+@[simp] lemma stalk_functor_map_germ_apply (U : opens X) (x : U) {F G : X.presheaf (Type v)}
+  (f : F ⟶ G) (s : F.obj (op U)) :
   (stalk_functor (Type v) x.1).map f (germ F x s) = germ G x (f.app (op U) s) :=
-congr_fun (stalk_map_germ U x f) s
+congr_fun (stalk_functor_map_germ U x f) s
 
 open function
 
-lemma stalk_map_injective_of_app_injective {F G : presheaf (Type v) X} (f : F ⟶ G)
+lemma stalk_functor_map_injective_of_app_injective {F G : presheaf (Type v) X} (f : F ⟶ G)
   (h : ∀ U : opens X, injective (f.app (op U))) (x : X) :
   injective ((stalk_functor (Type v) x).map f) := λ s t hst,
 begin
   rcases germ_exist F x s with ⟨U₁, hxU₁, s, rfl⟩,
   rcases germ_exist F x t with ⟨U₂, hxU₂, t, rfl⟩,
-  simp only [stalk_map_germ_apply _ ⟨x,_⟩] at hst,
+  simp only [stalk_functor_map_germ_apply _ ⟨x,_⟩] at hst,
   obtain ⟨W, hxW, iWU₁, iWU₂, heq⟩ := G.germ_eq x hxU₁ hxU₂ _ _ hst,
   rw [← functor_to_types.naturality, ← functor_to_types.naturality] at heq,
   replace heq := h W heq,
@@ -253,29 +253,29 @@ Note that the analogous statement for surjectivity is false: Surjectivity on sta
 imply surjectivity of the components of a sheaf morphism. However it does imply that the morphism
 is an epi, but this fact is not yet formalized.
 -/
-lemma app_injective_of_stalk_maps_injective {F : sheaf (Type v) X} {G : presheaf (Type v) X}
+lemma app_injective_of_stalk_functor_map_injective {F : sheaf (Type v) X} {G : presheaf (Type v) X}
   (f : F.presheaf ⟶ G) (h : ∀ x : X, injective ((stalk_functor (Type v) x).map f)) (U : opens X) :
   injective (f.app (op U)) := λ s t hst,
 begin
   apply section_ext,
   intro x,
   apply h x.1,
-  simp only [stalk_map_germ_apply, hst],
+  simp only [stalk_functor_map_germ_apply, hst],
 end
 
-lemma app_injective_iff_stalk_maps_injective {F : sheaf (Type v) X}
+lemma app_injective_iff_stalk_functor_map_injective {F : sheaf (Type v) X}
   {G : presheaf (Type v) X} (f : F.presheaf ⟶ G) :
   (∀ x : X, injective ((stalk_functor (Type v) x).map f)) ↔
   (∀ U : opens X, injective (f.app (op U))) :=
-⟨app_injective_of_stalk_maps_injective f, stalk_map_injective_of_app_injective f⟩
+⟨app_injective_of_stalk_functor_map_injective f, stalk_functor_map_injective_of_app_injective f⟩
 
-lemma app_bijective_of_stalk_maps_bijective {F G : sheaf (Type v) X} (f : F ⟶ G)
+lemma app_bijective_of_stalk_functor_map_bijective {F G : sheaf (Type v) X} (f : F ⟶ G)
   (h : ∀ x : X, bijective ((stalk_functor (Type v) x).map f)) (U : opens X) :
   bijective (f.app (op U)) :=
 begin
   -- We already know that `f.app (op U)` is injective. We save that fact here as we will
   -- need it again later.
-  have h_inj := app_injective_of_stalk_maps_injective f (λ x, (h x).1),
+  have h_inj := app_injective_of_stalk_functor_map_injective f (λ x, (h x).1),
   refine ⟨h_inj U, (λ t,_)⟩,
   -- For surjectivity, we are given an arbitrary section `t` and need to find a preimage for it.
   -- First, we show that we can find preimages *locally*. That is, for each `x : U` we construct
@@ -288,7 +288,7 @@ begin
     -- ... and this preimage must come from some section `s₁`
     obtain ⟨V₁,hxV₁,s₁,hs₁⟩ := F.presheaf.germ_exist x.1 s₀,
     subst hs₁, rename hs₀ hs₁,
-    erw stalk_map_germ_apply V₁ ⟨x.1,hxV₁⟩ f s₁ at hs₁,
+    erw stalk_functor_map_germ_apply V₁ ⟨x.1,hxV₁⟩ f s₁ at hs₁,
     -- Now, the germ of `f.app (op V₁) s₁` equals the germ of `t`, hence they must coincide on
     -- some open neighborhood
     obtain ⟨V₂,hxV₂, iV₂V₁, iV₂U, heq⟩ := G.presheaf.germ_eq x.1 hxV₁ x.2 _ _ hs₁,
@@ -336,8 +336,8 @@ end
 If all the stalk maps of map `f : F ⟶ G` of `Type`-valued sheaves are isomorphisms, then `f` is
 an isomorphism.
 -/
--- Making this an instance would cause a loop in typeclass resolution with `stalk_map.is_iso`
-lemma is_iso_of_stalk_maps_iso {F G : sheaf (Type v) X} (f : F ⟶ G)
+-- Making this an instance would cause a loop in typeclass resolution with `functor.map_is_iso`
+lemma is_iso_of_stalk_functor_map_iso {F G : sheaf (Type v) X} (f : F ⟶ G)
   [∀ x : X, is_iso ((stalk_functor (Type v) x).map f)] : is_iso f :=
 begin
   -- Rather annoyingly, an isomorphism of presheaves isn't quite the same as an isomorphism of
@@ -346,7 +346,8 @@ begin
   @nat_iso.is_iso_of_is_iso_app _ _ _ _ F.presheaf G.presheaf f (by {
     intro U, op_induction U,
     rw is_iso_iff_bijective,
-    exact app_bijective_of_stalk_maps_bijective f (λ x, (is_iso_iff_bijective _).mp (_inst_3 x)) U,
+    exact app_bijective_of_stalk_functor_map_bijective f
+      (λ x, (is_iso_iff_bijective _).mp (_inst_3 x)) U,
   }),
   exact is_iso_of_fully_faithful (induced_functor sheaf.presheaf) f,
 end
@@ -355,7 +356,7 @@ end
 A morphism of `Type`-valued sheaves `f : F ⟶ G` is an isomorphism if and only if all the stalk
 maps are isomorphisms
 -/
-lemma is_iso_iff_stalk_maps_iso {F G : sheaf (Type v) X} (f : F ⟶ G) :
+lemma is_iso_iff_stalk_functor_map_iso {F G : sheaf (Type v) X} (f : F ⟶ G) :
   is_iso f ↔ ∀ x : X, is_iso ((stalk_functor (Type v) x).map f) :=
 begin
   split,
@@ -363,7 +364,7 @@ begin
     exact @functor.map_is_iso _ _ _ _ _ _ (stalk_functor (Type v) x) f
       ((induced_functor sheaf.presheaf).map_is_iso f) },
   { intro h, resetI,
-    exact is_iso_of_stalk_maps_iso f }
+    exact is_iso_of_stalk_functor_map_iso f }
 end
 
 

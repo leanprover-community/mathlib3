@@ -12,7 +12,8 @@ import category_theory.triangulated.rotate
 /-!
 # Pre-triangulated Categories
 
-This file contains the definition of pre-triangulated categories and triangulated functors between them.
+This file contains the definition of pre-triangulated categories and triangulated functors
+between them.
 
 TODO: generalise this to n-angulated categories as in https://arxiv.org/abs/1006.4592
 -/
@@ -115,7 +116,7 @@ end -- TODO : tidy this proof up
 Given any distinguished triangle
 ```
       f       g       h
-  X  ---> Y  ---> Z  ---> X⟦1⟧
+  X  ───> Y  ───> Z  ───> X⟦1⟧
 ```
 the composition `g ≫ h = 0`.
 See https://stacks.math.columbia.edu/tag/0146
@@ -131,7 +132,7 @@ end
 Given any distinguished triangle
 ```
       f       g       h
-  X  ---> Y  ---> Z  ---> X⟦1⟧
+  X  ───> Y  ───> Z  ───> X⟦1⟧
 ```
 the composition `h ≫ f⟦1⟧ = 0`.
 See https://stacks.math.columbia.edu/tag/0146

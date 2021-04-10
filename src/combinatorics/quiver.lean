@@ -15,11 +15,6 @@ This module defines quivers. A quiver on a type `V` of vertices assigns to every
 pair `a b : V` of vertices a type `a ⟶ b` of arrows from `a` to `b`. This
 is a very permissive notion of directed graph.
 
-## Implementation notes
-
-It would be interesting to try to replace `has_hom` with `quiver` in the definition of a category.
-This would be convenient for defining path categories.
-
 -/
 
 open opposite

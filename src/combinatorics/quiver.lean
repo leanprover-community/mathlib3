@@ -169,7 +169,6 @@ instance {V : Type u} [quiver V] (L) [inhabited L] : inhabited (labelling V L) :
 noncomputable def arborescence_mk {V : Type u} [quiver V] (r : V)
   (height : V → ℕ)
   (height_lt : ∀ ⦃a b⦄, (a ⟶ b) → height a < height b)
-  -- TODO perhaps better to use eq_to_hom here!
   (unique_arrow : ∀ ⦃a b c : V⦄ (e : a ⟶ c) (f : b ⟶ c), a = b ∧ e == f)
   (root_or_arrow : ∀ b, b = r ∨ ∃ a, nonempty (a ⟶ b)) : arborescence V :=
 { root := r,
@@ -196,7 +195,7 @@ noncomputable def arborescence_mk {V : Type u} [quiver V] (r : V)
       { rcases unique_arrow e f with ⟨⟨⟩, ⟨⟩⟩, rw ih },
     end ⟩ }
 
-/-- `G.rooted_connected r` means that there is a path from `r` to any other vertex. -/
+/-- `rooted_connected r` means that there is a path from `r` to any other vertex. -/
 class rooted_connected {V : Type u} [quiver V] (r : V) : Prop :=
 (nonempty_path : ∀ b : V, nonempty (path r b))
 
@@ -220,8 +219,8 @@ def geodesic_subtree : wide_subquiver V :=
 λ a b, { e | ∃ p : path r a, shortest_path r b = p.cons e }
 
 noncomputable instance geodesic_arborescence : arborescence (geodesic_subtree r) :=
-@arborescence_mk (geodesic_subtree r) _ r (λ a, (shortest_path r a).length)
-(by { rintros a b ⟨e, p, h⟩, dsimp,
+arborescence_mk r (λ a, (shortest_path r a).length)
+(by { rintros a b ⟨e, p, h⟩,
   rw [h, path.length_cons, nat.lt_succ_iff], apply shortest_path_spec })
 (by { rintros a b c ⟨e, p, h⟩ ⟨f, q, j⟩, cases h.symm.trans j, split; refl })
 (by { intro b, have : ∃ p, shortest_path r b = p := ⟨_, rfl⟩,

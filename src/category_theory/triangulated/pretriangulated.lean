@@ -120,10 +120,7 @@ See https://stacks.math.columbia.edu/tag/0146
 -/
 lemma comp_dist_triangle_mor_zero₂₃  [CT : pretriangulated C] (T ∈ CT.distinguished_triangles) :
   T.mor₂ ≫ T.mor₃ = 0 :=
-begin
-    have H₁ := rot_of_dist_triangle C T H,
-    exact comp_dist_triangle_mor_zero₁₂ C (triangulated.triangle.rotate C T) H₁
-end
+comp_dist_triangle_mor_zero₁₂ C (triangulated.triangle.rotate C T) (rot_of_dist_triangle C T H)
 
 /--
 Given any distinguished triangle
@@ -136,13 +133,8 @@ See https://stacks.math.columbia.edu/tag/0146
 -/
 lemma comp_dist_triangle_mor_zero₃₁  [CT : pretriangulated C] (T ∈ CT.distinguished_triangles) :
   T.mor₃ ≫ ((shift C).functor.map T.mor₁) = 0 :=
-begin
-    have H₂ := rot_of_dist_triangle C (triangle.rotate C T) (rot_of_dist_triangle C T H),
-    have t := comp_dist_triangle_mor_zero₁₂ C (triangle.rotate C (triangle.rotate C T)) H₂,
-    dsimp at t,
-    rw [comp_neg, neg_eq_zero] at t,
-    exact t,
-end
+have H₂ : _ := rot_of_dist_triangle C (triangle.rotate C T) (rot_of_dist_triangle C T H),
+by simpa using comp_dist_triangle_mor_zero₁₂ C (triangle.rotate C (triangle.rotate C T)) H₂
 
 /-
 TODO: If `C` is pretriangulated with respect to a shift,
@@ -204,8 +196,7 @@ instance [CT : pretriangulated C] : inhabited (triangulated_functor C C) :=
   map := λ _ _ f, f,
   natural_isom := by refl },
   map_distinguished := begin
-    intros T Tdt,
-    cases T,
+    rintros ⟨_,_,_,_⟩ Tdt,
     dsimp at *,
     rwa category.comp_id,
   end

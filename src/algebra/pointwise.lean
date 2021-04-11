@@ -315,17 +315,28 @@ protected def set_semiring.down (s : set_semiring α) : set α := s
 @[simp] protected lemma down_up {s : set α} : s.up.down = s := rfl
 @[simp] protected lemma up_down {s : set_semiring α} : s.down.up = s := rfl
 
-instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
+instance set_semiring.add_comm_monoid : add_comm_monoid (set_semiring α) :=
 { add := λ s t, (s ∪ t : set α),
   zero := (∅ : set α),
   add_assoc := union_assoc,
   zero_add := empty_union,
   add_zero := union_empty,
-  add_comm := union_comm,
-  zero_mul := λ s, empty_mul,
+  add_comm := union_comm, }
+
+instance set_semiring.mul_zero_class [has_mul α] : mul_zero_class (set_semiring α) :=
+{ zero_mul := λ s, empty_mul,
   mul_zero := λ s, mul_empty,
-  left_distrib := λ _ _ _, mul_union,
+  ..set.has_mul, ..set_semiring.add_comm_monoid }
+
+instance set_semiring.distrib [has_mul α] : distrib (set_semiring α) :=
+{ left_distrib := λ _ _ _, mul_union,
   right_distrib := λ _ _ _, union_mul,
+  ..set.has_mul, ..set_semiring.add_comm_monoid }
+
+instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
+{ ..set_semiring.add_comm_monoid,
+  ..set_semiring.distrib,
+  ..set_semiring.mul_zero_class,
   ..set.monoid }
 
 instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiring α) :=

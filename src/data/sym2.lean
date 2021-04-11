@@ -6,9 +6,6 @@ Authors: Kyle Miller
 import tactic.linarith
 import data.sym
 
-open function
-open sym
-
 /-!
 # The symmetric square
 
@@ -39,6 +36,9 @@ term of the symmetric square.
 
 symmetric square, unordered pairs, symmetric powers
 -/
+
+open function
+open sym
 
 universe u
 variables {α : Type u}
@@ -198,7 +198,7 @@ by use a
 lemma is_diag_iff_proj_eq (z : α × α) : is_diag ⟦z⟧ ↔ z.1 = z.2 :=
 begin
   cases z with a, split,
-  { rintro ⟨_, h⟩, erw eq_iff at h, cc },
+  { rintro ⟨_, h⟩, dsimp only, erw eq_iff at h, rcases h; cc },
   { rintro ⟨⟩, use a, refl },
 end
 

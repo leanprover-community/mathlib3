@@ -24,7 +24,7 @@ taking the average over `G` of the conjugates of `π`.
 ## Implementation Notes
 * These results assume `invertible (fintype.card G : k)` which is equivalent to the more
 familiar `¬(ring_char k ∣ fintype.card G)`. It is possible to convert between them using
-`invertible_of_ring_char_not_dvd` and `ring_char_not_dvd_of_invertible`.
+`invertible_of_ring_char_not_dvd` and `not_ring_char_dvd_of_invertible`.
 
 
 ## Future work

@@ -197,6 +197,19 @@ def coe_embedding (n) : (fin n) ↪o ℕ :=
 instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
 (coe_embedding n).is_well_order
 
+/-- Use the ordering on `fin n` for checking recursive definitions.
+
+For example, the following definition is not accepted by the termination checker,
+unless we declare the `has_well_founded` instance:
+```lean
+def factorial {n : ℕ} : fin n → ℕ
+| ⟨0, _⟩ := 1
+| ⟨i + 1, hi⟩ := (i + 1) * factorial ⟨i, i.lt_succ_self.trans hi⟩
+```
+-/
+instance {n : ℕ} : has_well_founded (fin n) :=
+⟨_, measure_wf coe⟩
+
 @[simp] lemma coe_zero {n : ℕ} : ((0 : fin (n+1)) : ℕ) = 0 := rfl
 attribute [simp] val_zero
 @[simp] lemma val_zero' (n) : (0 : fin (n+1)).val = 0 := rfl
@@ -345,6 +358,29 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = (a + b) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+lemma coe_add_one_of_lt {n : ℕ} {i : fin n.succ} (h : i < last _) :
+  (↑(i + 1) : ℕ) = i + 1 :=
+begin
+  -- First show that `((1 : fin n.succ) : ℕ) = 1`, because `n.succ` is at least 2.
+  cases n,
+  { cases h },
+  -- Then just unfold the definitions.
+  rw [fin.coe_add, fin.coe_one, nat.mod_eq_of_lt (nat.succ_lt_succ _)],
+  exact h
+end
+
+@[simp] lemma last_add_one : ∀ n, last n + 1 = 0
+| 0 := subsingleton.elim _ _
+| (n + 1) := by { ext, rw [coe_add, coe_zero, coe_last, coe_one, nat.mod_self] }
+
+lemma coe_add_one {n : ℕ} (i : fin (n + 1)) :
+  ((i + 1 : fin (n + 1)) : ℕ) = if i = last _ then 0 else i + 1 :=
+begin
+  rcases (le_last i).eq_or_lt with rfl|h,
+  { simp },
+  { simpa [h.ne] using coe_add_one_of_lt h }
+end
 
 section bit
 
@@ -505,6 +541,21 @@ order_embedding.of_strict_mono (λ a, cast_lt a (lt_of_lt_of_le a.2 h)) $ λ a b
 @[simp] lemma cast_le_mk (i n m : ℕ) (hn : i < n) (h : n ≤ m) :
   cast_le h ⟨i, hn⟩ = ⟨i, lt_of_lt_of_le hn h⟩ := rfl
 
+@[simp] lemma cast_le_zero {n m : ℕ} (h : n.succ ≤ m.succ) :
+  cast_le h 0 = 0 :=
+by simp [eq_iff_veq]
+
+@[simp] lemma range_cast_le {n k : ℕ} (h : n ≤ k) :
+  set.range (cast_le h) = {i | (i : ℕ) < n} :=
+set.ext (λ x, ⟨λ ⟨y, hy⟩, hy ▸ y.2, λ hx, ⟨⟨x, hx⟩, fin.ext rfl⟩⟩)
+
+@[simp] lemma coe_of_injective_cast_le_symm {n k : ℕ} (h : n ≤ k) (i : fin k) (hi) :
+  ((equiv.of_injective _ (cast_le h).injective).symm ⟨i, hi⟩ : ℕ) = i :=
+begin
+  rw ← coe_cast_le,
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
+end
+
 /-- `cast eq i` embeds `i` into a equal `fin` type. -/
 def cast (eq : n = m) : fin n ≃o fin m :=
 { to_equiv := ⟨cast_le eq.le, cast_le eq.symm.le, λ a, eq_of_veq rfl, λ a, eq_of_veq rfl⟩,
@@ -556,6 +607,10 @@ by simpa [lt_iff_coe_lt_coe, le_iff_coe_le_coe] using nat.succ_le_succ_iff.symm
 
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 
+@[simp] lemma succ_eq_last_succ {n : ℕ} (i : fin n.succ) :
+  i.succ = last (n + 1) ↔ i = last n :=
+by rw [← succ_last, (succ_injective _).eq_iff]
+
 @[simp] lemma cast_succ_cast_lt (i : fin (n + 1)) (h : (i : ℕ) < n) : cast_succ (cast_lt i h) = i :=
 fin.eq_of_veq rfl
 
@@ -599,6 +654,17 @@ end
 
 lemma lt_succ : a.cast_succ < a.succ :=
 by { rw [cast_succ, lt_iff_coe_lt_coe, coe_cast_add, coe_succ], exact lt_add_one a.val }
+
+@[simp] lemma range_cast_succ {n : ℕ} :
+  set.range (cast_succ : fin n → fin n.succ) = {i | (i : ℕ) < n} :=
+range_cast_le _
+
+@[simp] lemma coe_of_injective_cast_succ_symm {n : ℕ} (i : fin n.succ) (hi) :
+  ((equiv.of_injective cast_succ (cast_succ_injective _)).symm ⟨i, hi⟩ : ℕ) = i :=
+begin
+  rw ← coe_cast_succ,
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
+end
 
 /-- `add_nat m i` adds `m` to `i`, generalizes `fin.succ`. -/
 def add_nat (m) : fin n ↪o fin (n + m) :=

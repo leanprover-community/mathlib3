@@ -2,21 +2,25 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Bases of topologies. Countability axioms.
 -/
+
 import topology.continuous_on
+
+/-!
+# Bases of topologies. Countability axioms.
+
+## Implementation Notes
+For our applications we are interested that there exists a countable basis, but we do not need the
+concrete basis itself. This allows us to declare these type classes as `Prop` to use them as mixins.
+
+-/
 
 open set filter classical
 open_locale topological_space filter
 noncomputable theory
 
 namespace topological_space
-/- countability axioms
 
-For our applications we are interested that there exists a countable basis, but we do not need the
-concrete basis itself. This allows us to declare these type classes as `Prop` to use them as mixins.
--/
 universe u
 variables {α : Type u} [t : topological_space α]
 include t

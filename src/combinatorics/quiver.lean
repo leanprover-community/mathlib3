@@ -69,11 +69,11 @@ instance opposite {V} [quiver V] : quiver Vᵒᵖ :=
 /--
 The opposite of an arrow in `V`.
 -/
-def quiver.hom.op {V} [quiver V] {X Y : V} (f : X ⟶ Y) : op Y ⟶ op X := f
+def hom.op {V} [quiver V] {X Y : V} (f : X ⟶ Y) : op Y ⟶ op X := f
 /--
 Given an arrow in `Vᵒᵖ`, we can take the "unopposite" back in `V`.
 -/
-def quiver.hom.unop {V} [quiver V] {X Y : Vᵒᵖ} (f : X ⟶ Y) : unop Y ⟶ unop X := f
+def hom.unop {V} [quiver V] {X Y : Vᵒᵖ} (f : X ⟶ Y) : unop Y ⟶ unop X := f
 
 attribute [irreducible] quiver.opposite
 

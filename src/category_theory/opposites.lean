@@ -5,7 +5,6 @@ Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.types
 import category_theory.equivalence
-import data.opposite
 
 universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 

@@ -63,4 +63,47 @@ lemma has_kernels_Module : has_kernels (Module R) :=
 lemma has_cokernels_Module : has_cokernels (Module R) :=
 ⟨λ X Y f, has_colimit.mk ⟨_, cokernel_is_colimit f⟩⟩
 
+open_locale Module
+
+local attribute [instance] has_kernels_Module
+local attribute [instance] has_cokernels_Module
+
+variables {G H : Module.{v} R} (f : G ⟶ H)
+
+/--
+The categorical kernel of a morphism in `Module`
+agrees with the usual module-theoretical kernel.
+-/
+noncomputable def kernel_iso_ker {G H : Module.{v} R} (f : G ⟶ H) :
+  kernel f ≅ Module.of R (f.ker) :=
+limit.iso_limit_cone ⟨_, kernel_is_limit f⟩
+
+-- We now show this isomorphism commutes with the inclusion of the kernel into the source.
+
+@[simp, elementwise] lemma kernel_iso_ker_inv_kernel_ι :
+  (kernel_iso_ker f).inv ≫ kernel.ι f = f.ker.subtype :=
+limit.iso_limit_cone_inv_π _ _
+
+@[simp, elementwise] lemma kernel_iso_ker_hom_ker_subtype :
+  (kernel_iso_ker f).hom ≫ f.ker.subtype = kernel.ι f :=
+is_limit.cone_point_unique_up_to_iso_inv_comp _ (limit.is_limit _) zero
+
+/--
+The categorical cokernel of a morphism in `Module`
+agrees with the usual module-theoretical quotient.
+-/
+noncomputable def cokernel_iso_range_quotient {G H : Module.{v} R} (f : G ⟶ H) :
+  cokernel f ≅ Module.of R (f.range.quotient) :=
+colimit.iso_colimit_cocone ⟨_, cokernel_is_colimit f⟩
+
+-- We now show this isomorphism commutes with the projection of target to the cokernel.
+
+@[simp, elementwise] lemma cokernel_π_cokernel_iso_range_quotient_hom :
+  cokernel.π f ≫ (cokernel_iso_range_quotient f).hom = f.range.mkq :=
+by { convert colimit.iso_colimit_cocone_ι_hom _ _; refl, }
+
+@[simp, elementwise] lemma range_mkq_cokernel_iso_range_quotient_inv :
+  ↿f.range.mkq ≫ (cokernel_iso_range_quotient f).inv = cokernel.π f :=
+by { convert colimit.iso_colimit_cocone_ι_inv ⟨_, cokernel_is_colimit f⟩ _; refl, }
+
 end Module

@@ -527,7 +527,8 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
 ⟨s, le_antisymm
   (ideal.span_le.2 $ λ x hx, have x ∈ I.degree_le N, from hs ▸ submodule.subset_span hx, this.2) $
 begin
-  change I ≤ ideal.span ↑s,
+  have : submodule.span (polynomial R) ↑s = ideal.span ↑s, by refl,
+  rw this,
   intros p hp, generalize hn : p.nat_degree = k,
   induction k using nat.strong_induction_on with k ih generalizing p,
   cases le_or_lt k N,

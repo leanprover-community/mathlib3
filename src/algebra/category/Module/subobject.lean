@@ -4,18 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import algebra.category.Module.basic
-import category_theory.subobject.basic
+import category_theory.subobject.well_powered
 
 /-!
 # Subobjects in the category of `R`-modules
 
 We construct an explicit order isomorphism between the categorical subobjects of an `R`-module `M`
-and its submodules.
+and its submodules. This immediately implies that the category of `R`-modules is well-powered.
 
-## Future work
-
-Once we have well-powered categories, our calculation immediately implies that `Module.{v} R` is
-well-powered.
 -/
 
 open category_theory
@@ -53,9 +49,12 @@ noncomputable def subobject_Module : subobject M ≃o submodule R M := order_iso
   map_rel_iff' := λ S T,
   begin
     refine ⟨λ h, _, λ h, mk_le_mk_of_comm ↟(submodule.of_le h) (by { ext, refl })⟩,
-    convert linear_map.range_comp_le_range (of_mk_le_mk h) ↾T.subtype,
+    convert linear_map.range_comp_le_range (of_mk_le_mk _ _ h) ↾T.subtype,
     { simpa only [←comp_def, of_mk_le_mk_comp] using (submodule.range_subtype _).symm },
     { exact (submodule.range_subtype _).symm }
   end })
+
+instance well_powered_Module : well_powered (Module.{v} R) :=
+⟨λ M, ⟨⟨_, ⟨(subobject_Module M).to_equiv⟩⟩⟩⟩
 
 end Module

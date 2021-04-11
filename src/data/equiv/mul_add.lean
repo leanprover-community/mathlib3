@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 import algebra.group.hom
 import algebra.group.type_tags
 import algebra.group.units_hom
+import algebra.group_with_zero
 
 /-!
 # Multiplicative and additive equivs
@@ -118,8 +119,8 @@ def symm (h : M ≃* N) : N ≃* M :=
 /-- See Note [custom simps projection] -/
 -- we don't hyperlink the note in the additive version, since that breaks syntax highlighting
 -- in the whole file.
-@[to_additive add_equiv.simps.inv_fun "See Note custom simps projection"]
-def simps.inv_fun (e : M ≃* N) : N → M := e.symm
+@[to_additive "See Note custom simps projection"]
+def simps.symm_apply (e : M ≃* N) : N → M := e.symm
 
 initialize_simps_projections add_equiv (to_fun → apply, inv_fun → symm_apply)
 initialize_simps_projections mul_equiv (to_fun → apply, inv_fun → symm_apply)
@@ -286,9 +287,8 @@ rfl
 A multiplicative analogue of `equiv.arrow_congr`,
 where the equivalence between the targets is multiplicative.
 -/
-@[simps apply,
-  to_additive "An additive analogue of `equiv.arrow_congr`,
-where the equivalence between the targets is additive."]
+@[to_additive "An additive analogue of `equiv.arrow_congr`,
+where the equivalence between the targets is additive.", simps apply]
 def arrow_congr {M N P Q : Type*} [mul_one_class P] [mul_one_class Q]
   (f : M ≃ N) (g : P ≃* Q) : (M → P) ≃* (N → Q) :=
 { to_fun := λ h n, g (h (f.symm n)),
@@ -301,9 +301,8 @@ def arrow_congr {M N P Q : Type*} [mul_one_class P] [mul_one_class Q]
 A multiplicative analogue of `equiv.arrow_congr`,
 for multiplicative maps from a monoid to a commutative monoid.
 -/
-@[simps apply,
-  to_additive "An additive analogue of `equiv.arrow_congr`,
-for additive maps from an additive monoid to a commutative additive monoid."]
+@[to_additive "An additive analogue of `equiv.arrow_congr`,
+for additive maps from an additive monoid to a commutative additive monoid.", simps apply]
 def monoid_hom_congr {M N P Q} [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
   (f : M ≃* N) (g : P ≃* Q) : (M →* P) ≃* (N →* Q) :=
 { to_fun := λ h,
@@ -477,6 +476,37 @@ lemma coe_inv : ⇑(equiv.inv G) = has_inv.inv := rfl
 lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
 
 end group
+
+section group_with_zero
+variables [group_with_zero G]
+
+/-- Left multiplication by a nonzero element in a `group_with_zero` is a permutation of the
+underlying type. -/
+protected def mul_left' (a : G) (ha : a ≠ 0) : perm G :=
+{ to_fun := λ x, a * x,
+  inv_fun := λ x, a⁻¹ * x,
+  left_inv := λ x, by { dsimp, rw [← mul_assoc, inv_mul_cancel ha, one_mul] },
+  right_inv := λ x, by { dsimp, rw [← mul_assoc, mul_inv_cancel ha, one_mul] } }
+
+@[simp] lemma coe_mul_left' (a : G) (ha : a ≠ 0) : ⇑(equiv.mul_left' a ha) = (*) a := rfl
+
+@[simp] lemma mul_left'_symm_apply (a : G) (ha : a ≠ 0) :
+  ((equiv.mul_left' a ha).symm : G → G) = (*) a⁻¹ := rfl
+
+/-- Right multiplication by a nonzero element in a `group_with_zero` is a permutation of the
+underlying type. -/
+protected def mul_right' (a : G) (ha : a ≠ 0) : perm G :=
+{ to_fun := λ x, x * a,
+  inv_fun := λ x, x * a⁻¹,
+  left_inv := λ x, by { dsimp, rw [mul_assoc, mul_inv_cancel ha, mul_one] },
+  right_inv := λ x, by { dsimp, rw [mul_assoc, inv_mul_cancel ha, mul_one] } }
+
+@[simp] lemma coe_mul_right' (a : G) (ha : a ≠ 0) : ⇑(equiv.mul_right' a ha) = λ x, x * a := rfl
+
+@[simp] lemma mul_right'_symm_apply (a : G) (ha : a ≠ 0) :
+  ((equiv.mul_right' a ha).symm : G → G) = λ x, x * a⁻¹ := rfl
+
+end group_with_zero
 
 end equiv
 

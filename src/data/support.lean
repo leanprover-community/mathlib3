@@ -228,6 +228,18 @@ mul_support_one_sub' f
 
 end function
 
+namespace set
+
+open function
+
+variables {α β M : Type*} [has_one M] {f : α → M}
+
+@[to_additive] lemma image_inter_mul_support_eq {s : set β} {g : β → α} :
+  (g '' s ∩ mul_support f) = g '' (s ∩ mul_support (f ∘ g)) :=
+by rw [mul_support_comp_eq_preimage f g, image_inter_preimage]
+
+end set
+
 namespace pi
 variables {A : Type*} {B : Type*} [decidable_eq A] [has_zero B] {a : A} {b : B}
 
@@ -253,8 +265,7 @@ lemma support_single_subset : function.support (pi.single a b) ⊆ {a} :=
 begin
   classical,
   rw support_single,
-  split_ifs;
-  simp
+  split_ifs; simp
 end
 
 lemma support_single_disjoint {b' : B} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : A} :

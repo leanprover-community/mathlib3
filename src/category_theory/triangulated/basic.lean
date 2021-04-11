@@ -31,7 +31,6 @@ open category_theory.category
 We work in an additive category `C` equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [additive_category C]
-
   [has_shift C] [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
 /-
 Eventually can remove conditions on shift functor and inverse, as all equivalences of additive
@@ -43,7 +42,7 @@ A triangle in `C` is a sextuple `(X,Y,Z,f,g,h)` where `X,Y,Z` are objects of `C`
 and `f : X ⟶ Y`, `g : Y ⟶ Z`, `h : Z ⟶ X⟦1⟧` are morphisms in `C`.
 See https://stacks.math.columbia.edu/tag/0144.
 -/
-structure triangle :=
+structure triangle := mk' ::
 (obj₁ : C)
 (obj₂ : C)
 (obj₃ : C)
@@ -56,16 +55,23 @@ instance [has_zero_object C] : inhabited (triangle C) :=
 ⟨⟨0,0,0,0,0,0⟩⟩
 
 /--
-For each object in `C`, there is a triangle of the form `(X,X,0,𝟙_X,0,0)`
+A triangle `(X,Y,Z,f,g,h)` in `C` is defined by the morphisms `f : X ⟶ Y`, `g : Y ⟶ Z`
+and `h : Z ⟶ X⟦1⟧`.
 -/
 @[simps]
-def contractible_triangle (X : C) : triangle C :=
+def triangle.mk {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ X⟦1⟧) : triangle C :=
 { obj₁ := X,
-  obj₂ := X,
-  obj₃ := 0,
-  mor₁ := 𝟙 X,
-  mor₂ := 0,
-  mor₃ := 0 }
+  obj₂ := Y,
+  obj₃ := Z,
+  mor₁ := f,
+  mor₂ := g,
+  mor₃ := h }
+
+/--
+For each object in `C`, there is a triangle of the form `(X,X,0,𝟙 X,0,0)`
+-/
+@[simps]
+def contractible_triangle (X : C) : triangle C := triangle.mk C (𝟙 X) (0 : X ⟶ 0) 0
 
 variable {C}
 

@@ -9,6 +9,10 @@ import data.nat.modeq
 # Parity of natural numbers
 
 This file contains theorems about the `even` and `odd` predicates on the natural numbers.
+
+## Tags
+
+even, odd
 -/
 
 namespace nat
@@ -44,7 +48,7 @@ lemma is_compl_even_odd : is_compl {n : ℕ | even n} {n | odd n} :=
 by simp [← set.compl_set_of, is_compl_compl]
 
 lemma even_or_odd (n : ℕ) : even n ∨ odd n :=
-or.imp_right (odd_iff_not_even.2) $ em (even n)
+or.imp_right odd_iff_not_even.2 $ em $ even n
 
 lemma even_or_odd' (n : ℕ) : ∃ k, n = 2 * k ∨ n = 2 * k + 1 :=
 by simpa only [exists_or_distrib, ← odd, ← even] using even_or_odd n

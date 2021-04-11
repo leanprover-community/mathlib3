@@ -132,7 +132,7 @@ hom_coe_pow _ rfl (λ _ _, rfl) _ _
 --what should be the namespace for this section?
 section monoid
 
-variables [monoid G] {a b c : G} (n : ℕ)
+variables [monoid G] {a : G} (n : ℕ)
 
 variable (a)
 @[simp] lemma mul_left_iterate : ((*) a)^[n] = (*) (a^n) :=
@@ -148,6 +148,12 @@ end
 
 lemma mul_right_iterate_apply_one : (* a)^[n] 1 = a ^ n :=
 by simp [mul_right_iterate]
+
+end monoid
+
+section semigroup
+
+variables [semigroup G] {a b c : G}
 
 variable {a}
 @[to_additive]
@@ -170,7 +176,7 @@ lemma commute.function_commute_mul_right (h : commute a b) :
   function.commute (*a) (*b) :=
 semiconj_by.function_semiconj_mul_right_swap h
 
-end monoid
+end semigroup
 
 --what should be the namespace for this section?
 section add_monoid

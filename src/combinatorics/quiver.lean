@@ -75,7 +75,7 @@ instance op_quiver {V} [quiver V] : quiver Vᵒᵖ :=
 @[nolint has_inhabited_instance]
 def symmetrify (V) : Type u := V
 
-instance symmetrify_quiver (V : Type u) [quiver.{v} V] : quiver.{v} (symmetrify V) :=
+instance symmetrify_quiver (V : Type u) [quiver V] : quiver (symmetrify V) :=
 ⟨λ a b : V, (a ⟶ b) ⊕ (b ⟶ a)⟩
 
 /-- `total V` is the type of _all_ arrows of `V`. -/
@@ -110,7 +110,7 @@ path.nil.cons e
 
 namespace path
 
-variables {V : Type u} [quiver.{v} V]
+variables {V : Type u} [quiver V]
 
 /-- The length of a path is the number of arrows it uses. -/
 def length {a : V} : Π {b : V}, path a b → ℕ
@@ -149,16 +149,16 @@ class arborescence (V : Type u) [quiver.{v} V] : Type (max u v) :=
 (unique_path : Π (b : V), unique (path root b))
 
 /-- The root of an arborescence. -/
-def root (V : Type u) [quiver.{v} V] [arborescence V] : V :=
+def root (V : Type u) [quiver V] [arborescence V] : V :=
 arborescence.root
 
-instance {V : Type u} [quiver.{v} V] [arborescence V] (b : V) : unique (path (root V) b) :=
+instance {V : Type u} [quiver V] [arborescence V] (b : V) : unique (path (root V) b) :=
 arborescence.unique_path b
 
 /-- An `L`-labelling of a quiver assigns to every arrow an element of `L`. -/
-def labelling (V : Type u) [quiver.{v} V] (L : Sort*) := Π a b : V, (a ⟶ b) → L
+def labelling (V : Type u) [quiver V] (L : Sort*) := Π a b : V, (a ⟶ b) → L
 
-instance {V : Type u} [quiver.{v} V] (L) [inhabited L] : inhabited (labelling V L) :=
+instance {V : Type u} [quiver V] (L) [inhabited L] : inhabited (labelling V L) :=
 ⟨λ a b e, default L⟩
 
 /-- To show that `[quiver V]` is an arborescence with root `r : V`, it suffices to
@@ -166,7 +166,7 @@ instance {V : Type u} [quiver.{v} V] (L) [inhabited L] : inhabited (labelling V 
     lower vertex to a higher vertex,
   - show that every vertex has at most one arrow to it, and
   - show that every vertex other than `r` has an arrow to it. -/
-noncomputable def arborescence_mk {V : Type u} [quiver.{v} V] (r : V)
+noncomputable def arborescence_mk {V : Type u} [quiver V] (r : V)
   (height : V → ℕ)
   (height_lt : ∀ ⦃a b⦄, (a ⟶ b) → height a < height b)
   -- TODO perhaps better to use eq_to_hom here!
@@ -197,14 +197,14 @@ noncomputable def arborescence_mk {V : Type u} [quiver.{v} V] (r : V)
     end ⟩ }
 
 /-- `G.rooted_connected r` means that there is a path from `r` to any other vertex. -/
-class rooted_connected {V : Type u} [quiver.{v} V] (r : V) : Prop :=
+class rooted_connected {V : Type u} [quiver V] (r : V) : Prop :=
 (nonempty_path : ∀ b : V, nonempty (path r b))
 
 attribute [instance] rooted_connected.nonempty_path
 
 section geodesic_subtree
 
-variables {V : Type u} [quiver.{v} V] (r : V) [rooted_connected r]
+variables {V : Type u} [quiver V] (r : V) [rooted_connected r]
 
 /-- A path from `r` of minimal length. -/
 noncomputable def shortest_path (b : V) : path r b :=

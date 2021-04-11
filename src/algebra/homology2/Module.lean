@@ -7,6 +7,12 @@ import algebra.homology2.homotopy
 import algebra.category.Module.abelian
 import algebra.category.Module.epi_mono
 
+/-!
+# Complexes of modules
+
+We provide some additional API to work with homological complexes in `Module R`.
+-/
+
 universes v u
 
 open_locale classical

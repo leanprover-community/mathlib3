@@ -5,6 +5,12 @@ Authors: Scott Morrison
 -/
 import algebra.homology2.additive
 
+/-!
+# Chain homotopies
+
+We define chain homotopies, and prove that homotopic chain maps induce the same map on homology.
+-/
+
 universes v u
 
 open_locale classical

@@ -132,9 +132,8 @@ hom_coe_pow _ rfl (λ _ _, rfl) _ _
 --what should be the namespace for this section?
 section monoid
 
-variables [monoid G] {a : G} (n : ℕ)
+variables [monoid G] (a : G) (n : ℕ)
 
-variable (a)
 @[simp] lemma mul_left_iterate : ((*) a)^[n] = (*) (a^n) :=
 nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
 funext $ λ x, by simp [iterate_succ, ihn, pow_succ', mul_assoc]
@@ -155,7 +154,6 @@ section semigroup
 
 variables [semigroup G] {a b c : G}
 
-variable {a}
 @[to_additive]
 lemma semiconj_by.function_semiconj_mul_left (h : semiconj_by a b c) :
   function.semiconj ((*)a) ((*)b) ((*)c) :=

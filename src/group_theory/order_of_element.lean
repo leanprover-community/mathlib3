@@ -32,30 +32,6 @@ lemma one_mul_eq_id {M : Type u} [mul_one_class M] : ((*) (1 : M)) = id := funex
 
 @[to_additive]
 lemma mul_one_eq_id {M : Type u} [mul_one_class M] : (* (1 : M)) = id := funext mul_one
-
-@[to_additive]
-lemma semiconj_by.function_semiconj_mul_left {G : Type*} [monoid G] {a b c : G}
-  (h : semiconj_by a b c) :
-  function.semiconj ((*)a) ((*)b) ((*)c) :=
-λ j, by rw [← mul_assoc, h.eq, mul_assoc]
-
-@[to_additive]
-lemma commute.function_commute_mul_left {G : Type*} [monoid G] {a b : G} (h : commute a b) :
-  function.commute ((*)a) ((*)b) :=
-semiconj_by.function_semiconj_mul_left h
-
--- These two lemmas are no longer used in this PR and are never cited
--- (I would keep them anyway for completeness)
-@[to_additive]
-lemma semiconj_by.function_semiconj_mul_right_swap {G : Type u} [monoid G] {a b c : G}
-  (h : semiconj_by a b c) :
-  function.semiconj (*a) (*c) (*b) :=
-λ j, by simp_rw [mul_assoc, ← h.eq]
-
-@[to_additive]
-lemma commute.function_commute_mul_right {G : Type u} [monoid G] {a b c : G} (h : commute a b) :
-  function.commute (*a) (*b) :=
-semiconj_by.function_semiconj_mul_right_swap h
 -- ...until here
 
 variables {G : Type u} {H : Type v} {x : H}

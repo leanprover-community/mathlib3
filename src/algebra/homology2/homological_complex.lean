@@ -87,9 +87,26 @@ end
   (f ≫ g).f i = f.f i ≫ g.f i :=
 rfl
 
+-- We'll use this later to show that `homological_complex V c` is preadditive when `V` is.
 lemma hom_f_injective {C₁ C₂ : homological_complex V c} :
   function.injective (λ f : hom C₁ C₂, hom.f f) :=
 by tidy
+
+instance : has_zero_morphisms (homological_complex V c) :=
+{ has_zero := λ C D, ⟨{ f := λ i, 0, }⟩ }
+
+@[simp] lemma zero_apply (C D : homological_complex V c) (i : ι) :
+  (0 : C ⟶ D).f i = 0 := rfl
+
+lemma congr_hom {C D : homological_complex V c} {f g : C ⟶ D} (w : f = g) (i : ι) : f.f i = g.f i :=
+congr_fun (congr_arg hom.f w) i
+
+/--
+Picking out the `i`-th object, as a functor.
+-/
+def eval_at (i : ι) : homological_complex V c ⥤ V :=
+{ obj := λ C, C.X i,
+  map := λ C D f, f.f i, }
 
 open_locale classical
 noncomputable theory

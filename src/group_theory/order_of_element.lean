@@ -26,14 +26,6 @@ open function nat
 
 universes u v
 
--- Move somewhere else starting from here...
-@[to_additive]
-lemma one_mul_eq_id {M : Type u} [mul_one_class M] : ((*) (1 : M)) = id := funext one_mul
-
-@[to_additive]
-lemma mul_one_eq_id {M : Type u} [mul_one_class M] : (* (1 : M)) = id := funext mul_one
--- ...until here
-
 variables {G : Type u} {H : Type v} {x : H}
 variables {a : G} {n m : ℕ}
 

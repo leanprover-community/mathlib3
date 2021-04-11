@@ -74,13 +74,13 @@ variables [pretriangulated C]
 
 notation `dist_triang`:20 C := distinguished_triangles C
 /--
-Given any distinguished triangle `T`, then we know `T.rotate C` is also distinguished.
+Given any distinguished triangle `T`, then we know `T.rotate` is also distinguished.
 -/
 lemma rot_of_dist_triangle (T ∈ dist_triang C) : (T.rotate ∈ dist_triang C) :=
 (rotate_distinguished_triangle T).mp H
 
 /--
-Given any distinguished triangle `T`, then we know `T.inv_rotate C` is also distinguished.
+Given any distinguished triangle `T`, then we know `T.inv_rotate` is also distinguished.
 -/
 lemma inv_rot_of_dist_triangle (T ∈ dist_triang C) : (T.inv_rotate ∈ dist_triang C) :=
 (rotate_distinguished_triangle (T.inv_rotate)).mpr
@@ -185,7 +185,8 @@ distinguished triangle `(X,Y,Z,f,g,h)` of `C`, the triangle
 `(F(X), F(Y), F(Z), F(f), F(g), F(h) ≫ (ξ X))` is a distinguished triangle of `D`.
 See https://stacks.math.columbia.edu/tag/014V
 -/
-structure triangulated_functor [pretriangulated C] [pretriangulated D] extends triangulated_functor_struct C D :=
+structure triangulated_functor [pretriangulated C] [pretriangulated D] extends
+  triangulated_functor_struct C D :=
 (map_distinguished : Π (T: triangle C), (T ∈ dist_triang C) →
   (to_triangulated_functor_struct.map_triangle T ∈ dist_triang D) )
 

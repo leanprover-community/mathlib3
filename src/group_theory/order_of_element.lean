@@ -124,6 +124,7 @@ lemma commute.order_of_mul_dvd_lcm {b : G} (h : commute a b) :
 begin
   convert function.commute.minimal_period_of_comp_dvd_lcm h.function_commute_mul_left,
   rw [order_of, comp_mul_left],
+  exact (1 : G)
 end
 
 @[simp] lemma add_order_of_of_mul_eq_order_of (a : G) :

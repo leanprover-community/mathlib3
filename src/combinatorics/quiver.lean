@@ -63,8 +63,19 @@ instance {V} [quiver V] : has_top (wide_subquiver V) := ⟨λ a b, set.univ⟩
 instance {V} [quiver V] : inhabited (wide_subquiver V) := ⟨⊤⟩
 
 /-- `Vᵒᵖ` reverses the direction of all arrows of `V`. -/
-instance op_quiver {V} [quiver V] : quiver Vᵒᵖ :=
+instance opposite {V} [quiver V] : quiver Vᵒᵖ :=
 ⟨λ a b, (unop b) ⟶ (unop a)⟩
+
+/--
+The opposite of an arrow in `V`.
+-/
+def quiver.hom.op {V} [quiver V] {X Y : V} (f : X ⟶ Y) : op Y ⟶ op X := f
+/--
+Given an arrow in `Vᵒᵖ`, we can take the "unopposite" back in `V`.
+-/
+def quiver.hom.unop {V} [quiver V] {X Y : Vᵒᵖ} (f : X ⟶ Y) : unop Y ⟶ unop X := f
+
+attribute [irreducible] quiver.opposite
 
 /-- A type synonym for the symmetrized quiver (with an arrow both ways for each original arrow). -/
 @[nolint has_inhabited_instance]

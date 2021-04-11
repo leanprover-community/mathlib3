@@ -5,7 +5,6 @@ Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.types
 import category_theory.equivalence
-import data.opposite
 
 universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
@@ -16,26 +15,6 @@ variables {C : Type u₁}
 section quiver
 
 variables [quiver.{v₁} C]
-
-/-- The hom types of the opposite of a category (or graph).
-
-  As with the objects, we'll make this irreducible below.
-  Use `f.op` and `f.unop` to convert between morphisms of C
-  and morphisms of Cᵒᵖ.
--/
-instance quiver.opposite : quiver Cᵒᵖ :=
-{ hom := λ X Y, unop Y ⟶ unop X }
-
-/--
-The opposite of a morphism in `C`.
--/
-def quiver.hom.op {X Y : C} (f : X ⟶ Y) : op Y ⟶ op X := f
-/--
-Given a morphism in `Cᵒᵖ`, we can take the "unopposite" back in `C`.
--/
-def quiver.hom.unop {X Y : Cᵒᵖ} (f : X ⟶ Y) : unop Y ⟶ unop X := f
-
-attribute [irreducible] quiver.opposite
 
 lemma quiver.hom.op_inj {X Y : C} :
   function.injective (quiver.hom.op : (X ⟶ Y) → (op Y ⟶ op X)) :=

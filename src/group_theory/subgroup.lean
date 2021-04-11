@@ -1056,7 +1056,7 @@ lemma closure_singleton_zero : closure ({0} : set A) = ⊥ :=
 by simp [eq_bot_iff_forall, mem_closure_singleton]
 
 variable (H : add_subgroup A)
-@[simp] lemma coe_smul (x : H) (n : ℕ) : ((nsmul n x : H) : A) = nsmul n x :=
+@[simp] lemma coe_smul (x : H) (n : ℕ) : ((n • x : H) : A) = n • x :=
 coe_subtype H ▸ add_monoid_hom.map_nsmul _ _ _
 @[simp] lemma coe_gsmul (x : H) (n : ℤ) : ((n •ℤ x : H) : A) = n •ℤ x :=
 coe_subtype H ▸ add_monoid_hom.map_gsmul _ _ _

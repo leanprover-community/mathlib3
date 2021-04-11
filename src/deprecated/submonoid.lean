@@ -258,7 +258,7 @@ by induction n; simp [*, pow_succ]
 /-- An `add_submonoid` inherits the multiplication by naturals of the `add_monoid`. -/
 @[simp, norm_cast] lemma is_add_submonoid.smul_coe {A : Type*} [add_monoid A] {s : set A}
   [is_add_submonoid s] (a : s) (n : ℕ) : ((n • a : s) : A) = n • a :=
-by induction n; simp [*, succ_nsmul]
+by induction n; simp [*, succ_nsmul, zero_nsmul]
 
 attribute [to_additive smul_coe] is_submonoid.coe_pow
 

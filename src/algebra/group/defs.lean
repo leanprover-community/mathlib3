@@ -363,7 +363,7 @@ lemma npow_one {M : Type u} [monoid M] (x : M) :
   npow 1 x = x :=
 by simp [monoid.npow_succ', monoid.npow_zero']
 
-@[simp] lemma nsmul_one' {M : Type u} [add_monoid M] (x : M) :
+lemma nsmul_one' {M : Type u} [add_monoid M] (x : M) :
   nsmul 1 x = x :=
 by simp [add_monoid.nsmul_succ', add_monoid.nsmul_zero']
 

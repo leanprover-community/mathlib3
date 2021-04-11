@@ -116,7 +116,7 @@ theorem term_add_termg {α} [add_comm_group α] (n₁ x a₁ n₂ a₂ n' a')
 by simp [h₁.symm, h₂.symm, termg, add_gsmul]; ac_refl
 
 theorem zero_term {α} [add_comm_monoid α] (x a) : @term α _ 0 x a = a :=
-by simp [term]
+by simp [term, zero_nsmul, one_nsmul]
 
 theorem zero_termg {α} [add_comm_group α] (x a) : @termg α _ 0 x a = a :=
 by simp [termg]
@@ -164,7 +164,7 @@ def smul {α} [add_comm_monoid α] (n : ℕ) (x : α) : α := n • x
 def smulg {α} [add_comm_group α] (n : ℤ) (x : α) : α := n •ℤ x
 
 theorem zero_smul {α} [add_comm_monoid α] (c) : smul c (0 : α) = 0 :=
-by simp [smul]
+by simp [smul, nsmul_zero]
 
 theorem zero_smulg {α} [add_comm_group α] (c) : smulg c (0 : α) = 0 :=
 by simp [smulg]

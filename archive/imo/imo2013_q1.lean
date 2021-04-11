@@ -9,6 +9,7 @@ import data.nat.parity
 import algebra.big_operators.pi
 import tactic.ring
 import tactic.field_simp
+import tactic.ring_exp
 
 /-!
 # IMO 2013 Q1
@@ -70,9 +71,9 @@ begin
 
     calc (1 : ℚ) + (2 ^ pk.succ - 1) / ↑n
         = 1 + (2 * 2 ^ pk - 1) / (2 * (t + 1) : ℕ)    : by rw [coe_coe n, ht, pow_succ]
-    ... = (1 + 1 / (2 * t + 2 * 2^pk)) *
+    ... = (1 + 1 / (2 * t + 2^pk * 2)) *
           (1 + (2 ^ pk - 1) / (↑t + 1))               : by { field_simp [t.cast_add_one_ne_zero],
-                                                             ring }
+                                                             ring, }
     ... = (1 + 1 / (2 * t + 2^pk.succ)) *
           (1 + (2 ^ pk - 1) / t_succ)                 : by norm_cast
     ... = (∏ i in finset.range pk, (1 + 1 / m i)) *

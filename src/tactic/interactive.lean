@@ -305,9 +305,10 @@ do    tgt ← target >>= whnf,
       gs ← with_enable_tags (
         mzip_with (λ (n : name × name) v, do
            set_goals [v],
+           try (dsimp_target simp_lemmas.mk),
            apply_auto_param
              <|> apply_opt_param
-             <|> (try (dsimp_target simp_lemmas.mk) >> (set_main_tag [`_field,n.2,n.1])),
+             <|> (set_main_tag [`_field,n.2,n.1]),
            get_goals)
         missing_f' vs),
       set_goals gs.join,

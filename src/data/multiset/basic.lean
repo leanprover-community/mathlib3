@@ -845,7 +845,7 @@ lemma prod_map_one [comm_monoid γ] {m : multiset α} :
 by simp
 lemma sum_map_zero [add_comm_monoid γ] {m : multiset α} :
   sum (m.map (λa, (0 : γ))) = (0 : γ) :=
-by simp
+by simp [nsmul_zero]
 attribute [to_additive] prod_map_one
 
 @[simp, to_additive]
@@ -1074,7 +1074,7 @@ by simp [bind]
 by simp [bind]
 
 @[simp] theorem bind_zero (s : multiset α) : bind s (λa, 0 : α → multiset β) = 0 :=
-by simp [bind, join]
+by simp [bind, join, nsmul_zero]
 
 @[simp] theorem bind_add (s : multiset α) (f g : α → multiset β) :
   bind s (λa, f a + g a) = bind s f + bind s g :=
@@ -1825,7 +1825,7 @@ instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multise
 countp.is_add_monoid_hom _
 
 @[simp] theorem count_nsmul (a : α) (n s) : count a (n • s) = n * count a s :=
-by induction n; simp [*, succ_nsmul', succ_mul]
+by induction n; simp [*, succ_nsmul', succ_mul, zero_nsmul]
 
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=
 by simp [count, countp_pos]

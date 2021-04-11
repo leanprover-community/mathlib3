@@ -92,7 +92,7 @@ section monoid
 variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
 @[simp] theorem pow_zero (a : M) : a^0 = 1 := monoid.npow_zero' _
-@[simp] theorem zero_nsmul (a : A) : 0 • a = 0 := add_monoid.nsmul_zero' _
+theorem zero_nsmul (a : A) : 0 • a = 0 := add_monoid.nsmul_zero' _
 
 theorem pow_succ (a : M) (n : ℕ) : a^(n+1) = a * a^n :=
 by rw [← npow_eq_pow, nat.add_comm, npow_add, npow_one, npow_eq_pow]
@@ -142,7 +142,7 @@ by simp
 @[simp] theorem one_pow (n : ℕ) : (1 : M)^n = 1 :=
 by induction n with n ih; [exact pow_zero _, rw [pow_succ, ih, one_mul]]
 
-@[simp] theorem nsmul_zero (n : ℕ) : n • (0 : A) = 0 :=
+theorem nsmul_zero (n : ℕ) : n • (0 : A) = 0 :=
 by induction n with n ih; [exact add_monoid.nsmul_zero' _, rw [succ_nsmul, ih, zero_add]]
 
 theorem pow_mul (a : M) (m n : ℕ) : a^(m * n) = (a^m)^n :=
@@ -497,7 +497,7 @@ calc n • a = n • a + 0 : (add_zero _).symm
   ... = m • a : by rw [← hk, add_nsmul]
 
 lemma nsmul_le_nsmul_of_le_right {a b : A} (hab : a ≤ b) : ∀ i : ℕ, i • a ≤ i • b
-| 0 := by simp
+| 0 := by simp [zero_nsmul]
 | (k+1) := by { rw [succ_nsmul, succ_nsmul], exact add_le_add hab (nsmul_le_nsmul_of_le_right _) }
 
 end add_monoid

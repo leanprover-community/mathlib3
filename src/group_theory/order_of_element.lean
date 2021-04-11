@@ -34,13 +34,13 @@ lemma one_mul_eq_id {M : Type u} [mul_one_class M] : ((*) (1 : M)) = id := funex
 lemma mul_one_eq_id {M : Type u} [mul_one_class M] : (* (1 : M)) = id := funext mul_one
 
 @[to_additive]
-lemma semiconj_by.function_semiconj_mul_left {G : Type u} [monoid G] {a b c : G}
+lemma semiconj_by.function_semiconj_mul_left {G : Type*} [monoid G] {a b c : G}
   (h : semiconj_by a b c) :
   function.semiconj ((*)a) ((*)b) ((*)c) :=
 λ j, by rw [← mul_assoc, h.eq, mul_assoc]
 
 @[to_additive]
-lemma commute.function_commute_mul_left {G : Type u} [monoid G] {a b c : G} (h : commute a b) :
+lemma commute.function_commute_mul_left {G : Type*} [monoid G] {a b : G} (h : commute a b) :
   function.commute ((*)a) ((*)b) :=
 semiconj_by.function_semiconj_mul_left h
 
@@ -124,7 +124,6 @@ lemma commute.order_of_mul_dvd_lcm {b : G} (h : commute a b) :
 begin
   convert function.commute.minimal_period_of_comp_dvd_lcm h.function_commute_mul_left,
   rw [order_of, comp_mul_left],
-  exact (1 : G)
 end
 
 @[simp] lemma add_order_of_of_mul_eq_order_of (a : G) :

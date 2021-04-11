@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
 import linear_algebra.finsupp
 import linear_algebra.prod
+import linear_algebra.pi
 import order.zorn
 import data.finset.order
 import data.equiv.fin
@@ -140,6 +141,13 @@ begin
   refine (finset.sum_subset (finset.subset_univ _) (λ i _ hi, _)).symm,
   rw [hg i hi, zero_smul]
 end
+
+/-- A finite family of vectors `v i` is linear independent iff the linear map that sends
+`c : ι → R` to `∑ i, c i • v i` has the trivial kernel. -/
+theorem fintype.linear_independent_iff' [fintype ι] :
+  linear_independent R v ↔
+    (linear_map.lsum R (λ i : ι, R) ℕ (λ i, linear_map.id.smul_right (v i))).ker = ⊥ :=
+by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]
 
 lemma linear_independent_empty_type (h : ¬ nonempty ι) : linear_independent R v :=
 begin

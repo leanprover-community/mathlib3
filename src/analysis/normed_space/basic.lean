@@ -385,6 +385,11 @@ begin
   ... ≤ _ : le_trans (le_abs_self _) (abs_dist_sub_le_dist_add_add _ _ _ _)
 end
 
+lemma antilipschitz_with.add_sub_lipschitz_with {α : Type*} [pseudo_metric_space α] {Kf : ℝ≥0}
+  {f : α → β} (hf : antilipschitz_with Kf f) {Kg : ℝ≥0} {g : α → β} (hg : lipschitz_with Kg (g - f))
+  (hK : Kg < Kf⁻¹) : antilipschitz_with (Kf⁻¹ - Kg)⁻¹ g :=
+by simpa only [pi.sub_apply, add_sub_cancel'_right] using hf.add_lipschitz_with hg hK
+
 /-- A subgroup of a seminormed group is also a seminormed group,
 with the restriction of the norm. -/
 instance add_subgroup.semi_normed_group {E : Type*} [semi_normed_group E] (s : add_subgroup E) :

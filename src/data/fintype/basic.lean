@@ -473,6 +473,9 @@ list.length_fin_range n
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
 
+lemma card_finset_fin_le {n : ℕ} (s : finset (fin n)) : s.card ≤ n :=
+by simpa only [fintype.card_fin] using s.card_le_univ
+
 lemma fin.equiv_iff_eq {m n : ℕ} : nonempty (fin m ≃ fin n) ↔ m = n :=
   ⟨λ ⟨h⟩, by simpa using fintype.card_congr h, λ h, ⟨equiv.cast $ h ▸ rfl ⟩ ⟩
 
@@ -960,6 +963,14 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
 finset.card_powerset finset.univ
+
+@[simp] lemma fintype.card_finset_len [fintype α] (k : ℕ) :
+  fintype.card {s : finset α // s.card = k} = nat.choose (fintype.card α) k :=
+begin
+  refine (fintype.card_of_subtype (finset.powerset_len k finset.univ) $ λ s, _).trans
+    (finset.card_powerset_len _ _),
+  simp [finset.mem_powerset_len]
+end
 
 @[simp] lemma set.to_finset_univ [fintype α] :
   (set.univ : set α).to_finset = finset.univ :=

@@ -516,6 +516,15 @@ protected lemma surjective (e : α ≃o β) : surjective e := e.to_equiv.surject
 @[simp] lemma apply_eq_iff_eq (e : α ≃o β) {x y : α} : e x = e y ↔ x = y :=
 e.to_equiv.apply_eq_iff_eq
 
+/-- Identity order isomorphism. -/
+def refl (α : Type*) [has_le α] : α ≃o α := rel_iso.refl (≤)
+
+@[simp] lemma coe_refl : ⇑(refl α) = id := rfl
+
+lemma refl_apply (x : α) : refl α x = x := rfl
+
+@[simp] lemma refl_to_equiv : (refl α).to_equiv = equiv.refl α := rfl
+
 /-- Inverse of an order isomorphism. -/
 def symm (e : α ≃o β) : β ≃o α := e.symm
 

@@ -39,6 +39,9 @@ structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.
 (map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
 (map_comp' : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = (map f) ≫ (map g) . obviously)
 
+/-- The prefunctor between the underlying quivers. -/
+add_decl_doc functor.to_prefunctor
+
 end
 
 -- A functor is basically a function, so give ⥤ a similar precedence to → (25).

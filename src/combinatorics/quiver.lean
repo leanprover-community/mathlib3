@@ -23,24 +23,41 @@ open opposite
 -- See note [category_theory universes]
 universes v v₁ v₂ u u₁ u₂
 
-/-- A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
-    a type `a ⟶ b` of arrows from `a` to `b`. -/
+/--
+A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
+a type `a ⟶ b` of arrows from `a` to `b`.
+
+Because `category` will later extend this class, we call the field `hom`.
+Except when constructing instances, you should rarely see this, and use the `⟶` notation instead.
+-/
 class quiver (V : Type u) :=
 (hom : V → V → Type v)
 
 infixr ` ⟶ `:10 := quiver.hom -- type as \h
 
+/--
+A morphism of quivers. As we will later have categorical functors extend this structure,
+we call it a `prefunctor`.
+-/
 structure prefunctor (V : Type u₁) [quiver.{v₁} V] (W : Type u₂) [quiver.{v₂} W] :=
 (obj [] : V → W)
 (map : Π {X Y : V}, (X ⟶ Y) → (obj X ⟶ obj Y))
 
 namespace prefunctor
 
+/--
+The identity morphism between quivers.
+-/
 @[simps]
 def id (V : Type*) [quiver V] : prefunctor V V :=
 { obj := id,
   map := λ X Y f, f, }
 
+instance (V : Type*) [quiver V] : inhabited (prefunctor V V) := ⟨id V⟩
+
+/--
+Composition of morphisms between quivers.
+-/
 @[simps]
 def comp {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W]
   (F : prefunctor U V) (G : prefunctor V W) : prefunctor U W :=

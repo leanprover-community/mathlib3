@@ -5,6 +5,26 @@ Authors: Anatole Dedecker
 -/
 import measure_theory.interval_integral
 
+/-!
+# Links between an integral and its "improper" version
+
+In its current state, mathlib only knows how to talk about definite/proper integrals,
+in the sense that it treats integrals over `[1, +∞)` in the same way as integrals over `[0, 1]`
+(for example) : an integral over `[1, +∞)` is **not** defined to be the limit as `x` goes to `+∞` of
+the integral over `[1, x]`, which may be named an "improper integral".
+
+Indeed, the "proper" definition is stronger than the "improper" one. The usual counterexample
+is `x ↦ sin(x)/x`, which has an improper integral over `[1, +∞)` but no definite integral.
+
+Although definite integrals have better properties, it is hardly usable to actually compute
+integrals on unbounded set, which is way easier using limits. Thus, in this file, we prove
+various ways of studying the proper integral by studying the improper one.
+
+## Definitions
+
+## Main statements
+
+-/
 open measure_theory filter set
 open_locale ennreal nnreal topological_space
 
@@ -20,7 +40,7 @@ variables {α : Type*} [measurable_space α] (μ : measure α)
 
     This definition is a technical way to avoid duplicating a lot of proofs.
     It should be thought of as a sufficient condition for being able to interpret
-    `∫ x, f x ∂μ` as the limit as `n` goes to `∞` of `∫ x in φ n, f x ∂μ`.
+    `∫ x, f x ∂μ` (if it exists) as the limit as `n` goes to `∞` of `∫ x in φ n, f x ∂μ`.
 
     See for example `measure_theory.lintegral_eq_of_tendsto_lintegral`,
     `measure_theory.integrable_of_tendsto_integral_norm` and
@@ -168,8 +188,8 @@ tendsto_at_top_csupr
   (λ i j hij, lintegral_mono' (measure.restrict_mono (hφ hij) (le_refl _)) (le_refl _))
   ⟨⊤, λ _ _, le_top⟩
 
-lemma lintegral_eq_of_tendsto_lintegral {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → ℝ≥0∞} (I : ℝ≥0∞)
-  (hfm : measurable f) (h : tendsto (λ n, ∫⁻ x in φ n, f x ∂μ) at_top (𝓝 I)) :
+lemma lintegral_eq_of_tendsto_lintegral {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → ℝ≥0∞}
+  (I : ℝ≥0∞) (hfm : measurable f) (h : tendsto (λ n, ∫⁻ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   ∫⁻ x, f x ∂μ = I :=
 begin
   convert lintegral_eq_supr hφ hfm,
@@ -205,8 +225,8 @@ begin
   exact ennreal.of_real_coe_nnreal
 end
 
-lemma integrable_of_tendsto_integral_norm {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → E} (I : ℝ) (hfm : measurable f)
-  (hfi : ∀ n, integrable_on f (φ n) μ)
+lemma integrable_of_tendsto_integral_norm {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → E}
+  (I : ℝ) (hfm : measurable f) (hfi : ∀ n, integrable_on f (φ n) μ)
   (h : tendsto (λ n, ∫ x in φ n, ∥f x∥ ∂μ) at_top (𝓝 I)) :
   integrable f μ :=
 begin
@@ -214,7 +234,8 @@ begin
   { rw integral_eq_lintegral_of_nonneg_ae (ae_of_all _ (λ x, @norm_nonneg E _ (f x)))
     hfm.norm.ae_measurable },
   conv at h in (ennreal.of_real _) { dsimp, rw ← coe_nnnorm, rw ennreal.of_real_coe_nnreal },
-  have h' : tendsto (λ (n : ℕ), (∫⁻ (a : α) in φ n, nnnorm (f a) ∂μ)) at_top (𝓝 $ ennreal.of_real I),
+  have h' : tendsto (λ (n : ℕ), (∫⁻ (a : α) in φ n, nnnorm (f a) ∂μ)) at_top
+    (𝓝 $ ennreal.of_real I),
   { convert ennreal.tendsto_of_real h,
     ext n : 1,
     rw ennreal.of_real_to_real _,
@@ -223,8 +244,9 @@ begin
 end
 
 lemma integrable_of_tendsto_integral_of_nonneg_ae {φ : ℕ → set α}
-  (hφ : growing_family μ φ) {f : α → ℝ} (I : ℝ) (hf : 0 ≤ᵐ[μ] f) (hfm : measurable f) (hfi : ∀ n, integrable_on f (φ n) μ)
-  (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) : integrable f μ :=
+  (hφ : growing_family μ φ) {f : α → ℝ} (I : ℝ) (hf : 0 ≤ᵐ[μ] f) (hfm : measurable f)
+  (hfi : ∀ n, integrable_on f (φ n) μ) (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
+  integrable f μ :=
 integrable_of_tendsto_integral_norm hφ I hfm hfi
   (h.congr $ λ n, integral_congr_ae $ ae_restrict_of_ae $ hf.mono $
     λ x hx, (real.norm_of_nonneg hx).symm)
@@ -253,8 +275,8 @@ begin
 end
 
 lemma integral_eq_of_tendsto_integral_of_nonneg_ae {φ : ℕ → set α}
-  (hφ : growing_family μ φ) {f : α → ℝ} (I : ℝ) (hf : 0 ≤ᵐ[μ] f) (hfm : measurable f) (hfi : ∀ n, integrable_on f (φ n) μ)
-  (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
+  (hφ : growing_family μ φ) {f : α → ℝ} (I : ℝ) (hf : 0 ≤ᵐ[μ] f) (hfm : measurable f)
+  (hfi : ∀ n, integrable_on f (φ n) μ) (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   ∫ x, f x ∂μ = I :=
 have hfi' : integrable f μ,
   from integrable_of_tendsto_integral_of_nonneg_ae hφ I hf hfm hfi h,

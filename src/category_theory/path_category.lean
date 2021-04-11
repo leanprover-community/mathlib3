@@ -1,4 +1,13 @@
+/-
+Copyright (c) 2021 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.category
+
+/-!
+# The category paths on a quiver.
+-/
 
 universes v₁ v₂ u₁ u₂
 
@@ -34,7 +43,7 @@ end paths
 
 variables (W : Type u₂) [quiver.{v₂} W]
 
--- FIXME do we really need this?
+-- A restatement of `prefunctor.map_path_comp` using `f ≫ g` instead of `f.comp g`.
 @[simp] lemma prefunctor.map_path_comp' (F : prefunctor V W)
   {X Y Z : paths V} (f : X ⟶ Y) (g : Y ⟶ Z) :
   F.map_path (f ≫ g) = (F.map_path f).comp (F.map_path g) :=
@@ -44,7 +53,7 @@ end
 
 section
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u₁} [category.{v₁} C]
 
 open quiver
 

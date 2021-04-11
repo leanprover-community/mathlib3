@@ -37,8 +37,6 @@ namespace order
 
 variables {P : Type*}
 
-section preorder
-
 namespace ideal
 
 /-- A pair of an `ideal` and a `pfilter` which form a partition of `P`.
@@ -51,9 +49,7 @@ structure prime_pair (P : Type*) [preorder P] :=
 
 namespace prime_pair
 
-variable [preorder P]
-
-variable (IF : prime_pair P)
+variables [preorder P] (IF : prime_pair P)
 
 lemma compl_I_eq_F : (IF.I : set P)ᶜ = IF.F := IF.is_compl_I_F.compl_eq
 lemma compl_F_eq_I : (IF.F : set P)ᶜ = IF.I := IF.is_compl_I_F.eq_compl.symm
@@ -96,9 +92,7 @@ end preorder
 
 section semilattice_inf
 
-variable [semilattice_inf P]
-
-variables {x y : P} {I : ideal P}
+variables [semilattice_inf P] {x y : P} {I : ideal P}
 
 lemma is_prime.mem_or_mem (hI : is_prime I) {x y : P} : x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
 begin
@@ -118,9 +112,8 @@ begin
   { intros x _ y _,
     refine ⟨x ⊓ y, _, inf_le_left, inf_le_right⟩,
     have := mt hI,
-    tauto!,
-   },
-  { exact @compl_mem_of_ge _ _ _}
+    tauto! },
+  { exact @mem_compl_of_ge _ _ _ }
 end
 
 lemma is_prime_iff_mem_or_mem [is_proper I] : is_prime I ↔ ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
@@ -130,8 +123,7 @@ end semilattice_inf
 
 section distrib_lattice
 
-variables [distrib_lattice P]
-variables {I : ideal P}
+variables [distrib_lattice P] {I : ideal P}
 
 @[priority 100]
 instance is_maximal.is_prime [is_maximal I] : is_prime I :=
@@ -143,9 +135,9 @@ begin
   apply hynI,
   let J := I ⊔ principal x,
   have hJuniv : (J : set P) = set.univ :=
-    is_maximal.maximal_proper (gt_sup_principal_of_not_mem ‹_›),
+    is_maximal.maximal_proper (lt_sup_principal_of_not_mem ‹_›),
   have hyJ : y ∈ ↑J := set.eq_univ_iff_forall.mp hJuniv y,
-  rw sup_coe_eq_sup_set at hyJ,
+  rw coe_sup_eq at hyJ,
   rcases hyJ with ⟨a, ha, b, hb, hy⟩,
   rw hy,
   apply sup_mem _ _ ha,
@@ -178,7 +170,5 @@ lemma _root_.order.ideal.prime_pair.F_is_prime (IF : ideal.prime_pair P) : is_pr
 { compl_ideal := by { rw IF.compl_F_eq_I, exact IF.I.is_ideal } }
 
 end pfilter
-
-end preorder
 
 end order

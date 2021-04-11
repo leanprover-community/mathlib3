@@ -356,7 +356,7 @@ rfl
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
-  simp only [comp, eval₂, ← single_eq_C_mul_X],
+  simp only [comp, eval₂, ← monomial_eq_C_mul_X],
   exact finsupp.sum_single _,
 end
 
@@ -465,7 +465,7 @@ is_semiring_hom.comp _ _
 @[simp] lemma map_monomial {n a} : (monomial n a).map f = monomial n (f a) :=
 begin
   dsimp only [map],
-  rw [eval₂_monomial, single_eq_C_mul_X], refl,
+  rw [eval₂_monomial, monomial_eq_C_mul_X], refl,
 end
 
 @[simp] lemma map_zero : (0 : polynomial R).map f = 0 :=  eval₂_zero _ _

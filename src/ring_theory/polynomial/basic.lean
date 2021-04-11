@@ -64,7 +64,7 @@ begin
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_le_coe.1 (finset.sup_le_iff.1 hp k hk),
-    rw [single_eq_C_mul_X, C_mul'],
+    rw [monomial_eq_C_mul_X, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
       finset.mem_image.2 ⟨_, finset.mem_range.2 (nat.lt_succ_of_le this), rfl⟩) },
   rw [submodule.span_le, finset.coe_image, set.image_subset_iff],
@@ -92,7 +92,7 @@ begin
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_lt_coe.1 ((finset.sup_lt_iff $ with_bot.bot_lt_coe n).1 hp k hk),
-    rw [single_eq_C_mul_X, C_mul'],
+    rw [monomial_eq_C_mul_X, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
       finset.mem_image.2 ⟨_, finset.mem_range.2 this, rfl⟩) },
   rw [submodule.span_le, finset.coe_image, set.image_subset_iff],
@@ -253,7 +253,7 @@ begin
   { intros hf,
     rw ← sum_monomial_eq f,
     refine (I.map C : ideal (polynomial R)).sum_mem (λ n hn, _),
-    simp [single_eq_C_mul_X],
+    simp [monomial_eq_C_mul_X],
     rw mul_comm,
     exact (I.map C : ideal (polynomial R)).mul_mem_left _ (mem_map_of_mem (hf n)) }
 end

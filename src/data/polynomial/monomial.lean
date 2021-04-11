@@ -25,13 +25,17 @@ variables [semiring R] {p q r : polynomial R}
 `C a` is the constant polynomial `a`.
 `C` is provided as a ring homomorphism.
 -/
-def C : R →+* polynomial R := add_monoid_algebra.single_zero_ring_hom
+def C : R →+* polynomial R :=
+{ map_one' := by simp [monomial_zero_one],
+  map_mul' := by simp [monomial_mul_monomial],
+  map_zero' := by simp,
+  .. monomial 0 }
 
 @[simp] lemma monomial_zero_left (a : R) : monomial 0 a = C a := rfl
 
-lemma C_0 : C (0 : R) = 0 := single_zero
+lemma C_0 : C (0 : R) = 0 := monomial_zero_right _
 
-lemma C_1 : C (1 : R) = 1 := rfl
+lemma C_1 : C (1 : R) = 1 := monomial_zero_one
 
 lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
 
@@ -53,10 +57,12 @@ by simp only [←monomial_zero_left, monomial_mul_monomial, add_zero]
 lemma C_eq_nat_cast (n : ℕ) : C (n : R) = (n : polynomial R) :=
 C.map_nat_cast n
 
+/-
 @[simp]
 lemma sum_C_index {a} {β} [add_comm_monoid β] {f : ℕ → R → β} (h : f 0 0 = 0) :
   (C a).sum f = f 0 a :=
 sum_single_index h
+-/
 
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
 by { convert coeff_monomial using 2, simp [eq_comm], }
@@ -70,11 +76,11 @@ theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
 ⟨⟨0, 1, λ h01 : 0 = 1, h $
     by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] ⟩⟩
 
-lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
+lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 | 0     := (mul_one _).symm
 | (n+1) :=
   calc monomial (n + 1) a = monomial n a * X : by { rw [X, monomial_mul_monomial, mul_one], }
-    ... = (C a * X^n) * X : by rw [single_eq_C_mul_X]
+    ... = (C a * X^n) * X : by rw [monomial_eq_C_mul_X]
     ... = C a * X^(n+1) : by simp only [pow_add, mul_assoc, pow_one]
 
 @[simp] lemma C_inj : C a = C b ↔ a = b :=
@@ -84,22 +90,29 @@ lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 calc C a = 0 ↔ C a = C 0 : by rw C_0
          ... ↔ a = 0 : C_inj
 
+lemma monomial_one_eq_iff [nontrivial R] {i j : ℕ} :
+  (monomial i 1 : polynomial R) = monomial j 1 ↔ i = j :=
+by simp [monomial, monomial_fun, single_eq_single_iff]
+
 instance [nontrivial R] : infinite (polynomial R) :=
-infinite.of_injective (λ i, monomial i 1)
-begin
-  intros m n h,
-  have := (single_eq_single_iff _ _ _ _).mp h,
-  simpa only [and_true, eq_self_iff_true, or_false, one_ne_zero, and_self],
-end
+infinite.of_injective (λ i, monomial i 1) $
+λ m n h, by simpa [monomial_one_eq_iff] using h
 
 lemma monomial_eq_smul_X {n} : monomial n (a : R) = a • X^n :=
 calc monomial n a = monomial n (a * 1) : by simp
-  ... = a • monomial n 1 : (smul_single' _ _ _).symm
+  ... = a • monomial n 1 : by simp [monomial, monomial_fun, smul_to_alg]
   ... = a • X^n  : by rw X_pow_eq_monomial
 
 lemma ring_hom_ext {S} [semiring S] {f g : polynomial R →+* S}
   (h₁ : ∀ a, f (C a) = g (C a)) (h₂ : f X = g X) : f = g :=
-by { ext, exacts [h₁ _, h₂] }
+begin
+  set f' := f.comp (to_alg_iso R).symm.to_ring_hom with hf',
+  set g' := g.comp (to_alg_iso R).symm.to_ring_hom with hg',
+  have A : f' = g', by { ext, { simp [h₁] }, { simpa using h₂, } },
+  have B : f = f'.comp (to_alg_iso R), by { rw [hf', ring_hom.comp_assoc], ext x, simp },
+  have C : g = g'.comp (to_alg_iso R), by { rw [hg', ring_hom.comp_assoc], ext x, simp },
+  rw [B, C, A]
+end
 
 @[ext] lemma ring_hom_ext' {S} [semiring S] {f g : polynomial R →+* S}
   (h₁ : f.comp C = g.comp C) (h₂ : f X = g X) : f = g :=

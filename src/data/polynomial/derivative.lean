@@ -166,7 +166,7 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
     transitivity, { apply finset.sum_congr rfl, assume x hx, exact derivative_sum },
     apply finset.sum_congr rfl, assume n hn, apply finset.sum_congr rfl, assume m hm,
     transitivity,
-    { apply congr_arg, exact single_eq_C_mul_X },
+    { apply congr_arg, exact monomial_eq_C_mul_X },
     exact derivative_C_mul_X_pow _ _
   end
   ... = f.sum (λn a, g.sum (λm b,

@@ -54,13 +54,13 @@ instance {R : Type u} [ring R] : has_neg (polynomial R) := ⟨neg⟩
 instance : has_mul (polynomial R) := ⟨mul⟩
 instance {S : Type*} [semiring S] [semimodule S R] : has_scalar S (polynomial R) := ⟨smul⟩
 
-lemma zero_cauchy : (⟨0⟩ : polynomial R) = 0 := show _ = zero, by rw zero
-lemma one_cauchy : (⟨1⟩ : polynomial R) = 1 := show _ = one, by rw one
-lemma add_cauchy {a b} : (⟨a⟩ + ⟨b⟩ : polynomial R) = ⟨a + b⟩ := show add _ _ = _, by rw add
-lemma neg_cauchy {R : Type u} [ring R] {a} : (-⟨a⟩ : polynomial R) = ⟨-a⟩ :=
+lemma zero_to_alg : (⟨0⟩ : polynomial R) = 0 := show _ = zero, by rw zero
+lemma one_to_alg : (⟨1⟩ : polynomial R) = 1 := show _ = one, by rw one
+lemma add_to_alg {a b} : (⟨a⟩ + ⟨b⟩ : polynomial R) = ⟨a + b⟩ := show add _ _ = _, by rw add
+lemma neg_to_alg {R : Type u} [ring R] {a} : (-⟨a⟩ : polynomial R) = ⟨-a⟩ :=
 show neg _ = _, by rw neg
-lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : polynomial R) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
-lemma smul_cauchy {S : Type*} [semiring S] [semimodule S R] {a : S} {b} :
+lemma mul_to_alg {a b} : (⟨a⟩ * ⟨b⟩ : polynomial R) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
+lemma smul_to_alg {S : Type*} [semiring S] [semimodule S R] {a : S} {b} :
   (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := show smul _ _ = _, by rw smul
 
 instance : inhabited (polynomial R) := ⟨0⟩
@@ -68,27 +68,27 @@ instance : inhabited (polynomial R) := ⟨0⟩
 instance : semiring (polynomial R) :=
 by refine_struct { zero := (0 : polynomial R), one := 1, mul := (*), add := (+),  };
 { repeat { rintro ⟨_⟩, },
-  simp [← zero_cauchy, ← one_cauchy, add_cauchy, mul_cauchy, mul_assoc, mul_add, add_mul]; abel }
+  simp [← zero_to_alg, ← one_to_alg, add_to_alg, mul_to_alg, mul_assoc, mul_add, add_mul]; abel }
 
 instance {S} [semiring S] [semimodule S R] : semimodule S (polynomial R) :=
 { smul := (•),
-  one_smul := by { rintros ⟨⟩, simp [smul_cauchy] },
-  mul_smul := by { rintros _ _ ⟨⟩, simp [smul_cauchy, mul_smul], },
-  smul_add := by { rintros _ ⟨⟩ ⟨⟩, simp [smul_cauchy, add_cauchy] },
-  smul_zero := by { rintros _, simp [← zero_cauchy, smul_cauchy] },
-  add_smul := by { rintros _ _ ⟨⟩, simp [smul_cauchy, add_cauchy, add_smul] },
-  zero_smul := by { rintros ⟨⟩, simp [smul_cauchy, ← zero_cauchy] } }
+  one_smul := by { rintros ⟨⟩, simp [smul_to_alg] },
+  mul_smul := by { rintros _ _ ⟨⟩, simp [smul_to_alg, mul_smul], },
+  smul_add := by { rintros _ ⟨⟩ ⟨⟩, simp [smul_to_alg, add_to_alg] },
+  smul_zero := by { rintros _, simp [← zero_to_alg, smul_to_alg] },
+  add_smul := by { rintros _ _ ⟨⟩, simp [smul_to_alg, add_to_alg, add_smul] },
+  zero_smul := by { rintros ⟨⟩, simp [smul_to_alg, ← zero_to_alg] } }
 
 instance {S₁ S₂} [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ (polynomial R) :=
-⟨by { rintros _ _ ⟨⟩, simp [smul_cauchy, smul_comm] }⟩
+⟨by { rintros _ _ ⟨⟩, simp [smul_to_alg, smul_comm] }⟩
 
 instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
   [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
-⟨by { rintros _ _ ⟨⟩, simp [smul_cauchy] }⟩
+⟨by { rintros _ _ ⟨⟩, simp [smul_to_alg] }⟩
 
 instance [subsingleton R] : unique (polynomial R) :=
-{ uniq := by { rintros ⟨x⟩, change (⟨x⟩ : polynomial R) = 0, rw [← zero_cauchy], simp },
+{ uniq := by { rintros ⟨x⟩, change (⟨x⟩ : polynomial R) = 0, rw [← zero_to_alg], simp },
 .. polynomial.inhabited }
 
 /- Algebra isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
@@ -99,8 +99,8 @@ def to_alg_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
   inv_fun := λ p, ⟨p⟩,
   left_inv := λ ⟨p⟩, rfl,
   right_inv := λ p, rfl,
-  map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_cauchy], refl },
-  map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_cauchy], refl } }
+  map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_alg], refl },
+  map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_alg], refl } }
 variable {R}
 
 /--
@@ -110,10 +110,10 @@ The set of all `n` such that `X^n` has a non-zero coefficient.
 | ⟨p⟩ := p.support
 
 @[simp] lemma support_zero : (0 : polynomial R).support = ∅ :=
-by { rw [← zero_cauchy, support], refl }
+by { rw [← zero_to_alg, support], refl }
 
 @[simp] lemma support_eq_empty : p.support = ∅ ↔ p = 0 :=
-by { rcases p, simp [support, ← zero_cauchy] }
+by { rcases p, simp [support, ← zero_to_alg] }
 
 lemma card_support_eq_zero : p.support.card = 0 ↔ p = 0 :=
 by simp
@@ -123,8 +123,8 @@ by simp
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (n : ℕ) : R →ₗ[R] polynomial R :=
 { to_fun := monomial_fun n,
-  map_add' := by simp [monomial_fun, add_cauchy],
-  map_smul' := by simp [monomial_fun, smul_cauchy] }
+  map_add' := by simp [monomial_fun, add_to_alg],
+  map_smul' := by simp [monomial_fun, smul_to_alg] }
 
 @[simp]
 lemma monomial_zero_right (n : ℕ) :
@@ -133,7 +133,7 @@ by simp [monomial, monomial_fun]
 
 -- This is not a `simp` lemma as `monomial_zero_left` is more general.
 lemma monomial_zero_one : monomial 0 (1 : R) = 1 :=
-by { simp [monomial, monomial_fun, ← one_cauchy], refl }
+by { simp [monomial, monomial_fun, ← one_to_alg], refl }
 
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
@@ -141,7 +141,7 @@ by simp [monomial, monomial_fun]
 
 lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
   monomial n r * monomial m s = monomial (n + m) (r * s) :=
-by simp only [monomial, monomial_fun, linear_map.coe_mk, mul_cauchy,
+by simp only [monomial, monomial_fun, linear_map.coe_mk, mul_to_alg,
   add_monoid_algebra.single_mul_single]
 
 @[simp]
@@ -155,7 +155,7 @@ end
 
 lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :
   a • monomial n b = monomial n (a • b) :=
-by simp [monomial, monomial_fun, smul_cauchy]
+by simp [monomial, monomial_fun, smul_to_alg]
 
 @[simp] lemma to_alg_iso_monomial : (to_alg_iso R) (monomial n a) = single n a :=
 by simp [to_alg_iso, monomial, monomial_fun]
@@ -166,7 +166,7 @@ by simp [to_alg_iso, monomial, monomial_fun]
 lemma support_add : (p + q).support ⊆ p.support ∪ q.support :=
 begin
   rcases p, rcases q,
-  simp only [add_cauchy, support],
+  simp only [add_to_alg, support],
   exact support_add
 end
 
@@ -185,7 +185,7 @@ end
 lemma X_mul : X * p = p * X :=
 begin
   rcases p,
-  simp only [X, monomial, monomial_fun, mul_cauchy, linear_map.coe_mk],
+  simp only [X, monomial, monomial_fun, mul_to_alg, linear_map.coe_mk],
   ext,
   simp [add_monoid_algebra.mul_apply, sum_single_index, add_comm],
 end
@@ -226,8 +226,6 @@ by rw [X_pow_mul, monomial_mul_X_pow]
 /-- coeff p n is the coefficient of X^n in p -/
 @[irreducible] def coeff : polynomial R → ℕ → R
 | ⟨p⟩ n := p n
-
--- @[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
 
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
 by { simp only [monomial, monomial_fun, coeff, linear_map.coe_mk], rw finsupp.single_apply, congr }
@@ -330,7 +328,7 @@ section comm_semiring
 variables [comm_semiring R]
 
 instance : comm_semiring (polynomial R) :=
-{ mul_comm := by { rintros ⟨⟩ ⟨⟩, simp [mul_cauchy, mul_comm] }, .. polynomial.semiring }
+{ mul_comm := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_alg, mul_comm] }, .. polynomial.semiring }
 
 end comm_semiring
 
@@ -339,21 +337,21 @@ variables [ring R]
 
 instance : ring (polynomial R) :=
 { neg := has_neg.neg,
-  add_left_neg := by { rintros ⟨⟩, simp [neg_cauchy, add_cauchy, ← zero_cauchy] },
+  add_left_neg := by { rintros ⟨⟩, simp [neg_to_alg, add_to_alg, ← zero_to_alg] },
    .. polynomial.semiring }
 
 @[simp] lemma coeff_neg (p : polynomial R) (n : ℕ) : coeff (-p) n = -coeff p n :=
-by { rcases p, simp [coeff, neg_cauchy] }
+by { rcases p, simp [coeff, neg_to_alg] }
 
 @[simp]
 lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - coeff q n :=
-by { rcases p, rcases q, simp [coeff, sub_eq_add_neg, add_cauchy, neg_cauchy] }
+by { rcases p, rcases q, simp [coeff, sub_eq_add_neg, add_to_alg, neg_to_alg] }
 
 @[simp] lemma monomial_neg (n : ℕ) (a : R) : monomial n (-a) = -(monomial n a) :=
 by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_right]
 
 @[simp] lemma support_neg {p : polynomial R} : (-p).support = p.support :=
-by { rcases p, simp [support, neg_cauchy] }
+by { rcases p, simp [support, neg_to_alg] }
 
 end ring
 

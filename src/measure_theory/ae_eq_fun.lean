@@ -346,25 +346,23 @@ variables [topological_space γ] [borel_space γ] [group γ] [topological_group 
 @[to_additive] lemma inv_to_germ (f : α →ₘ[μ] γ) : (f⁻¹).to_germ = f.to_germ⁻¹ := comp_to_germ _ _ _
 
 variables [second_countable_topology γ]
+
+@[to_additive] instance : has_div (α →ₘ[μ] γ) := ⟨comp₂ has_div.div measurable_div⟩
+
+@[to_additive, simp] lemma mk_div (f g : α → γ) (hf hg) :
+  mk (f / g) (ae_measurable.div hf hg) = (mk f hf : α →ₘ[μ] γ) / (mk g hg) :=
+rfl
+
+@[to_additive] lemma coe_fn_div (f g : α →ₘ[μ] γ) : ⇑(f / g) =ᵐ[μ] f / g := coe_fn_comp₂ _ _ _ _
+
+@[to_additive] lemma div_to_germ (f g : α →ₘ[μ] γ) : (f / g).to_germ = f.to_germ / g.to_germ :=
+comp₂_to_germ _ _ _ _
+
 @[to_additive]
-instance : group (α →ₘ[μ] γ) := to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ
+instance : group (α →ₘ[μ] γ) :=
+to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ
 
 end group
-
-section add_group
-
-variables [topological_space γ] [borel_space γ] [add_group γ] [topological_add_group γ]
-  [second_countable_topology γ]
-
-@[simp] lemma mk_sub (f g : α → γ) (hf hg) :
-  mk (f - g) (ae_measurable.sub hf hg) = (mk f hf : α →ₘ[μ] γ) - (mk g hg) :=
-by simp [sub_eq_add_neg]
-
-lemma coe_fn_sub (f g : α →ₘ[μ] γ) : ⇑(f - g) =ᵐ[μ] f - g :=
-by { simp only [sub_eq_add_neg],
-     exact ((coe_fn_add f (-g)).trans $ (coe_fn_neg g).mono $ λ x hx, congr_arg ((+) (f x)) hx) }
-
-end add_group
 
 @[to_additive]
 instance [topological_space γ] [borel_space γ] [comm_group γ] [topological_group γ]

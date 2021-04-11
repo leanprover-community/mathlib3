@@ -899,8 +899,7 @@ lemma to_Lp_add {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
 lemma to_Lp_neg {f : α → E} (hf : mem_ℒp f p μ) : hf.neg.to_Lp (-f) = - hf.to_Lp f := rfl
 
 lemma to_Lp_sub {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
-  (hf.sub hg).to_Lp (f - g) = hf.to_Lp f - hg.to_Lp g :=
-by { convert hf.to_Lp_add hg.neg, exact sub_eq_add_neg f g }
+  (hf.sub hg).to_Lp (f - g) = hf.to_Lp f - hg.to_Lp g := rfl
 
 end mem_ℒp
 

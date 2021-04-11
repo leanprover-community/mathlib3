@@ -609,6 +609,10 @@ variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 @[simp] lemma map_div (x y) : φ (x / y) = φ x / φ y :=
 φ.to_ring_hom.map_div x y
 
+lemma rat.smul_one_eq_coe [algebra ℚ A] (m : ℚ) :
+  m • (1 : A) = ↑m :=
+by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
+
 end division_ring
 
 theorem injective_iff {R A B : Type*} [comm_semiring R] [ring A] [semiring B]
@@ -757,7 +761,7 @@ def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
   ..e.to_ring_equiv.symm, }
 
 /-- See Note [custom simps projection] -/
-def simps.inv_fun (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
+def simps.symm_apply (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
 
 initialize_simps_projections alg_equiv (to_fun → apply, inv_fun → symm_apply)
 

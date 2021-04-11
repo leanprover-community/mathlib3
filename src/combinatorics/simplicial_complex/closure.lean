@@ -19,6 +19,10 @@ simplicial_complex.of_surcomplex
   (λ X ⟨hX, _⟩, hX)
   (λ X Y ⟨hX, X', hX', hXX'⟩ hYX, ⟨S.down_closed hX hYX, X', hX', subset.trans hYX hXX'⟩)
 
+lemma closure_subset :
+  (S.closure A).faces ⊆ S.faces :=
+λ X ⟨hX, _⟩, hX
+
 --Homonymy problem
 lemma closure_empty :
   (S.closure ∅).faces = ∅ :=
@@ -69,10 +73,6 @@ begin
     exact ⟨hY, X, rfl, hYX⟩ }
 end
 
-lemma closure_subset :
-  (S.closure A).faces ⊆ S.faces :=
-λ X ⟨hX, _⟩, hX
-
 --Homonymy problem
 lemma faces_subset_closure :
   S.faces ∩ A ⊆ (S.closure A).faces :=
@@ -81,6 +81,22 @@ lemma faces_subset_closure :
 lemma closure_faces_subset_of_subset (hAB : A ⊆ B) :
   (S.closure A).faces ⊆ (S.closure B).faces :=
 λ X ⟨hX, Y, hY, hXY⟩, ⟨hX, Y, hAB hY, hXY⟩
+
+lemma closure_facets_eq (hA : A ⊆ S.faces) (hAtop : ∀ ⦃X Y⦄, X ∈ A → Y ∈ A → X ⊆ Y → X = Y) :
+  (S.closure A).facets = A :=
+begin
+  ext X,
+  split,
+  { rintro ⟨⟨hX, Y, hY, hXY⟩, hXmax⟩,
+    rw hXmax ⟨hA hY, Y, hY, finset.subset.refl _⟩ hXY,
+    exact hY },
+  { rintro hX,
+    use ⟨hA hX, X, hX, finset.subset.refl _⟩,
+    rintro Y ⟨hY, Z, hZ, hYZ⟩ hXY,
+    have hXZ := hAtop hX hZ (subset.trans hXY hYZ),
+    rw ←hXZ at hYZ,
+    exact finset.subset.antisymm hXY hYZ }
+end
 
 lemma pure_closure_of_pure (hS : S.pure_of n)
   (hA : ∀ {W}, W ∈ A → ∃ {X}, X ∈ A ∧ X ∈ S.faces ∧ (X : finset E).card = m) :

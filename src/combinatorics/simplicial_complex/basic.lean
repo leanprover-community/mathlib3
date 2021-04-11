@@ -245,7 +245,7 @@ lemma facets_singleton_empty (hS : S.faces = {∅}) :
 facets_singleton hS
 
 /--
-The cells of a simplicial complex are its simplices whose dimension matches the one of the space
+The cells of a simplicial complex are its simplices whose dimension matches the one of the space.
 -/
 def simplicial_complex.cells (S : simplicial_complex E) :
   set (finset E) :=
@@ -262,6 +262,13 @@ begin
   linarith,
 end
 
+/--
+The subcells of a simplicial complex are its simplices whose cardinality matches the dimension of
+the space. They are thus one smaller than cells.
+-/
+def simplicial_complex.subcells (S : simplicial_complex E) :
+  set (finset E) :=
+{X | X ∈ S.faces ∧ X.card = S.dim}
 
 lemma mem_of_mem_convex_hull (hx : {x} ∈ S.faces) (hX : X ∈ S.faces)
   (hxX : x ∈ convex_hull (X : set E)) :

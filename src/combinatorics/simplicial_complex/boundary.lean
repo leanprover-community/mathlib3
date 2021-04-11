@@ -221,60 +221,113 @@ begin
     (S₁.down_closed hY₁ hX₁Y₁),
   obtain ⟨Y₂, hY₂, hY₁Y₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hY₁,
   obtain ⟨Z₂, hZ₂, hZ₁Z₂⟩ := (subdivision_iff_combi_interiors_subset_combi_interiors.1 hS).2 hZ₁,
-  refine ⟨X₂, _, convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior _ _ hX₁X₂⟩,
-  refine ⟨Y₂, hY₂, _, Z₂, hZ₂, ⟨_, _⟩⟩,
-  {
-    apply subset_of_combi_interior_inter_convex_hull_nonempty hX₂ hY₂,
+  obtain ⟨x, hxX₁⟩ := id hX₁nonempty,
+  refine ⟨X₂, ⟨Y₂, hY₂, _, Z₂, hZ₂, ⟨_, _⟩⟩,
+    convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior
+    (S₁.indep (S₁.down_closed hY₁ hX₁Y₁)) (S₂.indep hX₂) hX₁X₂⟩,
+  { apply subset_of_combi_interior_inter_convex_hull_nonempty hX₂ hY₂,
     obtain ⟨x, hxX₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep (S₁.down_closed hY₁ hX₁Y₁))
       hX₁nonempty,
     use [x, hX₁X₂ hxX₁],
     apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (S₁.indep hY₁)
       (S₂.indep hY₂) hY₁Y₂,
-    exact convex_hull_mono hX₁Y₁ hxX₁.1,
-  },
-  {
-    obtain ⟨x, hxX₁⟩ := hX₁nonempty,
-    obtain ⟨y, hyY₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hY₁) ⟨x, hX₁Y₁ hxX₁⟩,
+    exact convex_hull_mono hX₁Y₁ hxX₁.1 },
+  { obtain ⟨y, hyY₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hY₁) ⟨x, hX₁Y₁ hxX₁⟩,
     split,
-    {
-      apply subset_of_combi_interior_inter_convex_hull_nonempty hY₂ hZ₂,
+    { apply subset_of_combi_interior_inter_convex_hull_nonempty hY₂ hZ₂,
       use [y, hY₁Y₂ hyY₁],
       apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (S₁.indep hZ₁)
         (S₂.indep hZ₂) hZ₁Z₂,
-      exact convex_hull_mono hY₁Z₁.1 hyY₁.1,
-    },
-    {
-      rintro hZ₂Y₂,
-      by_cases hY₂Z₂ : Y₂ ⊆ Z₂,
-      {
-        apply hY₁Z₁.2,
-        have := finset.subset.antisymm hY₂Z₂ hZ₂Y₂,
-        subst this,
-        sorry
-      },
-      {
-        apply (hY₁Y₂ hyY₁).2,
+      exact convex_hull_mono hY₁Z₁.1 hyY₁.1 },
+    { rintro hZ₂Y₂,
+      suffices hY₂Z₂ : ¬Y₂ ⊆ Z₂,
+      { apply (hY₁Y₂ hyY₁).2,
         rw mem_combi_frontier_iff,
         use [Z₂, ⟨hZ₂Y₂, hY₂Z₂⟩],
         apply convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (S₁.indep hZ₁)
           (S₂.indep hZ₂) hZ₁Z₂,
-        exact convex_hull_mono hY₁Z₁.1 hyY₁.1,
-      }
+        exact convex_hull_mono hY₁Z₁.1 hyY₁.1 },
+      rintro hY₂Z₂,
+      have := finset.subset.antisymm hY₂Z₂ hZ₂Y₂,
+      subst this,
+      suffices h : Y₁.card = Y₂.card,
+      { have := finset.card_lt_card hY₁Z₁,
+        have := card_le_of_convex_hull_subset (S₁.indep hZ₁)
+          (convex_hull_subset_convex_hull_of_combi_interior_subset_combi_interior (S₁.indep hZ₁)
+          (S₂.indep hY₂) hZ₁Z₂),
+        linarith },
+
+      sorry
     },
   },
   {
+    rintro Z' hZ' hY₂Z',
+    suffices hZ₁Z' : combi_interior Z₁ ⊆ combi_interior Z',
+    {
+      obtain ⟨z, hzZ₁⟩ := nonempty_combi_interior_of_nonempty (S₁.indep hZ₁) ⟨x, hY₁Z₁.1 (hX₁Y₁ hxX₁)⟩,
+      exact disjoint_interiors hZ₂ hZ' (hZ₁Z₂ hzZ₁) (hZ₁Z' hzZ₁),
+    },
+
     sorry
-  },
-  { exact S₁.indep (S₁.down_closed hY₁ hX₁Y₁) },
-  { exact S₂.indep hX₂ }
+  }
+end
+
+--other attempt using subdivision_iff_partition
+lemma boundary_mono' {S₁ S₂ : simplicial_complex E} (hS : S₁ ≤ S₂) :
+  S₁.boundary ≤ S₂.boundary :=
+begin
+  rw subdivision_iff_partition,
+  obtain ⟨hempty, hspace, hpartition⟩ := subdivision_iff_partition.1 hS,
+  split,
+  sorry,
+  split,
+  sorry,
+  rintro X₂ hX₂,--rintro X₂ ⟨Y₂, hY₂, hX₂Y₂, Z₂, hZ₂, hY₂Z₂, hZ₂max⟩,
+  obtain ⟨F, hF, hXF⟩ := hpartition (boundary_subset hX₂),--obtain ⟨F, hF, hXF⟩ := hpartition (S₂.down_closed hY₂ hX₂Y₂),
+  use F,
+  rw and.comm,
+  use hXF,
+  rintro X₁ hX₁,
+  have hX₁X₂ : combi_interior X₁ ⊆ combi_interior X₂,
+  { rw hXF,
+    exact subset_bUnion_of_mem hX₁ },
+  sorry
 end
 
 /--
-A m-simplex not on the boundary of a full dimensional complex belongs to exactly two cells.
+A m-simplex is on the boundary of a full dimensional complex iff it belongs to exactly one cell.
+Dull?
 -/
-lemma two_surfaces_of_not_boundary_subcell (hS : S.full_dimensional) (hX : X ∉ S.boundary.faces)
-  (hXcard : X.card = S.dim) :
-  nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 2 :=
+lemma boundary_subcell_iff_one_surface (hS : S.full_dimensional) (hXcard : X.card = S.dim) :
+  X ∈ S.boundary.faces ↔ nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 1 :=
+  -- It's probably a bad idea to use `nat.card` since it's incredibly underdeveloped for doing
+  -- actual maths in
+  -- Does this lemma need you to assume locally finite (at X)? If so, the set you care about is a
+  -- subset of the set we know is finite, so we can convert to a finset and use normal card
+begin
+  split,
+  {
+    rintro ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩,
+    have : X = Y,
+    {
+      sorry
+    },
+    sorry--rw nat.card_eq_fintype_card,
+  },
+  -- have aux_lemma : ∀ {a b : E}, a ≠ b → a ∉ X → b ∉ X → X ∪ {a} ∈ S.faces → X ∪ {b} ∈ S.faces →
+  --   ∃ w : E → ℝ, w a < 0 ∧ ∑ y in X ∪ {a}, w y = 1 ∧ (X ∪ {a}).center_mass w id = b,
+  -- {
+  --   sorry
+  -- },
+  sorry
+end
+
+/--
+A m-simplex is not on the boundary of a full dimensional complex iff it belongs to exactly two
+cells.
+-/
+lemma not_boundary_subcell_iff_two_surfaces (hS : S.full_dimensional) (hXcard : X.card = S.dim) :
+  X ∉ S.boundary.faces ↔ nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 2 :=
   -- It's probably a bad idea to use `nat.card` since it's incredibly underdeveloped for doing
   -- actual maths in
   -- Does this lemma need you to assume locally finite (at X)? If so, the set you care about is a

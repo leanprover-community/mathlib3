@@ -460,7 +460,7 @@ begin
   rw fintype.card_eq at hc,
   obtain ⟨cequiv⟩ := hc,
   classical,
-  refine ⟨(equiv.set.sum_compl _).symm.trans ((equiv.sum_congr f cequiv).trans
+  refine is_conj_iff.2 ⟨(equiv.set.sum_compl _).symm.trans ((equiv.sum_congr f cequiv).trans
     (equiv.set.sum_compl _)), _⟩,
   rw mul_inv_eq_iff_eq_mul,
   ext,

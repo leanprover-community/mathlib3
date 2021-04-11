@@ -63,12 +63,10 @@ def is_of_fin_order (x : G) : Prop :=
 (1 : G) ∈ periodic_pts ((*) x)
 
 lemma is_of_fin_add_order_of_mul_iff :
-is_of_fin_add_order (additive.of_mul x) ↔ is_of_fin_order x :=
-by refl
+  is_of_fin_add_order (additive.of_mul x) ↔ is_of_fin_order x := iff.rfl
 
 lemma is_of_fin_order_of_add_iff :
-is_of_fin_order (multiplicative.of_add a) ↔ is_of_fin_add_order a :=
-by refl
+  is_of_fin_order (multiplicative.of_add a) ↔ is_of_fin_add_order a := iff.rfl
 
 lemma is_of_fin_add_order_iff_nsmul_eq_zero (a : A) :
   is_of_fin_add_order a ↔ ∃ n, 0 < n ∧ n •ℕ a = 0 :=

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.module.submodule
-import order.preorder_hom
 
 /-!
 # The lattice structure on `submodule`s
@@ -157,33 +156,6 @@ have p i ≤ (⨆i, p i) := le_supr p i,
 lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
   (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
 show s ≤ Sup S, from le_Sup hs
-
-/-- This is the statement that `coe : (submodule R M) → set M` is Scott continuous for the
-ω-complete partial order induced by the complete lattice structures. See
-`omega_complete_partial_order.continuous`. -/
-@[norm_cast, simp] lemma coe_supr_of_chain_eq_supr_coe (a : ℕ →ₘ submodule R M) :
-  (↑(⨆ k, a k) : set M) = ⋃ k, (a k : set M) :=
-begin
-  apply le_antisymm,
-  { let p : submodule R M :=
-    { carrier   := ⋃ k, (a k : set M),
-      zero_mem' := by { rw set.mem_Union, use 0, simp only [set_like.mem_coe, submodule.zero_mem] },
-      add_mem'  := λ x y hx hy, by
-      { rw set.mem_Union at ⊢ hx hy, obtain ⟨i, hi⟩ := hx, obtain ⟨j, hj⟩ := hy,
-        cases le_total i j with h; replace h := a.monotone h; rw set_like.le_def at h,
-        { use j, exact (a j).add_mem (h hi) hj, },
-        { use i, exact (a i).add_mem hi (h hj), }, },
-      smul_mem' := λ r x hx, by
-      { rw set.mem_Union at ⊢ hx, obtain ⟨i, hi⟩ := hx, use i, simp only [set_like.mem_coe],
-        exact (a i).smul_mem r hi, }, },
-    change _ ⊆ ↑p, rw set_like.coe_subset_coe,
-    exact supr_le (set.subset_Union _), },
-  { suffices : monotone (coe : submodule R M → set M), { exact this.le_map_supr, },
-    intros p q hpq, simp only [set_like.coe_subset_coe, set.le_eq_subset, hpq], },
-end
-
-@[simp] lemma mem_supr_chain (a : ℕ →ₘ submodule R M) (m : M) : m ∈ (⨆ k, a k) ↔ ∃ k, m ∈ a k :=
-by simp only [← set_like.mem_coe, coe_supr_of_chain_eq_supr_coe, set.mem_Union]
 
 end submodule
 

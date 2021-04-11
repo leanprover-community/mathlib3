@@ -345,7 +345,7 @@ le_supr _ _
 @[simp] lemma mem_maximal_generalized_eigenspace (f : End R M) (μ : R) (m : M) :
   m ∈ f.maximal_generalized_eigenspace μ ↔ ∃ (k : ℕ), ((f - μ • 1)^k) m = 0 :=
 by simp only [maximal_generalized_eigenspace, ← mem_generalized_eigenspace,
-  submodule.mem_supr_chain]
+  submodule.mem_supr_of_chain]
 
 /-- If there exists a natural number `k` such that the kernel of `(f - μ • id) ^ k` is the
 maximal generalized eigenspace, then this value is the least such `k`. If not, this value is not

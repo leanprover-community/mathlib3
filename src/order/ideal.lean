@@ -108,7 +108,7 @@ instance : has_mem P (ideal P) := ⟨λ x I, x ∈ (I : set P)⟩
 
 @[simp] lemma mem_coe : x ∈ (I : set P) ↔ x ∈ I := iff_of_eq rfl
 
-@[simp] lemma mem_principal : y ∈ principal x ↔ y ≤ x := by refl
+@[simp] lemma mem_principal : x ∈ principal y ↔ x ≤ y := by refl
 
 /-- Two ideals are equal when their underlying sets are equal. -/
 @[ext] lemma ext : ∀ (I J : ideal P), (I : set P) = J → I = J
@@ -131,7 +131,7 @@ instance : partial_order (ideal P) := partial_order.lift coe ext
 ⟨λ (h : ∀ {y}, y ≤ x → y ∈ I), h (le_refl x),
  λ h_mem y (h_le : y ≤ x), I.mem_of_le h_le h_mem⟩
 
-lemma compl_mem_of_ge {x y : P} : x ≤ y → x ∈ (I : set P)ᶜ → y ∈ (I : set P)ᶜ :=
+lemma mem_compl_of_ge {x y : P} : x ≤ y → x ∈ (I : set P)ᶜ → y ∈ (I : set P)ᶜ :=
 λ h, mt (I.mem_of_le h)
 
 /-- A proper ideal is one that is not the whole set.
@@ -241,8 +241,7 @@ end semilattice_sup
 
 section semilattice_sup_ideal_inter_nonempty
 
-variables [semilattice_sup P] [ideal_inter_nonempty P]
-variables (I J K : ideal P)
+variables [semilattice_sup P] [ideal_inter_nonempty P] {x : P} {I J K : ideal P}
 
 /-- The intersection of two ideals is an ideal, when it is nonempty and `P` has joins. -/
 def inf (I J : ideal P) : ideal P :=
@@ -275,18 +274,18 @@ instance : lattice (ideal P) :=
 { sup          := sup,
   le_sup_left  := λ I J (i ∈ I), by { cases nonempty J, exact ⟨i, ‹_›, w, ‹_›, le_sup_left⟩ },
   le_sup_right := λ I J (j ∈ J), by { cases nonempty I, exact ⟨w, ‹_›, j, ‹_›, le_sup_right⟩ },
-  sup_le       := sup_le,
+  sup_le       := @sup_le _ _ _,
   inf          := inf,
   inf_le_left  := λ I J, set.inter_subset_left I J,
   inf_le_right := λ I J, set.inter_subset_right I J,
   le_inf       := λ I J K, set.subset_inter,
   .. ideal.partial_order }
 
-@[simp] lemma mem_inf {x : P} : x ∈ I ⊓ J ↔ x ∈ I ∧ x ∈ J := iff_of_eq rfl
+@[simp] lemma mem_inf : x ∈ I ⊓ J ↔ x ∈ I ∧ x ∈ J := iff_of_eq rfl
 
-@[simp] lemma mem_sup {x : P} : x ∈ I ⊔ J ↔ ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j := iff_of_eq rfl
+@[simp] lemma mem_sup : x ∈ I ⊔ J ↔ ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j := iff_of_eq rfl
 
-lemma gt_sup_principal_of_not_mem {I : ideal P} {x : P} (hx : x ∉ I) : I < I ⊔ principal x :=
+lemma lt_sup_principal_of_not_mem (hx : x ∉ I) : I < I ⊔ principal x :=
 begin
   apply lt_of_le_of_ne le_sup_left,
   intro h,
@@ -297,7 +296,7 @@ end
 end semilattice_sup_ideal_inter_nonempty
 
 section semilattice_sup_bot
-variables [semilattice_sup_bot P] (I J K : ideal P)
+variables [semilattice_sup_bot P]
 
 @[priority 100]
 instance semilattice_sup_bot.ideal_inter_nonempty : ideal_inter_nonempty P :=
@@ -329,11 +328,11 @@ lemma eq_sup_of_le_sup {x i j: P} (hi : i ∈ I) (hj : j ∈ J) (hx : x ≤ i �
 begin
   refine ⟨x ⊓ i, I.mem_of_le inf_le_right hi, x ⊓ j, J.mem_of_le inf_le_right hj, _⟩,
   calc
-  x    = x ⊓ (i ⊔ j) : left_eq_inf.mpr hx
+  x    = x ⊓ (i ⊔ j)       : left_eq_inf.mpr hx
   ...  = (x ⊓ i) ⊔ (x ⊓ j) : inf_sup_left,
 end
 
-lemma sup_coe_eq_sup_set : ↑(I ⊔ J) = {x | ∃ i ∈ I, ∃ j ∈ J, x = i ⊔ j} :=
+lemma coe_sup_eq : ↑(I ⊔ J) = {x | ∃ i ∈ I, ∃ j ∈ J, x = i ⊔ j} :=
 begin
   ext,
   rw [mem_coe, mem_sup],

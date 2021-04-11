@@ -80,11 +80,7 @@ sup_le $ assume b hb, le_sup (h hb)
 lemma comp_sup_eq_sup_comp [semilattice_sup_bot γ] {s : finset β}
   {f : β → α} (g : α → γ) (g_sup : ∀ x y, g (x ⊔ y) = g x ⊔ g y) (bot : g ⊥ = ⊥) :
   g (s.sup f) = s.sup (g ∘ f) :=
-begin
-  induction s using finset.cons_induction with c s hc ih,
-  { exact bot, },
-  { rw [sup_cons, sup_cons, g_sup, ih], },
-end
+finset.cons_induction_on s bot (λ c t hc ih, by rw [sup_cons, sup_cons, g_sup, ih])
 
 lemma comp_sup_eq_sup_comp_of_is_total [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
   (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
@@ -107,13 +103,6 @@ theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 
 theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
 ⟨_, s.subset_range_sup_succ⟩
-
-lemma sup_subset {α β} [semilattice_sup_bot β] {s t : finset α} (hst : s ⊆ t) (f : α → β) :
-  s.sup f ≤ t.sup f :=
-by classical;
-calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst]
-         ... = s.sup f ⊔ t.sup f : by rw finset.sup_union
-         ... ≥ s.sup f : le_sup_left
 
 lemma of_sup_of_forall {p : α → Prop} (hb : p ⊥) (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊔ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.sup f) :=
@@ -240,7 +229,7 @@ lemma inf_coe {P : α → Prop}
   {Ptop : P ⊤} {Pinf : ∀{{x y}}, P x → P y → P (x ⊓ y)}
   (t : finset β) (f : β → {x : α // P x}) :
   (@inf _ _ (subtype.semilattice_inf_top Ptop Pinf) t f : α) = t.inf (λ x, f x) :=
-by { classical, rw [comp_inf_eq_inf_comp coe]; intros; refl }
+@sup_coe (order_dual α) _ _ _ Ptop Pinf t f
 
 lemma of_inf_of_forall {p : α → Prop} (ht : p ⊤) (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf f) :=

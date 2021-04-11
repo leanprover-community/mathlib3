@@ -2,11 +2,15 @@
 Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Benjamin Davidson
-
-The `even` and `odd` predicates on the integers.
 -/
 import data.int.modeq
 import data.nat.parity
+
+/-!
+# Parity of integers
+
+This file contains theorems about the `even` and `odd` predicates on the integers.
+-/
 
 namespace int
 
@@ -48,7 +52,7 @@ lemma is_compl_even_odd : is_compl {n : ℕ | even n} {n | odd n} :=
 by simp [← set.compl_set_of, is_compl_compl]
 
 lemma even_or_odd (n : ℤ) : even n ∨ odd n :=
-or.imp_right (odd_iff_not_even.2) (em (even n))
+or.imp_right (odd_iff_not_even.2) $ em (even n)
 
 lemma even_or_odd' (n : ℤ) : ∃ k, n = 2 * k ∨ n = 2 * k + 1 :=
 by simpa only [exists_or_distrib, ← odd, ← even] using even_or_odd n
@@ -56,8 +60,8 @@ by simpa only [exists_or_distrib, ← odd, ← even] using even_or_odd n
 lemma even_xor_odd (n : ℤ) : xor (even n) (odd n) :=
 begin
   cases (even_or_odd n) with h,
-  { exact or.inl ⟨h, (even_iff_not_odd.mp h)⟩ },
-  { exact or.inr ⟨h, (odd_iff_not_even.mp h)⟩ },
+  { exact or.inl ⟨h, even_iff_not_odd.mp h⟩ },
+  { exact or.inr ⟨h, odd_iff_not_even.mp h⟩ },
 end
 
 lemma even_xor_odd' (n : ℤ) : ∃ k, xor (n = 2 * k) (n = 2 * k + 1) :=

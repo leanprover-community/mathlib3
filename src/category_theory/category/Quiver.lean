@@ -88,6 +88,59 @@ def free : Quiver.{v u} ⥤ Cat.{(max u v) u} :=
 
 end Cat
 
+namespace Quiver
 
+local attribute [ext] functor.ext
+
+@[simps]
+def lift {V : Type u} [quiver.{v} V] {C : Type u} [category.{v} C]
+  (F : prefunctor V C) : paths V ⥤ C :=
+{ obj := λ X, F.obj X,
+  map := λ X Y f, compose_path (F.map_path f), }
+
+-- We might construct `of_lift_iso_self : paths.of ⋙ lift F ≅ F`
+-- (and then show that `lift F` is initial amongst such functors)
+-- but it would require lifting quite a bit of machinery to quivers!
+
+/--
+The adjunction between forming the free category on a quiver, and forgetting a category to a quiver.
+-/
+def adj : Cat.free ⊣ Quiver.forget :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ V C,
+  { to_fun := λ F,
+    -- This would be better as a composition `V ⥤ paths V ⥤ C ⥤ forget.obj C`
+    { obj := λ X, F.obj X,
+      map := λ X Y f, F.map f.to_path, },
+    inv_fun := λ F, lift F,
+    left_inv := λ F, begin
+      ext,
+      { dsimp, simp,
+        induction f with Y' Z' f g ih,
+        { exact (F.map_id X).symm, },
+        { dsimp, simp only [ih],
+          exact (F.map_comp _ _).symm, }, },
+      { dsimp, simp, },
+    end,
+    right_inv := begin
+      rintro ⟨obj,map⟩,
+      dsimp,
+      congr,
+      ext X Y f,
+      exact category.id_comp _,
+    end, },
+  hom_equiv_naturality_left_symm' := λ V W C f g,
+  begin
+    ext X Y h,
+    { dsimp,
+      erw [functor.comp_map],
+      simp only [category.comp_id, category.id_comp, Cat.free_map_map, Quiver.lift_map],
+      induction h with Y' Z h e ih,
+      { refl, },
+      { simp [ih], refl, }, },
+    { intro X, refl, },
+  end, }
+
+end Quiver
 
 end category_theory

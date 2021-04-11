@@ -3,6 +3,7 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
+import combinatorics.quiver
 import tactic.basic
 
 /-!
@@ -71,16 +72,10 @@ universes v u
 
 namespace category_theory
 
-/-- A 'notation typeclass' on the way to defining a category. -/
-class has_hom (obj : Type u) : Type (max u (v+1)) :=
-(hom : obj → obj → Type v)
-
-infixr ` ⟶ `:10 := has_hom.hom -- type as \h
-
 /-- A preliminary structure on the way to defining a category,
 containing the data, but none of the axioms. -/
 class category_struct (obj : Type u)
-extends has_hom.{v} obj : Type (max u (v+1)) :=
+extends quiver.{v} obj : Type (max u (v+1)) :=
 (id       : Π X : obj, hom X X)
 (comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
 

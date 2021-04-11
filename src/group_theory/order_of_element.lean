@@ -204,6 +204,15 @@ begin
   exact ⟨m, by rw [←pow_mul, pow_eq_mod_order_of, hm, pow_one]⟩,
 end
 
+lemma exists_nsmul_eq_self_of_coprime (a : A)
+  (h : coprime n (add_order_of a)) : ∃ m : ℕ, m •ℕ (n •ℕ a) = a :=
+begin
+  change coprime n (order_of (multiplicative.of_add a)) at h,
+  exact exists_pow_eq_self_of_coprime h,
+end
+
+attribute [to_additive exists_nsmul_eq_self_of_coprime] exists_pow_eq_self_of_coprime
+
 lemma add_order_of_eq_add_order_of_iff {B : Type*} [add_monoid B] {b : B} :
   add_order_of a = add_order_of b ↔ ∀ n : ℕ, n •ℕ a = 0 ↔ n •ℕ b = 0 :=
 begin
@@ -448,15 +457,6 @@ begin
 end
 
 attribute [to_additive add_order_of_pos] order_of_pos
-
-lemma exists_nsmul_eq_self_of_coprime (a : A)
-  (h : coprime n (add_order_of a)) : ∃ m : ℕ, m •ℕ (n •ℕ a) = a :=
-begin
-  change coprime n (order_of (multiplicative.of_add a)) at h,
-  exact exists_pow_eq_self_of_coprime h,
-end
-
-attribute [to_additive exists_nsmul_eq_self_of_coprime] exists_pow_eq_self_of_coprime
 
 /-- This is the same as `order_of_pow'` and `order_of_pow''` but with one assumption less which is
 automatic in the case of a finite cancellative monoid.-/

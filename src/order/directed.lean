@@ -57,10 +57,10 @@ class directed_order (α : Type u) extends preorder α :=
 instance semilattice_sup.to_directed_order (α) [semilattice_sup α] : directed_order α :=
 ⟨λ i j, ⟨i ⊔ j, le_sup_left, le_sup_right⟩⟩
 
-/-- A monotone function on a sup-semilattice is directed. -/
-lemma directed_of_sup [semilattice_sup α] {f : α → β} {r : β → β → Prop}
+/-- A monotone function on a directed order (aka a sup-semilattice) is directed. -/
+lemma directed_of_sup [directed_order α] {f : α → β} {r : β → β → Prop}
   (H : ∀ ⦃i j⦄, i ≤ j → r (f i) (f j)) : directed r f :=
-λ a b, ⟨a ⊔ b, H le_sup_left, H le_sup_right⟩
+λ a b, (directed_order.directed a b).imp $ λ c, and.imp @@H @@H
 
 /-- An antimonotone function on an inf-semilattice is directed. -/
 lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → β}

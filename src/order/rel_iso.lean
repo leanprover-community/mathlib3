@@ -96,7 +96,7 @@ begin
   { rw [sup_eq_left.mpr (le_of_lt h), sup_eq_left], exact le_of_lt (a.map_rel h), },
 end
 
-lemma directed [semilattice_sup α] (f : ((≤) : α → α → Prop) →r s) : directed s f :=
+lemma directed [directed_order α] (f : ((≤) : α → α → Prop) →r s) : directed s f :=
 directed_of_sup $ λ _ _, f.map_rel
 
 end rel_hom

@@ -1084,6 +1084,9 @@ pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (n
 lemma norm_symm_pos [nontrivial E] : 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
 pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
 
+lemma nnnorm_symm_pos [nontrivial E] : 0 < nnnorm (e.symm : F →L[𝕜] E) :=
+e.norm_symm_pos
+
 lemma subsingleton_or_norm_symm_pos : subsingleton E ∨ 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
 begin
   rcases subsingleton_or_nontrivial E with _i|_i; resetI,

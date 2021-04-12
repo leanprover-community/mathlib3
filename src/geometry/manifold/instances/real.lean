@@ -264,7 +264,7 @@ begin
   either the left chart or the right chart, leaving 4 possibilities that we handle successively.
   -/
   rcases he with rfl | rfl; rcases he' with rfl | rfl,
-                 { -- `e = left chart`, `e' = left chart`
+  { -- `e = left chart`, `e' = left chart`
     exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_times_cont_diff_groupoid _ _ _)).1 },
   { -- `e = left chart`, `e' = right chart`
     apply M.congr_mono _ (subset_univ _),

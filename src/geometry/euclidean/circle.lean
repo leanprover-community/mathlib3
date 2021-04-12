@@ -33,18 +33,17 @@ begin
         norm_add_pow_two_real, norm_sub_pow_two_real] at h₂,
     linarith },
 
-  let l : ℝ := 1,
   have hk₂ : (k - 1) ≠ 0 := sub_ne_zero.mpr hk_ne_one,
 
-  have h5 : (k - l) • x - (k + l) • y = 0,
-  { calc  (k - l) • x - (k + l) • y
-        = (k • x - l • x) - (k • y + l • y) : by rw [sub_smul k l x, add_smul k l y]
-    ... = (k • x - x) - (k • y + y)         : by rw [one_smul, one_smul]
-    ... = (k • x - k • y) - (x + y)         : by rw [sub_sub (k • x) x ((k • y) + y),
-                                                     add_left_comm x (k • y) y,
-                                                     sub_add_eq_sub_sub (k • x) (k • y) (x + y)]
-    ... = k • (x - y) - (x + y)             : by rw ← smul_sub k x y
-    ... = 0                                 : sub_eq_zero.mpr hk.symm },
+  have h5 : (k - 1) • x - (k + 1) • y = 0,
+  { calc  (k - 1) • x - (k + 1) • y
+        = (k • x - (1 : ℝ) • x) - (k • y + (1 : ℝ) • y) : by rw [sub_smul k 1 x, add_smul k 1 y]
+    ... = (k • x - x) - (k • y + y) : by rw [one_smul, one_smul]
+    ... = (k • x - k • y) - (x + y) : by rw [sub_sub (k • x) x ((k • y) + y),
+                                             add_left_comm x (k • y) y,
+                                             sub_add_eq_sub_sub (k • x) (k • y) (x + y)]
+    ... = k • (x - y) - (x + y)     : by rw ← smul_sub k x y
+    ... = 0                         : sub_eq_zero.mpr hk.symm },
 
   let r : ℝ := (k - 1)⁻¹ * (k + 1),
 
@@ -55,7 +54,7 @@ begin
 
   have hzx : ⟪z, x⟫ = 0, { rw [hxy, inner_smul_right, hzy, mul_zero] },
 
-  have hl_smul_y_eq_y : l • y = y, { rw one_smul },
+  have hl_smul_y_eq_y : (1 : ℝ) • y = y, { rw one_smul },
 
   refine eq.symm _,
 
@@ -67,15 +66,14 @@ begin
   ... = abs (((abs r) * ∥y∥) ^ 2 - ∥y∥ ^ 2)  : by rw [norm_smul r y, real.norm_eq_abs r]
   ... = abs ((r ^ 2 * ∥y∥ ^ 2) - ∥y∥ ^ 2)    : by rw [mul_pow _ _ 2, pow_even_abs (_) (even_bit0 1)]
   ... = abs ((r ^ 2 - 1) * ∥y∥ ^ 2)         : by ring_nf
-  ... = abs ((r ^ 2 - l ^ 2) * ∥y∥ ^ 2)     : by norm_num
-  ... = abs (r ^ 2 - l ^ 2) * abs (∥y∥ ^ 2) : by rw ← abs_mul _ _
-  ... = abs (r ^ 2 - l ^ 2) * ∥y∥ ^ 2       : by rw abs_of_nonneg (pow_two_nonneg ∥y∥)
-  ... = abs ((r - l) * (r + l)) * ∥y∥ ^ 2  : by rw (show r ^ 2 - l ^ 2 = (r - l) * (r + l), by ring)
-  ... = abs (r - l) * abs(r + l) * ∥y∥ ^ 2  : by rw abs_mul (r - l) (r + l)
-  ... = (∥r - l∥ * ∥r + l∥) * ∥y∥ ^ 2         : by rw [← real.norm_eq_abs _, ← real.norm_eq_abs _]
-  ... = (∥r - l∥ * ∥y∥) * (∥r + l∥ * ∥y∥)      : by ring
-  ... = ∥(r - l) • y∥ * ∥(r + l) • y∥        : by rw [← norm_smul (r - l) y, ← norm_smul (r + l) y]
-  ... = ∥r • y - l • y∥ * ∥r • y + l • y∥    : by rw [sub_smul r l y, add_smul r l y]
+  ... = abs (r ^ 2 - 1) * abs (∥y∥ ^ 2)     : by rw ← abs_mul _ _
+  ... = abs (r ^ 2 - 1) * ∥y∥ ^ 2           : by rw abs_of_nonneg (pow_two_nonneg ∥y∥)
+  ... = abs ((r - 1) * (r + 1)) * ∥y∥ ^ 2   : by rw (show r ^ 2 - 1 = (r - 1) * (r + 1), by ring)
+  ... = abs (r - 1) * abs(r + 1) * ∥y∥ ^ 2  : by rw abs_mul (r - 1) (r + 1)
+  ... = (∥r - 1∥ * ∥r + 1∥) * ∥y∥ ^ 2         : by rw [← real.norm_eq_abs _, ← real.norm_eq_abs _]
+  ... = (∥r - 1∥ * ∥y∥) * (∥r + 1∥ * ∥y∥)      : by ring
+  ... = ∥(r - 1) • y∥ * ∥(r + 1) • y∥        : by rw [← norm_smul (r - 1) y, ← norm_smul (r + 1) y]
+  ... = ∥r • y - (1 : ℝ) • y∥ * ∥r • y + (1 : ℝ) • y∥ : by rw [sub_smul r 1 y, add_smul r 1 y]
   ... = ∥r • y - y∥ * ∥r • y + y∥            : by rw hl_smul_y_eq_y
   ... = ∥x - y∥ * ∥x + y∥                    : by rw ← hxy,
 end

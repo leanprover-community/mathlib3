@@ -39,10 +39,7 @@ def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-∥f∥) (∥f∥)) :=
 
 attribute [simp] polynomial.aeval_monomial
 
-
-@[simp] lemma polynomial.aeval_fn_apply (g : polynomial ℝ)
-  (f : X → ℝ)
-  (x : X) :
+@[simp] lemma polynomial.aeval_fn_apply (g : polynomial ℝ) (f : X → ℝ) (x : X) :
   ((polynomial.aeval f) g) x = g.eval (f x) :=
 begin
   apply polynomial.induction_on' g,
@@ -50,9 +47,7 @@ begin
   { intros n a, simp [pi.pow_apply f x n], },
 end
 
-@[simp] lemma polynomial.aeval_continuous_map_apply (g : polynomial ℝ)
-  (f : C(X, ℝ))
-  (x : X) :
+@[simp] lemma polynomial.aeval_continuous_map_apply (g : polynomial ℝ) (f : C(X, ℝ)) (x : X) :
   ((polynomial.aeval f) g) x = g.eval (f x) :=
 begin
   apply polynomial.induction_on' g,
@@ -68,9 +63,6 @@ begin
   { intros p q hp hq, simp [hp, hq], },
   { intros n a, simp, },
 end
-
-example (f : C(X, ℝ)) : ℝ := ∥f∥
-example (A : subalgebra ℝ C(X, ℝ)) (f : A) : ℝ := ∥f∥
 
 lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
   (g.to_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound =

@@ -158,18 +158,61 @@ begin
   exact h,
 end
 
+lemma compact_space.elim_nhds_subcover {α : Type*} [topological_space α] [compact_space α]
+  (U : α → set α) (hU : ∀ x, U x ∈ 𝓝 x) :
+  ∃ t : finset α, (⋃ x ∈ t, U x) = ⊤ :=
+begin
+  obtain ⟨t, -, s⟩ := is_compact.elim_nhds_subcover compact_univ U (λ x m, hU x),
+  exact ⟨t, by { rw eq_top_iff, exact s }⟩,
+end
+#check finset.sup
+-- Here's the fun part of Stone-Weierstrass!
 theorem sublattice_closure_eq_top
   (A : set C(X, ℝ)) (inf_mem : ∀ f g ∈ A, f ⊓ g ∈ A) (sup_mem : ∀ f g ∈ A, f ⊔ g ∈ A)
-  (h : separates_points_strongly ((λ f : C(X, ℝ), (f : X → ℝ)) '' A)) :
+  (sep : A.separates_points_strongly) :
   closure A = ⊤ :=
 begin
-  -- Here's the fun part of Stone-Weierstrass!
+  -- We start by boiling down to a statement about close approximation.
   apply eq_top_iff.mpr,
   rintros f -,
   refine filter.frequently.mem_closure _,
   refine (filter.has_basis.frequently_iff metric.nhds_basis_ball).mpr _,
   intros ε pos,
   simp only [exists_prop, metric.mem_ball],
+
+  /-
+  The strategy now is to pick a family of continuous functions `g x y` in `A`
+  with the property that `g x y x = f x` and `g x y y = f y`
+  (this is immediate from `h : separates_points_strongly`)
+  then use continuity to see that `g x y` is close to `f` near both `x` and `y`,
+  and finally using compactness to produce the desired function `h`
+  as a maximum over finitely many `x` of a minimum over finitely many `y` of the `g x y`.
+  -/
+  dsimp [set.separates_points_strongly] at sep,
+
+  let g : Π x y, A := λ x y, (sep f x y).some,
+  let w₁ : ∀ x y, g x y x = f x := λ x y, (sep f x y).some_spec.1,
+  let w₂ : ∀ x y, g x y y = f y := λ x y, (sep f x y).some_spec.2,
+
+  -- For each `x y`, we define `U x y` to be `{ z | f z < g x y z + ε }`,
+  -- and observe this is a neighbourhood of `y`.
+  let U : Π x y, set X := λ x y, { z | f z < g x y z + ε },
+  have U_nhd_y : ∀ x y, U x y ∈ 𝓝 y := sorry,
+
+  -- Since `X` is compact, for every `x` there is some finset `ys t`
+  -- so the union of the `U x y` for `y ∈ ys t` still covers everything.
+  let ys : Π x, finset X := λ x, (compact_space.elim_nhds_subcover (U x) (U_nhd_y x)).some,
+  let ys_w : ∀ x, (⋃ y ∈ ys x, U x y) = ⊤ :=
+    λ x, (compact_space.elim_nhds_subcover (U x) (U_nhd_y x)).some_spec,
+
+  let h : Π x, A := λ x, ⟨(ys x).sup (g x : C(X, ℝ)), sorry⟩,
+
+  -- let V : Π x y, set X := { z | f z > g x y z - ε },
+  -- have x_mem_V : ∀ x y, x ∈ V x y := sorry,
+  -- have y_mem_V : ∀ x y, y ∈ V x y := sorry,
+  -- have V_open : ∀ x y, is_open (V x y) := sorry,
+
+
   sorry
 end
 

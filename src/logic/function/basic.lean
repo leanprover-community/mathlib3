@@ -648,15 +648,5 @@ lemma cast_inj {α β : Type*} (h : α = β) {x y : α} : cast h x = cast h y �
 
 /-- A set of functions "separates points"
 if for each pair of distinct points there is a function taking different values on them. -/
-def separates_points {α β : Type*} (A : set (α → β)) : Prop :=
+def set.separates_points {α β : Type*} (A : set (α → β)) : Prop :=
 ∀ ⦃x y : α⦄, x ≠ y → ∃ f ∈ A, (f x : β) ≠ f y
-
-/--
-A set of functions "separates points strongly"
-if for each pair of distinct points there is a function with specified values on them.
-
-We give a slightly unusual formulation, where the specified values are given by some
-function `v`, and we ask `f x = v x ∧ f y = v y`. This avoids needing a hypothesis `x ≠ y`.
--/
-def separates_points_strongly {α β : Type*} (A : set (α → β)) : Prop :=
-∀ (x y : α) (v : α → β), ∃ f ∈ A, (f x : β) = v x ∧ f y = v y

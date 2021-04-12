@@ -405,7 +405,7 @@ A version of `separates_points` for subalgebras of the continuous functions,
 used for stating the Stone-Weierstrass theorem.
 -/
 abbreviation subalgebra.separates_points (s : subalgebra R C(α, A)) : Prop :=
-separates_points ((λ f : C(α, A), (f : α → A)) '' (s : set C(α, A)))
+set.separates_points ((λ f : C(α, A), (f : α → A)) '' (s : set C(α, A)))
 
 lemma subalgebra.separates_points_monotone :
   monotone (λ s : subalgebra R C(α, A), s.separates_points) :=
@@ -423,6 +423,16 @@ by { rw algebra.algebra_map_eq_smul_one, refl, }
 variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
 
 /--
+A set of functions "separates points strongly"
+if for each pair of distinct points there is a function with specified values on them.
+
+We give a slightly unusual formulation, where the specified values are given by some
+function `v`, and we ask `f x = v x ∧ f y = v y`. This avoids needing a hypothesis `x ≠ y`.
+-/
+def set.separates_points_strongly (s : set C(α, 𝕜)) : Prop :=
+∀ (v : α → 𝕜) (x y : α), ∃ f : s, (f x : 𝕜) = v x ∧ f y = v y
+
+/--
 Working in continuous functions into a topological field,
 a subalgebra of functions that separates points also separates points strongly.
 
@@ -430,16 +440,13 @@ By the hypothesis, we can find a function `f` so `f x ≠ f y`.
 By an affine transformation in the field we can arrange so that `f x = a` and `f x = b`.
 -/
 lemma subalgebra.separates_points.strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h : s.separates_points) :
-  separates_points_strongly ((λ f : C(α, 𝕜), (f : α → 𝕜)) '' (s : set C(α, 𝕜))) :=
-λ x y v,
+  (s : set C(α, 𝕜)).separates_points_strongly :=
+λ v x y,
 begin
   by_cases n : x = y,
   { subst n,
     use ((v x) • 1 : C(α, 𝕜)),
-    fsplit,
-    { rw set.mem_image,
-      refine ⟨((v x) • 1 : C(α, 𝕜)), _, rfl⟩,
-      apply s.smul_mem,
+    { apply s.smul_mem,
       apply s.one_mem, },
     { simp, }, },
   obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
@@ -447,10 +454,8 @@ begin
   let a := v x,
   let b := v y,
   let f' := ((b - a) * (f x - f y)⁻¹) • (continuous_map.C (f x) - f) + continuous_map.C a,
-  refine ⟨f', _, _, _⟩,
-  { simp only [set.mem_image, coe_coe],
-    refine ⟨f', _, rfl⟩,
-    simp only [f', set_like.mem_coe, subalgebra.mem_to_submodule],
+  refine ⟨⟨f', _⟩, _, _⟩,
+  { simp only [f', set_like.mem_coe, subalgebra.mem_to_submodule],
     -- TODO should there be a tactic for this?
     -- We could add an attribute `@[subobject_mem]`, and a tactic
     -- ``def subobject_mem := `[solve_by_elim with subobject_mem { max_depth := 10 }]``

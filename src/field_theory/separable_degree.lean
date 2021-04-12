@@ -69,13 +69,8 @@ lemma separable_degree_eq_degree {f : polynomial F}
   (hf : has_separable_contraction 1 f) : (separable_degree 1 hf) = f.nat_degree :=
 exists.elim (separable_degree_dvd_degree' 1 hf) (λ a, λ ha, by rw [←ha, one_pow a, mul_one])
 
-lemma sub_diff (m m' : ℕ) (h : m < m') : ∃ s : ℕ, 0 < s ∧ m' = m + s :=
-begin
-  use m' - m,
-  split,
-  { omega },
-  { exact (nat.add_sub_of_le (le_of_lt h)).symm }
-end
+lemma exists_eq_add_nonneg_of_lt (m m' : ℕ) (h : m < m') : ∃ s : ℕ, 0 < s ∧ m' = m + s :=
+let ⟨k, hk⟩ := nat.exists_eq_add_of_lt h in ⟨k.succ, k.zero_lt_succ, hk⟩
 
 end comm_semiring
 
@@ -113,7 +108,7 @@ begin
     exact this,
   end,
 
-  cases sub_diff m m' h with s hs,
+  cases exists_eq_add_nonneg_of_lt m m' h with s hs,
   intro g_sep,
 
   rw [hs.2, pow_add, expand_mul] at h_expand,
@@ -122,9 +117,8 @@ begin
   rw r at g_sep,
 
   cases (is_unit_or_eq_zero_of_separable_expand q s g_sep) with g'_is_unit s_zero,
-  { have g'_deg : g'.nat_degree = 0 := nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit g'_is_unit),
-    have g_deg : g.nat_degree = 0 := by rw [r, nat_degree_expand (q^s) g', g'_deg, zero_mul],
-    rw [g'_deg, g_deg] },
+  { rw [r, nat_degree_expand (q^s) g',
+      nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit g'_is_unit), zero_mul ] },
   { apply false.elim,
     exact (ne_of_lt hs.1).symm s_zero },
 end

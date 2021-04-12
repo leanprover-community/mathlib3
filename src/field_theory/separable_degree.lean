@@ -106,11 +106,8 @@ lemma contraction_degree_eq_aux [hq : fact q.prime] [hF : char_p F q]
   (h : m < m') :
   (g.nat_degree =  g'.nat_degree) ∨ ¬g.separable :=
 begin
-  suffices : g.separable → g.nat_degree = g'.nat_degree, by begin
-    apply or_iff_not_imp_right.mpr,
-    rw not_not,
-    exact this,
-  end,
+  suffices : g.separable → g.nat_degree = g'.nat_degree,
+  from (not_or_of_imp this).symm,
 
   cases exists_eq_add_nonneg_of_lt m m' h with s hs,
   intro g_sep,
@@ -161,8 +158,7 @@ theorem separable_degree_eq {n n' : ℕ} [hF : exp_char F q] :
 λ h, λ h',
 begin
   casesI hF,
-  { rw separable_degree_eq_degree hf at h,
-    rw separable_degree_eq_degree hf at h',
+  { rw separable_degree_eq_degree hf at h h',
     rw h at h',
     exact h' },
   { let g := classical.some hf,

@@ -307,7 +307,6 @@ by refine {
 
 instance : ordered_cancel_add_comm_monoid num :=
 { add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
-  add_right_cancel           := by {intros a b c, transfer_rw, apply add_right_cancel},
   lt                         := (<),
   lt_iff_le_not_le           := by {intros a b, transfer_rw, apply lt_iff_le_not_le},
   le                         := (≤),

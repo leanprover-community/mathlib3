@@ -123,20 +123,12 @@ theorem mul_dist_eq_mul_dist_of_cospherical
   (hcpd : ∃ k₂ : ℝ, k₂ ≠ 1 ∧ d -ᵥ p = k₂ • (c -ᵥ p)) :
   (dist a p) * (dist b p) = (dist c p) * (dist d p) :=
 begin
-  set circle : set P := {a, b, c, d} with circle_def,
-  obtain ⟨q, r, h⟩ := (cospherical_def circle).mp h,
-  have ha₀ : a ∈ circle, finish,
-  have hb₀ : b ∈ circle, finish,
-  have hc₀ : c ∈ circle, finish,
-  have hd₀ : d ∈ circle, finish,
-  obtain ⟨ha₁, hb₁, hc₁, hd₁⟩ := ⟨h a ha₀, h b hb₀, h c hc₀, h d hd₀⟩,
-
-  have hqab : dist a q = dist b q, { rwa ← hb₁ at ha₁ },
-  have hqcd : dist c q = dist d q, { rwa ← hd₁ at hc₁ },
-
-  obtain habpq := mul_dist_eq_sub_dist_pow_two hapb hqab,
-  obtain hcdpq := mul_dist_eq_sub_dist_pow_two hcpd hqcd,
-  rw [habpq, hcdpq, hb₁, hd₁],
+  obtain ⟨q, r, h'⟩ := (cospherical_def {a, b, c, d}).mp h,
+  obtain ⟨ha, hb, hc, hd⟩ := ⟨h' a _, h' b _, h' c _, h' d _⟩,
+  { rw ← hb at ha,
+    rw ← hd at hc,
+    rw [mul_dist_eq_sub_dist_pow_two hapb ha, mul_dist_eq_sub_dist_pow_two hcpd hc, hb, hd] },
+  all_goals { simp },
 end
 
 /-- Intersecting Chords Theorem. -/

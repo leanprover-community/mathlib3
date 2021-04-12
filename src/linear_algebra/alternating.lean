@@ -732,6 +732,7 @@ begin
   rw [multilinear_map.dom_coprod_alternization, coe_alternatization, coe_alternatization, mul_smul,
     ←dom_coprod'_apply, ←dom_coprod'_apply, ←tensor_product.smul_tmul', tensor_product.tmul_smul,
     linear_map.map_smul_of_tower dom_coprod', linear_map.map_smul_of_tower dom_coprod'],
+  -- typeclass resolution is a little confused here
   apply_instance, apply_instance,
 end
 

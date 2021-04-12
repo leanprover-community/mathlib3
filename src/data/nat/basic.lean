@@ -1319,7 +1319,7 @@ pow_dvd_pow_iff_le_right (nat.lt_of_sub_eq_succ rfl)
 
 lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
 | (succ p) (succ k) hp hk h :=
-  have succ p * (succ p)^k ∣ succ p * 1, by  simpa [pow_succ] using h,
+  have succ p * (succ p)^k ∣ succ p * 1, by simpa [pow_succ] using h,
   have (succ p) ^ k ∣ 1, from dvd_of_mul_dvd_mul_left (succ_pos _) this,
   have he : (succ p) ^ k = 1, from eq_one_of_dvd_one this,
   have k < (succ p) ^ k, from lt_pow_self hp k,
@@ -1579,7 +1579,7 @@ eq.rec_on n.bit_decomp (H (bodd n) (div2 n))
 lemma shiftl_eq_mul_pow (m) : ∀ n, shiftl m n = m * 2 ^ n
 | 0     := (nat.mul_one _).symm
 | (k+1) := show bit0 (shiftl m k) = m * (2 * 2 ^ k),
-  by rw [bit0_val, shiftl_eq_mul_pow, mul_left_comm, mul_comm 2 _]
+  by rw [bit0_val, shiftl_eq_mul_pow, mul_left_comm, mul_comm 2]
 
 lemma shiftl'_tt_eq_mul_pow (m) : ∀ n, shiftl' tt m n + 1 = (m + 1) * 2 ^ n
 | 0     := by simp [shiftl, shiftl', pow_zero, nat.one_mul]

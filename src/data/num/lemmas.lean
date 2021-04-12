@@ -421,7 +421,7 @@ by refine {add := (+), ..}; transfer
 
 instance : comm_monoid pos_num :=
 by refine_struct {mul := (*), one := (1 : pos_num), npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩};
-try { intros, refl}; transfer
+try { intros, refl }; transfer
 
 instance : distrib pos_num :=
 by refine {add := (+), mul := (*), ..}; {transfer, simp [mul_add, mul_comm]}

@@ -439,7 +439,7 @@ mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 by induction n with n IH;
    [exact pp.not_dvd_one.elim h,
-    by { rw pow_succ at h, exact (pp.dvd_mul.1 h).elim id IH} ]
+    by { rw pow_succ at h, exact (pp.dvd_mul.1 h).elim id IH } ]
 
 lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
 λ hp, (hp.2 x $ dvd_trans ⟨x, pow_two _⟩ (pow_dvd_pow _ hn)).elim

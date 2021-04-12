@@ -125,23 +125,16 @@ instance : has_one ℤ_[p] :=
 @[simp, norm_cast] lemma coe_zero : ((0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
 
 instance : ring ℤ_[p] :=
-{ add := (+),
-  mul := (*),
-  neg := has_neg.neg,
-  zero := 0,
-  one := 1,
-  sub := has_sub.sub,
-  zero_add       := by intros; ext; simp; ring,
-  add_zero       := by intros; ext; simp; ring,
-  add_assoc      := by intros; ext; simp; ring,
-  add_left_neg   := by intros; ext; simp; ring,
-  add_comm       := by intros; ext; simp; ring,
-  mul_assoc      := by intros; ext; simp; ring,
-  one_mul        := by intros; ext; simp; ring,
-  mul_one        := by intros; ext; simp; ring,
-  left_distrib   := by intros; ext; simp; ring,
-  right_distrib  := by intros; ext; simp; ring,
-  sub_eq_add_neg := by intros; ext; simp; ring, }
+by refine_struct
+{ add   := (+),
+  mul   := (*),
+  neg   := has_neg.neg,
+  zero  := (0 : ℤ_[p]),
+  one   := 1,
+  sub   := has_sub.sub,
+  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
+  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩ };
+intros; try { refl }; ext; simp; ring
 
 /-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
 def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=

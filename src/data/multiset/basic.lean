@@ -653,7 +653,7 @@ quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 instance (f : α → β) : is_add_monoid_hom (map f) :=
 { map_add := map_add _, map_zero := map_zero _ }
 
-theorem map_nsmul (f : α → β) (n :ℕ) (s) : map f (n • s) = n • map f s :=
+theorem map_nsmul (f : α → β) (n : ℕ) (s) : map f (n • s) = n • map f s :=
 (add_monoid_hom.of (map f)).map_nsmul _ _
 
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :

@@ -55,7 +55,7 @@ lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : ℝ) = ⟨a * b⟩ := show mul _ _
 
 instance : comm_ring ℝ :=
 begin
-  refine_struct { zero := 0,
+  refine_struct { zero  := 0,
                   one   := 1,
                   mul   := (*),
                   add   := (+),

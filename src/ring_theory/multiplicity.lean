@@ -392,7 +392,6 @@ begin
     convert multiplicity.mul hp }
 end
 
-.
 protected lemma pow' {p a : α} (hp : prime p) (ha : finite p a) : ∀ {k : ℕ},
   get (multiplicity p (a ^ k)) (finite_pow hp ha) = k * get (multiplicity p a) ha
 | 0     := by simp [one_right hp.not_unit]

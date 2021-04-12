@@ -86,7 +86,6 @@ by { ext, rw [mem_to_subalgebra, iff_true_right algebra.mem_top], exact mem_top 
 def subalgebra.equiv_of_eq {X Y : subalgebra F E} (h : X = Y) : X ≃ₐ[F] Y :=
 by refine { to_fun := λ x, ⟨x, _⟩, inv_fun := λ x, ⟨x, _⟩, .. }; tidy
 
-
 variables (F E)
 /-- The bottom intermediate_field is isomorphic to the field. -/
 noncomputable def bot_equiv : (⊥ : intermediate_field F E) ≃ₐ[F] F :=

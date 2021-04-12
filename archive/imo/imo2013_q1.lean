@@ -9,7 +9,6 @@ import data.nat.parity
 import algebra.big_operators.pi
 import tactic.ring
 import tactic.field_simp
-import tactic.ring_exp
 
 /-!
 # IMO 2013 Q1

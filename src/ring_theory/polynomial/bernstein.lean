@@ -387,13 +387,11 @@ begin
     -- Step inside the sum:
     apply_congr, skip,
     simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w], },
-
   -- On the right hand side, we'll just simplify.
   conv at h {
     to_rhs,
     rw [pderiv_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
     simp [e] },
-    -- simp [e, nat_cast_mul], },
   simpa using h,
 end
 

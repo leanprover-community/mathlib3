@@ -547,3 +547,11 @@ end no_zero_smul_divisors
 -- We finally turn on these instances globally. By doing this here, we ensure that none of the
 -- lemmas about nat semimodules above are specific to these instances.
 attribute [instance] add_comm_group.int_module
+
+@[simp] lemma nat.smul_one_eq_coe {R : Type*} [semiring R] [semimodule ℕ R] (m : ℕ) :
+  m • (1 : R) = ↑m :=
+by rw [nsmul_eq_mul, mul_one]
+
+@[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] [semimodule ℤ R] (m : ℤ) :
+  m • (1 : R) = ↑m :=
+by rw [← gsmul_eq_smul, gsmul_eq_mul, mul_one]

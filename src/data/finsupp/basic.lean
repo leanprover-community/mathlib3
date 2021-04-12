@@ -173,7 +173,7 @@ by simp only [set.subset_def, mem_coe, mem_support_iff];
 
 /-- Given `fintype α`, `equiv_fun_on_fintype` is the `equiv` between `α →₀ β` and `α → β`.
   (All functions on a finite type are finitely supported.) -/
-def equiv_fun_on_fintype [fintype α] : (α →₀ M) ≃ (α → M) :=
+@[simps apply] def equiv_fun_on_fintype [fintype α] : (α →₀ M) ≃ (α → M) :=
 ⟨λf a, f a, λf, mk (finset.univ.filter $ λa, f a ≠ 0) f (by simp only [true_and, finset.mem_univ,
   iff_self, finset.mem_filter, finset.filter_congr_decidable, forall_true_iff]),
   begin intro f, ext a, refl end,

@@ -77,7 +77,7 @@ sup_le $ assume b hb, le_sup (h hb)
 ⟨(λ hs b hb, lt_of_le_of_lt (le_sup hb) hs), finset.cons_induction_on s (λ _, ha)
   (λ c t hc, by simpa only [sup_cons, sup_lt_iff, mem_cons, forall_eq_or_imp] using and.imp_right)⟩
 
-lemma lt_sup_iff [is_total α (≤)] {a : α} : a < s.sup f ↔ (∃ b ∈ s, a < f b) :=
+@[simp] lemma lt_sup_iff [is_total α (≤)] {a : α} : a < s.sup f ↔ (∃ b ∈ s, a < f b) :=
 by { rw [←not_iff_not, not_bex], simp only [@not_lt (as_linear_order α), sup_le_iff], }
 
 lemma comp_sup_eq_sup_comp [semilattice_sup_bot γ] {s : finset β}
@@ -215,10 +215,10 @@ le_inf (λ b hb, le_trans (inf_le hb) (h b hb))
 lemma inf_mono (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
 le_inf $ assume b hb, inf_le (h hb)
 
-lemma lt_inf_iff [h : is_total α (≤)] {a : α} (ha : a < ⊤) : a < s.inf f ↔ (∀b ∈ s, a < f b) :=
+@[simp] lemma lt_inf_iff [h : is_total α (≤)] {a : α} (ha : a < ⊤) : a < s.inf f ↔ (∀b ∈ s, a < f b) :=
 @sup_lt_iff (order_dual α) _ _ _ _ (@is_total.swap α _ h) _ ha
 
-lemma inf_lt_iff [is_total α (≤)] {a : α} : s.inf f < a ↔ (∃ b ∈ s, f b < a) :=
+@[simp] lemma inf_lt_iff [is_total α (≤)] {a : α} : s.inf f < a ↔ (∃ b ∈ s, f b < a) :=
 @lt_sup_iff (order_dual α) _ _ _ _ _ _
 
 lemma comp_inf_eq_inf_comp [semilattice_inf_top γ] {s : finset β}
@@ -297,7 +297,7 @@ begin
   exact ball_congr (λ b hb, with_bot.coe_lt_coe),
 end
 
-lemma lt_sup'_iff [is_total α (≤)] {a : α} : a < s.sup' H f ↔ (∃ b ∈ s, a < f b) :=
+@[simp] lemma lt_sup'_iff [is_total α (≤)] {a : α} : a < s.sup' H f ↔ (∃ b ∈ s, a < f b) :=
 begin
   rw [←with_bot.coe_lt_coe, coe_sup', lt_sup_iff],
   exact bex_congr (λ b hb, with_bot.coe_lt_coe),
@@ -358,7 +358,7 @@ lemma inf'_le {b : β} (h : b ∈ s) : s.inf' ⟨b, h⟩ f ≤ f b :=
 @[simp] lemma lt_inf'_iff [is_total α (≤)] {a : α} : a < s.inf' H f ↔ (∀ b ∈ s, a < f b) :=
 @sup'_lt_iff (order_dual α) _ _ _ H f _ _
 
-lemma inf'_lt_iff [is_total α (≤)] {a : α} : s.inf' H f < a ↔ (∃ b ∈ s, f b < a) :=
+@[simp] lemma inf'_lt_iff [is_total α (≤)] {a : α} : s.inf' H f < a ↔ (∃ b ∈ s, f b < a) :=
 @lt_sup'_iff (order_dual α) _ _ _ H f _ _
 
 lemma inf'_induction {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂))

@@ -297,9 +297,15 @@ begin
       exacts [λ _, zero_smul _ _, λ _ _ _, add_smul _ _ _] } }
 end
 
-lemma set.linear_dependent_iff {s : set ι} : ¬ linear_independent R (v ∘ coe : s → M) ↔
-  ∃ f : ι →₀ R, f ∈ finsupp.supported R R s ∧ ∑ i in f.support, f i • v i = 0 ∧ f ≠ 0 :=
+lemma linear_dependent_comp_subtype' {s : set ι} :
+  ¬ linear_independent R (v ∘ coe : s → M) ↔
+  ∃ f : ι →₀ R, f ∈ finsupp.supported R R s ∧ finsupp.total ι M R v f = 0 ∧ f ≠ 0 :=
 by simp [linear_independent_comp_subtype, finsupp.total_apply, finsupp.sum]
+
+lemma linear_dependent_comp_subtype {s : set ι} :
+  ¬ linear_independent R (v ∘ coe : s → M) ↔
+  ∃ f : ι →₀ R, f ∈ finsupp.supported R R s ∧ ∑ i in f.support, f i • v i = 0 ∧ f ≠ 0 :=
+linear_dependent_comp_subtype'
 
 theorem linear_independent_subtype {s : set M} :
   linear_independent R (λ x, x : s → M) ↔

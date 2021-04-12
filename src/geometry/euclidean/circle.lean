@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Manuel Candales
 -/
 import geometry.euclidean.basic
-import geometry.euclidean.circumcenter
-import geometry.euclidean.monge_point
-import geometry.euclidean.triangle
-import linear_algebra.affine_space.midpoint
 
 /-!
 # Circles
@@ -16,11 +12,9 @@ This file proves basic geometrical results about distances and angles
 in circles in real inner product spaces and Euclidean affine spaces.
 -/
 
-noncomputable theory
-open_locale big_operators
-open_locale euclidean_geometry
-open_locale real
-open_locale real_inner_product_space
+open_locale euclidean_geometry real_inner_product_space real
+
+variables {V : Type*} [inner_product_space ℝ V]
 
 namespace inner_product_geometry
 /-!
@@ -29,8 +23,6 @@ namespace inner_product_geometry
 This section develops some results on circles in real inner product spaces,
 which are used to deduce corresponding results for Euclidean affine spaces.
 -/
-
-variables {V : Type*} [inner_product_space ℝ V]
 
 lemma mul_norm_eq_sub_norm_pow_two {x y z : V} (h₁ : ∃ k : ℝ, k ≠ 1 ∧ x + y = k • (x - y))
   (h₂ : ∥z - y∥ = ∥z + y∥) : ∥x - y∥ * ∥x + y∥ = abs (∥z + y∥ ^ 2 - ∥z - x∥ ^ 2) :=
@@ -99,9 +91,7 @@ This section develops some results on circles in Euclidean affine spaces.
 
 open inner_product_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
-    [normed_add_torsor V P]
-local notation `⟪`x`, `y`⟫` := @inner ℝ V _ x y
+variables {P : Type*} [metric_space P] [normed_add_torsor V P]
 include V
 
 /-- If `P` is a point on the line `AB` and `Q` is equidistant from `A` and `B`, then
@@ -125,7 +115,7 @@ begin
   exact mul_norm_eq_sub_norm_pow_two hp hq,
 end
 
-/-- If `A`, `B`, `C`, `D` are cospherical and `P` is on boths lines `AB` and `CD`, then
+/-- If `A`, `B`, `C`, `D` are cospherical and `P` is on both lines `AB` and `CD`, then
 `AP * BP = CP * DP` .-/
 theorem mul_dist_eq_mul_dist_of_cospherical
   {a b c d p : P} (h : cospherical ({a, b, c, d} : set P))

@@ -53,8 +53,6 @@ begin
 
   have hzx : ⟪z, x⟫ = 0, { rw [hxy, inner_smul_right, hzy, mul_zero] },
 
-  have hl_smul_y_eq_y : (1 : ℝ) • y = y, { rw one_smul },
-
   refine eq.symm _,
 
   calc  abs (∥z + y∥ ^ 2 - ∥z - x∥ ^ 2)
@@ -72,7 +70,7 @@ begin
   ... = (∥r - 1∥ * ∥r + 1∥) * ∥y∥ ^ 2        : by rw [← real.norm_eq_abs _, ← real.norm_eq_abs _]
   ... = (∥r - 1∥ * ∥y∥) * (∥r + 1∥ * ∥y∥)     : by ring
   ... = ∥(r - 1) • y∥ * ∥(r + 1) • y∥       : by rw [← norm_smul (r - 1) y, ← norm_smul (r + 1) y]
-  ... = ∥r • y - y∥ * ∥r • y + y∥           : by rw [sub_smul r 1 y, add_smul r 1 y, hl_smul_y_eq_y]
+  ... = ∥r • y - y∥ * ∥r • y + y∥           : by rw [sub_smul r 1 y, add_smul r 1 y, one_smul]
   ... = ∥x - y∥ * ∥x + y∥                   : by rw ← hxy,
 end
 

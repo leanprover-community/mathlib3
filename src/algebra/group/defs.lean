@@ -297,7 +297,8 @@ class add_cancel_comm_monoid (M : Type u) extends add_left_cancel_monoid M, add_
 @[protect_proj, ancestor left_cancel_monoid comm_monoid, to_additive add_cancel_comm_monoid]
 class cancel_comm_monoid (M : Type u) extends left_cancel_monoid M, comm_monoid M
 
-@[to_additive] instance cancel_comm_monoid.to_cancel_monoid (M : Type u) [cancel_comm_monoid M] :
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance cancel_comm_monoid.to_cancel_monoid (M : Type u) [cancel_comm_monoid M] :
   cancel_monoid M :=
 { mul_right_cancel := λ a b c h, mul_left_cancel $ by rw [mul_comm, h, mul_comm],
   .. ‹cancel_comm_monoid M› }

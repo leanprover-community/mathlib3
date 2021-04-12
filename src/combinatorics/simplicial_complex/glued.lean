@@ -7,6 +7,12 @@ open_locale classical
 variables {a b m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]
   {S S' S₁ S₂ : simplicial_complex E} {X Y Z : finset E}
 
+--to add to mathlib?
+lemma curry_eq_of_symmetric_transitive {α : Type*} {R : α → α → Prop} {a b : α}
+  (hRsymm : symmetric R) (hRtrans : transitive R) (hab : R a b) :
+  R a = R b :=
+funext $ λ c, propext ⟨hRtrans (hRsymm hab), hRtrans hab⟩
+
 def adjacent (X Y : finset E) :
   Prop :=
 X.card = (X ∩ Y).card + 1 ∧ Y.card = (X ∩ Y).card + 1
@@ -120,27 +126,6 @@ begin
   exact finset.card_le_of_subset hYZ,
 end
 
-lemma pure_decomp_facet_iff (hS : S' ∈ S.pure_decomp) :
-  X ∈ S'.facets ↔ X ∈ S.faces ∧ S' = S.closure (set_of (S.glued X)) :=
-begin
-  split,
-  { rintro hX,
-    obtain ⟨Y, hY, rfl⟩ := hS,
-    use closure_subset (facets_subset hX),
-    rw closure_facets_eq (setof_glued_subset hY.1) setof_glued_attop at hX,
-    ext Z,
-    split,
-    { rintro ⟨hZ, W, hW, hZW⟩,
-      refine ⟨hZ, W, _, hZW⟩,
-      exact glued.trans (glued.symmetric hX) hW },
-    { rintro ⟨hZ, W, hW, hZW⟩,
-      refine ⟨hZ, W, _, hZW⟩,
-      exact glued.trans hX hW }},
-  { rintro ⟨hX, rfl⟩,
-    exact ⟨faces_subset_closure ⟨hX, glued.refl⟩, (λ Y hY hXY,
-      finset.eq_of_subset_of_card_le hXY (card_le_of_mem_element_pure_decomp hY))⟩ }
-end
-
 lemma facet_pure_decomp_self (hX : X ∈ S.faces) :
   X ∈ (S.closure (set_of (S.glued X))).facets :=
 ⟨⟨hX, ⟨X, glued.refl, finset.subset.refl _⟩⟩, (λ Y hY hXY, finset.eq_of_subset_of_card_le hXY
@@ -149,6 +134,20 @@ lemma facet_pure_decomp_self (hX : X ∈ S.faces) :
 lemma mem_pure_decomp_facets_iff (hX : X ∈ S.faces) :
   Y ∈ (S.closure (set_of (S.glued X))).facets ↔ S.glued X Y :=
 by rw [closure_facets_eq (setof_glued_subset hX) setof_glued_attop, mem_set_of_eq]
+
+lemma pure_decomp_facet_iff (hS : S' ∈ S.pure_decomp) :
+  X ∈ S'.facets ↔ X ∈ S.faces ∧ S' = S.closure (set_of (S.glued X)) :=
+begin
+  split,
+  { rintro hX,
+    obtain ⟨Y, hY, rfl⟩ := hS,
+    use closure_subset (facets_subset hX),
+    rw mem_pure_decomp_facets_iff hY.1 at hX,
+    rw ←curry_eq_of_symmetric_transitive glued.symmetric glued.transitive hX },
+  { rintro ⟨hX, rfl⟩,
+    exact ⟨faces_subset_closure ⟨hX, glued.refl⟩, (λ Y hY hXY,
+      finset.eq_of_subset_of_card_le hXY (card_le_of_mem_element_pure_decomp hY))⟩ }
+end
 
 lemma pure_decomp_cover_facets (hX : X ∈ S.facets) :
   ∃ {S' : simplicial_complex E}, S' ∈ S.pure_decomp ∧ X ∈ S'.facets :=
@@ -170,15 +169,8 @@ begin
   simp at ⊢ hX₁ hX₂,
   rw mem_pure_decomp_facets_iff hY₁.1 at hX₁,
   rw mem_pure_decomp_facets_iff hY₂.1 at hX₂,
-  suffices h : S.glued Y₁ = S.glued Y₂, --maybe there's a lemma to get this directly?
-  { rw h },
-  have hY₁Y₂ := glued.trans hX₁ (glued.symmetric hX₂),
-  ext Z,
-  split,
-  { rintro hY₁Z,
-    exact glued.trans (glued.symmetric hY₁Y₂) hY₁Z },
-  { rintro hY₂Z,
-    exact glued.trans hY₁Y₂ hY₂Z }
+  rw ←curry_eq_of_symmetric_transitive glued.symmetric glued.transitive
+    (glued.trans hX₁ (glued.symmetric hX₂)),
 end
 
 lemma pure_decomp_cover [finite_dimensional ℝ E] (hX : X ∈ S.faces) :
@@ -211,6 +203,26 @@ begin
   refine pure_of_mem_pure_decomp (_ : S ∈ S.pure_decomp),
   rw hS,
   exact mem_singleton _,
+end
+
+lemma pure_decomp_space_subset_space :
+  (⋃ (S' ∈ S.pure_decomp), (S' : simplicial_complex E).space) ⊆ S.space :=
+begin
+  rintro x hx,
+  rw mem_bUnion_iff at hx,
+  obtain ⟨S', hS', hx⟩ := hx,
+  obtain ⟨X, hX, hxX⟩ := mem_space_iff.1 hx,
+  exact mem_space_iff.2 ⟨X, pure_decomp_faces_subset hS' hX, hxX⟩,
+end
+
+lemma pure_decomp_space_eq_space [finite_dimensional ℝ E] :
+  (⋃ (S' ∈ S.pure_decomp), (S' : simplicial_complex E).space) = S.space :=
+begin
+  apply subset.antisymm pure_decomp_space_subset_space,
+  rintro x hx,
+  obtain ⟨X, hX, hxX⟩ := mem_space_iff.1 hx,
+  obtain ⟨S', hS', hx⟩ := pure_decomp_cover hX,
+  exact mem_bUnion hS' (mem_space_iff.2 ⟨X, hx, hxX⟩),
 end
 
 end affine

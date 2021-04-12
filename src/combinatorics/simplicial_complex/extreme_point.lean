@@ -11,30 +11,91 @@ import combinatorics.simplicial_complex.dump
 
 open_locale classical affine big_operators
 open set
-variables {m : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {x : E}
+variables {m : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
 
 namespace affine
 
-def is_extreme (s : set E) (x : E) : Prop :=
-x ∈ s ∧ ∀ (x₁ x₂ ∈ s), x ∈ segment x₁ x₂ → x = x₁ ∨ x = x₂
+/--
+A set B is extreme to a set A if no affine combination of points in A \ B is in B. -/
+def extreme_set (A B : set E) :
+  Prop :=
+B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ segment x₁ x₂ → x₁ ≠ x → x₂ ≠ x → x₁ ∈ B ∧ x₂ ∈ B
 
-lemma convex_remove_iff_is_extreme {s : set E} (hs : convex s) (hx : x ∈ s) :
-  convex (s \ {x}) ↔ is_extreme s x :=
+lemma extreme_set.antisymm :
+  anti_symmetric (extreme_set : set E → set E → Prop) :=
+λ A B hAB hBA, subset.antisymm hBA.1 hAB.1
+
+lemma extreme_set.trans :
+  transitive (extreme_set : set E → set E → Prop) :=
+begin
+  rintro A B C ⟨hBA, hAB⟩ ⟨hCB, hBC⟩,
+  use subset.trans hCB hBA,
+  rintro x₁ x₂ hx₁A hx₂A x hxC hx hxx₁ hxx₂,
+  obtain ⟨hx₁B, hx₂B⟩ := hAB x₁ x₂ hx₁A hx₂A x (hCB hxC) hx hxx₁ hxx₂,
+  exact hBC x₁ x₂ hx₁B hx₂B x hxC hx hxx₁ hxx₂,
+end
+
+lemma convex_remove_of_extreme (hA : convex A) :
+  B ⊆ A ∧ convex (A \ B) ↔ extreme_set A B :=
 begin
   split,
-  { refine λ hsx, ⟨hx, λ y₁ y₂ hy₁ hy₂ hxy, _⟩,
+  {
+    refine λ hAB, ⟨hAB.1, λ x₁ x₂ hx₁A hx₂A x hxB hx hx₁x hx₂x, _⟩,
     by_contra,
     push_neg at h,
-    rw convex_iff_segment_subset at hsx,
-    exact (hsx ⟨hy₁, h.1.symm⟩ ⟨hy₂, h.2.symm⟩ hxy).2 rfl },
-  { intro hsx,
+    rw convex_iff_segment_subset at hAB,
+    refine (hAB.2 ⟨hx₁A, λ hx₁B, _⟩ ⟨hx₂A, λ hx₂B, _⟩ hx).2 hxB,
+    have := h hx₁B,
+    sorry,sorry
+    --exact (hAB ⟨hx₁A, h.1.symm⟩ ⟨hx₂A, h.2.symm⟩ hxB).2 rfl
+  },
+  { rintro ⟨hBA, hAB⟩,
+    use hBA,
     rw convex_iff_segment_subset,
-    rintro y₁ y₂ ⟨hy₁, y₁x : _ ≠ _⟩ ⟨hy₂, y₂x : _ ≠ _⟩ z hz,
-    refine ⟨hs.segment_subset hy₁ hy₂ hz, λ (t : z = x), _⟩,
-    subst t,
-    rcases hsx.2 _ _ hy₁ hy₂ hz with (rfl | rfl),
-    exacts [y₁x rfl, y₂x rfl] }
+    rintro x₁ x₂ ⟨hx₁A, hx₁B⟩ ⟨hx₂A, hx₂B⟩ x hx,
+    refine ⟨hA.segment_subset hx₁A hx₂A hx, λ hxB, hx₁B (hAB x₁ x₂ hx₁A hx₂A x hxB hx _ _).1⟩,
+    { rintro rfl,
+      exact hx₁B hxB },
+    { rintro rfl,
+      exact hx₂B hxB }}
 end
+
+def extreme_point (A : set E) (x : E) :
+  Prop :=
+x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ segment x₁ x₂ → x₁ = x ∨ x₂ = x
+
+lemma extreme_point_iff_extreme_singleton :
+  extreme_point A x ↔ extreme_set A {x} :=
+begin
+  split,
+  { rintro ⟨hxA, hx⟩,
+    use singleton_subset_iff.2 hxA,
+    rintro x₁ x₂ hx₁A hx₂A y (rfl : y = x) hxs hx₁ hx₂,
+    exfalso,
+    cases hx x₁ x₂ hx₁A hx₂A hxs,
+    exacts [hx₁ h, hx₂ h] },
+  { rintro hx,
+    use singleton_subset_iff.1 hx.1,
+    rintro x₁ x₂ hx₁ hx₂ hxs,
+    by_contra,
+    push_neg at h,
+    exact h.1 (hx.2 x₁ x₂ hx₁ hx₂ x rfl hxs h.1 h.2).1 }
+end
+
+lemma convex_remove_iff_extreme (hA : convex A) (hx : x ∈ A) :
+  convex (A \ {x}) ↔ extreme_point A x :=
+begin
+  split,
+  { refine λ hAx, ⟨hx, λ x₁ x₂ hx₁A hx₂A hx, _⟩,
+    by_contra,
+    push_neg at h,
+    rw convex_iff_segment_subset at hAx,
+    exact (hAx ⟨hx₁A, λ hx₁, h.1 (mem_singleton_iff.2 hx₁)⟩
+      ⟨hx₂A, λ hx₂, h.2 (mem_singleton_iff.2 hx₂)⟩ hx).2 rfl },
+  exact λ hx, ((convex_remove_of_extreme hA).2 (extreme_point_iff_extreme_singleton.1 hx)).2,
+end
+
+--lemma kreinmilmanlemma
 
 -- example {a b c d : ℝ} (ha : 0 < a) (hb : 0 ≤ b) (hc : 0 < c) (hd : 0 ≤ d) (h : a * b + c * d = 0) :
 --   b = 0 ∧ d = 0 :=

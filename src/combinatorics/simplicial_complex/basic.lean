@@ -270,6 +270,10 @@ def simplicial_complex.subcells (S : simplicial_complex E) :
   set (finset E) :=
 {X | X ∈ S.faces ∧ X.card = S.dim}
 
+def simplicial_complex.vertices (S : simplicial_complex E) :
+  set E :=
+{x | {x} ∈ S.faces}
+
 lemma mem_of_mem_convex_hull (hx : {x} ∈ S.faces) (hX : X ∈ S.faces)
   (hxX : x ∈ convex_hull (X : set E)) :
   x ∈ X :=

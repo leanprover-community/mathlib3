@@ -285,34 +285,23 @@ by { rw [←with_bot.coe_le_coe, coe_sup'], exact le_sup h, }
 @[simp] lemma sup'_le_iff {a : α} : s.sup' H f ≤ a ↔ ∀ b ∈ s, f b ≤ a :=
 iff.intro (λ h b hb, trans (le_sup' f hb) h) (sup'_le H f)
 
-@[simp] lemma sup'_lt_iff [is_total α (≤)] {a : α} : s.sup' H f < a ↔ (∀ b ∈ s, f b < a) :=
+@[simp] lemma sup'_lt_iff
+  {α : Type*} [linear_order α] {s : finset β} (H : s.nonempty) (f : β → α) (a : α) :
+  s.sup' H f < a ↔ (∀ b ∈ s, f b < a) :=
 begin
   rw [←with_bot.coe_lt_coe, coe_sup', sup_lt_iff (with_bot.bot_lt_coe a)],
   exact ball_congr (λ b hb, with_bot.coe_lt_coe),
 end
 
-@[simp] lemma lt_sup'_iff [is_total α (≤)] (a : α) : a < s.sup' H f ↔ (∃ b ∈ s, a < f b) :=
-begin
-  classical,
-  fsplit,
-  { revert H,
-    apply finset.cons_induction_on s,
-    { rintro ⟨-,⟨⟩⟩, },
-    { intros b s' n ih H w,
-      by_cases H' : s'.nonempty,
-      { rw sup'_cons H' at w,
-        rw lt_sup_iff at w,
-        cases w,
-        { use b, simp [w], },
-        { obtain ⟨c, cm, lt⟩ := ih H' w,
-          use c, simp [lt, cm], }, },
-      { have p := not_nonempty_iff_eq_empty.mp H',
-        subst p,
-        use b,
-        simpa using w, } }, },
-  { rintro ⟨b, bm, lt⟩,
-    exact lt_of_lt_of_le lt (le_sup' _ bm), }
-end
+@[simp] lemma le_sup'_iff
+  {α : Type*} [linear_order α] {s : finset β} (H : s.nonempty) (f : β → α) (a : α) :
+  a ≤ s.sup' H f ↔ (∃ b ∈ s, a ≤ f b) :=
+by split; { contrapose!, rw sup'_lt_iff H f, exact id }
+
+@[simp] lemma lt_sup'_iff
+  {α : Type*} [linear_order α] {s : finset β} (H : s.nonempty) (f : β → α) (a : α) :
+  a < s.sup' H f ↔ (∃ b ∈ s, a < f b) :=
+by split; { contrapose!, rw sup'_le_iff H f, exact id }
 
 lemma of_sup'_of_forall {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊔ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.sup' H f) :=
@@ -366,11 +355,20 @@ lemma inf'_le {b : β} (h : b ∈ s) : s.inf' ⟨b, h⟩ f ≤ f b :=
 @[simp] lemma le_inf'_iff {a : α} : a ≤ s.inf' H f ↔ ∀ b ∈ s, a ≤ f b :=
 @sup'_le_iff (order_dual α) _ _ _ H f _
 
-@[simp] lemma lt_inf'_iff [is_total α (≤)] {a : α} : a < s.inf' H f ↔ (∀ b ∈ s, a < f b) :=
-@sup'_lt_iff (order_dual α) _ _ _ H f _ _
+@[simp] lemma lt_inf'_iff
+  {α : Type*} [linear_order α] {s : finset β} (H : s.nonempty) (f : β → α) (a : α) :
+  a < s.inf' H f ↔ (∀ b ∈ s, a < f b) :=
+@sup'_lt_iff _ (order_dual α) _ _ H f a
 
-@[simp] lemma inf'_lt_iff [is_total α (≤)] (a : α) : s.inf' H f < a ↔ (∃ b ∈ s, f b < a) :=
-@lt_sup'_iff (order_dual α) _ _ _ H f _ _
+@[simp] lemma inf'_lt_iff
+  {α : Type*} [linear_order α] {s : finset β} (H : s.nonempty) (f : β → α) (a : α) :
+  s.inf' H f < a ↔ (∃ b ∈ s, f b < a) :=
+@lt_sup'_iff _ (order_dual α) _ _ H f a
+
+@[simp] lemma inf'_le_iff
+  {α : Type*} [linear_order α] {s : finset β} (H : s.nonempty) (f : β → α) (a : α) :
+  s.inf' H f ≤ a ↔ (∃ b ∈ s, f b ≤ a) :=
+@le_sup'_iff _ (order_dual α) _ _ H f a
 
 lemma of_inf'_of_forall {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf' H f) :=

@@ -172,31 +172,56 @@ lemma finset.inf_mem {α : Type*} [semilattice_inf_top α]
   (s : set α) (w₁ : ⊤ ∈ s) (w₂ : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.inf p ∈ s :=
-sorry
+begin
+  classical,
+  apply finset.cons_induction_on t,
+  { exact w₁, },
+  { intros a s' nm ih,
+    rw finset.inf_cons,
+    apply w₂ _ _ (h a) ih, },
+end
 
 lemma finset.inf'_mem {α : Type*} [semilattice_inf α]
   (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.inf' H p ∈ s :=
-sorry
+begin
+  classical,
+  revert H,
+  apply finset.cons_induction_on t,
+  { rintro ⟨-, ⟨⟩⟩, },
+  { intros a s' nm ih H,
+    by_cases H' : s'.nonempty,
+    { rw finset.inf'_cons H',
+      apply w _ _ (h a) (ih H'), },
+    { have p : s' = ∅ := finset.not_nonempty_iff_eq_empty.mp H',
+      subst p,
+      simp [h a], }, },
+end
 
 lemma finset.sup_mem {α : Type*} [semilattice_sup_bot α]
   (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.sup p ∈ s :=
-sorry
+@finset.inf_mem (order_dual α) _ s w₁ w₂ _ t p h
 
 lemma finset.sup'_mem {α : Type*} [semilattice_sup α]
   (s : set α) (w : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.sup' H p ∈ s :=
-sorry
+@finset.inf'_mem (order_dual α) _ s w _ t H p h
 
 lemma foo (a b ε : ℝ) : dist a b < ε ↔ a < b + ε ∧ b - ε < a := sorry
 
 lemma bar {X : Type*} {xs : finset X} {U : X → set X} (w : (⋃ (x : X) (H : x ∈ xs), U x) = ⊤) (z : X) :
   ∃ (x : X), x ∈ xs ∧ z ∈ U x :=
-sorry
+begin
+  have p : z ∈ ⊤ := set.mem_univ _,
+  rw ←w at p,
+  simp_rw [set.mem_Union] at p,
+  obtain ⟨x, xm, zm⟩ := p,
+  exact ⟨x, xm, zm⟩,
+end
 
 -- Here's the fun part of Stone-Weierstrass!
 theorem sublattice_closure_eq_top

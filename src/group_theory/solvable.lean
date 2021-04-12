@@ -506,12 +506,11 @@ lemma weekday_perm_unsolvable : ¬ is_solvable (equiv.perm weekday) :=
 open cardinal
 universes u
 
-lemma weekday_card : (5:cardinal)≤ mk weekday:=sorry
 
-lemma five_le_iff (α: Type u): (5 : cardinal) ≤ mk α ↔ ∃x₀ x₁ x₂ x₃ x₄  : α, x₀ ≠ x₁ ∧ x₀ ≠ x₂ ∧ x₀ ≠ x₃ ∧ x₀ ≠ x₄ ∧
-x₁ ≠ x₂  ∧ x₁ ≠ x₃ ∧ x₁ ≠ x₄ ∧ x₂ ≠ x₃ ∧ x₃ ≠ x₄:=
+
+lemma five_le_iff (α: Type u): (5 : cardinal) ≤ mk α →  ∃x₀ x₁ x₂ x₃ x₄  : α, x₀ ≠ x₁ ∧ x₀ ≠ x₂ ∧ x₀ ≠ x₃ ∧ x₀ ≠ x₄ ∧
+x₁ ≠ x₂  ∧ x₁ ≠ x₃ ∧ x₁ ≠ x₄ ∧ x₂ ≠ x₃ ∧ x₃ ≠ x₄ ∧ x₂ ≠ x₄:=
 begin
-  split,
   rintro ⟨f⟩, refine ⟨f $ sum.inr punit.star, _⟩,
   refine ⟨f $ (sum.inl (sum.inr (sum.inr  punit.star))),_⟩,
   refine ⟨f $ (sum.inl (sum.inr (sum.inl  punit.star))),_⟩,
@@ -541,181 +540,276 @@ begin
   split,
   intro h,
   cases f.2 h,
-
+  split,
   intro h,
   cases f.2 h,
-  rintro ⟨ a,β,γ,δ,ε,hs ⟩ ,
-  let five:=((punit ⊕ punit) ⊕ punit ⊕ punit) ⊕ punit,
-  --have u: ∃g: five → α,function.injective g,
-  let h : five → α := λ s₀, sum.rec_on s₀  (λ s₁, sum.rec_on s₁  (λ s₂ ,sum.rec_on s₂   (λ x,a)(λx,β )) (λ s₃  ,sum.rec_on s₃   (λ x,γ )(λx,δ ) ))(λ x,ε ),
-  --(λ s₁, sum.rec_on s₁ ((λ s₂, (sum.rec_on s₂ ((λ x,a) (λ x,β)))(λ s₃, sum.rec_on s₃((λ x,γ) (λ x,δ) ) )))) (λ x,ε),
-  have h_inj: function.injective h,
-
-  intros x y,
-  induction x,
-  induction y,
-  induction x,
-  induction y,
-  induction x,
-  induction y,
-  have w: x=y,
-  exact unit.ext,
-  rw w,
-  exact λ u, refl _,
-  intro k,
-  exfalso,
-  have t:h(sum.inl (sum.inl (sum.inl x)))=a,
-  refl,
-
-  have ξ : h(sum.inl (sum.inl (sum.inr y)))=β ,
-  refl,
-  rw [t,ξ ] at k,
-  exact hs.1 k,
-
-  induction y,
-  intro k,
-  exfalso,
-  have t:h(sum.inl (sum.inl (sum.inl y)))=a,
-  refl,
-  have ξ : h(sum.inl (sum.inl (sum.inr x)))=β ,
-  refl,
-  rw [t,ξ ] at k,
-  exact hs.1 k.symm,
-  have w: x=y,
-  exact unit.ext,
-  rw w,
-  exact λ u, refl _,
-
-  induction x,
-  induction y,
-  intro k,
-  exfalso,
-  have t:h(sum.inl (sum.inl (sum.inl y)))=a,
-  refl,
-  have ξ : h(sum.inl (sum.inr (sum.inl x)))=γ,
-  refl,
-  rw [t,ξ ] at k,
-  exact (hs.2).1 k,
-
-  intro k,
-  exfalso,
-  have t:h(sum.inl (sum.inl (sum.inl y)))=a,
-  refl,
-  have ξ : h(sum.inl (sum.inr (sum.inr x)))=δ ,
-  refl,
-  rw [t,ξ ] at k,
-  exact ((hs.2).2).1 k,
-
-  induction y,
-  intro k,
-  exfalso,
-  have t:h(sum.inl (sum.inr (sum.inl y)))=γ ,
-  refl,
-  have ξ : h(sum.inl (sum.inl (sum.inr x)))=β  ,
-  refl,
-  rw [t,ξ ] at k,
-  exact ((((hs.2).2).2).2).1 k,
-  intro k,
-  exfalso,
-  have t:h(sum.inl (sum.inr (sum.inr y)))=δ  ,
-  refl,
-  have ξ : h(sum.inl (sum.inl (sum.inr x)))=β  ,
-  refl,
-  rw [t,ξ ] at k,
-  exact (((((hs.2).2).2).2).2).1 k,
-
-  induction x,
-  induction y,
-  induction y,
-
-  intro k,
-  exfalso,
-  have t:h(sum.inl (sum.inl (sum.inl y)))=a,
-  refl,
-  have ξ : h(sum.inl (sum.inr (sum.inl x)))=γ  ,
-  refl,
-  rw [t,ξ ] at k,
-  exact (hs.2).1 k.symm,
-
-  intro k,
-  exfalso,
-  have t:h(sum.inl (sum.inl (sum.inr y)))=β ,
-  refl,
-  have ξ : h(sum.inl (sum.inr (sum.inl x)))=γ  ,
-  refl,
-  rw [t,ξ ] at k,
-  exact ((((hs.2).2).2).2).1 k.symm,
-
-  induction y,
-  have w: x=y,
-  exact unit.ext,
-  rw w,
-  exact λ u, refl _,
-  intro k,
-  exfalso,
-  have t:h(sum.inl (sum.inr (sum.inr y)))=δ ,
-  refl,
-  have ξ : h(sum.inl (sum.inr (sum.inl x)))=γ  ,
-  refl,
-  rw [t,ξ ] at k,
-  exact (((((((hs.2).2).2).2).2).2).2).1 k,
-
-  induction y,
-  induction y,
-
-  intro k,
-  exfalso,
-  have t:h(sum.inl (sum.inl (sum.inl y)))=a,
-  refl,
-  have ξ : h(sum.inl (sum.inr (sum.inr x)))=δ  ,
-  refl,
-  rw [t,ξ ] at k,
-  exact ((hs.2).2).1 k.symm,
-
-  intro k,
-  exfalso,
-  have t:h(sum.inl (sum.inl (sum.inr y)))=β ,
-  refl,
-  have ξ : h(sum.inl (sum.inr (sum.inr x)))=δ  ,
-  refl,
-  rw [t,ξ ] at k,
-  exact (((((hs.2).2).2).2).2).1 k.symm,
-
-  induction y,
-  intro k,
-  exfalso,
-  have t:h(sum.inl (sum.inr (sum.inl y)))=γ  ,
-  refl,
-  have ξ : h(sum.inl (sum.inr (sum.inr x)))=δ  ,
-  refl,
-  rw [t,ξ ] at k,
-  exact (((((((hs.2).2).2).2).2).2).2).1 k.symm,
-
-
-
-  --have v:=five.cases_on a β γ δ ε ,
-
-
-  --apply cardinal.mk_le_of_injective,
-
-    --rintro ⟨x, y, h⟩, by_contra h',
-    --rw [not_le, ←nat.cast_two, nat_succ, lt_succ, nat.cast_one, le_one_iff_subsingleton] at h',
-    --apply h, exactI subsingleton.elim _ _
-  all_goals {sorry},
-
+  intro h,
+  cases f.2 h,
 end
 
 
-def equiv.perm.of_embedding {α β : Type*} [fintype α] [decidable_eq β]
+
+lemma weekday_map (α: Type u):(5:cardinal)≤ mk α →  ∃ (f:weekday↪ α ),f=f:=
+begin
+  intro s,
+  have t:=five_le_iff α s,
+  rcases t with ⟨ a,β,γ,δ,ε, ht⟩ ,
+  let w:weekday→α:=λ x:weekday,weekday.rec_on x a β γ δ ε,
+  have u:function.injective w,
+
+  have brooklyn: w monday = a,
+  refl,
+  have queens: w tuesday = β ,
+  refl,
+  have manhattan: w wednesday = γ ,
+  refl,
+  have bronx: w thursday = δ ,
+  refl,
+  have staten: w friday= ε ,
+  refl,
+
+  intros j k,
+  induction j,
+  induction k,
+
+  exact λ x, refl _,
+
+  intro z,
+  exfalso,
+  rw[brooklyn,queens] at z,
+  exact ht.1 z,
+
+  intro z,
+  exfalso,
+  rw[brooklyn,manhattan] at z,
+  exact ht.2.1 z,
+
+  intro z,
+  exfalso,
+  rw[brooklyn,bronx] at z,
+  exact ht.2.2.1 z,
+
+  intro z,
+  exfalso,
+  rw[brooklyn,staten] at z,
+  exact ht.2.2.2.1 z,
+
+  induction k,
+
+
+
+  intro z,
+  exfalso,
+  rw[brooklyn,queens] at z,
+  exact ht.1 z.symm,
+
+  exact λ x, refl _,
+
+  intro z,
+  exfalso,
+  rw[queens,manhattan] at z,
+  exact ht.2.2.2.2.1 z,
+
+  intro z,
+  exfalso,
+  rw[queens,bronx] at z,
+  exact ht.2.2.2.2.2.1 z,
+
+  intro z,
+  exfalso,
+  rw[queens,staten] at z,
+  exact ht.2.2.2.2.2.2.1 z,
+
+  induction k,
+
+
+
+  intro z,
+  exfalso,
+  rw[brooklyn,manhattan] at z,
+  exact ht.2.1 z.symm,
+
+
+  intro z,
+  exfalso,
+  rw[queens,manhattan] at z,
+  exact ht.2.2.2.2.1 z.symm,
+
+  exact λ x, refl _,
+
+  intro z,
+  exfalso,
+  rw[manhattan,bronx] at z,
+  exact ht.2.2.2.2.2.2.2.1 z,
+
+  intro z,
+  exfalso,
+  rw[manhattan,staten] at z,
+  exact ht.2.2.2.2.2.2.2.2.2 z,
+
+  induction k,
+
+
+
+  intro z,
+  exfalso,
+  rw[brooklyn,bronx] at z,
+  exact ht.2.2.1 z.symm,
+
+
+  intro z,
+  exfalso,
+  rw[queens,bronx] at z,
+  exact ht.2.2.2.2.2.1 z.symm,
+
+
+
+  intro z,
+  exfalso,
+  rw[manhattan,bronx] at z,
+  exact ht.2.2.2.2.2.2.2.1 z.symm,
+
+  exact λ x, refl _,
+
+  intro z,
+  exfalso,
+  rw[bronx,staten] at z,
+  exact ht.2.2.2.2.2.2.2.2.1 z,
+
+  induction k,
+
+
+
+  intro z,
+  exfalso,
+  rw[brooklyn,staten] at z,
+  exact ht.2.2.2.1 z.symm,
+
+
+  intro z,
+  exfalso,
+  rw[queens,staten] at z,
+  exact ht.2.2.2.2.2.2.1 z.symm,
+
+
+
+  intro z,
+  exfalso,
+  rw[manhattan,staten] at z,
+  exact ht.2.2.2.2.2.2.2.2.2 z.symm,
+
+  intro z,
+  exfalso,
+  rw[bronx,staten] at z,
+  exact ht.2.2.2.2.2.2.2.2.1 z.symm,
+
+  exact λ x, refl _,
+  have f:weekday↪ α :={to_fun:=w, inj':=u},
+  exact ⟨ f,rfl⟩ ,
+
+end
+
+lemma card : cardinal.mk weekday = ↑5 :=
+begin
+  let a : list weekday := [monday, tuesday, wednesday, thursday, friday],
+  let b : multiset weekday := ↑a,
+  let c : finset weekday := finset.mk b
+  begin
+    change a.nodup,
+    simp_rw [list.nodup, list.pairwise_cons, list.pairwise.nil, and_true,
+      list.mem_cons_iff, list.mem_nil_iff, or_false],
+    repeat { split },
+    all_goals { intro day, cases day },
+    all_goals { tauto },
+  end,
+  letI d : fintype weekday := fintype.mk c
+  begin
+    change ∀ x, x ∈ a,
+    simp_rw [list.mem_cons_iff, list.mem_nil_iff, or_false],
+    intro day,
+    cases day,
+    all_goals { tauto },
+  end,
+  exact cardinal.fintype_card weekday,
+end
+
+open_locale classical
+
+noncomputable def equiv.perm.of_embedding {α β : Type*} [fintype α] [decidable_eq β]
   (e : equiv.perm α) (f : α ↪ β) : equiv.perm β :=
   begin
-    have u:=f ∘ (equiv.set.image_of_inj_on f (⊤:set α ) (set.inj_on_of_injective f.inj' ⊤ )).inv_fun,
-    have t: ¬ nonempty α  ∨ nonempty α,
-    finish,
+    have u:=(equiv.set.image_of_inj_on f (⊤:set α ) (set.inj_on_of_injective f.inj' ⊤ )).inv_fun,
+    let v:(⇑f '' ⊤)→ α:=λ x, u x,
+    let s:=f∘ e.to_fun ∘ v,
+    let t:= f ∘ e.inv_fun ∘ v,
 
-    have s:=function.injective.has_left_inverse f.inj' ,
-    apply equiv.perm.of_subtype,
+    let s':(⇑f '' ⊤)→ (⇑f '' ⊤):=λ x, ⟨s x, begin
+      change  s x ∈  {b | ∃ a, a ∈ (⊤:set α ) ∧ f a = b} ,
+      change ∃ a, a ∈ (⊤:set α ) ∧ f a = s x,
+      use e.to_fun(v(x)),
+      split,
+      --rw set.top_eq_univ,
+      simp only [set.top_eq_univ,set.mem_univ],
+
+      end⟩,
+    let t':(⇑f '' ⊤)→ (⇑f '' ⊤):=λ x, ⟨t x, begin change  t x ∈  {b | ∃ a, a ∈ (⊤:set α ) ∧ f a = b} ,
+      change ∃ a, a ∈ (⊤:set α ) ∧ f a = t x,
+      use e.inv_fun(v(x)),
+      split,
+      --rw set.top_eq_univ,
+      simp only [set.top_eq_univ,set.mem_univ], end⟩,
+    let u' : equiv.perm (f '' ⊤) :=
+    { to_fun := s',
+      inv_fun := t',
+      left_inv := begin
+        intro y,
+        change t' (⟨ s y, _⟩ )=y,
+        symmetry,
+        change y=⟨ t ⟨  s y, _⟩ , _⟩  ,
+        ext,
+        change (↑y:β )= t ( s( ↑y)),
+        --change  t ⟨ s y, _⟩ =y,
+        --change ⟨ t  ⟨ s y, _⟩, _⟩ =y,
+        --change (t (s y)) =↑ y,
+        --change ⟨t ⟨ s y, _ ⟩, _ ⟩ =y,
+
+       end,
+      right_inv := sorry },
+    exact equiv.perm.of_subtype u',
+  end
+
+
+def equiv.perm.of_embedding2 {α β : Type*} [fintype α] [decidable_eq β]
+  (e : equiv.perm α) (f : α ↪ β) : equiv.perm β :=
+  begin
+    have u:=(equiv.set.image_of_inj_on f (⊤:set α ) (set.inj_on_of_injective f.inj' ⊤ )).inv_fun,
+    let v:(⇑f '' ⊤)→ α:=λ x, u x,
+    let s:=f∘ e.to_fun ∘ v,
+    let t:= f ∘ e.inv_fun ∘ v,
+    have orange:∀ (x:(⇑f '' ⊤)), s x ∈ (⇑f '' ⊤),
+
+    have red:∀ (x:(⇑f '' ⊤)), s x = (f∘ e.to_fun ∘ v) x,
+
+
+
+
+    --let s':(⇑f '' ⊤)→ (⇑f '' ⊤):=λ x, s x,
+    --have left_inv_check:function.left_inverse t s,
+    --have t:equiv.perm (⇑f '' ⊤):={to_fun:=s,inv_fun:=t,}
+
+
+
+
+
+
+    --have t: ¬ nonempty α  ∨ nonempty α,
+    finish,
+    sorry,
+
+    --have s:=function.injective.has_left_inverse f.inj' ,
+    --apply equiv.perm.of_subtype,
     -- (set.image f (⊤:set α )),
+
 
   end
   --function.injective.has_left_inverse f.to_fun f.inj'

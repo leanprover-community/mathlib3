@@ -718,7 +718,7 @@ def sum_assoc (α β γ : Sort*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
 @[simp] theorem sum_assoc_apply_in3 {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
 
 /-- Sum with `empty` is equivalent to the original type. -/
-@[simps] def sum_empty (α : Type*) : α ⊕ empty ≃ α :=
+@[simps symm_apply] def sum_empty (α : Type*) : α ⊕ empty ≃ α :=
 ⟨sum.elim id (empty.rec _),
  inl,
  λ s, by { rcases s with _ | ⟨⟨⟩⟩, refl },
@@ -727,13 +727,13 @@ def sum_assoc (α β γ : Sort*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
 @[simp] lemma sum_empty_apply_inl {α} (a) : sum_empty α (sum.inl a) = a := rfl
 
 /-- The sum of `empty` with any `Sort*` is equivalent to the right summand. -/
-@[simps] def empty_sum (α : Sort*) : empty ⊕ α ≃ α :=
+@[simps symm_apply] def empty_sum (α : Sort*) : empty ⊕ α ≃ α :=
 (sum_comm _ _).trans $ sum_empty _
 
 @[simp] lemma empty_sum_apply_inr {α} (a) : empty_sum α (sum.inr a) = a := rfl
 
 /-- Sum with `pempty` is equivalent to the original type. -/
-@[simps] def sum_pempty (α : Type*) : α ⊕ pempty ≃ α :=
+@[simps symm_apply] def sum_pempty (α : Type*) : α ⊕ pempty ≃ α :=
 ⟨sum.elim id (pempty.rec _),
  inl,
  λ s, by { rcases s with _ | ⟨⟨⟩⟩, refl },
@@ -742,7 +742,7 @@ def sum_assoc (α β γ : Sort*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
 @[simp] lemma sum_pempty_apply_inl {α} (a) : sum_pempty α (sum.inl a) = a := rfl
 
 /-- The sum of `pempty` with any `Sort*` is equivalent to the right summand. -/
-@[simps] def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
+@[simps symm_apply] def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
 (sum_comm _ _).trans $ sum_pempty _
 
 @[simp] lemma pempty_sum_apply_inr {α} (a) : pempty_sum α (sum.inr a) = a := rfl

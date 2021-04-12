@@ -463,7 +463,7 @@ by { letI := classical.dec_eq α, letI := classical.dec_eq β,
 end
 
 theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β ↔ nonempty (α ≃ β) :=
-⟨λ h, ⟨equiv_of_card_eq h⟩,
+⟨λ h, by { haveI := classical.prop_decidable, exact (trunc_equiv_of_card_eq h).nonempty },
  λ ⟨f⟩, card_congr f⟩
 
 /-- Any subsingleton type with a witness is a fintype (with one term). -/

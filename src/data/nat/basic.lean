@@ -614,6 +614,18 @@ begin
   exact mul_le_mul_of_nonneg_left (nat.succ_le_of_lt h) dec_trivial,
 end
 
+lemma lt_mul_of_one_lt_left {m n : ℕ} (hm : 0 < m) (hn : 1 < n) : m < n * m :=
+begin
+  convert nat.mul_lt_mul hn (le_refl _) hm,
+  rw one_mul
+end
+
+lemma lt_mul_of_one_lt_right {m n : ℕ} (hm : 0 < m) (hn : 1 < n) : m < m * n :=
+begin
+  rw mul_comm,
+  exact lt_mul_of_one_lt_left hm hn,
+end
+
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
 mt (congr_arg (%2)) (by rw [add_comm, add_mul_mod_self_left, mul_mod_right]; exact dec_trivial)
 
@@ -942,6 +954,14 @@ nat.dvd_add_right (dvd_refl m)
   m ∣ n + m ↔ m ∣ n :=
 nat.dvd_add_left (dvd_refl m)
 
+lemma dvd_sub' {k m n : ℕ} (h₁ : k ∣ m) (h₂ : k ∣ n) : k ∣ m - n :=
+begin
+  cases le_total n m with H H,
+  { exact dvd_sub H h₁ h₂ },
+  { rw nat.sub_eq_zero_of_le H,
+    exact dvd_zero k },
+end
+
 lemma not_dvd_of_pos_of_lt {a b : ℕ} (h1 : 0 < b) (h2 : b < a) : ¬ a ∣ b :=
 begin
   rintros ⟨c, rfl⟩,
@@ -1257,6 +1277,9 @@ strict_mono.lt_iff_lt (pow_left_strict_mono k)
 
 lemma pow_left_injective {m : ℕ} (k : 1 ≤ m) : function.injective (λ (x : ℕ), x^m) :=
 strict_mono.injective (pow_left_strict_mono k)
+
+theorem pow_two_sub_pow_two (a b : ℕ) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
+by { rw [pow_two, pow_two], exact nat.mul_self_sub_mul_self_eq a b }
 
 /-! ### `pow` and `mod` / `dvd` -/
 

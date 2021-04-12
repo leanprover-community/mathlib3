@@ -540,6 +540,10 @@ lemma mem_factors_iff_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) : p ∈ factor
 ⟨λ h, prod_factors hn ▸ list.dvd_prod h,
  λ h, mem_list_primes_of_dvd_prod hp (@mem_factors n) ((prod_factors hn).symm ▸ h)⟩
 
+lemma mem_factors' {n p} (hn : 0 < n) : p ∈ factors n ↔ prime p ∧ p ∣ n :=
+⟨λ h, ⟨mem_factors h, (mem_factors_iff_dvd hn $ mem_factors h).mp h⟩,
+ λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
+
 lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ →
   (∀ p ∈ l₁, prime p) → (∀ p ∈ l₂, prime p) → l₁ ~ l₂
 | []        []        _  _  _  := perm.nil

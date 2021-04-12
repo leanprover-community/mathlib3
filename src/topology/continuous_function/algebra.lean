@@ -431,11 +431,21 @@ By an affine transformation in the field we can arrange so that `f x = a` and `f
 -/
 lemma subalgebra.separates_points.strongly {s : subalgebra 𝕜 C(α, 𝕜)} (h : s.separates_points) :
   separates_points_strongly ((λ f : C(α, 𝕜), (f : α → 𝕜)) '' (s : set C(α, 𝕜))) :=
-λ x y n,
+λ x y v,
 begin
+  by_cases n : x = y,
+  { subst n,
+    use ((v x) • 1 : C(α, 𝕜)),
+    fsplit,
+    { rw set.mem_image,
+      refine ⟨((v x) • 1 : C(α, 𝕜)), _, rfl⟩,
+      apply s.smul_mem,
+      apply s.one_mem, },
+    { simp, }, },
   obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
   replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
-  intros a b,
+  let a := v x,
+  let b := v y,
   let f' := ((b - a) * (f x - f y)⁻¹) • (continuous_map.C (f x) - f) + continuous_map.C a,
   refine ⟨f', _, _, _⟩,
   { simp only [set.mem_image, coe_coe],

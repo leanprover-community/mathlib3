@@ -1224,7 +1224,6 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=
 { le_of_mul_le_mul_left := λ a b c : α, le_of_mul_le_mul_left',
   mul_left_cancel := @mul_left_cancel α _,
-  mul_right_cancel := @mul_right_cancel α _,
   ..order_dual.ordered_comm_monoid }
 
 @[to_additive]

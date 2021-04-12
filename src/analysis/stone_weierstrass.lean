@@ -165,10 +165,43 @@ begin
   obtain ⟨t, -, s⟩ := is_compact.elim_nhds_subcover compact_univ U (λ x m, hU x),
   exact ⟨t, by { rw eq_top_iff, exact s }⟩,
 end
-#check finset.sup
+
+-- When we acquire sublattices
+-- the hypotheses should be reformulated as `s : subsemilattice_inf_bot`.
+lemma finset.inf_mem {α : Type*} [semilattice_inf_top α]
+  (s : set α) (w₁ : ⊤ ∈ s) (w₂ : ∀ x y ∈ s, x ⊓ y ∈ s)
+  {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i, p i ∈ s) :
+  t.inf p ∈ s :=
+sorry
+
+lemma finset.inf'_mem {α : Type*} [semilattice_inf α]
+  (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
+  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
+  t.inf' H p ∈ s :=
+sorry
+
+lemma finset.sup_mem {α : Type*} [semilattice_sup_bot α]
+  (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
+  {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i, p i ∈ s) :
+  t.sup p ∈ s :=
+sorry
+
+lemma finset.sup'_mem {α : Type*} [semilattice_sup α]
+  (s : set α) (w : ∀ x y ∈ s, x ⊔ y ∈ s)
+  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
+  t.sup' H p ∈ s :=
+sorry
+
+lemma foo (a b ε : ℝ) : dist a b < ε ↔ a < b + ε ∧ b - ε < a := sorry
+
+lemma bar {X : Type*} {xs : finset X} {U : X → set X} (w : (⋃ (x : X) (H : x ∈ xs), U x) = ⊤) (z : X) :
+  ∃ (x : X), x ∈ xs ∧ z ∈ U x :=
+sorry
+
 -- Here's the fun part of Stone-Weierstrass!
 theorem sublattice_closure_eq_top
-  (A : set C(X, ℝ)) (inf_mem : ∀ f g ∈ A, f ⊓ g ∈ A) (sup_mem : ∀ f g ∈ A, f ⊔ g ∈ A)
+  (A : set C(X, ℝ)) (nA : A.nonempty)
+  (inf_mem : ∀ f g ∈ A, f ⊓ g ∈ A) (sup_mem : ∀ f g ∈ A, f ⊔ g ∈ A)
   (sep : A.separates_points_strongly) :
   closure A = ⊤ :=
 begin
@@ -179,6 +212,12 @@ begin
   refine (filter.has_basis.frequently_iff metric.nhds_basis_ball).mpr _,
   intros ε pos,
   simp only [exists_prop, metric.mem_ball],
+
+  -- It will be helpful to assume `X` is nonempty later,
+  -- so we get that out of the way here.
+  by_cases nX : nonempty X,
+  swap,
+  refine ⟨nA.some, (dist_lt_iff _ _ pos).mpr (λ x, false.elim (nX ⟨x⟩)), nA.some_spec⟩,
 
   /-
   The strategy now is to pick a family of continuous functions `g x y` in `A`
@@ -194,26 +233,90 @@ begin
   let w₁ : ∀ x y, g x y x = f x := λ x y, (sep f x y).some_spec.1,
   let w₂ : ∀ x y, g x y y = f y := λ x y, (sep f x y).some_spec.2,
 
-  -- For each `x y`, we define `U x y` to be `{ z | f z < g x y z + ε }`,
+  -- For each `x y`, we define `U x y` to be `{ z | f z - ε < g x y z }`,
   -- and observe this is a neighbourhood of `y`.
-  let U : Π x y, set X := λ x y, { z | f z < g x y z + ε },
-  have U_nhd_y : ∀ x y, U x y ∈ 𝓝 y := sorry,
+  let U : Π x y, set X := λ x y, { z | f z - ε < g x y z },
+  have U_nhd_y : ∀ x y, U x y ∈ 𝓝 y,
+  { intros x y,
+    refine mem_nhds_sets _ _,
+    { rw [show U x y = (f - g x y : C(X, ℝ)) ⁻¹' set.Iio ε, { ext z, simp [sub_lt], }],
+      exact is_open.preimage coe_continuous is_open_Iio, },
+    { rw [set.mem_set_of_eq, w₂],
+      exact sub_lt_self _ pos, }, },
+
+  -- Fixing `x` for a moment, we have a family of functions `λ y, g x y`
+  -- which on different patches (the `U x y`) are greater than `f z - ε`.
+  -- Taking the supremum of these functions corresponding to a finite collection of patches
+  -- will give us an element of `A` that is globally greater than `f z - ε`.
 
   -- Since `X` is compact, for every `x` there is some finset `ys t`
-  -- so the union of the `U x y` for `y ∈ ys t` still covers everything.
+  -- so the union of the `U x y` for `y ∈ ys x` still covers everything.
   let ys : Π x, finset X := λ x, (compact_space.elim_nhds_subcover (U x) (U_nhd_y x)).some,
   let ys_w : ∀ x, (⋃ y ∈ ys x, U x y) = ⊤ :=
     λ x, (compact_space.elim_nhds_subcover (U x) (U_nhd_y x)).some_spec,
+  have ys_nonempty : ∀ x, (ys x).nonempty := sorry,
 
-  let h : Π x, A := λ x, ⟨(ys x).sup (g x : C(X, ℝ)), sorry⟩,
+  -- Thus for each `x` we have the desired `h x : A` so `f z - ε < h x z` everywhere.
+  let h : Π x, A := λ x,
+    ⟨(ys x).sup' (ys_nonempty x) (λ y, (g x y : C(X, ℝ))),
+      finset.sup'_mem _ sup_mem _ _ _ (λ y, (g x y).2)⟩,
+  have lt_h : ∀ x z, f z - ε < h x z,
+  { intros x z,
+    obtain ⟨y, ym, zm⟩ := bar (ys_w x) z,
+    dsimp [h],
+    simp only [finset.lt_sup'_iff, continuous_map.sup'_apply],
+    exact ⟨y, ym, zm⟩, },
 
-  -- let V : Π x y, set X := { z | f z > g x y z - ε },
-  -- have x_mem_V : ∀ x y, x ∈ V x y := sorry,
-  -- have y_mem_V : ∀ x y, y ∈ V x y := sorry,
-  -- have V_open : ∀ x y, is_open (V x y) := sorry,
+  -- For each `x y`, we define `V x y` to be `{ z | g x y z < f z + ε }`,
+  -- and observe this is a neighbourhood of `x`.
+  let V : Π x y, set X := λ x y, { z | g x y z < f z + ε },
+  have V_nhd_x : ∀ x y, V x y ∈ 𝓝 x,
+  { intros x y,
+    refine mem_nhds_sets _ _,
+    { rw [show V x y = (g x y - f : C(X, ℝ)) ⁻¹' set.Iio ε, { ext z, simp [sub_lt_iff_lt_add'], }],
+      exact is_open.preimage coe_continuous is_open_Iio, },
+    { rw [set.mem_set_of_eq, w₁],
+      exact (lt_add_iff_pos_right _).mpr pos, }, },
 
+  -- For each `x`, we can take the finite intersection of the `V x y` corresponding to `y ∈ ys x`.
+  let W : Π x, set X := λ x, (ys x).inf' (ys_nonempty x) (λ y, V x y),
+  -- This is still a neighbourhood of `x`.
+  have W_nhd : ∀ x, W x ∈ 𝓝 x := sorry,
+  -- Locally on each `W x`, we have `h x z < f z + ε`, since `h x` is a supremum of the `g x y`.
+  have h_lt : ∀ (x) (z ∈ W x), h x z < f z + ε,
+  { intros x z zm,
+    dsimp [h],
+    simp only [continuous_map.sup'_apply, finset.sup'_lt_iff],
+    intros y ys,
+    have zm' : z ∈ V x y := set.mem_of_mem_of_subset zm (finset.inf'_le (V x) ys),
+    exact zm', },
 
-  sorry
+  -- Since `X` is compact, there is some finset `ys t`
+  -- so the union of the `W x` for `x ∈ xs` still covers everything.
+  let xs : finset X := (compact_space.elim_nhds_subcover W W_nhd).some,
+  let xs_w : (⋃ x ∈ xs, W x) = ⊤ :=
+    (compact_space.elim_nhds_subcover W W_nhd).some_spec,
+  have xs_nonempty : xs.nonempty := sorry,
+
+  -- Finally our candidate function is the infimum over `x ∈ xs` of the `h x`.
+  -- This function is then globallly less than `f z + ε`.
+  let k : (A : Type*) :=
+    ⟨xs.inf' xs_nonempty (λ x, (h x : C(X, ℝ))),
+      finset.inf'_mem _ inf_mem _ _ _ (λ x, (h x).2)⟩,
+
+  refine ⟨k.1, _, k.2⟩,
+  rw dist_lt_iff _ _ pos,
+  intro z,
+  rw foo,
+  fsplit,
+  { dsimp [k],
+    simp only [finset.inf'_lt_iff, continuous_map.inf'_apply],
+    obtain ⟨x, xm, zm⟩ := bar xs_w z,
+    exact ⟨x, xm, h_lt _ _ zm⟩, },
+  { dsimp [k],
+    simp only [finset.lt_inf'_iff, continuous_map.inf'_apply],
+    intros x xm,
+    apply lt_h, },
 end
 
 variables [t2_space X]
@@ -232,8 +335,10 @@ begin
   -- so we can apply `sublattice_closure_eq_top`.
   apply subalgebra.ext_set,
   let B := A.topological_closure,
+  have n : set.nonempty (B : set C(X, ℝ)) :=
+    ⟨(1 : C(X, ℝ)), A.subalgebra_topological_closure A.one_mem⟩,
   convert sublattice_closure_eq_top
-    (B : set C(X, ℝ))
+    (B : set C(X, ℝ)) n
     (λ f g fm gm, inf_mem_closed_subalgebra B A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (λ f g fm gm, sup_mem_closed_subalgebra B A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (subalgebra.separates_points.strongly

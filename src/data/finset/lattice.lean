@@ -291,6 +291,29 @@ begin
   exact ball_congr (λ b hb, with_bot.coe_lt_coe),
 end
 
+@[simp] lemma lt_sup'_iff [is_total α (≤)] (a : α) : a < s.sup' H f ↔ (∃ b ∈ s, a < f b) :=
+begin
+  classical,
+  fsplit,
+  { revert H,
+    apply finset.cons_induction_on s,
+    { rintro ⟨-,⟨⟩⟩, },
+    { intros b s' n ih H w,
+      by_cases H' : s'.nonempty,
+      { rw sup'_cons H' at w,
+        rw lt_sup_iff at w,
+        cases w,
+        { use b, simp [w], },
+        { obtain ⟨c, cm, lt⟩ := ih H' w,
+          use c, simp [lt, cm], }, },
+      { have p := not_nonempty_iff_eq_empty.mp H',
+        subst p,
+        use b,
+        simpa using w, } }, },
+  { rintro ⟨b, bm, lt⟩,
+    exact lt_of_lt_of_le lt (le_sup' _ bm), }
+end
+
 lemma of_sup'_of_forall {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊔ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.sup' H f) :=
 begin
@@ -345,6 +368,9 @@ lemma inf'_le {b : β} (h : b ∈ s) : s.inf' ⟨b, h⟩ f ≤ f b :=
 
 @[simp] lemma lt_inf'_iff [is_total α (≤)] {a : α} : a < s.inf' H f ↔ (∀ b ∈ s, a < f b) :=
 @sup'_lt_iff (order_dual α) _ _ _ H f _ _
+
+@[simp] lemma inf'_lt_iff [is_total α (≤)] (a : α) : s.inf' H f < a ↔ (∃ b ∈ s, f b < a) :=
+@lt_sup'_iff (order_dual α) _ _ _ H f _ _
 
 lemma of_inf'_of_forall {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf' H f) :=

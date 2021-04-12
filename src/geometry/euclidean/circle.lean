@@ -76,7 +76,7 @@ include V
 /-- If `P` is a point on the line `AB` and `Q` is equidistant from `A` and `B`, then
 `AP * BP = abs (BQ ^ 2 - PQ ^ 2)`. -/
 lemma mul_dist_eq_sub_dist_pow_two {a b p q : P} (hp : ∃ k : ℝ, k ≠ 1 ∧ b -ᵥ p = k • (a -ᵥ p))
-  (hq : dist a q = dist b q) : (dist a p) * (dist b p) = abs ((dist b q) ^ 2 - (dist p q) ^ 2) :=
+  (hq : dist a q = dist b q) : dist a p * dist b p = abs (dist b q ^ 2 - dist p q ^ 2) :=
 begin
   let m : P := midpoint ℝ a b,
   have h1 : a -ᵥ p = (m -ᵥ p) - (m -ᵥ a) := (vsub_sub_vsub_cancel_left a p m).symm,
@@ -100,7 +100,7 @@ theorem mul_dist_eq_mul_dist_of_cospherical
   {a b c d p : P} (h : cospherical ({a, b, c, d} : set P))
   (hapb : ∃ k₁ : ℝ, k₁ ≠ 1 ∧ b -ᵥ p = k₁ • (a -ᵥ p))
   (hcpd : ∃ k₂ : ℝ, k₂ ≠ 1 ∧ d -ᵥ p = k₂ • (c -ᵥ p)) :
-  (dist a p) * (dist b p) = (dist c p) * (dist d p) :=
+  dist a p * dist b p = dist c p * dist d p :=
 begin
   obtain ⟨q, r, h'⟩ := (cospherical_def {a, b, c, d}).mp h,
   obtain ⟨ha, hb, hc, hd⟩ := ⟨h' a _, h' b _, h' c _, h' d _⟩,
@@ -114,10 +114,9 @@ end
 theorem intersecting_chords_theorem
   {a b c d p : P} (h : cospherical ({a, b, c, d} : set P))
   (hapb : ∠ a p b = π ) (hcpd : ∠ c p d = π ) :
-  (dist a p) * (dist b p) = (dist c p) * (dist d p) :=
+  dist a p * dist b p = dist c p * dist d p :=
 begin
-  unfold angle at hapb,
-  unfold angle at hcpd,
+  unfold angle at hapb hcpd,
   obtain ⟨_, k₁, hk₁, hab₁⟩ := inner_product_geometry.angle_eq_pi_iff.mp hapb,
   obtain ⟨_, k₂, hk₂, hcd₁⟩ := inner_product_geometry.angle_eq_pi_iff.mp hcpd,
   have hk₁_ne_one : k₁ ≠ 1, linarith,
@@ -129,10 +128,9 @@ end
 theorem intersecting_secants_theorem
   (a b c d p : P) (h : cospherical ({a, b, c, d} : set P))
   (hab : a ≠ b) (hcd : c ≠ d) (hapb : ∠ a p b = 0 ) (hcpd : ∠ c p d = 0 ) :
-  (dist a p) * (dist b p) = (dist c p) * (dist d p) :=
+  dist a p * dist b p = dist c p * dist d p :=
 begin
-  unfold angle at hapb,
-  unfold angle at hcpd,
+  unfold angle at hapb hcpd,
   obtain ⟨_, k₁, _, hab₁⟩ := inner_product_geometry.angle_eq_zero_iff.mp hapb,
   obtain ⟨_, k₂, _, hcd₁⟩ := inner_product_geometry.angle_eq_zero_iff.mp hcpd,
   have hk₁_ne_one : k₁ ≠ 1,

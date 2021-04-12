@@ -253,7 +253,6 @@ by rw [support, mem_filter, and_iff_right (mem_univ x)]
 @[simp] lemma support_eq_empty_iff {σ : perm α} : σ.support = ∅ ↔ σ = 1 :=
 by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_not,
   equiv.perm.ext_iff, one_apply]
-<<<<<<< HEAD
 
 @[simp] lemma support_one : (1 : perm α).support = ∅ :=
 by rw support_eq_empty_iff
@@ -278,32 +277,6 @@ begin
   { rw [list.prod_cons, mul_apply, ih (λ g hg, hx g (or.inr hg)), hx f (or.inl rfl)] },
 end
 
-=======
-
-@[simp] lemma support_one : (1 : perm α).support = ∅ :=
-by rw support_eq_empty_iff
-
-lemma support_mul_le (f g : perm α) :
-  (f * g).support ≤ f.support ⊔ g.support :=
-λ x, begin
-  rw [sup_eq_union, mem_union, mem_support, mem_support,
-    mem_support, mul_apply, ←not_and_distrib, not_imp_not],
-  rintro ⟨hf, hg⟩,
-  rw [hg, hf]
-end
-
-lemma exists_mem_support_of_mem_support_prod {l : list (perm α)} {x : α}
-  (hx : x ∈ l.prod.support) :
-  ∃ f : perm α, f ∈ l ∧ x ∈ f.support :=
-begin
-  contrapose! hx,
-  simp_rw [mem_support, not_not] at hx ⊢,
-  induction l with f l ih generalizing hx,
-  { refl },
-  { rw [list.prod_cons, mul_apply, ih (λ g hg, hx g (or.inr hg)), hx f (or.inl rfl)] },
-end
-
->>>>>>> origin/master
 lemma support_pow_le (σ : perm α) (n : ℤ) :
   (σ ^ n).support ≤ σ.support :=
 λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
@@ -317,7 +290,6 @@ lemma apply_mem_support {f : perm α} {x : α} :
   f x ∈ f.support ↔ x ∈ f.support :=
 by rw [mem_support, mem_support, ne.def, ne.def, not_iff_not, apply_eq_iff_eq]
 
-<<<<<<< HEAD
 @[simp]
 lemma pow_apply_mem_support {f : perm α} {n : ℕ} {x : α} :
   (f ^ n) x ∈ f.support ↔ x ∈ f.support :=
@@ -336,8 +308,6 @@ begin
   { rw [gpow_neg_succ_of_nat, ← support_inv, ← inv_pow, pow_apply_mem_support] }
 end
 
-=======
->>>>>>> origin/master
 end fintype
 
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/

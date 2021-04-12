@@ -5,12 +5,6 @@ Authors: Joseph Myers
 -/
 import geometry.euclidean.circumcenter
 
-noncomputable theory
-open_locale big_operators
-open_locale classical
-open_locale real
-open_locale real_inner_product_space
-
 /-!
 # Monge point and orthocenter
 
@@ -51,6 +45,12 @@ generalization, the Monge point of a simplex.
   n-Simplex](https://pdfs.semanticscholar.org/6f8b/0f623459c76dac2e49255737f8f0f4725d16.pdf)
 
 -/
+
+noncomputable theory
+open_locale big_operators
+open_locale classical
+open_locale real
+open_locale real_inner_product_space
 
 namespace affine
 

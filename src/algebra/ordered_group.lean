@@ -425,7 +425,7 @@ def function.injective.ordered_comm_group {β : Type*}
   ordered_comm_group β :=
 { ..partial_order.lift f hf,
   ..hf.ordered_comm_monoid f one mul,
-  ..hf.comm_group_div f one mul inv div }
+  ..hf.comm_group f one mul inv div }
 
 end ordered_comm_group
 

@@ -761,6 +761,20 @@ theorem head_mem_head' [inhabited α] : ∀ {l : list α} (h : l ≠ []), head l
 theorem cons_head_tail [inhabited α] {l : list α} (h : l ≠ []) : (head l)::(tail l) = l :=
 cons_head'_tail (head_mem_head' h)
 
+lemma mem_of_mem_tail {a : α} {l : list α} (h : a ∈ l.tail) : a ∈ l :=
+begin
+  cases l,
+  { rwa tail_nil at h },
+  rw tail_cons at h,
+  exact mem_cons_of_mem _ h,
+end
+
+lemma head_mem_self [inhabited α] {l : list α} (h : l ≠ nil) : l.head ∈ l :=
+begin
+  have h' := mem_cons_self l.head l.tail,
+  rwa cons_head_tail h at h',
+end
+
 @[simp] theorem head'_map (f : α → β) (l) : head' (map f l) = (head' l).map f := by cases l; refl
 
 /-! ### Induction from the right -/
@@ -946,6 +960,9 @@ instance decidable_sublist [decidable_eq α] : ∀ (l₁ l₂ : list α), decida
     | ._, ._, sublist.cons2 t ._ ._ s', h := absurd rfl h
     end⟩
 
+lemma tail_sublist (l : list α) : l.tail <+ l :=
+by { cases l; simp }
+
 /-! ### index_of -/
 
 section index_of
@@ -988,7 +1005,7 @@ begin
 end
 
 theorem index_of_lt_length {a} {l : list α} : index_of a l < length l ↔ a ∈ l :=
-⟨λh, by_contradiction $ λ al, ne_of_lt h $ index_of_eq_length.2 al,
+⟨λh, decidable.by_contradiction $ λ al, ne_of_lt h $ index_of_eq_length.2 al,
 λal, lt_of_le_of_ne index_of_le_length $ λ h, index_of_eq_length.1 h al⟩
 
 end index_of
@@ -3289,7 +3306,7 @@ by simp only [count, countp_pos, exists_prop, exists_eq_right']
 
 @[simp, priority 980]
 theorem count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
-by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
+decidable.by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 
 theorem not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
 λ h', ne_of_gt (count_pos.2 h') h

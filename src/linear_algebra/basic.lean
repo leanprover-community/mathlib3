@@ -811,10 +811,10 @@ end
 `omega_complete_partial_order.continuous`. -/
 @[norm_cast, simp] lemma coe_supr_of_chain (a : ℕ →ₘ submodule R M) :
   (↑(⨆ k, a k) : set M) = ⋃ k, (a k : set M) :=
-coe_supr_of_directed a a.monotone.directed
+coe_supr_of_directed a a.monotone.directed_le
 
 @[simp] lemma mem_supr_of_chain (a : ℕ →ₘ submodule R M) (m : M) : m ∈ (⨆ k, a k) ↔ ∃ k, m ∈ a k :=
-mem_supr_of_directed a a.monotone.directed
+mem_supr_of_directed a a.monotone.directed_le
 
 section
 

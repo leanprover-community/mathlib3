@@ -7,12 +7,15 @@ import field_theory.separable
 import algebra.algebra.basic
 import data.polynomial.degree
 import algebra.char_p.exp_char
+
 /-!
+
 # Separable degree
 
 This file contains basics about the separable degree of a polynomial.
 
 ## Main results
+
 - `separable_degree`: the definition of the separable degree
 - `irreducible_has_separable_contraction`: any nonzero irreducible polynomial can be contracted
   to a separable polynomial
@@ -23,6 +26,7 @@ This file contains basics about the separable degree of a polynomial.
 - `separable_degree_eq`: the separable degree is unique (for polynomials over a field)
 
 ## Tags
+
 separable degree, degree, polynomial
 -/
 
@@ -62,7 +66,7 @@ end
 /-- The separable degree divides the degree. -/
 lemma separable_degree_dvd_degree :
   (separable_degree q hf) ∣ f.nat_degree :=
-exists.elim (separable_degree_dvd_degree' q hf) (λ a, λ ha, dvd.intro (q ^ a) ha)
+let ⟨a, ha⟩ := separable_degree_dvd_degree' q hf in dvd.intro (q ^ a) ha
 
 /-- In exponential characteristic one, the separable degree equals the degree. -/
 lemma separable_degree_eq_degree {f : polynomial F}

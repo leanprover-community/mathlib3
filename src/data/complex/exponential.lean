@@ -605,7 +605,7 @@ by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_sub,
        two_cosh, two_sinh, add_sub_sub_cancel, two_mul]
 
 lemma cosh_sq_sub_sinh_sq : cosh x ^ 2 - sinh x ^ 2 = 1 :=
-by rw [sq_sub_sq, cosh_add_sinh, cosh_sub_sinh, ← exp_add, add_neg_self, exp_zero]
+by rw [pow_two_sub_pow_two, cosh_add_sinh, cosh_sub_sinh, ← exp_add, add_neg_self, exp_zero]
 
 lemma cosh_square : cosh x ^ 2 = sinh x ^ 2 + 1 :=
 begin

@@ -251,11 +251,7 @@ variable {ra : α → α → Prop}
 
 instance sublist_forall₂.is_refl [is_refl α ra] :
   is_refl (list α) (sublist_forall₂ ra) :=
-⟨λ l, begin
-  induction l with a t ih,
-  { exact sublist_forall₂.nil },
-  { exact sublist_forall₂.cons (refl a) ih }
-end⟩
+⟨λ l, sublist_forall₂_iff.2 ⟨l, forall₂_refl l, sublist.refl l⟩⟩
 
 instance sublist_forall₂.is_trans [is_trans α ra] :
   is_trans (list α) (sublist_forall₂ ra) :=
@@ -278,18 +274,6 @@ end⟩
 
 lemma tail_sublist_forall₂_self [is_refl α ra] (l : list α) :
   sublist_forall₂ ra l.tail l :=
-begin
-  by_cases h : l = list.nil,
-  { rw [h, list.tail_nil],
-    apply refl },
-  { have h0 : ¬ _ := λ con, h (list.eq_nil_iff_forall_not_mem.2 con),
-    push_neg at h0,
-    obtain ⟨a, ha⟩ := h0,
-    haveI : inhabited α := ⟨a⟩,
-    have h' := sublist_forall₂.cons_right (refl (l.tail)),
-    rwa [list.cons_head_tail h] at h',
-    apply_instance }
-end
-
+sublist_forall₂_iff.2 ⟨l.tail, forall₂_refl l.tail, l.tail_sublist⟩
 
 end list

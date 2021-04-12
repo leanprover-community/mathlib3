@@ -960,6 +960,9 @@ instance decidable_sublist [decidable_eq α] : ∀ (l₁ l₂ : list α), decida
     | ._, ._, sublist.cons2 t ._ ._ s', h := absurd rfl h
     end⟩
 
+lemma tail_sublist (l : list α) : l.tail <+ l :=
+by { cases l; simp }
+
 /-! ### index_of -/
 
 section index_of

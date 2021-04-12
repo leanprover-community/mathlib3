@@ -21,7 +21,7 @@ variables {R : Type*} [semiring R] [topological_space R] [topological_semiring R
 /--
 Every polynomial with coefficients in a topological semiring gives a (bundled) continuous function.
 -/
-def as_continuous_map (p : polynomial R) : C(R, R) :=
+def to_continuous_map (p : polynomial R) : C(R, R) :=
 ⟨λ x : R, p.eval x, by continuity⟩
 
 /--
@@ -30,7 +30,7 @@ with domain restricted to some subset of the semiring of coefficients.
 
 (This is particularly useful when restricting to compact sets, e.g. `[0,1]`.)
 -/
-def as_continuous_map_on (p : polynomial R) (X : set R) : C(X, R) :=
-⟨λ x : X, p.as_continuous_map x, by continuity⟩
+def to_continuous_map_on (p : polynomial R) (X : set R) : C(X, R) :=
+⟨λ x : X, p.to_continuous_map x, by continuity⟩
 
 end polynomial

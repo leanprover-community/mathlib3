@@ -129,6 +129,9 @@ def simps.symm_apply (e : α ≃ β) : β → α := e.symm
 
 initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
 
+-- Generate the `simps` projections for previously defined equivs.
+attribute [simps] function.involutive.to_equiv
+
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm,
@@ -1345,6 +1348,7 @@ by { cases a, cases a_val, refl }
 
 /-- If a proposition holds for all elements, then the subtype is
 equivalent to the original type. -/
+@[simps apply symm_apply]
 def subtype_univ_equiv {α : Type u} {p : α → Prop} (h : ∀ x, p x) :
   subtype p ≃ α :=
 ⟨λ x, x, λ x, ⟨x, h x⟩, λ x, subtype.eq rfl, λ x, rfl⟩

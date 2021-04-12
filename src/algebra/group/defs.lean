@@ -245,9 +245,8 @@ end monoid
 class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
 
 /-- A commutative monoid is a monoid with commutative `(*)`. -/
-@[protect_proj, ancestor monoid comm_semigroup]
+@[protect_proj, ancestor monoid comm_semigroup, to_additive]
 class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
-attribute [to_additive] comm_monoid
 
 section left_cancel_monoid
 
@@ -256,13 +255,10 @@ Main examples are `ℕ` and groups. This is the right typeclass for many sum lem
 is useful to define the sum over the empty set, so `add_left_cancel_semigroup` is not enough. -/
 @[protect_proj, ancestor add_left_cancel_semigroup add_monoid]
 class add_left_cancel_monoid (M : Type u) extends add_left_cancel_semigroup M, add_monoid M
--- TODO: I found 1 (one) lemma assuming `[add_left_cancel_monoid]`.
--- Should we port more lemmas to this typeclass?
 
 /-- A monoid in which multiplication is left-cancellative. -/
-@[protect_proj, ancestor left_cancel_semigroup monoid]
+@[protect_proj, ancestor left_cancel_semigroup monoid, to_additive add_left_cancel_monoid]
 class left_cancel_monoid (M : Type u) extends left_cancel_semigroup M, monoid M
-attribute [to_additive add_left_cancel_monoid] left_cancel_monoid
 
 end left_cancel_monoid
 
@@ -291,20 +287,21 @@ class add_cancel_monoid (M : Type u)
   extends add_left_cancel_monoid M, add_right_cancel_monoid M
 
 /-- A monoid in which multiplication is cancellative. -/
-@[protect_proj, ancestor left_cancel_monoid right_cancel_monoid]
+@[protect_proj, ancestor left_cancel_monoid right_cancel_monoid, to_additive add_cancel_monoid]
 class cancel_monoid (M : Type u) extends left_cancel_monoid M, right_cancel_monoid M
-attribute [to_additive add_cancel_monoid] cancel_monoid
 
 /-- Commutative version of add_cancel_monoid. -/
-@[protect_proj, ancestor add_cancel_monoid add_comm_monoid]
-class add_cancel_comm_monoid (M : Type u) extends
-  add_cancel_monoid M, add_comm_monoid M
+@[protect_proj, ancestor add_left_cancel_monoid add_comm_monoid]
+class add_cancel_comm_monoid (M : Type u) extends add_left_cancel_monoid M, add_comm_monoid M
 
 /-- Commutative version of cancel_monoid. -/
-@[protect_proj, ancestor cancel_monoid comm_monoid]
-class cancel_comm_monoid (M : Type u) extends
-  cancel_monoid M, comm_monoid M
-attribute [to_additive add_cancel_comm_monoid] cancel_comm_monoid
+@[protect_proj, ancestor left_cancel_monoid comm_monoid, to_additive add_cancel_comm_monoid]
+class cancel_comm_monoid (M : Type u) extends left_cancel_monoid M, comm_monoid M
+
+@[to_additive] instance cancel_comm_monoid.to_cancel_monoid (M : Type u) [cancel_comm_monoid M] :
+  cancel_monoid M :=
+{ mul_right_cancel := λ a b c h, mul_left_cancel $ by rw [mul_comm, h, mul_comm],
+  .. ‹cancel_comm_monoid M› }
 
 end cancel_monoid
 

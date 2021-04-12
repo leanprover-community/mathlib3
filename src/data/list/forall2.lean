@@ -219,4 +219,77 @@ lemma rel_prod [monoid α] [monoid β]
   (h : r 1 1) (hf : (r ⇒ r ⇒ r) (*) (*)) : (forall₂ r ⇒ r) prod prod :=
 rel_foldl hf h
 
+/-- Given a relation `r`, `sublist_forall₂ r l₁ l₂` indicates that there is a sublist of `l₂` such
+  that `forall₂ r l₁ l₂`. -/
+inductive sublist_forall₂ (r : α → β → Prop) : list α → list β → Prop
+| nil {l} : sublist_forall₂ [] l
+| cons {a₁ a₂ l₁ l₂} : r a₁ a₂ → sublist_forall₂ l₁ l₂ →
+  sublist_forall₂ (a₁ :: l₁) (a₂ :: l₂)
+| cons_right {a l₁ l₂} : sublist_forall₂ l₁ l₂ → sublist_forall₂ l₁ (a :: l₂)
+
+lemma sublist_forall₂_iff {l₁ : list α} {l₂ : list β} :
+  sublist_forall₂ r l₁ l₂ ↔ ∃ l, forall₂ r l₁ l ∧ l <+ l₂ :=
+begin
+  split; intro h,
+  { induction h with _ a b l1 l2 rab rll ih b l1 l2 hl ih,
+    { exact ⟨nil, forall₂.nil, nil_sublist _⟩ },
+    { obtain ⟨l, hl1, hl2⟩ := ih,
+      refine ⟨b :: l, forall₂.cons rab hl1, cons_sublist_cons b hl2⟩ },
+    { obtain ⟨l, hl1, hl2⟩ := ih,
+      exact ⟨l, hl1, hl2.trans (sublist.cons _ _ _ (sublist.refl _))⟩ } },
+  { obtain ⟨l, hl1, hl2⟩ := h,
+    revert l₁,
+    induction hl2 with _ _ _ _ ih _ _ _ _ ih; intros l₁ hl1,
+    { rw [forall₂_nil_right_iff.1 hl1],
+      exact sublist_forall₂.nil },
+    { exact sublist_forall₂.cons_right (ih hl1) },
+    { cases hl1 with _ _ _ _ hr hl _,
+      exact sublist_forall₂.cons hr (ih hl) } }
+end
+
+variable {ra : α → α → Prop}
+
+instance sublist_forall₂.is_refl [is_refl α ra] :
+  is_refl (list α) (sublist_forall₂ ra) :=
+⟨λ l, begin
+  induction l with a t ih,
+  { exact sublist_forall₂.nil },
+  { exact sublist_forall₂.cons (refl a) ih }
+end⟩
+
+instance sublist_forall₂.is_trans [is_trans α ra] :
+  is_trans (list α) (sublist_forall₂ ra) :=
+⟨λ a b c, begin
+  revert a b,
+  induction c with _ _ ih,
+  { rintros _ _ h1 (_ | _ | _),
+    exact h1 },
+  { rintros a b h1 h2,
+    cases h2 with _ _ _ _ _ hbc tbc _ _ y1 btc,
+    { cases h1,
+      exact sublist_forall₂.nil },
+    { cases h1 with _ _ _ _ _ hab tab _ _ _ atb,
+      { exact sublist_forall₂.nil },
+      { exact sublist_forall₂.cons (trans hab hbc) (ih _ _ tab tbc) },
+      { exact sublist_forall₂.cons_right (ih _ _ atb tbc) } },
+    { exact sublist_forall₂.cons_right (ih _ _ h1 btc), } }
+end⟩
+
+
+lemma tail_sublist_forall₂_self [is_refl α ra] (l : list α) :
+  sublist_forall₂ ra l.tail l :=
+begin
+  by_cases h : l = list.nil,
+  { rw [h, list.tail_nil],
+    apply refl },
+  { have h0 : ¬ _ := λ con, h (list.eq_nil_iff_forall_not_mem.2 con),
+    push_neg at h0,
+    obtain ⟨a, ha⟩ := h0,
+    haveI : inhabited α := ⟨a⟩,
+    have h' := sublist_forall₂.cons_right (refl (l.tail)),
+    rwa [list.cons_head_tail h] at h',
+    apply_instance }
+end
+
+
 end list

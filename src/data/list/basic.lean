@@ -761,6 +761,20 @@ theorem head_mem_head' [inhabited α] : ∀ {l : list α} (h : l ≠ []), head l
 theorem cons_head_tail [inhabited α] {l : list α} (h : l ≠ []) : (head l)::(tail l) = l :=
 cons_head'_tail (head_mem_head' h)
 
+lemma mem_of_mem_tail {a : α} {l : list α} (h : a ∈ l.tail) : a ∈ l :=
+begin
+  cases l,
+  { rwa tail_nil at h },
+  rw tail_cons at h,
+  exact mem_cons_of_mem _ h,
+end
+
+lemma head_mem_self [inhabited α] {l : list α} (h : l ≠ nil) : l.head ∈ l :=
+begin
+  have h' := mem_cons_self l.head l.tail,
+  rwa cons_head_tail h at h',
+end
+
 @[simp] theorem head'_map (f : α → β) (l) : head' (map f l) = (head' l).map f := by cases l; refl
 
 /-! ### Induction from the right -/

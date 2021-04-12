@@ -14,6 +14,7 @@ import data.finsupp.basic
 import data.dfinsupp
 import algebra.pointwise
 import order.compactly_generated
+import order.omega_complete_partial_order
 
 /-!
 # Linear algebra
@@ -806,12 +807,16 @@ begin
   simp only [Sup_eq_supr', mem_supr_of_directed _ hdir.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
-/-- This is the statement that `coe : (submodule R M) → set M` is Scott continuous for the
-ω-complete partial order induced by the complete lattice structures. See
-`omega_complete_partial_order.continuous`. -/
 @[norm_cast, simp] lemma coe_supr_of_chain (a : ℕ →ₘ submodule R M) :
   (↑(⨆ k, a k) : set M) = ⋃ k, (a k : set M) :=
 coe_supr_of_directed a a.monotone.directed_le
+
+/-- We can regard `coe_supr_of_chain` as the statement that `coe : (submodule R M) → set M` is
+Scott continuous for the ω-complete partial order induced by the complete lattice structures. -/
+def coe_scott_continuous : submodule R M →𝒄 set M :=
+{ to_fun    := coe,
+  monotone' := set_like.coe_mono,
+  cont      := coe_supr_of_chain, }
 
 @[simp] lemma mem_supr_of_chain (a : ℕ →ₘ submodule R M) (m : M) : m ∈ (⨆ k, a k) ↔ ∃ k, m ∈ a k :=
 mem_supr_of_directed a a.monotone.directed_le

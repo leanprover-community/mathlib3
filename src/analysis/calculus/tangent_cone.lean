@@ -31,12 +31,13 @@ properties of the tangent cone we prove here.
 -/
 
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-variables {G : Type*} [normed_group G] [normed_space ℝ G]
 
 open filter set
 open_locale topological_space
+
+section tangent_cone
+
+variables {E : Type*} [add_comm_monoid E] [semimodule 𝕜 E] [topological_space E]
 
 /-- The set of all tangent directions to the set `s` at the point `x`. -/
 def tangent_cone_at (s : set E) (x : E) : set E :=
@@ -60,6 +61,11 @@ unique, hence this name. The uniqueness it asserts is proved in `unique_diff_on.
 def unique_diff_on (s : set E) : Prop :=
 ∀x ∈ s, unique_diff_within_at 𝕜 s x
 
+end tangent_cone
+
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {G : Type*} [normed_group G] [normed_space ℝ G]
 variables {𝕜} {x y : E} {s t : set E}
 
 section tangent_cone
@@ -178,7 +184,7 @@ begin
 end
 
 /-- The tangent cone of a product contains the tangent cone of each factor. -/
-lemma maps_to_tangent_cone_pi {ι : Type*} [fintype ι] [decidable_eq ι] {E : ι → Type*}
+lemma maps_to_tangent_cone_pi {ι : Type*} [decidable_eq ι] {E : ι → Type*}
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
   {s : Π i, set (E i)} {x : Π i, E i} {i : ι} (hi : ∀ j ≠ i, x j ∈ closure (s j)) :
   maps_to (linear_map.single i : E i →ₗ[𝕜] Π j, E j) (tangent_cone_at 𝕜 (s i) (x i))

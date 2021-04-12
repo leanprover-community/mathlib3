@@ -374,7 +374,7 @@ end basic
 
 section comp
 
-variables {a b c : ℝ} (f : ℝ → E)
+variables {a b c d : ℝ} (f : ℝ → E)
 
 @[simp] lemma integral_comp_mul_right (hc : c ≠ 0) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
@@ -389,15 +389,27 @@ begin
   { simp [(show 0 < c, from h), mul_div_cancel, hc, abs_of_pos] }
 end
 
+@[simp] lemma integral_comp_mul_right' (c) :
+  c • ∫ x in a..b, f (x * c) = ∫ x in a*c..b*c, f x :=
+by by_cases hc : c = 0; simp [hc]
+
 @[simp] lemma integral_comp_mul_left (hc : c ≠ 0) :
   ∫ x in a..b, f (c * x) = c⁻¹ • ∫ x in c*a..c*b, f x :=
 by simpa only [mul_comm c] using integral_comp_mul_right f hc
+
+@[simp] lemma integral_comp_mul_left' (c) :
+  c • ∫ x in a..b, f (c * x) = ∫ x in c*a..c*b, f x :=
+by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_div (hc : c ≠ 0) :
   ∫ x in a..b, f (x / c) = c • ∫ x in a/c..b/c, f x :=
 by simpa only [inv_inv'] using integral_comp_mul_right f (inv_ne_zero hc)
 
-@[simp] lemma integral_comp_add_right (d : ℝ) :
+@[simp] lemma integral_comp_div' (c) :
+  c⁻¹ • ∫ x in a..b, f (x / c) = ∫ x in a/c..b/c, f x :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_add_right (d) :
   ∫ x in a..b, f (x + d) = ∫ x in a+d..b+d, f x :=
 have A : closed_embedding (λ x, x + d) := (homeomorph.add_right d).closed_embedding,
 calc  ∫ x in a..b, f (x + d)
@@ -405,27 +417,47 @@ calc  ∫ x in a..b, f (x + d)
                            : by simp [interval_integral, set_integral_map_of_closed_embedding _ A]
 ... = ∫ x in a+d..b+d, f x : by rw [real.map_volume_add_right]
 
-@[simp] lemma integral_comp_mul_add (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_mul_add (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (c * x + d) = c⁻¹ • ∫ x in c*a+d..c*b+d, f x :=
 by rw [← integral_comp_add_right f d, ← integral_comp_mul_left _ hc]
 
-@[simp] lemma integral_comp_add_mul (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_mul_add' (c d) :
+  c • ∫ x in a..b, f (c * x + d) = ∫ x in c*a+d..c*b+d, f x :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_add_mul (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d + c * x) = c⁻¹ • ∫ x in d+c*a..d+c*b, f x :=
 by simpa only [add_comm] using integral_comp_mul_add f hc d
 
-@[simp] lemma integral_comp_div_add (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_add_mul' (c d) :
+  c • ∫ x in a..b, f (d + c * x) = ∫ x in d+c*a..d+c*b, f x :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_div_add (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (x / c + d) = c • ∫ x in a/c+d..b/c+d, f x :=
 by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_mul_add f (inv_ne_zero hc) d
 
-@[simp] lemma integral_comp_add_div (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_div_add' (c d) :
+  c⁻¹ • ∫ x in a..b, f (x / c + d) = ∫ x in a/c+d..b/c+d, f x :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_add_div (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d + x / c) = c • ∫ x in d+a/c..d+b/c, f x :=
 by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_add_mul f (inv_ne_zero hc) d
 
-@[simp] lemma integral_comp_mul_sub (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_add_div' (c d) :
+  c⁻¹ • ∫ x in a..b, f (d + x / c) = ∫ x in d+a/c..d+b/c, f x :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_mul_sub (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (c * x - d) = c⁻¹ • ∫ x in c*a-d..c*b-d, f x :=
 by simpa only [sub_eq_add_neg] using integral_comp_mul_add f hc (-d)
 
-@[simp] lemma integral_comp_sub_mul (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_mul_sub' (c d) :
+  c • ∫ x in a..b, f (c * x - d) = ∫ x in c*a-d..c*b-d, f x  :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_sub_mul (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d - c * x) = c⁻¹ • ∫ x in d-c*b..d-c*a, f x :=
 begin
   simp only [sub_eq_add_neg, neg_mul_eq_neg_mul],
@@ -433,23 +465,35 @@ begin
   simp only [inv_neg, smul_neg, neg_neg, neg_smul],
 end
 
-@[simp] lemma integral_comp_div_sub (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_sub_mul' (c d) :
+  c • ∫ x in a..b, f (d - c * x) = ∫ x in d-c*b..d-c*a, f x  :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_div_sub (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (x / c - d) = c • ∫ x in a/c-d..b/c-d, f x :=
 by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_mul_sub f (inv_ne_zero hc) d
 
-@[simp] lemma integral_comp_sub_div (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_div_sub' (c d) :
+  c⁻¹ • ∫ x in a..b, f (x / c - d) = ∫ x in a/c-d..b/c-d, f x  :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_sub_div (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d - x / c) = c • ∫ x in d-b/c..d-a/c, f x :=
 by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_sub_mul f (inv_ne_zero hc) d
 
-@[simp] lemma integral_comp_sub_right (d : ℝ) :
+@[simp] lemma integral_comp_sub_div' (c d) :
+  c⁻¹ • ∫ x in a..b, f (d - x / c) = ∫ x in d-b/c..d-a/c, f x :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_sub_right (d) :
   ∫ x in a..b, f (x - d) = ∫ x in a-d..b-d, f x :=
 by simpa only [sub_eq_add_neg] using integral_comp_add_right f (-d)
 
-@[simp] lemma integral_comp_sub_left (d : ℝ) :
+@[simp] lemma integral_comp_sub_left (d) :
   ∫ x in a..b, f (d - x) = ∫ x in d-b..d-a, f x :=
 by simpa only [one_mul, one_smul, inv_one] using integral_comp_sub_mul f one_ne_zero d
 
-lemma integral_comp_neg : ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=
+@[simp] lemma integral_comp_neg : ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=
 by simpa only [zero_sub] using integral_comp_sub_left f 0
 
 end comp

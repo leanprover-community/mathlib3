@@ -125,7 +125,7 @@ instance inhabited' : inhabited (α ≃ α) := ⟨equiv.refl α⟩
 @[symm] protected def symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩
 
 /-- See Note [custom simps projection] -/
-def simps.inv_fun (e : α ≃ β) : β → α := e.symm
+def simps.symm_apply (e : α ≃ β) : β → α := e.symm
 
 initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
 
@@ -1721,7 +1721,7 @@ def of_left_inverse {α β : Sort*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
   α ≃ set.range f :=
 { to_fun := λ a, ⟨f a, a, rfl⟩,
-  inv_fun := λ b, f_inv (let ⟨a, _⟩ := b.2 in ⟨a⟩) b,
+  inv_fun := λ b, f_inv (nonempty_of_exists b.2) b,
   left_inv := λ a, hf ⟨a⟩ a,
   right_inv := λ ⟨b, a, ha⟩, subtype.eq $ show f (f_inv ⟨a⟩ b) = b,
     from eq.trans (congr_arg f $ by exact ha ▸ (hf _ a)) ha }
@@ -1745,9 +1745,16 @@ theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : 
   f ((of_injective f hf).symm b) = b :=
 subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
 
-lemma of_left_inverse_eq_of_injective {α β : Type*} [nonempty α]
+lemma of_left_inverse_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
-  of_left_inverse f f_inv hf = of_injective f (hf ‹_›).injective :=
+  of_left_inverse f f_inv hf = of_injective f
+    ((em (nonempty α)).elim (λ h, (hf h).injective) (λ h _ _ _, by {
+      haveI : subsingleton α := subsingleton_of_not_nonempty h, simp })) :=
+by { ext, simp }
+
+lemma of_left_inverse'_eq_of_injective {α β : Type*}
+  (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
+  of_left_inverse' f f_inv hf = of_injective f hf.injective :=
 by { ext, simp }
 
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
@@ -1863,6 +1870,8 @@ by simp [swap_apply_def] {contextual := tt}
 @[simp] theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
 ext $ λ x, swap_core_swap_core _ _ _
 
+@[simp] lemma symm_swap (a b : α) : (swap a b).symm = swap a b := rfl
+
 @[simp] lemma swap_eq_refl_iff {x y : α} : swap x y = equiv.refl _ ↔ x = y :=
 begin
   refine ⟨λ h, (equiv.refl _).injective _, λ h, h ▸ (swap_self _)⟩,
@@ -1906,14 +1915,9 @@ begin
   rw swap_apply_of_ne_of_ne hi hj,
 end
 
-lemma swap_apply_eq_swap_apply_iff [decidable_eq α] {x y z w : α} :
-  swap x y z = w ↔ swap x y w = z :=
-begin
-  split;
-  { intro h,
-    rw ←h,
-    simp }
-end
+lemma swap_apply_eq_iff {x y z w : α} :
+  swap x y z = w ↔ z = swap x y w :=
+by rw [apply_eq_iff_eq_symm_apply, symm_swap]
 
 namespace perm
 
@@ -1947,6 +1951,21 @@ def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
+
+end equiv
+
+lemma function.injective.map_swap {α β : Type*} [decidable_eq α] [decidable_eq β]
+  {f : α → β} (hf : function.injective f) (x y z : α) :
+  f (equiv.swap x y z) = equiv.swap (f x) (f y) (f z) :=
+begin
+  conv_rhs { rw equiv.swap_apply_def },
+  split_ifs with h₁ h₂,
+  { rw [hf h₁, equiv.swap_apply_left] },
+  { rw [hf h₂, equiv.swap_apply_right] },
+  { rw [equiv.swap_apply_of_ne_of_ne (mt (congr_arg f) h₁) (mt (congr_arg f) h₂)] }
+end
+
+namespace equiv
 
 protected lemma exists_unique_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
   (h : ∀{x}, p x ↔ q (f x)) : (∃! x, p x) ↔ ∃! y, q y :=

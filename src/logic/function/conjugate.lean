@@ -23,8 +23,7 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 
 /-- We say that `f : α → β` semiconjugates `ga : α → α` to `gb : β → β` if `f ∘ ga = gb ∘ f`.
 We use `∀ x, f (ga x) = gb (f x)` as the definition, so given `h : function.semiconj f ga gb` and
-`a : α`, `h a` has type `f (ga x) = gb (f x)`. Functional equality of compositions is available
-as `h.comp_eq`. -/
+`a : α`, we have `h a : f (ga a) = gb (f a)` and `h.comp_eq : f ∘ ga = gb ∘ f`. -/
 def semiconj (f : α → β) (ga : α → α) (gb : β → β) : Prop := ∀ x, f (ga x) = gb (f x)
 
 namespace semiconj

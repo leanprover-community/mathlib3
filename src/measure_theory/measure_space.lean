@@ -970,6 +970,10 @@ by { rw [restrict, restrictₗ], convert le_lift_linear_apply _ t, simp }
   (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
 ext $ λ u hu, by simp [*, set.inter_assoc]
 
+lemma rectrict_comm (hs : measurable_set s) (ht : measurable_set t) :
+  (μ.restrict t).restrict s = (μ.restrict s).restrict t :=
+by rw [restrict_restrict hs, restrict_restrict ht, inter_comm]
+
 lemma restrict_apply_eq_zero (ht : measurable_set t) : μ.restrict s t = 0 ↔ μ (t ∩ s) = 0 :=
 by rw [restrict_apply ht]
 

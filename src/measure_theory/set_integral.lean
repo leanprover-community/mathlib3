@@ -179,6 +179,10 @@ h.mono_measure $ measure.restrict_le_self
 lemma integrable.integrable_on' (h : integrable f (μ.restrict s)) : integrable_on f s μ :=
 h
 
+lemma integrable_on.restrict (h : integrable_on f s μ) (hs : measurable_set s) :
+  integrable_on f s (μ.restrict t) :=
+by rw [integrable_on, measure.restrict_restrict hs]; exact h.mono_set (inter_subset_left _ _)
+
 lemma integrable_on.left_of_union (h : integrable_on f (s ∪ t) μ) : integrable_on f s μ :=
 h.mono_set $ subset_union_left _ _
 

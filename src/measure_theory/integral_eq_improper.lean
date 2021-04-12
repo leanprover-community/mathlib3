@@ -22,7 +22,32 @@ various ways of studying the proper integral by studying the improper one.
 
 ## Definitions
 
+The main definition of this file is `measure_theory.growing_family`. It's a rather technical
+definition whose sole purpose is generalizing and factoring proofs. For a sequence `φ` of subsets
+of a measurable space `α` equipped with a measure `μ`, one should think of an hypothesis
+`hφ : growing_family μ φ` as a sufficient condition for being able to interpret
+`∫ x, f x ∂μ` (if it exists) as the limit as `n` goes to `∞` of `∫ x in φ n, f x ∂μ`.
+
+When using this definition with a measure restricted to a set `s`, which happens fairly often,
+one should not try too hard to use a `growing_family` of subsets of `s`, as it often makes proofs
+more complicated than necessary. See for example the proof of
+`integrable_on_Iic_of_tendsto_interval_integral_norm` where we use `Ioi`s as a growing family
+w.r.t. `μ.restrict (Iic b)`.
+
 ## Main statements
+
+- `measure_theory.set_lintegral_tendsto_lintegral` : if `φ` is a `growing_family` and
+  `f` a measurable `ennreal`-valued function, then `∫⁻ x in φ n, f x ∂μ` tends to `∫⁻ x, f x ∂μ`
+  as `n` tends to `+∞`
+- `measure_theory.integrable_of_tendsto_integral_norm` : if `φ` is a `growing_family`,
+  `f` measurable and integrable on each `φ n`, and `∫ x in φ n, ∥f x∥ ∂μ` tends to some
+  `I : ℝ` as n tends to `+∞`, then `f` is integrable
+- `measure_theory.set_integral_tendsto_integral` : if `φ` is a `growing_family`,
+  `f` measurable and integrable (globally), then `∫ x in φ n, f x ∂μ` tends to `∫ x, f x ∂μ`
+  as `n` tends to `+∞`
+
+We then specialize these lemmas to various use cases involving intervals, which are frequent
+in analysis.
 
 -/
 open measure_theory filter set
@@ -135,6 +160,12 @@ lemma growing_family_Iio [no_top_order α] :
 
 end linear_order
 
+lemma growing_family.restrict {φ : ℕ → set α} (hφ : growing_family μ φ) {s : set α} :
+  growing_family (μ.restrict s) φ :=
+{ ae_eventually_mem := ae_restrict_of_ae hφ.ae_eventually_mem,
+  mono := hφ.mono,
+  measurable := hφ.measurable }
+
 lemma growing_family.ae_tendsto_indicator {β : Type*} [has_zero β] [topological_space β]
   {f : α → β} {φ : ℕ → set α} (hφ : growing_family μ φ) :
   ∀ᵐ x ∂μ, tendsto (λ n, (φ n).indicator f x) at_top (𝓝 $ f x) :=
@@ -188,13 +219,19 @@ tendsto_at_top_csupr
   (λ i j hij, lintegral_mono' (measure.restrict_mono (hφ hij) (le_refl _)) (le_refl _))
   ⟨⊤, λ _ _, le_top⟩
 
+lemma set_lintegral_tendsto_lintegral {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → ℝ≥0∞}
+  (hfm : measurable f) :
+  tendsto (λ n, ∫⁻ x in φ n, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
+begin
+  rw lintegral_eq_supr hφ hfm,
+  exact tendsto_set_lintegral_of_monotone_set hφ.2
+end
+
+/-- Slight reformulation of `measure_theory.set_lintegral_tendsto_lintegral`. -/
 lemma lintegral_eq_of_tendsto_lintegral {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → ℝ≥0∞}
   (I : ℝ≥0∞) (hfm : measurable f) (h : tendsto (λ n, ∫⁻ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   ∫⁻ x, f x ∂μ = I :=
-begin
-  convert lintegral_eq_supr hφ hfm,
-  refine tendsto_nhds_unique h (tendsto_set_lintegral_of_monotone_set hφ.mono)
-end
+tendsto_nhds_unique (set_lintegral_tendsto_lintegral hφ hfm) h
 
 end lintegral
 
@@ -259,12 +296,10 @@ variables {α : Type*} [measurable_space α] {μ : measure α} {E : Type*} [norm
   [measurable_space E] [normed_space ℝ E] [complete_space E] [borel_space E]
   [topological_space.second_countable_topology E]
 
-lemma integral_eq_of_tendsto_integral {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → E} (I : E)
-  (hfm : measurable f) (hfi : integrable f μ)
-  (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
-  ∫ x, f x ∂μ = I :=
+lemma set_integral_tendsto_integral {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → E}
+  (hfm : measurable f) (hfi : integrable f μ) :
+  tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 $ ∫ x, f x ∂μ) :=
 begin
-  refine tendsto_nhds_unique _ h,
   suffices : tendsto (λ (n : ℕ), ∫ (x : α), (φ n).indicator f x ∂μ) at_top (𝓝 (∫ (x : α), f x ∂μ)),
   { convert this,
     ext n,
@@ -273,6 +308,13 @@ begin
     (λ n, (hfm.indicator $ hφ.measurable n).ae_measurable) hfm.ae_measurable hfi.norm
     (λ n, ae_of_all _ $ norm_indicator_le_norm_self f) hφ.ae_tendsto_indicator
 end
+
+/-- Slight reformulation of `measure_theory.set_integral_tendsto_integral`. -/
+lemma integral_eq_of_tendsto_integral {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → E} (I : E)
+  (hfm : measurable f) (hfi : integrable f μ)
+  (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
+  ∫ x, f x ∂μ = I :=
+tendsto_nhds_unique (set_integral_tendsto_integral hφ hfm hfi) h
 
 lemma integral_eq_of_tendsto_integral_of_nonneg_ae {φ : ℕ → set α}
   (hφ : growing_family μ φ) {f : α → ℝ} (I : ℝ) (hf : 0 ≤ᵐ[μ] f) (hfm : measurable f)

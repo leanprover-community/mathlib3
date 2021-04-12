@@ -616,7 +616,7 @@ begin
   { assume p t ht,
     letI : fintype t := finite.fintype ht,
     let n := fintype.card t,
-    let e := fintype.equiv_fin t,
+    obtain ⟨e⟩ := fintype.trunc_equiv_fin t,
     exact ⟨n, e, trivial⟩ },
   choose N e hne using this,
   -- cardinality of the nice finite subset `s p` of `p.rep`, called `N p`

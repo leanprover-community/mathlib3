@@ -49,8 +49,9 @@ hence this name. The uniqueness it asserts is proved in `unique_diff_within_at.e
 To avoid pathologies in dimension 0, we also require that `x` belongs to the closure of `s` (which
 is automatic when `E` is not `0`-dimensional).
  -/
-def unique_diff_within_at (s : set E) (x : E) : Prop :=
-dense ((submodule.span 𝕜 (tangent_cone_at 𝕜 s x)) : set E) ∧ x ∈ closure s
+@[mk_iff] structure unique_diff_within_at (s : set E) (x : E) : Prop :=
+(dense_tangent_cone : dense ((submodule.span 𝕜 (tangent_cone_at 𝕜 s x)) : set E))
+(mem_closure: x ∈ closure s)
 
 /-- A property ensuring that the tangent cone to `s` at any of its points spans a dense subset of
 the whole space.  The main role of this property is to ensure that the differential along `s` is
@@ -243,7 +244,7 @@ lemma unique_diff_on.unique_diff_within_at {s : set E} {x} (hs : unique_diff_on 
 hs x h
 
 lemma unique_diff_within_at_univ : unique_diff_within_at 𝕜 univ x :=
-by { rw [unique_diff_within_at, tangent_cone_univ], simp }
+by { rw [unique_diff_within_at_iff, tangent_cone_univ], simp }
 
 lemma unique_diff_on_univ : unique_diff_on 𝕜 (univ : set E) :=
 λx hx, unique_diff_within_at_univ
@@ -255,7 +256,7 @@ lemma unique_diff_within_at.mono_nhds (h : unique_diff_within_at 𝕜 s x)
   (st : 𝓝[s] x ≤ 𝓝[t] x) :
   unique_diff_within_at 𝕜 t x :=
 begin
-  unfold unique_diff_within_at at *,
+  simp only [unique_diff_within_at_iff] at *,
   rw [mem_closure_iff_nhds_within_ne_bot] at h ⊢,
   exact ⟨h.1.mono $ submodule.span_mono $ tangent_cone_mono_nhds st,
     h.2.mono st⟩
@@ -303,7 +304,7 @@ lemma unique_diff_within_at.prod {t : set F} {y : F}
   (hs : unique_diff_within_at 𝕜 s x) (ht : unique_diff_within_at 𝕜 t y) :
   unique_diff_within_at 𝕜 (set.prod s t) (x, y) :=
 begin
-  rw [unique_diff_within_at] at ⊢ hs ht,
+  rw [unique_diff_within_at_iff] at ⊢ hs ht,
   rw [closure_prod_eq],
   refine ⟨_, hs.2, ht.2⟩,
   have : _ ≤ submodule.span 𝕜 (tangent_cone_at 𝕜 (s.prod t) (x, y)) :=
@@ -319,7 +320,7 @@ lemma unique_diff_within_at.univ_pi {ι : Type*} [fintype ι] {E : ι → Type*}
   unique_diff_within_at 𝕜 (set.pi univ s) x :=
 begin
   classical,
-  simp only [unique_diff_within_at, closure_pi_set] at h ⊢,
+  simp only [unique_diff_within_at_iff, closure_pi_set] at h ⊢,
   refine ⟨(dense_pi univ (λ i _, (h i).1)).mono _, λ i _, (h i).2⟩,
   norm_cast,
   simp only [← submodule.supr_map_single, supr_le_iff, submodule.map_span, submodule.span_le,

@@ -652,7 +652,7 @@ end
   `sign_aux2 f _` recursively calculates the sign of `f`. -/
 def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) → units ℤ :=
 quotient.hrec_on s (λ l h, sign_aux2 l f)
-  (trunc.induction_on (trunc_equiv_fin α)
+  (trunc.induction_on (fintype.trunc_equiv_fin α)
     (λ e l₁ l₂ h, function.hfunext
       (show (∀ x, x ∈ l₁) = ∀ x, x ∈ l₂, by simp only [h.mem_iff])
       (λ h₁ h₂ _, by rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₁ _),
@@ -664,7 +664,7 @@ lemma sign_aux3_mul_and_swap [fintype α] (f g : perm α) (s : multiset α) (hs 
 let ⟨l, hl⟩ := quotient.exists_rep s in
 let e := equiv_fin α in
 begin
-  clear _let_match _let_match,
+  clear _let_match,
   subst hl,
   show sign_aux2 l (f * g) = sign_aux2 l f * sign_aux2 l g ∧
     ∀ x y, x ≠ y → sign_aux2 l (swap x y) = -1,

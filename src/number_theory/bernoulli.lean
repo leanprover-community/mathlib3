@@ -80,7 +80,7 @@ by { rw [bernoulli'_def', ← fin.sum_univ_eq_sum_range], refl }
 lemma bernoulli'_spec (n : ℕ) :
   ∑ k in range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli' k = 1 :=
 begin
-  rw [sum_range_succ, bernoulli'_def n, nat.sub_self],
+  rw [sum_range_succ_comm, bernoulli'_def n, nat.sub_self],
   conv in (nat.choose _ (_ - _)) { rw choose_symm (le_of_lt (mem_range.1 H)) },
   simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one],
 end
@@ -287,7 +287,7 @@ begin
   -- key equation: the corresponding fact for `bernoulli'`
   have H := bernoulli'_spec' n.succ,
   -- massage it to match the structure of the goal, then convert piece by piece
-  rw ← add_sum_diff_singleton h₁ at H ⊢,
+  rw sum_eq_add_sum_diff_singleton h₁ at H ⊢,
   apply add_eq_of_eq_sub',
   convert eq_sub_of_add_eq' H using 1,
   { apply sum_congr rfl,

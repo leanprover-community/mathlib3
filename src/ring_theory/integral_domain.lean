@@ -6,7 +6,7 @@ Authors: Johan Commelin, Chris Hughes
 
 import data.fintype.card
 import data.polynomial.ring_division
-import group_theory.order_of_element
+import group_theory.specific_groups.cyclic
 import algebra.geom_sum
 
 /-!

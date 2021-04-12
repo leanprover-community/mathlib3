@@ -215,8 +215,8 @@ le_inf (λ b hb, le_trans (inf_le hb) (h b hb))
 lemma inf_mono (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
 le_inf $ assume b hb, inf_le (h hb)
 
-@[simp] lemma lt_inf_iff [h : is_total α (≤)] {a : α} (ha : a < ⊤) : a < s.inf f ↔ (∀b ∈ s, a < f b) :=
-@sup_lt_iff (order_dual α) _ _ _ _ (@is_total.swap α _ h) _ ha
+@[simp] lemma lt_inf_iff [is_total α (≤)] {a : α} (ha : a < ⊤) : a < s.inf f ↔ (∀ b ∈ s, a < f b) :=
+@sup_lt_iff (order_dual α) _ _ _ _ _ _ ha
 
 @[simp] lemma inf_lt_iff [is_total α (≤)] {a : α} : s.inf f < a ↔ (∃ b ∈ s, f b < a) :=
 @lt_sup_iff (order_dual α) _ _ _ _ _ _

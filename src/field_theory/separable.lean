@@ -203,10 +203,9 @@ theorem map_expand {p : ℕ} (hp : 0 < p) {f : R →+* S} {q : polynomial R} :
 by { ext, rw [coeff_map, coeff_expand hp, coeff_expand hp], split_ifs; simp, }
 
 /-- Expansion is injective. -/
-lemma eq_of_expand_eq {g g' : polynomial R} {n : ℕ} (hn : 0 < n):
-  expand R n g = expand R n g' → g = g' :=
-λ h,
-begin
+lemma expand_injective {n : ℕ} (hn : 0 < n) :
+  function.injective (expand R n) :=
+λ g g' h, begin
   ext,
   have h' : (expand R n g).coeff (n * n_1) = (expand R n g').coeff (n * n_1) :=
   begin

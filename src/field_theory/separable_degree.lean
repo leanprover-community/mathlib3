@@ -113,7 +113,7 @@ begin
 
   rw [hs.2, pow_add, expand_mul] at h_expand,
 
-  have r := eq_of_expand_eq (pow_pos hq.1.pos m) h_expand,
+  have r := expand_injective (pow_pos hq.1.pos m) h_expand,
   rw r at g_sep,
 
   cases (is_unit_or_eq_zero_of_separable_expand q s g_sep) with g'_is_unit s_zero,

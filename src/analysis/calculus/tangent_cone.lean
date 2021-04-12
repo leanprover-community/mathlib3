@@ -320,9 +320,9 @@ begin
   exact (hs.1.prod ht.1).mono this
 end
 
-lemma unique_diff_within_at.univ_pi {ι : Type*} [fintype ι] {E : ι → Type*}
+lemma unique_diff_within_at.univ_pi (ι : Type*) [fintype ι] (E : ι → Type*)
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
-  {s : Π i, set (E i)} {x : Π i, E i} (h : ∀ i, unique_diff_within_at 𝕜 (s i) (x i)) :
+  (s : Π i, set (E i)) (x : Π i, E i) (h : ∀ i, unique_diff_within_at 𝕜 (s i) (x i)) :
   unique_diff_within_at 𝕜 (set.pi univ s) x :=
 begin
   classical,
@@ -334,15 +334,15 @@ begin
   exact λ i, (maps_to_tangent_cone_pi $ λ j hj, (h j).2).mono subset.rfl submodule.subset_span
 end
 
-lemma unique_diff_within_at.pi {ι : Type*} [fintype ι] {E : ι → Type*}
+lemma unique_diff_within_at.pi (ι : Type*) [fintype ι] (E : ι → Type*)
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
-  {s : Π i, set (E i)} {x : Π i, E i} {I : set ι}
+  (s : Π i, set (E i)) (x : Π i, E i) (I : set ι)
   (h : ∀ i ∈ I, unique_diff_within_at 𝕜 (s i) (x i)) :
   unique_diff_within_at 𝕜 (set.pi I s) x :=
 begin
   classical,
   rw [← set.univ_pi_piecewise],
-  refine unique_diff_within_at.univ_pi (λ i, _),
+  refine unique_diff_within_at.univ_pi _ _ _ _ (λ i, _),
   by_cases hi : i ∈ I; simp [*, unique_diff_within_at_univ],
 end
 
@@ -353,19 +353,19 @@ lemma unique_diff_on.prod {t : set F} (hs : unique_diff_on 𝕜 s) (ht : unique_
 
 /-- The finite product of a family of sets of unique differentiability is a set of unique
 differentiability. -/
-lemma unique_diff_on.pi {ι : Type*} [fintype ι] {E : ι → Type*}
+lemma unique_diff_on.pi (ι : Type*) [fintype ι] (E : ι → Type*)
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
-  {s : Π i, set (E i)} {I : set ι} (h : ∀ i ∈ I, unique_diff_on 𝕜 (s i)) :
+  (s : Π i, set (E i)) (I : set ι) (h : ∀ i ∈ I, unique_diff_on 𝕜 (s i)) :
   unique_diff_on 𝕜 (set.pi I s) :=
-λ x hx, unique_diff_within_at.pi $ λ i hi, h i hi (x i) (hx i hi)
+λ x hx, unique_diff_within_at.pi _ _ _ _ _ $ λ i hi, h i hi (x i) (hx i hi)
 
 /-- The finite product of a family of sets of unique differentiability is a set of unique
 differentiability. -/
-lemma unique_diff_on.univ_pi {ι : Type*} [fintype ι] {E : ι → Type*}
+lemma unique_diff_on.univ_pi (ι : Type*) [fintype ι] (E : ι → Type*)
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
-  {s : Π i, set (E i)} (h : ∀ i, unique_diff_on 𝕜 (s i)) :
+  (s : Π i, set (E i)) (h : ∀ i, unique_diff_on 𝕜 (s i)) :
   unique_diff_on 𝕜 (set.pi univ s) :=
-unique_diff_on.pi $ λ i _, h i
+unique_diff_on.pi _ _ _ _ $ λ i _, h i
 
 /-- In a real vector space, a convex set with nonempty interior is a set of unique
 differentiability. -/

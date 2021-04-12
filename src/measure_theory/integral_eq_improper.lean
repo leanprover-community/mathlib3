@@ -22,27 +22,27 @@ various ways of studying the proper integral by studying the improper one.
 
 ## Definitions
 
-The main definition of this file is `measure_theory.growing_family`. It's a rather technical
+The main definition of this file is `measure_theory.mono_ae_cover`. It's a rather technical
 definition whose sole purpose is generalizing and factoring proofs. For a sequence `φ` of subsets
 of a measurable space `α` equipped with a measure `μ`, one should think of an hypothesis
-`hφ : growing_family μ φ` as a sufficient condition for being able to interpret
+`hφ : mono_ae_cover μ φ` as a sufficient condition for being able to interpret
 `∫ x, f x ∂μ` (if it exists) as the limit as `n` goes to `∞` of `∫ x in φ n, f x ∂μ`.
 
 When using this definition with a measure restricted to a set `s`, which happens fairly often,
-one should not try too hard to use a `growing_family` of subsets of `s`, as it often makes proofs
+one should not try too hard to use a `mono_ae_cover` of subsets of `s`, as it often makes proofs
 more complicated than necessary. See for example the proof of
-`integrable_on_Iic_of_tendsto_interval_integral_norm` where we use `Ioi`s as a growing family
+`integrable_on_Iic_of_tendsto_interval_integral_norm` where we use `Ioi`s as a `mono_ae_cover`
 w.r.t. `μ.restrict (Iic b)`.
 
 ## Main statements
 
-- `measure_theory.set_lintegral_tendsto_lintegral` : if `φ` is a `growing_family` and
+- `measure_theory.set_lintegral_tendsto_lintegral` : if `φ` is a `mono_ae_cover` and
   `f` a measurable `ennreal`-valued function, then `∫⁻ x in φ n, f x ∂μ` tends to `∫⁻ x, f x ∂μ`
   as `n` tends to `+∞`
-- `measure_theory.integrable_of_tendsto_integral_norm` : if `φ` is a `growing_family`,
+- `measure_theory.integrable_of_tendsto_integral_norm` : if `φ` is a `mono_ae_cover`,
   `f` measurable and integrable on each `φ n`, and `∫ x in φ n, ∥f x∥ ∂μ` tends to some
   `I : ℝ` as n tends to `+∞`, then `f` is integrable
-- `measure_theory.set_integral_tendsto_integral` : if `φ` is a `growing_family`,
+- `measure_theory.set_integral_tendsto_integral` : if `φ` is a `mono_ae_cover`,
   `f` measurable and integrable (globally), then `∫ x in φ n, f x ∂μ` tends to `∫ x, f x ∂μ`
   as `n` tends to `+∞`
 
@@ -55,11 +55,11 @@ open_locale ennreal nnreal topological_space
 
 namespace measure_theory
 
-section growing_family
+section mono_ae_cover
 
 variables {α : Type*} [measurable_space α] (μ : measure α)
 
-/-- A sequence `φ` of subsets of `α` is a `growing_family` w.r.t. a measure `μ`
+/-- A sequence `φ` of subsets of `α` is a `mono_ae_cover` w.r.t. a measure `μ`
     if almost every point (w.r.t. `μ`) of `α` eventually belongs to `φ n`, `φ` is
     monotone, and each `φ n` is measurable.
 
@@ -70,7 +70,7 @@ variables {α : Type*} [measurable_space α] (μ : measure α)
     See for example `measure_theory.lintegral_eq_of_tendsto_lintegral`,
     `measure_theory.integrable_of_tendsto_integral_norm` and
     `measure_theory.integral_eq_of_tendsto_integral`. -/
-structure growing_family (φ : ℕ → set α) : Prop :=
+structure mono_ae_cover (φ : ℕ → set α) : Prop :=
 (ae_eventually_mem : ∀ᵐ x ∂μ, ∀ᶠ n in at_top, x ∈ φ n)
 (mono : monotone φ)
 (measurable : ∀ n, measurable_set $ φ n)
@@ -83,8 +83,8 @@ variables [preorder α] [topological_space α] [order_closed_topology α]
   [opens_measurable_space α] {a b : ℕ → α} (ha₁ : ∀ ⦃x y⦄, x ≤ y → a y ≤ a x)
   (ha₂ : tendsto a at_top at_bot) (hb₁ : monotone b) (hb₂ : tendsto b at_top at_top)
 
-lemma growing_family_Icc :
-  growing_family μ (λ n, Icc (a n) (b n)) :=
+lemma mono_ae_cover_Icc :
+  mono_ae_cover μ (λ n, Icc (a n) (b n)) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (ha₂.eventually $ eventually_le_at_bot x).mp $
     (hb₂.eventually $ eventually_ge_at_top x).mono $
@@ -92,16 +92,16 @@ lemma growing_family_Icc :
   mono := λ i j hij, Icc_subset_Icc (ha₁ hij) (hb₁ hij),
   measurable := λ n, measurable_set_Icc }
 
-lemma growing_family_Ici :
-  growing_family μ (λ n, Ici $ a n) :=
+lemma mono_ae_cover_Ici :
+  mono_ae_cover μ (λ n, Ici $ a n) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (ha₂.eventually $ eventually_le_at_bot x).mono $
     λ n han, han ),
   mono := λ i j hij, Ici_subset_Ici.mpr (ha₁ hij),
   measurable := λ n, measurable_set_Ici }
 
-lemma growing_family_Iic :
-  growing_family μ (λ n, Iic $ b n) :=
+lemma mono_ae_cover_Iic :
+  mono_ae_cover μ (λ n, Iic $ b n) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (hb₂.eventually $ eventually_ge_at_top x).mono $
     λ n han, han ),
@@ -117,8 +117,8 @@ variables [linear_order α] [topological_space α] [order_closed_topology α]
   (ha₂ : tendsto a at_top at_bot)
   (hb₁ : monotone b) (hb₂ : tendsto b at_top at_top)
 
-lemma growing_family_Ioo [no_bot_order α] [no_top_order α] :
-  growing_family μ (λ n, Ioo (a n) (b n)) :=
+lemma mono_ae_cover_Ioo [no_bot_order α] [no_top_order α] :
+  mono_ae_cover μ (λ n, Ioo (a n) (b n)) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (ha₂.eventually $ eventually_lt_at_bot x).mp $
     (hb₂.eventually $ eventually_gt_at_top x).mono $
@@ -126,7 +126,7 @@ lemma growing_family_Ioo [no_bot_order α] [no_top_order α] :
   mono := λ i j hij, Ioo_subset_Ioo (ha₁ hij) (hb₁ hij),
   measurable := λ n, measurable_set_Ioo }
 
-lemma growing_family_Ioc [no_bot_order α] : growing_family μ (λ n, Ioc (a n) (b n)) :=
+lemma mono_ae_cover_Ioc [no_bot_order α] : mono_ae_cover μ (λ n, Ioc (a n) (b n)) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (ha₂.eventually $ eventually_lt_at_bot x).mp $
     (hb₂.eventually $ eventually_ge_at_top x).mono $
@@ -134,7 +134,7 @@ lemma growing_family_Ioc [no_bot_order α] : growing_family μ (λ n, Ioc (a n) 
   mono := λ i j hij, Ioc_subset_Ioc (ha₁ hij) (hb₁ hij),
   measurable := λ n, measurable_set_Ioc }
 
-lemma growing_family_Ico [no_top_order α] : growing_family μ (λ n, Ico (a n) (b n)) :=
+lemma mono_ae_cover_Ico [no_top_order α] : mono_ae_cover μ (λ n, Ico (a n) (b n)) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (ha₂.eventually $ eventually_le_at_bot x).mp $
     (hb₂.eventually $ eventually_gt_at_top x).mono $
@@ -142,16 +142,16 @@ lemma growing_family_Ico [no_top_order α] : growing_family μ (λ n, Ico (a n) 
   mono := λ i j hij, Ico_subset_Ico (ha₁ hij) (hb₁ hij),
   measurable := λ n, measurable_set_Ico }
 
-lemma growing_family_Ioi [no_bot_order α] :
-  growing_family μ (λ n, Ioi $ a n) :=
+lemma mono_ae_cover_Ioi [no_bot_order α] :
+  mono_ae_cover μ (λ n, Ioi $ a n) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (ha₂.eventually $ eventually_lt_at_bot x).mono $
     λ n han, han ),
   mono := λ i j hij, Ioi_subset_Ioi (ha₁ hij),
   measurable := λ n, measurable_set_Ioi }
 
-lemma growing_family_Iio [no_top_order α] :
-  growing_family μ (λ n, Iio $ b n) :=
+lemma mono_ae_cover_Iio [no_top_order α] :
+  mono_ae_cover μ (λ n, Iio $ b n) :=
 { ae_eventually_mem := ae_of_all μ (λ x,
     (hb₂.eventually $ eventually_gt_at_top x).mono $
     λ n han, han ),
@@ -160,41 +160,41 @@ lemma growing_family_Iio [no_top_order α] :
 
 end linear_order
 
-lemma growing_family.restrict {φ : ℕ → set α} (hφ : growing_family μ φ) {s : set α} :
-  growing_family (μ.restrict s) φ :=
+lemma mono_ae_cover.restrict {φ : ℕ → set α} (hφ : mono_ae_cover μ φ) {s : set α} :
+  mono_ae_cover (μ.restrict s) φ :=
 { ae_eventually_mem := ae_restrict_of_ae hφ.ae_eventually_mem,
   mono := hφ.mono,
   measurable := hφ.measurable }
 
-lemma growing_family.ae_tendsto_indicator {β : Type*} [has_zero β] [topological_space β]
-  {f : α → β} {φ : ℕ → set α} (hφ : growing_family μ φ) :
+lemma mono_ae_cover.ae_tendsto_indicator {β : Type*} [has_zero β] [topological_space β]
+  {f : α → β} {φ : ℕ → set α} (hφ : mono_ae_cover μ φ) :
   ∀ᵐ x ∂μ, tendsto (λ n, (φ n).indicator f x) at_top (𝓝 $ f x) :=
 hφ.ae_eventually_mem.mono (λ x hx, tendsto_const_nhds.congr' $
   hx.mono $ λ n hn, (indicator_of_mem hn _).symm)
 
-lemma growing_family_restrict_of_ae_imp {s : set α} {φ : ℕ → set α}
+lemma mono_ae_cover_restrict_of_ae_imp {s : set α} {φ : ℕ → set α}
   (hs : measurable_set s) (ae_eventually_mem : ∀ᵐ x ∂μ, x ∈ s → ∀ᶠ n in at_top, x ∈ φ n)
   (mono : monotone φ) (measurable : ∀ n, measurable_set $ φ n) :
-  growing_family (μ.restrict s) φ :=
+  mono_ae_cover (μ.restrict s) φ :=
 { ae_eventually_mem := by rwa ae_restrict_iff' hs,
   mono := mono,
   measurable := measurable }
 
-lemma growing_family.inter_restrict {φ : ℕ → set α} (hφ : growing_family μ φ)
+lemma mono_ae_cover.inter_restrict {φ : ℕ → set α} (hφ : mono_ae_cover μ φ)
   {s : set α} (hs : measurable_set s) :
-  growing_family (μ.restrict s) (λ n, φ n ∩ s) :=
-growing_family_restrict_of_ae_imp hs
+  mono_ae_cover (μ.restrict s) (λ n, φ n ∩ s) :=
+mono_ae_cover_restrict_of_ae_imp hs
   (hφ.ae_eventually_mem.mono (λ x hx hxs, hx.mono $ λ n hn, ⟨hn, hxs⟩))
   (λ i j hij, inter_subset_inter_left s (hφ.mono hij))
   (λ n, (hφ.measurable n).inter hs)
 
-end growing_family
+end mono_ae_cover
 
 section lintegral
 
 variables {α : Type*} [measurable_space α] {μ : measure α}
 
-lemma lintegral_eq_supr {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → ℝ≥0∞}
+lemma lintegral_eq_supr {φ : ℕ → set α} (hφ : mono_ae_cover μ φ) {f : α → ℝ≥0∞}
   (hfm : measurable f) :
   ∫⁻ x, f x ∂μ = ⨆ (n : ℕ), ∫⁻ x in φ n, f x ∂μ :=
 begin
@@ -219,7 +219,7 @@ tendsto_at_top_csupr
   (λ i j hij, lintegral_mono' (measure.restrict_mono (hφ hij) (le_refl _)) (le_refl _))
   ⟨⊤, λ _ _, le_top⟩
 
-lemma set_lintegral_tendsto_lintegral {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → ℝ≥0∞}
+lemma set_lintegral_tendsto_lintegral {φ : ℕ → set α} (hφ : mono_ae_cover μ φ) {f : α → ℝ≥0∞}
   (hfm : measurable f) :
   tendsto (λ n, ∫⁻ x in φ n, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
 begin
@@ -228,7 +228,7 @@ begin
 end
 
 /-- Slight reformulation of `measure_theory.set_lintegral_tendsto_lintegral`. -/
-lemma lintegral_eq_of_tendsto_lintegral {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → ℝ≥0∞}
+lemma lintegral_eq_of_tendsto_lintegral {φ : ℕ → set α} (hφ : mono_ae_cover μ φ) {f : α → ℝ≥0∞}
   (I : ℝ≥0∞) (hfm : measurable f) (h : tendsto (λ n, ∫⁻ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   ∫⁻ x, f x ∂μ = I :=
 tendsto_nhds_unique (set_lintegral_tendsto_lintegral hφ hfm) h
@@ -241,7 +241,7 @@ variables {α : Type*} [measurable_space α] {μ : measure α} {E : Type*} [norm
   [measurable_space E] [opens_measurable_space E]
 
 lemma integrable_of_tendsto_lintegral_nnnorm {φ : ℕ → set α}
-  (hφ : growing_family μ φ) {f : α → E} (I : ℝ) (hfm : measurable f)
+  (hφ : mono_ae_cover μ φ) {f : α → E} (I : ℝ) (hfm : measurable f)
   (h : tendsto (λ n, ∫⁻ x in φ n, nnnorm (f x) ∂μ) at_top (𝓝 $ ennreal.of_real I)) :
   integrable f μ :=
 begin
@@ -253,7 +253,7 @@ begin
 end
 
 lemma integrable_of_tendsto_lintegral_nnnorm' {φ : ℕ → set α}
-  (hφ : growing_family μ φ) {f : α → E} (I : ℝ≥0) (hfm : measurable f)
+  (hφ : mono_ae_cover μ φ) {f : α → E} (I : ℝ≥0) (hfm : measurable f)
   (h : tendsto (λ n, ∫⁻ x in φ n, nnnorm (f x) ∂μ) at_top (𝓝 I)) :
   integrable f μ :=
 begin
@@ -262,7 +262,7 @@ begin
   exact ennreal.of_real_coe_nnreal
 end
 
-lemma integrable_of_tendsto_integral_norm {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → E}
+lemma integrable_of_tendsto_integral_norm {φ : ℕ → set α} (hφ : mono_ae_cover μ φ) {f : α → E}
   (I : ℝ) (hfm : measurable f) (hfi : ∀ n, integrable_on f (φ n) μ)
   (h : tendsto (λ n, ∫ x in φ n, ∥f x∥ ∂μ) at_top (𝓝 I)) :
   integrable f μ :=
@@ -281,7 +281,7 @@ begin
 end
 
 lemma integrable_of_tendsto_integral_of_nonneg_ae {φ : ℕ → set α}
-  (hφ : growing_family μ φ) {f : α → ℝ} (I : ℝ) (hf : 0 ≤ᵐ[μ] f) (hfm : measurable f)
+  (hφ : mono_ae_cover μ φ) {f : α → ℝ} (I : ℝ) (hf : 0 ≤ᵐ[μ] f) (hfm : measurable f)
   (hfi : ∀ n, integrable_on f (φ n) μ) (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   integrable f μ :=
 integrable_of_tendsto_integral_norm hφ I hfm hfi
@@ -296,7 +296,7 @@ variables {α : Type*} [measurable_space α] {μ : measure α} {E : Type*} [norm
   [measurable_space E] [normed_space ℝ E] [complete_space E] [borel_space E]
   [topological_space.second_countable_topology E]
 
-lemma set_integral_tendsto_integral {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → E}
+lemma set_integral_tendsto_integral {φ : ℕ → set α} (hφ : mono_ae_cover μ φ) {f : α → E}
   (hfm : measurable f) (hfi : integrable f μ) :
   tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 $ ∫ x, f x ∂μ) :=
 begin
@@ -310,14 +310,14 @@ begin
 end
 
 /-- Slight reformulation of `measure_theory.set_integral_tendsto_integral`. -/
-lemma integral_eq_of_tendsto_integral {φ : ℕ → set α} (hφ : growing_family μ φ) {f : α → E} (I : E)
+lemma integral_eq_of_tendsto_integral {φ : ℕ → set α} (hφ : mono_ae_cover μ φ) {f : α → E} (I : E)
   (hfm : measurable f) (hfi : integrable f μ)
   (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   ∫ x, f x ∂μ = I :=
 tendsto_nhds_unique (set_integral_tendsto_integral hφ hfm hfi) h
 
 lemma integral_eq_of_tendsto_integral_of_nonneg_ae {φ : ℕ → set α}
-  (hφ : growing_family μ φ) {f : α → ℝ} (I : ℝ) (hf : 0 ≤ᵐ[μ] f) (hfm : measurable f)
+  (hφ : mono_ae_cover μ φ) {f : α → ℝ} (I : ℝ) (hf : 0 ≤ᵐ[μ] f) (hfm : measurable f)
   (hfi : ∀ n, integrable_on f (φ n) μ) (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   ∫ x, f x ∂μ = I :=
 have hfi' : integrable f μ,
@@ -344,7 +344,7 @@ lemma integrable_of_tendsto_interval_integral_norm [no_bot_order α]
   integrable f μ :=
 begin
   let φ := λ n, Ioc (a n) (b n),
-  have hφ : growing_family μ φ := growing_family_Ioc ha₁ ha₂ hb₁ hb₂,
+  have hφ : mono_ae_cover μ φ := mono_ae_cover_Ioc ha₁ ha₂ hb₁ hb₂,
   refine integrable_of_tendsto_integral_norm hφ _ hfm hfi (h.congr' _),
   filter_upwards [ha₂.eventually (eventually_le_at_bot $ b 0)],
   intros n han,
@@ -360,7 +360,7 @@ lemma integrable_on_Iic_of_tendsto_interval_integral_norm [no_bot_order α] (I :
   integrable_on f (Iic b) μ :=
 begin
   let φ := λ n, Ioi (a n),
-  have hφ : growing_family (μ.restrict $ Iic b) φ := growing_family_Ioi ha₁ ha₂,
+  have hφ : mono_ae_cover (μ.restrict $ Iic b) φ := mono_ae_cover_Ioi ha₁ ha₂,
   have hfi : ∀ n, integrable_on f (φ n) (μ.restrict $ Iic b),
   { intro n,
     rw [integrable_on, measure.restrict_restrict (hφ.measurable n)],
@@ -381,7 +381,7 @@ lemma integrable_on_Ioi_of_tendsto_interval_integral_norm (I : ℝ) (a : α)
   integrable_on f (Ioi a) μ :=
 begin
   let φ := λ n, Iic (b n),
-  have hφ : growing_family (μ.restrict $ Ioi a) φ := growing_family_Iic hb₁ hb₂,
+  have hφ : mono_ae_cover (μ.restrict $ Ioi a) φ := mono_ae_cover_Iic hb₁ hb₂,
   have hfi : ∀ n, integrable_on f (φ n) (μ.restrict $ Ioi a),
   { intro n,
     rw [integrable_on, measure.restrict_restrict (hφ.measurable n), inter_comm],
@@ -412,7 +412,7 @@ lemma integral_eq_of_tendsto_interval_integral [no_bot_order α] (I : E)
   ∫ x, f x ∂μ = I :=
 begin
   let φ := λ n, Ioc (a n) (b n),
-  have hφ : growing_family μ φ := growing_family_Ioc ha₁ ha₂ hb₁ hb₂,
+  have hφ : mono_ae_cover μ φ := mono_ae_cover_Ioc ha₁ ha₂ hb₁ hb₂,
   refine integral_eq_of_tendsto_integral hφ _ hfm hfi (h.congr' _),
   filter_upwards [ha₂.eventually (eventually_le_at_bot $ b 0)],
   intros n han,
@@ -428,7 +428,7 @@ lemma integral_Iic_eq_of_tendsto_interval_integral [no_bot_order α] (I : E) (b 
   ∫ x in Iic b, f x ∂μ = I :=
 begin
   let φ := λ n, Ioi (a n),
-  have hφ : growing_family (μ.restrict $ Iic b) φ := growing_family_Ioi ha₁ ha₂,
+  have hφ : mono_ae_cover (μ.restrict $ Iic b) φ := mono_ae_cover_Ioi ha₁ ha₂,
   refine integral_eq_of_tendsto_integral hφ _ hfm hfi (h.congr' _),
   filter_upwards [ha₂.eventually (eventually_le_at_bot $ b)],
   intros n han,
@@ -445,7 +445,7 @@ lemma integral_Ioi_eq_of_tendsto_interval_integral (I : E) (a : α)
   ∫ x in Ioi a, f x ∂μ = I :=
 begin
   let φ := λ n, Iic (b n),
-  have hφ : growing_family (μ.restrict $ Ioi a) φ := growing_family_Iic hb₁ hb₂,
+  have hφ : mono_ae_cover (μ.restrict $ Ioi a) φ := mono_ae_cover_Iic hb₁ hb₂,
   refine integral_eq_of_tendsto_integral hφ _ hfm hfi (h.congr' _),
   filter_upwards [hb₂.eventually (eventually_ge_at_top $ a)],
   intros n hbn,

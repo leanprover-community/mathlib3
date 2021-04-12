@@ -55,18 +55,18 @@ by simpa only [exists_or_distrib, ← odd, ← even] using even_or_odd n
 
 lemma even_xor_odd (n : ℕ) : xor (even n) (odd n) :=
 begin
-  cases (even_or_odd n) with h,
+  cases even_or_odd n with h,
   { exact or.inl ⟨h, even_iff_not_odd.mp h⟩ },
   { exact or.inr ⟨h, odd_iff_not_even.mp h⟩ },
 end
 
 lemma even_xor_odd' (n : ℕ) : ∃ k, xor (n = 2 * k) (n = 2 * k + 1) :=
 begin
-  rcases (even_or_odd n) with ⟨k, h⟩ | ⟨k, h⟩;
+  rcases even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
   use k,
-  { simpa only [xor, h, true_and, eq_self_iff_true, not_true, or_false, and_false]
+  { simpa only [xor, true_and, eq_self_iff_true, not_true, or_false, and_false]
       using (succ_ne_self (2*k)).symm },
-  { simp only [xor, h, add_right_eq_self, false_or, eq_self_iff_true, not_true, not_false_iff,
+  { simp only [xor, add_right_eq_self, false_or, eq_self_iff_true, not_true, not_false_iff,
               one_ne_zero, and_self] },
 end
 
@@ -179,11 +179,7 @@ theorem even_div : even (m / n) ↔ m % (2 * n) / n = 0 :=
 by rw [even_iff_two_dvd, dvd_iff_mod_eq_zero, nat.div_mod_eq_mod_mul_div, mul_comm]
 
 @[parity_simps] theorem odd_add : odd (m + n) ↔ (odd m ↔ even n) :=
-begin
-  by_contra hnot,
-  rw [not_iff, ← even_iff_not_odd, even_add, odd_iff_not_even, ← not_iff] at hnot,
-  exact (iff_not_self _).mp hnot,
-end
+by rw [odd_iff_not_even, even_add, not_iff, odd_iff_not_even]
 
 theorem odd.add_even (hm : odd m) (hn : even n) : odd (m + n) :=
 odd_add.2 $ iff_of_true hm hn
@@ -198,22 +194,13 @@ lemma ne_of_odd_sum (h : odd (m + n)) : m ≠ n :=
 λ hnot, by simpa [hnot] with parity_simps using h
 
 @[parity_simps] theorem odd_sub (h : n ≤ m) : odd (m - n) ↔ (odd m ↔ even n) :=
-begin
-  by_contra hnot,
-  rw [not_iff, ← even_iff_not_odd, even_sub h, odd_iff_not_even, ← not_iff] at hnot,
-  exact (iff_not_self _).mp hnot,
-end
+by rw [odd_iff_not_even, even_sub h, not_iff, odd_iff_not_even]
 
 theorem odd.sub_even (h : n ≤ m) (hm : odd m) (hn : even n) : odd (m - n) :=
 (odd_sub h).mpr $ iff_of_true hm hn
 
 theorem odd_sub' (h : n ≤ m) : odd (m - n) ↔ (odd n ↔ even m) :=
-begin
-  by_contra hnot,
-  rw [not_iff, ← even_iff_not_odd, even_sub h, odd_iff_not_even, ← not_iff,
-      @iff.comm _ (even n)] at hnot,
-  exact (iff_not_self _).mp hnot,
-end
+by rw [odd_iff_not_even, even_sub h, not_iff, not_iff_comm, odd_iff_not_even]
 
 theorem even.sub_odd (h : n ≤ m) (hm : even m) (hn : odd n) : odd (m - n) :=
 (odd_sub' h).mpr $ iff_of_true hn hm

@@ -809,7 +809,7 @@ end add_comm_group
 
 section comm_semiring
 
-variables [comm_semiring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
+variables [comm_semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
 [∀i, semimodule R (M₁ i)] [semimodule R M₂]
 
 /-- When `ι` is finite, multilinear maps on `R^ι` with values in `M₂` are in bijection with `M₂`,

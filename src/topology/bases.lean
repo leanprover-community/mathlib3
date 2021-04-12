@@ -143,6 +143,23 @@ begin
     exact ⟨s.prod t, mem_image2_of_mem hs ht, ⟨ha, hb⟩, hu⟩ }
 end
 
+lemma is_topological_basis_of_cover {ι} {U  : ι → set α} (Uo : ∀ i, is_open (U i))
+  (Uc : (⋃ i, U i) = univ) {b : Π i, set (set (U i))} (hb : ∀ i, is_topological_basis (b i)) :
+  is_topological_basis (⋃ i : ι, image (coe : U i → α) '' (b i)) :=
+begin
+  refine is_topological_basis_of_open_of_nhds (λ u hu, _) _,
+  { simp only [mem_Union, mem_image] at hu,
+    rcases hu with ⟨i, s, sb, rfl⟩,
+    exact (Uo i).is_open_map_subtype_coe _ ((hb i).is_open sb) },
+  { intros a u ha uo,
+    rcases Union_eq_univ_iff.1 Uc a with ⟨i, hi⟩,
+    lift a to ↥(U i) using hi,
+    rcases (hb i).exists_subset_of_mem_open (by exact ha) (uo.preimage continuous_subtype_coe)
+      with ⟨v, hvb, hav, hvu⟩,
+    exact ⟨coe '' v, mem_Union.2 ⟨i, mem_image_of_mem _ hvb⟩, mem_image_of_mem _ hav,
+      image_subset_iff.2 hvu⟩ }
+end
+
 variables (α)
 
 /-- A separable space is one with a countable dense subset, available through
@@ -339,6 +356,16 @@ end
 
 variables {α}
 
+lemma second_countable_topology_of_countable_cover {ι} [encodable ι] {U : ι → set α}
+  [∀ i, second_countable_topology (U i)] (Uo : ∀ i, is_open (U i))  (hc : (⋃ i, U i) = univ) :
+  second_countable_topology α :=
+begin
+  have : is_topological_basis (⋃ i, image (coe : U i → α) '' (countable_basis (U i))),
+    from is_topological_basis_of_cover Uo hc (λ i, is_basis_countable_basis (U i)),
+  exact this.second_countable_topology
+    (countable_Union $ λ i, (countable_countable_basis _).image _)
+end
+
 lemma is_open_Union_countable [second_countable_topology α]
   {ι} (s : ι → set α) (H : ∀ i, is_open (s i)) :
   ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=
@@ -375,3 +402,15 @@ begin
 end
 
 end topological_space
+
+open topological_space
+
+variables {α β : Type*} [topological_space α] [topological_space β] {f : α → β}
+
+protected lemma inducing.second_countable_topology [second_countable_topology β]
+  (hf : inducing f) : second_countable_topology α :=
+by { rw hf.1, exact second_countable_topology_induced α β f }
+
+protected lemma embedding.second_countable_topology [second_countable_topology β]
+  (hf : embedding f) : second_countable_topology α :=
+hf.1.second_countable_topology

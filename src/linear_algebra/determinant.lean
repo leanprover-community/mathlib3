@@ -41,7 +41,7 @@ open equiv equiv.perm finset function
 namespace matrix
 open_locale matrix big_operators
 
-variables {m n : Type u} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
+variables {m n : Type*} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
 variables {R : Type v} [comm_ring R]
 
 local notation `ε` σ:max := ((sign σ : ℤ ) : R)
@@ -192,6 +192,37 @@ begin
   { rw [coe_coe, ←gsmul_eq_smul, ←smul_eq_mul, ←gsmul_eq_smul_cast] },
   exact ((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans this,
 end
+
+/-- Permuting rows and columns with the same equivalence has no effect. -/
+@[simp]
+lemma det_minor_equiv_self (e : n ≃ m) (A : matrix m m R) :
+  det (A.minor e e) = det A :=
+begin
+  rw [det_apply', det_apply'],
+  apply finset.sum_bij' (λ σ _, equiv.perm_congr e σ) _ _ (λ σ _, equiv.perm_congr e.symm σ),
+  { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.symm_apply_apply] },
+  { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.apply_symm_apply] },
+  { intros σ _, apply finset.mem_univ },
+  { intros σ _, apply finset.mem_univ },
+  intros σ _,
+  simp_rw [equiv.perm_congr_apply],
+  rw equiv.perm.sign_perm_congr e σ,
+  congr' 1,
+  apply finset.prod_bij' (λ i _, e i) _ _ (λ i _, e.symm i),
+  { intros, simp_rw equiv.symm_apply_apply },
+  { intros, simp_rw equiv.apply_symm_apply },
+  { intros, apply finset.mem_univ },
+  { intros, apply finset.mem_univ },
+  { intros, simp_rw equiv.symm_apply_apply, rw minor_apply, },
+end
+
+/-- Reindexing both indices along the same equivalence preserves the determinant.
+
+For the `simp` version of this lemma, see `det_minor_equiv_self`; this one is unsuitable because
+`matrix.reindex_apply` unfolds `reindex` first.
+-/
+lemma det_reindex_self (e : m ≃ n) (A : matrix m m R) : det (reindex e e A) = det A :=
+det_minor_equiv_self e.symm A
 
 /-- The determinant of a permutation matrix equals its sign. -/
 @[simp] lemma det_permutation (σ : perm n) :

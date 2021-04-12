@@ -627,8 +627,9 @@ end⟩
 
 variable (R)
 
-lemma exists_maximal_independent' (s : ι → M) :∃ I : set ι, linear_independent R (λ x : I, s x) ∧
-  ∀ J : set ι, I ⊆ J → linear_independent R (λ x : J, s x) → I = J :=
+lemma exists_maximal_independent' (s : ι → M) :
+  ∃ I : set ι, linear_independent R (λ x : I, s x) ∧
+    ∀ J : set ι, I ⊆ J → linear_independent R (λ x : J, s x) → I = J :=
 begin
   let indep : set ι → Prop := λ I, linear_independent R (s ∘ coe : I → M),
   let X := { I : set ι // indep I },

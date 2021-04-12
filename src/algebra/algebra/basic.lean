@@ -609,7 +609,7 @@ variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 @[simp] lemma map_div (x y) : φ (x / y) = φ x / φ y :=
 φ.to_ring_hom.map_div x y
 
-lemma rat.smul_one_eq_coe [algebra ℚ A] (m : ℚ) :
+@[simp] lemma rat.smul_one_eq_coe [algebra ℚ A] (m : ℚ) :
   m • (1 : A) = ↑m :=
 by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
 

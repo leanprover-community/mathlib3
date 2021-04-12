@@ -288,6 +288,15 @@ begin
     exact hle x hx h'x.2 }
 end
 
+@[to_additive single_lt_sum]
+lemma single_lt_prod' {i j : ι} (hij : j ≠ i) (hi : i ∈ s) (hj : j ∈ s) (hlt : 1 < f j)
+  (hle : ∀ k ∈ s, k ≠ i → 1 ≤ f k) :
+  f i < ∏ k in s, f k :=
+calc f i = ∏ k in {i}, f k : prod_singleton.symm
+     ... < ∏ k in s, f k   :
+  prod_lt_prod_of_subset' (singleton_subset_iff.2 hi) hj (mt mem_singleton.1 hij) hlt $
+    λ k hks hki, hle k hks (mt mem_singleton.2 hki)
+
 end ordered_cancel_comm_monoid
 
 section linear_ordered_cancel_comm_monoid

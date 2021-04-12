@@ -92,10 +92,9 @@ begin
   casesI hF,
   { use f,
     exact ⟨irreducible.separable irred, ⟨0, by rw [pow_zero, expand_one]⟩⟩ },
-  { haveI qp : fact (nat.prime q) := fact_iff.mpr hF_hprime,
-    rcases exists_separable_of_irreducible q irred fn with ⟨n, g, hg⟩,
-    use g,
-    exact ⟨hg.1, ⟨n, hg.2⟩⟩, }
+  { haveI qp : fact (nat.prime q) := ⟨hF_hprime⟩,
+    rcases exists_separable_of_irreducible q irred fn with ⟨n, g, hgs, hge⟩,
+    exact ⟨g, hgs, n, hge⟩, }
 end
 
 /-- A helper lemma: if two expansions (along the positive characteristic) of two polynomials `g` and
@@ -103,21 +102,17 @@ end
 lemma contraction_degree_eq_aux [hq : fact q.prime] [hF : char_p F q]
   (g g' : polynomial F) (m m' : ℕ)
   (h_expand : expand F (q^m) g = expand F (q^m') g')
-  (h : m < m') :
-  (g.nat_degree =  g'.nat_degree) ∨ ¬g.separable :=
+  (h : m < m') (hg : g.separable):
+  g.nat_degree =  g'.nat_degree :=
 begin
-  suffices : g.separable → g.nat_degree = g'.nat_degree,
-  from (not_or_of_imp this).symm,
-
   cases exists_eq_add_nonneg_of_lt m m' h with s hs,
-  intro g_sep,
 
   rw [hs.2, pow_add, expand_mul] at h_expand,
 
   have r := expand_injective (pow_pos hq.1.pos m) h_expand,
-  rw r at g_sep,
+  rw r at hg,
 
-  cases (is_unit_or_eq_zero_of_separable_expand q s g_sep) with g'_is_unit s_zero,
+  cases (is_unit_or_eq_zero_of_separable_expand q s hg) with g'_is_unit s_zero,
   { rw [r, nat_degree_expand (q^s) g',
       nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit g'_is_unit), zero_mul ] },
   { apply false.elim,
@@ -129,12 +124,12 @@ then they have the same degree or one of them is inseparable. -/
 theorem contraction_degree_eq_or_insep
   [hq : fact q.prime] [char_p F q]
   (g g' : polynomial F) (m m' : ℕ)
-  (h_expand : expand F (q^m) g = expand F (q^m') g') :
-  (g.nat_degree = g'.nat_degree) ∨ ¬g.separable ∨ ¬g'.separable :=
+  (h_expand : expand F (q^m) g = expand F (q^m') g')
+  (hg : g.separable) (hg' : g'.separable) :
+  g.nat_degree = g'.nat_degree :=
 begin
   by_cases h : m = m',
-  { apply or.inl,
-    -- if `m = m'` then we show `g.nat_degree = g'.nat_degree` by unfolding the definitions
+  { -- if `m = m'` then we show `g.nat_degree = g'.nat_degree` by unfolding the definitions
     rw h at h_expand,
     have expand_deg : ((expand F (q ^ m')) g).nat_degree =
       (expand F (q ^ m') g').nat_degree, by rw h_expand,
@@ -142,14 +137,8 @@ begin
     apply nat.eq_of_mul_eq_mul_left (pow_pos hq.1.pos m'),
     rw [mul_comm] at expand_deg, rw expand_deg, rw [mul_comm] },
   { cases ne.lt_or_lt h,
-    { rw ←or_assoc, -- if `m < m'`, we show that the degrees agree or that `g'` is not separable
-      apply or.inl,
-      apply contraction_degree_eq_aux q g g' m m' h_expand h_1 },
-    { rw ←or.left_comm, -- if `m' < m`, we show that the degrees agree or that `g` is not separable
-      apply or.inr,
-      cases contraction_degree_eq_aux q g' g m' m h_expand.symm h_1,
-      exact or.inl h_2.symm,
-      exact or.inr h_2 } }
+    { exact contraction_degree_eq_aux q g g' m m' h_expand h_1 hg },
+    { exact (contraction_degree_eq_aux q g' g m' m h_expand.symm h_1 hg').symm, } }
 end
 
 /-- The separable degree is unique. -/

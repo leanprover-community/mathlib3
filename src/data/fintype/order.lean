@@ -10,47 +10,64 @@ import data.fintype.basic
 /-!
 # Order structures on finite sets
 
-This file provides instances showing that a `semilattice_sup_bot` on a `fintype` gives a
-`complete_lattice`, and that a `linear_order` on a nonempty `fintype` gives a
-`complete_linear_order`. The latter applies in particular to `fin (n+1)`. The instances are
-noncomputable because the definition of `Sup` uses `set.to_finset`, which implicitly
-requires a `decidable_pred` instance for every `s : set α`.
+This file shows that a `nonempty` `lattice` on a `fintype` gives a `complete_lattice`, and that a
+`linear_order` on a nonempty `fintype` gives a `complete_linear_order`. The latter applies in
+particular to `fin (n+1)`. Getting to a `bounded_lattice` from a `lattice` is computable, but the
+subsequent definitions are not, since the definitions of `Sup` and `Inf` use `set.to_finset`, which
+implicitly requires a `decidable_pred` instance for every `s : set α`.
+
+An explicit instance is inserted for a `complete_lattice` on `fin (n+1)`, but the rest are given
+as definitions, to avoid loops in instance searches.
 -/
+
+/- The maximum element in a `fintype` -/
+def fintype.top {α : Type*} [inhabited α] [fintype α] [semilattice_sup α] : α :=
+  finset.fold (⊔) (arbitrary α) id finset.univ
+
+/- The minimum element in a `fintype` -/
+def fintype.bot {α : Type*} [inhabited α] [fintype α] [semilattice_inf α] : α :=
+  finset.fold (⊓) (arbitrary α) id finset.univ
+
+lemma fintype.bot_le {α : Type*} [inhabited α] [fintype α] [semilattice_inf α] (a : α) :
+  fintype.bot ≤ a :=
+((@finset.fold_op_rel_iff_and
+  _ _ (⊓) _ _ id (arbitrary α) finset.univ (≤) (λ _ _ _, le_inf_iff) fintype.bot).mp le_rfl).2
+    a (finset.mem_univ _)
+
+lemma fintype.le_top {α : Type*} [inhabited α] [fintype α] [semilattice_sup α] (a : α) :
+  a ≤ fintype.top :=
+(((@finset.fold_op_rel_iff_and _ _ (⊔) _ _ id (arbitrary α) finset.univ (λ x y, y ≤ x)
+  (λ _ _ _, sup_le_iff) fintype.top)).mp le_rfl).2 a (finset.mem_univ a)
+
+def fintype.bounded_lattice (α : Type*) [inhabited α] [fintype α] [lattice α] :
+  bounded_lattice α :=
+{ bot := fintype.bot,
+  bot_le := fintype.bot_le,
+  top := fintype.top,
+  le_top := fintype.le_top,
+  .. (infer_instance : lattice α)}
 
 open_locale classical
 
-noncomputable def fintype.complete_semilattice_Sup (α : Type*)
-  [fintype α] [semilattice_sup_bot α] :
-  complete_semilattice_Sup α :=
-{ Sup := λ s, s.to_finset.sup id,
-  le_Sup := λ _ _ ha, finset.le_sup (set.mem_to_finset.mpr ha),
-  Sup_le := λ _ _ ha, finset.sup_le (λ b hb, ha _ (by rwa set.mem_to_finset at hb)),
-  ..(infer_instance : semilattice_sup_bot α) }
-
-noncomputable def fintype.complete_lattice_of_semilattice_sup_bot (α : Type*)
-  [fintype α] [semilattice_sup_bot α] :
+noncomputable def fintype.complete_lattice (α : Type*) [i : nonempty α] [fintype α] [lattice α] :
   complete_lattice α :=
-@complete_lattice_of_complete_semilattice_Sup α (fintype.complete_semilattice_Sup α)
-
-noncomputable def fintype.semilattice_sup_bot_of_linear_order (α : Type*)
-  [fintype α] [nonempty α] [linear_order α] :
-  semilattice_sup_bot α :=
-{ bot := classical.some (fintype.exists_min id),
-  bot_le := classical.some_spec (fintype.exists_min id),
-  sup := max,
-  le_sup_left := le_max_left,
-  le_sup_right := le_max_right,
-  sup_le := λ _ _ _, max_le,
-  ..(infer_instance : linear_order α) }
+let isb := (@semilattice_sup_bot_of_bounded_lattice α (@fintype.bounded_lattice α ⟨i.some⟩ _ _)),
+    iit := (@semilattice_inf_top_of_bounded_lattice α (@fintype.bounded_lattice α ⟨i.some⟩ _ _)) in
+{ Sup := λ s, @finset.sup _ _ isb s.to_finset id,
+  Inf := λ s, @finset.inf _ _ iit s.to_finset id,
+  le_Sup := λ _ _ ha, @finset.le_sup _ _ isb _ _ _ (set.mem_to_finset.mpr ha),
+  Sup_le := λ s _ ha, @finset.sup_le _ _ isb s.to_finset _ _
+    (λ b hb, ha _ (by rwa set.mem_to_finset at hb)),
+  Inf_le := λ _ _ ha, @finset.inf_le _ _ iit _ _ _ (set.mem_to_finset.mpr ha),
+  le_Inf := λ s _ ha, @finset.le_inf _ _ iit s.to_finset _ _
+    (λ b hb, ha _ (by rwa set.mem_to_finset at hb)),
+  ..(@fintype.bounded_lattice α ⟨i.some⟩ _ _)}
 
 noncomputable def fintype.complete_linear_order_of_linear_order (α : Type*)
   [fintype α] [nonempty α] [linear_order α] :
   complete_linear_order α :=
-let i := fintype.semilattice_sup_bot_of_linear_order α in
-{ ..@fintype.complete_lattice_of_semilattice_sup_bot α _ i,
+{ ..fintype.complete_lattice α,
   ..(infer_instance : linear_order α) }
 
 noncomputable instance {n : ℕ} : complete_linear_order (fin (n+1)) :=
   fintype.complete_linear_order_of_linear_order _
-
-

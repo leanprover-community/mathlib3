@@ -54,6 +54,16 @@ by rw support_eq_empty_iff
 
 @[simp] lemma support_refl : support (equiv.refl α) = ∅ := support_one
 
+lemma support_congr {f g : perm α} (h : f.support = g.support)
+  (h' : ∀ x ∈ f.support, f x = g x) : f = g :=
+begin
+  ext x,
+  by_cases hx : x ∈ f.support,
+  { exact h' x hx },
+  { have : x ∉ g.support := h ▸ hx,
+    rw [not_mem_support.mp hx, not_mem_support.mp this] }
+end
+
 lemma support_mul_le (f g : perm α) :
   (f * g).support ≤ f.support ⊔ g.support :=
 λ x, begin

@@ -436,13 +436,12 @@ begin
       (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
 end
 
-<<<<<<< HEAD
 section
 variables [fintype α] {σ τ : perm α}
 
 noncomputable theory
 
-lemma foo (f : {x // x ∈ (σ.support : set α)} ≃ {x // x ∈ (τ.support : set α)})
+lemma is_conj_of_support_equiv (f : {x // x ∈ (σ.support : set α)} ≃ {x // x ∈ (τ.support : set α)})
   (hf : ∀ (x : α) (hx : x ∈ (σ.support : set α)), (f ⟨σ x, apply_mem_support.2 hx⟩ : α) =
     τ ↑(f ⟨x,hx⟩)) :
   is_conj σ τ :=
@@ -461,7 +460,7 @@ begin
   rw fintype.card_eq at hc,
   obtain ⟨cequiv⟩ := hc,
   classical,
-  refine ⟨(equiv.set.sum_compl _).symm.trans ((equiv.sum_congr f cequiv).trans
+  refine is_conj_iff.2 ⟨(equiv.set.sum_compl _).symm.trans ((equiv.sum_congr f cequiv).trans
     (equiv.set.sum_compl _)), _⟩,
   rw mul_inv_eq_iff_eq_mul,
   ext,
@@ -487,7 +486,7 @@ end
 theorem is_cycle.is_conj (hσ : is_cycle σ) (hτ : is_cycle τ) (h : σ.support.card = τ.support.card) :
   is_conj σ τ :=
 begin
-  refine foo (hσ.gpowers_equiv_support.symm.trans
+    refine is_conj_of_support_equiv (hσ.gpowers_equiv_support.symm.trans
     ((gpowers_equiv_gpowers begin
       rw [order_of_is_cycle hσ, h, order_of_is_cycle hτ],
   end).trans hτ.gpowers_equiv_support)) _,
@@ -505,7 +504,8 @@ end
 theorem is_cycle.is_conj_iff (hσ : is_cycle σ) (hτ : is_cycle τ) :
   is_conj σ τ ↔ σ.support.card = τ.support.card :=
 ⟨begin
-  rintro ⟨π, rfl⟩,
+  intro h,
+  obtain ⟨π, rfl⟩ := is_conj_iff.1 h,
   apply finset.card_congr (λ a ha, π a) (λ _ ha, _) (λ _ _ _ _ ab, π.injective ab) (λ b hb, _),
   { simp [mem_support.1 ha] },
   { refine ⟨π⁻¹ b, ⟨_, π.apply_inv_self b⟩⟩,
@@ -525,18 +525,22 @@ end
 lemma card_support_conj : (σ * τ * σ⁻¹).support.card = τ.support.card :=
 by simp
 
-theorem disjoint.is_conj_mul {π ρ : perm α} (hc1 : is_conj σ π) (hc2 : is_conj τ ρ)
+end
+
+theorem disjoint.is_conj_mul {α : Type*} [fintype α] {σ τ π ρ : perm α}
+  (hc1 : is_conj σ π) (hc2 : is_conj τ ρ)
   (hd1 : disjoint σ τ) (hd2 : disjoint π ρ) :
   is_conj (σ * τ) (π * ρ) :=
 begin
-  obtain ⟨f, rfl⟩ := hc1,
-  obtain ⟨g, rfl⟩ := hc2,
+  classical,
+  obtain ⟨f, rfl⟩ := is_conj_iff.1 hc1,
+  obtain ⟨g, rfl⟩ := is_conj_iff.1 hc2,
   have hd1' := coe_inj.2 hd1.support_mul,
   have hd2' := coe_inj.2 hd2.support_mul,
   rw [coe_union] at *,
   have hd1'' := disjoint_iff_disjoint_coe.1 (disjoint_iff_disjoint_support.1 hd1),
   have hd2'' := disjoint_iff_disjoint_coe.1 (disjoint_iff_disjoint_support.1 hd2),
-  refine foo _ _,
+  refine is_conj_of_support_equiv _ _,
   { refine ((equiv.set.of_eq hd1').trans (equiv.set.union hd1'')).trans
       ((equiv.sum_congr (subtype_equiv f (λ a, _)) (subtype_equiv g (λ a, _))).trans
       ((equiv.set.of_eq hd2').trans (equiv.set.union hd2'')).symm);
@@ -571,10 +575,6 @@ begin
           (hd1 (τ x)).resolve_right hxτ, mem_coe, mem_support] } } }
 end
 
-end
-
-=======
->>>>>>> origin/master
 section fixed_points
 
 /-!

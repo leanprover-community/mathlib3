@@ -202,6 +202,24 @@ theorem map_expand {p : ℕ} (hp : 0 < p) {f : R →+* S} {q : polynomial R} :
   map f (expand R p q) = expand S p (map f q) :=
 by { ext, rw [coeff_map, coeff_expand hp, coeff_expand hp], split_ifs; simp, }
 
+/-- Expansion is injective. -/
+lemma eq_of_expand_eq {g g' : polynomial R} {n : ℕ} (hn : 0 < n):
+  expand R n g = expand R n g' → g = g' :=
+λ h,
+begin
+  ext,
+  have h' : (expand R n g).coeff (n * n_1) = (expand R n g').coeff (n * n_1) :=
+  begin
+    apply polynomial.ext_iff.1,
+    exact h,
+  end,
+
+  rw [polynomial.coeff_expand hn g (n * n_1), polynomial.coeff_expand hn g' (n * n_1)] at h',
+  simp only [if_true, dvd_mul_right] at h',
+  rw (nat.mul_div_right n_1 hn) at h',
+  exact h',
+end
+
 end comm_semiring
 
 section comm_ring

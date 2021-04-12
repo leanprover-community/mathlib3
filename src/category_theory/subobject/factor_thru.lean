@@ -32,6 +32,11 @@ Given `h : P.factors f`, you can recover the morphism as `P.factor_thru f h`.
 -/
 def factors {X Y : C} (P : mono_over Y) (f : X ⟶ Y) : Prop := ∃ g : X ⟶ P.val.left, g ≫ P.arrow = f
 
+lemma factors_congr {X : C} {f g : mono_over X} {Y : C} (h : Y ⟶ X) (e : f ≅ g) :
+  f.factors h ↔ g.factors h :=
+⟨λ ⟨u, hu⟩, ⟨u ≫ (((mono_over.forget _).map e.hom)).left, by simp [hu]⟩,
+ λ ⟨u, hu⟩, ⟨u ≫ (((mono_over.forget _).map e.inv)).left, by simp [hu]⟩⟩
+
 /-- `P.factor_thru f h` provides a factorisation of `f : X ⟶ Y` through some `P : mono_over Y`,
 given the evidence `h : P.factors f` that such a factorisation exists. -/
 def factor_thru {X Y : C} (P : mono_over Y) (f : X ⟶ Y) (h : factors P f) : X ⟶ P.val.left :=
@@ -57,27 +62,13 @@ begin
     exact ⟨i ≫ h.inv.left, by erw [category.assoc, over.w h.inv, w]⟩, },
 end
 
+@[simp] lemma mk_factors_iff {X Y Z : C} (f : Y ⟶ X) [mono f] (g : Z ⟶ X) :
+  (subobject.mk f).factors g ↔ (mono_over.mk' f).factors g :=
+iff.rfl
+
 lemma factors_iff {X Y : C} (P : subobject Y) (f : X ⟶ Y) :
   P.factors f ↔ (representative.obj P).factors f :=
-begin
-  induction P,
-  { rcases P with ⟨⟨P, ⟨⟩, g⟩, hg⟩,
-    resetI,
-    fsplit,
-    { rintro ⟨i, w⟩,
-      refine ⟨i ≫ (underlying_iso g).inv, _⟩,
-      simp only [category_theory.category.assoc],
-      convert w,
-      convert underlying_iso_arrow _, },
-    { rintro ⟨i, w⟩,
-      refine ⟨i ≫ (underlying_iso g).hom, _⟩,
-      simp only [category_theory.category.assoc],
-      convert w,
-      rw ←iso.eq_inv_comp,
-      symmetry,
-      convert underlying_iso_arrow _, }, },
-  { refl, },
-end
+quot.induction_on P $ λ a, mono_over.factors_congr _ (representative_iso _).symm
 
 lemma factors_self {X : C} (P : subobject X) : P.factors P.arrow :=
 (factors_iff _ _).mpr ⟨𝟙 P, (by simp)⟩
@@ -101,15 +92,7 @@ lemma factors_zero [has_zero_morphisms C] {X Y : C} {P : subobject Y} :
 
 lemma factors_of_le {Y Z : C} {P Q : subobject Y} (f : Z ⟶ Y) (h : P ≤ Q) :
   P.factors f → Q.factors f :=
-begin
-  revert P Q,
-  refine quotient.ind₂' _,
-  rintro P Q ⟨h⟩ ⟨g, rfl⟩,
-  refine ⟨g ≫ h.left, _⟩,
-  rw assoc,
-  congr' 1,
-  apply over.w h,
-end
+by { simp only [factors_iff], exact λ ⟨u, hu⟩, ⟨u ≫ of_le _ _ h, by simp [←hu]⟩ }
 
 /-- `P.factor_thru f h` provides a factorisation of `f : X ⟶ Y` through some `P : subobject Y`,
 given the evidence `h : P.factors f` that such a factorisation exists. -/

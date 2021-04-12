@@ -240,6 +240,16 @@ def nsmul_rec [has_zero M] [has_add M] : ℕ → M → M
 
 attribute [to_additive] npow_rec
 
+@[to_additive]
+lemma npow_rec_zero [has_one M] [has_mul M] (a : M) :
+  npow_rec 0 a = 1 := rfl
+
+@[to_additive]
+lemma npow_rec_succ [has_one M] [has_mul M] (n : ℕ) (a : M) :
+  npow_rec n.succ a = npow_rec n a * a := rfl
+
+attribute [irreducible] npow_rec nsmul_rec
+
 end
 
 
@@ -298,6 +308,15 @@ library_note "forgetful inheritance"
 if they hold by definition. -/
 meta def try_refl_tac : tactic unit := `[intros; refl]
 
+/-- `npow_rec_zero_tac` tries to solve goals of the form `∀ a, npow_rec 0 a = 1`. -/
+meta def npow_rec_zero_tac := `[intros; apply npow_rec_zero]
+/-- `npow_rec_succ_tac` tries to solve goals of the form `∀ a n, npow_rec n.succ a = npow n a * a`. -/
+meta def npow_rec_succ_tac := `[intros; apply npow_rec_succ]
+/-- `nsmul_rec_zero_tac` tries to solve goals of the form `∀ a, nsmul_rec 0 a = 0`. -/
+meta def nsmul_rec_zero_tac := `[intros; apply nsmul_rec_zero]
+/-- `nsmul_rec_succ_tac` tries to solve goals of the form `∀ a n, nsmul_rec n.succ a = nsmul n a + a`. -/
+meta def nsmul_rec_succ_tac := `[intros; apply nsmul_rec_succ]
+
 /-!
 ### Design note on `add_monoid` and `monoid`
 
@@ -334,8 +353,8 @@ properties that we need right away.
 @[ancestor semigroup mul_one_class]
 class monoid (M : Type u) extends semigroup M, mul_one_class M :=
 (npow : ℕ → M → M := npow_rec)
-(npow_zero' : ∀ x, npow 0 x = 1 . try_refl_tac)
-(npow_succ' : ∀ (n : ℕ) x, npow n.succ x = npow n x * x . try_refl_tac)
+(npow_zero' : ∀ x, npow 0 x = 1 . npow_rec_zero_tac)
+(npow_succ' : ∀ (n : ℕ) x, npow n.succ x = npow n x * x . npow_rec_succ_tac)
 
 export monoid (npow)
 
@@ -343,8 +362,8 @@ export monoid (npow)
 @[ancestor add_semigroup add_zero_class]
 class add_monoid (M : Type u) extends add_semigroup M, add_zero_class M :=
 (nsmul : ℕ → M → M := nsmul_rec)
-(nsmul_zero' : ∀ x, nsmul 0 x = 0 . try_refl_tac)
-(nsmul_succ' : ∀ (n : ℕ) x, nsmul n.succ x = nsmul n x + x . try_refl_tac)
+(nsmul_zero' : ∀ x, nsmul 0 x = 0 . nsmul_rec_zero_tac)
+(nsmul_succ' : ∀ (n : ℕ) x, nsmul n.succ x = nsmul n x + x . nsmul_rec_succ_tac)
 
 export add_monoid (nsmul)
 

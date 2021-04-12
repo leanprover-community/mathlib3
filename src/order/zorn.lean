@@ -252,6 +252,17 @@ let ⟨m, hm⟩ := @exists_maximal_of_nonempty_chains_bounded α (≤) _ h (λ a
 ⟨m, λ a ha, le_antisymm (hm a ha) ha⟩
 
 theorem zorn_partial_order₀ {α : Type u} [partial_order α] (s : set α)
+  (ih : ∀ c ⊆ s, chain (≤) c → ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub) :
+  ∃ m ∈ s, ∀ z ∈ s, m ≤ z → z = m :=
+let ⟨⟨m, hms⟩, h⟩ := @zorn_partial_order {m // m ∈ s} _
+  (λ c hc,
+    let ⟨ub, hubs, hub⟩ := ih (subtype.val '' c) (λ _ ⟨⟨x, hx⟩, _, h⟩, h ▸ hx)
+      (by { rintro _ ⟨p, hpc, rfl⟩ _ ⟨q, hqc, rfl⟩ hpq;
+        refine hc _ hpc _ hqc (λ t, hpq (subtype.ext_iff.1 t)) })
+    in ⟨⟨ub, hubs⟩, λ ⟨y, hy⟩ hc, hub _ ⟨_, hc, rfl⟩⟩)
+in ⟨m, hms, λ z hzs hmz, congr_arg subtype.val (h ⟨z, hzs⟩ hmz)⟩
+
+theorem zorn_nonempty_partial_order₀ {α : Type u} [partial_order α] (s : set α)
   (ih : ∀ c ⊆ s, chain (≤) c → ∀ y ∈ c, ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub)
   (x : α) (hxs : x ∈ s) : ∃ m ∈ s, x ≤ m ∧ ∀ z ∈ s, m ≤ z → z = m :=
 let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m} _

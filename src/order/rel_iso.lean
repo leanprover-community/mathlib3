@@ -534,6 +534,8 @@ e.to_equiv.apply_symm_apply x
 @[simp] lemma symm_apply_apply (e : α ≃o β) (x : α) : e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply x
 
+@[simp] lemma symm_refl (α : Type*) [has_le α] : (refl α).symm = refl α := rfl
+
 lemma apply_eq_iff_eq_symm_apply (e : α ≃o β) (x : α) (y : β) : e x = y ↔ x = e.symm y :=
 e.to_equiv.apply_eq_iff_eq_symm_apply
 
@@ -553,6 +555,10 @@ lemma symm_injective : injective (symm : (α ≃o β) → (β ≃o α)) :=
 @[simp] lemma coe_trans (e : α ≃o β) (e' : β ≃o γ) : ⇑(e.trans e') = e' ∘ e := rfl
 
 lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e' (e x) := rfl
+
+@[simp] lemma refl_trans (e : α ≃o β) : (refl α).trans e = e := by { ext x, refl }
+
+@[simp] lemma trans_refl (e : α ≃o β) : e.trans (refl β) = e := by { ext x, refl }
 
 end has_le
 

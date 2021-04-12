@@ -247,6 +247,8 @@ by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
 
 lemma fin.prod_const [comm_monoid α] (n : ℕ) (x : α) : ∏ i : fin n, x = x ^ n := by simp
 
+lemma fin.sum_const [add_comm_monoid α] (n : ℕ) (x : α) : ∑ i : fin n, x = n •ℕ x := by simp
+
 @[to_additive]
 lemma function.bijective.prod_comp [fintype α] [fintype β] [comm_monoid γ] {f : α → β}
   (hf : function.bijective f) (g : β → γ) :

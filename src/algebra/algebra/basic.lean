@@ -609,10 +609,6 @@ variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 @[simp] lemma map_div (x y) : φ (x / y) = φ x / φ y :=
 φ.to_ring_hom.map_div x y
 
-@[simp] lemma rat.smul_one_eq_coe [algebra ℚ A] (m : ℚ) :
-  m • (1 : A) = ↑m :=
-by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
-
 end division_ring
 
 theorem injective_iff {R A B : Type*} [comm_semiring R] [ring A] [semiring B]
@@ -621,6 +617,10 @@ theorem injective_iff {R A B : Type*} [comm_semiring R] [ring A] [semiring B]
 ring_hom.injective_iff (f : A →+* B)
 
 end alg_hom
+
+@[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
+  m • (1 : A) = ↑m :=
+by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
 
 set_option old_structure_cmd true
 /-- An equivalence of algebras is an equivalence of rings commuting with the actions of scalars. -/

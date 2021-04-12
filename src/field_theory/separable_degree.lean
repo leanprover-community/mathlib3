@@ -34,7 +34,7 @@ open_locale classical
 section comm_semiring
 
 variables {F : Type} [comm_semiring F]
-  (q : ℕ) [exp_char F q]
+  (q : ℕ)
 
 /-- A separable contraction of a polynomial `f` is a separable polynomial `g` such that
 `g(x^(q^m)) = f(x)` for some `m : ℕ`.-/
@@ -65,7 +65,7 @@ lemma separable_degree_dvd_degree :
 exists.elim (separable_degree_dvd_degree' q hf) (λ a, λ ha, dvd.intro (q ^ a) ha)
 
 /-- In exponential characteristic one, the separable degree equals the degree. -/
-lemma separable_degree_eq_degree {f : polynomial F} [exp_char F 1]
+lemma separable_degree_eq_degree {f : polynomial F}
   (hf : has_separable_contraction 1 f) : (separable_degree 1 hf) = f.nat_degree :=
 exists.elim (separable_degree_dvd_degree' 1 hf) (λ a, λ ha, by rw [←ha, one_pow a, mul_one])
 
@@ -82,7 +82,7 @@ end comm_semiring
 section field
 
 variables {F : Type} [field F]
-  (q : ℕ) [hF : exp_char F q]
+  (q : ℕ)
   {f : polynomial F} (hf : has_separable_contraction q f)
 
 /-- Every irreducible polynomial can be contracted to a separable polynomial.
@@ -158,7 +158,7 @@ begin
 end
 
 /-- The separable degree is unique. -/
-theorem separable_degree_eq {n n' : ℕ} :
+theorem separable_degree_eq {n n' : ℕ} [hF : exp_char F q] :
   separable_degree q hf = n → separable_degree q hf = n' → n = n' :=
 λ h, λ h',
 begin

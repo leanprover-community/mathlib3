@@ -427,67 +427,23 @@ end set
 
 section
 
-inductive hig (r : α → α → Prop) [decidable_rel r] : list α → list α → Prop
-| h1 {l} : hig [] l
-| h2 {a₁ a₂ l₁ l₂} (h1 : r a₁ a₂) (h2 : hig l₁ l₂) : hig (a₁ :: l₁) (a₂ :: l₂)
-| h3 {a l₁ l₂} (h : hig l₁ l₂) : hig l₁ (a :: l₂)
+def is_bad (r : α → α → Prop) (s : set α) (f : ℕ → list α) : Prop :=
+set.range f ⊆ {l : list α | ∀ (x : α), x ∈ l → x ∈ s} ∧ ∀ (m n : ℕ), m < n →
+  ¬ sublist_forall₂ r (f m) (f n)
 
-instance hig.is_refl (r : α → α → Prop) [decidable_rel r] [is_refl α r] :
-  is_refl (list α) (hig r) :=
-⟨λ l, begin
-  induction l with a t ih,
-  { exact hig.h1 },
-  { exact hig.h2 (refl a) ih }
-end⟩
-
-instance hig.is_trans (r : α → α → Prop) [decidable_rel r] [is_trans α r] :
-  is_trans (list α) (hig r) :=
-⟨λ a b c, begin
-  revert a b,
-  induction c with _ _ ih,
-  { rintros _ _ h1 (_ | _ | _),
-    exact h1 },
-  { rintros a b h1 h2,
-    cases h2 with _ _ _ _ _ hbc tbc _ _ y1 btc,
-    { cases h1,
-      exact hig.h1 },
-    { cases h1 with _ _ _ _ _ hab tab _ _ _ atb,
-      { exact hig.h1 },
-      { exact hig.h2 (trans hab hbc) (ih _ _ tab tbc) },
-      { exact hig.h3 (ih _ _ atb tbc) } },
-    { exact hig.h3 (ih _ _ h1 btc), } }
-end⟩
-
-lemma tail_hig_self (r : α → α → Prop) [decidable_rel r] [is_refl α r] (l : list α) :
-  hig r l.tail l :=
-begin
-  by_cases h : l = list.nil,
-  { rw [h, list.tail_nil],
-    apply refl },
-  { have h0 : ¬ _ := λ con, h (list.eq_nil_iff_forall_not_mem.2 con),
-    push_neg at h0,
-    obtain ⟨a, ha⟩ := h0,
-    haveI : inhabited α := ⟨a⟩,
-    have h' := hig.h3 (refl (l.tail)),
-    rwa [list.cons_head_tail h] at h',
-    apply_instance }
-end
-
-def is_bad (r : α → α → Prop) [decidable_rel r] (s : set α) (f : ℕ → list α) : Prop :=
-set.range f ⊆ {l : list α | ∀ (x : α), x ∈ l → x ∈ s} ∧ ∀ (m n : ℕ), m < n → ¬hig r (f m) (f n)
-
-lemma foo (r : α → α → Prop) [decidable_rel r] (s : set α) :
-  { l : list α | ∀ x, x ∈ l → x ∈ s }.partially_well_ordered_on (hig r) ↔ ∀ f, ¬ is_bad r s f :=
+lemma foo (r : α → α → Prop) (s : set α) :
+  { l : list α | ∀ x, x ∈ l → x ∈ s }.partially_well_ordered_on (sublist_forall₂ r) ↔
+    ∀ f, ¬ is_bad r s f :=
 begin
   rw [set.partially_well_ordered_on],
   apply forall_congr (λ f, _),
   simp [is_bad]
 end
 
-def is_min_bad (r : α → α → Prop) [decidable_rel r] (s : set α) (n : ℕ) (f : ℕ → list α) : Prop :=
+def is_min_bad (r : α → α → Prop) (s : set α) (n : ℕ) (f : ℕ → list α) : Prop :=
   ∀ g : ℕ → list α, (∀ (m : ℕ), m < n → f m = g m) → (g n).length < (f n).length → ¬ is_bad r s g
 
-noncomputable def baz (r : α → α → Prop) [decidable_rel r] (s : set α) (n : ℕ) (f : ℕ → list α)
+noncomputable def baz (r : α → α → Prop) (s : set α) (n : ℕ) (f : ℕ → list α)
   (hf : is_bad r s f) :
   { g : ℕ → list α // (∀ (m : ℕ), m < n → f m = g m) ∧ is_bad r s g ∧ is_min_bad r s n g } :=
 begin
@@ -503,7 +459,7 @@ begin
   rwa ← h3,
 end
 
-lemma bar (r : α → α → Prop) [decidable_rel r] (s : set α) :
+lemma bar (r : α → α → Prop) (s : set α) :
   (∃ f, is_bad r s f) → ∃ f, is_bad r s f ∧ ∀ n, is_min_bad r s n f :=
 begin
   classical,
@@ -539,26 +495,9 @@ begin
     rw ← h m n (le_of_lt mn) },
 end
 
-namespace list
-lemma mem_of_mem_tail {a : α} {l : list α} (h : a ∈ l.tail) : a ∈ l :=
-begin
-  cases l,
-  { rwa tail_nil at h },
-  rw tail_cons at h,
-  exact mem_cons_of_mem _ h,
-end
-
-lemma head_mem_self [inhabited α] {l : list α} (h : l ≠ nil) : l.head ∈ l :=
-begin
-  have h' := mem_cons_self l.head l.tail,
-  rwa cons_head_tail h at h',
-end
-
-end list
-
-lemma higman (r : α → α → Prop) [decidable_rel r] [is_refl α r] [is_trans α r]
+lemma higman (r : α → α → Prop) [is_refl α r] [is_trans α r]
   (s : set α) (h : s.partially_well_ordered_on r) :
-  { l : list α | ∀ x, x ∈ l → x ∈ s }.partially_well_ordered_on (hig r) :=
+  { l : list α | ∀ x, x ∈ l → x ∈ s }.partially_well_ordered_on (sublist_forall₂ r) :=
 begin
   rcases s.eq_empty_or_nonempty with rfl | ⟨as, has⟩,
   { have h : { l : list α | ∀ x, x ∈ l → x ∈ (∅ : set α) } = {list.nil},
@@ -575,7 +514,7 @@ begin
     { intros n con,
       apply (hf1).2 n n.succ n.lt_succ_self,
       rw con,
-      exact hig.h1 },
+      exact sublist_forall₂.nil },
   obtain ⟨g, hg⟩ := h.exists_monotone_subseq (list.head ∘ f) _,
   swap, { rw set.range_subset_iff,
     intro n,
@@ -603,11 +542,11 @@ begin
     rw [add_comm (g 0) n', nat.add_sub_cancel] at hmn,
     split_ifs at hmn with hm hm,
     { apply hf1.2 m (g n') (lt_of_lt_of_le hm (g.monotone n'.zero_le)),
-      exact trans hmn (tail_hig_self _ _) },
+      exact trans hmn (tail_sublist_forall₂_self _ _) },
     { rw [← (nat.sub_lt_left_iff_lt_add (le_of_not_lt hm))] at mn,
       apply hf1.2 _ _ (g.lt_iff_lt.2 mn),
       rw [← list.cons_head_tail (hnil (g (m - g 0))), ← list.cons_head_tail (hnil (g n'))],
-      apply hig.h2 _ hmn,
+      apply sublist_forall₂.cons _ hmn,
       have h := hg _ _ (le_of_lt mn),
       rwa [function.comp_apply, function.comp_apply] at h } }
 end

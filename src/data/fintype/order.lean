@@ -19,9 +19,7 @@ requires a `decidable_pred` instance for every `s : set α`.
 
 open_locale classical
 
-variables {α : Type*}
-
-@[priority 100] noncomputable instance fintype.complete_semilattice_Sup
+noncomputable def fintype.complete_semilattice_Sup (α : Type*)
   [fintype α] [semilattice_sup_bot α] :
   complete_semilattice_Sup α :=
 { Sup := λ s, s.to_finset.sup id,
@@ -29,12 +27,12 @@ variables {α : Type*}
   Sup_le := λ _ _ ha, finset.sup_le (λ b hb, ha _ (by rwa set.mem_to_finset at hb)),
   ..(infer_instance : semilattice_sup_bot α) }
 
-@[priority 100] noncomputable instance fintype.complete_lattice_of_semilattice_sup_bot
+noncomputable def fintype.complete_lattice_of_semilattice_sup_bot (α : Type*)
   [fintype α] [semilattice_sup_bot α] :
   complete_lattice α :=
-complete_lattice_of_complete_semilattice_Sup _
+@complete_lattice_of_complete_semilattice_Sup α (fintype.complete_semilattice_Sup α)
 
-@[priority 100] noncomputable instance fintype.semilattice_sup_bot_of_linear_order
+noncomputable def fintype.semilattice_sup_bot_of_linear_order (α : Type*)
   [fintype α] [nonempty α] [linear_order α] :
   semilattice_sup_bot α :=
 { bot := classical.some (fintype.exists_min id),
@@ -45,8 +43,14 @@ complete_lattice_of_complete_semilattice_Sup _
   sup_le := λ _ _ _, max_le,
   ..(infer_instance : linear_order α) }
 
-@[priority 100] noncomputable instance fintype.complete_linear_order_of_linear_order
+noncomputable def fintype.complete_linear_order_of_linear_order (α : Type*)
   [fintype α] [nonempty α] [linear_order α] :
   complete_linear_order α :=
-{ ..fintype.complete_lattice_of_semilattice_sup_bot,
+let i := fintype.semilattice_sup_bot_of_linear_order α in
+{ ..@fintype.complete_lattice_of_semilattice_sup_bot α _ i,
   ..(infer_instance : linear_order α) }
+
+noncomputable instance {n : ℕ} : complete_linear_order (fin (n+1)) :=
+  fintype.complete_linear_order_of_linear_order _
+
+

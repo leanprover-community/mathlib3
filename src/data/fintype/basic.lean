@@ -241,10 +241,11 @@ def equiv_fin_of_forall_mem_list {α} [decidable_eq α]
  λ ⟨i, h⟩, fin.eq_of_veq $ list.nodup_iff_nth_le_inj.1 nd _ _
    (list.index_of_lt_length.2 (list.nth_le_mem _ _ _)) h $ by simp⟩
 
-/-- There is (computably) a bijection between `α` and `fin n` where
-  `n = card α`. Since it is not unique, and depends on which permutation
-  of the universe list is used, the bijection is wrapped in `trunc` to
-  preserve computability.
+/-- There is (computably) a bijection between `α` and `fin (card α)`.
+
+Since it is not unique, and depends on which permutation
+of the universe list is used, the bijection is wrapped in `trunc` to
+preserve computability.
 
 See `fintype.equiv_fin` for the noncomputable version,
 and `fintype.trunc_equiv_fin_of_card_eq` and `fintype.equiv_fin_of_card_eq`
@@ -256,7 +257,7 @@ quot.rec_on_subsingleton (@univ α _).1
   (λ l (h : ∀ x:α, x ∈ l) (nd : l.nodup), trunc.mk (equiv_fin_of_forall_mem_list h nd))
   mem_univ_val univ.2
 
-/-- There is a (noncomputable) bijection between `α` and `fin n` where `n = card α`.
+/-- There is a (noncomputable) bijection between `α` and `fin (card α)`.
 
 See `fintype.trunc_equiv_fin` for the computable version,
 and `fintype.trunc_equiv_fin_of_card_eq` and `fintype.equiv_fin_of_card_eq`

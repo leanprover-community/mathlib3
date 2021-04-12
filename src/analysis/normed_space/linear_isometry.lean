@@ -19,10 +19,10 @@ theory for `semi_normed_space` and we specialize to `normed_space` when needed.
 -/
 open function set
 
-variables {R E F G G' E₁ F₁ : Type*} [semiring R]
+variables {R E F G G' E₁ : Type*} [semiring R]
   [semi_normed_group E] [semi_normed_group F] [semi_normed_group G] [semi_normed_group G']
   [semimodule R E] [semimodule R F] [semimodule R G] [semimodule R G']
-  [normed_group E₁] [normed_group F₁] [semimodule R E₁] [semimodule R F₁]
+  [normed_group E₁] [semimodule R E₁]
 
 /-- An `R`-linear isometric embedding of one normed `R`-module into another. -/
 structure linear_isometry (R E F : Type*) [semiring R] [semi_normed_group E]
@@ -69,7 +69,7 @@ f.to_linear_map.to_add_monoid_hom.isometry_of_norm f.norm_map
 
 protected lemma injective : injective f₁ := f₁.isometry.injective
 
-lemma map_eq_iff {x y : E₁} : f₁ x = f₁ y ↔ x = y := f₁.injective.eq_iff
+@[simp] lemma map_eq_iff {x y : E₁} : f₁ x = f₁ y ↔ x = y := f₁.injective.eq_iff
 
 lemma map_ne {x y : E₁} (h : x ≠ y) : f₁ x ≠ f₁ y := f₁.injective.ne h
 
@@ -96,9 +96,9 @@ def to_continuous_linear_map : E →L[R] F := ⟨f.to_linear_map, f.continuous�
 
 @[simp] lemma coe_to_continuous_linear_map : ⇑f.to_continuous_linear_map = f := rfl
 
-@[simp] lemma comp_continuous_iff {α : Type*} [topological_space α] {g : α → E₁} :
-  continuous (f₁ ∘ g) ↔ continuous g :=
-f₁.isometry.uniform_embedding.to_uniform_inducing.inducing.continuous_iff.symm
+@[simp] lemma comp_continuous_iff {α : Type*} [topological_space α] {g : α → E} :
+  continuous (f ∘ g) ↔ continuous g :=
+f.isometry.comp_continuous_iff
 
 /-- The identity linear isometry. -/
 def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
@@ -164,7 +164,7 @@ notation E ` ≃ₗᵢ[`:25 R:25 `] `:0 F:0 := linear_isometry_equiv R E F
 
 namespace linear_isometry_equiv
 
-variables (e : E ≃ₗᵢ[R] F) (e₁ : E₁ ≃ₗᵢ[R] F)
+variables (e : E ≃ₗᵢ[R] F)
 
 instance : has_coe_to_fun (E ≃ₗᵢ[R] F) := ⟨_, λ f, f.to_fun⟩
 
@@ -315,12 +315,12 @@ e.isometry.diam_image s
 
 variables {α : Type*} [topological_space α]
 
-@[simp] lemma comp_continuous_on_iff {f₁ : α → E₁} {s : set α} :
-  continuous_on (e₁ ∘ f₁) s ↔ continuous_on f₁ s :=
-e₁.isometry.comp_continuous_on_iff
+@[simp] lemma comp_continuous_on_iff {f : α → E} {s : set α} :
+  continuous_on (e ∘ f) s ↔ continuous_on f s :=
+e.isometry.comp_continuous_on_iff
 
-@[simp] lemma comp_continuous_iff {f₁ : α → E₁} :
-  continuous (e₁ ∘ f₁) ↔ continuous f₁ :=
-e₁.isometry.comp_continuous_iff
+@[simp] lemma comp_continuous_iff {f : α → E} :
+  continuous (e ∘ f) ↔ continuous f :=
+e.isometry.comp_continuous_iff
 
 end linear_isometry_equiv

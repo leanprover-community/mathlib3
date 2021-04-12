@@ -197,7 +197,7 @@ instance : metric_space ℤ_[p] := subtype.metric_space
 instance complete_space : complete_space ℤ_[p] :=
 begin
   delta padic_int,
-  rw [complete_space_iff_is_complete_range uniform_embedding_subtype_coe,
+  rw [complete_space_iff_is_complete_range uniform_embedding_subtype_coe.to_uniform_inducing,
     subtype.range_coe_subtype],
   have : is_complete (closed_ball (0 : ℚ_[p]) 1) := is_closed_ball.is_complete,
   simpa [closed_ball],

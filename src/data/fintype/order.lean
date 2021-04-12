@@ -20,11 +20,11 @@ An explicit instance is given for a `complete_lattice` on `fin (n+1)`, but the r
 as `def`s, to avoid loops in instance searches.
 -/
 
-/- The maximum element in a `fintype` -/
+/- The maximum element in a `fintype` with `semilattice_sup` -/
 def fintype.top (α : Type*) [inhabited α] [fintype α] [semilattice_sup α] : α :=
   finset.fold (⊔) (arbitrary α) id finset.univ
 
-/- The minimum element in a `fintype` -/
+/- The minimum element in a `fintype` with `semilattice_inf` -/
 def fintype.bot (α : Type*) [inhabited α] [fintype α] [semilattice_inf α] : α :=
   finset.fold (⊓) (arbitrary α) id finset.univ
 
@@ -38,6 +38,10 @@ lemma fintype.exists_bot (α : Type*) [i : nonempty α] [fintype α] [semilattic
   ∃ m, ∀ a : α, m ≤ a :=
 ⟨@fintype.bot α ⟨i.some⟩ _ _, @fintype.bot_le α ⟨i.some⟩ _ _⟩
 
+lemma fintype.eq_bot_iff (α : Type*) [inhabited α] [fintype α] [semilattice_inf α] (a : α) :
+  a = fintype.bot α ↔ ∀ x, a ≤ x :=
+⟨by {rintro rfl, apply fintype.bot_le}, λ h, le_antisymm (h _) (fintype.bot_le _ _)⟩
+
 lemma fintype.le_top (α : Type*) [inhabited α] [fintype α] [semilattice_sup α] (a : α) :
   a ≤ fintype.top α :=
 (((@finset.fold_op_rel_iff_and _ _ (⊔) _ _ id (arbitrary α) finset.univ (λ x y, y ≤ x)
@@ -46,6 +50,10 @@ lemma fintype.le_top (α : Type*) [inhabited α] [fintype α] [semilattice_sup �
 lemma fintype.exists_top (α : Type*) [i : nonempty α] [fintype α] [semilattice_sup α] :
   ∃ m, ∀ a : α, a ≤ m :=
 ⟨@fintype.top α ⟨i.some⟩ _ _, @fintype.le_top α ⟨i.some⟩ _ _⟩
+
+lemma fintype.eq_top_iff (α : Type*) [inhabited α] [fintype α] [semilattice_sup α] (a : α) :
+  a = fintype.top α ↔ ∀ x, x ≤ a :=
+⟨by {rintro rfl, apply fintype.le_top}, λ h, le_antisymm (fintype.le_top _ _) (h _)⟩
 
 def fintype.bounded_lattice (α : Type*) [inhabited α] [fintype α] [lattice α] :
   bounded_lattice α :=
@@ -89,7 +97,7 @@ lemma fintype.Sup_eq {α : Type*} [nonempty α] [fintype α] [lattice α] (s : s
   [decidable_pred (∈ s)] : Sup s = s.to_finset.sup id :=
 by {convert rfl}
 
-/-- The `Sup` induced by `fintype.complete_semilattice` unfolds to `finset.sup`. -/
+/-- The `Inf` induced by `fintype.complete_semilattice` unfolds to `finset.inf`. -/
 lemma fintype.Inf_eq {α : Type*} [nonempty α] [fintype α] [lattice α] (s : set α)
   [decidable_pred (∈ s)] : Inf s = s.to_finset.inf id :=
 by {convert rfl}

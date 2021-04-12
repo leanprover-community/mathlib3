@@ -327,7 +327,7 @@ theorem coprime_one_left : ∀ n, coprime 1 n := gcd_one_left
 theorem coprime_one_right : ∀ n, coprime n 1 := gcd_one_right
 
 theorem coprime.pow_left {m k : ℕ} (n : ℕ) (H1 : coprime m k) : coprime (m ^ n) k :=
-nat.rec_on n (coprime_one_left _) (λn IH, IH.mul H1)
+nat.rec_on n (coprime_one_left _) (λn IH, H1.mul IH)
 
 theorem coprime.pow_right {m k : ℕ} (n : ℕ) (H1 : coprime k m) : coprime k (m ^ n) :=
 (H1.symm.pow_left n).symm

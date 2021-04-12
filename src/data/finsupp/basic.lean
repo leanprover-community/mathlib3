@@ -860,7 +860,7 @@ instance : add_monoid (α →₀ M) :=
   add_assoc := assume ⟨s, f, hf⟩ ⟨t, g, hg⟩ ⟨u, h, hh⟩, ext $ assume a, add_assoc _ _ _,
   nsmul := λ n v, v.map_range ((•) n) (nsmul_zero _),
   nsmul_zero' := λ v, by { ext i, simp },
-  nsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_add_one, add_nsmul] },
+  nsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_nsmul] },
   .. finsupp.add_zero_class }
 
 end add_monoid

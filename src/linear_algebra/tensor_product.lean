@@ -406,7 +406,7 @@ tensor_product.induction_on x
 instance : add_comm_monoid (M ⊗[R] N) :=
 { nsmul := λ n v, n • v,
   nsmul_zero' := by simp [tensor_product.zero_smul],
-  nsmul_succ' := by simp [nat.succ_eq_add_one, tensor_product.one_smul, tensor_product.add_smul],
+  nsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
   .. tensor_product.add_comm_semigroup _ _, .. tensor_product.add_zero_class _ _}
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution

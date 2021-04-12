@@ -23,6 +23,9 @@ This file contains:
 
 universes u v
 
+lemma nat.succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
+by rw [nat.succ_eq_add_one, nat.add_comm]
+
 /-! ### instances -/
 
 instance : nontrivial ℕ :=
@@ -47,7 +50,7 @@ instance : comm_semiring nat :=
   mul_comm       := nat.mul_comm,
   nsmul          := λ m n, m * n,
   nsmul_zero'    := nat.zero_mul,
-  nsmul_succ'    := nat.succ_mul }
+  nsmul_succ'    := λ n x, by rw [nat.succ_eq_one_add, nat.right_distrib, nat.one_mul] }
 
 instance : linear_ordered_semiring nat :=
 { add_left_cancel            := @nat.add_left_cancel,
@@ -1575,14 +1578,14 @@ eq.rec_on n.bit_decomp (H (bodd n) (div2 n))
 
 lemma shiftl_eq_mul_pow (m) : ∀ n, shiftl m n = m * 2 ^ n
 | 0     := (nat.mul_one _).symm
-| (k+1) := show bit0 (shiftl m k) = m * (2 ^ k * 2),
+| (k+1) := show bit0 (shiftl m k) = m * (2 * 2 ^ k),
   by rw [bit0_val, shiftl_eq_mul_pow, mul_left_comm, mul_comm 2 _]
 
 lemma shiftl'_tt_eq_mul_pow (m) : ∀ n, shiftl' tt m n + 1 = (m + 1) * 2 ^ n
 | 0     := by simp [shiftl, shiftl', pow_zero, nat.one_mul]
 | (k+1) :=
 begin
-  change bit1 (shiftl' tt m k) + 1 = (m + 1) * (2 ^ k * 2),
+  change bit1 (shiftl' tt m k) + 1 = (m + 1) * (2 * 2 ^ k),
   rw bit1_val,
   change 2 * (shiftl' tt m k + 1) = _,
   rw [shiftl'_tt_eq_mul_pow, mul_left_comm, mul_comm 2],
@@ -1597,7 +1600,7 @@ lemma one_shiftl (n) : shiftl 1 n = 2 ^ n :=
 lemma shiftr_eq_div_pow (m) : ∀ n, shiftr m n = m / 2 ^ n
 | 0     := (nat.div_one _).symm
 | (k+1) := (congr_arg div2 (shiftr_eq_div_pow k)).trans $
-           by rw [div2_val, nat.div_div_eq_div_mul]; refl
+           by rw [div2_val, nat.div_div_eq_div_mul, mul_comm]; refl
 
 @[simp] lemma zero_shiftr (n) : shiftr 0 n = 0 :=
 (shiftr_eq_div_pow _ _).trans (nat.zero_div _)

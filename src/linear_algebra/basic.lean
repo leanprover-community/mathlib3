@@ -199,7 +199,7 @@ instance : add_comm_monoid (M →ₗ[R] M₂) :=
     map_add' := λ x y, by rw [f.map_add, smul_add],
     map_smul' := λ c x, by rw [f.map_smul, smul_comm n c (f x)] },
   nsmul_zero' := λ f, by { ext x, simp },
-  nsmul_succ' := λ n f, by { ext x, simp [nat.succ_eq_add_one, add_nsmul] } }
+  nsmul_succ' := λ n f, by { ext x, simp [nat.succ_eq_one_add, add_nsmul] } }
 
 instance linear_map_apply_is_add_monoid_hom (a : M) :
   is_add_monoid_hom (λ f : M →ₗ[R] M₂, f a) :=
@@ -1172,7 +1172,7 @@ instance : add_comm_group (quotient p) :=
      λ x y h, (quotient.eq p).2 $ by simpa [smul_sub] using smul_of_tower_mem p n h,
   nsmul_zero' := by { rintros ⟨⟩, simp only [mk_zero, quot_mk_eq_mk, zero_smul], refl },
   nsmul_succ' := by { rintros n ⟨⟩,
-    simp only [nat.succ_eq_add_one, add_nsmul, mk_add, quot_mk_eq_mk, one_nsmul], refl } }
+    simp only [nat.succ_eq_one_add, add_nsmul, mk_add, quot_mk_eq_mk, one_nsmul], refl } }
 
 instance : has_scalar R (quotient p) :=
 ⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $

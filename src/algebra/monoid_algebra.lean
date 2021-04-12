@@ -733,7 +733,7 @@ instance : semiring (add_monoid_algebra k G) :=
   add       := (+),
   nsmul     := λ n f, n • f,
   nsmul_zero' := by { intros, ext, simp [-nsmul_eq_mul, add_smul] },
-  nsmul_succ' := by { intros, ext, simp [-nsmul_eq_mul, nat.succ_eq_add_one, add_smul] },
+  nsmul_succ' := by { intros, ext, simp [-nsmul_eq_mul, nat.succ_eq_one_add, add_smul] },
   .. add_monoid_algebra.mul_one_class,
   .. add_monoid_algebra.semigroup,
   .. add_monoid_algebra.mul_zero_class,

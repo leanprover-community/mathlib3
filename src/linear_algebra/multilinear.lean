@@ -147,7 +147,7 @@ instance : add_comm_monoid (multilinear_map R M₁ M₂) :=
   add_comm := by intros; ext; simp [add_comm, add_left_comm],
   nsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
   nsmul_zero' := λ f, by { ext, simp },
-  nsmul_succ' := λ n f, by { ext, simp [add_smul, nat.succ_eq_add_one] } }
+  nsmul_succ' := λ n f, by { ext, simp [add_smul, nat.succ_eq_one_add] } }
 
 @[simp] lemma sum_apply {α : Type*} (f : α → multilinear_map R M₁ M₂)
   (m : Πi, M₁ i) : ∀ {s : finset α}, (∑ a in s, f a) m = ∑ a in s, f a m :=

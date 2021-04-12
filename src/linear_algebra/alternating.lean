@@ -191,7 +191,7 @@ instance : add_comm_monoid (alternating_map R M N ι) :=
   nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
     .. ((n • f : multilinear_map R (λ i : ι, M) N)) },
   nsmul_zero' := by { intros, ext, simp [add_smul], },
-  nsmul_succ' := by { intros, ext, simp [add_smul, nat.succ_eq_add_one], } }
+  nsmul_succ' := by { intros, ext, simp [add_smul, nat.succ_eq_one_add], } }
 
 instance : has_neg (alternating_map R M N' ι) :=
 ⟨λ f,

@@ -84,7 +84,7 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
   nsmul         := λ n, quot.map ((•) n) (rel.smul n),
   nsmul_zero'   := by { rintro ⟨⟩, exact congr_arg (quot.mk _) (zero_nsmul _) },
   nsmul_succ'   := by { rintros n ⟨⟩, refine congr_arg (quot.mk _) _,
-                        simp only [nat.succ_eq_add_one, add_smul, one_smul] } }
+                        simp only [nat.succ_eq_one_add, add_smul, one_smul] } }
 
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : ring (ring_quot r) :=
 { neg            := quot.map (λ a, -a) rel.neg,

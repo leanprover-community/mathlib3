@@ -305,7 +305,7 @@ instance : add_comm_monoid (M →L[R] M₂) :=
       map_add' := by simp,
       map_smul' := by simp [smul_comm n] },
   nsmul_zero' := λ f, by { ext, simp },
-  nsmul_succ' := λ n f, by { ext, simp [nat.succ_eq_add_one, add_smul], } }
+  nsmul_succ' := λ n f, by { ext, simp [nat.succ_eq_one_add, add_smul], } }
 
 @[simp, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) :
   ↑(∑ d in t, f d) = (∑ d in t, f d : M →ₗ[R] M₂) :=

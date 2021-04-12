@@ -226,17 +226,19 @@ end mul_one_class
 section
 variables {M : Type u}
 
+-- use `x * npow_rec n x` and not `npow_rec n x * x` in the definition to make sure that
+-- definitional unfolding of `npow_rec` is blocked, to avoid deep recursion issues.
 /-- The fundamental power operation in a monoid. `npow_rec n a = a*a*...*a` n times.
 Use instead `a ^ n`,  which has better definitional behavior. -/
 def npow_rec [has_one M] [has_mul M] : ℕ → M → M
 | 0     a := 1
-| (n+1) a := npow_rec n a * a
+| (n+1) a := a * npow_rec n a
 
 /-- The fundamental scalar multiplication in an additive monoid. `nsmul_rec n a = a+a+...+a` n
 times. Use instead `n • a`, which has better definitional behavior. -/
 def nsmul_rec [has_zero M] [has_add M] : ℕ → M → M
 | 0     a := 0
-| (n+1) a := nsmul_rec n a + a
+| (n+1) a := a + nsmul_rec n a
 
 attribute [to_additive] npow_rec
 
@@ -335,7 +337,7 @@ properties that we need right away.
 class monoid (M : Type u) extends semigroup M, mul_one_class M :=
 (npow : ℕ → M → M := npow_rec)
 (npow_zero' : ∀ x, npow 0 x = 1 . try_refl_tac)
-(npow_succ' : ∀ (n : ℕ) x, npow n.succ x = npow n x * x . try_refl_tac)
+(npow_succ' : ∀ (n : ℕ) x, npow n.succ x = x * npow n x . try_refl_tac)
 
 export monoid (npow)
 
@@ -344,7 +346,7 @@ export monoid (npow)
 class add_monoid (M : Type u) extends add_semigroup M, add_zero_class M :=
 (nsmul : ℕ → M → M := nsmul_rec)
 (nsmul_zero' : ∀ x, nsmul 0 x = 0 . try_refl_tac)
-(nsmul_succ' : ∀ (n : ℕ) x, nsmul n.succ x = nsmul n x + x . try_refl_tac)
+(nsmul_succ' : ∀ (n : ℕ) x, nsmul n.succ x = x + nsmul n x . try_refl_tac)
 
 export add_monoid (nsmul)
 
@@ -373,9 +375,9 @@ attribute [to_additive nsmul_one'] npow_one
 lemma npow_add {M : Type u} [monoid M] (m n : ℕ) (x : M) :
   npow (m + n) x = npow m x * npow n x :=
 begin
-  induction n with n ih,
-  { rw [nat.add_zero, monoid.npow_zero', mul_one], },
-  { rw [nat.add_succ, monoid.npow_succ', monoid.npow_succ', ih, ← mul_assoc] }
+  induction m with m ih,
+  { rw [nat.zero_add, monoid.npow_zero', one_mul], },
+  { rw [nat.succ_add, monoid.npow_succ', monoid.npow_succ', ih, ← mul_assoc] }
 end
 
 /-- A commutative monoid is a monoid with commutative `(*)`. -/

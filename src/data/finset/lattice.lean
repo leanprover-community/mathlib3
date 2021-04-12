@@ -77,6 +77,9 @@ sup_le $ assume b hb, le_sup (h hb)
 ⟨(λ hs b hb, lt_of_le_of_lt (le_sup hb) hs), finset.cons_induction_on s (λ _, ha)
   (λ c t hc, by simpa only [sup_cons, sup_lt_iff, mem_cons, forall_eq_or_imp] using and.imp_right)⟩
 
+@[simp] lemma le_sup_iff [is_total α (≤)] {a : α} (ha : ⊥ < a) : a ≤ s.sup f ↔ (∃ b ∈ s, a ≤ f b) :=
+by { rw [←not_iff_not, not_bex], simp only [@not_le (as_linear_order α), sup_lt_iff ha], }
+
 @[simp] lemma lt_sup_iff [is_total α (≤)] {a : α} : a < s.sup f ↔ (∃ b ∈ s, a < f b) :=
 by { rw [←not_iff_not, not_bex], simp only [@not_lt (as_linear_order α), sup_le_iff], }
 
@@ -218,6 +221,9 @@ le_inf $ assume b hb, inf_le (h hb)
 @[simp] lemma lt_inf_iff [is_total α (≤)] {a : α} (ha : a < ⊤) : a < s.inf f ↔ (∀ b ∈ s, a < f b) :=
 @sup_lt_iff (order_dual α) _ _ _ _ _ _ ha
 
+@[simp] lemma inf_le_iff [is_total α (≤)] {a : α} (ha : a < ⊤) : s.inf f ≤ a ↔ (∃ b ∈ s, f b ≤ a) :=
+@le_sup_iff (order_dual α) _ _ _ _ _ _ ha
+
 @[simp] lemma inf_lt_iff [is_total α (≤)] {a : α} : s.inf f < a ↔ (∃ b ∈ s, f b < a) :=
 @lt_sup_iff (order_dual α) _ _ _ _ _ _
 
@@ -297,6 +303,12 @@ begin
   exact ball_congr (λ b hb, with_bot.coe_lt_coe),
 end
 
+@[simp] lemma le_sup'_iff [is_total α (≤)] {a : α} : a ≤ s.sup' H f ↔ (∃ b ∈ s, a ≤ f b) :=
+begin
+  rw [←with_bot.coe_le_coe, coe_sup', le_sup_iff (with_bot.bot_lt_coe a)],
+  exact bex_congr (λ b hb, with_bot.coe_le_coe),
+end
+
 @[simp] lemma lt_sup'_iff [is_total α (≤)] {a : α} : a < s.sup' H f ↔ (∃ b ∈ s, a < f b) :=
 begin
   rw [←with_bot.coe_lt_coe, coe_sup', lt_sup_iff],
@@ -357,6 +369,9 @@ lemma inf'_le {b : β} (h : b ∈ s) : s.inf' ⟨b, h⟩ f ≤ f b :=
 
 @[simp] lemma lt_inf'_iff [is_total α (≤)] {a : α} : a < s.inf' H f ↔ (∀ b ∈ s, a < f b) :=
 @sup'_lt_iff (order_dual α) _ _ _ H f _ _
+
+@[simp] lemma inf'_le_iff [is_total α (≤)] {a : α} : s.inf' H f ≤ a ↔ (∃ b ∈ s, f b ≤ a) :=
+@le_sup'_iff (order_dual α) _ _ _ H f _ _
 
 @[simp] lemma inf'_lt_iff [is_total α (≤)] {a : α} : s.inf' H f < a ↔ (∃ b ∈ s, f b < a) :=
 @lt_sup'_iff (order_dual α) _ _ _ H f _ _

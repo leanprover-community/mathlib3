@@ -331,7 +331,7 @@ begin
       simp only [finset.sum_congr rfl this, finset.mem_univ, finset.sum_const, Ai_card i,
                  one_nsmul] },
     simp only [sum_congr rfl this, Ai_card, card_pi_finset, prod_const_one, one_nsmul,
-               sum_const] },
+               finset.sum_const] },
   -- Remains the interesting case where one of the `A i`, say `A i₀`, has cardinality at least 2.
   -- We will split into two parts `B i₀` and `C i₀` of smaller cardinality, let `B i = C i = A i`
   -- for `i ≠ i₀`, apply the inductive assumption to `B` and `C`, and add up the corresponding

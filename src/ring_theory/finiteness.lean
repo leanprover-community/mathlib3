@@ -196,9 +196,10 @@ begin
   split,
   { rw iff_quotient_mv_polynomial',
     rintro ⟨ι, hfintype, ⟨f, hsur⟩⟩,
-    obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι hfintype,
-    replace equiv := mv_polynomial.rename_equiv R (nonempty.some equiv),
-    exact ⟨n, alg_hom.comp f equiv.symm, function.surjective.comp hsur
+    letI := hfintype,
+    obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) hfintype,
+    replace equiv := mv_polynomial.rename_equiv R equiv,
+    exact ⟨fintype.card ι, alg_hom.comp f equiv.symm, function.surjective.comp hsur
       (alg_equiv.symm equiv).surjective⟩ },
   { rintro ⟨n, ⟨f, hsur⟩⟩,
     exact finite_type.of_surjective (finite_type.mv_polynomial R (fin n)) f hsur }
@@ -252,9 +253,9 @@ variable (R)
 /-- The ring of polynomials in finitely many variables is finitely presented. -/
 lemma mv_polynomial (ι : Type u_2) [fintype ι] : finite_presentation R (mv_polynomial ι R) :=
 begin
-  obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι _,
-  replace equiv := mv_polynomial.rename_equiv R (nonempty.some equiv),
-  use [n, alg_equiv.to_alg_hom equiv.symm],
+  obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) _,
+  replace equiv := mv_polynomial.rename_equiv R equiv,
+  refine ⟨_, alg_equiv.to_alg_hom equiv.symm, _⟩,
   split,
   { exact (alg_equiv.symm equiv).surjective },
   suffices hinj : function.injective equiv.symm.to_alg_hom.to_ring_hom,
@@ -312,9 +313,9 @@ begin
     exact ring_hom.ker_coe_equiv ulift_var.to_ring_equiv, },
   { rintro ⟨ι, hfintype, f, hf⟩,
     haveI : fintype ι := hfintype,
-    obtain ⟨n, equiv⟩ := fintype.exists_equiv_fin ι,
-    replace equiv := mv_polynomial.rename_equiv R (nonempty.some equiv),
-    refine ⟨n, f.comp equiv.symm,
+    obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) _,
+    replace equiv := mv_polynomial.rename_equiv R equiv,
+    refine ⟨fintype.card ι, f.comp equiv.symm,
       hf.1.comp (alg_equiv.symm equiv).surjective,
       submodule.fg_ker_ring_hom_comp _ f _ hf.2 equiv.symm.surjective⟩,
     convert submodule.fg_bot,
@@ -326,8 +327,10 @@ as `R`-algebra. -/
 lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι : Type*)
   [fintype ι] : finite_presentation R (_root_.mv_polynomial ι A) :=
 begin
-  obtain ⟨n, e⟩ := fintype.exists_equiv_fin ι,
-  replace e := (mv_polynomial.rename_equiv A (nonempty.some e)).restrict_scalars R,
+  classical,
+  let n := fintype.card ι,
+  obtain ⟨e⟩ := fintype.trunc_equiv_fin ι,
+  replace e := (mv_polynomial.rename_equiv A e).restrict_scalars R,
   refine equiv _ e.symm,
   obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
   refine equiv _ (mv_polynomial.map_alg_equiv (fin n) e),

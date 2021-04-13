@@ -35,8 +35,7 @@ variables {R : Type u} {a : R} {m n : ℕ}
 section semiring
 variables [semiring R] {p q : polynomial R}
 
-@[irreducible] private def zero : polynomial R := ⟨0⟩
-@[irreducible] private def one : polynomial R := ⟨1⟩
+@[irreducible] def monomial_fun (n : ℕ) (a : R) : polynomial R := ⟨finsupp.single n a⟩
 @[irreducible] private def add : polynomial R → polynomial R → polynomial R
 | ⟨a⟩ ⟨b⟩ := ⟨a + b⟩
 @[irreducible] private def neg {R : Type u} [ring R] : polynomial R → polynomial R
@@ -47,15 +46,26 @@ variables [semiring R] {p q : polynomial R}
   S → polynomial R → polynomial R
 | a ⟨b⟩ := ⟨a • b⟩
 
-instance : has_zero (polynomial R) := ⟨zero⟩
-instance : has_one (polynomial R) := ⟨one⟩
+instance : has_zero (polynomial R) := ⟨monomial_fun 0 (0 : R)⟩
+instance : has_one (polynomial R) := ⟨monomial_fun 0 (1 : R)⟩
 instance : has_add (polynomial R) := ⟨add⟩
 instance {R : Type u} [ring R] : has_neg (polynomial R) := ⟨neg⟩
 instance : has_mul (polynomial R) := ⟨mul⟩
 instance {S : Type*} [semiring S] [semimodule S R] : has_scalar S (polynomial R) := ⟨smul⟩
 
-lemma zero_to_alg : (⟨0⟩ : polynomial R) = 0 := show _ = zero, by rw zero
-lemma one_to_alg : (⟨1⟩ : polynomial R) = 1 := show _ = one, by rw one
+lemma zero_to_alg : (⟨0⟩ : polynomial R) = 0 :=
+begin
+  change (⟨0⟩ : polynomial R) = monomial_fun 0 (0 : R),
+  simp only [monomial_fun, single_zero],
+end
+
+lemma one_to_alg : (⟨1⟩ : polynomial R) = 1 :=
+begin
+  change (⟨1⟩ : polynomial R) = monomial_fun 0 (1 : R),
+  rw [monomial_fun],
+  refl
+end
+
 lemma add_to_alg {a b} : (⟨a⟩ + ⟨b⟩ : polynomial R) = ⟨a + b⟩ := show add _ _ = _, by rw add
 lemma neg_to_alg {R : Type u} [ring R] {a} : (-⟨a⟩ : polynomial R) = ⟨-a⟩ :=
 show neg _ = _, by rw neg
@@ -103,6 +113,10 @@ def to_alg_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
   map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_alg], refl } }
 variable {R}
 
+lemma sum_to_alg {ι : Type*} (s : finset ι) (f : ι → add_monoid_algebra R ℕ) :
+  ∑ i in s, (⟨f i⟩ : polynomial R) = ⟨∑ i in s, f i⟩ :=
+((to_alg_iso R).symm.to_add_monoid_hom.map_sum f s).symm
+
 /--
 The set of all `n` such that `X^n` has a non-zero coefficient.
 -/
@@ -118,8 +132,6 @@ by { rcases p, simp [support, ← zero_to_alg] }
 lemma card_support_eq_zero : p.support.card = 0 ↔ p = 0 :=
 by simp
 
-@[irreducible] def monomial_fun (n : ℕ) (a : R) : polynomial R := ⟨finsupp.single n a⟩
-
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (n : ℕ) : R →ₗ[R] polynomial R :=
 { to_fun := monomial_fun n,
@@ -132,8 +144,7 @@ lemma monomial_zero_right (n : ℕ) :
 by simp [monomial, monomial_fun]
 
 -- This is not a `simp` lemma as `monomial_zero_left` is more general.
-lemma monomial_zero_one : monomial 0 (1 : R) = 1 :=
-by { simp [monomial, monomial_fun, ← one_to_alg], refl }
+lemma monomial_zero_one : monomial 0 (1 : R) = 1 := rfl
 
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
@@ -320,6 +331,34 @@ begin
   induction n with n ih,
   { simp, },
   { simp [ih, nat.succ_eq_add_one, add_smul, add_mul], },
+end
+
+/-- Summing the values of a function applied to the coefficients of a polynomial -/
+def sum {S : Type*} [add_comm_monoid S] (p : polynomial R) (f : ℕ → R → S) : S :=
+∑ n in p.support, f n (p.coeff n)
+
+/-- Expressing the product of two polynomials as a double sum. -/
+lemma mul_eq_sum_sum :
+  p * q = ∑ i in p.support, q.sum (λ j a, (monomial (i + j)) (p.coeff i * a)) :=
+begin
+  rcases p, rcases q,
+  simp [mul_to_alg, support, monomial, sum, monomial_fun, coeff, sum_to_alg],
+  refl
+end
+
+/-- `erase p n` is the polynomial `p` in which the `X^n` term has been erased. -/
+@[irreducible] definition erase (n : ℕ) : polynomial R → polynomial R
+| ⟨p⟩ := ⟨p.erase n⟩
+
+@[simp] lemma support_erase (p : polynomial R) (n : ℕ) :
+  support (p.erase n) = (support p).erase n :=
+by { rcases p, simp only [support, erase, support_erase], congr }
+
+lemma monomial_add_erase (p : polynomial R) (n : ℕ) : monomial n (coeff p n) + p.erase n = p :=
+begin
+  rcases p,
+  simp [add_to_alg, monomial, monomial_fun, coeff, erase],
+  exact finsupp.single_add_erase _ _
 end
 
 end semiring

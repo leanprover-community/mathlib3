@@ -59,10 +59,6 @@ variable {R}
   coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
 (s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
 
-/- Summing the values of a function applied to the coefficients of a polynomial -/
-protected def sum [add_comm_monoid S] (p : polynomial R) (f : ℕ → R → S) : S :=
-∑ n in p.support, f n (p.coeff n)
-
 lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) :=
 by { rcases p, simp [polynomial.sum, support, coeff] }

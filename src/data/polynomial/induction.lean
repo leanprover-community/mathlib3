@@ -31,7 +31,7 @@ begin
   exact λ h, h.symm
 end
 
-lemma sum_monomial_eq (p : polynomial R) : p.sum (λn a, monomial n a) = p :=
+lemma sum_monomial (p : polynomial R) : p.sum (λn a, monomial n a) = p :=
 by simp only [monomial_eq_C_mul_X, sum_C_mul_X_eq]
 
 @[elab_as_eliminator] protected lemma induction_on {M : polynomial R → Prop} (p : polynomial R)
@@ -47,7 +47,7 @@ begin
     { exact h_monomial _ _ ih } },
   have B : ∀ (s : finset ℕ), M (s.sum (λ (n : ℕ), C (p.coeff n) * X ^ n)),
   { apply finset.induction,
-    { rw [sum_empty], convert h_C 0, simp },
+    { exact h_C 0 },
     { assume n s ns ih, rw sum_insert ns, exact h_add _ _ A ih, } },
   rw [← sum_C_mul_X_eq p, polynomial.sum],
   exact B _

@@ -33,9 +33,9 @@ def C : R →+* polynomial R :=
 
 @[simp] lemma monomial_zero_left (a : R) : monomial 0 a = C a := rfl
 
-lemma C_0 : C (0 : R) = 0 := monomial_zero_right _
+lemma C_0 : C (0 : R) = 0 := rfl
 
-lemma C_1 : C (1 : R) = 1 := monomial_zero_one
+lemma C_1 : C (1 : R) = 1 := rfl
 
 lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
 

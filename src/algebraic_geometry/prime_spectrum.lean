@@ -436,8 +436,8 @@ lemma basic_open_eq_zero_locus_compl (r : R) :
   (basic_open r : set (prime_spectrum R)) = (zero_locus {r})ᶜ :=
 set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
 
-lemma is_topological_basis_basic_opens :
-  topological_space.is_topological_basis (set.range (λ r, (@basic_open R _ r).val)) :=
+lemma is_topological_basis_basic_opens : topological_space.is_topological_basis
+  (set.range (λ (r : R), (basic_open r : set (prime_spectrum R)))) :=
 begin
   apply topological_space.is_topological_basis_of_open_of_nhds,
   { rintros _ ⟨r, rfl⟩,

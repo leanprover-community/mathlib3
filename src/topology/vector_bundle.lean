@@ -22,7 +22,7 @@ which has the disjoint union topology.
 To have a topological vector bundle structure on `bundle.total_space E`,
 one should addtionally have the following data:
 
-* `F` should be a topological vector space over a semiring `R`;
+* `F` should be a topological space and a semimodule over a semiring `R`;
 * There should be a topology on `bundle.total_space E`, for which the projection to `B` is
 a topological fiber bundle with fiber `F` (in particular, each fiber `E x` is homeomorphic to `F`);
 * For each `x`, the fiber `E x` should be a topological vector space over `R`, and the injection

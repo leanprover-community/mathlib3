@@ -602,6 +602,8 @@ lemma monoid_hom.apply_mint [group M] (f : multiplicative ℤ →* M) (n : multi
   f n = (f (multiplicative.of_add 1)) ^ n.to_add :=
 by rw [← gpowers_hom_symm_apply, ← gpowers_hom_apply, equiv.apply_symm_apply]
 
+/-! `monoid_hom.ext_mint` is defined in `data.int.cast` -/
+
 lemma add_monoid_hom.apply_nat [add_monoid M] (f : ℕ →+ M) (n : ℕ) :
   f n = n •ℕ (f 1) :=
 by rw [← multiples_hom_symm_apply, ← multiples_hom_apply, equiv.apply_symm_apply]

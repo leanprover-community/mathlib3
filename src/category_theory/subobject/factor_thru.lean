@@ -143,7 +143,6 @@ begin
     ext, simp, },
 end
 
-@[simp]
 lemma factor_thru_right {X Y Z : C} {P : subobject Z} (f : X ⟶ Y) (g : Y ⟶ Z) (h : P.factors g) :
   f ≫ P.factor_thru g h = P.factor_thru (f ≫ g) (factors_of_factors_right f h) :=
 begin
@@ -158,11 +157,11 @@ lemma factor_thru_zero
 by simp
 
 -- `h` is an explicit argument here so we can use
--- `rw ←factor_thru_le h`, obtaining a subgoal `P.factors f`.
-@[simp]
-lemma factor_thru_comp_of_le
+-- `rw factor_thru_le h`, obtaining a subgoal `P.factors f`.
+-- (While the reverse direction looks plausible as a simp lemma, it seems to be unproductive.)
+lemma factor_thru_of_le
   {Y Z : C} {P Q : subobject Y} {f : Z ⟶ Y} (h : P ≤ Q) (w : P.factors f) :
-  P.factor_thru f w ≫ of_le P Q h = Q.factor_thru f (factors_of_le f h w) :=
+  Q.factor_thru f (factors_of_le f h w) = P.factor_thru f w ≫ of_le P Q h :=
 by { ext, simp, }
 
 section preadditive
@@ -205,6 +204,8 @@ by { ext, simp, }
 end preadditive
 
 end subobject
+
+-- TODO move the following sections to `category_theory.subobject.limits`.
 
 namespace limits
 
@@ -249,7 +250,7 @@ section kernel
 variables [has_zero_morphisms C] (f : X ⟶ Y) [has_kernel f]
 
 /-- The kernel of a morphism `f : X ⟶ Y` as a `subobject X`. -/
-def kernel_subobject : subobject X :=
+abbreviation kernel_subobject : subobject X :=
 subobject.mk (kernel.ι f)
 
 /-- The underlying object of `kernel_subobject f` is (up to isomorphism!)
@@ -284,14 +285,20 @@ kernel_subobject_factors f h⟩
 lemma le_kernel_subobject (A : subobject X) (h : A.arrow ≫ f = 0) : A ≤ kernel_subobject f :=
 subobject.le_mk_of_comm (kernel.lift f A.arrow h) (by simp)
 
+/-- The kernel of `f` is always a smaller subobject than the kernel of `f ≫ h`. -/
+lemma kernel_subobject_comp_le
+  (f : X ⟶ Y) [has_kernel f] {Z : C} (h : Y ⟶ Z) [has_kernel (f ≫ h)]:
+  kernel_subobject f ≤ kernel_subobject (f ≫ h) :=
+le_kernel_subobject _ _ (by simp)
+
 /-- Postcomposing by an monomorphism does not change the kernel subobject. -/
 @[simp]
 lemma kernel_subobject_comp_mono
-  {f : X ⟶ Y} [has_kernel f] {Z : C} (h : Y ⟶ Z) [mono h] :
+  (f : X ⟶ Y) [has_kernel f] {Z : C} (h : Y ⟶ Z) [mono h] :
   kernel_subobject (f ≫ h) = kernel_subobject f :=
 le_antisymm
   (le_kernel_subobject _ _ ((cancel_mono h).mp (by simp)))
-  (le_kernel_subobject _ _ (by simp))
+  (kernel_subobject_comp_le f h)
 
 end kernel
 
@@ -320,6 +327,7 @@ over.w (subobject.representative_iso (mono_over.mk' (image.ι f))).inv
 def factor_thru_image_subobject : X ⟶ image_subobject f :=
 factor_thru_image f ≫ (image_subobject_iso f).inv
 
+@[simp, reassoc]
 lemma image_subobject_arrow_comp :
   factor_thru_image_subobject f ≫ (image_subobject f).arrow = f :=
 by simp [factor_thru_image_subobject, image_subobject_arrow]
@@ -328,12 +336,33 @@ lemma image_subobject_factors_comp_self {W : C} (k : W ⟶ X)  :
   (image_subobject f).factors (k ≫ f) :=
 ⟨k ≫ factor_thru_image f, by simp⟩
 
+@[simp]
+lemma factor_thru_image_subobject_comp_self {W : C} (k : W ⟶ X) (h) :
+  (image_subobject f).factor_thru (k ≫ f) h = k ≫ factor_thru_image_subobject f :=
+by { ext, simp, }
+
+@[simp]
+lemma factor_thru_image_subobject_comp_self_assoc {W W' : C} (k : W ⟶ W') (k' : W' ⟶ X) (h) :
+  (image_subobject f).factor_thru (k ≫ k' ≫ f) h = k ≫ k' ≫ factor_thru_image_subobject f :=
+by { ext, simp, }
+
+@[simp]
+lemma image_subobject_zero [has_zero_morphisms C] [has_zero_object C] :
+  (image_subobject (0 : X ⟶ Y)).arrow = 0 :=
+by { rw image_subobject_arrow, simp, }
+
+/-- The image of `h ≫ f` is always a smaller subobject than the image of `f`. -/
+lemma image_subobject_comp_le
+  {X' : C} (h : X' ⟶ X) (f : X ⟶ Y) [has_image f] [has_image (h ≫ f)] :
+  image_subobject (h ≫ f) ≤ image_subobject f :=
+subobject.mk_le_mk_of_comm (image.pre_comp h f) (by simp)
+
 /-- Precomposing by an isomorphism does not change the image subobject. -/
 lemma image_subobject_iso_comp [has_equalizers C]
-  {f : X ⟶ Y} [has_image f] {X' : C} (h : X' ⟶ X) [is_iso h] :
+  {X' : C} (h : X' ⟶ X) [is_iso h] (f : X ⟶ Y) [has_image f] :
   image_subobject (h ≫ f) = image_subobject f :=
 le_antisymm
-  (subobject.mk_le_mk_of_comm (image.pre_comp h f) (by simp))
+  (image_subobject_comp_le h f)
   (subobject.mk_le_mk_of_comm (inv (image.pre_comp h f)) (by simp))
 
 lemma image_subobject_le {A B : C} {X : subobject B} (f : A ⟶ B) [has_image f]

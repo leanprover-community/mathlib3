@@ -2,15 +2,12 @@
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
-
-TODO: Provide a GCD monoid instance for `ℕ`, port GCD facts about nats
-TODO: Generalize normalization monoids commutative (cancellative) monoids with or without zero
-TODO: Generalize GCD monoid to not require normalization in all cases
 -/
+
 import algebra.associated
+import data.nat.gcd
 
 /-!
-
 # Monoids with normalization functions, `gcd`, and `lcm`
 
 This file defines extra structures on `comm_cancel_monoid_with_zero`s, including `integral_domain`s.
@@ -54,7 +51,6 @@ without zero.
 ## Tags
 
 divisibility, gcd, lcm, normalize
-
 -/
 
 variables {α : Type*}
@@ -221,18 +217,6 @@ corresponding `lcm` facts from `gcd`.
 (gcd_mul_lcm    : ∀a b, gcd a b * lcm a b = normalize (a * b))
 (lcm_zero_left  : ∀a, lcm 0 a = 0)
 (lcm_zero_right : ∀a, lcm a 0 = 0)
-
-instance : gcd_monoid ℕ :=
-{ gcd := nat.gcd,
-  lcm := nat.lcm,
-  gcd_dvd_left := nat.gcd_dvd_left ,
-  gcd_dvd_right := nat.gcd_dvd_right,
-  dvd_gcd := λ a b c, nat.dvd_gcd,
-  normalize_gcd := λ a b, normalize_eq _,
-  gcd_mul_lcm := λ a b, by rw [normalize_eq _, nat.gcd_mul_lcm],
-  lcm_zero_left := nat.lcm_zero_left,
-  lcm_zero_right := nat.lcm_zero_right,
-  .. (infer_instance : normalization_monoid ℕ) }
 
 export gcd_monoid (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm_zero_right)
 
@@ -632,6 +616,18 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 @[simp] lemma norm_unit_eq_one (x : α) : norm_unit x = 1 := rfl
 
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
+
+instance : gcd_monoid ℕ :=
+{ gcd := nat.gcd,
+  lcm := nat.lcm,
+  gcd_dvd_left := nat.gcd_dvd_left ,
+  gcd_dvd_right := nat.gcd_dvd_right,
+  dvd_gcd := λ a b c, nat.dvd_gcd,
+  normalize_gcd := λ a b, normalize_eq _,
+  gcd_mul_lcm := λ a b, by rw [normalize_eq _, nat.gcd_mul_lcm],
+  lcm_zero_left := nat.lcm_zero_left,
+  lcm_zero_right := nat.lcm_zero_right,
+  .. (infer_instance : normalization_monoid ℕ) }
 
 end unique_unit
 

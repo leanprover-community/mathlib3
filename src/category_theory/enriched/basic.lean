@@ -47,10 +47,11 @@ class enriched_category (C : Type u₁) :=
 (notation X ` ⟶[] ` Y:10 := hom X Y)
 (id : Π X, 𝟙_ V ⟶ (X ⟶[] X))
 (comp : Π X Y Z, (X ⟶[] Y) ⊗ (Y ⟶[] Z) ⟶ (X ⟶[] Z))
-(id_comp : Π X Y, (λ_ (X ⟶[] Y)).inv ≫ (id X ⊗ 𝟙 _) ≫ comp X X Y = 𝟙 _)
-(comp_id : Π X Y, (ρ_ (X ⟶[] Y)).inv ≫ (𝟙 _ ⊗ id Y) ≫ comp X Y Y = 𝟙 _)
+(id_comp : Π X Y, (λ_ (X ⟶[] Y)).inv ≫ (id X ⊗ 𝟙 _) ≫ comp X X Y = 𝟙 _ . obviously)
+(comp_id : Π X Y, (ρ_ (X ⟶[] Y)).inv ≫ (𝟙 _ ⊗ id Y) ≫ comp X Y Y = 𝟙 _ . obviously)
 (assoc :
-  Π W X Y Z, (α_ _ _ _).inv ≫ (comp W X Y ⊗ 𝟙 _) ≫ comp W Y Z = (𝟙 _ ⊗ comp X Y Z) ≫ comp W X Z)
+  Π W X Y Z, (α_ _ _ _).inv ≫ (comp W X Y ⊗ 𝟙 _) ≫ comp W Y Z = (𝟙 _ ⊗ comp X Y Z) ≫ comp W X Z
+  . obviously)
 
 notation X ` ⟶[`V`] ` Y:10 := (enriched_category.hom X Y : V)
 
@@ -65,14 +66,17 @@ The composition `V`-morphism for a `V`-enriched category.
 -/
 def e_comp (X Y Z : C) : (X ⟶[V] Y) ⊗ (Y ⟶[V] Z) ⟶ (X ⟶[V] Z) := enriched_category.comp X Y Z
 
+@[simp, reassoc]
 lemma e_id_comp (X Y : C) :
   (λ_ (X ⟶[V] Y)).inv ≫ (e_id V X ⊗ 𝟙 _) ≫ e_comp V X X Y = 𝟙 (X ⟶[V] Y) :=
 enriched_category.id_comp X Y
 
+@[simp, reassoc]
 lemma e_comp_id (X Y : C) :
   (ρ_ (X ⟶[V] Y)).inv ≫ (𝟙 _ ⊗ e_id V Y) ≫ e_comp V X Y Y = 𝟙 (X ⟶[V] Y) :=
 enriched_category.comp_id X Y
 
+@[simp, reassoc]
 lemma e_assoc (W X Y Z : C) :
   (α_ _ _ _).inv ≫ (e_comp V W X Y ⊗ 𝟙 _) ≫ e_comp V W Y Z =
     (𝟙 _ ⊗ e_comp V X Y Z) ≫ e_comp V W X Z :=
@@ -123,19 +127,19 @@ structure enriched_functor
   (C : Type u₁) [enriched_category V C] (D : Type u₂) [enriched_category V D] :=
 (obj : C → D)
 (map : Π X Y : C, (X ⟶[V] Y) ⟶ (obj X ⟶[V] obj Y))
-(map_id : ∀ X : C, e_id V X ≫ map X X = e_id V (obj X))
-(map_comp : ∀ X Y Z : C,
-  e_comp V X Y Z ≫ map X Z = (map X Y ⊗ map Y Z) ≫ e_comp V (obj X) (obj Y) (obj Z))
+(map_id' : ∀ X : C, e_id V X ≫ map X X = e_id V (obj X) . obviously)
+(map_comp' : ∀ X Y Z : C,
+  e_comp V X Y Z ≫ map X Z = (map X Y ⊗ map Y Z) ≫ e_comp V (obj X) (obj Y) (obj Z) . obviously)
 
+restate_axiom enriched_functor.map_id'
+restate_axiom enriched_functor.map_comp'
 attribute [simp, reassoc] enriched_functor.map_id
 attribute [simp, reassoc] enriched_functor.map_comp
 
 @[simps]
 def enriched_functor.id (C : Type u₁) [enriched_category V C] : enriched_functor V C C :=
 { obj := λ X, X,
-  map := λ X Y, 𝟙 _,
-  map_id := λ X, by simp,
-  map_comp := λ X Y Z, by simp }
+  map := λ X Y, 𝟙 _, }
 
 @[simps]
 def enriched_functor.comp {C : Type u₁} {D : Type u₂} {E : Type u₃}
@@ -143,9 +147,8 @@ def enriched_functor.comp {C : Type u₁} {D : Type u₂} {E : Type u₃}
   (F : enriched_functor V C D) (G : enriched_functor V D E) :
   enriched_functor V C E :=
 { obj := λ X, G.obj (F.obj X),
-  map := λ X Y, F.map _ _ ≫ G.map _ _,
-  map_id := λ X, by simp,
-  map_comp := λ X, by simp }
+  map := λ X Y, F.map _ _ ≫ G.map _ _, }
+
 section
 variables {V} [braided_category V]
 variables {D : Type u₂} [enriched_category V D]

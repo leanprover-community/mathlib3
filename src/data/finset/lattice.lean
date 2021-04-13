@@ -152,24 +152,6 @@ le_antisymm
 lemma sup_eq_Sup [complete_lattice α] (s : finset α) : s.sup id = Sup s :=
 by simp [Sup_eq_supr, sup_eq_supr]
 
-lemma exists_mem_eq_sup [complete_linear_order β] (s : finset α) (h : s.nonempty) (f : α → β) :
-  ∃ a, a ∈ s ∧ s.sup f = f a :=
-begin
-  classical,
-  induction s using finset.induction_on with x xs hxm ih,
-  { exact (not_nonempty_empty h).elim, },
-  { rw sup_insert,
-    by_cases hx : xs.sup f ≤ f x,
-    { refine ⟨x, mem_insert_self _ _, sup_eq_left.mpr hx⟩, },
-    by_cases hxs : xs.nonempty,
-    { obtain ⟨a, ham, ha⟩ := ih hxs,
-      refine ⟨a, mem_insert_of_mem ham, _⟩,
-      simpa only [ha, sup_eq_right] using le_of_not_le hx, },
-    { rw not_nonempty_iff_eq_empty.mp hxs,
-      refine ⟨x, mem_singleton_self _, _⟩,
-      simp, } }
-end
-
 /-! ### inf -/
 section inf
 variables [semilattice_inf_top α]
@@ -255,10 +237,6 @@ lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf 
 lemma inf_eq_Inf [complete_lattice α] (s : finset α) : s.inf id = Inf s :=
 by simp [Inf_eq_infi, inf_eq_infi]
 
-lemma exists_mem_eq_inf [complete_linear_order β] (s : finset α) (h : s.nonempty) (f : α → β) :
-  ∃ a, a ∈ s ∧ s.inf f = f a :=
-@exists_mem_eq_sup _ (order_dual β) _ _ h _
-
 section sup'
 variables [semilattice_sup α]
 
@@ -327,6 +305,19 @@ begin
   { cases a₂, exact h₁, exact hp a₁ a₂ h₁ h₂, },
 end
 
+lemma exists_mem_eq_sup' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.sup' H f = f b :=
+begin
+  induction s using finset.cons_induction with c s hc ih,
+  { exact false.elim (not_nonempty_empty H), },
+  { rcases s.eq_empty_or_nonempty with rfl | hs,
+    { exact ⟨c, mem_singleton_self c, rfl⟩, },
+    { rcases ih hs with ⟨b, hb, h'⟩,
+      rw [sup'_cons hs, h'],
+      cases total_of (≤) (f b) (f c) with h h,
+      { exact ⟨c, mem_cons.2 (or.inl rfl), sup_eq_left.2 h⟩, },
+      { exact ⟨b, mem_cons.2 (or.inr hb), sup_eq_right.2 h⟩, }, }, },
+end
+
 end sup'
 
 section inf'
@@ -380,6 +371,9 @@ lemma inf'_induction {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p 
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf' H f) :=
 @sup'_induction (order_dual α) _ _ _ H f _ hp hs
 
+lemma exists_mem_eq_inf' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.inf' H f = f b :=
+@exists_mem_eq_sup' (order_dual α) _ _ _ H f _
+
 end inf'
 
 section sup
@@ -392,6 +386,10 @@ lemma sup_closed_of_sup_closed {s : set α} (t : finset α) (htne : t.nonempty) 
   (h : ∀⦃a b⦄, a ∈ s → b ∈ s → a ⊔ b ∈ s) : t.sup id ∈ s :=
 sup'_eq_sup htne id ▸ sup'_induction _ _ h h_subset
 
+lemma exists_mem_eq_sup [is_total α (≤)] (s : finset β) (h : s.nonempty) (f : β → α) :
+  ∃ b, b ∈ s ∧ s.sup f = f b :=
+sup'_eq_sup h f ▸ exists_mem_eq_sup' h f
+
 end sup
 
 section inf
@@ -403,6 +401,10 @@ lemma inf'_eq_inf {s : finset β} (H : s.nonempty) (f : β → α) : s.inf' H f 
 lemma inf_closed_of_inf_closed {s : set α} (t : finset α) (htne : t.nonempty) (h_subset : ↑t ⊆ s)
   (h : ∀⦃a b⦄, a ∈ s → b ∈ s → a ⊓ b ∈ s) : t.inf id ∈ s :=
 @sup_closed_of_sup_closed (order_dual α) _ _ t htne h_subset h
+
+lemma exists_mem_eq_inf [is_total α (≤)] (s : finset β) (h : s.nonempty) (f : β → α) :
+  ∃ a, a ∈ s ∧ s.inf f = f a :=
+@exists_mem_eq_sup (order_dual α) _ _ _ _ h f
 
 end inf
 

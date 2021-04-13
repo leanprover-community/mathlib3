@@ -65,7 +65,6 @@ rfl
 @[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
 
-@[continuity]
 protected lemma continuous_symm (h : α ≃ₜ β) : continuous (h.symm) := h.continuous_inv_fun
 
 @[simp] lemma apply_symm_apply (h : α ≃ₜ β) (x : β) : h (h.symm x) = x :=
@@ -317,8 +316,7 @@ end distrib
 /--
 A subset of a topological space is homeomorphic to its image under a homeomorphism.
 -/
-def image {α β : Type*} [topological_space α] [topological_space β]
-  (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
+def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
 { continuous_to_fun := by continuity!,
   continuous_inv_fun := by continuity!,
   ..e.to_equiv.image s, }

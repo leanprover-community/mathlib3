@@ -7,10 +7,7 @@ import data.list.rotate
 import data.list.erase_dup
 import group_theory.perm.sign
 import group_theory.perm.cycles
-import tactic.slim_check
 import dynamics.fixed_points.basic
-
-open slim_check
 
 lemma set.mem_disjoint_imp {α : Type*} {s t : set α} {x : α} (h : x ∈ s) (hd : disjoint s t) :
   x ∉ t :=
@@ -252,32 +249,6 @@ lemma is_rotated_concat (hd : α) (tl : list α) :
   (tl ++ [hd]) ~r (hd :: tl) :=
 is_rotated.symm ⟨1, by simp⟩
 
--- @[elab_as_eliminator]
--- def bidirection_induction
---   {C : list α → Sort*}
---   (hn : C [])
---   (hs : ∀ (x : α), C [x])
---   (hca : ∀ (x : α) (xs : list α) (y : α), C xs → C (x :: (xs ++ [y]))) :
---   Π (l : list α), C l :=
--- begin
---   intro l,
---   cases l with hd tl,
---   { exact hn },
---   { induction tl using list.reverse_induction with xs y IH generalizing hd,
---     { exact hs _ },
---     { apply hca,
---     }
---   },
---   -- induction l using list.reverse_induction with xs y IH,
---   -- { exact hn },
---   -- {
---   --   ases xs with x xs,
---   --   { simpa using hs y },
---   --   { rw cons_append,
---   --     apply hca,
---   --     exact IH } }
--- end
-
 section form_perm
 
 @[simp] lemma zip_with_rotate_one (f : α → α → β) (x y : α) (l : list α) :
@@ -408,48 +379,6 @@ begin
   convert form_perm_apply_last x (xs ++ [y]) h,
   simp
 end
-
--- lemma form_perm_concat_concat_concat (x y z : α) (xs : list α) :
---   form_perm (xs ++ [x, y, z]) = form_perm (xs ++ [x, z]) * swap x y :=
--- begin
---   induction xs with w xs IH generalizing x y z,
---   { simp [form_perm],
---     sorry },
---   { have : [x, y, z] = [x, y] ++ [z] := by simp,
---     rw [form_perm, cons_append, rotate_cons_succ, rotate_zero, this, ←cons_append, ←append_assoc],
---     rw zip_with_append,
---     rw tail_append_of_ne_nil,
---     rw zip_with_distrib_tail,
---     rw cons_append,
---     rw tail,
---     rw ←tail_cons z (xs ++ [x, y]),
---     rw ←rotate_zero (xs ++ ([x, y] ++ [z])),
---     rw ←append_assoc,
---     rw ←rotate_cons_succ,
---     rw ←zip_with_distrib_tail,
---     simp,
---     rw ←form_perm,
---     rw [
---         tail_cons, cons_append, zip_with_cons_cons,
---         ←tail_cons x (z :: w :: xs), ←tail_cons z (w :: xs ++ [x]),
---         ←rotate_zero (z :: (w :: xs ++ [x])), ←cons_append, ←rotate_cons_succ,
---         ←zip_with_distrib_tail, prod_cons, ←form_perm, tail_cons] }
--- end
-
--- lemma form_perm_reverse (xs : list α) : (form_perm xs.reverse)⁻¹ = form_perm xs :=
--- begin
---   cases xs with x xs,
---   { simp },
---   { cases xs with y xs,
---     { simp },
---     { induction xs with z xs IH generalizing x y,
---       { simp [form_perm, swap_comm] },
---       { rw form_perm_cons_cons_cons,
---         rw [←IH, ←swap_inv, ←mul_inv_rev],
---       },
---     },
---   },
--- end
 
 def to_set {α : Type*} (l : list α) : set α := {x | x ∈ l}
 
@@ -662,68 +591,6 @@ begin
     refine h.is_rotated _,
     exact (is_rotated.forall l n).symm }
 end
-
--- begin
---   induction xs with y xs IH generalizing x,
---   { simp },
---   { rw length_cons,
---     rw pow_succ',
---     rw mul_apply,
---     rw form_perm_apply_head,
---     have : (x :: y :: xs).rotate 1 = y :: (xs ++ [x]) := by simp,
---     rw rotate_eq_iff at this,
---   },
-
-  -- cases xs with y xs,
-  -- -- induction xs with y xs IH generalizing x,
-  -- { simp },
-  -- induction xs with z xs IH generalizing x y,
-  -- { simp [pow_succ'] },
-  -- { simp only [mem_cons_iff, nodup_cons] at h,
-  --   push_neg at h,
-  --   rw [length_cons, pow_succ', mul_apply, form_perm_apply_head],
-  --   rw form_perm_cons_cons_cons,
-  --   rw length_cons,
-  --   rw pow_succ',
-  --   rw mul_apply,
-  --   rw mul_apply,
-  --   have hy : y ∉ (x :: z :: xs),
-  --     { simp [h, h.left.left.symm] },
-  --   rw form_perm_not_mem_apply _ _ hy,
-  --   rw swap_apply_left,
-  --   rw length_cons,
-  --   rw pow_succ,
-  --   {  },
-  -- },
-  -- -- induction xs with y xs IH generalizing x,
-  -- -- { simp },
-  -- -- { simp, },
--- end
-
--- lemma is_cycle_form_perm (l : list α) (x y : α) (h : nodup (x :: y :: l)) :
---   is_cycle (form_perm (x :: y :: l)) :=
--- begin
---   simp only [mem_cons_iff, nodup_cons] at h,
---   push_neg at h,
---   use x,
---   split,
---   { simpa using h.left.left.symm },
---   { intros z hz,
---     by_cases hz' : z ∈ (x :: y :: l),
---     { obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hz',
---       use (x :: y :: l).length,
---       simp,
-
---     },
---     {  },
---   },
--- end
-
--- example (m k : nat) (hm : 0 < m) (hk : k < m) :
---   (m - 1 - (k + 1) % m + 1) % m = k
---   := by slim_check
---   (m - 1 - (m - 1 - k - 1 + 1) % m
-    -- + 1) % m = k := by slim_check
 
 lemma form_perm_reverse (l : list α) (h : nodup l) :
   form_perm l.reverse = (form_perm l)⁻¹ :=

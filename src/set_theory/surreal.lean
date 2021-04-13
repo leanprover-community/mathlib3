@@ -260,7 +260,7 @@ theorem numeric_nat : Π (n : ℕ), numeric n
 
 /-- The pre-game omega is numeric. -/
 theorem numeric_omega : numeric omega :=
-⟨by rintros ⟨⟩ ⟨⟩, λ i, by simp [numeric_nat i.down], by rintros ⟨⟩⟩
+⟨by rintros ⟨⟩ ⟨⟩, λ i, numeric_nat i.down, by rintros ⟨⟩⟩
 
 end pgame
 

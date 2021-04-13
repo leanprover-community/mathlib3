@@ -207,7 +207,7 @@ triangle.mk _ (F.map T.mor₁) (F.map T.mor₂) (F.map T.mor₃ ≫ F.comm_shift
 Given a `triangulated_functor` and a distinguished triangle `T` of `C`, then the triangle it
 maps onto in `D` is also distinguished.
 -/
-def triangulated_functor.map_distinguished (F : triangulated_functor C D) (T : triangle C)
+lemma triangulated_functor.map_distinguished (F : triangulated_functor C D) (T : triangle C)
   (h : T ∈ dist_triang C) : (F.map_triangle T) ∈ dist_triang D := F.map_distinguished' T h
 
 

@@ -253,9 +253,17 @@ theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
  end⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
--- TODO prove
--- theorem numeric_nat (n : ℕ) : numeric n := sorry
--- theorem numeric_omega : numeric omega := sorry
+/-- Pre-games defined by natural numbers are numeric. -/
+theorem numeric_nat (n : ℕ) : numeric n :=
+begin
+  induction n with n hn,
+  apply numeric_zero,
+  apply numeric_add hn numeric_one,
+end
+
+/-- The pre-game omega is numeric. -/
+theorem numeric_omega : numeric omega :=
+⟨by rintros ⟨ ⟩ ⟨ ⟩, λ i, by simp [numeric_nat i.down] , by rintros ⟨ ⟩⟩
 
 end pgame
 

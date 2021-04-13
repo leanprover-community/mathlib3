@@ -76,6 +76,10 @@ F.map_add_hom.map_neg _
 lemma map_sub {X Y : C} {f g : X ⟶ Y} : F.map (f - g) = F.map f - F.map g :=
 F.map_add_hom.map_sub _ _
 
+@[simp]
+lemma map_smul {X Y : C} {f : X ⟶ Y} {r : ℤ} : F.map (r • f) = r • F.map f :=
+F.map_add_hom.map_gsmul _ _
+
 open_locale big_operators
 
 @[simp]

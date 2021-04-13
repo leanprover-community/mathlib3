@@ -7,6 +7,7 @@ import algebra.category.Module.monoidal
 import category_theory.monoidal.functorial
 import category_theory.monoidal.types
 import linear_algebra.direct_sum.finsupp
+import category_theory.preadditive.additive_functor
 
 /-!
 The functor of forming finitely supported functions on a type with values in a `[ring R]`
@@ -16,11 +17,11 @@ the forgetful functor from `R`-modules to types.
 
 noncomputable theory
 
-universe u
-
 open category_theory
 
 namespace Module
+
+universe u
 
 open_locale classical
 
@@ -114,3 +115,177 @@ instance : lax_monoidal.{u} (free R).obj :=
 end free
 
 end Module
+
+namespace category_theory
+
+universes v u
+
+/--
+A `Free R C` is a type synonym for `C`, which, given `[ring R]` and `[category C]`,
+we will equip with a category structure where the morphisms are formal `R`-linear combinations
+of the morphisms in `C`.
+-/
+@[nolint unused_arguments has_inhabited_instance]
+def Free (R : Type*) (C : Type u) := C
+
+/--
+Consider an object of `C` as an object of the `R`-linear completion.
+-/
+def Free.of (R : Type*) {C : Type u} (X : C) : Free R C := X
+
+variables (R : Type*) [ring R] (C : Type u) [category.{v} C]
+
+open finsupp
+
+-- Conceptually, it would be nice to construct this via "transport of enrichment",
+-- using the fact that `Module.free R : Type ⥤ Module R` and `Module.forget` are both lax monoidal.
+-- This still seems difficult, so we just do it by hand.
+instance category_Free : category (Free R C) :=
+{ hom := λ (X Y : C), (X ⟶ Y) →₀ R,
+  id := λ (X : C), finsupp.single (𝟙 X) 1,
+  comp := λ (X Y Z : C) f g, f.sum (λ f' s, g.sum (λ g' t, finsupp.single (f' ≫ g') (s * t))),
+  assoc' := λ W X Y Z f g h,
+  begin
+    dsimp,
+    -- This imitates the proof of associativity for `monoid_algebra`.
+    simp only [sum_sum_index, sum_single_index,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
+      add_mul, mul_add, category.assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
+  end }.
+
+namespace Free
+
+section
+local attribute [simp] category_theory.category_Free
+
+@[simp]
+lemma single_comp_single {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (r s : R) :
+  (single f r ≫ single g s : (Free.of R X) ⟶ (Free.of R Z)) = single (f ≫ g) (r * s) :=
+by { dsimp, simp, }
+
+-- TODO it's linear, too, when we have a typeclass for that
+instance : preadditive (Free R C) :=
+{ hom_group := λ X Y, finsupp.add_comm_group,
+  add_comp' := λ X Y Z f f' g, begin
+    dsimp,
+    rw [finsupp.sum_add_index];
+    { simp [add_mul], }
+  end,
+  comp_add' := λ X Y Z f g g', begin
+    dsimp,
+    rw ← finsupp.sum_add,
+    congr, ext r h,
+    rw [finsupp.sum_add_index];
+    { simp [mul_add], },
+  end, }
+
+end
+
+/--
+A category embeds into its `R`-linear completion.
+-/
+@[simps]
+def embedding : C ⥤ Free R C :=
+{ obj := λ X, X,
+  map := λ X Y f, finsupp.single f 1,
+  map_id' := λ X, rfl,
+  map_comp' := λ X Y Z f g, by simp, }
+
+-- When we have a typeclass for R-linear categories, upgrade all this.
+variables {R C} {D : Type u} [category.{v} D] [preadditive D]
+
+open preadditive
+
+/--
+A functor to a preadditive category lifts to a functor from its `ℤ`-linear completion.
+-/
+@[simps]
+def lift (F : C ⥤ D) : Free ℤ C ⥤ D :=
+{ obj := λ X, F.obj X,
+  map := λ X Y f, f.sum (λ f' r, r • (F.map f')),
+  map_id' := by { dsimp [category_theory.category_Free], simp },
+  map_comp' := λ X Y Z f g, begin
+    apply finsupp.induction_linear f,
+    { simp, },
+    { intros f₁ f₂ w₁ w₂,
+      rw add_comp,
+      rw [finsupp.sum_add_index, finsupp.sum_add_index],
+      { simp [w₁, w₂, add_comp], },
+      { simp, },
+      { intros, simp only [add_smul], },
+      { simp, },
+      { intros, simp only [add_smul], }, },
+    { intros f' r,
+      apply finsupp.induction_linear g,
+      { simp, },
+      { intros f₁ f₂ w₁ w₂,
+        rw comp_add,
+        rw [finsupp.sum_add_index, finsupp.sum_add_index],
+        { simp [w₁, w₂, add_comp], },
+        { simp, },
+        { intros, simp only [add_smul], },
+        { simp, },
+        { intros, simp only [add_smul], }, },
+      { intros g' s,
+        erw single_comp_single,
+        simp [mul_smul], } }
+  end, }
+
+@[simp]
+lemma lift_map_single (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) (r : ℤ) :
+  (lift F).map (single f r) = r • F.map f :=
+by simp
+
+instance lift_additive (F : C ⥤ D) : (lift F).additive :=
+{ map_zero' := by simp,
+  map_add' := begin
+    intros X Y f g,
+    dsimp,
+    rw finsupp.sum_add_index; simp [add_smul]
+  end, }
+
+/--
+The embedding into the `ℤ`-linear completion, followed by the lift,
+is isomorphic to the original functor.
+-/
+def embedding_lift_iso (F : C ⥤ D) : embedding ℤ C ⋙ lift F ≅ F :=
+nat_iso.of_components
+  (λ X, iso.refl _)
+  (by tidy)
+
+/--
+Two functors out of the `ℤ`-linear completion are isomorphic iff their
+compositions with the embedding functor are isomorphic.
+-/
+@[ext]
+def ext {F G : Free ℤ C ⥤ D} [F.additive] [G.additive]
+  (α : embedding ℤ C ⋙ F ≅ embedding ℤ C ⋙ G) : F ≅ G :=
+nat_iso.of_components
+  (λ X, α.app X)
+  begin
+    intros X Y f,
+    apply finsupp.induction_linear f,
+    { simp, },
+    { intros f₁ f₂ w₁ w₂,
+      simp only [F.map_add, G.map_add, add_comp, comp_add, w₁, w₂], },
+    { intros f' r,
+      -- TODO finish cleaning up
+      simp only [category_theory.iso.app_hom],
+      rw [←smul_single_one],
+      have := F.map_smul,
+      rw [F.map_smul, G.map_smul], -- gah! incompatible instances, from finsupp and via int.module
+      -- I'm not sure this is fixable without #7084 and its successor.
+    }
+  end
+
+/--
+`Free.lift` is unique amongst additive functors `Free ℤ C ⥤ D`
+which compose with `embedding ℤ C` to give the original functor.
+-/
+def lift_unique (F : C ⥤ D) (L : Free ℤ C ⥤ D) [L.additive] (α : embedding ℤ C ⋙ L ≅ F) :
+  L ≅ lift F :=
+ext (α.trans (embedding_lift_iso F).symm)
+
+end Free
+
+end category_theory

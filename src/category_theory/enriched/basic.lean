@@ -27,7 +27,7 @@ but we do provide a presheaf isomorphic to the Yoneda embedding of this object.
 We verify that when `V = Type v`, all these notion reduce to the usual ones.
 -/
 
-universes w v u₁ u₂
+universes w v u₁ u₂ u₃
 
 namespace category_theory
 

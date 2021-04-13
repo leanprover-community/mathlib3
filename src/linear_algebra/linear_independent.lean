@@ -300,8 +300,9 @@ end
 lemma linear_dependent_comp_subtype' {s : set ι} :
   ¬ linear_independent R (v ∘ coe : s → M) ↔
   ∃ f : ι →₀ R, f ∈ finsupp.supported R R s ∧ finsupp.total ι M R v f = 0 ∧ f ≠ 0 :=
-by simp [linear_independent_comp_subtype, finsupp.total_apply, finsupp.sum]
+by simp [linear_independent_comp_subtype]
 
+/-- A version of `linear_dependent_comp_subtype'` with `finsupp.total` unfolded. -/
 lemma linear_dependent_comp_subtype {s : set ι} :
   ¬ linear_independent R (v ∘ coe : s → M) ↔
   ∃ f : ι →₀ R, f ∈ finsupp.supported R R s ∧ ∑ i in f.support, f i • v i = 0 ∧ f ≠ 0 :=
@@ -673,10 +674,10 @@ begin
   { intro h2,
     rw h2 at hi,
     exact absurd hiJ hi },
-  obtain ⟨f, supp_f, sum_f, f_ne⟩ := set.linear_dependent_iff.mp h,
+  obtain ⟨f, supp_f, sum_f, f_ne⟩ := linear_dependent_comp_subtype.mp h,
   have hfi : f i ≠ 0,
   { contrapose hIlinind,
-    refine set.linear_dependent_iff.mpr ⟨f, _, sum_f, f_ne⟩,
+    refine linear_dependent_comp_subtype.mpr ⟨f, _, sum_f, f_ne⟩,
     simp only [finsupp.mem_supported, hJ] at ⊢ supp_f,
     rintro x hx,
     refine (memJ.mp (supp_f hx)).resolve_left _,

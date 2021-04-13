@@ -20,19 +20,18 @@ An explicit instance is given for a `complete_lattice` on `fin (n+1)`, but the r
 as `def`s, to avoid loops in instance searches.
 -/
 
-/- The maximum element in a `fintype` with `semilattice_sup` -/
+/-- The maximum element in a `fintype` with `semilattice_sup` -/
 def fintype.top (α : Type*) [inhabited α] [fintype α] [semilattice_sup α] : α :=
   finset.fold (⊔) (arbitrary α) id finset.univ
 
-/- The minimum element in a `fintype` with `semilattice_inf` -/
+/-- The minimum element in a `fintype` with `semilattice_inf` -/
 def fintype.bot (α : Type*) [inhabited α] [fintype α] [semilattice_inf α] : α :=
   finset.fold (⊓) (arbitrary α) id finset.univ
 
 lemma fintype.bot_le (α : Type*) [inhabited α] [fintype α] [semilattice_inf α] (a : α) :
   fintype.bot α ≤ a :=
-((@finset.fold_op_rel_iff_and
-  _ _ (⊓) _ _ id (arbitrary α) finset.univ (≤) (λ _ _ _, le_inf_iff) (fintype.bot α )).mp le_rfl).2
-    a (finset.mem_univ _)
+((@finset.fold_op_rel_iff_and _ _ (⊓) _ _ _ _ _ _
+  (λ _ _ _, le_inf_iff) (fintype.bot α)).mp le_rfl).2 a (finset.mem_univ _)
 
 lemma fintype.exists_bot (α : Type*) [i : nonempty α] [fintype α] [semilattice_inf α] :
   ∃ m, ∀ a : α, m ≤ a :=
@@ -44,7 +43,7 @@ lemma fintype.eq_bot_iff (α : Type*) [inhabited α] [fintype α] [semilattice_i
 
 lemma fintype.le_top (α : Type*) [inhabited α] [fintype α] [semilattice_sup α] (a : α) :
   a ≤ fintype.top α :=
-(((@finset.fold_op_rel_iff_and _ _ (⊔) _ _ id (arbitrary α) finset.univ (λ x y, y ≤ x)
+(((@finset.fold_op_rel_iff_and _ _ (⊔) _ _ _ (arbitrary α) _ (λ x y, y ≤ x)
   (λ _ _ _, sup_le_iff) (fintype.top α))).mp le_rfl).2 a (finset.mem_univ a)
 
 lemma fintype.exists_top (α : Type*) [i : nonempty α] [fintype α] [semilattice_sup α] :
@@ -55,6 +54,7 @@ lemma fintype.eq_top_iff (α : Type*) [inhabited α] [fintype α] [semilattice_s
   a = fintype.top α ↔ ∀ x, x ≤ a :=
 ⟨by {rintro rfl, apply fintype.le_top}, λ h, le_antisymm (fintype.le_top _ _) (h _)⟩
 
+/-- A nonempty finite lattice is bounded  -/
 def fintype.bounded_lattice (α : Type*) [inhabited α] [fintype α] [lattice α] :
   bounded_lattice α :=
 { bot := fintype.bot α,
@@ -65,6 +65,7 @@ def fintype.bounded_lattice (α : Type*) [inhabited α] [fintype α] [lattice α
 
 open_locale classical
 
+/-- A nonempty finite lattice is complete -/
 noncomputable def fintype.complete_lattice (α : Type*) [i : nonempty α] [fintype α] [lattice α] :
   complete_lattice α :=
 let isb := (@semilattice_sup_bot_of_bounded_lattice α (@fintype.bounded_lattice α ⟨i.some⟩ _ _)),
@@ -79,14 +80,14 @@ let isb := (@semilattice_sup_bot_of_bounded_lattice α (@fintype.bounded_lattice
     (λ b hb, ha _ (by rwa set.mem_to_finset at hb)),
   ..(@fintype.bounded_lattice α ⟨i.some⟩ _ _)}
 
-noncomputable def fintype.complete_linear_order_of_linear_order (α : Type*)
-  [fintype α] [nonempty α] [linear_order α] :
-  complete_linear_order α :=
+/-- A nonempty finite linear order is complete -/
+noncomputable def fintype.complete_linear_order (α : Type*)
+  [fintype α] [nonempty α] [linear_order α] : complete_linear_order α :=
 { ..fintype.complete_lattice α,
   ..(infer_instance : linear_order α) }
 
 noncomputable instance {n : ℕ} : complete_linear_order (fin (n+1)) :=
-  fintype.complete_linear_order_of_linear_order _
+  fintype.complete_linear_order  _
 
 section
 

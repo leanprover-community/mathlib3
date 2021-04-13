@@ -47,7 +47,7 @@ variables {M N P : Module R}
 open category_theory.enriched_over
 
 -- We get an `AddCommGroup` worth of morphisms:
-example : AddCommGroup := M ⟶[Ab] N
+example : Ab := M ⟶[Ab] N
 -- We can add them!
 example (f g : M ⟶[Ab] N) : M ⟶[Ab] N := f + g
 -- We can see that composition is additive in either argument:

@@ -18,6 +18,7 @@ include 𝒞
 
 namespace enriched_over
 
+/-- We can transport enrichment along a forgetful functor `V ⥤ W`. -/
 def transport [enriched_over V C] [has_forget₂ V W] : enriched_over W C :=
 { enriched_hom := λ X Y, (forget₂ V W).obj (X ⟶[V] Y),
   comp_left := λ X Y f Z, (forget₂ V W).map (comp_left V f Z),
@@ -26,12 +27,21 @@ def transport [enriched_over V C] [has_forget₂ V W] : enriched_over W C :=
   comp_left_forget' := λ X Y f Z,
   begin
     change _ ≫ (forget₂ V W ⋙ forget W).map _ ≫ _ = _,
-    -- Much easier will be to modify `forget₂`
-    -- to have a natural isomorphism,
-    -- instead of an equality.
-    sorry,
+    let i : forget₂ V W ⋙ forget W ≅ _ := eq_to_iso has_forget₂.forget_comp,
+    rw ←nat_iso.naturality_1 i.symm,
+    simp only [forget_map_eq_coe, eq_to_iso.inv, iso.symm_hom, iso.symm_inv,
+      eq_to_hom_app, eq_to_hom_trans, eq_to_hom_trans_assoc, eq_to_iso.hom, category.assoc],
+    exact enriched_over.comp_left_forget _ _ _ _,
   end,
-  comp_right_forget' := sorry, }
+  comp_right_forget' := λ X Y Z g,
+  begin
+    change _ ≫ (forget₂ V W ⋙ forget W).map _ ≫ _ = _,
+    let i : forget₂ V W ⋙ forget W ≅ _ := eq_to_iso has_forget₂.forget_comp,
+    rw ←nat_iso.naturality_1 i.symm,
+    simp only [forget_map_eq_coe, eq_to_iso.inv, iso.symm_hom, iso.symm_inv,
+      eq_to_hom_app, eq_to_hom_trans, eq_to_hom_trans_assoc, eq_to_iso.hom, category.assoc],
+    exact enriched_over.comp_right_forget _ _ _ _,
+  end, }
 
 end enriched_over
 

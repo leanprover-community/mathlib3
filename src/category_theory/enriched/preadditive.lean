@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.enriched.enriched_over
 import algebra.category.Group.basic
-import tactic.transport
+import data.equiv.transfer_instance
 
 universes v u
 
@@ -16,17 +16,7 @@ include 𝒞
 
 abbreviation preadditive' := enriched_over.{v} AddCommGroup.{v} C
 
-set_option trace.equiv_rw_type true
-
--- instance (X Y : C) [preadditive' C] : add_comm_group (X ⟶ Y) :=
--- begin
---   have : (X ⟶[AddCommGroup.{v}] Y : Type v) = (X ⟶ Y), by simp,
---   have e := equiv.cast this,
---   have S : add_comm_group (X ⟶[AddCommGroup.{v}] Y : Type v) := by apply_instance,
---   refine_struct { .. },
---   { have add := S.add, equiv_rw e at add, exact add, },
-
---   transport S using e, -- fail!
--- end
+instance (X Y : C) [preadditive' C] : add_comm_group (X ⟶ Y) :=
+equiv.add_comm_group (equiv.cast (by simp) : (X ⟶ Y) ≃ (X ⟶[AddCommGroup.{v}] Y : Type v))
 
 end category_theory

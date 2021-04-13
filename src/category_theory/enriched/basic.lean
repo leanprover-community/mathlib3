@@ -89,7 +89,7 @@ obtained by applying the functor `F : lax_monoidal_functor V W` to each hom obje
 @[nolint has_inhabited_instance unused_arguments]
 def transport_enrichment (F : lax_monoidal_functor V W) (C : Type u₁) := C
 
-instance (F : lax_monoidal_functor V W) [enriched_category V C] :
+instance (F : lax_monoidal_functor V W) :
   enriched_category W (transport_enrichment F C) :=
 { hom := λ (X Y : C), F.obj (X ⟶[V] Y),
   id := λ (X : C), F.ε ≫ F.map (e_id V X),

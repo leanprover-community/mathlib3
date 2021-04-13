@@ -8,8 +8,7 @@ import tactic.ring
 
 /-- The ring of integers adjoined with a square root of `d`.
   These have the form `a + b √d` where `a b : ℤ`. The components
-  are called `re` and `im` by analogy to the negative `d` case,
-  but of course both parts are real here since `d` is nonnegative. -/
+  are called `re` and `im` by analogy to the negative `d` case. -/
 structure zsqrtd (d : ℤ) :=
 (re : ℤ)
 (im : ℤ)
@@ -196,6 +195,18 @@ protected lemma coe_int_mul (m n : ℤ) : (↑(m * n) : ℤ√d) = ↑m * ↑n :
 (int.cast_ring_hom _).map_mul _ _
 protected lemma coe_int_inj {m n : ℤ} (h : (↑m : ℤ√d) = ↑n) : m = n :=
 by simpa using congr_arg re h
+
+lemma coe_int_dvd_iff {d : ℤ} (z : ℤ) (a : ℤ√d) : ↑z ∣ a ↔ z ∣ a.re ∧ z ∣ a.im :=
+begin
+  split,
+  { rintro ⟨x, rfl⟩,
+    simp only [add_zero, coe_int_re, zero_mul, mul_im, dvd_mul_right, and_self, mul_re, mul_zero,
+      coe_int_im] },
+  { rintro ⟨⟨r, hr⟩, ⟨i, hi⟩⟩,
+    use ⟨r, i⟩,
+    rw [smul_val, ext],
+    exact ⟨hr, hi⟩ },
+end
 
 /-- Read `sq_le a c b d` as `a √c ≤ b √d` -/
 def sq_le (a c b d : ℕ) : Prop := c*a*a ≤ d*b*b

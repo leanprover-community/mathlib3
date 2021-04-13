@@ -375,8 +375,6 @@ instance : ordered_cancel_add_comm_monoid (multiset α) :=
   zero_add              := multiset.zero_add,
   add_zero              := λ s, by rw [multiset.add_comm, multiset.zero_add],
   add_left_cancel       := multiset.add_left_cancel,
-  add_right_cancel      := λ s₁ s₂ s₃ h, multiset.add_left_cancel s₂ $
-    by simpa [multiset.add_comm] using h,
   add_le_add_left       := λ s₁ s₂ h s₃, (multiset.add_le_add_left _).2 h,
   le_of_add_le_add_left := λ s₁ s₂ s₃, (multiset.add_le_add_left _).1,
   ..@multiset.partial_order α }

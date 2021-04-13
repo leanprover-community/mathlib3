@@ -1276,6 +1276,44 @@ end comm_group_with_zero
 
 end finset
 
+namespace fintype
+
+open finset
+
+/-- `fintype.prod_bijective` is a variant of `finset.prod_bij` that accepts `function.bijective`.
+
+See `function.bijective.prod_comp` for a version without `h`. -/
+@[to_additive "`fintype.sum_equiv` is a variant of `finset.sum_bij` that accepts
+`function.bijective`.
+
+See `function.bijective.sum_comp` for a version without `h`. "]
+lemma prod_bijective {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
+  (e : α → β) (he : function.bijective e) (f : α → M) (g : β → M) (h : ∀ x, f x = g (e x)) :
+  ∏ x : α, f x = ∏ x : β, g x :=
+prod_bij
+  (λ x _, e x)
+  (λ x _, mem_univ (e x))
+  (λ x _, h x)
+  (λ x x' _ _ h, he.injective h)
+  (λ y _, (he.surjective y).imp $ λ a h, ⟨mem_univ _, h.symm⟩)
+
+/-- `fintype.prod_equiv` is a specialization of `finset.prod_bij` that
+automatically fills in most arguments.
+
+See `equiv.prod_comp` for a version without `h`. 
+-/
+@[to_additive "`fintype.sum_equiv` is a specialization of `finset.sum_bij` that
+automatically fills in most arguments.
+
+See `equiv.sum_comp` for a version without `h`. 
+"]
+lemma prod_equiv {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
+  (e : α ≃ β) (f : α → M) (g : β → M) (h : ∀ x, f x = g (e x)) :
+  ∏ x : α, f x = ∏ x : β, g x :=
+prod_bijective e e.bijective f g h
+
+end fintype
+
 namespace list
 
 @[to_additive] lemma prod_to_finset {M : Type*} [decidable_eq α] [comm_monoid M]

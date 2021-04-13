@@ -54,7 +54,6 @@ instance : comm_semiring nat :=
 
 instance : linear_ordered_semiring nat :=
 { add_left_cancel            := @nat.add_left_cancel,
-  add_right_cancel           := @nat.add_right_cancel,
   lt                         := nat.lt,
   add_le_add_left            := @nat.add_le_add_left,
   le_of_add_le_add_left      := @nat.le_of_add_le_add_left,

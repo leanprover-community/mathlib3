@@ -454,10 +454,10 @@ end
   {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
-lemma pow_abs [linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
+lemma pow_abs [linear_ordered_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
 (abs_hom.to_monoid_hom.map_pow a n).symm
 
-lemma abs_neg_one_pow [linear_ordered_comm_ring R] (n : ℕ) : abs ((-1 : R)^n) = 1 :=
+lemma abs_neg_one_pow [linear_ordered_ring R] (n : ℕ) : abs ((-1 : R)^n) = 1 :=
 by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
 section add_monoid

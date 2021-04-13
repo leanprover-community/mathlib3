@@ -73,6 +73,9 @@ end
 lemma lie_mem_lie (x : I) (m : N) : ⁅(x : L), (m : M)⁆ ∈ ⁅I, N⁆ :=
 by { rw lie_ideal_oper_eq_span, apply subset_lie_span, use [x, m], }
 
+lemma lie_mem_lie' {x : L} {m : M} (hx : x ∈ I) (hm : m ∈ N) : ⁅x, m⁆ ∈ ⁅I, N⁆ :=
+N.lie_mem_lie I ⟨x, hx⟩ ⟨m, hm⟩
+
 lemma lie_comm : ⁅I, J⁆ = ⁅J, I⁆ :=
 begin
   suffices : ∀ (I J : lie_ideal R L), ⁅I, J⁆ ≤ ⁅J, I⁆, { exact le_antisymm (this I J) (this J I), },

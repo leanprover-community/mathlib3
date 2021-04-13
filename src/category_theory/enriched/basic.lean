@@ -127,6 +127,25 @@ structure enriched_functor
 (map_comp : ∀ X Y Z : C,
   e_comp V X Y Z ≫ map X Z = (map X Y ⊗ map Y Z) ≫ e_comp V (obj X) (obj Y) (obj Z))
 
+attribute [simp, reassoc] enriched_functor.map_id
+attribute [simp, reassoc] enriched_functor.map_comp
+
+@[simps]
+def enriched_functor.id (C : Type u₁) [enriched_category V C] : enriched_functor V C C :=
+{ obj := λ X, X,
+  map := λ X Y, 𝟙 _,
+  map_id := λ X, by simp,
+  map_comp := λ X Y Z, by simp }
+
+@[simps]
+def enriched_functor.comp {C : Type u₁} {D : Type u₂} {E : Type u₃}
+  [enriched_category V C] [enriched_category V D] [enriched_category V E]
+  (F : enriched_functor V C D) (G : enriched_functor V D E) :
+  enriched_functor V C E :=
+{ obj := λ X, G.obj (F.obj X),
+  map := λ X Y, F.map _ _ ≫ G.map _ _,
+  map_id := λ X, by simp,
+  map_comp := λ X, by simp }
 section
 variables {V} [braided_category V]
 variables {D : Type u₂} [enriched_category V D]

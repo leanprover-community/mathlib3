@@ -20,6 +20,8 @@ An explicit instance is given for a `complete_lattice` on `fin (n+1)`, but the r
 as `def`s, to avoid loops in instance searches.
 -/
 
+section main
+
 /-- The maximum element in a `fintype` with `semilattice_sup` -/
 def fintype.top (α : Type*) [inhabited α] [fintype α] [semilattice_sup α] : α :=
   finset.fold (⊔) (arbitrary α) id finset.univ
@@ -89,7 +91,9 @@ noncomputable def fintype.complete_linear_order (α : Type*)
 noncomputable instance {n : ℕ} : complete_linear_order (fin (n+1)) :=
   fintype.complete_linear_order  _
 
-section
+end main
+
+section decidable_Sup_Inf
 
 local attribute [instance] fintype.complete_lattice
 
@@ -103,4 +107,4 @@ lemma fintype.Inf_eq {α : Type*} [nonempty α] [fintype α] [lattice α] (s : s
   [decidable_pred (∈ s)] : Inf s = s.to_finset.inf id :=
 by {convert rfl}
 
-end
+end decidable_Sup_Inf

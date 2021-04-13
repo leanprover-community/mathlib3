@@ -511,6 +511,10 @@ lemma monoid_with_zero_hom.cancel_left
         ← monoid_with_zero_hom.comp_apply, h, monoid_with_zero_hom.comp_apply],
  λ h, h ▸ rfl⟩
 
+lemma monoid_with_zero_hom.to_monoid_hom_injective [monoid_with_zero M] [monoid_with_zero N] :
+  function.injective (monoid_with_zero_hom.to_monoid_hom : monoid_with_zero_hom M N → M →* N) :=
+λ f g h, monoid_with_zero_hom.ext $ monoid_hom.ext_iff.mp h
+
 @[simp, to_additive] lemma one_hom.comp_id [has_one M] [has_one N]
   (f : one_hom M N) : f.comp (one_hom.id M) = f := one_hom.ext $ λ x, rfl
 @[simp, to_additive] lemma mul_hom.comp_id [has_mul M] [has_mul N]

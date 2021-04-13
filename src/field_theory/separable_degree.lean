@@ -142,14 +142,16 @@ begin
 end
 
 /-- The separable degree is unique. -/
-theorem separable_degree_eq {n n' : ℕ} [hF : exp_char F q] :
-  separable_degree q hf = n → separable_degree q hf = n' → n = n' :=
-λ h, λ h',
+theorem separable_degree_eq {n n' : ℕ} [hF : exp_char F q]
+  (g : polynomial F)
+  (hg : g.separable ∧ ∃ m : ℕ, expand F (q^m) g = f) :
+  g.nat_degree = separable_degree q hf :=
 begin
   casesI hF,
-  { rw separable_degree_eq_degree hf at h h',
-    rw h at h',
-    exact h' },
+  { rcases hg with ⟨g, m, hm⟩,
+    rw [one_pow, expand_one] at hm,
+    rw separable_degree_eq_degree hf,
+    rw hm, },
   { let g := classical.some hf,
     cases (classical.some_spec hf).2 with m hm,
 

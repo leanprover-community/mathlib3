@@ -205,6 +205,32 @@ begin
   rw [←card_cycle_type_eq_one, hn, card_repeat, h2],
 end
 
+lemma foo {σ : perm α} {m1 m2 : multiset ℕ} (h : σ.cycle_type = m1 + m2) :
+  ∃ (τ π : perm α), σ = τ * π ∧ disjoint τ π ∧ τ.cycle_type = m1 ∧ π.cycle_type = m2 :=
+begin
+  sorry
+end
+
+theorem is_conj_of_cycle_type_eq {σ : perm α} :
+  ∀ {τ : perm α}, cycle_type σ = cycle_type τ → is_conj σ τ :=
+begin
+  apply cycle_induction_on _ σ,
+  { intros τ h,
+    rw [cycle_type_one, eq_comm, cycle_type_eq_zero] at h,
+    rw [h] },
+  { intros σ hσ τ h,
+    rw [hσ.cycle_type] at h,
+    have hτ : τ.is_cycle,
+    { rw [← card_cycle_type_eq_one, ← h, coe_card, length, length] },
+    apply hσ.is_conj hτ,
+    simp only [hτ.cycle_type, and_true, coe_eq_coe, eq_self_iff_true, singleton_perm] at h,
+    exact h },
+  { intros σ τ hd ihσ ihτ π h,
+    rw hd.cycle_type at h,
+    obtain ⟨σ', τ', rfl, hd', hσ', hτ'⟩ := foo h.symm,
+    exact hd.is_conj_mul (ihσ hσ'.symm) (ihτ hτ'.symm) hd' }
+end
+
 end cycle_type
 
 lemma is_cycle_of_prime_order' {σ : perm α} (h1 : (order_of σ).prime)

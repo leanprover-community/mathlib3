@@ -66,8 +66,8 @@ let isb := (@semilattice_sup_bot_of_bounded_lattice α (@fintype.bounded_lattice
 /-- A nonempty finite linear order is complete -/
 noncomputable def fintype.complete_linear_order (α : Type*)
   [fintype α] [nonempty α] [linear_order α] : complete_linear_order α :=
-{ ..fintype.complete_lattice α,
-  ..(infer_instance : linear_order α) }
+{ .. fintype.complete_lattice α,
+  .. (infer_instance : linear_order α) }
 
 noncomputable instance {n : ℕ} : complete_linear_order (fin (n+1)) :=
   fintype.complete_linear_order  _

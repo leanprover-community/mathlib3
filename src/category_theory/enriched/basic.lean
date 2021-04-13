@@ -260,8 +260,8 @@ def enriched_functor_Type_equiv_functor
   inv_fun := λ F,
   { obj := λ X, F.obj X,
     map := λ X Y f, F.map f,
-    map_id := λ X, by { ext ⟨⟩, exact F.map_id X, },
-    map_comp := λ X Y Z, by { ext ⟨f, g⟩, exact F.map_comp f g, }, },
+    map_id' := λ X, by { ext ⟨⟩, exact F.map_id X, },
+    map_comp' := λ X Y Z, by { ext ⟨f, g⟩, exact F.map_comp f g, }, },
   left_inv := λ F, by { cases F, simp, },
   right_inv := λ F, by { cases F, simp, }, }
 

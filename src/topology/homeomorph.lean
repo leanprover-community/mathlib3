@@ -313,8 +313,7 @@ end distrib
 /--
 A subset of a topological space is homeomorphic to its image under a homeomorphism.
 -/
-def image {α β : Type*} [topological_space α] [topological_space β]
-  (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
+def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
 { continuous_to_fun := by continuity!,
   continuous_inv_fun := by continuity!,
   ..e.to_equiv.image s, }

@@ -1065,10 +1065,14 @@ lemma uniform_continuous_comap' {f : γ → β} {g : α → γ} [v : uniform_spa
   (h : uniform_continuous (f ∘ g)) : @uniform_continuous α γ u (uniform_space.comap f v) g :=
 tendsto_comap_iff.2 h
 
+lemma to_nhds_mono {u₁ u₂ : uniform_space α} (h : u₁ ≤ u₂) (a : α) :
+  @nhds _ (@uniform_space.to_topological_space _ u₁) a ≤
+    @nhds _ (@uniform_space.to_topological_space _ u₂) a :=
+by rw [@nhds_eq_uniformity α u₁ a, @nhds_eq_uniformity α u₂ a]; exact (lift'_mono h le_rfl)
+
 lemma to_topological_space_mono {u₁ u₂ : uniform_space α} (h : u₁ ≤ u₂) :
   @uniform_space.to_topological_space _ u₁ ≤ @uniform_space.to_topological_space _ u₂ :=
-le_of_nhds_le_nhds $ assume a,
-  by rw [@nhds_eq_uniformity α u₁ a, @nhds_eq_uniformity α u₂ a]; exact (lift'_mono h $ le_refl _)
+le_of_nhds_le_nhds $ to_nhds_mono h
 
 lemma uniform_continuous.continuous [uniform_space α] [uniform_space β] {f : α → β}
   (hf : uniform_continuous f) : continuous f :=

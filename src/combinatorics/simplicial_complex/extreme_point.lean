@@ -8,10 +8,10 @@ import linear_algebra.finite_dimensional
 import algebra.module.linear_map
 import analysis.convex.topology
 import combinatorics.simplicial_complex.dump
--- import data.nat.parity
 
 open_locale classical affine big_operators
 open set
+--TODO: Generalise to LCTVS
 variables {m : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
 
 namespace affine
@@ -36,29 +36,16 @@ begin
   exact hBC x₁ x₂ hx₁B hx₂B x hxC hx hxx₁ hxx₂,
 end
 
-lemma convex_remove_of_extreme (hA : convex A) :
-  B ⊆ A ∧ convex (A \ B) ↔ extreme_set A B :=
+lemma convex_remove_of_extreme (hA : convex A) (hAB : extreme_set A B) :
+  convex (A \ B) :=
 begin
-  split,
-  {
-    refine λ hAB, ⟨hAB.1, λ x₁ x₂ hx₁A hx₂A x hxB hx hx₁x hx₂x, _⟩,
-    by_contra,
-    push_neg at h,
-    rw convex_iff_segment_subset at hAB,
-    refine (hAB.2 ⟨hx₁A, λ hx₁B, _⟩ ⟨hx₂A, λ hx₂B, _⟩ hx).2 hxB,
-    have := h hx₁B,
-    sorry,sorry
-    --exact (hAB ⟨hx₁A, h.1.symm⟩ ⟨hx₂A, h.2.symm⟩ hxB).2 rfl
-  },
-  { rintro ⟨hBA, hAB⟩,
-    use hBA,
-    rw convex_iff_segment_subset,
-    rintro x₁ x₂ ⟨hx₁A, hx₁B⟩ ⟨hx₂A, hx₂B⟩ x hx,
-    refine ⟨hA.segment_subset hx₁A hx₂A hx, λ hxB, hx₁B (hAB x₁ x₂ hx₁A hx₂A x hxB hx _ _).1⟩,
-    { rintro rfl,
-      exact hx₁B hxB },
-    { rintro rfl,
-      exact hx₂B hxB }}
+  rw convex_iff_segment_subset,
+  rintro x₁ x₂ ⟨hx₁A, hx₁B⟩ ⟨hx₂A, hx₂B⟩ x hx,
+  refine ⟨hA.segment_subset hx₁A hx₂A hx, λ hxB, hx₁B (hAB.2 x₁ x₂ hx₁A hx₂A x hxB hx _ _).1⟩,
+  { rintro rfl,
+    exact hx₁B hxB },
+  { rintro rfl,
+    exact hx₂B hxB }
 end
 
 def extreme_point (A : set E) (x : E) :
@@ -263,6 +250,7 @@ begin
   obtain ⟨l, hllin, hlcon, rfl⟩ := hAB,
   suffices h : (l x₁ = ⨆ (y : E) (H : y ∈ A), l y) ∧ l x₂ = ⨆ (y : E) (H : y ∈ A), l y,
   { exact ⟨⟨hx₁A, h.1⟩, ⟨hx₂A, h.2⟩⟩ },
+  have : l x = a • l x₁ + b • l x₂ := by rw [←hx, hllin.map_add, hllin.map_smul, hllin.map_smul],
   sorry
 end
 

@@ -42,8 +42,11 @@ variables {F : Type} [comm_semiring F]
 
 /-- A separable contraction of a polynomial `f` is a separable polynomial `g` such that
 `g(x^(q^m)) = f(x)` for some `m : ℕ`.-/
+def is_separable_contraction (f : polynomial F) (g : polynomial F) : Prop :=
+g.separable ∧ ∃ m : ℕ, expand F (q^m) g = f
+
 def has_separable_contraction (f : polynomial F) : Prop :=
-∃ g : polynomial F, g.separable ∧ ∃ m : ℕ, expand F (q^m) g = f
+∃ g : polynomial F, is_separable_contraction q f g
 
 variables {f : polynomial F} (hf : has_separable_contraction q f)
 
@@ -141,10 +144,9 @@ begin
     { exact (contraction_degree_eq_aux q g' g m' m h_expand.symm h_1 hg').symm, } }
 end
 
-/-- The separable degree is unique. -/
+/-- The separable degree equals the degree of any separable contraction, i.e., it is unique. -/
 theorem separable_degree_eq {n n' : ℕ} [hF : exp_char F q]
-  (g : polynomial F)
-  (hg : g.separable ∧ ∃ m : ℕ, expand F (q^m) g = f) :
+  (g : polynomial F) (hg : is_separable_contraction q f g) :
   g.nat_degree = separable_degree q hf :=
 begin
   casesI hF,
@@ -152,17 +154,13 @@ begin
     rw [one_pow, expand_one] at hm,
     rw separable_degree_eq_degree hf,
     rw hm, },
-  { let g := classical.some hf,
-    cases (classical.some_spec hf).2 with m hm,
-
+  { rcases hg with ⟨hg, m, hm⟩,
     let g' := classical.some hf,
     cases (classical.some_spec hf).2 with m' hm',
-
-    suffices : g.nat_degree = g'.nat_degree ∨ ¬g.separable ∨ ¬g'.separable, by tidy,
-
     haveI : fact q.prime := fact_iff.2 hF_hprime,
     apply contraction_degree_eq_or_insep q g g' m m',
-    rw [hm, hm'] }
+    rw [hm, hm'],
+    exact hg, exact (classical.some_spec hf).1 }
 end
 
 end field

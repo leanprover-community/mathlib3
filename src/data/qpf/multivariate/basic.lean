@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Simon Hudon
 -/
 import data.pfunctor.multivariate.basic
-universe u
 
 /-!
 # Multivariate quotients of polynomial functors.
@@ -73,6 +72,8 @@ each proves that some operations on functors preserves the QPF structure
 
  * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
+
+universe u
 
 open_locale mvfunctor
 

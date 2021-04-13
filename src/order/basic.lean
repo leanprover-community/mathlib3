@@ -6,8 +6,6 @@ Authors: Jeremy Avigad, Mario Carneiro
 import data.subtype
 import data.prod
 
-open function
-
 /-!
 # Basic definitions about `≤` and `<`
 
@@ -52,6 +50,8 @@ open function
 
 preorder, order, partial order, linear order, monotone, strictly monotone
 -/
+
+open function
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}

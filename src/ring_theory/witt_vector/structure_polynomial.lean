@@ -160,8 +160,8 @@ begin
   have := X_in_terms_of_W_aux p ℚ n,
   replace := congr_arg (bind₁ (λ k : ℕ, bind₁ (λ i, rename (prod.mk i) (W_ ℚ k)) Φ)) this,
   rw [alg_hom.map_mul, bind₁_C_right] at this,
-  convert this using 1, clear this,
-  conv_rhs { simp only [alg_hom.map_sub, bind₁_X_right] },
+  rw [witt_structure_rat, this], clear this,
+  conv_lhs { simp only [alg_hom.map_sub, bind₁_X_right] },
   rw sub_right_inj,
   simp only [alg_hom.map_sum, alg_hom.map_mul, bind₁_C_right, alg_hom.map_pow],
   refl

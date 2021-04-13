@@ -199,7 +199,7 @@ lemma degrees_map [comm_semiring S] (p : mv_polynomial σ R) (f : R →+* S) :
 begin
   dsimp only [degrees],
   apply multiset.subset_of_le,
-  convert finset.sup_subset _ _,
+  apply finset.sup_mono,
   apply mv_polynomial.support_map_subset
 end
 

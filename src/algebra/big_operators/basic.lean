@@ -702,41 +702,49 @@ begin
   exact prod_congr rfl hfg
 end
 
-lemma sum_range_succ {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
-  (∑ x in range (n + 1), f x) = f n + (∑ x in range n, f x) :=
+lemma sum_range_succ_comm {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
+  ∑ x in range (n + 1), f x = f n + ∑ x in range n, f x :=
 by rw [range_succ, sum_insert not_mem_range_self]
+
+lemma sum_range_succ {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
+  ∑ x in range (n + 1), f x = ∑ x in range n, f x + f n :=
+by simp only [add_comm, sum_range_succ_comm]
+
+@[to_additive]
+lemma prod_range_succ_comm (f : ℕ → β) (n : ℕ) :
+  ∏ x in range (n + 1), f x = f n * ∏ x in range n, f x :=
+by rw [range_succ, prod_insert not_mem_range_self]
 
 @[to_additive]
 lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
-  (∏ x in range (n + 1), f x) = f n * (∏ x in range n, f x) :=
-by rw [range_succ, prod_insert not_mem_range_self]
+  ∏ x in range (n + 1), f x = (∏ x in range n, f x) * f n :=
+by simp only [mul_comm, prod_range_succ_comm]
 
 lemma prod_range_succ' (f : ℕ → β) :
   ∀ n : ℕ, (∏ k in range (n + 1), f k) = (∏ k in range n, f (k+1)) * f 0
-| 0       := (prod_range_succ _ _).trans $ mul_comm _ _
-| (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
-                 exact prod_range_succ _ _
+| 0       := prod_range_succ _ _
+| (n + 1) := by rw [prod_range_succ _ n, mul_right_comm, ← prod_range_succ', prod_range_succ]
 
-lemma prod_range_add (f : ℕ → β) (n : ℕ) (m : ℕ) :
-  (∏ x in range (n + m), f x) =
+lemma prod_range_add (f : ℕ → β) (n m : ℕ) :
+  ∏ x in range (n + m), f x =
   (∏ x in range n, f x) * (∏ x in range m, f (n + x)) :=
 begin
   induction m with m hm,
   { simp },
-  { rw [nat.add_succ, finset.prod_range_succ, hm, finset.prod_range_succ, mul_left_comm _ _ _] },
+  { rw [nat.add_succ, prod_range_succ, hm, prod_range_succ, mul_assoc], },
 end
 
 @[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
- (∏ k in range 0, f k) = 1 :=
+  ∏ k in range 0, f k = 1 :=
 by rw [range_zero, prod_empty]
 
 lemma prod_range_one (f : ℕ → β) :
-  (∏ k in range 1, f k) = f 0 :=
+  ∏ k in range 1, f k = f 0 :=
 by { rw [range_one], apply @prod_singleton ℕ β 0 f }
 
 lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
-  (∑ k in range 1, f k) = f 0 :=
+  ∑ k in range 1, f k = f 0 :=
 @prod_range_one (multiplicative δ) _ f
 
 attribute [to_additive finset.sum_range_one] prod_range_one
@@ -870,17 +878,17 @@ lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b
 | (n+1) := by simp
 
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
-  (∏ x in s, f x ^ n) = (∏ x in s, f x) ^ n :=
+  ∏ x in s, f x ^ n = (∏ x in s, f x) ^ n :=
 by haveI := classical.dec_eq α; exact
 finset.induction_on s (by simp) (by simp [mul_pow] {contextual := tt})
 
 -- `to_additive` fails on this lemma, so we prove it manually below
 lemma prod_flip {n : ℕ} (f : ℕ → β) :
-  (∏ r in range (n + 1), f (n - r)) = (∏ k in range (n + 1), f k) :=
+  ∏ r in range (n + 1), f (n - r) = ∏ k in range (n + 1), f k :=
 begin
   induction n with n ih,
   { rw [prod_range_one, prod_range_one] },
-  { rw [prod_range_succ', prod_range_succ _ (nat.succ n), mul_comm],
+  { rw [prod_range_succ', prod_range_succ _ (nat.succ n)],
     simp [← ih] }
 end
 
@@ -1267,6 +1275,44 @@ end
 end comm_group_with_zero
 
 end finset
+
+namespace fintype
+
+open finset
+
+/-- `fintype.prod_bijective` is a variant of `finset.prod_bij` that accepts `function.bijective`.
+
+See `function.bijective.prod_comp` for a version without `h`. -/
+@[to_additive "`fintype.sum_equiv` is a variant of `finset.sum_bij` that accepts
+`function.bijective`.
+
+See `function.bijective.sum_comp` for a version without `h`. "]
+lemma prod_bijective {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
+  (e : α → β) (he : function.bijective e) (f : α → M) (g : β → M) (h : ∀ x, f x = g (e x)) :
+  ∏ x : α, f x = ∏ x : β, g x :=
+prod_bij
+  (λ x _, e x)
+  (λ x _, mem_univ (e x))
+  (λ x _, h x)
+  (λ x x' _ _ h, he.injective h)
+  (λ y _, (he.surjective y).imp $ λ a h, ⟨mem_univ _, h.symm⟩)
+
+/-- `fintype.prod_equiv` is a specialization of `finset.prod_bij` that
+automatically fills in most arguments.
+
+See `equiv.prod_comp` for a version without `h`. 
+-/
+@[to_additive "`fintype.sum_equiv` is a specialization of `finset.sum_bij` that
+automatically fills in most arguments.
+
+See `equiv.sum_comp` for a version without `h`. 
+"]
+lemma prod_equiv {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
+  (e : α ≃ β) (f : α → M) (g : β → M) (h : ∀ x, f x = g (e x)) :
+  ∏ x : α, f x = ∏ x : β, g x :=
+prod_bijective e e.bijective f g h
+
+end fintype
 
 namespace list
 

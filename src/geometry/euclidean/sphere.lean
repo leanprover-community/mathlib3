@@ -6,10 +6,10 @@ Authors: Manuel Candales
 import geometry.euclidean.basic
 
 /-!
-# Circles
+# Spheres
 
 This file proves basic geometrical results about distances and angles
-in circles in real inner product spaces and Euclidean affine spaces.
+in spheres in real inner product spaces and Euclidean affine spaces.
 -/
 
 open real
@@ -20,9 +20,9 @@ variables {V : Type*} [inner_product_space ℝ V]
 namespace inner_product_geometry
 
 /-!
-### Geometrical results on circles in real inner product spaces
+### Geometrical results on spheres in real inner product spaces
 
-This section develops some results on circles in real inner product spaces,
+This section develops some results on spheres in real inner product spaces,
 which are used to deduce corresponding results for Euclidean affine spaces.
 -/
 
@@ -66,9 +66,9 @@ end inner_product_geometry
 namespace euclidean_geometry
 
 /-!
-### Geometrical results on circles in Euclidean affine spaces
+### Geometrical results on spheres in Euclidean affine spaces
 
-This section develops some results on circles in Euclidean affine spaces.
+This section develops some results on spheres in Euclidean affine spaces.
 -/
 
 open inner_product_geometry
@@ -109,7 +109,8 @@ begin
 end
 
 /-- Intersecting Chords Theorem. -/
-theorem intersecting_chords_theorem {a b c d p : P} (h : cospherical ({a, b, c, d} : set P))
+theorem mul_dist_eq_mul_dist_of_cospherical_and_angles_eq_pi {a b c d p : P}
+  (h : cospherical ({a, b, c, d} : set P))
   (hapb : ∠ a p b = π ) (hcpd : ∠ c p d = π ) :
   dist a p * dist b p = dist c p * dist d p :=
 begin
@@ -119,7 +120,8 @@ begin
 end
 
 /-- Intersecting Secants Theorem. -/
-theorem intersecting_secants_theorem {a b c d p : P} (h : cospherical ({a, b, c, d} : set P))
+theorem mul_dist_eq_mul_dist_of_cospherical_and_angles_eq_zero {a b c d p : P}
+  (h : cospherical ({a, b, c, d} : set P))
   (hab : a ≠ b) (hcd : c ≠ d) (hapb : ∠ a p b = 0 ) (hcpd : ∠ c p d = 0 ) :
   dist a p * dist b p = dist c p * dist d p :=
 begin

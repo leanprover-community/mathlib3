@@ -117,5 +117,3 @@ lemma fintype.Inf_eq {α : Type*} [fintype α] [bounded_lattice α] (s : set α)
 by {convert rfl}
 
 end decidable_Sup_Inf
-
-#lint

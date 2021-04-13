@@ -1,4 +1,6 @@
 import combinatorics.simple_graph.basic
+import data.polynomial
+import algebra.linear_recurrence
 
 namespace simple_graph
 universes u v
@@ -37,6 +39,11 @@ end
 
 noncomputable def chromatic_polynomial (k : ℕ) : ℕ := fintype.card (coloring G (fin k))
 
+def is_poly (q : ℕ → ℕ) : Prop := ∃ (p : polynomial ℕ), ∀ x, p.2 x = q x
 
+lemma chr_poly_is_poly : is_poly G.chromatic_polynomial :=
+begin
+  sorry,
+end
 
 end simple_graph

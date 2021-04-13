@@ -209,12 +209,12 @@ namespace monoid_hom
 variables {M : Type*} [monoid M]
 open multiplicative
 
-theorem ext_mint {f g : multiplicative ℤ →* M} (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
+@[ext] theorem ext_mint {f g : multiplicative ℤ →* M} (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
 monoid_hom.ext $ add_monoid_hom.ext_iff.mp $
   @add_monoid_hom.ext_int _ _ f.to_additive g.to_additive h1
 
 /-- If two `monoid_hom`s agree on `-1` and the naturals then they are equal. -/
-theorem ext_int {f g : ℤ →* M}
+@[ext] theorem ext_int {f g : ℤ →* M}
   (h_neg_one : f (-1) = g (-1))
   (h_nat : f.comp int.of_nat_hom.to_monoid_hom = g.comp int.of_nat_hom.to_monoid_hom) :
   f = g :=
@@ -233,7 +233,7 @@ namespace monoid_with_zero_hom
 variables {M : Type*} [monoid_with_zero M]
 
 /-- If two `monoid_with_zero_hom`s agree on `-1` and the naturals then they are equal. -/
-theorem ext_int {f g : monoid_with_zero_hom ℤ M}
+@[ext] theorem ext_int {f g : monoid_with_zero_hom ℤ M}
   (h_neg_one : f (-1) = g (-1))
   (h_nat : f.comp int.of_nat_hom.to_monoid_with_zero_hom =
            g.comp int.of_nat_hom.to_monoid_with_zero_hom) :

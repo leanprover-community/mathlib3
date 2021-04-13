@@ -247,7 +247,7 @@ namespace monoid_with_zero_hom
 variables {A : Type*} [monoid_with_zero A]
 
 /-- If two `monoid_with_zero_hom`s agree on the positive naturals they are equal. -/
-theorem ext_nat {f g : monoid_with_zero_hom ℕ A}
+@[ext] theorem ext_nat {f g : monoid_with_zero_hom ℕ A}
   (h_pos : ∀ {n : ℕ}, 0 < n → f n = g n) : f = g :=
 begin
   ext (_ | n),

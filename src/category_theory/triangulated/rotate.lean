@@ -186,7 +186,7 @@ There is a natural transformation between the composition of a rotation with an 
 on triangles in `C`, and the identity functor.
 -/
 @[simps]
-def rot_comp_inv_rot_inv : rotate  ⋙ inv_rotate ⟶ 𝟭 (triangle C) :=
+def rot_comp_inv_rot_inv : rotate ⋙ inv_rotate ⟶ 𝟭 (triangle C) :=
 { app := λ T,
   { hom₁ := (shift C).unit_inv.app T.obj₁,
     hom₂ := 𝟙 T.obj₂,

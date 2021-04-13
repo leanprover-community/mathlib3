@@ -16,7 +16,7 @@ particular to `fin (n+1)`. Getting to a `bounded_lattice` from a `lattice` is co
 subsequent definitions are not, since the definitions of `Sup` and `Inf` use `set.to_finset`, which
 implicitly requires a `decidable_pred` instance for every `s : set α`.
 
-An explicit instance is given for a `complete_lattice` on `fin (n+1)`, but the rest are given
+An explicit instance is given for a `complete_linear_order` on `fin (n+1)`, but the rest are given
 as `def`s, to avoid loops in instance searches.
 -/
 

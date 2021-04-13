@@ -45,6 +45,7 @@ variables {F : Type} [comm_semiring F]
 def is_separable_contraction (f : polynomial F) (g : polynomial F) : Prop :=
 g.separable ∧ ∃ m : ℕ, expand F (q^m) g = f
 
+/-- The condition of being a separable contration. -/
 def has_separable_contraction (f : polynomial F) : Prop :=
 ∃ g : polynomial F, is_separable_contraction q f g
 
@@ -76,9 +77,6 @@ lemma separable_degree_eq_degree {f : polynomial F}
   (hf : has_separable_contraction 1 f) : (separable_degree 1 hf) = f.nat_degree :=
 exists.elim (separable_degree_dvd_degree' 1 hf) (λ a, λ ha, by rw [←ha, one_pow a, mul_one])
 
-lemma exists_eq_add_nonneg_of_lt (m m' : ℕ) (h : m < m') : ∃ s : ℕ, 0 < s ∧ m' = m + s :=
-let ⟨k, hk⟩ := nat.exists_eq_add_of_lt h in ⟨k.succ, k.zero_lt_succ, hk⟩
-
 end comm_semiring
 
 section field
@@ -108,18 +106,15 @@ lemma contraction_degree_eq_aux [hq : fact q.prime] [hF : char_p F q]
   (h : m < m') (hg : g.separable):
   g.nat_degree =  g'.nat_degree :=
 begin
-  cases exists_eq_add_nonneg_of_lt m m' h with s hs,
-
-  rw [hs.2, pow_add, expand_mul] at h_expand,
-
-  have r := expand_injective (pow_pos hq.1.pos m) h_expand,
-  rw r at hg,
-
-  cases (is_unit_or_eq_zero_of_separable_expand q s hg) with g'_is_unit s_zero,
-  { rw [r, nat_degree_expand (q^s) g',
-      nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit g'_is_unit), zero_mul ] },
-  { apply false.elim,
-    exact (ne_of_lt hs.1).symm s_zero },
+  obtain ⟨s, rfl⟩ := nat.exists_eq_add_of_lt h,
+  rw [add_assoc, pow_add, expand_mul] at h_expand,
+  let aux := expand_injective (pow_pos hq.1.pos m) h_expand,
+  rw aux at hg,
+  have := (is_unit_or_eq_zero_of_separable_expand q (s + 1) hg).resolve_right
+    s.succ_ne_zero,
+  rw [aux, nat_degree_expand,
+    nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit this),
+    zero_mul]
 end
 
 /-- If two expansions (along the positive characteristic) of two polynomials `g` and `g'` agree,
@@ -145,7 +140,7 @@ begin
 end
 
 /-- The separable degree equals the degree of any separable contraction, i.e., it is unique. -/
-theorem separable_degree_eq {n n' : ℕ} [hF : exp_char F q]
+theorem separable_degree_eq [hF : exp_char F q]
   (g : polynomial F) (hg : is_separable_contraction q f g) :
   g.nat_degree = separable_degree q hf :=
 begin

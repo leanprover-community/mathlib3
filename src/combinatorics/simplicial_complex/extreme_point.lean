@@ -14,20 +14,18 @@ open set
 --TODO: Generalise to LCTVS
 variables {m : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
 
-namespace affine
-
 /--
 A set B is extreme to a set A if no affine combination of points in A \ B is in B. -/
-def extreme_set (A B : set E) :
+def is_extreme_set (A B : set E) :
   Prop :=
 B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ segment x₁ x₂ → x₁ ≠ x → x₂ ≠ x → x₁ ∈ B ∧ x₂ ∈ B
 
-lemma extreme_set.antisymm :
-  anti_symmetric (extreme_set : set E → set E → Prop) :=
+lemma is_extreme_set.antisymm :
+  anti_symmetric (is_extreme_set : set E → set E → Prop) :=
 λ A B hAB hBA, subset.antisymm hBA.1 hAB.1
 
-lemma extreme_set.trans :
-  transitive (extreme_set : set E → set E → Prop) :=
+lemma is_extreme_set.trans :
+  transitive (is_extreme_set : set E → set E → Prop) :=
 begin
   rintro A B C ⟨hBA, hAB⟩ ⟨hCB, hBC⟩,
   use subset.trans hCB hBA,
@@ -36,7 +34,7 @@ begin
   exact hBC x₁ x₂ hx₁B hx₂B x hxC hx hxx₁ hxx₂,
 end
 
-lemma convex_remove_of_extreme (hA : convex A) (hAB : extreme_set A B) :
+lemma convex_remove_of_extreme (hA : convex A) (hAB : is_extreme_set A B) :
   convex (A \ B) :=
 begin
   rw convex_iff_segment_subset,
@@ -48,12 +46,12 @@ begin
     exact hx₂B hxB }
 end
 
-def extreme_point (A : set E) (x : E) :
-  Prop :=
-x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ segment x₁ x₂ → x₁ = x ∨ x₂ = x
+def set.extreme_points (A : set E) :
+  set E :=
+{x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ segment x₁ x₂ → x₁ = x ∨ x₂ = x}
 
 lemma extreme_point_iff_extreme_singleton :
-  extreme_point A x ↔ extreme_set A {x} :=
+  x ∈ A.extreme_points ↔ is_extreme_set A {x} :=
 begin
   split,
   { rintro ⟨hxA, hx⟩,
@@ -70,22 +68,32 @@ begin
     exact h.1 (hx.2 x₁ x₂ hx₁ hx₂ x rfl hxs h.1 h.2).1 }
 end
 
-lemma convex_remove_iff_extreme_point (hA : convex A) (hx : x ∈ A) :
-  convex (A \ {x}) ↔ extreme_point A x :=
+lemma extreme_points_subset_extreme_points_of_extreme (hAB : is_extreme_set A B) :
+  B.extreme_points ⊆ A.extreme_points :=
+begin
+  rintro x hxB,
+  rw extreme_point_iff_extreme_singleton at ⊢ hxB,
+  exact is_extreme_set.trans hAB hxB,
+end
+
+lemma convex_remove_iff_extreme_point (hA : convex A) :
+  x ∈ A ∧ convex (A \ {x}) ↔ x ∈ A.extreme_points :=
 begin
   split,
-  { refine λ hAx, ⟨hx, λ x₁ x₂ hx₁A hx₂A hx, _⟩,
+  { rintro ⟨hxA, hAx⟩,
+    use hxA,
+    rintro x₁ x₂ hx₁A hx₂A hx,
     by_contra,
     push_neg at h,
     rw convex_iff_segment_subset at hAx,
     exact (hAx ⟨hx₁A, λ hx₁, h.1 (mem_singleton_iff.2 hx₁)⟩
       ⟨hx₂A, λ hx₂, h.2 (mem_singleton_iff.2 hx₂)⟩ hx).2 rfl },
-  exact λ hx, ((convex_remove_of_extreme hA).2 (extreme_point_iff_extreme_singleton.1 hx)).2,
+  exact λ hx, ⟨hx.1, convex_remove_of_extreme hA (extreme_point_iff_extreme_singleton.1 hx)⟩,
 end
 
 lemma extreme_to_convex_hull_of_affine_independent {s : finset E} (hx : x ∈ s)
   (hs : affine_independent ℝ (λ p, p : (s : set E) → E)) :
-  extreme_point (convex_hull ↑s) x :=
+  x ∈ (convex_hull ↑s : set E).extreme_points :=
 begin
   -- have := convex_independent_of_affine_independent hs _ hx,
 
@@ -172,37 +180,35 @@ begin
 end
 
 --Accurate name?
-lemma mem_of_extreme_to_convex_hull {X : set E} {x : E} (hx : extreme_point (convex_hull X) x) :
-  x ∈ X :=
+lemma mem_of_extreme_to_convex_hull (hx : x ∈ (convex_hull A : set E).extreme_points) :
+  x ∈ A :=
 begin
-  have hxX : x ∈ convex_hull (X : set E) := hx.1,
-  rw ←convex_remove_iff_extreme_point (convex_convex_hull _) hxX at hx,
+  have hxA : x ∈ convex_hull A := hx.1,
+  rw ←convex_remove_iff_extreme_point (convex_convex_hull _) at hx,
   by_contra,
-  have : convex_hull X ⊆ convex_hull X \ {x},
-  { apply convex_hull_min _ hx,
-    rw subset_diff,
-    exact ⟨subset_convex_hull _, disjoint_singleton_right.2 h⟩ },
+  have : convex_hull A ⊆ convex_hull A \ {x} :=
+    convex_hull_min (subset_diff.2 ⟨subset_convex_hull _, disjoint_singleton_right.2 h⟩) hx.2,
   rw [subset_diff, disjoint_singleton_right] at this,
-  apply this.2 hxX,
+  exact this.2 hxA,
 end
 
-def exposed_set (A B : set E) :
+def is_exposed_set (A B : set E) :
   Prop :=
 ∃ l : E → ℝ, is_linear_map ℝ l ∧ continuous l ∧ B = {x | x ∈ A ∧ l x = (⨆ y ∈ A, l y)}
 
-lemma subset_of_exposed (hAB : exposed_set A B) :
+lemma subset_of_exposed (hAB : is_exposed_set A B) :
   B ⊆ A :=
 begin
   obtain ⟨_, _, _, rfl⟩ := hAB,
   exact λ x hx, hx.1,
 end
 
-lemma exposed_set.antisymm :
-  anti_symmetric (exposed_set : set E → set E → Prop) :=
+lemma is_exposed_set.antisymm :
+  anti_symmetric (is_exposed_set : set E → set E → Prop) :=
 λ A B hAB hBA, subset.antisymm (subset_of_exposed hBA) (subset_of_exposed hAB)
 
-lemma exposed_set.trans :
-  transitive (exposed_set : set E → set E → Prop) :=
+lemma is_exposed_set.trans :
+  transitive (is_exposed_set : set E → set E → Prop) :=
 begin
   rintro A B C ⟨l₁, hl₁lin, hl₁con, hB⟩ ⟨l₂, hl₂lin, hl₂cont, hC⟩,
   --have := λ x, (⨆ (y : E) (H : y ∈ B), lBC y) * lAB x + (⨆ (y : E) (H : y ∈ A), lAB y) * lBC x,
@@ -242,8 +248,8 @@ begin
   }
 end
 
-lemma extreme_of_exposed (hAB : exposed_set A B) :
-  extreme_set A B :=
+lemma extreme_of_exposed (hAB : is_exposed_set A B) :
+  is_extreme_set A B :=
 begin
   use subset_of_exposed hAB,
   rintro x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, ha, hb, hab, hx⟩ hx₁x hx₂x,
@@ -254,7 +260,7 @@ begin
   sorry
 end
 
-lemma subset_frontier_of_extreme (hAB : extreme_set A B) (hBA : B ⊂ A) :
+lemma subset_frontier_of_extreme (hAB : is_extreme_set A B) (hBA : B ⊂ A) :
   B ⊆ frontier A :=
 begin
   rintro x hxB,
@@ -320,7 +326,7 @@ begin
 end
 
 lemma mem_extreme_set_iff_mem_frontier :
-  (∃ B : set E, extreme_set A B ∧ B ⊂ A ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
+  (∃ B : set E, is_extreme_set A B ∧ B ⊂ A ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
 begin
   use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.1 hxB, subset_frontier_of_extreme hAB hBA hxB⟩,
   rintro ⟨hxA, hxfA⟩,
@@ -352,5 +358,3 @@ lemma eq_of_convex_hull_eq_convex_hull_of_linearly_independent
 finset.subset.antisymm
   (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hX h)
   (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hY h.symm)
-
-end affine

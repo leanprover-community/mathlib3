@@ -440,12 +440,12 @@ lemma is_topological_basis_basic_opens :
   topological_space.is_topological_basis (set.range (λ r, (@basic_open R _ r).val)) :=
 begin
   apply topological_space.is_topological_basis_of_open_of_nhds,
-  { rintros _ ⟨r,rfl⟩,
+  { rintros _ ⟨r, rfl⟩,
     exact is_open_basic_open },
-  { rintros p U hp ⟨s,hs⟩,
+  { rintros p U hp ⟨s, hs⟩,
     rw [← compl_compl U, set.mem_compl_eq, ← hs, mem_zero_locus, set.not_subset] at hp,
-    obtain ⟨f,hfs,hfp⟩ := hp,
-    refine ⟨basic_open f, ⟨f,rfl⟩, hfp, _⟩,
+    obtain ⟨f, hfs, hfp⟩ := hp,
+    refine ⟨basic_open f, ⟨f, rfl⟩, hfp, _⟩,
     rw [← set.compl_subset_compl, ← hs, basic_open_eq_zero_locus_compl, compl_compl],
     exact zero_locus_anti_mono (set.singleton_subset_iff.mpr hfs) }
 end

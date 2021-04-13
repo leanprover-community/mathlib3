@@ -65,7 +65,6 @@ rfl
 @[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
 
-@[continuity]
 protected lemma continuous_symm (h : α ≃ₜ β) : continuous (h.symm) := h.continuous_inv_fun
 
 @[simp] lemma apply_symm_apply (h : α ≃ₜ β) (x : β) : h (h.symm x) = x :=

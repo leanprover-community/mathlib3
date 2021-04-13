@@ -38,12 +38,6 @@ by { rcases p, rcases q, simp [coeff, add_to_alg] }
   coeff (r • p) n = r * coeff p n :=
 by { rcases p, simp [coeff, smul_to_alg] }
 
-@[simp] lemma mem_support_iff : n ∈ p.support ↔ p.coeff n ≠ 0 :=
-by { rcases p, simp [support, coeff] }
-
-lemma not_mem_support_iff : n ∉ p.support ↔ p.coeff n = 0 :=
-by simp
-
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=

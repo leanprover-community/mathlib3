@@ -13,8 +13,6 @@ Preparatory lemmas for degree_basic.
 
 noncomputable theory
 
-open finsupp
-
 namespace polynomial
 
 universes u
@@ -90,7 +88,7 @@ calc C a = 0 ↔ C a = C 0 : by rw C_0
 
 lemma monomial_one_eq_iff [nontrivial R] {i j : ℕ} :
   (monomial i 1 : polynomial R) = monomial j 1 ↔ i = j :=
-by simp [monomial, monomial_fun, single_eq_single_iff]
+by simp [monomial, monomial_fun, finsupp.single_eq_single_iff]
 
 instance [nontrivial R] : infinite (polynomial R) :=
 infinite.of_injective (λ i, monomial i 1) $
@@ -100,6 +98,27 @@ lemma monomial_eq_smul_X {n} : monomial n (a : R) = a • X^n :=
 calc monomial n a = monomial n (a * 1) : by simp
   ... = a • monomial n 1 : by simp [monomial, monomial_fun, smul_to_alg]
   ... = a • X^n  : by rw X_pow_eq_monomial
+
+lemma card_support_le_one_iff_monomial {f : polynomial R} :
+  finset.card f.support ≤ 1 ↔ ∃ n a, f = monomial n a :=
+begin
+  split,
+  { assume H,
+    rw finset.card_le_one_iff_subset_singleton at H,
+    rcases H with ⟨n, hn⟩,
+    refine ⟨n, f.coeff n, _⟩,
+    ext i,
+    by_cases hi : i = n,
+    { simp [hi, coeff_monomial] },
+    { have : f.coeff i = 0,
+      { rw ← not_mem_support_iff,
+        exact λ hi', hi (finset.mem_singleton.1 (hn hi')) },
+      simp [this, ne.symm hi, coeff_monomial] } },
+  { rintros ⟨n, a, rfl⟩,
+    rw ← finset.card_singleton n,
+    apply finset.card_le_of_subset,
+    exact support_monomial' _ _ }
+end
 
 lemma ring_hom_ext {S} [semiring S] {f g : polynomial R →+* S}
   (h₁ : ∀ a, f (C a) = g (C a)) (h₂ : f X = g X) : f = g :=

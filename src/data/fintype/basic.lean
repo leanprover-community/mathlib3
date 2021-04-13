@@ -865,6 +865,24 @@ begin
     exact subtype.eq (H x.2 y.2) }
 end
 
+lemma finset.card_le_one_iff_subset_singleton [nonempty α] {s : finset α} :
+  s.card ≤ 1 ↔ ∃ (x : α), s ⊆ {x} :=
+begin
+  split,
+  { assume H,
+    by_cases h : ∃ x, x ∈ s,
+    { rcases h with ⟨x, hx⟩,
+      refine ⟨x, λ y hy, _⟩,
+      rw finset.card_le_one_iff.1 H hy hx,
+      simp only [mem_singleton] },
+    { push_neg at h,
+      inhabit α,
+      exact ⟨default α, λ y hy, (h y hy).elim⟩ } },
+  { rintros ⟨x, hx⟩,
+    rw ← card_singleton x,
+    exact card_le_of_subset hx }
+end
+
 /-- A `finset` of a subsingleton type has cardinality at most one. -/
 lemma finset.card_le_one_of_subsingleton [subsingleton α] (s : finset α) : s.card ≤ 1 :=
 finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _

@@ -259,6 +259,12 @@ lemma coeff_X : coeff (X : polynomial R) n = if 1 = n then 1 else 0 := coeff_mon
 lemma coeff_X_of_ne_one {n : ℕ} (hn : n ≠ 1) : coeff (X : polynomial R) n = 0 :=
 by rw [coeff_X, if_neg hn.symm]
 
+@[simp] lemma mem_support_iff : n ∈ p.support ↔ p.coeff n ≠ 0 :=
+by { rcases p, simp [support, coeff] }
+
+lemma not_mem_support_iff : n ∉ p.support ↔ p.coeff n = 0 :=
+by simp
+
 theorem ext_iff {p q : polynomial R} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 by { rcases p, rcases q, simp [coeff, finsupp.ext_iff] }
 

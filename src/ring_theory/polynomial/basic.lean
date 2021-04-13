@@ -251,7 +251,7 @@ begin
       rw [smul_eq_mul, coeff_mul],
       exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
   { intros hf,
-    rw ← sum_monomial f,
+    rw ← sum_monomial_eq f,
     refine (I.map C : ideal (polynomial R)).sum_mem (λ n hn, _),
     simp [monomial_eq_C_mul_X],
     rw mul_comm,
@@ -270,7 +270,7 @@ lemma eval₂_C_mk_eq_zero {I : ideal R} :
   ∀ f ∈ (map C I : ideal (polynomial R)), eval₂_ring_hom (C.comp (quotient.mk I)) X f = 0 :=
 begin
   intros a ha,
-  rw ← sum_monomial a,
+  rw ← sum_monomial_eq a,
   dsimp,
   rw eval₂_sum,
   refine finset.sum_eq_zero (λ n hn, _),

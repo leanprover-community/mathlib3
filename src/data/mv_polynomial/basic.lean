@@ -239,7 +239,7 @@ by rw [monomial, monomial, monomial, add_monoid_algebra.single_mul_single]
 @[simp] lemma monomial_zero {s : σ →₀ ℕ}: monomial s (0 : R) = 0 :=
 by rw [monomial, single_zero]; refl
 
-@[simp] lemma sum_monomial  {A : Type*} [add_comm_monoid A]
+@[simp] lemma sum_monomial_eq  {A : Type*} [add_comm_monoid A]
   {u : σ →₀ ℕ} {r : R} {b : (σ →₀ ℕ) → R → A} (w : b u 0 = 0) :
   sum (monomial u r) b = b u r :=
 sum_single_index w

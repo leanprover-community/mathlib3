@@ -31,7 +31,7 @@ begin
   exact λ h, h.symm
 end
 
-lemma sum_monomial (p : polynomial R) : p.sum (λn a, monomial n a) = p :=
+lemma sum_monomial_eq (p : polynomial R) : p.sum (λn a, monomial n a) = p :=
 by simp only [monomial_eq_C_mul_X, sum_C_mul_X_eq]
 
 @[elab_as_eliminator] protected lemma induction_on {M : polynomial R → Prop} (p : polynomial R)

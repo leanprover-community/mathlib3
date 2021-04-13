@@ -157,7 +157,8 @@ with_bot.get_or_else_bot_le_iff
 
 alias polynomial.nat_degree_le_iff_degree_le ↔ . .
 
-lemma nat_degree_le_nat_degree (hpq : p.degree ≤ q.degree) : p.nat_degree ≤ q.nat_degree :=
+lemma nat_degree_le_nat_degree [semiring S] {q : polynomial S} (hpq : p.degree ≤ q.degree) :
+  p.nat_degree ≤ q.nat_degree :=
 with_bot.gi_get_or_else_bot.gc.monotone_l hpq
 
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
@@ -240,7 +241,7 @@ end
 
 lemma as_sum_support (p : polynomial R) :
   p = ∑ i in p.support, monomial i (p.coeff i) :=
-(sum_monomial p).symm
+(sum_monomial_eq p).symm
 
 lemma as_sum_support_C_mul_X_pow (p : polynomial R) :
   p = ∑ i in p.support, C (p.coeff i) * X^i :=
@@ -269,11 +270,11 @@ sum_over_range' p h (p.nat_degree + 1) (lt_add_one _)
 
 lemma as_sum_range' (p : polynomial R) (n : ℕ) (w : p.nat_degree < n) :
   p = ∑ i in range n, monomial i (coeff p i) :=
-p.sum_monomial.symm.trans $ p.sum_over_range' monomial_zero_right _ w
+p.sum_monomial_eq.symm.trans $ p.sum_over_range' monomial_zero_right _ w
 
 lemma as_sum_range (p : polynomial R) :
   p = ∑ i in range (p.nat_degree + 1), monomial i (coeff p i) :=
-p.sum_monomial.symm.trans $ p.sum_over_range $ monomial_zero_right
+p.sum_monomial_eq.symm.trans $ p.sum_over_range $ monomial_zero_right
 
 lemma as_sum_range_C_mul_X_pow (p : polynomial R) :
   p = ∑ i in range (p.nat_degree + 1), C (coeff p i) * X ^ i :=
@@ -754,6 +755,16 @@ begin
     with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ],
   exact λ h m, mt (h m),
 end
+
+lemma degree_smul_le (a : R) (p : polynomial R) : degree (a • p) ≤ degree p :=
+begin
+  apply (degree_le_iff_coeff_zero _ _).2 (λ m hm, _),
+  rw degree_lt_iff_coeff_zero at hm,
+  simp [hm m (le_refl _)],
+end
+
+lemma nat_degree_smul_le (a : R) (p : polynomial R) : nat_degree (a • p) ≤ nat_degree p :=
+nat_degree_le_nat_degree (degree_smul_le a p)
 
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=
 by haveI := nontrivial.of_polynomial_ne hp; exact

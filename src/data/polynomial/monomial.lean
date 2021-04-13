@@ -57,12 +57,10 @@ by simp only [←monomial_zero_left, monomial_mul_monomial, add_zero]
 lemma C_eq_nat_cast (n : ℕ) : C (n : R) = (n : polynomial R) :=
 C.map_nat_cast n
 
-/-
 @[simp]
 lemma sum_C_index {a} {β} [add_comm_monoid β] {f : ℕ → R → β} (h : f 0 0 = 0) :
   (C a).sum f = f 0 a :=
-sum_single_index h
--/
+sum_monomial_index 0 a f h
 
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
 by { convert coeff_monomial using 2, simp [eq_comm], }

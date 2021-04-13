@@ -346,6 +346,24 @@ begin
   refl
 end
 
+@[simp] lemma sum_zero {S : Type*} [add_comm_monoid S] (f : ℕ → R → S) :
+  (0 : polynomial R).sum f = 0 :=
+by simp [sum]
+
+@[simp] lemma sum_monomial_index {S : Type*} [add_comm_monoid S]
+  (n : ℕ) (a : R) (f : ℕ → R → S) (hf : f n 0 = 0) :
+  (monomial n a : polynomial R).sum f = f n a :=
+begin
+  by_cases h : a = 0,
+  { simp [h, hf] },
+  { simp [sum, support_monomial, h, coeff_monomial] }
+end
+
+-- the assumption `hf` is only necessary when the ring is trivial
+@[simp] lemma sum_X_index {S : Type*} [add_comm_monoid S] {f : ℕ → R → S} (hf : f 1 0 = 0):
+  (X : polynomial R).sum f = f 1 1 :=
+sum_monomial_index 1 1 f hf
+
 /-- `erase p n` is the polynomial `p` in which the `X^n` term has been erased. -/
 @[irreducible] definition erase (n : ℕ) : polynomial R → polynomial R
 | ⟨p⟩ := ⟨p.erase n⟩

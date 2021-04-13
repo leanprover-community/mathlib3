@@ -6,6 +6,7 @@ Authors: Peter Nelson
 
 import order.lattice
 import data.fintype.basic
+import order.category.NonemptyFinLinOrd
 
 /-!
 # Order structures on finite sets
@@ -20,7 +21,7 @@ An explicit instance is given for a `complete_linear_order` on `fin (n+1)`, but 
 as `def`s, to avoid loops in instance searches.
 -/
 
-section main
+section to_bot_top
 
 /-- a finite inhabited `semilattice_inf` has a `⊥` -/
 def fintype.semilattice_inf_bot (α : Type*) [inhabited α] [fintype α] [semilattice_inf α] :
@@ -46,13 +47,33 @@ def fintype.bounded_lattice (α : Type*) [inhabited α] [fintype α] [lattice α
 { .. fintype.semilattice_inf_bot α,
   .. fintype.semilattice_sup_top α}
 
+end to_bot_top
+
+section bot_top_eq
+
+local attribute [instance] fintype.semilattice_inf_bot
+
+lemma fintype.bot_eq {α : Type*} [inhabited α] [fintype α] [semilattice_inf α] :
+  ⊥ = finset.fold (⊓) (arbitrary α) id finset.univ :=
+rfl
+
+local attribute [instance] fintype.semilattice_sup_top
+
+lemma fintype.top_eq {α : Type*} [inhabited α] [fintype α] [semilattice_sup α] :
+  ⊤ = finset.fold (⊔) (arbitrary α) id finset.univ :=
+rfl
+
+end bot_top_eq
+
+section complete
+
 open_locale classical
 
-/-- A nonempty finite lattice is complete -/
-noncomputable def fintype.complete_lattice (α : Type*) [i : nonempty α] [fintype α] [lattice α] :
+/-- A finite bounded lattice is complete -/
+noncomputable def fintype.complete_lattice (α : Type*) [fintype α] [h : bounded_lattice α] :
   complete_lattice α :=
-let isb := (@semilattice_sup_bot_of_bounded_lattice α (@fintype.bounded_lattice α ⟨i.some⟩ _ _)),
-    iit := (@semilattice_inf_top_of_bounded_lattice α (@fintype.bounded_lattice α ⟨i.some⟩ _ _)) in
+let isb := (@semilattice_sup_bot_of_bounded_lattice α h),
+    iit := (@semilattice_inf_top_of_bounded_lattice α h) in
 { Sup := λ s, @finset.sup _ _ isb s.to_finset id,
   Inf := λ s, @finset.inf _ _ iit s.to_finset id,
   le_Sup := λ _ _ ha, @finset.le_sup _ _ isb _ _ _ (set.mem_to_finset.mpr ha),
@@ -61,31 +82,40 @@ let isb := (@semilattice_sup_bot_of_bounded_lattice α (@fintype.bounded_lattice
   Inf_le := λ _ _ ha, @finset.inf_le _ _ iit _ _ _ (set.mem_to_finset.mpr ha),
   le_Inf := λ s _ ha, @finset.le_inf _ _ iit s.to_finset _ _
     (λ b hb, ha _ (by rwa set.mem_to_finset at hb)),
-  ..(@fintype.bounded_lattice α ⟨i.some⟩ _ _)}
+  ..h}
+
+/-- A nonempty finite lattice is complete. If the lattice is already a `bounded_lattice`, then use
+`fintype.complete_lattice` instead, as this gives definitional equality for `⊥` and `⊤` -/
+noncomputable def fintype.complete_lattice_of_lattice (α : Type*) [fintype α] [i : nonempty α]
+  [lattice α] : complete_lattice α :=
+@fintype.complete_lattice _ _ (@fintype.bounded_lattice α ⟨i.some⟩ _ _)
 
 /-- A nonempty finite linear order is complete -/
 noncomputable def fintype.complete_linear_order (α : Type*)
   [fintype α] [nonempty α] [linear_order α] : complete_linear_order α :=
-{ .. fintype.complete_lattice α,
+{ .. fintype.complete_lattice_of_lattice α,
   .. (infer_instance : linear_order α) }
 
-noncomputable instance {n : ℕ} : complete_linear_order (fin (n+1)) :=
-  fintype.complete_linear_order  _
+noncomputable instance fin.complete_linear_order {n : ℕ} : complete_linear_order (fin (n+1)) :=
+{ .. fintype.complete_lattice (fin (n+1)),
+  .. (infer_instance : linear_order (fin (n+1)))}
 
-end main
+end complete
 
 section decidable_Sup_Inf
 
 local attribute [instance] fintype.complete_lattice
 
 /-- The `Sup` induced by `fintype.complete_semilattice` unfolds to `finset.sup`. -/
-lemma fintype.Sup_eq {α : Type*} [nonempty α] [fintype α] [lattice α] (s : set α)
+lemma fintype.Sup_eq {α : Type*} [fintype α] [bounded_lattice α] (s : set α)
   [decidable_pred (∈ s)] : Sup s = s.to_finset.sup id :=
 by {convert rfl}
 
 /-- The `Inf` induced by `fintype.complete_semilattice` unfolds to `finset.inf`. -/
-lemma fintype.Inf_eq {α : Type*} [nonempty α] [fintype α] [lattice α] (s : set α)
+lemma fintype.Inf_eq {α : Type*} [fintype α] [bounded_lattice α] (s : set α)
   [decidable_pred (∈ s)] : Inf s = s.to_finset.inf id :=
 by {convert rfl}
 
 end decidable_Sup_Inf
+
+#lint

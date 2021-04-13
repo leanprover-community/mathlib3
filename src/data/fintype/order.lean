@@ -22,48 +22,29 @@ as `def`s, to avoid loops in instance searches.
 
 section main
 
-/-- The maximum element in a `fintype` with `semilattice_sup` -/
-def fintype.top (α : Type*) [inhabited α] [fintype α] [semilattice_sup α] : α :=
-  finset.fold (⊔) (arbitrary α) id finset.univ
+/-- a finite inhabited `semilattice_inf` has a `⊥` -/
+def fintype.semilattice_inf_bot (α : Type*) [inhabited α] [fintype α] [semilattice_inf α] :
+  semilattice_inf_bot α :=
+let bot := finset.fold (⊓) (arbitrary α) id finset.univ in
+{ bot := bot,
+  bot_le := λ a, ((@finset.fold_op_rel_iff_and _ _ (⊓) _ _ _ _ _ _
+    (λ _ _ _, le_inf_iff) bot).mp le_rfl).2 a (finset.mem_univ _),
+  .. (infer_instance : semilattice_inf α)}
 
-/-- The minimum element in a `fintype` with `semilattice_inf` -/
-def fintype.bot (α : Type*) [inhabited α] [fintype α] [semilattice_inf α] : α :=
-  finset.fold (⊓) (arbitrary α) id finset.univ
+/-- a finite inhabited `semilattice_sup` has a `⊤` -/
+def fintype.semilattice_sup_top (α : Type*) [inhabited α] [fintype α] [semilattice_sup α] :
+  semilattice_sup_top α :=
+let top := finset.fold (⊔) (arbitrary α) id finset.univ in
+{ top := top,
+  le_top := λ a, (((@finset.fold_op_rel_iff_and _ _ (⊔) _ _ _ (arbitrary α) _ (λ x y, y ≤ x)
+  (λ _ _ _, sup_le_iff) top )).mp le_rfl).2 a (finset.mem_univ a),
+  .. (infer_instance : semilattice_sup α)}
 
-lemma fintype.bot_le (α : Type*) [inhabited α] [fintype α] [semilattice_inf α] (a : α) :
-  fintype.bot α ≤ a :=
-((@finset.fold_op_rel_iff_and _ _ (⊓) _ _ _ _ _ _
-  (λ _ _ _, le_inf_iff) (fintype.bot α)).mp le_rfl).2 a (finset.mem_univ _)
-
-lemma fintype.exists_bot (α : Type*) [i : nonempty α] [fintype α] [semilattice_inf α] :
-  ∃ m, ∀ a : α, m ≤ a :=
-⟨@fintype.bot α ⟨i.some⟩ _ _, @fintype.bot_le α ⟨i.some⟩ _ _⟩
-
-lemma fintype.eq_bot_iff (α : Type*) [inhabited α] [fintype α] [semilattice_inf α] (a : α) :
-  a = fintype.bot α ↔ ∀ x, a ≤ x :=
-⟨by {rintro rfl, apply fintype.bot_le}, λ h, le_antisymm (h _) (fintype.bot_le _ _)⟩
-
-lemma fintype.le_top (α : Type*) [inhabited α] [fintype α] [semilattice_sup α] (a : α) :
-  a ≤ fintype.top α :=
-(((@finset.fold_op_rel_iff_and _ _ (⊔) _ _ _ (arbitrary α) _ (λ x y, y ≤ x)
-  (λ _ _ _, sup_le_iff) (fintype.top α))).mp le_rfl).2 a (finset.mem_univ a)
-
-lemma fintype.exists_top (α : Type*) [i : nonempty α] [fintype α] [semilattice_sup α] :
-  ∃ m, ∀ a : α, a ≤ m :=
-⟨@fintype.top α ⟨i.some⟩ _ _, @fintype.le_top α ⟨i.some⟩ _ _⟩
-
-lemma fintype.eq_top_iff (α : Type*) [inhabited α] [fintype α] [semilattice_sup α] (a : α) :
-  a = fintype.top α ↔ ∀ x, x ≤ a :=
-⟨by {rintro rfl, apply fintype.le_top}, λ h, le_antisymm (fintype.le_top _ _) (h _)⟩
-
-/-- A nonempty finite lattice is bounded  -/
+/-- An inhabited finite `lattice` is bounded  -/
 def fintype.bounded_lattice (α : Type*) [inhabited α] [fintype α] [lattice α] :
   bounded_lattice α :=
-{ bot := fintype.bot α,
-  bot_le := fintype.bot_le α,
-  top := fintype.top α,
-  le_top := fintype.le_top α,
-  .. (infer_instance : lattice α)}
+{ .. fintype.semilattice_inf_bot α,
+  .. fintype.semilattice_sup_top α}
 
 open_locale classical
 

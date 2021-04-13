@@ -334,7 +334,7 @@ instance set_semiring.distrib [has_mul α] : distrib (set_semiring α) :=
   ..set.has_mul, ..set_semiring.add_comm_monoid }
 
 instance set_semiring.mul_zero_one_class [mul_one_class α] : mul_zero_one_class (set_semiring α) :=
-{ ..set.mul_zero_class, ..set.mul_one_class }
+{ ..set_semiring.mul_zero_class, ..set.mul_one_class }
 
 instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
 { ..set_semiring.add_comm_monoid,

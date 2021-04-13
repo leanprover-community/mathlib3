@@ -82,7 +82,7 @@ section
 variables {V} {W : Type v} [category.{w} W] [monoidal_category W]
 
 /--
-A type synonym for `C`, which should should come equipped with a `V`-enriched category structure.begin
+A type synonym for `C`, which should should come equipped with a `V`-enriched category structure.
 In a moment we will equip this with the `W`-enriched category structure
 obtained by applying the functor `F : lax_monoidal_functor V W` to each hom object.
 -/

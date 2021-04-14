@@ -136,11 +136,13 @@ restate_axiom enriched_functor.map_comp'
 attribute [simp, reassoc] enriched_functor.map_id
 attribute [simp, reassoc] enriched_functor.map_comp
 
+/-- The identity enriched functor. -/
 @[simps]
 def enriched_functor.id (C : Type u₁) [enriched_category V C] : enriched_functor V C C :=
 { obj := λ X, X,
   map := λ X Y, 𝟙 _, }
 
+/-- Composition of enriched functors. -/
 @[simps]
 def enriched_functor.comp {C : Type u₁} {D : Type u₂} {E : Type u₃}
   [enriched_category V C] [enriched_category V D] [enriched_category V E]

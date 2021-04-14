@@ -85,6 +85,18 @@ begin
   { intro i, exact (h i).map_zero },
 end
 
+variable (R)
+
+/-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear equivalence between
+`α →₀ β` and `α → β`. -/
+@[simps apply] noncomputable def linear_equiv_fun_on_fintype {α} [fintype α] [add_comm_monoid M]
+  [semiring R] [semimodule R M] :
+  (α →₀ M) ≃ₗ[R] (α → M) :=
+{ to_fun := coe_fn,
+  map_add' := λ f g, by { ext, refl },
+  map_smul' := λ c f, by { ext, refl },
+  .. equiv_fun_on_fintype }
+
 end finsupp
 
 section
@@ -204,7 +216,10 @@ def smul_right (f : M₂ →ₗ[R] S) (x : M) : M₂ →ₗ[R] M :=
   map_add' := λ x y, by rw [f.map_add, add_smul],
   map_smul' := λ b y, by rw [f.map_smul, smul_assoc] }
 
-@[simp] theorem smul_right_apply (f : M₂ →ₗ[R] S) (x : M) (c : M₂) :
+@[simp] theorem coe_smul_right (f : M₂ →ₗ[R] S) (x : M) :
+  (smul_right f x : M₂ → M) = λ c, f c • x := rfl
+
+theorem smul_right_apply (f : M₂ →ₗ[R] S) (x : M) (c : M₂) :
   smul_right f x c = f c • x := rfl
 
 end smul_right
@@ -212,6 +227,7 @@ end smul_right
 instance : has_one (M →ₗ[R] M) := ⟨linear_map.id⟩
 instance : has_mul (M →ₗ[R] M) := ⟨linear_map.comp⟩
 
+lemma one_eq_id : (1 : M →ₗ[R] M) = id := rfl
 lemma mul_eq_comp (f g : M →ₗ[R] M) : f * g = f.comp g := rfl
 
 @[simp] lemma one_apply (x : M) : (1 : M →ₗ[R] M) x = x := rfl

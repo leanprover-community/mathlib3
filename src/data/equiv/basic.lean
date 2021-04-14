@@ -129,6 +129,9 @@ def simps.symm_apply (e : α ≃ β) : β → α := e.symm
 
 initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
 
+-- Generate the `simps` projections for previously defined equivs.
+attribute [simps] function.involutive.to_equiv
+
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm,
@@ -718,7 +721,7 @@ def sum_assoc (α β γ : Sort*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
 @[simp] theorem sum_assoc_apply_in3 {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
 
 /-- Sum with `empty` is equivalent to the original type. -/
-def sum_empty (α : Type*) : α ⊕ empty ≃ α :=
+@[simps symm_apply] def sum_empty (α : Type*) : α ⊕ empty ≃ α :=
 ⟨sum.elim id (empty.rec _),
  inl,
  λ s, by { rcases s with _ | ⟨⟨⟩⟩, refl },
@@ -727,13 +730,13 @@ def sum_empty (α : Type*) : α ⊕ empty ≃ α :=
 @[simp] lemma sum_empty_apply_inl {α} (a) : sum_empty α (sum.inl a) = a := rfl
 
 /-- The sum of `empty` with any `Sort*` is equivalent to the right summand. -/
-def empty_sum (α : Sort*) : empty ⊕ α ≃ α :=
+@[simps symm_apply] def empty_sum (α : Sort*) : empty ⊕ α ≃ α :=
 (sum_comm _ _).trans $ sum_empty _
 
 @[simp] lemma empty_sum_apply_inr {α} (a) : empty_sum α (sum.inr a) = a := rfl
 
 /-- Sum with `pempty` is equivalent to the original type. -/
-def sum_pempty (α : Type*) : α ⊕ pempty ≃ α :=
+@[simps symm_apply] def sum_pempty (α : Type*) : α ⊕ pempty ≃ α :=
 ⟨sum.elim id (pempty.rec _),
  inl,
  λ s, by { rcases s with _ | ⟨⟨⟩⟩, refl },
@@ -742,7 +745,7 @@ def sum_pempty (α : Type*) : α ⊕ pempty ≃ α :=
 @[simp] lemma sum_pempty_apply_inl {α} (a) : sum_pempty α (sum.inl a) = a := rfl
 
 /-- The sum of `pempty` with any `Sort*` is equivalent to the right summand. -/
-def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
+@[simps symm_apply] def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
 (sum_comm _ _).trans $ sum_pempty _
 
 @[simp] lemma pempty_sum_apply_inr {α} (a) : pempty_sum α (sum.inr a) = a := rfl
@@ -1345,6 +1348,7 @@ by { cases a, cases a_val, refl }
 
 /-- If a proposition holds for all elements, then the subtype is
 equivalent to the original type. -/
+@[simps apply symm_apply]
 def subtype_univ_equiv {α : Type u} {p : α → Prop} (h : ∀ x, p x) :
   subtype p ≃ α :=
 ⟨λ x, x, λ x, ⟨x, h x⟩, λ x, subtype.eq rfl, λ x, rfl⟩
@@ -1721,7 +1725,7 @@ def of_left_inverse {α β : Sort*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
   α ≃ set.range f :=
 { to_fun := λ a, ⟨f a, a, rfl⟩,
-  inv_fun := λ b, f_inv (let ⟨a, _⟩ := b.2 in ⟨a⟩) b,
+  inv_fun := λ b, f_inv (nonempty_of_exists b.2) b,
   left_inv := λ a, hf ⟨a⟩ a,
   right_inv := λ ⟨b, a, ha⟩, subtype.eq $ show f (f_inv ⟨a⟩ b) = b,
     from eq.trans (congr_arg f $ by exact ha ▸ (hf _ a)) ha }
@@ -1745,9 +1749,16 @@ theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : 
   f ((of_injective f hf).symm b) = b :=
 subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
 
-lemma of_left_inverse_eq_of_injective {α β : Type*} [nonempty α]
+lemma of_left_inverse_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
-  of_left_inverse f f_inv hf = of_injective f (hf ‹_›).injective :=
+  of_left_inverse f f_inv hf = of_injective f
+    ((em (nonempty α)).elim (λ h, (hf h).injective) (λ h _ _ _, by {
+      haveI : subsingleton α := subsingleton_of_not_nonempty h, simp })) :=
+by { ext, simp }
+
+lemma of_left_inverse'_eq_of_injective {α β : Type*}
+  (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
+  of_left_inverse' f f_inv hf = of_injective f hf.injective :=
 by { ext, simp }
 
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
@@ -1863,6 +1874,8 @@ by simp [swap_apply_def] {contextual := tt}
 @[simp] theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
 ext $ λ x, swap_core_swap_core _ _ _
 
+@[simp] lemma symm_swap (a b : α) : (swap a b).symm = swap a b := rfl
+
 @[simp] lemma swap_eq_refl_iff {x y : α} : swap x y = equiv.refl _ ↔ x = y :=
 begin
   refine ⟨λ h, (equiv.refl _).injective _, λ h, h ▸ (swap_self _)⟩,
@@ -1906,6 +1919,10 @@ begin
   rw swap_apply_of_ne_of_ne hi hj,
 end
 
+lemma swap_apply_eq_iff {x y z w : α} :
+  swap x y z = w ↔ z = swap x y w :=
+by rw [apply_eq_iff_eq_symm_apply, symm_swap]
+
 namespace perm
 
 @[simp] lemma sum_congr_swap_refl {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : α) :
@@ -1938,6 +1955,21 @@ def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
+
+end equiv
+
+lemma function.injective.map_swap {α β : Type*} [decidable_eq α] [decidable_eq β]
+  {f : α → β} (hf : function.injective f) (x y z : α) :
+  f (equiv.swap x y z) = equiv.swap (f x) (f y) (f z) :=
+begin
+  conv_rhs { rw equiv.swap_apply_def },
+  split_ifs with h₁ h₂,
+  { rw [hf h₁, equiv.swap_apply_left] },
+  { rw [hf h₂, equiv.swap_apply_right] },
+  { rw [equiv.swap_apply_of_ne_of_ne (mt (congr_arg f) h₁) (mt (congr_arg f) h₂)] }
+end
+
+namespace equiv
 
 protected lemma exists_unique_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
   (h : ∀{x}, p x ↔ q (f x)) : (∃! x, p x) ↔ ∃! y, q y :=
@@ -2101,6 +2133,9 @@ funext $ λ z, hf.swap_apply _ _ _
 
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
 instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton
+
+instance {α} [unique α] : unique (ulift α) := equiv.ulift.unique
+instance {α} [unique α] : unique (plift α) := equiv.plift.unique
 
 instance {α} [decidable_eq α] : decidable_eq (ulift α) := equiv.ulift.decidable_eq
 instance {α} [decidable_eq α] : decidable_eq (plift α) := equiv.plift.decidable_eq

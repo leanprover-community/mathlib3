@@ -272,6 +272,9 @@ begin
   { cases h; rw h, rw int.nat_abs_neg, },
 end
 
+lemma nat_abs_eq_iff {a : ℤ} {n : ℕ} : a.nat_abs = n ↔ a = n ∨ a = -n :=
+by rw [←int.nat_abs_eq_nat_abs_iff, int.nat_abs_of_nat]
+
 lemma nat_abs_eq_iff_mul_self_eq {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a * a = b * b :=
 begin
   rw [← abs_eq_iff_mul_self_eq, abs_eq_nat_abs, abs_eq_nat_abs],
@@ -1068,6 +1071,20 @@ units.ext_iff.1 $ nat.units_eq_one ⟨nat_abs u, nat_abs ↑u⁻¹,
 
 theorem units_eq_one_or (u : units ℤ) : u = 1 ∨ u = -1 :=
 by simpa only [units.ext_iff, units_nat_abs] using nat_abs_eq u
+
+lemma is_unit_eq_one_or {a : ℤ} : is_unit a → a = 1 ∨ a = -1
+| ⟨x, hx⟩ := hx ▸ (units_eq_one_or _).imp (congr_arg coe) (congr_arg coe)
+
+lemma is_unit_iff {a : ℤ} : is_unit a ↔ a = 1 ∨ a = -1 :=
+begin
+  refine ⟨λ h, is_unit_eq_one_or h, λ h, _⟩,
+  rcases h with rfl | rfl,
+  { exact is_unit_one },
+  { exact is_unit_one.neg }
+end
+
+theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
+by simp [nat_abs_eq_iff, is_unit_iff]
 
 lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 (units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)

@@ -145,14 +145,19 @@ meta def get_composite_of_projections (str : name) (proj : string) : tactic (exp
   are three cases
   * If the declaration `{structure_name}.simps.{projection_name}` has been declared, then the value
     of this declaration is used (after checking that it is definitionally equal to the actual
-    projection
+    projection. If you rename the projection name, the declaration should have the *new* projection
+    name.
+  * You can also declare a custom projection that is a composite of multiple projections.
   * Otherwise, for every class with the `notation_class` attribute, and the structure has an
     instance of that notation class, then the projection of that notation class is used for the
     projection that is definitionally equal to it (if there is such a projection).
     This means in practice that coercions to function types and sorts will be used instead of
     a projection, if this coercion is definitionally equal to a projection. Furthermore, for
     notation classes like `has_mul` and `has_zero` those projections are used instead of the
-    corresponding projection
+    corresponding projection.
+    Projections for coercions and notation classes are not automatically generated if they are
+    composites of multiple projections (for example when you use `extend` without the
+    `old_structure_cmd`).
   * Otherwise, the projection of the structure is chosen.
     For example: ``simps_get_raw_projections env `prod`` gives the default projections
 ```
@@ -268,7 +273,8 @@ Expected type:\n  {raw_expr_type}" },
       let relevant_proj := raw_expr_whnf.binding_body.get_app_fn.const_name,
       /- Use this as projection, if the function reduces to a projection, and this projection has
         not been overrriden by the user. -/
-      guard (projs.any (λ x, x.1 = relevant_proj.last ∧ ¬ e.contains (str ++ `simps ++ x.2.1.last))),
+      guard $ projs.any $
+        λ x, x.1 = relevant_proj.last ∧ ¬ e.contains (str ++ `simps ++ x.2.1.last),
       let pos := projs.find_index (λ x, x.1 = relevant_proj.last),
       when trc trace!
         "        > using {proj_nm} instead of the default projection {relevant_proj.last}.",
@@ -283,7 +289,8 @@ Expected type:\n  {raw_expr_type}" },
       is_proof proj.2.1 >>= λ b, return $ if b then (proj.1, proj.2.1, proj.2.2.1, ff) else proj,
     when trc $ projections_info projs "generated projections for" str >>= trace,
     simps_str_attr.set str (raw_univs, projs) tt,
-    when_tracing `simps.debug trace!"[simps] > Generated raw projection data: \n{(raw_univs, projs)}",
+    when_tracing `simps.debug trace!
+      "[simps] > Generated raw projection data: \n{(raw_univs, projs)}",
     return (raw_univs, projs)
 
 /-- Parse a rule for `initialize_simps_projections`. It is either `<name>→<name>` or `-<name>`.-/
@@ -292,12 +299,16 @@ meta def simps_parse_rule : parser (name × name ⊕ name) :=
 
 /--
   You can specify custom projections for the `@[simps]` attribute.
-  To do this for the projection `my_structure.awesome_projection` by adding a declaration
-  `my_structure.simps.awesome_projection` that is definitionally equal to
-  `my_structure.awesome_projection` but has the projection in the desired (simp-normal) form.
+  To do this for the projection `my_structure.original_projection` by adding a declaration
+  `my_structure.simps.my_projection` that is definitionally equal to
+  `my_structure.original_projection` but has the projection in the desired (simp-normal) form.
+  Then you can call
+  ```
+  initialize_simps_projections (original_projection → my_projection, ...)
+  ```
+  to register this projection.
 
-  You can initialize the projections `@[simps]` uses with `initialize_simps_projections`
-  (after declaring any custom projections). This is not necessary, it has the same effect
+  Running `initialize_simps_projections` without arguments is not necessary, it has the same effect
   if you just add `@[simps]` to a declaration.
 
   If you do anything to change the default projections, make sure to call either `@[simps]` or
@@ -372,6 +383,12 @@ library_note "custom simps projection"
 (not_recursive := [`prod, `pprod])
 (trace         := ff)
 
+/-- A common configuration for `@[simps]`: generate equalities between functions instead equalities
+  between fully applied expressions. -/
+def as_fn : simps_cfg := {fully_applied := ff}
+/-- A common configuration for `@[simps]`: don't tag the generated lemmas with `@[simp]`. -/
+def lemmas_only : simps_cfg := {attrs := []}
+
 /--
   Get the projections of a structure used by `@[simps]` applied to the appropriate arguments.
   Returns a list of quintuples
@@ -399,7 +416,7 @@ library_note "custom simps projection"
   The last two fields of the list correspond to the propositional fields of the structure,
   and are rarely/never used.
 -/
--- This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the the given arguments
+-- This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the given arguments
 -- might not uniquely specify the universe levels yet.
 meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   (rhs : expr) (cfg : simps_cfg) : tactic $ list $ expr × name × expr × list ℕ × bool := do
@@ -511,7 +528,6 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
       automatically choose projections -/
       when ¬(to_apply ≠ [] ∨ todo = [""] ∨ (eta.is_some ∧ todo = [])) $ do
         let todo := if to_apply = [] then todo_next else todo,
-
         -- check whether all elements in `todo` have a projection as prefix
         guard (todo.all $ λ x, projs.any $ λ proj, ("_" ++ proj.last).is_prefix_of x) <|>
           let x := (todo.find $ λ x, projs.all $ λ proj, ¬ ("_" ++ proj.last).is_prefix_of x).iget,
@@ -523,7 +539,7 @@ The known projections are:
   {projs}
 You can also see this information by running
   `initialize_simps_projections? {str}`.
-Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
+Note: these projection names might not correspond to the projection names of the structure.",
         tuples.mmap_with_index' $ λ proj_nr ⟨proj_expr, proj, new_rhs, proj_nrs, is_default⟩, do
           new_type ← infer_type new_rhs,
           let new_todo :=

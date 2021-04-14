@@ -517,14 +517,24 @@ lemma ssubset_insert {s : finset α} {a : α} (h : a ∉ s) : s ⊂ insert a s :
 ssubset_iff.mpr ⟨a, h, subset.refl _⟩
 
 @[elab_as_eliminator]
-protected theorem induction {α : Type*} {p : finset α → Prop} [decidable_eq α]
-  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : ∀ s, p s
+lemma cons_induction {α : Type*} {p : finset α → Prop}
+  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α} (h : a ∉ s), p s → p (cons a s h)) : ∀ s, p s
 | ⟨s, nd⟩ := multiset.induction_on s (λ _, h₁) (λ a s IH nd, begin
     cases nodup_cons.1 nd with m nd',
-    rw [← (eq_of_veq _ : insert a (finset.mk s _) = ⟨a ::ₘ s, nd⟩)],
+    rw [← (eq_of_veq _ : cons a (finset.mk s _) m = ⟨a ::ₘ s, nd⟩)],
     { exact h₂ (by exact m) (IH nd') },
-    { rw [insert_val, ndinsert_of_not_mem m] }
+    { rw [cons_val] }
   end) nd
+
+@[elab_as_eliminator]
+lemma cons_induction_on {α : Type*} {p : finset α → Prop} (s : finset α)
+  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α} (h : a ∉ s), p s → p (cons a s h)) : p s :=
+cons_induction h₁ h₂ s
+
+@[elab_as_eliminator]
+protected theorem induction {α : Type*} {p : finset α → Prop} [decidable_eq α]
+  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : ∀ s, p s :=
+cons_induction h₁ $ λ a s ha, (s.cons_eq_insert a ha).symm ▸ h₂ ha
 
 /--
 To prove a proposition about an arbitrary `finset α`,
@@ -696,10 +706,34 @@ begin
   exact union_of singletons (symm hi),
 end
 
+lemma exists_mem_subset_of_subset_bUnion_of_directed_on {α ι : Type*}
+  {f : ι → set α}  {c : set ι} {a : ι} (hac : a ∈ c) (hc : directed_on (λ i j, f i ⊆ f j) c)
+  {s : finset α} (hs : (s : set α) ⊆ ⋃ i ∈ c, f i) : ∃ i ∈ c, (s : set α) ⊆ f i :=
+begin
+  classical,
+  revert hs,
+  apply s.induction_on,
+  { intros,
+    use [a, hac],
+    simp },
+  { intros b t hbt htc hbtc,
+    obtain ⟨i : ι , hic : i ∈ c, hti : (t : set α) ⊆ f i⟩ :=
+      htc (set.subset.trans (t.subset_insert b) hbtc),
+    obtain ⟨j, hjc, hbj⟩ : ∃ j ∈ c, b ∈ f j,
+      by simpa [set.mem_bUnion_iff] using hbtc (t.mem_insert_self b),
+    rcases hc j hjc i hic with ⟨k, hkc, hk, hk'⟩,
+    use [k, hkc],
+    rw [coe_insert, set.insert_subset],
+    exact ⟨hk hbj, trans hti hk'⟩ }
+end
+
 /-! ### inter -/
 
 /-- `s ∩ t` is the set such that `a ∈ s ∩ t` iff `a ∈ s` and `a ∈ t`. -/
 instance : has_inter (finset α) := ⟨λ s₁ s₂, ⟨_, nodup_ndinter s₂.1 s₁.2⟩⟩
+
+-- TODO: some of these results may have simpler proofs, once there are enough results
+-- to obtain the `lattice` instance.
 
 theorem inter_val_nd (s₁ s₂ : finset α) : (s₁ ∩ s₂).1 = ndinter s₁.1 s₂.1 := rfl
 
@@ -840,6 +874,14 @@ theorem union_distrib_left (s t u : finset α) : s ∪ (t ∩ u) = (s ∪ t) ∩
 theorem union_distrib_right (s t u : finset α) : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) := sup_inf_right
 
 lemma union_eq_empty_iff (A B : finset α) : A ∪ B = ∅ ↔ A = ∅ ∧ B = ∅ := sup_eq_bot_iff
+
+theorem inter_eq_left_iff_subset (s t : finset α) :
+  s ∩ t = s ↔ s ⊆ t :=
+(inf_eq_left : s ⊓ t = s ↔ s ≤ t)
+
+theorem inter_eq_right_iff_subset (s t : finset α) :
+  t ∩ s = s ↔ s ⊆ t :=
+(inf_eq_right : t ⊓ s = s ↔ s ≤ t)
 
 /-! ### erase -/
 

@@ -618,7 +618,7 @@ end
 
 lemma integrable.sub {f g : α →ₘ[μ] β} (hf : integrable f) (hg : integrable g) :
   integrable (f - g) :=
-hf.add hg.neg
+(sub_eq_add_neg f g).symm ▸ hf.add hg.neg
 
 end
 
@@ -730,8 +730,7 @@ lemma to_L1_neg (f : α → β) (hf : integrable f μ) :
   to_L1 (- f) (integrable.neg hf) = - to_L1 f hf := rfl
 
 lemma to_L1_sub (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) :
-  to_L1 (f - g) (hf.sub hg) = to_L1 f hf - to_L1 g hg :=
-by simp only [sub_eq_add_neg, to_L1_add _ _ hf hg.neg, to_L1_neg]
+  to_L1 (f - g) (hf.sub hg) = to_L1 f hf - to_L1 g hg := rfl
 
 lemma norm_to_L1 (f : α → β) (hf : integrable f μ) :
   ∥hf.to_L1 f∥ = ennreal.to_real (∫⁻ a, edist (f a) 0 ∂μ) :=

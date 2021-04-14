@@ -1,5 +1,5 @@
 import tactic.simps
-import algebra.group.to_additive
+import algebra.group.hom
 
 universe variables v u w
 -- set_option trace.simps.verbose true
@@ -244,14 +244,14 @@ The known projections are:
   [fst, snd]
 You can also see this information by running
   `initialize_simps_projections? prod`.
-Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
+Note: these projection names might not correspond to the projection names of the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["snd_bar"])
     "Invalid simp-lemma specify.specify1_snd_bar. Structure prod does not have projection bar.
 The known projections are:
   [fst, snd]
 You can also see this information by running
   `initialize_simps_projections? prod`.
-Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
+Note: these projection names might not correspond to the projection names of the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
     "Invalid simp-lemma specify.specify5_snd_snd.
 The given definition is not a constructor application:
@@ -812,6 +812,22 @@ begin
   guard_hyp y : { x : fin 3 // true },
   contradiction
 end
+
+/- Test that `to_additive` copies the `@[_refl_lemma]` attribute correctly -/
+@[to_additive, simps]
+def monoid_hom.my_comp {M N P : Type*} [mul_one_class M] [mul_one_class N] [mul_one_class P]
+  (hnp : N →* P) (hmn : M →* N) : M →* P :=
+{ to_fun := hnp ∘ hmn, map_one' := by simp, map_mul' := by simp, }
+
+-- `simps` adds the `_refl_lemma` attribute to `monoid_hom.my_comp_apply`
+example {M N P : Type*} [mul_one_class M] [mul_one_class N] [mul_one_class P]
+  (hnp : N →* P) (hmn : M →* N) (m : M) : hnp.my_comp hmn m = hnp (hmn m) :=
+by { dsimp, guard_target (hnp (hmn m) = hnp (hmn m)), refl }
+
+-- `to_additive` adds the `_refl_lemma` attribute to `add_monoid_hom.my_comp_apply`
+example {M N P : Type*} [add_zero_class M] [add_zero_class N] [add_zero_class P]
+  (hnp : N →+ P) (hmn : M →+ N) (m : M) : hnp.my_comp hmn m = hnp (hmn m) :=
+by { dsimp, guard_target (hnp (hmn m) = hnp (hmn m)), refl }
 
 end
 

@@ -61,15 +61,16 @@ def has_separable_contraction.contraction : polynomial F := classical.some hf
 def has_separable_contraction.degree : ℕ := hf.contraction.nat_degree
 
 /-- The separable degree divides the degree, in function of the exponential characteristic of F. -/
-lemma has_separable_contraction.dvd_degree' :
-  ∃ m : ℕ, hf.degree * (q ^ m) = f.nat_degree :=
+lemma is_separable_contraction.dvd_degree' {g} (hf : is_separable_contraction q f g) :
+  ∃ m : ℕ, g.nat_degree * (q ^ m) = f.nat_degree :=
 begin
-  cases (classical.some_spec hf).2 with m hm,
+  obtain ⟨m, hm⟩ := hf.2,
   use m,
-  let g := classical.some hf,
-  have deg_g : g.nat_degree = hf.degree, by refl,
-  rw [←deg_g, ←hm, nat_degree_expand (q^m) g, mul_comm],
+  rw [←hm, nat_degree_expand]
 end
+
+lemma has_separable_contraction.dvd_degree' : ∃ m : ℕ, hf.degree * (q ^ m) = f.nat_degree :=
+(classical.some_spec hf).dvd_degree'
 
 /-- The separable degree divides the degree. -/
 lemma has_separable_contraction.dvd_degree :
@@ -79,7 +80,7 @@ let ⟨a, ha⟩ := hf.dvd_degree' in dvd.intro (q ^ a) ha
 /-- In exponential characteristic one, the separable degree equals the degree. -/
 lemma has_separable_contraction.eq_degree {f : polynomial F}
   (hf : has_separable_contraction 1 f) : hf.degree = f.nat_degree :=
-exists.elim hf.dvd_degree' (λ a, λ ha, by rw [←ha, one_pow a, mul_one])
+let ⟨a, ha⟩ := hf.dvd_degree' in by rw [←ha, one_pow a, mul_one]
 
 end comm_semiring
 

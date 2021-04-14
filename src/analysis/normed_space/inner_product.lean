@@ -405,10 +405,7 @@ lemma inner_add_left {x y z : E} : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 inner_product_space.add_left _ _ _
 
 lemma inner_add_right {x y z : E} : ⟪x, y + z⟫ = ⟪x, y⟫ + ⟪x, z⟫ :=
-begin
-  rw [←inner_conj_sym, inner_add_left, ring_hom.map_add],
-  conv_rhs { rw ←inner_conj_sym, conv { congr, skip, rw ←inner_conj_sym } }
-end
+by { rw [←inner_conj_sym, inner_add_left, ring_hom.map_add], simp only [inner_conj_sym] }
 
 lemma inner_re_symm {x y : E} : re ⟪x, y⟫ = re ⟪y, x⟫ :=
 by rw [←inner_conj_sym, conj_re]
@@ -451,12 +448,12 @@ def bilin_form_of_real_inner : bilin_form ℝ F :=
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ :=
-sesq_form.map_sum_right (sesq_form_of_inner) _ _ _
+sesq_form.sum_right (sesq_form_of_inner) _ _ _
 
 /-- An inner product with a sum on the right. -/
 lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ :=
-sesq_form.map_sum_left (sesq_form_of_inner) _ _ _
+sesq_form.sum_left (sesq_form_of_inner) _ _ _
 
 /-- An inner product with a sum on the left, `finsupp` version. -/
 lemma finsupp.sum_inner {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :
@@ -525,13 +522,9 @@ end
 
 lemma inner_self_re_abs {x : E} : re ⟪x, x⟫ = abs ⟪x, x⟫ :=
 begin
-  have H : ⟪x, x⟫ = (re ⟪x, x⟫ : 𝕜) + im ⟪x, x⟫ * I,
-  { rw re_add_im, },
-  rw [H, is_add_hom.map_add re ((re ⟪x, x⟫) : 𝕜) (((im ⟪x, x⟫) : 𝕜) * I)],
-  rw [mul_re, I_re, mul_zero, I_im, zero_sub, tactic.ring.add_neg_eq_sub],
-  rw [of_real_re, of_real_im, sub_zero, inner_self_nonneg_im],
-  simp only [abs_of_real, add_zero, of_real_zero, zero_mul],
-  exact (_root_.abs_of_nonneg inner_self_nonneg).symm,
+  conv_rhs { rw [←inner_self_re_to_K] },
+  symmetry,
+  exact is_R_or_C.abs_of_nonneg inner_self_nonneg,
 end
 
 lemma inner_self_abs_to_K {x : E} : (absK ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
@@ -1813,6 +1806,37 @@ begin
   { rw [← h.equiv_fun.symm_apply_apply x, h.equiv_fun_symm_apply] },
   { rw [← h.equiv_fun.symm_apply_apply y, h.equiv_fun_symm_apply] }
 end
+
+/-- `ℂ` is isometric to ℝ² with the Euclidean inner product. -/
+def complex.isometry_euclidean : ℂ ≃ₗᵢ[ℝ] (euclidean_space ℝ (fin 2)) :=
+complex.is_basis_one_I.isometry_euclidean_of_orthonormal
+begin
+  rw orthonormal_iff_ite,
+  intros i, fin_cases i;
+  intros j; fin_cases j;
+  simp [real_inner_eq_re_inner]
+end
+
+@[simp] lemma complex.isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
+  complex.isometry_euclidean.symm x = (x 0) + (x 1) * I :=
+begin
+  convert complex.is_basis_one_I.equiv_fun_symm_apply x,
+  { simpa },
+  { simp },
+end
+
+lemma complex.isometry_euclidean_proj_eq_self (z : ℂ) :
+  ↑(complex.isometry_euclidean z 0) + ↑(complex.isometry_euclidean z 1) * (I : ℂ) = z :=
+by rw [← complex.isometry_euclidean_symm_apply (complex.isometry_euclidean z),
+  complex.isometry_euclidean.symm_apply_apply z]
+
+@[simp] lemma complex.isometry_euclidean_apply_zero (z : ℂ) :
+  complex.isometry_euclidean z 0 = z.re :=
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+
+@[simp] lemma complex.isometry_euclidean_apply_one (z : ℂ) :
+  complex.isometry_euclidean z 1 = z.im :=
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
 
 end pi_Lp
 

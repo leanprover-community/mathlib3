@@ -211,7 +211,7 @@ this as a local instance where needed. -/
 lemma finite_dimensional_of_findim_eq_succ {K V : Type*} [field K] [add_comm_group V]
   [vector_space K V] (n : ℕ) [fact (findim K V = n + 1)] :
   finite_dimensional K V :=
-finite_dimensional_of_findim $ by convert nat.succ_pos n
+finite_dimensional_of_findim $ by convert nat.succ_pos n; apply fact.out
 
 /-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
 cardinality of the basis. -/
@@ -541,6 +541,10 @@ begin
   rw h, norm_cast
 end
 
+lemma findim_eq_zero_of_not_exists_basis
+  (h : ¬ ∃ s : finset V, is_basis K (λ x, x : (↑s : set V) → V)) : findim K V = 0 :=
+dif_neg (mt (λ h, @exists_is_basis_finset K V _ _ _ (finite_dimensional_iff_dim_lt_omega.mpr h)) h)
+
 variables (K V)
 
 lemma finite_dimensional_bot : finite_dimensional K (⊥ : submodule K V) :=
@@ -682,6 +686,10 @@ end
 
 end linear_equiv
 
+instance finite_dimensional_finsupp {ι : Type*} [fintype ι] [finite_dimensional K V] :
+  finite_dimensional K (ι →₀ V) :=
+(finsupp.linear_equiv_fun_on_fintype K : (ι →₀ V) ≃ₗ[K] (ι → V)).symm.finite_dimensional
+
 namespace finite_dimensional
 
 /--
@@ -747,6 +755,11 @@ begin
   rw [← @add_right_cancel_iff _ _ (findim K q), submodule.findim_quotient_add_findim,
       ← linear_equiv.findim_eq f, add_comm, submodule.findim_quotient_add_findim]
 end
+
+@[simp]
+lemma findim_map_subtype_eq (p : subspace K V) (q : subspace K p) :
+  finite_dimensional.findim K (q.map p.subtype) = finite_dimensional.findim K q :=
+(submodule.equiv_subtype_map p q).symm.findim_eq
 
 end finite_dimensional
 
@@ -1074,7 +1087,7 @@ begin
 
   -- To show `b i ∈ span (b '' (univ \ {i}))`, we use that it's a weighted sum
   -- of the other `b j`s.
-  rw [j_eq, mem_coe, show b i = -((g i)⁻¹ • (s.erase i).sum (λ j, g j • b j)), from _],
+  rw [j_eq, set_like.mem_coe, show b i = -((g i)⁻¹ • (s.erase i).sum (λ j, g j • b j)), from _],
   { refine submodule.neg_mem _ (smul_mem _ _ (sum_mem _ (λ k hk, _))),
     obtain ⟨k_ne_i, k_mem⟩ := finset.mem_erase.mp hk,
     refine smul_mem _ _ (subset_span ⟨k, _, rfl⟩),
@@ -1183,7 +1196,8 @@ variables {F E : Type*} [field F] [field E] [algebra F E]
 lemma subalgebra.dim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : dim F S = 1 :=
 begin
   rw [← S.to_submodule_equiv.dim_eq, h,
-    (linear_equiv.of_eq ↑(⊥ : subalgebra F E) _ algebra.to_submodule_bot).dim_eq, dim_span_set],
+    (linear_equiv.of_eq (⊥ : subalgebra F E).to_submodule _ algebra.to_submodule_bot).dim_eq,
+    dim_span_set],
   exacts [mk_singleton _, linear_independent_singleton one_ne_zero]
 end
 
@@ -1228,7 +1242,7 @@ begin
   obtain ⟨_, b_spans⟩ := set_is_basis_of_linear_independent_of_card_eq_findim
     b_lin_ind (by simp only [*, set.to_finset_card]),
   intros x hx,
-  rw [subalgebra.mem_coe, algebra.mem_bot],
+  rw [algebra.mem_bot],
   have x_in_span_b : (⟨x, hx⟩ : S) ∈ submodule.span F b,
   { rw subtype.range_coe at b_spans,
     rw b_spans,

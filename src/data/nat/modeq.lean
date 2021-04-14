@@ -6,7 +6,8 @@ Authors: Mario Carneiro
 import data.int.gcd
 import tactic.abel
 import data.list.rotate
-/-
+
+/-!
 # Congruences modulo a natural number
 
 This file defines the equivalence relation `a ≡ b [MOD n]` on the natural numbers,
@@ -21,6 +22,7 @@ and proves basic properties about it such as the Chinese Remainder Theorem
 
 modeq, congruence, mod, MOD, modulo
 -/
+
 namespace nat
 
 /-- Modular equality. `modeq n a b`, or `a ≡ b [MOD n]`, means
@@ -211,7 +213,8 @@ lemma add_div {a b c : ℕ} (hc0 : 0 < c) : (a + b) / c = a / c + b / c +
 begin
   rw [← nat.mul_right_inj hc0, ← @add_left_cancel_iff _ _ ((a + b) % c + a % c + b % c)],
   suffices : (a + b) % c + c * ((a + b) / c) + a % c + b % c =
-    a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) + (a + b) % c,
+    a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) +
+      (a + b) % c,
   { simpa only [mul_add, add_comm, add_left_comm, add_assoc] },
   rw [mod_add_div, mod_add_div, mod_add_div, mul_ite, add_assoc, add_assoc],
   conv_lhs { rw ← add_mod_add_ite },

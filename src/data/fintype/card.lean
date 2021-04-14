@@ -64,6 +64,14 @@ lemma prod_eq_single {f : α → M} (a : α) (h : ∀ x ≠ a, f x = 1) :
 finset.prod_eq_single a (λ x _ hx, h x hx) $ λ ha, (ha (finset.mem_univ a)).elim
 
 @[to_additive]
+lemma prod_eq_mul {f : α → M} (a b : α) (h₁ : a ≠ b) (h₂ : ∀ x, x ≠ a ∧ x ≠ b → f x = 1) :
+  (∏ x, f x) = (f a) * (f b) :=
+begin
+  apply finset.prod_eq_mul a b h₁ (λ x _ hx, h₂ x hx);
+  exact λ hc, (hc (finset.mem_univ _)).elim
+end
+
+@[to_additive]
 lemma prod_unique [unique β] (f : β → M) :
   (∏ x, f x) = f (default β) :=
 by simp only [finset.prod_singleton, univ_unique]
@@ -193,8 +201,7 @@ by rw fintype.of_equiv_card; simp
 @[simp, to_additive]
 lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
   ∏ x in univ.attach, f x = ∏ x, f ⟨x, (mem_univ _)⟩ :=
-prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp)
-  (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)
+fintype.prod_equiv (equiv.subtype_univ_equiv (λ x, mem_univ _)) _ _ (λ x, by simp)
 
 /-- Taking a product over `univ.pi t` is the same as taking the product over `fintype.pi_finset t`.
   `univ.pi t` and `fintype.pi_finset t` are essentially the same `finset`, but differ
@@ -242,8 +249,7 @@ by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
 lemma function.bijective.prod_comp [fintype α] [fintype β] [comm_monoid γ] {f : α → β}
   (hf : function.bijective f) (g : β → γ) :
   ∏ i, g (f i) = ∏ i, g i :=
-prod_bij (λ i hi, f i) (λ i hi, mem_univ _) (λ i hi, rfl) (λ i j _ _ h, hf.1 h) $
-  λ i hi, (hf.2 i).imp $ λ j hj, ⟨mem_univ _, hj.symm⟩
+fintype.prod_bijective f hf _ _ (λ x, rfl)
 
 @[to_additive]
 lemma equiv.prod_comp [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :

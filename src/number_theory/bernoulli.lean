@@ -80,7 +80,7 @@ by { rw [bernoulli'_def', ← fin.sum_univ_eq_sum_range], refl }
 lemma bernoulli'_spec (n : ℕ) :
   ∑ k in range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli' k = 1 :=
 begin
-  rw [sum_range_succ, bernoulli'_def n, nat.sub_self],
+  rw [sum_range_succ_comm, bernoulli'_def n, nat.sub_self],
   conv in (nat.choose _ (_ - _)) { rw choose_symm (le_of_lt (mem_range.1 H)) },
   simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one],
 end
@@ -223,7 +223,7 @@ begin
       split_ifs at h with h2,
       { rw h2 at hlt, exfalso, exact lt_irrefl _ hlt, },
       have hn : (n! : ℚ) ≠ 0, { simp [factorial_ne_zero], },
-      rw [←mul_div_assoc, sub_eq_zero_iff_eq, div_eq_iff hn, div_mul_cancel _ hn,
+      rw [←mul_div_assoc, sub_eq_zero, div_eq_iff hn, div_mul_cancel _ hn,
         neg_one_pow_of_odd h_odd, neg_mul_eq_neg_mul_symm, one_mul] at h,
       exact eq_zero_of_neg_eq h.symm, },
     { exfalso,
@@ -287,7 +287,7 @@ begin
   -- key equation: the corresponding fact for `bernoulli'`
   have H := bernoulli'_spec' n.succ,
   -- massage it to match the structure of the goal, then convert piece by piece
-  rw ← add_sum_diff_singleton h₁ at H ⊢,
+  rw sum_eq_add_sum_diff_singleton h₁ at H ⊢,
   apply add_eq_of_eq_sub',
   convert eq_sub_of_add_eq' H using 1,
   { apply sum_congr rfl,
@@ -381,7 +381,7 @@ begin
     { have h_const : C ℚ (constant_coeff ℚ (exp ℚ ^ n)) = 1 := by simp,
       rw [←h_const, sub_const_eq_X_mul_shift] },
     -- key step: a chain of equalities of power series
-    rw [←mul_right_inj' hexp, mul_comm, ←exp_pow_sum, ←geom_series_def, geom_sum_mul, h_r,
+    rw [←mul_right_inj' hexp, mul_comm, ←exp_pow_sum, ←geom_sum_def, geom_sum_mul, h_r,
         ←bernoulli_power_series_mul_exp_sub_one, bernoulli_power_series, mul_right_comm],
     simp [h_cauchy, mul_comm] },
   -- the rest is showing that `hps` can be massaged into our goal

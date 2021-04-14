@@ -11,7 +11,7 @@ import algebra.archimedean
 
 This file proves a few facts about ordered groups which satisfy the `archimedean` property, that is:
 `class archimedean (α) [ordered_add_comm_monoid α] : Prop :=`
-`(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n •ℕ y)`
+`(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)`
 
 They are placed here in a separate file (rather than incorporated as a continuation of
 `algebra.archimedean`) because they rely on some imports from `group_theory` -- bundled subgroups

@@ -70,7 +70,7 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 | 0 := rfl
 | (n+1) := by rw [iterate_succ_apply, deriv_exp, iter_deriv_exp n]
 
-lemma continuous_exp : continuous exp :=
+@[continuity] lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
 
 lemma times_cont_diff_exp : ∀ {n}, times_cont_diff ℂ n exp :=
@@ -200,7 +200,7 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 | 0 := rfl
 | (n+1) := by rw [iterate_succ_apply, deriv_exp, iter_deriv_exp n]
 
-lemma continuous_exp : continuous exp :=
+@[continuity] lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
 
 lemma measurable_exp : measurable exp := continuous_exp.measurable
@@ -513,7 +513,7 @@ begin
   exact exp_order_iso.symm.continuous.comp (continuous_subtype_mk _ continuous_subtype_coe.norm)
 end
 
-lemma continuous_log' : continuous (λ x : {x : ℝ // 0 < x}, log x) :=
+@[continuity] lemma continuous_log' : continuous (λ x : {x : ℝ // 0 < x}, log x) :=
 continuous_on_iff_continuous_restrict.1 $ continuous_on_log.mono $ λ x hx, ne_of_gt hx
 
 lemma continuous_at_log (hx : x ≠ 0) : continuous_at log x :=
@@ -790,7 +790,7 @@ begin
     { congr' with i,
       have : (i : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos i),
       field_simp [this, mul_comm] },
-    field_simp [F, this, ← geom_series_def, geom_sum (ne_of_lt hy.2),
+    field_simp [F, this, ← geom_sum_def, geom_sum_eq (ne_of_lt hy.2),
                 sub_ne_zero_of_ne (ne_of_gt hy.2), sub_ne_zero_of_ne (ne_of_lt hy.2)],
     ring },
   -- second step: show that the derivative of `F` is small

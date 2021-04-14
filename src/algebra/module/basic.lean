@@ -24,8 +24,6 @@ In this file we define
 * `vector_space k M` : same as `semimodule k M` and `module k M` but assumes that `k` is a `field`
   and `M` is an additive commutative group.
 
-* `linear_map R M M₂`, `M →ₗ[R] M₂` : a linear map between two R-`semimodule`s.
-
 ## Implementation notes
 
 * `vector_space` and `module` are abbreviations for `semimodule R M`.
@@ -63,6 +61,14 @@ instance semimodule.to_mul_action_with_zero :
   zero_smul := semimodule.zero_smul,
   ..(infer_instance : mul_action R M) }
 
+instance add_comm_monoid.nat_semimodule : semimodule ℕ M :=
+{ one_smul := one_nsmul,
+  mul_smul := λ m n a, mul_nsmul a m n,
+  smul_add := λ n a b, nsmul_add a b n,
+  smul_zero := nsmul_zero,
+  zero_smul := zero_nsmul,
+  add_smul := λ r s x, add_nsmul x r s }
+
 theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s x
 variables (R)
 
@@ -89,7 +95,17 @@ protected def function.surjective.semimodule [add_comm_monoid M₂] [has_scalar 
   zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← f.map_zero, ← smul, zero_smul] },
   .. hf.distrib_mul_action f smul }
 
-variable (M)
+variables {R} (M)
+
+/-- Compose a `semimodule` with a `ring_hom`, with action `f s • m` -/
+def semimodule.comp_hom [semiring S] (f : S →+* R) :
+  semimodule S M :=
+{ smul := (•) ∘ f,
+  add_smul := λ r s x, by simp [add_smul],
+  .. mul_action_with_zero.comp_hom M f.to_monoid_with_zero_hom,
+  .. distrib_mul_action.comp_hom M (f : S →* R) }
+
+variables (R) (M)
 
 /-- `(•)` as an `add_monoid_hom`. -/
 def smul_add_hom : R →+ M →+ M :=
@@ -184,7 +200,6 @@ semimodule R M
 To prove two semimodule structures on a fixed `add_comm_monoid` agree,
 it suffices to check the scalar multiplications agree.
 -/
--- We'll later use this to show `semimodule ℕ M` and `module ℤ M` are subsingletons.
 @[ext]
 lemma semimodule_ext {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q : semimodule R M)
   (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
@@ -262,64 +277,31 @@ section add_comm_monoid
 
 variables [semiring R] [add_comm_monoid M] [semimodule R M]
 
-/-- The natural ℕ-semimodule structure on any `add_comm_monoid`. -/
--- We don't make this a global instance, as it results in too many instances,
--- and confusing ambiguity in the notation `n • x` when `n : ℕ`.
-def add_comm_monoid.nat_semimodule : semimodule ℕ M :=
-{ smul := nsmul,
-  smul_add := λ _ _ _, nsmul_add _ _ _,
-  add_smul := λ _ _ _, add_nsmul _ _ _,
-  mul_smul := λ _ _ _, mul_nsmul _ _ _,
-  one_smul := one_nsmul,
-  zero_smul := zero_nsmul,
-  smul_zero := nsmul_zero }
-
-section
-local attribute [instance] add_comm_monoid.nat_semimodule
-/-- `nsmul` is defined as the `smul` action of `add_comm_monoid.nat_semimodule`. -/
-lemma nsmul_def (n : ℕ) (x : M) :
-  n •ℕ x = n • x :=
-rfl
-end
-
 section
 variables (R)
 /-- `nsmul` is equal to any other semimodule structure via a cast. -/
 lemma nsmul_eq_smul_cast (n : ℕ) (b : M) :
-  n •ℕ b = (n : R) • b :=
+  n • b = (n : R) • b :=
 begin
-  rw nsmul_def,
   induction n with n ih,
   { rw [nat.cast_zero, zero_smul, zero_smul] },
-  { rw [nat.succ_eq_add_one, nat.cast_succ, add_smul, add_smul, one_smul, ih, one_smul] }
+  { rw [nat.succ_eq_add_one, nat.cast_succ, add_smul, add_smul, one_smul, ih, one_smul], }
 end
 end
 
-/-- `nsmul` is equal to any `ℕ`-semimodule structure. -/
-lemma nsmul_eq_smul [semimodule ℕ M] (n : ℕ) (b : M) : n •ℕ b = n • b :=
-by rw [nsmul_eq_smul_cast ℕ, n.cast_id]
-
-/-- All `ℕ`-semimodule structures are equal. -/
-instance add_comm_monoid.nat_semimodule.subsingleton : subsingleton (semimodule ℕ M) :=
-⟨λ P Q, by {
-  ext n,
-  rw [←nsmul_eq_smul, ←nsmul_eq_smul], }⟩
-
-/-- Note this does not depend on the `nat_semimodule` definition above, to avoid issues when
-diamonds occur in finding `semimodule ℕ M` instances. -/
-instance add_comm_monoid.nat_is_scalar_tower [semimodule ℕ R] [semimodule ℕ M] :
+instance add_comm_monoid.nat_is_scalar_tower :
   is_scalar_tower ℕ R M :=
 { smul_assoc := λ n x y, nat.rec_on n
     (by simp only [zero_smul])
     (λ n ih, by simp only [nat.succ_eq_add_one, add_smul, one_smul, ih]) }
 
-instance add_comm_monoid.nat_smul_comm_class [semimodule ℕ M] : smul_comm_class ℕ R M :=
+instance add_comm_monoid.nat_smul_comm_class : smul_comm_class ℕ R M :=
 { smul_comm := λ n r m, nat.rec_on n
     (by simp only [zero_smul, smul_zero])
     (λ n ih, by simp only [nat.succ_eq_add_one, add_smul, one_smul, ←ih, smul_add]) }
 
 -- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
-instance add_comm_monoid.nat_smul_comm_class' [semimodule ℕ M] : smul_comm_class R ℕ M :=
+instance add_comm_monoid.nat_smul_comm_class' : smul_comm_class R ℕ M :=
 smul_comm_class.symm _ _ _
 
 end add_comm_monoid
@@ -432,7 +414,6 @@ lemma map_rat_module_smul {E : Type*} [add_comm_group E] [vector_space ℚ E]
 rat.cast_id c ▸ f.map_rat_cast_smul c x
 
 @[simp] lemma nat_smul_apply [add_monoid M] [add_comm_monoid M₂]
-  [semimodule ℕ (M →+ M₂)] [semimodule ℕ M₂]
   (n : ℕ) (f : M →+ M₂) (a : M) :
   (n • f) a = n • (f a) :=
 begin
@@ -494,11 +475,11 @@ by simp only [ne.def, smul_eq_zero, not_or_distrib]
 
 section nat
 
-variables (R) (M) [no_zero_smul_divisors R M] [semimodule ℕ M] [char_zero R]
+variables (R) (M) [no_zero_smul_divisors R M] [char_zero R]
 include R
 
 lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
-⟨by { intros c x, rw [← nsmul_eq_smul, nsmul_eq_smul_cast R, smul_eq_zero], simp }⟩
+⟨by { intros c x, rw [nsmul_eq_smul_cast R, smul_eq_zero], simp }⟩
 
 variables {M}
 
@@ -527,8 +508,6 @@ include R
 
 lemma eq_zero_of_eq_neg {v : M} (hv : v = - v) : v = 0 :=
 begin
-  -- any semimodule will do
-  haveI : semimodule ℕ M := add_comm_monoid.nat_semimodule,
   haveI := nat.no_zero_smul_divisors R M,
   refine eq_zero_of_smul_two_eq_zero R _,
   rw ←nsmul_eq_smul,
@@ -547,7 +526,7 @@ section nat
 variables {R} [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M] [char_zero R]
 
 lemma ne_neg_of_ne_zero [no_zero_divisors R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
-λ h, have semimodule ℕ R := add_comm_monoid.nat_semimodule, by exactI hv (eq_zero_of_eq_neg R h)
+λ h, hv (eq_zero_of_eq_neg R h)
 
 end nat
 
@@ -567,4 +546,12 @@ end no_zero_smul_divisors
 
 -- We finally turn on these instances globally. By doing this here, we ensure that none of the
 -- lemmas about nat semimodules above are specific to these instances.
-attribute [instance] add_comm_monoid.nat_semimodule add_comm_group.int_module
+attribute [instance] add_comm_group.int_module
+
+@[simp] lemma nat.smul_one_eq_coe {R : Type*} [semiring R] (m : ℕ) :
+  m • (1 : R) = ↑m :=
+by rw [nsmul_eq_mul, mul_one]
+
+@[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] [semimodule ℤ R] (m : ℤ) :
+  m • (1 : R) = ↑m :=
+by rw [← gsmul_eq_smul, gsmul_eq_mul, mul_one]

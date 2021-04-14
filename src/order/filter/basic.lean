@@ -1222,6 +1222,14 @@ lemma eventually_eq_empty {s : set α} {l : filter α} :
   s =ᶠ[l] (∅ : set α) ↔ ∀ᶠ x in l, x ∉ s :=
 eventually_eq_set.trans $ by simp
 
+lemma inter_eventually_eq_left {s t : set α} {l : filter α} :
+  (s ∩ t : set α) =ᶠ[l] s ↔ ∀ᶠ x in l, x ∈ s → x ∈ t :=
+by simp only [eventually_eq_set, mem_inter_eq, and_iff_left_iff_imp]
+
+lemma inter_eventually_eq_right {s t : set α} {l : filter α} :
+  (s ∩ t : set α) =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ t → x ∈ s :=
+by rw [inter_comm, inter_eventually_eq_left]
+
 @[simp] lemma eventually_eq_principal {s : set α} {f g : α → β} :
   f =ᶠ[𝓟 s] g ↔ eq_on f g s :=
 iff.rfl
@@ -1386,6 +1394,10 @@ def comap (m : α → β) (f : filter β) : filter α :=
     ⟨a', ha', subset.trans ma'a ab⟩,
   inter_sets       := assume a b ⟨a', ha₁, ha₂⟩ ⟨b', hb₁, hb₂⟩,
     ⟨a' ∩ b', inter_mem_sets ha₁ hb₁, inter_subset_inter ha₂ hb₂⟩ }
+
+lemma eventually_comap' {f : filter β} {φ : α → β} {p : β → Prop} (hf : ∀ᶠ b in f, p b) :
+  ∀ᶠ a in comap φ f, p (φ a) :=
+⟨_, hf, (λ a h, h)⟩
 
 @[simp] lemma eventually_comap {f : filter β} {φ : α → β} {P : α → Prop} :
   (∀ᶠ a in comap φ f, P a) ↔ ∀ᶠ b in f, ∀ a, φ a = b → P a :=
@@ -1694,6 +1706,10 @@ begin
   rcases hf.nonempty_of_mem (inter_mem_sets hs ht) with ⟨_, ⟨x, hxs, rfl⟩, hxt⟩,
   exact absurd hxs (hts hxt)
 end
+
+lemma comap_coe_ne_bot_of_le_principal {s : set γ} {l : filter γ} [h : ne_bot l] (h' : l ≤ 𝓟 s) :
+  ne_bot (comap (coe : s → γ) l) :=
+h.comap_of_range_mem $ (@subtype.range_coe γ s).symm ▸ h' (mem_principal_self s)
 
 lemma ne_bot.comap_of_surj {f : filter β} {m : α → β}
   (hf : ne_bot f) (hm : function.surjective m) :
@@ -2462,7 +2478,7 @@ begin
   simp ; tauto,
 end
 
--- this inequality can be strict; see `map_const_principal_coprod_map_id_principal` and 
+-- this inequality can be strict; see `map_const_principal_coprod_map_id_principal` and
 -- `map_prod_map_const_id_principal_coprod_principal` below.
 lemma map_prod_map_coprod_le {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : α₁ → β₁} {m₂ : α₂ → β₂} :

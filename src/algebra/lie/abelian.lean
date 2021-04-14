@@ -83,7 +83,8 @@ lemma lie_algebra.is_lie_abelian_bot (R : Type u) (L : Type v)
   [comm_ring R] [lie_ring L] [lie_algebra R L] : is_lie_abelian (⊥ : lie_ideal R L) :=
 ⟨begin
   rintros ⟨x, hx⟩ ⟨y, hy⟩,
-  suffices : ⁅x, y⁆ = 0, { ext, simp [this], },
+  suffices : ⁅x, y⁆ = 0,
+  { ext, simp only [this, lie_subalgebra.coe_bracket, submodule.coe_mk, submodule.coe_zero], },
   change x ∈ (⊥ : lie_ideal R L) at hx, rw lie_submodule.mem_bot at hx, rw [hx, zero_lie],
 end⟩
 

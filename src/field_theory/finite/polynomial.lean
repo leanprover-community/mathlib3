@@ -82,7 +82,7 @@ begin
 end
 
 lemma degrees_indicator (c : σ → K) :
-  degrees (indicator c) ≤ ∑ s : σ, (fintype.card K - 1) •ℕ {s} :=
+  degrees (indicator c) ≤ ∑ s : σ, (fintype.card K - 1) • {s} :=
 begin
   rw [indicator],
   refine le_trans (degrees_prod _ _) (finset.sum_le_sum $ assume s hs, _),
@@ -123,7 +123,7 @@ rfl
 
 lemma map_restrict_dom_evalₗ : (restrict_degree σ K (fintype.card K - 1)).map (evalₗ K σ) = ⊤ :=
 begin
-  refine top_unique (submodule.le_def'.2 $ assume e _, mem_map.2 _),
+  refine top_unique (set_like.le_def.2 $ assume e _, mem_map.2 _),
   refine ⟨∑ n : σ → K, e n • indicator n, _, _⟩,
   { exact sum_mem _ (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
   { ext n,

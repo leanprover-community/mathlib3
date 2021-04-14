@@ -294,7 +294,7 @@ begin
     { rw [set.mem_set_of_eq, degree_le_zero_iff] at hy,
       refine hy.symm ▸ ⟨X - C (ϕ.to_map ((quotient.mk P') (p.coeff 0))), monic_X_sub_C _, _⟩,
       simp only [eval₂_sub, eval₂_C, eval₂_X],
-      rw [sub_eq_zero_iff_eq, ← φ'.comp_apply, localization_map.map_comp, ring_hom.comp_apply],
+      rw [sub_eq_zero, ← φ'.comp_apply, localization_map.map_comp, ring_hom.comp_apply],
       refl } },
   { obtain ⟨p, rfl⟩ := quotient.mk_surjective p',
     refine polynomial.induction_on p

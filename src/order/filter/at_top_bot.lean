@@ -399,14 +399,14 @@ lemma tendsto_at_bot_add (hf : tendsto f l at_bot) (hg : tendsto g l at_bot) :
 @tendsto_at_top_add _ (order_dual β) _ _ _ _ hf hg
 
 lemma tendsto.nsmul_at_top (hf : tendsto f l at_top) {n : ℕ} (hn : 0 < n) :
-  tendsto (λ x, n •ℕ f x) l at_top :=
+  tendsto (λ x, n • f x) l at_top :=
 tendsto_at_top.2 $ λ y, (tendsto_at_top.1 hf y).mp $ (tendsto_at_top.1 hf 0).mono $ λ x h₀ hy,
 calc y ≤ f x : hy
-... = 1 •ℕ f x : (one_nsmul _).symm
-... ≤  n •ℕ f x : nsmul_le_nsmul h₀ hn
+... = 1 • f x : (one_nsmul _).symm
+... ≤  n • f x : nsmul_le_nsmul h₀ hn
 
 lemma tendsto.nsmul_at_bot (hf : tendsto f l at_bot) {n : ℕ} (hn : 0 < n) :
-  tendsto (λ x, n •ℕ f x) l at_bot :=
+  tendsto (λ x, n • f x) l at_bot :=
 @tendsto.nsmul_at_top α (order_dual β) _ l f hf n hn
 
 lemma tendsto_bit0_at_top : tendsto bit0 (at_top : filter β) at_top :=
@@ -651,7 +651,7 @@ by simpa only [mul_comm] using hf.const_mul_at_top hr
 constant also tends to infinity. -/
 lemma tendsto.at_top_div_const (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, f x / r) l at_top :=
-hf.at_top_mul_const (inv_pos.2 hr)
+by simpa only [div_eq_mul_inv] using hf.at_top_mul_const (inv_pos.2 hr)
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a negative
 constant (on the left) tends to negative infinity. -/
@@ -683,7 +683,7 @@ by simpa only [mul_comm] using hf.const_mul_at_bot hr
 a positive constant also tends to negative infinity. -/
 lemma tendsto.at_bot_div_const (hr : 0 < r) (hf : tendsto f l at_bot) :
   tendsto (λx, f x / r) l at_bot :=
-hf.at_bot_mul_const (inv_pos.2 hr)
+by simpa only [div_eq_mul_inv] using hf.at_bot_mul_const (inv_pos.2 hr)
 
 /-- If a function tends to negative infinity along a filter, then this function multiplied by
 a negative constant (on the left) tends to positive infinity. -/

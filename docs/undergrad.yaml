@@ -9,7 +9,7 @@ Linear algebra:
     vector subspace: 'subspace'
     quotient space: 'submodule.quotient'
     sum of subspaces: 'submodule.complete_lattice'
-    direct sum: 'direct_sum.add_submonoid_is_internal'
+    direct sum: 'direct_sum.submodule_is_internal'
     complementary subspaces: 'submodule.exists_is_compl'
     linear independence: 'linear_independent'
     generating sets: 'submodule.span'

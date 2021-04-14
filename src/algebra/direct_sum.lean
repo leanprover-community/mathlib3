@@ -172,7 +172,7 @@ def add_subgroup_is_internal {M : Type*} [decidable_eq ι] [add_comm_group M]
   (A : ι → add_subgroup M) : Prop :=
 function.bijective (direct_sum.to_add_monoid (λ i, (A i).subtype) : (⨁ i, A i) →+ M)
 
-lemma direct_sum.add_subgroup_is_internal.to_add_submonoid
+lemma add_subgroup_is_internal.to_add_submonoid
   {M : Type*} [decidable_eq ι] [add_comm_group M] (A : ι → add_subgroup M) :
   add_subgroup_is_internal A ↔
     add_submonoid_is_internal (λ i, (A i).to_add_submonoid) :=

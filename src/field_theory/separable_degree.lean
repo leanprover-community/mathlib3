@@ -102,7 +102,7 @@ begin
 end
 
 /-- A helper lemma: if two expansions (along the positive characteristic) of two polynomials `g` and
-`g'` agree, then either their degrees are the same, or one of them is not separable. -/
+`g'` agree, and the one with the larger degree is separable, then their degrees are the same. -/
 lemma contraction_degree_eq_aux [hq : fact q.prime] [hF : char_p F q]
   (g g' : polynomial F) (m m' : ℕ)
   (h_expand : expand F (q^m) g = expand F (q^m') g')
@@ -120,8 +120,8 @@ begin
     zero_mul]
 end
 
-/-- If two expansions (along the positive characteristic) of two polynomials `g` and `g'` agree,
-then they have the same degree or one of them is inseparable. -/
+/-- If two expansions (along the positive characteristic) of two separable polynomials
+`g` and `g'` agree, then they have the same degree. -/
 theorem contraction_degree_eq_or_insep
   [hq : fact q.prime] [char_p F q]
   (g g' : polynomial F) (m m' : ℕ)

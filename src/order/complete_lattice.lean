@@ -1179,6 +1179,16 @@ omit hs
 def independent {ι : Sort*} {α : Type*} [complete_lattice α] (s : ι → α): Prop :=
 ∀ ⦃i : ι⦄, disjoint (s i) (⨆ (j ≠ i), s j)
 
+lemma sindependent_iff {α : Type*} [complete_lattice α] (s : set α) :
+  sindependent s ↔ independent (coe : s → α) :=
+begin
+  simp_rw [independent, sindependent, set_coe.forall, Sup_eq_supr],
+  apply forall_congr, intro a, apply forall_congr, intro ha,
+  congr' 2,
+  convert supr_subtype.symm,
+  simp [supr_and],
+end
+
 variables {t : ι → α} (ht : independent t)
 
 @[simp]

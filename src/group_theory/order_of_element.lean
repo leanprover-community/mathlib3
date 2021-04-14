@@ -209,6 +209,8 @@ begin
   exact exists_pow_eq_self_of_coprime h,
 end
 
+attribute [to_additive exists_nsmul_eq_self_of_coprime] exists_pow_eq_self_of_coprime
+
 lemma add_order_of_eq_add_order_of_iff {B : Type*} [add_monoid B] {b : B} :
   add_order_of a = add_order_of b ↔ ∀ n : ℕ, n • a = 0 ↔ n • b = 0 :=
 begin
@@ -450,23 +452,16 @@ finset.le_card_of_inj_on_range ((^) x)
   (assume n _, finset.mem_univ _)
   (assume i hi j hj, pow_injective_of_lt_order_of x hi hj)
 
-/-- This is the same as `order_of_pos' but with one fewer explicit assumption since this is
-  automatic in case of a finite cancellative monoid.-/
-lemma order_of_pos (x : G) : 0 < order_of x := order_of_pos' (exists_pow_eq_one x)
-
 /-- This is the same as `add_order_of_pos' but with one fewer explicit assumption since this is
   automatic in case of a finite cancellative additive monoid.-/
-lemma add_order_of_pos (a : A) : 0 < add_order_of a :=
-begin
-  rw ← order_of_of_add_eq_add_order_of,
-  exact order_of_pos _,
-end
+lemma add_order_of_pos (a : A) : 0 < add_order_of a := add_order_of_pos' (exists_nsmul_eq_zero _)
 
-attribute [to_additive add_order_of_pos] order_of_pos
+/-- This is the same as `order_of_pos' but with one fewer explicit assumption since this is
+  automatic in case of a finite cancellative monoid.-/
+@[to_additive add_order_of_pos]
+lemma order_of_pos (x : G) : 0 < order_of x := order_of_pos' (exists_pow_eq_one x)
 
 open nat
-
-attribute [to_additive exists_nsmul_eq_self_of_coprime] exists_pow_eq_self_of_coprime
 
 /-- This is the same as `order_of_pow'` and `order_of_pow''` but with one assumption less which is
 automatic in the case of a finite cancellative monoid.-/

@@ -29,9 +29,9 @@ namespace category_theory.triangulated
 open category_theory.category
 
 /--
-We work in an additive category `C` equipped with an additive shift.
+We work in an preadditive category `C` equipped with an additive shift.
 -/
-variables {C : Type u} [category.{v} C] [has_zero_object C] [has_shift C] [preadditive C]
+variables {C : Type u} [category.{v} C] [has_shift C] [preadditive C]
   [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
 variables (X : C)
 

@@ -28,13 +28,9 @@ namespace category_theory.triangulated
 open category_theory.category
 
 /-
-We work in an additive category `C` equipped with an additive shift.
+We work in a category `C` equipped with a shift.
 -/
-variables (C : Type u) [category.{v} C] [has_zero_object C] [has_zero_morphisms C] [has_shift C]
-/-
-Eventually can remove conditions on shift functor and inverse, as all equivalences of additive
-categories are additive functors
--/
+variables (C : Type u) [category.{v} C] [has_shift C]
 
 /--
 A triangle in `C` is a sextuple `(X,Y,Z,f,g,h)` where `X,Y,Z` are objects of `C`,
@@ -49,10 +45,6 @@ structure triangle := mk' ::
 (mor₂ : obj₂ ⟶ obj₃)
 (mor₃ : obj₃ ⟶ obj₁⟦1⟧)
 
-local attribute [instance] has_zero_object.has_zero
-instance [has_zero_object C] : inhabited (triangle C) :=
-⟨⟨0,0,0,0,0,0⟩⟩
-
 /--
 A triangle `(X,Y,Z,f,g,h)` in `C` is defined by the morphisms `f : X ⟶ Y`, `g : Y ⟶ Z`
 and `h : Z ⟶ X⟦1⟧`.
@@ -66,11 +58,20 @@ def triangle.mk {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ X⟦1⟧) : t
   mor₂ := g,
   mor₃ := h }
 
+section
+variables [has_zero_object C] [has_zero_morphisms C]
+
+local attribute [instance] has_zero_object.has_zero
+instance [has_zero_object C] : inhabited (triangle C) :=
+⟨⟨0,0,0,0,0,0⟩⟩
+
 /--
 For each object in `C`, there is a triangle of the form `(X,X,0,𝟙 X,0,0)`
 -/
 @[simps]
 def contractible_triangle (X : C) : triangle C := triangle.mk C (𝟙 X) (0 : X ⟶ 0) 0
+
+end
 
 variable {C}
 

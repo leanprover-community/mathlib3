@@ -1085,11 +1085,14 @@ begin
   simp,
 end
 
+lemma sin_sub_int_mul_two_pi (x : ℝ) (n : ℤ) : sin (x - n * (2 * π)) = sin x :=
+by simpa using sin_add_int_mul_two_pi x (-n)
+
 lemma sin_add_nat_mul_two_pi (x : ℝ) (n : ℕ) : sin (x + n * (2 * π)) = sin x :=
 by convert sin_add_int_mul_two_pi x n
 
 lemma sin_sub_nat_mul_two_pi (x : ℝ) (n : ℕ) : sin (x - n * (2 * π)) = sin x :=
-by simpa using sin_add_int_mul_two_pi x (-n)
+by convert sin_sub_int_mul_two_pi x n
 
 lemma sin_add_two_pi (x : ℝ) : sin (x + 2 * π) = sin x :=
 by simp [sin_add]
@@ -1104,11 +1107,14 @@ begin
   simp,
 end
 
+lemma cos_sub_int_mul_two_pi (x : ℝ) (n : ℤ) : cos (x - n * (2 * π)) = cos x :=
+by simpa using cos_add_int_mul_two_pi x (-n)
+
 lemma cos_add_nat_mul_two_pi (x : ℝ) (n : ℕ) : cos (x + n * (2 * π)) = cos x :=
 by convert cos_add_int_mul_two_pi x n
 
 lemma cos_sub_nat_mul_two_pi (x : ℝ) (n : ℕ) : cos (x - n * (2 * π)) = cos x :=
-by simpa using cos_add_int_mul_two_pi x (-n)
+by convert cos_sub_int_mul_two_pi x n
 
 lemma cos_int_mul_two_pi_add_pi (n : ℤ) : cos (n * (2 * π) + π) = -1 :=
 by simp [add_comm, cos_add_int_mul_two_pi]

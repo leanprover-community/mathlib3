@@ -16,14 +16,17 @@ This file contains basics about the separable degree of a polynomial.
 
 ## Main results
 
+- `is_separable_contraction`: is the condition that `g(x^(q^m)) = f(x)` for some `m : ℕ`
+- `has_separable_contraction`: the condition of having a separable contraction
 - `separable_degree`: the definition of the separable degree
 - `irreducible_has_separable_contraction`: any nonzero irreducible polynomial can be contracted
   to a separable polynomial
-- `separable_degree_dvd_degree'`: the separable degree divides the degree, in function of the
-  exponential characteristic of the field
-- `separable_degree_dvd_degree` and `separable_degree_eq_degree` specialize the statement of
-  `separable_degree_dvd_degree`
-- `separable_degree_eq`: the separable degree is unique (for polynomials over a field)
+- `has_separable_contraction.dvd_degree'`: the degree of a separable contraction divides the degree,
+  in function of the exponential characteristic of the field
+- `has_separable_contraction.dvd_degree` and `has_separable_contraction.eq_degree` specialize the
+  statement of `separable_degree_dvd_degree`
+- `is_separable_contraction.degree_eq`: the separable degree is well-defined, implemented as the
+  statement that the degree of any separable contraction equals `separable_degree`
 
 ## Tags
 
@@ -38,14 +41,14 @@ open_locale classical
 section comm_semiring
 
 variables {F : Type} [comm_semiring F]
-  (q : ℕ)
+variables (q : ℕ)
 
 /-- A separable contraction of a polynomial `f` is a separable polynomial `g` such that
 `g(x^(q^m)) = f(x)` for some `m : ℕ`.-/
 def is_separable_contraction (f : polynomial F) (g : polynomial F) : Prop :=
 g.separable ∧ ∃ m : ℕ, expand F (q^m) g = f
 
-/-- The condition of being a separable contration. -/
+/-- The condition of having a separable contration. -/
 def has_separable_contraction (f : polynomial F) : Prop :=
 ∃ g : polynomial F, is_separable_contraction q f g
 
@@ -58,7 +61,7 @@ def separable_contraction : polynomial F := classical.some hf
 def separable_degree : ℕ := nat_degree (separable_contraction q hf)
 
 /-- The separable degree divides the degree, in function of the exponential characteristic of F. -/
-lemma separable_degree_dvd_degree' : ∃ m : ℕ, (separable_degree q hf) * (q ^ m) = f.nat_degree :=
+lemma has_separable_contraction.dvd_degree' : ∃ m : ℕ, (separable_degree q hf) * (q ^ m) = f.nat_degree :=
 begin
   cases (classical.some_spec hf).2 with m hm,
   use m,
@@ -68,22 +71,22 @@ begin
 end
 
 /-- The separable degree divides the degree. -/
-lemma separable_degree_dvd_degree :
+lemma has_separable_contraction.dvd_degree :
   (separable_degree q hf) ∣ f.nat_degree :=
-let ⟨a, ha⟩ := separable_degree_dvd_degree' q hf in dvd.intro (q ^ a) ha
+let ⟨a, ha⟩ := hf.dvd_degree' q  in dvd.intro (q ^ a) ha
 
 /-- In exponential characteristic one, the separable degree equals the degree. -/
-lemma separable_degree_eq_degree {f : polynomial F}
+lemma has_separable_contraction.eq_degree {f : polynomial F}
   (hf : has_separable_contraction 1 f) : (separable_degree 1 hf) = f.nat_degree :=
-exists.elim (separable_degree_dvd_degree' 1 hf) (λ a, λ ha, by rw [←ha, one_pow a, mul_one])
+exists.elim (hf.dvd_degree' 1) (λ a, λ ha, by rw [←ha, one_pow a, mul_one])
 
 end comm_semiring
 
 section field
 
 variables {F : Type} [field F]
-  (q : ℕ)
-  {f : polynomial F} (hf : has_separable_contraction q f)
+variables (q : ℕ)
+variables {f : polynomial F} (hf : has_separable_contraction q f)
 
 /-- Every irreducible polynomial can be contracted to a separable polynomial.
 https://stacks.math.columbia.edu/tag/09H0 -/
@@ -140,14 +143,14 @@ begin
 end
 
 /-- The separable degree equals the degree of any separable contraction, i.e., it is unique. -/
-theorem separable_degree_eq [hF : exp_char F q]
+theorem is_separable_contraction.degree_eq [hF : exp_char F q]
   (g : polynomial F) (hg : is_separable_contraction q f g) :
   g.nat_degree = separable_degree q hf :=
 begin
   casesI hF,
   { rcases hg with ⟨g, m, hm⟩,
     rw [one_pow, expand_one] at hm,
-    rw separable_degree_eq_degree hf,
+    rw hf.eq_degree,
     rw hm, },
   { rcases hg with ⟨hg, m, hm⟩,
     let g' := classical.some hf,

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.operations
+import algebra.op_closed
 
 /-!
 # Subalgebras over Commutative Semiring
@@ -81,6 +82,16 @@ neg_one_smul R x ▸ S.smul_mem hx _
 theorem sub_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) {x y : A} (hx : x ∈ S) (hy : y ∈ S) : x - y ∈ S :=
 by simpa only [sub_eq_add_neg] using S.add_mem hx (S.neg_mem hy)
+
+instance : zero_closed (subalgebra R A) A := ⟨zero_mem⟩
+instance : one_closed (subalgebra R A) A := ⟨one_mem⟩
+instance : add_closed (subalgebra R A) A := ⟨add_mem⟩
+instance : mul_closed (subalgebra R A) A := ⟨mul_mem⟩
+instance : smul_closed (subalgebra R A) R A := λ r, ⟨λ S x hx, S.smul_mem hx r⟩
+instance {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] :
+           sub_closed (subalgebra R A) A := ⟨sub_mem⟩
+instance {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] :
+           neg_closed (subalgebra R A) A := ⟨neg_mem⟩
 
 theorem nsmul_mem {x : A} (hx : x ∈ S) (n : ℕ) : n • x ∈ S :=
 S.to_subsemiring.nsmul_mem hx n

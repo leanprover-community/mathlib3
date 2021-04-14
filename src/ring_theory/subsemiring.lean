@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 
 import algebra.ring.prod
+import algebra.op_closed
 import group_theory.submonoid
 import data.equiv.ring
 
@@ -113,6 +114,12 @@ theorem mul_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x * y ∈ s := s.mul_me
 
 /-- A subsemiring is closed under addition. -/
 theorem add_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x + y ∈ s := s.add_mem'
+
+
+instance : zero_closed (subsemiring R) R := ⟨zero_mem⟩
+instance : one_closed (subsemiring R) R := ⟨one_mem⟩
+instance : add_closed (subsemiring R) R := ⟨add_mem⟩
+instance : mul_closed (subsemiring R) R := ⟨mul_mem⟩
 
 /-- Product of a list of elements in a `subsemiring` is in the `subsemiring`. -/
 lemma list_prod_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.prod ∈ s :=

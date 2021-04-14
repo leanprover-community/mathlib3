@@ -36,7 +36,10 @@ protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
   continuous_inv_fun := h.continuous_to_fun,
   to_equiv := h.to_equiv.symm }
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
 def simps.apply (h : α ≃ₜ β) : α → β := h
+/-- See Note [custom simps projection] -/
 def simps.symm_apply (h : α ≃ₜ β) : β → α := h.symm
 
 initialize_simps_projections homeomorph

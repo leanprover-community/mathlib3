@@ -80,7 +80,8 @@ protected def symm : local_homeomorph β α :=
   continuous_inv_fun := e.continuous_to_fun,
   ..e.to_local_equiv.symm }
 
-/-- See Note [custom simps projection] -/
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
 def simps.apply (e : local_homeomorph α β) : α → β := e
 /-- See Note [custom simps projection] -/
 def simps.symm_apply (e : local_homeomorph α β) : β → α := e.symm

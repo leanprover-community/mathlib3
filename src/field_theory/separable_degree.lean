@@ -55,10 +55,10 @@ def has_separable_contraction (f : polynomial F) : Prop :=
 variables {f : polynomial F} (hf : has_separable_contraction q f)
 
 /-- A choice of a separable contraction. -/
-def separable_contraction : polynomial F := classical.some hf
+def has_separable_contraction.contraction : polynomial F := classical.some hf
 
 /-- The separable degree of a polynomial is the degree of a given separable contraction. -/
-def separable_degree : ℕ := nat_degree (separable_contraction q hf)
+def separable_degree : ℕ := nat_degree (hf.contraction q)
 
 /-- The separable degree divides the degree, in function of the exponential characteristic of F. -/
 lemma has_separable_contraction.dvd_degree' : ∃ m : ℕ, (separable_degree q hf) * (q ^ m) = f.nat_degree :=

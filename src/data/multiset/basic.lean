@@ -2128,15 +2128,12 @@ lemma rel_repeat_right {m : multiset α} {a : α} {r : α → α → Prop} {n : 
 by { rw [← rel_flip], exact rel_repeat_left }
 
 lemma sum_le_sum_of_rel_le [ordered_add_comm_monoid α]
-  {m1 : multiset α} : ∀ {m2 : multiset α}, m1.rel (≤) m2 → m1.sum ≤ m2.sum :=
+  {m1 m2 : multiset α} (h : m1.rel (≤) m2) : m1.sum ≤ m2.sum :=
 begin
-  apply m1.induction_on,
-  { intros m2 h,
-    rw rel_zero_left.1 h },
-  { intros a m1 ih m2 h,
-    obtain ⟨b, m2, ab, h', rfl⟩ := rel_cons_left.1 h,
-    rw [sum_cons, sum_cons],
-    exact add_le_add ab (ih h') }
+  induction h with _ _ _ _ rh _ rt,
+  { refl },
+  { rw [sum_cons, sum_cons],
+    exact add_le_add rh rt }
 end
 
 end rel

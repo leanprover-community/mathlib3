@@ -942,6 +942,7 @@ nat.dvd_add_right (dvd_refl m)
   m ∣ n + m ↔ m ∣ n :=
 nat.dvd_add_left (dvd_refl m)
 
+-- TODO: update `nat.dvd_sub` in core
 lemma dvd_sub' {k m n : ℕ} (h₁ : k ∣ m) (h₂ : k ∣ n) : k ∣ m - n :=
 begin
   cases le_total n m with H H,

@@ -683,13 +683,14 @@ section mul_one_class
 
 variables [semiring k] [add_zero_class G]
 
-instance : mul_one_class (add_monoid_algebra k G) :=
+instance : mul_zero_one_class (add_monoid_algebra k G) :=
 { one       := 1,
   mul       := (*),
   one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
     single_zero, sum_zero, zero_add, one_mul, sum_single],
   mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
-    single_zero, sum_zero, add_zero, mul_one, sum_single] }
+    single_zero, sum_zero, add_zero, mul_one, sum_single],
+  .. add_monoid_algebra.mul_zero_class }
 
 variables {R : Type*} [semiring R]
 
@@ -727,9 +728,8 @@ instance : semiring (add_monoid_algebra k G) :=
   mul       := (*),
   zero      := 0,
   add       := (+),
-  .. add_monoid_algebra.mul_one_class,
+  .. add_monoid_algebra.mul_zero_one_class,
   .. add_monoid_algebra.semigroup,
-  .. add_monoid_algebra.mul_zero_class,
   .. add_monoid_algebra.distrib,
   .. finsupp.add_comm_monoid }
 

@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
-import category_theory.subobject.factor_thru
+import category_theory.subobject.lattice
 
 /-!
 # Specific subobjects
@@ -21,7 +21,7 @@ universes v u
 
 noncomputable theory
 
-open category_theory category_theory.category category_theory.limits
+open category_theory category_theory.category category_theory.limits category_theory.subobject
 
 variables {C : Type u} [category.{v} C] {X Y Z : C}
 
@@ -106,8 +106,13 @@ lemma kernel_subobject_factors_iff {W : C} (h : W ⟶ X) :
   kernel_subobject_arrow_comp, comp_zero],
 kernel_subobject_factors f h⟩
 
-instance : is_iso (kernel_subobject (0 : X ⟶ Y)).arrow :=
+instance is_iso_kernel_subobject_zero_arrow : is_iso (kernel_subobject (0 : X ⟶ Y)).arrow :=
 by { rw ←kernel_subobject_arrow, apply_instance, }
+
+@[simp]
+lemma kernel_subobject_zero {A B : C} : kernel_subobject (0 : A ⟶ B) = ⊤ :=
+eq_of_comm (kernel_subobject_iso _ ≪≫ kernel_zero_iso_source ≪≫ (underlying_iso _).symm)
+  (by simp [kernel_subobject_arrow])
 
 lemma le_kernel_subobject (A : subobject X) (h : A.arrow ≫ f = 0) : A ≤ kernel_subobject f :=
 subobject.le_mk_of_comm (kernel.lift f A.arrow h) (by simp)
@@ -200,9 +205,15 @@ lemma factor_thru_image_subobject_comp_self_assoc {W W' : C} (k : W ⟶ W') (k' 
 by { ext, simp, }
 
 @[simp]
-lemma image_subobject_zero [has_zero_morphisms C] [has_zero_object C] :
+lemma image_subobject_zero_arrow [has_zero_morphisms C] [has_zero_object C] :
   (image_subobject (0 : X ⟶ Y)).arrow = 0 :=
 by { rw ←image_subobject_arrow, simp, }
+
+@[simp]
+lemma image_subobject_zero [has_zero_morphisms C] [has_zero_object C]{A B : C} :
+  image_subobject (0 : A ⟶ B) = ⊥ :=
+subobject.eq_of_comm
+  (image_subobject_iso _ ≪≫ image_zero ≪≫ subobject.bot_coe_iso_zero.symm) (by simp)
 
 /-- The image of `h ≫ f` is always a smaller subobject than the image of `f`. -/
 lemma image_subobject_comp_le

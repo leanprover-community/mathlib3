@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
 import algebra.homology2.complex_shape
-import category_theory.subobject.factor_thru
+import category_theory.subobject.limits
 
 universes v u
 

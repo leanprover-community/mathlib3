@@ -225,15 +225,6 @@ quotient.sound' ⟨mono_over.pullback_self f⟩
 
 end
 
-@[simp]
-lemma kernel_subobject_zero [has_zero_morphisms C] {A B : C} : kernel_subobject (0 : A ⟶ B) = ⊤ :=
-eq_of_comm (kernel_subobject_iso _ ≪≫ kernel_zero_iso_source ≪≫ (underlying_iso _).symm)
-  (by simp [←kernel_subobject_arrow])
-
-instance is_iso_kernel_subobject_zero_arrow [has_zero_morphisms C] {A B : C} :
-  is_iso (kernel_subobject (0 : A ⟶ B)).arrow :=
-by { rw kernel_subobject_zero, apply_instance, }
-
 end order_top
 
 section order_bot
@@ -262,10 +253,6 @@ quotient.sound' ⟨mono_over.map_bot f⟩
 
 lemma bot_factors_iff_zero {A B : C} (f : A ⟶ B) : (⊥ : subobject B).factors f ↔ f = 0 :=
 ⟨by { rintro ⟨h, w⟩, simp at w, exact w.symm, }, by { rintro rfl, exact ⟨0, by simp⟩, }⟩
-
-@[simp]
-lemma image_subobject_zero {A B : C} : image_subobject (0 : A ⟶ B) = ⊥ :=
-eq_of_comm (image_subobject_iso _ ≪≫ image_zero ≪≫ bot_coe_iso_zero.symm) (by simp)
 
 end order_bot
 

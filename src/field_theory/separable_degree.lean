@@ -18,7 +18,8 @@ This file contains basics about the separable degree of a polynomial.
 
 - `is_separable_contraction`: is the condition that `g(x^(q^m)) = f(x)` for some `m : ℕ`
 - `has_separable_contraction`: the condition of having a separable contraction
-- `separable_degree`: the definition of the separable degree
+- `has_separable_contraction.degree`: the separable degree, defined as the degree of some
+  separable contraction
 - `irreducible_has_separable_contraction`: any nonzero irreducible polynomial can be contracted
   to a separable polynomial
 - `has_separable_contraction.dvd_degree'`: the degree of a separable contraction divides the degree,
@@ -26,7 +27,7 @@ This file contains basics about the separable degree of a polynomial.
 - `has_separable_contraction.dvd_degree` and `has_separable_contraction.eq_degree` specialize the
   statement of `separable_degree_dvd_degree`
 - `is_separable_contraction.degree_eq`: the separable degree is well-defined, implemented as the
-  statement that the degree of any separable contraction equals `separable_degree`
+  statement that the degree of any separable contraction equals `has_separable_contraction.degree`
 
 ## Tags
 
@@ -51,34 +52,34 @@ g.separable ∧ ∃ m : ℕ, expand F (q^m) g = f
 def has_separable_contraction (f : polynomial F) : Prop :=
 ∃ g : polynomial F, is_separable_contraction q f g
 
-variables {f : polynomial F} (hf : has_separable_contraction q f)
+variables {q} {f : polynomial F} (hf : has_separable_contraction q f)
 
 /-- A choice of a separable contraction. -/
 def has_separable_contraction.contraction : polynomial F := classical.some hf
 
 /-- The separable degree of a polynomial is the degree of a given separable contraction. -/
-def separable_degree : ℕ := nat_degree (hf.contraction q)
+def has_separable_contraction.degree : ℕ := hf.contraction.nat_degree
 
 /-- The separable degree divides the degree, in function of the exponential characteristic of F. -/
 lemma has_separable_contraction.dvd_degree' :
-  ∃ m : ℕ, (separable_degree q hf) * (q ^ m) = f.nat_degree :=
+  ∃ m : ℕ, hf.degree * (q ^ m) = f.nat_degree :=
 begin
   cases (classical.some_spec hf).2 with m hm,
   use m,
   let g := classical.some hf,
-  have deg_g : g.nat_degree = separable_degree q hf, by refl,
+  have deg_g : g.nat_degree = hf.degree, by refl,
   rw [←deg_g, ←hm, nat_degree_expand (q^m) g, mul_comm],
 end
 
 /-- The separable degree divides the degree. -/
 lemma has_separable_contraction.dvd_degree :
-  (separable_degree q hf) ∣ f.nat_degree :=
-let ⟨a, ha⟩ := hf.dvd_degree' q  in dvd.intro (q ^ a) ha
+  hf.degree ∣ f.nat_degree :=
+let ⟨a, ha⟩ := hf.dvd_degree' in dvd.intro (q ^ a) ha
 
 /-- In exponential characteristic one, the separable degree equals the degree. -/
 lemma has_separable_contraction.eq_degree {f : polynomial F}
-  (hf : has_separable_contraction 1 f) : (separable_degree 1 hf) = f.nat_degree :=
-exists.elim (hf.dvd_degree' 1) (λ a, λ ha, by rw [←ha, one_pow a, mul_one])
+  (hf : has_separable_contraction 1 f) : hf.degree = f.nat_degree :=
+exists.elim hf.dvd_degree' (λ a, λ ha, by rw [←ha, one_pow a, mul_one])
 
 end comm_semiring
 
@@ -144,7 +145,7 @@ end
 /-- The separable degree equals the degree of any separable contraction, i.e., it is unique. -/
 theorem is_separable_contraction.degree_eq [hF : exp_char F q]
   (g : polynomial F) (hg : is_separable_contraction q f g) :
-  g.nat_degree = separable_degree q hf :=
+  g.nat_degree = hf.degree :=
 begin
   casesI hF,
   { rcases hg with ⟨g, m, hm⟩,

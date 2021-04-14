@@ -142,7 +142,7 @@ funext $ λ x, by simp [iterate_succ, ihn, pow_succ', mul_assoc]
 begin
   induction n with d hd,
   { simpa },
-  { simpa [hd] }
+  { simp [← pow_succ, hd] }
 end
 
 lemma mul_right_iterate_apply_one : (* a)^[n] 1 = a ^ n :=
@@ -187,8 +187,8 @@ variables [add_monoid M] (a : M) (n : ℕ)
 @[simp] lemma add_right_iterate : (+ a)^[n] = (+ n • a) :=
 begin
   induction n with d hd,
-  { simpa },
-  { simpa [hd] }
+  { simp [zero_nsmul, id_def] },
+  { simp [hd, add_assoc, succ_nsmul] }
 end
 
 lemma add_right_iterate_apply_zero : (+ a)^[n] 0 = n • a :=

@@ -108,11 +108,16 @@ do
    let s := simp_lemmas.mk,
    s ← s.add_simp ``coe_id,
    s ← s.add_simp ``coe_comp,
-   (t'', pr', _) ← simplify s [] t',
+   (t'', pr', _) ← simplify s [] t' {fail_if_unchanged := ff},
    pr' ← mk_eq_mp pr' pr,
+   -- Further, if we're in `Type`, get rid of the coercions entirely.
+   let s := simp_lemmas.mk,
+   s ← s.add_simp ``concrete_category.has_coe_to_fun_Type,
+   (t'', pr'', _) ← simplify s [] t'' {fail_if_unchanged := ff},
+   pr'' ← mk_eq_mp pr'' pr',
    t'' ← pis (vs ++ (if CC_found then [x] else [CC, x])) t'',
-   pr' ← lambdas (vs ++ (if CC_found then [x] else [CC, x])) pr',
-   pure (t'', pr', n)
+   pr'' ← lambdas (vs ++ (if CC_found then [x] else [CC, x])) pr'',
+   pure (t'', pr'', n)
 
 /-- (implementation for `@[elementwise]`)
 Given a declaration named `n` of the form `∀ ..., f = g`, proves a new lemma named `n'`

@@ -183,7 +183,7 @@ by { dsimp [prod],
      rw [multiset.prod_add] }
 
 theorem prod_smul (d : ℕ) (u : prime_multiset) :
- (d •ℕ u).prod = u.prod ^ d :=
+ (d • u).prod = u.prod ^ d :=
 by { induction d with d ih, refl,
      rw [succ_nsmul, prod_add, ih, nat.succ_eq_add_one, pow_succ, mul_comm] }
 
@@ -254,7 +254,7 @@ begin
 end
 
 theorem factor_multiset_pow (n : ℕ+) (m : ℕ) :
-  factor_multiset (n ^ m) = m •ℕ (factor_multiset n) :=
+  factor_multiset (n ^ m) = m • (factor_multiset n) :=
 begin
   let u := factor_multiset n,
   have : n = u.prod := (prod_factor_multiset n).symm,
@@ -346,7 +346,7 @@ begin
   apply multiset.eq_repeat.mpr,
   split,
   { rw [multiset.card_nsmul, prime_multiset.card_of_prime, mul_one] },
-  { have : ∀ (m : ℕ), m •ℕ (p ::ₘ 0) = multiset.repeat p m :=
+  { have : ∀ (m : ℕ), m • (p ::ₘ 0) = multiset.repeat p m :=
     λ m, by {induction m with m ih, { refl },
              rw [succ_nsmul, multiset.repeat_succ, ih],
              rw[multiset.cons_add, zero_add] },

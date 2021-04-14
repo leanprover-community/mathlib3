@@ -159,7 +159,7 @@ lemma is_galois_iff_is_galois_top : is_galois F (⊤ : intermediate_field F E) �
 (intermediate_field.top_equiv).transfer_galois
 
 instance is_galois_bot : is_galois F (⊥ : intermediate_field F E) :=
-intermediate_field.bot_equiv.transfer_galois.mpr (is_galois.self F)
+(intermediate_field.bot_equiv F E).transfer_galois.mpr (is_galois.self F)
 
 end is_galois_tower
 

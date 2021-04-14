@@ -91,7 +91,8 @@ theorem separable.of_pow' {f : polynomial R} :
   ∀ {n : ℕ} (h : (f ^ n).separable), is_unit f ∨ (f.separable ∧ n = 1) ∨ n = 0
 | 0     := λ h, or.inr $ or.inr rfl
 | 1     := λ h, or.inr $ or.inl ⟨pow_one f ▸ h, rfl⟩
-| (n+2) := λ h, or.inl $ is_coprime_self.1 h.is_coprime.of_mul_right_left
+| (n+2) := λ h, by { rw [pow_succ, pow_succ] at h,
+    exact or.inl (is_coprime_self.1 h.is_coprime.of_mul_right_left) }
 
 theorem separable.of_pow {f : polynomial R} (hf : ¬is_unit f) {n : ℕ} (hn : n ≠ 0)
   (hfs : (f ^ n).separable) : f.separable ∧ n = 1 :=
@@ -309,7 +310,7 @@ theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f
 theorem of_irreducible_expand_pow {f : polynomial F} {n : ℕ} :
   irreducible (expand F (p ^ n) f) → irreducible f :=
 nat.rec_on n (λ hf, by rwa [pow_zero, expand_one] at hf) $ λ n ih hf,
-ih $ of_irreducible_expand p $ by rwa [expand_expand]
+ih $ of_irreducible_expand p $ by { rw pow_succ at hf, rwa [expand_expand] }
 
 variables [HF : char_p F p]
 include HF

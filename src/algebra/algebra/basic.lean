@@ -618,6 +618,10 @@ ring_hom.injective_iff (f : A →+* B)
 
 end alg_hom
 
+@[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
+  m • (1 : A) = ↑m :=
+by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
+
 set_option old_structure_cmd true
 /-- An equivalence of algebras is an equivalence of rings commuting with the actions of scalars. -/
 structure alg_equiv (R : Type u) (A : Type v) (B : Type w)
@@ -757,7 +761,7 @@ def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
   ..e.to_ring_equiv.symm, }
 
 /-- See Note [custom simps projection] -/
-def simps.inv_fun (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
+def simps.symm_apply (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
 
 initialize_simps_projections alg_equiv (to_fun → apply, inv_fun → symm_apply)
 

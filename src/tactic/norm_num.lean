@@ -127,9 +127,9 @@ h ▸ by simp [bit0, add_left_comm, add_assoc]
 theorem add_bit0_bit1 {α} [semiring α] (a b c : α) (h : a + b = c) : bit0 a + bit1 b = bit1 c :=
 h ▸ by simp [bit0, bit1, add_left_comm, add_assoc]
 theorem add_bit1_bit0 {α} [semiring α] (a b c : α) (h : a + b = c) : bit1 a + bit0 b = bit1 c :=
-h ▸ by simp [bit0, bit1, add_left_comm, add_comm]
+h ▸ by simp [bit0, bit1, add_left_comm, add_comm, add_assoc]
 theorem add_bit1_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit1 a + bit1 b = bit0 c :=
-h ▸ by simp [bit0, bit1, add_left_comm, add_comm]
+h ▸ by simp [bit0, bit1, add_left_comm, add_comm, add_assoc]
 theorem adc_one_one {α} [semiring α] : (1 + 1 + 1 : α) = 3 := rfl
 theorem adc_bit0_one {α} [semiring α] (a b : α) (h : a + 1 = b) : bit0 a + 1 + 1 = bit0 b :=
 h ▸ by simp [bit0, add_left_comm, add_assoc]

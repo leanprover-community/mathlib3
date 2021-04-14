@@ -89,6 +89,7 @@ instance : has_add ℝ≥0   := ⟨λa b, ⟨a + b, add_nonneg a.2 b.2⟩⟩
 instance : has_sub ℝ≥0   := ⟨λa b, nnreal.of_real (a - b)⟩
 instance : has_mul ℝ≥0   := ⟨λa b, ⟨a * b, mul_nonneg a.2 b.2⟩⟩
 instance : has_inv ℝ≥0   := ⟨λa, ⟨(a.1)⁻¹, inv_nonneg.2 a.2⟩⟩
+instance : has_div ℝ≥0   := ⟨λa b, ⟨a / b, div_nonneg a.2 b.2⟩⟩
 instance : has_le ℝ≥0    := ⟨λ r s, (r:ℝ) ≤ s⟩
 instance : has_bot ℝ≥0   := ⟨0⟩
 instance : inhabited ℝ≥0 := ⟨0⟩
@@ -101,6 +102,7 @@ nnreal.coe_injective.eq_iff
 @[simp, norm_cast] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
 @[simp, norm_cast] protected lemma coe_mul (r₁ r₂ : ℝ≥0) : ((r₁ * r₂ : ℝ≥0) : ℝ) = r₁ * r₂ := rfl
 @[simp, norm_cast] protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := rfl
+@[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[simp, norm_cast] protected lemma coe_bit0 (r : ℝ≥0) : ((bit0 r : ℝ≥0) : ℝ) = bit0 r := rfl
 @[simp, norm_cast] protected lemma coe_bit1 (r : ℝ≥0) : ((bit1 r : ℝ≥0) : ℝ) = bit1 r := rfl
 
@@ -113,13 +115,11 @@ max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by norm_cast
 
 instance : comm_semiring ℝ≥0 :=
-begin
-  refine { zero := 0, add := (+), one := 1, mul := (*), ..};
-  { intros;
-    apply nnreal.eq;
-    simp [mul_comm, mul_assoc, add_comm_monoid.add, left_distrib, right_distrib,
-          add_comm_monoid.zero, add_comm, add_left_comm] }
-end
+{ zero := 0,
+  add := (+),
+  one := 1,
+  mul := (*),
+  .. nnreal.coe_injective.comm_semiring _ rfl rfl (λ _ _, rfl) (λ _ _, rfl) }
 
 /-- Coercion `ℝ≥0 → ℝ` as a `ring_hom`. -/
 def to_real_hom : ℝ≥0 →+* ℝ :=
@@ -131,18 +131,17 @@ instance : algebra ℝ≥0 ℝ := to_real_hom.to_algebra
 @[simp] lemma coe_to_real_hom : ⇑to_real_hom = coe := rfl
 
 instance : comm_group_with_zero ℝ≥0 :=
-{ exists_pair_ne := ⟨0, 1, assume h, zero_ne_one $ nnreal.eq_iff.2 h⟩,
-  inv_zero       := nnreal.eq $ show (0⁻¹ : ℝ) = 0, from inv_zero,
-  mul_inv_cancel := assume x h, nnreal.eq $ mul_inv_cancel $ ne_iff.2 h,
-  .. (by apply_instance : has_inv ℝ≥0),
-  .. (_ : comm_semiring ℝ≥0),
-  .. (_ : semiring ℝ≥0) }
+{ zero := 0,
+  mul := (*),
+  one := 1,
+  inv := has_inv.inv,
+  div := (/),
+  .. nnreal.coe_injective.comm_group_with_zero _ rfl rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) }
 
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
   ((s.indicator f a : ℝ≥0) : ℝ) = s.indicator (λ x, f x) a :=
 (to_real_hom : ℝ≥0 →+ ℝ).map_indicator _ _ _
 
-@[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[simp, norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 to_real_hom.map_pow r n
 
@@ -243,8 +242,6 @@ instance : semilattice_sup_bot ℝ≥0 :=
 instance : linear_ordered_semiring ℝ≥0 :=
 { add_left_cancel            := assume a b c h, nnreal.eq $
     @add_left_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
-  add_right_cancel           := assume a b c h, nnreal.eq $
-    @add_right_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
   le_of_add_le_add_left      := assume a b c, @le_of_add_le_add_left ℝ _ a b c,
   mul_lt_mul_of_pos_left     := assume a b c, @mul_lt_mul_of_pos_left ℝ _ a b c,
   mul_lt_mul_of_pos_right    := assume a b c, @mul_lt_mul_of_pos_right ℝ _ a b c,

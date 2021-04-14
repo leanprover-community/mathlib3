@@ -68,12 +68,12 @@ namespace Module
 instance : has_coe_to_sort (Module.{v} R) :=
 { S := Type v, coe := Module.carrier }
 
-instance : category (Module.{v} R) :=
+instance Module_category : category (Module.{v} R) :=
 { hom   := λ M N, M →ₗ[R] N,
   id    := λ M, 1,
   comp  := λ A B C f g, g.comp f }
 
-instance : concrete_category.{v} (Module.{v} R) :=
+instance Module_concrete_category : concrete_category.{v} (Module.{v} R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 

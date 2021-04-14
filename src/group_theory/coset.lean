@@ -330,6 +330,19 @@ calc α ≃ Σ L : quotient s, {x : α // (x : quotient s) = L} :
     ... ≃ quotient s × s :
   equiv.sigma_equiv_prod _ _
 
+lemma card_eq_card_quotient_mul_card_subgroup [fintype α] (s : subgroup α) [fintype s]
+  [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
+by rw ← fintype.card_prod;
+  exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
+
+lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
+  fintype.card s ∣ fintype.card α :=
+by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]
+
+lemma card_quotient_dvd_card [fintype α] (s : subgroup α) [decidable_pred (λ a, a ∈ s)]
+  [fintype s] : fintype.card (quotient s) ∣ fintype.card α :=
+by simp [card_eq_card_quotient_mul_card_subgroup s]
+
 end subgroup
 
 namespace quotient_group

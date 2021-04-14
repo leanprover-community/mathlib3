@@ -34,6 +34,18 @@ variables {X Y : Type*} [topological_space X]
 @[simp, to_additive] lemma mul_apply [has_mul Y] (f g : locally_constant X Y) (x : X) :
   (f * g) x = f x * g x := rfl
 
+@[to_additive] instance [mul_one_class Y] : mul_one_class (locally_constant X Y) :=
+{ one_mul := by { intros, ext, simp only [mul_apply, one_apply, one_mul] },
+  mul_one := by { intros, ext, simp only [mul_apply, one_apply, mul_one] },
+  .. locally_constant.has_one,
+  .. locally_constant.has_mul }
+
+instance [mul_zero_class Y] : mul_zero_class (locally_constant X Y) :=
+{ zero_mul := by { intros, ext, simp only [mul_apply, zero_apply, zero_mul] },
+  mul_zero := by { intros, ext, simp only [mul_apply, zero_apply, mul_zero] },
+  .. locally_constant.has_zero,
+  .. locally_constant.has_mul }
+
 @[to_additive] instance [has_div Y] : has_div (locally_constant X Y) :=
 { div := λ f g, ⟨f / g, f.is_locally_constant.div g.is_locally_constant⟩ }
 
@@ -49,9 +61,8 @@ variables {X Y : Type*} [topological_space X]
   .. locally_constant.semigroup }
 
 @[to_additive] instance [monoid Y] : monoid (locally_constant X Y) :=
-{ one_mul := by { intros, ext, simp only [mul_apply, one_apply, one_mul] },
-  mul_one := by { intros, ext, simp only [mul_apply, one_apply, mul_one] },
-  .. locally_constant.semigroup, .. locally_constant.has_one }
+{ mul := (*),
+  .. locally_constant.semigroup, .. locally_constant.mul_one_class }
 
 @[to_additive] instance [comm_monoid Y] : comm_monoid (locally_constant X Y) :=
 { .. locally_constant.comm_semigroup, .. locally_constant.monoid }
@@ -69,10 +80,6 @@ instance [distrib Y] : distrib (locally_constant X Y) :=
   right_distrib := by { intros, ext, simp only [mul_apply, add_apply, add_mul] },
   .. locally_constant.has_add, .. locally_constant.has_mul }
 
-instance [mul_zero_class Y] : mul_zero_class (locally_constant X Y) :=
-{ mul_zero := by { intros, ext, simp only [mul_apply, zero_apply, mul_zero] },
-  zero_mul := by { intros, ext, simp only [mul_apply, zero_apply, zero_mul] },
-  .. locally_constant.has_zero, .. locally_constant.has_mul }
 
 instance [semiring Y] : semiring (locally_constant X Y) :=
 { .. locally_constant.add_comm_monoid, .. locally_constant.monoid,

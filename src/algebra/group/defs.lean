@@ -182,36 +182,57 @@ theorem mul_ne_mul_left (a : G) {b c : G} : b * a ≠ c * a ↔ b ≠ c :=
 
 end right_cancel_semigroup
 
-/-- A `monoid` is a `semigroup` with an element `1` such that `1 * a = a * 1 = a`. -/
-@[ancestor semigroup has_one]
-class monoid (M : Type u) extends semigroup M, has_one M :=
-(one_mul : ∀ a : M, 1 * a = a) (mul_one : ∀ a : M, a * 1 = a)
-/-- An `add_monoid` is an `add_semigroup` with an element `0` such that `0 + a = a + 0 = a`. -/
-@[ancestor add_semigroup has_zero]
-class add_monoid (M : Type u) extends add_semigroup M, has_zero M :=
-(zero_add : ∀ a : M, 0 + a = a) (add_zero : ∀ a : M, a + 0 = a)
-attribute [to_additive] monoid
+/-- Typeclass for expressing that a type `M` with multiplication and a one satisfies
+`1 * a = a` and `a * 1 = a` for all `a : M`. -/
+@[ancestor has_one has_mul]
+class mul_one_class (M : Type u) extends has_one M, has_mul M :=
+(one_mul : ∀ (a : M), 1 * a = a)
+(mul_one : ∀ (a : M), a * 1 = a)
 
-section monoid
-variables {M : Type u} [monoid M]
+/-- Typeclass for expressing that a type `M` with addition and a zero satisfies
+`0 + a = a` and `a + 0 = a` for all `a : M`. -/
+@[ancestor has_zero has_add]
+class add_zero_class (M : Type u) extends has_zero M, has_add M :=
+(zero_add : ∀ (a : M), 0 + a = a)
+(add_zero : ∀ (a : M), a + 0 = a)
+
+attribute [to_additive] mul_one_class
+
+section mul_one_class
+variables {M : Type u} [mul_one_class M]
 
 @[ematch, simp, to_additive]
 lemma one_mul : ∀ a : M, 1 * a = a :=
-monoid.one_mul
+mul_one_class.one_mul
 
 @[ematch, simp, to_additive]
 lemma mul_one : ∀ a : M, a * 1 = a :=
-monoid.mul_one
+mul_one_class.mul_one
 
 attribute [ematch] add_zero zero_add -- TODO(Mario): Make to_additive transfer this
 
 @[to_additive]
-instance monoid_to_is_left_id : is_left_id M (*) 1 :=
-⟨ monoid.one_mul ⟩
+instance mul_one_class.to_is_left_id : is_left_id M (*) 1 :=
+⟨ mul_one_class.one_mul ⟩
 
 @[to_additive]
-instance monoid_to_is_right_id : is_right_id M (*) 1 :=
-⟨ monoid.mul_one ⟩
+instance mul_one_class.to_is_right_id : is_right_id M (*) 1 :=
+⟨ mul_one_class.mul_one ⟩
+
+end mul_one_class
+
+/-- A `monoid` is a `semigroup` with an element `1` such that `1 * a = a * 1 = a`. -/
+@[ancestor semigroup mul_one_class]
+class monoid (M : Type u) extends semigroup M, mul_one_class M
+
+/-- An `add_monoid` is an `add_semigroup` with an element `0` such that `0 + a = a + 0 = a`. -/
+@[ancestor add_semigroup add_zero_class]
+class add_monoid (M : Type u) extends add_semigroup M, add_zero_class M
+
+attribute [to_additive] monoid
+
+section monoid
+variables {M : Type u} [monoid M]
 
 @[to_additive]
 lemma left_inv_eq_right_inv {a b c : M} (hba : b * a = 1) (hac : a * c = 1) : b = c :=
@@ -219,14 +240,13 @@ by rw [←one_mul c, ←hba, mul_assoc, hac, mul_one b]
 
 end monoid
 
-/-- A commutative monoid is a monoid with commutative `(*)`. -/
-@[protect_proj, ancestor monoid comm_semigroup]
-class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
-
 /-- An additive commutative monoid is an additive monoid with commutative `(+)`. -/
 @[protect_proj, ancestor add_monoid add_comm_semigroup]
 class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
-attribute [to_additive] comm_monoid
+
+/-- A commutative monoid is a monoid with commutative `(*)`. -/
+@[protect_proj, ancestor monoid comm_semigroup, to_additive]
+class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
 
 section left_cancel_monoid
 
@@ -235,20 +255,10 @@ Main examples are `ℕ` and groups. This is the right typeclass for many sum lem
 is useful to define the sum over the empty set, so `add_left_cancel_semigroup` is not enough. -/
 @[protect_proj, ancestor add_left_cancel_semigroup add_monoid]
 class add_left_cancel_monoid (M : Type u) extends add_left_cancel_semigroup M, add_monoid M
--- TODO: I found 1 (one) lemma assuming `[add_left_cancel_monoid]`.
--- Should we port more lemmas to this typeclass?
 
 /-- A monoid in which multiplication is left-cancellative. -/
 @[protect_proj, ancestor left_cancel_semigroup monoid, to_additive add_left_cancel_monoid]
 class left_cancel_monoid (M : Type u) extends left_cancel_semigroup M, monoid M
-
-/-- Commutative version of add_left_cancel_monoid. -/
-@[protect_proj, ancestor add_left_cancel_monoid add_comm_monoid]
-class add_left_cancel_comm_monoid (M : Type u) extends add_left_cancel_monoid M, add_comm_monoid M
-
-/-- Commutative version of left_cancel_monoid. -/
-@[protect_proj, ancestor left_cancel_monoid comm_monoid, to_additive add_left_cancel_comm_monoid]
-class left_cancel_comm_monoid (M : Type u) extends left_cancel_monoid M, comm_monoid M
 
 end left_cancel_monoid
 
@@ -263,14 +273,6 @@ class add_right_cancel_monoid (M : Type u) extends add_right_cancel_semigroup M,
 /-- A monoid in which multiplication is right-cancellative. -/
 @[protect_proj, ancestor right_cancel_semigroup monoid, to_additive add_right_cancel_monoid]
 class right_cancel_monoid (M : Type u) extends right_cancel_semigroup M, monoid M
-
-/-- Commutative version of add_right_cancel_monoid. -/
-@[protect_proj, ancestor add_right_cancel_monoid add_comm_monoid]
-class add_right_cancel_comm_monoid (M : Type u) extends add_right_cancel_monoid M, add_comm_monoid M
-
-/-- Commutative version of right_cancel_monoid. -/
-@[protect_proj, ancestor right_cancel_monoid comm_monoid, to_additive add_right_cancel_comm_monoid]
-class right_cancel_comm_monoid (M : Type u) extends right_cancel_monoid M, comm_monoid M
 
 end right_cancel_monoid
 
@@ -288,14 +290,18 @@ class add_cancel_monoid (M : Type u)
 class cancel_monoid (M : Type u) extends left_cancel_monoid M, right_cancel_monoid M
 
 /-- Commutative version of add_cancel_monoid. -/
-@[protect_proj, ancestor add_left_cancel_comm_monoid add_right_cancel_comm_monoid]
-class add_cancel_comm_monoid (M : Type u)
-  extends add_left_cancel_comm_monoid M, add_right_cancel_comm_monoid M
+@[protect_proj, ancestor add_left_cancel_monoid add_comm_monoid]
+class add_cancel_comm_monoid (M : Type u) extends add_left_cancel_monoid M, add_comm_monoid M
 
 /-- Commutative version of cancel_monoid. -/
-@[protect_proj, ancestor left_cancel_comm_monoid right_cancel_comm_monoid,
-  to_additive add_cancel_comm_monoid]
-class cancel_comm_monoid (M : Type u) extends left_cancel_comm_monoid M, right_cancel_comm_monoid M
+@[protect_proj, ancestor left_cancel_monoid comm_monoid, to_additive add_cancel_comm_monoid]
+class cancel_comm_monoid (M : Type u) extends left_cancel_monoid M, comm_monoid M
+
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance cancel_comm_monoid.to_cancel_monoid (M : Type u) [cancel_comm_monoid M] :
+  cancel_monoid M :=
+{ mul_right_cancel := λ a b c h, mul_left_cancel $ by rw [mul_comm, h, mul_comm],
+  .. ‹cancel_comm_monoid M› }
 
 end cancel_monoid
 

@@ -586,6 +586,14 @@ by rw [← sup_eq_max, lattice_eq_DLO]
 theorem inf_eq_min [linear_order α] (x y : with_bot α) : x ⊓ y = min x y :=
 by rw [← inf_eq_min, lattice_eq_DLO]
 
+@[norm_cast] -- this is not marked simp because the corresponding with_top lemmas are used
+lemma coe_min [linear_order α] (x y : α) : ((min x y : α) : with_bot α) = min x y :=
+by simp [min, ite_cast]
+
+@[norm_cast] -- this is not marked simp because the corresponding with_top lemmas are used
+lemma coe_max [linear_order α] (x y : α) : ((max x y : α) : with_bot α) = max x y :=
+by simp [max, ite_cast]
+
 instance order_top [order_top α] : order_top (with_bot α) :=
 { top := some ⊤,
   le_top := λ o a ha, by cases ha; exact ⟨_, rfl, le_top⟩,
@@ -814,6 +822,14 @@ by rw [← sup_eq_max, lattice_eq_DLO]
 
 theorem inf_eq_min [linear_order α] (x y : with_top α) : x ⊓ y = min x y :=
 by rw [← inf_eq_min, lattice_eq_DLO]
+
+@[simp, norm_cast]
+lemma coe_min [linear_order α] (x y : α) : ((min x y : α) : with_top α) = min x y :=
+by simp [min, ite_cast]
+
+@[simp, norm_cast]
+lemma coe_max [linear_order α] (x y : α) : ((max x y : α) : with_top α) = max x y :=
+by simp [max, ite_cast]
 
 instance order_bot [order_bot α] : order_bot (with_top α) :=
 { bot := some ⊥,
@@ -1060,9 +1076,20 @@ end bounded_lattice
 
 variables [bounded_distrib_lattice α] {x y z : α}
 
+lemma inf_left_eq_bot_iff (h : is_compl y z) : x ⊓ y = ⊥ ↔ x ≤ z :=
+inf_eq_bot_iff_le_compl h.sup_eq_top h.inf_eq_bot
+
+lemma inf_right_eq_bot_iff (h : is_compl y z) : x ⊓ z = ⊥ ↔ x ≤ y :=
+h.symm.inf_left_eq_bot_iff
+
+lemma disjoint_left_iff (h : is_compl y z) : disjoint x y ↔ x ≤ z :=
+by { rw [disjoint_iff], exact h.inf_left_eq_bot_iff }
+
+lemma disjoint_right_iff (h : is_compl y z) : disjoint x z ↔ x ≤ y :=
+h.symm.disjoint_left_iff
+
 lemma le_left_iff (h : is_compl x y) : z ≤ x ↔ disjoint z y :=
-⟨λ hz, h.disjoint.mono_left hz,
-  λ hz, le_of_inf_le_sup_le (le_trans hz bot_le) (le_trans le_top h.top_le_sup)⟩
+h.disjoint_right_iff.symm
 
 lemma le_right_iff (h : is_compl x y) : z ≤ y ↔ disjoint z x :=
 h.symm.le_left_iff
@@ -1096,18 +1123,6 @@ of_eq
 lemma inf_sup {x' y'} (h : is_compl x y) (h' : is_compl x' y') :
   is_compl (x ⊓ x') (y ⊔ y') :=
 (h.symm.sup_inf h'.symm).symm
-
-lemma inf_left_eq_bot_iff (h : is_compl y z) : x ⊓ y = ⊥ ↔ x ≤ z :=
-inf_eq_bot_iff_le_compl h.sup_eq_top h.inf_eq_bot
-
-lemma inf_right_eq_bot_iff (h : is_compl y z) : x ⊓ z = ⊥ ↔ x ≤ y :=
-h.symm.inf_left_eq_bot_iff
-
-lemma disjoint_left_iff (h : is_compl y z) : disjoint x y ↔ x ≤ z :=
-disjoint_iff.trans h.inf_left_eq_bot_iff
-
-lemma disjoint_right_iff (h : is_compl y z) : disjoint x z ↔ x ≤ y :=
-h.symm.disjoint_left_iff
 
 end is_compl
 

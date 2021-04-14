@@ -195,13 +195,8 @@ variables (p : ℕ) [fact p.prime]
 instance : metric_space ℤ_[p] := subtype.metric_space
 
 instance complete_space : complete_space ℤ_[p] :=
-begin
-  delta padic_int,
-  rw [complete_space_iff_is_complete_range uniform_embedding_subtype_coe,
-    subtype.range_coe_subtype],
-  have : is_complete (closed_ball (0 : ℚ_[p]) 1) := is_closed_ball.is_complete,
-  simpa [closed_ball],
-end
+have is_closed {x : ℚ_[p] | ∥x∥ ≤ 1}, from is_closed_le continuous_norm continuous_const,
+this.complete_space_coe
 
 instance : has_norm ℤ_[p] := ⟨λ z, ∥(z : ℚ_[p])∥⟩
 

@@ -6,6 +6,7 @@ Authors: Yury G. Kudryashov
 import topology.algebra.monoid
 import algebra.group.pi
 import algebra.group_with_zero.power
+import topology.homeomorph
 
 /-!
 # Topological group with zero
@@ -24,6 +25,9 @@ and `continuous`. As a special case, we provide `*.div_const` operations that re
 All lemmas about `(⁻¹)` use `inv'` in their names because lemmas without `'` are used for
 `topological_group`s. We also use `'` in the typeclass name `has_continuous_inv'` for the sake of
 consistency of notation.
+
+On a `group_with_zero` with continuous multiplication, we also define left and right multiplication
+as homeomorphisms.
 -/
 
 open_locale topological_space
@@ -61,7 +65,8 @@ hf.div_const
 lemma continuous_on.div_const (hf : continuous_on f s) {y : G₀} : continuous_on (λ x, f x / y) s :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_on_const
 
-lemma continuous.div_const (hf : continuous f) {y : G₀} : continuous (λ x, f x / y) :=
+@[continuity] lemma continuous.div_const (hf : continuous f) {y : G₀} :
+  continuous (λ x, f x / y) :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_const
 
 end div_const
@@ -110,7 +115,8 @@ lemma continuous_at.inv' (hf : continuous_at f a) (ha : f a ≠ 0) :
   continuous_at (λ x, (f x)⁻¹) a :=
 hf.inv' ha
 
-lemma continuous.inv' (hf : continuous f) (h0 : ∀ x, f x ≠ 0) : continuous (λ x, (f x)⁻¹) :=
+@[continuity] lemma continuous.inv' (hf : continuous f) (h0 : ∀ x, f x ≠ 0) :
+  continuous (λ x, (f x)⁻¹) :=
 continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).inv' (h0 x)
 
 lemma continuous_on.inv' (hf : continuous_on f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
@@ -153,7 +159,7 @@ lemma continuous_at.div (hf : continuous_at f a) (hg : continuous_at g a) (h₀ 
   continuous_at (f / g) a :=
 hf.div hg h₀
 
-lemma continuous.div (hf : continuous f) (hg : continuous g) (h₀ : ∀ x, g x ≠ 0) :
+@[continuity] lemma continuous.div (hf : continuous f) (hg : continuous g) (h₀ : ∀ x, g x ≠ 0) :
   continuous (f / g) :=
 by simpa only [div_eq_mul_inv] using hf.mul (hg.inv' h₀)
 
@@ -161,6 +167,39 @@ lemma continuous_on_div : continuous_on (λ p : G₀ × G₀, p.1 / p.2) {p | p.
 continuous_on_fst.div continuous_on_snd $ λ _, id
 
 end div
+
+/-! ### Left and right multiplication as homeomorphisms -/
+
+namespace homeomorph
+
+variables [topological_space α] [group_with_zero α] [has_continuous_mul α]
+
+/-- Left multiplication by a nonzero element in a `group_with_zero` with continuous multiplication
+is a homeomorphism of the underlying type. -/
+protected def mul_left' (c : α) (hc : c ≠ 0) : α ≃ₜ α :=
+{ continuous_to_fun := continuous_mul_left _,
+  continuous_inv_fun := continuous_mul_left _,
+  .. equiv.mul_left' c hc }
+
+/-- Right multiplication by a nonzero element in a `group_with_zero` with continuous multiplication
+is a homeomorphism of the underlying type. -/
+protected def mul_right' (c : α) (hc : c ≠ 0) : α ≃ₜ α :=
+{ continuous_to_fun := continuous_mul_right _,
+  continuous_inv_fun := continuous_mul_right _,
+  .. equiv.mul_right' c hc }
+
+@[simp] lemma coe_mul_left' (c : α) (hc : c ≠ 0) : ⇑(homeomorph.mul_left' c hc) = (*) c := rfl
+
+@[simp] lemma mul_left'_symm_apply (c : α) (hc : c ≠ 0) :
+  ((homeomorph.mul_left' c hc).symm : α → α) = (*) c⁻¹ := rfl
+
+@[simp] lemma coe_mul_right' (c : α) (hc : c ≠ 0) :
+  ⇑(homeomorph.mul_right' c hc) = λ x, x * c := rfl
+
+@[simp] lemma mul_right'_symm_apply (c : α) (hc : c ≠ 0) :
+  ((homeomorph.mul_right' c hc).symm : α → α) = λ x, x * c⁻¹ := rfl
+
+end homeomorph
 
 section fpow
 
@@ -203,7 +242,7 @@ lemma continuous_at.fpow (hf : continuous_at f a) (ha : f a ≠ 0) (m : ℤ) :
   continuous_at (λ x, (f x) ^ m) a :=
 (continuous_at_fpow ha m).comp hf
 
-lemma continuous.fpow (hf : continuous f) (h0 : ∀ a, f a ≠ 0) (m : ℤ) :
+@[continuity] lemma continuous.fpow (hf : continuous f) (h0 : ∀ a, f a ≠ 0) (m : ℤ) :
   continuous (λ x, (f x) ^ m) :=
 continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).fpow (h0 x) m
 

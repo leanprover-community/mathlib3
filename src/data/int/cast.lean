@@ -238,13 +238,7 @@ variables {M : Type*} [monoid_with_zero M]
   (h_nat : f.comp int.of_nat_hom.to_monoid_with_zero_hom =
            g.comp int.of_nat_hom.to_monoid_with_zero_hom) :
   f = g :=
--- TODO: `monoid_with_zero_hom.to_monoid_hom_injective`
-suffices f.to_monoid_hom = g.to_monoid_hom,
-by {
-  rw monoid_hom.ext_iff at this,
-  ext,
-  simpa using this x },
-monoid_hom.ext_int h_neg_one (monoid_hom.ext (monoid_with_zero_hom.congr_fun h_nat : _))
+to_monoid_hom_injective $ monoid_hom.ext_int h_neg_one $ monoid_hom.ext (congr_fun h_nat : _)
 
 /-- If two `monoid_with_zero_hom`s agree on `-1` and the _positive_ naturals then they are equal. -/
 theorem ext_int' {φ₁ φ₂ : monoid_with_zero_hom ℤ M}

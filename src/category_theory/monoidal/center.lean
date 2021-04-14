@@ -81,6 +81,78 @@ def iso_mk {X Y : center C} (f : X ⟶ Y) [is_iso f.f] : X ≅ Y :=
     simp [←comp_tensor_id_assoc, ←id_tensor_comp],
   end⟩, }
 
+/-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
+@[simps]
+def tensor_obj (X Y : center C) : center C :=
+⟨X.1 ⊗ Y.1,
+  { β := λ U,
+    α_ _ _ _ ≪≫ (iso.refl X.1 ⊗ Y.2.β U) ≪≫ (α_ _ _ _).symm
+      ≪≫ (X.2.β U ⊗ iso.refl Y.1) ≪≫ α_ _ _ _,
+    naturality' := sorry, }⟩
+
+/-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
+@[simps]
+def tensor_hom {X₁ Y₁ X₂ Y₂ : center C} (f : X₁ ⟶ Y₁) (g : X₂ ⟶ Y₂) :
+  tensor_obj X₁ X₂ ⟶ tensor_obj Y₁ Y₂ :=
+{ f := f.f ⊗ g.f,
+  comm' := sorry }
+
+/-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
+@[simps]
+def tensor_unit : center C :=
+⟨𝟙_ C,
+  { β := λ U, (λ_ U) ≪≫ (ρ_ U).symm,
+    naturality' := sorry, }⟩
+
+/-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
+@[simps]
+def associator (X Y Z : center C) : tensor_obj (tensor_obj X Y) Z ≅ tensor_obj X (tensor_obj Y Z) :=
+iso_mk ⟨(α_ X.1 Y.1 Z.1).hom, begin sorry, end⟩
+
+/-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
+@[simps]
+def left_unitor (X : center C) : tensor_obj tensor_unit X ≅ X :=
+iso_mk ⟨(λ_ X.1).hom, begin sorry, end⟩
+
+/-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
+@[simps]
+def right_unitor (X : center C) : tensor_obj X tensor_unit ≅ X :=
+iso_mk ⟨(ρ_ X.1).hom, begin sorry, end⟩
+
+section
+local attribute [simp] associator_naturality left_unitor_naturality right_unitor_naturality
+  pentagon
+
+instance : monoidal_category (center C) :=
+{ tensor_obj := λ X Y, tensor_obj X Y,
+  tensor_hom := λ X₁ Y₁ X₂ Y₂ f g, tensor_hom f g,
+  tensor_unit := tensor_unit,
+  associator := associator,
+  left_unitor := left_unitor,
+  right_unitor := right_unitor, }
+
+@[simp] lemma tensor_β (X Y : center C) (U : C) :
+  (X ⊗ Y).2.β U =
+    α_ _ _ _ ≪≫ (iso.refl X.1 ⊗ Y.2.β U) ≪≫ (α_ _ _ _).symm
+      ≪≫ (X.2.β U ⊗ iso.refl Y.1) ≪≫ α_ _ _ _ :=
+rfl
+@[simp] lemma tensor_f {X₁ Y₁ X₂ Y₂ : center C} (f : X₁ ⟶ Y₁) (g : X₂ ⟶ Y₂) :
+  (f ⊗ g).f = f.f ⊗ g.f :=
+rfl
+
+end
+
+/-- Auxiliary definition for the `braided_category` instance on `center C`. -/
+@[simps]
+def braiding (X Y : center C) : X ⊗ Y ≅ Y ⊗ X :=
+iso_mk ⟨(X.2.β Y.1).hom, λ U, begin simp, sorry end⟩
+
+instance : braided_category (center C) :=
+{ braiding := braiding,
+  braiding_naturality' := sorry,
+  hexagon_forward' := sorry,
+  hexagon_reverse' := sorry, }
+
 end center
 
 end category_theory

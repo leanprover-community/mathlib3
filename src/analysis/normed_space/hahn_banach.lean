@@ -155,3 +155,226 @@ begin
 end
 
 end dual_vector
+
+section separating
+
+noncomputable theory
+variables {E : Type*} [normed_group E] [normed_space ℝ E]
+
+lemma mem_sep_true {α : Type*} (s : set α) : {a ∈ s | true} = s :=
+by { ext; simp }
+
+lemma mem_sep_false {α : Type*} (s : set α) : {a ∈ s | false} = ∅ :=
+by { ext; simp }
+
+lemma le_of_lt_add {α : Type*} [linear_ordered_add_comm_group α] {x y : α}
+  (hz : ∀ z, 0 < z → x < y + z) : x ≤ y :=
+begin
+  by_contra h,
+  push_neg at h,
+  have : 0 < x - y,
+  { rwa sub_pos },
+  simpa using hz (x - y) ‹_›,
+end
+
+lemma real.zero_le_Inf (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Inf S :=
+begin
+  rcases S.eq_empty_or_nonempty with (rfl | hS₂),
+  { simp [real.Inf_empty] },
+  { apply real.lb_le_Inf S hS₂ hS }
+end
+
+@[simp]
+lemma Inf_Ioi (x : ℝ) : Inf (set.Ioi x) = x :=
+begin
+  apply le_antisymm,
+  { apply le_of_lt_add,
+    intros z hz,
+    rw real.Inf_lt,
+    { exact ⟨x + z/2, lt_add_of_pos_right x (half_pos hz), add_lt_add_left (half_lt_self hz) x⟩ },
+    { exact ⟨x+1, lt_add_of_pos_right x (show (0:ℝ) < 1, by norm_num)⟩ },
+    { exact ⟨x, λ y, le_of_lt⟩ } },
+  { rw real.le_Inf,
+    { exact λ y, le_of_lt },
+    { exact ⟨x+1, lt_add_of_pos_right x (show (0:ℝ) < 1, by norm_num)⟩ },
+    { exact ⟨x, λ y, le_of_lt⟩ } }
+end
+
+lemma of_Inf_le (S : set ℝ) (hS : ∀ (x ∈ S) y, x ≤ y → y ∈ S) (hS₂ : S.nonempty) (hS₃ : bdd_below S)
+  {x y : ℝ} (hx : Inf S ≤ x)
+  (hy : x < y) :
+  y ∈ S :=
+begin
+  have : Inf S < y := lt_of_le_of_lt hx hy,
+  rw real.Inf_lt _ hS₂ at this,
+end
+
+
+def gauge (K : set E) (x : E) : ℝ :=
+Inf {y ∈ set.Ioi 0 | y⁻¹ • x ∈ K}
+
+@[simp]
+lemma gauge_zero {K : set E} : gauge K 0 = 0 :=
+begin
+  rw gauge,
+  by_cases (0:E) ∈ K,
+  { simp [h, mem_sep_true] },
+  { simp [h, mem_sep_false, real.Inf_empty] }
+end
+
+lemma zero_le_gauge {K : set E} (x : E) : 0 ≤ gauge K x :=
+real.zero_le_Inf _ (λ x hx, le_of_lt hx.1)
+
+lemma gauge_le_one_eq {K : set E} (hK : convex K) :
+  {x | gauge K x ≤ 1} = ⋂ (θ ∈ set.Ioi (1:ℝ)), θ • K :=
+begin
+  ext,
+  simp only [set.mem_Ioi, set.mem_Inter, set.mem_set_of_eq],
+  split,
+  { intros h θ hθ,
+
+  }
+end
+
+lemma gauge_le_one_of_mem {K : set E} (x : E) (hx : x ∈ K) : gauge K x ≤ 1 :=
+real.Inf_le _ ⟨0, λ y hy, le_of_lt hy.1⟩ ⟨by norm_num, by simpa⟩
+
+lemma Inf_smul (K : set ℝ) {θ : ℝ} (hθ : 0 ≤ θ) :
+  θ * Inf K = Inf (θ • K) :=
+begin
+  cases K.eq_empty_or_nonempty,
+  { subst h,
+    simp [real.Inf_empty] },
+  by_cases h₁ : bdd_below K,
+  { have : monotone (λ x, (θ:ℝ) * x),
+    { exact monotone_mul_left_of_nonneg hθ },
+    have z := map_cInf_of_continuous_at_of_monotone (continuous_mul_left θ).continuous_at
+                  (monotone_mul_left_of_nonneg hθ) ‹_› ‹_›,
+    dsimp at z,
+    rw [z, ←set.image_smul],
+    refl },
+  { rw [real.Inf_of_not_bdd_below h₁, mul_zero],
+    rcases eq_or_lt_of_le hθ with (rfl | hθ),
+    { rw zero_smul_set h,
+      have : (0 : set ℝ) = {0},
+      { ext, simp },
+      rw this,
+      simp only [cInf_singleton] },
+    { rw real.Inf_of_not_bdd_below,
+      rintro ⟨t, ht⟩,
+      apply h₁,
+      refine ⟨t / θ, λ z hz, _⟩,
+      rw div_le_iff hθ,
+      apply ht,
+      rw mul_comm,
+      exact ⟨_, hz, smul_eq_mul _⟩ } },
+end
+
+lemma gauge_neg {K : set E} (balanced : ∀ x ∈ K, -x ∈ K) (x : E) :
+  gauge K (-x) = gauge K x :=
+begin
+  have : ∀ x, -x ∈ K ↔ x ∈ K := λ x, ⟨λ h, by simpa using balanced _ h, balanced x⟩,
+  change Inf _ = Inf _,
+  simp_rw [smul_neg, this],
+end
+
+lemma gauge_mul_nonneg {K : set E}
+  {θ : ℝ} (hθ : 0 ≤ θ) (x : E) :
+gauge K (θ • x) = θ * gauge K x :=
+begin
+  rcases eq_or_lt_of_le hθ with (rfl | hθ'),
+  { simp },
+  change Inf _ = _ * Inf _,
+  rw Inf_smul _ ‹0 ≤ θ›,
+  congr' 1,
+  ext β,
+  simp only [set.mem_smul_set, set.mem_sep_eq, smul_eq_mul, set.mem_Ioi],
+  split,
+  { rintro ⟨hβ₁, hβ₂⟩,
+    refine ⟨β * θ⁻¹, ⟨mul_pos ‹0 < β› (inv_pos.2 ‹0 < θ›), _⟩, _⟩,
+    rwa [mul_inv', inv_inv', mul_smul],
+    rw [mul_left_comm, mul_inv_cancel (ne_of_gt ‹0 < θ›), mul_one] },
+  { rintro ⟨β, ⟨_, _⟩, rfl⟩,
+    refine ⟨mul_pos ‹0 < θ› ‹0 < β›, _⟩,
+    rwa [mul_inv_rev', ←mul_smul, mul_assoc, inv_mul_cancel (ne_of_gt ‹0 < θ›), mul_one] }
+end
+
+lemma gauge_homogeneous {K : set E} (balanced : ∀ x ∈ K, -x ∈ K)
+  (θ : ℝ) (x : E) :
+  gauge K (θ • x) = abs θ * gauge K x :=
+begin
+  rw ←gauge_mul_nonneg (abs_nonneg θ),
+  cases le_total 0 θ,
+  { rw abs_of_nonneg h },
+  { rw [abs_of_nonpos h, neg_smul, gauge_neg balanced] }
+end
+
+#check set.mem_bInter
+
+
+-- lemma convex_iff_div:
+--   convex s ↔ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄,
+--     0 ≤ a → 0 ≤ b → 0 < a + b → (a/(a+b)) • x + (b/(a+b)) • y ∈ s :=
+
+example {a b : ℝ} : a⁻¹ / b * a = b⁻¹ :=
+begin
+  rw mul_comm_div',
+  rw ←mul_div_assoc,
+  rw inv_mul_cancel,
+
+
+end
+
+lemma gauge_subadditive {K : set E} (hK : convex K)
+  (absorbing : ∀ x, ∃ (θ : ℝ), 0 < θ ∧ θ • x ∈ K) (x y : E) :
+  gauge K (x + y) ≤ gauge K x + gauge K y :=
+begin
+  obtain ⟨a, ha₁, ha₂⟩ := absorbing x,
+  obtain ⟨b, hb₁, hb₂⟩ := absorbing y,
+  have : a⁻¹ ≤ gauge K x,
+  { have := gauge_le_one_of_mem _ ha₂,
+    rw gauge_mul_nonneg (le_of_lt ha₁) at this,
+    sorry
+  },
+  have : gauge K ((a⁻¹ + b⁻¹)⁻¹ • (x + y)) ≤ 1,
+  { apply gauge_le_one_of_mem,
+    rw convex_iff_div at hK,
+    have := hK ha₂ hb₂
+              (inv_nonneg.2 (le_of_lt ha₁))
+              (inv_nonneg.2 (le_of_lt hb₁))
+              (add_pos (inv_pos.2 ‹0 < a›) (inv_pos.2 ‹0 < b›)),
+    rw [smul_smul, smul_smul, mul_comm_div', mul_comm_div', ←mul_div_assoc, ←mul_div_assoc,
+      inv_mul_cancel (ne_of_gt ha₁), inv_mul_cancel (ne_of_gt hb₁)] at this,
+    simpa using this },
+  rw gauge_mul_nonneg at this,
+  rw inv_mul_le_iff at this,
+  rw mul_one at this,
+  apply le_trans this,
+
+
+end
+
+theorem geometric_hahn_banach_open {A B : set E}
+  (hA₁ : A.nonempty) (hA₂ : convex A) (hA₃ : is_open A)
+  (hB₁ : B.nonempty) (hB₂ : convex B)
+  (disj : disjoint A B) :
+∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ (∀ b ∈ B, s ≤ f b) :=
+sorry
+
+theorem geometric_hahn_banach_open_open {A B : set E}
+  (hA₁ : A.nonempty) (hA₂ : convex A) (hA₃ : is_open A)
+  (hB₁ : B.nonempty) (hB₂ : convex B) (hB₃ : is_open B)
+  (disj : disjoint A B) :
+∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ (∀ b ∈ B, s < f b) :=
+sorry
+
+theorem geometric_hahn_banach_closed_closed_compact {A B : set E}
+  (hA₁ : A.nonempty) (hA₂ : convex A) (hA₃ : is_closed A) (hA₄ : is_compact A)
+  (hB₁ : B.nonempty) (hB₂ : convex B) (hA₃ : is_closed B)
+  (disj : disjoint A B) :
+∃ (f : E →L[ℝ] ℝ) (s t : ℝ), (∀ a ∈ A, f a < s) ∧ s < t ∧ (∀ b ∈ B, t < f b) :=
+sorry
+
+#where
+
+end separating

@@ -353,6 +353,12 @@ end perm_congr
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
 
+@[simp] lemma symm_preimage_eq_image {α β} (e : α ≃ β) (s : set α) : e.symm ⁻¹' s = e '' s :=
+(e.image_eq_preimage s).symm
+
+@[simp] lemma symm_image_eq_preimage {α β} (e : α ≃ β) (s : set β) : e.symm '' s = e ⁻¹' s :=
+by conv_lhs {rw [←symm_preimage_eq_image, symm_symm e]}
+
 protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
   t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
 by rw [set.image_subset_iff, e.image_eq_preimage]
@@ -369,7 +375,7 @@ begin
   { exact equiv.symm_image_image _ _ }
 end
 
-@[simp] lemma image_symm_image {α β} (e : α ≃ β) (s : set β) : e '' (e.symm '' s) = s :=
+lemma image_symm_image {α β} (e : α ≃ β) (s : set β) : e '' (e.symm '' s) = s :=
 e.symm.symm_image_image s
 
 @[simp] lemma image_preimage {α β} (e : α ≃ β) (s : set β) : e '' (e ⁻¹' s) = s :=
@@ -382,13 +388,13 @@ protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
   f '' sᶜ = (f '' s)ᶜ :=
 set.image_compl_eq f.bijective
 
-@[simp] lemma symm_preimage_preimage {α β} (e : α ≃ β) (s : set β) :
+lemma symm_preimage_preimage {α β} (e : α ≃ β) (s : set β) :
   e.symm ⁻¹' (e ⁻¹' s) = s :=
-by ext; simp
+by rw [symm_preimage_eq_image, image_preimage]
 
-@[simp] lemma preimage_symm_preimage {α β} (e : α ≃ β) (s : set α) :
+lemma preimage_symm_preimage {α β} (e : α ≃ β) (s : set α) :
   e ⁻¹' (e.symm ⁻¹' s) = s :=
-by ext; simp
+by rw [symm_preimage_eq_image, preimage_image]
 
 @[simp] lemma preimage_subset {α β} (e : α ≃ β) (s t : set β) : e ⁻¹' s ⊆ e ⁻¹' t ↔ s ⊆ t :=
 e.surjective.preimage_subset_preimage_iff

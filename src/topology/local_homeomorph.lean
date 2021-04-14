@@ -972,6 +972,10 @@ correspond to the fields of the original homeomorphism. -/
   (e.trans e').to_local_homeomorph = e.to_local_homeomorph.trans e'.to_local_homeomorph :=
 local_homeomorph.eq_of_local_equiv_eq $ equiv.trans_to_local_equiv _ _
 
+@[simp, mfld_simps] lemma trans_symm_to_local_homeomorph :
+  (e.to_local_homeomorph.trans e.to_local_homeomorph.symm) = local_homeomorph.refl α :=
+by rw [←symm_to_local_homeomorph, ←trans_to_local_homeomorph, trans_symm, refl_to_local_homeomorph]
+
 end homeomorph
 
 namespace open_embedding

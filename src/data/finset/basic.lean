@@ -1572,7 +1572,7 @@ finset.eq_of_veq erase_dup_cons
 finset.ext $ by simp
 
 @[simp] lemma to_finset_nsmul (s : multiset α) :
-  ∀(n : ℕ) (hn : n ≠ 0), (n •ℕ s).to_finset = s.to_finset
+  ∀(n : ℕ) (hn : n ≠ 0), (n • s).to_finset = s.to_finset
 | 0     h := by contradiction
 | (n+1) h :=
   begin

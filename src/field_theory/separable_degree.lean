@@ -40,8 +40,7 @@ open_locale classical
 
 section comm_semiring
 
-variables {F : Type} [comm_semiring F]
-variables (q : ℕ)
+variables {F : Type} [comm_semiring F] (q : ℕ)
 
 /-- A separable contraction of a polynomial `f` is a separable polynomial `g` such that
 `g(x^(q^m)) = f(x)` for some `m : ℕ`.-/
@@ -85,8 +84,7 @@ end comm_semiring
 section field
 
 variables {F : Type} [field F]
-variables (q : ℕ)
-variables {f : polynomial F} (hf : has_separable_contraction q f)
+variables (q : ℕ) {f : polynomial F} (hf : has_separable_contraction q f)
 
 /-- Every irreducible polynomial can be contracted to a separable polynomial.
 https://stacks.math.columbia.edu/tag/09H0 -/

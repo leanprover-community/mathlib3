@@ -2541,7 +2541,7 @@ by simp [filter.Coprod]
   filter.Coprod f₁ ≤ filter.Coprod f₂ :=
 supr_le_supr $ λ d, comap_mono (hf d)
 
-lemma map_prod_map_Coprod_le {μ : δ → Type*}
+lemma map_pi_map_Coprod_le {μ : δ → Type*}
   {f : Π d, filter (κ d)} {m : Π d, κ d → μ d} :
   map (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) ≤ filter.Coprod (λ d, map (m d) (f d)) :=
 begin
@@ -2558,10 +2558,10 @@ begin
   exact set.mem_of_subset_of_mem hH (mem_preimage.mpr hx),
 end
 
-lemma tendsto.prod_map_Coprod {μ : δ → Type*} {f : Π d, filter (κ d)} {m : Π d, κ d → μ d}
+lemma tendsto.pi_map_Coprod {μ : δ → Type*} {f : Π d, filter (κ d)} {m : Π d, κ d → μ d}
   {g : Π d, filter (μ d)} (hf : ∀ d, tendsto (m d) (f d) (g d)) :
   tendsto (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) (filter.Coprod g) :=
-map_prod_map_Coprod_le.trans (Coprod_mono hf)
+map_pi_map_Coprod_le.trans (Coprod_mono hf)
 
 end Coprod
 

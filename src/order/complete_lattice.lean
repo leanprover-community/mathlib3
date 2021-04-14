@@ -1144,32 +1144,50 @@ variables [complete_lattice α]
 
 /-- An independent set of elements in a complete lattice is one in which every element is disjoint
   from the `Sup` of the rest. -/
-def independent (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → disjoint a (Sup (s \ {a}))
+def sindependent (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → disjoint a (Sup (s \ {a}))
 
-variables {s : set α} (hs : independent s)
+variables {s : set α} (hs : sindependent s)
 
 @[simp]
-lemma independent_empty : independent (∅ : set α) :=
+lemma sindependent_empty : sindependent (∅ : set α) :=
 λ x hx, (set.not_mem_empty x hx).elim
 
-theorem independent.mono {t : set α} (hst : t ⊆ s) :
-  independent t :=
+theorem sindependent.mono {t : set α} (hst : t ⊆ s) :
+  sindependent t :=
 λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
 
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
-lemma independent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
+lemma sindependent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
 disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, by simp [h.symm]⟩)
 
 include hs
 
 /-- If the elements of a set are independent, then any element is disjoint from the `Sup` of some
 subset of the rest. -/
-lemma independent.disjoint_Sup {x : α} {y : set α} (hx : x ∈ s) (hy : y ⊆ s) (hxy : x ∉ y) :
+lemma sindependent.disjoint_Sup {x : α} {y : set α} (hx : x ∈ s) (hy : y ⊆ s) (hxy : x ∉ y) :
   disjoint x (Sup y) :=
 begin
   have := (hs.mono $ insert_subset.mpr ⟨hx, hy⟩) (mem_insert x _),
   rw [insert_diff_of_mem _ (mem_singleton _), diff_singleton_eq_self hxy] at this,
   exact this,
 end
+
+omit hs
+
+/-- An independent indexed family of elements in a complete lattice is one in which every element
+  is disjoint from the `Sup` of the rest. -/
+def independent (t : ι → α) : Prop := ∀ ⦃i⦄, disjoint (t i) (Sup {a : α | ∃ j ≠ i, t j = a})
+
+variables {t : ι → α} (ht : independent t)
+
+@[simp]
+lemma independent_empty (t : empty → α) : independent t.
+
+@[simp]
+lemma independent_pempty (t : pempty → α) : independent t.
+
+/-- If the elements of a set are independent, then any pair within that set is disjoint. -/
+lemma independent.disjoint {x y : ι} (h : x ≠ y) : disjoint (t x) (t y) :=
+disjoint_Sup_right (@ht x) ⟨y, h.symm, rfl⟩
 
 end complete_lattice

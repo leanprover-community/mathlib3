@@ -44,7 +44,7 @@ variables [monoid G] [add_monoid A]
 section is_of_fin_order
 
 lemma is_periodic_pt_add_iff_nsmul_eq_zero (a : A) :
-  is_periodic_pt ((+) a) n 0 ↔ n •ℕ a = 0 :=
+  is_periodic_pt ((+) a) n 0 ↔ n • a = 0 :=
 by rw [is_periodic_pt, is_fixed_pt, add_left_iterate, add_zero]
 
 @[to_additive is_periodic_pt_add_iff_nsmul_eq_zero]
@@ -52,7 +52,7 @@ lemma is_periodic_pt_mul_iff_pow_eq_one (x : G) : is_periodic_pt ((*) x) n 1 ↔
 by rw [is_periodic_pt, is_fixed_pt, mul_left_iterate, mul_one]
 
 /-- `is_of_fin_add_order` is a predicate on an element `a` of an additive monoid to be of finite
-order, i.e. there exists `n ≥ 1` such that `n •ℕ a = 0`.-/
+order, i.e. there exists `n ≥ 1` such that `n • a = 0`.-/
 def is_of_fin_add_order (a : A) : Prop :=
 (0 : A) ∈ periodic_pts ((+) a)
 
@@ -69,7 +69,7 @@ lemma is_of_fin_order_of_add_iff :
   is_of_fin_order (multiplicative.of_add a) ↔ is_of_fin_add_order a := iff.rfl
 
 lemma is_of_fin_add_order_iff_nsmul_eq_zero (a : A) :
-  is_of_fin_add_order a ↔ ∃ n, 0 < n ∧ n •ℕ a = 0 :=
+  is_of_fin_add_order a ↔ ∃ n, 0 < n ∧ n • a = 0 :=
 by { convert iff.rfl, simp only [exists_prop, is_periodic_pt_add_iff_nsmul_eq_zero] }
 
 @[to_additive is_of_fin_add_order_iff_nsmul_eq_zero]
@@ -79,7 +79,7 @@ by { convert iff.rfl, simp [is_periodic_pt_mul_iff_pow_eq_one] }
 
 end is_of_fin_order
 
-/-- `add_order_of a` is the order of the element `a`, i.e. the `n ≥ 1`, s.t. `n •ℕ a = 0` if it
+/-- `add_order_of a` is the order of the element `a`, i.e. the `n ≥ 1`, s.t. `n • a = 0` if it
 exists. Otherwise, i.e. if `a` is of infinite order, then `add_order_of a` is `0` by convention.-/
 noncomputable def add_order_of (a : A) : ℕ :=
 minimal_period ((+) a) 0
@@ -110,11 +110,15 @@ end
 lemma order_of_pos' (h : is_of_fin_order x) : 0 < order_of x :=
 minimal_period_pos_of_mem_periodic_pts h
 
+/-
+DT: this lemma had been removed, right?  In favour of `nsmul_ne_zero_of_lt_add_order_of'`
+I think
 lemma add_order_of_le_of_nsmul_eq_zero' {m : ℕ} (h : m < add_order_of x) : ¬ (0 < m ∧ m • x = 0) :=
 begin
   convert is_periodic_pt_minimal_period ((+) a) _,
   rw [add_order_of, add_left_iterate, add_zero],
 end
+-/
 
 @[to_additive add_order_of_nsmul_eq_zero]
 lemma pow_order_of_eq_one (x : G) : x ^ order_of x = 1 :=
@@ -128,7 +132,7 @@ lemma order_of_eq_zero (h : ¬ is_of_fin_order x) : order_of x = 0 :=
 by rwa [order_of, minimal_period, dif_neg]
 
 lemma nsmul_ne_zero_of_lt_add_order_of' (n0 : n ≠ 0) (h : n < add_order_of a) :
-  n •ℕ a ≠ 0 :=
+  n • a ≠ 0 :=
 λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period n0 h
   ((is_periodic_pt_add_iff_nsmul_eq_zero a).mpr j)
 
@@ -137,7 +141,7 @@ lemma pow_eq_one_of_lt_order_of' (n0 : n ≠ 0) (h : n < order_of x) : x ^ n ≠
 λ j, not_is_periodic_pt_of_pos_of_lt_minimal_period n0 h
   ((is_periodic_pt_mul_iff_pow_eq_one x).mpr j)
 
-lemma add_order_of_le_of_nsmul_eq_zero (hn : 0 < n) (h : n •ℕ a = 0) : add_order_of a ≤ n :=
+lemma add_order_of_le_of_nsmul_eq_zero (hn : 0 < n) (h : n • a = 0) : add_order_of a ≤ n :=
 is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_add_iff_nsmul_eq_zero)
 
 @[to_additive add_order_of_le_of_nsmul_eq_zero]
@@ -175,7 +179,7 @@ end
 
 attribute [to_additive nsmul_eq_mod_add_order_of] pow_eq_mod_order_of
 
-lemma add_order_of_dvd_of_nsmul_eq_zero (h : n •ℕ a = 0) : add_order_of a ∣ n :=
+lemma add_order_of_dvd_of_nsmul_eq_zero (h : n • a = 0) : add_order_of a ∣ n :=
 is_periodic_pt.minimal_period_dvd ((is_periodic_pt_add_iff_nsmul_eq_zero _).mpr h)
 
 lemma add_order_of_dvd_of_nsmul_eq_zero {n : ℕ} (h : n • x = 0) : add_order_of x ∣ n :=
@@ -224,7 +228,7 @@ begin
 end
 
 lemma exists_nsmul_eq_self_of_coprime (a : A)
-  (h : coprime n (add_order_of a)) : ∃ m : ℕ, m •ℕ (n •ℕ a) = a :=
+  (h : coprime n (add_order_of a)) : ∃ m : ℕ, m • (n • a) = a :=
 begin
   change coprime n (order_of (multiplicative.of_add a)) at h,
   exact exists_pow_eq_self_of_coprime h,
@@ -294,7 +298,7 @@ section p_prime
 variables {a x n} {p : ℕ} [hp : fact p.prime]
 include hp
 
-lemma add_order_of_eq_prime (hg : p •ℕ a = 0) (hg1 : a ≠ 0) : add_order_of a = p :=
+lemma add_order_of_eq_prime (hg : p • a = 0) (hg1 : a ≠ 0) : add_order_of a = p :=
 minimal_period_eq_prime ((is_periodic_pt_add_iff_nsmul_eq_zero _).mpr hg)
   (by rwa [is_fixed_pt, add_zero])
 
@@ -303,7 +307,7 @@ lemma order_of_eq_prime (hg : x ^ p = 1) (hg1 : x ≠ 1) : order_of x = p :=
 minimal_period_eq_prime ((is_periodic_pt_mul_iff_pow_eq_one _).mpr hg)
   (by rwa [is_fixed_pt, mul_one])
 
-lemma add_order_of_eq_prime_pow (hnot : ¬ (p ^ n) •ℕ a = 0) (hfin : (p ^ (n + 1)) •ℕ a = 0) :
+lemma add_order_of_eq_prime_pow (hnot : ¬ (p ^ n) • a = 0) (hfin : (p ^ (n + 1)) • a = 0) :
   add_order_of a = p ^ (n + 1) :=
 begin
   apply minimal_period_eq_prime_pow;

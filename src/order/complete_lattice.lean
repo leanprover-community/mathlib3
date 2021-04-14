@@ -1176,7 +1176,8 @@ omit hs
 
 /-- An independent indexed family of elements in a complete lattice is one in which every element
   is disjoint from the `Sup` of the rest. -/
-def independent (t : ι → α) : Prop := ∀ ⦃i⦄, disjoint (t i) (Sup {a : α | ∃ j ≠ i, t j = a})
+def independent {ι : Sort*} {α : Type*} [complete_lattice α] (s : ι → α): Prop :=
+∀ ⦃i : ι⦄, disjoint (s i) (⨆ (j ≠ i), s j)
 
 variables {t : ι → α} (ht : independent t)
 
@@ -1188,6 +1189,6 @@ lemma independent_pempty (t : pempty → α) : independent t.
 
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
 lemma independent.disjoint {x y : ι} (h : x ≠ y) : disjoint (t x) (t y) :=
-disjoint_Sup_right (@ht x) ⟨y, h.symm, rfl⟩
+disjoint_Sup_right (@ht x) ⟨y, by simp [h.symm]⟩
 
 end complete_lattice

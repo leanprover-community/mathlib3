@@ -463,21 +463,17 @@ lemma order_of_pos (x : G) : 0 < order_of x := order_of_pos' (exists_pow_eq_one 
 
 open nat
 
-/-- This is the same as `order_of_pow'` and `order_of_pow''` but with one assumption less which is
-automatic in the case of a finite cancellative monoid.-/
-lemma order_of_pow (x : G) :
-  order_of (x ^ n) = order_of x / gcd (order_of x) n := order_of_pow'' _ _ (exists_pow_eq_one _)
-
 /-- This is the same as `add_order_of_nsmul'` and `add_order_of_nsmul` but with one assumption less
 which is automatic in the case of a finite cancellative additive monoid. -/
 lemma add_order_of_nsmul (a : A) :
   add_order_of (n • a) = add_order_of a / gcd (add_order_of a) n :=
-begin
-  rw [← order_of_of_add_eq_add_order_of, of_add_nsmul],
-  exact order_of_pow _,
-end
+add_order_of_nsmul'' _ _ (exists_nsmul_eq_zero _)
 
-attribute [to_additive add_order_of_nsmul] order_of_pow
+/-- This is the same as `order_of_pow'` and `order_of_pow''` but with one assumption less which is
+automatic in the case of a finite cancellative monoid.-/
+@[to_additive add_order_of_nsmul]
+lemma order_of_pow (x : G) :
+  order_of (x ^ n) = order_of x / gcd (order_of x) n := order_of_pow'' _ _ (exists_pow_eq_one _)
 
 lemma mem_multiples_iff_mem_range_add_order_of [decidable_eq A] {b : A} :
   b ∈ add_submonoid.multiples a ↔

@@ -1477,14 +1477,14 @@ noncomputable def symm_comp_of_nondegenerate
   (B₁ B₂ : bilin_form K V) (hB₂ : B₂.nondegenerate) : V →ₗ[K] V :=
 (B₂.to_dual hB₂).symm.to_linear_map.comp B₁.to_lin
 
-lemma comp_symm_comp_of_nondegenerate_apply {B₁ B₂ : bilin_form K V}
-  (hB₂ : B₂.nondegenerate) (v : V) :
+lemma comp_symm_comp_of_nondegenerate_apply (B₁ : bilin_form K V)
+  {B₂ : bilin_form K V} (hB₂ : B₂.nondegenerate) (v : V) :
   to_lin B₂ (B₁.symm_comp_of_nondegenerate B₂ hB₂ v) = to_lin B₁ v :=
 by erw [symm_comp_of_nondegenerate, linear_equiv.apply_symm_apply (B₂.to_dual hB₂) _]
 
 @[simp]
-lemma symm_comp_of_nondegenerate_left_apply {B₁ B₂ : bilin_form K V}
-  (hB₂ : B₂.nondegenerate) (v w : V) :
+lemma symm_comp_of_nondegenerate_left_apply (B₁ : bilin_form K V)
+  {B₂ : bilin_form K V} (hB₂ : B₂.nondegenerate) (v w : V) :
   B₂ (symm_comp_of_nondegenerate B₁ B₂ hB₂ w) v = B₁ w v :=
 begin
   conv_lhs { rw [← bilin_form.to_lin_apply, comp_symm_comp_of_nondegenerate_apply] },
@@ -1501,7 +1501,7 @@ symm_comp_of_nondegenerate (B.comp_right φ) B hB₁
 lemma is_adjoint_pair_left_adjoint_of_nondegenerate
   (B : bilin_form K V) (hB : B.nondegenerate) (φ : V →ₗ[K] V) :
   is_adjoint_pair B B (B.left_adjoint_of_nondegenerate hB φ) φ :=
-λ x y, symm_comp_of_nondegenerate_left_apply hB y x
+λ x y, (B.comp_right φ).symm_comp_of_nondegenerate_left_apply hB y x
 
 /-- Given the nondegenerate bilinear form `B`, the linear map `φ` has a unique left adjoint given by
 `left_adjoint_of_nondegenerate`. -/

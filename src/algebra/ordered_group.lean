@@ -700,6 +700,9 @@ le_of_forall_le_of_dense $ λ c hc,
 calc a ≤ b + (c - b) : h _ (sub_pos_of_lt hc)
    ... = c           : add_sub_cancel'_right _ _
 
+lemma le_of_forall_pos_lt_add (h : ∀ ε : α, 0 < ε → a < b + ε) : a ≤ b :=
+le_of_not_lt (λ h₁, by simpa using h (a - b) (sub_pos_of_lt h₁))
+
 /-- `abs a` is the absolute value of `a`. -/
 def abs (a : α) : α := max a (-a)
 

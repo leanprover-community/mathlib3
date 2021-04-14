@@ -22,6 +22,7 @@ noncomputable theory
 
 open category_theory
 open category_theory.preadditive
+open category_theory.limits
 
 universes v v₀ v₁ v₂ u u₀ u₁ u₂
 
@@ -31,7 +32,7 @@ open category_theory.category
 /-
 We work in an additive category `C` equipped with an additive shift.
 -/
-variables (C : Type u) [category.{v} C] [has_shift C] [additive_category C]
+variables (C : Type u) [category.{v} C] [has_zero_object C] [has_shift C] [preadditive C]
 [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
 
 /--
@@ -144,9 +145,9 @@ end category_theory.triangulated
 namespace category_theory.triangulated
 namespace pretriangulated
 
-variables (C : Type u₁) [category.{v₁} C] [has_shift C] [additive_category C]
+variables (C : Type u₁) [category.{v₁} C] [has_zero_object C] [has_shift C] [preadditive C]
 [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
-variables (D : Type u₂) [category.{v₂} D] [has_shift D] [additive_category D]
+variables (D : Type u₂) [category.{v₂} D] [has_zero_object D] [has_shift D] [preadditive D]
 [functor.additive (shift D).functor] [functor.additive (shift D).inverse]
 
 /--

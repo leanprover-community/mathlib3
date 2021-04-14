@@ -30,8 +30,7 @@ open category_theory.category
 /-
 We work in an additive category `C` equipped with an additive shift.
 -/
-variables (C : Type u) [category.{v} C] [additive_category C]
-  [has_shift C] [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
+variables (C : Type u) [category.{v} C] [has_zero_object C] [has_zero_morphisms C] [has_shift C]
 /-
 Eventually can remove conditions on shift functor and inverse, as all equivalences of additive
 categories are additive functors

@@ -31,7 +31,7 @@ open category_theory.category
 /--
 We work in an additive category `C` equipped with an additive shift.
 -/
-variables {C : Type u} [category.{v} C] [has_shift C] [additive_category C]
+variables {C : Type u} [category.{v} C] [has_zero_object C] [has_shift C] [preadditive C]
   [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
 variables (X : C)
 

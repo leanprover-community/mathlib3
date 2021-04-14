@@ -241,8 +241,8 @@ begin
              mem_diff, mem_support],
   push_neg,
   rintro ha ⟨hx, hy⟩ H,
-  rw [swap_apply_eq_swap_apply_iff, swap_apply_of_ne_of_ne hx hy] at H,
-  exact ha H.symm
+  rw [swap_apply_eq_iff, swap_apply_of_ne_of_ne hx hy] at H,
+  exact ha H
 end
 
 lemma support_swap_mul_eq [decidable_eq α] (f : perm α) (x : α) (h : f (f x) ≠ x) :
@@ -352,7 +352,7 @@ begin
     exact (mem_support_swap_mul_imp_mem_support_ne hz).left },
   { rw ←mem_support at hx,
     have : x ∉ (swap x (f x) * f).support := by simp,
-    rw [←finset.le_eq_subset, finite.to_finset.mono],
+    rw finite.to_finset_mono,
     exact λ H, this (H hx) }
 end
 

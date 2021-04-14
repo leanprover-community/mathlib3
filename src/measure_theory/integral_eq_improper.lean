@@ -62,6 +62,43 @@ le_antisymm
   (supr_le_supr2 $ λ i, exists_imp_exists (λ a (ha : i ≤ a), hf ha) (exists_nat_ge i))
   (supr_le_supr2 $ λ i, ⟨i, le_refl _⟩)
 
+lemma tendsto_iff_tendsto_subseq_of_monotone {α β γ : Type*} [semilattice_sup α] [preorder β]
+  [nonempty α] [topological_space γ] [conditionally_complete_linear_order γ] [order_topology γ]
+  {f : β → γ} {g : α → β} {l : γ} (hf : monotone f) [no_top_order γ]
+  (hg : tendsto g at_top at_top) :
+  tendsto f at_top (𝓝 l) ↔ tendsto (f ∘ g) at_top (𝓝 l) :=
+begin
+  split; intro h,
+  { exact h.comp hg },
+  { rcases tendsto_of_monotone hf with h' | ⟨l', hl'⟩,
+    { exact (not_tendsto_at_top_of_tendsto_nhds h (h'.comp hg)).elim },
+    { rwa tendsto_nhds_unique h (hl'.comp hg) } }
+end
+
+lemma lintegral_mono_set {α : Type*} [measurable_space α] {μ : measure α}
+  {s t : set α} {f : α → ℝ≥0∞} (hfm : measurable f) (hst : s ⊆ t) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in t, f x ∂μ :=
+lintegral_mono' (measure.restrict_mono hst (le_refl μ)) (le_refl f)
+
+lemma integral_mono_set {α : Type*} [measurable_space α] {μ : measure α}
+  {s t : set α} {f : α → ℝ} (hfm : measurable f) (hfi : integrable f μ) (hf : 0 ≤ᵐ[μ] f)
+  (hs : measurable_set s) (ht : measurable_set t) (hst : s ≤ᵐ[μ] t) :
+  ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
+begin
+  rw [← integral_indicator hs, ← integral_indicator ht],
+  refine integral_mono_ae (hfi.indicator hs)
+      (hfi.indicator ht) _,
+  filter_upwards [hf, hst],
+  intros x hx hstx,
+  by_cases h : x ∈ s,
+  { rw [indicator_of_mem h, indicator_of_mem (hstx h)] },
+  { rw [indicator_of_not_mem h, indicator],
+    dsimp only,
+    split_ifs,
+    { exact hx },
+    { exact le_refl _ } }
+end
+
 end move_me
 
 namespace measure_theory
@@ -232,7 +269,7 @@ begin
   exact lintegral_supr (λ n, hfm.indicator $ hφ.measurable n) (λ i j hij x, F_mono x hij),
 end
 
-lemma tendsto_set_lintegral_of_monotone_set {φ : ι → set α} (hφ : monotone φ) {f : α → ℝ≥0∞} :
+lemma set_lintegral_tendsto_of_monotone_set {φ : ι → set α} (hφ : monotone φ) {f : α → ℝ≥0∞} :
   tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ⨆ (i : ι), ∫⁻ x in φ i, f x ∂μ) :=
 tendsto_at_top_csupr
   (λ i j hij, lintegral_mono' (measure.restrict_mono (hφ hij) (le_refl _)) (le_refl _))
@@ -243,7 +280,7 @@ lemma set_lintegral_tendsto_lintegral {φ : ι → set α} (hφ : mono_ae_cover 
   tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
 begin
   rw lintegral_eq_supr hφ hfm,
-  exact tendsto_set_lintegral_of_monotone_set hφ.2
+  exact set_lintegral_tendsto_of_monotone_set hφ.2
 end
 
 /-- Slight reformulation of `measure_theory.set_lintegral_tendsto_lintegral`. -/
@@ -317,27 +354,57 @@ variables {α ι : Type*} [linear_ordered_semiring ι] [nonempty ι] [archimedea
   [measurable_space E] [normed_space ℝ E] [complete_space E] [borel_space E]
   [topological_space.second_countable_topology E]
 
-lemma set_integral_tendsto_integral {φ : ℕ → set α} (hφ : mono_ae_cover μ φ) {f : α → E}
+lemma set_integral_norm_tendsto_integral_norm {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → E}
   (hfm : measurable f) (hfi : integrable f μ) :
-  tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 $ ∫ x, f x ∂μ) :=
+  tendsto (λ i, ∫ x in φ i, ∥f x∥ ∂μ) at_top (𝓝 $ ∫ x, ∥f x∥ ∂μ) :=
 begin
-  suffices : tendsto (λ (n : ℕ), ∫ (x : α), (φ n).indicator f x ∂μ) at_top (𝓝 (∫ (x : α), f x ∂μ)),
+  have mono_integral_norm : monotone (λ i, ∫ x in φ i, ∥f x∥ ∂μ) :=
+    (λ (i j : ι) hij, integral_mono_set hfm.norm hfi.norm (ae_of_all _ $ λ x, norm_nonneg _)
+      (hφ.measurable i) (hφ.measurable j) (ae_of_all _ $ hφ.mono hij)),
+  rw tendsto_iff_tendsto_subseq_of_monotone mono_integral_norm tendsto_coe_nat_at_top_at_top,
+  suffices : tendsto (λ (n : ℕ), ∫ (x : α), (φ n).indicator (norm ∘ f) x ∂μ) at_top
+    (𝓝 (∫ (x : α), ∥f x∥ ∂μ)),
   { convert this,
     ext n,
     rw integral_indicator (hφ.measurable n) },
-  exact tendsto_integral_of_dominated_convergence (λ x, ∥f x∥)
-    (λ n, (hfm.indicator $ hφ.measurable n).ae_measurable) hfm.ae_measurable hfi.norm
-    (λ n, ae_of_all _ $ norm_indicator_le_norm_self f) hφ.ae_tendsto_indicator
+  refine tendsto_integral_of_dominated_convergence (λ x, ∥f x∥)
+    (λ n, (hfm.norm.indicator $ hφ.measurable n).ae_measurable) hfm.norm.ae_measurable hfi.norm
+    (λ n, ae_of_all _ $ λ x, _) hφ.coe_nat.ae_tendsto_indicator,
+  rw [indicator_comp_of_zero norm_zero, norm_norm],
+  exact norm_indicator_le_norm_self _ _
+end
+
+lemma set_integral_tendsto_integral {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → E}
+  (hfm : measurable f) (hfi : integrable f μ) :
+  tendsto (λ i, ∫ x in φ i, f x ∂μ) at_top (𝓝 $ ∫ x, f x ∂μ) :=
+begin
+  have key₁ : ∀ i, dist (∫ x in φ i, f x ∂μ) (∫ x, f x ∂μ) ≤
+    dist (∫ x in φ i, ∥f x∥ ∂μ) (∫ x, ∥f x∥ ∂μ),
+  { intro i,
+    rw [dist_comm, dist_eq_norm, dist_comm, dist_eq_norm,
+        ← integral_indicator (hφ.measurable i), ← integral_indicator (hφ.measurable i),
+        ← integral_sub hfi (hfi.indicator $ hφ.measurable i),
+        ← integral_sub hfi.norm (hfi.norm.indicator $ hφ.measurable i)],
+    change ∥∫ x, (f - (φ i).indicator f) x ∂μ∥ ≤
+      ∥∫ x, ((norm ∘ f) - (φ i).indicator (norm ∘ f)) x ∂μ∥,
+    rw [← indicator_compl, ← indicator_compl,
+        integral_indicator (hφ.measurable i).compl, integral_indicator (hφ.measurable i).compl],
+    convert norm_integral_le_integral_norm f,
+    refine real.norm_of_nonneg (integral_nonneg $ λ x, norm_nonneg _) },
+  have key₂ := set_integral_norm_tendsto_integral_norm hφ hfm hfi,
+  rw metric.tendsto_nhds at ⊢ key₂,
+  intros ε hε,
+  exact (key₂ ε hε).mono (λ i hi, lt_of_le_of_lt (key₁ i) hi)
 end
 
 /-- Slight reformulation of `measure_theory.set_integral_tendsto_integral`. -/
-lemma integral_eq_of_tendsto_integral {φ : ℕ → set α} (hφ : mono_ae_cover μ φ) {f : α → E} (I : E)
+lemma integral_eq_of_tendsto_integral {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → E} (I : E)
   (hfm : measurable f) (hfi : integrable f μ)
   (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   ∫ x, f x ∂μ = I :=
 tendsto_nhds_unique (set_integral_tendsto_integral hφ hfm hfi) h
 
-lemma integral_eq_of_tendsto_integral_of_nonneg_ae {φ : ℕ → set α}
+lemma integral_eq_of_tendsto_integral_of_nonneg_ae {φ : ι → set α}
   (hφ : mono_ae_cover μ φ) {f : α → ℝ} (I : ℝ) (hf : 0 ≤ᵐ[μ] f) (hfm : measurable f)
   (hfi : ∀ n, integrable_on f (φ n) μ) (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   ∫ x, f x ∂μ = I :=
@@ -349,47 +416,48 @@ end integral
 
 section integrable_of_interval_integral
 
-variables {α : Type*} {E : Type*} [topological_space α] [linear_order α] [order_closed_topology α]
-  [measurable_space α] [opens_measurable_space α] [measurable_space E]
-  [normed_group E] [borel_space E] {μ : measure α} {a b : ℕ → α}
-  (ha₁ : ∀ ⦃x y⦄, x ≤ y → a y ≤ a x) (hb₁ : monotone b) {f : α → E} (hfm : measurable f)
+variables {α ι E : Type*} [topological_space α] [linear_order α] [order_closed_topology α]
+  [measurable_space α] [opens_measurable_space α] [linear_ordered_semiring ι] [nonempty ι]
+  [archimedean ι] [measurable_space E] [normed_group E] [borel_space E] {μ : measure α}
+  {a b : ι → α} (ha₁ : ∀ ⦃x y⦄, x ≤ y → a y ≤ a x) (hb₁ : monotone b) {f : α → E}
+  (hfm : measurable f)
 
 include ha₁ hb₁
 
 include hfm
 
 lemma integrable_of_tendsto_interval_integral_norm [no_bot_order α]
-  (I : ℝ) (hfi : ∀ n, integrable_on f (Ioc (a n) (b n)) μ)
+  (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
   (ha₂ : tendsto a at_top at_bot) (hb₂ : tendsto b at_top at_top)
-  (h : tendsto (λ n, ∫ x in a n .. b n, ∥f x∥ ∂μ) at_top (𝓝 $ I)) :
+  (h : tendsto (λ i, ∫ x in a i .. b i, ∥f x∥ ∂μ) at_top (𝓝 $ I)) :
   integrable f μ :=
 begin
   let φ := λ n, Ioc (a n) (b n),
   have hφ : mono_ae_cover μ φ := mono_ae_cover_Ioc ha₁ ha₂ hb₁ hb₂,
   refine integrable_of_tendsto_integral_norm hφ _ hfm hfi (h.congr' _),
-  filter_upwards [ha₂.eventually (eventually_le_at_bot $ b 0)],
-  intros n han,
-  have : a n ≤ b n := han.trans (hb₁ $ zero_le n),
+  filter_upwards [eventually_ge_at_top (0 : ι), ha₂.eventually (eventually_le_at_bot $ b 0)],
+  intros i hi hai,
+  have : a i ≤ b i := hai.trans (hb₁ hi),
   exact interval_integral.integral_of_le this
 end
 
 omit hb₁
 
 lemma integrable_on_Iic_of_tendsto_interval_integral_norm [no_bot_order α] (I : ℝ) (b : α)
-  (hfi : ∀ n, integrable_on f (Ioc (a n) b) μ) (ha₂ : tendsto a at_top at_bot)
-  (h : tendsto (λ n, ∫ x in a n .. b, ∥f x∥ ∂μ) at_top (𝓝 $ I)) :
+  (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha₂ : tendsto a at_top at_bot)
+  (h : tendsto (λ i, ∫ x in a i .. b, ∥f x∥ ∂μ) at_top (𝓝 $ I)) :
   integrable_on f (Iic b) μ :=
 begin
-  let φ := λ n, Ioi (a n),
+  let φ := λ i, Ioi (a i),
   have hφ : mono_ae_cover (μ.restrict $ Iic b) φ := mono_ae_cover_Ioi ha₁ ha₂,
-  have hfi : ∀ n, integrable_on f (φ n) (μ.restrict $ Iic b),
-  { intro n,
-    rw [integrable_on, measure.restrict_restrict (hφ.measurable n)],
-    exact hfi n },
+  have hfi : ∀ i, integrable_on f (φ i) (μ.restrict $ Iic b),
+  { intro i,
+    rw [integrable_on, measure.restrict_restrict (hφ.measurable i)],
+    exact hfi i },
   refine integrable_of_tendsto_integral_norm hφ _ hfm hfi (h.congr' _),
   filter_upwards [ha₂.eventually (eventually_le_at_bot $ b)],
-  intros n han,
-  rw [interval_integral.integral_of_le han, measure.restrict_restrict (hφ.measurable n)],
+  intros i hai,
+  rw [interval_integral.integral_of_le hai, measure.restrict_restrict (hφ.measurable i)],
   refl
 end
 
@@ -397,20 +465,20 @@ omit ha₁
 include hb₁
 
 lemma integrable_on_Ioi_of_tendsto_interval_integral_norm (I : ℝ) (a : α)
-  (hfi : ∀ n, integrable_on f (Ioc a (b n)) μ) (hb₂ : tendsto b at_top at_top)
-  (h : tendsto (λ n, ∫ x in a .. b n, ∥f x∥ ∂μ) at_top (𝓝 $ I)) :
+  (hfi : ∀ i, integrable_on f (Ioc a (b i)) μ) (hb₂ : tendsto b at_top at_top)
+  (h : tendsto (λ i, ∫ x in a .. b i, ∥f x∥ ∂μ) at_top (𝓝 $ I)) :
   integrable_on f (Ioi a) μ :=
 begin
-  let φ := λ n, Iic (b n),
+  let φ := λ i, Iic (b i),
   have hφ : mono_ae_cover (μ.restrict $ Ioi a) φ := mono_ae_cover_Iic hb₁ hb₂,
-  have hfi : ∀ n, integrable_on f (φ n) (μ.restrict $ Ioi a),
-  { intro n,
-    rw [integrable_on, measure.restrict_restrict (hφ.measurable n), inter_comm],
-    exact hfi n },
+  have hfi : ∀ i, integrable_on f (φ i) (μ.restrict $ Ioi a),
+  { intro i,
+    rw [integrable_on, measure.restrict_restrict (hφ.measurable i), inter_comm],
+    exact hfi i },
   refine integrable_of_tendsto_integral_norm hφ _ hfm hfi (h.congr' _),
   filter_upwards [hb₂.eventually (eventually_ge_at_top $ a)],
-  intros n hbn,
-  rw [interval_integral.integral_of_le hbn, measure.restrict_restrict (hφ.measurable n),
+  intros i hbi,
+  rw [interval_integral.integral_of_le hbi, measure.restrict_restrict (hφ.measurable i),
       inter_comm],
   refl
 end
@@ -419,25 +487,26 @@ end integrable_of_interval_integral
 
 section integral_of_interval_integral
 
-variables {α : Type*} {E : Type*} [topological_space α] [linear_order α] [order_closed_topology α]
-  [measurable_space α] [opens_measurable_space α] [measurable_space E]
-  [normed_group E] [topological_space.second_countable_topology E] [complete_space E]
-  [normed_space ℝ E] [borel_space E] {μ : measure α} {a b : ℕ → α}
+variables {α ι E : Type*} [topological_space α] [linear_order α] [order_closed_topology α]
+  [measurable_space α] [opens_measurable_space α] [linear_ordered_semiring ι] [nonempty ι]
+  [archimedean ι] [measurable_space E] [normed_group E]
+  [topological_space.second_countable_topology E] [complete_space E]
+  [normed_space ℝ E] [borel_space E] {μ : measure α} {a b : ι → α}
   (ha₁ : ∀ ⦃x y⦄, x ≤ y → a y ≤ a x) (hb₁ : monotone b) {f : α → E} (hfm : measurable f)
 
 include hfm ha₁ hb₁
 
 lemma integral_eq_of_tendsto_interval_integral [no_bot_order α] (I : E)
   (hfi : integrable f μ) (ha₂ : tendsto a at_top at_bot) (hb₂ : tendsto b at_top at_top)
-  (h : tendsto (λ n, ∫ x in a n .. b n, f x ∂μ) at_top (𝓝 $ I)) :
+  (h : tendsto (λ i, ∫ x in a i .. b i, f x ∂μ) at_top (𝓝 $ I)) :
   ∫ x, f x ∂μ = I :=
 begin
-  let φ := λ n, Ioc (a n) (b n),
+  let φ := λ i, Ioc (a i) (b i),
   have hφ : mono_ae_cover μ φ := mono_ae_cover_Ioc ha₁ ha₂ hb₁ hb₂,
   refine integral_eq_of_tendsto_integral hφ _ hfm hfi (h.congr' _),
-  filter_upwards [ha₂.eventually (eventually_le_at_bot $ b 0)],
-  intros n han,
-  have : a n ≤ b n := han.trans (hb₁ $ zero_le n),
+  filter_upwards [eventually_ge_at_top (0 : ι), ha₂.eventually (eventually_le_at_bot $ b 0)],
+  intros i hi hai,
+  have : a i ≤ b i := hai.trans (hb₁ hi),
   exact interval_integral.integral_of_le this
 end
 
@@ -445,15 +514,15 @@ omit hb₁
 
 lemma integral_Iic_eq_of_tendsto_interval_integral [no_bot_order α] (I : E) (b : α)
   (hfi : integrable_on f (Iic b) μ) (ha₂ : tendsto a at_top at_bot)
-  (h : tendsto (λ n, ∫ x in a n .. b, f x ∂μ) at_top (𝓝 $ I)) :
+  (h : tendsto (λ i, ∫ x in a i .. b, f x ∂μ) at_top (𝓝 $ I)) :
   ∫ x in Iic b, f x ∂μ = I :=
 begin
-  let φ := λ n, Ioi (a n),
+  let φ := λ i, Ioi (a i),
   have hφ : mono_ae_cover (μ.restrict $ Iic b) φ := mono_ae_cover_Ioi ha₁ ha₂,
   refine integral_eq_of_tendsto_integral hφ _ hfm hfi (h.congr' _),
   filter_upwards [ha₂.eventually (eventually_le_at_bot $ b)],
-  intros n han,
-  rw [interval_integral.integral_of_le han, measure.restrict_restrict (hφ.measurable n)],
+  intros i hai,
+  rw [interval_integral.integral_of_le hai, measure.restrict_restrict (hφ.measurable i)],
   refl
 end
 
@@ -462,15 +531,15 @@ include hb₁
 
 lemma integral_Ioi_eq_of_tendsto_interval_integral (I : E) (a : α)
   (hfi : integrable_on f (Ioi a) μ) (hb₂ : tendsto b at_top at_top)
-  (h : tendsto (λ n, ∫ x in a .. b n, f x ∂μ) at_top (𝓝 $ I)) :
+  (h : tendsto (λ i, ∫ x in a .. b i, f x ∂μ) at_top (𝓝 $ I)) :
   ∫ x in Ioi a, f x ∂μ = I :=
 begin
-  let φ := λ n, Iic (b n),
+  let φ := λ i, Iic (b i),
   have hφ : mono_ae_cover (μ.restrict $ Ioi a) φ := mono_ae_cover_Iic hb₁ hb₂,
   refine integral_eq_of_tendsto_integral hφ _ hfm hfi (h.congr' _),
   filter_upwards [hb₂.eventually (eventually_ge_at_top $ a)],
-  intros n hbn,
-  rw [interval_integral.integral_of_le hbn, measure.restrict_restrict (hφ.measurable n),
+  intros i hbi,
+  rw [interval_integral.integral_of_le hbi, measure.restrict_restrict (hφ.measurable i),
       inter_comm],
   refl
 end

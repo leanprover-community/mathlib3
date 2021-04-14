@@ -274,6 +274,58 @@ continuous.comp (continuous_pow n) h
 
 end has_continuous_mul
 
+section op
+
+open opposite
+
+/-- Put the same topological space structure on the opposite monoid as on the original space. -/
+instance [_i : topological_space α] : topological_space αᵒᵖ :=
+topological_space.induced (unop : αᵒᵖ → α) _i
+
+variables [topological_space α]
+
+lemma continuous_unop : continuous (unop : αᵒᵖ → α) := continuous_induced_dom
+lemma continuous_op : continuous (op : α → αᵒᵖ) := continuous_induced_rng continuous_id
+
+variables [monoid α] [has_continuous_mul α]
+
+/-- If multiplication is continuous in the monoid `α`, then it also is in the monoid `αᵒᵖ`. -/
+instance : has_continuous_mul αᵒᵖ :=
+⟨ let h₁ := @continuous_mul α _ _ _ in
+  let h₂ : continuous (λ p : α × α, _) := continuous_snd.prod_mk continuous_fst in
+  continuous_induced_rng $ (h₁.comp h₂).comp (continuous_unop.prod_map continuous_unop) ⟩
+
+end op
+
+namespace units
+
+open opposite
+
+variables [topological_space α] [monoid α]
+
+/-- The units of a monoid are equipped with a topology, via the embedding into `α × α`. -/
+instance : topological_space (units α) :=
+topological_space.induced (embed_product α) (by apply_instance)
+
+lemma continuous_embed_product : continuous (embed_product α) :=
+continuous_induced_dom
+
+lemma continuous_coe : continuous (coe : units α → α) :=
+by convert continuous_fst.comp continuous_induced_dom
+
+variables [has_continuous_mul α]
+
+/-- If multiplication on a monoid is continuous, then multiplication on the units of the monoid,
+with respect to the induced topology, is continuous.
+
+Inversion is also continuous, but we register this in a later file, `topology.algebra.group`,
+because the predicate `has_continuous_inv` has not yet been defined. -/
+instance : has_continuous_mul (units α) :=
+⟨ let h := @continuous_mul (α × αᵒᵖ) _ _ _ in
+  continuous_induced_rng $ h.comp $ continuous_embed_product.prod_map continuous_embed_product ⟩
+
+end units
+
 section
 
 variables [topological_space M] [comm_monoid M]

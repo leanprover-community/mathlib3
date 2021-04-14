@@ -102,6 +102,9 @@ lemma kernel_subobject_factors_iff {W : C} (h : W ⟶ X) :
   kernel_subobject_arrow_comp, comp_zero],
 kernel_subobject_factors f h⟩
 
+instance : is_iso (kernel_subobject (0 : X ⟶ Y)).arrow :=
+by { rw kernel_subobject_arrow, apply_instance, }
+
 lemma le_kernel_subobject (A : subobject X) (h : A.arrow ≫ f = 0) : A ≤ kernel_subobject f :=
 subobject.le_mk_of_comm (kernel.lift f A.arrow h) (by simp)
 
@@ -176,6 +179,29 @@ lemma image_subobject_comp_le
   {X' : C} (h : X' ⟶ X) (f : X ⟶ Y) [has_image f] [has_image (h ≫ f)] :
   image_subobject (h ≫ f) ≤ image_subobject f :=
 subobject.mk_le_mk_of_comm (image.pre_comp h f) (by simp)
+
+section
+variables [has_equalizers C]
+
+/-- Postcomposing by an isomorphism gives an isomorphism between image subobjects. -/
+lemma image_subobject_comp_iso
+  (f : X ⟶ Y) [has_image f] {Y' : C} (h : Y ⟶ Y') [is_iso h] :
+  (image_subobject (f ≫ h) : C) ≅ (image_subobject f : C) :=
+(image_subobject_iso _) ≪≫ (image.post_comp_is_iso _ _) ≪≫ (image_subobject_iso _).symm
+
+@[simp] lemma image_subobject_comp_iso_hom_arrow
+  (f : X ⟶ Y) [has_image f] {Y' : C} (h : Y ⟶ Y') [is_iso h] :
+  (image_subobject_comp_iso f h).hom ≫ (image_subobject f).arrow =
+    (image_subobject (f ≫ h)).arrow :=
+by simp [image_subobject_comp_iso]
+
+@[simp] lemma image_subobject_comp_iso_inv_arrow
+  (f : X ⟶ Y) [has_image f] {Y' : C} (h : Y ⟶ Y') [is_iso h] :
+  (image_subobject_comp_iso f h).inv ≫ (image_subobject (f ≫ h)).arrow =
+    (image_subobject f).arrow :=
+sorry
+
+end
 
 /-- Precomposing by an isomorphism does not change the image subobject. -/
 lemma image_subobject_iso_comp [has_equalizers C]

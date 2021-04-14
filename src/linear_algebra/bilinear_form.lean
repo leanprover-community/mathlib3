@@ -1464,10 +1464,10 @@ lemma comp_left_injective (B : bilin_form R₁ M₁) (hB : B.nondegenerate) :
   rw [sub_left, ← comp_left_apply, ← comp_left_apply, ← h, sub_self]
 end
 
-lemma is_adjoint_pair_unique_of_nondegenerate (B : bilin_form R₁ M₁) (hB₁ : B.nondegenerate)
+lemma is_adjoint_pair_unique_of_nondegenerate (B : bilin_form R₁ M₁) (hB : B.nondegenerate)
   (φ ψ₁ ψ₂ : M₁ →ₗ[R₁] M₁) (hψ₁ : is_adjoint_pair B B ψ₁ φ) (hψ₂ : is_adjoint_pair B B ψ₂ φ) :
   ψ₁ = ψ₂ :=
-B.comp_left_injective hB₁ $ ext $ λ v w, by rw [comp_left_apply, comp_left_apply, hψ₁, hψ₂]
+B.comp_left_injective hB $ ext $ λ v w, by rw [comp_left_apply, comp_left_apply, hψ₁, hψ₂]
 
 variable [finite_dimensional K V]
 

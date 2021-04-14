@@ -13,23 +13,28 @@ embedding of `E` into `F` and `linear_isometry_equiv` (notation: `E ≃ₗᵢ[R]
 isometric equivalence between `E` and `F`.
 
 We also prove some trivial lemmas and provide convenience constructors.
+
+Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
+theory for `semi_normed_space` and we specialize to `normed_space` when needed.
 -/
 open function set
 
-variables {R E F G G' : Type*} [semiring R]
-  [normed_group E] [normed_group F] [normed_group G] [normed_group G']
+variables {R E F G G' E₁ : Type*} [semiring R]
+  [semi_normed_group E] [semi_normed_group F] [semi_normed_group G] [semi_normed_group G']
   [semimodule R E] [semimodule R F] [semimodule R G] [semimodule R G']
+  [normed_group E₁] [semimodule R E₁]
 
 /-- An `R`-linear isometric embedding of one normed `R`-module into another. -/
-structure linear_isometry (R E F : Type*) [semiring R] [normed_group E] [normed_group F]
-  [semimodule R E] [semimodule R F] extends E →ₗ[R] F :=
+structure linear_isometry (R E F : Type*) [semiring R] [semi_normed_group E]
+  [semi_normed_group F] [semimodule R E] [semimodule R F] extends E →ₗ[R] F :=
 (norm_map' : ∀ x, ∥to_linear_map x∥ = ∥x∥)
 
 notation E ` →ₗᵢ[`:25 R:25 `] `:0 F:0 := linear_isometry R E F
 
 namespace linear_isometry
 
-variables (f : E →ₗᵢ[R] F)
+/-- We use `f₁` when we need the domain to be a `normed_space`. -/
+variables (f : E →ₗᵢ[R] F) (f₁ : E₁ →ₗᵢ[R] F)
 
 instance : has_coe_to_fun (E →ₗᵢ[R] F) := ⟨_, λ f, f.to_fun⟩
 
@@ -62,11 +67,11 @@ f.to_linear_map.to_add_monoid_hom.isometry_of_norm f.norm_map
 @[simp] lemma dist_map (x y : E) : dist (f x) (f y) = dist x y := f.isometry.dist_eq x y
 @[simp] lemma edist_map (x y : E) : edist (f x) (f y) = edist x y := f.isometry.edist_eq x y
 
-protected lemma injective : injective f := f.isometry.injective
+protected lemma injective : injective f₁ := f₁.isometry.injective
 
-lemma map_eq_iff {x y : E} : f x = f y ↔ x = y := f.injective.eq_iff
+@[simp] lemma map_eq_iff {x y : E₁} : f₁ x = f₁ y ↔ x = y := f₁.injective.eq_iff
 
-lemma map_ne {x y : E} (h : x ≠ y) : f x ≠ f y := f.injective.ne h
+lemma map_ne {x y : E₁} (h : x ≠ y) : f₁ x ≠ f₁ y := f₁.injective.ne h
 
 protected lemma lipschitz : lipschitz_with 1 f := f.isometry.lipschitz
 
@@ -93,7 +98,7 @@ def to_continuous_linear_map : E →L[R] F := ⟨f.to_linear_map, f.continuous�
 
 @[simp] lemma comp_continuous_iff {α : Type*} [topological_space α] {g : α → E} :
   continuous (f ∘ g) ↔ continuous g :=
-f.isometry.uniform_embedding.to_uniform_inducing.inducing.continuous_iff.symm
+f.isometry.comp_continuous_iff
 
 /-- The identity linear isometry. -/
 def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
@@ -148,11 +153,17 @@ def subtypeL : p →L[R'] E := p.subtypeₗᵢ.to_continuous_linear_map
 
 @[simp] lemma coe_subtypeL' : ⇑p.subtypeL = p.subtype := rfl
 
+@[simp] lemma range_subtypeL : p.subtypeL.range = p :=
+range_subtype _
+
+@[simp] lemma ker_subtypeL : p.subtypeL.ker = ⊥ :=
+ker_subtype _
+
 end submodule
 
 /-- A linear isometric equivalence between two normed vector spaces. -/
-structure linear_isometry_equiv (R E F : Type*) [semiring R] [normed_group E] [normed_group F]
-  [semimodule R E] [semimodule R F] extends E ≃ₗ[R] F :=
+structure linear_isometry_equiv (R E F : Type*) [semiring R] [semi_normed_group E]
+  [semi_normed_group F] [semimodule R E] [semimodule R F] extends E ≃ₗ[R] F :=
 (norm_map' : ∀ x, ∥to_linear_equiv x∥ = ∥x∥)
 
 notation E ` ≃ₗᵢ[`:25 R:25 `] `:0 F:0 := linear_isometry_equiv R E F

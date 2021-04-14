@@ -155,15 +155,21 @@ instance [add_zero_class α] : mul_one_class (multiplicative α) :=
   one_mul := zero_add,
   mul_one := add_zero }
 
-instance [monoid α] : add_monoid (additive α) :=
+instance [h : monoid α] : add_monoid (additive α) :=
 { zero     := 0,
   add      := (+),
+  nsmul    := @npow α h,
+  nsmul_zero' := monoid.npow_zero',
+  nsmul_succ' := monoid.npow_succ',
   ..additive.add_zero_class,
   ..additive.add_semigroup }
 
-instance [add_monoid α] : monoid (multiplicative α) :=
+instance [h : add_monoid α] : monoid (multiplicative α) :=
 { one     := 1,
   mul     := (*),
+  npow   := @nsmul α h,
+  npow_zero' := add_monoid.nsmul_zero',
+  npow_succ' := add_monoid.nsmul_succ',
   ..multiplicative.mul_one_class,
   ..multiplicative.semigroup }
 

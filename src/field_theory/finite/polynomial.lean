@@ -82,7 +82,7 @@ begin
 end
 
 lemma degrees_indicator (c : σ → K) :
-  degrees (indicator c) ≤ ∑ s : σ, (fintype.card K - 1) •ℕ {s} :=
+  degrees (indicator c) ≤ ∑ s : σ, (fintype.card K - 1) • {s} :=
 begin
   rw [indicator],
   refine le_trans (degrees_prod _ _) (finset.sum_le_sum $ assume s hs, _),

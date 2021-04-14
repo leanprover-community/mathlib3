@@ -32,7 +32,7 @@ open category_theory.category
 We work in an preadditive category `C` equipped with an additive shift.
 -/
 variables {C : Type u} [category.{v} C] [has_shift C] [preadditive C]
-  [functor.additive (shift C).functor] [functor.additive (shift C).inverse]
+  [functor.additive (shift C).functor]
 variables (X : C)
 
 /--
@@ -215,7 +215,7 @@ def inv_rot_comp_rot_hom : inv_rotate ⋙ rotate  ⟶ 𝟭 (triangle C) :=
 
 /--
 There is a natural transformation between the identity functor on triangles in `C`,
-and  the composition of an inverse rotation with a rotation.
+and the composition of an inverse rotation with a rotation.
 -/
 @[simps]
 def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ inv_rotate ⋙ rotate :=

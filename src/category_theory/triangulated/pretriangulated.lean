@@ -33,10 +33,10 @@ open category_theory.category
 We work in an preadditive category `C` equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [has_zero_object C] [has_shift C] [preadditive C]
-[functor.additive (shift C).functor] [functor.additive (shift C).inverse]
+  [functor.additive (shift C).functor]
 
 /--
-An additive category `C` with an additive shift, and a class of "distinguished triangles"
+A preadditive category `C` with an additive shift, and a class of "distinguished triangles"
 relative to that shift is called pretriangulated if the following hold:
 * Any triangle that is isomorphic to a distinguished triangle is also distinguished.
 * Any triangle of the form `(X,X,0,id,0,0)` is distinguished.

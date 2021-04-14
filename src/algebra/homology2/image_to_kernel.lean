@@ -80,9 +80,9 @@ by { ext, simp, }
 @[simp]
 lemma image_to_kernel_comp_hom_inv_comp {Z : V} {i : B ≅ Z} (w) :
   image_to_kernel (f ≫ i.hom) (i.inv ≫ g) w =
-  begin end ≫ image_to_kernel f g (by simpa using w) ≫
-    begin end :=
-by { ext, simp }
+  (image_subobject_comp_iso _ _).hom ≫ image_to_kernel f g (by simpa using w) ≫
+    (kernel_subobject_iso_comp i.inv g).inv :=
+by { ext, simp, }
 
 local attribute [instance] has_zero_object.has_zero
 
@@ -92,7 +92,7 @@ local attribute [instance] has_zero_object.has_zero
 -/
 lemma image_to_kernel_epi_of_zero_of_mono [mono g] [has_zero_object V] :
   epi (image_to_kernel (0 : A ⟶ B) g (by simp)) :=
-epi_of_target_iso_zero _ (kernel.of_mono g)
+epi_of_target_iso_zero _ (kernel_subobject_iso g ≪≫ kernel.of_mono g)
 
 /--
 `image_to_kernel` for `A --f--> B --0--> C`, where `g` is an epi is itself an epi
@@ -103,7 +103,8 @@ lemma image_to_kernel_epi_of_epi_of_zero [epi f] :
 begin
   simp only [image_to_kernel_zero_right],
   haveI := epi_image_of_epi f,
-  apply epi_comp,
+  rw ←image_subobject_arrow,
+  refine @epi_comp _ _ _ _ _ _ (epi_comp _ _) _ _,
 end
 
 end

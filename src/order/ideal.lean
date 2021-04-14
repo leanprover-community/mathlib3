@@ -250,7 +250,8 @@ def inf (I J : ideal P) : ideal P :=
   directed  := λ x ⟨_, _⟩ y ⟨_, _⟩, ⟨x ⊔ y, ⟨sup_mem x y ‹_› ‹_›, sup_mem x y ‹_› ‹_›⟩, by simp⟩,
   mem_of_le := λ x y h ⟨_, _⟩, ⟨mem_of_le I h ‹_›, mem_of_le J h ‹_›⟩ }
 
-/-- There is a smallest ideal containing two ideals, when it is nonempty and `P` has joins. -/
+/-- There is a smallest ideal containing two ideals, when their intersection is nonempty and
+    `P` has joins. -/
 def sup (I J : ideal P) : ideal P :=
 { carrier   := {x | ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j},
   nonempty  := by { cases inter_nonempty I J, exact ⟨w, w, h.1, w, h.2, le_sup_left⟩ },

@@ -146,10 +146,7 @@ lemma order_of_le_of_pow_eq_one (hn : 0 < n) (h : x ^ n = 1) : order_of x ≤ n 
 is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_mul_iff_pow_eq_one)
 
 @[simp] lemma order_of_one : order_of (1 : G) = 1 :=
-begin
-  rw [order_of, one_mul_eq_id],
-  exact minimal_period_id,
-end
+by rw [order_of, one_mul_eq_id, minimal_period_id]
 
 @[simp] lemma add_order_of_zero : add_order_of (0 : A) = 1 :=
 by simp only [←order_of_of_add_eq_add_order_of, order_of_one, of_add_zero]

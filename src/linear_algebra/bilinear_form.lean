@@ -1493,7 +1493,7 @@ end
 
 /-- Given the nondegenerate bilinear form `B` and the linear map `φ`,
 `left_adjoint_of_nondegenerate` provides the left adjoint of `φ` with respect to `B`.
-The lemma proving this property is `is_adjoint_pair_left_adjoint_of_nondegenerate`. -/
+The lemma proving this property is `bilin_form.is_adjoint_pair_left_adjoint_of_nondegenerate`. -/
 noncomputable def left_adjoint_of_nondegenerate
   (B : bilin_form K V) (hB₁ : B.nondegenerate) (φ : V →ₗ[K] V) : V →ₗ[K] V :=
 symm_comp_of_nondegenerate (B.comp_right φ) B hB₁
@@ -1504,7 +1504,7 @@ lemma is_adjoint_pair_left_adjoint_of_nondegenerate
 λ x y, (B.comp_right φ).symm_comp_of_nondegenerate_left_apply hB y x
 
 /-- Given the nondegenerate bilinear form `B`, the linear map `φ` has a unique left adjoint given by
-`left_adjoint_of_nondegenerate`. -/
+`bilin_form.left_adjoint_of_nondegenerate`. -/
 theorem is_adjoint_pair_iff_eq_of_nondegenerate
   (B : bilin_form K V) (hB : B.nondegenerate) (ψ φ : V →ₗ[K] V) :
   is_adjoint_pair B B ψ φ ↔ ψ = B.left_adjoint_of_nondegenerate hB φ :=

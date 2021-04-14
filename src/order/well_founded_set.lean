@@ -288,6 +288,10 @@ theorem is_wf.is_pwo [linear_order α] {s : set α}
   apply mem_range_self,
 end
 
+theorem is_wf_iff_is_pwo [linear_order α] {s : set α} :
+  s.is_wf ↔ s.is_pwo :=
+⟨is_wf.is_pwo, is_pwo.is_wf⟩
+
 end set
 
 @[simp]

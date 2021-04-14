@@ -60,7 +60,8 @@ def has_separable_contraction.contraction : polynomial F := classical.some hf
 def separable_degree : ℕ := nat_degree (hf.contraction q)
 
 /-- The separable degree divides the degree, in function of the exponential characteristic of F. -/
-lemma has_separable_contraction.dvd_degree' : ∃ m : ℕ, (separable_degree q hf) * (q ^ m) = f.nat_degree :=
+lemma has_separable_contraction.dvd_degree' :
+  ∃ m : ℕ, (separable_degree q hf) * (q ^ m) = f.nat_degree :=
 begin
   cases (classical.some_spec hf).2 with m hm,
   use m,

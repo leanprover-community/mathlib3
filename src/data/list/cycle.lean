@@ -278,6 +278,7 @@ end
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
 
+@[simp] lemma card_to_finset (l : list α) : finset.card l.to_finset = l.erase_dup.length := rfl
 
 open equiv equiv.perm
 
@@ -592,6 +593,13 @@ begin
     exact (is_rotated.forall l n).symm }
 end
 
+lemma form_perm_eq_of_is_rotated {l l' : list α} (hd : nodup l) (h : l ~r l') :
+  form_perm l = form_perm l' :=
+begin
+  obtain ⟨n, rfl⟩ := h.def,
+  exact (form_perm_rotate l hd n).symm
+end
+
 lemma form_perm_reverse (l : list α) (h : nodup l) :
   form_perm l.reverse = (form_perm l)⁻¹ :=
 begin
@@ -671,6 +679,47 @@ begin
     { simp } }
 end
 
+lemma form_perm_ext_iff {x y x' y' : α} {l l' : list α}
+  (hd : nodup (x :: y :: l)) (hd' : nodup (x' :: y' :: l')) :
+  form_perm (x :: y :: l) = form_perm (x' :: y' :: l') ↔ (x :: y :: l) ~r (x' :: y' :: l') :=
+begin
+  refine ⟨λ h, _, λ hr, form_perm_eq_of_is_rotated hd hr⟩,
+  rw equiv.perm.ext_iff at h,
+  have hs : support (form_perm (x :: y :: l)) = support (form_perm (x' :: y' :: l')),
+    { ext z,
+      rw [mem_support, mem_support, h] },
+  have hx : x' ∈ (x :: y :: l),
+    { have : x' ∈ support (form_perm (x :: y :: l)),
+        { rw [mem_support, h x', form_perm_apply_head],
+          simp only [mem_cons_iff, nodup_cons] at hd',
+          push_neg at hd',
+          exact hd'.left.left.symm },
+      simpa using support_form_perm_le _ this },
+  obtain ⟨n, hn, hx'⟩ := nth_le_of_mem hx,
+  have hl : (x :: y :: l).length = (x' :: y' :: l').length,
+    { rw [support_form_perm_of_nodup _ hd (by simp),
+          support_form_perm_of_nodup _ hd' (by simp), finset.coe_inj] at hs,
+      have := congr_arg finset.card hs,
+      rwa [card_to_finset, card_to_finset, erase_dup_eq_self.mpr hd, erase_dup_eq_self.mpr hd'] at
+        this },
+  use n,
+  apply list.ext_le,
+  { rw [length_rotate, hl] },
+  { intros k hk hk',
+    rw nth_le_rotate,
+    induction k with k IH,
+    { simp_rw [nat.zero_add, nat.mod_eq_of_lt hn],
+      simpa },
+    { have : k.succ = (k + 1) % (x' :: y' :: l').length,
+        { rw [←nat.succ_eq_add_one, nat.mod_eq_of_lt hk'] },
+      simp_rw this,
+      rw [←form_perm_apply_nth_le _ hd' k (k.lt_succ_self.trans hk'),
+          ←IH (k.lt_succ_self.trans hk), ←h, form_perm_apply_nth_le _ hd],
+      congr' 1,
+      have h1 : 1 = 1 % (x' :: y' :: l').length := by simp,
+      rw [hl, nat.mod_eq_of_lt hk', h1, ←nat.add_mod, nat.succ_add] } }
+end
+
 end form_perm
 
 end list
@@ -692,5 +741,30 @@ def mem (a : α) (s : cycle α) : Prop :=
 quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.mem_iff)
 
 instance : has_mem α (cycle α) := ⟨mem⟩
+
+def nodup (s : cycle α) : Prop :=
+quot.lift_on s nodup (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.nodup_iff)
+
+section perm
+
+variable [decidable_eq α]
+
+instance {s : cycle α} : decidable (nodup s) :=
+quot.rec_on_subsingleton s (λ (l : list α), list.nodup_decidable l)
+
+def perm_aux : Π (s : cycle α) (h : nodup s), equiv.perm α :=
+λ s, quot.hrec_on s (λ l h, form_perm l)
+  (λ l₁ l₂ (h : l₁ ~r l₂), by {
+    ext,
+    { exact is_rotated.nodup_iff h },
+    { intros h1 h2 he,
+      refine heq_of_eq _,
+      rw form_perm_eq_of_is_rotated _ h,
+      exact h1 } })
+
+def perm (s : cycle α) (h : nodup s . tactic.exact_dec_trivial) : equiv.perm α :=
+s.perm_aux h
+
+end perm
 
 end cycle

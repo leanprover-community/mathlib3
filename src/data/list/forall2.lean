@@ -271,9 +271,12 @@ instance sublist_forall₂.is_trans [is_trans α ra] :
     { exact sublist_forall₂.cons_right (ih _ _ h1 btc), } }
 end⟩
 
+lemma sublist.sublist_forall₂ {l₁ l₂ : list α} (h : l₁ <+ l₂) (r : α → α → Prop) [is_refl α r] :
+  sublist_forall₂ r l₁ l₂ :=
+sublist_forall₂_iff.2 ⟨l₁, forall₂_refl l₁, h⟩
 
 lemma tail_sublist_forall₂_self [is_refl α ra] (l : list α) :
   sublist_forall₂ ra l.tail l :=
-sublist_forall₂_iff.2 ⟨l.tail, forall₂_refl l.tail, l.tail_sublist⟩
+l.tail_sublist.sublist_forall₂ ra
 
 end list

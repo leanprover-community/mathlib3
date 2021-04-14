@@ -60,9 +60,9 @@ def triangle.mk {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ X⟦1⟧) : t
 
 section
 variables [has_zero_object C] [has_zero_morphisms C]
-
 local attribute [instance] has_zero_object.has_zero
-instance [has_zero_object C] : inhabited (triangle C) :=
+
+instance : inhabited (triangle C) :=
 ⟨⟨0,0,0,0,0,0⟩⟩
 
 /--

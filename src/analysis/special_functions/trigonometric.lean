@@ -1542,7 +1542,7 @@ instance angle.has_coe : has_coe ℝ angle :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, coe_add, coe_neg]
 
 @[simp, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
-  ↑((n : ℝ) * x) = n •ℕ (↑x : angle) :=
+  ↑((n : ℝ) * x) = n • (↑x : angle) :=
 by simpa using add_monoid_hom.map_nsmul ⟨coe, coe_zero, coe_add⟩ _ _
 @[simp, norm_cast] lemma coe_int_mul_eq_gsmul (x : ℝ) (n : ℤ) :
   ↑((n : ℝ) * x : ℝ) = n •ℤ (↑x : angle) :=

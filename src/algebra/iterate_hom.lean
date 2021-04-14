@@ -33,7 +33,7 @@ variables {M : Type*} {N : Type*} {G : Type*} {H : Type*}
 /-- An auxiliary lemma that can be used to prove `⇑(f ^ n) = (⇑f^[n])`. -/
 lemma hom_coe_pow {F : Type*} [monoid F] (c : F → M → M) (h1 : c 1 = id)
   (hmul : ∀ f g, c (f * g) = c f ∘ c g) (f : F) : ∀ n, c (f ^ n) = (c f^[n])
-| 0 := h1
+| 0 := by { rw [pow_zero, h1], refl }
 | (n + 1) := by rw [pow_succ, iterate_succ', hmul, hom_coe_pow]
 
 namespace monoid_hom
@@ -75,7 +75,7 @@ theorem iterate_map_sub (f : G →+ G) (n : ℕ) (x y) :
 semiconj₂.iterate f.map_sub n x y
 
 theorem iterate_map_smul (f : M →+ M) (n m : ℕ) (x : M) :
-  f^[n] (m •ℕ x) = m •ℕ (f^[n] x) :=
+  f^[n] (m • x) = m • (f^[n] x) :=
 f.to_multiplicative.iterate_map_pow x n m
 
 theorem iterate_map_gsmul (f : G →+ G) (n : ℕ) (m : ℤ) (x : G) :
@@ -107,7 +107,7 @@ theorem iterate_map_pow (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
 f.to_monoid_hom.iterate_map_pow a n m
 
 theorem iterate_map_smul (n m : ℕ) (x : R) :
-  f^[n] (m •ℕ x) = m •ℕ (f^[n] x) :=
+  f^[n] (m • x) = m • (f^[n] x) :=
 f.to_add_monoid_hom.iterate_map_smul n m x
 
 end semiring
@@ -181,17 +181,17 @@ section add_monoid
 
 variables [add_monoid M] (a : M) (n : ℕ)
 
-@[simp] lemma add_left_iterate : ((+) a)^[n] = (+) (n •ℕ a) :=
+@[simp] lemma add_left_iterate : ((+) a)^[n] = (+) (n • a) :=
 @mul_left_iterate (multiplicative M) _ a n
 
-@[simp] lemma add_right_iterate : (+ a)^[n] = (+ n •ℕ a) :=
+@[simp] lemma add_right_iterate : (+ a)^[n] = (+ n • a) :=
 begin
   induction n with d hd,
   { simpa },
   { simpa [hd] }
 end
 
-lemma add_right_iterate_apply_zero : (+ a)^[n] 0 = n •ℕ a :=
+lemma add_right_iterate_apply_zero : (+ a)^[n] 0 = n • a :=
 by simp [add_right_iterate]
 
 end add_monoid

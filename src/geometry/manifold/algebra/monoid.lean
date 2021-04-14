@@ -144,7 +144,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 lemma smooth_pow : ∀ n : ℕ, smooth I I (λ a : G, a ^ n)
 | 0 := by { simp only [pow_zero], exact smooth_const }
-| (k+1) := show smooth I I (λ (a : G), a * a ^ k), from smooth_id.mul (smooth_pow _)
+| (k+1) := by simpa [pow_succ] using smooth_id.mul (smooth_pow _)
 
 /-- Morphism of additive smooth monoids. -/
 structure smooth_add_monoid_morphism

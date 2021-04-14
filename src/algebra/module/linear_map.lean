@@ -146,7 +146,7 @@ class compatible_smul (R S : Type*) [semiring S] [has_scalar R M]
 variables {M M₂}
 
 @[priority 100]
-instance compatible_smul.is_scalar_tower
+instance is_scalar_tower.compatible_smul
   {R S : Type*} [semiring S] [has_scalar R S]
   [has_scalar R M] [semimodule S M] [is_scalar_tower R S M]
   [has_scalar R M₂] [semimodule S M₂] [is_scalar_tower R S M₂] : compatible_smul M M₂ R S :=
@@ -435,7 +435,7 @@ def symm : M₂ ≃ₗ[R] M :=
   .. e.to_equiv.symm }
 
 /-- See Note [custom simps projection] -/
-def simps.inv_fun [semimodule R M] [semimodule R M₂] (e : M ≃ₗ[R] M₂) : M₂ → M := e.symm
+def simps.symm_apply [semimodule R M] [semimodule R M₂] (e : M ≃ₗ[R] M₂) : M₂ → M := e.symm
 
 initialize_simps_projections linear_equiv (to_fun → apply, inv_fun → symm_apply)
 

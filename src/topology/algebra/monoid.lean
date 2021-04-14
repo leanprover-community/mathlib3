@@ -265,7 +265,7 @@ continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
 @[continuity]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 | 0 := by simpa using continuous_const
-| (k+1) := show continuous (λ (a : M), a * a ^ k), from continuous_id.mul (continuous_pow _)
+| (k+1) := by { simp only [pow_succ], exact continuous_id.mul (continuous_pow _) }
 
 @[continuity]
 lemma continuous.pow {f : α → M} [topological_space α] (h : continuous f) (n : ℕ) :

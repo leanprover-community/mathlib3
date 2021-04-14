@@ -618,6 +618,10 @@ ring_hom.injective_iff (f : A →+* B)
 
 end alg_hom
 
+@[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
+  m • (1 : A) = ↑m :=
+by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
+
 set_option old_structure_cmd true
 /-- An equivalence of algebras is an equivalence of rings commuting with the actions of scalars. -/
 structure alg_equiv (R : Type u) (A : Type v) (B : Type w)
@@ -757,7 +761,7 @@ def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
   ..e.to_ring_equiv.symm, }
 
 /-- See Note [custom simps projection] -/
-def simps.inv_fun (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
+def simps.symm_apply (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
 
 initialize_simps_projections alg_equiv (to_fun → apply, inv_fun → symm_apply)
 
@@ -1093,12 +1097,18 @@ def alg_equiv.comap (φ : A ≃ₐ[S] B) : algebra.comap R S A ≃ₐ[R] algebra
 
 end
 
+/-- Semiring ⥤ ℕ-Alg -/
+instance algebra_nat {R : Type*} [semiring R] : algebra ℕ R :=
+{ commutes' := nat.cast_commute,
+  smul_def' := λ _ _, nsmul_eq_mul _ _,
+  to_ring_hom := nat.cast_ring_hom R }
+
 namespace ring_hom
 
 variables {R S : Type*}
 
 /-- Reinterpret a `ring_hom` as an `ℕ`-algebra homomorphism. -/
-def to_nat_alg_hom [semiring R] [semiring S] [algebra ℕ R] [algebra ℕ S] (f : R →+* S) :
+def to_nat_alg_hom [semiring R] [semiring S] (f : R →+* S) :
   R →ₐ[ℕ] S :=
 { to_fun := f, commutes' := λ n, by simp, .. f }
 
@@ -1246,12 +1256,6 @@ section nat
 
 variables (R : Type*) [semiring R]
 
-/-- Semiring ⥤ ℕ-Alg -/
-instance algebra_nat : algebra ℕ R :=
-{ commutes' := nat.cast_commute,
-  smul_def' := λ _ _, nsmul_eq_mul _ _,
-  to_ring_hom := nat.cast_ring_hom R }
-
 section span_nat
 open submodule
 
@@ -1284,13 +1288,6 @@ section
 variables {S : Type*} [ring S]
 
 instance int_algebra_subsingleton : subsingleton (algebra ℤ S) :=
-⟨λ P Q, by { ext, simp, }⟩
-end
-
-section
-variables {S : Type*} [semiring S]
-
-instance nat_algebra_subsingleton : subsingleton (algebra ℕ S) :=
 ⟨λ P Q, by { ext, simp, }⟩
 end
 

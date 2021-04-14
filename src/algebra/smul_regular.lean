@@ -104,7 +104,7 @@ lemma pow (n : ℕ) (ra : is_smul_regular M a) : is_smul_regular M (a ^ n) :=
 begin
   induction n with n hn,
   { simp only [one, pow_zero] },
-  { exact (ra.smul_iff (a ^ n)).mpr hn }
+  { rw pow_succ, exact (ra.smul_iff (a ^ n)).mpr hn }
 end
 
 /-- An element `a` is `M`-regular if and only if a positive power of `a` is `M`-regular. -/

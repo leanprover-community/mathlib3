@@ -193,7 +193,7 @@ namespace pnat
 
 /-- The prime factors of n, regarded as a multiset -/
 def factor_multiset (n : ℕ+) : prime_multiset :=
-prime_multiset.of_nat_list (nat.factors n) (@nat.mem_factors n)
+prime_multiset.of_nat_list (nat.factors n) (@nat.prime_of_mem_factors n)
 
 /-- The product of the factors is the original number -/
 theorem prod_factor_multiset (n : ℕ+) : (factor_multiset n).prod = n :=
@@ -203,7 +203,7 @@ eq $ by { dsimp [factor_multiset],
 
 theorem coe_nat_factor_multiset (n : ℕ+) :
   ((factor_multiset n) : (multiset ℕ)) = ((nat.factors n) : multiset ℕ) :=
-prime_multiset.to_of_nat_multiset (nat.factors n) (@nat.mem_factors n)
+prime_multiset.to_of_nat_multiset (nat.factors n) (@nat.prime_of_mem_factors n)
 
 end pnat
 

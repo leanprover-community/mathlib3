@@ -184,9 +184,9 @@ end
 lemma aux_uniformity_eq :
   𝓤 (pi_Lp p hp β) = @uniformity _ (Pi.uniform_space _) :=
 begin
-  have A : uniform_embedding (pi_Lp.equiv p hp β) :=
-    (antilipschitz_with_equiv p hp β).uniform_embedding_of_injective (pi_Lp.equiv p hp β).injective
-      (lipschitz_with_equiv p hp β).uniform_continuous,
+  have A : uniform_inducing (pi_Lp.equiv p hp β) :=
+    (antilipschitz_with_equiv p hp β).uniform_inducing
+    (lipschitz_with_equiv p hp β).uniform_continuous,
   have : (λ (x : pi_Lp p hp β × pi_Lp p hp β),
     ((pi_Lp.equiv p hp β) x.fst, (pi_Lp.equiv p hp β) x.snd)) = id,
     by ext i; refl,

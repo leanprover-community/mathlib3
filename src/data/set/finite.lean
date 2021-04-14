@@ -767,3 +767,22 @@ protected lemma bdd_below [semilattice_inf α] [nonempty α] (s : finset α) :
 s.finite_to_set.bdd_below
 
 end finset
+
+namespace fintype
+variables [fintype α] {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+
+@[simp]
+lemma card_subtype_compl : fintype.card {x // ¬ p x} = fintype.card α - fintype.card {x // p x} :=
+begin
+  classical,
+  rw [fintype.card_of_subtype (set.to_finset pᶜ), set.to_finset_compl p, finset.card_compl,
+      fintype.card_of_subtype (set.to_finset p)];
+    intros; simp; refl
+end
+
+/-- If two subtypes of a fintype have equal cardinality, so do their complements. -/
+lemma card_compl_eq_card_compl (h : fintype.card {x // p x} = fintype.card {x // q x}) :
+  fintype.card {x // ¬ p x} = fintype.card {x // ¬ q x} :=
+by simp only [card_subtype_compl, h]
+
+end fintype

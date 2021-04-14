@@ -55,8 +55,8 @@ end
 /-- We rephrase the original question into a question about `d a`. -/
 lemma ineq_iff {n : ℕ+} :
   (a n : ℚ) < (↑∑ i : fin (n + 1), a i : ℚ) / n ∧
-  (↑∑ i : fin (n + 1), a i : ℚ) / n ≤ a (n + 1)
-  ↔ 0 < d a n ∧ d a (n + 1) ≤ 0 :=
+  (↑∑ i : fin (n + 1), a i : ℚ) / n ≤ a (n + 1) ↔
+  0 < d a n ∧ d a (n + 1) ≤ 0 :=
 ⟨λ h, ⟨(first_ineq_iff a).1 h.1, (second_ineq_iff a).1 h.2⟩,
   λ h, ⟨(first_ineq_iff a).2 h.1, (second_ineq_iff a).2 h.2⟩⟩
 
@@ -76,7 +76,7 @@ lt_of_sub_neg $
 
 section descending
 
-/- In this section we prove that for any strictly descending sequence `f : ℕ+ → ℤ`
+/-- In this section we prove that for any strictly descending sequence `f : ℕ+ → ℤ`
   and integer `x < f m` for some `m`, there is a unique index `n ≥ m` such that
   `f (n + 1) ≤ x < f n`. -/
 

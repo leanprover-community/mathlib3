@@ -64,9 +64,9 @@ def has_separable_contraction.degree : ℕ := hf.contraction.nat_degree
 lemma is_separable_contraction.dvd_degree' {g} (hf : is_separable_contraction q f g) :
   ∃ m : ℕ, g.nat_degree * (q ^ m) = f.nat_degree :=
 begin
-  obtain ⟨m, hm⟩ := hf.2,
+  obtain ⟨m, rfl⟩ := hf.2,
   use m,
-  rw [←hm, nat_degree_expand]
+  rw nat_degree_expand,
 end
 
 lemma has_separable_contraction.dvd_degree' : ∃ m : ℕ, hf.degree * (q ^ m) = f.nat_degree :=

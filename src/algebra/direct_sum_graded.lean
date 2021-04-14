@@ -507,11 +507,11 @@ of_zero_smul A a b
 
 instance grade_zero.mul_zero_class : mul_zero_class (A 0) :=
 function.injective.mul_zero_class (of A 0) dfinsupp.single_injective
-  (add_monoid_hom.map_zero _) (of_zero_mul A)
+  (of A 0).map_zero (of_zero_mul A)
 
 instance grade_zero.distrib : distrib (A 0) :=
 function.injective.distrib (of A 0) dfinsupp.single_injective
-  (add_monoid_hom.map_add _) (of_zero_mul A)
+  (of A 0).map_add (of_zero_mul A)
 
 instance grade_zero.smul_with_zero (i : ι) : smul_with_zero (A 0) (A i) :=
 begin
@@ -527,7 +527,7 @@ variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gmonoid A]
 /-- The `semiring` structure derived from `gmonoid A`. -/
 instance grade_zero.semiring : semiring (A 0) :=
 function.injective.semiring (of A 0) dfinsupp.single_injective
-  (add_monoid_hom.map_zero _) (of_zero_one A) (add_monoid_hom.map_add _) (of_zero_mul A)
+  (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
 
 /-- `of A 0` is a `ring_hom`, using the `direct_sum.grade_zero.semiring` structure. -/
 def of_zero_ring_hom : A 0 →+* (⨁ i, A i) :=
@@ -551,7 +551,7 @@ variables [Π i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_monoid A]
 /-- The `comm_semiring` structure derived from `gcomm_monoid A`. -/
 instance grade_zero.comm_semiring : comm_semiring (A 0) :=
 function.injective.comm_semiring (of A 0) dfinsupp.single_injective
-  (add_monoid_hom.map_zero _) (of_zero_one A) (add_monoid_hom.map_add _) (of_zero_mul A)
+  (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
 
 end comm_semiring
 
@@ -560,9 +560,9 @@ variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gmonoid A]
 
 /-- The `ring` derived from `gmonoid A`. -/
 instance grade_zero.ring : ring (A 0) :=
-function.injective.ring_sub (of A 0) dfinsupp.single_injective
-  (add_monoid_hom.map_zero _) (of_zero_one A) (add_monoid_hom.map_add _) (of_zero_mul A)
-  (add_monoid_hom.map_neg _) (add_monoid_hom.map_sub _)
+function.injective.ring (of A 0) dfinsupp.single_injective
+  (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
+  (of A 0).map_neg (of A 0).map_sub
 
 end ring
 
@@ -571,9 +571,9 @@ variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_monoid A]
 
 /-- The `comm_ring` derived from `gcomm_monoid A`. -/
 instance grade_zero.comm_ring : comm_ring (A 0) :=
-function.injective.comm_ring_sub (of A 0) dfinsupp.single_injective
-  (add_monoid_hom.map_zero _) (of_zero_one A) (add_monoid_hom.map_add _) (of_zero_mul A)
-  (add_monoid_hom.map_neg _) (add_monoid_hom.map_sub _)
+function.injective.comm_ring (of A 0) dfinsupp.single_injective
+  (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
+  (of A 0).map_neg (of A 0).map_sub
 
 end comm_ring
 

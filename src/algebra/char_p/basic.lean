@@ -28,7 +28,7 @@ theorem char_p.cast_eq_zero [add_monoid R] [has_one R] (p : ℕ) [char_p R p] :
   (fintype.card R : R) = 0 :=
 begin
   have : fintype.card R • (1 : R) = 0 :=
-    @pow_card_eq_one (multiplicative R) _ _ (multiplicative.of_add 1),
+    @pow_card_eq_one (multiplicative R) (multiplicative.of_add 1) _ _,
   simpa only [nsmul_one]
 end
 

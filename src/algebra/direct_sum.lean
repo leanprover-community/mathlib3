@@ -5,6 +5,8 @@ Authors: Kenny Lau
 
 -/
 import data.dfinsupp
+import group_theory.submonoid.operations
+import group_theory.subgroup
 
 /-!
 # Direct sum
@@ -153,5 +155,27 @@ protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique 
     (λ x y ihx ihy, by rw [add_monoid_hom.map_add, add_monoid_hom.map_add, ihx, ihy]),
   right_inv := λ x, to_add_monoid_of _ _ _,
   ..direct_sum.to_add_monoid (λ _, add_monoid_hom.id M) }
+
+/-- The `direct_sum` formed by a collection of `add_submonoid`s of `M` is said to be internal if the
+canonical map `(⨁ i, A i) →+ M` is bijective.
+
+See `direct_sum.add_subgroup_is_internal` for the same statement about `add_subgroup`s. -/
+def add_submonoid_is_internal {M : Type*} [decidable_eq ι] [add_comm_monoid M]
+  (A : ι → add_submonoid M) : Prop :=
+function.bijective (direct_sum.to_add_monoid (λ i, (A i).subtype) : (⨁ i, A i) →+ M)
+
+/-- The `direct_sum` formed by a collection of `add_subgroup`s of `M` is said to be internal if the
+canonical map `(⨁ i, A i) →+ M` is bijective.
+
+See `direct_sum.submodule_is_internal` for the same statement about `submodules`s. -/
+def add_subgroup_is_internal {M : Type*} [decidable_eq ι] [add_comm_group M]
+  (A : ι → add_subgroup M) : Prop :=
+function.bijective (direct_sum.to_add_monoid (λ i, (A i).subtype) : (⨁ i, A i) →+ M)
+
+lemma direct_sum.add_subgroup_is_internal.to_add_submonoid
+  {M : Type*} [decidable_eq ι] [add_comm_group M] (A : ι → add_subgroup M) :
+  add_subgroup_is_internal A ↔
+    add_submonoid_is_internal (λ i, (A i).to_add_submonoid) :=
+iff.rfl
 
 end direct_sum

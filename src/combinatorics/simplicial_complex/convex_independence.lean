@@ -17,5 +17,8 @@ def convex_independent (p : ι → E) :
   Prop :=
 ∀ (s : finset ι) (x : ι), p x ∈ convex_hull (p '' s) → x ∈ s
 
+lemma convex_independent_set_iff (A : set E) :
+  convex_independent (λ p, p : A → E) ↔ ∀ s : finset E, ↑s ⊆ A → A ∩ convex_hull ↑s ⊆ ↑s := sorry
+
 lemma convex_independent_of_affine_independent {p : ι → E} (hp : affine_independent ℝ p) :
-  convex_independent p := sorry
+  convex_independent p := sorry --@Bhavik

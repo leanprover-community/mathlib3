@@ -39,16 +39,24 @@ begin
   by_contra hAB,
   have hABdiff : (A \ B).nonempty := nonempty_diff.2 hAB,
   obtain ⟨x, hxA, hxB⟩ := id hABdiff,
-  have := has_extreme_point_of_convex_of_compact_of_nonempty ⟨x, hxA⟩ hAcomp hAconv,
   obtain ⟨l, s, t, hst, hs, hl⟩ := geometric_hahn_banach_closed_closed_compact (convex_singleton x)
     compact_singleton (convex.closure (convex_convex_hull _)) is_closed_closure
     (disjoint_singleton_left.2 hxB),
-  let C := {y ∈ A | ∀ z ∈ A, l y ≤ l z},
-  have hCext : is_extreme_set A C := sorry,
+  let C := {y ∈ A | ∀ z ∈ A, l z ≤ l y},
+  have hCext : is_extreme_set A C := extreme_of_exposed ⟨l, rfl⟩,
   have hCnemp : C.nonempty := sorry, --use hAcomp
-  have hCclos : is_closed C := sorry,
-  have hCcomp : is_compact C := sorry,
-  have hCconv : convex C := sorry,
+  have hCcomp : is_compact C,
+  {
+    refine compact_of_is_closed_subset hAcomp _ hCext.1,
+
+    rw is_closed_iff_cluster_pt,
+  },
+  have hCconv : convex C,
+  {
+    rw convex_iff_segment_subset,
+    rintro a b ha hb c hc,
+    sorry
+  },
   obtain ⟨y, hyC⟩ := has_extreme_point_of_convex_of_compact_of_nonempty hCnemp hCcomp hCconv,
   have hyA := extreme_points_subset_extreme_points_of_extreme hCext hyC,
   have := hl _ (subset_closure (subset_convex_hull _ hyA)),
@@ -72,4 +80,5 @@ begin
   have hABdiff : (A \ B).nonempty := nonempty_diff.2 hAB,
   obtain ⟨x, hxA, hxB⟩ := id hABdiff,
 end
+
 end affine

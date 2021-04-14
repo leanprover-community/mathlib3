@@ -8,11 +8,13 @@ import linear_algebra.finite_dimensional
 import algebra.module.linear_map
 import analysis.convex.topology
 import combinatorics.simplicial_complex.dump
+import combinatorics.simplicial_complex.convex_independence
 
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS
 variables {m : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
+  {X : finset E}
 
 /--
 A set B is extreme to a set A if no affine combination of points in A \ B is in B. -/
@@ -49,6 +51,10 @@ end
 def set.extreme_points (A : set E) :
   set E :=
 {x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ segment x₁ x₂ → x₁ = x ∨ x₂ = x}
+
+lemma extreme_point_iff :
+  x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ segment x₁ x₂ → x₁ = x ∨ x₂ = x :=
+by refl
 
 lemma extreme_point_iff_extreme_singleton :
   x ∈ A.extreme_points ↔ is_extreme_set A {x} :=
@@ -89,6 +95,45 @@ begin
     exact (hAx ⟨hx₁A, λ hx₁, h.1 (mem_singleton_iff.2 hx₁)⟩
       ⟨hx₂A, λ hx₂, h.2 (mem_singleton_iff.2 hx₂)⟩ hx).2 rfl },
   exact λ hx, ⟨hx.1, convex_remove_of_extreme hA (extreme_point_iff_extreme_singleton.1 hx)⟩,
+end
+
+lemma extreme_points_convex_independent :
+  convex_independent (λ p, p : A.extreme_points → E) :=
+begin
+  rw convex_independent_set_iff,
+  rintro X hX x hxA,
+  simp,
+  have : x ∈ (convex_hull (X : set E)).extreme_points,
+  {
+    use hxA.2,
+    rintro x₁ x₂ hx₁ hx₂ hx,
+    refine hxA.1.2 x₁ x₂ _ _ hx,
+    sorry,
+    sorry,
+  },
+
+  sorry
+end
+
+lemma eq_extreme_points_convex_hull_iff_convex_independent :
+  A = (convex_hull A).extreme_points ↔ convex_independent (λ p, p : A → E) :=
+begin
+  split,
+  { rintro h,
+    rw h,
+    exact extreme_points_convex_independent },
+  rintro hA,
+  ext x,
+  split,
+  {
+    rintro hxA,
+    use subset_convex_hull _ hxA,
+    rintro x₁ x₂ hx₂ hx₂ hx,
+    rw convex_independent_set_iff at hA,
+    --have := hA {x₁, x₂},
+    sorry
+  },
+  sorry
 end
 
 lemma extreme_to_convex_hull_of_affine_independent {s : finset E} (hx : x ∈ s)
@@ -194,7 +239,7 @@ end
 
 def is_exposed_set (A B : set E) :
   Prop :=
-∃ l : E → ℝ, is_linear_map ℝ l ∧ continuous l ∧ B = {x | x ∈ A ∧ l x = (⨆ y ∈ A, l y)}
+∃ l : E →L[ℝ] ℝ, B = {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
 lemma subset_of_exposed (hAB : is_exposed_set A B) :
   B ⊆ A :=
@@ -210,41 +255,50 @@ lemma is_exposed_set.antisymm :
 lemma is_exposed_set.trans :
   transitive (is_exposed_set : set E → set E → Prop) :=
 begin
-  rintro A B C ⟨l₁, hl₁lin, hl₁con, hB⟩ ⟨l₂, hl₂lin, hl₂cont, hC⟩,
+  rintro A B C ⟨l₁, hB⟩ ⟨l₂, hC⟩,
   --have := λ x, (⨆ (y : E) (H : y ∈ B), lBC y) * lAB x + (⨆ (y : E) (H : y ∈ A), lAB y) * lBC x,
   let u : ℝ := sorry,
   let v : ℝ := sorry,
-  refine ⟨λ x, u * l₁ x + v * l₂ x, sorry, sorry, _⟩, --use weighed sum instead
+  have hupos : 0 < u := sorry,
+  have hvpos : 0 < v := sorry,
+  let l : E →L[ℝ] ℝ := {
+    to_fun := λ x, u * l₁ x + v * l₂ x,
+    map_add' := sorry,
+    map_smul' := sorry,
+    cont := sorry },
+  refine ⟨l, _⟩, --use weighed sum instead
   rw hC,
-  have : (⨆ (y : E) (H : y ∈ A), u * l₁ y + v * l₂ y) = (⨆ (y : E) (H : y ∈ A), u * l₁ y) +
-    (⨆ (y : E) (H : y ∈ A), v * l₂ y) := sorry,
-  have : ∀ x : E, u * l₁ x + v * l₂ x = (⨆ (y : E) (H : y ∈ A), u * l₁ y + v * l₂ y)
-    ↔ u * l₁ x = (⨆ (y : E) (H : y ∈ A), u * l₁ y) ∧ v * l₂ x = ⨆ (y : E) (H : y ∈ A), v * l₂ y,
-    sorry,
+  --have : (⨆ (y : E) (H : y ∈ A), u * l₁ y + v * l₂ y) = (⨆ (y : E) (H : y ∈ A), u * l₁ y) +
+  --  (⨆ (y : E) (H : y ∈ A), v * l₂ y) := sorry,
+  --have : ∀ x : E, u * l₁ x + v * l₂ x = (⨆ (y : E) (H : y ∈ A), u * l₁ y + v * l₂ y)
+  --  ↔ u * l₁ x = (⨆ (y : E) (H : y ∈ A), u * l₁ y) ∧ v * l₂ x = ⨆ (y : E) (H : y ∈ A), v * l₂ y,
+  --  sorry,
   --simp,
   ext x,
   split,
   {
     rintro ⟨hxB, hxl₂⟩,
     rw hB at hxB,
-    obtain ⟨hxA, hxl₁⟩ := id hxB,
+    obtain ⟨hxA, hxl₁⟩ := hxB,
     use hxA,
-    apply le_antisymm,
-    { sorry },
-    rw [hxl₁, hxl₂],
+    rintro y hy,
+    have := hxl₁ y hy,
     sorry
   },
   {
-    rintro ⟨hxA, h⟩,
+    rintro ⟨hxA, hx⟩,
     rw hB,
+    simp,
     refine ⟨⟨hxA, _⟩, _⟩,
-    have : l₁ x ≤ ⨆ (y : E) (H : y ∈ A), l₁ y,
     {
-      sorry,
+      rintro y hy,
+      have := hx y hy,
+      sorry
     },
-    apply le_antisymm this,
-    sorry,
-    sorry
+    rintro y hyA hy,
+    have := hy x hxA,
+    have : u * l₁ y + v * l₂ y ≤ u * l₁ x + v * l₂ x := hx y hyA,
+    sorry --trivial but linarith won't do it :(
   }
 end
 
@@ -253,10 +307,15 @@ lemma extreme_of_exposed (hAB : is_exposed_set A B) :
 begin
   use subset_of_exposed hAB,
   rintro x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, ha, hb, hab, hx⟩ hx₁x hx₂x,
-  obtain ⟨l, hllin, hlcon, rfl⟩ := hAB,
-  suffices h : (l x₁ = ⨆ (y : E) (H : y ∈ A), l y) ∧ l x₂ = ⨆ (y : E) (H : y ∈ A), l y,
-  { exact ⟨⟨hx₁A, h.1⟩, ⟨hx₂A, h.2⟩⟩ },
-  have : l x = a • l x₁ + b • l x₂ := by rw [←hx, hllin.map_add, hllin.map_smul, hllin.map_smul],
+  obtain ⟨l, rfl⟩ := hAB,
+  simp at *,
+  have : l x = a • l x₁ + b • l x₂,
+  { rw ←hx,
+    simp },
+  refine ⟨⟨hx₁A, _⟩, ⟨hx₂A, _⟩⟩,
+  rintro y hy,
+  have := hxB.2 y hy,--@Bhavik
+  sorry,
   sorry
 end
 

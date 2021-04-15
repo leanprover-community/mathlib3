@@ -121,9 +121,8 @@ subobject.le_mk_of_comm (kernel.lift f A.arrow h) (by simp)
 The isomorphism between the kernel of `f ≫ g` and the kernel of `g`,
 when `f` is an isomorphism.
 -/
--- FIXME shouldn't need 2nd has_kernel
 def kernel_subobject_iso_comp
-  {X' : C} (f : X' ⟶ X) [is_iso f] (g : X ⟶ Y) [has_kernel g] [has_kernel (f ≫ g)] :
+  {X' : C} (f : X' ⟶ X) [is_iso f] (g : X ⟶ Y) [has_kernel g] :
   (kernel_subobject (f ≫ g) : C) ≅ (kernel_subobject g : C) :=
 (kernel_subobject_iso _) ≪≫ (kernel_is_iso_comp f g) ≪≫ (kernel_subobject_iso _).symm
 

@@ -104,6 +104,21 @@ begin
       -- α : Type
       -- ⊢ ∀ (a : α), a * 1 = a
 
+    guard_tags _field npow group, admit,
+      -- case group, inv
+      -- α : Type
+      -- ⊢ α → α
+
+    guard_tags _field npow_zero' group, admit,
+      -- case group, inv
+      -- α : Type
+      -- ⊢ α → α
+
+    guard_tags _field npow_succ' group, admit,
+      -- case group, inv
+      -- α : Type
+      -- ⊢ α → α
+
     guard_tags _field inv group, admit,
       -- case group, inv
       -- α : Type
@@ -140,6 +155,9 @@ begin
     guard_tags _field one group, admit,
     guard_tags _field one_mul group, admit,
     guard_tags _field mul_one group, admit,
+    guard_tags _field npow group, admit,
+    guard_tags _field npow_zero' group, admit,
+    guard_tags _field npow_succ' group, admit,
     guard_tags _field inv group, admit,
     guard_tags _field div group, admit,
     guard_tags _field div_eq_mul_inv group, admit,
@@ -147,7 +165,10 @@ begin
     guard_tags _field mul_assoc monoid, admit,
     guard_tags _field one monoid, admit,
     guard_tags _field one_mul monoid, admit,
-    guard_tags _field mul_one monoid, admit, },
+    guard_tags _field mul_one monoid, admit,
+    guard_tags _field npow monoid, admit,
+    guard_tags _field npow_zero' monoid, admit,
+    guard_tags _field npow_succ' monoid, admit, },
   trivial
 end
 

@@ -86,16 +86,18 @@ by { ext, rw [mem_to_subalgebra, iff_true_right algebra.mem_top], exact mem_top 
 def subalgebra.equiv_of_eq {X Y : subalgebra F E} (h : X = Y) : X ≃ₐ[F] Y :=
 by refine { to_fun := λ x, ⟨x, _⟩, inv_fun := λ x, ⟨x, _⟩, .. }; tidy
 
+variables (F E)
 /-- The bottom intermediate_field is isomorphic to the field. -/
 noncomputable def bot_equiv : (⊥ : intermediate_field F E) ≃ₐ[F] F :=
 (subalgebra.equiv_of_eq bot_to_subalgebra).trans (algebra.bot_equiv F E)
+variables {F E}
 
 @[simp] lemma bot_equiv_def (x : F) :
-  bot_equiv (algebra_map F (⊥ : intermediate_field F E) x) = x :=
-alg_equiv.commutes bot_equiv x
+  bot_equiv F E (algebra_map F (⊥ : intermediate_field F E) x) = x :=
+alg_equiv.commutes (bot_equiv F E) x
 
 noncomputable instance algebra_over_bot : algebra (⊥ : intermediate_field F E) F :=
-  ring_hom.to_algebra intermediate_field.bot_equiv.to_alg_hom.to_ring_hom
+(intermediate_field.bot_equiv F E).to_alg_hom.to_ring_hom.to_algebra
 
 instance is_scalar_tower_over_bot : is_scalar_tower (⊥ : intermediate_field F E) F E :=
 is_scalar_tower.of_algebra_map_eq
@@ -427,7 +429,7 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
   (adjoin_simple.gen F α) (aeval_gen_minpoly F α)) (ring_hom.map_one _)
   (λ x y, ring_hom.map_mul _ x y) (ring_hom.map_zero _) (λ x y, ring_hom.map_add _ x y)
   (by { exact λ _, adjoin_root.lift_of })) (begin
-    set f := adjoin_root.lift _ _ (aeval_gen_minpoly F α),
+    set f := adjoin_root.lift _ _ (aeval_gen_minpoly F α : _),
     haveI := minpoly.irreducible h,
     split,
     { exact ring_hom.injective f },
@@ -558,7 +560,7 @@ noncomputable instance : order_bot (lifts F E K) :=
     congr,
     exact alg_hom.ext (λ s, hxy2 s s rfl),
   end,
-  bot := ⟨⊥, (algebra.of_id F K).comp bot_equiv.to_alg_hom⟩,
+  bot := ⟨⊥, (algebra.of_id F K).comp (bot_equiv F E).to_alg_hom⟩,
   bot_le := λ x, ⟨bot_le, λ s t hst,
   begin
     cases intermediate_field.mem_bot.mp s.mem with u hu,
@@ -744,8 +746,8 @@ power_basis.finite_dimensional (adjoin.power_basis hx)
 lemma adjoin.findim {x : L} (hx : is_integral K x) :
   finite_dimensional.findim K K⟮x⟯ = (minpoly K x).nat_degree :=
 begin
-  rw power_basis.findim (adjoin.power_basis hx),
-  refl,
+  rw power_basis.findim (adjoin.power_basis hx : _),
+  refl
 end
 
 end intermediate_field

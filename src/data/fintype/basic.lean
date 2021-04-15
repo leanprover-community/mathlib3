@@ -964,13 +964,13 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
 finset.card_powerset finset.univ
 
+@[simp] lemma finset.univ_filter_card_eq (α : Type*) [fintype α] (k : ℕ) :
+  (finset.univ : finset (finset α)).filter (λ s, s.card = k) = finset.univ.powerset_len k :=
+by { ext, simp [finset.mem_powerset_len] }
+
 @[simp] lemma fintype.card_finset_len [fintype α] (k : ℕ) :
   fintype.card {s : finset α // s.card = k} = nat.choose (fintype.card α) k :=
-begin
-  refine (fintype.card_of_subtype (finset.powerset_len k finset.univ) $ λ s, _).trans
-    (finset.card_powerset_len _ _),
-  simp [finset.mem_powerset_len]
-end
+by simp [fintype.subtype_card, finset.card_univ]
 
 @[simp] lemma set.to_finset_univ [fintype α] :
   (set.univ : set α).to_finset = finset.univ :=

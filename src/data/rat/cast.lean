@@ -298,7 +298,7 @@ end
 
 /-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
 theorem ext_rat_on_pnat {f g : monoid_with_zero_hom ℚ M}
-  (same_on_neg_one : f (-1) = g (-1)) (same_on_pnat : ∀ (n: ℕ), 0 < n → f n = g n) : f = g :=
+  (same_on_neg_one : f (-1) = g (-1)) (same_on_pnat : ∀ n : ℕ, 0 < n → f n = g n) : f = g :=
 ext_rat $ ext_int' same_on_neg_one same_on_pnat
 
 end monoid_with_zero_hom

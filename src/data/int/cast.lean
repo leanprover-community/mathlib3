@@ -242,8 +242,8 @@ to_monoid_hom_injective $ monoid_hom.ext_int h_neg_one $ monoid_hom.ext (congr_f
 
 /-- If two `monoid_with_zero_hom`s agree on `-1` and the _positive_ naturals then they are equal. -/
 theorem ext_int' {φ₁ φ₂ : monoid_with_zero_hom ℤ M}
-  (h_neg_one : φ₁ (-1) = φ₂ (-1)) (h_pos : ∀ {n : ℕ}, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
-ext_int h_neg_one $ ext_nat $ λ n, h_pos
+  (h_neg_one : φ₁ (-1) = φ₂ (-1)) (h_pos : ∀ n : ℕ, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
+ext_int h_neg_one $ ext_nat h_pos
 
 end monoid_with_zero_hom
 

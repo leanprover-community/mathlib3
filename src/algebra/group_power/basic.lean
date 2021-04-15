@@ -46,10 +46,13 @@ instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨λ x n, npow n x⟩
 
 instance add_monoid.has_scalar_nat [add_monoid M] : has_scalar ℕ M := ⟨nsmul⟩
 
+attribute [to_additive add_monoid.has_scalar_nat] monoid.has_pow
+
 @[simp] lemma npow_eq_pow {M : Type*} [monoid M] (n : ℕ) (x : M) : npow n x = x^n := rfl
 
 @[simp] lemma nsmul_eq_smul {M : Type*} [add_monoid M] (n : ℕ) (x : M) : nsmul n x = n • x := rfl
 
+attribute [to_additive nsmul_eq_smul] npow_eq_pow
 
 /-!
 ### Commutativity

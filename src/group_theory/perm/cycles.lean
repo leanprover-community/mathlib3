@@ -432,7 +432,7 @@ variables [fintype α]
 
 open subgroup
 
-lemma closure_is_cycle [fintype α] : closure ({σ | is_cycle σ} : set (perm α)) = ⊤ :=
+lemma closure_is_cycle [fintype α] : closure {σ : perm α | is_cycle σ} = ⊤ :=
 begin
   refine eq_top_iff.mpr (λ x hx, _),
   obtain ⟨h1, h2, h3⟩ := subtype.mem (trunc_cycle_factors x).out,

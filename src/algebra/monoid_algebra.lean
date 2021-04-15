@@ -287,7 +287,7 @@ subset.trans support_sum $ bUnion_mono $ assume a₁ _,
 
 @[simp] lemma single_pow [monoid G] {a : G} {b : k} :
   ∀ n : ℕ, (single a b : monoid_algebra k G)^n = single (a^n) (b ^ n)
-| 0 := rfl
+| 0 := by { simp only [pow_zero], refl }
 | (n+1) := by simp only [pow_succ, single_pow n, single_mul_single]
 
 section
@@ -720,6 +720,10 @@ end mul_one_class
 /-! #### Semiring structure -/
 section semiring
 
+instance {R : Type*} [semiring R] [semiring k] [semimodule R k] :
+  has_scalar R (add_monoid_algebra k G) :=
+finsupp.has_scalar
+
 variables [semiring k] [add_monoid G]
 
 instance : semiring (add_monoid_algebra k G) :=
@@ -727,6 +731,9 @@ instance : semiring (add_monoid_algebra k G) :=
   mul       := (*),
   zero      := 0,
   add       := (+),
+  nsmul     := λ n f, n • f,
+  nsmul_zero' := by { intros, ext, simp [-nsmul_eq_mul, add_smul] },
+  nsmul_succ' := by { intros, ext, simp [-nsmul_eq_mul, nat.succ_eq_one_add, add_smul] },
   .. add_monoid_algebra.mul_one_class,
   .. add_monoid_algebra.semigroup,
   .. add_monoid_algebra.mul_zero_class,
@@ -774,9 +781,6 @@ instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) 
 
 variables {R S : Type*}
 
-instance [semiring R] [semiring k] [semimodule R k] : has_scalar R (add_monoid_algebra k G) :=
-finsupp.has_scalar
-
 instance [semiring R] [semiring k] [semimodule R k] : semimodule R (add_monoid_algebra k G) :=
 finsupp.semimodule G k
 
@@ -820,8 +824,8 @@ lemma single_mul_single [has_add G] {a₁ a₂ : G} {b₁ b₂ : k} :
 -- Probably the correct fix is to make a `[add_]monoid_algebra.single` with the correct type,
 -- instead of relying on `finsupp.single`.
 lemma single_pow [add_monoid G] {a : G} {b : k} :
-  ∀ n : ℕ, ((single a b)^n : add_monoid_algebra k G) = single (n •ℕ a) (b ^ n)
-| 0 := rfl
+  ∀ n : ℕ, ((single a b)^n : add_monoid_algebra k G) = single (n • a) (b ^ n)
+| 0 := by { simp only [pow_zero, zero_nsmul], refl }
 | (n+1) :=
 by rw [pow_succ, pow_succ, single_pow n, single_mul_single, add_comm, add_nsmul, one_nsmul]
 
@@ -893,6 +897,9 @@ end add_monoid_algebra
 
 While we were not able to define `add_monoid_algebra k G = monoid_algebra k (multiplicative G)` due
 to definitional inconveniences, we can still show the types are isomorphic.
+
+TODO: with the new definitional `nsmul`, there is a direct equality here, so this paragraph could be
+improved.
 -/
 
 /-- The equivalence between `add_monoid_algebra` and `monoid_algebra` in terms of

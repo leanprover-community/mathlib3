@@ -155,7 +155,7 @@ def function.injective.ordered_semiring {β : Type*}
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_semiring β :=
-{ zero_le_one := show f 0 ≤ f 1, by  simp only [zero, one, zero_le_one],
+{ zero_le_one := show f 0 ≤ f 1, by simp only [zero, one, zero_le_one],
   mul_lt_mul_of_pos_left := λ  a b c ab c0, show f (c * a) < f (c * b),
     begin
       rw [mul, mul],

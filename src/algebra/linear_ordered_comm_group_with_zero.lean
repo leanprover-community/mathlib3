@@ -66,15 +66,15 @@ def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
 lemma one_le_pow_of_one_le' {n : ℕ} (H : 1 ≤ x) : 1 ≤ x^n :=
 begin
   induction n with n ih,
-  { exact le_refl 1 },
-  { exact one_le_mul H ih }
+  { rw pow_zero },
+  { rw pow_succ, exact one_le_mul H ih }
 end
 
 lemma pow_le_one_of_le_one {n : ℕ} (H : x ≤ 1) : x^n ≤ 1 :=
 begin
   induction n with n ih,
-  { exact le_refl 1 },
-  { exact mul_le_one' H ih }
+  { rw pow_zero },
+  { rw pow_succ, exact mul_le_one' H ih }
 end
 
 lemma eq_one_of_pow_eq_one {n : ℕ} (hn : n ≠ 0) (H : x ^ n = 1) : x = 1 :=
@@ -181,7 +181,7 @@ lemma mul_lt_right' (c : α) (h : a < b) (hc : c ≠ 0) : a * c < b * c :=
 by { contrapose! h, exact le_of_le_mul_right hc h }
 
 lemma pow_lt_pow_succ {x : α} {n : ℕ} (hx : 1 < x) : x ^ n < x ^ n.succ :=
-by { rw ← one_mul (x ^ n),
+by { rw [← one_mul (x ^ n), pow_succ],
 exact mul_lt_right' _ hx (pow_ne_zero _ $ ne_of_gt (lt_trans zero_lt_one'' hx)) }
 
 lemma pow_lt_pow' {x : α} {m n : ℕ} (hx : 1 < x) (hmn : m < n) : x ^ m < x ^ n :=

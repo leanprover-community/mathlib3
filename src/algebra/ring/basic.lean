@@ -606,6 +606,9 @@ protected theorem neg_eq_neg_one_mul (u : units α) : -u = -1 * u := by simp
 
 end units
 
+lemma is_unit.neg [ring α] {a : α} : is_unit a → is_unit (-a)
+| ⟨x, hx⟩ := hx ▸ (-x).is_unit
+
 namespace ring_hom
 
 /-- Ring homomorphisms preserve additive inverse. -/
@@ -631,7 +634,7 @@ end ring_hom
 
 /-- A commutative ring is a `ring` with commutative multiplication. -/
 @[protect_proj, ancestor ring comm_semigroup]
-class comm_ring (α : Type u) extends ring α, comm_semigroup α
+class comm_ring (α : Type u) extends ring α, comm_monoid α
 
 @[priority 100] -- see Note [lower instance priority]
 instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=

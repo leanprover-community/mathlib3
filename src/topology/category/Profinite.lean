@@ -8,6 +8,7 @@ import topology.category.CompHaus
 import topology.connected
 import topology.subset_properties
 import category_theory.adjunction.reflective
+import category_theory.monad.limits
 
 /-!
 # The category of Profinite Types
@@ -28,9 +29,8 @@ compact, Hausdorff and totally disconnected.
 ## TODO
 
 0. Link to category of projective limits of finite discrete sets.
-1. existence of products, limits(?), finite coproducts
-2. `Profinite_to_Top` creates limits?
-3. Clausen/Scholze topology on the category `Profinite`.
+1. finite coproducts
+2. Clausen/Scholze topology on the category `Profinite`.
 
 ## Tags
 
@@ -132,5 +132,20 @@ lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
 /-- The category of profinite sets is reflective in the category of compact hausdroff spaces -/
 instance Profinite.to_CompHaus.reflective : reflective Profinite.to_CompHaus :=
 { to_is_right_adjoint := ⟨CompHaus.to_Profinite, Profinite.to_Profinite_adj_to_CompHaus⟩ }
+
+noncomputable
+instance Profinite.to_CompHaus.creates_limits : creates_limits Profinite.to_CompHaus :=
+monadic_creates_limits _
+
+noncomputable
+instance Profinite.to_Top.reflective : reflective (Profinite_to_Top : Profinite ⥤ Top) :=
+reflective.comp Profinite.to_CompHaus CompHaus_to_Top
+
+noncomputable
+instance Profinite.to_Top.creates_limits : creates_limits Profinite_to_Top :=
+monadic_creates_limits _
+
+instance Profinite.has_limits : limits.has_limits Profinite :=
+has_limits_of_has_limits_creates_limits Profinite_to_Top
 
 end Profinite

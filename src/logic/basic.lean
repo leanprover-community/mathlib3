@@ -59,10 +59,11 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 
-@[simp] lemma eq_iff_true_of_subsingleton [subsingleton α] (x y : α) :
+@[simp] lemma eq_iff_true_of_subsingleton {α : Sort*} [subsingleton α] (x y : α) :
   x = y ↔ true :=
 by cc
 
+/-- If all points are equal to a given point `x`, then `α` is a subsingleton. -/
 lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsingleton α :=
 ⟨λ a b, (h a).symm ▸ (h b).symm ▸ rfl⟩
 

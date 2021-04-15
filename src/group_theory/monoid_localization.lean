@@ -815,8 +815,10 @@ noncomputable def away_map.lift (hg : is_add_unit (g x)) : B →+ C :=
 F.lift $ λ y, show is_add_unit (g y.1),
 begin
   obtain ⟨n, hn⟩ := y.2,
-  rw [←hn, g.map_nsmul],
-  exact is_add_unit.map (add_monoid_hom.of $ (λ x, n •ℕ x)) hg,
+  rw ← hn,
+  dsimp,
+  rw [g.map_nsmul],
+  convert is_add_unit.map (add_monoid_hom.of $ (λ x, n • x)) hg,
 end
 
 @[simp] lemma away_map.lift_eq (hg : is_add_unit (g x)) (a : A) :

@@ -761,7 +761,7 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
 lemma span_eq_add_submonoid.closure {M : Type*} [add_comm_monoid M] (S : set M) :
   (span ℕ S).to_add_submonoid = add_submonoid.closure S :=
 begin
-  refine (add_submonoid.closure_eq_of_le (by exact submodule.subset_span) _).symm,
+  refine (add_submonoid.closure_eq_of_le (by exact subset_span) _).symm,
   rintros m (hm : m ∈ (span ℕ S)),
   refine submodule.span_induction hm (λ s hs, add_submonoid.subset_closure hs)
     (add_submonoid.zero_mem _) (λ x y hx hy, add_submonoid.add_mem _ hx hy) (λ a m hm, _),

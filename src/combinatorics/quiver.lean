@@ -85,11 +85,12 @@ instance symmetrify_quiver (V : Type u) [quiver V] : quiver (symmetrify V) :=
 ⟨λ a b : V, (a ⟶ b) ⊕ (b ⟶ a)⟩
 
 /-- `total V` is the type of _all_ arrows of `V`. -/
+-- TODO Unify with `category_theory.arrow`? (The fields have been named to match.)
 @[ext, nolint has_inhabited_instance]
 structure total (V : Type u) [quiver.{v} V] : Type (max u v) :=
-(source : V)
-(target : V)
-(arrow : source ⟶ target)
+(left : V)
+(right : V)
+(hom : left ⟶ right)
 
 /-- A wide subquiver `H` of `G.symmetrify` determines a wide subquiver of `G`, containing an
     an arrow `e` if either `e` or its reversal is in `H`. -/
@@ -100,7 +101,7 @@ def wide_subquiver_symmetrify {V} [quiver V] :
 /-- A wide subquiver of `G` can equivalently be viewed as a total set of arrows. -/
 def wide_subquiver_equiv_set_total {V} [quiver V] :
   wide_subquiver V ≃ set (total V) :=
-{ to_fun := λ H, { e | e.arrow ∈ H e.source e.target },
+{ to_fun := λ H, { e | e.hom ∈ H e.left e.right },
   inv_fun := λ S a b, { e | total.mk a b e ∈ S },
   left_inv := λ H, rfl,
   right_inv := by { intro S, ext, cases x, refl } }

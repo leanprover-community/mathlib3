@@ -164,6 +164,11 @@ def partially_well_ordered_on (s) (r : α → α → Prop) : Prop :=
 def is_pwo [preorder α] (s) : Prop :=
 partially_well_ordered_on s ((≤) : α → α → Prop)
 
+theorem partially_well_ordered_on.mono {s t : set α} {r : α → α → Prop}
+  (ht : t.partially_well_ordered_on r) (hsub : s ⊆ t) :
+  s.partially_well_ordered_on r :=
+λ f hf, ht f (set.subset.trans hf hsub)
+
 theorem partially_well_ordered_on.image_of_monotone {s : set α}
   {r : α → α → Prop} {β : Type*} {r' : β → β → Prop}
   (hs : s.partially_well_ordered_on r) {f : α → β} (hf : ∀ a1 a2 : α, r a1 a2 → r' (f a1) (f a2)) :
@@ -296,7 +301,7 @@ theorem is_wf_iff_is_pwo [linear_order α] {s : set α} :
 end set
 
 @[simp]
-theorem finset.partially_well_ordered_on {r : α → α → Prop} [is_refl α r] {f : finset α} :
+theorem finset.partially_well_ordered_on {r : α → α → Prop} [is_refl α r] (f : finset α) :
   set.partially_well_ordered_on (↑f : set α) r :=
 begin
   intros g hg,
@@ -313,12 +318,12 @@ begin
 end
 
 @[simp]
-theorem finset.is_pwo [partial_order α] {f : finset α} :
+theorem finset.is_pwo [partial_order α] (f : finset α) :
   set.is_pwo (↑f : set α) :=
-finset.partially_well_ordered_on
+f.partially_well_ordered_on
 
 @[simp]
-theorem finset.well_founded_on {r : α → α → Prop} [is_strict_order α r] {f : finset α} :
+theorem finset.well_founded_on {r : α → α → Prop} [is_strict_order α r] (f : finset α) :
   set.well_founded_on (↑f : set α) r :=
 begin
   rw [set.well_founded_on_iff_no_descending_seq],
@@ -328,8 +333,8 @@ begin
 end
 
 @[simp]
-theorem finset.is_wf [partial_order α] {f : finset α} : set.is_wf (↑f : set α) :=
-finset.is_pwo.is_wf
+theorem finset.is_wf [partial_order α] (f : finset α) : set.is_wf (↑f : set α) :=
+f.is_pwo.is_wf
 
 namespace set
 variables [partial_order α] {s : set α} {a : α}
@@ -337,7 +342,7 @@ variables [partial_order α] {s : set α} {a : α}
 theorem finite.is_wf (h : s.finite) : s.is_wf :=
 begin
   rw ← h.coe_to_finset,
-  exact finset.is_wf,
+  exact finset.is_wf _,
 end
 
 @[simp]
@@ -429,135 +434,122 @@ end
 
 end set
 
-section
+namespace set
+namespace partially_well_ordered_on
 
-def is_bad (r : α → α → Prop) (s : set α) (f : ℕ → list α) : Prop :=
-set.range f ⊆ {l : list α | ∀ (x : α), x ∈ l → x ∈ s} ∧ ∀ (m n : ℕ), m < n →
-  ¬ sublist_forall₂ r (f m) (f n)
+def is_bad_seq (r : α → α → Prop) (s : set α) (f : ℕ → α) : Prop :=
+set.range f ⊆ s ∧ ∀ (m n : ℕ), m < n → ¬ r (f m) (f n)
 
-lemma foo (r : α → α → Prop) (s : set α) :
-  { l : list α | ∀ x, x ∈ l → x ∈ s }.partially_well_ordered_on (sublist_forall₂ r) ↔
-    ∀ f, ¬ is_bad r s f :=
+lemma iff_forall_not_is_bad_seq (r : α → α → Prop) (s : set α) :
+  s.partially_well_ordered_on r ↔
+    ∀ f, ¬ is_bad_seq r s f :=
 begin
   rw [set.partially_well_ordered_on],
   apply forall_congr (λ f, _),
-  simp [is_bad]
+  simp [is_bad_seq]
 end
 
-def is_min_bad (r : α → α → Prop) (s : set α) (n : ℕ) (f : ℕ → list α) : Prop :=
-  ∀ g : ℕ → list α, (∀ (m : ℕ), m < n → f m = g m) → (g n).length < (f n).length → ¬ is_bad r s g
+def is_min_bad_seq (r : α → α → Prop) (rk : α → ℕ) (s : set α) (n : ℕ) (f : ℕ → α) : Prop :=
+  ∀ g : ℕ → α, (∀ (m : ℕ), m < n → f m = g m) → rk (g n) < rk (f n) → ¬ is_bad_seq r s g
 
-noncomputable def baz (r : α → α → Prop) (s : set α) (n : ℕ) (f : ℕ → list α)
-  (hf : is_bad r s f) :
-  { g : ℕ → list α // (∀ (m : ℕ), m < n → f m = g m) ∧ is_bad r s g ∧ is_min_bad r s n g } :=
+noncomputable def min_bad_seq_of_bad_seq (r : α → α → Prop) (rk : α → ℕ) (s : set α)
+  (n : ℕ) (f : ℕ → α) (hf : is_bad_seq r s f) :
+  { g : ℕ → α // (∀ (m : ℕ), m < n → f m = g m) ∧ is_bad_seq r s g ∧ is_min_bad_seq r rk s n g } :=
 begin
   classical,
-  replace hf : is_bad r s f, { convert hf },
-  have h : ∃ (k : ℕ) (g : ℕ → list α), (∀ m, m < n → f m = g m) ∧ is_bad r s g
-        ∧ (g n).length = k :=
+  have h : ∃ (k : ℕ) (g : ℕ → α), (∀ m, m < n → f m = g m) ∧ is_bad_seq r s g
+        ∧ rk (g n) = k :=
   ⟨_, f, λ _ _, rfl, hf, rfl⟩,
   obtain ⟨h1, h2, h3⟩ := classical.some_spec (nat.find_spec h),
-  refine ⟨classical.some (nat.find_spec h), h1, by convert h2, _⟩,
-  intros g hg1 hg2 con,
+  refine ⟨classical.some (nat.find_spec h), h1, by convert h2, λ g hg1 hg2 con, _⟩,
   refine nat.find_min h _ ⟨g, λ m mn, (h1 m mn).trans (hg1 m mn), by convert con, rfl⟩,
   rwa ← h3,
 end
 
-lemma bar (r : α → α → Prop) (s : set α) :
-  (∃ f, is_bad r s f) → ∃ f, is_bad r s f ∧ ∀ n, is_min_bad r s n f :=
+lemma exists_min_bad_of_exists_bad (r : α → α → Prop) (rk : α → ℕ) (s : set α) :
+  (∃ f, is_bad_seq r s f) → ∃ f, is_bad_seq r s f ∧ ∀ n, is_min_bad_seq r rk s n f :=
 begin
-  classical,
-  rintro ⟨f0, hf0⟩,
-  replace hf0 : is_bad r s f0, { convert hf0 },
-  let fs : Π (n : ℕ), { f :  ℕ → list α // is_bad r s f ∧ is_min_bad r s n f },
+  rintro ⟨f0, (hf0 : is_bad_seq r s f0)⟩,
+  let fs : Π (n : ℕ), { f :  ℕ → α // is_bad_seq r s f ∧ is_min_bad_seq r rk s n f },
   { refine nat.rec _ _,
-    { exact ⟨(baz r s 0 f0 hf0).1, (baz r s 0 f0 hf0).2.2⟩,  },
-    { intros n fn,
-      exact ⟨(baz r s n.succ fn.1 fn.2.1).1, (baz r s n.succ fn.1 fn.2.1).2.2⟩ } },
-  have hfs : fs = nat.rec _ _ := rfl,
+    { exact ⟨(min_bad_seq_of_bad_seq r rk s 0 f0 hf0).1,
+        (min_bad_seq_of_bad_seq r rk s 0 f0 hf0).2.2⟩, },
+    { exact λ n fn, ⟨(min_bad_seq_of_bad_seq r rk s (n + 1) fn.1 fn.2.1).1,
+        (min_bad_seq_of_bad_seq r rk s (n + 1) fn.1 fn.2.1).2.2⟩ } },
   have h : ∀ m n, m ≤ n → (fs m).1 m = (fs n).1 m,
   { intros m n mn,
     obtain ⟨k, rfl⟩ := exists_add_of_le mn,
     clear mn,
     induction k with k ih,
     { refl },
-    rw [ih, ((baz r s (m + k).succ (fs (m + k)).1 (fs (m + k)).2.1).2.1 m
+    rw [ih, ((min_bad_seq_of_bad_seq r rk s (m + k).succ (fs (m + k)).1 (fs (m + k)).2.1).2.1 m
         (nat.lt_succ_iff.2 (nat.add_le_add_left k.zero_le m)))],
-    refl, },
-  let f : ℕ → list α := λ n, (fs n).1 n,
-  have hf : ∀ n, f n = (fs n).1 n := λ _, rfl,
-  refine ⟨f, _, _⟩,
-  { refine ⟨_, _⟩,
-    { rw set.range_subset_iff,
-      intros n x hx,
-      exact set.range_subset_iff.1 ((fs n).2).1.1 n x hx },
-    { intros m n mn,
-      rw [hf, h m n (le_of_lt mn), hf],
-      convert (fs n).2.1.2 m n mn } },
-  { intros n g hg1 hg2,
-    convert (fs n).2.2 g (λ m mn, eq.trans _ (hg1 m mn)) (lt_of_lt_of_le hg2 (le_refl _)),
+    refl },
+  refine ⟨λ n, (fs n).1 n, ⟨set.range_subset_iff.2 (λ n, ((fs n).2).1.1 (mem_range_self n)),
+    λ m n mn, _⟩, λ n g hg1 hg2, _⟩,
+  { dsimp,
+    rw [← subtype.val_eq_coe, h m n (le_of_lt mn)],
+    convert (fs n).2.1.2 m n mn },
+  { convert (fs n).2.2 g (λ m mn, eq.trans _ (hg1 m mn)) (lt_of_lt_of_le hg2 (le_refl _)),
     rw ← h m n (le_of_lt mn) },
 end
 
-lemma higman (r : α → α → Prop) [is_refl α r] [is_trans α r]
-  (s : set α) (h : s.partially_well_ordered_on r) :
-  { l : list α | ∀ x, x ∈ l → x ∈ s }.partially_well_ordered_on (sublist_forall₂ r) :=
+lemma iff_not_exists_is_min_bad_seq {r : α → α → Prop} (rk : α → ℕ) {s : set α} :
+  s.partially_well_ordered_on r ↔ ¬ ∃ f, is_bad_seq r s f ∧ ∀ n, is_min_bad_seq r rk s n f :=
+begin
+  rw [iff_forall_not_is_bad_seq, ← not_exists, not_congr],
+  split,
+  { apply exists_min_bad_of_exists_bad },
+  rintro ⟨f, hf1, hf2⟩,
+  exact ⟨f, hf1⟩,
+end
+
+lemma partially_well_ordered_on_sublist_forall₂ (r : α → α → Prop) [is_refl α r] [is_trans α r]
+  {s : set α} (h : s.partially_well_ordered_on r) :
+  { l : list α | ∀ x, x ∈ l → x ∈ s }.partially_well_ordered_on (list.sublist_forall₂ r) :=
 begin
   rcases s.eq_empty_or_nonempty with rfl | ⟨as, has⟩,
-  { have h : { l : list α | ∀ x, x ∈ l → x ∈ (∅ : set α) } = {list.nil},
-    { ext l,
-      simp only [set.mem_singleton_iff, set.mem_set_of_eq, list.eq_nil_iff_forall_not_mem],
-      exact forall_congr (λ a, iff.refl _) },
-    rw [h, ← finset.coe_singleton],
-    exact finset.partially_well_ordered_on },
+  { apply partially_well_ordered_on.mono (finset.partially_well_ordered_on {list.nil}),
+    { intros l hl,
+      rw [finset.mem_coe, finset.mem_singleton, list.eq_nil_iff_forall_not_mem],
+      exact hl, },
+    apply_instance },
   haveI : inhabited α := ⟨as⟩,
-  rw foo,
-  intros f0 con,
-  obtain ⟨f, hf1, hf2⟩ := bar r s ⟨f0, con⟩,
-  have hnil : ∀ n, f n ≠ list.nil,
-    { intros n con,
-      apply (hf1).2 n n.succ n.lt_succ_self,
-      rw con,
-      exact sublist_forall₂.nil },
+  rw [iff_not_exists_is_min_bad_seq (list.length)],
+  rintro ⟨f, hf1, hf2⟩,
+  have hnil : ∀ n, f n ≠ list.nil :=
+    λ n con, (hf1).2 n n.succ n.lt_succ_self (con.symm ▸ list.sublist_forall₂.nil),
   obtain ⟨g, hg⟩ := h.exists_monotone_subseq (list.head ∘ f) _,
-  swap, { rw set.range_subset_iff,
-    intro n,
-    simp only [function.comp_apply],
-    apply hf1.1 (set.mem_range_self n) _ (list.head_mem_self (hnil n)) },
+  swap, { simp only [set.range_subset_iff, function.comp_apply],
+    exact λ n, hf1.1 (set.mem_range_self n) _ (list.head_mem_self (hnil n)) },
   have hf' := hf2 (g 0) (λ n, if n < g 0 then f n else list.tail (f (g (n - g 0))))
     (λ m hm, (if_pos hm).symm) _,
   swap, { simp only [if_neg (lt_irrefl (g 0)), nat.sub_self],
     rw [list.length_tail, ← nat.pred_eq_sub_one],
     exact nat.pred_lt (λ con, hnil _ (list.length_eq_zero.1 con)) },
-  rw [is_bad] at hf',
+  rw [is_bad_seq] at hf',
   push_neg at hf',
   obtain ⟨m, n, mn, hmn⟩ := hf' _,
   swap, { rw set.range_subset_iff,
     rintro n x hx,
     split_ifs at hx with hn hn,
     { exact hf1.1 (set.mem_range_self _) _ hx },
-    { refine hf1.1 (set.mem_range_self _) _ (list.mem_of_mem_tail hx), } },
+    { refine hf1.1 (set.mem_range_self _) _ (list.tail_subset _ hx), } },
   by_cases hn : n < g 0,
-  { rw [if_pos hn, if_pos (mn.trans hn)] at hmn,
-    exact hf1.2 m n mn hmn },
-  { rw if_neg hn at hmn,
-    rw [not_lt, le_iff_exists_add] at hn,
-    obtain ⟨n', rfl⟩ := hn,
-    rw [add_comm (g 0) n', nat.add_sub_cancel] at hmn,
+  { apply hf1.2 m n mn,
+    rwa [if_pos hn, if_pos (mn.trans hn)] at hmn },
+  { obtain ⟨n', rfl⟩ := le_iff_exists_add.1 (not_lt.1 hn),
+    rw [if_neg hn, add_comm (g 0) n', nat.add_sub_cancel] at hmn,
     split_ifs at hmn with hm hm,
     { apply hf1.2 m (g n') (lt_of_lt_of_le hm (g.monotone n'.zero_le)),
-      exact trans hmn (tail_sublist_forall₂_self _ _) },
+      exact trans hmn (list.tail_sublist_forall₂_self _) },
     { rw [← (nat.sub_lt_left_iff_lt_add (le_of_not_lt hm))] at mn,
       apply hf1.2 _ _ (g.lt_iff_lt.2 mn),
       rw [← list.cons_head_tail (hnil (g (m - g 0))), ← list.cons_head_tail (hnil (g n'))],
-      apply sublist_forall₂.cons _ hmn,
-      have h := hg _ _ (le_of_lt mn),
-      rwa [function.comp_apply, function.comp_apply] at h } }
+      exact list.sublist_forall₂.cons (hg _ _ (le_of_lt mn)) hmn, } }
 end
 
-end
-
-namespace set
+end partially_well_ordered_on
 
 /-- `set.mul_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
   that multiply to `a`. -/

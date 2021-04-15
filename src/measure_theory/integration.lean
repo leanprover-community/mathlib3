@@ -903,6 +903,11 @@ begin
   exact h a,
 end
 
+lemma lintegral_mono_set ⦃μ : measure α⦄
+  {s t : set α} {f : α → ℝ≥0∞} (hfm : measurable f) (hst : s ⊆ t) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in t, f x ∂μ :=
+lintegral_mono' (measure.restrict_mono hst (le_refl μ)) (le_refl f)
+
 lemma monotone_lintegral (μ : measure α) : monotone (lintegral μ) :=
 lintegral_mono
 

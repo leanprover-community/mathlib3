@@ -344,3 +344,9 @@ have ((x + (1 : ℚ) / (2 : ℚ) : ℚ) : α) = x + 1 / 2, by simp,
 by rw [round, round, ← this, rat.cast_floor]
 
 end
+
+lemma supr_eq_supr_coe_nat_of_monotone {α β : Type*} [complete_lattice β] [ordered_semiring α]
+  [archimedean α] {f : α → β} (hf : monotone f) : (⨆ (n : α), f n) = ⨆ (n : ℕ), f n :=
+le_antisymm
+  (supr_le_supr2 $ λ i, exists_imp_exists (λ a (ha : i ≤ a), hf ha) (exists_nat_ge i))
+  (supr_le_supr2 $ λ i, ⟨i, le_refl _⟩)

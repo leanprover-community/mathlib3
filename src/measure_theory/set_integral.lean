@@ -541,6 +541,25 @@ set_integral_nonneg_of_ae_restrict ((ae_restrict_iff' hs).mpr (ae_of_all μ hf))
 
 end nonneg
 
+lemma set_integral_mono_set {α : Type*} [measurable_space α] {μ : measure α}
+  {s t : set α} {f : α → ℝ} (hfi : integrable f μ) (hf : 0 ≤ᵐ[μ] f)
+  (hs : measurable_set s) (ht : measurable_set t) (hst : s ≤ᵐ[μ] t) :
+  ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
+begin
+  rw [← integral_indicator hs, ← integral_indicator ht],
+  refine integral_mono_ae (hfi.indicator hs)
+      (hfi.indicator ht) _,
+  filter_upwards [hf, hst],
+  intros x hx hstx,
+  by_cases h : x ∈ s,
+  { rw [indicator_of_mem h, indicator_of_mem (hstx h)] },
+  { rw [indicator_of_not_mem h, indicator],
+    dsimp only,
+    split_ifs,
+    { exact hx },
+    { exact le_refl _ } }
+end
+
 end measure_theory
 
 open measure_theory asymptotics metric

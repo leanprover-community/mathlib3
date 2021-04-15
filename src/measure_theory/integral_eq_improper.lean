@@ -54,53 +54,6 @@ in analysis.
 open measure_theory filter set
 open_locale ennreal nnreal topological_space
 
-section move_me
-
-lemma supr_eq_supr_coe_nat_of_monotone {α β : Type*} [complete_lattice β] [ordered_semiring α]
-  [archimedean α] {f : α → β} (hf : monotone f) : (⨆ (n : α), f n) = ⨆ (n : ℕ), f n :=
-le_antisymm
-  (supr_le_supr2 $ λ i, exists_imp_exists (λ a (ha : i ≤ a), hf ha) (exists_nat_ge i))
-  (supr_le_supr2 $ λ i, ⟨i, le_refl _⟩)
-
-lemma tendsto_iff_tendsto_subseq_of_monotone {α β γ : Type*} [semilattice_sup α] [preorder β]
-  [nonempty α] [topological_space γ] [conditionally_complete_linear_order γ] [order_topology γ]
-  {f : β → γ} {g : α → β} {l : γ} (hf : monotone f) [no_top_order γ]
-  (hg : tendsto g at_top at_top) :
-  tendsto f at_top (𝓝 l) ↔ tendsto (f ∘ g) at_top (𝓝 l) :=
-begin
-  split; intro h,
-  { exact h.comp hg },
-  { rcases tendsto_of_monotone hf with h' | ⟨l', hl'⟩,
-    { exact (not_tendsto_at_top_of_tendsto_nhds h (h'.comp hg)).elim },
-    { rwa tendsto_nhds_unique h (hl'.comp hg) } }
-end
-
-lemma lintegral_mono_set {α : Type*} [measurable_space α] {μ : measure α}
-  {s t : set α} {f : α → ℝ≥0∞} (hfm : measurable f) (hst : s ⊆ t) :
-  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in t, f x ∂μ :=
-lintegral_mono' (measure.restrict_mono hst (le_refl μ)) (le_refl f)
-
-lemma integral_mono_set {α : Type*} [measurable_space α] {μ : measure α}
-  {s t : set α} {f : α → ℝ} (hfm : measurable f) (hfi : integrable f μ) (hf : 0 ≤ᵐ[μ] f)
-  (hs : measurable_set s) (ht : measurable_set t) (hst : s ≤ᵐ[μ] t) :
-  ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
-begin
-  rw [← integral_indicator hs, ← integral_indicator ht],
-  refine integral_mono_ae (hfi.indicator hs)
-      (hfi.indicator ht) _,
-  filter_upwards [hf, hst],
-  intros x hx hstx,
-  by_cases h : x ∈ s,
-  { rw [indicator_of_mem h, indicator_of_mem (hstx h)] },
-  { rw [indicator_of_not_mem h, indicator],
-    dsimp only,
-    split_ifs,
-    { exact hx },
-    { exact le_refl _ } }
-end
-
-end move_me
-
 namespace measure_theory
 
 section mono_ae_cover
@@ -108,6 +61,16 @@ section mono_ae_cover
 variables {α ι : Type*} [ordered_add_comm_monoid ι]
   [measurable_space α] (μ : measure α)
 
+/-- A sequence `φ` of subsets of `α` is a `mono_ae_cover` w.r.t. a measure `μ`
+    if almost every point (w.r.t. `μ`) of `α` eventually belongs to `φ n`, `φ` is
+    monotone, and each `φ n` is measurable.
+    This definition is a technical way to avoid duplicating a lot of proofs.
+    It should be thought of as a sufficient condition for being able to interpret
+    `∫ x, f x ∂μ` (if it exists) as the limit as `n` goes to `∞` of `∫ x in φ n, f x ∂μ`.
+
+    See for example `measure_theory.lintegral_eq_of_tendsto_lintegral`,
+    `measure_theory.integrable_of_tendsto_integral_norm` and
+    `measure_theory.integral_eq_of_tendsto_integral`. -/
 structure mono_ae_cover (φ : ι → set α) : Prop :=
 (ae_eventually_mem : ∀ᵐ x ∂μ, ∀ᶠ i in at_top, x ∈ φ i)
 (mono : monotone φ)
@@ -230,7 +193,7 @@ end mono_ae_cover
 
 section mono_ae_cover_archimedean
 
-variables {α ι : Type*} [ordered_semiring ι] [nonempty ι] [archimedean ι]
+variables {α ι : Type*} [ordered_semiring ι] [archimedean ι]
   [measurable_space α] {μ : measure α}
 
 lemma mono_ae_cover.coe_nat {φ : ι → set α} (hφ : mono_ae_cover μ φ) :
@@ -243,8 +206,15 @@ end mono_ae_cover_archimedean
 
 section lintegral
 
-variables {α ι : Type*} [linear_ordered_semiring ι] [nonempty ι] [archimedean ι]
-  [measurable_space α] {μ : measure α}
+variables {α ι : Type*} [measurable_space α] {μ : measure α}
+
+lemma set_lintegral_tendsto_of_monotone_set [preorder ι] {φ : ι → set α} (hφ : monotone φ) {f : α → ℝ≥0∞} :
+  tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ⨆ (i : ι), ∫⁻ x in φ i, f x ∂μ) :=
+tendsto_at_top_csupr
+  (λ i j hij, lintegral_mono' (measure.restrict_mono (hφ hij) (le_refl _)) (le_refl _))
+  ⟨⊤, λ _ _, le_top⟩
+
+variables [linear_ordered_semiring ι] [archimedean ι]
 
 lemma lintegral_eq_supr {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → ℝ≥0∞}
   (hfm : measurable f) :
@@ -269,12 +239,6 @@ begin
   exact lintegral_supr (λ n, hfm.indicator $ hφ.measurable n) (λ i j hij x, F_mono x hij),
 end
 
-lemma set_lintegral_tendsto_of_monotone_set {φ : ι → set α} (hφ : monotone φ) {f : α → ℝ≥0∞} :
-  tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ⨆ (i : ι), ∫⁻ x in φ i, f x ∂μ) :=
-tendsto_at_top_csupr
-  (λ i j hij, lintegral_mono' (measure.restrict_mono (hφ hij) (le_refl _)) (le_refl _))
-  ⟨⊤, λ _ _, le_top⟩
-
 lemma set_lintegral_tendsto_lintegral {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → ℝ≥0∞}
   (hfm : measurable f) :
   tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
@@ -293,7 +257,7 @@ end lintegral
 
 section integrable
 
-variables {α ι : Type*} [linear_ordered_semiring ι] [nonempty ι] [archimedean ι]
+variables {α ι : Type*} [linear_ordered_semiring ι] [archimedean ι]
   [measurable_space α] {μ : measure α} {E : Type*} [normed_group E]
   [measurable_space E] [opens_measurable_space E]
 
@@ -349,17 +313,16 @@ end integrable
 
 section integral
 
-variables {α ι : Type*} [linear_ordered_semiring ι] [nonempty ι] [archimedean ι]
+variables {α ι : Type*} [linear_ordered_semiring ι] [archimedean ι]
   [measurable_space α] {μ : measure α} {E : Type*} [normed_group E]
-  [measurable_space E] [normed_space ℝ E] [complete_space E] [borel_space E]
-  [topological_space.second_countable_topology E]
+  [measurable_space E] [borel_space E]
 
 lemma set_integral_norm_tendsto_integral_norm {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → E}
   (hfm : measurable f) (hfi : integrable f μ) :
   tendsto (λ i, ∫ x in φ i, ∥f x∥ ∂μ) at_top (𝓝 $ ∫ x, ∥f x∥ ∂μ) :=
 begin
   have mono_integral_norm : monotone (λ i, ∫ x in φ i, ∥f x∥ ∂μ) :=
-    (λ (i j : ι) hij, integral_mono_set hfm.norm hfi.norm (ae_of_all _ $ λ x, norm_nonneg _)
+    (λ (i j : ι) hij, set_integral_mono_set hfi.norm (ae_of_all _ $ λ x, norm_nonneg _)
       (hφ.measurable i) (hφ.measurable j) (ae_of_all _ $ hφ.mono hij)),
   rw tendsto_iff_tendsto_subseq_of_monotone mono_integral_norm tendsto_coe_nat_at_top_at_top,
   suffices : tendsto (λ (n : ℕ), ∫ (x : α), (φ n).indicator (norm ∘ f) x ∂μ) at_top
@@ -373,6 +336,8 @@ begin
   rw [indicator_comp_of_zero norm_zero, norm_norm],
   exact norm_indicator_le_norm_self _ _
 end
+
+variables [normed_space ℝ E] [complete_space E] [topological_space.second_countable_topology E]
 
 lemma set_integral_tendsto_integral {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → E}
   (hfm : measurable f) (hfi : integrable f μ) :
@@ -417,7 +382,7 @@ end integral
 section integrable_of_interval_integral
 
 variables {α ι E : Type*} [topological_space α] [linear_order α] [order_closed_topology α]
-  [measurable_space α] [opens_measurable_space α] [linear_ordered_semiring ι] [nonempty ι]
+  [measurable_space α] [opens_measurable_space α] [linear_ordered_semiring ι]
   [archimedean ι] [measurable_space E] [normed_group E] [borel_space E] {μ : measure α}
   {a b : ι → α} (ha₁ : ∀ ⦃x y⦄, x ≤ y → a y ≤ a x) (hb₁ : monotone b) {f : α → E}
   (hfm : measurable f)
@@ -488,7 +453,7 @@ end integrable_of_interval_integral
 section integral_of_interval_integral
 
 variables {α ι E : Type*} [topological_space α] [linear_order α] [order_closed_topology α]
-  [measurable_space α] [opens_measurable_space α] [linear_ordered_semiring ι] [nonempty ι]
+  [measurable_space α] [opens_measurable_space α] [linear_ordered_semiring ι]
   [archimedean ι] [measurable_space E] [normed_group E]
   [topological_space.second_countable_topology E] [complete_space E]
   [normed_space ℝ E] [borel_space E] {μ : measure α} {a b : ι → α}

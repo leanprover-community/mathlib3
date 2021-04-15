@@ -350,8 +350,6 @@ end add_comm_group
 
 namespace add_monoid_hom
 
--- We prove this without using the `add_comm_group.int_module` instance, so the `•`s here
--- come from whatever the local `module ℤ` structure actually is.
 lemma map_int_module_smul [add_comm_group M] [add_comm_group M₂]
   (f : M →+ M₂) (x : ℤ) (a : M) : f (x • a) = x • f a :=
 by simp only [f.map_gsmul]
@@ -388,9 +386,11 @@ lemma map_rat_module_smul {E : Type*} [add_comm_group E] [vector_space ℚ E]
   f (c • x) = c • f x :=
 rat.cast_id c ▸ f.map_rat_cast_smul c x
 
+@[simp] lemma nat_smul_apply [add_monoid M] [add_comm_monoid M₂]
+  (n : ℕ) (f : M →+ M₂) (a : M) : (n • f) a = n • (f a) := rfl
+
 @[simp] lemma int_smul_apply [add_monoid M] [add_comm_group M₂]
-  (n : ℤ) (f : M →+ M₂) (a : M) : (n • f) a = n • (f a) :=
-rfl
+  (n : ℤ) (f : M →+ M₂) (a : M) : (n • f) a = n • (f a) := rfl
 
 end add_monoid_hom
 
@@ -468,9 +468,8 @@ lemma eq_zero_of_eq_neg {v : M} (hv : v = - v) : v = 0 :=
 begin
   haveI := nat.no_zero_smul_divisors R M,
   refine eq_zero_of_smul_two_eq_zero R _,
-  rw ←nsmul_eq_smul,
-  convert add_eq_zero_iff_eq_neg.mpr hv,
-  abel
+  rw two_smul,
+  exact add_eq_zero_iff_eq_neg.mpr hv
 end
 
 end nat
@@ -502,14 +501,10 @@ end division_ring
 
 end no_zero_smul_divisors
 
--- We finally turn on these instances globally. By doing this here, we ensure that none of the
--- lemmas about nat semimodules above are specific to these instances.
-attribute [instance] add_comm_group.int_module
-
 @[simp] lemma nat.smul_one_eq_coe {R : Type*} [semiring R] (m : ℕ) :
   m • (1 : R) = ↑m :=
 by rw [nsmul_eq_mul, mul_one]
 
-@[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] [semimodule ℤ R] (m : ℤ) :
+@[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] (m : ℤ) :
   m • (1 : R) = ↑m :=
-by rw [← gsmul_eq_smul, gsmul_eq_mul, mul_one]
+by rw [gsmul_eq_mul, mul_one]

@@ -75,7 +75,7 @@ namespace category_theory
 /-- A preliminary structure on the way to defining a category,
 containing the data, but none of the axioms. -/
 class category_struct (obj : Type u)
-extends quiver.{v} obj : Type (max u (v+1)) :=
+extends quiver.{v+1} obj : Type (max u (v+1)) :=
 (id       : Π X : obj, hom X X)
 (comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
 

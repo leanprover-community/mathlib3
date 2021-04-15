@@ -594,7 +594,7 @@ attribute [to_additive fin_equiv_multiples] fin_equiv_powers
   fin_equiv_powers a n = ⟨a ^ ↑n, n, rfl⟩ := rfl
 
 @[simp] lemma fin_equiv_multiples_apply {a : H} {n : fin (add_order_of a)} :
-  fin_equiv_multiples a n = ⟨↑n • a, n, rfl⟩ := rfl
+  fin_equiv_multiples a n = ⟨nsmul ↑n a, n, rfl⟩ := rfl
 
 attribute [to_additive fin_equiv_multiples_apply] fin_equiv_powers_apply
 
@@ -743,7 +743,7 @@ attribute [to_additive fin_equiv_gmultiples] fin_equiv_gpowers
   fin_equiv_gpowers a n = ⟨a ^ ↑n, n, rfl⟩ := rfl
 
 @[simp] lemma fin_equiv_gmultiples_apply {a : H} {n : fin (add_order_of a)} :
-  fin_equiv_gmultiples a n = ⟨n • a, n, rfl⟩ := rfl
+  fin_equiv_gmultiples a n = ⟨nsmul n a, n, rfl⟩ := rfl
 
 attribute [to_additive fin_equiv_gmultiples_apply] fin_equiv_gpowers_apply
 

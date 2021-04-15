@@ -839,7 +839,7 @@ begin
     simp },
 end
 
-theorem geometric_hahn_banach_closed_closed_compact {A B : set E}
+theorem geometric_hahn_banach_compact_closed {A B : set E}
   (hA₂ : convex A) (hA₄ : is_compact A)
   (hB₂ : convex B) (hA₃ : is_closed B)
   (disj : disjoint A B) :
@@ -867,6 +867,14 @@ begin
   linarith [hx₂ a ha]
 end
 
+theorem geometric_hahn_banach_closed_compact {A B : set E}
+  (hA₂ : convex A) (hA₄ : is_closed A)
+  (hB₂ : convex B) (hA₃ : is_compact B)
+  (disj : disjoint A B) :
+  ∃ (f : E →L[ℝ] ℝ) (s t : ℝ), (∀ a ∈ A, f a < s) ∧ s < t ∧ (∀ b ∈ B, t < f b) :=
+let ⟨f, s, t, hs, st, ht⟩ := geometric_hahn_banach_compact_closed hB₂ hA₃ hA₂ hA₄ disj.symm in
+⟨-f, -t, -s, by simpa using ht, by simpa using st, by simpa using hs⟩
+
 theorem geometric_hahn_banach_point_point {x y : E} (hxy : x ≠ y) :
   ∃ (f : E →L[ℝ] ℝ), f x < f y :=
 begin
@@ -877,7 +885,7 @@ begin
   have : disjoint ({x} : set E) {y},
   { simp [hxy.symm] },
   obtain ⟨f, s, t, hs, st, ht⟩ :=
-    geometric_hahn_banach_closed_closed_compact ‹_› ‹_› ‹convex {y}› ‹_› ‹_›,
+    geometric_hahn_banach_compact_closed ‹_› ‹_› ‹convex {y}› ‹_› ‹_›,
   refine ⟨f, _⟩,
   linarith [hs x rfl, ht y rfl],
 end

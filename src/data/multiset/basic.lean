@@ -2117,9 +2117,9 @@ end
 lemma rel_repeat_left {m : multiset α} {a : α} {r : α → α → Prop} {n : ℕ} :
   (repeat a n).rel r m ↔ m.card = n ∧ ∀ x, x ∈ m → r a x :=
 ⟨λ h, ⟨(card_eq_card_of_rel h).symm.trans (card_repeat _ _), λ x hx, begin
-  obtain ⟨b, hb1, hb2⟩ := exists_mem_of_rel_of_mem (rel_flip.2 h) hx,
-  rwa eq_of_mem_repeat hb1 at hb2,
-end⟩,
+    obtain ⟨b, hb1, hb2⟩ := exists_mem_of_rel_of_mem (rel_flip.2 h) hx,
+    rwa eq_of_mem_repeat hb1 at hb2,
+  end⟩,
   λ h, rel_of_forall (λ x y hx hy, (eq_of_mem_repeat hx).symm ▸ (h.2 _ hy))
   (eq.trans (card_repeat _ _) h.1.symm)⟩
 

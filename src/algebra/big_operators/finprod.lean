@@ -567,7 +567,7 @@ begin
     h.subset (λ x hx, ⟨hx.1.1, hx.2⟩)],
 end
 
-@[to_additive] lemma finprod_mem_inter_mul_diff (h : s.finite) :
+@[to_additive] lemma finprod_mem_inter_mul_diff (t : set α) (h : s.finite) :
   (∏ᶠ i ∈ s ∩ t, f i) * ∏ᶠ i ∈ s \ t, f i = ∏ᶠ i ∈ s, f i :=
 finprod_mem_inter_mul_diff' _ $ h.inter_of_left _
 

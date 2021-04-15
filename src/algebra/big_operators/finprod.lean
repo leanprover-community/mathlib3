@@ -468,7 +468,7 @@ by simp [@eq_comm _ a]
   (hs : (s ∩ mul_support f).finite) :
   ∏ᶠ i ∈ insert a s, f i = f a * ∏ᶠ i ∈ s, f i :=
 begin
-  rw [insert_eq, finprod_mem_union' _ hs, finprod_mem_singleton],
+  rw [insert_eq, finprod_mem_union' _ _ hs, finprod_mem_singleton],
   { rwa disjoint_singleton_left },
   { exact (finite_singleton a).inter_of_left _ }
 end
@@ -559,23 +559,23 @@ end
   ∏ᶠ j : subtype p, f j = ∏ᶠ i (hi : p i), f i :=
 finprod_set_coe_eq_finprod_mem {i | p i}
 
-@[to_additive] lemma finprod_mem_inter_mul_diff' (h : (s ∩ mul_support f).finite) :
+@[to_additive] lemma finprod_mem_inter_mul_diff' (t : set α) (h : (s ∩ mul_support f).finite) :
   (∏ᶠ i ∈ s ∩ t, f i) * ∏ᶠ i ∈ s \ t, f i = ∏ᶠ i ∈ s, f i :=
 begin
   rw [← finprod_mem_union', inter_union_diff],
-  exacts [h.subset (λ x hx, ⟨hx.1.1, hx.2⟩), h.subset (λ x hx, ⟨hx.1.1, hx.2⟩),
-    λ x hx, hx.2.2 hx.1.2]
+  exacts [λ x hx, hx.2.2 hx.1.2, h.subset (λ x hx, ⟨hx.1.1, hx.2⟩),
+    h.subset (λ x hx, ⟨hx.1.1, hx.2⟩)],
 end
 
 @[to_additive] lemma finprod_mem_inter_mul_diff (h : s.finite) :
   (∏ᶠ i ∈ s ∩ t, f i) * ∏ᶠ i ∈ s \ t, f i = ∏ᶠ i ∈ s, f i :=
-finprod_mem_inter_mul_diff' $ h.inter_of_left _
+finprod_mem_inter_mul_diff' _ $ h.inter_of_left _
 
 /-- A more general version of `finprod_mem_mul_diff` that requires `t ∩ mul_support f` instead of
   `t` to be finite. -/
 @[to_additive] lemma finprod_mem_mul_diff' (hst : s ⊆ t) (ht : (t ∩ mul_support f).finite) :
   (∏ᶠ i ∈ s, f i) * ∏ᶠ i ∈ t \ s, f i = ∏ᶠ i ∈ t, f i :=
-by rw [← finprod_mem_inter_mul_diff' ht, inter_eq_self_of_subset_right hst]
+by rw [← finprod_mem_inter_mul_diff' _ ht, inter_eq_self_of_subset_right hst]
 
 /-- Given a finite set `t` and a subset `s` of `t`, the product of `f i` over `i ∈ s`
 times the product of `f i` over `t \ s` equals the product of `f i` over `i ∈ t`. -/
@@ -608,7 +608,7 @@ of the products of `f a` over `a ∈ t i`. -/
 begin
   haveI := hI.fintype,
   rw [← Union_subtype, finprod_mem_Union, ← finprod_set_coe_eq_finprod_mem],
-  exacts [λ b, ht b b.2, λ x y hxy, h x x.2 y y.2 (subtype.coe_injective.ne hxy)]
+  exacts [λ x y hxy, h x x.2 y y.2 (subtype.coe_injective.ne hxy), λ b, ht b b.2]
 end
 
 /-- If `t` is a finite set of pairwise disjoint finite sets, then the product of `f a`

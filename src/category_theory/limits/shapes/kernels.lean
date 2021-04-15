@@ -236,8 +236,6 @@ def kernel_comp_mono {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [has_kernel f] [mon
 { hom := kernel.lift _ (kernel.ι _) (by { rw [←cancel_mono g], simp, }),
   inv := kernel.lift _ (kernel.ι _) (by simp), }
 
--- TODO provide an instance `[has_kernel (f ≫ g)]` from `[is_iso f] [has_kernel g]`
-
 instance has_kernel_iso_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso f] [has_kernel g] :
   has_kernel (f ≫ g) :=
 { exists_limit :=

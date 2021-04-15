@@ -146,7 +146,7 @@ class compatible_smul (R S : Type*) [semiring S] [has_scalar R M]
 variables {M M₂}
 
 @[priority 100]
-instance compatible_smul.is_scalar_tower
+instance is_scalar_tower.compatible_smul
   {R S : Type*} [semiring S] [has_scalar R S]
   [has_scalar R M] [semimodule S M] [is_scalar_tower R S M]
   [has_scalar R M₂] [semimodule S M₂] [is_scalar_tower R S M₂] : compatible_smul M M₂ R S :=

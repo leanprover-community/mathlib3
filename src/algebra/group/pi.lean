@@ -35,11 +35,13 @@ by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_
 
 @[to_additive]
 instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
+tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
+tactic.pi_instance_derive_field
 
 @[to_additive]
 instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
@@ -49,13 +51,13 @@ instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
 
 @[to_additive]
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div, .. };
-  tactic.pi_instance_derive_field
+by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
+  npow := λ n x i, npow n (x i) }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div, .. };
-  tactic.pi_instance_derive_field
+by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
+  npow := λ n x i, npow n (x i) }; tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] :
@@ -70,22 +72,26 @@ by refine_struct { mul := (*) }; tactic.pi_instance_derive_field
 @[to_additive add_left_cancel_monoid]
 instance left_cancel_monoid [∀ i, left_cancel_monoid $ f i] :
   left_cancel_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*) }; tactic.pi_instance_derive_field
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
+tactic.pi_instance_derive_field
 
 @[to_additive add_right_cancel_monoid]
 instance right_cancel_monoid [∀ i, right_cancel_monoid $ f i] :
   right_cancel_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*) }; tactic.pi_instance_derive_field
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i), .. };
+tactic.pi_instance_derive_field
 
 @[to_additive add_cancel_monoid]
 instance cancel_monoid [∀ i, cancel_monoid $ f i] :
   cancel_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*) }; tactic.pi_instance_derive_field
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
+tactic.pi_instance_derive_field
 
 @[to_additive add_cancel_comm_monoid]
 instance cancel_comm_monoid [∀ i, cancel_comm_monoid $ f i] :
   cancel_comm_monoid (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*) }; tactic.pi_instance_derive_field
+by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
+tactic.pi_instance_derive_field
 
 instance mul_zero_class [∀ i, mul_zero_class $ f i] :
   mul_zero_class (Π i : I, f i) :=
@@ -93,13 +99,13 @@ by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance
 
 instance monoid_with_zero [∀ i, monoid_with_zero $ f i] :
   monoid_with_zero (Π i : I, f i) :=
-by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*), .. };
-  tactic.pi_instance_derive_field
+by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*),
+  npow := λ n x i, npow n (x i) }; tactic.pi_instance_derive_field
 
 instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :
   comm_monoid_with_zero (Π i : I, f i) :=
-by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*), .. };
-  tactic.pi_instance_derive_field
+by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*),
+  npow := λ n x i, npow n (x i) }; tactic.pi_instance_derive_field
 
 section instance_lemmas
 open function

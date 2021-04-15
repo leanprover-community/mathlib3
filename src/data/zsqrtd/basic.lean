@@ -85,14 +85,17 @@ instance : has_mul ℤ√d := ⟨zsqrtd.mul⟩
 @[simp] theorem mul_im : ∀ z w : ℤ√d, (z * w).im = z.re * w.im + z.im * w.re
 | ⟨x, y⟩ ⟨x', y'⟩ := rfl
 
-instance : comm_ring ℤ√d := by refine
+instance : comm_ring ℤ√d :=
+by refine_struct
 { add            := (+),
-  zero           := 0,
+  zero           := (0 : ℤ√d),
   neg            := has_neg.neg,
   mul            := (*),
   sub            := λ a b, a + -b,
-  one            := 1, ..};
-  { intros, simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm] }
+  one            := 1,
+  npow           := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
+  nsmul          := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩ };
+intros; try { refl }; simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm]
 
 instance : add_comm_monoid ℤ√d    := by apply_instance
 instance : add_monoid ℤ√d         := by apply_instance

@@ -18,15 +18,6 @@ variables {c : complex_shape ι} (C : homological_complex V c)
 open_locale classical
 noncomputable theory
 
-/--
-The homology of a pair of morphisms `f : A ⟶ B` and `g : B ⟶ C` satisfying `f ≫ g = 0`
-is the cokernel of the `image_to_kernel` morphism for `f` and `g`.
--/
-def homology {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
-  (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)] : V :=
-cokernel (image_to_kernel f g w)
-
-
 namespace homological_complex
 
 variables [has_zero_object V]

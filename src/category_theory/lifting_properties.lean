@@ -45,21 +45,14 @@ instance arrow.has_lift.of_has_lifting_property {l r : arrow C}
   [has_lifting_property l r] (sq : l ⟶ r) : arrow.has_lift sq :=
 has_lifting_property.has_lift sq
 
-instance has_lifting_property.of_is_iso_left {a b : C} (l : a ⟶ b) [is_iso l] (r : arrow C) :
-  has_lifting_property ↑l r :=
-{ has_lift := λ sq, { exists_lift := nonempty.intro { lift := inv l ≫ sq.left } } }
+-- Move this
+instance {a b : C} (f : a ⟶ b) [h : is_iso f] : is_iso (f : arrow C).hom := h
 
-instance has_lifting_property.of_is_iso_left' (l r : arrow C) [is_iso l.hom] :
+instance has_lifting_property.of_is_iso_left (l r : arrow C) [is_iso l.hom] :
   has_lifting_property l r :=
 { has_lift := λ sq, { exists_lift := nonempty.intro { lift := inv l.hom ≫ sq.left } } }
 
-instance has_lifting_property.of_is_iso_right (l : arrow C) {a b : C} (r : a ⟶ b) [is_iso r] :
-  has_lifting_property l r :=
-{ has_lift := λ sq, { exists_lift := nonempty.intro
-  { lift := sq.right ≫ inv r,
-    fac_left' := by { rw [← category.assoc, is_iso.comp_inv_eq], simp } } } }
-
-instance has_lifting_property.of_is_iso_right' (l r : arrow C) [is_iso r.hom] :
+instance has_lifting_property.of_is_iso_right (l r : arrow C) [is_iso r.hom] :
   has_lifting_property l r :=
 { has_lift := λ sq, { exists_lift := nonempty.intro
   { lift := sq.right ≫ inv r.hom,

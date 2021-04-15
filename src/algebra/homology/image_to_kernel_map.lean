@@ -37,13 +37,16 @@ We need to assume all equalizers, not just kernels, so that
 variables [has_images V] [has_equalizers V]
 variables {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
 
+lemma image_lifts_to_kernel (w : f ≫ g = 0) : image.ι f ≫ g = 0 :=
+(cancel_epi (factor_thru_image f)).1 (by simp [w])
+
 /--
 The morphism from `image f` to `kernel g` when `f ≫ g = 0`.
 -/
 noncomputable
 abbreviation image_to_kernel_map (w : f ≫ g = 0) :
   image f ⟶ kernel g :=
-kernel.lift g (image.ι f) $ (cancel_epi (factor_thru_image f)).1 $ by simp [w]
+kernel.lift g (image.ι f) (image_lifts_to_kernel f g w)
 
 @[simp]
 lemma image_to_kernel_map_zero_left [has_zero_object V] {w} :

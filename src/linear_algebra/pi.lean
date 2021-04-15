@@ -92,7 +92,7 @@ variables (R φ)
 
 /-- The linear equivalence between linear functions on a finite product of modules and
 families of functions on these modules. See note [bundled maps over different rings]. -/
-def lsum (S) [add_comm_monoid M] [semimodule R M] [fintype ι] [decidable_eq ι]
+@[simps] def lsum (S) [add_comm_monoid M] [semimodule R M] [fintype ι] [decidable_eq ι]
   [semiring S] [semimodule S M]  [smul_comm_class R S M] :
   (Π i, φ i →ₗ[R] M) ≃ₗ[S] ((Π i, φ i) →ₗ[R] M) :=
 { to_fun := λ f, ∑ i : ι, (f i).comp (proj i),

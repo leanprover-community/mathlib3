@@ -517,14 +517,24 @@ lemma ssubset_insert {s : finset α} {a : α} (h : a ∉ s) : s ⊂ insert a s :
 ssubset_iff.mpr ⟨a, h, subset.refl _⟩
 
 @[elab_as_eliminator]
-protected theorem induction {α : Type*} {p : finset α → Prop} [decidable_eq α]
-  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : ∀ s, p s
+lemma cons_induction {α : Type*} {p : finset α → Prop}
+  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α} (h : a ∉ s), p s → p (cons a s h)) : ∀ s, p s
 | ⟨s, nd⟩ := multiset.induction_on s (λ _, h₁) (λ a s IH nd, begin
     cases nodup_cons.1 nd with m nd',
-    rw [← (eq_of_veq _ : insert a (finset.mk s _) = ⟨a ::ₘ s, nd⟩)],
+    rw [← (eq_of_veq _ : cons a (finset.mk s _) m = ⟨a ::ₘ s, nd⟩)],
     { exact h₂ (by exact m) (IH nd') },
-    { rw [insert_val, ndinsert_of_not_mem m] }
+    { rw [cons_val] }
   end) nd
+
+@[elab_as_eliminator]
+lemma cons_induction_on {α : Type*} {p : finset α → Prop} (s : finset α)
+  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α} (h : a ∉ s), p s → p (cons a s h)) : p s :=
+cons_induction h₁ h₂ s
+
+@[elab_as_eliminator]
+protected theorem induction {α : Type*} {p : finset α → Prop} [decidable_eq α]
+  (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : ∀ s, p s :=
+cons_induction h₁ $ λ a s ha, (s.cons_eq_insert a ha).symm ▸ h₂ ha
 
 /--
 To prove a proposition about an arbitrary `finset α`,
@@ -1562,7 +1572,7 @@ finset.eq_of_veq erase_dup_cons
 finset.ext $ by simp
 
 @[simp] lemma to_finset_nsmul (s : multiset α) :
-  ∀(n : ℕ) (hn : n ≠ 0), (n •ℕ s).to_finset = s.to_finset
+  ∀(n : ℕ) (hn : n ≠ 0), (n • s).to_finset = s.to_finset
 | 0     h := by contradiction
 | (n+1) h :=
   begin

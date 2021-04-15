@@ -348,8 +348,8 @@ begin
   simp only [nat.gcd_eq_gcd_ab, gpow_add, gpow_mul, hm, hn, one_gpow, one_mul]
 end
 
-lemma gcd_nsmul_eq_zero {M : Type*} [add_monoid M] (x : M) {m n : ℕ} (hm : m •ℕ x = 0)
-  (hn : n •ℕ x = 0) : (m.gcd n) •ℕ x = 0 :=
+lemma gcd_nsmul_eq_zero {M : Type*} [add_monoid M] (x : M) {m n : ℕ} (hm : m • x = 0)
+  (hn : n • x = 0) : (m.gcd n) • x = 0 :=
 begin
   apply multiplicative.of_add.injective,
   rw [of_add_nsmul, of_add_zero, pow_gcd_eq_one];

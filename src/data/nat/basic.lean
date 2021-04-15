@@ -1350,6 +1350,18 @@ begin
     rw [add_comm _ 1, left_distrib, mul_one], exact add_lt_add_right (mod_lt _ hn) _ }
 end
 
+/-- Two natural numbers are equal if and only if the have the same multiples. -/
+lemma dvd_right_iff_eq {m n : ℕ} : (∀ a : ℕ, m ∣ a ↔ n ∣ a) ↔ m = n :=
+⟨λ h, dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _)), λ h n, by rw h⟩
+
+/-- Two natural numbers are equal if and only if the have the same divisors. -/
+lemma dvd_left_iff_eq {m n : ℕ} : (∀ a : ℕ, a ∣ m ↔ a ∣ n) ↔ m = n :=
+⟨λ h, dvd_antisymm ((h _).mp (dvd_refl _)) ((h _).mpr (dvd_refl _)), λ h n, by rw h⟩
+
+/-- `dvd` is injective in the left argument -/
+lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=
+λ m n h, dvd_right_iff_eq.mp $ λ a, iff_of_eq (congr_fun h a)
+
 /-! ### `find` -/
 section find
 

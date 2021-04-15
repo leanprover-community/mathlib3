@@ -52,6 +52,8 @@ universes v u
 open category_theory category_theory.action_category category_theory.single_obj quiver
   is_free_group as fgp
 
+def is_free_groupoid.generators (G) [groupoid G] := G
+
 /-- A groupoid `G` is free when we have the following data:
  - a wide subquiver `generators` of `G`
  - such that a functor from `G` to any group `X` is uniquely determined
@@ -60,16 +62,14 @@ open category_theory category_theory.action_category category_theory.single_obj 
    This definition is nonstandard. Normally one would require that functors `G ⥤ X`
    to any _groupoid_ `X` are given by graph homomorphisms from `generators`. -/
 class is_free_groupoid (G : Type u) [groupoid.{v} G] :=
-(generators [] : wide_subquiver.{v} G)
-(unique_lift : ∀ {X} [group.{v} X] (f : labelling generators X),
-                ∃! F : G ⥤ single_obj X, ∀(a b : generators) (g : a ⟶ b),
-                  F.map (generators.subtype.map g) = f g)
+(quiver_generators : quiver.{v+1} (is_free_groupoid.generators G))
+(of : Π {a b : is_free_groupoid.generators G}, (a ⟶ b) → ((show G, from a) ⟶ b))
+(unique_lift : ∀ {X} [group.{v} X] (f : labelling (is_free_groupoid.generators G) X),
+                ∃! F : G ⥤ single_obj X, ∀ a b (g : a ⟶ b), F.map (of g) = f g)
 
 namespace is_free_groupoid
 
-/-- Consider a generating arrow in a free groupoid as a morphism in the groupoid. -/
-def of {G : Type u} [groupoid.{v} G] [is_free_groupoid G] {a b : generators G} (e : a ⟶ b) :=
-(generators G).subtype.map e
+attribute [instance] quiver_generators
 
 @[ext]
 lemma ext_functor {G : Type u} {X} [groupoid.{v} G] [is_free_groupoid G] [group.{v} X]
@@ -90,13 +90,13 @@ begin
   rintro ⟨p⟩,
   rw [←weakly_connected_component.eq, eq_comm, ←free_group.of_injective.eq_iff, ←mul_inv_eq_one],
   let X := free_group (weakly_connected_component (symmetrify (generators G))),
-  let f : G → X := λ g, free_group.of (weakly_connected_component.mk g),
+  let f : symmetrify (generators G) → X := λ g, free_group.of ↑g,
   let F : G ⥤ single_obj X := single_obj.difference_functor f,
   change F.map p = ((category_theory.functor.const G).obj ()).map p,
   congr, ext,
   rw [functor.const.obj_map, id_as_one, difference_functor_map, mul_inv_eq_one],
   apply congr_arg free_group.of,
-  erw weakly_connected_component.eq, -- TODO should have a think about why this `erw` is needed
+  rw weakly_connected_component.eq,
   exact ⟨hom.to_path (sum.inr e)⟩,
 end
 
@@ -106,12 +106,12 @@ instance generators_connected (G) [groupoid.{u u} G] [is_connected G] [is_free_g
 
 instance action_category_is_free {G A : Type u} [group G] [is_free_group G] [mul_action G A] :
   is_free_groupoid (action_category G A) :=
-{ generators := ⟨λ a b, { e : fgp.generators G // fgp.of e • a.back = b.back }⟩,
-  of := λ a b e, ⟨fgp.of e, e.property⟩,
+{ quiver_generators := ⟨λ a b, { e : fgp.generators G // fgp.of e • a.back = b.back }⟩,
+  of := λ a b e, ⟨fgp.of e.val, e.property⟩,
   unique_lift := begin
     introsI X _ f,
     let f' : fgp.generators G → (A → X) ⋊[mul_aut_arrow] G :=
-      λ e, ⟨λ b, @f (_ : A) b ⟨e, smul_inv_smul _ b⟩, fgp.of e⟩,
+      λ e, ⟨λ b, @f ⟨(), _⟩ ⟨(), b⟩ ⟨e, smul_inv_smul _ b⟩, fgp.of e⟩,
     rcases fgp.unique_lift f' with ⟨F', hF', uF'⟩,
     refine ⟨uncurry F' _, _, _⟩,
     { suffices : semidirect_product.right_hom.comp F' = monoid_hom.id _,
@@ -129,7 +129,7 @@ instance action_category_is_free {G A : Type u} [group G] [is_free_group G] [mul
       { apply uF',
         intro e,
         ext,
-        { exact hE _ _ ⟨e, _⟩ },
+        { convert hE _ _ _, refl },
         { refl } },
       apply functor.hext,
       { intro, apply unit.ext },
@@ -139,32 +139,34 @@ instance action_category_is_free {G A : Type u} [group G] [is_free_group G] [mul
 
 namespace spanning_tree
 
--- an abbreviation for taking the quiver corresponding to a subquiver
-local notation T `♯` :10000 := T.quiver
-
 variables {G : Type u} [groupoid.{u} G] [is_free_groupoid G]
-  (T : wide_subquiver (generators.symmetrify : quiver G)) [arborescence T♯]
+  (T : wide_subquiver (symmetrify (generators G))) [arborescence T]
+
+variable {T}
+def bar : T → G := id
+variable (T)
 
 /-- A path in the tree gives a hom, by composition. -/
-noncomputable def hom_of_path : Π {a : G}, T♯.path T♯.root a → (T♯.root ⟶ a)
+-- this has to be marked `noncomputable`, see issue #451
+noncomputable def hom_of_path : Π {a : G}, path (root T) a → ((bar (root T)) ⟶ a)
 | _ path.nil := 𝟙 _
 | a (path.cons p f) := hom_of_path p ≫ sum.rec_on f.val (λ e, of e) (λ e, inv (of e))
 
 /-- For every vertex `a`, there is a canonical hom from the root, given by the
     path in the tree. -/
-def tree_hom (a : G) : T♯.root ⟶ a := hom_of_path T (default _)
+def tree_hom (a : G) : (bar $ root T) ⟶ a := hom_of_path T (default _)
 
-lemma tree_hom_eq {a : G} (p : T♯.path T♯.root a) : tree_hom T a = hom_of_path T p :=
+lemma tree_hom_eq {a : G} (p : path (root T) a) : tree_hom T a = hom_of_path T p :=
 by rw [tree_hom, unique.default_eq]
 
-@[simp] lemma tree_hom_root : tree_hom T T♯.root = 𝟙 _ :=
-by rw [tree_hom_eq T path.nil, hom_of_path]
+@[simp] lemma tree_hom_root : tree_hom T (bar $ root T) = 𝟙 _ :=
+trans (tree_hom_eq T path.nil) rfl
 
 /-- Any hom in `G` can be made into a loop, by conjugating with `tree_hom`s. -/
-def loop_of_hom {a b : G} (p : a ⟶ b) : End T♯.root :=
+def loop_of_hom {a b : G} (p : a ⟶ b) : End (bar $ root T) :=
 tree_hom T a ≫ p ≫ inv (tree_hom T b)
 
-lemma loop_of_hom_eq_id {a b : G} {e : generators.arrow a b} :
+lemma loop_of_hom_eq_id {a b : generators G} {e : a ⟶ b} :
   (sum.inl e) ∈ T a b ∨ (sum.inr e) ∈ T b a
     → loop_of_hom T (of e) = 𝟙 _ :=
 begin
@@ -177,7 +179,7 @@ end
 
 /-- Since a hom gives a loop, a homomorphism from the vertex group at the root
     extends to a functor on the whole groupoid. -/
-@[simps] def functor_of_monoid_hom {X} [monoid X] (f : End T♯.root →* X) :
+@[simps] def functor_of_monoid_hom {X} [monoid X] (f : End (bar $ root T) →* X) :
   G ⥤ single_obj X :=
 { obj := λ _, (),
   map := λ a b p, f (loop_of_hom T p),
@@ -194,22 +196,22 @@ end
 /-- Given a free groupoid and an arborescence of its generating quiver, the vertex
     group at the root is freely generated by loops coming from generating arrows
     in the complement of the tree. -/
-def End_is_free : is_free_group (End T♯.root) :=
+def End_is_free : is_free_group (End (bar $ root T)) :=
 { generators := set.compl (wide_subquiver_equiv_set_total $ wide_subquiver_symmetrify T),
-  of := λ e, loop_of_hom T (of e.val.arrow),
+  of := λ e, loop_of_hom T (of e.val.hom),
   unique_lift' := begin
     introsI X _ f,
-    let f' : (generators : quiver G).labelling X := λ a b e,
+    let f' : labelling (generators G) X := λ a b e,
       if h : sum.inl e ∈ T a b ∨ sum.inr e ∈ T b a then 1
       else f ⟨⟨a, b, e⟩, h⟩,
     rcases unique_lift f' with ⟨F', hF', uF'⟩,
     refine ⟨F'.map_End _, _, _⟩,
     { suffices : ∀ {x y} (q : x ⟶ y), F'.map (loop_of_hom T q) = (F'.map q : X),
       { rintro ⟨⟨a, b, e⟩, h⟩,
-        rw [F'.map_End_apply T♯.root, this, hF'],
+        rw [F'.map_End_apply (bar $ root T), this, hF'],
         exact dif_neg h },
       intros,
-      suffices : ∀ {a} (p : T♯.path T♯.root a), F'.map (hom_of_path T p) = 1,
+      suffices : ∀ {a} (p : path (root T) a), F'.map (hom_of_path T p) = 1,
       { simp only [this, tree_hom, comp_as_mul, inv_as_inv, loop_of_hom,
         one_inv, mul_one, one_mul, functor.map_inv, functor.map_comp] },
       intros a p, induction p with b c p e ih,
@@ -221,8 +223,7 @@ def End_is_free : is_free_group (End T♯.root) :=
     { intros E hE,
       ext,
       suffices : (functor_of_monoid_hom T E).map x = F'.map x,
-      { simpa only [loop_of_hom, functor_of_monoid_hom_map, is_iso.inv_id, tree_hom_root,
-          category.id_comp, category.comp_id] using this },
+      { convert this, simp [loop_of_hom] },
       congr,
       apply uF',
       intros a b e,
@@ -236,7 +237,7 @@ end spanning_tree
 
 instance End_is_free_of_connected_free {G} [groupoid G] [is_connected G] [is_free_groupoid G]
   (r : G) : is_free_group (End r) :=
-spanning_tree.End_is_free (geodesic_subtree _ r)
+spanning_tree.End_is_free (geodesic_subtree (foo r))
 
 end is_free_groupoid
 

@@ -83,8 +83,8 @@ variables [decidable_eq α]
 /-- The cycle type of a permutation -/
 def cycle_type (σ : perm α) : multiset ℕ :=
 σ.trunc_cycle_factors.lift (λ l, l.1.map (finset.card ∘ support))
-  (λ l₁ l₂, coe_eq_coe.mpr (perm.map _
-  (list_cycles_perm_list_cycles (l₁.2.1.trans l₂.2.1.symm) l₁.2.2.1 l₂.2.2.1 l₁.2.2.2 l₂.2.2.2)))
+  (λ ⟨l₁, h₁l₁, h₂l₁, h₃l₁⟩ ⟨l₂, h₁l₂, h₂l₂, h₃l₂⟩, coe_eq_coe.mpr (perm.map _
+  (list_cycles_perm_list_cycles (h₁l₁.trans h₁l₂.symm) h₂l₁ h₂l₂ h₃l₁ h₃l₂)))
 
 lemma two_le_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : 2 ≤ n :=
 begin
@@ -108,9 +108,9 @@ lemma cycle_type_eq_zero {σ : perm α} : σ.cycle_type = 0 ↔ σ = 1 :=
 begin
   split,
   { intro h,
-    let x := σ.trunc_cycle_factors.out,
-    rw [cycle_type_eq x.1 x.2.1 x.2.2.1 x.2.2.2, coe_eq_zero, map_eq_nil] at h,
-    exact x.2.1.symm.trans (congr_arg _ h) },
+    obtain ⟨l, h₁l, h₂l, h₃l⟩ := σ.trunc_cycle_factors.out,
+    rw [cycle_type_eq l h₁l h₂l h₃l, coe_eq_zero, map_eq_nil] at h,
+    exact h₁l.symm.trans (congr_arg _ h) },
   { exact λ h, by rw [h, cycle_type_one] },
 end
 
@@ -125,11 +125,11 @@ lemma card_cycle_type_eq_one {σ : perm α} : σ.cycle_type.card = 1 ↔ σ.is_c
 begin
   split,
   { intro hσ,
-    let x := σ.trunc_cycle_factors.out,
-    rw [cycle_type_eq x.1 x.2.1 x.2.2.1 x.2.2.2, coe_card, length_map] at hσ,
+    obtain ⟨l, h₁l, h₂l, h₃l⟩ := σ.trunc_cycle_factors.out,
+    rw [cycle_type_eq l h₁l h₂l h₃l, coe_card, length_map] at hσ,
     obtain ⟨τ, hτ⟩ := length_eq_one.mp hσ,
-    rw [←x.2.1, hτ, list.prod_singleton],
-    apply x.2.2.1,
+    rw [←h₁l, hτ, list.prod_singleton],
+    apply h₂l,
     rw [hτ, list.mem_singleton] },
   { exact λ hσ, by rw [hσ.cycle_type, coe_card, length_singleton] },
 end
@@ -137,17 +137,17 @@ end
 lemma disjoint.cycle_type {σ τ : perm α} (h : disjoint σ τ) :
   (σ * τ).cycle_type = σ.cycle_type + τ.cycle_type :=
 begin
-  let x := σ.trunc_cycle_factors.out,
-  let y := τ.trunc_cycle_factors.out,
-  rw [cycle_type_eq x.1 x.2.1 x.2.2.1 x.2.2.2, cycle_type_eq y.1 y.2.1 y.2.2.1 y.2.2.2,
-      cycle_type_eq (x.1 ++ y.1) _ _ _, map_append, ←coe_add],
-  { rw [prod_append, x.2.1, y.2.1] },
-  { exact λ f hf, (mem_append.mp hf).elim (x.2.2.1 f) (y.2.2.1 f) },
-  { refine pairwise_append.mpr ⟨x.2.2.2, y.2.2.2, λ f hf g hg a, by_contra (λ H, _)⟩,
+  obtain ⟨l₁, h₁l₁, h₂l₁, h₃l₁⟩ := σ.trunc_cycle_factors.out,
+  obtain ⟨l₂, h₁l₂, h₂l₂, h₃l₂⟩ := τ.trunc_cycle_factors.out,
+  rw [cycle_type_eq l₁ h₁l₁ h₂l₁ h₃l₁, cycle_type_eq l₂ h₁l₂ h₂l₂ h₃l₂,
+      cycle_type_eq (l₁ ++ l₂) _ _ _, map_append, ←coe_add],
+  { rw [prod_append, h₁l₁, h₁l₂] },
+  { exact λ f hf, (mem_append.mp hf).elim (h₂l₁ f) (h₂l₂ f) },
+  { refine pairwise_append.mpr ⟨h₃l₁, h₃l₂, λ f hf g hg a, by_contra (λ H, _)⟩,
     rw not_or_distrib at H,
-    exact ((congr_arg2 disjoint x.2.1 y.2.1).mpr h a).elim
-      (ne_of_eq_of_ne ((mem_list_cycles_iff x.2.2.1 x.2.2.2 (x.2.2.1 f hf) H.1).1 hf 1).symm H.1)
-      (ne_of_eq_of_ne ((mem_list_cycles_iff y.2.2.1 y.2.2.2 (y.2.2.1 g hg) H.2).1 hg 1).symm H.2) }
+    exact ((congr_arg2 disjoint h₁l₁ h₁l₂).mpr h a).elim
+      (ne_of_eq_of_ne ((mem_list_cycles_iff h₂l₁ h₃l₁ (h₂l₁ f hf) H.1).1 hf 1).symm H.1)
+      (ne_of_eq_of_ne ((mem_list_cycles_iff h₂l₂ h₃l₂ (h₂l₂ g hg) H.2).1 hg 1).symm H.2) }
 end
 
 lemma cycle_type_inv (σ : perm α) : σ⁻¹.cycle_type = σ.cycle_type :=
@@ -185,13 +185,13 @@ begin
 end
 
 lemma cycle_type_prime_order {σ : perm α} (hσ : (order_of σ).prime) :
-  ∃ n : ℕ, σ.cycle_type = repeat (order_of σ) n.succ :=
+  ∃ n : ℕ, σ.cycle_type = repeat (order_of σ) (n + 1) :=
 begin
   rw eq_repeat_of_mem (λ n hn, or_iff_not_imp_left.mp
     (hσ.2 n (dvd_of_mem_cycle_type hn)) (ne_of_gt (one_lt_of_mem_cycle_type hn))),
-  use σ.cycle_type.card.pred,
-  rw nat.succ_pred_eq_of_pos,
-  rw [pos_iff_ne_zero, ne, card_cycle_type_eq_zero],
+  use σ.cycle_type.card - 1,
+  rw nat.sub_add_cancel,
+  rw [nat.succ_le_iff, pos_iff_ne_zero, ne, card_cycle_type_eq_zero],
   rintro rfl,
   rw order_of_one at hσ,
   exact hσ.ne_one rfl,

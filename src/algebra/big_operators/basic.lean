@@ -771,7 +771,7 @@ end
 
 lemma sum_multiset_map_count [decidable_eq α] (s : multiset α)
   {M : Type*} [add_comm_monoid M] (f : α → M) :
-  (s.map f).sum = ∑ m in s.to_finset, s.count m •ℕ f m :=
+  (s.map f).sum = ∑ m in s.to_finset, s.count m • f m :=
 @prod_multiset_map_count _ _ _ (multiplicative M) _ f
 attribute [to_additive] prod_multiset_map_count
 
@@ -780,7 +780,7 @@ lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
 by { convert prod_multiset_map_count s id, rw map_id }
 
 lemma sum_multiset_count [decidable_eq α] [add_comm_monoid α] (s : multiset α) :
-  s.sum = ∑ m in s.to_finset, s.count m •ℕ m :=
+  s.sum = ∑ m in s.to_finset, s.count m • m :=
 @prod_multiset_count (multiplicative α) _ _ s
 attribute [to_additive] prod_multiset_count
 
@@ -870,11 +870,11 @@ end
 
 @[simp] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
 by haveI := classical.dec_eq α; exact
-finset.induction_on s rfl (λ a s has ih,
+finset.induction_on s (by simp) (λ a s has ih,
 by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
 
 lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b
-| 0 := rfl
+| 0 := by simp
 | (n+1) := by simp
 
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
@@ -1101,12 +1101,12 @@ by { rw [update_eq_piecewise, sum_piecewise], simp [h] }
 attribute [to_additive] prod_update_of_mem
 
 lemma sum_nsmul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
-  (∑ x in s, n •ℕ (f x)) = n •ℕ ((∑ x in s, f x)) :=
+  (∑ x in s, n • (f x)) = n • ((∑ x in s, f x)) :=
 @prod_pow _ (multiplicative β) _ _ _ _
 attribute [to_additive sum_nsmul] prod_pow
 
 @[simp] lemma sum_const [add_comm_monoid β] (b : β) :
-  (∑ x in s, b) = s.card •ℕ b :=
+  (∑ x in s, b) = s.card • b :=
 @prod_const _ (multiplicative β) _ _ _
 attribute [to_additive] prod_const
 
@@ -1136,7 +1136,7 @@ lemma sum_int_cast [add_comm_group β] [has_one β] (s : finset α) (f : α → 
 (int.cast_add_hom β).map_sum f s
 
 lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
-  ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card •ℕ (f b) :=
+  ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card • (f b) :=
 @prod_comp _ (multiplicative β) _ _ _ _ _ _
 attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
 over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`"] prod_comp
@@ -1276,6 +1276,44 @@ end comm_group_with_zero
 
 end finset
 
+namespace fintype
+
+open finset
+
+/-- `fintype.prod_bijective` is a variant of `finset.prod_bij` that accepts `function.bijective`.
+
+See `function.bijective.prod_comp` for a version without `h`. -/
+@[to_additive "`fintype.sum_equiv` is a variant of `finset.sum_bij` that accepts
+`function.bijective`.
+
+See `function.bijective.sum_comp` for a version without `h`. "]
+lemma prod_bijective {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
+  (e : α → β) (he : function.bijective e) (f : α → M) (g : β → M) (h : ∀ x, f x = g (e x)) :
+  ∏ x : α, f x = ∏ x : β, g x :=
+prod_bij
+  (λ x _, e x)
+  (λ x _, mem_univ (e x))
+  (λ x _, h x)
+  (λ x x' _ _ h, he.injective h)
+  (λ y _, (he.surjective y).imp $ λ a h, ⟨mem_univ _, h.symm⟩)
+
+/-- `fintype.prod_equiv` is a specialization of `finset.prod_bij` that
+automatically fills in most arguments.
+
+See `equiv.prod_comp` for a version without `h`. 
+-/
+@[to_additive "`fintype.sum_equiv` is a specialization of `finset.sum_bij` that
+automatically fills in most arguments.
+
+See `equiv.sum_comp` for a version without `h`. 
+"]
+lemma prod_equiv {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
+  (e : α ≃ β) (f : α → M) (g : β → M) (h : ∀ x, f x = g (e x)) :
+  ∏ x : α, f x = ∏ x : β, g x :=
+prod_bijective e e.bijective f g h
+
+end fintype
+
 namespace list
 
 @[to_additive] lemma prod_to_finset {M : Type*} [decidable_eq α] [comm_monoid M]
@@ -1316,11 +1354,11 @@ lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
 by { dunfold finset.sum, rw count_sum }
 
 @[simp] lemma to_finset_sum_count_nsmul_eq (s : multiset α) :
-  (∑ a in s.to_finset, s.count a •ℕ (a ::ₘ 0)) = s :=
+  (∑ a in s.to_finset, s.count a • (a ::ₘ 0)) = s :=
 begin
   apply ext', intro b,
   rw count_sum',
-  have h : count b s = count b (count b s •ℕ (b ::ₘ 0)),
+  have h : count b s = count b (count b s • (b ::ₘ 0)),
   { rw [singleton_coe, count_nsmul, ← singleton_coe, count_singleton, mul_one] },
   rw h, clear h,
   apply finset.sum_eq_single b,
@@ -1330,11 +1368,11 @@ begin
 end
 
 theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} (h : ∀ (a : α), k ∣ multiset.count a s) :
-  ∃ (u : multiset α), s = k •ℕ u :=
+  ∃ (u : multiset α), s = k • u :=
 begin
-  use ∑ a in s.to_finset, (s.count a / k) •ℕ (a ::ₘ 0),
-  have h₂ : ∑ (x : α) in s.to_finset, k •ℕ (count x s / k •ℕ (x ::ₘ 0)) =
-    ∑ (x : α) in s.to_finset, count x s •ℕ (x ::ₘ 0),
+  use ∑ a in s.to_finset, (s.count a / k) • (a ::ₘ 0),
+  have h₂ : ∑ (x : α) in s.to_finset, k • (count x s / k) • (x ::ₘ 0) =
+    ∑ (x : α) in s.to_finset, count x s • (x ::ₘ 0),
   { refine congr_arg s.to_finset.sum _,
     apply funext, intro x,
     rw [← mul_nsmul, nat.mul_div_cancel' (h x)] },

@@ -40,7 +40,7 @@ w.r.t. `μ.restrict (Iic b)`.
 - `measure_theory.set_lintegral_tendsto_lintegral` : if `φ` is a `mono_ae_cover` and
   `f` a measurable `ennreal`-valued function, then `∫⁻ x in φ n, f x ∂μ` tends to `∫⁻ x, f x ∂μ`
   as `n` tends to `+∞`
-- `measure_theory.integrable_of_tendsto_integral_norm` : if `φ` is a `mono_ae_cover`,
+- `measure_theory.integrable_of_set_integral_norm_tendsto` : if `φ` is a `mono_ae_cover`,
   `f` measurable and integrable on each `φ n`, and `∫ x in φ n, ∥f x∥ ∂μ` tends to some
   `I : ℝ` as n tends to `+∞`, then `f` is integrable
 - `measure_theory.set_integral_tendsto_integral` : if `φ` is a `mono_ae_cover`,
@@ -68,9 +68,9 @@ variables {α ι : Type*} [ordered_add_comm_monoid ι]
     It should be thought of as a sufficient condition for being able to interpret
     `∫ x, f x ∂μ` (if it exists) as the limit of `∫ x in φ n, f x ∂μ` as `n` tends to `+∞`.
 
-    See for example `measure_theory.lintegral_eq_of_tendsto_lintegral`,
-    `measure_theory.integrable_of_tendsto_integral_norm` and
-    `measure_theory.integral_eq_of_tendsto_integral`. -/
+    See for example `measure_theory.set_lintegral_tendsto_lintegral`,
+    `measure_theory.integrable_of_set_integral_norm_tendsto` and
+    `measure_theory.set_integral_tendsto_integral`. -/
 structure mono_ae_cover (φ : ι → set α) : Prop :=
 (ae_eventually_mem : ∀ᵐ x ∂μ, ∀ᶠ i in at_top, x ∈ φ i)
 (mono : monotone φ)
@@ -249,7 +249,7 @@ begin
 end
 
 /-- Slight reformulation of `measure_theory.set_lintegral_tendsto_lintegral`. -/
-lemma lintegral_eq_of_tendsto_lintegral {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → ℝ≥0∞}
+lemma lintegral_eq_of_set_lintegral_tendsto {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → ℝ≥0∞}
   (I : ℝ≥0∞) (hfm : measurable f) (h : tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 I)) :
   ∫⁻ x, f x ∂μ = I :=
 tendsto_nhds_unique (set_lintegral_tendsto_lintegral hφ hfm) h
@@ -262,29 +262,29 @@ variables {α ι : Type*} [linear_ordered_semiring ι] [archimedean ι]
   [measurable_space α] {μ : measure α} {E : Type*} [normed_group E]
   [measurable_space E] [opens_measurable_space E]
 
-lemma integrable_of_tendsto_lintegral_nnnorm {φ : ι → set α}
+lemma integrable_of_set_lintegral_nnnorm_tendsto {φ : ι → set α}
   (hφ : mono_ae_cover μ φ) {f : α → E} (I : ℝ) (hfm : measurable f)
   (h : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) at_top (𝓝 $ ennreal.of_real I)) :
   integrable f μ :=
 begin
   refine ⟨hfm.ae_measurable, _⟩,
   unfold has_finite_integral,
-  rw lintegral_eq_of_tendsto_lintegral hφ _
+  rw lintegral_eq_of_set_lintegral_tendsto hφ _
     (measurable_ennreal_coe_iff.mpr (measurable_nnnorm.comp hfm)) h,
   exact ennreal.of_real_lt_top
 end
 
-lemma integrable_of_tendsto_lintegral_nnnorm' {φ : ι → set α}
+lemma integrable_of_set_lintegral_nnnorm_tendsto' {φ : ι → set α}
   (hφ : mono_ae_cover μ φ) {f : α → E} (I : ℝ≥0) (hfm : measurable f)
   (h : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) at_top (𝓝 I)) :
   integrable f μ :=
 begin
-  refine integrable_of_tendsto_lintegral_nnnorm hφ (I : ℝ) hfm _,
+  refine integrable_of_set_lintegral_nnnorm_tendsto hφ (I : ℝ) hfm _,
   convert h,
   exact ennreal.of_real_coe_nnreal
 end
 
-lemma integrable_of_tendsto_integral_norm {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → E}
+lemma integrable_of_set_integral_norm_tendsto {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → E}
   (I : ℝ) (hfm : measurable f) (hfi : ∀ i, integrable_on f (φ i) μ)
   (h : tendsto (λ i, ∫ x in φ i, ∥f x∥ ∂μ) at_top (𝓝 I)) :
   integrable f μ :=
@@ -299,14 +299,14 @@ begin
     ext i : 1,
     rw ennreal.of_real_to_real _,
     exact ne_top_of_lt (hfi i).2 },
-  exact integrable_of_tendsto_lintegral_nnnorm hφ I hfm h'
+  exact integrable_of_set_lintegral_nnnorm_tendsto hφ I hfm h'
 end
 
-lemma integrable_of_tendsto_integral_of_nonneg_ae {φ : ι → set α}
+lemma integrable_of_set_integral_tendsto_of_nonneg_ae {φ : ι → set α}
   (hφ : mono_ae_cover μ φ) {f : α → ℝ} (I : ℝ) (hf : 0 ≤ᵐ[μ] f) (hfm : measurable f)
   (hfi : ∀ n, integrable_on f (φ n) μ) (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   integrable f μ :=
-integrable_of_tendsto_integral_norm hφ I hfm hfi
+integrable_of_set_integral_norm_tendsto hφ I hfm hfi
   (h.congr $ λ i, integral_congr_ae $ ae_restrict_of_ae $ hf.mono $
     λ x hx, (real.norm_of_nonneg hx).symm)
 
@@ -364,19 +364,19 @@ begin
 end
 
 /-- Slight reformulation of `measure_theory.set_integral_tendsto_integral`. -/
-lemma integral_eq_of_tendsto_integral {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → E} (I : E)
+lemma integral_eq_of_tendsto_set_integral {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → E} (I : E)
   (hfm : measurable f) (hfi : integrable f μ)
   (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   ∫ x, f x ∂μ = I :=
 tendsto_nhds_unique (set_integral_tendsto_integral hφ hfm hfi) h
 
-lemma integral_eq_of_tendsto_integral_of_nonneg_ae {φ : ι → set α}
+lemma integral_eq_of_set_integral_tendsto_of_nonneg_ae {φ : ι → set α}
   (hφ : mono_ae_cover μ φ) {f : α → ℝ} (I : ℝ) (hf : 0 ≤ᵐ[μ] f) (hfm : measurable f)
   (hfi : ∀ n, integrable_on f (φ n) μ) (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   ∫ x, f x ∂μ = I :=
 have hfi' : integrable f μ,
-  from integrable_of_tendsto_integral_of_nonneg_ae hφ I hf hfm hfi h,
-integral_eq_of_tendsto_integral hφ I hfm hfi' h
+  from integrable_of_set_integral_tendsto_of_nonneg_ae hφ I hf hfm hfi h,
+integral_eq_of_tendsto_set_integral hφ I hfm hfi' h
 
 end integral
 
@@ -392,7 +392,7 @@ include ha₁ hb₁
 
 include hfm
 
-lemma integrable_of_tendsto_interval_integral_norm [no_bot_order α]
+lemma integrable_of_interval_integral_norm_tendsto [no_bot_order α]
   (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
   (ha₂ : tendsto a at_top at_bot) (hb₂ : tendsto b at_top at_top)
   (h : tendsto (λ i, ∫ x in a i .. b i, ∥f x∥ ∂μ) at_top (𝓝 $ I)) :
@@ -400,7 +400,7 @@ lemma integrable_of_tendsto_interval_integral_norm [no_bot_order α]
 begin
   let φ := λ n, Ioc (a n) (b n),
   have hφ : mono_ae_cover μ φ := mono_ae_cover_Ioc ha₁ ha₂ hb₁ hb₂,
-  refine integrable_of_tendsto_integral_norm hφ _ hfm hfi (h.congr' _),
+  refine integrable_of_set_integral_norm_tendsto hφ _ hfm hfi (h.congr' _),
   filter_upwards [eventually_ge_at_top (0 : ι), ha₂.eventually (eventually_le_at_bot $ b 0)],
   intros i hi hai,
   have : a i ≤ b i := hai.trans (hb₁ hi),
@@ -409,7 +409,7 @@ end
 
 omit hb₁
 
-lemma integrable_on_Iic_of_tendsto_interval_integral_norm [no_bot_order α] (I : ℝ) (b : α)
+lemma integrable_on_Iic_of_interval_integral_norm_tendsto [no_bot_order α] (I : ℝ) (b : α)
   (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha₂ : tendsto a at_top at_bot)
   (h : tendsto (λ i, ∫ x in a i .. b, ∥f x∥ ∂μ) at_top (𝓝 $ I)) :
   integrable_on f (Iic b) μ :=
@@ -420,7 +420,7 @@ begin
   { intro i,
     rw [integrable_on, measure.restrict_restrict (hφ.measurable i)],
     exact hfi i },
-  refine integrable_of_tendsto_integral_norm hφ _ hfm hfi (h.congr' _),
+  refine integrable_of_set_integral_norm_tendsto hφ _ hfm hfi (h.congr' _),
   filter_upwards [ha₂.eventually (eventually_le_at_bot $ b)],
   intros i hai,
   rw [interval_integral.integral_of_le hai, measure.restrict_restrict (hφ.measurable i)],
@@ -430,7 +430,7 @@ end
 omit ha₁
 include hb₁
 
-lemma integrable_on_Ioi_of_tendsto_interval_integral_norm (I : ℝ) (a : α)
+lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I : ℝ) (a : α)
   (hfi : ∀ i, integrable_on f (Ioc a (b i)) μ) (hb₂ : tendsto b at_top at_top)
   (h : tendsto (λ i, ∫ x in a .. b i, ∥f x∥ ∂μ) at_top (𝓝 $ I)) :
   integrable_on f (Ioi a) μ :=
@@ -441,7 +441,7 @@ begin
   { intro i,
     rw [integrable_on, measure.restrict_restrict (hφ.measurable i), inter_comm],
     exact hfi i },
-  refine integrable_of_tendsto_integral_norm hφ _ hfm hfi (h.congr' _),
+  refine integrable_of_set_integral_norm_tendsto hφ _ hfm hfi (h.congr' _),
   filter_upwards [hb₂.eventually (eventually_ge_at_top $ a)],
   intros i hbi,
   rw [interval_integral.integral_of_le hbi, measure.restrict_restrict (hφ.measurable i),
@@ -462,30 +462,28 @@ variables {α ι E : Type*} [topological_space α] [linear_order α] [order_clos
 
 include hfm ha₁ hb₁
 
-lemma integral_eq_of_tendsto_interval_integral [no_bot_order α] (I : E)
-  (hfi : integrable f μ) (ha₂ : tendsto a at_top at_bot) (hb₂ : tendsto b at_top at_top)
-  (h : tendsto (λ i, ∫ x in a i .. b i, f x ∂μ) at_top (𝓝 $ I)) :
-  ∫ x, f x ∂μ = I :=
+lemma interval_integral_tendsto_integral [no_bot_order α]
+  (hfi : integrable f μ) (ha₂ : tendsto a at_top at_bot) (hb₂ : tendsto b at_top at_top) :
+  tendsto (λ i, ∫ x in a i .. b i, f x ∂μ) at_top (𝓝 $ ∫ x, f x ∂μ) :=
 begin
   let φ := λ i, Ioc (a i) (b i),
   have hφ : mono_ae_cover μ φ := mono_ae_cover_Ioc ha₁ ha₂ hb₁ hb₂,
-  refine integral_eq_of_tendsto_integral hφ _ hfm hfi (h.congr' _),
+  refine (set_integral_tendsto_integral hφ hfm hfi).congr' _,
   filter_upwards [eventually_ge_at_top (0 : ι), ha₂.eventually (eventually_le_at_bot $ b 0)],
   intros i hi hai,
   have : a i ≤ b i := hai.trans (hb₁ hi),
-  exact interval_integral.integral_of_le this
+  exact (interval_integral.integral_of_le this).symm
 end
 
 omit hb₁
 
-lemma integral_Iic_eq_of_tendsto_interval_integral [no_bot_order α] (I : E) (b : α)
-  (hfi : integrable_on f (Iic b) μ) (ha₂ : tendsto a at_top at_bot)
-  (h : tendsto (λ i, ∫ x in a i .. b, f x ∂μ) at_top (𝓝 $ I)) :
-  ∫ x in Iic b, f x ∂μ = I :=
+lemma interval_integral_tendsto_integral_Iic [no_bot_order α] (b : α)
+  (hfi : integrable_on f (Iic b) μ) (ha₂ : tendsto a at_top at_bot) :
+  tendsto (λ i, ∫ x in a i .. b, f x ∂μ) at_top (𝓝 $ ∫ x in Iic b, f x ∂μ) :=
 begin
   let φ := λ i, Ioi (a i),
   have hφ : mono_ae_cover (μ.restrict $ Iic b) φ := mono_ae_cover_Ioi ha₁ ha₂,
-  refine integral_eq_of_tendsto_integral hφ _ hfm hfi (h.congr' _),
+  refine (set_integral_tendsto_integral hφ hfm hfi).congr' _,
   filter_upwards [ha₂.eventually (eventually_le_at_bot $ b)],
   intros i hai,
   rw [interval_integral.integral_of_le hai, measure.restrict_restrict (hφ.measurable i)],
@@ -495,14 +493,13 @@ end
 omit ha₁
 include hb₁
 
-lemma integral_Ioi_eq_of_tendsto_interval_integral (I : E) (a : α)
-  (hfi : integrable_on f (Ioi a) μ) (hb₂ : tendsto b at_top at_top)
-  (h : tendsto (λ i, ∫ x in a .. b i, f x ∂μ) at_top (𝓝 $ I)) :
-  ∫ x in Ioi a, f x ∂μ = I :=
+lemma interval_integral_tendsto_integral_Ioi (a : α)
+  (hfi : integrable_on f (Ioi a) μ) (hb₂ : tendsto b at_top at_top) :
+  tendsto (λ i, ∫ x in a .. b i, f x ∂μ) at_top (𝓝 $ ∫ x in Ioi a, f x ∂μ) :=
 begin
   let φ := λ i, Iic (b i),
   have hφ : mono_ae_cover (μ.restrict $ Ioi a) φ := mono_ae_cover_Iic hb₁ hb₂,
-  refine integral_eq_of_tendsto_integral hφ _ hfm hfi (h.congr' _),
+  refine (set_integral_tendsto_integral hφ hfm hfi).congr' _,
   filter_upwards [hb₂.eventually (eventually_ge_at_top $ a)],
   intros i hbi,
   rw [interval_integral.integral_of_le hbi, measure.restrict_restrict (hφ.measurable i),

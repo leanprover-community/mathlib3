@@ -509,6 +509,37 @@ ring_hom.ext $ λ g, (localization.of _).lift_eq _ _
   const R f 1 (basic_open s) (λ _ _, submonoid.one_mem _) :=
 ((localization.of _).lift_eq _ _).trans $ to_open_eq_const _ _ _
 
+lemma to_basic_open_injective (f : R) : function.injective (to_basic_open R f) :=
+begin
+  intros s t h_eq,
+  obtain ⟨a, ⟨b, hb⟩, rfl⟩ := (localization.of _).mk'_surjective s,
+  obtain ⟨c, ⟨d, hd⟩, rfl⟩ := (localization.of _).mk'_surjective t,
+  simp only [to_basic_open_mk'] at h_eq,
+  let I : ideal R :=
+  { carrier := {r : R | a * d * r = c * b * r},
+    zero_mem' := sorry,
+    add_mem' := sorry,
+    smul_mem' := sorry},
+  suffices : f ∈ I.radical,
+  { obtain ⟨n, hn⟩ := this,
+    rw localization_map.eq,
+    use [f ^ n, n, hn] },
+  rw [← vanishing_ideal_zero_locus_eq_radical, mem_vanishing_ideal],
+  intros p hfp,
+  contrapose hfp,
+  have := congr_fun (congr_arg subtype.val h_eq) ⟨p,hfp⟩,
+  rw [const_apply, const_apply, localization_map.eq] at this,
+  obtain ⟨r, hr⟩ := this,
+  rw [mem_zero_locus, set.not_subset],
+  exact ⟨r.1, hr, r.2⟩
+end
+
+lemma to_basic_open_surjective (f : R) : function.surjective (to_basic_open R f) :=
+begin
+  sorry
+end
+
+
 lemma is_unit_to_stalk (x : Spec.Top R) (f : x.as_ideal.prime_compl) :
   is_unit (to_stalk R x (f : R)) :=
 by { erw ← germ_to_open R (basic_open (f : R)) ⟨x, f.2⟩ (f : R),

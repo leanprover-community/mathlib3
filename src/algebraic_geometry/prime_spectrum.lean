@@ -184,14 +184,14 @@ lemma le_vanishing_ideal_zero_locus (I : ideal R) :
 (gc R).le_u_l I
 
 @[simp] lemma vanishing_ideal_zero_locus_eq_radical (I : ideal R) :
-  vanishing_ideal (zero_locus (I : set R)) = I.radical :=
+  vanishing_ideal (zero_locus (I : set R)) = I.radical := ideal.ext $ λ f,
 begin
-  ext f,
   rw [mem_vanishing_ideal, ideal.radical_eq_Inf, submodule.mem_Inf],
-  split ; intros h x hx,
-  { exact h ⟨x, hx.2⟩ hx.1 },
-  { exact h x.1 ⟨hx, x.2⟩ }
+  exact ⟨(λ h x hx, h ⟨x, hx.2⟩ hx.1), (λ h x hx, h x.1 ⟨hx, x.2⟩)⟩
 end
+
+@[simp] lemma zero_locus_radical (I : ideal R) : zero_locus (I.radical : set R) = zero_locus I :=
+vanishing_ideal_zero_locus_eq_radical I ▸ congr_fun (gc R).l_u_l_eq_l I
 
 lemma subset_zero_locus_vanishing_ideal (t : set (prime_spectrum R)) :
   t ⊆ zero_locus (vanishing_ideal t) :=
@@ -348,6 +348,24 @@ lemma is_closed_zero_locus (s : set R) :
   is_closed (zero_locus s) :=
 by { rw [is_closed_iff_zero_locus], exact ⟨s, rfl⟩ }
 
+lemma zero_locus_vanishing_ideal_eq_closure (t : set (prime_spectrum R)) :
+  zero_locus (vanishing_ideal t : set R) = closure t :=
+begin
+  apply set.subset.antisymm,
+  { rintro x hx t' ⟨ht', ht⟩,
+    obtain ⟨fs, rfl⟩ : ∃ s, t' = zero_locus s,
+    by rwa [is_closed_iff_zero_locus] at ht',
+    rw [subset_zero_locus_iff_subset_vanishing_ideal] at ht,
+    calc fs ⊆ vanishing_ideal t : ht
+        ... ⊆ x.as_ideal        : hx },
+  { rw (is_closed_zero_locus _).closure_subset_iff,
+    exact subset_zero_locus_vanishing_ideal t }
+end
+
+lemma vanishing_ideal_closure (t : set (prime_spectrum R)) :
+  vanishing_ideal (closure t) = vanishing_ideal t :=
+zero_locus_vanishing_ideal_eq_closure t ▸ congr_fun (gc R).u_l_u_eq_u t
+
 section comap
 variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']
 
@@ -386,20 +404,6 @@ begin
 end
 
 end comap
-
-lemma zero_locus_vanishing_ideal_eq_closure (t : set (prime_spectrum R)) :
-  zero_locus (vanishing_ideal t : set R) = closure t :=
-begin
-  apply set.subset.antisymm,
-  { rintro x hx t' ⟨ht', ht⟩,
-    obtain ⟨fs, rfl⟩ : ∃ s, t' = zero_locus s,
-    by rwa [is_closed_iff_zero_locus] at ht',
-    rw [subset_zero_locus_iff_subset_vanishing_ideal] at ht,
-    calc fs ⊆ vanishing_ideal t : ht
-        ... ⊆ x.as_ideal        : hx },
-  { rw (is_closed_zero_locus _).closure_subset_iff,
-    exact subset_zero_locus_vanishing_ideal t }
-end
 
 /-- The prime spectrum of a commutative ring is a compact topological space. -/
 instance : compact_space (prime_spectrum R) :=

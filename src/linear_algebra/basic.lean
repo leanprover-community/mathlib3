@@ -764,8 +764,8 @@ begin
   refine (add_submonoid.closure_eq_of_le (by exact subset_span) _).symm,
   rintros m (hm : m ∈ (span ℕ S)),
   refine submodule.span_induction hm (λ s hs, add_submonoid.subset_closure hs)
-    (add_submonoid.zero_mem _) (λ x y hx hy, add_submonoid.add_mem _ hx hy) (λ a m hm, _),
-  exact add_submonoid.nsmul_mem _ hm _
+    (add_submonoid.zero_mem _) (λ x y hx hy, add_submonoid.add_mem _ hx hy)
+    (λ a m hm, add_submonoid.nsmul_mem _ hm _)
 end
 
 section

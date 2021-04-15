@@ -8,7 +8,7 @@ Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hu
 import algebra.group_power.basic
 
 /-!
-# instances on spaces of monoid and group morphisms
+# Instances on spaces of monoid and group morphisms
 
 We endow the space of monoid morphisms `M →* N` with a `comm_monoid` structure when the target is
 commutative, through pointwise multipliplication, and with a `comm_group` structure when the target

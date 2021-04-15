@@ -19,8 +19,10 @@ A well-founded subset of an ordered type is one on which the relation `<` is wel
  * `set.well_founded_on s r` indicates that the relation `r` is
   well-founded when restricted to the set `s`.
  * `set.is_wf s` indicates that `<` is well-founded when restricted to `s`.
+ * `set.partially_well_ordered_on s r` indicates that the relation `r` is
+  partially well-ordered (also known as well quasi-ordered) when restricted to the set `s`.
  * `set.is_pwo s` indicates that any infinite sequence of elements in `s`
-  contains an infinite monotone subsequence.
+  contains an infinite monotone subsequence. Note that
 
 ### Definitions for Hahn Series
  * `set.add_antidiagonal s t a` and `set.mul_antidiagonal s t a` are the sets of pairs of elements
@@ -29,6 +31,9 @@ A well-founded subset of an ordered type is one on which the relation `<` is wel
   `set.add_antidiagonal` and `set.mul_antidiagonal` defined when `s` and `t` are well-founded.
 
 ## Main Results
+ * Higman's Lemma, `set.partially_well_ordered_on.partially_well_ordered_on_sublist_forall₂`,
+  shows that if `r` is partially well-ordered on `s`, then `list.sublist_forall₂` is partially
+  well-ordered on the set of lists of elements of `s`.
  * `set.well_founded_on_iff` relates `well_founded_on` to the well-foundedness of a relation on the
  original type, to avoid dealing with subtypes.
  * `set.is_wf.mono` shows that a subset of a well-founded subset is well-founded.
@@ -437,6 +442,9 @@ end set
 namespace set
 namespace partially_well_ordered_on
 
+/-- In the context of partial well-orderings, a bad sequence is a nonincreasing sequence
+  whose range is contained in a particular set `s`. One exists if and only if `s` is not
+  partially well-ordered. -/
 def is_bad_seq (r : α → α → Prop) (s : set α) (f : ℕ → α) : Prop :=
 set.range f ⊆ s ∧ ∀ (m n : ℕ), m < n → ¬ r (f m) (f n)
 
@@ -449,9 +457,14 @@ begin
   simp [is_bad_seq]
 end
 
+/-- This indicates that every bad sequence `g` that agrees with `f` on the first `n`
+  terms has `rk (f n) ≤ rk (g n)`. -/
 def is_min_bad_seq (r : α → α → Prop) (rk : α → ℕ) (s : set α) (n : ℕ) (f : ℕ → α) : Prop :=
   ∀ g : ℕ → α, (∀ (m : ℕ), m < n → f m = g m) → rk (g n) < rk (f n) → ¬ is_bad_seq r s g
 
+/-- Given a bad sequence `f`, this constructs a bad sequence that agrees with `f` on the first `n`
+  terms and is minimal at `n`.
+-/
 noncomputable def min_bad_seq_of_bad_seq (r : α → α → Prop) (rk : α → ℕ) (s : set α)
   (n : ℕ) (f : ℕ → α) (hf : is_bad_seq r s f) :
   { g : ℕ → α // (∀ (m : ℕ), m < n → f m = g m) ∧ is_bad_seq r s g ∧ is_min_bad_seq r rk s n g } :=
@@ -504,6 +517,7 @@ begin
   exact ⟨f, hf1⟩,
 end
 
+/-- Higman's Lemma -/
 lemma partially_well_ordered_on_sublist_forall₂ (r : α → α → Prop) [is_refl α r] [is_trans α r]
   {s : set α} (h : s.partially_well_ordered_on r) :
   { l : list α | ∀ x, x ∈ l → x ∈ s }.partially_well_ordered_on (list.sublist_forall₂ r) :=

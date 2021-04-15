@@ -31,7 +31,7 @@ universes v u
 /-- A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
     a type `a ⟶ b` of arrows from `a` to `b`. -/
 class quiver (V : Type u) :=
-(hom : V → V → Type v)
+(hom : V → V → Sort v)
 
 infixr ` ⟶ `:10 := quiver.hom -- type as \h
 
@@ -87,7 +87,7 @@ structure total (V : Type u) [quiver.{v} V] : Type (max u v) :=
 
 /-- A wide subquiver `H` of `G.symmetrify` determines a wide subquiver of `G`, containing an
     an arrow `e` if either `e` or its reversal is in `H`. -/
-def wide_subquiver_symmetrify {V} [quiver V] :
+def wide_subquiver_symmetrify {V} [quiver.{v+1} V] :
   wide_subquiver (symmetrify V) → wide_subquiver V :=
 λ H a b, { e | sum.inl e ∈ H a b ∨ sum.inr e ∈ H b a }
 
@@ -203,7 +203,7 @@ attribute [instance] rooted_connected.nonempty_path
 
 section geodesic_subtree
 
-variables {V : Type u} [quiver V] (r : V) [rooted_connected r]
+variables {V : Type u} [quiver.{v+1} V] (r : V) [rooted_connected r]
 
 /-- A path from `r` of minimal length. -/
 noncomputable def shortest_path (b : V) : path r b :=
@@ -229,7 +229,7 @@ arborescence_mk r (λ a, (shortest_path r a).length)
 
 end geodesic_subtree
 
-variables (V : Type u) [quiver.{v} V]
+variables (V : Type u) [quiver.{v+1} V]
 
 /-- A quiver `has_reverse` if we can reverse an arrow `p` from `a` to `b` to get an arrow
     `p.reverse` from `b` to `a`.-/

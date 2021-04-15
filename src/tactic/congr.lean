@@ -161,7 +161,8 @@ The `convert` tactic applies congruence lemmas eagerly before reducing,
 therefore it can fail in cases where `exact` succeeds:
 ```lean
 def p (n : ℕ) := true
-example (h : p 0) : p 1 := by convert h -- produces goal 1 = 0
+example (h : p 0) : p 1 := by exact h -- succeeds
+example (h : p 0) : p 1 := by convert h -- fails, with leftover goal `1 = 0`
 ```
 
 If `x y : t`, and an instance `subsingleton t` is in scope, then any goals of the form

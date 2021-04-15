@@ -238,12 +238,18 @@ def kernel_comp_mono {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [has_kernel f] [mon
 
 -- TODO provide an instance `[has_kernel (f ≫ g)]` from `[is_iso f] [has_kernel g]`
 
+instance has_kernel_iso_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso f] [has_kernel g] :
+  has_kernel (f ≫ g) :=
+{ exists_limit :=
+  ⟨{ cone := kernel_fork.of_ι (kernel.ι g ≫ inv f) (by simp),
+     is_limit := is_limit_aux _ (λ s, kernel.lift _ (s.ι ≫ f) (by tidy)) (by tidy)
+       (λ s m w, by { simp_rw [←w], ext, simp, }), }⟩ }
+
 /--
 When `f` is an isomorphism, the kernel of `f ≫ g` is isomorphic to the kernel of `g`.
 -/
 @[simps]
-def kernel_is_iso_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
-  [has_kernel (f ≫ g)] [is_iso f] [has_kernel g] :
+def kernel_is_iso_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso f] [has_kernel g] :
   kernel (f ≫ g) ≅ kernel g :=
 { hom := kernel.lift _ (kernel.ι _ ≫ f) (by simp),
   inv := kernel.lift _ (kernel.ι _ ≫ inv f) (by simp), }
@@ -470,14 +476,20 @@ lemma cokernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (cokernel.π f)) → f
 
 -- TODO the remainder of this section has obvious generalizations to `has_coequalizer f g`.
 
--- TODO provide an instance `[has_cokernel (f ≫ g)]` from `[has_cokernel f] [is_iso g]`
+instance has_cokernel_comp_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [has_cokernel f] [is_iso g] :
+  has_cokernel (f ≫ g) :=
+{ exists_colimit :=
+  ⟨{ cocone := cokernel_cofork.of_π (inv g ≫ cokernel.π f) (by simp),
+     is_colimit := is_colimit_aux _ (λ s, cokernel.desc _ (g ≫ s.π)
+       (by { rw [←category.assoc, cokernel_cofork.condition], }))
+       (by tidy)
+       (λ s m w, by { simp_rw [←w], ext, simp, }), }⟩ }
 
 /--
 When `g` is an isomorphism, the cokernel of `f ≫ g` is isomorphic to the cokernel of `f`.
 -/
 @[simps]
-def cokernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
-  [has_cokernel (f ≫ g)] [has_cokernel f] [is_iso g] :
+def cokernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [has_cokernel f] [is_iso g] :
   cokernel (f ≫ g) ≅ cokernel f :=
 { hom := cokernel.desc _ (inv g ≫ cokernel.π f) (by simp),
   inv := cokernel.desc _ (g ≫ cokernel.π (f ≫ g)) (by rw [←category.assoc, cokernel.condition]), }

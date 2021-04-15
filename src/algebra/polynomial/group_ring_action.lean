@@ -98,10 +98,8 @@ theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
 
 theorem prod_X_sub_smul.smul (x : R) (g : G) :
   g • prod_X_sub_smul G R x = prod_X_sub_smul G R x :=
-(smul_prod _ _ _ _ _).trans $ finset.prod_bij (λ g' _, g • g') (λ _ _, finset.mem_univ _)
-  (λ g' _, by rw [of_quotient_stabilizer_smul, smul_sub, polynomial.smul_X, polynomial.smul_C])
-  (λ _ _ _ _ H, (mul_action.bijective g).1 H)
-  (λ g' _, ⟨g⁻¹ • g', finset.mem_univ _, by rw [smul_smul, mul_inv_self, one_smul]⟩)
+(smul_prod _ _ _ _ _).trans $ fintype.prod_bijective _ (mul_action.bijective g) _ _
+  (λ g', by rw [of_quotient_stabilizer_smul, smul_sub, polynomial.smul_X, polynomial.smul_C])
 
 theorem prod_X_sub_smul.coeff (x : R) (g : G) (n : ℕ) :
   g • (prod_X_sub_smul G R x).coeff n =

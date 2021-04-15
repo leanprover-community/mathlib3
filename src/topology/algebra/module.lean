@@ -277,13 +277,35 @@ variables [has_continuous_add M₂]
 instance : has_add (M →L[R] M₂) :=
 ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
+lemma continuous_nsmul (n : ℕ) : continuous (λ (x : M₂), n • x) :=
+begin
+  induction n with n ih,
+  { simp [continuous_const] },
+  { simp [nat.succ_eq_add_one, add_smul], exact ih.add continuous_id }
+end
+
+@[continuity]
+lemma continuous.nsmul {α : Type*} [topological_space α] {n : ℕ} {f : α → M₂} (hf : continuous f) :
+  continuous (λ (x : α), n • (f x)) :=
+(continuous_nsmul n).comp hf
+
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp, norm_cast] lemma coe_add : (((f + g) : M →L[R] M₂) : M →ₗ[R] M₂) = f + g := rfl
 @[norm_cast] lemma coe_add' : (((f + g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) + g := rfl
 
 instance : add_comm_monoid (M →L[R] M₂) :=
-by { refine {zero := 0, add := (+), ..}; intros; ext;
-  apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm] }
+{ zero := (0 : M →L[R] M₂),
+  add := (+),
+  zero_add := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
+  add_zero := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
+  add_comm := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
+  add_assoc := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
+  nsmul := λ n f,
+    { to_fun := λ x, n • (f x),
+      map_add' := by simp,
+      map_smul' := by simp [smul_comm n] },
+  nsmul_zero' := λ f, by { ext, simp },
+  nsmul_succ' := λ n f, by { ext, simp [nat.succ_eq_one_add, add_smul], } }
 
 @[simp, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) :
   ↑(∑ d in t, f d) = (∑ d in t, f d : M →ₗ[R] M₂) :=
@@ -402,6 +424,8 @@ def range (f : M →L[R] M₂) : submodule R M₂ := (f : M →ₗ[R] M₂).rang
 lemma range_coe : (f.range : set M₂) = set.range f := linear_map.range_coe _
 lemma mem_range {f : M →L[R] M₂} {y} : y ∈ f.range ↔ ∃ x, f x = y := linear_map.mem_range
 
+lemma mem_range_self (f : M →L[R] M₂) (x : M) : f x ∈ f.range := mem_range.2 ⟨x, rfl⟩
+
 lemma range_prod_le (f : M →L[R] M₂) (g : M →L[R] M₃) :
   range (f.prod g) ≤ (range f).prod (range g) :=
 (f : M →ₗ[R] M₂).range_prod_le g
@@ -491,6 +515,10 @@ rfl
 
 @[simp] lemma coprod_apply [has_continuous_add M₃] (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) (x) :
   f₁.coprod f₂ x = f₁ x.1 + f₂ x.2 := rfl
+
+lemma range_coprod [has_continuous_add M₃] (f₁ : M →L[R] M₃) (f₂ : M₂ →L[R] M₃) :
+  (f₁.coprod f₂).range = f₁.range ⊔ f₂.range :=
+linear_map.range_coprod _ _
 
 section
 
@@ -608,6 +636,16 @@ lemma range_prod_eq {f : M →L[R] M₂} {g : M →L[R] M₃} (h : ker f ⊔ ker
   range (f.prod g) = (range f).prod (range g) :=
 linear_map.range_prod_eq h
 
+lemma ker_prod_ker_le_ker_coprod [has_continuous_add M₃]
+  (f : M →L[R] M₃) (g : M₂ →L[R] M₃) :
+  (ker f).prod (ker g) ≤ ker (f.coprod g) :=
+linear_map.ker_prod_ker_le_ker_coprod f.to_linear_map g.to_linear_map
+
+lemma ker_coprod_of_disjoint_range [has_continuous_add M₃]
+  (f : M →L[R] M₃) (g : M₂ →L[R] M₃) (hd : disjoint f.range g.range) :
+  ker (f.coprod g) = (ker f).prod (ker g) :=
+linear_map.ker_coprod_of_disjoint_range f.to_linear_map g.to_linear_map hd
+
 section
 variables [topological_add_group M₂]
 
@@ -621,7 +659,8 @@ instance : has_neg (M →L[R] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 instance : has_sub (M →L[R] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
 
 instance : add_comm_group (M →L[R] M₂) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _, ..};
+by refine {zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _,
+  .. continuous_linear_map.add_comm_monoid, .. };
   intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
 
 lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl

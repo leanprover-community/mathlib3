@@ -65,6 +65,9 @@ rfl
 @[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
 
+@[continuity] -- otherwise `by continuity` can't prove continuity of `h.to_equiv.symm`
+protected lemma continuous_symm (h : α ≃ₜ β) : continuous (h.symm) := h.continuous_inv_fun
+
 @[simp] lemma apply_symm_apply (h : α ≃ₜ β) (x : β) : h (h.symm x) = x :=
 h.to_equiv.apply_symm_apply x
 
@@ -121,7 +124,12 @@ lemma coinduced_eq (h : α ≃ₜ β) : topological_space.coinduced h ‹_› = 
 h.quotient_map.2.symm
 
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
-⟨h.inducing, h.to_equiv.injective⟩
+⟨h.inducing, h.injective⟩
+
+protected lemma second_countable_topology [topological_space.second_countable_topology β]
+  (h : α ≃ₜ β) :
+  topological_space.second_countable_topology α :=
+h.inducing.second_countable_topology
 
 lemma compact_image {s : set α} (h : α ≃ₜ β) : is_compact (h '' s) ↔ is_compact s :=
 h.embedding.compact_iff_compact_image.symm
@@ -131,8 +139,7 @@ by rw ← image_symm; exact h.symm.compact_image
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,
-  inj     := h.injective,
-  induced := h.induced_eq.symm }
+  .. h.embedding }
 
 @[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
 h.quotient_map.is_open_preimage
@@ -306,5 +313,13 @@ homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
     (open_embedding_sigma_mk.prod open_embedding_id).is_open_map)
 
 end distrib
+
+/--
+A subset of a topological space is homeomorphic to its image under a homeomorphism.
+-/
+def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
+{ continuous_to_fun := by continuity!,
+  continuous_inv_fun := by continuity!,
+  ..e.to_equiv.image s, }
 
 end homeomorph

@@ -103,6 +103,11 @@ def iso_mk {f g : mono_over X} (h : f.val.left ≅ g.val.left) (w : h.hom ≫ g.
 { hom := hom_mk h.hom w,
   inv := hom_mk h.inv (by rw [h.inv_comp_eq, w]) }
 
+/-- If `f : mono_over X`, then `mk' f.arrow` is of course just `f`, but not definitionally, so we
+    package it as an isomorphism. -/
+@[simp] def mk'_arrow_iso {X : C} (f : mono_over X) : (mk' f.arrow) ≅ f :=
+iso_mk (iso.refl _) (by simp)
+
 /--
 Lift a functor between over categories to a functor between `mono_over` categories,
 given suitable evidence that morphisms are taken to monomorphisms.

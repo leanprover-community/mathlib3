@@ -116,39 +116,30 @@ begin
   exact ⟨⟨hx₁B, hx₁C⟩, hx₂B, hx₂C⟩,
 end
 
-lemma bInter_extreme_of_extreme {F : set (set E)} (hAF : ∀ B ∈ F, is_extreme_set A B) :
+lemma bInter_extreme_of_extreme {F : set (set E)} (hF : F.nonempty)
+  (hAF : ∀ B ∈ F, is_extreme_set A B) :
   is_extreme_set A (⋂ B ∈ F, B) :=
 begin
-  split,
-  {
-    have := λ B hB, (hAF B hB).1,
-    refine Inter_subset_of_subset _ _,
-    sorry,
-    sorry
-  },
+  obtain ⟨B, hB⟩ := hF,
+  use subset.trans (bInter_subset_of_mem hB) (hAF B hB).1,
   rintro x₁ x₂ hx₁A hx₂A x hxF hx hxx₁ hxx₂,
-  rw mem_Inter at ⊢ hxF,
-  rw mem_Inter,
-  sorry
-  --have h := λ B hB, (hAF B hB).2 x₁ x₂ hx₁A hx₂A x (hxF B hB) hx hxx₁ hxx₂,
-  -- exact ⟨λ i, (h i).1,λ i, (h i).2⟩,
+  rw mem_bInter_iff at ⊢ hxF,
+  rw mem_bInter_iff,
+  have h := λ B hB, (hAF B hB).2 x₁ x₂ hx₁A hx₂A x (hxF B hB) hx hxx₁ hxx₂,
+  exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
 end
 
-lemma Inter_extreme_of_extreme {ι : Type*} {F : ι → set E} (hAF : ∀ i : ι, is_extreme_set A (F i)) :
+lemma Inter_extreme_of_extreme {ι : Type*} [nonempty ι] {F : ι → set E}
+  (hAF : ∀ i : ι, is_extreme_set A (F i)) :
   is_extreme_set A (⋂ i : ι, F i) :=
 begin
-  split,
-  {
-    have := λ i, (hAF i).1,
-    refine Inter_subset_of_subset _ _,
-    sorry,
-    sorry
-  },
+  obtain i := classical.arbitrary ι,
+  use Inter_subset_of_subset i (hAF i).1,
   rintro x₁ x₂ hx₁A hx₂A x hxF hx hxx₁ hxx₂,
   rw mem_Inter at ⊢ hxF,
   rw mem_Inter,
   have h := λ i, (hAF i).2 x₁ x₂ hx₁A hx₂A x (hxF i) hx hxx₁ hxx₂,
-  exact ⟨λ i, (h i).1,λ i, (h i).2⟩,
+  exact ⟨λ i, (h i).1, λ i, (h i).2⟩,
 end
 
 lemma extreme_points_eq_inter_extreme_points_of_extreme (hAB : is_extreme_set A B) :

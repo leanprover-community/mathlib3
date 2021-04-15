@@ -73,6 +73,11 @@ begin
             ... ≤ l₁ y + l₂ x : add_le_add_right (hy x hxA) _,
 end
 
+instance : is_partial_order (set E) is_exposed_set :=
+{ refl := is_exposed_set.refl,
+  trans := is_exposed_set.trans,
+  antisymm := is_exposed_set.antisymm }
+
 lemma extreme_of_exposed (hAB : is_exposed_set A B) :
   is_extreme_set A B :=
 begin

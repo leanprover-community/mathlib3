@@ -134,6 +134,26 @@ by rw [linear_equiv.range, finsupp.supported_univ]
 
 end repr
 
+section coord
+
+/-- `b.coord i` is the linear function giving the `i`'th coordinate of a vector
+with respect to the basis `b`.
+
+`b.coord i` is an element of the dual space. In particular, for
+finite-dimensional spaces it is the `ι`th basis vector of the dual space.
+-/
+@[simps]
+def coord (i : ι) : M →ₗ[R] R :=
+(finsupp.lapply i).comp b.repr
+
+@[simp] lemma forall_coord_eq_zero_iff {x : M} :
+  (∀ i, b.coord i x = 0) ↔ x = 0 :=
+iff.trans
+  (by simp only [b.coord_apply, finsupp.ext_iff, finsupp.zero_apply])
+  b.repr.map_eq_zero_iff
+
+end coord
+
 section ext
 
 variables {M₁ : Type*} [add_comm_monoid M₁] [module R M₁]

@@ -115,6 +115,10 @@ noncomputable def fintype_basis_index {ι : Type*} [finite_dimensional K V] (b :
   fintype ι :=
 b.fintype_index_of_dim_lt_omega (dim_lt_omega K V)
 
+/-- In a finite dimensional vector space, `basis.of_vector_space` is indexed by a finite type. -/
+noncomputable instance [finite_dimensional K V] : fintype (basis.of_vector_space_index K V) :=
+fintype_basis_index (basis.of_vector_space K V)
+
 /-- In a finite dimensional space, all bases are indexed by a finite type. -/
 lemma finite_basis_index {ι : Type*} {s : set ι} [finite_dimensional K V] (b : basis s K V) :
   s.finite :=
@@ -1252,6 +1256,12 @@ noncomputable def basis_of_linear_independent_of_card_eq_finrank
 basis.mk lin_ind $
 span_eq_top_of_linear_independent_of_card_eq_finrank lin_ind card_eq
 
+@[simp] lemma coe_basis_of_linear_independent_of_card_eq_finrank
+  {ι : Type*} [nonempty ι] [fintype ι] {b : ι → V}
+  (lin_ind : linear_independent K b) (card_eq : fintype.card ι = finrank K V) :
+  ⇑(basis_of_linear_independent_of_card_eq_finrank lin_ind card_eq) = b :=
+basis.coe_mk _ _
+
 /-- A linear independent finset of `finrank K V` vectors forms a basis. -/
 @[simps]
 noncomputable def finset_basis_of_linear_independent_of_card_eq_finrank
@@ -1263,6 +1273,12 @@ noncomputable def finset_basis_of_linear_independent_of_card_eq_finrank
   lin_ind
   (trans (fintype.card_coe _) card_eq)
 
+@[simp] lemma coe_finset_basis_of_linear_independent_of_card_eq_finrank
+  {s : finset V} (hs : s.nonempty)
+  (lin_ind : linear_independent K (coe : (↑s : set V) → V)) (card_eq : s.card = finrank K V) :
+  ⇑(finset_basis_of_linear_independent_of_card_eq_finrank hs lin_ind card_eq) = coe :=
+basis.coe_mk _ _
+
 /-- A linear independent set of `finrank K V` vectors forms a basis. -/
 @[simps]
 noncomputable def set_basis_of_linear_independent_of_card_eq_finrank
@@ -1270,6 +1286,12 @@ noncomputable def set_basis_of_linear_independent_of_card_eq_finrank
   (lin_ind : linear_independent K (coe : s → V)) (card_eq : s.to_finset.card = finrank K V) :
   basis s K V :=
 basis_of_linear_independent_of_card_eq_finrank lin_ind (trans s.to_finset_card.symm card_eq)
+
+@[simp] lemma coe_set_basis_of_linear_independent_of_card_eq_finrank
+  {s : set V} [nonempty s] [fintype s]
+  (lin_ind : linear_independent K (coe : s → V)) (card_eq : s.to_finset.card = finrank K V) :
+  ⇑(set_basis_of_linear_independent_of_card_eq_finrank lin_ind card_eq) = coe :=
+basis.coe_mk _ _
 
 end basis
 
@@ -1417,7 +1439,7 @@ begin
   have : fintype b := unique.fintype,
   have b_lin_ind : linear_independent F (coe : b → S) := linear_independent_singleton one_ne_zero,
   have b_card : fintype.card b = 1 := fintype.card_of_subsingleton _,
-  obtain hb := set_basis_of_linear_independent_of_card_eq_finrank
+  let hb := set_basis_of_linear_independent_of_card_eq_finrank
     b_lin_ind (by simp only [*, set.to_finset_card]),
   have b_spans := hb.span_eq,
   intros x hx,

@@ -17,7 +17,7 @@ variables {M : Type*} [monoid_with_zero M]
 
 @[simp] lemma zero_pow' : ∀ n : ℕ, n ≠ 0 → (0 : M) ^ n = 0
 | 0     h := absurd rfl h
-| (k+1) h := zero_mul _
+| (k+1) h := by { rw [pow_succ], exact zero_mul _ }
 
 lemma ne_zero_pow {a : M} {n : ℕ} (hn : n ≠ 0) : a ^ n ≠ 0 → a ≠ 0 :=
 by { contrapose!, rintro rfl, exact zero_pow' n hn }
@@ -37,8 +37,11 @@ variables {G₀ : Type*} [group_with_zero G₀]
 section nat_pow
 
 @[simp, field_simps] theorem inv_pow' (a : G₀) (n : ℕ) : (a⁻¹) ^ n = (a ^ n)⁻¹ :=
-by induction n with n ih; [exact inv_one.symm,
-  rw [pow_succ', pow_succ, ih, mul_inv_rev']]
+begin
+  induction n with n ih,
+  { rw [pow_zero, pow_zero], exact inv_one.symm },
+  { rw [pow_succ', pow_succ, ih, mul_inv_rev'] }
+end
 
 theorem pow_sub' (a : G₀) {m n : ℕ} (ha : a ≠ 0) (h : n ≤ m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 have h1 : m - n + n = m, from nat.sub_add_cancel h,
@@ -75,9 +78,9 @@ theorem fpow_of_nat (a : G₀) (n : ℕ) : a ^ of_nat n = a ^ n := rfl
 
 local attribute [ematch] le_of_lt
 
-@[simp] theorem fpow_zero (a : G₀) : a ^ (0:ℤ) = 1 := rfl
+@[simp] theorem fpow_zero (a : G₀) : a ^ (0:ℤ) = 1 := pow_zero _
 
-@[simp] theorem fpow_one (a : G₀) : a ^ (1:ℤ) = a := mul_one _
+@[simp] theorem fpow_one (a : G₀) : a ^ (1:ℤ) = a := pow_one _
 
 @[simp] theorem one_fpow : ∀ (n : ℤ), (1 : G₀) ^ n = 1
 | (n : ℕ) := one_pow _
@@ -85,11 +88,18 @@ local attribute [ematch] le_of_lt
 
 lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : G₀) ^ z = 0
 | (of_nat n) h := zero_pow' _ $ by rintro rfl; exact h rfl
-| -[1+n]     h := show (0*0 ^ n)⁻¹ = (0 : G₀), by simp
+| -[1+n]     h := show (0 ^ (n + 1))⁻¹ = (0 : G₀), by simp
+
+lemma fzero_pow_eq (n : ℤ) : (0 : G₀) ^ n = if n = 0 then 1 else 0 :=
+begin
+  split_ifs with h,
+  { rw [h, fpow_zero] },
+  { rw [zero_fpow _ h] }
+end
 
 @[simp] theorem fpow_neg (a : G₀) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := rfl
-| 0       := inv_one.symm
+| 0       := by { change a ^ 0 = (a ^ 0) ⁻¹, rw pow_zero, exact inv_one.symm }
 | -[1+ n] := (inv_inv' _).symm
 
 theorem fpow_neg_one (x : G₀) : x ^ (-1:ℤ) = x⁻¹ := congr_arg has_inv.inv $ pow_one x

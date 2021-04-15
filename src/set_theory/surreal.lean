@@ -253,9 +253,14 @@ theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
  end⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
--- TODO prove
--- theorem numeric_nat (n : ℕ) : numeric n := sorry
--- theorem numeric_omega : numeric omega := sorry
+/-- Pre-games defined by natural numbers are numeric. -/
+theorem numeric_nat : Π (n : ℕ), numeric n
+| 0 := numeric_zero
+| (n + 1) := numeric_add (numeric_nat n) numeric_one
+
+/-- The pre-game omega is numeric. -/
+theorem numeric_omega : numeric omega :=
+⟨by rintros ⟨⟩ ⟨⟩, λ i, numeric_nat i.down, by rintros ⟨⟩⟩
 
 end pgame
 
@@ -363,6 +368,7 @@ instance : add_semigroup surreal :=
 -- TODO show this is a group homomorphism, and injective
 
 -- TODO define the field structure on the surreals
--- TODO show the maps from the dyadic rationals and from the reals into the surreals are multiplicative
+-- TODO show the maps from the dyadic rationals and from the reals
+-- into the surreals are multiplicative
 
 end surreal

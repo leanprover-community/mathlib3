@@ -82,8 +82,8 @@ If the image of a morphism under a fully faithful functor in an isomorphism,
 then the original morphisms is also an isomorphism.
 -/
 lemma is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
-⟨F.preimage (inv (F.map f)),
-  ⟨F.map_injective (by simp), F.map_injective (by simp)⟩⟩
+⟨⟨F.preimage (inv (F.map f)),
+  ⟨F.map_injective (by simp), F.map_injective (by simp)⟩⟩⟩
 
 /-- If `F` is fully faithful, we have an equivalence of hom-sets `X ⟶ Y` and `F X ⟶ F Y`. -/
 def equiv_of_fully_faithful {X Y} : (X ⟶ Y) ≃ (F.obj X ⟶ F.obj Y) :=

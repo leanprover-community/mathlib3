@@ -523,7 +523,8 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   cInf_le    := assume s a hb ha, by rw [Inf_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
   cSup_empty :=
   begin
-    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff, exists_const],
+    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff,
+      exists_const],
     apply bot_unique (nat.find_min' _ _),
     trivial
   end,
@@ -745,7 +746,8 @@ This result can be used to show that the extended reals [-∞, ∞] are a comple
 
 open_locale classical
 
-/-- Adding a top element to a conditionally complete lattice gives a conditionally complete lattice -/
+/-- Adding a top element to a conditionally complete lattice
+gives a conditionally complete lattice -/
 noncomputable instance with_top.conditionally_complete_lattice
   {α : Type*} [conditionally_complete_lattice α] :
   conditionally_complete_lattice (with_top α) :=
@@ -757,7 +759,8 @@ noncomputable instance with_top.conditionally_complete_lattice
   ..with_top.has_Sup,
   ..with_top.has_Inf }
 
-/-- Adding a bottom element to a conditionally complete lattice gives a conditionally complete lattice -/
+/-- Adding a bottom element to a conditionally complete lattice
+gives a conditionally complete lattice -/
 noncomputable instance with_bot.conditionally_complete_lattice
   {α : Type*} [conditionally_complete_lattice α] :
   conditionally_complete_lattice (with_bot α) :=
@@ -888,7 +891,8 @@ noncomputable def subset_conditionally_complete_linear_order [inhabited s]
 { le_cSup := begin
     rintros t c h_bdd hct,
     -- The following would be a more natural way to finish, but gives a "deep recursion" error:
-    -- simpa [subset_Sup_of_within (h_Sup t)] using (strict_mono_coe s).monotone.le_cSup_image hct h_bdd,
+    -- simpa [subset_Sup_of_within (h_Sup t)] using
+    --   (strict_mono_coe s).monotone.le_cSup_image hct h_bdd,
     have := (subtype.mono_coe s).le_cSup_image hct h_bdd,
     rwa subset_Sup_of_within s (h_Sup ⟨c, hct⟩ h_bdd) at this,
   end,
@@ -922,7 +926,7 @@ lemma Sup_within_of_ord_connected
 begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
   obtain ⟨B, hB⟩ : ∃ B, B ∈ upper_bounds t := h_bdd,
-  refine hs c.2 B.2 ⟨_, _⟩,
+  refine hs.out c.2 B.2 ⟨_, _⟩,
   { exact (subtype.mono_coe s).le_cSup_image hct ⟨B, hB⟩ },
   { exact (subtype.mono_coe s).cSup_image_le ⟨c, hct⟩ hB },
 end
@@ -935,7 +939,7 @@ lemma Inf_within_of_ord_connected
 begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
   obtain ⟨B, hB⟩ : ∃ B, B ∈ lower_bounds t := h_bdd,
-  refine hs B.2 c.2 ⟨_, _⟩,
+  refine hs.out B.2 c.2 ⟨_, _⟩,
   { exact (subtype.mono_coe s).le_cInf_image ⟨c, hct⟩ hB },
   { exact (subtype.mono_coe s).cInf_image_le hct ⟨B, hB⟩ },
 end

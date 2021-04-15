@@ -375,8 +375,6 @@ instance : ordered_cancel_add_comm_monoid (multiset α) :=
   zero_add              := multiset.zero_add,
   add_zero              := λ s, by rw [multiset.add_comm, multiset.zero_add],
   add_left_cancel       := multiset.add_left_cancel,
-  add_right_cancel      := λ s₁ s₂ s₃ h, multiset.add_left_cancel s₂ $
-    by simpa [multiset.add_comm] using h,
   add_le_add_left       := λ s₁ s₂ h s₃, (multiset.add_le_add_left _).2 h,
   le_of_add_le_add_left := λ s₁ s₂ s₃, (multiset.add_le_add_left _).1,
   ..@multiset.partial_order α }
@@ -424,7 +422,7 @@ theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
 card.map_add s t
 
 lemma card_nsmul (s : multiset α) (n : ℕ) :
-  (n •ℕ s).card = n * s.card :=
+  (n • s).card = n * s.card :=
 by rw [card.map_nsmul s n, nat.nsmul_eq_mul]
 
 @[simp] theorem card_cons (a : α) (s : multiset α) : card (a ::ₘ s) = card s + 1 :=
@@ -653,7 +651,7 @@ quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 instance (f : α → β) : is_add_monoid_hom (map f) :=
 { map_add := map_add _, map_zero := map_zero _ }
 
-theorem map_nsmul (f : α → β) (n s) : map f (n •ℕ s) = n •ℕ map f s :=
+theorem map_nsmul (f : α → β) (n : ℕ) (s) : map f (n • s) = n • map f s :=
 (add_monoid_hom.of (map f)).map_nsmul _ _
 
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :
@@ -828,15 +826,15 @@ instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : m
 { map_add := sum_add, map_zero := sum_zero }
 
 lemma prod_nsmul {α : Type*} [comm_monoid α] (m : multiset α) :
-  ∀n, (n •ℕ m).prod = m.prod ^ n
-| 0       := rfl
+  ∀ (n : ℕ), (n • m).prod = m.prod ^ n
+| 0       := by { rw [zero_nsmul, pow_zero], refl }
 | (n + 1) :=
   by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_nsmul n]
 
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
 @[simp] theorem sum_repeat [add_comm_monoid α] :
-  ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n •ℕ a :=
+  ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n • a :=
 @prod_repeat (multiplicative α) _
 attribute [to_additive] prod_repeat
 
@@ -845,7 +843,7 @@ lemma prod_map_one [comm_monoid γ] {m : multiset α} :
 by simp
 lemma sum_map_zero [add_comm_monoid γ] {m : multiset α} :
   sum (m.map (λa, (0 : γ))) = (0 : γ) :=
-by simp
+by simp [nsmul_zero]
 attribute [to_additive] prod_map_one
 
 @[simp, to_additive]
@@ -1074,7 +1072,7 @@ by simp [bind]
 by simp [bind]
 
 @[simp] theorem bind_zero (s : multiset α) : bind s (λa, 0 : α → multiset β) = 0 :=
-by simp [bind, join]
+by simp [bind, join, nsmul_zero]
 
 @[simp] theorem bind_add (s : multiset α) (f g : α → multiset β) :
   bind s (λa, f a + g a) = bind s f + bind s g :=
@@ -1824,8 +1822,8 @@ countp_add _
 instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
 countp.is_add_monoid_hom _
 
-@[simp] theorem count_nsmul (a : α) (n s) : count a (n •ℕ s) = n * count a s :=
-by induction n; simp [*, succ_nsmul', succ_mul]
+@[simp] theorem count_nsmul (a : α) (n s) : count a (n • s) = n * count a s :=
+by induction n; simp [*, succ_nsmul', succ_mul, zero_nsmul]
 
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=
 by simp [count, countp_pos]
@@ -1937,7 +1935,7 @@ end
 
 @[simp]
 lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
-  a ∈ n •ℕ s ↔ a ∈ s :=
+  a ∈ n • s ↔ a ∈ s :=
 begin
   classical,
   cases n,
@@ -1974,11 +1972,14 @@ begin
   { assume h, subst h, exact rel_eq_refl }
 end
 
-lemma rel.mono {p : α → β → Prop} {s t} (h : ∀a b, r a b → p a b) (hst : rel r s t) : rel p s t :=
+lemma rel.mono {r p : α → β → Prop} {s t} (hst : rel r s t) (h : ∀(a ∈ s) (b ∈ t), r a b → p a b) :
+  rel p s t :=
 begin
   induction hst,
   case rel.zero { exact rel.zero },
-  case rel.cons : a b s t hab hst ih { exact ih.cons (h a b hab) }
+  case rel.cons : a b s t hab hst ih {
+    apply rel.cons (h a (mem_cons_self _ _) b (mem_cons_self _ _) hab),
+    exact ih (λ a' ha' b' hb' h', h a' (mem_cons_of_mem ha') b' (mem_cons_of_mem hb') h') }
 end
 
 lemma rel.add {s t u v} (hst : rel r s t) (huv : rel r u v) : rel r (s + u) (t + v) :=
@@ -2059,14 +2060,14 @@ begin
   case rel.cons : a b s t hab hst ih { simpa using hab.add ih }
 end
 
-lemma rel_map {p : γ → δ → Prop} {s t} {f : α → γ} {g : β → δ} (h : (r ⇒ p) f g) (hst : rel r s t) :
-  rel p (s.map f) (t.map g) :=
-by rw [rel_map_left, rel_map_right]; exact hst.mono h
+lemma rel_map {s : multiset α} {t : multiset β} {f : α → γ} {g : β → δ} :
+  rel p (s.map f) (t.map g) ↔ rel (λa b, p (f a) (g b)) s t :=
+rel_map_left.trans rel_map_right
 
 lemma rel_bind {p : γ → δ → Prop} {s t} {f : α → multiset γ} {g : β → multiset δ}
   (h : (r ⇒ rel p) f g) (hst : rel r s t) :
   rel p (s.bind f) (t.bind g) :=
-by apply rel_join; apply rel_map; assumption
+by { apply rel_join, rw rel_map, exact hst.mono (λ a ha b hb hr, h hr) }
 
 lemma card_eq_card_of_rel {r : α → β → Prop} {s : multiset α} {t : multiset β} (h : rel r s t) :
   card s = card t :=
@@ -2091,7 +2092,7 @@ section map
 
 theorem map_eq_map {f : α → β} (hf : function.injective f) {s t : multiset α} :
   s.map f = t.map f ↔ s = t :=
-by rw [← rel_eq, ← rel_eq, rel_map_left, rel_map_right]; simp [hf.eq_iff]
+by { rw [← rel_eq, ← rel_eq, rel_map], simp only [hf.eq_iff] }
 
 theorem map_injective {f : α → β} (hf : function.injective f) :
   function.injective (multiset.map f) :=

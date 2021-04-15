@@ -53,7 +53,9 @@ end
 instance limit_algebra (F : J ⥤ Algebra R) :
   algebra R (types.limit_cone (F ⋙ forget (Algebra.{v} R))).X :=
 begin
-  change algebra R (sections_subalgebra F),
+  have : algebra R (types.limit_cone (F ⋙ forget (Algebra.{v} R))).X
+    = algebra R (sections_subalgebra F), by refl,
+  rw this,
   apply_instance,
 end
 
@@ -127,7 +129,7 @@ An auxiliary declaration to speed up typechecking.
 -/
 def forget₂_Module_preserves_limits_aux (F : J ⥤ Algebra R) :
   is_limit ((forget₂ (Algebra R) (Module R)).map_cone (limit_cone F)) :=
-Module.has_limits.limit_cone_is_limit (F ⋙ forget₂ (Algebra R) (Module R))
+by convert Module.has_limits.limit_cone_is_limit (F ⋙ forget₂ (Algebra R) (Module R))
 
 /--
 The forgetful functor from R-algebras to R-modules preserves all limits.

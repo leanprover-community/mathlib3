@@ -329,8 +329,7 @@ lemma support_monomial : (monomial s a).support = if a = 0 then ∅ else {s} := 
 lemma support_monomial_subset : (monomial s a).support ⊆ {s} :=
 support_single_subset
 
-lemma support_add : (p + q).support ⊆ p.support ∪ q.support :=
-by convert @finsupp.support_add _ _ _ p q
+lemma support_add : (p + q).support ⊆ p.support ∪ q.support := finsupp.support_add
 
 lemma support_X [nontrivial R] : (X n : mv_polynomial σ R).support = {single n 1} :=
 by rw [X, support_monomial, if_neg]; exact one_ne_zero
@@ -640,7 +639,7 @@ begin
 end
 
 @[simp] lemma eval₂_pow {p:mv_polynomial σ R} : ∀{n:ℕ}, (p ^ n).eval₂ f g = (p.eval₂ f g)^n
-| 0       := eval₂_one _ _
+| 0       := by { rw [pow_zero, pow_zero], exact eval₂_one _ _ }
 | (n + 1) := by rw [pow_add, pow_one, pow_add, pow_one, eval₂_mul, eval₂_pow]
 
 instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=

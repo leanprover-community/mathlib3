@@ -184,6 +184,9 @@
   title  : The Hermite-Lindemann Transcendence Theorem
 57:
   title  : Heron’s Formula
+  links :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/57_herons_formula.lean
+  author : Matt Kempster
 58:
   title  : Formula for the Number of Combinations
   decls  :
@@ -242,7 +245,7 @@
   author : Aaron Anderson
 71:
   title  : Order of a Subgroup
-  decl   : card_subgroup_dvd_card
+  decl   : subgroup.card_subgroup_dvd_card
   author : mathlib
 72:
   title  : Sylow’s Theorem

@@ -250,7 +250,7 @@ instance Group.forget_reflects_isos : reflects_isomorphisms (forget Group.{u}) :
     resetI,
     let i := as_iso ((forget Group).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact is_iso.of_iso e.to_Group_iso,
+    exact ⟨(is_iso.of_iso e.to_Group_iso).1⟩,
   end }
 
 @[to_additive]
@@ -260,5 +260,5 @@ instance CommGroup.forget_reflects_isos : reflects_isomorphisms (forget CommGrou
     resetI,
     let i := as_iso ((forget CommGroup).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact is_iso.of_iso e.to_CommGroup_iso,
+    exact ⟨(is_iso.of_iso e.to_CommGroup_iso).1⟩,
   end }

@@ -146,7 +146,7 @@ class compatible_smul (R S : Type*) [semiring S] [has_scalar R M]
 variables {M M₂}
 
 @[priority 100]
-instance compatible_smul.is_scalar_tower
+instance is_scalar_tower.compatible_smul
   {R S : Type*} [semiring S] [has_scalar R S]
   [has_scalar R M] [semimodule S M] [is_scalar_tower R S M]
   [has_scalar R M₂] [semimodule S M₂] [is_scalar_tower R S M₂] : compatible_smul M M₂ R S :=
@@ -212,10 +212,9 @@ variables (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂)
 /-- Composition of two linear maps is a linear map -/
 def comp : M →ₗ[R] M₃ := ⟨f ∘ g, by simp, by simp⟩
 
-@[simp] lemma comp_apply (x : M) : f.comp g x = f (g x) := rfl
+lemma comp_apply (x : M) : f.comp g x = f (g x) := rfl
 
-@[norm_cast]
-lemma comp_coe : (f : M₂ → M₃) ∘ (g : M → M₂) = f.comp g := rfl
+@[simp, norm_cast] lemma coe_comp : (f.comp g : M → M₃) = f ∘ g := rfl
 
 @[simp] theorem comp_id : f.comp id = f :=
 linear_map.ext $ λ x, rfl
@@ -436,7 +435,7 @@ def symm : M₂ ≃ₗ[R] M :=
   .. e.to_equiv.symm }
 
 /-- See Note [custom simps projection] -/
-def simps.inv_fun [semimodule R M] [semimodule R M₂] (e : M ≃ₗ[R] M₂) : M₂ → M := e.symm
+def simps.symm_apply [semimodule R M] [semimodule R M₂] (e : M ≃ₗ[R] M₂) : M₂ → M := e.symm
 
 initialize_simps_projections linear_equiv (to_fun → apply, inv_fun → symm_apply)
 

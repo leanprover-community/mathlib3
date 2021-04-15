@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
 import linear_algebra.finsupp
 import linear_algebra.prod
+import linear_algebra.pi
 import order.zorn
 import data.finset.order
 import data.equiv.fin
@@ -141,6 +142,13 @@ begin
   rw [hg i hi, zero_smul]
 end
 
+/-- A finite family of vectors `v i` is linear independent iff the linear map that sends
+`c : ι → R` to `∑ i, c i • v i` has the trivial kernel. -/
+theorem fintype.linear_independent_iff' [fintype ι] :
+  linear_independent R v ↔
+    (linear_map.lsum R (λ i : ι, R) ℕ (λ i, linear_map.id.smul_right (v i))).ker = ⊥ :=
+by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]
+
 lemma linear_independent_empty_type (h : ¬ nonempty ι) : linear_independent R v :=
 begin
  rw [linear_independent_iff],
@@ -224,7 +232,7 @@ h ▸ linear_independent_equiv e
 
 theorem linear_independent_subtype_range {ι} {f : ι → M} (hf : injective f) :
   linear_independent R (coe : range f → M) ↔ linear_independent R f :=
-iff.symm $ linear_independent_equiv' (equiv.set.range f hf) rfl
+iff.symm $ linear_independent_equiv' (equiv.of_injective f hf) rfl
 
 alias linear_independent_subtype_range ↔ linear_independent.of_subtype_range _
 
@@ -258,6 +266,22 @@ begin
   refine fin.cases this (λ j, _) j,
   apply hli (λ i, g i.succ),
   simpa only [this, zero_smul, zero_add] using total_eq
+end
+
+/-- A set of linearly independent vectors in a semimodule `M` over a semiring `K` is also linearly
+independent over a subring `R` of `K`.
+The implementation uses minimal assumptions about the relationship between `R`, `K` and `M`.
+The version where `K` is an `R`-algebra is `linear_independent.restrict_scalars_algebras`.
+ -/
+lemma linear_independent.restrict_scalars [semiring K] [smul_with_zero R K] [semimodule K M]
+  [is_scalar_tower R K M]
+  (hinj : function.injective (λ r : R, r • (1 : K))) (li : linear_independent K v) :
+  linear_independent R v :=
+begin
+  refine linear_independent_iff'.mpr (λ s g hg i hi, hinj (eq.trans _ (zero_smul _ _).symm)),
+  refine (linear_independent_iff'.mp li : _) _ _ _ i hi,
+  simp_rw [smul_assoc, one_smul],
+  exact hg,
 end
 
 section subtype
@@ -398,10 +422,18 @@ theorem linear_independent.to_subtype_range' {ι} {f : ι → M} (hf : linear_in
   linear_independent R (coe : t → M) :=
 ht ▸ hf.to_subtype_range
 
+theorem linear_independent.image_of_comp {ι ι'} (s : set ι) (f : ι → ι') (g : ι' → M)
+  (hs : linear_independent R (λ x : s, g (f x))) :
+  linear_independent R (λ x : f '' s, g x) :=
+begin
+  nontriviality R,
+  have : inj_on f s, from inj_on_iff_injective.2 hs.injective.of_comp,
+  exact (linear_independent_equiv' (equiv.set.image_of_inj_on f s this) rfl).1 hs
+end
+
 theorem linear_independent.image {ι} {s : set ι} {f : ι → M}
   (hs : linear_independent R (λ x : s, f x)) : linear_independent R (λ x : f '' s, (x : M)) :=
-(linear_independent_equiv' (equiv.set.of_eq $ by rw [range_comp, subtype.range_coe]) rfl).1
-  hs.to_subtype_range
+by convert linear_independent.image_of_comp s f id hs
 
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/

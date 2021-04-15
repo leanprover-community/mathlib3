@@ -164,17 +164,17 @@ namespace tsirelson_inequality
 
 /-!
 We next need some lemmas about numerals in modules and algebras.
-The awkward appearance of both `•ℤ` and `•` seems unavoidable because later calculations by `abel`
-will introduce `•ℤ`.
+The awkward appearance of both `•` and `•` seems unavoidable because later calculations by `abel`
+will introduce `•`.
 If anyone sees how to obtain these from general statements, please improve this!
 -/
 
 lemma two_gsmul_half_smul {α : Type*} [add_comm_group α] [module ℝ α] {X : α} :
-  2 •ℤ (2⁻¹ : ℝ) • X = X :=
+  2 • (2⁻¹ : ℝ) • X = X :=
 by { rw [gsmul_eq_smul_cast ℝ, ←mul_smul]; norm_num, }
 
 lemma neg_two_gsmul_half_smul {α : Type*} [add_comm_group α] [module ℝ α] {X : α} :
-  (-2) •ℤ (2⁻¹ : ℝ) • X = - X :=
+  (-2) • (2⁻¹ : ℝ) • X = - X :=
 by { rw [gsmul_eq_smul_cast ℝ, ←mul_smul]; norm_num, }
 
 lemma smul_two {α : Type*} [ring α] [algebra ℝ α] {x : ℝ} :

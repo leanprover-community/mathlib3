@@ -389,7 +389,7 @@ calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
        ... = a ^ (i % order_of a) :
     by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
 
-lemma gsmul_eq_mod_add_order_of {i : ℤ} : i •ℤ x = (i % add_order_of x) •ℤ x :=
+lemma gsmul_eq_mod_add_order_of {i : ℤ} : i • x = (i % add_order_of x) • x :=
 begin
   apply multiplicative.of_add.injective,
   simp [of_add_gsmul, gpow_eq_mod_order_of],
@@ -613,7 +613,7 @@ begin
   { exact_mod_cast hw2 }
 end
 
-lemma exists_gsmul_eq_zero (x : H) : ∃ i ≠ 0, i •ℤ x = 0 :=
+lemma exists_gsmul_eq_zero (x : H) : ∃ i ≠ 0, i • x = 0 :=
 begin
   rcases exists_gpow_eq_one (multiplicative.of_add x) with ⟨i, hi1, hi2⟩,
   refine ⟨i, hi1, multiplicative.of_add.injective _⟩,

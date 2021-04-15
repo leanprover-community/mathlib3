@@ -266,6 +266,34 @@ lemma dvd_pow {x y : M} :
 
 end comm_monoid
 
+section div_inv_monoid
+variable [div_inv_monoid G]
+
+open int
+
+@[simp] theorem gpow_coe_nat (a : G) (n : ℕ) : a ^ (n:ℤ) = a ^ n :=
+begin
+  induction n with n ih,
+  { change gpow 0 a = a ^ 0, rw [div_inv_monoid.gpow_zero', pow_zero] },
+  { change gpow (of_nat n) a = a ^ n at ih,
+    change gpow (of_nat n.succ) a = a ^ n.succ,
+    rw [div_inv_monoid.gpow_succ', pow_succ, ih] }
+end
+
+theorem gpow_of_nat (a : G) (n : ℕ) : a ^ of_nat n = a ^ n :=
+gpow_coe_nat _ _
+
+@[simp] theorem gpow_neg_succ_of_nat (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ :=
+by { rw ← gpow_coe_nat, exact div_inv_monoid.gpow_neg' n a }
+
+@[simp] theorem gpow_zero (a : G) : a ^ (0:ℤ) = 1 :=
+by { convert pow_zero a using 1, exact gpow_coe_nat a 0 }
+
+@[simp] theorem gpow_one (a : G) : a ^ (1:ℤ) = a :=
+by { convert pow_one a using 1, exact gpow_coe_nat a 1 }
+
+end div_inv_monoid
+
 section group
 variables [group G] [group H] [add_group A] [add_group B]
 
@@ -299,38 +327,18 @@ theorem nsmul_neg_comm : ∀ (a : A) (m n : ℕ), m • (-a) + n • a = n • a
 
 end nat
 
-@[simp] theorem gpow_coe_nat (a : G) (n : ℕ) : a ^ (n:ℤ) = a ^ n :=
-begin
-  induction n with n ih,
-  { change gpow 0 a = a ^ 0, rw [div_inv_monoid.gpow_zero', pow_zero] },
-  { change gpow (of_nat n) a = a ^ n at ih,
-    change gpow (of_nat n.succ) a = a ^ n.succ,
-    rw [div_inv_monoid.gpow_succ', pow_succ, ih] }
-end
 
 @[simp] theorem gsmul_coe_nat (a : A) (n : ℕ) : (n : ℤ) • a = n • a :=
 @gpow_coe_nat (multiplicative A) _ _ _
 
-theorem gpow_of_nat (a : G) (n : ℕ) : a ^ of_nat n = a ^ n :=
-gpow_coe_nat _ _
-
 theorem gsmul_of_nat (a : A) (n : ℕ) : of_nat n • a = n • a :=
 gsmul_coe_nat _ _
-
-@[simp] theorem gpow_neg_succ_of_nat (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ :=
-by { rw ← gpow_coe_nat, exact div_inv_monoid.gpow_neg' n a }
 
 @[simp] theorem gsmul_neg_succ_of_nat (a : A) (n : ℕ) : -[1+n] • a = - (n.succ • a) :=
 @gpow_neg_succ_of_nat (multiplicative A) _ _ _
 
-@[simp] theorem gpow_zero (a : G) : a ^ (0:ℤ) = 1 :=
-by { convert pow_zero a using 1, exact gpow_coe_nat a 0 }
-
 @[simp] theorem zero_gsmul (a : A) : (0:ℤ) • a = 0 :=
 @gpow_zero (multiplicative A) _ _
-
-@[simp] theorem gpow_one (a : G) : a ^ (1:ℤ) = a :=
-by { convert pow_one a using 1, exact gpow_coe_nat a 1 }
 
 @[simp] theorem one_gsmul (a : A) : (1:ℤ) • a = a :=
 @gpow_one (multiplicative A) _ _
@@ -343,7 +351,7 @@ by { convert pow_one a using 1, exact gpow_coe_nat a 1 }
 @one_gpow (multiplicative A) _
 
 @[simp] theorem gpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
-| (n+1:ℕ) := group.gpow_neg' _ _
+| (n+1:ℕ) := div_inv_monoid.gpow_neg' _ _
 | 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
 | -[1+ n] := by { rw [gpow_neg_succ_of_nat, inv_inv, ← gpow_coe_nat], refl }
 

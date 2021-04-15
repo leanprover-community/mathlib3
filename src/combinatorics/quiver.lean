@@ -38,11 +38,11 @@ def wide_subquiver (V) [quiver V] :=
 /-- A type synonym for `V`, when thought of as a quiver having only the arrows from
 some `wide_subquiver`. -/
 @[nolint unused_arguments has_inhabited_instance]
-def wide_subquiver_synonym (V) [quiver V] (H : wide_subquiver V) : Type u := V
+def wide_subquiver.to_Type (V) [quiver V] (H : wide_subquiver V) : Type u := V
 
 instance wide_subquiver_has_coe_to_sort {V} [quiver V] : has_coe_to_sort (wide_subquiver V) :=
 { S := Type u,
-  coe := λ H, wide_subquiver_synonym V H, }
+  coe := λ H, wide_subquiver.to_Type V H, }
 
 /-- A wide subquiver viewed as a quiver on its own. -/
 instance wide_subquiver.quiver {V} [quiver V] (H : wide_subquiver V) : quiver H :=

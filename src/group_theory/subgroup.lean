@@ -155,10 +155,6 @@ lemma coe_to_submonoid (K : subgroup G) : (K.to_submonoid : set G) = K := rfl
 instance (K : subgroup G) [d : decidable_pred (∈ K)] [fintype G] : fintype K :=
 show fintype {g : G // g ∈ K}, from infer_instance
 
-@[to_additive]
-noncomputable instance subgroup.fintype_noncomputable (K : subgroup G) [fintype G] : fintype K :=
-fintype.of_injective coe subtype.coe_injective
-
 end subgroup
 
 

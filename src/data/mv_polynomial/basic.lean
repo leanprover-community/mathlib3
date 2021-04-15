@@ -245,22 +245,6 @@ begin
     { intros, rw pow_add, }, }
 end
 
-instance infinite_of_infinite (σ : Type*) (R : Type*) [comm_semiring R] [infinite R] :
-  infinite (mv_polynomial σ R) :=
-infinite.of_injective C (C_injective _ _)
-
-instance infinite_of_nonempty (σ : Type*) (R : Type*) [nonempty σ] [comm_semiring R]
-  [nontrivial R] :
-  infinite (mv_polynomial σ R) :=
-infinite.of_injective (λ i : ℕ, monomial (single (classical.arbitrary σ) i) 1)
-begin
-  intros m n h,
-  have := (single_eq_single_iff _ _ _ _).mp h,
-  simp only [and_true, eq_self_iff_true, or_false, one_ne_zero, and_self,
-             single_eq_single_iff, eq_self_iff_true, true_and] at this,
-  rcases this with (rfl|⟨rfl, rfl⟩); refl
-end
-
 /-! ### Induction and extensionality principles -/
 
 @[recursor 5]
@@ -313,6 +297,19 @@ hom_eq_hom f (ring_hom.id _) hC hX p
   {f g : mv_polynomial σ R →ₐ[R] A} (hf : ∀ i : σ, f (X i) = g (X i)) :
   f = g :=
 by { ext, exact hf _ }
+
+instance infinite_of_infinite (σ : Type*) (R : Type*) [comm_semiring R] [infinite R] :
+  infinite (mv_polynomial σ R) :=
+infinite.of_injective C (C_injective _ _)
+
+instance infinite_of_nonempty (σ : Type*) (R : Type*) [nonempty σ] [comm_semiring R]
+  [nontrivial R] :
+  infinite (mv_polynomial σ R) :=
+infinite.of_injective ((λ s : σ →₀ ℕ, monomial s 1) ∘ (single (classical.arbitrary σ)))
+begin
+  refine function.injective.comp _ (finsupp.single_injective _),
+  exact single_left_injective one_ne_zero,
+end
 
 section support
 

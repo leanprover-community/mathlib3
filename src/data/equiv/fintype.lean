@@ -121,4 +121,3 @@ by { convert (e.to_compl ⟨x, hx⟩).2,
      rw [e.extend_subtype_apply_of_not_mem _ hx, subtype.val_eq_coe] }
 
 end equiv
-#lint

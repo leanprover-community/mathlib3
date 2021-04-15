@@ -50,7 +50,6 @@ instance add_monoid.has_scalar_nat [add_monoid M] : has_scalar ℕ M := ⟨nsmul
 
 @[simp] lemma nsmul_eq_smul {M : Type*} [add_monoid M] (n : ℕ) (x : M) : nsmul n x = n • x := rfl
 
-
 /-!
 ### Commutativity
 

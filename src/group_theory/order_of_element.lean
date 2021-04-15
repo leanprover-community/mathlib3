@@ -583,7 +583,7 @@ equiv.of_bijective (λ n, ⟨a ^ ↑n, ⟨n, rfl⟩⟩) ⟨λ ⟨i, hi⟩ ⟨j, 
   λ ⟨_, i, rfl⟩, ⟨⟨i % order_of a, mod_lt i (order_of_pos a)⟩, subtype.eq pow_eq_mod_order_of.symm⟩⟩
 
 /-- The equivalence between `fin (add_order_of a)` and `add_submonoid.multiples a`,
-  sending `i` to `i •ℕ a`."-/
+  sending `i` to `i • a`."-/
 noncomputable def fin_equiv_multiples (a : H) :
   fin (add_order_of a) ≃ (add_submonoid.multiples a : set H) :=
 fin_equiv_powers (multiplicative.of_add a)
@@ -594,7 +594,7 @@ attribute [to_additive fin_equiv_multiples] fin_equiv_powers
   fin_equiv_powers a n = ⟨a ^ ↑n, n, rfl⟩ := rfl
 
 @[simp] lemma fin_equiv_multiples_apply {a : H} {n : fin (add_order_of a)} :
-  fin_equiv_multiples a n = ⟨↑n •ℕ a, n, rfl⟩ := rfl
+  fin_equiv_multiples a n = ⟨↑n • a, n, rfl⟩ := rfl
 
 attribute [to_additive fin_equiv_multiples_apply] fin_equiv_powers_apply
 
@@ -605,8 +605,8 @@ by rw [equiv.symm_apply_eq, fin_equiv_powers_apply, subtype.mk_eq_mk,
   pow_eq_mod_order_of, fin.coe_mk]
 
 @[simp] lemma fin_equiv_multiples_symm_apply (a : H) (n : ℕ)
-  {hn : ∃ (m : ℕ), m •ℕ a = n •ℕ a} :
-  ((fin_equiv_multiples a).symm ⟨n •ℕ a, hn⟩) =
+  {hn : ∃ (m : ℕ), m • a = n • a} :
+  ((fin_equiv_multiples a).symm ⟨n • a, hn⟩) =
     ⟨n % add_order_of a, nat.mod_lt _ (add_order_of_pos a)⟩ :=
 fin_equiv_powers_symm_apply (multiplicative.of_add a) n
 
@@ -619,7 +619,7 @@ noncomputable def powers_equiv_powers {a b : α} (h : order_of a = order_of b) :
 (fin_equiv_powers a).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_powers b))
 
 /-- The equivalence between `submonoid.multiples` of two elements `a, b` of the same additive order,
-  mapping `i •ℕ a` to `i •ℕ b`. -/
+  mapping `i • a` to `i • b`. -/
 noncomputable def multiples_equiv_multiples {a b : H} (h : add_order_of a = add_order_of b) :
   (add_submonoid.multiples a : set H) ≃ (add_submonoid.multiples b : set H) :=
 (fin_equiv_multiples a).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_multiples b))
@@ -637,7 +637,7 @@ end
 
 @[simp]
 lemma multiples_equiv_multiples_apply {a b : H} (h : add_order_of a = add_order_of b)
-  (n : ℕ) : multiples_equiv_multiples h ⟨n •ℕ a, n, rfl⟩ = ⟨n •ℕ b, n, rfl⟩ :=
+  (n : ℕ) : multiples_equiv_multiples h ⟨n • a, n, rfl⟩ = ⟨n • b, n, rfl⟩ :=
 @powers_equiv_powers_apply _ _ _ (multiplicative.of_add a) (multiplicative.of_add b) h n
 
 attribute [to_additive multiples_equiv_multiples_apply] powers_equiv_powers_apply
@@ -732,7 +732,7 @@ noncomputable def fin_equiv_gpowers (a : α) :
 (fin_equiv_powers a).trans (equiv.set.of_eq (powers_eq_gpowers a))
 
 /-- The equivalence between `fin (order_of a)` and `subgroup.gmultiples a`,
-  sending `i` to `i •ℕ a`. -/
+  sending `i` to `i • a`. -/
 noncomputable def fin_equiv_gmultiples (a : H) :
   fin (add_order_of a) ≃ (add_subgroup.gmultiples a : set H) :=
 fin_equiv_gpowers (multiplicative.of_add a)
@@ -743,7 +743,7 @@ attribute [to_additive fin_equiv_gmultiples] fin_equiv_gpowers
   fin_equiv_gpowers a n = ⟨a ^ ↑n, n, rfl⟩ := rfl
 
 @[simp] lemma fin_equiv_gmultiples_apply {a : H} {n : fin (add_order_of a)} :
-  fin_equiv_gmultiples a n = ⟨n •ℕ a, n, rfl⟩ := rfl
+  fin_equiv_gmultiples a n = ⟨n • a, n, rfl⟩ := rfl
 
 attribute [to_additive fin_equiv_gmultiples_apply] fin_equiv_gpowers_apply
 
@@ -755,7 +755,7 @@ by { rw [fin_equiv_gpowers, equiv.symm_trans_apply, equiv.set.of_eq_symm_apply],
 
 @[simp] lemma fin_equiv_gmultiples_symm_apply (a : H) (n : ℕ)
   {hn : ∃ (m : ℤ), m •ℤ a = n •ℤ a} :
-  ((fin_equiv_gmultiples a).symm ⟨n •ℕ a, hn⟩) =
+  ((fin_equiv_gmultiples a).symm ⟨n • a, hn⟩) =
     ⟨n % add_order_of a, nat.mod_lt _ (add_order_of_pos a)⟩ :=
 fin_equiv_gpowers_symm_apply (multiplicative.of_add a) n
 
@@ -768,7 +768,7 @@ noncomputable def gpowers_equiv_gpowers {a b : α} (h : order_of a = order_of b)
 (fin_equiv_gpowers a).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_gpowers b))
 
 /-- The equivalence between `subgroup.gmultiples` of two elements `a, b` of the same additive order,
-  mapping `i •ℕ a` to `i •ℕ b`. -/
+  mapping `i • a` to `i • b`. -/
 noncomputable def gmultiples_equiv_gmultiples {a b : H} (h : add_order_of a = add_order_of b) :
   (add_subgroup.gmultiples a : set H) ≃ (add_subgroup.gmultiples b : set H) :=
 (fin_equiv_gmultiples a).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_gmultiples b))
@@ -786,7 +786,7 @@ end
 
 @[simp]
 lemma gmultiples_equiv_gmultiples_apply {a b : H} (h : add_order_of a = add_order_of b)
-  (n : ℕ) : gmultiples_equiv_gmultiples h ⟨n •ℕ a, n, rfl⟩ = ⟨n •ℕ b, n, rfl⟩ :=
+  (n : ℕ) : gmultiples_equiv_gmultiples h ⟨n • a, n, rfl⟩ = ⟨n • b, n, rfl⟩ :=
 @gpowers_equiv_gpowers_apply _ _ _ (multiplicative.of_add a) (multiplicative.of_add b) h n
 
 attribute [to_additive gmultiples_equiv_gmultiples_apply] gpowers_equiv_gpowers_apply

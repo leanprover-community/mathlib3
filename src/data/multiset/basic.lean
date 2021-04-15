@@ -422,7 +422,7 @@ theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
 card.map_add s t
 
 lemma card_nsmul (s : multiset α) (n : ℕ) :
-  (nsmul n s).card = n * s.card :=
+  (n • s).card = n * s.card :=
 by rw [card.map_nsmul s n, nat.nsmul_eq_mul]
 
 @[simp] theorem card_cons (a : α) (s : multiset α) : card (a ::ₘ s) = card s + 1 :=
@@ -651,7 +651,7 @@ quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 instance (f : α → β) : is_add_monoid_hom (map f) :=
 { map_add := map_add _, map_zero := map_zero _ }
 
-theorem map_nsmul (f : α → β) (n : ℕ) (s) : map f (nsmul n s) = nsmul n (map f s) :=
+theorem map_nsmul (f : α → β) (n : ℕ) (s) : map f (n • s) = n • (map f s) :=
 (add_monoid_hom.of (map f)).map_nsmul _ _
 
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :
@@ -826,7 +826,7 @@ instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : m
 { map_add := sum_add, map_zero := sum_zero }
 
 lemma prod_nsmul {α : Type*} [comm_monoid α] (m : multiset α) :
-  ∀ (n : ℕ), (nsmul n m).prod = m.prod ^ n
+  ∀ (n : ℕ), (n • m).prod = m.prod ^ n
 | 0       := by { rw [zero_nsmul, pow_zero], refl }
 | (n + 1) :=
   by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_nsmul n]
@@ -834,7 +834,7 @@ lemma prod_nsmul {α : Type*} [comm_monoid α] (m : multiset α) :
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
 @[simp] theorem sum_repeat [add_comm_monoid α] :
-  ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = nsmul n a :=
+  ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n • a :=
 @prod_repeat (multiplicative α) _
 attribute [to_additive] prod_repeat
 
@@ -1822,7 +1822,7 @@ countp_add _
 instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
 countp.is_add_monoid_hom _
 
-@[simp] theorem count_nsmul (a : α) (n s) : count a (nsmul n s) = n * count a s :=
+@[simp] theorem count_nsmul (a : α) (n s) : count a (n • s) = n * count a s :=
 by induction n; simp [*, succ_nsmul', succ_mul, zero_nsmul]
 
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=
@@ -1935,7 +1935,7 @@ end
 
 @[simp]
 lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
-  a ∈ nsmul n s ↔ a ∈ s :=
+  a ∈ n • s ↔ a ∈ s :=
 begin
   classical,
   cases n,
@@ -2149,14 +2149,14 @@ lemma sum_le_sum_map
 @sum_map_le_sum (order_dual α) _ _ f h
 
 lemma card_nsmul_le_sum {b : α}
-  {m : multiset α} (h : ∀ x, x ∈ m → b ≤ x) : (card m) •ℕ b ≤ m.sum :=
+  {m : multiset α} (h : ∀ x, x ∈ m → b ≤ x) : (card m) • b ≤ m.sum :=
 begin
   rw [←multiset.sum_repeat, ←multiset.map_const],
   exact sum_map_le_sum _ h,
 end
 
 lemma sum_le_card_nsmul {b : α}
-  {m : multiset α} (h : ∀ x, x ∈ m → x ≤ b) : m.sum ≤ (card m) •ℕ b :=
+  {m : multiset α} (h : ∀ x, x ∈ m → x ≤ b) : m.sum ≤ (card m) • b :=
 begin
   rw [←multiset.sum_repeat, ←multiset.map_const],
   exact sum_le_sum_map _ h,

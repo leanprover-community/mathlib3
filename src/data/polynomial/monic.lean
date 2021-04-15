@@ -89,7 +89,7 @@ else
 
 lemma monic_pow (hp : monic p) : ∀ (n : ℕ), monic (p ^ n)
 | 0     := monic_one
-| (n+1) := monic_mul hp (monic_pow n)
+| (n+1) := by { rw pow_succ, exact monic_mul hp (monic_pow n) }
 
 lemma monic_add_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :
   monic (p + q) :=

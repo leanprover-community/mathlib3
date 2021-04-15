@@ -155,7 +155,7 @@ def function.injective.ordered_semiring {β : Type*}
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_semiring β :=
-{ zero_le_one := show f 0 ≤ f 1, by  simp only [zero, one, zero_le_one],
+{ zero_le_one := show f 0 ≤ f 1, by simp only [zero, one, zero_le_one],
   mul_lt_mul_of_pos_left := λ  a b c ab c0, show f (c * a) < f (c * b),
     begin
       rw [mul, mul],
@@ -630,7 +630,6 @@ instance ordered_ring.to_ordered_semiring : ordered_semiring α :=
 { mul_zero                   := mul_zero,
   zero_mul                   := zero_mul,
   add_left_cancel            := @add_left_cancel α _,
-  add_right_cancel           := @add_right_cancel α _,
   le_of_add_le_add_left      := @le_of_add_le_add_left α _,
   mul_lt_mul_of_pos_left     := @ordered_ring.mul_lt_mul_of_pos_left α _,
   mul_lt_mul_of_pos_right    := @ordered_ring.mul_lt_mul_of_pos_right α _,
@@ -719,7 +718,6 @@ instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semirin
 { mul_zero                   := mul_zero,
   zero_mul                   := zero_mul,
   add_left_cancel            := @add_left_cancel α _,
-  add_right_cancel           := @add_right_cancel α _,
   le_of_add_le_add_left      := @le_of_add_le_add_left α _,
   mul_lt_mul_of_pos_left     := @mul_lt_mul_of_pos_left α _,
   mul_lt_mul_of_pos_right    := @mul_lt_mul_of_pos_right α _,
@@ -920,7 +918,6 @@ let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_sem
 { zero_mul                   := @linear_ordered_semiring.zero_mul α s,
   mul_zero                   := @linear_ordered_semiring.mul_zero α s,
   add_left_cancel            := @linear_ordered_semiring.add_left_cancel α s,
-  add_right_cancel           := @linear_ordered_semiring.add_right_cancel α s,
   le_of_add_le_add_left      := @linear_ordered_semiring.le_of_add_le_add_left α s,
   mul_lt_mul_of_pos_left     := @linear_ordered_semiring.mul_lt_mul_of_pos_left α s,
   mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,
@@ -942,7 +939,6 @@ let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_sem
 { zero_mul                   := @linear_ordered_semiring.zero_mul α s,
   mul_zero                   := @linear_ordered_semiring.mul_zero α s,
   add_left_cancel            := @linear_ordered_semiring.add_left_cancel α s,
-  add_right_cancel           := @linear_ordered_semiring.add_right_cancel α s,
   le_of_add_le_add_left      := @linear_ordered_semiring.le_of_add_le_add_left α s,
   mul_lt_mul_of_pos_left     := @linear_ordered_semiring.mul_lt_mul_of_pos_left α s,
   mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,

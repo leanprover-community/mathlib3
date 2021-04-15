@@ -66,12 +66,15 @@ namespace Aut
 instance inhabited : inhabited (Aut X) := ⟨iso.refl X⟩
 
 instance : group (Aut X) :=
-by refine { one := iso.refl X,
-            inv := iso.symm,
-            mul := flip iso.trans,
-            div_eq_mul_inv := λ _ _, rfl, .. } ;
-     simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
-      has_inv.inv]
+by refine_struct
+{ one := iso.refl X,
+  inv := iso.symm,
+  mul := flip iso.trans,
+  div := _,
+  npow := @npow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ };
+intros; ext; try { refl };
+simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
+  has_inv.inv]
 
 /--
 Units in the monoid of endomorphisms of an object

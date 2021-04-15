@@ -7,13 +7,14 @@ import linear_algebra.affine_space.combination
 import linear_algebra.finite_dimensional
 import algebra.module.linear_map
 import analysis.convex.topology
+import analysis.normed_space.operator_norm
 import combinatorics.simplicial_complex.dump
 import combinatorics.simplicial_complex.convex_independence
 
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS
-variables {m : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
   {X : finset E}
 
 /--
@@ -21,6 +22,10 @@ A set B is extreme to a set A if no affine combination of points in A \ B is in 
 def is_extreme_set (A B : set E) :
   Prop :=
 B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ segment x₁ x₂ → x₁ ≠ x → x₂ ≠ x → x₁ ∈ B ∧ x₂ ∈ B
+
+lemma is_extreme_set.refl :
+  reflexive (is_extreme_set : set E → set E → Prop) :=
+λ A, ⟨subset.refl _, λ x₁ x₂ hx₁A hx₂A x hxA hx hxx₁ hxx₂, ⟨hx₁A, hx₂A⟩⟩
 
 lemma is_extreme_set.antisymm :
   anti_symmetric (is_extreme_set : set E → set E → Prop) :=
@@ -35,6 +40,17 @@ begin
   obtain ⟨hx₁B, hx₂B⟩ := hAB x₁ x₂ hx₁A hx₂A x (hCB hxC) hx hxx₁ hxx₂,
   exact hBC x₁ x₂ hx₁B hx₂B x hxC hx hxx₁ hxx₂,
 end
+
+lemma closed_of_exposed (hA : is_closed A) (hAB : is_exposed_set A B) :
+  is_closed B :=
+begin
+
+end
+
+lemma compact_of_exposed (hA : is_compact A) (hAB : is_exposed_set A B) :
+  is_compact B :=
+compact_of_is_closed_subset hA (closed_of_exposed (is_compact.is_closed hA) hAB)
+  (subset_of_exposed hAB)
 
 lemma convex_remove_of_extreme (hA : convex A) (hAB : is_extreme_set A B) :
   convex (A \ B) :=
@@ -76,11 +92,8 @@ end
 
 lemma extreme_points_subset_extreme_points_of_extreme (hAB : is_extreme_set A B) :
   B.extreme_points ⊆ A.extreme_points :=
-begin
-  rintro x hxB,
-  rw extreme_point_iff_extreme_singleton at ⊢ hxB,
-  exact is_extreme_set.trans hAB hxB,
-end
+λ x hxB, extreme_point_iff_extreme_singleton.2 (is_extreme_set.trans hAB
+  (extreme_point_iff_extreme_singleton.1 hxB))
 
 lemma convex_remove_iff_extreme_point (hA : convex A) :
   x ∈ A ∧ convex (A \ {x}) ↔ x ∈ A.extreme_points :=
@@ -103,7 +116,7 @@ begin
   rw convex_independent_set_iff,
   rintro X hX x hxA,
   simp,
-  have : x ∈ (convex_hull (X : set E)).extreme_points,
+  have : x ∈ (convex_hull (X : set E)).extreme_points,--true?
   {
     use hxA.2,
     rintro x₁ x₂ hx₁ hx₂ hx,
@@ -235,88 +248,6 @@ begin
     convex_hull_min (subset_diff.2 ⟨subset_convex_hull _, disjoint_singleton_right.2 h⟩) hx.2,
   rw [subset_diff, disjoint_singleton_right] at this,
   exact this.2 hxA,
-end
-
-def is_exposed_set (A B : set E) :
-  Prop :=
-∃ l : E →L[ℝ] ℝ, B = {x ∈ A | ∀ y ∈ A, l y ≤ l x}
-
-lemma subset_of_exposed (hAB : is_exposed_set A B) :
-  B ⊆ A :=
-begin
-  obtain ⟨_, _, _, rfl⟩ := hAB,
-  exact λ x hx, hx.1,
-end
-
-lemma is_exposed_set.antisymm :
-  anti_symmetric (is_exposed_set : set E → set E → Prop) :=
-λ A B hAB hBA, subset.antisymm (subset_of_exposed hBA) (subset_of_exposed hAB)
-
-lemma is_exposed_set.trans :
-  transitive (is_exposed_set : set E → set E → Prop) :=
-begin
-  rintro A B C ⟨l₁, hB⟩ ⟨l₂, hC⟩,
-  --have := λ x, (⨆ (y : E) (H : y ∈ B), lBC y) * lAB x + (⨆ (y : E) (H : y ∈ A), lAB y) * lBC x,
-  let u : ℝ := sorry,
-  let v : ℝ := sorry,
-  have hupos : 0 < u := sorry,
-  have hvpos : 0 < v := sorry,
-  let l : E →L[ℝ] ℝ := {
-    to_fun := λ x, u * l₁ x + v * l₂ x,
-    map_add' := sorry,
-    map_smul' := sorry,
-    cont := sorry },
-  refine ⟨l, _⟩, --use weighed sum instead
-  rw hC,
-  --have : (⨆ (y : E) (H : y ∈ A), u * l₁ y + v * l₂ y) = (⨆ (y : E) (H : y ∈ A), u * l₁ y) +
-  --  (⨆ (y : E) (H : y ∈ A), v * l₂ y) := sorry,
-  --have : ∀ x : E, u * l₁ x + v * l₂ x = (⨆ (y : E) (H : y ∈ A), u * l₁ y + v * l₂ y)
-  --  ↔ u * l₁ x = (⨆ (y : E) (H : y ∈ A), u * l₁ y) ∧ v * l₂ x = ⨆ (y : E) (H : y ∈ A), v * l₂ y,
-  --  sorry,
-  --simp,
-  ext x,
-  split,
-  {
-    rintro ⟨hxB, hxl₂⟩,
-    rw hB at hxB,
-    obtain ⟨hxA, hxl₁⟩ := hxB,
-    use hxA,
-    rintro y hy,
-    have := hxl₁ y hy,
-    sorry
-  },
-  {
-    rintro ⟨hxA, hx⟩,
-    rw hB,
-    simp,
-    refine ⟨⟨hxA, _⟩, _⟩,
-    {
-      rintro y hy,
-      have := hx y hy,
-      sorry
-    },
-    rintro y hyA hy,
-    have := hy x hxA,
-    have : u * l₁ y + v * l₂ y ≤ u * l₁ x + v * l₂ x := hx y hyA,
-    sorry --trivial but linarith won't do it :(
-  }
-end
-
-lemma extreme_of_exposed (hAB : is_exposed_set A B) :
-  is_extreme_set A B :=
-begin
-  use subset_of_exposed hAB,
-  rintro x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, ha, hb, hab, hx⟩ hx₁x hx₂x,
-  obtain ⟨l, rfl⟩ := hAB,
-  simp at *,
-  have : l x = a • l x₁ + b • l x₂,
-  { rw ←hx,
-    simp },
-  refine ⟨⟨hx₁A, _⟩, ⟨hx₂A, _⟩⟩,
-  rintro y hy,
-  have := hxB.2 y hy,--@Bhavik
-  sorry,
-  sorry
 end
 
 lemma subset_frontier_of_extreme (hAB : is_extreme_set A B) (hBA : B ⊂ A) :

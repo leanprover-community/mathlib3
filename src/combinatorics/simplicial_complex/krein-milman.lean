@@ -1,9 +1,9 @@
-import combinatorics.simplicial_complex.extreme_point
+import combinatorics.simplicial_complex.exposed
 
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS
-variables {m : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
 
 namespace affine
 

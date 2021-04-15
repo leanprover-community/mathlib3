@@ -9,25 +9,25 @@ import order.filter.at_top_bot
 /-!
 # Links between an integral and its "improper" version
 
-In its current state, mathlib only knows how to talk about definite/proper integrals,
-in the sense that it treats integrals over `[1, +∞)` in the same way as integrals over `[0, 1]`
-(for example) : an integral over `[1, +∞)` is **not** defined to be the limit as `x` goes to `+∞` of
-the integral over `[1, x]`, which may be named an "improper integral".
+In its current state, mathlib only knows how to talk about definite ("proper") integrals,
+in the sense that it treats integrals over `[x, +∞)` in the same as it treats integrals over
+`[y, z]`. For example, the integral over `[1, +∞)` is **not** defined to be the limit of
+the integral over `[1, x]` as `x` tends to `+∞`, which is known as an **improper integral**.
 
 Indeed, the "proper" definition is stronger than the "improper" one. The usual counterexample
 is `x ↦ sin(x)/x`, which has an improper integral over `[1, +∞)` but no definite integral.
 
-Although definite integrals have better properties, it is hardly usable to actually compute
-integrals on unbounded set, which is way easier using limits. Thus, in this file, we prove
-various ways of studying the proper integral by studying the improper one.
+Although definite integrals have better properties, they are hardly usable when it comes to
+computing integrals on unbounded sets, which is much easier using limits. Thus, in this file,
+we prove various ways of studying the proper integral by studying the improper one.
 
 ## Definitions
 
-The main definition of this file is `measure_theory.mono_ae_cover`. It's a rather technical
+The main definition of this file is `measure_theory.mono_ae_cover`. It is a rather technical
 definition whose sole purpose is generalizing and factoring proofs. For a sequence `φ` of subsets
-of a measurable space `α` equipped with a measure `μ`, one should think of an hypothesis
+of a measurable space `α` equipped with a measure `μ`, one should think of a hypothesis
 `hφ : mono_ae_cover μ φ` as a sufficient condition for being able to interpret
-`∫ x, f x ∂μ` (if it exists) as the limit as `n` goes to `∞` of `∫ x in φ n, f x ∂μ`.
+`∫ x, f x ∂μ` (if it exists) as the limit of `∫ x in φ n, f x ∂μ` as `n` tends to `+∞`.
 
 When using this definition with a measure restricted to a set `s`, which happens fairly often,
 one should not try too hard to use a `mono_ae_cover` of subsets of `s`, as it often makes proofs
@@ -49,8 +49,8 @@ w.r.t. `μ.restrict (Iic b)`.
 
 We then specialize these lemmas to various use cases involving intervals, which are frequent
 in analysis.
-
 -/
+
 open measure_theory filter set
 open_locale ennreal nnreal topological_space
 
@@ -66,7 +66,7 @@ variables {α ι : Type*} [ordered_add_comm_monoid ι]
     monotone, and each `φ n` is measurable.
     This definition is a technical way to avoid duplicating a lot of proofs.
     It should be thought of as a sufficient condition for being able to interpret
-    `∫ x, f x ∂μ` (if it exists) as the limit as `n` goes to `∞` of `∫ x in φ n, f x ∂μ`.
+    `∫ x, f x ∂μ` (if it exists) as the limit of `∫ x in φ n, f x ∂μ` as `n` tends to `+∞`.
 
     See for example `measure_theory.lintegral_eq_of_tendsto_lintegral`,
     `measure_theory.integrable_of_tendsto_integral_norm` and

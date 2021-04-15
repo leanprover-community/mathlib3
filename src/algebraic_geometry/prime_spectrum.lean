@@ -197,6 +197,17 @@ lemma subset_zero_locus_vanishing_ideal (t : set (prime_spectrum R)) :
   t ⊆ zero_locus (vanishing_ideal t) :=
 (gc R).l_u_le t
 
+lemma zero_locus_anti_mono {s t : set R} (h : s ⊆ t) : zero_locus t ⊆ zero_locus s :=
+(gc_set R).monotone_l h
+
+lemma zero_locus_anti_mono_ideal {s t : ideal R} (h : s ≤ t) :
+  zero_locus (t : set R) ⊆ zero_locus (s : set R) :=
+(gc R).monotone_l h
+
+lemma vanishing_ideal_anti_mono {s t : set (prime_spectrum R)} (h : s ⊆ t) :
+  vanishing_ideal t ≤ vanishing_ideal s :=
+(gc R).monotone_u h
+
 lemma zero_locus_bot :
   zero_locus ((⊥ : ideal R) : set R) = set.univ :=
 (gc R).l_bot
@@ -420,6 +431,24 @@ def basic_open (r : R) : topological_space.opens (prime_spectrum R) :=
 
 lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum R)) :=
 (basic_open a).property
+
+lemma basic_open_eq_zero_locus_compl (r : R) :
+  (basic_open r : set (prime_spectrum R)) = (zero_locus {r})ᶜ :=
+set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
+
+lemma is_topological_basis_basic_opens : topological_space.is_topological_basis
+  (set.range (λ (r : R), (basic_open r : set (prime_spectrum R)))) :=
+begin
+  apply topological_space.is_topological_basis_of_open_of_nhds,
+  { rintros _ ⟨r, rfl⟩,
+    exact is_open_basic_open },
+  { rintros p U hp ⟨s, hs⟩,
+    rw [← compl_compl U, set.mem_compl_eq, ← hs, mem_zero_locus, set.not_subset] at hp,
+    obtain ⟨f, hfs, hfp⟩ := hp,
+    refine ⟨basic_open f, ⟨f, rfl⟩, hfp, _⟩,
+    rw [← set.compl_subset_compl, ← hs, basic_open_eq_zero_locus_compl, compl_compl],
+    exact zero_locus_anti_mono (set.singleton_subset_iff.mpr hfs) }
+end
 
 end basic_open
 

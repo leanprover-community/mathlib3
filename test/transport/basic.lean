@@ -40,7 +40,7 @@ def mynat_equiv : ℕ ≃ mynat :=
   mynat_equiv.symm (mynat.succ n) = (mynat_equiv.symm n) + 1 := rfl
 
 instance semiring_mynat : semiring mynat :=
-by transport (by apply_instance : semiring ℕ) using mynat_equiv
+semiring.map mynat_equiv
 
 lemma mynat_add_def (a b : mynat) : a + b = mynat_equiv (mynat_equiv.symm a + mynat_equiv.symm b) :=
 rfl
@@ -67,4 +67,10 @@ example : (2 : mynat) * (2 : mynat) = (4 : mynat) :=
 rfl
 
 example : (3 : mynat) + (7 : mynat) * (2 : mynat) = (17 : mynat) :=
+rfl
+
+example : (2 : ℕ) • (3 : mynat) = (6 : mynat) :=
+rfl
+
+example : (3 : mynat) ^ 2 = (9 : mynat) :=
 rfl

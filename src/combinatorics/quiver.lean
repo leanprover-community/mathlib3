@@ -24,15 +24,21 @@ open opposite
 universes v u
 
 /-- A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
-    a type `a ⟶ b` of arrows from `a` to `b`. -/
+    a sort `a ⟶ b` of arrows from `a` to `b`.
+
+    For graphs with no repeated edges, one can use `quiver.{0} V`, which ensures
+    `a ⟶ b : Prop`. For multigraphs, one can use `quiver.{v+1} V`, which ensures
+    `a ⟶ b : Type v`. -/
 class quiver (V : Type u) :=
 (hom : V → V → Sort v)
 
 infixr ` ⟶ `:10 := quiver.hom -- type as \h
 
 /-- A wide subquiver `H` of `G` picks out a set `H a b` of arrows from `a` to `b`
-    for every pair of vertices `a b`. -/
-def wide_subquiver (V) [quiver V] :=
+    for every pair of vertices `a b`.
+
+    NB: this does not work for `Prop`-valued quivers. It requires `G : quiver.{v+1} V`. -/
+def wide_subquiver (V) [quiver.{v+1} V] :=
 Π a b : V, set (a ⟶ b)
 
 /-- A type synonym for `V`, when thought of as a quiver having only the arrows from
@@ -77,7 +83,8 @@ def hom.unop {V} [quiver V] {X Y : Vᵒᵖ} (f : X ⟶ Y) : unop Y ⟶ unop X :=
 
 attribute [irreducible] quiver.opposite
 
-/-- A type synonym for the symmetrized quiver (with an arrow both ways for each original arrow). -/
+/-- A type synonym for the symmetrized quiver (with an arrow both ways for each original arrow).
+    NB: this does not work for `Prop`-valued quivers. It requires `[quiver.{v+1} V]`. -/
 @[nolint has_inhabited_instance]
 def symmetrify (V) : Type u := V
 
@@ -94,6 +101,8 @@ structure total (V : Type u) [quiver.{v} V] : Type (max u v) :=
 
 /-- A wide subquiver `H` of `G.symmetrify` determines a wide subquiver of `G`, containing an
     an arrow `e` if either `e` or its reversal is in `H`. -/
+-- Without the explicit universe level in `quiver.{v+1}` Lean comes up with
+-- `quiver.{max u_2 u_3 + 1}`. This causes problems elsewhere, so we write `quiver.{v+1}`.
 def wide_subquiver_symmetrify {V} [quiver.{v+1} V] :
   wide_subquiver (symmetrify V) → wide_subquiver V :=
 λ H a b, { e | sum.inl e ∈ H a b ∨ sum.inr e ∈ H b a }

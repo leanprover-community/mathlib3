@@ -761,14 +761,6 @@ theorem head_mem_head' [inhabited α] : ∀ {l : list α} (h : l ≠ []), head l
 theorem cons_head_tail [inhabited α] {l : list α} (h : l ≠ []) : (head l)::(tail l) = l :=
 cons_head'_tail (head_mem_head' h)
 
-lemma mem_of_mem_tail {a : α} {l : list α} (h : a ∈ l.tail) : a ∈ l :=
-begin
-  cases l,
-  { rwa tail_nil at h },
-  rw tail_cons at h,
-  exact mem_cons_of_mem _ h,
-end
-
 lemma head_mem_self [inhabited α] {l : list α} (h : l ≠ nil) : l.head ∈ l :=
 begin
   have h' := mem_cons_self l.head l.tail,
@@ -959,9 +951,6 @@ instance decidable_sublist [decidable_eq α] : ∀ (l₁ l₂ : list α), decida
     | a, l₁, sublist.cons ._ ._ ._ s', h := s'
     | ._, ._, sublist.cons2 t ._ ._ s', h := absurd rfl h
     end⟩
-
-lemma tail_sublist (l : list α) : l.tail <+ l :=
-by { cases l; simp }
 
 /-! ### index_of -/
 
@@ -3477,7 +3466,9 @@ theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop
 
 theorem tail_suffix (l : list α) : tail l <:+ l := by rw ← drop_one; apply drop_suffix
 
-theorem tail_subset (l : list α) : tail l ⊆ l := (sublist_of_suffix (tail_suffix l)).subset
+lemma tail_sublist (l : list α) : l.tail <+ l := (sublist_of_suffix (tail_suffix l))
+
+theorem tail_subset (l : list α) : tail l ⊆ l := (tail_sublist l).subset
 
 theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
 ⟨by rintros ⟨r, rfl⟩; rw drop_left, λ e, ⟨_, e⟩⟩

@@ -121,7 +121,7 @@ lemma bInter_extreme_of_extreme {F : set (set E)} (hAF : ∀ B ∈ F, is_extreme
 begin
   split,
   {
-    have := λ i, (hAF i).1,
+    have := λ B hB, (hAF B hB).1,
     refine Inter_subset_of_subset _ _,
     sorry,
     sorry
@@ -129,8 +129,9 @@ begin
   rintro x₁ x₂ hx₁A hx₂A x hxF hx hxx₁ hxx₂,
   rw mem_Inter at ⊢ hxF,
   rw mem_Inter,
-  have h := λ i, (hAF i).2 x₁ x₂ hx₁A hx₂A x (hxF i) hx hxx₁ hxx₂,
-  exact ⟨λ i, (h i).1,λ i, (h i).2⟩,
+  sorry
+  --have h := λ B hB, (hAF B hB).2 x₁ x₂ hx₁A hx₂A x (hxF B hB) hx hxx₁ hxx₂,
+  -- exact ⟨λ i, (h i).1,λ i, (h i).2⟩,
 end
 
 lemma Inter_extreme_of_extreme {ι : Type*} {F : ι → set E} (hAF : ∀ i : ι, is_extreme_set A (F i)) :
@@ -157,6 +158,13 @@ begin
   exact ⟨λ hxB, ⟨hxB.1, extreme_point_iff_extreme_singleton.2 (is_extreme_set.trans hAB
   (extreme_point_iff_extreme_singleton.1 hxB))⟩, λ ⟨hxB, hxA⟩, ⟨hxB, λ x₁ x₂ hx₁B hx₂B hx,
     hxA.2 x₁ x₂ (hAB.1 hx₁B) (hAB.1 hx₂B) hx⟩⟩,
+end
+
+lemma extreme_points_subset_extreme_points_of_extreme (hAB : is_extreme_set A B) :
+  B.extreme_points ⊆ A.extreme_points :=
+begin
+  rw extreme_points_eq_inter_extreme_points_of_extreme hAB,
+  exact inter_subset_right _ _,
 end
 
 

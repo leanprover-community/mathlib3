@@ -426,6 +426,98 @@ begin
       (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
 end
 
+section generation
+
+variables [fintype α]
+
+open subgroup
+
+lemma closure_is_cycle [fintype α] : closure ({σ | is_cycle σ} : set (perm α)) = ⊤ :=
+begin
+  refine eq_top_iff.mpr (λ x hx, _),
+  obtain ⟨h1, h2, h3⟩ := subtype.mem (trunc_cycle_factors x).out,
+  rw ← h1,
+  exact list_prod_mem _ (λ y hy, subset_closure (h2 y hy)),
+end
+
+lemma closure_cycle_adjacent_swap {σ : perm α} (h1 : is_cycle σ) (h2 : σ.support = ⊤) (x : α) :
+  closure ({σ, swap x (σ x)} : set (perm α)) = ⊤ :=
+begin
+  let H := closure ({σ, swap x (σ x)} : set (perm α)),
+  have h3 : σ ∈ H := subset_closure (set.mem_insert σ _),
+  have h4 : swap x (σ x) ∈ H := subset_closure (set.mem_insert_of_mem _ (set.mem_singleton _)),
+  have step1 : ∀ (n : ℕ), swap ((σ ^ n) x) ((σ^(n+1)) x) ∈ H,
+  { intro n,
+    induction n with n ih,
+    { exact subset_closure (set.mem_insert_of_mem _ (set.mem_singleton _)) },
+    { convert H.mul_mem (H.mul_mem h3 ih) (H.inv_mem h3),
+      rw [mul_swap_eq_swap_mul, mul_inv_cancel_right], refl } },
+  have step2 : ∀ (n : ℕ), swap x ((σ ^ n) x) ∈ H,
+  { intro n,
+    induction n with n ih,
+    { convert H.one_mem,
+      exact swap_self x },
+    { by_cases h5 : x = (σ ^ n) x,
+      { rw [pow_succ, mul_apply, ←h5], exact h4 },
+      by_cases h6 : x = (σ^(n+1)) x,
+      { rw [←h6, swap_self], exact H.one_mem },
+      rw [swap_comm, ←swap_mul_swap_mul_swap h5 h6],
+      exact H.mul_mem (H.mul_mem (step1 n) ih) (step1 n) } },
+  have step3 : ∀ (y : α), swap x y ∈ H,
+  { intro y,
+    have hx : x ∈ (⊤ : finset α) := finset.mem_univ x,
+    rw [←h2, mem_support] at hx,
+    have hy : y ∈ (⊤ : finset α) := finset.mem_univ y,
+    rw [←h2, mem_support] at hy,
+    cases is_cycle.exists_pow_eq h1 hx hy with n hn,
+    rw ← hn,
+    exact step2 n },
+  have step4 : ∀ (y z : α), swap y z ∈ H,
+  { intros y z,
+    by_cases h5 : z = x,
+    { rw [h5, swap_comm], exact step3 y },
+    by_cases h6 : z = y,
+    { rw [h6, swap_self], exact H.one_mem },
+    rw [←swap_mul_swap_mul_swap h5 h6, swap_comm z x],
+    exact H.mul_mem (H.mul_mem (step3 y) (step3 z)) (step3 y) },
+  rw [eq_top_iff, ←closure_is_swap, closure_le],
+  rintros τ ⟨y, z, h5, h6⟩,
+  rw h6,
+  exact step4 y z,
+end
+
+lemma closure_cycle_coprime_swap {n : ℕ} {σ : perm α} (h0 : nat.coprime n (fintype.card α))
+  (h1 : is_cycle σ) (h2 : σ.support = finset.univ) (x : α) :
+  closure ({σ, swap x ((σ ^ n) x)} : set (perm α)) = ⊤ :=
+begin
+  rw [←finset.card_univ, ←h2, ←order_of_is_cycle h1] at h0,
+  cases exists_pow_eq_self_of_coprime h0 with m hm,
+  have h2' : (σ ^ n).support = ⊤ := eq.trans (support_pow_coprime h0) h2,
+  have h1' : is_cycle ((σ ^ n) ^ (m : ℤ)) := by rwa ← hm at h1,
+  replace h1' : is_cycle (σ ^ n) := is_cycle_of_is_cycle_pow h1'
+    (le_trans (support_pow_le σ n) (ge_of_eq (congr_arg support hm))),
+  rw [eq_top_iff, ←closure_cycle_adjacent_swap h1' h2' x, closure_le, set.insert_subset],
+  exact ⟨subgroup.pow_mem (closure _) (subset_closure (set.mem_insert σ _)) n,
+    set.singleton_subset_iff.mpr (subset_closure (set.mem_insert_of_mem _ (set.mem_singleton _)))⟩,
+end
+
+lemma closure_prime_cycle_swap {σ τ : perm α} (h0 : (fintype.card α).prime) (h1 : is_cycle σ)
+  (h2 : σ.support = finset.univ) (h3 : is_swap τ) : closure ({σ, τ} : set (perm α)) = ⊤ :=
+begin
+  obtain ⟨x, y, h4, h5⟩ := h3,
+  obtain ⟨i, hi⟩ := h1.exists_pow_eq (mem_support.mp
+  ((finset.ext_iff.mp h2 x).mpr (finset.mem_univ x)))
+    (mem_support.mp ((finset.ext_iff.mp h2 y).mpr (finset.mem_univ y))),
+  rw [h5, ←hi],
+  refine closure_cycle_coprime_swap (nat.coprime.symm
+    ((nat.prime.coprime_iff_not_dvd h0).mpr (λ h, h4 _))) h1 h2 x,
+  cases h with m hm,
+  rwa [hm, pow_mul, ←finset.card_univ, ←h2, ←order_of_is_cycle h1,
+    pow_order_of_eq_one, one_pow, one_apply] at hi,
+end
+
+end generation
+
 section fixed_points
 
 /-!

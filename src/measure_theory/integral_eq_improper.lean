@@ -364,8 +364,8 @@ begin
 end
 
 /-- Slight reformulation of `measure_theory.set_integral_tendsto_integral`. -/
-lemma integral_eq_of_tendsto_set_integral {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → E} (I : E)
-  (hfm : measurable f) (hfi : integrable f μ)
+lemma integral_eq_of_tendsto_set_integral {φ : ι → set α} (hφ : mono_ae_cover μ φ) {f : α → E}
+  (I : E) (hfm : measurable f) (hfi : integrable f μ)
   (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
   ∫ x, f x ∂μ = I :=
 tendsto_nhds_unique (set_integral_tendsto_integral hφ hfm hfi) h

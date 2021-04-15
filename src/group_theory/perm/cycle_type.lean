@@ -224,7 +224,7 @@ begin
   exact one_lt_two,
 end
 
-lemma subgroup.eq_top_of_mem_swap [decidable_eq α] {H : subgroup (perm α)}
+lemma subgroup_eq_top_of_mem_swap [decidable_eq α] {H : subgroup (perm α)}
   [d : decidable_pred (∈ H)] {τ : perm α} (h0 : (fintype.card α).prime)
   (h1 : fintype.card α ∣ fintype.card H) (h2 : τ ∈ H) (h3 : is_swap τ) :
   H = ⊤ :=

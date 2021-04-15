@@ -345,6 +345,9 @@ def iso_of_mk_eq_mk {B A₁ A₂ : C} (f : A₁ ⟶ B) (g : A₂ ⟶ B) [mono f]
 { hom := of_mk_le_mk f g h.le,
   inv := of_mk_le_mk g f h.ge, }
 
+@[simp] lemma mk_arrow (P : subobject X) : mk P.arrow = P :=
+mk_eq_of_comm _ (iso.refl _) (by simp)
+
 end subobject
 
 

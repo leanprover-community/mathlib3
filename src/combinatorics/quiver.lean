@@ -15,11 +15,6 @@ This module defines quivers. A quiver on a type `V` of vertices assigns to every
 pair `a b : V` of vertices a type `a ⟶ b` of arrows from `a` to `b`. This
 is a very permissive notion of directed graph.
 
-## Implementation notes
-
-It would be interesting to try to replace `has_hom` with `quiver` in the definition of a category.
-This would be convenient for defining path categories.
-
 -/
 
 open opposite
@@ -74,8 +69,19 @@ instance {V} [quiver V] : has_top (wide_subquiver V) := ⟨λ a b, set.univ⟩
 instance {V} [quiver V] : inhabited (wide_subquiver V) := ⟨⊤⟩
 
 /-- `Vᵒᵖ` reverses the direction of all arrows of `V`. -/
-instance op_quiver {V} [quiver V] : quiver Vᵒᵖ :=
+instance opposite {V} [quiver V] : quiver Vᵒᵖ :=
 ⟨λ a b, (unop b) ⟶ (unop a)⟩
+
+/--
+The opposite of an arrow in `V`.
+-/
+def hom.op {V} [quiver V] {X Y : V} (f : X ⟶ Y) : op Y ⟶ op X := f
+/--
+Given an arrow in `Vᵒᵖ`, we can take the "unopposite" back in `V`.
+-/
+def hom.unop {V} [quiver V] {X Y : Vᵒᵖ} (f : X ⟶ Y) : unop Y ⟶ unop X := f
+
+attribute [irreducible] quiver.opposite
 
 /-- A type synonym for the symmetrized quiver (with an arrow both ways for each original arrow).
     NB: this does not work for `Prop`-valued quivers. It requires `[quiver.{v+1} V]`. -/
@@ -86,11 +92,12 @@ instance symmetrify_quiver (V : Type u) [quiver V] : quiver (symmetrify V) :=
 ⟨λ a b : V, (a ⟶ b) ⊕ (b ⟶ a)⟩
 
 /-- `total V` is the type of _all_ arrows of `V`. -/
+-- TODO Unify with `category_theory.arrow`? (The fields have been named to match.)
 @[ext, nolint has_inhabited_instance]
 structure total (V : Type u) [quiver.{v} V] : Type (max u v) :=
-(source : V)
-(target : V)
-(arrow : source ⟶ target)
+(left : V)
+(right : V)
+(hom : left ⟶ right)
 
 /-- A wide subquiver `H` of `G.symmetrify` determines a wide subquiver of `G`, containing an
     an arrow `e` if either `e` or its reversal is in `H`. -/
@@ -103,7 +110,7 @@ def wide_subquiver_symmetrify {V} [quiver.{v+1} V] :
 /-- A wide subquiver of `G` can equivalently be viewed as a total set of arrows. -/
 def wide_subquiver_equiv_set_total {V} [quiver V] :
   wide_subquiver V ≃ set (total V) :=
-{ to_fun := λ H, { e | e.arrow ∈ H e.source e.target },
+{ to_fun := λ H, { e | e.hom ∈ H e.left e.right },
   inv_fun := λ S a b, { e | total.mk a b e ∈ S },
   left_inv := λ H, rfl,
   right_inv := by { intro S, ext, cases x, refl } }

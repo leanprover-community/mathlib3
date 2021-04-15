@@ -90,12 +90,6 @@ begin
   sorry
 end
 
-lemma triv (l : E →L[ℝ] ℝ) (a : ℝ) (x : E) :
-  l (a • x) = a • l x :=
-begin
-    rw l.map_smul_of_tower,
-end
-
 lemma convex_of_exposed (hA : convex A) (hAB : is_exposed_set A B) :
   convex B :=
 begin
@@ -106,24 +100,23 @@ begin
   use hA hx₁A hx₂A hx,
   obtain ⟨a, b, ha, hb, hab, hx⟩ := hx,
   rintro y hyA,
-  have : l x = a • l x₁ + b • l x₂,
-  { rw ←hx,
-    rw l.map_add,
-    sorry
-    --rw l.map_smul,
-    --rw l.map_smul,
-  },
   calc
     l y = a • l y + b • l y : by rw [←add_smul, hab, one_smul]
     ... ≤ a • l x₁ + b • l x₂ : add_le_add (mul_le_mul_of_nonneg_left (hx₁ y hyA) ha)
-      (mul_le_mul_of_nonneg_left (hx₂ y hyA) hb)
-    ... = l x : by rw [←hx, l.map_add, l.map_smul, l.map_smul],
+                                           (mul_le_mul_of_nonneg_left (hx₂ y hyA) hb)
+    ... = l x : by rw [←hx, l.map_add, l.map_smul _, l.map_smul _],
 end
 
 lemma closed_of_exposed (hA : is_closed A) (hAB : is_exposed_set A B) :
   is_closed B :=
 begin
-
+  rw ←is_seq_closed_iff_is_closed,
+  obtain ⟨l, rfl⟩ := hAB,
+  apply is_seq_closed_of_def,
+  rintro x y hx hxy,
+  refine ⟨mem_of_is_closed_sequential hA (λ n, (hx n).1) hxy, λ z hz, _⟩,
+  have := (λ n, (hx n).2 z hz),
+  sorry --@Bhavik, easy now
 end
 
 lemma compact_of_exposed (hA : is_compact A) (hAB : is_exposed_set A B) :

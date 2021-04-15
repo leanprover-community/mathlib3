@@ -129,8 +129,7 @@ begin
       exact hx }}
 end
 
-def subdivision_order :
-  partial_order (simplicial_complex E) :=
+instance : partial_order (simplicial_complex E) :=
 { le := λ S₁ S₂, S₁ ≤ S₂,
   le_refl := (λ S, ⟨rfl, (λ X hX, ⟨X, hX, subset.refl _⟩)⟩),
   le_trans := begin

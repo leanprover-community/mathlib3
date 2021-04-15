@@ -66,7 +66,12 @@ transitive_refl_trans_gen
 
 lemma glued.trans (hXY : S.glued X Y) (hYZ : S.glued Y Z) :
   S.glued X Z :=
-refl_trans_gen.trans hXY hYZ
+transitive_refl_trans_gen hXY hYZ
+
+instance : is_equiv (finset E) S.glued :=
+{ refl := reflexive_refl_trans_gen,
+  trans := transitive_refl_trans_gen,
+  symm := glued.symmetric }
 
 lemma face_of_glued (hX : X ∈ S.faces) (hXY : S.glued X Y) :
   Y ∈ S.faces :=

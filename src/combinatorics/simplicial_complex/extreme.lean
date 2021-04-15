@@ -14,7 +14,7 @@ import combinatorics.simplicial_complex.convex_independence
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
   {X : finset E}
 
 /--
@@ -27,10 +27,6 @@ lemma is_extreme_set.refl :
   reflexive (is_extreme_set : set E → set E → Prop) :=
 λ A, ⟨subset.refl _, λ x₁ x₂ hx₁A hx₂A x hxA hx hxx₁ hxx₂, ⟨hx₁A, hx₂A⟩⟩
 
-lemma is_extreme_set.antisymm :
-  anti_symmetric (is_extreme_set : set E → set E → Prop) :=
-λ A B hAB hBA, subset.antisymm hBA.1 hAB.1
-
 lemma is_extreme_set.trans :
   transitive (is_extreme_set : set E → set E → Prop) :=
 begin
@@ -41,16 +37,27 @@ begin
   exact hBC x₁ x₂ hx₁B hx₂B x hxC hx hxx₁ hxx₂,
 end
 
-lemma closed_of_exposed (hA : is_closed A) (hAB : is_exposed_set A B) :
+lemma is_extreme_set.antisymm :
+  anti_symmetric (is_extreme_set : set E → set E → Prop) :=
+λ A B hAB hBA, subset.antisymm hBA.1 hAB.1
+
+instance : is_partial_order (set E) is_extreme_set :=
+{ refl := is_extreme_set.refl,
+  trans := is_extreme_set.trans,
+  antisymm := is_extreme_set.antisymm }
+
+lemma closed_of_extreme (hA : is_closed A) (hAB : is_extreme_set A B) :
   is_closed B :=
 begin
-
+  rw ←is_seq_closed_iff_is_closed at ⊢ hA,
+  apply is_seq_closed_of_def,
+  rintro x y hx hxy,
+  sorry -- true?
 end
 
-lemma compact_of_exposed (hA : is_compact A) (hAB : is_exposed_set A B) :
+lemma compact_of_extreme (hA : is_compact A) (hAB : is_extreme_set A B) :
   is_compact B :=
-compact_of_is_closed_subset hA (closed_of_exposed (is_compact.is_closed hA) hAB)
-  (subset_of_exposed hAB)
+compact_of_is_closed_subset hA (closed_of_extreme (is_compact.is_closed hA) hAB) hAB.1
 
 lemma convex_remove_of_extreme (hA : convex A) (hAB : is_extreme_set A B) :
   convex (A \ B) :=
@@ -90,10 +97,71 @@ begin
     exact h.1 (hx.2 x₁ x₂ hx₁ hx₂ x rfl hxs h.1 h.2).1 }
 end
 
-lemma extreme_points_subset_extreme_points_of_extreme (hAB : is_extreme_set A B) :
-  B.extreme_points ⊆ A.extreme_points :=
-λ x hxB, extreme_point_iff_extreme_singleton.2 (is_extreme_set.trans hAB
-  (extreme_point_iff_extreme_singleton.1 hxB))
+lemma extreme_points_subset :
+  A.extreme_points ⊆ A :=
+λ x hx, hx.1
+
+@[simp]
+lemma extreme_points_empty :
+  (∅ : set E).extreme_points = ∅ :=
+subset_empty_iff.1 extreme_points_subset
+
+lemma inter_extreme_of_extreme (hAB : is_extreme_set A B) (hAC : is_extreme_set A C) :
+  is_extreme_set A (B ∩ C) :=
+begin
+  use subset.trans (inter_subset_left _ _) hAB.1,
+  rintro x₁ x₂ hx₁A hx₂A x ⟨hxB, hxC⟩ hx hxx₁ hxx₂,
+  obtain ⟨hx₁B, hx₂B⟩ := hAB.2 x₁ x₂ hx₁A hx₂A x hxB hx hxx₁ hxx₂,
+  obtain ⟨hx₁C, hx₂C⟩ := hAC.2 x₁ x₂ hx₁A hx₂A x hxC hx hxx₁ hxx₂,
+  exact ⟨⟨hx₁B, hx₁C⟩, hx₂B, hx₂C⟩,
+end
+
+lemma bInter_extreme_of_extreme {F : set (set E)} (hAF : ∀ B ∈ F, is_extreme_set A B) :
+  is_extreme_set A (⋂ B ∈ F, B) :=
+begin
+  split,
+  {
+    have := λ i, (hAF i).1,
+    refine Inter_subset_of_subset _ _,
+    sorry,
+    sorry
+  },
+  rintro x₁ x₂ hx₁A hx₂A x hxF hx hxx₁ hxx₂,
+  rw mem_Inter at ⊢ hxF,
+  rw mem_Inter,
+  have h := λ i, (hAF i).2 x₁ x₂ hx₁A hx₂A x (hxF i) hx hxx₁ hxx₂,
+  exact ⟨λ i, (h i).1,λ i, (h i).2⟩,
+end
+
+lemma Inter_extreme_of_extreme {ι : Type*} {F : ι → set E} (hAF : ∀ i : ι, is_extreme_set A (F i)) :
+  is_extreme_set A (⋂ i : ι, F i) :=
+begin
+  split,
+  {
+    have := λ i, (hAF i).1,
+    refine Inter_subset_of_subset _ _,
+    sorry,
+    sorry
+  },
+  rintro x₁ x₂ hx₁A hx₂A x hxF hx hxx₁ hxx₂,
+  rw mem_Inter at ⊢ hxF,
+  rw mem_Inter,
+  have h := λ i, (hAF i).2 x₁ x₂ hx₁A hx₂A x (hxF i) hx hxx₁ hxx₂,
+  exact ⟨λ i, (h i).1,λ i, (h i).2⟩,
+end
+
+lemma extreme_points_eq_inter_extreme_points_of_extreme (hAB : is_extreme_set A B) :
+  B.extreme_points = B ∩ A.extreme_points :=
+begin
+  ext x,
+  exact ⟨λ hxB, ⟨hxB.1, extreme_point_iff_extreme_singleton.2 (is_extreme_set.trans hAB
+  (extreme_point_iff_extreme_singleton.1 hxB))⟩, λ ⟨hxB, hxA⟩, ⟨hxB, λ x₁ x₂ hx₁B hx₂B hx,
+    hxA.2 x₁ x₂ (hAB.1 hx₁B) (hAB.1 hx₂B) hx⟩⟩,
+end
+
+
+--lemma dimension_lt_of_extreme (hAB : is_extreme_set A B) (hBA : B ⊂ A) :
+--  B.dimension < A.dimension := sorry
 
 lemma convex_remove_iff_extreme_point (hA : convex A) :
   x ∈ A ∧ convex (A \ {x}) ↔ x ∈ A.extreme_points :=

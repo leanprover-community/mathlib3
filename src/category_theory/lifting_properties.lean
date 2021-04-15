@@ -58,6 +58,9 @@ instance has_lifting_property.of_is_iso_right (l r : arrow C) [is_iso r.hom] :
   { lift := sq.right ≫ inv r.hom,
     fac_left' := by { rw [← category.assoc, is_iso.comp_inv_eq], simp } } } }
 
+class creates_lift {r r' : arrow C} (ff : r ⟶ r') (l : arrow C) : Prop :=
+(creates_lift : ∀ sq : l ⟶ r, arrow.has_lift (sq ≫ ff) → arrow.has_lift sq)
+
 instance has_lifting_property.of_comp_left (r : arrow C) {a b c : C} (l1 : a ⟶ b) (l2 : b ⟶ c)
   [has_lifting_property ↑l1 r] [has_lifting_property ↑l2 r] :
   has_lifting_property ↑(l1 ≫ l2) r :=

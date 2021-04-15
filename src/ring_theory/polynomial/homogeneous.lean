@@ -227,6 +227,7 @@ open finset
 
 open_locale direct_sum
 
+/-- A version of `homogenous_component` that maps into `homogeneous_submodule σ R n`. -/
 def homogeneous_component' [comm_semiring R] (n : ℕ) :
   mv_polynomial σ R →ₗ[R] homogeneous_submodule σ R n :=
 let f := finsupp.restrict_dom R R {d : σ →₀ ℕ | ∑ i in d.support, d i = n} in
@@ -273,7 +274,7 @@ lemma to_of_homogeneous_components [comm_semiring R] :
   to_homogeneous_components.comp of_homogeneous_components =
     (linear_map.id : (⨁ i, homogeneous_submodule σ R i) →ₗ[R] _) :=
 begin
-  ext : 3,
+  ext : 2,
   -- multiple stages of simp is hopefully faster?
   simp,
   simp [to_homogeneous_components, of_homogeneous_components],

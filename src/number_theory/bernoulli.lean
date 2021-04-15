@@ -51,7 +51,7 @@ then defined as `bernoulli := (-1)^n * bernoulli'`.
 -/
 
 open_locale nat big_operators
-open nat finset power_series
+open finset nat finset.nat power_series
 variables (A : Type*) [comm_ring A] [algebra ℚ A]
 
 /-! ### Definitions -/
@@ -75,15 +75,14 @@ lemma bernoulli'_spec (n : ℕ) :
   ∑ k in range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli' k = 1 :=
 begin
   rw [sum_range_succ_comm, bernoulli'_def n, nat.sub_self],
-  conv in (nat.choose _ (_ - _)) { rw choose_symm (mem_range.1 H).le },
+  conv in (n.choose (_ - _)) { rw choose_symm (mem_range.1 H).le },
   simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one],
 end
 
 lemma bernoulli'_spec' (n : ℕ) :
-  ∑ k in nat.antidiagonal n,
-  ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli' k.1 = 1 :=
+  ∑ k in antidiagonal n, ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli' k.1 = 1 :=
 begin
-  refine ((nat.sum_antidiagonal_eq_sum_range_succ_mk _ n).trans _).trans (bernoulli'_spec n),
+  refine ((sum_antidiagonal_eq_sum_range_succ_mk _ n).trans _).trans (bernoulli'_spec n),
   refine sum_congr rfl (λ x hx, _),
   simp only [nat.add_sub_cancel', mem_range_succ_iff.mp hx, cast_sub],
 end
@@ -115,11 +114,11 @@ begin
   cases n, { simp },
   suffices : (n + 1 : ℚ) * ∑ k in range n, ↑(n.choose k) / (n - k + 1) * bernoulli' k =
     ∑ x in range n, ↑(n.succ.choose x) * bernoulli' x,
-  { rw [sum_range_succ, bernoulli'_def, ← this, choose_succ_self_right], norm_cast, ring },
+  { rw_mod_cast [sum_range_succ, bernoulli'_def, ← this, choose_succ_self_right], ring },
   simp_rw [mul_sum, ← mul_assoc],
   refine sum_congr rfl (λ k hk, _),
   congr',
-  have : ((n - k : ℕ) : ℚ) + 1 ≠ 0 := by exact_mod_cast succ_ne_zero _,
+  have : ((n - k : ℕ) : ℚ) + 1 ≠ 0 := by apply_mod_cast succ_ne_zero,
   field_simp [← cast_sub (mem_range.1 hk).le, mul_comm],
   rw_mod_cast [nat.sub_add_eq_add_sub (mem_range.1 hk).le, choose_mul_succ_eq],
 end
@@ -133,14 +132,14 @@ begin
   ext n,
   -- constant coefficient is a special case
   cases n, { simp },
-  rw [bernoulli'_power_series, coeff_mul, mul_comm X, nat.sum_antidiagonal_succ'],
-  suffices : ∑ p in nat.antidiagonal n, (bernoulli' p.1 / p.1!) * ((p.2 + 1) * p.2!)⁻¹ = n!⁻¹,
+  rw [bernoulli'_power_series, coeff_mul, mul_comm X, sum_antidiagonal_succ'],
+  suffices : ∑ p in antidiagonal n, (bernoulli' p.1 / p.1!) * ((p.2 + 1) * p.2!)⁻¹ = n!⁻¹,
   { simpa [ring_hom.map_sum] using congr_arg (algebra_map ℚ A) this },
   apply eq_inv_of_mul_left_eq_one,
   rw sum_mul,
   convert bernoulli'_spec' n using 1,
   apply sum_congr rfl,
-  simp_rw [nat.mem_antidiagonal],
+  simp_rw [mem_antidiagonal],
   rintro ⟨i, j⟩ rfl,
   have : (j + 1 : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero j,
   have : (j + 1 : ℚ) * j! * i! ≠ 0 := by simpa [factorial_ne_zero],
@@ -198,21 +197,21 @@ begin
   suffices : ∑ i in range n, ↑((n + 2).choose (i + 2)) * bernoulli (i + 2) = n / 2,
   { simp only [this, sum_range_succ', cast_succ, bernoulli_one, choose_one_right], ring },
   have f := sum_bernoulli' n.succ.succ,
-  simp only [sum_range_succ', cast_succ, bernoulli'_one, choose_one_right, ←eq_sub_iff_add_eq] at f,
+  simp_rw [sum_range_succ', bernoulli'_one, choose_one_right, cast_succ, ← eq_sub_iff_add_eq] at f,
   convert f,
-  { exact funext (λ x, by rw bernoulli_eq_bernoulli'_of_ne_one (succ_ne_zero x ∘ succ.inj)) },
+  { ext x, rw bernoulli_eq_bernoulli'_of_ne_one (succ_ne_zero x ∘ succ.inj) },
   { ring },
 end
 
 lemma bernoulli_spec' (n : ℕ) :
-  ∑ k in nat.antidiagonal n,
-  ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = if n = 0 then 1 else 0 :=
+  ∑ k in antidiagonal n, ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 =
+    if n = 0 then 1 else 0 :=
 begin
   cases n, { simp },
   rw if_neg (succ_ne_zero _),
   -- algebra facts
-  have h₁ : (1, n) ∈ nat.antidiagonal n.succ := by simp [nat.mem_antidiagonal, add_comm],
-  have h₂ : (n:ℚ) + 1 ≠ 0 := by exact_mod_cast succ_ne_zero _,
+  have h₁ : (1, n) ∈ antidiagonal n.succ := by simp [mem_antidiagonal, add_comm],
+  have h₂ : (n : ℚ) + 1 ≠ 0 := by apply_mod_cast succ_ne_zero,
   have h₃ : (1 + n).choose n = n + 1 := by simp [add_comm],
   -- key equation: the corresponding fact for `bernoulli'`
   have H := bernoulli'_spec' n.succ,
@@ -220,11 +219,9 @@ begin
   rw sum_eq_add_sum_diff_singleton h₁ at H ⊢,
   apply add_eq_of_eq_sub',
   convert eq_sub_of_add_eq' H using 1,
-  { apply sum_congr rfl,
-    intros p h,
+  { refine sum_congr rfl (λ p h, _),
     obtain ⟨h', h''⟩ : p ∈ _ ∧ p ≠ _ := by rwa [mem_sdiff, mem_singleton] at h,
-    have : p.fst ≠ (1, n).fst := by simpa [h''] using nat.antidiagonal_congr h' h₁,
-    simp [this, bernoulli_eq_bernoulli'_of_ne_one] },
+    simp [bernoulli_eq_bernoulli'_of_ne_one ((not_congr (antidiagonal_congr h' h₁)).mp h'')] },
   { field_simp [h₃],
     norm_num },
 end
@@ -238,11 +235,11 @@ begin
   ext n,
   -- constant coefficient is a special case
   cases n, { simp },
-  simp only [bernoulli_power_series, coeff_mul, coeff_X, nat.sum_antidiagonal_succ', one_div,
-    coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial, if_pos, cast_succ, cast_one,
-    cast_mul, sub_zero, ring_hom.map_one, add_eq_zero_iff, if_false, inv_one, zero_add, one_ne_zero,
-    mul_zero, and_false, sub_self, ← ring_hom.map_mul, ← ring_hom.map_sum],
-  suffices : ∑ x in nat.antidiagonal n, bernoulli x.1 / x.1! * ((x.2 + 1) * x.2!)⁻¹
+  simp only [bernoulli_power_series, coeff_mul, coeff_X, sum_antidiagonal_succ', one_div, coeff_mk,
+    coeff_one, coeff_exp, linear_map.map_sub, factorial, if_pos, cast_succ, cast_one, cast_mul,
+    sub_zero, ring_hom.map_one, add_eq_zero_iff, if_false, inv_one, zero_add, one_ne_zero, mul_zero,
+    and_false, sub_self, ← ring_hom.map_mul, ← ring_hom.map_sum],
+  suffices : ∑ x in antidiagonal n, bernoulli x.1 / x.1! * ((x.2 + 1) * x.2!)⁻¹
            = if n.succ = 1 then 1 else 0, { split_ifs; simp [h, this] },
   cases n, { simp },
   have hfact : ∀ m, (m! : ℚ) ≠ 0 := λ m, by exact_mod_cast factorial_ne_zero m,
@@ -251,7 +248,7 @@ begin
   rw [hite1, eq_div_iff (hfact n.succ), ← hite2, ← bernoulli_spec', sum_mul],
   apply sum_congr rfl,
   rintro ⟨i, j⟩ h,
-  rw nat.mem_antidiagonal at h,
+  rw mem_antidiagonal at h,
   have hj : (j.succ : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero j,
   field_simp [← h, mul_ne_zero hj (hfact j), hfact i, mul_comm _ (bernoulli i), mul_assoc],
   rw_mod_cast [mul_comm (j + 1), mul_div_assoc, ← mul_assoc],
@@ -276,7 +273,7 @@ begin
   { ext q,
     let f := λ a b, bernoulli a / a! * coeff ℚ (b + 1) (exp ℚ ^ n),
     -- key step: use `power_series.coeff_mul` and then rewrite sums
-    simp only [coeff_mul, coeff_mk, cast_mul, nat.sum_antidiagonal_eq_sum_range_succ f],
+    simp only [coeff_mul, coeff_mk, cast_mul, sum_antidiagonal_eq_sum_range_succ f],
     apply sum_congr rfl,
     simp_intros m h only [finset.mem_range],
     simp only [f, exp_pow_eq_rescale_exp, rescale, one_div, coeff_mk, ring_hom.coe_mk, coeff_exp,

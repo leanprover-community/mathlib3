@@ -80,15 +80,23 @@ namespace equiv
 variables {p q : α → Prop} [decidable_pred p] [decidable_pred q]
 
 /-- If `e` is an equivalence between two subtypes of a fintype `α`, `e.to_compl`
-is an equivalence between the complement of those subtypes. -/
+is an equivalence between the complement of those subtypes.
+
+See also `equiv.compl`, for a computable version when a term of type
+`{e' : α ≃ α // ∀ x : {x // p x}, e' x = e x}` is known. -/
 noncomputable def to_compl (e : {x // p x} ≃ {x // q x}) : {x // ¬ p x} ≃ {x // ¬ q x} :=
 classical.choice (fintype.card_eq.mp (fintype.card_compl_eq_card_compl (fintype.card_congr e)))
 
 /-- If `e` is an equivalence between two subtypes of a fintype `α`, `e.extend_subtype`
-is a permutation of `α` acting like `e` on the subtypes and doing something arbitrary outside. -/
-noncomputable def extend_subtype (e : {x // p x} ≃ {x // q x}) : perm α :=
-(equiv.sum_compl p).symm.trans ((equiv.sum_congr e e.to_compl).trans
+is a permutation of `α` acting like `e` on the subtypes and doing something arbitrary outside.
+
+Note that when `p = q`, `equiv.perm.subtype_congr e (equiv.refl _)` can be used instead. -/
+def subtype_congr (e : {x // p x} ≃ {x // q x}) (f : {x // ¬p x} ≃ {x // ¬q x}) : perm α :=
+(equiv.sum_compl p).symm.trans ((equiv.sum_congr e f).trans
   (equiv.sum_compl q))
+  
+abbreviation extend_subtype (e : {x // p x} ≃ {x // q x}) : perm α :=
+subtype_congr e e.to_compl
 
 lemma extend_subtype_apply_of_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : p x) :
   e.extend_subtype x = e ⟨x, hx⟩ :=

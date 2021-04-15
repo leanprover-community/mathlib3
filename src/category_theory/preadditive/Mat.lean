@@ -7,6 +7,7 @@ import category_theory.preadditive.default
 import category_theory.preadditive.single_obj
 import category_theory.preadditive.additive_functor
 import category_theory.limits.shapes.biproducts
+import category_theory.Fintype
 import algebra.big_operators.basic
 import data.matrix.notation
 
@@ -450,21 +451,36 @@ rfl
 
 end Mat_
 
+open_locale classical -- Alternatively, we could use `DecFinType`, which doesn't yet exist.
+
 /--
-The category of matrices over a ring `R`, with objects the natural numbers.
+The category of matrices over a ring `R`, with objects `Fintype`.
 -/
 @[derive [category, preadditive]]
 def Mat (R : Type*) [ring R] :=
-induced_category (Mat_ (single_obj R)) (λ n : ℕ, ⟨fin n, λ _, punit.star⟩)
+induced_category (Mat_ (single_obj R)) (λ n : Fintype, ⟨n, λ _, punit.star⟩)
+
+/--
+Consider a finite type `n` as an object of `Mat R`, the category of matrices over `R`.
+-/
+def Mat.of (R : Type*) [ring R] (n : Type*) [fintype n] : Mat R := Fintype.of n
 
 /--
 Consider a natural number `n` as an object of `Mat R`, the category of matrices over `R`.
 -/
-def Mat.of (R : Type*) [ring R] (n : ℕ) : Mat R := n
+def Mat.of_nat (R : Type*) [ring R] (n : ℕ) : Mat R := Mat.of R (fin n)
 
-instance (R : Type*) [ring R] : inhabited (Mat R) := ⟨Mat.of R 1⟩
+instance (R : Type*) [ring R] : inhabited (Mat R) := ⟨Mat.of R (fin 1)⟩
 
-example : matrix (fin 3) (fin 3) ℤ := 𝟙 (Mat.of ℤ 3)
-example : Mat.of ℤ 2 ⟶ Mat.of ℤ 3 := ![![(37 : ℤ), 42, 0], ![0, 37, 42]]
+-- Morphisms are just matrices:
+example : matrix (fin 3) (fin 3) ℤ := 𝟙 (Mat.of_nat ℤ 3)
+
+-- We can construct morphisms using matrix notation:
+example : Mat.of_nat ℤ 2 ⟶ Mat.of_nat ℤ 3 := ![![(37 : ℤ), 42, 0], ![0, 37, 42]]
+
+-- We can use constructions about matrices, although unfortunately Lean needs help typechecking.
+example (m n o : Type*) [fintype m] [fintype n] [fintype o]
+  (blocks : o → (Mat.of ℤ m ⟶ Mat.of ℤ n)) : Mat.of ℤ (m × o) ⟶ Mat.of ℤ (n × o) :=
+@matrix.block_diagonal m n o _ _ _ ℤ blocks _ _
 
 end category_theory

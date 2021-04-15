@@ -208,7 +208,8 @@ section lintegral
 
 variables {α ι : Type*} [measurable_space α] {μ : measure α}
 
-lemma set_lintegral_tendsto_of_monotone_set [preorder ι] {φ : ι → set α} (hφ : monotone φ) {f : α → ℝ≥0∞} :
+lemma set_lintegral_tendsto_of_monotone_set [preorder ι] {φ : ι → set α} (hφ : monotone φ)
+  {f : α → ℝ≥0∞} :
   tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ⨆ (i : ι), ∫⁻ x in φ i, f x ∂μ) :=
 tendsto_at_top_csupr
   (λ i j hij, lintegral_mono' (measure.restrict_mono (hφ hij) (le_refl _)) (le_refl _))

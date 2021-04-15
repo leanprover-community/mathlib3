@@ -21,7 +21,7 @@ open opposite
 
 -- We use the same universe order as in category theory.
 -- See note [category_theory universes]
-universes v u
+universes v v₁ v₂ u u₁ u₂ w
 
 /-- A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
     a sort `a ⟶ b` of arrows from `a` to `b`.
@@ -34,6 +34,14 @@ class quiver (V : Type u) :=
 
 infixr ` ⟶ `:10 := quiver.hom -- type as \h
 
+/--
+A morphism of quivers. As we will later have categorical functors extend this structure,
+we call it a `prefunctor`.
+-/
+structure prefunctor (V : Type u₁) [quiver.{v₁} V] (W : Type u₂) [quiver.{v₂} W] :=
+(obj [] : V → W)
+(map : Π {X Y : V}, (X ⟶ Y) → (obj X ⟶ obj Y))
+
 /-- A wide subquiver `H` of `G` picks out a set `H a b` of arrows from `a` to `b`
     for every pair of vertices `a b`.
 
@@ -43,6 +51,7 @@ def wide_subquiver (V) [quiver.{v+1} V] :=
 
 /-- A type synonym for `V`, when thought of as a quiver having only the arrows from
 some `wide_subquiver`. -/
+-- You should just use the coercion to type from the subquiver rather than this.
 @[nolint unused_arguments has_inhabited_instance]
 def wide_subquiver.to_Type (V) [quiver V] (H : wide_subquiver V) : Type u := V
 
@@ -53,6 +62,12 @@ instance wide_subquiver_has_coe_to_sort {V} [quiver V] : has_coe_to_sort (wide_s
 /-- A wide subquiver viewed as a quiver on its own. -/
 instance wide_subquiver.quiver {V} [quiver V] (H : wide_subquiver V) : quiver H :=
 ⟨λ a b, H a b⟩
+
+/-- The prefunctor from a wide subquiver, thought of as a quiver, to the ambient quiver. -/
+@[simps]
+def wide_subquiver.subtype {V} [quiver V] (H : wide_subquiver V) : prefunctor H V :=
+{ obj := λ X, X,
+  map := λ X Y f, f.1, }
 
 namespace quiver
 
@@ -172,7 +187,8 @@ instance {V : Type u} [quiver V] [arborescence V] (b : V) : unique (path (root V
 arborescence.unique_path b
 
 /-- An `L`-labelling of a quiver assigns to every arrow an element of `L`. -/
-def labelling (V : Type u) [quiver V] (L : Sort*) := Π a b : V, (a ⟶ b) → L
+def labelling (V : Type u) [quiver.{v} V] (L : Sort w) : Sort (imax (u+1) (u+1) v w) :=
+Π {a b : V}, (a ⟶ b) → L
 
 instance {V : Type u} [quiver V] (L) [inhabited L] : inhabited (labelling V L) :=
 ⟨λ a b e, default L⟩

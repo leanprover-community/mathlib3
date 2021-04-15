@@ -53,48 +53,55 @@ open category_theory category_theory.action_category category_theory.single_obj 
   is_free_group as fgp
 
 /-- A groupoid `G` is free when we have the following data:
- - a quiver `generators` whose vertices are objects of `G`
- - a function `of` sending an arrow in `generators` to a morphism in `G`
+ - a wide subquiver `generators` of `G`
  - such that a functor from `G` to any group `X` is uniquely determined
    by assigning labels in `X` to the arrows in `generators.
 
    This definition is nonstandard. Normally one would require that functors `G ⥤ X`
    to any _groupoid_ `X` are given by graph homomorphisms from `generators`. -/
-class is_free_groupoid (G) [groupoid.{v} G] :=
-(generators : quiver.{v+1} G)
-(of : Π ⦃a b⦄, generators.arrow a b → (a ⟶ b))
-(unique_lift : ∀ {X} [group.{v} X] (f : generators.labelling X),
-                ∃! F : G ⥤ single_obj X, ∀ a b (g : generators.arrow a b),
-                  F.map (of g) = f g)
+class is_free_groupoid (G : Type u) [groupoid.{v} G] :=
+(generators [] : wide_subquiver.{v} G)
+(unique_lift : ∀ {X} [group.{v} X] (f : labelling generators X),
+                ∃! F : G ⥤ single_obj X, ∀(a b : generators) (g : a ⟶ b),
+                  F.map (generators.subtype.map g) = f g)
 
 namespace is_free_groupoid
 
+/-- Consider a generating arrow in a free groupoid as a morphism in the groupoid. -/
+def of {G : Type u} [groupoid.{v} G] [is_free_groupoid G] {a b : generators G} (e : a ⟶ b) :=
+(generators G).subtype.map e
+
 @[ext]
-lemma ext_functor {G X} [groupoid.{v} G] [is_free_groupoid G] [group.{v} X]
+lemma ext_functor {G : Type u} {X} [groupoid.{v} G] [is_free_groupoid G] [group.{v} X]
   (f g : G ⥤ single_obj X)
-  (h : ∀ a b (e : generators.arrow a b), f.map (of e) = g.map (of e)) :
+  (h : ∀ (a b : generators G) (e : a ⟶ b), f.map (of e) = g.map (of e)) :
   f = g :=
-let ⟨_, _, um⟩ := unique_lift (show generators.labelling X, from λ a b e, g.map (of e)) in
+let ⟨_, _, um⟩ := @unique_lift G _ _ X _ (λ (a b : generators G) (e : a ⟶ b), g.map (of e)) in
 trans (um _ h) (um _ (λ _ _ _, rfl)).symm
 
+-- FIXME name this. introduce a notation?
+-- This only exists to help the typechecker.
+def foo {G : Type u} [groupoid.{v} G] [is_free_groupoid G] (g : G) : symmetrify (generators G) :=
+g
+
 lemma path_nonempty_of_hom {G} [groupoid.{u u} G] [is_free_groupoid G] {a b : G} :
-  nonempty (a ⟶ b) → nonempty (generators.symmetrify.path a b) :=
+  nonempty (a ⟶ b) → nonempty (path (foo a) (foo b)) :=
 begin
   rintro ⟨p⟩,
   rw [←weakly_connected_component.eq, eq_comm, ←free_group.of_injective.eq_iff, ←mul_inv_eq_one],
-  let X := free_group (generators : quiver G).weakly_connected_component,
-  let f : G → X := λ g, free_group.of ↑g,
+  let X := free_group (weakly_connected_component (symmetrify (generators G))),
+  let f : G → X := λ g, free_group.of (weakly_connected_component.mk g),
   let F : G ⥤ single_obj X := single_obj.difference_functor f,
   change F.map p = ((category_theory.functor.const G).obj ()).map p,
   congr, ext,
   rw [functor.const.obj_map, id_as_one, difference_functor_map, mul_inv_eq_one],
   apply congr_arg free_group.of,
-  rw weakly_connected_component.eq,
-  exact ⟨arrow.to_path (sum.inr e)⟩,
+  erw weakly_connected_component.eq, -- TODO should have a think about why this `erw` is needed
+  exact ⟨hom.to_path (sum.inr e)⟩,
 end
 
-instance generators_connected (G) [groupoid.{u u} G] [is_connected G] [is_free_groupoid G] (r : G) :
-  (generators : quiver G).symmetrify.rooted_connected r :=
+instance generators_connected (G) [groupoid.{u u} G] [is_connected G] [is_free_groupoid G]
+  (r : G) : rooted_connected (foo r) :=
 ⟨λ b, path_nonempty_of_hom (category_theory.nonempty_hom_of_connected_groupoid r b)⟩
 
 instance action_category_is_free {G A : Type u} [group G] [is_free_group G] [mul_action G A] :

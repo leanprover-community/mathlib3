@@ -838,10 +838,10 @@ end
 /-- If `α` is a seminormed ring, then `∥a^n∥≤ ∥a∥^n` for `n > 0`. See also `norm_pow_le`. -/
 lemma norm_pow_le' (a : α) : ∀ {n : ℕ}, 0 < n → ∥a^n∥ ≤ ∥a∥^n
 | 1 h := by simp
-| (n+2) h :=
-  le_trans (norm_mul_le a (a^(n+1)))
+| (n+2) h := by { rw [pow_succ _ (n+1),  pow_succ _ (n+1)],
+  exact le_trans (norm_mul_le a (a^(n+1)))
            (mul_le_mul (le_refl _)
-                       (norm_pow_le' (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
+                       (norm_pow_le' (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _)) }
 
 /-- If `α` is a seminormed ring with `∥1∥=1`, then `∥a^n∥≤ ∥a∥^n`. See also `norm_pow_le'`. -/
 lemma norm_pow_le [norm_one_class α] (a : α) : ∀ (n : ℕ), ∥a^n∥ ≤ ∥a∥^n

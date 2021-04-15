@@ -511,6 +511,21 @@ lemma monoid_with_zero_hom.cancel_left
         ← monoid_with_zero_hom.comp_apply, h, monoid_with_zero_hom.comp_apply],
  λ h, h ▸ rfl⟩
 
+@[to_additive]
+lemma monoid_hom.to_one_hom_injective [mul_one_class M] [mul_one_class N] :
+  function.injective (monoid_hom.to_one_hom : (M →* N) → one_hom M N) :=
+λ f g h, monoid_hom.ext $ one_hom.ext_iff.mp h
+@[to_additive]
+lemma monoid_hom.to_mul_hom_injective [mul_one_class M] [mul_one_class N] :
+  function.injective (monoid_hom.to_mul_hom : (M →* N) → mul_hom M N) :=
+λ f g h, monoid_hom.ext $ mul_hom.ext_iff.mp h
+lemma monoid_with_zero_hom.to_monoid_hom_injective [monoid_with_zero M] [monoid_with_zero N] :
+  function.injective (monoid_with_zero_hom.to_monoid_hom : monoid_with_zero_hom M N → M →* N) :=
+λ f g h, monoid_with_zero_hom.ext $ monoid_hom.ext_iff.mp h
+lemma monoid_with_zero_hom.to_zero_hom_injective [monoid_with_zero M] [monoid_with_zero N] :
+  function.injective (monoid_with_zero_hom.to_zero_hom : monoid_with_zero_hom M N → zero_hom M N) :=
+λ f g h, monoid_with_zero_hom.ext $ zero_hom.ext_iff.mp h
+
 @[simp, to_additive] lemma one_hom.comp_id [has_one M] [has_one N]
   (f : one_hom M N) : f.comp (one_hom.id M) = f := one_hom.ext $ λ x, rfl
 @[simp, to_additive] lemma mul_hom.comp_id [has_mul M] [has_mul N]
@@ -705,6 +720,13 @@ def comp_hom [mul_one_class M] [comm_monoid N] [comm_monoid P] :
 { to_fun := λ g, { to_fun := g.comp, map_one' := comp_one g, map_mul' := comp_mul g },
   map_one' := by { ext1 f, exact one_comp f },
   map_mul' := λ g₁ g₂, by { ext1 f, exact mul_comp g₁ g₂ f } }
+
+/-- Flipping arguments of monoid morphisms (`monoid_hom.flip`) as a monoid morphism. -/
+@[to_additive "Flipping arguments of additive monoid morphisms (`add_monoid_hom.flip`)
+as an additive monoid morphism.", simps]
+def flip_hom {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
+  : (M →* N →* P) →* (N →* M →* P) :=
+{ to_fun := monoid_hom.flip, map_one' := rfl, map_mul' := λ f g, rfl }
 
 /-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
 @[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,

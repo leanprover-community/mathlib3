@@ -108,6 +108,7 @@ def refl (M : Type*) [has_mul M] : M ≃* M :=
 { map_mul' := λ _ _, rfl,
 ..equiv.refl _}
 
+@[to_additive]
 instance : inhabited (M ≃* M) := ⟨refl M⟩
 
 /-- The inverse of an isomorphism is an isomorphism. -/
@@ -301,8 +302,18 @@ def arrow_congr {M N P Q : Type*} [mul_one_class P] [mul_one_class Q]
 A multiplicative analogue of `equiv.arrow_congr`,
 for multiplicative maps from a monoid to a commutative monoid.
 -/
+<<<<<<< HEAD
 @[to_additive "An additive analogue of `equiv.arrow_congr`,
 for additive maps from an additive monoid to a commutative additive monoid.", simps apply]
+||||||| merged common ancestors
+@[simps apply,
+  to_additive "An additive analogue of `equiv.arrow_congr`,
+for additive maps from an additive monoid to a commutative additive monoid."]
+=======
+@[simps apply,
+  to_additive "An additive analogue of `equiv.arrow_congr`,
+for additive maps from an additive monoid to a commutative additive monoid.", simps apply]
+>>>>>>> checkpoint
 def monoid_hom_congr {M N P Q} [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
   (f : M ≃* N) (g : P ≃* Q) : (M →* P) ≃* (N →* Q) :=
 { to_fun := λ h,
@@ -343,7 +354,7 @@ def add_monoid_hom.to_add_equiv [add_zero_class M] [add_zero_class N] (f : M →
 /-- Given a pair of monoid homomorphisms `f`, `g` such that `g.comp f = id` and `f.comp g = id`,
 returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`.  This constructor is
 useful if the underlying type(s) have specialized `ext` lemmas for monoid homomorphisms. -/
-@[to_additive]
+@[to_additive, simps {fully_applied := ff}]
 def monoid_hom.to_mul_equiv [mul_one_class M] [mul_one_class N] (f : M →* N) (g : N →* M)
   (h₁ : g.comp f = monoid_hom.id _) (h₂ : f.comp g = monoid_hom.id _) :
   M ≃* N :=
@@ -353,17 +364,10 @@ def monoid_hom.to_mul_equiv [mul_one_class M] [mul_one_class N] (f : M →* N) (
   right_inv := monoid_hom.congr_fun h₂,
   map_mul' := f.map_mul }
 
-@[simp, to_additive]
-lemma monoid_hom.coe_to_mul_equiv [mul_one_class M] [mul_one_class N]
-  (f : M →* N) (g : N →* M) (h₁ h₂) :
-  ⇑(f.to_mul_equiv g h₁ h₂) = f := rfl
-
 /-- An additive equivalence of additive groups preserves subtraction. -/
 lemma add_equiv.map_sub [add_group A] [add_group B] (h : A ≃+ B) (x y : A) :
   h (x - y) = h x - h y :=
 h.to_add_monoid_hom.map_sub x y
-
-instance add_equiv.inhabited {M : Type*} [has_add M] : inhabited (M ≃+ M) := ⟨add_equiv.refl M⟩
 
 /-- A group is isomorphic to its group of units. -/
 @[to_additive to_add_units "An additive group is isomorphic to its group of additive units"]
@@ -389,7 +393,8 @@ def map_equiv (h : M ≃* N) : units M ≃* units N :=
   .. map h.to_monoid_hom }
 
 /-- Left multiplication by a unit of a monoid is a permutation of the underlying type. -/
-@[to_additive "Left addition of an additive unit is a permutation of the underlying type."]
+@[to_additive "Left addition of an additive unit is a permutation of the underlying type.",
+  simps apply {fully_applied := ff}]
 def mul_left (u : units M) : equiv.perm M :=
 { to_fun    := λx, u * x,
   inv_fun   := λx, ↑u⁻¹ * x,
@@ -397,22 +402,17 @@ def mul_left (u : units M) : equiv.perm M :=
   right_inv := u.mul_inv_cancel_left }
 
 @[simp, to_additive]
-lemma coe_mul_left (u : units M) : ⇑u.mul_left = (*) u := rfl
-
-@[simp, to_additive]
 lemma mul_left_symm (u : units M) : u.mul_left.symm = u⁻¹.mul_left :=
 equiv.ext $ λ x, rfl
 
 /-- Right multiplication by a unit of a monoid is a permutation of the underlying type. -/
-@[to_additive "Right addition of an additive unit is a permutation of the underlying type."]
+@[to_additive "Right addition of an additive unit is a permutation of the underlying type.",
+  simps apply {fully_applied := ff}]
 def mul_right (u : units M) : equiv.perm M :=
 { to_fun    := λx, x * u,
   inv_fun   := λx, x * ↑u⁻¹,
   left_inv  := λ x, mul_inv_cancel_right x u,
   right_inv := λ x, inv_mul_cancel_right x u }
-
-@[simp, to_additive]
-lemma coe_mul_right (u : units M) : ⇑u.mul_right = λ x : M, x * u := rfl
 
 @[simp, to_additive]
 lemma mul_right_symm (u : units M) : u.mul_right.symm = u⁻¹.mul_right :=
@@ -460,7 +460,8 @@ attribute [nolint simp_nf] add_left_symm_apply add_right_symm_apply
 variable (G)
 
 /-- Inversion on a `group` is a permutation of the underlying type. -/
-@[to_additive "Negation on an `add_group` is a permutation of the underlying type."]
+@[to_additive "Negation on an `add_group` is a permutation of the underlying type.",
+  simps apply {fully_applied := ff}]
 protected def inv : perm G :=
 { to_fun    := λa, a⁻¹,
   inv_fun   := λa, a⁻¹,
@@ -468,9 +469,6 @@ protected def inv : perm G :=
   right_inv := assume a, inv_inv a }
 
 variable {G}
-
-@[simp, to_additive]
-lemma coe_inv : ⇑(equiv.inv G) = has_inv.inv := rfl
 
 @[simp, to_additive]
 lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
@@ -482,29 +480,21 @@ variables [group_with_zero G]
 
 /-- Left multiplication by a nonzero element in a `group_with_zero` is a permutation of the
 underlying type. -/
+@[simps {fully_applied := ff}]
 protected def mul_left' (a : G) (ha : a ≠ 0) : perm G :=
 { to_fun := λ x, a * x,
   inv_fun := λ x, a⁻¹ * x,
   left_inv := λ x, by { dsimp, rw [← mul_assoc, inv_mul_cancel ha, one_mul] },
   right_inv := λ x, by { dsimp, rw [← mul_assoc, mul_inv_cancel ha, one_mul] } }
 
-@[simp] lemma coe_mul_left' (a : G) (ha : a ≠ 0) : ⇑(equiv.mul_left' a ha) = (*) a := rfl
-
-@[simp] lemma mul_left'_symm_apply (a : G) (ha : a ≠ 0) :
-  ((equiv.mul_left' a ha).symm : G → G) = (*) a⁻¹ := rfl
-
 /-- Right multiplication by a nonzero element in a `group_with_zero` is a permutation of the
 underlying type. -/
+@[simps {fully_applied := ff}]
 protected def mul_right' (a : G) (ha : a ≠ 0) : perm G :=
 { to_fun := λ x, x * a,
   inv_fun := λ x, x * a⁻¹,
   left_inv := λ x, by { dsimp, rw [mul_assoc, mul_inv_cancel ha, mul_one] },
   right_inv := λ x, by { dsimp, rw [mul_assoc, inv_mul_cancel ha, mul_one] } }
-
-@[simp] lemma coe_mul_right' (a : G) (ha : a ≠ 0) : ⇑(equiv.mul_right' a ha) = λ x, x * a := rfl
-
-@[simp] lemma mul_right'_symm_apply (a : G) (ha : a ≠ 0) :
-  ((equiv.mul_right' a ha).symm : G → G) = λ x, x * a⁻¹ := rfl
 
 end group_with_zero
 

@@ -363,20 +363,21 @@ let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
 end monoid_hom
 
 /-- The identity map from a type with 1 to itself. -/
-@[to_additive]
+@[to_additive, simps]
 def one_hom.id (M : Type*) [has_one M] : one_hom M M :=
-{ to_fun := id, map_one' := rfl, }
+{ to_fun := λ x, x, map_one' := rfl, }
 /-- The identity map from a type with multiplication to itself. -/
-@[to_additive]
+@[to_additive, simps]
 def mul_hom.id (M : Type*) [has_mul M] : mul_hom M M :=
-{ to_fun := id, map_mul' := λ _ _, rfl, }
+{ to_fun := λ x, x, map_mul' := λ _ _, rfl, }
 /-- The identity map from a monoid to itself. -/
-@[to_additive]
+@[to_additive, simps]
 def monoid_hom.id (M : Type*) [mul_one_class M] : M →* M :=
-{ to_fun := id, map_one' := rfl, map_mul' := λ _ _, rfl, }
+{ to_fun := λ x, x, map_one' := rfl, map_mul' := λ _ _, rfl, }
 /-- The identity map from a monoid_with_zero to itself. -/
+@[simps]
 def monoid_with_zero_hom.id (M : Type*) [mul_zero_one_class M] : monoid_with_zero_hom M M :=
-{ to_fun := id, map_zero' := rfl, map_one' := rfl, map_mul' := λ _ _, rfl, }
+{ to_fun := λ x, x, map_zero' := rfl, map_one' := rfl, map_mul' := λ _ _, rfl, }
 
 /-- The identity map from an type with zero to itself. -/
 add_decl_doc zero_hom.id
@@ -384,15 +385,6 @@ add_decl_doc zero_hom.id
 add_decl_doc add_hom.id
 /-- The identity map from an additive monoid to itself. -/
 add_decl_doc add_monoid_hom.id
-
-@[simp, to_additive] lemma one_hom.id_apply {M : Type*} [has_one M] (x : M) :
-  one_hom.id M x = x := rfl
-@[simp, to_additive] lemma mul_hom.id_apply {M : Type*} [has_mul M] (x : M) :
-  mul_hom.id M x = x := rfl
-@[simp, to_additive] lemma monoid_hom.id_apply {M : Type*} [mul_one_class M] (x : M) :
-  monoid_hom.id M x = x := rfl
-@[simp] lemma monoid_with_zero_hom.id_apply {M : Type*} [mul_zero_one_class M] (x : M) :
-  monoid_with_zero_hom.id M x = x := rfl
 
 /-- Composition of `one_hom`s as a `one_hom`. -/
 @[to_additive]
@@ -710,15 +702,12 @@ lemma injective_iff {G H} [group G] [mul_one_class H] (f : G →* H) :
 
 include mM
 /-- Makes a group homomorphism from a proof that the map preserves multiplication. -/
-@[to_additive "Makes an additive group homomorphism from a proof that the map preserves addition."]
+@[to_additive "Makes an additive group homomorphism from a proof that the map preserves addition.",
+  simps {fully_applied := ff}]
 def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G :=
 { to_fun := f,
   map_mul' := map_mul,
   map_one' := mul_left_eq_self.1 $ by rw [←map_mul, mul_one] }
-
-@[simp, to_additive]
-lemma coe_mk' {f : M → G} (map_mul : ∀ a b : M, f (a * b) = f a * f b) :
-  ⇑(mk' f map_mul) = f := rfl
 
 omit mM
 

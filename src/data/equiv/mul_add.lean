@@ -302,18 +302,8 @@ def arrow_congr {M N P Q : Type*} [mul_one_class P] [mul_one_class Q]
 A multiplicative analogue of `equiv.arrow_congr`,
 for multiplicative maps from a monoid to a commutative monoid.
 -/
-<<<<<<< HEAD
 @[to_additive "An additive analogue of `equiv.arrow_congr`,
 for additive maps from an additive monoid to a commutative additive monoid.", simps apply]
-||||||| merged common ancestors
-@[simps apply,
-  to_additive "An additive analogue of `equiv.arrow_congr`,
-for additive maps from an additive monoid to a commutative additive monoid."]
-=======
-@[simps apply,
-  to_additive "An additive analogue of `equiv.arrow_congr`,
-for additive maps from an additive monoid to a commutative additive monoid.", simps apply]
->>>>>>> checkpoint
 def monoid_hom_congr {M N P Q} [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
   (f : M ≃* N) (g : P ≃* Q) : (M →* P) ≃* (N →* Q) :=
 { to_fun := λ h,

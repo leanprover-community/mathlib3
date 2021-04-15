@@ -83,6 +83,7 @@ jobs:
           leanpkg configure
           echo "::set-output name=started::true"
           lean --json -T100000 --make src | python scripts/detect_errors.py
+          lean --json -T100000 --make src | python scripts/detect_errors.py
 
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib' && steps.build.outputs.started == 'true'

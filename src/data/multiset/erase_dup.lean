@@ -77,7 +77,7 @@ theorem erase_dup_map_erase_dup_eq [decidable_eq β] (f : α → β) (s : multis
 
 @[simp]
 lemma erase_dup_nsmul {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
-  (n •ℕ s).erase_dup = s.erase_dup :=
+  (n • s).erase_dup = s.erase_dup :=
 begin
   ext a,
   by_cases h : a ∈ s;
@@ -92,7 +92,7 @@ end multiset
 
 lemma multiset.nodup.le_nsmul_iff_le {α : Type*} {s t : multiset α}
   {n : ℕ} (h : s.nodup) (hn : n ≠ 0) :
-  s ≤ n •ℕ t ↔ s ≤ t :=
+  s ≤ n • t ↔ s ≤ t :=
 begin
   classical,
   rw [← h.le_erase_dup_iff_le, iff.comm, ← h.le_erase_dup_iff_le],

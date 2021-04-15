@@ -183,7 +183,7 @@ lemma one_lt_pow {K} [linear_ordered_semiring K] {p : K} (hp : 1 < p) : ∀ {n :
 | 1 h := by simp; assumption
 | (k+2) h :=
   begin
-    rw ←one_mul (1 : K),
+    rw [←one_mul (1 : K), pow_succ],
     apply mul_lt_mul,
     { assumption },
     { apply le_of_lt, simpa using one_lt_pow (nat.le_add_left 1 k)},

@@ -46,16 +46,16 @@ lemma is_cycle.two_le_card_support {f : perm α} (h : is_cycle f) :
   2 ≤ f.support.card :=
 two_le_card_support_of_ne_one h.ne_one
 
-lemma is_cycle.swap {α : Type*} [decidable_eq α] {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=
+lemma is_cycle_swap {α : Type*} [decidable_eq α] {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=
 ⟨y, by rwa swap_apply_right,
   λ a (ha : ite (a = x) y (ite (a = y) x a) ≠ a),
     if hya : y = a then ⟨0, hya⟩
     else ⟨1, by { rw [gpow_one, swap_apply_def], split_ifs at *; cc }⟩⟩
 
-lemma is_cycle.is_swap {α : Type*} [decidable_eq α] {f : perm α} (hf : is_swap f) : is_cycle f :=
+lemma is_swap.is_cycle {α : Type*} [decidable_eq α] {f : perm α} (hf : is_swap f) : is_cycle f :=
 begin
   obtain ⟨x, y, hxy, rfl⟩ := hf,
-  exact is_cycle.swap hxy,
+  exact is_cycle_swap hxy,
 end
 
 lemma is_cycle.inv {f : perm β} (hf : is_cycle f) : is_cycle (f⁻¹) :=
@@ -441,7 +441,7 @@ open subgroup
 lemma closure_is_cycle : closure {σ : perm β | is_cycle σ} = ⊤ :=
 begin
   classical,
-  exact top_le_iff.mp (le_trans (ge_of_eq closure_is_swap) (closure_mono (λ _, is_cycle.is_swap))),
+  exact top_le_iff.mp (le_trans (ge_of_eq closure_is_swap) (closure_mono (λ _, is_swap.is_cycle))),
 end
 
 lemma closure_cycle_adjacent_swap {σ : perm α} (h1 : is_cycle σ) (h2 : σ.support = ⊤) (x : α) :

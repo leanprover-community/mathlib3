@@ -470,6 +470,16 @@ Consider a natural number `n` as an object of `Mat R`, the category of matrices 
 -/
 def Mat.of_nat (R : Type*) [ring R] (n : ℕ) : Mat R := Mat.of R (fin n)
 
+/-- Help the typechecker to see a matrix as a morphism in `Mat R`. -/
+@[reducible]
+def Mat.hom_of_matrix {R : Type*} [ring R] {m n : Type*} [fintype m] [fintype n]
+  (f : matrix m n R) : Mat.of R m ⟶ Mat.of R n := f
+
+/-- Help the typechecker to see a morphism in `Mat R` as a matrix. -/
+@[reducible]
+def Mat.matrix_of_hom {R : Type*} [ring R] {m n : Type*} [fintype m] [fintype n]
+  (f : Mat.of R m ⟶ Mat.of R n) : matrix m n R := f
+
 instance (R : Type*) [ring R] : inhabited (Mat R) := ⟨Mat.of R (fin 1)⟩
 
 -- Morphisms are just matrices:
@@ -481,6 +491,10 @@ example : Mat.of_nat ℤ 2 ⟶ Mat.of_nat ℤ 3 := ![![(37 : ℤ), 42, 0], ![0, 
 -- We can use constructions about matrices, although unfortunately Lean needs help typechecking.
 example (m n o : Type*) [fintype m] [fintype n] [fintype o]
   (blocks : o → (Mat.of ℤ m ⟶ Mat.of ℤ n)) : Mat.of ℤ (m × o) ⟶ Mat.of ℤ (n × o) :=
-@matrix.block_diagonal m n o _ _ _ ℤ blocks _ _
+Mat.hom_of_matrix (matrix.block_diagonal blocks)
+/- Alternatively, you can just use:
+`@matrix.block_diagonal m n o _ _ _ ℤ blocks _ _`
+but unfortunately Lean can't typecheck just
+`matrix.block_diagonal block`. -/
 
 end category_theory

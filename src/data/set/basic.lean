@@ -759,8 +759,6 @@ by { ext; simp }
 
 @[simp] lemma sep_false {α : Type*} (s : set α) : {a ∈ s | false} = ∅ :=
 by { ext; simp }
-
-
 /-! ### Lemmas about complement -/
 
 theorem mem_compl {s : set α} {x : α} (h : x ∉ s) : x ∈ sᶜ := h

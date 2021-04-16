@@ -50,10 +50,8 @@ lemma mem_carrier {s : subsemiring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := i
 equalities.-/
 protected def copy (S : subsemiring R) (s : set R) (hs : s = ↑S) : subsemiring R :=
 { carrier := s,
-  zero_mem' := hs.symm ▸ S.zero_mem',
-  add_mem' := hs.symm ▸ S.add_mem',
-  one_mem' := hs.symm ▸ S.one_mem',
-  mul_mem' := hs.symm ▸ S.mul_mem' }
+  ..S.to_add_submonoid.copy s hs,
+  ..S.to_submonoid.copy s hs }
 
 lemma to_submonoid_injective : function.injective (to_submonoid : subsemiring R → submonoid R)
 | r s h := ext (set_like.ext_iff.mp h : _)

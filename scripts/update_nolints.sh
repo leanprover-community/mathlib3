@@ -9,14 +9,14 @@ owner_name=leanprover-community
 git fetch $remote_name
 git rev-parse --verify --quiet refs/remotes/$remote_name/$branch_name && exit 0
 
-# Exit if there are no changes
-git diff-index --quiet HEAD -- scripts/nolints.txt && exit 0
+# Exit if there are no changes relative to master
+git diff-index --quiet refs/remotes/$remote_name/master -- scripts/nolints.txt scripts/style-exceptions.txt && exit 0
 
 pr_title='chore(scripts): update nolints.txt'
 pr_body='I am happy to remove some nolints for you!'
 
 git checkout -b $branch_name
-git add scripts/nolints.txt
+git add scripts/nolints.txt scripts/style-exceptions.txt
 git commit -m "$pr_title"
 
 gh_api() {

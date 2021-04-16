@@ -314,7 +314,7 @@ begin
       symmetry, apply tactic.ring.horner_add_horner_lt,
       { change (_ + k : ℕ) = _,
           rw [← int.coe_nat_inj', int.coe_nat_add,
-            eq_comm, ← sub_eq_iff_eq_add', ← neg_inj', neg_sub],
+            eq_comm, ← sub_eq_iff_eq_add', ← neg_inj, neg_sub],
         simpa using congr_arg (coe : znum → ℤ) e },
       all_goals { refl } } },
   { rcases B₂ csb₂ _ _ B₁ ⟨csa₁, csb₁⟩ with ⟨csh, h⟩,
@@ -479,7 +479,8 @@ local postfix `?`:9001 := optional
 
 /-- `ring2` solves equations in the language of rings.
 
-It supports only the commutative semiring operations, i.e. it does not normalize subtraction or division.
+It supports only the commutative semiring operations, i.e. it does not normalize subtraction or
+division.
 
   This variant on the `ring` tactic uses kernel computation instead
   of proof generation. In general, you should use `ring` instead of `ring2`. -/

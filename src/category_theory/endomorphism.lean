@@ -5,7 +5,6 @@ Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
 
 Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 -/
-import category_theory.category
 import category_theory.groupoid
 import data.equiv.mul_add
 
@@ -13,17 +12,18 @@ universes v v' u u'
 
 namespace category_theory
 
-/-- Endomorphisms of an object in a category. Arguments order in multiplication agrees with `function.comp`, not with `category.comp`. -/
-def End {C : Type u} [𝒞_struct : category_struct.{v} C] (X : C) := X ⟶ X
+/-- Endomorphisms of an object in a category. Arguments order in multiplication agrees with
+`function.comp`, not with `category.comp`. -/
+def End {C : Type u} [category_struct.{v} C] (X : C) := X ⟶ X
 
 namespace End
 
 section struct
 
-variables {C : Type u} [𝒞_struct : category_struct.{v} C] (X : C)
-include 𝒞_struct
+variables {C : Type u} [category_struct.{v} C] (X : C)
 
 instance has_one : has_one (End X) := ⟨𝟙 X⟩
+instance inhabited : inhabited (End X) := ⟨𝟙 X⟩
 
 /-- Multiplication of endomorphisms agrees with `function.comp`, not `category_struct.comp`. -/
 instance has_mul : has_mul (End X) := ⟨λ x y, y ≫ x⟩
@@ -51,16 +51,30 @@ end End
 
 variables {C : Type u} [category.{v} C] (X : C)
 
+/--
+Automorphisms of an object in a category.
+
+The order of arguments in multiplication agrees with
+`function.comp`, not with `category.comp`.
+-/
 def Aut (X : C) := X ≅ X
 
 attribute [ext Aut] iso.ext
 
 namespace Aut
 
+instance inhabited : inhabited (Aut X) := ⟨iso.refl X⟩
+
 instance : group (Aut X) :=
-by refine { one := iso.refl X,
-            inv := iso.symm,
-            mul := flip iso.trans, .. } ; dunfold flip; obviously
+by refine_struct
+{ one := iso.refl X,
+  inv := iso.symm,
+  mul := flip iso.trans,
+  div := _,
+  npow := @npow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ };
+intros; ext; try { refl };
+simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
+  has_inv.inv]
 
 /--
 Units in the monoid of endomorphisms of an object

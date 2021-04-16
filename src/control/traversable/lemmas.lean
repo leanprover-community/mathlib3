@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 
 Lemmas about traversing collections.
 
@@ -37,6 +37,8 @@ variables g : α → F β
 variables h : β → G γ
 variables f : β → γ
 
+/-- The natural applicative transformation from the identity functor
+to `F`, defined by `pure : Π {α}, α → F α`. -/
 def pure_transformation : applicative_transformation id F :=
 { app := @pure F _,
   preserves_pure' := λ α x, rfl,

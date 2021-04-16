@@ -60,10 +60,11 @@ more details.)
 
 - Commit messages are taken from the first post of the PR. This is much nicer than mergify /
   Github's default which just combines all commit subject lines into one. We have set things
-  up so that the text after "TO CONTRIBUTORS" is automatically ignored. Note that
-  contributions from other users will have to be added explicitly to the first post with
-  ["Co-authored-by:" trailers](https://github.blog/2018-01-29-commit-together-with-co-authors/);
-  they aren't automatically added like how mergify and Github previously did.
+  up so that the text after the first occurrence of "`---`" is automatically ignored. Contributions
+  from other users should be automatically added as [co-authors](https://github.blog/2018-01-29-commit-together-with-co-authors/),
+  like how mergify and Github previously did. For PRs with a lot of commits (30+) they
+  might be missed; in such cases (or other cases where you want to acknowledge someone who didn't actually
+  commit), you can add them with the template `Co-authored-by: Firstname Lastname <email>`.
 
 - Even if the usual "push" build succeeds on a PR branch that is up-to-date with master, `bors r+`
   will not instantly merge it into `master` the way mergify used to; instead, bors will run the CI
@@ -75,10 +76,10 @@ more details.)
 
   Note that approving PRs from external forks which *don't* propose changes to Github Actions can
   still cause bors to crash if the Github Actions config in `master` is changed before the PR is
-  merged. Presumably asking the PR author to merge `master` into their branch should work.
+  merged. Asking the PR author to merge `master` into their branch should get things working again.
 
-- There is a `bors try` option which might be useful for running CI and getting oleans for PRs from
-  external forks. I don't think we've tested this yet.
+- There is a `bors try` option which can be useful for running CI and getting oleans for PRs from
+  external forks.
 
 - Github Actions has a UI bug which shows pushed commits as being built from the `staging` branch.
   However, if we check the actual head refs, the commits are actually pushed to `staging`, then

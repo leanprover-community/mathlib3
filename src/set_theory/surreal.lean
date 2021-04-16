@@ -253,9 +253,14 @@ theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
  end⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
--- TODO prove
--- theorem numeric_nat (n : ℕ) : numeric n := sorry
--- theorem numeric_omega : numeric omega := sorry
+/-- Pre-games defined by natural numbers are numeric. -/
+theorem numeric_nat : Π (n : ℕ), numeric n
+| 0 := numeric_zero
+| (n + 1) := numeric_add (numeric_nat n) numeric_one
+
+/-- The pre-game omega is numeric. -/
+theorem numeric_omega : numeric omega :=
+⟨by rintros ⟨⟩ ⟨⟩, λ i, numeric_nat i.down, by rintros ⟨⟩⟩
 
 end pgame
 
@@ -321,9 +326,10 @@ instance : partial_order surreal :=
 { le_antisymm := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩ h₁ h₂; exact quot.sound ⟨h₁, h₂⟩,
   ..surreal.preorder }
 
-instance : linear_order surreal :=
+noncomputable instance : linear_order surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
+  decidable_le := classical.dec_rel _,
   ..surreal.partial_order }
 
 /-- Addition on surreals is inherited from pre-game addition:
@@ -362,6 +368,7 @@ instance : add_semigroup surreal :=
 -- TODO show this is a group homomorphism, and injective
 
 -- TODO define the field structure on the surreals
--- TODO show the maps from the dyadic rationals and from the reals into the surreals are multiplicative
+-- TODO show the maps from the dyadic rationals and from the reals
+-- into the surreals are multiplicative
 
 end surreal

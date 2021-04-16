@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker
 -/
 import algebra.group.basic
-import tactic.ext
-import tactic.norm_cast
+import logic.nontrivial
 
 /-!
 # Units (i.e., invertible elements) of a multiplicative monoid
@@ -48,11 +47,18 @@ variables [monoid α]
   by change v = v' at e; subst v'; congr;
       simpa only [iv₂, vi₁, one_mul, mul_one] using mul_assoc i₂ v i₁
 
-@[to_additive] theorem ext_iff {a b : units α} :
-  a = b ↔ (a : α) = b :=
-ext.eq_iff.symm
+@[norm_cast, to_additive] theorem eq_iff {a b : units α} :
+  (a : α) = b ↔ a = b := ext.eq_iff
 
-@[to_additive] instance [decidable_eq α] : decidable_eq (units α) := λ a b, decidable_of_iff' _ ext_iff
+@[to_additive] theorem ext_iff {a b : units α} :
+  a = b ↔ (a : α) = b := eq_iff.symm
+
+@[to_additive] instance [decidable_eq α] : decidable_eq (units α) :=
+λ a b, decidable_of_iff' _ ext_iff
+
+@[simp, to_additive] theorem mk_coe (u : units α) (y h₁ h₂) :
+  mk (u : α) y h₁ h₂ = u :=
+ext rfl
 
 /-- Units of a monoid form a group. -/
 @[to_additive] instance : group (units α) :=
@@ -73,6 +79,11 @@ attribute [norm_cast] add_units.coe_add
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : units α) : α) = 1 := rfl
 attribute [norm_cast] add_units.coe_zero
 
+@[simp, norm_cast, to_additive] lemma coe_eq_one {a : units α} : (a : α) = 1 ↔ a = 1 :=
+by rw [←units.coe_one, eq_iff]
+
+@[simp, to_additive] lemma inv_mk (x y : α) (h₁ h₂) : (mk x y h₁ h₂)⁻¹ = mk y x h₂ h₁ := rfl
+
 @[to_additive] lemma val_coe : (↑a : α) = a.val := rfl
 
 @[norm_cast, to_additive] lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
@@ -80,6 +91,12 @@ attribute [norm_cast] add_units.coe_neg
 
 @[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
+
+@[to_additive] lemma inv_mul_of_eq {u : units α} {a : α} (h : ↑u = a) : ↑u⁻¹ * a = 1 :=
+by { rw [←h, u.inv_mul], }
+
+@[to_additive] lemma mul_inv_of_eq {u : units α} {a : α} (h : ↑u = a) : a * ↑u⁻¹ = 1 :=
+by { rw [←h, u.mul_inv], }
 
 @[simp, to_additive] lemma mul_inv_cancel_left (a : units α) (b : α) : (a:α) * (↑a⁻¹ * b) = b :=
 by rw [← mul_assoc, mul_inv, one_mul]
@@ -118,10 +135,19 @@ by rw [mul_assoc, inv_mul, mul_one]
 @[to_additive] theorem mul_inv_eq_iff_eq_mul {a c : α} : a * ↑b⁻¹ = c ↔ a = c * b :=
 ⟨λ h, by rw [← h, inv_mul_cancel_right], λ h, by rw [h, mul_inv_cancel_right]⟩
 
+lemma inv_eq_of_mul_eq_one {u : units α} {a : α} (h : ↑u * a = 1) : ↑u⁻¹ = a :=
+calc ↑u⁻¹ = ↑u⁻¹ * 1 : by rw mul_one
+      ... = ↑u⁻¹ * ↑u * a : by rw [←h, ←mul_assoc]
+      ... = a : by rw [u.inv_mul, one_mul]
+
+lemma inv_unique {u₁ u₂ : units α} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
+suffices ↑u₁ * (↑u₂⁻¹ : α) = 1, by exact inv_eq_of_mul_eq_one this, by rw [h, u₂.mul_inv]
+
 end units
 
 /-- For `a, b` in a `comm_monoid` such that `a * b = 1`, makes a unit out of `a`. -/
-@[to_additive "For `a, b` in an `add_comm_monoid` such that `a + b = 0`, makes an add_unit out of `a`."]
+@[to_additive "For `a, b` in an `add_comm_monoid` such that `a + b = 0`, makes an add_unit
+out of `a`."]
 def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) :
   units α :=
 ⟨a, b, hab, (mul_comm b a).trans hab⟩
@@ -201,11 +227,16 @@ variables {M : Type*} {N : Type*}
 /-- An element `a : M` of a monoid is a unit if it has a two-sided inverse.
 The actual definition says that `a` is equal to some `u : units M`, where
 `units M` is a bundled version of `is_unit`. -/
-@[to_additive is_add_unit "An element `a : M` of an add_monoid is an `add_unit` if it has a two-sided additive inverse. The actual definition says that `a` is equal to some `u : add_units M`, where `add_units M` is a bundled version of `is_add_unit`."]
-def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, a = u
+@[to_additive is_add_unit "An element `a : M` of an add_monoid is an `add_unit` if it has
+a two-sided additive inverse. The actual definition says that `a` is equal to some
+`u : add_units M`, where `add_units M` is a bundled version of `is_add_unit`."]
+def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, (u : M) = a
+
+@[nontriviality] lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
+⟨⟨a, a, subsingleton.elim _ _, subsingleton.elim _ _⟩, rfl⟩
 
 @[simp, to_additive is_add_unit_add_unit]
-lemma is_unit_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
+protected lemma units.is_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
 
 @[simp, to_additive is_add_unit_zero]
 theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
@@ -224,14 +255,18 @@ theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
 by simp [is_unit_iff_exists_inv, mul_comm]
 
 /-- Multiplication by a `u : units M` doesn't affect `is_unit`. -/
-@[simp, to_additive is_add_unit_add_add_units "Addition of a `u : add_units M` doesn't affect `is_add_unit`."]
+@[simp, to_additive is_add_unit_add_add_units "Addition of a `u : add_units M` doesn't affect
+`is_add_unit`."]
 theorem units.is_unit_mul_units [monoid M] (a : M) (u : units M) :
   is_unit (a * u) ↔ is_unit a :=
 iff.intro
   (assume ⟨v, hv⟩,
-    have is_unit (a * ↑u * ↑u⁻¹), by existsi v * u⁻¹; rw [hv, units.coe_mul],
+    have is_unit (a * ↑u * ↑u⁻¹), by existsi v * u⁻¹; rw [←hv, units.coe_mul],
     by rwa [mul_assoc, units.mul_inv, mul_one] at this)
-  (assume ⟨v, hv⟩, hv.symm ▸ ⟨v * u, (units.coe_mul v u).symm⟩)
+  (assume ⟨v, hv⟩, hv ▸ ⟨v * u, (units.coe_mul v u).symm⟩)
+
+lemma is_unit.mul [monoid M] {x y : M} : is_unit x → is_unit y → is_unit (x * y) :=
+by { rintros ⟨x, rfl⟩ ⟨y, rfl⟩, exact ⟨x * y, units.coe_mul _ _⟩ }
 
 @[to_additive is_add_unit_of_add_is_add_unit_left]
 theorem is_unit_of_mul_is_unit_left [comm_monoid M] {x y : M}
@@ -245,10 +280,40 @@ is_unit_iff_exists_inv.2 ⟨y * z, by rwa ← mul_assoc⟩
 
 @[to_additive] theorem is_unit.mul_right_inj [monoid M] {a b c : M} (ha : is_unit a) :
   a * b = a * c ↔ b = c :=
-by cases ha with a ha; rw [ha, units.mul_right_inj]
+by cases ha with a ha; rw [←ha, units.mul_right_inj]
 
 @[to_additive] theorem is_unit.mul_left_inj [monoid M] {a b c : M} (ha : is_unit a) :
   b * a = c * a ↔ b = c :=
-by cases ha with a ha; rw [ha, units.mul_left_inj]
+by cases ha with a ha; rw [←ha, units.mul_left_inj]
+
+/-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
+noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
+classical.some h
+
+lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
+classical.some_spec h
 
 end is_unit
+
+section noncomputable_defs
+
+variables {M : Type*}
+
+/-- Constructs a `group` structure on a `monoid` consisting only of units. -/
+noncomputable def group_of_is_unit [hM : monoid M] (h : ∀ (a : M), is_unit a) : group M :=
+{ inv := λ a, ↑((h a).unit)⁻¹,
+  mul_left_inv := λ a, by {
+    change ↑((h a).unit)⁻¹ * a = 1,
+    rw [units.inv_mul_eq_iff_eq_mul, (h a).unit_spec, mul_one] },
+.. hM }
+
+/-- Constructs a `comm_group` structure on a `comm_monoid` consisting only of units. -/
+noncomputable def comm_group_of_is_unit [hM : comm_monoid M] (h : ∀ (a : M), is_unit a) :
+  comm_group M :=
+{ inv := λ a, ↑((h a).unit)⁻¹,
+  mul_left_inv := λ a, by {
+    change ↑((h a).unit)⁻¹ * a = 1,
+    rw [units.inv_mul_eq_iff_eq_mul, (h a).unit_spec, mul_one] },
+.. hM }
+
+end noncomputable_defs

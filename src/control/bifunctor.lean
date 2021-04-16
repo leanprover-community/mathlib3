@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 
 Functors with two arguments
 -/
 import logic.function.basic
-import tactic.basic
+import control.functor
+import tactic.core
 
 universes u₀ u₁ u₂ v₀ v₁ v₂
 

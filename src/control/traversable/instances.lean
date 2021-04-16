@@ -1,13 +1,13 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 
 Instances of `traversable` for types from the core library
 -/
 import data.list.forall2
 import data.set.lattice
-import control.applicative
+import control.traversable.lemmas
 
 universes u v
 
@@ -22,6 +22,7 @@ variables [is_lawful_applicative F] [is_lawful_applicative G]
 lemma option.id_traverse {α} (x : option α) : option.traverse id.mk x = x :=
 by cases x; refl
 
+@[nolint unused_arguments]
 lemma option.comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : option α) :
   option.traverse (comp.mk ∘ (<$>) f ∘ g) x =
   comp.mk (option.traverse f <$> option.traverse g x) :=
@@ -43,7 +44,8 @@ instance : is_lawful_traversable option :=
 { id_traverse := @option.id_traverse,
   comp_traverse := @option.comp_traverse,
   traverse_eq_map_id := @option.traverse_eq_map_id,
-  naturality := @option.naturality }
+  naturality := @option.naturality,
+  .. option.is_lawful_monad }
 
 namespace list
 
@@ -60,6 +62,7 @@ protected lemma id_traverse {α} (xs : list α) :
   list.traverse id.mk xs = xs :=
 by induction xs; simp! * with functor_norm; refl
 
+@[nolint unused_arguments]
 protected lemma comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : list α) :
   list.traverse (comp.mk ∘ (<$>) f ∘ g) x =
   comp.mk (list.traverse f <$> list.traverse g x) :=
@@ -76,11 +79,12 @@ protected lemma naturality {α β} (f : α → F β) (x : list α) :
 by induction x; simp! * with functor_norm
 open nat
 
-instance : is_lawful_traversable list :=
+instance : is_lawful_traversable.{u} list :=
 { id_traverse := @list.id_traverse,
   comp_traverse := @list.comp_traverse,
   traverse_eq_map_id := @list.traverse_eq_map_id,
-  naturality := @list.naturality }
+  naturality := @list.naturality,
+  .. list.is_lawful_monad }
 end
 
 section traverse
@@ -107,7 +111,7 @@ lemma mem_traverse {f : α' → set β'} :
 | []      (b::bs) := by simp
 | (a::as) (b::bs) :=
   suffices (b :: bs : list β') ∈ traverse f (a :: as) ↔ b ∈ f a ∧ bs ∈ traverse f as,
-    by simpa [mem_traverse as bs],
+    by simp [mem_traverse as bs],
   iff.intro
     (assume ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩, ⟨hb, hl⟩)
     (assume ⟨hb, hl⟩, ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩)
@@ -126,11 +130,16 @@ variables [applicative F] [applicative G]
 open applicative functor
 open list (cons)
 
+protected lemma traverse_map {α β γ : Type u} (g : α → β) (f : β → G γ) (x : σ ⊕ α) :
+  sum.traverse f (g <$> x) = sum.traverse (f ∘ g) x :=
+by cases x; simp [sum.traverse, id_map] with functor_norm; refl
+
 variables [is_lawful_applicative F] [is_lawful_applicative G]
 
 protected lemma id_traverse {σ α} (x : σ ⊕ α) : sum.traverse id.mk x = x :=
 by cases x; refl
 
+@[nolint unused_arguments]
 protected lemma comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : σ ⊕ α) :
   sum.traverse (comp.mk ∘ (<$>) f ∘ g) x =
   comp.mk (sum.traverse f <$> sum.traverse g x) :=
@@ -144,10 +153,6 @@ protected lemma map_traverse {α β γ} (g : α → G β) (f : β → γ) (x : �
   (<$>) f <$> sum.traverse g x = sum.traverse ((<$>) f ∘ g) x :=
 by cases x; simp [sum.traverse, id_map] with functor_norm; congr; refl
 
-protected lemma traverse_map {α β γ : Type u} (g : α → β) (f : β → G γ) (x : σ ⊕ α) :
-  sum.traverse f (g <$> x) = sum.traverse (f ∘ g) x :=
-by cases x; simp [sum.traverse, id_map] with functor_norm; refl
-
 variable (η : applicative_transformation F G)
 
 protected lemma naturality {α β} (f : α → F β) (x : σ ⊕ α) :
@@ -160,6 +165,7 @@ instance {σ : Type u} : is_lawful_traversable.{u} (sum σ) :=
 { id_traverse := @sum.id_traverse σ,
   comp_traverse := @sum.comp_traverse σ,
   traverse_eq_map_id := @sum.traverse_eq_map_id σ,
-  naturality := @sum.naturality σ }
+  naturality := @sum.naturality σ,
+  .. sum.is_lawful_monad }
 
 end sum

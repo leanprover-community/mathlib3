@@ -15,7 +15,8 @@ import category_theory.functor
 
 namespace category_theory
 
-universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
@@ -26,7 +27,8 @@ The field `app` provides the components of the natural transformation.
 
 Naturality is expressed by `α.naturality_lemma`.
 -/
-@[ext] structure nat_trans (F G : C ⥤ D) : Type (max u₁ v₂) :=
+@[ext]
+structure nat_trans (F G : C ⥤ D) : Type (max u₁ v₂) :=
 (app : Π X : C, (F.obj X) ⟶ (G.obj X))
 (naturality' : ∀ {{X Y : C}} (f : X ⟶ Y), (F.map f) ≫ (app Y) = (app X) ≫ (G.map f) . obviously)
 
@@ -35,6 +37,9 @@ restate_axiom nat_trans.naturality'
 -- components of natural transfomations moving earlier.
 attribute [simp, reassoc] nat_trans.naturality
 
+lemma congr_app {F G : C ⥤ D} {α β : nat_trans F G} (h : α = β) (X : C) : α.app X = β.app X :=
+congr_fun (congr_arg nat_trans.app h) X
+
 namespace nat_trans
 
 /-- `nat_trans.id F` is the identity natural transformation on a functor `F`. -/
@@ -42,6 +47,8 @@ protected def id (F : C ⥤ D) : nat_trans F F :=
 { app := λ X, 𝟙 (F.obj X) }
 
 @[simp] lemma id_app' (F : C ⥤ D) (X : C) : (nat_trans.id F).app X = 𝟙 (F.obj X) := rfl
+
+instance (F : C ⥤ D) : inhabited (nat_trans F F) := ⟨nat_trans.id F⟩
 
 open category
 open category_theory.functor

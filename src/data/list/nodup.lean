@@ -6,6 +6,13 @@ Authors: Mario Carneiro, Kenny Lau
 import data.list.pairwise
 import data.list.forall2
 
+/-!
+# Lists with no duplicates
+
+`list.nodup` is defined in `data/list/defs`. In this file we prove various properties of this
+predicate.
+-/
+
 universes u v
 
 open nat function
@@ -13,8 +20,6 @@ open nat function
 variables {α : Type u} {β : Type v}
 
 namespace list
-
-/- no duplicates predicate -/
 
 @[simp] theorem forall_mem_ne {a : α} {l : list α} : (∀ (a' : α), a' ∈ l → ¬a = a') ↔ a ∉ l :=
 ⟨λ h m, h _ m rfl, λ h a' m e, h (e.symm ▸ m)⟩
@@ -24,10 +29,15 @@ namespace list
 @[simp] theorem nodup_cons {a : α} {l : list α} : nodup (a::l) ↔ a ∉ l ∧ nodup l :=
 by simp only [nodup, pairwise_cons, forall_mem_ne]
 
+protected lemma pairwise.nodup {l : list α} {r : α → α → Prop} [is_irrefl α r] (h : pairwise r l) :
+  nodup l :=
+h.imp $ λ a b, ne_of_irrefl
+
 lemma rel_nodup {r : α → β → Prop} (hr : relator.bi_unique r) : (forall₂ r ⇒ (↔)) nodup nodup
 | _ _ forall₂.nil      := by simp only [nodup_nil]
 | _ _ (forall₂.cons hab h) :=
-  by simpa only [nodup_cons] using relator.rel_and (relator.rel_not (rel_mem hr hab h)) (rel_nodup h)
+  by simpa only [nodup_cons] using relator.rel_and (relator.rel_not (rel_mem hr hab h))
+    (rel_nodup h)
 
 theorem nodup_cons_of_nodup {a : α} {l : list α} (m : a ∉ l) (n : nodup l) : nodup (a::l) :=
 nodup_cons.2 ⟨m, n⟩
@@ -66,7 +76,8 @@ pairwise_iff_nth_le.trans
   .resolve_right (λ h', H _ _ h₁ h' h.symm),
  λ H i j h₁ h₂ h, ne_of_lt h₂ (H _ _ _ _ h)⟩
 
-@[simp] theorem nth_le_index_of [decidable_eq α] {l : list α} (H : nodup l) (n h) : index_of (nth_le l n h) l = n :=
+@[simp] theorem nth_le_index_of [decidable_eq α] {l : list α} (H : nodup l) (n h) :
+  index_of (nth_le l n h) l = n :=
 nodup_iff_nth_le_inj.1 H _ _ _ h $
 index_of_nth_le $ index_of_lt_length.2 $ nth_le_mem _ _ _
 
@@ -106,7 +117,8 @@ theorem nodup_append_comm {l₁ l₂ : list α} : nodup (l₁++l₂) ↔ nodup (
 by simp only [nodup_append, and.left_comm, disjoint_comm]
 
 theorem nodup_middle {a : α} {l₁ l₂ : list α} : nodup (l₁ ++ a::l₂) ↔ nodup (a::(l₁++l₂)) :=
-by simp only [nodup_append, not_or_distrib, and.left_comm, and_assoc, nodup_cons, mem_append, disjoint_cons_right]
+by simp only [nodup_append, not_or_distrib, and.left_comm, and_assoc, nodup_cons, mem_append,
+  disjoint_cons_right]
 
 theorem nodup_of_nodup_map (f : α → β) {l : list α} : nodup (map f l) → nodup l :=
 pairwise_of_pairwise_map f $ λ a b, mt $ congr_arg f
@@ -114,6 +126,23 @@ pairwise_of_pairwise_map f $ λ a b, mt $ congr_arg f
 theorem nodup_map_on {f : α → β} {l : list α} (H : ∀x∈l, ∀y∈l, f x = f y → x = y)
   (d : nodup l) : nodup (map f l) :=
 pairwise_map_of_pairwise _ (by exact λ a b ⟨ma, mb, n⟩ e, n (H a ma b mb e)) (pairwise.and_mem.1 d)
+
+theorem inj_on_of_nodup_map {f : α → β} {l : list α} (d : nodup (map f l)) :
+  ∀ ⦃x⦄, x ∈ l → ∀ ⦃y⦄, y ∈ l → f x = f y → x = y :=
+begin
+  induction l with hd tl ih,
+  { simp },
+  { simp only [map, nodup_cons, mem_map, not_exists, not_and, ←ne.def] at d,
+    rintro _ (rfl | h₁) _ (rfl | h₂) h₃,
+    { refl },
+    { apply (d.1 _ h₂ h₃.symm).elim },
+    { apply (d.1 _ h₁ h₃).elim },
+    { apply ih d.2 h₁ h₂ h₃ } }
+end
+
+theorem nodup_map_iff_inj_on {f : α → β} {l : list α} (d : nodup l) :
+  nodup (map f l) ↔ (∀ (x ∈ l) (y ∈ l), f x = f y → x = y) :=
+⟨inj_on_of_nodup_map, λ h, nodup_map_on h d⟩
 
 theorem nodup_map {f : α → β} {l : list α} (hf : injective f) : nodup l → nodup (map f l) :=
 nodup_map_on (assume x _ y _ h, hf h)
@@ -137,7 +166,8 @@ pairwise_filter_of_pairwise p
 @[simp] theorem nodup_reverse {l : list α} : nodup (reverse l) ↔ nodup l :=
 pairwise_reverse.trans $ by simp only [nodup, ne.def, eq_comm]
 
-theorem nodup_erase_eq_filter [decidable_eq α] (a : α) {l} (d : nodup l) : l.erase a = filter (≠ a) l :=
+theorem nodup_erase_eq_filter [decidable_eq α] (a : α) {l} (d : nodup l) :
+  l.erase a = filter (≠ a) l :=
 begin
   induction d with b l m d IH, {refl},
   by_cases b = a,
@@ -160,12 +190,14 @@ by rw nodup_erase_eq_filter b d; simp only [mem_filter, and_comm]
 theorem mem_erase_of_nodup [decidable_eq α] {a : α} {l} (h : nodup l) : a ∉ l.erase a :=
 λ H, ((mem_erase_iff_of_nodup h).1 H).1 rfl
 
-theorem nodup_join {L : list (list α)} : nodup (join L) ↔ (∀ l ∈ L, nodup l) ∧ pairwise disjoint L :=
+theorem nodup_join {L : list (list α)} :
+  nodup (join L) ↔ (∀ l ∈ L, nodup l) ∧ pairwise disjoint L :=
 by simp only [nodup, pairwise_join, disjoint_left.symm, forall_mem_ne]
 
 theorem nodup_bind {l₁ : list α} {f : α → list β} : nodup (l₁.bind f) ↔
   (∀ x ∈ l₁, nodup (f x)) ∧ pairwise (λ (a b : α), disjoint (f a) (f b)) l₁ :=
-by simp only [list.bind, nodup_join, pairwise_map, and_comm, and.left_comm, mem_map, exists_imp_distrib, and_imp];
+by simp only [list.bind, nodup_join, pairwise_map, and_comm, and.left_comm, mem_map,
+  exists_imp_distrib, and_imp];
    rw [show (∀ (l : list β) (x : α), f x = l → x ∈ l₁ → nodup l) ↔
             (∀ (x : α), x ∈ l₁ → nodup (f x)),
        from forall_swap.trans $ forall_congr $ λ_, forall_eq']
@@ -250,6 +282,19 @@ lemma nodup_update_nth : ∀ {l : list α} {n : ℕ} {a : α} (hl : l.nodup) (ha
       (nodup_cons.1 hl).1
       (λ hba, ha (hba ▸ mem_cons_self _ _)),
     nodup_update_nth (nodup_cons.1 hl).2 (mt (mem_cons_of_mem _) ha)⟩
+
+lemma nodup.map_update [decidable_eq α] {l : list α} (hl : l.nodup) (f : α → β) (x : α) (y : β) :
+  l.map (function.update f x y) =
+    if x ∈ l then (l.map f).update_nth (l.index_of x) y else l.map f :=
+begin
+  induction l with hd tl ihl, { simp },
+  rw [nodup_cons] at hl,
+  simp only [mem_cons_iff, map, ihl hl.2],
+  by_cases H : hd = x,
+  { subst hd,
+    simp [update_nth, hl.1] },
+  { simp [ne.symm H, H, update_nth, ← apply_ite (cons (f hd))] }
+end
 
 end list
 

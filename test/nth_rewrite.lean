@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek, Scott Morrison
 -/
 import tactic.nth_rewrite
-import init_.data.nat.lemmas
+import data.nat.basic
 import data.vector
 
 structure F :=
@@ -28,7 +28,8 @@ structure cat :=
 
 open tactic
 
-example (C : cat) (W X Y Z : C.O) (f : C.H X Y) (g : C.H W X) (h k : C.H Y Z) : C.c (C.c g f) h = C.c g (C.c f h) :=
+example (C : cat) (W X Y Z : C.O) (f : C.H X Y) (g : C.H W X) (h k : C.H Y Z) :
+  C.c (C.c g f) h = C.c g (C.c f h) :=
 begin
   nth_rewrite 0 [C.a],
 end

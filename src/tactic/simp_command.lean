@@ -46,6 +46,9 @@ meta def simp_arg_type.replace_subexprs : simp_arg_type → list (expr × expr) 
 
 setup_tactic_parser
 
+/- Turn off the messages if the result is exactly `true` with this option. -/
+declare_trace silence_simp_if_true
+
 /--
 The basic usage is `#simp e`, where `e` is an expression,
 which will print the simplified form of `e`.
@@ -100,7 +103,8 @@ do
   } ts,
 
   /- Trace the result. -/
-  trace simp_result
+  when (¬ is_trace_enabled_for `silence_simp_if_true ∨ simp_result ≠ expr.const `true [])
+    (trace simp_result)
 
 add_tactic_doc
 { name                     := "#simp",

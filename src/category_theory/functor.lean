@@ -12,12 +12,13 @@ Introduces notations
   `C ⥤ D` for the type of all functors from `C` to `D`.
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
 -/
-import category_theory.category
 import tactic.reassoc_axiom
+import tactic.monotonicity
 
 namespace category_theory
 
-universes v v₁ v₂ v₃ u u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₁ v₂ v₃ u u₁ u₂ u₃
 
 /--
 `functor C D` represents a functor between categories `C` and `D`.
@@ -26,6 +27,8 @@ To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map 
 
 The axiom `map_id` expresses preservation of identities, and
 `map_comp` expresses functoriality.
+
+See https://stacks.math.columbia.edu/tag/001B.
 -/
 structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :
   Type (max v₁ v₂ u₁ u₂) :=
@@ -53,7 +56,9 @@ protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
 
-notation `𝟭` := functor.id
+notation `𝟭` := functor.id -- Type this as `\sb1`
+
+instance : inhabited (C ⥤ C) := ⟨functor.id C⟩
 
 variable {C}
 
@@ -85,20 +90,16 @@ infixr ` ⋙ `:80 := comp
 protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl
 protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
 
-end
-
-section
-variables (C : Type u₁) [category.{v₁} C]
-
-@[simp] def ulift_down : (ulift.{u₂} C) ⥤ C :=
-{ obj := λ X, X.down,
-  map := λ X Y f, f }
-
-@[simp] def ulift_up : C ⥤ (ulift.{u₂} C) :=
-{ obj := λ X, ⟨ X ⟩,
-  map := λ X Y f, f }
+@[simp] lemma map_dite (F : C ⥤ D) {X Y : C} {P : Prop} [decidable P]
+  (f : P → (X ⟶ Y)) (g : ¬P → (X ⟶ Y)) :
+  F.map (if h : P then f h else g h) = if h : P then F.map (f h) else F.map (g h) :=
+by { split_ifs; refl, }
 
 end
+
+@[mono] lemma monotone {α β : Type*} [preorder α] [preorder β] (F : α ⥤ β) :
+  monotone F.obj :=
+λ a b h, le_of_hom (F.map (hom_of_le h))
 
 end functor
 

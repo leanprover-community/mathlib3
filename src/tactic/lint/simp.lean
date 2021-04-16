@@ -19,7 +19,7 @@ open tactic expr
 
 /-- `simp_lhs_rhs ty` returns the left-hand and right-hand side of a simp lemma with type `ty`. -/
 private meta def simp_lhs_rhs : expr → tactic (expr × expr) | ty := do
-ty ← whnf ty transparency.reducible,
+ty ← head_beta ty,
 -- We only detect a fixed set of simp relations here.
 -- This is somewhat justified since for a custom simp relation R,
 -- the simp lemma `R a b` is implicitly converted to `R a b ↔ true` as well.
@@ -42,7 +42,7 @@ prod.fst <$> simp_lhs_rhs ty
 lemma, and `some lhs` otherwise.
 -/
 private meta def simp_is_conditional_core : expr → tactic (option expr) | ty := do
-ty ← whnf ty transparency.semireducible,
+ty ← head_beta ty,
 match ty with
 | `(¬ %%lhs) := pure lhs
 | `(%%lhs = _) := pure lhs
@@ -82,19 +82,18 @@ tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
 [] ← get_eqn_lemmas_for ff d.to_name | pure none,
 try_for timeout $
 retrieve $ do
-reset_instance_cache,
 g ← mk_meta_var d.type,
 set_goals [g],
-intros,
+unfreezing intros,
 (lhs, rhs) ← target >>= simp_lhs_rhs,
 sls ← simp_lemmas.mk_default,
 let sls' := sls.erase [d.to_name],
-(lhs', prf1) ← decorate_error "simplify fails on left-hand side:" $
+(lhs', prf1, ns1) ← decorate_error "simplify fails on left-hand side:" $
   simplify sls [] lhs {fail_if_unchanged := ff},
 prf1_lems ← heuristic_simp_lemma_extraction prf1,
 if d.to_name ∈ prf1_lems then pure none else do
 is_cond ← simp_is_conditional d.type,
-(rhs', prf2) ← decorate_error "simplify fails on right-hand side:" $
+(rhs', prf2, ns2) ← decorate_error "simplify fails on right-hand side:" $
   simplify sls [] rhs {fail_if_unchanged := ff},
 lhs'_eq_rhs' ← is_simp_eq lhs' rhs',
 lhs_in_nf ← is_simp_eq lhs' lhs,
@@ -118,18 +117,15 @@ else if ¬ is_cond ∧ lhs = lhs' then do
 else
   pure none
 
-/-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
-@[linter] meta def linter.simp_nf : linter :=
-{ test := simp_nf_linter,
-  auto_decls := tt,
-  no_errors_found := "All left-hand sides of simp lemmas are in simp-normal form",
-  errors_found := "SOME SIMP LEMMAS ARE REDUNDANT.
-That is, their left-hand side is not in simp-normal form.
+/--
+This note gives you some tips to debug any errors that the simp-normal form linter raises.
+
+The reason that a lemma was considered faulty is because its left-hand side is not in simp-normal form.
 These lemmas are hence never used by the simplifier.
 
-This linter gives you a list of other simp lemmas, look at them!
+This linter gives you a list of other simp lemmas: look at them!
 
-Here are some guidelines to get you started:
+Here are some tips depending on the error raised by the linter:
 
   1. 'the left-hand side reduces to XYZ':
      you should probably use XYZ as the left-hand side.
@@ -138,24 +134,45 @@ Here are some guidelines to get you started:
      This typically means that lemma is a duplicate, or is shadowed by another lemma:
 
      2a. Always put more general lemmas after specific ones:
-
+      ```
       @[simp] lemma zero_add_zero : 0 + 0 = 0 := rfl
       @[simp] lemma add_zero : x + 0 = x := rfl
+      ```
 
       And not the other way around!  The simplifier always picks the last matching lemma.
 
-     2b. You can also use @[priority] instead of moving simp-lemmas around in the file.
+     2b. You can also use `@[priority]` instead of moving simp-lemmas around in the file.
 
       Tip: the default priority is 1000.
       Use `@[priority 1100]` instead of moving a lemma down,
       and `@[priority 900]` instead of moving a lemma up.
 
-     2c. Conditional simp lemmas are tried last, if they are shadowed
-         just remove the simp attribute.
+     2c. Conditional simp lemmas are tried last. If they are shadowed
+         just remove the `simp` attribute.
 
      2d. If two lemmas are duplicates, the linter will complain about the first one.
          Try to fix the second one instead!
          (You can find it among the other simp lemmas the linter prints out!)
+
+  3. 'try_for tactic failed, timeout':
+     This typically means that there is a loop of simp lemmas.
+     Try to apply squeeze_simp to the right-hand side (removing this lemma from the simp set) to see
+     what lemmas might be causing the loop.
+
+     Another trick is to `set_option trace.simplify.rewrite true` and
+     then apply `try_for 10000 { simp }` to the right-hand side.  You will
+     see a periodic sequence of lemma applications in the trace message.
+-/
+library_note "simp-normal form"
+
+/-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
+@[linter] meta def linter.simp_nf : linter :=
+{ test := simp_nf_linter,
+  auto_decls := tt,
+  no_errors_found := "All left-hand sides of simp lemmas are in simp-normal form",
+  errors_found := "SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
+see note [simp-normal form] for tips how to debug this.
+https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form
 " }
 
 private meta def simp_var_head (d : declaration) : tactic (option string) := do
@@ -187,7 +204,7 @@ tt ← is_simp_lemma d.to_name | pure none,
 tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
 (lhs, rhs) ← simp_lhs_rhs d.type,
 if lhs.get_app_fn.const_name ≠ rhs.get_app_fn.const_name then pure none else do
-(lhs', rhs') ← (prod.snd <$> mk_meta_pis d.type) >>= simp_lhs_rhs,
+(lhs', rhs') ← (prod.snd <$> open_pis_metas d.type) >>= simp_lhs_rhs,
 tt ← succeeds $ unify rhs lhs' transparency.reducible | pure none,
 tt ← succeeds $ is_def_eq rhs lhs' transparency.reducible | pure none,
 -- ensure that the second application makes progress:

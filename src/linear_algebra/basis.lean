@@ -273,7 +273,7 @@ calc b.reindex_range.repr (b i) = b.reindex_range.repr (b.reindex_range ⟨b i, 
   b.reindex_range ⟨bi, ⟨i, h⟩⟩ = b i :=
 by { convert b.reindex_range_self i, rw h }
 
-@[simp] lemma reindex_range_repr [nontrivial R] (x : M) {bi : M} {i : ι} (h : b i = bi) :
+lemma reindex_range_repr' [nontrivial R] (x : M) {bi : M} {i : ι} (h : b i = bi) :
   b.reindex_range.repr x ⟨bi, ⟨i, h⟩⟩ = b.repr x i :=
 begin
   subst h,
@@ -290,6 +290,10 @@ begin
     refine @finsupp.single_apply_left _ _ _ _ (λ i, (⟨b i, _⟩ : set.range b)) _ _ _ _,
     exact λ i j h, b.injective (subtype.mk.inj h) }
 end
+
+@[simp] lemma reindex_range_repr [nontrivial R] (x : M) (i : ι) (h := set.mem_range_self i) :
+  b.reindex_range.repr x ⟨b i, h⟩ = b.repr x i :=
+b.reindex_range_repr' _ rfl
 
 end reindex
 
@@ -599,6 +603,9 @@ begin
   conv_rhs { rw ← b.total_repr u },
   simp [finsupp.total_apply, finsupp.sum_fintype, b.equiv_fun_apply]
 end
+
+lemma basis.sum_repr (u : M) : ∑ i, b.repr u i • b i = u :=
+b.sum_equiv_fun u
 
 @[simp]
 lemma basis.equiv_fun_self (i j : ι) : b.equiv_fun (b i) j = if i = j then 1 else 0 :=

@@ -6,7 +6,7 @@ Authors: Patrick Massot, Chris Hughes, Michael Howes
 import data.fintype.basic
 import algebra.group.hom
 import algebra.group.semiconj
-import data.equiv.mul_add_aut
+import data.equiv.mul_add.aut
 import algebra.group_with_zero.basic
 
 /-!

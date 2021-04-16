@@ -7,7 +7,7 @@ import group_theory.group_action.defs
 import algebra.group.units
 import algebra.group_with_zero
 import data.equiv.mul_add
-import data.equiv.mul_add_aut
+import data.equiv.mul_add.aut
 import group_theory.perm.basic
 
 /-!

@@ -475,19 +475,32 @@ open submonoid
 
 /-- The range of a monoid homomorphism is a submonoid. -/
 @[to_additive "The range of an `add_monoid_hom` is an `add_submonoid`."]
-def mrange (f : M →* N) : submonoid N := (⊤ : submonoid M).map f
+def mrange (f : M →* N) : submonoid N :=
+((⊤ : submonoid M).map f).copy (set.range f) set.image_univ.symm
 
-@[simp, to_additive] lemma coe_mrange (f : M →* N) :
+/-- Note that `monoid_hom.mrange` is deliberately defined in a way that makes this true by `rfl`,
+as this means the types `↥(set.range f)` and `↥f.mrange` are interchangeable without proof
+obligations. -/
+@[simp, to_additive]
+lemma coe_mrange (f : M →* N) :
   (f.mrange : set N) = set.range f :=
-set.image_univ
+rfl
+
+/-- Note that `add_monoid_hom.mrange` is deliberately defined in a way that makes this true by
+`rfl`, as this means the types `↥(set.range f)` and `↥f.mrange` are interchangeable without proof
+obligations. -/
+add_decl_doc add_monoid_hom.coe_mrange
 
 @[simp, to_additive] lemma mem_mrange {f : M →* N} {y : N} :
   y ∈ f.mrange ↔ ∃ x, f x = y :=
-by simp [mrange]
+iff.rfl
+
+@[to_additive] lemma mrange_eq_map (f : M →* N) : f.mrange = (⊤ : submonoid M).map f :=
+by ext; simp
 
 @[to_additive]
 lemma map_mrange (g : N →* P) (f : M →* N) : f.mrange.map g = (g.comp f).mrange :=
-(⊤ : submonoid M).map_map g f
+by simpa only [mrange_eq_map] using (⊤ : submonoid M).map_map g f
 
 @[to_additive]
 lemma mrange_top_iff_surjective {N} [mul_one_class N] {f : M →* N} :
@@ -499,9 +512,6 @@ set_like.ext'_iff.trans $ iff.trans (by rw [coe_mrange, coe_top]) set.range_iff_
 lemma mrange_top_of_surjective {N} [mul_one_class N] (f : M →* N) (hf : function.surjective f) :
   f.mrange = (⊤ : submonoid N) :=
 mrange_top_iff_surjective.2 hf
-
-@[to_additive]
-lemma mrange_eq_map (f : M →* N) : f.mrange = map f ⊤ := rfl
 
 @[to_additive]
 lemma mclosure_preimage_le (f : M →* N) (s : set N) :
@@ -538,7 +548,7 @@ def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M �
 /-- Restriction of a monoid hom to its range interpreted as a submonoid. -/
 @[to_additive "Restriction of an `add_monoid` hom to its range interpreted as a submonoid."]
 def mrange_restrict {N} [mul_one_class N] (f : M →* N) : M →* f.mrange :=
-f.cod_mrestrict f.mrange $ λ x, ⟨x, submonoid.mem_top x, rfl⟩
+f.cod_mrestrict f.mrange $ λ x, ⟨x, rfl⟩
 
 @[simp, to_additive]
 lemma coe_mrange_restrict {N} [mul_one_class N] (f : M →* N) (x : M) :
@@ -551,10 +561,12 @@ namespace submonoid
 open monoid_hom
 
 @[to_additive]
-lemma mrange_inl : (inl M N).mrange = prod ⊤ ⊥ := map_inl ⊤
+lemma mrange_inl : (inl M N).mrange = prod ⊤ ⊥ :=
+by simpa only [mrange_eq_map] using map_inl ⊤
 
 @[to_additive]
-lemma mrange_inr : (inr M N).mrange = prod ⊥ ⊤ := map_inr ⊤
+lemma mrange_inr : (inr M N).mrange = prod ⊥ ⊤ :=
+by simpa only [mrange_eq_map] using map_inr ⊤
 
 @[to_additive]
 lemma mrange_inl' : (inl M N).mrange = comap (snd M N) ⊥ := mrange_inl.trans (top_prod _)

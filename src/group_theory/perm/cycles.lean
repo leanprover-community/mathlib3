@@ -428,12 +428,13 @@ end
 
 section generation
 
-variables [fintype α]
+variables [fintype α] [fintype β]
 
 open subgroup
 
-lemma closure_is_cycle [fintype α] : closure {σ : perm α | is_cycle σ} = ⊤ :=
+lemma closure_is_cycle : closure {σ : perm β | is_cycle σ} = ⊤ :=
 begin
+  classical,
   refine eq_top_iff.mpr (λ x hx, _),
   obtain ⟨h1, h2, h3⟩ := subtype.mem (trunc_cycle_factors x).out,
   rw ← h1,

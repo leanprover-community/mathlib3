@@ -92,6 +92,8 @@ instance nat.unique_units : unique (units ℕ) :=
 instance nat.unique_add_units : unique (add_units ℕ) :=
 { default := 0, uniq := nat.add_units_eq_zero }
 
+@[simp] lemma nat.normalize_eq (n : ℕ) : normalize n = n := n.mul_one
+
 /-- `ℕ` is a gcd_monoid. -/
 instance : gcd_monoid ℕ :=
 { gcd := nat.gcd,
@@ -104,6 +106,10 @@ instance : gcd_monoid ℕ :=
   lcm_zero_left := nat.lcm_zero_left,
   lcm_zero_right := nat.lcm_zero_right,
   .. (infer_instance : normalization_monoid ℕ) }
+
+lemma nat.gcd_eq_gcd (m n : ℕ) : gcd m n = nat.gcd m n := rfl
+
+lemma nat.lcm_eq_lcm (m n : ℕ) : lcm m n = nat.lcm m n := rfl
 
 end nat
 

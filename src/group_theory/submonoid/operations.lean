@@ -101,13 +101,15 @@ lemma add_submonoid.to_submonoid_coe {M : Type*} [add_zero_class M] (S : add_sub
   (S.to_submonoid : set (multiplicative M)) = multiplicative.of_add '' S :=
 eq.symm (set.image_id S)
 
-lemma submonoid.to_add_submonoid_le_iff {M : Type*} [mul_one_class M] (S₁ S₂ : submonoid M) :
-  S₁ ≤ S₂ ↔ S₁.to_add_submonoid ≤ S₂.to_add_submonoid :=
-iff.rfl
+lemma submonoid.of_add_submonoid_coe {M : Type*} [mul_one_class M]
+  (S : add_submonoid (additive M)) :
+  (submonoid.of_add_submonoid S : set M) = additive.to_mul '' S :=
+eq.symm (set.image_id S)
 
-lemma add_submonoid.to_submonoid_le_iff {M : Type*} [add_zero_class M] (S₁ S₂ : add_submonoid M) :
-  S₁ ≤ S₂ ↔ S₁.to_submonoid ≤ S₂.to_submonoid :=
-iff.rfl
+lemma add_submonoid.of_submonoid_coe {M : Type*} [add_zero_class M]
+  (S : submonoid (multiplicative M)) :
+  (add_submonoid.of_submonoid S : set M) = multiplicative.to_add '' S :=
+eq.symm (set.image_id S)
 
 /-- Submonoids of monoid `M` are isomorphic to additive submonoids of `additive M`. -/
 def submonoid.add_submonoid_equiv (M : Type*) [mul_one_class M] :
@@ -118,38 +120,58 @@ def submonoid.add_submonoid_equiv (M : Type*) [mul_one_class M] :
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
 
+/-- Additive submonoids of monoid `M` are isomorphic to multiplicative submonoids of
+  `multiplicative M`. -/
+def add_submonoid.submonoid_equiv (M : Type*) [add_zero_class M] :
+  add_submonoid M ≃o submonoid (multiplicative M) :=
+{ to_fun := add_submonoid.to_submonoid,
+  inv_fun := add_submonoid.of_submonoid,
+  left_inv := λ x, by cases x; refl,
+  right_inv := λ x, by cases x; refl,
+  map_rel_iff' := λ a b, iff.rfl, }
+
+lemma submonoid.add_submonoid_equiv_coe (M : Type*) [add_zero_class M] :
+  ⇑(add_submonoid.submonoid_equiv M) = add_submonoid.to_submonoid := rfl
+
+lemma add_submonoid.submonoid_equiv_symm_coe (M : Type*) [add_zero_class M] :
+  ⇑(add_submonoid.submonoid_equiv M).symm = add_submonoid.of_submonoid := rfl
+
+lemma add_submonoid.submonoid_equiv_coe (M : Type*) [mul_one_class M] :
+  ⇑(submonoid.add_submonoid_equiv M) = submonoid.to_add_submonoid := rfl
+
+lemma submonoid.add_submonoid_equiv_symm_coe (M : Type*) [mul_one_class M] :
+  ⇑(submonoid.add_submonoid_equiv M).symm = submonoid.of_add_submonoid := rfl
+
+lemma submonoid.to_add_submonoid_mono {M : Type*} [mul_one_class M] :
+  monotone (submonoid.to_add_submonoid : submonoid M → add_submonoid (additive M)) :=
+λ a b hab, hab
+
+lemma add_submonoid.to_submonoid_mono {M : Type*} [add_zero_class M] :
+  monotone (add_submonoid.to_submonoid : add_submonoid M → submonoid (multiplicative M)) :=
+λ a b hab, hab
+
 lemma submonoid.closure.to_add_submonoid {M : Type*} [monoid M] (S : set M) :
   (submonoid.closure S).to_add_submonoid = add_submonoid.closure (additive.of_mul '' S) :=
 begin
-  refine (add_submonoid.closure_eq_of_le _ _).symm,
-  { simp only [set.image_subset_iff],
-    exact submonoid.subset_closure },
-  { have : (add_submonoid.closure (additive.of_mul '' S)).to_submonoid.to_add_submonoid =
-      add_submonoid.closure (additive.of_mul '' S) := rfl,
-    rw [← this, (submonoid.to_add_submonoid_le_iff _ _).symm, submonoid.closure_le,
-      add_submonoid.to_submonoid_coe],
-    intros s hs,
-    rw [← of_add_to_add s],
-    simp only [set.mem_image, set_like.mem_coe, of_add_to_add],
-    refine ⟨additive.of_mul s, ⟨_, rfl⟩⟩,
-    simpa using add_submonoid.subset_closure (set.mem_image_of_mem additive.of_mul hs) }
+  apply le_antisymm,
+  { apply (submonoid.add_submonoid_equiv M).to_galois_connection.l_le _,
+    rw [submonoid.closure_le, submonoid.add_submonoid_equiv_symm_coe,
+      submonoid.of_add_submonoid_coe, equiv.subset_image],
+    exact add_submonoid.subset_closure },
+  { rw [add_submonoid.closure_le, submonoid.to_add_submonoid_coe, equiv.image_subset],
+    exact submonoid.subset_closure }
 end
 
 lemma add_submonoid.closure.to_submonoid {M : Type*} [add_monoid M] (S : set M) :
   (add_submonoid.closure S).to_submonoid = submonoid.closure (multiplicative.of_add '' S) :=
 begin
-  refine (submonoid.closure_eq_of_le _ _).symm,
-  { simp only [set.image_subset_iff],
-    exact add_submonoid.subset_closure },
-  { have : (submonoid.closure (multiplicative.of_add '' S)).to_add_submonoid.to_submonoid =
-      submonoid.closure (multiplicative.of_add '' S) := rfl,
-    rw [← this, (add_submonoid.to_submonoid_le_iff _ _).symm, add_submonoid.closure_le,
-      submonoid.to_add_submonoid_coe],
-    intros s hs,
-    rw [← of_mul_to_mul s],
-    simp only [set.mem_image, set_like.mem_coe, of_mul_to_mul],
-    refine ⟨multiplicative.of_add s, ⟨_, rfl⟩⟩,
-    simpa using submonoid.subset_closure (set.mem_image_of_mem multiplicative.of_add hs) }
+  apply le_antisymm,
+  { apply (add_submonoid.submonoid_equiv M).to_galois_connection.l_le _,
+    rw [add_submonoid.closure_le, add_submonoid.submonoid_equiv_symm_coe,
+      add_submonoid.of_submonoid_coe, equiv.subset_image],
+    exact submonoid.subset_closure },
+  { rw [submonoid.closure_le, add_submonoid.to_submonoid_coe, equiv.image_subset],
+    exact add_submonoid.subset_closure }
 end
 
 namespace submonoid

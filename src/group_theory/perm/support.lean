@@ -15,7 +15,6 @@ import dynamics.fixed_points.basic
 
 In the following, `f g : equiv.perm α`.
 
-* `equiv.perm.involutive`: `f.involutive` when it is its own inverse, and so are powers of it.
 * `equiv.perm.support`: the elements `x : α` that are not fixed by `f`.
 * `equiv.perm.disjoint`: two permutations `f` and `g` are `disjoint` iff their `support`
   are disjoint.
@@ -36,98 +35,6 @@ open equiv set
 namespace equiv.perm
 
 variables {α : Type*}
-
-section involutive
-
--- TODO: should this be refactored as a prop on any group element,
--- with application refactored to be about mul_action?
-
-variable (f : perm α)
-
-/-- A permutation `f : perm α` is `involutive` if its inverse is equal to itself. -/
-def involutive (f : perm α) : Prop := f⁻¹ = f
-
-variable {f}
-
-lemma involutive.def (h : f.involutive) : f⁻¹ = f := h
-
-lemma involutive_iff : f.involutive ↔ f⁻¹ = f := iff.rfl
-
-lemma involutive.inv (h : f.involutive) : f⁻¹.involutive :=
-by rwa h.def
-
-@[simp] lemma involutive_inv_iff : f⁻¹.involutive ↔ f.involutive :=
-⟨λ h, by { rwa [←inv_inv f, h.def] }, involutive.inv⟩
-
-lemma involutive.symm (h : f.involutive) : involutive f.symm := h.inv
-
-@[simp] lemma involutive_symm_iff : involutive f.symm ↔ f.involutive := involutive_inv_iff
-
-lemma involutive.apply_self (h : f.involutive) (x : α) : f (f x) = x :=
-begin
-  apply f⁻¹.injective,
-  rw [perm.inv_apply_self, h.def]
-end
-
-lemma involutive_apply_self_iff : f.involutive ↔ ∀ (x : α), f (f x) = x :=
-begin
-  refine ⟨involutive.apply_self, λ h, _⟩,
-  rw involutive_iff,
-  ext x,
-  rw [←h x, inv_apply_self, h]
-end
-
-lemma involutive_iff_involutive_coe :
-  f.involutive ↔ function.involutive f :=
-begin
-  refine ⟨involutive.apply_self, λ h, involutive_iff.mpr $ perm.ext (λ x, _)⟩,
-  rw [apply_eq_iff_eq_symm_apply, ←inv_def, inv_inv, h]
-end
-
-lemma involutive.one : involutive (1 : perm α) := by rw [involutive_iff, one_inv]
-
-lemma involutive.refl : involutive (equiv.refl α) := involutive.one
-
-lemma involutive.mul_of_comm {g : perm α} (hf : f.involutive)
-  (hg : g.involutive) (h : commute f g) : involutive (f * g) :=
-begin
-  rw involutive_iff at *,
-  simp [hf, hg, h.eq]
-end
-
-lemma involutive.swap [decidable_eq α] (x y : α) : involutive (swap x y) :=
-swap_inv _ _
-
-lemma involutive.pow (h : involutive f) (n : ℕ) : involutive (f ^ n) :=
-begin
-  induction n with n hn,
-  { simpa using involutive.one },
-  { rw pow_succ,
-    exact h.mul_of_comm hn (commute.self_pow _ _) }
-end
-
-lemma involutive.gpow (h : involutive f) (n : ℤ) : involutive (f ^ n) :=
-by { cases n; simpa using h.pow _ }
-
-lemma involutive.pow_apply (h : involutive f) (n : ℕ) (x : α) :
-  (f ^ n) x = x ∨ (f ^ n) x = f x :=
-begin
-  induction n with n hn,
-  { simp },
-  { cases hn;
-    simp [pow_succ, hn, h.apply_self x] }
-end
-
-lemma involutive.gpow_apply (h : involutive f) (n : ℤ) (x : α) :
-  (f ^ n) x = x ∨ (f ^ n) x = f x :=
-begin
-  cases n,
-  { simpa using h.pow_apply _ _ },
-  { cases h.pow_apply n.succ x with hx hx;
-    simp [hx, (h.pow _).def] }
-end
-
-end involutive
 
 -- This lemma isn't further up the perm hierarchy because logic.function.iterate
 -- is not imported earlier

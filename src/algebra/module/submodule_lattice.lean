@@ -159,4 +159,31 @@ show s ≤ Sup S, from le_Sup hs
 
 end submodule
 
+section nat_submodule
+
+/-- a submonoid is equivalent to a ℕ submodule -/
+def add_submonoid.to_nat_submodule : add_submonoid M ≃o submodule ℕ M :=
+{ to_fun := λ S,
+  { smul_mem' := λ r s hs, S.nsmul_mem hs _, ..S },
+  inv_fun := submodule.to_add_submonoid,
+  left_inv := λ ⟨S, _, _⟩, rfl,
+  right_inv := λ ⟨S, _, _, _⟩, rfl,
+  map_rel_iff' := λ a b, iff.rfl }
+
+@[simp]
+lemma add_submonoid.coe_to_nat_submodule (S : add_submonoid M) :
+  (S.to_nat_submodule : set M) = S := rfl
+
+@[simp]
+lemma add_submonoid.to_nat_submodule_to_add_submonoid (S : add_submonoid M) :
+  S.to_nat_submodule.to_add_submonoid = S :=
+add_submonoid.to_nat_submodule.symm_apply_apply S
+
+@[simp]
+lemma submodule.to_add_submonoid_to_nat_submodule (S : submodule ℕ M) :
+  S.to_add_submonoid.to_nat_submodule = S :=
+add_submonoid.to_nat_submodule.apply_symm_apply S
+
+end nat_submodule
+
 end add_comm_monoid

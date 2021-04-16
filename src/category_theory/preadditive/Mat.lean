@@ -14,7 +14,7 @@ import data.matrix.notation
 /-!
 # Matrices over a category.
 
-When `C` is a preadditive category, `Mat_ C` is the preadditive categoriy
+When `C` is a preadditive category, `Mat_ C` is the preadditive category
 whose objects are finite tuples of objects in `C`, and
 whose morphisms are matrices of morphisms from `C`.
 

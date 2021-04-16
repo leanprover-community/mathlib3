@@ -178,16 +178,8 @@ end set
 theorem units_eq_one (u : units ℕ) : u = 1 :=
 units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
 
-instance : unique (units ℕ) :=
-{ default := 1,
-  uniq := nat.units_eq_one }
-
 theorem add_units_eq_zero (u : add_units ℕ) : u = 0 :=
 add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
-
-instance : unique (add_units ℕ) :=
-{ default := 0,
-  uniq := nat.add_units_eq_zero }
 
 @[simp] protected theorem is_unit_iff {n : ℕ} : is_unit n ↔ n = 1 :=
 iff.intro

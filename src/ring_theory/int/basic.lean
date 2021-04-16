@@ -86,6 +86,25 @@ end⟩
 instance : unique_factorization_monoid ℕ :=
 ⟨λ _, nat.irreducible_iff_prime⟩
 
+instance nat.unique_units : unique (units ℕ) :=
+{ default := 1, uniq := nat.units_eq_one }
+
+instance nat.unique_add_units : unique (add_units ℕ) :=
+{ default := 0, uniq := nat.add_units_eq_zero }
+
+/-- `ℕ` is a gcd_monoid. -/
+instance : gcd_monoid ℕ :=
+{ gcd := nat.gcd,
+  lcm := nat.lcm,
+  gcd_dvd_left := nat.gcd_dvd_left ,
+  gcd_dvd_right := nat.gcd_dvd_right,
+  dvd_gcd := λ a b c, nat.dvd_gcd,
+  normalize_gcd := λ a b, normalize_eq _,
+  gcd_mul_lcm := λ a b, by rw [normalize_eq _, nat.gcd_mul_lcm],
+  lcm_zero_left := nat.lcm_zero_left,
+  lcm_zero_right := nat.lcm_zero_right,
+  .. (infer_instance : normalization_monoid ℕ) }
+
 end nat
 
 namespace int
@@ -292,9 +311,6 @@ begin
     rw [pow_two, int.nat_abs_mul] at hpp,
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end
-
-instance nat.unique_units : unique (units ℕ) :=
-{ default := 1, uniq := nat.units_eq_one }
 
 open unique_factorization_monoid
 

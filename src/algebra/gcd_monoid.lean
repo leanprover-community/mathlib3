@@ -19,6 +19,8 @@ This file defines extra structures on `comm_cancel_monoid_with_zero`s, including
 * `gcd_monoid_of_exists_gcd`
 * `gcd_monoid_of_exists_lcm`
 
+For the `gcd_monoid` instances on `ℕ` and `Z`, see `ring_theory.int.basic`.
+
 ## Implementation Notes
 
 * `normalization_monoid` is defined by assigning to each element a `norm_unit` such that multiplying
@@ -46,7 +48,6 @@ without zero.
 * Port GCD facts about nats, definition of coprime
 * Generalize normalization monoids to commutative (cancellative) monoids with or without zero
 * Generalize GCD monoid to not require normalization in all cases
-
 
 ## Tags
 
@@ -617,18 +618,6 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
 
-instance : gcd_monoid ℕ :=
-{ gcd := nat.gcd,
-  lcm := nat.lcm,
-  gcd_dvd_left := nat.gcd_dvd_left ,
-  gcd_dvd_right := nat.gcd_dvd_right,
-  dvd_gcd := λ a b c, nat.dvd_gcd,
-  normalize_gcd := λ a b, normalize_eq _,
-  gcd_mul_lcm := λ a b, by rw [normalize_eq _, nat.gcd_mul_lcm],
-  lcm_zero_left := nat.lcm_zero_left,
-  lcm_zero_right := nat.lcm_zero_right,
-  .. (infer_instance : normalization_monoid ℕ) }
-
 end unique_unit
 
 section integral_domain
@@ -827,23 +816,6 @@ gcd_monoid_of_lcm
     (((classical.some_spec (h a b) (classical.some (h a b))).2 (dvd_refl _))).2)
   (λ a b c ac ab, normalize_dvd_iff.2 ((classical.some_spec (h c b) a).1 ⟨ac, ab⟩))
   (λ a b, normalize_idem _)
-
-/-- `ℕ` is a `gcd_monoid` -/
-instance : gcd_monoid ℕ :=
-{ gcd                 := nat.gcd,
-  lcm                 := nat.lcm,
-  gcd_dvd_left        := nat.gcd_dvd_left,
-  gcd_dvd_right       := nat.gcd_dvd_right,
-  dvd_gcd             := λ _ _ _, nat.dvd_gcd,
-  normalize_gcd       := λ a b, nat.mul_one (a.gcd b),
-  gcd_mul_lcm         := λ a b, (a.gcd_mul_lcm b).trans (mul_one (a * b)).symm,
-  lcm_zero_left       := nat.lcm_zero_left,
-  lcm_zero_right      := nat.lcm_zero_right,
-  norm_unit           := λ _, 1,
-  norm_unit_zero      := rfl,
-  norm_unit_mul       := λ _ _ _ _, rfl,
-  norm_unit_coe_units := λ u, eq_inv_of_eq_inv
-    (by rw [one_inv, units.ext_iff, units.coe_one, nat.is_unit_iff.mp u.is_unit]) }
 
 @[simp] lemma nat.normalize_eq (n : ℕ) : normalize n = n := n.mul_one
 

@@ -76,8 +76,7 @@ begin
     { exact ⟨z, hd * r, submonoid.mul_mem _ (submonoid.subset_closure hs) hr,
         (mul_smul_comm _ _ _).symm⟩ } },
   refine span_le.2 _,
-  suffices : submonoid.closure s ≤ (adjoin R s).to_subsemiring.to_submonoid,
-  { exact this },
+  change submonoid.closure s ≤ (adjoin R s).to_subsemiring.to_submonoid,
   exact submonoid.closure_le.2 subset_adjoin
 end
 

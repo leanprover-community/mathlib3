@@ -171,6 +171,10 @@ theorem is_prime.ne_top {I : ideal α} (hI : I.is_prime) : I ≠ ⊤ := hI.1
 theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) :
   ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2
 
+theorem is_prime.mem_or_mem_iff {I : ideal α} (hI : I.is_prime) :
+  ∀ {x y : α}, x * y ∈ I ↔ x ∈ I ∨ y ∈ I :=
+λ x y, ⟨hI.mem_or_mem, by { rintro (h | h), exacts [I.mul_mem_right y h, I.mul_mem_left x h] }⟩
+
 theorem is_prime.mem_or_mem_of_mul_eq_zero {I : ideal α} (hI : I.is_prime)
   {x y : α} (h : x * y = 0) : x ∈ I ∨ y ∈ I :=
 hI.mem_or_mem (h.symm ▸ I.zero_mem)

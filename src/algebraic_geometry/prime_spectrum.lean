@@ -281,30 +281,19 @@ lemma vanishing_ideal_Union {ι : Sort*} (t : ι → set (prime_spectrum R)) :
 
 lemma zero_locus_inf (I J : ideal R) :
   zero_locus ((I ⊓ J : ideal R) : set R) = zero_locus I ∪ zero_locus J :=
-begin
-  ext x,
-  split,
-  { rintro h,
-    rw set.mem_union,
-    simp only [mem_zero_locus] at h ⊢,
-    -- TODO: The rest of this proof should be factored out.
-    rw or_iff_not_imp_right,
-    intros hs r hr,
-    rw set.not_subset at hs,
-    rcases hs with ⟨s, hs1, hs2⟩,
-    apply (ideal.is_prime.mem_or_mem (by apply_instance) _).resolve_left hs2,
-    apply h,
-    exact ⟨I.mul_mem_left _ hr, J.mul_mem_right _ hs1⟩ },
-  { rintro (h|h),
-    all_goals
-    { rw mem_zero_locus at h ⊢,
-      refine set.subset.trans _ h,
-      intros r hr, cases hr, assumption } }
-end
+set.ext $ λ x, by simpa using x.2.inf_le
 
 lemma union_zero_locus (s s' : set R) :
   zero_locus s ∪ zero_locus s' = zero_locus ((ideal.span s) ⊓ (ideal.span s') : ideal R) :=
 by { rw zero_locus_inf, simp }
+
+lemma zero_locus_mul (I J : ideal R) :
+  zero_locus ((I * J : ideal R) : set R) = zero_locus I ∪ zero_locus J :=
+set.ext $ λ x, by simpa using x.2.mul_le
+
+lemma zero_locus_singleton_mul (f g : R) :
+  zero_locus ({f * g} : set R) = zero_locus {f} ∪ zero_locus {g} :=
+set.ext $ λ x, by simpa using x.2.mem_or_mem_iff
 
 lemma sup_vanishing_ideal_le (t t' : set (prime_spectrum R)) :
   vanishing_ideal t ⊔ vanishing_ideal t' ≤ vanishing_ideal (t ∩ t') :=
@@ -439,6 +428,12 @@ lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum
 lemma basic_open_eq_zero_locus_compl (r : R) :
   (basic_open r : set (prime_spectrum R)) = (zero_locus {r})ᶜ :=
 set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
+
+lemma inf_basic_open (f g : R) : basic_open f ⊓ basic_open g = basic_open (f * g) :=
+begin
+  ext1, dsimp,
+  simp only [set.compl_union, basic_open_eq_zero_locus_compl, zero_locus_singleton_mul],
+end
 
 lemma is_topological_basis_basic_opens : topological_space.is_topological_basis
   (set.range (λ (r : R), (basic_open r : set (prime_spectrum R)))) :=

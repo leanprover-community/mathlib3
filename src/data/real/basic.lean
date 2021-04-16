@@ -479,6 +479,13 @@ have bdd_above {x | -x ∈ s} → bdd_below s, from
 have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
 neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
 
+lemma zero_le_Inf (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Inf S :=
+begin
+  rcases S.eq_empty_or_nonempty with rfl | hS₂,
+  { simp [Inf_empty] },
+  { apply lb_le_Inf S hS₂ hS }
+end
+
 theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=
 begin
   let S := {x : ℝ | const abs x < f},

@@ -36,15 +36,6 @@ namespace equiv.perm
 
 variables {α : Type*}
 
--- This lemma isn't further up the perm hierarchy because logic.function.iterate
--- is not imported earlier
-@[simp] lemma iterate_eq_pow (f : perm α) (n : ℕ) : f^[n] = ⇑(f ^ n) :=
-begin
-  induction n with n hn,
-  { simp [function.iterate_zero] },
-  { simp [hn, pow_succ'] }
-end
-
 section support
 
 /-- The `finset` of nonfixed points of a permutation. -/

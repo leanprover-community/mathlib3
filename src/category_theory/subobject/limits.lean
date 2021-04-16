@@ -128,14 +128,14 @@ def kernel_subobject_iso_comp
 
 @[simp]
 lemma kernel_subobject_iso_comp_hom_arrow
-  {X' : C} (f : X' ⟶ X) [is_iso f] (g : X ⟶ Y) [has_kernel g] [has_kernel (f ≫ g)] :
+  {X' : C} (f : X' ⟶ X) [is_iso f] (g : X ⟶ Y) [has_kernel g] :
   (kernel_subobject_iso_comp f g).hom ≫ (kernel_subobject g).arrow =
     (kernel_subobject (f ≫ g)).arrow ≫ f :=
 by { simp [kernel_subobject_iso_comp], }
 
 @[simp]
 lemma kernel_subobject_iso_comp_inv_arrow
-  {X' : C} (f : X' ⟶ X) [is_iso f] (g : X ⟶ Y) [has_kernel g] [has_kernel (f ≫ g)] :
+  {X' : C} (f : X' ⟶ X) [is_iso f] (g : X ⟶ Y) [has_kernel g] :
   (kernel_subobject_iso_comp f g).inv ≫ (kernel_subobject (f ≫ g)).arrow =
     (kernel_subobject g).arrow ≫ inv f :=
 by { simp [kernel_subobject_iso_comp], }

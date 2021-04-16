@@ -522,8 +522,7 @@ instance [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid (germ l β
     H.mono $ λ x H, mul_le_mul_left' H _,
   le_of_mul_le_mul_left := λ f g h, induction_on₃ f g h $ λ f g h H,
     H.mono $ λ x, le_of_mul_le_mul_left',
-  .. germ.partial_order, .. germ.comm_monoid, .. germ.left_cancel_semigroup,
-  .. germ.right_cancel_semigroup }
+  .. germ.partial_order, .. germ.comm_monoid, .. germ.left_cancel_semigroup }
 
 @[to_additive]
 instance ordered_comm_group [ordered_comm_group β] : ordered_comm_group (germ l β) :=

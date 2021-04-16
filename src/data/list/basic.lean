@@ -1983,8 +1983,6 @@ end
 @[simp] lemma foldl_rec_on_nil {C : β → Sort*} (op : β → α → β) (b) (hb : C b) (hl) :
   foldl_rec_on [] op b hb hl = hb := rfl
 
--- TODO: add foldl_rec_on_cons
-
 /- scanl -/
 
 section scanl

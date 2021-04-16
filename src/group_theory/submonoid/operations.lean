@@ -151,16 +151,11 @@ lemma add_submonoid.to_submonoid_mono {M : Type*} [add_zero_class M] :
 λ a b hab, hab
 
 lemma submonoid.closure.to_add_submonoid {M : Type*} [monoid M] (S : set M) :
-  (submonoid.closure S).to_add_submonoid = add_submonoid.closure (additive.of_mul '' S) :=
-begin
-  apply le_antisymm,
-  { apply (submonoid.add_submonoid_equiv M).to_galois_connection.l_le _,
-    rw [submonoid.closure_le, submonoid.add_submonoid_equiv_symm_coe,
-      submonoid.of_add_submonoid_coe, equiv.subset_image],
-    exact add_submonoid.subset_closure },
-  { rw [add_submonoid.closure_le, submonoid.to_add_submonoid_coe, equiv.image_subset],
-    exact submonoid.subset_closure }
-end
+  (submonoid.closure S).to_add_submonoid = add_submonoid.closure (additive.to_mul ⁻¹' S) :=
+le_antisymm
+  ((submonoid.add_submonoid_equiv' M).to_galois_connection.l_le $
+    submonoid.closure_le.2 add_submonoid.subset_closure)
+  (add_submonoid.closure_le.2 submonoid.subset_closure)
 
 lemma add_submonoid.closure.to_submonoid {M : Type*} [add_monoid M] (S : set M) :
   (add_submonoid.closure S).to_submonoid = submonoid.closure (multiplicative.of_add '' S) :=

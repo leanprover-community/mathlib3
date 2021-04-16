@@ -126,9 +126,9 @@ def of_comp_iso {Y' : C} {g : Y ⟶ Y'} [is_iso g] (F : mono_factorisation (f �
   m_mono := mono_comp _ _,
   e := F.e, }
 
-/-- Any mono factorisation of `f` gives a mono factorisation of `g ≫ f` when `g` is an iso. -/
+/-- Any mono factorisation of `f` gives a mono factorisation of `g ≫ f`. -/
 @[simps]
-def iso_comp (F : mono_factorisation f) {X' : C} (g : X' ⟶ X) [is_iso g] :
+def iso_comp (F : mono_factorisation f) {X' : C} (g : X' ⟶ X) :
   mono_factorisation (g ≫ f) :=
 { I := F.I,
   m := F.m,

@@ -54,13 +54,6 @@ variables (R A)
 show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }
 
 variables (R) {A} (s)
-lemma submonoid.closure_subset_adjoin : (submonoid.closure s : set A) ⊆ adjoin R s :=
-begin
-  intros x hx,
-  rw [set_like.mem_coe] at hx ⊢,
-  exact submonoid.closure_induction hx (λ x hx, subset_adjoin hx) (one_mem _)
-    (λ x y hx hy, mul_mem _ hx hy),
-end
 
 theorem adjoin_eq_span : (adjoin R s).to_submodule = span R (submonoid.closure s) :=
 begin
@@ -82,7 +75,10 @@ begin
       rw [algebra.smul_def, algebra.smul_def, (algebra_map _ _).map_mul, _root_.mul_assoc] },
     { exact ⟨z, hd * r, submonoid.mul_mem _ (submonoid.subset_closure hs) hr,
         (mul_smul_comm _ _ _).symm⟩ } },
-  exact span_le.2 (submonoid.closure_subset_adjoin R s),
+  refine span_le.2 _,
+  suffices : submonoid.closure s ≤ (adjoin R s).to_subsemiring.to_submonoid,
+  { exact this },
+  exact submonoid.closure_le.2 subset_adjoin
 end
 
 lemma adjoin_image (f : A →ₐ[R] B) (s : set A) :

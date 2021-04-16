@@ -755,10 +755,10 @@ theorem forall_not_of_sep_empty {s : set α} {p : α → Prop} (H : {x ∈ s | p
 iff.rfl
 
 @[simp] lemma sep_true : {a ∈ s | true} = s :=
-by { ext; simp }
+by { ext, simp }
 
 @[simp] lemma sep_false : {a ∈ s | false} = ∅ :=
-by { ext; simp }
+by { ext, simp }
 
 /-! ### Lemmas about complement -/
 

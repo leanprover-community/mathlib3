@@ -241,8 +241,8 @@ by { ext, refl, }
 @[simp] lemma coe_mk (f : L₁ → L₂) (h₁ h₂ h₃) :
   ((⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = f := rfl
 
-@[norm_cast, simp] lemma coe_mk_of_linear (f : L₁ →ₗ[R] L₂) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ[R] L₂) = f :=
+@[norm_cast, simp] lemma coe_linear_mk (f : L₁ →ₗ[R] L₂) (h₁ h₂ h₃) :
+  ((⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ[R] L₂) = ⟨f, h₁, h₂⟩ :=
 by { ext, refl, }
 
 /-- The composition of morphisms is a morphism. -/
@@ -429,8 +429,8 @@ by { ext, refl, }
 @[simp] lemma coe_mk (f : M → N) (h₁ h₂ h₃) :
   ((⟨f, h₁, h₂, h₃⟩ : M →ₗ⁅R,L⁆ N) : M → N) = f := rfl
 
-@[norm_cast, simp] lemma coe_mk_of_linear (f : M →ₗ[R] N) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : M →ₗ⁅R,L⁆ N) : M →ₗ[R] N) = f :=
+@[norm_cast, simp] lemma coe_linear_mk (f : M →ₗ[R] N) (h₁ h₂ h₃) :
+  ((⟨f, h₁, h₂, h₃⟩ : M →ₗ⁅R,L⁆ N) : M →ₗ[R] N) = ⟨f, h₁, h₂⟩ :=
 by { ext, refl, }
 
 /-- The composition of Lie module morphisms is a morphism. -/
@@ -477,8 +477,8 @@ lemma neg_apply (f : M →ₗ⁅R,L⁆ N) (m : M) : (-f) m = -(f m) := rfl
 instance : add_comm_group (M →ₗ⁅R,L⁆ N) :=
 { zero           := 0,
   add            := (+),
-  neg            := λ f, -f,
-  sub            := λ f g, f - g,
+  neg            := has_neg.neg,
+  sub            := has_sub.sub,
   nsmul          := λ n f, { map_lie' := λ x m, by simp, ..(n • (f : M →ₗ[R] N)) },
   nsmul_zero'    := λ f, by { ext, simp, },
   nsmul_succ'    := λ n f, by { ext, simp [nat.succ_eq_one_add, add_nsmul], },

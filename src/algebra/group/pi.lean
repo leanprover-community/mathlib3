@@ -6,8 +6,8 @@ Authors: Simon Hudon, Patrick Massot
 import data.pi
 import data.set.function
 import tactic.pi_instances
-import algebra.group.defs
-import algebra.group.hom
+import algebra.group.hom_instances
+
 /-!
 # Pi instances for groups and monoids
 
@@ -96,6 +96,11 @@ tactic.pi_instance_derive_field
 instance mul_zero_class [∀ i, mul_zero_class $ f i] :
   mul_zero_class (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
+
+instance mul_zero_one_class [∀ i, mul_zero_one_class $ f i] :
+  mul_zero_one_class (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*), .. };
+  tactic.pi_instance_derive_field
 
 instance monoid_with_zero [∀ i, monoid_with_zero $ f i] :
   monoid_with_zero (Π i : I, f i) :=

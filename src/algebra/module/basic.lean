@@ -413,15 +413,6 @@ lemma map_rat_module_smul {E : Type*} [add_comm_group E] [vector_space ℚ E]
   f (c • x) = c • f x :=
 rat.cast_id c ▸ f.map_rat_cast_smul c x
 
-@[simp] lemma nat_smul_apply [add_monoid M] [add_comm_monoid M₂]
-  (n : ℕ) (f : M →+ M₂) (a : M) :
-  (n • f) a = n • (f a) :=
-begin
-  induction n with n IH,
-  { simp only [zero_smul, zero_apply] },
-  { simp only [nat.succ_eq_add_one, add_smul, IH, one_smul, add_apply] }
-end
-
 @[simp] lemma int_smul_apply [add_monoid M] [add_comm_group M₂]
   [module ℤ (M →+ M₂)] [module ℤ M₂]
   (n : ℤ) (f : M →+ M₂) (a : M) :

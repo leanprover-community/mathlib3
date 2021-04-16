@@ -94,6 +94,12 @@ lemma mem_carrier {s : subfield K} {x : K} : x ∈ s.carrier ↔ x ∈ s := iff.
 /-- Two subfields are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subfield K} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
+/-- Copy of a submodule with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
+{ carrier := s,
+  inv_mem' := hs.symm ▸ S.inv_mem',
+  ..s.to_subring.copy s hs }
 
 @[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=
 rfl

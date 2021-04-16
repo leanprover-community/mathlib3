@@ -103,7 +103,8 @@ begin
   simpa [sum_range_choose_halfway n] using t
 end
 
-lemma choose_middle_upper_bound (n : ℕ) : 4 ^ n ≤ (2 * n + 1) * choose (2 * n) n :=
+lemma four_pow_le_two_mul_add_one_mul_central_binom (n : ℕ) :
+  4 ^ n ≤ (2 * n + 1) * choose (2 * n) n :=
 begin
   calc 4 ^ n = (1 + 1) ^ (2 * n) : begin
       rw one_add_one_eq_two,

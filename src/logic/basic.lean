@@ -880,6 +880,10 @@ by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
   (∃ b, (∃ a, p a ∧ f a = b) ∧ q b) ↔ ∃ a, p a ∧ q (f a) :=
 ⟨λ ⟨b, ⟨a, ha, hab⟩, hb⟩, ⟨a, ha, hab.symm ▸ hb⟩, λ ⟨a, hp, hq⟩, ⟨f a, ⟨a, hp, rfl⟩, hq⟩⟩
 
+@[simp] theorem exists_exists_eq_and {f : α → β} {p : β → Prop} :
+  (∃ b, (∃ a, f a = b) ∧ p b) ↔ ∃ a, p (f a) :=
+⟨λ ⟨b, ⟨a, ha⟩, hb⟩, ⟨a, ha.symm ▸ hb⟩, λ ⟨a, ha⟩, ⟨f a, ⟨a, rfl⟩, ha⟩⟩
+
 @[simp] lemma exists_or_eq_left (y : α) (p : α → Prop) : ∃ (x : α), x = y ∨ p x :=
 ⟨y, or.inl rfl⟩
 
@@ -891,10 +895,6 @@ by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
 
 @[simp] lemma exists_or_eq_right' (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ y = x :=
 ⟨y, or.inr rfl⟩
-
-@[simp] theorem exists_exists_eq_and {f : α → β} {p : β → Prop} :
-  (∃ b, (∃ a, f a = b) ∧ p b) ↔ ∃ a, p (f a) :=
-⟨λ ⟨b, ⟨a, ha⟩, hb⟩, ⟨a, ha.symm ▸ hb⟩, λ ⟨a, ha⟩, ⟨f a, ⟨a, rfl⟩, ha⟩⟩
 
 @[simp] theorem forall_apply_eq_imp_iff {f : α → β} {p : β → Prop} :
   (∀ a, ∀ b, f a = b → p b) ↔ (∀ a, p (f a)) :=

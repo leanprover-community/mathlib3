@@ -159,7 +159,6 @@ theorem mem_adjoin_iff {s : set A} {x : A} :
 suffices closure (set.range ⇑(algebra_map R A) ∪ s) ⊆ adjoin R s, from @this x,
 closure_subset subsemiring.subset_closure⟩
 
-
 theorem adjoin_eq_ring_closure (s : set A) :
   (adjoin R s : set A) = closure (set.range (algebra_map R A) ∪ s) :=
 set.ext $ λ x, mem_adjoin_iff

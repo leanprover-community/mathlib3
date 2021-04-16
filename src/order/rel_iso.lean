@@ -157,22 +157,6 @@ instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ↪r s) := ⟨λ _, α → β, λ o, o.to_embedding⟩
 
-/--
-To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it
-suffices to give a function together with a proof that it satisfies `s (f a) (f b) ↔ r a b`.
--/
-def of_map_rel_iff (f : α → β) [is_antisymm α r] [is_refl β s]
-  (hf : ∀ a b, s (f a) (f b) ↔ r a b) : r ↪r s :=
-{ to_fun := f,
-  inj' := λ x y h, antisymm ((hf _ _).1 (h ▸ refl _)) ((hf _ _).1 (h ▸ refl _)),
-  map_rel_iff' := hf }
-
-@[simp]
-lemma of_map_rel_iff_coe (f : α → β) [is_antisymm α r] [is_refl β s]
-  (hf : ∀ a b, s (f a) (f b) ↔ r a b) :
-  ⇑(of_map_rel_iff f hf : r ↪r s) = f :=
-rfl
-
 @[simp] lemma to_rel_hom_eq_coe (f : r ↪r s) : f.to_rel_hom = f := rfl
 
 @[simp] lemma coe_coe_fn (f : r ↪r s) : ((f : r →r s) : α → β) = f := rfl
@@ -276,6 +260,22 @@ protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_f
 
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
+
+/--
+To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it
+suffices to give a function together with a proof that it satisfies `s (f a) (f b) ↔ r a b`.
+-/
+def of_map_rel_iff (f : α → β) [is_antisymm α r] [is_refl β s]
+  (hf : ∀ a b, s (f a) (f b) ↔ r a b) : r ↪r s :=
+{ to_fun := f,
+  inj' := λ x y h, antisymm ((hf _ _).1 (h ▸ refl _)) ((hf _ _).1 (h ▸ refl _)),
+  map_rel_iff' := hf }
+
+@[simp]
+lemma of_map_rel_iff_coe (f : α → β) [is_antisymm α r] [is_refl β s]
+  (hf : ∀ a b, s (f a) (f b) ↔ r a b) :
+  ⇑(of_map_rel_iff f hf : r ↪r s) = f :=
+rfl
 
 /-- It suffices to prove `f` is monotone between strict relations
   to show it is a relation embedding. -/

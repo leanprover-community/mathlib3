@@ -259,7 +259,10 @@ namespace tensor_product
 
 section module
 
-instance : add_comm_monoid (M ⊗[R] N) :=
+instance : add_zero_class (M ⊗[R] N) :=
+{ .. (add_con_gen (tensor_product.eqv R M N)).add_monoid }
+
+instance : add_comm_semigroup (M ⊗[R] N) :=
 { add_comm := λ x y, add_con.induction_on₂ x y $ λ x y, quotient.sound' $
     add_con_gen.rel.of _ _ $ eqv.add_comm _ _,
   .. (add_con_gen (tensor_product.eqv R M N)).add_monoid }
@@ -379,6 +382,33 @@ protected theorem smul_add (r : R') (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
 add_monoid_hom.map_add _ _ _
 
+protected theorem zero_smul (x : M ⊗[R] N) : (0 : R') • x = 0 :=
+have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+tensor_product.induction_on x
+  (by rw tensor_product.smul_zero)
+  (λ m n, by rw [this, zero_smul, zero_tmul])
+  (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy, add_zero])
+
+protected theorem one_smul (x : M ⊗[R] N) : (1 : R') • x = x :=
+have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+tensor_product.induction_on x
+  (by rw tensor_product.smul_zero)
+  (λ m n, by rw [this, one_smul])
+  (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy])
+
+protected theorem add_smul (r s : R') (x : M ⊗[R] N) : (r + s) • x = r • x + s • x :=
+have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+tensor_product.induction_on x
+  (by simp_rw [tensor_product.smul_zero, add_zero])
+  (λ m n, by simp_rw [this, add_smul, add_tmul])
+  (λ x y ihx ihy, by { simp_rw tensor_product.smul_add, rw [ihx, ihy, add_add_add_comm] })
+
+instance : add_comm_monoid (M ⊗[R] N) :=
+{ nsmul := λ n v, n • v,
+  nsmul_zero' := by simp [tensor_product.zero_smul],
+  nsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
+  .. tensor_product.add_comm_semigroup _ _, .. tensor_product.add_zero_class _ _}
+
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
 instance semimodule' : semimodule R' (M ⊗[R] N) :=
@@ -389,19 +419,10 @@ have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n :=
     (by simp_rw tensor_product.smul_zero)
     (λ m n, by simp_rw [this, mul_smul])
     (λ x y ihx ihy, by { simp_rw tensor_product.smul_add, rw [ihx, ihy] }),
-  one_smul := λ x, tensor_product.induction_on x
-    (by rw tensor_product.smul_zero)
-    (λ m n, by rw [this, one_smul])
-    (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy]),
-  add_smul := λ r s x, tensor_product.induction_on x
-    (by simp_rw [tensor_product.smul_zero, add_zero])
-    (λ m n, by simp_rw [this, add_smul, add_tmul])
-    (λ x y ihx ihy, by { simp_rw tensor_product.smul_add, rw [ihx, ihy, add_add_add_comm] }),
-  smul_zero := λ r, tensor_product.smul_zero r,
-  zero_smul := λ x, tensor_product.induction_on x
-    (by rw tensor_product.smul_zero)
-    (λ m n, by rw [this, zero_smul, zero_tmul])
-    (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy, add_zero]) }
+  one_smul := tensor_product.one_smul,
+  add_smul := tensor_product.add_smul,
+  smul_zero := tensor_product.smul_zero,
+  zero_smul := tensor_product.zero_smul }
 
 instance : semimodule R (M ⊗[R] N) := tensor_product.semimodule'
 

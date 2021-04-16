@@ -2532,6 +2532,47 @@ map_prod_map_coprod_le.trans (coprod_mono hf hg)
 
 end coprod
 
+/-! ### `n`-ary coproducts of filters -/
+
+section Coprod
+variables {δ : Type*} {κ : δ → Type*}  -- {f : Π d, filter (κ d)}
+
+/-- Coproduct of filters. -/
+protected def Coprod (f : Π d, filter (κ d)) : filter (Π d, κ d) :=
+⨆ d : δ, (f d).comap (λ k, k d)
+
+lemma mem_Coprod_iff {s : set (Π d, κ d)} {f : Π d, filter (κ d)} :
+  (s ∈ (filter.Coprod f)) ↔ (∀ d : δ, (∃ t₁ ∈ f d, (λ k : (Π d, κ d), k d) ⁻¹' t₁ ⊆ s)) :=
+by simp [filter.Coprod]
+
+@[mono] lemma Coprod_mono {f₁ f₂ : Π d, filter (κ d)} (hf : ∀ d, f₁ d ≤ f₂ d) :
+  filter.Coprod f₁ ≤ filter.Coprod f₂ :=
+supr_le_supr $ λ d, comap_mono (hf d)
+
+lemma map_pi_map_Coprod_le {μ : δ → Type*}
+  {f : Π d, filter (κ d)} {m : Π d, κ d → μ d} :
+  map (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) ≤ filter.Coprod (λ d, map (m d) (f d)) :=
+begin
+  intros s h,
+  rw [mem_map, mem_Coprod_iff],
+  intros d,
+  rw mem_Coprod_iff at h,
+  obtain ⟨t, H, hH⟩ := h d,
+  rw mem_map at H,
+  refine ⟨{x : κ d | m d x ∈ t}, H, _⟩,
+  intros x hx,
+  simp only [mem_set_of_eq, preimage_set_of_eq] at hx,
+  rw mem_set_of_eq,
+  exact set.mem_of_subset_of_mem hH (mem_preimage.mpr hx),
+end
+
+lemma tendsto.pi_map_Coprod {μ : δ → Type*} {f : Π d, filter (κ d)} {m : Π d, κ d → μ d}
+  {g : Π d, filter (μ d)} (hf : ∀ d, tendsto (m d) (f d) (g d)) :
+  tendsto (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) (filter.Coprod g) :=
+map_pi_map_Coprod_le.trans (Coprod_mono hf)
+
+end Coprod
+
 end filter
 
 open_locale filter

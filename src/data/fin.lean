@@ -139,7 +139,7 @@ lemma coe_eq_val (a : fin n) : (a : ℕ) = a.val := rfl
 
 /-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,
 then they coincide (in the heq sense). -/
-protected lemma heq_fun_iff {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α} :
+protected lemma heq_fun_iff {α : Sort*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α} :
   f == g ↔ (∀ (i : fin k), f i = g ⟨(i : ℕ), h ▸ i.2⟩) :=
 by { induction h, simp [heq_iff_eq, function.funext_iff] }
 
@@ -571,8 +571,18 @@ lemma coe_cast (h : n = m) (i : fin n) : (cast h i : ℕ) = i := rfl
 @[simp] lemma cast_trans {k : ℕ} (h : n = m) (h' : m = k) {i : fin n} :
   cast h' (cast h i) = cast (eq.trans h h') i := rfl
 
-@[simp] lemma cast_refl {i : fin n} : cast rfl i = i :=
+@[simp] lemma cast_refl (h : n = n := rfl) : cast h = order_iso.refl (fin n) :=
 by { ext, refl }
+
+/-- While in many cases `fin.cast` is better than `equiv.cast`/`cast`, sometimes we want to apply
+a generic theorem about `cast`. -/
+lemma cast_to_equiv (h : n = m) : (cast h).to_equiv = equiv.cast (h ▸ rfl) :=
+by { subst h, simp }
+
+/-- While in many cases `fin.cast` is better than `equiv.cast`/`cast`, sometimes we want to apply
+a generic theorem about `cast`. -/
+lemma cast_eq_cast (h : n = m) : (cast h : fin n → fin m) = _root_.cast (h ▸ rfl) :=
+by { subst h, ext, simp }
 
 /-- `cast_add m i` embeds `i : fin n` in `fin (n+m)`. -/
 def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ le_add_right n m
@@ -620,6 +630,8 @@ lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
 lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.mpr a.is_lt
 
 @[simp] lemma cast_succ_zero : cast_succ (0 : fin (n + 1)) = 0 := rfl
+
+@[simp] lemma cast_succ_one {n : ℕ} : fin.cast_succ (1 : fin (n + 2)) = 1 := rfl
 
 /-- `cast_succ i` is positive when `i` is positive -/
 lemma cast_succ_pos {i : fin (n + 1)} (h : 0 < i) : 0 < cast_succ i :=
@@ -1051,6 +1063,9 @@ def cast_pred (i : fin (n + 2)) : fin (n + 1) :=
 pred_above (last n) i
 
 @[simp] lemma cast_pred_zero : cast_pred (0 : fin (n + 2)) = 0 := rfl
+
+@[simp] lemma cast_pred_one : cast_pred (1 : fin (n + 2)) = 1 := 
+by { cases n, apply subsingleton.elim, refl }
 
 @[simp] theorem pred_above_zero {i : fin (n + 2)} (hi : i ≠ 0) :
   pred_above 0 i = i.pred hi :=

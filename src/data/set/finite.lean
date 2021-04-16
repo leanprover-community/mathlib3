@@ -50,6 +50,14 @@ from exists_congr (λ _, h.mem_to_finset)
 @[simp] lemma finite_empty_to_finset (h : finite (∅ : set α)) : h.to_finset = ∅ :=
 by rw [← finset.coe_inj, h.coe_to_finset, finset.coe_empty]
 
+@[simp] lemma finite.to_finset_inj {s t : set α} {hs : finite s} {ht : finite t} :
+  hs.to_finset = ht.to_finset ↔ s = t :=
+by simp [←finset.coe_inj]
+
+@[simp] lemma finite_to_finset_eq_empty_iff {s : set α} {h : finite s} :
+  h.to_finset = ∅ ↔ s = ∅ :=
+by simp [←finset.coe_inj]
+
 theorem finite.exists_finset {s : set α} : finite s →
   ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s
 | ⟨h⟩ := by exactI ⟨to_finset s, λ _, mem_to_finset⟩
@@ -153,6 +161,10 @@ lemma to_finset_insert [decidable_eq α] {a : α} {s : set α} (hs : finite s) :
   (hs.insert a).to_finset = insert a hs.to_finset :=
 finset.ext $ by simp
 
+@[simp] lemma insert_to_finset [decidable_eq α] {a : α} {s : set α} [fintype s] :
+  (insert a s).to_finset = insert a s.to_finset :=
+by simp [finset.ext_iff, mem_insert_iff]
+
 @[elab_as_eliminator]
 theorem finite.induction_on {C : set α → Prop} {s : set α} (h : finite s)
   (H0 : C ∅) (H1 : ∀ {a s}, a ∉ s → finite s → C s → C (insert a s)) : C s :=
@@ -247,6 +259,8 @@ fintype.of_finset (s.to_finset ∪ t.to_finset) $ by simp
 theorem finite.union {s t : set α} : finite s → finite t → finite (s ∪ t)
 | ⟨hs⟩ ⟨ht⟩ := ⟨@set.fintype_union _ (classical.dec_eq α) _ _ hs ht⟩
 
+lemma finite.sup {s t : set α} : finite s → finite t → finite (s ⊔ t) := finite.union
+
 lemma infinite_of_finite_compl {α : Type} [_root_.infinite α] {s : set α}
   (hs : sᶜ.finite) : s.infinite :=
 λ h, set.infinite_univ (by simpa using hs.union h)
@@ -269,11 +283,27 @@ by rw ← inter_eq_self_of_subset_right h; apply_instance
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
 | ⟨hs⟩ t h := ⟨@set.fintype_subset _ _ _ hs (classical.dec_pred t) h⟩
 
+lemma finite.union_iff {s t : set α} : finite (s ∪ t) ↔ finite s ∧ finite t :=
+⟨λ h, ⟨h.subset (subset_union_left _ _), h.subset (subset_union_right _ _)⟩,
+ λ ⟨hs, ht⟩, hs.union ht⟩
+
+lemma finite.diff {s t u : set α} (hs : s.finite) (ht : t.finite) (h : u \ t ≤ s) : u.finite :=
+begin
+  refine finite.subset (ht.union hs) _,
+  exact diff_subset_iff.mp h
+end
+
 theorem finite.inter_of_left {s : set α} (h : finite s) (t : set α) : finite (s ∩ t) :=
 h.subset (inter_subset_left _ _)
 
 theorem finite.inter_of_right {s : set α} (h : finite s) (t : set α) : finite (t ∩ s) :=
 h.subset (inter_subset_right _ _)
+
+theorem finite.inf_of_left {s : set α} (h : finite s) (t : set α) : finite (s ⊓ t) :=
+h.inter_of_left t
+
+theorem finite.inf_of_right {s : set α} (h : finite s) (t : set α) : finite (t ⊓ s) :=
+h.inter_of_right t
 
 theorem infinite_mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
 mt (λ ht, ht.subset h)
@@ -510,6 +540,17 @@ end finset
 
 namespace set
 
+/-- Finite product of finite sets is finite -/
+lemma finite.pi {δ : Type*} [fintype δ] {κ : δ → Type*} {t : Π d, set (κ d)}
+  (ht : ∀ d, (t d).finite) :
+  (pi univ t).finite :=
+begin
+  classical,
+  convert (fintype.pi_finset (λ d, (ht d).to_finset)).finite_to_set,
+  ext,
+  simp,
+end
+
 lemma finite_subset_Union {s : set α} (hs : finite s)
   {ι} {t : ι → set α} (h : s ⊆ ⋃ i, t i) : ∃ I : set ι, finite I ∧ s ⊆ ⋃ i ∈ I, t i :=
 begin
@@ -611,8 +652,26 @@ lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
 
 lemma subset_iff_to_finset_subset (s t : set α) [fintype s] [fintype t] :
   s ⊆ t ↔ s.to_finset ⊆ t.to_finset :=
-⟨λ h x hx, set.mem_to_finset.mpr $ h $ set.mem_to_finset.mp hx,
-  λ h x hx, set.mem_to_finset.mp $ h $ set.mem_to_finset.mpr hx⟩
+by simp
+
+@[simp, mono] lemma finite.to_finset_mono {s t : set α} {hs : finite s} {ht : finite t} :
+  hs.to_finset ⊆ ht.to_finset ↔ s ⊆ t :=
+begin
+  split,
+  { intros h x,
+    rw [←finite.mem_to_finset hs, ←finite.mem_to_finset ht],
+    exact λ hx, h hx },
+  { intros h x,
+    rw [finite.mem_to_finset hs, finite.mem_to_finset ht],
+    exact λ hx, h hx }
+end
+
+@[simp, mono] lemma finite.to_finset_strict_mono {s t : set α} {hs : finite s} {ht : finite t} :
+  hs.to_finset ⊂ ht.to_finset ↔ s ⊂ t :=
+begin
+  rw [←lt_eq_ssubset, ←finset.lt_iff_ssubset, lt_iff_le_and_ne, lt_iff_le_and_ne],
+  simp
+end
 
 lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
   [fintype (range f)] : fintype.card (range f) = fintype.card α :=
@@ -719,11 +778,3 @@ protected lemma bdd_below [semilattice_inf α] [nonempty α] (s : finset α) :
 s.finite_to_set.bdd_below
 
 end finset
-
-lemma fintype.exists_max [fintype α] [nonempty α]
-  {β : Type*} [linear_order β] (f : α → β) :
-  ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
-begin
-  rcases set.finite_univ.exists_maximal_wrt f _ univ_nonempty with ⟨x, _, hx⟩,
-  exact ⟨x, λ y, (le_total (f x) (f y)).elim (λ h, ge_of_eq $ hx _ trivial h) id⟩
-end

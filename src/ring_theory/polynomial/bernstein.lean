@@ -389,8 +389,8 @@ begin
   conv at h {
     to_rhs,
     rw [pderiv_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
-    simp [e, nat_cast_mul], },
-  exact h,
+    simp [e] },
+  simpa using h,
 end
 
 lemma sum_mul_smul (n : ℕ) :
@@ -439,16 +439,14 @@ begin
       finset.sum_mul],
     -- Step inside the sum:
     apply_congr, skip,
-    simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w],
-  },
+    simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w] },
   -- On the right hand side, we'll just simplify.
   conv at h {
     to_rhs,
     simp only [pderiv_one, pderiv_mul, pderiv_pow, pderiv_nat_cast, (pderiv tt).map_add,
       pderiv_tt_x, pderiv_tt_y],
-    simp [e, nat_cast_mul, smul_smul],
-  },
-  exact h,
+    simp [e, smul_smul] },
+  simpa using h,
 end
 
 /--

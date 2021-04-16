@@ -32,9 +32,7 @@ instance : set_like (my_subobject X) X :=
 equalities. -/
 protected def copy (p : my_subobject X) (s : set X) (hs : s = ↑p) : my_subobject X :=
 { carrier := s,
-  add_mem' := hs.symm ▸ p.add_mem',
-  mul_mem' := hs.symm ▸ p.mul_mem',
-  algebra_map_mem' := hs.symm ▸ p.algebra_map_mem' }
+  op_mem' := hs.symm ▸ p.op_mem' }
 
 end my_subobject
 ```

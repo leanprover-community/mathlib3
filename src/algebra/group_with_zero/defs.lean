@@ -59,7 +59,7 @@ export no_zero_divisors (eq_zero_or_eq_zero_of_mul_eq_zero)
 
 /-- A type `S₀` is a "semigroup with zero” if it is a semigroup with zero element, and `0` is left
 and right absorbing. -/
-@[protect_proj] class semigroup_with_zero (S₀ : Type*) extends semigroup S₀, mul_zero_one_class S₀.
+@[protect_proj] class semigroup_with_zero (S₀ : Type*) extends semigroup S₀, mul_zero_class S₀.
 
 /-- A type `M₀` is a “monoid with zero” if it is a monoid with zero element, and `0` is left
 and right absorbing. -/

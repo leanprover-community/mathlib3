@@ -15,6 +15,11 @@ import category_theory.triangulated.rotate
 This file contains the definition of pretriangulated categories and triangulated functors
 between them.
 
+## Implementation Notes
+
+We work under the assumption that pretriangulated categories are preadditive categories,
+but not necessarily additive categories, as is assumed in some sources.
+
 TODO: generalise this to n-angulated categories as in https://arxiv.org/abs/1006.4592
 -/
 

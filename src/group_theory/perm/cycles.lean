@@ -52,6 +52,12 @@ lemma is_cycle.swap {α : Type*} [decidable_eq α] {x y : α} (hxy : x ≠ y) : 
     if hya : y = a then ⟨0, hya⟩
     else ⟨1, by { rw [gpow_one, swap_apply_def], split_ifs at *; cc }⟩⟩
 
+lemma is_cycle.is_swap {α : Type*} [decidable_eq α] {f : perm α} (hf : is_swap f) : is_cycle f :=
+begin
+  obtain ⟨x, y, hxy, rfl⟩ := hf,
+  exact is_cycle.swap hxy,
+end
+
 lemma is_cycle.inv {f : perm β} (hf : is_cycle f) : is_cycle (f⁻¹) :=
 let ⟨x, hx⟩ := hf in
 ⟨x, by { simp only [inv_eq_iff_eq, *, forall_prop_of_true, ne.def] at *, cc },
@@ -435,10 +441,7 @@ open subgroup
 lemma closure_is_cycle : closure {σ : perm β | is_cycle σ} = ⊤ :=
 begin
   classical,
-  refine eq_top_iff.mpr (λ x hx, _),
-  obtain ⟨h1, h2, h3⟩ := subtype.mem (trunc_cycle_factors x).out,
-  rw ← h1,
-  exact list_prod_mem _ (λ y hy, subset_closure (h2 y hy)),
+  exact top_le_iff.mp (le_trans (ge_of_eq closure_is_swap) (closure_mono (λ _, is_cycle.is_swap))),
 end
 
 lemma closure_cycle_adjacent_swap {σ : perm α} (h1 : is_cycle σ) (h2 : σ.support = ⊤) (x : α) :

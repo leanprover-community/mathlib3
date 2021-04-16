@@ -817,10 +817,4 @@ gcd_monoid_of_lcm
   (λ a b c ac ab, normalize_dvd_iff.2 ((classical.some_spec (h c b) a).1 ⟨ac, ab⟩))
   (λ a b, normalize_idem _)
 
-@[simp] lemma nat.normalize_eq (n : ℕ) : normalize n = n := n.mul_one
-
-lemma nat.gcd_eq_gcd (m n : ℕ) : gcd m n = nat.gcd m n := rfl
-
-lemma nat.lcm_eq_lcm (m n : ℕ) : lcm m n = nat.lcm m n := rfl
-
 end constructors

@@ -7,6 +7,7 @@ Authors: Thomas Browning
 import group_theory.perm.cycles
 import combinatorics.partition
 import data.multiset.gcd
+import ring_theory.int.basic
 
 /-!
 # Cycle Types

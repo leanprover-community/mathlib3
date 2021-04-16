@@ -514,7 +514,7 @@ begin
     (mem_support.mp ((finset.ext_iff.mp h2 y).mpr (finset.mem_univ y))),
   rw [h5, ←hi],
   refine closure_cycle_coprime_swap (nat.coprime.symm
-    ((nat.prime.coprime_iff_not_dvd h0).mpr (λ h, h4 _))) h1 h2 x,
+    (h0.coprime_iff_not_dvd.mpr (λ h, h4 _))) h1 h2 x,
   cases h with m hm,
   rwa [hm, pow_mul, ←finset.card_univ, ←h2, ←order_of_is_cycle h1,
     pow_order_of_eq_one, one_pow, one_apply] at hi,

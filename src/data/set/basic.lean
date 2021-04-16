@@ -754,6 +754,13 @@ theorem forall_not_of_sep_empty {s : set α} {p : α → Prop} (H : {x ∈ s | p
 @[simp] lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
 iff.rfl
 
+@[simp] lemma sep_true {α : Type*} (s : set α) : {a ∈ s | true} = s :=
+by { ext; simp }
+
+@[simp] lemma sep_false {α : Type*} (s : set α) : {a ∈ s | false} = ∅ :=
+by { ext; simp }
+
+
 /-! ### Lemmas about complement -/
 
 theorem mem_compl {s : set α} {x : α} (h : x ∉ s) : x ∈ sᶜ := h

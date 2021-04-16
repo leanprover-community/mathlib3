@@ -6,6 +6,7 @@ Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 import algebra.group.hom
 import data.equiv.mul_add
 import data.prod
+import algebra.opposites
 
 /-!
 # Monoid, group etc structures on `M × N`
@@ -140,13 +141,16 @@ instance [comm_monoid M] [comm_monoid N] : comm_monoid (M × N) :=
 
 @[to_additive]
 instance [cancel_comm_monoid M] [cancel_comm_monoid N] : cancel_comm_monoid (M × N) :=
-{ .. prod.left_cancel_monoid, .. prod.right_cancel_monoid, .. prod.comm_monoid }
+{ .. prod.left_cancel_monoid, .. prod.comm_monoid }
+
+instance [mul_zero_one_class M] [mul_zero_one_class N] : mul_zero_one_class (M × N) :=
+{ .. prod.mul_zero_class, .. prod.mul_one_class }
 
 instance [monoid_with_zero M] [monoid_with_zero N] : monoid_with_zero (M × N) :=
-{ .. prod.monoid, .. prod.mul_zero_class }
+{ .. prod.monoid, .. prod.mul_zero_one_class }
 
 instance [comm_monoid_with_zero M] [comm_monoid_with_zero N] : comm_monoid_with_zero (M × N) :=
-{ .. prod.comm_monoid, .. prod.mul_zero_class }
+{ .. prod.comm_monoid, .. prod.monoid_with_zero }
 
 @[to_additive]
 instance [comm_group G] [comm_group H] : comm_group (G × H) :=
@@ -320,3 +324,17 @@ def prod_units : units (M × N) ≃* units M × units N :=
 end
 
 end mul_equiv
+
+section units
+
+open opposite
+
+/-- Canonical homomorphism of monoids from `units α` into `α × αᵒᵖ`.
+Used mainly to define the natural topology of `units α`. -/
+def embed_product (α : Type*) [monoid α] : units α →* α × αᵒᵖ :=
+{ to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
+  map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
+    and_self],
+  map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk] }
+
+end units

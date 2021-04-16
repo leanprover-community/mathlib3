@@ -751,7 +751,7 @@ lemma foldl_core_succ_eq_fail {f : β → α → β} {p : parser α} {reps : ℕ
   foldl_core f b p (reps + 1) cb n = fail n' err ↔ n ≠ n' ∧
   (p cb n = fail n' err ∨
     ∃ (np : ℕ) (a : α), p cb n = done np a ∧ foldl_core f (f b a) p reps cb np = fail n' err) :=
-by  simp [foldl_core, and_comm]
+by simp [foldl_core, and_comm]
 
 lemma foldl_eq_done {f : β → α → β} {p : parser α} {b' : β} :
   foldl f b p cb n = done n' b' ↔

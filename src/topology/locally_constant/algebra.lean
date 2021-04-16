@@ -46,6 +46,9 @@ instance [mul_zero_class Y] : mul_zero_class (locally_constant X Y) :=
   .. locally_constant.has_zero,
   .. locally_constant.has_mul }
 
+instance [mul_zero_one_class Y] : mul_zero_one_class (locally_constant X Y) :=
+{ .. locally_constant.mul_zero_class, .. locally_constant.mul_one_class }
+
 @[to_additive] instance [has_div Y] : has_div (locally_constant X Y) :=
 { div := λ f g, ⟨f / g, f.is_locally_constant.div g.is_locally_constant⟩ }
 

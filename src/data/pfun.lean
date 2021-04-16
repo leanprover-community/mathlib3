@@ -119,6 +119,10 @@ lemma get_eq_iff_eq_some {a : roption α} {ha : a.dom} {b : α} :
   a.get ha = b ↔ a = some b :=
 ⟨λ h, by simp [h.symm], λ h, by simp [h]⟩
 
+lemma get_eq_get_of_eq (a : roption α) (ha : a.dom) {b : roption α} (h : a = b) :
+  a.get ha = b.get (h ▸ ha) :=
+by { congr, exact h }
+
 instance none_decidable : decidable (@none α).dom := decidable.false
 instance some_decidable (a : α) : decidable (some a).dom := decidable.true
 

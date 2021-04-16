@@ -175,6 +175,10 @@ lemma add_submonoid.to_nat_submodule_symm :
   ⇑(add_submonoid.to_nat_submodule.symm : _ ≃o add_submonoid M) = submodule.to_add_submonoid := rfl
   
 @[simp]
+lemma add_submonoid.to_nat_submodule_symm :
+  ⇑(add_submonoid.to_nat_submodule.symm : _ ≃o add_submonoid M) = submodule.to_add_submonoid := rfl
+  
+@[simp]
 lemma add_submonoid.coe_to_nat_submodule (S : add_submonoid M) :
   (S.to_nat_submodule : set M) = S := rfl
 

@@ -179,8 +179,8 @@ theorem is_prime.mem_of_pow_mem {I : ideal α} (hI : I.is_prime)
   {r : α} (n : ℕ) (H : r^n ∈ I) : r ∈ I :=
 begin
   induction n with n ih,
-  { exact (mt (eq_top_iff_one _).2 hI.1).elim H },
-  exact or.cases_on (hI.mem_or_mem H) id ih
+  { rw pow_zero at H, exact (mt (eq_top_iff_one _).2 hI.1).elim H },
+  { rw pow_succ at H, exact or.cases_on (hI.mem_or_mem H) id ih }
 end
 
 lemma not_is_prime_iff {I : ideal α} : ¬ I.is_prime ↔ I = ⊤ ∨ ∃ (x ∉ I) (y ∉ I), x * y ∈ I :=

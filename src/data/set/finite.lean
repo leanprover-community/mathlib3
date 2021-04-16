@@ -540,6 +540,17 @@ end finset
 
 namespace set
 
+/-- Finite product of finite sets is finite -/
+lemma finite.pi {δ : Type*} [fintype δ] {κ : δ → Type*} {t : Π d, set (κ d)}
+  (ht : ∀ d, (t d).finite) :
+  (pi univ t).finite :=
+begin
+  classical,
+  convert (fintype.pi_finset (λ d, (ht d).to_finset)).finite_to_set,
+  ext,
+  simp,
+end
+
 lemma finite_subset_Union {s : set α} (hs : finite s)
   {ι} {t : ι → set α} (h : s ⊆ ⋃ i, t i) : ∃ I : set ι, finite I ∧ s ⊆ ⋃ i ∈ I, t i :=
 begin
@@ -767,11 +778,3 @@ protected lemma bdd_below [semilattice_inf α] [nonempty α] (s : finset α) :
 s.finite_to_set.bdd_below
 
 end finset
-
-lemma fintype.exists_max [fintype α] [nonempty α]
-  {β : Type*} [linear_order β] (f : α → β) :
-  ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
-begin
-  rcases set.finite_univ.exists_maximal_wrt f _ univ_nonempty with ⟨x, _, hx⟩,
-  exact ⟨x, λ y, (le_total (f x) (f y)).elim (λ h, ge_of_eq $ hx _ trivial h) id⟩
-end

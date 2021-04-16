@@ -988,7 +988,7 @@ begin
 end
 
 theorem index_of_lt_length {a} {l : list α} : index_of a l < length l ↔ a ∈ l :=
-⟨λh, by_contradiction $ λ al, ne_of_lt h $ index_of_eq_length.2 al,
+⟨λh, decidable.by_contradiction $ λ al, ne_of_lt h $ index_of_eq_length.2 al,
 λal, lt_of_le_of_ne index_of_le_length $ λ h, index_of_eq_length.1 h al⟩
 
 end index_of
@@ -3333,7 +3333,7 @@ by simp only [count, countp_pos, exists_prop, exists_eq_right']
 
 @[simp, priority 980]
 theorem count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
-by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
+decidable.by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 
 theorem not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
 λ h', ne_of_gt (count_pos.2 h') h

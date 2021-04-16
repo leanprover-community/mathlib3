@@ -1062,14 +1062,77 @@ by simp [two_mul, sin_add]
 @[simp] lemma cos_two_pi : cos (2 * π) = 1 :=
 by simp [two_mul, cos_add]
 
+lemma sin_nat_mul_pi (n : ℕ) : sin (n * π) = 0 :=
+by induction n; simp [add_mul, sin_add, *]
+
+lemma sin_int_mul_pi (n : ℤ) : sin (n * π) = 0 :=
+by cases n; simp [add_mul, sin_add, *, sin_nat_mul_pi]
+
+lemma cos_nat_mul_two_pi (n : ℕ) : cos (n * (2 * π)) = 1 :=
+by induction n; simp [*, mul_add, cos_add, add_mul, cos_two_pi, sin_two_pi]
+
+lemma cos_int_mul_two_pi (n : ℤ) : cos (n * (2 * π)) = 1 :=
+by cases n; simp only [cos_nat_mul_two_pi, int.of_nat_eq_coe, int.neg_succ_of_nat_coe,
+                      int.cast_coe_nat, int.cast_neg, ← neg_mul_eq_neg_mul, cos_neg]
+
 lemma sin_add_pi (x : ℝ) : sin (x + π) = -sin x :=
 by simp [sin_add]
 
+lemma sin_add_int_mul_two_pi (x : ℝ) (n : ℤ) : sin (x + n * (2 * π)) = sin x :=
+begin
+  rw [sin_add, cos_int_mul_two_pi, ← mul_assoc],
+  rw_mod_cast sin_int_mul_pi (n*2),
+  simp,
+end
+
+lemma sin_sub_int_mul_two_pi (x : ℝ) (n : ℤ) : sin (x - n * (2 * π)) = sin x :=
+by simpa using sin_add_int_mul_two_pi x (-n)
+
+lemma sin_add_nat_mul_two_pi (x : ℝ) (n : ℕ) : sin (x + n * (2 * π)) = sin x :=
+by convert sin_add_int_mul_two_pi x n
+
+lemma sin_sub_nat_mul_two_pi (x : ℝ) (n : ℕ) : sin (x - n * (2 * π)) = sin x :=
+by convert sin_sub_int_mul_two_pi x n
+
 lemma sin_add_two_pi (x : ℝ) : sin (x + 2 * π) = sin x :=
-by simp [sin_add_pi, sin_add, sin_two_pi, cos_two_pi]
+by simp [sin_add]
+
+lemma sin_sub_two_pi (x : ℝ) : sin (x - 2 * π) = sin x :=
+by simp [sin_sub]
+
+lemma cos_add_int_mul_two_pi (x : ℝ) (n : ℤ) : cos (x + n * (2 * π)) = cos x :=
+begin
+  rw [cos_add, cos_int_mul_two_pi, ← mul_assoc],
+  rw_mod_cast sin_int_mul_pi (n*2),
+  simp,
+end
+
+lemma cos_sub_int_mul_two_pi (x : ℝ) (n : ℤ) : cos (x - n * (2 * π)) = cos x :=
+by simpa using cos_add_int_mul_two_pi x (-n)
+
+lemma cos_add_nat_mul_two_pi (x : ℝ) (n : ℕ) : cos (x + n * (2 * π)) = cos x :=
+by convert cos_add_int_mul_two_pi x n
+
+lemma cos_sub_nat_mul_two_pi (x : ℝ) (n : ℕ) : cos (x - n * (2 * π)) = cos x :=
+by convert cos_sub_int_mul_two_pi x n
+
+lemma cos_int_mul_two_pi_add_pi (n : ℤ) : cos (n * (2 * π) + π) = -1 :=
+by simp [add_comm, cos_add_int_mul_two_pi]
+
+lemma cos_int_mul_two_pi_sub_pi (n : ℤ) : cos (n * (2 * π) - π) = -1 :=
+by simp [sub_eq_neg_add, cos_add_int_mul_two_pi]
+
+lemma cos_nat_mul_two_pi_add_pi (n : ℕ) : cos (n * (2 * π) + π) = -1 :=
+by convert cos_int_mul_two_pi_add_pi n
+
+lemma cos_nat_mul_two_pi_sub_pi (n : ℕ) : cos (n * (2 * π) - π) = -1 :=
+by convert cos_int_mul_two_pi_sub_pi n
 
 lemma cos_add_two_pi (x : ℝ) : cos (x + 2 * π) = cos x :=
-by simp [cos_add, cos_two_pi, sin_two_pi]
+by simp [cos_add]
+
+lemma cos_sub_two_pi (x : ℝ) : cos (x - 2 * π) = cos x :=
+by simp [cos_sub]
 
 lemma sin_pi_sub (x : ℝ) : sin (π - x) = sin x :=
 by simp [sub_eq_add_neg, sin_add]
@@ -1141,6 +1204,10 @@ sin_add_pi_div_two x ▸ sin_pos_of_mem_Ioo ⟨by linarith [hx.1], by linarith [
 lemma cos_nonneg_of_mem_Icc {x : ℝ} (hx : x ∈ Icc (-(π / 2)) (π / 2)) : 0 ≤ cos x :=
 sin_add_pi_div_two x ▸ sin_nonneg_of_mem_Icc ⟨by linarith [hx.1], by linarith [hx.2]⟩
 
+lemma cos_nonneg_of_neg_pi_div_two_le_of_le {x : ℝ} (hl : -(π / 2) ≤ x) (hu : x ≤ π / 2) :
+  0 ≤ cos x :=
+cos_nonneg_of_mem_Icc ⟨hl, hu⟩
+
 lemma cos_neg_of_pi_div_two_lt_of_lt {x : ℝ} (hx₁ : π / 2 < x) (hx₂ : x < π + π / 2) : cos x < 0 :=
 neg_pos.1 $ cos_pi_sub x ▸ cos_pos_of_mem_Ioo ⟨by linarith, by linarith⟩
 
@@ -1148,22 +1215,13 @@ lemma cos_nonpos_of_pi_div_two_le_of_le {x : ℝ} (hx₁ : π / 2 ≤ x) (hx₂ 
   cos x ≤ 0 :=
 neg_nonneg.1 $ cos_pi_sub x ▸ cos_nonneg_of_mem_Icc ⟨by linarith, by linarith⟩
 
-lemma sin_nat_mul_pi (n : ℕ) : sin (n * π) = 0 :=
-by induction n; simp [add_mul, sin_add, *]
+lemma sin_eq_sqrt_one_sub_cos_sq {x : ℝ} (hl : 0 ≤ x) (hu : x ≤ π) :
+  sin x = sqrt (1 - cos x ^ 2) :=
+by rw [← abs_sin_eq_sqrt_one_sub_cos_sq, abs_of_nonneg (sin_nonneg_of_nonneg_of_le_pi hl hu)]
 
-lemma sin_int_mul_pi (n : ℤ) : sin (n * π) = 0 :=
-by cases n; simp [add_mul, sin_add, *, sin_nat_mul_pi]
-
-lemma cos_nat_mul_two_pi (n : ℕ) : cos (n * (2 * π)) = 1 :=
-by induction n; simp [*, mul_add, cos_add, add_mul, cos_two_pi, sin_two_pi]
-
-lemma cos_int_mul_two_pi (n : ℤ) : cos (n * (2 * π)) = 1 :=
-by cases n; simp only [cos_nat_mul_two_pi, int.of_nat_eq_coe,
-  int.neg_succ_of_nat_coe, int.cast_coe_nat, int.cast_neg,
-  (neg_mul_eq_neg_mul _ _).symm, cos_neg]
-
-lemma cos_int_mul_two_pi_add_pi (n : ℤ) : cos (n * (2 * π) + π) = -1 :=
-by simp [cos_add, sin_add, cos_int_mul_two_pi]
+lemma cos_eq_sqrt_one_sub_sin_sq {x : ℝ} (hl : -(π / 2) ≤ x) (hu : x ≤ π / 2) :
+  cos x = sqrt (1 - sin x ^ 2) :=
+by rw [← abs_cos_eq_sqrt_one_sub_sin_sq, abs_of_nonneg (cos_nonneg_of_mem_Icc ⟨hl, hu⟩)]
 
 lemma sin_eq_zero_iff_of_lt_of_lt {x : ℝ} (hx₁ : -π < x) (hx₂ : x < π) :
   sin x = 0 ↔ x = 0 :=
@@ -1542,7 +1600,7 @@ instance angle.has_coe : has_coe ℝ angle :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, coe_add, coe_neg]
 
 @[simp, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
-  ↑((n : ℝ) * x) = n •ℕ (↑x : angle) :=
+  ↑((n : ℝ) * x) = n • (↑x : angle) :=
 by simpa using add_monoid_hom.map_nsmul ⟨coe, coe_zero, coe_add⟩ _ _
 @[simp, norm_cast] lemma coe_int_mul_eq_gsmul (x : ℝ) (n : ℤ) :
   ↑((n : ℝ) * x : ℝ) = n •ℤ (↑x : angle) :=

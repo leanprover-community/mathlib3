@@ -92,6 +92,20 @@ begin
   solve_by_elim
 end
 
+/-- If two additive homomorphisms from `⨁ i, β i` are equal on each `of β i y`,
+then they are equal. -/
+lemma add_hom_ext {γ : Type*} [add_monoid γ] ⦃f g : (⨁ i, β i) →+ γ⦄
+  (H : ∀ (i : ι) (y : β i), f (of _ i y) = g (of _ i y)) : f = g :=
+dfinsupp.add_hom_ext H
+
+/-- If two additive homomorphisms from `⨁ i, β i` are equal on each `of β i y`,
+then they are equal.
+
+See note [partially-applied ext lemmas]. -/
+@[ext] lemma add_hom_ext' {γ : Type*} [add_monoid γ] ⦃f g : (⨁ i, β i) →+ γ⦄
+  (H : ∀ (i : ι), f.comp (of _ i) = g.comp (of _ i)) : f = g :=
+add_hom_ext $ λ i, add_monoid_hom.congr_fun $ H i
+
 variables {γ : Type u₁} [add_comm_monoid γ]
 
 section to_add_monoid

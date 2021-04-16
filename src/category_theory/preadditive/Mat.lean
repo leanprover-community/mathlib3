@@ -34,14 +34,13 @@ the initial object in the 2-category of categories under `C` which have biproduc
 
 As a consequence, when `C` already has finite biproducts we have `Mat_ C ≌ C`.
 
-## Matrices over a ring
+## Future work
 
-We also provide for convenience `Mat R`, where `R` is a ring,
+We should provide a more convenient `Mat R`, when `R` is a ring,
 as a category with objects `n : FinType`,
 and whose morphisms are matrices with components in `R`.
 
-This is defined as an induced category from `Mat_ (single_obj R)`, along the map
-sending `n` to the `n`-indexed tuple of `punit.star`.
+Ideally this would conveniently interact with both `Mat_` and `matrix`.
 
 -/
 
@@ -451,51 +450,5 @@ rfl
 rfl
 
 end Mat_
-
-open_locale classical -- Alternatively, we could use `DecFinType`, which doesn't yet exist.
-
-/--
-The category of matrices over a ring `R`, with objects `Fintype`.
--/
-@[derive [category, preadditive]]
-def Mat (R : Type*) [ring R] :=
-induced_category (Mat_ (single_obj R)) (λ n : Fintype, ⟨n, λ _, punit.star⟩)
-
-/--
-Consider a finite type `n` as an object of `Mat R`, the category of matrices over `R`.
--/
-def Mat.of (R : Type*) [ring R] (n : Type*) [fintype n] : Mat R := Fintype.of n
-
-instance (R : Type*) [ring R] : inhabited (Mat R) := ⟨Mat.of R (fin 1)⟩
-
-/--
-Consider a natural number `n` as an object of `Mat R`, the category of matrices over `R`.
--/
-def Mat.of_nat (R : Type*) [ring R] (n : ℕ) : Mat R := Mat.of R (fin n)
-
-/-- Help the typechecker to see a matrix as a morphism in `Mat R`. -/
-@[reducible]
-def Mat.hom_of_matrix {R : Type*} [ring R] {m n : Type*} [fintype m] [fintype n]
-  (f : matrix m n R) : Mat.of R m ⟶ Mat.of R n := f
-
-/-- Help the typechecker to see a morphism in `Mat R` as a matrix. -/
-@[reducible]
-def Mat.matrix_of_hom {R : Type*} [ring R] {m n : Type*} [fintype m] [fintype n]
-  (f : Mat.of R m ⟶ Mat.of R n) : matrix m n R := f
-
--- Morphisms are just matrices:
-example : matrix (fin 3) (fin 3) ℤ := 𝟙 (Mat.of_nat ℤ 3)
-
--- We can construct morphisms using matrix notation:
-example : Mat.of_nat ℤ 2 ⟶ Mat.of_nat ℤ 3 := ![![(37 : ℤ), 42, 0], ![0, 37, 42]]
-
--- We can use constructions about matrices, although unfortunately Lean needs help typechecking.
-example (m n o : Type*) [fintype m] [fintype n] [fintype o]
-  (blocks : o → (Mat.of ℤ m ⟶ Mat.of ℤ n)) : Mat.of ℤ (m × o) ⟶ Mat.of ℤ (n × o) :=
-Mat.hom_of_matrix (matrix.block_diagonal blocks)
-/- Alternatively, you can just use:
-`@matrix.block_diagonal m n o _ _ _ ℤ blocks _ _`
-but unfortunately Lean can't typecheck just
-`matrix.block_diagonal block`. -/
 
 end category_theory

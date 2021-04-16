@@ -135,7 +135,10 @@ def tensor_hom {X₁ Y₁ X₂ Y₂ : center C} (f : X₁ ⟶ Y₁) (g : X₂ �
 def tensor_unit : center C :=
 ⟨𝟙_ C,
   { β := λ U, (λ_ U) ≪≫ (ρ_ U).symm,
-    naturality' := sorry, }⟩
+    naturality' := λ U U' f, begin
+      dsimp,
+      rw [left_unitor_naturality_assoc, right_unitor_inv_naturality, category.assoc],
+    end, }⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 @[simps]

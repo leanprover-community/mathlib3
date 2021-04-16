@@ -198,51 +198,10 @@ begin
 end
 
 @[simp]
-lemma Inf_Ioi (x : ℝ) : Inf (set.Ioi x) = x :=
-begin
-  apply le_antisymm,
-  { refine Inf_le_of_forall_lt (set.Ioi x) ⟨x, λ y, le_of_lt⟩ _ (λ ε hε, _),
-    exact ⟨ε/2, half_lt_self hε, lt_add_of_pos_right _ (half_pos hε)⟩ },
-  { exact le_cInf set.nonempty_Ioi (λ y, le_of_lt) }
-end
-
-lemma eq_interval_of_upward_closed {α : Type*} [conditionally_complete_linear_order α] {s : set α}
-  (hs₁ : ∀ ⦃k₁ k₂⦄, k₁ < k₂ → k₁ ∈ s → k₂ ∈ s) (hs₂ : s.nonempty) (hs₃ : s ≠ set.univ) :
-  ∃ x, s = set.Ici x ∨ s = set.Ioi x :=
-begin
-  obtain ⟨x, hx⟩ : sᶜ.nonempty := set.nonempty_compl.2 hs₃,
-  have : bdd_below s := ⟨x, λ y hy, le_of_not_lt (λ t, hx (hs₁ t hy))⟩,
-  refine ⟨Inf s, _⟩,
-  by_cases Inf s ∈ s,
-  { left,
-    ext y,
-    refine ⟨λ hy, cInf_le ‹bdd_below s› hy, λ hy, _⟩,
-    rcases eq_or_lt_of_le hy with (rfl | hy),
-    { assumption },
-    { apply hs₁ hy h } },
-  { right,
-    ext y,
-    refine ⟨λ hy, _, λ hy, _⟩,
-    { apply lt_of_le_of_ne (cInf_le ‹bdd_below s› ‹y ∈ s›) (ne_of_mem_of_not_mem hy h).symm },
-    obtain ⟨t, ht₁, ht₂⟩ := exists_lt_of_cInf_lt hs₂ hy,
-    apply hs₁ ht₂ ht₁ }
-end
-
-lemma bdd_below_or_eq_univ_of_upward_closed {α : Type*} [linear_order α]
-  {s : set α} (hs₁ : s.nonempty)
-  (hs₂ : ∀ ⦃k₁ k₂⦄, k₁ < k₂ → k₁ ∈ s → k₂ ∈ s) :
-  bdd_below s ∨ s = set.univ :=
-begin
-  rw or_iff_not_imp_right,
-  intro h,
-  obtain ⟨x, hx⟩ := set.nonempty_compl.2 h,
-  refine ⟨x, λ y hy, le_of_not_lt (λ t, hx (hs₂ t hy))⟩,
-end
-
-lemma of_Inf_le {S : set ℝ} (hS : ∀ ⦃x y⦄, x < y → x ∈ S → y ∈ S) (hS₂ : S.nonempty) {x y : ℝ}
-  (hx : Inf S ≤ x) (hy : x < y) :
-  y ∈ S :=
-let ⟨z, hz₁, hz₂⟩ := exists_lt_of_cInf_lt hS₂ (lt_of_le_of_lt hx hy) in hS hz₂ hz₁
+lemma Inf_Ioi {α : Type*} (x : α) [conditionally_complete_lattice α] [no_top_order α]
+  [densely_ordered α] :
+  Inf (set.Ioi x) = x :=
+cInf_intro nonempty_Ioi (λ a ha, le_of_lt ha) (λ w hw, by simpa using exists_between hw)
 
 def gauge (K : set E) (x : E) : ℝ :=
 Inf {y ∈ set.Ioi 0 | y⁻¹ • x ∈ K}
@@ -274,21 +233,6 @@ begin
   apply this ⟨_, ⟨‹0 ≤ θ›, ‹_›⟩, by simp⟩,
 end
 
-lemma gauge_set_upward_closed {K : set E} (hK : convex K) (zero_mem : (0:E) ∈ K) (x : E) :
-  ∀ ⦃a b⦄, a < b → a ∈ {y ∈ set.Ioi (0:ℝ) | y⁻¹ • x ∈ K} → b ∈ {y ∈ set.Ioi (0:ℝ) | y⁻¹ • x ∈ K} :=
-begin
-  rintro a b h ⟨ha₁ : _ < _, ha₂⟩,
-  refine ⟨lt_trans ha₁ h, _⟩,
-  dsimp,
-  suffices : (b⁻¹ * a * a⁻¹) • x ∈ K,
-  { simpa [mul_inv_cancel_right' (ne_of_gt ha₁)] using this },
-  rw mul_smul,
-  apply smul_mem_of_convex hK ‹0 ∈ K› _ _ ha₂,
-  refine mul_nonneg (inv_nonneg.2 (by linarith)) (le_of_lt ha₁),
-  rw [inv_mul_le_iff (lt_trans ha₁ h), mul_one],
-  apply le_of_lt h
-end
-
 lemma zero_le_gauge {K : set E} (x : E) : 0 ≤ gauge K x :=
 real.zero_le_Inf _ (λ x hx, le_of_lt hx.1)
 
@@ -300,13 +244,17 @@ begin
   simp only [set.mem_Ioi, set.mem_Inter, set.mem_set_of_eq],
   split,
   { intros h θ hθ,
-    have := (of_Inf_le _ (gauge_set_nonempty_of_absorbing absorbing) h hθ).2,
-    rwa mem_smul_set_iff_inv_smul_mem,
-    linarith,
-    apply (gauge_set_upward_closed hK zero_mem _) },
+    rw mem_smul_set_iff_inv_smul_mem (show θ ≠ 0, by linarith),
+    rcases exists_lt_of_cInf_lt _ (lt_of_le_of_lt h hθ) with ⟨δ, ⟨hδ₁, hδ₂⟩, _⟩,
+    { suffices : (θ⁻¹ * δ) • δ⁻¹ • x ∈ K,
+      { rwa [smul_smul, mul_inv_cancel_right' ‹0 < δ›.ne'] at this },
+      apply smul_mem_of_convex hK zero_mem _ _ hδ₂,
+      { refine mul_nonneg (inv_nonneg.2 (by linarith)) (le_of_lt hδ₁), },
+      { rw [inv_mul_le_iff (lt_trans ‹0 < δ› ‹δ < θ›), mul_one],
+        apply ‹δ < θ›.le } },
+    apply gauge_set_nonempty_of_absorbing absorbing },
   { intro h,
-    apply Inf_le_of_forall_lt,
-    apply gauge_set_bdd_below,
+    apply Inf_le_of_forall_lt _ gauge_set_bdd_below,
     intros ε hε,
     refine ⟨ε/2, by linarith, show 0 < 1 + ε/2, by linarith, _⟩,
     change _ ∈ _,

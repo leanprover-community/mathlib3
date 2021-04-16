@@ -9,24 +9,6 @@ import group_theory.perm.sign
 import group_theory.perm.cycles
 import dynamics.fixed_points.basic
 
-lemma set.mem_disjoint_imp {α : Type*} {s t : set α} {x : α} (h : x ∈ s) (hd : disjoint s t) :
-  x ∉ t :=
-λ ht, hd (set.mem_inter h ht)
-
-lemma set.not_mem_compl_iff {α : Type*} (s : set α) (x : α) : x ∉ sᶜ ↔ x ∈ s := set.not_not_mem
-
-@[simp] lemma exists_or_eq_left {α : Sort*} (y : α) (p : α → Prop) : ∃ (x : α), x = y ∨ p x :=
-⟨y, or.inl rfl⟩
-
-@[simp] lemma exists_or_eq_right {α : Sort*} (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ x = y :=
-⟨y, or.inr rfl⟩
-
-@[simp] lemma exists_or_eq_left' {α : Sort*} (y : α) (p : α → Prop) : ∃ (x : α), y = x ∨ p x :=
-⟨y, or.inl rfl⟩
-
-@[simp] lemma exists_or_eq_right' {α : Sort*} (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ y = x :=
-⟨y, or.inr rfl⟩
-
 namespace list
 
 variables {α β : Type*}
@@ -768,3 +750,12 @@ s.perm_aux h
 end perm
 
 end cycle
+
+
+variables {α : Type*} [nonempty α]
+
+@[irreducible] noncomputable def arbitrary' (n : name) (α : Type*) [nonempty α] : α :=
+classical.arbitrary α
+
+example {x y : α} (hx : x = arbitrary' `x _) (hy : y = arbitrary' `y _) (h : "x" = "y") : x = y :=
+by rw [hx, hy, h]

@@ -103,7 +103,7 @@ lemma normal_of_def (H K : subgroup α) (hHK : H ≤ K) :
     exact ⟨hN h.1 k.1 hm k.2, mem_carrier.mp (set.mem_of_subset_of_mem hHK (hN h.1 k.1 hm k.2))⟩,
   end }⟩
 
-lemma inf_normal_inf (A B' B : subgroup α) (hB : B' ≤ B) [hN : (B'.of B).normal] :
+lemma inf_normal_inf_right (A B' B : subgroup α) (hB : B' ≤ B) [hN : (B'.of B).normal] :
   ((A ⊓ B').of (A ⊓ B)).normal :=
 { conj_mem := λ n hn g,
   begin
@@ -113,6 +113,19 @@ lemma inf_normal_inf (A B' B : subgroup α) (hB : B' ≤ B) [hN : (B'.of B).norm
     refine ⟨⟨_, this.1⟩, ⟨_, this.2⟩⟩,
     exact mul_mem A (mul_mem A (mem_inf.1 g.2).1 (mem_inf.1 n.2).1) (inv_mem A (mem_inf.1 g.2).1),
     exact mul_mem A (mul_mem A (mem_inf.1 g.2).1 (mem_inf.1 n.2).1) (inv_mem A (mem_inf.1 g.2).1),
+  end }
+
+lemma inf_normal_inf_left
+  {A' A : subgroup α} (B : subgroup α) (hB : A' ≤ A) [hN : (A'.of A).normal] :
+  ((A' ⊓ B).of (A ⊓ B)).normal :=
+{ conj_mem := λ n hn g,
+  begin
+    have h := hN.conj_mem,
+    simp only [mem_of, coe_mul, mem_inf, coe_subtype, coe_inv] at *,
+    have := h ⟨n.val, (mem_inf.mp n.2).1⟩ ⟨hn.1.1, hn.2.1⟩ ⟨g.val, (mem_inf.mp g.2).1⟩,
+    refine ⟨⟨this.1, _⟩, ⟨this.2, _⟩⟩,
+    exact mul_mem B (mul_mem B (mem_inf.1 g.2).2 (mem_inf.1 n.2).2) (inv_mem B (mem_inf.1 g.2).2),
+    exact mul_mem B (mul_mem B (mem_inf.1 g.2).2 (mem_inf.1 n.2).2) (inv_mem B (mem_inf.1 g.2).2),
   end }
 
 instance normal_sup_normal (H K : subgroup α) [hH : H.normal] [hK : K.normal] : (H ⊔ K).normal :=
@@ -125,7 +138,7 @@ instance normal_sup_normal (H K : subgroup α) [hH : H.normal] [hK : K.normal] :
     rcases hmem with ⟨h, k, hh, hk, hhk⟩,
     refine ⟨g * h * g⁻¹, g * k * g⁻¹, hH.conj_mem h hh g, hK.conj_mem k hk g, _⟩,
     rw ← hhk,
-    sorry -- no abel/ring?
+    simp,
   end }
 
 instance normal_inf_normal (H K : subgroup α) [hH : H.normal] [hK : K.normal] : (H ⊓ K).normal :=
@@ -133,26 +146,6 @@ instance normal_inf_normal (H K : subgroup α) [hH : H.normal] [hK : K.normal] :
   begin
     rw mem_inf at *,
     exact ⟨hH.conj_mem n hmem.1 g, hK.conj_mem n hmem.2 g⟩,
-  end }
-
-lemma sup_normal_sup (A B' B : subgroup α) (hB : B' ≤ B) [hN : (B'.of B).normal] [hA : A.normal] :
-  ((A ⊔ B').of (A ⊔ B)).normal :=
-{ conj_mem := λ n hmem g,
-  begin
-    have h := hN.conj_mem,
-    simp only [mem_of, coe_mul, mem_inf, coe_subtype, coe_inv] at *,
-    change ↑g * ↑n * (↑g)⁻¹ ∈ ↑(A ⊔ B') ∧ ↑g * ↑n * (↑g)⁻¹ ∈ ↑(A ⊔ B),
-    have := hmem.1,
-    change ↑n ∈ ↑(A ⊔ B') at this,
-    rcases g with ⟨g, hg⟩,
-    change g ∈ ↑(A ⊔ B) at hg,
-    rw [normal_mul, normal_mul] at *,
-    rw [set.mem_mul, set.mem_mul] at *,
-
-    rcases set.mem_mul.mp this with ⟨x₁, y₁, hx₁, hy₁, hxy₁⟩,
-    rcases set.mem_mul.mp hg with ⟨x₂, y₂, hx₂, hy₂, hxy₂⟩,
-    clear' this hg,
-    sorry -- this is not true?
   end }
 
 lemma map_inf {G : Type u} [group G] {N : Type v} [group N]
@@ -234,9 +227,9 @@ instance Zassenhaus1 {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
   [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] : (((A' ⊓ B) ⊔ (A ⊓ B')).of (A ⊓ B)).normal :=
 begin
   haveI h₁ : ((A' ⊓ B).of (A ⊓ B)).normal :=
-  by { have := inf_normal_inf B A' A hA, rw inf_comm, rwa @inf_comm _ _ A' B },
+  by { have := inf_normal_inf_right B A' A hA, rw inf_comm, rwa @inf_comm _ _ A' B },
   haveI h₂ : ((A ⊓ B').of (A ⊓ B)).normal :=
-  by { have := inf_normal_inf A B' B hB, rw inf_comm, rwa @inf_comm _ _ B A },
+  by { have := inf_normal_inf_right A B' B hB, rw inf_comm, rwa @inf_comm _ _ B A },
   rw sup_of,
   { exact subgroup.normal_sup_normal ((A' ⊓ B).of (A ⊓ B)) ((A ⊓ B').of (A ⊓ B)) },
   { exact inf_le_inf hA (le_refl _) },
@@ -411,13 +404,14 @@ lemma Zassenhaus_quot_aux {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤
 begin
   have : ↑((A' ⊓ B) ⊔ (A ⊓ B')) = ((A' : set α) ⊓ B) * (A ⊓ B'),
   { haveI : ((A' ⊓ B).of (A ⊓ B)).normal :=
-    by { have := inf_normal_inf B A' A hA, rw inf_comm, rwa @inf_comm _ _ A' B },
+    by { have := inf_normal_inf_right B A' A hA, rw inf_comm, rwa @inf_comm _ _ A' B },
     refine normal_subgroup_mul _ (A ⊓ B) _
       (inf_le_inf hA (le_refl B)) (inf_le_inf (le_refl A) hB), },
   rw this,
   clear this,
   have := mod_law_left (A' ⊓ B) A B' _,
-  have bleh : ↑(A' ⊓ B) * ↑B' = (B : set α) ⊓ (A' * B'), sorry,
+  have bleh : ↑(A' ⊓ B) * ↑B' = (B : set α) ⊓ (A' * B'),
+  { have yes := mod_law_right B' B A' hB, rwa inf_comm at yes },
   rw bleh at this,
   rw ← inf_assoc at this,
   convert this,
@@ -433,7 +427,7 @@ begin
   refine ⟨x, 1, hx, one_mem t, mul_one x⟩,
 end
 
-lemma subgroup.subgroup_normal.mem_comm {G : Type u} [group G] {H K : subgroup G}
+lemma subgroup_normal.mem_comm {G : Type u} [group G] {H K : subgroup G}
   (hK : H ≤ K) [hN : (H.of K).normal] {a b : G} (hb : b ∈ K) (h : a * b ∈ H) : b * a ∈ H :=
 begin
   rw normal_of_def H K hK at hN,
@@ -443,107 +437,152 @@ begin
   rwa [mul_right_inv, mul_one] at hN,
 end
 
-noncomputable def Zassenhaus_fun {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
-  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
-  ↥(A' ⊔ A ⊓ B) →* (Zassenhaus_quot hA hB) :=
-{ to_fun := λ x, quotient.mk' ⟨_, ((mem_mul (Zassenhaus_aux B hA)).mp x.2).some_spec.some_spec.2.1⟩,
-  map_one' :=
-  begin
-    haveI := quotient_group.left_rel ((A' ⊓ B ⊔ A ⊓ B').of (A ⊓ B)),
-    refine quot.sound _,
-    let := ((mem_mul (Zassenhaus_aux B hA)).mp (1 : (A' ⊔ A ⊓ B)).2),
-    let g : ↥(A ⊓ B) := ⟨this.some_spec.some, this.some_spec.some_spec.2.1⟩,
-    have hs := inv_mem A' this.some_spec.some_spec.1,
-    have hsg : this.some * g.val = 1 := this.some_spec.some_spec.2.2,
-    suffices h : g⁻¹ * 1 ∈ ((A' ⊓ B ⊔ A ⊓ B').of (A ⊓ B)),
-    exact h,
-    rw [mem_of, mul_one, coe_subtype, mem_inf, coe_inv],
-    rw [inv_mem_iff (A' ⊓ B ⊔ A ⊓ B'), inv_mem_iff (A ⊓ B)],
-    refine ⟨_, g.2⟩,
-    change ↑g ∈ ↑(A' ⊓ B ⊔ A ⊓ B'),
-    rw Zassenhaus_quot_aux,
-    rw mul_eq_one_iff_inv_eq at hsg,
-    rw hsg at hs,
-    rw [set.inf_eq_inter],
-    rw set.mem_inter_eq,
-    have boo : g.val ∈ (A : set α) ∩ B := g.2,
-    refine ⟨boo, _⟩,
-    change ↑g ∈ ↑A' at hs,
-    exact set.mem_of_subset_of_mem (set.subset_mul_left A' B') hs,
-    exact hA,
-    exact hB,
-  end,
-  map_mul' := λ a b,
-  begin
-    haveI := subgroup.Zassenhaus1 hA hB,
-    refine quot.sound _,
-    let ainfo := ((mem_mul (Zassenhaus_aux B hA)).mp (a : (A' ⊔ A ⊓ B)).2),
-    let binfo := ((mem_mul (Zassenhaus_aux B hA)).mp (b : (A' ⊔ A ⊓ B)).2),
-    let abinfo := ((mem_mul (Zassenhaus_aux B hA)).mp (a * b : (A' ⊔ A ⊓ B)).2),
-    let x : ↥(A ⊓ B) := ⟨ainfo.some_spec.some, ainfo.some_spec.some_spec.2.1⟩,
-    let y : ↥(A ⊓ B) := ⟨binfo.some_spec.some, binfo.some_spec.some_spec.2.1⟩,
-    let xy : ↥(A ⊓ B) := ⟨abinfo.some_spec.some, abinfo.some_spec.some_spec.2.1⟩,
-    have hsa := inv_mem A' ainfo.some_spec.some_spec.1,
-    have hsxm : ainfo.some * x.val = a := ainfo.some_spec.some_spec.2.2,
-    have hsb := inv_mem A' binfo.some_spec.some_spec.1,
-    have hsym : binfo.some * y.val = b := binfo.some_spec.some_spec.2.2,
-    have hsab := inv_mem A' abinfo.some_spec.some_spec.1,
-    have hsxym : abinfo.some * xy.val = (a * b) := abinfo.some_spec.some_spec.2.2,
-    suffices h : xy⁻¹ * (x * y) ∈ ((A' ⊓ B ⊔ A ⊓ B').of (A ⊓ B)),
-    exact h,
-    rw [mem_of, coe_subtype, mem_inf, coe_mul, coe_inv, coe_mul],
-    refine ⟨_, mul_mem (A ⊓ B) (inv_mem (A ⊓ B) xy.2) (mul_mem (A ⊓ B) x.2 y.2)⟩,
-    refine subgroup.subgroup_normal.mem_comm (Zassenhaus_subgroup hA hB) (inv_mem (A ⊓ B) xy.2) _,
-    change _ ∈ ↑(A' ⊓ B ⊔ A ⊓ B'),
-    rw Zassenhaus_quot_aux hA hB,
-    rw [← hsxm, ← hsym] at hsxym,
-    have : ainfo.some * x.val * (binfo.some * y.val) = ainfo.some * (x * binfo.some * x⁻¹) * (x * y),
-    { sorry },
-    rw this at hsxym, clear this,
-    rw ← eq_mul_inv_iff_mul_eq at hsxym,
-    rw mul_assoc at hsxym,
-    rw mul_assoc at hsxym,
-    rw ← inv_mul_eq_iff_eq_mul at hsxym,
-    rw ← inv_mul_eq_iff_eq_mul at hsxym,
-    have mem : (↑x * binfo.some * (↑x)⁻¹)⁻¹ * ((ainfo.some)⁻¹ * abinfo.some) ∈ A', { sorry },
-    rw hsxym at mem,
-    have mem2 : ↑x * ↑y * (xy.val)⁻¹ ∈ (A : set α) ∩ B, { sorry },
-    rw [set.inf_eq_inter],
-    rw set.mem_inter_eq,
-    refine ⟨mem2, _⟩,
-    change _ ∈ ↑A' at mem,
-    exact set.mem_of_subset_of_mem (set.subset_mul_left A' B') mem,
-  end }
+lemma mem_mul' {G : Type u} [group G] {H K : subgroup G} {g : G} (h : ↑(H ⊔ K) = (H : set G) * K) :
+  g ∈ H ⊔ K ↔ ∃ (x:H) (y:K), (x * y : G) = g :=
+(mem_mul h).trans ⟨
+  λ ⟨a, b, ha, hb, h⟩, ⟨⟨a, ha⟩, ⟨b, hb⟩, h⟩,
+  λ ⟨⟨a, ha⟩, ⟨b, hb⟩, h⟩, ⟨a, b, ha, hb, h⟩⟩
 
 lemma mem_of_subset {x : α} {H K : subgroup α} (hK : H ≤ K) (h : x ∈ H) : x ∈ K :=
 begin
-  sorry
+  change x ∈ ↑K, change x ∈ (H : set α) at h, change (H : set α) ⊆ K at hK,
+  exact set.mem_of_subset_of_mem hK h,
 end
 
-lemma Zassenhaus_fun_ker (A' A B' B : subgroup α) (hA : A' ≤ A) (hB : B' ≤ B)
+noncomputable def Zassenhaus_fun_aux {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
+  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] (x : A' ⊔ A ⊓ B) : Zassenhaus_quot hA hB :=
+quotient.mk' ⟨_, ((mem_mul (Zassenhaus_aux B hA)).mp x.2).some_spec.some_spec.2.1⟩
+
+theorem Zassenhaus_fun_aux_app {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
+  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] (a : A') (x : A ⊓ B) (h) :
+  Zassenhaus_fun_aux hA hB ⟨a * x, h⟩ = quotient.mk' x :=
+begin
+  apply quotient.sound',
+  have H := (mem_mul (Zassenhaus_aux B hA)).mp h,
+  let u := H.some, let v := H.some_spec.some,
+  cases a with a ha, cases x with x hx,
+  obtain ⟨hu : u ∈ A', hv : v ∈ A ⊓ B, huv : u * v = a * x⟩ := H.some_spec.some_spec,
+  refine (mem_of _ _ _).2 (_ : v⁻¹ * x ∈ (A' ⊓ B ⊔ A ⊓ B') ⊓ (A ⊓ B)),
+  rw inf_eq_left.2 (sup_le (inf_le_inf_right _ hA) (inf_le_inf_left _ hB)),
+  refine mem_of_subset le_sup_left _,
+  have h4 := (eq_mul_inv_of_mul_eq huv),
+  rw mul_assoc at h4, clear huv,
+  have huv := inv_mul_eq_of_eq_mul h4, clear h4,
+  have := mul_mem A' (inv_mem A' ha) hu,
+  rw huv at this,
+  haveI := inf_normal_inf_left B hA,
+  refine subgroup_normal.mem_comm (inf_le_inf hA (le_refl B)) (inv_mem (A ⊓ B) hv) _,
+  refine mem_inf.mpr ⟨this, mul_mem _ (mem_inf.mp hx).2 (inv_mem _ (mem_inf.mp hv).2)⟩,
+end
+
+theorem Zassenhaus_fun_aux_app' {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
+  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] (a : A') (x : A ⊓ B) (b : A' ⊔ A ⊓ B)
+  (e : (a * x : α) = b.1) :
+  Zassenhaus_fun_aux hA hB b = quotient.mk' x :=
+begin
+  have h : (a * x : α) ∈ A' ⊔ A ⊓ B, {rw e, exact b.2},
+  convert ← Zassenhaus_fun_aux_app _ _ _ _ h, ext, exact e
+end
+
+noncomputable def Zassenhaus_fun {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
+  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
+  ↥(A' ⊔ A ⊓ B) →* Zassenhaus_quot hA hB :=
+{ to_fun := Zassenhaus_fun_aux _ _,
+  map_one' := Zassenhaus_fun_aux_app' _ _ 1 _ _ (by simp; refl),
+  map_mul' := λ ⟨a, ha⟩ ⟨b, hb⟩,
+  begin
+    clear_,
+    obtain ⟨a₁, a₂, rfl⟩ := (mem_mul' (Zassenhaus_aux B hA)).1 ha,
+    obtain ⟨b₁, b₂, rfl⟩ := (mem_mul' (Zassenhaus_aux B hA)).1 hb,
+    simp only [Zassenhaus_fun_aux_app],
+    refine Zassenhaus_fun_aux_app' _ _ ⟨a₁ * (a₂ * b₁ * a₂⁻¹), _⟩ _ _ _,
+    { rw normal_of_def _ _ hA at hAN,
+      exact mul_mem A' a₁.2 (hAN ↑b₁ ↑a₂ b₁.2 (mem_inf.mp a₂.2).1) },
+    simp [mul_assoc],
+  end }
+
+lemma Zassenhaus_fun_ker {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
   [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
   (Zassenhaus_fun hA hB).ker = (A' ⊔ A ⊓ B').of (A' ⊔ A ⊓ B) :=
 begin
-  ext,
+  ext ⟨x, hx⟩,
   refine ⟨λ h, _, λ h, _⟩,
   { rw monoid_hom.mem_ker at h,
     dsimp [Zassenhaus_fun] at h,
-    sorry },
+    obtain ⟨a, b, rfl⟩ := (mem_mul' (Zassenhaus_aux B hA)).1 hx,
+    simp only [mem_of, coe_mk, mem_inf, coe_subtype],
+    rw Zassenhaus_fun_aux_app' hA hB _ _ ⟨_, hx⟩ rfl at h,
+    change quotient.mk' b = quotient.mk' _ at h,
+    rw quotient.eq' at h,
+    change b⁻¹ * 1 ∈ ((A' ⊓ B ⊔ A ⊓ B').of (A ⊓ B)) at h,
+    rw [mem_of, mul_one, coe_subtype, coe_inv, inv_mem_iff] at h,
+    rw inf_eq_left.2 (sup_le (inf_le_inf_right _ hA) (inf_le_inf_left _ hB)) at h,
+    letI := inf_normal_inf_left B hA,
+    have p := normal_subgroup_mul (A' ⊓ B) (A ⊓ B) (A ⊓ B')
+      (inf_le_inf hA (le_refl B)) (inf_le_inf (le_refl A) hB),
+    obtain ⟨x, y, hmm⟩ := (mem_mul' p).mp h,
+    refine ⟨_, hx⟩,
+    rw ← hmm,
+    refine (mem_mul' (Zassenhaus_aux B' hA)).mpr ⟨a * ⟨x, _⟩, y, _⟩,
+    exact mem_of_subset (inf_le_left) x.2,
+    simp [mul_assoc] },
   rw monoid_hom.mem_ker,
   dsimp [Zassenhaus_fun],
+  obtain ⟨a, b, rfl⟩ := (mem_mul' (Zassenhaus_aux B hA)).1 hx,
+  simp only [Zassenhaus_fun_aux_app],
   refine quot.sound _,
-  simp only [mem_of, set_like.coe_mem, and_true, mem_inf, coe_subtype] at h,
-  --have := ((mem_mul (Zassenhaus_aux B hA)).mp x.2),
-  have := ((mem_mul (Zassenhaus_aux B' hA)).mp h),
-  have hz' : _ ∈ A ⊓ B := mem_of_subset (inf_le_inf (le_refl A) hB) this.some_spec.some_spec.2.1,
-  --have : ∃ y z, y ∈ A' ∧ z ∈ A ⊓ B ∧ y * z = ↑x := ⟨y, z, hy, hz, hz', hyz⟩,
-  let g : ↥(A ⊓ B) := ⟨this.some_spec.some, hz'⟩,
-  suffices h : g⁻¹ * 1 ∈ ((A' ⊓ B ⊔ A ⊓ B').of (A ⊓ B)),
-  convert h,
-  rw [mem_of, mul_one, coe_subtype, coe_inv, inv_mem_iff, mem_inf],
-  have hz' : z ∈ A ⊓ B, sorry,
-  have : g = ⟨z, hz'⟩,
-  sorry
+  change b⁻¹ * 1 ∈ ((A' ⊓ B ⊔ A ⊓ B').of (A ⊓ B)),
+  simp only [mem_of, set_like.coe_mem, and_true, mem_inf, coe_subtype, coe_mk] at h,
+  rw [mem_of, mul_one, coe_subtype, coe_inv, inv_mem_iff],
+  rw inf_eq_left.2 (sup_le (inf_le_inf_right _ hA) (inf_le_inf_left _ hB)),
+  have hx' := h.1, clear h,
+  obtain ⟨x, y, h⟩ := (mem_mul' (Zassenhaus_aux B' hA)).1 hx',
+  have : (b : α) * y⁻¹ ∈ A' ⊓ B ⊔ A ⊓ B',
+  refine mem_of_subset le_sup_left _,
+  have h4 := (eq_mul_inv_of_mul_eq h),
+  rw mul_assoc at h4, clear h,
+  have h := inv_mul_eq_of_eq_mul h4, clear h4,
+  have := mul_mem A' (inv_mem A' a.2) x.2,
+  simp only [h, subtype.val_eq_coe] at this,
+  have bval := (mem_inf.mp y.2).2, rw subtype.val_eq_coe at bval,
+  refine mem_inf.mpr ⟨this, mul_mem _ (mem_inf.mp b.2).2 (mem_of_subset hB (inv_mem _ bval))⟩,
+  have done : (b : α) * y⁻¹ * y ∈ A' ⊓ B ⊔ A ⊓ B',
+  refine mul_mem _ this (mem_of_subset le_sup_right y.2),
+  rwa [inv_mul_cancel_right] at done,
 end
+
+open quotient_group
+
+@[instance] lemma Zassenhaus_normal {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
+  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
+  ((A' ⊔ A ⊓ B').of (A' ⊔ A ⊓ B)).normal :=
+by { rw ← Zassenhaus_fun_ker hA hB, exact monoid_hom.normal_ker _, }
+
+@[instance] lemma finally {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
+  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
+  group $ quotient_group.quotient ((A' ⊔ A ⊓ B').of (A' ⊔ A ⊓ B)) :=
+begin
+  haveI := subgroup.Zassenhaus_normal hA hB,
+  apply_instance,
+end
+
+lemma Zassenhaus_fun_surjective {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
+  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
+  function.surjective (Zassenhaus_fun hA hB) := λ x, x.induction_on' $
+begin
+  rintro ⟨y, (hy : y ∈ ↑(A ⊓ B))⟩,
+  have hy' := (mem_mul' (Zassenhaus_aux B hA)).mpr ⟨1, ⟨y, hy⟩, one_mul _⟩,
+  use ⟨y, hy'⟩,
+  rw subtype.coe_mk at hy',
+  rw ← one_mul y at hy',
+  rw ← subtype.coe_mk y hy at hy',
+  conv_lhs { find y { rw ← one_mul y, rw ← subtype.coe_mk y hy, } },
+  simp only [Zassenhaus_fun, monoid_hom.coe_mk],
+  exact Zassenhaus_fun_aux_app hA hB 1 ⟨y, hy⟩ hy',
+end
+
+def butterfly {A' A B' B : subgroup α} {hA : A' ≤ A} {hB : B' ≤ B}
+  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
+  quotient ((A' ⊔ A ⊓ B').of (A' ⊔ A ⊓ B)) ≃* quotient ((B' ⊔ B ⊓ A').of (B' ⊔ B ⊓ A)) := sorry
 
 end subgroup

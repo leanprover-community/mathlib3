@@ -9,7 +9,7 @@ import algebra.group.pi
 import group_theory.submonoid.operations
 
 /-!
-# Equivalence between `finsupp` and `finsupp` constrained to the range of `single i`
+# Equivalence between `finsupp` and `dfinsupp` constrained to the range of `single i`
 
 ## Main definitions
 
@@ -48,7 +48,7 @@ by apply_instance
 
 end finsupp
 
-/-- Typeclass resolution can't find this for some reason, it is needed by the `≃+` in
+/-- Typeclass resolution can't find this for some reason, it is needed by the `≃+` to state
 `finsupp.equiv_dfinsupp_single_submonoid`. -/
 instance dfinsupp.add_comm_monoid_of_finsupp_single_submonoid [add_comm_monoid M] :
   add_comm_monoid (Π₀ (i : ι), finsupp.single_submonoid M i) :=

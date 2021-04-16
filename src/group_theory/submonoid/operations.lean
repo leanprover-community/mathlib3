@@ -116,7 +116,7 @@ def submonoid.add_submonoid_equiv (M : Type*) [mul_one_class M] :
   inv_fun := submonoid.of_add_submonoid,
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
-  map_rel_iff' := λ a b, (submonoid.to_add_submonoid_le_iff a b).symm, }
+  map_rel_iff' := λ a b, iff.rfl, }
 
 lemma submonoid.closure.to_add_submonoid {M : Type*} [monoid M] (S : set M) :
   (submonoid.closure S).to_add_submonoid = add_submonoid.closure (additive.of_mul '' S) :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import data.equiv.mul_add.basic
+import group_theory.perm.basic
 
 /-!
 # Multiplicative and additive equivs on units and groups
@@ -24,7 +25,7 @@ protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).
 
 namespace units
 
-variables [monoid M] [monoid N] [monoid P]
+variables {M N P : Type*} [monoid M] [monoid N] [monoid P]
 
 /-- A multiplicative equivalence of monoids defines a multiplicative equivalence
 of their groups of units. -/
@@ -36,11 +37,16 @@ def map_equiv (h : M ≃* N) : units M ≃* units N :=
 
 /-- Left multiplication by a unit of a monoid is a permutation of the underlying type. -/
 @[to_additive "Left addition of an additive unit is a permutation of the underlying type."]
-def mul_left (u : units M) : equiv.perm M :=
-{ to_fun    := λx, u * x,
-  inv_fun   := λx, ↑u⁻¹ * x,
-  left_inv  := u.inv_mul_cancel_left,
-  right_inv := u.mul_inv_cancel_left }
+def mul_left : units M ≃* equiv.perm M :=
+{ to_fun = λ u,
+  { to_fun    := λx, u * x,
+    inv_fun   := λx, ↑u⁻¹ * x,
+    left_inv  := u.inv_mul_cancel_left,
+    right_inv := u.mul_inv_cancel_left },
+  inv_fun := λ p, p 1,
+  left_inv := sorry,
+  right_inv := sorry,
+  map_mul' := sorry }
 
 @[simp, to_additive]
 lemma coe_mul_left (u : units M) : ⇑u.mul_left = (*) u := rfl

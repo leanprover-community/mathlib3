@@ -758,6 +758,16 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
   (H2 : ∀ (a:R) x, p x → p (a • x)) : p x :=
 (@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
 
+lemma span_eq_add_submonoid.closure {M : Type*} [add_comm_monoid M] (S : set M) :
+  (span ℕ S).to_add_submonoid = add_submonoid.closure S :=
+begin
+  refine (add_submonoid.closure_eq_of_le (by exact subset_span) _).symm,
+  rintros m (hm : m ∈ (span ℕ S)),
+  exact submodule.span_induction hm (λ s hs, add_submonoid.subset_closure hs)
+    (add_submonoid.zero_mem _) (λ x y hx hy, add_submonoid.add_mem _ hx hy)
+    (λ a m hm, add_submonoid.nsmul_mem _ hm _)
+end
+
 section
 variables (R M)
 

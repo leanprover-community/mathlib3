@@ -140,11 +140,14 @@ instance [comm_monoid M] [comm_monoid N] : comm_monoid (M × N) :=
 instance [cancel_comm_monoid M] [cancel_comm_monoid N] : cancel_comm_monoid (M × N) :=
 { .. prod.left_cancel_monoid, .. prod.comm_monoid }
 
+instance [mul_zero_one_class M] [mul_zero_one_class N] : mul_zero_one_class (M × N) :=
+{ .. prod.mul_zero_class, .. prod.mul_one_class }
+
 instance [monoid_with_zero M] [monoid_with_zero N] : monoid_with_zero (M × N) :=
-{ .. prod.monoid, .. prod.mul_zero_class }
+{ .. prod.monoid, .. prod.mul_zero_one_class }
 
 instance [comm_monoid_with_zero M] [comm_monoid_with_zero N] : comm_monoid_with_zero (M × N) :=
-{ .. prod.comm_monoid, .. prod.mul_zero_class }
+{ .. prod.comm_monoid, .. prod.monoid_with_zero }
 
 @[to_additive]
 instance [comm_group G] [comm_group H] : comm_group (G × H) :=

@@ -126,12 +126,14 @@ variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
 open continuous_linear_equiv submodule
 open_locale classical
 
-lemma coord_norm' (x : E) (h : x ≠ 0) : ∥norm' 𝕜 x • coord 𝕜 x h∥ = 1 :=
+lemma coord_norm' (x : E) (h : x ≠ 0) :
+  ∥norm' 𝕜 x • coord 𝕜 x h∥ = 1 :=
 by rw [norm_smul, norm_norm', coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
 
 /-- Corollary of Hahn-Banach.  Given a nonzero element `x` of a normed space, there exists an
     element of the dual space, of norm `1`, whose value on `x` is `∥x∥`. -/
-theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=
+theorem exists_dual_vector (x : E) (h : x ≠ 0) :
+  ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=
 begin
   let p : submodule 𝕜 E := 𝕜 ∙ x,
   let f := norm' 𝕜 x • coord 𝕜 x h,
@@ -164,13 +166,16 @@ open set
 noncomputable theory
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
-lemma mem_sep_true {α : Type*} (s : set α) : {a ∈ s | true} = s :=
+lemma mem_sep_true {α : Type*} (s : set α) :
+  {a ∈ s | true} = s :=
 by { ext; simp }
 
-lemma mem_sep_false {α : Type*} (s : set α) : {a ∈ s | false} = ∅ :=
+lemma mem_sep_false {α : Type*} (s : set α) :
+  {a ∈ s | false} = ∅ :=
 by { ext; simp }
 
-lemma real.zero_le_Inf (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Inf S :=
+lemma real.zero_le_Inf (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) :
+  0 ≤ Inf S :=
 begin
   rcases S.eq_empty_or_nonempty with (rfl | hS₂),
   { simp [real.Inf_empty] },
@@ -193,7 +198,8 @@ lemma Inf_Ioi {α : Type*} (x : α) [conditionally_complete_lattice α] [no_top_
   Inf (set.Ioi x) = x :=
 cInf_intro nonempty_Ioi (λ a ha, le_of_lt ha) (λ w hw, by simpa using exists_between hw)
 
-def gauge (K : set E) (x : E) : ℝ :=
+def gauge (K : set E) (x : E) :
+  ℝ :=
 Inf {y ∈ set.Ioi 0 | y⁻¹ • x ∈ K}
 
 lemma gauge_set_nonempty_of_absorbing {K : set E} (absorbing : ∀ x, ∃ (θ : ℝ), 0 < θ ∧ θ • x ∈ K)
@@ -206,7 +212,8 @@ lemma gauge_set_bdd_below {K : set E} {x : E} :
 ⟨0, λ y hy, le_of_lt hy.1⟩
 
 @[simp]
-lemma gauge_zero {K : set E} : gauge K 0 = 0 :=
+lemma gauge_zero {K : set E} :
+  gauge K 0 = 0 :=
 begin
   rw gauge,
   by_cases (0:E) ∈ K,
@@ -223,7 +230,8 @@ begin
   apply this ⟨_, ⟨‹0 ≤ θ›, ‹_›⟩, by simp⟩,
 end
 
-lemma zero_le_gauge {K : set E} (x : E) : 0 ≤ gauge K x :=
+lemma zero_le_gauge {K : set E} (x : E) :
+  0 ≤ gauge K x :=
 real.zero_le_Inf _ (λ x hx, le_of_lt hx.1)
 
 lemma gauge_le_one_eq {K : set E} (hK : convex K) (zero_mem : (0:E) ∈ K)
@@ -484,7 +492,7 @@ begin
 end
 
 lemma continuous_linear_map_of_continuous_at_zero {E F : Type*} [normed_group E] [normed_space ℝ E]
-  [normed_group F] [normed_space ℝ F] (f : E →ₗ[ℝ] F) (hf : continuous_at f (0:E)):
+  [normed_group F] [normed_space ℝ F] (f : E →ₗ[ℝ] F) (hf : continuous_at f (0:E)) :
   continuous f :=
 begin
   have : filter.tendsto f (nhds 0) (nhds 0), by simpa using hf.tendsto,
@@ -492,7 +500,7 @@ begin
 end
 
 lemma continuous_at_of_exists_open {E : Type*} [normed_group E] [normed_space ℝ E]
-  (f : E →ₗ[ℝ] ℝ) (hf : ∀ ε, 0 < ε → ∃ (U : set E), (0:E) ∈ U ∧ is_open U ∧ ∀ x ∈ U, ∥f x∥ < ε):
+  (f : E →ₗ[ℝ] ℝ) (hf : ∀ ε, 0 < ε → ∃ (U : set E), (0:E) ∈ U ∧ is_open U ∧ ∀ x ∈ U, ∥f x∥ < ε) :
   continuous_at f (0:E) :=
 begin
   intros U hU,
@@ -507,7 +515,8 @@ begin
   apply hV₃ _ hx,
 end
 
-example {x : ℝ} (S : set E) : (-x • S) = -(x • S) :=
+example {x : ℝ} (S : set E) :
+  (-x • S) = -(x • S) :=
 begin
   ext y,
   simp only [mem_neg],
@@ -545,7 +554,7 @@ begin
         rw abs_lt,
         split,
         { have : -ε⁻¹ • x ∈ C,
-          { rcases hx₂ with ⟨y, _, rfl⟩,
+          { obtain ⟨y, _, rfl⟩ := hx₂,
             simpa [smul_smul, hε.ne'] },
           have := gauge_lt_one_of_mem_of_open hC zero_mem hC₂ (-ε⁻¹ • x) ‹_ ∈ C›,
           rw [neg_smul, ←smul_neg, gauge_mul_nonneg (inv_nonneg.2 hε.le), inv_mul_lt_iff hε,
@@ -617,11 +626,12 @@ begin
   simp [hx₁],
 end
 
+
 theorem geometric_hahn_banach_open {A B : set E}
-  (hA₂ : convex A) (hA₃ : is_open A)
-  (hB₂ : convex B)
+  (hA₁ : convex A) (hA₂ : is_open A)
+  (hB : convex B)
   (disj : disjoint A B) :
-∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ (∀ b ∈ B, s ≤ f b) :=
+  ∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ (∀ b ∈ B, s ≤ f b) :=
 begin
   rcases A.eq_empty_or_nonempty with (rfl | ⟨a₀, ha₀⟩),
   { refine ⟨0, 0, by simp, λ b hb, by simp⟩ },
@@ -632,18 +642,18 @@ begin
   have : (0:E) ∈ C,
   { refine ⟨_ + a₀, -b₀, add_mem_add rfl ‹_›, neg_mem_neg.2 ‹_›, _⟩,
     simp },
-  have : is_open C := hA₃.add_left.add_right,
+  have : is_open C := hA₂.add_left.add_right,
   have : convex C,
   { apply convex.add,
     apply convex.add,
     apply convex_singleton,
-    apply hA₂,
+    apply hA₁,
     apply ‹convex B›.neg_preimage },
   have : x₀ ∉ C,
   { intro hx₀,
     simp only [mem_add, mem_singleton_iff, mem_neg, exists_eq_left, exists_exists_and_eq_and,
       exists_and_distrib_left, add_assoc x₀, add_right_eq_self] at hx₀,
-    rcases hx₀ with ⟨a, ha, b, hb, _⟩,
+    obtain ⟨a, ha, b, hb, _⟩ := hx₀,
     apply disj ⟨ha, _⟩,
     convert hb,
     rwa ←add_eq_zero_iff_eq_neg },
@@ -688,9 +698,29 @@ begin
     apply (forall_lt _ ha₀ _ hb').le },
 end
 
+theorem geometric_hahn_banach_open_point {A : set E} {x : E}
+  (hA₁ : convex A) (hA₂ : is_open A)
+  (disj : x ∉ A) :
+  ∃ (f : E →L[ℝ] ℝ), (∀ a ∈ A, f a < f x) :=
+let ⟨f, s, hA, hx⟩ := geometric_hahn_banach_open hA₁ hA₂ (convex_singleton x)
+  (disjoint_singleton_right.2 disj)
+  in ⟨f, λ a ha, lt_of_lt_of_le (hA a ha) (hx x (mem_singleton _))⟩
+
+theorem geometric_hahn_banach_point_open {x : E} {B : set E}
+  (hB₁ : convex B) (hB₂ : is_open B)
+  (disj : x ∉ B) :
+  ∃ (f : E →L[ℝ] ℝ), (∀ b ∈ B, f x < f b) :=
+begin
+  obtain ⟨f, s, hB, hx⟩ := geometric_hahn_banach_open hB₁ hB₂ (convex_singleton x)
+    (disjoint_singleton_right.2 disj),
+  refine ⟨-f, λ b hb, _⟩,
+  simp,
+  exact lt_of_lt_of_le (hB b hb) (hx x (mem_singleton _)),
+end
+
 theorem geometric_hahn_banach_open_open {A B : set E}
-  (hA₂ : convex A) (hA₃ : is_open A)
-  (hB₂ : convex B) (hB₃ : is_open B)
+  (hA₁ : convex A) (hA₂ : is_open A)
+  (hB₁ : convex B) (hB₃ : is_open B)
   (disj : disjoint A B) :
 ∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ (∀ b ∈ B, s < f b) :=
 begin
@@ -698,7 +728,7 @@ begin
   { refine ⟨0, -1, by simp, λ b hb, by norm_num⟩ },
   rcases B.eq_empty_or_nonempty with (rfl | ⟨b₀, hb₀⟩),
   { refine ⟨0, 1, λ a ha, by norm_num, by simp⟩ },
-  obtain ⟨f, s, hf₁, hf₂⟩ := geometric_hahn_banach_open hA₂ hA₃ hB₂ disj,
+  obtain ⟨f, s, hf₁, hf₂⟩ := geometric_hahn_banach_open hA₁ hA₂ hB₁ disj,
   have : f ≠ 0,
   { rintro rfl,
     have := hf₁ _ ha₀,
@@ -722,7 +752,7 @@ open filter
 open_locale topological_space
 
 theorem closed_compact_separate {A B : set E}
-  (hA₁ : convex A) (hA₄ : is_compact A) (hB₁ : convex B) (hB₃ : is_closed B) (disj : disjoint A B) :
+  (hA₁ : convex A) (hA₂ : is_compact A) (hB₁ : convex B) (hB₃ : is_closed B) (disj : disjoint A B) :
   ∃ U V, is_open U ∧ is_open V ∧ convex U ∧ convex V ∧ A ⊆ U ∧ B ⊆ V ∧ disjoint U V :=
 begin
   have : ∃ (n : ℕ), disjoint (A + metric.ball 0 (n+1)⁻¹) (B + metric.ball 0 (n+1)⁻¹),
@@ -731,7 +761,7 @@ begin
     simp only [not_disjoint_iff, set.mem_add, metric.mem_ball, dist_zero_right,
       ←exists_and_distrib_left, ←exists_and_distrib_right, and_assoc] at h,
     choose z f f' g g' h₁ h₂ h₃ h₄ h₅ h₆ using h,
-    obtain ⟨w, hw, φ, hφ₁, hφ₂ : tendsto (f ∘ _) _ _⟩ := hA₄.tendsto_subseq h₁,
+    obtain ⟨w, hw, φ, hφ₁, hφ₂ : tendsto (f ∘ _) _ _⟩ := hA₂.tendsto_subseq h₁,
     have : tendsto (g ∘ φ) at_top (𝓝 w),
     { have : tendsto (f - g) at_top (𝓝 0),
       { suffices : ∀ n, ∥(f - g) n∥ ≤ 2 * (n+1)⁻¹,
@@ -757,7 +787,7 @@ begin
       simpa using tendsto.sub hφ₂ ‹tendsto (f ∘ φ - g ∘ φ) at_top _› },
     have := mem_of_is_closed_sequential ‹is_closed B› (λ n, h₄ (φ n)) this,
     apply disj ⟨hw, ‹w ∈ B›⟩ },
-  rcases this with ⟨n, hn⟩,
+  obtain ⟨n, hn⟩ := this,
   refine ⟨_, _, _, _, hA₁.add _, hB₁.add _, _, _, hn⟩,
   { exact metric.is_open_ball.add_left },
   { exact metric.is_open_ball.add_left },
@@ -778,8 +808,8 @@ begin
 end
 
 theorem geometric_hahn_banach_compact_closed {A B : set E}
-  (hA₂ : convex A) (hA₄ : is_compact A)
-  (hB₂ : convex B) (hA₃ : is_closed B)
+  (hA₁ : convex A) (hA₂ : is_compact A)
+  (hB₁ : convex B) (hB₂ : is_closed B)
   (disj : disjoint A B) :
   ∃ (f : E →L[ℝ] ℝ) (s t : ℝ), (∀ a ∈ A, f a < s) ∧ s < t ∧ (∀ b ∈ B, t < f b) :=
 begin
@@ -788,9 +818,9 @@ begin
   rcases B.eq_empty_or_nonempty with (h | hB),
   { rw h,
     exact ⟨0, 1, 2, λ a ha, by norm_num, by norm_num, by simp⟩ },
-  obtain ⟨U, V, hU, hV, hU₁, hV₁, AU, BV, disj'⟩ := closed_compact_separate hA₂ hA₄ hB₂ hA₃ disj,
+  obtain ⟨U, V, hU, hV, hU₁, hV₁, AU, BV, disj'⟩ := closed_compact_separate hA₁ hA₂ hB₁ hB₂ disj,
   obtain ⟨f, s, hf₁, hf₂⟩ := geometric_hahn_banach_open_open hU₁ hU hV₁ hV disj',
-  obtain ⟨x, hx₁, hx₂⟩ := hA₄.exists_forall_ge hA f.continuous.continuous_on,
+  obtain ⟨x, hx₁, hx₂⟩ := hA₂.exists_forall_ge hA f.continuous.continuous_on,
   have : Sup (f '' A) = f x,
   { apply le_antisymm,
     { apply cSup_le (hA.image f) (by simpa) },
@@ -800,32 +830,42 @@ begin
   { apply hf₁,
     apply AU,
     apply hx₁ },
-  refine ⟨f, (f x + s)/2, s, _, by linarith, λ b hb, hf₂ b (BV hb)⟩,
-  intros a ha,
-  linarith [hx₂ a ha]
+  exact ⟨f, (f x + s)/2, s, λ a ha, by linarith [hx₂ a ha], by linarith, λ b hb, hf₂ b (BV hb)⟩,
 end
 
 theorem geometric_hahn_banach_closed_compact {A B : set E}
-  (hA₂ : convex A) (hA₄ : is_closed A)
-  (hB₂ : convex B) (hA₃ : is_compact B)
+  (hA₁ : convex A) (hA₂ : is_closed A)
+  (hB₁ : convex B) (hB₂ : is_compact B)
   (disj : disjoint A B) :
   ∃ (f : E →L[ℝ] ℝ) (s t : ℝ), (∀ a ∈ A, f a < s) ∧ s < t ∧ (∀ b ∈ B, t < f b) :=
-let ⟨f, s, t, hs, st, ht⟩ := geometric_hahn_banach_compact_closed hB₂ hA₃ hA₂ hA₄ disj.symm in
+let ⟨f, s, t, hs, st, ht⟩ := geometric_hahn_banach_compact_closed hB₁ hB₂ hA₁ hA₂ disj.symm in
 ⟨-f, -t, -s, by simpa using ht, by simpa using st, by simpa using hs⟩
+
+theorem geometric_hahn_banach_point_closed {x : E} {B : set E}
+  (hB₁ : convex B) (hB₂ : is_closed B)
+  (disj : x ∉ B) :
+  ∃ (f : E →L[ℝ] ℝ) (s : ℝ), f x < s ∧ (∀ b ∈ B, s < f b) :=
+let ⟨f, s, t, ha, hst, hb⟩ := geometric_hahn_banach_compact_closed (convex_singleton x)
+  compact_singleton hB₁ hB₂ (disjoint_singleton_left.2 disj)
+  in ⟨f, t, lt_trans (ha x (mem_singleton _)) hst, hb⟩
+
+theorem geometric_hahn_banach_closed_point {A : set E} {x : E}
+  (hA₁ : convex A) (hA₂ : is_closed A)
+  (disj : x ∉ A) :
+  ∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ s < f x :=
+let ⟨f, s, t, ha, hst, hb⟩ := geometric_hahn_banach_closed_compact hA₁ hA₂ (convex_singleton x)
+  compact_singleton (disjoint_singleton_right.2 disj)
+  in ⟨f, s, ha, lt_trans hst (hb x (mem_singleton _))⟩
 
 theorem geometric_hahn_banach_point_point {x y : E} (hxy : x ≠ y) :
   ∃ (f : E →L[ℝ] ℝ), f x < f y :=
 begin
-  have : convex {x} := convex_singleton x,
-  have : is_compact {x} := compact_singleton,
-  have : convex {y} := convex_singleton y,
-  have : is_closed {y} := is_closed_singleton,
   have : disjoint ({x} : set E) {y},
   { simp [hxy.symm] },
   obtain ⟨f, s, t, hs, st, ht⟩ :=
-    geometric_hahn_banach_compact_closed ‹_› ‹_› ‹convex {y}› ‹_› ‹_›,
-  refine ⟨f, _⟩,
-  linarith [hs x rfl, ht y rfl],
+    geometric_hahn_banach_compact_closed (convex_singleton x) compact_singleton (convex_singleton y)
+      is_closed_singleton this,
+  refine ⟨f, by linarith [hs x rfl, ht y rfl]⟩,
 end
 
 end separating

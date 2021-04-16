@@ -120,8 +120,8 @@ def submonoid.add_submonoid_equiv (M : Type*) [mul_one_class M] :
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
 
-/-- Additive submonoids of monoid `M` are isomorphic to multiplicative submonoids of
-  `multiplicative M`. -/
+/-- Additive submonoids of an additive monoid `M` are isomorphic to
+multiplicative submonoids of `multiplicative M`. -/
 def add_submonoid.submonoid_equiv (M : Type*) [add_zero_class M] :
   add_submonoid M ≃o submonoid (multiplicative M) :=
 { to_fun := add_submonoid.to_submonoid,

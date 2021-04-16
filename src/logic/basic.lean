@@ -880,16 +880,16 @@ by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
   (∃ b, (∃ a, p a ∧ f a = b) ∧ q b) ↔ ∃ a, p a ∧ q (f a) :=
 ⟨λ ⟨b, ⟨a, ha, hab⟩, hb⟩, ⟨a, ha, hab.symm ▸ hb⟩, λ ⟨a, hp, hq⟩, ⟨f a, ⟨a, hp, rfl⟩, hq⟩⟩
 
-@[simp] lemma exists_or_eq_left {α : Sort*} (y : α) (p : α → Prop) : ∃ (x : α), x = y ∨ p x :=
+@[simp] lemma exists_or_eq_left (y : α) (p : α → Prop) : ∃ (x : α), x = y ∨ p x :=
 ⟨y, or.inl rfl⟩
 
-@[simp] lemma exists_or_eq_right {α : Sort*} (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ x = y :=
+@[simp] lemma exists_or_eq_right (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ x = y :=
 ⟨y, or.inr rfl⟩
 
-@[simp] lemma exists_or_eq_left' {α : Sort*} (y : α) (p : α → Prop) : ∃ (x : α), y = x ∨ p x :=
+@[simp] lemma exists_or_eq_left' (y : α) (p : α → Prop) : ∃ (x : α), y = x ∨ p x :=
 ⟨y, or.inl rfl⟩
 
-@[simp] lemma exists_or_eq_right' {α : Sort*} (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ y = x :=
+@[simp] lemma exists_or_eq_right' (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ y = x :=
 ⟨y, or.inr rfl⟩
 
 @[simp] theorem exists_exists_eq_and {f : α → β} {p : β → Prop} :

@@ -86,8 +86,9 @@ theorem nsmul_mem {x : A} (hx : x ∈ S) (n : ℕ) : n • x ∈ S :=
 S.to_subsemiring.nsmul_mem hx n
 
 theorem gsmul_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
-  [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) (n : ℤ) : n • x ∈ S :=
-int.cases_on n (λ i, S.nsmul_mem hx i) (λ i, S.neg_mem $ S.nsmul_mem hx _)
+  [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) : ∀ (n : ℤ), n • x ∈ S
+| (n : ℕ) := by { rw [gsmul_coe_nat], exact S.nsmul_mem hx n }
+| -[1+ n] := by { rw [gsmul_neg_succ_of_nat], exact S.neg_mem (S.nsmul_mem hx _) }
 
 theorem coe_nat_mem (n : ℕ) : (n : A) ∈ S :=
 S.to_subsemiring.coe_nat_mem n

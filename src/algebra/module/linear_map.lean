@@ -254,8 +254,8 @@ instance compatible_smul.int_module
 ⟨λ f c x, begin
   induction c using int.induction_on,
   case hz : { simp },
-  case hp : n ih { simpa [add_smul] using ih },
-  case hn : n ih { simpa [sub_smul] using ih }
+  case hp : n ih { simp [add_smul, ih] },
+  case hn : n ih { simp [sub_smul, ih] }
 end⟩
 
 end add_comm_group

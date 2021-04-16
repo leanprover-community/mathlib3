@@ -886,19 +886,31 @@ instance : has_neg (M ⊗[R] N) :=
         by simp_rw [add_monoid_hom.map_add, add_comm]
     end }
 
+protected theorem add_left_neg (x : M ⊗[R] N) : -x + x = 0 :=
+tensor_product.induction_on x
+  (by { rw [add_zero], apply (neg.aux R).map_zero, })
+  (λ x y, by { convert (add_tmul (-x) x y).symm, rw [add_left_neg, zero_tmul], })
+  (λ x y hx hy, by {
+    unfold has_neg.neg sub_neg_monoid.neg,
+    rw add_monoid_hom.map_add,
+    ac_change (-x + x) + (-y + y) = 0,
+    rw [hx, hy, add_zero], })
+
 instance : add_comm_group (M ⊗[R] N) :=
 { neg := has_neg.neg,
   sub := _,
   sub_eq_add_neg := λ _ _, rfl,
-  add_left_neg := λ x, tensor_product.induction_on x
-    (by { rw [add_zero], apply (neg.aux R).map_zero, })
-    (λ x y, by { convert (add_tmul (-x) x y).symm, rw [add_left_neg, zero_tmul], })
-    (λ x y hx hy, by {
-      unfold has_neg.neg sub_neg_monoid.neg,
-      rw add_monoid_hom.map_add,
-      ac_change (-x + x) + (-y + y) = 0,
-      rw [hx, hy, add_zero], }),
-  ..(infer_instance : add_comm_monoid (M ⊗[R] N)) }
+  add_left_neg := λ x, by exact tensor_product.add_left_neg x,
+  gsmul := λ n v, n • v,
+  gsmul_zero' := by simp [tensor_product.zero_smul],
+  gsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
+  gsmul_neg' := λ n x, begin
+    change (- n.succ : ℤ) • x = - (((n : ℤ) + 1) • x),
+    rw [← zero_add (-↑(n.succ) • x), ← tensor_product.add_left_neg (↑(n.succ) • x), add_assoc,
+      ← add_smul, ← sub_eq_add_neg, sub_self, zero_smul, add_zero],
+    refl,
+  end,
+  .. tensor_product.add_comm_monoid }
 
 lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := rfl
 
@@ -910,15 +922,6 @@ lemma tmul_sub (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ - n₂) = (m ⊗ₜ[R] n
 lemma sub_tmul (m₁ m₂ : M) (n : N) : (m₁ - m₂) ⊗ₜ n = (m₁ ⊗ₜ[R] n) - (m₂ ⊗ₜ[R] n) :=
 (mk R M N).map_sub₂ _ _ _
 
-/--
-While the tensor product will automatically inherit a ℤ-module structure from
-`add_comm_group.int_module`, that structure won't be compatible with lemmas like `tmul_smul` unless
-we use a `ℤ-module` instance provided by `tensor_product.semimodule'`.
-
-When `R` is a `ring` we get the required `tensor_product.compatible_smul` instance through
-`is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
-The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
--/
 instance compatible_smul.int : compatible_smul R ℤ M N :=
 ⟨λ r m n, int.induction_on r
   (by simp)

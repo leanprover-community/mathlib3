@@ -604,7 +604,7 @@ section finite_group
 variables {α} [fintype α] [group α]
 variables {H : Type u} [fintype H] [add_group H]
 
-lemma exists_gpow_eq_one (a : α) : ∃ i ≠ 0, a ^ (i : ℤ) = 1 :=
+lemma exists_gpow_eq_one (a : α) : ∃ (i : ℤ) (H : i ≠ 0), a ^ (i : ℤ) = 1 :=
 begin
   rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
   use w,
@@ -613,14 +613,10 @@ begin
   { exact_mod_cast hw2 }
 end
 
-lemma exists_gsmul_eq_zero (x : H) : ∃ i ≠ 0, i • x = 0 :=
-begin
-  rcases exists_gpow_eq_one (multiplicative.of_add x) with ⟨i, hi1, hi2⟩,
-  refine ⟨i, hi1, multiplicative.of_add.injective _⟩,
-  { rw [of_add_gsmul, hi2, of_add_zero] }
-end
+lemma exists_gsmul_eq_zero (x : H) : ∃ (i : ℤ) (H : i ≠ 0), i • x = 0 :=
+@exists_gpow_eq_one (multiplicative H) _ _ x
 
-attribute [to_additive exists_gsmul_eq_zero] exists_gpow_eq_one
+attribute [to_additive] exists_gpow_eq_one
 
 lemma mem_multiples_iff_mem_gmultiples {x y : H} :
   y ∈ add_submonoid.multiples x ↔ y ∈ add_subgroup.gmultiples x :=

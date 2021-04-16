@@ -50,6 +50,22 @@ variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {
 (add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
 (zero_smul : ∀x : M, (0 : R) • x = 0)
 
+/--
+To prove two semimodule structures on a fixed `add_comm_monoid` agree,
+it suffices to check the scalar multiplications agree.
+-/
+@[ext]
+lemma semimodule_ext {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q : semimodule R M)
+  (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
+  P = Q :=
+begin
+  unfreezingI { rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩ },
+  congr,
+  funext r m,
+  exact w r m,
+  all_goals { apply proof_irrel_heq },
+end
+
 section add_comm_monoid
 variables [semiring R] [add_comm_monoid M] [semimodule R M] (r s : R) (x y : M)
 
@@ -204,22 +220,6 @@ library_note "module definition"
 abbreviation module (R : Type u) (M : Type v) [ring R] [add_comm_group M] :=
 semimodule R M
 
-/--
-To prove two semimodule structures on a fixed `add_comm_monoid` agree,
-it suffices to check the scalar multiplications agree.
--/
-@[ext]
-lemma semimodule_ext {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q : semimodule R M)
-  (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
-  P = Q :=
-begin
-  unfreezingI { rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩ },
-  congr,
-  funext r m,
-  exact w r m,
-  all_goals { apply proof_irrel_heq },
-end
-
 section module
 variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
 
@@ -297,6 +297,20 @@ begin
 end
 end
 
+/-- Convert back any exotic `ℕ`-smul to the canonical instance. This should not be needed since in
+mathlib all add_comm_monoid should normally have exactly one `ℕ`-semimodule structure by design. -/
+lemma nat_smul_eq_nsmul (h : semimodule ℕ M) (n : ℕ) (x : M) :
+  @has_scalar.smul ℕ M h.to_has_scalar n x = n • x :=
+begin
+  conv_lhs { rw ← nat.cast_id n },
+  exact (nsmul_eq_smul_cast ℕ n x).symm
+end
+
+/-- All `ℕ`-module structures are equal. Not an instance since in mathlib all add_comm_monoid
+should normally have exactly one `ℕ`-module structure by design. -/
+lemma add_comm_monoid.nat_semimodule.subsingleton : subsingleton (semimodule ℕ M) :=
+⟨λ P Q, by { ext n x, rw [nat_smul_eq_nsmul P n x, nat_smul_eq_nsmul Q n x] }⟩
+
 instance add_comm_monoid.nat_is_scalar_tower :
   is_scalar_tower ℕ R M :=
 { smul_assoc := λ n x y, nat.rec_on n
@@ -329,6 +343,20 @@ begin
   { rw [int.cast_sub, int.cast_one, sub_smul, sub_smul, one_smul, one_smul, hn] },
 end
 end
+
+/-- Convert back any exotic `ℤ`-smul to the canonical instance. This should not be needed since in
+mathlib all add_comm_group should normally have exactly one `ℤ`-module structure by design. -/
+lemma int_smul_eq_gsmul (h : semimodule ℤ M) (n : ℤ) (x : M) :
+  @has_scalar.smul ℤ M h.to_has_scalar n x = n • x :=
+begin
+  conv_lhs { rw ← int.cast_id n },
+  exact (gsmul_eq_smul_cast ℤ n x).symm
+end
+
+/-- All `ℤ`-module structures are equal. Not an instance since in mathlib all add_comm_group should
+normally have exactly one `ℤ`-module structure by design. -/
+lemma add_comm_group.int_module.subsingleton : subsingleton (semimodule ℤ M) :=
+⟨λ P Q, by { ext n x, rw [int_smul_eq_gsmul P n x, int_smul_eq_gsmul Q n x] }⟩
 
 instance add_comm_group.int_is_scalar_tower : is_scalar_tower ℤ R M :=
 { smul_assoc := λ n x y, int.induction_on n

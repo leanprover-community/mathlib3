@@ -135,8 +135,8 @@ multiplicative.is_subgroup_iff.1 $ gpowers.is_subgroup _
 attribute [to_additive] gpowers.is_subgroup
 
 lemma is_subgroup.gpow_mem {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : ∀{i:ℤ}, a ^ i ∈ s
-| (n : ℕ) := is_submonoid.pow_mem h
-| -[1+ n] := is_subgroup.inv_mem (is_submonoid.pow_mem h)
+| (n : ℕ) := by { rw [gpow_coe_nat], exact is_submonoid.pow_mem h }
+| -[1+ n] := by { rw [gpow_neg_succ_of_nat], exact is_subgroup.inv_mem (is_submonoid.pow_mem h) }
 
 lemma is_add_subgroup.gsmul_mem {a : A} {s : set A} [is_add_subgroup s] :
   a ∈ s → ∀{i:ℤ}, gsmul i a ∈ s :=

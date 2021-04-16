@@ -62,12 +62,7 @@ multilinear_map.alternatization_apply _ M
 -- This is what the old definition was. We use it to avoid having to change the old proofs below
 lemma det_apply' (M : matrix n n R) :
   M.det = ∑ σ : perm n, ε σ * ∏ i, M (σ i) i :=
-begin
-  rw det_apply,
-  have : ∀ (r : R) (z : ℤ), z • r = (z : R) * r := λ r z, by
-    rw [←gsmul_eq_smul, ←smul_eq_mul, ←gsmul_eq_smul_cast],
-  simp only [this],
-end
+by simp [det_apply]
 
 @[simp] lemma det_diagonal {d : n → R} : det (diagonal d) = ∏ i, d i :=
 begin
@@ -178,11 +173,7 @@ end
 
 /-- Permuting the columns changes the sign of the determinant. -/
 lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
-begin
-  have : (σ.sign : ℤ) • M.det = (σ.sign * M.det : R),
-  { rw [coe_coe, ←gsmul_eq_smul, ←smul_eq_mul, ←gsmul_eq_smul_cast] },
-  exact ((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans this,
-end
+((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans (by simp)
 
 /-- Permuting rows and columns with the same equivalence has no effect. -/
 @[simp]

@@ -270,7 +270,7 @@ variable [div_inv_monoid G]
 
 open int
 
-@[simp] theorem gpow_coe_nat (a : G) (n : ℕ) : a ^ (n:ℤ) = a ^ n :=
+@[simp, norm_cast] theorem gpow_coe_nat (a : G) (n : ℕ) : a ^ (n:ℤ) = a ^ n :=
 begin
   induction n with n ih,
   { change gpow 0 a = a ^ 0, rw [div_inv_monoid.gpow_zero', pow_zero] },
@@ -327,7 +327,7 @@ theorem nsmul_neg_comm : ∀ (a : A) (m n : ℕ), m • (-a) + n • a = n • a
 end nat
 
 
-@[simp] theorem gsmul_coe_nat (a : A) (n : ℕ) : (n : ℤ) • a = n • a :=
+@[simp, norm_cast] theorem gsmul_coe_nat (a : A) (n : ℕ) : (n : ℤ) • a = n • a :=
 @gpow_coe_nat (multiplicative A) _ _ _
 
 theorem gsmul_of_nat (a : A) (n : ℕ) : of_nat n • a = n • a :=

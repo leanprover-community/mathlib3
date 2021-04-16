@@ -658,10 +658,35 @@ instance : has_neg (M →L[R] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 
 instance : has_sub (M →L[R] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
 
+lemma continuous_gsmul : ∀ (n : ℤ), continuous (λ (x : M₂), n • x)
+| (n : ℕ) := by { simp only [gsmul_coe_nat], exact continuous_nsmul _ }
+| -[1+ n] := by { simp only [gsmul_neg_succ_of_nat], exact (continuous_nsmul _).neg }
+
+@[continuity]
+lemma continuous.gsmul {α : Type*} [topological_space α] {n : ℤ} {f : α → M₂} (hf : continuous f) :
+  continuous (λ (x : α), n • (f x)) :=
+(continuous_gsmul n).comp hf
+
 instance : add_comm_group (M →L[R] M₂) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _,
+by refine
+{ zero := 0,
+  add := (+),
+  neg := has_neg.neg,
+  sub := has_sub.sub,
+  sub_eq_add_neg := _,
+  nsmul := λ n f,
+    { to_fun := λ x, n • (f x),
+      map_add' := by simp,
+      map_smul' := by simp [smul_comm n] },
+  gsmul := λ n f,
+    { to_fun := λ x, n • (f x),
+      map_add' := by simp,
+      map_smul' := by simp [smul_comm n] },
+  gsmul_zero' := λ f, by { ext, simp },
+  gsmul_succ' := λ n f, by { ext, simp [add_smul, add_comm] },
+  gsmul_neg' := λ n f, by { ext, simp [nat.succ_eq_add_one, add_smul], },
   .. continuous_linear_map.add_comm_monoid, .. };
-  intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
+intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
 
 lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
 @[simp, norm_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = f - g := rfl

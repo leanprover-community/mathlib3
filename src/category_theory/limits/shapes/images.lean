@@ -122,13 +122,13 @@ gives a mono factorisation of `f`. -/
 def of_comp_iso {Y' : C} {g : Y ⟶ Y'} [is_iso g] (F : mono_factorisation (f ≫ g)) :
   mono_factorisation f :=
 { I := F.I,
-  m := F.m ≫ (inv g),
+  m := F.m ≫ inv g,
   m_mono := mono_comp _ _,
   e := F.e, }
 
 /-- Any mono factorisation of `f` gives a mono factorisation of `g ≫ f`. -/
 @[simps]
-def iso_comp (F : mono_factorisation f) {X' : C} (g : X' ⟶ X) :
+def comp_left (F : mono_factorisation f) {X' : C} (g : X' ⟶ X) :
   mono_factorisation (g ≫ f) :=
 { I := F.I,
   m := F.m,
@@ -428,7 +428,7 @@ variables [has_equalizers C]
 
 instance has_image_iso_comp [is_iso f] [has_image g] : has_image (f ≫ g) :=
 has_image.mk
-{ F := (image.mono_factorisation g).iso_comp f,
+{ F := (image.mono_factorisation g).comp_left f,
   is_image := { lift := λ F', image.lift (F'.of_iso_comp f) }, }
 
 /--

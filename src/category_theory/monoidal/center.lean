@@ -143,12 +143,27 @@ def tensor_unit : center C :=
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 @[simps]
 def associator (X Y Z : center C) : tensor_obj (tensor_obj X Y) Z ≅ tensor_obj X (tensor_obj Y Z) :=
-iso_mk ⟨(α_ X.1 Y.1 Z.1).hom, begin sorry, end⟩
+iso_mk ⟨(α_ X.1 Y.1 Z.1).hom, λ U, begin
+  dsimp,
+  -- We don't do this as a pure rewriting proof; we move isos from one side to the other,
+  -- and use `congr` to strip off parts that are already equal.
+  simp only [category.assoc, comp_tensor_id, id_tensor_comp],
+  rw [pentagon, pentagon_assoc, ←associator_naturality_assoc (𝟙 X.1) (𝟙 Y.1), tensor_id],
+  congr' 2,
+  rw [iso.eq_inv_comp, ←pentagon_assoc, ←id_tensor_comp_assoc, iso.hom_inv_id,
+    tensor_id, category.id_comp, ←associator_naturality_assoc],
+  congr' 2,
+  rw [←is_iso.inv_comp_eq, inv_tensor, is_iso.inv_id, is_iso.iso.inv_inv, pentagon_assoc,
+    iso.hom_inv_id_assoc, ←tensor_id, ←associator_naturality_assoc],
+end⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 @[simps]
 def left_unitor (X : center C) : tensor_obj tensor_unit X ≅ X :=
-iso_mk ⟨(λ_ X.1).hom, begin sorry, end⟩
+iso_mk ⟨(λ_ X.1).hom, λ U, begin
+  dsimp,
+  sorry,
+end⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 @[simps]

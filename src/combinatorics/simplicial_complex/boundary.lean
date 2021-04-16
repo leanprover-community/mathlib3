@@ -81,6 +81,7 @@ begin
     refine ⟨⟨X, S.down_closed hY hXY.1, subset.refl _, _, hY, hXY, λ Y', hYunique⟩, _⟩,
     rintro V ⟨W, hW, hVW, Z, hZ, hWZ, hZunique⟩ hXV,
     apply finset.subset.antisymm hXV,
+    classical,
     by_contra hVX,
     have := hYunique (S.down_closed hW hVW) ⟨hXV, hVX⟩,
     subst this,

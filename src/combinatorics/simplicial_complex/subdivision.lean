@@ -8,10 +8,7 @@ import linear_algebra.affine_space.combination
 import linear_algebra.finite_dimensional
 import analysis.convex.topology
 import analysis.specific_limits
-import combinatorics.simplicial_complex.dump
-import combinatorics.simplicial_complex.extreme_point
 import combinatorics.simplicial_complex.basic
-import combinatorics.simplicial_complex.simplex
 
 open affine set
 

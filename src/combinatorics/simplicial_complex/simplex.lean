@@ -6,9 +6,9 @@ import linear_algebra.affine_space.finite_dimensional
 import linear_algebra.affine_space.combination
 import linear_algebra.finite_dimensional
 import analysis.convex.topology
-import combinatorics.simplicial_complex.to_move
-import combinatorics.simplicial_complex.extreme_point
 import order.filter.archimedean
+import combinatorics.simplicial_complex.to_move
+import combinatorics.simplicial_complex.extreme
 
 /-!
 # Definitions and lemmas about individual simplices

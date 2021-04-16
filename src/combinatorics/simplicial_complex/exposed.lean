@@ -43,7 +43,7 @@ begin
   rw is_exposed_iff_normalized at hB hC,
   obtain ⟨l₁, hl₁, hB⟩ := hB,
   obtain ⟨l₂, hl₂, hC⟩ := hC,
-  let l : E →L[ℝ] ℝ := l₁ + l₂,
+  let l := l₁ + l₂,
   refine ⟨l, _⟩,
   rw hC,
   ext x,

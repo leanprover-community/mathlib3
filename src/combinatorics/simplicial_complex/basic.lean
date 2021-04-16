@@ -7,7 +7,6 @@ import linear_algebra.affine_space.combination
 import linear_algebra.finite_dimensional
 import analysis.convex.topology
 import combinatorics.simplicial_complex.dump
-import combinatorics.simplicial_complex.extreme_point
 import combinatorics.simplicial_complex.simplex
 -- import data.nat.parity
 

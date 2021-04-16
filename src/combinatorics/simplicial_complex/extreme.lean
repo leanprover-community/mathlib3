@@ -129,6 +129,19 @@ begin
   exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
 end
 
+lemma sInter_extreme_of_extreme {F : set (set E)} (hF : F.nonempty)
+  (hAF : ∀ B ∈ F, is_extreme_set A B) :
+  is_extreme_set A (⋂₀ F) :=
+begin
+  obtain ⟨B, hB⟩ := hF,
+  use subset.trans (sInter_subset_of_mem hB) (hAF B hB).1,
+  rintro x₁ x₂ hx₁A hx₂A x hxF hx hxx₁ hxx₂,
+  rw mem_sInter at ⊢ hxF,
+  rw mem_sInter,
+  have h := λ B hB, (hAF B hB).2 x₁ x₂ hx₁A hx₂A x (hxF B hB) hx hxx₁ hxx₂,
+  exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
+end
+
 lemma Inter_extreme_of_extreme {ι : Type*} [nonempty ι] {F : ι → set E}
   (hAF : ∀ i : ι, is_extreme_set A (F i)) :
   is_extreme_set A (⋂ i : ι, F i) :=

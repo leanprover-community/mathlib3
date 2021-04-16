@@ -16,6 +16,11 @@ theorem geometric_hahn_banach_compact_closed {A B : set E}
   ∃ (f : E →L[ℝ] ℝ) (s t : ℝ), s < t ∧ (∀ b ∈ B, f b < s) ∧ (∀ a ∈ A, t < f a) :=
 sorry
 
+theorem geometric_hahn_banach_closed_point {A : set E}
+  (hA₁ : convex A) (hA₂ : is_closed A)
+  (disj : x ∉ A) :
+  ∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ s < f x := sorry
+
 theorem geometric_hahn_banach_point_point {x y : E} (hxy : x ≠ y) :
   ∃ (f : E →L[ℝ] ℝ), f x < f y :=
 sorry
@@ -68,33 +73,16 @@ begin
     refine ⟨A, ⟨hAnemp, is_compact.is_closed hAcomp, is_extreme_set.refl _⟩, λ B hB, _⟩,
     exfalso,
     exact hB },
-  resetI,
-  refine ⟨(⋂ C ∈ F, C), _, λ B hB, bInter_subset_of_mem hB⟩,
-  have h : (⋂ (C : set E) (H : C ∈ F), C) = (⋂ (C : F), C),
-  {  ext,
-    simp },
-  refine ⟨_, is_closed_bInter (λ B hB, (hFS hB).2.1), bInter_extreme_of_extreme hFnemp
-  (λ B hB, (hFS hB).2.2)⟩,
-  rw h,
+  refine ⟨⋂₀ F, ⟨_, is_closed_sInter (λ B hB, (hFS hB).2.1), sInter_extreme_of_extreme hFnemp
+    (λ B hB, (hFS hB).2.2)⟩, λ B hB, sInter_subset_of_mem hB⟩,
+  rw sInter_eq_Inter,
   apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _,
-  rintro B C,
-  cases zorn.chain.total_of_refl hF (_ : ↑B ∈ F) (_ : ↑C ∈ F) with hBC hCB,
-  exact ⟨B, subset.refl _, hBC⟩,
-  exact ⟨C, hCB, subset.refl _⟩,
-  simp,
-  simp,
-  rintro B,
-  refine (hFS _).1,
-  simp,
-  rintro B,
-  refine compact_of_is_closed_subset hAcomp (hFS _).2.1 (hFS _).2.2.1,
-  simp,
-  simp,
-  rintro B,
-  refine (hFS _).2.1,
-  simp,
-  obtain ⟨x, hx⟩ := hFnemp,
-  use [x, hx],
+  { rintro B C,
+    cases zorn.chain.total_of_refl hF (subtype.mem _) (subtype.mem _) with hBC hCB,
+    exacts [⟨B, subset.refl _, hBC⟩, ⟨C, hCB, subset.refl _⟩] },
+  exacts [λ B, (hFS (subtype.mem _)).1, λ B, compact_of_is_closed_subset hAcomp
+    (hFS (subtype.mem _)).2.1 (hFS (subtype.mem _)).2.2.1, λ B, (hFS (subtype.mem _)).2.1,
+   nonempty_subtype.2 hFnemp],
 end
 
 /--
@@ -111,9 +99,8 @@ begin
   by_contra hAB,
   have hABdiff : (A \ B).nonempty := nonempty_diff.2 hAB,
   obtain ⟨x, hxA, hxB⟩ := id hABdiff,
-  obtain ⟨l, s, t, hst, hs, ht⟩ := geometric_hahn_banach_compact_closed (convex_singleton x)
-    compact_singleton (convex.closure (convex_convex_hull _)) is_closed_closure
-    (disjoint_singleton_left.2 hxB),
+  obtain ⟨l, s, hls, hsx⟩ := geometric_hahn_banach_closed_point
+    (convex.closure (convex_convex_hull _)) is_closed_closure hxB,
   let C := {y ∈ A | ∀ z ∈ A, l z ≤ l y},
   have hCexp : is_exposed_set A C := ⟨l, rfl⟩,
   obtain ⟨y, hyC⟩ := has_extreme_point_of_convex_of_compact_of_nonempty
@@ -123,11 +110,9 @@ begin
       exact ⟨z, hzA, hz⟩,
     end
     (compact_of_exposed hAcomp hCexp) (convex_of_exposed hAconv hCexp),
-  have := hs _ (subset_closure (subset_convex_hull _
+  linarith [hls _ (subset_closure (subset_convex_hull _
     (extreme_points_subset_extreme_points_of_extreme (extreme_of_exposed hCexp) hyC))),
-  have := ht x (mem_singleton _),
-  have := hyC.1.2 x hxA,
-  linarith,
+    hyC.1.2 x hxA],
 end
 
 /--

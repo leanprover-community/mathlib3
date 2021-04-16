@@ -107,21 +107,7 @@ iff.rfl
 
 lemma add_submonoid.to_submonoid_le_iff {M : Type*} [add_zero_class M] (S₁ S₂ : add_submonoid M) :
   S₁ ≤ S₂ ↔ S₁.to_submonoid ≤ S₂.to_submonoid :=
-begin
-  split,
-  { intro h,
-    change (S₁.to_submonoid : set (multiplicative M)) ⊆ S₂.to_submonoid,
-    rw [add_submonoid.to_submonoid_coe, add_submonoid.to_submonoid_coe],
-    simp only [h, set_like.coe_subset_coe, equiv.image_subset] },
-  { intro h,
-    change (S₁.to_submonoid : set (multiplicative M)) ⊆ S₂.to_submonoid at h,
-    rw [add_submonoid.to_submonoid_coe, add_submonoid.to_submonoid_coe, equiv.subset_image] at h,
-    intros s₁ hs₁,
-    simp only [set.image_subset_iff, additive.of_mul_symm_eq] at h,
-    replace h := h hs₁,
-    simp only [set.mem_preimage, set_like.mem_coe, to_mul_of_mul] at h,
-    exact h }
-end
+iff.rfl
 
 /-- Submonoids of monoid `M` are isomorphic to additive submonoids of `additive M`. -/
 def submonoid.add_submonoid_equiv (M : Type*) [mul_one_class M] :

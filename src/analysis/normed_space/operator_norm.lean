@@ -18,15 +18,17 @@ Define the operator norm on the space of continuous linear maps between normed s
 its basic properties. In particular, show that this space is itself a normed space.
 
 Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
-theory for `semi_normed_space` and we specialize to `normed_space` when needed.
+theory for `semi_normed_space` and we specialize to `normed_space` at the end.
 -/
 
 noncomputable theory
 open_locale classical nnreal topological_space
 
-variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*} {E₁ : Type*} {F₁ : Type*} {G₁ : Type*}
-[semi_normed_group E] [semi_normed_group F] [semi_normed_group G]
-[normed_group E₁] [normed_group F₁] [normed_group G₁]
+variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
+
+section semi_normed
+
+variables [semi_normed_group E] [semi_normed_group F] [semi_normed_group G]
 
 open metric continuous_linear_map
 
@@ -38,7 +40,6 @@ In this section, we just assume that `𝕜` is a normed field.
 In the remainder of the file, it will be non-discrete. -/
 
 variables [normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
-[normed_space 𝕜 E₁] [normed_space 𝕜 F₁]
 
 lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (nnreal.of_real C) f :=
@@ -106,65 +107,10 @@ rfl
   f.to_continuous_linear_map₁ x = f x :=
 rfl
 
-lemma linear_map.continuous_iff_is_closed_ker {f₁ : E₁ →ₗ[𝕜] 𝕜} :
-  continuous f₁ ↔ is_closed (f₁.ker : set E₁) :=
-begin
-  -- the continuity of f obviously implies that its kernel is closed
-  refine ⟨λh, (t1_space.t1 (0 : 𝕜)).preimage h, λh, _⟩,
-  -- for the other direction, we assume that the kernel is closed
-  by_cases hf : ∀x, x ∈ f₁.ker,
-  { -- if `f = 0`, its continuity is obvious
-    have : (f₁ : E₁ → 𝕜) = (λx, 0), by { ext x, simpa using hf x },
-    rw this,
-    exact continuous_const },
-  { /- if `f` is not zero, we use an element `x₀ ∉ ker f` such that `∥x₀∥ ≤ 2 ∥x₀ - y∥` for all
-    `y ∈ ker f`, given by Riesz's lemma, and prove that `2 ∥f x₀∥ / ∥x₀∥` gives a bound on the
-    operator norm of `f`. For this, start from an arbitrary `x` and note that
-    `y = x₀ - (f x₀ / f x) x` belongs to the kernel of `f`. Applying the above inequality to `x₀`
-    and `y` readily gives the conclusion. -/
-    push_neg at hf,
-    let r : ℝ := (2 : ℝ)⁻¹,
-    have : 0 ≤ r, by norm_num [r],
-    have : r < 1, by norm_num [r],
-    obtain ⟨x₀, x₀ker, h₀⟩ : ∃ (x₀ : E₁), x₀ ∉ f₁.ker ∧ ∀ y ∈ linear_map.ker f₁,
-      r * ∥x₀∥ ≤ ∥x₀ - y∥, from riesz_lemma h hf this,
-    have : x₀ ≠ 0,
-    { assume h,
-      have : x₀ ∈ f₁.ker, by { rw h, exact (linear_map.ker f₁).zero_mem },
-      exact x₀ker this },
-    have rx₀_ne_zero : r * ∥x₀∥ ≠ 0, by { simp [norm_eq_zero, this], },
-    have : ∀x, ∥f₁ x∥ ≤ (((r * ∥x₀∥)⁻¹) * ∥f₁ x₀∥) * ∥x∥,
-    { assume x,
-      by_cases hx : f₁ x = 0,
-      { rw [hx, norm_zero],
-        apply_rules [mul_nonneg, norm_nonneg, inv_nonneg.2] },
-      { let y := x₀ - (f₁ x₀ * (f₁ x)⁻¹ ) • x,
-        have fy_zero : f₁ y = 0, by calc
-          f₁ y = f₁ x₀ - (f₁ x₀ * (f₁ x)⁻¹ ) * f₁ x : by simp [y]
-          ... = 0 :
-            by { rw [mul_assoc, inv_mul_cancel hx, mul_one, sub_eq_zero_of_eq], refl },
-        have A : r * ∥x₀∥ ≤ ∥f₁ x₀∥ * ∥f₁ x∥⁻¹ * ∥x∥, from calc
-          r * ∥x₀∥ ≤ ∥x₀ - y∥ : h₀ _ (linear_map.mem_ker.2 fy_zero)
-          ... = ∥(f₁ x₀ * (f₁ x)⁻¹ ) • x∥ : by { dsimp [y], congr, abel }
-          ... = ∥f₁ x₀∥ * ∥f₁ x∥⁻¹ * ∥x∥ :
-            by rw [norm_smul, normed_field.norm_mul, normed_field.norm_inv],
-        calc
-          ∥f₁ x∥ = (r * ∥x₀∥)⁻¹ * (r * ∥x₀∥) * ∥f₁ x∥ : by rwa [inv_mul_cancel, one_mul]
-          ... ≤ (r * ∥x₀∥)⁻¹ * (∥f₁ x₀∥ * ∥f₁ x∥⁻¹ * ∥x∥) * ∥f₁ x∥ : begin
-            apply mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left A _) (norm_nonneg _),
-            exact inv_nonneg.2 (mul_nonneg (by norm_num) (norm_nonneg _))
-          end
-          ... = (∥f₁ x∥ ⁻¹ * ∥f₁ x∥) * (((r * ∥x₀∥)⁻¹) * ∥f₁ x₀∥) * ∥x∥ : by ring
-          ... = (((r * ∥x₀∥)⁻¹) * ∥f₁ x₀∥) * ∥x∥ :
-            by { rw [inv_mul_cancel, one_mul], simp [norm_eq_zero, hx] } } },
-    exact linear_map.continuous_of_bound f₁ _ this }
-end
-
 end normed_field
 
 variables [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F]
 [semi_normed_space 𝕜 G] (c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
-[normed_space 𝕜 E₁] [normed_space 𝕜 F₁] [normed_space 𝕜 G₁] (f₁ : E₁ →L[𝕜] F₁)
 include 𝕜
 
 lemma linear_map.bound_of_shell_semi_normed (f : E →ₗ[𝕜] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
@@ -174,14 +120,6 @@ begin
   rcases rescale_to_shell_semi_normed hc ε_pos hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
   simpa only [f.map_smul, norm_smul, mul_left_comm C, mul_le_mul_left (norm_pos_iff.2 hδ)]
     using hf (δ • x) leδx δxle
-end
-
-lemma linear_map.bound_of_shell (f₁ : E₁ →ₗ[𝕜] F₁) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
-  (hc : 1 < ∥c∥) (hf₁ : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f₁ x∥ ≤ C * ∥x∥) (x : E₁) :
-  ∥f₁ x∥ ≤ C * ∥x∥ :=
-begin
-  by_cases hx : x = 0, { simp [hx] },
-  exact linear_map.bound_of_shell_semi_normed f₁ ε_pos hc hf₁ (ne_of_lt (norm_pos_iff.2 hx)).symm
 end
 
 /-- If `∥x∥ = 0` and `f` is continuous then `∥f x∥ = 0`. -/
@@ -373,16 +311,6 @@ le_antisymm (real.Inf_le _ bounds_bdd_below
     ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul], exact norm_zero })⟩)
     (op_norm_nonneg _)
 
-/-- An operator is zero iff its norm vanishes. -/
-theorem op_norm_zero_iff : ∥f₁∥ = 0 ↔ f₁ = 0 :=
-iff.intro
-  (λ hn, continuous_linear_map.ext (λ x, norm_le_zero_iff.1
-    (calc _ ≤ ∥f₁∥ * ∥x∥ : le_op_norm _ _
-     ...     = _ : by rw [hn, zero_mul])))
-  (λ hf, le_antisymm (Inf_le _ bounds_bdd_below
-    ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
-    (op_norm_nonneg _))
-
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
 where it is `0`. It means that one can not do better than an inequality in general. -/
 lemma norm_id_le : ∥id 𝕜 E∥ ≤ 1 :=
@@ -394,20 +322,6 @@ lemma norm_id_of_nontrivial_seminorm (h : ∃ (x : E), ∥x∥ ≠ 0 ) : ∥id �
 le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
 have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self hx] at this
-
-/-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id [nontrivial E₁] : ∥id 𝕜 E₁∥ = 1 :=
-begin
-  refine norm_id_of_nontrivial_seminorm _,
-  obtain ⟨x, hx⟩ := exists_ne (0 : E₁),
-  exact ⟨x, ne_of_gt (norm_pos_iff.2 hx)⟩,
-end
-
-@[simp] lemma norm_id_field : ∥id 𝕜 𝕜∥ = 1 :=
-norm_id
-
-@[simp] lemma norm_id_field' : ∥(1 : 𝕜 →L[𝕜] 𝕜)∥ = 1 :=
-norm_id_field
 
 lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [semi_normed_space 𝕜' F]
   [smul_comm_class 𝕜 𝕜' F] (c : 𝕜') (f : E →L[𝕜] F) : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
@@ -425,17 +339,8 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := by simp only [norm_def, neg_apply, nor
 instance to_semi_normed_group : semi_normed_group (E →L[𝕜] F) :=
 semi_normed_group.of_core _ ⟨op_norm_zero, op_norm_add_le, op_norm_neg⟩
 
-/-- Continuous linear maps themselves form a normed space with respect to
-    the operator norm. -/
-instance to_normed_group : normed_group (E₁ →L[𝕜] F₁) :=
-normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
-
 instance to_semi_normed_space {𝕜' : Type*} [normed_field 𝕜'] [semi_normed_space 𝕜' F]
   [smul_comm_class 𝕜 𝕜' F] : semi_normed_space 𝕜' (E →L[𝕜] F) :=
-⟨op_norm_smul_le⟩
-
-instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F₁]
-  [smul_comm_class 𝕜 𝕜' F₁] : normed_space 𝕜' (E₁ →L[𝕜] F₁) :=
 ⟨op_norm_smul_le⟩
 
 /-- The operator norm is submultiplicative. -/
@@ -448,18 +353,6 @@ lemma op_norm_comp_le (f : E →L[𝕜] F) : ∥h.comp f∥ ≤ ∥h∥ * ∥f�
 instance to_semi_normed_ring : semi_normed_ring (E →L[𝕜] E) :=
 { norm_mul := op_norm_comp_le,
   .. continuous_linear_map.to_semi_normed_group }
-
-/-- Continuous linear maps form a normed ring with respect to the operator norm. -/
-instance to_normed_ring : normed_ring (E₁ →L[𝕜] E₁) :=
-{ norm_mul := op_norm_comp_le,
-  .. continuous_linear_map.to_normed_group }
-
-/-- For a nonzero normed space `E₁`, continuous linear endomorphisms form a normed algebra with
-respect to the operator norm. -/
-instance to_normed_algebra [nontrivial E₁] : normed_algebra 𝕜 (E₁ →L[𝕜] E₁) :=
-{ norm_algebra_map_eq := λ c, show ∥c • id 𝕜 E₁∥ = ∥c∥,
-    by {rw [norm_smul, norm_id], simp},
-  .. continuous_linear_map.algebra }
 
 theorem le_op_norm₂ (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) :
   ∥f x y∥ ≤ ∥f∥ * ∥x∥ * ∥y∥ :=
@@ -503,213 +396,6 @@ end
 lemma isometry_iff_norm : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
 f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
 
-variable {f}
-
-lemma homothety_norm [nontrivial E₁] (f₁ : E₁ →L[𝕜] F₁) {a : ℝ} (hf : ∀x, ∥f₁ x∥ = a * ∥x∥) :
-  ∥f₁∥ = a :=
-begin
-  obtain ⟨x, hx⟩ : ∃ (x : E₁), x ≠ 0 := exists_ne 0,
-  rw ← norm_pos_iff at hx,
-  have ha : 0 ≤ a, by simpa only [hf, hx, zero_le_mul_right] using norm_nonneg (f₁ x),
-  apply le_antisymm (f₁.op_norm_le_bound ha (λ y, le_of_eq (hf y))),
-  simpa only [hf, hx, mul_le_mul_right] using f₁.le_op_norm x,
-end
-
-lemma to_span_singleton_norm (x : E₁) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
-homothety_norm _ (to_span_singleton_homothety 𝕜 x)
-
-variable (f)
-
-theorem uniform_embedding_of_bound {K : ℝ≥0} (hf : ∀ x, ∥x∥ ≤ K * ∥f₁ x∥) :
-  uniform_embedding f₁ :=
-(f₁.to_linear_map.antilipschitz_of_bound hf).uniform_embedding f₁.uniform_continuous
-
-/-- If a continuous linear map is a uniform embedding, then it is expands the distances
-by a positive factor.-/
-theorem antilipschitz_of_uniform_embedding (hf : uniform_embedding f₁) :
-  ∃ K, antilipschitz_with K f₁ :=
-begin
-  obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ {x y : E₁}, dist (f₁ x) (f₁ y) < ε → dist x y < 1,
-    from (uniform_embedding_iff.1 hf).2.2 1 zero_lt_one,
-  let δ := ε/2,
-  have δ_pos : δ > 0 := half_pos εpos,
-  have H : ∀{x}, ∥f₁ x∥ ≤ δ → ∥x∥ ≤ 1,
-  { assume x hx,
-    have : dist x 0 ≤ 1,
-    { refine (hε _).le,
-      rw [f₁.map_zero, dist_zero_right],
-      exact hx.trans_lt (half_lt_self εpos) },
-    simpa using this },
-  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨⟨δ⁻¹, _⟩ * nnnorm c, f₁.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
-  exact inv_nonneg.2 (le_of_lt δ_pos),
-  by_cases hx : f₁ x = 0,
-  { have : f₁ x = f₁ 0, by { simp [hx] },
-    have : x = 0 := (uniform_embedding_iff.1 hf).1 this,
-    simp [this] },
-  { rcases rescale_to_shell hc δ_pos hx with ⟨d, hd, dxlt, ledx, dinv⟩,
-    rw [← f₁.map_smul d] at dxlt,
-    have : ∥d • x∥ ≤ 1 := H dxlt.le,
-    calc ∥x∥ = ∥d∥⁻¹ * ∥d • x∥ :
-      by rwa [← normed_field.norm_inv, ← norm_smul, ← mul_smul, inv_mul_cancel, one_smul]
-    ... ≤ ∥d∥⁻¹ * 1 :
-      mul_le_mul_of_nonneg_left this (inv_nonneg.2 (norm_nonneg _))
-    ... ≤ δ⁻¹ * ∥c∥ * ∥f₁ x∥ :
-      by rwa [mul_one] }
-end
-
-section completeness
-
-open_locale topological_space
-open filter
-
-/-- If the target space is complete, the space of continuous linear maps with its norm is also
-complete. -/
-instance [complete_space F₁] : complete_space (E →L[𝕜] F₁) :=
-begin
-  -- We show that every Cauchy sequence converges.
-  refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
-  -- We now expand out the definition of a Cauchy sequence,
-  rcases cauchy_seq_iff_le_tendsto_0.1 hf with ⟨b, b0, b_bound, b_lim⟩, clear hf,
-  -- and establish that the evaluation at any point `v : E` is Cauchy.
-  have cau : ∀ v, cauchy_seq (λ n, f n v),
-  { assume v,
-    apply cauchy_seq_iff_le_tendsto_0.2 ⟨λ n, b n * ∥v∥, λ n, _, _, _⟩,
-    { exact mul_nonneg (b0 n) (norm_nonneg _) },
-    { assume n m N hn hm,
-      rw dist_eq_norm,
-      apply le_trans ((f n - f m).le_op_norm v) _,
-      exact mul_le_mul_of_nonneg_right (b_bound n m N hn hm) (norm_nonneg v) },
-    { simpa using b_lim.mul tendsto_const_nhds } },
-  -- We assemble the limits points of those Cauchy sequences
-  -- (which exist as `F` is complete)
-  -- into a function which we call `G`.
-  choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
-  -- Next, we show that this `G` is linear,
-  let Glin : E →ₗ[𝕜] F₁ :=
-  { to_fun := G,
-    map_add' := λ v w, begin
-      have A := hG (v + w),
-      have B := (hG v).add (hG w),
-      simp only [map_add] at A B,
-      exact tendsto_nhds_unique A B,
-    end,
-    map_smul' := λ c v, begin
-      have A := hG (c • v),
-      have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hG v),
-      simp only [map_smul] at A B,
-      exact tendsto_nhds_unique A B
-    end },
-  -- and that `G` has norm at most `(b 0 + ∥f 0∥)`.
-  have Gnorm : ∀ v, ∥G v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
-  { assume v,
-    have A : ∀ n, ∥f n v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
-    { assume n,
-      apply le_trans ((f n).le_op_norm _) _,
-      apply mul_le_mul_of_nonneg_right _ (norm_nonneg v),
-      calc ∥f n∥ = ∥(f n - f 0) + f 0∥ : by { congr' 1, abel }
-      ... ≤ ∥f n - f 0∥ + ∥f 0∥ : norm_add_le _ _
-      ... ≤ b 0 + ∥f 0∥ : begin
-        apply add_le_add_right,
-        simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
-      end },
-    exact le_of_tendsto (hG v).norm (eventually_of_forall A) },
-  -- Thus `G` is continuous, and we propose that as the limit point of our original Cauchy sequence.
-  let Gcont := Glin.mk_continuous _ Gnorm,
-  use Gcont,
-  -- Our last task is to establish convergence to `G` in norm.
-  have : ∀ n, ∥f n - Gcont∥ ≤ b n,
-  { assume n,
-    apply op_norm_le_bound _ (b0 n) (λ v, _),
-    have A : ∀ᶠ m in at_top, ∥(f n - f m) v∥ ≤ b n * ∥v∥,
-    { refine eventually_at_top.2 ⟨n, λ m hm, _⟩,
-      apply le_trans ((f n - f m).le_op_norm _) _,
-      exact mul_le_mul_of_nonneg_right (b_bound n m n (le_refl _) hm) (norm_nonneg v) },
-    have B : tendsto (λ m, ∥(f n - f m) v∥) at_top (𝓝 (∥(f n - Gcont) v∥)) :=
-      tendsto.norm (tendsto_const_nhds.sub (hG v)),
-    exact le_of_tendsto B A },
-  erw tendsto_iff_norm_tendsto_zero,
-  exact squeeze_zero (λ n, norm_nonneg _) this b_lim,
-end
-
-end completeness
-
-section uniformly_extend
-
-variables [complete_space F₁] (e : E₁ →L[𝕜] G₁) (h_dense : dense_range e)
-
-section
-variables (h_e : uniform_inducing e)
-
-/-- Extension of a continuous linear map `f₁ : E₁ →L[𝕜] F₁`, with `E₁` a normed space and `F₁` a
-complete normed space, along a uniform and dense embedding `e : E₁ →L[𝕜] G₁`.  -/
-def extend : G₁ →L[𝕜] F₁ :=
-/- extension of `f₁` is continuous -/
-have cont : _ := (uniform_continuous_uniformly_extend h_e h_dense f₁.uniform_continuous).continuous,
-/- extension of `f` agrees with `f` on the domain of the embedding `e` -/
-have eq : _ := uniformly_extend_of_ind h_e h_dense f₁.uniform_continuous,
-{ to_fun := (h_e.dense_inducing h_dense).extend f₁,
-  map_add' :=
-  begin
-    refine h_dense.induction_on₂ _ _,
-    { exact is_closed_eq (cont.comp continuous_add)
-        ((cont.comp continuous_fst).add (cont.comp continuous_snd)) },
-    { assume x y, simp only [eq, ← e.map_add], exact f₁.map_add _ _  },
-  end,
-  map_smul' := λk,
-  begin
-    refine (λ b, h_dense.induction_on b _ _),
-    { exact is_closed_eq (cont.comp (continuous_const.smul continuous_id))
-        ((continuous_const.smul continuous_id).comp cont) },
-    { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _  },
-  end,
-  cont := cont
-}
-
-lemma extend_unique (g₁ : G₁ →L[𝕜] F₁) (H : g₁.comp e = f₁) : extend f₁ e h_dense h_e = g₁ :=
-continuous_linear_map.coe_fn_injective $
-  uniformly_extend_unique h_e h_dense (continuous_linear_map.ext_iff.1 H) g₁.continuous
-
-@[simp] lemma extend_zero : extend (0 : E₁ →L[𝕜] F₁) e h_dense h_e = 0 :=
-extend_unique _ _ _ _ _ (zero_comp _)
-
-end
-
-section
-variables {N : ℝ≥0} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
-
-local notation `ψ` := f₁.extend e h_dense (uniform_embedding_of_bound _ h_e).to_uniform_inducing
-
-/-- If a dense embedding `e : E₁ →L[𝕜] G₁` expands the norm by a constant factor `N⁻¹`, then the
-norm of the extension of `f` along `e` is bounded by `N * ∥f∥`. -/
-lemma op_norm_extend_le : ∥ψ∥ ≤ N * ∥f₁∥ :=
-begin
-  have uni : uniform_inducing e := (uniform_embedding_of_bound _ h_e).to_uniform_inducing,
-  have eq : ∀x, ψ (e x) = f₁ x := uniformly_extend_of_ind uni h_dense f₁.uniform_continuous,
-  by_cases N0 : 0 ≤ N,
-  { refine op_norm_le_bound ψ _ (is_closed_property h_dense (is_closed_le _ _) _),
-    { exact mul_nonneg N0 (norm_nonneg _) },
-    { exact continuous_norm.comp (cont ψ) },
-    { exact continuous_const.mul continuous_norm },
-    { assume x,
-      rw eq,
-      calc ∥f₁ x∥ ≤ ∥f₁∥ * ∥x∥ : le_op_norm _ _
-        ... ≤ ∥f₁∥ * (N * ∥e x∥) : mul_le_mul_of_nonneg_left (h_e x) (norm_nonneg _)
-        ... ≤ N * ∥f₁∥ * ∥e x∥ : by rw [mul_comm ↑N ∥f₁∥, mul_assoc] } },
-  { have he : ∀ x : E₁, x = 0,
-    { assume x,
-      have N0 : N ≤ 0 := le_of_lt (lt_of_not_ge N0),
-      rw ← norm_le_zero_iff,
-      exact le_trans (h_e x) (mul_nonpos_of_nonpos_of_nonneg N0 (norm_nonneg _)) },
-    have hf : f₁ = 0, { ext, simp only [he x, zero_apply, map_zero] },
-    have hψ : ψ = 0, { rw hf, apply extend_zero },
-    rw [hψ, hf, norm_zero, norm_zero, mul_zero] }
-end
-
-end
-
-end uniformly_extend
-
 end op_norm
 
 end continuous_linear_map
@@ -720,33 +406,7 @@ lemma norm_to_continuous_linear_map_le (f : E →ₗᵢ[𝕜] F) :
   ∥f.to_continuous_linear_map∥ ≤ 1 :=
 f.to_continuous_linear_map.op_norm_le_bound zero_le_one $ λ x, by simp
 
-@[simp] lemma norm_to_continuous_linear_map [nontrivial E₁] (f₁ : E₁ →ₗᵢ[𝕜] F₁) :
-  ∥f₁.to_continuous_linear_map∥ = 1 :=
-f₁.to_continuous_linear_map.homothety_norm $ by simp
-
 end linear_isometry
-
-namespace continuous_linear_map
-
-/-- Precomposition with a linear isometry preserves the operator norm. -/
-lemma op_norm_comp_linear_isometry_equiv (f : F₁ →L[𝕜] G) (g : E₁ ≃ₗᵢ[𝕜] F₁) :
-  ∥f.comp g.to_linear_isometry.to_continuous_linear_map∥ = ∥f∥ :=
-begin
-  casesI subsingleton_or_nontrivial E₁,
-  { haveI := g.symm.to_linear_equiv.to_equiv.subsingleton,
-    simp },
-  refine le_antisymm _ _,
-  { convert f.op_norm_comp_le g.to_linear_isometry.to_continuous_linear_map,
-    simp [g.to_linear_isometry.norm_to_continuous_linear_map] },
-  { convert (f.comp g.to_linear_isometry.to_continuous_linear_map).op_norm_comp_le
-      g.symm.to_linear_isometry.to_continuous_linear_map,
-    { ext,
-      simp },
-    haveI := g.symm.to_linear_equiv.to_equiv.nontrivial,
-    simp [g.symm.to_linear_isometry.norm_to_continuous_linear_map] },
-end
-
-end continuous_linear_map
 
 namespace linear_map
 
@@ -795,50 +455,6 @@ end linear_map
 
 namespace continuous_linear_map
 
-/-- The norm of the tensor product of a scalar linear map and of an element of a normed space
-is the product of the norms. -/
-@[simp] lemma norm_smul_right_apply (c : E₁ →L[𝕜] 𝕜) (f : F₁) :
-  ∥smul_right c f∥ = ∥c∥ * ∥f∥ :=
-begin
-  refine le_antisymm _ _,
-  { apply op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) (λx, _),
-    calc
-     ∥(c x) • f∥ = ∥c x∥ * ∥f∥ : norm_smul _ _
-     ... ≤ (∥c∥ * ∥x∥) * ∥f∥ :
-       mul_le_mul_of_nonneg_right (le_op_norm _ _) (norm_nonneg _)
-     ... = ∥c∥ * ∥f∥ * ∥x∥ : by ring },
-  { by_cases h : f = 0,
-    { simp [h] },
-    { have : 0 < ∥f∥ := norm_pos_iff.2 h,
-      rw ← le_div_iff this,
-      apply op_norm_le_bound _ (div_nonneg (norm_nonneg _) (norm_nonneg f)) (λx, _),
-      rw [div_mul_eq_mul_div, le_div_iff this],
-      calc ∥c x∥ * ∥f∥ = ∥c x • f∥ : (norm_smul _ _).symm
-      ... = ∥smul_right c f x∥ : rfl
-      ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
-end
-
-variables (𝕜 E F E₁ F₁)
-
-/-- `continuous_linear_map.smul_right` as a continuous trilinear map:
-`smul_rightL (c : E₁ →L[𝕜] 𝕜) (f : F₁) (x : E₁) = c x • f`. -/
-def smul_rightL : (E₁ →L[𝕜] 𝕜) →L[𝕜] F₁ →L[𝕜] E₁ →L[𝕜] F₁ :=
-linear_map.mk_continuous₂
-  { to_fun := smul_rightₗ,
-    map_add' := λ c₁ c₂, by { ext x, simp [add_smul] },
-    map_smul' := λ m c, by { ext x, simp [smul_smul] } }
-  1 $ λ c x, by simp
-
-variables {𝕜 E F E₁ F₁}
-
-@[simp] lemma norm_smul_rightL_apply (c : E₁ →L[𝕜] 𝕜) (f : F₁) :
-  ∥smul_rightL 𝕜 E₁ F₁ c f∥ = ∥c∥ * ∥f∥ :=
-norm_smul_right_apply c f
-
-@[simp] lemma norm_smul_rightL (c : E₁ →L[𝕜] 𝕜) [nontrivial F₁] :
-  ∥smul_rightL 𝕜 E₁ F₁ c∥ = ∥c∥ :=
-continuous_linear_map.homothety_norm _ c.norm_smul_right_apply
-
 /-- Flip the order of arguments of a continuous bilinear map.
 For a version bundled as `linear_isometry_equiv`, see
 `continuous_linear_map.flipL`. -/
@@ -870,7 +486,7 @@ rfl
   (c • f).flip = c • f.flip :=
 rfl
 
-variables (𝕜 E F G E₁ F₁ G₁)
+variables (𝕜 E F G)
 
 /-- Flip the order of arguments of a continuous bilinear map.
 This is a version bundled as a `linear_isometry_equiv`.
@@ -884,24 +500,24 @@ def flipₗᵢ : (E →L[𝕜] F →L[𝕜] G) ≃ₗᵢ[𝕜] (F →L[𝕜] E �
   right_inv := flip_flip,
   norm_map' := op_norm_flip }
 
-variables {𝕜 E F G E₁ F₁ G₁}
+variables {𝕜 E F G}
 
 @[simp] lemma flipₗᵢ_symm : (flipₗᵢ 𝕜 E F G).symm = flipₗᵢ 𝕜 F E G := rfl
 
 @[simp] lemma coe_flipₗᵢ : ⇑(flipₗᵢ 𝕜 E F G) = flip := rfl
 
-variables (𝕜 F F₁)
+variables (𝕜 F)
 
 /-- The continuous linear map obtained by applying a continuous linear map at a given vector.
 
 This is the continuous version of `linear_map.applyₗ`. -/
 def apply : E →L[𝕜] (E →L[𝕜] F) →L[𝕜] F := flip (id 𝕜 (E →L[𝕜] F))
 
-variables {𝕜 F F₁}
+variables {𝕜 F}
 
 @[simp] lemma apply_apply (v : E) (f : E →L[𝕜] F) : apply 𝕜 F v f = f v := rfl
 
-variables (𝕜 E F G E₁ F₁ G₁)
+variables (𝕜 E F G)
 
 /-- Composition of continuous linear maps as a continuous bilinear map. -/
 def compL : (F →L[𝕜] G) →L[𝕜] (E →L[𝕜] F) →L[𝕜] (E →L[𝕜] G) :=
@@ -909,7 +525,7 @@ linear_map.mk_continuous₂
   (linear_map.mk₂ _ comp add_comp smul_comp comp_add (λ c f g, comp_smul _ _ _))
   1 $ λ f g, by simpa only [one_mul] using op_norm_comp_le f g
 
-variables {𝕜 E F G E₁ F₁ G₁}
+variables {𝕜 E F G}
 
 @[simp] lemma compL_apply (f : F →L[𝕜] G) (g : E →L[𝕜] F) : compL 𝕜 E F G f g = f.comp g := rfl
 
@@ -936,9 +552,6 @@ def lmul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
 @[simp] lemma op_norm_lmul_apply (x : 𝕜') : ∥lmul 𝕜 𝕜' x∥ = ∥x∥ :=
 (lmulₗᵢ 𝕜 𝕜').norm_map x
 
-@[simp] lemma op_norm_lmul : ∥lmul 𝕜 𝕜'∥ = 1 :=
-by haveI := normed_algebra.nontrivial 𝕜 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').norm_to_continuous_linear_map
-
 /-- Right-multiplication in a normed algebra, considered as a continuous linear map. -/
 def lmul_right : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := (lmul 𝕜 𝕜').flip
 
@@ -948,9 +561,6 @@ def lmul_right : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := (lmul 𝕜 𝕜').fl
 le_antisymm
   (op_norm_le_bound _ (norm_nonneg x) (λ y, (norm_mul_le y x).trans_eq (mul_comm _ _)))
   (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] })
-
-@[simp] lemma op_norm_lmul_right : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
-(op_norm_flip (@lmul 𝕜 _ 𝕜' _ _)).trans (op_norm_lmul _ _)
 
 /-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
 continuous linear maps. -/
@@ -999,8 +609,6 @@ section restrict_scalars
 variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜' 𝕜]
 variables [semi_normed_space 𝕜' E] [is_scalar_tower 𝕜' 𝕜 E]
 variables [semi_normed_space 𝕜' F] [is_scalar_tower 𝕜' 𝕜 F]
-variables [normed_space 𝕜' E₁] [is_scalar_tower 𝕜' 𝕜 E₁]
-variables [normed_space 𝕜' F₁] [is_scalar_tower 𝕜' 𝕜 F₁]
 
 @[simp] lemma norm_restrict_scalars (f : E →L[𝕜] F) : ∥f.restrict_scalars 𝕜'∥ = ∥f∥ :=
 le_antisymm (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
@@ -1013,7 +621,7 @@ variables (𝕜 E F 𝕜') (𝕜'' : Type*) [ring 𝕜''] [topological_space �
 def restrict_scalars_isometry : (E →L[𝕜] F) →ₗᵢ[𝕜''] (E →L[𝕜'] F) :=
 ⟨restrict_scalarsₗ 𝕜 E F 𝕜' 𝕜'', norm_restrict_scalars⟩
 
-variables {𝕜 E F E₁ F₁ 𝕜' 𝕜''}
+variables {𝕜 E F 𝕜' 𝕜''}
 
 @[simp] lemma coe_restrict_scalars_isometry :
   ⇑(restrict_scalars_isometry 𝕜 E F 𝕜' 𝕜'') = restrict_scalars 𝕜' :=
@@ -1023,13 +631,13 @@ rfl
   (restrict_scalars_isometry 𝕜 E F 𝕜' 𝕜'').to_linear_map = restrict_scalarsₗ 𝕜 E F 𝕜' 𝕜'' :=
 rfl
 
-variables (𝕜 E F E₁ F₁ 𝕜' 𝕜'')
+variables (𝕜 E F 𝕜' 𝕜'')
 
 /-- `continuous_linear_map.restrict_scalars` as a `continuous_linear_map`. -/
 def restrict_scalarsL : (E →L[𝕜] F) →L[𝕜''] (E →L[𝕜'] F) :=
 (restrict_scalars_isometry 𝕜 E F 𝕜' 𝕜'').to_continuous_linear_map
 
-variables {𝕜 E F E₁ F₁ 𝕜' 𝕜''}
+variables {𝕜 E F 𝕜' 𝕜''}
 
 @[simp] lemma coe_restrict_scalarsL :
   (restrict_scalarsL 𝕜 E F 𝕜' 𝕜'' : (E →L[𝕜] F) →ₗ[𝕜''] (E →L[𝕜'] F)) =
@@ -1048,9 +656,6 @@ namespace submodule
 
 lemma norm_subtypeL_le (K : submodule 𝕜 E) : ∥K.subtypeL∥ ≤ 1 :=
 K.subtypeₗᵢ.norm_to_continuous_linear_map_le
-
-lemma norm_subtypeL (K : submodule 𝕜 E₁) [nontrivial K] : ∥K.subtypeL∥ = 1 :=
-K.subtypeₗᵢ.norm_to_continuous_linear_map
 
 end submodule
 
@@ -1111,13 +716,10 @@ end has_sum
 
 namespace continuous_linear_equiv
 
-variables (e : E ≃L[𝕜] F) (e₁ : E₁ ≃L[𝕜] F₁)
+variables (e : E ≃L[𝕜] F)
 
 protected lemma lipschitz : lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
 (e : E →L[𝕜] F).lipschitz
-
-protected lemma antilipschitz : antilipschitz_with (nnnorm (e₁.symm : F₁ →L[𝕜] E₁)) e₁ :=
-e₁.symm.lipschitz.to_right_inverse e₁.left_inv
 
 theorem is_O_comp {α : Type*} (f : α → E) (l : filter α) :
   asymptotics.is_O (λ x', e (f x')) f l :=
@@ -1134,37 +736,6 @@ theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) :
 theorem is_O_sub_rev (l : filter E) (x : E) :
   asymptotics.is_O (λ x', x' - x) (λ x', e (x' - x)) l :=
 e.is_O_comp_rev _ _
-
-/-- A continuous linear equiv is a uniform embedding. -/
-lemma uniform_embedding : uniform_embedding e₁ :=
-e₁.antilipschitz.uniform_embedding e₁.lipschitz.uniform_continuous
-
-lemma one_le_norm_mul_norm_symm [nontrivial E₁] :
-  1 ≤ ∥(e₁ : E₁ →L[𝕜] F₁)∥ * ∥(e₁.symm : F₁ →L[𝕜] E₁)∥ :=
-begin
-  rw [mul_comm],
-  convert (e₁.symm : F₁ →L[𝕜] E₁).op_norm_comp_le (e₁ : E₁ →L[𝕜] F₁),
-  rw [e₁.coe_symm_comp_coe, continuous_linear_map.norm_id]
-end
-
-lemma norm_pos [nontrivial E₁] : 0 < ∥(e₁ : E₁ →L[𝕜] F₁)∥ :=
-pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one e₁.one_le_norm_mul_norm_symm) (norm_nonneg _)
-
-lemma norm_symm_pos [nontrivial E₁] : 0 < ∥(e₁.symm : F₁ →L[𝕜] E₁)∥ :=
-pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one e₁.one_le_norm_mul_norm_symm) (norm_nonneg _)
-
-lemma nnnorm_symm_pos [nontrivial E₁] : 0 < nnnorm (e₁.symm : F₁ →L[𝕜] E₁) :=
-e₁.norm_symm_pos
-
-lemma subsingleton_or_norm_symm_pos : subsingleton E₁ ∨ 0 < ∥(e₁.symm : F₁ →L[𝕜] E₁)∥ :=
-begin
-  rcases subsingleton_or_nontrivial E₁ with _i|_i; resetI,
-  { left, apply_instance },
-  { right, exact e₁.norm_symm_pos }
-end
-
-lemma subsingleton_or_nnnorm_symm_pos : subsingleton E₁ ∨ 0 < (nnnorm $ (e₁.symm : F₁ →L[𝕜] E₁)) :=
-subsingleton_or_norm_symm_pos e₁
 
 lemma homothety_inverse (a : ℝ) (ha : 0 < a) (f : E ≃ₗ[𝕜] F) :
   (∀ (x : E), ∥f x∥ = a * ∥x∥) → (∀ (y : F), ∥f.symm y∥ = a⁻¹ * ∥y∥) :=
@@ -1189,50 +760,7 @@ lemma to_span_nonzero_singleton_homothety (x : E) (h : x ≠ 0) (c : 𝕜) :
   ∥linear_equiv.to_span_nonzero_singleton 𝕜 E x h c∥ = ∥x∥ * ∥c∥ :=
 continuous_linear_map.to_span_singleton_homothety _ _ _
 
-/-- Given a nonzero element `x` of a normed space `E₁` over a field `𝕜`, the natural
-    continuous linear equivalence from `E₁` to the span of `x`.-/
-def to_span_nonzero_singleton (x : E₁) (h : x ≠ 0) : 𝕜 ≃L[𝕜] (𝕜 ∙ x) :=
-of_homothety
-  (linear_equiv.to_span_nonzero_singleton 𝕜 E₁ x h)
-  ∥x∥
-  (norm_pos_iff.mpr h)
-  (to_span_nonzero_singleton_homothety 𝕜 x h)
-
-/-- Given a nonzero element `x` of a normed space `E₁` over a field `𝕜`, the natural continuous
-    linear map from the span of `x` to `𝕜`.-/
-def coord (x : E₁) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 := (to_span_nonzero_singleton 𝕜 x h).symm
-
-@[simp] lemma coe_to_span_nonzero_singleton_symm {x : E₁} (h : x ≠ 0) :
-  ⇑(to_span_nonzero_singleton 𝕜 x h).symm = coord 𝕜 x h := rfl
-
-@[simp] lemma coord_to_span_nonzero_singleton {x : E₁} (h : x ≠ 0) (c : 𝕜) :
-  coord 𝕜 x h (to_span_nonzero_singleton 𝕜 x h c) = c :=
-(to_span_nonzero_singleton 𝕜 x h).symm_apply_apply c
-
-@[simp] lemma to_span_nonzero_singleton_coord {x : E₁} (h : x ≠ 0) (y : 𝕜 ∙ x) :
-  to_span_nonzero_singleton 𝕜 x h (coord 𝕜 x h y) = y :=
-(to_span_nonzero_singleton 𝕜 x h).apply_symm_apply y
-
-@[simp] lemma coord_norm (x : E₁) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
-begin
-  have hx : 0 < ∥x∥ := (norm_pos_iff.mpr h),
-  haveI : nontrivial (𝕜 ∙ x) := submodule.nontrivial_span_singleton h,
-  exact continuous_linear_map.homothety_norm _
-        (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
-end
-
-@[simp] lemma coord_self (x : E₁) (h : x ≠ 0) :
-  (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
-linear_equiv.coord_self 𝕜 E₁ x h
-
 end continuous_linear_equiv
-
-lemma linear_equiv.uniform_embedding (e₁ : E₁ ≃ₗ[𝕜] F₁) (h₁ : continuous e₁)
-  (h₂ : continuous e₁.symm) : uniform_embedding e₁ :=
-continuous_linear_equiv.uniform_embedding
-{ continuous_to_fun := h₁,
-  continuous_inv_fun := h₂,
-  .. e₁ }
 
 /-- Construct a continuous linear equivalence from a linear equivalence together with
 bounds in both directions. -/
@@ -1275,3 +803,545 @@ lemma map_add₂ (f : E →L[𝕜] F →L[𝕜] G) (x x' : E) (y y' : F) :
 by simp only [map_add, add_apply, coe_deriv₂, add_assoc]
 
 end continuous_linear_map
+
+end semi_normed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+section normed
+
+variables [normed_group E] [normed_group F] [normed_group G]
+
+open metric continuous_linear_map
+
+section normed_field
+
+variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
+
+lemma linear_map.continuous_iff_is_closed_ker {f : E →ₗ[𝕜] 𝕜} :
+  continuous f ↔ is_closed (f.ker : set E) :=
+begin
+  -- the continuity of f obviously implies that its kernel is closed
+  refine ⟨λh, (t1_space.t1 (0 : 𝕜)).preimage h, λh, _⟩,
+  -- for the other direction, we assume that the kernel is closed
+  by_cases hf : ∀x, x ∈ f.ker,
+  { -- if `f = 0`, its continuity is obvious
+    have : (f : E → 𝕜) = (λx, 0), by { ext x, simpa using hf x },
+    rw this,
+    exact continuous_const },
+  { /- if `f` is not zero, we use an element `x₀ ∉ ker f` such that `∥x₀∥ ≤ 2 ∥x₀ - y∥` for all
+    `y ∈ ker f`, given by Riesz's lemma, and prove that `2 ∥f x₀∥ / ∥x₀∥` gives a bound on the
+    operator norm of `f`. For this, start from an arbitrary `x` and note that
+    `y = x₀ - (f x₀ / f x) x` belongs to the kernel of `f`. Applying the above inequality to `x₀`
+    and `y` readily gives the conclusion. -/
+    push_neg at hf,
+    let r : ℝ := (2 : ℝ)⁻¹,
+    have : 0 ≤ r, by norm_num [r],
+    have : r < 1, by norm_num [r],
+    obtain ⟨x₀, x₀ker, h₀⟩ : ∃ (x₀ : E), x₀ ∉ f.ker ∧ ∀ y ∈ linear_map.ker f,
+      r * ∥x₀∥ ≤ ∥x₀ - y∥, from riesz_lemma h hf this,
+    have : x₀ ≠ 0,
+    { assume h,
+      have : x₀ ∈ f.ker, by { rw h, exact (linear_map.ker f).zero_mem },
+      exact x₀ker this },
+    have rx₀_ne_zero : r * ∥x₀∥ ≠ 0, by { simp [norm_eq_zero, this], },
+    have : ∀x, ∥f x∥ ≤ (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥,
+    { assume x,
+      by_cases hx : f x = 0,
+      { rw [hx, norm_zero],
+        apply_rules [mul_nonneg, norm_nonneg, inv_nonneg.2] },
+      { let y := x₀ - (f x₀ * (f x)⁻¹ ) • x,
+        have fy_zero : f y = 0, by calc
+          f y = f x₀ - (f x₀ * (f x)⁻¹ ) * f x : by simp [y]
+          ... = 0 :
+            by { rw [mul_assoc, inv_mul_cancel hx, mul_one, sub_eq_zero_of_eq], refl },
+        have A : r * ∥x₀∥ ≤ ∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥, from calc
+          r * ∥x₀∥ ≤ ∥x₀ - y∥ : h₀ _ (linear_map.mem_ker.2 fy_zero)
+          ... = ∥(f x₀ * (f x)⁻¹ ) • x∥ : by { dsimp [y], congr, abel }
+          ... = ∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥ :
+            by rw [norm_smul, normed_field.norm_mul, normed_field.norm_inv],
+        calc
+          ∥f x∥ = (r * ∥x₀∥)⁻¹ * (r * ∥x₀∥) * ∥f x∥ : by rwa [inv_mul_cancel, one_mul]
+          ... ≤ (r * ∥x₀∥)⁻¹ * (∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥) * ∥f x∥ : begin
+            apply mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left A _) (norm_nonneg _),
+            exact inv_nonneg.2 (mul_nonneg (by norm_num) (norm_nonneg _))
+          end
+          ... = (∥f x∥ ⁻¹ * ∥f x∥) * (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥ : by ring
+          ... = (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥ :
+            by { rw [inv_mul_cancel, one_mul], simp [norm_eq_zero, hx] } } },
+    exact linear_map.continuous_of_bound f _ this }
+end
+
+end normed_field
+
+variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
+[normed_space 𝕜 G] (c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
+include 𝕜
+
+lemma linear_map.bound_of_shell (f : E →ₗ[𝕜] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
+  (hc : 1 < ∥c∥) (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) (x : E) :
+  ∥f x∥ ≤ C * ∥x∥ :=
+begin
+  by_cases hx : x = 0, { simp [hx] },
+  exact linear_map.bound_of_shell_semi_normed f ε_pos hc hf (ne_of_lt (norm_pos_iff.2 hx)).symm
+end
+
+namespace continuous_linear_map
+
+section op_norm
+open set real
+
+/-- An operator is zero iff its norm vanishes. -/
+theorem op_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
+iff.intro
+  (λ hn, continuous_linear_map.ext (λ x, norm_le_zero_iff.1
+    (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
+     ...     = _ : by rw [hn, zero_mul])))
+  (λ hf, le_antisymm (Inf_le _ bounds_bdd_below
+    ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
+    (op_norm_nonneg _))
+
+/-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
+lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
+begin
+  refine norm_id_of_nontrivial_seminorm _,
+  obtain ⟨x, hx⟩ := exists_ne (0 : E),
+  exact ⟨x, ne_of_gt (norm_pos_iff.2 hx)⟩,
+end
+
+@[simp] lemma norm_id_field : ∥id 𝕜 𝕜∥ = 1 :=
+norm_id
+
+@[simp] lemma norm_id_field' : ∥(1 : 𝕜 →L[𝕜] 𝕜)∥ = 1 :=
+norm_id_field
+
+/-- Continuous linear maps themselves form a normed space with respect to
+    the operator norm. -/
+instance to_normed_group : normed_group (E →L[𝕜] F) :=
+normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
+
+instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
+  [smul_comm_class 𝕜 𝕜' F] : normed_space 𝕜' (E →L[𝕜] F) :=
+⟨op_norm_smul_le⟩
+
+/-- Continuous linear maps form a normed ring with respect to the operator norm. -/
+instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
+{ norm_mul := op_norm_comp_le,
+  .. continuous_linear_map.to_normed_group }
+
+/-- For a nonzero normed space `E`, continuous linear endomorphisms form a normed algebra with
+respect to the operator norm. -/
+instance to_normed_algebra [nontrivial E] : normed_algebra 𝕜 (E →L[𝕜] E) :=
+{ norm_algebra_map_eq := λ c, show ∥c • id 𝕜 E∥ = ∥c∥,
+    by {rw [norm_smul, norm_id], simp},
+  .. continuous_linear_map.algebra }
+
+variable {f}
+
+lemma homothety_norm [nontrivial E] (f : E →L[𝕜] F) {a : ℝ} (hf : ∀x, ∥f x∥ = a * ∥x∥) :
+  ∥f∥ = a :=
+begin
+  obtain ⟨x, hx⟩ : ∃ (x : E), x ≠ 0 := exists_ne 0,
+  rw ← norm_pos_iff at hx,
+  have ha : 0 ≤ a, by simpa only [hf, hx, zero_le_mul_right] using norm_nonneg (f x),
+  apply le_antisymm (f.op_norm_le_bound ha (λ y, le_of_eq (hf y))),
+  simpa only [hf, hx, mul_le_mul_right] using f.le_op_norm x,
+end
+
+lemma to_span_singleton_norm (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
+homothety_norm _ (to_span_singleton_homothety 𝕜 x)
+
+variable (f)
+
+theorem uniform_embedding_of_bound {K : ℝ≥0} (hf : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+  uniform_embedding f :=
+(f.to_linear_map.antilipschitz_of_bound hf).uniform_embedding f.uniform_continuous
+
+/-- If a continuous linear map is a uniform embedding, then it is expands the distances
+by a positive factor.-/
+theorem antilipschitz_of_uniform_embedding (hf : uniform_embedding f) :
+  ∃ K, antilipschitz_with K f :=
+begin
+  obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ {x y : E}, dist (f x) (f y) < ε → dist x y < 1,
+    from (uniform_embedding_iff.1 hf).2.2 1 zero_lt_one,
+  let δ := ε/2,
+  have δ_pos : δ > 0 := half_pos εpos,
+  have H : ∀{x}, ∥f x∥ ≤ δ → ∥x∥ ≤ 1,
+  { assume x hx,
+    have : dist x 0 ≤ 1,
+    { refine (hε _).le,
+      rw [f.map_zero, dist_zero_right],
+      exact hx.trans_lt (half_lt_self εpos) },
+    simpa using this },
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  refine ⟨⟨δ⁻¹, _⟩ * nnnorm c, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
+  exact inv_nonneg.2 (le_of_lt δ_pos),
+  by_cases hx : f x = 0,
+  { have : f x = f 0, by { simp [hx] },
+    have : x = 0 := (uniform_embedding_iff.1 hf).1 this,
+    simp [this] },
+  { rcases rescale_to_shell hc δ_pos hx with ⟨d, hd, dxlt, ledx, dinv⟩,
+    rw [← f.map_smul d] at dxlt,
+    have : ∥d • x∥ ≤ 1 := H dxlt.le,
+    calc ∥x∥ = ∥d∥⁻¹ * ∥d • x∥ :
+      by rwa [← normed_field.norm_inv, ← norm_smul, ← mul_smul, inv_mul_cancel, one_smul]
+    ... ≤ ∥d∥⁻¹ * 1 :
+      mul_le_mul_of_nonneg_left this (inv_nonneg.2 (norm_nonneg _))
+    ... ≤ δ⁻¹ * ∥c∥ * ∥f x∥ :
+      by rwa [mul_one] }
+end
+
+section completeness
+
+open_locale topological_space
+open filter
+
+/-- If the target space is complete, the space of continuous linear maps with its norm is also
+complete. This works also if the source space is seminormed. -/
+instance {E : Type*} [semi_normed_group E] [semi_normed_space 𝕜 E] [complete_space F] :
+  complete_space (E →L[𝕜] F) :=
+begin
+  -- We show that every Cauchy sequence converges.
+  refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
+  -- We now expand out the definition of a Cauchy sequence,
+  rcases cauchy_seq_iff_le_tendsto_0.1 hf with ⟨b, b0, b_bound, b_lim⟩, clear hf,
+  -- and establish that the evaluation at any point `v : E` is Cauchy.
+  have cau : ∀ v, cauchy_seq (λ n, f n v),
+  { assume v,
+    apply cauchy_seq_iff_le_tendsto_0.2 ⟨λ n, b n * ∥v∥, λ n, _, _, _⟩,
+    { exact mul_nonneg (b0 n) (norm_nonneg _) },
+    { assume n m N hn hm,
+      rw dist_eq_norm,
+      apply le_trans ((f n - f m).le_op_norm v) _,
+      exact mul_le_mul_of_nonneg_right (b_bound n m N hn hm) (norm_nonneg v) },
+    { simpa using b_lim.mul tendsto_const_nhds } },
+  -- We assemble the limits points of those Cauchy sequences
+  -- (which exist as `F` is complete)
+  -- into a function which we call `G`.
+  choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
+  -- Next, we show that this `G` is linear,
+  let Glin : E →ₗ[𝕜] F :=
+  { to_fun := G,
+    map_add' := λ v w, begin
+      have A := hG (v + w),
+      have B := (hG v).add (hG w),
+      simp only [map_add] at A B,
+      exact tendsto_nhds_unique A B,
+    end,
+    map_smul' := λ c v, begin
+      have A := hG (c • v),
+      have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hG v),
+      simp only [map_smul] at A B,
+      exact tendsto_nhds_unique A B
+    end },
+  -- and that `G` has norm at most `(b 0 + ∥f 0∥)`.
+  have Gnorm : ∀ v, ∥G v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
+  { assume v,
+    have A : ∀ n, ∥f n v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
+    { assume n,
+      apply le_trans ((f n).le_op_norm _) _,
+      apply mul_le_mul_of_nonneg_right _ (norm_nonneg v),
+      calc ∥f n∥ = ∥(f n - f 0) + f 0∥ : by { congr' 1, abel }
+      ... ≤ ∥f n - f 0∥ + ∥f 0∥ : norm_add_le _ _
+      ... ≤ b 0 + ∥f 0∥ : begin
+        apply add_le_add_right,
+        simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
+      end },
+    exact le_of_tendsto (hG v).norm (eventually_of_forall A) },
+  -- Thus `G` is continuous, and we propose that as the limit point of our original Cauchy sequence.
+  let Gcont := Glin.mk_continuous _ Gnorm,
+  use Gcont,
+  -- Our last task is to establish convergence to `G` in norm.
+  have : ∀ n, ∥f n - Gcont∥ ≤ b n,
+  { assume n,
+    apply op_norm_le_bound _ (b0 n) (λ v, _),
+    have A : ∀ᶠ m in at_top, ∥(f n - f m) v∥ ≤ b n * ∥v∥,
+    { refine eventually_at_top.2 ⟨n, λ m hm, _⟩,
+      apply le_trans ((f n - f m).le_op_norm _) _,
+      exact mul_le_mul_of_nonneg_right (b_bound n m n (le_refl _) hm) (norm_nonneg v) },
+    have B : tendsto (λ m, ∥(f n - f m) v∥) at_top (𝓝 (∥(f n - Gcont) v∥)) :=
+      tendsto.norm (tendsto_const_nhds.sub (hG v)),
+    exact le_of_tendsto B A },
+  erw tendsto_iff_norm_tendsto_zero,
+  exact squeeze_zero (λ n, norm_nonneg _) this b_lim,
+end
+
+end completeness
+
+section uniformly_extend
+
+variables [complete_space F] (e : E →L[𝕜] G) (h_dense : dense_range e)
+
+section
+variables (h_e : uniform_inducing e)
+
+/-- Extension of a continuous linear map `f : E →L[𝕜] F`, with `E` a normed space and `F` a
+complete normed space, along a uniform and dense embedding `e : E →L[𝕜] G`.  -/
+def extend : G →L[𝕜] F :=
+/- extension of `f` is continuous -/
+have cont : _ := (uniform_continuous_uniformly_extend h_e h_dense f.uniform_continuous).continuous,
+/- extension of `f` agrees with `f` on the domain of the embedding `e` -/
+have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
+{ to_fun := (h_e.dense_inducing h_dense).extend f,
+  map_add' :=
+  begin
+    refine h_dense.induction_on₂ _ _,
+    { exact is_closed_eq (cont.comp continuous_add)
+        ((cont.comp continuous_fst).add (cont.comp continuous_snd)) },
+    { assume x y, simp only [eq, ← e.map_add], exact f.map_add _ _  },
+  end,
+  map_smul' := λk,
+  begin
+    refine (λ b, h_dense.induction_on b _ _),
+    { exact is_closed_eq (cont.comp (continuous_const.smul continuous_id))
+        ((continuous_const.smul continuous_id).comp cont) },
+    { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _  },
+  end,
+  cont := cont
+}
+
+lemma extend_unique (g : G →L[𝕜] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
+continuous_linear_map.coe_fn_injective $
+  uniformly_extend_unique h_e h_dense (continuous_linear_map.ext_iff.1 H) g.continuous
+
+@[simp] lemma extend_zero : extend (0 : E →L[𝕜] F) e h_dense h_e = 0 :=
+extend_unique _ _ _ _ _ (zero_comp _)
+
+end
+
+section
+variables {N : ℝ≥0} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
+
+local notation `ψ` := f.extend e h_dense (uniform_embedding_of_bound _ h_e).to_uniform_inducing
+
+/-- If a dense embedding `e : E →L[𝕜] G` expands the norm by a constant factor `N⁻¹`, then the
+norm of the extension of `f` along `e` is bounded by `N * ∥f∥`. -/
+lemma op_norm_extend_le : ∥ψ∥ ≤ N * ∥f∥ :=
+begin
+  have uni : uniform_inducing e := (uniform_embedding_of_bound _ h_e).to_uniform_inducing,
+  have eq : ∀x, ψ (e x) = f x := uniformly_extend_of_ind uni h_dense f.uniform_continuous,
+  by_cases N0 : 0 ≤ N,
+  { refine op_norm_le_bound ψ _ (is_closed_property h_dense (is_closed_le _ _) _),
+    { exact mul_nonneg N0 (norm_nonneg _) },
+    { exact continuous_norm.comp (cont ψ) },
+    { exact continuous_const.mul continuous_norm },
+    { assume x,
+      rw eq,
+      calc ∥f x∥ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
+        ... ≤ ∥f∥ * (N * ∥e x∥) : mul_le_mul_of_nonneg_left (h_e x) (norm_nonneg _)
+        ... ≤ N * ∥f∥ * ∥e x∥ : by rw [mul_comm ↑N ∥f∥, mul_assoc] } },
+  { have he : ∀ x : E, x = 0,
+    { assume x,
+      have N0 : N ≤ 0 := le_of_lt (lt_of_not_ge N0),
+      rw ← norm_le_zero_iff,
+      exact le_trans (h_e x) (mul_nonpos_of_nonpos_of_nonneg N0 (norm_nonneg _)) },
+    have hf : f = 0, { ext, simp only [he x, zero_apply, map_zero] },
+    have hψ : ψ = 0, { rw hf, apply extend_zero },
+    rw [hψ, hf, norm_zero, norm_zero, mul_zero] }
+end
+
+end
+
+end uniformly_extend
+
+end op_norm
+
+end continuous_linear_map
+
+namespace linear_isometry
+
+@[simp] lemma norm_to_continuous_linear_map [nontrivial E] (f : E →ₗᵢ[𝕜] F) :
+  ∥f.to_continuous_linear_map∥ = 1 :=
+f.to_continuous_linear_map.homothety_norm $ by simp
+
+end linear_isometry
+
+namespace continuous_linear_map
+
+/-- Precomposition with a linear isometry preserves the operator norm. -/
+lemma op_norm_comp_linear_isometry_equiv {G : Type*} [semi_normed_group G] [semi_normed_space 𝕜 G]
+  (f : F →L[𝕜] G) (g : E ≃ₗᵢ[𝕜] F) :
+  ∥f.comp g.to_linear_isometry.to_continuous_linear_map∥ = ∥f∥ :=
+begin
+  casesI subsingleton_or_nontrivial E,
+  { haveI := g.symm.to_linear_equiv.to_equiv.subsingleton,
+    simp },
+  refine le_antisymm _ _,
+  { convert f.op_norm_comp_le g.to_linear_isometry.to_continuous_linear_map,
+    simp [g.to_linear_isometry.norm_to_continuous_linear_map] },
+  { convert (f.comp g.to_linear_isometry.to_continuous_linear_map).op_norm_comp_le
+      g.symm.to_linear_isometry.to_continuous_linear_map,
+    { ext,
+      simp },
+    haveI := g.symm.to_linear_equiv.to_equiv.nontrivial,
+    simp [g.symm.to_linear_isometry.norm_to_continuous_linear_map] },
+end
+
+/-- The norm of the tensor product of a scalar linear map and of an element of a normed space
+is the product of the norms. -/
+@[simp] lemma norm_smul_right_apply (c : E →L[𝕜] 𝕜) (f : F) :
+  ∥smul_right c f∥ = ∥c∥ * ∥f∥ :=
+begin
+  refine le_antisymm _ _,
+  { apply op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) (λx, _),
+    calc
+     ∥(c x) • f∥ = ∥c x∥ * ∥f∥ : norm_smul _ _
+     ... ≤ (∥c∥ * ∥x∥) * ∥f∥ :
+       mul_le_mul_of_nonneg_right (le_op_norm _ _) (norm_nonneg _)
+     ... = ∥c∥ * ∥f∥ * ∥x∥ : by ring },
+  { by_cases h : f = 0,
+    { simp [h] },
+    { have : 0 < ∥f∥ := norm_pos_iff.2 h,
+      rw ← le_div_iff this,
+      apply op_norm_le_bound _ (div_nonneg (norm_nonneg _) (norm_nonneg f)) (λx, _),
+      rw [div_mul_eq_mul_div, le_div_iff this],
+      calc ∥c x∥ * ∥f∥ = ∥c x • f∥ : (norm_smul _ _).symm
+      ... = ∥smul_right c f x∥ : rfl
+      ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
+end
+
+variables (𝕜 E F)
+
+/-- `continuous_linear_map.smul_right` as a continuous trilinear map:
+`smul_rightL (c : E →L[𝕜] 𝕜) (f : F) (x : E) = c x • f`. -/
+def smul_rightL : (E →L[𝕜] 𝕜) →L[𝕜] F →L[𝕜] E →L[𝕜] F :=
+linear_map.mk_continuous₂
+  { to_fun := smul_rightₗ,
+    map_add' := λ c₁ c₂, by { ext x, simp [add_smul] },
+    map_smul' := λ m c, by { ext x, simp [smul_smul] } }
+  1 $ λ c x, by simp
+
+variables {𝕜 E F}
+
+@[simp] lemma norm_smul_rightL_apply (c : E →L[𝕜] 𝕜) (f : F) :
+  ∥smul_rightL 𝕜 E F c f∥ = ∥c∥ * ∥f∥ :=
+norm_smul_right_apply c f
+
+@[simp] lemma norm_smul_rightL (c : E →L[𝕜] 𝕜) [nontrivial F] :
+  ∥smul_rightL 𝕜 E F c∥ = ∥c∥ :=
+continuous_linear_map.homothety_norm _ c.norm_smul_right_apply
+
+variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+
+@[simp] lemma op_norm_lmul : ∥lmul 𝕜 𝕜'∥ = 1 :=
+by haveI := normed_algebra.nontrivial 𝕜 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').norm_to_continuous_linear_map
+
+@[simp] lemma op_norm_lmul_right : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
+(op_norm_flip (@lmul 𝕜 _ 𝕜' _ _)).trans (op_norm_lmul _ _)
+
+end continuous_linear_map
+
+namespace submodule
+
+lemma norm_subtypeL (K : submodule 𝕜 E) [nontrivial K] : ∥K.subtypeL∥ = 1 :=
+K.subtypeₗᵢ.norm_to_continuous_linear_map
+
+end submodule
+
+namespace continuous_linear_equiv
+
+variables (e : E ≃L[𝕜] F)
+
+protected lemma antilipschitz : antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
+e.symm.lipschitz.to_right_inverse e.left_inv
+
+/-- A continuous linear equiv is a uniform embedding. -/
+lemma uniform_embedding : uniform_embedding e :=
+e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous
+
+lemma one_le_norm_mul_norm_symm [nontrivial E] :
+  1 ≤ ∥(e : E →L[𝕜] F)∥ * ∥(e.symm : F →L[𝕜] E)∥ :=
+begin
+  rw [mul_comm],
+  convert (e.symm : F →L[𝕜] E).op_norm_comp_le (e : E →L[𝕜] F),
+  rw [e.coe_symm_comp_coe, continuous_linear_map.norm_id]
+end
+
+lemma norm_pos [nontrivial E] : 0 < ∥(e : E →L[𝕜] F)∥ :=
+pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
+
+lemma norm_symm_pos [nontrivial E] : 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
+pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
+
+lemma nnnorm_symm_pos [nontrivial E] : 0 < nnnorm (e.symm : F →L[𝕜] E) :=
+e.norm_symm_pos
+
+lemma subsingleton_or_norm_symm_pos : subsingleton E ∨ 0 < ∥(e.symm : F →L[𝕜] E)∥ :=
+begin
+  rcases subsingleton_or_nontrivial E with _i|_i; resetI,
+  { left, apply_instance },
+  { right, exact e.norm_symm_pos }
+end
+
+lemma subsingleton_or_nnnorm_symm_pos : subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →L[𝕜] E)) :=
+subsingleton_or_norm_symm_pos e
+
+variable (𝕜)
+
+/-- Given a nonzero element `x` of a normed space `E₁` over a field `𝕜`, the natural
+    continuous linear equivalence from `E₁` to the span of `x`.-/
+def to_span_nonzero_singleton (x : E) (h : x ≠ 0) : 𝕜 ≃L[𝕜] (𝕜 ∙ x) :=
+of_homothety
+  (linear_equiv.to_span_nonzero_singleton 𝕜 E x h)
+  ∥x∥
+  (norm_pos_iff.mpr h)
+  (to_span_nonzero_singleton_homothety 𝕜 x h)
+
+/-- Given a nonzero element `x` of a normed space `E₁` over a field `𝕜`, the natural continuous
+    linear map from the span of `x` to `𝕜`.-/
+def coord (x : E) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 := (to_span_nonzero_singleton 𝕜 x h).symm
+
+@[simp] lemma coe_to_span_nonzero_singleton_symm {x : E} (h : x ≠ 0) :
+  ⇑(to_span_nonzero_singleton 𝕜 x h).symm = coord 𝕜 x h := rfl
+
+@[simp] lemma coord_to_span_nonzero_singleton {x : E} (h : x ≠ 0) (c : 𝕜) :
+  coord 𝕜 x h (to_span_nonzero_singleton 𝕜 x h c) = c :=
+(to_span_nonzero_singleton 𝕜 x h).symm_apply_apply c
+
+@[simp] lemma to_span_nonzero_singleton_coord {x : E} (h : x ≠ 0) (y : 𝕜 ∙ x) :
+  to_span_nonzero_singleton 𝕜 x h (coord 𝕜 x h y) = y :=
+(to_span_nonzero_singleton 𝕜 x h).apply_symm_apply y
+
+@[simp] lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
+begin
+  have hx : 0 < ∥x∥ := (norm_pos_iff.mpr h),
+  haveI : nontrivial (𝕜 ∙ x) := submodule.nontrivial_span_singleton h,
+  exact continuous_linear_map.homothety_norm _
+        (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
+end
+
+@[simp] lemma coord_self (x : E) (h : x ≠ 0) :
+  (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
+linear_equiv.coord_self 𝕜 E x h
+
+end continuous_linear_equiv
+
+lemma linear_equiv.uniform_embedding (e : E ≃ₗ[𝕜] F) (h₁ : continuous e)
+  (h₂ : continuous e.symm) : uniform_embedding e :=
+continuous_linear_equiv.uniform_embedding
+{ continuous_to_fun := h₁,
+  continuous_inv_fun := h₂,
+  .. e }
+
+end normed

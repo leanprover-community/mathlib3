@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.monoidal.braided
+import category_theory.reflects_isomorphisms
 
 /-!
 # Half braidings and the Drinfeld center of a monoidal category
@@ -28,8 +29,8 @@ variables {C : Type u₁} [category.{v₁} C] [monoidal_category C]
 /--
 A half-braiding on `X : C` is a family of isomorphisms `X ⊗ U ≅ U ⊗ X`, natural in `U : C`.
 
-Thinking of `C` as a 2-category with a single `0`-morphism, these are the same as natural 
-transformations (in the pseudo- sense) of the identity 2-functor on `C`, which send the unique 
+Thinking of `C` as a 2-category with a single `0`-morphism, these are the same as natural
+transformations (in the pseudo- sense) of the identity 2-functor on `C`, which send the unique
 `0`-morphism to `X`.
 -/
 @[nolint has_inhabited_instance]
@@ -81,6 +82,17 @@ def iso_mk {X Y : center C} (f : X ⟶ Y) [is_iso f.f] : X ≅ Y :=
     apply (cancel_epi (f.f ⊗ 𝟙 U)).mp,
     simp [←comp_tensor_id_assoc, ←id_tensor_comp],
   end⟩, }
+
+variables (C)
+
+/-- The forgetful functor from the Drinfeld center to the original category. -/
+@[simps]
+def forget : center C ⥤ C :=
+{ obj := λ X, X.1,
+  map := λ X Y f, f.f, }
+
+instance : reflects_isomorphisms (forget C) :=
+{ reflects := λ A B f i, by { dsimp at i, resetI, change is_iso (iso_mk f).hom, apply_instance, } }
 
 end center
 

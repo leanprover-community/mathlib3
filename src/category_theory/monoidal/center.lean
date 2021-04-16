@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 Scott Morrison. All rights reserved.
+Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
@@ -23,14 +23,14 @@ noncomputable theory
 
 namespace category_theory
 
-variables {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C]
+variables {C : Type u₁} [category.{v₁} C] [monoidal_category C]
 
 /--
 A half-braiding on `X : C` is a family of isomorphisms `X ⊗ U ≅ U ⊗ X`, natural in `U : C`.
 
-Thinking of `C` as a 2-category with a single `0`-morphism, these are the same as
-natural transformations (in the pseudo- sense)
-of the identity 2-functor on `C`, which send the unique `0`-morphism to `X`.
+Thinking of `C` as a 2-category with a single `0`-morphism, these are the same as natural 
+transformations (in the pseudo- sense) of the identity 2-functor on `C`, which send the unique 
+`0`-morphism to `X`.
 -/
 @[nolint has_inhabited_instance]
 structure half_braiding (X : C) :=
@@ -73,6 +73,7 @@ instance : category (center C) :=
 Construct an isomorphism in the Drinfeld center from
 a morphism whose underlying morphism is an isomorphism.
 -/
+@[simps]
 def iso_mk {X Y : center C} (f : X ⟶ Y) [is_iso f.f] : X ≅ Y :=
 { hom := f,
   inv := ⟨inv f.f, λ U, begin

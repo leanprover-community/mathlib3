@@ -263,9 +263,20 @@ lemma right_unitor_tensor_inv (X Y : C) :
   ((ρ_ (X ⊗ Y)).inv) = ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ ((α_ X Y (𝟙_ C)).inv) :=
 eq_of_inv_eq_inv (by simp)
 
+@[reassoc]
 lemma associator_inv_naturality {X Y Z X' Y' Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
   (f ⊗ (g ⊗ h)) ≫ (α_ X' Y' Z').inv = (α_ X Y Z).inv ≫ ((f ⊗ g) ⊗ h) :=
 by { rw [comp_inv_eq, assoc, associator_naturality], simp }
+
+@[reassoc]
+lemma id_tensor_associator_naturality {X Y Z Z' : C} (h : Z ⟶ Z') :
+  (𝟙 (X ⊗ Y) ⊗ h) ≫ (α_ X Y Z').hom = (α_ X Y Z).hom ≫ (𝟙 X ⊗ (𝟙 Y ⊗ h)) :=
+by { rw [←tensor_id, associator_naturality], }
+
+@[reassoc]
+lemma id_tensor_associator_inv_naturality {X Y Z X' : C} (f : X ⟶ X')  :
+  (f ⊗ 𝟙 (Y ⊗ Z)) ≫ (α_ X' Y Z).inv = (α_ X Y Z).inv ≫ ((f ⊗ 𝟙 Y) ⊗ 𝟙 Z) :=
+by { rw [←tensor_id, associator_inv_naturality] }
 
 lemma pentagon_inv (W X Y Z : C) :
   ((𝟙 W) ⊗ (α_ X Y Z).inv) ≫ (α_ W (X ⊗ Y) Z).inv ≫ ((α_ W X Y).inv ⊗ (𝟙 Z))

@@ -1,9 +1,10 @@
 /-
-Copyright (c) 2020 Scott Morrison. All rights reserved.
+Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.monoidal.braided
+import category_theory.reflects_isomorphisms
 
 /-!
 # Half braidings and the Drinfeld center of a monoidal category
@@ -23,14 +24,14 @@ noncomputable theory
 
 namespace category_theory
 
-variables {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C]
+variables {C : Type u₁} [category.{v₁} C] [monoidal_category C]
 
 /--
 A half-braiding on `X : C` is a family of isomorphisms `X ⊗ U ≅ U ⊗ X`, natural in `U : C`.
 
-Thinking of `C` as a 2-category with a single `0`-morphism, these are the same as
-natural transformations (in the pseudo- sense)
-of the identity 2-functor on `C`, which send the unique `0`-morphism to `X`.
+Thinking of `C` as a 2-category with a single `0`-morphism, these are the same as natural
+transformations (in the pseudo- sense) of the identity 2-functor on `C`, which send the unique
+`0`-morphism to `X`.
 -/
 @[nolint has_inhabited_instance]
 structure half_braiding (X : C) :=
@@ -73,6 +74,7 @@ instance : category (center C) :=
 Construct an isomorphism in the Drinfeld center from
 a morphism whose underlying morphism is an isomorphism.
 -/
+@[simps]
 def iso_mk {X Y : center C} (f : X ⟶ Y) [is_iso f.f] : X ≅ Y :=
 { hom := f,
   inv := ⟨inv f.f, λ U, begin
@@ -81,6 +83,20 @@ def iso_mk {X Y : center C} (f : X ⟶ Y) [is_iso f.f] : X ≅ Y :=
     simp [←comp_tensor_id_assoc, ←id_tensor_comp],
   end⟩, }
 
+section
+variables (C)
+
+/-- The forgetful functor from the Drinfeld center to the original category. -/
+@[simps]
+def forget : center C ⥤ C :=
+{ obj := λ X, X.1,
+  map := λ X Y f, f.f, }
+
+instance : reflects_isomorphisms (forget C) :=
+{ reflects := λ A B f i, by { dsimp at i, resetI, change is_iso (iso_mk f).hom, apply_instance, } }
+
+end
+
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 @[simps]
 def tensor_obj (X Y : center C) : center C :=
@@ -88,7 +104,14 @@ def tensor_obj (X Y : center C) : center C :=
   { β := λ U,
     α_ _ _ _ ≪≫ (iso.refl X.1 ⊗ Y.2.β U) ≪≫ (α_ _ _ _).symm
       ≪≫ (X.2.β U ⊗ iso.refl Y.1) ≪≫ α_ _ _ _,
-    naturality' := sorry, }⟩
+    naturality' := λ U U' f,
+    begin
+      dsimp,
+      rw [category.assoc, category.assoc, category.assoc, category.assoc,
+        id_tensor_associator_naturality_assoc, ←id_tensor_comp_assoc, half_braiding.naturality,
+        id_tensor_comp_assoc, associator_inv_naturality_assoc, ←comp_tensor_id_assoc,
+        half_braiding.naturality, comp_tensor_id_assoc, associator_naturality, ←tensor_id],
+    end, }⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 @[simps]

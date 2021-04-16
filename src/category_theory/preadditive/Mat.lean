@@ -36,11 +36,12 @@ As a consequence, when `C` already has finite biproducts we have `Mat_ C ≌ C`.
 
 ## Matrices over a ring
 
-We also provide for convenience `Mat R`, where `R` is a ring, as a category with objects `ℕ`,
+We also provide for convenience `Mat R`, where `R` is a ring,
+as a category with objects `n : FinType`,
 and whose morphisms are matrices with components in `R`.
 
 This is defined as an induced category from `Mat_ (single_obj R)`, along the map
-sending `n : ℕ` to the `fin n`-indexed tuple of `punit.star`.
+sending `n` to the `n`-indexed tuple of `punit.star`.
 
 -/
 
@@ -465,6 +466,8 @@ Consider a finite type `n` as an object of `Mat R`, the category of matrices ove
 -/
 def Mat.of (R : Type*) [ring R] (n : Type*) [fintype n] : Mat R := Fintype.of n
 
+instance (R : Type*) [ring R] : inhabited (Mat R) := ⟨Mat.of R (fin 1)⟩
+
 /--
 Consider a natural number `n` as an object of `Mat R`, the category of matrices over `R`.
 -/
@@ -479,8 +482,6 @@ def Mat.hom_of_matrix {R : Type*} [ring R] {m n : Type*} [fintype m] [fintype n]
 @[reducible]
 def Mat.matrix_of_hom {R : Type*} [ring R] {m n : Type*} [fintype m] [fintype n]
   (f : Mat.of R m ⟶ Mat.of R n) : matrix m n R := f
-
-instance (R : Type*) [ring R] : inhabited (Mat R) := ⟨Mat.of R (fin 1)⟩
 
 -- Morphisms are just matrices:
 example : matrix (fin 3) (fin 3) ℤ := 𝟙 (Mat.of_nat ℤ 3)

@@ -452,7 +452,8 @@ theorem radical_eq_Inf (I : ideal R) :
   radical I = Inf { J : ideal R | I ≤ J ∧ is_prime J } :=
 le_antisymm (le_Inf $ λ J hJ, hJ.2.radical_le_iff.2 hJ.1) $
 λ r hr, classical.by_contradiction $ λ hri,
-let ⟨m, (hrm : r ∉ radical m), him, hm⟩ := zorn.zorn_partial_order₀ {K : ideal R | r ∉ radical K}
+let ⟨m, (hrm : r ∉ radical m), him, hm⟩ := zorn.zorn_nonempty_partial_order₀
+  {K : ideal R | r ∉ radical K}
   (λ c hc hcc y hyc, ⟨Sup c, λ ⟨n, hrnc⟩, let ⟨y, hyc, hrny⟩ :=
       (submodule.mem_Sup_of_directed ⟨y, hyc⟩ hcc.directed_on).1 hrnc in hc hyc ⟨n, hrny⟩,
     λ z, le_Sup⟩) I hri in

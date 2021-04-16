@@ -170,16 +170,6 @@ by { ext; simp }
 lemma mem_sep_false {α : Type*} (s : set α) : {a ∈ s | false} = ∅ :=
 by { ext; simp }
 
-lemma le_of_lt_add {α : Type*} [linear_ordered_add_comm_group α] {x y : α}
-  (hz : ∀ z, 0 < z → x < y + z) : x ≤ y :=
-begin
-  by_contra h,
-  push_neg at h,
-  have : 0 < x - y,
-  { rwa sub_pos },
-  simpa using hz (x - y) ‹_›,
-end
-
 lemma real.zero_le_Inf (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Inf S :=
 begin
   rcases S.eq_empty_or_nonempty with (rfl | hS₂),
@@ -191,7 +181,7 @@ lemma Inf_le_of_forall_lt (S : set ℝ) (hS : bdd_below S) (y : ℝ)
   (h : ∀ ε, 0 < ε → ∃ δ, δ < ε ∧ y + δ ∈ S) :
   Inf S ≤ y :=
 begin
-  apply le_of_lt_add,
+  apply le_of_forall_pos_lt_add,
   intros ε hε,
   obtain ⟨δ, hδ₁, hδ₂⟩ := h ε hε,
   exact cInf_lt_of_lt hS hδ₂ (add_lt_add_left hδ₁ _),
@@ -457,7 +447,7 @@ lemma gauge_subadditive {K : set E} (hK : convex K)
   (absorbing : ∀ x, ∃ (θ : ℝ), 0 < θ ∧ θ • x ∈ K) (x y : E) :
   gauge K (x + y) ≤ gauge K x + gauge K y :=
 begin
-  apply le_of_lt_add,
+  apply le_of_forall_pos_lt_add,
   intros ε hε,
   obtain ⟨a, ⟨ha₁ : _ < _, ha₂⟩, ha₃ : _ < gauge _ _ + _⟩ :=
     exists_lt_of_cInf_lt (gauge_set_nonempty_of_absorbing absorbing)

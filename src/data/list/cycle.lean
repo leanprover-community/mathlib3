@@ -9,6 +9,22 @@ import group_theory.perm.sign
 import group_theory.perm.cycles
 import dynamics.fixed_points.basic
 
+/-!
+# Cycles of a list
+
+Lists have an equivalence relation of whether they are rotational permutations of one another.
+This relation is defined as `is_rotated`.
+
+A list `l : list α` can be interpreted as a `equiv.perm α` where each element in the list
+is permuted to the next one, defined as `form_perm`. When we have that `nodup l`,
+we prove that `equiv.perm.support (form_perm l) = l.to_finset`, and that
+`form_perm l` is rotationally invariant, in `form_perm_rotate`.
+
+Based on this, we define the quotient of lists by the rotation relation, called `cycle`.
+We define a permutation from a `s : cycle α` by lifting `form_perm` into the quotient.
+
+-/
+
 namespace list
 
 variables {α β : Type*}

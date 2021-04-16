@@ -94,22 +94,22 @@ def add_submonoid.of_submonoid {M : Type*} [add_zero_class M] (S : submonoid (mu
   add_mem' := S.mul_mem' }
 
 lemma submonoid.to_add_submonoid_coe {M : Type*} [mul_one_class M] (S : submonoid M) :
-  (S.to_add_submonoid : set (additive M)) = additive.of_mul '' S :=
-eq.symm (set.image_id S)
+  (S.to_add_submonoid : set (additive M)) = additive.to_mul ⁻¹' S :=
+rfl
 
 lemma add_submonoid.to_submonoid_coe {M : Type*} [add_zero_class M] (S : add_submonoid M) :
-  (S.to_submonoid : set (multiplicative M)) = multiplicative.of_add '' S :=
-eq.symm (set.image_id S)
+  (S.to_submonoid : set (multiplicative M)) = multiplicative.to_add ⁻¹' S :=
+rfl
 
 lemma submonoid.of_add_submonoid_coe {M : Type*} [mul_one_class M]
   (S : add_submonoid (additive M)) :
-  (submonoid.of_add_submonoid S : set M) = additive.to_mul '' S :=
-eq.symm (set.image_id S)
+  (submonoid.of_add_submonoid S : set M) = additive.of_mul ⁻¹' S :=
+rfl
 
 lemma add_submonoid.of_submonoid_coe {M : Type*} [add_zero_class M]
   (S : submonoid (multiplicative M)) :
-  (add_submonoid.of_submonoid S : set M) = multiplicative.to_add '' S :=
-eq.symm (set.image_id S)
+  (add_submonoid.of_submonoid S : set M) = multiplicative.of_add ⁻¹' S :=
+rfl
 
 /-- Submonoids of monoid `M` are isomorphic to additive submonoids of `additive M`. -/
 def submonoid.add_submonoid_equiv (M : Type*) [mul_one_class M] :
@@ -153,21 +153,16 @@ lemma add_submonoid.to_submonoid_mono {M : Type*} [add_zero_class M] :
 lemma submonoid.closure.to_add_submonoid {M : Type*} [monoid M] (S : set M) :
   (submonoid.closure S).to_add_submonoid = add_submonoid.closure (additive.to_mul ⁻¹' S) :=
 le_antisymm
-  ((submonoid.add_submonoid_equiv' M).to_galois_connection.l_le $
+  ((submonoid.add_submonoid_equiv M).to_galois_connection.l_le $
     submonoid.closure_le.2 add_submonoid.subset_closure)
   (add_submonoid.closure_le.2 submonoid.subset_closure)
 
 lemma add_submonoid.closure.to_submonoid {M : Type*} [add_monoid M] (S : set M) :
-  (add_submonoid.closure S).to_submonoid = submonoid.closure (multiplicative.of_add '' S) :=
-begin
-  apply le_antisymm,
-  { apply (add_submonoid.submonoid_equiv M).to_galois_connection.l_le _,
-    rw [add_submonoid.closure_le, add_submonoid.submonoid_equiv_symm_coe,
-      add_submonoid.of_submonoid_coe, equiv.subset_image],
-    exact submonoid.subset_closure },
-  { rw [submonoid.closure_le, add_submonoid.to_submonoid_coe, equiv.image_subset],
-    exact add_submonoid.subset_closure }
-end
+  (add_submonoid.closure S).to_submonoid = submonoid.closure (multiplicative.to_add ⁻¹' S) :=
+le_antisymm
+  ((add_submonoid.submonoid_equiv M).to_galois_connection.l_le $
+    add_submonoid.closure_le.2 submonoid.subset_closure)
+  (submonoid.closure_le.2 add_submonoid.subset_closure)
 
 namespace submonoid
 

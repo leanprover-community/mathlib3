@@ -54,6 +54,7 @@ instance dfinsupp.add_comm_monoid_of_finsupp_single_submonoid [add_comm_monoid M
   add_comm_monoid (Π₀ (i : ι), finsupp.single_submonoid M i) :=
 @dfinsupp.add_comm_monoid ι (λ i, finsupp.single_submonoid M i) _
 
+/-- A `finsupp` is equivalent to a `dfinsupp` where each fibre is constrained to lie in `finsupp.single_submonoid M i` -/
 noncomputable def finsupp.equiv_dfinsupp_single_submonoid [decidable_eq ι] [add_comm_monoid M] :
   (ι →₀ M) ≃+ (Π₀ i : ι, finsupp.single_submonoid M i) :=
 add_monoid_hom.to_add_equiv

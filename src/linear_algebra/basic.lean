@@ -2409,7 +2409,7 @@ linear_equiv.of_bijective (quotient_inf_to_sup_quotient p p')
   begin
     rw [quotient_inf_to_sup_quotient, range_liftq, eq_top_iff'],
     rintros ⟨x, hx⟩, rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
-    use [⟨y, hy⟩, trivial], apply (submodule.quotient.eq _).2,
+    use [⟨y, hy⟩], apply (submodule.quotient.eq _).2,
     change y - (y + z) ∈ p',
     rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
   end

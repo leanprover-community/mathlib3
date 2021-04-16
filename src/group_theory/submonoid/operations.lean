@@ -93,23 +93,15 @@ def add_submonoid.of_submonoid {M : Type*} [add_zero_class M] (S : submonoid (mu
   zero_mem' := S.one_mem',
   add_mem' := S.mul_mem' }
 
-/-- Submonoids of monoid `M` are isomorphic to additive submonoids of `additive M`. -/
-def submonoid.add_submonoid_equiv (M : Type*) [mul_one_class M] :
-  submonoid M ≃ add_submonoid (additive M) :=
-{ to_fun := submonoid.to_add_submonoid,
-  inv_fun := submonoid.of_add_submonoid,
-  left_inv := λ x, by cases x; refl,
-  right_inv := λ x, by cases x; refl }
-
-lemma submonoid.to_add_submonoid_coe {M : Type*} [monoid M] (S : submonoid M) :
+lemma submonoid.to_add_submonoid_coe {M : Type*} [mul_one_class M] (S : submonoid M) :
   (S.to_add_submonoid : set (additive M)) = additive.of_mul '' S :=
 eq.symm (set.image_id S)
 
-lemma add_submonoid.to_submonoid_coe {M : Type*} [add_monoid M] (S : add_submonoid M) :
+lemma add_submonoid.to_submonoid_coe {M : Type*} [add_zero_class M] (S : add_submonoid M) :
   (S.to_submonoid : set (multiplicative M)) = multiplicative.of_add '' S :=
 eq.symm (set.image_id S)
 
-lemma submonoid.to_add_submonoid_le_iff {M : Type*} [monoid M] (S₁ S₂ : submonoid M) :
+lemma submonoid.to_add_submonoid_le_iff {M : Type*} [mul_one_class M] (S₁ S₂ : submonoid M) :
   S₁ ≤ S₂ ↔ S₁.to_add_submonoid ≤ S₂.to_add_submonoid :=
 begin
   split,
@@ -127,7 +119,7 @@ begin
     exact h }
 end
 
-lemma add_submonoid.to_submonoid_le_iff {M : Type*} [add_monoid M] (S₁ S₂ : add_submonoid M) :
+lemma add_submonoid.to_submonoid_le_iff {M : Type*} [add_zero_class M] (S₁ S₂ : add_submonoid M) :
   S₁ ≤ S₂ ↔ S₁.to_submonoid ≤ S₂.to_submonoid :=
 begin
   split,
@@ -144,6 +136,15 @@ begin
     simp only [set.mem_preimage, set_like.mem_coe, to_mul_of_mul] at h,
     exact h }
 end
+
+/-- Submonoids of monoid `M` are isomorphic to additive submonoids of `additive M`. -/
+def submonoid.add_submonoid_equiv (M : Type*) [mul_one_class M] :
+  submonoid M ≃o add_submonoid (additive M) :=
+{ to_fun := submonoid.to_add_submonoid,
+  inv_fun := submonoid.of_add_submonoid,
+  left_inv := λ x, by cases x; refl,
+  right_inv := λ x, by cases x; refl,
+  map_rel_iff' := λ a b, (submonoid.to_add_submonoid_le_iff a b).symm, }
 
 lemma submonoid.closure.to_add_submonoid {M : Type*} [monoid M] (S : set M) :
   (submonoid.closure S).to_add_submonoid = add_submonoid.closure (additive.of_mul '' S) :=

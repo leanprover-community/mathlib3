@@ -126,6 +126,12 @@ by simp [sub_eq_add_neg]
 @[simp] lemma lie_sub : ⁅x, m - n⁆ = ⁅x, m⁆ - ⁅x, n⁆ :=
 by simp [sub_eq_add_neg]
 
+@[simp] lemma nsmul_lie (n : ℕ) : ⁅n • x, m⁆ = n • ⁅x, m⁆ :=
+add_monoid_hom.map_nsmul ⟨λ (x : L), ⁅x, m⁆, zero_lie m, λ _ _, add_lie _ _ _⟩ _ _
+
+@[simp] lemma lie_nsmul (n : ℕ) : ⁅x, n • m⁆ = n • ⁅x, m⁆ :=
+add_monoid_hom.map_nsmul ⟨λ (m : M), ⁅x, m⁆, lie_zero x, λ _ _, lie_add _ _ _⟩ _ _
+
 @[simp] lemma gsmul_lie (a : ℤ) : ⁅a • x, m⁆ = a • ⁅x, m⁆ :=
 add_monoid_hom.map_gsmul ⟨λ (x : L), ⁅x, m⁆, zero_lie m, λ _ _, add_lie _ _ _⟩ _ _
 
@@ -473,6 +479,9 @@ instance : add_comm_group (M →ₗ⁅R,L⁆ N) :=
   add            := (+),
   neg            := λ f, -f,
   sub            := λ f g, f - g,
+  nsmul          := λ n f, { map_lie' := λ x m, by simp, ..(n • (f : M →ₗ[R] N)) },
+  nsmul_zero'    := λ f, by { ext, simp, },
+  nsmul_succ'    := λ n f, by { ext, simp [nat.succ_eq_one_add, add_nsmul], },
   add_assoc      := λ f g h, by { ext, simp only [add_assoc, add_apply], },
   zero_add       := λ f, by { ext, simp only [add_apply, zero_add, zero_apply], },
   add_zero       := λ f, by { ext, simp only [add_zero, add_apply, zero_apply], },

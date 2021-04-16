@@ -103,6 +103,30 @@ begin
   simpa [sum_range_choose_halfway n] using t
 end
 
+lemma choose_middle_upper_bound (n : ℕ) : 4 ^ n ≤ (2 * n + 1) * choose (2 * n) n :=
+begin
+  calc 4 ^ n = (1 + 1) ^ (2 * n) : begin
+      rw one_add_one_eq_two,
+      rw pow_mul,
+      suffices h : 2 ^ 2 = 4,
+      rw h,
+      dec_trivial,
+    end
+  ...        = ∑ m in range (2 * n + 1), choose (2 * n) m : by simp [add_pow 1 1 (2 * n)]
+  ...        ≤ ∑ m in range (2 * n + 1), choose (2 * n) (2 * n / 2) : begin
+      apply sum_le_sum,
+      intros i hi,
+      apply choose_le_middle i (2 * n),
+    end
+  ...        = ∑ m in range (2 * n + 1), choose (2 * n) n : by simp
+  ...        = (2 * n + 1) * choose (2 * n) n : begin
+      rw sum_const,
+      rw finset.card_range,
+      simp,
+    end
+end
+
+
 end nat
 
 theorem int.alternating_sum_range_choose {n : ℕ} :

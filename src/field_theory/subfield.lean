@@ -99,7 +99,7 @@ equalities. -/
 protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
 { carrier := s,
   inv_mem' := hs.symm ▸ S.inv_mem',
-  ..s.to_subring.copy s hs }
+  ..S.to_subring.copy s hs }
 
 @[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=
 rfl

@@ -161,7 +161,7 @@ end submodule
 
 section nat_submodule
 
-/-- a submonoid is equivalent to a ℕ submodule -/
+/-- An addditive submonoid is equivalent to a ℕ-submodule. -/
 def add_submonoid.to_nat_submodule : add_submonoid M ≃o submodule ℕ M :=
 { to_fun := λ S,
   { smul_mem' := λ r s hs, S.nsmul_mem hs _, ..S },

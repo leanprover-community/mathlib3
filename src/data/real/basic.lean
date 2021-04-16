@@ -479,7 +479,7 @@ have bdd_above {x | -x ∈ s} → bdd_below s, from
 have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
 neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
 
-lemma zero_le_Inf (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Inf S :=
+lemma Inf_nonneg (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Inf S :=
 begin
   rcases S.eq_empty_or_nonempty with rfl | hS₂,
   { simp [Inf_empty] },

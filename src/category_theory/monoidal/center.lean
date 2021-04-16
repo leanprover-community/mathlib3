@@ -118,7 +118,17 @@ def tensor_obj (X Y : center C) : center C :=
 def tensor_hom {X₁ Y₁ X₂ Y₂ : center C} (f : X₁ ⟶ Y₁) (g : X₂ ⟶ Y₂) :
   tensor_obj X₁ X₂ ⟶ tensor_obj Y₁ Y₂ :=
 { f := f.f ⊗ g.f,
-  comm' := sorry }
+  comm' := λ U, begin
+    dsimp,
+    rw [category.assoc, category.assoc, category.assoc, category.assoc,
+      associator_naturality_assoc, ←tensor_id_comp_id_tensor, category.assoc,
+      ←id_tensor_comp_assoc, g.comm, id_tensor_comp_assoc, tensor_id_comp_id_tensor_assoc,
+      ←id_tensor_comp_tensor_id, category.assoc, associator_inv_naturality_assoc,
+      id_tensor_associator_inv_naturality_assoc, tensor_id,
+      id_tensor_comp_tensor_id_assoc, ←tensor_id_comp_id_tensor g.f, category.assoc,
+      ←comp_tensor_id_assoc, f.comm, comp_tensor_id_assoc, id_tensor_associator_naturality,
+      associator_naturality_assoc, ←id_tensor_comp, tensor_id_comp_id_tensor],
+  end  }
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 @[simps]

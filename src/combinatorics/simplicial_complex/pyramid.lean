@@ -5,14 +5,18 @@ namespace affine
 
 open_locale classical affine big_operators
 open set
-variables {n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S : simplicial_complex E}
+variables {n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E] {S S₁ S₂ : simplicial_complex E}
   {v : E}
 
-/-The pyramid of a vertex v with respect to a simplicial complex S is the surcomplex consisting of
-all faces of S along with all faces of S with v added -/
-def pyramid (hS : ∀ X ∈ S.faces, finset.card X ≤ S.dim) {v : E} (hv : v ∉ convex_hull S.space) :
+/--
+The pyramid of a vertex v with respect to a simplicial complex S is the surcomplex consisting of
+all faces of S along with all faces of S with v added. Defined to be S itself if some face of S is
+already full dimensional or if v belongs to the convex hull of the space of X.
+-/
+noncomputable def simplicial_complex.pyramid (S : simplicial_complex E) (v : E) :
   simplicial_complex E :=
- {faces := {X' | ∃ X ∈ S.faces, X' ⊆ X ∪ {v}},
+if v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces, (X : finset E).card = S.dim + 1 then S else
+{ faces := {X' | ∃ X ∈ S.faces, X' ⊆ X ∪ {v}},
   indep := begin
     rintro X' ⟨X, hX, hX'X⟩,
     sorry
@@ -21,25 +25,33 @@ def pyramid (hS : ∀ X ∈ S.faces, finset.card X ≤ S.dim) {v : E} (hv : v �
   disjoint := begin
     rintro X' Y' ⟨X, hX, hX'X⟩ ⟨Y, hY, hY'Y⟩,
     sorry
-  end}
+  end }
 
-lemma subcomplex_pyramid (hS : ∀ X ∈ S.faces, finset.card X ≤ S.dim)
-  (hv : v ∉ convex_hull S.space) :
-  S.faces ⊆ (pyramid hS hv).faces := λ X hX, ⟨X, hX, finset.subset_union_left X {v}⟩
-
---S₁ ≤ S₂ → S₁.space = S₂.space so maybe we can get rid of hv₂?
-lemma pyramid_mono {S₁ S₂ : simplicial_complex E}
-  (hS₁ : ∀ X ∈ S₁.faces, finset.card X ≤ S.dim) (hS₂ : ∀ X ∈ S₂.faces, finset.card X ≤ S.dim)
-  (hv₁ : v ∉ convex_hull S₁.space) (hv₂ : v ∉ convex_hull S₂.space) :
-  S₁ ≤ S₂ → pyramid hS₁ hv₁ ≤ pyramid hS₂ hv₂ :=
+lemma subcomplex_pyramid :
+  S.faces ⊆ (S.pyramid v).faces :=
 begin
-  rintro h,
+  by_cases v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces, (X : finset E).card = S.dim + 1,
+  {
+    sorry
+  },
+  sorry
+  --exact λ X hX, ⟨X, hX, finset.subset_union_left X {v}⟩
+end
+
+lemma pyramid_mono (hS : S₁ ≤ S₂) :
+   S₁.pyramid v ≤ S₂.pyramid v :=
+begin
+  by_cases v ∈ convex_hull S₁.space ∨ ∃ X ∈ S₁.faces, (X : finset E).card = S₁.dim + 1,
+  {
+    sorry --easy case
+  },
   split,
   {
     sorry
   },
   {
-    rintro X ⟨Y, hY, hXYv⟩,
+    sorry
+    /-rintro X ⟨Y, hY, hXYv⟩,
     obtain ⟨Z, hZ, hYZhull⟩ := h.2 hY,
     use Z ∪ {v},
     split,
@@ -51,13 +63,13 @@ begin
     {
       sorry
     },
-    exact subset.trans hXYvhull hYvZvhull,
+    exact subset.trans hXYvhull hYvZvhull,-/
   }
 end
 
-lemma pure_pyramid_of_pure [finite_dimensional ℝ E] (hn : n ≤ S.dim) (hS : S.pure_of n)
-  (hv : v ∉ convex_hull S.space) :
-  (pyramid (λ X hX, le_trans (face_card_le_pureness hS hX) hn) hv).pure_of (n + 1) :=
+lemma pure_pyramid_of_pure [finite_dimensional ℝ E] (hn : n ≤ S.dim) (hv : v ∉ convex_hull S.space)
+  (hS : S.pure_of n) :
+  (S.pyramid v).pure_of (n + 1) :=
 begin
   sorry
 end

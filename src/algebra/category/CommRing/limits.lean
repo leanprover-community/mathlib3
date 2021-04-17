@@ -319,22 +319,6 @@ instance limit_comm_ring (F : J ⥤ CommRing) :
 @subring.to_comm_ring (Π j, F.obj j) _
   (Ring.sections_subring (F ⋙ forget₂ CommRing Ring.{u}))
 
-/-- Auxiliary construction for the `creates_limit` instance below. -/
-def lifted_cone (F : J ⥤ CommRing) : cone F :=
-{ X := CommRing.of (types.limit_cone (F ⋙ forget _)).X,
-  π :=
-  { app := SemiRing.limit_π_ring_hom (F ⋙ forget₂ CommRing Ring.{u} ⋙ forget₂ Ring SemiRing),
-    naturality' := (SemiRing.has_limits.limit_cone
-      (F ⋙ forget₂ _ Ring.{u} ⋙ forget₂ _ SemiRing)).π.naturality } }
-
-/-- Auxiliary construction for the `creates_limit` instance below. -/
-def is_limit_lifted_cone (F : J ⥤ CommRing) : is_limit (lifted_cone F) :=
-begin
-  let := Ring.limit_cone_is_limit (F ⋙ forget₂ CommRing Ring),
-  exact is_limit.of_faithful (forget₂ _ Ring.{u}) this
-    (λ s, (Ring.limit_cone_is_limit _).lift ((forget₂ _ Ring.{u}).map_cone s)) (λ s, rfl),
-end
-
 /--
 We show that the forgetful functor `CommRing ⥤ Ring` creates limits.
 
@@ -348,11 +332,28 @@ A terse solution here would be
 creates_limit_of_fully_faithful_of_iso (CommRing.of (limit (F ⋙ forget _))) (iso.refl _)
 ```
 but it seems this would introduce additional identity morphisms in `limit.π`.
+
+The two `begin ... end` blocks in `valid_lift` and `makes_limit` are workarounds avoiding slow
+elaboration, going from 40 s to 200 ms each. TODO: fix properly
 -/
 creates_limit_of_reflects_iso (λ c' t,
-{ lifted_cone := lifted_cone F,
-  valid_lift := is_limit.unique_up_to_iso (Ring.limit_cone_is_limit _) t,
-  makes_limit := is_limit_lifted_cone F, })
+{ lifted_cone :=
+  { X := CommRing.of (types.limit_cone (F ⋙ forget _)).X,
+    π :=
+    { app := SemiRing.limit_π_ring_hom (F ⋙ forget₂ CommRing Ring.{u} ⋙ forget₂ Ring SemiRing),
+      naturality' := (SemiRing.has_limits.limit_cone
+        (F ⋙ forget₂ _ Ring.{u} ⋙ forget₂ _ SemiRing)).π.naturality } },
+  valid_lift :=
+  begin
+    let := is_limit.unique_up_to_iso (Ring.limit_cone_is_limit _) t,
+    exact this
+  end,
+  makes_limit :=
+  begin
+    let := Ring.limit_cone_is_limit (F ⋙ forget₂ CommRing Ring),
+    exact is_limit.of_faithful (forget₂ _ Ring.{u}) this
+      (λ s, (Ring.limit_cone_is_limit _).lift ((forget₂ _ Ring.{u}).map_cone s)) (λ s, rfl),
+  end })
 
 /--
 A choice of limit cone for a functor into `CommRing`.

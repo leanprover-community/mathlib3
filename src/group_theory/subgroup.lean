@@ -861,8 +861,8 @@ instance center_normal : (center G).normal :=
 end⟩
 
 variables {G} (H)
-/-- The `normalizer` of `H` is the smallest subgroup of `G` inside which `H` is normal. -/
-@[to_additive "The `normalizer` of `H` is the smallest subgroup of `G` inside which `H` is normal."]
+/-- The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal. -/
+@[to_additive "The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal."]
 def normalizer : subgroup G :=
 { carrier := {g : G | ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H},
   one_mem' := by simp,

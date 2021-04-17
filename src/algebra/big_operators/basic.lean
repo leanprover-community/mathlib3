@@ -225,6 +225,16 @@ lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) :
   (∏ x in (s₁ ∪ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
 
+@[to_additive]
+lemma prod_coe [decidable_eq α] (s : finset α) (f : α → β) :
+  ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
+begin
+  rw ←prod_image,
+  apply prod_congr _ (λ _ _, rfl),
+  { ext, simp },
+  { simp },
+end
+
 end comm_monoid
 
 end finset
@@ -1307,12 +1317,12 @@ prod_bij
 /-- `fintype.prod_equiv` is a specialization of `finset.prod_bij` that
 automatically fills in most arguments.
 
-See `equiv.prod_comp` for a version without `h`. 
+See `equiv.prod_comp` for a version without `h`.
 -/
 @[to_additive "`fintype.sum_equiv` is a specialization of `finset.sum_bij` that
 automatically fills in most arguments.
 
-See `equiv.sum_comp` for a version without `h`. 
+See `equiv.sum_comp` for a version without `h`.
 "]
 lemma prod_equiv {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
   (e : α ≃ β) (f : α → M) (g : β → M) (h : ∀ x, f x = g (e x)) :

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.monoidal.types
-import category_theory.monoidal.braided
+import category_theory.monoidal.center
 
 /-!
 # Enriched categories
@@ -28,6 +28,8 @@ We verify that when `V = Type v`, all these notion reduce to the usual ones.
 -/
 
 universes w v u₁ u₂ u₃
+
+noncomputable theory
 
 namespace category_theory
 
@@ -182,9 +184,18 @@ def forget_enrichment
   (W : Type (v+1)) [category.{v} W] [monoidal_category W] (C : Type u₁) [enriched_category W C] :=
 C
 
-/-- Typecheck an object of `C` as an object of `forget_enrichment W C`. -/
 variables (W)
+
+/-- Typecheck an object of `C` as an object of `forget_enrichment W C`. -/
 def forget_enrichment.of (X : C) : forget_enrichment W C := X
+
+/-- Typecheck an object of `forget_enrichment W C` as an object of `C`. -/
+def forget_enrichment.to (X : forget_enrichment W C) : C := X
+
+@[simp] lemma forget_enrichment.to_of (X : C) :
+  forget_enrichment.to W (forget_enrichment.of W X) = X := rfl
+@[simp] lemma forget_enrichment.of_to (X : forget_enrichment W C) :
+  forget_enrichment.of W (forget_enrichment.to W X) = X := rfl
 
 instance category_forget_enrichment : category (forget_enrichment W C) :=
 begin
@@ -196,21 +207,43 @@ end
 /--
 We verify that the morphism types in `forget_enrichment W C` are `(𝟙_ W) ⟶ (X ⟶[W] Y)`.
 -/
-@[simp] lemma forget_enrichment_hom (X Y : C) :
-  (forget_enrichment.of W X ⟶ forget_enrichment.of W Y) = ((𝟙_ W) ⟶ (X ⟶[W] Y)) :=
+example (X Y : forget_enrichment W C) :
+  (X ⟶ Y) = ((𝟙_ W) ⟶ (forget_enrichment.to W X ⟶[W] forget_enrichment.to W Y)) :=
 rfl
 
+/-- Typecheck a `(𝟙_ W)`-shaped `W`-morphism as a morphism in `forget_enrichment W C`. -/
+def forget_enrichment.hom_of {X Y : C} (f : (𝟙_ W) ⟶ (X ⟶[W] Y)) :
+  forget_enrichment.of W X ⟶ forget_enrichment.of W Y :=
+f
+
+/-- Typecheck a morphism in `forget_enrichment W C` as a `(𝟙_ W)`-shaped `W`-morphism. -/
+def forget_enrichment.hom_to {X Y : forget_enrichment W C} (f : X ⟶ Y) :
+  (𝟙_ W) ⟶ (forget_enrichment.to W X ⟶[W] forget_enrichment.to W Y) := f
+
+@[simp] lemma forget_enrichment.hom_to_hom_of {X Y : C} (f : (𝟙_ W) ⟶ (X ⟶[W] Y)) :
+  forget_enrichment.hom_to W (forget_enrichment.hom_of W f) = f := rfl
+@[simp] lemma forget_enrichment.hom_of_hom_to {X Y : forget_enrichment W C} (f : X ⟶ Y) :
+  forget_enrichment.hom_of W (forget_enrichment.hom_to W f) = f := rfl
+
 /-- The identity in the "underlying" category of an enriched category. -/
-@[simp] lemma forget_enrichment_id (X : C) : 𝟙 (forget_enrichment.of W X) = e_id W X :=
+@[simp] lemma forget_enrichment_id (X : forget_enrichment W C) :
+  forget_enrichment.hom_to W (𝟙 X) = (e_id W (forget_enrichment.to W X : C)) :=
 category.id_comp _
 
+@[simp] lemma forget_enrichment_id' (X : C) :
+  forget_enrichment.hom_of W (e_id W X) = (𝟙 (forget_enrichment.of W X : C)) :=
+(forget_enrichment_id W (forget_enrichment.of W X)).symm
+
 /-- Composition in the "underlying" category of an enriched category. -/
-@[simp] lemma forget_enrichment_comp {X Y Z : C}
-  (f : forget_enrichment.of W X ⟶ forget_enrichment.of W Y)
-  (g : forget_enrichment.of W Y ⟶ forget_enrichment.of W Z) :
-  f ≫ g =
-    (((λ_ (𝟙_ W)).inv ≫ ((cast (forget_enrichment_hom W X Y) f) ⊗ g)) ≫ e_comp W X Y Z :
-      ((𝟙_ W) ⟶ (X ⟶[W] Z))) :=
+@[simp] lemma forget_enrichment_comp {X Y Z : forget_enrichment W C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  forget_enrichment.hom_to W (f ≫ g) = (((λ_ (𝟙_ W)).inv ≫
+    (forget_enrichment.hom_to W f ⊗ forget_enrichment.hom_to W g)) ≫ e_comp W _ _ _) :=
+rfl
+
+@[simp] lemma forget_enrichment_comp' {X Y Z : forget_enrichment W C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  forget_enrichment.hom_of W (((λ_ (𝟙_ W)).inv ≫
+    (forget_enrichment.hom_to W f ⊗ forget_enrichment.hom_to W g)) ≫ e_comp W _ _ _) =
+    (f ≫ g)  :=
 rfl
 
 end
@@ -251,20 +284,75 @@ def enriched_functor.comp {C : Type u₁} {D : Type u₂} {E : Type u₃}
   map := λ X Y, F.map _ _ ≫ G.map _ _, }
 
 section
-variables {V} [braided_category V]
+variables {W : Type (v+1)} [category.{v} W] [monoidal_category W]
+
+/--
+An enriched functor induces an honest functor of the underlying categories,
+by mapping the `(𝟙_ W)`-shaped morphisms.
+-/
+def enriched_functor.forget {C : Type u₁} {D : Type u₂}
+  [enriched_category W C] [enriched_category W D]
+  (F : enriched_functor W C D) : (forget_enrichment W C) ⥤ (forget_enrichment W D) :=
+{ obj := λ X, forget_enrichment.of W (F.obj (forget_enrichment.to W X)),
+  map := λ X Y f, forget_enrichment.hom_of W
+    (forget_enrichment.hom_to W f ≫ F.map (forget_enrichment.to W X) (forget_enrichment.to W Y)),
+  map_comp' := λ X Y Z f g, begin
+    dsimp,
+    apply_fun forget_enrichment.hom_to W,
+    { simp only [iso.cancel_iso_inv_left, category.assoc, tensor_comp,
+        forget_enrichment.hom_to_hom_of, enriched_functor.map_comp, forget_enrichment_comp],
+      refl, },
+    { intros f g w, apply_fun forget_enrichment.hom_of W at w, simpa using w, },
+  end, }
+
+end
+
+section
+variables {V}
 variables {D : Type u₂} [enriched_category V D]
 
 /-!
-For general `V`-enriched categories `C D`, and `V`-functors `F G`,
-it's not possible to make sense of natural transformations between `F` and `G` at all.
+We now turn to natural transformations between `V`-functors.
 
-An essential ingredient is a braiding (or symmetry) on `V`.
+The mostly commonly encountered definition of an enriched natural transformation
+is a collection of morphisms
+```
+(𝟙_ W) ⟶ (F.obj X ⟶[V] G.obj X)
+```
+satisfying an appropriate analogue of the naturality square.
+(c.f. https://ncatlab.org/nlab/show/enriched+natural+transformation)
 
-Even assuming that, we should only get an object in `V` worth of natural transformations,
-rather than a type. Moreover, it's only possible to define this object if `V` has certain limits.
+This is the same thing as a natural transformation `F.forget ⟶ G.forget`.
 
-Here, we define a presheaf which is isomorphic to the Yoneda embedding of that object,
-which we can do without any further assumptions.
+We formalize this as `enriched_nat_trans F G`, which is a `Type`.
+
+However, there's also something much nicer: with appropriate additional hypotheses,
+there is a `V`-object `enriched_nat_trans_obj F G` which contains more information,
+and from which one can recover `enriched_nat_trans F G ≃ (𝟙_ V) ⟶ enriched_nat_trans_obj F G`.
+
+Using these as the hom-objects, we can build a `V`-enriched category
+with objects the `V`-functors.
+
+For `enriched_nat_trans_obj` to exist, it suffices to have `V` braided and complete.
+
+Before assuming `V` is complete, we assume it is braided and
+define a presheaf `enriched_nat_trans_yoneda F G`
+which is isomorphic to the Yoneda embedding of `enriched_nat_trans_obj F G`
+whether or not that object actually exists.
+
+This presheaf has components `(enriched_nat_trans_yoneda F G).obj A`
+what we call the `A`-graded enriched natural transformations,
+which are collections of morphisms
+```
+A ⟶ (F.obj X ⟶[V] G.obj X)
+```
+satisfying a similar analogue of the naturality square,
+this time incorporating a half-braiding on `A`.
+
+(We actually define `enriched_nat_trans F G`
+as the special case `A := 𝟙_ V` with the trivial half-braiding,
+and when defining `enriched_nat_trans_yoneda F G` we use the half-braidings
+coming from the ambient braiding on `V`.)
 -/
 
 /--
@@ -272,11 +360,14 @@ The type of `A`-graded natural transformations between `V`-functors `F` and `G`.
 This is the type of morphisms in `V` from `A` to the `V`-object of natural transformations.
 -/
 @[ext, nolint has_inhabited_instance]
-structure graded_nat_trans (A : V) (F G : enriched_functor V C D) :=
-(app : Π (X : C), A ⟶ (F.obj X ⟶[V] G.obj X))
+structure graded_nat_trans (A : center V) (F G : enriched_functor V C D) :=
+(app : Π (X : C), A.1 ⟶ (F.obj X ⟶[V] G.obj X))
 (naturality :
-  ∀ (X Y : C), (app Y ⊗ F.map X Y) ≫ (β_ _ _).hom ≫ e_comp V _ _ _ =
+  ∀ (X Y : C), (A.2.β (X ⟶[V] Y)).hom ≫ (F.map X Y ⊗ app Y) ≫ e_comp V _ _ _ =
     (app X ⊗ G.map X Y) ≫ e_comp V _ _ _)
+
+variables [braided_category V]
+open braided_category
 
 /--
 A presheaf isomorphic to the Yoneda embedding of
@@ -284,16 +375,15 @@ the `V`-object of natural transformations from `F` to `G`.
 -/
 @[simps]
 def enriched_nat_trans_yoneda (F G : enriched_functor V C D) : Vᵒᵖ ⥤ (Type (max u₁ w)) :=
-{ obj := λ A, graded_nat_trans (unop A) F G,
+{ obj := λ A, graded_nat_trans ((center.of_braided V).obj (unop A)) F G,
   map := λ A A' f σ,
   { app := λ X, f.unop ≫ σ.app X,
     naturality := λ X Y, begin
-      rw [←tensor_id_comp_id_tensor _ (f.unop ≫ σ.app Y),
-        ←tensor_id_comp_id_tensor _ (f.unop ≫ σ.app X),
-        comp_tensor_id, comp_tensor_id,
-        category.assoc, category.assoc, category.assoc, category.assoc,
-        tensor_id_comp_id_tensor_assoc, tensor_id_comp_id_tensor_assoc,
-        σ.naturality],
+      have p := σ.naturality X Y,
+      dsimp at p ⊢,
+      rw [←id_tensor_comp_tensor_id (f.unop ≫ σ.app Y) _, id_tensor_comp, category.assoc,
+        category.assoc, ←braiding_naturality_assoc, id_tensor_comp_tensor_id_assoc, p,
+        ←tensor_comp_assoc,category.id_comp],
      end }, }
 
 -- TODO assuming `[has_limits C]` construct the actual object of natural transformations

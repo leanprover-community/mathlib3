@@ -1461,6 +1461,18 @@ dif_pos h
 
 end subtype_equiv_codomain
 
+/--
+A set is equivalent to its image under an equivalence.
+-/
+-- We could construct this using `equiv.set.image e s e.injective`,
+-- but this definition provides an explicit inverse.
+@[simps]
+def image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
+{ to_fun := λ x, ⟨e x.1, by simp⟩,
+  inv_fun := λ y, ⟨e.symm y.1, by { rcases y with ⟨-, ⟨a, ⟨m, rfl⟩⟩⟩, simpa using m, }⟩,
+  left_inv := λ x, by simp,
+  right_inv := λ y, by simp, }.
+
 namespace set
 open set
 

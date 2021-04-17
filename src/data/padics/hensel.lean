@@ -108,7 +108,7 @@ private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt norm_eq_zero.2 der
 private lemma T_def : T = ∥F.eval a∥ / ∥F.derivative.eval a∥^2 :=
 calc T = ∥F.eval a∥ / ∥((F.derivative.eval a)^2 : ℚ_[p])∥ : normed_field.norm_div _ _
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)^2∥ : by simp [norm, padic_int.norm_def]
-   ... = ∥F.eval a∥ / ∥(F.derivative.eval a)∥^2 : by simp [pow, monoid.pow]
+   ... = ∥F.eval a∥ / ∥(F.derivative.eval a)∥^2 : by simp
 
 private lemma T_lt_one : T < 1 :=
 let h := (div_lt_one deriv_sq_norm_pos).2 hnorm in

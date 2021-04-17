@@ -379,14 +379,63 @@ metric_space_pi
 def inverse_image_fun {α β : Type*} (K : set β) (f : α → β) (a : f ⁻¹' K) : K :=
 let ⟨a₀, haK⟩ := a in ⟨f a₀, haK⟩
 
-lemma tendsto_inverse_image_fun {α β : Type*} [topological_space β] (K : set β) {f : α → β}
-  (hf₁ : function.injective f) (hf₂ : tendsto f cofinite (cocompact _)) :
-  tendsto (inverse_image_fun K f) cofinite (cocompact _) :=
+/- This needs to be added to mathlib!!! There is `preimage_subset_preimage_iff` but it
+    requires `(hs : s ⊆ range f)`, which is only needed in the other direction! -/
+lemma preimage_subset_preimage {α β : Type*} {s t : set α} {f : β → α} :
+  s ⊆ t → f ⁻¹' s ⊆ f ⁻¹' t :=
+begin
+  intros h x, apply h
+end
+
+/- Is this non-crap? (More elegant phrasing?...) We know that $ℤ$ matrices are discrete in $ℝ$; so intersection of $Z$ matrices is discrete in line -/
+lemma tendsto_inverse_image_fun {α β A B : Type*} [topological_space β] [topological_space B]
+  {f : α → β} {g : A → B} {mA : A → α} {mB : B → β}
+  (hmA : function.injective mA) (hmB : continuous mB) (h : ∀ x, f (mA x) = mB (g x))
+  (hf : tendsto f cofinite (cocompact _)) :
+  tendsto g cofinite (cocompact _) :=
+begin
+  rintros s hK,
+  rw mem_cocompact' at hK,
+  obtain ⟨K, hK1, hK2⟩ := hK,
+  have diag_chase : mA '' (g ⁻¹' K) ⊆ f ⁻¹' (mB '' K) := by tidy,
+  have : (mB '' K)ᶜ ∈ cocompact β ,
+  { rw mem_cocompact',
+    refine ⟨mB '' K, is_compact.image hK1 hmB, _⟩,
+    rw compl_compl },
+  have : (f ⁻¹' (mB '' K)).finite,
+  { convert (filter.mem_cofinite.mp (hf this)),
+    simp only [set.preimage_compl, compl_compl] },
+  have : (mA '' (g ⁻¹' K)).finite := set.finite.subset this diag_chase,
+  have : (g ⁻¹' K).finite,
+  { convert set.finite.preimage _ this,
+    exact (function.injective.preimage_image hmA (g ⁻¹' K)).symm,
+    exact set.inj_on_of_injective hmA _ },
+  exact set.finite.subset this (preimage_subset_preimage hK2),
+end
+
+
+
+/- Is this non-crap? (More elegant phrasing?...) We know that $ℤ$ matrices are discrete in $ℝ$; so intersection of $Z$ matrices is discrete in line -/
+lemma tendsto_inverse_image_fun' {α β : Type*} [topological_space β] (A : set α) (B : set β)
+  {f : α → β} (hf₁ : ∀ x∈ A, f x ∈ B ) (hf₂ : tendsto f cofinite (cocompact _)) :
+  tendsto (subtype.map f (λ x h, set.mem_def.mp (hf₁ x h))) cofinite (cocompact _) :=
 begin
 --  rw tendsto_def,
-  intros s h,
+  intros K h,
+  let g : A → B := (subtype.map f (λ x h, set.mem_def.mp (hf₁ x h))),
+  have : coe '' (g ⁻¹' K) ⊆ f ⁻¹' (coe '' K : set β),
+  {
+
+  },
+
+
+
   rw mem_cocompact' at h,
   obtain ⟨t, ht1, ht2⟩ := h,
+  rw mem_map,
+  rw mem_cofinite,
+
+
   let t1 := (coe : K → β) '' t,
   have t1cpt : t1ᶜ ∈ cocompact β,
   { have : is_compact t1,
@@ -431,16 +480,19 @@ begin
 
 end
 
-
+/- Non-crap lemma but put it elsewhere ?  Maybe cocompact in discrete is cofinite -/
 lemma cocompact_ℝ_to_cofinite_ℤ (ι : Type*) [fintype ι] :
   tendsto ((λ (p : ι → ℤ), (coe : ℤ → ℝ) ∘ p)) cofinite (cocompact (ι → ℝ)) :=
 by simpa [←Coprod_cofinite,←Coprod_cocompact]
   using tendsto.prod_map_Coprod (λ i, int.tendsto_coe_cofinite)
 
 
+
+/- Non-crap lemma: ℤ -matrices are cofinite inside comcompact ℝ matrices -/
 lemma cocompact_ℝ_to_cofinite_ℤ_matrix {ι ι' : Type*} [fintype ι] [fintype ι']  :
   tendsto (λ m, matrix.map m (coe : ℤ → ℝ)) cofinite (cocompact (matrix ι ι' ℝ)) :=
 begin
+--  convert tendsto.pi_map_Coprod (λ i, cocompact_ℝ_to_cofinite_ℤ ι'),
   convert tendsto.prod_map_Coprod (λ i, cocompact_ℝ_to_cofinite_ℤ ι'),
   { exact Coprod_cofinite.symm },
   { exact Coprod_cocompact.symm }
@@ -451,12 +503,15 @@ end
 def line (cd : coprime_ints) : set (matrix (fin 2) (fin 2) ℝ) :=
   {g | g 1 0 = (cd : ℤ × ℤ).1 ∧ g 1 1 = (cd : ℤ × ℤ).2 ∧ det g = 1}
 
+/- Do we need this? Maybe delete
 lemma line_proper (cd : coprime_ints) :
   map coe (cocompact (line cd)) = cocompact (matrix (fin 2) (fin 2) ℝ) :=
 begin
 
   sorry
 end
+-/
+
 
 -- make `line` an affine subspace of 2x2 matrices, using the following lemma
 lemma line_det (cd : coprime_ints) {g : matrix _ _ ℝ} (hg : g ∈ line cd) :
@@ -486,13 +541,15 @@ end
 def to_line (cd : coprime_ints) (g : bottom_row ⁻¹' {cd}) : line cd :=
 ⟨↑(g : SL(2, ℝ)), in_line cd g.2⟩
 
+/- Can be deduced from ...
 lemma tendsto_line (cd : coprime_ints) : tendsto (to_line cd) cofinite (cocompact _) :=
 begin
 
   sorry
 end
+-/
 
-
+/-
 def lattice_intersect (A : set (matrix (fin 2) (fin 2) ℝ)) :
   set (matrix (fin 2) (fin 2) ℤ) :=
 (int.cast_ring_hom ℝ).map_matrix ⁻¹' (A : set (matrix (fin 2) (fin 2) ℝ))
@@ -519,6 +576,9 @@ begin
   { exact  pi_prod_cofinite (λ i, (pi_prod_cofinite (λ j, int.tendsto_coe_cofinite))) }
 end
 
+-/
+
+
 
 def smul_aux' : (matrix (fin 2) (fin 2) ℝ) → ℂ → ℂ := sorry
 
@@ -530,6 +590,11 @@ lemma something1 (cd : coprime_ints) (z : H) (g : line cd) :
 begin
   sorry,
 end
+
+
+/- Needed: Conditions on a linear transformation for a given linear functional to be tendsto cocompact cocopmact
+on the kernel of the linear transformation  -/
+
 
 lemma tendsto_acbd (cd : coprime_ints):
   tendsto (λ g, acbd (↑g)) (cocompact (line cd)) (cocompact ℝ) :=
@@ -571,6 +636,7 @@ begin
   sorry
 end
 
+/- Non-crap lemma: given the line of cd, the real part of the action of g on z is cocompact -/
 lemma tendsto_action (cd : coprime_ints) (z : H) :
   tendsto (λ g, (smul_aux' ↑g z).re) (cocompact (line cd)) (cocompact ℝ) :=
 begin
@@ -580,7 +646,7 @@ begin
   sorry
 end
 
-
+/- Non-crap lemma: Absolute value function is cocompact -/
 lemma tendsto_at_top_abs :
   tendsto _root_.abs (cocompact ℝ) at_top :=
 begin
@@ -615,6 +681,7 @@ sorry
 
 end
 
+/- Non-crap lemma but content-free; should be combination of building blocks -/
 lemma something' (z:H) (cd : coprime_ints) :
   tendsto (λ g : bottom_row ⁻¹' {cd}, _root_.abs (((g : SL(2, ℤ)) • z).val.re)) cofinite at_top :=
 begin

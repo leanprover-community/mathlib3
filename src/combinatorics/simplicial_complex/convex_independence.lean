@@ -30,6 +30,7 @@ begin
     simpa using h (s.image coe) (by simp) ⟨x.2, by simpa using hs⟩ }
 end
 
+-- TODO (Bhavik): move these two, and use them to prove the old versions
 lemma nontrivial_sum_of_affine_independent' {p : ι → E} {X : finset ι}
   (hX : affine_independent ℝ p) (w : ι → ℝ)
   (hw₀ : ∑ i in X, w i = 0) (hw₁ : ∑ i in X, w i • p i = 0) :

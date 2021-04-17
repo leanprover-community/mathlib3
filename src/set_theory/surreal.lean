@@ -348,10 +348,6 @@ begin
   exact add_assoc_equiv,
 end
 
-instance : add_semigroup surreal :=
-{ add_assoc := add_assoc,
-  ..(by apply_instance : has_add surreal) }
-
 theorem zero_add : ∀ (x : surreal), 0 + x = x :=
 by { rintro ⟨x, ox⟩, exact quotient.sound (pgame.zero_add_equiv _) }
 
@@ -359,11 +355,13 @@ theorem add_zero : ∀ (x : surreal), x + 0 = x :=
 by { rintro ⟨x, ox⟩, exact quotient.sound (pgame.add_zero_equiv _) }
 
 instance : add_monoid surreal :=
-{ add := add,
-  add_assoc := add_assoc,
-  zero := 0,
-  zero_add := zero_add,
-  add_zero := add_zero }
+{ add       := surreal.add,
+  add_assoc := surreal.add_assoc,
+  zero      := 0,
+  zero_add  := surreal.zero_add,
+  add_zero  := surreal.add_zero }
+
+instance : add_semigroup surreal := by apply_instance
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

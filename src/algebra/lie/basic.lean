@@ -482,12 +482,8 @@ instance : add_comm_group (M →ₗ⁅R,L⁆ N) :=
   nsmul          := λ n f, { map_lie' := λ x m, by simp, ..(n • (f : M →ₗ[R] N)) },
   nsmul_zero'    := λ f, by { ext, simp, },
   nsmul_succ'    := λ n f, by { ext, simp [nat.succ_eq_one_add, add_nsmul], },
-  add_assoc      := λ f g h, by { ext, simp only [add_assoc, add_apply], },
-  zero_add       := λ f, by { ext, simp only [add_apply, zero_add, zero_apply], },
-  add_zero       := λ f, by { ext, simp only [add_zero, add_apply, zero_apply], },
-  sub_eq_add_neg := λ f g, by { ext, simp only [sub_eq_add_neg, sub_apply, add_apply, neg_apply], },
-  add_left_neg   := λ f, by { ext, simp only [add_apply, add_left_neg, neg_apply, zero_apply], },
-  add_comm       := λ f g, by { ext, simp only [add_comm, add_apply], }, }
+  ..(coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub :
+    add_comm_group (M →ₗ⁅R,L⁆ N)) }
 
 instance : has_scalar R (M →ₗ⁅R,L⁆ N) :=
 { smul := λ t f, { map_lie' := by simp, ..(t • (f : M →ₗ[R] N)) }, }

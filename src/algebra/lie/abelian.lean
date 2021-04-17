@@ -90,9 +90,10 @@ end⟩
 
 section center
 
-variables (R : Type u) (L : Type v) (M : Type w)
-variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
-variables [lie_ring_module L M] [lie_module R L M]
+variables (R : Type u) (L : Type v) (M : Type w) (N : Type w₁)
+variables [comm_ring R] [lie_ring L] [lie_algebra R L]
+variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables [add_comm_group N] [module R N] [lie_ring_module L N] [lie_module R L N]
 
 namespace lie_module
 
@@ -112,7 +113,7 @@ def maximal_trivial_submodule : lie_submodule R L M :=
   zero_mem' := λ x, lie_zero x,
   add_mem'  := λ x y hx hy z, by rw [lie_add, hx, hy, add_zero],
   smul_mem' := λ c x hx y, by rw [lie_smul, hx, smul_zero],
-  lie_mem   := λ x m hm y, by rw [leibniz_lie, hm, hm, lie_zero, add_zero], }
+  lie_mem   := λ x m hm y, by rw [hm, lie_zero], }
 
 @[simp] lemma mem_maximal_trivial_submodule (m : M) :
   m ∈ maximal_trivial_submodule R L M ↔ ∀ (x : L), ⁅x, m⁆ = 0 :=
@@ -138,6 +139,66 @@ begin
   { intros h, constructor, intros x m, revert x,
     rw [← mem_maximal_trivial_submodule R L M, h], exact lie_submodule.mem_top m, },
 end
+
+variables {R L M N}
+
+/-- The maximal trivial submodule is functorial. -/
+def maximal_trivial_equiv_hom (f : M →ₗ⁅R,L⁆ N) :
+  maximal_trivial_submodule R L M →ₗ⁅R,L⁆ maximal_trivial_submodule R L N :=
+{ to_fun    := λ m, ⟨f m, λ x, by
+    { have h := congr_arg f (m.property x),
+      rw [lie_module_hom.map_zero, lie_module_hom.map_lie] at h, exact h, }⟩,
+  map_add'  := λ m n, by simpa,
+  map_smul' := λ t m, by simpa,
+  map_lie'  := λ x m, by simp, }
+
+@[norm_cast, simp] lemma coe_maximal_trivial_equiv_hom_apply
+  (f : M →ₗ⁅R,L⁆ N) (m : maximal_trivial_submodule R L M) :
+  (maximal_trivial_equiv_hom f m : N) = f m :=
+rfl
+
+/-- The maximal trivial submodules of Lie-equivalent Lie modules are Lie-equivalent. -/
+def maximal_trivial_equiv_of_equiv (e : M ≃ₗ⁅R,L⁆ N) :
+  maximal_trivial_submodule R L M ≃ₗ⁅R,L⁆ maximal_trivial_submodule R L N :=
+{ to_fun    := maximal_trivial_equiv_hom (e : M →ₗ⁅R,L⁆ N),
+  inv_fun   := maximal_trivial_equiv_hom (e.symm : N →ₗ⁅R,L⁆ M),
+  left_inv  := λ m, by { ext, simp, },
+  right_inv := λ n, by { ext, simp, },
+  .. maximal_trivial_equiv_hom (e : M →ₗ⁅R,L⁆ N), }
+
+@[simp] lemma maximal_trivial_equiv_of_equiv_symm_eq_symm (e : M ≃ₗ⁅R,L⁆ N) :
+  (maximal_trivial_equiv_of_equiv e).symm = maximal_trivial_equiv_of_equiv e.symm :=
+rfl
+
+@[norm_cast, simp] lemma coe_maximal_trivial_equiv_of_equiv_apply
+  (e : M ≃ₗ⁅R,L⁆ N) (m : maximal_trivial_submodule R L M) :
+  (maximal_trivial_equiv_of_equiv e m : N) = e ↑m :=
+rfl
+
+/-- A linear map between two Lie modules is a morphism of Lie modules iff the Lie algebra action
+on it is trivial. -/
+def maximal_trivial_linear_map_equiv_lie_module_hom :
+  (maximal_trivial_submodule R L (M →ₗ[R] N)) ≃ₗ[R] (M →ₗ⁅R,L⁆ N) :=
+{ to_fun    := λ f,
+    { map_lie' := λ x m, by
+      { have hf : ⁅x, f.val⁆ m = 0, { rw [f.property x, linear_map.zero_apply], },
+        rw [bracket_apply, sub_eq_zero, ← linear_map.to_fun_eq_coe] at hf, exact hf.symm, },
+      ..f.val, },
+  map_add'  := λ f g, by { ext, simp, },
+  map_smul' := λ F G, by { ext, simp, },
+  inv_fun   := λ F, ⟨F, λ x, by { ext, simp, }⟩,
+  left_inv  := λ f, by simp,
+  right_inv := λ F, by simp, }
+
+@[simp] lemma coe_maximal_trivial_linear_map_equiv_lie_module_hom_apply
+  (f : maximal_trivial_submodule R L (M →ₗ[R] N)) :
+  ((maximal_trivial_linear_map_equiv_lie_module_hom f) : M →ₗ[R] N) = (f : M →ₗ[R] N) :=
+by { ext, refl, }
+
+@[simp] lemma coe_maximal_trivial_linear_map_equiv_lie_module_hom_symm_apply
+  (f : M →ₗ⁅R,L⁆ N) :
+  ((maximal_trivial_linear_map_equiv_lie_module_hom.symm f) : M →ₗ[R] N) = (f : M →ₗ[R] N) :=
+rfl
 
 end lie_module
 

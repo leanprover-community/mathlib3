@@ -281,10 +281,7 @@ An auxiliary declaration to speed up typechecking.
 -/
 def forget₂_AddCommGroup_preserves_limits_aux (F : J ⥤ Ring) :
   is_limit ((forget₂ Ring AddCommGroup).map_cone (limit_cone F)) :=
-begin
-  have := AddCommGroup.limit_cone_is_limit (F ⋙ forget₂ Ring AddCommGroup),
-  exact this
-end
+by convert AddCommGroup.limit_cone_is_limit (F ⋙ forget₂ Ring AddCommGroup)
 
 /--
 The forgetful functor from rings to additive commutative groups preserves all limits.
@@ -333,8 +330,8 @@ creates_limit_of_fully_faithful_of_iso (CommRing.of (limit (F ⋙ forget _))) (i
 ```
 but it seems this would introduce additional identity morphisms in `limit.π`.
 
-The two `begin ... end` blocks in `valid_lift` and `makes_limit` are workarounds avoiding slow
-elaboration, going from 40 s to 200 ms each. TODO: fix properly
+The two hacks in `valid_lift` and `makes_limit` are workarounds avoiding slow elaboration, going
+from 40 s to 200 ms each. TODO: fix properly
 -/
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
@@ -343,11 +340,7 @@ creates_limit_of_reflects_iso (λ c' t,
     { app := SemiRing.limit_π_ring_hom (F ⋙ forget₂ CommRing Ring.{u} ⋙ forget₂ Ring SemiRing),
       naturality' := (SemiRing.has_limits.limit_cone
         (F ⋙ forget₂ _ Ring.{u} ⋙ forget₂ _ SemiRing)).π.naturality } },
-  valid_lift :=
-  begin
-    let := is_limit.unique_up_to_iso (Ring.limit_cone_is_limit _) t,
-    exact this
-  end,
+  valid_lift := by convert is_limit.unique_up_to_iso (Ring.limit_cone_is_limit _) t,
   makes_limit :=
   begin
     let := Ring.limit_cone_is_limit (F ⋙ forget₂ CommRing Ring),

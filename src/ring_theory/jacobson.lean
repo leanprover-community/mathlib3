@@ -364,7 +364,8 @@ begin
     obtain ⟨p, pP, p0⟩ := exists_nonzero_mem_of_ne_bot Pb hP,
     refine jacobson_bot_of_integral_localization (quotient_map P C le_rfl) quotient_map_injective
       _ _ (localization.of (submonoid.powers (p.map (quotient.mk (P.comap C))).leading_coeff))
-      (localization.of _) (is_integral_localization_map_polynomial_quotient P _ pP _ _),
+      (localization.of _)
+      (by convert (is_integral_localization_map_polynomial_quotient P _ pP _ _)),
     rwa [ne.def, leading_coeff_eq_zero] }
 end
 

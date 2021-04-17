@@ -13,6 +13,11 @@ import ring_theory.subring
 
 Further, these limits are preserved by the forgetful functor --- that is,
 the underlying types are just the limits in the category of types.
+
+## Implementation note
+
+Lean suffers in some unification steps, and has to do a lot of unfolding to check that types match.
+We use a hack that prefixing such proofs with `by convert` can give a huge speedup.
 -/
 
 open category_theory
@@ -95,7 +100,7 @@ An auxiliary declaration to speed up typechecking.
 -/
 def forget₂_AddCommMon_preserves_limits_aux (F : J ⥤ SemiRing) :
   is_limit ((forget₂ SemiRing AddCommMon).map_cone (limit_cone F)) :=
-AddCommMon.limit_cone_is_limit (F ⋙ forget₂ SemiRing AddCommMon)
+by convert AddCommMon.limit_cone_is_limit (F ⋙ forget₂ SemiRing AddCommMon)
 
 /--
 The forgetful functor from semirings to additive commutative monoids preserves all limits.
@@ -144,20 +149,6 @@ instance limit_comm_semiring (F : J ⥤ CommSemiRing) :
 @subsemiring.to_comm_semiring (Π j, F.obj j) _
   (SemiRing.sections_subsemiring (F ⋙ forget₂ CommSemiRing SemiRing.{u}))
 
-/-- Auxiliary construction for the `creates_limit` instance below. -/
-def lifted_cone (F : J ⥤ CommSemiRing) : cone F :=
-{ X := CommSemiRing.of (types.limit_cone (F ⋙ forget _)).X,
-  π :=
-  { app := SemiRing.limit_π_ring_hom (F ⋙ forget₂ CommSemiRing SemiRing),
-    naturality' := (SemiRing.has_limits.limit_cone (F ⋙ forget₂ _ _)).π.naturality, } }
-
-/-- Auxiliary construction for the `creates_limit` instance below. -/
-def is_limit_lifted_cone (F : J ⥤ CommSemiRing) : is_limit (lifted_cone F) :=
-is_limit.of_faithful (forget₂ CommSemiRing SemiRing.{u})
-  (SemiRing.has_limits.limit_cone_is_limit _)
-  (λ s, (SemiRing.has_limits.limit_cone_is_limit _).lift ((forget₂ _ SemiRing).map_cone s))
-  (λ s, rfl)
-
 /--
 We show that the forgetful functor `CommSemiRing ⥤ SemiRing` creates limits.
 
@@ -166,9 +157,16 @@ and then reuse the existing limit.
 -/
 instance (F : J ⥤ CommSemiRing) : creates_limit F (forget₂ CommSemiRing SemiRing.{u}) :=
 creates_limit_of_reflects_iso (λ c' t,
-{ lifted_cone := lifted_cone F,
-  valid_lift := is_limit.unique_up_to_iso (SemiRing.has_limits.limit_cone_is_limit _) t,
-  makes_limit := is_limit_lifted_cone F, })
+{ lifted_cone :=
+  { X := CommSemiRing.of (types.limit_cone (F ⋙ forget _)).X,
+    π :=
+    { app := by convert SemiRing.limit_π_ring_hom (F ⋙ forget₂ CommSemiRing SemiRing),
+      naturality' := (SemiRing.has_limits.limit_cone (F ⋙ forget₂ _ _)).π.naturality, } },
+  valid_lift := by convert is_limit.unique_up_to_iso (SemiRing.has_limits.limit_cone_is_limit _) t,
+  makes_limit := is_limit.of_faithful (forget₂ CommSemiRing SemiRing.{u})
+    (by convert SemiRing.has_limits.limit_cone_is_limit _)
+    (λ s, (SemiRing.has_limits.limit_cone_is_limit _).lift ((forget₂ _ SemiRing).map_cone s))
+    (λ s, rfl) })
 
 /--
 A choice of limit cone for a functor into `CommSemiRing`.
@@ -242,11 +240,11 @@ creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := Ring.of (types.limit_cone (F ⋙ forget _)).X,
     π :=
-    { app := SemiRing.limit_π_ring_hom (F ⋙ forget₂ Ring SemiRing),
+    { app := by convert SemiRing.limit_π_ring_hom (F ⋙ forget₂ Ring SemiRing),
       naturality' := (SemiRing.has_limits.limit_cone (F ⋙ forget₂ _ _)).π.naturality, } },
-  valid_lift := is_limit.unique_up_to_iso (SemiRing.has_limits.limit_cone_is_limit _) t,
+  valid_lift := by convert is_limit.unique_up_to_iso (SemiRing.has_limits.limit_cone_is_limit _) t,
   makes_limit := is_limit.of_faithful (forget₂ Ring SemiRing.{u})
-    (SemiRing.has_limits.limit_cone_is_limit _)
+    (by convert SemiRing.has_limits.limit_cone_is_limit _)
     (λ s, _) (λ s, rfl) })
 
 /--
@@ -329,24 +327,19 @@ A terse solution here would be
 creates_limit_of_fully_faithful_of_iso (CommRing.of (limit (F ⋙ forget _))) (iso.refl _)
 ```
 but it seems this would introduce additional identity morphisms in `limit.π`.
-
-The two hacks in `valid_lift` and `makes_limit` are workarounds avoiding slow elaboration, going
-from 40 s to 200 ms each. TODO: fix properly
 -/
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := CommRing.of (types.limit_cone (F ⋙ forget _)).X,
     π :=
-    { app := SemiRing.limit_π_ring_hom (F ⋙ forget₂ CommRing Ring.{u} ⋙ forget₂ Ring SemiRing),
+    { app := by convert
+        SemiRing.limit_π_ring_hom (F ⋙ forget₂ CommRing Ring.{u} ⋙ forget₂ Ring SemiRing),
       naturality' := (SemiRing.has_limits.limit_cone
         (F ⋙ forget₂ _ Ring.{u} ⋙ forget₂ _ SemiRing)).π.naturality } },
   valid_lift := by convert is_limit.unique_up_to_iso (Ring.limit_cone_is_limit _) t,
-  makes_limit :=
-  begin
-    let := Ring.limit_cone_is_limit (F ⋙ forget₂ CommRing Ring),
-    exact is_limit.of_faithful (forget₂ _ Ring.{u}) this
-      (λ s, (Ring.limit_cone_is_limit _).lift ((forget₂ _ Ring.{u}).map_cone s)) (λ s, rfl),
-  end })
+  makes_limit := is_limit.of_faithful (forget₂ _ Ring.{u})
+    (by convert Ring.limit_cone_is_limit (F ⋙ forget₂ CommRing Ring))
+    (λ s, (Ring.limit_cone_is_limit _).lift ((forget₂ _ Ring.{u}).map_cone s)) (λ s, rfl) })
 
 /--
 A choice of limit cone for a functor into `CommRing`.
@@ -381,7 +374,7 @@ An auxiliary declaration to speed up typechecking.
 -/
 def forget₂_CommSemiRing_preserves_limits_aux (F : J ⥤ CommRing) :
   is_limit ((forget₂ CommRing CommSemiRing).map_cone (limit_cone F)) :=
-CommSemiRing.limit_cone_is_limit (F ⋙ forget₂ CommRing CommSemiRing)
+by convert CommSemiRing.limit_cone_is_limit (F ⋙ forget₂ CommRing CommSemiRing)
 
 /--
 The forgetful functor from commutative rings to commutative semirings preserves all limits.

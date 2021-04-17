@@ -82,6 +82,7 @@ variables {𝕜 : Type*} [linear_ordered_field 𝕜] [topological_space 𝕜] [t
 The image of `[0,1]` under the homeomorphism `λ x, a * x + b` is `[b, a+b]`.
 -/
 -- We only need the ordering on `𝕜` here to avoid talking about flipping the interval over.
+-- At the end of the day I only care about `ℝ`, so I'm hesitant to put work into generalizing.
 @[simp]
 lemma affine_homeomorph_image_I (a b : 𝕜) (h : 0 < a) (w) :
   affine_homeomorph a b w '' set.Icc 0 1 = set.Icc b (a + b) :=
@@ -134,7 +135,8 @@ end
 /-- The preimage of polynomials on `[0,1]` under the pullback map by `x ↦ (b-a) * x + a`
 is the polynomials on `[a,b]`. -/
 lemma polynomial_functions.comap'_comp_right_alg_hom_Icc_homeo_I (a b : ℝ) (h : a < b) :
-  (polynomial_functions I).comap' (comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map) =
+  (polynomial_functions I).comap'
+    (comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map) =
     polynomial_functions (set.Icc a b) :=
 begin
   ext f,
@@ -233,6 +235,7 @@ end
 
 /--
 An alternative statement of Weierstrass' theorem.
+
 Every real-valued continuous function on `[a,b]` is a uniform limit of polynomials.
 -/
 theorem continuous_map_mem_polynomial_functions_closure (a b : ℝ) (f : C(set.Icc a b, ℝ)) :
@@ -242,4 +245,19 @@ begin
   simp,
 end
 
--- TODO provide an epsilon version too, for convenience?
+/--
+An alternative statement of Weierstrass' theorem,
+for those who like their epsilons.
+
+Every real-valued continuous function on `[a,b]` is within any `ε > 0` of some polynomial.
+-/
+theorem exists_polynomial_near_continuous_map (a b : ℝ)  (f : C(set.Icc a b, ℝ))
+  (ε : ℝ) (pos : ε > 0) :
+  ∃ (p : polynomial ℝ), ∥p.to_continuous_map_on _ - f∥ < ε :=
+begin
+  have w := mem_closure_iff_frequently.mp (continuous_map_mem_polynomial_functions_closure _ _ f),
+  rw metric.nhds_basis_ball.frequently_iff at w,
+  obtain ⟨-, H, ⟨m, ⟨-, rfl⟩⟩⟩ := w ε pos,
+  rw [metric.mem_ball, dist_eq_norm] at H,
+  exact ⟨m, H⟩,
+end

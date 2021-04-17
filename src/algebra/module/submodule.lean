@@ -55,6 +55,14 @@ variables {p q : submodule R M}
 
 @[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
+/-- Copy of a submodule with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (p : submodule R M) (s : set M) (hs : s = ↑p) : submodule R M :=
+{ carrier := s,
+  zero_mem' := hs.symm ▸ p.zero_mem',
+  add_mem' := hs.symm ▸ p.add_mem',
+  smul_mem' := hs.symm ▸ p.smul_mem' }
+
 theorem to_add_submonoid_injective :
   injective (to_add_submonoid : submodule R M → add_submonoid M) :=
 λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)
@@ -69,6 +77,9 @@ to_add_submonoid_injective.eq_iff
 lemma to_add_submonoid_mono : monotone (to_add_submonoid : submodule R M → add_submonoid M) :=
 to_add_submonoid_strict_mono.monotone
 
+@[simp] theorem coe_to_add_submonoid (p : submodule R M) :
+  (p.to_add_submonoid : set M) = p := rfl
+
 theorem to_sub_mul_action_injective :
   injective (to_sub_mul_action : submodule R M → sub_mul_action R M) :=
 λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)
@@ -82,6 +93,9 @@ to_sub_mul_action_injective.eq_iff
 @[mono]
 lemma to_sub_mul_action_mono : monotone (to_sub_mul_action : submodule R M → sub_mul_action R M) :=
 to_sub_mul_action_strict_mono.monotone
+
+@[simp] theorem coe_to_sub_mul_action (p : submodule R M) :
+  (p.to_sub_mul_action : set M) = p := rfl
 
 end submodule
 

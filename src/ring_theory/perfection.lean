@@ -456,7 +456,7 @@ lemma val_aux_zero : val_aux K v O hv p 0 = 0 :=
 dif_neg $ λ ⟨n, hn⟩, hn rfl
 
 lemma val_aux_one : val_aux K v O hv p 1 = 1 :=
-(val_aux_eq $ by exact one_ne_zero).trans $
+(val_aux_eq $ show coeff (mod_p K v O hv p) p 0 1 ≠ 0, from one_ne_zero).trans $
 by { rw [pow_zero, pow_one, ring_hom.map_one, ← (ideal.quotient.mk _).map_one, mod_p.pre_val_mk,
     ring_hom.map_one, v.map_one], exact @one_ne_zero (mod_p K v O hv p) _ _ }
 

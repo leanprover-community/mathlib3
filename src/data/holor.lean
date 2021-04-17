@@ -91,17 +91,27 @@ instance [has_zero α] : has_zero (holor α ds) := ⟨λ t, 0⟩
 instance [has_add α] : has_add (holor α ds) := ⟨λ x y t, x t + y t⟩
 instance [has_neg α] : has_neg (holor α ds) :=  ⟨λ a t, - a t⟩
 
-instance [add_semigroup α] : add_semigroup (holor α ds) := by pi_instance
+instance [add_semigroup α] : add_semigroup (holor α ds) :=
+by refine_struct { add := (+), .. }; tactic.pi_instance_derive_field
 
-instance [add_comm_semigroup α] : add_comm_semigroup (holor α ds) := by pi_instance
+instance [add_comm_semigroup α] : add_comm_semigroup (holor α ds) :=
+by refine_struct { add := (+), .. }; tactic.pi_instance_derive_field
 
-instance [add_monoid α] : add_monoid (holor α ds) := by pi_instance
+instance [add_monoid α] : add_monoid (holor α ds) :=
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+tactic.pi_instance_derive_field
 
-instance [add_comm_monoid α] : add_comm_monoid (holor α ds) := by pi_instance
+instance [add_comm_monoid α] : add_comm_monoid (holor α ds) :=
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+tactic.pi_instance_derive_field
 
-instance [add_group α] : add_group (holor α ds) := by pi_instance
+instance [add_group α] : add_group (holor α ds) :=
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+tactic.pi_instance_derive_field
 
-instance [add_comm_group α] : add_comm_group (holor α ds) := by pi_instance
+instance [add_comm_group α] : add_comm_group (holor α ds) :=
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+tactic.pi_instance_derive_field
 
 /- scalar product -/
 

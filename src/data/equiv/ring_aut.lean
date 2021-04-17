@@ -41,7 +41,8 @@ by refine_struct
 { mul := λ g h, ring_equiv.trans h g,
   one := ring_equiv.refl R,
   inv := ring_equiv.symm,
-  div := _ };
+  div := _,
+  npow :=  @npow_rec _ ⟨ring_equiv.refl R⟩ ⟨λ g h, ring_equiv.trans h g⟩ };
 intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (ring_aut R) := ⟨1⟩

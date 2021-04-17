@@ -183,7 +183,7 @@ begin
   exact finset.prod_congr rfl (λ x hxs, by rw nnreal.coe_of_real _ (hf x hxs)),
 end
 
-@[norm_cast] lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n •ℕ r) = n •ℕ (r:ℝ) :=
+@[norm_cast] lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n • r) = n • (r:ℝ) :=
 to_real_hom.to_add_monoid_hom.map_nsmul _ _
 
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
@@ -317,7 +317,7 @@ instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 instance : archimedean ℝ≥0 :=
 ⟨ assume x y pos_y,
   let ⟨n, hr⟩ := archimedean.arch (x:ℝ) (pos_y : (0 : ℝ) < y) in
-  ⟨n, show (x:ℝ) ≤ (n •ℕ y : ℝ≥0), by simp [*, -nsmul_eq_mul, nsmul_coe]⟩ ⟩
+  ⟨n, show (x:ℝ) ≤ (n • y : ℝ≥0), by simp [*, -nsmul_eq_mul, nsmul_coe]⟩ ⟩
 
 lemma le_of_forall_pos_le_add {a b : ℝ≥0} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,

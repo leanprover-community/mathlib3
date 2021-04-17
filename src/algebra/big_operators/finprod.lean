@@ -169,6 +169,15 @@ by { subst q, exact finprod_congr hfg }
 
 attribute [congr] finsum_congr_Prop
 
+lemma finprod_nonneg {R : Type*} [ordered_comm_semiring R] {f : α → R} (hf : ∀ x, 0 ≤ f x) :
+  0 ≤ ∏ᶠ x, f x :=
+begin
+  rw finprod,
+  split_ifs,
+  { exact finset.prod_nonneg (λ x _, hf _) },
+  { exact zero_le_one }
+end
+
 @[to_additive] lemma monoid_hom.map_finprod_plift (f : M →* N) (g : α → M)
   (h : finite (mul_support $ g ∘ plift.down)) :
   f (∏ᶠ x, g x) = ∏ᶠ x, f (g x) :=
@@ -240,13 +249,14 @@ by { classical, rw [finprod_def, dif_pos hf] }
   ∏ᶠ i : α, f i = ∏ i, f i :=
 finprod_eq_prod_of_mul_support_to_finset_subset _ (finite.of_fintype _) $ finset.subset_univ _
 
-@[to_additive] lemma finprod_mem_eq_prod_of_mem_iff (f : α → M) {s : set α} {t : finset α}
-  (h : ∀ {x}, f x ≠ 1 → (x ∈ s ↔ x ∈ t)) :
-  ∏ᶠ i ∈ s, f i = ∏ i in t, f i :=
+@[to_additive] lemma finprod_cond_eq_prod_of_cond_iff (f : α → M) {p : α → Prop} {t : finset α}
+  (h : ∀ {x}, f x ≠ 1 → (p x ↔ x ∈ t)) :
+  ∏ᶠ i (hi : p i), f i = ∏ i in t, f i :=
 begin
+  set s := {x | p x},
   have : mul_support (s.mul_indicator f) ⊆ t,
   { rw [set.mul_support_mul_indicator], intros x hx, exact (h hx.2).1 hx.1 },
-  rw [finprod_mem_def, finprod_eq_prod_of_mul_support_subset _ this],
+  erw [finprod_mem_def, finprod_eq_prod_of_mul_support_subset _ this],
   refine finset.prod_congr rfl (λ x hx, mul_indicator_apply_eq_self.2 $ λ hxs, _),
   contrapose! hxs,
   exact (h hxs).2 hx
@@ -255,12 +265,12 @@ end
 @[to_additive] lemma finprod_mem_eq_prod_of_inter_mul_support_eq (f : α → M) {s : set α}
   {t : finset α} (h : s ∩ mul_support f = t ∩ mul_support f) :
   ∏ᶠ i ∈ s, f i = ∏ i in t, f i :=
-finprod_mem_eq_prod_of_mem_iff _ $ by simpa [set.ext_iff] using h
+finprod_cond_eq_prod_of_cond_iff _ $ by simpa [set.ext_iff] using h
 
 @[to_additive] lemma finprod_mem_eq_prod_of_subset (f : α → M) {s : set α} {t : finset α}
   (h₁ : s ∩ mul_support f ⊆ t) (h₂ : ↑t ⊆ s) :
   ∏ᶠ i ∈ s, f i = ∏ i in t, f i :=
-finprod_mem_eq_prod_of_mem_iff _ $ λ x hx, ⟨λ h, h₁ ⟨h, hx⟩, λ h, h₂ h⟩
+finprod_cond_eq_prod_of_cond_iff _ $ λ x hx, ⟨λ h, h₁ ⟨h, hx⟩, λ h, h₂ h⟩
 
 @[to_additive] lemma finprod_mem_eq_prod (f : α → M) {s : set α}
   (hf : (s ∩ mul_support f).finite) :
@@ -640,6 +650,21 @@ begin
     refine finset.prod_induction _ p hp₁ hp₀ (λ x hx, hp₂ x _),
     rw hs.mem_to_finset at hx, exact hx.1 },
   { exact (finprod_mem_eq_one_of_infinite hs).symm ▸ hp₀ }
+end
+
+lemma finprod_cond_nonneg {R : Type*} [ordered_comm_semiring R] {p : α → Prop} {f : α → R}
+  (hf : ∀ x, p x → 0 ≤ f x) :
+  0 ≤ ∏ᶠ x (h : p x), f x :=
+finprod_nonneg $ λ x, finprod_nonneg $ hf x
+
+lemma finprod_eq_zero {M₀ : Type*} [comm_monoid_with_zero M₀] (f : α → M₀) (x : α)
+  (hx : f x = 0) (hf : finite (mul_support f)) :
+  ∏ᶠ x, f x = 0 :=
+begin
+  nontriviality,
+  rw [finprod_eq_prod f hf],
+  refine finset.prod_eq_zero (hf.mem_to_finset.2 _) hx,
+  simp [hx]
 end
 
 end type

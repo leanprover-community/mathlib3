@@ -202,7 +202,11 @@ S.to_subfield.to_field
 @[simp, norm_cast] lemma coe_zero : ((0 : S) : L) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : S) : L) = 1 := rfl
 @[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x ^ n) : L) = ↑x ^ n :=
-@nat.rec (λ n, (↑(x ^ n) : L) = ↑x ^ n) rfl (λ _ h, congr_arg (has_mul.mul ↑x) h) n
+begin
+  induction n with n ih,
+  { simp },
+  { simp [pow_succ, ih] }
+end
 
 instance algebra : algebra K S :=
 S.to_subalgebra.algebra

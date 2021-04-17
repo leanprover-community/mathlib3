@@ -17,9 +17,39 @@ namespace affine
 
 def intrinsic_frontier (A : set E) :
   set E :=
-(frontier {x : affine_span ℝ A | ↑x ∈ A} : set (affine_span ℝ A))
+coe '' (frontier {x : affine_span ℝ A | ↑x ∈ A})
 
---def intrinsic_interior (A : set E) :
---  set
+def intrinsic_interior (A : set E) :
+  set E :=
+coe '' (interior {x : affine_span ℝ A | ↑x ∈ A})
+
+lemma intrinsic_frontier_eq_closure_diff_intrinsic_interior :
+  intrinsic_frontier A = closure A \ intrinsic_interior A :=
+begin
+
+end
+
+lemma closure_eq_intrinsic_interior_union_intrinsic_frontier :
+  closure A = intrinsic_interior A ⋃ intrinsic_frontier A :=
+begin
+  sorry
+end
+
+lemma interior_subset_intrinsic_interior :
+  interior A ⊆ intrinsic_interior A :=
+begin
+  rintro x hx,
+  use ⟨x, subset_affine_span ℝ A (interior_subset hx)⟩,
+  simp,
+  sorry
+end
+
+lemma intrinsic_frontier_subset_frontier :
+  intrinsic_frontier A ⊆ frontier A :=
+begin
+  rintro x hx,
+  unfold intrinsic_frontier at hx,
+  simp at hx,
+end
 
 end affine

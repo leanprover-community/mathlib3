@@ -295,7 +295,7 @@ as this means the types `↥(set.range f)` and `↥f.field_range` are interchang
 obligations. -/
 @[simp] lemma coe_field_range : (f.field_range : set L) = set.range f := rfl
 
-@[simp] lemma mem_field_range {f : K →+* L} {y : L} : y ∈ f.range ↔ ∃ x, f x = y := iff.rfl
+@[simp] lemma mem_field_range {f : K →+* L} {y : L} : y ∈ f.field_range ↔ ∃ x, f x = y := iff.rfl
 
 lemma field_range_eq_map : f.field_range = subfield.map f ⊤ :=
 by { ext, simp }
@@ -555,8 +555,8 @@ def restrict_field (f : K →+* L) (s : subfield K) : s →+* L := f.comp s.subt
 @[simp] lemma restrict_field_apply (f : K →+* L) (x : s) : f.restrict_field s x = f x := rfl
 
 /-- Restriction of a ring homomorphism to its range interpreted as a subfield. -/
-def range_restrict_field (f : K →+* L) : K →+* f.range :=
-f.cod_restrict' f.range $ λ x, ⟨x, subfield.mem_top x, rfl⟩
+def range_restrict_field (f : K →+* L) : K →+* f.field_range :=
+f.srange_restrict
 
 @[simp] lemma coe_range_restrict_field (f : K →+* L) (x : K) :
   (f.range_restrict_field x : L) = f x := rfl

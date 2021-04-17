@@ -107,9 +107,12 @@ end
 @[simps]
 def tensor_obj (X Y : center C) : center C :=
 ⟨X.1 ⊗ Y.1,
-  { β := λ U,
-    α_ _ _ _ ≪≫ (iso.refl X.1 ⊗ Y.2.β U) ≪≫ (α_ _ _ _).symm
+  { β := λ U, α_ _ _ _ ≪≫ (iso.refl X.1 ⊗ Y.2.β U) ≪≫ (α_ _ _ _).symm
       ≪≫ (X.2.β U ⊗ iso.refl Y.1) ≪≫ α_ _ _ _,
+    monoidal' := λ U U', begin
+      dsimp,
+      sorry,
+    end,
     naturality' := λ U U' f,
     begin
       dsimp,

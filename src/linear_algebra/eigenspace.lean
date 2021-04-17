@@ -433,7 +433,7 @@ begin
         by { rw ←pow_add, refl }
   ... = f.generalized_eigenspace μ (findim K V) :
         by { rw generalized_eigenspace_eq_generalized_eigenspace_findim_of_le, linarith },
-  rw [disjoint, generalized_eigenrange, linear_map.range, submodule.map_inf_eq_map_inf_comap,
+  rw [disjoint, generalized_eigenrange, linear_map.range_eq_map, submodule.map_inf_eq_map_inf_comap,
     top_inf_eq, h],
   apply submodule.map_comap_le
 end

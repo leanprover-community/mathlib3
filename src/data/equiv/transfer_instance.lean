@@ -141,6 +141,11 @@ protected def mul_one_class [mul_one_class β] : mul_one_class α :=
 let one := e.has_one, mul := e.has_mul in
 by resetI; apply e.injective.mul_one_class _; intros; exact e.apply_symm_apply _
 
+/-- Transfer `mul_zero_one_class` across an `equiv` -/
+protected def mul_zero_one_class [mul_zero_one_class β] : mul_zero_one_class α :=
+let zero := e.has_zero, one := e.has_one,mul := e.has_mul in
+by resetI; apply e.injective.mul_zero_one_class _; intros; exact e.apply_symm_apply _
+
 /-- Transfer `monoid` across an `equiv` -/
 @[to_additive "Transfer `add_monoid` across an `equiv`"]
 protected def monoid [monoid β] : monoid α :=

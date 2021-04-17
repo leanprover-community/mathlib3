@@ -27,7 +27,8 @@ namespace category_theory
 variables {C : Type u₁} [category.{v₁} C] [monoidal_category C]
 
 /--
-A half-braiding on `X : C` is a family of isomorphisms `X ⊗ U ≅ U ⊗ X`, natural in `U : C`.
+A half-braiding on `X : C` is a family of isomorphisms `X ⊗ U ≅ U ⊗ X`,
+monoidally natural in `U : C`.
 
 Thinking of `C` as a 2-category with a single `0`-morphism, these are the same as natural
 transformations (in the pseudo- sense) of the identity 2-functor on `C`, which send the unique
@@ -36,8 +37,13 @@ transformations (in the pseudo- sense) of the identity 2-functor on `C`, which s
 @[nolint has_inhabited_instance]
 structure half_braiding (X : C) :=
 (β : Π U, X ⊗ U ≅ U ⊗ X)
+(monoidal' : ∀ U U', (β (U ⊗ U')).hom =
+  (α_ _ _ _).inv ≫ ((β U).hom ⊗ 𝟙 U') ≫ (α_ _ _ _).hom ≫ (𝟙 U ⊗ (β U').hom) ≫ (α_ _ _ _).inv
+  . obviously)
 (naturality' : ∀ {U U'} (f : U ⟶ U'), (𝟙 X ⊗ f) ≫ (β U').hom = (β U).hom ≫ (f ⊗ 𝟙 X) . obviously)
 
+restate_axiom half_braiding.monoidal'
+attribute [simp] half_braiding.monoidal
 restate_axiom half_braiding.naturality'
 attribute [simp, reassoc] half_braiding.naturality
 

@@ -104,7 +104,8 @@ begin
   apply set_like.coe_mem,
 end
 
-theorem comp_attach_bound_mem_closure (A : subalgebra ℝ C(X, ℝ)) (f : A) (p : C(set.Icc (-∥f∥) (∥f∥), ℝ)) :
+theorem comp_attach_bound_mem_closure
+  (A : subalgebra ℝ C(X, ℝ)) (f : A) (p : C(set.Icc (-∥f∥) (∥f∥), ℝ)) :
   p.comp (attach_bound f) ∈ A.topological_closure :=
 begin
   -- `p` itself is in the closure of polynomials, by the Weierstrass theorem,
@@ -185,7 +186,7 @@ begin
   exact ⟨t, by { rw eq_top_iff, exact s }⟩,
 end
 
--- When we acquire sublattices
+-- If we acquire sublattices
 -- the hypotheses should be reformulated as `s : subsemilattice_inf_bot`.
 lemma finset.inf_mem {α : Type*} [semilattice_inf_top α]
   (s : set α) (w₁ : ⊤ ∈ s) (w₂ : ∀ x y ∈ s, x ⊓ y ∈ s)
@@ -233,7 +234,8 @@ lemma finset.sup'_mem {α : Type*} [semilattice_sup α]
 open_locale topological_space
 
 lemma inf'_mem_nhds {α : Type*} [topological_space α]
-  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → set α) (x : α) (h : ∀ i, i ∈ t → p i ∈ 𝓝 x) :
+  {ι : Type*} (t : finset ι) (H : t.nonempty)
+  (p : ι → set α) (x : α) (h : ∀ i, i ∈ t → p i ∈ 𝓝 x) :
   t.inf' H p ∈ 𝓝 x :=
 begin
   revert H h,
@@ -265,7 +267,8 @@ begin
   refine ⟨λ p, ⟨_, _⟩, λ p, ⟨_, _⟩⟩; cases p; linarith,
 end
 
-lemma bar {X : Type*} {xs : finset X} {U : X → set X} (w : (⋃ (x : X) (H : x ∈ xs), U x) = ⊤) (z : X) :
+lemma bar {X : Type*} {xs : finset X} {U : X → set X}
+  (w : (⋃ (x : X) (H : x ∈ xs), U x) = ⊤) (z : X) :
   ∃ (x : X), x ∈ xs ∧ z ∈ U x :=
 begin
   have p : z ∈ ⊤ := set.mem_univ _,

@@ -417,67 +417,12 @@ end
 
 /- Is this non-crap? (More elegant phrasing?...) We know that $ℤ$ matrices are discrete in $ℝ$; so intersection of $Z$ matrices is discrete in line -/
 lemma tendsto_inverse_image_fun' {α β : Type*} [topological_space β] (A : set α) (B : set β)
-  {f : α → β} (hf₁ : ∀ x∈ A, f x ∈ B ) (hf₂ : tendsto f cofinite (cocompact _)) :
+  {f : α → β} (hf₁ : ∀ x ∈ A, f x ∈ B ) (hf₂ : tendsto f cofinite (cocompact _)) :
   tendsto (subtype.map f (λ x h, set.mem_def.mp (hf₁ x h))) cofinite (cocompact _) :=
 begin
---  rw tendsto_def,
-  intros K h,
-  let g : A → B := (subtype.map f (λ x h, set.mem_def.mp (hf₁ x h))),
-  have : coe '' (g ⁻¹' K) ⊆ f ⁻¹' (coe '' K : set β),
-  {
-
-  },
-
-
-
-  rw mem_cocompact' at h,
-  obtain ⟨t, ht1, ht2⟩ := h,
-  rw mem_map,
-  rw mem_cofinite,
-
-
-  let t1 := (coe : K → β) '' t,
-  have t1cpt : t1ᶜ ∈ cocompact β,
-  { have : is_compact t1,
-    { refine (embedding.compact_iff_compact_image _).mp ht1,
-      exact embedding_subtype_coe },
-    rw mem_cocompact',
-    use t1,
-    split,
-    exact this,
-    rw compl_compl },
-  have scomplInt1 : (coe : K → β) '' (sᶜ) ⊆ t1 := set.image_subset coe ht2,
-  have := hf₂,
-  rw tendsto_def at this,
-  have := this t1ᶜ t1cpt,
-  simp [cofinite],
-  simp [cofinite] at this,
-  suffices : ((inverse_image_fun K f) ⁻¹' sᶜ).finite,
-  { exact this },
-  have : function.injective (inverse_image_fun K f),
-  { sorry },
-  refine set.finite.preimage (this.inj_on _) _,
-  have := scomplInt1.subset
-
-  simp [inverse_image_fun],
-
-/-
-  have : (function.comp coe ⁻¹' (coe '' t)) = t,
-  {
-
-    sorry,
-  },
-  -- {x : ↥(lattice_intersect A) | lattice_intersect_fun A x ∈ s}
--/
-  -- pullback of finite set under injective is finite
-
---  refine this.subset _,
-
-
-  -- assume rationality of `A` if needed
-
-  repeat {sorry},
-
+  refine tendsto_inverse_image_fun subtype.coe_injective continuous_subtype_coe _ hf₂,
+  intros y,
+  simp,
 end
 
 /- Non-crap lemma but put it elsewhere ?  Maybe cocompact in discrete is cofinite -/

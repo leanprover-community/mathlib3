@@ -422,8 +422,8 @@ between `Type v`-enriched functors is actually represented by
 the usual type of natural transformations!
 -/
 def enriched_nat_trans_yoneda_Type_iso_yoneda_nat_trans
-  {C : Type v} [𝒞 : enriched_category (Type v) C]
-  {D : Type v} [𝒟 : enriched_category (Type v) D]
+  {C : Type v} [enriched_category (Type v) C]
+  {D : Type v} [enriched_category (Type v) D]
   (F G : enriched_functor (Type v) C D) :
   enriched_nat_trans_yoneda F G ≅
   yoneda.obj ((enriched_functor_Type_equiv_functor F) ⟶ (enriched_functor_Type_equiv_functor G)) :=

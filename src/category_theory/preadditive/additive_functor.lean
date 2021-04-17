@@ -137,6 +137,17 @@ def map_biproduct {J : Type v} [fintype J] [decidable_eq J] (f : J → C) [has_b
 end
 
 end functor
+
+namespace equivalence
+
+variables {C D : Type*} [category C] [category D] [preadditive C] [preadditive D]
+
+instance inverse_additive (e : C ≌ D) [e.functor.additive] : e.inverse.additive :=
+{ map_zero' := λ X Y, by { apply e.functor.map_injective, simp, },
+  map_add' := λ X Y f g, by { apply e.functor.map_injective, simp, }, }
+
+end equivalence
+
 end preadditive
 
 end category_theory

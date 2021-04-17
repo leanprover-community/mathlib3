@@ -55,7 +55,7 @@ structure half_braiding (X : C) :=
 (naturality' : ∀ {U U'} (f : U ⟶ U'), (𝟙 X ⊗ f) ≫ (β U').hom = (β U).hom ≫ (f ⊗ 𝟙 X) . obviously)
 
 restate_axiom half_braiding.monoidal'
-attribute [simp, reassoc] half_braiding.monoidal
+attribute [reassoc, simp] half_braiding.monoidal -- the reassoc lemma is redundant as a simp lemma
 restate_axiom half_braiding.naturality'
 attribute [simp, reassoc] half_braiding.naturality
 

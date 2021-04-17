@@ -86,7 +86,7 @@ section
 variables {V} {W : Type v} [category.{w} W] [monoidal_category W]
 
 /--
-A type synonym for `C`, which should should come equipped with a `V`-enriched category structure.
+A type synonym for `C`, which should come equipped with a `V`-enriched category structure.
 In a moment we will equip this with the `W`-enriched category structure
 obtained by applying the functor `F : lax_monoidal_functor V W` to each hom object.
 -/
@@ -118,11 +118,108 @@ instance (F : lax_monoidal_functor V W) :
 end
 
 /--
+Construct an honest category from a `Type v`-enriched category.
+-/
+def category_of_enriched_category_Type (C : Type u₁) [𝒞 : enriched_category (Type v) C] :
+  category.{v} C :=
+{ hom := 𝒞.hom,
+  id := λ X, e_id (Type v) X punit.star,
+  comp := λ X Y Z f g, e_comp (Type v) X Y Z ⟨f, g⟩,
+  id_comp' := λ X Y f, congr_fun (e_id_comp (Type v) X Y) f,
+  comp_id' := λ X Y f, congr_fun (e_comp_id (Type v) X Y) f,
+  assoc' := λ W X Y Z f g h, (congr_fun (e_assoc (Type v) W X Y Z) ⟨f, g, h⟩ : _), }
+
+/--
+Construct a `Type v`-enriched category from an honest category.
+-/
+def enriched_category_Type_of_category (C : Type u₁) [𝒞 : category.{v} C] :
+  enriched_category (Type v) C :=
+{ hom := 𝒞.hom,
+  id := λ X p, 𝟙 X,
+  comp := λ X Y Z p, p.1 ≫ p.2,
+  id_comp := λ X Y, by { ext, simp, },
+  comp_id := λ X Y, by { ext, simp, },
+  assoc := λ W X Y Z, by { ext ⟨f, g, h⟩, simp, }, }
+
+/--
+We verify that an enriched category in `Type u` is just the same thing as an honest category.
+-/
+def enriched_category_Type_equiv_category (C : Type u₁) :
+  (enriched_category (Type v) C) ≃ category.{v} C :=
+{ to_fun := λ 𝒞, by exactI category_of_enriched_category_Type C,
+  inv_fun := λ 𝒞, by exactI enriched_category_Type_of_category C,
+  left_inv := λ 𝒞, begin
+    cases 𝒞,
+    dsimp [enriched_category_Type_of_category],
+    congr,
+    { ext X ⟨⟩, refl, },
+    { ext X Y Z ⟨f, g⟩, refl, }
+  end,
+  right_inv := λ 𝒞, by { rcases 𝒞 with ⟨⟨⟨⟩⟩⟩, dsimp, congr, }, }.
+
+section
+variables {W : Type (v+1)} [category.{v} W] [monoidal_category W] [enriched_category W C]
+
+/-- A type synonym for `C`, which should come equipped with a `V`-enriched category structure.
+In a moment we will equip this with the (honest) category structure
+so that `X ⟶ Y` is `(𝟙_ W) ⟶ (X ⟶[W] Y)`.
+
+We obtain this category by
+transporting the enrichment in `V` along the lax monoidal functor `coyoneda_tensor_unit`,
+then using the equivalence of `Type`-enriched categories with honest categories.
+
+This is sometimes called the "underlying" category of an enriched category,
+although some care is needed as the functor `coyoneda_tensor_unit`,
+which always exists, does not necessarily coincide with
+"the forgetful functor" from `V` to `Type`, if such exists.
+When `V` is any of `Type`, `Top`, `AddCommGroup`, or `Module R`,
+`coyoneda_tensor_unit` is just the usual forgetful functor, however.
+For `V = Algebra R`, the usual forgetful functor is coyoneda of `polynomial R`, not of `R`.
+(Perhaps we should have a typeclass for this situation: `concrete_monoidal`?)
+-/
+@[nolint has_inhabited_instance unused_arguments]
+def forget_enrichment
+  (W : Type (v+1)) [category.{v} W] [monoidal_category W] (C : Type u₁) [enriched_category W C] :=
+C
+
+/-- Typecheck an object of `C` as an object of `forget_enrichment W C`. -/
+variables (W)
+def forget_enrichment.of (X : C) : forget_enrichment W C := X
+
+instance category_forget_enrichment : category (forget_enrichment W C) :=
+begin
+  let I : enriched_category (Type v) (transport_enrichment (coyoneda_tensor_unit W) C) :=
+    infer_instance,
+  exact enriched_category_Type_equiv_category C I,
+end
+
+/--
+We verify that the morphism types in `forget_enrichment W C` are `(𝟙_ W) ⟶ (X ⟶[W] Y)`.
+-/
+@[simp] lemma forget_enrichment_hom (X Y : C) :
+  (forget_enrichment.of W X ⟶ forget_enrichment.of W Y) = ((𝟙_ W) ⟶ (X ⟶[W] Y)) :=
+rfl
+
+/-- The identity in the "underlying" category of an enriched category. -/
+@[simp] lemma forget_enrichment_id (X : C) : 𝟙 (forget_enrichment.of W X) = e_id W X :=
+category.id_comp _
+
+/-- Composition in the "underlying" category of an enriched category. -/
+@[simp] lemma forget_enrichment_comp {X Y Z : C}
+  (f : forget_enrichment.of W X ⟶ forget_enrichment.of W Y)
+  (g : forget_enrichment.of W Y ⟶ forget_enrichment.of W Z) :
+  f ≫ g =
+    (((λ_ (𝟙_ W)).inv ≫ ((cast (forget_enrichment_hom W X Y) f) ⊗ g)) ≫ e_comp W X Y Z :
+      ((𝟙_ W) ⟶ (X ⟶[W] Z))) :=
+rfl
+
+end
+
+/--
 A `V`-functor `F` between `V`-enriched categories
 has a `V`-morphism from `X ⟶[V] Y` to `F.obj X ⟶[V] F.obj Y`,
 satisfying the usual axioms.
 -/
-@[nolint has_inhabited_instance]
 structure enriched_functor
   (C : Type u₁) [enriched_category V C] (D : Type u₂) [enriched_category V D] :=
 (obj : C → D)
@@ -141,6 +238,8 @@ attribute [simp, reassoc] enriched_functor.map_comp
 def enriched_functor.id (C : Type u₁) [enriched_category V C] : enriched_functor V C C :=
 { obj := λ X, X,
   map := λ X Y, 𝟙 _, }
+
+instance : inhabited (enriched_functor V C C) := ⟨enriched_functor.id V C⟩
 
 /-- Composition of enriched functors. -/
 @[simps]
@@ -201,46 +300,6 @@ def enriched_nat_trans_yoneda (F G : enriched_functor V C D) : Vᵒᵖ ⥤ (Type
 -- and show that the functor category is `V`-enriched.
 
 end
-
-/--
-Construct an honest category from a `Type v`-enriched category.
--/
-def category_of_enriched_category_Type (C : Type u₁) [𝒞 : enriched_category (Type v) C] :
-  category.{v} C :=
-{ hom := 𝒞.hom,
-  id := λ X, e_id (Type v) X punit.star,
-  comp := λ X Y Z f g, e_comp (Type v) X Y Z ⟨f, g⟩,
-  id_comp' := λ X Y f, congr_fun (e_id_comp (Type v) X Y) f,
-  comp_id' := λ X Y f, congr_fun (e_comp_id (Type v) X Y) f,
-  assoc' := λ W X Y Z f g h, (congr_fun (e_assoc (Type v) W X Y Z) ⟨f, g, h⟩ : _), }
-
-/--
-Construct a `Type v`-enriched category from an honest category.
--/
-def enriched_category_Type_of_category (C : Type u₁) [𝒞 : category.{v} C] :
-  enriched_category (Type v) C :=
-{ hom := 𝒞.hom,
-  id := λ X p, 𝟙 X,
-  comp := λ X Y Z p, p.1 ≫ p.2,
-  id_comp := λ X Y, by { ext, simp, },
-  comp_id := λ X Y, by { ext, simp, },
-  assoc := λ W X Y Z, by { ext ⟨f, g, h⟩, simp, }, }
-
-/--
-We verify that an enriched category in `Type u` is just the same thing as an honest category.
--/
-def enriched_category_Type_equiv_category (C : Type u₁) :
-  (enriched_category (Type v) C) ≃ category.{v} C :=
-{ to_fun := λ 𝒞, by exactI category_of_enriched_category_Type C,
-  inv_fun := λ 𝒞, by exactI enriched_category_Type_of_category C,
-  left_inv := λ 𝒞, begin
-    cases 𝒞,
-    dsimp [enriched_category_Type_of_category],
-    congr,
-    { ext X ⟨⟩, refl, },
-    { ext X Y Z ⟨f, g⟩, refl, }
-  end,
-  right_inv := λ 𝒞, by { rcases 𝒞 with ⟨⟨⟨⟩⟩⟩, dsimp, congr, }, }.
 
 section
 local attribute [instance] category_of_enriched_category_Type

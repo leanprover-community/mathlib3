@@ -143,6 +143,14 @@ lemma le_mul_of_one_le_left (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ a * b :=
 suffices 1 * b ≤ a * b, by rwa one_mul at this,
 mul_le_mul_of_nonneg_right h hb
 
+lemma lt_mul_of_one_lt_right (hb : 0 < b) (h : 1 < a) : b < b * a :=
+suffices b * 1 < b * a, by rwa mul_one at this,
+mul_lt_mul' (le_refl _) h zero_le_one hb
+
+lemma lt_mul_of_one_lt_left (hb : 0 < b) (h : 1 < a) : b < a * b :=
+suffices 1 * b < a * b, by rwa one_mul at this,
+mul_lt_mul h (le_refl _) hb (zero_le_one.trans h.le)
+
 lemma add_le_mul_two_add {a b : α}
   (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=
 calc a + (2 + b) ≤ a + (a + a * b) :
@@ -159,7 +167,7 @@ def function.injective.ordered_semiring {β : Type*}
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_semiring β :=
-{ zero_le_one := show f 0 ≤ f 1, by  simp only [zero, one, zero_le_one],
+{ zero_le_one := show f 0 ≤ f 1, by simp only [zero, one, zero_le_one],
   mul_lt_mul_of_pos_left := λ  a b c ab c0, show f (c * a) < f (c * b),
     begin
       rw [mul, mul],
@@ -461,9 +469,6 @@ mul_le_mul_left hb
 lemma lt_mul_iff_one_lt_right (hb : 0 < b) : b < b * a ↔ 1 < a :=
 suffices b * 1 < b * a ↔ 1 < a, by rwa mul_one at this,
 mul_lt_mul_left hb
-
-lemma lt_mul_of_one_lt_right (hb : 0 < b) : 1 < a → b < b * a :=
-(lt_mul_iff_one_lt_right hb).2
 
 theorem mul_nonneg_iff_right_nonneg_of_pos (h : 0 < a) : 0 ≤ b * a ↔ 0 ≤ b :=
 ⟨assume : 0 ≤ b * a, nonneg_of_mul_nonneg_right this h, assume : 0 ≤ b, mul_nonneg this h.le⟩

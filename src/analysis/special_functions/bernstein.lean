@@ -249,7 +249,7 @@ begin
     ... = |∑ k : fin (n+1), (f k/ₙ - f x) * bernstein n k x|
                               : by simp [bernstein_approximation, finset.mul_sum, sub_mul]
     ... ≤ ∑ k : fin (n+1), |(f k/ₙ - f x) * bernstein n k x|
-                              : finset.abs_sum_le_sum_abs
+                              : finset.abs_sum_le_sum_abs _ _
     ... = ∑ k : fin (n+1), |f k/ₙ - f x| * bernstein n k x
                               : by simp_rw [abs_mul, abs_eq_self.mpr bernstein_nonneg]
     ... = ∑ k in S, |f k/ₙ - f x| * bernstein n k x +

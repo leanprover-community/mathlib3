@@ -23,6 +23,9 @@ This file contains:
 
 universes u v
 
+lemma nat.succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
+by rw [nat.succ_eq_add_one, nat.add_comm]
+
 /-! ### instances -/
 
 instance : nontrivial ℕ :=
@@ -44,7 +47,10 @@ instance : comm_semiring nat :=
   right_distrib  := nat.right_distrib,
   zero_mul       := nat.zero_mul,
   mul_zero       := nat.mul_zero,
-  mul_comm       := nat.mul_comm }
+  mul_comm       := nat.mul_comm,
+  nsmul          := λ m n, m * n,
+  nsmul_zero'    := nat.zero_mul,
+  nsmul_succ'    := λ n x, by rw [nat.succ_eq_one_add, nat.right_distrib, nat.one_mul] }
 
 instance : linear_ordered_semiring nat :=
 { add_left_cancel            := @nat.add_left_cancel,
@@ -941,6 +947,15 @@ nat.dvd_add_right (dvd_refl m)
   m ∣ n + m ↔ m ∣ n :=
 nat.dvd_add_left (dvd_refl m)
 
+-- TODO: update `nat.dvd_sub` in core
+lemma dvd_sub' {k m n : ℕ} (h₁ : k ∣ m) (h₂ : k ∣ n) : k ∣ m - n :=
+begin
+  cases le_total n m with H H,
+  { exact dvd_sub H h₁ h₂ },
+  { rw nat.sub_eq_zero_of_le H,
+    exact dvd_zero k },
+end
+
 lemma not_dvd_of_pos_of_lt {a b : ℕ} (h1 : 0 < b) (h2 : b < a) : ¬ a ∣ b :=
 begin
   rintros ⟨c, rfl⟩,
@@ -1192,7 +1207,7 @@ end
 
 -- TODO: Generalize?
 lemma pow_lt_pow_succ {p : ℕ} (h : 1 < p) (n : ℕ) : p^n < p^(n+1) :=
-suffices 1*p^n < p*p^n, by simpa,
+suffices 1*p^n < p*p^n, by simpa [pow_succ],
 nat.mul_lt_mul_of_pos_right h (pow_pos (lt_of_succ_lt h) n)
 
 lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
@@ -1257,6 +1272,9 @@ strict_mono.lt_iff_lt (pow_left_strict_mono k)
 lemma pow_left_injective {m : ℕ} (k : 1 ≤ m) : function.injective (λ (x : ℕ), x^m) :=
 strict_mono.injective (pow_left_strict_mono k)
 
+theorem pow_two_sub_pow_two (a b : ℕ) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
+by { rw [pow_two, pow_two], exact nat.mul_self_sub_mul_self_eq a b }
+
 /-! ### `pow` and `mod` / `dvd` -/
 
 theorem mod_pow_succ {b : ℕ} (b_pos : 0 < b) (w m : ℕ)
@@ -1312,7 +1330,7 @@ pow_dvd_pow_iff_le_right (nat.lt_of_sub_eq_succ rfl)
 
 lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
 | (succ p) (succ k) hp hk h :=
-  have succ p * (succ p)^k ∣ succ p * 1, by simpa,
+  have succ p * (succ p)^k ∣ succ p * 1, by simpa [pow_succ] using h,
   have (succ p) ^ k ∣ 1, from dvd_of_mul_dvd_mul_left (succ_pos _) this,
   have he : (succ p) ^ k = 1, from eq_one_of_dvd_one this,
   have k < (succ p) ^ k, from lt_pow_self hp k,
@@ -1343,6 +1361,18 @@ begin
     refine ⟨m / n, lt_add_of_pos_left _ h, _⟩,
     rw [add_comm _ 1, left_distrib, mul_one], exact add_lt_add_right (mod_lt _ hn) _ }
 end
+
+/-- Two natural numbers are equal if and only if the have the same multiples. -/
+lemma dvd_right_iff_eq {m n : ℕ} : (∀ a : ℕ, m ∣ a ↔ n ∣ a) ↔ m = n :=
+⟨λ h, dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _)), λ h n, by rw h⟩
+
+/-- Two natural numbers are equal if and only if the have the same divisors. -/
+lemma dvd_left_iff_eq {m n : ℕ} : (∀ a : ℕ, a ∣ m ↔ a ∣ n) ↔ m = n :=
+⟨λ h, dvd_antisymm ((h _).mp (dvd_refl _)) ((h _).mpr (dvd_refl _)), λ h n, by rw h⟩
+
+/-- `dvd` is injective in the left argument -/
+lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=
+λ m n h, dvd_right_iff_eq.mp $ λ a, iff_of_eq (congr_fun h a)
 
 /-! ### `find` -/
 section find
@@ -1572,7 +1602,7 @@ eq.rec_on n.bit_decomp (H (bodd n) (div2 n))
 lemma shiftl_eq_mul_pow (m) : ∀ n, shiftl m n = m * 2 ^ n
 | 0     := (nat.mul_one _).symm
 | (k+1) := show bit0 (shiftl m k) = m * (2 * 2 ^ k),
-  by rw [bit0_val, shiftl_eq_mul_pow, mul_left_comm]
+  by rw [bit0_val, shiftl_eq_mul_pow, mul_left_comm, mul_comm 2]
 
 lemma shiftl'_tt_eq_mul_pow (m) : ∀ n, shiftl' tt m n + 1 = (m + 1) * 2 ^ n
 | 0     := by simp [shiftl, shiftl', pow_zero, nat.one_mul]
@@ -1581,7 +1611,7 @@ begin
   change bit1 (shiftl' tt m k) + 1 = (m + 1) * (2 * 2 ^ k),
   rw bit1_val,
   change 2 * (shiftl' tt m k + 1) = _,
-  rw [shiftl'_tt_eq_mul_pow, mul_left_comm]
+  rw [shiftl'_tt_eq_mul_pow, mul_left_comm, mul_comm 2],
 end
 
 lemma one_shiftl (n) : shiftl 1 n = 2 ^ n :=

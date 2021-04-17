@@ -36,11 +36,14 @@ instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
 
 variables {α β} {f g : continuous_map α β}
 
-protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
+@[continuity] protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
+
 protected lemma continuous_at (f : C(α, β)) (x : α) : continuous_at f x :=
 f.continuous.continuous_at
 
-@[continuity] lemma coe_continuous : continuous (f : α → β) := f.continuous_to_fun
+protected lemma continuous_within_at (f : C(α, β)) (s : set α) (x : α) :
+  continuous_within_at f s x :=
+f.continuous.continuous_within_at
 
 protected lemma congr_fun {f g : C(α, β)} (H : f = g) (x : α) : f x = g x := H ▸ rfl
 protected lemma congr_arg (f : C(α, β)) {x y : α} (h : x = y) : f x = f y := h ▸ rfl

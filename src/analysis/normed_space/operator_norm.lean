@@ -806,29 +806,6 @@ end continuous_linear_map
 
 end semi_normed
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 section normed
 
 variables [normed_group E] [normed_group F] [normed_group G]

@@ -8,6 +8,14 @@ import topology.continuous_function.weierstrass
 /-!
 # The Stone-Weierstrass theorem
 
+If a subalgebra `A` of `C(X, ℝ)`, where `X` is a compact Hausdorff space,
+separates points, then it is dense.
+
+## Future work
+
+Prove the complex version for self-adjoint subalgebras `A`, by separately approximating
+the real and imaginary parts using the real subalgebra of real-valued functions in `A`
+(which still separates points, by taking the norm-square of a separating function).
 
 -/
 
@@ -369,7 +377,7 @@ begin
   have xs_nonempty : xs.nonempty := nonempty_of_union_eq_top_of_nonempty _ _ nX xs_w,
 
   -- Finally our candidate function is the infimum over `x ∈ xs` of the `h x`.
-  -- This function is then globallly less than `f z + ε`.
+  -- This function is then globally less than `f z + ε`.
   let k : (A : Type*) :=
     ⟨xs.inf' xs_nonempty (λ x, (h x : C(X, ℝ))),
       finset.inf'_mem _ inf_mem _ _ _ (λ x, (h x).2)⟩,

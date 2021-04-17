@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2021 François Sunatori. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ruben Van de Velde, Yakov Pechersky, Heather Macbeth, Kevin Buzzard, Greg Price, François Sunatori
+Authors: Ruben Van de Velde, Yakov Pechersky, Heather Macbeth, Kevin Buzzard, Greg Price,
+François Sunatori
 -/
 import analysis.complex.basic
 import data.complex.exponential
@@ -29,7 +30,8 @@ local notation `|` x `|` := complex.abs x
 lemma linear_isometry.id_apply (z : ℂ) : (linear_isometry.id : ℂ →ₗᵢ[ℝ] ℂ) z = z := rfl
 
 @[simp]
-lemma linear_isometry.id_to_linear_map : (linear_isometry.id.to_linear_map : ℂ →ₗ[ℝ] ℂ) = linear_map.id := rfl
+lemma linear_isometry.id_to_linear_map : (linear_isometry.id.to_linear_map :
+  ℂ →ₗ[ℝ] ℂ) = linear_map.id := rfl
 
 lemma hf_re (f : ℂ →ₗᵢ[ℝ] ℂ) (h₃ : ∀ z, z + conj z = f z + conj (f z)) (z : ℂ) : (f z).re = z.re :=
 begin

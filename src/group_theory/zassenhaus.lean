@@ -9,10 +9,9 @@ import data.setoid.basic
 
 universes u v w
 open_locale classical
-variables (α : Type u) [group α]
 
 namespace subgroup
-variables {α} [group α]
+variables {α : Type u} [group α]
 
 /- View `H` as a subgroup of `K`. -/
 def of (H : subgroup α) (K : subgroup α) : subgroup K := H.comap K.subtype
@@ -223,17 +222,17 @@ lemma Zassenhaus_subgroup {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤
 sup_le (inf_le_inf hA (le_refl _)) (inf_le_inf (le_refl _) hB)
 
 
-instance Zassenhaus1 {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
+instance Zassenhaus {A' A B' B : subgroup α} [hA : fact (A' ≤ A)] [hB : fact (B' ≤ B)]
   [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] : (((A' ⊓ B) ⊔ (A ⊓ B')).of (A ⊓ B)).normal :=
 begin
   haveI h₁ : ((A' ⊓ B).of (A ⊓ B)).normal :=
-  by { have := inf_normal_inf_right B A' A hA, rw inf_comm, rwa @inf_comm _ _ A' B },
+  by { have := inf_normal_inf_right B A' A hA.out, rw inf_comm, rwa @inf_comm _ _ A' B },
   haveI h₂ : ((A ⊓ B').of (A ⊓ B)).normal :=
-  by { have := inf_normal_inf_right A B' B hB, rw inf_comm, rwa @inf_comm _ _ B A },
+  by { have := inf_normal_inf_right A B' B hB.out, rw inf_comm, rwa @inf_comm _ _ B A },
   rw sup_of,
   { exact subgroup.normal_sup_normal ((A' ⊓ B).of (A ⊓ B)) ((A ⊓ B').of (A ⊓ B)) },
-  { exact inf_le_inf hA (le_refl _) },
-  { exact inf_le_inf (le_refl _) hB },
+  { exact inf_le_inf hA.out (le_refl _) },
+  { exact inf_le_inf (le_refl _) hB.out },
 end
 
 lemma eq_of_subset_eq (A B : set α) (C : subgroup α) (hA : A ⊆ C) (hB : B ⊆ C)
@@ -381,22 +380,17 @@ def Zassenhaus_quot {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
   [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :=
 quotient_group.quotient $ ((A' ⊓ B) ⊔ (A ⊓ B')).of (A ⊓ B)
 
-instance bruh {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
+instance Zassenhaus_group {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
   [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] : group (Zassenhaus_quot hA hB) :=
 begin
   dsimp [Zassenhaus_quot],
-  haveI := subgroup.Zassenhaus1 hA hB,
+  haveI := @subgroup.Zassenhaus _ _ A' A B' B ⟨hA⟩ ⟨hB⟩,
   apply_instance,
 end
 
 lemma Zassenhaus_aux {A' A : subgroup α} (B : subgroup α) (hA : A' ≤ A) [hAN : (A'.of A).normal] :
   ↑(A' ⊔ A ⊓ B) = (A' : set α) * (A ⊓ B : subgroup α) :=
 normal_subgroup_mul A' A (A ⊓ B) hA (inf_le_left_of_le (le_refl A))
-
-instance wtff {A' A B : subgroup α} (hA : A' ≤ A) [hAN : (A'.of A).normal] : group ↥(A' ⊔ A ⊓ B) :=
-begin
-  apply_instance,
-end
 
 lemma Zassenhaus_quot_aux {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
   [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
@@ -553,18 +547,10 @@ end
 
 open quotient_group
 
-@[instance] lemma Zassenhaus_normal {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
-  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
+@[instance] lemma Zassenhaus_normal {A' A B' B : subgroup α}
+  [hA : fact (A' ≤ A)] [hB : fact (B' ≤ B)] [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
   ((A' ⊔ A ⊓ B').of (A' ⊔ A ⊓ B)).normal :=
-by { rw ← Zassenhaus_fun_ker hA hB, exact monoid_hom.normal_ker _, }
-
-@[instance] lemma finally {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
-  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
-  group $ quotient_group.quotient ((A' ⊔ A ⊓ B').of (A' ⊔ A ⊓ B)) :=
-begin
-  haveI := subgroup.Zassenhaus_normal hA hB,
-  apply_instance,
-end
+by { rw ← Zassenhaus_fun_ker hA.out hB.out, exact monoid_hom.normal_ker _, }
 
 lemma Zassenhaus_fun_surjective {A' A B' B : subgroup α} (hA : A' ≤ A) (hB : B' ≤ B)
   [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
@@ -581,8 +567,36 @@ begin
   exact Zassenhaus_fun_aux_app hA hB 1 ⟨y, hy⟩ hy',
 end
 
-def butterfly {A' A B' B : subgroup α} {hA : A' ≤ A} {hB : B' ≤ B}
+def quotient_map_of_le {A' A B' B: subgroup α}
+  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal]
+  (h' : A' ≤ B') (h : A ≤ B) :
+  quotient (A'.of A) →* quotient (B'.of B) :=
+quotient_group.map _ _ (inclusion h) $
+by simp [of, comap_comap]; exact comap_mono h'
+
+def quotient_equiv_of_eq {A' A B' B: subgroup α}
+  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal]
+  (h' : A' = B') (h : A = B) :
+  quotient (A'.of A) ≃* quotient (B'.of B) :=
+by apply monoid_hom.to_mul_equiv
+    (quotient_map_of_le h'.le h.le) (quotient_map_of_le h'.ge h.ge);
+  { ext ⟨x⟩,
+    simp [quotient_map_of_le, quotient_group.map, quotient_group.lift, mk', inclusion],
+    refl }
+
+def Zassenhaus' {A' A B' B : subgroup α} [hA : fact (A' ≤ A)] [hB : fact (B' ≤ B)]
   [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
-  quotient ((A' ⊔ A ⊓ B').of (A' ⊔ A ⊓ B)) ≃* quotient ((B' ⊔ B ⊓ A').of (B' ⊔ B ⊓ A)) := sorry
+  Zassenhaus_quot hA.out hB.out ≃* Zassenhaus_quot hB.out hA.out :=
+quotient_equiv_of_eq (by { rwa [inf_comm, @inf_comm _ _ A B', sup_comm] } ) (inf_comm)
+
+noncomputable def Zassenhaus'' {A' A B' B : subgroup α} [hA : fact (A' ≤ A)] [hB : fact (B' ≤ B)]
+  [hAN : (A'.of A).normal] [hBN : (B'.of B).normal] :
+  quotient ((A' ⊔ A ⊓ B').of (A' ⊔ A ⊓ B)) ≃* quotient ((B' ⊔ B ⊓ A').of (B' ⊔ B ⊓ A)) :=
+(((equiv_quotient_of_eq (Zassenhaus_fun_ker hA.out hB.out)).symm.trans
+  (quotient_ker_equiv_of_surjective (Zassenhaus_fun hA.out hB.out)
+  (Zassenhaus_fun_surjective hA.out hB.out))).trans Zassenhaus').trans
+  ((equiv_quotient_of_eq (Zassenhaus_fun_ker hB.out hA.out)).symm.trans
+  (quotient_ker_equiv_of_surjective (Zassenhaus_fun hB.out hA.out)
+  (Zassenhaus_fun_surjective hB.out hA.out))).symm
 
 end subgroup

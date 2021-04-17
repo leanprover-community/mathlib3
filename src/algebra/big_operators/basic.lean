@@ -226,11 +226,10 @@ lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) :
 by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
 
 @[to_additive]
-lemma prod_coe [decidable_eq α] (s : finset α) (f : α → β) :
+lemma prod_coe [decidable_eq α] :
   ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
 begin
-  rw ←prod_image,
-  apply prod_congr _ (λ _ _, rfl),
+  rw [←prod_image, prod_congr _ (λ _ _, rfl)],
   { ext, simp },
   { simp },
 end

@@ -422,8 +422,7 @@ begin
   cases eq_or_lt_of_le (le_sup_right : a ≤ x ⊔ a) with h₁ h₂,
   { exact h₁.symm ▸ le_sup_left },
   obtain ⟨y, lty, ylt⟩ := exists_between h₂,
-  apply (not_lt_of_le (sup_le _ lty.le) ylt).elim,
-  apply hx ⟨lty, ylt.trans_le (sup_le _ h.le)⟩,
+  apply (not_lt_of_le (sup_le (hx ⟨lty, ylt.trans_le (sup_le _ h.le)⟩) lty.le) ylt).elim,
   obtain ⟨u, au, ub⟩ := exists_between h,
   apply (hx ⟨au, ub⟩).trans ub.le,
 end⟩

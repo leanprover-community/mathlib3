@@ -287,15 +287,21 @@ variables (g : L →+* M) (f : K →+* L)
 /-! # range -/
 
 /-- The range of a ring homomorphism, as a subfield of the target. -/
-def field_range : subfield L := (⊤ : subfield K).map f
+def field_range : subfield L :=
+((⊤ : subfield K).map f).copy (set.range f) set.image_univ.symm
 
-@[simp] lemma coe_field_range : (f.field_range : set L) = set.range f := set.image_univ
+/-- Note that `ring_hom.field_range` is deliberately defined in a way that makes this true by `rfl`,
+as this means the types `↥(set.range f)` and `↥f.field_range` are interchangeable without proof
+obligations. -/
+@[simp] lemma coe_field_range : (f.field_range : set L) = set.range f := rfl
 
-@[simp] lemma mem_field_range {f : K →+* L} {y : L} : y ∈ f.range ↔ ∃ x, f x = y :=
-by simp [range]
+@[simp] lemma mem_field_range {f : K →+* L} {y : L} : y ∈ f.range ↔ ∃ x, f x = y := iff.rfl
+
+lemma field_range_eq_map : f.field_range = subfield.map f ⊤ :=
+by { ext, simp }
 
 lemma map_field_range : f.field_range.map g = (g.comp f).field_range :=
-(⊤ : subfield K).map_map g f
+by simpa only [field_range_eq_map] using (⊤ : subfield K).map_map g f
 
 end ring_hom
 

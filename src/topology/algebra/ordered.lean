@@ -2538,18 +2538,8 @@ is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab
 
 /--Intermediate Value Theorem for continuous functions on closed intervals, unordered case.-/
 lemma intermediate_value_interval {a b : α} {f : α → δ} (hf : continuous_on f (interval a b)) :
-interval (f a) (f b) ⊆ f '' interval a b :=
-begin
-  cases le_total a b with hab hba,
-  { rw interval_of_le hab at hf ⊢,
-    cases le_total (f a) (f b) with hfab hfba,
-    { simpa only [interval_of_le hfab] using intermediate_value_Icc hab hf },
-    { simpa only [interval_of_ge hfba] using intermediate_value_Icc' hab hf } },
-  { rw interval_of_ge hba at hf ⊢,
-    cases le_total (f a) (f b) with hfab hfba,
-    { simpa only [interval_of_le hfab] using intermediate_value_Icc' hba hf },
-    { simpa only [interval_of_ge hfba] using intermediate_value_Icc hba hf } },
-end
+  interval (f a) (f b) ⊆ f '' interval a b :=
+by cases le_total (f a) (f b); simp [h, is_preconnected_interval.intermediate_value, hf]
 
 lemma intermediate_value_Ico {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Ico (f a) (f b) ⊆ f '' (Ico a b) :=

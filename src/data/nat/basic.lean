@@ -3,7 +3,7 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import algebra.group_power.basic
+import algebra.group.hom_instances
 import algebra.order_functions
 import algebra.ordered_monoid
 
@@ -22,9 +22,6 @@ This file contains:
 -/
 
 universes u v
-
-lemma nat.succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
-by rw [nat.succ_eq_add_one, nat.add_comm]
 
 /-! ### instances -/
 

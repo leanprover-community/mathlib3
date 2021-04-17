@@ -6,8 +6,8 @@ Authors: Simon Hudon, Patrick Massot
 import data.pi
 import data.set.function
 import tactic.pi_instances
-import algebra.group.defs
-import algebra.group.hom
+import algebra.group.hom_instances
+
 /-!
 # Pi instances for groups and monoids
 

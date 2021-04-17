@@ -261,6 +261,22 @@ protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_f
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
 
+/--
+To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it
+suffices to give a function together with a proof that it satisfies `s (f a) (f b) ↔ r a b`.
+-/
+def of_map_rel_iff (f : α → β) [is_antisymm α r] [is_refl β s]
+  (hf : ∀ a b, s (f a) (f b) ↔ r a b) : r ↪r s :=
+{ to_fun := f,
+  inj' := λ x y h, antisymm ((hf _ _).1 (h ▸ refl _)) ((hf _ _).1 (h ▸ refl _)),
+  map_rel_iff' := hf }
+
+@[simp]
+lemma of_map_rel_iff_coe (f : α → β) [is_antisymm α r] [is_refl β s]
+  (hf : ∀ a b, s (f a) (f b) ↔ r a b) :
+  ⇑(of_map_rel_iff f hf : r ↪r s) = f :=
+rfl
+
 /-- It suffices to prove `f` is monotone between strict relations
   to show it is a relation embedding. -/
 def of_monotone [is_trichotomous α r] [is_asymm β s] (f : α → β)
@@ -326,12 +342,21 @@ f.lt_embedding.is_well_order
 protected def dual : order_dual α ↪o order_dual β :=
 ⟨f.to_embedding, λ a b, f.map_rel_iff⟩
 
-/-- A sctrictly monotone map from a linear order is an order embedding. --/
+/--
+To define an order embedding from a partial order to a preorder it suffices to give a function
+together with a proof that it satisfies `f a ≤ f b ↔ a ≤ b`.
+-/
+def of_map_rel_iff {α β} [partial_order α] [preorder β] (f : α → β)
+  (hf : ∀ a b, f a ≤ f b ↔ a ≤ b) : α ↪o β :=
+rel_embedding.of_map_rel_iff f hf
+
+@[simp] lemma coe_of_map_rel_iff {α β} [partial_order α] [preorder β] {f : α → β} (h) :
+  ⇑(of_map_rel_iff f h) = f := rfl
+
+/-- A strictly monotone map from a linear order is an order embedding. --/
 def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
   (h : strict_mono f) : α ↪o β :=
-{ to_fun := f,
-  inj' := strict_mono.injective h,
-  map_rel_iff' := λ a b, h.le_iff_le }
+of_map_rel_iff f (λ _ _, h.le_iff_le)
 
 @[simp] lemma coe_of_strict_mono {α β} [linear_order α] [preorder β] {f : α → β}
   (h : strict_mono f) : ⇑(of_strict_mono f h) = f := rfl

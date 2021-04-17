@@ -385,26 +385,20 @@ begin
 end
 
 -- for `order.filter.basic`
-lemma tendsto_diag_chase {α β A B : Type*} {lα : filter α} {lβ : filter β} {lA : filter A}
-  {lB : filter B} {f : α → β} {g : A → B} {mA : A → α} {mB : B → β} (h : f ∘ mA = mB ∘ g)
-  (hAα : lA ≤ comap mA lα) (hBβ : comap mB lβ ≤ lB) (hαβ : tendsto f lα lβ) :
+lemma filter.tendsto.of_tendsto_comp {β A B : Type*} {lβ : filter β} {lA : filter A}
+  {lB : filter B} {g : A → B} {mB : B → β}
+  (hAβ : tendsto (mB ∘ g) lA lβ) (hBβ : comap mB lβ ≤ lB) :
   tendsto g lA lB :=
 begin
-  rw tendsto_iff_comap at hαβ ⊢,
-  calc lA ≤ comap mA lα : hAα
-  ... ≤ comap (f ∘ mA) lβ : by simpa [comap_comap] using comap_mono hαβ
-  ... = comap (mB ∘ g) lβ : by rw h
+  rw tendsto_iff_comap at hAβ ⊢,
+  calc lA ≤ comap (mB ∘ g) lβ : hAβ
   ... ≤ comap g lB : by simpa [comap_comap] using comap_mono hBβ
 end
 
 -- for `order.filter.cofinite`
-lemma comap_cofinite {α A : Type*} {mA : A → α} (hmA : function.injective mA) :
-  cofinite ≤ comap mA cofinite :=
-begin
-  rintros s ⟨t, ht, hts⟩,
-  refine (ht.preimage (hmA.inj_on _)).subset _,
-  simp [hts]
-end
+lemma function.injective.tendsto_cofinite {α A : Type*} {mA : A → α} (hmA : function.injective mA) :
+  tendsto mA cofinite cofinite :=
+λ s h, h.preimage (hmA.inj_on _)
 
 -- ugly, clean up somehow?
 -- for `topology.subset_properties`
@@ -432,7 +426,8 @@ lemma tendsto_inverse_image_fun {α β A B : Type*} [topological_space β] [topo
   (hf : tendsto f cofinite (cocompact _)) :
   tendsto g cofinite (cocompact _) :=
 begin
-  exact tendsto_diag_chase h (comap_cofinite hmA) (comap_cocompact hmB) hf,
+  refine filter.tendsto.of_tendsto_comp _ (comap_cocompact hmB),
+  simpa [h] using hf.comp hmA.tendsto_cofinite,
   -- rintros s hK,
   -- rw mem_cocompact' at hK,
   -- obtain ⟨K, hK1, hK2⟩ := hK,

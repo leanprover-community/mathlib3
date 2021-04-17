@@ -1,4 +1,6 @@
 import analysis.convex.topology
+import topology.basic
+
 
 variables {E : Type*} [add_comm_group E] [vector_space ℝ E] {X Y : set E}
 
@@ -18,3 +20,6 @@ begin
   { rintro rfl,
     exact convex_hull_empty }
 end
+
+--TODO: Generalise to LCTVS
+variables [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}

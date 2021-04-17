@@ -17,6 +17,22 @@ open set
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
   {X : finset E}
 
+theorem geometric_hahn_banach_closed_point {A : set E} {x : E}
+  (hA₁ : convex A) (hA₂ : is_closed A)
+  (disj : x ∉ A) :
+  ∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ s < f x := sorry
+
+theorem geometric_hahn_banach_open_point {A : set E} {x : E}
+  (hA₁ : convex A) (hA₂ : is_open A)
+  (disj : x ∉ A) :
+  ∃ (f : E →L[ℝ] ℝ), (∀ a ∈ A, f a < f x) := sorry
+
+theorem geometric_hahn_banach_point_open {x : E} {B : set E}
+  (hB₁ : convex B) (hB₂ : is_open B)
+  (disj : x ∉ B) :
+  ∃ (f : E →L[ℝ] ℝ), (∀ b ∈ B, f x < f b) :=
+let ⟨f, hf⟩ := geometric_hahn_banach_open_point hB₁ hB₂ disj in ⟨-f, by simpa⟩
+
 /--
 A set B is extreme to a set A if no affine combination of points in A \ B is in B. -/
 def is_extreme_set (A B : set E) :
@@ -330,6 +346,54 @@ begin
   exact this.2 hxA,
 end
 
+lemma inter_frontier_self_inter_convex_hull_extreme :
+  is_extreme_set (closure A) (closure A ∩ frontier (convex_hull A)) :=
+begin
+  refine ⟨inter_subset_left _ _, λ x₁ x₂ hx₁A hx₂A x hxA hx hxx₁ hxx₂, ⟨⟨hx₁A, _⟩, hx₂A, _⟩⟩,
+  sorry,
+  sorry
+end
+
+lemma frontier_extreme_to_closure (hA₁ : convex A) (hA₂ : is_closed A) :
+  is_extreme_set A (frontier A) :=
+begin
+  convert (inter_frontier_self_inter_convex_hull_extreme : is_extreme_set (closure A)
+    (closure A ∩ frontier (convex_hull A))),
+  { exact (is_closed.closure_eq hA₂).symm },
+  rw [convex.convex_hull_eq hA₁, inter_eq_self_of_subset_right frontier_subset_closure],
+end
+
+lemma filter.tendsto.smul_const {α β M : Type*} [topological_space α] [topological_space M]
+  [has_scalar M α] [has_continuous_smul M α] {f : β → M} {l : filter β}
+  {c : M} (hf : filter.tendsto f l (nhds c)) (a : α) :
+  filter.tendsto (λ x, (f x) • a) l (nhds (c • a)) :=
+hf.smul tendsto_const_nhds
+
+lemma closure_eq_closure_interior (hA₁ : convex A) (hA₂ : (interior A).nonempty) :
+  closure A = closure (interior A) :=
+begin
+  refine set.subset.antisymm _ (closure_mono interior_subset),
+  rintro x,
+  obtain ⟨y, hy⟩ := hA₂,
+  simp only [mem_closure_iff_seq_limit],
+  rintro ⟨z, hzA, hzx⟩,
+  use λ n, (1/n.succ : ℝ) • y + (n/n.succ : ℝ) • z n,
+  split,
+  {
+    rintro n,
+    have := (frontier_extreme hA₁).2 y (z n) (interior_subset hy) (hzA n),
+    sorry
+  },
+  rw ←zero_add x,
+  apply filter.tendsto.add,
+  {
+    sorry
+  },
+  rw ←one_smul _ x,
+  refine filter.tendsto.smul _ hzx,
+  sorry
+end
+
 lemma subset_frontier_of_extreme (hAB : is_extreme_set A B) (hBA : B ⊂ A) :
   B ⊆ frontier A :=
 begin
@@ -394,15 +458,6 @@ begin
   },
   sorry
 end
-
-lemma mem_extreme_set_iff_mem_frontier :
-  (∃ B : set E, is_extreme_set A B ∧ B ⊂ A ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
-begin
-  use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.1 hxB, subset_frontier_of_extreme hAB hBA hxB⟩,
-  rintro ⟨hxA, hxfA⟩,
-  sorry
-end
-
 
 
 

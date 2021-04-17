@@ -1,18 +1,41 @@
 import combinatorics.simplicial_complex.extreme
+import combinatorics.simplicial_complex.intrinsic
 
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
-  {X : finset E}
+  {X : finset E} {l : E →L[ℝ] ℝ}
 
 def is_exposed_set (A B : set E) :
   Prop :=
 ∃ l : E →L[ℝ] ℝ, B = {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
+def continuous_linear_map.to_exposed_set (l : E →L[ℝ] ℝ) (A : set E) :
+  set E :=
+{x ∈ A | ∀ y ∈ A, l y ≤ l x}
+
+lemma continuous_linear_map.to_exposed_set.is_exposed :
+  is_exposed_set A (l.to_exposed_set A) :=
+⟨l, rfl⟩
+
 lemma is_exposed_iff_normalized :
   is_exposed_set A B ↔ ∃ l : E →L[ℝ] ℝ, ∥l∥ = 1 ∧ B = {x ∈ A | ∀ y ∈ A, l y ≤ l x} :=
 begin
+  split,
+  {
+    rintro ⟨l, hB⟩,
+    refine ⟨(1/∥l∥) • l, sorry, _⟩,
+    let x : E := sorry,
+    let y : E := sorry,
+    have : (1 / ∥l∥) • l x ≤ (1 / ∥l∥) • l y ↔ l x ≤ l y,
+    {
+      refine mul_le_mul_left _,
+      refine div_pos _ _,
+    },
+    rw hB,
+    simp,
+  },
   sorry
 end
 
@@ -128,3 +151,18 @@ lemma compact_of_exposed (hA : is_compact A) (hAB : is_exposed_set A B) :
   is_compact B :=
 compact_of_is_closed_subset hA (closed_of_exposed (is_compact.is_closed hA) hAB)
   (subset_of_exposed hAB)
+
+
+lemma mem_extreme_set_iff_mem_frontier (hA₁ : convex A) (hA₂ : (interior A).nonempty) :
+  (∃ B : set E, is_extreme_set A B ∧ B ⊂ A ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
+begin
+  use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.1 hxB, subset_frontier_of_extreme hAB hBA hxB⟩,
+  rintro ⟨hxA, hxfA⟩,
+  obtain ⟨y, hyA⟩ := id hA₂,
+  obtain ⟨l, hl⟩ := geometric_hahn_banach_open_point (convex.interior hA₁) is_open_interior hxfA.2,
+  refine ⟨{x ∈ A | ∀ y ∈ A, l y ≤ l x}, extreme_of_exposed ⟨l, rfl⟩, ⟨λ x hx, hx.1, λ h,
+    not_le.2 (hl y hyA) ((h (interior_subset hyA)).2 x hxA)⟩, ⟨hxA, λ z hzA, _⟩⟩,
+  have := subset_closure hzA,
+  rw closure_eq_closure_interior hA₁ hA₂ at this,
+  sorry
+end

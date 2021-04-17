@@ -3,8 +3,8 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.linear_isometry
-import tactic.equiv_rw
+import analysis.normed_space.basic
+import topology.continuous_function.algebra
 
 /-!
 # Bounded continuous functions
@@ -87,14 +87,6 @@ def forget_boundedness : (α →ᵇ β) → C(α, β) :=
 @[simp] lemma forget_boundedness_coe (f : α →ᵇ β) : (forget_boundedness α β f : α → β) = f :=
 rfl
 
-/--
-When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
-equivalent to `C(α, 𝕜)`.
--/
-@[simps]
-def equiv_continuous_map_of_compact [compact_space α] : (α →ᵇ β) ≃ C(α, β) :=
-⟨forget_boundedness α β, mk_of_compact, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
-
 end
 
 /-- The uniform distance between two bounded continuous functions -/
@@ -131,7 +123,7 @@ le_cInf dist_set_exists (λ C, and.left)
 lemma dist_le (C0 : (0 : ℝ) ≤ C) : dist f g ≤ C ↔ ∀x:α, dist (f x) (g x) ≤ C :=
 ⟨λ h x, le_trans (dist_coe_le_dist x) h, λ H, cInf_le ⟨0, λ C, and.left⟩ ⟨C0, H⟩⟩
 
-lemma dist_le_of_nonempty [nonempty α] :
+lemma dist_le_iff_of_nonempty [nonempty α] :
   dist f g ≤ C ↔ ∀ x, dist (f x) (g x) ≤ C :=
 ⟨λ h x, le_trans (dist_coe_le_dist x) h,
  λ w, (dist_le (le_trans dist_nonneg (w (nonempty.some ‹_›)))).mpr w⟩
@@ -142,7 +134,7 @@ begin
   have c : continuous (λ x, dist (f x) (g x)), { continuity, },
   obtain ⟨x, -, le⟩ :=
     is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
-  exact lt_of_le_of_lt (dist_le_of_nonempty.mpr (λ y, le y trivial)) (w x),
+  exact lt_of_le_of_lt (dist_le_iff_of_nonempty.mpr (λ y, le y trivial)) (w x),
 end
 
 lemma dist_lt_iff_of_compact [compact_space α] (C0 : (0 : ℝ) < C) :
@@ -179,24 +171,7 @@ instance : metric_space (α →ᵇ β) :=
     (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
       le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
 
-instance [compact_space α] : metric_space C(α,β) :=
-metric_space.induced
-  (equiv_continuous_map_of_compact α β).symm
-  (equiv_continuous_map_of_compact α β).symm.injective
-  (by apply_instance)
-
-variables (α β)
-/--
-When `α` is compact, and `β` is a metric space, the bounded continuous maps `α →ᵇ β` are
-isometric to `C(α, β)`.
--/
-@[simps]
-def isometric_continuous_map_of_compact [compact_space α] :
-  (α →ᵇ β) ≃ᵢ C(α, β) :=
-{ isometry_to_fun := λ x y, rfl,
-  to_equiv := equiv_continuous_map_of_compact α β }
-
-variable {β}
+variables (α) {β}
 
 /-- Constant as a continuous bounded function. -/
 def const (b : β) : α →ᵇ β := ⟨continuous_map.const b, 0, by simp [le_refl]⟩
@@ -492,7 +467,7 @@ lemma norm_le_of_nonempty [nonempty α]
   {f : α →ᵇ β} {M : ℝ} : ∥f∥ ≤ M ↔ ∀ x, ∥f x∥ ≤ M :=
 begin
   simp_rw [norm_def, ←dist_zero_right],
-  exact dist_le_of_nonempty,
+  exact dist_le_iff_of_nonempty,
 end
 
 lemma norm_lt_iff_of_compact [compact_space α]
@@ -610,46 +585,6 @@ def forget_boundedness_add_hom : (α →ᵇ β) →+ C(α, β) :=
   map_zero' := by { ext, simp, },
   map_add' := by { intros, ext, simp, }, }
 
-section compact_space
-variables [compact_space α]
-
-section
-
-/--
-When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
-additively equivalent to `C(α, 𝕜)`.
--/
-@[simps]
-def add_equiv_continuous_map_of_compact : (α →ᵇ β) ≃+ C(α, β) :=
-{ ..forget_boundedness_add_hom α β,
-  ..equiv_continuous_map_of_compact α β, }
-
-@[simp]
-lemma add_equiv_continuous_map_of_compact_to_equiv :
-  (add_equiv_continuous_map_of_compact α β).to_equiv = equiv_continuous_map_of_compact α β :=
-rfl
-
-end
-
--- TODO at some point we will need lemmas characterising this norm!
--- At the moment the only way to reason about it is to transfer `f : C(α,β)` back to `α →ᵇ β`.
-instance : has_norm C(α,β) :=
-{ norm := λ x, dist x 0 }
-
-instance : normed_group C(α,β) :=
-{ dist_eq := λ x y,
-  begin
-    change dist x y = dist (x-y) 0,
-     -- it would be nice if `equiv_rw` could rewrite in multiple places at once
-    equiv_rw (equiv_continuous_map_of_compact α β).symm at x,
-    equiv_rw (equiv_continuous_map_of_compact α β).symm at y,
-    have p : dist x y = dist (x-y) 0, { rw dist_eq_norm, rw dist_zero_right, },
-    convert p,
-    exact ((add_equiv_continuous_map_of_compact α β).map_sub _ _).symm,
-  end, }
-
-end compact_space
-
 end normed_group
 
 section normed_space
@@ -683,12 +618,14 @@ semimodule.of_core $
 instance : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, norm_of_normed_group_le _
   (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
 
-instance [compact_space α] : normed_space 𝕜 C(α,β) :=
-{ norm_smul_le := λ c f,
-  begin
-    equiv_rw (equiv_continuous_map_of_compact α β).symm at f,
-    exact le_of_eq (norm_smul c f),
-  end }
+variables (α β)
+
+/-- The linear map forgetting that a bounded continuous function is bounded. -/
+@[simps]
+def forget_boundedness_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
+{ to_fun := forget_boundedness α β,
+  map_smul' := by { intros, ext, simp, },
+  map_add' := by { intros, ext, simp, }, }
 
 end normed_space
 
@@ -720,15 +657,6 @@ lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
 instance : normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
   .. bounded_continuous_function.normed_group }
-
-instance [compact_space α] : normed_ring C(α,R) :=
-{ norm_mul := λ f g,
-  begin
-    equiv_rw (equiv_continuous_map_of_compact α R).symm at f,
-    equiv_rw (equiv_continuous_map_of_compact α R).symm at g,
-    exact norm_mul_le f g,
-  end,
-  ..(infer_instance : normed_group C(α,R)) }
 
 end normed_ring
 
@@ -815,37 +743,6 @@ norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _
 /- TODO: When `normed_module` has been added to `normed_space.basic`, the above facts
 show that the space of bounded continuous functions from `α` to `β` is naturally a normed
 module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
-
-variables (α 𝕜)
-
-/--
-When `α` is compact and `𝕜` is a normed field,
-the `𝕜`-algebra of bounded continuous maps `α →ᵇ 𝕜` is
-`𝕜`-linearly isometric to `C(α, 𝕜)`.
--/
-def linear_isometry_continuous_map_of_compact [compact_space α] :
-  (α →ᵇ 𝕜) ≃ₗᵢ[𝕜] C(α, 𝕜) :=
-{ map_smul' := λ c f, by { ext, simp, },
-  norm_map' := λ f, rfl,
-  ..add_equiv_continuous_map_of_compact α 𝕜 }
-
-@[simp]
-lemma isometric_continuous_map_of_compact_to_isometric [compact_space α] :
-  (linear_isometry_continuous_map_of_compact α 𝕜).to_isometric =
-    isometric_continuous_map_of_compact α 𝕜 :=
-rfl
-
-@[simp]
-lemma linear_isometry_continuous_map_of_compact_to_add_equiv [compact_space α] :
-  (linear_isometry_continuous_map_of_compact α 𝕜).to_linear_equiv.to_add_equiv =
-    add_equiv_continuous_map_of_compact α 𝕜 :=
-rfl
-
-@[simp]
-lemma linear_isometry_continuous_map_of_compact_to_equiv [compact_space α] :
-  (linear_isometry_continuous_map_of_compact α 𝕜).to_linear_equiv.to_equiv =
-    equiv_continuous_map_of_compact α 𝕜 :=
-rfl
 
 end normed_algebra
 

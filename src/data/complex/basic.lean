@@ -134,9 +134,9 @@ ext_iff.2 $ by simp
 /-! ### Commutative ring instance and lemmas -/
 
 instance : comm_ring ℂ :=
-by refine { zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1, mul := (*),
-            sub_eq_add_neg := _, ..};
-   { intros, apply ext_iff.2; split; simp; {ring1 <|> ring_nf} }
+by refine_struct { zero := (0 : ℂ), add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1,
+  mul := (*), nsmul := @nsmul_rec _ ⟨(0)⟩ ⟨(+)⟩, npow := @npow_rec _ ⟨(1)⟩ ⟨(*)⟩ };
+intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
 { map_add := complex.add_re }

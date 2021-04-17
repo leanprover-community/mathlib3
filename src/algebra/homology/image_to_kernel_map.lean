@@ -67,7 +67,7 @@ by { ext, simp }
 lemma image_to_kernel_map_comp_iso {D : V} (h : C ⟶ D) [is_iso h] (w) :
   image_to_kernel_map f (g ≫ h) w =
   image_to_kernel_map f g ((cancel_mono h).mp (by simpa using w : (f ≫ g) ≫ h = 0 ≫ h)) ≫
-    (kernel_comp_is_iso g h).inv :=
+    (kernel_comp_mono g h).inv :=
 by { ext, simp, }
 
 @[simp]
@@ -80,7 +80,7 @@ by { ext, simp, }
 @[simp]
 lemma image_to_kernel_map_comp_hom_inv_comp {Z : V} {i : B ≅ Z} (w) :
   image_to_kernel_map (f ≫ i.hom) (i.inv ≫ g) w =
-  (image.post_comp_is_iso f i.hom).inv ≫ image_to_kernel_map f g (by simpa using w) ≫
+  (image.comp_iso f i.hom).inv ≫ image_to_kernel_map f g (by simpa using w) ≫
     (kernel_is_iso_comp i.inv g).inv :=
 by { ext, simp }
 

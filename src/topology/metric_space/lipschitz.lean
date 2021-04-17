@@ -117,7 +117,7 @@ assume x y, le_trans (hf x y) $ ennreal.mul_right_mono (ennreal.coe_le_coe.2 h)
 lemma ediam_image_le (hf : lipschitz_with K f) (s : set α) :
   emetric.diam (f '' s) ≤ K * emetric.diam s :=
 begin
-  apply emetric.diam_le_of_forall_edist_le,
+  apply emetric.diam_le,
   rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
   calc edist (f x) (f y) ≤ ↑K * edist x y : hf.edist_le_mul x y
                      ... ≤ ↑K * emetric.diam s :
@@ -218,7 +218,7 @@ protected lemma list_prod (f : ι → End α) (K : ι → ℝ≥0) (h : ∀ i, l
 protected lemma pow {f : End α} {K} (h : lipschitz_with K f) :
   ∀ n : ℕ, lipschitz_with (K^n) (f^n : End α)
 | 0       := lipschitz_with.id
-| (n + 1) := h.mul (pow n)
+| (n + 1) := by { rw [pow_succ, pow_succ], exact h.mul (pow n) }
 
 end emetric
 

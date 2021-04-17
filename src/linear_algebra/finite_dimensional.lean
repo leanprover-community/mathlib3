@@ -686,6 +686,10 @@ end
 
 end linear_equiv
 
+instance finite_dimensional_finsupp {ι : Type*} [fintype ι] [finite_dimensional K V] :
+  finite_dimensional K (ι →₀ V) :=
+(finsupp.linear_equiv_fun_on_fintype K : (ι →₀ V) ≃ₗ[K] (ι → V)).symm.finite_dimensional
+
 namespace finite_dimensional
 
 /--
@@ -751,6 +755,11 @@ begin
   rw [← @add_right_cancel_iff _ _ (findim K q), submodule.findim_quotient_add_findim,
       ← linear_equiv.findim_eq f, add_comm, submodule.findim_quotient_add_findim]
 end
+
+@[simp]
+lemma findim_map_subtype_eq (p : subspace K V) (q : subspace K p) :
+  finite_dimensional.findim K (q.map p.subtype) = finite_dimensional.findim K q :=
+(submodule.equiv_subtype_map p q).symm.findim_eq
 
 end finite_dimensional
 
@@ -1078,7 +1087,7 @@ begin
 
   -- To show `b i ∈ span (b '' (univ \ {i}))`, we use that it's a weighted sum
   -- of the other `b j`s.
-  rw [j_eq, mem_coe, show b i = -((g i)⁻¹ • (s.erase i).sum (λ j, g j • b j)), from _],
+  rw [j_eq, set_like.mem_coe, show b i = -((g i)⁻¹ • (s.erase i).sum (λ j, g j • b j)), from _],
   { refine submodule.neg_mem _ (smul_mem _ _ (sum_mem _ (λ k hk, _))),
     obtain ⟨k_ne_i, k_mem⟩ := finset.mem_erase.mp hk,
     refine smul_mem _ _ (subset_span ⟨k, _, rfl⟩),

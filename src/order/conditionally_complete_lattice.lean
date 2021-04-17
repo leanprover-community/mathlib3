@@ -278,9 +278,39 @@ nonempty and bounded below.-/
 theorem cInf_insert (hs : bdd_below s) (sne : s.nonempty) : Inf (insert a s) = a ⊓ Inf s :=
 ((is_glb_cInf sne hs).insert a).cInf_eq (insert_nonempty a s)
 
+@[simp] lemma cInf_Icc (h : a ≤ b) : Inf (Icc a b) = a :=
+(is_glb_Icc h).cInf_eq (nonempty_Icc.2 h)
+
 @[simp] lemma cInf_Ici : Inf (Ici a) = a := is_least_Ici.cInf_eq
 
+@[simp] lemma cInf_Ico (h : a < b) : Inf (Ico a b) = a :=
+(is_glb_Ico h).cInf_eq (nonempty_Ico.2 h)
+
+@[simp] lemma cInf_Ioc [densely_ordered α] (h : a < b) : Inf (Ioc a b) = a :=
+(is_glb_Ioc h).cInf_eq (nonempty_Ioc.2 h)
+
+@[simp] lemma cInf_Ioi [no_top_order α] [densely_ordered α] : Inf (Ioi a) = a :=
+cInf_intro nonempty_Ioi (λ _, le_of_lt) (λ w hw, by simpa using exists_between hw)
+
+@[simp] lemma cInf_Ioo [densely_ordered α] (h : a < b) : Inf (Ioo a b) = a :=
+(is_glb_Ioo h).cInf_eq (nonempty_Ioo.2 h)
+
+@[simp] lemma cSup_Icc (h : a ≤ b) : Sup (Icc a b) = b :=
+(is_lub_Icc h).cSup_eq (nonempty_Icc.2 h)
+
+@[simp] lemma cSup_Ico [densely_ordered α] (h : a < b) : Sup (Ico a b) = b :=
+(is_lub_Ico h).cSup_eq (nonempty_Ico.2 h)
+
 @[simp] lemma cSup_Iic : Sup (Iic a) = a := is_greatest_Iic.cSup_eq
+
+@[simp] lemma cSup_Iio [no_bot_order α] [densely_ordered α] : Sup (Iio a) = a :=
+cSup_intro nonempty_Iio (λ _, le_of_lt) (λ w hw, by simpa [and_comm] using exists_between hw)
+
+@[simp] lemma cSup_Ioc (h : a < b) : Sup (Ioc a b) = b :=
+(is_lub_Ioc h).cSup_eq (nonempty_Ioc.2 h)
+
+@[simp] lemma cSup_Ioo [densely_ordered α] (h : a < b) : Sup (Ioo a b) = b :=
+(is_lub_Ioo h).cSup_eq (nonempty_Ioo.2 h)
 
 /--The indexed supremum of two functions are comparable if the functions are pointwise comparable-/
 lemma csupr_le_csupr {f g : ι → α} (B : bdd_above (range g)) (H : ∀x, f x ≤ g x) :
@@ -523,7 +553,8 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   cInf_le    := assume s a hb ha, by rw [Inf_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
   cSup_empty :=
   begin
-    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff, exists_const],
+    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff,
+      exists_const],
     apply bot_unique (nat.find_min' _ _),
     trivial
   end,
@@ -745,7 +776,8 @@ This result can be used to show that the extended reals [-∞, ∞] are a comple
 
 open_locale classical
 
-/-- Adding a top element to a conditionally complete lattice gives a conditionally complete lattice -/
+/-- Adding a top element to a conditionally complete lattice
+gives a conditionally complete lattice -/
 noncomputable instance with_top.conditionally_complete_lattice
   {α : Type*} [conditionally_complete_lattice α] :
   conditionally_complete_lattice (with_top α) :=
@@ -757,7 +789,8 @@ noncomputable instance with_top.conditionally_complete_lattice
   ..with_top.has_Sup,
   ..with_top.has_Inf }
 
-/-- Adding a bottom element to a conditionally complete lattice gives a conditionally complete lattice -/
+/-- Adding a bottom element to a conditionally complete lattice
+gives a conditionally complete lattice -/
 noncomputable instance with_bot.conditionally_complete_lattice
   {α : Type*} [conditionally_complete_lattice α] :
   conditionally_complete_lattice (with_bot α) :=
@@ -888,7 +921,8 @@ noncomputable def subset_conditionally_complete_linear_order [inhabited s]
 { le_cSup := begin
     rintros t c h_bdd hct,
     -- The following would be a more natural way to finish, but gives a "deep recursion" error:
-    -- simpa [subset_Sup_of_within (h_Sup t)] using (strict_mono_coe s).monotone.le_cSup_image hct h_bdd,
+    -- simpa [subset_Sup_of_within (h_Sup t)] using
+    --   (strict_mono_coe s).monotone.le_cSup_image hct h_bdd,
     have := (subtype.mono_coe s).le_cSup_image hct h_bdd,
     rwa subset_Sup_of_within s (h_Sup ⟨c, hct⟩ h_bdd) at this,
   end,

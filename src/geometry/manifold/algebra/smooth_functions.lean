@@ -87,6 +87,8 @@ instance smooth_map_group {G : Type*} [group G] [topological_space G]
   group C^∞⟮I, N; I', G⟯ :=
 { inv := λ f, ⟨λ x, (f x)⁻¹, f.smooth.inv⟩,
   mul_left_inv := λ a, by ext; exact mul_left_inv _,
+  div := λ f g, ⟨f / g, f.smooth.div g.smooth⟩,
+  div_eq_mul_inv := λ f g, by ext; exact div_eq_mul_inv _ _,
   .. smooth_map_monoid }
 
 @[simp, to_additive]
@@ -98,7 +100,7 @@ lemma smooth_map.coe_inv {G : Type*} [group G] [topological_space G]
 lemma smooth_map.coe_div {G : Type*} [group G] [topological_space G]
   [charted_space H' G] [lie_group I' G] (f g : C^∞⟮I, N; I', G⟯) :
   ⇑(f / g) = f / g :=
-by simp only [div_eq_mul_inv, smooth_map.coe_inv, smooth_map.coe_mul]
+rfl
 
 @[to_additive]
 instance smooth_map_comm_group {G : Type*} [comm_group G] [topological_space G]

@@ -150,9 +150,10 @@ begin
 end
 
 lemma degrees_pow (p : mv_polynomial σ R) :
-  ∀(n : ℕ), (p^n).degrees ≤ n •ℕ p.degrees
+  ∀(n : ℕ), (p^n).degrees ≤ n • p.degrees
 | 0       := begin rw [pow_zero, degrees_one], exact multiset.zero_le _ end
-| (n + 1) := le_trans (degrees_mul _ _) (add_le_add_left (degrees_pow n) _)
+| (n + 1) := by { rw [pow_succ, add_smul, add_comm, one_smul],
+    exact le_trans (degrees_mul _ _) (add_le_add_left (degrees_pow n) _) }
 
 lemma mem_degrees {p : mv_polynomial σ R} {i : σ} :
   i ∈ p.degrees ↔ ∃ d, p.coeff d ≠ 0 ∧ i ∈ d.support :=
@@ -199,7 +200,7 @@ lemma degrees_map [comm_semiring S] (p : mv_polynomial σ R) (f : R →+* S) :
 begin
   dsimp only [degrees],
   apply multiset.subset_of_le,
-  convert finset.sup_subset _ _,
+  apply finset.sup_mono,
   apply mv_polynomial.support_map_subset
 end
 
@@ -625,7 +626,8 @@ begin
   calc (bind₁ f φ).vars
       = (φ.support.sum (λ (x : σ →₀ ℕ), (bind₁ f) (monomial x (coeff x φ)))).vars :
         by { rw [← alg_hom.map_sum, ← φ.as_sum], }
-  ... ≤ φ.support.bUnion (λ (i : σ →₀ ℕ), ((bind₁ f) (monomial i (coeff i φ))).vars) : vars_sum_subset _ _
+  ... ≤ φ.support.bUnion (λ (i : σ →₀ ℕ), ((bind₁ f) (monomial i (coeff i φ))).vars) :
+        vars_sum_subset _ _
   ... = φ.support.bUnion (λ (d : σ →₀ ℕ), (C (coeff d φ) * ∏ i in d.support, f i ^ d i).vars) :
         by simp only [bind₁_monomial]
   ... ≤ φ.support.bUnion (λ (d : σ →₀ ℕ), d.support.bUnion (λ i, (f i).vars)) : _ -- proof below

@@ -10,12 +10,6 @@ import data.matrix.notation
 import linear_algebra.affine_space.finite_dimensional
 import tactic.fin_cases
 
-noncomputable theory
-open_locale big_operators
-open_locale classical
-open_locale real
-open_locale real_inner_product_space
-
 /-!
 # Euclidean spaces
 
@@ -57,6 +51,12 @@ theorems that need it.
 * https://en.wikipedia.org/wiki/Euclidean_space
 
 -/
+
+noncomputable theory
+open_locale big_operators
+open_locale classical
+open_locale real
+open_locale real_inner_product_space
 
 namespace inner_product_geometry
 /-!
@@ -198,7 +198,8 @@ begin
     { rw norm_eq_zero at hy,
       rw [hy, inner_zero_right, zero_mul, neg_zero] } },
   { field_simp [h],
-    ring_nf }
+    ring_nf,
+    ring_nf, }
 end
 
 /-- The angle between two vectors is zero if and only if they are

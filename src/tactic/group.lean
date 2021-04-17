@@ -33,7 +33,8 @@ by rw [mul_assoc, mul_self_gpow]
 lemma tactic.group.gpow_trick_one' {G : Type*} [group G] (a b : G) (n : ℤ) : a*b^n*b = a*b^(n+1) :=
 by rw [mul_assoc, mul_gpow_self]
 
-lemma tactic.group.gpow_trick_sub {G : Type*} [group G] (a b : G) (n m : ℤ) : a*b^n*b^(-m) = a*b^(n-m) :=
+lemma tactic.group.gpow_trick_sub {G : Type*} [group G] (a b : G) (n m : ℤ) :
+  a*b^n*b^(-m) = a*b^(n-m) :=
 by rw [mul_assoc, ← gpow_add] ; refl
 
 namespace tactic

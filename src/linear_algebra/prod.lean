@@ -216,7 +216,7 @@ theorem map_coprod_prod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃)
   map (coprod f g) (p.prod q) = map f p ⊔ map g q :=
 begin
   refine le_antisymm _ (sup_le (map_le_iff_le_comap.2 _) (map_le_iff_le_comap.2 _)),
-  { rw le_def', rintro _ ⟨x, ⟨h₁, h₂⟩, rfl⟩,
+  { rw set_like.le_def, rintro _ ⟨x, ⟨h₁, h₂⟩, rfl⟩,
     exact mem_sup.2 ⟨_, ⟨_, h₁, rfl⟩, _, ⟨_, h₂, rfl⟩, rfl⟩ },
   { exact λ x hx, ⟨(x, 0), by simp [hx]⟩ },
   { exact λ x hx, ⟨(0, x), by simp [hx]⟩ }
@@ -246,9 +246,33 @@ by rw [ker, ← prod_bot, comap_prod_prod]; refl
 lemma range_prod_le (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
   range (prod f g) ≤ (range f).prod (range g) :=
 begin
-  simp only [le_def', prod_apply, mem_range, mem_coe, mem_prod, exists_imp_distrib],
+  simp only [set_like.le_def, prod_apply, mem_range, set_like.mem_coe, mem_prod,
+    exists_imp_distrib],
   rintro _ x rfl,
   exact ⟨⟨x, rfl⟩, ⟨x, rfl⟩⟩
+end
+
+lemma ker_prod_ker_le_ker_coprod {M₂ : Type*} [add_comm_group M₂] [semimodule R M₂]
+  {M₃ : Type*} [add_comm_group M₃] [semimodule R M₃]
+  (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
+  (ker f).prod (ker g) ≤ ker (f.coprod g) :=
+by { rintros ⟨y, z⟩, simp {contextual := tt} }
+
+lemma ker_coprod_of_disjoint_range {M₂ : Type*} [add_comm_group M₂] [semimodule R M₂]
+  {M₃ : Type*} [add_comm_group M₃] [semimodule R M₃]
+  (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (hd : disjoint f.range g.range) :
+  ker (f.coprod g) = (ker f).prod (ker g) :=
+begin
+  apply le_antisymm _ (ker_prod_ker_le_ker_coprod f g),
+  rintros ⟨y, z⟩ h,
+  simp only [mem_ker, mem_prod, coprod_apply] at h ⊢,
+  have : f y ∈ f.range ⊓ g.range,
+  { simp only [true_and, mem_range, mem_inf, exists_apply_eq_apply],
+    use -z,
+    rwa [eq_comm, map_neg, ← sub_eq_zero, sub_neg_eq_add] },
+  rw [hd.eq_bot, mem_bot] at this,
+  rw [this] at h,
+  simpa [this] using h,
 end
 
 end linear_map
@@ -261,7 +285,7 @@ variables [add_comm_monoid M] [add_comm_monoid M₂]
 variables [semimodule R M] [semimodule R M₂]
 
 lemma sup_eq_range (p q : submodule R M) : p ⊔ q = (p.subtype.coprod q.subtype).range :=
-submodule.ext $ λ x, by simp [submodule.mem_sup, submodule.exists]
+submodule.ext $ λ x, by simp [submodule.mem_sup, set_like.exists]
 
 variables (p : submodule R M) (q : submodule R M₂)
 
@@ -368,8 +392,8 @@ lemma range_prod_eq {f : M →ₗ[R] M₂} {g : M →ₗ[R] M₃} (h : ker f ⊔
   range (prod f g) = (range f).prod (range g) :=
 begin
   refine le_antisymm (f.range_prod_le g) _,
-  simp only [le_def', prod_apply, mem_range, mem_coe, mem_prod, exists_imp_distrib, and_imp,
-    prod.forall],
+  simp only [set_like.le_def, prod_apply, mem_range, set_like.mem_coe, mem_prod, exists_imp_distrib,
+    and_imp, prod.forall],
   rintros _ _ x rfl y rfl,
   simp only [prod.mk.inj_iff, ← sub_mem_ker_iff],
   have : y - x ∈ ker f ⊔ ker g, { simp only [h, mem_top] },

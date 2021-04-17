@@ -489,7 +489,7 @@ theorem radical_pow (n : ℕ) (H : n > 0) : radical (I^n) = radical I :=
 nat.rec_on n (not.elim dec_trivial) (λ n ih H,
 or.cases_on (lt_or_eq_of_le $ nat.le_of_lt_succ H)
   (λ H, calc radical (I^(n+1))
-           = radical I ⊓ radical (I^n) : radical_mul _ _
+           = radical I ⊓ radical (I^n) : by { rw pow_succ, exact radical_mul _ _ }
        ... = radical I ⊓ radical I : by rw ih H
        ... = radical I : inf_idem)
   (λ H, H ▸ (pow_one I).symm ▸ rfl)) H
@@ -633,7 +633,7 @@ begin
   { exact hs (or.inl $ or.inr $ add_sub_cancel' r s ▸ (f b).sub_mem hb hrb) },
   { exact hri (add_sub_cancel r s ▸ (f i).sub_mem hi hsi) },
   { rw set.mem_bUnion_iff at ht, rcases ht with ⟨j, hjt, hj⟩,
-    simp only [finset.inf_eq_infi, submodule.mem_coe, submodule.mem_infi] at hr,
+    simp only [finset.inf_eq_infi, set_like.mem_coe, submodule.mem_infi] at hr,
     exact hs (or.inr $ set.mem_bUnion hjt $ add_sub_cancel' r s ▸ (f j).sub_mem hj $ hr j hjt) }
 end
 
@@ -1068,10 +1068,10 @@ lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
 lemma ker_eq_comap_bot (f : R →+* S) : f.ker = ideal.comap f ⊥ := rfl
 
 lemma injective_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
-by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.injective_iff_trivial_ker f
+by rw [set_like.ext'_iff, ker_eq]; exact is_add_group_hom.injective_iff_trivial_ker f
 
 lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
-by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
+by rw [set_like.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
 
 /-- If the target is not the zero ring, then one is not in the kernel.-/
 lemma not_one_mem_ker [nontrivial S] (f : R →+* S) : (1:R) ∉ ker f :=

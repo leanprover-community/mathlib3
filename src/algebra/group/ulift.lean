@@ -54,23 +54,30 @@ def mul_equiv [semigroup α] : ulift α ≃* α :=
 instance comm_semigroup [comm_semigroup α] : comm_semigroup (ulift α) :=
 by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
 
-@[to_additive]
 instance monoid [monoid α] : monoid (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), .. }; tactic.pi_instance_derive_field
+by refine_struct { one := (1 : ulift α), mul := (*), npow := λ n f, ⟨npow n f.down⟩ };
+tactic.pi_instance_derive_field
+
+instance add_monoid [add_monoid α] : add_monoid (ulift α) :=
+by refine_struct { zero := (0 : ulift α), add := (+), nsmul := λ n f, ⟨nsmul n f.down⟩ };
+tactic.pi_instance_derive_field
+
+attribute [to_additive] ulift.monoid
 
 @[to_additive]
 instance comm_monoid [comm_monoid α] : comm_monoid (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), .. }; tactic.pi_instance_derive_field
+by refine_struct { one := (1 : ulift α), mul := (*), npow := λ n f, ⟨npow n f.down⟩ };
+tactic.pi_instance_derive_field
 
 @[to_additive]
 instance group [group α] : group (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div };
-  tactic.pi_instance_derive_field
+by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div,
+  npow := λ n f, ⟨npow n f.down⟩ }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [comm_group α] : comm_group (ulift α) :=
-by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div };
-  tactic.pi_instance_derive_field
+by refine_struct { one := (1 : ulift α), mul := (*), inv := has_inv.inv, div := has_div.div,
+  npow := λ n f, ⟨npow n f.down⟩ }; tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [left_cancel_semigroup α] :

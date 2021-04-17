@@ -988,7 +988,7 @@ begin
 end
 
 theorem index_of_lt_length {a} {l : list α} : index_of a l < length l ↔ a ∈ l :=
-⟨λh, by_contradiction $ λ al, ne_of_lt h $ index_of_eq_length.2 al,
+⟨λh, decidable.by_contradiction $ λ al, ne_of_lt h $ index_of_eq_length.2 al,
 λal, lt_of_le_of_ne index_of_le_length $ λ h, index_of_eq_length.1 h al⟩
 
 end index_of
@@ -1940,6 +1940,50 @@ begin
     apply function.injective.comp hf,
     apply hl _ (list.mem_cons_self _ _) }
 end
+
+/-- Induction principle for values produced by a `foldr`: if a property holds
+for the seed element `b : β` and for all incremental `op : α → β → β`
+performed on the elements `(a : α) ∈ l`. The principle is given for
+a `Sort`-valued predicate, i.e., it can also be used to construct data. -/
+def foldr_rec_on {C : β → Sort*} (l : list α) (op : α → β → β) (b : β) (hb : C b)
+  (hl : ∀ (b : β) (hb : C b) (a : α) (ha : a ∈ l), C (op a b)) :
+  C (foldr op b l) :=
+begin
+  induction l with hd tl IH,
+  { exact hb },
+  { refine hl _ _ hd (mem_cons_self hd tl),
+    refine IH _,
+    intros y hy x hx,
+    exact hl y hy x (mem_cons_of_mem hd hx) }
+end
+
+/-- Induction principle for values produced by a `foldl`: if a property holds
+for the seed element `b : β` and for all incremental `op : β → α → β`
+performed on the elements `(a : α) ∈ l`. The principle is given for
+a `Sort`-valued predicate, i.e., it can also be used to construct data. -/
+def foldl_rec_on {C : β → Sort*} (l : list α) (op : β → α → β) (b : β) (hb : C b)
+  (hl : ∀ (b : β) (hb : C b) (a : α) (ha : a ∈ l), C (op b a)) :
+  C (foldl op b l) :=
+begin
+  induction l with hd tl IH generalizing b,
+  { exact hb },
+  { refine IH _ _ _,
+    { intros y hy x hx,
+      exact hl y hy x (mem_cons_of_mem hd hx) },
+    { exact hl b hb hd (mem_cons_self hd tl) } }
+end
+
+@[simp] lemma foldr_rec_on_nil {C : β → Sort*} (op : α → β → β) (b) (hb : C b) (hl) :
+  foldr_rec_on [] op b hb hl = hb := rfl
+
+@[simp] lemma foldr_rec_on_cons {C : β → Sort*} (x : α) (l : list α)
+  (op : α → β → β) (b) (hb : C b)
+  (hl : ∀ (b : β) (hb : C b) (a : α) (ha : a ∈ (x :: l)), C (op a b)) :
+  foldr_rec_on (x :: l) op b hb hl = hl _ (foldr_rec_on l op b hb
+    (λ b hb a ha, hl b hb a (mem_cons_of_mem _ ha))) x (mem_cons_self _ _) := rfl
+
+@[simp] lemma foldl_rec_on_nil {C : β → Sort*} (op : β → α → β) (b) (hb : C b) (hl) :
+  foldl_rec_on [] op b hb hl = hb := rfl
 
 /- scanl -/
 
@@ -3289,7 +3333,7 @@ by simp only [count, countp_pos, exists_prop, exists_eq_right']
 
 @[simp, priority 980]
 theorem count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
-by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
+decidable.by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 
 theorem not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
 λ h', ne_of_gt (count_pos.2 h') h

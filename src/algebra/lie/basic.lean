@@ -493,13 +493,7 @@ instance : has_scalar R (M →ₗ⁅R,L⁆ N) :=
 lemma smul_apply (t : R) (f : M →ₗ⁅R,L⁆ N) (m : M) : (t • f) m = t • (f m) := rfl
 
 instance : module R (M →ₗ⁅R,L⁆ N) :=
-{ smul      := (•),
-  one_smul  := λ f, by { ext, simp only [smul_apply, one_smul], },
-  mul_smul  := λ t₁ t₂ f, by { ext, simp only [mul_smul, smul_apply], },
-  smul_add  := λ t f g, by { ext, simp only [smul_add, smul_apply, add_apply], },
-  smul_zero := λ t, by { ext, simp only [smul_apply, smul_zero, zero_apply], },
-  add_smul  := λ t₁ t₂ f, by { ext, simp only [smul_apply, add_apply, add_smul], },
-  zero_smul := λ f, by { ext, simp only [smul_apply, zero_smul, zero_apply], }, }
+function.injective.semimodule R ⟨to_fun, rfl, coe_add⟩ coe_injective coe_smul
 
 end lie_module_hom
 

@@ -106,25 +106,11 @@ end
 lemma four_pow_le_two_mul_add_one_mul_central_binom (n : ℕ) :
   4 ^ n ≤ (2 * n + 1) * choose (2 * n) n :=
 begin
-  calc 4 ^ n = (1 + 1) ^ (2 * n) : begin
-      rw one_add_one_eq_two,
-      rw pow_mul,
-      suffices h : 2 ^ 2 = 4,
-      rw h,
-      dec_trivial,
-    end
+  calc 4 ^ n = (1 + 1) ^ (2 * n) : by norm_num [pow_mul]
   ...        = ∑ m in range (2 * n + 1), choose (2 * n) m : by simp [add_pow 1 1 (2 * n)]
-  ...        ≤ ∑ m in range (2 * n + 1), choose (2 * n) (2 * n / 2) : begin
-      apply sum_le_sum,
-      intros i hi,
-      apply choose_le_middle i (2 * n),
-    end
-  ...        = ∑ m in range (2 * n + 1), choose (2 * n) n : by simp
-  ...        = (2 * n + 1) * choose (2 * n) n : begin
-      rw sum_const,
-      rw finset.card_range,
-      simp,
-    end
+  ...        ≤ ∑ m in range (2 * n + 1), choose (2 * n) (2 * n / 2) :
+    sum_le_sum (λ i hi, choose_le_middle i (2 * n))
+  ...        = (2 * n + 1) * choose (2 * n) n : by simp
 end
 
 

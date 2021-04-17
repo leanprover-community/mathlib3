@@ -648,7 +648,7 @@ begin
     simp },
   rcases list.length_eq_one.1 h with ⟨x, hx⟩,
   rw [← prod_factors n.succ_pos, hx, list.prod_singleton],
-  apply mem_factors,
+  apply prime_of_mem_factors,
   rw [hx, list.mem_singleton]
 end
 

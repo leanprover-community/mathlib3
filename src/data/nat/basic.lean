@@ -944,6 +944,15 @@ nat.dvd_add_right (dvd_refl m)
   m ∣ n + m ↔ m ∣ n :=
 nat.dvd_add_left (dvd_refl m)
 
+-- TODO: update `nat.dvd_sub` in core
+lemma dvd_sub' {k m n : ℕ} (h₁ : k ∣ m) (h₂ : k ∣ n) : k ∣ m - n :=
+begin
+  cases le_total n m with H H,
+  { exact dvd_sub H h₁ h₂ },
+  { rw nat.sub_eq_zero_of_le H,
+    exact dvd_zero k },
+end
+
 lemma not_dvd_of_pos_of_lt {a b : ℕ} (h1 : 0 < b) (h2 : b < a) : ¬ a ∣ b :=
 begin
   rintros ⟨c, rfl⟩,
@@ -1259,6 +1268,9 @@ strict_mono.lt_iff_lt (pow_left_strict_mono k)
 
 lemma pow_left_injective {m : ℕ} (k : 1 ≤ m) : function.injective (λ (x : ℕ), x^m) :=
 strict_mono.injective (pow_left_strict_mono k)
+
+theorem pow_two_sub_pow_two (a b : ℕ) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
+by { rw [pow_two, pow_two], exact nat.mul_self_sub_mul_self_eq a b }
 
 /-! ### `pow` and `mod` / `dvd` -/
 

@@ -42,6 +42,14 @@ lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := 
 
 @[ext] theorem ext {S T : subalgebra R A} (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
+/-- Copy of a submodule with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) : subalgebra R A :=
+{ carrier := s,
+  add_mem' := hs.symm ▸ S.add_mem',
+  mul_mem' := hs.symm ▸ S.mul_mem',
+  algebra_map_mem' := hs.symm ▸ S.algebra_map_mem' }
+
 variables (S : subalgebra R A)
 
 theorem algebra_map_mem (r : R) : algebra_map R A r ∈ S :=

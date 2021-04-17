@@ -242,6 +242,8 @@ by rcases em (a = x) with (rfl|hx); [simp, simp [single_eq_of_ne hx]]
 lemma range_single_subset : set.range (single a b) ⊆ {0, b} :=
 set.range_subset_iff.2 single_apply_mem
 
+/-- `finsupp.single a b` is injective in `b`. For the statement that it is injective in `a`, see
+`finsupp.single_left_injective` -/
 lemma single_injective (a : α) : function.injective (single a : M → α →₀ M) :=
 assume b₁ b₂ eq,
 have (single a b₁ : α →₀ M) a = (single a b₂ : α →₀ M) a, by rw eq,
@@ -281,11 +283,13 @@ begin
     { rw [single_zero, single_zero] } }
 end
 
-lemma single_left_inj (h : b ≠ 0) :
-  single a b = single a' b ↔ a = a' :=
-⟨λ H, by simpa only [h, single_eq_single_iff,
-  and_false, or_false, eq_self_iff_true, and_true] using H,
- λ H, by rw [H]⟩
+/-- `finsupp.single a b` is injective in `a`. For the statement that it is injective in `b`, see
+`finsupp.single_injective` -/
+lemma single_left_injective (h : b ≠ 0) : function.injective (λ a : α, single a b) :=
+λ a a' H, (((single_eq_single_iff _ _ _ _).mp H).resolve_right $ λ hb, h hb.1).left
+
+lemma single_left_inj (h : b ≠ 0) : single a b = single a' b ↔ a = a' :=
+(single_left_injective h).eq_iff
 
 lemma support_single_ne_bot (i : α) (h : b ≠ 0) :
   (single i b).support ≠ ⊥ :=

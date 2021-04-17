@@ -1096,8 +1096,11 @@ by ext; simp
 homomorphism `G →* N`. -/
 @[to_additive "The canonical surjective `add_group` homomorphism `G →+ f(G)` induced by a group
 homomorphism `G →+ N`."]
-def to_range (f : G →* N) : G →* f.range :=
+def range_restrict (f : G →* N) : G →* f.range :=
 monoid_hom.mk' (λ g, ⟨f g, ⟨g, rfl⟩⟩) $ λ a b, by {ext, exact f.map_mul' _ _}
+
+@[simp, to_additive]
+lemma coe_range_restrict (f : G →* N) (g : G) : (f.range_restrict g : N) = f g := rfl
 
 @[to_additive]
 lemma map_range (g : N →* P) (f : G →* N) : f.range.map g = (g.comp f).range :=
@@ -1147,7 +1150,7 @@ instance decidable_mem_ker [decidable_eq N] (f : G →* N) :
 @[to_additive]
 lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl
 
-@[to_additive] lemma to_range_ker (f : G →* N) : ker (to_range f) = ker f :=
+@[to_additive] lemma range_restrict_ker (f : G →* N) : ker (range_restrict f) = ker f :=
 begin
   ext,
   change (⟨f x, _⟩ : range f) = ⟨1, _⟩ ↔ f x = 1,

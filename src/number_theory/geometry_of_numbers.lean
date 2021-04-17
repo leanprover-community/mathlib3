@@ -1,39 +1,15 @@
 import measure_theory.lebesgue_measure
 import group_theory.subgroup
 import analysis.convex.basic
-import tactic.equiv_rw
+import tactic
 
 open measure_theory
 variables {n : ℕ}
 noncomputable theory
-open_locale classical
-local notation `doₐ` binders ` ←ₐ ` m ` ; ` t:(scoped p, m >>=ₐ p) := t
 
-local notation `ret` := measure.dirac
---instance : measure_space ℝ := by apply_instance
-
-lemma as {a : Type*} : a ≃ (fin 1 → a) := (equiv.fun_unique (fin 1) a).symm
-def combine {n : ℕ} (a : fin n → ℝ) (b : ℝ) : (fin (n + 1) → ℝ)
-| ⟨0, h⟩ := b
-| ⟨n + 1, h⟩ := a ⟨n, (add_lt_add_iff_right 1).mp h⟩
-
-
-noncomputable def finmap_measure : Π (n : ℕ) (h : 0 < n), measure (fin n → ℝ)
-| 0 h := by exfalso; exact nat.not_succ_le_zero 0 h
-| 1 _ := measure.of_measurable (λ a ha, volume ((λ x, a (λ _, x)) : set ℝ))  volume_empty
-begin intros, simp at *,
-  sorry,
-end
-| (k + 2) h := doₐ x ←ₐ (measure_space.μ : measure ℝ) ;
-              doₐ xs ←ₐ (finmap_measure (k + 1) (nat.succ_pos k));
-              ret (combine xs x)
-
-
-variables [measure_space (fin n → ℝ)]
-  (trans_inv : ∀ (v : fin n → ℝ) (S : set (fin n → ℝ)), volume S = volume ((+ v) '' S))
+variables (trans_inv : ∀ (v : fin n → ℝ) (S : set (fin n → ℝ)), volume S = volume ((+ v) '' S))
 
 /-- Blichfeldt's Principle --/
-
 def L (n : ℕ) : set (fin n → ℝ) := set.range ((∘) (coe : ℤ → ℝ))
 
 instance : is_add_group_hom ((∘) (coe : ℤ → ℝ) : (fin n → ℤ) → (fin n → ℝ)) := { map_add := λ x y, by ext;
@@ -75,6 +51,8 @@ def cube_fund : fundamental_domain (L n) :=
 
 lemma cube_fund_volume : volume (cube_fund.F : set (fin n → ℝ)) = 1 :=
 begin
+  dsimp [cube_fund],
+  rw volume_pi,
   sorry,
 end
 
@@ -94,43 +72,33 @@ begin
 end
 
 /- TODO do I want to use this instance instead -/
-instance {F : fundamental_domain $ L n} (hF : is_measurable F.F) :
-  measurable_space F.F := subtype.measurable_space
+-- instance {F : fundamental_domain $ L n} (hF : measurable_set F.F) :
+--   measurable_space F.F := subtype.measurable_space
 
-instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} (hmp : is_measurable p) : measure_space (subtype p) :=
-{ μ := measure.of_measurable
-  (λ x hx, volume (subtype.val '' x))
-  (by rw [set.image_empty, volume_empty])
-  (λ x hx hp, begin
-    have : pairwise (disjoint on λ (i : ℕ), subtype.val '' x i) := /- TODO this is a lemma surely -/
-    begin
-      intros a b hab y hy,
-      rcases hy with ⟨⟨Y, hY, as⟩, R, hR, rfl⟩,
-      specialize hp a b hab,
-      rw [subtype.val_injective as] at *,
-      exact hp (set.mem_sep hY hR),
-    end,
-
-    rw set.image_Union,
-    convert volume_Union this (λ i, is_measurable_subtype_image hmp (hx i)),
-  end),
+instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} (hmp : measurable_set p) :
+measure_space (subtype p) :=
+{ volume := measure.comap subtype.val volume,
   ..subtype.measurable_space }
 
-lemma volume_subtype_univ  {V : Type*} [measure_space V] {p : set V} (hmp : is_measurable p) :
+lemma volume_subtype_univ {V : Type*} [measure_space V] {p : set V} (hmp : measurable_set p) :
   @volume _ (subtype.measure_space hmp) (set.univ : set (subtype p)) = volume p :=
 begin
-  dsimp [volume, measure_space.μ],
-  rw measure.of_measurable_apply,
-  simp only [set.image_univ, subtype.val_range],
-  refl,
-  exact is_measurable.univ,
+  dsimp [measure_space.volume],
+  rw [measure.comap_apply _ subtype.val_injective, set.image_univ],
+  congr,
+  exact subtype.range_val,
+  begin
+    intros x hx,
+    exact measurable_set.subtype_image hmp hx,
+  end,
+  exact measurable_set.univ,
 end
 
-/-instance {F : fundamental_domain $ L n} (hF : measure_space.to_measurable_space.is_measurable F.F) : measure_space F.F :=
-{ is_measurable := λ s, measure_space.to_measurable_space.is_measurable (subtype.val '' s),
-  is_measurable_empty := by rw [set.image_empty];
+/-instance {F : fundamental_domain $ L n} (hF : measure_space.to_measurable_space.measurable_set F.F) : measure_space F.F :=
+{ measurable_set := λ s, measure_space.to_measurable_space.measurable_set (subtype.val '' s),
+  measurable_set_empty := by rw [set.image_empty];
                           exact measure_space.to_measurable_space.is_measurable_empty,
-  is_measurable_compl := λ S h, begin
+  measurable_set_compl := λ S h, begin
     have : subtype.val '' (-S) = -(subtype.val '' S) ∩ F.F :=
     begin
       ext,
@@ -144,7 +112,7 @@ end
       exact Exists.intro a_right (a_left a_right),
     end,
     rw this,
-    apply is_measurable.inter,
+    apply measurable_set.inter,
     exact measurable_space.is_measurable_compl _ _ h,
     exact hF,
   end,
@@ -161,8 +129,8 @@ end
   }-/
 
 include trans_inv
-lemma exists_diff_lattice_of_one_le_volume (S : set (fin n → ℝ)) (hS : is_measurable S)
-  (F : fundamental_domain (L n)) (h : volume F.F < volume S) (hF : is_measurable F.F) :
+lemma exists_diff_lattice_of_one_le_volume (S : set (fin n → ℝ)) (hS : measurable_set S)
+  (F : fundamental_domain (L n)) (h : volume F.F < volume S) (hF : measurable_set F.F) :
   ∃ (x ∈ S) (y ∈ S) (hne : x ≠ y), (x - y) ∈ L n :=
 begin
   suffices : ∃ (p₁ p₂ : L n) (hne : p₁ ≠ p₂),
@@ -171,65 +139,56 @@ begin
     rcases this with ⟨p₁, p₂, hne, u, ⟨⟨q₁, ⟨hS₁, ht₁⟩⟩, hu⟩, ⟨⟨q₂, ⟨hS₂, ht₂⟩⟩, hu⟩⟩,
     use u - p₁,
     split,
-    { rwa [← ht₁, add_sub_cancel],},
+    { rwa [← ht₁, add_sub_cancel], },
     use u - p₂,
     split,
-    { rwa [← ht₂, add_sub_cancel],},
+    { rwa [← ht₂, add_sub_cancel], },
     rw (by abel : u - p₁ - (u - p₂) = p₂ - p₁),
     split,
-    { intro, apply hne,
-    rw sub_right_inj at a,
-    exact subtype.eq a,},
-    exact is_add_subgroup.sub_mem (L n) _ _ (subtype.mem p₂) (subtype.mem p₁),
+    { intro a,
+      apply hne,
+      rw sub_right_inj at a,
+      exact subtype.eq a, },
+    exact is_add_subgroup.sub_mem p₂.mem p₁.mem,
   end,
   rw ← volume_subtype_univ at h,
   swap,
-  sorry, -- TODO same typeclass issue as below
-
-  let s := λ p : L n, (λ a, ((+ ↑p) '' S) a.1 : set ↥F.F),
-  have := @exists_nonempty_inter_of_volume_univ_lt_tsum_volume (F.F) (subtype.measure_space (begin
-    convert hF, sorry, end) : measure_space F.F) (L n) s _ _,
-  {
-    rcases this with ⟨i, j, hij, t, ht⟩,
+  exact hF,
+  let s := λ p : L n, (λ a, ((+ ↑p) '' S) a.1 : set F.F),
+  have := exists_nonempty_inter_of_measure_univ_lt_tsum_measure (subtype.measure_space _).volume
+    (_ : ( ∀p : L n, measurable_set (λ a, ((+ ↑p) '' S) a.1 : set F.F))) _,
+  { rcases this with ⟨i, j, hij, t, ht⟩,
     use [i, j, hij, t],
-    simp only [subtype.val_prop', and_true, set.mem_image, set.mem_inter_eq],
-    exact ht,
-  },
-  {
-    intros,
+    simp only [and_true, set.mem_inter_eq, set.mem_preimage, subtype.coe_prop],
+    exact ht, },
+  { exact hF, },
+  { intros,
     dsimp [s],
-    suffices : is_measurable
+    suffices : measurable_set
       (λ (a : ↥(F.F)), (S) ↑a),
       { sorry,},
-    exact ⟨S, ⟨hS, rfl⟩⟩
-  },
+    exact ⟨S, ⟨hS, rfl⟩⟩, },
   convert h,
   have : (∑' (i : L n), volume ((+ ↑i) '' S ∩ F.F)) = volume S :=
   begin
     rw (_ : (∑' (i : L n), volume ((+ ↑i) '' S ∩ F.F)) = ∑' (i : L n), volume ((+ (-↑i)) '' ((+ ↑i) '' S ∩ F.F))),
-    rw ←volume_Union _ _,
-    {
-      congr,
-      conv_lhs{
+    rw ←measure_Union _ _,
+    { congr,
+      conv_lhs {
         congr,
         funext,
-        rw ← set.image_inter (add_left_injective _),
-        rw ← set.image_comp,
-        simp [add_neg_cancel_right, function.comp_app, set.image_id'],
-        rw set.inter_comm,
-      },
-      rw ← set.Union_inter,
-      rw set.inter_eq_self_of_subset_right,
+        rw [← set.image_inter (add_left_injective _), ← set.image_comp],
+        simp [add_neg_cancel_right, function.comp_app, set.image_id'], -- TODO nonterminal but can't squeeze
+        rw set.inter_comm, },
+      rw [← set.Union_inter, set.inter_eq_self_of_subset_right],
       convert set.subset_univ _,
       rw set.eq_univ_iff_forall,
       intros,
       rw set.mem_Union,
       rcases F.covers x with ⟨w, t, h_1_h⟩,
       use ⟨w, t⟩,
-      rw [set.mem_image, subtype.coe_mk],
-      use w + x,
-      use h_1_h,
-      exact add_sub_cancel' w x,
+      rw [set.mem_preimage, subtype.coe_mk, add_comm],
+      assumption,
     },
     exact set.countable.to_encodable (set.countable_range (function.comp coe)),
     {
@@ -239,22 +198,22 @@ begin
         sorry,
       },
       intros t ht,
-      have := F.disjoint (x-y) (is_add_subgroup.sub_mem (L n) _ _ (subtype.mem _) (subtype.mem _)) _,
+      have := F.disjoint (x - y) (is_add_subgroup.sub_mem (subtype.mem _) (subtype.mem _)) _,
       {
         sorry,
 
       },
       {
-        intro, apply hxy,
+        intro a, apply hxy,
         rw sub_eq_zero at a,
         exact subtype.eq a,
       },
     },
     {
       intro,
-      suffices : is_measurable (S ∩ F.F),
+      suffices : measurable_set (S ∩ F.F),
       sorry, /- need assumption -/
-      exact is_measurable.inter hS hF,
+      exact measurable_set.inter hS hF,
     },
     {congr,
     ext1,
@@ -264,13 +223,13 @@ begin
   ext1,
   dsimp [s],
   dsimp [volume],
-  refl,
+  sorry,
 
 end
 
 lemma exists_nonzero_lattice_of_two_dim_le_volume (S : set (fin n → ℝ)) (h : 2^n < volume S)
   (symmetric : ∀ x ∈ S, -x ∈ S) (convex : convex S) :
-  ∃ (x : L n) (h : x ≠ 0), ↑x ∈ S :=
+∃ (x : L n) (h : x ≠ ⟨0, is_add_submonoid.zero_mem⟩), ↑x ∈ S :=
 begin
   let halfS : set (fin n → ℝ) := {v | 2 * v ∈ S},
   have : 2^n * volume halfS = volume S := begin
@@ -285,7 +244,7 @@ begin
     split; intro h,
     { rcases h with ⟨v₁, v₂, h₁, h₂, rfl⟩,
       have := convex h₁ h₂ (le_of_lt one_half_pos) (le_of_lt one_half_pos) (by linarith),
-      rw [one_div_eq_inv] at this,
+      rw [← inv_eq_one_div] at this,
       suffices hv : ∀ v : fin n → ℝ, v = (2⁻¹:ℝ) • (2 * v),
       { convert this,
         all_goals {exact hv _}, },
@@ -299,6 +258,7 @@ begin
       split,
       { convert h, ext,
         change 2 * (2⁻¹ * x x_1) = x x_1,
+        rw ← mul_assoc,
         norm_num, },
       { rw ← add_smul,
         norm_num, }, },
@@ -310,9 +270,9 @@ begin
     use ⟨x - y, hsub⟩,
     split,
     {
-      intro, /- TODO this should be easier -/
+      intro a, /- TODO this should be easier -/
       apply hne,
-      rw subtype.ext at a,
+      simp at a,
       change x - y = 0 at a,
       rwa sub_eq_zero at a,
     },
@@ -326,6 +286,6 @@ begin
     refl,
   },
   {
-    exact exists_diff_lattice_of_one_le_volume trans_inv halfS sorry cube_fund (by rw cube_fund_volume; exact h2) sorry,
+    exact exists_diff_lattice_of_one_le_volume trans_inv halfS sorry cube_fund (by {rw cube_fund_volume, exact h2}) sorry,
   }
 end

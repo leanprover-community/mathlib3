@@ -376,9 +376,6 @@ instance {α : Type*} [ring α] [metric_space α] {n m : Type*} [fintype n] [fin
 metric_space_pi
 
 
-def inverse_image_fun {α β : Type*} (K : set β) (f : α → β) (a : f ⁻¹' K) : K :=
-let ⟨a₀, haK⟩ := a in ⟨f a₀, haK⟩
-
 /- This needs to be added to mathlib!!! There is `preimage_subset_preimage_iff` but it
     requires `(hs : s ⊆ range f)`, which is only needed in the other direction! -/
 lemma preimage_subset_preimage {α β : Type*} {s t : set α} {f : β → α} :
@@ -387,30 +384,72 @@ begin
   intros h x, apply h
 end
 
+-- for `order.filter.basic`
+lemma tendsto_diag_chase {α β A B : Type*} {lα : filter α} {lβ : filter β} {lA : filter A}
+  {lB : filter B} {f : α → β} {g : A → B} {mA : A → α} {mB : B → β} (h : f ∘ mA = mB ∘ g)
+  (hAα : lA ≤ comap mA lα) (hBβ : comap mB lβ ≤ lB) (hαβ : tendsto f lα lβ) :
+  tendsto g lA lB :=
+begin
+  rw tendsto_iff_comap at hαβ ⊢,
+  calc lA ≤ comap mA lα : hAα
+  ... ≤ comap (f ∘ mA) lβ : by simpa [comap_comap] using comap_mono hαβ
+  ... = comap (mB ∘ g) lβ : by rw h
+  ... ≤ comap g lB : by simpa [comap_comap] using comap_mono hBβ
+end
+
+-- for `order.filter.cofinite`
+lemma comap_cofinite {α A : Type*} {mA : A → α} (hmA : function.injective mA) :
+  cofinite ≤ comap mA cofinite :=
+begin
+  rintros s ⟨t, ht, hts⟩,
+  refine (ht.preimage (hmA.inj_on _)).subset _,
+  simp [hts]
+end
+
+-- ugly, clean up somehow?
+-- for `topology.subset_properties`
+lemma comap_cocompact {β B : Type*} [topological_space β] [topological_space B] {mB : B → β}
+  (hmB : continuous mB) : comap mB (cocompact β) ≤ cocompact B :=
+begin
+  intros s,
+  simp only [mem_comap_sets, mem_cocompact],
+  rintros ⟨t, ht, hts⟩,
+  use (mB '' t)ᶜ,
+  simp only [mem_cocompact],
+  split,
+  refine ⟨mB '' t, ht.image hmB, set.subset.refl _⟩,
+  rw set.compl_subset_comm at hts,
+  rw ← set.compl_subset_compl,
+  refine set.subset.trans hts _,
+  tidy,
+end
+
 /- Is this non-crap? (More elegant phrasing?...) We know that $ℤ$ matrices are discrete in $ℝ$; so intersection of $Z$ matrices is discrete in line -/
 lemma tendsto_inverse_image_fun {α β A B : Type*} [topological_space β] [topological_space B]
   {f : α → β} {g : A → B} {mA : A → α} {mB : B → β}
-  (hmA : function.injective mA) (hmB : continuous mB) (h : ∀ x, f (mA x) = mB (g x))
+  (hmA : function.injective mA) (hmB : continuous mB) (h : f ∘ mA = mB ∘ g)
+  --(h : ∀ x, f (mA x) = mB (g x))
   (hf : tendsto f cofinite (cocompact _)) :
   tendsto g cofinite (cocompact _) :=
 begin
-  rintros s hK,
-  rw mem_cocompact' at hK,
-  obtain ⟨K, hK1, hK2⟩ := hK,
-  have diag_chase : mA '' (g ⁻¹' K) ⊆ f ⁻¹' (mB '' K) := by tidy,
-  have : (mB '' K)ᶜ ∈ cocompact β ,
-  { rw mem_cocompact',
-    refine ⟨mB '' K, is_compact.image hK1 hmB, _⟩,
-    rw compl_compl },
-  have : (f ⁻¹' (mB '' K)).finite,
-  { convert (filter.mem_cofinite.mp (hf this)),
-    simp only [set.preimage_compl, compl_compl] },
-  have : (mA '' (g ⁻¹' K)).finite := set.finite.subset this diag_chase,
-  have : (g ⁻¹' K).finite,
-  { convert set.finite.preimage _ this,
-    exact (function.injective.preimage_image hmA (g ⁻¹' K)).symm,
-    exact set.inj_on_of_injective hmA _ },
-  exact set.finite.subset this (preimage_subset_preimage hK2),
+  exact tendsto_diag_chase h (comap_cofinite hmA) (comap_cocompact hmB) hf,
+  -- rintros s hK,
+  -- rw mem_cocompact' at hK,
+  -- obtain ⟨K, hK1, hK2⟩ := hK,
+  -- have diag_chase : mA '' (g ⁻¹' K) ⊆ f ⁻¹' (mB '' K) := by tidy,
+  -- have : (mB '' K)ᶜ ∈ cocompact β ,
+  -- { rw mem_cocompact',
+  --   refine ⟨mB '' K, is_compact.image hK1 hmB, _⟩,
+  --   rw compl_compl },
+  -- have : (f ⁻¹' (mB '' K)).finite,
+  -- { convert (filter.mem_cofinite.mp (hf this)),
+  --   simp only [set.preimage_compl, compl_compl] },
+  -- have : (mA '' (g ⁻¹' K)).finite := set.finite.subset this diag_chase,
+  -- have : (g ⁻¹' K).finite,
+  -- { convert set.finite.preimage _ this,
+  --   exact (function.injective.preimage_image hmA (g ⁻¹' K)).symm,
+  --   exact set.inj_on_of_injective hmA _ },
+  -- exact set.finite.subset this (preimage_subset_preimage hK2),
 end
 
 

@@ -51,6 +51,10 @@ variables {a}
 variables (b)
 lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_left b h
 variables {b}
+
+lemma pow_mem_of_mem (ha : a ∈ I) (n : ℕ) (hn : n > 0) : a ^ n ∈ I :=
+nat.cases_on n (not.elim dec_trivial) (λ m hm, (pow_succ a m).symm ▸ I.mul_mem_right (a^m) ha) hn
+
 end ideal
 
 variables {a b : α}
@@ -186,6 +190,10 @@ begin
   { rw pow_zero at H, exact (mt (eq_top_iff_one _).2 hI.1).elim H },
   { rw pow_succ at H, exact or.cases_on (hI.mem_or_mem H) id ih }
 end
+
+theorem is_prime.pow_mem_iff_mem {I : ideal α} (hI : I.is_prime)
+  {r : α} (n : ℕ) (hn : n > 0) : r ^ n ∈ I ↔ r ∈ I :=
+⟨hI.mem_of_pow_mem n, (λ hr, I.pow_mem_of_mem hr n hn)⟩
 
 lemma not_is_prime_iff {I : ideal α} : ¬ I.is_prime ↔ I = ⊤ ∨ ∃ (x ∉ I) (y ∉ I), x * y ∈ I :=
 begin

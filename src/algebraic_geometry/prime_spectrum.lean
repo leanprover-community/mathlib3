@@ -295,6 +295,13 @@ lemma zero_locus_singleton_mul (f g : R) :
   zero_locus ({f * g} : set R) = zero_locus {f} ∪ zero_locus {g} :=
 set.ext $ λ x, by simpa using x.2.mem_or_mem_iff
 
+@[simp] lemma zero_locus_pow (I : ideal R) {n : ℕ} (hn : n > 0) :
+  zero_locus ((I ^ n : ideal R) : set R) = zero_locus I :=
+zero_locus_radical (I ^ n) ▸ (I.radical_pow n hn).symm ▸ zero_locus_radical I
+
+@[simp] lemma zero_locus_singleton_pow (f : R) (n : ℕ) (hn : n > 0) : zero_locus ({f ^ n} : set R) = zero_locus {f} :=
+set.ext $ λ x, by simpa using x.2.pow_mem_iff_mem n hn
+
 lemma sup_vanishing_ideal_le (t t' : set (prime_spectrum R)) :
   vanishing_ideal t ⊔ vanishing_ideal t' ≤ vanishing_ideal (t ∩ t') :=
 begin
@@ -422,10 +429,13 @@ def basic_open (r : R) : topological_space.opens (prime_spectrum R) :=
 { val := { x | r ∉ x.as_ideal },
   property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
 
+@[simp] lemma mem_basic_open (f : R) (x : prime_spectrum R) :
+  x ∈ basic_open f ↔ f ∉ x.as_ideal := iff.rfl
+
 lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum R)) :=
 (basic_open a).property
 
-lemma basic_open_eq_zero_locus_compl (r : R) :
+@[simp] lemma basic_open_eq_zero_locus_compl (r : R) :
   (basic_open r : set (prime_spectrum R)) = (zero_locus {r})ᶜ :=
 set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
 
@@ -434,6 +444,9 @@ begin
   ext1, dsimp,
   simp only [set.compl_union, basic_open_eq_zero_locus_compl, zero_locus_singleton_mul],
 end
+
+@[simp] lemma basic_open_pow (f : R) (n : ℕ) (hn : n > 0) : basic_open (f ^ n) = basic_open f :=
+topological_space.opens.ext $ by simpa using zero_locus_singleton_pow f n hn
 
 lemma is_topological_basis_basic_opens : topological_space.is_topological_basis
   (set.range (λ (r : R), (basic_open r : set (prime_spectrum R)))) :=

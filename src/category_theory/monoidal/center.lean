@@ -11,9 +11,21 @@ import category_theory.reflects_isomorphisms
 
 We define `center C` to be pairs `⟨X, b⟩`, where `X : C` and `b` is a half-braiding on `X`.
 
-For now we only define the `category` structure on `center C`.
-Writing down the `monoidal_category` and `braided_category` data is easy enough,
-but verifying the axioms seems intimidating!
+We show that `center C` is braided monoidal,
+and provide the monoidal functor `center.forget` from `center C` back to `C`.
+
+## Future work
+
+Verifying the various axioms here is done by tedious rewriting.
+Using the `slice` tactic may make the proofs marginally more readable.
+
+More exciting, however, would be to make possible one of the following options:
+1. Integration with homotopy.io / globular to give "picture proofs".
+2. The monoidal coherence theorem, so we can ignore associators
+   (after which most of these proofs are trivial;
+   I'm unsure if the monoidal coherence theorem is even usable in dependent type theory).
+3. Automating these proofs using `rewrite_search` or some relative.
+
 -/
 
 open category_theory
@@ -43,7 +55,7 @@ structure half_braiding (X : C) :=
 (naturality' : ∀ {U U'} (f : U ⟶ U'), (𝟙 X ⊗ f) ≫ (β U').hom = (β U).hom ≫ (f ⊗ 𝟙 X) . obviously)
 
 restate_axiom half_braiding.monoidal'
-attribute [simp] half_braiding.monoidal
+attribute [simp, reassoc] half_braiding.monoidal
 restate_axiom half_braiding.naturality'
 attribute [simp, reassoc] half_braiding.naturality
 
@@ -89,20 +101,6 @@ def iso_mk {X Y : center C} (f : X ⟶ Y) [is_iso f.f] : X ≅ Y :=
     simp [←comp_tensor_id_assoc, ←id_tensor_comp],
   end⟩, }
 
-section
-variables (C)
-
-/-- The forgetful functor from the Drinfeld center to the original category. -/
-@[simps]
-def forget : center C ⥤ C :=
-{ obj := λ X, X.1,
-  map := λ X Y f, f.f, }
-
-instance : reflects_isomorphisms (forget C) :=
-{ reflects := λ A B f i, by { dsimp at i, resetI, change is_iso (iso_mk f).hom, apply_instance, } }
-
-end
-
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 @[simps]
 def tensor_obj (X Y : center C) : center C :=
@@ -111,7 +109,30 @@ def tensor_obj (X Y : center C) : center C :=
       ≪≫ (X.2.β U ⊗ iso.refl Y.1) ≪≫ α_ _ _ _,
     monoidal' := λ U U', begin
       dsimp,
-      sorry,
+      -- We don't do this as a pure rewriting proof; we move isos from one side to the other,
+      -- and use `congr` to strip off parts that are already equal.
+      -- I suspect this is not the shortest path!
+      simp only [comp_tensor_id, id_tensor_comp, category.assoc, half_braiding.monoidal],
+      rw [pentagon_assoc, pentagon_inv_assoc, iso.eq_inv_comp, ←pentagon_assoc,
+        ←id_tensor_comp_assoc, iso.hom_inv_id, tensor_id, category.id_comp,
+        ←associator_naturality_assoc],
+      congr' 2,
+      conv_lhs {
+        rw [←associator_inv_naturality_assoc (X.2.β U).hom,
+        associator_inv_naturality_assoc _ _ (Y.2.β U').hom,
+        tensor_id, tensor_id, id_tensor_comp_tensor_id_assoc], },
+      conv_rhs {
+        rw [associator_naturality_assoc (X.2.β U).hom,
+          ←associator_naturality_assoc _ _ (Y.2.β U').hom,
+          tensor_id, tensor_id, tensor_id_comp_id_tensor_assoc, ←id_tensor_comp_tensor_id], },
+      rw [tensor_id, category.id_comp, ←is_iso.inv_comp_eq, inv_tensor, is_iso.inv_id,
+        is_iso.iso.inv_inv, pentagon_assoc, iso.hom_inv_id_assoc],
+      congr' 2,
+      rw [←is_iso.inv_comp_eq, is_iso.iso.inv_hom, ←pentagon_inv_assoc, ←comp_tensor_id_assoc,
+        iso.inv_hom_id, tensor_id, category.id_comp, ←associator_inv_naturality_assoc],
+      congr' 2,
+      rw [←is_iso.inv_comp_eq, inv_tensor, is_iso.iso.inv_hom, is_iso.inv_id, pentagon_inv_assoc,
+        iso.inv_hom_id, category.comp_id],
     end,
     naturality' := λ U U' f,
     begin
@@ -144,6 +165,7 @@ def tensor_hom {X₁ Y₁ X₂ Y₂ : center C} (f : X₁ ⟶ Y₁) (g : X₂ �
 def tensor_unit : center C :=
 ⟨𝟙_ C,
   { β := λ U, (λ_ U) ≪≫ (ρ_ U).symm,
+    monoidal' := λ U U', by simp,
     naturality' := λ U U' f, begin
       dsimp,
       rw [left_unitor_naturality_assoc, right_unitor_inv_naturality, category.assoc],
@@ -171,13 +193,22 @@ end⟩
 def left_unitor (X : center C) : tensor_obj tensor_unit X ≅ X :=
 iso_mk ⟨(λ_ X.1).hom, λ U, begin
   dsimp,
-  sorry,
+  simp only [category.comp_id, category.assoc, tensor_inv_hom_id, comp_tensor_id,
+    tensor_id_comp_id_tensor, triangle_assoc_comp_right_inv],
+  rw [←left_unitor_tensor, left_unitor_naturality, left_unitor_tensor'_assoc],
 end⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 @[simps]
 def right_unitor (X : center C) : tensor_obj X tensor_unit ≅ X :=
-iso_mk ⟨(ρ_ X.1).hom, begin sorry, end⟩
+iso_mk ⟨(ρ_ X.1).hom, λ U, begin
+  dsimp,
+  simp only [tensor_id_comp_id_tensor_assoc, triangle_assoc, id_tensor_comp, category.assoc],
+  conv_rhs { rw [←tensor_id_comp_id_tensor_assoc], },
+  congr' 1,
+  rw [←right_unitor_tensor_inv_assoc, ←right_unitor_inv_naturality_assoc],
+  simp,
+end⟩
 
 section
 local attribute [simp] associator_naturality left_unitor_naturality right_unitor_naturality
@@ -191,6 +222,8 @@ instance : monoidal_category (center C) :=
   left_unitor := left_unitor,
   right_unitor := right_unitor, }
 
+@[simp] lemma tensor_fst (X Y : center C) : (X ⊗ Y).1 = X.1 ⊗ Y.1 := rfl
+
 @[simp] lemma tensor_β (X Y : center C) (U : C) :
   (X ⊗ Y).2.β U =
     α_ _ _ _ ≪≫ (iso.refl X.1 ⊗ Y.2.β U) ≪≫ (α_ _ _ _).symm
@@ -200,18 +233,61 @@ rfl
   (f ⊗ g).f = f.f ⊗ g.f :=
 rfl
 
+@[simp] lemma associator_hom_f' (X Y Z : center C) : hom.f (α_ X Y Z).hom = (α_ X.1 Y.1 Z.1).hom :=
+rfl
+
+@[simp] lemma associator_inv_f' (X Y Z : center C) : hom.f (α_ X Y Z).inv = (α_ X.1 Y.1 Z.1).inv :=
+by { ext, rw [←associator_hom_f', ←comp_f, iso.hom_inv_id], refl, }
+
+@[simp] lemma left_unitor_hom_f' (X : center C) : hom.f (λ_ X).hom = (λ_ X.1).hom :=
+rfl
+
+@[simp] lemma left_unitor_inv_f' (X : center C) : hom.f (λ_ X).inv = (λ_ X.1).inv :=
+by { ext, rw [←left_unitor_hom_f', ←comp_f, iso.hom_inv_id], refl, }
+
+@[simp] lemma right_unitor_hom_f' (X : center C) : hom.f (ρ_ X).hom = (ρ_ X.1).hom :=
+rfl
+
+@[simp] lemma right_unitor_inv_f' (X : center C) : hom.f (ρ_ X).inv = (ρ_ X.1).inv :=
+by { ext, rw [←right_unitor_hom_f', ←comp_f, iso.hom_inv_id], refl, }
+
+end
+
+section
+variables (C)
+
+/-- The forgetful monoidal functor from the Drinfeld center to the original category. -/
+@[simps]
+def forget : monoidal_functor (center C) C :=
+{ obj := λ X, X.1,
+  map := λ X Y f, f.f,
+  ε := 𝟙 (𝟙_ C),
+  μ := λ X Y, 𝟙 (X.1 ⊗ Y.1), }
+
+instance : reflects_isomorphisms (forget C).to_functor :=
+{ reflects := λ A B f i, by { dsimp at i, resetI, change is_iso (iso_mk f).hom, apply_instance, } }
+
 end
 
 /-- Auxiliary definition for the `braided_category` instance on `center C`. -/
 @[simps]
 def braiding (X Y : center C) : X ⊗ Y ≅ Y ⊗ X :=
-iso_mk ⟨(X.2.β Y.1).hom, λ U, begin simp, sorry end⟩
+iso_mk ⟨(X.2.β Y.1).hom, λ U, begin
+  dsimp,
+  simp only [category.assoc],
+  rw [←is_iso.inv_comp_eq, is_iso.iso.inv_hom, ←half_braiding.monoidal_assoc,
+    ←half_braiding.naturality_assoc, half_braiding.monoidal],
+  simp,
+end⟩
 
 instance : braided_category (center C) :=
 { braiding := braiding,
-  braiding_naturality' := sorry,
-  hexagon_forward' := sorry,
-  hexagon_reverse' := sorry, }
+  braiding_naturality' := λ X Y X' Y' f g, begin
+    ext,
+    dsimp,
+    rw [←tensor_id_comp_id_tensor, category.assoc, half_braiding.naturality, f.comm_assoc,
+      id_tensor_comp_tensor_id],
+  end, } -- `obviously` handles the hexagon axioms
 
 end center
 

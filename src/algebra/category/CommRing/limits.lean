@@ -279,7 +279,7 @@ instance forget₂_SemiRing_preserves_limits : preserves_limits (forget₂ Ring 
 /--
 An auxiliary declaration to speed up typechecking.
 -/
-def forget₂_AddCommGroup_preserves_limits_aux (F : J ⥤ Ring.{u}) :
+def forget₂_AddCommGroup_preserves_limits_aux (F : J ⥤ Ring) :
   is_limit ((forget₂ Ring AddCommGroup).map_cone (limit_cone F)) :=
 begin
   have := AddCommGroup.limit_cone_is_limit (F ⋙ forget₂ Ring AddCommGroup),
@@ -329,9 +329,11 @@ def lifted_cone (F : J ⥤ CommRing) : cone F :=
 
 /-- Auxiliary construction for the `creates_limit` instance below. -/
 def is_limit_lifted_cone (F : J ⥤ CommRing) : is_limit (lifted_cone F) :=
-is_limit.of_faithful (forget₂ _ Ring.{u}) (Ring.limit_cone_is_limit _)
-  (λ s, (Ring.limit_cone_is_limit _).lift ((forget₂ _ Ring.{u}).map_cone s))
-  (λ s, rfl)
+begin
+  let := Ring.limit_cone_is_limit (F ⋙ forget₂ CommRing Ring),
+  exact is_limit.of_faithful (forget₂ _ Ring.{u}) this
+    (λ s, (Ring.limit_cone_is_limit _).lift ((forget₂ _ Ring.{u}).map_cone s)) (λ s, rfl),
+end
 
 /--
 We show that the forgetful functor `CommRing ⥤ Ring` creates limits.

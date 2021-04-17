@@ -263,6 +263,8 @@ The chosen cone is a limit cone.
 def limit_cone_is_limit (F : J ⥤ Ring) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 
+set_option profiler true
+
 /-- The category of rings has all limits. -/
 @[irreducible]
 instance has_limits : has_limits Ring :=
@@ -281,7 +283,10 @@ An auxiliary declaration to speed up typechecking.
 -/
 def forget₂_AddCommGroup_preserves_limits_aux (F : J ⥤ Ring) :
   is_limit ((forget₂ Ring AddCommGroup).map_cone (limit_cone F)) :=
-AddCommGroup.limit_cone_is_limit (F ⋙ forget₂ Ring AddCommGroup)
+begin
+  have := AddCommGroup.limit_cone_is_limit (F ⋙ forget₂ Ring AddCommGroup),
+  exact this
+end
 
 /--
 The forgetful functor from rings to additive commutative groups preserves all limits.

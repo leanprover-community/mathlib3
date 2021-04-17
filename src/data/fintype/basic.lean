@@ -452,7 +452,7 @@ end
 
 end set
 
-lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=
+@[simp] lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=
 rfl
 
 lemma finset.eq_univ_of_card [fintype α] (s : finset α) (hs : s.card = fintype.card α) :

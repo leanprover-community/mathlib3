@@ -17,9 +17,9 @@ namespace affine
 
 def intrinsic_frontier (A : set E) :
   set E :=
-frontier (A : set (affine_span ℝ A).carrier)
+(frontier {x : affine_span ℝ A | ↑x ∈ A} : set (affine_span ℝ A))
 
-def intrinsic_interior (A : set E) :
-  set
+--def intrinsic_interior (A : set E) :
+--  set
 
 end affine

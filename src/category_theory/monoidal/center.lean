@@ -95,11 +95,7 @@ a morphism whose underlying morphism is an isomorphism.
 @[simps]
 def iso_mk {X Y : center C} (f : X ⟶ Y) [is_iso f.f] : X ≅ Y :=
 { hom := f,
-  inv := ⟨inv f.f, λ U, begin
-    dsimp,
-    apply (cancel_epi (f.f ⊗ 𝟙 U)).mp,
-    simp [←comp_tensor_id_assoc, ←id_tensor_comp],
-  end⟩, }
+  inv := ⟨inv f.f, λ U, by simp [←cancel_epi (f.f ⊗ 𝟙 U), ←comp_tensor_id_assoc, ←id_tensor_comp]⟩ }
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 @[simps]
@@ -107,32 +103,23 @@ def tensor_obj (X Y : center C) : center C :=
 ⟨X.1 ⊗ Y.1,
   { β := λ U, α_ _ _ _ ≪≫ (iso.refl X.1 ⊗ Y.2.β U) ≪≫ (α_ _ _ _).symm
       ≪≫ (X.2.β U ⊗ iso.refl Y.1) ≪≫ α_ _ _ _,
-    monoidal' := λ U U', begin
+    monoidal' := λ U U',
+    begin
       dsimp,
-      -- We don't do this as a pure rewriting proof; we move isos from one side to the other,
-      -- and use `congr` to strip off parts that are already equal.
-      -- I suspect this is not the shortest path!
       simp only [comp_tensor_id, id_tensor_comp, category.assoc, half_braiding.monoidal],
       rw [pentagon_assoc, pentagon_inv_assoc, iso.eq_inv_comp, ←pentagon_assoc,
         ←id_tensor_comp_assoc, iso.hom_inv_id, tensor_id, category.id_comp,
-        ←associator_naturality_assoc],
-      congr' 2,
-      conv_lhs {
-        rw [←associator_inv_naturality_assoc (X.2.β U).hom,
-        associator_inv_naturality_assoc _ _ (Y.2.β U').hom,
-        tensor_id, tensor_id, id_tensor_comp_tensor_id_assoc], },
-      conv_rhs {
-        rw [associator_naturality_assoc (X.2.β U).hom,
-          ←associator_naturality_assoc _ _ (Y.2.β U').hom,
-          tensor_id, tensor_id, tensor_id_comp_id_tensor_assoc, ←id_tensor_comp_tensor_id], },
-      rw [tensor_id, category.id_comp, ←is_iso.inv_comp_eq, inv_tensor, is_iso.inv_id,
-        is_iso.iso.inv_inv, pentagon_assoc, iso.hom_inv_id_assoc],
-      congr' 2,
-      rw [←is_iso.inv_comp_eq, is_iso.iso.inv_hom, ←pentagon_inv_assoc, ←comp_tensor_id_assoc,
-        iso.inv_hom_id, tensor_id, category.id_comp, ←associator_inv_naturality_assoc],
-      congr' 2,
-      rw [←is_iso.inv_comp_eq, inv_tensor, is_iso.iso.inv_hom, is_iso.inv_id, pentagon_inv_assoc,
-        iso.inv_hom_id, category.comp_id],
+        ←associator_naturality_assoc, cancel_epi, cancel_epi,
+        ←associator_inv_naturality_assoc (X.2.β U).hom,
+        associator_inv_naturality_assoc _ _ (Y.2.β U').hom, tensor_id, tensor_id,
+        id_tensor_comp_tensor_id_assoc, associator_naturality_assoc (X.2.β U).hom,
+        ←associator_naturality_assoc _ _ (Y.2.β U').hom, tensor_id, tensor_id,
+        tensor_id_comp_id_tensor_assoc, ←id_tensor_comp_tensor_id, tensor_id, category.comp_id,
+        ←is_iso.inv_comp_eq, inv_tensor, is_iso.inv_id, is_iso.iso.inv_inv, pentagon_assoc,
+        iso.hom_inv_id_assoc, cancel_epi, cancel_epi, ←is_iso.inv_comp_eq, is_iso.iso.inv_hom,
+        ←pentagon_inv_assoc, ←comp_tensor_id_assoc, iso.inv_hom_id, tensor_id, category.id_comp,
+        ←associator_inv_naturality_assoc, cancel_epi, cancel_epi, ←is_iso.inv_comp_eq, inv_tensor,
+        is_iso.iso.inv_hom, is_iso.inv_id, pentagon_inv_assoc, iso.inv_hom_id, category.comp_id],
     end,
     naturality' := λ U U' f,
     begin
@@ -176,16 +163,12 @@ def tensor_unit : center C :=
 def associator (X Y Z : center C) : tensor_obj (tensor_obj X Y) Z ≅ tensor_obj X (tensor_obj Y Z) :=
 iso_mk ⟨(α_ X.1 Y.1 Z.1).hom, λ U, begin
   dsimp,
-  -- We don't do this as a pure rewriting proof; we move isos from one side to the other,
-  -- and use `congr` to strip off parts that are already equal.
   simp only [category.assoc, comp_tensor_id, id_tensor_comp],
-  rw [pentagon, pentagon_assoc, ←associator_naturality_assoc (𝟙 X.1) (𝟙 Y.1), tensor_id],
-  congr' 2,
-  rw [iso.eq_inv_comp, ←pentagon_assoc, ←id_tensor_comp_assoc, iso.hom_inv_id,
-    tensor_id, category.id_comp, ←associator_naturality_assoc],
-  congr' 2,
-  rw [←is_iso.inv_comp_eq, inv_tensor, is_iso.inv_id, is_iso.iso.inv_inv, pentagon_assoc,
-    iso.hom_inv_id_assoc, ←tensor_id, ←associator_naturality_assoc],
+  rw [pentagon, pentagon_assoc, ←associator_naturality_assoc (𝟙 X.1) (𝟙 Y.1), tensor_id, cancel_epi,
+    cancel_epi, iso.eq_inv_comp, ←pentagon_assoc, ←id_tensor_comp_assoc, iso.hom_inv_id, tensor_id,
+    category.id_comp, ←associator_naturality_assoc, cancel_epi, cancel_epi, ←is_iso.inv_comp_eq,
+    inv_tensor, is_iso.inv_id, is_iso.iso.inv_inv, pentagon_assoc, iso.hom_inv_id_assoc, ←tensor_id,
+    ←associator_naturality_assoc],
 end⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
@@ -204,9 +187,8 @@ def right_unitor (X : center C) : tensor_obj X tensor_unit ≅ X :=
 iso_mk ⟨(ρ_ X.1).hom, λ U, begin
   dsimp,
   simp only [tensor_id_comp_id_tensor_assoc, triangle_assoc, id_tensor_comp, category.assoc],
-  conv_rhs { rw [←tensor_id_comp_id_tensor_assoc], },
-  congr' 1,
-  rw [←right_unitor_tensor_inv_assoc, ←right_unitor_inv_naturality_assoc],
+  rw [←tensor_id_comp_id_tensor_assoc (ρ_ U).inv, cancel_epi, ←right_unitor_tensor_inv_assoc,
+    ←right_unitor_inv_naturality_assoc],
   simp,
 end⟩
 

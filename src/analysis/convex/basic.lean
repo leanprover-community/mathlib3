@@ -1111,7 +1111,7 @@ set.subset.antisymm (convex_hull_min (set.subset.refl _) hs) (subset_convex_hull
 @[simp]
 lemma convex_hull_empty :
   convex_hull (∅ : set E) = ∅ :=
-(convex_empty).convex_hull_eq
+convex_empty.convex_hull_eq
 
 @[simp]
 lemma convex_hull_empty_iff :

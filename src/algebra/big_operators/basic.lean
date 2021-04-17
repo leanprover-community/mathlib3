@@ -228,11 +228,7 @@ by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one 
 @[to_additive]
 lemma prod_coe [decidable_eq α] :
   ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
-begin
-  rw [←prod_image, prod_congr _ (λ _ _, rfl)],
-  { ext, simp },
-  { simp },
-end
+(finset.prod_subtype s (λ _, iff.rfl) f).symm
 
 end comm_monoid
 

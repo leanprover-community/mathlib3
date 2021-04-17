@@ -353,10 +353,10 @@ instance : add_semigroup surreal :=
   ..(by apply_instance : has_add surreal) }
 
 theorem zero_add : ∀ (x : surreal), 0 + x = x :=
-by rintro ⟨x, ox⟩; exact quotient.sound (pgame.zero_add_equiv _)
+by { rintro ⟨x, ox⟩, exact quotient.sound (pgame.zero_add_equiv _) }
 
 theorem add_zero : ∀ (x : surreal), x + 0 = x :=
-by rintro ⟨x, ox⟩; exact quotient.sound (pgame.add_zero_equiv _)
+by { rintro ⟨x, ox⟩, exact quotient.sound (pgame.add_zero_equiv _) }
 
 instance : add_monoid surreal :=
 { add := add,

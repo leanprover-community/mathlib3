@@ -1570,7 +1570,7 @@ begin
   have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
   have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
   rw integral_eq_sub_of_has_deriv_at,
-  intros x hx;
+  intros x hx,
   { exact (hu x hx).mul (hv x hx) },
   { exact (hcu'.mul hcv).add (hcu.mul hcv') }
 end

@@ -11,6 +11,23 @@ import topology.continuous_function.weierstrass
 If a subalgebra `A` of `C(X, ℝ)`, where `X` is a compact Hausdorff space,
 separates points, then it is dense.
 
+We argue as follows.
+
+* In any subalgebra `A` of `C(X, ℝ)`, if `f ∈ A`, then `abs f ∈ A.topological_closure`.
+  This follows from the Weierstrass approximation theorem on `[-∥f∥, ∥f∥]` by
+  approximating `abs` uniformly thereon by polynomials.
+* This ensures that `A.topological_closure` is actually a sublattice:
+  if it contains `f` and `g`, then it contains the pointwise supremum `f ⊔ g`
+  and the pointwise infimum `f ⊓ g`.
+* Any nonempty sublattice `L` of `C(X, ℝ)` which separates points is dense,
+  by a nice argument approximating a given `f` above and below using separating functions.
+  For each `x y : X`, we pick a function `g x y ∈ L` so `g x y x = f x` and `g x y y = f y`.
+  By continuity these functions remain close to `f` on small patches around `x` and `y`.
+  We use compactness to identify a certain finitely indexed infimum of finitely indexed supremums
+  which is then close to `f` everywhere, obtaining the desired approximation.
+* Finally we put these pieces together. `L = A.topological_closure` is a nonempty sublattice
+  which separates points since `A` does, and so is dense (in fact equal to `⊤`).
+
 ## Future work
 
 Prove the complex version for self-adjoint subalgebras `A`, by separately approximating
@@ -41,9 +58,7 @@ namespace continuous_map
 open_locale topological_space
 
 variables {X : Type*}
-
 variables [topological_space X] [compact_space X]
-variables {R : Type*} [comm_ring R] [topological_space R] [topological_ring R]
 
 lemma apply_le_norm (f : C(X, ℝ)) (x : X) : f x ≤ ∥f∥ :=
 le_trans (le_abs.mpr (or.inl (le_refl (f x)))) (f.norm_coe_le_norm x)
@@ -51,14 +66,12 @@ le_trans (le_abs.mpr (or.inl (le_refl (f x)))) (f.norm_coe_le_norm x)
 lemma neg_norm_le_apply (f : C(X, ℝ)) (x : X) : -∥f∥ ≤ f x :=
 le_trans (neg_le_neg (f.norm_coe_le_norm x)) (neg_le.mp (neg_le_abs_self (f x)))
 
-def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-∥f∥) (∥f∥)) :=
-{ to_fun := λ x, ⟨f x, ⟨neg_norm_le_apply f x, apply_le_norm f x⟩⟩ }
-
-@[simp] lemma attach_bound_apply_coe (f : C(X, ℝ)) (x : X) : ((attach_bound f) x : ℝ) = f x := rfl
+section
+variables {R : Type*} [comm_ring R] [topological_space R] [topological_ring R]
 
 attribute [simp] polynomial.aeval_monomial
 
-@[simp] lemma polynomial.aeval_fn_apply (g : polynomial ℝ) (f : X → ℝ) (x : X) :
+@[simp] lemma polynomial.aeval_fn_apply (g : polynomial R) (f : X → R) (x : X) :
   ((polynomial.aeval f) g) x = g.eval (f x) :=
 begin
   apply polynomial.induction_on' g,
@@ -66,7 +79,7 @@ begin
   { intros n a, simp [pi.pow_apply f x n], },
 end
 
-@[simp] lemma polynomial.aeval_continuous_map_apply (g : polynomial ℝ) (f : C(X, ℝ)) (x : X) :
+@[simp] lemma polynomial.aeval_continuous_map_apply (g : polynomial R) (f : C(X, R)) (x : X) :
   ((polynomial.aeval f) g) x = g.eval (f x) :=
 begin
   apply polynomial.induction_on' g,
@@ -83,100 +96,8 @@ begin
   { intros n a, simp, },
 end
 
-lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
-  (g.to_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound =
-    polynomial.aeval f g :=
-by { ext, simp, }
-
-/--
-Given a continuous function `f` in a subalgebra of `C(X, ℝ)`, postcomposing by a polynomial
-gives another function in `A`.
-
-This lemma proves something slightly more subtle than this:
-we take `f`, and think of it as a function into the restricted target `set.Icc (-∥f∥) ∥f∥)`,
-and then postcompose with a polynomial function on that interval.
-This is in fact the same situation as above, and so also gives a function in `A`.
--/
-lemma polynomial_comp_attach_bound_mem (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
-  (g.to_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound ∈ A :=
-begin
-  rw polynomial_comp_attach_bound,
-  apply set_like.coe_mem,
 end
 
-theorem comp_attach_bound_mem_closure
-  (A : subalgebra ℝ C(X, ℝ)) (f : A) (p : C(set.Icc (-∥f∥) (∥f∥), ℝ)) :
-  p.comp (attach_bound f) ∈ A.topological_closure :=
-begin
-  -- `p` itself is in the closure of polynomials, by the Weierstrass theorem,
-  have mem_closure : p ∈ (polynomial_functions (set.Icc (-∥f∥) (∥f∥))).topological_closure :=
-    continuous_map_mem_polynomial_functions_closure _ _ p,
-  -- and so there are polynomials arbitrarily close.
-  have frequently_mem_polynomials := mem_closure_iff_frequently.mp mem_closure,
-  -- To prove `p.comp (attached_bound f)` is in the closure of polynomials,
-  -- we show there are polynomials arbitrarily close.
-  apply mem_closure_iff_frequently.mpr,
-  -- To show that, we pull back the polynomials close to `p`,
-  refine ((comp_right_continuous_map ℝ (attach_bound (f : C(X, ℝ)))).continuous_at p).tendsto
-    .frequently_map _ _ frequently_mem_polynomials,
-  -- but need to show that those pullbacks are actually in `A`.
-  rintros _ ⟨g, ⟨-,rfl⟩⟩,
-  simp,
-  apply polynomial_comp_attach_bound_mem,
-end
-
-theorem abs_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f : A) :
-  (f : C(X, ℝ)).abs ∈ A.topological_closure :=
-begin
-  let M := ∥f∥,
-  let f' := attach_bound (f : C(X, ℝ)),
-  let abs : C(set.Icc (-∥f∥) (∥f∥), ℝ) :=
-  { to_fun := λ x : set.Icc (-∥f∥) (∥f∥), _root_.abs (x : ℝ) },
-  change (abs.comp f') ∈ A.topological_closure,
-  apply comp_attach_bound_mem_closure,
-end
-
-theorem inf_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f g : A) :
-  (f : C(X, ℝ)) ⊓ (g : C(X, ℝ)) ∈ A.topological_closure :=
-begin
-  rw inf_eq,
-  refine A.topological_closure.smul_mem
-    (A.topological_closure.sub_mem
-      (A.topological_closure.add_mem (A.subalgebra_topological_closure f.property)
-          (A.subalgebra_topological_closure g.property)) _) _,
-  exact_mod_cast abs_mem_subalgebra_closure A _,
-end
-
-theorem inf_mem_closed_subalgebra (A : subalgebra ℝ C(X, ℝ)) (h : is_closed (A : set C(X, ℝ)))
-  (f g : A) : (f : C(X, ℝ)) ⊓ (g : C(X, ℝ)) ∈ A :=
-begin
-  convert inf_mem_subalgebra_closure A f g,
-  apply subalgebra.ext_set,
-  symmetry,
-  erw closure_eq_iff_is_closed,
-  exact h,
-end
-
-theorem sup_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f g : A) :
-  (f : C(X, ℝ)) ⊔ (g : C(X, ℝ)) ∈ A.topological_closure :=
-begin
-  rw sup_eq,
-  refine A.topological_closure.smul_mem
-    (A.topological_closure.add_mem
-      (A.topological_closure.add_mem (A.subalgebra_topological_closure f.property)
-          (A.subalgebra_topological_closure g.property)) _) _,
-  exact_mod_cast abs_mem_subalgebra_closure A _,
-end
-
-theorem sup_mem_closed_subalgebra (A : subalgebra ℝ C(X, ℝ)) (h : is_closed (A : set C(X, ℝ)))
-  (f g : A) : (f : C(X, ℝ)) ⊔ (g : C(X, ℝ)) ∈ A :=
-begin
-  convert sup_mem_subalgebra_closure A f g,
-  apply subalgebra.ext_set,
-  symmetry,
-  erw closure_eq_iff_is_closed,
-  exact h,
-end
 
 lemma compact_space.elim_nhds_subcover {α : Type*} [topological_space α] [compact_space α]
   (U : α → set α) (hU : ∀ x, U x ∈ 𝓝 x) :
@@ -278,12 +199,118 @@ begin
   exact ⟨x, xm, zm⟩,
 end
 
+-- Everything above this point belongs somewhere else!
+
+/--
+Turn a function `f : C(X, ℝ)` into a continuous map into `set.Icc (-∥f∥) (∥f∥)`,
+thereby explicitly attaching bounds.
+-/
+def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-∥f∥) (∥f∥)) :=
+{ to_fun := λ x, ⟨f x, ⟨neg_norm_le_apply f x, apply_le_norm f x⟩⟩ }
+
+@[simp] lemma attach_bound_apply_coe (f : C(X, ℝ)) (x : X) : ((attach_bound f) x : ℝ) = f x := rfl
+
+lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
+  (g.to_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound =
+    polynomial.aeval f g :=
+by { ext, simp, }
+
+/--
+Given a continuous function `f` in a subalgebra of `C(X, ℝ)`, postcomposing by a polynomial
+gives another function in `A`.
+
+This lemma proves something slightly more subtle than this:
+we take `f`, and think of it as a function into the restricted target `set.Icc (-∥f∥) ∥f∥)`,
+and then postcompose with a polynomial function on that interval.
+This is in fact the same situation as above, and so also gives a function in `A`.
+-/
+lemma polynomial_comp_attach_bound_mem (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
+  (g.to_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound ∈ A :=
+begin
+  rw polynomial_comp_attach_bound,
+  apply set_like.coe_mem,
+end
+
+theorem comp_attach_bound_mem_closure
+  (A : subalgebra ℝ C(X, ℝ)) (f : A) (p : C(set.Icc (-∥f∥) (∥f∥), ℝ)) :
+  p.comp (attach_bound f) ∈ A.topological_closure :=
+begin
+  -- `p` itself is in the closure of polynomials, by the Weierstrass theorem,
+  have mem_closure : p ∈ (polynomial_functions (set.Icc (-∥f∥) (∥f∥))).topological_closure :=
+    continuous_map_mem_polynomial_functions_closure _ _ p,
+  -- and so there are polynomials arbitrarily close.
+  have frequently_mem_polynomials := mem_closure_iff_frequently.mp mem_closure,
+  -- To prove `p.comp (attached_bound f)` is in the closure of polynomials,
+  -- we show there are polynomials arbitrarily close.
+  apply mem_closure_iff_frequently.mpr,
+  -- To show that, we pull back the polynomials close to `p`,
+  refine ((comp_right_continuous_map ℝ (attach_bound (f : C(X, ℝ)))).continuous_at p).tendsto
+    .frequently_map _ _ frequently_mem_polynomials,
+  -- but need to show that those pullbacks are actually in `A`.
+  rintros _ ⟨g, ⟨-,rfl⟩⟩,
+  simp,
+  apply polynomial_comp_attach_bound_mem,
+end
+
+theorem abs_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f : A) :
+  (f : C(X, ℝ)).abs ∈ A.topological_closure :=
+begin
+  let M := ∥f∥,
+  let f' := attach_bound (f : C(X, ℝ)),
+  let abs : C(set.Icc (-∥f∥) (∥f∥), ℝ) :=
+  { to_fun := λ x : set.Icc (-∥f∥) (∥f∥), _root_.abs (x : ℝ) },
+  change (abs.comp f') ∈ A.topological_closure,
+  apply comp_attach_bound_mem_closure,
+end
+
+theorem inf_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f g : A) :
+  (f : C(X, ℝ)) ⊓ (g : C(X, ℝ)) ∈ A.topological_closure :=
+begin
+  rw inf_eq,
+  refine A.topological_closure.smul_mem
+    (A.topological_closure.sub_mem
+      (A.topological_closure.add_mem (A.subalgebra_topological_closure f.property)
+          (A.subalgebra_topological_closure g.property)) _) _,
+  exact_mod_cast abs_mem_subalgebra_closure A _,
+end
+
+theorem inf_mem_closed_subalgebra (A : subalgebra ℝ C(X, ℝ)) (h : is_closed (A : set C(X, ℝ)))
+  (f g : A) : (f : C(X, ℝ)) ⊓ (g : C(X, ℝ)) ∈ A :=
+begin
+  convert inf_mem_subalgebra_closure A f g,
+  apply subalgebra.ext_set,
+  symmetry,
+  erw closure_eq_iff_is_closed,
+  exact h,
+end
+
+theorem sup_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f g : A) :
+  (f : C(X, ℝ)) ⊔ (g : C(X, ℝ)) ∈ A.topological_closure :=
+begin
+  rw sup_eq,
+  refine A.topological_closure.smul_mem
+    (A.topological_closure.add_mem
+      (A.topological_closure.add_mem (A.subalgebra_topological_closure f.property)
+          (A.subalgebra_topological_closure g.property)) _) _,
+  exact_mod_cast abs_mem_subalgebra_closure A _,
+end
+
+theorem sup_mem_closed_subalgebra (A : subalgebra ℝ C(X, ℝ)) (h : is_closed (A : set C(X, ℝ)))
+  (f g : A) : (f : C(X, ℝ)) ⊔ (g : C(X, ℝ)) ∈ A :=
+begin
+  convert sup_mem_subalgebra_closure A f g,
+  apply subalgebra.ext_set,
+  symmetry,
+  erw closure_eq_iff_is_closed,
+  exact h,
+end
+
 -- Here's the fun part of Stone-Weierstrass!
 theorem sublattice_closure_eq_top
-  (A : set C(X, ℝ)) (nA : A.nonempty)
-  (inf_mem : ∀ f g ∈ A, f ⊓ g ∈ A) (sup_mem : ∀ f g ∈ A, f ⊔ g ∈ A)
-  (sep : A.separates_points_strongly) :
-  closure A = ⊤ :=
+  (L : set C(X, ℝ)) (nA : L.nonempty)
+  (inf_mem : ∀ f g ∈ L, f ⊓ g ∈ L) (sup_mem : ∀ f g ∈ L, f ⊔ g ∈ L)
+  (sep : L.separates_points_strongly) :
+  closure L = ⊤ :=
 begin
   -- We start by boiling down to a statement about close approximation.
   apply eq_top_iff.mpr,
@@ -309,7 +336,7 @@ begin
   -/
   dsimp [set.separates_points_strongly] at sep,
 
-  let g : Π x y, A := λ x y, (sep f x y).some,
+  let g : Π x y, L := λ x y, (sep f x y).some,
   let w₁ : ∀ x y, g x y x = f x := λ x y, (sep f x y).some_spec.1,
   let w₂ : ∀ x y, g x y y = f y := λ x y, (sep f x y).some_spec.2,
 
@@ -338,7 +365,7 @@ begin
     λ x, nonempty_of_union_eq_top_of_nonempty _ _ nX (ys_w x),
 
   -- Thus for each `x` we have the desired `h x : A` so `f z - ε < h x z` everywhere.
-  let h : Π x, A := λ x,
+  let h : Π x, L := λ x,
     ⟨(ys x).sup' (ys_nonempty x) (λ y, (g x y : C(X, ℝ))),
       finset.sup'_mem _ sup_mem _ _ _ (λ y, (g x y).2)⟩,
   have lt_h : ∀ x z, f z - ε < h x z,
@@ -381,7 +408,7 @@ begin
 
   -- Finally our candidate function is the infimum over `x ∈ xs` of the `h x`.
   -- This function is then globally less than `f z + ε`.
-  let k : (A : Type*) :=
+  let k : (L : Type*) :=
     ⟨xs.inf' xs_nonempty (λ x, (h x : C(X, ℝ))),
       finset.inf'_mem _ inf_mem _ _ _ (λ x, (h x).2)⟩,
 
@@ -415,13 +442,13 @@ begin
   -- and separates points strongly (since `A` does),
   -- so we can apply `sublattice_closure_eq_top`.
   apply subalgebra.ext_set,
-  let B := A.topological_closure,
-  have n : set.nonempty (B : set C(X, ℝ)) :=
+  let L := A.topological_closure,
+  have n : set.nonempty (L : set C(X, ℝ)) :=
     ⟨(1 : C(X, ℝ)), A.subalgebra_topological_closure A.one_mem⟩,
   convert sublattice_closure_eq_top
-    (B : set C(X, ℝ)) n
-    (λ f g fm gm, inf_mem_closed_subalgebra B A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
-    (λ f g fm gm, sup_mem_closed_subalgebra B A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
+    (L : set C(X, ℝ)) n
+    (λ f g fm gm, inf_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
+    (λ f g fm gm, sup_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (subalgebra.separates_points.strongly
       (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
   { simp, },

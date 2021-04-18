@@ -1175,9 +1175,16 @@ end
 omit hs
 
 /-- An independent indexed family of elements in a complete lattice is one in which every element
-  is disjoint from the `Sup` of the rest. -/
+  is disjoint from the `supr` of the rest.
+
+  Example: an indexed family of non-zero elements in a
+  vector space is linearly independent iff the indexed family of subspaces they generate is
+  independent in this sense.
+
+  Example: an indexed family of submodules of a module is independent in this sense if
+  and only the natural map from the direct sum of the submodules to the module is injective. -/
 def independent {ι : Sort*} {α : Type*} [complete_lattice α] (s : ι → α): Prop :=
-∀ ⦃i : ι⦄, disjoint (s i) (⨆ (j ≠ i), s j)
+∀ i : ι, disjoint (s i) (⨆ (j ≠ i), s j)
 
 lemma sindependent_iff {α : Type*} [complete_lattice α] (s : set α) :
   sindependent s ↔ independent (coe : s → α) :=
@@ -1199,6 +1206,6 @@ lemma independent_pempty (t : pempty → α) : independent t.
 
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
 lemma independent.disjoint {x y : ι} (h : x ≠ y) : disjoint (t x) (t y) :=
-disjoint_Sup_right (@ht x) ⟨y, by simp [h.symm]⟩
+disjoint_Sup_right (ht x) ⟨y, by simp [h.symm]⟩
 
 end complete_lattice

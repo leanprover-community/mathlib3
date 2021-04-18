@@ -1504,6 +1504,20 @@ theorem forall_mem_insert [d : decidable_eq α]
   (∀ x, x ∈ insert a s → p x) ↔ p a ∧ (∀ x, x ∈ s → p x) :=
 by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq]
 
+lemma eq_or_ne {α : Type*} [D : decidable_eq α] {x y : α} : (x = y)∨ (x ≠ y) :=
+begin
+  have A1:decidable (x=y) := D x y,
+  cases A1,
+  {
+    right,
+    apply A1,
+  },
+  {
+    left,
+    apply A1,
+  }
+end
+
 end finset
 
 /-- Equivalence between the set of natural numbers which are `≥ k` and `ℕ`, given by `n → n - k`. -/

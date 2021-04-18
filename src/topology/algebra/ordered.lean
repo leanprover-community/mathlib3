@@ -2526,20 +2526,20 @@ end
 
 variables {δ : Type*} [linear_order δ] [topological_space δ] [order_closed_topology δ]
 
-/--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
+/-- Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
 lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f a) (f b) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf
 
-/--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
+/-- Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
 lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f b) (f a) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
 
-/--Intermediate Value Theorem for continuous functions on closed intervals, unordered case.-/
+/-- Intermediate Value Theorem for continuous functions on closed intervals, unordered case. -/
 lemma intermediate_value_interval {a b : α} {f : α → δ} (hf : continuous_on f (interval a b)) :
   interval (f a) (f b) ⊆ f '' interval a b :=
-by cases le_total (f a) (f b); simp [h, is_preconnected_interval.intermediate_value, hf]
+by cases le_total (f a) (f b); simp [*, is_preconnected_interval.intermediate_value]
 
 lemma intermediate_value_Ico {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Ico (f a) (f b) ⊆ f '' (Ico a b) :=

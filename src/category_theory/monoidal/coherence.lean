@@ -33,6 +33,21 @@ inductive monoidal_hom : C → C → Type u₁
 | _ _ (monoidal_hom.comp f g) := monoidal_to_hom f ≫ monoidal_to_hom g
 | _ _ (monoidal_hom.tensor f g) := monoidal_to_hom f ⊗ monoidal_to_hom g
 
+instance monoidal_to_hom_is_iso : ∀ {X Y : C} (h : monoidal_hom X Y), is_iso (monoidal_to_hom h)
+| _ _ monoidal_hom.id := is_iso.id _
+| _ _ monoidal_hom.α_hom := is_iso.of_iso (α_ _ _ _)
+| _ _ monoidal_hom.α_inv := is_iso.of_iso_inv (α_ _ _ _)
+| _ _ monoidal_hom.l_hom := is_iso.of_iso (λ_ _)
+| _ _ monoidal_hom.l_inv := is_iso.of_iso_inv (λ_ _)
+| _ _ monoidal_hom.ρ_hom := is_iso.of_iso (ρ_ _)
+| _ _ monoidal_hom.ρ_inv := is_iso.of_iso_inv (ρ_ _)
+| _ _ (monoidal_hom.comp f g) :=
+             @is_iso.comp_is_iso _ _ _ _ _ _ _ (monoidal_to_hom_is_iso f) (monoidal_to_hom_is_iso g)
+| _ _ (monoidal_hom.tensor f g) :=
+             @monoidal_category.tensor_is_iso _ _ _ _ _ _ _
+                _ (monoidal_to_hom_is_iso _)
+                _ (monoidal_to_hom_is_iso _)
+
 -- The monoidal coherence theorem!
 theorem coherence {X Y : C} (h h' : monoidal_hom X Y) : monoidal_to_hom h = monoidal_to_hom h' :=
 sorry

@@ -159,8 +159,6 @@ def tensor_obj (X Y : center C) : center C :=
 
     end, }⟩
 
-#check id_tensor_associator_naturality
-
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 @[simps]
 def tensor_hom {X₁ Y₁ X₂ Y₂ : center C} (f : X₁ ⟶ Y₁) (g : X₂ ⟶ Y₂) :

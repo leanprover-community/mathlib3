@@ -452,7 +452,7 @@ topological_space.opens.ext $ by {simp, refl}
 lemma basic_open_mul (f g : R) : basic_open (f * g) = basic_open f ⊓ basic_open g :=
 topological_space.opens.ext $ by {simp [zero_locus_singleton_mul]}
 
-lemma basic_open_pow (f : R) (n : ℕ) (hn : n > 0) : basic_open (f ^ n) = basic_open f :=
+@[simp] lemma basic_open_pow (f : R) (n : ℕ) (hn : n > 0) : basic_open (f ^ n) = basic_open f :=
 topological_space.opens.ext $ by simpa using zero_locus_singleton_pow f n hn
 
 lemma is_topological_basis_basic_opens : topological_space.is_topological_basis

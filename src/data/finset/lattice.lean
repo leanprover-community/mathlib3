@@ -148,14 +148,7 @@ lemma sup_mem
   (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.sup p ∈ s :=
-begin
-  classical,
-  apply finset.cons_induction_on t,
-  { exact w₁, },
-  { intros a s' nm ih,
-    rw finset.sup_cons,
-    apply w₂ _ _ (h a) ih, },
-end
+@sup_induction _ _ _ _ _ s w₁ w₂ (λ i _, h i)
 
 end sup
 
@@ -248,7 +241,7 @@ lemma inf_mem
   (s : set α) (w₁ : ⊤ ∈ s) (w₂ : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.inf p ∈ s :=
-@sup_mem (order_dual α) _ s w₁ w₂ _ t p h
+@inf_induction _ _ _ _ _ s w₁ w₂ (λ i _, h i)
 
 end inf
 
@@ -343,19 +336,7 @@ lemma sup'_mem
   (s : set α) (w : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.sup' H p ∈ s :=
-begin
-  classical,
-  revert H,
-  apply finset.cons_induction_on t,
-  { rintro ⟨-, ⟨⟩⟩, },
-  { intros a s' nm ih H,
-    by_cases H' : s'.nonempty,
-    { rw finset.sup'_cons H',
-      apply w _ _ (h a) (ih H'), },
-    { have p : s' = ∅ := finset.not_nonempty_iff_eq_empty.mp H',
-      subst p,
-      simp [h a], }, },
-end
+sup'_induction H p w (λ i _, h i)
 
 end sup'
 
@@ -417,7 +398,7 @@ lemma inf'_mem {α : Type*} [semilattice_inf α]
   (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.inf' H p ∈ s :=
-@sup'_mem (order_dual α) _ s w _ t H p h
+inf'_induction H p w (λ i _, h i)
 
 end inf'
 

@@ -1,5 +1,6 @@
 import category_theory.monoidal.braided
 import category_theory.reflects_isomorphisms
+import category_theory.monoidal.End
 
 open category_theory
 open category_theory.monoidal_category
@@ -48,9 +49,36 @@ instance monoidal_to_hom_is_iso : ∀ {X Y : C} (h : monoidal_hom X Y), is_iso (
                 _ (monoidal_to_hom_is_iso _)
                 _ (monoidal_to_hom_is_iso _)
 
+section
+local attribute [instance] endofunctor_monoidal_category
+local attribute [reducible] endofunctor_monoidal_category
+local attribute [ext] functor.ext
+
+theorem endofunctor_coherence' {X Y : C ⥤ C} (h : monoidal_hom X Y) :
+  Σ' (p : X = Y), monoidal_to_hom h = eq_to_hom p :=
+begin
+  induction h; dsimp [monoidal_to_hom]; tidy; simp *,
+end.
+
+theorem endofunctor_coherence {X Y : C ⥤ C} (h h' : monoidal_hom X Y) :
+  monoidal_to_hom h = monoidal_to_hom h' :=
+begin
+  obtain ⟨p, w⟩ := endofunctor_coherence' h,
+  obtain ⟨p', w'⟩ := endofunctor_coherence' h',
+  rw [w, w'],
+end
+
+theorem coherence_of_faithful {D : Type u₂} [category.{v₂} D] [monoidal_category D]
+  (F : monoidal_functor C D)
+  (coh : ∀ {X Y : D} (h h' : monoidal_hom X Y), monoidal_to_hom h = monoidal_to_hom h') :
+  ∀ {X Y : C} (h h' : monoidal_hom X Y), monoidal_to_hom h = monoidal_to_hom h' :=
+sorry
+
 -- The monoidal coherence theorem!
 theorem coherence {X Y : C} (h h' : monoidal_hom X Y) : monoidal_to_hom h = monoidal_to_hom h' :=
-sorry
+coherence_of_faithful (tensoring_right_monoidal C) (λ _ _ h h', endofunctor_coherence h h') h h'
+
+end
 
 /- We don't use `nonempty` here because `nonempty` is a class and we don't want a class here. -/
 inductive monoidal_eq (X Y : C) : Prop

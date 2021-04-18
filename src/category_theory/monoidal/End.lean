@@ -70,4 +70,12 @@ def tensoring_right_monoidal : monoidal_functor C (C ⥤ C) :=
     by tidy⟩⟩,
   ..tensoring_right C }.
 
+instance : faithful (tensoring_right_monoidal C).to_functor :=
+{ map_injective' := λ X Y f g w,
+  begin
+    have := congr_app w (𝟙_ C),
+    dsimp at this,
+    simpa using this,
+  end }
+
 end category_theory

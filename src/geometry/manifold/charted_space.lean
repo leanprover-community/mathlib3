@@ -861,9 +861,9 @@ namespace open_embedding
 variable [nonempty α]
 
 /-- An open embedding of `α` into `H` induces an `H`-charted space structure on `α`.
-See `ocal_homeomorph.singleton_charted_space` -/
+See `local_homeomorph.singleton_charted_space` -/
 def singleton_charted_space {f : α → H} (h : open_embedding f) :
-  charted_space H α := (h.to_local_homeomorph f).singleton_charted_space (h.source f)
+  charted_space H α := (h.to_local_homeomorph f).singleton_charted_space (by simp)
 
 lemma singleton_charted_space_chart_at_eq {f : α → H} (h : open_embedding f) {x : α} :
   ⇑(@chart_at H _ α _ (h.singleton_charted_space) x) = f := rfl
@@ -871,7 +871,7 @@ lemma singleton_charted_space_chart_at_eq {f : α → H} (h : open_embedding f) 
 lemma singleton_has_groupoid {f : α → H} (h : open_embedding f)
   (G : structure_groupoid H) [closed_under_restriction G] :
   @has_groupoid _ _ _ _ h.singleton_charted_space G :=
-(h.to_local_homeomorph f).singleton_has_groupoid (h.source f) G
+(h.to_local_homeomorph f).singleton_has_groupoid (by simp) G
 
 end open_embedding
 

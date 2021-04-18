@@ -66,6 +66,11 @@ when applicable:
   ```
   instance opposite.Z [Z M] : Z (opposite M) := ...`
   ```
+* Instances transferred to `ulift M`, like `ulift.monoid`.
+  See `algebra.group.ulift` for more examples.
+  ```
+  instance ulift.Z [Z M] : Z (ulift M) := ...
+  ```
 * Definitions for transferring the proof fields of instances along
   injective or surjective functions that agree on the data fields,
   like `function.injective.monoid` and `function.surjective.monoid`.

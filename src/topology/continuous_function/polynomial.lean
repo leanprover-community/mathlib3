@@ -45,6 +45,21 @@ def to_continuous_map_on (p : polynomial R) (X : set R) : C(X, R) :=
 end
 
 section
+variables {α : Type*} [topological_space α]
+  [comm_semiring R] [topological_space R] [topological_semiring R]
+
+@[simp] lemma polynomial.aeval_continuous_map_apply (g : polynomial R) (f : C(α, R)) (x : α) :
+  ((polynomial.aeval f) g) x = g.eval (f x) :=
+begin
+  apply polynomial.induction_on' g,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n a, simp [pi.pow_apply f x n], },
+end
+
+end
+
+
+section
 
 noncomputable theory
 

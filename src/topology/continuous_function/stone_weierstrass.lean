@@ -43,30 +43,7 @@ noncomputable theory
 
 namespace continuous_map
 
-
-variables {X : Type*}
-variables [topological_space X] [compact_space X]
-
-lemma apply_le_norm (f : C(X, ℝ)) (x : X) : f x ≤ ∥f∥ :=
-le_trans (le_abs.mpr (or.inl (le_refl (f x)))) (f.norm_coe_le_norm x)
-
-lemma neg_norm_le_apply (f : C(X, ℝ)) (x : X) : -∥f∥ ≤ f x :=
-le_trans (neg_le_neg (f.norm_coe_le_norm x)) (neg_le.mp (neg_le_abs_self (f x)))
-
-section
-variables {R : Type*} [comm_semiring R] [topological_space R] [topological_semiring R]
-
-@[simp] lemma polynomial.aeval_continuous_map_apply (g : polynomial R) (f : C(X, R)) (x : X) :
-  ((polynomial.aeval f) g) x = g.eval (f x) :=
-begin
-  apply polynomial.induction_on' g,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n a, simp [pi.pow_apply f x n], },
-end
-
-end
-
--- Everything above this point belongs somewhere else!
+variables {X : Type*} [topological_space X] [compact_space X]
 
 /--
 Turn a function `f : C(X, ℝ)` into a continuous map into `set.Icc (-∥f∥) (∥f∥)`,

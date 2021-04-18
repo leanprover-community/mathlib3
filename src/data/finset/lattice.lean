@@ -144,7 +144,7 @@ end
 
 -- If we acquire sublattices
 -- the hypotheses should be reformulated as `s : subsemilattice_inf_bot`
-lemma finset.sup_mem {α : Type*} [semilattice_sup_bot α]
+lemma sup_mem {α : Type*} [semilattice_sup_bot α]
   (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.sup p ∈ s :=
@@ -244,7 +244,7 @@ lemma inf_induction {p : α → Prop} (ht : p ⊤) (hp : ∀ (a₁ a₂ : α), p
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf f) :=
 @sup_induction (order_dual α) _ _ _ _ _ ht hp hs
 
-lemma finset.inf_mem {α : Type*} [semilattice_inf_top α]
+lemma inf_mem {α : Type*} [semilattice_inf_top α]
   (s : set α) (w₁ : ⊤ ∈ s) (w₂ : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.inf p ∈ s :=
@@ -339,7 +339,7 @@ begin
       { exact ⟨b, mem_cons.2 (or.inr hb), sup_eq_right.2 h⟩, }, }, },
 end
 
-lemma finset.sup'_mem {α : Type*} [semilattice_sup α]
+lemma sup'_mem {α : Type*} [semilattice_sup α]
   (s : set α) (w : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.sup' H p ∈ s :=
@@ -413,7 +413,7 @@ lemma inf'_induction {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p 
 lemma exists_mem_eq_inf' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.inf' H f = f b :=
 @exists_mem_eq_sup' (order_dual α) _ _ _ H f _
 
-lemma finset.inf'_mem {α : Type*} [semilattice_inf α]
+lemma inf'_mem {α : Type*} [semilattice_inf α]
   (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.inf' H p ∈ s :=

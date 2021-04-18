@@ -1438,7 +1438,8 @@ lemma deriv_within_integral_left
 /-!
 ### Fundamental theorem of calculus, part 2
 
-This section contains theorems pertaining to FTC-2 for interval integrals. -/
+This section contains theorems pertaining to FTC-2 for interval integrals.
+-/
 
 variable {f' : ℝ → E}
 
@@ -1536,12 +1537,20 @@ theorem integral_eq_sub_of_has_deriv_at'_of_le (hab : a ≤ b)
   ∫ y in a..b, f' y = f b - f a :=
 integral_eq_sub_of_has_deriv_at' hcont (by rwa [min_eq_left hab, max_eq_right hab]) hcont'
 
+theorem has_deriv_at.continuous_on {s : set ℝ} {f f' : ℝ → E}
+  (hderiv : ∀ x ∈ s, has_deriv_at f (f' x) x) : continuous_on f s :=
+λ x hx, (hderiv x hx).continuous_at.continuous_within_at
+
+theorem continuous_at.continuous_on {s : set ℝ} {f : ℝ → ℝ}
+  (hcont : ∀ x ∈ s, continuous_at f x) : continuous_on f s :=
+λ x hx, (hcont x hx).continuous_within_at
+
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` has a derivative at `f' x` for all `x` in
   `[a, b]` and `f'` is continuous on `[a, b]`, then `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_at (hderiv : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
-integral_eq_sub_of_has_deriv_at' (λ x hx, (hderiv x hx).continuous_at.continuous_within_at)
+integral_eq_sub_of_has_deriv_at' (has_deriv_at.continuous_on hderiv)
   (λ x hx, hderiv _ (mem_Icc_of_Ioo hx)) hcont'
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is differentiable at every `x` in `[a, b]` and
@@ -1566,14 +1575,8 @@ lemma integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
   (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
   (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
   ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a :=
-begin
-  have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
-  have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
-  rw integral_eq_sub_of_has_deriv_at,
-  intros x hx;
-  { exact (hu x hx).mul (hv x hx) },
-  { exact (hcu'.mul hcv).add (hcu.mul hcv') }
-end
+integral_eq_sub_of_has_deriv_at (λ x hx, (hu x hx).mul (hv x hx)) $
+  (hcu'.mul (has_deriv_at.continuous_on hv)).add ((has_deriv_at.continuous_on hu).mul hcv')
 
 theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
   (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
@@ -1581,13 +1584,54 @@ theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
   (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
   ∫ x in a..b, u x * v' x = u b * v b - u a * v a - ∫ x in a..b, v x * u' x :=
 begin
-  have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
-  have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
+  have hcv := has_deriv_at.continuous_on hv,
   rw [← integral_deriv_mul_eq_sub hu hv hcu' hcv', ← integral_sub],
-  { apply integral_congr,
-    exact λ x hx, by simp [mul_comm] },
-  { exact ((hcu'.mul hcv).add (hcu.mul hcv')).interval_integrable },
+  { exact integral_congr (λ x hx, by simp only [mul_comm, add_sub_cancel']) },
+  { exact ((hcu'.mul hcv).add ((has_deriv_at.continuous_on hu).mul hcv')).interval_integrable },
   { exact (hcv.mul hcu').interval_integrable },
 end
+
+/-!
+### Change of variable
+-/
+
+lemma intermediate_value_interval {α : Type*} [conditionally_complete_linear_order α]
+  [densely_ordered α] [topological_space α] [order_topology α]
+  {δ : Type*} [linear_order δ] [topological_space δ] [order_closed_topology δ]
+  {a b : α} {f : α → δ} (hf : continuous_on f (interval a b)) :
+interval (f a) (f b) ⊆ f '' interval a b :=
+begin
+  cases le_total a b with hab hba,
+  { rw interval_of_le hab at hf ⊢,
+    cases le_total (f a) (f b) with hfab hfba,
+    { simpa only [interval_of_le hfab] using intermediate_value_Icc hab hf },
+    { simpa only [interval_of_ge hfba] using intermediate_value_Icc' hab hf } },
+  { rw interval_of_ge hba at hf ⊢,
+    cases le_total (f a) (f b) with hfab hfba,
+    { simpa only [interval_of_le hfab] using intermediate_value_Icc' hba hf },
+    { simpa only [interval_of_ge hfba] using intermediate_value_Icc hba hf } },
+end
+
+lemma integral_comp_mul_deriv {g f f' : ℝ → ℝ}
+  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (hf' : continuous_on f' (interval a b))
+  (hg : ∀ x ∈ f '' (interval a b), continuous_at g x)
+  (hgm : ∀ x ∈ f '' (interval a b), measurable_at_filter g (𝓝 x)) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
+let hg' := continuous_at.continuous_on hg in
+have h : ∀ x ∈ interval a b, has_deriv_at (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) x,
+{ intros x hx,
+  have hs := interval_subset_interval_left hx,
+  exact (integral_has_deriv_at_right (hg'.mono $ trans (intermediate_value_interval $
+    has_deriv_at.continuous_on $ λ y hy, hf y $ hs hy) $ image_subset f hs).interval_integrable
+      (hgm (f x) ⟨x, hx, rfl⟩) $ hg (f x) ⟨x, hx, rfl⟩).comp _ (hf x hx) },
+by simp_rw [integral_eq_sub_of_has_deriv_at h $ (hg'.comp (has_deriv_at.continuous_on hf) $
+  subset_preimage_image f _).mul hf', integral_same, sub_zero]
+
+lemma integral_comp_mul_deriv' {g f f' : ℝ → ℝ}
+  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (hf' : continuous_on f' (interval a b)) (hg : continuous g) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
+integral_comp_mul_deriv hf hf' (λ x h, hg.continuous_at) (λ x h, hg.measurable.measurable_at_filter)
 
 end interval_integral

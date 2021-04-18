@@ -142,8 +142,8 @@ end
 
 variables {R L M N}
 
-/-- The maximal trivial submodule is functorial. -/
-def maximal_trivial_equiv_hom (f : M →ₗ⁅R,L⁆ N) :
+/-- `maximal_trivial_submodule` is functorial. -/
+def maximal_trivial_hom (f : M →ₗ⁅R,L⁆ N) :
   maximal_trivial_submodule R L M →ₗ⁅R,L⁆ maximal_trivial_submodule R L N :=
 { to_fun    := λ m, ⟨f m, λ x, by
     { have h := congr_arg f (m.property x),
@@ -152,27 +152,27 @@ def maximal_trivial_equiv_hom (f : M →ₗ⁅R,L⁆ N) :
   map_smul' := λ t m, by simpa,
   map_lie'  := λ x m, by simp, }
 
-@[norm_cast, simp] lemma coe_maximal_trivial_equiv_hom_apply
+@[norm_cast, simp] lemma coe_maximal_trivial_hom_apply
   (f : M →ₗ⁅R,L⁆ N) (m : maximal_trivial_submodule R L M) :
-  (maximal_trivial_equiv_hom f m : N) = f m :=
+  (maximal_trivial_hom f m : N) = f m :=
 rfl
 
 /-- The maximal trivial submodules of Lie-equivalent Lie modules are Lie-equivalent. -/
-def maximal_trivial_equiv_of_equiv (e : M ≃ₗ⁅R,L⁆ N) :
+def maximal_trivial_equiv (e : M ≃ₗ⁅R,L⁆ N) :
   maximal_trivial_submodule R L M ≃ₗ⁅R,L⁆ maximal_trivial_submodule R L N :=
-{ to_fun    := maximal_trivial_equiv_hom (e : M →ₗ⁅R,L⁆ N),
-  inv_fun   := maximal_trivial_equiv_hom (e.symm : N →ₗ⁅R,L⁆ M),
+{ to_fun    := maximal_trivial_hom (e : M →ₗ⁅R,L⁆ N),
+  inv_fun   := maximal_trivial_hom (e.symm : N →ₗ⁅R,L⁆ M),
   left_inv  := λ m, by { ext, simp, },
   right_inv := λ n, by { ext, simp, },
-  .. maximal_trivial_equiv_hom (e : M →ₗ⁅R,L⁆ N), }
+  .. maximal_trivial_hom (e : M →ₗ⁅R,L⁆ N), }
 
-@[simp] lemma maximal_trivial_equiv_of_equiv_symm_eq_symm (e : M ≃ₗ⁅R,L⁆ N) :
-  (maximal_trivial_equiv_of_equiv e).symm = maximal_trivial_equiv_of_equiv e.symm :=
+@[simp] lemma maximal_trivial_equiv_symm_eq_symm (e : M ≃ₗ⁅R,L⁆ N) :
+  (maximal_trivial_equiv e).symm = maximal_trivial_equiv e.symm :=
 rfl
 
-@[norm_cast, simp] lemma coe_maximal_trivial_equiv_of_equiv_apply
+@[norm_cast, simp] lemma coe_maximal_trivial_equiv_apply
   (e : M ≃ₗ⁅R,L⁆ N) (m : maximal_trivial_submodule R L M) :
-  (maximal_trivial_equiv_of_equiv e m : N) = e ↑m :=
+  (maximal_trivial_equiv e m : N) = e ↑m :=
 rfl
 
 /-- A linear map between two Lie modules is a morphism of Lie modules iff the Lie algebra action

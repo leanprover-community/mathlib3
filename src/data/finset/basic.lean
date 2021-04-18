@@ -1719,16 +1719,6 @@ begin
   apply B1,
 end
 
-
-lemma le_add_nonnegative {β:Type*} [canonically_ordered_add_monoid β] (a b:β):
-  a ≤ a + b :=
-begin
-  apply le_add_of_nonneg,
-  apply zero_le,
-end
-
-
-
 end finset
 
 /-- Equivalence between the set of natural numbers which are `≥ k` and `ℕ`, given by `n → n - k`. -/

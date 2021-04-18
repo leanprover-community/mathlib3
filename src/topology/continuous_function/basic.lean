@@ -190,8 +190,8 @@ section sup'
 variables [linear_order γ] [order_closed_topology γ]
 
 @[simp]
-lemma sup'_coe {s : finset α} (H : s.nonempty) (f : α → C(β, γ)) :
-  ((s.sup' H f : C(β, γ)) : α → β) = s.sup' H (λ a, (f a : β → γ)) :=
+lemma sup'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
+  ((s.sup' H f : C(β, γ)) : ι → β) = s.sup' H (λ a, (f a : β → γ)) :=
 begin
   classical,
   revert H,
@@ -207,7 +207,7 @@ begin
 end
 
 @[simp]
-lemma sup'_apply {s : finset α} (H : s.nonempty) (f : α → C(β, γ)) (b : β) :
+lemma sup'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
   s.sup' H f b = s.sup' H (λ a, f a b) :=
 begin
   convert finset.sup'_apply H (λ a, (f a : β → γ)) b,
@@ -220,9 +220,14 @@ section inf'
 variables [linear_order γ] [order_closed_topology γ]
 
 @[simp]
-lemma inf'_apply {s : finset α} (H : s.nonempty) (f : α → C(β, γ)) (b : β) :
+lemma inf'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
+  ((s.inf' H f : C(β, γ)) : ι → β) = s.inf' H (λ a, (f a : β → γ)) :=
+@sup'_coe _ (order_dual γ) _ _ _ _ _ _ H f
+
+@[simp]
+lemma inf'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
   s.inf' H f b = s.inf' H (λ a, f a b) :=
-@sup'_apply _ _ (order_dual γ) _ _ _ _ _ _ H f b
+@sup'_apply _ (order_dual γ) _ _ _ _ _ _ H f b
 
 end inf'
 

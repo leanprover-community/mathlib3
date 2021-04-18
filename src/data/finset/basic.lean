@@ -1518,6 +1518,20 @@ begin
   }
 end
 
+lemma lt_or_not_lt {α:Type*} [D:linear_order α] {x y:α}:(x<y)∨ ¬ (x< y) :=
+begin
+  have A1:decidable (x<y) := linear_order.decidable_lt x y,
+  cases A1,
+  {
+    right,
+    apply A1,
+  },
+  {
+    left,
+    apply A1,
+  }
+end
+
 end finset
 
 /-- Equivalence between the set of natural numbers which are `≥ k` and `ℕ`, given by `n → n - k`. -/

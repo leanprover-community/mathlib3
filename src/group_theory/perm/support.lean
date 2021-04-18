@@ -408,35 +408,12 @@ end
 @[simp] lemma disjoint_inv_right_iff : disjoint f g⁻¹ ↔ disjoint f g :=
 by rw [disjoint_comm, disjoint_inv_left_iff, disjoint_comm]
 
-lemma list.mem_foldr_sup_of_mem [semilattice_sup_bot α] {a : α} {l : list α} (h : a ∈ l) :
-  a ≤ (l.foldr (⊔) ⊥) :=
-begin
-  induction l with hd tl hl,
-  { simpa using h },
-  { rw list.mem_cons_iff at h,
-    rcases h with rfl|h,
-    { simp },
-    { simpa using le_sup_right_of_le (hl h) } },
-end
-
-lemma list.exists_of_mem_foldr_sup {l : list (set α)} {a : α} (h : a ∈ l.foldr (⊔) ⊥) :
-  ∃ (s : set α) (hs : s ∈ l), a ∈ s :=
-begin
-  induction l with hd tl hl,
-  { simpa using h },
-  { rw [list.foldr, sup_eq_union, mem_union, ←sup_eq_union] at h,
-    cases h with h h,
-    { exact ⟨hd, list.mem_cons_self _ _, h⟩ },
-    { obtain ⟨s, hs, hs'⟩ := hl h,
-      exact ⟨s, list.mem_cons_of_mem _ hs, hs'⟩ } }
-end
-
 lemma support_prod_of_pairwise_disjoint (l : list (perm α)) (h : l.pairwise disjoint) :
   l.prod.support = (l.map support).foldr (⊔) ⊥ :=
 begin
   induction l with hd tl hl,
   { simp },
-  { simp at h,
+  { rw [list.pairwise_cons] at h,
     have : disjoint hd tl.prod := disjoint_prod_right _ h.left,
     simp [this.support_mul, hl h.right] }
 end

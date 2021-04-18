@@ -51,20 +51,20 @@ When adding a new typeclass `Z` to the algebraic hierarchy
 one should attempt to add the following constructions and results,
 when applicable:
 
-* Instances tranferred elementwise to products, like `prod.monoid`.
+* Instances transferred elementwise to products, like `prod.monoid`.
   See `algebra.group.prod` for more examples.
   ```
   instance prod.Z [Z M] [Z N] : Z (M × N) := ...
   ```
-* Instances tranferred elementwise to pi types, like `pi.monoid`.
+* Instances transferred elementwise to pi types, like `pi.monoid`.
   See `algebra.group.pi` for more examples.
   ```
-  instance pi.Z [∀ i, Z $ f i] : Z (Π i : I, f i) := ...`
+  instance pi.Z [∀ i, Z $ f i] : Z (Π i : I, f i) := ...
   ```
-* Instances tranferred to `opposite M`, like `opposite.monoid`.
+* Instances transferred to `opposite M`, like `opposite.monoid`.
   See `algebra.opposites` for more examples.
   ```
-  instance opposite.Z [Z M] : Z (opposite M) := ...`
+  instance opposite.Z [Z M] : Z (opposite M) := ...
   ```
 * Instances transferred to `ulift M`, like `ulift.monoid`.
   See `algebra.group.ulift` for more examples.
@@ -82,12 +82,12 @@ when applicable:
   def function.surjective.Z [Z M₁] (f : M₁ → M₂) (hf : surjective f)
     (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) : Z M₂ := ...
   ```
-* Instances tranferred elementwise to `finsupp`s, like `finsupp.semigroup`.
+* Instances transferred elementwise to `finsupp`s, like `finsupp.semigroup`.
   See `data.finsupp.pointwise` for more examples.
   ```
   instance finsupp.Z [Z β] : Z (α →₀ β) := ...
   ```
-* Instances tranferred elementwise to `set`s, like `set.monoid`.
+* Instances transferred elementwise to `set`s, like `set.monoid`.
   See `algebra.pointwise` for more examples.
   ```
   instance set.Z [Z α] : Z (set α) := ...

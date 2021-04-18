@@ -131,7 +131,7 @@ ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
 by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul] }
 
-lemma smul_eq_C_mul (a : R) : a • p = (C a) * p := by simp [ext_iff]
+lemma smul_eq_C_mul (a : R) : a • p = C a * p := by simp [ext_iff]
 
 lemma support_mul_X_pow (c : R) (n : ℕ) (H : c ≠ 0) : (C c * X^n).support = singleton n :=
 by rw [C_mul_X_pow_eq_monomial, support_monomial n c H]

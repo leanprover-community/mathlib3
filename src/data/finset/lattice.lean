@@ -148,7 +148,7 @@ lemma sup_mem
   (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.sup p ∈ s :=
-@sup_induction _ _ _ _ _ s w₁ w₂ h
+@sup_induction _ _ _ _ _ (∈ s) w₁ w₂ h
 
 end sup
 
@@ -241,7 +241,7 @@ lemma inf_mem
   (s : set α) (w₁ : ⊤ ∈ s) (w₂ : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.inf p ∈ s :=
-@inf_induction _ _ _ _ _ s w₁ w₂ h
+@inf_induction _ _ _ _ _ (∈ s) w₁ w₂ h
 
 end inf
 

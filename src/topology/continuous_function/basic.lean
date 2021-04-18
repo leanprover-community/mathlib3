@@ -130,6 +130,10 @@ pi.lt_def
 instance has_sup [linear_order β] [order_closed_topology β] : has_sup C(α, β) :=
 { sup := λ f g, { to_fun := λ a, max (f a) (g a), } }
 
+lemma sup_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
+  ((f ⊔ g : C(α, β)) : α → β) = (f ⊔ g : α → β) :=
+by { ext, refl, }
+
 @[simp] lemma sup_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
   (f ⊔ g) a = max (f a) (g a) :=
 rfl
@@ -143,6 +147,10 @@ instance [linear_order β] [order_closed_topology β] : semilattice_sup C(α, β
 
 instance has_inf [linear_order β] [order_closed_topology β] : has_inf C(α, β) :=
 { inf := λ f g, { to_fun := λ a, min (f a) (g a), } }
+
+lemma inf_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
+  ((f ⊓ g : C(α, β)) : α → β) = (f ⊓ g : α → β) :=
+by { ext, refl, }
 
 @[simp] lemma inf_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
   (f ⊓ g) a = min (f a) (g a) :=
@@ -160,6 +168,51 @@ instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
   ..continuous_map.semilattice_sup }
 
 -- TODO transfer this lattice structure to `bounded_continuous_function`
+
+section sup'
+variables [linear_order γ] [order_closed_topology γ]
+
+@[simp]
+lemma sup'_coe {s : finset α} (H : s.nonempty) (f : α → C(β, γ)) :
+  ((s.sup' H f : C(β, γ)) : α → β) = s.sup' H (λ a, (f a : β → γ)) :=
+begin
+  classical,
+  revert H,
+  apply finset.cons_induction_on s,
+  { rintro ⟨a, ⟨⟩⟩, },
+  { rintros a s' nm ih n',
+    by_cases n : s'.nonempty,
+    { rw [finset.sup'_cons n, finset.sup'_cons n],
+      simp [sup_coe, ih n], },
+    { have e : s' = ∅ := finset.not_nonempty_iff_eq_empty.mp n,
+      subst e,
+      refl, }, },
+end
+
+@[simp]
+lemma sup'_apply {s : finset α} (H : s.nonempty) (f : α → C(β, γ)) (b : β) :
+  s.sup' H f b = s.sup' H (λ a, f a b) :=
+begin
+  convert finset.sup'_apply H (λ a, (f a : β → γ)) b,
+  simp,
+end
+
+end sup'
+
+section inf'
+variables [linear_order γ] [order_closed_topology γ]
+
+@[simp]
+lemma inf'_coe {s : finset α} (H : s.nonempty) (f : α → C(β, γ)) :
+  ((s.inf' H f : C(β, γ)) : α → β) = s.inf' H (λ a, (f a : β → γ)) :=
+@sup'_coe _ _ (order_dual γ) _ _ _ _ _ _ H f
+
+@[simp]
+lemma inf'_apply {s : finset α} (H : s.nonempty) (f : α → C(β, γ)) (b : β) :
+  s.inf' H f b = s.inf' H (λ a, f a b) :=
+@sup'_apply _ _ (order_dual γ) _ _ _ _ _ _ H f b
+
+end inf'
 
 end lattice
 

@@ -137,27 +137,19 @@ def tensor_obj (X Y : center C) : center C :=
         iso.inv_hom_id, category.comp_id],
     end,-/
     begin
+      -- First make it canonical with explicit associators
       dsimp,
       simp only [comp_tensor_id, id_tensor_comp, category.assoc, half_braiding.monoidal],
-      simp only [comp_eq_coherent_comp],
-      simp only [α_hom_tensor_id_coherent_comp, id_tensor_α_hom_coherent_comp, α_hom_coherent_comp, α_inv_tensor_id_coherent_comp,
-  id_tensor_α_inv_coherent_comp, coherent_comp_α_inv, coherent_comp_id_coherent_comp', α_inv_coherent_comp,
-  coherent_comp_α_hom],
-
-      --simp,
-      /-rw [pentagon_assoc, pentagon_inv_assoc, iso.eq_inv_comp, ←pentagon_assoc,
-        ←id_tensor_comp_assoc, iso.hom_inv_id, tensor_id, category.id_comp,
-        ←associator_naturality_assoc, cancel_epi, cancel_epi,
-        ←associator_inv_naturality_assoc (X.2.β U).hom,
-        associator_inv_naturality_assoc _ _ (Y.2.β U').hom, tensor_id, tensor_id,
-        id_tensor_comp_tensor_id_assoc, associator_naturality_assoc (X.2.β U).hom,
-        ←associator_naturality_assoc _ _ (Y.2.β U').hom, tensor_id, tensor_id,
-        tensor_id_comp_id_tensor_assoc, ←id_tensor_comp_tensor_id, tensor_id, category.comp_id,
-        ←is_iso.inv_comp_eq, inv_tensor, is_iso.inv_id, is_iso.iso.inv_inv, pentagon_assoc,
-        iso.hom_inv_id_assoc, cancel_epi, cancel_epi, ←is_iso.inv_comp_eq, is_iso.iso.inv_hom,
-        ←pentagon_inv_assoc, ←comp_tensor_id_assoc, iso.inv_hom_id, tensor_id, category.id_comp,
-        ←associator_inv_naturality_assoc, cancel_epi, cancel_epi, ←is_iso.inv_comp_eq, inv_tensor,
-        is_iso.iso.inv_hom, is_iso.inv_id, pentagon_inv_assoc, iso.inv_hom_id, category.comp_id],-/
+      -- Then hide all the associators (maybe this could be a simp-set?)
+      simp only [comp_eq_coherent_comp, α_hom_tensor_id_coherent_comp, tensor_id_assoc,
+        associate_morphisms, id_tensor_α_hom_coherent_comp, α_hom_coherent_comp,
+        α_inv_tensor_id_coherent_comp, id_tensor_α_inv_coherent_comp, coherent_comp_α_inv,
+        coherent_comp_id_coherent_comp', α_inv_coherent_comp, coherent_comp_α_hom, tensor_id],
+      -- Restore the compositions which are up to eq, not just up to iso
+      simp only [←comp_eq_coherent_comp],
+      -- Finish!
+      rw [coherent_reassoc (id_tensor_comp_tensor_id _ _),
+          coherent_reassoc (tensor_id_comp_id_tensor _ _)],
     end,
     naturality' := λ U U' f,
     begin

@@ -161,16 +161,15 @@ begin
   -- We start by boiling down to a statement about close approximation.
   apply eq_top_iff.mpr,
   rintros f -,
-  refine filter.frequently.mem_closure _,
-  refine (filter.has_basis.frequently_iff metric.nhds_basis_ball).mpr _,
-  intros ε pos,
+  refine filter.frequently.mem_closure
+    ((filter.has_basis.frequently_iff metric.nhds_basis_ball).mpr (λ ε pos, _)),
   simp only [exists_prop, metric.mem_ball],
 
   -- It will be helpful to assume `X` is nonempty later,
   -- so we get that out of the way here.
   by_cases nX : nonempty X,
   swap,
-  refine ⟨nA.some, (dist_lt_iff _ _ pos).mpr (λ x, false.elim (nX ⟨x⟩)), nA.some_spec⟩,
+  exact ⟨nA.some, (dist_lt_iff _ _ pos).mpr (λ x, false.elim (nX ⟨x⟩)), nA.some_spec⟩,
 
   /-
   The strategy now is to pick a family of continuous functions `g x y` in `A`
@@ -310,7 +309,7 @@ begin
 end
 
 /--
-An alternative statement of Weierstrass' theorem.
+An alternative statement of the Stone-Weierstrass theorem.
 
 If `A` is a subalgebra of `C(X, ℝ)` which separates points,
 every real-valued continuous function on `X` is a uniform limit of elements of `A`.

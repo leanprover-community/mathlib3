@@ -361,8 +361,6 @@ instance : add_monoid surreal :=
   zero_add  := surreal.zero_add,
   add_zero  := surreal.add_zero }
 
-instance : add_semigroup surreal := by apply_instance
-
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
 -- TODO construct the remaining instances:

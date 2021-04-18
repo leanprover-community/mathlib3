@@ -66,20 +66,6 @@ end
 
 end
 
-open_locale topological_space
-
-lemma inf'_mem_filter {α : Type*} [topological_space α]
-  {ι : Type*} (t : finset ι) (H : t.nonempty)
-  (p : ι → set α) (F : filter α) (h : ∀ i, i ∈ t → p i ∈ F) :
-  t.inf' H p ∈ F :=
-finset.inf'_mem F.sets F.inter_sets t H p h
-
-lemma inf'_mem_nhds {α : Type*} [topological_space α]
-  {ι : Type*} (t : finset ι) (H : t.nonempty)
-  (p : ι → set α) (x : α) (h : ∀ i, i ∈ t → p i ∈ 𝓝 x) :
-  t.inf' H p ∈ 𝓝 x :=
-inf'_mem_filter t H p (𝓝 x) h
-
 -- Everything above this point belongs somewhere else!
 
 /--
@@ -186,6 +172,8 @@ begin
   exact h,
 end
 
+open_locale topological_space
+
 -- Here's the fun part of Stone-Weierstrass!
 theorem sublattice_closure_eq_top
   (L : set C(X, ℝ)) (nA : L.nonempty)
@@ -234,7 +222,8 @@ begin
 
   -- Fixing `x` for a moment, we have a family of functions `λ y, g x y`
   -- which on different patches (the `U x y`) are greater than `f z - ε`.
-  -- Taking the supremum of these functions corresponding to a finite collection of patches
+  -- Taking the supremum of these functions
+  -- indexed by a finite collection of patches which cover `X`
   -- will give us an element of `A` that is globally greater than `f z - ε`.
 
   -- Since `X` is compact, for every `x` there is some finset `ys t`
@@ -268,20 +257,17 @@ begin
       exact (lt_add_iff_pos_right _).mpr pos, }, },
 
   -- For each `x`, we can take the finite intersection of the `V x y` corresponding to `y ∈ ys x`.
-  let W : Π x, set X := λ x, (ys x).inf' (ys_nonempty x) (λ y, V x y),
+  let W : Π x, set X := λ x, (⋂ y ∈ ys x, V x y),
   -- This is still a neighbourhood of `x`.
   have W_nhd : ∀ x, W x ∈ 𝓝 x :=
-    λ x, inf'_mem_nhds _ _ _ _ (λ y m, V_nhd_x x y),
-    -- TODO: Or do we just use:
-    -- λ x, finset.inf'_mem _ (𝓝 x).inter_sets _ _ _ (λ y m, V_nhd_x x y),
+    λ x, (filter.bInter_finset_mem_sets (ys x)).2 (λ y m, V_nhd_x x y),
   -- Locally on each `W x`, we have `h x z < f z + ε`, since `h x` is a supremum of the `g x y`.
   have h_lt : ∀ (x) (z ∈ W x), h x z < f z + ε,
   { intros x z zm,
     dsimp [h],
     simp only [continuous_map.sup'_apply, finset.sup'_lt_iff],
-    intros y ys,
-    have zm' : z ∈ V x y := set.mem_of_mem_of_subset zm (finset.inf'_le (V x) ys),
-    exact zm', },
+    intros y ym,
+    convert set.mem_of_mem_of_subset zm (set.bInter_subset_of_mem ym), },
 
   -- Since `X` is compact, there is some finset `ys t`
   -- so the union of the `W x` for `x ∈ xs` still covers everything.

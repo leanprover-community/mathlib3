@@ -46,10 +46,11 @@ begin
   apply mul_le_mul_of_nonneg_left _ (pow_pos ha 3).le,
   apply le_of_pow_le_pow _ hdenom.le zero_lt_two,
   rw [mul_pow, sqr_sqrt hsqrt.le, ← sub_nonneg],
-  calc _ = 2 * (a ^ 2 * (b ^ 2 - c ^ 2)) ^ 2 + (b ^ 4 - c ^ 4) ^ 2 +
-          (2 * (a ^ 2 * b * c - b ^ 2 * c ^ 2)) ^ 2 : by ring
-     ... ≥ 0 : add_nonneg (add_nonneg (mul_nonneg zero_le_two (pow_two_nonneg _))
-                 (pow_two_nonneg _)) (pow_two_nonneg _)
+  calc  (a ^ 4 + b ^ 4 + c ^ 4) ^ 2 - a ^ 2 * ((a ^ 3) ^ 2 + 8 * b ^ 3 * c ^ 3)
+      = 2 * (a ^ 2 * (b ^ 2 - c ^ 2)) ^ 2 + (b ^ 4 - c ^ 4) ^ 2 +
+        (2 * (a ^ 2 * b * c - b ^ 2 * c ^ 2)) ^ 2 : by ring
+  ... ≥ 0 : add_nonneg (add_nonneg (mul_nonneg zero_le_two (pow_two_nonneg _))
+              (pow_two_nonneg _)) (pow_two_nonneg _)
 end
 
 theorem imo2001_q2' (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :

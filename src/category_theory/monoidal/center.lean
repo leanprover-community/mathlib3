@@ -140,6 +140,24 @@ def tensor_obj (X Y : center C) : center C :=
       -- First make it canonical with explicit associators
       dsimp,
       simp only [comp_tensor_id, id_tensor_comp, category.assoc, half_braiding.monoidal],
+
+      /- All of this can easily be automated. -/
+      rw comp_eq_coherent_comp ((monoidal_obj.of X.fst).tensor ((monoidal_obj.of Y.fst).tensor ((monoidal_obj.of U).tensor (monoidal_obj.of U')))),
+      rw comp_eq_coherent_comp ((((monoidal_obj.of U).tensor (monoidal_obj.of U')).tensor (monoidal_obj.of X.fst)).tensor (monoidal_obj.of Y.fst)),
+      rw comp_eq_coherent_comp ((monoidal_obj.of X.fst).tensor (((monoidal_obj.of Y.fst).tensor (monoidal_obj.of U)).tensor (monoidal_obj.of U'))),
+      rw comp_eq_coherent_comp ((monoidal_obj.of X.fst).tensor (((monoidal_obj.of U).tensor (monoidal_obj.of Y.fst)).tensor (monoidal_obj.of U'))),
+      rw comp_eq_coherent_comp ((monoidal_obj.of X.fst).tensor ((monoidal_obj.of U).tensor ((monoidal_obj.of Y.fst).tensor (monoidal_obj.of U')))),
+      rw comp_eq_coherent_comp ((monoidal_obj.of X.fst).tensor ((monoidal_obj.of U).tensor ((monoidal_obj.of U').tensor (monoidal_obj.of Y.fst)))),
+      rw comp_eq_coherent_comp ((monoidal_obj.of X.fst).tensor (((monoidal_obj.of U).tensor (monoidal_obj.of U')).tensor (monoidal_obj.of Y.fst))),
+      rw comp_eq_coherent_comp (((monoidal_obj.of X.fst).tensor ((monoidal_obj.of U).tensor (monoidal_obj.of U'))).tensor (monoidal_obj.of Y.fst)),
+      rw comp_eq_coherent_comp ((((monoidal_obj.of X.fst).tensor (monoidal_obj.of U)).tensor (monoidal_obj.of U')).tensor (monoidal_obj.of Y.fst)),
+      rw comp_eq_coherent_comp ((((monoidal_obj.of U).tensor (monoidal_obj.of X.fst)).tensor (monoidal_obj.of U')).tensor (monoidal_obj.of Y.fst)),
+      rw comp_eq_coherent_comp (((monoidal_obj.of U).tensor ((monoidal_obj.of X.fst).tensor (monoidal_obj.of U'))).tensor (monoidal_obj.of Y.fst)),
+      rw comp_eq_coherent_comp (((monoidal_obj.of U).tensor ((monoidal_obj.of U').tensor (monoidal_obj.of X.fst))).tensor (monoidal_obj.of Y.fst)),
+
+      simp,
+      erw coherent_comp_id_coherent_comp', -- Why does rw fail here?
+
       -- Then hide all the associators (maybe this could be a simp-set?)
       simp only [comp_eq_coherent_comp, α_hom_tensor_id_coherent_comp, tensor_id_assoc,
         associate_morphisms, id_tensor_α_hom_coherent_comp, α_hom_coherent_comp,

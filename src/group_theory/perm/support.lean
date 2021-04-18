@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Aaron Anderson, Yakov Pechersky
 -/
 import data.set.finite
+import data.fintype.basic
 import group_theory.perm.basic
 import data.list.perm
 import dynamics.fixed_points.basic
@@ -38,7 +39,7 @@ variables {α : Type*}
 
 section support
 
-/-- The `finset` of nonfixed points of a permutation. -/
+/-- The `set` of nonfixed points of a permutation. -/
 def support (f : perm α) : set α := (function.fixed_points f)ᶜ
 
 @[simp] lemma mem_support {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x := iff.rfl
@@ -223,7 +224,6 @@ include hf
 @[simp]
 lemma card_support_eq_zero :
   hf.to_finset.card = 0 ↔ f = 1 :=
--- by rw [←to_finset_card, finset.card_eq_zero, to_finset_eq_empty_iff, support_eq_empty_iff]
 by simp
 
 lemma one_lt_card_support_of_ne_one (h : f ≠ 1) :
@@ -289,6 +289,11 @@ end
 
 end finite
 
+instance [decidable_eq α] {f : perm α} : decidable_pred f.support :=
+set.decidable_set_of (λ (a : α), a ∉ function.fixed_points ⇑f)
+
+instance [fintype α] [decidable_eq α] {f : perm α} : fintype f.support := set_fintype _
+
 end support
 
 section disjoint
@@ -339,6 +344,14 @@ by simp [disjoint_iff_eq_or_eq]
 @[simp] lemma disjoint_one_right (f : perm α) : disjoint f 1 :=
 by simp [disjoint_iff_eq_or_eq]
 
+@[simp] lemma disjoint_refl_iff {f : perm α} : disjoint f f ↔ f = 1 :=
+begin
+  refine ⟨λ h, _, λ h, h.symm ▸ disjoint_one_left 1⟩,
+  ext x,
+  cases h.def x with hx hx;
+  simp [hx]
+end
+
 lemma disjoint.mul_left {f g h : perm α} (H1 : disjoint f h) (H2 : disjoint g h) :
   disjoint (f * g) h :=
 begin
@@ -377,6 +390,55 @@ begin
   rw [mem_union, mem_support, mem_support, mem_support, mul_apply, ←not_and_distrib, not_imp_not],
   exact (h.def a).elim (λ hf h, ⟨hf, f.apply_eq_iff_eq.mp (h.trans hf.symm)⟩)
     (λ hg h, ⟨(congr_arg f hg).symm.trans h, hg⟩),
+end
+
+lemma disjoint.inv_left (h : disjoint f g) : disjoint f⁻¹ g :=
+by simpa [disjoint_iff_disjoint_support]
+
+lemma disjoint.inv_right (h : disjoint f g) : disjoint f g⁻¹ :=
+h.symm.inv_left.symm
+
+@[simp] lemma disjoint_inv_left_iff : disjoint f⁻¹ g ↔  disjoint f g :=
+begin
+  refine ⟨λ h, _, disjoint.inv_left⟩,
+  convert h.inv_left,
+  exact (inv_inv _).symm
+end
+
+@[simp] lemma disjoint_inv_right_iff : disjoint f g⁻¹ ↔ disjoint f g :=
+by rw [disjoint_comm, disjoint_inv_left_iff, disjoint_comm]
+
+lemma list.mem_foldr_sup_of_mem [semilattice_sup_bot α] {a : α} {l : list α} (h : a ∈ l) :
+  a ≤ (l.foldr (⊔) ⊥) :=
+begin
+  induction l with hd tl hl,
+  { simpa using h },
+  { rw list.mem_cons_iff at h,
+    rcases h with rfl|h,
+    { simp },
+    { simpa using le_sup_right_of_le (hl h) } },
+end
+
+lemma list.exists_of_mem_foldr_sup {l : list (set α)} {a : α} (h : a ∈ l.foldr (⊔) ⊥) :
+  ∃ (s : set α) (hs : s ∈ l), a ∈ s :=
+begin
+  induction l with hd tl hl,
+  { simpa using h },
+  { rw [list.foldr, sup_eq_union, mem_union, ←sup_eq_union] at h,
+    cases h with h h,
+    { exact ⟨hd, list.mem_cons_self _ _, h⟩ },
+    { obtain ⟨s, hs, hs'⟩ := hl h,
+      exact ⟨s, list.mem_cons_of_mem _ hs, hs'⟩ } }
+end
+
+lemma support_prod_of_pairwise_disjoint (l : list (perm α)) (h : l.pairwise disjoint) :
+  l.prod.support = (l.map support).foldr (⊔) ⊥ :=
+begin
+  induction l with hd tl hl,
+  { simp },
+  { simp at h,
+    have : disjoint hd tl.prod := disjoint_prod_right _ h.left,
+    simp [this.support_mul, hl h.right] }
 end
 
 lemma disjoint.card_support_mul (h : disjoint f g) (hf : f.support.finite) (hg : g.support.finite)
@@ -422,6 +484,40 @@ begin
       specialize ih htf (λ s hs, hl s (list.mem_cons_of_mem _ hs)) ht,
       simpa [←ih] using hd.card_support_mul _ _ _ } }
 end
+
+lemma nodup_of_pairwise_disjoint {l : list (perm α)} (h1 : (1 : perm α) ∉ l)
+  (h2 : l.pairwise disjoint) : l.nodup :=
+begin
+  refine list.pairwise.imp_of_mem _ h2,
+  rintros σ - h_mem - h_disjoint rfl,
+  rw disjoint_refl_iff at h_disjoint,
+  exact h1 (h_disjoint ▸ h_mem)
+end
+
+lemma disjoint.mul_apply_eq_iff {σ τ : perm α} (hστ : disjoint σ τ) {a : α} :
+  (σ * τ) a = a ↔ σ a = a ∧ τ a = a :=
+begin
+  refine ⟨λ h, _, λ h, by rw [mul_apply, h.2, h.1]⟩,
+  cases hστ.def a with hσ hτ,
+  { exact ⟨hσ, σ.injective (h.trans hσ.symm)⟩ },
+  { exact ⟨(congr_arg σ hτ).symm.trans h, hτ⟩ },
+end
+
+lemma disjoint.mul_eq_one_iff {σ τ : perm α} (hστ : disjoint σ τ) :
+  σ * τ = 1 ↔ σ = 1 ∧ τ = 1 :=
+by simp_rw [ext_iff, one_apply, hστ.mul_apply_eq_iff, forall_and_distrib]
+
+lemma disjoint.gpow_disjoint_gpow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℤ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+begin
+  rw disjoint_iff_eq_or_eq,
+  exact λ x, or.imp (λ h, gpow_apply_eq_self_of_apply_eq_self h m)
+    (λ h, gpow_apply_eq_self_of_apply_eq_self h n) (hστ.def x)
+end
+
+lemma disjoint.pow_disjoint_pow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℕ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+hστ.gpow_disjoint_gpow m n
 
 end disjoint
 

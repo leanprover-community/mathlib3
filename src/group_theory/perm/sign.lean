@@ -141,6 +141,16 @@ begin
     rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] }
 end
 
+lemma disjoint.order_of {σ τ : perm α} (hστ : disjoint σ τ) :
+  order_of (σ * τ) = nat.lcm (order_of σ) (order_of τ) :=
+begin
+  have h : ∀ n : ℕ, (σ * τ) ^ n = 1 ↔ σ ^ n = 1 ∧ τ ^ n = 1 :=
+  λ n, by rw [commute.mul_pow hστ.mul_comm, disjoint.mul_eq_one_iff (hστ.pow_disjoint_pow n n)],
+  exact nat.dvd_antisymm (commute.order_of_mul_dvd_lcm hστ.mul_comm) (nat.lcm_dvd
+    (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).1)
+    (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
+end
+
 variable [decidable_eq α]
 
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/

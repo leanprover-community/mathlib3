@@ -818,6 +818,13 @@ instance canonically_ordered_monoid.has_exists_mul_of_le (α : Type u)
   [canonically_ordered_monoid α] : has_exists_mul_of_le α :=
 { exists_mul_of_le := λ a b hab, le_iff_exists_mul.mp hab }
 
+lemma le_add_right' {β:Type*} [canonically_ordered_add_monoid β] (a b:β):
+  a ≤ a + b :=
+begin
+  apply le_add_of_nonneg_right,
+  apply zero_le,
+end
+
 end canonically_ordered_monoid
 
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid

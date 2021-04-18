@@ -494,7 +494,11 @@ end
 
 lemma disjoint.pow_disjoint_pow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℕ) :
   disjoint (σ ^ m) (τ ^ n) :=
-hστ.gpow_disjoint_gpow m n
+begin
+  rw disjoint_iff_eq_or_eq,
+  exact λ x, or.imp (λ h, pow_apply_eq_self_of_apply_eq_self h m)
+    (λ h, pow_apply_eq_self_of_apply_eq_self h n) (hστ.def x)
+end
 
 end disjoint
 

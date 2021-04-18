@@ -34,6 +34,9 @@ Prove the complex version for self-adjoint subalgebras `A`, by separately approx
 the real and imaginary parts using the real subalgebra of real-valued functions in `A`
 (which still separates points, by taking the norm-square of a separating function).
 
+Extend to cover the case of subalgebras of the continuous functions vanishing at infinity,
+on non-compact spaces.
+
 -/
 
 noncomputable theory

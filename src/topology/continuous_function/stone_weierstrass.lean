@@ -310,7 +310,7 @@ begin
   fsplit,
   { dsimp [k],
     simp only [finset.inf'_lt_iff, continuous_map.inf'_apply],
-    obtain ⟨x, xm, zm⟩ := exists_set_mem_of_union_eq_top _ _ xs_w z,
+    obtain ⟨x, xm, zm⟩ := set.exists_set_mem_of_union_eq_top _ _ xs_w z,
     exact ⟨x, xm, h_lt _ _ zm⟩, },
   { dsimp [k],
     simp only [finset.lt_inf'_iff, continuous_map.inf'_apply],

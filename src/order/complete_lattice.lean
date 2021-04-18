@@ -1212,4 +1212,5 @@ lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
   {s t : ι → α} (hs : independent s) (hst : t ≤ s) :
   independent t :=
 λ i, (hs i).mono (hst i) (supr_le_supr $ λ j, supr_le_supr $ λ _, hst j)
+
 end complete_lattice

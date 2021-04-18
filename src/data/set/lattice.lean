@@ -80,6 +80,22 @@ notation `⋂` binders `, ` r:(scoped f, Inter f) := r
   -- TODO: more rewrite rules wrt forall / existentials and logical connectives
   -- TODO: also eliminate ∃i, ... ∧ i = t ∧ ...
 
+lemma exists_set_mem_of_union_eq_top {ι : Type*} (t : set ι) (s : ι → set β)
+  (w : (⋃ i ∈ t, s i) = ⊤) (x : β) :
+  ∃ (i ∈ t), x ∈ s i :=
+begin
+  have p : x ∈ ⊤ := set.mem_univ x,
+  simpa only [←w, set.mem_Union] using p,
+end
+
+lemma nonempty_of_union_eq_top_of_nonempty
+  {ι : Type*} (t : set ι) (s : ι → set α) (H : nonempty α) (w : (⋃ i ∈ t, s i) = ⊤) :
+  t.nonempty :=
+begin
+  obtain ⟨x, m, -⟩ := exists_set_mem_of_union_eq_top t s w H.some,
+  exact ⟨x, m⟩,
+end
+
 theorem set_of_exists (p : ι → β → Prop) : {x | ∃ i, p i x} = ⋃ i, {x | p i x} :=
 ext $ λ i, mem_Union.symm
 

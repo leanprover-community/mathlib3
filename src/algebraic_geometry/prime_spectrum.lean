@@ -213,12 +213,28 @@ lemma zero_locus_bot :
 (gc R).l_bot
 
 @[simp] lemma zero_locus_singleton_zero :
-  zero_locus (0 : set R) = set.univ :=
+  zero_locus ({0} : set R) = set.univ :=
 zero_locus_bot
 
 @[simp] lemma zero_locus_empty :
   zero_locus (∅ : set R) = set.univ :=
 (gc_set R).l_bot
+
+@[simp] lemma zero_locus_singleton_one :
+  zero_locus ({1} : set R) = ∅ :=
+set.ext $ λ x, by simpa [← ideal.ne_top_iff_one] using x.2.ne_top
+
+@[simp] lemma zero_locus_one_mem {s : set R} (h : (1 : R) ∈ s) :
+  zero_locus s = ∅ :=
+begin
+  rw ← set.subset_empty_iff,
+  convert zero_locus_anti_mono (set.singleton_subset_iff.mpr h),
+  exact zero_locus_singleton_one.symm,
+end
+
+@[simp] lemma zero_locus_top :
+  zero_locus ((⊤ : ideal R) : set R) = ∅ :=
+zero_locus_one_mem trivial
 
 @[simp] lemma vanishing_ideal_univ :
   vanishing_ideal (∅ : set (prime_spectrum R)) = ⊤ :=
@@ -293,7 +309,7 @@ set.ext $ λ x, by simpa using x.2.mul_le
 
 lemma zero_locus_singleton_mul (f g : R) :
   zero_locus ({f * g} : set R) = zero_locus {f} ∪ zero_locus {g} :=
-set.ext $ λ x, by simpa using x.2.mem_or_mem_iff
+set.ext $ λ x, by simpa using x.2.mul_mem_iff_mem_or_mem
 
 @[simp] lemma zero_locus_pow (I : ideal R) {n : ℕ} (hn : n > 0) :
   zero_locus ((I ^ n : ideal R) : set R) = zero_locus I :=
@@ -439,7 +455,13 @@ lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum
   (basic_open r : set (prime_spectrum R)) = (zero_locus {r})ᶜ :=
 set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
 
-lemma inf_basic_open (f g : R) : basic_open f ⊓ basic_open g = basic_open (f * g) :=
+@[simp] lemma basic_open_one : basic_open (1 : R) = ⊤ :=
+topological_space.opens.ext $ by {simp, refl}
+
+@[simp] lemma basic_open_zero : basic_open (0 : R) = ⊥ :=
+topological_space.opens.ext $ by {simp, refl}
+
+@[simp] lemma basic_open_mul (f g : R) : basic_open (f * g) = basic_open f ⊓ basic_open g :=
 begin
   ext1, dsimp,
   simp only [set.compl_union, basic_open_eq_zero_locus_compl, zero_locus_singleton_mul],

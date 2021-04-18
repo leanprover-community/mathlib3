@@ -10,7 +10,7 @@ import order.filter.at_top_bot
 # Links between an integral and its "improper" version
 
 In its current state, mathlib only knows how to talk about definite ("proper") integrals,
-in the sense that it treats integrals over `[x, +∞)` in the same as it treats integrals over
+in the sense that it treats integrals over `[x, +∞)` the same as it treats integrals over
 `[y, z]`. For example, the integral over `[1, +∞)` is **not** defined to be the limit of
 the integral over `[1, x]` as `x` tends to `+∞`, which is known as an **improper integral**.
 

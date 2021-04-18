@@ -75,7 +75,7 @@ jobs:
             --url https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/awaiting-author \
             --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'
             
-  add_delegateed_label:
+  add_delegated_label:
     name: Add delegated label
     if: (startsWith(github.event.review.body, 'bors d') || contains(toJSON(github.event.review.body), '\r\nbors d')
     runs-on: ubuntu-latest

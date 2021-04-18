@@ -102,7 +102,7 @@ for those who like their epsilons.
 
 Every real-valued continuous function on `[a,b]` is within any `ε > 0` of some polynomial.
 -/
-theorem exists_polynomial_near_continuous_map (a b : ℝ)  (f : C(set.Icc a b, ℝ))
+theorem exists_polynomial_near_continuous_map (a b : ℝ) (f : C(set.Icc a b, ℝ))
   (ε : ℝ) (pos : ε > 0) :
   ∃ (p : polynomial ℝ), ∥p.to_continuous_map_on _ - f∥ < ε :=
 begin

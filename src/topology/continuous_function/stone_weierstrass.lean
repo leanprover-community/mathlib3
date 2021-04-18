@@ -309,4 +309,40 @@ begin
   { ext, simp, },
 end
 
+/--
+An alternative statement of Weierstrass' theorem.
+
+If `A` is a subalgebra of `C(X, ℝ)` which separates points,
+every real-valued continuous function on `X` is a uniform limit of elements of `A`.
+-/
+theorem continuous_map_mem_subalgebra_closure_of_separates_points
+  (A : subalgebra ℝ C(X, ℝ)) (w : A.separates_points)
+  (f : C(X, ℝ)) :
+  f ∈ A.topological_closure :=
+begin
+  rw subalgebra_topological_closure_eq_top_of_separates_points A w,
+  simp,
+end
+
+/--
+An alternative statement of the Stone-Weierstrass theorem,
+for those who like their epsilons.
+
+If `A` is a subalgebra of `C(X, ℝ)` which separates points,
+every real-valued continuous function on `X` is within any `ε > 0` of some element of `A`.
+-/
+theorem exists_mem_subalgebra_near_continuous_map_of_separates_points
+  (A : subalgebra ℝ C(X, ℝ)) (w : A.separates_points)
+  (f : C(X, ℝ)) (ε : ℝ) (pos : ε > 0) :
+  ∃ (g : A), ∥(g : C(X, ℝ)) - f∥ < ε :=
+begin
+  have w := mem_closure_iff_frequently.mp
+    (continuous_map_mem_subalgebra_closure_of_separates_points A w f),
+  rw metric.nhds_basis_ball.frequently_iff at w,
+  obtain ⟨g, H, m⟩ := w ε pos,
+  rw [metric.mem_ball, dist_eq_norm] at H,
+  exact ⟨⟨g, m⟩, H⟩,
+end
+
+
 end continuous_map

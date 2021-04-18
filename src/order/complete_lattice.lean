@@ -1144,27 +1144,27 @@ variables [complete_lattice α]
 
 /-- An independent set of elements in a complete lattice is one in which every element is disjoint
   from the `Sup` of the rest. -/
-def sindependent (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → disjoint a (Sup (s \ {a}))
+def set_independent (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → disjoint a (Sup (s \ {a}))
 
-variables {s : set α} (hs : sindependent s)
+variables {s : set α} (hs : set_independent s)
 
 @[simp]
-lemma sindependent_empty : sindependent (∅ : set α) :=
+lemma set_independent_empty : set_independent (∅ : set α) :=
 λ x hx, (set.not_mem_empty x hx).elim
 
-theorem sindependent.mono {t : set α} (hst : t ⊆ s) :
-  sindependent t :=
+theorem set_independent.mono {t : set α} (hst : t ⊆ s) :
+  set_independent t :=
 λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
 
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
-lemma sindependent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
+lemma set_independent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
 disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, by simp [h.symm]⟩)
 
 include hs
 
 /-- If the elements of a set are independent, then any element is disjoint from the `Sup` of some
 subset of the rest. -/
-lemma sindependent.disjoint_Sup {x : α} {y : set α} (hx : x ∈ s) (hy : y ⊆ s) (hxy : x ∉ y) :
+lemma set_independent.disjoint_Sup {x : α} {y : set α} (hx : x ∈ s) (hy : y ⊆ s) (hxy : x ∉ y) :
   disjoint x (Sup y) :=
 begin
   have := (hs.mono $ insert_subset.mpr ⟨hx, hy⟩) (mem_insert x _),
@@ -1186,10 +1186,10 @@ omit hs
 def independent {ι : Sort*} {α : Type*} [complete_lattice α] (s : ι → α): Prop :=
 ∀ i : ι, disjoint (s i) (⨆ (j ≠ i), s j)
 
-lemma sindependent_iff {α : Type*} [complete_lattice α] (s : set α) :
-  sindependent s ↔ independent (coe : s → α) :=
+lemma set_independent_iff {α : Type*} [complete_lattice α] (s : set α) :
+  set_independent s ↔ independent (coe : s → α) :=
 begin
-  simp_rw [independent, sindependent, set_coe.forall, Sup_eq_supr],
+  simp_rw [independent, set_independent, set_coe.forall, Sup_eq_supr],
   apply forall_congr, intro a, apply forall_congr, intro ha,
   congr' 2,
   convert supr_subtype.symm,

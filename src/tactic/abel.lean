@@ -221,6 +221,14 @@ lemma subst_into_smulg {α} [add_comm_group α]
   (prt : @smulg α _ tl tr = t) : smulg l r = t :=
 by simp [prl, prr, prt]
 
+meta def eval_smul' (c : cache) (eval : expr → tactic (normal_expr × expr))
+  (e₁ e₂ : expr) : tactic (normal_expr × expr) :=
+do (e₁', p₁) ← norm_num.derive e₁ <|> refl_conv e₁,
+  n ← if c.is_group then e₁'.to_int else coe <$> e₁'.to_nat,
+  (e₂', p₂) ← eval e₂,
+  (e', p) ← eval_smul c (e₁', n) e₂',
+  return (e', c.iapp ``subst_into_smul [e₁, e₂, e₁', e₂', e', p₁, p₂, p])
+
 meta def eval (c : cache) : expr → tactic (normal_expr × expr)
 | `(%%e₁ + %%e₂) := do
   (e₁', p₁) ← eval e₁,
@@ -247,18 +255,10 @@ meta def eval (c : cache) : expr → tactic (normal_expr × expr)
   guardb c.is_group,
   (e', p) ← eval $ c.iapp ``smul [e₁, e₂],
   return (e', c.app ``unfold_gsmul c.inst [e₁, e₂, e', p])
-| `(smul %%e₁ %%e₂) := do
-  guard (¬ c.is_group),
-  (e₁', p₁) ← norm_num.derive e₁ <|> refl_conv e₁, n ← e₁'.to_nat,
-  (e₂', p₂) ← eval e₂,
-  (e', p) ← eval_smul c (e₁', n) e₂',
-  return (e', c.iapp ``subst_into_smul [e₁, e₂, e₁', e₂', e', p₁, p₂, p])
-| `(smulg %%e₁ %%e₂) := do
-  guardb c.is_group,
-  (e₁', p₁) ← norm_num.derive e₁ <|> refl_conv e₁, n ← e₁'.to_int,
-  (e₂', p₂) ← eval e₂,
-  (e', p) ← eval_smul c (e₁', n) e₂',
-  return (e', c.iapp ``subst_into_smul [e₁, e₂, e₁', e₂', e', p₁, p₂, p])
+| `(@has_scalar.smul nat _ add_monoid.has_scalar_nat %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
+| `(@has_scalar.smul int _ sub_neg_monoid.has_scalar_int %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
+| `(smul %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
+| `(smulg %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
 | e := eval_atom c e
 
 meta def eval' (c : cache) (e : expr) : tactic (expr × expr) :=

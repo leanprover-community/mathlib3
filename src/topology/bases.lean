@@ -9,10 +9,39 @@ import topology.continuous_on
 /-!
 # Bases of topologies. Countability axioms.
 
+A topological basis on a topological space `t` is a collection of sets,
+such that all open sets can be generated as unions of these sets, without the need to take
+finite intersections of them. This file introduces a framework for dealing with these collections,
+and also what more we can say under certain countability conditions on bases,
+which are referred to as first- and second-countable.
+We also briefly cover the theory of separable spaces, which are those with a countable, dense
+subset. If a space is second-countable, and also has a countably generated uniformity filter
+(for example, if `t` is a metric space), it will automatically be separable (and indeed, these
+conditions are equivalent in this case).
+
+## Main definitions
+
+* `is_topological_basis s`: The topological space `t` has basis `s`.
+* `separable_space α`: The topological space `t` has a countable, dense subset.
+* `first_countable_topology α`: A topology in which `𝓝 x` is countably generated for every `x`.
+* `second_countable_topology α`: A topology which has a topological basis which is countable.
+
+## Main results
+
+* `first_countable_topology.tendsto_subseq`: In a first-countable space,
+  cluster points are limits of subsequences.
+* `second_countable_topology.is_open_Union_countable`: In a second-countable space, the union of
+  arbitrarily-many open sets is equal to a sub-union of only countably many of these sets.
+* `second_countable_topology.countable_cover_nhds`: Consider `f : α → set α` with the property that
+  `f x ∈ 𝓝 x` for all `x`. Then there is some countable set `s` whose image covers the space.
+
 ## Implementation Notes
 For our applications we are interested that there exists a countable basis, but we do not need the
 concrete basis itself. This allows us to declare these type classes as `Prop` to use them as mixins.
 
+### TODO:
+More fine grained instances for `first_countable_topology`, `separable_space`, `t2_space`, and more
+(see the comment below `subtype.second_countable_topology`.)
 -/
 
 open set filter classical
@@ -57,6 +86,8 @@ begin
         rfl⟩ } }
 end
 
+/-- If a family of open sets `s` is such that every open neighbourhood contains some
+member of `s`, then `s` is a topological basis. -/
 lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
   (h_open : ∀ u ∈ s, is_open u)
   (h_nhds : ∀(a:α) (u : set α), a ∈ u → is_open u → ∃v ∈ s, a ∈ v ∧ v ⊆ u) :
@@ -73,6 +104,8 @@ begin
     exact binfi_le_of_le v ⟨hav, hvs⟩ (le_principal_iff.2 hvu) }
 end
 
+/-- A set `s` is in the neighbourhood of `a` iff there is some basis set `t`, which
+contains `a` and is itself contained in `s`. -/
 lemma is_topological_basis.mem_nhds_iff {a : α} {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) : s ∈ 𝓝 a ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
 begin
@@ -101,6 +134,7 @@ lemma is_topological_basis.exists_subset_of_mem_open {b : set (set α)}
   (ou : is_open u) : ∃v ∈ b, a ∈ v ∧ v ⊆ u :=
 hb.mem_nhds_iff.1 $ mem_nhds_sets ou au
 
+ /-- Any open set is the union of the basis sets contained in it. -/
 lemma is_topological_basis.open_eq_sUnion' {B : set (set α)}
   (hB : is_topological_basis B) {u : set α} (ou : is_open u) :
   u = ⋃₀ {s ∈ B | s ⊆ u} :=
@@ -118,11 +152,13 @@ lemma is_topological_basis.open_eq_Union {B : set (set α)}
   ∃ (β : Type u) (f : β → set α), u = (⋃ i, f i) ∧ ∀ i, f i ∈ B :=
 ⟨↥{s ∈ B | s ⊆ u}, coe, by { rw ← sUnion_eq_Union, apply hB.open_eq_sUnion' ou }, λ s, and.left s.2⟩
 
+ /-- A point `a` is in the closure of `s` iff all basis sets containing `a` intersect `s`. -/
 lemma is_topological_basis.mem_closure_iff {b : set (set α)} (hb : is_topological_basis b)
   {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ o ∈ b, a ∈ o → (o ∩ s).nonempty :=
 (mem_closure_iff_nhds_basis' hb.nhds_has_basis).trans $ by simp only [and_imp]
 
+ /-- A set is dense iff it has non-trivial intersection with all basis sets. -/
 lemma is_topological_basis.dense_iff {b : set (set α)} (hb : is_topological_basis b) {s : set α} :
   dense s ↔ ∀ o ∈ b, set.nonempty o → (o ∩ s).nonempty :=
 begin
@@ -191,7 +227,7 @@ begin
   exact ⟨u, s_dense.mono hu⟩,
 end
 
-/-- A sequence dense in a non-empty separable topological space.
+/-- A dense sequence in a non-empty separable topological space.
 
 If `α` might be empty, then `exists_countable_dense` is the main way to use separability of `α`. -/
 def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some (exists_dense_seq α)
@@ -226,6 +262,8 @@ class first_countable_topology : Prop :=
 namespace first_countable_topology
 variable {α}
 
+/-- In a first-countable space, a cluster point `x` of a sequence
+is the limit of some subsequence. -/
 lemma tendsto_subseq [first_countable_topology α] {u : ℕ → α} {x : α}
   (hx : map_cluster_pt x at_top u) :
   ∃ (ψ : ℕ → ℕ), (strict_mono ψ) ∧ (tendsto (u ∘ ψ) at_top (𝓝 x)) :=
@@ -310,6 +348,8 @@ instance second_countable_topology.to_first_countable_topology
   ⟨(is_basis_countable_basis α).nhds_has_basis, (countable_countable_basis α).mono $
     inter_subset_left _ _⟩⟩
 
+/-- If `β` is a second-countable space, then its induced topology
+via `f` on `α` is also second-countable. -/
 lemma second_countable_topology_induced (β)
   [t : topological_space β] [second_countable_topology β] (f : α → β) :
   @second_countable_topology α (t.induced f) :=
@@ -356,6 +396,8 @@ end
 
 variables {α}
 
+/-- A countable open cover induces a second-countable topology if all open covers
+are themselves second countable. -/
 lemma second_countable_topology_of_countable_cover {ι} [encodable ι] {U : ι → set α}
   [∀ i, second_countable_topology (U i)] (Uo : ∀ i, is_open (U i))  (hc : (⋃ i, U i) = univ) :
   second_countable_topology α :=
@@ -366,6 +408,8 @@ begin
     (countable_Union $ λ i, (countable_countable_basis _).image _)
 end
 
+/-- In a second-countable space, an open set, given as a union of open sets,
+is equal to the union of countably many of those sets. -/
 lemma is_open_Union_countable [second_countable_topology α]
   {ι} (s : ι → set α) (H : ∀ i, is_open (s i)) :
   ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=

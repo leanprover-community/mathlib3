@@ -19,12 +19,20 @@ structure my_subobject (X : Type*) :=
 
 namespace my_subobject
 
-instance : set_like (my_subobject R) M :=
+variables (X : Type*)
+
+instance : set_like (my_subobject X) X :=
 ⟨sub_mul_action.carrier, λ p q h, by cases p; cases q; congr'⟩
 
-@[simp] lemma mem_carrier {p : my_subobject R} : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
+@[simp] lemma mem_carrier {p : my_subobject X} : x ∈ p.carrier ↔ x ∈ (p : set X) := iff.rfl
 
-@[ext] theorem ext {p q : my_subobject R} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
+@[ext] theorem ext {p q : my_subobject X} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
+
+/-- Copy of a `my_subobject` with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (p : my_subobject X) (s : set X) (hs : s = ↑p) : my_subobject X :=
+{ carrier := s,
+  op_mem' := hs.symm ▸ p.op_mem' }
 
 end my_subobject
 ```

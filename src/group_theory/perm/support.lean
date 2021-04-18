@@ -1,12 +1,35 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Aaron Anderson
+Authors: Chris Hughes, Aaron Anderson, Yakov Pechersky
 -/
 import data.set.finite
+import data.fintype.basic
 import group_theory.perm.basic
 import data.list.perm
 import dynamics.fixed_points.basic
+
+/-!
+# Support of a permutation
+
+## Main definitions
+
+In the following, `f g : equiv.perm α`.
+
+* `equiv.perm.support`: the elements `x : α` that are not fixed by `f`.
+* `equiv.perm.disjoint`: two permutations `f` and `g` are `disjoint` iff their `support`
+  are disjoint.
+
+## Implementation details
+
+A perm's `support` need not necessarily be finite. To facilitate this, `f.support` is provided
+as a `set` rather than a `finset`. However, often we want to deal with the cardinality of a
+`support`. Since one can have finite support even if the underlying type if not `fintype`,
+instead of juggling `[fintype ↥(f.support)]`, we use instead `set.finite f.support`. That leads
+to lemma statements that mention `(h : set.finite f.support).to_finset.card`, and sometimes
+`letI : fintype ↥(f.support) := h.fintype` in proofs.
+
+-/
 
 open equiv set
 
@@ -14,110 +37,9 @@ namespace equiv.perm
 
 variables {α : Type*}
 
-section involutive
-
--- TODO: should this be refactored as a prop on any group element,
--- with application refactored to be about mul_action?
-
-variable (f : perm α)
-
-/-- A permutation `f : perm α` is `involutive` if its inverse is equal to itself. -/
-def involutive (f : perm α) : Prop := f⁻¹ = f
-
-variable {f}
-
-lemma involutive.def (h : f.involutive) : f⁻¹ = f := h
-
-lemma involutive_iff : f.involutive ↔ f⁻¹ = f := iff.rfl
-
-lemma involutive.inv (h : f.involutive) : f⁻¹.involutive :=
-by rwa h.def
-
-@[simp] lemma involutive_inv_iff : f⁻¹.involutive ↔ f.involutive :=
-⟨λ h, by { rwa [←inv_inv f, h.def] }, involutive.inv⟩
-
-lemma involutive.symm (h : f.involutive) : involutive f.symm := h.inv
-
-@[simp] lemma involutive_symm_iff : involutive f.symm ↔ f.involutive := involutive_inv_iff
-
-lemma involutive.apply_self (h : f.involutive) (x : α) : f (f x) = x :=
-begin
-  apply f⁻¹.injective,
-  rw [perm.inv_apply_self, h.def]
-end
-
-lemma involutive_apply_self_iff : f.involutive ↔ ∀ (x : α), f (f x) = x :=
-begin
-  refine ⟨involutive.apply_self, λ h, _⟩,
-  rw involutive_iff,
-  ext x,
-  rw [←h x, inv_apply_self, h]
-end
-
-lemma involutive_iff_involutive_coe :
-  f.involutive ↔ function.involutive f :=
-begin
-  refine ⟨involutive.apply_self, λ h, involutive_iff.mpr $ perm.ext (λ x, _)⟩,
-  rw [apply_eq_iff_eq_symm_apply, ←inv_def, inv_inv, h]
-end
-
-lemma involutive.one : involutive (1 : perm α) := by rw [involutive_iff, one_inv]
-
-lemma involutive.refl : involutive (equiv.refl α) := involutive.one
-
-lemma involutive.mul_of_comm {g : perm α} (hf : f.involutive)
-  (hg : g.involutive) (h : commute f g) : involutive (f * g) :=
-begin
-  rw involutive_iff at *,
-  simp [hf, hg, h.eq]
-end
-
-lemma involutive.swap [decidable_eq α] (x y : α) : involutive (swap x y) :=
-swap_inv _ _
-
-lemma involutive.pow (h : involutive f) (n : ℕ) : involutive (f ^ n) :=
-begin
-  induction n with n hn,
-  { simpa using involutive.one },
-  { rw pow_succ,
-    exact h.mul_of_comm hn (commute.self_pow _ _) }
-end
-
-lemma involutive.gpow (h : involutive f) (n : ℤ) : involutive (f ^ n) :=
-by { cases n; simpa using h.pow _ }
-
-lemma involutive.pow_apply (h : involutive f) (n : ℕ) (x : α) :
-  (f ^ n) x = x ∨ (f ^ n) x = f x :=
-begin
-  induction n with n hn,
-  { simp },
-  { cases hn;
-    simp [pow_succ, hn, h.apply_self x] }
-end
-
-lemma involutive.gpow_apply (h : involutive f) (n : ℤ) (x : α) :
-  (f ^ n) x = x ∨ (f ^ n) x = f x :=
-begin
-  cases n,
-  { simpa using h.pow_apply _ _ },
-  { cases h.pow_apply n.succ x with hx hx;
-    simp [hx, (h.pow _).def] }
-end
-
-end involutive
-
--- This lemma isn't further up the perm hierarchy because logic.function.iterate
--- is not imported earlier
-@[simp] lemma iterate_eq_pow (f : perm α) (n : ℕ) : f^[n] = ⇑(f ^ n) :=
-begin
-  induction n with n hn,
-  { simp [function.iterate_zero] },
-  { simp [hn, pow_succ'] }
-end
-
 section support
 
-/-- The `finset` of nonfixed points of a permutation. -/
+/-- The `set` of nonfixed points of a permutation. -/
 def support (f : perm α) : set α := (function.fixed_points f)ᶜ
 
 @[simp] lemma mem_support {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x := iff.rfl
@@ -377,6 +299,11 @@ end
 
 end finite
 
+instance [decidable_eq α] {f : perm α} : decidable_pred f.support :=
+set.decidable_set_of (λ (a : α), a ∉ function.fixed_points ⇑f)
+
+instance [fintype α] [decidable_eq α] {f : perm α} : fintype f.support := set_fintype _
+
 end support
 
 section disjoint
@@ -427,6 +354,14 @@ by simp [disjoint_iff_eq_or_eq]
 @[simp] lemma disjoint_one_right (f : perm α) : disjoint f 1 :=
 by simp [disjoint_iff_eq_or_eq]
 
+@[simp] lemma disjoint_refl_iff {f : perm α} : disjoint f f ↔ f = 1 :=
+begin
+  refine ⟨λ h, _, λ h, h.symm ▸ disjoint_one_left 1⟩,
+  ext x,
+  cases h.def x with hx hx;
+  simp [hx]
+end
+
 lemma disjoint.mul_left {f g h : perm α} (H1 : disjoint f h) (H2 : disjoint g h) :
   disjoint (f * g) h :=
 begin
@@ -467,24 +402,52 @@ begin
     (λ hg h, ⟨(congr_arg f hg).symm.trans h, hg⟩),
 end
 
-lemma disjoint.card_support_mul (h : disjoint f g) [fintype f.support] [fintype g.support]
-  [fintype (f * g).support] :
-  (f * g).support.to_finset.card = f.support.to_finset.card + g.support.to_finset.card :=
+lemma disjoint.inv_left (h : disjoint f g) : disjoint f⁻¹ g :=
+by simpa [disjoint_iff_disjoint_support]
+
+lemma disjoint.inv_right (h : disjoint f g) : disjoint f g⁻¹ :=
+h.symm.inv_left.symm
+
+@[simp] lemma disjoint_inv_left_iff : disjoint f⁻¹ g ↔  disjoint f g :=
 begin
-  have := h.disjoint_support,
-  classical,
-  rw ←to_finset_disjoint_iff at this,
-  rw ←finset.card_disjoint_union this,
-  congr,
-  ext,
-  simp [h.support_mul]
+  refine ⟨λ h, _, disjoint.inv_left⟩,
+  convert h.inv_left,
+  exact (inv_inv _).symm
 end
 
--- TODO: figure out how to get list.pmap to understand element-wise fintype
-lemma card_support_prod_list_of_pairwise_disjoint {l : list (perm α)} [hf : fintype l.prod.support]
+@[simp] lemma disjoint_inv_right_iff : disjoint f g⁻¹ ↔ disjoint f g :=
+by rw [disjoint_comm, disjoint_inv_left_iff, disjoint_comm]
+
+lemma support_prod_of_pairwise_disjoint (l : list (perm α)) (h : l.pairwise disjoint) :
+  l.prod.support = (l.map support).foldr (⊔) ⊥ :=
+begin
+  induction l with hd tl hl,
+  { simp },
+  { rw [list.pairwise_cons] at h,
+    have : disjoint hd tl.prod := disjoint_prod_right _ h.left,
+    simp [this.support_mul, hl h.right] }
+end
+
+lemma disjoint.card_support_mul (h : disjoint f g) (hf : f.support.finite) (hg : g.support.finite)
+  (hfg : (f * g).support.finite) :
+  hfg.to_finset.card = hf.to_finset.card + hg.to_finset.card :=
+begin
+  letI := hf.fintype,
+  letI := hg.fintype,
+  letI := hfg.fintype,
+  simp_rw [finite.card_to_finset, ←to_finset_card],
+  classical,
+  rw ←finset.card_disjoint_union,
+  { congr,
+    ext,
+    simp [h.support_mul] },
+  { simpa using h.disjoint_support }
+end
+
+lemma card_support_prod_list_of_pairwise_disjoint {l : list (perm α)} (hf : l.prod.support.finite)
   (hl : ∀ (s : set α), s ∈ (l.map support) → s.finite)
   (h : l.pairwise disjoint) :
-  l.prod.support.to_finset.card =
+  hf.to_finset.card =
   list.sum (list.map finset.card (list.pmap (λ (s : set α) (hs : s.finite),
     hs.to_finset) (l.map support) hl)) :=
 begin
@@ -492,25 +455,59 @@ begin
   { induction l with a t ih,
     { simp },
     { obtain ⟨ha, ht⟩ := list.pairwise_cons.1 h,
+      have hd : a.disjoint t.prod := disjoint_prod_right t ha,
       have htf : t.prod.support.finite,
         { suffices : ((t.map support).foldr (⊔) ∅).finite,
             { exact this.subset (support_prod_le t) },
-          apply list.foldr_induction,
+          apply list.foldr_rec_on,
+          { simp },
           { intros b hbf a haf,
-            exact (hl a (list.mem_cons_of_mem _ haf)).sup hbf },
-          { simp } },
+            exact (hl a (list.mem_cons_of_mem _ haf)).sup hbf } },
       have haf : a.support.finite,
         { apply hl,
           simp },
       have hpf : (a * t.prod).support.finite :=
         set.finite.subset (haf.sup htf) (support_mul_le _ _),
-      letI : fintype t.prod.support := htf.fintype,
-      letI : fintype a.support := haf.fintype,
-      letI : fintype (a * t.prod).support := hpf.fintype,
-      specialize ih (λ s hs, hl s (list.mem_cons_of_mem _ hs)) ht,
-      simp only [←ih, ←(disjoint_prod_right t ha).card_support_mul, list.pmap, list.sum_cons,
-                 finite.card_to_finset, ←to_finset_card, list.prod_cons, list.map],
-      congr } }
+      specialize ih htf (λ s hs, hl s (list.mem_cons_of_mem _ hs)) ht,
+      simpa [←ih] using hd.card_support_mul _ _ _ } }
+end
+
+lemma nodup_of_pairwise_disjoint {l : list (perm α)} (h1 : (1 : perm α) ∉ l)
+  (h2 : l.pairwise disjoint) : l.nodup :=
+begin
+  refine list.pairwise.imp_of_mem _ h2,
+  rintros σ - h_mem - h_disjoint rfl,
+  rw disjoint_refl_iff at h_disjoint,
+  exact h1 (h_disjoint ▸ h_mem)
+end
+
+lemma disjoint.mul_apply_eq_iff {σ τ : perm α} (hστ : disjoint σ τ) {a : α} :
+  (σ * τ) a = a ↔ σ a = a ∧ τ a = a :=
+begin
+  refine ⟨λ h, _, λ h, by rw [mul_apply, h.2, h.1]⟩,
+  cases hστ.def a with hσ hτ,
+  { exact ⟨hσ, σ.injective (h.trans hσ.symm)⟩ },
+  { exact ⟨(congr_arg σ hτ).symm.trans h, hτ⟩ },
+end
+
+lemma disjoint.mul_eq_one_iff {σ τ : perm α} (hστ : disjoint σ τ) :
+  σ * τ = 1 ↔ σ = 1 ∧ τ = 1 :=
+by simp_rw [ext_iff, one_apply, hστ.mul_apply_eq_iff, forall_and_distrib]
+
+lemma disjoint.gpow_disjoint_gpow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℤ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+begin
+  rw disjoint_iff_eq_or_eq,
+  exact λ x, or.imp (λ h, gpow_apply_eq_self_of_apply_eq_self h m)
+    (λ h, gpow_apply_eq_self_of_apply_eq_self h n) (hστ.def x)
+end
+
+lemma disjoint.pow_disjoint_pow {σ τ : perm α} (hστ : disjoint σ τ) (m n : ℕ) :
+  disjoint (σ ^ m) (τ ^ n) :=
+begin
+  rw disjoint_iff_eq_or_eq,
+  exact λ x, or.imp (λ h, pow_apply_eq_self_of_apply_eq_self h m)
+    (λ h, pow_apply_eq_self_of_apply_eq_self h n) (hστ.def x)
 end
 
 end disjoint

@@ -458,6 +458,8 @@ lemma continuous_map.subsingleton_subalgebra {α : Type*} [topological_space α]
   {R : Type*} [comm_semiring R] [topological_space R] [topological_semiring R]
   [subsingleton α] : subsingleton (subalgebra R C(α, R)) :=
 begin
+  fsplit,
+  intros s₁ s₂,
   by_cases n : nonempty α,
   { obtain ⟨x⟩ := n,
     ext f,

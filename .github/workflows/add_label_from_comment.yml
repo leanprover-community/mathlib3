@@ -1,4 +1,4 @@
-name: Add "ready-to-merge" label from comment
+name: Add "ready-to-merge" and "delegated" label from comment
 
 on:
   issue_comment:

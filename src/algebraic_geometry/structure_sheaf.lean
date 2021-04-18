@@ -509,42 +509,6 @@ ring_hom.ext $ λ g, (localization.of _).lift_eq _ _
   const R f 1 (basic_open s) (λ _ _, submonoid.one_mem _) :=
 ((localization.of _).lift_eq _ _).trans $ to_open_eq_const _ _ _
 
--- The proof here follows the argument in Hartshorne's Algebraic Geometry, Proposition II.2.2.
-lemma to_basic_open_injective (f : R) : function.injective (to_basic_open R f) :=
-begin
-  intros s t h_eq,
-  obtain ⟨a, ⟨b, hb⟩, rfl⟩ := (localization.of _).mk'_surjective s,
-  obtain ⟨c, ⟨d, hd⟩, rfl⟩ := (localization.of _).mk'_surjective t,
-  simp only [to_basic_open_mk'] at h_eq,
-  rw localization_map.eq,
-  -- We know that the fractions `a/b` and `c/d` are equal as sections of the structure sheaf on
-  -- `basic_open f`. We need to show that they agree as elements in the localization of `R` at `f`.
-  -- This amounts showing that `a * d * r = c * b * r`, for some power `r = f ^ n` of `f`.
-  -- We define `I` as the ideal of *all* elements `r` satisfying the above equation.
-  let I : ideal R :=
-  { carrier := {r : R | a * d * r = c * b * r},
-    zero_mem' := by simp only [set.mem_set_of_eq, mul_zero],
-    add_mem' := λ r₁ r₂ hr₁ hr₂, by { dsimp at hr₁ hr₂ ⊢, simp only [mul_add, hr₁, hr₂] },
-    smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simp only [mul_comm r₁ r₂, ← mul_assoc, hr₂] }},
-  -- Our claim now reduces to showing that `f` is contained in the radical of `I`
-  suffices : f ∈ I.radical,
-  { obtain ⟨n, hn⟩ := this,
-    use [f ^ n, n, hn] },
-  rw [← vanishing_ideal_zero_locus_eq_radical, mem_vanishing_ideal],
-  intros p hfp,
-  contrapose hfp,
-  rw [mem_zero_locus, set.not_subset],
-  have := congr_fun (congr_arg subtype.val h_eq) ⟨p,hfp⟩,
-  rw [const_apply, const_apply, localization_map.eq] at this,
-  obtain ⟨r, hr⟩ := this,
-  exact ⟨r.1, hr, r.2⟩
-end
-
-lemma to_basic_open_surjective (f : R) : function.surjective (to_basic_open R f) :=
-begin
-  sorry
-end
-
 lemma is_unit_to_stalk (x : Spec.Top R) (f : x.as_ideal.prime_compl) :
   is_unit (to_stalk R x (f : R)) :=
 by { erw ← germ_to_open R (basic_open (f : R)) ⟨x, f.2⟩ (f : R),

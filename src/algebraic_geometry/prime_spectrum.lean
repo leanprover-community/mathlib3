@@ -140,7 +140,7 @@ begin
   rw [submodule.mem_infi],
 end
 
-lemma mem_vanishing_ideal (t : set (prime_spectrum R)) (f : R) :
+@[simp] lemma mem_vanishing_ideal (t : set (prime_spectrum R)) (f : R) :
   f ∈ vanishing_ideal t ↔ ∀ x : prime_spectrum R, x ∈ t → f ∈ x.as_ideal :=
 by rw [← set_like.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
 
@@ -208,7 +208,7 @@ lemma vanishing_ideal_anti_mono {s t : set (prime_spectrum R)} (h : s ⊆ t) :
   vanishing_ideal t ≤ vanishing_ideal s :=
 (gc R).monotone_u h
 
-lemma zero_locus_bot :
+@[simp] lemma zero_locus_bot :
   zero_locus ((⊥ : ideal R) : set R) = set.univ :=
 (gc R).l_bot
 
@@ -219,22 +219,6 @@ zero_locus_bot
 @[simp] lemma zero_locus_empty :
   zero_locus (∅ : set R) = set.univ :=
 (gc_set R).l_bot
-
-@[simp] lemma zero_locus_singleton_one :
-  zero_locus ({1} : set R) = ∅ :=
-set.ext $ λ x, by simpa [← ideal.ne_top_iff_one] using x.2.ne_top
-
-@[simp] lemma zero_locus_one_mem {s : set R} (h : (1 : R) ∈ s) :
-  zero_locus s = ∅ :=
-begin
-  rw ← set.subset_empty_iff,
-  convert zero_locus_anti_mono (set.singleton_subset_iff.mpr h),
-  exact zero_locus_singleton_one.symm,
-end
-
-@[simp] lemma zero_locus_top :
-  zero_locus ((⊤ : ideal R) : set R) = ∅ :=
-zero_locus_one_mem trivial
 
 @[simp] lemma vanishing_ideal_univ :
   vanishing_ideal (∅ : set (prime_spectrum R)) = ⊤ :=
@@ -250,6 +234,10 @@ begin
   have eq_top : x.as_ideal = ⊤, { rw ideal.eq_top_iff_one, exact hx h },
   apply x_prime.ne_top eq_top,
 end
+
+@[simp] lemma zero_locus_singleton_one :
+  zero_locus ({1} : set R) = ∅ :=
+zero_locus_empty_of_one_mem (set.mem_singleton (1 : R))
 
 lemma zero_locus_empty_iff_eq_top {I : ideal R} :
   zero_locus (I : set R) = ∅ ↔ I = ⊤ :=
@@ -368,8 +356,7 @@ begin
     obtain ⟨fs, rfl⟩ : ∃ s, t' = zero_locus s,
     by rwa [is_closed_iff_zero_locus] at ht',
     rw [subset_zero_locus_iff_subset_vanishing_ideal] at ht,
-    calc fs ⊆ vanishing_ideal t : ht
-        ... ⊆ x.as_ideal        : hx },
+    exact set.subset.trans ht hx },
   { rw (is_closed_zero_locus _).closure_subset_iff,
     exact subset_zero_locus_vanishing_ideal t }
 end
@@ -461,13 +448,10 @@ topological_space.opens.ext $ by {simp, refl}
 @[simp] lemma basic_open_zero : basic_open (0 : R) = ⊥ :=
 topological_space.opens.ext $ by {simp, refl}
 
-@[simp] lemma basic_open_mul (f g : R) : basic_open (f * g) = basic_open f ⊓ basic_open g :=
-begin
-  ext1, dsimp,
-  simp only [set.compl_union, basic_open_eq_zero_locus_compl, zero_locus_singleton_mul],
-end
+lemma basic_open_mul (f g : R) : basic_open (f * g) = basic_open f ⊓ basic_open g :=
+topological_space.opens.ext $ by {simp [zero_locus_singleton_mul]}
 
-@[simp] lemma basic_open_pow (f : R) (n : ℕ) (hn : n > 0) : basic_open (f ^ n) = basic_open f :=
+lemma basic_open_pow (f : R) (n : ℕ) (hn : n > 0) : basic_open (f ^ n) = basic_open f :=
 topological_space.opens.ext $ by simpa using zero_locus_singleton_pow f n hn
 
 lemma is_topological_basis_basic_opens : topological_space.is_topological_basis

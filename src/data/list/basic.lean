@@ -1941,9 +1941,10 @@ begin
     apply hl _ (list.mem_cons_self _ _) }
 end
 
-/-- Transform a `l : list α` folded via `foldr` across a motive that holds
+/-- Induction principle for values produced by a `foldr`: if a property holds
 for the seed element `b : β` and for all incremental `op : α → β → β`
-performed on the elements `(a : α) ∈ l`. -/
+performed on the elements `(a : α) ∈ l`. The principle is given for
+a `Sort`-valued predicate, i.e., it can also be used to construct data. -/
 def foldr_rec_on {C : β → Sort*} (l : list α) (op : α → β → β) (b : β) (hb : C b)
   (hl : ∀ (b : β) (hb : C b) (a : α) (ha : a ∈ l), C (op a b)) :
   C (foldr op b l) :=
@@ -1956,9 +1957,10 @@ begin
     exact hl y hy x (mem_cons_of_mem hd hx) }
 end
 
-/-- Transform a `l : list α` folded via `foldl` across a motive that holds
+/-- Induction principle for values produced by a `foldl`: if a property holds
 for the seed element `b : β` and for all incremental `op : β → α → β`
-performed on the elements `(a : α) ∈ l`. -/
+performed on the elements `(a : α) ∈ l`. The principle is given for
+a `Sort`-valued predicate, i.e., it can also be used to construct data. -/
 def foldl_rec_on {C : β → Sort*} (l : list α) (op : β → α → β) (b : β) (hb : C b)
   (hl : ∀ (b : β) (hb : C b) (a : α) (ha : a ∈ l), C (op b a)) :
   C (foldl op b l) :=
@@ -1971,19 +1973,17 @@ begin
     { exact hl b hb hd (mem_cons_self hd tl) } }
 end
 
-@[simp] lemma foldr_induction_nil {C : β → Sort*} (op : α → β → β) (b) (hb : C b) (hl) :
+@[simp] lemma foldr_rec_on_nil {C : β → Sort*} (op : α → β → β) (b) (hb : C b) (hl) :
   foldr_rec_on [] op b hb hl = hb := rfl
 
-@[simp] lemma foldr_induction_cons {C : β → Sort*} (x : α) (l : list α)
+@[simp] lemma foldr_rec_on_cons {C : β → Sort*} (x : α) (l : list α)
   (op : α → β → β) (b) (hb : C b)
   (hl : ∀ (b : β) (hb : C b) (a : α) (ha : a ∈ (x :: l)), C (op a b)) :
   foldr_rec_on (x :: l) op b hb hl = hl _ (foldr_rec_on l op b hb
     (λ b hb a ha, hl b hb a (mem_cons_of_mem _ ha))) x (mem_cons_self _ _) := rfl
 
-@[simp] lemma foldl_induction_nil {C : β → Sort*} (op : β → α → β) (b) (hb : C b) (hl) :
+@[simp] lemma foldl_rec_on_nil {C : β → Sort*} (op : β → α → β) (b) (hb : C b) (hl) :
   foldl_rec_on [] op b hb hl = hb := rfl
-
--- TODO: add foldl_induction_cons
 
 /- scanl -/
 

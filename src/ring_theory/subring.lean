@@ -95,6 +95,13 @@ lemma mem_carrier {s : subring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.r
 /-- Two subrings are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
+/-- Copy of a subring with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (S : subring R) (s : set R) (hs : s = ↑S) : subring R :=
+{ carrier := s,
+  neg_mem' := hs.symm ▸ S.neg_mem',
+  ..S.to_subsemiring.copy s hs }
+
 lemma to_subsemiring_injective : function.injective (to_subsemiring : subring R → subsemiring R)
 | r s h := ext (set_like.ext_iff.mp h : _)
 

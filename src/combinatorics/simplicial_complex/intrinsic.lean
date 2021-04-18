@@ -26,7 +26,7 @@ coe '' (interior {x : affine_span ℝ A | ↑x ∈ A})
 lemma intrinsic_frontier_eq_closure_diff_intrinsic_interior :
   intrinsic_frontier A = closure A \ intrinsic_interior A :=
 begin
-
+  sorry
 end
 
 lemma closure_eq_intrinsic_interior_union_intrinsic_frontier :
@@ -47,9 +47,20 @@ end
 lemma intrinsic_frontier_subset_frontier :
   intrinsic_frontier A ⊆ frontier A :=
 begin
+  have aux_lemma : ∀ B : set E, coe '' closure {x : affine_span ℝ A | ↑x ∈ B} ⊆ closure B,
+  {
+    rintro B _ ⟨x, hx, rfl⟩,
+    rw mem_closure_iff_seq_limit at ⊢ hx,
+    obtain ⟨f, hfB, hflim⟩ := hx,
+    refine ⟨λ y, f y, hfB, _⟩,
+    sorry
+    --use filter.tendsto_coe,
+  },
   rintro x hx,
   unfold intrinsic_frontier at hx,
-  simp at hx,
+  rw frontier_eq_closure_inter_closure at ⊢ hx,
+  obtain ⟨x', hx', rfl⟩ := hx,
+  exact ⟨aux_lemma _ ⟨x', hx'.1, rfl⟩, aux_lemma Aᶜ ⟨x', hx'.2, rfl⟩⟩,
 end
 
 end affine

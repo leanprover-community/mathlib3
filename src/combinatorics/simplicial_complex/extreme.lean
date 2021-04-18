@@ -428,34 +428,30 @@ begin
     },
     {
       rintro h,
-      suffices h : 1 • x = 1 • y,
-      {
-        simp at h,
-        rw h at hxB,
-        exact hyB hxB,
-      },
+      apply hyB,
+      suffices h : x = y,
+      { rw ←h, exact hxB },
       suffices h : (1/n.succ : ℝ) • x = (1/n.succ : ℝ) • y,
-      {
-        sorry
-      },
-      sorry
-      /-calc
+      { exact smul_injective (ne_of_gt nat.one_div_pos_of_nat) h },
+      calc
         (1/n.succ : ℝ) • x
-            = -(1 • x) + (1 • x + (1 / ↑(n.succ)) • x - (1 / ↑(n.succ)) • y) + (1 / ↑(n.succ)) • y
-            : by sorry--ring_nf
-        ... = -(1 • x) + ((1 + 1 / ↑(n.succ)) • x - (1 / ↑(n.succ)) • y) + (1 / ↑(n.succ)) • y
-            : by sorry
-        ... = -(1 • x) + z n + (1 / ↑(n.succ)) • y
-            : by sorry
-        ... = -(1 • x) + x + (1 / ↑(n.succ)) • y
-            : by rw h
-        ... = (1 / ↑(n.succ)) • y : by rw sub_self _,-/
-      /-calc
-        1 • x = (↑n.succ/(n.succ : ℝ)) • x
-          : nat.div_self nat.succ_pos'
-        ... = (n.succ : ℝ) • (1/n.succ : ℝ) • x-/
+            = -(1 • x) + ((1 • x + (1/n.succ : ℝ) • x) - (1/n.succ : ℝ) • y) + (1/n.succ : ℝ) • y : sorry
+        ... = -(1 • x) + ((1 + 1/n.succ : ℝ) • x - (1/n.succ : ℝ) • y) + (1/n.succ : ℝ) • y : sorry
+        ... = -(1 • x) + z n + (1/n.succ : ℝ) • y : by refl
+        ... = -(1 • x) + x + (1/n.succ : ℝ) • y : by rw h
+        ... = (1/n.succ : ℝ) • y : by simp,
     },
   },
+  rw ←sub_zero x,
+  apply filter.tendsto.sub,
+  {
+    nth_rewrite 0 ←one_smul _ x,
+    apply filter.tendsto.smul_const,
+    sorry
+    --nth_rewrite 0 ←add_zero 1,
+  },
+  rw ←zero_smul _ y,
+  apply filter.tendsto.smul_const,
   sorry
 end
 

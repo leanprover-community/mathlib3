@@ -143,7 +143,7 @@ begin
 end
 
 -- If we acquire sublattices
--- the hypotheses should be reformulated as `s : subsemilattice_inf_bot`
+-- the hypotheses should be reformulated as `s : subsemilattice_sup_bot`
 lemma sup_mem
   (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
@@ -334,7 +334,7 @@ end
 
 lemma sup'_mem
   (s : set α) (w : ∀ x y ∈ s, x ⊔ y ∈ s)
-  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t , p i ∈ s) :
+  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
   t.sup' H p ∈ s :=
 sup'_induction H p w h
 

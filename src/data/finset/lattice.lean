@@ -394,8 +394,7 @@ lemma inf'_induction {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p 
 lemma exists_mem_eq_inf' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.inf' H f = f b :=
 @exists_mem_eq_sup' (order_dual α) _ _ _ H f _
 
-lemma inf'_mem {α : Type*} [semilattice_inf α]
-  (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
+lemma inf'_mem (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
   t.inf' H p ∈ s :=
 inf'_induction H p w (λ i _, h i)

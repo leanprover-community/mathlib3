@@ -140,7 +140,7 @@ begin
   rw [submodule.mem_infi],
 end
 
-@[simp] lemma mem_vanishing_ideal (t : set (prime_spectrum R)) (f : R) :
+lemma mem_vanishing_ideal (t : set (prime_spectrum R)) (f : R) :
   f ∈ vanishing_ideal t ↔ ∀ x : prime_spectrum R, x ∈ t → f ∈ x.as_ideal :=
 by rw [← set_like.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
 
@@ -303,7 +303,8 @@ set.ext $ λ x, by simpa using x.2.mul_mem_iff_mem_or_mem
   zero_locus ((I ^ n : ideal R) : set R) = zero_locus I :=
 zero_locus_radical (I ^ n) ▸ (I.radical_pow n hn).symm ▸ zero_locus_radical I
 
-@[simp] lemma zero_locus_singleton_pow (f : R) (n : ℕ) (hn : n > 0) : zero_locus ({f ^ n} : set R) = zero_locus {f} :=
+@[simp] lemma zero_locus_singleton_pow (f : R) (n : ℕ) (hn : n > 0) :
+  zero_locus ({f ^ n} : set R) = zero_locus {f} :=
 set.ext $ λ x, by simpa using x.2.pow_mem_iff_mem n hn
 
 lemma sup_vanishing_ideal_le (t t' : set (prime_spectrum R)) :

@@ -1183,7 +1183,7 @@ omit hs
 
   Example: an indexed family of submodules of a module is independent in this sense if
   and only the natural map from the direct sum of the submodules to the module is injective. -/
-def independent {ι : Sort*} {α : Type*} [complete_lattice α] (s : ι → α): Prop :=
+def independent {ι : Sort*} {α : Type*} [complete_lattice α] (s : ι → α) : Prop :=
 ∀ i : ι, disjoint (s i) (⨆ (j ≠ i), s j)
 
 lemma set_independent_iff {α : Type*} [complete_lattice α] (s : set α) :

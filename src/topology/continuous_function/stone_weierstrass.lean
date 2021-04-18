@@ -35,7 +35,7 @@ the real and imaginary parts using the real subalgebra of real-valued functions 
 (which still separates points, by taking the norm-square of a separating function).
 
 Extend to cover the case of subalgebras of the continuous functions vanishing at infinity,
-on non-compact spaces.
+on non-compact Hausdorff spaces.
 
 -/
 
@@ -43,7 +43,6 @@ noncomputable theory
 
 namespace continuous_map
 
-open_locale topological_space
 
 variables {X : Type*}
 variables [topological_space X] [compact_space X]
@@ -80,25 +79,6 @@ lemma inf'_mem_nhds {α : Type*} [topological_space α]
   (p : ι → set α) (x : α) (h : ∀ i, i ∈ t → p i ∈ 𝓝 x) :
   t.inf' H p ∈ 𝓝 x :=
 inf'_mem_filter t H p (𝓝 x) h
-
-lemma exists_set_mem_of_union_eq_top {α ι : Type*} (t : set ι) (U : ι → set α)
-  (w : (⋃ x ∈ t, U x) = ⊤) (z : α) :
-  ∃ (x ∈ t), z ∈ U x :=
-begin
-  have p : z ∈ ⊤ := set.mem_univ _,
-  rw ←w at p,
-  simp_rw [set.mem_Union] at p,
-  obtain ⟨x, xm, zm⟩ := p,
-  exact ⟨x, xm, zm⟩,
-end
-
-lemma nonempty_of_union_eq_top_of_nonempty
-  {α ι : Type*} (t : set ι) (p : ι → set α) (H : nonempty α) (w : (⋃ i ∈ t, p i) = ⊤) :
-  t.nonempty :=
-begin
-  obtain ⟨x, m, -⟩ := exists_set_mem_of_union_eq_top t p w H.some,
-  exact ⟨x, m⟩,
-end
 
 -- Everything above this point belongs somewhere else!
 
@@ -263,7 +243,7 @@ begin
   let ys_w : ∀ x, (⋃ y ∈ ys x, U x y) = ⊤ :=
     λ x, (compact_space.elim_nhds_subcover (U x) (U_nhd_y x)).some_spec,
   have ys_nonempty : ∀ x, (ys x).nonempty :=
-    λ x, nonempty_of_union_eq_top_of_nonempty _ _ nX (ys_w x),
+    λ x, set.nonempty_of_union_eq_top_of_nonempty _ _ nX (ys_w x),
 
   -- Thus for each `x` we have the desired `h x : A` so `f z - ε < h x z` everywhere.
   let h : Π x, L := λ x,
@@ -271,7 +251,7 @@ begin
       finset.sup'_mem _ sup_mem _ _ _ (λ y _, (g x y).2)⟩,
   have lt_h : ∀ x z, f z - ε < h x z,
   { intros x z,
-    obtain ⟨y, ym, zm⟩ := exists_set_mem_of_union_eq_top _ _ (ys_w x) z,
+    obtain ⟨y, ym, zm⟩ := set.exists_set_mem_of_union_eq_top _ _ (ys_w x) z,
     dsimp [h],
     simp only [finset.lt_sup'_iff, continuous_map.sup'_apply],
     exact ⟨y, ym, zm⟩, },
@@ -291,8 +271,9 @@ begin
   let W : Π x, set X := λ x, (ys x).inf' (ys_nonempty x) (λ y, V x y),
   -- This is still a neighbourhood of `x`.
   have W_nhd : ∀ x, W x ∈ 𝓝 x :=
-    λ x, finset.inf'_mem _ (𝓝 x).inter_sets _ _ _ (λ y m, V_nhd_x x y),
-  --λ x, inf'_mem_nhds _ _ _ _ (λ y m, V_nhd_x x y),
+    λ x, inf'_mem_nhds _ _ _ _ (λ y m, V_nhd_x x y),
+    -- TODO: Or do we just use:
+    -- λ x, finset.inf'_mem _ (𝓝 x).inter_sets _ _ _ (λ y m, V_nhd_x x y),
   -- Locally on each `W x`, we have `h x z < f z + ε`, since `h x` is a supremum of the `g x y`.
   have h_lt : ∀ (x) (z ∈ W x), h x z < f z + ε,
   { intros x z zm,
@@ -307,7 +288,7 @@ begin
   let xs : finset X := (compact_space.elim_nhds_subcover W W_nhd).some,
   let xs_w : (⋃ x ∈ xs, W x) = ⊤ :=
     (compact_space.elim_nhds_subcover W W_nhd).some_spec,
-  have xs_nonempty : xs.nonempty := nonempty_of_union_eq_top_of_nonempty _ _ nX xs_w,
+  have xs_nonempty : xs.nonempty := set.nonempty_of_union_eq_top_of_nonempty _ _ nX xs_w,
 
   -- Finally our candidate function is the infimum over `x ∈ xs` of the `h x`.
   -- This function is then globally less than `f z + ε`.

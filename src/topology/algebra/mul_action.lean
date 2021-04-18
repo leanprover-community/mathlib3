@@ -59,8 +59,8 @@ lemma filter.tendsto.const_smul {f : β → α} {l : filter β} {a : α} (hf : t
 tendsto_const_nhds.smul hf
 
 lemma filter.tendsto.smul_const {f : β → M} {l : filter β} {c : M}
-  (hf : filter.tendsto f l (nhds c)) (a : α) :
-  filter.tendsto (λ x, (f x) • a) l (nhds (c • a)) :=
+  (hf : tendsto f l (𝓝 c)) (a : α) :
+  tendsto (λ x, (f x) • a) l (𝓝 (c • a)) :=
 hf.smul tendsto_const_nhds
 
 variables [topological_space β] {f : β → M} {g : β → α} {b : β} {s : set β}

@@ -75,7 +75,7 @@ attribute [norm_cast] is_add_subgroup.coe_neg
 by induction n; simp [is_submonoid.coe_pow a]
 
 @[simp, norm_cast] lemma is_add_subgroup.gsmul_coe {s : set A} [is_add_subgroup s] (a : s) (n : ℤ) :
-  ((gsmul n a : s) : A) = gsmul n a :=
+  ((n • a : s) : A) = n • a :=
 by induction n; simp [is_add_submonoid.smul_coe a]
 attribute [to_additive gsmul_coe] is_subgroup.coe_gpow
 

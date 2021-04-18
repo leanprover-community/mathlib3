@@ -24,7 +24,8 @@ In mathlib, we try to avoid this by only introducing new algebraic typeclasses e
 2. when there is a meaninful gain in simplicity by factoring out a common substructure.
 
 (As examples, at this point we don't have `loop`, or `unital_magma`,
-but we do have `lie_submodule` and `topological_field`!)
+but we do have `lie_submodule` and `topological_field`!
+We also have `group_with_zero`, as an exemplar of point 2.)
 
 Generally in mathlib we use the extension mechanism (so `comm_ring` extends `ring`)
 rather than mixins (e.g. with separate `ring` and `comm_mul` classes),

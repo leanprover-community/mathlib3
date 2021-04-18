@@ -159,7 +159,6 @@ def tensor_unit : center C :=
     end, }⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
-@[simps]
 def associator (X Y Z : center C) : tensor_obj (tensor_obj X Y) Z ≅ tensor_obj X (tensor_obj Y Z) :=
 iso_mk ⟨(α_ X.1 Y.1 Z.1).hom, λ U, begin
   dsimp,
@@ -172,7 +171,6 @@ iso_mk ⟨(α_ X.1 Y.1 Z.1).hom, λ U, begin
 end⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
-@[simps]
 def left_unitor (X : center C) : tensor_obj tensor_unit X ≅ X :=
 iso_mk ⟨(λ_ X.1).hom, λ U, begin
   dsimp,
@@ -182,7 +180,6 @@ iso_mk ⟨(λ_ X.1).hom, λ U, begin
 end⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
-@[simps]
 def right_unitor (X : center C) : tensor_obj X tensor_unit ≅ X :=
 iso_mk ⟨(ρ_ X.1).hom, λ U, begin
   dsimp,
@@ -195,6 +192,7 @@ end⟩
 section
 local attribute [simp] associator_naturality left_unitor_naturality right_unitor_naturality
   pentagon
+local attribute [simp] center.associator center.left_unitor center.right_unitor
 
 instance : monoidal_category (center C) :=
 { tensor_obj := λ X Y, tensor_obj X Y,
@@ -215,23 +213,23 @@ rfl
   (f ⊗ g).f = f.f ⊗ g.f :=
 rfl
 
-@[simp] lemma associator_hom_f' (X Y Z : center C) : hom.f (α_ X Y Z).hom = (α_ X.1 Y.1 Z.1).hom :=
+@[simp] lemma associator_hom_f (X Y Z : center C) : hom.f (α_ X Y Z).hom = (α_ X.1 Y.1 Z.1).hom :=
 rfl
 
-@[simp] lemma associator_inv_f' (X Y Z : center C) : hom.f (α_ X Y Z).inv = (α_ X.1 Y.1 Z.1).inv :=
-by { ext, rw [←associator_hom_f', ←comp_f, iso.hom_inv_id], refl, }
+@[simp] lemma associator_inv_f (X Y Z : center C) : hom.f (α_ X Y Z).inv = (α_ X.1 Y.1 Z.1).inv :=
+by { ext, rw [←associator_hom_f, ←comp_f, iso.hom_inv_id], refl, }
 
-@[simp] lemma left_unitor_hom_f' (X : center C) : hom.f (λ_ X).hom = (λ_ X.1).hom :=
+@[simp] lemma left_unitor_hom_f (X : center C) : hom.f (λ_ X).hom = (λ_ X.1).hom :=
 rfl
 
-@[simp] lemma left_unitor_inv_f' (X : center C) : hom.f (λ_ X).inv = (λ_ X.1).inv :=
-by { ext, rw [←left_unitor_hom_f', ←comp_f, iso.hom_inv_id], refl, }
+@[simp] lemma left_unitor_inv_f (X : center C) : hom.f (λ_ X).inv = (λ_ X.1).inv :=
+by { ext, rw [←left_unitor_hom_f, ←comp_f, iso.hom_inv_id], refl, }
 
-@[simp] lemma right_unitor_hom_f' (X : center C) : hom.f (ρ_ X).hom = (ρ_ X.1).hom :=
+@[simp] lemma right_unitor_hom_f (X : center C) : hom.f (ρ_ X).hom = (ρ_ X.1).hom :=
 rfl
 
-@[simp] lemma right_unitor_inv_f' (X : center C) : hom.f (ρ_ X).inv = (ρ_ X.1).inv :=
-by { ext, rw [←right_unitor_hom_f', ←comp_f, iso.hom_inv_id], refl, }
+@[simp] lemma right_unitor_inv_f (X : center C) : hom.f (ρ_ X).inv = (ρ_ X.1).inv :=
+by { ext, rw [←right_unitor_hom_f, ←comp_f, iso.hom_inv_id], refl, }
 
 end
 

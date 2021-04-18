@@ -142,6 +142,21 @@ begin
     exact ⟨le_trans hay hyz, le_trans hsx_sup hxz⟩, },
 end
 
+-- If we acquire sublattices
+-- the hypotheses should be reformulated as `s : subsemilattice_inf_bot`
+lemma finset.sup_mem {α : Type*} [semilattice_sup_bot α]
+  (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
+  {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i, p i ∈ s) :
+  t.sup p ∈ s :=
+begin
+  classical,
+  apply finset.cons_induction_on t,
+  { exact w₁, },
+  { intros a s' nm ih,
+    rw finset.sup_cons,
+    apply w₂ _ _ (h a) ih, },
+end
+
 end sup
 
 lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
@@ -228,6 +243,12 @@ lemma inf_coe {P : α → Prop}
 lemma inf_induction {p : α → Prop} (ht : p ⊤) (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf f) :=
 @sup_induction (order_dual α) _ _ _ _ _ ht hp hs
+
+lemma finset.inf_mem {α : Type*} [semilattice_inf_top α]
+  (s : set α) (w₁ : ⊤ ∈ s) (w₂ : ∀ x y ∈ s, x ⊓ y ∈ s)
+  {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i, p i ∈ s) :
+  t.inf p ∈ s :=
+@finset.sup_mem (order_dual α) _ s w₁ w₂ _ t p h
 
 end inf
 
@@ -318,6 +339,24 @@ begin
       { exact ⟨b, mem_cons.2 (or.inr hb), sup_eq_right.2 h⟩, }, }, },
 end
 
+lemma finset.sup'_mem {α : Type*} [semilattice_sup α]
+  (s : set α) (w : ∀ x y ∈ s, x ⊔ y ∈ s)
+  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
+  t.sup' H p ∈ s :=
+begin
+  classical,
+  revert H,
+  apply finset.cons_induction_on t,
+  { rintro ⟨-, ⟨⟩⟩, },
+  { intros a s' nm ih H,
+    by_cases H' : s'.nonempty,
+    { rw finset.sup'_cons H',
+      apply w _ _ (h a) (ih H'), },
+    { have p : s' = ∅ := finset.not_nonempty_iff_eq_empty.mp H',
+      subst p,
+      simp [h a], }, },
+end
+
 end sup'
 
 section inf'
@@ -373,6 +412,12 @@ lemma inf'_induction {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p 
 
 lemma exists_mem_eq_inf' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.inf' H f = f b :=
 @exists_mem_eq_sup' (order_dual α) _ _ _ H f _
+
+lemma finset.inf'_mem {α : Type*} [semilattice_inf α]
+  (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
+  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
+  t.inf' H p ∈ s :=
+@finset.sup'_mem (order_dual α) _ s w _ t H p h
 
 end inf'
 

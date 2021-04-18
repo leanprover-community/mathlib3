@@ -363,20 +363,21 @@ let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
 end monoid_hom
 
 /-- The identity map from a type with 1 to itself. -/
-@[to_additive]
+@[to_additive, simps]
 def one_hom.id (M : Type*) [has_one M] : one_hom M M :=
-{ to_fun := id, map_one' := rfl, }
+{ to_fun := λ x, x, map_one' := rfl, }
 /-- The identity map from a type with multiplication to itself. -/
-@[to_additive]
+@[to_additive, simps]
 def mul_hom.id (M : Type*) [has_mul M] : mul_hom M M :=
-{ to_fun := id, map_mul' := λ _ _, rfl, }
+{ to_fun := λ x, x, map_mul' := λ _ _, rfl, }
 /-- The identity map from a monoid to itself. -/
-@[to_additive]
+@[to_additive, simps]
 def monoid_hom.id (M : Type*) [mul_one_class M] : M →* M :=
-{ to_fun := id, map_one' := rfl, map_mul' := λ _ _, rfl, }
+{ to_fun := λ x, x, map_one' := rfl, map_mul' := λ _ _, rfl, }
 /-- The identity map from a monoid_with_zero to itself. -/
+@[simps]
 def monoid_with_zero_hom.id (M : Type*) [mul_zero_one_class M] : monoid_with_zero_hom M M :=
-{ to_fun := id, map_zero' := rfl, map_one' := rfl, map_mul' := λ _ _, rfl, }
+{ to_fun := λ x, x, map_zero' := rfl, map_one' := rfl, map_mul' := λ _ _, rfl, }
 
 /-- The identity map from an type with zero to itself. -/
 add_decl_doc zero_hom.id
@@ -384,15 +385,6 @@ add_decl_doc zero_hom.id
 add_decl_doc add_hom.id
 /-- The identity map from an additive monoid to itself. -/
 add_decl_doc add_monoid_hom.id
-
-@[simp, to_additive] lemma one_hom.id_apply {M : Type*} [has_one M] (x : M) :
-  one_hom.id M x = x := rfl
-@[simp, to_additive] lemma mul_hom.id_apply {M : Type*} [has_mul M] (x : M) :
-  mul_hom.id M x = x := rfl
-@[simp, to_additive] lemma monoid_hom.id_apply {M : Type*} [mul_one_class M] (x : M) :
-  monoid_hom.id M x = x := rfl
-@[simp] lemma monoid_with_zero_hom.id_apply {M : Type*} [mul_zero_one_class M] (x : M) :
-  monoid_with_zero_hom.id M x = x := rfl
 
 /-- Composition of `one_hom`s as a `one_hom`. -/
 @[to_additive]
@@ -683,55 +675,6 @@ by { ext, simp only [map_one, coe_comp, function.comp_app, one_apply] }
   g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
 by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 
-/-- (M →* N) is a comm_monoid if N is commutative. -/
-@[to_additive]
-instance {M N} [mul_one_class M] [comm_monoid N] : comm_monoid (M →* N) :=
-{ mul := (*),
-  mul_assoc := by intros; ext; apply mul_assoc,
-  one := 1,
-  one_mul := by intros; ext; apply one_mul,
-  mul_one := by intros; ext; apply mul_one,
-  mul_comm := by intros; ext; apply mul_comm }
-
-/-- `flip` arguments of `f : M →* N →* P` -/
-@[to_additive "`flip` arguments of `f : M →+ N →+ P`"]
-def flip {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P} (f : M →* N →* P) :
-  N →* M →* P :=
-{ to_fun := λ y, ⟨λ x, f x y, by rw [f.map_one, one_apply], λ x₁ x₂, by rw [f.map_mul, mul_apply]⟩,
-  map_one' := ext $ λ x, (f x).map_one,
-  map_mul' := λ y₁ y₂, ext $ λ x, (f x).map_mul y₁ y₂ }
-
-@[simp, to_additive] lemma flip_apply
-  {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
-  (f : M →* N →* P) (x : M) (y : N) :
-  f.flip y x = f x y :=
-rfl
-
-/-- Evaluation of a `monoid_hom` at a point as a monoid homomorphism. See also `monoid_hom.apply`
-for the evaluation of any function at a point. -/
-@[to_additive "Evaluation of an `add_monoid_hom` at a point as an additive monoid homomorphism.
-See also `add_monoid_hom.apply` for the evaluation of any function at a point."]
-def eval [mul_one_class M] [comm_monoid N] : M →* (M →* N) →* N := (monoid_hom.id (M →* N)).flip
-
-@[simp, to_additive]
-lemma eval_apply [mul_one_class M] [comm_monoid N] (x : M) (f : M →* N) : eval x f = f x := rfl
-
-/-- Composition of monoid morphisms (`monoid_hom.comp`) as a monoid morphism. -/
-@[to_additive "Composition of additive monoid morphisms
-(`add_monoid_hom.comp`) as an additive monoid morphism.", simps]
-def comp_hom [mul_one_class M] [comm_monoid N] [comm_monoid P] :
-  (N →* P) →* (M →* N) →* (M →* P) :=
-{ to_fun := λ g, { to_fun := g.comp, map_one' := comp_one g, map_mul' := comp_mul g },
-  map_one' := by { ext1 f, exact one_comp f },
-  map_mul' := λ g₁ g₂, by { ext1 f, exact mul_comp g₁ g₂ f } }
-
-/-- Flipping arguments of monoid morphisms (`monoid_hom.flip`) as a monoid morphism. -/
-@[to_additive "Flipping arguments of additive monoid morphisms (`add_monoid_hom.flip`)
-as an additive monoid morphism.", simps]
-def flip_hom {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
-  : (M →* N →* P) →* (N →* M →* P) :=
-{ to_fun := monoid_hom.flip, map_one' := rfl, map_mul' := λ f g, rfl }
-
 /-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
 @[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
 then they are equal at `-x`." ]
@@ -759,15 +702,12 @@ lemma injective_iff {G H} [group G] [mul_one_class H] (f : G →* H) :
 
 include mM
 /-- Makes a group homomorphism from a proof that the map preserves multiplication. -/
-@[to_additive "Makes an additive group homomorphism from a proof that the map preserves addition."]
+@[to_additive "Makes an additive group homomorphism from a proof that the map preserves addition.",
+  simps {fully_applied := ff}]
 def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G :=
 { to_fun := f,
   map_mul' := map_mul,
   map_one' := mul_left_eq_self.1 $ by rw [←map_mul, mul_one] }
-
-@[simp, to_additive]
-lemma coe_mk' {f : M → G} (map_mul : ∀ a b : M, f (a * b) = f a * f b) :
-  ⇑(mk' f map_mul) = f := rfl
 
 omit mM
 
@@ -824,18 +764,6 @@ add_decl_doc add_monoid_hom.has_sub
 @[simp, to_additive] lemma div_apply {M G} {mM : mul_one_class M} {gG : comm_group G}
   (f g : M →* G) (x : M) :
   (f / g) x = f x / g x := rfl
-
-/-- If `G` is a commutative group, then `M →* G` a commutative group too. -/
-@[to_additive]
-instance {M G} [mul_one_class M] [comm_group G] : comm_group (M →* G) :=
-{ inv := has_inv.inv,
-  div := has_div.div,
-  div_eq_mul_inv := by { intros, ext, apply div_eq_mul_inv },
-  mul_left_inv := by intros; ext; apply mul_left_inv,
-  ..monoid_hom.comm_monoid }
-
-/-- If `G` is an additive commutative group, then `M →+ G` an additive commutative group too. -/
-add_decl_doc add_monoid_hom.add_comm_group
 
 end monoid_hom
 

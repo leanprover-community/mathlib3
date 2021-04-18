@@ -473,18 +473,26 @@ instance fintype_bind' {α β} [decidable_eq β] (s : set α) [fintype s]
   (f : α → set β) [H : ∀ a, fintype (f a)] : fintype (s >>= f) :=
 fintype_bind _ _ (λ i _, H i)
 
-theorem finite.bind {α β} {s : set α} {f : α → set β} :
-  finite s → (∀ a ∈ s, finite (f a)) → finite (s >>= f)
-| ⟨hs⟩ H := ⟨@fintype_bind _ _ (classical.dec_eq β) _ hs _ (λ a ha, (H a ha).fintype)⟩
+theorem finite.bind {α β} {s : set α} {f : α → set β} (h : finite s) (hf : ∀ a ∈ s, finite (f a)) :
+  finite (s >>= f) :=
+h.bUnion hf
 
-instance fintype_seq {α β : Type u} [decidable_eq β]
+instance fintype_seq [decidable_eq β] (f : set (α → β)) (s : set α) [fintype f] [fintype s] :
+  fintype (f.seq s) :=
+by { rw seq_def, apply set.fintype_bUnion' }
+
+instance fintype_seq' {α β : Type u} [decidable_eq β]
   (f : set (α → β)) (s : set α) [fintype f] [fintype s] :
   fintype (f <*> s) :=
-by rw seq_eq_bind_map; apply set.fintype_bUnion'
+set.fintype_seq f s
 
-theorem finite.seq {α β : Type u} {f : set (α → β)} {s : set α} :
-  finite f → finite s → finite (f <*> s)
-| ⟨hf⟩ ⟨hs⟩ := by { haveI := classical.dec_eq β, exactI ⟨set.fintype_seq _ _⟩ }
+theorem finite.seq {f : set (α → β)} {s : set α} (hf : finite f) (hs : finite s) :
+  finite (f.seq s) :=
+by { rw seq_def, exact hf.bUnion (λ f _, hs.image _) }
+
+theorem finite.seq' {α β : Type u} {f : set (α → β)} {s : set α} (hf : finite f) (hs : finite s) :
+  finite (f <*> s) :=
+hf.seq hs
 
 /-- There are finitely many subsets of a given finite set -/
 lemma finite.finite_subsets {α : Type u} {a : set α} (h : finite a) : finite {b | b ⊆ a} :=

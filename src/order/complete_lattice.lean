@@ -1174,7 +1174,7 @@ end
 
 omit hs
 
-/-- An independent indexed family of elements in a complete lattice is one in which every element
+/-- An indexed family of elements in a complete lattice is independent if every element
   is disjoint from the `Sup` of the rest. -/
 def independent {ι : Sort*} {α : Type*} [complete_lattice α] (s : ι → α): Prop :=
 ∀ ⦃i : ι⦄, disjoint (s i) (⨆ (j ≠ i), s j)

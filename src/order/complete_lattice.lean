@@ -1208,4 +1208,8 @@ lemma independent_pempty (t : pempty → α) : independent t.
 lemma independent.disjoint {x y : ι} (h : x ≠ y) : disjoint (t x) (t y) :=
 disjoint_Sup_right (ht x) ⟨y, by simp [h.symm]⟩
 
+lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
+  {s t : ι → α} (hs : independent s) (hst : t ≤ s) :
+  independent t :=
+λ i, (hs i).mono (hst i) (supr_le_supr $ λ j, supr_le_supr $ λ _, hst j)
 end complete_lattice

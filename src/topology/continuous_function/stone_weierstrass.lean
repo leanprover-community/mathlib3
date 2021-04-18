@@ -55,17 +55,7 @@ lemma neg_norm_le_apply (f : C(X, ℝ)) (x : X) : -∥f∥ ≤ f x :=
 le_trans (neg_le_neg (f.norm_coe_le_norm x)) (neg_le.mp (neg_le_abs_self (f x)))
 
 section
-variables {R : Type*} [comm_ring R] [topological_space R] [topological_ring R]
-
-attribute [simp] polynomial.aeval_monomial
-
-@[simp] lemma polynomial.aeval_fn_apply (g : polynomial R) (f : X → R) (x : X) :
-  ((polynomial.aeval f) g) x = g.eval (f x) :=
-begin
-  apply polynomial.induction_on' g,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n a, simp [pi.pow_apply f x n], },
-end
+variables {R : Type*} [comm_semiring R] [topological_space R] [topological_semiring R]
 
 @[simp] lemma polynomial.aeval_continuous_map_apply (g : polynomial R) (f : C(X, R)) (x : X) :
   ((polynomial.aeval f) g) x = g.eval (f x) :=
@@ -75,62 +65,39 @@ begin
   { intros n a, simp [pi.pow_apply f x n], },
 end
 
-@[simp, norm_cast] lemma polynomial.aeval_subalgebra_coe
-  (g : polynomial R) {A : Type*} [semiring A] [algebra R A] (s : subalgebra R A) (f : s) :
-  (polynomial.aeval f g : A) = polynomial.aeval (f : A) g :=
-begin
-  apply polynomial.induction_on' g,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n a, simp, },
-end
-
 end
 
 open_locale topological_space
+
+lemma inf'_mem_filter {α : Type*} [topological_space α]
+  {ι : Type*} (t : finset ι) (H : t.nonempty)
+  (p : ι → set α) (F : filter α) (h : ∀ i, i ∈ t → p i ∈ F) :
+  t.inf' H p ∈ F :=
+finset.inf'_mem F.sets F.inter_sets t H p h
 
 lemma inf'_mem_nhds {α : Type*} [topological_space α]
   {ι : Type*} (t : finset ι) (H : t.nonempty)
   (p : ι → set α) (x : α) (h : ∀ i, i ∈ t → p i ∈ 𝓝 x) :
   t.inf' H p ∈ 𝓝 x :=
-begin
-  revert H h,
-  apply finset.cons_induction_on t,
-  { rintro ⟨-, ⟨⟩⟩, },
-  { intros a s' nm ih H h,
-    by_cases H' : s'.nonempty,
-    { rw finset.inf'_cons H',
-      simp [h a (by simp), ih H' (λ i m, h i (by simp [m]))], },
-    { have p : s' = ∅ := finset.not_nonempty_iff_eq_empty.mp H',
-      subst p,
-      exact h a (by simp), } }
-end
+inf'_mem_filter t H p (𝓝 x) h
 
-lemma nonempty_of_union_eq_top_of_nonempty
-  {α ι : Type*} (t : finset ι) (p : ι → set α) (H : nonempty α) (w : (⋃ i ∈ t, p i) = ⊤) :
-  t.nonempty :=
-begin
-  rw eq_top_iff at w,
-  obtain ⟨-, ⟨g,rfl⟩, h⟩ := set.mem_of_mem_of_subset (set.mem_univ H.some) w,
-  simp only [exists_prop, set.mem_Union] at h,
-  exact ⟨g, h.1⟩,
-end
-
-lemma foo (a b ε : ℝ) : dist a b < ε ↔ a < b + ε ∧ b - ε < a :=
-begin
-  dsimp [dist],
-  rw abs_lt,
-  refine ⟨λ p, ⟨_, _⟩, λ p, ⟨_, _⟩⟩; cases p; linarith,
-end
-
-lemma bar {X : Type*} {xs : finset X} {U : X → set X}
-  (w : (⋃ (x : X) (H : x ∈ xs), U x) = ⊤) (z : X) :
-  ∃ (x : X), x ∈ xs ∧ z ∈ U x :=
+lemma exists_set_mem_of_union_eq_top {α ι : Type*} (t : set ι) (U : ι → set α)
+  (w : (⋃ x ∈ t, U x) = ⊤) (z : α) :
+  ∃ (x ∈ t), z ∈ U x :=
 begin
   have p : z ∈ ⊤ := set.mem_univ _,
   rw ←w at p,
   simp_rw [set.mem_Union] at p,
   obtain ⟨x, xm, zm⟩ := p,
   exact ⟨x, xm, zm⟩,
+end
+
+lemma nonempty_of_union_eq_top_of_nonempty
+  {α ι : Type*} (t : set ι) (p : ι → set α) (H : nonempty α) (w : (⋃ i ∈ t, p i) = ⊤) :
+  t.nonempty :=
+begin
+  obtain ⟨x, m, -⟩ := exists_set_mem_of_union_eq_top t p w H.some,
+  exact ⟨x, m⟩,
 end
 
 -- Everything above this point belongs somewhere else!
@@ -301,10 +268,10 @@ begin
   -- Thus for each `x` we have the desired `h x : A` so `f z - ε < h x z` everywhere.
   let h : Π x, L := λ x,
     ⟨(ys x).sup' (ys_nonempty x) (λ y, (g x y : C(X, ℝ))),
-      finset.sup'_mem _ sup_mem _ _ _ (λ y, (g x y).2)⟩,
+      finset.sup'_mem _ sup_mem _ _ _ (λ y _, (g x y).2)⟩,
   have lt_h : ∀ x z, f z - ε < h x z,
   { intros x z,
-    obtain ⟨y, ym, zm⟩ := bar (ys_w x) z,
+    obtain ⟨y, ym, zm⟩ := exists_set_mem_of_union_eq_top _ _ (ys_w x) z,
     dsimp [h],
     simp only [finset.lt_sup'_iff, continuous_map.sup'_apply],
     exact ⟨y, ym, zm⟩, },
@@ -323,7 +290,9 @@ begin
   -- For each `x`, we can take the finite intersection of the `V x y` corresponding to `y ∈ ys x`.
   let W : Π x, set X := λ x, (ys x).inf' (ys_nonempty x) (λ y, V x y),
   -- This is still a neighbourhood of `x`.
-  have W_nhd : ∀ x, W x ∈ 𝓝 x := λ x, inf'_mem_nhds _ _ _ _ (λ y m, V_nhd_x x y),
+  have W_nhd : ∀ x, W x ∈ 𝓝 x :=
+    λ x, finset.inf'_mem _ (𝓝 x).inter_sets _ _ _ (λ y m, V_nhd_x x y),
+  --λ x, inf'_mem_nhds _ _ _ _ (λ y m, V_nhd_x x y),
   -- Locally on each `W x`, we have `h x z < f z + ε`, since `h x` is a supremum of the `g x y`.
   have h_lt : ∀ (x) (z ∈ W x), h x z < f z + ε,
   { intros x z zm,
@@ -344,16 +313,23 @@ begin
   -- This function is then globally less than `f z + ε`.
   let k : (L : Type*) :=
     ⟨xs.inf' xs_nonempty (λ x, (h x : C(X, ℝ))),
-      finset.inf'_mem _ inf_mem _ _ _ (λ x, (h x).2)⟩,
+      finset.inf'_mem _ inf_mem _ _ _ (λ x _, (h x).2)⟩,
 
   refine ⟨k.1, _, k.2⟩,
+
+  -- We just need to verify the bound, which we do pointwise.
   rw dist_lt_iff _ _ pos,
   intro z,
-  rw foo,
+
+  -- We rewrite into this particular form,
+  -- so that simp lemmas about inequalities involving `finset.inf'` can fire.
+  rw [(show ∀ a b ε : ℝ, dist a b < ε ↔ a < b + ε ∧ b - ε < a,
+    by { intros, simp only [← metric.mem_ball, real.ball_eq_Ioo, set.mem_Ioo, and_comm], })],
+
   fsplit,
   { dsimp [k],
     simp only [finset.inf'_lt_iff, continuous_map.inf'_apply],
-    obtain ⟨x, xm, zm⟩ := bar xs_w z,
+    obtain ⟨x, xm, zm⟩ := exists_set_mem_of_union_eq_top _ _ xs_w z,
     exact ⟨x, xm, h_lt _ _ zm⟩, },
   { dsimp [k],
     simp only [finset.lt_inf'_iff, continuous_map.inf'_apply],

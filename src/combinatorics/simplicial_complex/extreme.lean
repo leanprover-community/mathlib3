@@ -9,6 +9,7 @@ import algebra.module.linear_map
 import analysis.convex.topology
 import analysis.normed_space.operator_norm
 import combinatorics.simplicial_complex.dump
+import combinatorics.simplicial_complex.to_move.topology
 import combinatorics.simplicial_complex.convex_independence
 
 open_locale classical affine big_operators
@@ -61,19 +62,6 @@ instance : is_partial_order (set E) is_extreme_set :=
 { refl := is_extreme_set.refl,
   trans := is_extreme_set.trans,
   antisymm := is_extreme_set.antisymm }
-
-lemma closed_of_extreme (hA : is_closed A) (hAB : is_extreme_set A B) :
-  is_closed B :=
-begin
-  rw ←is_seq_closed_iff_is_closed at ⊢ hA,
-  apply is_seq_closed_of_def,
-  rintro x y hx hxy,
-  sorry -- true?
-end
-
-lemma compact_of_extreme (hA : is_compact A) (hAB : is_extreme_set A B) :
-  is_compact B :=
-compact_of_is_closed_subset hA (closed_of_extreme (is_compact.is_closed hA) hAB) hAB.1
 
 lemma convex_remove_of_extreme (hA : convex A) (hAB : is_extreme_set A B) :
   convex (A \ B) :=
@@ -381,7 +369,7 @@ begin
   split,
   {
     rintro n,
-    have := (frontier_extreme hA₁).2 y (z n) (interior_subset hy) (hzA n),
+    --have := (frontier_extreme_to_closure hA₁).2 y (z n) (interior_subset hy) (hzA n),
     sorry
   },
   rw ←zero_add x,
@@ -479,3 +467,19 @@ lemma eq_of_convex_hull_eq_convex_hull_of_linearly_independent
 finset.subset.antisymm
   (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hX h)
   (subset_of_convex_hull_eq_convex_hull_of_linearly_independent hY h.symm)
+
+  /-! # DANGER ZONE
+  Unproved, and maybe wrong, lemmas -/
+
+lemma closed_of_extreme (hA : is_closed A) (hAB : is_extreme_set A B) :
+  is_closed B :=
+begin
+  rw ←is_seq_closed_iff_is_closed at ⊢ hA,
+  apply is_seq_closed_of_def,
+  rintro x y hx hxy,
+  sorry -- true?
+end
+
+lemma compact_of_extreme (hA : is_compact A) (hAB : is_extreme_set A B) :
+  is_compact B :=
+compact_of_is_closed_subset hA (closed_of_extreme (is_compact.is_closed hA) hAB) hAB.1

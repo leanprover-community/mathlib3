@@ -138,12 +138,19 @@ end
 lemma closed_of_exposed (hA : is_closed A) (hAB : is_exposed_set A B) :
   is_closed B :=
 begin
-  rw ←is_seq_closed_iff_is_closed,
   obtain ⟨l, rfl⟩ := hAB,
+  apply is_closed_inter hA,
+  refine closure_eq_iff_is_closed.1 (subset.antisymm _ subset_closure),
+  rw sequentie
+  rw ←is_seq_closed_iff_is_closed,
   apply is_seq_closed_of_def,
-  rintro x y hx hxy,
-  refine ⟨mem_of_is_closed_sequential hA (λ n, (hx n).1) hxy, λ z hz, _⟩,
-  have := (λ n, (hx n).2 z hz),
+  rintro x y hx hxy z hz,
+  suffices h : l '' (closure (x '' univ)) ⊆ closure (Ici (l z)),
+  { rw [closure_Ici] at h,
+    exact h ⟨z, hz, rfl⟩ },
+  refine subset.trans (image_closure_subset_closure_image l.continuous) (closure_mono _),
+  rintro _ ⟨w, hw, rfl⟩,
+  exact hx w hw,
   sorry --@Bhavik, easy now
 end
 
@@ -162,7 +169,10 @@ begin
   obtain ⟨l, hl⟩ := geometric_hahn_banach_open_point (convex.interior hA₁) is_open_interior hxfA.2,
   refine ⟨{x ∈ A | ∀ y ∈ A, l y ≤ l x}, extreme_of_exposed ⟨l, rfl⟩, ⟨λ x hx, hx.1, λ h,
     not_le.2 (hl y hyA) ((h (interior_subset hyA)).2 x hxA)⟩, ⟨hxA, λ z hzA, _⟩⟩,
-  have := subset_closure hzA,
-  rw closure_eq_closure_interior hA₁ hA₂ at this,
-  sorry
+  suffices h : l '' closure (interior A) ⊆ closure (Iio (l x)),
+  { rw [closure_Iio, ←closure_eq_closure_interior hA₁ hA₂] at h,
+    exact h ⟨z, subset_closure hzA, rfl⟩ },
+  refine subset.trans (image_closure_subset_closure_image l.continuous) (closure_mono _),
+  rintro _ ⟨w, hw, rfl⟩,
+  exact hl w hw,
 end

@@ -416,8 +416,6 @@ variables (P : ideal (polynomial R)) [hP : P.is_maximal]
 
 include P hP
 
-set_option profiler true
-
 lemma is_maximal_comap_C_of_is_maximal (hP' : ∀ (x : R), C x ∈ P → x = 0) :
   is_maximal (comap C P : ideal R) :=
 begin

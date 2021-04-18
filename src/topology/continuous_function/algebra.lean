@@ -468,11 +468,13 @@ end
 
 end continuous_map
 
-lemma continuous_map.subsingleton_subalgebra_ext {α : Type*} [topological_space α]
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma continuous_map.subsingleton_subalgebra {α : Type*} [topological_space α]
   {R : Type*} [comm_semiring R] [topological_space R] [topological_semiring R]
-  [subsingleton α] (s₁ s₂ : subalgebra R C(α, R)) :
-  s₁ = s₂ :=
+  [subsingleton α] : subsingleton (subalgebra R C(α, R)) :=
 begin
+  fsplit,
+  intros s₁ s₂,
   by_cases n : nonempty α,
   { obtain ⟨x⟩ := n,
     ext f,

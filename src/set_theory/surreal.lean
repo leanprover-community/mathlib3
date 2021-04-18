@@ -363,7 +363,7 @@ instance : add_monoid surreal :=
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
--- TODO construct the remaining instances:
+-- TODO replace the `add_monoid` instance above with a stronger instance:
 --   add_group, add_comm_semigroup, add_comm_group, ordered_add_comm_group,
 -- as per the instances for `game`
 

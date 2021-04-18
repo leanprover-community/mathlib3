@@ -150,6 +150,14 @@ lemma add_submonoid.to_submonoid_mono {M : Type*} [add_zero_class M] :
   monotone (add_submonoid.to_submonoid : add_submonoid M → submonoid (multiplicative M)) :=
 λ a b hab, hab
 
+lemma submonoid.of_add_submonoid_mono {M : Type*} [mul_one_class M] :
+  monotone (submonoid.of_add_submonoid : add_submonoid (additive M) → submonoid M) :=
+λ a b hab, hab
+
+lemma add_submonoid.of_submonoid_mono {M : Type*} [add_zero_class M] :
+  monotone (add_submonoid.of_submonoid : submonoid (multiplicative M) → add_submonoid M) :=
+λ a b hab, hab
+
 lemma submonoid.to_add_submonoid_closure {M : Type*} [monoid M] (S : set M) :
   (submonoid.closure S).to_add_submonoid = add_submonoid.closure (additive.to_mul ⁻¹' S) :=
 le_antisymm

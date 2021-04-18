@@ -208,7 +208,7 @@ lemma vanishing_ideal_anti_mono {s t : set (prime_spectrum R)} (h : s ⊆ t) :
   vanishing_ideal t ≤ vanishing_ideal s :=
 (gc R).monotone_u h
 
-@[simp] lemma zero_locus_bot :
+lemma zero_locus_bot :
   zero_locus ((⊥ : ideal R) : set R) = set.univ :=
 (gc R).l_bot
 
@@ -299,11 +299,11 @@ lemma zero_locus_singleton_mul (f g : R) :
   zero_locus ({f * g} : set R) = zero_locus {f} ∪ zero_locus {g} :=
 set.ext $ λ x, by simpa using x.2.mul_mem_iff_mem_or_mem
 
-@[simp] lemma zero_locus_pow (I : ideal R) {n : ℕ} (hn : n > 0) :
+@[simp] lemma zero_locus_pow (I : ideal R) {n : ℕ} (hn : 0 < n) :
   zero_locus ((I ^ n : ideal R) : set R) = zero_locus I :=
 zero_locus_radical (I ^ n) ▸ (I.radical_pow n hn).symm ▸ zero_locus_radical I
 
-@[simp] lemma zero_locus_singleton_pow (f : R) (n : ℕ) (hn : n > 0) :
+@[simp] lemma zero_locus_singleton_pow (f : R) (n : ℕ) (hn : 0 < n) :
   zero_locus ({f ^ n} : set R) = zero_locus {f} :=
 set.ext $ λ x, by simpa using x.2.pow_mem_iff_mem n hn
 
@@ -452,7 +452,7 @@ topological_space.opens.ext $ by {simp, refl}
 lemma basic_open_mul (f g : R) : basic_open (f * g) = basic_open f ⊓ basic_open g :=
 topological_space.opens.ext $ by {simp [zero_locus_singleton_mul]}
 
-@[simp] lemma basic_open_pow (f : R) (n : ℕ) (hn : n > 0) : basic_open (f ^ n) = basic_open f :=
+@[simp] lemma basic_open_pow (f : R) (n : ℕ) (hn : 0 < n) : basic_open (f ^ n) = basic_open f :=
 topological_space.opens.ext $ by simpa using zero_locus_singleton_pow f n hn
 
 lemma is_topological_basis_basic_opens : topological_space.is_topological_basis

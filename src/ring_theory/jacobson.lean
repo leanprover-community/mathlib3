@@ -365,7 +365,7 @@ begin
     refine jacobson_bot_of_integral_localization (quotient_map P C le_rfl) quotient_map_injective
       _ _ (localization.of (submonoid.powers (p.map (quotient.mk (P.comap C))).leading_coeff))
       (localization.of _)
-      (by convert (is_integral_localization_map_polynomial_quotient P _ pP _ _)),
+      (by apply (is_integral_localization_map_polynomial_quotient P _ pP _ _)),
     rwa [ne.def, leading_coeff_eq_zero] }
 end
 
@@ -416,6 +416,8 @@ variables (P : ideal (polynomial R)) [hP : P.is_maximal]
 
 include P hP
 
+set_option profiler true
+
 lemma is_maximal_comap_C_of_is_maximal (hP' : ∀ (x : R), C x ∈ P → x = 0) :
   is_maximal (comap C P : ideal R) :=
 begin
@@ -447,8 +449,7 @@ begin
   { rw le_antisymm bot_le (comap_bot_le_of_injective _ (map_injective_of_injective _
       quotient_map_injective M ϕ ϕ' (le_non_zero_divisors_of_domain hM'))),
     refine is_maximal_comap_of_is_integral_of_is_maximal' _ _ ⊥ this,
-    have := is_integral_localization_map_polynomial_quotient P _ (submodule.coe_mem m) ϕ (ϕ' : _),
-    exact this },
+    apply is_integral_localization_map_polynomial_quotient P _ (submodule.coe_mem m) ϕ (ϕ' : _) },
   rw (map_bot.symm : (⊥ : ideal (localization M')) = map ϕ'.to_map ⊥),
   refine map.is_maximal ϕ'.to_map (localization_map_bijective_of_field hM' _ ϕ') hP,
   rwa [← quotient.maximal_ideal_iff_is_field_quotient, ← bot_quotient_is_maximal_iff],

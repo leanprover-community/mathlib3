@@ -311,7 +311,7 @@ monoid_hom.mk' (λ x, ⟨x, h x.prop⟩) (λ ⟨a, ha⟩  ⟨b, hb⟩, rfl)
 
 @[simp, to_additive]
 lemma coe_inclusion {H K : subgroup G} {h : H ≤ K} (a : H) : (inclusion h a : G) = a :=
-by { cases a, simp only [inclusion, coe_mk, monoid_hom.coe_mk'] }
+by { cases a, simp only [inclusion, coe_mk, monoid_hom.mk'_apply] }
 
 @[simp, to_additive]
 lemma subtype_comp_inclusion {H K : subgroup G} (hH : H ≤ K) :
@@ -861,8 +861,8 @@ instance center_normal : (center G).normal :=
 end⟩
 
 variables {G} (H)
-/-- The `normalizer` of `H` is the smallest subgroup of `G` inside which `H` is normal. -/
-@[to_additive "The `normalizer` of `H` is the smallest subgroup of `G` inside which `H` is normal."]
+/-- The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal. -/
+@[to_additive "The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal."]
 def normalizer : subgroup G :=
 { carrier := {g : G | ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H},
   one_mem' := by simp,

@@ -196,7 +196,7 @@ coe_fn_injective $ funext h
 theorem ext_iff {f g : M →L[R] M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩
 
-variables (c : R) (f g : M →L[R] M₂) (h : M₂ →L[R] M₃) (x y z : M)
+variables (f g : M →L[R] M₂) (c : R) (h : M₂ →L[R] M₃) (x y z : M)
 
 -- make some straightforward lemmas available to `simp`.
 @[simp] lemma map_zero : f (0 : M) = 0 := (to_linear_map _).map_zero

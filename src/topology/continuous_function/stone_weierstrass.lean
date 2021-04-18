@@ -41,21 +41,6 @@ on non-compact spaces.
 
 noncomputable theory
 
-namespace pi
-
-variables {I : Type*} {f : I → Type*} (x : Π i, f i) (i : I)
-
--- Where does this belong?
--- This doesn't work as a `@[simp]` lemma as there is nothing to index on.
-lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
-end
-
-end pi
-
 namespace continuous_map
 
 open_locale topological_space
@@ -100,60 +85,6 @@ begin
 end
 
 end
-
-
-lemma compact_space.elim_nhds_subcover {α : Type*} [topological_space α] [compact_space α]
-  (U : α → set α) (hU : ∀ x, U x ∈ 𝓝 x) :
-  ∃ t : finset α, (⋃ x ∈ t, U x) = ⊤ :=
-begin
-  obtain ⟨t, -, s⟩ := is_compact.elim_nhds_subcover compact_univ U (λ x m, hU x),
-  exact ⟨t, by { rw eq_top_iff, exact s }⟩,
-end
-
--- If we acquire sublattices
--- the hypotheses should be reformulated as `s : subsemilattice_inf_bot`.
-lemma finset.inf_mem {α : Type*} [semilattice_inf_top α]
-  (s : set α) (w₁ : ⊤ ∈ s) (w₂ : ∀ x y ∈ s, x ⊓ y ∈ s)
-  {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i, p i ∈ s) :
-  t.inf p ∈ s :=
-begin
-  classical,
-  apply finset.cons_induction_on t,
-  { exact w₁, },
-  { intros a s' nm ih,
-    rw finset.inf_cons,
-    apply w₂ _ _ (h a) ih, },
-end
-
-lemma finset.inf'_mem {α : Type*} [semilattice_inf α]
-  (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
-  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
-  t.inf' H p ∈ s :=
-begin
-  classical,
-  revert H,
-  apply finset.cons_induction_on t,
-  { rintro ⟨-, ⟨⟩⟩, },
-  { intros a s' nm ih H,
-    by_cases H' : s'.nonempty,
-    { rw finset.inf'_cons H',
-      apply w _ _ (h a) (ih H'), },
-    { have p : s' = ∅ := finset.not_nonempty_iff_eq_empty.mp H',
-      subst p,
-      simp [h a], }, },
-end
-
-lemma finset.sup_mem {α : Type*} [semilattice_sup_bot α]
-  (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
-  {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i, p i ∈ s) :
-  t.sup p ∈ s :=
-@finset.inf_mem (order_dual α) _ s w₁ w₂ _ t p h
-
-lemma finset.sup'_mem {α : Type*} [semilattice_sup α]
-  (s : set α) (w : ∀ x y ∈ s, x ⊔ y ∈ s)
-  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i, p i ∈ s) :
-  t.sup' H p ∈ s :=
-@finset.inf'_mem (order_dual α) _ s w _ t H p h
 
 open_locale topological_space
 

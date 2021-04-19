@@ -761,7 +761,7 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
 section span_nat
 open submodule
 
-lemma span_nat_eq_add_group_closure (s : set R) :
+lemma span_nat_eq_add_group_closure (s : set M) :
   (span ℕ s).to_add_submonoid = add_submonoid.closure s :=
 begin
   refine eq.symm (add_submonoid.closure_eq_of_le subset_span _),
@@ -770,7 +770,7 @@ begin
   exact add_submonoid.subset_closure,
 end
 
-@[simp] lemma span_nat_eq (s : add_submonoid R) : (span ℕ (s : set R)).to_add_submonoid = s :=
+@[simp] lemma span_nat_eq (s : add_submonoid M) : (span ℕ (s : set M)).to_add_submonoid = s :=
 by rw [span_nat_eq_add_group_closure, s.closure_eq]
 
 end span_nat

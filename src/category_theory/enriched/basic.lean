@@ -240,12 +240,6 @@ category.id_comp _
     (forget_enrichment.hom_to W f ⊗ forget_enrichment.hom_to W g)) ≫ e_comp W _ _ _) :=
 rfl
 
-@[simp] lemma forget_enrichment_comp' {X Y Z : forget_enrichment W C} (f : X ⟶ Y) (g : Y ⟶ Z) :
-  forget_enrichment.hom_of W (((λ_ (𝟙_ W)).inv ≫
-    (forget_enrichment.hom_to W f ⊗ forget_enrichment.hom_to W g)) ≫ e_comp W _ _ _) =
-    (f ≫ g)  :=
-rfl
-
 end
 
 /--

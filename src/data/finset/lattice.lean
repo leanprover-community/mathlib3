@@ -142,6 +142,14 @@ begin
     exact ⟨le_trans hay hyz, le_trans hsx_sup hxz⟩, },
 end
 
+-- If we acquire sublattices
+-- the hypotheses should be reformulated as `s : subsemilattice_sup_bot`
+lemma sup_mem
+  (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
+  {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
+  t.sup p ∈ s :=
+@sup_induction _ _ _ _ _ (∈ s) w₁ w₂ h
+
 end sup
 
 lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
@@ -228,6 +236,12 @@ lemma inf_coe {P : α → Prop}
 lemma inf_induction {p : α → Prop} (ht : p ⊤) (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf f) :=
 @sup_induction (order_dual α) _ _ _ _ _ ht hp hs
+
+lemma inf_mem
+  (s : set α) (w₁ : ⊤ ∈ s) (w₂ : ∀ x y ∈ s, x ⊓ y ∈ s)
+  {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
+  t.inf p ∈ s :=
+@inf_induction _ _ _ _ _ (∈ s) w₁ w₂ h
 
 end inf
 
@@ -318,6 +332,12 @@ begin
       { exact ⟨b, mem_cons.2 (or.inr hb), sup_eq_right.2 h⟩, }, }, },
 end
 
+lemma sup'_mem
+  (s : set α) (w : ∀ x y ∈ s, x ⊔ y ∈ s)
+  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
+  t.sup' H p ∈ s :=
+sup'_induction H p w h
+
 end sup'
 
 section inf'
@@ -373,6 +393,11 @@ lemma inf'_induction {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p 
 
 lemma exists_mem_eq_inf' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.inf' H f = f b :=
 @exists_mem_eq_sup' (order_dual α) _ _ _ H f _
+
+lemma inf'_mem (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
+  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
+  t.inf' H p ∈ s :=
+inf'_induction H p w h
 
 end inf'
 

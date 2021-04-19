@@ -649,7 +649,7 @@ lemma open_embedding.singleton_smooth_manifold_with_corners
   {M : Type*} [topological_space M]
   [nonempty M] {f : M → H} (h : open_embedding f) :
   @smooth_manifold_with_corners 𝕜 _ E _ _ H _ I M _ h.singleton_charted_space :=
-(h.to_local_homeomorph f).singleton_smooth_manifold_with_corners I (h.source f)
+(h.to_local_homeomorph f).singleton_smooth_manifold_with_corners I (by simp)
 
 namespace topological_space.opens
 

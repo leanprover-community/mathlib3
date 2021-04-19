@@ -129,7 +129,7 @@ end pi
 
 section monoid_hom
 
-variables (f) [Π i, monoid (f i)]
+variables (f) [Π i, mul_one_class (f i)]
 
 /-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
 homomorphism. -/

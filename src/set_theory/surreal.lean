@@ -348,11 +348,11 @@ instance : ordered_add_comm_group surreal :=
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact pgame.add_le_add_left hx } }
   
-noncomputable instance : linear_order surreal :=
+noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
   decidable_le := classical.dec_rel _,
-  ..(infer_instance : partial_order surreal) }
+  ..surreal.ordered_add_comm_group }
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

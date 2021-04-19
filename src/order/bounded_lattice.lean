@@ -276,7 +276,7 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c 
     calc a ⊓ b ≤ b ⊓ c : by { rw [inf_comm], exact inf_le_inf_left _ this }
       ... = ⊥ : h₂⟩
 
-/- Prop instance -/
+/-- Propositions form a bounded distributive lattice. -/
 instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
 { le           := λa b, a → b,
   le_refl      := assume _, id,
@@ -308,6 +308,9 @@ noncomputable instance Prop.linear_order : linear_order Prop :=
 
 @[simp]
 lemma le_iff_imp {p q : Prop} : p ≤ q ↔ (p → q) := iff.rfl
+
+@[simp] lemma sup_Prop_eq (p q : Prop) : p ⊔ q = (p ∨ q) := rfl
+@[simp] lemma inf_Prop_eq (p q : Prop) : p ⊓ q = (p ∧ q) := rfl
 
 section logic
 variable [preorder α]

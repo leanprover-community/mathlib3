@@ -398,6 +398,10 @@ linear_map.map_neg (f : M →ₗ[R] N) x
 @[simp] lemma map_lie (f : M →ₗ⁅R,L⁆ N) (x : L) (m : M) : f ⁅x, m⁆ = ⁅x, f m⁆ :=
 lie_module_hom.map_lie' f
 
+@[simp] lemma map_lie₂ (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) (x : L) (m : M) (n : N) :
+  ⁅x, f m n⁆ = f ⁅x, m⁆ n + f m ⁅x, n⁆ :=
+by simp only [sub_add_cancel, map_lie, bracket_apply]
+
 @[simp] lemma map_zero (f : M →ₗ⁅R,L⁆ N) : f 0 = 0 :=
 linear_map.map_zero (f : M →ₗ[R] N)
 
@@ -515,6 +519,9 @@ instance has_coe_to_linear_equiv : has_coe (M ≃ₗ⁅R,L⁆ N) (M ≃ₗ[R] N)
 
 /-- see Note [function coercion] -/
 instance : has_coe_to_fun (M ≃ₗ⁅R,L⁆ N) := ⟨_, to_fun⟩
+
+@[simp] lemma coe_mk (f : M → N) (h₁ h₂ F h₃ h₄ h₅) :
+  ((⟨f, h₁, h₂, F, h₃, h₄, h₅⟩ : M ≃ₗ⁅R,L⁆ N) : M → N) = f := rfl
 
 @[simp, norm_cast] lemma coe_to_lie_module_hom (e : M ≃ₗ⁅R,L⁆ N) :
   ((e : M →ₗ⁅R,L⁆ N) : M → N) = e := rfl

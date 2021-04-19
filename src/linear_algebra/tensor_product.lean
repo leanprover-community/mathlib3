@@ -580,6 +580,14 @@ def lift.equiv : (M →ₗ N →ₗ P) ≃ₗ (M ⊗ N →ₗ P) :=
   right_inv := λ f, ext $ λ m n, lift.tmul _ _,
   .. uncurry R M N P }
 
+@[simp] lemma lift.equiv_apply (f : M →ₗ[R] N →ₗ[R] P) (m : M) (n : N) :
+  lift.equiv R M N P f (m ⊗ₜ n) = f m n :=
+by simp only [lift.equiv, uncurry_apply, linear_equiv.coe_mk, linear_map.to_fun_eq_coe]
+
+@[simp] lemma lift.equiv_symm_apply (f : M ⊗[R] N →ₗ[R] P) (m : M) (n : N) :
+  (lift.equiv R M N P).symm f m n = f (m ⊗ₜ n) :=
+rfl
+
 /-- Given a linear map `M ⊗ N → P`, compose it with the canonical bilinear map `M → N → M ⊗ N` to
 form a bilinear map `M → N → P`. -/
 def lcurry : (M ⊗[R] N →ₗ[R] P) →ₗ[R] M →ₗ[R] N →ₗ[R] P :=

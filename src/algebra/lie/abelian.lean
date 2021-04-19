@@ -157,6 +157,7 @@ def maximal_trivial_hom (f : M →ₗ⁅R,L⁆ N) :
   (maximal_trivial_hom f m : N) = f m :=
 rfl
 
+-- Should I just have this as a `≃ₗ[R]` or should I at least have a 'ed version in that form?
 /-- The maximal trivial submodules of Lie-equivalent Lie modules are Lie-equivalent. -/
 def maximal_trivial_equiv (e : M ≃ₗ⁅R,L⁆ N) :
   maximal_trivial_submodule R L M ≃ₗ⁅R,L⁆ maximal_trivial_submodule R L N :=
@@ -189,6 +190,11 @@ def maximal_trivial_linear_map_equiv_lie_module_hom :
   inv_fun   := λ F, ⟨F, λ x, by { ext, simp, }⟩,
   left_inv  := λ f, by simp,
   right_inv := λ F, by simp, }
+
+@[simp] lemma coe_maximal_trivial_linear_map_equiv_lie_module_hom
+  (f : maximal_trivial_submodule R L (M →ₗ[R] N)) :
+  ((maximal_trivial_linear_map_equiv_lie_module_hom f) : M → N) = f :=
+by { ext, refl, }
 
 @[simp] lemma coe_maximal_trivial_linear_map_equiv_lie_module_hom_apply
   (f : maximal_trivial_submodule R L (M →ₗ[R] N)) :

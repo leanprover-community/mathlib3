@@ -186,7 +186,7 @@ begin
   { intros n a, simp [pi.pow_apply f x n], },
 end
 
-@[simp, norm_cast] lemma polynomial.aeval_subalgebra_coe
+@[norm_cast] lemma polynomial.aeval_subalgebra_coe
   (g : polynomial R) {A : Type*} [semiring A] [algebra R A] (s : subalgebra R A) (f : s) :
   (polynomial.aeval f g : A) = polynomial.aeval (f : A) g :=
 (aeval_alg_hom_apply s.val f g).symm

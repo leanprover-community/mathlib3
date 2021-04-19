@@ -770,7 +770,7 @@ end
 @[simp] lemma span_nat_eq (s : add_submonoid M) : (span ℕ (s : set M)).to_add_submonoid = s :=
 by rw [span_nat_eq_add_group_closure, s.closure_eq]
 
-lemma span_int_eq_add_group_closure {M : Type*} [add_comm_group M] (s : set M) :
+lemma span_int_eq_add_subgroup_closure {M : Type*} [add_comm_group M] (s : set M) :
   (span ℤ s).to_add_subgroup = add_subgroup.closure s :=
 eq.symm $ add_subgroup.closure_eq_of_le _ subset_span $ λ x hx, span_induction hx
   (λ x hx, add_subgroup.subset_closure hx) (add_subgroup.zero_mem _)

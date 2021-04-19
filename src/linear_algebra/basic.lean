@@ -758,9 +758,6 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
   (H2 : ∀ (a:R) x, p x → p (a • x)) : p x :=
 (@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
 
-section span_nat
-open submodule
-
 lemma span_nat_eq_add_group_closure (s : set M) :
   (span ℕ s).to_add_submonoid = add_submonoid.closure s :=
 begin

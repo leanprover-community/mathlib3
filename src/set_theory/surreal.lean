@@ -320,7 +320,7 @@ the sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x +
 def add : surreal → surreal → surreal :=
 surreal.lift₂
   (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, numeric_add ox oy⟩⟧)
-  (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quot.sound (pgame.add_congr hx hy))
+  (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))
 
 instance : has_add surreal := ⟨add⟩
 
@@ -329,7 +329,7 @@ surreal.lift (λ x ox, ⟦⟨-x, pgame.numeric_neg ox⟩⟧) (λ _ _ _ _ a, quot
 
 instance : ordered_add_comm_group surreal :=
 { add               := surreal.add,
-  add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quot.sound add_assoc_equiv },
+  add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero              := 0,
   zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv _) },
   add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) }, 

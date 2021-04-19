@@ -546,3 +546,45 @@ ring_hom.finite_presentation.of_finite_type
 end finite_presentation
 
 end alg_hom
+
+section monoid_algebra
+
+namespace add_monoid_algebra
+
+open algebra submodule
+
+variables {R : Type*} {M : Type*} [comm_ring R] [add_comm_monoid M]
+
+lemma ft_of_fg : (⊤ : submodule ℕ M).fg → finite_type R (add_monoid_algebra R M) :=
+begin
+  rintro ⟨S, hS⟩,
+  rw [finite_type.iff_quotient_mv_polynomial'],
+  let S₁ := ulift {x // x ∈ S},
+  let ψ := λ (s : S₁), of R M s.down.1,
+  refine ⟨S₁, by apply_instance, mv_polynomial.aeval ψ, λ f, finsupp.induction_linear f _ _ _⟩,
+  { exact ⟨0, by simp only [alg_hom.map_zero]⟩ },
+  { rintro f g ⟨P, hP⟩ ⟨Q, hQ⟩,
+    use P + Q,
+    simp only [ψ, of_apply, subtype.val_eq_coe] at hP hQ,
+    simp only [hP, hQ, ψ, alg_hom.map_add, of_apply, subtype.val_eq_coe] },
+  { intros m r,
+    suffices : ∃ (P : mv_polynomial S₁ R), (mv_polynomial.aeval ψ) P = finsupp.single m 1,
+    { obtain ⟨P, hP⟩ := this,
+      exact ⟨r • P, by simp only [hP, alg_hom.map_smul, mul_one, finsupp.smul_single']⟩ },
+    have : m ∈ span ℕ ↑S,
+    { rw [hS], exact mem_top },
+    refine span_induction this _ _ _ _,
+    { intros m hm,
+      use mv_polynomial.X ⟨⟨m, hm⟩⟩,
+      simp only [ψ, mv_polynomial.aeval_X, of_apply, subtype.coe_mk],
+      refl },
+    { exact ⟨1, by { simp only [alg_hom.map_one]; refl }⟩ },
+    { rintro m₁ m₂ ⟨P₁, hP₁⟩ ⟨P₂, hP₂⟩,
+      exact ⟨P₁ * P₂, by rw [alg_hom.map_mul, hP₁, hP₂, single_mul_single, one_mul]⟩ },
+    { rintro a m ⟨P, hP⟩,
+      exact ⟨P ^ a, by rw [alg_hom.map_pow, hP, add_monoid_algebra.single_pow, one_pow]⟩ } },
+end
+
+end add_monoid_algebra
+
+end monoid_algebra

@@ -108,14 +108,14 @@ instance : has_neg (sesq_form R M I) :=
 
 instance : add_comm_group (sesq_form R M I) :=
 { add := (+),
-  add_assoc := by {intros, ext,
-    unfold coe_fn has_coe_to_fun.coe sesq coe_fn has_coe_to_fun.coe sesq, rw add_assoc},
+  add_assoc := by { intros, ext,
+    unfold coe_fn has_coe_to_fun.coe sesq coe_fn has_coe_to_fun.coe sesq, rw add_assoc },
   zero := 0,
-  zero_add := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw zero_add},
-  add_zero := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_zero},
+  zero_add := by { intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw zero_add },
+  add_zero := by { intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_zero },
   neg := has_neg.neg,
-  add_left_neg := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw neg_add_self},
-  add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_comm} }
+  add_left_neg := by { intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw neg_add_self },
+  add_comm := by { intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_comm } }
 
 instance : inhabited (sesq_form R M I) := ⟨0⟩
 

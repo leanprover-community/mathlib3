@@ -72,11 +72,8 @@ rfl
 /-- Evaluation of a `monoid_hom` at a point as a monoid homomorphism. See also `monoid_hom.apply`
 for the evaluation of any function at a point. -/
 @[to_additive "Evaluation of an `add_monoid_hom` at a point as an additive monoid homomorphism.
-See also `add_monoid_hom.apply` for the evaluation of any function at a point."]
+See also `add_monoid_hom.apply` for the evaluation of any function at a point.", simps]
 def eval [mul_one_class M] [comm_monoid N] : M →* (M →* N) →* N := (monoid_hom.id (M →* N)).flip
-
-@[simp, to_additive]
-lemma eval_apply [mul_one_class M] [comm_monoid N] (x : M) (f : M →* N) : eval x f = f x := rfl
 
 /-- Composition of monoid morphisms (`monoid_hom.comp`) as a monoid morphism. -/
 @[to_additive "Composition of additive monoid morphisms

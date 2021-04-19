@@ -221,6 +221,7 @@ lemma subst_into_smulg {α} [add_comm_group α]
   (prt : @smulg α _ tl tr = t) : smulg l r = t :=
 by simp [prl, prr, prt]
 
+/-- Deal with a `smul` term of the form `e₁ • e₂`, handling both natural and integer `e₁`. -/
 meta def eval_smul' (c : cache) (eval : expr → tactic (normal_expr × expr))
   (e₁ e₂ : expr) : tactic (normal_expr × expr) :=
 do (e₁', p₁) ← norm_num.derive e₁ <|> refl_conv e₁,

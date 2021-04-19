@@ -324,6 +324,8 @@ surreal.lift₂
 
 instance : has_add surreal := ⟨add⟩
 
+/-- Negation for surreal numbers is inherited from pre-game negation:
+the negation of `{L | R}` is `{-R | -L}`. -/
 def neg : surreal → surreal :=
 surreal.lift
   (λ x ox, ⟦⟨-x, pgame.numeric_neg ox⟩⟧)

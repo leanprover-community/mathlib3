@@ -420,7 +420,7 @@ end
   algebra_map R C(α, A) k a = k • 1 :=
 by { rw algebra.algebra_map_eq_smul_one, refl, }
 
-variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜]
+variables {𝕜 : Type*} [topological_space 𝕜]
 
 /--
 A set of continuous maps "separates points strongly"
@@ -438,7 +438,7 @@ where the functions would be continuous functions vanishing at infinity.)
 def set.separates_points_strongly (s : set C(α, 𝕜)) : Prop :=
 ∀ (v : α → 𝕜) (x y : α), ∃ f : s, (f x : 𝕜) = v x ∧ f y = v y
 
-variables [topological_ring 𝕜]
+variables [field 𝕜] [topological_ring 𝕜]
 
 /--
 Working in continuous functions into a topological field,

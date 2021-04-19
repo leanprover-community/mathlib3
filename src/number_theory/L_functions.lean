@@ -9,6 +9,7 @@ import topology.algebra.continuous_functions
 import topology.metric_space.basic
 import topology.continuous_on
 import topology.opens
+import data.setoid.partition
 
 variables {A : Type*} [integral_domain A] [algebra ℚ A]
 
@@ -68,32 +69,76 @@ structure  distribution {R : Type*} [add_monoid R] :=
 
 instance semi {R : Type*} [semiring R] : semimodule R (locally_constant X R) := sorry
 
-variables {R : Type*} [ring R] {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation R Γ₀)
+--variables {R : Type*} [ring R] {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation R Γ₀)
 
-instance dis [topological_space R] : has_dist C(X,R) := sorry
+noncomputable instance dis' {R : Type*} [normed_group R] : has_norm C(X,R) :=
+begin
+  constructor, exact λ f, (⨆ x : X, ∥f x∥),
+end
 
-noncomputable instance met [topological_space R] : metric_space C(X,R) := sorry
-/-{
-  dist_self := sorry
-  eq_of_dist_eq_zero := sorry
-  dist_comm := sorry
-  dist_triangle := sorry
-  edist := sorry
-  edist_dist := sorry
-  to_uniform_space := sorry
-  uniformity_dist := sorry
-}-/
+/-- Very interesting, equating 2 zeros of C(X,R) coming from different sources. -/
+lemma zero' {R : Type*} [normed_group R] : (0 : C(X,R)) = (add_monoid.to_has_zero C(X,R)).zero :=
+begin
+  exact rfl,
+end
 
-noncomputable instance uniform [topological_space R] : uniform_space C(X, R) := metric_space.to_uniform_space'
+example (S : Type*) : set.nonempty (set.univ : set S) → nonempty S := begin refine set.nonempty_iff_univ_nonempty.mpr, end
 
-instance completeness [topological_space R] : complete_space C(X, R) := sorry
+lemma bdd_above_compact_range_norm {R : Type*} [normed_group R] (f : C(X, R)) : bdd_above (set.range (λ (x : X), ∥f x∥)) :=
+begin
+{  set g := λ (x : X), ∥(f x)∥ with hg,
+  have cont : continuous g, { rw hg, refine continuous.norm _, show continuous f, apply f.2, },
+  set bdd_cont := bounded_continuous_function.mk_of_compact g cont with hb,
+  have bdd := @bounded_continuous_function.bounded_range _ _ _ _ bdd_cont,
+  rw real.bounded_iff_bdd_below_bdd_above at bdd,
+  suffices : bdd_above (set.range bdd_cont), convert this, exact bdd.2, },
+end
+
+lemma met {R : Type*} [normed_group R] : normed_group.core C(X,R) :=
+{
+  norm_eq_zero_iff := begin
+    rintros f, split,
+    { rintros h, rw le_antisymm_iff at h, cases h with h1 h2,
+      suffices : ∀ x : X, ∥f x∥ ≤ 0,
+      {  ext, specialize this x, rw [norm_le_zero_iff] at this, simp [this], refl, },
+      rintros x, refine (cSup_le_iff  _ _).1 _ (∥f x∥) _,
+      exact set.range (λ x, ∥f x∥), apply bdd_above_compact_range_norm,
+      { by_cases h' : nonempty X, { rw set.range_nonempty_iff_nonempty, assumption, }, { exfalso, apply h', apply nonempty.intro, exact x, }, },
+      { change Sup (set.range (λ x, ∥f x∥)) ≤ 0 at h1, assumption,}, simp, },
+    { rintros h, rw h, conv_lhs { congr, funext, rw zero',},
+      have : ∀ x : X, ∥(0 : C(X, R)) x∥ = 0, { rintros x, rw norm_eq_zero, refl, },
+      unfold has_norm.norm, conv_lhs { congr, funext, rw this x, },
+      refine @csupr_const ℝ X _ h' _, },
+  end,
+  triangle := begin
+              rintros x y, refine csupr_le _, rintros z,
+              transitivity (∥x z∥ + ∥y z∥), {  refine norm_add_le (x z) (y z), },
+              { apply add_le_add, { apply le_cSup, { apply bdd_above_compact_range_norm, }, simp, },
+                { apply le_cSup, { apply bdd_above_compact_range_norm, }, simp, }, },
+              end,
+  norm_neg := begin
+                rintros f, unfold has_norm.norm, congr, ext, refine norm_neg (f x),
+              end,
+}
+
+noncomputable instance blah {R : Type*} [normed_group R] : normed_group C(X,R) :=
+  normed_group.of_core _ (met X)
+
+--example {A : Type*} [normed_group A] : topological_space A := begin refine uniform_space.to_topological_space, end
+
+noncomputable instance uniform {R : Type*} [normed_group R] : uniform_space C(X, R) :=
+  metric_space.to_uniform_space'
+
+--todo
+instance completeness {R : Type*} [normed_group R] : complete_space C(X, R) := sorry
 
 --topo ring assumption not really needed
-def inclusion [topological_space R] [topological_ring R] : locally_constant X R → C(X,R) := sorry
+def inclusion {R : Type*} [topological_space R] : locally_constant X R → C(X,R) :=
+  λ x, ⟨x, locally_constant.continuous x⟩
 
 lemma sub [topological_space R] [topological_ring R] : function.injective (@inclusion X R _ _ _) := sorry
 
-instance topo_space :  topological_space (locally_constant ↥X R) := sorry
+instance topo_space {R : Type*} [topological_space R] :  topological_space (locally_constant ↥X R) := sorry
 
 lemma totally_disconnected_space.is_disconnected {A : Type*} [topological_space A]
   [totally_disconnected_space A] : ∃ (U V : set A) (hU : is_open U) (hV : is_open V)
@@ -102,19 +147,19 @@ lemma totally_disconnected_space.is_disconnected {A : Type*} [topological_space 
 open classical
 local attribute [instance] prop_decidable
 
-noncomputable def char_fn (U : clopen_sets X) : locally_constant X R :=
+noncomputable def char_fn {R : Type*} [topological_space R] (U : clopen_sets X) : locally_constant X R :=
 {
   to_fun := λ x, if (x ∈ U.val) then 1 else 0,
   is_locally_constant := sorry
 }
 
-lemma exists_local (a b : X) (h : a ≠ b) : ∃ (f : locally_constant X R), f a = 1 ∧ f b = 0 := sorry
+lemma exists_local {R : Type*} [topological_space R] [ring R] [topological_ring R] (a b : X) (h : a ≠ b) : ∃ (f : locally_constant X R), f a = 1 ∧ f b = 0 := sorry
 
-lemma exists_local' [has_norm R] [topological_space R] [topological_ring R] (g : C(X,R)) (U : set X) [is_open U] :
+lemma exists_local' {R : Type*} [has_norm R] [topological_space R] [ring R] [topological_ring R] (g : C(X,R)) (U : set X) [is_open U] :
    ∀ (x : X) (h : x ∈ U) (ε : ℝ) [hε : ε > 0], ∃ (f : locally_constant X R) (V : set X)
     (hV : is_open V) (hVx : x ∈ V), ∀ (y : X) (hy : y ∈ V), ∥(g - (inclusion X f)) y∥ < ε := sorry
 
-variable [topological_space R]
+--variable [topological_space R]
 
 lemma Inter_nonempty_of {α : Type*} {ι : Type*} {s : ι → set α} :
   (⋂ j, s j).nonempty → ∀ (i : ι), (s i).nonempty :=
@@ -218,7 +263,7 @@ end
 
 open_locale topological_space filter
 
-lemma loc_compact_Haus_tot_disc_of_zero_dim {H : Type*} [topological_space H]
+lemma loc_compact_Haus_tot_disc_of_zero_dim (H : Type*) [topological_space H]
   [locally_compact_space H] [t2_space H] [totally_disconnected_space H] :
   ∃ (B : set (set H)) (hB : topological_space.is_topological_basis B), ∀ x ∈ B, is_clopen x :=
 begin
@@ -265,29 +310,44 @@ begin
   use C, simp [f],
 end
 
+lemma zero_dim_of_tot_sep {H : Type*} [topological_space H] [t2_space H]
+  (h : ∃ (B : set (set H)) (hB : topological_space.is_topological_basis B), ∀ x ∈ B, is_clopen x) :
+    totally_separated_space H :=
+begin
+  constructor,
+  rw is_totally_separated,
+  apply @t2_space.cases_on H _ _ _ _, { assumption, },
+  rintros a x hx y hy ne,
+  obtain ⟨U, V, hU, hV, xU, yV, disj⟩ := a x y ne,
+  rcases h with ⟨B, hB, h⟩,
+  obtain ⟨W, hW, xW, Wsub⟩ := topological_space.mem_basis_subset_of_mem_open hB xU hU,
+  specialize h W hW,
+  have yW : y ∈ Wᶜ,
+  { rw set.mem_compl_iff W y, contrapose disj, simp at disj,
+    have g := set.mem_inter (Wsub disj) yV,
+    apply set.nonempty.ne_empty,
+    change' set.nonempty (U ∩ V), apply set.nonempty_of_mem g, },
+  refine ⟨W, Wᶜ, h.1, (is_clopen_compl h).1, xW, yW, _, set.inter_compl_self W⟩,
+  rw set.union_compl_self,
+end
+
 lemma loc_compact_t2_tot_disc_iff_tot_sep {H : Type*} [topological_space H]
   [locally_compact_space H] [t2_space H] :
   totally_disconnected_space H ↔ totally_separated_space H :=
 begin
   split,
-  { rintros h, constructor, rw is_totally_separated,
-    rintros x hx y hy hxy,
-    apply locally_compact_space.rec_on _inst_8,
-    rintros f,
-    have g := t2_separation hxy,
-    rcases g with ⟨Ux, Uy, hUx, hUy, memUx, memUy, disj⟩,
-    have f' := f x Ux (mem_nhds_sets hUx memUx),
-    rcases f' with ⟨C, hC, hCsub, compC⟩,
-    sorry},
+  { rintros h, apply zero_dim_of_tot_sep (@loc_compact_Haus_tot_disc_of_zero_dim _ _ _ _ h), },
   apply totally_separated_space.totally_disconnected_space,
 end
 
 open topological_space.is_topological_basis
 
-lemma is_basis_iff_cover' {H : Type*} [topological_space H] {B : set (set H)} :
-  topological_space.is_topological_basis B ↔ ∀ (U : set H) (hU : is_open U), ∃ Us ⊆ B, U = Sup Us :=
+lemma is_basis_iff_cover' {H : Type*} [topological_space H] {B : set (set H)}
+  (h : topological_space.is_topological_basis B) : ∀ (U : set H) (hU : is_open U),
+    ∃ Us ⊆ B, U = ⋃₀ Us :=
 begin
-  sorry,
+  rintros U,
+  exact topological_space.sUnion_basis_of_is_open h,
 /-  convert topological_space.opens.is_basis_iff_cover,
   split,
   { intros hB U hU,
@@ -320,10 +380,18 @@ begin
     exact set.subset_sUnion_of_mem ⟨⟨V, _⟩, ⟨H₁, rfl⟩⟩ } -/
 end
 
+lemma clopen_Union_disjoint {H : Type*} [topological_space H]
+  [locally_compact_space H] [t2_space H] [totally_disconnected_space H] (s : finset(set H)) (hs : ∀ x ∈ s, is_clopen x) :
+  ∃ (t : finset (set H)), ⋃₀ (s : set(set H)) = ⋃₀ (t : set(set H)) ∧ ∀ (x y : set H) (hx : x ∈ t) (hy : y ∈ t), ∃ z ∈ s, x ⊆ z ∧ x ∩ y = ∅ :=
+begin
+  sorry
+end
+
 lemma clopen_union_disjoint {H : Type*} [topological_space H]
   [locally_compact_space H] [t2_space H] [totally_disconnected_space H] {C : set H} (hC : is_clopen C) :
   ∃ (s : set (set H)), C = Sup s ∧ ∀ (x y : set H) (hx : x ∈ s) (hy : y ∈ s), is_clopen x ∧ is_clopen y ∧ x ∩ y = ∅ :=
 begin
+
   sorry,
 end
 
@@ -347,20 +415,97 @@ end
   ∃ (s : finset {Z : set H | is_clopen Z}), (∀ (x y :set  H) (hx : x ∈ s) (hy : y ∈ s), (x : set H) ∩ y = ∅) ∧ ⨆ (Z : A) (Ht : Z ∈ t), Z = ⨆ (Z : A) (Hs : Z ∈ s), Z := -/
 
 --show that locally compact Hausdorff is tot disc iff zero dim
-lemma dense_C [topological_space R] [topological_ring R] [has_norm R] :
-  @dense (C(X,R)) _ (set.range (inclusion X)) :=
+open_locale big_operators
+
+example (a b c : ℤ) : a ≤ b → b < c → a < c :=
+begin
+  exact lt_of_le_of_lt,
+end
+
+instance scalar {A : Type*} [group A] : has_scalar A (locally_constant X A) := sorry
+
+instance scalar' {A : Type*} [normed_group A] : has_scalar A (locally_constant X A) := sorry
+
+theorem dense_C {A : Type*} [normed_group A] (H : nonempty X) : -- [topological_space R] [topological_ring R] [has_norm R] :
+  @dense (C(X, A)) _ (set.range (inclusion X)) :=
 begin
   rintros f,
   rw metric.mem_closure_iff,
   rintros ε hε,
---  have g : (⋃x:R, metric.ball x ε) = univ,
-  have h := @totally_disconnected_space.is_disconnected X _ _,
-  rcases h with ⟨U, V, hU, hV, hnU, hnV, hdis, h⟩,
-  set x := classical.some hnU with hx,
-  set y := classical.some hnV with hy,
-  rcases @exists_local' X R _ _ _ _ f U hU x _ ε hε with ⟨kx, Vx, hVx, mem_hVx, hkx⟩,
+  set h := λ (x : A), (metric.ball x (ε/4)) with h',
+  set S := set.range h with hS,
+  have g : (⋃₀ S) = set.univ,
+  { rw set.sUnion_eq_univ_iff, rintros, refine ⟨metric.ball a (ε/4), _, _⟩, rw hS, rw set.mem_range,
+    use a, simp, apply div_pos hε zero_lt_four, },
+  set preh := set.preimage f (⋃₀ S) with preh',
+--  set T := set.range preh with hT,
+  have g' : preh = set.univ,
+  { rw preh', rw g, exact set.preimage_univ, },
+  rw preh' at g',
+  rw set.preimage_sUnion at g',
+  rw set.subset.antisymm_iff at g',
+  obtain ⟨t, ht⟩ := is_compact.elim_finite_subcover _ _ _ g'.2,
+  { simp at ht,
+    suffices ht' : ∃ (T' : finset (set X)), (∀ s ∈ T', is_clopen s ∧ (∃ U ∈ t, s ⊆ f ⁻¹' U)) ∧
+      setoid.is_partition (T' : set(set X)),
+    { rcases ht' with ⟨T', ht1, ht2, ht3⟩,
+      set c := λ (s : set X) (H : s ∈ T'), (⟨s, (ht1 s H).1⟩ : clopen_sets X) with hc,
+      have ne : ∀ (s : set X) (H : s ∈ T'), nonempty s,
+      { sorry, },
+      set c' := λ (s : set X) (H : s ∈ T'), classical.choice (ne s H) with h'c,
+      have ht4 : ∀ (a : X), ∃ (b : set X) (H : b ∈ T'), a ∈ b,
+      { rintros a, apply exists_of_exists_unique, simp only [exists_prop], sorry, },
+        --set c2 : X → A := λ (x : X), f (c' (classical.some (exists_of_exists_unique (ht3 x)) )
+          --(finset.mem_coe.1 (exists_prop.1 (exists_of_exists_unique (classical.some_spec
+            --(exists_of_exists_unique (ht3 x))))).1) ) with hc2,
+        set b : locally_constant X A :=
+        (∑ s in T', if H : s ∈ T' then ((f (c' s H)) • (char_fn X (c s H))) else 0) with hb,
+        refine ⟨(inclusion X b), _, _⟩, { simp, },
+        { have : dist f (inclusion X b) ≤ (ε/2),
+          { --unfold has_dist.dist, simp,
+            refine cSup_le _ _,
+            { rw set.range_nonempty_iff_nonempty, assumption, },
+            { rintros m hm, rw set.mem_range at hm, cases hm with y hy, rw ←hy, specialize ht3 y, rcases ht3 with ⟨w, wT, hw⟩,
+              obtain ⟨w1, w2⟩ := exists_prop.1 (exists_of_exists_unique wT),
+              have : (inclusion X b) y = f (c' w w1), sorry,
+              convert_to ∥(f y) - ((inclusion X b) y)∥ ≤ ε/2, congr, sorry,
+              rw this, obtain ⟨U, hU, wU⟩ := (ht1 w w1).2, have yU := wU w2, simp at yU, have tS : (t : set(set A)) ⊆ S, sorry, have SU := tS hU, rw hS at SU, rw set.mem_range at SU, cases SU with z hz, rw h' at hz, simp at hz, rw hz.symm at yU,
+              have tired : f (c' w w1) ∈ U, sorry,
+              rw hz.symm at tired, rw mem_ball_iff_norm at tired, rw mem_ball_iff_norm at yU, --have sub : f y - f ↑(c' w w1) = (f y - z) - (f ↑(c' w w1) - z),
+              conv_lhs { rw sub_eq_sub_add_sub _ _ z, }, have : ε/2 = ε/4 + ε/4, sorry, rw this, apply norm_add_le_of_le _ (le_of_lt yU), apply le_of_lt, rw ←norm_neg _, simp [tired], }, },
+           rw le_iff_lt_or_eq at this, cases this, transitivity (ε/2), assumption, exact half_lt_self hε, { rw this, exact half_lt_self hε, }, }, },
+    { set B : set(set X) := { j : set X | (set.image f j) ∈ t ∧ (set.image f j) ∈ S } with hB,
+      have opens : ∀ j ∈ B, is_open j, sorry,
+      obtain ⟨C, hC, h⟩ := loc_compact_Haus_tot_disc_of_zero_dim X, simp at g',
+      have g'' : (set.univ ⊆ set.sUnion B), sorry,
+      conv at g'' { congr, skip, rw set.sUnion_eq_Union, congr, funext, apply_congr classical.some_spec (classical.some_spec (topological_space.sUnion_basis_of_is_open hC (opens i.val i.prop))), },
+      simp at g'', rw set.Union at g'',
+      have try : ∃ (V ⊆ C), ((set.univ : set X) ⊆ set.sUnion V) ∧ ∀ x ∈ V, ∃ U ∈ B, x ⊆ U,
+      { refine ⟨ {j : set X | ∃ (U : set X) (hU : U ∈ B), j ∈ classical.some (topological_space.sUnion_basis_of_is_open hC (opens U hU))}, _, _ ⟩, intros j hj, simp at hj, rcases hj with ⟨W, hW, hj⟩,
+        obtain ⟨H, H1⟩ := classical.some_spec (topological_space.sUnion_basis_of_is_open hC (opens W hW)), apply H, simp [hj], split,
+        { intros x hx, rw set.mem_sUnion, have g3 := g'' hx, simp at g3, rcases g3 with ⟨U, hU, a, ha, xa⟩, refine ⟨a, _, xa⟩, simp, refine ⟨U, hU, ha⟩, },
+        { rintros x hx, simp at hx, rcases hx with ⟨U, hU⟩, use U, cases hU with hU xU, simp [hU],
+          obtain ⟨H, H1⟩ := classical.some_spec (topological_space.sUnion_basis_of_is_open hC (opens U _)), rw H1, sorry, sorry, }, },
+      rcases try with ⟨V, hV, cover, clopen⟩,
+      rw set.sUnion_eq_Union at cover,
+      obtain ⟨s', h's⟩ := is_compact.elim_finite_subcover (@compact_univ X _ _) _ _ cover,
+      set s1 := {i : set X | ∃ (j : V) (H : j ∈ s'), (j : set X) = i } with hs1,
+      have fin : set.finite s1, sorry,
+      obtain ⟨s, hs, sub⟩ := clopen_Union_disjoint (set.finite.to_finset fin) _,
+      use s,
+      { split,
+        { rintros w hw, split, sorry,
+          { use set.image f w, split, sorry, sorry, }, },
+          constructor, sorry, sorry, },
+      {sorry,}, sorry, }, },
+  { exact compact_univ, },
+  { rintros i, apply is_open_Union, rintros hi, apply continuous.is_open_preimage _,
+    { rw [hS, h'] at hi, simp at hi, cases hi with y hy,
+      suffices : is_open (metric.ball y (ε/4)),
+      { rw hy at this, assumption, },
+      refine @metric.is_open_ball A _ y (ε/4), },
+    exact continuous_map.continuous f, },
 -- working with clopen sets makes life easy
---  rcases exists_local X x y _ with ⟨f, hf1, hf2⟩,
 end
 
 structure distribution' {R : Type*} [semiring R] [topological_space R] :=

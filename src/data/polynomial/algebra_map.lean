@@ -189,11 +189,7 @@ end
 @[simp, norm_cast] lemma polynomial.aeval_subalgebra_coe
   (g : polynomial R) {A : Type*} [semiring A] [algebra R A] (s : subalgebra R A) (f : s) :
   (polynomial.aeval f g : A) = polynomial.aeval (f : A) g :=
-begin
-  apply polynomial.induction_on' g,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n a, simp, },
-end
+(aeval_alg_hom_apply s.val f g).symm
 
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval 0 p :=
 by simp [coeff_zero_eq_eval_zero]

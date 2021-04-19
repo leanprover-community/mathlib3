@@ -312,10 +312,23 @@ theorem neg_succ_of_nat_div (m : ℕ) {b : ℤ} (H : 0 < b) :
   -[1+m] / b = -(m / b + 1) :=
 match b, eq_succ_of_zero_lt H with ._, ⟨n, rfl⟩ := rfl end
 
+-- Will be generalized to Euclidean domains.
+local attribute [simp]
+protected theorem zero_div : ∀ (b : ℤ), 0 / b = 0
+| 0       := show of_nat _ = _, by simp
+| (n+1:ℕ) := show of_nat _ = _, by simp
+| -[1+ n] := show -of_nat _ = _, by simp
+
+local attribute [simp] -- Will be generalized to Euclidean domains.
+protected theorem div_zero : ∀ (a : ℤ), a / 0 = 0
+| 0       := show of_nat _ = _, by simp
+| (n+1:ℕ) := show of_nat _ = _, by simp
+| -[1+ n] := rfl
+
 @[simp] protected theorem div_neg : ∀ (a b : ℤ), a / -b = -(a / b)
 | (m : ℕ) 0       := show of_nat (m / 0) = -(m / 0 : ℕ), by rw nat.div_zero; refl
 | (m : ℕ) (n+1:ℕ) := rfl
-| 0       -[1+ n] := rfl
+| 0       -[1+ n] := by simp
 | (m+1:ℕ) -[1+ n] := (neg_neg _).symm
 | -[1+ m] 0       := rfl
 | -[1+ m] (n+1:ℕ) := rfl
@@ -341,20 +354,8 @@ match a, b, eq_neg_succ_of_lt_zero Ha, eq_succ_of_zero_lt Hb with
 | ._, ._, ⟨m, rfl⟩, ⟨n, rfl⟩ := neg_succ_lt_zero _
 end
 
--- Will be generalized to Euclidean domains.
-protected theorem zero_div : ∀ (b : ℤ), 0 / b = 0
-| 0       := rfl
-| (n+1:ℕ) := rfl
-| -[1+ n] := rfl
-
-local attribute [simp] -- Will be generalized to Euclidean domains.
-protected theorem div_zero : ∀ (a : ℤ), a / 0 = 0
-| 0       := rfl
-| (n+1:ℕ) := rfl
-| -[1+ n] := rfl
-
 @[simp] protected theorem div_one : ∀ (a : ℤ), a / 1 = a
-| 0       := rfl
+| 0       := show of_nat _ = _, by simp
 | (n+1:ℕ) := congr_arg of_nat (nat.div_one _)
 | -[1+ n] := congr_arg neg_succ_of_nat (nat.div_one _)
 
@@ -499,7 +500,7 @@ end
 theorem mod_add_div : ∀ (a b : ℤ), a % b + b * (a / b) = a
 | (m : ℕ) 0       := congr_arg of_nat (nat.mod_add_div _ _)
 | (m : ℕ) (n+1:ℕ) := congr_arg of_nat (nat.mod_add_div _ _)
-| 0       -[1+ n] := rfl
+| 0       -[1+ n] := by simp
 | (m+1:ℕ) -[1+ n] := show (_ + -(n+1) * -((m + 1) / (n + 1) : ℕ) : ℤ) = _,
   by rw [neg_mul_neg]; exact congr_arg of_nat (nat.mod_add_div _ _)
 | -[1+ m] 0       := by rw [mod_zero, int.div_zero]; refl
@@ -1173,7 +1174,10 @@ by rw bit_val; simp; cases b; cases bodd n; refl
 @[simp] lemma div2_bit (b n) : div2 (bit b n) = n :=
 begin
   rw [bit_val, div2_val, add_comm, int.add_mul_div_left, (_ : (_/2:ℤ) = 0), zero_add],
-  cases b, all_goals {exact dec_trivial}
+  cases b,
+  { simp },
+  { show of_nat _ = _, rw nat.div_eq_zero; simp },
+  { cc }
 end
 
 lemma bit0_ne_bit1 (m n : ℤ) : bit0 m ≠ bit1 n :=

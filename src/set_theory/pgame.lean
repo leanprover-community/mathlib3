@@ -223,25 +223,27 @@ instance : has_lt pgame := ⟨λ x y, (le_lt x y).2⟩
 @[simp] theorem mk_le_mk {xl xr xL xR yl yr yL yR} :
   (⟨xl, xr, xL, xR⟩ : pgame) ≤ ⟨yl, yr, yL, yR⟩ ↔
   (∀ i, xL i < ⟨yl, yr, yL, yR⟩) ∧
-  (∀ j, (⟨xl, xr, xL, xR⟩ : pgame) < yR j) := iff.rfl
+  (∀ j, (⟨xl, xr, xL, xR⟩ : pgame) < yR j) :=
+show (le_lt _ _).1 ↔ _, by { rw le_lt, refl }
 
 /-- Definition of `x ≤ y` on pre-games, in terms of `<` -/
 theorem le_def_lt {x y : pgame} : x ≤ y ↔
   (∀ i : x.left_moves, x.move_left i < y) ∧
   (∀ j : y.right_moves, x < y.move_right j) :=
-by { cases x, cases y, refl }
+by { cases x, cases y, rw mk_le_mk, refl }
 
 /-- Definition of `x < y` on pre-games built using the constructor. -/
 @[simp] theorem mk_lt_mk {xl xr xL xR yl yr yL yR} :
   (⟨xl, xr, xL, xR⟩ : pgame) < ⟨yl, yr, yL, yR⟩ ↔
   (∃ i, (⟨xl, xr, xL, xR⟩ : pgame) ≤ yL i) ∨
-  (∃ j, xR j ≤ ⟨yl, yr, yL, yR⟩) := iff.rfl
+  (∃ j, xR j ≤ ⟨yl, yr, yL, yR⟩) :=
+show (le_lt _ _).2 ↔ _, by { rw le_lt, refl }
 
 /-- Definition of `x < y` on pre-games, in terms of `≤` -/
 theorem lt_def_le {x y : pgame} : x < y ↔
   (∃ i : y.left_moves, x ≤ y.move_left i) ∨
   (∃ j : x.right_moves, x.move_right j ≤ y) :=
-by { cases x, cases y, refl }
+by { cases x, cases y, rw mk_lt_mk, refl }
 
 /-- The definition of `x ≤ y` on pre-games, in terms of `≤` two moves later. -/
 theorem le_def {x y : pgame} : x ≤ y ↔
@@ -329,19 +331,19 @@ classical.some_spec $ (zero_le.1 h) j
 
 theorem lt_of_le_mk {xl xr xL xR y i} :
   (⟨xl, xr, xL, xR⟩ : pgame) ≤ y → xL i < y :=
-by cases y; exact λ h, h.1 i
+by { cases y, rw mk_le_mk, tauto }
 
 theorem lt_of_mk_le {x : pgame} {yl yr yL yR i} :
   x ≤ ⟨yl, yr, yL, yR⟩ → x < yR i :=
-by cases x; exact λ h, h.2 i
+by { cases x, rw mk_le_mk, tauto }
 
 theorem mk_lt_of_le {xl xr xL xR y i} :
   (by exact xR i ≤ y) → (⟨xl, xr, xL, xR⟩ : pgame) < y :=
-by cases y; exact λ h, or.inr ⟨i, h⟩
+by { cases y, rw mk_lt_mk, tauto }
 
 theorem lt_mk_of_le {x : pgame} {yl yr yL yR i} :
   (by exact x ≤ yL i) → x < ⟨yl, yr, yL, yR⟩ :=
-by cases x; exact λ h, or.inl ⟨i, h⟩
+by { cases x, rw mk_lt_mk, exact λ h, or.inl ⟨_, h⟩ }
 
 theorem not_le_lt {x y : pgame} :
   (¬ x ≤ y ↔ y < x) ∧ (¬ x < y ↔ y ≤ x) :=
@@ -358,7 +360,7 @@ theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y < x := not_le_lt.1
 theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := not_le_lt.2
 
 @[refl] theorem le_refl : ∀ x : pgame, x ≤ x
-| ⟨l, r, L, R⟩ :=
+| ⟨l, r, L, R⟩ := by rw mk_le_mk; exact
 ⟨λ i, lt_mk_of_le (le_refl _), λ i, mk_lt_of_le (le_refl _)⟩
 
 theorem lt_irrefl (x : pgame) : ¬ x < x :=
@@ -376,6 +378,7 @@ theorem le_trans_aux
   mk xl xr xL xR ≤ mk yl yr yL yR →
   mk yl yr yL yR ≤ mk zl zr zL zR →
   mk xl xr xL xR ≤ mk zl zr zL zR :=
+by simp only [mk_le_mk] at *; exact
 λ ⟨xLy, xyR⟩ ⟨yLz, yzR⟩, ⟨
   λ i, not_le.1 (λ h, not_lt.2 (h₁ _ ⟨yLz, yzR⟩ h) (xLy _)),
   λ i, not_le.1 (λ h, not_lt.2 (h₂ _ h ⟨xLy, xyR⟩) (yzR _))⟩
@@ -943,9 +946,11 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
 def star : pgame := pgame.of_lists [0] [0]
 
 theorem star_lt_zero : star < 0 :=
+by rw lt_def; exact
 or.inr ⟨⟨0, zero_lt_one⟩, (by split; rintros ⟨⟩)⟩
 
 theorem zero_lt_star : 0 < star :=
+by rw lt_def; exact
 or.inl ⟨⟨0, zero_lt_one⟩, (by split; rintros ⟨⟩)⟩
 
 /-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/

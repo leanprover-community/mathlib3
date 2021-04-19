@@ -25,19 +25,22 @@ namespace language
 
 local attribute [reducible] language
 
+/-- Zero language has no elements. -/
 instance : has_zero (language α) := ⟨(∅ : set _)⟩
+/-- `1 : language α` contains only one element `[]`. -/
 instance : has_one (language α) := ⟨{[]}⟩
 
 instance : inhabited (language α) := ⟨0⟩
 
+/-- The sum of two languages is the union of  -/
 instance : has_add (language α) := ⟨set.union⟩
-instance : has_mul (language α) := ⟨λ l m, (l.prod m).image (λ p, p.1 ++ p.2)⟩
+instance : has_mul (language α) := ⟨set.image2 (++)⟩
 
 lemma zero_def : (0 : language α) = (∅ : set _) := rfl
 lemma one_def : (1 : language α) = {[]} := rfl
 
 lemma add_def (l m : language α) : l + m = l ∪ m := rfl
-lemma mul_def (l m : language α) : l * m = (l.prod m).image (λ p, p.1 ++ p.2) := rfl
+lemma mul_def (l m : language α) : l * m = set.image2 (++) l m := rfl
 
 /-- The star of a language `L` is the set of all strings which can be written by concatenating
   strings from `L`. -/
@@ -54,79 +57,32 @@ lemma mem_mul (l m : language α) (x : list α) : x ∈ l * m ↔ ∃ a b, a ∈
 by simp [mul_def]
 lemma mem_star (l : language α) (x : list α) :
   x ∈ l.star ↔ ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l :=
-by refl
-
-private lemma mul_assoc_lang (l m n : language α) : (l * m) * n = l * (m * n) :=
-by { ext x, simp [mul_def], tauto {closer := `[subst_vars, simp *] } }
-
-private lemma one_mul_lang (l : language α) : 1 * l = l :=
-by { ext x, simp [mul_def, one_def], tauto {closer := `[subst_vars, simp [*]] } }
-
-private lemma mul_one_lang (l : language α) : l * 1 = l :=
-by { ext x, simp [mul_def, one_def], tauto {closer := `[subst_vars, simp *] } }
-
-private lemma left_distrib_lang (l m n : language α) : l * (m + n) = (l * m) + (l * n) :=
-begin
-  ext x,
-  simp only [mul_def, add_def, exists_and_distrib_left, set.mem_image2, set.image_prod,
-  set.mem_image, set.mem_prod, set.mem_union_eq, set.prod_union, prod.exists],
-  split,
-  { rintro ⟨ y, z, (⟨ hy, hz ⟩ | ⟨ hy, hz ⟩), hx ⟩,
-    { left,
-      exact ⟨ y, hy, z, hz, hx ⟩ },
-    { right,
-      exact ⟨ y, hy, z, hz, hx ⟩ } },
-  { rintro (⟨ y, hy, z, hz, hx ⟩ | ⟨ y, hy, z, hz, hx ⟩);
-    refine ⟨ y, z, _, hx ⟩,
-    { left,
-      exact ⟨ hy, hz ⟩ },
-    { right,
-      exact ⟨ hy, hz ⟩ } }
-end
-
-private lemma right_distrib_lang (l m n : language α) : (l + m) * n = (l * n) + (m * n) :=
-begin
-  ext x,
-  simp only [mul_def, set.mem_image, add_def, set.mem_prod, exists_and_distrib_left, set.mem_image2,
-    set.image_prod, set.mem_union_eq, set.prod_union, prod.exists],
-  split,
-  { rintro ⟨ y, (hy | hy), z, hz, hx ⟩,
-    { left,
-      exact ⟨ y, hy, z, hz, hx ⟩ },
-    { right,
-      exact ⟨ y, hy, z, hz, hx ⟩ } },
-  { rintro (⟨ y, hy, z, hz, hx ⟩ | ⟨ y, hy, z, hz, hx ⟩);
-    refine ⟨ y, _, z, hz, hx ⟩,
-    { left,
-      exact hy },
-    { right,
-      exact hy } }
-end
+iff.rfl
 
 instance : semiring (language α) :=
 { add := (+),
-  add_assoc := by simp [add_def, set.union_assoc],
+  add_assoc := set.union_assoc,
   zero := 0,
-  zero_add := by simp [zero_def, add_def],
-  add_zero := by simp [zero_def, add_def],
-  add_comm := by simp [add_def, set.union_comm],
+  zero_add := set.empty_union,
+  add_zero := set.union_empty,
+  add_comm := set.union_comm,
   mul := (*),
-  mul_assoc := mul_assoc_lang,
+  mul_assoc := λ l m n,
+    by simp only [mul_def, set.image2_image2_left, set.image2_image2_right, list.append_assoc],
   zero_mul := by simp [zero_def, mul_def],
   mul_zero := by simp [zero_def, mul_def],
   one := 1,
-  one_mul := one_mul_lang,
-  mul_one := mul_one_lang,
-  left_distrib := left_distrib_lang,
-  right_distrib := right_distrib_lang }
+  one_mul := λ l, by simp [mul_def, one_def],
+  mul_one := λ l, by simp [mul_def, one_def],
+  left_distrib := λ l m n, by simp only [mul_def, add_def, set.image2_union_right],
+  right_distrib := λ l m n, by simp only [mul_def, add_def, set.image2_union_left] }
 
 @[simp] lemma add_self (l : language α) : l + l = l := sup_idem
 
 lemma star_def_nonempty (l : language α) :
-  l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l ∧ y ≠ []} :=
+  l.star = {x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l ∧ y ≠ []} :=
 begin
   ext x,
-  rw star_def,
   split,
   { rintro ⟨ S, hx, h ⟩,
     refine ⟨ S.filter (λ l, ¬list.empty l), _, _ ⟩,

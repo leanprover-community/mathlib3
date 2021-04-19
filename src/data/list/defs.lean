@@ -20,7 +20,7 @@ universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 /-- Returns whether a list is []. Returns a boolean even if `l = []` is not decidable. -/
-def is_nil {α} : list α → bool
+@[simp] def is_nil {α} : list α → bool
 | [] := tt
 | _  := ff
 

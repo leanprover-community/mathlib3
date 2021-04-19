@@ -617,7 +617,7 @@ eq_repeat.2 ⟨by simp only [length_reverse, length_repeat],
 /-! ### is_nil -/
 
 lemma is_nil_iff_eq_nil {l : list α} : l.is_nil ↔ l = [] :=
-list.cases_on l (by simp [is_nil]) (by simp [is_nil])
+list.cases_on l (by simp) (by simp)
 
 /-! ### init -/
 
@@ -2510,12 +2510,22 @@ end
 
 attribute [simp] join
 
-theorem join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
+@[simp] theorem join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
 | []     := iff_of_true rfl (forall_mem_nil _)
 | (l::L) := by simp only [join, append_eq_nil, join_eq_nil, forall_mem_cons]
 
 @[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; [refl, simp only [*, join, cons_append, append_assoc]]
+
+@[simp] theorem join_filter_is_nil_eq_ff :
+  ∀ {L : list (list α)}, join (L.filter (λ l, l.is_nil = ff)) = L.join
+| [] := rfl
+| ([]::L) := by simp [@join_filter_is_nil_eq_ff L]
+| ((a::l)::L) := by simp [@join_filter_is_nil_eq_ff L]
+
+@[simp] theorem join_filter_ne_nil [decidable_pred (λ l : list α, l ≠ [])] {L : list (list α)} :
+  join (L.filter (λ l, l ≠ [])) = L.join :=
+by { convert join_filter_is_nil_eq_ff, simp [← is_nil_iff_eq_nil] }
 
 lemma join_join (l : list (list (list α))) : l.join.join = (l.map join).join :=
 by { induction l, simp, simp [l_ih] }

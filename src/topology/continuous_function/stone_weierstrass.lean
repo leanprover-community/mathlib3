@@ -57,7 +57,15 @@ def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-∥f∥) (∥f∥)) :=
 lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
   (g.to_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound =
     polynomial.aeval f g :=
-by { ext, simp, }
+begin
+  ext,
+  simp only [continuous_map.comp_coe, function.comp_app,
+    continuous_map.attach_bound_apply_coe,
+    polynomial.to_continuous_map_on_to_fun,
+    polynomial.polynomial.aeval_subalgebra_coe,
+    polynomial.polynomial.aeval_continuous_map_apply,
+    polynomial.to_continuous_map_to_fun],
+end
 
 /--
 Given a continuous function `f` in a subalgebra of `C(X, ℝ)`, postcomposing by a polynomial

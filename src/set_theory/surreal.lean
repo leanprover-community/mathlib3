@@ -332,14 +332,12 @@ surreal.lift
   (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))
 
 instance : ordered_add_comm_group surreal :=
-{ add               := surreal.add,
+{ add               := (+),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero              := 0,
   zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv _) },
   add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) }, 
-  neg               := surreal.neg, 
-  sub               := λ x y, x + surreal.neg y,
-  sub_eq_add_neg    := by try_refl_tac,
+  neg               := has_neg.neg, 
   add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv }, 
   add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
   le                := surreal.le,

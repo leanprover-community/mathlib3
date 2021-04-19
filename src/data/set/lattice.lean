@@ -2,8 +2,6 @@
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
-
--- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
 import order.complete_boolean_algebra
 import data.sigma.basic
@@ -447,7 +445,7 @@ supr_emptyset
 theorem bUnion_univ (s : α → set β) : (⋃ x ∈ @univ α, s x) = ⋃ x, s x :=
 supr_univ
 
-@[simp] theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : set α), s x) = s a :=
+theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : set α), s x) = s a :=
 supr_singleton
 
 @[simp] theorem bUnion_of_singleton (s : set α) : (⋃ x ∈ s, {x}) = s :=
@@ -915,33 +913,6 @@ bij_on_Inter H $ inj_on_Union_of_directed hs (λ i, (H i).inj_on)
 
 end function
 
-section
-
-variables {p : Prop} {μ : p → set α}
-
-@[simp] lemma Inter_pos (hp : p) : (⋂h:p, μ h) = μ hp := infi_pos hp
-
-@[simp] lemma Inter_neg (hp : ¬ p) : (⋂h:p, μ h) = univ := infi_neg hp
-
-@[simp] lemma Union_pos (hp : p) : (⋃h:p, μ h) = μ hp := supr_pos hp
-
-@[simp] lemma Union_neg (hp : ¬ p) : (⋃h:p, μ h) = ∅ := supr_neg hp
-
-@[simp] lemma Union_empty : (⋃i:ι, ∅:set α) = ∅ := supr_bot
-
-@[simp] lemma Inter_univ : (⋂i:ι, univ:set α) = univ := infi_top
-
-variables {s : ι → set α}
-
-@[simp] lemma Union_eq_empty : (⋃ i, s i) = ∅ ↔ ∀ i, s i = ∅ := supr_eq_bot
-
-@[simp] lemma Inter_eq_univ : (⋂ i, s i) = univ ↔ ∀ i, s i = univ := infi_eq_top
-
-@[simp] lemma nonempty_Union : (⋃ i, s i).nonempty ↔ ∃ i, (s i).nonempty :=
-by simp [← ne_empty_iff_nonempty]
-
-end
-
 section image
 
 lemma image_Union {f : α → β} {s : ι → set α} : f '' (⋃ i, s i) = (⋃i, f '' s i) :=
@@ -960,19 +931,35 @@ set.ext $ assume a, by simp [@eq_comm α a]
 lemma image_eq_Union (f : α → β) (s : set α) : f '' s = (⋃i∈s, {f i}) :=
 set.ext $ assume b, by simp [@eq_comm β b]
 
-@[simp] lemma bUnion_range {f : ι → α} {g : α → set β} : (⋃x ∈ range f, g x) = (⋃y, g (f y)) :=
+lemma bUnion_range {f : ι → α} {g : α → set β} : (⋃x ∈ range f, g x) = (⋃y, g (f y)) :=
 supr_range
 
-@[simp] lemma bInter_range {f : ι → α} {g : α → set β} : (⋂x ∈ range f, g x) = (⋂y, g (f y)) :=
+@[simp] lemma Union_Union_eq' {f : ι → α} {g : α → set β} :
+  (⋃ x y (h : f y = x), g x) = ⋃ y, g (f y) :=
+by simpa using bUnion_range
+
+lemma bInter_range {f : ι → α} {g : α → set β} : (⋂x ∈ range f, g x) = (⋂y, g (f y)) :=
 infi_range
+
+@[simp] lemma Inter_Inter_eq' {f : ι → α} {g : α → set β} :
+  (⋂ x y (h : f y = x), g x) = ⋂ y, g (f y) :=
+by simpa using bInter_range
 
 variables {s : set γ} {f : γ → α} {g : α → set β}
 
-@[simp] lemma bUnion_image : (⋃x∈ (f '' s), g x) = (⋃y ∈ s, g (f y)) :=
+lemma bUnion_image : (⋃x∈ (f '' s), g x) = (⋃y ∈ s, g (f y)) :=
 supr_image
 
-@[simp] lemma bInter_image : (⋂x∈ (f '' s), g x) = (⋂y ∈ s, g (f y)) :=
+@[simp] lemma Union_Union_mem_and_eq :
+  (⋃ x y (hy : y ∈ s ∧ f y = x), g x) = ⋃ y ∈ s, g (f y) :=
+by simpa using @bUnion_image _ _ _ s f g
+
+lemma bInter_image : (⋂x∈ (f '' s), g x) = (⋂y ∈ s, g (f y)) :=
 infi_image
+
+@[simp] lemma Inter_Inter_mem_and_eq :
+  (⋂ x y (hy : y ∈ s ∧ f y = x), g x) = ⋂ y ∈ s, g (f y) :=
+by simpa using @bInter_image _ _ _ s f g
 
 end image
 
@@ -994,7 +981,7 @@ section preimage
 theorem monotone_preimage {f : α → β} : monotone (preimage f) := assume a b h, preimage_mono h
 
 @[simp] theorem preimage_Union {ι : Sort*} {f : α → β} {s : ι → set β} :
-  preimage f (⋃i, s i) = (⋃i, preimage f (s i)) :=
+  f ⁻¹' (⋃i, s i) = (⋃i, f ⁻¹' s i) :=
 set.ext $ by simp [preimage]
 
 theorem preimage_bUnion {ι} {f : α → β} {s : set ι} {t : ι → set β} :
@@ -1017,7 +1004,7 @@ by ext; simp
 by rw [← preimage_bUnion, bUnion_of_singleton]
 
 lemma bUnion_range_preimage_singleton (f : α → β) : (⋃ y ∈ range f, f ⁻¹' {y}) = univ :=
-by simp
+by rw [bUnion_preimage_singleton, preimage_range]
 
 end preimage
 
@@ -1165,7 +1152,7 @@ lemma pi_def (i : set α) (s : Πa, set (π a)) :
 by { ext, simp }
 
 lemma univ_pi_eq_Inter (t : Π i, set (π i)) : pi univ t = ⋂ i, eval i ⁻¹' t i :=
-by simp only [pi_def, Inter_pos, mem_univ]
+by simp only [pi_def, Inter_true, mem_univ]
 
 lemma pi_diff_pi_subset (i : set α) (s t : Πa, set (π a)) :
   pi i s \ pi i t ⊆ ⋃ a ∈ i, (eval a ⁻¹' (s a \ t a)) :=

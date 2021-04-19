@@ -27,6 +27,9 @@ of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.  This p
 `to_dual_map` to be upgraded to an (isometric) continuous linear equivalence, `to_dual`, between a
 Hilbert space and its dual.
 
+Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the
+theory for `semi_normed_space` and we specialize to `normed_space` when needed.
+
 ## References
 
 * [M. Einsiedler and T. Ward, *Functional Analysis, Spectral Theory, and Applications*]
@@ -45,12 +48,17 @@ namespace normed_space
 
 section general
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables (E : Type*) [normed_group E] [normed_space 𝕜 E]
+variables (E : Type*) [semi_normed_group E] [semi_normed_space 𝕜 E]
+variables (F : Type*) [normed_group F] [normed_space 𝕜 F]
 
-/-- The topological dual of a normed space `E`. -/
-@[derive [has_coe_to_fun, normed_group, normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
+/-- The topological dual of a seminormed space `E`. -/
+@[derive [has_coe_to_fun, semi_normed_group, semi_normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
 
 instance : inhabited (dual 𝕜 E) := ⟨0⟩
+
+instance : normed_group (dual 𝕜 F) := continuous_linear_map.to_normed_group
+
+instance : normed_space 𝕜 (dual 𝕜 F) := continuous_linear_map.to_normed_space
 
 /-- The inclusion of a normed space in its double (topological) dual. -/
 def inclusion_in_double_dual' (x : E) : (dual 𝕜 (dual 𝕜 E)) :=

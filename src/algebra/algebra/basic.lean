@@ -1261,9 +1261,12 @@ open submodule
 
 lemma span_nat_eq_add_group_closure (s : set R) :
   (span ℕ s).to_add_submonoid = add_submonoid.closure s :=
-eq.symm $ add_submonoid.closure_eq_of_le subset_span $ λ x hx, span_induction hx
-  (λ x hx, add_submonoid.subset_closure hx) (add_submonoid.zero_mem _)
-  (λ _ _, add_submonoid.add_mem _) (λ _ _ _, add_submonoid.nsmul_mem _ ‹_› _)
+begin
+  refine eq.symm (add_submonoid.closure_eq_of_le subset_span _),
+  apply add_submonoid.to_nat_submodule.symm.to_galois_connection.l_le _,
+  rw span_le,
+  exact add_submonoid.subset_closure,
+end
 
 @[simp] lemma span_nat_eq (s : add_submonoid R) : (span ℕ (s : set R)).to_add_submonoid = s :=
 by rw [span_nat_eq_add_group_closure, s.closure_eq]

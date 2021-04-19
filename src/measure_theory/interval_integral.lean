@@ -1537,14 +1537,6 @@ theorem integral_eq_sub_of_has_deriv_at'_of_le (hab : a ≤ b)
   ∫ y in a..b, f' y = f b - f a :=
 integral_eq_sub_of_has_deriv_at' hcont (by rwa [min_eq_left hab, max_eq_right hab]) hcont'
 
-theorem has_deriv_at.continuous_on {s : set ℝ} {f f' : ℝ → E}
-  (hderiv : ∀ x ∈ s, has_deriv_at f (f' x) x) : continuous_on f s :=
-λ x hx, (hderiv x hx).continuous_at.continuous_within_at
-
-theorem continuous_at.continuous_on {s : set ℝ} {f : ℝ → ℝ}
-  (hcont : ∀ x ∈ s, continuous_at f x) : continuous_on f s :=
-λ x hx, (hcont x hx).continuous_within_at
-
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` has a derivative at `f' x` for all `x` in
   `[a, b]` and `f'` is continuous on `[a, b]`, then `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_at (hderiv : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
@@ -1594,23 +1586,6 @@ end
 /-!
 ### Change of variable
 -/
-
-lemma intermediate_value_interval {α : Type*} [conditionally_complete_linear_order α]
-  [densely_ordered α] [topological_space α] [order_topology α]
-  {δ : Type*} [linear_order δ] [topological_space δ] [order_closed_topology δ]
-  {a b : α} {f : α → δ} (hf : continuous_on f (interval a b)) :
-interval (f a) (f b) ⊆ f '' interval a b :=
-begin
-  cases le_total a b with hab hba,
-  { rw interval_of_le hab at hf ⊢,
-    cases le_total (f a) (f b) with hfab hfba,
-    { simpa only [interval_of_le hfab] using intermediate_value_Icc hab hf },
-    { simpa only [interval_of_ge hfba] using intermediate_value_Icc' hab hf } },
-  { rw interval_of_ge hba at hf ⊢,
-    cases le_total (f a) (f b) with hfab hfba,
-    { simpa only [interval_of_le hfab] using intermediate_value_Icc' hba hf },
-    { simpa only [interval_of_ge hfba] using intermediate_value_Icc hba hf } },
-end
 
 lemma integral_comp_mul_deriv {g f f' : ℝ → ℝ}
   (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)

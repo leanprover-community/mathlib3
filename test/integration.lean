@@ -66,10 +66,6 @@ example : ∫ x : ℝ in -1..0, (1 + (x + 1) ^ 2)⁻¹ = π/4 :=
 
 /-! ### Composition of functions (aka "change of variable") -/
 
-lemma continuous_on_exp {s : set ℝ} : continuous_on exp s := continuous_exp.continuous_on
-lemma continuous_on_pow {s : set ℝ} (n : ℕ) : continuous_on (λ x, x ^ n) s :=
-(continuous_pow n).continuous_on
-
 /- `interval_integral.integral_comp_mul_deriv'` can be used to simplify integrals of the form
   `∫ x in a..b, (g ∘ f) x * f' x`, where `f'` is the derivative of `f`, to `∫ x in f a..f b, g x` -/
 example {a b : ℝ} : ∫ x in a..b, exp (exp x) * exp x = ∫ x in exp a..exp b, exp x :=

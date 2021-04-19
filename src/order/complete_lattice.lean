@@ -432,6 +432,10 @@ theorem bsupr_le_bsupr {p : ι → Prop} {f g : Π i (hi : p i), α} (h : ∀ i 
   (⨆ i hi, f i hi) ≤ ⨆ i hi, g i hi :=
 bsupr_le $ λ i hi, le_trans (h i hi) (le_bsupr i hi)
 
+theorem bsupr_le_bsupr' {p q : ι → Prop} (hpq : ∀ i, p i → q i) {f : ι → α} :
+  (⨆ i (hpi : p i), f i) ≤ ⨆ i (hqi : q i), f i :=
+supr_le_supr $ λ i, Sup_le_Sup $ λ x ⟨a, ha⟩, ⟨hpq i a, ha⟩
+
 theorem supr_le_supr_const (h : ι → ι₂) : (⨆ i:ι, a) ≤ (⨆ j:ι₂, a) :=
 supr_le $ le_supr _ ∘ h
 
@@ -1183,8 +1187,8 @@ omit hs
 
   Example: an indexed family of submodules of a module is independent in this sense if
   and only the natural map from the direct sum of the submodules to the module is injective. -/
-def independent {ι : Sort*} {α : Type*} [complete_lattice α] (s : ι → α) : Prop :=
-∀ i : ι, disjoint (s i) (⨆ (j ≠ i), s j)
+def independent {ι : Sort*} {α : Type*} [complete_lattice α] (t : ι → α) : Prop :=
+∀ i : ι, disjoint (t i) (⨆ (j ≠ i), t j)
 
 lemma set_independent_iff {α : Type*} [complete_lattice α] (s : set α) :
   set_independent s ↔ independent (coe : s → α) :=
@@ -1197,6 +1201,17 @@ begin
 end
 
 variables {t : ι → α} (ht : independent t)
+
+theorem independent_def : independent t ↔ ∀ i : ι, disjoint (t i) (⨆ (j ≠ i), t j) :=
+iff.rfl
+
+theorem independent_def' {ι : Type*} {t : ι → α} :
+  independent t ↔ ∀ i, disjoint (t i) (Sup (t '' {j | j ≠ i})) :=
+by {simp_rw Sup_image, refl}
+
+theorem independent_def'' {ι : Type*} {t : ι → α} :
+  independent t ↔ ∀ i, disjoint (t i) (Sup {a | ∃ j ≠ i, t j = a}) :=
+by {rw independent_def', tidy}
 
 @[simp]
 lemma independent_empty (t : empty → α) : independent t.
@@ -1212,5 +1227,22 @@ lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
   {s t : ι → α} (hs : independent s) (hst : t ≤ s) :
   independent t :=
 λ i, (hs i).mono (hst i) (supr_le_supr $ λ j, supr_le_supr $ λ _, hst j)
+
+/-- Composing an indepedent indexed family with an injective function on the index results in
+another indepedendent indexed family. -/
+lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
+  {s : ι → α} (hs : independent s) (f : ι' → ι) (hf : function.injective f) :
+  independent (s ∘ f) :=
+λ i, (hs (f i)).mono_right begin
+  refine (supr_le_supr $ λ i, _).trans (supr_comp_le _ f),
+  exact supr_le_supr_const hf.ne,
+end
+
+/-- If the elements of a set are independent, then any element is disjoint from the `supr` of some
+subset of the rest. -/
+lemma independent.disjoint_bsupr {ι : Type*} {α : Type*} [complete_lattice α]
+  {t : ι → α} (ht : independent t) {x : ι} {y : set ι} (hx : x ∉ y) :
+  disjoint (t x) (⨆ i ∈ y, t i) :=
+disjoint.mono_right (bsupr_le_bsupr' $ λ i hi, show i ≠ x, from λ hix, hx $ hix ▸ hi) (ht x)
 
 end complete_lattice

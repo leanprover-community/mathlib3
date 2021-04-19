@@ -341,26 +341,28 @@ surreal.lift₂
 
 instance : has_add surreal := ⟨add⟩
 
-theorem add_assoc : ∀ (x y z : surreal), (x + y) + z = x + (y + z) :=
-begin
-  rintros ⟨x⟩ ⟨y⟩ ⟨z⟩,
-  apply quot.sound,
-  exact add_assoc_equiv,
-end
+def neg : surreal → surreal :=
+surreal.lift (λ x ox, ⟦⟨-x, pgame.numeric_neg ox⟩⟧) (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))
 
-theorem zero_add : ∀ (x : surreal), 0 + x = x :=
-by { rintro ⟨x, ox⟩, exact quotient.sound (pgame.zero_add_equiv _) }
-
-theorem add_zero : ∀ (x : surreal), x + 0 = x :=
-by { rintro ⟨x, ox⟩, exact quotient.sound (pgame.add_zero_equiv _) }
-
-instance : add_monoid surreal :=
-{ add       := surreal.add,
-  add_assoc := surreal.add_assoc,
-  zero      := 0,
-  zero_add  := surreal.zero_add,
-  add_zero  := surreal.add_zero }
-
+instance : ordered_add_comm_group surreal :=
+{ add               := surreal.add,
+  add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quot.sound add_assoc_equiv },
+  zero              := 0,
+  zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv _) },
+  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) }, 
+  neg               := surreal.neg, 
+  sub               := λ x y, x + surreal.neg y,
+  sub_eq_add_neg    := by try_refl_tac,
+  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv }, 
+  add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
+  le                := surreal.le,
+  lt                := surreal.lt,
+  le_refl           := by { rintros ⟨_⟩, refl },
+  le_trans          := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact pgame.le_trans },
+  lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact pgame.lt_iff_le_not_le ox oy },
+  le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
+  add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact pgame.add_le_add_left hx } }
+  
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
 -- TODO replace the `add_monoid` instance above with a stronger instance:

@@ -373,6 +373,9 @@ protected theorem add_left_neg : -a + a = 0 :=
 num_denom_cases_on' a $ λ n d h,
 by simp [h]
 
+@[simp] lemma mk_zero_one : 0 /. 1 = 0 :=
+show mk_pnat _ _ = _, by { rw mk_pnat, simp, refl }
+
 @[simp] lemma mk_one_one : 1 /. 1 = 1 :=
 show mk_pnat _ _ = _, by { rw mk_pnat, simp, refl }
 

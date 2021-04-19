@@ -325,7 +325,9 @@ surreal.lift₂
 instance : has_add surreal := ⟨add⟩
 
 def neg : surreal → surreal :=
-surreal.lift (λ x ox, ⟦⟨-x, pgame.numeric_neg ox⟩⟧) (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))
+surreal.lift
+  (λ x ox, ⟦⟨-x, pgame.numeric_neg ox⟩⟧)
+  (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))
 
 instance : ordered_add_comm_group surreal :=
 { add               := surreal.add,

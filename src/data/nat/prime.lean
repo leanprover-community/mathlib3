@@ -78,17 +78,19 @@ prime_def_lt'.trans $ and_congr_right $ λ p2,
       rwa [one_mul, ← e] }
   end⟩
 
+section
+
 /--
   This instance is slower than the instance `decidable_prime` defined below,
-  but has the advantage that it works in the kernel.
+  but has the advantage that it works in the kernel for small values.
 
   If you need to prove that a particular number is prime, in any case
   you should not use `dec_trivial`, but rather `by norm_num`, which is
   much faster.
   -/
+local attribute [instance]
 def decidable_prime_1 (p : ℕ) : decidable (prime p) :=
 decidable_of_iff' _ prime_def_lt'
-local attribute [instance] decidable_prime_1
 
 lemma prime.ne_zero {n : ℕ} (h : prime n) : n ≠ 0 :=
 by { rintro rfl, revert h, dec_trivial }
@@ -102,7 +104,7 @@ theorem not_prime_one : ¬ prime 1 := by simp [prime]
 
 theorem prime_two : prime 2 := dec_trivial
 
-theorem prime_three : prime 3 := dec_trivial
+end
 
 theorem prime.pred_pos {p : ℕ} (pp : prime p) : 0 < pred p :=
 lt_pred_iff.2 pp.one_lt
@@ -775,3 +777,9 @@ end
 
 end norm_num
 end tactic
+
+namespace nat
+
+theorem prime_three : prime 3 := by norm_num
+
+end nat

@@ -322,14 +322,17 @@ surreal.lift₂
   (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, numeric_add ox oy⟩⟧)
   (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))
 
-instance : has_add surreal := ⟨add⟩
-
 /-- Negation for surreal numbers is inherited from pre-game negation:
 the negation of `{L | R}` is `{-R | -L}`. -/
 def neg : surreal → surreal :=
 surreal.lift
   (λ x ox, ⟦⟨-x, pgame.numeric_neg ox⟩⟧)
   (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))
+
+instance : has_le surreal   := ⟨le⟩
+instance : has_lt surreal   := ⟨lt⟩
+instance : has_add surreal  := ⟨add⟩
+instance : has_neg surreal  := ⟨neg⟩
 
 instance : ordered_add_comm_group surreal :=
 { add               := (+),
@@ -340,8 +343,8 @@ instance : ordered_add_comm_group surreal :=
   neg               := has_neg.neg, 
   add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv }, 
   add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
-  le                := surreal.le,
-  lt                := surreal.lt,
+  le                := (≤),
+  lt                := (<),
   le_refl           := by { rintros ⟨_⟩, refl },
   le_trans          := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact pgame.le_trans },
   lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact pgame.lt_iff_le_not_le ox oy },

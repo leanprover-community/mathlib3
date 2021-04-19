@@ -420,7 +420,25 @@ end
   algebra_map R C(α, A) k a = k • 1 :=
 by { rw algebra.algebra_map_eq_smul_one, refl, }
 
-variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
+variables {𝕜 : Type*} [topological_space 𝕜]
+
+/--
+A set of continuous maps "separates points strongly"
+if for each pair of distinct points there is a function with specified values on them.
+
+We give a slightly unusual formulation, where the specified values are given by some
+function `v`, and we ask `f x = v x ∧ f y = v y`. This avoids needing a hypothesis `x ≠ y`.
+
+In fact, this definition would work perfectly well for a set of non-continuous functions,
+but as the only current use case is in the Stone-Weierstrass theorem,
+writing it this way avoids having to deal with casts inside the set.
+(This may need to change if we do Stone-Weierstrass on non-compact spaces,
+where the functions would be continuous functions vanishing at infinity.)
+-/
+def set.separates_points_strongly (s : set C(α, 𝕜)) : Prop :=
+∀ (v : α → 𝕜) (x y : α), ∃ f : s, (f x : 𝕜) = v x ∧ f y = v y
+
+variables [field 𝕜] [topological_ring 𝕜]
 
 /--
 A set of functions "separates points strongly"

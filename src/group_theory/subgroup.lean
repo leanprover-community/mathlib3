@@ -1847,8 +1847,8 @@ begin
     rw [inf_of_le_right (sup_le hA hA'), inf_of_le_right hA', inf_of_le_right hA] },
 end
 
-@[to_additive] lemma subgroup_normal.mem_comm
-  {H K : subgroup G} (hK : H ≤ K) [hN : (H.subgroup_of K).normal] {a b : G} (hb : b ∈ K) (h : a * b ∈ H) :
+@[to_additive] lemma subgroup_normal.mem_comm {H K : subgroup G}
+  (hK : H ≤ K) [hN : (H.subgroup_of K).normal] {a b : G} (hb : b ∈ K) (h : a * b ∈ H) :
   b * a ∈ H :=
 begin
   have := (normal_of_iff hK).mp hN (a * b) b h hb,

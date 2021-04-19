@@ -96,9 +96,9 @@ by { rintro rfl, revert h, dec_trivial }
 theorem prime.pos {p : ℕ} (pp : prime p) : 0 < p :=
 lt_of_succ_lt pp.one_lt
 
-theorem not_prime_zero : ¬ prime 0 := dec_trivial
+theorem not_prime_zero : ¬ prime 0 := by simp [prime]
 
-theorem not_prime_one : ¬ prime 1 := dec_trivial
+theorem not_prime_one : ¬ prime 1 := by simp [prime]
 
 theorem prime_two : prime 2 := dec_trivial
 
@@ -156,7 +156,7 @@ section min_fac
   @[simp] theorem min_fac_one : min_fac 1 = 1 := rfl
 
   theorem min_fac_eq : ∀ n, min_fac n = if 2 ∣ n then 2 else min_fac_aux n 3
-  | 0     := rfl
+  | 0     := by simp
   | 1     := by simp [show 2≠1, from dec_trivial]; rw min_fac_aux; refl
   | (n+2) :=
     have 2 ∣ n + 2 ↔ 2 ∣ n, from
@@ -205,8 +205,7 @@ section min_fac
   end
 
   theorem min_fac_dvd (n : ℕ) : min_fac n ∣ n :=
-  by by_cases n1 : n = 1;
-     [exact n1.symm ▸ dec_trivial, exact (min_fac_has_prop n1).2.1]
+  if n1 : n = 1 then by simp [n1] else (min_fac_has_prop n1).2.1
 
   theorem min_fac_prime {n : ℕ} (n1 : n ≠ 1) : prime (min_fac n) :=
   let ⟨f2, fd, a⟩ := min_fac_has_prop n1 in
@@ -370,27 +369,30 @@ def factors : ℕ → list ℕ
   let m := min_fac n in have n / m < n := factors_lemma,
   m :: factors (n / m)
 
+@[simp] lemma factors_zero : factors 0 = [] := by rw factors
+@[simp] lemma factors_one : factors 1 = [] := by rw factors
+
 lemma prime_of_mem_factors : ∀ {n p}, p ∈ factors n → prime p
-| 0       := λ p, false.elim
-| 1       := λ p, false.elim
+| 0       := by simp
+| 1       := by simp
 | n@(k+2) := λ p h,
   let m := min_fac n in have n / m < n := factors_lemma,
   have h₁ : p = m ∨ p ∈ (factors (n / m)) :=
-    (list.mem_cons_iff _ _ _).1 h,
+    (list.mem_cons_iff _ _ _).1 (by rwa [factors] at h),
   or.cases_on h₁ (λ h₂, h₂.symm ▸ min_fac_prime dec_trivial)
     prime_of_mem_factors
 
 lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
-| 0       := (lt_irrefl _).elim
-| 1       := λ h, rfl
+| 0       := by simp
+| 1       := by simp
 | n@(k+2) := λ h,
   let m := min_fac n in have n / m < n := factors_lemma,
-  show list.prod (m :: factors (n / m)) = n, from
+  show (factors n).prod = n, from
   have h₁ : 0 < n / m :=
     nat.pos_of_ne_zero $ λ h,
     have n = 0 * m := (nat.div_eq_iff_eq_mul_left (min_fac_pos _) (min_fac_dvd _)).1 h,
     by rw zero_mul at this; exact (show k + 2 ≠ 0, from dec_trivial) this,
-  by rw [list.prod_cons, prod_factors h₁, nat.mul_div_cancel' (min_fac_dvd _)]
+  by rw [factors, list.prod_cons, prod_factors h₁, nat.mul_div_cancel' (min_fac_dvd _)]
 
 lemma factors_prime {p : ℕ} (hp : nat.prime p) : p.factors = [p] :=
 begin
@@ -405,7 +407,8 @@ end
 
 /-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
 lemma factors_add_two (n : ℕ) :
-  factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) := rfl
+  factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) :=
+by rw factors
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
@@ -635,7 +638,7 @@ lemma min_fac_ne_bit0 {n k : ℕ} : nat.min_fac (bit1 n) ≠ bit0 k :=
 by rw bit0_eq_two_mul; exact λ e, absurd
   ((nat.dvd_add_iff_right (by simp [bit0_eq_two_mul n])).2
     (dvd_trans ⟨_, e⟩ (nat.min_fac_dvd _)))
-  dec_trivial
+  (by norm_num)
 
 lemma min_fac_helper_0 (n : ℕ) (h : 0 < n) : min_fac_helper n 1 :=
 begin

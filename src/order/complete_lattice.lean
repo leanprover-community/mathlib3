@@ -926,6 +926,10 @@ lemma supr_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
   (⨆ i (h : p i), f i h) = (⨆ x : subtype p, f x x.property) :=
 (@supr_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
+lemma supr_subtype'' {ι} (s : set ι) (f : ι → α) :
+  (⨆ i : s, f i) = ⨆ (t : ι) (H : t ∈ s), f t :=
+supr_subtype
+
 lemma Sup_eq_supr' {s : set α} : Sup s = ⨆ x : s, (x : α) :=
 by rw [Sup_eq_supr, supr_subtype']; refl
 

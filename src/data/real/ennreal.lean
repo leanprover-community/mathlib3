@@ -335,7 +335,8 @@ by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 lemma pow_eq_top : ∀ n:ℕ, a^n=∞ → a=∞
 | 0 := by simp
-| (n+1) := λ o, (mul_eq_top.1 o).elim (λ h, pow_eq_top n h.2) and.left
+| (n+1) := λ o, by { rw pow_succ at o,
+                     exact (mul_eq_top.1 o).elim (λ h, pow_eq_top n h.2) and.left }
 
 lemma pow_ne_top (h : a ≠ ∞) {n:ℕ} : a^n ≠ ∞ :=
 mt (pow_eq_top n) h

@@ -389,7 +389,7 @@ def comp_hom : (normed_group_hom V₂ V₃) →+ (normed_group_hom V₁ V₂) �
 add_monoid_hom.mk' (λ g, add_monoid_hom.mk' (λ f, g.comp f)
   (by { intros, ext, exact g.map_add _ _ }))
   (by { intros, ext, simp only [comp_apply, pi.add_apply, function.comp_app,
-                                add_monoid_hom.add_apply, add_monoid_hom.coe_mk', coe_add] })
+                                add_monoid_hom.add_apply, add_monoid_hom.mk'_apply, coe_add] })
 
 @[simp] lemma comp_zero (f : normed_group_hom V₂ V₃) : f.comp (0 : normed_group_hom V₁ V₂) = 0 :=
 by { ext, exact f.map_zero }

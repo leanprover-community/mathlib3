@@ -315,23 +315,6 @@ lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (lt_c
 theorem not_le : ∀ {x y : surreal}, ¬ le x y ↔ lt y x :=
 by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; exact not_le
 
-instance : preorder surreal :=
-{ le := le,
-  lt := lt,
-  le_refl := by rintro ⟨⟨x, ox⟩⟩; exact le_refl _,
-  le_trans := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩ ⟨⟨z, oz⟩⟩; exact le_trans,
-  lt_iff_le_not_le := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; exact lt_iff_le_not_le ox oy }
-
-instance : partial_order surreal :=
-{ le_antisymm := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩ h₁ h₂; exact quot.sound ⟨h₁, h₂⟩,
-  ..surreal.preorder }
-
-noncomputable instance : linear_order surreal :=
-{ le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
-    or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
-  decidable_le := classical.dec_rel _,
-  ..surreal.partial_order }
-
 /-- Addition on surreals is inherited from pre-game addition:
 the sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 def add : surreal → surreal → surreal :=
@@ -363,6 +346,12 @@ instance : ordered_add_comm_group surreal :=
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact pgame.add_le_add_left hx } }
   
+noncomputable instance : linear_order surreal :=
+{ le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
+    or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
+  decidable_le := classical.dec_rel _,
+  ..(infer_instance : partial_order surreal) }
+
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
 -- TODO replace the `add_monoid` instance above with a stronger instance:

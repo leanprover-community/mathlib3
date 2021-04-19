@@ -728,8 +728,8 @@ lemma inf_binfi {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i,
   a ⊓ (⨅i (h : p i), f i h) = (⨅ i (h : p i), a ⊓ f i h) :=
 by simpa only [inf_comm] using binfi_inf h
 
-theorem supr_sup_eq {f g : β → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
-@infi_inf_eq (order_dual α) β _ _ _
+theorem supr_sup_eq {f g : ι → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
+@infi_inf_eq (order_dual α) ι _ _ _
 
 lemma supr_sup [h : nonempty ι] {f : ι → α} {a : α} : (⨆ x, f x) ⊔ a = (⨆ x, f x ⊔ a) :=
 @infi_inf (order_dual α) _ _ _ _ _
@@ -737,7 +737,7 @@ lemma supr_sup [h : nonempty ι] {f : ι → α} {a : α} : (⨆ x, f x) ⊔ a =
 lemma sup_supr [nonempty ι] {f : ι → α} {a : α} : a ⊔ (⨆ x, f x) = (⨆ x, a ⊔ f x) :=
 @inf_infi (order_dual α) _ _ _ _ _
 
-/- supr and infi under Prop -/
+/-! ### `supr` and `infi` under `Prop` -/
 
 @[simp] theorem infi_false {s : false → α} : infi s = ⊤ :=
 le_antisymm le_top (le_infi $ assume i, false.elim i)
@@ -926,6 +926,10 @@ lemma supr_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
   (⨆ i (h : p i), f i h) = (⨆ x : subtype p, f x x.property) :=
 (@supr_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
+lemma supr_subtype'' {ι} (s : set ι) (f : ι → α) :
+  (⨆ i : s, f i) = ⨆ (t : ι) (H : t ∈ s), f t :=
+supr_subtype
+
 lemma Sup_eq_supr' {s : set α} : Sup s = ⨆ x : s, (x : α) :=
 by rw [Sup_eq_supr, supr_subtype']; refl
 
@@ -1026,14 +1030,14 @@ instance complete_lattice_Prop : complete_lattice Prop :=
   le_Inf := assume s a h p b hb, h b hb p,
   .. bounded_distrib_lattice_Prop }
 
-lemma Inf_Prop_eq {s : set Prop} : Inf s = (∀p ∈ s, p) := rfl
+@[simp] lemma Inf_Prop_eq {s : set Prop} : Inf s = (∀p ∈ s, p) := rfl
 
-lemma Sup_Prop_eq {s : set Prop} : Sup s = (∃p ∈ s, p) := rfl
+@[simp] lemma Sup_Prop_eq {s : set Prop} : Sup s = (∃p ∈ s, p) := rfl
 
-lemma infi_Prop_eq {ι : Sort*} {p : ι → Prop} : (⨅i, p i) = (∀i, p i) :=
+@[simp] lemma infi_Prop_eq {ι : Sort*} {p : ι → Prop} : (⨅i, p i) = (∀i, p i) :=
 le_antisymm (assume h i, h _ ⟨i, rfl⟩ ) (assume h p ⟨i, eq⟩, eq ▸ h i)
 
-lemma supr_Prop_eq {ι : Sort*} {p : ι → Prop} : (⨆i, p i) = (∃i, p i) :=
+@[simp] lemma supr_Prop_eq {ι : Sort*} {p : ι → Prop} : (⨆i, p i) = (∃i, p i) :=
 le_antisymm (λ ⟨q, ⟨i, (eq : p i = q)⟩, hq⟩, ⟨i, eq.symm ▸ hq⟩) (λ ⟨i, hi⟩, ⟨p i, ⟨i, rfl⟩, hi⟩)
 
 instance pi.has_Sup {α : Type*} {β : α → Type*} [Π i, has_Sup (β i)] : has_Sup (Π i, β i) :=
@@ -1057,7 +1061,7 @@ lemma Inf_apply {α : Type*} {β : α → Type*} [Π i, has_Inf (β i)]
   (Inf s) a = (⨅ f : s, (f : Πa, β a) a) :=
 rfl
 
-lemma infi_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Inf (β i)]
+@[simp] lemma infi_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Inf (β i)]
   {f : ι → Πa, β a} {a : α} :
   (⨅i, f i) a = (⨅i, f i a) :=
 by rw [infi, Inf_apply, infi, infi, ← image_eq_range (λ f : Π i, β i, f a) (range f), ← range_comp]
@@ -1066,8 +1070,8 @@ lemma Sup_apply {α : Type*} {β : α → Type*} [Π i, has_Sup (β i)] {s : set
   (Sup s) a = (⨆f:s, (f : Πa, β a) a) :=
 rfl
 
-lemma supr_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Sup (β i)] {f : ι → Πa, β a}
-  {a : α} :
+@[simp] lemma supr_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Sup (β i)]
+  {f : ι → Πa, β a} {a : α} :
   (⨆i, f i) a = (⨆i, f i a) :=
 @infi_apply α (λ i, order_dual (β i)) _ _ f a
 

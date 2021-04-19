@@ -253,52 +253,162 @@ begin
   rcases h,
   rw coherent_comp_constructor _ _ (monoidal_hom.α_inv.comp h),
   cases hX, cases hY, cases hZ,
+  simp [coherent_comp_constructor],
+end
+
+@[simp] lemma coherent_comp_id_tensor_α_hom {U V W X Y Z : C}
+  {V' W' X' Y' Z' : monoidal_obj C}
+  (hV : V = V'.to . tactic.coherence_assumption)
+  (hW : W = W'.to . tactic.coherence_assumption)
+  (hX : X = X'.to . tactic.coherence_assumption)
+  (hY : Y = Y'.to . tactic.coherence_assumption)
+  (hZ : Z = Z'.to . tactic.coherence_assumption)
+  (hWXYZ : W ⊗ ((X ⊗ Y) ⊗ Z) = (W'.tensor ((X'.tensor Y').tensor Z')).to . tactic.coherence_assumption)
+  (hWXYZ' : W ⊗ (X ⊗ Y ⊗ Z) = (W'.tensor (X'.tensor (Y'.tensor Z'))).to . tactic.coherence_assumption)
+  (f : U ⟶ V) {h : V' =ᵐ W'.tensor ((X'.tensor Y').tensor Z')} :
+  f ≫ᵐ[h] ((𝟙 W) ⊗ (α_ X Y Z).hom) =
+    f ≫ᵐ[h.trans (monoidal_eq.tensor ⟨monoidal_hom.id⟩ ⟨monoidal_hom.α_hom⟩)] 𝟙 _ :=
+begin
+  rcases h,
+  rw coherent_comp_constructor _ _ (h.comp (monoidal_hom.id.tensor (monoidal_hom.α_hom))),
+  cases hV, cases hW, cases hX, cases hY, cases hZ,
   simp [coherent_comp_constructor]
 end
 
-@[simp] lemma coherent_comp_id_tensor_α_hom {U V W X Y Z : C} (f : U ⟶ V)
-  {h : V =ᵐ W ⊗ ((X ⊗ Y) ⊗ Z)} :
-  f ≫ᵐ[h] ((𝟙 W) ⊗ (α_ _ _ _).hom) =
-    f ≫ᵐ[h.trans (monoidal_eq.tensor ⟨monoidal_hom.id⟩ ⟨monoidal_hom.α_hom⟩)] 𝟙 _ :=
-by convert coherent_comp_monoidal_to_hom f (monoidal_hom.tensor monoidal_hom.id monoidal_hom.α_hom)
-
-@[simp] lemma coherent_comp_α_hom_tensor_id {U V W X Y Z : C} (f : U ⟶ V)
-  {h : V =ᵐ ((X ⊗ Y) ⊗ Z) ⊗ W} :
+@[simp] lemma coherent_comp_α_hom_tensor_id {U V W X Y Z : C}
+  {V' W' X' Y' Z' : monoidal_obj C}
+  (hV : V = V'.to . tactic.coherence_assumption)
+  (hW : W = W'.to . tactic.coherence_assumption)
+  (hX : X = X'.to . tactic.coherence_assumption)
+  (hY : Y = Y'.to . tactic.coherence_assumption)
+  (hZ : Z = Z'.to . tactic.coherence_assumption)
+  (hWXYZ : ((X ⊗ Y) ⊗ Z) ⊗ W = (((X'.tensor Y').tensor Z').tensor W').to . tactic.coherence_assumption)
+  (hWXYZ' : (X ⊗ Y ⊗ Z) ⊗ W = ((X'.tensor (Y'.tensor Z')).tensor W').to . tactic.coherence_assumption)
+  (f : U ⟶ V)
+  {h : V' =ᵐ ((X'.tensor Y').tensor Z').tensor W'} :
   f ≫ᵐ[h] ((α_ _ _ _).hom ⊗ (𝟙 W)) =
     f ≫ᵐ[h.trans (monoidal_eq.tensor ⟨monoidal_hom.α_hom⟩ ⟨monoidal_hom.id⟩)] 𝟙 _ :=
-by convert coherent_comp_monoidal_to_hom f (monoidal_hom.tensor monoidal_hom.α_hom monoidal_hom.id)
+begin
+  rcases h,
+  rw coherent_comp_constructor _ _ (h.comp ((monoidal_hom.α_hom).tensor monoidal_hom.id)),
+  cases hV, cases hW, cases hX, cases hY, cases hZ,
+  simp [coherent_comp_constructor]
+end
 
-@[simp] lemma id_tensor_α_hom_coherent_comp {U V W X Y Z : C} {h : U ⊗ (V ⊗ W ⊗ X) =ᵐ Y} (f : Y ⟶ Z) :
+@[simp] lemma id_tensor_α_hom_coherent_comp {U V W X Y Z : C}
+  {U' V' W' X' Y' : monoidal_obj C}
+  (hU : U = U'.to . tactic.coherence_assumption)
+  (hV : V = V'.to . tactic.coherence_assumption)
+  (hW : W = W'.to . tactic.coherence_assumption)
+  (hX : X = X'.to . tactic.coherence_assumption)
+  (hY : Y = Y'.to . tactic.coherence_assumption)
+  (hWXYZ : U ⊗ ((V ⊗ W) ⊗ X) = (U'.tensor ((V'.tensor W').tensor X')).to . tactic.coherence_assumption)
+  (hWXYZ' : U ⊗ (V ⊗ W ⊗ X) = (U'.tensor (V'.tensor (W'.tensor X'))).to . tactic.coherence_assumption)
+  {h : U'.tensor (V'.tensor (W'.tensor X')) =ᵐ Y'} (f : Y ⟶ Z) :
   ((𝟙 U) ⊗ (α_ _ _ _).hom) ≫ᵐ[h] f =
     𝟙 _ ≫ᵐ[(monoidal_eq.tensor ⟨monoidal_hom.id⟩ ⟨monoidal_hom.α_hom⟩).trans h] f :=
-by convert monoidal_to_hom_coherent_comp (monoidal_hom.tensor monoidal_hom.id monoidal_hom.α_hom) f
+begin
+  rcases h,
+  rw coherent_comp_constructor _ _ (((monoidal_hom.id).tensor monoidal_hom.α_hom).comp h),
+  cases hU, cases hV, cases hW, cases hX, cases hY,
+  simp [coherent_comp_constructor]
+end
 
-@[simp] lemma α_hom_tensor_id_coherent_comp {U V W X Y Z : C} {h : (V ⊗ W ⊗ X) ⊗ U =ᵐ Y} (f : Y ⟶ Z) :
+@[simp] lemma α_hom_tensor_id_coherent_comp {U V W X Y Z : C}
+  {U' V' W' X' Y' : monoidal_obj C}
+  (hU : U = U'.to . tactic.coherence_assumption)
+  (hV : V = V'.to . tactic.coherence_assumption)
+  (hW : W = W'.to . tactic.coherence_assumption)
+  (hX : X = X'.to . tactic.coherence_assumption)
+  (hY : Y = Y'.to . tactic.coherence_assumption)
+  (hWXYZ : ((V ⊗ W) ⊗ X) ⊗ U = (((V'.tensor W').tensor X').tensor U').to . tactic.coherence_assumption)
+  (hWXYZ' : (V ⊗ W ⊗ X) ⊗ U = ((V'.tensor (W'.tensor X')).tensor U').to . tactic.coherence_assumption)
+  {h : (V'.tensor (W'.tensor X')).tensor U' =ᵐ Y'} (f : Y ⟶ Z) :
   ((α_ _ _ _).hom ⊗ (𝟙 U)) ≫ᵐ[h] f =
     𝟙 _ ≫ᵐ[(monoidal_eq.tensor ⟨monoidal_hom.α_hom⟩ ⟨monoidal_hom.id⟩).trans h] f :=
-by convert monoidal_to_hom_coherent_comp (monoidal_hom.tensor monoidal_hom.α_hom monoidal_hom.id) f
+begin
+  rcases h,
+  rw coherent_comp_constructor _ _ (((monoidal_hom.α_hom).tensor monoidal_hom.id).comp h),
+  cases hU, cases hV, cases hW, cases hX, cases hY,
+  simp [coherent_comp_constructor]
+end
 
 @[simp] lemma coherent_comp_id_tensor_α_inv {U V W X Y Z : C} (f : U ⟶ V)
-  {h : V =ᵐ W ⊗ (X ⊗ Y ⊗ Z)} :
+  {V' W' X' Y' Z' : monoidal_obj C}
+  (hV : V = V'.to . tactic.coherence_assumption)
+  (hW : W = W'.to . tactic.coherence_assumption)
+  (hX : X = X'.to . tactic.coherence_assumption)
+  (hY : Y = Y'.to . tactic.coherence_assumption)
+  (hZ : Z = Z'.to . tactic.coherence_assumption)
+  (hWXYZ : W ⊗ ((X ⊗ Y) ⊗ Z) = (W'.tensor ((X'.tensor Y').tensor Z')).to . tactic.coherence_assumption)
+  (hWXYZ' : W ⊗ (X ⊗ Y ⊗ Z) = (W'.tensor (X'.tensor (Y'.tensor Z'))).to . tactic.coherence_assumption)
+  {h : V' =ᵐ W'.tensor (X'.tensor  (Y'.tensor Z'))} :
   f ≫ᵐ[h] ((𝟙 W) ⊗ (α_ _ _ _).inv) =
     f ≫ᵐ[h.trans (monoidal_eq.tensor ⟨monoidal_hom.id⟩ ⟨monoidal_hom.α_inv⟩)] 𝟙 _ :=
-by convert coherent_comp_monoidal_to_hom f (monoidal_hom.tensor monoidal_hom.id monoidal_hom.α_inv)
+begin
+  rcases h,
+  rw coherent_comp_constructor _ _ (h.comp ((monoidal_hom.id).tensor monoidal_hom.α_inv)),
+  cases hV, cases hW, cases hX, cases hY, cases hZ,
+  simp [coherent_comp_constructor]
+end
 
-@[simp] lemma coherent_comp_α_inv_tensor_id {U V W X Y Z : C} (f : U ⟶ V)
-  {h : V =ᵐ (X ⊗ Y ⊗ Z) ⊗ W} :
+@[simp] lemma coherent_comp_α_inv_tensor_id {U V W X Y Z : C}
+  {V' W' X' Y' Z' : monoidal_obj C}
+  (hV : V = V'.to . tactic.coherence_assumption)
+  (hW : W = W'.to . tactic.coherence_assumption)
+  (hX : X = X'.to . tactic.coherence_assumption)
+  (hY : Y = Y'.to . tactic.coherence_assumption)
+  (hZ : Z = Z'.to . tactic.coherence_assumption)
+  (hWXYZ : ((X ⊗ Y) ⊗ Z) ⊗ W = (((X'.tensor Y').tensor Z').tensor W').to . tactic.coherence_assumption)
+  (hWXYZ' : (X ⊗ Y ⊗ Z) ⊗ W = ((X'.tensor (Y'.tensor Z')).tensor W').to . tactic.coherence_assumption)
+(f : U ⟶ V)
+  {h : V' =ᵐ (X'.tensor (Y'.tensor Z')).tensor W'} :
   f ≫ᵐ[h] ((α_ _ _ _).inv ⊗ (𝟙 W)) =
     f ≫ᵐ[h.trans (monoidal_eq.tensor ⟨monoidal_hom.α_inv⟩ ⟨monoidal_hom.id⟩)] 𝟙 _ :=
-by convert coherent_comp_monoidal_to_hom f (monoidal_hom.tensor monoidal_hom.α_inv monoidal_hom.id)
+begin
+  rcases h,
+  rw coherent_comp_constructor _ _ (h.comp ((monoidal_hom.α_inv).tensor monoidal_hom.id)),
+  cases hV, cases hW, cases hX, cases hY, cases hZ,
+  simp [coherent_comp_constructor]
+end
 
-@[simp] lemma id_tensor_α_inv_coherent_comp {U V W X Y Z : C} {h : U ⊗ ((V ⊗ W) ⊗ X) =ᵐ Y} (f : Y ⟶ Z) :
+@[simp] lemma id_tensor_α_inv_coherent_comp {U V W X Y Z : C}
+  {U' V' W' X' Y' : monoidal_obj C}
+  (hU : U = U'.to . tactic.coherence_assumption)
+  (hV : V = V'.to . tactic.coherence_assumption)
+  (hW : W = W'.to . tactic.coherence_assumption)
+  (hX : X = X'.to . tactic.coherence_assumption)
+  (hY : Y = Y'.to . tactic.coherence_assumption)
+  (hWXYZ : U ⊗ ((V ⊗ W) ⊗ X) = (U'.tensor ((V'.tensor W').tensor X')).to . tactic.coherence_assumption)
+  (hWXYZ' : U ⊗ (V ⊗ W ⊗ X) = (U'.tensor (V'.tensor (W'.tensor X'))).to . tactic.coherence_assumption)
+{h : U'.tensor ((V'.tensor W').tensor X') =ᵐ Y'} (f : Y ⟶ Z) :
   ((𝟙 U) ⊗ (α_ _ _ _).inv) ≫ᵐ[h] f =
     𝟙 _ ≫ᵐ[(monoidal_eq.tensor ⟨monoidal_hom.id⟩ ⟨monoidal_hom.α_inv⟩).trans h] f :=
-by convert monoidal_to_hom_coherent_comp (monoidal_hom.tensor monoidal_hom.id monoidal_hom.α_inv) f
+begin
+  rcases h,
+  rw coherent_comp_constructor _ _ (((monoidal_hom.id).tensor monoidal_hom.α_inv).comp h),
+  cases hU, cases hV, cases hW, cases hX, cases hY,
+  simp [coherent_comp_constructor]
+end
 
-@[simp] lemma α_inv_tensor_id_coherent_comp {U V W X Y Z : C} {h : ((V ⊗ W) ⊗ X) ⊗ U =ᵐ Y} (f : Y ⟶ Z) :
+@[simp] lemma α_inv_tensor_id_coherent_comp {U V W X Y Z : C}
+  {U' V' W' X' Y' : monoidal_obj C}
+  (hU : U = U'.to . tactic.coherence_assumption)
+  (hV : V = V'.to . tactic.coherence_assumption)
+  (hW : W = W'.to . tactic.coherence_assumption)
+  (hX : X = X'.to . tactic.coherence_assumption)
+  (hY : Y = Y'.to . tactic.coherence_assumption)
+  (hWXYZ : ((V ⊗ W) ⊗ X) ⊗ U = (((V'.tensor W').tensor X').tensor U').to . tactic.coherence_assumption)
+  (hWXYZ' : (V ⊗ W ⊗ X) ⊗ U = ((V'.tensor (W'.tensor X')).tensor U').to . tactic.coherence_assumption)
+{h : ((V'.tensor W').tensor X').tensor U' =ᵐ Y'} (f : Y ⟶ Z) :
   ((α_ _ _ _).inv ⊗ (𝟙 U)) ≫ᵐ[h] f =
     𝟙 _ ≫ᵐ[(monoidal_eq.tensor ⟨monoidal_hom.α_inv⟩ ⟨monoidal_hom.id⟩).trans h] f :=
-by convert monoidal_to_hom_coherent_comp (monoidal_hom.tensor monoidal_hom.α_inv monoidal_hom.id) f
+begin
+  rcases h,
+  rw coherent_comp_constructor _ _ (((monoidal_hom.α_inv).tensor monoidal_hom.id).comp h),
+  cases hU, cases hV, cases hW, cases hX, cases hY,
+  simp [coherent_comp_constructor]
+end
 
 lemma coherent_reassoc {U V W X Y : C} {W' X' : monoidal_obj C} {f : U ⟶ V} {g : V ⟶ W} {fg : U ⟶ W}
   (q : f ≫ g = fg) (k : X ⟶ Y) {h₁ : W' =ᵐ X'} (hW : W = W'.to) (hX : X = X'.to) :

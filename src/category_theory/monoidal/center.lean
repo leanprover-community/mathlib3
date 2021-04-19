@@ -155,19 +155,32 @@ def tensor_obj (X Y : center C) : center C :=
       rw comp_eq_coherent_comp (((monoidal_obj.of U).tensor ((monoidal_obj.of X.fst).tensor (monoidal_obj.of U'))).tensor (monoidal_obj.of Y.fst)),
       rw comp_eq_coherent_comp (((monoidal_obj.of U).tensor ((monoidal_obj.of U').tensor (monoidal_obj.of X.fst))).tensor (monoidal_obj.of Y.fst)),
 
-      simp,
-      erw coherent_comp_id_coherent_comp', -- Why does rw fail here?
+      rw comp_eq_coherent_comp ((((monoidal_obj.of X.fst).tensor (monoidal_obj.of Y.fst)).tensor (monoidal_obj.of U)).tensor (monoidal_obj.of U')),
+      rw comp_eq_coherent_comp (((monoidal_obj.of X.fst).tensor ((monoidal_obj.of Y.fst).tensor (monoidal_obj.of U))).tensor (monoidal_obj.of U')),
+      rw comp_eq_coherent_comp (((monoidal_obj.of X.fst).tensor ((monoidal_obj.of U).tensor (monoidal_obj.of Y.fst))).tensor (monoidal_obj.of U')),
+      rw comp_eq_coherent_comp ((((monoidal_obj.of X.fst).tensor (monoidal_obj.of U)).tensor (monoidal_obj.of Y.fst)).tensor (monoidal_obj.of U')),
+      rw comp_eq_coherent_comp ((((monoidal_obj.of U).tensor (monoidal_obj.of X.fst)).tensor (monoidal_obj.of Y.fst)).tensor (monoidal_obj.of U')),
+      rw comp_eq_coherent_comp (((monoidal_obj.of U).tensor ((monoidal_obj.of X.fst).tensor (monoidal_obj.of Y.fst))).tensor (monoidal_obj.of U')),
+      rw comp_eq_coherent_comp ((monoidal_obj.of U).tensor (((monoidal_obj.of X.fst).tensor (monoidal_obj.of Y.fst)).tensor (monoidal_obj.of U'))),
+      rw comp_eq_coherent_comp ((monoidal_obj.of U).tensor ((monoidal_obj.of X.fst).tensor ((monoidal_obj.of Y.fst).tensor (monoidal_obj.of U')))),
+      rw comp_eq_coherent_comp ((monoidal_obj.of U).tensor ((monoidal_obj.of X.fst).tensor ((monoidal_obj.of U').tensor (monoidal_obj.of Y.fst)))),
+      rw comp_eq_coherent_comp ((monoidal_obj.of U).tensor (((monoidal_obj.of X.fst).tensor (monoidal_obj.of U')).tensor (monoidal_obj.of Y.fst))),
+      rw comp_eq_coherent_comp ((monoidal_obj.of U).tensor (((monoidal_obj.of U').tensor (monoidal_obj.of X.fst)).tensor (monoidal_obj.of Y.fst))),
+      rw comp_eq_coherent_comp ((monoidal_obj.of U).tensor ((monoidal_obj.of U').tensor ((monoidal_obj.of X.fst).tensor (monoidal_obj.of Y.fst)))),
 
-      -- Then hide all the associators (maybe this could be a simp-set?)
-      simp only [comp_eq_coherent_comp, α_hom_tensor_id_coherent_comp, tensor_id_assoc,
-        associate_morphisms, id_tensor_α_hom_coherent_comp, α_hom_coherent_comp,
-        α_inv_tensor_id_coherent_comp, id_tensor_α_inv_coherent_comp, coherent_comp_α_inv,
-        coherent_comp_id_coherent_comp', α_inv_coherent_comp, coherent_comp_α_hom, tensor_id],
+      /- Then hide all the associators (maybe this could be a simp-set?) -/
+      simp,
+      repeat { erw coherent_comp_id_coherent_comp' }, -- Why do simp and rw fail here?
+
       -- Restore the compositions which are up to eq, not just up to iso
       simp only [←comp_eq_coherent_comp],
+
       -- Finish!
       rw [coherent_reassoc (id_tensor_comp_tensor_id _ _),
           coherent_reassoc (tensor_id_comp_id_tensor _ _)],
+
+      -- Uhhhhh......
+      refl,
     end,
     naturality' := λ U U' f,
     begin

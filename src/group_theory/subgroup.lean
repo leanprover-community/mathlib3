@@ -681,14 +681,14 @@ rfl
 
 /-- For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`. -/
 @[to_additive "For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`."]
-def of (H K : subgroup G) : subgroup K := H.comap K.subtype
+def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype
 
-@[to_additive] lemma of_carrier (H K : subgroup G) :
-  (H.of K).carrier = K.subtype ⁻¹' H := rfl
+@[to_additive] lemma subgroup_of_carrier (H K : subgroup G) :
+  (H.subgroup_of K).carrier = K.subtype ⁻¹' H := rfl
 
 @[to_additive] lemma mem_of (H K : subgroup G) (h : K) :
-  h ∈ H.of K ↔ K.subtype h ∈ H :=
-by rw [of, mem_comap]
+  h ∈ H.subgroup_of K ↔ K.subtype h ∈ H :=
+by rw [subgroup_of, mem_comap]
 
 /-- The image of a subgroup along a monoid homomorphism is a subgroup. -/
 @[to_additive "The image of an `add_subgroup` along an `add_monoid` homomorphism
@@ -1784,14 +1784,14 @@ end pointwise
 section subgroup_normal
 
 @[to_additive] lemma normal_of_iff {H K : subgroup G} (hHK : H ≤ K) :
-  (H.of K).normal ↔ ∀ h k, h ∈ H → k ∈ K → k * h * k⁻¹ ∈ H :=
+  (H.subgroup_of K).normal ↔ ∀ h k, h ∈ H → k ∈ K → k * h * k⁻¹ ∈ H :=
 ⟨λ hN h k hH hK, hN.conj_mem ⟨h, hHK hH⟩ (by { simp [mem_of], exact hH }) ⟨k, hK⟩,
   λ hN, { conj_mem := λ h hm k, (hN h.1 k.1 hm k.2) }⟩
 
 @[to_additive] lemma prod_of_prod_normal
   {H₁ K₁ : subgroup G} {H₂ K₂ : subgroup N}
-  [h₁ : (H₁.of K₁).normal] [h₂ : (H₂.of K₂).normal] :
-  ((H₁.prod H₂).of (K₁.prod K₂)).normal :=
+  [h₁ : (H₁.subgroup_of K₁).normal] [h₂ : (H₂.subgroup_of K₂).normal] :
+  ((H₁.prod H₂).subgroup_of (K₁.prod K₂)).normal :=
 { conj_mem := λ n hgHK g,
     ⟨h₁.conj_mem ⟨(n : G × N).fst, (mem_prod.mp n.2).1⟩
     hgHK.1 ⟨(g : G × N).fst, (mem_prod.mp g.2).1⟩,
@@ -1806,15 +1806,15 @@ section subgroup_normal
       hK.conj_mem n.snd (subgroup.mem_prod.mp hg).2 g.snd⟩ end }
 
 @[to_additive] lemma inf_normal_inf_right
-  (A B' B : subgroup G) (hB : B' ≤ B) [hN : (B'.of B).normal] :
-  ((A ⊓ B').of (A ⊓ B)).normal :=
+  (A B' B : subgroup G) (hB : B' ≤ B) [hN : (B'.subgroup_of B).normal] :
+  ((A ⊓ B').subgroup_of (A ⊓ B)).normal :=
 { conj_mem := λ n hn g,
    ⟨mul_mem A (mul_mem A (mem_inf.1 g.2).1 (mem_inf.1 n.2).1) (inv_mem A (mem_inf.1 g.2).1),
    (normal_of_iff hB).mp hN n g hn.2 (mem_inf.mp g.2).2⟩ }
 
 @[to_additive] lemma inf_normal_inf_left
-  {A' A : subgroup G} (B : subgroup G) (hA : A' ≤ A) [hN : (A'.of A).normal] :
-  ((A' ⊓ B).of (A ⊓ B)).normal :=
+  {A' A : subgroup G} (B : subgroup G) (hA : A' ≤ A) [hN : (A'.subgroup_of A).normal] :
+  ((A' ⊓ B).subgroup_of (A ⊓ B)).normal :=
 { conj_mem := λ n hn g,
     ⟨(normal_of_iff hA).mp hN n g hn.1  (mem_inf.mp g.2).1,
     mul_mem B (mul_mem B (mem_inf.1 g.2).2 (mem_inf.1 n.2).2) (inv_mem B (mem_inf.1 g.2).2)⟩ }
@@ -1838,17 +1838,17 @@ instance normal_sup_normal (H K : subgroup G) [hH : H.normal] [hK : K.normal] : 
   by { rw mem_inf at *, exact ⟨hH.conj_mem n hmem.1 g, hK.conj_mem n hmem.2 g⟩ } }
 
 @[to_additive] lemma sup_of (A A' B : subgroup G) (hA : A ≤ B) (hA' : A' ≤ B) :
-  (A ⊔ A').of B = A.of B ⊔ A'.of B :=
+  (A ⊔ A').subgroup_of B = A.subgroup_of B ⊔ A'.subgroup_of B :=
 begin
   refine eq_of_map_eq_le_ker B.subtype
     (comap B.subtype (A ⊔ A')) (comap B.subtype A ⊔ comap B.subtype A')
     _ (ker_le_comap _ _) (le_trans (ker_le_comap B.subtype _) le_sup_left),
-  { simp only [of, map_comap_eq, map_sup, monoid_hom.subtype_range],
+  { simp only [subgroup_of, map_comap_eq, map_sup, monoid_hom.subtype_range],
     rw [inf_of_le_right (sup_le hA hA'), inf_of_le_right hA', inf_of_le_right hA] },
 end
 
 @[to_additive] lemma subgroup_normal.mem_comm
-  {H K : subgroup G} (hK : H ≤ K) [hN : (H.of K).normal] {a b : G} (hb : b ∈ K) (h : a * b ∈ H) :
+  {H K : subgroup G} (hK : H ≤ K) [hN : (H.subgroup_of K).normal] {a b : G} (hb : b ∈ K) (h : a * b ∈ H) :
   b * a ∈ H :=
 begin
   have := (normal_of_iff hK).mp hN (a * b) b h hb,
@@ -1858,4 +1858,3 @@ end
 end subgroup_normal
 
 end subgroup
-#lint

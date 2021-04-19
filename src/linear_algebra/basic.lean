@@ -758,6 +758,23 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
   (H2 : ∀ (a:R) x, p x → p (a • x)) : p x :=
 (@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
 
+section span_nat
+open submodule
+
+lemma span_nat_eq_add_group_closure (s : set R) :
+  (span ℕ s).to_add_submonoid = add_submonoid.closure s :=
+begin
+  refine eq.symm (add_submonoid.closure_eq_of_le subset_span _),
+  apply add_submonoid.to_nat_submodule.symm.to_galois_connection.l_le _,
+  rw span_le,
+  exact add_submonoid.subset_closure,
+end
+
+@[simp] lemma span_nat_eq (s : add_submonoid R) : (span ℕ (s : set R)).to_add_submonoid = s :=
+by rw [span_nat_eq_add_group_closure, s.closure_eq]
+
+end span_nat
+
 section
 variables (R M)
 

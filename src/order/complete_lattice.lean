@@ -432,12 +432,12 @@ theorem bsupr_le_bsupr {p : ι → Prop} {f g : Π i (hi : p i), α} (h : ∀ i 
   (⨆ i hi, f i hi) ≤ ⨆ i hi, g i hi :=
 bsupr_le $ λ i hi, le_trans (h i hi) (le_bsupr i hi)
 
-theorem bsupr_le_bsupr' {p q : ι → Prop} (hpq : ∀ i, p i → q i) {f : ι → α} :
-  (⨆ i (hpi : p i), f i) ≤ ⨆ i (hqi : q i), f i :=
-supr_le_supr $ λ i, Sup_le_Sup $ λ x ⟨a, ha⟩, ⟨hpq i a, ha⟩
-
 theorem supr_le_supr_const (h : ι → ι₂) : (⨆ i:ι, a) ≤ (⨆ j:ι₂, a) :=
 supr_le $ le_supr _ ∘ h
+
+theorem bsupr_le_bsupr' {p q : ι → Prop} (hpq : ∀ i, p i → q i) {f : ι → α} :
+  (⨆ i (hpi : p i), f i) ≤ ⨆ i (hqi : q i), f i :=
+supr_le_supr $ λ i, supr_le_supr_const (hpq i)
 
 @[simp] theorem supr_le_iff : supr s ≤ a ↔ (∀i, s i ≤ a) :=
 (is_lub_le_iff is_lub_supr).trans forall_range_iff

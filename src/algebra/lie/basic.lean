@@ -398,7 +398,7 @@ linear_map.map_neg (f : M →ₗ[R] N) x
 @[simp] lemma map_lie (f : M →ₗ⁅R,L⁆ N) (x : L) (m : M) : f ⁅x, m⁆ = ⁅x, f m⁆ :=
 lie_module_hom.map_lie' f
 
-@[simp] lemma map_lie₂ (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) (x : L) (m : M) (n : N) :
+lemma map_lie₂ (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) (x : L) (m : M) (n : N) :
   ⁅x, f m n⁆ = f ⁅x, m⁆ n + f m ⁅x, n⁆ :=
 by simp only [sub_add_cancel, map_lie, bracket_apply]
 

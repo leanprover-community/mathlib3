@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import group_theory.perm.cycles
 import combinatorics.partition
 import data.multiset.gcd
+import group_theory.perm.cycles
+import group_theory.sylow
 
 /-!
 # Cycle Types
@@ -221,6 +222,22 @@ begin
   classical,
   rw [←one_mul (fintype.card α), ←h2, mul_lt_mul_right (order_of_pos σ)],
   exact one_lt_two,
+end
+
+lemma subgroup_eq_top_of_swap_mem [decidable_eq α] {H : subgroup (perm α)}
+  [d : decidable_pred (∈ H)] {τ : perm α} (h0 : (fintype.card α).prime)
+  (h1 : fintype.card α ∣ fintype.card H) (h2 : τ ∈ H) (h3 : is_swap τ) :
+  H = ⊤ :=
+begin
+  haveI : fact (fintype.card α).prime := ⟨h0⟩,
+  obtain ⟨σ, hσ⟩ := sylow.exists_prime_order_of_dvd_card (fintype.card α) h1,
+  have hσ1 : order_of (σ : perm α) = fintype.card α := (order_of_subgroup σ).trans hσ,
+  have hσ2 : is_cycle ↑σ := is_cycle_of_prime_order'' h0 hσ1,
+  have hσ3 : (σ : perm α).support = ⊤ :=
+    finset.eq_univ_of_card (σ : perm α).support ((order_of_is_cycle hσ2).symm.trans hσ1),
+  have hσ4 : subgroup.closure {↑σ, τ} = ⊤ := closure_prime_cycle_swap h0 hσ2 hσ3 h3,
+  rw [eq_top_iff, ←hσ4, subgroup.closure_le, set.insert_subset, set.singleton_subset_iff],
+  exact ⟨subtype.mem σ, h2⟩,
 end
 
 section partition

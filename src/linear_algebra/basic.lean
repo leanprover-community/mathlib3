@@ -759,15 +759,27 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
   (H2 : ∀ (a:R) x, p x → p (a • x)) : p x :=
 (@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
 
-lemma span_eq_add_submonoid.closure {M : Type*} [add_comm_monoid M] (S : set M) :
-  (span ℕ S).to_add_submonoid = add_submonoid.closure S :=
+lemma span_nat_eq_add_submonoid_closure (s : set M) :
+  (span ℕ s).to_add_submonoid = add_submonoid.closure s :=
 begin
-  refine (add_submonoid.closure_eq_of_le (by exact subset_span) _).symm,
-  rintros m (hm : m ∈ (span ℕ S)),
-  exact submodule.span_induction hm (λ s hs, add_submonoid.subset_closure hs)
-    (add_submonoid.zero_mem _) (λ x y hx hy, add_submonoid.add_mem _ hx hy)
-    (λ a m hm, add_submonoid.nsmul_mem _ hm _)
+  refine eq.symm (add_submonoid.closure_eq_of_le subset_span _),
+  apply add_submonoid.to_nat_submodule.symm.to_galois_connection.l_le _,
+  rw span_le,
+  exact add_submonoid.subset_closure,
 end
+
+@[simp] lemma span_nat_eq (s : add_submonoid M) : (span ℕ (s : set M)).to_add_submonoid = s :=
+by rw [span_nat_eq_add_submonoid_closure, s.closure_eq]
+
+lemma span_int_eq_add_subgroup_closure {M : Type*} [add_comm_group M] (s : set M) :
+  (span ℤ s).to_add_subgroup = add_subgroup.closure s :=
+eq.symm $ add_subgroup.closure_eq_of_le _ subset_span $ λ x hx, span_induction hx
+  (λ x hx, add_subgroup.subset_closure hx) (add_subgroup.zero_mem _)
+  (λ _ _, add_subgroup.add_mem _) (λ _ _ _, add_subgroup.gsmul_mem _ ‹_› _)
+
+@[simp] lemma span_int_eq {M : Type*} [add_comm_group M] (s : add_subgroup M) :
+  (span ℤ (s : set M)).to_add_subgroup = s :=
+by rw [span_int_eq_add_subgroup_closure, s.closure_eq]
 
 section
 variables (R M)

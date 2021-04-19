@@ -813,7 +813,8 @@ coe_supr_of_directed a a.monotone.directed_le
 
 /-- We can regard `coe_supr_of_chain` as the statement that `coe : (submodule R M) → set M` is
 Scott continuous for the ω-complete partial order induced by the complete lattice structures. -/
-lemma coe_scott_continuous : omega_complete_partial_order.continuous' (coe : submodule R M → set M) :=
+lemma coe_scott_continuous : omega_complete_partial_order.continuous' 
+  (coe : submodule R M → set M) :=
 ⟨set_like.coe_mono, coe_supr_of_chain⟩
 
 @[simp] lemma mem_supr_of_chain (a : ℕ →ₘ submodule R M) (m : M) : m ∈ (⨆ k, a k) ↔ ∃ k, m ∈ a k :=

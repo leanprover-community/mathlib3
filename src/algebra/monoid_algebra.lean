@@ -972,6 +972,18 @@ instance [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
     single 0 ∘ (algebra_map R k) :=
 rfl
 
+variables (k G)
+
+def add_monoid_algebra.to_multiplicative_alg_equiv [comm_semiring R] [semiring k] [algebra R k]
+  [add_monoid G] : add_monoid_algebra k G ≃ₐ[R] monoid_algebra k (multiplicative G) :=
+{ commutes' := λ r, by simp [add_monoid_algebra.to_multiplicative],
+  ..add_monoid_algebra.to_multiplicative k G }
+
+def monoid_algebra.to_additive_alg_equiv [comm_semiring R] [semiring k] [algebra R k]
+  [monoid G] : monoid_algebra k G ≃ₐ[R] add_monoid_algebra k (additive G) :=
+{ commutes' := λ r, by simp [monoid_algebra.to_additive],
+  ..monoid_algebra.to_additive k G }
+
 end algebra
 
 section lift

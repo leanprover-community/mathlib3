@@ -1291,6 +1291,13 @@ instance int_algebra_subsingleton : subsingleton (algebra ℤ S) :=
 ⟨λ P Q, by { ext, simp, }⟩
 end
 
+section
+variables {S : Type*} [semiring S]
+
+instance nat_algebra_subsingleton : subsingleton (algebra ℕ S) :=
+⟨λ P Q, by { ext, simp, }⟩
+end
+
 section span_int
 open submodule
 

@@ -587,4 +587,24 @@ end
 
 end add_monoid_algebra
 
+namespace monoid_algebra
+
+open algebra
+
+variables {R : Type*} {M : Type*} [comm_ring R] [comm_monoid M]
+
+lemma ft_of_fg : (∃ S, (submonoid.closure S : submonoid M) = ⊤ ∧ S.finite) →
+  finite_type R (monoid_algebra R M) :=
+begin
+  intro h,
+  obtain ⟨S₁, hS₁, hf⟩ := monoid_fg_iff_add_fg.1 h,
+  refine finite_type.equiv (add_monoid_algebra.ft_of_fg (submodule.fg_def.2 _))
+    (monoid_algebra.to_additive_alg_equiv R M).symm,
+  refine ⟨S₁, hf, _⟩,
+  rw [← submodule.span_nat_eq_add_submonoid_closure] at hS₁,
+  exact submodule.to_add_submonoid_injective hS₁
+end
+
+end monoid_algebra
+
 end monoid_algebra

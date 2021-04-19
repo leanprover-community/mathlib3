@@ -19,11 +19,6 @@ open function nat native (rb_map mk_rb_map rb_map.of_list)
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
-/-- Returns whether a list is []. Returns a boolean even if `l = []` is not decidable. -/
-@[simp] def is_nil {α} : list α → bool
-| [] := tt
-| _  := ff
-
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
 

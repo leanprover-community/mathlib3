@@ -143,13 +143,15 @@ lemma comp_eq_coherent_comp {X Y Z : C} (Y' : monoidal_obj C)
   f ≫ g = f ≫ᵐ[⟨monoidal_hom.id⟩] g :=
 by simp [coherent_comp_constructor]
 
-@[simp] lemma coherent_assoc {U V W X Y Z : C} {V' W' X' Y' : monoidal_obj C}
+mk_simp_attribute coherent_simps "Some nice text here"
+
+@[simp, coherent_simps] lemma coherent_assoc {U V W X Y Z : C} {V' W' X' Y' : monoidal_obj C}
   (f : U ⟶ V) {h : V' =ᵐ W'} (g : W ⟶ X) {h' : X' =ᵐ Y'} (i : Y ⟶ Z) (hV : V = V'.to)
   (hW : W = W'.to) (hX : X = X'.to) (hY : Y = Y'.to) :
   (f ≫ᵐ[h] g) ≫ᵐ[h'] i = f ≫ᵐ[h] (g ≫ᵐ[h'] i) :=
 by { rcases h, rcases h', simp [coherent_comp_constructor] }
 
-@[simp] lemma coherent_comp_id_coherent_comp {V W X Y Z : C} {W' X' Y' : monoidal_obj C} (f : V ⟶ W)
+@[simp, coherent_simps] lemma coherent_comp_id_coherent_comp {V W X Y Z : C} {W' X' Y' : monoidal_obj C} (f : V ⟶ W)
   {h : W' =ᵐ X'} {h' : X' =ᵐ Y'} (g : Y ⟶ Z)
   (hW : W = W'.to)
   (hX : X = X'.to)
@@ -162,7 +164,7 @@ begin
   simp [coherent_comp, hom_of_monoidal_eq_eq h, hom_of_monoidal_eq_eq h']
 end
 
-@[simp] lemma coherent_comp_id_coherent_comp' {V W : C} (X : C) {Y Z : C} {W' X' Y' : monoidal_obj C} (f : V ⟶ W)
+@[simp, coherent_simps] lemma coherent_comp_id_coherent_comp' {V W : C} (X : C) {Y Z : C} {W' X' Y' : monoidal_obj C} (f : V ⟶ W)
   {h : W' =ᵐ X'} {h' : X' =ᵐ Y'} (g : Y ⟶ Z)
   (hW : W = W'.to)
   (hX : X = X'.to)
@@ -187,7 +189,7 @@ begin
   simp [coherent_comp_constructor]
 end-/
 
-@[simp] lemma coherent_comp_α_hom {V W X Y Z : C} {W' X' Y' Z' : monoidal_obj C} (f : V ⟶ W)
+@[coherent_simps] lemma coherent_comp_α_hom {V W X Y Z : C} {W' X' Y' Z' : monoidal_obj C} (f : V ⟶ W)
   {h : W' =ᵐ (X'.tensor Y').tensor Z'}
   (hW : W = W'.to . tactic.coherence_assumption)
   (hX : X = X'.to . tactic.coherence_assumption)
@@ -205,7 +207,7 @@ begin
   simp [coherent_comp_constructor]
 end
 
-@[simp] lemma coherent_comp_α_inv {V W X Y Z : C} {W' X' Y' Z' : monoidal_obj C} (f : V ⟶ W)
+@[coherent_simps] lemma coherent_comp_α_inv {V W X Y Z : C} {W' X' Y' Z' : monoidal_obj C} (f : V ⟶ W)
   {h : W' =ᵐ X'.tensor (Y'.tensor Z') }
   (hW : W = W'.to . tactic.coherence_assumption)
   (hX : X = X'.to . tactic.coherence_assumption)
@@ -224,7 +226,7 @@ begin
   simp [coherent_comp_constructor]
 end
 
-@[simp] lemma α_hom_coherent_comp {V W X Y Z : C} {W' X' Y' Z' : monoidal_obj C} (f : W ⟶ V)
+@[coherent_simps] lemma α_hom_coherent_comp {V W X Y Z : C} {W' X' Y' Z' : monoidal_obj C} (f : W ⟶ V)
   {h : X'.tensor (Y'.tensor Z') =ᵐ W' }
   (hW : W = W'.to . tactic.coherence_assumption)
   (hX : X = X'.to . tactic.coherence_assumption)
@@ -240,7 +242,7 @@ begin
   simp [coherent_comp_constructor]
 end
 
-@[simp] lemma α_inv_coherent_comp {V W X Y Z : C} {W' X' Y' Z' : monoidal_obj C} (f : W ⟶ V)
+@[coherent_simps] lemma α_inv_coherent_comp {V W X Y Z : C} {W' X' Y' Z' : monoidal_obj C} (f : W ⟶ V)
   {h : (X'.tensor Y').tensor Z' =ᵐ W' }
   (hW : W = W'.to . tactic.coherence_assumption)
   (hX : X = X'.to . tactic.coherence_assumption)
@@ -256,7 +258,7 @@ begin
   simp [coherent_comp_constructor],
 end
 
-@[simp] lemma coherent_comp_id_tensor_α_hom {U V W X Y Z : C}
+@[coherent_simps] lemma coherent_comp_id_tensor_α_hom {U V W X Y Z : C}
   {V' W' X' Y' Z' : monoidal_obj C}
   (hV : V = V'.to . tactic.coherence_assumption)
   (hW : W = W'.to . tactic.coherence_assumption)
@@ -275,7 +277,7 @@ begin
   simp [coherent_comp_constructor]
 end
 
-@[simp] lemma coherent_comp_α_hom_tensor_id {U V W X Y Z : C}
+@[coherent_simps] lemma coherent_comp_α_hom_tensor_id {U V W X Y Z : C}
   {V' W' X' Y' Z' : monoidal_obj C}
   (hV : V = V'.to . tactic.coherence_assumption)
   (hW : W = W'.to . tactic.coherence_assumption)
@@ -295,7 +297,7 @@ begin
   simp [coherent_comp_constructor]
 end
 
-@[simp] lemma id_tensor_α_hom_coherent_comp {U V W X Y Z : C}
+@[coherent_simps] lemma id_tensor_α_hom_coherent_comp {U V W X Y Z : C}
   {U' V' W' X' Y' : monoidal_obj C}
   (hU : U = U'.to . tactic.coherence_assumption)
   (hV : V = V'.to . tactic.coherence_assumption)
@@ -314,7 +316,7 @@ begin
   simp [coherent_comp_constructor]
 end
 
-@[simp] lemma α_hom_tensor_id_coherent_comp {U V W X Y Z : C}
+@[coherent_simps] lemma α_hom_tensor_id_coherent_comp {U V W X Y Z : C}
   {U' V' W' X' Y' : monoidal_obj C}
   (hU : U = U'.to . tactic.coherence_assumption)
   (hV : V = V'.to . tactic.coherence_assumption)
@@ -333,7 +335,7 @@ begin
   simp [coherent_comp_constructor]
 end
 
-@[simp] lemma coherent_comp_id_tensor_α_inv {U V W X Y Z : C} (f : U ⟶ V)
+@[coherent_simps] lemma coherent_comp_id_tensor_α_inv {U V W X Y Z : C} (f : U ⟶ V)
   {V' W' X' Y' Z' : monoidal_obj C}
   (hV : V = V'.to . tactic.coherence_assumption)
   (hW : W = W'.to . tactic.coherence_assumption)
@@ -352,7 +354,7 @@ begin
   simp [coherent_comp_constructor]
 end
 
-@[simp] lemma coherent_comp_α_inv_tensor_id {U V W X Y Z : C}
+@[coherent_simps] lemma coherent_comp_α_inv_tensor_id {U V W X Y Z : C}
   {V' W' X' Y' Z' : monoidal_obj C}
   (hV : V = V'.to . tactic.coherence_assumption)
   (hW : W = W'.to . tactic.coherence_assumption)
@@ -372,7 +374,7 @@ begin
   simp [coherent_comp_constructor]
 end
 
-@[simp] lemma id_tensor_α_inv_coherent_comp {U V W X Y Z : C}
+@[coherent_simps] lemma id_tensor_α_inv_coherent_comp {U V W X Y Z : C}
   {U' V' W' X' Y' : monoidal_obj C}
   (hU : U = U'.to . tactic.coherence_assumption)
   (hV : V = V'.to . tactic.coherence_assumption)
@@ -391,7 +393,7 @@ begin
   simp [coherent_comp_constructor]
 end
 
-@[simp] lemma α_inv_tensor_id_coherent_comp {U V W X Y Z : C}
+@[coherent_simps] lemma α_inv_tensor_id_coherent_comp {U V W X Y Z : C}
   {U' V' W' X' Y' : monoidal_obj C}
   (hU : U = U'.to . tactic.coherence_assumption)
   (hV : V = V'.to . tactic.coherence_assumption)
@@ -416,7 +418,7 @@ lemma coherent_reassoc {U V W X Y : C} {W' X' : monoidal_obj C} {f : U ⟶ V} {g
 have V = (monoidal_obj.of V).to, by refl,
 by rw [comp_eq_coherent_comp, ←coherent_assoc, ←comp_eq_coherent_comp, q]
 
-@[simp] lemma associate_morphisms {S₁ S₂ T₁ T₂ U V W X Y Z : C}
+@[coherent_simps] lemma associate_morphisms {S₁ S₂ T₁ T₂ U V W X Y Z : C}
   {U' V' W' X' Y' Z' T₁' S₂' : monoidal_obj C}
   (hU : U = U'.to . tactic.coherence_assumption)
   (hV : V = V'.to . tactic.coherence_assumption)
@@ -438,10 +440,10 @@ begin
   have := associator_naturality f g h,
   rw ←(α_ V X Z).eq_comp_inv at this,
   rw [this, comp_eq_coherent_comp, comp_eq_coherent_comp],
-  simp, -- interesting: sequeeze_simp fails
+  simp only with coherent_simps -- interesting: sequeeze_simp fails
 end
 
-@[simp] lemma tensor_id_assoc {S₁ S₂ T₁ T₂ U V X Y : C} {U' V' X' Y' T₁' S₂' : monoidal_obj C} {f : U ⟶ V}
+@[coherent_simps] lemma tensor_id_assoc {S₁ S₂ T₁ T₂ U V X Y : C} {U' V' X' Y' T₁' S₂' : monoidal_obj C} {f : U ⟶ V}
   {k₁ : S₁ ⟶ T₁} {k₂ : S₂ ⟶ T₂}
   (hU : U = U'.to . tactic.coherence_assumption)
   (hV : V = V'.to . tactic.coherence_assumption)

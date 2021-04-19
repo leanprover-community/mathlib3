@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.monoidal.braided
 import category_theory.reflects_isomorphisms
-import category_theory.monoidal.coherence
+import category_theory.monoidal.coherence_meta
 
 /-!
 # Half braidings and the Drinfeld center of a monoidal category
@@ -141,36 +141,13 @@ def tensor_obj (X Y : center C) : center C :=
       dsimp,
       simp only [comp_tensor_id, id_tensor_comp, category.assoc, half_braiding.monoidal],
 
-      /- All of this can easily be automated. -/
-      rw comp_eq_coherent_comp ((monoidal_obj.of X.fst).tensor ((monoidal_obj.of Y.fst).tensor ((monoidal_obj.of U).tensor (monoidal_obj.of U')))),
-      rw comp_eq_coherent_comp ((((monoidal_obj.of U).tensor (monoidal_obj.of U')).tensor (monoidal_obj.of X.fst)).tensor (monoidal_obj.of Y.fst)),
-      rw comp_eq_coherent_comp ((monoidal_obj.of X.fst).tensor (((monoidal_obj.of Y.fst).tensor (monoidal_obj.of U)).tensor (monoidal_obj.of U'))),
-      rw comp_eq_coherent_comp ((monoidal_obj.of X.fst).tensor (((monoidal_obj.of U).tensor (monoidal_obj.of Y.fst)).tensor (monoidal_obj.of U'))),
-      rw comp_eq_coherent_comp ((monoidal_obj.of X.fst).tensor ((monoidal_obj.of U).tensor ((monoidal_obj.of Y.fst).tensor (monoidal_obj.of U')))),
-      rw comp_eq_coherent_comp ((monoidal_obj.of X.fst).tensor ((monoidal_obj.of U).tensor ((monoidal_obj.of U').tensor (monoidal_obj.of Y.fst)))),
-      rw comp_eq_coherent_comp ((monoidal_obj.of X.fst).tensor (((monoidal_obj.of U).tensor (monoidal_obj.of U')).tensor (monoidal_obj.of Y.fst))),
-      rw comp_eq_coherent_comp (((monoidal_obj.of X.fst).tensor ((monoidal_obj.of U).tensor (monoidal_obj.of U'))).tensor (monoidal_obj.of Y.fst)),
-      rw comp_eq_coherent_comp ((((monoidal_obj.of X.fst).tensor (monoidal_obj.of U)).tensor (monoidal_obj.of U')).tensor (monoidal_obj.of Y.fst)),
-      rw comp_eq_coherent_comp ((((monoidal_obj.of U).tensor (monoidal_obj.of X.fst)).tensor (monoidal_obj.of U')).tensor (monoidal_obj.of Y.fst)),
-      rw comp_eq_coherent_comp (((monoidal_obj.of U).tensor ((monoidal_obj.of X.fst).tensor (monoidal_obj.of U'))).tensor (monoidal_obj.of Y.fst)),
-      rw comp_eq_coherent_comp (((monoidal_obj.of U).tensor ((monoidal_obj.of U').tensor (monoidal_obj.of X.fst))).tensor (monoidal_obj.of Y.fst)),
-
-      rw comp_eq_coherent_comp ((((monoidal_obj.of X.fst).tensor (monoidal_obj.of Y.fst)).tensor (monoidal_obj.of U)).tensor (monoidal_obj.of U')),
-      rw comp_eq_coherent_comp (((monoidal_obj.of X.fst).tensor ((monoidal_obj.of Y.fst).tensor (monoidal_obj.of U))).tensor (monoidal_obj.of U')),
-      rw comp_eq_coherent_comp (((monoidal_obj.of X.fst).tensor ((monoidal_obj.of U).tensor (monoidal_obj.of Y.fst))).tensor (monoidal_obj.of U')),
-      rw comp_eq_coherent_comp ((((monoidal_obj.of X.fst).tensor (monoidal_obj.of U)).tensor (monoidal_obj.of Y.fst)).tensor (monoidal_obj.of U')),
-      rw comp_eq_coherent_comp ((((monoidal_obj.of U).tensor (monoidal_obj.of X.fst)).tensor (monoidal_obj.of Y.fst)).tensor (monoidal_obj.of U')),
-      rw comp_eq_coherent_comp (((monoidal_obj.of U).tensor ((monoidal_obj.of X.fst).tensor (monoidal_obj.of Y.fst))).tensor (monoidal_obj.of U')),
-      rw comp_eq_coherent_comp ((monoidal_obj.of U).tensor (((monoidal_obj.of X.fst).tensor (monoidal_obj.of Y.fst)).tensor (monoidal_obj.of U'))),
-      rw comp_eq_coherent_comp ((monoidal_obj.of U).tensor ((monoidal_obj.of X.fst).tensor ((monoidal_obj.of Y.fst).tensor (monoidal_obj.of U')))),
-      rw comp_eq_coherent_comp ((monoidal_obj.of U).tensor ((monoidal_obj.of X.fst).tensor ((monoidal_obj.of U').tensor (monoidal_obj.of Y.fst)))),
-      rw comp_eq_coherent_comp ((monoidal_obj.of U).tensor (((monoidal_obj.of X.fst).tensor (monoidal_obj.of U')).tensor (monoidal_obj.of Y.fst))),
-      rw comp_eq_coherent_comp ((monoidal_obj.of U).tensor (((monoidal_obj.of U').tensor (monoidal_obj.of X.fst)).tensor (monoidal_obj.of Y.fst))),
-      rw comp_eq_coherent_comp ((monoidal_obj.of U).tensor ((monoidal_obj.of U').tensor ((monoidal_obj.of X.fst).tensor (monoidal_obj.of Y.fst)))),
+      /- Transform compositions into coherent compositions -/
+      monoidal,
 
       /- Then hide all the associators (maybe this could be a simp-set?) -/
-      simp,
-      repeat { erw coherent_comp_id_coherent_comp' }, -- Why do simp and rw fail here?
+      simp only [tensor_id] with coherent_simps,
+      -- This should really be part of the previous line
+      repeat { erw coherent_comp_id_coherent_comp' },
 
       -- Restore the compositions which are up to eq, not just up to iso
       simp only [←comp_eq_coherent_comp],
@@ -185,9 +162,14 @@ def tensor_obj (X Y : center C) : center C :=
     naturality' := λ U U' f,
     begin
       dsimp,
-      simp only [comp_eq_coherent_comp],
-      simp,
+      simp only [comp_tensor_id, id_tensor_comp, category.assoc, half_braiding.monoidal],
 
+      monoidal,
+
+      simp only [tensor_id] with coherent_simps,
+      repeat { erw coherent_comp_id_coherent_comp' },
+
+      sorry,
     end, }⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
@@ -197,14 +179,21 @@ def tensor_hom {X₁ Y₁ X₂ Y₂ : center C} (f : X₁ ⟶ Y₁) (g : X₂ �
 { f := f.f ⊗ g.f,
   comm' := λ U, begin
     dsimp,
-    rw [category.assoc, category.assoc, category.assoc, category.assoc,
+
+    monoidal,
+
+    simp only [tensor_id] with coherent_simps,
+    repeat { erw coherent_comp_id_coherent_comp', },
+
+    sorry,
+    /-rw [category.assoc, category.assoc, category.assoc, category.assoc,
       associator_naturality_assoc, ←tensor_id_comp_id_tensor, category.assoc,
       ←id_tensor_comp_assoc, g.comm, id_tensor_comp_assoc, tensor_id_comp_id_tensor_assoc,
       ←id_tensor_comp_tensor_id, category.assoc, associator_inv_naturality_assoc,
       id_tensor_associator_inv_naturality_assoc, tensor_id,
       id_tensor_comp_tensor_id_assoc, ←tensor_id_comp_id_tensor g.f, category.assoc,
       ←comp_tensor_id_assoc, f.comm, comp_tensor_id_assoc, id_tensor_associator_naturality,
-      associator_naturality_assoc, ←id_tensor_comp, tensor_id_comp_id_tensor],
+      associator_naturality_assoc, ←id_tensor_comp, tensor_id_comp_id_tensor],-/
   end  }
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/

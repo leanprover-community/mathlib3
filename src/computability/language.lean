@@ -3,10 +3,12 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
-import data.finset.basic
+import data.set.lattice
+import data.list.basic
 
 /-!
 # Languages
+
 This file contains the definition and operations on formal languages over an alphabet. Note strings
 are implemented as lists over the alphabet.
 The operations in this file define a [Kleene algebra](https://en.wikipedia.org/wiki/Kleene_algebra)
@@ -15,10 +17,10 @@ over the languages.
 
 universes u v
 
-variables {α : Type u} [dec : decidable_eq α]
+variables {α : Type u}
 
 /-- A language is a set of strings over an alphabet. -/
-@[derive [has_mem (list α), has_singleton (list α), has_insert (list α), complete_lattice]]
+@[derive [has_mem (list α), has_singleton (list α), has_insert (list α), complete_boolean_algebra]]
 def language (α) := set (list α)
 
 namespace language
@@ -84,36 +86,12 @@ lemma star_def_nonempty (l : language α) :
 begin
   ext x,
   split,
-  { rintro ⟨ S, hx, h ⟩,
-    refine ⟨ S.filter (λ l, ¬list.empty l), _, _ ⟩,
-    { rw hx,
-      induction S with y S ih generalizing x,
-      { refl },
-      { rw list.filter,
-        cases y with a y,
-        { apply ih,
-          { intros y hy,
-            apply h,
-            rw list.mem_cons_iff,
-            right,
-            assumption },
-          { refl } },
-        { simp only [true_and, list.join, eq_ff_eq_not_eq_tt, if_true, list.cons_append,
-            list.empty, eq_self_iff_true],
-          rw list.append_right_inj,
-          simp only [eq_ff_eq_not_eq_tt, forall_eq] at ih,
-          apply ih,
-          intros y hy,
-          apply h,
-          rw list.mem_cons_iff,
-          right,
-          assumption } } },
-    { intros y hy,
-      simp only [eq_ff_eq_not_eq_tt, list.mem_filter] at hy,
-      finish } },
-  { rintro ⟨ S, hx, h ⟩,
-    refine ⟨ S, hx, _ ⟩,
-    finish }
+  { rintro ⟨S, rfl, h⟩,
+    refine ⟨S.filter (λ l, ¬list.empty l), by simp, λ y hy, _⟩,
+    rw [list.mem_filter, list.empty_iff_eq_nil] at hy,
+    exact ⟨h y hy.1, hy.2⟩ },
+  { rintro ⟨S, hx, h⟩,
+    exact ⟨S, hx, λ y hy, (h y hy).1⟩ }
 end
 
 lemma le_iff (l m : language α) : l ≤ m ↔ l + m = m := sup_eq_right.symm
@@ -127,21 +105,17 @@ end
 
 lemma le_add_congr {l₁ l₂ m₁ m₂ : language α} : l₁ ≤ m₁ → l₂ ≤ m₂ → l₁ + l₂ ≤ m₁ + m₂ := sup_le_sup
 
+lemma mem_supr {ι : Sort v} {l : ι → language α} {x : list α} :
+  x ∈ (⨆ i, l i) ↔ ∃ i, x ∈ l i :=
+set.mem_Union
+
 lemma supr_mul {ι : Sort v} (l : ι → language α) (m : language α) :
   (⨆ i, l i) * m = ⨆ i, l i * m :=
-begin
-  ext x,
-  simp only [mem_mul, set.mem_Union, exists_and_distrib_left],
-  tauto
-end
+set.image2_Union_left _ _ _
 
 lemma mul_supr {ι : Sort v} (l : ι → language α) (m : language α) :
   m * (⨆ i, l i) = ⨆ i, m * l i :=
-begin
-  ext x,
-  simp only [mem_mul, set.mem_Union, exists_and_distrib_left],
-  tauto
-end
+set.image2_Union_right _ _ _
 
 lemma supr_add {ι : Sort v} [nonempty ι] (l : ι → language α) (m : language α) :
   (⨆ i, l i) + m = ⨆ i, l i + m := supr_sup
@@ -149,56 +123,39 @@ lemma supr_add {ι : Sort v} [nonempty ι] (l : ι → language α) (m : languag
 lemma add_supr {ι : Sort v} [nonempty ι] (l : ι → language α) (m : language α) :
   m + (⨆ i, l i) = ⨆ i, m + l i := sup_supr
 
+lemma mem_pow {l : language α} {x : list α} {n : ℕ} :
+  x ∈ l ^ n ↔ ∃ S : list (list α), x = S.join ∧ S.length = n ∧ ∀ y ∈ S, y ∈ l :=
+begin
+  induction n with n ihn generalizing x,
+  { simp only [mem_one, pow_zero, list.length_eq_zero],
+    split,
+    { rintro rfl, exact ⟨[], rfl, rfl, λ y h, h.elim⟩ },
+    { rintro ⟨_, rfl, rfl, _⟩, refl } },
+  { simp only [pow_succ, mem_mul, ihn],
+    split,
+    { rintro ⟨a, b, ha, ⟨S, rfl, rfl, hS⟩, rfl⟩,
+      exact ⟨a :: S, rfl, rfl, list.forall_mem_cons.2 ⟨ha, hS⟩⟩ },
+    { rintro ⟨_|⟨a, S⟩, rfl, hn, hS⟩; cases hn,
+      rw list.forall_mem_cons at hS,
+      exact ⟨a, _, hS.1, ⟨S, rfl, rfl, hS.2⟩, rfl⟩ } }
+end
+
 lemma star_eq_supr_pow (l : language α) : l.star = ⨆ i : ℕ, l ^ i :=
 begin
   ext x,
-  simp only [star_def, set.mem_Union, set.mem_set_of_eq],
+  simp only [mem_star, mem_supr, mem_pow],
   split,
-  { revert x,
-    rintros _ ⟨ S, rfl, hS ⟩,
-    induction S with x S ih,
-    { use 0,
-      tauto },
-    { specialize ih _,
-      { exact λ y hy, hS _ (list.mem_cons_of_mem _ hy) },
-      { cases ih with i ih,
-        use i.succ,
-        rw [pow_succ, mem_mul],
-        exact ⟨ x, S.join, hS x (list.mem_cons_self _ _), ih, rfl ⟩ } } },
-  { rintro ⟨ i, hx ⟩,
-    induction i with i ih generalizing x,
-    { rw [pow_zero, mem_one] at hx,
-      subst hx,
-      use [[]],
-      tauto },
-    { rw [pow_succ, mem_mul] at hx,
-      rcases hx with ⟨ a, b, ha, hb, hx ⟩,
-      rcases ih b hb with ⟨ S, hb, hS ⟩,
-      use a :: S,
-      rw list.join,
-      refine ⟨hb ▸ hx.symm, λ y, or.rec (λ hy, _) (hS _)⟩,
-      exact hy.symm ▸ ha } }
+  { rintro ⟨S, rfl, hS⟩, exact ⟨_, S, rfl, rfl, hS⟩ },
+  { rintro ⟨_, S, rfl, rfl, hS⟩, exact ⟨S, rfl, hS⟩ }
 end
 
 lemma mul_self_star_comm (l : language α) : l.star * l = l * l.star :=
-by simp [star_eq_supr_pow, mul_supr, supr_mul, ← pow_succ, ← pow_succ']
+by simp only [star_eq_supr_pow, mul_supr, supr_mul, ← pow_succ, ← pow_succ']
 
 @[simp] lemma one_add_self_mul_star_eq_star (l : language α) : 1 + l * l.star = l.star :=
 begin
-  rw [star_eq_supr_pow, mul_supr, add_def, supr_split_single (λ i, l ^ i) 0],
-  have h : (⨆ (i : ℕ), l * l ^ i) = ⨆ (i : ℕ) (h : i ≠ 0), (λ (i : ℕ), l ^ i) i,
-  { ext x,
-    simp only [exists_prop, set.mem_Union, ne.def],
-    split,
-    { rintro ⟨ i, hi ⟩,
-      use [i.succ, nat.succ_ne_zero i],
-      rwa pow_succ },
-    { rintro ⟨ (_ | i), h0, hi ⟩,
-      { contradiction },
-      use i,
-      rwa ←pow_succ } },
-  rw h,
-  refl
+  simp only [star_eq_supr_pow, mul_supr, ← pow_succ, ← pow_zero l],
+  exact sup_supr_nat_succ _
 end
 
 @[simp] lemma one_add_star_mul_self_eq_star (l : language α) : 1 + l.star * l = l.star :=

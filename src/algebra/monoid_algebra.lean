@@ -972,18 +972,6 @@ instance [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
     single 0 ∘ (algebra_map R k) :=
 rfl
 
-variables (k G)
-
-def add_monoid_algebra.to_multiplicative_alg_equiv [comm_semiring R] [semiring k] [algebra R k]
-  [add_monoid G] : add_monoid_algebra k G ≃ₐ[R] monoid_algebra k (multiplicative G) :=
-{ commutes' := λ r, by simp [add_monoid_algebra.to_multiplicative],
-  ..add_monoid_algebra.to_multiplicative k G }
-
-def monoid_algebra.to_additive_alg_equiv [comm_semiring R] [semiring k] [algebra R k]
-  [monoid G] : monoid_algebra k G ≃ₐ[R] add_monoid_algebra k (additive G) :=
-{ commutes' := λ r, by simp [monoid_algebra.to_additive],
-  ..monoid_algebra.to_additive k G }
-
 end algebra
 
 section lift
@@ -1077,3 +1065,19 @@ finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
 end
 
 end add_monoid_algebra
+
+variables {R : Type*} [comm_semiring R] (k G)
+
+/-- The algebra equivalence between `add_monoid_algebra` and `monoid_algebra` in terms of
+`multiplicative`. -/
+def add_monoid_algebra.to_multiplicative_alg_equiv [semiring k] [algebra R k]
+  [add_monoid G] : add_monoid_algebra k G ≃ₐ[R] monoid_algebra k (multiplicative G) :=
+{ commutes' := λ r, by simp [add_monoid_algebra.to_multiplicative],
+  ..add_monoid_algebra.to_multiplicative k G }
+
+/-- The algebra equivalence between `monoid_algebra` and `add_monoid_algebra` in terms of
+`additive`. -/
+def monoid_algebra.to_additive_alg_equiv [comm_semiring R] [semiring k] [algebra R k]
+  [monoid G] : monoid_algebra k G ≃ₐ[R] add_monoid_algebra k (additive G) :=
+{ commutes' := λ r, by simp [monoid_algebra.to_additive],
+  ..monoid_algebra.to_additive k G }

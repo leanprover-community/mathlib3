@@ -1252,12 +1252,6 @@ end algebra
 
 end ring
 
-section nat
-
-variables (R : Type*) [semiring R]
-
-end nat
-
 section int
 
 variables (R : Type*) [ring R]

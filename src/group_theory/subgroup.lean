@@ -1840,7 +1840,8 @@ instance normal_sup_normal (H K : subgroup G) [hH : H.normal] [hK : K.normal] : 
 @[to_additive] lemma sup_of (A A' B : subgroup G) (hA : A ≤ B) (hA' : A' ≤ B) :
   (A ⊔ A').of B = A.of B ⊔ A'.of B :=
 begin
-  refine eq_of_map_eq_le_ker B.subtype (comap B.subtype (A ⊔ A')) (comap B.subtype A ⊔ comap B.subtype A')
+  refine eq_of_map_eq_le_ker B.subtype
+    (comap B.subtype (A ⊔ A')) (comap B.subtype A ⊔ comap B.subtype A')
     _ (ker_le_comap _ _) (le_trans (ker_le_comap B.subtype _) le_sup_left),
   { simp only [of, map_comap_eq, map_sup, monoid_hom.subtype_range],
     rw [inf_of_le_right (sup_le hA hA'), inf_of_le_right hA', inf_of_le_right hA] },
@@ -1857,3 +1858,4 @@ end
 end subgroup_normal
 
 end subgroup
+#lint

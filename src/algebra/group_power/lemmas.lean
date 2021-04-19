@@ -353,8 +353,7 @@ by rw [gsmul_eq_mul', gsmul_eq_mul', mul_assoc]
 theorem mul_gsmul_assoc [ring R] (a b : R) (n : ℤ) : n • (a * b) = n • a * b :=
 by rw [gsmul_eq_mul, gsmul_eq_mul, mul_assoc]
 
-@[simp]
-lemma gsmul_int_int (a b : ℤ) : a • b = a * b := by simp [gsmul_eq_mul]
+lemma gsmul_int_int (a b : ℤ) : a • b = a * b := by simp
 
 lemma gsmul_int_one (n : ℤ) : n • 1 = n := by simp
 

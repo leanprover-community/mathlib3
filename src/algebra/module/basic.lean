@@ -290,19 +290,18 @@ begin
 end
 end
 
-/-- `nsmul` is equal to any `ℕ`-semimodule structure. Note that the `•` on the RHS is the one
-induced by `h`. -/
-lemma nsmul_eq_smul' (h : semimodule ℕ M) (n : ℕ) (b : M) :
-  nsmul n b = by {
-    have : ∀ {R : Type*} [semiring R], (by exactI semimodule R M → has_scalar R M) :=
-      λ r hr h, by resetI; apply_instance,
-    haveI := this h,
-    exact n • b } :=
-by rw [nsmul_eq_smul, nsmul_eq_smul_cast ℕ, nat.cast_id]
+/-- Convert back any exotic `ℕ`-smul to the canonical instance. This should not be needed since in
+mathlib all `add_comm_monoid`s should normally have exactly one `ℕ`-semimodule structure by design.
+-/
+lemma nat_smul_eq_nsmul (h : semimodule ℕ M) (n : ℕ) (x : M) :
+  @has_scalar.smul ℕ M h.to_has_scalar n x = n • x :=
+by rw [nsmul_eq_smul_cast ℕ n x, nat.cast_id]
 
-/-- All `ℕ`-semimodule structures are equal. -/
-instance add_comm_monoid.nat_semimodule.subsingleton : subsingleton (semimodule ℕ M) :=
-⟨λ P Q, semimodule_ext P Q $ λ n m, (nsmul_eq_smul' P n m).symm.trans (nsmul_eq_smul' Q n m) ⟩
+/-- All `ℕ`-module structures are equal. Not an instance since in mathlib all `add_comm_monoid`
+should normally have exactly one `ℕ`-module structure by design. -/
+def add_comm_monoid.nat_semimodule.unique : unique (semimodule ℕ M) :=
+{ default := by apply_instance,
+  uniq := λ P, semimodule_ext P _ $ λ n, nat_smul_eq_nsmul P n }
 
 instance add_comm_monoid.nat_is_scalar_tower :
   is_scalar_tower ℕ R M :=

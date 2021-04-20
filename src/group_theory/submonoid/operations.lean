@@ -139,6 +139,7 @@ le_antisymm
   (submonoid.to_add_submonoid'.to_galois_connection.l_le $
     submonoid.closure_le.2 add_submonoid.subset_closure)
   (add_submonoid.closure_le.2 submonoid.subset_closure)
+
 end
 
 namespace submonoid

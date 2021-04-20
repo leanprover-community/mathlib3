@@ -503,8 +503,9 @@ end lie_module_hom
 
 /-- An equivalence of Lie algebra modules is a linear equivalence which is also a morphism of
 Lie algebra modules. -/
-structure lie_module_equiv extends M ≃ₗ[R] N, M →ₗ⁅R,L⁆ N
+structure lie_module_equiv extends M ≃ₗ[R] N, M →ₗ⁅R,L⁆ N, M ≃ N
 
+attribute [nolint doc_blame] lie_module_equiv.to_equiv
 attribute [nolint doc_blame] lie_module_equiv.to_lie_module_hom
 attribute [nolint doc_blame] lie_module_equiv.to_linear_equiv
 
@@ -514,6 +515,7 @@ namespace lie_module_equiv
 
 variables {R L M N P}
 
+instance has_coe_to_equiv : has_coe (M ≃ₗ⁅R,L⁆ N) (M ≃ N) := ⟨to_equiv⟩
 instance has_coe_to_lie_module_hom : has_coe (M ≃ₗ⁅R,L⁆ N) (M →ₗ⁅R,L⁆ N) := ⟨to_lie_module_hom⟩
 instance has_coe_to_linear_equiv : has_coe (M ≃ₗ⁅R,L⁆ N) (M ≃ₗ[R] N) := ⟨to_linear_equiv⟩
 
@@ -528,6 +530,12 @@ instance : has_coe_to_fun (M ≃ₗ⁅R,L⁆ N) := ⟨_, to_fun⟩
 
 @[simp, norm_cast] lemma coe_to_linear_equiv (e : M ≃ₗ⁅R,L⁆ N) : ((e : M ≃ₗ[R] N) : M → N) = e :=
 rfl
+
+lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ⁅R,L⁆ N) → M ≃ N) :=
+λ ⟨_, _, _, _, _, _, _⟩ ⟨_, _, _, _, _, _, _⟩ h, lie_module_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
+
+@[ext] lemma ext (e₁ e₂ : M ≃ₗ⁅R,L⁆ N) (h : ∀ m, e₁ m = e₂ m) : e₁ = e₂ :=
+to_equiv_injective (equiv.ext h)
 
 instance : has_one (M ≃ₗ⁅R,L⁆ M) := ⟨{ map_lie' := λ x m, rfl, ..(1 : M ≃ₗ[R] M) }⟩
 

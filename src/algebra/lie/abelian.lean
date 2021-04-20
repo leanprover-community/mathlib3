@@ -176,6 +176,14 @@ rfl
   (maximal_trivial_equiv e m : N) = e ↑m :=
 rfl
 
+@[simp] lemma maximal_trivial_equiv_of_refl_eq_refl :
+  maximal_trivial_equiv (lie_module_equiv.refl : M ≃ₗ⁅R,L⁆ M) = lie_module_equiv.refl :=
+by { ext, simp only [coe_maximal_trivial_equiv_apply, lie_module_equiv.refl_apply], }
+
+@[simp] lemma maximal_trivial_equiv_of_equiv_symm_eq_symm (e : M ≃ₗ⁅R,L⁆ N) :
+  (maximal_trivial_equiv e).symm = maximal_trivial_equiv e.symm :=
+rfl
+
 /-- A linear map between two Lie modules is a morphism of Lie modules iff the Lie algebra action
 on it is trivial. -/
 def maximal_trivial_linear_map_equiv_lie_module_hom :

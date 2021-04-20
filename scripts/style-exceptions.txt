@@ -56,7 +56,6 @@ src/data/fintype/sort.lean : line 9 : ERR_MOD : Module docstring missing, or too
 src/data/int/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/int/cast.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/int/modeq.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/data/int/parity.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/int/range.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/int/sqrt.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/bag_inter.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -80,7 +79,6 @@ src/data/multiset/range.lean : line 9 : ERR_MOD : Module docstring missing, or t
 src/data/nat/cast.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/dist.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/pairing.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/data/nat/parity.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/totient.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/option/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/option/defs.lean : line 9 : ERR_MOD : Module docstring missing, or too late

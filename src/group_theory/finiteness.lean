@@ -23,11 +23,12 @@ section monoid
 variables {M N : Type*} [monoid M] [add_monoid N]
 
 /-- A submonoid of `M` is finitely generated if it is the closure of a finite subset of `M`. -/
+@[to_additive]
 def submonoid.fg (P : submonoid M) : Prop := ∃ S : finset M, submonoid.closure ↑S = P
 
 /-- An additive submonoid of `N` is finitely generated if it is the closure of a finite subset of
 `M`. -/
-def add_submonoid.fg (P : add_submonoid N) : Prop := ∃ S : finset N, add_submonoid.closure ↑S = P
+add_decl_doc add_submonoid.fg
 
 variables (M N)
 

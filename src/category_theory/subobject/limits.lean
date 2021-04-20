@@ -106,12 +106,12 @@ lemma kernel_subobject_factors_iff {W : C} (h : W ⟶ X) :
   kernel_subobject_arrow_comp, comp_zero],
 kernel_subobject_factors f h⟩
 
-instance is_iso_kernel_subobject_zero_arrow : is_iso (kernel_subobject (0 : X ⟶ Y)).arrow :=
-by { rw ←kernel_subobject_arrow, apply_instance, }
-
 @[simp]
 lemma kernel_subobject_zero {A B : C} : kernel_subobject (0 : A ⟶ B) = ⊤ :=
-(is_iso_arrow_iff_eq_top _).mp (by apply_instance)
+(is_iso_iff_mk_eq_top _).mp (by apply_instance)
+
+instance is_iso_kernel_subobject_zero_arrow : is_iso (kernel_subobject (0 : X ⟶ Y)).arrow :=
+(is_iso_arrow_iff_eq_top _).mpr kernel_subobject_zero
 
 lemma le_kernel_subobject (A : subobject X) (h : A.arrow ≫ f = 0) : A ≤ kernel_subobject f :=
 subobject.le_mk_of_comm (kernel.lift f A.arrow h) (by simp)

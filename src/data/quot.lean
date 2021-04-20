@@ -411,6 +411,16 @@ protected def rec_on_subsingleton' {φ : quotient s₁ → Sort*}
   [h : ∀ a, subsingleton (φ ⟦a⟧)] (q : quotient s₁) (f : Π a, φ (quotient.mk' a)) : φ q :=
 quotient.rec_on_subsingleton q f
 
+/-- A version of `quotient.rec_on_subsingleton₂` taking `{s₁ : setoid α} {s₂ : setoid α}`
+as implicit arguments instead of instance arguments. -/
+attribute [reducible, elab_as_eliminator]
+protected def rec_on_subsingleton₂'
+   {φ : quotient s₁ → quotient s₂ → Sort*} [h : ∀ a b, subsingleton (φ ⟦a⟧ ⟦b⟧)]
+   (q₁ : quotient s₁) (q₂ : quotient s₂) (f : Π a₁ a₂, φ (quotient.mk' a₁) (quotient.mk' a₂)) :
+   φ q₁ q₂ :=
+@quotient.rec_on_subsingleton _ s₁ (λ q, φ q q₂) (λ a, quotient.ind (λ b, h a b) q₂) q₁
+  (λ a, quotient.rec_on_subsingleton q₂ (λ b, f a b))
+
 /-- Recursion on a `quotient` argument `a`, result type depends on `⟦a⟧`. -/
 protected def hrec_on' {φ : quotient s₁ → Sort*} (qa : quotient s₁) (f : Π a, φ (quotient.mk' a))
   (c : ∀ a₁ a₂, a₁ ≈ a₂ → f a₁ == f a₂) : φ qa :=

@@ -15,6 +15,13 @@ This module defines quivers. A quiver on a type `V` of vertices assigns to every
 pair `a b : V` of vertices a type `a ⟶ b` of arrows from `a` to `b`. This
 is a very permissive notion of directed graph.
 
+## Implementation notes
+
+Currently `quiver` is defined with `arrow : V → V → Sort v`.
+This is different from the category theory setup,
+where we insist that morphisms live in some `Type`.
+There's some balance here: it's nice to allow `Prop` to ensure there are no multiple arrows,
+but it is also results in error-prone universe signatures when constraints require a `Type`.
 -/
 
 open opposite
@@ -27,11 +34,15 @@ universes v v₁ v₂ u u₁ u₂
 A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
 a type `a ⟶ b` of arrows from `a` to `b`.
 
+For graphs with no repeated edges, one can use `quiver.{0} V`, which ensures
+`a ⟶ b : Prop`. For multigraphs, one can use `quiver.{v+1} V`, which ensures
+`a ⟶ b : Type v`.
+
 Because `category` will later extend this class, we call the field `hom`.
 Except when constructing instances, you should rarely see this, and use the `⟶` notation instead.
 -/
 class quiver (V : Type u) :=
-(hom : V → V → Type v)
+(hom : V → V → Sort v)
 
 infixr ` ⟶ `:10 := quiver.hom -- type as \h
 
@@ -67,18 +78,20 @@ def comp {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W]
 end prefunctor
 
 /-- A wide subquiver `H` of `G` picks out a set `H a b` of arrows from `a` to `b`
-    for every pair of vertices `a b`. -/
-def wide_subquiver (V) [quiver V] :=
+    for every pair of vertices `a b`.
+
+    NB: this does not work for `Prop`-valued quivers. It requires `G : quiver.{v+1} V`. -/
+def wide_subquiver (V) [quiver.{v+1} V] :=
 Π a b : V, set (a ⟶ b)
 
 /-- A type synonym for `V`, when thought of as a quiver having only the arrows from
 some `wide_subquiver`. -/
 @[nolint unused_arguments has_inhabited_instance]
-def wide_subquiver_synonym (V) [quiver V] (H : wide_subquiver V) : Type u := V
+def wide_subquiver.to_Type (V) [quiver V] (H : wide_subquiver V) : Type u := V
 
 instance wide_subquiver_has_coe_to_sort {V} [quiver V] : has_coe_to_sort (wide_subquiver V) :=
 { S := Type u,
-  coe := λ H, wide_subquiver_synonym V H, }
+  coe := λ H, wide_subquiver.to_Type V H, }
 
 /-- A wide subquiver viewed as a quiver on its own. -/
 instance wide_subquiver.quiver {V} [quiver V] (H : wide_subquiver V) : quiver H :=
@@ -113,7 +126,8 @@ def hom.unop {V} [quiver V] {X Y : Vᵒᵖ} (f : X ⟶ Y) : unop Y ⟶ unop X :=
 
 attribute [irreducible] quiver.opposite
 
-/-- A type synonym for the symmetrized quiver (with an arrow both ways for each original arrow). -/
+/-- A type synonym for the symmetrized quiver (with an arrow both ways for each original arrow).
+    NB: this does not work for `Prop`-valued quivers. It requires `[quiver.{v+1} V]`. -/
 @[nolint has_inhabited_instance]
 def symmetrify (V) : Type u := V
 
@@ -121,22 +135,25 @@ instance symmetrify_quiver (V : Type u) [quiver V] : quiver (symmetrify V) :=
 ⟨λ a b : V, (a ⟶ b) ⊕ (b ⟶ a)⟩
 
 /-- `total V` is the type of _all_ arrows of `V`. -/
+-- TODO Unify with `category_theory.arrow`? (The fields have been named to match.)
 @[ext, nolint has_inhabited_instance]
 structure total (V : Type u) [quiver.{v} V] : Type (max u v) :=
-(source : V)
-(target : V)
-(arrow : source ⟶ target)
+(left : V)
+(right : V)
+(hom : left ⟶ right)
 
 /-- A wide subquiver `H` of `G.symmetrify` determines a wide subquiver of `G`, containing an
     an arrow `e` if either `e` or its reversal is in `H`. -/
-def wide_subquiver_symmetrify {V} [quiver V] :
+-- Without the explicit universe level in `quiver.{v+1}` Lean comes up with
+-- `quiver.{max u_2 u_3 + 1}`. This causes problems elsewhere, so we write `quiver.{v+1}`.
+def wide_subquiver_symmetrify {V} [quiver.{v+1} V] :
   wide_subquiver (symmetrify V) → wide_subquiver V :=
 λ H a b, { e | sum.inl e ∈ H a b ∨ sum.inr e ∈ H b a }
 
 /-- A wide subquiver of `G` can equivalently be viewed as a total set of arrows. -/
 def wide_subquiver_equiv_set_total {V} [quiver V] :
   wide_subquiver V ≃ set (total V) :=
-{ to_fun := λ H, { e | e.arrow ∈ H e.source e.target },
+{ to_fun := λ H, { e | e.hom ∈ H e.left e.right },
   inv_fun := λ S a b, { e | total.mk a b e ∈ S },
   left_inv := λ H, rfl,
   right_inv := by { intro S, ext, cases x, refl } }
@@ -272,7 +289,7 @@ attribute [instance] rooted_connected.nonempty_path
 
 section geodesic_subtree
 
-variables {V : Type u} [quiver V] (r : V) [rooted_connected r]
+variables {V : Type u} [quiver.{v+1} V] (r : V) [rooted_connected r]
 
 /-- A path from `r` of minimal length. -/
 noncomputable def shortest_path (b : V) : path r b :=
@@ -298,7 +315,7 @@ arborescence_mk r (λ a, (shortest_path r a).length)
 
 end geodesic_subtree
 
-variables (V : Type u) [quiver.{v} V]
+variables (V : Type u) [quiver.{v+1} V]
 
 /-- A quiver `has_reverse` if we can reverse an arrow `p` from `a` to `b` to get an arrow
     `p.reverse` from `b` to `a`.-/

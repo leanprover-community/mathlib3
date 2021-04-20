@@ -517,15 +517,15 @@ begin
 end
 
 @[to_additive]
+lemma prod_finset_coe (f : α → β) (s : finset α) :
+  ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
+prod_attach
+
+@[to_additive]
 lemma prod_subtype {p : α → Prop} {F : fintype (subtype p)} (s : finset α)
   (h : ∀ x, x ∈ s ↔ p x) (f : α → β) :
   ∏ a in s, f a = ∏ a : subtype p, f a :=
-have (∈ s) = p, from set.ext h,
-begin
-  rw [← prod_attach, attach_eq_univ],
-  substI p,
-  congr
-end
+have (∈ s) = p, from set.ext h, by { substI p, rw [←prod_finset_coe], congr }
 
 @[to_additive]
 lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : (∏ x in s, f x) = 1 :=

@@ -178,13 +178,10 @@ aeval_alg_hom_apply (algebra.of_id R A) x p
 @[simp] lemma coe_aeval_eq_eval (r : R) :
   (aeval r : polynomial R → R) = eval r := rfl
 
-@[simp] lemma polynomial.aeval_fn_apply {X : Type*} (g : polynomial R) (f : X → R) (x : X) :
-  ((polynomial.aeval f) g) x = g.eval (f x) :=
-begin
-  apply polynomial.induction_on' g,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n a, simp [pi.pow_apply f x n], },
-end
+
+@[simp] lemma aeval_fn_apply {X : Type*} (g : polynomial R) (f : X → R) (x : X) :
+  ((aeval f) g) x = aeval (f x) g :=
+(aeval_alg_hom_apply (alg_hom.apply x) f g).symm
 
 @[norm_cast] lemma polynomial.aeval_subalgebra_coe
   (g : polynomial R) {A : Type*} [semiring A] [algebra R A] (s : subalgebra R A) (f : s) :

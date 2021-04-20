@@ -173,7 +173,7 @@ by simp only [set.subset_def, mem_coe, mem_support_iff];
 
 /-- Given `fintype α`, `equiv_fun_on_fintype` is the `equiv` between `α →₀ β` and `α → β`.
   (All functions on a finite type are finitely supported.) -/
-def equiv_fun_on_fintype [fintype α] : (α →₀ M) ≃ (α → M) :=
+@[simps apply] def equiv_fun_on_fintype [fintype α] : (α →₀ M) ≃ (α → M) :=
 ⟨λf a, f a, λf, mk (finset.univ.filter $ λa, f a ≠ 0) f (by simp only [true_and, finset.mem_univ,
   iff_self, finset.mem_filter, finset.filter_congr_decidable, forall_true_iff]),
   begin intro f, ext a, refl end,
@@ -242,6 +242,8 @@ by rcases em (a = x) with (rfl|hx); [simp, simp [single_eq_of_ne hx]]
 lemma range_single_subset : set.range (single a b) ⊆ {0, b} :=
 set.range_subset_iff.2 single_apply_mem
 
+/-- `finsupp.single a b` is injective in `b`. For the statement that it is injective in `a`, see
+`finsupp.single_left_injective` -/
 lemma single_injective (a : α) : function.injective (single a : M → α →₀ M) :=
 assume b₁ b₂ eq,
 have (single a b₁ : α →₀ M) a = (single a b₂ : α →₀ M) a, by rw eq,
@@ -281,11 +283,13 @@ begin
     { rw [single_zero, single_zero] } }
 end
 
-lemma single_left_inj (h : b ≠ 0) :
-  single a b = single a' b ↔ a = a' :=
-⟨λ H, by simpa only [h, single_eq_single_iff,
-  and_false, or_false, eq_self_iff_true, and_true] using H,
- λ H, by rw [H]⟩
+/-- `finsupp.single a b` is injective in `a`. For the statement that it is injective in `b`, see
+`finsupp.single_injective` -/
+lemma single_left_injective (h : b ≠ 0) : function.injective (λ a : α, single a b) :=
+λ a a' H, (((single_eq_single_iff _ _ _ _).mp H).resolve_right $ λ hb, h hb.1).left
+
+lemma single_left_inj (h : b ≠ 0) : single a b = single a' b ↔ a = a' :=
+(single_left_injective h).eq_iff
 
 lemma support_single_ne_bot (i : α) (h : b ≠ 0) :
   (single i b).support ≠ ⊥ :=
@@ -858,6 +862,9 @@ instance : add_monoid (α →₀ M) :=
   zero      := 0,
   add       := (+),
   add_assoc := assume ⟨s, f, hf⟩ ⟨t, g, hg⟩ ⟨u, h, hh⟩, ext $ assume a, add_assoc _ _ _,
+  nsmul := λ n v, v.map_range ((•) n) (nsmul_zero _),
+  nsmul_zero' := λ v, by { ext i, simp },
+  nsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_nsmul] },
   .. finsupp.add_zero_class }
 
 end add_monoid
@@ -1639,7 +1646,7 @@ section multiset
 /-- Given `f : α →₀ ℕ`, `f.to_multiset` is the multiset with multiplicities given by the values of
 `f` on the elements of `α`. We define this function as an `add_equiv`. -/
 def to_multiset : (α →₀ ℕ) ≃+ multiset α :=
-{ to_fun := λ f, f.sum (λa n, n •ℕ {a}),
+{ to_fun := λ f, f.sum (λa n, n • {a}),
   inv_fun := λ s, ⟨s.to_finset, λ a, s.count a, λ a, by simp⟩,
   left_inv := λ f, ext $ λ a,
     suffices (if f a = 0 then 0 else f a) = f a,
@@ -1655,9 +1662,9 @@ lemma to_multiset_add (m n : α →₀ ℕ) :
   (m + n).to_multiset = m.to_multiset + n.to_multiset :=
 to_multiset.map_add m n
 
-lemma to_multiset_apply (f : α →₀ ℕ) : f.to_multiset = f.sum (λ a n, n •ℕ {a}) := rfl
+lemma to_multiset_apply (f : α →₀ ℕ) : f.to_multiset = f.sum (λ a n, n • {a}) := rfl
 
-@[simp] lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = n •ℕ {a} :=
+@[simp] lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = n • {a} :=
 by rw [to_multiset_apply, sum_single_index]; apply zero_nsmul
 
 lemma to_multiset_sum {ι : Type*} {f : ι → α →₀ ℕ} (s : finset ι) :
@@ -1670,7 +1677,7 @@ begin
 end
 
 lemma to_multiset_sum_single {ι : Type*} (s : finset ι) (n : ℕ) :
-  finsupp.to_multiset (∑ i in s, single i n) = n •ℕ s.val :=
+  finsupp.to_multiset (∑ i in s, single i n) = n • s.val :=
 by simp_rw [to_multiset_sum, finsupp.to_multiset_single, multiset.singleton_eq_singleton,
             sum_nsmul, sum_multiset_singleton]
 
@@ -1719,7 +1726,7 @@ end
 
 @[simp] lemma count_to_multiset [decidable_eq α] (f : α →₀ ℕ) (a : α) :
   f.to_multiset.count a = f a :=
-calc f.to_multiset.count a = f.sum (λx n, (n •ℕ {x} : multiset α).count a) :
+calc f.to_multiset.count a = f.sum (λx n, (n • {x} : multiset α).count a) :
     (f.support.sum_hom $ multiset.count a).symm
   ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_nsmul]
   ... = f.sum (λx n, n * (x ::ₘ 0 : multiset α).count a) : rfl
@@ -1830,7 +1837,7 @@ on_finset
 
 @[simp] lemma coe_sum_elim {α β γ : Type*} [has_zero γ]
   (f : α →₀ γ) (g : β →₀ γ) : ⇑(sum_elim f g) = sum.elim f g := rfl
-  
+
 lemma sum_elim_apply {α β γ : Type*} [has_zero γ]
   (f : α →₀ γ) (g : β →₀ γ) (x : α ⊕ β) : sum_elim f g x = sum.elim f g x := rfl
 
@@ -2262,21 +2269,11 @@ instance [partial_order M] [has_zero M] : partial_order (α →₀ M) :=
 { le_antisymm := λ f g hfg hgf, ext $ λ s, le_antisymm (hfg s) (hgf s),
   .. finsupp.preorder }
 
-instance [ordered_cancel_add_comm_monoid M] : add_left_cancel_semigroup (α →₀ M) :=
-{ add_left_cancel := λ a b c h, ext $ λ s,
-  by { rw ext_iff at h, exact add_left_cancel (h s) },
-  .. finsupp.add_monoid }
-
-instance [ordered_cancel_add_comm_monoid M] : add_right_cancel_semigroup (α →₀ M) :=
-{ add_right_cancel := λ a b c h, ext $ λ s,
-  by { rw ext_iff at h, exact add_right_cancel (h s) },
-  .. finsupp.add_monoid }
-
 instance [ordered_cancel_add_comm_monoid M] : ordered_cancel_add_comm_monoid (α →₀ M) :=
 { add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
   le_of_add_le_add_left := λ a b c h s, le_of_add_le_add_left (h s),
-  .. finsupp.add_comm_monoid, .. finsupp.partial_order,
-  .. finsupp.add_left_cancel_semigroup, .. finsupp.add_right_cancel_semigroup }
+  add_left_cancel := λ a b c h, ext $ λ s, add_left_cancel (ext_iff.1 h s),
+  .. finsupp.add_comm_monoid, .. finsupp.partial_order }
 
 lemma le_def [preorder M] [has_zero M] {f g : α →₀ M} : f ≤ g ↔ ∀ x, f x ≤ g x := iff.rfl
 

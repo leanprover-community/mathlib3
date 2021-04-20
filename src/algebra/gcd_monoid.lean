@@ -8,6 +8,7 @@ TODO: Generalize normalization monoids commutative (cancellative) monoids with o
 TODO: Generalize GCD monoid to not require normalization in all cases
 -/
 import algebra.associated
+import data.nat.gcd
 
 /-!
 
@@ -819,5 +820,28 @@ gcd_monoid_of_lcm
     (((classical.some_spec (h a b) (classical.some (h a b))).2 (dvd_refl _))).2)
   (λ a b c ac ab, normalize_dvd_iff.2 ((classical.some_spec (h c b) a).1 ⟨ac, ab⟩))
   (λ a b, normalize_idem _)
+
+/-- `ℕ` is a `gcd_monoid` -/
+instance : gcd_monoid ℕ :=
+{ gcd                 := nat.gcd,
+  lcm                 := nat.lcm,
+  gcd_dvd_left        := nat.gcd_dvd_left,
+  gcd_dvd_right       := nat.gcd_dvd_right,
+  dvd_gcd             := λ _ _ _, nat.dvd_gcd,
+  normalize_gcd       := λ a b, nat.mul_one (a.gcd b),
+  gcd_mul_lcm         := λ a b, (a.gcd_mul_lcm b).trans (mul_one (a * b)).symm,
+  lcm_zero_left       := nat.lcm_zero_left,
+  lcm_zero_right      := nat.lcm_zero_right,
+  norm_unit           := λ _, 1,
+  norm_unit_zero      := rfl,
+  norm_unit_mul       := λ _ _ _ _, rfl,
+  norm_unit_coe_units := λ u, eq_inv_of_eq_inv
+    (by rw [one_inv, units.ext_iff, units.coe_one, nat.is_unit_iff.mp u.is_unit]) }
+
+@[simp] lemma nat.normalize_eq (n : ℕ) : normalize n = n := n.mul_one
+
+lemma nat.gcd_eq_gcd (m n : ℕ) : gcd m n = nat.gcd m n := rfl
+
+lemma nat.lcm_eq_lcm (m n : ℕ) : lcm m n = nat.lcm m n := rfl
 
 end constructors

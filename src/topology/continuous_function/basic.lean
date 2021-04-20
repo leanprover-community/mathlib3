@@ -130,9 +130,9 @@ pi.lt_def
 instance has_sup [linear_order β] [order_closed_topology β] : has_sup C(α, β) :=
 { sup := λ f g, { to_fun := λ a, max (f a) (g a), } }
 
-lemma sup_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
+@[simp, norm_cast] lemma sup_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
   ((f ⊔ g : C(α, β)) : α → β) = (f ⊔ g : α → β) :=
-by { ext, refl, }
+rfl
 
 @[simp] lemma sup_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
   (f ⊔ g) a = max (f a) (g a) :=
@@ -148,9 +148,9 @@ instance [linear_order β] [order_closed_topology β] : semilattice_sup C(α, β
 instance has_inf [linear_order β] [order_closed_topology β] : has_inf C(α, β) :=
 { inf := λ f g, { to_fun := λ a, min (f a) (g a), } }
 
-lemma inf_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
+@[simp, norm_cast] lemma inf_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
   ((f ⊓ g : C(α, β)) : α → β) = (f ⊓ g : α → β) :=
-by { ext, refl, }
+rfl
 
 @[simp] lemma inf_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
   (f ⊓ g) a = min (f a) (g a) :=
@@ -172,7 +172,7 @@ instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
 section sup'
 variables [linear_order γ] [order_closed_topology γ]
 
-@[simp]
+@[simp, norm_cast]
 lemma sup'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
   ((s.sup' H f : C(β, γ)) : ι → β) = s.sup' H (λ a, (f a : β → γ)) :=
 begin
@@ -202,7 +202,7 @@ end sup'
 section inf'
 variables [linear_order γ] [order_closed_topology γ]
 
-@[simp]
+@[simp, norm_cast]
 lemma inf'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
   ((s.inf' H f : C(β, γ)) : ι → β) = s.inf' H (λ a, (f a : β → γ)) :=
 @sup'_coe _ (order_dual γ) _ _ _ _ _ _ H f

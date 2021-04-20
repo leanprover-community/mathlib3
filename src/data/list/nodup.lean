@@ -76,6 +76,32 @@ pairwise_iff_nth_le.trans
   .resolve_right (λ h', H _ _ h₁ h' h.symm),
  λ H i j h₁ h₂ h, ne_of_lt h₂ (H _ _ _ _ h)⟩
 
+lemma ne_singleton_iff_of_nodup {l : list α} (h : nodup l) (x : α) :
+  l ≠ [x] ↔ l = [] ∨ ∃ y ∈ l, y ≠ x :=
+begin
+  induction l with hd tl hl,
+  { simp },
+  { specialize hl (nodup_of_nodup_cons h),
+    by_cases hx : tl = [x],
+    { simpa [hx, and.comm, and_or_distrib_left] using h },
+    { rw [←ne.def, hl] at hx,
+      rcases hx with rfl | ⟨y, hy, hx⟩,
+      { simp },
+      { have : tl ≠ [] := ne_nil_of_mem hy,
+        suffices : ∃ (y : α) (H : y ∈ hd :: tl), y ≠ x,
+          { simpa [ne_nil_of_mem hy] },
+        exact ⟨y, mem_cons_of_mem _ hy, hx⟩ } } }
+end
+
+lemma nth_le_eq_of_ne_imp_not_nodup (xs : list α) (n m : ℕ) (hn : n < xs.length)
+  (hm : m < xs.length) (h : xs.nth_le n hn = xs.nth_le m hm) (hne : n ≠ m) :
+  ¬ nodup xs :=
+begin
+  rw nodup_iff_nth_le_inj,
+  simp only [exists_prop, exists_and_distrib_right, not_forall],
+  exact ⟨n, m, ⟨hn, hm, h⟩, hne⟩
+end
+
 @[simp] theorem nth_le_index_of [decidable_eq α] {l : list α} (H : nodup l) (n h) :
   index_of (nth_le l n h) l = n :=
 nodup_iff_nth_le_inj.1 H _ _ _ h $

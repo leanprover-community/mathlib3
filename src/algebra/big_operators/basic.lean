@@ -225,11 +225,6 @@ lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) :
   (∏ x in (s₁ ∪ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
 
-@[to_additive]
-lemma prod_coe [decidable_eq α] :
-  ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
-(finset.prod_subtype s (λ _, iff.rfl) f).symm
-
 end comm_monoid
 
 end finset
@@ -519,6 +514,17 @@ lemma prod_subtype_map_embedding {p : α → Prop} {s : finset {x // p x}} {f : 
 begin
   rw finset.prod_map,
   exact finset.prod_congr rfl h
+end
+
+@[to_additive]
+lemma prod_subtype {p : α → Prop} {F : fintype (subtype p)} (s : finset α)
+  (h : ∀ x, x ∈ s ↔ p x) (f : α → β) :
+  ∏ a in s, f a = ∏ a : subtype p, f a :=
+have (∈ s) = p, from set.ext h,
+begin
+  rw [← prod_attach, attach_eq_univ],
+  substI p,
+  congr
 end
 
 @[to_additive]
@@ -1323,6 +1329,11 @@ lemma prod_equiv {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
   (e : α ≃ β) (f : α → M) (g : β → M) (h : ∀ x, f x = g (e x)) :
   ∏ x : α, f x = ∏ x : β, g x :=
 prod_bijective e e.bijective f g h
+
+@[to_additive]
+lemma prod_finset_coe [comm_monoid β] :
+  ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
+(finset.prod_subtype s (λ _, iff.rfl) f).symm
 
 end fintype
 

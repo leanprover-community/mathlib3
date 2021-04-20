@@ -1065,6 +1065,7 @@ The names should match the equivalent bundled `finsupp.map_range` definitions.
 -/
 
 section map_range
+omit dec
 
 variables [Π i, add_zero_class (β i)] [Π i, add_zero_class (β₁ i)] [Π i, add_zero_class (β₂ i)]
 

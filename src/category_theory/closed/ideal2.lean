@@ -150,7 +150,7 @@ variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D
 variables (i : D ⥤ C) [has_finite_products C] [reflective i]
 
 lemma reflective_products [reflective i] : has_finite_products D :=
-λ J 𝒥₁ 𝒥₂, by exactI has_limits_of_shape_of_reflective i
+⟨λ J 𝒥₁ 𝒥₂, by exactI has_limits_of_shape_of_reflective i⟩
 
 local attribute [instance] reflective_products
 
@@ -242,7 +242,9 @@ calc _ ≃ (A ⨯ B ⟶ i.obj X) :
      begin
        apply iso.hom_congr _ (iso.refl _),
        haveI : preserves_limits i := (adjunction.of_right_adjoint i).right_adjoint_preserves_limits,
-       refine (as_iso (prod_comparison _ _ _)).symm,
+      apply (preserves_pair.iso _ _ _).symm,
+      apply_instance,  -- this should be automatic!
+      --  refine (as_iso (prod_comparison _ _ _)).symm,
      end
    ... ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ X) :
               (equiv_of_fully_faithful _).symm

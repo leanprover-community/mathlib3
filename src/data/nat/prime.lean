@@ -416,12 +416,12 @@ lemma factors_eq_nil (n : ℕ) : n.factors = [] ↔ n = 0 ∨ n = 1 :=
 begin
   split; intro h,
   { rcases n with (_ | _ | n),
-    exact or.inl rfl,
-    exact or.inr rfl,
-    injection h, },
+    { exact or.inl rfl },
+    { exact or.inr rfl },
+    { injection h }, },
   { rcases h with (rfl | rfl),
-    exact factors_zero,
-    exact factors_one, }
+    { exact factors_zero },
+    { exact factors_one }, }
 end
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=

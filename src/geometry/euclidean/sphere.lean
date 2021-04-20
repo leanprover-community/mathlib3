@@ -49,13 +49,13 @@ begin
   have hzx : ⟪z, x⟫ = 0 := by rw [hxy, inner_smul_right, hzy, mul_zero],
 
   calc  ∥x - y∥ * ∥x + y∥
-      = ∥(r - 1) • y∥ * ∥(r + 1) • y∥     : by simp [sub_smul, add_smul, hxy]
-  ... = ∥r - 1∥ * ∥y∥ * (∥r + 1∥ * ∥y∥)   : by simp_rw [norm_smul]
-  ... = ∥r - 1∥ * ∥r + 1∥ * ∥y∥ ^ 2       : by ring
+      = ∥(r - 1) • y∥ * ∥(r + 1) • y∥      : by simp [sub_smul, add_smul, hxy]
+  ... = ∥r - 1∥ * ∥y∥ * (∥r + 1∥ * ∥y∥)      : by simp_rw [norm_smul]
+  ... = ∥r - 1∥ * ∥r + 1∥ * ∥y∥ ^ 2         : by ring
   ... = abs ((r - 1) * (r + 1) * ∥y∥ ^ 2) : by simp [abs_mul, norm_eq_abs]
-  ... = abs (r ^ 2 * ∥y∥ ^ 2 - ∥y∥ ^ 2)   : by ring_nf
-  ... = abs (∥x∥ ^ 2 - ∥y∥ ^ 2)           : by simp [hxy, norm_smul, mul_pow, norm_eq_abs, sqr_abs]
-  ... = abs (∥z + y∥ ^ 2 - ∥z - x∥ ^ 2)   : by simp [norm_add_pow_two_real, norm_sub_pow_two_real,
+  ... = abs (r ^ 2 * ∥y∥ ^ 2 - ∥y∥ ^ 2)    : by ring_nf
+  ... = abs (∥x∥ ^ 2 - ∥y∥ ^ 2)            : by simp [hxy, norm_smul, mul_pow, norm_eq_abs, sqr_abs]
+  ... = abs (∥z + y∥ ^ 2 - ∥z - x∥ ^ 2)    : by simp [norm_add_pow_two_real, norm_sub_pow_two_real,
                                                     hzy, hzx, abs_sub],
 end
 

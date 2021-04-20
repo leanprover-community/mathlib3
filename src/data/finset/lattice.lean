@@ -938,6 +938,14 @@ lemma infi_bUnion (s : finset γ) (t : γ → finset α) (f : α → β) :
 
 end lattice
 
+theorem set_bUnion_coe (s : finset α) (t : α → set β) :
+  (⋃ x ∈ (↑s : set α), t x) = ⋃ x ∈ s, t x :=
+rfl
+
+theorem set_bInter_coe (s : finset α) (t : α → set β) :
+  (⋂ x ∈ (↑s : set α), t x) = ⋂ x ∈ s, t x :=
+rfl
+
 theorem set_bUnion_singleton (a : α) (s : α → set β) :
   (⋃ x ∈ ({a} : finset α), s x) = s a :=
 supr_singleton a s

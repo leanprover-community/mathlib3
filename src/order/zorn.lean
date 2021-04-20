@@ -279,34 +279,12 @@ let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m}
 theorem zorn_subset {α : Type u} (S : set (set α))
   (h : ∀c ⊆ S, chain (⊆) c → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) :
   ∃ m ∈ S, ∀a ∈ S, m ⊆ a → a = m :=
-begin
-  letI : partial_order S := partial_order.lift subtype.val (λ _ _, subtype.ext_val),
-  have : ∀c:set S, @chain S (≤) c → ∃ub, ∀a∈c, a ≤ ub,
-  { intros c hc,
-    rcases h (subtype.val '' c) (image_subset_iff.2 _) _ with ⟨s, sS, hs⟩,
-    { exact ⟨⟨s, sS⟩, λ ⟨x, hx⟩ H, hs _ (mem_image_of_mem _ H)⟩ },
-    { rintro ⟨x, hx⟩ _, exact hx },
-    { rintro _ ⟨x, cx, rfl⟩ _ ⟨y, cy, rfl⟩ xy,
-      exact hc x cx y cy (mt (congr_arg _) xy) } },
-  rcases zorn_partial_order this with ⟨⟨m, mS⟩, hm⟩,
-  exact ⟨m, mS, λ a aS ha, congr_arg subtype.val (hm ⟨a, aS⟩ ha)⟩
-end
+zorn_partial_order₀ S h
 
 theorem zorn_subset₀ {α : Type u} (S : set (set α))
   (H : ∀c ⊆ S, chain (⊆) c → c.nonempty → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) (x) (hx : x ∈ S) :
   ∃ m ∈ S, x ⊆ m ∧ ∀a ∈ S, m ⊆ a → a = m :=
-begin
-  let T := {s ∈ S | x ⊆ s},
-  rcases zorn_subset T _ with ⟨m, ⟨mS, mx⟩, hm⟩,
-  { exact ⟨m, mS, mx, λ a ha ha', hm a ⟨ha, subset.trans mx ha'⟩ ha'⟩ },
-  { intros c cT hc,
-    cases c.eq_empty_or_nonempty with c0 c0,
-    { rw c0, exact ⟨x, ⟨hx, subset.refl _⟩, λ _, false.elim⟩ },
-    { rcases H _ (subset.trans cT (sep_subset _ _)) hc c0 with ⟨ub, us, h⟩,
-      refine ⟨ub, ⟨us, _⟩, h⟩,
-      rcases c0 with ⟨s, hs⟩,
-      exact subset.trans (cT hs).2 (h _ hs) } }
-end
+zorn_nonempty_partial_order₀ _ (λ c cS hc y yc, H _ cS hc ⟨y, yc⟩) _ hx
 
 theorem chain.total {α : Type u} [preorder α]
   {c : set α} (H : chain (≤) c) :

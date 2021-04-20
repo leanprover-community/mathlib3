@@ -137,7 +137,7 @@ begin
     have C0_le : ∀i, C0 i ≤ C :=
       λi, finset.single_le_sum (λj hj, (hC0 j).1) (finset.mem_univ _),
     apply linear_map.continuous_of_bound _ C (λx, _),
-    rw pi_norm_le_iff,
+    rw pi_semi_norm_le_iff,
     { exact λi, le_trans ((hC0 i).2 x) (mul_le_mul_of_nonneg_right (C0_le i) (norm_nonneg _)) },
     { exact mul_nonneg C_nonneg (norm_nonneg _) } }
 end

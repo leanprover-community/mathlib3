@@ -15,6 +15,13 @@ This module defines quivers. A quiver on a type `V` of vertices assigns to every
 pair `a b : V` of vertices a type `a ⟶ b` of arrows from `a` to `b`. This
 is a very permissive notion of directed graph.
 
+## Implementation notes
+
+Currently `quiver` is defined with `arrow : V → V → Sort v`.
+This is different from the category theory setup,
+where we insist that morphisms live in some `Type`.
+There's some balance here: it's nice to allow `Prop` to ensure there are no multiple arrows,
+but it is also results in error-prone universe signatures when constraints require a `Type`.
 -/
 
 open opposite

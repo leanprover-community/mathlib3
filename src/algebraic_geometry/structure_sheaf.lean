@@ -540,6 +540,44 @@ begin
   exact ⟨r.1, hr, r.2⟩
 end
 
+-- Auxiliary lemma for surjectivity of `to_basic_open`.
+-- Every section can locally be represented on basic opens `basic_opens g` as a fraction `f/g`
+lemma locally_const_basic_open (U : opens (Spec.Top R))
+  (s : (structure_sheaf R).presheaf.obj (op U)) (x : U) :
+  ∃ (f g : R) (i : basic_open g ⟶ U), (structure_sheaf R).presheaf.map i.op s =
+    const R f g (basic_open g) (λ y hy, hy) :=
+begin
+  obtain ⟨V, hxV, iVU, f, g, (hVDg : V ⊆ basic_open g), s_eq⟩ := exists_const R U s x.1 x.2,
+  obtain ⟨_, ⟨h, rfl⟩, hxDh, (hDhV : basic_open h ⊆ V)⟩ := @is_topological_basis.exists_subset_of_mem_open _ _ _
+      is_topological_basis_basic_opens x.1 V.1 hxV V.2,
+  have hDhDg := set.subset.trans hDhV hVDg,
+  simp at hDhDg,
+  have := (vanishing_ideal_anti_mono hDhDg) (subset_vanishing_ideal_zero_locus {h} (set.mem_singleton h)),
+  rw [← zero_locus_span, vanishing_ideal_zero_locus_eq_radical] at this,
+  obtain ⟨n, hn⟩ := this,
+  rw ideal.mem_span_singleton' at hn,
+  obtain ⟨c, hc⟩ := hn,
+  cases n,
+  { let iDhV : basic_open h ⟶ V := hom_of_le hDhV,
+    use [f * h * c, h, iDhV ≫ iVU],
+    convert congr_arg ((structure_sheaf R).presheaf.map iDhV.op) s_eq.symm using 1,
+    rw res_const R f g V hVDg (basic_open h) (set.subset.trans hDhV hVDg) iDhV.op,
+    apply const_ext,
+    rw [mul_assoc (f * h) c g, hc, pow_zero, mul_one]
+   },
+  { let iDhV : basic_open (h ^ (n+1)) ⟶ V := eq_to_hom (basic_open_pow h (n+1) (by linarith)) ≫ hom_of_le hDhV,
+    use [f * c, h ^ (n+1), iDhV ≫ iVU],
+    convert congr_arg ((structure_sheaf R).presheaf.map iDhV.op) s_eq.symm using 1,
+    rw res_const R f g V hVDg (basic_open (h^(n+1))) _ iDhV.op,
+    swap,
+    { intros y hy,
+      rw (basic_open_pow h (n+1) (by linarith)) at hy,
+      apply (set.subset.trans hDhV hVDg),
+      exact hy },
+    apply const_ext,
+    rw [mul_assoc f c g, hc] },
+end
+
 lemma is_unit_to_stalk (x : Spec.Top R) (f : x.as_ideal.prime_compl) :
   is_unit (to_stalk R x (f : R)) :=
 by { erw ← germ_to_open R (basic_open (f : R)) ⟨x, f.2⟩ (f : R),

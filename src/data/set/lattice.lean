@@ -311,13 +311,49 @@ supr_supr_eq_left
   (⋃ x (h : b = x), s x h) = s b rfl :=
 supr_supr_eq_right
 
-theorem Inter_or {p q : Prop} {s : p ∨ q → set α} :
+theorem Inter_or {p q : Prop} (s : p ∨ q → set α) :
   (⋂ h, s h) = (⋂ h : p, s (or.inl h)) ∩ (⋂ h : q, s (or.inr h)) :=
 infi_or
 
-theorem Union_or {p q : Prop} {s : p ∨ q → set α} :
+theorem Union_or {p q : Prop} (s : p ∨ q → set α) :
   (⋃ h, s h) = (⋃ i, s (or.inl i)) ∪ (⋃ j, s (or.inr j)) :=
 supr_or
+
+theorem Union_and {p q : Prop} (s : p ∧ q → set α) :
+  (⋃ h, s h) = ⋃ hp hq, s ⟨hp, hq⟩ :=
+supr_and
+
+theorem Inter_and {p q : Prop} (s : p ∧ q → set α) :
+  (⋂ h, s h) = ⋂ hp hq, s ⟨hp, hq⟩ :=
+infi_and
+
+theorem Union_comm (s : ι → ι' → set α) :
+  (⋃ i i', s i i') = ⋃ i' i, s i i' :=
+supr_comm
+
+theorem Inter_comm (s : ι → ι' → set α) :
+  (⋂ i i', s i i') = ⋂ i' i, s i i' :=
+infi_comm
+
+@[simp] theorem bUnion_and (p : ι → Prop) (q : ι → ι' → Prop) (s : Π x y, p x ∧ q x y → set α) :
+  (⋃ (x : ι) (y : ι') (h : p x ∧ q x y), s x y h) =
+    ⋃ (x : ι) (hx : p x) (y : ι') (hy : q x y), s x y ⟨hx, hy⟩ :=
+by simp only [Union_and, @Union_comm _ ι']
+
+@[simp] theorem bUnion_and' (p : ι' → Prop) (q : ι → ι' → Prop) (s : Π x y, p y ∧ q x y → set α) :
+  (⋃ (x : ι) (y : ι') (h : p y ∧ q x y), s x y h) =
+    ⋃ (y : ι') (hy : p y) (x : ι) (hx : q x y), s x y ⟨hy, hx⟩ :=
+by simp only [Union_and, @Union_comm _ ι]
+
+@[simp] theorem bInter_and (p : ι → Prop) (q : ι → ι' → Prop) (s : Π x y, p x ∧ q x y → set α) :
+  (⋂ (x : ι) (y : ι') (h : p x ∧ q x y), s x y h) =
+    ⋂ (x : ι) (hx : p x) (y : ι') (hy : q x y), s x y ⟨hx, hy⟩ :=
+by simp only [Inter_and, @Inter_comm _ ι']
+
+@[simp] theorem bInter_and' (p : ι' → Prop) (q : ι → ι' → Prop) (s : Π x y, p y ∧ q x y → set α) :
+  (⋂ (x : ι) (y : ι') (h : p y ∧ q x y), s x y h) =
+    ⋂ (y : ι') (hy : p y) (x : ι) (hx : q x y), s x y ⟨hy, hx⟩ :=
+by simp only [Inter_and, @Inter_comm _ ι]
 
 @[simp] theorem Union_Union_eq_or_left {b : β} {p : β → Prop} {s : Π x : β, (x = b ∨ p x) → set α} :
   (⋃ x h, s x h) = s b (or.inl rfl) ∪ ⋃ x (h : p x), s x (or.inr h) :=
@@ -947,19 +983,11 @@ by simpa using bInter_range
 
 variables {s : set γ} {f : γ → α} {g : α → set β}
 
-lemma bUnion_image : (⋃x∈ (f '' s), g x) = (⋃y ∈ s, g (f y)) :=
+lemma bUnion_image : (⋃ x ∈ f '' s, g x) = (⋃ y ∈ s, g (f y)) :=
 supr_image
 
-@[simp] lemma Union_Union_mem_and_eq :
-  (⋃ x y (hy : y ∈ s ∧ f y = x), g x) = ⋃ y ∈ s, g (f y) :=
-by simpa using @bUnion_image _ _ _ s f g
-
-lemma bInter_image : (⋂x∈ (f '' s), g x) = (⋂y ∈ s, g (f y)) :=
+lemma bInter_image : (⋂ x ∈ f '' s, g x) = (⋂y ∈ s, g (f y)) :=
 infi_image
-
-@[simp] lemma Inter_Inter_mem_and_eq :
-  (⋂ x y (hy : y ∈ s ∧ f y = x), g x) = ⋂ y ∈ s, g (f y) :=
-by simpa using @bInter_image _ _ _ s f g
 
 end image
 

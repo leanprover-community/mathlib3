@@ -262,9 +262,9 @@ infi_option s
 ### Intersections and unions indexes by `h : p`, `p : Prop`
 -/
 
-@[simp] theorem Inter_false {s : false → set α} : Inter s = ⊤ := infi_false
+@[simp] theorem Inter_false {s : false → set α} : Inter s = univ := infi_false
 
-@[simp] theorem Union_false {s : false → set α} : Union s = ⊥ := supr_false
+@[simp] theorem Union_false {s : false → set α} : Union s = ∅ := supr_false
 
 @[simp] theorem Inter_true {s : true → set α} : Inter s = s trivial := infi_true
 

@@ -350,9 +350,9 @@ lemma int_smul_eq_gsmul (h : semimodule ℤ M) (n : ℤ) (x : M) :
   @has_scalar.smul ℤ M h.to_has_scalar n x = n • x :=
 by rw [gsmul_eq_smul_cast ℤ n x, int.cast_id]
 
-/-- All `ℤ`-module structures are equal. Not an instance since in mathlib all add_comm_group should
-normally have exactly one `ℤ`-module structure by design. -/
-lemma add_comm_group.int_module.unique : unique (semimodule ℤ M) :=
+/-- All `ℤ`-module structures are equal. Not an instance since in mathlib all `add_comm_group`
+should normally have exactly one `ℤ`-module structure by design. -/
+def add_comm_group.int_module.unique : unique (semimodule ℤ M) :=
 { default := by apply_instance,
   uniq := λ P, semimodule_ext P _ $ λ n, int_smul_eq_gsmul P n }
 

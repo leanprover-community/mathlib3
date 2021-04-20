@@ -70,11 +70,11 @@ begin
   { rw lie_ideal_oper_eq_span, apply submodule_span_le_lie_span, },
 end
 
-lemma lie_mem_lie (x : I) (m : N) : ⁅(x : L), (m : M)⁆ ∈ ⁅I, N⁆ :=
+lemma lie_coe_mem_lie (x : I) (m : N) : ⁅(x : L), (m : M)⁆ ∈ ⁅I, N⁆ :=
 by { rw lie_ideal_oper_eq_span, apply subset_lie_span, use [x, m], }
 
-lemma lie_mem_lie' {x : L} {m : M} (hx : x ∈ I) (hm : m ∈ N) : ⁅x, m⁆ ∈ ⁅I, N⁆ :=
-N.lie_mem_lie I ⟨x, hx⟩ ⟨m, hm⟩
+lemma lie_mem_lie {x : L} {m : M} (hx : x ∈ I) (hm : m ∈ N) : ⁅x, m⁆ ∈ ⁅I, N⁆ :=
+N.lie_coe_mem_lie I ⟨x, hx⟩ ⟨m, hm⟩
 
 lemma lie_comm : ⁅I, J⁆ = ⁅J, I⁆ :=
 begin
@@ -82,7 +82,7 @@ begin
   clear I J, intros I J,
   rw [lie_ideal_oper_eq_span, lie_span_le], rintros x ⟨y, z, h⟩, rw ← h,
   rw [← lie_skew, ← lie_neg, ← submodule.coe_neg],
-  apply lie_mem_lie,
+  apply lie_coe_mem_lie,
 end
 
 lemma lie_le_right : ⁅I, N⁆ ≤ N :=
@@ -126,8 +126,8 @@ begin
   suffices : ⁅I, N ⊔ N'⁆ ≤ ⁅I, N⁆ ⊔ ⁅I, N'⁆, { exact le_antisymm this h, }, clear h,
   rw [lie_ideal_oper_eq_span, lie_span_le], rintros m ⟨x, ⟨n, hn⟩, h⟩, erw lie_submodule.mem_sup,
   erw lie_submodule.mem_sup at hn, rcases hn with ⟨n₁, hn₁, n₂, hn₂, hn'⟩,
-  use ⁅(x : L), (⟨n₁, hn₁⟩ : N)⁆, split, { apply lie_mem_lie, },
-  use ⁅(x : L), (⟨n₂, hn₂⟩ : N')⁆, split, { apply lie_mem_lie, },
+  use ⁅(x : L), (⟨n₁, hn₁⟩ : N)⁆, split, { apply lie_coe_mem_lie, },
+  use ⁅(x : L), (⟨n₂, hn₂⟩ : N')⁆, split, { apply lie_coe_mem_lie, },
   simp [← h, ← hn'],
 end
 
@@ -138,8 +138,8 @@ begin
   suffices : ⁅I ⊔ J, N⁆ ≤ ⁅I, N⁆ ⊔ ⁅J, N⁆, { exact le_antisymm this h, }, clear h,
   rw [lie_ideal_oper_eq_span, lie_span_le], rintros m ⟨⟨x, hx⟩, n, h⟩, erw lie_submodule.mem_sup,
   erw lie_submodule.mem_sup at hx, rcases hx with ⟨x₁, hx₁, x₂, hx₂, hx'⟩,
-  use ⁅((⟨x₁, hx₁⟩ : I) : L), (n : N)⁆, split, { apply lie_mem_lie, },
-  use ⁅((⟨x₂, hx₂⟩ : J) : L), (n : N)⁆, split, { apply lie_mem_lie, },
+  use ⁅((⟨x₁, hx₁⟩ : I) : L), (n : N)⁆, split, { apply lie_coe_mem_lie, },
+  use ⁅((⟨x₂, hx₂⟩ : J) : L), (n : N)⁆, split, { apply lie_coe_mem_lie, },
   simp [← h, ← hx'],
 end
 
@@ -171,7 +171,7 @@ begin
   let fy₂ : ↥(map f I₂) := ⟨f y₂, mem_map hy₂⟩,
   change _ ∈ comap f ⁅map f I₁, map f I₂⁆,
   simp only [submodule.coe_mk, mem_comap, lie_hom.map_lie],
-  exact lie_submodule.lie_mem_lie _ _ fy₁ fy₂,
+  exact lie_submodule.lie_coe_mem_lie _ _ fy₁ fy₂,
 end
 
 lemma map_bracket_eq {I₁ I₂ : lie_ideal R L} (h : function.surjective f) :

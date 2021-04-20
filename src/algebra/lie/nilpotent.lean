@@ -54,7 +54,7 @@ begin
   { simp only [function.iterate_zero], },
   { simp only [lower_central_series_succ, function.comp_app, function.iterate_succ',
       to_endomorphism_apply_apply],
-    exact lie_submodule.lie_mem_lie' _ _ (lie_submodule.mem_top x) ih, },
+    exact lie_submodule.lie_mem_lie _ _ (lie_submodule.mem_top x) ih, },
 end
 
 open lie_algebra

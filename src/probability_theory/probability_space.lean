@@ -26,13 +26,15 @@ import measure_theory.measure_space
        or Pr[X ∈ᵣ S] if S is not measurable, or Pr[∀ᵣ a in S, E a] if S is not countable.
        It is always possible to write Pr[⟨S, ...proof S is an event...⟩].
     3. Embed measurability into the objects and operations themselves. An event is measurable by
-       definition. When we take the and, or, not, for all, exists, measurability should be automatic.
+       definition. When we take the and, or, not, for all, exists, measurability should be
+       automatic.
     4. Don't expect the reader to know measure theory, but at times it may be required by the
        author.
 
     Several concepts are defined in this module:
       probability_space: a measure_space where the measure has a value of 1.
-      measurable_setB: a subtype of a set that is measurable (defined based upon the measurable space).
+      measurable_setB: a subtype of a set that is measurable (defined based upon the measurable
+      space).
       event: a measurable_setB on a probability space (defined based upon the probability).
       Pr[E]: the probability of an event (note: expectations are defined in real_random_variable).
       measurable_fun: a subtype of a function that is measurable (denoted (M₁ →ₘ M₂)).
@@ -55,7 +57,7 @@ import measure_theory.measure_space
 class probability_space (α: Type*) extends measure_theory.measure_space α :=
   (univ_one:volume.measure_of (set.univ) = 1)
 
-instance probability_space.to_measurable_space (α:Type*) [probability_space α]:measurable_space α :=
+instance probability_space.to_measurable_space (α:Type*) [probability_space α]:measurable_space α:=
   measure_theory.measure_space.to_measurable_space
 
 @[simp]

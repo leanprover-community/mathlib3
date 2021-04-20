@@ -7,6 +7,7 @@ Authors: Johan Commelin
 import ring_theory.noetherian
 import ring_theory.ideal.operations
 import ring_theory.algebra_tower
+import group_theory.finiteness
 
 /-!
 # Finiteness conditions in commutative algebra
@@ -555,7 +556,7 @@ open algebra submodule
 
 variables {R : Type*} {M : Type*} [comm_ring R] [add_comm_monoid M]
 
-lemma ft_of_fg : (⊤ : submodule ℕ M).fg → finite_type R (add_monoid_algebra R M) :=
+lemma ft_of_fg : add_monoid.fg M → finite_type R (add_monoid_algebra R M) :=
 begin
   rintro ⟨S, hS⟩,
   rw [finite_type.iff_quotient_mv_polynomial'],
@@ -571,8 +572,11 @@ begin
     suffices : ∃ (P : mv_polynomial S₁ R), (mv_polynomial.aeval ψ) P = finsupp.single m 1,
     { obtain ⟨P, hP⟩ := this,
       exact ⟨r • P, by simp only [hP, alg_hom.map_smul, mul_one, finsupp.smul_single']⟩ },
-    have : m ∈ span ℕ ↑S,
-    { rw [hS], exact mem_top },
+    have : m ∈ span ℕ (S : set M),
+    { rw [← submodule.span_nat_eq_add_submonoid_closure,
+        ← @submodule.top_to_add_submonoid ℕ M _ _ _] at hS,
+      rw [submodule.to_add_submonoid_injective hS],
+      exact mem_top },
     refine span_induction this _ _ _ _,
     { intros m hm,
       use mv_polynomial.X ⟨⟨m, hm⟩⟩,
@@ -593,17 +597,9 @@ open algebra
 
 variables {R : Type*} {M : Type*} [comm_ring R] [comm_monoid M]
 
-lemma ft_of_fg : (∃ S, (submonoid.closure S : submonoid M) = ⊤ ∧ S.finite) →
-  finite_type R (monoid_algebra R M) :=
-begin
-  intro h,
-  obtain ⟨S₁, hS₁, hf⟩ := monoid_fg_iff_add_fg.1 h,
-  refine finite_type.equiv (add_monoid_algebra.ft_of_fg (submodule.fg_def.2 _))
-    (monoid_algebra.to_additive_alg_equiv R M).symm,
-  refine ⟨S₁, hf, _⟩,
-  rw [← submodule.span_nat_eq_add_submonoid_closure] at hS₁,
-  exact submodule.to_add_submonoid_injective hS₁
-end
+lemma ft_of_fg : monoid.fg M → finite_type R (monoid_algebra R M) :=
+λ h, finite_type.equiv (add_monoid_algebra.ft_of_fg ((monoid_fg_iff_add_fg M).1 h))
+  (monoid_algebra.to_additive_alg_equiv R M).symm
 
 end monoid_algebra
 

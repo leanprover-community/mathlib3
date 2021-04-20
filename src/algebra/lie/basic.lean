@@ -159,14 +159,17 @@ instance : lie_ring_module L (M →ₗ[R] N) :=
       simp only [lie_lie, linear_map.coe_mk, linear_map.map_sub, linear_map.add_apply, lie_sub],
       abel, }, }
 
-@[simp] lemma bracket_apply (f : M →ₗ[R] N) (x : L) (m : M) : ⁅x, f⁆ m = ⁅x, f m⁆ - f ⁅x, m⁆ := rfl
+@[simp] lemma lie_hom.bracket_apply (f : M →ₗ[R] N) (x : L) (m : M) :
+  ⁅x, f⁆ m = ⁅x, f m⁆ - f ⁅x, m⁆ :=
+rfl
 
 instance : lie_module R L (M →ₗ[R] N) :=
 { smul_lie := λ t x f, by
     { ext n,
-      simp only [smul_sub, smul_lie, linear_map.smul_apply, bracket_apply, linear_map.map_smul], },
+      simp only [smul_sub, smul_lie, linear_map.smul_apply, lie_hom.bracket_apply,
+        linear_map.map_smul], },
   lie_smul := λ t x f, by
-    { ext n, simp only [smul_sub, linear_map.smul_apply, bracket_apply, lie_smul], }, }
+    { ext n, simp only [smul_sub, linear_map.smul_apply, lie_hom.bracket_apply, lie_smul], }, }
 
 end basic_properties
 
@@ -400,7 +403,7 @@ lie_module_hom.map_lie' f
 
 lemma map_lie₂ (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) (x : L) (m : M) (n : N) :
   ⁅x, f m n⁆ = f ⁅x, m⁆ n + f m ⁅x, n⁆ :=
-by simp only [sub_add_cancel, map_lie, bracket_apply]
+by simp only [sub_add_cancel, map_lie, lie_hom.bracket_apply]
 
 @[simp] lemma map_zero (f : M →ₗ⁅R,L⁆ N) : f 0 = 0 :=
 linear_map.map_zero (f : M →ₗ[R] N)

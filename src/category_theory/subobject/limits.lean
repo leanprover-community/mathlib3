@@ -44,12 +44,12 @@ subobject.underlying_iso (equalizer.ι f g)
 @[simp, reassoc]
 lemma equalizer_subobject_arrow :
   (equalizer_subobject_iso f g).hom ≫ equalizer.ι f g = (equalizer_subobject f g).arrow :=
-(over.w (subobject.representative_iso (mono_over.mk' (equalizer.ι f g))).hom)
+by simp [equalizer_subobject_iso]
 
 @[simp, reassoc]
 lemma equalizer_subobject_arrow' :
   (equalizer_subobject_iso f g).inv ≫ (equalizer_subobject f g).arrow = equalizer.ι f g :=
-over.w (subobject.representative_iso (mono_over.mk' (equalizer.ι f g))).inv
+by simp [equalizer_subobject_iso]
 
 @[reassoc]
 lemma equalizer_subobject_arrow_comp :
@@ -84,12 +84,12 @@ subobject.underlying_iso (kernel.ι f)
 @[simp, reassoc]
 lemma kernel_subobject_arrow :
   (kernel_subobject_iso f).hom ≫ kernel.ι f = (kernel_subobject f).arrow :=
-(over.w (subobject.representative_iso (mono_over.mk' (kernel.ι f))).hom)
+by simp [kernel_subobject_iso]
 
 @[simp, reassoc]
 lemma kernel_subobject_arrow' :
   (kernel_subobject_iso f).inv ≫ (kernel_subobject f).arrow = kernel.ι f :=
-over.w (subobject.representative_iso (mono_over.mk' (kernel.ι f))).inv
+by simp [kernel_subobject_iso]
 
 @[simp, reassoc]
 lemma kernel_subobject_arrow_comp :
@@ -173,12 +173,12 @@ subobject.underlying_iso (image.ι f)
 @[simp, reassoc]
 lemma image_subobject_arrow :
   (image_subobject_iso f).hom ≫ image.ι f = (image_subobject f).arrow :=
-(over.w (subobject.representative_iso (mono_over.mk' (image.ι f))).hom)
+by simp [image_subobject_iso]
 
 @[simp, reassoc]
 lemma image_subobject_arrow' :
   (image_subobject_iso f).inv ≫ (image_subobject f).arrow = image.ι f :=
-over.w (subobject.representative_iso (mono_over.mk' (image.ι f))).inv
+by simp [image_subobject_iso]
 
 /-- A factorisation of `f : X ⟶ Y` through `image_subobject f`. -/
 def factor_thru_image_subobject : X ⟶ image_subobject f :=

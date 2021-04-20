@@ -85,7 +85,7 @@ lemma lemma1_not_hyp_imp_sum_lt_half
 begin
   have h0 : (λ n, ∑ p in { p ∈ range n | nat.prime p }, (1 / (p : ℝ)))
           = (λ n, ∑ p in range n, ite (nat.prime p) (1 / (p : ℝ)) 0),
-  { refine funext _, intro n, rw [finset.sep_def, finset.sum_filter], finish },
+  { funext n, rw [finset.sep_def, finset.sum_filter], finish },
   rw h0 at h,
 
   have hf : ∀ (n : ℕ), 0 ≤ ite (nat.prime n) (1 / (n : ℝ)) 0,

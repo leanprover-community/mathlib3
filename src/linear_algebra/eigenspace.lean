@@ -27,7 +27,7 @@ write `x ∈ f.eigenspace μ`.
 A generalized eigenspace of a linear map `f` for a natural number `k` and a scalar `μ` is the kernel
 of the map `(f - μ • 1) ^ k`. The nonzero elements of a generalized eigenspace are generalized
 eigenvectors `x`. If there are generalized eigenvectors for a natural number `k` and a scalar `μ`,
-the scalar `μ` is called a generalized eigenvalue.
+the scalar `μ` is in fact eigenvalue.
 
 ## References
 
@@ -314,23 +314,10 @@ iff.rfl
 def has_generalized_eigenvector (f : End R M) (μ : R) (k : ℕ) (x : M) : Prop :=
 x ≠ 0 ∧ x ∈ generalized_eigenspace f μ k
 
-/-- A scalar `μ` is a generalized eigenvalue for a linear map `f` and an exponent `k ∈ ℕ` if there
-    are generalized eigenvectors for `f`, `k`, and `μ`. -/
-def has_generalized_eigenvalue (f : End R M) (μ : R) (k : ℕ) : Prop :=
-generalized_eigenspace f μ k ≠ ⊥
-
 /-- The generalized eigenrange for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
     range of `(f - μ • 1) ^ k`. -/
 def generalized_eigenrange (f : End R M) (μ : R) (k : ℕ) : submodule R M :=
 ((f - μ • 1) ^ k).range
-
-/-- The exponent of a generalized eigenvalue is never 0. -/
-lemma exp_ne_zero_of_has_generalized_eigenvalue {f : End R M} {μ : R} {k : ℕ}
-  (h : f.has_generalized_eigenvalue μ k) : k ≠ 0 :=
-begin
-  rintro rfl,
-  exact h linear_map.ker_id
-end
 
 /-- The union of the kernels of `(f - μ • 1) ^ k` over all `k`. -/
 def max_gen_eigenspace (f : End R M) (μ : R) : submodule R M :=
@@ -361,13 +348,10 @@ begin
   exact (well_founded.supr_eq_monotonic_sequence_limit h (f.generalized_eigenspace μ) : _),
 end
 
-/-- A generalized eigenvalue for some exponent `k` is also
-    a generalized eigenvalue for exponents larger than `k`. -/
-lemma has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le
-  {f : End R M} {μ : R} {k : ℕ} {m : ℕ} (hm : k ≤ m) (hk : f.has_generalized_eigenvalue μ k) :
-  f.has_generalized_eigenvalue μ m :=
+lemma generalized_eigenspace_ne_bot_of_generalized_eigenspace_ne_bot_of_le
+  {f : End R M} {μ : R} {k : ℕ} {m : ℕ} (hm : k ≤ m) (hk : generalized_eigenspace f μ k ≠ ⊥) :
+  generalized_eigenspace f μ m ≠ ⊥ :=
 begin
-  unfold has_generalized_eigenvalue at *,
   contrapose! hk,
   rw [←le_bot_iff, ←hk],
   exact (f.generalized_eigenspace μ).monotone hm,
@@ -378,19 +362,17 @@ lemma eigenspace_le_generalized_eigenspace {f : End R M} {μ : R} {k : ℕ} (hk 
   f.eigenspace μ ≤ f.generalized_eigenspace μ k :=
 (f.generalized_eigenspace μ).monotone (nat.succ_le_of_lt hk)
 
-/-- All eigenvalues are generalized eigenvalues. -/
-lemma has_generalized_eigenvalue_of_has_eigenvalue
+lemma generalized_eigenspace_ne_bot_of_has_eigenvalue
   {f : End R M} {μ : R} {k : ℕ} (hk : 0 < k) (hμ : f.has_eigenvalue μ) :
-  f.has_generalized_eigenvalue μ k :=
+  generalized_eigenspace f μ k ≠ ⊥ :=
 begin
-  apply has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le hk,
-  rw [has_generalized_eigenvalue, generalized_eigenspace, preorder_hom.coe_fun_mk, pow_one],
+  apply generalized_eigenspace_ne_bot_of_generalized_eigenspace_ne_bot_of_le hk,
+  rw [generalized_eigenspace, preorder_hom.coe_fun_mk, pow_one],
   exact hμ,
 end
 
-/-- All generalized eigenvalues are eigenvalues. -/
-lemma has_eigenvalue_of_has_generalized_eigenvalue
-  {f : End R M} {μ : R} {k : ℕ} (hμ : f.has_generalized_eigenvalue μ k) :
+lemma has_eigenvalue_of_generalized_eigenspace_ne_bot
+  {f : End R M} {μ : R} {k : ℕ} (hμ : generalized_eigenspace f μ k ≠ ⊥) :
   f.has_eigenvalue μ :=
 begin
   intros contra, apply hμ,
@@ -398,11 +380,10 @@ begin
   exact function.injective.iterate contra k,
 end
 
-/-- Generalized eigenvalues are actually just eigenvalues. -/
-@[simp] lemma has_generalized_eigenvalue_iff_has_eigenvalue
+@[simp] lemma generalized_eigenspace_ne_bot_iff_has_eigenvalue
   {f : End R M} {μ : R} {k : ℕ} (hk : 0 < k) :
-  f.has_generalized_eigenvalue μ k ↔ f.has_eigenvalue μ :=
-⟨has_eigenvalue_of_has_generalized_eigenvalue, has_generalized_eigenvalue_of_has_eigenvalue hk⟩
+  generalized_eigenspace f μ k ≠ ⊥ ↔ f.has_eigenvalue μ :=
+⟨has_eigenvalue_of_generalized_eigenspace_ne_bot, generalized_eigenspace_ne_bot_of_has_eigenvalue hk⟩
 
 /-- Every generalized eigenvector is a generalized eigenvector for exponent `findim K V`.
     (Lemma 8.11 of [axler2015]) -/

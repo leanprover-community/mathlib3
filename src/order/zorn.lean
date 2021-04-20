@@ -281,7 +281,7 @@ theorem zorn_subset {α : Type u} (S : set (set α))
   ∃ m ∈ S, ∀a ∈ S, m ⊆ a → a = m :=
 zorn_partial_order₀ S h
 
-theorem zorn_subset₀ {α : Type u} (S : set (set α))
+theorem zorn_subset_nonempty {α : Type u} (S : set (set α))
   (H : ∀c ⊆ S, chain (⊆) c → c.nonempty → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) (x) (hx : x ∈ S) :
   ∃ m ∈ S, x ⊆ m ∧ ∀a ∈ S, m ⊆ a → a = m :=
 zorn_nonempty_partial_order₀ _ (λ c cS hc y yc, H _ cS hc ⟨y, yc⟩) _ hx

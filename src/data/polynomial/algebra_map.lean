@@ -183,9 +183,9 @@ aeval_alg_hom_apply (algebra.of_id R A) x p
   ((aeval f) g) x = aeval (f x) g :=
 (aeval_alg_hom_apply (alg_hom.apply x) f g).symm
 
-@[norm_cast] lemma polynomial.aeval_subalgebra_coe
+@[norm_cast] lemma aeval_subalgebra_coe
   (g : polynomial R) {A : Type*} [semiring A] [algebra R A] (s : subalgebra R A) (f : s) :
-  (polynomial.aeval f g : A) = polynomial.aeval (f : A) g :=
+  (aeval f g : A) = aeval (f : A) g :=
 (aeval_alg_hom_apply s.val f g).symm
 
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval 0 p :=

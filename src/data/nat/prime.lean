@@ -403,9 +403,9 @@ begin
   { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
 end
 
-@[simp] lemma nat.factors_zero : (0 : ℕ).factors = [] := rfl
+@[simp] lemma factors_zero : (0 : ℕ).factors = [] := rfl
 
-@[simp] lemma nat.factors_one : (1 : ℕ).factors = [] := rfl
+@[simp] lemma factors_one : (1 : ℕ).factors = [] := rfl
 
 /-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
 lemma factors_add_two (n : ℕ) :

@@ -111,8 +111,7 @@ by { rw ←kernel_subobject_arrow, apply_instance, }
 
 @[simp]
 lemma kernel_subobject_zero {A B : C} : kernel_subobject (0 : A ⟶ B) = ⊤ :=
-eq_of_comm (kernel_subobject_iso _ ≪≫ kernel_zero_iso_source ≪≫ (underlying_iso _).symm)
-  (by simp [kernel_subobject_arrow])
+(is_iso_arrow_iff_eq_top _).mp (by apply_instance)
 
 lemma le_kernel_subobject (A : subobject X) (h : A.arrow ≫ f = 0) : A ≤ kernel_subobject f :=
 subobject.le_mk_of_comm (kernel.lift f A.arrow h) (by simp)

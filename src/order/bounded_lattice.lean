@@ -306,11 +306,9 @@ noncomputable instance Prop.linear_order : linear_order Prop :=
   decidable_le := classical.dec_rel _,
   .. (_ : partial_order Prop) }
 
-@[simp]
-lemma le_iff_imp {p q : Prop} : p ≤ q ↔ (p → q) := iff.rfl
-
-@[simp] lemma sup_Prop_eq (p q : Prop) : p ⊔ q = (p ∨ q) := rfl
-@[simp] lemma inf_Prop_eq (p q : Prop) : p ⊓ q = (p ∧ q) := rfl
+@[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
+@[simp] lemma sup_Prop_eq : (⊔) = (∨) := rfl
+@[simp] lemma inf_Prop_eq : (⊓) = (∧) := rfl
 
 section logic
 variable [preorder α]

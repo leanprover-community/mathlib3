@@ -20,6 +20,11 @@ is a very permissive notion of directed graph.
 It would be interesting to try to replace `has_hom` with `quiver` in the definition of a category.
 This would be convenient for defining path categories.
 
+Currently `quiver` is defined with `arrow : V → V → Sort v`. 
+This is different from the category theory setup, 
+where we insist that morphisms live in some `Type`. 
+There's some balance here: it's nice to allow `Prop` to ensure there are no multiple arrows,
+but it is also results in error-prone universe signatures when constraints require a `Type`.
 -/
 
 open opposite

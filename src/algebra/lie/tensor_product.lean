@@ -83,7 +83,7 @@ def lie_lift : (M →ₗ[R] N →ₗ[R] P) ≃ₗ⁅R,L⁆ (M ⊗[R] N →ₗ[R]
 
 @[simp] lemma lie_lift_apply (f : M →ₗ[R] N →ₗ[R] P) (m : M) (n : N) :
   lie_lift R L M N P f (m ⊗ₜ n) = f m n :=
-by simp only [lie_lift, lie_module_equiv.coe_mk, lift.equiv_apply, linear_equiv.to_fun_eq_coe]
+lift.equiv_apply R M N P f m n
 
 /-- A weaker form of the universal property for tensor product of modules of a Lie algebra.
 

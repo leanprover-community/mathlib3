@@ -582,7 +582,7 @@ def lift.equiv : (M →ₗ N →ₗ P) ≃ₗ (M ⊗ N →ₗ P) :=
 
 @[simp] lemma lift.equiv_apply (f : M →ₗ[R] N →ₗ[R] P) (m : M) (n : N) :
   lift.equiv R M N P f (m ⊗ₜ n) = f m n :=
-by simp only [lift.equiv, uncurry_apply, linear_equiv.coe_mk, linear_map.to_fun_eq_coe]
+uncurry_apply f m n
 
 @[simp] lemma lift.equiv_symm_apply (f : M ⊗[R] N →ₗ[R] P) (m : M) (n : N) :
   (lift.equiv R M N P).symm f m n = f (m ⊗ₜ n) :=

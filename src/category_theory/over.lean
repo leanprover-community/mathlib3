@@ -178,7 +178,7 @@ variables (f : over X)
 @[simps]
 def iterated_slice_forward : over f ⥤ over f.left :=
 { obj := λ α, over.mk α.hom.left,
-  map := λ α β κ, over.hom_mk κ.left.left (by { dsimp, rw [← w κ], refl }) }
+  map := λ α β κ, over.hom_mk κ.left.left (by { rw auto_param_eq, rw ← over.w κ, refl }) }
 
 /-- Given f : Y ⟶ X, this is the obvious functor from T/Y to (T/X)/f -/
 @[simps]

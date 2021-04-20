@@ -1252,26 +1252,6 @@ end algebra
 
 end ring
 
-section nat
-
-variables (R : Type*) [semiring R]
-
-section span_nat
-open submodule
-
-lemma span_nat_eq_add_group_closure (s : set R) :
-  (span ℕ s).to_add_submonoid = add_submonoid.closure s :=
-eq.symm $ add_submonoid.closure_eq_of_le subset_span $ λ x hx, span_induction hx
-  (λ x hx, add_submonoid.subset_closure hx) (add_submonoid.zero_mem _)
-  (λ _ _, add_submonoid.add_mem _) (λ _ _ _, add_submonoid.nsmul_mem _ ‹_› _)
-
-@[simp] lemma span_nat_eq (s : add_submonoid R) : (span ℕ (s : set R)).to_add_submonoid = s :=
-by rw [span_nat_eq_add_group_closure, s.closure_eq]
-
-end span_nat
-
-end nat
-
 section int
 
 variables (R : Type*) [ring R]
@@ -1284,26 +1264,10 @@ instance algebra_int : algebra ℤ R :=
 
 variables {R}
 
-section
 variables {S : Type*} [ring S]
 
 instance int_algebra_subsingleton : subsingleton (algebra ℤ S) :=
 ⟨λ P Q, by { ext, simp, }⟩
-end
-
-section span_int
-open submodule
-
-lemma span_int_eq_add_group_closure (s : set R) :
-  (span ℤ s).to_add_subgroup = add_subgroup.closure s :=
-eq.symm $ add_subgroup.closure_eq_of_le _ subset_span $ λ x hx, span_induction hx
-  (λ x hx, add_subgroup.subset_closure hx) (add_subgroup.zero_mem _)
-  (λ _ _, add_subgroup.add_mem _) (λ _ _ _, add_subgroup.gsmul_mem _ ‹_› _)
-
-@[simp] lemma span_int_eq (s : add_subgroup R) : (span ℤ (s : set R)).to_add_subgroup = s :=
-by rw [span_int_eq_add_group_closure, s.closure_eq]
-
-end span_int
 
 end int
 

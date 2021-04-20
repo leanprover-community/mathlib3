@@ -374,7 +374,7 @@ end basic
 
 section comp
 
-variables {a b c : ℝ} (f : ℝ → E)
+variables {a b c d : ℝ} (f : ℝ → E)
 
 @[simp] lemma integral_comp_mul_right (hc : c ≠ 0) :
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
@@ -389,15 +389,27 @@ begin
   { simp [(show 0 < c, from h), mul_div_cancel, hc, abs_of_pos] }
 end
 
+@[simp] lemma integral_comp_mul_right' (c) :
+  c • ∫ x in a..b, f (x * c) = ∫ x in a*c..b*c, f x :=
+by by_cases hc : c = 0; simp [hc]
+
 @[simp] lemma integral_comp_mul_left (hc : c ≠ 0) :
   ∫ x in a..b, f (c * x) = c⁻¹ • ∫ x in c*a..c*b, f x :=
 by simpa only [mul_comm c] using integral_comp_mul_right f hc
+
+@[simp] lemma integral_comp_mul_left' (c) :
+  c • ∫ x in a..b, f (c * x) = ∫ x in c*a..c*b, f x :=
+by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_div (hc : c ≠ 0) :
   ∫ x in a..b, f (x / c) = c • ∫ x in a/c..b/c, f x :=
 by simpa only [inv_inv'] using integral_comp_mul_right f (inv_ne_zero hc)
 
-@[simp] lemma integral_comp_add_right (d : ℝ) :
+@[simp] lemma integral_comp_div' (c) :
+  c⁻¹ • ∫ x in a..b, f (x / c) = ∫ x in a/c..b/c, f x :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_add_right (d) :
   ∫ x in a..b, f (x + d) = ∫ x in a+d..b+d, f x :=
 have A : closed_embedding (λ x, x + d) := (homeomorph.add_right d).closed_embedding,
 calc  ∫ x in a..b, f (x + d)
@@ -405,27 +417,47 @@ calc  ∫ x in a..b, f (x + d)
                            : by simp [interval_integral, set_integral_map_of_closed_embedding _ A]
 ... = ∫ x in a+d..b+d, f x : by rw [real.map_volume_add_right]
 
-@[simp] lemma integral_comp_mul_add (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_mul_add (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (c * x + d) = c⁻¹ • ∫ x in c*a+d..c*b+d, f x :=
 by rw [← integral_comp_add_right f d, ← integral_comp_mul_left _ hc]
 
-@[simp] lemma integral_comp_add_mul (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_mul_add' (c d) :
+  c • ∫ x in a..b, f (c * x + d) = ∫ x in c*a+d..c*b+d, f x :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_add_mul (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d + c * x) = c⁻¹ • ∫ x in d+c*a..d+c*b, f x :=
 by simpa only [add_comm] using integral_comp_mul_add f hc d
 
-@[simp] lemma integral_comp_div_add (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_add_mul' (c d) :
+  c • ∫ x in a..b, f (d + c * x) = ∫ x in d+c*a..d+c*b, f x :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_div_add (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (x / c + d) = c • ∫ x in a/c+d..b/c+d, f x :=
 by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_mul_add f (inv_ne_zero hc) d
 
-@[simp] lemma integral_comp_add_div (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_div_add' (c d) :
+  c⁻¹ • ∫ x in a..b, f (x / c + d) = ∫ x in a/c+d..b/c+d, f x :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_add_div (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d + x / c) = c • ∫ x in d+a/c..d+b/c, f x :=
 by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_add_mul f (inv_ne_zero hc) d
 
-@[simp] lemma integral_comp_mul_sub (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_add_div' (c d) :
+  c⁻¹ • ∫ x in a..b, f (d + x / c) = ∫ x in d+a/c..d+b/c, f x :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_mul_sub (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (c * x - d) = c⁻¹ • ∫ x in c*a-d..c*b-d, f x :=
 by simpa only [sub_eq_add_neg] using integral_comp_mul_add f hc (-d)
 
-@[simp] lemma integral_comp_sub_mul (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_mul_sub' (c d) :
+  c • ∫ x in a..b, f (c * x - d) = ∫ x in c*a-d..c*b-d, f x  :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_sub_mul (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d - c * x) = c⁻¹ • ∫ x in d-c*b..d-c*a, f x :=
 begin
   simp only [sub_eq_add_neg, neg_mul_eq_neg_mul],
@@ -433,19 +465,31 @@ begin
   simp only [inv_neg, smul_neg, neg_neg, neg_smul],
 end
 
-@[simp] lemma integral_comp_div_sub (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_sub_mul' (c d) :
+  c • ∫ x in a..b, f (d - c * x) = ∫ x in d-c*b..d-c*a, f x  :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_div_sub (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (x / c - d) = c • ∫ x in a/c-d..b/c-d, f x :=
 by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_mul_sub f (inv_ne_zero hc) d
 
-@[simp] lemma integral_comp_sub_div (hc : c ≠ 0) (d : ℝ) :
+@[simp] lemma integral_comp_div_sub' (c d) :
+  c⁻¹ • ∫ x in a..b, f (x / c - d) = ∫ x in a/c-d..b/c-d, f x  :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_sub_div (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d - x / c) = c • ∫ x in d-b/c..d-a/c, f x :=
 by simpa only [div_eq_inv_mul, inv_inv'] using integral_comp_sub_mul f (inv_ne_zero hc) d
 
-@[simp] lemma integral_comp_sub_right (d : ℝ) :
+@[simp] lemma integral_comp_sub_div' (c d) :
+  c⁻¹ • ∫ x in a..b, f (d - x / c) = ∫ x in d-b/c..d-a/c, f x :=
+by by_cases hc : c = 0; simp [hc]
+
+@[simp] lemma integral_comp_sub_right (d) :
   ∫ x in a..b, f (x - d) = ∫ x in a-d..b-d, f x :=
 by simpa only [sub_eq_add_neg] using integral_comp_add_right f (-d)
 
-@[simp] lemma integral_comp_sub_left (d : ℝ) :
+@[simp] lemma integral_comp_sub_left (d) :
   ∫ x in a..b, f (d - x) = ∫ x in d-b..d-a, f x :=
 by simpa only [one_mul, one_smul, inv_one] using integral_comp_sub_mul f one_ne_zero d
 
@@ -1394,7 +1438,8 @@ lemma deriv_within_integral_left
 /-!
 ### Fundamental theorem of calculus, part 2
 
-This section contains theorems pertaining to FTC-2 for interval integrals. -/
+This section contains theorems pertaining to FTC-2 for interval integrals.
+-/
 
 variable {f' : ℝ → E}
 
@@ -1497,7 +1542,7 @@ integral_eq_sub_of_has_deriv_at' hcont (by rwa [min_eq_left hab, max_eq_right ha
 theorem integral_eq_sub_of_has_deriv_at (hderiv : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
-integral_eq_sub_of_has_deriv_at' (λ x hx, (hderiv x hx).continuous_at.continuous_within_at)
+integral_eq_sub_of_has_deriv_at' (has_deriv_at.continuous_on hderiv)
   (λ x hx, hderiv _ (mem_Icc_of_Ioo hx)) hcont'
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is differentiable at every `x` in `[a, b]` and
@@ -1530,14 +1575,8 @@ lemma integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
   (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
   (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
   ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a :=
-begin
-  have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
-  have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
-  rw integral_eq_sub_of_has_deriv_at,
-  intros x hx;
-  { exact (hu x hx).mul (hv x hx) },
-  { exact (hcu'.mul hcv).add (hcu.mul hcv') }
-end
+integral_eq_sub_of_has_deriv_at (λ x hx, (hu x hx).mul (hv x hx)) $
+  (hcu'.mul (has_deriv_at.continuous_on hv)).add ((has_deriv_at.continuous_on hu).mul hcv')
 
 theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
   (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
@@ -1545,13 +1584,37 @@ theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
   (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
   ∫ x in a..b, u x * v' x = u b * v b - u a * v a - ∫ x in a..b, v x * u' x :=
 begin
-  have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
-  have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
+  have hcv := has_deriv_at.continuous_on hv,
   rw [← integral_deriv_mul_eq_sub hu hv hcu' hcv', ← integral_sub],
-  { apply integral_congr,
-    exact λ x hx, by simp [mul_comm] },
-  { exact ((hcu'.mul hcv).add (hcu.mul hcv')).interval_integrable },
+  { exact integral_congr (λ x hx, by simp only [mul_comm, add_sub_cancel']) },
+  { exact ((hcu'.mul hcv).add ((has_deriv_at.continuous_on hu).mul hcv')).interval_integrable },
   { exact (hcv.mul hcu').interval_integrable },
 end
+
+/-!
+### Change of variable
+-/
+
+lemma integral_comp_mul_deriv {g f f' : ℝ → ℝ}
+  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (hf' : continuous_on f' (interval a b))
+  (hg : ∀ x ∈ f '' (interval a b), continuous_at g x)
+  (hgm : ∀ x ∈ f '' (interval a b), measurable_at_filter g (𝓝 x)) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
+let hg' := continuous_at.continuous_on hg in
+have h : ∀ x ∈ interval a b, has_deriv_at (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) x,
+{ intros x hx,
+  have hs := interval_subset_interval_left hx,
+  exact (integral_has_deriv_at_right (hg'.mono $ trans (intermediate_value_interval $
+    has_deriv_at.continuous_on $ λ y hy, hf y $ hs hy) $ image_subset f hs).interval_integrable
+      (hgm (f x) ⟨x, hx, rfl⟩) $ hg (f x) ⟨x, hx, rfl⟩).comp _ (hf x hx) },
+by simp_rw [integral_eq_sub_of_has_deriv_at h $ (hg'.comp (has_deriv_at.continuous_on hf) $
+  subset_preimage_image f _).mul hf', integral_same, sub_zero]
+
+lemma integral_comp_mul_deriv' {g f f' : ℝ → ℝ}
+  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (hf' : continuous_on f' (interval a b)) (hg : continuous g) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
+integral_comp_mul_deriv hf hf' (λ x h, hg.continuous_at) (λ x h, hg.measurable.measurable_at_filter)
 
 end interval_integral

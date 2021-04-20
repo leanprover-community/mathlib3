@@ -80,7 +80,11 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
   one_mul       := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (one_mul _), },
   mul_one       := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (mul_one _), },
   left_distrib  := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (left_distrib _ _ _), },
-  right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (right_distrib _ _ _), }, }
+  right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (right_distrib _ _ _), },
+  nsmul         := λ n, quot.map ((•) n) (rel.smul n),
+  nsmul_zero'   := by { rintro ⟨⟩, exact congr_arg (quot.mk _) (zero_nsmul _) },
+  nsmul_succ'   := by { rintros n ⟨⟩, refine congr_arg (quot.mk _) _,
+                        simp only [nat.succ_eq_one_add, add_smul, one_smul] } }
 
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : ring (ring_quot r) :=
 { neg            := quot.map (λ a, -a) rel.neg,

@@ -46,8 +46,8 @@ example : ∫ x in 0..2, -exp (-x) = exp (-2) - 1 := by norm_num
 example : ∫ x in 1..2, exp (5*x - 5) = 1/5 * (exp 5 - 1) := by norm_num
 example : ∫ x in 0..π, cos (x/2) = 2 := by norm_num
 example : ∫ x in 0..π/4, sin (2*x) = 1/2 := by norm_num [mul_div_comm, mul_one_div]
-example {ω φ : ℝ} (h : ω ≠ 0) : ∫ θ in 0..2*π, sin (ω*θ + φ) = ω⁻¹ * (cos φ - cos (2*π*ω + φ)) :=
-  by simp [h, mul_comm]
+example (ω φ : ℝ) : ω * ∫ θ in 0..π, sin (ω*θ + φ) = cos φ - cos (ω*π + φ) :=
+  by { rw ← smul_eq_mul, simp }
 
 /- some examples may require a bit of algebraic massaging -/
 example {L : ℝ} (h : L ≠ 0) : ∫ x in 0..2/L*π, sin (L/2 * x) = 4 / L :=
@@ -75,4 +75,23 @@ begin
   { simp },
   { simpa using has_deriv_at_pow 2 x },
   { exact continuous_on_const.mul continuous_on_id },
+/-! ### Composition of functions (aka "change of variable") -/
+
+/- `interval_integral.integral_comp_mul_deriv'` can be used to simplify integrals of the form
+  `∫ x in a..b, (g ∘ f) x * f' x`, where `f'` is the derivative of `f`, to `∫ x in f a..f b, g x` -/
+example {a b : ℝ} : ∫ x in a..b, exp (exp x) * exp x = ∫ x in exp a..exp b, exp x :=
+integral_comp_mul_deriv' (λ x hx, has_deriv_at_exp x) continuous_on_exp continuous_exp
+
+/- if it is known (to mathlib), the integral of `g` can then be evaluated using `simp`/`norm_num` -/
+example : ∫ x in 0..1, exp (exp x) * exp x = exp (exp 1) - exp 1 :=
+by rw integral_comp_mul_deriv' (λ x hx, has_deriv_at_exp x) continuous_on_exp continuous_exp; simp
+
+/- a more detailed example -/
+example : ∫ x in 0..2, exp (x ^ 2) * (2 * x) = exp 4 - 1 :=
+begin                                                   -- let g := exp x, f := x ^ 2, f' := 2 * x
+  rw integral_comp_mul_deriv' (λ x hx, _),              -- simplify to ∫ x in f 0..f 2, g x
+  { norm_num },                                         -- compute the integral
+  { exact continuous_on_const.mul continuous_on_id },   -- show that f' is continuous on [0, 2]
+  { exact continuous_exp },                             -- show that g is continuous
+  { simpa using has_deriv_at_pow 2 x },                 -- show that f' = derivative of f on [0, 2]
 end

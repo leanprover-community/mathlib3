@@ -325,3 +325,29 @@ noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj 
 (of_bijective f hinj hsurj).apply_symm_apply y
 
 end continuous_linear_equiv
+
+namespace continuous_linear_map
+
+/- TODO: remove the assumption `f.ker = ⊥` in the next lemma, by using the map induced by `f` on
+`E / f.ker`, once we have quotient normed spaces. -/
+lemma closed_complemented_range_of_is_compl_of_ker_eq_bot (f : E →L[𝕜] F) (G : submodule 𝕜 F)
+  (h : is_compl f.range G) (hG : is_closed (G : set F)) (hker : f.ker = ⊥) :
+  is_closed (f.range : set F) :=
+begin
+  let g : (E × G) →L[𝕜] F := f.coprod G.subtypeL,
+  have : (f.range : set F) = g '' ((⊤ : submodule 𝕜 E).prod (⊥ : submodule 𝕜 G)),
+    by { ext x, simp [continuous_linear_map.mem_range] },
+  rw this,
+  haveI : complete_space G := complete_space_coe_iff_is_complete.2 hG.is_complete,
+  have grange : g.range = ⊤,
+    by simp only [range_coprod, h.sup_eq_top, submodule.range_subtypeL],
+  have gker : g.ker = ⊥,
+  { rw [ker_coprod_of_disjoint_range, hker],
+    { simp only [submodule.ker_subtypeL, submodule.prod_bot] },
+    { convert h.disjoint,
+      exact submodule.range_subtypeL _ } },
+  apply (continuous_linear_equiv.of_bijective g gker grange).to_homeomorph.is_closed_image.2,
+  exact is_closed_univ.prod is_closed_singleton,
+end
+
+end continuous_linear_map

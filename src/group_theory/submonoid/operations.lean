@@ -172,6 +172,33 @@ le_antisymm
     add_submonoid.closure_le.2 submonoid.subset_closure)
   (submonoid.closure_le.2 add_submonoid.subset_closure)
 
+lemma submonoid.of_add_submonoid_closure {M : Type*} [monoid M] (S : set (additive M)) :
+  submonoid.of_add_submonoid (add_submonoid.closure S) =
+  submonoid.closure (multiplicative.of_add ⁻¹' S) :=
+le_antisymm
+  ((add_submonoid.submonoid_equiv (additive M)).to_galois_connection.l_le $
+    add_submonoid.closure_le.2 submonoid.subset_closure)
+  (submonoid.closure_le.2 add_submonoid.subset_closure)
+
+lemma add_submonoid.of_submonoid_closure {M : Type*} [add_monoid M] (S : set (multiplicative M)) :
+  add_submonoid.of_submonoid (submonoid.closure S) =
+  add_submonoid.closure (additive.of_mul ⁻¹' S) :=
+le_antisymm
+  ((submonoid.add_submonoid_equiv (multiplicative M)).to_galois_connection.l_le $
+    submonoid.closure_le.2 add_submonoid.subset_closure)
+  (add_submonoid.closure_le.2 submonoid.subset_closure)
+
+lemma monoid_fg_iff_fg {M : Type*} [monoid M] :
+  (∃ S, (submonoid.closure S : submonoid M) = ⊤) ↔
+  (∃ T, (add_submonoid.closure T : add_submonoid (additive M)) = ⊤) :=
+begin
+  split,
+  { rintro ⟨S, hS⟩,
+    exact ⟨additive.to_mul ⁻¹' S, by simpa [← submonoid.to_add_submonoid_closure, hS]⟩ },
+  { rintro ⟨T, hT⟩,
+    refine ⟨multiplicative.of_add ⁻¹' T, by simpa [← submonoid.of_add_submonoid_closure, hT]⟩ }
+end
+
 namespace submonoid
 
 open set

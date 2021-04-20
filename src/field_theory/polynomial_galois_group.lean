@@ -4,7 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
+import field_theory.algebraic_closure
 import field_theory.galois
+import group_theory.perm.cycle_type
+import ring_theory.eisenstein_criterion
+import ring_theory.polynomial.gauss_lemma
 
 /-!
 # Galois Groups of Polynomials
@@ -322,6 +326,104 @@ begin
     { exact nat_degree_le_of_dvd key (minpoly.ne_zero hα) } },
   apply minpoly.dvd F α,
   rw [aeval_def, map_root_of_splits _ (splitting_field.splits p) hp],
+end
+
+instance {p : polynomial ℚ} : fact (p.splits (algebra_map ℚ ℂ)) :=
+⟨is_alg_closed.splits_codomain p⟩
+
+example {α : Type*} (s : finset α) : fintype (s : set α) :=
+begin
+  exact finset_coe.fintype s,
+end
+
+def lem1 {G H : Type*} [group G] [group H] {f : G →* H} (hf : function.injective f) :
+  f.range ≃* G :=
+(mul_equiv.of_bijective (f.cod_restrict f.range (λ x, ⟨x, rfl⟩))
+  ⟨λ x y h, hf (subtype.ext_iff.mp h), by { rintros ⟨x, y, rfl⟩, exact ⟨y, rfl⟩ }⟩).symm
+
+def complex.conj_real_alg_equiv : ℂ ≃ₐ[ℝ] ℂ :=
+{ inv_fun := complex.conj,
+  left_inv := complex.conj_conj,
+  right_inv := complex.conj_conj,
+  commutes' := complex.conj_of_real,
+  .. complex.conj }
+
+def complex.conj_rat_alg_equiv : ℂ ≃ₐ[ℚ] ℂ :=
+alg_equiv.restrict_scalars ℚ complex.conj_real_alg_equiv
+
+instance {R : Type*} {S : Type*} [integral_domain R] [integral_domain S] [algebra R S]
+  (p : polynomial R) : fintype (p.root_set S) :=
+finset_coe.fintype _
+
+lemma tada_aux {p : polynomial ℚ} :
+  fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) +
+    (gal_action_hom p ℂ (restrict p ℂ complex.conj_rat_alg_equiv)).support.card :=
+begin
+  sorry
+end
+
+lemma tada {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
+  (p_roots : fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) + 2) :
+  function.bijective (gal_action_hom p ℂ) :=
+begin
+  have h1 : fintype.card (p.root_set ℂ) = p.nat_degree,
+  { simp_rw [root_set_def],
+    convert fintype.card_coe (p.map (algebra_map ℚ ℂ)).roots.to_finset,
+    rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots],
+    { exact is_alg_closed.splits_codomain p },
+    { exact nodup_roots ((separable_map (algebra_map ℚ ℂ)).mpr p_irr.separable) } },
+  have h2 : fintype.card (gal_action_hom p ℂ).range = fintype.card p.gal :=
+  fintype.card_congr (lem1 (gal_action_hom_injective p ℂ)).to_equiv,
+  let conj := restrict p ℂ complex.conj_rat_alg_equiv,
+  refine ⟨gal_action_hom_injective p ℂ, λ x, (congr_arg (has_mem.mem x)
+    (show (gal_action_hom p ℂ).range = ⊤, from _)).mpr (subgroup.mem_top x)⟩,
+  apply equiv.perm.subgroup_eq_top_of_swap_mem,
+  { rwa h1 },
+  { rw [h1, h2],
+    exact prime_degree_dvd_card p_irr p_deg },
+  { exact ⟨conj, rfl⟩ },
+  { rw ← equiv.perm.card_support_eq_two,
+    apply nat.add_left_cancel,
+    rw ← p_roots,
+    convert tada_aux.symm },
+end
+
+lemma final1 : function.bijective (gal_action_hom (X ^ 5 - 4 * X + 2 : polynomial ℚ) ℂ) :=
+begin
+  let p : polynomial ℚ := X ^ 5 - 4 * X + 2,
+  change function.bijective (gal_action_hom p ℂ),
+  let q : polynomial ℤ := X ^ 5 - C 4 * X + C 2,
+  have q_map : p = q.map (int.cast_ring_hom ℚ),
+  { rw [map_add, map_sub, map_mul, map_pow, map_X, map_C, map_C],
+    have h1 : C (int.cast_ring_hom ℚ 4) = 4,
+    { rw [int.coe_cast_ring_hom, C_eq_int_cast],
+      sorry },
+    have h2 : C (int.cast_ring_hom ℚ 2) = 2,
+    { rw [int.coe_cast_ring_hom, C_eq_int_cast],
+      sorry },
+    rw [h1, h2] },
+  have q_nat_degree : q.nat_degree = 5,
+  { sorry },
+  have q_leading_coeff : q.leading_coeff = 1,
+  { rw [leading_coeff, q_nat_degree, coeff_add, coeff_sub, coeff_C_mul, coeff_C, coeff_X_pow_self,
+        coeff_X, if_neg, if_neg, mul_zero, add_zero, sub_zero],
+    sorry,
+    sorry },
+  have q_monic : q.monic := q_leading_coeff,
+  have q_ne_zero : q ≠ 0 := q_monic.ne_zero,
+
+  apply tada,
+  { rw [q_map, ←is_primitive.int.irreducible_iff_irreducible_map_cast (q_monic.is_primitive)],
+    apply irreducible_of_eisenstein_criterion,
+    { change (ideal.span ({2} : set ℤ)).is_prime,
+      rw [ideal.span_singleton_prime, int.prime_iff_nat_abs_prime],
+      all_goals { norm_num } },
+    { rw [q_leading_coeff, ideal.mem_span_singleton],
+      norm_num },
+    { intros n hn,
+      rw [degree_eq_nat_degree q_ne_zero, with_bot.coe_lt_coe, q_nat_degree] at hn,
+      interval_cases n,
+      all_goals { rw [coeff_add, coeff_sub], }, } },
 end
 
 end gal

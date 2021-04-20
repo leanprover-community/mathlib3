@@ -380,7 +380,7 @@ begin
   exact function.injective.iterate contra k,
 end
 
-@[simp] lemma gen_eigenspace_ne_bot_iff_has_eigenvalue
+lemma gen_eigenspace_ne_bot_iff_has_eigenvalue
   {f : End R M} {μ : R} {k : ℕ} (hk : 0 < k) :
   gen_eigenspace f μ k ≠ ⊥ ↔ f.has_eigenvalue μ :=
 ⟨has_eigenvalue_of_gen_eigenspace_ne_bot, gen_eigenspace_ne_bot_of_has_eigenvalue hk⟩

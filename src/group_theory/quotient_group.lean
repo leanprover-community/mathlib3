@@ -182,21 +182,21 @@ assume a b, quotient.induction_on₂' a b $
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker,
   is_mul_hom.map_mul φ, ← h, is_group_hom.map_inv φ, inv_mul_self]
 
--- Note that ker φ isn't definitionally ker (to_range φ)
+-- Note that `ker φ` isn't definitionally `ker (φ.range_restrict)`
 -- so there is a bit of annoying code duplication here
 
 /-- The induced map from the quotient by the kernel to the range. -/
 @[to_additive quotient_add_group.range_ker_lift "The induced map from the quotient by the kernel to
 the range."]
 def range_ker_lift : quotient (ker φ) →* φ.range :=
-lift _ (to_range φ) $ λ g hg, (mem_ker _).mp $ by rwa to_range_ker
+lift _ φ.range_restrict $ λ g hg, (mem_ker _).mp $ by rwa range_restrict_ker
 
 @[to_additive quotient_add_group.range_ker_lift_injective]
 lemma range_ker_lift_injective : injective (range_ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $
-  assume a b (h : to_range φ a = to_range φ b), quotient.sound' $
-show a⁻¹ * b ∈ ker φ, by rw [←to_range_ker, mem_ker,
-  is_mul_hom.map_mul (to_range φ), ← h, is_group_hom.map_inv (to_range φ), inv_mul_self]
+  assume a b (h : φ.range_restrict a = φ.range_restrict b), quotient.sound' $
+show a⁻¹ * b ∈ ker φ, by rw [←range_restrict_ker, mem_ker,
+  φ.range_restrict.map_mul, ← h, φ.range_restrict.map_inv, inv_mul_self]
 
 @[to_additive quotient_add_group.range_ker_lift_surjective]
 lemma range_ker_lift_surjective : surjective (range_ker_lift φ) :=

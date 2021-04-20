@@ -200,6 +200,7 @@ semimodule R M
 To prove two semimodule structures on a fixed `add_comm_monoid` agree,
 it suffices to check the scalar multiplications agree.
 -/
+-- We'll later use this to show `semimodule ℕ M` and `module ℤ M` are subsingletons.
 @[ext]
 lemma semimodule_ext {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q : semimodule R M)
   (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
@@ -288,6 +289,19 @@ begin
   { rw [nat.succ_eq_add_one, nat.cast_succ, add_smul, add_smul, one_smul, ih, one_smul], }
 end
 end
+
+/-- Convert back any exotic `ℕ`-smul to the canonical instance. This should not be needed since in
+mathlib all `add_comm_monoid`s should normally have exactly one `ℕ`-semimodule structure by design.
+-/
+lemma nat_smul_eq_nsmul (h : semimodule ℕ M) (n : ℕ) (x : M) :
+  @has_scalar.smul ℕ M h.to_has_scalar n x = n • x :=
+by rw [nsmul_eq_smul_cast ℕ n x, nat.cast_id]
+
+/-- All `ℕ`-module structures are equal. Not an instance since in mathlib all `add_comm_monoid`
+should normally have exactly one `ℕ`-module structure by design. -/
+def add_comm_monoid.nat_semimodule.unique : unique (semimodule ℕ M) :=
+{ default := by apply_instance,
+  uniq := λ P, semimodule_ext P _ $ λ n, nat_smul_eq_nsmul P n }
 
 instance add_comm_monoid.nat_is_scalar_tower :
   is_scalar_tower ℕ R M :=

@@ -134,7 +134,7 @@ end subgroup
 /-!
 ### Conversion to/from `additive`/`multiplicative`
 -/
-section
+section mul_add
 
 /-- Supgroups of a group `G` are isomorphic to additive subgroups of `additive G`. -/
 @[simps]
@@ -171,6 +171,8 @@ def add_subgroup.to_subgroup : add_subgroup A ≃o subgroup (multiplicative A) :
 -/
 abbreviation subgroup.to_add_subgroup' : subgroup (multiplicative A) ≃o add_subgroup A :=
 add_subgroup.to_subgroup.symm
+
+end mul_add
 
 namespace subgroup
 

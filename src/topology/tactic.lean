@@ -71,8 +71,9 @@ meta def apply_continuous.continuous_on : tactic unit :=
 
 /-- List of tactics used by `continuity` internally. -/
 meta def continuity_tactics (md : transparency := reducible) : list (tactic string) :=
-[ apply_continuous.continuous_on
-                        >> pure "apply continuous.continuous_const",
+[
+  apply_continuous.continuous_on
+                        >> pure "apply continuous.continuous_on",
   intros1               >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
   apply_rules [``(continuity)] 50 { md := md }
                         >> pure "apply_rules continuity",

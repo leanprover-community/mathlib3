@@ -140,7 +140,7 @@ and will later connect that up.
 structure resolution (Z : C) :=
 (X : ℕ → C)
 (d : Π n, X (n+1) ⟶ X n)
-(zero : X 0 = Z)
+(zero : X 0 ≅ Z)
 (projective : ∀ n, projective (X (n+1)))
 (epi : epi (d 0))
 (exact : ∀ n, exact (d (n+1)) (d n))
@@ -185,7 +185,7 @@ def of (Z : C) : resolution Z :=
     (λ (X Y : C) (f : X ⟶ Y), projective.left f)
     (λ (X Y : C) (f : X ⟶ Y), projective.d f)
     Z n,
-  zero := rfl,
+  zero := iso.refl _,
   projective := λ n,
   begin
     induction n;

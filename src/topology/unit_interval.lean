@@ -106,32 +106,9 @@ The image of `[0,1]` under the homeomorphism `λ x, a * x + b` is `[b, a+b]`.
 -/
 -- We only need the ordering on `𝕜` here to avoid talking about flipping the interval over.
 -- At the end of the day I only care about `ℝ`, so I'm hesitant to put work into generalizing.
-@[simp]
 lemma affine_homeomorph_image_I (a b : 𝕜) (h : 0 < a) (w) :
   affine_homeomorph a b w '' set.Icc 0 1 = set.Icc b (a + b) :=
-begin
-  ext,
-  fsplit,
-  { rintro ⟨x, ⟨⟨zero_le, le_one⟩, rfl⟩⟩,
-    simp only [add_le_add_iff_right, affine_homeomorph_apply, le_add_iff_nonneg_left, set.mem_Icc],
-    exact ⟨mul_nonneg h.le zero_le, (mul_le_iff_le_one_right h).mpr le_one⟩, },
-  { intro m,
-    simp only [set.image_congr, set.mem_image, affine_homeomorph_apply],
-    use (x - b) / a,
-    fsplit,
-    { simp only [set.mem_Icc],
-      fsplit,
-      { apply div_nonneg,
-        apply sub_nonneg.mpr,
-        exact m.1,
-        exact h.le, },
-      { apply (div_le_one _).mpr,
-        apply sub_le_iff_le_add.mpr,
-        exact m.2,
-        exact h, } },
-    { rw mul_div_cancel' _ w,
-      simp, } },
-end
+by simp [h]
 
 /--
 The affine homeomorphism from a nontrivial interval `[a,b]` to `[0,1]`.
@@ -141,8 +118,7 @@ begin
   let e := homeomorph.image (affine_homeomorph (b-a) a (sub_pos.mpr h).ne.symm) (set.Icc 0 1),
   refine (e.trans _).symm,
   apply homeomorph.set_congr,
-  rw affine_homeomorph_image_I _ _ (sub_pos.mpr h),
-  rw sub_add_cancel,
+  simp [sub_pos.mpr h],
 end
 
 @[simp] lemma Icc_homeo_I_apply_coe (a b : 𝕜) (h : a < b) (x : set.Icc a b) :

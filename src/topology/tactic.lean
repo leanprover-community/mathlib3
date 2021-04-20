@@ -65,9 +65,14 @@ meta def apply_continuous.comp : tactic unit :=
   refine continuous.comp _ _;
   fail_if_success { exact continuous_id }]
 
+/-- Tactic to apply `continuous.continuous_on` when appropriate. -/
+meta def apply_continuous.continuous_on : tactic unit :=
+`[{ apply continuous.continuous_const }]
+
 /-- List of tactics used by `continuity` internally. -/
 meta def continuity_tactics (md : transparency := reducible) : list (tactic string) :=
-[
+[ apply_continuous.continuous_on
+                        >> pure "apply continuous.continuous_const",
   intros1               >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
   apply_rules [``(continuity)] 50 { md := md }
                         >> pure "apply_rules continuity",

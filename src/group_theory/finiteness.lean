@@ -33,18 +33,16 @@ add_decl_doc add_submonoid.fg
 variables (M N)
 
 /-- A monoid finitely generated if it is finitely generated as a submonoid of itself. -/
+@[to_additive]
 def monoid.fg : Prop := (⊤ : submonoid M).fg
-
-lemma monoid.fg_def : monoid.fg M ↔
-  ∃ S : set M, submonoid.closure S = (⊤ : submonoid M) ∧ S.finite :=
-⟨λ⟨S, hS⟩, ⟨S, hS, finset.finite_to_set S⟩, λ⟨S, hS, hf⟩, ⟨set.finite.to_finset hf, by simp [hS]⟩⟩
 
 /-- An additive monoid finitely generated if it is finitely generated as an additive submonoid of
 itself. -/
-def add_monoid.fg : Prop := (⊤ : add_submonoid N).fg
+add_decl_doc add_monoid.fg
 
-lemma add_monoid.fg_def : add_monoid.fg N ↔
-  ∃ S : set N, add_submonoid.closure S = (⊤ : add_submonoid N) ∧ S.finite :=
+@[to_additive]
+lemma monoid.fg_def : monoid.fg M ↔
+  ∃ S : set M, submonoid.closure S = (⊤ : submonoid M) ∧ S.finite :=
 ⟨λ⟨S, hS⟩, ⟨S, hS, finset.finite_to_set S⟩, λ⟨S, hS, hf⟩, ⟨set.finite.to_finset hf, by simp [hS]⟩⟩
 
 lemma monoid_fg_iff_add_fg : monoid.fg M ↔ add_monoid.fg (additive M) :=

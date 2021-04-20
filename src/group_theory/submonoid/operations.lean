@@ -65,112 +65,81 @@ variables {M N P : Type*} [mul_one_class M] [mul_one_class N] [mul_one_class P] 
 ### Conversion to/from `additive`/`multiplicative`
 -/
 
-/-- Map from submonoids of monoid `M` to `add_submonoid`s of `additive M`. -/
-def submonoid.to_add_submonoid {M : Type*} [mul_one_class M] (S : submonoid M) :
-  add_submonoid (additive M) :=
-{ carrier := S.carrier,
-  zero_mem' := S.one_mem',
-  add_mem' := S.mul_mem' }
-
-/-- Map from `add_submonoid`s of `additive M` to submonoids of `M`. -/
-def submonoid.of_add_submonoid {M : Type*} [mul_one_class M] (S : add_submonoid (additive M)) :
-  submonoid M :=
-{ carrier := S.carrier,
-  one_mem' := S.zero_mem',
-  mul_mem' := S.add_mem' }
-
-/-- Map from `add_submonoid`s of `M` to submonoids of `multiplicative M`. -/
-def add_submonoid.to_submonoid {M : Type*} [add_zero_class M] (S : add_submonoid M) :
-  submonoid (multiplicative M) :=
-{ carrier := S.carrier,
-  one_mem' := S.zero_mem',
-  mul_mem' := S.add_mem' }
-
-/-- Map from submonoids of `M` to `add_submonoid`s of `add_monoid M`. -/
-def add_submonoid.of_submonoid {M : Type*} [add_zero_class M] (S : submonoid (multiplicative M)) :
-  add_submonoid M :=
-{ carrier := S.carrier,
-  zero_mem' := S.one_mem',
-  add_mem' := S.mul_mem' }
-
-lemma submonoid.to_add_submonoid_coe {M : Type*} [mul_one_class M] (S : submonoid M) :
-  (S.to_add_submonoid : set (additive M)) = additive.to_mul ⁻¹' S :=
-rfl
-
-lemma add_submonoid.to_submonoid_coe {M : Type*} [add_zero_class M] (S : add_submonoid M) :
-  (S.to_submonoid : set (multiplicative M)) = multiplicative.to_add ⁻¹' S :=
-rfl
-
-lemma submonoid.of_add_submonoid_coe {M : Type*} [mul_one_class M]
-  (S : add_submonoid (additive M)) :
-  (submonoid.of_add_submonoid S : set M) = additive.of_mul ⁻¹' S :=
-rfl
-
-lemma add_submonoid.of_submonoid_coe {M : Type*} [add_zero_class M]
-  (S : submonoid (multiplicative M)) :
-  (add_submonoid.of_submonoid S : set M) = multiplicative.of_add ⁻¹' S :=
-rfl
+section
 
 /-- Submonoids of monoid `M` are isomorphic to additive submonoids of `additive M`. -/
-def submonoid.add_submonoid_equiv (M : Type*) [mul_one_class M] :
-  submonoid M ≃o add_submonoid (additive M) :=
-{ to_fun := submonoid.to_add_submonoid,
-  inv_fun := submonoid.of_add_submonoid,
+@[simps]
+def submonoid.to_add_submonoid : submonoid M ≃o add_submonoid (additive M) :=
+{ to_fun := λ S,
+  { carrier := additive.to_mul ⁻¹' S,
+    zero_mem' := S.one_mem',
+    add_mem' := S.mul_mem' },
+  inv_fun := λ S,
+  { carrier := additive.of_mul ⁻¹' S,
+    one_mem' := S.zero_mem',
+    mul_mem' := S.add_mem' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
 
-/-- Additive submonoids of an additive monoid `M` are isomorphic to
-multiplicative submonoids of `multiplicative M`. -/
-def add_submonoid.submonoid_equiv (M : Type*) [add_zero_class M] :
-  add_submonoid M ≃o submonoid (multiplicative M) :=
-{ to_fun := add_submonoid.to_submonoid,
-  inv_fun := add_submonoid.of_submonoid,
-  left_inv := λ x, by cases x; refl,
-  right_inv := λ x, by cases x; refl,
-  map_rel_iff' := λ a b, iff.rfl, }
+/-- Additive submonoids of an additive monoid `additive M` are isomorphic to submonoids of `M`. -/
+abbreviation add_submonoid.to_submonoid' : add_submonoid (additive M) ≃o submonoid M :=
+submonoid.to_add_submonoid.symm
 
-lemma submonoid.add_submonoid_equiv_coe (M : Type*) [add_zero_class M] :
-  ⇑(add_submonoid.submonoid_equiv M) = add_submonoid.to_submonoid := rfl
-
-lemma add_submonoid.submonoid_equiv_symm_coe (M : Type*) [add_zero_class M] :
-  ⇑(add_submonoid.submonoid_equiv M).symm = add_submonoid.of_submonoid := rfl
-
-lemma add_submonoid.submonoid_equiv_coe (M : Type*) [mul_one_class M] :
-  ⇑(submonoid.add_submonoid_equiv M) = submonoid.to_add_submonoid := rfl
-
-lemma submonoid.add_submonoid_equiv_symm_coe (M : Type*) [mul_one_class M] :
-  ⇑(submonoid.add_submonoid_equiv M).symm = submonoid.of_add_submonoid := rfl
-
-lemma submonoid.to_add_submonoid_mono {M : Type*} [mul_one_class M] :
-  monotone (submonoid.to_add_submonoid : submonoid M → add_submonoid (additive M)) :=
-λ a b hab, hab
-
-lemma add_submonoid.to_submonoid_mono {M : Type*} [add_zero_class M] :
-  monotone (add_submonoid.to_submonoid : add_submonoid M → submonoid (multiplicative M)) :=
-λ a b hab, hab
-
-lemma submonoid.of_add_submonoid_mono {M : Type*} [mul_one_class M] :
-  monotone (submonoid.of_add_submonoid : add_submonoid (additive M) → submonoid M) :=
-λ a b hab, hab
-
-lemma add_submonoid.of_submonoid_mono {M : Type*} [add_zero_class M] :
-  monotone (add_submonoid.of_submonoid : submonoid (multiplicative M) → add_submonoid M) :=
-λ a b hab, hab
-
-lemma submonoid.to_add_submonoid_closure {M : Type*} [monoid M] (S : set M) :
+lemma submonoid.to_add_submonoid_closure (S : set M) :
   (submonoid.closure S).to_add_submonoid = add_submonoid.closure (additive.to_mul ⁻¹' S) :=
 le_antisymm
-  ((submonoid.add_submonoid_equiv M).to_galois_connection.l_le $
+  (submonoid.to_add_submonoid.to_galois_connection.l_le $
     submonoid.closure_le.2 add_submonoid.subset_closure)
   (add_submonoid.closure_le.2 submonoid.subset_closure)
 
-lemma add_submonoid.to_submonoid_closure {M : Type*} [add_monoid M] (S : set M) :
-  (add_submonoid.closure S).to_submonoid = submonoid.closure (multiplicative.to_add ⁻¹' S) :=
+lemma add_submonoid.to_submonoid'_closure (S : set (additive M)) :
+  (add_submonoid.closure S).to_submonoid' = submonoid.closure (multiplicative.of_add ⁻¹' S) :=
 le_antisymm
-  ((add_submonoid.submonoid_equiv M).to_galois_connection.l_le $
+  (add_submonoid.to_submonoid'.to_galois_connection.l_le $
     add_submonoid.closure_le.2 submonoid.subset_closure)
   (submonoid.closure_le.2 add_submonoid.subset_closure)
+
+end
+
+section
+
+variables {A : Type*} [add_zero_class A]
+
+/-- Additive submonoids of an additive monoid `A` are isomorphic to
+multiplicative submonoids of `multiplicative A`. -/
+@[simps]
+def add_submonoid.to_submonoid : add_submonoid A ≃o submonoid (multiplicative A) :=
+{ to_fun := λ S,
+  { carrier := multiplicative.to_add ⁻¹' S,
+    one_mem' := S.zero_mem',
+    mul_mem' := S.add_mem' },
+  inv_fun := λ S,
+  { carrier := multiplicative.of_add ⁻¹' S,
+    zero_mem' := S.one_mem',
+    add_mem' := S.mul_mem' },
+  left_inv := λ x, by cases x; refl,
+  right_inv := λ x, by cases x; refl,
+  map_rel_iff' := λ a b, iff.rfl, }
+
+/-- Submonoids of a monoid `multiplicative A` are isomorphic to additive submonoids of `A`. -/
+abbreviation submonoid.to_add_submonoid' : submonoid (multiplicative A) ≃o add_submonoid A :=
+add_submonoid.to_submonoid.symm
+
+lemma add_submonoid.to_submonoid_closure (S : set A) :
+  (add_submonoid.closure S).to_submonoid = submonoid.closure (multiplicative.to_add ⁻¹' S) :=
+le_antisymm
+  (add_submonoid.to_submonoid.to_galois_connection.l_le $
+    add_submonoid.closure_le.2 submonoid.subset_closure)
+  (submonoid.closure_le.2 add_submonoid.subset_closure)
+
+lemma submonoid.to_add_submonoid'_closure (S : set (multiplicative A)) :
+  (submonoid.closure S).to_add_submonoid' = add_submonoid.closure (additive.of_mul ⁻¹' S) :=
+le_antisymm
+  (submonoid.to_add_submonoid'.to_galois_connection.l_le $
+    submonoid.closure_le.2 add_submonoid.subset_closure)
+  (add_submonoid.closure_le.2 submonoid.subset_closure)
+end
 
 namespace submonoid
 

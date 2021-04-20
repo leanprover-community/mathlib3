@@ -297,7 +297,7 @@ end
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
 kernel of `(f - μ • 1) ^ k`. (Def 8.10 of [axler2015]). Furthermore, a generalized eigenspace for
 some exponent `k` is contained in the generalized eigenspace for exponents larger than `k`. -/
-def generalized_eigenspace (f : End R M) (μ : R) : ℕ →ₘ submodule R M :=
+def gen_eigenspace (f : End R M) (μ : R) : ℕ →ₘ submodule R M :=
 { to_fun    := λ k, ((f - μ • 1) ^ k).ker,
   monotone' := λ k m hm,
   begin
@@ -305,74 +305,74 @@ def generalized_eigenspace (f : End R M) (μ : R) : ℕ →ₘ submodule R M :=
     exact linear_map.ker_le_ker_comp ((f - μ • 1) ^ k) ((f - μ • 1) ^ (m - k)),
   end }
 
-@[simp] lemma mem_generalized_eigenspace (f : End R M) (μ : R) (k : ℕ) (m : M) :
-  m ∈ f.generalized_eigenspace μ k ↔ ((f - μ • 1)^k) m = 0 :=
+@[simp] lemma mem_gen_eigenspace (f : End R M) (μ : R) (k : ℕ) (m : M) :
+  m ∈ f.gen_eigenspace μ k ↔ ((f - μ • 1)^k) m = 0 :=
 iff.rfl
 
 /-- A nonzero element of a generalized eigenspace is a generalized eigenvector.
     (Def 8.9 of [axler2015])-/
-def has_generalized_eigenvector (f : End R M) (μ : R) (k : ℕ) (x : M) : Prop :=
-x ≠ 0 ∧ x ∈ generalized_eigenspace f μ k
+def has_gen_eigenvector (f : End R M) (μ : R) (k : ℕ) (x : M) : Prop :=
+x ≠ 0 ∧ x ∈ gen_eigenspace f μ k
 
 /-- The generalized eigenrange for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
     range of `(f - μ • 1) ^ k`. -/
-def generalized_eigenrange (f : End R M) (μ : R) (k : ℕ) : submodule R M :=
+def gen_eigenrange (f : End R M) (μ : R) (k : ℕ) : submodule R M :=
 ((f - μ • 1) ^ k).range
 
 /-- The union of the kernels of `(f - μ • 1) ^ k` over all `k`. -/
 def max_gen_eigenspace (f : End R M) (μ : R) : submodule R M :=
-⨆ k, f.generalized_eigenspace μ k
+⨆ k, f.gen_eigenspace μ k
 
-lemma generalized_eigenspace_le_maximal (f : End R M) (μ : R) (k : ℕ) :
-  f.generalized_eigenspace μ k ≤ f.max_gen_eigenspace μ :=
+lemma gen_eigenspace_le_maximal (f : End R M) (μ : R) (k : ℕ) :
+  f.gen_eigenspace μ k ≤ f.max_gen_eigenspace μ :=
 le_supr _ _
 
 @[simp] lemma mem_max_gen_eigenspace (f : End R M) (μ : R) (m : M) :
   m ∈ f.max_gen_eigenspace μ ↔ ∃ (k : ℕ), ((f - μ • 1)^k) m = 0 :=
-by simp only [max_gen_eigenspace, ← mem_generalized_eigenspace,
+by simp only [max_gen_eigenspace, ← mem_gen_eigenspace,
   submodule.mem_supr_of_chain]
 
 /-- If there exists a natural number `k` such that the kernel of `(f - μ • 1) ^ k` is the
 maximal generalized eigenspace, then this value is the least such `k`. If not, this value is not
 meaningful. -/
 noncomputable def max_gen_eigenspace_index (f : End R M) (μ : R) :=
-monotonic_sequence_limit_index (f.generalized_eigenspace μ)
+monotonic_sequence_limit_index (f.gen_eigenspace μ)
 
 /-- For an endomorphism of a Noetherian module, the maximal eigenspace is always of the form kernel
 `(f - μ • 1) ^ k` for some `k`. -/
 lemma max_gen_eigenspace_eq [h : is_noetherian R M] (f : End R M) (μ : R) :
   max_gen_eigenspace f μ =
-  f.generalized_eigenspace μ (max_gen_eigenspace_index f μ) :=
+  f.gen_eigenspace μ (max_gen_eigenspace_index f μ) :=
 begin
   rw is_noetherian_iff_well_founded at h,
-  exact (well_founded.supr_eq_monotonic_sequence_limit h (f.generalized_eigenspace μ) : _),
+  exact (well_founded.supr_eq_monotonic_sequence_limit h (f.gen_eigenspace μ) : _),
 end
 
-lemma generalized_eigenspace_ne_bot_of_generalized_eigenspace_ne_bot_of_le
-  {f : End R M} {μ : R} {k : ℕ} {m : ℕ} (hm : k ≤ m) (hk : generalized_eigenspace f μ k ≠ ⊥) :
-  generalized_eigenspace f μ m ≠ ⊥ :=
+lemma gen_eigenspace_ne_bot_of_gen_eigenspace_ne_bot_of_le
+  {f : End R M} {μ : R} {k : ℕ} {m : ℕ} (hm : k ≤ m) (hk : gen_eigenspace f μ k ≠ ⊥) :
+  gen_eigenspace f μ m ≠ ⊥ :=
 begin
   contrapose! hk,
   rw [←le_bot_iff, ←hk],
-  exact (f.generalized_eigenspace μ).monotone hm,
+  exact (f.gen_eigenspace μ).monotone hm,
 end
 
 /-- The eigenspace is a subspace of the generalized eigenspace. -/
-lemma eigenspace_le_generalized_eigenspace {f : End R M} {μ : R} {k : ℕ} (hk : 0 < k) :
-  f.eigenspace μ ≤ f.generalized_eigenspace μ k :=
-(f.generalized_eigenspace μ).monotone (nat.succ_le_of_lt hk)
+lemma eigenspace_le_gen_eigenspace {f : End R M} {μ : R} {k : ℕ} (hk : 0 < k) :
+  f.eigenspace μ ≤ f.gen_eigenspace μ k :=
+(f.gen_eigenspace μ).monotone (nat.succ_le_of_lt hk)
 
-lemma generalized_eigenspace_ne_bot_of_has_eigenvalue
+lemma gen_eigenspace_ne_bot_of_has_eigenvalue
   {f : End R M} {μ : R} {k : ℕ} (hk : 0 < k) (hμ : f.has_eigenvalue μ) :
-  generalized_eigenspace f μ k ≠ ⊥ :=
+  gen_eigenspace f μ k ≠ ⊥ :=
 begin
-  apply generalized_eigenspace_ne_bot_of_generalized_eigenspace_ne_bot_of_le hk,
-  rw [generalized_eigenspace, preorder_hom.coe_fun_mk, pow_one],
+  apply gen_eigenspace_ne_bot_of_gen_eigenspace_ne_bot_of_le hk,
+  rw [gen_eigenspace, preorder_hom.coe_fun_mk, pow_one],
   exact hμ,
 end
 
-lemma has_eigenvalue_of_generalized_eigenspace_ne_bot
-  {f : End R M} {μ : R} {k : ℕ} (hμ : generalized_eigenspace f μ k ≠ ⊥) :
+lemma has_eigenvalue_of_gen_eigenspace_ne_bot
+  {f : End R M} {μ : R} {k : ℕ} (hμ : gen_eigenspace f μ k ≠ ⊥) :
   f.has_eigenvalue μ :=
 begin
   intros contra, apply hμ,
@@ -380,32 +380,32 @@ begin
   exact function.injective.iterate contra k,
 end
 
-@[simp] lemma generalized_eigenspace_ne_bot_iff_has_eigenvalue
+@[simp] lemma gen_eigenspace_ne_bot_iff_has_eigenvalue
   {f : End R M} {μ : R} {k : ℕ} (hk : 0 < k) :
-  generalized_eigenspace f μ k ≠ ⊥ ↔ f.has_eigenvalue μ :=
-⟨has_eigenvalue_of_generalized_eigenspace_ne_bot, generalized_eigenspace_ne_bot_of_has_eigenvalue hk⟩
+  gen_eigenspace f μ k ≠ ⊥ ↔ f.has_eigenvalue μ :=
+⟨has_eigenvalue_of_gen_eigenspace_ne_bot, gen_eigenspace_ne_bot_of_has_eigenvalue hk⟩
 
 /-- Every generalized eigenvector is a generalized eigenvector for exponent `findim K V`.
     (Lemma 8.11 of [axler2015]) -/
-lemma generalized_eigenspace_le_generalized_eigenspace_findim
+lemma gen_eigenspace_le_gen_eigenspace_findim
   [finite_dimensional K V] (f : End K V) (μ : K) (k : ℕ) :
-  f.generalized_eigenspace μ k ≤ f.generalized_eigenspace μ (findim K V) :=
+  f.gen_eigenspace μ k ≤ f.gen_eigenspace μ (findim K V) :=
 ker_pow_le_ker_pow_findim _ _
 
 /-- Generalized eigenspaces for exponents at least `findim K V` are equal to each other. -/
-lemma generalized_eigenspace_eq_generalized_eigenspace_findim_of_le [finite_dimensional K V]
+lemma gen_eigenspace_eq_gen_eigenspace_findim_of_le [finite_dimensional K V]
   (f : End K V) (μ : K) {k : ℕ} (hk : findim K V ≤ k) :
-  f.generalized_eigenspace μ k = f.generalized_eigenspace μ (findim K V) :=
+  f.gen_eigenspace μ k = f.gen_eigenspace μ (findim K V) :=
 ker_pow_eq_ker_pow_findim_of_le hk
 
 /-- If `f` maps a subspace `p` into itself, then the generalized eigenspace of the restriction
     of `f` to `p` is the part of the generalized eigenspace of `f` that lies in `p`. -/
-lemma generalized_eigenspace_restrict
+lemma gen_eigenspace_restrict
   (f : End R M) (p : submodule R M) (k : ℕ) (μ : R) (hfp : ∀ (x : M), x ∈ p → f x ∈ p) :
-  generalized_eigenspace (linear_map.restrict f hfp) μ k =
-    submodule.comap p.subtype (f.generalized_eigenspace μ k) :=
+  gen_eigenspace (linear_map.restrict f hfp) μ k =
+    submodule.comap p.subtype (f.gen_eigenspace μ k) :=
 begin
-  simp only [generalized_eigenspace, preorder_hom.coe_fun_mk, ← linear_map.ker_comp],
+  simp only [gen_eigenspace, preorder_hom.coe_fun_mk, ← linear_map.ker_comp],
   induction k with k ih,
   { rw [pow_zero, pow_zero, linear_map.one_eq_id],
     apply (submodule.ker_subtype _).symm },
@@ -414,45 +414,45 @@ begin
 end
 
 /-- Generalized eigenrange and generalized eigenspace for exponent `findim K V` are disjoint. -/
-lemma generalized_eigenvec_disjoint_range_ker [finite_dimensional K V] (f : End K V) (μ : K) :
-  disjoint (f.generalized_eigenrange μ (findim K V)) (f.generalized_eigenspace μ (findim K V))  :=
+lemma gen_eigenvec_disjoint_range_ker [finite_dimensional K V] (f : End K V) (μ : K) :
+  disjoint (f.gen_eigenrange μ (findim K V)) (f.gen_eigenspace μ (findim K V))  :=
 begin
   have h := calc
-    submodule.comap ((f - μ • 1) ^ findim K V) (f.generalized_eigenspace μ (findim K V))
+    submodule.comap ((f - μ • 1) ^ findim K V) (f.gen_eigenspace μ (findim K V))
       = ((f - μ • 1) ^ findim K V * (f - μ • 1) ^ findim K V).ker :
-        by { simpa only [generalized_eigenspace, preorder_hom.coe_fun_mk, ← linear_map.ker_comp], }
-  ... = f.generalized_eigenspace μ (findim K V + findim K V) :
+        by { simpa only [gen_eigenspace, preorder_hom.coe_fun_mk, ← linear_map.ker_comp], }
+  ... = f.gen_eigenspace μ (findim K V + findim K V) :
         by { rw ←pow_add, refl }
-  ... = f.generalized_eigenspace μ (findim K V) :
-        by { rw generalized_eigenspace_eq_generalized_eigenspace_findim_of_le, linarith },
-  rw [disjoint, generalized_eigenrange, linear_map.range_eq_map, submodule.map_inf_eq_map_inf_comap,
+  ... = f.gen_eigenspace μ (findim K V) :
+        by { rw gen_eigenspace_eq_gen_eigenspace_findim_of_le, linarith },
+  rw [disjoint, gen_eigenrange, linear_map.range_eq_map, submodule.map_inf_eq_map_inf_comap,
     top_inf_eq, h],
   apply submodule.map_comap_le
 end
 
 /-- The generalized eigenspace of an eigenvalue has positive dimension for positive exponents. -/
-lemma pos_findim_generalized_eigenspace_of_has_eigenvalue [finite_dimensional K V]
+lemma pos_findim_gen_eigenspace_of_has_eigenvalue [finite_dimensional K V]
   {f : End K V} {k : ℕ} {μ : K} (hx : f.has_eigenvalue μ) (hk : 0 < k):
-  0 < findim K (f.generalized_eigenspace μ k) :=
+  0 < findim K (f.gen_eigenspace μ k) :=
 calc
     0 = findim K (⊥ : submodule K V) : by rw findim_bot
   ... < findim K (f.eigenspace μ) : submodule.findim_lt_findim_of_lt (bot_lt_iff_ne_bot.2 hx)
-  ... ≤ findim K (f.generalized_eigenspace μ k) :
-    submodule.findim_mono ((f.generalized_eigenspace μ).monotone (nat.succ_le_of_lt hk))
+  ... ≤ findim K (f.gen_eigenspace μ k) :
+    submodule.findim_mono ((f.gen_eigenspace μ).monotone (nat.succ_le_of_lt hk))
 
 /-- A linear map maps a generalized eigenrange into itself. -/
-lemma map_generalized_eigenrange_le {f : End K V} {μ : K} {n : ℕ} :
-  submodule.map f (f.generalized_eigenrange μ n) ≤ f.generalized_eigenrange μ n :=
-calc submodule.map f (f.generalized_eigenrange μ n)
+lemma map_gen_eigenrange_le {f : End K V} {μ : K} {n : ℕ} :
+  submodule.map f (f.gen_eigenrange μ n) ≤ f.gen_eigenrange μ n :=
+calc submodule.map f (f.gen_eigenrange μ n)
        = (f * ((f - μ • 1) ^ n)).range : (linear_map.range_comp _ _).symm
    ... = (((f - μ • 1) ^ n) * f).range : by rw [← algebra.algebra_map_eq_smul_one,
                                                 algebra.mul_sub_algebra_map_pow_commutes]
    ... = submodule.map ((f - μ • 1) ^ n) f.range : linear_map.range_comp _ _
-   ... ≤ f.generalized_eigenrange μ n : linear_map.map_le_range
+   ... ≤ f.gen_eigenrange μ n : linear_map.map_le_range
 
 /-- The generalized eigenvectors span the entire vector space (Lemma 8.21 of [axler2015]). -/
-lemma supr_generalized_eigenspace_eq_top [is_alg_closed K] [finite_dimensional K V] (f : End K V) :
-  (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤ :=
+lemma supr_gen_eigenspace_eq_top [is_alg_closed K] [finite_dimensional K V] (f : End K V) :
+  (⨆ (μ : K) (k : ℕ), f.gen_eigenspace μ k) = ⊤ :=
 begin
   tactic.unfreeze_local_instances,
   -- We prove the claim by strong induction on the dimension of the vector space.
@@ -466,54 +466,54 @@ begin
     -- Hence, `f` has an eigenvalue `μ₀`.
     obtain ⟨μ₀, hμ₀⟩ : ∃ μ₀, f.has_eigenvalue μ₀ := exists_eigenvalue f,
     -- We define `ES` to be the generalized eigenspace
-    let ES := f.generalized_eigenspace μ₀ (findim K V),
+    let ES := f.gen_eigenspace μ₀ (findim K V),
     -- and `ER` to be the generalized eigenrange.
-    let ER := f.generalized_eigenrange μ₀ (findim K V),
+    let ER := f.gen_eigenrange μ₀ (findim K V),
     -- `f` maps `ER` into itself.
     have h_f_ER : ∀ (x : V), x ∈ ER → f x ∈ ER,
-      from λ x hx, map_generalized_eigenrange_le (submodule.mem_map_of_mem hx),
+      from λ x hx, map_gen_eigenrange_le (submodule.mem_map_of_mem hx),
     -- Therefore, we can define the restriction `f'` of `f` to `ER`.
     let f' : End K ER := f.restrict h_f_ER,
     -- The dimension of `ES` is positive
     have h_dim_ES_pos : 0 < findim K ES,
     { dsimp only [ES],
       rw h_dim,
-      apply pos_findim_generalized_eigenspace_of_has_eigenvalue hμ₀ (nat.zero_lt_succ n) },
+      apply pos_findim_gen_eigenspace_of_has_eigenvalue hμ₀ (nat.zero_lt_succ n) },
     -- and the dimensions of `ES` and `ER` add up to `findim K V`.
     have h_dim_add : findim K ER + findim K ES = findim K V,
     { apply linear_map.findim_range_add_findim_ker },
     -- Therefore the dimension `ER` mus be smaller than `findim K V`.
     have h_dim_ER : findim K ER < n.succ, by linarith,
     -- This allows us to apply the induction hypothesis on `ER`:
-    have ih_ER : (⨆ (μ : K) (k : ℕ), f'.generalized_eigenspace μ k) = ⊤,
+    have ih_ER : (⨆ (μ : K) (k : ℕ), f'.gen_eigenspace μ k) = ⊤,
       from ih (findim K ER) h_dim_ER f' rfl,
     -- The induction hypothesis gives us a statement about subspaces of `ER`. We can transfer this
     -- to a statement about subspaces of `V` via `submodule.subtype`:
-    have ih_ER' : (⨆ (μ : K) (k : ℕ), (f'.generalized_eigenspace μ k).map ER.subtype) = ER,
+    have ih_ER' : (⨆ (μ : K) (k : ℕ), (f'.gen_eigenspace μ k).map ER.subtype) = ER,
       by simp only [(submodule.map_supr _ _).symm, ih_ER, submodule.map_subtype_top ER],
     -- Moreover, every generalized eigenspace of `f'` is contained in the corresponding generalized
     -- eigenspace of `f`.
     have hff' : ∀ μ k,
-        (f'.generalized_eigenspace μ k).map ER.subtype ≤ f.generalized_eigenspace μ k,
+        (f'.gen_eigenspace μ k).map ER.subtype ≤ f.gen_eigenspace μ k,
     { intros,
-      rw generalized_eigenspace_restrict,
+      rw gen_eigenspace_restrict,
       apply submodule.map_comap_le },
     -- It follows that `ER` is contained in the span of all generalized eigenvectors.
-    have hER : ER ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
+    have hER : ER ≤ ⨆ (μ : K) (k : ℕ), f.gen_eigenspace μ k,
     { rw ← ih_ER',
       apply supr_le_supr _,
       exact λ μ, supr_le_supr (λ k, hff' μ k), },
     -- `ES` is contained in this span by definition.
-    have hES : ES ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
+    have hES : ES ≤ ⨆ (μ : K) (k : ℕ), f.gen_eigenspace μ k,
       from le_trans
-        (le_supr (λ k, f.generalized_eigenspace μ₀ k) (findim K V))
-        (le_supr (λ (μ : K), ⨆ (k : ℕ), f.generalized_eigenspace μ k) μ₀),
+        (le_supr (λ k, f.gen_eigenspace μ₀ k) (findim K V))
+        (le_supr (λ (μ : K), ⨆ (k : ℕ), f.gen_eigenspace μ k) μ₀),
     -- Moreover, we know that `ER` and `ES` are disjoint.
     have h_disjoint : disjoint ER ES,
-      from generalized_eigenvec_disjoint_range_ker f μ₀,
+      from gen_eigenvec_disjoint_range_ker f μ₀,
     -- Since the dimensions of `ER` and `ES` add up to the dimension of `V`, it follows that the
     -- span of all generalized eigenvectors is all of `V`.
-    show (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤,
+    show (⨆ (μ : K) (k : ℕ), f.gen_eigenspace μ k) = ⊤,
     { rw [←top_le_iff, ←submodule.eq_top_of_disjoint ER ES h_dim_add h_disjoint],
       apply sup_le hER hES } }
 end

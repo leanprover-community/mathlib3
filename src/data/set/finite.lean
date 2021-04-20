@@ -287,11 +287,11 @@ lemma finite.union_iff {s t : set α} : finite (s ∪ t) ↔ finite s ∧ finite
 ⟨λ h, ⟨h.subset (subset_union_left _ _), h.subset (subset_union_right _ _)⟩,
  λ ⟨hs, ht⟩, hs.union ht⟩
 
-lemma finite.diff {s t u : set α} (hs : s.finite) (ht : t.finite) (h : u \ t ≤ s) : u.finite :=
-begin
-  refine finite.subset (ht.union hs) _,
-  exact diff_subset_iff.mp h
-end
+lemma finite.diff {s : set α} (hs : s.finite) (t : set α) : (s \ t).finite :=
+hs.subset (diff_subset s t)
+
+lemma finite.of_diff {s t u : set α} (hs : s.finite) (ht : t.finite) (h : u \ t ⊆ s) : u.finite :=
+finite.subset (ht.union hs) (diff_subset_iff.mp h)
 
 theorem finite.inter_of_left {s : set α} (h : finite s) (t : set α) : finite (s ∩ t) :=
 h.subset (inter_subset_left _ _)

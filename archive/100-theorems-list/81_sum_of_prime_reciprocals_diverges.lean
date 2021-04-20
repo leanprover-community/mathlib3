@@ -30,13 +30,6 @@ open_locale big_operators
 open_locale classical
 open nat pnat filter finset
 
-lemma nat.succ_pred {n : ℕ} (h : n > 0) : n.pred.succ = n :=
-begin
-  cases n,
-  { exfalso, exact nat.lt_asymm h h },
-  rw nat.pred_succ n,
-end
-
 lemma sq_mul_squarefree {n : ℕ} (hn : n > 0) :
   ∃ a b : ℕ, a > 0 ∧ b > 0 ∧ b ^ 2 * a = n ∧ squarefree a :=
 begin
@@ -99,8 +92,9 @@ lemma sq_mul_squarefree' {n : ℕ} (h : n > 0) :
 begin
   obtain ⟨a₁, b₁, ha₁, hb₁, hab₁, hab₂⟩ := sq_mul_squarefree h,
   refine ⟨a₁.pred, b₁.pred, _, _⟩,
-  { rw [nat.add_one a₁.pred, nat.succ_pred ha₁, nat.add_one b₁.pred, nat.succ_pred hb₁, hab₁] },
-  { rw [nat.add_one a₁.pred, nat.succ_pred ha₁], exact hab₂ },
+  { rw [nat.add_one a₁.pred, nat.succ_pred_eq_of_pos ha₁,
+        nat.add_one b₁.pred, nat.succ_pred_eq_of_pos hb₁, hab₁] },
+  { rw [nat.add_one a₁.pred, nat.succ_pred_eq_of_pos ha₁], exact hab₂ },
 end
 
 lemma card_le_div_nat {n p : ℕ} {Np : finset ℕ} (hp : p > 0)

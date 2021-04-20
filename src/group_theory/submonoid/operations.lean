@@ -9,7 +9,6 @@ import group_theory.submonoid.basic
 import data.equiv.mul_add
 import algebra.group.prod
 import algebra.group.inj_surj
-import data.set.finite
 
 /-!
 # Operations on `submonoid`s
@@ -198,28 +197,6 @@ begin
     exact ⟨additive.to_mul ⁻¹' S, by simpa [← submonoid.to_add_submonoid_closure, hS]⟩ },
   { rintro ⟨T, hT⟩,
     refine ⟨multiplicative.of_add ⁻¹' T, by simpa [← submonoid.of_add_submonoid_closure, hT]⟩ }
-end
-
-lemma monoid_fg_iff_add_fg {M : Type*} [monoid M] :
-  (∃ S, (submonoid.closure S : submonoid M) = ⊤ ∧ S.finite) ↔
-  (∃ T, (add_submonoid.closure T : add_submonoid (additive M)) = ⊤ ∧ T.finite) :=
-begin
-  split,
-  { rintro ⟨S, hS, hf⟩,
-    exact ⟨additive.to_mul ⁻¹' S, by simpa [← submonoid.to_add_submonoid_closure, hS], hf⟩, },
-  { rintro ⟨T, hT, hf⟩,
-    refine ⟨multiplicative.of_add ⁻¹' T, by simpa [← submonoid.of_add_submonoid_closure, hT], hf⟩ }
-end
-
-lemma add_monoid_fg_iff_mul_fg {M : Type*} [add_monoid M] :
-  (∃ S, (add_submonoid.closure S : add_submonoid M) = ⊤ ∧ S.finite) ↔
-  (∃ T, (submonoid.closure T : submonoid (multiplicative M)) = ⊤ ∧ T.finite) :=
-begin
-  split,
-  { rintro ⟨S, hS, hf⟩,
-    exact ⟨multiplicative.to_add ⁻¹' S, by simpa [← add_submonoid.to_submonoid_closure, hS], hf⟩, },
-  { rintro ⟨T, hT, hf⟩,
-    refine ⟨additive.of_mul ⁻¹' T, by simpa [← add_submonoid.of_submonoid_closure, hT], hf⟩ }
 end
 
 namespace submonoid

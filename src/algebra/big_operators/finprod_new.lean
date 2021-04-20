@@ -128,12 +128,13 @@ by {rw ← finprod_mem_univ, exact one_le_of_finprod_mem_one_le (λ i _, hf i)}
 lemma finprod_mem_le_finprod_mem''' (hfg : ∀ x ∈ s, f x ≤ g x) (hf : (s ∩ mul_support f).finite)
   (hg : (s ∩ mul_support g).finite) : ∏ᶠ i ∈ s, f i ≤ ∏ᶠ i ∈ s, g i :=
 begin
-  --have := @finset.prod_le_prod'',
   convert @finset.prod_le_prod'' _ _ _  f g  ((hf.union hg).to_finset.filter s) (λ i, _),
-  any_goals { refine finprod_mem_eq_prod_of_mem_iff _ (λ _ _, _)},
-  all_goals {simp only [mem_inter_eq, mem_union_eq, mem_mul_support, finite.mem_to_finset,
-    finset.mem_filter],
-    tauto},
+  any_goals
+  { refine finprod_mem_eq_prod_of_inter_mul_support_eq _ (ext_iff.mpr (λ _, _))},
+  all_goals
+  { simp only [finite.mem_to_finset, mem_sep_eq, finite.coe_to_finset, mem_inter_eq, ne.def,
+    mem_union_eq, mem_mul_support, and.congr_left_iff, finset.coe_filter, finset.mem_filter],
+    tauto },
 end
 
 @[to_additive finsum_mem_le_finsum_mem]
@@ -165,5 +166,5 @@ end
 
 @[to_additive]
 lemma finprod_mem_eq_one_iff_of_le_one (hs : (s ∩ mul_support f).finite) (hf : ∀ x ∈ s, 1 ≤ f x) :
-  ∏ᶠ x ∈ s, f x = 1 ↔ ∀ x ∈ s, f x = 1 :=
+  ∏ᶠ x ∈ s, f x = 1 ↔ ∀ x ∈ s, f x = 1 := sorry 
 end order

@@ -47,7 +47,7 @@ begin
     apply lie_submodule.subset_lie_span, use [x, m], refl, },
 end
 
-lemma iterated_action_mem_lower_central_series (x : L) (m : M) (k : ℕ) :
+lemma iterate_to_endomorphism_mem_lower_central_series (x : L) (m : M) (k : ℕ) :
   (to_endomorphism R L M x)^[k] m ∈ lower_central_series R L M k :=
 begin
   induction k with k ih,
@@ -85,7 +85,7 @@ begin
   use k,
   intros x, ext m,
   rw [linear_map.pow_apply, linear_map.zero_apply, ← @lie_submodule.mem_bot R L M, ← hM],
-  exact iterated_action_mem_lower_central_series R L M x m k,
+  exact iterate_to_endomorphism_mem_lower_central_series R L M x m k,
 end
 
 /-- For a nilpotent Lie module, the weight space of the 0 weight is the whole module.

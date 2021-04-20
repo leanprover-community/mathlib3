@@ -299,10 +299,6 @@ def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑H.subtype = coe := rfl
 
-@[to_additive] lemma subtype_injective {H : subgroup G} :
-  function.injective H.subtype :=
-by { unfold function.injective, intros a b, simp }
-
 @[simp, norm_cast] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
 coe_subtype H ▸ monoid_hom.map_pow _ _ _
 @[simp, norm_cast] lemma coe_gpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
@@ -683,12 +679,12 @@ rfl
 @[to_additive "For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`."]
 def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype
 
-@[to_additive] lemma subgroup_of_carrier (H K : subgroup G) :
-  (H.subgroup_of K).carrier = K.subtype ⁻¹' H := rfl
+@[to_additive] lemma coe_subgroup_of (H K : subgroup G) :
+  (H.subgroup_of K : set K) = K.subtype ⁻¹' H := rfl
 
-@[to_additive] lemma mem_of (H K : subgroup G) (h : K) :
+@[to_additive] lemma mem_subgroup_of (H K : subgroup G) (h : K) :
   h ∈ H.subgroup_of K ↔ K.subtype h ∈ H :=
-by rw [subgroup_of, mem_comap]
+iff.rfl
 
 /-- The image of a subgroup along a monoid homomorphism is a subgroup. -/
 @[to_additive "The image of an `add_subgroup` along an `add_monoid` homomorphism
@@ -733,13 +729,22 @@ lemma map_supr {ι : Sort*} (f : G →* N) (s : ι → subgroup G) :
   (supr s).map f = ⨆ i, (s i).map f :=
 (gc_map_comap f).l_supr
 
+@[to_additive] lemma comap_sup
+  (H K : subgroup N) (f : G →* N) : comap f H ⊔ comap f K ≤ comap f (H ⊔ K) :=
+sup_le (comap_mono le_sup_left) (comap_mono le_sup_right)
+
+@[to_additive] lemma comap_supr {ι : Sort*} (f : G →* N) (s : ι → subgroup N) :
+  (⨆ i, (s i).comap f) ≤ (supr s).comap f :=
+supr_le (λ i, comap_mono (le_supr _ _))
+
 @[to_additive]
 lemma comap_inf (H K : subgroup N) (f : G →* N) : (H ⊓ K).comap f = H.comap f ⊓ K.comap f :=
 (gc_map_comap f).u_inf
 
-@[to_additive] lemma comap_sup
-  (H K : subgroup N) (f : G →* N) : comap f H ⊔ comap f K ≤ comap f (H ⊔ K) :=
-sup_le (comap_mono le_sup_left) (comap_mono le_sup_right)
+@[to_additive]
+lemma comap_infi {ι : Sort*} (f : G →* N) (s : ι → subgroup N) :
+  (infi s).comap f = ⨅ i, (s i).comap f :=
+(gc_map_comap f).u_infi
 
 @[to_additive] lemma map_inf (H K : subgroup G) (f : G →* N) :
   map f (H ⊓ K) ≤ map f H ⊓ map f K :=
@@ -751,11 +756,6 @@ begin
   rw ← set_like.coe_set_eq,
   simp [set.image_inter hf],
 end
-
-@[to_additive]
-lemma comap_infi {ι : Sort*} (f : G →* N) (s : ι → subgroup N) :
-  (infi s).comap f = ⨅ i, (s i).comap f :=
-(gc_map_comap f).u_infi
 
 @[simp, to_additive] lemma map_bot (f : G →* N) : (⊥ : subgroup G).map f = ⊥ :=
 (gc_map_comap f).l_bot
@@ -1127,6 +1127,9 @@ homomorphism `G →* N`. -/
 homomorphism `G →+ N`."]
 def range_restrict (f : G →* N) : G →* f.range :=
 monoid_hom.mk' (λ g, ⟨f g, ⟨g, rfl⟩⟩) $ λ a b, by {ext, exact f.map_mul' _ _}
+
+@[simp, to_additive]
+lemma coe_range_restrict (f : G →* N) (g : G) : (f.range_restrict g : N) = f g := rfl
 
 @[to_additive]
 lemma map_range (g : N →* P) (f : G →* N) : f.range.map g = (g.comp f).range :=
@@ -1714,18 +1717,14 @@ set.subset.antisymm
     by { rw sup_eq_closure, apply Inf_le _, dsimp, refl })
   ((sup_eq_closure N H).symm ▸ subset_closure)
 
-@[to_additive] lemma mem_mul_iff
+@[to_additive] lemma mem_sup_iff
   {H K : subgroup G} {g : G} (h : ↑(H ⊔ K) = (H : set G) * K) :
   g ∈ H ⊔ K ↔ ∃ x y, x ∈ H ∧ y ∈ K ∧ x * y = g :=
-begin
-  refine ⟨λ (hg : g ∈ ↑(H ⊔ K)), _, λ hg,  (_ : g ∈ ↑(H ⊔ K))⟩,
-  rwa [h, set.mem_mul] at hg,
-  rwa [h, set.mem_mul],
-end
+set.ext_iff.1 h g
 
-@[to_additive] lemma mem_mul_iff' {H K : subgroup G} {g : G} (h : ↑(H ⊔ K) = (H : set G) * K) :
+@[to_additive] lemma mem_sup_iff' {H K : subgroup G} {g : G} (h : ↑(H ⊔ K) = (H : set G) * K) :
   g ∈ H ⊔ K ↔ ∃ (x:H) (y:K), (x * y : G) = g :=
-(mem_mul_iff h).trans
+(mem_sup_iff h).trans
   ⟨λ ⟨a, b, ha, hb, h⟩, ⟨⟨a, ha⟩, ⟨b, hb⟩, h⟩,
   λ ⟨⟨a, ha⟩, ⟨b, hb⟩, h⟩, ⟨a, b, ha, hb, h⟩⟩
 
@@ -1743,8 +1742,8 @@ begin
   { rcases set.mem_mul.mp h with ⟨y, z, hy, hz, hyz⟩,
     rw set.mem_mul,
     exact ⟨y, z, hy, (set.mem_of_subset_of_mem (set.inter_subset_right ↑A ↑B) hz), hyz⟩, },
-    rw set.mem_inter_iff at h,
-    rcases h.2 with ⟨y, z, hy, hz, hyz⟩,
+  rw set.mem_inter_iff at h,
+  rcases h.2 with ⟨y, z, hy, hz, hyz⟩,
   rw set.mem_mul,
   refine ⟨x * z⁻¹, z, _, (set.mem_inter _ hz), _⟩,
   rwa ← eq_mul_inv_of_mul_eq hyz,
@@ -1785,7 +1784,7 @@ section subgroup_normal
 
 @[to_additive] lemma normal_of_iff {H K : subgroup G} (hHK : H ≤ K) :
   (H.subgroup_of K).normal ↔ ∀ h k, h ∈ H → k ∈ K → k * h * k⁻¹ ∈ H :=
-⟨λ hN h k hH hK, hN.conj_mem ⟨h, hHK hH⟩ (by { simp [mem_of], exact hH }) ⟨k, hK⟩,
+⟨λ hN h k hH hK, hN.conj_mem ⟨h, hHK hH⟩ hH ⟨k, hK⟩,
   λ hN, { conj_mem := λ h hm k, (hN h.1 k.1 hm k.2) }⟩
 
 @[to_additive] lemma prod_of_prod_normal

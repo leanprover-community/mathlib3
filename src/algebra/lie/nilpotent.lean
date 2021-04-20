@@ -92,7 +92,7 @@ end
 
 This result will be used downstream to show that weight spaces are Lie submodules, at which time
 it will be possible to state it in the language of weight spaces. -/
-lemma zero_weight_space_eq_top_of_nilpotent [is_nilpotent R L M] :
+lemma infi_max_gen_zero_eigenspace_eq_top_of_nilpotent [is_nilpotent R L M] :
   (⨅ (x : L), (to_endomorphism R L M x).maximal_generalized_eigenspace 0) = ⊤ :=
 begin
   ext m,
@@ -133,9 +133,9 @@ lemma lie_algebra.nilpotent_ad_of_nilpotent_algebra [is_nilpotent R L] :
   ∃ (k : ℕ), ∀ (x : L), (ad R L x)^k = 0 :=
 lie_module.nilpotent_endo_of_nilpotent_module R L L
 
-lemma lie_algebra.zero_root_space_eq_top_of_nilpotent [is_nilpotent R L] :
+lemma lie_algebra.infi_max_gen_zero_eigenspace_eq_top_of_nilpotent [is_nilpotent R L] :
   (⨅ (x : L), (ad R L x).maximal_generalized_eigenspace 0) = ⊤ :=
-lie_module.zero_weight_space_eq_top_of_nilpotent R L L
+lie_module.infi_max_gen_zero_eigenspace_eq_top_of_nilpotent R L L
 
 -- TODO Generalise the below to Lie modules if / when we define morphisms, equivs of Lie modules
 -- covering a Lie algebra morphism of (possibly different) Lie algebras.

@@ -179,7 +179,7 @@ theorem is_integral : is_integral (fixed_points G F) x :=
 
 theorem minpoly_eq_minpoly :
   minpoly G F x = _root_.minpoly (fixed_points G F) x :=
-minpoly.unique' (is_integral G F x) (minpoly.irreducible G F x)
+minpoly.unique' (minpoly.irreducible G F x)
   (minpoly.eval₂ G F x) (minpoly.monic G F x)
 
 instance normal : normal (fixed_points G F) F :=
@@ -252,7 +252,7 @@ def to_alg_hom (G : Type u) (F : Type v) [group G] [field F]
   [faithful_mul_semiring_action G F] : G ↪ (F →ₐ[fixed_points G F] F) :=
 { to_fun := λ g, { commutes' := λ x, x.2 g,
     .. mul_semiring_action.to_semiring_hom G F g },
-  inj' := λ g₁ g₂ hg, injective_to_semiring_hom G F $ ring_hom.ext $ λ x, alg_hom.ext_iff.1 hg x, }
+  inj' := λ g₁ g₂ hg, to_semiring_hom_injective G F $ ring_hom.ext $ λ x, alg_hom.ext_iff.1 hg x, }
 
 lemma to_alg_hom_apply_apply {G : Type u} {F : Type v} [group G] [field F]
   [faithful_mul_semiring_action G F] (g : G) (x : F) :

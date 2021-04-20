@@ -204,6 +204,11 @@ by { rw inter_eq_compl_compl_union_compl, exact (h₁.compl.union h₂.compl).co
   measurable_set (s₁ \ s₂) :=
 h₁.inter h₂.compl
 
+@[simp] lemma measurable_set.ite {t s₁ s₂ : set α} (ht : measurable_set t) (h₁ : measurable_set s₁)
+  (h₂ : measurable_set s₂) :
+  measurable_set (t.ite s₁ s₂) :=
+(h₁.inter ht).union (h₂.diff ht)
+
 @[simp] lemma measurable_set.disjointed {f : ℕ → set α} (h : ∀ i, measurable_set (f i)) (n) :
   measurable_set (disjointed f n) :=
 disjointed_induct (h n) (assume t i ht, measurable_set.diff ht $ h _)
@@ -516,8 +521,8 @@ lemma measurable.piecewise {s : set α} {_ : decidable_pred s} {f g : α → β}
   measurable (piecewise s f g) :=
 begin
   intros t ht,
-  simp only [piecewise_preimage],
-  exact (hs.inter $ hf ht).union (hs.compl.inter $ hg ht)
+  rw piecewise_preimage,
+  exact hs.ite (hf ht) (hg ht)
 end
 
 /-- this is slightly different from `measurable.piecewise`. It can be used to show
@@ -545,6 +550,11 @@ begin
   convert measurable_set.empty,
   exact eq_empty_of_not_nonempty h _,
 end
+
+@[to_additive] lemma measurable_set_mul_support [has_one β]
+  [measurable_singleton_class β] {f : α → β} (hf : measurable f) :
+  measurable_set (mul_support f) :=
+hf (measurable_set_singleton 1).compl
 
 end measurable_functions
 
@@ -691,6 +701,10 @@ measurable_const.prod_mk measurable_id
 lemma measurable_prod_mk_right {y : β} : measurable (λ x : α, (x, y)) :=
 measurable_id.prod_mk measurable_const
 
+lemma measurable.prod_map [measurable_space δ] {f : α → β} {g : γ → δ} (hf : measurable f)
+  (hg : measurable g) : measurable (prod.map f g) :=
+(hf.comp measurable_fst).prod_mk (hg.comp measurable_snd)
+
 lemma measurable.of_uncurry_left {f : α → β → γ} (hf : measurable (uncurry f)) {x : α} :
   measurable (f x) :=
 hf.comp measurable_prod_mk_left
@@ -730,6 +744,18 @@ end
 lemma measurable_set_swap_iff {s : set (α × β)} :
   measurable_set (prod.swap ⁻¹' s) ↔ measurable_set s :=
 ⟨λ hs, by { convert measurable_swap hs, ext ⟨x, y⟩, refl }, λ hs, measurable_swap hs⟩
+
+lemma measurable_from_prod_encodable [encodable β] [measurable_singleton_class β]
+  {f : α × β → γ} (hf : ∀ y, measurable (λ x, f (x, y))) :
+  measurable f :=
+begin
+  intros s hs,
+  have : f ⁻¹' s = ⋃ y, ((λ x, f (x, y)) ⁻¹' s).prod {y},
+  { ext1 ⟨x, y⟩,
+    simp [and_assoc, and.left_comm] },
+  rw this,
+  exact measurable_set.Union (λ y, (hf y hs).prod (measurable_set_singleton y))
+end
 
 end prod
 

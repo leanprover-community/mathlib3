@@ -23,7 +23,7 @@ TODO: If `C` has binary products, then `forget X : over X ⥤ C` has a right adj
 -/
 noncomputable theory
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 open category_theory category_theory.limits
 

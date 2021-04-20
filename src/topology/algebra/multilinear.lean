@@ -128,7 +128,8 @@ end has_continuous_add
 linear map obtained by fixing all coordinates but `i` equal to those of `m`, and varying the
 `i`-th coordinate. -/
 def to_continuous_linear_map (m : Πi, M₁ i) (i : ι) : M₁ i →L[R] M₂ :=
-{ cont := f.cont.comp continuous_update, ..(f.to_multilinear_map.to_linear_map m i) }
+{ cont := f.cont.comp (continuous_const.update i continuous_id),
+  .. f.to_multilinear_map.to_linear_map m i }
 
 /-- The cartesian product of two continuous multilinear maps, as a continuous multilinear map. -/
 def prod (f : continuous_multilinear_map R M₁ M₂) (g : continuous_multilinear_map R M₁ M₃) :
@@ -266,7 +267,7 @@ instance : has_sub (continuous_multilinear_map R M₁ M₂) :=
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - f') m = f m - f' m := rfl
 
 instance : add_comm_group (continuous_multilinear_map R M₁ M₂) :=
-to_multilinear_map_inj.add_comm_group_sub _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+to_multilinear_map_inj.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 
 end topological_add_group
 
@@ -292,7 +293,7 @@ f.to_multilinear_map.map_smul_univ _ _
 
 variables {R' A : Type*} [comm_semiring R'] [semiring A] [algebra R' A]
   [Π i, semimodule A (M₁ i)] [semimodule R' M₂] [semimodule A M₂] [is_scalar_tower R' A M₂]
-  [topological_space R'] [topological_semimodule R' M₂]
+  [topological_space R'] [has_continuous_smul R' M₂]
 
 instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
 ⟨λ c f, { cont := continuous_const.smul f.cont, .. c • f.to_multilinear_map }⟩
@@ -306,7 +307,7 @@ rfl
 
 instance {R''} [comm_semiring R''] [has_scalar R' R''] [algebra R'' A]
   [semimodule R'' M₂] [is_scalar_tower R'' A M₂] [is_scalar_tower R' R'' M₂]
-  [topological_space R''] [topological_semimodule R'' M₂]:
+  [topological_space R''] [has_continuous_smul R'' M₂]:
   is_scalar_tower R' R'' (continuous_multilinear_map A M₁ M₂) :=
 ⟨λ c₁ c₂ f, ext $ λ x, smul_assoc _ _ _⟩
 

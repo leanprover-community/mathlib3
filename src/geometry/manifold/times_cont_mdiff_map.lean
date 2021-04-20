@@ -1,11 +1,11 @@
 /-
 Copyright © 2020 Nicolò Cavalleri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Nicolò Cavalleri.
+Authors: Nicolò Cavalleri
 -/
 
 import geometry.manifold.times_cont_mdiff
-import topology.continuous_map
+import topology.continuous_function.basic
 
 /-!
 # Smooth bundled map

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Tim Baanen.
+Authors: Tim Baanen
 -/
 import algebra.associated
 import linear_algebra.determinant
@@ -348,7 +348,7 @@ begin
     { rcases this with ⟨B, hB⟩, apply is_unit_of_mul_eq_one _ B.det, rw [←det_mul, hB, det_one], },
     refine ⟨↑h.unit⁻¹, _⟩, conv_lhs { congr, rw ←h.unit_spec, }, exact h.unit.mul_inv, },
   { -- is_unit A.det → is_unit A
-    exact is_unit_unit (A.nonsing_inv_unit h), },
+    exact (A.nonsing_inv_unit h).is_unit, },
 end
 
 lemma is_unit_det_of_left_inverse (B : matrix n n α) (h : B ⬝ A = 1) : is_unit A.det :=

@@ -64,7 +64,7 @@ jobs:
       - name: install elan
         run: |
           set -o pipefail
-          curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
           echo "short_lean_version=$(~/.elan/bin/lean --run scripts/lean_version.lean)" >> $GITHUB_ENV
@@ -82,6 +82,7 @@ jobs:
         run: |
           leanpkg configure
           echo "::set-output name=started::true"
+          lean --json -T100000 --make src | python scripts/detect_errors.py
           lean --json -T100000 --make src | python scripts/detect_errors.py
 
       - name: push release to azure

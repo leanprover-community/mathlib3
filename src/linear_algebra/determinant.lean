@@ -41,7 +41,7 @@ open equiv equiv.perm finset function
 namespace matrix
 open_locale matrix big_operators
 
-variables {m n : Type u} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
+variables {m n : Type*} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
 variables {R : Type v} [comm_ring R]
 
 local notation `ε` σ:max := ((sign σ : ℤ ) : R)
@@ -125,10 +125,7 @@ begin
     (λ σ _, σ * swap i j)
     (λ σ _,
       have ∏ x, M (σ x) (p x) = ∏ x, M ((σ * swap i j) x) (p x),
-        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _)
-          (by simp [apply_swap_eq_self hpij])
-          (λ _ _ _ _ h, (swap i j).injective h)
-          (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
+        from fintype.prod_equiv (swap i j) _ _ (by simp [apply_swap_eq_self hpij]),
       by simp [this, sign_swap hij, prod_mul_distrib])
     (λ σ _ _, (not_congr mul_swap_eq_iff).mpr hij)
     (λ _ _, mem_univ _)
@@ -146,20 +143,19 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
 ... = ∑ τ : perm n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (τ i) * N (τ i) i) :
   sum_bij (λ p h, equiv.of_bijective p (mem_filter.1 h).2) (λ _ _, mem_univ _)
     (λ _ _, rfl) (λ _ _ _ _ h, by injection h)
-    (λ b _, ⟨b, mem_filter.2 ⟨mem_univ _, b.bijective⟩, injective_coe_fn rfl⟩)
+    (λ b _, ⟨b, mem_filter.2 ⟨mem_univ _, b.bijective⟩, coe_fn_injective rfl⟩)
 ... = ∑ σ : perm n, ∑ τ : perm n, (∏ i, N (σ i) i) * ε τ * (∏ j, M (τ j) (σ j)) :
   by simp [mul_sum, det_apply', mul_comm, mul_left_comm, prod_mul_distrib, mul_assoc]
 ... = ∑ σ : perm n, ∑ τ : perm n, (((∏ i, N (σ i) i) * (ε σ * ε τ)) * ∏ i, M (τ i) i) :
-  sum_congr rfl (λ σ _, sum_bij (λ τ _, τ * σ⁻¹) (λ _ _, mem_univ _)
-    (λ τ _,
+  sum_congr rfl (λ σ _, fintype.sum_equiv (equiv.mul_right σ⁻¹) _ _
+    (λ τ,
       have ∏ j, M (τ j) (σ j) = ∏ j, M ((τ * σ⁻¹) j) j,
         by rw ← σ⁻¹.prod_comp; simp [mul_apply],
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
           by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp
         ... = ε τ : by simp,
-      by rw h; simp [this, mul_comm, mul_assoc, mul_left_comm])
-    (λ _ _ _ _, mul_right_cancel) (λ τ _, ⟨τ * σ, by simp⟩))
+      by simp_rw [equiv.coe_mul_right, h]; simp [this, mul_comm, mul_assoc, mul_left_comm]))
 ... = det M * det N : by simp [det_apply', mul_assoc, mul_sum, mul_comm, mul_left_comm]
 
 instance : is_monoid_hom (det : matrix n n R → R) :=
@@ -170,18 +166,13 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
 @[simp] lemma det_transpose (M : matrix n n R) : Mᵀ.det = M.det :=
 begin
   rw [det_apply', det_apply'],
-  apply sum_bij (λ σ _, σ⁻¹),
-  { intros σ _, apply mem_univ },
-  { intros σ _,
-    rw [sign_inv],
-    congr' 1,
-    apply prod_bij (λ i _, σ i),
-    { intros i _, apply mem_univ },
-    { intros i _, simp },
-    { intros i j _ _ h, simp at h, assumption },
-    { intros i _, use σ⁻¹ i, finish } },
-  { intros σ σ' _ _ h, simp at h, assumption },
-  { intros σ _, use σ⁻¹, finish }
+  refine fintype.sum_bijective _ inv_involutive.bijective _ _ _,
+  intros σ,
+  rw sign_inv,
+  congr' 1,
+  apply fintype.prod_equiv σ,
+  intros,
+  simp
 end
 
 
@@ -192,6 +183,37 @@ begin
   { rw [coe_coe, ←gsmul_eq_smul, ←smul_eq_mul, ←gsmul_eq_smul_cast] },
   exact ((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans this,
 end
+
+/-- Permuting rows and columns with the same equivalence has no effect. -/
+@[simp]
+lemma det_minor_equiv_self (e : n ≃ m) (A : matrix m m R) :
+  det (A.minor e e) = det A :=
+begin
+  rw [det_apply', det_apply'],
+  apply finset.sum_bij' (λ σ _, equiv.perm_congr e σ) _ _ (λ σ _, equiv.perm_congr e.symm σ),
+  { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.symm_apply_apply] },
+  { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.apply_symm_apply] },
+  { intros σ _, apply finset.mem_univ },
+  { intros σ _, apply finset.mem_univ },
+  intros σ _,
+  simp_rw [equiv.perm_congr_apply],
+  rw equiv.perm.sign_perm_congr e σ,
+  congr' 1,
+  apply finset.prod_bij' (λ i _, e i) _ _ (λ i _, e.symm i),
+  { intros, simp_rw equiv.symm_apply_apply },
+  { intros, simp_rw equiv.apply_symm_apply },
+  { intros, apply finset.mem_univ },
+  { intros, apply finset.mem_univ },
+  { intros, simp_rw equiv.symm_apply_apply, rw minor_apply, },
+end
+
+/-- Reindexing both indices along the same equivalence preserves the determinant.
+
+For the `simp` version of this lemma, see `det_minor_equiv_self`; this one is unsuitable because
+`matrix.reindex_apply` unfolds `reindex` first.
+-/
+lemma det_reindex_self (e : m ≃ n) (A : matrix m m R) : det (reindex e e A) = det A :=
+det_minor_equiv_self e.symm A
 
 /-- The determinant of a permutation matrix equals its sign. -/
 @[simp] lemma det_permutation (σ : perm n) :
@@ -325,23 +347,21 @@ end
 /-- The determinant of a 2x2 block matrix with the lower-left block equal to zero is the product of
 the determinants of the diagonal blocks. For the generalization to any number of blocks, see
 `matrix.upper_block_triangular_det`. -/
-lemma upper_two_block_triangular_det (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
+lemma upper_two_block_triangular_det
+  (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
   (matrix.from_blocks A B 0 D).det = A.det * D.det :=
 begin
+  classical,
   simp_rw det_apply',
+  convert
+    (sum_subset (subset_univ ((sum_congr_hom m n).range : set (perm (m ⊕ n))).to_finset) _).symm,
   rw sum_mul_sum,
-  let preserving_A : finset (perm (m ⊕ n)) :=
-    univ.filter (λ σ, ∀ x, ∃ y, sum.inl y = (σ (sum.inl x))),
   simp_rw univ_product_univ,
-  have mem_preserving_A : ∀ {σ : perm (m ⊕ n)},
-    σ ∈ preserving_A ↔ ∀ x, ∃ y, sum.inl y = σ (sum.inl x) :=
-    λ σ, mem_filter.trans ⟨λ h, h.2, λ h, ⟨mem_univ _, h⟩⟩,
-  rw ← sum_subset (subset_univ preserving_A) _,
   rw (sum_bij (λ (σ : perm m × perm n) _, equiv.sum_congr σ.fst σ.snd) _ _ _ _).symm,
-  { intros a ha,
-    rw mem_preserving_A,
-    intro x,
-    use a.fst x,
+  { intros σ₁₂ h,
+    simp only [],
+    erw [set.mem_to_finset, monoid_hom.mem_range],
+    use σ₁₂,
     simp },
   { simp only [forall_prop_of_true, prod.forall, mem_univ],
     intros σ₁ σ₂,
@@ -363,33 +383,20 @@ begin
     { exact h2.left x },
     { exact h2.right x }},
   { intros σ hσ,
-    have h1 : ∀ (x : m ⊕ n), (∃ (a : m), sum.inl a = x) → (∃ (a : m), sum.inl a = σ x),
-    { rintros x ⟨a, ha⟩,
-      rw ← ha,
-      exact (@mem_preserving_A σ).mp hσ a },
-    have h2 : ∀ (x : m ⊕ n), (∃ (b : n), sum.inr b = x) → (∃ (b : n), sum.inr b = σ x),
-    { rintros x ⟨b, hb⟩,
-      rw ← hb,
-      exact (perm_on_inl_iff_perm_on_inr σ).mp ((@mem_preserving_A σ).mp hσ) b },
-    let σ₁' := subtype_perm_of_fintype σ h1,
-    let σ₂' := subtype_perm_of_fintype σ h2,
-    let σ₁ := perm_congr (equiv.set.range (@sum.inl m n) sum.injective_inl).symm σ₁',
-    let σ₂ := perm_congr (equiv.set.range (@sum.inr m n) sum.injective_inr).symm σ₂',
-    use [⟨σ₁, σ₂⟩, finset.mem_univ _],
-    ext,
-    cases x with a b,
-    { rw [equiv.sum_congr_apply, sum.map_inl, perm_congr_apply, equiv.symm_symm,
-        set.apply_range_symm (@sum.inl m n)],
-      erw subtype_perm_apply,
-      rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] },
-    { rw [equiv.sum_congr_apply, sum.map_inr, perm_congr_apply, equiv.symm_symm,
-        set.apply_range_symm (@sum.inr m n)],
-      erw subtype_perm_apply,
-      rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] }},
-  { intros σ h0 hσ,
-    obtain ⟨a, ha⟩ := not_forall.mp ((not_congr (@mem_preserving_A σ)).mp hσ),
-    generalize hx : σ (sum.inl a) = x,
-    cases x with a2 b,
+    erw [set.mem_to_finset, monoid_hom.mem_range] at hσ,
+    obtain ⟨σ₁₂, hσ₁₂⟩ := hσ,
+    use σ₁₂,
+    rw ←hσ₁₂,
+    simp },
+  { intros σ hσ hσn,
+    have h1 : ¬ (∀ x, ∃ y, sum.inl y = σ (sum.inl x)),
+    { by_contradiction,
+      rw set.mem_to_finset at hσn,
+      apply absurd (mem_sum_congr_hom_range_of_perm_maps_to_inl _) hσn,
+      rintros x ⟨a, ha⟩,
+      rw [←ha], exact h a },
+    obtain ⟨a, ha⟩ := not_forall.mp h1,
+    cases hx : σ (sum.inl a) with a2 b,
     { have hn := (not_exists.mp ha) a2,
       exact absurd hx.symm hn },
     { rw [finset.prod_eq_zero (finset.mem_univ (sum.inl a)), mul_zero],

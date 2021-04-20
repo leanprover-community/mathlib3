@@ -193,15 +193,14 @@ begin
     ... = 2 * C * ∥y∥ : by rw [tsum_geometric_two, mul_assoc]
     ... ≤ 2 * C * ∥y∥ + ∥y∥ : le_add_of_nonneg_right (norm_nonneg y)
     ... = (2 * C + 1) * ∥y∥ : by ring,
-  have fsumeq : ∀n:ℕ, f (∑ i in finset.range n, u i) = y - (h^[n]) y,
+  have fsumeq : ∀n:ℕ, f (∑ i in range n, u i) = y - (h^[n]) y,
   { assume n,
     induction n with n IH,
     { simp [f.map_zero] },
-    { rw [sum_range_succ, f.map_add, IH, iterate_succ'],
-      simp [u, h, sub_eq_add_neg, add_comm, add_left_comm] } },
+    { rw [sum_range_succ, f.map_add, IH, iterate_succ', sub_add] } },
   have : tendsto (λn, ∑ i in range n, u i) at_top (𝓝 x) :=
     su.has_sum.tendsto_sum_nat,
-  have L₁ : tendsto (λn, f(∑ i in range n, u i)) at_top (𝓝 (f x)) :=
+  have L₁ : tendsto (λn, f (∑ i in range n, u i)) at_top (𝓝 (f x)) :=
     (f.continuous.tendsto _).comp this,
   simp only [fsumeq] at L₁,
   have L₂ : tendsto (λn, y - (h^[n]) y) at_top (𝓝 (y - 0)),
@@ -326,3 +325,29 @@ noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj 
 (of_bijective f hinj hsurj).apply_symm_apply y
 
 end continuous_linear_equiv
+
+namespace continuous_linear_map
+
+/- TODO: remove the assumption `f.ker = ⊥` in the next lemma, by using the map induced by `f` on
+`E / f.ker`, once we have quotient normed spaces. -/
+lemma closed_complemented_range_of_is_compl_of_ker_eq_bot (f : E →L[𝕜] F) (G : submodule 𝕜 F)
+  (h : is_compl f.range G) (hG : is_closed (G : set F)) (hker : f.ker = ⊥) :
+  is_closed (f.range : set F) :=
+begin
+  let g : (E × G) →L[𝕜] F := f.coprod G.subtypeL,
+  have : (f.range : set F) = g '' ((⊤ : submodule 𝕜 E).prod (⊥ : submodule 𝕜 G)),
+    by { ext x, simp [continuous_linear_map.mem_range] },
+  rw this,
+  haveI : complete_space G := complete_space_coe_iff_is_complete.2 hG.is_complete,
+  have grange : g.range = ⊤,
+    by simp only [range_coprod, h.sup_eq_top, submodule.range_subtypeL],
+  have gker : g.ker = ⊥,
+  { rw [ker_coprod_of_disjoint_range, hker],
+    { simp only [submodule.ker_subtypeL, submodule.prod_bot] },
+    { convert h.disjoint,
+      exact submodule.range_subtypeL _ } },
+  apply (continuous_linear_equiv.of_bijective g gker grange).to_homeomorph.is_closed_image.2,
+  exact is_closed_univ.prod is_closed_singleton,
+end
+
+end continuous_linear_map

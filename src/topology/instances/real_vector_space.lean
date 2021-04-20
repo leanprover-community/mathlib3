@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import topology.algebra.module
 import topology.instances.real
@@ -14,8 +14,8 @@ over `ℝ` is `ℝ`-linear
 -/
 
 variables {E : Type*} [add_comm_group E] [vector_space ℝ E] [topological_space E]
-  [topological_vector_space ℝ E] {F : Type*} [add_comm_group F] [vector_space ℝ F]
-  [topological_space F] [topological_vector_space ℝ F] [t2_space F]
+  [has_continuous_smul ℝ E] {F : Type*} [add_comm_group F] [vector_space ℝ F]
+  [topological_space F] [has_continuous_smul ℝ F] [t2_space F]
 
 namespace add_monoid_hom
 

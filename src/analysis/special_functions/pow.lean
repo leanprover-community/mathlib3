@@ -148,6 +148,11 @@ lemma has_fderiv_at_cpow {p : ℂ × ℂ} (hp : 0 < p.1.re ∨ p.1.im ≠ 0) :
       (p.1 ^ p.2 * log p.1) • continuous_linear_map.snd ℂ ℂ ℂ) p :=
 (has_strict_fderiv_at_cpow hp).has_fderiv_at
 
+instance : has_measurable_pow ℂ ℂ :=
+⟨measurable.ite (measurable_fst (measurable_set_singleton 0))
+  (measurable.ite (measurable_snd (measurable_set_singleton 0)) measurable_one measurable_zero)
+  (measurable_fst.clog.mul measurable_snd).cexp⟩
+
 end complex
 
 section lim
@@ -155,12 +160,6 @@ section lim
 open complex
 
 variables {α : Type*}
-
-lemma measurable.cpow [measurable_space α] {f g : α → ℂ} (hf : measurable f) (hg : measurable g) :
-  measurable (λ x, f x ^ g x) :=
-measurable.ite (hf $ measurable_set_singleton _)
-  (measurable.ite (hg $ measurable_set_singleton _) measurable_const measurable_const)
-  (hf.clog.mul hg).cexp
 
 lemma filter.tendsto.cpow {l : filter α} {f g : α → ℂ} {a b : ℂ} (hf : tendsto f l (𝓝 a))
   (hg : tendsto g l (𝓝 b)) (ha : 0 < a.re ∨ a.im ≠ 0) :
@@ -835,30 +834,11 @@ end
 
 end sqrt
 
+instance : has_measurable_pow ℝ ℝ :=
+⟨complex.measurable_re.comp $ ((complex.measurable_of_real.comp measurable_fst).pow
+  (complex.measurable_of_real.comp measurable_snd))⟩
+
 end real
-
-section measurability_real
-
-open complex
-
-lemma measurable.rpow {α} [measurable_space α] {f g : α → ℝ} (hf : measurable f)
-  (hg : measurable g) :
-  measurable (λ a : α, (f a) ^ (g a)) :=
-measurable_re.comp $ ((measurable_of_real.comp hf).cpow (measurable_of_real.comp hg))
-
-lemma measurable.rpow_const {α} [measurable_space α] {f : α → ℝ} (hf : measurable f) {y : ℝ} :
-  measurable (λ a : α, (f a) ^ y) :=
-hf.rpow measurable_const
-
-lemma ae_measurable.rpow_const {α} [measurable_space α] {f : α → ℝ}
-  {μ : measure_theory.measure α} (hf : ae_measurable f μ) {y : ℝ} :
-  ae_measurable (λ a : α, (f a) ^ y) μ :=
-measurable.comp_ae_measurable (measurable.rpow_const measurable_id) hf
-
-lemma real.measurable_rpow_const {y : ℝ} : measurable (λ x : ℝ, x ^ y) :=
-measurable_id.rpow_const
-
-end measurability_real
 
 section differentiability
 open real
@@ -990,11 +970,11 @@ end
 
 /-- The function `x ^ (1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_div : tendsto (λ x, x ^ ((1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring }
+by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring_nf }
 
 /-- The function `x ^ (-1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_neg_div : tendsto (λ x, x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring }
+by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring_nf }
 
 end limits
 
@@ -1147,23 +1127,10 @@ begin
   rw [←nnreal.coe_rpow, nnreal.of_real_coe],
 end
 
+instance : has_measurable_pow ℝ≥0 ℝ :=
+⟨(measurable_fst.nnreal_coe.pow measurable_snd).subtype_mk⟩
+
 end nnreal
-
-namespace measurable
-
-variables {α : Type*} [measurable_space α]
-
-lemma nnreal_rpow {f : α → ℝ≥0} (hf : measurable f)
-  {g : α → ℝ} (hg : measurable g) :
-  measurable (λ a : α, (f a) ^ (g a)) :=
-(hf.nnreal_coe.rpow hg).subtype_mk
-
-lemma nnreal_rpow_const {f : α → ℝ≥0} (hf : measurable f)
-  {y : ℝ} :
-  measurable (λ a : α, (f a) ^ y) :=
-hf.nnreal_rpow measurable_const
-
-end measurable
 
 open filter
 
@@ -1322,6 +1289,9 @@ begin
     { have A : x ^ y ≠ 0, by simp [h],
       simp [coe_rpow_of_ne_zero h, ← coe_inv A, nnreal.rpow_neg] } }
 end
+
+lemma rpow_sub {x : ℝ≥0∞} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y - z) = x ^ y / x ^ z :=
+by rw [sub_eq_add_neg, rpow_add _ _ hx h'x, rpow_neg, div_eq_mul_inv]
 
 lemma rpow_neg_one (x : ℝ≥0∞) : x ^ (-1 : ℝ) = x ⁻¹ :=
 by simp [rpow_neg]
@@ -1692,18 +1662,12 @@ lemma rpow_left_monotone_of_nonneg {x : ℝ} (hx : 0 ≤ x) : monotone (λ y : �
 lemma rpow_left_strict_mono_of_pos {x : ℝ} (hx : 0 < x) : strict_mono (λ y : ℝ≥0∞, y^x) :=
 λ y z hyz, rpow_lt_rpow hyz hx
 
-end ennreal
-
-section measurability_ennreal
-
-variables {α : Type*} [measurable_space α]
-
-lemma ennreal.measurable_rpow : measurable (λ p : ℝ≥0∞ × ℝ, p.1 ^ p.2) :=
+instance : has_measurable_pow ℝ≥0∞ ℝ :=
 begin
-  refine ennreal.measurable_of_measurable_nnreal_prod _ _,
+  refine ⟨ennreal.measurable_of_measurable_nnreal_prod _ _⟩,
   { simp_rw ennreal.coe_rpow_def,
     refine measurable.ite _ measurable_const
-      (measurable_fst.nnreal_rpow measurable_snd).ennreal_coe,
+      (measurable_fst.pow measurable_snd).ennreal_coe,
     exact measurable_set.inter (measurable_fst (measurable_set_singleton 0))
       (measurable_snd measurable_set_Iio), },
   { simp_rw ennreal.top_rpow_def,
@@ -1711,23 +1675,4 @@ begin
     exact measurable.ite (measurable_set_singleton 0) measurable_const measurable_const, },
 end
 
-lemma measurable.ennreal_rpow {f : α → ℝ≥0∞} (hf : measurable f) {g : α → ℝ} (hg : measurable g) :
-  measurable (λ a : α, (f a) ^ (g a)) :=
-begin
-  change measurable ((λ p : ℝ≥0∞ × ℝ, p.1 ^ p.2) ∘ (λ a, (f a, g a))),
-  exact ennreal.measurable_rpow.comp (measurable.prod hf hg),
-end
-
-lemma measurable.ennreal_rpow_const {f : α → ℝ≥0∞} (hf : measurable f) {y : ℝ} :
-  measurable (λ a : α, (f a) ^ y) :=
-hf.ennreal_rpow measurable_const
-
-lemma ennreal.measurable_rpow_const {y : ℝ} : measurable (λ a : ℝ≥0∞, a ^ y) :=
-measurable_id.ennreal_rpow_const
-
-lemma ae_measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ℝ≥0∞}
-  {μ : measure_theory.measure α} (hf : ae_measurable f μ) {y : ℝ} :
-  ae_measurable (λ a : α, (f a) ^ y) μ :=
-ennreal.measurable_rpow_const.comp_ae_measurable hf
-
-end measurability_ennreal
+end ennreal

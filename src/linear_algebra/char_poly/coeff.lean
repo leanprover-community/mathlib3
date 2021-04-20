@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson, Jalex Stark. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Aaron Anderson, Jalex Stark.
+Authors: Aaron Anderson, Jalex Stark
 -/
 
 import data.matrix.char_p
@@ -157,14 +157,33 @@ end
 
 variables {p : ℕ} [fact p.prime]
 
+lemma mat_poly_equiv_eq_X_pow_sub_C {K : Type*} (k : ℕ) [field K] (M : matrix n n K) :
+  mat_poly_equiv
+      ((expand K (k) : polynomial K →+* polynomial K).map_matrix (char_matrix (M ^ k))) =
+    X ^ k - C (M ^ k) :=
+begin
+  ext m,
+  rw [coeff_sub, coeff_C, mat_poly_equiv_coeff_apply, ring_hom.map_matrix_apply, matrix.map_apply,
+    alg_hom.coe_to_ring_hom, dmatrix.sub_apply, coeff_X_pow],
+  by_cases hij : i = j,
+  { rw [hij, char_matrix_apply_eq, alg_hom.map_sub, expand_C, expand_X, coeff_sub, coeff_X_pow,
+     coeff_C],
+    split_ifs with mp m0;
+    simp only [matrix.one_apply_eq, dmatrix.zero_apply] },
+  { rw [char_matrix_apply_ne _ _ _ hij, alg_hom.map_neg, expand_C, coeff_neg, coeff_C],
+    split_ifs with m0 mp;
+    simp only [hij, zero_sub, dmatrix.zero_apply, sub_zero, neg_zero, matrix.one_apply_ne, ne.def,
+      not_false_iff] }
+end
+
 @[simp] lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
   char_poly (M ^ (fintype.card K)) = char_poly M :=
 begin
   by_cases hn : nonempty n,
-  { letI := hn,
+  { haveI := hn,
     cases char_p.exists K with p hp, letI := hp,
     rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩,
-    letI : fact p.prime := hp,
+    haveI : fact p.prime := ⟨hp⟩,
     dsimp at hk, rw hk at *,
     apply (frobenius_inj (polynomial K) p).iterate k,
     repeat { rw iterate_frobenius, rw ← hk },
@@ -174,13 +193,9 @@ begin
     apply mat_poly_equiv.injective, swap, { apply_instance },
     rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
           mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
-    swap, { apply polynomial.commute_X },
-    -- the following is a nasty case bash that should be abstracted as a lemma
-    -- (and maybe it can be proven more... algebraically?)
-    ext, rw [coeff_sub, coeff_C],
-    by_cases hij : i = j; simp [char_matrix, hij, coeff_X_pow];
-    simp only [coeff_C]; split_ifs; simp *, },
-  { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
+    { exact (id (mat_poly_equiv_eq_X_pow_sub_C (p ^ k) M) : _) },
+    { exact (C M).commute_X } },
+  { apply congr_arg, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
 end
 
 @[simp] lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :

@@ -560,6 +560,13 @@ def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
 
 @[simp] lemma coe_map_ring_hom (f : R →+* S) : ⇑(map_ring_hom f) = map f := rfl
 
+@[simp] lemma map_ring_hom_id : map_ring_hom (ring_hom.id R) = ring_hom.id (polynomial R) :=
+ring_hom.ext $ λ x, map_id
+
+@[simp] lemma map_ring_hom_comp [semiring T] (f : S →+* T) (g : R →+* S) :
+  (map_ring_hom f).comp (map_ring_hom g) = map_ring_hom (f.comp g) :=
+ring_hom.ext $ map_map g f
+
 lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
 eq.symm $ list.prod_hom _ (monoid_hom.of (map f))
 
@@ -789,7 +796,7 @@ eval₂_neg _
 eval₂_sub _
 
 lemma root_X_sub_C : is_root (X - C a) b ↔ a = b :=
-by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
+by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero, eq_comm]
 
 @[simp] lemma neg_comp : (-p).comp q = -p.comp q := eval₂_neg _
 

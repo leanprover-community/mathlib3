@@ -1,7 +1,7 @@
 /-
--- Copyright (c) 2020 Bhavik Mehta. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Bhavik Mehta, Scott Morrison
+Copyright (c) 2020 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta, Scott Morrison
 -/
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.finite_products
@@ -114,7 +114,7 @@ See https://stacks.math.columbia.edu/tag/002O.
 -/
 lemma finite_limits_from_equalizers_and_finite_products
   [has_finite_products C] [has_equalizers C] : has_finite_limits C :=
-λ J _ _, { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F }
+⟨λ J _ _, { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F }⟩
 
 variables {D : Type u₂} [category.{v} D]
 noncomputable theory

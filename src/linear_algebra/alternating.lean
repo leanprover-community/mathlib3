@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Zhangir Azerbayev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Eric Wieser, Zhangir Azerbayev
+Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
 import linear_algebra.multilinear
@@ -182,8 +182,16 @@ instance : has_zero (alternating_map R M N ι) :=
 instance : inhabited (alternating_map R M N ι) := ⟨0⟩
 
 instance : add_comm_monoid (alternating_map R M N ι) :=
-by refine {zero := 0, add := (+), ..};
-   intros; ext; simp [add_comm, add_left_comm]
+{ zero := 0,
+  add := (+),
+  zero_add := by intros; ext; simp [add_comm, add_left_comm],
+  add_zero := by intros; ext; simp [add_comm, add_left_comm],
+  add_comm := by intros; ext; simp [add_comm, add_left_comm],
+  add_assoc := by intros; ext; simp [add_comm, add_left_comm],
+  nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+    .. ((n • f : multilinear_map R (λ i : ι, M) N)) },
+  nsmul_zero' := by { intros, ext, simp [add_smul], },
+  nsmul_succ' := by { intros, ext, simp [add_smul, nat.succ_eq_one_add], } }
 
 instance : has_neg (alternating_map R M N' ι) :=
 ⟨λ f,
@@ -207,7 +215,7 @@ instance : has_sub (alternating_map R M N' ι) :=
 
 instance : add_comm_group (alternating_map R M N' ι) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg,
-           sub := has_sub.sub, sub_eq_add_neg := _, ..};
+           sub := has_sub.sub, sub_eq_add_neg := _, .. alternating_map.add_comm_monoid, .. };
    intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
 
 section distrib_mul_action
@@ -433,10 +441,9 @@ lemma coe_alternatization [fintype ι] (a : alternating_map R M N' ι) :
   (↑a : multilinear_map R (λ ι, M) N').alternatization = nat.factorial (fintype.card ι) • a :=
 begin
   apply alternating_map.coe_inj,
-  rw multilinear_map.alternatization_def,
-  simp_rw [coe_dom_dom_congr, smul_smul, int.units_coe_mul_self, one_smul,
-    finset.sum_const, finset.card_univ, fintype.card_perm, nsmul_eq_smul],
-  rw [←coe_multilinear_map, coe_smul],
+  simp_rw [multilinear_map.alternatization_def, coe_dom_dom_congr, smul_smul,
+    int.units_coe_mul_self, one_smul, finset.sum_const, finset.card_univ, fintype.card_perm,
+    ←coe_multilinear_map, coe_smul],
 end
 
 end alternating_map

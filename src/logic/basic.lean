@@ -30,7 +30,7 @@ attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.
   decidable.true implies.decidable not.decidable ne.decidable
   bool.decidable_eq decidable.to_bool
 
-attribute [simp] cast_eq
+attribute [simp] cast_eq cast_heq
 
 variables {α : Type*} {β : Type*}
 
@@ -59,10 +59,11 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 
-@[simp] lemma eq_iff_true_of_subsingleton [subsingleton α] (x y : α) :
+@[simp] lemma eq_iff_true_of_subsingleton {α : Sort*} [subsingleton α] (x y : α) :
   x = y ↔ true :=
 by cc
 
+/-- If all points are equal to a given point `x`, then `α` is a subsingleton. -/
 lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsingleton α :=
 ⟨λ a b, (h a).symm ▸ (h b).symm ▸ rfl⟩
 
@@ -172,10 +173,10 @@ The compromise is to add the assumption `[fact p.prime]` to `zmod.field`.
 
 In particular, this class is not intended for turning the type class system
 into an automated theorem prover for first order logic. -/
-@[class]
-def fact (p : Prop) := p
+class fact (p : Prop) : Prop := (out [] : p)
 
-lemma fact.elim {p : Prop} (h : fact p) : p := h
+lemma fact.elim {p : Prop} (h : fact p) : p := h.1
+lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 end miscellany
 
@@ -190,6 +191,9 @@ section propositional
 variables {a b c d : Prop}
 
 /-! ### Declarations about `implies` -/
+
+instance : is_refl Prop iff := ⟨iff.refl⟩
+instance : is_trans Prop iff := ⟨λ _ _ _, iff.trans⟩
 
 theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ iff.rfl
 
@@ -256,6 +260,18 @@ You can check if a lemma uses the axiom of choice by using `#print axioms foo` a
 `classical.choice` appears in the list.
 -/
 library_note "decidable namespace"
+
+/--
+As mathlib is primarily classical,
+if the type signature of a `def` or `lemma` does not require any `decidable` instances to state,
+it is preferable not to introduce any `decidable` instances that are needed in the proof
+as arguments, but rather to use the `classical` tactic as needed.
+
+In the other direction, when `decidable` instances do appear in the type signature,
+it is better to use explicitly introduced ones rather than allowing Lean to automatically infer
+classical ones, as these may cause instance mismatch errors later.
+-/
+library_note "decidable arguments"
 
 -- See Note [decidable namespace]
 protected theorem decidable.not_not [decidable a] : ¬¬a ↔ a :=
@@ -640,10 +656,15 @@ lemma eq_rec_constant {α : Sort*} {a a' : α} {β : Sort*} (y : β) (h : a = a'
 by { cases h, refl, }
 
 @[simp]
-lemma eq_mp_rfl {α : Sort*} {a : α} : eq.mp (eq.refl α) a = a := rfl
+lemma eq_mp_eq_cast {α β : Sort*} (h : α = β) : eq.mp h = cast h := rfl
 
 @[simp]
-lemma eq_mpr_rfl {α : Sort*} {a : α} : eq.mpr (eq.refl α) a = a := rfl
+lemma eq_mpr_eq_cast {α β : Sort*} (h : α = β) : eq.mpr h = cast h.symm := rfl
+
+@[simp]
+lemma cast_cast : ∀ {α β γ : Sort*} (ha : α = β) (hb : β = γ) (a : α),
+  cast hb (cast ha a) = cast (ha.trans hb) a
+| _ _ _ rfl rfl a := rfl
 
 @[simp] lemma congr_refl_left {α β : Sort*} (f : α → β) {a b : α} (h : a = b) :
   congr (eq.refl f) h = congr_arg f h :=
@@ -665,16 +686,16 @@ rfl
   congr_fun (congr_arg f p) b = congr_arg (λ a, f a b) p :=
 rfl
 
-lemma heq_of_eq_mp :
-  ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : (eq.mp e a) = a'), a == a'
+lemma heq_of_cast_eq :
+  ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : cast e a = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)
+
+lemma cast_eq_iff_heq {α β : Sort*} {a : α} {a' : β} {e : α = β} : cast e a = a' ↔ a == a' :=
+⟨heq_of_cast_eq _, λ h, by cases h; refl⟩
 
 lemma rec_heq_of_heq {β} {C : α → Sort*} {x : C a} {y : β} (eq : a = b) (h : x == y) :
   @eq.rec α a C x b eq == y :=
 by subst eq; exact h
-
-@[simp] lemma {u} eq_mpr_heq {α β : Sort u} (h : β = α) (x : α) : eq.mpr h x == x :=
-by subst h; refl
 
 protected lemma eq.congr {x₁ x₂ y₁ y₂ : α} (h₁ : x₁ = y₁) (h₂ : x₂ = y₂) :
   (x₁ = x₂) ↔ (y₁ = y₂) :=
@@ -862,6 +883,18 @@ by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
 @[simp] theorem exists_exists_eq_and {f : α → β} {p : β → Prop} :
   (∃ b, (∃ a, f a = b) ∧ p b) ↔ ∃ a, p (f a) :=
 ⟨λ ⟨b, ⟨a, ha⟩, hb⟩, ⟨a, ha.symm ▸ hb⟩, λ ⟨a, ha⟩, ⟨f a, ⟨a, rfl⟩, ha⟩⟩
+
+@[simp] lemma exists_or_eq_left (y : α) (p : α → Prop) : ∃ (x : α), x = y ∨ p x :=
+⟨y, or.inl rfl⟩
+
+@[simp] lemma exists_or_eq_right (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ x = y :=
+⟨y, or.inr rfl⟩
+
+@[simp] lemma exists_or_eq_left' (y : α) (p : α → Prop) : ∃ (x : α), y = x ∨ p x :=
+⟨y, or.inl rfl⟩
+
+@[simp] lemma exists_or_eq_right' (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ y = x :=
+⟨y, or.inr rfl⟩
 
 @[simp] theorem forall_apply_eq_imp_iff {f : α → β} {p : β → Prop} :
   (∀ a, ∀ b, f a = b → p b) ↔ (∀ a, p (f a)) :=
@@ -1199,7 +1232,7 @@ iff.intro (λ⟨a, _⟩, ⟨a⟩) (λ⟨a⟩, ⟨a, trivial⟩)
 @[simp] lemma nonempty_Prop {p : Prop} : nonempty p ↔ p :=
 iff.intro (assume ⟨h⟩, h) (assume h, ⟨h⟩)
 
-lemma not_nonempty_iff_imp_false : ¬ nonempty α ↔ α → false :=
+lemma not_nonempty_iff_imp_false {α : Sort*} : ¬ nonempty α ↔ α → false :=
 ⟨λ h a, h ⟨a⟩, λ h ⟨a⟩, h a⟩
 
 @[simp] lemma nonempty_sigma : nonempty (Σa:α, γ a) ↔ (∃a:α, nonempty (γ a)) :=
@@ -1286,6 +1319,9 @@ instance {α β} [h : nonempty α] [h2 : nonempty β] : nonempty (α × β) :=
 h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 
 end nonempty
+
+lemma subsingleton_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : subsingleton α :=
+⟨λ x, false.elim $ not_nonempty_iff_imp_false.mp h x⟩
 
 section ite
 

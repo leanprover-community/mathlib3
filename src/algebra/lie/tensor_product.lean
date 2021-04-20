@@ -66,7 +66,7 @@ instance lie_module : lie_module R L (M ⊗[R] N) :=
       linear_map.ltensor_smul, lie_hom.map_smul, linear_map.add_apply], },
   lie_smul := λ c x, linear_map.map_smul _ c, }
 
-@[simp] lemma bracket_apply (x : L) (m : M) (n : N) :
+@[simp] lemma lie_tensor_right (x : L) (m : M) (n : N) :
   ⁅x, m ⊗ₜ[R] n⁆ = ⁅x, m⁆ ⊗ₜ n + m ⊗ₜ ⁅x, n⁆ :=
 show has_bracket_aux x (m ⊗ₜ[R] n) = _,
 by simp only [has_bracket_aux, linear_map.rtensor_tmul, to_endomorphism_apply_apply,
@@ -78,8 +78,8 @@ variables (R L M N P)
 tensor-hom adjunction is equivariant with respect to the `L` action. -/
 def lift : (M →ₗ[R] N →ₗ[R] P) ≃ₗ⁅R,L⁆ (M ⊗[R] N →ₗ[R] P) :=
 { map_lie'  := λ x f, by
-    { ext m n, simp only [mk_apply, linear_map.compr₂_apply, bracket_apply, linear_map.sub_apply,
-        lift.equiv_apply, linear_equiv.to_fun_eq_coe, lie_hom.bracket_apply, linear_map.map_add],
+    { ext m n, simp only [mk_apply, linear_map.compr₂_apply, lie_tensor_right, linear_map.sub_apply,
+        lift.equiv_apply, linear_equiv.to_fun_eq_coe, lie_hom.lie_apply, linear_map.map_add],
       abel, },
   ..tensor_product.lift.equiv R M N P }
 

@@ -186,7 +186,7 @@ def maximal_trivial_linear_map_equiv_lie_module_hom :
 { to_fun    := λ f,
     { map_lie' := λ x m, by
       { have hf : ⁅x, f.val⁆ m = 0, { rw [f.property x, linear_map.zero_apply], },
-        rw [lie_hom.bracket_apply, sub_eq_zero, ← linear_map.to_fun_eq_coe] at hf, exact hf.symm, },
+        rw [lie_hom.lie_apply, sub_eq_zero, ← linear_map.to_fun_eq_coe] at hf, exact hf.symm, },
       ..f.val, },
   map_add'  := λ f g, by { ext, simp, },
   map_smul' := λ F G, by { ext, simp, },

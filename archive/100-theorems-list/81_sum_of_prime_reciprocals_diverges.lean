@@ -37,7 +37,7 @@ begin
   rw nat.pred_succ n,
 end
 
-lemma sq_mul_sq_free {n : ℕ} (hn : n > 0) :
+lemma sq_mul_squarefree {n : ℕ} (hn : n > 0) :
   ∃ a b : ℕ, a > 0 ∧ b > 0 ∧ b ^ 2 * a = n ∧ squarefree a :=
 begin
   set S := {s ∈ range (n + 1) | s ∣ n ∧ ∃ x, s = x ^ 2 } with hS,
@@ -94,10 +94,10 @@ begin
   exact lt_le_antisymm hz₀ hz₃,
 end
 
-lemma sq_mul_sq_free' {n : ℕ} (h : n > 0) :
+lemma sq_mul_squarefree' {n : ℕ} (h : n > 0) :
   ∃ a b : ℕ, (b + 1) ^ 2 * (a + 1) = n ∧ squarefree (a + 1) :=
 begin
-  obtain ⟨a₁, b₁, ha₁, hb₁, hab₁, hab₂⟩ := sq_mul_sq_free h,
+  obtain ⟨a₁, b₁, ha₁, hb₁, hab₁, hab₂⟩ := sq_mul_squarefree h,
   refine ⟨a₁.pred, b₁.pred, _, _⟩,
   { rw [nat.add_one a₁.pred, nat.succ_pred ha₁, nat.add_one b₁.pred, nat.succ_pred hb₁, hab₁] },
   { rw [nat.add_one a₁.pred, nat.succ_pred ha₁], exact hab₂ },
@@ -289,7 +289,7 @@ begin
     simp only [hM, finset.sep_def, finset.mem_filter, finset.mem_range] at hm,
     obtain ⟨hmx, hmp⟩ := hm,
     have h1' : ∃ (a b : ℕ), (a ∈ M₁ ∧ b ∈ M₂) ∧ f (a, b) = m,
-    { obtain ⟨a, b, hab₁, hab₂⟩ := sq_mul_sq_free' (zero_lt_succ m),
+    { obtain ⟨a, b, hab₁, hab₂⟩ := sq_mul_squarefree' (zero_lt_succ m),
 
       have h11 : a ∈ M₁,
       { simp only [hM₁, finset.sep_def, finset.mem_filter, finset.mem_range],

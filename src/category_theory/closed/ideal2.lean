@@ -152,7 +152,7 @@ variables (i : D ⥤ C) [has_finite_products C] [reflective i]
 lemma reflective_products [reflective i] : has_finite_products D :=
 ⟨λ J 𝒥₁ 𝒥₂, by exactI has_limits_of_shape_of_reflective i⟩
 
-local attribute [instance] reflective_products
+local attribute [instance, priority 10] reflective_products
 
 variables [cartesian_closed C]
 
@@ -209,6 +209,10 @@ def reflective_cc : cartesian_closed D :=
         { apply (exponential_ideal_reflective i _).symm }
       end } } }
 
+-- It's annoying that I need to do this.
+local attribute [-instance] category_theory.preserves_limit_of_creates_limit_and_has_limit
+local attribute [-instance] category_theory.preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape
+
 /--
 We construct a bijection between morphisms `L(A ⨯ B) ⟶ X` and morphisms `LA ⨯ LB ⟶ X`.
 This bijection has two key properties:
@@ -242,9 +246,7 @@ calc _ ≃ (A ⨯ B ⟶ i.obj X) :
      begin
        apply iso.hom_congr _ (iso.refl _),
        haveI : preserves_limits i := (adjunction.of_right_adjoint i).right_adjoint_preserves_limits,
-      apply (preserves_pair.iso _ _ _).symm,
-      apply_instance,  -- this should be automatic!
-      --  refine (as_iso (prod_comparison _ _ _)).symm,
+       exact (preserves_pair.iso _ _ _).symm,
      end
    ... ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ X) :
               (equiv_of_fully_faithful _).symm
@@ -258,7 +260,7 @@ begin
       uncurry_natural_left, uncurry_curry, prod.lift_map_assoc, comp_id, prod.lift_map_assoc,
       comp_id, prod.comp_lift_assoc, prod.lift_snd, prod.lift_fst_assoc,
       prod.lift_fst_comp_snd_comp, ←adjunction.eq_hom_equiv_apply, adjunction.hom_equiv_unit,
-      is_iso.comp_inv_eq, assoc],
+      iso.comp_inv_eq, assoc, preserves_pair.iso_hom],
   apply prod.hom_ext,
   { rw [limits.prod.map_fst, assoc, assoc, prod_comparison_fst, ←i.map_comp, prod_comparison_fst],
     apply (adjunction.of_right_adjoint i).unit.naturality },
@@ -284,11 +286,10 @@ is the forward map of the identity morphism.
 -/
 def prod_comparison_iso (A B : C) :
   is_iso (prod_comparison (left_adjoint i) A B) :=
-{ inv := bijection i _ _ _ (𝟙 _),
-  hom_inv_id' := by rw [←(bijection i _ _ _).injective.eq_iff, bijection_natural,
-                        ← bijection_symm_apply_id, equiv.apply_symm_apply, id_comp],
-  inv_hom_id' := by rw [←bijection_natural, id_comp, ←bijection_symm_apply_id,
-                        equiv.apply_symm_apply] }
+⟨⟨bijection i _ _ _ (𝟙 _),
+  by rw [←(bijection i _ _ _).injective.eq_iff, bijection_natural, ← bijection_symm_apply_id,
+         equiv.apply_symm_apply, id_comp],
+  by rw [←bijection_natural, id_comp, ←bijection_symm_apply_id, equiv.apply_symm_apply]⟩⟩
 
 local attribute [instance] prod_comparison_iso
 

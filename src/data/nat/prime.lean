@@ -403,9 +403,26 @@ begin
   { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
 end
 
+@[simp] lemma nat.factors_zero : (0 : ℕ).factors = [] := rfl
+
+@[simp] lemma nat.factors_one : (1 : ℕ).factors = [] := rfl
+
 /-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
 lemma factors_add_two (n : ℕ) :
   factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) := rfl
+
+@[simp]
+lemma factors_eq_nil (n : ℕ) : n.factors = [] ↔ n = 0 ∨ n = 1 :=
+begin
+  split; intro h,
+  { rcases n with (_ | _ | n),
+    exact or.inl rfl,
+    exact or.inr rfl,
+    injection h, },
+  { rcases h with (rfl | rfl),
+    exact factors_zero,
+    exact factors_one, }
+end
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),

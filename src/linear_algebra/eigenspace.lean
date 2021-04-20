@@ -27,7 +27,7 @@ write `x ∈ f.eigenspace μ`.
 A generalized eigenspace of a linear map `f` for a natural number `k` and a scalar `μ` is the kernel
 of the map `(f - μ • 1) ^ k`. The nonzero elements of a generalized eigenspace are generalized
 eigenvectors `x`. If there are generalized eigenvectors for a natural number `k` and a scalar `μ`,
-the scalar `μ` is in fact eigenvalue.
+the scalar `μ` is in fact an eigenvalue.
 
 ## References
 

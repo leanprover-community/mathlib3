@@ -72,16 +72,12 @@ open_locale classical
 /-- A finite bounded lattice is complete -/
 noncomputable def fintype.complete_lattice (α : Type*) [fintype α] [h : bounded_lattice α] :
   complete_lattice α :=
-let isb := (@semilattice_sup_bot_of_bounded_lattice α h),
-    iit := (@semilattice_inf_top_of_bounded_lattice α h) in
-{ Sup := λ s, @finset.sup _ _ isb s.to_finset id,
-  Inf := λ s, @finset.inf _ _ iit s.to_finset id,
-  le_Sup := λ _ _ ha, @finset.le_sup _ _ isb _ _ _ (set.mem_to_finset.mpr ha),
-  Sup_le := λ s _ ha, @finset.sup_le _ _ isb s.to_finset _ _
-    (λ b hb, ha _ (by rwa set.mem_to_finset at hb)),
-  Inf_le := λ _ _ ha, @finset.inf_le _ _ iit _ _ _ (set.mem_to_finset.mpr ha),
-  le_Inf := λ s _ ha, @finset.le_inf _ _ iit s.to_finset _ _
-    (λ b hb, ha _ (by rwa set.mem_to_finset at hb)),
+{ Sup := λ s, s.to_finset.sup id,
+  Inf := λ s, s.to_finset.inf id,
+  le_Sup := λ _ _ ha, finset.le_sup (set.mem_to_finset.mpr ha),
+  Sup_le := λ s _ ha, finset.sup_le (λ b hb, ha _ (set.mem_to_finset.mp hb)),
+  Inf_le := λ _ _ ha, finset.inf_le (set.mem_to_finset.mpr ha),
+  le_Inf := λ s _ ha, finset.le_inf (λ b hb, ha _ (set.mem_to_finset.mp hb)),
   ..h}
 
 /-- A nonempty finite lattice is complete. If the lattice is already a `bounded_lattice`, then use

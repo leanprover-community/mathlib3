@@ -19,11 +19,9 @@ In this file we define various operations on `submonoid`s and `monoid_hom`s.
 
 ### Conversion between multiplicative and additive definitions
 
-* `submonoid.to_add_submonoid`, `submonoid.of_add_submonoid`, `add_submonoid.to_submonoid`,
-  `add_submonoid.of_submonoid`: convert between multiplicative and additive submonoids of `M`,
-  `multiplicative M`, and `additive M`.
-* `submonoid.add_submonoid_equiv`: equivalence between `submonoid M`
-  and `add_submonoid (additive M)`.
+* `submonoid.to_add_submonoid`, `submonoid.to_add_submonoid'`, `add_submonoid.to_submonoid`,
+  `add_submonoid.to_submonoid'`: convert between multiplicative and additive submonoids of `M`,
+  `multiplicative M`, and `additive M`. These are stated as `order_iso`s.
 
 ### (Commutative) monoid structure on a submonoid
 

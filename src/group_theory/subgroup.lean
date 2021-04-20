@@ -107,38 +107,6 @@ add_decl_doc subgroup.to_submonoid
 /-- Reinterpret an `add_subgroup` as an `add_submonoid`. -/
 add_decl_doc add_subgroup.to_add_submonoid
 
-/-- Map from subgroups of group `G` to `add_subgroup`s of `additive G`. -/
-def subgroup.to_add_subgroup {G : Type*} [group G] (H : subgroup G) :
-  add_subgroup (additive G) :=
-{ neg_mem' := H.inv_mem',
-  .. submonoid.to_add_submonoid H.to_submonoid}
-
-/-- Map from `add_subgroup`s of `additive G` to subgroups of `G`. -/
-def subgroup.of_add_subgroup {G : Type*} [group G] (H : add_subgroup (additive G)) :
-  subgroup G :=
-{ inv_mem' := H.neg_mem',
-  .. submonoid.of_add_submonoid H.to_add_submonoid}
-
-/-- Map from `add_subgroup`s of `add_group G` to subgroups of `multiplicative G`. -/
-def add_subgroup.to_subgroup {G : Type*} [add_group G] (H : add_subgroup G) :
-  subgroup (multiplicative G) :=
-{ inv_mem' := H.neg_mem',
-  .. add_submonoid.to_submonoid H.to_add_submonoid}
-
-/-- Map from subgroups of `multiplicative G` to `add_subgroup`s of `add_group G`. -/
-def add_subgroup.of_subgroup {G : Type*} [add_group G] (H : subgroup (multiplicative G)) :
-  add_subgroup G :=
-{ neg_mem' := H.inv_mem',
-  .. add_submonoid.of_submonoid H.to_submonoid }
-
-/-- Subgroups of group `G` are isomorphic to additive subgroups of `additive G`. -/
-def subgroup.add_subgroup_equiv (G : Type*) [group G] :
-subgroup G ≃ add_subgroup (additive G) :=
-{ to_fun := subgroup.to_add_subgroup,
-  inv_fun := subgroup.of_add_subgroup,
-  left_inv := λ x, by cases x; refl,
-  right_inv := λ x, by cases x; refl }
-
 namespace subgroup
 
 @[to_additive]
@@ -147,6 +115,12 @@ instance : set_like (subgroup G) G :=
 
 @[simp, to_additive]
 lemma mem_carrier {s : subgroup G} {x : G} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
+
+@[to_additive]
+def simps.coe (S : subgroup G) : set G := S
+
+initialize_simps_projections subgroup (carrier → coe)
+initialize_simps_projections add_subgroup (carrier → coe)
 
 @[simp, to_additive]
 lemma coe_to_submonoid (K : subgroup G) : (K.to_submonoid : set G) = K := rfl
@@ -157,6 +131,46 @@ show fintype {g : G // g ∈ K}, from infer_instance
 
 end subgroup
 
+/-!
+### Conversion to/from `additive`/`multiplicative`
+-/
+section
+
+/-- Supgroups of a group `G` are isomorphic to additive subgroups of `additive G`. -/
+@[simps]
+def subgroup.to_add_subgroup : subgroup G ≃o add_subgroup (additive G) :=
+{ to_fun := λ S,
+  { neg_mem' := S.inv_mem',
+    ..S.to_submonoid.to_add_submonoid },
+  inv_fun := λ S,
+  { inv_mem' := S.neg_mem',
+    ..S.to_add_submonoid.to_submonoid' },
+  left_inv := λ x, by cases x; refl,
+  right_inv := λ x, by cases x; refl,
+  map_rel_iff' := λ a b, iff.rfl, }
+
+/-- Additive subgroup of an additive group `additive G` are isomorphic to subgroup of `G`. -/
+abbreviation add_subgroup.to_subgroup' : add_subgroup (additive G) ≃o subgroup G :=
+subgroup.to_add_subgroup.symm
+
+/-- Additive supgroups of an additive group `A` are isomorphic to subgroups of `multiplicative A`.
+-/
+@[simps]
+def add_subgroup.to_subgroup : add_subgroup A ≃o subgroup (multiplicative A) :=
+{ to_fun := λ S,
+  { inv_mem' := S.neg_mem',
+    ..S.to_add_submonoid.to_submonoid },
+  inv_fun := λ S,
+  { neg_mem' := S.inv_mem',
+    ..S.to_submonoid.to_add_submonoid' },
+  left_inv := λ x, by cases x; refl,
+  right_inv := λ x, by cases x; refl,
+  map_rel_iff' := λ a b, iff.rfl, }
+
+/-- Subgroups of an additive group `multiplicative A` are isomorphic to additive subgroups of `A`.
+-/
+abbreviation subgroup.to_add_subgroup' : subgroup (multiplicative A) ≃o add_subgroup A :=
+add_subgroup.to_subgroup.symm
 
 namespace subgroup
 

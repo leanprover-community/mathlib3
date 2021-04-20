@@ -207,15 +207,15 @@ by rw [finset.sum_eq_multiset_sum, divisors_filter_squarefree h0, multiset.map_m
 lemma sq_mul_squarefree {n : ℕ} (hn : 0 < n) :
   ∃ a b : ℕ, 0 < a ∧ 0 < b ∧ b ^ 2 * a = n ∧ squarefree a :=
 begin
-  set S := {s ∈ finset.range (n + 1) | s ∣ n ∧ ∃ x, s = x ^ 2 } with hS,
+  let S := {s ∈ finset.range (n + 1) | s ∣ n ∧ ∃ x, s = x ^ 2 },
   have hSne : S.nonempty,
   { use 1,
     have h1 : 0 < n ∧ ∃ (x : ℕ), 1 = x ^ 2 := ⟨hn, ⟨1, (one_pow 2).symm⟩⟩,
-    simpa [hS] },
+    simpa [S] },
 
   let s := finset.max' S hSne,
   have hs : s ∈ S := finset.max'_mem S hSne,
-  simp only [finset.sep_def, hS, finset.mem_filter, finset.mem_range] at hs,
+  simp only [finset.sep_def, S, finset.mem_filter, finset.mem_range] at hs,
   obtain ⟨hsn1, ⟨a, hsa⟩, ⟨b, hsb⟩⟩ := hs,
 
   have hzero_lt_a : 0 < a,
@@ -254,7 +254,7 @@ begin
     rw pow_two, exact one_lt_mul' hx₂ hx₂ },
   have hz₁ : z ∣ n, { use y, rw [hsa, hy, hz], ring },
   have hz₂ : z ∈ S,
-  { simp only [finset.sep_def, hS, finset.mem_filter, finset.mem_range],
+  { simp only [finset.sep_def, S, finset.mem_filter, finset.mem_range],
     exact ⟨lt_succ_iff.mpr ((le_of_dvd hn) hz₁), hz₁, ⟨b * x, rfl⟩⟩ },
   have hz₃ : z ≤ s := finset.le_max' S z hz₂,
 

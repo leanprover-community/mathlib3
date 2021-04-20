@@ -73,7 +73,7 @@ begin
   exact (subgroup.card_eq_card_quotient_mul_card_subgroup _).symm,
 end
 
-lemma alternating_group_normal : (alternating_group α).normal := sign.normal_ker
+instance alternating_group_normal : (alternating_group α).normal := sign.normal_ker
 
 namespace equiv.perm
 

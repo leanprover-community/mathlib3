@@ -246,19 +246,19 @@ end partition
 ### 3-cycles
 -/
 
-section is_three_cycle
+/-- A three-cycle is a cycle of length 3. -/
+def is_three_cycle [decidable_eq α] (σ : perm α) : Prop := σ.cycle_type = {3}
+
+namespace is_three_cycle
 
 variables [decidable_eq α] {σ : perm α}
 
-/-- A three-cycle is a cycle of length 3. -/
-def is_three_cycle (σ : perm α) : Prop := σ.cycle_type = {3}
+lemma cycle_type (h : is_three_cycle σ) : σ.cycle_type = {3} := h
 
-lemma is_three_cycle.cycle_type (h : is_three_cycle σ) : σ.cycle_type = {3} := h
-
-lemma is_three_cycle.card_support (h : is_three_cycle σ) : σ.support.card = 3 :=
+lemma card_support (h : is_three_cycle σ) : σ.support.card = 3 :=
 by rw [←sum_cycle_type, h.cycle_type, singleton_eq_singleton, multiset.sum_cons, sum_zero]
 
-lemma card_support_eq_three_iff : σ.support.card = 3 ↔ σ.is_three_cycle :=
+lemma _root_.card_support_eq_three_iff : σ.support.card = 3 ↔ σ.is_three_cycle :=
 begin
   refine ⟨λ h, _, is_three_cycle.card_support⟩,
   by_cases h0 : σ.cycle_type = 0,
@@ -273,19 +273,22 @@ begin
   linarith [two_le_of_mem_cycle_type hn, two_le_of_mem_cycle_type (mem_of_mem_erase hm)],
 end
 
-lemma is_three_cycle.is_cycle (h : is_three_cycle σ) : is_cycle σ :=
+lemma is_cycle (h : is_three_cycle σ) : is_cycle σ :=
 by rw [←card_cycle_type_eq_one, h.cycle_type, singleton_eq_singleton, card_singleton]
 
-lemma is_three_cycle.sign (h : is_three_cycle σ) : sign σ = 1 :=
+lemma sign (h : is_three_cycle σ) : sign σ = 1 :=
 begin
   rw [sign_of_cycle_type, h.cycle_type],
   refl,
 end
 
-lemma is_three_cycle.inv {f : perm α} (h : is_three_cycle f) : is_three_cycle (f⁻¹) :=
+lemma inv {f : perm α} (h : is_three_cycle f) : is_three_cycle (f⁻¹) :=
 by rwa [is_three_cycle, cycle_type_inv]
 
-lemma is_three_cycle_swap_mul_swap_same {a b c : α} (ab : a ≠ b) (ac : a ≠ c) (bc : b ≠ c) :
+end is_three_cycle
+
+lemma is_three_cycle_swap_mul_swap_same [decidable_eq α]
+  {a b c : α} (ab : a ≠ b) (ac : a ≠ c) (bc : b ≠ c) :
   is_three_cycle (swap a b * swap a c) :=
 begin
   suffices h : support (swap a b * swap a c) = {a, b, c},
@@ -304,7 +307,5 @@ begin
     { rw [swap_apply_right, swap_apply_left],
       exact bc } }
 end
-
-end is_three_cycle
 
 end equiv.perm

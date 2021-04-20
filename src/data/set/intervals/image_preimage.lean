@@ -256,27 +256,6 @@ by simp [add_comm]
 by simp [add_comm]
 
 /-!
-### Images under `x ↦ x + a`
--/
-
-@[simp] lemma image_add_const_Ici : (λ x, x + a) '' Ici b = Ici (a + b) := by simp [add_comm]
-@[simp] lemma image_add_const_Iic : (λ x, x + a) '' Iic b = Iic (a + b) := by simp [add_comm]
-@[simp] lemma image_add_const_Iio : (λ x, x + a) '' Iio b = Iio (a + b) := by simp [add_comm]
-@[simp] lemma image_add_const_Ioi : (λ x, x + a) '' Ioi b = Ioi (a + b) := by simp [add_comm]
-
-@[simp] lemma image_add_const_Icc : (λ x, x + a) '' Icc b c = Icc (a + b) (a + c) :=
-by simp [add_comm]
-
-@[simp] lemma image_add_const_Ico : (λ x, x + a) '' Ico b c = Ico (a + b) (a + c) :=
-by simp [add_comm]
-
-@[simp] lemma image_add_const_Ioc : (λ x, x + a) '' Ioc b c = Ioc (a + b) (a + c) :=
-by simp [add_comm]
-
-@[simp] lemma image_add_const_Ioo : (λ x, x + a) '' Ioo b c = Ioo (a + b) (a + c) :=
-by simp [add_comm]
-
-/-!
 ### Images under `x ↦ -x`
 -/
 

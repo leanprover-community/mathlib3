@@ -167,10 +167,6 @@ def maximal_trivial_equiv (e : M ≃ₗ⁅R,L⁆ N) :
   right_inv := λ n, by { ext, simp, },
   .. maximal_trivial_hom (e : M →ₗ⁅R,L⁆ N), }
 
-@[simp] lemma maximal_trivial_equiv_symm_eq_symm (e : M ≃ₗ⁅R,L⁆ N) :
-  (maximal_trivial_equiv e).symm = maximal_trivial_equiv e.symm :=
-rfl
-
 @[norm_cast, simp] lemma coe_maximal_trivial_equiv_apply
   (e : M ≃ₗ⁅R,L⁆ N) (m : maximal_trivial_submodule R L M) :
   (maximal_trivial_equiv e m : N) = e ↑m :=

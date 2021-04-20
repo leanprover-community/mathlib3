@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import ring_theory.finiteness
+import data.set.finite
 import group_theory.submonoid.operations
 
 /-!
@@ -69,20 +69,6 @@ begin
     obtain ⟨T, hT, hf⟩ := (monoid.fg_def _).1 h,
     rw [add_monoid.fg_def],
     exact ⟨additive.of_mul ⁻¹' T, by simpa [← add_submonoid.of_submonoid_closure, hT], hf⟩ }
-end
-
-lemma comm_add_monoid_fg_iff_span {M : Type*} [add_comm_monoid M] :
-  add_monoid.fg M ↔ ∃ S : finset M, submodule.span ℕ (S : set M) = (⊤ : submodule ℕ M) :=
-begin
-  split,
-  { rintro ⟨S, hS⟩,
-    refine ⟨S, _⟩,
-    rw [← submodule.span_nat_eq_add_submonoid_closure] at hS,
-    exact submodule.to_add_submonoid_injective hS },
-  { rintro ⟨S, hS⟩,
-    refine ⟨S, _⟩,
-    rw [← submodule.span_nat_eq_add_submonoid_closure],
-    simp only [hS, submodule.top_to_add_submonoid] }
 end
 
 end monoid

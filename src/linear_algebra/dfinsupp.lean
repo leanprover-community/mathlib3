@@ -129,4 +129,65 @@ def lsum [semiring S] [semimodule S N] [smul_comm_class R S N] :
 
 end lsum
 
+/-! ### Bundled versions of `dfinsupp.map_range`
+
+The names should match the equivalent bundled `finsupp.map_range` definitions.
+-/
+
+section map_range
+
+variables {β β₁ β₂: ι → Type*}
+variables [Π i, add_comm_monoid (β i)] [Π i, add_comm_monoid (β₁ i)] [Π i, add_comm_monoid (β₂ i)]
+variables [Π i, semimodule R (β i)] [Π i, semimodule R (β₁ i)] [Π i, semimodule R (β₂ i)]
+
+lemma map_range_smul (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0)
+  (hf' : ∀ i r x, f i (r • x) = r • f i y) (r : R) (g : Π₀ i, β₁ i):
+  map_range f hf (r • g) = r • map_range f hf g :=
+begin
+  ext,
+  simp only [map_range_apply f, coe_smul, pi.smul_apply, hf']
+end
+
+/-- `dfinsupp.map_range` as an `linear_map`. -/
+@[simps apply]
+def map_range.linear_map (f : Π i, β₁ i →ₗ[R] β₂ i) : (Π₀ i, β₁ i) →ₗ[R] (Π₀ i, β₂ i) :=
+{ to_fun := map_range (λ i x, f i x) (λ i, (f i).map_zero),
+  map_smul' := map_range_smul _ _ (λ i, (f i).map_smul),
+  .. map_range.linear_map (λ i, (f i).to_add_monoid_hom) }
+
+@[simp]
+lemma map_range.linear_map_id :
+  map_range.linear_map (λ i, linear_map.id (β₂ i)) = linear_map.id _ :=
+linear_map.ext map_range_id
+
+lemma map_range.linear_map_comp (f : Π i, β₁ i →ₗ[R] β₂ i) (f₂ : Π i, β i →ₗ[R] β₁ i):
+  map_range.linear_map (λ i, (f i).comp (f₂ i)) =
+    (map_range.linear_map f).comp (map_range.linear_map f₂) :=
+linear_map.ext $ map_range_comp (λ i x, f i x) (λ i x, f₂ i x) _ _ _
+
+/-- `dfinsupp.map_range.linear_map` as an `linear_equiv`. -/
+@[simps apply]
+def map_range.linear_equiv (e : Π i, β₁ i ≃ₗ[R] β₂ i) : (Π₀ i, β₁ i) ≃ₗ[R] (Π₀ i, β₂ i) :=
+{ to_fun := map_range (λ i x, e i x) (λ i, (e i).map_zero),
+  inv_fun := map_range (λ i x, (e i).symm x) (λ i, (e i).symm.map_zero),
+  left_inv := λ x, by rw ←map_range_comp; { simp_rw linear_equiv.symm_comp_self, simp },
+  right_inv := λ x, by rw ←map_range_comp; { simp_rw linear_equiv.self_comp_symm, simp },
+  .. map_range.linear_map (λ i, (e i).to_linear_map) }
+
+@[simp]
+lemma map_range.linear_equiv_refl :
+  (map_range.linear_equiv $ λ i, linear_equiv.refl (β₁ i)) = linear_equiv.refl _ :=
+linear_equiv.ext map_range_id
+
+lemma map_range.linear_equiv_trans (f : Π i, β i ≃ₗ[R] β₁ i) (f₂ : Π i, β₁ i ≃ₗ[R] β₂ i):
+  map_range.linear_equiv (λ i, (f i).trans (f₂ i)) =
+    (map_range.linear_equiv f).trans (map_range.linear_equiv f₂) :=
+linear_equiv.ext $ map_range_comp (λ i x, f₂ i x) (λ i x, f i x) _ _ _
+
+@[simp]
+lemma map_range.linear_equiv_symm (e : Π i, β₁ i ≃ₗ[R] β₂ i) :
+  (map_range.linear_equiv e).symm = map_range.linear_equiv (λ i, (e i).symm) := rfl
+
+end map_range
+
 end dfinsupp

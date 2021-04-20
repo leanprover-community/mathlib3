@@ -67,3 +67,23 @@ begin
       { exact (h.2 (trans yb (trans ba ax))).elim },
       { exact (h.2 (trans yb bx)).elim } } },
 end
+
+/-- A type alias for `α`, intended to extend a partial order on `α` to a linear order. -/
+def linear_extension (α : Type u) : Type u := α
+
+noncomputable instance {α : Type u} [partial_order α] : linear_order (linear_extension α) :=
+{ le := (extend_partial_order ((≤) : α → α → Prop)).some,
+  le_refl := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.1.1.1.1,
+  le_trans := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.1.1.2.1,
+  le_antisymm := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.1.2.1,
+  le_total := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.2.1,
+  decidable_le := classical.dec_rel _ }
+
+/-- The embedding of `α` into `linear_extension α` as a relation homomorphism. -/
+def to_linear_extension {α : Type u} [partial_order α] :
+  ((≤) : α → α → Prop) →r ((≤) : linear_extension α → linear_extension α → Prop) :=
+{ to_fun := λ x, x,
+  map_rel' := λ a b, (extend_partial_order ((≤) : α → α → Prop)).some_spec.some_spec _ _ }
+
+instance {α : Type u} [inhabited α] : inhabited (linear_extension α) :=
+⟨(default _ : α)⟩

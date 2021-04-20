@@ -109,6 +109,9 @@ def cast_ring_hom (α : Type*) [ring α] : ℤ →+* α := ⟨coe, cast_one, cas
 lemma cast_commute [ring α] (m : ℤ) (x : α) : commute ↑m x :=
 int.cases_on m (λ n, n.cast_commute x) (λ n, ((n+1).cast_commute x).neg_left)
 
+lemma cast_comm [ring α] (m : ℤ) (x : α) : (m : α) * x = x * m :=
+(cast_commute m x).eq
+
 lemma commute_cast [ring α] (x : α) (m : ℤ) : commute x m :=
 (m.cast_commute x).symm
 
@@ -206,15 +209,43 @@ namespace monoid_hom
 variables {M : Type*} [monoid M]
 open multiplicative
 
-theorem ext_int {f g : multiplicative ℤ →* M}
-  (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
+@[ext] theorem ext_mint {f g : multiplicative ℤ →* M} (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
+monoid_hom.ext $ add_monoid_hom.ext_iff.mp $
+  @add_monoid_hom.ext_int _ _ f.to_additive g.to_additive h1
+
+/-- If two `monoid_hom`s agree on `-1` and the naturals then they are equal. -/
+@[ext] theorem ext_int {f g : ℤ →* M}
+  (h_neg_one : f (-1) = g (-1))
+  (h_nat : f.comp int.of_nat_hom.to_monoid_hom = g.comp int.of_nat_hom.to_monoid_hom) :
+  f = g :=
 begin
-  ext,
-  exact add_monoid_hom.ext_iff.1
-    (@add_monoid_hom.ext_int _ _ f.to_additive g.to_additive h1) _,
+  ext (x | x),
+  { exact (monoid_hom.congr_fun h_nat x : _), },
+  { rw [int.neg_succ_of_nat_eq, ← neg_one_mul, f.map_mul, g.map_mul],
+    congr' 1,
+    exact_mod_cast (monoid_hom.congr_fun h_nat (x + 1) : _), }
 end
 
 end monoid_hom
+
+namespace monoid_with_zero_hom
+
+variables {M : Type*} [monoid_with_zero M]
+
+/-- If two `monoid_with_zero_hom`s agree on `-1` and the naturals then they are equal. -/
+@[ext] theorem ext_int {f g : monoid_with_zero_hom ℤ M}
+  (h_neg_one : f (-1) = g (-1))
+  (h_nat : f.comp int.of_nat_hom.to_monoid_with_zero_hom =
+           g.comp int.of_nat_hom.to_monoid_with_zero_hom) :
+  f = g :=
+to_monoid_hom_injective $ monoid_hom.ext_int h_neg_one $ monoid_hom.ext (congr_fun h_nat : _)
+
+/-- If two `monoid_with_zero_hom`s agree on `-1` and the _positive_ naturals then they are equal. -/
+theorem ext_int' {φ₁ φ₂ : monoid_with_zero_hom ℤ M}
+  (h_neg_one : φ₁ (-1) = φ₂ (-1)) (h_pos : ∀ n : ℕ, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
+ext_int h_neg_one $ ext_nat h_pos
+
+end monoid_with_zero_hom
 
 namespace ring_hom
 

@@ -3,7 +3,7 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
-import topology.algebra.continuous_functions
+import topology.continuous_function.algebra
 import linear_algebra.affine_space.affine_map
 
 /-!
@@ -40,7 +40,7 @@ begin
 end
 
 /-- The line map is continuous. -/
-lemma line_map_continuous [topological_space R] [topological_semimodule R F] {p v : F} :
+lemma line_map_continuous [topological_space R] [has_continuous_smul R F] {p v : F} :
   continuous ⇑(line_map p v : R →ᵃ[R] F) :=
 continuous_iff.mpr $ (continuous_id.smul continuous_const).add $
   @continuous_const _ _ _ _ (0 : F)

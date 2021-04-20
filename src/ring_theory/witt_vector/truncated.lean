@@ -29,6 +29,11 @@ The ring of Witt vectors is the projective limit of all the rings of truncated W
   that is compatible with a family of ring homomorphisms to the truncated Witt vectors:
   this realizes the ring of Witt vectors as projective limit of the rings of truncated Witt vectors
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 open function (injective surjective)
@@ -115,8 +120,6 @@ variables {p} (n)
 
 section
 
-local attribute [semireducible] witt_vector
-
 /-- `truncate_fun n x` uses the first `n` entries of `x` to construct a `truncated_witt_vector`,
 which has the same base `p` as `x`.
 This function is bundled into a ring homomorphism in `witt_vector.truncate` -/
@@ -172,6 +175,9 @@ instance : has_mul (truncated_witt_vector p n R) :=
 instance : has_neg (truncated_witt_vector p n R) :=
 ⟨λ x, truncate_fun n (- x.out)⟩
 
+instance : has_sub (truncated_witt_vector p n R) :=
+⟨λ x y, truncate_fun n (x.out - y.out)⟩
+
 @[simp] lemma coeff_zero (i : fin n) :
   (0 : truncated_witt_vector p n R).coeff i = 0 :=
 begin
@@ -186,7 +192,7 @@ meta def tactic.interactive.witt_truncate_fun_tac : tactic unit :=
 `[show _ = truncate_fun n _,
   apply truncated_witt_vector.out_injective,
   iterate { rw [out_truncate_fun] },
-  rw init_add <|> rw init_mul <|> rw init_neg]
+  rw init_add <|> rw init_mul <|> rw init_neg <|> rw init_sub]
 
 namespace witt_vector
 
@@ -195,7 +201,7 @@ variable [comm_ring R]
 
 lemma truncate_fun_surjective :
   surjective (@truncate_fun p n R) :=
-λ x, ⟨x.out, truncated_witt_vector.truncate_fun_out x⟩
+function.right_inverse.surjective truncated_witt_vector.truncate_fun_out
 
 include hp
 
@@ -221,6 +227,10 @@ lemma truncate_fun_neg (x : 𝕎 R) :
   truncate_fun n (-x) = -truncate_fun n x :=
 by witt_truncate_fun_tac
 
+lemma truncate_fun_sub (x y : 𝕎 R) :
+  truncate_fun n (x - y) = truncate_fun n x - truncate_fun n y :=
+by witt_truncate_fun_tac
+
 end witt_vector
 
 namespace truncated_witt_vector
@@ -236,6 +246,7 @@ instance : comm_ring (truncated_witt_vector p n R) :=
   (truncate_fun_add n)
   (truncate_fun_mul n)
   (truncate_fun_neg n)
+  (truncate_fun_sub n)
 
 end truncated_witt_vector
 
@@ -297,24 +308,22 @@ A ring homomorphism that truncates a truncated Witt vector of length `m` to
 a truncated Witt vector of length `n`, for `n ≤ m`.
 -/
 def truncate {m : ℕ} (hm : n ≤ m) : truncated_witt_vector p m R →+* truncated_witt_vector p n R :=
-ring_hom.lift_of_surjective
-  (witt_vector.truncate m)
-  (witt_vector.truncate_surjective p m R)
-  (witt_vector.truncate n)
+ring_hom.lift_of_right_inverse (witt_vector.truncate m) out truncate_fun_out
+  ⟨witt_vector.truncate n,
   begin
     intro x,
     simp only [witt_vector.mem_ker_truncate],
     intros h i hi,
     exact h i (lt_of_lt_of_le hi hm)
-  end
+  end⟩
 
 @[simp] lemma truncate_comp_witt_vector_truncate {m : ℕ} (hm : n ≤ m) :
   (@truncate p _ n R _ m hm).comp (witt_vector.truncate m) = witt_vector.truncate n :=
-ring_hom.lift_of_surjective_comp _ _ _ _
+ring_hom.lift_of_right_inverse_comp _ _ _ _
 
 @[simp] lemma truncate_witt_vector_truncate {m : ℕ} (hm : n ≤ m) (x : 𝕎 R) :
   truncate hm (witt_vector.truncate m x) = witt_vector.truncate n x :=
-ring_hom.lift_of_surjective_comp_apply _ _ _ _ _
+ring_hom.lift_of_right_inverse_comp_apply _ _ _ _ _
 
 @[simp] lemma truncate_truncate {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n₃)
   (x : truncated_witt_vector p n₃ R) :

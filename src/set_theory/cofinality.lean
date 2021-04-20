@@ -1,11 +1,46 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro, Floris van Doorn
 -/
 import set_theory.cardinal_ordinal
 /-!
-# Cofinality on ordinals, regular cardinals
+# Cofinality
+
+This file contains the definition of cofinality of a ordinal number and regular cardinals
+
+## Main Definitions
+
+* `ordinal.cof o` is the cofinality of the ordinal `o`.
+  If `o` is the order type of the relation `<` on `α`, then `o.cof` is the smallest cardinality of a
+  subset `s` of α that is *cofinal* in `α`, i.e. `∀ x : α, ∃ y ∈ s, ¬ y < x`.
+* `cardinal.is_limit c` means that `c` is a (weak) limit cardinal: `c ≠ 0 ∧ ∀ x < c, succ x < c`.
+* `cardinal.is_strong_limit c` means that `c` is a strong limit cardinal:
+  `c ≠ 0 ∧ ∀ x < c, 2 ^ x < c`.
+* `cardinal.is_regular c` means that `c` is a regular cardinal: `omega ≤ c ∧ c.ord.cof = c`.
+* `cardinal.is_inaccessible c` means that `c` is strongly inaccessible:
+  `omega < c ∧ is_regular c ∧ is_strong_limit c`.
+
+## Main Statements
+
+* `ordinal.infinite_pigeonhole_card`: the infinite pigeonhole principle
+* `cardinal.lt_power_cof`: A consequence of König's theorem stating that `c < c ^ c.ord.cof` for
+  `c ≥ cardinal.omega`
+* `cardinal.univ_inaccessible`: The type of ordinals in `Type u` form an inaccessible cardinal
+  (in `Type v` with `v > u`). This shows (externally) that in `Type u` there are at least `u`
+  inaccessible cardinals.
+
+## Implementation Notes
+
+* The cofinality is defined for ordinals.
+  If `c` is a cardinal number, its cofinality is `c.ord.cof`.
+
+## Tags
+
+cofinality, regular cardinals, limits cardinals, inaccessible cardinals,
+infinite pigeonhole principle
+
+
 -/
 noncomputable theory
 
@@ -340,7 +375,8 @@ theorem sup_lt {ι} (f : ι → cardinal) {c : cardinal} (H1 : cardinal.mk ι < 
   (H2 : ∀ i, f i < c) : cardinal.sup.{u u} f < c :=
 by { rw [←ord_lt_ord, ←sup_ord], apply sup_lt_ord _ H1, intro i, rw ord_lt_ord, apply H2 }
 
-/-- If the union of s is unbounded and s is smaller than the cofinality, then s has an unbounded member -/
+/-- If the union of s is unbounded and s is smaller than the cofinality,
+  then s has an unbounded member -/
 theorem unbounded_of_unbounded_sUnion (r : α → α → Prop) [wo : is_well_order α r] {s : set (set α)}
   (h₁ : unbounded r $ ⋃₀ s) (h₂ : mk s < strict_order.cof r) : ∃(x ∈ s), unbounded r x :=
 begin
@@ -356,7 +392,8 @@ begin
   exact cardinal.min_le _ (subtype.mk t this)
 end
 
-/-- If the union of s is unbounded and s is smaller than the cofinality, then s has an unbounded member -/
+/-- If the union of s is unbounded and s is smaller than the cofinality,
+  then s has an unbounded member -/
 theorem unbounded_of_unbounded_Union {α β : Type u} (r : α → α → Prop) [wo : is_well_order α r]
   (s : β → set α)
   (h₁ : unbounded r $ ⋃x, s x) (h₂ : mk β < strict_order.cof r) : ∃x : β, unbounded r (s x) :=
@@ -366,7 +403,7 @@ begin
   rcases unbounded_of_unbounded_sUnion r h₁ this with ⟨_, ⟨x, rfl⟩, u⟩, exact ⟨x, u⟩
 end
 
-/-- The infinite pigeonhole principle-/
+/-- The infinite pigeonhole principle -/
 theorem infinite_pigeonhole {β α : Type u} (f : β → α) (h₁ : cardinal.omega ≤ mk β)
   (h₂ : mk α < (mk β).ord.cof) : ∃a : α, mk (f ⁻¹' {a}) = mk β :=
 begin
@@ -474,8 +511,7 @@ theorem sum_lt_of_is_regular {ι} (f : ι → cardinal)
 lt_of_le_of_lt (sum_le_sup _) $ mul_lt_of_lt hc.1 H1 $
 sup_lt_of_is_regular f hc H1 H2
 
-/-- A cardinal is inaccessible if it is an
-  uncountable regular strong limit cardinal. -/
+/-- A cardinal is inaccessible if it is an uncountable regular strong limit cardinal. -/
 def is_inaccessible (c : cardinal) :=
 omega < c ∧ is_regular c ∧ is_strong_limit c
 
@@ -485,8 +521,7 @@ theorem is_inaccessible.mk {c}
 ⟨h₁, ⟨le_of_lt h₁, le_antisymm (cof_ord_le _) h₂⟩,
   ne_of_gt (lt_trans omega_pos h₁), h₃⟩
 
-/- Lean's foundations prove the existence of ω many inaccessible
-   cardinals -/
+/- Lean's foundations prove the existence of ω many inaccessible cardinals -/
 theorem univ_inaccessible : is_inaccessible (univ.{u v}) :=
 is_inaccessible.mk
   (by simpa using lift_lt_univ' omega)

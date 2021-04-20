@@ -11,7 +11,7 @@ import tactic.linarith
 import tactic.omega
 
 /-!
-# IMO1988 Q6 and constant descent Vieta jumping
+# IMO 1988 Q6 and constant descent Vieta jumping
 
 Question 6 of IMO1988 is somewhat (in)famous. Several expert problem solvers
 could not tackle the question within the given time limit.
@@ -21,7 +21,6 @@ so called “Vieta jumping”.
 In this file we formalise constant descent Vieta jumping,
 and apply this to prove Q6 of IMO1988.
 To illustrate the technique, we also prove a similar result.
-
 -/
 
 -- open_locale classical
@@ -294,5 +293,5 @@ begin
       have y_dvd : y ∣ y * k := dvd_mul_right y k,
       rw [← h, ← add_assoc, nat.dvd_add_left (dvd_mul_left y y)] at y_dvd,
       obtain rfl|rfl : y = 1 ∨ y = 2 := nat.prime_two.2 y y_dvd,
-      all_goals { ring at h, omega } } }
+      all_goals { ring_nf at h, omega } } }
 end

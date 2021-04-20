@@ -19,11 +19,6 @@ open function nat native (rb_map mk_rb_map rb_map.of_list)
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
-/-- Returns whether a list is []. Returns a boolean even if `l = []` is not decidable. -/
-def is_nil {α} : list α → bool
-| [] := tt
-| _  := ff
-
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
 
@@ -907,5 +902,25 @@ to_rb_map ['a', 'b', 'c'] = rb_map.of_list [(0, 'a'), (1, 'b'), (2, 'c')]
 -/
 meta def to_rb_map {α : Type} : list α → rb_map ℕ α :=
 foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
+
+/--
+`xs.to_chunks n` splits the list into sublists of size at most `n`,
+such that `(xs.to_chunks n).join = xs`.
+
+TODO: make non-meta; currently doesn't terminate, e.g.
+```
+#eval [0].to_chunks 0
+```
+-/
+meta def to_chunks {α} (n : ℕ) : list α → list (list α)
+| [] := []
+| xs :=
+  xs.take n :: (xs.drop n).to_chunks
+
+/--
+Asynchronous version of `list.map`.
+-/
+meta def map_async_chunked {α β} (f : α → β) (xs : list α) (chunk_size := 1024) : list β :=
+((xs.to_chunks chunk_size).map (λ xs, task.delay (λ _, list.map f xs))).bind task.get
 
 end list

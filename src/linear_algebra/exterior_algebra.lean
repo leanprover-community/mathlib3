@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Zhangir Azerbayev, Adam Topaz, Eric Wieser.
+Authors: Zhangir Azerbayev, Adam Topaz, Eric Wieser
 -/
 
 import algebra.ring_quot
@@ -45,8 +45,10 @@ The exterior algebra of `M` is constructed as a quotient of the tensor algebra, 
 
 -/
 
-variables (R : Type*) [comm_semiring R]
-variables (M : Type*) [add_comm_monoid M] [semimodule R M]
+universes u1 u2 u3
+
+variables (R : Type u1) [comm_semiring R]
+variables (M : Type u2) [add_comm_monoid M] [semimodule R M]
 
 namespace exterior_algebra
 open tensor_algebra
@@ -70,10 +72,8 @@ namespace exterior_algebra
 
 variables {M}
 
--- typeclass resolution times out here, so we give it a hand
-instance {S : Type*} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
-let i : ring (tensor_algebra S M) := infer_instance in
-@ring_quot.ring (tensor_algebra S M) i (exterior_algebra.rel S M)
+instance {S : Type u3} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
+ring_quot.ring (exterior_algebra.rel S M)
 
 /--
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.
@@ -160,6 +160,37 @@ begin
   apply (lift R).symm.injective,
   rw [lift_symm_apply, lift_symm_apply],
   simp only [h],
+end
+
+/-- If `C` holds for the `algebra_map` of `r : R` into `exterior_algebra R M`, the `ι` of `x : M`,
+and is preserved under addition and muliplication, then it holds for all of `exterior_algebra R M`.
+-/
+-- This proof closely follows `tensor_algebra.induction`
+@[elab_as_eliminator]
+lemma induction {C : exterior_algebra R M → Prop}
+  (h_grade0 : ∀ r, C (algebra_map R (exterior_algebra R M) r))
+  (h_grade1 : ∀ x, C (ι R x))
+  (h_mul : ∀ a b, C a → C b → C (a * b))
+  (h_add : ∀ a b, C a → C b → C (a + b))
+  (a : exterior_algebra R M) :
+  C a :=
+begin
+  -- the arguments are enough to construct a subalgebra, and a mapping into it from M
+  let s : subalgebra R (exterior_algebra R M) := {
+    carrier := C,
+    mul_mem' := h_mul,
+    add_mem' := h_add,
+    algebra_map_mem' := h_grade0, },
+  let of : { f : M →ₗ[R] s // ∀ m, f m * f m = 0 } :=
+  ⟨(ι R).cod_restrict s.to_submodule h_grade1,
+    λ m, subtype.eq $ ι_square_zero m ⟩,
+  -- the mapping through the subalgebra is the identity
+  have of_id : alg_hom.id R (exterior_algebra R M) = s.val.comp (lift R of),
+  { ext,
+    simp [of], },
+  -- finding a proof is finding an element of the subalgebra
+  convert subtype.prop (lift R of a),
+  exact alg_hom.congr_fun of_id a,
 end
 
 /-- The left-inverse of `algebra_map`. -/

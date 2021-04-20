@@ -44,12 +44,28 @@ open polynomial
 
 variables (k : Type u) [field k]
 
-/-- Typeclass for algebraically closed fields. -/
+/-- Typeclass for algebraically closed fields.
+
+To show `polynomial.splits p f` for an arbitrary ring homomorphism `f`,
+see `is_alg_closed.splits_codomain` and `is_alg_closed.splits_domain`.
+-/
 class is_alg_closed : Prop :=
 (splits : ∀ p : polynomial k, p.splits $ ring_hom.id k)
 
-theorem polynomial.splits' {k K : Type*} [field k] [is_alg_closed k] [field K] {f : k →+* K}
-  (p : polynomial k) : p.splits f :=
+/-- Every polynomial splits in the field extension `f : K →+* k` if `k` is algebraically closed.
+
+See also `is_alg_closed.splits_domain` for the case where `K` is algebraically closed.
+-/
+theorem is_alg_closed.splits_codomain {k K : Type*} [field k] [is_alg_closed k] [field K]
+  {f : K →+* k} (p : polynomial K) : p.splits f :=
+by { convert is_alg_closed.splits (p.map f), simp [splits_map_iff] }
+
+/-- Every polynomial splits in the field extension `f : K →+* k` if `K` is algebraically closed.
+
+See also `is_alg_closed.splits_codomain` for the case where `k` is algebraically closed.
+-/
+theorem is_alg_closed.splits_domain {k K : Type*} [field k] [is_alg_closed k] [field K]
+  {f : k →+* K} (p : polynomial k) : p.splits f :=
 polynomial.splits_of_splits_id _ $ is_alg_closed.splits _
 
 namespace is_alg_closed
@@ -63,9 +79,10 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 
-lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : p ≠ 0) (hp : irreducible p) :
+lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : p ≠ 0)
+  (hp : irreducible p) :
   p.degree = 1 :=
-degree_eq_one_of_irreducible_of_splits h_nz hp (polynomial.splits' _)
+degree_eq_one_of_irreducible_of_splits h_nz hp (is_alg_closed.splits_codomain _)
 
 lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_integral k K) :
@@ -96,8 +113,13 @@ instance complex.is_alg_closed : is_alg_closed ℂ :=
 is_alg_closed.of_exists_root _ $ λ p _ hp, complex.exists_root $ degree_pos_of_irreducible hp
 
 /-- Typeclass for an extension being an algebraic closure. -/
-@[class] def is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=
-is_alg_closed K ∧ algebra.is_algebraic k K
+class is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=
+(alg_closed : is_alg_closed K)
+(algebraic : algebra.is_algebraic k K)
+
+theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
+  is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
+⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
 namespace algebraic_closure
 
@@ -111,7 +133,8 @@ open mv_polynomial
 def eval_X_self (f : monic_irreducible k) : mv_polynomial (monic_irreducible k) k :=
 polynomial.eval₂ mv_polynomial.C (X f) f
 
-/-- The span of `f(x_f)` across monic irreducible polynomials `f` where `x_f` is an indeterminate. -/
+/-- The span of `f(x_f)` across monic irreducible polynomials `f` where `x_f` is an
+indeterminate. -/
 def span_eval : ideal (mv_polynomial (monic_irreducible k) k) :=
 ideal.span $ set.range $ eval_X_self k
 
@@ -259,7 +282,8 @@ instance to_step_of_le.directed_system :
 
 end algebraic_closure
 
-/-- The canonical algebraic closure of a field, the direct limit of adding roots to the field for each polynomial over the field. -/
+/-- The canonical algebraic closure of a field, the direct limit of adding roots to the field for
+each polynomial over the field. -/
 def algebraic_closure : Type u :=
 ring.direct_limit (algebraic_closure.step k) (λ i j h, algebraic_closure.to_step_of_le k i j h)
 

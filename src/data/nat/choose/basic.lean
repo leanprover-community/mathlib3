@@ -107,13 +107,25 @@ end
 theorem choose_eq_factorial_div_factorial {n k : ℕ} (hk : k ≤ n) :
   choose n k = n! / (k! * (n - k)!) :=
 begin
-  have : n! = choose n k * (k! * (n - k)!) :=
-    by rw ← mul_assoc; exact (choose_mul_factorial_mul_factorial hk).symm,
-  exact (nat.div_eq_of_eq_mul_left (mul_pos (factorial_pos _) (factorial_pos _)) this).symm
+  rw [← choose_mul_factorial_mul_factorial hk, mul_assoc],
+  exact (mul_div_left _ (mul_pos (factorial_pos _) (factorial_pos _))).symm
 end
+
+lemma add_choose (i j : ℕ) : (i + j).choose j = (i + j)! / (i! * j!) :=
+by rw [choose_eq_factorial_div_factorial (le_add_left j i), nat.add_sub_cancel, mul_comm]
+
+lemma add_choose_mul_factorial_mul_factorial (i j : ℕ) : (i + j).choose j * i! * j! = (i + j)! :=
+by rw [← choose_mul_factorial_mul_factorial (le_add_left _ _), nat.add_sub_cancel, mul_right_comm]
 
 theorem factorial_mul_factorial_dvd_factorial {n k : ℕ} (hk : k ≤ n) : k! * (n - k)! ∣ n! :=
 by rw [←choose_mul_factorial_mul_factorial hk, mul_assoc]; exact dvd_mul_left _ _
+
+lemma factorial_mul_factorial_dvd_factorial_add (i j : ℕ) :
+  i! * j! ∣ (i + j)! :=
+begin
+  convert factorial_mul_factorial_dvd_factorial (le.intro rfl),
+  rw nat.add_sub_cancel_left
+end
 
 @[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
 by rw [choose_eq_factorial_div_factorial hk, choose_eq_factorial_div_factorial (sub_le _ _),

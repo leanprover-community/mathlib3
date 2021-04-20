@@ -35,6 +35,15 @@ class linear_ordered_comm_group_with_zero (α : Type*)
 variables {α : Type*}
 variables {a b c d x y z : α}
 
+instance [linear_ordered_add_comm_monoid_with_top α] :
+  linear_ordered_comm_monoid_with_zero (multiplicative (order_dual α)) :=
+{ zero := multiplicative.of_add (⊤ : α),
+  zero_mul := top_add,
+  mul_zero := add_top,
+  zero_le_one := (le_top : (0 : α) ≤ ⊤),
+  ..multiplicative.ordered_comm_monoid,
+  ..multiplicative.linear_order }
+
 section linear_ordered_comm_monoid
 
 variables [linear_ordered_comm_monoid_with_zero α]
@@ -42,18 +51,30 @@ variables [linear_ordered_comm_monoid_with_zero α]
 The following facts are true more generally in a (linearly) ordered commutative monoid.
 -/
 
+/-- Pullback a `linear_ordered_comm_monoid_with_zero` under an injective map. -/
+def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
+  [has_zero β] [has_one β] [has_mul β]
+  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  linear_ordered_comm_monoid_with_zero β :=
+{ zero_le_one := show f 0 ≤ f 1, by simp only [zero, one,
+    linear_ordered_comm_monoid_with_zero.zero_le_one],
+  ..linear_order.lift f hf,
+  ..hf.ordered_comm_monoid f one mul,
+  ..hf.comm_monoid_with_zero f zero one mul }
+
 lemma one_le_pow_of_one_le' {n : ℕ} (H : 1 ≤ x) : 1 ≤ x^n :=
 begin
   induction n with n ih,
-  { exact le_refl 1 },
-  { exact one_le_mul H ih }
+  { rw pow_zero },
+  { rw pow_succ, exact one_le_mul H ih }
 end
 
 lemma pow_le_one_of_le_one {n : ℕ} (H : x ≤ 1) : x^n ≤ 1 :=
 begin
   induction n with n ih,
-  { exact le_refl 1 },
-  { exact mul_le_one' H ih }
+  { rw pow_zero },
+  { rw pow_succ, exact mul_le_one' H ih }
 end
 
 lemma eq_one_of_pow_eq_one {n : ℕ} (hn : n ≠ 0) (H : x ^ n = 1) : x = 1 :=
@@ -111,6 +132,13 @@ lemma zero_lt_iff : 0 < a ↔ a ≠ 0 :=
 lemma ne_zero_of_lt (h : b < a) : a ≠ 0 :=
 λ h1, not_lt_zero' $ show b < 0, from h1 ▸ h
 
+instance : linear_ordered_add_comm_monoid_with_top (additive (order_dual α)) :=
+{ top := (0 : α),
+  top_add' := λ a, (zero_mul a : (0 : α) * a = 0),
+  le_top := λ _, zero_le',
+  ..additive.ordered_add_comm_monoid,
+  ..additive.linear_order }
+
 end linear_ordered_comm_monoid
 
 variables [linear_ordered_comm_group_with_zero α]
@@ -153,7 +181,7 @@ lemma mul_lt_right' (c : α) (h : a < b) (hc : c ≠ 0) : a * c < b * c :=
 by { contrapose! h, exact le_of_le_mul_right hc h }
 
 lemma pow_lt_pow_succ {x : α} {n : ℕ} (hx : 1 < x) : x ^ n < x ^ n.succ :=
-by { rw ← one_mul (x ^ n),
+by { rw [← one_mul (x ^ n), pow_succ],
 exact mul_lt_right' _ hx (pow_ne_zero _ $ ne_of_gt (lt_trans zero_lt_one'' hx)) }
 
 lemma pow_lt_pow' {x : α} {m n : ℕ} (hx : 1 < x) (hmn : m < n) : x ^ m < x ^ n :=

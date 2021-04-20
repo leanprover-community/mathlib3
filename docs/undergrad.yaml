@@ -9,7 +9,7 @@ Linear algebra:
     vector subspace: 'subspace'
     quotient space: 'submodule.quotient'
     sum of subspaces: 'submodule.complete_lattice'
-    direct sum: ''
+    direct sum: '' # this is supposed to be the internal direct sum
     complementary subspaces: 'submodule.exists_is_compl'
     linear independence: 'linear_independent'
     generating sets: 'submodule.span'
@@ -89,7 +89,7 @@ Group Theory:
     orbit: 'mul_action.orbit'
     quotient space: 'mul_action.orbit_equiv_quotient_stabilizer'
     class formula: ''
-    conjugacy classes: 'group.conjugates'
+    conjugacy classes: 'conj_classes'
   Abelian group:
     cyclic group: 'is_cyclic'
     finite type abelian groups: ''
@@ -97,16 +97,16 @@ Group Theory:
     primitive complex roots of unity: 'complex.is_primitive_root_iff'
   Permutation group:
     permutation group of a type: 'equiv.perm'
-    decomposition into transpositions: ''
-    decomposition into cycles with disjoint support: ''
+    decomposition into transpositions: 'equiv.perm.trunc_swap_factors'
+    decomposition into cycles with disjoint support: 'equiv.perm.trunc_cycle_factors'
     signature: 'equiv.perm.sign'
-    alternating group: ''
+    alternating group: 'alternating_subgroup'
   Classical automorphism groups:
     general linear group: 'linear_map.general_linear_group'
     special linear group: 'matrix.special_linear_group'
-    orthogonal group: ''
+    orthogonal group: 'matrix.orthogonal_group '
     special orthogonal group: ''
-    unitary group: ''
+    unitary group: 'matrix.unitary_group'
     special unitary group: ''
   Representation theory of finite groups:
     representations of abelian groups: ''
@@ -196,7 +196,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     bilinear forms: 'bilin_form'
     alternating bilinear forms: 'alt_bilin_form.is_alt'
     symmetric bilinear forms: 'sym_bilin_form.is_sym'
-    nondegenerate forms:
+    nondegenerate forms: 'bilin_form.nondegenerate'
     matrix representation: 'bilin_form.to_matrix'
     change of coordinates: 'bilin_form.to_matrix_comp'
     rank of a bilinear form:
@@ -205,7 +205,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     polar form of a quadratic: 'quadratic_form.polar'
   Orthogonality:
     orthogonal elements: 'bilin_form.is_ortho'
-    adjoint endomorphism:
+    adjoint endomorphism: 'bilin_form.left_adjoint_of_nondegenerate'
     Sylvester's law of inertia:
     real classification:
     complex classification:
@@ -294,8 +294,8 @@ Single Variable Real Analysis:
     additive subgroups of $\R$: 'real.subgroup_dense_or_cyclic'
   Numerical series:
     Convergence of real valued-series:
-    Geometric series:
-    convergence of $p$-series for $p>1$:
+    Geometric series: 'tsum_geometric_of_norm_lt_1'
+    convergence of $p$-series for $p>1$: 'nnreal.summable_one_rpow_inv'
     positive valued series:
     summation of comparison relations:
     comparison of a series and an integral:
@@ -366,7 +366,7 @@ Single Variable Complex Analysis:
     radius of convergence: 'formal_multilinear_series.radius'
 #    properties of sums of complex valued series on their disks of convergence: (this is a heading?)
     continuity: 'has_fpower_series_on_ball.continuous_on'
-    differentiability with respect to the complex variable:
+    differentiability with respect to the complex variable: 'has_fpower_series_on_ball.differentiable_on'
     antiderivative:
     complex exponential: 'complex.exp'
     extension of trigonometric functions to the complex plane: 'complex.sin'
@@ -374,7 +374,7 @@ Single Variable Complex Analysis:
   Functions on one complex variable:
     holomorphic functions:
     Cauchy-Riemann conditions:
-    line integrals of continuous functions in $\C$:
+    contour integrals of continuous functions in $\C$:
     antiderivatives of a holomorphic function:
     representations of the $\log$ function on $\C$:
     theorem of holomorphic functions under integral domains:
@@ -412,7 +412,7 @@ Topology:
     complete metric spaces: 'metric.complete_of_cauchy_seq_tendsto'
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
   Normed vector spaces on $\R$ and $\C$:
-    topology on a normed vector space: 'normed_space.topological_vector_space'
+    topology on a normed vector space: 'semi_normed_space.has_continuous_smul'
     equivalent norms:
     Banach open mapping theorem: 'open_mapping'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
@@ -429,9 +429,10 @@ Topology:
   Hilbert Spaces:
     Hilbert projection theorem: 'exists_norm_eq_infi_of_complete_convex'
     orthogonal projection onto closed vector subspaces: 'orthogonal_projection_fn'
-    dual space: 'normed_space.dual.inst'
+    dual space: 'normed_space.dual.normed_space'
     Riesz representation theorem: 'inner_product_space.to_dual'
-    $l^2$ and $L^2$ cases:
+    inner product spaces $l^2$ and $L^2$: 'measure_theory.L2.inner_product_space'
+    their completeness: 'measure_theory.Lp.complete_space'
     Hilbert (orthonormal) bases (in the separable case): 'exists_is_orthonormal_dense_span'
     Hilbert basis of trigonometric polynomials:
     Hilbert bases of orthogonal polynomials:
@@ -508,7 +509,7 @@ Measures and integral Calculus:
     continuity of integrals with respect to parameters:
     differentiability of integrals with respect to parameters:
     $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$: 'measure_theory.Lp'
-    Completeness of $\mathrm{L}^p$ spaces:
+    Completeness of $\mathrm{L}^p$ spaces: 'measure_theory.Lp.complete_space'
     Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'
     change of variables for multiple integrals:
@@ -609,7 +610,7 @@ Distribution calculus:
     Poisson’s formula:
     using convolution and Fourier-Laplace transform to solve one dimensional linear differential equations:
     weak solution of partial derivative equation:
-    elementary solution of the Laplacian:
+    fundamental solution of the Laplacian:
     solving the Laplace equations:
     heat equations:
     wave equations:

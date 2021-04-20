@@ -81,7 +81,7 @@ lemma eq_default (a : α) : a = default α := uniq _ a
 lemma default_eq (a : α) : default α = a := (uniq _ a).symm
 
 @[priority 100] -- see Note [lower instance priority]
-instance : subsingleton α := ⟨λ a b, by rw [eq_default a, eq_default b]⟩
+instance : subsingleton α := subsingleton_of_forall_eq _ eq_default
 
 lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ p (default α) :=
 ⟨λ h, h _, λ h x, by rwa [unique.eq_default x]⟩
@@ -120,6 +120,10 @@ instance pi.unique {β : Π a : α, Sort v} [Π a, unique (β a)] : unique (Π a
 def pi.unique_of_empty (h : α → false) (β : Π a : α, Sort v) : unique (Π a, β a) :=
 { default := λ a, (h a).elim,
   uniq := λ f, funext $ λ a, (h a).elim }
+
+/-- There is a unique function whose domain is `pempty`. -/
+instance pi.pempty_unique (β : pempty.{u} → Sort v) : unique (Π a, β a) :=
+pi.unique_of_empty pempty.elim β
 
 namespace function
 

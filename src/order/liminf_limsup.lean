@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel, Johannes Hölzl
+Authors: Sébastien Gouëzel, Johannes Hölzl, Rémy Degenne
 -/
 import order.filter.partial
 import order.filter.at_top_bot
@@ -364,6 +364,32 @@ lemma liminf_eq_supr_infi_of_nat' {u : ℕ → α} : liminf at_top u = ⨆ n : �
 theorem has_basis.liminf_eq_supr_infi {p : ι → Prop} {s : ι → set β} {f : filter β} {u : β → α}
   (h : f.has_basis p s) : f.liminf u = ⨆ i (hi : p i), ⨅ a ∈ s i, u a :=
 @has_basis.limsup_eq_infi_supr (order_dual α) _ _ _ _ _ _ _ h
+
+@[simp] lemma liminf_nat_add (f : ℕ → α) (k : ℕ) :
+  at_top.liminf (λ i, f (i + k)) = at_top.liminf f :=
+by { simp_rw liminf_eq_supr_infi_of_nat, exact supr_infi_ge_nat_add f k }
+
+@[simp] lemma limsup_nat_add (f : ℕ → α) (k : ℕ) :
+  at_top.limsup (λ i, f (i + k)) = at_top.limsup f :=
+@liminf_nat_add (order_dual α) _ f k
+
+lemma liminf_le_of_frequently_le' {α β} [complete_lattice β]
+  {f : filter α} {u : α → β} {x : β} (h : ∃ᶠ a in f, u a ≤ x) :
+  f.liminf u ≤ x :=
+begin
+  rw liminf_eq,
+  refine Sup_le (λ b hb, _),
+  have hbx : ∃ᶠ a in f, b ≤ x,
+  { revert h,
+    rw [←not_imp_not, not_frequently, not_frequently],
+    exact λ h, hb.mp (h.mono (λ a hbx hba hax, hbx (hba.trans hax))), },
+  exact hbx.exists.some_spec,
+end
+
+lemma le_limsup_of_frequently_le' {α β} [complete_lattice β]
+  {f : filter α} {u : α → β} {x : β} (h : ∃ᶠ a in f, x ≤ u a) :
+  x ≤ f.limsup u :=
+@liminf_le_of_frequently_le' _ (order_dual β) _ _ _ _ h
 
 end complete_lattice
 

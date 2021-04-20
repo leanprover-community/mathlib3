@@ -59,8 +59,7 @@ local attribute [instance] has_limits_of_shape_op_of_has_colimits_of_shape
 /--
 If `C` has colimits, we can construct limits for `Cᵒᵖ`.
 -/
-lemma has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ :=
-{ has_limits_of_shape := λ J 𝒥, by { resetI, apply_instance } }
+lemma has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ := {}
 
 /--
 If `F.left_op : Jᵒᵖ ⥤ C` has a limit, we can construct a colimit for `F : J ⥤ Cᵒᵖ`.
@@ -98,8 +97,7 @@ local attribute [instance] has_colimits_of_shape_op_of_has_limits_of_shape
 /--
 If `C` has limits, we can construct colimits for `Cᵒᵖ`.
 -/
-lemma has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ :=
-{ has_colimits_of_shape := λ J 𝒥, by { resetI, apply_instance } }
+lemma has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ := {}
 
 variables (X : Type v)
 /--

@@ -17,6 +17,7 @@ We develop some properties of measures on (topological) groups
 
 noncomputable theory
 
+open_locale ennreal
 open has_inv set function measure_theory.measure
 
 namespace measure_theory
@@ -35,8 +36,8 @@ variables [measurable_space G] [has_mul G]
   if the measure of left translations of a set are equal to the measure of the set itself.
   To left translate sets we use preimage under left addition,
   since preimages are nicer to work with than images."]
-def is_mul_left_invariant (μ : set G → ennreal) : Prop :=
-∀ (g : G) {A : set G} (h : is_measurable A), μ ((λ h, g * h) ⁻¹' A) = μ A
+def is_mul_left_invariant (μ : set G → ℝ≥0∞) : Prop :=
+∀ (g : G) {A : set G} (h : measurable_set A), μ ((λ h, g * h) ⁻¹' A) = μ A
 
 /-- A measure `μ` on a topological group is right invariant
   if the measure of right translations of a set are equal to the measure of the set itself.
@@ -46,8 +47,8 @@ def is_mul_left_invariant (μ : set G → ennreal) : Prop :=
   if the measure of right translations of a set are equal to the measure of the set itself.
   To right translate sets we use preimage under right addition,
   since preimages are nicer to work with than images."]
-def is_mul_right_invariant (μ : set G → ennreal) : Prop :=
-∀ (g : G) {A : set G} (h : is_measurable A), μ ((λ h, h * g) ⁻¹' A) = μ A
+def is_mul_right_invariant (μ : set G → ℝ≥0∞) : Prop :=
+∀ (g : G) {A : set G} (h : measurable_set A), μ ((λ h, h * g) ⁻¹' A) = μ A
 
 end
 
@@ -60,7 +61,7 @@ lemma map_mul_left_eq_self [topological_space G] [has_mul G] [has_continuous_mul
   {μ : measure G} : (∀ g, measure.map ((*) g) μ = μ) ↔ is_mul_left_invariant μ :=
 begin
   apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
-  apply forall_congr, intro hA, rw [map_apply (measurable_mul_left g) hA]
+  apply forall_congr, intro hA, rw [map_apply (measurable_const_mul g) hA]
 end
 
 @[to_additive]
@@ -68,7 +69,7 @@ lemma map_mul_right_eq_self [topological_space G] [has_mul G] [has_continuous_mu
   {μ : measure G} : (∀ g, measure.map (λ h, h * g) μ = μ) ↔ is_mul_right_invariant μ :=
 begin
   apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
-  apply forall_congr, intro hA, rw [map_apply (measurable_mul_right g) hA]
+  apply forall_congr, intro hA, rw [map_apply (measurable_mul_const g) hA]
 end
 
 /-- The measure `A ↦ μ (A⁻¹)`, where `A⁻¹` is the pointwise inverse of `A`. -/
@@ -79,7 +80,7 @@ measure.map inv μ
 variables [group G] [topological_space G] [topological_group G] [borel_space G]
 
 @[to_additive]
-lemma inv_apply (μ : measure G) {s : set G} (hs : is_measurable s) :
+lemma inv_apply (μ : measure G) {s : set G} (hs : measurable_set s) :
   μ.inv s = μ s⁻¹ :=
 measure.map_apply measurable_inv hs
 
@@ -109,7 +110,7 @@ lemma is_mul_left_invariant.inv (h : is_mul_left_invariant μ) :
   is_mul_right_invariant μ.inv :=
 begin
   intros g A hA,
-  rw [μ.inv_apply (measurable_mul_right g hA), μ.inv_apply hA],
+  rw [μ.inv_apply (measurable_mul_const g hA), μ.inv_apply hA],
   convert h g⁻¹ (measurable_inv hA) using 2,
   simp only [←preimage_comp, ← inv_preimage],
   apply preimage_congr,
@@ -121,7 +122,7 @@ end
 lemma is_mul_right_invariant.inv (h : is_mul_right_invariant μ) : is_mul_left_invariant μ.inv :=
 begin
   intros g A hA,
-  rw [μ.inv_apply (measurable_mul_left g hA), μ.inv_apply hA],
+  rw [μ.inv_apply (measurable_const_mul g hA), μ.inv_apply hA],
   convert h g⁻¹ (measurable_inv hA) using 2,
   simp only [←preimage_comp, ← inv_preimage],
   apply preimage_congr,
@@ -161,7 +162,7 @@ begin
   { rw [← nonpos_iff_eq_zero],
     refine (measure_mono h2t).trans _,
     refine (measure_bUnion_le h1t.countable _).trans_eq _,
-    simp_rw [h2μ _ hs.is_measurable], rw [h, tsum_zero] },
+    simp_rw [h2μ _ hs.measurable_set], rw [h, tsum_zero] },
   { intros x _,
     simp_rw [mem_Union, mem_preimage],
     use [y * x⁻¹, mem_univ _],
@@ -187,13 +188,13 @@ by simp_rw [← ne_empty_iff_nonempty, ne.def, h2μ.null_iff_empty hμ h3μ hs]
   `f` is 0 iff `f` is 0. -/
 -- @[to_additive] (fails for now)
 lemma lintegral_eq_zero_of_is_mul_left_invariant (hμ : regular μ)
-  (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {f : G → ennreal} (hf : continuous f) :
+  (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {f : G → ℝ≥0∞} (hf : continuous f) :
   ∫⁻ x, f x ∂μ = 0 ↔ f = 0 :=
 begin
   split, swap, { rintro rfl, simp_rw [pi.zero_apply, lintegral_zero] },
   intro h, contrapose h,
   simp_rw [funext_iff, not_forall, pi.zero_apply] at h, cases h with x hx,
-  obtain ⟨r, h1r, h2r⟩ : ∃ r : ennreal, 0 < r ∧ r < f x :=
+  obtain ⟨r, h1r, h2r⟩ : ∃ r : ℝ≥0∞, 0 < r ∧ r < f x :=
   exists_between (pos_iff_ne_zero.mpr hx),
   have h3r := hf.is_open_preimage (Ioi r) is_open_Ioi,
   let s := Ioi r,
@@ -204,11 +205,44 @@ begin
     rw [pos_iff_ne_zero, h2μ.measure_ne_zero_iff_nonempty hμ h3μ h3r],
     exact ⟨x, h2r⟩ },
   refine this.trans_le _,
-  rw [← set_lintegral_const, ← lintegral_indicator _ h3r.is_measurable],
+  rw [← set_lintegral_const, ← lintegral_indicator _ h3r.measurable_set],
   apply lintegral_mono,
   refine indicator_le (λ y, le_of_lt),
 end
 
 end group
+
+section integration
+
+variables [group G] [has_continuous_mul G]
+open measure
+
+/-- Translating a function by left-multiplication does not change its `lintegral` with respect to
+a left-invariant measure. -/
+@[to_additive]
+lemma lintegral_mul_left_eq_self (hμ : is_mul_left_invariant μ) (f : G → ℝ≥0∞) (g : G) :
+  ∫⁻ x, f (g * x) ∂μ = ∫⁻ x, f x ∂μ :=
+begin
+  have : measure.map (has_mul.mul g) μ = μ,
+  { rw ← map_mul_left_eq_self at hμ,
+    exact hμ g },
+  convert (lintegral_map_equiv f (homeomorph.mul_left g).to_measurable_equiv).symm,
+  simp [this]
+end
+
+/-- Translating a function by right-multiplication does not change its `lintegral` with respect to
+a right-invariant measure. -/
+@[to_additive]
+lemma lintegral_mul_right_eq_self (hμ : is_mul_right_invariant μ) (f : G → ℝ≥0∞) (g : G) :
+  ∫⁻ x, f (x * g) ∂μ = ∫⁻ x, f x ∂μ :=
+begin
+  have : measure.map (homeomorph.mul_right g) μ = μ,
+  { rw ← map_mul_right_eq_self at hμ,
+    exact hμ g },
+  convert (lintegral_map_equiv f (homeomorph.mul_right g).to_measurable_equiv).symm,
+  simp [this]
+end
+
+end integration
 
 end measure_theory

@@ -123,6 +123,7 @@ nnreal.sqrt (nnreal.of_real x)
 
 variables {x y : ℝ}
 
+@[continuity]
 lemma continuous_sqrt : continuous sqrt :=
 nnreal.continuous_coe.comp $ nnreal.sqrt.continuous.comp nnreal.continuous_of_real
 
@@ -167,14 +168,14 @@ by simp [sqrt, nnreal.of_real_le_of_real_iff, *]
 @[simp] theorem sqrt_lt (hx : 0 ≤ x) : sqrt x < sqrt y ↔ x < y :=
 lt_iff_lt_of_le_iff_le (sqrt_le hx)
 
-lemma sqrt_le_sqrt (h : x ≤ y) : sqrt x ≤ sqrt y :=
+theorem sqrt_le_sqrt (h : x ≤ y) : sqrt x ≤ sqrt y :=
 by simp [sqrt, nnreal.of_real_le_of_real h]
 
-lemma sqrt_le_left (hy : 0 ≤ y) : sqrt x ≤ y ↔ x ≤ y ^ 2 :=
+theorem sqrt_le_left (hy : 0 ≤ y) : sqrt x ≤ y ↔ x ≤ y ^ 2 :=
 by rw [sqrt, ← nnreal.le_of_real_iff_coe_le hy, nnreal.sqrt_le_iff, ← nnreal.of_real_mul hy,
   nnreal.of_real_le_of_real_iff (mul_self_nonneg y), pow_two]
 
-lemma sqrt_le_iff : sqrt x ≤ y ↔ 0 ≤ y ∧ x ≤ y ^ 2 :=
+theorem sqrt_le_iff : sqrt x ≤ y ↔ 0 ≤ y ∧ x ≤ y ^ 2 :=
 begin
   rw [← and_iff_right_of_imp (λ h, (sqrt_nonneg x).trans h), and.congr_right_iff],
   exact sqrt_le_left
@@ -182,19 +183,29 @@ end
 
 /- note: if you want to conclude `x ≤ sqrt y`, then use `le_sqrt_of_sqr_le`.
    if you have `x > 0`, consider using `le_sqrt'` -/
-lemma le_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
+theorem le_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
 by rw [mul_self_le_mul_self_iff hx (sqrt_nonneg _), pow_two, mul_self_sqrt hy]
 
-lemma le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
+theorem le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
 by { rw [sqrt, ← nnreal.coe_mk x hx.le, nnreal.coe_le_coe, nnreal.le_sqrt_iff,
   nnreal.le_of_real_iff_coe_le', pow_two, nnreal.coe_mul], exact mul_pos hx hx }
 
-lemma le_sqrt_of_sqr_le (h : x ^ 2 ≤ y) : x ≤ sqrt y :=
+theorem abs_le_sqrt (h : x^2 ≤ y) : abs x ≤ sqrt y :=
+by rw ← sqrt_sqr_eq_abs; exact sqrt_le_sqrt h
+
+theorem sqr_le (h : 0 ≤ y) : x^2 ≤ y ↔ -sqrt y ≤ x ∧ x ≤ sqrt y :=
 begin
-  cases lt_or_ge 0 x with hx hx,
-  { rwa [le_sqrt' hx] },
-  { exact le_trans hx (sqrt_nonneg y) }
+  split,
+  { simpa only [abs_le] using abs_le_sqrt },
+  { rw [← abs_le, ← sqr_abs],
+    exact (le_sqrt (abs_nonneg x) h).mp },
 end
+
+theorem neg_sqrt_le_of_sqr_le (h : x^2 ≤ y) : -sqrt y ≤ x :=
+((sqr_le ((pow_two_nonneg x).trans h)).mp h).1
+
+theorem le_sqrt_of_sqr_le (h : x^2 ≤ y) : x ≤ sqrt y :=
+((sqr_le ((pow_two_nonneg x).trans h)).mp h).2
 
 @[simp] theorem sqrt_inj (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x = sqrt y ↔ x = y :=
 by simp [le_antisymm_iff, hx, hy]
@@ -204,6 +215,12 @@ by simpa using sqrt_inj h (le_refl _)
 
 theorem sqrt_eq_zero' : sqrt x = 0 ↔ x ≤ 0 :=
 by rw [sqrt, nnreal.coe_eq_zero, nnreal.sqrt_eq_zero, nnreal.of_real_eq_zero]
+
+theorem sqrt_ne_zero (h : 0 ≤ x) : sqrt x ≠ 0 ↔ x ≠ 0 :=
+by rw [not_iff_not, sqrt_eq_zero h]
+
+theorem sqrt_ne_zero' : sqrt x ≠ 0 ↔ 0 < x :=
+by rw [← not_le, not_iff_not, sqrt_eq_zero']
 
 @[simp] theorem sqrt_pos : 0 < sqrt x ↔ 0 < x :=
 lt_iff_lt_of_le_iff_le (iff.trans
@@ -220,6 +237,28 @@ by rw [sqrt, nnreal.of_real_inv, nnreal.sqrt_inv, nnreal.coe_inv, sqrt]
 
 @[simp] theorem sqrt_div (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv, division_def]
+
+@[simp] theorem div_sqrt : x / sqrt x = sqrt x :=
+begin
+  cases le_or_lt x 0,
+  { rw [sqrt_eq_zero'.mpr h, div_zero] },
+  { rw [div_eq_iff (sqrt_ne_zero'.mpr h), mul_self_sqrt h.le] },
+end
+
+theorem lt_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
+by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), pow_two, mul_self_sqrt hy]
+
+theorem sqr_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y :=
+begin
+  split,
+  { simpa only [← sqrt_lt (pow_two_nonneg x), sqrt_sqr_eq_abs] using abs_lt.mp },
+  { rw [← abs_lt, ← sqr_abs],
+    exact λ h, (lt_sqrt (abs_nonneg x) (sqrt_pos.mp (lt_of_le_of_lt (abs_nonneg x) h)).le).mp h },
+end
+
+theorem neg_sqrt_lt_of_sqr_lt (h : x^2 < y) : -sqrt y < x := (sqr_lt.mp h).1
+
+theorem lt_sqrt_of_sqr_lt (h : x^2 < y) : x < sqrt y := (sqr_lt.mp h).2
 
 end real
 
@@ -242,4 +281,5 @@ lemma continuous_at.sqrt (h : continuous_at f x) : continuous_at (λ x, sqrt (f 
 lemma continuous_on.sqrt (h : continuous_on f s) : continuous_on (λ x, sqrt (f x)) s :=
 λ x hx, (h x hx).sqrt
 
+@[continuity]
 lemma continuous.sqrt (h : continuous f) : continuous (λ x, sqrt (f x)) := continuous_sqrt.comp h

@@ -70,7 +70,8 @@ local attribute [instance] subtype.group subtype.add_group
 lemma is_subgroup.coe_inv {s : set G} [is_subgroup s] (a : s) : ((a⁻¹ : s) : G) = a⁻¹ := rfl
 attribute [norm_cast] is_add_subgroup.coe_neg
 
-@[simp, norm_cast] lemma is_subgroup.coe_gpow {s : set G} [is_subgroup s] (a : s) (n : ℤ) : ((a ^ n : s) : G) = a ^ n :=
+@[simp, norm_cast] lemma is_subgroup.coe_gpow {s : set G} [is_subgroup s] (a : s) (n : ℤ) :
+  ((a ^ n : s) : G) = a ^ n :=
 by induction n; simp [is_submonoid.coe_pow a]
 
 @[simp, norm_cast] lemma is_add_subgroup.gsmul_coe {s : set A} [is_add_subgroup s] (a : s) (n : ℤ) :
@@ -137,7 +138,8 @@ lemma is_subgroup.gpow_mem {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : �
 | (n : ℕ) := is_submonoid.pow_mem h
 | -[1+ n] := is_subgroup.inv_mem (is_submonoid.pow_mem h)
 
-lemma is_add_subgroup.gsmul_mem {a : A} {s : set A} [is_add_subgroup s] : a ∈ s → ∀{i:ℤ}, gsmul i a ∈ s :=
+lemma is_add_subgroup.gsmul_mem {a : A} {s : set A} [is_add_subgroup s] :
+  a ∈ s → ∀{i:ℤ}, gsmul i a ∈ s :=
 @is_subgroup.gpow_mem (multiplicative A) _ _ _ (multiplicative.is_subgroup _)
 
 lemma gpowers_subset {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : gpowers a ⊆ s :=
@@ -552,12 +554,14 @@ theorem closure_eq_mclosure {s : set G} : closure s = monoid.closure (s ∪ has_
 set.subset.antisymm
   (@closure_subset _ _ _ (monoid.closure (s ∪ has_inv.inv ⁻¹' s))
     { inv_mem := λ x hx, monoid.in_closure.rec_on hx
-      (λ x hx, or.cases_on hx (λ hx, monoid.subset_closure $ or.inr $ show x⁻¹⁻¹ ∈ s, from (inv_inv x).symm ▸ hx)
+      (λ x hx, or.cases_on hx (λ hx, monoid.subset_closure $ or.inr $
+        show x⁻¹⁻¹ ∈ s, from (inv_inv x).symm ▸ hx)
         (λ hx, monoid.subset_closure $ or.inl hx))
       ((@one_inv G _).symm ▸ is_submonoid.one_mem)
       (λ x y hx hy ihx ihy, (mul_inv_rev x y).symm ▸ is_submonoid.mul_mem ihy ihx) }
     (set.subset.trans (set.subset_union_left _ _) monoid.subset_closure))
-  (monoid.closure_subset $ set.union_subset subset_closure $ λ x hx, inv_inv x ▸ (is_subgroup.inv_mem $ subset_closure hx))
+  (monoid.closure_subset $ set.union_subset subset_closure $
+    λ x hx, inv_inv x ▸ (is_subgroup.inv_mem $ subset_closure hx))
 
 @[to_additive]
 theorem mem_closure_union_iff {G : Type*} [comm_group G] {s t : set G} {x : G} :
@@ -597,16 +601,18 @@ elements of s. It is the smallest normal subgroup containing s. -/
 namespace group
 variables {s : set G} [group G]
 
-lemma conjugates_subset {t : set G} [normal_subgroup t] {a : G} (h : a ∈ t) : conjugates a ⊆ t :=
-λ x ⟨c,w⟩,
+lemma conjugates_of_subset {t : set G} [normal_subgroup t] {a : G} (h : a ∈ t) :
+  conjugates_of a ⊆ t :=
+λ x hc,
 begin
+  obtain ⟨c, w⟩ := is_conj_iff.1 hc,
   have H := normal_subgroup.normal a h c,
   rwa ←w,
 end
 
 theorem conjugates_of_set_subset' {s t : set G} [normal_subgroup t] (h : s ⊆ t) :
   conjugates_of_set s ⊆ t :=
-set.bUnion_subset (λ x H, conjugates_subset (h H))
+set.bUnion_subset (λ x H, conjugates_of_subset (h H))
 
 /-- The normal closure of a set s is the subgroup closure of all the conjugates of
 elements of s. It is the smallest normal subgroup containing s. -/
@@ -655,53 +661,7 @@ theorem normal_closure_mono {s t : set G} : s ⊆ t → normal_closure s ⊆ nor
 
 end group
 
-section simple_group
-
-class simple_group (G : Type*) [group G] : Prop :=
-(simple : ∀ (N : set G) [normal_subgroup N], N = is_subgroup.trivial G ∨ N = set.univ)
-
-class simple_add_group (A : Type*) [add_group A] : Prop :=
-(simple : ∀ (N : set A) [normal_add_subgroup N], N = is_add_subgroup.trivial A ∨ N = set.univ)
-
-attribute [to_additive] simple_group
-
-theorem additive.simple_add_group_iff [group G] :
-  simple_add_group (additive G) ↔ simple_group G :=
-⟨λ hs, ⟨λ N h, @simple_add_group.simple _ _ hs _ (by exactI additive.normal_add_subgroup_iff.2 h)⟩,
-  λ hs, ⟨λ N h, @simple_group.simple _ _ hs _ (by exactI additive.normal_add_subgroup_iff.1 h)⟩⟩
-
-instance additive.simple_add_group [group G] [simple_group G] :
-  simple_add_group (additive G) := additive.simple_add_group_iff.2 (by apply_instance)
-
-theorem multiplicative.simple_group_iff [add_group A] :
-  simple_group (multiplicative A) ↔ simple_add_group A :=
-⟨λ hs, ⟨λ N h, @simple_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.2 h)⟩,
-  λ hs, ⟨λ N h, @simple_add_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.1 h)⟩⟩
-
-instance multiplicative.simple_group [add_group A] [simple_add_group A] :
-simple_group (multiplicative A) := multiplicative.simple_group_iff.2 (by apply_instance)
-
-@[to_additive]
-lemma simple_group_of_surjective [group G] [group H] [simple_group G] (f : G → H)
-  [is_group_hom f] (hf : function.surjective f) : simple_group H :=
-⟨λ H iH, have normal_subgroup (f ⁻¹' H), by resetI; apply_instance,
-  begin
-    resetI,
-    cases simple_group.simple (f ⁻¹' H) with h h,
-    { refine or.inl (is_subgroup.eq_trivial_iff.2 (λ x hx, _)),
-      cases hf x with y hy,
-      rw ← hy at hx,
-      rw [← hy, is_subgroup.eq_trivial_iff.1 h y hx, is_group_hom.map_one f] },
-    { refine or.inr (set.eq_univ_of_forall (λ x, _)),
-      cases hf x with y hy,
-      rw set.eq_univ_iff_forall at h,
-      rw ← hy,
-      exact h y }
-  end⟩
-
-end simple_group
-
-/-- Create a bundled subgroup from a set `s` and `[is_subroup s]`. -/
+/-- Create a bundled subgroup from a set `s` and `[is_subgroup s]`. -/
 @[to_additive "Create a bundled additive subgroup from a set `s` and `[is_add_subgroup s]`."]
 def subgroup.of [group G] (s : set G) [h : is_subgroup s] : subgroup G :=
 { carrier := s,

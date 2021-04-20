@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Zhouhang Zhou
 -/
 import measure_theory.integration
 import order.filter.germ
+import topology.continuous_function.algebra
 
 /-!
 
@@ -42,15 +43,6 @@ See `l1_space.lean` for `L¹` space.
     TODO: Define `sup` and `inf` on `L⁰` so that it forms a lattice. It seems that `β` must be a
     linear order, since otherwise `f ⊔ g` may not be a measurable function.
 
-* Emetric on `L⁰` :
-    If `β` is an `emetric_space`, then `L⁰` can be made into an `emetric_space`, where
-    `edist [f] [g]` is defined to be `∫⁻ a, edist (f a) (g a)`.
-
-    The integral used here is `lintegral : (α → ennreal) → ennreal`, which is defined in the file
-    `integration.lean`.
-
-    See `edist_mk_mk` and `edist_to_fun`.
-
 ## Implementation notes
 
 * `f.to_fun`     : To find a representative of `f : α →ₘ β`, use `f.to_fun`.
@@ -70,7 +62,7 @@ function space, almost everywhere equal, `L⁰`, ae_eq_fun
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical ennreal
 
 open set filter topological_space ennreal emetric measure_theory function
 variables {α β γ δ : Type*} [measurable_space α] {μ ν : measure α}
@@ -134,6 +126,9 @@ end
 
 @[ext] lemma ext {f g : α →ₘ[μ] β} (h : f =ᵐ[μ] g) : f = g :=
 by rwa [← f.mk_coe_fn, ← g.mk_coe_fn, mk_eq_mk]
+
+lemma ext_iff {f g : α →ₘ[μ] β} : f = g ↔ f =ᵐ[μ] g :=
+⟨λ h, by rw h, λ h, ext h⟩
 
 lemma coe_fn_mk (f : α → β) (hf) : (mk f hf : α →ₘ[μ] β) =ᵐ[μ] f :=
 begin
@@ -351,25 +346,23 @@ variables [topological_space γ] [borel_space γ] [group γ] [topological_group 
 @[to_additive] lemma inv_to_germ (f : α →ₘ[μ] γ) : (f⁻¹).to_germ = f.to_germ⁻¹ := comp_to_germ _ _ _
 
 variables [second_countable_topology γ]
+
+@[to_additive] instance : has_div (α →ₘ[μ] γ) := ⟨comp₂ has_div.div measurable_div⟩
+
+@[to_additive, simp] lemma mk_div (f g : α → γ) (hf hg) :
+  mk (f / g) (ae_measurable.div hf hg) = (mk f hf : α →ₘ[μ] γ) / (mk g hg) :=
+rfl
+
+@[to_additive] lemma coe_fn_div (f g : α →ₘ[μ] γ) : ⇑(f / g) =ᵐ[μ] f / g := coe_fn_comp₂ _ _ _ _
+
+@[to_additive] lemma div_to_germ (f g : α →ₘ[μ] γ) : (f / g).to_germ = f.to_germ / g.to_germ :=
+comp₂_to_germ _ _ _ _
+
 @[to_additive]
-instance : group (α →ₘ[μ] γ) := to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ
+instance : group (α →ₘ[μ] γ) :=
+to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ
 
 end group
-
-section add_group
-
-variables [topological_space γ] [borel_space γ] [add_group γ] [topological_add_group γ]
-  [second_countable_topology γ]
-
-@[simp] lemma mk_sub (f g : α → γ) (hf hg) :
-  mk (f - g) (ae_measurable.sub hf hg) = (mk f hf : α →ₘ[μ] γ) - (mk g hg) :=
-by simp [sub_eq_add_neg]
-
-lemma coe_fn_sub (f g : α →ₘ[μ] γ) : ⇑(f - g) =ᵐ[μ] f - g :=
-by { simp only [sub_eq_add_neg],
-     exact ((coe_fn_add f (-g)).trans $ (coe_fn_neg g).mono $ λ x hx, congr_arg ((+) (f x)) hx) }
-
-end add_group
 
 @[to_additive]
 instance [topological_space γ] [borel_space γ] [comm_group γ] [topological_group γ]
@@ -378,9 +371,10 @@ instance [topological_space γ] [borel_space γ] [comm_group γ] [topological_gr
 
 section semimodule
 
-variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜]
+variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
+  [opens_measurable_space 𝕜]
 variables [topological_space γ] [borel_space γ] [add_comm_monoid γ] [semimodule 𝕜 γ]
-  [topological_semimodule 𝕜 γ]
+  [has_continuous_smul 𝕜 γ]
 
 instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
 ⟨λ c f, comp ((•) c) (measurable_id.const_smul c) f⟩
@@ -401,99 +395,28 @@ to_germ_injective.semimodule 𝕜 ⟨@to_germ α γ _ μ _, zero_to_germ, add_to
 
 end semimodule
 
-/- TODO : Prove that `L⁰` is a complete space if the codomain is complete. -/
-
 open ennreal
 
-/-- For `f : α → ennreal`, define `∫ [f]` to be `∫ f` -/
-def lintegral (f : α →ₘ[μ] ennreal) : ennreal :=
-quotient.lift_on' f (λf, ∫⁻ a, (f : α → ennreal) a ∂μ) (assume f g, lintegral_congr_ae)
+/-- For `f : α → ℝ≥0∞`, define `∫ [f]` to be `∫ f` -/
+def lintegral (f : α →ₘ[μ] ℝ≥0∞) : ℝ≥0∞ :=
+quotient.lift_on' f (λf, ∫⁻ a, (f : α → ℝ≥0∞) a ∂μ) (assume f g, lintegral_congr_ae)
 
-@[simp] lemma lintegral_mk (f : α → ennreal) (hf) :
-  (mk f hf : α →ₘ[μ] ennreal).lintegral = ∫⁻ a, f a ∂μ := rfl
+@[simp] lemma lintegral_mk (f : α → ℝ≥0∞) (hf) :
+  (mk f hf : α →ₘ[μ] ℝ≥0∞).lintegral = ∫⁻ a, f a ∂μ := rfl
 
-lemma lintegral_coe_fn (f : α →ₘ[μ] ennreal) : ∫⁻ a, f a ∂μ = f.lintegral :=
+lemma lintegral_coe_fn (f : α →ₘ[μ] ℝ≥0∞) : ∫⁻ a, f a ∂μ = f.lintegral :=
 by rw [← lintegral_mk, mk_coe_fn]
 
-@[simp] lemma lintegral_zero : lintegral (0 : α →ₘ[μ] ennreal) = 0 := lintegral_zero
+@[simp] lemma lintegral_zero : lintegral (0 : α →ₘ[μ] ℝ≥0∞) = 0 := lintegral_zero
 
-@[simp] lemma lintegral_eq_zero_iff {f : α →ₘ[μ] ennreal} : lintegral f = 0 ↔ f = 0 :=
+@[simp] lemma lintegral_eq_zero_iff {f : α →ₘ[μ] ℝ≥0∞} : lintegral f = 0 ↔ f = 0 :=
 induction_on f $ λ f hf, (lintegral_eq_zero_iff' hf).trans mk_eq_mk.symm
 
-lemma lintegral_add (f g : α →ₘ[μ] ennreal) : lintegral (f + g) = lintegral f + lintegral g :=
+lemma lintegral_add (f g : α →ₘ[μ] ℝ≥0∞) : lintegral (f + g) = lintegral f + lintegral g :=
 induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add' hf hg]
 
-lemma lintegral_mono {f g : α →ₘ[μ] ennreal} : f ≤ g → lintegral f ≤ lintegral g :=
+lemma lintegral_mono {f g : α →ₘ[μ] ℝ≥0∞} : f ≤ g → lintegral f ≤ lintegral g :=
 induction_on₂ f g $ λ f hf g hg hfg, lintegral_mono_ae hfg
-
-section
-variables [emetric_space γ] [second_countable_topology γ] [opens_measurable_space γ]
-
-/-- `comp_edist [f] [g] a` will return `edist (f a) (g a)` -/
-protected def edist (f g : α →ₘ[μ] γ) : α →ₘ[μ] ennreal := comp₂ edist measurable_edist f g
-
-protected lemma edist_comm (f g : α →ₘ[μ] γ) : f.edist g = g.edist f :=
-induction_on₂ f g $ λ f hf g hg, mk_eq_mk.2 $ eventually_of_forall $ λ x, edist_comm (f x) (g x)
-
-lemma coe_fn_edist (f g : α →ₘ[μ] γ) : ⇑(f.edist g) =ᵐ[μ] λ a, edist (f a) (g a) :=
-coe_fn_comp₂ _ _ _ _
-
-protected lemma edist_self (f : α →ₘ[μ] γ) : f.edist f = 0 :=
-induction_on f $ λ f hf, mk_eq_mk.2 $ eventually_of_forall $ λ x, edist_self (f x)
-
-/-- Almost everywhere equal functions form an `emetric_space`, with the emetric defined as
-  `edist f g = ∫⁻ a, edist (f a) (g a)`. -/
-instance : emetric_space (α →ₘ[μ] γ) :=
-{ edist               := λf g, lintegral (f.edist g),
-  edist_self          := assume f, lintegral_eq_zero_iff.2 f.edist_self,
-  edist_comm          := λ f g, congr_arg lintegral $ f.edist_comm g,
-  edist_triangle      := λ f g h, induction_on₃ f g h $ λ f hf g hg h hh,
-    calc ∫⁻ a, edist (f a) (h a) ∂μ ≤ ∫⁻ a, edist (f a) (g a) + edist (g a) (h a) ∂μ :
-      measure_theory.lintegral_mono (λ a, edist_triangle (f a) (g a) (h a))
-    ... = ∫⁻ a, edist (f a) (g a) ∂μ + ∫⁻ a, edist (g a) (h a) ∂μ :
-      lintegral_add' (hf.edist hg) (hg.edist hh),
-  eq_of_edist_eq_zero := λ f g, induction_on₂ f g $ λ f hf g hg H, mk_eq_mk.2 $
-    ((lintegral_eq_zero_iff' (hf.edist hg)).1 H).mono $ λ x, eq_of_edist_eq_zero }
-
-lemma edist_mk_mk {f g : α → γ} (hf hg) :
-  edist (mk f hf : α →ₘ[μ] γ) (mk g hg) = ∫⁻ x, edist (f x) (g x) ∂μ :=
-rfl
-
-lemma edist_eq_coe (f g : α →ₘ[μ] γ) : edist f g = ∫⁻ x, edist (f x) (g x) ∂μ :=
-by rw [← edist_mk_mk, mk_coe_fn, mk_coe_fn]
-
-lemma edist_zero_eq_coe [has_zero γ] (f : α →ₘ[μ] γ) : edist f 0 = ∫⁻ x, edist (f x) 0 ∂μ :=
-by rw [← edist_mk_mk, mk_coe_fn, zero_def]
-
-end
-
-section metric
-variables [metric_space γ] [second_countable_topology γ] [opens_measurable_space γ]
-
-lemma edist_mk_mk' {f g : α → γ} (hf hg) :
-  edist (mk f hf : α →ₘ[μ] γ) (mk g hg) = ∫⁻ x, nndist (f x) (g x) ∂μ :=
-by simp only [edist_mk_mk, edist_nndist]
-
-lemma edist_eq_coe' (f g : α →ₘ[μ] γ) : edist f g = ∫⁻ x, nndist (f x) (g x) ∂μ :=
-by simp only [edist_eq_coe, edist_nndist]
-
-end metric
-
-lemma edist_add_right [normed_group γ] [second_countable_topology γ] [borel_space γ]
-  (f g h : α →ₘ[μ] γ) :
-  edist (f + h) (g + h) = edist f g :=
-induction_on₃ f g h $ λ f hf g hg h hh, by simp [edist_mk_mk, edist_dist, dist_add_right]
-
-section normed_space
-
-variables {𝕜 : Type*} [normed_field 𝕜]
-variables [normed_group γ] [second_countable_topology γ] [normed_space 𝕜 γ] [borel_space γ]
-
-lemma edist_smul (c : 𝕜) (f : α →ₘ[μ] γ) : edist (c • f) 0 = (ennreal.of_real ∥c∥) * edist f 0 :=
-induction_on f $ λ f hf, by simp [edist_mk_mk, zero_def, smul_mk, edist_dist, norm_smul,
-  ennreal.of_real_mul, lintegral_const_mul']
-
-end normed_space
 
 section pos_part
 
@@ -516,3 +439,44 @@ end pos_part
 end ae_eq_fun
 
 end measure_theory
+
+namespace continuous_map
+
+open measure_theory
+
+variables [topological_space α] [borel_space α] (μ)
+variables [topological_space β] [measurable_space β] [borel_space β]
+
+/-- The equivalence class of `μ`-almost-everywhere measurable functions associated to a continuous
+map. -/
+def to_ae_eq_fun (f : C(α, β)) : α →ₘ[μ] β :=
+ae_eq_fun.mk f f.continuous.measurable.ae_measurable
+
+lemma coe_fn_to_ae_eq_fun (f : C(α, β)) : f.to_ae_eq_fun μ =ᵐ[μ] f :=
+ae_eq_fun.coe_fn_mk f _
+
+variables [group β] [topological_group β] [second_countable_topology β]
+
+/-- The `mul_hom` from the group of continuous maps from `α` to `β` to the group of equivalence
+classes of `μ`-almost-everywhere measurable functions. -/
+@[to_additive "The `add_hom` from the group of continuous maps from `α` to `β` to the group of
+equivalence classes of `μ`-almost-everywhere measurable functions."]
+def to_ae_eq_fun_mul_hom : C(α, β) →* α →ₘ[μ] β :=
+{ to_fun := continuous_map.to_ae_eq_fun μ,
+  map_one' := rfl,
+  map_mul' := λ f g, ae_eq_fun.mk_mul_mk f g f.continuous.measurable.ae_measurable
+    g.continuous.measurable.ae_measurable }
+
+variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
+  [opens_measurable_space 𝕜]
+variables [topological_space γ] [measurable_space γ] [borel_space γ] [add_comm_group γ]
+  [semimodule 𝕜 γ] [topological_add_group γ] [has_continuous_smul 𝕜 γ]
+  [second_countable_topology γ]
+
+/-- The linear map from the group of continuous maps from `α` to `β` to the group of equivalence
+classes of `μ`-almost-everywhere measurable functions. -/
+def to_ae_eq_fun_linear_map : C(α, γ) →ₗ[𝕜] α →ₘ[μ] γ :=
+{ map_smul' := λ c f, ae_eq_fun.smul_mk c f f.continuous.measurable.ae_measurable,
+  .. to_ae_eq_fun_add_hom μ }
+
+end continuous_map

@@ -7,9 +7,6 @@ Authors: Scott Morrison
 import linear_algebra.tensor_product
 import algebra.algebra.basic
 
-universes u v₁ v₂ v₃ v₄
-
-
 /-!
 # The tensor product of R-algebras
 
@@ -25,6 +22,8 @@ The code for
 is written and compiles, but takes longer than the `-T100000` time limit,
 so is currently commented out.
 -/
+
+universes u v₁ v₂ v₃ v₄
 
 namespace algebra
 
@@ -46,23 +45,7 @@ for a fixed pure tensor in the first argument,
 as an `R`-linear map.
 -/
 def mul_aux (a₁ : A) (b₁ : B) : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) :=
-begin
-  -- Why doesn't `apply tensor_product.lift` work?
-  apply @tensor_product.lift R _ A B (A ⊗[R] B) _ _ _ _ _ _ _,
-  fsplit,
-  intro a₂,
-  fsplit,
-  intro b₂,
-  exact (a₁ * a₂) ⊗ₜ[R] (b₁ * b₂),
-  { intros b₂ b₂',
-    simp [mul_add, tmul_add], },
-  { intros c b₂,
-    simp [mul_smul, tmul_smul], },
-  { intros a₂ a₂', ext b₂,
-    simp [mul_add, add_tmul], },
-  { intros c a₂, ext b₂,
-    simp [mul_smul, smul_tmul], }
-end
+tensor_product.map (lmul_left R a₁) (lmul_left R b₁)
 
 @[simp]
 lemma mul_aux_apply (a₁ a₂ : A) (b₁ b₂ : B) :
@@ -75,31 +58,15 @@ The multiplication map on `A ⊗[R] B`,
 as an `R`-bilinear map.
 -/
 def mul : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) :=
-begin
-  apply @tensor_product.lift R _ A B ((A ⊗[R] B) →ₗ[R] (A ⊗[R] B)) _ _ _ _ _ _ _,
-  fsplit,
-  intro a₁,
-  fsplit,
-  intro b₁,
-  exact mul_aux a₁ b₁,
-  { intros b₁ b₁',
-    -- Why doesn't just `apply tensor_product.ext`, or indeed `ext` work?!
-    apply @tensor_product.ext R _ A B (A ⊗[R] B) _ _ _ _ _ _,
-    intros a₂ b₂,
-    simp [add_mul, tmul_add], },
-  { intros c b₁,
-    apply @tensor_product.ext R _ A B (A ⊗[R] B) _ _ _ _ _ _,
-    intros a₂ b₂,
-    simp, },
-  { intros a₁ a₁', ext1 b₁,
-    apply @tensor_product.ext R _ A B (A ⊗[R] B) _ _ _ _ _ _,
-    intros a₂ b₂,
-    simp [add_mul, add_tmul], },
-  { intros c a₁, ext1 b₁,
-    apply @tensor_product.ext R _ A B (A ⊗[R] B) _ _ _ _ _ _,
-    intros a₂ b₂,
-    simp [smul_tmul], },
-end
+tensor_product.lift $ linear_map.mk₂ R mul_aux
+  (λ x₁ x₂ y, tensor_product.ext $ λ x' y',
+    by simp only [mul_aux_apply, linear_map.add_apply, add_mul, add_tmul])
+  (λ c x y, tensor_product.ext $ λ x' y',
+    by simp only [mul_aux_apply, linear_map.smul_apply, smul_tmul', smul_mul_assoc])
+  (λ x y₁ y₂, tensor_product.ext $ λ x' y',
+    by simp only [mul_aux_apply, linear_map.add_apply, add_mul, tmul_add])
+  (λ c x y, tensor_product.ext $ λ x' y',
+    by simp only [mul_aux_apply, linear_map.smul_apply, smul_tmul, smul_tmul', smul_mul_assoc])
 
 @[simp]
 lemma mul_apply (a₁ a₂ : A) (b₁ b₂ : B) :
@@ -486,7 +453,8 @@ lemma assoc_aux_2 (r : R) :
 -- variables {R A B C}
 
 -- @[simp] theorem assoc_tmul (a : A) (b : B) (c : C) :
---   ((tensor_product.assoc R A B C) : (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
+--   ((tensor_product.assoc R A B C) :
+--   (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
 -- rfl
 
 end

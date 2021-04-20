@@ -26,6 +26,10 @@ namespace list
 @[simp] theorem zip_with_nil_right (f : α → β → γ) (l)  : zip_with f l [] = [] :=
 by cases l; refl
 
+@[simp] lemma zip_with_eq_nil_iff {f : α → β → γ} {l l'} :
+  zip_with f l l' = [] ↔ l = [] ∨ l' = [] :=
+by { cases l; cases l'; simp }
+
 @[simp] theorem zip_nil_left (l : list α) : zip ([] : list β) l = [] := rfl
 
 @[simp] theorem zip_nil_right (l : list α) : zip l ([] : list β) = [] :=
@@ -86,6 +90,26 @@ by rw [← zip_map, map_id]
 theorem zip_map_right (f : β → γ) (l₁ : list α) (l₂ : list β) :
    zip l₁ (l₂.map f) = (zip l₁ l₂).map (prod.map id f) :=
 by rw [← zip_map, map_id]
+
+@[simp] lemma zip_with_map {μ}
+  (f : γ → δ → μ) (g : α → γ) (h : β → δ) (as : list α) (bs : list β) :
+  zip_with f (as.map g) (bs.map h) =
+  zip_with (λ a b, f (g a) (h b)) as bs :=
+begin
+  induction as generalizing bs,
+  { simp },
+  { cases bs; simp * }
+end
+
+lemma zip_with_map_left
+  (f : α → β → γ) (g : δ → α) (l : list δ) (l' : list β) :
+  zip_with f (l.map g) l' = zip_with (f ∘ g) l l' :=
+by { convert (zip_with_map f g id l l'), exact eq.symm (list.map_id _) }
+
+lemma zip_with_map_right
+  (f : α → β → γ) (l : list α) (g : δ → β) (l' : list δ) :
+  zip_with f l (l'.map g) = zip_with (λ x, f x ∘ g) l l' :=
+by { convert (list.zip_with_map f id g l l'), exact eq.symm (list.map_id _) }
 
 theorem zip_map' (f : α → β) (g : α → γ) : ∀ (l : list α),
    zip (l.map f) (l.map g) = l.map (λ a, (f a, g a))
@@ -179,15 +203,14 @@ by rw [← zip_unzip.{u u} (revzip l).reverse, unzip_eq_map]; simp; simp [revzip
 theorem revzip_swap (l : list α) : (revzip l).map prod.swap = revzip l.reverse :=
 by simp [revzip]
 
-lemma nth_zip_with {α β γ} (f : α → β → γ) (l₁ : list α) (l₂ : list β) (i : ℕ) :
-  (zip_with f l₁ l₂).nth i = f <$> l₁.nth i <*> l₂.nth i :=
+lemma nth_zip_with (f : α → β → γ) (l₁ : list α) (l₂ : list β) (i : ℕ) :
+  (zip_with f l₁ l₂).nth i = ((l₁.nth i).map f).bind (λ g, (l₂.nth i).map g) :=
 begin
   induction l₁ generalizing l₂ i,
   { simp [zip_with, (<*>)] },
   { cases l₂; simp only [zip_with, has_seq.seq, functor.map, nth, option.map_none'],
     { cases ((l₁_hd :: l₁_tl).nth i); refl },
-    { cases i; simp only [option.map_some', nth, option.some_bind', *],
-      refl } },
+    { cases i; simp only [option.map_some', nth, option.some_bind', *] } }
 end
 
 lemma nth_zip_with_eq_some {α β γ} (f : α → β → γ) (l₁ : list α) (l₂ : list β) (z : γ) (i : ℕ) :
@@ -240,6 +263,28 @@ begin
         right,
         use [init_tl, tail],
         simp * at *, }, }, },
+end
+
+lemma map_uncurry_zip_eq_zip_with
+  (f : α → β → γ) (l : list α) (l' : list β) :
+  map (function.uncurry f) (l.zip l') = zip_with f l l' :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l' with hd' tl',
+    { simp },
+    { simp [hl] } }
+end
+
+@[simp] lemma sum_zip_with_distrib_left {γ : Type*} [semiring γ]
+  (f : α → β → γ) (n : γ) (l : list α) (l' : list β) :
+  (l.zip_with (λ x y, n * f x y) l').sum = n * (l.zip_with f l').sum :=
+begin
+  induction l with hd tl hl generalizing f n l',
+  { simp },
+  { cases l' with hd' tl',
+    { simp, },
+    { simp [hl, mul_add] } }
 end
 
 end list

@@ -44,7 +44,8 @@ theorem chain_insert {c : set α} {a : α} (hc : chain c) (ha : ∀b∈c, b ≠ 
   chain (insert a c) :=
 forall_insert_of_forall
   (assume x hx, forall_insert_of_forall (hc x hx) (assume hneq, (ha x hx hneq).symm))
-  (forall_insert_of_forall (assume x hx hneq, ha x hx $ assume h', hneq h'.symm) (assume h, (h rfl).rec _))
+  (forall_insert_of_forall
+    (assume x hx hneq, ha x hx $ assume h', hneq h'.symm) (assume h, (h rfl).rec _))
 
 /-- `super_chain c₁ c₂` means that `c₂ is a chain that strictly includes `c₁`. -/
 def super_chain (c₁ c₂ : set α) : Prop := chain c₂ ∧ c₁ ⊂ c₂
@@ -118,7 +119,8 @@ begin
     exact subset.trans h (subset_sUnion_of_mem ha) }
 end
 
-private lemma chain_closure_succ_total (hc₁ : chain_closure c₁) (hc₂ : chain_closure c₂) (h : c₁ ⊆ c₂) :
+private lemma chain_closure_succ_total (hc₁ : chain_closure c₁) (hc₂ : chain_closure c₂)
+  (h : c₁ ⊆ c₂) :
   c₂ = c₁ ∨ succ_chain c₁ ⊆ c₂ :=
 begin
   induction hc₂ generalizing c₁ hc₁ h,
@@ -222,6 +224,20 @@ let ⟨ub, (hub : ∀a∈max_chain, a ≺ ub)⟩ := this in
     max_chain_spec.right $ ⟨insert a max_chain, this, ssubset_insert h⟩,
   hub a this⟩
 
+/--
+If every nonempty chain of a nonempty type has an upper bound, then there is a maximal element.
+(A variant of Zorn's lemma.)
+-/
+theorem exists_maximal_of_nonempty_chains_bounded [nonempty α]
+  (h : ∀c, chain c → c.nonempty → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
+  ∃m, ∀a, m ≺ a → a ≺ m :=
+exists_maximal_of_chains_bounded
+  (λ c hc,
+    (eq_empty_or_nonempty c).elim
+      (λ h, ⟨classical.arbitrary α, λ x hx, (h ▸ hx : x ∈ (∅ : set α)).elim⟩)
+      (h c hc))
+  (λ a b c, trans)
+
 end chain
 
 theorem zorn_partial_order {α : Type u} [partial_order α]
@@ -229,16 +245,24 @@ theorem zorn_partial_order {α : Type u} [partial_order α]
 let ⟨m, hm⟩ := @exists_maximal_of_chains_bounded α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
 
+theorem zorn_nonempty_partial_order {α : Type u} [partial_order α] [nonempty α]
+  (h : ∀ (c : set α), chain (≤) c → c.nonempty → ∃ub, ∀ a ∈ c, a ≤ ub) :
+  ∃ (m : α), ∀ a, m ≤ a → a = m :=
+let ⟨m, hm⟩ := @exists_maximal_of_nonempty_chains_bounded α (≤) _ h (λ a b c, le_trans) in
+⟨m, λ a ha, le_antisymm (hm a ha) ha⟩
+
 theorem zorn_partial_order₀ {α : Type u} [partial_order α] (s : set α)
   (ih : ∀ c ⊆ s, chain (≤) c → ∀ y ∈ c, ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub)
   (x : α) (hxs : x ∈ s) : ∃ m ∈ s, x ≤ m ∧ ∀ z ∈ s, m ≤ z → z = m :=
-let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m} _ (λ c hc, c.eq_empty_or_nonempty.elim
-  (assume hce, hce.symm ▸ ⟨⟨x, hxs, le_refl _⟩, λ _, false.elim⟩)
-  (assume ⟨m, hmc⟩,
-    let ⟨ub, hubs, hub⟩ := ih (subtype.val '' c) (image_subset_iff.2 $ λ z hzc, z.2.1)
-    (by rintro _ ⟨p, hpc, rfl⟩ _ ⟨q, hqc, rfl⟩ hpq;
-      exact hc p hpc q hqc (mt (by rintro rfl; refl) hpq)) m.1 (mem_image_of_mem _ hmc) in
-    ⟨⟨ub, hubs, le_trans m.2.2 $ hub m.1 $ mem_image_of_mem _ hmc⟩, λ a hac, hub a.1 ⟨a, hac, rfl⟩⟩)) in
+let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m} _
+  (λ c hc, c.eq_empty_or_nonempty.elim
+    (assume hce, hce.symm ▸ ⟨⟨x, hxs, le_refl _⟩, λ _, false.elim⟩)
+    (assume ⟨m, hmc⟩,
+      let ⟨ub, hubs, hub⟩ := ih (subtype.val '' c) (image_subset_iff.2 $ λ z hzc, z.2.1)
+        (by rintro _ ⟨p, hpc, rfl⟩ _ ⟨q, hqc, rfl⟩ hpq;
+          exact hc p hpc q hqc (mt (by rintro rfl; refl) hpq)) m.1 (mem_image_of_mem _ hmc) in
+    ⟨⟨ub, hubs, le_trans m.2.2 $ hub m.1 $ mem_image_of_mem _ hmc⟩,
+      λ a hac, hub a.1 ⟨a, hac, rfl⟩⟩)) in
 ⟨m, hms, hxm, λ z hzs hmz, congr_arg subtype.val $ h ⟨z, hzs, le_trans hxm hmz⟩ hmz⟩
 
 theorem zorn_subset {α : Type u} (S : set (set α))

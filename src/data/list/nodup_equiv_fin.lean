@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import data.list.sort
 import data.fin
@@ -49,11 +49,11 @@ variables [preorder α] {l : list α}
 
 lemma nth_le_mono (h : l.sorted (≤)) :
   monotone (λ i : fin l.length, l.nth_le i i.2) :=
-λ i j, nth_le_of_sorted_of_le h
+λ i j, h.rel_nth_le_of_le _ _
 
 lemma nth_le_strict_mono (h : l.sorted (<)) :
   strict_mono (λ i : fin l.length, l.nth_le i i.2) :=
-λ i j, pairwise_iff_nth_le.1 h i j j.2
+λ i j, h.rel_nth_le_of_lt _ _
 
 variable [decidable_eq α]
 

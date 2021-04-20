@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau.
+Authors: Kenny Lau
 -/
 
 import algebra.polynomial.big_operators
@@ -91,7 +91,8 @@ theorem separable.of_pow' {f : polynomial R} :
   ∀ {n : ℕ} (h : (f ^ n).separable), is_unit f ∨ (f.separable ∧ n = 1) ∨ n = 0
 | 0     := λ h, or.inr $ or.inr rfl
 | 1     := λ h, or.inr $ or.inl ⟨pow_one f ▸ h, rfl⟩
-| (n+2) := λ h, or.inl $ is_coprime_self.1 h.is_coprime.of_mul_right_left
+| (n+2) := λ h, by { rw [pow_succ, pow_succ] at h,
+    exact or.inl (is_coprime_self.1 h.is_coprime.of_mul_right_left) }
 
 theorem separable.of_pow {f : polynomial R} (hf : ¬is_unit f) {n : ℕ} (hn : n ≠ 0)
   (hfs : (f ^ n).separable) : f.separable ∧ n = 1 :=
@@ -202,6 +203,23 @@ theorem map_expand {p : ℕ} (hp : 0 < p) {f : R →+* S} {q : polynomial R} :
   map f (expand R p q) = expand S p (map f q) :=
 by { ext, rw [coeff_map, coeff_expand hp, coeff_expand hp], split_ifs; simp, }
 
+/-- Expansion is injective. -/
+lemma expand_injective {n : ℕ} (hn : 0 < n) :
+  function.injective (expand R n) :=
+λ g g' h, begin
+  ext,
+  have h' : (expand R n g).coeff (n * n_1) = (expand R n g').coeff (n * n_1) :=
+  begin
+    apply polynomial.ext_iff.1,
+    exact h,
+  end,
+
+  rw [polynomial.coeff_expand hn g (n * n_1), polynomial.coeff_expand hn g' (n * n_1)] at h',
+  simp only [if_true, dvd_mul_right] at h',
+  rw (nat.mul_div_right n_1 hn) at h',
+  exact h',
+end
+
 end comm_semiring
 
 section comm_ring
@@ -280,9 +298,9 @@ variables {F : Type u} [field F] {K : Type v} [field K]
 
 theorem separable_iff_derivative_ne_zero {f : polynomial F} (hf : irreducible f) :
   f.separable ↔ f.derivative ≠ 0 :=
-⟨λ h1 h2, hf.1 $ is_coprime_zero_right.1 $ h2 ▸ h1,
+⟨λ h1 h2, hf.not_unit $ is_coprime_zero_right.1 $ h2 ▸ h1,
 λ h, is_coprime_of_dvd (mt and.right h) $ λ g hg1 hg2 ⟨p, hg3⟩ hg4,
-let ⟨u, hu⟩ := (hf.2 _ _ hg3).resolve_left hg1 in
+let ⟨u, hu⟩ := (hf.is_unit_or_is_unit hg3).resolve_left hg1 in
 have f ∣ f.derivative, by { conv_lhs { rw [hg3, ← hu] }, rwa units.mul_right_dvd },
 not_lt_of_le (nat_degree_le_of_dvd this h) $ nat_degree_derivative_lt h⟩
 
@@ -296,20 +314,20 @@ include hp
 
 /-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
 noncomputable def contract (f : polynomial F) : polynomial F :=
-⟨f.support.preimage (*p) $ λ _ _ _ _, (nat.mul_left_inj hp.pos).1,
+⟨f.support.preimage (*p) $ λ _ _ _ _, (nat.mul_left_inj hp.1.pos).1,
 λ n, f.coeff (n * p),
-λ n, by { rw [finset.mem_preimage, finsupp.mem_support_iff], refl }⟩
+λ n, by rw [finset.mem_preimage, mem_support_iff]⟩
 
 theorem coeff_contract (f : polynomial F) (n : ℕ) : (contract p f).coeff n = f.coeff (n * p) := rfl
 
 theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f)) :
   irreducible f :=
-@@of_irreducible_map _ _ _ (is_local_ring_hom_expand F hp.pos) hf
+@@of_irreducible_map _ _ _ (is_local_ring_hom_expand F hp.1.pos) hf
 
 theorem of_irreducible_expand_pow {f : polynomial F} {n : ℕ} :
   irreducible (expand F (p ^ n) f) → irreducible f :=
 nat.rec_on n (λ hf, by rwa [pow_zero, expand_one] at hf) $ λ n ih hf,
-ih $ of_irreducible_expand p $ by rwa [expand_expand]
+ih $ of_irreducible_expand p $ by { rw pow_succ at hf, rwa [expand_expand] }
 
 variables [HF : char_p F p]
 include HF
@@ -330,13 +348,13 @@ begin
   induction n, {simp [ring_hom.one_def]},
   symmetry,
   rw [pow_succ', pow_mul, ← n_ih, ← expand_char, pow_succ, ring_hom.mul_def, ← map_map, mul_comm,
-      expand_mul, ← map_expand (nat.prime.pos hp)],
+      expand_mul, ← map_expand (nat.prime.pos hp.1)],
 end
 
 theorem expand_contract {f : polynomial F} (hf : f.derivative = 0) :
   expand F p (contract p f) = f :=
 begin
-  ext n, rw [coeff_expand hp.pos, coeff_contract], split_ifs with h,
+  ext n, rw [coeff_expand hp.1.pos, coeff_contract], split_ifs with h,
   { rw nat.div_mul_cancel h },
   { cases n, { exact absurd (dvd_zero p) h },
     have := coeff_derivative f n, rw [hf, coeff_zero, zero_eq_mul] at this, cases this, { rw this },
@@ -349,7 +367,7 @@ theorem separable_or {f : polynomial F} (hf : irreducible f) : f.separable ∨
 if H : f.derivative = 0 then or.inr
   ⟨by rw [separable_iff_derivative_ne_zero hf, not_not, H],
   contract p f,
-  by haveI := is_local_ring_hom_expand F hp.pos; exact
+  by haveI := is_local_ring_hom_expand F hp.1.pos; exact
     of_irreducible_map ↑(expand F p) (by rwa ← expand_contract p H at hf),
   expand_contract p H⟩
 else or.inl $ (separable_iff_derivative_ne_zero hf).2 H
@@ -371,7 +389,7 @@ begin
     { intro this, rw [this, zero_mul] at hg1, cases hg1 },
     have hg3 : g.nat_degree < N.succ,
     { rw [← mul_one g.nat_degree, ← hg1],
-      exact nat.mul_lt_mul_of_pos_left hp.one_lt (nat.pos_of_ne_zero hg2) },
+      exact nat.mul_lt_mul_of_pos_left hp.1.one_lt (nat.pos_of_ne_zero hg2) },
     have hg4 : g ≠ 0,
     { rintro rfl, exact hg2 nat_degree_zero },
     rcases ih _ hg3 hg hg4 rfl with ⟨n, g, hg5, rfl⟩, refine ⟨n+1, g, hg5, _⟩,
@@ -386,7 +404,7 @@ begin
   { by rw [derivative_expand, nat.cast_pow, char_p.cast_eq_zero,
       zero_pow (nat.pos_of_ne_zero hn), zero_mul, mul_zero] },
   rw [separable_def, hf2, is_coprime_zero_right, is_unit_iff] at hf, rcases hf with ⟨r, hr, hrf⟩,
-  rw [eq_comm, expand_eq_C (pow_pos hp.pos _)] at hrf,
+  rw [eq_comm, expand_eq_C (pow_pos hp.1.pos _)] at hrf,
   rwa [hrf, is_unit_C]
 end
 
@@ -397,7 +415,7 @@ theorem unique_separable_of_irreducible {f : polynomial F} (hf : irreducible f) 
 begin
   revert g₁ g₂, wlog hn : n₁ ≤ n₂ := le_total n₁ n₂ using [n₁ n₂, n₂ n₁] tactic.skip,
   unfreezingI { intros, rw le_iff_exists_add at hn, rcases hn with ⟨k, rfl⟩,
-    rw [← hgf₁, pow_add, expand_mul, expand_inj (pow_pos hp.pos n₁)] at hgf₂, subst hgf₂,
+    rw [← hgf₁, pow_add, expand_mul, expand_inj (pow_pos hp.1.pos n₁)] at hgf₂, subst hgf₂,
     subst hgf₁,
     rcases is_unit_or_eq_zero_of_separable_expand p k hg₁ with h | rfl,
     { rw is_unit_iff at h, rcases h with ⟨r, hr, rfl⟩,
@@ -542,7 +560,7 @@ theorem irreducible.separable {F : Type u} [field F] [char_zero F] {f : polynomi
 begin
   rw [separable_iff_derivative_ne_zero hf, ne, ← degree_eq_bot, degree_derivative_eq], rintro ⟨⟩,
   rw [pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],
-  refine λ hf1, hf.1 _, rw [hf1, is_unit_C, is_unit_iff_ne_zero],
+  refine λ hf1, hf.not_unit _, rw [hf1, is_unit_C, is_unit_iff_ne_zero],
   intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf.ne_zero
 end
 
@@ -551,25 +569,35 @@ end
 
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
 the minimal polynomial of every `x : K` is separable. -/
-@[class] def is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
-∀ x : K, is_integral F x ∧ (minpoly F x).separable
+class is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
+(is_integral' (x : K) : is_integral F x)
+(separable' (x : K) : (minpoly F x).separable)
+
+theorem is_separable.is_integral {F K} [field F] [field K] [algebra F K] (h : is_separable F K) :
+  ∀ x : K, is_integral F x := is_separable.is_integral'
+
+theorem is_separable.separable {F K} [field F] [field K] [algebra F K] (h : is_separable F K) :
+  ∀ x : K, (minpoly F x).separable := is_separable.separable'
+
+theorem is_separable_iff {F K} [field F] [field K] [algebra F K] : is_separable F K ↔
+  ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
+⟨λ h x, ⟨h.is_integral x, h.separable x⟩, λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
 
 instance is_separable_self (F : Type*) [field F] : is_separable F F :=
-λ x, ⟨is_integral_algebra_map, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩
+⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩
 
 section is_separable_tower
 variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
   [algebra K E] [is_scalar_tower F K E]
 
 lemma is_separable_tower_top_of_is_separable [h : is_separable F E] : is_separable K E :=
-λ x, (h x).imp (is_integral_of_is_scalar_tower x) $
-  λ hx, hx.map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)
+⟨λ x, is_integral_of_is_scalar_tower x (h.is_integral x),
+ λ x, (h.separable x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
 
 lemma is_separable_tower_bot_of_is_separable [h : is_separable F E] : is_separable F K :=
-begin
-  intro x,
-  refine (h (algebra_map K E x)).imp is_integral_tower_bot_of_is_integral_field _,
-  intro hs,
+is_separable_iff.2 $ λ x, begin
+  refine (is_separable_iff.1 h (algebra_map K E x)).imp
+    is_integral_tower_bot_of_is_integral_field (λ hs, _),
   obtain ⟨q, hq⟩ := minpoly.dvd F x
     (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field
       (minpoly.aeval F ((algebra_map K E) x))),

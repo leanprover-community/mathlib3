@@ -46,18 +46,16 @@ lemma tendsto_floor_right' [order_closed_topology α] (n : ℤ) :
   tendsto (λ x, floor x : α → α) (𝓝[Ici n] n) (𝓝 n) :=
 begin
   rw ← nhds_within_Ico_eq_nhds_within_Ici (lt_add_one (n : α)),
-  convert ← (continuous_on_floor _ _ (left_mem_Ico.mpr $ lt_add_one (_ : α))).tendsto,
-  rw floor_eq_iff,
-  exact ⟨le_refl _, lt_add_one _⟩
+  simpa only [floor_coe] using
+    (continuous_on_floor n _ (left_mem_Ico.mpr $ lt_add_one (_ : α))).tendsto
 end
 
 lemma tendsto_ceil_left' [order_closed_topology α] (n : ℤ) :
   tendsto (λ x, ceil x : α → α) (𝓝[Iic n] n) (𝓝 n) :=
 begin
   rw ← nhds_within_Ioc_eq_nhds_within_Iic (sub_one_lt (n : α)),
-  convert ← (continuous_on_ceil _ _ (right_mem_Ioc.mpr $ sub_one_lt (_ : α))).tendsto,
-  rw ceil_eq_iff,
-  exact ⟨sub_one_lt _, le_refl _⟩
+  simpa only [ceil_coe] using
+    (continuous_on_ceil _ _ (right_mem_Ioc.mpr $ sub_one_lt (_ : α))).tendsto
 end
 
 lemma tendsto_floor_right [order_closed_topology α] (n : ℤ) :

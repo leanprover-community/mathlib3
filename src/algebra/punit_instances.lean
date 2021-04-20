@@ -2,10 +2,16 @@
 Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Instances on punit.
 -/
+
 import algebra.module.basic
+
+/-!
+# Instances on punit
+
+This file collects facts about algebraic structures on the one-element type, e.g. that it is a
+commutative ring.
+-/
 
 universes u
 
@@ -14,11 +20,13 @@ variables (x y : punit.{u+1}) (s : set punit.{u+1})
 
 @[to_additive]
 instance : comm_group punit :=
-by refine
+by refine_struct
 { mul := λ _ _, star,
   one := star,
   inv := λ _, star,
-  div := λ _ _, star, .. };
+  div := λ _ _, star,
+  npow := λ _ _, star,
+  .. };
 intros; exact subsingleton.elim _ _
 
 instance : comm_ring punit :=
@@ -43,7 +51,7 @@ by refine
   compl := λ _, star,
   sdiff := λ _ _, star,
   .. };
-intros; trivial
+intros; trivial <|> simp only [eq_iff_true_of_subsingleton]
 
 instance : canonically_ordered_add_monoid punit :=
 by refine
@@ -54,7 +62,6 @@ intros; trivial
 
 instance : linear_ordered_cancel_add_comm_monoid punit :=
 { add_left_cancel := λ _ _ _ _, subsingleton.elim _ _,
-  add_right_cancel := λ _ _ _ _, subsingleton.elim _ _,
   le_of_add_le_add_left := λ _ _ _ _, trivial,
   le_total := λ _ _, or.inl trivial,
   decidable_le := λ _ _, decidable.true,

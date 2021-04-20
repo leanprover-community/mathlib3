@@ -120,6 +120,9 @@ set.ext $ λ x, mem_segment_translate a
 lemma segment_translate_image (a b c: E) : (λx, a + x) '' [b, c] = [a + b, a + c] :=
 segment_translate_preimage a b c ▸ image_preimage_eq _ $ add_left_surjective a
 
+lemma segment_image (f : E →ₗ[ℝ] F) (a b : E) : f '' [a, b] = [f a, f b] :=
+set.ext (λ x, by simp [segment_eq_image])
+
 /-! ### Convexity of sets -/
 
 /-- Convexity of sets. -/
@@ -617,7 +620,7 @@ begin
   have h₂ : 0 < z - y := by linarith,
   have h₃ : 0 < z - x := by linarith,
   suffices : f y / (y - x) + f y / (z - y) ≤ f x / (y - x) + f z / (z - y),
-    by { ring at this ⊢, linarith },
+    by { ring_nf at this ⊢, linarith },
   set a := (z - y) / (z - x),
   set b := (y - x) / (z - x),
   have heqz : a • x + b • z = y, by { field_simp, rw div_eq_iff; [ring, linarith], },
@@ -1104,6 +1107,23 @@ convex_hull_min (set.subset.trans hst $ subset_convex_hull t) (convex_convex_hul
 
 lemma convex.convex_hull_eq {s : set E} (hs : convex s) : convex_hull s = s :=
 set.subset.antisymm (convex_hull_min (set.subset.refl _) hs) (subset_convex_hull s)
+
+@[simp]
+lemma convex_hull_empty :
+  convex_hull (∅ : set E) = ∅ :=
+convex_empty.convex_hull_eq
+
+@[simp]
+lemma convex_hull_empty_iff :
+  convex_hull s = ∅ ↔ s = ∅ :=
+begin
+  split,
+  { intro h,
+    rw [←set.subset_empty_iff, ←h],
+    exact subset_convex_hull _ },
+  { rintro rfl,
+    exact convex_hull_empty }
+end
 
 @[simp]
 lemma convex_hull_singleton {x : E} : convex_hull ({x} : set E) = {x} :=

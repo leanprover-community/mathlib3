@@ -4,8 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 -/
 import category_theory.concrete_category.unbundled_hom
-import topology.continuous_map
+import topology.continuous_function.basic
 import topology.opens
+
+/-!
+# Category instance for topological spaces
+
+We introduce the bundled category `Top` of topological spaces together with the functors `discrete`
+and `trivial` from the category of types to `Top` which equip a type with the corresponding
+discrete, resp. trivial, topology. For a proof that these functors are left, resp. right adjoint
+to the forgetful functor, see `topology.category.Top.adjunctions`.
+-/
 
 open category_theory
 open topological_space

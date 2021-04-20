@@ -69,7 +69,8 @@ def comap_eq {β γ : Type w} {f g : β → γ} (h : f = g) : comap (λ _, C) f 
 { hom := { app := λ X b, eq_to_hom begin dsimp [comap], subst h, end },
   inv := { app := λ X b, eq_to_hom begin dsimp [comap], subst h, end }, }
 
-lemma comap_eq_symm {β γ : Type w} {f g : β → γ} (h : f = g) : comap_eq C h.symm = (comap_eq C h).symm :=
+lemma comap_eq_symm {β γ : Type w} {f g : β → γ} (h : f = g) :
+  comap_eq C h.symm = (comap_eq C h).symm :=
 by tidy
 
 lemma comap_eq_trans {β γ : Type w} {f g h : β → γ} (k : f = g) (l : g = h) :
@@ -94,7 +95,8 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
 
 end
 
-instance has_shift {β : Type*} [add_comm_group β] (s : β) : has_shift (graded_object_with_shift s C) :=
+instance has_shift {β : Type*} [add_comm_group β] (s : β) :
+  has_shift (graded_object_with_shift s C) :=
 { shift := comap_equiv C
   { to_fun := λ b, b-s,
     inv_fun := λ b, b+s,

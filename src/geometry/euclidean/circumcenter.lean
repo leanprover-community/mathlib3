@@ -1,17 +1,11 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import geometry.euclidean.basic
 import linear_algebra.affine_space.finite_dimensional
 import tactic.derive_fintype
-
-noncomputable theory
-open_locale big_operators
-open_locale classical
-open_locale real
-open_locale real_inner_product_space
 
 /-!
 # Circumcenter and circumradius
@@ -32,6 +26,12 @@ the circumcenter.
 * https://en.wikipedia.org/wiki/Circumscribed_circle
 
 -/
+
+noncomputable theory
+open_locale big_operators
+open_locale classical
+open_locale real
+open_locale real_inner_product_space
 
 namespace euclidean_geometry
 
@@ -541,7 +541,8 @@ def centroid_weights_with_circumcenter {n : ℕ} (fs : finset (fin (n + 1)))
 
 /-- `centroid_weights_with_circumcenter` sums to 1, if the `finset` is
 nonempty. -/
-@[simp] lemma sum_centroid_weights_with_circumcenter {n : ℕ} {fs : finset (fin (n + 1))} (h : fs.nonempty) :
+@[simp] lemma sum_centroid_weights_with_circumcenter {n : ℕ} {fs : finset (fin (n + 1))}
+  (h : fs.nonempty) :
   ∑ i, centroid_weights_with_circumcenter fs i = 1 :=
 begin
   simp_rw [sum_points_with_circumcenter, centroid_weights_with_circumcenter, add_zero,
@@ -570,7 +571,7 @@ begin
              fs.subset_univ
              (λ i, zero_smul ℝ _),
            set.indicator_apply],
-  rcongr
+  congr, funext, congr' 2
 end
 
 omit V
@@ -587,8 +588,7 @@ def circumcenter_weights_with_circumcenter (n : ℕ) : points_with_circumcenter_
 begin
   convert sum_ite_eq' univ circumcenter_index (function.const _ (1 : ℝ)),
   { ext ⟨j⟩ ; simp [circumcenter_weights_with_circumcenter] },
-  { simp },
-  { exact classical.dec_eq _ }
+  { simp }
 end
 
 include V
@@ -838,17 +838,17 @@ begin
   have hd₁ : dist p₁ s.circumcenter * dist p₁ s.circumcenter =
     r * r - s.circumradius * s.circumradius,
   { rw [dist_comm, ←h₁ 0,
-        dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₁ h],
+      dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₁ h],
     simp [h₁', dist_comm p₁] },
   have hd₂ : dist p₂ s.circumcenter * dist p₂ s.circumcenter =
     r * r - s.circumradius * s.circumradius,
   { rw [dist_comm, ←h₂ 0,
-        dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₂ h],
+      dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₂ h],
     simp [h₂', dist_comm p₂] },
   rw [←hd₂, hp₁, hp₂, dist_eq_norm_vsub V _ s.circumcenter,
       dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←real_inner_self_eq_norm_square,
-      ←real_inner_self_eq_norm_square, real_inner_smul_left, real_inner_smul_left, real_inner_smul_right,
-      real_inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
+      ←real_inner_self_eq_norm_square, real_inner_smul_left, real_inner_smul_left,
+      real_inner_smul_right, real_inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
   by_cases hp : p = orthogonal_projection span_s p,
   { rw [hp₁, hp₂, ←hp],
     simp },

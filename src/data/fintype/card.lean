@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.fintype.basic
 import algebra.big_operators.ring
@@ -11,9 +11,12 @@ Results about "big operations" over a `fintype`, and consequent
 results about cardinalities of certain types.
 
 ## Implementation note
-This content had previously been in `data.fintype`, but was moved here to avoid
+This content had previously been in `data.fintype.basic`, but was moved here to avoid
 requiring `algebra.big_operators` (and hence many other imports) as a
 dependency of `fintype`.
+
+However many of the results here really belong in `algebra.big_operators.basic`
+and should be moved at some point.
 -/
 
 universes u v
@@ -61,6 +64,14 @@ lemma prod_eq_single {f : α → M} (a : α) (h : ∀ x ≠ a, f x = 1) :
 finset.prod_eq_single a (λ x _ hx, h x hx) $ λ ha, (ha (finset.mem_univ a)).elim
 
 @[to_additive]
+lemma prod_eq_mul {f : α → M} (a b : α) (h₁ : a ≠ b) (h₂ : ∀ x, x ≠ a ∧ x ≠ b → f x = 1) :
+  (∏ x, f x) = (f a) * (f b) :=
+begin
+  apply finset.prod_eq_mul a b h₁ (λ x _ hx, h₂ x hx);
+  exact λ hc, (hc (finset.mem_univ _)).elim
+end
+
+@[to_additive]
 lemma prod_unique [unique β] (f : β → M) :
   (∏ x, f x) = f (default β) :=
 by simp only [finset.prod_singleton, univ_unique]
@@ -81,22 +92,13 @@ open finset
 
 section
 
-variables {M : Type*} [fintype α] [decidable_eq α] [comm_monoid M]
+variables {M : Type*} [fintype α] [comm_monoid M]
 
-@[to_additive]
-lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → M) :
-  (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
-(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
-
-@[to_additive]
-lemma finset.prod_mul_prod_compl (s : finset α) (f : α → M) :
-  (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
-is_compl_compl.prod_mul_prod f
-
-@[to_additive]
-lemma finset.prod_compl_mul_prod (s : finset α) (f : α → M) :
-  (∏ i in sᶜ, f i) * (∏ i in s, f i) = ∏ i, f i :=
-is_compl_compl.symm.prod_mul_prod f
+@[simp, to_additive]
+lemma fintype.prod_option (f : option α → M) : ∏ i, f i = f none * ∏ i, f (some i) :=
+show ((finset.insert_none _).1.map f).prod = _,
+by simp only [finset.prod, finset.insert_none, multiset.map_cons, multiset.prod_cons,
+  multiset.map_map]
 
 end
 
@@ -161,6 +163,8 @@ by apply @fin.prod_univ_cast_succ (multiplicative β)
 
 attribute [to_additive] fin.prod_univ_cast_succ
 
+open finset
+
 @[simp] theorem fintype.card_sigma {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] :
   fintype.card (sigma β) = ∑ a, fintype.card (β a) :=
@@ -197,8 +201,7 @@ by rw fintype.of_equiv_card; simp
 @[simp, to_additive]
 lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
   ∏ x in univ.attach, f x = ∏ x, f ⟨x, (mem_univ _)⟩ :=
-prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp)
-  (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)
+fintype.prod_equiv (equiv.subtype_univ_equiv (λ x, mem_univ _)) _ _ (λ x, by simp)
 
 /-- Taking a product over `univ.pi t` is the same as taking the product over `fintype.pi_finset t`.
   `univ.pi t` and `fintype.pi_finset t` are essentially the same `finset`, but differ
@@ -238,16 +241,18 @@ lemma fintype.sum_pow_mul_eq_add_pow
 finset.sum_pow_mul_eq_add_pow _ _ _
 
 lemma fin.sum_pow_mul_eq_add_pow {n : ℕ} {R : Type*} [comm_semiring R] (a b : R) :
-  ∑ s : finset (fin n), a ^ s.card * b ^ (n - s.card) =
-  (a + b) ^ n :=
+  ∑ s : finset (fin n), a ^ s.card * b ^ (n - s.card) = (a + b) ^ n :=
 by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
+
+lemma fin.prod_const [comm_monoid α] (n : ℕ) (x : α) : ∏ i : fin n, x = x ^ n := by simp
+
+lemma fin.sum_const [add_comm_monoid α] (n : ℕ) (x : α) : ∑ i : fin n, x = n • x := by simp
 
 @[to_additive]
 lemma function.bijective.prod_comp [fintype α] [fintype β] [comm_monoid γ] {f : α → β}
   (hf : function.bijective f) (g : β → γ) :
   ∏ i, g (f i) = ∏ i, g i :=
-prod_bij (λ i hi, f i) (λ i hi, mem_univ _) (λ i hi, rfl) (λ i j _ _ h, hf.1 h) $
-  λ i hi, (hf.2 i).imp $ λ j hj, ⟨mem_univ _, hj.symm⟩
+fintype.prod_bijective f hf _ _ (λ x, rfl)
 
 @[to_additive]
 lemma equiv.prod_comp [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :
@@ -260,7 +265,7 @@ lemma fin.prod_univ_eq_prod_range [comm_monoid α] (f : ℕ → α) (n : ℕ) :
   ∏ i : fin n, f i = ∏ i in range n, f i :=
 calc (∏ i : fin n, f i) = ∏ i : {x // x ∈ range n}, f i :
   ((equiv.fin_equiv_subtype n).trans
-    (equiv.subtype_congr_right (λ _, mem_range.symm))).prod_comp (f ∘ coe)
+    (equiv.subtype_equiv_right (λ _, mem_range.symm))).prod_comp (f ∘ coe)
 ... = ∏ i in range n, f i : by rw [← attach_eq_univ, prod_attach]
 
 @[to_additive]
@@ -309,9 +314,9 @@ lemma fintype.prod_dite [fintype α] {p : α → Prop} [decidable_pred p]
 begin
   simp only [prod_dite, attach_eq_univ],
   congr' 1,
-  { convert (equiv.subtype_congr_right _).prod_comp (λ x : {x // p x}, f x x.2),
+  { convert (equiv.subtype_equiv_right _).prod_comp (λ x : {x // p x}, f x x.2),
     simp },
-  { convert (equiv.subtype_congr_right _).prod_comp (λ x : {x // ¬p x}, g x x.2),
+  { convert (equiv.subtype_equiv_right _).prod_comp (λ x : {x // ¬p x}, g x x.2),
     simp }
 end
 

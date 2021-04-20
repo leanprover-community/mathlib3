@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.specific_limits
-import analysis.asymptotics
+import analysis.asymptotics.asymptotics
 
 /-!
 # The group of units of a complete normed ring
@@ -52,10 +52,10 @@ begin
   nontriviality R using [zero_lt_one],
   have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
   calc ∥-(↑x⁻¹ * t)∥
-      = ∥↑x⁻¹ * t∥                   : by { rw norm_neg }
-  ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le x.inv _
+      = ∥↑x⁻¹ * t∥                    : by { rw norm_neg }
+  ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le ↑x⁻¹ _
   ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
-  ... = 1                           : mul_inv_cancel (ne_of_gt hpos)
+  ... = 1                             : mul_inv_cancel (ne_of_gt hpos)
 end)
 
 @[simp] lemma add_coe (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) :
@@ -70,20 +70,19 @@ x.add ((y : R) - x) h
   ↑(x.unit_of_nearby y h) = y := by { unfold units.unit_of_nearby, simp }
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
-lemma is_open : is_open {x : R | is_unit x} :=
+protected lemma is_open : is_open {x : R | is_unit x} :=
 begin
   nontriviality R,
   apply metric.is_open_iff.mpr,
-  rintros x' ⟨x, h⟩,
+  rintros x' ⟨x, rfl⟩,
   refine ⟨∥(↑x⁻¹ : R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
   intros y hy,
-  rw [metric.mem_ball, dist_eq_norm, ←h] at hy,
-  use x.unit_of_nearby y hy,
-  simp
+  rw [metric.mem_ball, dist_eq_norm] at hy,
+  exact ⟨x.unit_of_nearby y hy, unit_of_nearby_coe _ _ _⟩
 end
 
-lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
-mem_nhds_sets is_open (by { rw [set.mem_set_of_eq], exact is_unit_unit x })
+protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
+mem_nhds_sets units.is_open x.is_unit
 
 end units
 
@@ -92,10 +91,7 @@ open_locale classical big_operators
 open asymptotics filter metric finset ring
 
 lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ↑(units.one_sub t h)⁻¹ :=
-begin
-  rw ← inverse_unit (units.one_sub t h),
-  refl,
-end
+by rw [← inverse_unit (units.one_sub t h), units.one_sub_coe]
 
 /-- The formula `inverse (x + t) = inverse (1 + x⁻¹ * t) * x⁻¹` holds for `t` sufficiently small. -/
 lemma inverse_add (x : units R) :
@@ -129,14 +125,14 @@ begin
   simp only [inverse_one_sub t ht, set.mem_set_of_eq],
   have h : 1 = ((range n).sum (λ i, t ^ i)) * (units.one_sub t ht) + t ^ n,
   { simp only [units.one_sub_coe],
-    rw [← geom_series, geom_sum_mul_neg],
+    rw [← geom_sum, geom_sum_mul_neg],
     simp },
   rw [← one_mul ↑(units.one_sub t ht)⁻¹, h, add_mul],
   congr,
   { rw [mul_assoc, (units.one_sub t ht).mul_inv],
     simp },
   { simp only [units.one_sub_coe],
-    rw [← add_mul, ← geom_series, geom_sum_mul_neg],
+    rw [← add_mul, ← geom_sum, geom_sum_mul_neg],
     simp }
 end
 
@@ -271,3 +267,34 @@ begin
 end
 
 end normed_ring
+
+namespace units
+open opposite filter normed_ring
+
+/-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
+embedding in `R × R`) to `R` is an open map. -/
+lemma is_open_map_coe : is_open_map (coe : units R → R) :=
+begin
+  rw is_open_map_iff_nhds_le,
+  intros x s,
+  rw [mem_map, mem_nhds_induced],
+  rintros ⟨t, ht, hts⟩,
+  obtain ⟨u, hu, v, hv, huvt⟩ :
+    ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵒᵖ), v ∈ 𝓝 (opposite.op ↑x⁻¹) ∧ u.prod v ⊆ t,
+  { simpa [embed_product, mem_nhds_prod_iff] using ht },
+  have : u ∩ (op ∘ ring.inverse) ⁻¹' v ∩ (set.range (coe : units R → R)) ∈ 𝓝 ↑x,
+  { refine inter_mem_sets (inter_mem_sets hu _) (units.nhds x),
+    refine (continuous_op.continuous_at.comp (inverse_continuous_at x)).preimage_mem_nhds _,
+    simpa using hv },
+  refine mem_sets_of_superset this _,
+  rintros _ ⟨⟨huy, hvy⟩, ⟨y, rfl⟩⟩,
+  have : embed_product R y ∈ u.prod v := ⟨huy, by simpa using hvy⟩,
+  simpa using hts (huvt this)
+end
+
+/-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
+embedding in `R × R`) to `R` is an open embedding. -/
+lemma open_embedding_coe : open_embedding (coe : units R → R) :=
+open_embedding_of_continuous_injective_open continuous_coe ext is_open_map_coe
+
+end units

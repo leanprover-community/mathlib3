@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import topology.metric_space.isometry
 
@@ -13,23 +13,28 @@ embedding of `E` into `F` and `linear_isometry_equiv` (notation: `E ≃ₗᵢ[R]
 isometric equivalence between `E` and `F`.
 
 We also prove some trivial lemmas and provide convenience constructors.
+
+Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
+theory for `semi_normed_space` and we specialize to `normed_space` when needed.
 -/
 open function set
 
-variables {R E F G G' : Type*} [semiring R]
-  [normed_group E] [normed_group F] [normed_group G] [normed_group G']
+variables {R E F G G' E₁ : Type*} [semiring R]
+  [semi_normed_group E] [semi_normed_group F] [semi_normed_group G] [semi_normed_group G']
   [semimodule R E] [semimodule R F] [semimodule R G] [semimodule R G']
+  [normed_group E₁] [semimodule R E₁]
 
 /-- An `R`-linear isometric embedding of one normed `R`-module into another. -/
-structure linear_isometry (R E F : Type*) [semiring R] [normed_group E] [normed_group F]
-  [semimodule R E] [semimodule R F] extends E →ₗ[R] F :=
+structure linear_isometry (R E F : Type*) [semiring R] [semi_normed_group E]
+  [semi_normed_group F] [semimodule R E] [semimodule R F] extends E →ₗ[R] F :=
 (norm_map' : ∀ x, ∥to_linear_map x∥ = ∥x∥)
 
 notation E ` →ₗᵢ[`:25 R:25 `] `:0 F:0 := linear_isometry R E F
 
 namespace linear_isometry
 
-variables (f : E →ₗᵢ[R] F)
+/-- We use `f₁` when we need the domain to be a `normed_space`. -/
+variables (f : E →ₗᵢ[R] F) (f₁ : E₁ →ₗᵢ[R] F)
 
 instance : has_coe_to_fun (E →ₗᵢ[R] F) := ⟨_, λ f, f.to_fun⟩
 
@@ -62,11 +67,11 @@ f.to_linear_map.to_add_monoid_hom.isometry_of_norm f.norm_map
 @[simp] lemma dist_map (x y : E) : dist (f x) (f y) = dist x y := f.isometry.dist_eq x y
 @[simp] lemma edist_map (x y : E) : edist (f x) (f y) = edist x y := f.isometry.edist_eq x y
 
-protected lemma injective : injective f := f.isometry.injective
+protected lemma injective : injective f₁ := f₁.isometry.injective
 
-lemma map_eq_iff {x y : E} : f x = f y ↔ x = y := f.injective.eq_iff
+@[simp] lemma map_eq_iff {x y : E₁} : f₁ x = f₁ y ↔ x = y := f₁.injective.eq_iff
 
-lemma map_ne {x y : E} (h : x ≠ y) : f x ≠ f y := f.injective.ne h
+lemma map_ne {x y : E₁} (h : x ≠ y) : f₁ x ≠ f₁ y := f₁.injective.ne h
 
 protected lemma lipschitz : lipschitz_with 1 f := f.isometry.lipschitz
 
@@ -93,7 +98,7 @@ def to_continuous_linear_map : E →L[R] F := ⟨f.to_linear_map, f.continuous�
 
 @[simp] lemma comp_continuous_iff {α : Type*} [topological_space α] {g : α → E} :
   continuous (f ∘ g) ↔ continuous g :=
-f.isometry.uniform_embedding.to_uniform_inducing.inducing.continuous_iff.symm
+f.isometry.comp_continuous_iff
 
 /-- The identity linear isometry. -/
 def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
@@ -130,9 +135,35 @@ instance : monoid (E →ₗᵢ[R] E) :=
 
 end linear_isometry
 
+namespace submodule
+
+variables {R' : Type*} [ring R'] [module R' E] (p : submodule R' E)
+
+/-- `submodule.subtype` as a `linear_isometry`. -/
+def subtypeₗᵢ : p →ₗᵢ[R'] E := ⟨p.subtype, λ x, rfl⟩
+
+@[simp] lemma coe_subtypeₗᵢ : ⇑p.subtypeₗᵢ = p.subtype := rfl
+
+@[simp] lemma subtypeₗᵢ_to_linear_map : p.subtypeₗᵢ.to_linear_map = p.subtype := rfl
+
+/-- `submodule.subtype` as a `continuous_linear_map`. -/
+def subtypeL : p →L[R'] E := p.subtypeₗᵢ.to_continuous_linear_map
+
+@[simp] lemma coe_subtypeL : (p.subtypeL : p →ₗ[R'] E) = p.subtype := rfl
+
+@[simp] lemma coe_subtypeL' : ⇑p.subtypeL = p.subtype := rfl
+
+@[simp] lemma range_subtypeL : p.subtypeL.range = p :=
+range_subtype _
+
+@[simp] lemma ker_subtypeL : p.subtypeL.ker = ⊥ :=
+ker_subtype _
+
+end submodule
+
 /-- A linear isometric equivalence between two normed vector spaces. -/
-structure linear_isometry_equiv (R E F : Type*) [semiring R] [normed_group E] [normed_group F]
-  [semimodule R E] [semimodule R F] extends E ≃ₗ[R] F :=
+structure linear_isometry_equiv (R E F : Type*) [semiring R] [semi_normed_group E]
+  [semi_normed_group F] [semimodule R E] [semimodule R F] extends E ≃ₗ[R] F :=
 (norm_map' : ∀ x, ∥to_linear_equiv x∥ = ∥x∥)
 
 notation E ` ≃ₗᵢ[`:25 R:25 `] `:0 F:0 := linear_isometry_equiv R E F
@@ -165,12 +196,26 @@ def of_bounds (e : E ≃ₗ[R] F) (h₁ : ∀ x, ∥e x∥ ≤ ∥x∥) (h₂ : 
 /-- Reinterpret a `linear_isometry_equiv` as a `linear_isometry`. -/
 def to_linear_isometry : E →ₗᵢ[R] F := ⟨e.1, e.2⟩
 
+@[simp] lemma coe_to_linear_isometry : ⇑e.to_linear_isometry = e := rfl
+
 protected lemma isometry : isometry e := e.to_linear_isometry.isometry
 
 /-- Reinterpret a `linear_isometry_equiv` as an `isometric`. -/
 def to_isometric : E ≃ᵢ F := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
 
+@[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
+
+/-- Reinterpret a `linear_isometry_equiv` as an `homeomorph`. -/
+def to_homeomorph : E ≃ₜ F := e.to_isometric.to_homeomorph
+
+@[simp] lemma coe_to_homeomorph : ⇑e.to_homeomorph = e := rfl
+
 protected lemma continuous : continuous e := e.isometry.continuous
+protected lemma continuous_at {x} : continuous_at e x := e.continuous.continuous_at
+protected lemma continuous_on {s} : continuous_on e s := e.continuous.continuous_on
+
+protected lemma continuous_within_at {s x} : continuous_within_at e s x :=
+e.continuous.continuous_within_at
 
 variables (R E)
 
@@ -193,7 +238,9 @@ def symm : F ≃ₗᵢ[R] E :=
 @[simp] lemma map_eq_zero_iff {x : E} : e x = 0 ↔ x = 0 := e.to_linear_equiv.map_eq_zero_iff
 @[simp] lemma symm_symm : e.symm.symm = e := ext $ λ x, rfl
 
-@[simp] lemma coe_symm_to_linear_equiv : ⇑e.to_linear_equiv.symm = e.symm := rfl
+@[simp] lemma to_linear_equiv_symm : e.to_linear_equiv.symm = e.symm.to_linear_equiv := rfl
+@[simp] lemma to_isometric_symm : e.to_isometric.symm = e.symm.to_isometric := rfl
+@[simp] lemma to_homeomorph_symm : e.to_homeomorph.symm = e.symm.to_homeomorph := rfl
 
 /-- Composition of `linear_isometry_equiv`s as a `linear_isometry_equiv`. -/
 def trans (e' : F ≃ₗᵢ[R] G) : E ≃ₗᵢ[R] G :=
@@ -227,8 +274,16 @@ instance : group (E ≃ₗᵢ[R] E) :=
 @[simp] lemma coe_inv (e : E ≃ₗᵢ[R] E) : ⇑(e⁻¹) = e.symm := rfl
 
 /-- Reinterpret a `linear_isometry_equiv` as a `continuous_linear_equiv`. -/
-def to_continuous_linear_equiv : E ≃L[R] F :=
-⟨e.to_linear_equiv, e.continuous, e.to_isometric.symm.continuous⟩
+instance : has_coe_t (E ≃ₗᵢ[R] F) (E ≃L[R] F) :=
+⟨λ e, ⟨e.to_linear_equiv, e.continuous, e.to_isometric.symm.continuous⟩⟩
+
+instance : has_coe_t (E ≃ₗᵢ[R] F) (E →L[R] F) := ⟨λ e, ↑(e : E ≃L[R] F)⟩
+
+@[simp] lemma coe_coe : ⇑(e : E ≃L[R] F) = e := rfl
+
+@[simp] lemma coe_coe' : ((e : E ≃L[R] F) : E →L[R] F) = e := rfl
+
+@[simp] lemma coe_coe'' : ⇑(e : E →L[R] F) = e := rfl
 
 @[simp] lemma map_zero : e 0 = 0 := e.1.map_zero
 
@@ -250,7 +305,7 @@ protected lemma bijective : bijective e := e.1.bijective
 protected lemma injective : injective e := e.1.injective
 protected lemma surjective : surjective e := e.1.surjective
 
-lemma map_eq_iff {x y : E} : e x = e y ↔ x = y := e.injective.eq_iff
+@[simp] lemma map_eq_iff {x y : E} : e x = e y ↔ x = y := e.injective.eq_iff
 
 lemma map_ne {x y : E} (h : x ≠ y) : e x ≠ e y := e.injective.ne h
 
@@ -258,10 +313,20 @@ protected lemma lipschitz : lipschitz_with 1 e := e.isometry.lipschitz
 
 protected lemma antilipschitz : antilipschitz_with 1 e := e.isometry.antilipschitz
 
-lemma ediam_image (s : set E) : emetric.diam (e '' s) = emetric.diam s :=
+@[simp] lemma ediam_image (s : set E) : emetric.diam (e '' s) = emetric.diam s :=
 e.isometry.ediam_image s
 
-lemma diam_image (s : set E) : metric.diam (e '' s) = metric.diam s :=
+@[simp] lemma diam_image (s : set E) : metric.diam (e '' s) = metric.diam s :=
 e.isometry.diam_image s
+
+variables {α : Type*} [topological_space α]
+
+@[simp] lemma comp_continuous_on_iff {f : α → E} {s : set α} :
+  continuous_on (e ∘ f) s ↔ continuous_on f s :=
+e.isometry.comp_continuous_on_iff
+
+@[simp] lemma comp_continuous_iff {f : α → E} :
+  continuous (e ∘ f) ↔ continuous f :=
+e.isometry.comp_continuous_iff
 
 end linear_isometry_equiv

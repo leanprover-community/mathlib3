@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Bhavik Mehta
+Authors: Bhavik Mehta
 -/
 import order.basic
 import order.preorder_hom
@@ -41,7 +41,10 @@ structure closure_operator extends α →ₘ α :=
 instance : has_coe_to_fun (closure_operator α) :=
 { F := _, coe := λ c, c.to_fun }
 
-initialize_simps_projections closure_operator (to_fun → apply)
+/-- See Note [custom simps projection] -/
+def closure_operator.simps.apply (f : closure_operator α) : α → α := f
+
+initialize_simps_projections closure_operator (to_preorder_hom_to_fun → apply, -to_preorder_hom)
 
 namespace closure_operator
 
@@ -86,11 +89,11 @@ le_antisymm le_top (c.le_closure _)
 
 lemma closure_inter_le {α : Type u} [semilattice_inf α] (c : closure_operator α) (x y : α) :
   c (x ⊓ y) ≤ c x ⊓ c y :=
-le_inf (c.monotone inf_le_left) (c.monotone inf_le_right)
+c.monotone.map_inf_le _ _
 
 lemma closure_union_closure_le {α : Type u} [semilattice_sup α] (c : closure_operator α) (x y : α) :
   c x ⊔ c y ≤ c (x ⊔ y) :=
-sup_le (c.monotone le_sup_left) (c.monotone le_sup_right)
+c.monotone.le_map_sup _ _
 
 /-- An element `x` is closed for the closure operator `c` if it is a fixed point for it. -/
 def closed : set α := λ x, c x = x

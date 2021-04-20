@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Reid Barton, Bhavik Mehta
 -/
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 
 /-!
 # Preservation and reflection of (co)limits.
@@ -38,7 +38,7 @@ noncomputable theory
 
 namespace category_theory.limits
 
-universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u₁ u₂ u₃ -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]

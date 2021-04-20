@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Chris Hughes
+Authors: Chris Hughes
 -/
 import data.zsqrtd.basic
 import data.complex.basic
@@ -196,7 +196,7 @@ open principal_ideal_ring
 
 lemma mod_four_eq_three_of_nat_prime_of_prime (p : ℕ) [hp : fact p.prime] (hpi : prime (p : ℤ[i])) :
   p % 4 = 3 :=
-hp.eq_two_or_odd.elim
+hp.1.eq_two_or_odd.elim
   (λ hp2, absurd hpi (mt irreducible_iff_prime.2 $
     λ ⟨hu, h⟩, begin
       have := h ⟨1, 1⟩ ⟨1, -1⟩ (hp2.symm ▸ rfl),
@@ -215,12 +215,12 @@ hp.eq_two_or_odd.elim
       by rw hp41; exact dec_trivial in
     begin
       obtain ⟨k, k_lt_p, rfl⟩ : ∃ (k' : ℕ) (h : k' < p), (k' : zmod p) = k,
-      { refine ⟨k.val, k.val_lt, zmod.cast_val k⟩ },
+      { refine ⟨k.val, k.val_lt, zmod.nat_cast_zmod_val k⟩ },
       have hpk : p ∣ k ^ 2 + 1,
         by rw [← char_p.cast_eq_zero_iff (zmod p) p]; simp *,
       have hkmul : (k ^ 2 + 1 : ℤ[i]) = ⟨k, 1⟩ * ⟨k, -1⟩ :=
         by simp [pow_two, zsqrtd.ext],
-      have hpne1 : p ≠ 1, from (ne_of_lt (hp.one_lt)).symm,
+      have hpne1 : p ≠ 1 := ne_of_gt hp.1.one_lt,
       have hkltp : 1 + k * k < p * p,
         from calc 1 + k * k ≤ k + k * k :
           add_le_add_right (nat.pos_of_ne_zero
@@ -243,7 +243,7 @@ hp.eq_two_or_odd.elim
                 by simpa [hx0] using congr_arg zsqrtd.im hx),
       have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2
         (by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
-        exact λ h, (ne_of_lt hp.one_lt).symm h.1),
+        exact λ h, (ne_of_lt hp.1.one_lt).symm h.1),
       obtain ⟨y, hy⟩ := hpk,
       have := hpi.2.2 ⟨k, 1⟩ ⟨k, -1⟩ ⟨y, by rw [← hkmul, ← nat.cast_mul p, ← hy]; simp⟩,
       clear_aux_decl, tauto
@@ -253,11 +253,11 @@ lemma sum_two_squares_of_nat_prime_of_not_irreducible (p : ℕ) [hp : fact p.pri
   (hpi : ¬irreducible (p : ℤ[i])) : ∃ a b, a^2 + b^2 = p :=
 have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
   by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
-    exact λ h, (ne_of_lt hp.one_lt).symm h.1,
+    exact λ h, (ne_of_lt hp.1.one_lt).symm h.1,
 have hab : ∃ a b, (p : ℤ[i]) = a * b ∧ ¬ is_unit a ∧ ¬ is_unit b,
-  by simpa [irreducible, hpu, not_forall, not_or_distrib] using hpi,
+  by simpa [irreducible_iff, hpu, not_forall, not_or_distrib] using hpi,
 let ⟨a, b, hpab, hau, hbu⟩ := hab in
-have hnap : (norm a).nat_abs = p, from ((hp.mul_eq_prime_pow_two_iff
+have hnap : (norm a).nat_abs = p, from ((hp.1.mul_eq_prime_pow_two_iff
     (mt norm_eq_one_iff.1 hau) (mt norm_eq_one_iff.1 hbu)).1 $
   by rw [← int.coe_nat_inj', int.coe_nat_pow, pow_two,
     ← @norm_nat_cast (-1), hpab];
@@ -268,7 +268,7 @@ lemma prime_of_nat_prime_of_mod_four_eq_three (p : ℕ) [hp : fact p.prime] (hp3
   prime (p : ℤ[i]) :=
 irreducible_iff_prime.1 $ classical.by_contradiction $ λ hpi,
   let ⟨a, b, hab⟩ := sum_two_squares_of_nat_prime_of_not_irreducible p hpi in
-have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.cast_mod_nat 4 p, hp3]; exact dec_trivial,
+have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.nat_cast_mod 4 p, hp3]; exact dec_trivial,
 this a b (hab ▸ by simp)
 
 /-- A prime natural number is prime in `ℤ[i]` if and only if it is `3` mod `4` -/

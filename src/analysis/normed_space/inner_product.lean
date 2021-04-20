@@ -8,6 +8,7 @@ import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 import topology.metric_space.pi_Lp
 import data.complex.is_R_or_C
+import analysis.special_functions.sqrt
 
 /-!
 # Inner Product Space
@@ -100,7 +101,6 @@ class inner_product_space (𝕜 : Type*) (E : Type*) [is_R_or_C 𝕜]
   extends normed_group E, normed_space 𝕜 E, has_inner 𝕜 E :=
 (norm_sq_eq_inner : ∀ (x : E), ∥x∥^2 = re (inner x x))
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
-(nonneg_im : ∀ x, im (inner x x) = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = (conj r) * inner x y)
 
@@ -133,7 +133,6 @@ structure inner_product_space.core
   [is_R_or_C 𝕜] [add_comm_group F] [semimodule 𝕜 F] :=
 (inner     : F → F → 𝕜)
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
-(nonneg_im : ∀ x, im (inner x x) = 0)
 (nonneg_re : ∀ x, 0 ≤ re (inner x x))
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
@@ -169,9 +168,11 @@ lemma inner_conj_sym (x y : F) : ⟪y, x⟫† = ⟪x, y⟫ := c.conj_sym x y
 
 lemma inner_self_nonneg {x : F} : 0 ≤ re ⟪x, x⟫ := c.nonneg_re _
 
-lemma inner_self_nonneg_im {x : F} : im ⟪x, x⟫ = 0 := c.nonneg_im _
+lemma inner_self_nonneg_im {x : F} : im ⟪x, x⟫ = 0 :=
+by rw [← @of_real_inj 𝕜, im_eq_conj_sub]; simp [inner_conj_sym]
 
-lemma inner_self_im_zero {x : F} : im ⟪x, x⟫ = 0 := c.nonneg_im _
+lemma inner_self_im_zero {x : F} : im ⟪x, x⟫ = 0 :=
+inner_self_nonneg_im
 
 lemma inner_add_left {x y z : F} : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 c.add_left _ _ _
@@ -389,24 +390,22 @@ export inner_product_space (norm_sq_eq_inner)
 
 section basic_properties
 
-lemma inner_conj_sym (x y : E) : ⟪y, x⟫† = ⟪x, y⟫ := inner_product_space.conj_sym _ _
+@[simp] lemma inner_conj_sym (x y : E) : ⟪y, x⟫† = ⟪x, y⟫ := inner_product_space.conj_sym _ _
 lemma real_inner_comm (x y : F) : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := inner_conj_sym x y
 
 lemma inner_eq_zero_sym {x y : E} : ⟪x, y⟫ = 0 ↔ ⟪y, x⟫ = 0 :=
 ⟨λ h, by simp [←inner_conj_sym, h], λ h, by simp [←inner_conj_sym, h]⟩
 
-lemma inner_self_nonneg_im {x : E} : im ⟪x, x⟫ = 0 := inner_product_space.nonneg_im _
+@[simp] lemma inner_self_nonneg_im {x : E} : im ⟪x, x⟫ = 0 :=
+by rw [← @of_real_inj 𝕜, im_eq_conj_sub]; simp
 
-lemma inner_self_im_zero {x : E} : im ⟪x, x⟫ = 0 := inner_product_space.nonneg_im _
+lemma inner_self_im_zero {x : E} : im ⟪x, x⟫ = 0 := inner_self_nonneg_im
 
 lemma inner_add_left {x y z : E} : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 inner_product_space.add_left _ _ _
 
 lemma inner_add_right {x y z : E} : ⟪x, y + z⟫ = ⟪x, y⟫ + ⟪x, z⟫ :=
-begin
-  rw [←inner_conj_sym, inner_add_left, ring_hom.map_add],
-  conv_rhs { rw ←inner_conj_sym, conv { congr, skip, rw ←inner_conj_sym } }
-end
+by { rw [←inner_conj_sym, inner_add_left, ring_hom.map_add], simp only [inner_conj_sym] }
 
 lemma inner_re_symm {x y : E} : re ⟪x, y⟫ = re ⟪y, x⟫ :=
 by rw [←inner_conj_sym, conj_re]
@@ -429,6 +428,7 @@ lemma inner_smul_real_right {x y : E} {r : ℝ} : ⟪x, (r : 𝕜) • y⟫ = r 
 by { rw [inner_smul_right, algebra.smul_def], refl }
 
 /-- The inner product as a sesquilinear form. -/
+@[simps]
 def sesq_form_of_inner : sesq_form 𝕜 E (conj_to_ring_equiv 𝕜) :=
 { sesq := λ x y, ⟪y, x⟫,    -- Note that sesquilinear forms are linear in the first argument
   sesq_add_left := λ x y z, inner_add_right,
@@ -437,6 +437,7 @@ def sesq_form_of_inner : sesq_form 𝕜 E (conj_to_ring_equiv 𝕜) :=
   sesq_smul_right := λ r x y, inner_smul_left }
 
 /-- The real inner product as a bilinear form. -/
+@[simps]
 def bilin_form_of_real_inner : bilin_form ℝ F :=
 { bilin := inner,
   bilin_add_left := λ x y z, inner_add_left,
@@ -447,12 +448,12 @@ def bilin_form_of_real_inner : bilin_form ℝ F :=
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ :=
-sesq_form.map_sum_right (sesq_form_of_inner) _ _ _
+sesq_form.sum_right (sesq_form_of_inner) _ _ _
 
 /-- An inner product with a sum on the right. -/
 lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ :=
-sesq_form.map_sum_left (sesq_form_of_inner) _ _ _
+sesq_form.sum_left (sesq_form_of_inner) _ _ _
 
 /-- An inner product with a sum on the left, `finsupp` version. -/
 lemma finsupp.sum_inner {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :
@@ -521,13 +522,9 @@ end
 
 lemma inner_self_re_abs {x : E} : re ⟪x, x⟫ = abs ⟪x, x⟫ :=
 begin
-  have H : ⟪x, x⟫ = (re ⟪x, x⟫ : 𝕜) + im ⟪x, x⟫ * I,
-  { rw re_add_im, },
-  rw [H, is_add_hom.map_add re ((re ⟪x, x⟫) : 𝕜) (((im ⟪x, x⟫) : 𝕜) * I)],
-  rw [mul_re, I_re, mul_zero, I_im, zero_sub, tactic.ring.add_neg_eq_sub],
-  rw [of_real_re, of_real_im, sub_zero, inner_self_nonneg_im],
-  simp only [abs_of_real, add_zero, of_real_zero, zero_mul],
-  exact (_root_.abs_of_nonneg inner_self_nonneg).symm,
+  conv_rhs { rw [←inner_self_re_to_K] },
+  symmetry,
+  exact is_R_or_C.abs_of_nonneg inner_self_nonneg,
 end
 
 lemma inner_self_abs_to_K {x : E} : (absK ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
@@ -762,7 +759,7 @@ begin
   rw orthonormal_iff_ite at ⊢ hv,
   intros i j,
   convert hv (f i) (f j) using 1,
-  simp [hf]
+  simp [hf.eq_iff]
 end
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
@@ -890,7 +887,7 @@ end
 
 /-- Expand the square -/
 lemma norm_sub_pow_two_real {x y : F} : ∥x - y∥^2 = ∥x∥^2 - 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
-by { have h := @norm_sub_pow_two ℝ F _ _, simpa using h }
+norm_sub_pow_two
 
 /-- Expand the square -/
 lemma norm_sub_mul_self {x y : E} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * re ⟪x, y⟫ + ∥y∥ * ∥y∥ :=
@@ -1144,8 +1141,7 @@ begin
     have hx0 : x ≠ 0,
     { intro hx0,
       rw [hx0, inner_zero_left, zero_div] at h,
-      norm_num at h,
-      exact h },
+      norm_num at h, },
     refine and.intro hx0 _,
     set r := ⟪x, y⟫ / (∥x∥ * ∥x∥) with hr,
     use r,
@@ -1397,16 +1393,6 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
     apply inner_conj_sym,
     apply_instance
   end,
-  nonneg_im :=
-  begin
-    intro x,
-    unfold inner,
-    rw[←finset.sum_hom finset.univ im],
-    apply finset.sum_eq_zero,
-    rintros z -,
-    exact inner_self_nonneg_im,
-    apply_instance
-  end,
   add_left := λ x y z,
     show ∑ i, inner (x i + y i) (z i) = ∑ i, inner (x i) (z i) + ∑ i, inner (y i) (z i),
     by simp only [inner_add_left, finset.sum_add_distrib],
@@ -1420,13 +1406,17 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
 rfl
 
+lemma pi_Lp.norm_eq_of_L2 {ι : Type*} [fintype ι] {f : ι → Type*}
+  [Π i, inner_product_space 𝕜 (f i)] (x : pi_Lp 2 one_le_two f) :
+  ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
+by { rw [pi_Lp.norm_eq_of_nat 2]; simp [sqrt_eq_rpow] }
+
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 { inner := (λ x y, (conj x) * y),
   norm_sq_eq_inner := λ x,
     by { unfold inner, rw [mul_comm, mul_conj, of_real_re, norm_sq_eq_def'] },
   conj_sym := λ x y, by simp [mul_comm],
-  nonneg_im := λ x, by rw [mul_im, conj_re, conj_im]; ring,
   add_left := λ x y z, by simp [inner, add_mul],
   smul_left := λ x y z, by simp [inner, mul_assoc] }
 
@@ -1438,13 +1428,16 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
 
+lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
+pi_Lp.norm_eq_of_L2 x
+
 /-! ### Inner product space structure on subspaces -/
 
 /-- Induced inner product on a submodule. -/
 instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_space 𝕜 W :=
 { inner             := λ x y, ⟪(x:E), (y:E)⟫,
   conj_sym          := λ _ _, inner_conj_sym _ _ ,
-  nonneg_im         := λ _, inner_self_nonneg_im,
   norm_sq_eq_inner  := λ _, norm_sq_eq_inner _,
   add_left          := λ _ _ _ , inner_add_left,
   smul_left         := λ _ _ _, inner_smul_left,
@@ -1472,7 +1465,6 @@ structure. -/
 def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
 { norm_sq_eq_inner := norm_sq_eq_inner,
   conj_sym := λ x y, inner_re_symm,
-  nonneg_im := λ x, rfl,
   add_left := λ x y z, by {
     change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
     simp [inner_add_left] },
@@ -1623,25 +1615,101 @@ lemma times_cont_diff_at.norm_square (hf : times_cont_diff_at ℝ n f x) :
   times_cont_diff_at ℝ n (λ y, ∥f y∥ ^ 2) x :=
 hf.norm_square
 
+lemma times_cont_diff_at_norm {x : E} (hx : x ≠ 0) : times_cont_diff_at ℝ n norm x :=
+have ∥id x∥ ^ 2 ≠ 0, from pow_ne_zero _ (norm_pos_iff.2 hx).ne',
+by simpa only [id, sqrt_sqr, norm_nonneg] using times_cont_diff_at_id.norm_square.sqrt this
+
+lemma times_cont_diff_at.norm (hf : times_cont_diff_at ℝ n f x) (h0 : f x ≠ 0) :
+  times_cont_diff_at ℝ n (λ y, ∥f y∥) x :=
+(times_cont_diff_at_norm h0).comp x hf
+
+lemma times_cont_diff_at.dist (hf : times_cont_diff_at ℝ n f x) (hg : times_cont_diff_at ℝ n g x)
+  (hne : f x ≠ g x) :
+  times_cont_diff_at ℝ n (λ y, dist (f y) (g y)) x :=
+by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
+
+lemma times_cont_diff_within_at.norm (hf : times_cont_diff_within_at ℝ n f s x) (h0 : f x ≠ 0) :
+  times_cont_diff_within_at ℝ n (λ y, ∥f y∥) s x :=
+(times_cont_diff_at_norm h0).comp_times_cont_diff_within_at x hf
+
+lemma times_cont_diff_within_at.dist (hf : times_cont_diff_within_at ℝ n f s x)
+  (hg : times_cont_diff_within_at ℝ n g s x) (hne : f x ≠ g x) :
+  times_cont_diff_within_at ℝ n (λ y, dist (f y) (g y)) s x :=
+by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
+
 lemma times_cont_diff_on.norm_square (hf : times_cont_diff_on ℝ n f s) :
   times_cont_diff_on ℝ n (λ y, ∥f y∥ ^ 2) s :=
 (λ x hx, (hf x hx).norm_square)
 
+lemma times_cont_diff_on.norm (hf : times_cont_diff_on ℝ n f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
+  times_cont_diff_on ℝ n (λ y, ∥f y∥) s :=
+λ x hx, (hf x hx).norm (h0 x hx)
+
+lemma times_cont_diff_on.dist (hf : times_cont_diff_on ℝ n f s)
+  (hg : times_cont_diff_on ℝ n g s) (hne : ∀ x ∈ s, f x ≠ g x) :
+  times_cont_diff_on ℝ n (λ y, dist (f y) (g y)) s :=
+λ x hx, (hf x hx).dist (hg x hx) (hne x hx)
+
+lemma times_cont_diff.norm (hf : times_cont_diff ℝ n f) (h0 : ∀ x, f x ≠ 0) :
+  times_cont_diff ℝ n (λ y, ∥f y∥) :=
+times_cont_diff_iff_times_cont_diff_at.2 $ λ x, hf.times_cont_diff_at.norm (h0 x)
+
+lemma times_cont_diff.dist (hf : times_cont_diff ℝ n f) (hg : times_cont_diff ℝ n g)
+  (hne : ∀ x, f x ≠ g x) :
+  times_cont_diff ℝ n (λ y, dist (f y) (g y)) :=
+times_cont_diff_iff_times_cont_diff_at.2 $
+  λ x, hf.times_cont_diff_at.dist hg.times_cont_diff_at (hne x)
+
 lemma differentiable_at.norm_square (hf : differentiable_at ℝ f x) :
   differentiable_at ℝ (λ y, ∥f y∥ ^ 2) x :=
-(times_cont_diff_norm_square.differentiable le_rfl).differentiable_at.comp x hf
+(times_cont_diff_at_id.norm_square.differentiable_at le_rfl).comp x hf
+
+lemma differentiable_at.norm (hf : differentiable_at ℝ f x) (h0 : f x ≠ 0) :
+  differentiable_at ℝ (λ y, ∥f y∥) x :=
+((times_cont_diff_at_norm h0).differentiable_at le_rfl).comp x hf
+
+lemma differentiable_at.dist (hf : differentiable_at ℝ f x) (hg : differentiable_at ℝ g x)
+  (hne : f x ≠ g x) :
+  differentiable_at ℝ (λ y, dist (f y) (g y)) x :=
+by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
 lemma differentiable.norm_square (hf : differentiable ℝ f) : differentiable ℝ (λ y, ∥f y∥ ^ 2) :=
 λ x, (hf x).norm_square
 
+lemma differentiable.norm (hf : differentiable ℝ f) (h0 : ∀ x, f x ≠ 0) :
+  differentiable ℝ (λ y, ∥f y∥) :=
+λ x, (hf x).norm (h0 x)
+
+lemma differentiable.dist (hf : differentiable ℝ f) (hg : differentiable ℝ g)
+  (hne : ∀ x, f x ≠ g x) :
+  differentiable ℝ (λ y, dist (f y) (g y)) :=
+λ x, (hf x).dist (hg x) (hne x)
+
 lemma differentiable_within_at.norm_square (hf : differentiable_within_at ℝ f s x) :
   differentiable_within_at ℝ (λ y, ∥f y∥ ^ 2) s x :=
-(times_cont_diff_norm_square.differentiable le_rfl).differentiable_at.comp_differentiable_within_at
-  x hf
+(times_cont_diff_at_id.norm_square.differentiable_at le_rfl).comp_differentiable_within_at x hf
+
+lemma differentiable_within_at.norm (hf : differentiable_within_at ℝ f s x) (h0 : f x ≠ 0) :
+  differentiable_within_at ℝ (λ y, ∥f y∥) s x :=
+((times_cont_diff_at_id.norm h0).differentiable_at le_rfl).comp_differentiable_within_at x hf
+
+lemma differentiable_within_at.dist (hf : differentiable_within_at ℝ f s x)
+  (hg : differentiable_within_at ℝ g s x) (hne : f x ≠ g x) :
+  differentiable_within_at ℝ (λ y, dist (f y) (g y)) s x :=
+by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
 lemma differentiable_on.norm_square (hf : differentiable_on ℝ f s) :
   differentiable_on ℝ (λ y, ∥f y∥ ^ 2) s :=
 λ x hx, (hf x hx).norm_square
+
+lemma differentiable_on.norm (hf : differentiable_on ℝ f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
+  differentiable_on ℝ (λ y, ∥f y∥) s :=
+λ x hx, (hf x hx).norm (h0 x hx)
+
+lemma differentiable_on.dist (hf : differentiable_on ℝ f s) (hg : differentiable_on ℝ g s)
+  (hne : ∀ x ∈ s, f x ≠ g x) :
+  differentiable_on ℝ (λ y, dist (f y) (g y)) s :=
+λ x hx, (hf x hx).dist (hg x hx) (hne x hx)
 
 end deriv
 
@@ -1673,6 +1741,19 @@ lemma measurable.inner [measurable_space α] [measurable_space E] [opens_measura
   {f g : α → E} (hf : measurable f) (hg : measurable g) :
   measurable (λ t, ⟪f t, g t⟫) :=
 continuous.measurable2 continuous_inner hf hg
+
+lemma ae_measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
+  [topological_space.second_countable_topology E] [measurable_space 𝕜] [borel_space 𝕜]
+  {μ : measure_theory.measure α} {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  ae_measurable (λ x, ⟪f x, g x⟫) μ :=
+begin
+  refine ⟨λ x, ⟪hf.mk f x, hg.mk g x⟫, hf.measurable_mk.inner hg.measurable_mk, _⟩,
+  refine hf.ae_eq_mk.mp (hg.ae_eq_mk.mono (λ x hxg hxf, _)),
+  dsimp only,
+  congr,
+  { exact hxf, },
+  { exact hxg, },
+end
 
 variables [topological_space α] {f g : α → E} {x : α} {s : set α}
 
@@ -1725,6 +1806,37 @@ begin
   { rw [← h.equiv_fun.symm_apply_apply x, h.equiv_fun_symm_apply] },
   { rw [← h.equiv_fun.symm_apply_apply y, h.equiv_fun_symm_apply] }
 end
+
+/-- `ℂ` is isometric to ℝ² with the Euclidean inner product. -/
+def complex.isometry_euclidean : ℂ ≃ₗᵢ[ℝ] (euclidean_space ℝ (fin 2)) :=
+complex.is_basis_one_I.isometry_euclidean_of_orthonormal
+begin
+  rw orthonormal_iff_ite,
+  intros i, fin_cases i;
+  intros j; fin_cases j;
+  simp [real_inner_eq_re_inner]
+end
+
+@[simp] lemma complex.isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
+  complex.isometry_euclidean.symm x = (x 0) + (x 1) * I :=
+begin
+  convert complex.is_basis_one_I.equiv_fun_symm_apply x,
+  { simpa },
+  { simp },
+end
+
+lemma complex.isometry_euclidean_proj_eq_self (z : ℂ) :
+  ↑(complex.isometry_euclidean z 0) + ↑(complex.isometry_euclidean z 1) * (I : ℂ) = z :=
+by rw [← complex.isometry_euclidean_symm_apply (complex.isometry_euclidean z),
+  complex.isometry_euclidean.symm_apply_apply z]
+
+@[simp] lemma complex.isometry_euclidean_apply_zero (z : ℂ) :
+  complex.isometry_euclidean z 0 = z.re :=
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+
+@[simp] lemma complex.isometry_euclidean_apply_one (z : ℂ) :
+  complex.isometry_euclidean z 1 = z.im :=
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
 
 end pi_Lp
 
@@ -2486,8 +2598,8 @@ complement sum to the identity. -/
 lemma id_eq_sum_orthogonal_projection_self_orthogonal_complement
   [complete_space E] [complete_space K] :
   continuous_linear_map.id 𝕜 E
-  = K.subtype_continuous.comp (orthogonal_projection K)
-  + Kᗮ.subtype_continuous.comp (orthogonal_projection Kᗮ) :=
+  = K.subtypeL.comp (orthogonal_projection K)
+  + Kᗮ.subtypeL.comp (orthogonal_projection Kᗮ) :=
 by { ext w, exact eq_sum_orthogonal_projection_self_orthogonal_complement K w }
 
 open finite_dimensional
@@ -2533,16 +2645,15 @@ lemma submodule.findim_add_findim_orthogonal' [finite_dimensional 𝕜 E] {K : s
   findim 𝕜 Kᗮ = n :=
 by { rw ← add_right_inj (findim 𝕜 K), simp [submodule.findim_add_findim_orthogonal, h_dim] }
 
+local attribute [instance] finite_dimensional_of_findim_eq_succ
+
 /-- In a finite-dimensional inner product space, the dimension of the orthogonal complement of the
 span of a nonzero vector is one less than the dimension of the space. -/
-lemma findim_orthogonal_span_singleton [finite_dimensional 𝕜 E] {v : E} (hv : v ≠ 0) :
-  findim 𝕜 (𝕜 ∙ v)ᗮ = findim 𝕜 E - 1 :=
-begin
-  haveI : nontrivial E := ⟨⟨v, 0, hv⟩⟩,
-  apply submodule.findim_add_findim_orthogonal',
-  simp only [findim_span_singleton hv, findim_euclidean_space, fintype.card_fin],
-  exact nat.add_sub_cancel' (nat.succ_le_iff.mpr findim_pos)
-end
+lemma findim_orthogonal_span_singleton {n : ℕ} [_i : fact (findim 𝕜 E = n + 1)]
+  {v : E} (hv : v ≠ 0) :
+  findim 𝕜 (𝕜 ∙ v)ᗮ = n :=
+submodule.findim_add_findim_orthogonal' $ by simp [findim_span_singleton hv, _i.elim, add_comm]
+
 end orthogonal
 
 section orthonormal_basis
@@ -2602,7 +2713,7 @@ begin
       { intros hab'',
         apply hab',
         simpa using hab'' },
-      convert hv.2 this } },
+      exact hv.2 this } },
     { -- ** direction 2: empty orthogonal complement implies maximal
       simp only [subset.antisymm_iff],
       rintros h u (huv : v ⊆ u) hu,
@@ -2696,5 +2807,15 @@ def linear_isometry_equiv.of_inner_product_space
   E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
 let hv := classical.some_spec (exists_is_orthonormal_basis' hn) in
 hv.2.isometry_euclidean_of_orthonormal hv.1
+
+local attribute [instance] finite_dimensional_of_findim_eq_succ
+
+/-- Given a natural number `n` one less than the `findim` of a finite-dimensional inner product
+space, there exists an isometry from the orthogonal complement of a nonzero singleton to
+`euclidean_space 𝕜 (fin n)`. -/
+def linear_isometry_equiv.from_orthogonal_span_singleton
+  (n : ℕ) [fact (findim 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
+  (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
+linear_isometry_equiv.of_inner_product_space (findim_orthogonal_span_singleton hv)
 
 end orthonormal_basis

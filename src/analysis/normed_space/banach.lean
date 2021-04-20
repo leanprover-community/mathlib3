@@ -14,7 +14,7 @@ bounded linear map between Banach spaces has a bounded inverse.
 -/
 
 open function metric set filter finset
-open_locale classical topological_space big_operators
+open_locale classical topological_space big_operators nnreal
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -22,6 +22,44 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 (f : E →L[𝕜] F)
 include 𝕜
 
+namespace continuous_linear_map
+
+/-- A (possibly nonlinear) right inverse to a continuous linear map, which doesn't have to be
+linear itself but which satisfies a bound `∥inverse x∥ ≤ C * ∥x∥`. A surjective continuous linear
+map doesn't always have a continuous linear right inverse, but it always has a nonlinear inverse
+in this sense, by Banach's open mapping theorem. -/
+structure nonlinear_right_inverse :=
+(to_fun : F → E)
+(nnnorm : ℝ≥0)
+(bound' : ∀ y, ∥to_fun y∥ ≤ nnnorm * ∥y∥)
+(right_inv' : ∀ y, f (to_fun y) = y)
+
+instance : has_coe_to_fun (nonlinear_right_inverse f) := ⟨_, λ fsymm, fsymm.to_fun⟩
+
+@[simp] lemma nonlinear_right_inverse.right_inv {f : E →L[𝕜] F} (fsymm : nonlinear_right_inverse f)
+  (y : F) : f (fsymm y) = y :=
+fsymm.right_inv' y
+
+lemma nonlinear_right_inverse.bound {f : E →L[𝕜] F} (fsymm : nonlinear_right_inverse f) (y : F) :
+  ∥fsymm y∥ ≤ fsymm.nnnorm * ∥y∥ :=
+fsymm.bound' y
+
+end continuous_linear_map
+
+/-- Given a continuous linear equivalence, the inverse is in particular an instance of
+`nonlinear_right_inverse` (which turns out to be linear). -/
+noncomputable def continuous_linear_equiv.to_nonlinear_right_inverse (f : E ≃L[𝕜] F) :
+  continuous_linear_map.nonlinear_right_inverse (f : E →L[𝕜] F) :=
+{ to_fun := f.inv_fun,
+  nnnorm := nnnorm (f.symm : F →L[𝕜] E),
+  bound' := λ y, continuous_linear_map.le_op_norm (f.symm : F →L[𝕜] E) _,
+  right_inv' := f.apply_symm_apply }
+
+noncomputable instance (f : E ≃L[𝕜] F) :
+  inhabited (continuous_linear_map.nonlinear_right_inverse (f : E →L[𝕜] F)) :=
+⟨f.to_nonlinear_right_inverse⟩
+
+/-! ### Proof of the Banach open mapping theorem -/
 
 variable [complete_space F]
 
@@ -155,15 +193,14 @@ begin
     ... = 2 * C * ∥y∥ : by rw [tsum_geometric_two, mul_assoc]
     ... ≤ 2 * C * ∥y∥ + ∥y∥ : le_add_of_nonneg_right (norm_nonneg y)
     ... = (2 * C + 1) * ∥y∥ : by ring,
-  have fsumeq : ∀n:ℕ, f (∑ i in finset.range n, u i) = y - (h^[n]) y,
+  have fsumeq : ∀n:ℕ, f (∑ i in range n, u i) = y - (h^[n]) y,
   { assume n,
     induction n with n IH,
     { simp [f.map_zero] },
-    { rw [sum_range_succ, f.map_add, IH, iterate_succ'],
-      simp [u, h, sub_eq_add_neg, add_comm, add_left_comm] } },
+    { rw [sum_range_succ, f.map_add, IH, iterate_succ', sub_add] } },
   have : tendsto (λn, ∑ i in range n, u i) at_top (𝓝 x) :=
     su.has_sum.tendsto_sum_nat,
-  have L₁ : tendsto (λn, f(∑ i in range n, u i)) at_top (𝓝 (f x)) :=
+  have L₁ : tendsto (λn, f (∑ i in range n, u i)) at_top (𝓝 (f x)) :=
     (f.continuous.tendsto _).comp this,
   simp only [fsumeq] at L₁,
   have L₂ : tendsto (λn, y - (h^[n]) y) at_top (𝓝 (y - 0)),
@@ -201,6 +238,38 @@ begin
     ... = ε : mul_div_cancel' _ (ne_of_gt Cpos),
   exact set.mem_image_of_mem _ (hε this)
 end
+
+/-! ### Applications of the Banach open mapping theorem -/
+
+namespace continuous_linear_map
+
+lemma exists_nonlinear_right_inverse_of_surjective (f : E →L[𝕜] F) (hsurj : f.range = ⊤) :
+  ∃ (fsymm : nonlinear_right_inverse f), 0 < fsymm.nnnorm :=
+begin
+  choose C hC fsymm h using exists_preimage_norm_le _ (linear_map.range_eq_top.mp hsurj),
+  use { to_fun := fsymm,
+        nnnorm := ⟨C, hC.lt.le⟩,
+        bound' := λ y, (h y).2,
+        right_inv' := λ y, (h y).1 },
+  exact hC
+end
+
+/-- A surjective continuous linear map between Banach spaces admits a (possibly nonlinear)
+controlled right inverse. In general, it is not possible to ensure that such a right inverse
+is linear (take for instance the map from `E` to `E/F` where `F` is a closed subspace of `E`
+without a closed complement. Then it doesn't have a continuous linear right inverse.) -/
+@[irreducible] noncomputable def nonlinear_right_inverse_of_surjective
+  (f : E →L[𝕜] F) (hsurj : f.range = ⊤) : nonlinear_right_inverse f :=
+classical.some (exists_nonlinear_right_inverse_of_surjective f hsurj)
+
+lemma nonlinear_right_inverse_of_surjective_nnnorm_pos (f : E →L[𝕜] F) (hsurj : f.range = ⊤) :
+  0 < (nonlinear_right_inverse_of_surjective f hsurj).nnnorm :=
+begin
+  rw nonlinear_right_inverse_of_surjective,
+  exact classical.some_spec (exists_nonlinear_right_inverse_of_surjective f hsurj)
+end
+
+end continuous_linear_map
 
 namespace linear_equiv
 
@@ -256,3 +325,29 @@ noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj 
 (of_bijective f hinj hsurj).apply_symm_apply y
 
 end continuous_linear_equiv
+
+namespace continuous_linear_map
+
+/- TODO: remove the assumption `f.ker = ⊥` in the next lemma, by using the map induced by `f` on
+`E / f.ker`, once we have quotient normed spaces. -/
+lemma closed_complemented_range_of_is_compl_of_ker_eq_bot (f : E →L[𝕜] F) (G : submodule 𝕜 F)
+  (h : is_compl f.range G) (hG : is_closed (G : set F)) (hker : f.ker = ⊥) :
+  is_closed (f.range : set F) :=
+begin
+  let g : (E × G) →L[𝕜] F := f.coprod G.subtypeL,
+  have : (f.range : set F) = g '' ((⊤ : submodule 𝕜 E).prod (⊥ : submodule 𝕜 G)),
+    by { ext x, simp [continuous_linear_map.mem_range] },
+  rw this,
+  haveI : complete_space G := complete_space_coe_iff_is_complete.2 hG.is_complete,
+  have grange : g.range = ⊤,
+    by simp only [range_coprod, h.sup_eq_top, submodule.range_subtypeL],
+  have gker : g.ker = ⊥,
+  { rw [ker_coprod_of_disjoint_range, hker],
+    { simp only [submodule.ker_subtypeL, submodule.prod_bot] },
+    { convert h.disjoint,
+      exact submodule.range_subtypeL _ } },
+  apply (continuous_linear_equiv.of_bijective g gker grange).to_homeomorph.is_closed_image.2,
+  exact is_closed_univ.prod is_closed_singleton,
+end
+
+end continuous_linear_map

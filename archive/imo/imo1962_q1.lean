@@ -43,7 +43,7 @@ begin
   { rw [problem_predicate, digits_def' (dec_trivial : 2 ≤ 10) n.succ_pos,
         list.head, list.tail_cons, list.concat_eq_append] at h1,
     split,
-    { rw [← h1.left, add_comm, mod_add_div (n+1) 10], },
+    { rw [← h1.left, div_add_mod (n+1) 10], },
     { rw [← h1.right, of_digits_append, of_digits_digits,
           of_digits_singleton, add_comm, mul_comm], }, },
 end

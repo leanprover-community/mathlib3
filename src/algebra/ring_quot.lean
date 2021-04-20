@@ -43,8 +43,17 @@ inductive rel (r : R → R → Prop) : R → R → Prop
 theorem rel.add_right {r : R → R → Prop} ⦃a b c : R⦄ (h : rel r b c) : rel r (a + b) (a + c) :=
 by { rw [add_comm a b, add_comm a c], exact rel.add_left h }
 
-theorem rel.neg {R : Type u₁} [ring R] {r : R → R → Prop} ⦃a b : R⦄ (h : rel r a b) : rel r (-a) (-b) :=
+theorem rel.neg {R : Type u₁} [ring R] {r : R → R → Prop} ⦃a b : R⦄ (h : rel r a b) :
+  rel r (-a) (-b) :=
 by simp only [neg_eq_neg_one_mul a, neg_eq_neg_one_mul b, rel.mul_right h]
+
+theorem rel.sub_left {R : Type u₁} [ring R] {r : R → R → Prop} ⦃a b c : R⦄ (h : rel r a b) :
+  rel r (a - c) (b - c) :=
+by simp only [sub_eq_add_neg, h.add_left]
+
+theorem rel.sub_right {R : Type u₁} [ring R] {r : R → R → Prop} ⦃a b c : R⦄ (h : rel r b c) :
+  rel r (a - b) (a - c) :=
+by simp only [sub_eq_add_neg, h.neg.add_right]
 
 theorem rel.smul {r : A → A → Prop} (k : S) ⦃a b : A⦄ (h : rel r a b) : rel r (k • a) (k • b) :=
 by simp only [algebra.smul_def, rel.mul_right h]
@@ -71,12 +80,17 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
   one_mul       := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (one_mul _), },
   mul_one       := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (mul_one _), },
   left_distrib  := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (left_distrib _ _ _), },
-  right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (right_distrib _ _ _), }, }
+  right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (right_distrib _ _ _), },
+  nsmul         := λ n, quot.map ((•) n) (rel.smul n),
+  nsmul_zero'   := by { rintro ⟨⟩, exact congr_arg (quot.mk _) (zero_nsmul _) },
+  nsmul_succ'   := by { rintros n ⟨⟩, refine congr_arg (quot.mk _) _,
+                        simp only [nat.succ_eq_one_add, add_smul, one_smul] } }
 
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : ring (ring_quot r) :=
-{ neg           := quot.map (λ a, -a)
-    rel.neg,
-  add_left_neg  := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (add_left_neg _), },
+{ neg            := quot.map (λ a, -a) rel.neg,
+  add_left_neg   := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (add_left_neg _), },
+  sub            := quot.map₂ (has_sub.sub) rel.sub_right rel.sub_left,
+  sub_eq_add_neg := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (sub_eq_add_neg _ _), },
   .. (ring_quot.semiring r) }
 
 instance {R : Type u₁} [comm_semiring R] (r : R → R → Prop) : comm_semiring (ring_quot r) :=
@@ -122,7 +136,7 @@ lemma ring_quot_ext {T : Type u₄} [semiring T] {r : R → R → Prop} (f g : r
 begin
   ext,
   rcases mk_ring_hom_surjective r x with ⟨x, rfl⟩,
-  exact (congr_arg (λ h : R →+* T, h x) w), -- TODO should we have `ring_hom.congr` for this?
+  exact (ring_hom.congr_fun w x : _),
 end
 
 variables  {T : Type u₄} [semiring T]
@@ -178,7 +192,7 @@ def ring_quot_to_ideal_quotient (r : B → B → Prop) :
   ring_quot r →+* (ideal.of_rel r).quotient :=
 lift
   ⟨ideal.quotient.mk (ideal.of_rel r),
-   λ x y h, quot.sound (submodule.mem_Inf.mpr (λ p w, w ⟨x, y, h, rfl⟩))⟩
+   λ x y h, quot.sound (submodule.mem_Inf.mpr (λ p w, w ⟨x, y, h, sub_add_cancel x y⟩))⟩
 
 @[simp] lemma ring_quot_to_ideal_quotient_apply (r : B → B → Prop) (x : B) :
   ring_quot_to_ideal_quotient r (mk_ring_hom r x) = ideal.quotient.mk _ x := rfl
@@ -188,10 +202,11 @@ def ideal_quotient_to_ring_quot (r : B → B → Prop) :
   (ideal.of_rel r).quotient →+* ring_quot r :=
 ideal.quotient.lift (ideal.of_rel r) (mk_ring_hom r)
 begin
-  intros x h,
-  apply submodule.span_induction h,
-  { rintros - ⟨a,b,h,rfl⟩,
-    rw [ring_hom.map_sub, mk_ring_hom_rel h, sub_self], },
+  refine λ x h, submodule.span_induction h _ _ _ _,
+  { rintro y ⟨a, b, h, su⟩,
+    symmetry' at su,
+    rw ←sub_eq_iff_eq_add at su,
+    rw [ ← su, ring_hom.map_sub, mk_ring_hom_rel h, sub_self], },
   { simp, },
   { intros a b ha hb, simp [ha, hb], },
   { intros a x hx, simp [hx], },
@@ -255,7 +270,7 @@ lemma ring_quot_ext' {s : A → A → Prop}
 begin
   ext,
   rcases mk_alg_hom_surjective S s x with ⟨x, rfl⟩,
-  exact (congr_arg (λ h : A →ₐ[S] B, h x) w), -- TODO should we have `alg_hom.congr` for this?
+  exact (alg_hom.congr_fun w x : _),
 end
 
 /--
@@ -283,14 +298,15 @@ def lift_alg_hom {s : A → A → Prop} :
       rintros x,
       conv_rhs { rw [algebra.algebra_map_eq_smul_one, ←f.map_one, ←f.map_smul], },
       rw algebra.algebra_map_eq_smul_one,
-      exact quot.lift_beta f f'.prop (x • 1),
+      exact quot.lift_mk f f'.prop (x • 1),
     end, },
   inv_fun := λ F, ⟨F.comp (mk_alg_hom S s), λ _ _ h, by { dsimp, erw mk_alg_hom_rel S h }⟩,
   left_inv := λ f, by { ext, simp, refl },
   right_inv := λ F, by { ext, simp, refl } }
 
 @[simp]
-lemma lift_alg_hom_mk_alg_hom_apply (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ ⦃x y⦄, s x y → f x = f y) (x) :
+lemma lift_alg_hom_mk_alg_hom_apply (f : A →ₐ[S] B) {s : A → A → Prop}
+  (w : ∀ ⦃x y⦄, s x y → f x = f y) (x) :
   (lift_alg_hom S ⟨f, w⟩) ((mk_alg_hom S s) x) = f x :=
 rfl
 

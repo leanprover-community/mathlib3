@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 
+import data.int.basic
 import data.int.gcd
 import ring_theory.multiplicity
 import ring_theory.principal_ideal_domain
@@ -39,7 +40,7 @@ begin
   { refine ⟨_, λ m hm, _⟩,
     { cases p, { exfalso, apply h.ne_zero rfl },
       cases p, { exfalso, apply h.ne_one rfl },
-      omega },
+      exact (add_le_add_right (zero_le p) 2 : _ ) },
     { cases hm with n hn,
       cases h.2.2 m n (hn ▸ dvd_refl _) with hpm hpn,
       { right, apply nat.dvd_antisymm (dvd.intro _ hn.symm) hpm },
@@ -57,10 +58,10 @@ begin
   rw ← nat.prime_iff,
   refine ⟨_, λ m hm, _⟩,
   { cases p, { exfalso, apply h.ne_zero rfl },
-    cases p, { exfalso, apply h.1 is_unit_one, },
-    omega },
+    cases p, { exfalso, apply h.not_unit is_unit_one, },
+    exact (add_le_add_right (zero_le p) 2 : _ ) },
   { cases hm with n hn,
-    cases h.2 m n hn with um un,
+    cases h.is_unit_or_is_unit hn with um un,
     { left, rw nat.is_unit_iff.1 um, },
     { right, rw [hn, nat.is_unit_iff.1 un, mul_one], } }
 end
@@ -148,7 +149,7 @@ lemma exists_unit_of_abs (a : ℤ) : ∃ (u : ℤ) (h : is_unit u), (int.nat_abs
 begin
   cases (nat_abs_eq a) with h,
   { use [1, is_unit_one], rw [← h, one_mul], },
-  { use [-1, is_unit_int.mpr rfl], rw [ ← neg_eq_iff_neg_eq.mp (eq.symm h)],
+  { use [-1, is_unit_one.neg], rw [ ← neg_eq_iff_neg_eq.mp (eq.symm h)],
     simp only [neg_mul_eq_neg_mul_symm, one_mul] }
 end
 
@@ -189,6 +190,16 @@ end
 lemma sqr_of_coprime {a b c : ℤ} (h : is_coprime a b) (heq : a * b = c ^ 2) :
   ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) := sqr_of_gcd_eq_one (gcd_eq_one_iff_coprime.mpr h) heq
 
+lemma nat_abs_euclidean_domain_gcd (a b : ℤ) :
+  int.nat_abs (euclidean_domain.gcd a b) = int.gcd a b :=
+begin
+  apply nat.dvd_antisymm; rw ← int.coe_nat_dvd,
+  { rw int.nat_abs_dvd,
+    exact int.dvd_gcd (euclidean_domain.gcd_dvd_left _ _) (euclidean_domain.gcd_dvd_right _ _) },
+  { rw int.dvd_nat_abs,
+    exact euclidean_domain.dvd_gcd (int.gcd_dvd_left _ _) (int.gcd_dvd_right _ _) }
+end
+
 end int
 
 theorem irreducible_iff_nat_prime : ∀(a : ℕ), irreducible a ↔ nat.prime a
@@ -197,7 +208,7 @@ theorem irreducible_iff_nat_prime : ∀(a : ℕ), irreducible a ↔ nat.prime a
 | (n + 2) :=
   have h₁ : ¬n + 2 = 1, from dec_trivial,
   begin
-    simp [h₁, nat.prime, irreducible, (≥), nat.le_add_left 2 n, (∣)],
+    simp [h₁, nat.prime, irreducible_iff, (≥), nat.le_add_left 2 n, (∣)],
     refine forall_congr (assume a, forall_congr $ assume b, forall_congr $ assume hab, _),
     by_cases a = 1; simp [h],
     split,
@@ -222,7 +233,7 @@ lemma nat.prime_iff_prime {p : ℕ} : p.prime ↔ _root_.prime (p : ℕ) :=
             by rw [hpb, mul_comm, ← hab, hpb, mul_one]))⟩⟩
 
 lemma nat.prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
-⟨λ hp, ⟨int.coe_nat_ne_zero_iff_pos.2 hp.pos, mt is_unit_int.1 hp.ne_one,
+⟨λ hp, ⟨int.coe_nat_ne_zero_iff_pos.2 hp.pos, mt int.is_unit_iff_nat_abs_eq.1 hp.ne_one,
   λ a b h, by rw [← int.dvd_nat_abs, int.coe_nat_dvd, int.nat_abs_mul, hp.dvd_mul] at h;
     rwa [← int.dvd_nat_abs, int.coe_nat_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd]⟩,
   λ hp, nat.prime_iff_prime.2 ⟨int.coe_nat_ne_zero.1 hp.1,
@@ -297,7 +308,7 @@ begin
   { apply_instance },
   { intros x hx,
     rw [nat.irreducible_iff_prime, ← nat.prime_iff],
-    apply nat.mem_factors hx, }
+    exact nat.prime_of_mem_factors hx }
 end
 
 lemma nat.factors_multiset_prod_of_irreducible
@@ -331,3 +342,37 @@ instance decidable_int : decidable_rel (λ a b : ℤ, (multiplicity a b).dom) :=
 λ a b, decidable_of_iff _ finite_int_iff.symm
 
 end multiplicity
+
+lemma induction_on_primes {P : ℕ → Prop} (h₀ : P 0) (h₁ : P 1)
+  (h : ∀ p a : ℕ, p.prime → P a → P (p * a)) (n : ℕ) : P n :=
+begin
+  apply unique_factorization_monoid.induction_on_prime,
+  exact h₀,
+  { intros n h,
+    rw nat.is_unit_iff.1 h,
+    exact h₁, },
+  { intros a p _ hp ha,
+    exact h p a (nat.prime_iff_prime.2 hp) ha, },
+end
+
+lemma int.associated_nat_abs (k : ℤ) : associated k k.nat_abs :=
+associated_of_dvd_dvd (int.coe_nat_dvd_right.mpr (dvd_refl _)) (int.nat_abs_dvd.mpr (dvd_refl _))
+
+lemma int.prime_iff_nat_abs_prime {k : ℤ} : prime k ↔ nat.prime k.nat_abs :=
+begin
+  rw nat.prime_iff_prime_int,
+  rw prime_iff_of_associated (int.associated_nat_abs k),
+end
+
+theorem int.associated_iff_nat_abs {a b : ℤ} : associated a b ↔ a.nat_abs = b.nat_abs :=
+begin
+  rw [←dvd_dvd_iff_associated, ←int.nat_abs_dvd_abs_iff, ←int.nat_abs_dvd_abs_iff,
+    dvd_dvd_iff_associated],
+  exact associated_iff_eq,
+end
+
+lemma int.associated_iff {a b : ℤ} : associated a b ↔ (a = b ∨ a = -b) :=
+begin
+  rw int.associated_iff_nat_abs,
+  exact int.nat_abs_eq_nat_abs_iff,
+end

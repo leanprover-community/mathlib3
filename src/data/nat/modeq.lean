@@ -6,7 +6,8 @@ Authors: Mario Carneiro
 import data.int.gcd
 import tactic.abel
 import data.list.rotate
-/-
+
+/-!
 # Congruences modulo a natural number
 
 This file defines the equivalence relation `a ≡ b [MOD n]` on the natural numbers,
@@ -21,6 +22,7 @@ and proves basic properties about it such as the Chinese Remainder Theorem
 
 modeq, congruence, mod, MOD, modulo
 -/
+
 namespace nat
 
 /-- Modular equality. `modeq n a b`, or `a ≡ b [MOD n]`, means
@@ -128,8 +130,8 @@ if hm : m = 0 then ⟨b, begin rw [hm, gcd_zero_right] at h, split, exact h.symm
   split; rw [int.mod_def, ← sub_add]; refine dvd_add _ (dvd_mul_of_dvd_left _ _); try {norm_cast},
   { rw ← sub_eq_iff_eq_add' at this,
     rw [← this, sub_mul, ← add_sub_assoc, add_comm, add_sub_assoc, ← mul_sub,
-      int.add_div_of_dvd_left, int.mul_div_cancel_left _ hnonzero, int.mul_div_assoc _ h.dvd_of_modeq,
-      ← sub_sub, sub_self, zero_sub, dvd_neg, mul_assoc],
+      int.add_div_of_dvd_left, int.mul_div_cancel_left _ hnonzero,
+      int.mul_div_assoc _ h.dvd_of_modeq, ← sub_sub, sub_self, zero_sub, dvd_neg, mul_assoc],
     exact dvd_mul_right _ _,
     norm_cast, exact dvd_mul_right _ _, },
   { exact dvd_lcm_left n m, },
@@ -211,7 +213,8 @@ lemma add_div {a b c : ℕ} (hc0 : 0 < c) : (a + b) / c = a / c + b / c +
 begin
   rw [← nat.mul_right_inj hc0, ← @add_left_cancel_iff _ _ ((a + b) % c + a % c + b % c)],
   suffices : (a + b) % c + c * ((a + b) / c) + a % c + b % c =
-    a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) + (a + b) % c,
+    a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) +
+      (a + b) % c,
   { simpa only [mul_add, add_comm, add_left_comm, add_assoc] },
   rw [mod_add_div, mod_add_div, mod_add_div, mul_ite, add_assoc, add_assoc],
   conv_lhs { rw ← add_mod_add_ite },

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Yury Kudryashov.
+Authors: Mario Carneiro, Yury Kudryashov
 -/
 import tactic.transform_decl
 import tactic.algebra
@@ -87,25 +87,30 @@ meta def add_comm_prefix : bool → string → string
 
 /-- Dictionary used by `to_additive.guess_name` to autogenerate names. -/
 meta def tr : bool → list string → list string
-| is_comm ("one" :: "le" :: s) := add_comm_prefix is_comm "nonneg" :: tr ff s
-| is_comm ("one" :: "lt" :: s) := add_comm_prefix is_comm "pos"    :: tr ff s
-| is_comm ("le" :: "one" :: s) := add_comm_prefix is_comm "nonpos" :: tr ff s
-| is_comm ("lt" :: "one" :: s) := add_comm_prefix is_comm "neg"    :: tr ff s
-| is_comm ("mul" :: s)         := add_comm_prefix is_comm "add"    :: tr ff s
-| is_comm ("inv" :: s)         := add_comm_prefix is_comm "neg"    :: tr ff s
-| is_comm ("div" :: s)         := add_comm_prefix is_comm "sub"    :: tr ff s
-| is_comm ("one" :: s)         := add_comm_prefix is_comm "zero"   :: tr ff s
-| is_comm ("prod" :: s)        := add_comm_prefix is_comm "sum"    :: tr ff s
+| is_comm ("one" :: "le" :: s)        := add_comm_prefix is_comm "nonneg"    :: tr ff s
+| is_comm ("one" :: "lt" :: s)        := add_comm_prefix is_comm "pos"       :: tr ff s
+| is_comm ("le" :: "one" :: s)        := add_comm_prefix is_comm "nonpos"    :: tr ff s
+| is_comm ("lt" :: "one" :: s)        := add_comm_prefix is_comm "neg"       :: tr ff s
+| is_comm ("mul" :: "support" :: s)   := add_comm_prefix is_comm "support"   :: tr ff s
+| is_comm ("mul" :: "indicator" :: s) := add_comm_prefix is_comm "indicator" :: tr ff s
+| is_comm ("mul" :: s)                := add_comm_prefix is_comm "add"       :: tr ff s
+| is_comm ("smul" :: s)               := add_comm_prefix is_comm "vadd"      :: tr ff s
+| is_comm ("inv" :: s)                := add_comm_prefix is_comm "neg"       :: tr ff s
+| is_comm ("div" :: s)                := add_comm_prefix is_comm "sub"       :: tr ff s
+| is_comm ("one" :: s)                := add_comm_prefix is_comm "zero"      :: tr ff s
+| is_comm ("prod" :: s)               := add_comm_prefix is_comm "sum"       :: tr ff s
+| is_comm ("finprod" :: s)            := add_comm_prefix is_comm "finsum"    :: tr ff s
+| is_comm ("npow" :: s)               := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
 | is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
 | is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s
 | is_comm ("subgroup" :: s)    := ("add_" ++ add_comm_prefix is_comm "subgroup")  :: tr ff s
 | is_comm ("semigroup" :: s)   := ("add_" ++ add_comm_prefix is_comm "semigroup") :: tr ff s
-| is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma") :: tr ff s
+| is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma")     :: tr ff s
 | is_comm ("comm" :: s)        := tr tt s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
-| tt []                   := ["comm"]
-| ff []                   := []
+| tt []                        := ["comm"]
+| ff []                        := []
 
 /-- Autogenerate target name for `to_additive`. -/
 meta def guess_name : string → string :=
@@ -252,7 +257,10 @@ inductive types.
 
 For new structures this means that `to_additive` automatically handles
 coercions, and for old structures it does the same, if ancestry
-information is present in `@[ancestor]` attributes.
+information is present in `@[ancestor]` attributes. The `ancestor`
+attribute must come before the `to_additive` attribute, and it is
+essential that the order of the base structures passed to `ancestor` matches
+between the multiplicative and additive versions of the structure.
 
 ### Name generation
 
@@ -300,7 +308,10 @@ protected meta def attr : user_attribute unit value_type :=
     then proceed_fields env src tgt prio
     else do
       transform_decl_with_prefix_dict dict src tgt
-        [`reducible, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator, `no_rsimp],
+        [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
+         `no_rsimp],
+      mwhen (has_attribute' `simps src)
+        (trace "Apply the simps attribute after the to_additive attribute"),
       match val.doc with
       | some doc := add_doc_string tgt doc
       | none := skip

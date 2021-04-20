@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
-from tempfile import NamedTemporaryFile
+from shutil import copy
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+from textwrap import dedent
 import subprocess
 import unittest
 
@@ -130,7 +132,7 @@ class TestLinterIntegration(unittest.TestCase):
         self.assertNotIn(str(ROOT_DIR), current_contents)
         self.addCleanup(exceptions.write_text, current_contents)
 
-        result = subprocess.run(
+        subprocess.run(
             ["./scripts/update-style-exceptions.sh"],
             check=True,
             capture_output=True,
@@ -141,5 +143,41 @@ class TestLinterIntegration(unittest.TestCase):
             SCRIPTS_DIR.joinpath("style-exceptions.txt").read_text(),
         )
 
+    def test_running_the_shell_script_does_not_error(self):
+        """
+        Normally, users will run scripts/lint-style.sh, which will run the
+        linter on all files within mathlib.
+
+        Running it exits with successful return code.
+
+        This test will execute in a separate directory tree to make sure
+        it doesn't fail if there are current style warnings.
+        """
+
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            for each in "scripts", "src", "archive":
+                root.joinpath(each).mkdir()
+
+            copy(SCRIPTS_DIR / "lint-style.sh", root / "scripts")
+            copy(SCRIPTS_DIR / "lint-style.py", root / "scripts")
+
+            # Give us at least one file to check
+            root.joinpath("src", "unittesting123.lean").write_text(
+                dedent(
+                    """\
+                    /-
+                    Copyright (c) 2021 Someone. All rights reserved.
+                    Released under Apache 2.0 license as described in the file LICENSE.
+                    Authors: Someone
+                    -/
+                    example : 37 = 37 := rfl
+                    """,
+                )
+            )
+
+            subprocess.run(["./scripts/lint-style.sh"], check=True, cwd=root)
+
+
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)

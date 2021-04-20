@@ -7,7 +7,6 @@ import analysis.normed_space.operator_norm
 import analysis.normed_space.add_torsor
 import topology.bases
 import linear_algebra.finite_dimensional
-import tactic.omega
 
 /-!
 # Finite dimensional normed spaces over complete fields
@@ -41,15 +40,15 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 
 universes u v w x
 
-open set finite_dimensional topological_space
-open_locale classical big_operators
+open set finite_dimensional topological_space filter
+open_locale classical big_operators filter topological_space
 
 noncomputable theory
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
   {E : Type v}  [add_comm_group E] [vector_space 𝕜 E] [topological_space E]
-  [topological_add_group E] [topological_vector_space 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
+  [topological_add_group E] [has_continuous_smul 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
 begin
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
   -- function.
@@ -67,9 +66,8 @@ variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 {E : Type v} [normed_group E] [normed_space 𝕜 E]
 {F : Type w} [normed_group F] [normed_space 𝕜 F]
 {F' : Type x} [add_comm_group F'] [vector_space 𝕜 F'] [topological_space F']
-[topological_add_group F'] [topological_vector_space 𝕜 F']
+[topological_add_group F'] [has_continuous_smul 𝕜 F']
 [complete_space 𝕜]
-
 
 /-- In finite dimension over a complete field, the canonical identification (in terms of a basis)
 with `𝕜^n` together with its sup norm is continuous. This is the nontrivial part in the fact that
@@ -108,15 +106,14 @@ begin
       have : findim 𝕜 f.ker = n ∨ findim 𝕜 f.ker = n.succ,
       { have Z := f.findim_range_add_findim_ker,
         rw [findim_eq_card_basis hξ, hn] at Z,
-        have : findim 𝕜 f.range = 0 ∨ findim 𝕜 f.range = 1,
-        { have I : ∀(k : ℕ), k ≤ 1 ↔ k = 0 ∨ k = 1, by omega manual,
-          have : findim 𝕜 f.range ≤ findim 𝕜 𝕜 := submodule.findim_le _,
-          rwa [findim_of_field, I] at this },
-        cases this,
-        { rw this at Z,
-          right,
+        by_cases H : findim 𝕜 f.range = 0,
+        { right,
+          rw H at Z,
           simpa using Z },
         { left,
+          have : findim 𝕜 f.range = 1,
+          { refine le_antisymm _ (zero_lt_iff.mpr H),
+            simpa [findim_of_field] using f.range.findim_le },
           rw [this, add_comm, nat.add_one] at Z,
           exact nat.succ.inj Z } },
       have : is_closed (f.ker : set E),
@@ -140,7 +137,7 @@ begin
     have C0_le : ∀i, C0 i ≤ C :=
       λi, finset.single_le_sum (λj hj, (hC0 j).1) (finset.mem_univ _),
     apply linear_map.continuous_of_bound _ C (λx, _),
-    rw pi_norm_le_iff,
+    rw pi_semi_norm_le_iff,
     { exact λi, le_trans ((hC0 i).2 x) (mul_le_mul_of_nonneg_right (C0_le i) (norm_nonneg _)) },
     { exact mul_nonneg C_nonneg (norm_nonneg _) } }
 end
@@ -170,11 +167,32 @@ theorem affine_map.continuous_of_finite_dimensional {PE PF : Type*}
   [finite_dimensional 𝕜 E] (f : PE →ᵃ[𝕜] PF) : continuous f :=
 affine_map.continuous_linear_iff.1 f.linear.continuous_of_finite_dimensional
 
-/-- The continuous linear map induced by a linear map on a finite dimensional space -/
-def linear_map.to_continuous_linear_map [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F') : E →L[𝕜] F' :=
-{ cont := f.continuous_of_finite_dimensional, ..f }
+namespace linear_map
 
-/-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional space. -/
+variables [finite_dimensional 𝕜 E]
+
+/-- The continuous linear map induced by a linear map on a finite dimensional space -/
+def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' :=
+{ to_fun := λ f, ⟨f, f.continuous_of_finite_dimensional⟩,
+  inv_fun := coe,
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  left_inv := λ f, rfl,
+  right_inv := λ f, continuous_linear_map.coe_injective rfl }
+
+@[simp] lemma coe_to_continuous_linear_map' (f : E →ₗ[𝕜] F') :
+  ⇑f.to_continuous_linear_map = f := rfl
+
+@[simp] lemma coe_to_continuous_linear_map (f : E →ₗ[𝕜] F') :
+  (f.to_continuous_linear_map : E →ₗ[𝕜] F') = f := rfl
+
+@[simp] lemma coe_to_continuous_linear_map_symm :
+  ⇑(to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F').symm = coe := rfl
+
+end linear_map
+
+/-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional
+space. -/
 def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
 { continuous_to_fun := e.to_linear_map.continuous_of_finite_dimensional,
   continuous_inv_fun := begin
@@ -182,6 +200,49 @@ def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E �
     exact e.symm.to_linear_map.continuous_of_finite_dimensional
   end,
   ..e }
+
+lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F)
+  (hf : f.ker = ⊥) : ∃ K > 0, antilipschitz_with K f :=
+begin
+  cases subsingleton_or_nontrivial E; resetI,
+  { exact ⟨1, zero_lt_one, antilipschitz_with.of_subsingleton⟩ },
+  { let e : E ≃L[𝕜] f.range := (linear_equiv.of_injective f hf).to_continuous_linear_equiv,
+    exact ⟨_, e.nnnorm_symm_pos, e.antilipschitz⟩ }
+end
+
+protected lemma linear_independent.eventually {ι} [fintype ι] {f : ι → E}
+  (hf : linear_independent 𝕜 f) : ∀ᶠ g in 𝓝 f, linear_independent 𝕜 g :=
+begin
+  simp only [fintype.linear_independent_iff'] at hf ⊢,
+  rcases linear_map.exists_antilipschitz_with _ hf with ⟨K, K0, hK⟩,
+  have : tendsto (λ g : ι → E, ∑ i, ∥g i - f i∥) (𝓝 f) (𝓝 $ ∑ i, ∥f i - f i∥),
+    from tendsto_finset_sum _ (λ i hi, tendsto.norm $
+      ((continuous_apply i).tendsto _).sub tendsto_const_nhds),
+  simp only [sub_self, norm_zero, finset.sum_const_zero] at this,
+  refine (this.eventually (gt_mem_nhds $ inv_pos.2 K0)).mono (λ g hg, _),
+  replace hg : ∑ i, nnnorm (g i - f i) < K⁻¹, by { rw ← nnreal.coe_lt_coe, push_cast, exact hg },
+  rw linear_map.ker_eq_bot,
+  refine (hK.add_sub_lipschitz_with (lipschitz_with.of_dist_le_mul $ λ v u, _) hg).injective,
+  simp only [dist_eq_norm, linear_map.lsum_apply, pi.sub_apply, linear_map.sum_apply,
+    linear_map.comp_apply, linear_map.proj_apply, linear_map.smul_right_apply, linear_map.id_apply,
+    ← finset.sum_sub_distrib, ← smul_sub, ← sub_smul, nnreal.coe_sum, coe_nnnorm, finset.sum_mul],
+  refine norm_sum_le_of_le _ (λ i _, _),
+  rw [norm_smul, mul_comm],
+  exact mul_le_mul_of_nonneg_left (norm_le_pi_norm (v - u) i) (norm_nonneg _)
+end
+
+lemma is_open_set_of_linear_independent {ι : Type*} [fintype ι] :
+  is_open {f : ι → E | linear_independent 𝕜 f} :=
+is_open_iff_mem_nhds.2 $ λ f, linear_independent.eventually
+
+lemma is_open_set_of_nat_le_rank (n : ℕ) : is_open {f : E →L[𝕜] F | ↑n ≤ rank (f : E →ₗ[𝕜] F)} :=
+begin
+  simp only [le_rank_iff_exists_linear_independent_finset, set_of_exists, ← exists_prop],
+  refine is_open_bUnion (λ t ht, _),
+  have : continuous (λ f : E →L[𝕜] F, (λ x : (t : set E), f x)),
+    from continuous_pi (λ x, (continuous_linear_map.apply 𝕜 F (x : E)).continuous),
+  exact is_open_set_of_linear_independent.preimage this
+end
 
 /-- Two finite-dimensional normed spaces are continuously linearly equivalent if they have the same
 (finite) dimension. -/
@@ -287,7 +348,8 @@ begin
   obtain ⟨u : ℕ → F, hu : dense_range u⟩ := exists_dense_seq F,
   obtain ⟨v : fin d → E, hv : is_basis 𝕜 v⟩ := finite_dimensional.fin_basis 𝕜 E,
   obtain ⟨C : ℝ, C_pos : 0 < C,
-          hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ := hv.op_norm_le,
+          hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ :=
+    hv.op_norm_le,
   have h_2C : 0 < 2*C := mul_pos zero_lt_two C_pos,
   have hε2C : 0 < ε/(2*C) := div_pos ε_pos h_2C,
   have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (hv.constrL $ u ∘ n)∥ ≤ ε/2,
@@ -326,12 +388,8 @@ explicitly when needed. -/
 variables (𝕜 E)
 lemma finite_dimensional.complete [finite_dimensional 𝕜 E] : complete_space E :=
 begin
-  rcases exists_is_basis_finite 𝕜 E with ⟨b, b_basis, b_finite⟩,
-  letI : fintype b := finite.fintype b_finite,
-  have : uniform_embedding b_basis.equiv_fun.symm :=
-    linear_equiv.uniform_embedding _ (linear_map.continuous_of_finite_dimensional _)
-    (linear_map.continuous_of_finite_dimensional _),
-  change uniform_embedding b_basis.equiv_fun.symm.to_equiv at this,
+  set e := continuous_linear_equiv.of_findim_eq (@findim_fin_fun 𝕜 _ (findim 𝕜 E)).symm,
+  have : uniform_embedding e.to_linear_equiv.to_equiv.symm := e.symm.uniform_embedding,
   exact (complete_space_congr this).1 (by apply_instance)
 end
 
@@ -384,19 +442,8 @@ properness of `𝕜`, and the search for `𝕜` as an unknown metavariable. Decl
 explicitly when needed. -/
 lemma finite_dimensional.proper [finite_dimensional 𝕜 E] : proper_space E :=
 begin
-  rcases exists_is_basis_finite 𝕜 E with ⟨b, b_basis, b_finite⟩,
-  letI : fintype b := finite.fintype b_finite,
-  let e := b_basis.equiv_fun,
-  let f : E →L[𝕜] (b → 𝕜) :=
-    { cont := linear_map.continuous_of_finite_dimensional _, ..e.to_linear_map },
-  refine metric.proper_image_of_proper e.symm
-    (linear_map.continuous_of_finite_dimensional _) _ (∥f∥)  (λx y, _),
-  { exact equiv.range_eq_univ e.symm.to_equiv },
-  { have A : e (e.symm x) = x := linear_equiv.apply_symm_apply _ _,
-    have B : e (e.symm y) = y := linear_equiv.apply_symm_apply _ _,
-    conv_lhs { rw [← A, ← B] },
-    change dist (f (e.symm x)) (f (e.symm y)) ≤ ∥f∥ * dist (e.symm x) (e.symm y),
-    unfreezingI { exact f.lipschitz.dist_le_mul _ _ } }
+  set e := continuous_linear_equiv.of_findim_eq (@findim_fin_fun 𝕜 _ (findim 𝕜 E)).symm,
+  exact e.symm.antilipschitz.proper_space e.symm.continuous e.symm.surjective
 end
 
 end proper_field

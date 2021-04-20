@@ -79,6 +79,11 @@ dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ} {a b : R} :
   (We also define `witt_vector.witt_sub`, and later we will prove that it describes subtraction,
   which is defined as `λ a b, a + -b`. See `witt_vector.sub_coeff` for this proof.)
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 open mv_polynomial
@@ -155,8 +160,8 @@ begin
   have := X_in_terms_of_W_aux p ℚ n,
   replace := congr_arg (bind₁ (λ k : ℕ, bind₁ (λ i, rename (prod.mk i) (W_ ℚ k)) Φ)) this,
   rw [alg_hom.map_mul, bind₁_C_right] at this,
-  convert this, clear this,
-  conv_rhs { simp only [alg_hom.map_sub, bind₁_X_right] },
+  rw [witt_structure_rat, this], clear this,
+  conv_lhs { simp only [alg_hom.map_sub, bind₁_X_right] },
   rw sub_right_inj,
   simp only [alg_hom.map_sum, alg_hom.map_mul, bind₁_C_right, alg_hom.map_pow],
   refl
@@ -172,7 +177,7 @@ begin
       = C (1 / p ^ n : ℚ) * (witt_structure_rat p Φ n * C (p ^ n : ℚ)) : _
   ... = _ : by rw witt_structure_rat_rec_aux,
   rw [mul_left_comm, ← C_mul, div_mul_cancel, C_1, mul_one],
-  exact pow_ne_zero _ (nat.cast_ne_zero.2 $ ne_of_gt (nat.prime.pos ‹_›)),
+  exact pow_ne_zero _ (nat.cast_ne_zero.2 hp.1.ne_zero),
 end
 
 /-- `witt_structure_int Φ` is a family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℚ`
@@ -278,7 +283,7 @@ begin
     ← map_rename, ← map_bind₁, ← ring_hom.map_sub, coeff_map],
   rw show (p : ℚ)^n = ((p^n : ℕ) : ℤ), by norm_cast,
   rw [← rat.denom_eq_one_iff, ring_hom.eq_int_cast, rat.denom_div_cast_eq_one_iff],
-  swap, { exact_mod_cast pow_ne_zero n hp.ne_zero },
+  swap, { exact_mod_cast pow_ne_zero n hp.1.ne_zero },
   revert c, rw [← C_dvd_iff_dvd_coeff],
   exact C_p_pow_dvd_bind₁_rename_witt_polynomial_sub_sum Φ n IH,
 end
@@ -321,7 +326,7 @@ theorem witt_structure_prop (Φ : mv_polynomial idx ℤ) (n) :
   aeval (λ i, map (int.cast_ring_hom R) (witt_structure_int p Φ i)) (witt_polynomial p ℤ n) =
   aeval (λ i, rename (prod.mk i) (W n)) Φ :=
 begin
-  convert congr_arg (map (int.cast_ring_hom R)) (witt_structure_int_prop p Φ n);
+  convert congr_arg (map (int.cast_ring_hom R)) (witt_structure_int_prop p Φ n) using 1;
     rw hom_bind₁; apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
   { refl },
   { simp only [map_rename, map_witt_polynomial] }

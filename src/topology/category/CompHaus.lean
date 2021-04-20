@@ -7,6 +7,7 @@ Authors: Adam Topaz, Bhavik Mehta
 import category_theory.adjunction.reflective
 import topology.category.Top
 import topology.stone_cech
+import category_theory.monad.limits
 
 /-!
 
@@ -25,6 +26,8 @@ See `topology/category/Compactum.lean` for a more detailed discussion where thes
 introduced.
 
 -/
+
+universe u
 
 open category_theory
 
@@ -48,21 +51,30 @@ instance category : category CompHaus := induced_category.category to_Top
 lemma coe_to_Top {X : CompHaus} : (X.to_Top : Type*) = X :=
 rfl
 
+variables (X : Type*) [topological_space X] [compact_space X] [t2_space X]
+
+/-- A constructor for objects of the category `CompHaus`,
+taking a type, and bundling the compact Hausdorff topology
+found by typeclass inference. -/
+def of : CompHaus :=
+{ to_Top := Top.of X,
+  is_compact := ‹_›,
+  is_hausdorff := ‹_› }
+
+@[simp] lemma coe_of : (CompHaus.of X : Type _) = X := rfl
+
 end CompHaus
 
 /-- The fully faithful embedding of `CompHaus` in `Top`. -/
 @[simps {rhs_md := semireducible}, derive [full, faithful]]
-def CompHaus_to_Top : CompHaus ⥤ Top := induced_functor _
+def CompHaus_to_Top : CompHaus.{u} ⥤ Top.{u} := induced_functor _
 
 /--
 (Implementation) The object part of the compactification functor from topological spaces to
 compact Hausdorff spaces.
 -/
 @[simps]
-def StoneCech_obj (X : Top) : CompHaus :=
-{ to_Top := { α := stone_cech X },
-  is_compact := stone_cech.compact_space,
-  is_hausdorff := @stone_cech.t2_space X _ }
+def StoneCech_obj (X : Top) : CompHaus := CompHaus.of (stone_cech X)
 
 /--
 (Implementation) The bijection of homsets to establish the reflective adjunction of compact
@@ -96,8 +108,8 @@ noncomputable def stone_cech_equivalence (X : Top) (Y : CompHaus) :
 The Stone-Cech compactification functor from topological spaces to compact Hausdorff spaces,
 left adjoint to the inclusion functor.
 -/
-noncomputable def Top_to_CompHaus : Top ⥤ CompHaus :=
-adjunction.left_adjoint_of_equiv stone_cech_equivalence (λ _ _ _ _ _, rfl)
+noncomputable def Top_to_CompHaus : Top.{u} ⥤ CompHaus.{u} :=
+adjunction.left_adjoint_of_equiv stone_cech_equivalence.{u u} (λ _ _ _ _ _, rfl)
 
 lemma Top_to_CompHaus_obj (X : Top) : ↥(Top_to_CompHaus.obj X) = stone_cech X :=
 rfl
@@ -105,5 +117,8 @@ rfl
 /--
 The category of compact Hausdorff spaces is reflective in the category of topological spaces.
 -/
-noncomputable instance : reflective CompHaus_to_Top :=
+noncomputable instance CompHaus_to_Top.reflective : reflective CompHaus_to_Top :=
 { to_is_right_adjoint := ⟨Top_to_CompHaus, adjunction.adjunction_of_equiv_left _ _⟩ }
+
+noncomputable instance CompHaus_to_Top.creates_limits : creates_limits CompHaus_to_Top :=
+monadic_creates_limits _

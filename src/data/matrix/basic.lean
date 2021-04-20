@@ -10,6 +10,7 @@ import algebra.big_operators.ring
 import algebra.star.basic
 import data.equiv.ring
 import data.fintype.card
+import data.matrix.dmatrix
 
 /-!
 # Matrices
@@ -17,6 +18,7 @@ import data.fintype.card
 universes u u' v w
 
 open_locale big_operators
+open dmatrix
 
 /-- `matrix m n` is the type of matrices whose rows are indexed by the fintype `m`
     and whose columns are indexed by the fintype `n`. -/
@@ -25,6 +27,8 @@ def matrix (m : Type u) (n : Type u') [fintype m] [fintype n] (α : Type v) : Ty
 m → n → α
 
 variables {l m n o : Type*} [fintype l] [fintype m] [fintype n] [fintype o]
+variables {m' : o → Type*} [∀ i, fintype (m' i)]
+variables {n' : o → Type*} [∀ i, fintype (n' i)]
 variables {α : Type v}
 
 namespace matrix
@@ -77,15 +81,10 @@ instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
 instance [has_sub α] : has_sub (matrix m n α) := pi.has_sub
 instance [add_group α] : add_group (matrix m n α) := pi.add_group
 instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_group
-
-@[simp] theorem zero_apply [has_zero α] (i j) : (0 : matrix m n α) i j = 0 := rfl
-@[simp] theorem neg_apply [has_neg α] (M : matrix m n α) (i j) : (- M) i j = - M i j := rfl
-@[simp] theorem add_apply [has_add α] (M N : matrix m n α) (i j) :
-  (M + N) i j = M i j + N i j :=
-rfl
-@[simp] theorem sub_apply [has_sub α] (M N : matrix m n α) (i j) :
-  (M - N) i j = M i j - N i j :=
-rfl
+instance [unique α] : unique (matrix m n α) := pi.unique
+instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
+instance [nonempty m] [nonempty n] [nontrivial α] : nontrivial (matrix m n α) :=
+function.nontrivial
 
 @[simp] lemma map_zero [has_zero α] {β : Type w} [has_zero β] {f : α → β} (h : f 0 = 0) :
   (0 : matrix m n α).map f = 0 :=
@@ -249,17 +248,17 @@ by simp [dot_product, mul_add, finset.sum_add_distrib]
 @[simp] lemma diagonal_dot_product [decidable_eq m] [semiring α] (v w : m → α) (i : m) :
   dot_product (diagonal v i) w = v i * w i :=
 have ∀ j ≠ i, diagonal v i j * w j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
-by convert finset.sum_eq_single i (λ j _, this j) _; simp
+by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
 @[simp] lemma dot_product_diagonal [decidable_eq m] [semiring α] (v w : m → α) (i : m) :
   dot_product v (diagonal w i) = v i * w i :=
 have ∀ j ≠ i, v j * diagonal w i j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
-by convert finset.sum_eq_single i (λ j _, this j) _; simp
+by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
 @[simp] lemma dot_product_diagonal' [decidable_eq m] [semiring α] (v w : m → α) (i : m) :
   dot_product v (λ j, diagonal w j i) = v i * w i :=
 have ∀ j ≠ i, v j * diagonal w j i = 0 := λ j hij, by simp [diagonal_apply_ne hij],
-by convert finset.sum_eq_single i (λ j _, this j) _; simp
+by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
 @[simp] lemma neg_dot_product [ring α] (v w : m → α) : dot_product (-v) w = - dot_product v w :=
 by simp [dot_product]
@@ -370,7 +369,7 @@ lemma map_mul {L : matrix m n α} {M : matrix n o α}
   (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
 
--- TODO: there should be a way to avoid restating these for each `foo_hom`. 
+-- TODO: there should be a way to avoid restating these for each `foo_hom`.
 /-- A version of `one_map` where `f` is a ring hom. -/
 @[simp] lemma ring_hom_map_one [decidable_eq n]
   {β : Type w} [semiring β] (f : α →+* β) :
@@ -797,7 +796,7 @@ section star_ring
 variables [decidable_eq n] {R : Type*} [semiring R] [star_ring R]
 
 /--
-When `R` is a *-(semi)ring, `matrix n n R` becomes a *-(semi)ring with
+When `R` is a `*`-(semi)ring, `matrix n n R` becomes a `*`-(semi)ring with
 the star operation given by taking the conjugate, and the star of each entry.
 -/
 instance : star_ring (matrix n n R) :=
@@ -808,6 +807,8 @@ instance : star_ring (matrix n n R) :=
 
 @[simp] lemma star_apply (M : matrix n n R) (i j) : star M i j = star (M j i) := rfl
 
+lemma star_mul (M N : matrix n n R) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
+
 end star_ring
 
 /-- `M.minor row col` is the matrix obtained by reindexing the rows and the lines of
@@ -815,6 +816,122 @@ end star_ring
     of row/colums doesn't have to be preserved. -/
 def minor (A : matrix m n α) (row : l → m) (col : o → n) : matrix l o α :=
 λ i j, A (row i) (col j)
+
+@[simp] lemma minor_apply (A : matrix m n α) (row : l → m) (col : o → n) (i j) :
+  A.minor row col i j = A (row i) (col j) := rfl
+
+@[simp] lemma minor_id_id (A : matrix m n α) :
+  A.minor id id = A :=
+ext $ λ _ _, rfl
+
+@[simp] lemma minor_minor {l₂ o₂ : Type*} [fintype l₂] [fintype o₂] (A : matrix m n α)
+  (row₁ : l → m) (col₁ : o → n) (row₂ : l₂ → l) (col₂ : o₂ → o) :
+  (A.minor row₁ col₁).minor row₂ col₂ = A.minor (row₁ ∘ row₂) (col₁ ∘ col₂) :=
+ext $ λ _ _, rfl
+
+@[simp] lemma transpose_minor (A : matrix m n α) (row : l → m) (col : o → n) :
+  (A.minor row col)ᵀ = Aᵀ.minor col row :=
+ext $ λ _ _, rfl
+
+lemma minor_add [has_add α] (A B : matrix m n α) :
+  ((A + B).minor : (l → m) → (o → n) → matrix l o α) = A.minor + B.minor := rfl
+
+lemma minor_neg [has_neg α] (A : matrix m n α) :
+  ((-A).minor : (l → m) → (o → n) → matrix l o α) = -A.minor := rfl
+
+lemma minor_sub [has_sub α] (A B : matrix m n α) :
+  ((A - B).minor : (l → m) → (o → n) → matrix l o α) = A.minor - B.minor := rfl
+
+@[simp]
+lemma minor_zero [has_zero α] :
+  ((0 : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = 0 := rfl
+
+lemma minor_smul {R : Type*} [semiring R] [add_comm_monoid α] [semimodule R α] (r : R)
+  (A : matrix m n α) :
+  ((r • A : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = r • A.minor := rfl
+
+/-- If the minor doesn't repeat elements, then when applied to a diagonal matrix the result is
+diagonal. -/
+lemma minor_diagonal [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α) (e : l → m)
+  (he : function.injective e) :
+  (diagonal d).minor e e = diagonal (d ∘ e) :=
+ext $ λ i j, begin
+  rw minor_apply,
+  by_cases h : i = j,
+  { rw [h, diagonal_apply_eq, diagonal_apply_eq], },
+  { rw [diagonal_apply_ne h, diagonal_apply_ne (he.ne h)], },
+end
+
+lemma minor_one [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l → m)
+  (he : function.injective e) :
+  (1 : matrix m m α).minor e e = 1 :=
+minor_diagonal _ e he
+
+lemma minor_mul [semiring α] {p q : Type*} [fintype p] [fintype q]
+  (M : matrix m n α) (N : matrix n p α)
+  (e₁ : l → m) (e₂ : o → n) (e₃ : q → p) (he₂ : function.bijective e₂) :
+  (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
+ext $ λ _ _, (he₂.sum_comp _).symm
+
+/-! `simp` lemmas for `matrix.minor`s interaction with `matrix.diagonal`, `1`, and `matrix.mul` for
+when the mappings are bundled. -/
+
+@[simp]
+lemma minor_diagonal_embedding [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α)
+  (e : l ↪ m) :
+  (diagonal d).minor e e = diagonal (d ∘ e) :=
+minor_diagonal d e e.injective
+
+@[simp]
+lemma minor_diagonal_equiv [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α)
+  (e : l ≃ m) :
+  (diagonal d).minor e e = diagonal (d ∘ e) :=
+minor_diagonal d e e.injective
+
+@[simp]
+lemma minor_one_embedding [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l ↪ m) :
+  (1 : matrix m m α).minor e e = 1 :=
+minor_one e e.injective
+
+@[simp]
+lemma minor_one_equiv [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l ≃ m) :
+  (1 : matrix m m α).minor e e = 1 :=
+minor_one e e.injective
+
+lemma minor_mul_equiv [semiring α] {p q : Type*} [fintype p] [fintype q]
+  (M : matrix m n α) (N : matrix n p α) (e₁ : l → m) (e₂ : o ≃ n) (e₃ : q → p)  :
+  (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
+minor_mul M N e₁ e₂ e₃ e₂.bijective
+
+/-- The natural map that reindexes a matrix's rows and columns with equivalent types is an
+equivalence. -/
+def reindex (eₘ : m ≃ l) (eₙ : n ≃ o) : matrix m n α ≃ matrix l o α :=
+{ to_fun    := λ M, M.minor eₘ.symm eₙ.symm,
+  inv_fun   := λ M, M.minor eₘ eₙ,
+  left_inv  := λ M, by simp,
+  right_inv := λ M, by simp, }
+
+@[simp] lemma reindex_apply (eₘ : m ≃ l) (eₙ : n ≃ o) (M : matrix m n α) :
+  reindex eₘ eₙ M = M.minor eₘ.symm eₙ.symm :=
+rfl
+
+@[simp] lemma reindex_refl_refl (A : matrix m n α) :
+  reindex (equiv.refl _) (equiv.refl _) A = A :=
+A.minor_id_id
+
+@[simp] lemma reindex_symm (eₘ : m ≃ l) (eₙ : n ≃ o) :
+  (reindex eₘ eₙ).symm = (reindex eₘ.symm eₙ.symm : matrix l o α ≃ _) :=
+rfl
+
+@[simp] lemma reindex_trans {l₂ o₂ : Type*} [fintype l₂] [fintype o₂]
+  (eₘ : m ≃ l) (eₙ : n ≃ o) (eₘ₂ : l ≃ l₂) (eₙ₂ : o ≃ o₂) :
+  (reindex eₘ eₙ).trans (reindex eₘ₂ eₙ₂) =
+    (reindex (eₘ.trans eₘ₂) (eₙ.trans eₙ₂) : matrix m n α ≃ _) :=
+equiv.ext $ λ A, (A.minor_minor eₘ.symm eₙ.symm eₘ₂.symm eₙ₂.symm : _)
+
+lemma transpose_reindex (eₘ : m ≃ l) (eₙ : n ≃ o) (M : matrix m n α) :
+  (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
+rfl
 
 /-- The left `n × l` part of a `n × (l+r)` matrix. -/
 @[reducible]
@@ -979,22 +1096,22 @@ rfl
   from_blocks A B C D (sum.inr i) (sum.inr j) = D i j :=
 rfl
 
-/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top left" submatrix. -/
 def to_blocks₁₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n l α :=
 λ i j, M (sum.inl i) (sum.inl j)
 
-/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top right" submatrix. -/
 def to_blocks₁₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n m α :=
 λ i j, M (sum.inl i) (sum.inr j)
 
-/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom left" submatrix. -/
 def to_blocks₂₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o l α :=
 λ i j, M (sum.inr i) (sum.inl j)
 
-/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom right" submatrix. -/
 def to_blocks₂₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o m α :=
 λ i j, M (sum.inr i) (sum.inr j)
@@ -1031,6 +1148,39 @@ lemma from_blocks_transpose
 begin
   ext i j, rcases i; rcases j; simp [from_blocks],
 end
+
+/-- Let `p` pick out certain rows and `q` pick out certain columns of a matrix `M`. Then
+  `to_block M p q` is the corresponding block matrix. -/
+def to_block (M : matrix m n α) (p : m → Prop) [decidable_pred p]
+  (q : n → Prop) [decidable_pred q] : matrix {a // p a} {a // q a} α := M.minor coe coe
+
+@[simp] lemma to_block_apply (M : matrix m n α) (p : m → Prop) [decidable_pred p]
+  (q : n → Prop) [decidable_pred q] (i : {a // p a}) (j : {a // q a}) :
+  to_block M p q i j = M ↑i ↑j := rfl
+
+/-- Let `b` map rows and columns of a square matrix `M` to blocks. Then
+  `to_square_block M b k` is the block `k` matrix. -/
+def to_square_block (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
+  matrix {a // b a = k} {a // b a = k} α := M.minor coe coe
+
+@[simp] lemma to_square_block_def (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
+  to_square_block M b k = λ i j, M ↑i ↑j := rfl
+
+/-- Alternate version with `b : m → nat`. Let `b` map rows and columns of a square matrix `M` to
+  blocks. Then `to_square_block' M b k` is the block `k` matrix. -/
+def to_square_block' (M : matrix m m α) (b : m → nat) (k : nat) :
+  matrix {a // b a = k} {a // b a = k} α := M.minor coe coe
+
+@[simp] lemma to_square_block_def' (M : matrix m m α) (b : m → nat) (k : nat) :
+  to_square_block' M b k = λ i j, M ↑i ↑j := rfl
+
+/-- Let `p` pick out certain rows and columns of a square matrix `M`. Then
+  `to_square_block_prop M p` is the corresponding block matrix. -/
+def to_square_block_prop (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
+  matrix {a // p a} {a // p a} α := M.minor coe coe
+
+@[simp] lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
+  to_square_block_prop M p = λ i j, M ↑i ↑j := rfl
 
 variables [semiring α]
 
@@ -1084,9 +1234,12 @@ section has_zero
 
 variables [has_zero α]
 
-/-- `matrix.block_diagonal M` turns `M : o → matrix m n α'` into a
-`m × o`-by`n × o` block matrix which has the entries of `M` along the diagonal
-and zero elsewhere. -/
+/-- `matrix.block_diagonal M` turns a homogenously-indexed collection of matrices
+`M : o → matrix m n α'` into a `m × o`-by-`n × o` block matrix which has the entries of `M` along
+the diagonal and zero elsewhere.
+
+See also `matrix.block_diagonal'` if the matrices may not have the same size everywhere.
+-/
 def block_diagonal : matrix (m × o) (n × o) α
 | ⟨i, k⟩ ⟨j, k'⟩ := if k = k' then M k i j else 0
 
@@ -1104,7 +1257,7 @@ lemma block_diagonal_apply_ne (i j) {k k'} (h : k ≠ k') :
 if_neg h
 
 @[simp] lemma block_diagonal_transpose :
-  (block_diagonal M)ᵀ = (block_diagonal (λ k, (M k)ᵀ)) :=
+  (block_diagonal M)ᵀ = block_diagonal (λ k, (M k)ᵀ) :=
 begin
   ext,
   simp only [transpose_apply, block_diagonal_apply, eq_comm],
@@ -1118,7 +1271,7 @@ end
 by { ext, simp [block_diagonal_apply] }
 
 @[simp] lemma block_diagonal_diagonal [decidable_eq m] (d : o → m → α) :
-  (block_diagonal (λ k, diagonal (d k))) = diagonal (λ ik, d ik.2 ik.1) :=
+  block_diagonal (λ k, diagonal (d k)) = diagonal (λ ik, d ik.2 ik.1) :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
   simp only [block_diagonal_apply, diagonal],
@@ -1126,8 +1279,8 @@ begin
 end
 
 @[simp] lemma block_diagonal_one [decidable_eq m] [has_one α] :
-  (block_diagonal (1 : o → matrix m m α)) = 1 :=
-show (block_diagonal (λ (_ : o), diagonal (λ (_ : m), (1 : α)))) = diagonal (λ _, 1),
+  block_diagonal (1 : o → matrix m m α) = 1 :=
+show block_diagonal (λ (_ : o), diagonal (λ (_ : m), (1 : α))) = diagonal (λ _, 1),
 by rw [block_diagonal_diagonal]
 
 end has_zero
@@ -1152,8 +1305,8 @@ end
   block_diagonal (M - N) = block_diagonal M - block_diagonal N :=
 by simp [sub_eq_add_neg]
 
-@[simp] lemma block_diagonal_mul {p : Type*} [fintype p] [semiring α]
-  (N : o → matrix n p α) : block_diagonal (λ k, M k ⬝ N k) = block_diagonal M ⬝ block_diagonal N :=
+@[simp] lemma block_diagonal_mul {p : Type*} [fintype p] [semiring α] (N : o → matrix n p α) :
+  block_diagonal (λ k, M k ⬝ N k) = block_diagonal M ⬝ block_diagonal N :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
   simp only [block_diagonal_apply, mul_apply, ← finset.univ_product_univ, finset.sum_product],
@@ -1165,6 +1318,114 @@ end
 by { ext, simp only [block_diagonal_apply, pi.smul_apply, smul_apply], split_ifs; simp }
 
 end block_diagonal
+
+section block_diagonal'
+
+variables (M N : Π i, matrix (m' i) (n' i) α) [decidable_eq o]
+
+section has_zero
+
+variables [has_zero α]
+
+/-- `matrix.block_diagonal' M` turns `M : Π i, matrix (m i) (n i) α` into a
+`Σ i, m i`-by-`Σ i, n i` block matrix which has the entries of `M` along the diagonal
+and zero elsewhere.
+
+This is the dependently-typed version of `matrix.block_diagonal`. -/
+def block_diagonal' : matrix (Σ i, m' i) (Σ i, n' i) α
+| ⟨k, i⟩ ⟨k', j⟩ := if h : k = k' then M k i (cast (congr_arg n' h.symm) j) else 0
+
+lemma block_diagonal'_eq_block_diagonal (M : o → matrix m n α) {k k'} (i j) :
+  block_diagonal M (i, k) (j, k') = block_diagonal' M ⟨k, i⟩ ⟨k', j⟩ :=
+rfl
+
+lemma block_diagonal'_minor_eq_block_diagonal (M : o → matrix m n α) :
+  (block_diagonal' M).minor (prod.to_sigma ∘ prod.swap) (prod.to_sigma ∘ prod.swap) =
+    block_diagonal M :=
+matrix.ext $ λ ⟨k, i⟩ ⟨k', j⟩, rfl
+
+lemma block_diagonal'_apply (ik jk) :
+  block_diagonal' M ik jk = if h : ik.1 = jk.1 then
+    M ik.1 ik.2 (cast (congr_arg n' h.symm) jk.2) else 0 :=
+by { cases ik, cases jk, refl }
+
+@[simp]
+lemma block_diagonal'_apply_eq (k i j) :
+  block_diagonal' M ⟨k, i⟩ ⟨k, j⟩ = M k i j :=
+dif_pos rfl
+
+lemma block_diagonal'_apply_ne {k k'} (i j) (h : k ≠ k') :
+  block_diagonal' M ⟨k, i⟩ ⟨k', j⟩ = 0 :=
+dif_neg h
+
+@[simp] lemma block_diagonal'_transpose :
+  (block_diagonal' M)ᵀ = block_diagonal' (λ k, (M k)ᵀ) :=
+begin
+  ext ⟨ii, ix⟩ ⟨ji, jx⟩,
+  simp only [transpose_apply, block_diagonal'_apply, eq_comm],
+  dsimp only,
+  split_ifs with h₁ h₂ h₂,
+  { subst h₁, refl, },
+  { exact (h₂ h₁.symm).elim },
+  { exact (h₁ h₂.symm).elim },
+  { refl }
+end
+
+@[simp] lemma block_diagonal'_zero :
+  block_diagonal' (0 : Π i, matrix (m' i) (n' i) α) = 0 :=
+by { ext, simp [block_diagonal'_apply] }
+
+@[simp] lemma block_diagonal'_diagonal [∀ i, decidable_eq (m' i)] (d : Π i, m' i → α) :
+  block_diagonal' (λ k, diagonal (d k)) = diagonal (λ ik, d ik.1 ik.2) :=
+begin
+  ext ⟨i, k⟩ ⟨j, k'⟩,
+  simp only [block_diagonal'_apply, diagonal],
+  split_ifs; finish
+end
+
+@[simp] lemma block_diagonal'_one [∀ i, decidable_eq (m' i)] [has_one α] :
+  block_diagonal' (1 : Π i, matrix (m' i) (m' i) α) = 1 :=
+show block_diagonal' (λ (i : o), diagonal (λ (_ : m' i), (1 : α))) = diagonal (λ _, 1),
+by rw [block_diagonal'_diagonal]
+
+end has_zero
+
+@[simp] lemma block_diagonal'_add [add_monoid α] :
+  block_diagonal' (M + N) = block_diagonal' M + block_diagonal' N :=
+begin
+  ext,
+  simp only [block_diagonal'_apply, add_apply],
+  split_ifs; simp
+end
+
+@[simp] lemma block_diagonal'_neg [add_group α] :
+  block_diagonal' (-M) = - block_diagonal' M :=
+begin
+  ext,
+  simp only [block_diagonal'_apply, neg_apply],
+  split_ifs; simp
+end
+
+@[simp] lemma block_diagonal'_sub [add_group α] :
+  block_diagonal' (M - N) = block_diagonal' M - block_diagonal' N :=
+by simp [sub_eq_add_neg]
+
+@[simp] lemma block_diagonal'_mul {p : o → Type*} [Π i, fintype (p i)] [semiring α]
+  (N : Π i, matrix (n' i) (p i) α) :
+    block_diagonal' (λ k, M k ⬝ N k) = block_diagonal' M ⬝ block_diagonal' N :=
+begin
+  ext ⟨k, i⟩ ⟨k', j⟩,
+  simp only [block_diagonal'_apply, mul_apply, ← finset.univ_sigma_univ, finset.sum_sigma],
+  rw fintype.sum_eq_single k,
+  { split_ifs; simp },
+  { intros j' hj', exact finset.sum_eq_zero (λ _ _, by rw [dif_neg hj'.symm, zero_mul]) },
+end
+
+@[simp] lemma block_diagonal'_smul {R : Type*} [semiring R] [add_comm_monoid α] [semimodule R α]
+  (x : R) : block_diagonal' (x • M) = x • block_diagonal' M :=
+by { ext, simp only [block_diagonal'_apply, pi.smul_apply, smul_apply], split_ifs; simp }
+
+end block_diagonal'
 
 end matrix
 

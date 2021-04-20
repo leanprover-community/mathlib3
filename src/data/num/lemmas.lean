@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2014 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.num.bitwise
 import data.int.char_zero
@@ -297,17 +297,19 @@ example (n : num) (m : num) : n ≤ n + m := by num.transfer
 meta def transfer : tactic unit := `[intros, transfer_rw, try {simp}]
 
 instance : comm_semiring num :=
-by refine {
+by refine_struct {
   add      := (+),
   zero     := 0,
   zero_add := zero_add,
   add_zero := add_zero,
   mul      := (*),
-  one      := 1, .. }; try {transfer}; simp [mul_add, mul_left_comm, mul_comm, add_comm]
+  one      := 1,
+  nsmul    := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
+  npow     := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
+try { intros, refl }; try { transfer }; simp [mul_add, mul_left_comm, mul_comm, add_comm]
 
 instance : ordered_cancel_add_comm_monoid num :=
 { add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
-  add_right_cancel           := by {intros a b c, transfer_rw, apply add_right_cancel},
   lt                         := (<),
   lt_iff_le_not_le           := by {intros a b, transfer_rw, apply lt_iff_le_not_le},
   le                         := (≤),
@@ -417,7 +419,8 @@ instance : add_comm_semigroup pos_num :=
 by refine {add := (+), ..}; transfer
 
 instance : comm_monoid pos_num :=
-by refine {mul := (*), one := 1, ..}; transfer
+by refine_struct {mul := (*), one := (1 : pos_num), npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩};
+try { intros, refl }; transfer
 
 instance : distrib pos_num :=
 by refine {add := (+), mul := (*), ..}; {transfer, simp [mul_add, mul_comm]}
@@ -822,7 +825,7 @@ begin
   conv { to_lhs, rw ← zneg_zneg n },
   rw [← zneg_bit1, cast_zneg, cast_bit1],
   have : ((-1 + n + n : ℤ) : α) = (n + n + -1 : ℤ), {simp [add_comm, add_left_comm]},
-  simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg]
+  simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg, -int.add_neg_one]
 end
 
 theorem add_zero (n : znum) : n + 0 = n := by cases n; refl
@@ -842,6 +845,8 @@ theorem cast_to_znum : ∀ n : pos_num, (n : znum) = znum.pos n
 | 1        := rfl
 | (bit0 p) := (znum.bit0_of_bit0 p).trans $ congr_arg _ (cast_to_znum p)
 | (bit1 p) := (znum.bit1_of_bit1 p).trans $ congr_arg _ (cast_to_znum p)
+
+local attribute [-simp] int.add_neg_one
 
 theorem cast_sub' [add_group α] [has_one α] : ∀ m n : pos_num, (sub' m n : α) = m - n
 | a        1        := by rw [sub'_one, num.cast_to_znum,

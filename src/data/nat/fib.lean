@@ -130,7 +130,7 @@ begin
   replace h := nat.succ_pred_eq_of_pos h, rw [← h, succ_eq_add_one],
   calc gcd (fib m) (fib (n.pred + 1 + m))
         = gcd (fib m) (fib (n.pred) * (fib m) + fib (n.pred + 1) * fib (m + 1)) :
-    by { rw fib_add n.pred _, ring }
+    by { rw fib_add n.pred _, ring_nf }
     ... = gcd (fib m) (fib (n.pred + 1) * fib (m + 1)) :
     by rw [add_comm, gcd_add_mul_self (fib m) _ (fib (n.pred))]
     ... = gcd (fib m) (fib (n.pred + 1)) :
@@ -152,8 +152,8 @@ begin
     { simp },
     intros m n mpos h,
     rw ← gcd_rec m n at h,
-    conv_rhs { rw ← mod_add_div n m },
-    rwa [mul_comm, gcd_fib_add_mul_self m (n % m) (n / m), gcd_comm (fib m) _] },
+    conv_rhs { rw ← mod_add_div' n m },
+    rwa [gcd_fib_add_mul_self m (n % m) (n / m), gcd_comm (fib m) _] },
   rwa [gcd_comm, gcd_comm (fib m)]
 end
 

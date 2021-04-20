@@ -253,9 +253,14 @@ theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
  end⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
--- TODO prove
--- theorem numeric_nat (n : ℕ) : numeric n := sorry
--- theorem numeric_omega : numeric omega := sorry
+/-- Pre-games defined by natural numbers are numeric. -/
+theorem numeric_nat : Π (n : ℕ), numeric n
+| 0 := numeric_zero
+| (n + 1) := numeric_add (numeric_nat n) numeric_one
+
+/-- The pre-game omega is numeric. -/
+theorem numeric_omega : numeric omega :=
+⟨by rintros ⟨⟩ ⟨⟩, λ i, numeric_nat i.down, by rintros ⟨⟩⟩
 
 end pgame
 
@@ -343,14 +348,23 @@ begin
   exact add_assoc_equiv,
 end
 
-instance : add_semigroup surreal :=
-{ add_assoc := add_assoc,
-  ..(by apply_instance : has_add surreal) }
+theorem zero_add : ∀ (x : surreal), 0 + x = x :=
+by { rintro ⟨x, ox⟩, exact quotient.sound (pgame.zero_add_equiv _) }
+
+theorem add_zero : ∀ (x : surreal), x + 0 = x :=
+by { rintro ⟨x, ox⟩, exact quotient.sound (pgame.add_zero_equiv _) }
+
+instance : add_monoid surreal :=
+{ add       := surreal.add,
+  add_assoc := surreal.add_assoc,
+  zero      := 0,
+  zero_add  := surreal.zero_add,
+  add_zero  := surreal.add_zero }
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
--- TODO construct the remaining instances:
---   add_monoid, add_group, add_comm_semigroup, add_comm_group, ordered_add_comm_group,
+-- TODO replace the `add_monoid` instance above with a stronger instance:
+--   add_group, add_comm_semigroup, add_comm_group, ordered_add_comm_group,
 -- as per the instances for `game`
 
 -- TODO define the inclusion of groups `surreal → game`
@@ -363,6 +377,7 @@ instance : add_semigroup surreal :=
 -- TODO show this is a group homomorphism, and injective
 
 -- TODO define the field structure on the surreals
--- TODO show the maps from the dyadic rationals and from the reals into the surreals are multiplicative
+-- TODO show the maps from the dyadic rationals and from the reals
+-- into the surreals are multiplicative
 
 end surreal

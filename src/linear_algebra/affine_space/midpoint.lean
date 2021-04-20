@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
-import algebra.invertible
+import algebra.char_p.invertible
 import linear_algebra.affine_space.affine_equiv
 
 /-!
@@ -60,7 +60,7 @@ omit V'
 @[simp] lemma affine_equiv.point_reflection_midpoint_left (x y : P) :
   point_reflection R (midpoint R x y) x = y :=
 by rw [midpoint, point_reflection_apply, line_map_apply, vadd_vsub,
-  vadd_assoc, ← add_smul, ← two_mul, mul_inv_of_self, one_smul, vsub_vadd]
+  vadd_vadd, ← add_smul, ← two_mul, mul_inv_of_self, one_smul, vsub_vadd]
 
 lemma midpoint_comm (x y : P) : midpoint R x y = midpoint R y x :=
 by rw [midpoint, ← line_map_apply_one_sub, one_sub_inv_of_two, midpoint]
@@ -129,6 +129,10 @@ calc midpoint R x y +ᵥ midpoint R x y = midpoint R x y +ᵥ midpoint R y x : b
 
 lemma midpoint_zero_add (x y : V) : midpoint R 0 (x + y) = midpoint R x y :=
 (midpoint_eq_midpoint_iff_vsub_eq_vsub R).2 $ by simp [sub_add_eq_sub_sub_swap]
+
+lemma midpoint_eq_smul_add (x y : V) : midpoint R x y = (⅟2 : R) • (x + y) :=
+by rw [midpoint_eq_iff, point_reflection_apply, vsub_eq_sub, vadd_eq_add, sub_add_eq_add_sub,
+  ← two_smul R, smul_smul, mul_inv_of_self, one_smul, add_sub_cancel']
 
 end
 

@@ -5,7 +5,6 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.reverse
 import algebra.associated
-import tactic.omega
 
 /-!
 # Theory of monic polynomials
@@ -28,9 +27,9 @@ section semiring
 variables [semiring R] {p q r : polynomial R}
 
 lemma monic.as_sum {p : polynomial R} (hp : p.monic) :
-  p = X^(p.nat_degree) + (∑ i in finset.range p.nat_degree, C (p.coeff i) * X^i) :=
+  p = X^(p.nat_degree) + (∑ i in range p.nat_degree, C (p.coeff i) * X^i) :=
 begin
-  conv_lhs { rw [p.as_sum_range_C_mul_X_pow, finset.sum_range_succ] },
+  conv_lhs { rw [p.as_sum_range_C_mul_X_pow, sum_range_succ_comm] },
   suffices : C (p.coeff p.nat_degree) = 1,
   { rw [this, one_mul] },
   exact congr_arg C hp
@@ -90,7 +89,7 @@ else
 
 lemma monic_pow (hp : monic p) : ∀ (n : ℕ), monic (p ^ n)
 | 0     := monic_one
-| (n+1) := monic_mul hp (monic_pow n)
+| (n+1) := by { rw pow_succ, exact monic_mul hp (monic_pow n) }
 
 lemma monic_add_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :
   monic (p + q) :=

@@ -14,7 +14,7 @@ We define finitely generated monoids.
 
 ## Main definition
 
-* `monoid.fg`, `add_monoid.fg` : A monoid is finitely geneterated.
+* `monoid.fg`, `add_monoid.fg` : A monoid is finitely generated.
 
 -/
 

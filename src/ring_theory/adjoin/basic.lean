@@ -54,27 +54,30 @@ variables (R A)
 show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }
 
 variables (R) {A} (s)
-theorem adjoin_eq_span : (adjoin R s).to_submodule = span R (monoid.closure s) :=
+
+theorem adjoin_eq_span : (adjoin R s).to_submodule = span R (submonoid.closure s) :=
 begin
   apply le_antisymm,
-  { intros r hr, rcases mem_closure_iff_exists_list.1 hr with ⟨L, HL, rfl⟩, clear hr,
+  { intros r hr, rcases subsemiring.mem_closure_iff_exists_list.1 hr with ⟨L, HL, rfl⟩, clear hr,
     induction L with hd tl ih, { exact zero_mem _ },
     rw list.forall_mem_cons at HL,
     rw [list.map_cons, list.sum_cons],
     refine submodule.add_mem _ _ (ih HL.2),
     replace HL := HL.1, clear ih tl,
-    suffices : ∃ z r (hr : r ∈ monoid.closure s), has_scalar.smul.{u v} z r = list.prod hd,
+    suffices : ∃ z r (hr : r ∈ submonoid.closure s), has_scalar.smul z r = list.prod hd,
     { rcases this with ⟨z, r, hr, hzr⟩, rw ← hzr,
       exact smul_mem _ _ (subset_span hr) },
-    induction hd with hd tl ih, { exact ⟨1, 1, is_submonoid.one_mem, one_smul _ _⟩ },
+    induction hd with hd tl ih, { exact ⟨1, 1, (submonoid.closure s).one_mem', one_smul _ _⟩ },
     rw list.forall_mem_cons at HL,
     rcases (ih HL.2) with ⟨z, r, hr, hzr⟩, rw [list.prod_cons, ← hzr],
     rcases HL.1 with ⟨hd, rfl⟩ | hs,
     { refine ⟨hd * z, r, hr, _⟩,
-      rw [smul_def, smul_def, (algebra_map _ _).map_mul, _root_.mul_assoc] },
-    { exact ⟨z, hd * r, is_submonoid.mul_mem (monoid.subset_closure hs) hr,
+      rw [algebra.smul_def, algebra.smul_def, (algebra_map _ _).map_mul, _root_.mul_assoc] },
+    { exact ⟨z, hd * r, submonoid.mul_mem _ (submonoid.subset_closure hs) hr,
         (mul_smul_comm _ _ _).symm⟩ } },
-  exact span_le.2 (show monoid.closure s ⊆ adjoin R s, from monoid.closure_subset subset_adjoin)
+  refine span_le.2 _,
+  change submonoid.closure s ≤ (adjoin R s).to_subsemiring.to_submonoid,
+  exact submonoid.closure_le.2 subset_adjoin
 end
 
 lemma adjoin_image (f : A →ₐ[R] B) (s : set A) :
@@ -135,7 +138,7 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
   (adjoin R s).to_submodule * (adjoin R t).to_submodule :=
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
-  congr' 1 with z, simp [monoid.mem_closure_union_iff, set.mem_mul],
+  congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
 end
 
 end comm_semiring
@@ -155,7 +158,6 @@ theorem mem_adjoin_iff {s : set A} {x : A} :
   is_submonoid.one_mem (λ _ _, is_add_submonoid.add_mem) (λ _ _, is_submonoid.mul_mem),
 suffices closure (set.range ⇑(algebra_map R A) ∪ s) ⊆ adjoin R s, from @this x,
 closure_subset subsemiring.subset_closure⟩
-
 
 theorem adjoin_eq_ring_closure (s : set A) :
   (adjoin R s : set A) = closure (set.range (algebra_map R A) ∪ s) :=

@@ -124,8 +124,7 @@ def monomial (s : σ →₀ ℕ) : R →+ mv_polynomial σ R := finsupp.single_a
 
 /-- `C a` is the constant polynomial with value `a` -/
 def C : R →+* mv_polynomial σ R :=
-{ to_fun := monomial 0,
-  ..single_zero_ring_hom }
+{ to_fun := monomial 0, ..single_zero_ring_hom }
 
 /-- `X n` is the degree `1` monomial $X_n$. -/
 def X (n : σ) : mv_polynomial σ R := monomial (single n 1) 1

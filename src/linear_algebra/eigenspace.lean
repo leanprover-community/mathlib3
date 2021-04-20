@@ -333,29 +333,29 @@ begin
 end
 
 /-- The union of the kernels of `(f - μ • 1) ^ k` over all `k`. -/
-def maximal_generalized_eigenspace (f : End R M) (μ : R) : submodule R M :=
+def max_gen_eigenspace (f : End R M) (μ : R) : submodule R M :=
 ⨆ k, f.generalized_eigenspace μ k
 
 lemma generalized_eigenspace_le_maximal (f : End R M) (μ : R) (k : ℕ) :
-  f.generalized_eigenspace μ k ≤ f.maximal_generalized_eigenspace μ :=
+  f.generalized_eigenspace μ k ≤ f.max_gen_eigenspace μ :=
 le_supr _ _
 
-@[simp] lemma mem_maximal_generalized_eigenspace (f : End R M) (μ : R) (m : M) :
-  m ∈ f.maximal_generalized_eigenspace μ ↔ ∃ (k : ℕ), ((f - μ • 1)^k) m = 0 :=
-by simp only [maximal_generalized_eigenspace, ← mem_generalized_eigenspace,
+@[simp] lemma mem_max_gen_eigenspace (f : End R M) (μ : R) (m : M) :
+  m ∈ f.max_gen_eigenspace μ ↔ ∃ (k : ℕ), ((f - μ • 1)^k) m = 0 :=
+by simp only [max_gen_eigenspace, ← mem_generalized_eigenspace,
   submodule.mem_supr_of_chain]
 
 /-- If there exists a natural number `k` such that the kernel of `(f - μ • 1) ^ k` is the
 maximal generalized eigenspace, then this value is the least such `k`. If not, this value is not
 meaningful. -/
-noncomputable def maximal_generalized_eigenspace_index (f : End R M) (μ : R) :=
+noncomputable def max_gen_eigenspace_index (f : End R M) (μ : R) :=
 monotonic_sequence_limit_index (f.generalized_eigenspace μ)
 
 /-- For an endomorphism of a Noetherian module, the maximal eigenspace is always of the form kernel
 `(f - μ • 1) ^ k` for some `k`. -/
-lemma maximal_generalized_eigenspace_eq [h : is_noetherian R M] (f : End R M) (μ : R) :
-  maximal_generalized_eigenspace f μ =
-  f.generalized_eigenspace μ (maximal_generalized_eigenspace_index f μ) :=
+lemma max_gen_eigenspace_eq [h : is_noetherian R M] (f : End R M) (μ : R) :
+  max_gen_eigenspace f μ =
+  f.generalized_eigenspace μ (max_gen_eigenspace_index f μ) :=
 begin
   rw is_noetherian_iff_well_founded at h,
   exact (well_founded.supr_eq_monotonic_sequence_limit h (f.generalized_eigenspace μ) : _),

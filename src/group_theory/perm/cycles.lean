@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import group_theory.perm.sign
+import group_theory.perm.list
 /-!
 # Cyclic permutations
 
@@ -372,6 +373,24 @@ have cycle_of f x x ≠ x, by rwa [(same_cycle.refl _ _).cycle_of_apply],
   let ⟨i, hi⟩ := hxy in
   ⟨i, by rw [cycle_of_gpow_apply_self, hi]⟩
   else by { rw [cycle_of_apply_of_not_same_cycle hxy] at h, exact (h rfl).elim }⟩
+
+lemma is_cycle_form_perm (x y : α) (xs : list α) (h : list.nodup (x :: y :: xs)) :
+  is_cycle (list.form_perm (x :: y :: xs)) :=
+begin
+  use x,
+  split,
+  { simp only [list.mem_cons_iff, list.nodup_cons] at h,
+    push_neg at h,
+    simp [h.left.left.symm] },
+  { intros z hz,
+    rw [←mem_support, list.support_form_perm_of_nodup _ h, finset.mem_coe, list.mem_to_finset] at hz,
+    { obtain ⟨k, hk, rfl⟩ := list.nth_le_of_mem hz,
+      have : ∀ (f : equiv.perm α), f x = f ((x :: y :: xs).nth_le 0 (by simp)) := by simp,
+      use k,
+      rw [gpow_coe_nat, this, list.form_perm_pow_apply_nth_le _ h, nat.zero_add],
+      simp_rw nat.mod_eq_of_lt hk },
+    { simp } }
+end
 
 /-!
 ### `cycle_factors`

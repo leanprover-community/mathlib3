@@ -67,7 +67,7 @@ lemma Sheaf_iff_SheafOfTypes (P : Cᵒᵖ ⥤ Type v) :
 begin
   split,
   { intros hP,
-    apply presieve.is_sheaf_iso J (coyoneda.iso_comp_punit _) (hP punit) },
+    exact presieve.is_sheaf_iso J (coyoneda.iso_comp_punit _) (hP punit) },
   { intros hP X Y S hS z hz,
     refine ⟨λ x, (hP S hS).amalgamate (λ Z f hf, z f hf x) _, _, _⟩,
     { intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ hf₁ hf₂ h,
@@ -108,14 +108,19 @@ open opposite category_theory category limits sieve classical
 
 namespace presheaf
 
--- under here is the equalizer story, which is equivalent if A has products (and doesn't
--- make sense otherwise). It's described between 00VQ and 00VR in stacks.
+-- Under here is the equalizer story, which is equivalent if A has products (and doesn't
+-- make sense otherwise). It's described in https://stacks.math.columbia.edu/tag/00VL,
+-- between 00VQ and 00VR.
 
 variables {C : Type v} [small_category C]
-variables {A : Type u} [category.{v} A] [has_products A]
+variables {A : Type u} [category.{v} A]
 variables (J : grothendieck_topology C)
 variables {U : C} (R : presieve U)
 variables (P : Cᵒᵖ ⥤ A)
+
+section
+
+variables [has_products A]
 
 def first_obj : A :=
 ∏ (λ (f : Σ V, {f : V ⟶ U // R f}), P.obj (op f.1))
@@ -130,11 +135,11 @@ def second_obj : A :=
 ∏ (λ (fg : (Σ V, {f : V ⟶ U // R f}) × (Σ W, {g : W ⟶ U // R g})),
   P.obj (op (pullback fg.1.2.1 fg.2.2.1)))
 
-/-- The map `pr₀*` of https://stacks.math.columbia.edu/tag/00VL. -/
+/-- The map `pr₀*` of https://stacks.math.columbia.edu/tag/00VM. -/
 def first_map : first_obj R P ⟶ second_obj R P :=
 pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.fst.op)
 
-/-- The map `pr₁*` of https://stacks.math.columbia.edu/tag/00VL. -/
+/-- The map `pr₁*` of https://stacks.math.columbia.edu/tag/00VM. -/
 def second_map : first_obj R P ⟶ second_obj R P :=
 pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.snd.op)
 
@@ -158,7 +163,7 @@ end
 def is_sheaf' (P : Cᵒᵖ ⥤ A) : Prop := ∀ (U : C) (R : presieve U) (hR : generate R ∈ J U),
 nonempty (is_limit (fork.of_ι _ (w R P)))
 
-/-- Impl. An auxiliary lemma to convert between sheaf conditions. -/
+/-- (Implementation). An auxiliary lemma to convert between sheaf conditions. -/
 def is_sheaf_for_is_sheaf_for' (P : Cᵒᵖ ⥤ A) (s : A ⥤ Type v)
   [Π J, preserves_limits_of_shape (discrete J) s] (U : C) (R : presieve U) :
   is_limit (s.map_cone (fork.of_ι _ (w R P))) ≃
@@ -187,7 +192,7 @@ begin
 end
 
 /-- The equalizer definition of a sheaf given by `is_sheaf'` is equivalent to `is_sheaf`. -/
-theorem is_sheaf_iff_is_sheaf' (P : Cᵒᵖ ⥤ A) :
+theorem is_sheaf_iff_is_sheaf' :
   is_sheaf J P ↔ is_sheaf' J P :=
 begin
   split,
@@ -209,6 +214,12 @@ begin
     simpa }
 end
 
+end
+
+section concrete
+
+variables [has_pullbacks C]
+
 /--
 For a concrete category `(A, s)` where the forgetful functor `s : A ⥤ Type v` preserves limits and
 reflects isomorphisms, and `A` has limits, an `A`-valued presheaf `P : Cᵒᵖ ⥤ A` is a sheaf iff its
@@ -218,26 +229,23 @@ Note this lemma applies for "algebraic" categories, eg groups, abelian groups an
 for the category of topological spaces, topological rings, etc since reflecting isomorphisms doesn't
 hold.
 -/
-lemma sheaf_cond3 (P : Cᵒᵖ ⥤ A) (s : A ⥤ Type v)
+lemma is_sheaf_iff_is_sheaf_forget (s : A ⥤ Type v)
   [has_limits A] [preserves_limits s] [faithful s] [reflects_isomorphisms s] :
   is_sheaf J P ↔ is_sheaf J (P ⋙ s) :=
 begin
-  rw is_sheaf_iff_is_sheaf',
-  rw is_sheaf_iff_is_sheaf',
+  rw [is_sheaf_iff_is_sheaf', is_sheaf_iff_is_sheaf'],
   apply forall_congr (λ U, _),
   apply ball_congr (λ R hR, _),
   letI : reflects_limits s := reflects_limits_of_reflects_isomorphisms,
   have : is_limit (s.map_cone (fork.of_ι _ (w R P))) ≃ is_limit (fork.of_ι _ (w R (P ⋙ s))) :=
     is_sheaf_for_is_sheaf_for' P s U R,
-  rw ← equiv.nonempty_iff_nonempty this,
+  rw ←equiv.nonempty_iff_nonempty this,
   split,
-  { apply nonempty.map,
-    intro t,
-    apply is_limit_of_preserves s t },
-  { apply nonempty.map _,
-    intro t,
-    apply is_limit_of_reflects s t }
+  { exact nonempty.map (λ t, is_limit_of_preserves s t) },
+  { exact nonempty.map (λ t, is_limit_of_reflects s t) }
 end
+
+end concrete
 
 end presheaf
 

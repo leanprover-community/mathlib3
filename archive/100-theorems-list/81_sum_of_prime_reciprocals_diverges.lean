@@ -30,8 +30,8 @@ open_locale big_operators
 open_locale classical
 open nat pnat filter finset
 
-lemma sq_mul_squarefree {n : ℕ} (hn : n > 0) :
-  ∃ a b : ℕ, a > 0 ∧ b > 0 ∧ b ^ 2 * a = n ∧ squarefree a :=
+lemma sq_mul_squarefree {n : ℕ} (hn : 0 < n) :
+  ∃ a b : ℕ, 0 < a ∧ 0 < b ∧ b ^ 2 * a = n ∧ squarefree a :=
 begin
   set S := {s ∈ range (n + 1) | s ∣ n ∧ ∃ x, s = x ^ 2 } with hS,
   have hSne : S.nonempty,
@@ -44,22 +44,22 @@ begin
   simp only [finset.sep_def, hS, finset.mem_filter, finset.mem_range] at hs,
   obtain ⟨hsn1, ⟨a, hsa⟩, ⟨b, hsb⟩⟩ := hs,
 
-  have ha_gt_zero : a > 0,
+  have hzero_lt_a : 0 < a,
   { rw hsa at hn,
-    rw [gt_iff_lt, zero_lt_iff] at hn ⊢,
+    rw zero_lt_iff at hn ⊢,
     exact right_ne_zero_of_mul hn },
-  have hs_gt_zero : s > 0,
+  have hzero_lt_s : 0 < s,
   { rw hsa at hn,
-    rw [gt_iff_lt, zero_lt_iff] at hn ⊢,
+    rw zero_lt_iff at hn ⊢,
     exact left_ne_zero_of_mul hn },
-  have hb_gt_zero : b > 0,
-  { rw [hsb, pow_two] at hs_gt_zero,
-    rw [gt_iff_lt, zero_lt_iff] at hs_gt_zero ⊢,
-    exact left_ne_zero_of_mul hs_gt_zero },
+  have hzero_lt_b : 0 < b,
+  { rw [hsb, pow_two] at hzero_lt_s,
+    rw zero_lt_iff at hzero_lt_s ⊢,
+    exact left_ne_zero_of_mul hzero_lt_s },
 
   rw hsb at hsa,
 
-  refine ⟨a, b, ha_gt_zero, hb_gt_zero, hsa.symm, _⟩,
+  refine ⟨a, b, hzero_lt_a, hzero_lt_b, hsa.symm, _⟩,
   intro x,
   by_contradiction,
   rw [decidable.not_imp, nat.is_unit_iff] at h,
@@ -67,16 +67,16 @@ begin
 
   have hx₀ : ¬(x = 0),
   { by_contradiction hx0,
-    rw [hy, hx0, zero_mul 0, zero_mul y] at ha_gt_zero,
-    exact nat.lt_asymm ha_gt_zero ha_gt_zero },
+    rw [hy, hx0, zero_mul 0, zero_mul y] at hzero_lt_a,
+    exact nat.lt_asymm hzero_lt_a hzero_lt_a },
 
   have hx₂ : x > 1 := nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hx₀, hx₁⟩,
 
   set z := (b * x) ^ 2 with hz,
   have hz₀ : z > s,
   { rw [hz, hsb, mul_pow b x 2, gt_iff_lt],
-    rw hsb at hs_gt_zero,
-    refine lt_mul_of_one_lt_right hs_gt_zero _,
+    rw hsb at hzero_lt_s,
+    refine lt_mul_of_one_lt_right hzero_lt_s _,
     rw pow_two, exact one_lt_mul' hx₂ hx₂ },
   have hz₁ : z ∣ n, { use y, rw [hsa, hy, hz], ring },
   have hz₂ : z ∈ S,
@@ -87,7 +87,7 @@ begin
   exact lt_le_antisymm hz₀ hz₃,
 end
 
-lemma sq_mul_squarefree' {n : ℕ} (h : n > 0) :
+lemma sq_mul_squarefree' {n : ℕ} (h : 0 < n) :
   ∃ a b : ℕ, (b + 1) ^ 2 * (a + 1) = n ∧ squarefree (a + 1) :=
 begin
   obtain ⟨a₁, b₁, ha₁, hb₁, hab₁, hab₂⟩ := sq_mul_squarefree h,
@@ -97,7 +97,7 @@ begin
   { rw [nat.add_one a₁.pred, nat.succ_pred_eq_of_pos ha₁], exact hab₂ },
 end
 
-lemma card_le_div_nat {n p : ℕ} {Np : finset ℕ} (hp : p > 0)
+lemma card_le_div_nat {n p : ℕ} {Np : finset ℕ} (hp : 0 < p)
   (hN : Np = {e ∈ range n | p ∣ (e + 1)}) : card Np ≤ n / p :=
 begin
   set f : ℕ → ℕ := λ e, (e + 1) / p - 1 with hf_def,
@@ -131,7 +131,7 @@ begin
   ...           = n / p                : card_range (n / p),
 end
 
-lemma card_le_div_real {n p : ℕ} {M : finset ℕ} (hp : p > 0)
+lemma card_le_div_real {n p : ℕ} {M : finset ℕ} (hp : 0 < p)
   (hM : M = {e ∈ range n | p ∣ (e + 1)}) : (card M : ℝ) ≤ n * (1 / p) :=
 begin
   set np := n / p,
@@ -144,9 +144,7 @@ end
 
 lemma card_eq_card_sdiff_add_card {A B : finset ℕ} (h : A ⊆ B) :
   (card B) = (card (B \ A)) + (card A) :=
-begin
-  exact (nat.sub_eq_iff_eq_add (card_le_of_subset h)).mp (eq.symm (card_sdiff h)),
-end
+(nat.sub_eq_iff_eq_add (card_le_of_subset h)).mp (eq.symm (card_sdiff h))
 
 lemma lemma1_not_hyp_imp_sum_lt_half
   (h : ¬ filter.tendsto (λ n, ∑ p in { p ∈ range n | nat.prime p }, (1 / (p : ℝ))) at_top at_top) :

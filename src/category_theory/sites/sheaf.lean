@@ -19,6 +19,23 @@ noting that the presheaf of sets "defined above" can be seen in the comments bet
 00VR on the page https://stacks.math.columbia.edu/tag/00VL. The advantage of this definition is
 that we need no assumptions whatsoever on `A` other than the assumption that the morphisms in `C`
 and `A` live in the same universe.
+
+* An `A`-valued presheaf `P : Cᵒᵖ ⥤ A` is defined to be a sheaf (for the topology `J`) iff for
+  every `X : A`, the type-valued presheaves of sets given by sending `U : Cᵒᵖ` to `Hom_{A}(X, P U)`
+  are all sheaves of sets, see `category_theory.presheaf.is_sheaf`.
+* When `A = Type`, this recovers the basic definition of sheaves of sets, see
+  `category_theory.is_sheaf_iff_is_sheaf_of_type`.
+* An alternate definition when `C` is small, has pullbacks and `A` has products is given by an
+  equalizer condition `category_theory.presheaf.is_sheaf'`. This is equivalent to the earlier
+  definition, shown in `category_theory.presheaf.is_sheaf_iff_is_sheaf'`.
+* When `A = Type`, this is *definitionally* equal to the equalizer condition for presieves in
+  `category_theory.sites.sheaf_of_types`.
+* When `A` has limits and there is a functor `s : A ⥤ Type` which is faithful, reflects isomorphisms
+  and preserves limits, then `P : C^op ⥤ A` is a sheaf iff the underlying presheaf of types
+  `P ⋙ s : C^op ⥤ Type` is a sheaf (`category_theory.presheaf.is_sheaf_iff_is_sheaf_forget`).
+  Cf https://stacks.math.columbia.edu/tag/0073, which is a weaker version of this statement (it's
+  only over spaces, not sites) and https://stacks.math.columbia.edu/tag/00YR (a), which
+  additionally assumes filtered colimits.
 -/
 
 universes v v' u' u
@@ -62,7 +79,7 @@ def Sheaf : Type* :=
 def Sheaf_to_presheaf : Sheaf J A ⥤ (Cᵒᵖ ⥤ A) :=
 full_subcategory_inclusion (presheaf.is_sheaf J)
 
-lemma Sheaf_iff_SheafOfTypes (P : Cᵒᵖ ⥤ Type v) :
+lemma is_sheaf_iff_is_sheaf_of_type (P : Cᵒᵖ ⥤ Type v) :
   presheaf.is_sheaf J P ↔ presieve.is_sheaf J P :=
 begin
   split,
@@ -89,10 +106,10 @@ The category of sheaves taking values in Type is the same as the category of set
 @[simps]
 def Sheaf_equiv_SheafOfTypes : Sheaf J (Type v) ≌ SheafOfTypes J :=
 { functor :=
-  { obj := λ S, ⟨S.1, (Sheaf_iff_SheafOfTypes _ _).1 S.2⟩,
+  { obj := λ S, ⟨S.1, (is_sheaf_iff_is_sheaf_of_type _ _).1 S.2⟩,
     map := λ S₁ S₂ f, f },
   inverse :=
-  { obj := λ S, ⟨S.1, (Sheaf_iff_SheafOfTypes _ _).2 S.2⟩,
+  { obj := λ S, ⟨S.1, (is_sheaf_iff_is_sheaf_of_type _ _).2 S.2⟩,
     map := λ S₁ S₂ f, f },
   unit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy),
   counit_iso := nat_iso.of_components (λ X, ⟨𝟙 _, 𝟙 _, by tidy, by tidy⟩) (by tidy) }

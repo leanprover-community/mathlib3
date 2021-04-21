@@ -56,7 +56,7 @@ lemma filter.tendsto.const_mul_at_top' (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, r * f x) l at_top :=
 begin
   apply tendsto_at_top.2 (λb, _),
-  obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
+  obtain ⟨n : ℕ, hn : 1 ≤ n • r⟩ := archimedean.arch 1 hr,
   rw nsmul_eq_mul' at hn,
   filter_upwards [tendsto_at_top.1 hf (n * max b 0)],
   assume x hx,
@@ -74,7 +74,7 @@ lemma filter.tendsto.at_top_mul_const' (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, f x * r) l at_top :=
 begin
   apply tendsto_at_top.2 (λb, _),
-  obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
+  obtain ⟨n : ℕ, hn : 1 ≤ n • r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ (n : R) * r, by rwa nsmul_eq_mul at hn,
   filter_upwards [tendsto_at_top.1 hf (max b 0 * n)],
   assume x hx,

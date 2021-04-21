@@ -75,6 +75,11 @@ assume x y, calc
   edist ((g ∘ f) x) ((g ∘ f) y) = edist (f x) (f y) : hg _ _
                             ... = edist x y : hf _ _
 
+/-- An isometry from a metric space is a uniform inducing map -/
+theorem isometry.uniform_inducing (hf : isometry f) :
+  uniform_inducing f :=
+hf.antilipschitz.uniform_inducing hf.lipschitz.uniform_continuous
+
 /-- An isometry from a metric space is a uniform embedding -/
 theorem isometry.uniform_embedding {α : Type u} {β : Type v} [emetric_space α]
   [pseudo_emetric_space β] {f : α → β} (hf : isometry f) :
@@ -109,15 +114,14 @@ by { rw ← image_univ, exact hf.ediam_image univ }
 lemma isometry_subtype_coe {s : set α} : isometry (coe : s → α) :=
 λx y, rfl
 
-lemma isometry.comp_continuous_on_iff {α : Type u} [emetric_space α] {f : α → β} {γ}
-  [topological_space γ] (hf : isometry f) {g : γ → α} {s : set γ} :
+lemma isometry.comp_continuous_on_iff {γ} [topological_space γ] (hf : isometry f) {g : γ → α}
+  {s : set γ} :
   continuous_on (f ∘ g) s ↔ continuous_on g s :=
-hf.uniform_embedding.to_uniform_inducing.inducing.continuous_on_iff.symm
+hf.uniform_inducing.inducing.continuous_on_iff.symm
 
-lemma isometry.comp_continuous_iff {α : Type u} [emetric_space α] {f : α → β} {γ}
-  [topological_space γ] (hf : isometry f) {g : γ → α} :
+lemma isometry.comp_continuous_iff {γ} [topological_space γ] (hf : isometry f) {g : γ → α} :
   continuous (f ∘ g) ↔ continuous g :=
-hf.uniform_embedding.to_uniform_inducing.inducing.continuous_iff.symm
+hf.uniform_inducing.inducing.continuous_iff.symm
 
 end emetric_isometry --section
 

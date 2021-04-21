@@ -218,7 +218,7 @@ protected lemma list_prod (f : ι → End α) (K : ι → ℝ≥0) (h : ∀ i, l
 protected lemma pow {f : End α} {K} (h : lipschitz_with K f) :
   ∀ n : ℕ, lipschitz_with (K^n) (f^n : End α)
 | 0       := lipschitz_with.id
-| (n + 1) := h.mul (pow n)
+| (n + 1) := by { rw [pow_succ, pow_succ], exact h.mul (pow n) }
 
 end emetric
 

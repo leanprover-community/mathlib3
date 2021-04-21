@@ -417,14 +417,14 @@ theorem finite_Union {ι : Type*} [fintype ι] {f : ι → set α} (H : ∀i, fi
 
 /-- A union of sets with `fintype` structure over a set with `fintype` structure has a `fintype`
 structure. -/
-def fintype_set_bUnion [decidable_eq α] {ι : Type*} {s : set ι} [fintype s]
+def fintype_bUnion [decidable_eq α] {ι : Type*} {s : set ι} [fintype s]
   (f : ι → set α) (H : ∀ i ∈ s, fintype (f i)) : fintype (⋃ i ∈ s, f i) :=
 by rw bUnion_eq_Union; exact
 @set.fintype_Union _ _ _ _ _ (by rintro ⟨i, hi⟩; exact H i hi)
 
-instance fintype_set_bUnion' [decidable_eq α] {ι : Type*} {s : set ι} [fintype s]
+instance fintype_bUnion' [decidable_eq α] {ι : Type*} {s : set ι} [fintype s]
   (f : ι → set α) [H : ∀ i, fintype (f i)] : fintype (⋃ i ∈ s, f i) :=
-fintype_set_bUnion _ (λ i _, H i)
+fintype_bUnion _ (λ i _, H i)
 
 theorem finite.sUnion {s : set (set α)} (h : finite s) (H : ∀t∈s, finite t) : finite (⋃₀ s) :=
 by rw sUnion_eq_Union; haveI := finite.fintype h;
@@ -433,6 +433,10 @@ by rw sUnion_eq_Union; haveI := finite.fintype h;
 theorem finite.bUnion {α} {ι : Type*} {s : set ι} {f : Π i ∈ s, set α} :
   finite s → (∀ i ∈ s, finite (f i ‹_›)) → finite (⋃ i∈s, f i ‹_›)
 | ⟨hs⟩ h := by rw [bUnion_eq_Union]; exactI finite_Union (λ i, h _ _)
+
+theorem finite_Union_Prop {p : Prop} {f : p → set α} (hf : ∀ h, finite (f h)) :
+  finite (⋃ h : p, f h) :=
+by by_cases p; simp *
 
 instance fintype_lt_nat (n : ℕ) : fintype {i | i < n} :=
 fintype.of_finset (finset.range n) $ by simp
@@ -461,26 +465,34 @@ by { rw ← image_prod, exact (hs.prod ht).image _ }
 
 /-- If `s : set α` is a set with `fintype` instance and `f : α → set β` is a function such that
 each `f a`, `a ∈ s`, has a `fintype` structure, then `s >>= f` has a `fintype` structure. -/
-def fintype_bUnion {α β} [decidable_eq β] (s : set α) [fintype s]
+def fintype_bind {α β} [decidable_eq β] (s : set α) [fintype s]
   (f : α → set β) (H : ∀ a ∈ s, fintype (f a)) : fintype (s >>= f) :=
-set.fintype_set_bUnion _ H
+set.fintype_bUnion _ H
 
-instance fintype_bUnion' {α β} [decidable_eq β] (s : set α) [fintype s]
+instance fintype_bind' {α β} [decidable_eq β] (s : set α) [fintype s]
   (f : α → set β) [H : ∀ a, fintype (f a)] : fintype (s >>= f) :=
-fintype_bUnion _ _ (λ i _, H i)
+fintype_bind _ _ (λ i _, H i)
 
-theorem finite_bUnion {α β} {s : set α} {f : α → set β} :
-  finite s → (∀ a ∈ s, finite (f a)) → finite (s >>= f)
-| ⟨hs⟩ H := ⟨@fintype_bUnion _ _ (classical.dec_eq β) _ hs _ (λ a ha, (H a ha).fintype)⟩
+theorem finite.bind {α β} {s : set α} {f : α → set β} (h : finite s) (hf : ∀ a ∈ s, finite (f a)) :
+  finite (s >>= f) :=
+h.bUnion hf
 
-instance fintype_seq {α β : Type u} [decidable_eq β]
+instance fintype_seq [decidable_eq β] (f : set (α → β)) (s : set α) [fintype f] [fintype s] :
+  fintype (f.seq s) :=
+by { rw seq_def, apply set.fintype_bUnion' }
+
+instance fintype_seq' {α β : Type u} [decidable_eq β]
   (f : set (α → β)) (s : set α) [fintype f] [fintype s] :
   fintype (f <*> s) :=
-by rw seq_eq_bind_map; apply set.fintype_bUnion'
+set.fintype_seq f s
 
-theorem finite.seq {α β : Type u} {f : set (α → β)} {s : set α} :
-  finite f → finite s → finite (f <*> s)
-| ⟨hf⟩ ⟨hs⟩ := by { haveI := classical.dec_eq β, exactI ⟨set.fintype_seq _ _⟩ }
+theorem finite.seq {f : set (α → β)} {s : set α} (hf : finite f) (hs : finite s) :
+  finite (f.seq s) :=
+by { rw seq_def, exact hf.bUnion (λ f _, hs.image _) }
+
+theorem finite.seq' {α β : Type u} {f : set (α → β)} {s : set α} (hf : finite f) (hs : finite s) :
+  finite (f <*> s) :=
+hf.seq hs
 
 /-- There are finitely many subsets of a given finite set -/
 lemma finite.finite_subsets {α : Type u} {a : set α} (h : finite a) : finite {b | b ⊆ a} :=
@@ -539,6 +551,17 @@ by { ext, rw [set.finite.mem_to_finset, mem_coe] }
 end finset
 
 namespace set
+
+/-- Finite product of finite sets is finite -/
+lemma finite.pi {δ : Type*} [fintype δ] {κ : δ → Type*} {t : Π d, set (κ d)}
+  (ht : ∀ d, (t d).finite) :
+  (pi univ t).finite :=
+begin
+  classical,
+  convert (fintype.pi_finset (λ d, (ht d).to_finset)).finite_to_set,
+  ext,
+  simp,
+end
 
 lemma finite_subset_Union {s : set α} (hs : finite s)
   {ι} {t : ι → set α} (h : s ⊆ ⋃ i, t i) : ∃ I : set ι, finite I ∧ s ⊆ ⋃ i ∈ I, t i :=
@@ -767,3 +790,22 @@ protected lemma bdd_below [semilattice_inf α] [nonempty α] (s : finset α) :
 s.finite_to_set.bdd_below
 
 end finset
+
+namespace fintype
+variables [fintype α] {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+
+@[simp]
+lemma card_subtype_compl : fintype.card {x // ¬ p x} = fintype.card α - fintype.card {x // p x} :=
+begin
+  classical,
+  rw [fintype.card_of_subtype (set.to_finset pᶜ), set.to_finset_compl p, finset.card_compl,
+      fintype.card_of_subtype (set.to_finset p)];
+    intros; simp; refl
+end
+
+/-- If two subtypes of a fintype have equal cardinality, so do their complements. -/
+lemma card_compl_eq_card_compl (h : fintype.card {x // p x} = fintype.card {x // q x}) :
+  fintype.card {x // ¬ p x} = fintype.card {x // ¬ q x} :=
+by simp only [card_subtype_compl, h]
+
+end fintype

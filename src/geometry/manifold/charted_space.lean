@@ -489,7 +489,7 @@ atlas members are just the identity -/
 by simp [atlas, charted_space.atlas]
 
 /-- In the model space, chart_at is always the identity -/
-@[simp, mfld_simps] lemma chart_at_self_eq {H : Type*} [topological_space H] {x : H} :
+lemma chart_at_self_eq {H : Type*} [topological_space H] {x : H} :
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
@@ -815,34 +815,65 @@ end maximal_atlas
 
 section singleton
 variables {α : Type*} [topological_space α]
-variables (e : local_homeomorph α H)
+
+namespace local_homeomorph
+
+variable (e : local_homeomorph α H)
 
 /-- If a single local homeomorphism `e` from a space `α` into `H` has source covering the whole
 space `α`, then that local homeomorphism induces an `H`-charted space structure on `α`.
 (This condition is equivalent to `e` being an open embedding of `α` into `H`; see
-`local_homeomorph.to_open_embedding` and `open_embedding.to_local_homeomorph`.) -/
+`open_embedding.singleton_charted_space`.) -/
 def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
 { atlas := {e},
   chart_at := λ _, e,
   mem_chart_source := λ _, by simp only [h] with mfld_simps,
   chart_mem_atlas := λ _, by tauto }
 
-lemma singleton_charted_space_one_chart (h : e.source = set.univ) (e' : local_homeomorph α H)
-  (h' : e' ∈ (singleton_charted_space e h).atlas) : e' = e := h'
+@[simp, mfld_simps] lemma singleton_charted_space_chart_at_eq (h : e.source = set.univ) {x : α} :
+  @chart_at H _ α _ (e.singleton_charted_space h) x = e := rfl
+
+lemma singleton_charted_space_chart_at_source
+  (h : e.source = set.univ) {x : α} :
+  (@chart_at H _ α _ (e.singleton_charted_space h) x).source = set.univ := h
+
+lemma singleton_charted_space_mem_atlas_eq (h : e.source = set.univ)
+  (e' : local_homeomorph α H) (h' : e' ∈ (e.singleton_charted_space h).atlas) : e' = e := h'
 
 /-- Given a local homeomorphism `e` from a space `α` into `H`, if its source covers the whole
 space `α`, then the induced charted space structure on `α` is `has_groupoid G` for any structure
 groupoid `G` which is closed under restrictions. -/
 lemma singleton_has_groupoid (h : e.source = set.univ) (G : structure_groupoid H)
-  [closed_under_restriction G] : @has_groupoid _ _ _ _ (singleton_charted_space e h) G :=
+  [closed_under_restriction G] : @has_groupoid _ _ _ _ (e.singleton_charted_space h) G :=
 { compatible := begin
     intros e' e'' he' he'',
-    rw singleton_charted_space_one_chart e h e' he',
-    rw singleton_charted_space_one_chart e h e'' he'',
+    rw e.singleton_charted_space_mem_atlas_eq h e' he',
+    rw e.singleton_charted_space_mem_atlas_eq h e'' he'',
     refine G.eq_on_source _ e.trans_symm_self,
     have hle : id_restr_groupoid ≤ G := (closed_under_restriction_iff_id_le G).mp (by assumption),
     exact structure_groupoid.le_iff.mp hle _ (id_restr_groupoid_mem _),
   end }
+
+end local_homeomorph
+
+namespace open_embedding
+
+variable [nonempty α]
+
+/-- An open embedding of `α` into `H` induces an `H`-charted space structure on `α`.
+See `local_homeomorph.singleton_charted_space` -/
+def singleton_charted_space {f : α → H} (h : open_embedding f) :
+  charted_space H α := (h.to_local_homeomorph f).singleton_charted_space (by simp)
+
+lemma singleton_charted_space_chart_at_eq {f : α → H} (h : open_embedding f) {x : α} :
+  ⇑(@chart_at H _ α _ (h.singleton_charted_space) x) = f := rfl
+
+lemma singleton_has_groupoid {f : α → H} (h : open_embedding f)
+  (G : structure_groupoid H) [closed_under_restriction G] :
+  @has_groupoid _ _ _ _ h.singleton_charted_space G :=
+(h.to_local_homeomorph f).singleton_has_groupoid (by simp) G
+
+end open_embedding
 
 end singleton
 

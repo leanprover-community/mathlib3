@@ -104,7 +104,7 @@ lemma exact_epi_comp [exact g h] [epi f] : exact (f ≫ g) h :=
 begin
   fsplit,
   convert (exact.image_eq_kernel g h) using 1,
-
+  sorry,
 end
 
 lemma exact_comp_mono [exact f g] [mono h] : exact f (g ≫ h) :=

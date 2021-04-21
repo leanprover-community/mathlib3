@@ -129,6 +129,7 @@ rfl
   (to_dfinsupp_add_equiv : (ι →₀ M) ≃+ (Π₀ i : ι, M)).symm f =
     (to_dfinsupp : (ι →₀ M) ≃ (Π₀ i : ι, M)).symm f :=
 by convert rfl  -- there are `decidable` instances to unify in the result
+
 end add_equiv
 
 section linear_equiv
@@ -160,5 +161,3 @@ to_dfinsupp_add_equiv_symm_apply f
 end linear_equiv
 
 end finsupp
-
-#check dfinsupp.mem_support_iff

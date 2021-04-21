@@ -129,7 +129,7 @@ An auxiliary declaration to speed up typechecking.
 -/
 def forget₂_Module_preserves_limits_aux (F : J ⥤ Algebra R) :
   is_limit ((forget₂ (Algebra R) (Module R)).map_cone (limit_cone F)) :=
-by convert Module.has_limits.limit_cone_is_limit (F ⋙ forget₂ (Algebra R) (Module R))
+by apply Module.has_limits.limit_cone_is_limit (F ⋙ forget₂ (Algebra R) (Module R))
 
 /--
 The forgetful functor from R-algebras to R-modules preserves all limits.

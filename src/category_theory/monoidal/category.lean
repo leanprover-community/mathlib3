@@ -315,9 +315,12 @@ lemma unitors_equal : (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ C)).hom :=
 by rw [←tensor_left_iff, ←cancel_epi (α_ (𝟙_ C) (𝟙_ _) (𝟙_ _)).hom, ←cancel_mono (ρ_ (𝟙_ C)).hom,
        triangle, ←right_unitor_tensor, right_unitor_naturality]
 
+<<<<<<< HEAD
 lemma unitors_inv_equal : (λ_ (𝟙_ C)).inv = (ρ_ (𝟙_ C)).inv :=
 by { ext, simp [←unitors_equal], }
 
+=======
+>>>>>>> origin/master
 @[simp, reassoc]
 lemma hom_inv_id_tensor {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
   (f.hom ⊗ g) ≫ (f.inv ⊗ h) = 𝟙 V ⊗ (g ≫ h) :=

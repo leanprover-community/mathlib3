@@ -614,10 +614,12 @@ by induction l; [refl, simp only [*, reverse_cons, mem_append, mem_singleton, me
 eq_repeat.2 ⟨by simp only [length_reverse, length_repeat],
   λ b h, eq_of_mem_repeat (mem_reverse.1 h)⟩
 
-/-! ### is_nil -/
+/-! ### empty -/
 
-lemma is_nil_iff_eq_nil {l : list α} : l.is_nil ↔ l = [] :=
-list.cases_on l (by simp [is_nil]) (by simp [is_nil])
+attribute [simp] list.empty
+
+lemma empty_iff_eq_nil {l : list α} : l.empty ↔ l = [] :=
+list.cases_on l (by simp) (by simp)
 
 /-! ### init -/
 

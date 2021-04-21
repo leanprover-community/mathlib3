@@ -754,6 +754,12 @@ theorem forall_not_of_sep_empty {s : set α} {p : α → Prop} (H : {x ∈ s | p
 @[simp] lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
 iff.rfl
 
+@[simp] lemma sep_true : {a ∈ s | true} = s :=
+by { ext, simp }
+
+@[simp] lemma sep_false : {a ∈ s | false} = ∅ :=
+by { ext, simp }
+
 /-! ### Lemmas about complement -/
 
 theorem mem_compl {s : set α} {x : α} (h : x ∉ s) : x ∈ sᶜ := h
@@ -1783,9 +1789,17 @@ begin
     rw [hz x hx, hz y hy] }
 end
 
-@[simp] lemma pairwise_on_empty {α} (r : α → α → Prop) :
+protected lemma subsingleton.pairwise_on (h : s.subsingleton) (r : α → α → Prop) :
+  pairwise_on s r :=
+λ x hx y hy hne, (hne (h hx hy)).elim
+
+@[simp] lemma pairwise_on_empty (r : α → α → Prop) :
   (∅ : set α).pairwise_on r :=
-λ _, by simp
+subsingleton_empty.pairwise_on r
+
+@[simp] lemma pairwise_on_singleton (a : α) (r : α → α → Prop) :
+  pairwise_on {a} r :=
+subsingleton_singleton.pairwise_on r
 
 lemma pairwise_on_insert_of_symmetric {α} {s : set α} {a : α} {r : α → α → Prop}
   (hr : symmetric r) :

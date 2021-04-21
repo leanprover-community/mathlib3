@@ -103,6 +103,14 @@ begin
   simpa [sum_range_choose_halfway n] using t
 end
 
+lemma four_pow_le_two_mul_add_one_mul_central_binom (n : ℕ) :
+  4 ^ n ≤ (2 * n + 1) * choose (2 * n) n :=
+calc 4 ^ n = (1 + 1) ^ (2 * n) : by norm_num [pow_mul]
+...        = ∑ m in range (2 * n + 1), choose (2 * n) m : by simp [add_pow]
+...        ≤ ∑ m in range (2 * n + 1), choose (2 * n) (2 * n / 2) :
+  sum_le_sum (λ i hi, choose_le_middle i (2 * n))
+...        = (2 * n + 1) * choose (2 * n) n : by simp
+
 end nat
 
 theorem int.alternating_sum_range_choose {n : ℕ} :

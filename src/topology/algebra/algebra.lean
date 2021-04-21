@@ -90,10 +90,10 @@ lemma subalgebra.topological_closure_minimal
 closure_minimal h ht
 
 /--
-This is really a statement about topological algebra isomorphisms, but we don't have those,
-so we use the clunky approach of talking about
-an algebra homomorphism, and a separate homeomorphism, along with
-a witness that as functions they are the same.
+This is really a statement about topological algebra isomorphisms,
+but we don't have those, so we use the clunky approach of talking about
+an algebra homomorphism, and a separate homeomorphism,
+along with a witness that as functions they are the same.
 -/
 lemma subalgebra.topological_closure_comap'_homeomorph
   (s : subalgebra R A)
@@ -103,7 +103,7 @@ lemma subalgebra.topological_closure_comap'_homeomorph
 begin
   apply set_like.ext',
   simp only [subalgebra.topological_closure_coe],
-  simp only [subalgebra.coe_comap', subsemiring.coe_comap, alg_hom.coe_to_ring_hom],
+  simp only [subalgebra.coe_comap, subsemiring.coe_comap, alg_hom.coe_to_ring_hom],
   rw [w],
   exact f'.preimage_closure _,
 end

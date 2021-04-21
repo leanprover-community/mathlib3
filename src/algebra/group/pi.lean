@@ -38,7 +38,7 @@ instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
 tactic.pi_instance_derive_field
 
--- This doesn't work as a `@[simp]` lemma as there is nothing to index on.
+@[simp]
 lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n :=
 begin
   induction n with n ih,
@@ -137,7 +137,7 @@ end pi
 
 section monoid_hom
 
-variables (f) [Π i, monoid (f i)]
+variables (f) [Π i, mul_one_class (f i)]
 
 /-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
 homomorphism. -/

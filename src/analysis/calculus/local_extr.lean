@@ -64,7 +64,7 @@ universes u v
 open filter set
 open_locale topological_space classical
 
-section vector_space
+section module
 
 variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {a : E}
   {f' : E →L[ℝ] ℝ}
@@ -223,7 +223,7 @@ h.elim is_local_min.has_fderiv_at_eq_zero is_local_max.has_fderiv_at_eq_zero
 lemma is_local_extr.fderiv_eq_zero (h : is_local_extr f a) : fderiv ℝ f a = 0 :=
 h.elim is_local_min.fderiv_eq_zero is_local_max.fderiv_eq_zero
 
-end vector_space
+end module
 
 section real
 

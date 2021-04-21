@@ -71,8 +71,9 @@ by refine_struct
   inv := iso.symm,
   mul := flip iso.trans,
   div := _,
-  npow := @npow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ };
-intros; ext; try { refl };
+  npow := @npow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩,
+  gpow := @gpow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ ⟨iso.symm⟩ };
+intros; try { refl }; ext;
 simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
   has_inv.inv]
 
@@ -94,7 +95,7 @@ namespace functor
 variables {D : Type u'} [category.{v'} D] (f : C ⥤ D) (X)
 
 /-- `f.map` as a monoid hom between endomorphism monoids. -/
-def map_End : End X →* End (f.obj X) :=
+@[simps] def map_End : End X →* End (f.obj X) :=
 { to_fun := functor.map f,
   map_mul' := λ x y, f.map_comp y x,
   map_one' := f.map_id X }

@@ -18,7 +18,7 @@ proof that all free modules are projective.
 
 ## Main definitions
 
-Let `R` be a ring (or a semiring) and let `M` be an `R`-module (or a semimodule).
+Let `R` be a ring (or a semiring) and let `M` be an `R`-module.
 
 * `is_projective R M` : the proposition saying that `M` is a projective `R`-module.
 
@@ -39,8 +39,8 @@ from the free R-module on the type M down to M splits. This is more convenient
 than certain other definitions which involve quantifying over universes,
 and also universe-polymorphic (the ring and module can be in different universes).
 
-Everything works for semirings and semimodules except that apparently
-we don't have free semimodules, so here we stick to rings.
+Everything works for semirings and modules except that apparently
+we don't have free modules over semirings, so here we stick to rings.
 
 ## References
 
@@ -68,15 +68,15 @@ universes u v
   if maps from the module lift along surjections. There are several other equivalent
   definitions. -/
 def is_projective
-  (R : Type u) [semiring R] (P : Type v) [add_comm_monoid P] [semimodule R P] : Prop :=
+  (R : Type u) [semiring R] (P : Type v) [add_comm_monoid P] [module R P] : Prop :=
 ∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s
 
 namespace is_projective
 
 section semiring
 
-variables {R : Type u} [semiring R] {P : Type v} [add_comm_monoid P] [semimodule R P]
-  {M : Type*} [add_comm_group M] [semimodule R M] {N : Type*} [add_comm_group N] [semimodule R N]
+variables {R : Type u} [semiring R] {P : Type v} [add_comm_monoid P] [module R P]
+  {M : Type*} [add_comm_group M] [module R M] {N : Type*} [add_comm_group N] [module R N]
 
 /-- A projective R-module has the property that maps from it lift along surjections. -/
 theorem lifting_property (h : is_projective R P) (f : M →ₗ[R] N) (g : P →ₗ[R] N)
@@ -104,11 +104,11 @@ end
 /-- A module which satisfies the universal property is projective. Note that the universe variables
 in `huniv` are somewhat restricted. -/
 theorem of_lifting_property {R : Type u} [semiring R]
-  {P : Type v} [add_comm_monoid P] [semimodule R P]
+  {P : Type v} [add_comm_monoid P] [module R P]
   -- If for all surjections of `R`-modules `M →ₗ N`, all maps `P →ₗ N` lift to `P →ₗ M`,
   (huniv : ∀ {M : Type (max v u)} {N : Type v} [add_comm_monoid M] [add_comm_monoid N],
     by exactI
-    ∀ [semimodule R M] [semimodule R N],
+    ∀ [module R M] [module R N],
     by exactI
     ∀ (f : M →ₗ[R] N) (g : P →ₗ[R] N),
   function.surjective f → ∃ (h : P →ₗ[R] M), f.comp h = g) :

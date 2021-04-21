@@ -1042,15 +1042,15 @@ succ_succ_above_zero 0
 simplification using `succ_above_zero` or `succ_succ_above_zero`. -/
 @[simp] lemma succ_succ_above_one {n : ℕ} (i : fin (n + 2)) :
   (i.succ).succ_above 1 = (i.succ_above 0).succ :=
-by rw [← succ_zero_eq_one, succ_succ_above_succ]
+succ_succ_above_succ i 0
 
 @[simp] lemma one_succ_above_succ {n : ℕ} (j : fin n) :
   (1 : fin (n + 2)).succ_above j.succ = j.succ.succ :=
-by rw [← succ_zero_eq_one, succ_succ_above_succ 0 j, succ_above_zero]
+succ_succ_above_succ 0 j
 
 @[simp] lemma one_succ_above_one {n : ℕ} :
   (1 : fin (n + 3)).succ_above 1 = 2 :=
-succ_above_above _ _ (le_refl 1)
+succ_succ_above_succ 0 0
 
 end succ_above
 

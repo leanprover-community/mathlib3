@@ -42,6 +42,14 @@ lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := 
 
 @[ext] theorem ext {S T : subalgebra R A} (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
+/-- Copy of a submodule with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) : subalgebra R A :=
+{ carrier := s,
+  add_mem' := hs.symm ▸ S.add_mem',
+  mul_mem' := hs.symm ▸ S.mul_mem',
+  algebra_map_mem' := hs.symm ▸ S.algebra_map_mem' }
+
 variables (S : subalgebra R A)
 
 theorem algebra_map_mem (r : R) : algebra_map R A r ∈ S :=
@@ -82,12 +90,13 @@ theorem sub_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) {x y : A} (hx : x ∈ S) (hy : y ∈ S) : x - y ∈ S :=
 by simpa only [sub_eq_add_neg] using S.add_mem hx (S.neg_mem hy)
 
-theorem nsmul_mem {x : A} (hx : x ∈ S) (n : ℕ) : n •ℕ x ∈ S :=
+theorem nsmul_mem {x : A} (hx : x ∈ S) (n : ℕ) : n • x ∈ S :=
 S.to_subsemiring.nsmul_mem hx n
 
 theorem gsmul_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
-  [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) (n : ℤ) : n •ℤ x ∈ S :=
-int.cases_on n (λ i, S.nsmul_mem hx i) (λ i, S.neg_mem $ S.nsmul_mem hx _)
+  [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) : ∀ (n : ℤ), n • x ∈ S
+| (n : ℕ) := by { rw [gsmul_coe_nat], exact S.nsmul_mem hx n }
+| -[1+ n] := by { rw [gsmul_neg_succ_of_nat], exact S.neg_mem (S.nsmul_mem hx _) }
 
 theorem coe_nat_mem (n : ℕ) : (n : A) ∈ S :=
 S.to_subsemiring.coe_nat_mem n

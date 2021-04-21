@@ -94,6 +94,12 @@ lemma mem_carrier {s : subfield K} {x : K} : x ∈ s.carrier ↔ x ∈ s := iff.
 /-- Two subfields are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subfield K} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
+/-- Copy of a submodule with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
+{ carrier := s,
+  inv_mem' := hs.symm ▸ S.inv_mem',
+  ..S.to_subring.copy s hs }
 
 @[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=
 rfl
@@ -171,7 +177,7 @@ s.to_add_subgroup.sum_mem h
 lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
 lemma gsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
-  n •ℤ x ∈ s := s.to_add_subgroup.gsmul_mem hx n
+  n • x ∈ s := s.to_add_subgroup.gsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
 by simp only [← gsmul_one, gsmul_mem, one_mem]

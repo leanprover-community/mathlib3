@@ -203,12 +203,12 @@ theorem of_one_div (h : irrational (1 / x)) : irrational x :=
 of_rat_div 1 $ by rwa [cast_one]
 
 theorem of_pow : ∀ n : ℕ, irrational (x^n) → irrational x
-| 0 := λ h, (h ⟨1, cast_one⟩).elim
-| (n+1) := λ h, h.mul_cases.elim id (of_pow n)
+| 0 := λ h, by { rw pow_zero at h, exact (h ⟨1, cast_one⟩).elim }
+| (n+1) := λ h, by { rw pow_succ at h, exact h.mul_cases.elim id (of_pow n) }
 
 theorem of_fpow : ∀ m : ℤ, irrational (x^m) → irrational x
 | (n:ℕ) := of_pow n
-| -[1+n] := λ h, by { rw fpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
+| -[1+n] := λ h, by { rw gpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
 
 end irrational
 

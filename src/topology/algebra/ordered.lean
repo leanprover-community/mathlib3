@@ -1717,7 +1717,7 @@ tendsto_inv_zero_at_top.comp h
 A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
 lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
 tendsto.congr (λ x, (fpow_neg x n).symm)
-  (filter.tendsto.inv_tendsto_at_top (tendsto_pow_at_top hn))
+  (filter.tendsto.inv_tendsto_at_top (by simpa [gpow_coe_nat] using tendsto_pow_at_top hn))
 
 lemma tendsto_fpow_at_top_zero {n : ℤ} (hn : n < 0) :
   tendsto (λ x : α, x^n) at_top (𝓝 0) :=
@@ -2526,15 +2526,20 @@ end
 
 variables {δ : Type*} [linear_order δ] [topological_space δ] [order_closed_topology δ]
 
-/--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
+/-- Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
 lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f a) (f b) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf
 
-/--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
+/-- Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
 lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f b) (f a) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
+
+/-- Intermediate Value Theorem for continuous functions on closed intervals, unordered case. -/
+lemma intermediate_value_interval {a b : α} {f : α → δ} (hf : continuous_on f (interval a b)) :
+  interval (f a) (f b) ⊆ f '' interval a b :=
+by cases le_total (f a) (f b); simp [*, is_preconnected_interval.intermediate_value]
 
 lemma intermediate_value_Ico {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Ico (f a) (f b) ⊆ f '' (Ico a b) :=

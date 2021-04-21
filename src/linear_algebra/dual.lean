@@ -292,12 +292,16 @@ begin
   apply_instance
 end
 
+variables (K V)
+
 /-- A vector space is linearly equivalent to the dual of its dual space. -/
 def eval_equiv [finite_dimensional K V] : V ≃ₗ[K] dual K (dual K V) :=
 linear_equiv.of_bijective (eval K V) eval_ker (erange_coe)
 
-lemma eval_equiv_to_linear_map [finite_dimensional K V] :
-  eval_equiv.to_linear_map = dual.eval K V := rfl
+variables {K V}
+
+@[simp] lemma eval_equiv_to_linear_map [finite_dimensional K V] :
+  (eval_equiv K V).to_linear_map = dual.eval K V := rfl
 
 end vector_space
 

@@ -146,7 +146,7 @@ class compatible_smul (R S : Type*) [semiring S] [has_scalar R M]
 variables {M M₂}
 
 @[priority 100]
-instance compatible_smul.is_scalar_tower
+instance is_scalar_tower.compatible_smul
   {R S : Type*} [semiring S] [has_scalar R S]
   [has_scalar R M] [semimodule S M] [is_scalar_tower R S M]
   [has_scalar R M₂] [semimodule S M₂] [is_scalar_tower R S M₂] : compatible_smul M M₂ R S :=
@@ -250,13 +250,12 @@ instance : is_add_group_hom f :=
 { map_add := map_add f }
 
 instance compatible_smul.int_module
-  {S : Type*} [semiring S] [semimodule ℤ M]
-  [semimodule S M] [semimodule ℤ M₂] [semimodule S M₂] : compatible_smul M M₂ ℤ S :=
+  {S : Type*} [semiring S] [semimodule S M] [semimodule S M₂] : compatible_smul M M₂ ℤ S :=
 ⟨λ f c x, begin
   induction c using int.induction_on,
   case hz : { simp },
-  case hp : n ih { simpa [add_smul] using ih },
-  case hn : n ih { simpa [sub_smul] using ih }
+  case hp : n ih { simp [add_smul, ih] },
+  case hn : n ih { simp [sub_smul, ih] }
 end⟩
 
 end add_comm_group

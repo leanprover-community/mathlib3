@@ -148,16 +148,15 @@ lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c 
   ∑ i in t, f i ∈ S :=
 S.to_subfield.sum_mem h
 
-lemma pow_mem {x : L} (hx : x ∈ S) (n : ℤ) : x^n ∈ S :=
-begin
-  cases n,
-  { exact @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx n, },
-  { have h := @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx _,
-    exact subfield.inv_mem S.to_subfield h, },
-end
+lemma pow_mem {x : L} (hx : x ∈ S) : ∀ (n : ℤ), x^n ∈ S
+| (n : ℕ) := by { rw gpow_coe_nat,
+    exact @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx n, }
+| -[1+ n] := by { rw [gpow_neg_succ_of_nat],
+    have h := @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx _,
+    exact subfield.inv_mem S.to_subfield h }
 
 lemma gsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :
-  n •ℤ x ∈ S := S.to_subfield.gsmul_mem hx n
+  n • x ∈ S := S.to_subfield.gsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : L) ∈ S :=
 by simp only [← gsmul_one, gsmul_mem, one_mem]
@@ -202,7 +201,11 @@ S.to_subfield.to_field
 @[simp, norm_cast] lemma coe_zero : ((0 : S) : L) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : S) : L) = 1 := rfl
 @[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x ^ n) : L) = ↑x ^ n :=
-@nat.rec (λ n, (↑(x ^ n) : L) = ↑x ^ n) rfl (λ _ h, congr_arg (has_mul.mul ↑x) h) n
+begin
+  induction n with n ih,
+  { simp },
+  { simp [pow_succ, ih] }
+end
 
 instance algebra : algebra K S :=
 S.to_subalgebra.algebra

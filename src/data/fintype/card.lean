@@ -241,9 +241,12 @@ lemma fintype.sum_pow_mul_eq_add_pow
 finset.sum_pow_mul_eq_add_pow _ _ _
 
 lemma fin.sum_pow_mul_eq_add_pow {n : ℕ} {R : Type*} [comm_semiring R] (a b : R) :
-  ∑ s : finset (fin n), a ^ s.card * b ^ (n - s.card) =
-  (a + b) ^ n :=
+  ∑ s : finset (fin n), a ^ s.card * b ^ (n - s.card) = (a + b) ^ n :=
 by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
+
+lemma fin.prod_const [comm_monoid α] (n : ℕ) (x : α) : ∏ i : fin n, x = x ^ n := by simp
+
+lemma fin.sum_const [add_comm_monoid α] (n : ℕ) (x : α) : ∑ i : fin n, x = n • x := by simp
 
 @[to_additive]
 lemma function.bijective.prod_comp [fintype α] [fintype β] [comm_monoid γ] {f : α → β}
@@ -381,18 +384,18 @@ begin
 end
 
 lemma alternating_sum_eq_finset_sum {G : Type*} [add_comm_group G] :
-  ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.is_lt
+  ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.is_lt
 | [] := by { rw [alternating_sum, finset.sum_eq_zero], rintro ⟨i, ⟨⟩⟩ }
 | (g :: []) :=
 begin
-  show g = ∑ i : fin 1, (-1 : ℤ) ^ (i : ℕ) •ℤ [g].nth_le i i.2,
+  show g = ∑ i : fin 1, (-1 : ℤ) ^ (i : ℕ) • [g].nth_le i i.2,
   rw [fin.sum_univ_succ], simp,
 end
 | (g :: h :: L) :=
 calc g + -h + L.alternating_sum
-    = g + -h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2 :
+    = g + -h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.2 :
       congr_arg _ (alternating_sum_eq_finset_sum _)
-... = ∑ i : fin (L.length + 2), (-1 : ℤ) ^ (i : ℕ) •ℤ list.nth_le (g :: h :: L) i _ :
+... = ∑ i : fin (L.length + 2), (-1 : ℤ) ^ (i : ℕ) • list.nth_le (g :: h :: L) i _ :
 begin
   rw [fin.sum_univ_succ, fin.sum_univ_succ, add_assoc],
   unfold_coes,

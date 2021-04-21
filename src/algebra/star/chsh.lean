@@ -162,28 +162,6 @@ local notation `√2` := (real.sqrt 2 : ℝ)
 
 namespace tsirelson_inequality
 
-/-!
-We next need some lemmas about numerals in modules and algebras.
-The awkward appearance of both `•ℤ` and `•` seems unavoidable because later calculations by `abel`
-will introduce `•ℤ`.
-If anyone sees how to obtain these from general statements, please improve this!
--/
-
-lemma two_gsmul_half_smul {α : Type*} [add_comm_group α] [module ℝ α] {X : α} :
-  2 •ℤ (2⁻¹ : ℝ) • X = X :=
-by { rw [gsmul_eq_smul_cast ℝ, ←mul_smul]; norm_num, }
-
-lemma neg_two_gsmul_half_smul {α : Type*} [add_comm_group α] [module ℝ α] {X : α} :
-  (-2) •ℤ (2⁻¹ : ℝ) • X = - X :=
-by { rw [gsmul_eq_smul_cast ℝ, ←mul_smul]; norm_num, }
-
-lemma smul_two {α : Type*} [ring α] [algebra ℝ α] {x : ℝ} :
-  x • (2 : α) = (2 * x) • 1 :=
-by { rw [mul_comm 2 x, mul_smul], simp, }
-
-lemma smul_four {α : Type*} [ring α] [algebra ℝ α] {x : ℝ} :
-  x • (4 : α) = (4 * x) • 1 :=
-by { rw [mul_comm 4 x, mul_smul], simp, }
 
 /-!
 Before proving Tsirelson's bound,
@@ -225,6 +203,9 @@ lemma tsirelson_inequality
   (A₀ A₁ B₀ B₁ : R) (T : is_CHSH_tuple A₀ A₁ B₀ B₁) :
   A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ √2^3 • 1 :=
 begin
+  -- abel will create `ℤ` multiplication. We will `simp` them away to `ℝ` multiplication.
+  have M : ∀ (m : ℤ) (a : ℝ) (x : R), m • a • x = ((m : ℝ) * a) • x :=
+    λ m a x, by rw [gsmul_eq_smul_cast ℝ, ← mul_smul],
   let P := √2⁻¹ • (A₁ + A₀) - B₀,
   let Q := √2⁻¹ • (A₁ - A₀) + B₁,
   have w : √2^3 • 1 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁ = √2⁻¹ • (P^2 + Q^2),
@@ -239,13 +220,10 @@ begin
     simp only [←T.A₀B₀_commutes, ←T.A₀B₁_commutes, ←T.A₁B₀_commutes, ←T.A₁B₁_commutes],
     -- collect terms, simplify coefficients, and collect terms again:
     abel,
-    simp only [two_gsmul_half_smul, neg_two_gsmul_half_smul],
-    abel,
-    -- these are identical, except the `_ • 1` terms don't quite match up
-    congr,
-    -- collect terms by hand, as we don't have an analogue of `abel` for modules
-    simp only [mul_one, int.cast_bit0, algebra.mul_smul_comm, int.cast_one, gsmul_eq_mul],
-    rw [smul_two, smul_four, ←add_smul],
+    -- all terms coincide, but the last one. Simplify all other terms
+    simp only [M],
+    simp only [neg_mul_eq_neg_mul_symm, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,
+      int.cast_one, one_smul, int.cast_neg, add_right_inj, neg_smul, ← add_smul],
     -- just look at the coefficients now:
     congr,
     exact mul_left_cancel' (by norm_num) tsirelson_inequality_aux, },

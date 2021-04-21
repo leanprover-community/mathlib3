@@ -648,7 +648,7 @@ begin
     simp },
   rcases list.length_eq_one.1 h with ⟨x, hx⟩,
   rw [← prod_factors n.succ_pos, hx, list.prod_singleton],
-  apply mem_factors,
+  apply prime_of_mem_factors,
   rw [hx, list.mem_singleton]
 end
 
@@ -841,7 +841,7 @@ begin
   apply forall_congr,
   intro a,
   apply imp_congr (iff.refl _) (eq.congr_left (sum_congr rfl (λ x hx, _))),
-  rw [←gsmul_eq_smul, gsmul_eq_mul],
+  rw [gsmul_eq_mul],
 end
 
 /-- Möbius inversion for functions to a `comm_group`. -/

@@ -754,6 +754,12 @@ theorem forall_not_of_sep_empty {s : set α} {p : α → Prop} (H : {x ∈ s | p
 @[simp] lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
 iff.rfl
 
+@[simp] lemma sep_true : {a ∈ s | true} = s :=
+by { ext, simp }
+
+@[simp] lemma sep_false : {a ∈ s | false} = ∅ :=
+by { ext, simp }
+
 /-! ### Lemmas about complement -/
 
 theorem mem_compl {s : set α} {x : α} (h : x ∉ s) : x ∈ sᶜ := h
@@ -1783,9 +1789,17 @@ begin
     rw [hz x hx, hz y hy] }
 end
 
-@[simp] lemma pairwise_on_empty {α} (r : α → α → Prop) :
+protected lemma subsingleton.pairwise_on (h : s.subsingleton) (r : α → α → Prop) :
+  pairwise_on s r :=
+λ x hx y hy hne, (hne (h hx hy)).elim
+
+@[simp] lemma pairwise_on_empty (r : α → α → Prop) :
   (∅ : set α).pairwise_on r :=
-λ _, by simp
+subsingleton_empty.pairwise_on r
+
+@[simp] lemma pairwise_on_singleton (a : α) (r : α → α → Prop) :
+  pairwise_on {a} r :=
+subsingleton_singleton.pairwise_on r
 
 lemma pairwise_on_insert_of_symmetric {α} {s : set α} {a : α} {r : α → α → Prop}
   (hr : symmetric r) :
@@ -2182,9 +2196,9 @@ end prod
 section pi
 variables {ι : Type*} {α : ι → Type*} {s s₁ : set ι} {t t₁ t₂ : Π i, set (α i)}
 
-/-- Given an index set `i` and a family of sets `s : Π i, set (α i)`, `pi i s`
-is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `s a`
-whenever `a ∈ i`. -/
+/-- Given an index set `ι` and a family of sets `t : Π i, set (α i)`, `pi s t`
+is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `t a`
+whenever `a ∈ s`. -/
 def pi (s : set ι) (t : Π i, set (α i)) : set (Π i, α i) := { f | ∀i ∈ s, f i ∈ t i }
 
 @[simp] lemma mem_pi {f : Π i, α i} : f ∈ s.pi t ↔ ∀ i ∈ s, f i ∈ t i :=

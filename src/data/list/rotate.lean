@@ -270,6 +270,7 @@ end
 lemma is_rotated.eqv : equivalence (@is_rotated α) :=
 mk_equivalence _ is_rotated.refl (λ _ _, is_rotated.symm) (λ _ _ _, is_rotated.trans)
 
+/-- The relation `list.is_rotated l l'` forms a `setoid` of cycles. -/
 def is_rotated.setoid (α : Type*) : setoid (list α) :=
 { r := is_rotated, iseqv := is_rotated.eqv }
 

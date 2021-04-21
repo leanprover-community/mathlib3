@@ -26,7 +26,7 @@ variables (V : Type u₁) [quiver.{v₁+1} V]
 
 namespace paths
 
-instance category_paths : category.{max u₁ (v₁+1)} (paths V) :=
+instance category_paths : category.{max u₁ v₁} (paths V) :=
 { hom := λ (X Y : V), quiver.path X Y,
   id := λ X, quiver.path.nil,
   comp := λ X Y Z f g, quiver.path.comp f g, }

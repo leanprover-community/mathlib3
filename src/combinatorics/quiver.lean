@@ -159,7 +159,7 @@ def wide_subquiver_equiv_set_total {V} [quiver V] :
   right_inv := by { intro S, ext, cases x, refl } }
 
 /-- `G.path a b` is the type of paths from `a` to `b` through the arrows of `G`. -/
-inductive path {V : Type u} [quiver.{v} V] (a : V) : V → Type (max u v)
+inductive path {V : Type u} [quiver.{v} V] (a : V) : V → Sort (max (u+1) v)
 | nil  : path a
 | cons : Π {b c : V}, path b → (b ⟶ c) → path c
 

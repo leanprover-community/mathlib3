@@ -702,6 +702,36 @@ lemma tendsto_const_mul_pow_at_top {c : α} {n : ℕ}
   (hn : 1 ≤ n) (hc : 0 < c) : tendsto (λ x, c * x^n) at_top at_top :=
 tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
 
+lemma tendsto_const_mul_pow_at_top_iff (c : α) (n : ℕ)
+  : tendsto (λ x, c * x^n) at_top at_top ↔ 1 ≤ n ∧ 0 < c :=
+⟨begin
+  intro h,
+  simp only [tendsto_at_top, eventually_at_top] at h,
+  have : 0 < c,
+  {
+    obtain ⟨x, hx⟩ := h 1,
+    specialize hx (max x 1) (le_max_left x 1),
+    have : 0 < c * max x 1 ^ n := lt_of_lt_of_le zero_lt_one hx,
+    refine pos_of_mul_pos_right this _,
+    refine pow_nonneg _ n,
+    refine le_trans zero_le_one (le_max_right x 1),
+  },
+  refine ⟨_, this⟩,
+  suffices : n ≠ 0,
+  by exact nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) this.symm),
+  intro hn,
+
+  obtain ⟨x, hx⟩ := h (c + 1),
+  specialize hx x le_rfl,
+
+  simp [hn] at hx,
+
+  refine absurd hx _,
+  refine not_le.mpr _,
+  refine zero_lt_one,
+end,
+λ h, tendsto_const_mul_pow_at_top h.1 h.2⟩
+
 lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}
   (hn : 1 ≤ n) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=
 tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)

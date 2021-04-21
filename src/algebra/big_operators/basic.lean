@@ -97,7 +97,6 @@ by simp [sum_eq_multiset_sum]
 
 end finset
 
-
 @[to_additive]
 lemma monoid_hom.map_prod [comm_monoid β] [comm_monoid γ] (g : β →* γ) (f : α → β) (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=

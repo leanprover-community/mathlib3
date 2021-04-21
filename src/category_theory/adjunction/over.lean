@@ -12,7 +12,7 @@ import category_theory.monad.products
 /-!
 # Adjunctions related to the over category
 
-Construct the left adjoint `star X` to `over.forget X : C / X ⥤ C`.
+Construct the left adjoint `star X` to `over.forget X : over X ⥤ C`.
 
 ## TODO
 Show `star X` itself has a left adjoint provided `C` is locally cartesian closed.
@@ -27,14 +27,14 @@ open category limits comonad
 variables {C : Type u} [category.{v} C] (X : C)
 
 /--
-The functor from `C` to `C / X` which sends `Y : C` to `π₁ : X ⨯ Y ⟶ X`, sometimes denoted `X*`.
+The functor from `C` to `over X` which sends `Y : C` to `π₁ : X ⨯ Y ⟶ X`, sometimes denoted `X*`.
 -/
 @[simps]
 def star [has_binary_products C] : C ⥤ over X :=
 cofree _ ⋙ coalgebra_to_over X
 
 /--
-The functor `over.forget X : C / X ⥤ C` has a right adjoint given by `star X`.
+The functor `over.forget X : over X ⥤ C` has a right adjoint given by `star X`.
 
 Note that the binary products assumption is necessary: the existence of a right adjoint to
 `over.forget X` is equivalent to the existence of each binary product `X ⨯ -`.

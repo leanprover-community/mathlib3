@@ -869,7 +869,7 @@ begin
   have PQprim : is_primitive (P * Q) := Pmonic.is_primitive.mul Qmonic.is_primitive,
   have prod : P * Q ∣ X ^ n - 1,
   { apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
-      ((monic_X_pow_sub_C 1 (ne_of_lt hpos).symm).is_primitive)).2,
+      (monic_X_pow_sub_C (1 : ℤ) (ne_of_gt hpos)).is_primitive).mpr,
     rw [map_mul],
     refine is_coprime.mul_dvd _ _ _,
     { have aux := is_primitive.int.irreducible_iff_irreducible_map_cast Pmonic.is_primitive,

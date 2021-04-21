@@ -46,6 +46,13 @@ lemma mem_carrier {s : subsemiring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := i
 /-- Two subsemirings are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subsemiring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
+/-- Copy of a subsemiring with a new `carrier` equal to the old one. Useful to fix definitional
+equalities.-/
+protected def copy (S : subsemiring R) (s : set R) (hs : s = ↑S) : subsemiring R :=
+{ carrier := s,
+  ..S.to_add_submonoid.copy s hs,
+  ..S.to_submonoid.copy s hs }
+
 lemma to_submonoid_injective : function.injective (to_submonoid : subsemiring R → submonoid R)
 | r s h := ext (set_like.ext_iff.mp h : _)
 
@@ -151,7 +158,7 @@ s.to_add_submonoid.sum_mem h
 lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
 lemma nsmul_mem {x : R} (hx : x ∈ s) (n : ℕ) :
-  n •ℕ x ∈ s := s.to_add_submonoid.nsmul_mem hx n
+  n • x ∈ s := s.to_add_submonoid.nsmul_mem hx n
 
 lemma coe_nat_mem (n : ℕ) : (n : R) ∈ s :=
 by simp only [← nsmul_one, nsmul_mem, one_mem]
@@ -266,18 +273,25 @@ namespace ring_hom
 variables (g : S →+* T) (f : R →+* S)
 
 /-- The range of a ring homomorphism is a subsemiring. -/
-def srange : subsemiring S := (⊤ : subsemiring R).map f
+def srange : subsemiring S :=
+((⊤ : subsemiring R).map f).copy (set.range f) set.image_univ.symm
 
-@[simp] lemma coe_srange : (f.srange : set S) = set.range f := set.image_univ
+/-- Note that `ring_hom.srange` is deliberately defined in a way that makes this true by `rfl`,
+as this means the types `↥(set.range f)` and `↥f.srange` are interchangeable without proof
+obligations. -/
+@[simp] lemma coe_srange : (f.srange : set S) = set.range f := rfl
 
 @[simp] lemma mem_srange {f : R →+* S} {y : S} : y ∈ f.srange ↔ ∃ x, f x = y :=
-by simp [srange]
+iff.rfl
+
+lemma srange_eq_map (f : R →+* S) : f.srange = (⊤ : subsemiring R).map f :=
+by { ext, simp }
 
 lemma mem_srange_self (f : R →+* S) (x : R) : f x ∈ f.srange :=
 mem_srange.mpr ⟨x, rfl⟩
 
 lemma map_srange : f.srange.map g = (g.comp f).srange :=
-(⊤ : subsemiring R).map_map g f
+by simpa only [srange_eq_map] using (⊤ : subsemiring R).map_map g f
 
 end ring_hom
 

@@ -262,8 +262,7 @@ show z ∈ subsemiring.closure (set.range (algebra_map (to_alg_hom R S A).range 
   z ∈ subsemiring.closure (set.range (algebra_map S A) ∪ t : set A),
 from suffices set.range (algebra_map (to_alg_hom R S A).range A) = set.range (algebra_map S A),
   by rw this,
-by { ext z, exact ⟨λ ⟨⟨x, y, _, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩,
-  ⟨⟨z, y, set.mem_univ _, hy⟩, rfl⟩⟩ }
+by { ext z, exact ⟨λ ⟨⟨x, y, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩, ⟨⟨z, y, hy⟩, rfl⟩⟩ }
 
 end is_scalar_tower
 

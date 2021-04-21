@@ -14,6 +14,7 @@ import data.finsupp.basic
 import data.dfinsupp
 import algebra.pointwise
 import order.compactly_generated
+import order.omega_complete_partial_order
 
 /-!
 # Linear algebra
@@ -84,6 +85,18 @@ begin
   { simp only [linear_map.map_smul], },
   { intro i, exact (h i).map_zero },
 end
+
+variable (R)
+
+/-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear equivalence between
+`α →₀ β` and `α → β`. -/
+@[simps apply] noncomputable def linear_equiv_fun_on_fintype {α} [fintype α] [add_comm_monoid M]
+  [semiring R] [semimodule R M] :
+  (α →₀ M) ≃ₗ[R] (α → M) :=
+{ to_fun := coe_fn,
+  map_add' := λ f g, by { ext, refl },
+  map_smul' := λ c f, by { ext, refl },
+  .. equiv_fun_on_fintype }
 
 end finsupp
 
@@ -176,8 +189,18 @@ instance : has_add (M →ₗ[R] M₂) :=
 
 /-- The type of linear maps is an additive monoid. -/
 instance : add_comm_monoid (M →ₗ[R] M₂) :=
-by refine {zero := 0, add := (+), ..};
-   intros; ext; simp [add_comm, add_left_comm]
+{ zero := 0,
+  add := (+),
+  add_assoc := by intros; ext; simp [add_comm, add_left_comm],
+  zero_add := by intros; ext; simp [add_comm, add_left_comm],
+  add_zero := by intros; ext; simp [add_comm, add_left_comm],
+  add_comm := by intros; ext; simp [add_comm, add_left_comm],
+  nsmul := λ n f, {
+    to_fun := λ x, n • (f x),
+    map_add' := λ x y, by rw [f.map_add, smul_add],
+    map_smul' := λ c x, by rw [f.map_smul, smul_comm n c (f x)] },
+  nsmul_zero' := λ f, by { ext x, simp },
+  nsmul_succ' := λ n f, by { ext x, simp [nat.succ_eq_one_add, add_nsmul] } }
 
 instance linear_map_apply_is_add_monoid_hom (a : M) :
   is_add_monoid_hom (λ f : M →ₗ[R] M₂, f a) :=
@@ -204,7 +227,10 @@ def smul_right (f : M₂ →ₗ[R] S) (x : M) : M₂ →ₗ[R] M :=
   map_add' := λ x y, by rw [f.map_add, add_smul],
   map_smul' := λ b y, by rw [f.map_smul, smul_assoc] }
 
-@[simp] theorem smul_right_apply (f : M₂ →ₗ[R] S) (x : M) (c : M₂) :
+@[simp] theorem coe_smul_right (f : M₂ →ₗ[R] S) (x : M) :
+  (smul_right f x : M₂ → M) = λ c, f c • x := rfl
+
+theorem smul_right_apply (f : M₂ →ₗ[R] S) (x : M) (c : M₂) :
   smul_right f x c = f c • x := rfl
 
 end smul_right
@@ -232,7 +258,8 @@ rfl
 add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 
 instance : monoid (M →ₗ[R] M) :=
-by refine {mul := (*), one := 1, ..}; { intros, apply linear_map.ext, simp {proj := ff} }
+by refine_struct { mul := (*), one := (1 : M →ₗ[R] M), npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
+intros; try { refl }; apply linear_map.ext; simp {proj := ff}
 
 @[simp] lemma pow_apply (f : M →ₗ[R] M) (n : ℕ) (m : M) :
   (f^n) m = (f^[n] m) :=
@@ -321,8 +348,9 @@ lemma comp_sub (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
 
 /-- The type of linear maps is an additive group. -/
 instance : add_comm_group (M →ₗ[R] M₂) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _, ..};
-   intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
+by refine {zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _,
+  add_left_neg := _, .. linear_map.add_comm_monoid };
+intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
 
 instance linear_map_apply_is_add_group_hom (a : M) :
   is_add_group_hom (λ f : M →ₗ[R] M₂, f a) :=
@@ -461,8 +489,14 @@ section semiring
 variables [semiring R] [add_comm_monoid M] [semimodule R M]
 
 instance endomorphism_semiring : semiring (M →ₗ[R] M) :=
-by refine {mul := (*), one := 1, ..linear_map.add_comm_monoid, ..};
-  { intros, apply linear_map.ext, simp {proj := ff} }
+by refine_struct
+  { mul := (*),
+    one := (1 : M →ₗ[R] M),
+    zero := 0,
+    add := (+),
+    npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
+    .. linear_map.add_comm_monoid, .. };
+intros; try { refl }; apply linear_map.ext; simp {proj := ff}
 
 end semiring
 
@@ -725,6 +759,28 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
   (H2 : ∀ (a:R) x, p x → p (a • x)) : p x :=
 (@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
 
+lemma span_nat_eq_add_submonoid_closure (s : set M) :
+  (span ℕ s).to_add_submonoid = add_submonoid.closure s :=
+begin
+  refine eq.symm (add_submonoid.closure_eq_of_le subset_span _),
+  apply add_submonoid.to_nat_submodule.symm.to_galois_connection.l_le _,
+  rw span_le,
+  exact add_submonoid.subset_closure,
+end
+
+@[simp] lemma span_nat_eq (s : add_submonoid M) : (span ℕ (s : set M)).to_add_submonoid = s :=
+by rw [span_nat_eq_add_submonoid_closure, s.closure_eq]
+
+lemma span_int_eq_add_subgroup_closure {M : Type*} [add_comm_group M] (s : set M) :
+  (span ℤ s).to_add_subgroup = add_subgroup.closure s :=
+eq.symm $ add_subgroup.closure_eq_of_le _ subset_span $ λ x hx, span_induction hx
+  (λ x hx, add_subgroup.subset_closure hx) (add_subgroup.zero_mem _)
+  (λ _ _, add_subgroup.add_mem _) (λ _ _ _, add_subgroup.gsmul_mem _ ‹_› _)
+
+@[simp] lemma span_int_eq {M : Type*} [add_comm_group M] (s : add_subgroup M) :
+  (span ℤ (s : set M)).to_add_subgroup = s :=
+by rw [span_int_eq_add_subgroup_closure, s.closure_eq]
+
 section
 variables (R M)
 
@@ -790,6 +846,19 @@ begin
   haveI : nonempty s := hs.to_subtype,
   simp only [Sup_eq_supr', mem_supr_of_directed _ hdir.directed_coe, set_coe.exists, subtype.coe_mk]
 end
+
+@[norm_cast, simp] lemma coe_supr_of_chain (a : ℕ →ₘ submodule R M) :
+  (↑(⨆ k, a k) : set M) = ⋃ k, (a k : set M) :=
+coe_supr_of_directed a a.monotone.directed_le
+
+/-- We can regard `coe_supr_of_chain` as the statement that `coe : (submodule R M) → set M` is
+Scott continuous for the ω-complete partial order induced by the complete lattice structures. -/
+lemma coe_scott_continuous : omega_complete_partial_order.continuous' 
+  (coe : submodule R M → set M) :=
+⟨set_like.coe_mono, coe_supr_of_chain⟩
+
+@[simp] lemma mem_supr_of_chain (a : ℕ →ₘ submodule R M) (m : M) : m ∈ (⨆ k, a k) ↔ ∃ k, m ∈ a k :=
+mem_supr_of_directed a a.monotone.directed_le
 
 section
 
@@ -1123,17 +1192,31 @@ instance : has_sub (quotient p) :=
 @[simp] theorem mk_sub : (mk (x - y) : quotient p) = mk x - mk y := rfl
 
 instance : add_comm_group (quotient p) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _, ..};
-   repeat {rintro ⟨⟩};
-   simp [-mk_zero, ← mk_zero p, -mk_add, ← mk_add p, -mk_neg, ← mk_neg p, -mk_sub,
-         ← mk_sub p, sub_eq_add_neg];
-   cc
+{ zero := (0 : quotient p),
+  add := (+),
+  neg := has_neg.neg,
+  sub := has_sub.sub,
+  add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, simp only [←mk_add p, quot_mk_eq_mk, add_assoc] },
+  zero_add := by { rintro ⟨x⟩, simp only [←mk_zero p, ←mk_add p, quot_mk_eq_mk, zero_add] },
+  add_zero := by { rintro ⟨x⟩, simp only [←mk_zero p, ←mk_add p, add_zero, quot_mk_eq_mk] },
+  add_comm := by { rintros ⟨x⟩ ⟨y⟩, simp only [←mk_add p, quot_mk_eq_mk, add_comm] },
+  add_left_neg := by { rintro ⟨x⟩,
+    simp only [←mk_zero p, ←mk_add p, ←mk_neg p, quot_mk_eq_mk, add_left_neg] },
+  sub_eq_add_neg := by { rintros ⟨x⟩ ⟨y⟩,
+    simp only [←mk_add p, ←mk_neg p, ←mk_sub p, sub_eq_add_neg, quot_mk_eq_mk] },
+  nsmul := λ n x, quotient.lift_on' x (λ x, mk (n • x)) $
+     λ x y h, (quotient.eq p).2 $ by simpa [smul_sub] using smul_of_tower_mem p n h,
+  nsmul_zero' := by { rintros ⟨⟩, simp only [mk_zero, quot_mk_eq_mk, zero_smul], refl },
+  nsmul_succ' := by { rintros n ⟨⟩,
+    simp only [nat.succ_eq_one_add, add_nsmul, mk_add, quot_mk_eq_mk, one_nsmul], refl } }
 
 instance : has_scalar R (quotient p) :=
 ⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $
  λ x y h, (quotient.eq p).2 $ by simpa [smul_sub] using smul_mem p a h⟩
 
 @[simp] theorem mk_smul : (mk (r • x) : quotient p) = r • mk x := rfl
+
+@[simp] theorem mk_nsmul (n : ℕ) : (mk (n • x) : quotient p) = n • mk x := rfl
 
 instance : semimodule R (quotient p) :=
 semimodule.of_core $ by refine {smul := (•), ..};
@@ -1258,31 +1341,39 @@ theorem comap_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (hf p') :
 submodule.ext $ λ x, ⟨λ h, ⟨⟨_, hf x⟩, h, rfl⟩, by rintro ⟨⟨_, _⟩, h, ⟨⟩⟩; exact h⟩
 
 /-- The range of a linear map `f : M → M₂` is a submodule of `M₂`. -/
-def range (f : M →ₗ[R] M₂) : submodule R M₂ := map f ⊤
+def range (f : M →ₗ[R] M₂) : submodule R M₂ :=
+(map f ⊤).copy (set.range f) set.image_univ.symm
 
-theorem range_coe (f : M →ₗ[R] M₂) : (range f : set M₂) = set.range f := set.image_univ
+/-- Note that `linear_map.range` is deliberately defined in a way that makes this true by `rfl`,
+as this means the types `↥(set.range f)` and `↥f.mrange` are interchangeable without proof
+obligations. -/
+theorem range_coe (f : M →ₗ[R] M₂) : (range f : set M₂) = set.range f := rfl
 
-@[simp] theorem mem_range {f : M →ₗ[R] M₂} : ∀ {x}, x ∈ range f ↔ ∃ y, f y = x :=
-set.ext_iff.1 (range_coe f)
+@[simp] theorem mem_range {f : M →ₗ[R] M₂} {x} : x ∈ range f ↔ ∃ y, f y = x :=
+iff.rfl
 
-theorem mem_range_self (f : M →ₗ[R] M₂) (x : M) : f x ∈ f.range := mem_range.2 ⟨x, rfl⟩
+lemma range_eq_map (f : M →ₗ[R] M₂) : f.range = map f ⊤ :=
+by { ext, simp }
 
-@[simp] theorem range_id : range (linear_map.id : M →ₗ[R] M) = ⊤ := map_id _
+theorem mem_range_self (f : M →ₗ[R] M₂) (x : M) : f x ∈ f.range := ⟨x, rfl⟩
+
+@[simp] theorem range_id : range (linear_map.id : M →ₗ[R] M) = ⊤ :=
+set_like.coe_injective set.range_id
 
 theorem range_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : range (g.comp f) = map g (range f) :=
-map_comp _ _ _
+set_like.coe_injective (set.range_comp g f)
 
 theorem range_comp_le_range (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : range (g.comp f) ≤ range g :=
-by rw range_comp; exact map_mono le_top
+set_like.coe_mono (set.range_comp_subset_range f g)
 
 theorem range_eq_top {f : M →ₗ[R] M₂} : range f = ⊤ ↔ surjective f :=
 by rw [set_like.ext'_iff, range_coe, top_coe, set.range_iff_surjective]
 
 lemma range_le_iff_comap {f : M →ₗ[R] M₂} {p : submodule R M₂} : range f ≤ p ↔ comap f p = ⊤ :=
-by rw [range, map_le_iff_le_comap, eq_top_iff]
+by rw [range_eq_map, map_le_iff_le_comap, eq_top_iff]
 
 lemma map_le_range {f : M →ₗ[R] M₂} {p : submodule R M} : map f p ≤ range f :=
-map_mono le_top
+set_like.coe_mono (set.image_subset_range f p)
 
 /-- Restrict the codomain of a linear map `f` to `f.range`.
 
@@ -1345,7 +1436,7 @@ by rw [ker, comap_cod_restrict, map_bot]; refl
 
 lemma range_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (hf) :
   range (cod_restrict p f hf) = comap p.subtype f.range :=
-map_cod_restrict _ _ _ _
+by simpa only [range_eq_map] using map_cod_restrict _ _ _ _
 
 lemma ker_restrict {p : submodule R M} {f : M →ₗ[R] M} (hf : ∀ x : M, x ∈ p → f x ∈ p) :
   ker (f.restrict hf) = (f.dom_restrict p).ker :=
@@ -1353,7 +1444,7 @@ by rw [restrict_eq_cod_restrict_dom_restrict, ker_cod_restrict]
 
 lemma map_comap_eq (f : M →ₗ[R] M₂) (q : submodule R M₂) :
   map f (comap f q) = range f ⊓ q :=
-le_antisymm (le_inf (map_mono le_top) (map_comap_le _ _)) $
+le_antisymm (le_inf map_le_range (map_comap_le _ _)) $
 by rintro _ ⟨⟨x, _, rfl⟩, hx⟩; exact ⟨x, hx, rfl⟩
 
 lemma map_comap_eq_self {f : M →ₗ[R] M₂} {q : submodule R M₂} (h : q ≤ range f) :
@@ -1364,7 +1455,7 @@ by rwa [map_comap_eq, inf_eq_right]
 eq_top_iff'.2 $ λ x, by simp
 
 @[simp] theorem range_zero : range (0 : M →ₗ[R] M₂) = ⊥ :=
-submodule.map_zero _
+by simpa only [range_eq_map] using submodule.map_zero _
 
 theorem ker_eq_top {f : M →ₗ[R] M₂} : ker f = ⊤ ↔ f = 0 :=
 ⟨λ h, ext $ λ x, mem_ker.1 $ h.symm ▸ trivial, λ h, h.symm ▸ ker_zero⟩
@@ -1376,8 +1467,8 @@ theorem range_eq_bot {f : M →ₗ[R] M₂} : range f = ⊥ ↔ f = 0 :=
 by rw [← range_le_bot_iff, le_bot_iff]
 
 lemma range_le_ker_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} : range f ≤ ker g ↔ g.comp f = 0 :=
-⟨λ h, ker_eq_top.1 $ eq_top_iff'.2 $ λ x, h $ mem_map_of_mem trivial,
- λ h x hx, mem_ker.2 $ exists.elim hx $ λ y ⟨_, hy⟩, by rw [←hy, ←comp_apply, h, zero_apply]⟩
+⟨λ h, ker_eq_top.1 $ eq_top_iff'.2 $ λ x, h $ ⟨_, rfl⟩,
+ λ h x hx, mem_ker.2 $ exists.elim hx $ λ y hy, by rw [←hy, ←comp_apply, h, zero_apply]⟩
 
 theorem comap_le_comap_iff {f : M →ₗ[R] M₂} (hf : range f = ⊤) {p p'} :
   comap f p ≤ comap f p' ↔ p ≤ p' :=
@@ -1425,7 +1516,7 @@ theorem map_injective {f : M →ₗ[R] M₂} (hf : ker f = ⊥) : injective (map
 
 theorem map_eq_top_iff {f : M →ₗ[R] M₂} (hf : range f = ⊤) {p : submodule R M} :
   p.map f = ⊤ ↔ p ⊔ f.ker = ⊤ :=
-by simp_rw [← top_le_iff, ← hf, range, map_le_map_iff]
+by simp_rw [← top_le_iff, ← hf, range_eq_map, map_le_map_iff]
 
 end add_comm_group
 
@@ -1482,10 +1573,10 @@ lemma ker_smul' (f : V →ₗ[K] V₂) (a : K) : ker (a • f) = ⨅(h : a ≠ 0
 submodule.comap_smul' f _ a
 
 lemma range_smul (f : V →ₗ[K] V₂) (a : K) (h : a ≠ 0) : range (a • f) = range f :=
-submodule.map_smul f _ a h
+by simpa only [range_eq_map] using submodule.map_smul f _ a h
 
 lemma range_smul' (f : V →ₗ[K] V₂) (a : K) : range (a • f) = ⨆(h : a ≠ 0), range f :=
-submodule.map_smul' f _ a
+by simpa only [range_eq_map] using submodule.map_smul' f _ a
 
 lemma span_singleton_sup_ker_eq_top (f : V →ₗ[K] K) {x : V} (hx : f x ≠ 0) :
   (K ∙ x) ⊔ f.ker = ⊤ :=
@@ -1535,7 +1626,7 @@ variables (p p' : submodule R M) (q : submodule R M₂)
 include T
 open linear_map
 
-@[simp] theorem map_top (f : M →ₗ[R] M₂) : map f ⊤ = range f := rfl
+@[simp] theorem map_top (f : M →ₗ[R] M₂) : map f ⊤ = range f := f.range_eq_map.symm
 
 @[simp] theorem comap_bot (f : M →ₗ[R] M₂) : comap f ⊥ = ker f := rfl
 
@@ -1546,7 +1637,7 @@ ker_eq_bot_of_injective $ λ x y, subtype.ext_val
 by simpa using map_comap_subtype p ⊤
 
 lemma map_subtype_le (p' : submodule R p) : map p.subtype p' ≤ p :=
-by simpa using (map_mono le_top : map p.subtype p' ≤ p.subtype.range)
+by simpa using (map_le_range : map p.subtype p' ≤ p.subtype.range)
 
 /-- Under the canonical linear map from a submodule `p` to the ambient space `M`, the image of the
 maximal submodule of `p` is just `p `. -/
@@ -1618,7 +1709,7 @@ def liftq (f : M →ₗ[R] M₂) (h : p ≤ f.ker) : p.quotient →ₗ[R] M₂ :
 by ext; refl
 
 @[simp] theorem range_mkq : p.mkq.range = ⊤ :=
-eq_top_iff'.2 $ by rintro ⟨x⟩; exact ⟨x, trivial, rfl⟩
+eq_top_iff'.2 $ by rintro ⟨x⟩; exact ⟨x, rfl⟩
 
 @[simp] theorem ker_mkq : p.mkq.ker = p :=
 by ext; simp
@@ -1662,7 +1753,8 @@ theorem ker_liftq (f : M →ₗ[R] M₂) (h) :
   ker (p.liftq f h) = (ker f).map (mkq p) := comap_liftq _ _ _ _
 
 theorem range_liftq (f : M →ₗ[R] M₂) (h) :
-  range (p.liftq f h) = range f := map_liftq _ _ _ _
+  range (p.liftq f h) = range f :=
+by simpa only [range_eq_map] using map_liftq _ _ _ _
 
 theorem ker_liftq_eq_bot (f : M →ₗ[R] M₂) (h) (h' : ker f ≤ p) : ker (p.liftq f h) = ⊥ :=
 by rw [ker_liftq, le_antisymm h h', mkq_map_self]
@@ -2343,7 +2435,7 @@ linear_equiv.of_bijective (quotient_inf_to_sup_quotient p p')
   begin
     rw [quotient_inf_to_sup_quotient, range_liftq, eq_top_iff'],
     rintros ⟨x, hx⟩, rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
-    use [⟨y, hy⟩, trivial], apply (submodule.quotient.eq _).2,
+    use [⟨y, hy⟩], apply (submodule.quotient.eq _).2,
     change y - (y + z) ∈ p',
     rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
   end

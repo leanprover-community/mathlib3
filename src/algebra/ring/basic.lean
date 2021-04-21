@@ -634,7 +634,7 @@ end ring_hom
 
 /-- A commutative ring is a `ring` with commutative multiplication. -/
 @[protect_proj, ancestor ring comm_semigroup]
-class comm_ring (α : Type u) extends ring α, comm_semigroup α
+class comm_ring (α : Type u) extends ring α, comm_monoid α
 
 @[priority 100] -- see Note [lower instance priority]
 instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=

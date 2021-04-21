@@ -432,7 +432,7 @@ begin
   { simp [fin.sign_cycle_range] },
   rw [fin.coe_succ, pow_succ, this, mul_assoc, mul_assoc, mul_left_comm ↑(equiv.perm.sign _),
       ← det_permute, matrix.det_apply, finset.mul_sum, finset.mul_sum],
-  -- now we just need to move the crresponding parts to the same place
+  -- now we just need to move the corresponding parts to the same place
   refine finset.sum_congr rfl (λ σ _, _),
   rw [equiv.perm.decompose_fin.symm_sign, if_neg (fin.succ_ne_zero i)],
   calc ((-1) * σ.sign : ℤ) • ∏ i', A (equiv.perm.decompose_fin.symm (fin.succ i, σ) i') i'

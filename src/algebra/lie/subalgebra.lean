@@ -259,6 +259,9 @@ instance : has_top (lie_subalgebra R L) :=
 
 @[simp] lemma mem_top (x : L) : x ∈ (⊤ : lie_subalgebra R L) := mem_univ x
 
+lemma _root_.lie_hom.range_eq_map : f.range = map f ⊤ :=
+by { ext, simp }
+
 instance : has_inf (lie_subalgebra R L) :=
 ⟨λ K K', { lie_mem' := λ x y hx hy, mem_inter (K.lie_mem hx.1 hy.1) (K'.lie_mem hx.2 hy.2),
             ..(K ⊓ K' : submodule R L) }⟩

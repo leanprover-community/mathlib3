@@ -1400,8 +1400,8 @@ open_locale classical
   classical logic because it uses `classical.prop_decidable`.
   We don't want to redo all lemmas of `finset.filter` for `has_sep.sep`, so we make sure that `simp`
   unfolds the notation `{x ∈ s | p x}` to `finset.filter p s`. If `p` happens to be decidable, the
-  simp-lemma `filter_congr_decidable` will make sure that `finset.filter` uses the right instance
-  for decidability.
+  simp-lemma `finset.filter_congr_decidable` will make sure that `finset.filter` uses the right
+  instance for decidability.
 -/
 noncomputable instance {α : Type*} : has_sep α (finset α) := ⟨λ p x, x.filter p⟩
 

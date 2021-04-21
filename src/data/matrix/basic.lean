@@ -734,15 +734,15 @@ by { ext, apply smul_dot_product }
 
 end ring
 
-section comm_ring
+section comm_semiring
 
-variables [comm_ring α]
+variables [comm_semiring α]
 
 lemma mul_vec_smul_assoc (A : matrix m n α) (b : n → α) (a : α) :
   A.mul_vec (a • b) = a • (A.mul_vec b) :=
 by { ext, apply dot_product_smul }
 
-end comm_ring
+end comm_semiring
 
 section transpose
 

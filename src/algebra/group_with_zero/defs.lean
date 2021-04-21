@@ -54,9 +54,12 @@ class no_zero_divisors (M₀ : Type*) [has_mul M₀] [has_zero M₀] : Prop :=
 
 export no_zero_divisors (eq_zero_or_eq_zero_of_mul_eq_zero)
 
+/-- A typeclass for non-associative monoids with zero elements. -/
+@[protect_proj] class mul_zero_one_class (M₀ : Type*) extends mul_one_class M₀, mul_zero_class M₀.
+
 /-- A type `M` is a “monoid with zero” if it is a monoid with zero element, and `0` is left
 and right absorbing. -/
-@[protect_proj] class monoid_with_zero (M₀ : Type*) extends monoid M₀, mul_zero_class M₀.
+@[protect_proj] class monoid_with_zero (M₀ : Type*) extends monoid M₀, mul_zero_one_class M₀.
 
 /-- A type `M` is a `cancel_monoid_with_zero` if it is a monoid with zero element, `0` is left
 and right absorbing, and left/right multiplication by a non-zero element is injective. -/

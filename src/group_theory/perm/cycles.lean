@@ -3,6 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+import data.equiv.fintype
 import group_theory.perm.sign
 /-!
 # Cyclic permutations
@@ -96,9 +97,8 @@ noncomputable def is_cycle.gpowers_equiv_support {σ : perm α} (hσ : is_cycle 
 equiv.of_bijective (λ τ, ⟨τ (classical.some hσ),
 begin
   obtain ⟨τ, n, rfl⟩ := τ,
-  rw [finset.mem_coe, mem_support],
-  refine λ h, (classical.some_spec hσ).1 ((σ ^ n).injective _),
-  rwa [←mul_apply, mul_gpow_self, ←mul_self_gpow],
+  rw [finset.mem_coe, coe_fn_coe_base, subtype.coe_mk, gpow_apply_mem_support, mem_support],
+  exact (classical.some_spec hσ).1,
 end⟩)
 begin
   split,
@@ -114,6 +114,17 @@ begin
     obtain ⟨n, rfl⟩ := (classical.some_spec hσ).2 y hy,
     exact ⟨⟨σ ^ n, n, rfl⟩, rfl⟩ },
 end
+
+@[simp] lemma is_cycle.gpowers_equiv_support_apply {σ : perm α} (hσ : is_cycle σ) {n : ℕ} :
+  hσ.gpowers_equiv_support ⟨σ ^ n, n, rfl⟩ = ⟨(σ ^ n) (classical.some hσ),
+    pow_apply_mem_support.2 (mem_support.2 (classical.some_spec hσ).1)⟩ :=
+rfl
+
+@[simp] lemma is_cycle.gpowers_equiv_support_symm_apply {σ : perm α} (hσ : is_cycle σ) (n : ℕ) :
+  hσ.gpowers_equiv_support.symm ⟨(σ ^ n) (classical.some hσ),
+    pow_apply_mem_support.2 (mem_support.2 (classical.some_spec hσ).1)⟩ =
+    ⟨σ ^ n, n, rfl⟩ :=
+(equiv.symm_apply_eq _).2 hσ.gpowers_equiv_support_apply
 
 lemma order_of_is_cycle {σ : perm α} (hσ : is_cycle σ) : order_of σ = σ.support.card :=
 begin
@@ -532,6 +543,60 @@ begin
 end
 
 end generation
+
+section
+variables [fintype α] {σ τ : perm α}
+
+noncomputable theory
+
+lemma is_conj_of_support_equiv (f : {x // x ∈ (σ.support : set α)} ≃ {x // x ∈ (τ.support : set α)})
+  (hf : ∀ (x : α) (hx : x ∈ (σ.support : set α)), (f ⟨σ x, apply_mem_support.2 hx⟩ : α) =
+    τ ↑(f ⟨x,hx⟩)) :
+  is_conj σ τ :=
+begin
+  refine is_conj_iff.2 ⟨equiv.extend_subtype f, _⟩,
+  rw mul_inv_eq_iff_eq_mul,
+  ext,
+  simp only [perm.mul_apply],
+  by_cases hx : x ∈ σ.support,
+  { rw [equiv.extend_subtype_apply_of_mem, equiv.extend_subtype_apply_of_mem],
+    { exact hf x (finset.mem_coe.2 hx) } },
+  { rwa [not_not.1 ((not_congr mem_support).1 (equiv.extend_subtype_not_mem f _ _)),
+      not_not.1 ((not_congr mem_support).mp hx)] }
+end
+
+theorem is_cycle.is_conj (hσ : is_cycle σ) (hτ : is_cycle τ) (h : σ.support.card = τ.support.card) :
+  is_conj σ τ :=
+begin
+  refine is_conj_of_support_equiv (hσ.gpowers_equiv_support.symm.trans
+    ((gpowers_equiv_gpowers begin
+      rw [order_of_is_cycle hσ, h, order_of_is_cycle hτ],
+  end).trans hτ.gpowers_equiv_support)) _,
+  intros x hx,
+  simp only [perm.mul_apply, equiv.trans_apply, equiv.sum_congr_apply],
+  obtain ⟨n, rfl⟩ := hσ.exists_pow_eq (classical.some_spec hσ).1 (mem_support.1 hx),
+  apply eq.trans _ (congr rfl (congr rfl (congr rfl
+    (congr rfl (hσ.gpowers_equiv_support_symm_apply n).symm)))),
+  apply (congr rfl (congr rfl (congr rfl (hσ.gpowers_equiv_support_symm_apply (n + 1))))).trans _,
+  simp only [ne.def, is_cycle.gpowers_equiv_support_apply,
+    subtype.coe_mk, gpowers_equiv_gpowers_apply],
+  rw [pow_succ, perm.mul_apply],
+end
+
+theorem is_cycle.is_conj_iff (hσ : is_cycle σ) (hτ : is_cycle τ) :
+  is_conj σ τ ↔ σ.support.card = τ.support.card :=
+⟨begin
+  intro h,
+  obtain ⟨π, rfl⟩ := is_conj_iff.1 h,
+  apply finset.card_congr (λ a ha, π a) (λ _ ha, _) (λ _ _ _ _ ab, π.injective ab) (λ b hb, _),
+  { simp [mem_support.1 ha] },
+  { refine ⟨π⁻¹ b, ⟨_, π.apply_inv_self b⟩⟩,
+    contrapose! hb,
+    rw [mem_support, not_not] at hb,
+    rw [mem_support, not_not, perm.mul_apply, perm.mul_apply, hb, perm.apply_inv_self] }
+end, hσ.is_conj hτ⟩
+
+end
 
 section fixed_points
 

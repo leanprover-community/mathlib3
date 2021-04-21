@@ -50,7 +50,6 @@ instance add_monoid.has_scalar_nat [add_monoid M] : has_scalar ℕ M := ⟨nsmul
 
 @[simp] lemma nsmul_eq_smul {M : Type*} [add_monoid M] (n : ℕ) (x : M) : nsmul n x = n • x := rfl
 
-
 /-!
 ### Commutativity
 
@@ -468,7 +467,7 @@ end
 mt pow_eq_zero h
 
 lemma pow_abs [linear_ordered_ring R] (a : R) (n : ℕ) : (abs a) ^ n = abs (a ^ n) :=
-(abs_hom.to_monoid_hom.map_pow a n).symm
+((abs_hom.to_monoid_hom : R →* R).map_pow a n).symm
 
 lemma abs_neg_one_pow [linear_ordered_ring R] (n : ℕ) : abs ((-1 : R) ^ n) = 1 :=
 by rw [←pow_abs, abs_neg, abs_one, one_pow]

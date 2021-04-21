@@ -52,6 +52,12 @@ iff.rfl
 
 @[ext] theorem ext {p q : sub_mul_action R M} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
+/-- Copy of a sub_mul_action with a new `carrier` equal to the old one. Useful to fix definitional
+equalities.-/
+protected def copy (p : sub_mul_action R M) (s : set M) (hs : s = ↑p) : sub_mul_action R M :=
+{ carrier := s,
+  smul_mem' := hs.symm ▸ p.smul_mem' }
+
 instance : has_bot (sub_mul_action R M) :=
 ⟨{ carrier := ∅, smul_mem' := λ c, set.not_mem_empty}⟩
 

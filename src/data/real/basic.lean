@@ -479,6 +479,50 @@ have bdd_above {x | -x ∈ s} → bdd_below s, from
 have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
 neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
 
+/--
+As `0` is the default value for `real.Sup` of the empty set or sets which are not bounded above, it
+suffices to show that `S` is bounded below by `0` to show that `0 ≤ Inf S`.
+-/
+lemma Sup_nonneg (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Sup S :=
+begin
+  rcases S.eq_empty_or_nonempty with rfl | ⟨y, hy⟩,
+  { simp [Sup_empty] },
+  { apply dite _ (λ h, le_cSup_of_le h hy $ hS y hy) (λ h, (Sup_of_not_bdd_above h).ge) }
+end
+
+/--
+As `0` is the default value for `real.Sup` of the empty set, it suffices to show that `S` is
+bounded above by `0` to show that `Sup S ≤ 0`.
+-/
+lemma Sup_nonpos (S : set ℝ) (hS : ∀ x ∈ S, x ≤ (0:ℝ)) : Sup S ≤ 0 :=
+begin
+  rcases S.eq_empty_or_nonempty with rfl | hS₂,
+  { simp [Sup_empty] },
+  { apply Sup_le_ub _ hS₂ hS, }
+end
+
+/--
+As `0` is the default value for `real.Inf` of the empty set, it suffices to show that `S` is
+bounded below by `0` to show that `0 ≤ Inf S`.
+-/
+lemma Inf_nonneg (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Inf S :=
+begin
+  rcases S.eq_empty_or_nonempty with rfl | hS₂,
+  { simp [Inf_empty] },
+  { apply lb_le_Inf S hS₂ hS }
+end
+
+/--
+As `0` is the default value for `real.Inf` of the empty set or sets which are not bounded below, it
+suffices to show that `S` is bounded above by `0` to show that `Inf S ≤ 0`.
+-/
+lemma Inf_nonpos (S : set ℝ) (hS : ∀ x ∈ S, x ≤ (0:ℝ)) : Inf S ≤ 0 :=
+begin
+  rcases S.eq_empty_or_nonempty with rfl | ⟨y, hy⟩,
+  { simp [Inf_empty] },
+  { apply dite _ (λ h, cInf_le_of_le h hy $ hS y hy) (λ h, (Inf_of_not_bdd_below h).le) }
+end
+
 theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=
 begin
   let S := {x : ℝ | const abs x < f},

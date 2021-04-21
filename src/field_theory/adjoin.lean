@@ -434,12 +434,11 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
     split,
     { exact ring_hom.injective f },
     { suffices : F⟮α⟯.to_subfield ≤ ring_hom.field_range ((F⟮α⟯.to_subfield.subtype).comp f),
-      { exact λ x, Exists.cases_on (this (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy.2⟩) },
-      exact subfield.closure_le.mpr (set.union_subset (λ x hx, Exists.cases_on hx (λ y hy, ⟨y,
-        ⟨subfield.mem_top y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩⟩))
+      { exact λ x, Exists.cases_on (this (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy⟩) },
+      exact subfield.closure_le.mpr (set.union_subset (λ x hx, Exists.cases_on hx (λ y hy,
+        ⟨y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩))
         (set.singleton_subset_iff.mpr ⟨adjoin_root.root (minpoly F α),
-        ⟨subfield.mem_top (adjoin_root.root (minpoly F α)),
-        by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩⟩)) } end)
+        by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩)) } end)
 
 lemma adjoin_root_equiv_adjoin_apply_root (h : is_integral F α) :
   adjoin_root_equiv_adjoin F h (adjoin_root.root (minpoly F α)) =

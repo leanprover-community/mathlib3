@@ -370,7 +370,7 @@ def factors : ℕ → list ℕ
   let m := min_fac n in have n / m < n := factors_lemma,
   m :: factors (n / m)
 
-lemma mem_factors : ∀ {n p}, p ∈ factors n → prime p
+lemma prime_of_mem_factors : ∀ {n p}, p ∈ factors n → prime p
 | 0       := λ p, false.elim
 | 1       := λ p, false.elim
 | n@(k+2) := λ p h,
@@ -378,7 +378,7 @@ lemma mem_factors : ∀ {n p}, p ∈ factors n → prime p
   have h₁ : p = m ∨ p ∈ (factors (n / m)) :=
     (list.mem_cons_iff _ _ _).1 h,
   or.cases_on h₁ (λ h₂, h₂.symm ▸ min_fac_prime dec_trivial)
-    mem_factors
+    prime_of_mem_factors
 
 lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
 | 0       := (lt_irrefl _).elim
@@ -538,7 +538,11 @@ lemma mem_list_primes_of_dvd_prod {p : ℕ} (hp : prime p) :
 
 lemma mem_factors_iff_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) : p ∈ factors n ↔ p ∣ n :=
 ⟨λ h, prod_factors hn ▸ list.dvd_prod h,
- λ h, mem_list_primes_of_dvd_prod hp (@mem_factors n) ((prod_factors hn).symm ▸ h)⟩
+ λ h, mem_list_primes_of_dvd_prod hp (@prime_of_mem_factors n) ((prod_factors hn).symm ▸ h)⟩
+
+lemma mem_factors {n p} (hn : 0 < n) : p ∈ factors n ↔ prime p ∧ p ∣ n :=
+⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
+ λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
 
 lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ →
   (∀ p ∈ l₁, prime p) → (∀ p ∈ l₂, prime p) → l₁ ~ l₂
@@ -570,7 +574,7 @@ have hn : 0 < n := nat.pos_of_ne_zero $ λ h, begin
     exact nat.mul_ne_zero (ne_of_lt (prime.pos (h₂ a (mem_cons_self _ _)))).symm
       (hi (λ p hp, h₂ p (mem_cons_of_mem _ hp))) h₁ }
 end,
-perm_of_prod_eq_prod (by rwa prod_factors hn) h₂ (@mem_factors _)
+perm_of_prod_eq_prod (by rwa prod_factors hn) h₂ (@prime_of_mem_factors _)
 
 end
 

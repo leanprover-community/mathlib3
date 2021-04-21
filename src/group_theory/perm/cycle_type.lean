@@ -294,10 +294,10 @@ variables [decidable_eq α] {σ : perm α}
 
 lemma cycle_type (h : is_three_cycle σ) : σ.cycle_type = {3} := h
 
-lemma card_support (h : is_three_cycle σ) : σ.support.card = 3 :=
+lemma card_support (h : is_three_cycle σ) : fintype.card σ.support = 3 :=
 by rw [←sum_cycle_type, h.cycle_type, singleton_eq_singleton, multiset.sum_cons, sum_zero]
 
-lemma _root_.card_support_eq_three_iff : σ.support.card = 3 ↔ σ.is_three_cycle :=
+lemma _root_.card_support_eq_three_iff : fintype.card σ.support = 3 ↔ σ.is_three_cycle :=
 begin
   refine ⟨λ h, _, is_three_cycle.card_support⟩,
   by_cases h0 : σ.cycle_type = 0,
@@ -337,20 +337,12 @@ lemma is_three_cycle_swap_mul_swap_same
   is_three_cycle (swap a b * swap a c) :=
 begin
   suffices h : support (swap a b * swap a c) = {a, b, c},
-  { rw [←card_support_eq_three_iff, h],
+  { simp_rw [←card_support_eq_three_iff, h],
     simp [ab, ac, bc] },
-  apply le_antisymm ((support_mul_le _ _).trans (λ x, _)) (λ x hx, _),
-  { simp [ab, ac, bc] },
-  { simp only [finset.mem_insert, finset.mem_singleton] at hx,
-    rw mem_support,
-    simp only [perm.coe_mul, function.comp_app, ne.def],
-    obtain rfl | rfl | rfl := hx,
-    { rw [swap_apply_left, swap_apply_of_ne_of_ne ac.symm bc.symm],
-      exact ac.symm },
-    { rw [swap_apply_of_ne_of_ne ab.symm bc, swap_apply_right],
-      exact ab },
-    { rw [swap_apply_right, swap_apply_left],
-      exact bc } }
+  rw [swap_comm, support_swap_mul_swap],
+  { ext,
+    simp [or.left_comm] },
+  { simp [ab.symm, bc, ac] }
 end
 
 open subgroup

@@ -197,7 +197,7 @@ submodule.ext $ λ x, by simp [mem_sup]
 lemma is_compl_range_inl_inr : is_compl (inl R M M₂).range (inr R M M₂).range :=
 begin
   split,
-  { rintros ⟨_, _⟩ ⟨⟨x, -, hx⟩, ⟨y, -, hy⟩⟩,
+  { rintros ⟨_, _⟩ ⟨⟨x, hx⟩, ⟨y, hy⟩⟩,
     simp only [prod.ext_iff, inl_apply, inr_apply, mem_bot] at hx hy ⊢,
     exact ⟨hy.1.symm, hx.2.symm⟩ },
   { rintros ⟨x, y⟩ -,
@@ -319,10 +319,10 @@ by rw [ker, ← prod_bot, prod_comap_inl]
 by rw [ker, ← prod_bot, prod_comap_inr]
 
 @[simp] theorem range_fst : (fst R M M₂).range = ⊤ :=
-by rw [range, ← prod_top, prod_map_fst]
+by rw [range_eq_map, ← prod_top, prod_map_fst]
 
 @[simp] theorem range_snd : (snd R M M₂).range = ⊤ :=
-by rw [range, ← prod_top, prod_map_snd]
+by rw [range_eq_map, ← prod_top, prod_map_snd]
 
 end submodule
 

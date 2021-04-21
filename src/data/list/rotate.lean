@@ -239,10 +239,6 @@ infixr ` ~r `:1000 := is_rotated
 
 variables {l l'}
 
-lemma is_rotated.def (h : l ~r l') : ∃ n, l.rotate n = l' := h
-
-lemma is_rotated_iff : l ~r l' ↔ ∃ n, l.rotate n = l' := iff.rfl
-
 @[refl] lemma is_rotated.refl (l : list α) : l ~r l :=
 ⟨0, by simp⟩
 
@@ -265,8 +261,8 @@ is_rotated.symm ⟨n, rfl⟩
 @[trans] lemma is_rotated.trans {l'' : list α} (h : l ~r l') (h' : l' ~r l'') :
   l ~r l'' :=
 begin
-  obtain ⟨n, rfl⟩ := h.def,
-  obtain ⟨m, rfl⟩ := h'.def,
+  obtain ⟨n, rfl⟩ := h,
+  obtain ⟨m, rfl⟩ := h',
   rw rotate_rotate,
   use (n + m)
 end
@@ -301,7 +297,6 @@ is_rotated.symm ⟨1, by simp⟩
 
 lemma is_rotated.reverse (h : l ~r l') : l.reverse ~r l'.reverse :=
 begin
-  rw is_rotated_iff at h ⊢,
   obtain ⟨n, rfl⟩ := h,
   exact ⟨_, (reverse_rotate _ _).symm⟩
 end
@@ -321,7 +316,7 @@ by simp [is_rotated_reverse_comm_iff]
 lemma is_rotated_iff_mod : l ~r l' ↔ ∃ n ≤ l.length, l.rotate n = l' :=
 begin
   refine ⟨λ h, _, λ ⟨n, _, h⟩, ⟨n, h⟩⟩,
-  obtain ⟨n, rfl⟩ := h.def,
+  obtain ⟨n, rfl⟩ := h,
   cases l with hd tl,
   { simp },
   { refine ⟨n % (hd :: tl).length, _, rotate_mod _ _⟩,

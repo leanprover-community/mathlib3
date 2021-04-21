@@ -101,7 +101,7 @@ lemma subalgebra.topological_closure_comap'_homeomorph
   (f : B →ₐ[R] A) (f' : B ≃ₜ A) (w : (f : B → A) = f') :
   s.topological_closure.comap' f = (s.comap' f).topological_closure :=
 begin
-  apply subalgebra.ext_set,
+  apply set_like.ext',
   simp only [subalgebra.topological_closure_coe],
   simp only [subalgebra.coe_comap', subsemiring.coe_comap, alg_hom.coe_to_ring_hom],
   rw [w],

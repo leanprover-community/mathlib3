@@ -65,17 +65,6 @@ by cases f; cases g; cases h; refl
 
 section
 variables (α β)
-/--
-The map forgetting that a continuous function is continuous.
--/
-def forget_continuity : C(α, β) → (α → β) :=
-λ f, f.1
-
-@[simp] lemma forget_continuity_coe (f : C(α, β)) : (forget_continuity α β f : α → β) = f :=
-rfl
-
-lemma forget_continuity_injective : function.injective (forget_continuity α β) :=
-by tidy
 
 /--
 The continuous functions from `α` to `β` are the same as the plain functions when `α` is discrete.
@@ -135,7 +124,7 @@ section lattice
 
 instance partial_order [partial_order β] :
   partial_order C(α, β) :=
-partial_order.lift (forget_continuity α β) (forget_continuity_injective α β)
+partial_order.lift (λ f, f.to_fun) (by tidy)
 
 lemma le_def [partial_order β] {f g : C(α, β)} : f ≤ g ↔ ∀ a, f a ≤ g a :=
 pi.le_def

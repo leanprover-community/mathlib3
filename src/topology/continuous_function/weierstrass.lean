@@ -37,7 +37,7 @@ begin
   refine filter.tendsto.frequently (bernstein_approximation_uniform f) _,
   apply frequently_of_forall,
   intro n,
-  simp only [subalgebra.mem_coe],
+  simp only [set_like.mem_coe],
   apply subalgebra.sum_mem,
   rintro n -,
   apply subalgebra.smul_mem,

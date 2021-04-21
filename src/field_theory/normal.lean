@@ -99,7 +99,7 @@ lemma alg_hom.normal_bijective [h : normal F E] (ϕ : E →ₐ[F] K) : function.
     { rw [ring_hom.map_zero, aeval_map, ←is_scalar_tower.to_alg_hom_apply F K E,
           ←alg_hom.comp_apply, ←aeval_alg_hom],
       exact minpoly.aeval F (algebra_map K E x) })))) with y hy,
-  exact ⟨y, hy.2⟩ }⟩
+  exact ⟨y, hy⟩ }⟩
 
 variables {F} {E} {E' : Type*} [field E'] [algebra F E']
 
@@ -200,7 +200,7 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
 { to_fun := λ x, ⟨ϕ x, by
   { suffices : (to_alg_hom F E K).range.map ϕ ≤ _,
     { exact this ⟨x, subtype.mem x, rfl⟩ },
-    rintros x ⟨y, ⟨z, -, hy⟩, hx⟩,
+    rintros x ⟨y, ⟨z, hy⟩, hx⟩,
     rw [←hx, ←hy],
     apply minpoly.mem_range_of_degree_eq_one E,
     exact or.resolve_left (h.splits z) (minpoly.ne_zero (h.is_integral z))
@@ -224,7 +224,7 @@ def alg_hom.restrict_normal [normal F E] : E →ₐ[F] E :=
   algebra_map E K (ϕ.restrict_normal E x) = ϕ (algebra_map E K x) :=
 subtype.ext_iff.mp (alg_equiv.apply_symm_apply (alg_equiv.of_injective_field
   (is_scalar_tower.to_alg_hom F E K)) (ϕ.restrict_normal_aux E
-    ⟨is_scalar_tower.to_alg_hom F E K x, ⟨x, ⟨subsemiring.mem_top x, rfl⟩⟩⟩))
+    ⟨is_scalar_tower.to_alg_hom F E K x, x, rfl⟩))
 
 lemma alg_hom.restrict_normal_comp [normal F E] :
   (ϕ.restrict_normal E).comp (ψ.restrict_normal E) = (ϕ.comp ψ).restrict_normal E :=

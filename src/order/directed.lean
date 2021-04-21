@@ -52,6 +52,10 @@ lemma directed_of_sup [semilattice_sup α] {f : α → β} {r : β → β → Pr
   (H : ∀ ⦃i j⦄, i ≤ j → r (f i) (f j)) : directed r f :=
 λ a b, ⟨a ⊔ b, H le_sup_left, H le_sup_right⟩
 
+lemma monotone.directed_le [semilattice_sup α] [preorder β] {f : α → β} :
+  monotone f → directed (≤) f :=
+directed_of_sup
+
 /-- An antimonotone function on an inf-semilattice is directed. -/
 lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → β}
   (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=

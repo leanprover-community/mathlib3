@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2020 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Patrick Massot
+Authors: Patrick Massot, Scott Morrison
 -/
 import topology.instances.real
+import topology.algebra.group_with_zero
 
 /-!
 # The unit interval, as a topological space
@@ -80,3 +81,52 @@ meta def unit_interval : tactic unit :=
 `[apply unit_interval.le_one] <|> `[apply unit_interval.one_minus_le_one]
 
 end tactic.interactive
+
+
+section
+variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
+
+/--
+The map `λ x, a * x + b`, as a homeomorphism from `𝕜` (a topological field) to itself, when `a ≠ 0`.
+-/
+@[simps]
+def affine_homeomorph (a b : 𝕜) (h : a ≠ 0) : 𝕜 ≃ₜ 𝕜 :=
+{ to_fun := λ x, a * x + b,
+  inv_fun := λ y, (y - b) / a,
+  left_inv := λ x, by { simp only [add_sub_cancel], exact mul_div_cancel_left x h, },
+  right_inv := λ y, by { simp [mul_div_cancel' _ h], }, }
+
+end
+
+section
+variables {𝕜 : Type*} [linear_ordered_field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
+
+/--
+The image of `[0,1]` under the homeomorphism `λ x, a * x + b` is `[b, a+b]`.
+-/
+-- We only need the ordering on `𝕜` here to avoid talking about flipping the interval over.
+-- At the end of the day I only care about `ℝ`, so I'm hesitant to put work into generalizing.
+lemma affine_homeomorph_image_I (a b : 𝕜) (h : 0 < a) (w) :
+  affine_homeomorph a b w '' set.Icc 0 1 = set.Icc b (a + b) :=
+by simp [h]
+
+/--
+The affine homeomorphism from a nontrivial interval `[a,b]` to `[0,1]`.
+-/
+def Icc_homeo_I (a b : 𝕜) (h : a < b) : set.Icc a b ≃ₜ set.Icc (0 : 𝕜) (1 : 𝕜) :=
+begin
+  let e := homeomorph.image (affine_homeomorph (b-a) a (sub_pos.mpr h).ne.symm) (set.Icc 0 1),
+  refine (e.trans _).symm,
+  apply homeomorph.set_congr,
+  simp [sub_pos.mpr h],
+end
+
+@[simp] lemma Icc_homeo_I_apply_coe (a b : 𝕜) (h : a < b) (x : set.Icc a b) :
+  ((Icc_homeo_I a b h) x : 𝕜) = (x - a) / (b - a) :=
+rfl
+
+@[simp] lemma Icc_homeo_I_symm_apply_coe (a b : 𝕜) (h : a < b) (x : set.Icc (0 : 𝕜) (1 : 𝕜)) :
+  ((Icc_homeo_I a b h).symm x : 𝕜) = (b - a) * x + a :=
+rfl
+
+end

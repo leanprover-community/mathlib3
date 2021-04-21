@@ -44,7 +44,10 @@ variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {
   It consists of a scalar semiring `R` and an additive monoid of "vectors" `M`,
   connected by a "scalar multiplication" operation `r • x : M`
   (where `r : R` and `x : M`) with some natural associativity and
-  distributivity axioms similar to those on a ring. -/
+  distributivity axioms similar to those on a ring.
+
+  `module` and `vector_space` are just abbreviations for `semimodule`, when `R` is a ring (resp.
+  a field). -/
 @[protect_proj] class semimodule (R : Type u) (M : Type v) [semiring R]
   [add_comm_monoid M] extends distrib_mul_action R M :=
 (add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
@@ -151,7 +154,7 @@ section add_comm_group
 
 variables (R M) [semiring R] [add_comm_group M]
 
-instance add_comm_group.int_semimodule : semimodule ℤ M :=
+instance add_comm_group.int_module : semimodule ℤ M :=
 { one_smul := one_gsmul,
   mul_smul := λ m n a, mul_gsmul a m n,
   smul_add := λ n a b, gsmul_add a b n,

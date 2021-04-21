@@ -230,6 +230,8 @@ section is_rotated
 
 variables (l l' : list α)
 
+/-- `is_rotated l₁ l₂` or `l₁ ~r l₂` asserts that `l₁` and `l₂` are cyclic permutations
+  of each other. This is defined by claiming that `∃ n, l.rotate n = l'`. -/
 def is_rotated : Prop := ∃ n, l.rotate n = l'
 
 infixr ` ~r `:1000 := is_rotated

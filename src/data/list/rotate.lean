@@ -166,7 +166,7 @@ by simp
 
 lemma nth_le_rotate_one (l : list α) (k : ℕ) (hk : k < (l.rotate 1).length) :
   (l.rotate 1).nth_le k hk = l.nth_le ((k + 1) % l.length)
-    (by { cases l, { simpa using hk }, { refine nat.mod_lt _ _, simp }}) :=
+    (nat.mod_lt _ (k.zero_le.trans_lt (hk.trans_le (length_rotate _ _).le))) :=
 begin
   cases l with hd tl,
   { simp },
@@ -180,7 +180,7 @@ end
 
 lemma nth_le_rotate (l : list α) (n k : ℕ) (hk : k < (l.rotate n).length) :
   (l.rotate n).nth_le k hk = l.nth_le ((k + n) % l.length)
-    (by { cases l, { simpa using hk }, { refine nat.mod_lt _ _, simp }}) :=
+    (nat.mod_lt _ (k.zero_le.trans_lt (hk.trans_le (length_rotate _ _).le))) :=
 begin
   induction n with n hn generalizing l k,
   { have hk' : k < l.length := by simpa using hk,

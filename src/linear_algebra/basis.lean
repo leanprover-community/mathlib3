@@ -751,15 +751,18 @@ basis.mk
   (eq_top_iff.mpr $ set_like.coe_subset_coe.mp $
     by simpa using hs.subset_span_extend (subset_univ s))
 
-@[simp] lemma extend_apply_self (hs : linear_independent K (coe : s → V))
+lemma extend_apply_self (hs : linear_independent K (coe : s → V))
   (x : hs.extend _) :
   basis.extend hs x = x :=
 basis.mk_apply _ _ _
 
+@[simp] lemma coe_extend (hs : linear_independent K (coe : s → V)) :
+  ⇑(basis.extend hs) = coe :=
+funext (extend_apply_self hs)
+
 @[simp] lemma range_extend (hs : linear_independent K (coe : s → V)) :
   range (basis.extend hs) = hs.extend (subset_univ _) :=
-by { ext, simp only [set.mem_range, extend_apply_self, set_coe.exists, subtype.coe_mk,
-                     exists_prop, exists_eq_right] }
+by rw [coe_extend, subtype.range_coe_subtype, set_of_mem_eq]
 
 /-- If `v` is a linear independent family of vectors, extend it to a basis indexed by a sum type. -/
 noncomputable def sum_extend (hs : linear_independent K v) :

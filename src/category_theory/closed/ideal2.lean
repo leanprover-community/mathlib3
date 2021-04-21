@@ -14,7 +14,7 @@ import category_theory.subterminal
 # Exponential ideals
 
 An exponential ideal of a cartesian closed category `C` is a subcategory `D ⊆ C` if for any `B : D`
-and `A : C`, the exponential `B^A` is in `D` - resembling ring theoretic ideals. We define the
+and `A : C`, the exponential `B^^A` is in `D` - resembling ring theoretic ideals. We define the
 notion here for inclusion functors `i : D ⥤ C` rather than explicit subcategories.
 
 We give alternate conditions for an exponential ideal, particularly when the subcategory is
@@ -28,55 +28,6 @@ noncomputable theory
 namespace category_theory
 
 open limits category
-
-section subcat
-
-variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D] {i : D ⥤ C}
-
-/-- (Implementation) Auxiliary definition for `unit_comp_partial_bijective`. -/
-def unit_comp_partial_bijective_aux [reflective i] (A : C) (B : D) :
-  (A ⟶ i.obj B) ≃ (i.obj ((left_adjoint i).obj A) ⟶ i.obj B) :=
-((adjunction.of_right_adjoint i).hom_equiv _ _).symm.trans (equiv_of_fully_faithful i)
-
-/-- The description of the inverse of the bijection. -/
-lemma unit_comp_partial_bijective_aux_symm_apply [reflective i] {A : C} {B : D}
-  (f : i.obj ((left_adjoint i).obj A) ⟶ i.obj B) :
-  (unit_comp_partial_bijective_aux _ _).symm f = (adjunction.of_right_adjoint i).unit.app A ≫ f :=
-by simp [unit_comp_partial_bijective_aux]
-
-/--
-If `i` has a reflector `L`, then the function `(i L A ⟶ B) → (A ⟶ B)` given by precomposing with
-`η.app A` is a bijection provided `B` is in the essential image of `i`.
-That is, the function `(f : i L A ⟶ B) ↦ η.app A ≫ f` is bijective, as long as `B` is in the
-essential image of `i`.
-
-This establishes there is a natural bijection `(A ⟶ B) ≃ (i L A ⟶ B)`. In other words, from the
-point of view of objects in `D`, `A` and `i L A` look the same: specifically that `η.app A` is
-an isomorphism.
--/
-def unit_comp_partial_bijective [reflective i] (A : C) {B : C} (hB : B ∈ i.ess_image) :
-  (A ⟶ B) ≃ (i.obj ((left_adjoint i).obj A) ⟶ B) :=
-calc (A ⟶ B) ≃ (A ⟶ i.obj hB.witness) : iso.hom_congr (iso.refl _) hB.get_iso.symm
-     ...     ≃ (i.obj _ ⟶ i.obj hB.witness) : unit_comp_partial_bijective_aux _ _
-     ...     ≃ (i.obj ((left_adjoint i).obj A) ⟶ B) : iso.hom_congr (iso.refl _) hB.get_iso
-
-@[simp]
-lemma unit_comp_partial_bijective_symm_apply [reflective i] (A : C) {B : C}
-  (hB : B ∈ i.ess_image) (f) :
-  (unit_comp_partial_bijective A hB).symm f = (adjunction.of_right_adjoint i).unit.app A ≫ f :=
-by simp [unit_comp_partial_bijective, unit_comp_partial_bijective_aux_symm_apply]
-
-lemma unit_comp_partial_bijective_symm_natural [reflective i] (A : C) {B B' : C} (h : B ⟶ B')
-  (hB : B ∈ i.ess_image) (hB' : B' ∈ i.ess_image) (f : i.obj ((left_adjoint i).obj A) ⟶ B) :
-  (unit_comp_partial_bijective A hB').symm (f ≫ h) = (unit_comp_partial_bijective A hB).symm f ≫ h :=
-by simp
-
-lemma unit_comp_partial_bijective_natural [reflective i] (A : C) {B B' : C} (h : B ⟶ B')
-  (hB : B ∈ i.ess_image) (hB' : B' ∈ i.ess_image) (f : A ⟶ B) :
-  (unit_comp_partial_bijective A hB') (f ≫ h) = unit_comp_partial_bijective A hB f ≫ h :=
-by rw [←equiv.eq_symm_apply, unit_comp_partial_bijective_symm_natural A h, equiv.symm_apply_apply]
-
-end subcat
 
 section ideal
 

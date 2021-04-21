@@ -207,7 +207,7 @@ by rw [finset.sum_eq_multiset_sum, divisors_filter_squarefree h0, multiset.map_m
 lemma sq_mul_squarefree {n : ℕ} (hn : 0 < n) :
   ∃ a b : ℕ, 0 < a ∧ 0 < b ∧ b ^ 2 * a = n ∧ squarefree a :=
 begin
-  let S := {s ∈ finset.range (n + 1) | s ∣ n ∧ ∃ x, s = x ^ 2 },
+  let S := {s ∈ finset.range (n + 1) | s ∣ n ∧ ∃ x, s = x ^ 2},
   have hSne : S.nonempty,
   { use 1,
     have h1 : 0 < n ∧ ∃ (x : ℕ), 1 = x ^ 2 := ⟨hn, ⟨1, (one_pow 2).symm⟩⟩,
@@ -218,44 +218,28 @@ begin
   simp only [finset.sep_def, S, finset.mem_filter, finset.mem_range] at hs,
   obtain ⟨hsn1, ⟨a, hsa⟩, ⟨b, hsb⟩⟩ := hs,
 
-  have hzero_lt_a : 0 < a,
-  { rw hsa at hn,
-    rw zero_lt_iff at hn ⊢,
-    exact right_ne_zero_of_mul hn },
-  have hzero_lt_s : 0 < s,
-  { rw hsa at hn,
-    rw zero_lt_iff at hn ⊢,
-    exact left_ne_zero_of_mul hn },
-  have hzero_lt_b : 0 < b,
-  { rw [hsb, pow_two] at hzero_lt_s,
-    rw zero_lt_iff at hzero_lt_s ⊢,
-    exact left_ne_zero_of_mul hzero_lt_s },
+  rw hsa at hn,
+  obtain ⟨hlts, hlta⟩ := canonically_ordered_semiring.mul_pos.mp hn,
+  rw hsb at hsa hn hlts,
+  have hltb : 0 < b := by rwa [pow_two, canonically_ordered_semiring.mul_pos, and_self] at hlts,
 
-  rw hsb at hsa,
-
-  refine ⟨a, b, hzero_lt_a, hzero_lt_b, hsa.symm, _⟩,
-  intro x,
-  rintro ⟨y, hy⟩,
+  refine ⟨a, b, hlta, hltb, hsa.symm, _⟩,
+  rintro x ⟨y, hy⟩,
   by_contradiction,
   rw nat.is_unit_iff at h,
 
-  have hx₀ : ¬(x = 0),
-  { by_contradiction hx0,
-    rw [hy, hx0, zero_mul 0, zero_mul y] at hzero_lt_a,
-    exact nat.lt_asymm hzero_lt_a hzero_lt_a },
-
+  have hx₀ : ¬(x = 0) := λ hyp, by simp * at *,
   have hx₂ : x > 1 := nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hx₀, h⟩,
 
   set z := (b * x) ^ 2 with hz,
   have hz₀ : z > s,
   { rw [hz, hsb, mul_pow b x 2, gt_iff_lt],
-    rw hsb at hzero_lt_s,
-    refine lt_mul_of_one_lt_right hzero_lt_s _,
+    refine lt_mul_of_one_lt_right hlts _,
     rw pow_two, exact one_lt_mul' hx₂ hx₂ },
   have hz₁ : z ∣ n, { use y, rw [hsa, hy, hz], ring },
   have hz₂ : z ∈ S,
   { simp only [finset.sep_def, S, finset.mem_filter, finset.mem_range],
-    exact ⟨lt_succ_iff.mpr ((le_of_dvd hn) hz₁), hz₁, ⟨b * x, rfl⟩⟩ },
+    exact ⟨lt_succ_iff.mpr (le_of_dvd (by rwa ← hsa at hn) hz₁), hz₁, ⟨b * x, rfl⟩⟩ },
   have hz₃ : z ≤ s := finset.le_max' S z hz₂,
 
   exact lt_le_antisymm hz₀ hz₃,

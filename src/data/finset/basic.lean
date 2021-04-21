@@ -2091,7 +2091,7 @@ end finset
 theorem multiset.to_finset_card_le [decidable_eq α] (m : multiset α) : m.to_finset.card ≤ m.card :=
 card_le_of_le (erase_dup_le _)
 
-@[simp] lemma list.card_to_finset [decidable_eq α] (l : list α) :
+lemma list.card_to_finset [decidable_eq α] (l : list α) :
   finset.card l.to_finset = l.erase_dup.length := rfl
 
 theorem list.to_finset_card_le [decidable_eq α] (l : list α) : l.to_finset.card ≤ l.length :=

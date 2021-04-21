@@ -166,5 +166,9 @@ end
 
 @[to_additive]
 lemma finprod_mem_eq_one_iff_of_le_one (hs : (s ∩ mul_support f).finite) (hf : ∀ x ∈ s, 1 ≤ f x) :
-  ∏ᶠ x ∈ s, f x = 1 ↔ ∀ x ∈ s, f x = 1 := sorry 
+  ∏ᶠ x ∈ s, f x = 1 ↔ ∀ x ∈ s, f x = 1 :=
+begin
+  sorry,
+end
+
 end order

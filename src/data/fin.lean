@@ -1038,6 +1038,8 @@ succ_above_below _ _ (succ_pos _)
   (1 : fin (n + 2)).succ_above 0 = 0 :=
 succ_succ_above_zero 0
 
+/-- By moving `succ` to the outside of this expression, we create opportunities for further simplification
+using `succ_above_zero` or `succ_succ_above_zero`. -/
 @[simp] lemma succ_succ_above_one {n : ℕ} (i : fin (n + 2)) :
   (i.succ).succ_above 1 = (i.succ_above 0).succ :=
 by rw [← succ_zero_eq_one, succ_succ_above_succ]

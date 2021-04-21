@@ -730,10 +730,7 @@ by { ext, apply dot_product_neg }
 
 lemma smul_mul_vec_assoc (A : matrix m n α) (b : n → α) (a : α) :
   (a • A).mul_vec b = a • (A.mul_vec b) :=
-begin
-  ext i, change dot_product ((a • A) i) b = _,
-  simp only [mul_vec, smul_eq_mul, pi.smul_apply, smul_dot_product],
-end
+by { ext, apply smul_dot_product }
 
 end ring
 
@@ -743,13 +740,7 @@ variables [comm_ring α]
 
 lemma mul_vec_smul_assoc (A : matrix m n α) (b : n → α) (a : α) :
   A.mul_vec (a • b) = a • (A.mul_vec b) :=
-begin
-  ext i,
-  change dot_product (A i) (a • b) = _,
-  rw [← smul_mul_vec_assoc A b a, dot_product_comm],
-  change _ = dot_product ((a • A) i) b,
-  simp only [dot_product_comm, dot_product_smul, pi.smul_apply],
-end
+by { ext, apply dot_product_smul }
 
 end comm_ring
 

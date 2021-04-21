@@ -33,7 +33,7 @@ section primitive
 
 variables {R : Type*} [comm_semiring R]
 
-/-- A polynomial over a GCD domain is primitive when the `gcd` of its coefficients is 1 -/
+/-- A polynomial is primitive when the only constant polynomials dividing it are units -/
 def is_primitive (p : polynomial R) : Prop :=
 ∀ (r : R), C r ∣ p → is_unit r
 

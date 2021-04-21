@@ -61,7 +61,7 @@ Linear algebra:
     diagonalization: ''
     triangularization: ''
     invariant subspaces of an endomorphism: ''
-    generalized eigenspaces: 'module.End.generalized_eigenspace'
+    generalized eigenspaces: 'module.End.gen_eigenspace'
     kernels lemma: ''
     Dunford decomposition: ''
     Jordan normal form: ''

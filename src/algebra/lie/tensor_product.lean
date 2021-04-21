@@ -17,11 +17,11 @@ lie module, tensor product, universal property
 
 universes u v w w₁ w₂
 
+variables {R : Type u} [comm_ring R]
+
 namespace tensor_product
 
 open_locale tensor_product
-
-variables {R : Type u} [comm_ring R]
 
 namespace lie_module
 
@@ -96,14 +96,42 @@ def lift_lie : (M →ₗ⁅R,L⁆ N →ₗ[R] P) ≃ₗ[R] (M ⊗[R] N →ₗ⁅
 ↑(maximal_trivial_equiv (lift R L M N P))).trans
 maximal_trivial_linear_map_equiv_lie_module_hom
 
-@[simp] lemma lift_lie_apply (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) (m : M) (n : N) :
+@[simp] lemma coe_lift_lie_eq_lift_coe (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) :
+  ⇑(lift_lie R L M N P f) = lift R L M N P f :=
+begin
+  suffices : (lift_lie R L M N P f : M ⊗[R] N →ₗ[R] P) = lift R L M N P f,
+  { rw [← this, lie_module_hom.coe_to_linear_map], },
+  ext m n,
+  simp only [lift_lie, linear_equiv.trans_apply, lie_module_equiv.coe_to_linear_equiv,
+    coe_maximal_trivial_linear_map_equiv_lie_module_hom_apply, coe_maximal_trivial_equiv_apply,
+    coe_maximal_trivial_linear_map_equiv_lie_module_hom_symm_apply],
+end
+
+lemma lift_lie_apply (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) (m : M) (n : N) :
   lift_lie R L M N P f (m ⊗ₜ n) = f m n :=
-by simp only [lift_lie, linear_equiv.trans_apply, lie_module_hom.coe_to_linear_map,
-  coe_maximal_trivial_linear_map_equiv_lie_module_hom,
-  lie_module_equiv.coe_to_linear_equiv, coe_fn_coe_base,
-  coe_maximal_trivial_linear_map_equiv_lie_module_hom_symm_apply,
-  coe_maximal_trivial_equiv_apply, lift_apply]
+by simp only [coe_lift_lie_eq_lift_coe, lie_module_hom.coe_to_linear_map, lift_apply]
 
 end lie_module
 
 end tensor_product
+
+namespace lie_module
+
+open_locale tensor_product
+
+variables (R) (L : Type v) (M : Type w)
+variables [lie_ring L] [lie_algebra R L]
+variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+
+/-- The action of the Lie algebra on one of its modules, regarded as a morphism of Lie modules. -/
+def to_module_hom : L ⊗[R] M →ₗ⁅R,L⁆ M :=
+tensor_product.lie_module.lift_lie R L L M M
+{ map_lie' := λ x m, by { ext n, simp [lie_ring.of_associative_ring_bracket], },
+  ..(to_endomorphism R L M : L →ₗ[R] M →ₗ[R] M), }
+
+@[simp] lemma to_module_hom_apply (x : L) (m : M) :
+  to_module_hom R L M (x ⊗ₜ m) = ⁅x, m⁆ :=
+by simp only [to_module_hom, tensor_product.lie_module.lift_lie_apply, to_endomorphism_apply_apply,
+  lie_hom.coe_to_linear_map, lie_module_hom.coe_mk, linear_map.to_fun_eq_coe]
+
+end lie_module

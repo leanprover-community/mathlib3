@@ -18,7 +18,7 @@ universes v u
 namespace category_theory
 
 /-- Category of quivers. -/
-def Quiv := bundled quiver.{v u}
+def Quiv := bundled quiver.{(v+1) u}
 
 namespace Quiv
 
@@ -26,10 +26,10 @@ instance : has_coe_to_sort Quiv :=
 { S := Type u,
   coe := bundled.α }
 
-instance str (C : Quiv.{v u}) : quiver.{v u} C := C.str
+instance str (C : Quiv.{v u}) : quiver.{(v+1) u} C := C.str
 
 /-- Construct a bundled `Quiv` from the underlying type and the typeclass. -/
-def of (C : Type u) [quiver.{v} C] : Quiv.{v u} := bundled.of C
+def of (C : Type u) [quiver.{v+1} C] : Quiv.{v u} := bundled.of C
 
 instance : inhabited Quiv := ⟨Quiv.of (quiver.empty pempty)⟩
 
@@ -92,7 +92,7 @@ local attribute [ext] functor.ext
 
 /-- Any prefunctor into a category lifts to a functor from the path category. -/
 @[simps]
-def lift {V : Type u} [quiver.{v} V] {C : Type u} [category.{v} C]
+def lift {V : Type u} [quiver.{v+1} V] {C : Type u} [category.{v} C]
   (F : prefunctor V C) : paths V ⥤ C :=
 { obj := λ X, F.obj X,
   map := λ X Y f, compose_path (F.map_path f), }

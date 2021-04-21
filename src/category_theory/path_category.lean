@@ -22,11 +22,11 @@ def paths (V : Type u₁) : Type u₁ := V
 
 instance (V : Type u₁) [inhabited V] : inhabited (paths V) := ⟨(default V : V)⟩
 
-variables (V : Type u₁) [quiver.{v₁} V]
+variables (V : Type u₁) [quiver.{v₁+1} V]
 
 namespace paths
 
-instance category_paths : category.{max u₁ v₁} (paths V) :=
+instance category_paths : category.{max u₁ (v₁+1)} (paths V) :=
 { hom := λ (X Y : V), quiver.path X Y,
   id := λ X, quiver.path.nil,
   comp := λ X Y Z f g, quiver.path.comp f g, }
@@ -43,7 +43,7 @@ def of : prefunctor V (paths V) :=
 
 end paths
 
-variables (W : Type u₂) [quiver.{v₂} W]
+variables (W : Type u₂) [quiver.{v₂+1} W]
 
 -- A restatement of `prefunctor.map_path_comp` using `f ≫ g` instead of `f.comp g`.
 @[simp] lemma prefunctor.map_path_comp' (F : prefunctor V W)

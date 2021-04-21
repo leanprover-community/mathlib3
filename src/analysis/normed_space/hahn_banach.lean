@@ -516,42 +516,30 @@ begin
     apply ‹y ≤ 0›.trans (gauge_nonneg _) }
 end
 
+
 /-- A nonzero continuous linear functional is open. -/
-lemma nonzero_linear_map_is_open_map (f : E →L[ℝ] ℝ) (hf : f ≠ 0) :
+lemma nonzero_linear_map_is_open_map {E : Type*} [add_comm_group E] [topological_space E]
+  [topological_add_group E] [vector_space ℝ E] [has_continuous_smul ℝ E]
+  (f : E →L[ℝ] ℝ) (hf : f ≠ 0) :
   is_open_map f :=
 begin
-  have : ∃ x₀, f x₀ ≠ 0,
+  obtain ⟨x₀, hx₀⟩ : ∃ x₀, f x₀ ≠ 0,
   { by_contra h,
     push_neg at h,
-    apply hf,
-    ext,
-    simp [h] },
-  obtain ⟨x₁, hx₁⟩ : ∃ x₁, f x₁ = 1,
-  { rcases this with ⟨x₀, hx₀⟩,
-    refine ⟨(f x₀)⁻¹ • x₀, _⟩,
-    simp [hx₀] },
+    refine hf (continuous_linear_map.ext (λ x, by simp [h]) )},
   intros A hA,
   rw is_open_iff_mem_nhds,
   rintro _ ⟨a, ha, rfl⟩,
-  let g : ℝ → E := λ x, a + x • x₁,
+  let g : ℝ → E := λ x, a + (x - f a) • (f x₀)⁻¹ • x₀,
   have := (show continuous g, by continuity).is_open_preimage _ ‹is_open A›,
   rw is_open_iff_mem_nhds at this,
-  specialize this 0 _,
-  { change a + _ • _ ∈ A,
+  specialize this (f a) _,
+  { change _ + _ • _ ∈ A,
     simpa },
-  rw metric.nhds_basis_ball.1 at this,
-  rcases this with ⟨ε, hε₁, hε₂⟩,
-  rw metric.nhds_basis_ball.1,
-  refine ⟨ε, hε₁, _⟩,
-  intros x hx,
-  simp only [metric.mem_ball, real.dist_eq] at hx,
-  have : x - f a ∈ g ⁻¹' A,
-  { apply hε₂,
-    rwa [metric.mem_ball, real.dist_0_eq_abs] },
-  refine ⟨_, this, _⟩,
-  simp [hx₁],
+  exact filter.mem_sets_of_superset this (λ x hx, ⟨_, hx, by simp [hx₀]⟩),
 end
 
+#exit
 /--
 A version of the Hahn-Banach theorem: given disjoint convex subsets `A,B` where `A` is open, there
 is a continuous linear functional which separates them.

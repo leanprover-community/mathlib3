@@ -169,6 +169,10 @@ def gal_action_hom [fact (p.splits (algebra_map F E))] : p.gal →* equiv.perm (
   map_one' := by { ext1 x, exact mul_action.one_smul x },
   map_mul' := λ x y, by { ext1 z, exact mul_action.mul_smul x y z } }
 
+lemma gal_action_hom_restrict [fact (p.splits (algebra_map F E))]
+  (ϕ : E ≃ₐ[F] E) (x : root_set p E) : ↑(gal_action_hom p E (restrict p E ϕ) x) = ϕ x :=
+restrict_smul ϕ x
+
 lemma gal_action_hom_injective [fact (p.splits (algebra_map F E))] :
   function.injective (gal_action_hom p E) :=
 begin
@@ -359,7 +363,53 @@ lemma tada_aux {p : polynomial ℚ} :
   fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) +
     (gal_action_hom p ℂ (restrict p ℂ complex.conj_rat_alg_equiv)).support.card :=
 begin
-  sorry
+  by_cases hp : p = 0,
+  { have h1 : fintype.card (p.root_set ℝ) = 0 := by simp_rw [hp, root_set_zero, set.empty_card'],
+    have h2 : fintype.card (p.root_set ℂ) = 0 := by simp_rw [hp, root_set_zero, set.empty_card'],
+    rw [h1, h2, nat.le_zero_iff.mp ((finset.card_le_univ _).trans (le_of_eq h2))] },
+  simp_rw [root_set_def, fintype.card_coe],
+  rw [←finset.card_image_of_injective _ (algebra_map ℝ ℂ).injective,
+      ←finset.card_image_of_injective _ subtype.coe_injective],
+  let a : finset ℂ := _,
+  let b : finset ℂ := _,
+  let c : finset ℂ := _,
+  change a.card = b.card + c.card,
+  have ha : ∀ z : ℂ, z ∈ a ↔ aeval z p = 0,
+  { intro z,
+    rw [←finset.mem_coe, ←root_set_def, mem_root_set hp] },
+  have hb : ∀ z : ℂ, z ∈ b ↔ aeval z p = 0 ∧ z.im = 0,
+  { intro z,
+    simp_rw [finset.mem_image, exists_prop, ←finset.mem_coe, ←root_set_def, mem_root_set hp],
+    split,
+    { rintros ⟨w, hw, rfl⟩,
+      split,
+      { sorry },
+      { refl }, },
+    { rintros ⟨hz1, hz2⟩,
+      have key : is_scalar_tower.to_alg_hom ℚ ℝ ℂ z.re = z := by { ext, refl, rw hz2, refl },
+      rw [←key, aeval_alg_hom_apply, ←(is_scalar_tower.to_alg_hom ℚ ℝ ℂ).map_zero] at hz1,
+      exact ⟨z.re, (algebra_map ℝ ℂ).injective hz1, key⟩ } },
+  have hc : ∀ z : ℂ, z ∈ c ↔ aeval z p = 0 ∧ z.im ≠ 0,
+  { intro z,
+    simp_rw [finset.mem_image, exists_prop],
+    split,
+    { rintros ⟨w, hw, rfl⟩,
+      refine ⟨(mem_root_set hp).mp w.2, _⟩,
+      have key := equiv.perm.mem_support.mp hw,
+      rw [ne, subtype.ext_iff, gal_action_hom_restrict] at key,
+      sorry },
+    { rintros ⟨hz1, hz2⟩,
+      refine ⟨⟨z, (mem_root_set hp).mpr hz1⟩, _, rfl⟩,
+      sorry } },
+  rw ← finset.card_disjoint_union,
+  { apply congr_arg finset.card,
+    ext z,
+    rw [finset.mem_union, ha, hb, hc],
+    tauto },
+  { intro z,
+    rw [finset.inf_eq_inter, finset.mem_inter, hb, hc],
+    tauto },
+  { apply_instance },
 end
 
 lemma tada {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
@@ -390,18 +440,20 @@ end
 
 lemma final0_irred (a : ℕ) (b : ℤ) (p : ℕ)
   (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b)) :
-  irreducible (X ^ 5 - a * X + b : polynomial ℚ) :=
+  irreducible (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) :=
 begin
-  let q : polynomial ℚ := X ^ 5 - a * X + b,
+  let q : polynomial ℚ := X ^ 5 - C ↑a * X + C ↑b,
   change irreducible q,
   let r : polynomial ℤ := X ^ 5 - C ↑a * X + C b,
   have r_map : r.map (int.cast_ring_hom ℚ) = q,
-  { sorry },
+  { rw [map_add, map_sub, map_mul, map_pow, map_X, map_C, map_C],
+    refl },
   have r_degree : r.degree = ↑5 := sorry,
   have r_leading_coeff : r.leading_coeff = 1 := sorry,
   have r_monic : r.monic := r_leading_coeff,
   have r_primitive : r.is_primitive := r_monic.is_primitive,
   rw [←r_map, ←is_primitive.int.irreducible_iff_irreducible_map_cast r_primitive],
+  have key : (1 : polynomial ℤ) = (2 : ℚ),
   apply irreducible_of_eisenstein_criterion,
   { rwa [ideal.span_singleton_prime (int.coe_nat_ne_zero.mpr hp.ne_zero),
       int.prime_iff_nat_abs_prime], },
@@ -422,14 +474,14 @@ begin
   { rw [coeff_add, coeff_sub, coeff_X_pow, coeff_C_mul, coeff_X, coeff_C],
     norm_num,
     rwa [pow_two, ideal.span_singleton_mul_span_singleton, ←pow_two, ideal.mem_span_singleton] },
-  { exact is_primitive_iff_is_unit_of_C_dvd.mp r_primitive }, -- todo: change eisenstein to use is_primitive
+  { exact is_primitive_iff_is_unit_of_C_dvd.mp r_primitive },
 end
 
 lemma final0 (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b < a)
   (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b)) :
-  function.bijective (gal_action_hom (X ^ 5 - a * X + b : polynomial ℚ) ℂ) :=
+  function.bijective (gal_action_hom (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) ℂ) :=
 begin
-  let q : polynomial ℚ := X ^ 5 - a * X + b,
+  let q : polynomial ℚ := X ^ 5 - C ↑a * X + C ↑b,
   change function.bijective (gal_action_hom q ℂ),
   have q_nat_degree : q.nat_degree = 5,
   { sorry },
@@ -442,44 +494,6 @@ begin
     have h2 : fintype.card (q.root_set ℝ) = 3,
     { sorry },
     rw [h1, h2] },
-end
-
-lemma final1 : function.bijective (gal_action_hom (X ^ 5 - 4 * X + 2 : polynomial ℚ) ℂ) :=
-begin
-  let p : polynomial ℚ := X ^ 5 - 4 * X + 2,
-  change function.bijective (gal_action_hom p ℂ),
-  let q : polynomial ℤ := X ^ 5 - C 4 * X + C 2,
-  have q_map : p = q.map (int.cast_ring_hom ℚ),
-  { rw [map_add, map_sub, map_mul, map_pow, map_X, map_C, map_C],
-    have h1 : C (int.cast_ring_hom ℚ 4) = 4,
-    { rw [int.coe_cast_ring_hom, C_eq_int_cast],
-      sorry },
-    have h2 : C (int.cast_ring_hom ℚ 2) = 2,
-    { rw [int.coe_cast_ring_hom, C_eq_int_cast],
-      sorry },
-    rw [h1, h2] },
-  have q_nat_degree : q.nat_degree = 5,
-  { sorry },
-  have q_leading_coeff : q.leading_coeff = 1,
-  { rw [leading_coeff, q_nat_degree, coeff_add, coeff_sub, coeff_C_mul, coeff_C, coeff_X_pow_self,
-        coeff_X, if_neg, if_neg, mul_zero, add_zero, sub_zero],
-    sorry,
-    sorry },
-  have q_monic : q.monic := q_leading_coeff,
-  have q_ne_zero : q ≠ 0 := q_monic.ne_zero,
-
-  apply tada,
-  { rw [q_map, ←is_primitive.int.irreducible_iff_irreducible_map_cast (q_monic.is_primitive)],
-    apply irreducible_of_eisenstein_criterion,
-    { change (ideal.span ({2} : set ℤ)).is_prime,
-      rw [ideal.span_singleton_prime, int.prime_iff_nat_abs_prime],
-      all_goals { norm_num } },
-    { rw [q_leading_coeff, ideal.mem_span_singleton],
-      norm_num },
-    { intros n hn,
-      rw [degree_eq_nat_degree q_ne_zero, with_bot.coe_lt_coe, q_nat_degree] at hn,
-      interval_cases n,
-      all_goals { rw [coeff_add, coeff_sub], }, } },
 end
 
 end gal

@@ -144,7 +144,8 @@ by simp [unit_comp_partial_bijective, unit_comp_partial_bijective_aux_symm_apply
 
 lemma unit_comp_partial_bijective_symm_natural [reflective i] (A : C) {B B' : C} (h : B ⟶ B')
   (hB : B ∈ i.ess_image) (hB' : B' ∈ i.ess_image) (f : i.obj ((left_adjoint i).obj A) ⟶ B) :
-  (unit_comp_partial_bijective A hB').symm (f ≫ h) = (unit_comp_partial_bijective A hB).symm f ≫ h :=
+  (unit_comp_partial_bijective A hB').symm (f ≫ h) = 
+    (unit_comp_partial_bijective A hB).symm f ≫ h :=
 by simp
 
 lemma unit_comp_partial_bijective_natural [reflective i] (A : C) {B B' : C} (h : B ⟶ B')

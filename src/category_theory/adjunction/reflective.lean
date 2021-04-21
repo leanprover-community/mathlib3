@@ -119,16 +119,16 @@ lemma unit_comp_partial_bijective_aux_symm_apply [reflective i] {A : C} {B : D}
 by simp [unit_comp_partial_bijective_aux]
 
 /--
-If `i` has a reflector `L`, then the function `(i L A ⟶ B) → (A ⟶ B)` given by precomposing with
-`η.app A` is a bijection provided `B` is in the essential image of `i`.
-That is, the function `(f : i L A ⟶ B) ↦ η.app A ≫ f` is bijective, as long as `B` is in the
-essential image of `i`.
+If `i` has a reflector `L`, then the function `(i.obj (L.obj A) ⟶ B) → (A ⟶ B)` given by
+precomposing with `η.app A` is a bijection provided `B` is in the essential image of `i`.
+That is, the function `λ (f : i.obj (L.obj A) ⟶ B), η.app A ≫ f` is bijective, as long as `B` is in
+the essential image of `i`.
 This definition gives an equivalence: the key property that the inverse can be described
 nicely is shown in `unit_comp_partial_bijective_symm_apply`.
 
-This establishes there is a natural bijection `(A ⟶ B) ≃ (i L A ⟶ B)`. In other words, from the
-point of view of objects in `D`, `A` and `i L A` look the same: specifically that `η.app A` is
-an isomorphism.
+This establishes there is a natural bijection `(A ⟶ B) ≃ (i.obj (L.obj A) ⟶ B)`. In other words,
+from the point of view of objects in `D`, `A` and `i.obj (L.obj A)` look the same: specifically
+that `η.app A` is an isomorphism.
 -/
 def unit_comp_partial_bijective [reflective i] (A : C) {B : C} (hB : B ∈ i.ess_image) :
   (A ⟶ B) ≃ (i.obj ((left_adjoint i).obj A) ⟶ B) :=
@@ -144,7 +144,7 @@ by simp [unit_comp_partial_bijective, unit_comp_partial_bijective_aux_symm_apply
 
 lemma unit_comp_partial_bijective_symm_natural [reflective i] (A : C) {B B' : C} (h : B ⟶ B')
   (hB : B ∈ i.ess_image) (hB' : B' ∈ i.ess_image) (f : i.obj ((left_adjoint i).obj A) ⟶ B) :
-  (unit_comp_partial_bijective A hB').symm (f ≫ h) = 
+  (unit_comp_partial_bijective A hB').symm (f ≫ h) =
     (unit_comp_partial_bijective A hB).symm f ≫ h :=
 by simp
 

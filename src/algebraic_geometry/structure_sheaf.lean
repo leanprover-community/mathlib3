@@ -572,14 +572,13 @@ begin
   have res_basic_open := eq_to_hom basic_opens_eq ≫ hom_of_le hDhV,
   -- Now we have all the ingredients we nned
   use [f * c, h ^ (n+1), res_basic_open ≫ iVU, (basic_opens_eq.symm.le : _) hxDh],
-  erw ← congr_arg ((structure_sheaf R).presheaf.map res_basic_open.op) s_eq,
-  rw res_const,
-  -- Note that the last rewrite generated an additional goal, which was an implicit parameter to
-  -- `res_const`. We prove this goal first
+  rw [op_comp, functor.map_comp, coe_comp, ← s_eq, res_const],
+  -- Note that the last rewrite here generated an additional goal, which was a parameter
+  -- of `res_const`. We prove this goal first
   swap,
   { intros y hy,
     rw basic_opens_eq at hy,
-    exact (set.subset.trans hDhV hVDg : _) hy, },
+    exact (set.subset.trans hDhV hVDg : _) hy },
   -- All that is left is a simple calculation
   apply const_ext,
   rw [mul_assoc f c g, hc],

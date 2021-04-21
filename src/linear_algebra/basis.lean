@@ -128,7 +128,8 @@ lemma is_basis.repr_eq_single {i} : hv.repr (v i) = finsupp.single i 1 :=
 by apply hv.1.repr_eq_single; simp
 
 @[simp]
-lemma is_basis.repr_self_apply (i j : ι) : hv.repr (v i) j = if i = j then 1 else 0 :=
+lemma is_basis.repr_self_apply (i j : ι) [decidable (i = j)] :
+  hv.repr (v i) j = if i = j then 1 else 0 :=
 by rw [hv.repr_eq_single, finsupp.single_apply]
 
 lemma is_basis.repr_eq_iff {f : M →ₗ[R] (ι →₀ R)} :

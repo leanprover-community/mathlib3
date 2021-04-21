@@ -3466,7 +3466,7 @@ theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop
 
 theorem tail_suffix (l : list α) : tail l <:+ l := by rw ← drop_one; apply drop_suffix
 
-lemma tail_sublist (l : list α) : l.tail <+ l := (sublist_of_suffix (tail_suffix l))
+lemma tail_sublist (l : list α) : l.tail <+ l := sublist_of_suffix (tail_suffix l)
 
 theorem tail_subset (l : list α) : tail l ⊆ l := (tail_sublist l).subset
 

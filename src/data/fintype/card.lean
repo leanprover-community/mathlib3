@@ -108,6 +108,19 @@ theorem fin.prod_univ_def [comm_monoid β] {n : ℕ} (f : fin n → β) :
 by simp [fin.univ_def, finset.fin_range]
 
 @[to_additive]
+theorem finset.prod_range [comm_monoid β] {n : ℕ} (f : ℕ → β) :
+  ∏ i in finset.range n, f i = ∏ i : fin n, f i :=
+begin
+  fapply @finset.prod_bij' _ _ _ _ _ _,
+  exact λ k w, ⟨k, (by simpa using w)⟩,
+  swap 3,
+  exact λ a m, a,
+  swap 3,
+  exact λ a m, by simpa using a.2,
+  all_goals { tidy, },
+end
+
+@[to_additive]
 theorem fin.prod_of_fn [comm_monoid β] {n : ℕ} (f : fin n → β) :
   (list.of_fn f).prod = ∏ i, f i :=
 by rw [list.of_fn_eq_map, fin.prod_univ_def]
@@ -275,17 +288,6 @@ begin
   rw [← fin.prod_univ_eq_prod_range, finset.prod_congr rfl],
   rintros ⟨i, hi⟩ _,
   simp only [fin.coe_eq_val, hi, dif_pos]
-end
-
-@[to_additive]
-lemma finset.prod_subtype {M : Type*} [comm_monoid M]
-  {p : α → Prop} {F : fintype (subtype p)} (s : finset α) (h : ∀ x, x ∈ s ↔ p x) (f : α → M) :
-  ∏ a in s, f a = ∏ a : subtype p, f a :=
-have (∈ s) = p, from set.ext h,
-begin
-  rw [← prod_attach, attach_eq_univ],
-  substI p,
-  congr
 end
 
 @[to_additive]

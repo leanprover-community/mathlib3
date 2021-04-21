@@ -164,7 +164,7 @@ by { induction n ; { dunfold V, resetI, apply_instance } }
 instance : add_comm_group (V n) :=
 by { induction n ; { dunfold V, resetI, apply_instance } }
 
-instance : vector_space ℝ (V n) :=
+instance : module ℝ (V n) :=
 by { induction n ; { dunfold V, resetI, apply_instance } }
 end V
 
@@ -225,19 +225,19 @@ def dual_pair_e_ε (n : ℕ) : dual_pair (@e n) (@ε n) :=
   total := @epsilon_total _ }
 
 /-! We will now derive the dimension of `V`, first as a cardinal in `dim_V` and,
-since this cardinal is finite, as a natural number in `findim_V` -/
+since this cardinal is finite, as a natural number in `finrank_V` -/
 
-lemma dim_V : vector_space.dim ℝ (V n) = 2^n :=
-have vector_space.dim ℝ (V n) = (2^n : ℕ),
+lemma dim_V : module.rank ℝ (V n) = 2^n :=
+have module.rank ℝ (V n) = (2^n : ℕ),
   by { rw [dim_eq_card_basis (dual_pair_e_ε _).is_basis, Q.card]; apply_instance },
 by assumption_mod_cast
 
 instance : finite_dimensional ℝ (V n) :=
 finite_dimensional.of_fintype_basis (dual_pair_e_ε _).is_basis
 
-lemma findim_V : findim ℝ (V n) = 2^n :=
+lemma finrank_V : finrank ℝ (V n) = 2^n :=
 have _ := @dim_V n,
-by rw ←findim_eq_dim at this; assumption_mod_cast
+by rw ←finrank_eq_dim at this; assumption_mod_cast
 
 /-! ### The linear map -/
 
@@ -333,9 +333,9 @@ In this section, in order to enforce that `n` is positive, we write it as
 `m + 1` for some natural number `m`. -/
 
 /-! `dim X` will denote the dimension of a subspace `X` as a cardinal. -/
-notation `dim` X:70 := vector_space.dim ℝ ↥X
+notation `dim` X:70 := module.rank ℝ ↥X
 /-! `fdim X` will denote the (finite) dimension of a subspace `X` as a natural number. -/
-notation `fdim` := findim ℝ
+notation `fdim` := finrank ℝ
 
 /-! `Span S` will denote the ℝ-subspace spanned by `S`. -/
 notation `Span` := submodule.span ℝ
@@ -373,8 +373,8 @@ begin
     rw set.range_restrict at hdW,
     convert hdW,
     rw [cardinal.mk_image_eq (dual_pair_e_ε _).is_basis.injective, cardinal.fintype_card] },
-  rw ← findim_eq_dim ℝ at ⊢ dim_le dim_add dimW,
-  rw [← findim_eq_dim ℝ, ← findim_eq_dim ℝ] at dim_add,
+  rw ← finrank_eq_dim ℝ at ⊢ dim_le dim_add dimW,
+  rw [← finrank_eq_dim ℝ, ← finrank_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,
   rw pow_succ' at dim_le,
   rw set.to_finset_card at hH,

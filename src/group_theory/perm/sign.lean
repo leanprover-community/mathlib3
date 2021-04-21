@@ -151,6 +151,14 @@ begin
     (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
 end
 
+lemma support_pow_coprime {σ : perm α} {n : ℕ} (h : nat.coprime n (order_of σ)) :
+  (σ ^ n).support = σ.support :=
+begin
+  obtain ⟨m, hm⟩ := exists_pow_eq_self_of_coprime h,
+  exact le_antisymm (support_pow_le σ n) (le_trans (ge_of_eq (congr_arg support hm))
+    (support_pow_le (σ ^ n) m)),
+end
+
 variable [decidable_eq α]
 
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/
@@ -224,15 +232,12 @@ begin
       (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
 end
 
-lemma closure_swaps_eq_top [fintype α] :
-  subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
+lemma closure_is_swap [fintype α] : subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
 begin
-  ext σ,
-  simp only [subgroup.mem_top, iff_true],
-  apply swap_induction_on σ,
-  { exact subgroup.one_mem _ },
-  { intros σ a b ab hσ,
-    refine subgroup.mul_mem _ (subgroup.subset_closure ⟨_, _, ab, rfl⟩) hσ }
+  refine eq_top_iff.mpr (λ x hx, _),
+  obtain ⟨h1, h2⟩ := subtype.mem (trunc_swap_factors x).out,
+  rw ← h1,
+  exact subgroup.list_prod_mem _ (λ y hy, subgroup.subset_closure (h2 y hy)),
 end
 
 /-- Like `swap_induction_on`, but with the composition on the right of `f`.
@@ -713,45 +718,3 @@ end congr
 end sign
 
 end equiv.perm
-
-section alternating_subgroup
-open equiv.perm
-variables (α) [fintype α] [decidable_eq α]
-
-/-- The alternating group on a finite type, realized as a subgroup of `equiv.perm`.
-  For $A_n$, use `alternating_subgroup (fin n)`. -/
-@[derive fintype] def alternating_subgroup : subgroup (perm α) :=
-sign.ker
-
-instance [subsingleton α] : unique (alternating_subgroup α) :=
-⟨⟨1⟩, λ ⟨p, hp⟩, subtype.eq (subsingleton.elim p _)⟩
-
-variables {α}
-
-lemma alternating_subgroup_eq_sign_ker : alternating_subgroup α = sign.ker := rfl
-
-@[simp]
-lemma mem_alternating_subgroup {f : perm α} :
-  f ∈ alternating_subgroup α ↔ sign f = 1 :=
-sign.mem_ker
-
-lemma prod_list_swap_mem_alternating_subgroup_iff_even_length {l : list (perm α)}
-  (hl : ∀ g ∈ l, is_swap g) :
-  l.prod ∈ alternating_subgroup α ↔ even l.length :=
-begin
-  rw [mem_alternating_subgroup, sign_prod_list_swap hl, ← units.coe_eq_one, units.coe_pow,
-    units.coe_neg_one, nat.neg_one_pow_eq_one_iff_even],
-  dec_trivial
-end
-
-lemma two_mul_card_alternating_subgroup [nontrivial α] :
-  2 * card (alternating_subgroup α) = card (perm α) :=
-begin
-  let := (quotient_group.quotient_ker_equiv_of_surjective _ (sign_surjective α)).to_equiv,
-  rw [←fintype.card_units_int, ←fintype.card_congr this],
-  exact (subgroup.card_eq_card_quotient_mul_card_subgroup _).symm,
-end
-
-lemma alternating_subgroup_normal : (alternating_subgroup α).normal := sign.normal_ker
-
-end alternating_subgroup

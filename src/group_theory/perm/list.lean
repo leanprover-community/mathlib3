@@ -27,6 +27,12 @@ variables [decidable_eq α] (l : list α)
 
 open equiv equiv.perm
 
+/--
+A list `l : list α` can be interpreted as a `equiv.perm α` where each element in the list
+is permuted to the next one, defined as `form_perm`. When we have that `nodup l`,
+we prove that `equiv.perm.support (form_perm l) = l.to_finset`, and that
+`form_perm l` is rotationally invariant, in `form_perm_rotate`.
+-/
 def form_perm : equiv.perm α :=
 (zip_with equiv.swap l (l.rotate 1)).tail.prod
 
@@ -292,7 +298,7 @@ end
 lemma form_perm_eq_of_is_rotated {l l' : list α} (hd : nodup l) (h : l ~r l') :
   form_perm l = form_perm l' :=
 begin
-  obtain ⟨n, rfl⟩ := h.def,
+  obtain ⟨n, rfl⟩ := h,
   exact (form_perm_rotate l hd n).symm
 end
 

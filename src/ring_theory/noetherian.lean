@@ -56,7 +56,7 @@ open set
 open_locale big_operators
 
 namespace submodule
-variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M]
 
 /-- A submodule of `M` is finitely generated if it is the span of a finite subset of `M`. -/
 def fg (N : submodule R M) : Prop := ∃ S : finset M, submodule.span R ↑S = N
@@ -120,7 +120,7 @@ theorem fg_sup {N₁ N₂ : submodule R M}
 let ⟨t₁, ht₁⟩ := fg_def.1 hN₁, ⟨t₂, ht₂⟩ := fg_def.1 hN₂ in
 fg_def.2 ⟨t₁ ∪ t₂, ht₁.1.union ht₂.1, by rw [span_union, ht₁.2, ht₂.2]⟩
 
-variables {P : Type*} [add_comm_monoid P] [semimodule R P]
+variables {P : Type*} [add_comm_monoid P] [module R P]
 variables {f : M →ₗ[R] P}
 
 theorem fg_map {N : submodule R M} (hs : N.fg) : (N.map f).fg :=
@@ -300,7 +300,7 @@ end submodule
 `is_noetherian R M` is the proposition that `M` is a Noetherian `R`-module,
 implemented as the predicate that all `R`-submodules of `M` are finitely generated.
 -/
-class is_noetherian (R M) [semiring R] [add_comm_monoid M] [semimodule R M] : Prop :=
+class is_noetherian (R M) [semiring R] [add_comm_monoid M] [module R M] : Prop :=
 (noetherian : ∀ (s : submodule R M), s.fg)
 
 section
@@ -353,7 +353,7 @@ instance is_noetherian_prod [is_noetherian R M]
   [is_noetherian R P] : is_noetherian R (M × P) :=
 ⟨λ s, submodule.fg_of_fg_map_of_fg_inf_ker (linear_map.snd R M P) (noetherian _) $
 have s ⊓ linear_map.ker (linear_map.snd R M P) ≤ linear_map.range (linear_map.inl R M P),
-from λ x ⟨hx1, hx2⟩, ⟨x.1, trivial, prod.ext rfl $ eq.symm $ linear_map.mem_ker.1 hx2⟩,
+from λ x ⟨hx1, hx2⟩, ⟨x.1, prod.ext rfl $ eq.symm $ linear_map.mem_ker.1 hx2⟩,
 linear_map.map_comap_eq_self this ▸ submodule.fg_map (noetherian _)⟩
 
 instance is_noetherian_pi {R ι : Type*} {M : ι → Type*} [ring R]
@@ -496,7 +496,7 @@ begin
   haveI := classical.dec_eq R,
   letI : is_noetherian R R := by apply_instance,
   have : ∀ x ∈ s, x ∈ N, from λ x hx, hs ▸ submodule.subset_span hx,
-  refine @@is_noetherian_of_surjective ((↑s : set M) → R) _ _ _ (pi.semimodule _ _ _)
+  refine @@is_noetherian_of_surjective ((↑s : set M) → R) _ _ _ (pi.module _ _ _)
     _ _ _ is_noetherian_pi,
   { fapply linear_map.mk,
     { exact λ f, ⟨∑ i in s.attach, f i • i.1, N.sum_mem (λ c _, N.smul_mem _ $ this _ c.2)⟩ },

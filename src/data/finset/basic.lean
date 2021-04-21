@@ -1394,14 +1394,14 @@ by congr
 
 section classical
 open_locale classical
-/-- The following instance allows us to write `{ x ∈ s | p x }` for `finset.filter s p`.
+/-- The following instance allows us to write `{x ∈ s | p x}` for `finset.filter p s`.
   Since the former notation requires us to define this for all propositions `p`, and `finset.filter`
-  only works for decidable propositions, the notation `{ x ∈ s | p x }` is only compatible with
+  only works for decidable propositions, the notation `{x ∈ s | p x}` is only compatible with
   classical logic because it uses `classical.prop_decidable`.
   We don't want to redo all lemmas of `finset.filter` for `has_sep.sep`, so we make sure that `simp`
-  unfolds the notation `{ x ∈ s | p x }` to `finset.filter s p`. If `p` happens to be decidable, the
-  simp-lemma `filter_congr_decidable` will make sure that `finset.filter` uses the right instance
-  for decidability.
+  unfolds the notation `{x ∈ s | p x}` to `finset.filter p s`. If `p` happens to be decidable, the
+  simp-lemma `finset.filter_congr_decidable` will make sure that `finset.filter` uses the right
+  instance for decidability.
 -/
 noncomputable instance {α : Type*} : has_sep α (finset α) := ⟨λ p x, x.filter p⟩
 
@@ -2091,7 +2091,7 @@ end finset
 theorem multiset.to_finset_card_le [decidable_eq α] (m : multiset α) : m.to_finset.card ≤ m.card :=
 card_le_of_le (erase_dup_le _)
 
-@[simp] lemma list.card_to_finset [decidable_eq α] (l : list α) :
+lemma list.card_to_finset [decidable_eq α] (l : list α) :
   finset.card l.to_finset = l.erase_dup.length := rfl
 
 theorem list.to_finset_card_le [decidable_eq α] (l : list α) : l.to_finset.card ≤ l.length :=

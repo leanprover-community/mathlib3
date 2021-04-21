@@ -180,6 +180,8 @@
   title  : Konigsberg Bridges Problem
 55:
   title  : Product of Segments of Chords
+  decl   : euclidean_geometry.mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi
+  author : Manuel Candales
 56:
   title  : The Hermite-Lindemann Transcendence Theorem
 57:
@@ -257,7 +259,7 @@
     card_sylow_modeq_one: https://github.com/ChrisHughes24/Sylow/blob/7185e33eeb6d28ea1a423492e7b4a8634aa9723d/src/sylow.lean#L944
   author : Chris Hughes
 73:
-  title  : Ascending or Descending Sequences
+  title  : Ascending or Descending Sequences (Erdős–Szekeres Theorem)
   links  :
     mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/73_ascending_descending_sequences.lean
   author : Bhavik Mehta

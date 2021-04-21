@@ -159,7 +159,7 @@ begin
 end
 
 theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
-| (m : ℕ) (n : ℕ) := by { rw [ gpow_coe_nat, gpow_coe_nat, ← pow_mul, ← gpow_coe_nat], refl }
+| (m : ℕ) (n : ℕ) := by { rw [gpow_coe_nat, gpow_coe_nat, ← pow_mul, ← gpow_coe_nat], refl }
 | (m : ℕ) -[1+ n] := by { rw [gpow_coe_nat, gpow_neg_succ_of_nat, ← pow_mul, coe_nat_mul_neg_succ,
     fpow_neg, inv_inj', ← gpow_coe_nat], refl }
 | -[1+ m] (n : ℕ) := by { rw [gpow_coe_nat, gpow_neg_succ_of_nat, ← inv_pow', ← pow_mul,

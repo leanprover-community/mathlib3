@@ -229,7 +229,7 @@ by refine
   gsmul_neg' := _,
   .. alternating_map.add_comm_monoid, .. };
 intros; ext;
-simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one,  gsmul_coe_nat]
+simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, gsmul_coe_nat]
 
 section distrib_mul_action
 

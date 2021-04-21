@@ -24,8 +24,8 @@ Further lemmas can be found in `algebra.group_power.lemmas`.
 The class `has_pow α β` provides the notation `a^b` for powers.
 We define instances of `has_pow M ℕ`, for monoids `M`, and `has_pow G ℤ` for groups `G`.
 
-We also define infix operators `•` for scalar multiplication by a natural and an integer
-numbers, respectively.
+Scalar multiplication by naturals and integers is handled by the `•` (`has_scalar.smul`)
+notation defined elsewhere.
 
 ## Implementation details
 

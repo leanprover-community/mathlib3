@@ -121,7 +121,7 @@ namespace category_theory
 universes v u
 
 /--
-A `Free R C` is a type synonym for `C`, which, given `[ring R]` and `[category C]`,
+`Free R C` is a type synonym for `C`, which, given `[ring R]` and `[category C]`,
 we will equip with a category structure where the morphisms are formal `R`-linear combinations
 of the morphisms in `C`.
 -/
@@ -269,13 +269,9 @@ nat_iso.of_components
     { intros f₁ f₂ w₁ w₂,
       simp only [F.map_add, G.map_add, add_comp, comp_add, w₁, w₂], },
     { intros f' r,
-      -- TODO finish cleaning up
-      simp only [category_theory.iso.app_hom],
-      rw [←smul_single_one],
-      have := F.map_smul,
-      rw [F.map_smul, G.map_smul], -- gah! incompatible instances, from finsupp and via int.module
-      -- I'm not sure this is fixable without #7084 and its successor.
-    }
+      rw [iso.app_hom, iso.app_hom, ←smul_single_one, F.map_smul, G.map_smul, smul_comp, comp_smul],
+      change r • (embedding ℤ C ⋙ F).map f' ≫ _ = r • _ ≫ (embedding ℤ C ⋙ G).map f',
+      rw α.hom.naturality f', }
   end
 
 /--

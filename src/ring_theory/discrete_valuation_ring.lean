@@ -201,6 +201,7 @@ begin
     { simp only [hm, one_mul, pow_zero] at h ⊢, right, exact h },
     left,
     obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
+    rw pow_succ,
     apply dvd_mul_of_dvd_left (dvd_refl _) _ },
   { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
 end

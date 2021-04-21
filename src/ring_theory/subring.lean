@@ -95,6 +95,46 @@ lemma mem_carrier {s : subring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.r
 /-- Two subrings are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
+/-- Copy of a subring with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (S : subring R) (s : set R) (hs : s = ↑S) : subring R :=
+{ carrier := s,
+  neg_mem' := hs.symm ▸ S.neg_mem',
+  ..S.to_subsemiring.copy s hs }
+
+lemma to_subsemiring_injective : function.injective (to_subsemiring : subring R → subsemiring R)
+| r s h := ext (set_like.ext_iff.mp h : _)
+
+@[mono]
+lemma to_subsemiring_strict_mono : strict_mono (to_subsemiring : subring R → subsemiring R) :=
+λ _ _, id
+
+@[mono]
+lemma to_subsemiring_mono : monotone (to_subsemiring : subring R → subsemiring R) :=
+to_subsemiring_strict_mono.monotone
+
+lemma to_add_subgroup_injective : function.injective (to_add_subgroup : subring R → add_subgroup R)
+| r s h := ext (set_like.ext_iff.mp h : _)
+
+@[mono]
+lemma to_add_subgroup_strict_mono : strict_mono (to_add_subgroup : subring R → add_subgroup R) :=
+λ _ _, id
+
+@[mono]
+lemma to_add_subgroup_mono : monotone (to_add_subgroup : subring R → add_subgroup R) :=
+to_add_subgroup_strict_mono.monotone
+
+lemma to_submonoid_injective : function.injective (to_submonoid : subring R → submonoid R)
+| r s h := ext (set_like.ext_iff.mp h : _)
+
+@[mono]
+lemma to_submonoid_strict_mono : strict_mono (to_submonoid : subring R → submonoid R) :=
+λ _ _, id
+
+@[mono]
+lemma to_submonoid_mono : monotone (to_submonoid : subring R → submonoid R) :=
+to_submonoid_strict_mono.monotone
+
 /-- Construct a `subring R` from a set `s`, a submonoid `sm`, and an additive
 subgroup `sa` such that `x ∈ s ↔ x ∈ sm ↔ x ∈ sa`. -/
 protected def mk' (s : set R) (sm : submonoid R) (sa : add_subgroup R)
@@ -342,19 +382,24 @@ variables (g : S →+* T) (f : R →+* S)
 /-! # range -/
 
 /-- The range of a ring homomorphism, as a subring of the target. -/
-def range {R : Type u} {S : Type v} [ring R] [ring S]
-  (f : R →+* S) : subring S := (⊤ : subring R).map f
+def range {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S) : subring S :=
+((⊤ : subring R).map f).copy (set.range f) set.image_univ.symm
 
-@[simp] lemma coe_range : (f.range : set S) = set.range f := set.image_univ
+/-- Note that `ring_hom.range` is deliberately defined in a way that makes this true by `rfl`,
+as this means the types `↥(set.range f)` and `↥f.range` are interchangeable without proof
+obligations. -/
+@[simp] lemma coe_range : (f.range : set S) = set.range f := rfl
 
-@[simp] lemma mem_range {f : R →+* S} {y : S} : y ∈ f.range ↔ ∃ x, f x = y :=
-by simp [range]
+@[simp] lemma mem_range {f : R →+* S} {y : S} : y ∈ f.range ↔ ∃ x, f x = y := iff.rfl
+
+lemma range_eq_map (f : R →+* S) : f.range = subring.map f ⊤ :=
+by { ext, simp }
 
 lemma mem_range_self (f : R →+* S) (x : R) : f x ∈ f.range :=
 mem_range.mpr ⟨x, rfl⟩
 
 lemma map_range : f.range.map g = (g.comp f).range :=
-(⊤ : subring R).map_map g f
+by simpa only [range_eq_map] using (⊤ : subring R).map_map g f
 
 -- TODO -- rename to `cod_restrict` when is_ring_hom is deprecated
 /-- Restrict the codomain of a ring homomorphism to a subring that includes the range. -/
@@ -637,7 +682,7 @@ def restrict (f : R →+* S) (s : subring R) : s →+* S := f.comp s.subtype
 
 This is the bundled version of `set.range_factorization`. -/
 def range_restrict (f : R →+* S) : R →+* f.range :=
-f.cod_restrict' f.range $ λ x, ⟨x, subring.mem_top x, rfl⟩
+f.cod_restrict' f.range $ λ x, ⟨x, rfl⟩
 
 @[simp] lemma coe_range_restrict (f : R →+* S) (x : R) : (f.range_restrict x : S) = f x := rfl
 

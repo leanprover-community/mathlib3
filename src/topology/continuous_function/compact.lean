@@ -133,6 +133,9 @@ variables {α β} (f : C(α, β))
 -- The corresponding lemmas for `bounded_continuous_function` are stated with `{f}`,
 -- and so can not be used in dot notation.
 
+lemma norm_coe_le_norm (x : α) : ∥f x∥ ≤ ∥f∥ :=
+((equiv_bounded_of_compact α β) f).norm_coe_le_norm x
+
 /-- Distance between the images of any two points is at most twice the norm of the function. -/
 lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ∥f∥ :=
 ((equiv_bounded_of_compact α β) f).dist_le_two_norm x y
@@ -213,5 +216,124 @@ lemma linear_isometry_bounded_of_compact_of_compact_to_equiv :
 rfl
 
 end
+
+section
+variables {𝕜 : Type*} {γ : Type*} [normed_field 𝕜] [normed_ring γ] [normed_algebra 𝕜 γ]
+
+instance [nonempty α] : normed_algebra 𝕜 C(α, γ) :=
+{ norm_algebra_map_eq := λ c, (norm_algebra_map_eq (α →ᵇ γ) c : _), }
+
+end
+
+end continuous_map
+
+namespace continuous_map
+
+section uniform_continuity
+variables {α β : Type*}
+variables [metric_space α] [compact_space α] [metric_space β]
+
+/-!
+We now set up some declarations making it convenient to use uniform continuity.
+-/
+
+lemma uniform_continuity
+  (f : C(α, β)) (ε : ℝ) (h : 0 < ε) :
+  ∃ δ > 0, ∀ {x y}, dist x y < δ → dist (f x) (f y) < ε :=
+metric.uniform_continuous_iff.mp
+  (compact_space.uniform_continuous_of_continuous f.continuous) ε h
+
+/--
+An arbitrarily chosen modulus of uniform continuity for a given function `f` and `ε > 0`.
+-/
+-- This definition allows us to separate the choice of some `δ`,
+-- and the corresponding use of `dist a b < δ → dist (f a) (f b) < ε`,
+-- even across different declarations.
+def modulus (f : C(α, β)) (ε : ℝ) (h : 0 < ε) : ℝ :=
+classical.some (uniform_continuity f ε h)
+
+lemma modulus_pos (f : C(α, β)) {ε : ℝ} {h : 0 < ε} : 0 < f.modulus ε h :=
+classical.some (classical.some_spec (uniform_continuity f ε h))
+
+lemma dist_lt_of_dist_lt_modulus
+  (f : C(α, β)) (ε : ℝ) (h : 0 < ε) {a b : α} (w : dist a b < f.modulus ε h) :
+  dist (f a) (f b) < ε :=
+classical.some_spec (classical.some_spec (uniform_continuity f ε h)) w
+
+end uniform_continuity
+
+/-!
+We now setup variations on `comp_right_* f`, where `f : C(X, Y)`
+(that is, precomposition by a continuous map),
+as a morphism `C(Y, T) → C(X, T)`, respecting various types of structure.
+
+In particular:
+* `comp_right_continuous_map`, the bundled continuous map (for this we need `X Y` compact).
+* `comp_right_homeomorph`, when we precompose by a homeomorphism.
+* `comp_right_alg_hom`, when `T = R` is a topological ring.
+-/
+section comp_right
+
+/--
+Precomposition by a continuous map is itself a continuous map between spaces of continuous maps.
+-/
+def comp_right_continuous_map {X Y : Type*} (T : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+  (f : C(X, Y)) : C(C(Y, T), C(X, T)) :=
+{ to_fun := λ g, g.comp f,
+  continuous_to_fun :=
+  begin
+    refine metric.continuous_iff.mpr _,
+    intros g ε ε_pos,
+    refine ⟨ε, ε_pos, λ g' h, _⟩,
+    rw continuous_map.dist_lt_iff _ _ ε_pos at h ⊢,
+    { exact λ x, h (f x), },
+  end }
+
+@[simp] lemma comp_right_continuous_map_apply {X Y : Type*} (T : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+  (f : C(X, Y)) (g : C(Y, T)) :
+  (comp_right_continuous_map T f) g = g.comp f :=
+rfl
+
+/--
+Precomposition by a homeomorphism is itself a homeomorphism between spaces of continuous maps.
+-/
+def comp_right_homeomorph {X Y : Type*} (T : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+  (f : X ≃ₜ Y) : C(Y, T) ≃ₜ C(X, T) :=
+{ to_fun := comp_right_continuous_map T f.to_continuous_map,
+  inv_fun := comp_right_continuous_map T f.symm.to_continuous_map,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+/--
+Precomposition of functions into a normed ring by continuous map is an algebra homomorphism.
+-/
+def comp_right_alg_hom {X Y : Type*} (R : Type*)
+  [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) :
+  C(Y, R) →ₐ[R] C(X, R) :=
+{ to_fun := λ g, g.comp f,
+  map_zero' := by { ext, simp, },
+  map_add' := λ g₁ g₂, by { ext, simp, },
+  map_one' := by { ext, simp, },
+  map_mul' := λ g₁ g₂, by { ext, simp, },
+  commutes' := λ r, by { ext, simp, }, }
+
+@[simp] lemma comp_right_alg_hom_apply {X Y : Type*} (R : Type*)
+  [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) (g : C(Y, R)) :
+  (comp_right_alg_hom R f) g = g.comp f :=
+rfl
+
+lemma comp_right_alg_hom_continuous {X Y : Type*} (R : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y]
+  [normed_comm_ring R] (f : C(X, Y)) :
+  continuous (comp_right_alg_hom R f) :=
+begin
+  change continuous (comp_right_continuous_map R f),
+  continuity,
+end
+
+end comp_right
 
 end continuous_map

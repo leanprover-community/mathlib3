@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Simon Hudon
 -/
 import data.pfunctor.multivariate.W
 import data.qpf.multivariate.basic
-universes u v
 
 /-!
 # The initial algebra of a multivariate qpf is again a qpf.
@@ -47,6 +46,8 @@ See [avigad-carneiro-hudon2019] for more details.
 
  * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
+
+universes u v
 
 namespace mvqpf
 open typevec

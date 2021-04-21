@@ -183,6 +183,17 @@ lemma disjoint_prod_perm {l₁ l₂ : list (perm α)} (hl : l₁.pairwise disjoi
   (hp : l₁ ~ l₂) : l₁.prod = l₂.prod :=
 hp.prod_eq' $ hl.imp $ λ f g, disjoint.mul_comm
 
+lemma nodup_of_pairwise_disjoint {l : list (perm α)} (h1 : (1 : perm α) ∉ l)
+  (h2 : l.pairwise disjoint) : l.nodup :=
+begin
+  refine list.pairwise.imp_of_mem _ h2,
+  rintros σ - h_mem - h_disjoint rfl,
+  suffices : σ = 1,
+  { rw this at h_mem,
+    exact h1 h_mem },
+  exact ext (λ a, (or_self _).mp (h_disjoint a)),
+end
+
 lemma pow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) :
   ∀ n : ℕ, (f ^ n) x = x
 | 0     := rfl
@@ -289,6 +300,24 @@ by simp_rw [finset.ext_iff, mem_support, not_iff_not,
 lemma apply_mem_support {f : perm α} {x : α} :
   f x ∈ f.support ↔ x ∈ f.support :=
 by rw [mem_support, mem_support, ne.def, ne.def, not_iff_not, apply_eq_iff_eq]
+
+@[simp]
+lemma pow_apply_mem_support {f : perm α} {n : ℕ} {x : α} :
+  (f ^ n) x ∈ f.support ↔ x ∈ f.support :=
+begin
+  induction n with n ih,
+  { refl },
+  rw [pow_succ, perm.mul_apply, apply_mem_support, ih]
+end
+
+@[simp]
+lemma gpow_apply_mem_support {f : perm α} {n : ℤ} {x : α} :
+  (f ^ n) x ∈ f.support ↔ x ∈ f.support :=
+begin
+  cases n,
+  { rw [int.of_nat_eq_coe, gpow_coe_nat, pow_apply_mem_support] },
+  { rw [gpow_neg_succ_of_nat, ← support_inv, ← inv_pow, pow_apply_mem_support] }
+end
 
 end fintype
 

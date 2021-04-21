@@ -308,7 +308,7 @@ begin
   { apply_instance },
   { intros x hx,
     rw [nat.irreducible_iff_prime, ← nat.prime_iff],
-    apply nat.mem_factors hx, }
+    exact nat.prime_of_mem_factors hx }
 end
 
 lemma nat.factors_multiset_prod_of_irreducible

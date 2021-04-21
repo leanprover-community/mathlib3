@@ -12,6 +12,7 @@ import tactic.find
 import tactic.finish
 import tactic.generalizes
 import tactic.generalize_proofs
+import tactic.itauto
 import tactic.lift
 import tactic.lint
 import tactic.localized

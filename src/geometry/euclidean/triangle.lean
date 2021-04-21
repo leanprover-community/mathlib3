@@ -6,12 +6,6 @@ Authors: Joseph Myers
 import geometry.euclidean.basic
 import tactic.interval_cases
 
-noncomputable theory
-open_locale big_operators
-open_locale classical
-open_locale real
-open_locale real_inner_product_space
-
 /-!
 # Triangles
 
@@ -39,7 +33,14 @@ unnecessarily.
 
 -/
 
+noncomputable theory
+open_locale big_operators
+open_locale classical
+open_locale real
+open_locale real_inner_product_space
+
 namespace inner_product_geometry
+
 /-!
 ### Geometrical results on triangles in real inner product spaces
 

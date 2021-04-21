@@ -453,6 +453,27 @@ end
 
 end continuous_map
 
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma continuous_map.subsingleton_subalgebra {α : Type*} [topological_space α]
+  {R : Type*} [comm_semiring R] [topological_space R] [topological_semiring R]
+  [subsingleton α] : subsingleton (subalgebra R C(α, R)) :=
+begin
+  fsplit,
+  intros s₁ s₂,
+  by_cases n : nonempty α,
+  { obtain ⟨x⟩ := n,
+    ext f,
+    have h : f = algebra_map R C(α, R) (f x),
+    { ext x', simp only [mul_one, algebra.id.smul_eq_mul, algebra_map_apply], congr, },
+    rw h,
+    simp only [subalgebra.algebra_map_mem], },
+  { ext f,
+    have h : f = 0,
+    { ext x', exact false.elim (n ⟨x'⟩), },
+    subst h,
+    simp only [subalgebra.zero_mem], },
+end
+
 end algebra_structure
 
 section module_over_continuous_functions

@@ -957,10 +957,10 @@ nnreal.eq $ norm_mul a b
 ⟨nnnorm, nnnorm_zero, nnnorm_one, nnnorm_mul⟩
 
 @[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
-norm_hom.to_monoid_hom.map_pow a
+(norm_hom.to_monoid_hom : α →* ℝ).map_pow a
 
 @[simp] lemma nnnorm_pow (a : α) (n : ℕ) : nnnorm (a ^ n) = nnnorm a ^ n :=
-nnnorm_hom.to_monoid_hom.map_pow a n
+(nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_pow a n
 
 @[simp] lemma norm_prod (s : finset β) (f : β → α) :
   ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=

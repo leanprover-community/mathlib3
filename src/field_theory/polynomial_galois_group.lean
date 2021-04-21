@@ -29,6 +29,10 @@ the automorphism group of the splitting field.
 - `restrict_prod_inj`: `gal (p * q)` embeds as a subgroup of `gal p × gal q`.
 -/
 
+lemma complex.conj_eq_self_iff_im_eq_zero (z : ℂ) : z.conj = z ↔ z.im = 0 :=
+by rw [complex.ext_iff, complex.conj_re, and_iff_right rfl, complex.conj_im,
+  neg_eq_iff_add_eq_zero, add_self_eq_zero]
+
 noncomputable theory
 open_locale classical
 
@@ -335,11 +339,6 @@ end
 instance {p : polynomial ℚ} : fact (p.splits (algebra_map ℚ ℂ)) :=
 ⟨is_alg_closed.splits_codomain p⟩
 
-example {α : Type*} (s : finset α) : fintype (s : set α) :=
-begin
-  exact finset_coe.fintype s,
-end
-
 def lem1 {G H : Type*} [group G] [group H] {f : G →* H} (hf : function.injective f) :
   f.range ≃* G :=
 (mul_equiv.of_bijective (f.cod_restrict f.range (λ x, ⟨x, rfl⟩))
@@ -355,52 +354,57 @@ def complex.conj_real_alg_equiv : ℂ ≃ₐ[ℝ] ℂ :=
 def complex.conj_rat_alg_equiv : ℂ ≃ₐ[ℚ] ℂ :=
 alg_equiv.restrict_scalars ℚ complex.conj_real_alg_equiv
 
-instance {R : Type*} {S : Type*} [integral_domain R] [integral_domain S] [algebra R S]
-  (p : polynomial R) : fintype (p.root_set S) :=
+instance root_set.fintype {R : Type*} [integral_domain R] (p : polynomial R) (S : Type*)
+  [integral_domain S] [algebra R S] : fintype (p.root_set S) :=
 finset_coe.fintype _
 
+lemma root_set.finite {R : Type*} [integral_domain R] (p : polynomial R) (S : Type*)
+  [integral_domain S] [algebra R S] : (p.root_set S).finite :=
+⟨root_set.fintype p S⟩
+
 lemma tada_aux {p : polynomial ℚ} :
-  fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) +
+  (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
     (gal_action_hom p ℂ (restrict p ℂ complex.conj_rat_alg_equiv)).support.card :=
 begin
   by_cases hp : p = 0,
-  { have h1 : fintype.card (p.root_set ℝ) = 0 := by simp_rw [hp, root_set_zero, set.empty_card'],
-    have h2 : fintype.card (p.root_set ℂ) = 0 := by simp_rw [hp, root_set_zero, set.empty_card'],
-    rw [h1, h2, nat.le_zero_iff.mp ((finset.card_le_univ _).trans (le_of_eq h2))] },
-  simp_rw [root_set_def, fintype.card_coe],
-  rw [←finset.card_image_of_injective _ (algebra_map ℝ ℂ).injective,
-      ←finset.card_image_of_injective _ subtype.coe_injective],
+  { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty],
+    rw [zero_add, eq_comm, ←nat.le_zero_iff],
+    refine le_trans (finset.card_le_univ _) (le_of_eq _),
+    sorry },
+  have inj : function.injective (is_scalar_tower.to_alg_hom ℚ ℝ ℂ) := (algebra_map ℝ ℂ).injective,
+  rw [←finset.card_image_of_injective _ subtype.coe_injective,
+      ←finset.card_image_of_injective _ inj],
   let a : finset ℂ := _,
   let b : finset ℂ := _,
   let c : finset ℂ := _,
   change a.card = b.card + c.card,
   have ha : ∀ z : ℂ, z ∈ a ↔ aeval z p = 0,
   { intro z,
-    rw [←finset.mem_coe, ←root_set_def, mem_root_set hp] },
+    rw [set.mem_to_finset, mem_root_set hp] },
   have hb : ∀ z : ℂ, z ∈ b ↔ aeval z p = 0 ∧ z.im = 0,
   { intro z,
-    simp_rw [finset.mem_image, exists_prop, ←finset.mem_coe, ←root_set_def, mem_root_set hp],
+    simp_rw [finset.mem_image, exists_prop, set.mem_to_finset, mem_root_set hp],
     split,
     { rintros ⟨w, hw, rfl⟩,
-      split,
-      { sorry },
-      { refl }, },
+      exact ⟨by rw [aeval_alg_hom_apply, hw, alg_hom.map_zero], rfl⟩ },
     { rintros ⟨hz1, hz2⟩,
       have key : is_scalar_tower.to_alg_hom ℚ ℝ ℂ z.re = z := by { ext, refl, rw hz2, refl },
-      rw [←key, aeval_alg_hom_apply, ←(is_scalar_tower.to_alg_hom ℚ ℝ ℂ).map_zero] at hz1,
-      exact ⟨z.re, (algebra_map ℝ ℂ).injective hz1, key⟩ } },
+      refine ⟨z.re, inj _, key⟩,
+      rwa [←aeval_alg_hom_apply, key, alg_hom.map_zero] } },
+  have hc0 : ∀ w : p.root_set ℂ,
+    gal_action_hom p ℂ (restrict p ℂ complex.conj_rat_alg_equiv) w = w ↔ w.val.im = 0,
+  { intro w,
+    rw [subtype.ext_iff, gal_action_hom_restrict],
+    exact w.val.conj_eq_self_iff_im_eq_zero },
   have hc : ∀ z : ℂ, z ∈ c ↔ aeval z p = 0 ∧ z.im ≠ 0,
   { intro z,
     simp_rw [finset.mem_image, exists_prop],
     split,
     { rintros ⟨w, hw, rfl⟩,
-      refine ⟨(mem_root_set hp).mp w.2, _⟩,
-      have key := equiv.perm.mem_support.mp hw,
-      rw [ne, subtype.ext_iff, gal_action_hom_restrict] at key,
-      sorry },
+      refine ⟨(mem_root_set hp).mp w.2, mt (hc0 w).mpr (equiv.perm.mem_support.mp hw)⟩ },
     { rintros ⟨hz1, hz2⟩,
-      refine ⟨⟨z, (mem_root_set hp).mpr hz1⟩, _, rfl⟩,
-      sorry } },
+      exact ⟨⟨z, (mem_root_set hp).mpr hz1⟩,
+        equiv.perm.mem_support.mpr (mt (hc0 _).mp hz2), rfl⟩ } },
   rw ← finset.card_disjoint_union,
   { apply congr_arg finset.card,
     ext z,
@@ -435,6 +439,8 @@ begin
   { rw ← equiv.perm.card_support_eq_two,
     apply nat.add_left_cancel,
     rw ← p_roots,
+    rw ← set.finite.card_to_finset (root_set.finite p ℝ),
+    rw ← set.finite.card_to_finset (root_set.finite p ℂ),
     convert tada_aux.symm },
 end
 

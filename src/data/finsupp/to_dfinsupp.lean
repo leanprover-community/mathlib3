@@ -106,14 +106,6 @@ noncomputable def to_dfinsupp_add_equiv : (ι →₀ M) ≃+ (Π₀ i : ι, M) :
   map_add' := λ f g, dfinsupp.coe_fn_injective rfl,
   .. to_dfinsupp}
 
-@[simp] lemma to_dfinsupp_add_equiv_apply [Π m : M, decidable (m ≠ 0)] (f : ι →₀ M) :
-  to_dfinsupp_add_equiv f = to_dfinsupp f := rfl
-
-@[simp] lemma to_dfinsupp_add_equiv_symm_apply [Π m : M, decidable (m ≠ 0)] (f : Π₀ i : ι, M) :
-  (to_dfinsupp_add_equiv : (ι →₀ M) ≃+ (Π₀ i : ι, M)).symm f =
-    (to_dfinsupp : (ι →₀ M) ≃ (Π₀ i : ι, M)).symm f :=
-by convert rfl  -- there are `decidable` instances to unify in the result
-
 @[simp]
 lemma to_dfinsupp_add_equiv_comp_single_add_hom (i : ι) :
   (to_dfinsupp_add_equiv : (ι →₀ M) ≃+ (Π₀ i : ι, M)).to_add_monoid_hom.comp (single_add_hom i) =
@@ -127,6 +119,16 @@ lemma to_dfinsupp_add_equiv_symm_comp_single_add_hom (i : ι) :
   single_add_hom i :=
 add_monoid_hom.ext $ to_dfinsupp_symm_single i
 
+-- we don't want `classical.dec` instances in our lemma conclusions below
+variables [decidable_eq ι] [Π m : M, decidable (m ≠ 0)]
+
+@[simp] lemma to_dfinsupp_add_equiv_apply (f : ι →₀ M) : to_dfinsupp_add_equiv f = to_dfinsupp f :=
+rfl
+
+@[simp] lemma to_dfinsupp_add_equiv_symm_apply (f : Π₀ i : ι, M) :
+  (to_dfinsupp_add_equiv : (ι →₀ M) ≃+ (Π₀ i : ι, M)).symm f =
+    (to_dfinsupp : (ι →₀ M) ≃ (Π₀ i : ι, M)).symm f :=
+by convert rfl  -- there are `decidable` instances to unify in the result
 end add_equiv
 
 section linear_equiv
@@ -144,10 +146,13 @@ noncomputable def to_dfinsupp_linear_equiv : (ι →₀ M) ≃ₗ[R] (Π₀ i : 
   map_smul' := λ r f, dfinsupp.coe_fn_injective rfl,
   .. to_dfinsupp}
 
-@[simp] lemma to_dfinsupp_linear_equiv_apply [Π m : M, decidable (m ≠ 0)] (f : ι →₀ M) :
-  to_dfinsupp_linear_equiv R f = to_dfinsupp f := rfl
+-- we don't want `classical.dec` instances in our lemma conclusions below
+variables [decidable_eq ι] [Π m : M, decidable (m ≠ 0)]
 
-@[simp] lemma to_dfinsupp_linear_equiv_symm_apply [Π m : M, decidable (m ≠ 0)] (f : Π₀ i : ι, M) :
+@[simp] lemma to_dfinsupp_linear_equiv_apply (f : ι →₀ M) :
+to_dfinsupp_linear_equiv R f = to_dfinsupp f := rfl
+
+@[simp] lemma to_dfinsupp_linear_equiv_symm_apply (f : Π₀ i : ι, M) :
   (to_dfinsupp_linear_equiv R : (ι →₀ M) ≃ₗ[R] (Π₀ i : ι, M)).symm f =
     (to_dfinsupp : (ι →₀ M) ≃ (Π₀ i : ι, M)).symm f :=
 to_dfinsupp_add_equiv_symm_apply f

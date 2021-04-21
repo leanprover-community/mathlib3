@@ -573,6 +573,13 @@ linear_equiv.ext $ λ x, rfl
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=
 by simp [finsupp.dom_lcongr, finsupp.dom_congr, map_domain_single]
 
+@[simp] lemma dom_lcongr_symm {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) :
+  (finsupp.dom_lcongr e : (α₁ →₀ M) ≃ₗ[R] _).symm = finsupp.dom_lcongr e.symm :=
+by { ext v i,
+     rw [dom_lcongr_apply, e.symm_symm],
+     conv_lhs { rw ← e.symm_apply_apply i },
+     exact finsupp.map_domain_apply e.symm.injective v (e i) }
+
 /-- An equivalence of sets induces a linear equivalence of `finsupp`s supported on those sets. -/
 noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
   supported M R s ≃ₗ[R] supported M R t :=

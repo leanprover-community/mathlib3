@@ -1394,7 +1394,7 @@ by congr
 
 section classical
 open_locale classical
-/-- The following instance allows us to write `{ x ∈ s | p x }` for `finset.filter s p`.
+/-- The following instance allows us to write `{ x ∈ s | p x }` for `finset.filter p s`.
   Since the former notation requires us to define this for all propositions `p`, and `finset.filter`
   only works for decidable propositions, the notation `{ x ∈ s | p x }` is only compatible with
   classical logic because it uses `classical.prop_decidable`.

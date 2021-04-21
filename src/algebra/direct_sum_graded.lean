@@ -7,6 +7,8 @@ import algebra.direct_sum
 import algebra.algebra.basic
 import algebra.algebra.operations
 import group_theory.subgroup
+import algebra.monoid_algebra
+import data.finsupp.to_dfinsupp
 
 /-!
 # Additively-graded multiplicative structures on `⨁ i, A i`
@@ -567,3 +569,32 @@ direct_sum.gcomm_monoid.of_submodules _
   (λ i j p q, by { rw pow_add, exact submodule.mul_mem_mul p.prop q.prop })
 
 end submodule
+
+namespace add_monoid_algebra
+
+noncomputable theory
+open_locale direct_sum
+
+variables (k G : Type*) [semiring k] [add_monoid G] [decidable_eq G]
+
+variables {G}
+
+def single_mrange (i : G) : add_submonoid (add_monoid_algebra k G) :=
+(finsupp.single_add_hom i).mrange
+
+instance single_mrange.gmonoid : direct_sum.gmonoid (λ i : G, single_mrange k i) :=
+direct_sum.gmonoid.of_add_submonoids _ ⟨1, rfl⟩ $ λ i j gi gj, begin
+  obtain ⟨_, gi, rfl⟩ := gi,
+  obtain ⟨_, gj, rfl⟩ := gj,
+  refine ⟨gi * gj, single_mul_single.symm⟩,
+end
+
+def to_direct_sum_mrange' : add_monoid_algebra k G ≃+ ⨁ i : G, single_mrange k i :=
+finsupp.to_dfinsupp.trans $ dfinsupp.map_range_add_equiv _
+
+def to_direct_sum_mrange : add_monoid_algebra k G ≃+* ⨁ i : G, single_mrange k i :=
+have :=
+
+end add_monoid_algebra
+
+#print mono

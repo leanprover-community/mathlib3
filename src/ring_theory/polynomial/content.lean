@@ -27,9 +27,40 @@ Let `p : polynomial R`.
 
 -/
 
+namespace polynomial
+
+section primitive
+
+variables {R : Type*} [comm_semiring R]
+
+/-- A polynomial over a GCD domain is primitive when the `gcd` of its coefficients is 1 -/
+def is_primitive (p : polynomial R) : Prop :=
+∀ (r : R), C r ∣ p → is_unit r
+
+lemma is_primitive_iff_is_unit_of_C_dvd {p : polynomial R} :
+  p.is_primitive ↔ ∀ (r : R), C r ∣ p → is_unit r :=
+iff.rfl
+
+@[simp]
+lemma is_primitive_one : is_primitive (1 : polynomial R) :=
+λ r h, is_unit_C.mp (is_unit_of_dvd_one (C r) h)
+
+lemma monic.is_primitive {p : polynomial R} (hp : p.monic) : p.is_primitive :=
+begin
+  rintros r ⟨q, h⟩,
+  exact is_unit_of_mul_eq_one r (q.coeff p.nat_degree) (by rwa [←coeff_C_mul, ←h]),
+end
+
+lemma is_primitive.ne_zero [nontrivial R] {p : polynomial R} (hp : p.is_primitive) : p ≠ 0 :=
+begin
+  rintro rfl,
+  exact (hp 0 (dvd_zero (C 0))).ne_zero rfl,
+end
+
+end primitive
+
 variables {R : Type*} [integral_domain R]
 
-namespace polynomial
 section gcd_monoid
 variable [gcd_monoid R]
 
@@ -170,13 +201,6 @@ end
 lemma C_content_dvd (p : polynomial R) : C p.content ∣ p :=
 dvd_content_iff_C_dvd.1 (dvd_refl _)
 
-/-- A polynomial over a GCD domain is primitive when the `gcd` of its coefficients is 1 -/
-def is_primitive (p : polynomial R) : Prop := ∀ (r : R), C r ∣ p → is_unit r
-
-lemma is_primitive_iff_is_unit_of_C_dvd {p : polynomial R} :
-  p.is_primitive ↔ ∀ (r : R), C r ∣ p → is_unit r :=
-iff.rfl
-
 lemma is_primitive_iff_content_eq_one {p : polynomial R} : p.is_primitive ↔ p.content = 1 :=
 begin
   rw [←normalize_content, normalize_eq_one, is_primitive],
@@ -186,21 +210,6 @@ end
 
 lemma is_primitive.content_eq_one {p : polynomial R} (hp : p.is_primitive) : p.content = 1 :=
 is_primitive_iff_content_eq_one.mp hp
-
-@[simp]
-lemma is_primitive_one : is_primitive (1 : polynomial R) :=
-by rw [is_primitive_iff_content_eq_one, content_one]
-
-lemma monic.is_primitive {p : polynomial R} (hp : p.monic) : p.is_primitive :=
-by rw [is_primitive_iff_content_eq_one, content_eq_gcd_leading_coeff_content_erase_lead,
-  hp.leading_coeff, gcd_one_left]
-
-lemma is_primitive.ne_zero {p : polynomial R} (hp : p.is_primitive) : p ≠ 0 :=
-begin
-  rintro rfl,
-  rw [is_primitive_iff_content_eq_one, content_zero] at hp,
-  exact zero_ne_one hp,
-end
 
 open_locale classical
 noncomputable theory

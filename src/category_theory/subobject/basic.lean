@@ -244,6 +244,14 @@ underlying.map $ hom_of_le h
   of_le X Y h ≫ Y.arrow = X.arrow :=
 underlying_arrow _
 
+@[simp, reassoc] lemma of_le_comp {B : C} (X Y Z : subobject B) (h₁ : X ≤ Y) (h₂ : Y ≤ Z) :
+  of_le X Y h₁ ≫ of_le Y Z h₂ = of_le X Z (h₁.trans h₂) :=
+by { ext, simp, }
+
+@[simp] lemma of_le_refl {B : C} (X : subobject B) (h : X ≤ X) :
+  of_le X X h = 𝟙 (X : C) :=
+by { ext, simp, }
+
 /-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
 def of_le_mk {B A : C} (X : subobject B) (f : A ⟶ B) [mono f] (h : X ≤ mk f) : (X : C) ⟶ A :=
 of_le X (mk f) h ≫ (underlying_iso f).hom

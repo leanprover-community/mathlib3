@@ -44,14 +44,36 @@ variables [has_equalizers V] [has_images V]
 
 namespace category_theory
 
-/-- Two morphisms `f : A ⟶ B`, `g : B ⟶ C` are called exact if `f ≫ g = 0` and the natural map
-    `image f ⟶ kernel g` is an epimorphism. -/
+/--
+Two morphisms `f : A ⟶ B`, `g : B ⟶ C` are called exact if
+the image of `f` is the same as the kernel of `g`,
+as subobjects of `B`.
+-/
 class exact {A B C : V} (f : A ⟶ B) (g : B ⟶ C) : Prop :=
-(w : f ≫ g = 0)
-(epi : epi (image_to_kernel f g w))
+(image_eq_kernel [] : image_subobject f = kernel_subobject g)
 
-attribute [instance] exact.epi
-attribute [simp, reassoc] exact.w
+@[simp, reassoc]
+lemma exact.w {A B C : V} (f : A ⟶ B) (g : B ⟶ C) [exact f g] : f ≫ g = 0 :=
+begin
+  rw [←image_subobject_arrow_comp f, category.assoc],
+  convert comp_zero,
+  rw exact.image_eq_kernel f g,
+  simp,
+end
+
+instance exact.is_iso {A B C : V} (f : A ⟶ B) (g : B ⟶ C) [exact f g]
+  (w : f ≫ g = 0 := exact.w f g) :
+  is_iso (image_to_kernel f g w) :=
+begin
+  refine ⟨⟨subobject.of_le _ _ (exact.image_eq_kernel f g).ge, _⟩⟩,
+  dsimp [image_to_kernel],
+  simp only [subobject.of_le_comp, subobject.of_le_refl],
+  simp,
+end
+
+lemma exact_of_image_to_kernel_is_iso {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0)
+  [is_iso (image_to_kernel f g w)] : exact f g :=
+{ image_eq_kernel := subobject.eq_of_comm (as_iso (image_to_kernel f g w)) (by simp) }
 
 section
 variables {A B C D : V} {f : A ⟶ B} {g : B ⟶ C} {h : C ⟶ D}
@@ -60,9 +82,11 @@ local attribute [instance] epi_comp
 
 instance exact_comp_hom_inv_comp [exact f g] (i : B ≅ D) : exact (f ≫ i.hom) (i.inv ≫ g) :=
 begin
-  refine ⟨by simp, _⟩,
-  rw image_to_kernel_comp_hom_inv_comp,
-  apply_instance,
+  fsplit,
+  fapply subobject.eq_of_comm,
+  exact image_subobject_comp_iso _ _ ≪≫ subobject.iso_of_eq _ _ (exact.image_eq_kernel f g) ≪≫
+    (kernel_subobject_iso_comp _ _).symm,
+  simp,
 end
 
 instance exact_comp_inv_hom_comp [exact f g] (i : D ≅ B) : exact (f ≫ i.inv) (i.hom ≫ g) :=
@@ -78,12 +102,9 @@ end
 
 lemma exact_epi_comp [exact g h] [epi f] : exact (f ≫ g) h :=
 begin
-  refine ⟨by simp, _⟩,
-  rw image_to_kernel_comp_left,
-  suffices : epi (image.pre_comp f g),
-  { exactI epi_comp _ _ },
-  apply epi_of_epi_fac (limits.image.factor_thru_image_pre_comp _ _),
-  exact epi_comp _ _
+  fsplit,
+  convert (exact.image_eq_kernel g h) using 1,
+
 end
 
 lemma exact_comp_mono [exact f g] [mono h] : exact f (g ≫ h) :=

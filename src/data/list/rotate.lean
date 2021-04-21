@@ -6,7 +6,8 @@ Authors: Chris Hughes
 import data.list.perm
 import data.list.range
 
-variables {α : Type*}
+universe u
+variables {α : Type u}
 
 open nat
 

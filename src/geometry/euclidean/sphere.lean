@@ -10,6 +10,11 @@ import geometry.euclidean.basic
 
 This file proves basic geometrical results about distances and angles
 in spheres in real inner product spaces and Euclidean affine spaces.
+
+## Main theorems
+
+* `mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi`: Intersecting Chords Theorem (Freek No. 55).
+* `mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_zero`: Intersecting Secants Theorem.
 -/
 
 open real
@@ -110,7 +115,7 @@ end
 /-- Intersecting Chords Theorem. -/
 theorem mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi {a b c d p : P}
   (h : cospherical ({a, b, c, d} : set P))
-  (hapb : ∠ a p b = π ) (hcpd : ∠ c p d = π ) :
+  (hapb : ∠ a p b = π) (hcpd : ∠ c p d = π) :
   dist a p * dist b p = dist c p * dist d p :=
 begin
   obtain ⟨-, k₁, _, hab⟩ := angle_eq_pi_iff.mp hapb,
@@ -121,7 +126,7 @@ end
 /-- Intersecting Secants Theorem. -/
 theorem mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_zero {a b c d p : P}
   (h : cospherical ({a, b, c, d} : set P))
-  (hab : a ≠ b) (hcd : c ≠ d) (hapb : ∠ a p b = 0 ) (hcpd : ∠ c p d = 0 ) :
+  (hab : a ≠ b) (hcd : c ≠ d) (hapb : ∠ a p b = 0) (hcpd : ∠ c p d = 0) :
   dist a p * dist b p = dist c p * dist d p :=
 begin
   obtain ⟨-, k₁, -, hab₁⟩ := angle_eq_zero_iff.mp hapb,

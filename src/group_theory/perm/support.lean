@@ -171,7 +171,6 @@ begin
           h.right.symm] }
 end
 
-
 lemma support_swap_mul_ge_support_diff [decidable_eq α] (f : perm α) (x y : α) :
   f.support \ {x, y} ≤ (swap x y * f).support :=
 begin

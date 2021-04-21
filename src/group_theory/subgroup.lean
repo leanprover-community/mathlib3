@@ -116,7 +116,8 @@ instance : set_like (subgroup G) G :=
 @[simp, to_additive]
 lemma mem_carrier {s : subgroup G} {x : G} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
-@[to_additive]
+/-- See Note [custom simps projection] -/
+@[to_additive "See Note [custom simps projection]"]
 def simps.coe (S : subgroup G) : set G := S
 
 initialize_simps_projections subgroup (carrier → coe)

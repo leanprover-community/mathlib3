@@ -254,10 +254,11 @@ def to_lin_hom : bilin_form R M →ₗ[R₂] M →ₗ[R₂] M →ₗ[R] R :=
     { to_fun := λ y, A x y,
       map_add' := A.bilin_add_right x,
       map_smul' := λ c, A.bilin_smul_right c x },
-    map_add' := λ x₁ x₂, by { ext, simp },
-    map_smul' := λ c x, by { ext y, simpa using smul_left (c • (1 : R)) x y } },
-  map_add' := λ A₁ A₂, by { ext, simp },
-  map_smul' := λ c A, by { ext, simp } }
+    map_add' := λ x₁ x₂, by { ext, simp only [linear_map.coe_mk, linear_map.add_apply, add_left] },
+    map_smul' := λ c x, by { ext, simp only [← algebra_map_smul R c x, algebra.smul_def,
+                                      linear_map.coe_mk, linear_map.smul_apply, smul_left] } },
+  map_add' := λ A₁ A₂, by { ext, simp only [linear_map.coe_mk, linear_map.add_apply, add_apply] },
+  map_smul' := λ c A, by { ext, simp only [linear_map.coe_mk, linear_map.smul_apply, smul_apply] } }
 
 variables {R₂}
 

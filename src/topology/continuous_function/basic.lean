@@ -45,8 +45,14 @@ protected lemma continuous_within_at (f : C(α, β)) (s : set α) (x : α) :
   continuous_within_at f s x :=
 f.continuous.continuous_within_at
 
+protected lemma congr_fun {f g : C(α, β)} (H : f = g) (x : α) : f x = g x := H ▸ rfl
+protected lemma congr_arg (f : C(α, β)) {x y : α} (h : x = y) : f x = f y := h ▸ rfl
+
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
+
+lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
+⟨continuous_map.congr_fun, ext⟩
 
 instance [inhabited β] : inhabited C(α, β) :=
 ⟨{ to_fun := λ _, default _, }⟩

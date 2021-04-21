@@ -42,13 +42,21 @@ lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := 
 
 @[ext] theorem ext {S T : subalgebra R A} (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
+/-- Copy of a submodule with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) : subalgebra R A :=
+{ carrier := s,
+  add_mem' := hs.symm ▸ S.add_mem',
+  mul_mem' := hs.symm ▸ S.mul_mem',
+  algebra_map_mem' := hs.symm ▸ S.algebra_map_mem' }
+
 variables (S : subalgebra R A)
 
 theorem algebra_map_mem (r : R) : algebra_map R A r ∈ S :=
 S.algebra_map_mem' r
 
 theorem srange_le : (algebra_map R A).srange ≤ S.to_subsemiring :=
-λ x ⟨r, _, hr⟩, hr ▸ S.algebra_map_mem r
+λ x ⟨r, hr⟩, hr ▸ S.algebra_map_mem r
 
 theorem range_subset : set.range (algebra_map R A) ⊆ S :=
 λ x ⟨r, hr⟩, hr ▸ S.algebra_map_mem r
@@ -341,7 +349,7 @@ variables (φ : A →ₐ[R] B)
 
 /-- Range of an `alg_hom` as a subalgebra. -/
 protected def range (φ : A →ₐ[R] B) : subalgebra R B :=
-{ algebra_map_mem' := λ r, ⟨algebra_map R A r, set.mem_univ _, φ.commutes r⟩,
+{ algebra_map_mem' := λ r, ⟨algebra_map R A r, φ.commutes r⟩,
   .. φ.to_ring_hom.srange }
 
 @[simp] lemma mem_range (φ : A →ₐ[R] B) {y : B} :
@@ -489,7 +497,7 @@ theorem eq_top_iff {S : subalgebra R A} :
 
 @[simp] theorem map_top (f : A →ₐ[R] B) : subalgebra.map (⊤ : subalgebra R A) f = f.range :=
 subalgebra.ext $ λ x,
-  ⟨λ ⟨y, _, hy⟩, ⟨y, set.mem_univ _, hy⟩, λ ⟨y, mem, hy⟩, ⟨y, algebra.mem_top, hy⟩⟩
+  ⟨λ ⟨y, _, hy⟩, ⟨y, hy⟩, λ ⟨y, hy⟩, ⟨y, algebra.mem_top, hy⟩⟩
 
 @[simp] theorem map_bot (f : A →ₐ[R] B) : subalgebra.map (⊥ : subalgebra R A) f = ⊥ :=
 eq_bot_iff.2 $ λ x ⟨y, hy, hfy⟩, let ⟨r, hr⟩ := mem_bot.1 hy in subalgebra.range_le _

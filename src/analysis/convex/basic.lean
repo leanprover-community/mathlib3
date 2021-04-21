@@ -1109,6 +1109,23 @@ lemma convex.convex_hull_eq {s : set E} (hs : convex s) : convex_hull s = s :=
 set.subset.antisymm (convex_hull_min (set.subset.refl _) hs) (subset_convex_hull s)
 
 @[simp]
+lemma convex_hull_empty :
+  convex_hull (∅ : set E) = ∅ :=
+convex_empty.convex_hull_eq
+
+@[simp]
+lemma convex_hull_empty_iff :
+  convex_hull s = ∅ ↔ s = ∅ :=
+begin
+  split,
+  { intro h,
+    rw [←set.subset_empty_iff, ←h],
+    exact subset_convex_hull _ },
+  { rintro rfl,
+    exact convex_hull_empty }
+end
+
+@[simp]
 lemma convex_hull_singleton {x : E} : convex_hull ({x} : set E) = {x} :=
 (convex_singleton x).convex_hull_eq
 

@@ -193,7 +193,7 @@ instance order_top {X : C} : order_top (subobject X) :=
 
 instance {X : C} : inhabited (subobject X) := ⟨⊤⟩
 
-lemma top_eq_id {B : C} : (⊤ : subobject B) = subobject.mk (𝟙 B) := rfl
+lemma top_eq_id (B : C) : (⊤ : subobject B) = subobject.mk (𝟙 B) := rfl
 
 lemma underlying_iso_top_hom {B : C} :
   (underlying_iso (𝟙 B)).hom = (⊤ : subobject B).arrow :=
@@ -207,11 +207,28 @@ lemma underlying_iso_inv_top_arrow {B : C} :
   (underlying_iso _).inv ≫ (⊤ : subobject B).arrow = 𝟙 B :=
 underlying_iso_arrow _
 
-lemma map_top (f : X ⟶ Y) [mono f] : (map f).obj ⊤ = quotient.mk' (mono_over.mk' f) :=
+@[simp]
+lemma map_top (f : X ⟶ Y) [mono f] : (map f).obj ⊤ = subobject.mk f :=
 quotient.sound' ⟨mono_over.map_top f⟩
 
 lemma top_factors {A B : C} (f : A ⟶ B) : (⊤ : subobject B).factors f :=
 ⟨f, comp_id _⟩
+
+lemma is_iso_iff_mk_eq_top {X Y : C} (f : X ⟶ Y) [mono f] : is_iso f ↔ mk f = ⊤ :=
+⟨λ _, by exactI mk_eq_mk_of_comm _ _ (as_iso f) (category.comp_id _), λ h,
+  by { rw [←of_mk_le_mk_comp h.le, category.comp_id], exact is_iso.of_iso (iso_of_mk_eq_mk _ _ h) }⟩
+
+lemma is_iso_arrow_iff_eq_top {Y : C} (P : subobject Y) : is_iso P.arrow ↔ P = ⊤ :=
+by rw [is_iso_iff_mk_eq_top, mk_arrow]
+
+instance is_iso_top_arrow {Y : C} : is_iso (⊤ : subobject Y).arrow :=
+by rw is_iso_arrow_iff_eq_top
+
+lemma mk_eq_top_of_is_iso {X Y : C} (f : X ⟶ Y) [is_iso f] : mk f = ⊤ :=
+(is_iso_iff_mk_eq_top f).mp infer_instance
+
+lemma eq_top_of_is_iso_arrow {Y : C} (P : subobject Y) [is_iso P.arrow] : P = ⊤ :=
+(is_iso_arrow_iff_eq_top P).mp infer_instance
 
 section
 variables [has_pullbacks C]

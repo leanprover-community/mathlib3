@@ -110,7 +110,9 @@ lemma lie_ideal.lower_central_series_map_eq (k : ℕ) {f : L →ₗ⁅R⁆ L'}
   (h : function.surjective f) :
   lie_ideal.map f (lower_central_series R L L k) = lower_central_series R L' L' k :=
 begin
-  have h' : (⊤ : lie_ideal R L).map f = ⊤, { exact f.ideal_range_eq_top_of_surjective h, },
+  have h' : (⊤ : lie_ideal R L).map f = ⊤,
+  { rw ←f.ideal_range_eq_map,
+    exact f.ideal_range_eq_top_of_surjective h, },
   induction k with k ih,
   { simp only [lie_module.lower_central_series_zero], exact h', },
   { simp only [lie_module.lower_central_series_succ, lie_ideal.map_bracket_eq f h, ih, h'], },

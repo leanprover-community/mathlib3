@@ -52,7 +52,7 @@ is automatic when `E` is not `0`-dimensional).
  -/
 @[mk_iff] structure unique_diff_within_at (s : set E) (x : E) : Prop :=
 (dense_tangent_cone : dense ((submodule.span 𝕜 (tangent_cone_at 𝕜 s x)) : set E))
-(mem_closure: x ∈ closure s)
+(mem_closure : x ∈ closure s)
 
 /-- A property ensuring that the tangent cone to `s` at any of its points spans a dense subset of
 the whole space.  The main role of this property is to ensure that the differential along `s` is

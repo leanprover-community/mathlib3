@@ -171,36 +171,35 @@ lemma C_content_dvd (p : polynomial R) : C p.content ∣ p :=
 dvd_content_iff_C_dvd.1 (dvd_refl _)
 
 /-- A polynomial over a GCD domain is primitive when the `gcd` of its coefficients is 1 -/
-def is_primitive (p : polynomial R) : Prop := p.content = 1
+def is_primitive (p : polynomial R) : Prop := ∀ (r : R), C r ∣ p → is_unit r
+
+lemma is_primitive_iff_is_unit_of_C_dvd {p : polynomial R} :
+  p.is_primitive ↔ ∀ (r : R), C r ∣ p → is_unit r :=
+iff.rfl
+
+lemma is_primitive_iff_content_eq_one {p : polynomial R} : p.is_primitive ↔ p.content = 1 :=
+begin
+  rw [←normalize_content, normalize_eq_one, is_primitive],
+  simp_rw [←dvd_content_iff_C_dvd],
+  exact ⟨λ h, h p.content (dvd_refl p.content), λ h r hdvd, is_unit_of_dvd_unit hdvd h⟩,
+end
+
+lemma is_primitive.content_eq_one {p : polynomial R} (hp : p.is_primitive) : p.content = 1 :=
+is_primitive_iff_content_eq_one.mp hp
 
 @[simp]
 lemma is_primitive_one : is_primitive (1 : polynomial R) :=
-by rw [is_primitive, ← C_1, content_C, normalize_one]
+by rw [is_primitive_iff_content_eq_one, content_one]
 
 lemma monic.is_primitive {p : polynomial R} (hp : p.monic) : p.is_primitive :=
-by rw [is_primitive, content_eq_gcd_leading_coeff_content_erase_lead,
+by rw [is_primitive_iff_content_eq_one, content_eq_gcd_leading_coeff_content_erase_lead,
   hp.leading_coeff, gcd_one_left]
 
 lemma is_primitive.ne_zero {p : polynomial R} (hp : p.is_primitive) : p ≠ 0 :=
 begin
   rintro rfl,
-  rw [is_primitive, content_zero] at hp,
-  apply zero_ne_one hp,
-end
-
-lemma is_primitive.content_eq_one {p : polynomial R} (hp : p.is_primitive) : p.content = 1 := hp
-
-lemma is_primitive_iff_is_unit_of_C_dvd {p : polynomial R} :
-  p.is_primitive ↔ ∀ (r : R), C r ∣ p → is_unit r :=
-begin
-  rw [is_primitive],
-  split,
-  { intros h r hdvd,
-    rw [← dvd_content_iff_C_dvd, h] at hdvd,
-    apply is_unit_of_dvd_one _ hdvd },
-  { intro h,
-    rw [← normalize_content, normalize_eq_one],
-    apply h _ (C_content_dvd _) }
+  rw [is_primitive_iff_content_eq_one, content_zero] at hp,
+  exact zero_ne_one hp,
 end
 
 open_locale classical
@@ -226,12 +225,13 @@ lemma is_primitive_prim_part (p : polynomial R) : p.prim_part.is_primitive :=
 begin
   by_cases h : p = 0, { simp [h] },
   rw ← content_eq_zero_iff at h,
+  rw is_primitive_iff_content_eq_one,
   apply mul_left_cancel' h,
   conv_rhs { rw [p.eq_C_content_mul_prim_part, mul_one, content_C_mul, normalize_content] }
 end
 
 lemma content_prim_part (p : polynomial R) : p.prim_part.content = 1 :=
-p.is_primitive_prim_part
+p.is_primitive_prim_part.content_eq_one
 
 lemma prim_part_ne_zero (p : polynomial R) : p.prim_part ≠ 0 := p.is_primitive_prim_part.ne_zero
 
@@ -336,7 +336,7 @@ end
 
 theorem is_primitive.mul {p q : polynomial R} (hp : p.is_primitive) (hq : q.is_primitive) :
   (p * q).is_primitive :=
-by rw [is_primitive, content_mul, hp.content_eq_one, hq.content_eq_one, mul_one]
+by rw [is_primitive_iff_content_eq_one, content_mul, hp.content_eq_one, hq.content_eq_one, mul_one]
 
 @[simp]
 theorem prim_part_mul {p q : polynomial R} (h0 : p * q ≠ 0) :
@@ -354,9 +354,9 @@ lemma is_primitive.is_primitive_of_dvd {p q : polynomial R} (hp : p.is_primitive
   q.is_primitive :=
 begin
   rcases hdvd with ⟨r, rfl⟩,
-  rw [is_primitive, ← normalize_content, normalize_eq_one, is_unit_iff_dvd_one],
+  rw [is_primitive_iff_content_eq_one, ← normalize_content, normalize_eq_one, is_unit_iff_dvd_one],
   apply dvd.intro r.content,
-  rwa [is_primitive, content_mul] at hp,
+  rwa [is_primitive_iff_content_eq_one, content_mul] at hp,
 end
 
 lemma is_primitive.dvd_prim_part_iff_dvd {p q : polynomial R}
@@ -390,7 +390,7 @@ begin
               (hp.dvd_prim_part_iff_dvd s0).2 ps, (hq.dvd_prim_part_iff_dvd s0).2 qs⟩,
   rw ← rdeg at hs,
   by_cases sC : s.nat_degree ≤ 0,
-  { rw [eq_C_of_nat_degree_le_zero (le_trans hs sC), is_primitive,
+  { rw [eq_C_of_nat_degree_le_zero (le_trans hs sC), is_primitive_iff_content_eq_one,
       content_C, normalize_eq_one] at rprim,
     rw [eq_C_of_nat_degree_le_zero (le_trans hs sC), ← dvd_content_iff_C_dvd] at rs,
     apply rs rprim.dvd },

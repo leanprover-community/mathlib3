@@ -166,40 +166,7 @@ open set
 noncomputable theory
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
-lemma mem_sep_true {α : Type*} (s : set α) :
-  {a ∈ s | true} = s :=
-by { ext; simp }
-
-lemma mem_sep_false {α : Type*} (s : set α) :
-  {a ∈ s | false} = ∅ :=
-by { ext; simp }
-
-lemma real.zero_le_Inf (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) :
-  0 ≤ Inf S :=
-begin
-  rcases S.eq_empty_or_nonempty with (rfl | hS₂),
-  { simp [real.Inf_empty] },
-  { apply real.lb_le_Inf S hS₂ hS }
-end
-
-lemma Inf_le_of_forall_lt (S : set ℝ) (hS : bdd_below S) (y : ℝ)
-  (h : ∀ ε, 0 < ε → ∃ δ, δ < ε ∧ y + δ ∈ S) :
-  Inf S ≤ y :=
-begin
-  apply le_of_forall_pos_lt_add,
-  intros ε hε,
-  obtain ⟨δ, hδ₁, hδ₂⟩ := h ε hε,
-  exact cInf_lt_of_lt hS hδ₂ (add_lt_add_left hδ₁ _),
-end
-
-@[simp]
-lemma Inf_Ioi {α : Type*} (x : α) [conditionally_complete_lattice α] [no_top_order α]
-  [densely_ordered α] :
-  Inf (set.Ioi x) = x :=
-cInf_intro nonempty_Ioi (λ a ha, le_of_lt ha) (λ w hw, by simpa using exists_between hw)
-
-def gauge (K : set E) (x : E) :
-  ℝ :=
+def gauge (K : set E) (x : E) : ℝ :=
 Inf {y ∈ set.Ioi 0 | y⁻¹ • x ∈ K}
 
 lemma gauge_set_nonempty_of_absorbing {K : set E} (absorbing : ∀ x, ∃ (θ : ℝ), 0 < θ ∧ θ • x ∈ K)
@@ -217,8 +184,8 @@ lemma gauge_zero {K : set E} :
 begin
   rw gauge,
   by_cases (0:E) ∈ K,
-  { simp [h, mem_sep_true] },
-  { simp [h, mem_sep_false, real.Inf_empty] }
+  { simp [h] },
+  { simp [h, real.Inf_empty] }
 end
 
 lemma smul_mem_of_convex {K : set E} (hK : convex K) (zero_mem : (0:E) ∈ K) {x : E}
@@ -230,9 +197,9 @@ begin
   apply this ⟨_, ⟨‹0 ≤ θ›, ‹_›⟩, by simp⟩,
 end
 
-lemma zero_le_gauge {K : set E} (x : E) :
+lemma gauge_nonneg {K : set E} (x : E) :
   0 ≤ gauge K x :=
-real.zero_le_Inf _ (λ x hx, le_of_lt hx.1)
+real.Inf_nonneg _ (λ x hx, le_of_lt hx.1)
 
 lemma gauge_le_one_eq {K : set E} (hK : convex K) (zero_mem : (0:E) ∈ K)
   (absorbing : ∀ x, ∃ (θ : ℝ), 0 < θ ∧ θ • x ∈ K) :
@@ -252,13 +219,11 @@ begin
         apply ‹δ < θ›.le } },
     apply gauge_set_nonempty_of_absorbing absorbing },
   { intro h,
-    apply Inf_le_of_forall_lt _ gauge_set_bdd_below,
+    apply le_of_forall_pos_lt_add,
     intros ε hε,
-    refine ⟨ε/2, by linarith, show 0 < 1 + ε/2, by linarith, _⟩,
-    change _ ∈ _,
-    rw ←mem_smul_set_iff_inv_smul_mem (show 1 + ε/2 ≠ 0, by linarith),
-    apply h,
-    linarith }
+    apply cInf_lt_of_lt gauge_set_bdd_below _ (add_lt_add_left (half_lt_self hε) _),
+    refine ⟨by { simp, linarith }, _⟩,
+    exact (mem_smul_set_iff_inv_smul_mem (by linarith) _ _).1 (h _ (by linarith)) }
 end
 
 lemma gauge_lt_one_eq {K : set E} (hK : convex K) (zero_mem : (0:E) ∈ K)
@@ -474,31 +439,6 @@ begin
   simpa,
 end
 
-theorem zorn_reverse_subset {α : Type u} (S : set (set α))
-  (h : ∀c ⊆ S, zorn.chain (⊆) c → ∃lb ∈ S, ∀ s ∈ c, lb ⊆ s) :
-  ∃ m ∈ S, ∀a ∈ S, a ⊆ m → a = m :=
-begin
-  let rev : S → S → Prop := λ X Y, Y.1 ⊆ X.1,
-  have hS : ∀ (c : set S), zorn.chain rev c → ∃ ub, ∀ a ∈ c, rev a ub,
-  { intros c hc,
-    obtain ⟨t, ht₁, ht₂⟩ := h (coe '' c) (by simp)
-      (by { rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ ne,
-            apply (hc _ hx _ hy (λ t, ne (congr_arg coe t))).symm }),
-    exact ⟨⟨_, ht₁⟩, λ a ha, ht₂ a ⟨_, ha, rfl⟩⟩ },
-  obtain ⟨m, hm₁⟩ := zorn.exists_maximal_of_chains_bounded hS _,
-  { refine ⟨m, m.prop, λ a ha ha₂, set.subset.antisymm ha₂ (hm₁ ⟨a, ha⟩ ha₂)⟩ },
-  intros x y z xy yz,
-  apply set.subset.trans yz xy
-end
-
-lemma continuous_linear_map_of_continuous_at_zero {E F : Type*} [normed_group E] [normed_space ℝ E]
-  [normed_group F] [normed_space ℝ F] (f : E →ₗ[ℝ] F) (hf : continuous_at f (0:E)) :
-  continuous f :=
-begin
-  have : filter.tendsto f (nhds 0) (nhds 0), by simpa using hf.tendsto,
-  exact (uniform_continuous_of_tendsto_zero this).continuous,
-end
-
 lemma continuous_at_of_exists_open {E : Type*} [normed_group E] [normed_space ℝ E]
   (f : E →ₗ[ℝ] ℝ) (hf : ∀ ε, 0 < ε → ∃ (U : set E), (0:E) ∈ U ∧ is_open U ∧ ∀ x ∈ U, ∥f x∥ < ε) :
   continuous_at f (0:E) :=
@@ -531,7 +471,7 @@ begin
     simp },
   rcases exists_extension_of_le_sublinear f (gauge C) _ _ _ with ⟨φ, hφ₁, hφ₂⟩,
   { refine ⟨⟨φ, _⟩, _, _⟩,
-    { apply continuous_linear_map_of_continuous_at_zero,
+    { refine (continuous_add_group_hom_of_continuous_at_zero φ.to_add_monoid_hom _).continuous,
       apply continuous_at_of_exists_open,
       intros ε hε,
       refine ⟨(ε • C) ∩ (-ε • C), ⟨_, _⟩, _, _⟩,
@@ -573,7 +513,7 @@ begin
     cases lt_or_le 0 y,
     { rw [gauge_mul_nonneg (le_of_lt h), le_mul_iff_one_le_right h],
       apply one_le_gauge_of_not_mem hC ‹_› ‹_› _ hx₀ },
-    apply ‹y ≤ 0›.trans (zero_le_gauge _) }
+    apply ‹y ≤ 0›.trans (gauge_nonneg _) }
 end
 
 /-- A nonzero continuous linear functional is open. -/

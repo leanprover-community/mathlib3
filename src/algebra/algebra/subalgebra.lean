@@ -40,18 +40,7 @@ instance : set_like (subalgebra R A) A :=
 @[simp]
 lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
-@[simp]
-lemma mem_coe {s : subalgebra R A} {x : A} : x ∈ (s : set A) ↔ x ∈ s := iff.rfl
-
 @[ext] theorem ext {S T : subalgebra R A} (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
-
-theorem ext_set {S T : subalgebra R A}
-  (h : (S : set A) = (T : set A)) : S = T :=
-begin
-  rw set.ext_iff at h,
-  ext x,
-  exact h x,
-end
 
 /-- Copy of a submodule with a new `carrier` equal to the old one. Useful to fix definitional
 equalities. -/
@@ -208,9 +197,6 @@ instance algebra : algebra R S :=
   smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
   .. (algebra_map R A).cod_srestrict S.to_subsemiring $ λ x, S.range_le ⟨x, rfl⟩ }
 
-@[simp, norm_cast] lemma coe_algebra_map (r : R) : (algebra_map R S r : A) = algebra_map R A r :=
-rfl
-
 instance to_algebra {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
   [algebra R A] [algebra A B] (A₀ : subalgebra R A) : algebra A₀ B :=
 algebra.of_subsemiring A₀.to_subsemiring
@@ -233,6 +219,8 @@ instance no_zero_smul_divisors_bot [no_zero_smul_divisors R A] : no_zero_smul_di
 @[simp, norm_cast] lemma coe_sub {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
   {S : subalgebra R A} (x y : S) : (↑(x - y) : A) = ↑x - ↑y := rfl
 @[simp, norm_cast] lemma coe_smul (r : R) (x : S) : (↑(r • x) : A) = r • ↑x := rfl
+@[simp, norm_cast] lemma coe_algebra_map (r : R) : ↑(algebra_map R S r) = algebra_map R A r :=
+rfl
 
 @[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x^n) : A) = (↑x)^n :=
 begin

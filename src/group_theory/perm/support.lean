@@ -54,6 +54,16 @@ by rw support_eq_empty_iff
 
 @[simp] lemma support_refl : support (equiv.refl α) = ∅ := support_one
 
+lemma support_congr {f g : perm α} (h : f.support = g.support)
+  (h' : ∀ x ∈ f.support, f x = g x) : f = g :=
+begin
+  ext x,
+  by_cases hx : x ∈ f.support,
+  { exact h' x hx },
+  { have : x ∉ g.support := h ▸ hx,
+    rw [not_mem_support.mp hx, not_mem_support.mp this] }
+end
+
 lemma support_mul_le (f g : perm α) :
   (f * g).support ≤ f.support ⊔ g.support :=
 λ x, begin
@@ -143,6 +153,22 @@ begin
     { rw h,
       exact mem_singleton _ },
   simpa
+end
+
+lemma support_swap_mul_swap [decidable_eq α] {x y z : α} (h : list.nodup [x, y, z]) :
+  support (swap x y * swap y z) = {x, y, z} :=
+begin
+  simp only [list.not_mem_nil, and_true, list.mem_cons_iff, not_false_iff, list.nodup_cons,
+             list.mem_singleton, and_self, list.nodup_nil] at h,
+  push_neg at h,
+  apply le_antisymm,
+  { convert support_mul_le _ _,
+    rw [support_swap h.left.left, support_swap h.right],
+    ext,
+    simp [or.comm, or.left_comm] },
+  { rintro w (rfl | rfl | rfl | _);
+    simp [swap_apply_of_ne_of_ne, h.left.left, h.left.left.symm, h.left.right, h.left.right.symm,
+          h.right.symm] }
 end
 
 lemma support_swap_mul_ge_support_diff [decidable_eq α] (f : perm α) (x y : α) :

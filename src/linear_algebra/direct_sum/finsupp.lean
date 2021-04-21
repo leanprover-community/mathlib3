@@ -29,7 +29,9 @@ section finsupp_lequiv_direct_sum
 variables (R M) (ι : Type*) [decidable_eq ι]
 
 /-- The finitely supported functions ι →₀ M are in linear equivalence with the direct sum of
-copies of M indexed by ι. -/
+copies of M indexed by ι.
+
+Note this is equal to `finsupp.to_dfinsupp_linear_equiv`, but not definitionally so.-/
 def finsupp_lequiv_direct_sum : (ι →₀ M) ≃ₗ[R] ⨁ i : ι, M :=
 linear_equiv.of_linear
   (finsupp.lsum ℕ (show ι → (M →ₗ[R] ⨁ i, M), from direct_sum.lof R ι _))

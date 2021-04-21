@@ -97,6 +97,14 @@ begin
   simp [det_apply, card_eq_zero.mp h, perm_eq],
 end
 
+/-- Specialize `det_eq_one_of_card_eq_zero` to `fin 0`.
+
+This is especially useful in combination with the `det_succ_` lemmas,
+for computing the determinant of a matrix given in the `![...]` notation.
+-/
+@[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R}: det A = 1 :=
+det_eq_one_of_card_eq_zero (fintype.card_fin _)
+
 /-- If `n` has only one element, the determinant of an `n` by `n` matrix is just that element.
 Although `unique` implies `decidable_eq` and `fintype`, the instances might
 not be syntactically equal. Thus, we need to fill in the args explicitly. -/

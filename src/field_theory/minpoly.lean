@@ -74,7 +74,7 @@ begin
   have key := minpoly.aeval A x,
   rw [eq_X_add_C_of_degree_eq_one hx, (minpoly.monic h).leading_coeff, C_1, one_mul, aeval_add,
       aeval_C, aeval_X, ←eq_neg_iff_add_eq_zero, ←ring_hom.map_neg] at key,
-  exact ⟨-(minpoly A x).coeff 0, subring.mem_top (-(minpoly A x).coeff 0), key.symm⟩,
+  exact ⟨-(minpoly A x).coeff 0, key.symm⟩,
 end
 
 /--The defining property of the minimal polynomial of an element x:

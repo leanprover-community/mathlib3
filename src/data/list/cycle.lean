@@ -55,13 +55,22 @@ by rw [next, dif_pos hx]
   next (x :: z :: l) x h = z :=
 next_cons_cons_eq' l x x z h rfl
 
-lemma next_last_cons (y : α) (h : x ∈ (y :: l)) (hx : x = last (y :: l) (cons_ne_nil _ _))
-  (hy : x ≠ y) :
+lemma next_last_cons (y : α) (h : x ∈ (y :: l)) (hy : x ≠ y)
+  (hx : x = last (y :: l) (cons_ne_nil _ _)) :
   next (y :: l) x h = y :=
 begin
   cases l,
   { simp },
   { rw [next, dif_neg hy, if_pos hx] }
+end
+
+lemma next_ne_head_ne_last (y : α) (h : x ∈ (y :: l)) (hy : x ≠ y)
+  (hx : x ≠ last (y :: l) (cons_ne_nil _ _)) :
+  next (y :: l) x h = next l x (by simpa [hy] using h) :=
+begin
+  cases l,
+  { simpa [hy] using h },
+  { rw [next, dif_neg hy, if_neg hx] }
 end
 
 lemma prev_last_cons' (y : α) (h : x ∈ (y :: l)) (hx : x = y) :
@@ -82,6 +91,26 @@ by rw [prev, dif_pos hx]
 @[simp] lemma prev_cons_cons_eq (z : α) (h : x ∈ (x :: z :: l)) :
   prev (x :: z :: l) x h = last (z :: l) (cons_ne_nil _ _) :=
 prev_cons_cons_eq' l x x z h rfl
+
+lemma prev_cons_cons_of_ne' (y z : α) (h : x ∈ (y :: z :: l)) (hy : x ≠ y) (hz : x = z) :
+  prev (y :: z :: l) x h = y :=
+begin
+  cases l,
+  { simp [prev, hy, hz] },
+  { rw [prev, dif_neg hy, if_pos hz] }
+end
+
+lemma prev_cons_cons_of_ne (y : α) (h : x ∈ (y :: x :: l)) (hy : x ≠ y) :
+  prev (y :: x :: l) x h = y :=
+prev_cons_cons_of_ne' _ _ _ _ _ hy rfl
+
+lemma prev_ne_cons_cons (y z : α) (h : x ∈ (y :: z :: l)) (hy : x ≠ y) (hz : x ≠ z) :
+  prev (y :: z :: l) x h = prev (z :: l) x (by simpa [hy] using h) :=
+begin
+  cases l,
+  { simpa [hy, hz] using h },
+  { rw [prev, dif_neg hy, if_neg hz] }
+end
 
 include h
 
@@ -112,6 +141,126 @@ begin
       split_ifs with hm,
       { exact mem_cons_self _ _ },
       { exact mem_cons_of_mem _ (hl _ _) } } }
+end
+
+lemma next_nth_le (l : list α) (h : nodup l) (n : ℕ) (hn : n < l.length) :
+  next l (l.nth_le n hn) (nth_le_mem _ _ _) = l.nth_le ((n + 1) % l.length)
+    (nat.mod_lt _ (n.zero_le.trans_lt hn)) :=
+begin
+  cases l with x l,
+  { simpa using hn },
+  induction l with y l hl generalizing x n,
+  { simp },
+  { cases n,
+    { simp },
+    { have hn' : n.succ ≤ l.length.succ,
+      { refine nat.succ_le_of_lt _,
+        simpa [nat.succ_lt_succ_iff] using hn },
+      have hx': (x :: y :: l).nth_le n.succ hn ≠ x,
+      { intro H,
+        suffices : n.succ = 0,
+        { simpa },
+        rw nodup_iff_nth_le_inj at h,
+        refine h _ _ hn nat.succ_pos' _,
+        simpa using H },
+      rcases hn'.eq_or_lt with hn''|hn'',
+      { rw [next_last_cons],
+        { simp [hn''] },
+        { exact hx' },
+        { simp [last_eq_nth_le, hn''] } },
+      { have : n < l.length := by simpa [nat.succ_lt_succ_iff] using hn'' ,
+        rw [next_ne_head_ne_last _ _ _ _ hx'],
+        { simp [nat.mod_eq_of_lt (nat.succ_lt_succ (nat.succ_lt_succ this)),
+                hl _ _ (nodup_of_nodup_cons h), nat.mod_eq_of_lt (nat.succ_lt_succ this)] },
+        { rw last_eq_nth_le,
+          intro H,
+          suffices : n.succ = l.length.succ,
+          { exact absurd hn'' this.ge.not_lt },
+          rw nodup_iff_nth_le_inj at h,
+          refine h _ _ hn _ _,
+          { simp },
+          { simpa using H } } } } }
+end
+
+lemma prev_nth_le (l : list α) (h : nodup l) (n : ℕ) (hn : n < l.length) :
+  prev l (l.nth_le n hn) (nth_le_mem _ _ _) = l.nth_le ((n + (l.length - 1)) % l.length)
+    (nat.mod_lt _ (n.zero_le.trans_lt hn)) :=
+begin
+  cases l with x l,
+  { simpa using hn },
+  induction l with y l hl generalizing n x,
+  { simp },
+  { rcases n with _|_|n,
+    { simpa [last_eq_nth_le, nat.mod_eq_of_lt (nat.succ_lt_succ l.length.lt_succ_self)] },
+    { simp only [mem_cons_iff, nodup_cons] at h,
+      push_neg at h,
+      simp [add_comm, prev_cons_cons_of_ne, h.left.left.symm] },
+    { rw [prev_ne_cons_cons],
+      { convert hl _ _ (nodup_of_nodup_cons h) _ using 1,
+        have : ∀ k hk, (y :: l).nth_le k hk = (x :: y :: l).nth_le (k + 1) (nat.succ_lt_succ hk),
+        { intros,
+          simpa },
+        rw [this],
+        congr,
+        simp only [nat.add_succ_sub_one, add_zero, length],
+        simp only [length, nat.succ_lt_succ_iff] at hn,
+        set k := l.length,
+        rw [nat.succ_add, ←nat.add_succ, nat.add_mod_right, nat.succ_add, ←nat.add_succ _ k,
+            nat.add_mod_right, nat.mod_eq_of_lt, nat.mod_eq_of_lt],
+        { exact nat.lt_succ_of_lt hn },
+        { exact nat.succ_lt_succ (nat.lt_succ_of_lt hn) } },
+      { intro H,
+        suffices : n.succ.succ = 0,
+        { simpa },
+        rw nodup_iff_nth_le_inj at h,
+        refine h _ _ hn nat.succ_pos' _,
+        simpa using H },
+      { intro H,
+        suffices : n.succ.succ = 1,
+        { simpa },
+        rw nodup_iff_nth_le_inj at h,
+        refine h _ _ hn (nat.succ_lt_succ nat.succ_pos') _,
+        simpa using H } } }
+end
+
+lemma pmap_next_eq_rotate_one (h : nodup l) :
+  l.pmap l.next (λ _ h, h) = l.rotate 1 :=
+begin
+  apply list.ext_le,
+  { simp },
+  { intros,
+    rw [nth_le_pmap, nth_le_rotate, next_nth_le _ h] }
+end
+
+lemma pmap_prev_eq_rotate_length_sub_one (h : nodup l) :
+  l.pmap l.prev (λ _ h, h) = l.rotate (l.length - 1) :=
+begin
+  apply list.ext_le,
+  { simp },
+  { intros n hn hn',
+    rw [nth_le_rotate, nth_le_pmap, prev_nth_le _ h] }
+end
+
+lemma prev_next (l : list α) (h : nodup l) (x : α) (hx : x ∈ l) :
+  prev l (next l x hx) (next_mem _ _ _) = x :=
+begin
+  obtain ⟨n, hn, rfl⟩ := nth_le_of_mem hx,
+  simp only [next_nth_le, prev_nth_le, h, nat.mod_add_mod],
+  cases l with hd tl,
+  { simp },
+  { have : n < 1 + tl.length := by simpa [add_comm] using hn,
+    simp [add_left_comm, add_comm, add_assoc, nat.mod_eq_of_lt this] }
+end
+
+lemma next_prev (l : list α) (h : nodup l) (x : α) (hx : x ∈ l) :
+  next l (prev l x hx) (prev_mem _ _ _) = x :=
+begin
+  obtain ⟨n, hn, rfl⟩ := nth_le_of_mem hx,
+  simp only [next_nth_le, prev_nth_le, h, nat.mod_add_mod],
+  cases l with hd tl,
+  { simp },
+  { have : n < 1 + tl.length := by simpa [add_comm] using hn,
+    simp [add_left_comm, add_comm, add_assoc, nat.mod_eq_of_lt this] }
 end
 
 end list
@@ -215,4 +364,4 @@ end
 instance [decidable_eq α] {s : cycle α} : decidable (nodup s) :=
 quot.rec_on_subsingleton s (λ (l : list α), list.nodup_decidable l)
 
-end cycle
+ cycle

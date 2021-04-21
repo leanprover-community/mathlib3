@@ -98,14 +98,14 @@ end ideal
 section
 
 variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D]
-variables (i : D ⥤ C) [has_finite_products C] [reflective i]
+variables (i : D ⥤ C)
 
-lemma reflective_products : has_finite_products D :=
+lemma reflective_products [has_finite_products C] [reflective i] : has_finite_products D :=
 ⟨λ J 𝒥₁ 𝒥₂, by exactI has_limits_of_shape_of_reflective i⟩
 
 local attribute [instance, priority 10] reflective_products
 
-variables [cartesian_closed C]
+variables [has_finite_products C] [reflective i] [cartesian_closed C]
 
 /--
 If the reflector preserves binary products, the subcategory is an exponential ideal.

@@ -1000,6 +1000,18 @@ begin
   { simp_rw [infi_ge_eq_infi_nat_add, ←nat.add_assoc], },
 end
 
+lemma sup_supr_nat_succ (u : ℕ → α) : u 0 ⊔ (⨆ i, u (i + 1)) = ⨆ i, u i :=
+begin
+  refine eq_of_forall_ge_iff (λ c, _),
+  simp only [sup_le_iff, supr_le_iff],
+  refine ⟨λ h, _, λ h, ⟨h _, λ i, h _⟩⟩,
+  rintro (_|i),
+  exacts [h.1, h.2 i]
+end
+
+lemma inf_infi_nat_succ (u : ℕ → α) : u 0 ⊓ (⨅ i, u (i + 1)) = ⨅ i, u i :=
+@sup_supr_nat_succ (order_dual α) _ u
+
 end
 
 section complete_linear_order

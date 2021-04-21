@@ -346,13 +346,13 @@ theorem constr_apply (f : ι → M') (x : M) :
 by { simp only [constr_def, linear_map.comp_apply, finsupp.lmap_domain_apply, finsupp.total_apply],
      rw finsupp.sum_map_domain_index; simp [add_smul] }
 
-@[simp] lemma constr_basis {f : ι → M'} {i : ι} :
+@[simp] lemma constr_basis (f : ι → M') (i : ι) :
   (b.constr S f : M → M') (b i) = f i :=
 by simp [basis.constr_apply, b.repr_self]
 
 lemma constr_eq {g : ι → M'} {f : M →ₗ[R] M'}
   (h : ∀i, g i = f (b i)) : b.constr S g = f :=
-b.ext $ λ i, (b.constr_basis S).trans (h i)
+b.ext $ λ i, (b.constr_basis S g i).trans (h i)
 
 lemma constr_self (f : M →ₗ[R] M') : b.constr S (λ i, f (b i)) = f :=
 b.constr_eq S $ λ x, rfl
@@ -655,11 +655,11 @@ def equiv' (f : M → M') (g : M' → M)
 
 @[simp] lemma equiv'_apply (f : M → M') (g : M' → M) (hf hg hgf hfg) (i : ι) :
   b.equiv' b' f g hf hg hgf hfg (b i) = f (b i) :=
-b.constr_basis R
+b.constr_basis R _ _
 
 @[simp] lemma equiv'_symm_apply (f : M → M') (g : M' → M) (hf hg hgf hfg) (i : ι') :
   (b.equiv' b' f g hf hg hgf hfg).symm (b' i) = g (b' i) :=
-b'.constr_basis R
+b'.constr_basis R _ _
 
 end basis
 

@@ -81,7 +81,7 @@ a model for manifolds with boundary. In the locale `manifold`, use the shortcut 
 -/
 def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
   model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n) :=
-{ to_fun      := coe,
+{ to_fun      := subtype.val,
   inv_fun     := λx, ⟨update x 0 (max (x 0) 0), by simp [le_refl]⟩,
   source      := univ,
   target      := {x | 0 ≤ x 0},
@@ -104,7 +104,7 @@ Definition of the model with corners `(euclidean_space ℝ (fin n), euclidean_qu
 model for manifolds with corners -/
 def model_with_corners_euclidean_quadrant (n : ℕ) :
   model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_quadrant n) :=
-{ to_fun      := coe,
+{ to_fun      := subtype.val,
   inv_fun     := λx, ⟨λi, max (x i) 0, λi, by simp only [le_refl, or_true, le_max_iff]⟩,
   source      := univ,
   target      := {x | ∀ i, 0 ≤ x i},

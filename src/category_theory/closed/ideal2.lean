@@ -100,7 +100,7 @@ section
 variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D]
 variables (i : D ⥤ C) [has_finite_products C] [reflective i]
 
-lemma reflective_products [reflective i] : has_finite_products D :=
+lemma reflective_products : has_finite_products D :=
 ⟨λ J 𝒥₁ 𝒥₂, by exactI has_limits_of_shape_of_reflective i⟩
 
 local attribute [instance, priority 10] reflective_products
@@ -111,6 +111,7 @@ variables [cartesian_closed C]
 If the reflector preserves binary products, the subcategory is an exponential ideal.
 This is the converse of `preserves_binary_products_of_exponential_ideal`.
 -/
+@[priority 10]
 instance exponential_ideal_of_preserves_binary_products
   [preserves_limits_of_shape (discrete walking_pair) (left_adjoint i)] :
   exponential_ideal i :=
@@ -161,8 +162,9 @@ def reflective_cc : cartesian_closed D :=
       end } } }
 
 -- It's annoying that I need to do this.
-local attribute [-instance] category_theory.preserves_limit_of_creates_limit_and_has_limit
-local attribute [-instance] category_theory.preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape
+local attribute [-instance]
+  category_theory.preserves_limit_of_creates_limit_and_has_limit
+  category_theory.preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape
 
 /--
 We construct a bijection between morphisms `L(A ⨯ B) ⟶ X` and morphisms `LA ⨯ LB ⟶ X`.
@@ -219,7 +221,7 @@ begin
     apply (adjunction.of_right_adjoint i).unit.naturality },
 end
 
-lemma bijection_natural [reflective i] [exponential_ideal i]
+lemma bijection_natural
   (A B : C) (X X' : D) (f : ((left_adjoint i).obj (A ⨯ B) ⟶ X)) (g : X ⟶ X') :
   bijection i _ _ _ (f ≫ g) = bijection i _ _ _ f ≫ g :=
 begin
@@ -235,7 +237,7 @@ end
 The bijection allows us to show that `prod_comparison L A B` is an isomorphism, where the inverse
 is the forward map of the identity morphism.
 -/
-def prod_comparison_iso (A B : C) :
+lemma prod_comparison_iso (A B : C) :
   is_iso (prod_comparison (left_adjoint i) A B) :=
 ⟨⟨bijection i _ _ _ (𝟙 _),
   by rw [←(bijection i _ _ _).injective.eq_iff, bijection_natural, ← bijection_symm_apply_id,

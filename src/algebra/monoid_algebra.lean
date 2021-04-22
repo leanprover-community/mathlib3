@@ -605,8 +605,8 @@ section span
 
 variables [semiring k] [mul_one_class G]
 
-lemma mem.span_support (f : (monoid_algebra k G)) :
-  f ∈ submodule.span k ((monoid_algebra.of k G)'' (f.support : set G)) :=
+lemma mem_span_support (f : monoid_algebra k G) :
+  f ∈ submodule.span k (monoid_algebra.of k G '' (f.support : set G)) :=
 by rw [monoid_algebra.of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single,
   finsupp.mem_supported]
 

@@ -194,7 +194,7 @@ nat_iso.of_components
 
 end
 
-theorem coherence {X Y : F C} : subsingleton (X ⟶ Y) :=
+instance coherence {X Y : F C} : subsingleton (X ⟶ Y) :=
 begin
   constructor,
   intros f g,
@@ -202,5 +202,8 @@ begin
   have : full_normalize.map f = full_normalize.map g := subsingleton.elim _ _,
   simp [←nat_iso.naturality_2 (full_normalize_iso.{u} C), this]
 end
+
+instance : groupoid.{u} (F C) :=
+{ inv := λ X Y, inverse, ..(by apply_instance : category (F C)) }
 
 end category_theory

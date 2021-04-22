@@ -251,58 +251,6 @@ begin
   { simp only [inverse', mk_l_inv, mk_comp_eq_comp, mk_α_inv, mk_id_eq_id, mk_tensor_eq_tensor, mk_ρ_inv], exact monoidal_category.triangle_assoc_comp_left_inv _ _ }
 end
 
-instance : groupoid.{u} (F C) :=
-{ inv := λ X Y, inverse,
-  inv_comp' := λ X Y f,
-  begin
-    apply quotient.induction_on f,
-    intro f,
-    induction f,
-    { simp only [mk_id_eq_id, inverse, category.comp_id], refl },
-    { exact (α_ _ _ _).inv_hom_id },
-    { exact (α_ _ _ _).hom_inv_id },
-    { exact (λ_ _).inv_hom_id },
-    { exact (λ_ _).hom_inv_id },
-    { exact (ρ_ _).inv_hom_id },
-    { exact (ρ_ _).hom_inv_id },
-    { simp only [inverse, inverse', quotient.lift_mk, ←f_ih_g ⟦f_g⟧],
-      simp only [mk_comp_eq_comp],
-      slice_lhs 2 3 { erw f_ih_f ⟦f_f⟧ },
-      simp only [category.id_comp] },
-    { simp only [inverse, quotient.lift_mk],
-      have h₁ := f_ih_f ⟦f_f⟧,
-      have h₂ := f_ih_g ⟦f_g⟧,
-      simp only [inverse, quotient.lift_mk] at h₁ h₂,
-      simp only [mk_tensor_eq_tensor, inverse', ←monoidal_category.tensor_comp, h₁, h₂],
-      dsimp,
-      simp only [monoidal_category.tensor_id], }
-  end,
-  comp_inv' := λ X Y f,
-  begin
-    apply quotient.induction_on f,
-    intro f,
-    induction f,
-    { simp only [mk_id_eq_id, inverse, category.id_comp], refl },
-    { exact (α_ _ _ _).hom_inv_id },
-    { exact (α_ _ _ _).inv_hom_id },
-    { exact (λ_ _).hom_inv_id },
-    { exact (λ_ _).inv_hom_id },
-    { exact (ρ_ _).hom_inv_id },
-    { exact (ρ_ _).inv_hom_id },
-    { simp only [inverse, inverse', quotient.lift_mk, ←f_ih_f ⟦f_f⟧],
-      simp only [mk_comp_eq_comp],
-      slice_lhs 2 3 { erw f_ih_g ⟦f_g⟧ },
-      simp only [category.id_comp] },
-    { simp only [inverse, quotient.lift_mk],
-      have h₁ := f_ih_f ⟦f_f⟧,
-      have h₂ := f_ih_g ⟦f_g⟧,
-      simp only [inverse, quotient.lift_mk] at h₁ h₂,
-      simp only [mk_tensor_eq_tensor, inverse', ←monoidal_category.tensor_comp, h₁, h₂],
-      dsimp,
-      simp only [monoidal_category.tensor_id], }
-  end,
-  ..(by apply_instance : category (F C)) }
-
 
 section functor
 variables [category.{v} C] [monoidal_category C]

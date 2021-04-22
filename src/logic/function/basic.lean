@@ -571,6 +571,9 @@ protected lemma ite_not (P : Prop) [decidable P] (x : α) :
   f (ite P x (f x)) = ite (¬ P) x (f x) :=
 by rw [apply_ite f, h, ite_not]
 
+protected lemma eq_iff {x y : α} : f x = y ↔ x = f y :=
+⟨λ H, h x ▸ congr_arg f H, λ H, h y ▸ congr_arg f H⟩
+
 end involutive
 
 /-- The property of a binary function `f : α → β → γ` being injective.

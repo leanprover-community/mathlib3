@@ -126,8 +126,7 @@ variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
 open continuous_linear_equiv submodule
 open_locale classical
 
-lemma coord_norm' (x : E) (h : x ≠ 0) :
-  ∥norm' 𝕜 x • coord 𝕜 x h∥ = 1 :=
+lemma coord_norm' (x : E) (h : x ≠ 0) : ∥norm' 𝕜 x • coord 𝕜 x h∥ = 1 :=
 by rw [norm_smul, norm_norm', coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
 
 /-- Corollary of Hahn-Banach.  Given a nonzero element `x` of a normed space, there exists an

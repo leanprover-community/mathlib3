@@ -11,7 +11,7 @@ import linear_algebra.clifford_algebra
 Tests that the ring instances for `free_algebra` and derived quotient types actually work.
 
 There is some discussion about this in
-https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20module.20typeclass.20lookup/near/212580241
+https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
 
 In essence, the use of `attribute [irreducible] the_type` was breaking instance resolution on that
 type.

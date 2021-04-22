@@ -50,12 +50,12 @@ Two morphisms `f : A ⟶ B`, `g : B ⟶ C` are called exact if `w : f ≫ g = 0`
 
 This is equivalent to `homology (image_to_kernel f g w) ≅ 0`.
 
-In an abelian category, this is equivalent to the usual definition,
-`image_subobject f = kernel_subobject g`,
-and equivalent to `image_to_kernel f g w` being an isomorphism.
+In an abelian category, this is equivalent to `image_to_kernel f g w` being an isomorphism,
+and hence equivalent to the usual definition,
+`image_subobject f = kernel_subobject g`.
 -/
 -- One nice feature of this definition is that we have
--- `exact g h → epi f → exact (f ≫ g) h` and `exact f g → mono h → exact f (g ≫ h)`,
+-- `epi f → exact g h → exact (f ≫ g) h` and `exact f g → mono h → exact f (g ≫ h)`,
 -- which do not necessarily hold in a non-abelian category with the usual definition of `exact`.
 class exact {A B C : V} (f : A ⟶ B) (g : B ⟶ C) : Prop :=
 (w : f ≫ g = 0)
@@ -125,10 +125,8 @@ end
 lemma exact_comp_mono [exact f g] [mono h] : exact f (g ≫ h) :=
 begin
   refine ⟨by simp, _⟩,
-  letI : is_iso (kernel.lift (g ≫ h) (kernel.ι g) (by simp)) :=
-    ⟨⟨kernel.lift g (kernel.ι (g ≫ h)) (by simp [←cancel_mono h]), by tidy⟩⟩,
   rw image_to_kernel_comp_right f g h exact.w,
-  exact epi_comp _ _
+  apply_instance,
 end
 
 lemma exact_kernel : exact (kernel.ι f) f :=

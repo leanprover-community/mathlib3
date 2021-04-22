@@ -154,6 +154,15 @@ le_antisymm
   (le_kernel_subobject _ _ ((cancel_mono h).mp (by simp)))
   (kernel_subobject_comp_le f h)
 
+instance kernel_subobject_comp_mono_is_iso
+  (f : X ⟶ Y) [has_kernel f] {Z : C} (h : Y ⟶ Z) [mono h] :
+  is_iso (subobject.of_le _ _ (kernel_subobject_comp_le f h)) :=
+begin
+  rw of_le_mk_le_mk_of_comm (kernel_comp_mono f h).inv,
+  { apply_instance, },
+  { simp, },
+end
+
 end kernel
 
 section image

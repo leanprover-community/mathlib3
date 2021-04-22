@@ -26,15 +26,16 @@ namespace algebraic_geometry
 /--
 We define `Scheme` as a `X : LocallyRingedSpace`,
 along with a proof that every point has an open neighbourhood `U`
-so that that the restriction of `X` to `U` is isomorphic, as a space with a presheaf of commutative
-rings, to `Spec.PresheafedSpace R` for some `R : CommRing`.
+so that that the restriction of `X` to `U` is isomorphic,
+as a space with a presheaf of commutative rings,
+to `Spec.PresheafedSpace R` for some `R : CommRing`.
 
 (Note we're not asking in the definition that this is an isomorphism as locally ringed spaces,
 although that is a consequence.)
 -/
 structure Scheme extends X : LocallyRingedSpace :=
-(local_affine : ∀ x : X, ∃ (U : opens X) (m : x ∈ U) (R : CommRing),
-  nonempty (X.to_PresheafedSpace.restrict _ U.inclusion_open_embedding ≅ Spec.PresheafedSpace R))
+(local_affine : ∀ x : X, ∃ (U : open_nhds x) (R : CommRing),
+  nonempty (X.to_PresheafedSpace.restrict _ U.open_embedding ≅ Spec.PresheafedSpace R))
 
 -- PROJECT
 -- In fact, we can make the isomorphism `i` above an isomorphism in `LocallyRingedSpace`.
@@ -62,7 +63,7 @@ def to_LocallyRingedSpace (S : Scheme) : LocallyRingedSpace := { ..S }
 -/
 noncomputable
 def Spec (R : CommRing) : Scheme :=
-{ local_affine := λ x, ⟨⊤, trivial, R, ⟨(Spec.PresheafedSpace R).restrict_top_iso⟩⟩,
+{ local_affine := λ x, ⟨⟨⊤, trivial⟩, R, ⟨(Spec.PresheafedSpace R).restrict_top_iso⟩⟩,
   .. Spec.LocallyRingedSpace R }
 
 /--

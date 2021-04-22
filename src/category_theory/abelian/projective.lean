@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.abelian.exact
+import category_theory.types
 
 /-!
 # Projective objects and categories with enough projectives
@@ -48,9 +49,9 @@ from some projective object `P`.
 @[nolint has_inhabited_instance]
 structure projective_presentation (X : C) :=
 (P : C)
-(projective : projective P)
+(projective : projective P . tactic.apply_instance)
 (f : P ⟶ X)
-(epi : epi f)
+(epi : epi f . tactic.apply_instance)
 
 variables (C)
 
@@ -63,6 +64,14 @@ end
 
 namespace projective
 
+def factor_thru {P X E : C} [projective P] (f : P ⟶ X) (e : E ⟶ X) [epi e] : P ⟶ E :=
+(projective.factors f e).some
+
+@[simp] lemma factor_thru_comp {P X E : C} [projective P] (f : P ⟶ X) (e : E ⟶ X) [epi e] :
+  factor_thru f e ≫ e = f :=
+(projective.factors f e).some_spec
+
+
 lemma of_iso {P Q : C} (i : P ≅ Q) (hP : projective P) : projective Q :=
 begin
   fsplit,
@@ -73,6 +82,36 @@ end
 
 lemma iso_iff {P Q : C} (i : P ≅ Q) : projective P ↔ projective Q :=
 ⟨of_iso i, of_iso i.symm⟩
+
+/-- The axiom of choice says that every type is a projective object in `Type`. -/
+instance (X : Type u) : projective X :=
+{ factors := λ E X' f e epi,
+  ⟨λ x, ((epi_iff_surjective _).mp epi (f x)).some,
+  by { ext x, exact ((epi_iff_surjective _).mp epi (f x)).some_spec, }⟩ }
+
+instance Type_enough_projectives : enough_projectives (Type u) :=
+{ presentation := λ X, ⟨{ P := X, f := 𝟙 X, }⟩, }
+
+instance {P Q : C} [has_binary_coproduct P Q] (hP : projective P) (hQ : projective Q) :
+  projective (P ⨿ Q) :=
+{ factors := λ E X' f e epi, by exactI
+  ⟨coprod.desc (factor_thru (coprod.inl ≫ f) e) (factor_thru (coprod.inr ≫ f) e), by tidy⟩, }
+
+instance {β : Type v} (g : β → C) [has_coproduct g] (h : ∀ b, projective (g b)) :
+  projective (∐ g) :=
+{ factors := λ E X' f e epi, by exactI
+  ⟨sigma.desc (λ b, factor_thru (sigma.ι g b ≫ f) e), by tidy⟩, }
+
+instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
+  (hP : projective P) (hQ : projective Q) :
+  projective (P ⊞ Q) :=
+{ factors := λ E X' f e epi, by exactI
+  ⟨biprod.desc (factor_thru (biprod.inl ≫ f) e) (factor_thru (biprod.inr ≫ f) e), by tidy⟩, }
+
+instance {β : Type v} [decidable_eq β] (g : β → C) [has_zero_morphisms C] [has_biproduct g]
+  (h : ∀ b, projective (g b)) : projective (⨁ g) :=
+{ factors := λ E X' f e epi, by exactI
+  ⟨biproduct.desc (λ b, factor_thru (biproduct.ι g b ≫ f) e), by tidy⟩, }
 
 section enough_projectives
 variables [enough_projectives C]

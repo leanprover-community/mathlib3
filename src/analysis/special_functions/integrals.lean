@@ -163,8 +163,8 @@ open interval_integral
 lemma integral_pow : ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
 begin
   have hderiv : deriv (λ x : ℝ, x ^ (n + 1) / (n + 1)) = λ x, x ^ n,
-  { have hne : (n + 1 : ℝ) ≠ 0 := by exact_mod_cast succ_ne_zero n,
-    ext,
+  { ext,
+    have hne : (n + 1 : ℝ) ≠ 0 := by exact_mod_cast succ_ne_zero n,
     simp [mul_div_assoc, mul_div_cancel' _ hne] },
   rw integral_deriv_eq_sub' _ hderiv;
   norm_num [div_sub_div_same, (continuous_pow n).continuous_on],
@@ -176,7 +176,7 @@ by simpa using integral_pow 1
 
 @[simp]
 lemma integral_one : ∫ x in a..b, (1 : ℝ) = b - a :=
-by simp
+by simp only [mul_one, smul_eq_mul, integral_const]
 
 @[simp]
 lemma integral_exp : ∫ x in a..b, exp x = exp b - exp a :=
@@ -187,7 +187,7 @@ lemma integral_inv (h : (0:ℝ) ∉ interval a b) : ∫ x in a..b, x⁻¹ = log 
 begin
   have h' := λ x hx, ne_of_mem_of_not_mem hx h,
   rw [integral_deriv_eq_sub' _ deriv_log' (λ x hx, differentiable_at_log (h' x hx))
-        (continuous_on_inv'.mono (subset_compl_singleton_iff.mpr h)),
+        (continuous_on_inv'.mono $ subset_compl_singleton_iff.mpr h),
       log_div (h' b right_mem_interval) (h' a left_mem_interval)],
 end
 
@@ -233,37 +233,32 @@ begin
 end
 
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
-by simp
+by simp only [one_div, integral_inv_one_add_sq]
 
 /-! ### Recursive computation of `∫ x in 0..π, sin x ^ n` -/
 
 lemma integral_sin_pow_aux : ∫ x in 0..π, sin x ^ (n + 2) =
   ((n + 1) * ∫ x in 0..π, sin x ^ n) - (n + 1) * ∫ x in 0..π, sin x ^ (n + 2) :=
 begin
-  have hv : ∀ x ∈ interval 0 π, has_deriv_at (-cos) (sin x) x,
-  { intros, convert (has_deriv_at_cos x).neg, rw neg_neg },
-  have hu : ∀ x ∈ interval 0 π, has_deriv_at (λ x, sin x ^ (n + 1)) ((n + 1) * cos x * sin x ^ n) x,
-  { intros,
-    convert (has_deriv_at_pow (n + 1) (sin x)).comp x (has_deriv_at_sin x) using 1,
-    simp [mul_right_comm], },
-  calc ∫ (x : ℝ) in 0..π, sin x ^ (n + 2)
-      = ∫ (x : ℝ) in 0..π, sin x ^ (n + 1) * sin x : by { congr, ext, ring_nf }
-  ... = ∫ (x : ℝ) in 0..π, cos x * (λ (x : ℝ), (↑n + 1) * cos x * sin x ^ n) x : by
-  { simp [integral_mul_deriv_eq_deriv_mul hu hv (by continuity : continuous _).continuous_on
-      (by continuity : continuous _).continuous_on] }
-  ... = (↑n + 1) * ∫ (x : ℝ) in 0..π, cos x ^ 2 * sin x ^ n : by
-  { rw ← integral_const_mul, congr, ext, simp only, ring }
-  ... = (↑n + 1) * ∫ (x : ℝ) in 0..π, sin x ^ n - sin x ^ (n + 2) : by
-  { simp [integral_const_mul, cos_square', sub_mul, ← pow_add, add_comm] }
-  ... = _ - _ : by { rw [integral_sub, mul_sub],
-    { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
-    { exact ((continuous_pow (n + 2)).comp continuous_sin).interval_integrable 0 π } },
+  have h : ∀ α β γ : ℝ, α * (β * α * γ) = β * (α * α * γ) := λ α β γ, by ring,
+  have hu : ∀ x ∈ _, has_deriv_at (λ y, sin y ^ (n + 1)) ((n + 1) * cos x * sin x ^ n) x :=
+    λ x hx, by simpa [mul_right_comm] using (has_deriv_at_pow _ _).comp x (has_deriv_at_sin x),
+  have hv : ∀ x ∈ interval 0 π, has_deriv_at (-cos) (sin x) x :=
+    λ x hx, by simpa using (has_deriv_at_cos x).neg,
+  have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
+  calc  ∫ x in 0..π, sin x ^ (n + 2)
+      = ∫ x in 0..π, sin x ^ (n + 1) * sin x : by simp only [pow_succ']
+  ... = (n + 1) * ∫ x in 0..π, cos x ^ 2 * sin x ^ n : by simp [H, h, pow_two]
+  ... = (n + 1) * ∫ x in 0..π, sin x ^ n - sin x ^ (n + 2) : by simp [cos_square', sub_mul,
+                                                                      ← pow_add, add_comm]
+  ... = _ : by rw [integral_sub, mul_sub]; apply continuous.interval_integrable; continuity,
+  all_goals { apply continuous.continuous_on, continuity },
 end
 
 lemma integral_sin_pow_succ_succ :
   ∫ x in 0..π, sin x ^ (n + 2) = (n + 1) / (n + 2) * ∫ x in 0..π, sin x ^ n :=
 begin
-  have : (n:ℝ) + 2 ≠ 0 := by exact_mod_cast succ_ne_zero n.succ,
+  have : (n : ℝ) + 2 ≠ 0 := by exact_mod_cast succ_ne_zero n.succ,
   field_simp,
   convert eq_sub_iff_add_eq.mp (integral_sin_pow_aux n),
   ring,

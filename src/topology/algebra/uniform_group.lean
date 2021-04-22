@@ -132,6 +132,12 @@ begin
   exact tendsto.comp h tendsto_comap
 end
 
+lemma uniform_continuous_add_group_hom_of_continuous_at_zero
+  [uniform_space β] [add_group β] [uniform_add_group β]
+  (f : α →+ β) (hf : continuous_at f 0) :
+  uniform_continuous f :=
+uniform_continuous_of_tendsto_zero (by simpa using hf.tendsto)
+
 lemma uniform_continuous_of_continuous [uniform_space β] [add_group β] [uniform_add_group β]
   {f : α → β} [is_add_group_hom f] (h : continuous f) :
   uniform_continuous f :=

@@ -659,7 +659,7 @@ begin
   change x ∈ (closure k).to_submonoid at h,
   rw [closure_to_submonoid k] at h,
   refine submonoid.closure_induction h (λ x hx, _) H1 (λ x y hx hy, Hmul x y hx hy),
-  { rw [mem_union_eq, mem_inv] at hx,
+  { rw [mem_union, mem_inv] at hx,
     cases hx with mem invmem,
     { exact Hk x mem },
     { rw [← inv_inv x],

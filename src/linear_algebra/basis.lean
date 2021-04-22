@@ -443,9 +443,9 @@ by simp [h.constr_apply, h.equiv_fun_apply, finsupp.sum_fintype]
 
 end module
 
-section vector_space
+section module
 
-variables [field K] [add_comm_group V] [add_comm_group V'] [vector_space K V] [vector_space K V']
+variables [field K] [add_comm_group V] [add_comm_group V'] [module K V] [module K V']
 variables {v : ι → V} {s t : set V} {x y z : V}
 
 include K
@@ -509,7 +509,7 @@ lemma submodule.exists_is_compl (p : submodule K V) : ∃ q : submodule K V, is_
 let ⟨f, hf⟩ := p.subtype.exists_left_inverse_of_injective p.ker_subtype in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
-instance vector_space.submodule.is_complemented : is_complemented (submodule K V) :=
+instance module.submodule.is_complemented : is_complemented (submodule K V) :=
 ⟨submodule.exists_is_compl⟩
 
 lemma linear_map.exists_right_inverse_of_surjective (f : V →ₗ[K] V')
@@ -556,8 +556,8 @@ let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
 open fintype
 variables (K) (V)
 
-theorem vector_space.card_fintype [fintype K] [fintype V] :
+theorem module.card_fintype [fintype K] [fintype V] :
   ∃ n : ℕ, card V = (card K) ^ n :=
 exists.elim (exists_is_basis K V) $ λ b hb, ⟨card b, module.card_fintype hb⟩
 
-end vector_space
+end module

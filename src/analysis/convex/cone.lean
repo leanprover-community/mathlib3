@@ -16,7 +16,7 @@ a `complete_lattice`, and define their images (`convex_cone.map`) and preimages
 (`convex_cone.comap`) under linear maps.
 
 We define pointed, blunt, flat and salient cones, and prove the correspondence between
-convex cones and ordered semimodules.
+convex cones and ordered modules.
 
 We also define `convex.to_cone` to be the minimal cone that includes a given convex set.
 
@@ -55,9 +55,9 @@ universes u v
 open set linear_map
 open_locale classical
 
-variables (E : Type*) [add_comm_group E] [vector_space ℝ E]
-  {F : Type*} [add_comm_group F] [vector_space ℝ F]
-  {G : Type*} [add_comm_group G] [vector_space ℝ G]
+variables (E : Type*) [add_comm_group E] [module ℝ E]
+  {F : Type*} [add_comm_group F] [module ℝ F]
+  {G : Type*} [add_comm_group G] [module ℝ G]
 
 /-!
 ### Definition of `convex_cone` and basic properties
@@ -190,12 +190,12 @@ ext' $ preimage_comp.symm
   x ∈ S.comap f ↔ f x ∈ S := iff.rfl
 
 /--
-Constructs an ordered semimodule given an `ordered_add_comm_group`, a cone, and a proof that
+Constructs an ordered module given an `ordered_add_comm_group`, a cone, and a proof that
 the order relation is the one defined by the cone.
 -/
-lemma to_ordered_semimodule {M : Type*} [ordered_add_comm_group M] [semimodule ℝ M]
-  (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_semimodule ℝ M :=
-ordered_semimodule.mk'
+lemma to_ordered_module {M : Type*} [ordered_add_comm_group M] [module ℝ M]
+  (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_module ℝ M :=
+ordered_module.mk'
 begin
   intros x y z xy hz,
   rw [h (z • x) (z • y), ←smul_sub z y x],
@@ -273,14 +273,14 @@ def to_ordered_add_comm_group (S : convex_cone E) (h₁ : pointed S) (h₂ : sal
   ..to_partial_order S h₁ h₂,
   ..show add_comm_group E, by apply_instance }
 
-/-! ### Positive cone of an ordered semimodule -/
+/-! ### Positive cone of an ordered module -/
 section positive_cone
 
-variables (M : Type*) [ordered_add_comm_group M] [semimodule ℝ M] [ordered_semimodule ℝ M]
+variables (M : Type*) [ordered_add_comm_group M] [module ℝ M] [ordered_module ℝ M]
 
 /--
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered
-semimodule.
+module.
 -/
 def positive_cone : convex_cone M :=
 { carrier := {x | 0 ≤ x},
@@ -294,7 +294,7 @@ def positive_cone : convex_cone M :=
     end,
   add_mem' := λ x hx y hy, add_nonneg (show 0 ≤ x, by exact hx) (show 0 ≤ y, by exact hy) }
 
-/-- The positive cone of an ordered semimodule is always salient. -/
+/-- The positive cone of an ordered module is always salient. -/
 lemma salient_of_positive_cone : salient (positive_cone M) :=
 begin
   intros x xs hx hx',
@@ -305,7 +305,7 @@ begin
   exact lt_irrefl 0 this,
 end
 
-/-- The positive cone of an ordered semimodule is always pointed. -/
+/-- The positive cone of an ordered module is always pointed. -/
 lemma pointed_of_positive_cone : pointed (positive_cone M) := le_refl 0
 
 end positive_cone

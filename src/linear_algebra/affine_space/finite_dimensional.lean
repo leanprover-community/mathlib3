@@ -29,7 +29,7 @@ variables (k : Type*) {V : Type*} {P : Type*} [field k] [add_comm_group V] [modu
 variables {ι : Type*}
 include V
 
-open affine_subspace finite_dimensional vector_space
+open affine_subspace finite_dimensional module
 
 /-- The `vector_span` of a finite set is finite-dimensional. -/
 lemma finite_dimensional_vector_span_of_finite {s : set P} (h : set.finite s) :

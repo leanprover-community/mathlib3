@@ -12,7 +12,7 @@ import set_theory.cardinal_ordinal
 
 ## Main definitions
 
-* The dimension of a vector space is defined as `vector_space.dim : cardinal`.
+* The dimension of a vector space is defined as `module.dim : cardinal`.
 
 ## Main statements
 
@@ -38,21 +38,21 @@ variables {ι : Type w} {ι' : Type w'} {η : Type u₁'} {φ : η → Type*}
 
 open_locale classical big_operators
 
-section vector_space
-variables [field K] [add_comm_group V] [vector_space K V] [add_comm_group V₁] [vector_space K V₁]
+section module
+variables [field K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 include K
 open submodule function set
 
 variables (K V)
 
 /-- the dimension of a vector space, defined as a term of type `cardinal` -/
-def vector_space.dim : cardinal :=
+def module.dim : cardinal :=
 cardinal.min
   (nonempty_subtype.2 (@exists_is_basis K V _ _ _))
   (λ b, cardinal.mk b.1)
 variables {K V}
 
-open vector_space
+open module
 
 section
 theorem is_basis.le_span {v : ι → V} {J : set V} (hv : is_basis K v)
@@ -144,7 +144,7 @@ hb.mk_eq_dim'' ▸ cardinal.card_le_of (λ s, @finset.card_map _ _ ⟨_, subtype
 (by { refine hb.1.mono (λ y h, _),
   rw [finset.mem_coe, finset.mem_map] at h, rcases h with ⟨x, hx, rfl⟩, exact x.2 } ))
 
-variables [add_comm_group V'] [vector_space K V']
+variables [add_comm_group V'] [module K V']
 
 /-- Two linearly equivalent vector spaces have the same dimension, a version with different
 universes. -/
@@ -333,12 +333,12 @@ calc
 
 theorem {u₁} linear_independent_le_dim' {v : ι → V} (hs : linear_independent K v) :
   ((cardinal.mk ι).lift : cardinal.{(max w v u₁)}) ≤
-    ((vector_space.dim K V).lift : cardinal.{(max v w u₁)}) :=
+    ((module.dim K V).lift : cardinal.{(max v w u₁)}) :=
 cardinal.mk_range_eq_lift hs.injective ▸ dim_span hs ▸ cardinal.lift_le.2 (dim_submodule_le _)
 
 section
-variables [add_comm_group V₂] [vector_space K V₂]
-variables [add_comm_group V₃] [vector_space K V₃]
+variables [add_comm_group V₂] [module K V₂]
+variables [add_comm_group V₃] [module K V₃]
 open linear_map
 
 /-- This is mostly an auxiliary lemma for `dim_sup_add_dim_inf_eq`. -/
@@ -402,11 +402,11 @@ end
 
 section fintype
 variable [fintype η]
-variables [∀i, add_comm_group (φ i)] [∀i, vector_space K (φ i)]
+variables [∀i, add_comm_group (φ i)] [∀i, module K (φ i)]
 
 open linear_map
 
-lemma dim_pi : vector_space.dim K (Πi, φ i) = cardinal.sum (λi, vector_space.dim K (φ i)) :=
+lemma dim_pi : module.dim K (Πi, φ i) = cardinal.sum (λi, module.dim K (φ i)) :=
 begin
   choose b hb using assume i, exists_is_basis K (φ i),
   have : is_basis K (λ (ji : Σ j, b j), std_basis K (λ j, φ j) ji.fst ji.snd.val),
@@ -415,16 +415,16 @@ begin
   simp [λ i, (hb i).mk_range_eq_dim.symm, cardinal.sum_mk]
 end
 
-lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [vector_space K V] :
-  vector_space.dim K (η → V) = fintype.card η * vector_space.dim K V :=
+lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
+  module.dim K (η → V) = fintype.card η * module.dim K V :=
 by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
 
 lemma dim_fun_eq_lift_mul :
-  vector_space.dim K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
-    cardinal.lift.{v u₁'} (vector_space.dim K V) :=
+  module.dim K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
+    cardinal.lift.{v u₁'} (module.dim K V) :=
 by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card, cardinal.lift_nat_cast]
 
-lemma dim_fun' : vector_space.dim K (η → K) = fintype.card η :=
+lemma dim_fun' : module.dim K (η → K) = fintype.card η :=
 by rw [dim_fun_eq_lift_mul, dim_of_field K, cardinal.lift_one, mul_one, cardinal.nat_cast_inj]
 
 lemma dim_fin_fun (n : ℕ) : dim K (fin n → K) = n :=
@@ -440,7 +440,7 @@ begin
   exact (h $ bot_unique $ assume s hs, (submodule.mem_bot K).2 $ this s hs)
 end
 
-lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < vector_space.dim K s) :
+lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < module.dim K s) :
   ∃ b : V, b ∈ s ∧ b ≠ 0 :=
 exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [eq, dim_bot] at h; exact lt_irrefl _ h
 
@@ -482,7 +482,7 @@ lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V') :
 @finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
       (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left h _))
 
-variables [add_comm_group V''] [vector_space K V'']
+variables [add_comm_group V''] [module K V'']
 
 lemma rank_comp_le1 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') : rank (f.comp g) ≤ rank f :=
 begin
@@ -491,14 +491,14 @@ begin
   exact linear_map.map_le_range,
 end
 
-variables [add_comm_group V'₁] [vector_space K V'₁]
+variables [add_comm_group V'₁] [module K V'₁]
 
 lemma rank_comp_le2 (g : V →ₗ[K] V') (f : V' →ₗ V'₁) : rank (f.comp g) ≤ rank g :=
 by rw [rank, rank, linear_map.range_comp]; exact dim_map_le _ _
 
 end rank
 
-lemma dim_zero_iff_forall_zero : vector_space.dim K V = 0 ↔ ∀ x : V, x = 0 :=
+lemma dim_zero_iff_forall_zero : module.dim K V = 0 ↔ ∀ x : V, x = 0 :=
 begin
   split,
   { intros h x,
@@ -512,7 +512,7 @@ begin
     rw [←dim_top, this, dim_bot] }
 end
 
-lemma dim_zero_iff : vector_space.dim K V = 0 ↔ subsingleton V :=
+lemma dim_zero_iff : module.dim K V = 0 ↔ subsingleton V :=
 dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
 
 lemma is_basis_of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι)
@@ -526,16 +526,16 @@ lemma is_basis_of_dim_eq_zero'
   (hV : dim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
 is_basis_of_dim_eq_zero (finset.univ_eq_empty.mp rfl) hV
 
-lemma dim_pos_iff_exists_ne_zero : 0 < vector_space.dim K V ↔ ∃ x : V, x ≠ 0 :=
+lemma dim_pos_iff_exists_ne_zero : 0 < module.dim K V ↔ ∃ x : V, x ≠ 0 :=
 begin
   rw ←not_iff_not,
   simpa using dim_zero_iff_forall_zero
 end
 
-lemma dim_pos_iff_nontrivial : 0 < vector_space.dim K V ↔ nontrivial V :=
+lemma dim_pos_iff_nontrivial : 0 < module.dim K V ↔ nontrivial V :=
 dim_pos_iff_exists_ne_zero.trans (nontrivial_iff_exists_ne 0).symm
 
-lemma dim_pos [h : nontrivial V] : 0 < vector_space.dim K V :=
+lemma dim_pos [h : nontrivial V] : 0 < module.dim K V :=
 dim_pos_iff_nontrivial.2 h
 
 lemma le_dim_iff_exists_linear_independent {c : cardinal} :
@@ -668,14 +668,14 @@ begin
       simp [hw] } }
 end
 
-end vector_space
+end module
 
 section unconstrained_universes
 
 variables {E : Type v'}
-variables [field K] [add_comm_group V] [vector_space K V]
-          [add_comm_group E] [vector_space K E]
-open vector_space
+variables [field K] [add_comm_group V] [module K V]
+          [add_comm_group E] [module K E]
+open module
 
 /-- Version of linear_equiv.dim_eq without universe constraints. -/
 theorem linear_equiv.dim_eq_lift (f : V ≃ₗ[K] E) :

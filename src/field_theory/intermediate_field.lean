@@ -320,7 +320,7 @@ instance finite_dimensional_right [finite_dimensional K L] : finite_dimensional 
 right K F L
 
 @[simp] lemma dim_eq_dim_subalgebra :
-  vector_space.dim K F.to_subalgebra = vector_space.dim K F := rfl
+  module.dim K F.to_subalgebra = module.dim K F := rfl
 
 @[simp] lemma findim_eq_findim_subalgebra :
   findim K F.to_subalgebra = findim K F := rfl

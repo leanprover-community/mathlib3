@@ -58,7 +58,7 @@ Jacobi identity. -/
 /-- A Lie algebra is a module with compatible product, known as the bracket, satisfying the Jacobi
 identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring. -/
 @[protect_proj] class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L]
-  extends semimodule R L :=
+  extends module R L :=
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
 
 /-- A Lie ring module is an additive group, together with an additive action of a
@@ -493,7 +493,7 @@ instance : has_scalar R (M →ₗ⁅R,L⁆ N) :=
 lemma smul_apply (t : R) (f : M →ₗ⁅R,L⁆ N) (m : M) : (t • f) m = t • (f m) := rfl
 
 instance : module R (M →ₗ⁅R,L⁆ N) :=
-function.injective.semimodule R ⟨to_fun, rfl, coe_add⟩ coe_injective coe_smul
+function.injective.module R ⟨to_fun, rfl, coe_add⟩ coe_injective coe_smul
 
 end lie_module_hom
 

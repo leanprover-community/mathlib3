@@ -11,7 +11,7 @@ import linear_algebra.clifford_algebra
 Tests that the ring instances for `free_algebra` and derived quotient types actually work.
 
 There is some discussion about this in
-https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
+https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20module.20typeclass.20lookup/near/212580241
 
 In essence, the use of `attribute [irreducible] the_type` was breaking instance resolution on that
 type.
@@ -31,7 +31,7 @@ end free
 
 section exterior
 
-variables [comm_ring S] [add_comm_monoid M] [semimodule S M]
+variables [comm_ring S] [add_comm_monoid M] [module S M]
 
 example : (1 : exterior_algebra S M) - (1 : exterior_algebra S M) = 0 := by rw sub_self
 
@@ -40,7 +40,7 @@ end exterior
 
 section clifford
 
-variables [comm_ring S] [add_comm_group M] [semimodule S M] (Q : quadratic_form S M)
+variables [comm_ring S] [add_comm_group M] [module S M] (Q : quadratic_form S M)
 
 example : (1 : clifford_algebra Q) - (1 : clifford_algebra Q) = 0 := by rw sub_self
 

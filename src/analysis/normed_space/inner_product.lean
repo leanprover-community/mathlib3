@@ -130,7 +130,7 @@ can construct an `inner_product_space` instance in `inner_product_space.of_core`
 @[nolint has_inhabited_instance]
 structure inner_product_space.core
   (𝕜 : Type*) (F : Type*)
-  [is_R_or_C 𝕜] [add_comm_group F] [semimodule 𝕜 F] :=
+  [is_R_or_C 𝕜] [add_comm_group F] [module 𝕜 F] :=
 (inner     : F → F → 𝕜)
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
 (nonneg_re : ∀ x, 0 ≤ re (inner x x))
@@ -145,7 +145,7 @@ attribute [class] inner_product_space.core
 
 namespace inner_product_space.of_core
 
-variables [add_comm_group F] [semimodule 𝕜 F] [c : inner_product_space.core 𝕜 F]
+variables [add_comm_group F] [module 𝕜 F] [c : inner_product_space.core 𝕜 F]
 include c
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 F _ x y
@@ -362,7 +362,7 @@ end inner_product_space.of_core
 
 /-- Given a `inner_product_space.core` structure on a space, one can use it to turn
 the space into an inner product space, constructing the norm out of the inner product -/
-def inner_product_space.of_core [add_comm_group F] [semimodule 𝕜 F]
+def inner_product_space.of_core [add_comm_group F] [module 𝕜 F]
   (c : inner_product_space.core 𝕜 F) : inner_product_space 𝕜 F :=
 begin
   letI : normed_group F := @inner_product_space.of_core.to_normed_group 𝕜 F _ _ _ c,
@@ -2062,7 +2062,7 @@ theorem exists_norm_eq_infi_of_complete_subspace
   (h : is_complete (↑K : set E)) : ∀ u : E, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (K : set E), ∥u - w∥ :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  letI : module ℝ E := restrict_scalars.semimodule ℝ 𝕜 E,
+  letI : module ℝ E := restrict_scalars.module ℝ 𝕜 E,
   letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   let K' : submodule ℝ E := submodule.restrict_scalars ℝ K,
   exact exists_norm_eq_infi_of_complete_convex ⟨0, K'.zero_mem⟩ h K'.convex
@@ -2121,7 +2121,7 @@ theorem norm_eq_infi_iff_inner_eq_zero {u : E} {v : E}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set E), ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫ = 0 :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  letI : module ℝ E := restrict_scalars.semimodule ℝ 𝕜 E,
+  letI : module ℝ E := restrict_scalars.module ℝ 𝕜 E,
   letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   let K' : submodule ℝ E := K.restrict_scalars ℝ,
   split,

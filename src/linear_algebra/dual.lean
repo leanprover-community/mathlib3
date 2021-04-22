@@ -40,10 +40,10 @@ noncomputable theory
 namespace module
 
 variables (R : Type*) (M : Type*)
-variables [comm_semiring R] [add_comm_monoid M] [semimodule R M]
+variables [comm_semiring R] [add_comm_monoid M] [module R M]
 
 /-- The dual space of an R-module M is the R-module of linear maps `M → R`. -/
-@[derive [add_comm_monoid, semimodule R]] def dual := M →ₗ[R] R
+@[derive [add_comm_monoid, module R]] def dual := M →ₗ[R] R
 
 instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
   add_comm_group (dual S N) := by {unfold dual, apply_instance}
@@ -54,8 +54,8 @@ instance : inhabited (dual R M) := by dunfold dual; apply_instance
 
 instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
 
-/-- Maps a module M to the dual of the dual of M. See `vector_space.erange_coe` and
-`vector_space.eval_equiv`. -/
+/-- Maps a module M to the dual of the dual of M. See `module.erange_coe` and
+`module.eval_equiv`. -/
 def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.flip linear_map.id
 
 @[simp] lemma eval_apply (v : M) (a : dual R M) : eval R M v a = a v :=
@@ -64,7 +64,7 @@ begin
   rw [linear_map.flip_apply, linear_map.id_apply]
 end
 
-variables {R M} {M' : Type*} [add_comm_monoid M'] [semimodule R M']
+variables {R M} {M' : Type*} [add_comm_monoid M'] [module R M']
 
 /-- The transposition of linear maps, as a linear map from `M →ₗ[R] M'` to
 `dual R M' →ₗ[R] dual R M`. -/
@@ -73,7 +73,7 @@ def transpose : (M →ₗ[R] M') →ₗ[R] (dual R M' →ₗ[R] dual R M) :=
 
 lemma transpose_apply (u : M →ₗ[R] M') (l : dual R M') : transpose u l = l.comp u := rfl
 
-variables {M'' : Type*} [add_comm_monoid M''] [semimodule R M'']
+variables {M'' : Type*} [add_comm_monoid M''] [module R M'']
 
 lemma transpose_comp (u : M' →ₗ[R] M'') (v : M →ₗ[R] M') :
   transpose (u.comp v) = (transpose v).comp (transpose u) := rfl
@@ -87,9 +87,9 @@ namespace is_basis
 universes u v w
 
 variables {K : Type u} {V : Type v} {ι : Type w}
-variables [field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [module K V]
 
-open vector_space module module.dual submodule linear_map cardinal function
+open module module module.dual submodule linear_map cardinal function
 
 variables [de : decidable_eq ι]
 variables (B : ι → V) (h : is_basis K B)
@@ -250,11 +250,11 @@ end
 
 end is_basis
 
-namespace vector_space
+namespace module
 
 universes u v
 variables {K : Type u} {V : Type v}
-variables [field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [module K V]
 open module module.dual submodule linear_map cardinal is_basis finite_dimensional
 
 theorem eval_ker : (eval K V).ker = ⊥ :=
@@ -301,16 +301,16 @@ variables {K V}
 @[simp] lemma eval_equiv_to_linear_map [finite_dimensional K V] :
   (eval_equiv K V).to_linear_map = dual.eval K V := rfl
 
-end vector_space
+end module
 
 section dual_pair
 
-open vector_space module module.dual linear_map function
+open module module module.dual linear_map function
 
 universes u v w
 
 variables {K : Type u} {V : Type v} {ι : Type w} [decidable_eq ι]
-variables [field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [module K V]
 
 local notation `V'` := dual K V
 
@@ -325,11 +325,11 @@ end dual_pair
 
 namespace dual_pair
 
-open vector_space module module.dual linear_map function
+open module module module.dual linear_map function
 
 universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w} [dι : decidable_eq ι]
-variables [field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [module K V]
 variables {e : ι → V} {ε : ι → dual K V} (h : dual_pair e ε)
 
 include h
@@ -480,7 +480,7 @@ open submodule linear_map
 universes u v w
 
 -- We work in vector spaces because `exists_is_compl` only hold for vector spaces
-variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K V]
+variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [module K V]
 
 /-- Given a subspace `W` of `V` and an element of its dual `φ`, `dual_lift W φ` is
 the natural extension of `φ` to an element of the dual of `V`.
@@ -544,7 +544,7 @@ open_locale classical
 
 open finite_dimensional
 
-variables {V₁ : Type*} [add_comm_group V₁] [vector_space K V₁]
+variables {V₁ : Type*} [add_comm_group V₁] [module K V₁]
 
 instance [H : finite_dimensional K V] : finite_dimensional K (module.dual K V) :=
 begin
@@ -592,7 +592,7 @@ open finite_dimensional
 lemma findim_dual_annihilator_comap_eq {Φ : subspace K (module.dual K V)} :
   findim K Φ.dual_annihilator_comap = findim K Φ.dual_annihilator :=
 begin
-  rw [submodule.dual_annihilator_comap, ← vector_space.eval_equiv_to_linear_map],
+  rw [submodule.dual_annihilator_comap, ← module.eval_equiv_to_linear_map],
   exact linear_equiv.findim_eq (linear_equiv.of_submodule' _ _),
 end
 
@@ -694,7 +694,7 @@ end
 section finite_dimensional
 
 variables {K : Type*} [field K] {V₁ : Type*} {V₂ : Type*}
-variables [add_comm_group V₁] [vector_space K V₁] [add_comm_group V₂] [vector_space K V₂]
+variables [add_comm_group V₁] [module K V₁] [add_comm_group V₂] [module K V₂]
 
 open finite_dimensional
 

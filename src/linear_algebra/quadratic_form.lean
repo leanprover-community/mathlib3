@@ -177,7 +177,7 @@ end
 
 section of_tower
 
-variables [comm_semiring S] [algebra S R] [semimodule S M] [is_scalar_tower S R M]
+variables [comm_semiring S] [algebra S R] [module S M] [is_scalar_tower S R M]
 
 @[simp]
 lemma polar_smul_left_of_tower (a : S) (x y : M) :
@@ -284,7 +284,7 @@ instance : has_scalar S (quadratic_form R M) :=
 @[simp] lemma smul_apply (a : S) (Q : quadratic_form R M) (x : M) :
   (a • Q) x = a • Q x := rfl
 
-instance : semimodule S (quadratic_form R M) :=
+instance : module S (quadratic_form R M) :=
 { mul_smul := λ a b Q, ext (λ x, by
     simp only [smul_apply, mul_left_comm, ←smul_eq_mul, smul_assoc]),
   one_smul := λ Q, ext (λ x, by simp),
@@ -710,7 +710,7 @@ end
 
 open finite_dimensional
 
-variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [vector_space K V]
+variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [module K V]
 variable [finite_dimensional K V]
 
 -- We start proving that symmetric nondegenerate bilinear forms are diagonalisable, or equivalently

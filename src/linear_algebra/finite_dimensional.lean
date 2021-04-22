@@ -68,16 +68,16 @@ equivalence is proved in `submodule.fg_iff_finite_dimensional`.
 universes u v v' w
 open_locale classical
 
-open vector_space cardinal submodule module function
+open module cardinal submodule module function
 
-variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K V]
-{V₂ : Type v'} [add_comm_group V₂] [vector_space K V₂]
+variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [module K V]
+{V₂ : Type v'} [add_comm_group V₂] [module K V₂]
 
 /-- `finite_dimensional` vector spaces are defined to be noetherian modules.
 Use `finite_dimensional.iff_fg` or `finite_dimensional.of_fintype_basis` to prove finite dimension
 from a conventional definition. -/
 @[reducible] def finite_dimensional (K V : Type*) [field K]
-  [add_comm_group V] [vector_space K V] := is_noetherian K V
+  [add_comm_group V] [module K V] := is_noetherian K V
 
 namespace finite_dimensional
 
@@ -102,7 +102,7 @@ end
 
 /-- The dimension of a finite-dimensional vector space, as a cardinal, is strictly less than the
 first infinite cardinal `omega`. -/
-lemma dim_lt_omega (K V : Type*) [field K] [add_comm_group V] [vector_space K V] :
+lemma dim_lt_omega (K V : Type*) [field K] [add_comm_group V] [module K V] :
   ∀ [finite_dimensional K V], dim K V < omega.{v} :=
 finite_dimensional_iff_dim_lt_omega.1
 
@@ -181,13 +181,13 @@ finite_dimensional_iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_quotient_le _) (dim_l
 /-- The dimension of a finite-dimensional vector space as a natural number. Defined by convention to
 be `0` if the space is infinite-dimensional. -/
 noncomputable def findim (K V : Type*) [field K]
-  [add_comm_group V] [vector_space K V] : ℕ :=
+  [add_comm_group V] [module K V] : ℕ :=
 (dim K V).to_nat
 
 /-- In a finite-dimensional space, its dimension (seen as a cardinal) coincides with its
 `findim`. -/
 lemma findim_eq_dim (K : Type u) (V : Type v) [field K]
-  [add_comm_group V] [vector_space K V] [finite_dimensional K V] :
+  [add_comm_group V] [module K V] [finite_dimensional K V] :
   (findim K V : cardinal.{v}) = dim K V :=
 by rw [findim, cast_to_nat_of_lt_omega (dim_lt_omega K V)]
 
@@ -198,18 +198,18 @@ begin
   exact_mod_cast h,
 end
 
-lemma findim_of_infinite_dimensional {K V : Type*} [field K] [add_comm_group V] [vector_space K V]
+lemma findim_of_infinite_dimensional {K V : Type*} [field K] [add_comm_group V] [module K V]
   (h : ¬finite_dimensional K V) : findim K V = 0 :=
 dif_neg $ mt finite_dimensional_iff_dim_lt_omega.2 h
 
-lemma finite_dimensional_of_findim {K V : Type*} [field K] [add_comm_group V] [vector_space K V]
+lemma finite_dimensional_of_findim {K V : Type*} [field K] [add_comm_group V] [module K V]
   (h : 0 < findim K V) : finite_dimensional K V :=
 by { contrapose h, simp [findim_of_infinite_dimensional h] }
 
 /-- We can infer `finite_dimensional K V` in the presence of `[fact (findim K V = n + 1)]`. Declare
 this as a local instance where needed. -/
 lemma finite_dimensional_of_findim_eq_succ {K V : Type*} [field K] [add_comm_group V]
-  [vector_space K V] (n : ℕ) [fact (findim K V = n + 1)] :
+  [module K V] (n : ℕ) [fact (findim K V = n + 1)] :
   finite_dimensional K V :=
 finite_dimensional_of_findim $ by convert nat.succ_pos n; apply fact.out
 
@@ -449,7 +449,7 @@ end
 
 section
 variables {L : Type*} [linear_ordered_field L]
-variables {W : Type v} [add_comm_group W] [vector_space L W]
+variables {W : Type v} [add_comm_group W] [module L W]
 
 /--
 A slight strengthening of `exists_nontrivial_relation_sum_zero_of_dim_succ_lt_card`
@@ -506,7 +506,7 @@ by apply_instance
 @[simp] lemma findim_fintype_fun_eq_card {ι : Type v} [fintype ι] :
   findim K (ι → K) = fintype.card ι :=
 begin
-  have : vector_space.dim K (ι → K) = fintype.card ι := dim_fun',
+  have : module.dim K (ι → K) = fintype.card ι := dim_fun',
   rwa [← findim_eq_dim, nat_cast_inj] at this,
 end
 
@@ -526,15 +526,15 @@ end finite_dimensional
 
 section zero_dim
 
-open vector_space finite_dimensional
+open module finite_dimensional
 
-lemma finite_dimensional_of_dim_eq_zero (h : vector_space.dim K V = 0) : finite_dimensional K V :=
+lemma finite_dimensional_of_dim_eq_zero (h : module.dim K V = 0) : finite_dimensional K V :=
 by rw [finite_dimensional_iff_dim_lt_omega, h]; exact cardinal.omega_pos
 
-lemma finite_dimensional_of_dim_eq_one (h : vector_space.dim K V = 1) : finite_dimensional K V :=
+lemma finite_dimensional_of_dim_eq_one (h : module.dim K V = 1) : finite_dimensional K V :=
 by rw [finite_dimensional_iff_dim_lt_omega, h]; exact one_lt_omega
 
-lemma findim_eq_zero_of_dim_eq_zero [finite_dimensional K V] (h : vector_space.dim K V = 0) :
+lemma findim_eq_zero_of_dim_eq_zero [finite_dimensional K V] (h : module.dim K V = 0) :
   findim K V = 0 :=
 begin
   convert findim_eq_dim K V,
@@ -559,7 +559,7 @@ end
 
 variables {K V}
 
-lemma bot_eq_top_of_dim_eq_zero (h : vector_space.dim K V = 0) : (⊥ : submodule K V) = ⊤ :=
+lemma bot_eq_top_of_dim_eq_zero (h : module.dim K V = 0) : (⊥ : submodule K V) = ⊤ :=
 begin
   haveI := finite_dimensional_of_dim_eq_zero h,
   apply eq_top_of_findim_eq,
@@ -864,7 +864,7 @@ end
 
 end linear_map
 
-open vector_space finite_dimensional
+open module finite_dimensional
 
 section top
 
@@ -1190,7 +1190,7 @@ is_basis_of_linear_independent_of_card_eq_findim lin_ind (trans s.to_finset_card
 end is_basis
 
 section subalgebra_dim
-open vector_space
+open module
 variables {F E : Type*} [field F] [field E] [algebra F E]
 
 lemma subalgebra.dim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : dim F S = 1 :=

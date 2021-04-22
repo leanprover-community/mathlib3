@@ -44,10 +44,10 @@ universes u v w
 namespace module
 namespace End
 
-open vector_space principal_ideal_ring polynomial finite_dimensional
+open module principal_ideal_ring polynomial finite_dimensional
 
 variables {K R : Type v} {V M : Type w}
-  [comm_ring R] [add_comm_group M] [module R M] [field K] [add_comm_group V] [vector_space K V]
+  [comm_ring R] [add_comm_group M] [module R M] [field K] [add_comm_group V] [module K V]
 
 /-- The submodule `eigenspace f μ` for a linear map `f` and a scalar `μ` consists of all vectors `x`
     such that `f x = μ • x`. (Def 5.36 of [axler2015])-/
@@ -540,7 +540,7 @@ end
 
 end End
 end module
-variables {K V : Type*} [field K] [add_comm_group V] [vector_space K V] [finite_dimensional K V]
+variables {K V : Type*} [field K] [add_comm_group V] [module K V] [finite_dimensional K V]
 
 protected lemma linear_map.is_integral (f : V →ₗ[K] V) : is_integral K f :=
 module.End.is_integral f

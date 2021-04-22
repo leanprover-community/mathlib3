@@ -344,7 +344,7 @@ adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 
 section adjoin_dim
-open finite_dimensional vector_space
+open finite_dimensional module
 
 variables {K L : intermediate_field F E}
 

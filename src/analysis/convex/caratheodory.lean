@@ -30,7 +30,7 @@ universes u
 open set finset finite_dimensional
 open_locale big_operators
 
-variables {E : Type u} [add_comm_group E] [vector_space ℝ E] [finite_dimensional ℝ E]
+variables {E : Type u} [add_comm_group E] [module ℝ E] [finite_dimensional ℝ E]
 
 namespace caratheodory
 

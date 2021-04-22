@@ -108,7 +108,7 @@ lemma eq_mk_of_is_sol_of_eq_init' {u : ℕ → α} {init : fin E.order → α}
   (h : E.is_solution u) (heq : ∀ n : fin E.order, u n = init n) : u = E.mk_sol init :=
   funext (E.eq_mk_of_is_sol_of_eq_init h heq)
 
-/-- The space of solutions of `E`, as a `submodule` over `α` of the semimodule `ℕ → α`. -/
+/-- The space of solutions of `E`, as a `submodule` over `α` of the module `ℕ → α`. -/
 def sol_space : submodule α (ℕ → α) :=
 { carrier := {u | E.is_solution u},
   zero_mem' := λ n, by simp,
@@ -173,7 +173,7 @@ section field
 variables {α : Type*} [field α] (E : linear_recurrence α)
 
 /-- The dimension of `E.sol_space` is `E.order`. -/
-lemma sol_space_dim : vector_space.dim α E.sol_space = E.order :=
+lemma sol_space_dim : module.dim α E.sol_space = E.order :=
 @dim_fin_fun α _ E.order ▸ E.to_init.dim_eq
 
 end field

@@ -147,16 +147,16 @@ open linear_map submodule
 universe u
 variables (σ : Type u) (K : Type u) [fintype σ] [field K] [fintype K]
 
-@[derive [add_comm_group, vector_space K, inhabited]]
+@[derive [add_comm_group, module K, inhabited]]
 def R : Type u := restrict_degree σ K (fintype.card K - 1)
 
 noncomputable instance decidable_restrict_degree (m : ℕ) :
   decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
 by simp only [set.mem_set_of_eq]; apply_instance
 
-lemma dim_R : vector_space.dim K (R σ K) = fintype.card (σ → K) :=
-calc vector_space.dim K (R σ K) =
-  vector_space.dim K (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} →₀ K) :
+lemma dim_R : module.dim K (R σ K) = fintype.card (σ → K) :=
+calc module.dim K (R σ K) =
+  module.dim K (↥{s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} →₀ K) :
     linear_equiv.dim_eq
       (finsupp.supported_equiv_finsupp {s : σ →₀ ℕ | ∀n:σ, s n ≤ fintype.card K - 1 })
   ... = cardinal.mk {s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} :

@@ -19,7 +19,7 @@ but just a vector space over `K`.
 
 ## Implementation notes
 
-We prove two versions, since there are two notions of dimensions: `vector_space.dim` which gives
+We prove two versions, since there are two notions of dimensions: `module.dim` which gives
 the dimension of an arbitrary vector space as a cardinal, and `finite_dimensional.findim` which
 gives the dimension of a finitely-dimensional vector space as a natural number.
 
@@ -38,25 +38,25 @@ open cardinal
 
 variables (F : Type u) (K : Type v) (A : Type w)
 variables [field F] [field K] [add_comm_group A]
-variables [algebra F K] [vector_space K A] [vector_space F A] [is_scalar_tower F K A]
+variables [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]
 
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
 theorem dim_mul_dim' :
-  (cardinal.lift.{v w} (vector_space.dim F K) *
-      cardinal.lift.{w v} (vector_space.dim K A) : cardinal.{max w v}) =
-  cardinal.lift.{w v} (vector_space.dim F A) :=
+  (cardinal.lift.{v w} (module.dim F K) *
+      cardinal.lift.{w v} (module.dim K A) : cardinal.{max w v}) =
+  cardinal.lift.{w v} (module.dim F A) :=
 let ⟨b, hb⟩ := exists_is_basis F K, ⟨c, hc⟩ := exists_is_basis K A in
-by rw [← (vector_space.dim F K).lift_id, ← hb.mk_eq_dim,
-    ← (vector_space.dim K A).lift_id, ← hc.mk_eq_dim,
+by rw [← (module.dim F K).lift_id, ← hb.mk_eq_dim,
+    ← (module.dim K A).lift_id, ← hc.mk_eq_dim,
     ← lift_umax.{w v}, ← (hb.smul hc).mk_eq_dim, mk_prod, lift_mul,
     lift_lift, lift_lift, lift_lift, lift_lift, lift_umax]
 
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
 theorem dim_mul_dim (F : Type u) (K A : Type v) [field F] [field K] [add_comm_group A]
-  [algebra F K] [vector_space K A] [vector_space F A] [is_scalar_tower F K A] :
-  vector_space.dim F K * vector_space.dim K A = vector_space.dim F A :=
+  [algebra F K] [module K A] [module F A] [is_scalar_tower F K A] :
+  module.dim F K * module.dim K A = module.dim F A :=
 by convert dim_mul_dim' F K A; rw lift_id
 
 namespace finite_dimensional
@@ -88,7 +88,7 @@ begin
 end
 
 instance linear_map (F : Type u) (V : Type v) (W : Type w)
-  [field F] [add_comm_group V] [vector_space F V] [add_comm_group W] [vector_space F W]
+  [field F] [add_comm_group V] [module F V] [add_comm_group W] [module F W]
   [finite_dimensional F V] [finite_dimensional F W] :
   finite_dimensional F (V →ₗ[F] W) :=
 let ⟨b, hb⟩ := exists_is_basis_finset F V in
@@ -96,7 +96,7 @@ let ⟨c, hc⟩ := exists_is_basis_finset F W in
 (matrix.to_lin hb hc).finite_dimensional
 
 lemma findim_linear_map (F : Type u) (V : Type v) (W : Type w)
-  [field F] [add_comm_group V] [vector_space F V] [add_comm_group W] [vector_space F W]
+  [field F] [add_comm_group V] [module F V] [add_comm_group W] [module F W]
   [finite_dimensional F V] [finite_dimensional F W] :
   findim F (V →ₗ[F] W) = findim F V * findim F W :=
 let ⟨b, hb⟩ := exists_is_basis_finset F V in
@@ -109,13 +109,13 @@ by rw [linear_equiv.findim_eq (linear_map.to_matrix hb hc), matrix.findim_matrix
 -- (V →ₗ[F] K) = ((⊕F) →ₗ[F] K) = (⊕ (F →ₗ[F] K)) = ⊕K
 instance linear_map' (F : Type u) (K : Type v) (V : Type w)
   [field F] [field K] [algebra F K] [finite_dimensional F K]
-  [add_comm_group V] [vector_space F V] [finite_dimensional F V] :
+  [add_comm_group V] [module F V] [finite_dimensional F V] :
   finite_dimensional K (V →ₗ[F] K) :=
 right F _ _
 
 lemma findim_linear_map' (F : Type u) (K : Type v) (V : Type w)
   [field F] [field K] [algebra F K] [finite_dimensional F K]
-  [add_comm_group V] [vector_space F V] [finite_dimensional F V] :
+  [add_comm_group V] [module F V] [finite_dimensional F V] :
   findim K (V →ₗ[F] K) = findim F V :=
 (nat.mul_right_inj $ show 0 < findim F K, from findim_pos).1 $
 calc  findim F K * findim K (V →ₗ[F] K)

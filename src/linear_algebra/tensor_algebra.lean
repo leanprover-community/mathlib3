@@ -36,7 +36,7 @@ modulo the additional relations making the inclusion of `M` into an `R`-linear m
 -/
 
 variables (R : Type*) [comm_semiring R]
-variables (M : Type*) [add_comm_monoid M] [semimodule R M]
+variables (M : Type*) [add_comm_monoid M] [module R M]
 
 namespace tensor_algebra
 
@@ -61,7 +61,7 @@ def tensor_algebra := ring_quot (tensor_algebra.rel R M)
 
 namespace tensor_algebra
 
-instance {S : Type*} [comm_ring S] [semimodule S M] : ring (tensor_algebra S M) :=
+instance {S : Type*} [comm_ring S] [module S M] : ring (tensor_algebra S M) :=
 ring_quot.ring (rel S M)
 
 variables {M}
@@ -104,7 +104,7 @@ theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
 (lift R).symm_apply_eq
 
 -- Marking `tensor_algebra` irreducible makes `ring` instances inaccessible on quotients.
--- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20module.20typeclass.20lookup/near/212580241
 -- For now, we avoid this by not marking it irreducible.
 attribute [irreducible] ι lift
 

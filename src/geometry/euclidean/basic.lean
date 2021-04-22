@@ -453,6 +453,29 @@ begin
   exact angle_add_angle_eq_pi_of_angle_eq_pi _ h
 end
 
+/-- Vertical Angles Theorem: angles opposite each other, formed by two intersecting straight
+lines, are equal. -/
+lemma angle_eq_angle_of_angle_eq_pi_of_angle_eq_pi {p1 p2 p3 p4 p5 : P}
+  (hapc : ∠ p1 p5 p3 = π) (hbpd : ∠ p2 p5 p4 = π) : ∠ p1 p5 p2 = ∠ p3 p5 p4 :=
+by linarith [angle_add_angle_eq_pi_of_angle_eq_pi p1 hbpd, angle_comm p4 p5 p1,
+             angle_add_angle_eq_pi_of_angle_eq_pi p4 hapc, angle_comm p4 p5 p3]
+
+/-- If ∠ABC = π then dist A B ≠ 0. -/
+lemma left_dist_ne_zero_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) : dist p1 p2 ≠ 0 :=
+begin
+  by_contra heq,
+  push_neg at heq, rw dist_eq_zero at heq,
+  rw [heq, angle_eq_left] at h,
+  exact real.pi_ne_zero (by linarith),
+end
+
+/-- If ∠ABC = π then dist C B ≠ 0. -/
+lemma right_dist_ne_zero_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) : dist p3 p2 ≠ 0 :=
+begin
+  rw angle_comm at h,
+  exact left_dist_ne_zero_of_angle_eq_pi h,
+end
+
 /-- If ∠ABC = π, then (dist A C) = (dist A B) + (dist B C). -/
 lemma dist_eq_add_dist_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) :
   (dist p1 p3) = (dist p1 p2) + (dist p3 p2) :=

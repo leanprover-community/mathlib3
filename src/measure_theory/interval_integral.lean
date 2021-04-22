@@ -1584,10 +1584,10 @@ begin
 end
 
 /-!
-### Change of variable
+### Integration by substitution / Change of variables
 -/
 
-lemma integral_comp_mul_deriv {g f f' : ℝ → ℝ}
+theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
   (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (hf' : continuous_on f' (interval a b))
   (hg : ∀ x ∈ f '' (interval a b), continuous_at g x)
@@ -1603,10 +1603,10 @@ have h : ∀ x ∈ interval a b, has_deriv_at (λ u, ∫ t in f a..f u, g t) ((g
 by simp_rw [integral_eq_sub_of_has_deriv_at h $ (hg'.comp (has_deriv_at.continuous_on hf) $
   subset_preimage_image f _).mul hf', integral_same, sub_zero]
 
-lemma integral_comp_mul_deriv' {g f f' : ℝ → ℝ}
-  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
-  (hf' : continuous_on f' (interval a b)) (hg : continuous g) :
+theorem integral_comp_mul_deriv {f f' g : ℝ → ℝ}
+  (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (h' : continuous_on f' (interval a b)) (hg : continuous g) :
   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
-integral_comp_mul_deriv hf hf' (λ x h, hg.continuous_at) (λ x h, hg.measurable.measurable_at_filter)
+integral_comp_mul_deriv' h h' (λ x h, hg.continuous_at) (λ x h, hg.measurable.measurable_at_filter)
 
 end interval_integral

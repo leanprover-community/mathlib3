@@ -272,8 +272,7 @@ end
 theorem integral_sin_pow_odd :
   ∫ x in 0..π, sin x ^ (2 * n + 1) = 2 * ∏ i in range n, (2 * i + 2) / (2 * i + 3) :=
 begin
-  induction n with k ih,
-  { norm_num },
+  induction n with k ih, { norm_num },
   rw [prod_range_succ_comm, mul_left_comm, ← ih, mul_succ, integral_sin_pow_succ_succ],
   norm_cast,
 end
@@ -281,16 +280,15 @@ end
 theorem integral_sin_pow_even :
   ∫ x in 0..π, sin x ^ (2 * n) = π * ∏ i in range n, (2 * i + 1) / (2 * i + 2) :=
 begin
-  induction n with k ih,
-  { norm_num },
+  induction n with k ih, { simp },
   rw [prod_range_succ_comm, mul_left_comm, ← ih, mul_succ, integral_sin_pow_succ_succ],
   norm_cast,
 end
 
 lemma integral_sin_pow_pos : 0 < ∫ x in 0..π, sin x ^ n :=
 begin
-  rcases even_or_odd' n with ⟨k, h, h⟩;
-  simp only [h, integral_sin_pow_even, integral_sin_pow_odd];
+  rcases even_or_odd' n with ⟨k, (rfl | rfl)⟩;
+  simp only [integral_sin_pow_even, integral_sin_pow_odd];
   refine mul_pos (by norm_num [pi_pos]) (prod_pos (λ n hn, div_pos _ _));
   norm_cast;
   linarith,

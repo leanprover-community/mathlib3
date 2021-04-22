@@ -711,50 +711,60 @@ end normed_ring_geometric
 /-! ### Summability tests based on comparison with geometric series -/
 
 lemma summable_of_ratio_norm_eventually_le {α : Type*} [semi_normed_group α] [complete_space α]
-  {f : ℕ → α} {r : ℝ} (hr₀ : 0 ≤ r) (hr₁ : r < 1)
+  {f : ℕ → α} {r : ℝ} (hr₁ : r < 1)
   (h : ∀ᶠ n in at_top, ∥f (n+1)∥ ≤ r * ∥f n∥) : summable f :=
 begin
-  rw eventually_at_top at h,
-  rcases h with ⟨N, hN⟩,
-  rw ← @summable_nat_add_iff α _ _ _ _ N,
-  refine summable_of_norm_bounded (λ n, ∥f N∥ * r^n)
-    (summable.mul_left _ $ summable_geometric_of_lt_1 hr₀ hr₁) (λ n, _),
-  conv_rhs {rw [mul_comm, ← zero_add N]},
-  refine le_geom hr₀ n (λ i _, _),
-  convert hN (i + N) (N.le_add_left i) using 3,
-  ac_refl
+  by_cases hr₀ : 0 ≤ r,
+  { rw eventually_at_top at h,
+    rcases h with ⟨N, hN⟩,
+    rw ← @summable_nat_add_iff α _ _ _ _ N,
+    refine summable_of_norm_bounded (λ n, ∥f N∥ * r^n)
+      (summable.mul_left _ $ summable_geometric_of_lt_1 hr₀ hr₁) (λ n, _),
+    conv_rhs {rw [mul_comm, ← zero_add N]},
+    refine le_geom hr₀ n (λ i _, _),
+    convert hN (i + N) (N.le_add_left i) using 3,
+    ac_refl },
+  { push_neg at hr₀,
+    refine summable_of_norm_bounded_eventually 0 summable_zero _,
+    rw nat.cofinite_eq_at_top,
+    filter_upwards [h],
+    intros n hn,
+    by_contra h,
+    push_neg at h,
+    exact not_lt.mpr (norm_nonneg _) (lt_of_le_of_lt hn $ mul_neg_of_neg_of_pos hr₀ h) }
 end
 
 lemma summable_of_ratio_test_tendsto_lt_one {α : Type*} [normed_group α] [complete_space α]
-  {f : ℕ → α} {l : ℝ} (hl₀ : 0 ≤ l) (hl₁ : l < 1) (hf : ∀ᶠ n in at_top, f n ≠ 0)
+  {f : ℕ → α} {l : ℝ} (hl₁ : l < 1) (hf : ∀ᶠ n in at_top, f n ≠ 0)
   (h : tendsto (λ n, ∥f (n+1)∥/∥f n∥) at_top (𝓝 l)) : summable f :=
 begin
   rcases exists_between hl₁ with ⟨r, hr₀, hr₁⟩,
-  refine summable_of_ratio_norm_eventually_le (hl₀.trans hr₀.le) hr₁ _,
+  refine summable_of_ratio_norm_eventually_le hr₁ _,
   filter_upwards [eventually_le_of_tendsto_lt hr₀ h, hf],
   intros n h₀ h₁,
   rwa ← div_le_iff (norm_pos_iff.mpr h₁)
 end
 
 lemma not_summable_of_ratio_norm_eventually_ge {α : Type*} [semi_normed_group α]
-  {f : ℕ → α} {r : ℝ} (hr : 1 < r) (hf : ∀ᶠ n in at_top, ∥f n∥ ≠ 0)
+  {f : ℕ → α} {r : ℝ} (hr : 1 < r) (hf : ∃ᶠ n in at_top, ∥f n∥ ≠ 0)
   (h : ∀ᶠ n in at_top, r * ∥f n∥ ≤ ∥f (n+1)∥) : ¬ summable f :=
 begin
-  have := h.and hf,
-  rw eventually_at_top at this,
-  rcases this with ⟨N, hN⟩,
+  rw eventually_at_top at h,
+  rcases h with ⟨N₀, hN₀⟩,
+  rw frequently_at_top at hf,
+  rcases hf N₀ with ⟨N, hNN₀ : N₀ ≤ N, hN⟩,
   rw ← @summable_nat_add_iff α _ _ _ _ N,
   refine mt summable.tendsto_at_top_zero
     (λ h', not_tendsto_at_top_of_tendsto_nhds (tendsto_norm_zero.comp h') _),
   convert tendsto_at_top_of_geom_le _ hr _,
   { refine lt_of_le_of_ne (norm_nonneg _) _,
     intro h'',
-    specialize hN N (le_refl _),
+    specialize hN₀ N hNN₀,
     simp only [comp_app, zero_add] at h'',
-    exact hN.2 h''.symm },
+    exact hN h''.symm },
   { intro i,
     dsimp only [comp_app],
-    convert (hN (i + N) (N.le_add_left i)).1 using 3,
+    convert (hN₀ (i + N) (hNN₀.trans (N.le_add_left i))) using 3,
     ac_refl }
 end
 
@@ -768,7 +778,7 @@ begin
     rw [hc, div_zero] at hn,
     linarith },
   rcases exists_between hl with ⟨r, hr₀, hr₁⟩,
-  refine not_summable_of_ratio_norm_eventually_ge hr₀ key _,
+  refine not_summable_of_ratio_norm_eventually_ge hr₀ key.frequently _,
   filter_upwards [eventually_ge_of_tendsto_gt hr₁ h, key],
   intros n h₀ h₁,
   rwa ← le_div_iff (lt_of_le_of_ne (norm_nonneg _) h₁.symm)

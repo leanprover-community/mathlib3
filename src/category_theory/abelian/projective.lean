@@ -74,7 +74,6 @@ def factor_thru {P X E : C} [projective P] (f : P ⟶ X) (e : E ⟶ X) [epi e] :
   factor_thru f e ≫ e = f :=
 (projective.factors f e).some_spec
 
-
 lemma of_iso {P Q : C} (i : P ≅ Q) (hP : projective P) : projective Q :=
 begin
   fsplit,

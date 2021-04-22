@@ -865,7 +865,7 @@ end module
 /-!
 ### Properties which require `division_ring K`
 
-These can be considered generalizations of properties of linear independence in `module`s.
+These can be considered generalizations of properties of linear independence in vector spaces.
 -/
 
 section module
@@ -982,7 +982,7 @@ lemma linear_independent_fin_snoc {n} {v : fin n → V} :
 by rw [fin.snoc_eq_cons_rotate, linear_independent_equiv, linear_independent_fin_cons]
 
 /-- See `linear_independent.fin_cons'` for an uglier version that works if you
-only have a module. -/
+only have a module over a semiring. -/
 lemma linear_independent.fin_cons {n} {v : fin n → V} (hv : linear_independent K v)
   (hx : x ∉ submodule.span K (range v)) :
   linear_independent K (fin.cons x v : fin (n + 1) → V) :=

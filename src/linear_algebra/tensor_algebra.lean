@@ -104,7 +104,7 @@ theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
 (lift R).symm_apply_eq
 
 -- Marking `tensor_algebra` irreducible makes `ring` instances inaccessible on quotients.
--- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20module.20typeclass.20lookup/near/212580241
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
 -- For now, we avoid this by not marking it irreducible.
 attribute [irreducible] ι lift
 

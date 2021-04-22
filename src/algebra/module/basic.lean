@@ -17,10 +17,21 @@ In this file we define
   `semiring R` if for `r : R` and `x : M` their "scalar multiplication `r • x : M` is defined, and
   the operation `•` satisfies some natural associativity and distributivity axioms similar to those
   on a ring.
+  
+  ## Implementation notes
+  In typical mathematical usage, our definition of `module` corresponds to "semimodule", and the word
+  "module" is reserved for `module R M` where `R` is a `ring` and `M` an `add_comm_group`. If `R` is
+  a `field` and `M` an `add_comm_group`, `M` would be called an `R`-vector space. Since those
+  assumptions can be made by changing the typeclasses applied to `R` and `M`, without changing the
+  axioms in `module`, mathlib calls everything a `module`.
+  
+  In older versions of mathlib, we had separate `semimodule` and `vector_space` abbreviations.
+  This caused inference issues in some cases, while not providing any real advantages, so we decided
+  to use a canonical `module` typeclass throughout.
 
 ## Tags
 
-module, module, vector space
+semimodule, module, vector space
 -/
 
 open function

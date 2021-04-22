@@ -634,7 +634,7 @@ begin
 end
 
 @[to_additive]
-lemma closure.submonoid.closure (S : set G) :
+lemma closure_to_submonoid (S : set G) :
   (closure S).to_submonoid = submonoid.closure (S ∪ S⁻¹) :=
 begin
   refine le_antisymm _ (submonoid.closure_le.2 _),

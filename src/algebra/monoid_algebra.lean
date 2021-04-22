@@ -601,6 +601,17 @@ calc (f * g) x = sum g (λ a b, (f * single a b) x) :
 
 end
 
+section span
+
+variables [semiring k] [mul_one_class G]
+
+lemma mem_span_support (f : monoid_algebra k G) :
+  f ∈ submodule.span k (monoid_algebra.of k G '' (f.support : set G)) :=
+by rw [monoid_algebra.of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single,
+  finsupp.mem_supported]
+
+end span
+
 end monoid_algebra
 
 /-! ### Additive monoids -/
@@ -889,6 +900,17 @@ lemma lift_nc_smul {R : Type*} [add_zero_class G] [semiring R] (f : k →+* R)
 @monoid_algebra.lift_nc_smul k (multiplicative G) _ _ _ _ f g c φ
 
 end misc_theorems
+
+section span
+
+variables [semiring k] [add_zero_class G]
+
+lemma mem_span_support (f : add_monoid_algebra k G) :
+  f ∈ submodule.span k (add_monoid_algebra.of k G '' (f.support : set G)) :=
+by rw [add_monoid_algebra.of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single,
+  finsupp.mem_supported]
+
+end span
 
 end add_monoid_algebra
 

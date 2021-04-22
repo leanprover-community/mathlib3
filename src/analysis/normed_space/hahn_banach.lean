@@ -7,6 +7,7 @@ import analysis.normed_space.operator_norm
 import analysis.normed_space.extend
 import analysis.convex.cone
 import analysis.convex.topology
+import analysis.seminorm
 import analysis.specific_limits
 import data.complex.is_R_or_C
 
@@ -166,25 +167,40 @@ noncomputable theory
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
 def gauge (K : set E) (x : E) : ℝ :=
-Inf {y ∈ set.Ioi 0 | y⁻¹ • x ∈ K}
+Inf {y ∈ set.Ioi 0 | x ∈ y • K}
 
-lemma gauge_set_nonempty_of_absorbing {K : set E} (absorbing : ∀ x, ∃ (θ : ℝ), 0 < θ ∧ θ • x ∈ K)
+lemma gauge_def {K : set E} {x} : gauge K x = Inf {y ∈ set.Ioi 0 | x ∈ y • K} := rfl
+lemma gauge_def' {K : set E} {x} : gauge K x = Inf {y ∈ set.Ioi 0 | y⁻¹ • x ∈ K} :=
+begin
+  rw gauge_def,
+  congr' 1,
+  ext y,
+  apply and_congr_right,
+  intro hy,
+  apply mem_smul_set_iff_inv_smul_mem (ne_of_gt hy),
+end
+
+lemma gauge_set_nonempty_of_absorbing {K : set E} (absorbing : absorbent ℝ K)
   {x : E} :
-  {y ∈ set.Ioi (0:ℝ) | y⁻¹ • x ∈ K}.nonempty :=
-let ⟨θ, hθ₁, hθ₂⟩ := absorbing x in ⟨θ⁻¹, inv_pos.2 hθ₁, by simpa⟩
+  {y ∈ set.Ioi (0:ℝ) | x ∈ y • K}.nonempty :=
+let ⟨θ, hθ₁, hθ₂⟩ := absorbing x in ⟨θ, hθ₁,
+begin
+  apply hθ₂ θ,
+  rw real.norm_of_nonneg (le_of_lt hθ₁),
+end⟩
 
 lemma gauge_set_bdd_below {K : set E} {x : E} :
-  bdd_below {y ∈ set.Ioi (0:ℝ) | y⁻¹ • x ∈ K} :=
+  bdd_below {y ∈ set.Ioi (0:ℝ) | x ∈ y • K} :=
 ⟨0, λ y hy, le_of_lt hy.1⟩
 
 @[simp]
 lemma gauge_zero {K : set E} :
   gauge K 0 = 0 :=
 begin
-  rw gauge,
+  rw gauge_def',
   by_cases (0:E) ∈ K,
   { simp [h] },
-  { simp [h, real.Inf_empty] }
+  { simp [h, real.Inf_empty] },
 end
 
 lemma smul_mem_of_convex {K : set E} (hK : convex K) (zero_mem : (0:E) ∈ K) {x : E}
@@ -201,7 +217,7 @@ lemma gauge_nonneg {K : set E} (x : E) :
 real.Inf_nonneg _ (λ x hx, le_of_lt hx.1)
 
 lemma gauge_le_one_eq {K : set E} (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (absorbing : ∀ x, ∃ (θ : ℝ), 0 < θ ∧ θ • x ∈ K) :
+  (absorbing : absorbent ℝ K) :
   {x | gauge K x ≤ 1} = ⋂ (θ ∈ set.Ioi (1:ℝ)), θ • K :=
 begin
   ext,
@@ -209,9 +225,11 @@ begin
   split,
   { intros h θ hθ,
     rw mem_smul_set_iff_inv_smul_mem (show θ ≠ 0, by linarith),
+    -- rw gauge_def' at h,
     rcases exists_lt_of_cInf_lt _ (lt_of_le_of_lt h hθ) with ⟨δ, ⟨hδ₁, hδ₂⟩, _⟩,
     { suffices : (θ⁻¹ * δ) • δ⁻¹ • x ∈ K,
       { rwa [smul_smul, mul_inv_cancel_right' ‹0 < δ›.ne'] at this },
+      rw mem_smul_set_iff_inv_smul_mem ‹0 < δ›.ne' at hδ₂,
       apply smul_mem_of_convex hK zero_mem _ _ hδ₂,
       { refine mul_nonneg (inv_nonneg.2 (by linarith)) (le_of_lt hδ₁), },
       { rw [inv_mul_le_iff (lt_trans ‹0 < δ› ‹δ < θ›), mul_one],
@@ -221,28 +239,25 @@ begin
     apply le_of_forall_pos_lt_add,
     intros ε hε,
     apply cInf_lt_of_lt gauge_set_bdd_below _ (add_lt_add_left (half_lt_self hε) _),
-    refine ⟨by { simp, linarith }, _⟩,
-    exact (mem_smul_set_iff_inv_smul_mem (by linarith) _ _).1 (h _ (by linarith)) }
+    exact ⟨by { simp, linarith }, h _ (by linarith)⟩ }
 end
 
 lemma gauge_lt_one_eq {K : set E} (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (absorbing : ∀ x, ∃ (θ : ℝ), 0 < θ ∧ θ • x ∈ K) :
+  (absorbing : absorbent ℝ K) :
   {x | gauge K x < 1} = ⋃ (θ ∈ set.Ioo 0 (1:ℝ)), θ • K :=
 begin
   ext,
-  simp only [exists_prop, set.mem_Union, set.mem_Ioi, set.mem_set_of_eq],
+  simp only [exists_prop, set.mem_Union, set.mem_Ioi, set.mem_set_of_eq, gauge_def],
   split,
   { intro h,
-    obtain ⟨θ, ⟨_, _⟩, _⟩ := exists_lt_of_cInf_lt (gauge_set_nonempty_of_absorbing absorbing) h,
-    refine ⟨θ, ⟨‹_›, ‹θ < 1›⟩, by rwa mem_smul_set_iff_inv_smul_mem (ne_of_gt ‹0 < θ›)⟩ },
+    obtain ⟨θ, ⟨h₁, h₂⟩, h₃⟩ := exists_lt_of_cInf_lt (gauge_set_nonempty_of_absorbing absorbing) h,
+    exact ⟨θ, ⟨h₁, h₃⟩, h₂⟩ },
   { rintro ⟨θ, ⟨_, _⟩, _⟩,
-    apply cInf_lt_of_lt gauge_set_bdd_below ⟨‹0 < θ›, _⟩ ‹θ < 1›,
-    change _ ∈ _,
-    rwa ←mem_smul_set_iff_inv_smul_mem (ne_of_gt ‹0 < θ›) }
+    apply cInf_lt_of_lt gauge_set_bdd_below ⟨‹0 < θ›, ‹_›⟩ ‹θ < 1› }
 end
 
 lemma gauge_lt_one_subset_self {K : set E} (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (absorbing : ∀ x, ∃ (θ : ℝ), 0 < θ ∧ θ • x ∈ K) :
+  (absorbing : absorbent ℝ K) :
   {x | gauge K x < 1} ⊆ K :=
 begin
   rw gauge_lt_one_eq hK zero_mem absorbing,
@@ -256,7 +271,7 @@ begin
 end
 
 lemma gauge_le_one_convex {K : set E} (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (absorbing : ∀ x, ∃ (θ : ℝ), 0 < θ ∧ θ • x ∈ K) :
+  (absorbing : absorbent ℝ K) :
   convex {x | gauge K x ≤ 1} :=
 begin
   rw gauge_le_one_eq hK zero_mem absorbing,
@@ -274,36 +289,21 @@ end
 lemma gauge_le_one_of_mem {K : set E} (x : E) (hx : x ∈ K) : gauge K x ≤ 1 :=
 real.Inf_le _ ⟨0, λ y hy, le_of_lt hy.1⟩ ⟨by norm_num, by simpa⟩
 
-lemma gauge_le_of_mem {K : set E} (x : E) {θ : ℝ} (hθ : 0 < θ) (hx : θ⁻¹ • x ∈ K) : gauge K x ≤ θ :=
+lemma gauge_le_of_mem {K : set E} (x : E) {θ : ℝ} (hθ : 0 < θ) (hx : x ∈ θ • K) :
+  gauge K x ≤ θ :=
 cInf_le gauge_set_bdd_below ⟨hθ, hx⟩
 
-lemma convex_open_zero_mem_is_absorbing {C : set E} (zero_mem : (0:E) ∈ C) (hC : convex C)
+lemma convex_open_zero_mem_is_absorbing {C : set E} (zero_mem : (0:E) ∈ C)
   (hC₂ : is_open C) :
-  ∀ (x : E), ∃ (θ:ℝ), 0 < θ ∧ θ • x ∈ C :=
-begin
-  intro x,
-  let F : ℝ → E := λ t, t • x,
-  have : continuous F,
-  { continuity },
-  let C' := preimage F C,
-  have : is_open C' := this.is_open_preimage _ hC₂,
-  have zero_mem : (0:ℝ) ∈ C',
-  { change _ • _ ∈ C,
-    simpa },
-  rw metric.is_open_iff at this,
-  obtain ⟨ε, hε₁, hε₂⟩ := this 0 zero_mem,
-  refine ⟨_, half_pos hε₁, _⟩,
-  change ε / 2 ∈ C',
-  apply hε₂,
-  simp only [metric.mem_ball, real.dist_0_eq_abs, abs_of_pos (half_pos hε₁), half_lt_self hε₁],
-end
+  absorbent ℝ C :=
+absorbent_nhds_zero (mem_nhds_sets hC₂ zero_mem)
 
 lemma gauge_lt_one_eq_self_of_open {K : set E} (hK : convex K) (zero_mem : (0:E) ∈ K)
   (hC₂ : is_open K) :
   {x | gauge K x < 1} = K :=
 begin
   apply set.subset.antisymm,
-  { apply gauge_lt_one_subset_self hK ‹_› (convex_open_zero_mem_is_absorbing zero_mem hK hC₂) },
+  { apply gauge_lt_one_subset_self hK ‹_› (convex_open_zero_mem_is_absorbing zero_mem hC₂) },
   intros x hx,
   let F : ℝ → E := λ t, t • x,
   have : continuous F,
@@ -324,10 +324,10 @@ begin
     rw inv_pos,
     linarith },
   change _ ∈ _,
-  rw inv_inv',
+  rw mem_inv_smul_set_iff (show 1 + ε ≠ 0, by linarith),
   change _ ∈ K',
   apply hε₂,
-  simp;
+  simp,
   linarith
 end
 
@@ -380,7 +380,7 @@ lemma gauge_neg {K : set E} (balanced : ∀ x ∈ K, -x ∈ K) (x : E) :
   gauge K (-x) = gauge K x :=
 begin
   have : ∀ x, -x ∈ K ↔ x ∈ K := λ x, ⟨λ h, by simpa using balanced _ h, balanced x⟩,
-  change Inf _ = Inf _,
+  rw [gauge_def', gauge_def'],
   simp_rw [smul_neg, this],
 end
 
@@ -390,6 +390,7 @@ gauge K (θ • x) = θ * gauge K x :=
 begin
   rcases eq_or_lt_of_le hθ with (rfl | hθ'),
   { simp },
+  rw [gauge_def', gauge_def'],
   change Inf _ = _ * Inf _,
   rw Inf_smul _ ‹0 ≤ θ›,
   congr' 1,
@@ -416,7 +417,7 @@ begin
 end
 
 lemma gauge_subadditive {K : set E} (hK : convex K)
-  (absorbing : ∀ x, ∃ (θ : ℝ), 0 < θ ∧ θ • x ∈ K) (x y : E) :
+  (absorbing : absorbent ℝ K) (x y : E) :
   gauge K (x + y) ≤ gauge K x + gauge K y :=
 begin
   apply le_of_forall_pos_lt_add,
@@ -430,11 +431,14 @@ begin
   suffices : gauge K (x + y) ≤ a + b,
   { linarith },
   rw convex_iff_div at hK,
+  rw mem_smul_set_iff_inv_smul_mem ha₁.ne' at ha₂,
+  rw mem_smul_set_iff_inv_smul_mem hb₁.ne' at hb₂,
   have := hK ha₂ hb₂ (le_of_lt ha₁) (le_of_lt hb₁) (by linarith),
   rw [smul_smul, smul_smul, mul_comm_div', mul_comm_div', ←mul_div_assoc, ←mul_div_assoc,
     mul_inv_cancel (ne_of_gt ha₁), mul_inv_cancel (ne_of_gt hb₁), ←smul_add] at this,
   apply gauge_le_of_mem,
   { linarith },
+  rw mem_smul_set_iff_inv_smul_mem (show a + b ≠ 0, by linarith),
   simpa,
 end
 
@@ -470,7 +474,7 @@ begin
     simp },
   rcases exists_extension_of_le_sublinear f (gauge C) _ _ _ with ⟨φ, hφ₁, hφ₂⟩,
   { refine ⟨⟨φ, _⟩, _, _⟩,
-    { refine (continuous_add_group_hom_of_continuous_at_zero φ.to_add_monoid_hom _).continuous,
+    { refine (uniform_continuous_add_group_hom_of_continuous_at_zero φ.to_add_monoid_hom _).continuous,
       apply continuous_at_of_exists_open,
       intros ε hε,
       refine ⟨(ε • C) ∩ (-ε • C), ⟨_, _⟩, _, _⟩,
@@ -504,7 +508,7 @@ begin
   { intros c hc x,
     apply gauge_mul_nonneg (le_of_lt hc) },
   { intros x y,
-    apply gauge_subadditive hC (convex_open_zero_mem_is_absorbing zero_mem hC hC₂) },
+    apply gauge_subadditive hC (convex_open_zero_mem_is_absorbing zero_mem hC₂) },
   { rintro ⟨x, hx⟩,
     obtain ⟨y, rfl⟩ := submodule.mem_span_singleton.1 hx,
     rw linear_pmap.mk_span_singleton_apply,
@@ -515,7 +519,6 @@ begin
     apply ‹y ≤ 0›.trans (gauge_nonneg _) }
 end
 
-
 /-- A nonzero continuous linear functional is open. -/
 lemma nonzero_linear_map_is_open_map {E : Type*} [add_comm_group E] [topological_space E]
   [topological_add_group E] [vector_space ℝ E] [has_continuous_smul ℝ E]
@@ -525,17 +528,16 @@ begin
   obtain ⟨x₀, hx₀⟩ : ∃ x₀, f x₀ ≠ 0,
   { by_contra h,
     push_neg at h,
-    refine hf (continuous_linear_map.ext (λ x, by simp [h]) )},
+    exact hf (continuous_linear_map.ext (λ x, by simp [h]) )},
   intros A hA,
   rw is_open_iff_mem_nhds,
   rintro _ ⟨a, ha, rfl⟩,
   let g : ℝ → E := λ x, a + (x - f a) • (f x₀)⁻¹ • x₀,
   have := (show continuous g, by continuity).is_open_preimage _ ‹is_open A›,
   rw is_open_iff_mem_nhds at this,
-  specialize this (f a) _,
+  refine filter.mem_sets_of_superset (this (f a) _) (λ x hx, ⟨_, hx, by simp [hx₀]⟩),
   { change _ + _ • _ ∈ A,
     simpa },
-  exact filter.mem_sets_of_superset this (λ x hx, ⟨_, hx, by simp [hx₀]⟩),
 end
 
 /--
@@ -582,24 +584,16 @@ begin
       apply (forall_lt _ ‹a ∈ _› _ ‹b' ∈ _›).le },
     { apply mem_image_of_mem _ ‹b₀ ∈ B› } },
   refine ⟨f, Inf (f '' B), _, _⟩,
-  { intros a ha,
-    apply lt_of_le_of_ne,
-    { apply A_le_Inf _ ha },
-    intro same,
-    let g : ℝ → E := λ x, a + x • x₀,
-    have := (show continuous g, by continuity).is_open_preimage _ ‹is_open A›,
-    rw is_open_iff_mem_nhds at this,
-    specialize this 0 _,
-    { change a + _ • _ ∈ A,
-      simpa },
-    rw metric.nhds_basis_closed_ball.1 at this,
-    rcases this with ⟨ε, hε₁, hε₂⟩,
-    have : ε ∈ metric.closed_ball (0:ℝ) ε,
-    { simp [real.norm_eq_abs, abs_of_pos hε₁], },
-    have : f (_ + _) ≤ _ := A_le_Inf _ (hε₂ ‹ε ∈ _›),
-    rw [f.map_add] at this,
-    simp only [algebra.id.smul_eq_mul, continuous_linear_map.map_smul, hf₁, ←same, mul_one] at this,
-    linarith },
+  { suffices : f '' A ⊆ Iio (Inf (f '' B)),
+    { intros a ha,
+      apply this ⟨_, ha, rfl⟩ },
+    rw ←interior_Iic,
+    apply interior_maximal,
+    { rintro _ ⟨a, ha, rfl⟩,
+      apply A_le_Inf a ha },
+    apply nonzero_linear_map_is_open_map _ _ _ hA₂,
+    rintro rfl,
+    simpa using hf₁ },
   { intros b hb,
     apply cInf_le ⟨f a₀, _⟩ (mem_image_of_mem _ hb),
     rintro _ ⟨b', hb', rfl⟩,

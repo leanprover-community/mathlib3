@@ -260,6 +260,8 @@ variables {R : Type*} [linear_ordered_field R] {a : R}
 lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=
 begin
   simp only [inv_nonneg, fpow_neg],
+  change 0 ≤ a ^ ((2 : ℕ) : ℤ),
+  rw gpow_coe_nat,
   apply pow_two_nonneg,
 end
 

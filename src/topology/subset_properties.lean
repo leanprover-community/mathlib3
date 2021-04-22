@@ -495,6 +495,14 @@ lemma cluster_point_of_compact [compact_space α] (f : filter α) [ne_bot f] :
   ∃ x, cluster_pt x f :=
 by simpa using compact_univ (show f ≤ 𝓟 univ, by simp)
 
+lemma compact_space.elim_nhds_subcover {α : Type*} [topological_space α] [compact_space α]
+  (U : α → set α) (hU : ∀ x, U x ∈ 𝓝 x) :
+  ∃ t : finset α, (⋃ x ∈ t, U x) = ⊤ :=
+begin
+  obtain ⟨t, -, s⟩ := is_compact.elim_nhds_subcover compact_univ U (λ x m, hU x),
+  exact ⟨t, by { rw eq_top_iff, exact s }⟩,
+end
+
 theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
     (⋂ i, Z i) = ∅ → ∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅) :

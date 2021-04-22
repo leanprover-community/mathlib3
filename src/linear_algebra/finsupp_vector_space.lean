@@ -127,7 +127,7 @@ open module
 
 
 lemma equiv_of_dim_eq_lift_dim
-  (h : cardinal.lift.{v w} (dim K V) = cardinal.lift.{w v} (dim K V')) :
+  (h : cardinal.lift.{v w} (module.rank K V) = cardinal.lift.{w v} (module.rank K V')) :
   nonempty (V ≃ₗ[K] V') :=
 begin
   haveI := classical.dec_eq V,
@@ -143,7 +143,7 @@ begin
 end
 
 /-- Two `K`-vector spaces are equivalent if their dimension is the same. -/
-def equiv_of_dim_eq_dim (h : dim K V₁ = dim K V₂) : V₁ ≃ₗ[K] V₂ :=
+def equiv_of_dim_eq_dim (h : module.rank K V₁ = module.rank K V₂) : V₁ ≃ₗ[K] V₂ :=
 begin
   classical,
   exact classical.choice (equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h))
@@ -151,7 +151,7 @@ end
 
 /-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
 def fin_dim_vectorspace_equiv (n : ℕ)
-  (hn : (dim K V) = n) : V ≃ₗ[K] (fin n → K) :=
+  (hn : (module.rank K V) = n) : V ≃ₗ[K] (fin n → K) :=
 begin
   have : cardinal.lift.{v u} (n : cardinal.{v}) = cardinal.lift.{u v} (n : cardinal.{u}),
     by simp,
@@ -171,7 +171,7 @@ open module
 variables (K V : Type u) [field K] [add_comm_group V] [module K V]
 
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim [finite_dimensional K V] :
-  cardinal.mk V = cardinal.mk K ^ dim K V :=
+  cardinal.mk V = cardinal.mk K ^ module.rank K V :=
 begin
   rcases exists_is_basis K V with ⟨s, hs⟩,
   have : nonempty (fintype s),

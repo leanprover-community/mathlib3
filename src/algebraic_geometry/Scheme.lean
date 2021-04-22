@@ -33,9 +33,8 @@ rings, to `Spec.PresheafedSpace R` for some `R : CommRing`.
 although that is a consequence.)
 -/
 structure Scheme extends X : LocallyRingedSpace :=
-(local_affine : ∀ x : carrier, ∃ (U : opens carrier) (m : x ∈ U) (R : CommRing)
-  (i : X.to_SheafedSpace.to_PresheafedSpace.restrict _ (opens.inclusion_open_embedding U) ≅
-    Spec.PresheafedSpace R), true)
+(local_affine : ∀ x : X, ∃ (U : opens X) (m : x ∈ U) (R : CommRing),
+  nonempty (X.to_PresheafedSpace.restrict _ U.inclusion_open_embedding ≅ Spec.PresheafedSpace R))
 
 -- PROJECT
 -- In fact, we can make the isomorphism `i` above an isomorphism in `LocallyRingedSpace`.
@@ -63,7 +62,7 @@ def to_LocallyRingedSpace (S : Scheme) : LocallyRingedSpace := { ..S }
 -/
 noncomputable
 def Spec (R : CommRing) : Scheme :=
-{ local_affine := λ x, ⟨⊤, trivial, R, (Spec.PresheafedSpace R).restrict_top_iso, trivial⟩,
+{ local_affine := λ x, ⟨⊤, trivial, R, ⟨(Spec.PresheafedSpace R).restrict_top_iso⟩⟩,
   .. Spec.LocallyRingedSpace R }
 
 /--

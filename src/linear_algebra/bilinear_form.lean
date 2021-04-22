@@ -1406,7 +1406,7 @@ begin
     refine eq_top_of_findim_eq _,
     refine le_antisymm (submodule.findim_le _) _,
     conv_rhs { rw ← add_zero (findim K _) },
-    rw [← findim_bot K V, ← this, submodule.rank_sup_add_dim_inf_eq,
+    rw [← findim_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
         findim_add_findim_orthogonal hB₁],
     exact nat.le.intro rfl }
 end

@@ -2612,7 +2612,7 @@ lemma submodule.findim_add_inf_findim_orthogonal {K₁ K₂ : submodule 𝕜 E}
   findim 𝕜 K₁ + findim 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = findim 𝕜 K₂ :=
 begin
   haveI := submodule.finite_dimensional_of_le h,
-  have hd := submodule.rank_sup_add_dim_inf_eq K₁ (K₁ᗮ ⊓ K₂),
+  have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁ᗮ ⊓ K₂),
   rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, findim_bot,
       submodule.sup_orthogonal_inf_of_is_complete h
         (submodule.complete_of_finite_dimensional _)] at hd,

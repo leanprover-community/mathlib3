@@ -48,7 +48,7 @@ section
 variables {α : Type*} [topological_space α]
   [comm_semiring R] [topological_space R] [topological_semiring R]
 
-@[simp] lemma polynomial.aeval_continuous_map_apply (g : polynomial R) (f : C(α, R)) (x : α) :
+@[simp] lemma aeval_continuous_map_apply (g : polynomial R) (f : C(α, R)) (x : α) :
   ((polynomial.aeval f) g) x = g.eval (f x) :=
 begin
   apply polynomial.induction_on' g,

@@ -348,7 +348,7 @@ open finite_dimensional module
 
 variables {K L : intermediate_field F E}
 
-@[simp] lemma dim_eq_one_iff : dim F K = 1 ↔ K = ⊥ :=
+@[simp] lemma dim_eq_one_iff : module.rank F K = 1 ↔ K = ⊥ :=
 by rw [← to_subalgebra_eq_iff, ← dim_eq_dim_subalgebra,
   subalgebra.dim_eq_one_iff, bot_to_subalgebra]
 
@@ -356,10 +356,10 @@ by rw [← to_subalgebra_eq_iff, ← dim_eq_dim_subalgebra,
 by rw [← to_subalgebra_eq_iff, ← findim_eq_findim_subalgebra,
   subalgebra.findim_eq_one_iff, bot_to_subalgebra]
 
-lemma dim_adjoin_eq_one_iff : dim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
+lemma dim_adjoin_eq_one_iff : module.rank F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
 iff.trans dim_eq_one_iff adjoin_eq_bot_iff
 
-lemma dim_adjoin_simple_eq_one_iff : dim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
+lemma dim_adjoin_simple_eq_one_iff : module.rank F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
 by { rw dim_adjoin_eq_one_iff, exact set.singleton_subset_iff }
 
 lemma findim_adjoin_eq_one_iff : findim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
@@ -369,7 +369,7 @@ lemma findim_adjoin_simple_eq_one_iff : findim F F⟮α⟯ = 1 ↔ α ∈ (⊥ :
 by { rw [findim_adjoin_eq_one_iff], exact set.singleton_subset_iff }
 
 /-- If `F⟮x⟯` has dimension `1` over `F` for every `x ∈ E` then `F = E`. -/
-lemma bot_eq_top_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) :
+lemma bot_eq_top_of_dim_adjoin_eq_one (h : ∀ x : E, module.rank F F⟮x⟯ = 1) :
   (⊥ : intermediate_field F E) = ⊤ :=
 begin
   ext,
@@ -385,7 +385,7 @@ begin
   exact findim_adjoin_simple_eq_one_iff.mp (h x),
 end
 
-lemma subsingleton_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) :
+lemma subsingleton_of_dim_adjoin_eq_one (h : ∀ x : E, module.rank F F⟮x⟯ = 1) :
   subsingleton (intermediate_field F E) :=
 subsingleton_of_bot_eq_top (bot_eq_top_of_dim_adjoin_eq_one h)
 

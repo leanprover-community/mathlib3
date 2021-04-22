@@ -197,7 +197,7 @@ begin
 end
 
 instance (f : α → α → β) [is_symm_op α β f] : is_symm_op (list α) (list β) (zip_with f) :=
-⟨zip_with_comm f (@is_symm_op.symm_op _ _ f _)⟩
+⟨zip_with_comm f is_symm_op.symm_op⟩
 
 @[simp] theorem length_revzip (l : list α) : length (revzip l) = length l :=
 by simp only [revzip, length_zip, length_reverse, min_self]

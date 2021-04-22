@@ -30,61 +30,7 @@ namespace interval_integral
 open measure_theory
 variables {f : ℝ → ℝ} {μ ν : measure ℝ} [locally_finite_measure μ] (c d : ℝ)
 
-@[simp]
-lemma integral_const_mul : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
-integral_smul c
-
-@[simp]
-lemma integral_mul_const : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
-by simp only [mul_comm, integral_const_mul]
-
-@[simp]
-lemma integral_div : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c :=
-integral_mul_const c⁻¹
-
-@[simp]
-lemma mul_integral_comp_mul_right : c * ∫ x in a..b, f (x * c) = ∫ x in a*c..b*c, f x :=
-smul_integral_comp_mul_right f c
-
-@[simp]
-lemma mul_integral_comp_mul_left : c * ∫ x in a..b, f (c * x) = ∫ x in c*a..c*b, f x :=
-smul_integral_comp_mul_left f c
-
-@[simp]
-lemma inv_mul_integral_comp_div : c⁻¹ * ∫ x in a..b, f (x / c) = ∫ x in a/c..b/c, f x :=
-inv_smul_integral_comp_div f c
-
-@[simp]
-lemma mul_integral_comp_mul_add : c * ∫ x in a..b, f (c * x + d) = ∫ x in c*a+d..c*b+d, f x :=
-smul_integral_comp_mul_add f c d
-
-@[simp]
-lemma mul_integral_comp_add_mul : c * ∫ x in a..b, f (d + c * x) = ∫ x in d+c*a..d+c*b, f x :=
-smul_integral_comp_add_mul f c d
-
-@[simp]
-lemma inv_mul_integral_comp_div_add : c⁻¹ * ∫ x in a..b, f (x / c + d) = ∫ x in a/c+d..b/c+d, f x :=
-inv_smul_integral_comp_div_add f c d
-
-@[simp]
-lemma inv_mul_integral_comp_add_div : c⁻¹ * ∫ x in a..b, f (d + x / c) = ∫ x in d+a/c..d+b/c, f x :=
-inv_smul_integral_comp_add_div f c d
-
-@[simp]
-lemma mul_integral_comp_mul_sub : c * ∫ x in a..b, f (c * x - d) = ∫ x in c*a-d..c*b-d, f x :=
-smul_integral_comp_mul_sub f c d
-
-@[simp]
-lemma mul_integral_comp_sub_mul : c * ∫ x in a..b, f (d - c * x) = ∫ x in d-c*b..d-c*a, f x :=
-smul_integral_comp_sub_mul f c d
-
-@[simp]
-lemma inv_mul_integral_comp_div_sub : c⁻¹ * ∫ x in a..b, f (x / c - d) = ∫ x in a/c-d..b/c-d, f x :=
-inv_smul_integral_comp_div_sub f c d
-
-@[simp]
-lemma inv_mul_integral_comp_sub_div : c⁻¹ * ∫ x in a..b, f (d - x / c) = ∫ x in d-b/c..d-a/c, f x :=
-inv_smul_integral_comp_sub_div f c d
+/-! ### Interval integrability -/
 
 @[simp]
 lemma interval_integrable_pow (n : ℕ) : interval_integrable (λ x, x^n) μ a b :=
@@ -147,9 +93,71 @@ end
 lemma interval_integrable_inv_one_add_sq : interval_integrable (λ x:ℝ, (1 + x^2)⁻¹) μ a b :=
 by simpa only [one_div] using interval_integrable_one_div_one_add_sq
 
+/-! ### Integral of a function scaled by a constant -/
+
+@[simp]
+lemma integral_const_mul : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
+integral_smul c
+
+@[simp]
+lemma integral_mul_const : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
+by simp only [mul_comm, integral_const_mul]
+
+@[simp]
+lemma integral_div : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c :=
+integral_mul_const c⁻¹
+
+/-! ### Integrals of the form `c * ∫ x in a..b, f (c * x + d)` -/
+
+@[simp]
+lemma mul_integral_comp_mul_right : c * ∫ x in a..b, f (x * c) = ∫ x in a*c..b*c, f x :=
+smul_integral_comp_mul_right f c
+
+@[simp]
+lemma mul_integral_comp_mul_left : c * ∫ x in a..b, f (c * x) = ∫ x in c*a..c*b, f x :=
+smul_integral_comp_mul_left f c
+
+@[simp]
+lemma inv_mul_integral_comp_div : c⁻¹ * ∫ x in a..b, f (x / c) = ∫ x in a/c..b/c, f x :=
+inv_smul_integral_comp_div f c
+
+@[simp]
+lemma mul_integral_comp_mul_add : c * ∫ x in a..b, f (c * x + d) = ∫ x in c*a+d..c*b+d, f x :=
+smul_integral_comp_mul_add f c d
+
+@[simp]
+lemma mul_integral_comp_add_mul : c * ∫ x in a..b, f (d + c * x) = ∫ x in d+c*a..d+c*b, f x :=
+smul_integral_comp_add_mul f c d
+
+@[simp]
+lemma inv_mul_integral_comp_div_add : c⁻¹ * ∫ x in a..b, f (x / c + d) = ∫ x in a/c+d..b/c+d, f x :=
+inv_smul_integral_comp_div_add f c d
+
+@[simp]
+lemma inv_mul_integral_comp_add_div : c⁻¹ * ∫ x in a..b, f (d + x / c) = ∫ x in d+a/c..d+b/c, f x :=
+inv_smul_integral_comp_add_div f c d
+
+@[simp]
+lemma mul_integral_comp_mul_sub : c * ∫ x in a..b, f (c * x - d) = ∫ x in c*a-d..c*b-d, f x :=
+smul_integral_comp_mul_sub f c d
+
+@[simp]
+lemma mul_integral_comp_sub_mul : c * ∫ x in a..b, f (d - c * x) = ∫ x in d-c*b..d-c*a, f x :=
+smul_integral_comp_sub_mul f c d
+
+@[simp]
+lemma inv_mul_integral_comp_div_sub : c⁻¹ * ∫ x in a..b, f (x / c - d) = ∫ x in a/c-d..b/c-d, f x :=
+inv_smul_integral_comp_div_sub f c d
+
+@[simp]
+lemma inv_mul_integral_comp_sub_div : c⁻¹ * ∫ x in a..b, f (d - x / c) = ∫ x in d-b/c..d-a/c, f x :=
+inv_smul_integral_comp_sub_div f c d
+
 end interval_integral
 
 open interval_integral
+
+/-! ### Integrals of simple functions -/
 
 @[simp]
 lemma integral_pow (n : ℕ) : ∫ x in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=
@@ -203,6 +211,31 @@ by simp only [one_div, integral_inv_of_neg ha hb]
 @[simp]
 lemma integral_sin : ∫ x in a..b, sin x = cos a - cos b :=
 by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_on_sin]
+
+@[simp]
+lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=
+by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
+
+lemma integral_cos_sq_sub_sin_sq :
+  ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
+by simpa only [pow_two, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub
+  (λ x hx, has_deriv_at_sin x) (λ x hx, has_deriv_at_cos x) continuous_on_cos continuous_on_sin.neg
+
+@[simp]
+lemma integral_inv_one_add_sq : ∫ x : ℝ in a..b, (1 + x^2)⁻¹ = arctan b - arctan a :=
+begin
+  simp only [← one_div],
+  refine integral_deriv_eq_sub' _ _ _ (continuous_const.div _ (λ x, _)).continuous_on,
+  { norm_num },
+  { norm_num },
+  { continuity },
+  { nlinarith },
+end
+
+lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
+by simp
+
+/-! ### Recursive computation of `∫ x in 0..π, sin x ^ n` -/
 
 lemma integral_sin_pow_aux (n : ℕ) : ∫ x in 0..π, sin x ^ (n + 2) =
   ((n + 1) * ∫ x in 0..π, sin x ^ n) - (n + 1) * ∫ x in 0..π, sin x ^ (n + 2) :=
@@ -262,26 +295,3 @@ begin
   norm_cast;
   linarith,
 end
-
-@[simp]
-lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=
-by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
-
-lemma integral_cos_sq_sub_sin_sq :
-  ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
-by simpa only [pow_two, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub
-  (λ x hx, has_deriv_at_sin x) (λ x hx, has_deriv_at_cos x) continuous_on_cos continuous_on_sin.neg
-
-@[simp]
-lemma integral_inv_one_add_sq : ∫ x : ℝ in a..b, (1 + x^2)⁻¹ = arctan b - arctan a :=
-begin
-  simp only [← one_div],
-  refine integral_deriv_eq_sub' _ _ _ (continuous_const.div _ (λ x, _)).continuous_on,
-  { norm_num },
-  { norm_num },
-  { continuity },
-  { nlinarith },
-end
-
-lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
-by simp

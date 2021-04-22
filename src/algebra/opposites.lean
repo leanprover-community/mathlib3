@@ -274,7 +274,7 @@ end opposite
 
 open opposite
 
-/- Inversion on a group is a `mul_equiv` to the opposite group. When `G` is commutative, there is
+/-<span class="x x-first x-last">-</span> Inversion on a group is a `mul_equiv` to the opposite group. When `G` is commutative, there is
 `mul_equiv.inv`. -/
 @[simps {fully_applied := ff}]
 def mul_equiv.inv' (G : Type*) [group G] : G ≃* Gᵒᵖ :=

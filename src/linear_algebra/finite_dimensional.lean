@@ -646,7 +646,8 @@ by { rw ← s.findim_quotient_add_findim, exact nat.le_add_right _ _ }
 theorem dim_sup_add_dim_inf_eq (s t : submodule K V) [finite_dimensional K s]
   [finite_dimensional K t] : findim K ↥(s ⊔ t) + findim K ↥(s ⊓ t) = findim K ↥s + findim K ↥t :=
 begin
-  have key : module.rank K ↥(s ⊔ t) + module.rank K ↥(s ⊓ t) = module.rank K s + module.rank K t := dim_sup_add_dim_inf_eq s t,
+  have key : module.rank K ↥(s ⊔ t) + module.rank K ↥(s ⊓ t) =
+    module.rank K s + module.rank K t := dim_sup_add_dim_inf_eq s t,
   repeat { rw ←findim_eq_dim at key },
   norm_cast at key,
   exact key

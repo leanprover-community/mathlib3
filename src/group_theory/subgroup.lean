@@ -659,7 +659,7 @@ lemma closure_induction'' {p : G → Prop} {x} (h : x ∈ closure k)
   (Hk : ∀ x ∈ k, p x) (Hk_inv : ∀ x ∈ k, p x⁻¹) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 begin
-  rw [← mem_to_submonoid,closure_to_submonoid k] at h,
+  rw [← mem_to_submonoid, closure_to_submonoid k] at h,
   refine submonoid.closure_induction h (λ x hx, _) H1 (λ x y hx hy, Hmul x y hx hy),
   { rw [mem_union, mem_inv] at hx,
     cases hx with mem invmem,

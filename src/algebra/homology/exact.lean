@@ -76,10 +76,7 @@ lemma exact_epi_comp [exact g h] [epi f] : exact (f ≫ g) h :=
 begin
   refine ⟨by simp, _⟩,
   rw image_to_kernel_map_comp_left,
-  suffices : epi (image.pre_comp f g),
-  { exactI epi_comp _ _ },
-  apply epi_of_epi_fac (limits.image.factor_thru_image_pre_comp _ _),
-  exact epi_comp _ _
+  exact epi_comp _ _,
 end
 
 lemma exact_comp_mono [exact f g] [mono h] : exact f (g ≫ h) :=

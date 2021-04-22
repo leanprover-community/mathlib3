@@ -45,35 +45,52 @@ variables [has_equalizers V] [has_images V]
 namespace category_theory
 
 /--
-Two morphisms `f : A ⟶ B`, `g : B ⟶ C` are called exact if
-the image of `f` is the same as the kernel of `g`,
-as subobjects of `B`.
--/
-class exact {A B C : V} (f : A ⟶ B) (g : B ⟶ C) : Prop :=
-(image_eq_kernel [] : image_subobject f = kernel_subobject g)
+Two morphisms `f : A ⟶ B`, `g : B ⟶ C` are called exact if `w : f ≫ g = 0` and the natural map
+`image_to_kernel f g w : image_subobject f ⟶ kernel_subobject g` is an epimorphism.
 
-@[simp, reassoc]
-lemma exact.w {A B C : V} (f : A ⟶ B) (g : B ⟶ C) [exact f g] : f ≫ g = 0 :=
+This is equivalent to `homology (image_to_kernel f g w) ≅ 0`.
+
+In an abelian category, this is equivalent to the usual definition,
+`image_subobject f = kernel_subobject g`,
+and equivalent to `image_to_kernel f g w` being an isomorphism.
+-/
+-- One nice feature of this definition is that we have
+-- `exact g h → epi f → exact (f ≫ g) h` and `exact f g → mono h → exact f (g ≫ h)`,
+-- which do not necessarily hold in a non-abelian category with the usual definition of `exact`.
+class exact {A B C : V} (f : A ⟶ B) (g : B ⟶ C) : Prop :=
+(w : f ≫ g = 0)
+(epi : epi (image_to_kernel f g w))
+
+attribute [instance] exact.epi
+attribute [simp, reassoc] exact.w
+
+lemma comp_eq_zero_of_image_eq_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
+  (p : image_subobject f = kernel_subobject g) : f ≫ g = 0 :=
 begin
   rw [←image_subobject_arrow_comp f, category.assoc],
   convert comp_zero,
-  rw exact.image_eq_kernel f g,
+  rw p,
   simp,
 end
 
-instance exact.is_iso {A B C : V} (f : A ⟶ B) (g : B ⟶ C) [exact f g]
-  (w : f ≫ g = 0 := exact.w f g) :
-  is_iso (image_to_kernel f g w) :=
+lemma image_to_kernel_is_iso_of_image_eq_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
+  (p : image_subobject f = kernel_subobject g) :
+  is_iso (image_to_kernel f g (comp_eq_zero_of_image_eq_kernel f g p)) :=
 begin
-  refine ⟨⟨subobject.of_le _ _ (exact.image_eq_kernel f g).ge, _⟩⟩,
+  refine ⟨⟨subobject.of_le _ _ p.ge, _⟩⟩,
   dsimp [image_to_kernel],
   simp only [subobject.of_le_comp, subobject.of_le_refl],
   simp,
 end
 
-lemma exact_of_image_to_kernel_is_iso {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0)
-  [is_iso (image_to_kernel f g w)] : exact f g :=
-{ image_eq_kernel := subobject.eq_of_comm (as_iso (image_to_kernel f g w)) (by simp) }
+-- We'll prove the converse later, when `V` is abelian.
+lemma exact_of_image_eq_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
+  (p : image_subobject f = kernel_subobject g) : exact f g :=
+{ w := comp_eq_zero_of_image_eq_kernel f g p,
+  epi := begin
+    haveI := image_to_kernel_is_iso_of_image_eq_kernel f g p,
+    apply_instance,
+  end }
 
 section
 variables {A B C D : V} {f : A ⟶ B} {g : B ⟶ C} {h : C ⟶ D}
@@ -82,11 +99,9 @@ local attribute [instance] epi_comp
 
 instance exact_comp_hom_inv_comp [exact f g] (i : B ≅ D) : exact (f ≫ i.hom) (i.inv ≫ g) :=
 begin
-  fsplit,
-  fapply subobject.eq_of_comm,
-  exact image_subobject_comp_iso _ _ ≪≫ subobject.iso_of_eq _ _ (exact.image_eq_kernel f g) ≪≫
-    (kernel_subobject_iso_comp _ _).symm,
-  simp,
+  refine ⟨by simp, _⟩,
+  rw image_to_kernel_comp_hom_inv_comp,
+  apply_instance,
 end
 
 instance exact_comp_inv_hom_comp [exact f g] (i : D ≅ B) : exact (f ≫ i.inv) (i.hom ≫ g) :=
@@ -102,9 +117,9 @@ end
 
 lemma exact_epi_comp [exact g h] [epi f] : exact (f ≫ g) h :=
 begin
-  fsplit,
-  convert (exact.image_eq_kernel g h) using 1,
-  sorry,
+  refine ⟨by simp, _⟩,
+  rw image_to_kernel_comp_left,
+  apply_instance,
 end
 
 lemma exact_comp_mono [exact f g] [mono h] : exact f (g ≫ h) :=

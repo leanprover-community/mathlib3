@@ -219,6 +219,28 @@ lemma image_subobject_comp_le
   image_subobject (h ≫ f) ≤ image_subobject f :=
 subobject.mk_le_mk_of_comm (image.pre_comp h f) (by simp)
 
+
+section
+variables [has_equalizers C]
+local attribute [instance] epi_comp
+
+/--
+The morphism `image_subobject (h ≫ f) ⟶ image_subobject f`
+is an epimorphism when `h` is an epimorphism.
+In general this does not imply that `image_subobject (h ≫ f) = image_subobject f`,
+although it will when the ambient category is abelian.
+ -/
+instance image_subobject_comp_le_epi_of_epi
+  {X' : C} (h : X' ⟶ X) [epi h] (f : X ⟶ Y) [has_image f] [has_image (h ≫ f)] :
+  epi (subobject.of_le _ _ (image_subobject_comp_le h f)) :=
+begin
+  rw of_le_mk_le_mk_of_comm (image.pre_comp h f),
+  { apply_instance, },
+  { simp, },
+end
+
+end
+
 section
 variables [has_equalizers C]
 

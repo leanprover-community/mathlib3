@@ -248,9 +248,10 @@ underlying_arrow _
   of_le X Y h₁ ≫ of_le Y Z h₂ = of_le X Z (h₁.trans h₂) :=
 by { ext, simp, }
 
-@[simp] lemma of_le_refl {B : C} (X : subobject B) (h : X ≤ X) :
-  of_le X X h = 𝟙 (X : C) :=
-by { ext, simp, }
+lemma of_le_mk_le_mk_of_comm
+  {B A₁ A₂ : C} {f₁ : A₁ ⟶ B} {f₂ : A₂ ⟶ B} [mono f₁] [mono f₂] (g : A₁ ⟶ A₂) (w : g ≫ f₂ = f₁) :
+  of_le _ _ (mk_le_mk_of_comm g w) = (underlying_iso _).hom ≫ g ≫ (underlying_iso _).inv :=
+by { ext, simp [w], }
 
 /-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
 def of_le_mk {B A : C} (X : subobject B) (f : A ⟶ B) [mono f] (h : X ≤ mk f) : (X : C) ⟶ A :=

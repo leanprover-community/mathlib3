@@ -512,8 +512,8 @@ begin
     add_mem' := λ x hx y hy, le_trans (N_add _ _) (add_le_add hx hy) },
   obtain ⟨g, g_eq, g_nonneg⟩ :=
     riesz_extension s ((-f).coprod (linear_map.id.to_pmap ⊤)) _ _;
-    simp only [linear_pmap.coprod_apply, to_pmap_apply, id_apply,
-      linear_pmap.neg_apply, ← sub_eq_neg_add, sub_nonneg, subtype.coe_mk] at *,
+    try { simp only [linear_pmap.coprod_apply, to_pmap_apply, id_apply,
+            linear_pmap.neg_apply, ← sub_eq_neg_add, sub_nonneg, subtype.coe_mk] at * },
   replace g_eq : ∀ (x : f.domain) (y : ℝ), g (x, y) = y - f x,
   { intros x y,
     simpa only [subtype.coe_mk, subtype.coe_eta] using g_eq ⟨(x, y), ⟨x.2, trivial⟩⟩ },

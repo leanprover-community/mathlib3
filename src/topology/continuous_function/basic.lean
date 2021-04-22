@@ -172,45 +172,30 @@ instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
 section sup'
 variables [linear_order γ] [order_closed_topology γ]
 
-@[simp, norm_cast]
-lemma sup'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
-  ((s.sup' H f : C(β, γ)) : ι → β) = s.sup' H (λ a, (f a : β → γ)) :=
-begin
-  classical,
-  revert H,
-  apply finset.cons_induction_on s,
-  { rintro ⟨a, ⟨⟩⟩, },
-  { rintros a s' nm ih n',
-    by_cases n : s'.nonempty,
-    { rw [finset.sup'_cons n, finset.sup'_cons n],
-      simp [sup_coe, ih n], },
-    { have e : s' = ∅ := finset.not_nonempty_iff_eq_empty.mp n,
-      subst e,
-      refl, }, },
-end
-
 @[simp]
 lemma sup'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
   s.sup' H f b = s.sup' H (λ a, f a b) :=
-begin
-  convert finset.sup'_apply H (λ a, (f a : β → γ)) b,
-  simp,
-end
+finset.comp_sup'_eq_sup'_comp H (λ f : C(β, γ), f b) (λ i j, rfl)
+
+@[simp, norm_cast]
+lemma sup'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
+  ((s.sup' H f : C(β, γ)) : ι → β) = s.sup' H (λ a, (f a : β → γ)) :=
+by { ext, simp, }
 
 end sup'
 
 section inf'
 variables [linear_order γ] [order_closed_topology γ]
 
-@[simp, norm_cast]
-lemma inf'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
-  ((s.inf' H f : C(β, γ)) : ι → β) = s.inf' H (λ a, (f a : β → γ)) :=
-@sup'_coe _ (order_dual γ) _ _ _ _ _ _ H f
-
 @[simp]
 lemma inf'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
   s.inf' H f b = s.inf' H (λ a, f a b) :=
 @sup'_apply _ (order_dual γ) _ _ _ _ _ _ H f b
+
+@[simp, norm_cast]
+lemma inf'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
+  ((s.inf' H f : C(β, γ)) : ι → β) = s.inf' H (λ a, (f a : β → γ)) :=
+@sup'_coe _ (order_dual γ) _ _ _ _ _ _ H f
 
 end inf'
 

@@ -457,6 +457,7 @@ end inf
 section sup
 variables {C : β → Type*} [Π (b : β), semilattice_sup_bot (C b)]
 
+@[simp]
 protected lemma sup_apply (s : finset α) (f : α → Π (b : β), C b) (b : β) :
   s.sup f b = s.sup (λ a, f a b) :=
 comp_sup_eq_sup_comp (λ x : Π b : β, C b, x b) (λ i j, rfl) rfl
@@ -466,6 +467,7 @@ end sup
 section inf
 variables {C : β → Type*} [Π (b : β), semilattice_inf_top (C b)]
 
+@[simp]
 protected lemma inf_apply (s : finset α) (f : α → Π (b : β), C b) (b : β) :
   s.inf f b = s.inf (λ a, f a b) :=
 @finset.sup_apply _ _ (λ b, order_dual (C b)) _ s f b
@@ -475,7 +477,8 @@ end inf
 section sup'
 variables {C : β → Type*} [Π (b : β), semilattice_sup (C b)]
 
-lemma sup'_apply {s : finset α} (H : s.nonempty) (f : α → Π (b : β), C b) (b : β) :
+@[simp]
+protected lemma sup'_apply {s : finset α} (H : s.nonempty) (f : α → Π (b : β), C b) (b : β) :
   s.sup' H f b = s.sup' H (λ a, f a b) :=
 comp_sup'_eq_sup'_comp H (λ x : Π b : β, C b, x b) (λ i j, rfl)
 
@@ -484,9 +487,10 @@ end sup'
 section inf'
 variables {C : β → Type*} [Π (b : β), semilattice_inf (C b)]
 
-lemma inf'_apply {s : finset α} (H : s.nonempty) (f : α → Π (b : β), C b) (b : β) :
+@[simp]
+protected lemma inf'_apply {s : finset α} (H : s.nonempty) (f : α → Π (b : β), C b) (b : β) :
   s.inf' H f b = s.inf' H (λ a, f a b) :=
-@sup'_apply _ _ (λ b, order_dual (C b)) _ _ H f b
+@finset.sup'_apply _ _ (λ b, order_dual (C b)) _ _ H f b
 
 end inf'
 

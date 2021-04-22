@@ -260,10 +260,10 @@ lemma findim_vector_span_le_iff_not_affine_independent [fintype ι] (p : ι → 
 
 /-- A set of points is collinear if their `vector_span` has dimension
 at most `1`. -/
-def collinear (s : set P) : Prop := dim k (vector_span k s) ≤ 1
+def collinear (s : set P) : Prop := module.rank k (vector_span k s) ≤ 1
 
 /-- The definition of `collinear`. -/
-lemma collinear_iff_dim_le_one (s : set P) : collinear k s ↔ dim k (vector_span k s) ≤ 1 :=
+lemma collinear_iff_dim_le_one (s : set P) : collinear k s ↔ module.rank k (vector_span k s) ≤ 1 :=
 iff.rfl
 
 /-- A set of points, whose `vector_span` is finite-dimensional, is

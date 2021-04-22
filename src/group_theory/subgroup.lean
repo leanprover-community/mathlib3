@@ -624,7 +624,7 @@ begin
   refine le_antisymm ((subgroup.closure_le _).2 _) ((subgroup.closure_le _).2 _),
   { intros s hs,
     rw [set_like.mem_coe, ←subgroup.inv_mem_iff],
-    exact subset_closure (mem_inv.1 hs), }
+    exact subset_closure (mem_inv.1 hs) },
   { intros s hs,
     rw [set_like.mem_coe, ←subgroup.inv_mem_iff],
     exact subset_closure (set.inv_mem_inv.2 hs) },
@@ -653,7 +653,7 @@ begin
         exact submonoid.mul_mem _ hz hy } },
   { simp only [true_and, coe_to_submonoid, union_subset_iff, subset_closure],
     intros s hs,
-    rw [closure.inv],
+    rw [← closure_inv],
     exact subset_closure hs }
 end
 

@@ -42,20 +42,25 @@ rfl
 def F_hom_mk {X Y : F C} (f : X ⟶ᵐ Y) : X ⟶ Y :=
 ⟦f⟧
 
+section
+open free_monoidal_category.hom
+
 @[simp]
 def normalize_map_aux : Π {X Y : F C},
   (X ⟶ᵐ Y) →
     ((discrete.functor (normalize_obj X) : _ ⥤ (N C)) ⟶ discrete.functor (normalize_obj Y))
-| _ _ (free_monoidal_category_hom.id _) := 𝟙 _
-| _ _ (free_monoidal_category_hom.α_hom _ _ _) := ⟨λ X, 𝟙 _⟩
-| _ _ (free_monoidal_category_hom.α_inv _ _ _) := ⟨λ X, 𝟙 _⟩
-| _ _ (free_monoidal_category_hom.l_hom _) := ⟨λ X, 𝟙 _⟩
-| _ _ (free_monoidal_category_hom.l_inv _) := ⟨λ X, 𝟙 _⟩
-| _ _ (free_monoidal_category_hom.ρ_hom _) := ⟨λ X, 𝟙 _⟩
-| _ _ (free_monoidal_category_hom.ρ_inv _) := ⟨λ X, 𝟙 _⟩
-| X Y (@free_monoidal_category_hom.comp _ U V W f g) := normalize_map_aux f ≫ normalize_map_aux g
-| X Y (@free_monoidal_category_hom.tensor _ T U V W f g) :=
+| _ _ (id _) := 𝟙 _
+| _ _ (α_hom _ _ _) := ⟨λ X, 𝟙 _⟩
+| _ _ (α_inv _ _ _) := ⟨λ X, 𝟙 _⟩
+| _ _ (l_hom _) := ⟨λ X, 𝟙 _⟩
+| _ _ (l_inv _) := ⟨λ X, 𝟙 _⟩
+| _ _ (ρ_hom _) := ⟨λ X, 𝟙 _⟩
+| _ _ (ρ_inv _) := ⟨λ X, 𝟙 _⟩
+| X Y (@comp _ U V W f g) := normalize_map_aux f ≫ normalize_map_aux g
+| X Y (@tensor _ T U V W f g) :=
     ⟨λ X, (normalize_map_aux g).app (normalize_obj T X) ≫ (discrete.functor (normalize_obj W) : _ ⥤ N C).map ((normalize_map_aux f).app X), by tidy⟩
+
+end
 
 @[simp]
 def normalize : F C ⥤ ((N C) ⥤ N C) :=
@@ -116,7 +121,7 @@ begin
   intro f,
   ext n,
   induction f generalizing n,
-  { simp only [mk_id_eq_id, functor.map_id, category.id_comp, category.comp_id] },
+  { simp only [free_monoidal_category.mk_id_eq_id, functor.map_id, category.id_comp, category.comp_id] },
   { dsimp,
     rw [monoidal_category.id_tensor_associator_inv_naturality_assoc,
       ←monoidal_category.pentagon_inv_assoc],
@@ -158,7 +163,7 @@ begin
     rw monoidal_category.tensor_comp,
     simp only [category.assoc],
     congr' 2,
-    rw [←mk_tensor_eq_tensor, quotient.lift_mk],
+    rw [←free_monoidal_category.mk_tensor_eq_tensor, quotient.lift_mk],
     dsimp,
     rw [functor.map_comp, ←category.assoc, ←f_ih_g ⟦f_g⟧],
     rw [←@category.comp_id (F C) _ _ _ ⟦f_g⟧],
@@ -204,6 +209,6 @@ begin
 end
 
 instance : groupoid.{u} (F C) :=
-{ inv := λ X Y, inverse, ..(by apply_instance : category (F C)) }
+{ inv := λ X Y, free_monoidal_category.inverse, ..(by apply_instance : category (F C)) }
 
 end category_theory

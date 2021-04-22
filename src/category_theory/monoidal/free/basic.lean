@@ -24,153 +24,96 @@ end
 
 notation `F` := free_monoidal_category
 
-inductive free_monoidal_category_hom : F C → F C → Type u
-| id (X) : free_monoidal_category_hom X X
-| α_hom (X Y Z : F C) : free_monoidal_category_hom ((X.tensor Y).tensor Z) (X.tensor (Y.tensor Z))
-| α_inv (X Y Z) : free_monoidal_category_hom (free_monoidal_category.tensor X (free_monoidal_category.tensor Y Z)) (free_monoidal_category.tensor (free_monoidal_category.tensor X Y) Z)
-| l_hom (X) : free_monoidal_category_hom (free_monoidal_category.tensor free_monoidal_category.unit X) X
-| l_inv (X) : free_monoidal_category_hom X (free_monoidal_category.tensor free_monoidal_category.unit X)
-| ρ_hom (X) : free_monoidal_category_hom (free_monoidal_category.tensor X free_monoidal_category.unit) X
-| ρ_inv (X) : free_monoidal_category_hom X (free_monoidal_category.tensor X free_monoidal_category.unit)
-| comp {X Y Z} (f : free_monoidal_category_hom X Y) (g : free_monoidal_category_hom Y Z) : free_monoidal_category_hom X Z
-| tensor {W X Y Z} (f : free_monoidal_category_hom W Y) (g : free_monoidal_category_hom X Z) : free_monoidal_category_hom (free_monoidal_category.tensor W X) (free_monoidal_category.tensor Y Z)
+namespace free_monoidal_category
 
-infixr ` ⟶ᵐ `:10 := free_monoidal_category_hom
+inductive hom : F C → F C → Type u
+| id (X) : hom X X
+| α_hom (X Y Z : F C) : hom ((X.tensor Y).tensor Z) (X.tensor (Y.tensor Z))
+| α_inv (X Y Z : F C) : hom (X.tensor (Y.tensor Z)) ((X.tensor Y).tensor Z)
+| l_hom (X) : hom (unit.tensor X) X
+| l_inv (X) : hom X (unit.tensor X)
+| ρ_hom (X : F C) : hom (X.tensor unit) X
+| ρ_inv (X : F C) : hom X (X.tensor unit)
+| comp {X Y Z} (f : hom X Y) (g : hom Y Z) : hom X Z
+| tensor {W X Y Z} (f : hom W Y) (g : hom X Z) : hom (W.tensor X) (Y.tensor Z)
 
-inductive free_monoidal_category_hom_equiv : Π (X Y : F C), free_monoidal_category_hom X Y → free_monoidal_category_hom X Y → Prop
-| refl {X Y} (f) : free_monoidal_category_hom_equiv X Y f f
-| symm {X Y} (f g) : free_monoidal_category_hom_equiv X Y f g → free_monoidal_category_hom_equiv X Y g f
-| trans {X Y} {f g h} : free_monoidal_category_hom_equiv X Y f g → free_monoidal_category_hom_equiv X Y g h → free_monoidal_category_hom_equiv X Y f h
-| comp {X Y Z : F C} {f f' : free_monoidal_category_hom X Y} {g g' : free_monoidal_category_hom Y Z} : free_monoidal_category_hom_equiv X Y f f' → free_monoidal_category_hom_equiv Y Z g g' → free_monoidal_category_hom_equiv X Z (f.comp g) (f'.comp g')
-| tensor {W X Y Z : F C} {f f' : W ⟶ᵐ X} {g g' : Y ⟶ᵐ Z} : free_monoidal_category_hom_equiv _ _ f f' → free_monoidal_category_hom_equiv _ _ g g' → free_monoidal_category_hom_equiv _ _ (f.tensor g) (f'.tensor g')
-| comp_id {X Y} (f : free_monoidal_category_hom X Y) : free_monoidal_category_hom_equiv X Y (f.comp (free_monoidal_category_hom.id _)) f
-| id_comp {X Y} (f : free_monoidal_category_hom X Y) : free_monoidal_category_hom_equiv X Y ((free_monoidal_category_hom.id _).comp f) f
-| assoc {X Y U V : F C} (f : free_monoidal_category_hom X U) (g : free_monoidal_category_hom U V) (h : free_monoidal_category_hom V Y) :
-    free_monoidal_category_hom_equiv X Y ((f.comp g).comp h) (f.comp (g.comp h))
-| tensor_id {X Y : F C} : free_monoidal_category_hom_equiv _ _ ((free_monoidal_category_hom.id X).tensor (free_monoidal_category_hom.id Y)) (free_monoidal_category_hom.id _)
+infixr ` ⟶ᵐ `:10 := hom
+
+inductive hom_equiv : Π (X Y : F C), (X ⟶ᵐ Y) → (X ⟶ᵐ Y) → Prop
+| refl {X Y} (f) : hom_equiv X Y f f
+| symm {X Y} (f g) : hom_equiv X Y f g → hom_equiv X Y g f
+| trans {X Y} {f g h} : hom_equiv X Y f g → hom_equiv X Y g h → hom_equiv X Y f h
+| comp {X Y Z : F C} {f f' : X ⟶ᵐ Y} {g g' : Y ⟶ᵐ Z} :
+    hom_equiv X Y f f' → hom_equiv Y Z g g' → hom_equiv X Z (f.comp g) (f'.comp g')
+| tensor {W X Y Z : F C} {f f' : W ⟶ᵐ X} {g g' : Y ⟶ᵐ Z} :
+    hom_equiv _ _ f f' → hom_equiv _ _ g g' → hom_equiv _ _ (f.tensor g) (f'.tensor g')
+| comp_id {X Y} (f : X ⟶ᵐ Y) : hom_equiv X Y (f.comp (hom.id _)) f
+| id_comp {X Y} (f : X ⟶ᵐ Y) : hom_equiv X Y ((hom.id _).comp f) f
+| assoc {X Y U V : F C} (f : X ⟶ᵐ U) (g : U ⟶ᵐ V) (h : V ⟶ᵐ Y) :
+    hom_equiv X Y ((f.comp g).comp h) (f.comp (g.comp h))
+| tensor_id {X Y : F C} : hom_equiv _ _ ((hom.id X).tensor (hom.id Y)) (hom.id _)
 | tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : F C} (f₁ : X₁ ⟶ᵐ Y₁) (f₂ : X₂ ⟶ᵐ Y₂) (g₁ : Y₁ ⟶ᵐ Z₁) (g₂ : Y₂ ⟶ᵐ Z₂) :
-    free_monoidal_category_hom_equiv _ _ ((f₁.comp g₁).tensor (f₂.comp g₂)) ((f₁.tensor f₂).comp (g₁.tensor g₂))
-| α_hom_inv {X Y Z : F C} : free_monoidal_category_hom_equiv _ _ ((free_monoidal_category_hom.α_hom X Y Z).comp (free_monoidal_category_hom.α_inv X Y Z)) (free_monoidal_category_hom.id _)
-| α_inv_hom {X Y Z : F C} : free_monoidal_category_hom_equiv _ _ ((free_monoidal_category_hom.α_inv X Y Z).comp (free_monoidal_category_hom.α_hom X Y Z)) (free_monoidal_category_hom.id _)
+    hom_equiv _ _ ((f₁.comp g₁).tensor (f₂.comp g₂)) ((f₁.tensor f₂).comp (g₁.tensor g₂))
+| α_hom_inv {X Y Z : F C} : hom_equiv _ _ ((hom.α_hom X Y Z).comp (hom.α_inv X Y Z)) (hom.id _)
+| α_inv_hom {X Y Z : F C} : hom_equiv _ _ ((hom.α_inv X Y Z).comp (hom.α_hom X Y Z)) (hom.id _)
 | associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : F C} (f₁ : X₁ ⟶ᵐ Y₁) (f₂ : X₂ ⟶ᵐ Y₂) (f₃ : X₃ ⟶ᵐ Y₃) :
-    free_monoidal_category_hom_equiv _ _ (((f₁.tensor f₂).tensor f₃).comp (free_monoidal_category_hom.α_hom Y₁ Y₂ Y₃))
-      ((free_monoidal_category_hom.α_hom X₁ X₂ X₃).comp (f₁.tensor (f₂.tensor f₃)))
-| ρ_hom_inv {X : F C} : free_monoidal_category_hom_equiv _ _ ((free_monoidal_category_hom.ρ_hom X).comp (free_monoidal_category_hom.ρ_inv X)) (free_monoidal_category_hom.id _)
-| ρ_inv_hom {X : F C} : free_monoidal_category_hom_equiv _ _ ((free_monoidal_category_hom.ρ_inv X).comp (free_monoidal_category_hom.ρ_hom X)) (free_monoidal_category_hom.id _)
-| ρ_naturality {X Y : F C} (f : X ⟶ᵐ Y) : free_monoidal_category_hom_equiv _ _ ((f.tensor (free_monoidal_category_hom.id free_monoidal_category.unit)).comp (free_monoidal_category_hom.ρ_hom Y)) ((free_monoidal_category_hom.ρ_hom X).comp f)
-| l_hom_inv {X : F C} : free_monoidal_category_hom_equiv _ _ ((free_monoidal_category_hom.l_hom X).comp (free_monoidal_category_hom.l_inv X)) (free_monoidal_category_hom.id _)
-| l_inv_hom {X : F C} : free_monoidal_category_hom_equiv _ _ ((free_monoidal_category_hom.l_inv X).comp (free_monoidal_category_hom.l_hom X)) (free_monoidal_category_hom.id _)
-| l_naturality {X Y : F C} (f : X ⟶ᵐ Y) : free_monoidal_category_hom_equiv _ _ (((free_monoidal_category_hom.id free_monoidal_category.unit).tensor f).comp (free_monoidal_category_hom.l_hom Y)) ((free_monoidal_category_hom.l_hom X).comp f)
-| pentagon {W X Y Z : F C} : free_monoidal_category_hom_equiv _ _
-    (((free_monoidal_category_hom.α_hom W X Y).tensor (free_monoidal_category_hom.id Z)).comp
-      ((free_monoidal_category_hom.α_hom W (X.tensor Y) Z).comp ((free_monoidal_category_hom.id W).tensor (free_monoidal_category_hom.α_hom X Y Z))))
-    ((free_monoidal_category_hom.α_hom (W.tensor X) Y Z).comp (free_monoidal_category_hom.α_hom W X (Y.tensor Z)))
-| triangle {X Y : F C} : free_monoidal_category_hom_equiv _ _
-  ((free_monoidal_category_hom.α_hom X free_monoidal_category.unit Y).comp ((free_monoidal_category_hom.id X).tensor (free_monoidal_category_hom.l_hom Y)))
-  ((free_monoidal_category_hom.ρ_hom X).tensor (free_monoidal_category_hom.id Y))
+    hom_equiv _ _ (((f₁.tensor f₂).tensor f₃).comp (hom.α_hom Y₁ Y₂ Y₃))
+      ((hom.α_hom X₁ X₂ X₃).comp (f₁.tensor (f₂.tensor f₃)))
+| ρ_hom_inv {X : F C} : hom_equiv _ _ ((hom.ρ_hom X).comp (hom.ρ_inv X)) (hom.id _)
+| ρ_inv_hom {X : F C} : hom_equiv _ _ ((hom.ρ_inv X).comp (hom.ρ_hom X)) (hom.id _)
+| ρ_naturality {X Y : F C} (f : X ⟶ᵐ Y) : hom_equiv _ _
+    ((f.tensor (hom.id unit)).comp (hom.ρ_hom Y)) ((hom.ρ_hom X).comp f)
+| l_hom_inv {X : F C} : hom_equiv _ _ ((hom.l_hom X).comp (hom.l_inv X)) (hom.id _)
+| l_inv_hom {X : F C} : hom_equiv _ _ ((hom.l_inv X).comp (hom.l_hom X)) (hom.id _)
+| l_naturality {X Y : F C} (f : X ⟶ᵐ Y) : hom_equiv _ _
+    (((hom.id unit).tensor f).comp (hom.l_hom Y)) ((hom.l_hom X).comp f)
+| pentagon {W X Y Z : F C} : hom_equiv _ _
+  (((hom.α_hom W X Y).tensor (hom.id Z)).comp
+    ((hom.α_hom W (X.tensor Y) Z).comp ((hom.id W).tensor (hom.α_hom X Y Z))))
+  ((hom.α_hom (W.tensor X) Y Z).comp (hom.α_hom W X (Y.tensor Z)))
+| triangle {X Y : F C} : hom_equiv _ _ ((hom.α_hom X unit Y).comp ((hom.id X).tensor (hom.l_hom Y)))
+  ((hom.ρ_hom X).tensor (hom.id Y))
 
-def setoid_free_monoidal_category_hom (X Y : F C) : setoid (free_monoidal_category_hom X Y) :=
-⟨free_monoidal_category_hom_equiv X Y,
-  ⟨λ f, free_monoidal_category_hom_equiv.refl f,
-   λ f g, free_monoidal_category_hom_equiv.symm f g,
-   λ f g h hfg hgh, free_monoidal_category_hom_equiv.trans hfg hgh⟩⟩
+def setoid_hom (X Y : F C) : setoid (X ⟶ᵐ Y) :=
+⟨hom_equiv X Y,
+  ⟨λ f, hom_equiv.refl f, λ f g, hom_equiv.symm f g, λ f g h hfg hgh, hom_equiv.trans hfg hgh⟩⟩
 
-attribute [instance] setoid_free_monoidal_category_hom
+attribute [instance] setoid_hom
 
 section
-open free_monoidal_category_hom_equiv
-
-end
+open free_monoidal_category.hom_equiv
 
 instance category_free_monoidal_category : category.{u} (F C) :=
-{ hom := λ X Y, quotient (setoid_free_monoidal_category_hom X Y),
-  id := λ X, ⟦free_monoidal_category_hom.id _⟧,
-  comp := λ X Y Z f g, quotient.map₂ free_monoidal_category_hom.comp (--λ f f' hf g g' hg,
-    begin
-      intros f f' hf g g' hg,
-      exact free_monoidal_category_hom_equiv.comp hf hg
-    end) f g,
-  id_comp' := λ X Y f, --quotient.induction_on f $ quotient.sound (free_monoidal_category_hom_equiv.id_comp f),
-  begin
-    induction f,
-    { apply quotient.sound,
-      exact free_monoidal_category_hom_equiv.id_comp f },
-    { refl }
-  end,
-  comp_id' := λ X Y f,
-  begin
-    induction f,
-    { apply quotient.sound,
-      exact free_monoidal_category_hom_equiv.comp_id f },
-    { refl }
-  end,
-  assoc' := λ W X Y Z f g h,
-  begin
-    induction f,
-    { induction g,
-      { induction h,
-        { apply quotient.sound,
-          exact free_monoidal_category_hom_equiv.assoc f g h },
-        { refl } },
-      { refl } },
-    { refl }
-  end }
+{ hom := λ X Y, quotient (free_monoidal_category.setoid_hom X Y),
+  id := λ X, ⟦free_monoidal_category.hom.id _⟧,
+  comp := λ X Y Z f g, quotient.map₂ hom.comp (by { intros f f' hf g g' hg, exact comp hf hg }) f g,
+  id_comp' := by { rintro X Y ⟨f⟩, exact quotient.sound (id_comp f) },
+  comp_id' := by { rintro X Y ⟨f⟩, exact quotient.sound (comp_id f) },
+  assoc' := by { rintro W X Y Z ⟨f⟩ ⟨g⟩ ⟨h⟩, exact quotient.sound (assoc f g h) } }
 
 instance : monoidal_category (F C) :=
 { tensor_obj := λ X Y, free_monoidal_category.tensor X Y,
-  tensor_hom := λ X₁ Y₁ X₂ Y₂, quotient.map₂ free_monoidal_category_hom.tensor
-  begin
-    intros f f' hf g g' hg,
-    exact free_monoidal_category_hom_equiv.tensor hf hg
-  end,
-  tensor_id' := λ X Y,
-  begin
-    apply quotient.sound,
-    exact free_monoidal_category_hom_equiv.tensor_id
-  end,
+  tensor_hom := λ X₁ Y₁ X₂ Y₂, quotient.map₂ hom.tensor $
+    by { intros _ _ h _ _ h', exact hom_equiv.tensor h h'},
+  tensor_id' := λ X Y, quotient.sound tensor_id,
   tensor_comp' := λ X₁ Y₁ Z₁ X₂ Y₂ Z₂,
-  begin
-    rintros ⟨f₁⟩ ⟨f₂⟩ ⟨g₁⟩ ⟨g₂⟩,
-    exact quotient.sound (free_monoidal_category_hom_equiv.tensor_comp _ _ _ _)
-  end,
+    by { rintros ⟨f₁⟩ ⟨f₂⟩ ⟨g₁⟩ ⟨g₂⟩, exact quotient.sound (tensor_comp _ _ _ _) },
   tensor_unit := free_monoidal_category.unit,
   associator := λ X Y Z,
-  { hom := ⟦free_monoidal_category_hom.α_hom X Y Z⟧,
-    inv := ⟦free_monoidal_category_hom.α_inv X Y Z⟧,
-    hom_inv_id' := quotient.sound free_monoidal_category_hom_equiv.α_hom_inv,
-    inv_hom_id' := quotient.sound free_monoidal_category_hom_equiv.α_inv_hom },
+    ⟨⟦hom.α_hom X Y Z⟧, ⟦hom.α_inv X Y Z⟧, quotient.sound α_hom_inv, quotient.sound α_inv_hom⟩,
   associator_naturality' := λ X₁ X₂ X₃ Y₁ Y₂ Y₃,
-  begin
-    rintros ⟨f₁⟩ ⟨f₂⟩ ⟨f₃⟩,
-    exact quotient.sound (free_monoidal_category_hom_equiv.associator_naturality _ _ _)
-  end,
+    by { rintros ⟨f₁⟩ ⟨f₂⟩ ⟨f₃⟩, exact quotient.sound (associator_naturality _ _ _) },
   left_unitor := λ X,
-  { hom := ⟦free_monoidal_category_hom.l_hom X⟧,
-    inv := ⟦free_monoidal_category_hom.l_inv X⟧,
-    hom_inv_id' := quotient.sound free_monoidal_category_hom_equiv.l_hom_inv,
-    inv_hom_id' := quotient.sound free_monoidal_category_hom_equiv.l_inv_hom },
-  left_unitor_naturality' := λ X Y,
-  begin
-    rintro ⟨f⟩,
-    exact quotient.sound (free_monoidal_category_hom_equiv.l_naturality _)
-  end,
+   ⟨⟦hom.l_hom X⟧, ⟦hom.l_inv X⟧, quotient.sound l_hom_inv, quotient.sound l_inv_hom⟩,
+  left_unitor_naturality' := λ X Y, by { rintro ⟨f⟩, exact quotient.sound (l_naturality _) },
   right_unitor := λ X,
-  { hom := ⟦free_monoidal_category_hom.ρ_hom X⟧,
-    inv := ⟦free_monoidal_category_hom.ρ_inv X⟧,
-    hom_inv_id' := quotient.sound free_monoidal_category_hom_equiv.ρ_hom_inv,
-    inv_hom_id' := quotient.sound free_monoidal_category_hom_equiv.ρ_inv_hom },
-  right_unitor_naturality' := λ X Y,
-  begin
-    rintro ⟨f⟩,
-    exact quotient.sound (free_monoidal_category_hom_equiv.ρ_naturality _)
-  end,
-  pentagon' := λ W X Y Z, quotient.sound free_monoidal_category_hom_equiv.pentagon,
-  triangle' := λ X Y, quotient.sound free_monoidal_category_hom_equiv.triangle }
-
---instance {X Y : F C} (f : X ⟶ Y) : is_iso f :=
+   ⟨⟦hom.ρ_hom X⟧, ⟦hom.ρ_inv X⟧, quotient.sound ρ_hom_inv, quotient.sound ρ_inv_hom⟩,
+  right_unitor_naturality' := λ X Y, by { rintro ⟨f⟩, exact quotient.sound (ρ_naturality _) },
+  pentagon' := λ W X Y Z, quotient.sound pentagon,
+  triangle' := λ X Y, quotient.sound triangle }
 
 section
-open free_monoidal_category_hom
+open hom
 
 @[simp] def inverse' : Π {X Y : F C}, (X ⟶ᵐ Y) → (Y ⟶ᵐ X)
 | _ _ (id X) := id X
@@ -181,7 +124,7 @@ open free_monoidal_category_hom
 | _ _ (l_hom _) := l_inv _
 | _ _ (l_inv _) := l_hom _
 | _ _ (comp f g) := (inverse' g).comp (inverse' f)
-| _ _ (tensor f g) := (inverse' f).tensor (inverse' g)
+| _ _ (hom.tensor f g) := (inverse' f).tensor (inverse' g)
 
 end
 
@@ -193,28 +136,28 @@ rfl
   ⟦f.tensor g⟧ = @monoidal_category.tensor_hom (F C) _ _ _ _ _ _ ⟦f⟧ ⟦g⟧ :=
 rfl
 
-@[simp] lemma mk_id_eq_id {X : F C} : ⟦free_monoidal_category_hom.id X⟧ = 𝟙 X :=
+@[simp] lemma mk_id_eq_id {X : F C} : ⟦hom.id X⟧ = 𝟙 X :=
 rfl
 
 @[simp] lemma tensor_eq_tensor {X Y : F C} : X.tensor Y = X ⊗ Y :=
 rfl
 
-@[simp] lemma mk_α_hom {X Y Z : F C} : ⟦free_monoidal_category_hom.α_hom X Y Z⟧ = (α_ X Y Z).hom :=
+@[simp] lemma mk_α_hom {X Y Z : F C} : ⟦hom.α_hom X Y Z⟧ = (α_ X Y Z).hom :=
 rfl
 
-@[simp] lemma mk_α_inv {X Y Z : F C} : ⟦free_monoidal_category_hom.α_inv X Y Z⟧ = (α_ X Y Z).inv :=
+@[simp] lemma mk_α_inv {X Y Z : F C} : ⟦hom.α_inv X Y Z⟧ = (α_ X Y Z).inv :=
 rfl
 
-@[simp] lemma mk_ρ_hom {X : F C} : ⟦free_monoidal_category_hom.ρ_hom X⟧ = (ρ_ X).hom :=
+@[simp] lemma mk_ρ_hom {X : F C} : ⟦hom.ρ_hom X⟧ = (ρ_ X).hom :=
 rfl
 
-@[simp] lemma mk_ρ_inv {X : F C} : ⟦free_monoidal_category_hom.ρ_inv X⟧ = (ρ_ X).inv :=
+@[simp] lemma mk_ρ_inv {X : F C} : ⟦hom.ρ_inv X⟧ = (ρ_ X).inv :=
 rfl
 
-@[simp] lemma mk_l_hom {X : F C} : ⟦free_monoidal_category_hom.l_hom X⟧ = (λ_ X).hom :=
+@[simp] lemma mk_l_hom {X : F C} : ⟦hom.l_hom X⟧ = (λ_ X).hom :=
 rfl
 
-@[simp] lemma mk_l_inv {X : F C} : ⟦free_monoidal_category_hom.l_inv X⟧ = (λ_ X).inv :=
+@[simp] lemma mk_l_inv {X : F C} : ⟦hom.l_inv X⟧ = (λ_ X).inv :=
 rfl
 
 @[simp] lemma unit_eq_unit : free_monoidal_category.unit = 𝟙_ (F C) :=
@@ -261,9 +204,9 @@ def project_obj : F C → C
 | (free_monoidal_category.tensor X Y) := project_obj X ⊗ project_obj Y
 
 section
-open free_monoidal_category_hom
+open hom
 
-def project_hom' : Π {X Y : F C}, free_monoidal_category_hom X Y → (project_obj X ⟶ project_obj Y)
+def project_hom' : Π {X Y : F C}, (X ⟶ᵐ Y) → (project_obj X ⟶ project_obj Y)
 | _ _ (id _) := 𝟙 _
 | _ _ (α_hom _ _ _) := (α_ _ _ _).hom
 | _ _ (α_inv _ _ _) := (α_ _ _ _).inv
@@ -272,7 +215,7 @@ def project_hom' : Π {X Y : F C}, free_monoidal_category_hom X Y → (project_o
 | _ _ (ρ_hom _) := (ρ_ _).hom
 | _ _ (ρ_inv _) := (ρ_ _).inv
 | _ _ (comp f g) := project_hom' f ≫ project_hom' g
-| _ _ (tensor f g) := project_hom' f ⊗ project_hom' g
+| _ _ (hom.tensor f g) := project_hom' f ⊗ project_hom' g
 
 def project_hom {X Y : F C} : (X ⟶ Y) → (project_obj X ⟶ project_obj Y) :=
 quotient.lift project_hom'
@@ -309,5 +252,9 @@ def project : F C ⥤ C :=
   map := λ X Y, project_hom }
 
 end functor
+
+end
+
+end free_monoidal_category
 
 end category_theory

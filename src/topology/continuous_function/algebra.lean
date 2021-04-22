@@ -441,16 +441,6 @@ def set.separates_points_strongly (s : set C(α, 𝕜)) : Prop :=
 variables [field 𝕜] [topological_ring 𝕜]
 
 /--
-A set of functions "separates points strongly"
-if for each pair of distinct points there is a function with specified values on them.
-
-We give a slightly unusual formulation, where the specified values are given by some
-function `v`, and we ask `f x = v x ∧ f y = v y`. This avoids needing a hypothesis `x ≠ y`.
--/
-def set.separates_points_strongly (s : set C(α, 𝕜)) : Prop :=
-∀ (v : α → 𝕜) (x y : α), ∃ f : s, (f x : 𝕜) = v x ∧ f y = v y
-
-/--
 Working in continuous functions into a topological field,
 a subalgebra of functions that separates points also separates points strongly.
 

@@ -903,10 +903,10 @@ end misc_theorems
 
 section span
 
-variables [semiring k] [add_monoid G]
+variables [semiring k] [add_zero_class G]
 
-lemma mem.span_support (f : (add_monoid_algebra k G)) :
-  f ∈ submodule.span k ((add_monoid_algebra.of k G)'' (f.support : set G)) :=
+lemma mem_span_support (f : add_monoid_algebra k G) :
+  f ∈ submodule.span k (add_monoid_algebra.of k G '' (f.support : set G)) :=
 by rw [add_monoid_algebra.of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single,
   finsupp.mem_supported]
 

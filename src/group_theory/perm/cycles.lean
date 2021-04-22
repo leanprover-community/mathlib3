@@ -59,6 +59,18 @@ let ⟨x, hx⟩ := hf in
       ne.def] at *, cc }) in
     ⟨-i, by rwa [gpow_neg, inv_gpow, inv_inv]⟩⟩
 
+lemma is_cycle.is_cycle_conj {f g : perm β} (hf : is_cycle f) : is_cycle (g * f * g⁻¹) :=
+begin
+  obtain ⟨a, ha1, ha2⟩ := hf,
+  refine ⟨g a, by simp [ha1], λ b hb, _⟩,
+  obtain ⟨i, hi⟩ := ha2 (g⁻¹ b) _,
+  { refine ⟨i, _⟩,
+    rw conj_gpow,
+    simp [hi] },
+  { contrapose! hb,
+    rw [perm.mul_apply, perm.mul_apply, hb, apply_inv_self] }
+end
+
 lemma is_cycle.exists_gpow_eq {f : perm β} (hf : is_cycle f) {x y : β}
   (hx : f x ≠ x) (hy : f y ≠ y) : ∃ i : ℤ, (f ^ i) x = y :=
 let ⟨g, hg⟩ := hf in
@@ -417,7 +429,7 @@ quotient.rec_on_subsingleton (@univ α _).1
 
 @[elab_as_eliminator] lemma cycle_induction_on [fintype β] (P : perm β → Prop) (σ : perm β)
   (base_one : P 1) (base_cycles : ∀ σ : perm β, σ.is_cycle → P σ)
-  (induction_disjoint : ∀ σ τ : perm β, disjoint σ τ → P σ → P τ → P (σ * τ)) :
+  (induction_disjoint : ∀ σ τ : perm β, disjoint σ τ → is_cycle σ → P σ → P τ → P (σ * τ)) :
   P σ :=
 begin
   suffices :
@@ -432,6 +444,7 @@ begin
     rw list.prod_cons,
     exact induction_disjoint σ l.prod
       (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h2).1)
+      (h1 _ (list.mem_cons_self _ _))
       (base_cycles σ (h1 σ (l.mem_cons_self σ)))
       (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
 end

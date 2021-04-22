@@ -67,6 +67,20 @@ calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
 @[simp] lemma conj_mul {a b c : α} : (b * a * b⁻¹) * (b * c * b⁻¹) = b * (a * c) * b⁻¹ :=
 ((mul_aut.conj b).map_mul a c).symm
 
+@[simp] lemma conj_pow {i : ℕ} {a b : α} : (a * b * a⁻¹) ^ i = a * (b ^ i) * a⁻¹ :=
+begin
+  induction i with i hi,
+  { simp },
+  { simp [pow_succ, hi] }
+end
+
+@[simp] lemma conj_gpow {i : ℤ} {a b : α} : (a * b * a⁻¹) ^ i = a * (b ^ i) * a⁻¹ :=
+begin
+  induction i,
+  { apply conj_pow },
+  { simp [gpow_neg_succ_of_nat, conj_pow] }
+end
+
 lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
 (mul_aut.conj x).injective
 

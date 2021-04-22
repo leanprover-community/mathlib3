@@ -1558,14 +1558,6 @@ theorem integral_deriv_eq_sub' (f) (hderiv : deriv f = f')
   ∫ y in a..b, f' y = f b - f a :=
 by rw [← hderiv, integral_deriv_eq_sub hdiff]; cc
 
-theorem integral_deriv_comp_mul_deriv {f f' g g' : ℝ → ℝ}
-  (derivf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
-  (derivg : ∀ x ∈ interval a b, has_deriv_at g (g' (f x)) (f x))
-  (contf' : continuous_on f' (interval a b)) (contg' : continuous g') :
-  ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
-integral_eq_sub_of_has_deriv_at (λ x hx, (derivg x hx).comp x (derivf x hx)) $
-  (contg'.comp_continuous_on (λ y hy, (derivf y hy).continuous_at.continuous_within_at)).mul contf'
-
 /-!
 ### Integration by parts
 -/
@@ -1616,5 +1608,13 @@ lemma integral_comp_mul_deriv' {g f f' : ℝ → ℝ}
   (hf' : continuous_on f' (interval a b)) (hg : continuous g) :
   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
 integral_comp_mul_deriv hf hf' (λ x h, hg.continuous_at) (λ x h, hg.measurable.measurable_at_filter)
+
+theorem integral_deriv_comp_mul_deriv {f f' g g' : ℝ → ℝ}
+  (derivf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (derivg : ∀ x ∈ interval a b, has_deriv_at g (g' (f x)) (f x))
+  (contf' : continuous_on f' (interval a b)) (contg' : continuous g') :
+  ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
+integral_eq_sub_of_has_deriv_at (λ x hx, (derivg x hx).comp x (derivf x hx)) $
+  (contg'.comp_continuous_on (λ y hy, (derivf y hy).continuous_at.continuous_within_at)).mul contf'
 
 end interval_integral

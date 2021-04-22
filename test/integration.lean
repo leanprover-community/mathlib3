@@ -93,3 +93,4 @@ begin
   { simp },
   { simpa using has_deriv_at_pow 2 x },
   { exact continuous_on_const.mul continuous_on_id },
+end

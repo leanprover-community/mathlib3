@@ -619,15 +619,18 @@ end
 lemma closure_singleton_one : closure ({1} : set G) = ⊥ :=
 by simp [eq_bot_iff_forall, mem_closure_singleton]
 
+@[simp, to_additive] lemma inv_subset_closure (S : set G) : S⁻¹ ⊆ closure S :=
+begin
+  intros s hs,
+  rw [set_like.mem_coe, ←subgroup.inv_mem_iff],
+  exact subset_closure (mem_inv.mp hs),
+end
+
 @[simp, to_additive] lemma closure_inv (S : set G) : closure S⁻¹ = closure S :=
 begin
   refine le_antisymm ((subgroup.closure_le _).2 _) ((subgroup.closure_le _).2 _),
-  { intros s hs,
-    rw [set_like.mem_coe, ←subgroup.inv_mem_iff],
-    exact subset_closure (mem_inv.1 hs) },
-  { intros s hs,
-    rw [set_like.mem_coe, ←subgroup.inv_mem_iff],
-    exact subset_closure (set.inv_mem_inv.2 hs) },
+  { exact inv_subset_closure S },
+  { simpa only [set.inv_inv] using inv_subset_closure S⁻¹ },
 end
 
 @[to_additive]

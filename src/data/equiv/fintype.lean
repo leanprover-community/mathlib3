@@ -5,7 +5,7 @@ Authors: Yakov Pechersky
 -/
 
 import data.equiv.basic
-import data.fintype.basic
+import data.set.finite
 import group_theory.perm.sign
 
 /-! # Equivalence between fintypes
@@ -75,3 +75,49 @@ by rwa [equiv.perm.via_embedding, equiv.perm.extend_domain_apply_not_subtype]
 @[simp] lemma equiv.perm.via_embedding_sign [decidable_eq α] [fintype β] :
   equiv.perm.sign (e.via_embedding f) = equiv.perm.sign e :=
 by simp [equiv.perm.via_embedding]
+
+namespace equiv
+variables {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+
+/-- If `e` is an equivalence between two subtypes of a fintype `α`, `e.to_compl`
+is an equivalence between the complement of those subtypes.
+
+See also `equiv.compl`, for a computable version when a term of type
+`{e' : α ≃ α // ∀ x : {x // p x}, e' x = e x}` is known. -/
+noncomputable def to_compl (e : {x // p x} ≃ {x // q x}) : {x // ¬ p x} ≃ {x // ¬ q x} :=
+classical.choice (fintype.card_eq.mp (fintype.card_compl_eq_card_compl (fintype.card_congr e)))
+
+/-- If `e` is an equivalence between two subtypes of a fintype `α`, `e.extend_subtype`
+is a permutation of `α` acting like `e` on the subtypes and doing something arbitrary outside.
+
+Note that when `p = q`, `equiv.perm.subtype_congr e (equiv.refl _)` can be used instead. -/
+noncomputable abbreviation extend_subtype (e : {x // p x} ≃ {x // q x}) : perm α :=
+subtype_congr e e.to_compl
+
+lemma extend_subtype_apply_of_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : p x) :
+  e.extend_subtype x = e ⟨x, hx⟩ :=
+by { dunfold extend_subtype,
+     simp only [subtype_congr, equiv.trans_apply, equiv.sum_congr_apply],
+     -- `p` gets turned into `λ x, p x` which `rw` doesn't like, so we have to use `erw`
+     erw [equiv.set.sum_compl_symm_apply_of_mem hx, sum.map_inl,
+          equiv.set.sum_compl_apply_inl q] }
+
+lemma extend_subtype_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : p x) :
+  q (e.extend_subtype x) :=
+by { convert (e ⟨x, hx⟩).2,
+     rw [e.extend_subtype_apply_of_mem _ hx, subtype.val_eq_coe] }
+
+lemma extend_subtype_apply_of_not_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : ¬ p x) :
+  e.extend_subtype x = e.to_compl ⟨x, hx⟩ :=
+by { dunfold extend_subtype,
+    simp only [subtype_congr, equiv.trans_apply, equiv.sum_congr_apply],
+    -- `p` gets turned into `λ x, p x` which `rw` doesn't like, so we have to use `erw`
+    erw [equiv.set.sum_compl_symm_apply_of_not_mem hx, sum.map_inr,
+         equiv.set.sum_compl_apply_inr q] }
+
+lemma extend_subtype_not_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : ¬ p x) :
+  ¬ q (e.extend_subtype x) :=
+by { convert (e.to_compl ⟨x, hx⟩).2,
+     rw [e.extend_subtype_apply_of_not_mem _ hx, subtype.val_eq_coe] }
+
+end equiv

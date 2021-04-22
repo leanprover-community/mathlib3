@@ -198,8 +198,8 @@ def single (a : α) (b : M) : α →₀ M :=
   { exact ⟨λ H _, h H.symm, λ H, (H rfl).elim⟩ }
 end⟩
 
-lemma single_apply : single a b a' = if a = a' then b else 0 :=
-rfl
+lemma single_apply [decidable (a = a')] : single a b a' = if a = a' then b else 0 :=
+by convert rfl
 
 lemma single_eq_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
 by { ext, simp [single_apply, set.indicator, @eq_comm _ a] }

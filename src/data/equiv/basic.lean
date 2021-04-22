@@ -835,6 +835,13 @@ def sum_compl {α : Type*} (p : α → Prop) [decidable_pred p] :
   (a : α) (h : ¬ p a) :
   (sum_compl p).symm a = sum.inr ⟨a, h⟩ := dif_neg h
 
+/-- Combines an `equiv` between two subtypes with an `equiv` between their complements to form a
+  permutation. -/
+def subtype_congr {α : Type*} {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+  (e : {x // p x} ≃ {x // q x}) (f : {x // ¬p x} ≃ {x // ¬q x}) : perm α :=
+(sum_compl p).symm.trans ((sum_congr e f).trans
+  (sum_compl q))
+
 open equiv
 
 variables {ε : Type*} {p : ε → Prop} [decidable_pred p]

@@ -653,7 +653,7 @@ of `k`. -/
 elements of `k ∪ -k`, and is preserved under addition, then `p` holds for all elements of the
 additive closure of `k`."]
 lemma closure_induction'' {p : G → Prop} {x} (h : x ∈ closure k)
-  (Hk : ∀ x ∈ k ∪ k⁻¹, p x) (H1 : p 1)
+  (Hk : ∀ x ∈ k, p x) (Hk_inv : ∀ x ∈ k, p x⁻¹) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 begin
   change x ∈ (closure k).to_submonoid at h,
@@ -661,10 +661,9 @@ begin
   refine submonoid.closure_induction h (λ x hx, _) H1 (λ x y hx hy, Hmul x y hx hy),
   { rw [mem_union_eq, mem_inv] at hx,
     cases hx with mem invmem,
-    { exact Hk x (subset_union_left k k⁻¹ mem) },
-    { have h := subset_union_right k k⁻¹ (set.inv_mem_inv.2 invmem),
-      rw [inv_inv] at h,
-      exact Hk x h } },
+    { exact Hk x mem },
+    { rw [← inv_inv x],
+      exact Hk_inv _ invmem } },
 end
 
 @[to_additive]

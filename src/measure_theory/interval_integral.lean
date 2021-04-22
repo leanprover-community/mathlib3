@@ -1475,7 +1475,7 @@ begin
       simp only [hy.left, Icc_subset_Icc_right hy.right.le, interval_of_le] },
     { exact ⟨_, Icc_mem_nhds_within_Ioi hy, hmeas'⟩,  },
     { exact (hcont' _ (mem_Icc_of_Ico hy)).mono_of_mem (Icc_mem_nhds_within_Ioi hy) } },
-{ -- TODO: prove that integral of any integrable function is continuous, and use here
+{ -- TODO: prove that the integral of any integrable function is continuous and use here
     letI : tendsto_Ixx_class Ioc (𝓟 (Icc a b)) (𝓟 (Ioc a b)) :=
       tendsto_Ixx_class_principal.2 (λ x hx y hy, Ioc_subset_Ioc hx.1 hy.2),
     haveI : is_measurably_generated (𝓝[Ioc a b] y) :=
@@ -1562,7 +1562,7 @@ by rw [← hderiv, integral_deriv_eq_sub hdiff]; cc
 ### Integration by parts
 -/
 
-lemma integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
+theorem integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
   (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
   (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
   (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
@@ -1584,10 +1584,10 @@ begin
 end
 
 /-!
-### Change of variable
+### Integration by substitution / Change of variables
 -/
 
-lemma integral_comp_mul_deriv {g f f' : ℝ → ℝ}
+theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
   (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (hf' : continuous_on f' (interval a b))
   (hg : ∀ x ∈ f '' (interval a b), continuous_at g x)
@@ -1603,18 +1603,28 @@ have h : ∀ x ∈ interval a b, has_deriv_at (λ u, ∫ t in f a..f u, g t) ((g
 by simp_rw [integral_eq_sub_of_has_deriv_at h $ (hg'.comp (has_deriv_at.continuous_on hf) $
   subset_preimage_image f _).mul hf', integral_same, sub_zero]
 
-lemma integral_comp_mul_deriv' {g f f' : ℝ → ℝ}
-  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
-  (hf' : continuous_on f' (interval a b)) (hg : continuous g) :
+theorem integral_comp_mul_deriv {f f' g : ℝ → ℝ}
+  (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (h' : continuous_on f' (interval a b)) (hg : continuous g) :
   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
-integral_comp_mul_deriv hf hf' (λ x h, hg.continuous_at) (λ x h, hg.measurable.measurable_at_filter)
+integral_comp_mul_deriv' h h' (λ x h, hg.continuous_at) (λ x h, hg.measurable.measurable_at_filter)
+
+theorem integral_deriv_comp_mul_deriv' {f f' g g' : ℝ → ℝ}
+  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (hg : ∀ x ∈ interval (f a) (f b), has_deriv_at g (g' x) x)
+  (hf' : continuous_on f' (interval a b))
+  (hg1 : continuous_on g' (interval (f a) (f b)))
+  (hg2 : ∀ x ∈ f '' (interval a b), continuous_at g' x)
+  (hgm : ∀ x ∈ f '' (interval a b), measurable_at_filter g' (𝓝 x)) :
+  ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
+by rw [integral_comp_mul_deriv' hf hf' hg2 hgm, integral_eq_sub_of_has_deriv_at hg hg1]
 
 theorem integral_deriv_comp_mul_deriv {f f' g g' : ℝ → ℝ}
-  (derivf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
-  (derivg : ∀ x ∈ interval a b, has_deriv_at g (g' (f x)) (f x))
-  (contf' : continuous_on f' (interval a b)) (contg' : continuous g') :
+  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (hg : ∀ x ∈ interval a b, has_deriv_at g (g' (f x)) (f x))
+  (hf' : continuous_on f' (interval a b)) (hg' : continuous g') :
   ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
-integral_eq_sub_of_has_deriv_at (λ x hx, (derivg x hx).comp x (derivf x hx)) $
-  (contg'.comp_continuous_on (λ y hy, (derivf y hy).continuous_at.continuous_within_at)).mul contf'
+integral_eq_sub_of_has_deriv_at (λ x hx, (hg x hx).comp x $ hf x hx) $
+  (hg'.comp_continuous_on $ has_deriv_at.continuous_on hf).mul hf'
 
 end interval_integral

@@ -158,9 +158,8 @@ symm_bijective.injective $ ext $ λ x, rfl
 @[trans] protected def trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') : R ≃+* S' :=
 { .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }
 
-@[simp] lemma trans_apply {A B C : Type*}
-  [semiring A] [semiring B] [semiring C] (e : A ≃+* B) (f : B ≃+* C) (a : A) :
-  e.trans f a = f (e a) := rfl
+@[simp] lemma trans_apply (e₁ : R ≃+* S) (e₂ : S ≃+* S') (a : R) :
+  e₁.trans e₂ a = e₂ (e₁ a) := rfl
 
 protected lemma bijective (e : R ≃+* S) : function.bijective e := e.to_equiv.bijective
 protected lemma injective (e : R ≃+* S) : function.injective e := e.to_equiv.injective

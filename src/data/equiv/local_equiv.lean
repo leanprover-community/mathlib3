@@ -87,6 +87,9 @@ not_false_iff and_imp set.prod_inter_prod set.univ_prod_univ true_or or_true pro
 set.preimage_inter heq_iff_eq equiv.sigma_equiv_prod_apply equiv.sigma_equiv_prod_symm_apply
 subtype.coe_mk equiv.to_fun_as_coe equiv.inv_fun_as_coe
 
+/-- Common `@[simps]` configuration options used for manifold-related declarations. -/
+def mfld_cfg : simps_cfg := {attrs := [`simp, `mfld_simps], fully_applied := ff}
+
 namespace tactic.interactive
 
 /-- A very basic tactic to show that sets showing up in manifolds coincide or are included in
@@ -129,9 +132,9 @@ structure local_equiv (α : Type*) (β : Type*) :=
 (right_inv'  : ∀{x}, x ∈ target → to_fun (inv_fun x) = x)
 
 /-- Associating a local_equiv to an equiv-/
-def equiv.to_local_equiv (e : equiv α β) : local_equiv α β :=
-{ to_fun      := e.to_fun,
-  inv_fun     := e.inv_fun,
+def equiv.to_local_equiv (e : α ≃ β) : local_equiv α β :=
+{ to_fun      := e,
+  inv_fun     := e.symm,
   source      := univ,
   target      := univ,
   map_source' := λx hx, mem_univ _,

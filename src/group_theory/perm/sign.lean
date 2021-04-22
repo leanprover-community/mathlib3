@@ -301,6 +301,24 @@ lemma apply_mem_support {f : perm α} {x : α} :
   f x ∈ f.support ↔ x ∈ f.support :=
 by rw [mem_support, mem_support, ne.def, ne.def, not_iff_not, apply_eq_iff_eq]
 
+@[simp]
+lemma pow_apply_mem_support {f : perm α} {n : ℕ} {x : α} :
+  (f ^ n) x ∈ f.support ↔ x ∈ f.support :=
+begin
+  induction n with n ih,
+  { refl },
+  rw [pow_succ, perm.mul_apply, apply_mem_support, ih]
+end
+
+@[simp]
+lemma gpow_apply_mem_support {f : perm α} {n : ℤ} {x : α} :
+  (f ^ n) x ∈ f.support ↔ x ∈ f.support :=
+begin
+  cases n,
+  { rw [int.of_nat_eq_coe, gpow_coe_nat, pow_apply_mem_support] },
+  { rw [gpow_neg_succ_of_nat, ← support_inv, ← inv_pow, pow_apply_mem_support] }
+end
+
 end fintype
 
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/

@@ -142,6 +142,14 @@ begin
     exact ⟨le_trans hay hyz, le_trans hsx_sup hxz⟩, },
 end
 
+-- If we acquire sublattices
+-- the hypotheses should be reformulated as `s : subsemilattice_sup_bot`
+lemma sup_mem
+  (s : set α) (w₁ : ⊥ ∈ s) (w₂ : ∀ x y ∈ s, x ⊔ y ∈ s)
+  {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
+  t.sup p ∈ s :=
+@sup_induction _ _ _ _ _ (∈ s) w₁ w₂ h
+
 end sup
 
 lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
@@ -229,6 +237,12 @@ lemma inf_induction {p : α → Prop} (ht : p ⊤) (hp : ∀ (a₁ a₂ : α), p
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf f) :=
 @sup_induction (order_dual α) _ _ _ _ _ ht hp hs
 
+lemma inf_mem
+  (s : set α) (w₁ : ⊤ ∈ s) (w₂ : ∀ x y ∈ s, x ⊓ y ∈ s)
+  {ι : Type*} (t : finset ι) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
+  t.inf p ∈ s :=
+@inf_induction _ _ _ _ _ (∈ s) w₁ w₂ h
+
 end inf
 
 lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = (⨅a∈s, f a) :=
@@ -293,6 +307,22 @@ begin
   exact bex_congr (λ b hb, with_bot.coe_lt_coe),
 end
 
+lemma comp_sup'_eq_sup'_comp [semilattice_sup γ] {s : finset β} (H : s.nonempty)
+  {f : β → α} (g : α → γ) (g_sup : ∀ x y, g (x ⊔ y) = g x ⊔ g y) :
+  g (s.sup' H f) = s.sup' H (g ∘ f) :=
+begin
+  rw [←with_bot.coe_eq_coe, coe_sup'],
+  let g' : with_bot α → with_bot γ := with_bot.rec_bot_coe ⊥ (λ x, ↑(g x)),
+  show g' ↑(s.sup' H f) = s.sup (λ a, g' ↑(f a)),
+  rw coe_sup',
+  refine comp_sup_eq_sup_comp g' _ rfl,
+  intros f₁ f₂,
+  cases f₁,
+  { rw [with_bot.none_eq_bot, bot_sup_eq], exact bot_sup_eq.symm, },
+  { cases f₂, refl,
+    exact congr_arg coe (g_sup f₁ f₂), },
+end
+
 lemma sup'_induction {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊔ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.sup' H f) :=
 begin
@@ -317,6 +347,12 @@ begin
       { exact ⟨c, mem_cons.2 (or.inl rfl), sup_eq_left.2 h⟩, },
       { exact ⟨b, mem_cons.2 (or.inr hb), sup_eq_right.2 h⟩, }, }, },
 end
+
+lemma sup'_mem
+  (s : set α) (w : ∀ x y ∈ s, x ⊔ y ∈ s)
+  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
+  t.sup' H p ∈ s :=
+sup'_induction H p w h
 
 end sup'
 
@@ -367,12 +403,22 @@ lemma inf'_le {b : β} (h : b ∈ s) : s.inf' ⟨b, h⟩ f ≤ f b :=
 @[simp] lemma inf'_lt_iff [is_total α (≤)] {a : α} : s.inf' H f < a ↔ (∃ b ∈ s, f b < a) :=
 @lt_sup'_iff (order_dual α) _ _ _ H f _ _
 
+lemma comp_inf'_eq_inf'_comp [semilattice_inf γ] {s : finset β} (H : s.nonempty)
+  {f : β → α} (g : α → γ) (g_inf : ∀ x y, g (x ⊓ y) = g x ⊓ g y) :
+  g (s.inf' H f) = s.inf' H (g ∘ f) :=
+@comp_sup'_eq_sup'_comp (order_dual α) _ (order_dual γ) _ _ _ H f g g_inf
+
 lemma inf'_induction {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf' H f) :=
 @sup'_induction (order_dual α) _ _ _ H f _ hp hs
 
 lemma exists_mem_eq_inf' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.inf' H f = f b :=
 @exists_mem_eq_sup' (order_dual α) _ _ _ H f _
+
+lemma inf'_mem (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
+  {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
+  t.inf' H p ∈ s :=
+inf'_induction H p w h
 
 end inf'
 
@@ -413,11 +459,7 @@ variables {C : β → Type*} [Π (b : β), semilattice_sup_bot (C b)]
 
 protected lemma sup_apply (s : finset α) (f : α → Π (b : β), C b) (b : β) :
   s.sup f b = s.sup (λ a, f a b) :=
-begin
-  induction s using finset.cons_induction with c s hc ih,
-  { refl, },
-  { rw [sup_cons, sup_cons, _root_.sup_apply, ih], },
-end
+comp_sup_eq_sup_comp (λ x : Π b : β, C b, x b) (λ i j, rfl) rfl
 
 end sup
 
@@ -435,17 +477,7 @@ variables {C : β → Type*} [Π (b : β), semilattice_sup (C b)]
 
 lemma sup'_apply {s : finset α} (H : s.nonempty) (f : α → Π (b : β), C b) (b : β) :
   s.sup' H f b = s.sup' H (λ a, f a b) :=
-begin
-  rw [←with_bot.coe_eq_coe, coe_sup'],
-  let g := @with_bot.rec_bot_coe (Π b, C b) (λ _, with_bot (C b)) ⊥ (λ f, ↑(f b)),
-  show g ↑(s.sup' H f) = s.sup (λ a, g ↑(f a)),
-  rw coe_sup',
-  refine comp_sup_eq_sup_comp g _ rfl,
-  intros f₁ f₂,
-  cases f₁,
-  { rw [with_bot.none_eq_bot, bot_sup_eq], exact bot_sup_eq.symm, },
-  { cases f₂, refl, refl, },
-end
+comp_sup'_eq_sup'_comp H (λ x : Π b : β, C b, x b) (λ i j, rfl)
 
 end sup'
 

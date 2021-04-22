@@ -595,7 +595,7 @@ reverse_injective.eq_iff
 
 lemma reverse_eq_iff {l l' : list α} :
   l.reverse = l' ↔ l = l'.reverse :=
-by rw [←reverse_reverse l', reverse_inj, reverse_reverse]
+reverse_involutive.eq_iff
 
 @[simp] theorem reverse_eq_nil {l : list α} : reverse l = [] ↔ l = [] :=
 @reverse_inj _ l []

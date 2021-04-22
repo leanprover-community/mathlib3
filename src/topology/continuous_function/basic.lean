@@ -172,7 +172,6 @@ instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
 section sup'
 variables [linear_order γ] [order_closed_topology γ]
 
-@[simp]
 lemma sup'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
   s.sup' H f b = s.sup' H (λ a, f a b) :=
 finset.comp_sup'_eq_sup'_comp H (λ f : C(β, γ), f b) (λ i j, rfl)
@@ -180,14 +179,13 @@ finset.comp_sup'_eq_sup'_comp H (λ f : C(β, γ), f b) (λ i j, rfl)
 @[simp, norm_cast]
 lemma sup'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
   ((s.sup' H f : C(β, γ)) : ι → β) = s.sup' H (λ a, (f a : β → γ)) :=
-by { ext, simp, }
+by { ext, simp [sup'_apply], }
 
 end sup'
 
 section inf'
 variables [linear_order γ] [order_closed_topology γ]
 
-@[simp]
 lemma inf'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
   s.inf' H f b = s.inf' H (λ a, f a b) :=
 @sup'_apply _ (order_dual γ) _ _ _ _ _ _ H f b

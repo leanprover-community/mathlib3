@@ -37,7 +37,7 @@ that all these points of view are equivalent, with the following lemmas
 - `iff_fg` states that the space is finite-dimensional if and only if it is finitely generated
 
 Also defined is `findim`, the dimension of a finite dimensional space, returning a `nat`,
-as opposed to `dim`, which returns a `cardinal`. When the space has infinite dimension, its
+as opposed to `module.rank`, which returns a `cardinal`. When the space has infinite dimension, its
 `findim` is by convention set to `0`.
 
 Preservation of finite-dimensionality and formulas for the dimension are given for
@@ -68,7 +68,7 @@ equivalence is proved in `submodule.fg_iff_finite_dimensional`.
 universes u v v' w
 open_locale classical
 
-open module cardinal submodule module function
+open cardinal submodule module function
 
 variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [module K V]
 {V₂ : Type v'} [add_comm_group V₂] [module K V₂]
@@ -85,7 +85,7 @@ open is_noetherian
 
 /-- A vector space is finite-dimensional if and only if its dimension (as a cardinal) is strictly
 less than the first infinite cardinal `omega`. -/
-lemma finite_dimensional_iff_dim_lt_omega : finite_dimensional K V ↔ dim K V < omega.{v} :=
+lemma finite_dimensional_iff_dim_lt_omega : finite_dimensional K V ↔ module.rank K V < omega.{v} :=
 begin
   cases exists_is_basis K V with b hb,
   have := is_basis.mk_eq_dim hb,
@@ -103,7 +103,7 @@ end
 /-- The dimension of a finite-dimensional vector space, as a cardinal, is strictly less than the
 first infinite cardinal `omega`. -/
 lemma dim_lt_omega (K V : Type*) [field K] [add_comm_group V] [module K V] :
-  ∀ [finite_dimensional K V], dim K V < omega.{v} :=
+  ∀ [finite_dimensional K V], module.rank K V < omega.{v} :=
 finite_dimensional_iff_dim_lt_omega.1
 
 /-- In a finite dimensional space, there exists a finite basis. A basis is in general given as a
@@ -182,16 +182,16 @@ finite_dimensional_iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_quotient_le _) (dim_l
 be `0` if the space is infinite-dimensional. -/
 noncomputable def findim (K V : Type*) [field K]
   [add_comm_group V] [module K V] : ℕ :=
-(dim K V).to_nat
+(module.rank K V).to_nat
 
 /-- In a finite-dimensional space, its dimension (seen as a cardinal) coincides with its
 `findim`. -/
 lemma findim_eq_dim (K : Type u) (V : Type v) [field K]
   [add_comm_group V] [module K V] [finite_dimensional K V] :
-  (findim K V : cardinal.{v}) = dim K V :=
+  (findim K V : cardinal.{v}) = module.rank K V :=
 by rw [findim, cast_to_nat_of_lt_omega (dim_lt_omega K V)]
 
-lemma findim_eq_of_dim_eq {n : ℕ} (h : dim K V = ↑ n) : findim K V = n :=
+lemma findim_eq_of_dim_eq {n : ℕ} (h : module.rank K V = ↑ n) : findim K V = n :=
 begin
   apply_fun to_nat at h,
   rw to_nat_cast at h,
@@ -216,7 +216,7 @@ finite_dimensional_of_findim $ by convert nat.succ_pos n; apply fact.out
 /-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
 cardinality of the basis. -/
 lemma dim_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
-  dim K V = fintype.card ι :=
+  module.rank K V = fintype.card ι :=
 by rw [←h.mk_range_eq_dim, cardinal.fintype_card,
        set.card_range_of_injective h.injective]
 
@@ -526,7 +526,7 @@ end finite_dimensional
 
 section zero_dim
 
-open module finite_dimensional
+open finite_dimensional
 
 lemma finite_dimensional_of_dim_eq_zero (h : module.rank K V = 0) : finite_dimensional K V :=
 by rw [finite_dimensional_iff_dim_lt_omega, h]; exact cardinal.omega_pos
@@ -566,7 +566,7 @@ begin
   rw [findim_bot, findim_eq_zero_of_dim_eq_zero h]
 end
 
-@[simp] theorem dim_eq_zero {S : submodule K V} : dim K S = 0 ↔ S = ⊥ :=
+@[simp] theorem dim_eq_zero {S : submodule K V} : module.rank K S = 0 ↔ S = ⊥ :=
 ⟨λ h, (submodule.eq_bot_iff _).2 $ λ x hx, congr_arg subtype.val $
   ((submodule.eq_bot_iff _).1 $ eq.symm $ bot_eq_top_of_dim_eq_zero h) ⟨x, hx⟩ submodule.mem_top,
 λ h, by rw [h, dim_bot]⟩
@@ -646,7 +646,7 @@ by { rw ← s.findim_quotient_add_findim, exact nat.le_add_right _ _ }
 theorem dim_sup_add_dim_inf_eq (s t : submodule K V) [finite_dimensional K s]
   [finite_dimensional K t] : findim K ↥(s ⊔ t) + findim K ↥(s ⊓ t) = findim K ↥s + findim K ↥t :=
 begin
-  have key : dim K ↥(s ⊔ t) + dim K ↥(s ⊓ t) = dim K s + dim K t := dim_sup_add_dim_inf_eq s t,
+  have key : module.rank K ↥(s ⊔ t) + module.rank K ↥(s ⊓ t) = module.rank K s + module.rank K t := dim_sup_add_dim_inf_eq s t,
   repeat { rw ←findim_eq_dim at key },
   norm_cast at key,
   exact key
@@ -997,7 +997,7 @@ lemma findim_add_eq_of_is_compl
   [finite_dimensional K V] {U W : submodule K V} (h : is_compl U W) :
   findim K U + findim K W = findim K V :=
 begin
-  rw [← submodule.rank_sup_add_dim_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1,
+  rw [← submodule.dim_sup_add_dim_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1,
       findim_bot, add_zero],
   exact findim_top
 end
@@ -1012,7 +1012,7 @@ lemma findim_span_le_card (s : set V) [fin : fintype s] :
   findim K (span K s) ≤ s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
-  have : dim K (span K s) ≤ (mk s : cardinal) := dim_span_le s,
+  have : module.rank K (span K s) ≤ (mk s : cardinal) := dim_span_le s,
   rw [←findim_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
   exact_mod_cast this
 end
@@ -1022,7 +1022,7 @@ lemma findim_span_eq_card {ι : Type*} [fintype ι] {b : ι → V}
   findim K (span K (set.range b)) = fintype.card ι :=
 begin
   haveI : finite_dimensional K (span K (set.range b)) := span_of_finite K (set.finite_range b),
-  have : dim K (span K (set.range b)) = (mk (set.range b) : cardinal) := dim_span hb,
+  have : module.rank K (span K (set.range b)) = (mk (set.range b) : cardinal) := dim_span hb,
   rwa [←findim_eq_dim, ←lift_inj, mk_range_eq_of_injective hb.injective,
     cardinal.fintype_card, lift_nat_cast, lift_nat_cast, nat_cast_inj] at this,
 end
@@ -1032,7 +1032,7 @@ lemma findim_span_set_eq_card (s : set V) [fin : fintype s]
   findim K (span K s) = s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
-  have : dim K (span K s) = (mk s : cardinal) := dim_span_set hs,
+  have : module.rank K (span K s) = (mk s : cardinal) := dim_span_set hs,
   rw [←findim_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
   exact_mod_cast this
 end
@@ -1193,7 +1193,7 @@ section subalgebra_dim
 open module
 variables {F E : Type*} [field F] [field E] [algebra F E]
 
-lemma subalgebra.dim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : dim F S = 1 :=
+lemma subalgebra.dim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : module.rank F S = 1 :=
 begin
   rw [← S.to_submodule_equiv.dim_eq, h,
     (linear_equiv.of_eq (⊥ : subalgebra F E).to_submodule _ algebra.to_submodule_bot).dim_eq,
@@ -1202,18 +1202,18 @@ begin
 end
 
 @[simp]
-lemma subalgebra.dim_bot : dim F (⊥ : subalgebra F E) = 1 :=
+lemma subalgebra.dim_bot : module.rank F (⊥ : subalgebra F E) = 1 :=
 subalgebra.dim_eq_one_of_eq_bot rfl
 
 lemma subalgebra_top_dim_eq_submodule_top_dim :
-  dim F (⊤ : subalgebra F E) = dim F (⊤ : submodule F E) :=
+  module.rank F (⊤ : subalgebra F E) = module.rank F (⊤ : submodule F E) :=
 by { rw ← algebra.coe_top, refl }
 
 lemma subalgebra_top_findim_eq_submodule_top_findim :
   findim F (⊤ : subalgebra F E) = findim F (⊤ : submodule F E) :=
 by { rw ← algebra.coe_top, refl }
 
-lemma subalgebra.dim_top : dim F (⊤ : subalgebra F E) = dim F E :=
+lemma subalgebra.dim_top : module.rank F (⊤ : subalgebra F E) = module.rank F E :=
 by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top }
 
 lemma subalgebra.finite_dimensional_bot : finite_dimensional F (⊥ : subalgebra F E) :=
@@ -1223,7 +1223,7 @@ finite_dimensional_of_dim_eq_one subalgebra.dim_bot
 lemma subalgebra.findim_bot : findim F (⊥ : subalgebra F E) = 1 :=
 begin
   haveI : finite_dimensional F (⊥ : subalgebra F E) := subalgebra.finite_dimensional_bot,
-  have : dim F (⊥ : subalgebra F E) = 1 := subalgebra.dim_bot,
+  have : module.rank F (⊥ : subalgebra F E) = 1 := subalgebra.dim_bot,
   rw ← findim_eq_dim at this,
   norm_cast at *,
   simp *,
@@ -1252,7 +1252,7 @@ begin
   exact ⟨a, by rw [← ha, algebra.smul_def, mul_one]⟩,
 end
 
-lemma subalgebra.eq_bot_of_dim_one {S : subalgebra F E} (h : dim F S = 1) : S = ⊥ :=
+lemma subalgebra.eq_bot_of_dim_one {S : subalgebra F E} (h : module.rank F S = 1) : S = ⊥ :=
 begin
   haveI : finite_dimensional F S := finite_dimensional_of_dim_eq_one h,
   rw ← findim_eq_dim at h,
@@ -1261,7 +1261,7 @@ begin
 end
 
 @[simp]
-lemma subalgebra.bot_eq_top_of_dim_eq_one (h : dim F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
+lemma subalgebra.bot_eq_top_of_dim_eq_one (h : module.rank F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
 begin
   rw [← dim_top, ← subalgebra_top_dim_eq_submodule_top_dim] at h,
   exact eq.symm (subalgebra.eq_bot_of_dim_one h),
@@ -1275,7 +1275,7 @@ begin
 end
 
 @[simp]
-theorem subalgebra.dim_eq_one_iff {S : subalgebra F E} : dim F S = 1 ↔ S = ⊥ :=
+theorem subalgebra.dim_eq_one_iff {S : subalgebra F E} : module.rank F S = 1 ↔ S = ⊥ :=
 ⟨subalgebra.eq_bot_of_dim_one, subalgebra.dim_eq_one_of_eq_bot⟩
 
 @[simp]

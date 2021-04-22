@@ -209,6 +209,7 @@ end module
 
 /-- A module over a `subsingleton` semiring is a `subsingleton`. We cannot register this
 as an instance because Lean has no way to guess `R`. -/
+protected
 theorem module.subsingleton (R M : Type*) [semiring R] [subsingleton R] [add_comm_monoid M]
   [module R M] :
   subsingleton M :=

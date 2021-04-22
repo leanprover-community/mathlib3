@@ -603,7 +603,7 @@ end
 
 section span
 
-variables [semiring k] [monoid G]
+variables [semiring k] [mul_one_class G]
 
 lemma mem.span_support (f : (monoid_algebra k G)) :
   f ∈ submodule.span k ((monoid_algebra.of k G)'' (f.support : set G)) :=

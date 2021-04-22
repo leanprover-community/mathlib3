@@ -463,11 +463,13 @@ variables [fintype α] {σ τ : perm α}
 
 noncomputable theory
 
-lemma is_conj_of_support_equiv (f : {x // x ∈ (σ.support : set α)} ≃ {x // x ∈ (τ.support : set α)})
+lemma is_conj_of_support_equiv {α : Type*} [fintype α] {σ τ : perm α}
+  (f : {x // x ∈ (σ.support : set α)} ≃ {x // x ∈ (τ.support : set α)})
   (hf : ∀ (x : α) (hx : x ∈ (σ.support : set α)), (f ⟨σ x, apply_mem_support.2 hx⟩ : α) =
     τ (f ⟨x, hx⟩)) :
   is_conj σ τ :=
 begin
+  classical,
   refine is_conj_iff.2 ⟨equiv.extend_subtype f, _⟩,
   rw mul_inv_eq_iff_eq_mul,
   ext,

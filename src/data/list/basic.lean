@@ -776,7 +776,7 @@ lemma tail_append_of_ne_nil (l l' : list α) (h : l ≠ []) :
   (l ++ l').tail = l.tail ++ l' :=
 begin
   cases l,
-  { simpa using h },
+  { contradiction },
   { simp }
 end
 

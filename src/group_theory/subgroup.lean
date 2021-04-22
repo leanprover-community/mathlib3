@@ -647,9 +647,11 @@ begin
 end
 
 /-- An induction principle for closure membership. If `p` holds for `1` and all elements of
-`k` and their inverse, and is preserved under multiplication, then `p` holds for all elements of the closure of `k`. -/
+`k` and their inverse, and is preserved under multiplication, then `p` holds for all elements of
+the closure of `k`. -/
 @[to_additive "An induction principle for additive closure membership. If `p` holds for `0` and all
-elements of `k` and their negation, and is preserved under addition, then `p` holds for all elements of the additive closure of `k`."]
+elements of `k` and their negation, and is preserved under addition, then `p` holds for all
+elements of the additive closure of `k`."]
 lemma closure_induction'' {p : G → Prop} {x} (h : x ∈ closure k)
   (Hk : ∀ x ∈ k, p x) (Hk_inv : ∀ x ∈ k, p x⁻¹) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=

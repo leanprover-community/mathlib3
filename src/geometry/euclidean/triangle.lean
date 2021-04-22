@@ -352,4 +352,47 @@ begin
                                                 (λ he, h2 (vsub_eq_zero_iff_eq.1 he))
 end
 
+/-- Stewart's Theorem. -/
+theorem sq_dist_mul_dist_add_sq_dist_mul_dist (a : P) {b c p : P} (h : ∠ b p c = π) :
+  (dist a b) ^ 2 * (dist c p) + (dist a c) ^ 2 * (dist b p) =
+  (dist b c) * ((dist a p) ^ 2 + (dist b p) * (dist c p)) :=
+begin
+  let lawcos := dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle,
+  have h1 : (dist a b) ^ 2 = (dist a p) ^ 2 + (dist b p) ^ 2
+            - 2 * dist a p * dist b p * real.cos (∠ a p b), { simp [pow_two], exact lawcos a p b },
+  have h2 : (dist a c) ^ 2 = (dist a p) ^ 2 + (dist c p) ^ 2
+            - 2 * dist a p * dist c p * real.cos (∠ a p c), { simp [pow_two], exact lawcos a p c },
+  have h3 : real.cos (∠ a p b) = - real.cos (∠ a p c),
+  { rw [eq_sub_of_add_eq (angle_add_angle_eq_pi_of_angle_eq_pi a h), real.cos_pi_sub (∠ a p c)] },
+  have h4 : (dist b c) = (dist b p) + (dist c p) := dist_eq_add_dist_of_angle_eq_pi h,
+
+  calc  (dist a b) ^ 2 * (dist c p) + (dist a c) ^ 2 * (dist b p)
+      = ((dist b p) + (dist c p)) * ((dist a p) ^ 2 + (dist b p) * (dist c p))
+        : by { rw [h1, h2, h3], ring }
+  ... = (dist b c) * ((dist a p) ^ 2 + (dist b p) * (dist c p)) : by rw ← h4,
+end
+
+lemma dist_mul_of_eq_angle_of_dist_mul {a b c a' b' c' : P} {r : ℝ} (h : ∠ a' b' c' = ∠ a b c)
+  (hab : dist a' b' = r * dist a b) (hcb : dist c' b' = r * dist c b) :
+  dist a' c' = r * dist a c :=
+begin
+  let lawcos := dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle,
+  have h' : dist a' c' ^ 2 = (r * dist a c) ^ 2,
+  calc  dist a' c' ^ 2
+      = dist a' b' ^ 2 + dist c' b' ^ 2 - 2 * dist a' b' * dist c' b' * real.cos (∠ a' b' c') :
+        by { simp [pow_two], exact lawcos a' b' c' }
+  ... = r ^ 2 * (dist a b ^ 2 + dist c b ^ 2 - 2 * dist a b * dist c b * real.cos (∠ a b c)) :
+        by { rw [h, hab, hcb], ring }
+  ... = r ^ 2 * dist a c ^ 2 :
+        by rw [pow_two (dist a b), pow_two (dist c b), pow_two (dist a c), ← lawcos a b c]
+  ... = (r * dist a c) ^ 2 : by ring,
+
+  by_cases hab₁ : a = b,
+  { have hab'₁ : a' = b', rw [← dist_eq_zero, hab, dist_eq_zero.mpr hab₁, mul_zero r],
+    rw [hab₁, hab'₁, dist_comm b' c', dist_comm b c, hcb] },
+  have h1 : 0 ≤ r * dist a b, rw ← hab, exact dist_nonneg,
+  have h2 : 0 ≤ r := nonneg_of_mul_nonneg_right h1 (dist_pos.mpr hab₁),
+  exact (eq_of_pow_two_eq_pow_two dist_nonneg (mul_nonneg h2 dist_nonneg)).mp h',
+end
+
 end euclidean_geometry

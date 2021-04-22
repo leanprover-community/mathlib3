@@ -161,9 +161,6 @@ instance [semiring R] [add_comm_monoid M] [module R M] : module R (tsze R M) :=
 { add_smul := λ r₁ r₂ x, ext (add_mul r₁ r₂ x.1) (add_smul r₁ r₂ x.2),
   zero_smul := λ x, ext (zero_mul x.1) (zero_smul R x.2) }
 
-instance [ring R] [add_comm_group M] [module R M] : module R (tsze R M) :=
-{ .. triv_sq_zero_ext.module R M }
-
 /-- The canonical `R`-linear inclusion `M → triv_sq_zero_ext R M`. -/
 @[simps apply]
 def inr_hom [semiring R] [add_comm_monoid M] [module R M] : M →ₗ[R] tsze R M :=

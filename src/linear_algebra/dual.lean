@@ -676,18 +676,18 @@ begin
   ext φ, split; intro hφ,
   { rw mem_ker at hφ,
     rw submodule.mem_dual_annihilator,
-    rintro y ⟨x, _, rfl⟩,
+    rintro y ⟨x, rfl⟩,
     rw [← dual_map_apply, hφ, zero_apply] },
   { ext x,
     rw dual_map_apply,
     rw submodule.mem_dual_annihilator at hφ,
-    exact hφ (f x) ⟨x, set_like.mem_coe.mpr submodule.mem_top, rfl⟩ }
+    exact hφ (f x) ⟨x, rfl⟩ }
 end
 
 lemma range_dual_map_le_dual_annihilator_ker :
   f.dual_map.range ≤ f.ker.dual_annihilator :=
 begin
-  rintro _ ⟨ψ, _, rfl⟩,
+  rintro _ ⟨ψ, rfl⟩,
   simp_rw [submodule.mem_dual_annihilator, mem_ker],
   rintro x hx,
   rw [dual_map_apply, hx, map_zero]

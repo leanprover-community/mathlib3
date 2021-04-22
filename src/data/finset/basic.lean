@@ -1635,6 +1635,26 @@ end
 theorem to_finset_surjective : surjective (to_finset : list α → finset α) :=
 by { intro s, rcases to_finset_surj_on (set.mem_univ s) with ⟨l, -, hls⟩, exact ⟨l, hls⟩ }
 
+lemma to_finset_eq_iff_perm_erase_dup {l l' : list α} :
+  l.to_finset = l'.to_finset ↔ l.erase_dup ~ l'.erase_dup :=
+by simp [finset.ext_iff, perm_ext (nodup_erase_dup _) (nodup_erase_dup _)]
+
+lemma to_finset_eq_of_perm (l l' : list α) (h : l ~ l') :
+  l.to_finset = l'.to_finset :=
+to_finset_eq_iff_perm_erase_dup.mpr h.erase_dup
+
+@[simp] lemma to_finset_append {l l' : list α} :
+  to_finset (l ++ l') = l.to_finset ∪ l'.to_finset :=
+begin
+  induction l with hd tl hl,
+  { simp },
+  { simp [hl] }
+end
+
+@[simp] lemma to_finset_reverse {l : list α} :
+  to_finset l.reverse = l.to_finset :=
+to_finset_eq_of_perm _ _ (reverse_perm l)
+
 end list
 
 namespace finset
@@ -2070,6 +2090,9 @@ end finset
 
 theorem multiset.to_finset_card_le [decidable_eq α] (m : multiset α) : m.to_finset.card ≤ m.card :=
 card_le_of_le (erase_dup_le _)
+
+lemma list.card_to_finset [decidable_eq α] (l : list α) :
+  finset.card l.to_finset = l.erase_dup.length := rfl
 
 theorem list.to_finset_card_le [decidable_eq α] (l : list α) : l.to_finset.card ≤ l.length :=
 multiset.to_finset_card_le ⟦l⟧

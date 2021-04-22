@@ -303,7 +303,8 @@ The finite set of all `m : σ →₀ ℕ` such that `X^m` has a non-zero coeffic
 def support (p : mv_polynomial σ R) : finset (σ →₀ ℕ) :=
 p.support
 
-lemma support_monomial : (monomial s a).support = if a = 0 then ∅ else {s} := rfl
+lemma support_monomial [decidable (a = 0)] : (monomial s a).support = if a = 0 then ∅ else {s} :=
+by convert rfl
 
 lemma support_monomial_subset : (monomial s a).support ⊆ {s} :=
 support_single_subset
@@ -371,11 +372,11 @@ by simp [monomial_eq]
 
 @[simp] lemma coeff_monomial (m n) (a) :
   coeff m (monomial n a : mv_polynomial σ R) = if n = m then a else 0 :=
-by convert single_apply
+single_apply
 
 @[simp] lemma coeff_C (m) (a) :
   coeff m (C a : mv_polynomial σ R) = if 0 = m then a else 0 :=
-by convert single_apply
+single_apply
 
 lemma coeff_X_pow (i : σ) (m) (k : ℕ) :
   coeff m (X i ^ k : mv_polynomial σ R) = if single i k = m then 1 else 0 :=
@@ -413,7 +414,7 @@ begin
   convert this.symm using 1; clear this,
   { rw [coeff],
     iterate 2 { rw sum_apply, apply finset.sum_congr rfl, intros, dsimp only },
-    convert single_apply },
+    exact single_apply },
   symmetry,
   -- We are now ready to show that both sums are equal using `finset.sum_bij_ne_zero`.
   apply finset.sum_bij_ne_zero (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)) _ _, (x.1, x.2)),

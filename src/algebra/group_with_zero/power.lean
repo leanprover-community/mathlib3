@@ -159,7 +159,7 @@ begin
 end
 
 theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
-| (m : ℕ) (n : ℕ) := by { rw [ gpow_coe_nat, gpow_coe_nat, ← pow_mul, ← gpow_coe_nat], refl }
+| (m : ℕ) (n : ℕ) := by { rw [gpow_coe_nat, gpow_coe_nat, ← pow_mul, ← gpow_coe_nat], refl }
 | (m : ℕ) -[1+ n] := by { rw [gpow_coe_nat, gpow_neg_succ_of_nat, ← pow_mul, coe_nat_mul_neg_succ,
     fpow_neg, inv_inj', ← gpow_coe_nat], refl }
 | -[1+ m] (n : ℕ) := by { rw [gpow_coe_nat, gpow_neg_succ_of_nat, ← inv_pow', ← pow_mul,
@@ -250,3 +250,19 @@ lemma monoid_with_zero_hom.map_fpow {G₀ G₀' : Type*} [group_with_zero G₀] 
     rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat],
     exact ((f.map_inv' _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _)
   end
+
+-- I haven't been able to find a better home for this:
+-- it belongs with other lemmas on `linear_ordered_field`, but
+-- we need to wait until `fpow` has been defined in this file.
+section
+variables {R : Type*} [linear_ordered_field R] {a : R}
+
+lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=
+begin
+  simp only [inv_nonneg, fpow_neg],
+  change 0 ≤ a ^ ((2 : ℕ) : ℤ),
+  rw gpow_coe_nat,
+  apply pow_two_nonneg,
+end
+
+end

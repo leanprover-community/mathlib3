@@ -922,6 +922,15 @@ lemma tmul_sub (m : M) (n₁ n₂ : N) : m ⊗ₜ (n₁ - n₂) = (m ⊗ₜ[R] n
 lemma sub_tmul (m₁ m₂ : M) (n : N) : (m₁ - m₂) ⊗ₜ n = (m₁ ⊗ₜ[R] n) - (m₂ ⊗ₜ[R] n) :=
 (mk R M N).map_sub₂ _ _ _
 
+/--
+While the tensor product will automatically inherit a ℤ-module structure from
+`add_comm_group.int_module`, that structure won't be compatible with lemmas like `tmul_smul` unless
+we use a `ℤ-module` instance provided by `tensor_product.semimodule'`.
+
+When `R` is a `ring` we get the required `tensor_product.compatible_smul` instance through
+`is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
+The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
+-/
 instance compatible_smul.int : compatible_smul R ℤ M N :=
 ⟨λ r m n, int.induction_on r
   (by simp)

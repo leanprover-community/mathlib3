@@ -28,19 +28,63 @@ variables {a b : ℝ}
 
 namespace interval_integral
 open measure_theory
-variables {f : ℝ → ℝ} {μ ν : measure ℝ} [locally_finite_measure μ]
+variables {f : ℝ → ℝ} {μ ν : measure ℝ} [locally_finite_measure μ] (c d : ℝ)
 
 @[simp]
-lemma integral_const_mul (c : ℝ) : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
+lemma integral_const_mul : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
 integral_smul c
 
 @[simp]
-lemma integral_mul_const (c : ℝ) : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
+lemma integral_mul_const : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
 by simp only [mul_comm, integral_const_mul]
 
 @[simp]
-lemma integral_div (c : ℝ) : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c :=
+lemma integral_div : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c :=
 integral_mul_const c⁻¹
+
+@[simp]
+lemma mul_integral_comp_mul_right : c * ∫ x in a..b, f (x * c) = ∫ x in a*c..b*c, f x :=
+smul_integral_comp_mul_right f c
+
+@[simp]
+lemma mul_integral_comp_mul_left : c * ∫ x in a..b, f (c * x) = ∫ x in c*a..c*b, f x :=
+smul_integral_comp_mul_left f c
+
+@[simp]
+lemma inv_mul_integral_comp_div : c⁻¹ * ∫ x in a..b, f (x / c) = ∫ x in a/c..b/c, f x :=
+inv_smul_integral_comp_div f c
+
+@[simp]
+lemma mul_integral_comp_mul_add : c * ∫ x in a..b, f (c * x + d) = ∫ x in c*a+d..c*b+d, f x :=
+smul_integral_comp_mul_add f c d
+
+@[simp]
+lemma mul_integral_comp_add_mul : c * ∫ x in a..b, f (d + c * x) = ∫ x in d+c*a..d+c*b, f x :=
+smul_integral_comp_add_mul f c d
+
+@[simp]
+lemma inv_mul_integral_comp_div_add : c⁻¹ * ∫ x in a..b, f (x / c + d) = ∫ x in a/c+d..b/c+d, f x :=
+inv_smul_integral_comp_div_add f c d
+
+@[simp]
+lemma inv_mul_integral_comp_add_div : c⁻¹ * ∫ x in a..b, f (d + x / c) = ∫ x in d+a/c..d+b/c, f x :=
+inv_smul_integral_comp_add_div f c d
+
+@[simp]
+lemma mul_integral_comp_mul_sub : c * ∫ x in a..b, f (c * x - d) = ∫ x in c*a-d..c*b-d, f x :=
+smul_integral_comp_mul_sub f c d
+
+@[simp]
+lemma mul_integral_comp_sub_mul : c * ∫ x in a..b, f (d - c * x) = ∫ x in d-c*b..d-c*a, f x :=
+smul_integral_comp_sub_mul f c d
+
+@[simp]
+lemma inv_mul_integral_comp_div_sub : c⁻¹ * ∫ x in a..b, f (x / c - d) = ∫ x in a/c-d..b/c-d, f x :=
+inv_smul_integral_comp_div_sub f c d
+
+@[simp]
+lemma inv_mul_integral_comp_sub_div : c⁻¹ * ∫ x in a..b, f (d - x / c) = ∫ x in d-b/c..d-a/c, f x :=
+inv_smul_integral_comp_sub_div f c d
 
 @[simp]
 lemma interval_integrable_pow (n : ℕ) : interval_integrable (λ x, x^n) μ a b :=

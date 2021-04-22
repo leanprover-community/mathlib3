@@ -13,11 +13,6 @@ import ring_theory.subring
 
 Further, these limits are preserved by the forgetful functor --- that is,
 the underlying types are just the limits in the category of types.
-
-## Implementation note
-
-Lean suffers in some unification steps, and has to do a lot of unfolding to check that types match.
-We use a hack that prefixing such proofs with `by convert` can give a huge speedup.
 -/
 
 /- We use the following trick a lot of times in this file.-/

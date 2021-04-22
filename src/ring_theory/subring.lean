@@ -382,19 +382,24 @@ variables (g : S →+* T) (f : R →+* S)
 /-! # range -/
 
 /-- The range of a ring homomorphism, as a subring of the target. -/
-def range {R : Type u} {S : Type v} [ring R] [ring S]
-  (f : R →+* S) : subring S := (⊤ : subring R).map f
+def range {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S) : subring S :=
+((⊤ : subring R).map f).copy (set.range f) set.image_univ.symm
 
-@[simp] lemma coe_range : (f.range : set S) = set.range f := set.image_univ
+/-- Note that `ring_hom.range` is deliberately defined in a way that makes this true by `rfl`,
+as this means the types `↥(set.range f)` and `↥f.range` are interchangeable without proof
+obligations. -/
+@[simp] lemma coe_range : (f.range : set S) = set.range f := rfl
 
-@[simp] lemma mem_range {f : R →+* S} {y : S} : y ∈ f.range ↔ ∃ x, f x = y :=
-by simp [range]
+@[simp] lemma mem_range {f : R →+* S} {y : S} : y ∈ f.range ↔ ∃ x, f x = y := iff.rfl
+
+lemma range_eq_map (f : R →+* S) : f.range = subring.map f ⊤ :=
+by { ext, simp }
 
 lemma mem_range_self (f : R →+* S) (x : R) : f x ∈ f.range :=
 mem_range.mpr ⟨x, rfl⟩
 
 lemma map_range : f.range.map g = (g.comp f).range :=
-(⊤ : subring R).map_map g f
+by simpa only [range_eq_map] using (⊤ : subring R).map_map g f
 
 -- TODO -- rename to `cod_restrict` when is_ring_hom is deprecated
 /-- Restrict the codomain of a ring homomorphism to a subring that includes the range. -/
@@ -677,7 +682,7 @@ def restrict (f : R →+* S) (s : subring R) : s →+* S := f.comp s.subtype
 
 This is the bundled version of `set.range_factorization`. -/
 def range_restrict (f : R →+* S) : R →+* f.range :=
-f.cod_restrict' f.range $ λ x, ⟨x, subring.mem_top x, rfl⟩
+f.cod_restrict' f.range $ λ x, ⟨x, rfl⟩
 
 @[simp] lemma coe_range_restrict (f : R →+* S) (x : R) : (f.range_restrict x : S) = f x := rfl
 

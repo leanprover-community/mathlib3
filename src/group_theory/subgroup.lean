@@ -661,10 +661,7 @@ begin
       (submonoid.subset_closure hx)) (submonoid.one_mem _) (λ x y hx hy, submonoid.mul_mem _ hx hy)
       (λ x hx, _),
     rwa [←submonoid.mem_closure_inv, set.union_inv, set.inv_inv, set.union_comm] },
-  { simp only [true_and, coe_to_submonoid, union_subset_iff, subset_closure],
-    intros s hs,
-    rw [← closure_inv],
-    exact subset_closure hs }
+  { simp only [true_and, coe_to_submonoid, union_subset_iff, subset_closure, inv_subset_closure] }
 end
 
 @[to_additive]

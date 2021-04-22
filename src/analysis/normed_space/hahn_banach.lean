@@ -539,7 +539,6 @@ begin
   exact filter.mem_sets_of_superset this (λ x hx, ⟨_, hx, by simp [hx₀]⟩),
 end
 
-#exit
 /--
 A version of the Hahn-Banach theorem: given disjoint convex subsets `A,B` where `A` is open, there
 is a continuous linear functional which separates them.

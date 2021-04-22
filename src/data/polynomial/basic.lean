@@ -86,9 +86,7 @@ lemma monomial_pow (n : ℕ) (r : R) (k : ℕ) :
   (monomial n r)^k = monomial (n*k) (r^k) :=
 begin
   rw mul_comm,
-  convert add_monoid_algebra.single_pow k,
-  simp only [nat.cast_id, nsmul_eq_mul],
-  refl,
+  exact add_monoid_algebra.single_pow k,
 end
 
 lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :
@@ -151,7 +149,7 @@ def coeff (p : polynomial R) : ℕ → R := @coe_fn (ℕ →₀ R) _ p
 @[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
 
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
-by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }
+finsupp.single_apply
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 := rfl
 
@@ -229,11 +227,7 @@ finsupp.single_left_inj ha
 
 lemma nat_cast_mul {R : Type*} [semiring R] (n : ℕ) (p : polynomial R) :
   (n : polynomial R) * p = n • p :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [ih, nat.succ_eq_add_one, add_smul, add_mul], },
-end
+(nsmul_eq_mul _ _).symm
 
 end semiring
 

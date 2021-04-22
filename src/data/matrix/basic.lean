@@ -10,6 +10,7 @@ import algebra.big_operators.ring
 import algebra.star.basic
 import data.equiv.ring
 import data.fintype.card
+import data.matrix.dmatrix
 
 /-!
 # Matrices
@@ -17,6 +18,7 @@ import data.fintype.card
 universes u u' v w
 
 open_locale big_operators
+open dmatrix
 
 /-- `matrix m n` is the type of matrices whose rows are indexed by the fintype `m`
     and whose columns are indexed by the fintype `n`. -/
@@ -83,15 +85,6 @@ instance [unique α] : unique (matrix m n α) := pi.unique
 instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
 instance [nonempty m] [nonempty n] [nontrivial α] : nontrivial (matrix m n α) :=
 function.nontrivial
-
-@[simp] theorem zero_apply [has_zero α] (i j) : (0 : matrix m n α) i j = 0 := rfl
-@[simp] theorem neg_apply [has_neg α] (M : matrix m n α) (i j) : (- M) i j = - M i j := rfl
-@[simp] theorem add_apply [has_add α] (M N : matrix m n α) (i j) :
-  (M + N) i j = M i j + N i j :=
-rfl
-@[simp] theorem sub_apply [has_sub α] (M N : matrix m n α) (i j) :
-  (M - N) i j = M i j - N i j :=
-rfl
 
 @[simp] lemma map_zero [has_zero α] {β : Type w} [has_zero β] {f : α → β} (h : f 0 = 0) :
   (0 : matrix m n α).map f = 0 :=
@@ -849,11 +842,66 @@ lemma minor_neg [has_neg α] (A : matrix m n α) :
 lemma minor_sub [has_sub α] (A B : matrix m n α) :
   ((A - B).minor : (l → m) → (o → n) → matrix l o α) = A.minor - B.minor := rfl
 
+@[simp]
 lemma minor_zero [has_zero α] :
   ((0 : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = 0 := rfl
 
-lemma minor_smul [semiring α] (r : α) (A : matrix m n α) :
+lemma minor_smul {R : Type*} [semiring R] [add_comm_monoid α] [semimodule R α] (r : R)
+  (A : matrix m n α) :
   ((r • A : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = r • A.minor := rfl
+
+/-- If the minor doesn't repeat elements, then when applied to a diagonal matrix the result is
+diagonal. -/
+lemma minor_diagonal [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α) (e : l → m)
+  (he : function.injective e) :
+  (diagonal d).minor e e = diagonal (d ∘ e) :=
+ext $ λ i j, begin
+  rw minor_apply,
+  by_cases h : i = j,
+  { rw [h, diagonal_apply_eq, diagonal_apply_eq], },
+  { rw [diagonal_apply_ne h, diagonal_apply_ne (he.ne h)], },
+end
+
+lemma minor_one [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l → m)
+  (he : function.injective e) :
+  (1 : matrix m m α).minor e e = 1 :=
+minor_diagonal _ e he
+
+lemma minor_mul [semiring α] {p q : Type*} [fintype p] [fintype q]
+  (M : matrix m n α) (N : matrix n p α)
+  (e₁ : l → m) (e₂ : o → n) (e₃ : q → p) (he₂ : function.bijective e₂) :
+  (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
+ext $ λ _ _, (he₂.sum_comp _).symm
+
+/-! `simp` lemmas for `matrix.minor`s interaction with `matrix.diagonal`, `1`, and `matrix.mul` for
+when the mappings are bundled. -/
+
+@[simp]
+lemma minor_diagonal_embedding [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α)
+  (e : l ↪ m) :
+  (diagonal d).minor e e = diagonal (d ∘ e) :=
+minor_diagonal d e e.injective
+
+@[simp]
+lemma minor_diagonal_equiv [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α)
+  (e : l ≃ m) :
+  (diagonal d).minor e e = diagonal (d ∘ e) :=
+minor_diagonal d e e.injective
+
+@[simp]
+lemma minor_one_embedding [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l ↪ m) :
+  (1 : matrix m m α).minor e e = 1 :=
+minor_one e e.injective
+
+@[simp]
+lemma minor_one_equiv [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l ≃ m) :
+  (1 : matrix m m α).minor e e = 1 :=
+minor_one e e.injective
+
+lemma minor_mul_equiv [semiring α] {p q : Type*} [fintype p] [fintype q]
+  (M : matrix m n α) (N : matrix n p α) (e₁ : l → m) (e₂ : o ≃ n) (e₃ : q → p)  :
+  (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
+minor_mul M N e₁ e₂ e₃ e₂.bijective
 
 /-- The natural map that reindexes a matrix's rows and columns with equivalent types is an
 equivalence. -/

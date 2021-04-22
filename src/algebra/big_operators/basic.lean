@@ -571,12 +571,14 @@ by { rw prod_ite, simp [filter_false_of_mem h, filter_true_of_mem h] }
 by { simp_rw ←(ite_not (p _)), apply prod_ite_of_false, simpa }
 
 @[to_additive] lemma prod_apply_ite_of_false {p : α → Prop} {hp : decidable_pred p} (f g : α → γ)
-  (k : γ → β) (h : ∀ x ∈ s, ¬p x) : (∏ x in s, k (if p x then f x else g x)) = (∏ x in s, k (g x))
-  := by { simp_rw apply_ite k, exact prod_ite_of_false _ _ h }
+  (k : γ → β) (h : ∀ x ∈ s, ¬p x) :
+  (∏ x in s, k (if p x then f x else g x)) = (∏ x in s, k (g x)) :=
+by { simp_rw apply_ite k, exact prod_ite_of_false _ _ h }
 
 @[to_additive] lemma prod_apply_ite_of_true {p : α → Prop} {hp : decidable_pred p} (f g : α → γ)
-  (k : γ → β) (h : ∀ x ∈ s, p x) : (∏ x in s, k (if p x then f x else g x)) = (∏ x in s, k (f x))
-  := by { simp_rw apply_ite k, exact prod_ite_of_true _ _ h }
+  (k : γ → β) (h : ∀ x ∈ s, p x) :
+  (∏ x in s, k (if p x then f x else g x)) = (∏ x in s, k (f x)) :=
+by { simp_rw apply_ite k, exact prod_ite_of_true _ _ h }
 
 @[to_additive]
 lemma prod_extend_by_one [decidable_eq α] (s : finset α) (f : α → β) :

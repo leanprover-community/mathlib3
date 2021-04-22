@@ -30,7 +30,7 @@ begin
   let t : ℕ → ℕ → R := λ n m, x ^ m * (y ^ (n - m)) * (choose n m),
   change (x + y) ^ n = ∑ m in range (n + 1), t n m,
   have h_first : ∀ n, t n 0 = y ^ n :=
-    λ n, by { dsimp [t], rw [choose_zero_right, nat.cast_one, mul_one, one_mul] },
+    λ n, by { dsimp [t], rw [choose_zero_right, pow_zero, nat.cast_one, mul_one, one_mul] },
   have h_last : ∀ n, t n n.succ = 0 :=
     λ n, by { dsimp [t], rw [choose_succ_self, nat.cast_zero, mul_zero] },
   have h_middle : ∀ (n i : ℕ), (i ∈ range n.succ) →
@@ -50,7 +50,7 @@ begin
   end,
   induction n with n ih,
   { rw [pow_zero, sum_range_succ, range_zero, sum_empty, zero_add],
-    dsimp [t], rw [choose_self, nat.cast_one, mul_one, mul_one] },
+    dsimp [t], rw [pow_zero, pow_zero, choose_self, nat.cast_one, mul_one, mul_one] },
   { rw [sum_range_succ', h_first],
     rw [sum_congr rfl (h_middle n), sum_add_distrib, add_assoc],
     rw [pow_succ (x + y), ih, add_mul, mul_sum, mul_sum],
@@ -103,6 +103,14 @@ begin
   simpa [sum_range_choose_halfway n] using t
 end
 
+lemma four_pow_le_two_mul_add_one_mul_central_binom (n : ℕ) :
+  4 ^ n ≤ (2 * n + 1) * choose (2 * n) n :=
+calc 4 ^ n = (1 + 1) ^ (2 * n) : by norm_num [pow_mul]
+...        = ∑ m in range (2 * n + 1), choose (2 * n) m : by simp [add_pow]
+...        ≤ ∑ m in range (2 * n + 1), choose (2 * n) (2 * n / 2) :
+  sum_le_sum (λ i hi, choose_le_middle i (2 * n))
+...        = (2 * n + 1) * choose (2 * n) n : by simp
+
 end nat
 
 theorem int.alternating_sum_range_choose {n : ℕ} :
@@ -121,7 +129,7 @@ by rw [int.alternating_sum_range_choose, if_neg h0]
 namespace finset
 
 theorem sum_powerset_apply_card {α β : Type*} [add_comm_monoid α] (f : ℕ → α) {x : finset β} :
-  ∑ m in x.powerset, f m.card = ∑ m in range (x.card + 1), (x.card.choose m) •ℕ f m :=
+  ∑ m in x.powerset, f m.card = ∑ m in range (x.card + 1), (x.card.choose m) • f m :=
 begin
   transitivity ∑ m in range (x.card + 1), ∑ j in x.powerset.filter (λ z, z.card = m), f j.card,
   { refine (sum_fiberwise_of_maps_to _ _).symm,

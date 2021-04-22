@@ -197,7 +197,7 @@ submodule.ext $ λ x, by simp [mem_sup]
 lemma is_compl_range_inl_inr : is_compl (inl R M M₂).range (inr R M M₂).range :=
 begin
   split,
-  { rintros ⟨_, _⟩ ⟨⟨x, -, hx⟩, ⟨y, -, hy⟩⟩,
+  { rintros ⟨_, _⟩ ⟨⟨x, hx⟩, ⟨y, hy⟩⟩,
     simp only [prod.ext_iff, inl_apply, inr_apply, mem_bot] at hx hy ⊢,
     exact ⟨hy.1.symm, hx.2.symm⟩ },
   { rintros ⟨x, y⟩ -,
@@ -252,6 +252,29 @@ begin
   exact ⟨⟨x, rfl⟩, ⟨x, rfl⟩⟩
 end
 
+lemma ker_prod_ker_le_ker_coprod {M₂ : Type*} [add_comm_group M₂] [semimodule R M₂]
+  {M₃ : Type*} [add_comm_group M₃] [semimodule R M₃]
+  (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
+  (ker f).prod (ker g) ≤ ker (f.coprod g) :=
+by { rintros ⟨y, z⟩, simp {contextual := tt} }
+
+lemma ker_coprod_of_disjoint_range {M₂ : Type*} [add_comm_group M₂] [semimodule R M₂]
+  {M₃ : Type*} [add_comm_group M₃] [semimodule R M₃]
+  (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (hd : disjoint f.range g.range) :
+  ker (f.coprod g) = (ker f).prod (ker g) :=
+begin
+  apply le_antisymm _ (ker_prod_ker_le_ker_coprod f g),
+  rintros ⟨y, z⟩ h,
+  simp only [mem_ker, mem_prod, coprod_apply] at h ⊢,
+  have : f y ∈ f.range ⊓ g.range,
+  { simp only [true_and, mem_range, mem_inf, exists_apply_eq_apply],
+    use -z,
+    rwa [eq_comm, map_neg, ← sub_eq_zero, sub_neg_eq_add] },
+  rw [hd.eq_bot, mem_bot] at this,
+  rw [this] at h,
+  simpa [this] using h,
+end
+
 end linear_map
 
 namespace submodule
@@ -296,10 +319,10 @@ by rw [ker, ← prod_bot, prod_comap_inl]
 by rw [ker, ← prod_bot, prod_comap_inr]
 
 @[simp] theorem range_fst : (fst R M M₂).range = ⊤ :=
-by rw [range, ← prod_top, prod_map_fst]
+by rw [range_eq_map, ← prod_top, prod_map_fst]
 
 @[simp] theorem range_snd : (snd R M M₂).range = ⊤ :=
-by rw [range, ← prod_top, prod_map_snd]
+by rw [range_eq_map, ← prod_top, prod_map_snd]
 
 end submodule
 

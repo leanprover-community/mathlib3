@@ -139,8 +139,15 @@ instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
 @[simp] lemma zero_apply (m : Πi, M₁ i) : (0 : multilinear_map R M₁ M₂) m = 0 := rfl
 
 instance : add_comm_monoid (multilinear_map R M₁ M₂) :=
-by refine {zero := 0, add := (+), ..};
-   intros; ext; simp [add_comm, add_left_comm]
+{ zero := (0 : multilinear_map R M₁ M₂),
+  add := (+),
+  add_assoc := by intros; ext; simp [add_comm, add_left_comm],
+  zero_add := by intros; ext; simp [add_comm, add_left_comm],
+  add_zero := by intros; ext; simp [add_comm, add_left_comm],
+  add_comm := by intros; ext; simp [add_comm, add_left_comm],
+  nsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
+  nsmul_zero' := λ f, by { ext, simp },
+  nsmul_succ' := λ n f, by { ext, simp [add_smul, nat.succ_eq_one_add] } }
 
 @[simp] lemma sum_apply {α : Type*} (f : α → multilinear_map R M₁ M₂)
   (m : Πi, M₁ i) : ∀ {s : finset α}, (∑ a in s, f a) m = ∑ a in s, f a m :=
@@ -331,7 +338,7 @@ begin
       simp only [finset.sum_congr rfl this, finset.mem_univ, finset.sum_const, Ai_card i,
                  one_nsmul] },
     simp only [sum_congr rfl this, Ai_card, card_pi_finset, prod_const_one, one_nsmul,
-               sum_const] },
+               finset.sum_const] },
   -- Remains the interesting case where one of the `A i`, say `A i₀`, has cardinality at least 2.
   -- We will split into two parts `B i₀` and `C i₀` of smaller cardinality, let `B i = C i = A i`
   -- for `i ≠ i₀`, apply the inductive assumption to `B` and `C`, and add up the corresponding
@@ -786,7 +793,7 @@ instance : has_sub (multilinear_map R M₁ M₂) :=
 
 instance : add_comm_group (multilinear_map R M₁ M₂) :=
 by refine { zero := 0, add := (+), neg := has_neg.neg,
-            sub := has_sub.sub, sub_eq_add_neg := _, .. };
+            sub := has_sub.sub, sub_eq_add_neg := _, .. multilinear_map.add_comm_monoid, .. };
    intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
 
 end range_add_comm_group

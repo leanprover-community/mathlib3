@@ -36,9 +36,14 @@ instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
 
 variables {α β} {f g : continuous_map α β}
 
-protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
+@[continuity] protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
 
-@[continuity] lemma coe_continuous : continuous (f : α → β) := f.continuous_to_fun
+protected lemma continuous_at (f : C(α, β)) (x : α) : continuous_at f x :=
+f.continuous.continuous_at
+
+protected lemma continuous_within_at (f : C(α, β)) (s : set α) (x : α) :
+  continuous_within_at f s x :=
+f.continuous.continuous_within_at
 
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
@@ -125,6 +130,10 @@ pi.lt_def
 instance has_sup [linear_order β] [order_closed_topology β] : has_sup C(α, β) :=
 { sup := λ f g, { to_fun := λ a, max (f a) (g a), } }
 
+@[simp, norm_cast] lemma sup_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
+  ((f ⊔ g : C(α, β)) : α → β) = (f ⊔ g : α → β) :=
+rfl
+
 @[simp] lemma sup_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
   (f ⊔ g) a = max (f a) (g a) :=
 rfl
@@ -138,6 +147,10 @@ instance [linear_order β] [order_closed_topology β] : semilattice_sup C(α, β
 
 instance has_inf [linear_order β] [order_closed_topology β] : has_inf C(α, β) :=
 { inf := λ f g, { to_fun := λ a, min (f a) (g a), } }
+
+@[simp, norm_cast] lemma inf_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
+  ((f ⊓ g : C(α, β)) : α → β) = (f ⊓ g : α → β) :=
+rfl
 
 @[simp] lemma inf_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
   (f ⊓ g) a = min (f a) (g a) :=
@@ -156,6 +169,41 @@ instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
 
 -- TODO transfer this lattice structure to `bounded_continuous_function`
 
+section sup'
+variables [linear_order γ] [order_closed_topology γ]
+
+lemma sup'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
+  s.sup' H f b = s.sup' H (λ a, f a b) :=
+finset.comp_sup'_eq_sup'_comp H (λ f : C(β, γ), f b) (λ i j, rfl)
+
+@[simp, norm_cast]
+lemma sup'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
+  ((s.sup' H f : C(β, γ)) : ι → β) = s.sup' H (λ a, (f a : β → γ)) :=
+by { ext, simp [sup'_apply], }
+
+end sup'
+
+section inf'
+variables [linear_order γ] [order_closed_topology γ]
+
+lemma inf'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
+  s.inf' H f b = s.inf' H (λ a, f a b) :=
+@sup'_apply _ (order_dual γ) _ _ _ _ _ _ H f b
+
+@[simp, norm_cast]
+lemma inf'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
+  ((s.inf' H f : C(β, γ)) : ι → β) = s.inf' H (λ a, (f a : β → γ)) :=
+@sup'_coe _ (order_dual γ) _ _ _ _ _ _ H f
+
+end inf'
+
 end lattice
 
 end continuous_map
+
+/--
+The forward direction of a homeomorphism, as a bundled continuous map.
+-/
+@[simps]
+def homeomorph.to_continuous_map {α β : Type*} [topological_space α] [topological_space β]
+  (e : α ≃ₜ β) : C(α, β) := ⟨e⟩

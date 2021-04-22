@@ -8,8 +8,7 @@ import tactic.ring
 
 /-- The ring of integers adjoined with a square root of `d`.
   These have the form `a + b √d` where `a b : ℤ`. The components
-  are called `re` and `im` by analogy to the negative `d` case,
-  but of course both parts are real here since `d` is nonnegative. -/
+  are called `re` and `im` by analogy to the negative `d` case. -/
 structure zsqrtd (d : ℤ) :=
 (re : ℤ)
 (im : ℤ)
@@ -86,14 +85,17 @@ instance : has_mul ℤ√d := ⟨zsqrtd.mul⟩
 @[simp] theorem mul_im : ∀ z w : ℤ√d, (z * w).im = z.re * w.im + z.im * w.re
 | ⟨x, y⟩ ⟨x', y'⟩ := rfl
 
-instance : comm_ring ℤ√d := by refine
+instance : comm_ring ℤ√d :=
+by refine_struct
 { add            := (+),
-  zero           := 0,
+  zero           := (0 : ℤ√d),
   neg            := has_neg.neg,
   mul            := (*),
   sub            := λ a b, a + -b,
-  one            := 1, ..};
-  { intros, simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm] }
+  one            := 1,
+  npow           := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
+  nsmul          := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩ };
+intros; try { refl }; simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm]
 
 instance : add_comm_monoid ℤ√d    := by apply_instance
 instance : add_monoid ℤ√d         := by apply_instance
@@ -193,6 +195,18 @@ protected lemma coe_int_mul (m n : ℤ) : (↑(m * n) : ℤ√d) = ↑m * ↑n :
 (int.cast_ring_hom _).map_mul _ _
 protected lemma coe_int_inj {m n : ℤ} (h : (↑m : ℤ√d) = ↑n) : m = n :=
 by simpa using congr_arg re h
+
+lemma coe_int_dvd_iff {d : ℤ} (z : ℤ) (a : ℤ√d) : ↑z ∣ a ↔ z ∣ a.re ∧ z ∣ a.im :=
+begin
+  split,
+  { rintro ⟨x, rfl⟩,
+    simp only [add_zero, coe_int_re, zero_mul, mul_im, dvd_mul_right, and_self, mul_re, mul_zero,
+      coe_int_im] },
+  { rintro ⟨⟨r, hr⟩, ⟨i, hi⟩⟩,
+    use ⟨r, i⟩,
+    rw [smul_val, ext],
+    exact ⟨hr, hi⟩ },
+end
 
 /-- Read `sq_le a c b d` as `a √c ≤ b √d` -/
 def sq_le (a c b d : ℕ) : Prop := c*a*a ≤ d*b*b

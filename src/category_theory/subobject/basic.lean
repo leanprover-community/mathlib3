@@ -184,21 +184,21 @@ lemma eq_of_comp_arrow_eq {X Y : C} {P : subobject Y}
   {f g : X ⟶ P} (h : f ≫ P.arrow = g ≫ P.arrow) : f = g :=
 (cancel_mono P.arrow).mp h
 
--- TODO surely there is a cleaner proof here
+lemma mk_le_mk_of_comm {B A₁ A₂ : C} {f₁ : A₁ ⟶ B} {f₂ : A₂ ⟶ B} [mono f₁] [mono f₂] (g : A₁ ⟶ A₂)
+  (w : g ≫ f₂ = f₁) : mk f₁ ≤ mk f₂ :=
+⟨mono_over.hom_mk _ w⟩
+
+@[simp] lemma mk_arrow (P : subobject X) : mk P.arrow = P :=
+quotient.induction_on' P $ λ Q,
+begin
+  obtain ⟨e⟩ := @quotient.mk_out' _ (is_isomorphic_setoid _) Q,
+  refine quotient.sound' ⟨mono_over.iso_mk _ _ ≪≫ e⟩;
+  tidy
+end
+
 lemma le_of_comm {B : C} {X Y : subobject B} (f : (X : C) ⟶ (Y : C)) (w : f ≫ Y.arrow = X.arrow) :
   X ≤ Y :=
-begin
-  revert f w,
-  refine quotient.induction_on₂' X Y _,
-  intros P Q f w,
-  fsplit,
-  refine over.hom_mk ((representative_iso P).inv.left ≫ f ≫ (representative_iso Q).hom.left) _,
-  dsimp,
-  simp only [over.w, category.assoc],
-  erw [w, (representative_iso P).inv.w],
-  dsimp,
-  simp only [category.comp_id],
-end
+by convert mk_le_mk_of_comm _ w; simp
 
 lemma le_mk_of_comm {B A : C} {X : subobject B} {f : A ⟶ B} [mono f] (g : (X : C) ⟶ A)
   (w : g ≫ f = X.arrow) : X ≤ mk f :=
@@ -207,10 +207,6 @@ le_of_comm (g ≫ (underlying_iso f).inv) $ by simp [w]
 lemma mk_le_of_comm {B A : C} {X : subobject B} {f : A ⟶ B} [mono f] (g : A ⟶ (X : C))
   (w : g ≫ X.arrow = f) : mk f ≤ X :=
 le_of_comm ((underlying_iso f).hom ≫ g) $ by simp [w]
-
-lemma mk_le_mk_of_comm {B A₁ A₂ : C} {f₁ : A₁ ⟶ B} {f₂ : A₂ ⟶ B} [mono f₁] [mono f₂] (g : A₁ ⟶ A₂)
-  (w : g ≫ f₂ = f₁) : mk f₁ ≤ mk f₂ :=
-le_mk_of_comm ((underlying_iso f₁).hom ≫ g) $ by simp [w]
 
 /-- To show that two subobjects are equal, it suffices to exhibit an isomorphism commuting with
     the arrows. -/

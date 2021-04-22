@@ -2151,70 +2151,189 @@ lemma nat_of_done {val : ℕ} (h : nat cb n = done n' val) :
   val = (nat.of_digits 10 ((((cb.to_list.drop n).take (n' - n)).reverse.map
           (λ c, c.to_nat - '0'.to_nat)))) :=
 begin
+  /- The parser `parser.nat` that generates a decimal number from a string of digit characters does
+  several things. First it ingests in as many digits as it can with `many1 digit`. Then, it folds
+  over the resulting `list ℕ` using a helper function that keeps track of both the running sum an
+  and the magnitude so far, using a `(sum, magnitude) : (ℕ × ℕ)` pair. The final sum is extracted
+  using a `prod.fst`.
+
+  To prove that the value that `parser.nat` produces, after moving precisely `n' - n` steps, is
+  precisely what `nat.of_digits` would give, if supplied the string that is in the ingested
+  `char_buffer` (modulo conversion from `char` to `ℕ ), we need to induct over the length `n' - n`
+  of `cb : char_buffer` ingested, and prove that the parser must have terminated due to hitting
+  either the end of the `char_buffer` or a non-digit character.
+
+  The statement of the lemma is phrased using a combination of `list.drop` and `list.map` because
+  there is no currently better way to extract an "interval" from a `char_buffer`. Additionally, the
+  statement uses a `list.reverse` because `nat.of_digits` is little-endian.
+
+  We try to stop referring to the `cb : char_buffer` as soon as possible, so that we can instead
+  regard a `list char` instead, which lends itself better to proofs via induction.
+  -/
+  /- We first prove some helper lemmas about the definition of `parser.nat`. Since it is defined
+  in core, we have to work with how it is defined instead of changing its definition.
+  In its definition, the function that folds over the parsed in digits is defined internally,
+  as a lambda with anonymous destructor syntax, which leads to an unpleasant `nat._match_1` term
+  when rewriting the definition of `parser.nat` away. Since we know exactly what the function is,
+  we have a `rfl`-like lemma here to rewrite it back into a readable form.
+  -/
   have natm : nat._match_1 = (λ (d : ℕ) p, ⟨p.1 + d * p.2, p.2 * 10⟩),
-    { ext1, ext1 ⟨⟩, refl },
-  have hpow : ∀ l, (list.foldr (λ (digit : ℕ) (_x : ℕ × ℕ), (_x.fst + digit * _x.snd, _x.snd * 10))
+  { ext1, ext1 ⟨⟩, refl },
+  -- We also have to prove what is the `prod.snd` of the result of the fold of a `list (ℕ × ℕ)` with
+  -- the function above. We use this lemma later when we finish our inductive case.
+  have hpow : ∀ l, (list.foldr (λ (digit : ℕ) (x : ℕ × ℕ), (x.fst + digit * x.snd, x.snd * 10))
     (0, 1) l).snd = 10 ^ l.length,
-    { intro l,
-      induction l with hd tl hl,
-      { simp },
-      { simp [hl, pow_succ, mul_comm] } },
+  { intro l,
+    induction l with hd tl hl,
+    { simp },
+    { simp [hl, pow_succ, mul_comm] } },
+  -- We convert the hypothesis that `parser.nat` has succeeded into an existential that there is
+  -- some list of digits that it has parsed in, and that those digits, when folded over by the
+  -- function above, give the value at hand.
   simp only [nat, pure_eq_done, natm, decorate_error_eq_done, bind_eq_done] at h,
   obtain ⟨n', l, hp, rfl, rfl⟩ := h,
+  -- We now want to stop working with the `cb : char_buffer` and parse positions `n` and `n'`,
+  -- and just deal with the parsed digit list `l : list ℕ`. To do so, we have to show that
+  -- this is precisely the list that could have been parsed in, no smaller and no greater.
   induction l with lhd ltl IH generalizing n n' cb,
-  { simpa using hp },
+  { -- Base case: we parsed in no digits whatsoever. But this is impossible because `parser.many1`
+    -- must produce a list that is not `list.nil`, by `many1_ne_done_nil`.
+    simpa using hp },
+  -- Inductive case:
+  -- We must prove that the first digit parsed in `lhd : ℕ` is precisely the digit that is
+  -- represented by the character at position `n` in `cb : char_buffer`.
+  -- We will also prove the the correspondence between the subsequent digits `ltl : list ℕ` and the
+  -- remaining characters past position `n` up to position `n'`.
   cases hx : (list.drop n (buffer.to_list cb)) with chd ctl,
-  { have : cb.size ≤ n := by simpa using list.drop_eq_nil_iff_le.mp hx,
+  { -- Are there even characters left to parse, at position `n` in the `cb : char_buffer`? In other
+    -- words, are we already out of bounds, and thus could not have parsed in any value
+    -- successfully. But this must be a contradiction because `parser.digit` is a `bounded` parser,
+    -- (due to its being defined via `parser.decorate_error`), which means it only succeeds
+    -- in-bounds, and the `many1` parser combinator retains that property.
+    have : cb.size ≤ n := by simpa using list.drop_eq_nil_iff_le.mp hx,
     exact absurd (bounded.of_done hp) this.not_lt },
-  obtain ⟨k, hk⟩ : ∃ k, n' = n + k + 1 := nat.exists_eq_add_of_lt (prog.of_done hp),
-  have hdm : ltl = [] ∨ digit.many1 cb (n + 1) = done n' ltl,
-    { cases ltl,
-      { simp },
-      { rw many1_eq_done at hp,
-        obtain ⟨_, hp, hp'⟩ := hp,
-        simpa [step.of_done hp, many1_eq_done_iff_many_eq_done] using hp' } },
-  rcases hdm with rfl|hdm,
-  { simp [many1_eq_done, many_eq_done_nil] at hp,
-    obtain ⟨_, hp, rfl, hp'⟩ := hp,
-    have := step.of_done hp,
-    subst this,
-    simp [digit_eq_done, buffer.read_eq_nth_le_to_list, hx] at hp,
-    rcases hp with ⟨_, hn, rfl, _, _⟩,
-    have hn' : n < cb.to_list.length := by simpa using hn,
-    rw ←list.cons_nth_le_drop_succ hn' at hx,
-    simp at hx,
-    simp [hx] },
-  have rearr :
-    list.take (n + (k + 1) - (n + 1)) (list.drop (n + 1) (buffer.to_list cb)) = ctl.take k,
-    { simp [←list.tail_drop, hx, nat.sub_succ, hk] },
+  -- We prove that the first digit parsed in is precisely the digit that is represented by the
+  -- character at position `n`, which we now call `chd : char`.
   have chdh : chd.to_nat - '0'.to_nat = lhd,
-    { simp [many1_eq_done] at hp,
+    { simp only [many1_eq_done] at hp,
+      -- We know that `parser.digit` succeeded, so it has moved to a possibly different position.
+      -- In fact, we know that this new position is `n + 1`, by the `step` property of
+      -- `parser.digit`.
       obtain ⟨_, hp, -⟩ := hp,
       have := step.of_done hp,
       subst this,
-      simp [digit_eq_done, buffer.read_eq_nth_le_to_list, hx] at hp,
+      -- We now unfold what it means for `parser.digit` to succeed, which means that the character
+      -- parsed in was "numeric" (for some definition of that property), and, more importantly,
+      -- that the `n`th character of `cb`, let's say `c`, when converted to a `ℕ` via
+      -- `char.to_nat c - '0'.to_nat`, must be equal to the resulting value, `lhd` in our case.
+      simp only [digit_eq_done, buffer.read_eq_nth_le_to_list, hx, buffer.length_to_list, true_and,
+                 add_left_inj, list.length, list.nth_le, eq_self_iff_true, exists_and_distrib_left,
+                 fin.coe_mk] at hp,
       rcases hp with ⟨_, hn, rfl, _, _⟩,
+      -- But we already know the list corresponding to `cb : char_buffer` from position `n` and on
+      -- is equal to `(chd :: ctl) : list char`, so our `c` above must satisfy `c = chd`.
       have hn' : n < cb.to_list.length := by simpa using hn,
       rw ←list.cons_nth_le_drop_succ hn' at hx,
-      simp at hx,
+      -- We can ignore proving any correspondence of `ctl : list char` to the other portions of the
+      -- `cb : char_buffer`.
+      simp only at hx,
       simp [hx] },
+  -- We know that we parsed in more than one character because of the `prog` property of
+  -- `parser.digit`, which the `many1` parser combinator retains. In other words, we know that
+  -- `n < n'`, and so, the list of digits `ltl` must correspond to the list of digits that
+  -- `digit.many1 cb (n + 1)` would produce. We know that the shift of `1` in `n ↦ n + 1` holds
+  -- due to the `step` property of `parser.digit`.
+  -- We also get here `k : ℕ` which will indicate how many characters we parsed in past position
+  -- `n`. We will prove later that this must be the number of digits we produced as well in `ltl`.
+  obtain ⟨k, hk⟩ : ∃ k, n' = n + k + 1 := nat.exists_eq_add_of_lt (prog.of_done hp),
+  have hdm : ltl = [] ∨ digit.many1 cb (n + 1) = done n' ltl,
+  { cases ltl,
+    { simp },
+    { rw many1_eq_done at hp,
+      obtain ⟨_, hp, hp'⟩ := hp,
+      simpa [step.of_done hp, many1_eq_done_iff_many_eq_done] using hp' } },
+  -- Now we case on the two possibilities, that there was only a single digit parsed in, and
+  -- `ltl = []`, or, had we started parsing at `n + 1` instead, we'd parse in the value associated
+  -- with `ltl`.
+  -- We prove that the LHS, which is a fold over a `list ℕ` is equal to the RHS, which is that
+  -- the `val : ℕ` that `nat.of_digits` produces when supplied a `list ℕ that has been produced
+  -- via mapping a `list char` using `char.to_nat`. Specifically, that `list char` are the
+  -- characters in the `cb : char_buffer`, from position `n` to position `n'` (excluding `n'`),
+  -- in reverse.
+  rcases hdm with rfl|hdm,
+  { -- Case that `ltl = []`.
+    simp only [many1_eq_done, many_eq_done_nil, exists_and_distrib_right] at hp,
+    -- This means we must have failed parsing with `parser.digit` at some other position,
+    -- which we prove must be `n + 1` via the `step` property.
+    obtain ⟨_, hp, rfl, hp'⟩ := hp,
+    have := step.of_done hp,
+    subst this,
+    -- Now we rely on the simplifier, which simplfies the LHS, which is a fold over a singleton
+    -- list. On the RHS, `list.take (n + 1 - n)` also produces a singleton list, which, when
+    -- reversed, is the same list. `nat.of_digits` of a singleton list is precisely the value in
+    -- the list. And we already have that `chd.to_nat - '0'.to_nat = lhd`.
+    simp [chdh] },
+  -- We now have to deal with the case where we parsed in more than one digit, and thus
+  -- `n + 1 < n'`, which means `ctl` has one or more elements. Similarly, `ltl` has one or more
+  -- elements.
+  -- We finish ridding ourselves of references to `cb : char_buffer`, by relying on the fact that
+  -- our `ctl : list char` must be the appropriate portion of `cb` once enough elements have been
+  -- dropped and taken.
+  have rearr :
+    list.take (n + (k + 1) - (n + 1)) (list.drop (n + 1) (buffer.to_list cb)) = ctl.take k,
+  { simp [←list.tail_drop, hx, nat.sub_succ, hk] },
+  -- We have to prove that the number of digits produced (given by `ltl`) is equal to the number
+  -- of characters parsed in, as given by `ctl.take k`, and that this is precisely `k`. We phrase it
+  -- in the statement using `min`, because lemmas about `list.length (list.take ...)` simplify to
+  -- a statement that uses `min`. The `list.length` term appears from the reduction of the folding
+  -- function, as proven above.
   have ltll : min k ctl.length = ltl.length,
-    { have : (ctl.take k).length = min k ctl.length := by simp,
-      rw [←this, ←rearr, many1_length_of_done hdm],
-      have : k = n' - n - 1,
-        { simp [hk, add_assoc] },
-      subst this,
-      simp only [nat.sub_succ, add_comm, ←nat.pred_sub, buffer.length_to_list, nat.pred_one_add,
-                 min_eq_left_iff, list.length_drop, nat.add_sub_cancel_left, list.length_take,
-                 nat.sub_zero],
-      rw [nat.sub_le_sub_right_iff, nat.pred_le_iff],
-      { convert many1_bounded_of_done hp,
-        cases hc : cb.size,
-        { have := bounded.of_done hp,
-          rw hc at this,
-          exact absurd n.zero_le this.not_le },
-        { simp } },
-      { exact nat.le_pred_of_lt (bounded.of_done hp) } },
+  { -- Here is an example of how statements about the `list.length` of `list.take` simplify.
+    have : (ctl.take k).length = min k ctl.length := by simp,
+    -- We bring back the underlying definition of `ctl` as the result of a sequence of `list.take`
+    -- and `list.drop`, so that lemmas about `list.length` of those can fire.
+    rw [←this, ←rearr, many1_length_of_done hdm],
+    -- Likewise, we rid ourselves of the `k` we generated earlier.
+    have : k = n' - n - 1,
+      { simp [hk, add_assoc] },
+    subst this,
+    simp only [nat.sub_succ, add_comm, ←nat.pred_sub, buffer.length_to_list, nat.pred_one_add,
+                min_eq_left_iff, list.length_drop, nat.add_sub_cancel_left, list.length_take,
+                nat.sub_zero],
+    -- We now have a goal of proving an inequality dealing with `nat` subtraction and `nat.pred`,
+    -- both of which require special care to provide positivity hypotheses.
+    rw [nat.sub_le_sub_right_iff, nat.pred_le_iff],
+    { -- We know that `n' ≤ cb.size` because of the `bounded` property, that a parser will not
+      -- produce a `done` result at a position farther than the size of the underlying
+      -- `char_buffer`.
+      convert many1_bounded_of_done hp,
+      -- What is now left to prove is that `0 < cb.size`, which can be rephrased
+      -- as proving that it is nonempty.
+      cases hc : cb.size,
+      { -- Proof by contradiction. Let's say that `cb.size = 0`. But we know that we succeeded
+        -- parsing in at position `n` using a `bounded` parser, so we must have that
+        -- `n < cb.size`.
+        have := bounded.of_done hp,
+        rw hc at this,
+        -- But then `n < 0`, a contradiction.
+        exact absurd n.zero_le this.not_le },
+      { simp } },
+    { -- Here, we use the same result as above, that `n < cb.size`, and relate it to
+      -- `n ≤ cb.size.pred`.
+      exact nat.le_pred_of_lt (bounded.of_done hp) } },
+  -- Finally, we simplify. On the LHS, we have a fold over `lhd :: ltl`, which simplifies to
+  -- the operation of the summing folding function on `lhd` and the fold over `ltl`. To that we can
+  -- apply the induction hypothesis, because we know that our parser would have succeeded had we
+  -- started at position `n + 1`. We replace mentions of `cb : char_buffer` with the appropriate
+  -- `chd :: ctl`, replace `lhd` with the appropriate statement of how it is calculated from `chd`,
+  -- and use the lemmas describing the length of `ltl` and how it is associated with `k`. We also
+  -- remove mentions of `n'` and replace with an expression using solely `n + k + 1`.
+  -- We use the lemma we proved above about how the folding function produces the
+  -- `prod.snd` value, which is `10` to the power of the length of the list provided to the fold.
+  -- Finally, we rely on `nat.of_digits_append` for the related statement of how digits given
+  -- are used in the `nat.of_digits` calculation, which also involves `10 ^ list.length ...`.
+  -- The `list.append` operation appears due to the `list.reverse (chd :: ctl)`.
+  -- We include some addition and multiplication lemmas to help the simplifier rearrange terms.
   simp [IH _ hdm, hx, hk, rearr, ←chdh, ←ltll, hpow, add_assoc, nat.of_digits_append, mul_comm]
 end
 
@@ -2245,7 +2364,8 @@ begin
     rw ←many1_eq_done_iff_many_eq_done at h,
     intros hn k hk hk',
     rcases hk'.eq_or_lt with rfl|hk',
-    { simp [digit_eq_done] at hp,
+    { simp only [digit_eq_done, true_and, add_left_inj, eq_self_iff_true,
+                 exists_and_distrib_left] at hp,
       obtain ⟨-, hx, rfl, ge0, le9⟩ := hp,
       exact ⟨ge0, le9⟩ },
     { apply hl h,
@@ -2298,7 +2418,7 @@ begin
              bind_eq_done, exists_eq_left, exists_and_distrib_left],
   clear hv val,
   have natm : nat._match_1 = (λ (d : ℕ) p, ⟨p.1 + d * p.2, p.2 * 10⟩),
-    { ext1, ext1 ⟨⟩, refl },
+  { ext1, ext1 ⟨⟩, refl },
   induction H : (cb.to_list.drop n) with hd tl IH generalizing n,
   { rw list.drop_eq_nil_iff_le at H,
     refine absurd ((lt_of_le_of_lt H hn).trans_le hn') _,
@@ -2307,37 +2427,38 @@ begin
     simp only [←list.cons_nth_le_drop_succ
       (show n < cb.to_list.length, by simpa using hn.trans_le hn')] at H,
     have hdigit : digit cb n = done (n + 1) (hd.to_nat - '0'.to_nat),
-      { specialize ho n hn (le_refl _),
-        have : (buffer.read cb ⟨n, hn.trans_le hn'⟩).to_nat - '0'.to_nat ≤ 9,
-        { rw [show 9 = '9'.to_nat - '0'.to_nat, from dec_trivial, nat.sub_le_sub_right_iff],
-          { exact ho.right },
-          { dec_trivial } },
-        simp [digit_eq_done, this, ←H.left, buffer.nth_le_to_list, hn.trans_le hn', ho] },
+    { specialize ho n hn (le_refl _),
+      have : (buffer.read cb ⟨n, hn.trans_le hn'⟩).to_nat - '0'.to_nat ≤ 9,
+      { rw [show 9 = '9'.to_nat - '0'.to_nat, from dec_trivial, nat.sub_le_sub_right_iff],
+        { exact ho.right },
+        { dec_trivial } },
+      simp [digit_eq_done, this, ←H.left, buffer.nth_le_to_list, hn.trans_le hn', ho] },
     cases lt_or_ge (n + 1) n' with hn'' hn'',
     { specialize IH hn'',
       have : ∀ (k : ℕ) (hk : k < n'), n + 1 ≤ k →
         '0' ≤ buffer.read cb ⟨k, hk.trans_le hn'⟩ ∧ buffer.read cb ⟨k, hk.trans_le hn'⟩ ≤ '9',
-        { intros k hk hk',
-          apply ho,
-          exact nat.le_of_succ_le hk' },
+      { intros k hk hk',
+        apply ho,
+        exact nat.le_of_succ_le hk' },
       specialize IH this H.right,
       obtain ⟨l, hdl, hvl⟩ := IH,
       use (hd.to_nat - '0'.to_nat) :: l,
       cases l with lhd ltl,
       { simpa using hdl },
-      simp [natm] at hvl,
-      simp [natm, hvl, many1_eq_done, hdigit, many1_eq_done_iff_many_eq_done.mp hdl],
+      simp only [natm, list.foldr] at hvl,
+      simp only [natm, hvl, many1_eq_done, hdigit, many1_eq_done_iff_many_eq_done.mp hdl, true_and,
+                 and_true, eq_self_iff_true, list.foldr, exists_eq_left'],
       obtain ⟨m, hm⟩ : ∃ m, n' = n + m + 1 := nat.exists_eq_add_of_lt hn,
       subst hm,
       have : n + m + 1 - n = m + 1,
         { rw [add_assoc, nat.sub_eq_iff_eq_add, add_comm],
           exact nat.le_add_right _ _ },
-      have hpow : ∀ l, (list.foldr (λ (digit : ℕ) (_x : ℕ × ℕ),
-        (_x.fst + digit * _x.snd, _x.snd * 10)) (0, 1) l).snd = 10 ^ l.length,
-        { intro l,
-          induction l with hd tl hl,
-          { simp },
-          { simp [hl, pow_succ, mul_comm] } },
+      have hpow : ∀ l, (list.foldr (λ (digit : ℕ) (x : ℕ × ℕ),
+        (x.fst + digit * x.snd, x.snd * 10)) (0, 1) l).snd = 10 ^ l.length,
+      { intro l,
+        induction l with hd tl hl,
+        { simp },
+        { simp [hl, pow_succ, mul_comm] } },
       have hml : ltl.length + 1 = m := by simpa using many1_length_of_done hdl,
       have ltll : min m tl.length = m,
       { simpa [←H.right, ←nat.add_le_to_le_sub _ (hn''.trans_le hn').le, add_comm, add_assoc,

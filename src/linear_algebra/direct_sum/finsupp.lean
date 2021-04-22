@@ -19,7 +19,7 @@ the direct sum of copies of `M` indexed by `ι`.
 universes u v w
 
 noncomputable theory
-open_locale classical direct_sum
+open_locale direct_sum
 
 open set linear_map submodule
 variables {R : Type u} {M : Type v} {N : Type w} [ring R] [add_comm_group M] [module R M]
@@ -32,7 +32,7 @@ variables (R M) (ι : Type*) [decidable_eq ι]
 /-- The finitely supported functions `ι →₀ M` are in linear equivalence with the direct sum of
 copies of M indexed by ι. -/
 def finsupp_lequiv_direct_sum : (ι →₀ M) ≃ₗ[R] ⨁ i : ι, M :=
-finsupp.to_dfinsupp_linear_equiv R
+by haveI : Π m : M, decidable (m ≠ 0) := classical.dec_pred _; exact finsupp_lequiv_dfinsupp R
 
 @[simp] theorem finsupp_lequiv_direct_sum_single (i : ι) (m : M) :
   finsupp_lequiv_direct_sum R M ι (finsupp.single i m) = direct_sum.lof R ι _ i m :=
@@ -40,14 +40,17 @@ finsupp.to_dfinsupp_single i m
 
 @[simp] theorem finsupp_lequiv_direct_sum_symm_lof (i : ι) (m : M) :
   (finsupp_lequiv_direct_sum R M ι).symm (direct_sum.lof R ι _ i m) = finsupp.single i m :=
-by erw [finsupp.to_dfinsupp_linear_equiv_symm_apply, finsupp.to_dfinsupp_symm_single]
+begin
+  letI : Π m : M, decidable (m ≠ 0) := classical.dec_pred _,
+  exact (dfinsupp.to_finsupp_single i m),
+end
 
 end finsupp_lequiv_direct_sum
 
 section tensor_product
 
 open tensor_product
-open_locale tensor_product
+open_locale tensor_product classical
 
 /-- The tensor product of ι →₀ M and κ →₀ N is linearly equivalent to (ι × κ) →₀ (M ⊗ N). -/
 def finsupp_tensor_finsupp (R M N ι κ : Sort*) [comm_ring R]

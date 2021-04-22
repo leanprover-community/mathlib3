@@ -664,6 +664,27 @@ begin
   { simp only [true_and, coe_to_submonoid, union_subset_iff, subset_closure, inv_subset_closure] }
 end
 
+/-- An induction principle for closure membership. If `p` holds for `1` and all elements of
+`k ∪ k⁻¹`, and is preserved under multiplication, then `p` holds for all elements of the closure
+of `k`. -/
+@[to_additive "An induction principle for additive closure membership. If `p` holds for `0` and all
+elements of `k ∪ -k`, and is preserved under addition, then `p` holds for all elements of the
+additive closure of `k`."]
+lemma closure_induction'' {p : G → Prop} {x} (h : x ∈ closure k)
+  (Hk : ∀ x ∈ k ∪ k⁻¹, p x) (H1 : p 1)
+  (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
+begin
+  change x ∈ (closure k).to_submonoid at h,
+  rw [closure_to_submonoid k] at h,
+  refine submonoid.closure_induction h (λ x hx, _) H1 (λ x y hx hy, Hmul x y hx hy),
+  { rw [mem_union_eq, mem_inv] at hx,
+    cases hx with mem invmem,
+    { exact Hk x (subset_union_left k k⁻¹ mem) },
+    { have h := subset_union_right k k⁻¹ (set.inv_mem_inv.2 invmem),
+      rw [inv_inv] at h,
+      exact Hk x h } },
+end
+
 @[to_additive]
 lemma mem_supr_of_directed {ι} [hι : nonempty ι] {K : ι → subgroup G} (hK : directed (≤) K)
   {x : G} :

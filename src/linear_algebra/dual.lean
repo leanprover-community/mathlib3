@@ -239,7 +239,7 @@ end
 omit de
 
 theorem dual_dim_eq [fintype ι] :
-  cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
+  cardinal.lift.{v u} (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
   have := linear_equiv.dim_eq_lift (h.to_dual_equiv B),
@@ -273,7 +273,7 @@ begin
 end
 
 theorem dual_dim_eq [finite_dimensional K V] :
-  cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
+  cardinal.lift.{v u} (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
   rcases exists_is_basis_fintype (dim_lt_omega K V) with ⟨b, hb, ⟨hf⟩⟩,

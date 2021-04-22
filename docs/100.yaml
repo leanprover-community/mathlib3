@@ -349,6 +349,8 @@
   author : Joseph Myers
 95:
   title  : Ptolemy’s Theorem
+  decl   : euclidean_geometry.mul_dist_add_mul_dist_eq_mul_dist_of_cospherical
+  author : Manuel Candales
 96:
   title  : Principle of Inclusion/Exclusion
   links  :

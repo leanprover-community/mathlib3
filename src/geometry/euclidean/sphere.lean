@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Manuel Candales
 -/
 import geometry.euclidean.basic
+import geometry.euclidean.triangle
 
 /-!
 # Spheres
@@ -15,6 +16,7 @@ in spheres in real inner product spaces and Euclidean affine spaces.
 
 * `mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi`: Intersecting Chords Theorem (Freek No. 55).
 * `mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_zero`: Intersecting Secants Theorem.
+* `mul_dist_add_mul_dist_eq_mul_dist_of_cospherical`: Ptolemy’s Theorem (Freek No. 95).
 -/
 
 open real
@@ -135,6 +137,44 @@ begin
   by_contra hnot;
   simp only [not_not, *, one_smul] at *,
   exacts [hab (vsub_left_cancel hab₁).symm, hcd (vsub_left_cancel hcd₁).symm],
+end
+
+/-- Ptolemy’s Theorem. -/
+theorem mul_dist_add_mul_dist_eq_mul_dist_of_cospherical {a b c d p : P}
+  (h : cospherical ({a, b, c, d} : set P))
+  (hapc : ∠ a p c = π) (hbpd : ∠ b p d = π) :
+  dist a b * dist c d + dist b c * dist d a = dist a c * dist b d :=
+begin
+  have hset : ({a, c, b, d} : set P) = ({a, b, c, d} : set P), { ext, simp, tauto },
+  have h' : cospherical ({a, c, b, d} : set P), { rw hset, exact h },
+  have hmul : dist a p * dist c p = dist b p * dist d p :=
+              mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi h' hapc hbpd,
+  have hbp : dist b p ≠ 0 := left_dist_ne_zero_of_angle_eq_pi hbpd,
+
+  have h₁ : ∠ c p d = ∠ b p a,
+  { symmetry, rw [angle_eq_angle_of_angle_eq_pi_of_angle_eq_pi hbpd hapc, angle_comm d p c] },
+  have h₂ : dist c d = dist c p / dist b p * dist a b,
+  { rw [dist_mul_of_eq_angle_of_dist_mul h₁ _ _, dist_comm a b],
+    { simp [hbp] },
+    { field_simp [hbp, mul_comm, hmul] } },
+  have h₃ : ∠ d p a = ∠ c p b,
+  { rw [angle_comm d p a,
+        angle_eq_angle_of_angle_eq_pi_of_angle_eq_pi hapc (by rw [angle_comm d p b, hbpd])] },
+  have h₄ : dist d a = dist a p / dist b p * dist b c,
+  { rw [dist_mul_of_eq_angle_of_dist_mul h₃ _ _, dist_comm c b],
+    { field_simp [hbp, mul_comm, hmul] },
+    { simp [hbp] } },
+  have h₅ : dist b d = dist b p + dist d p := dist_eq_add_dist_of_angle_eq_pi hbpd,
+  have h₆ : dist d p = dist a p * dist c p / dist b p, { field_simp [hbp, mul_comm, hmul] },
+
+  rw [h₂, h₄, h₅, h₆],
+  field_simp [hbp],
+
+  calc  dist a b * (dist c p * dist a b) + dist b c * (dist a p * dist b c)
+      = dist b a ^ 2 * dist c p + dist b c ^ 2 * dist a p : by { rw dist_comm a b, ring }
+  ... = dist a c * (dist b p ^ 2 + dist a p * dist c p) :
+        sq_dist_mul_dist_add_sq_dist_mul_dist b hapc
+  ... = dist a c * (dist b p * dist b p + dist a p * dist c p) : by ring,
 end
 
 end euclidean_geometry

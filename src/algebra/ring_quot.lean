@@ -270,7 +270,7 @@ section star_ring
 variables [star_ring R] (r) (hr : ∀ a b, r a b → r (star a) (star b))
 include hr
 
-theorem rel.star  ⦃a b : R⦄ (h : rel r a b) :
+theorem rel.star ⦃a b : R⦄ (h : rel r a b) :
   rel r (star a) (star b) :=
 begin
   induction h,

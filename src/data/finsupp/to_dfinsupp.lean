@@ -40,15 +40,14 @@ as well as preserving arithmetic operations.
 
 For the bundled equivalences, we provide lemmas that they reduce to `finsupp.to_dfinsupp`:
 
-* `finsupp.to_dfinsupp_add_equiv_apply`
-* `finsupp.to_dfinsupp_linear_equiv_apply`
-* `finsupp.to_dfinsupp_add_equiv_symm_apply`
-* `finsupp.to_dfinsupp_linear_equiv_symm_apply`
-
+* `finsupp_add_equiv_dfinsupp_apply`
+* `finsupp_lequiv_dfinsupp_apply`
+* `finsupp_add_equiv_dfinsupp_symm_apply`
+* `finsupp_lequiv_dfinsupp_symm_apply`
 
 ## Implementation notes
 
-We provide `dfinsupp.to_finsupp` and `finsupp_equiv_dfinsupp` computable by adding
+We provide `dfinsupp.to_finsupp` and `finsupp_equiv_dfinsupp` computably by adding
 `[decidable_eq ι]` and `[Π m : M, decidable (m ≠ 0)]` arguments. To aid with definitional unfolding,
 these arguments are also present on the `noncomputable` equivs.
 -/

@@ -303,6 +303,8 @@ end
 
 section distrib
 
+/-! ### Operations that can be applied before or after a `zip_with` -/
+
 variables (f : α → β → γ) (l : list α) (l' : list β) (n : ℕ)
 
 lemma zip_with_distrib_take :

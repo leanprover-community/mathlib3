@@ -32,11 +32,11 @@ add_decl_doc add_submonoid.fg
 
 variables (M N)
 
-/-- A monoid finitely generated if it is finitely generated as a submonoid of itself. -/
+/-- A monoid is finitely generated if it is finitely generated as a submonoid of itself. -/
 @[to_additive]
 def monoid.fg : Prop := (⊤ : submonoid M).fg
 
-/-- An additive monoid finitely generated if it is finitely generated as an additive submonoid of
+/-- An additive monoid is finitely generated if it is finitely generated as an additive submonoid of
 itself. -/
 add_decl_doc add_monoid.fg
 

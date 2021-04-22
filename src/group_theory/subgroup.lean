@@ -620,6 +620,47 @@ lemma closure_singleton_one : closure ({1} : set G) = ⊥ :=
 by simp [eq_bot_iff_forall, mem_closure_singleton]
 
 @[to_additive]
+lemma closure.inv (S : set G) : closure S = closure S⁻¹ :=
+begin
+  refine le_antisymm ((subgroup.closure_le _).2 _) ((subgroup.closure_le _).2 _),
+  { intros s hs,
+    rw [set_like.mem_coe, (subgroup.inv_mem_iff _).symm],
+    exact subset_closure (set.inv_mem_inv.2 hs) },
+  { intros s hs,
+    rw [set_like.mem_coe, (subgroup.inv_mem_iff _).symm],
+    have h := (set.inv_mem_inv.2 hs),
+    rw [set.inv_inv] at h,
+    exact subset_closure h },
+end
+
+@[to_additive]
+lemma closure.submonoid.closure (S : set G) :
+  (closure S).to_submonoid = submonoid.closure (S ∪ S⁻¹) :=
+begin
+  refine le_antisymm _ (submonoid.closure_le.2 _),
+  { intros x hx,
+    refine closure_induction hx (λ x hx, submonoid.closure_mono (subset_union_left S S⁻¹)
+      (submonoid.subset_closure hx)) (submonoid.one_mem _) (λ x y hx hy, submonoid.mul_mem _ hx hy)
+      (λ x hx, _),
+    refine submonoid.closure_induction hx (λ y hy, _) _ (λ y z hy hz, _),
+    { rw [mem_union_eq] at hy,
+      cases hy with mem invmem,
+      { exact submonoid.closure_mono (subset_union_right S S⁻¹) (submonoid.subset_closure
+        (inv_mem_inv.2 mem)) },
+      { have h := inv_mem_inv.2 invmem,
+        rw [set.inv_inv] at h,
+        exact submonoid.closure_mono (subset_union_left S S⁻¹) (submonoid.subset_closure h) } },
+      { rw [one_inv],
+        exact submonoid.one_mem _ },
+      { rw [mul_inv_rev],
+        exact submonoid.mul_mem _ hz hy } },
+  { simp only [true_and, coe_to_submonoid, union_subset_iff, subset_closure],
+    intros s hs,
+    rw [closure.inv],
+    exact subset_closure hs }
+end
+
+@[to_additive]
 lemma mem_supr_of_directed {ι} [hι : nonempty ι] {K : ι → subgroup G} (hK : directed (≤) K)
   {x : G} :
   x ∈ (supr K : subgroup G) ↔ ∃ i, x ∈ K i :=

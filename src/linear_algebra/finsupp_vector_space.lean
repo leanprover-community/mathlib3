@@ -97,7 +97,7 @@ universes u v
 variables {K : Type u} {V : Type v} {ι : Type v}
 variables [field K] [add_comm_group V] [module K V]
 
-lemma dim_eq : module.dim K (ι →₀ V) = cardinal.mk ι * module.dim K V :=
+lemma dim_eq : module.rank K (ι →₀ V) = cardinal.mk ι * module.rank K V :=
 begin
   rcases exists_is_basis K V with ⟨bs, hbs⟩,
   rw [← cardinal.lift_inj, cardinal.lift_mul, ← hbs.mk_eq_dim,

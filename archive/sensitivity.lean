@@ -227,8 +227,8 @@ def dual_pair_e_ε (n : ℕ) : dual_pair (@e n) (@ε n) :=
 /-! We will now derive the dimension of `V`, first as a cardinal in `dim_V` and,
 since this cardinal is finite, as a natural number in `findim_V` -/
 
-lemma dim_V : module.dim ℝ (V n) = 2^n :=
-have module.dim ℝ (V n) = (2^n : ℕ),
+lemma dim_V : module.rank ℝ (V n) = 2^n :=
+have module.rank ℝ (V n) = (2^n : ℕ),
   by { rw [dim_eq_card_basis (dual_pair_e_ε _).is_basis, Q.card]; apply_instance },
 by assumption_mod_cast
 
@@ -333,7 +333,7 @@ In this section, in order to enforce that `n` is positive, we write it as
 `m + 1` for some natural number `m`. -/
 
 /-! `dim X` will denote the dimension of a subspace `X` as a cardinal. -/
-notation `dim` X:70 := module.dim ℝ ↥X
+notation `dim` X:70 := module.rank ℝ ↥X
 /-! `fdim X` will denote the (finite) dimension of a subspace `X` as a natural number. -/
 notation `fdim` := findim ℝ
 

@@ -130,10 +130,10 @@ instance : finite_dimensional ℝ ℂ := of_fintype_basis is_basis_one_I
 @[simp] lemma findim_real_complex : finite_dimensional.findim ℝ ℂ = 2 :=
 by rw [findim_eq_card_basis is_basis_one_I, fintype.card_fin]
 
-@[simp] lemma dim_real_complex : module.dim ℝ ℂ = 2 :=
+@[simp] lemma dim_real_complex : module.rank ℝ ℂ = 2 :=
 by simp [← findim_eq_dim, findim_real_complex]
 
-lemma {u} dim_real_complex' : cardinal.lift.{0 u} (module.dim ℝ ℂ) = 2 :=
+lemma {u} dim_real_complex' : cardinal.lift.{0 u} (module.rank ℝ ℂ) = 2 :=
 by simp [← findim_eq_dim, findim_real_complex, bit0]
 
 /-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
@@ -158,7 +158,7 @@ instance finite_dimensional.complex_to_real (E : Type*) [add_comm_group E] [modu
 finite_dimensional.trans ℝ ℂ E
 
 lemma dim_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
-  module.dim ℝ E = 2 * module.dim ℂ E :=
+  module.rank ℝ E = 2 * module.rank ℂ E :=
 cardinal.lift_inj.1 $
   by { rw [← dim_mul_dim' ℝ ℂ E, complex.dim_real_complex], simp [bit0] }
 

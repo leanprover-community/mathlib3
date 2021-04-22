@@ -195,11 +195,11 @@ instance separable : is_separable (fixed_points G F) F :=
     minpoly, polynomial.map_to_subring],
   exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
 
-lemma dim_le_card : module.dim (fixed_points G F) F ≤ fintype.card G :=
+lemma dim_le_card : module.rank (fixed_points G F) F ≤ fintype.card G :=
 begin
   refine dim_le (λ s hs, cardinal.nat_cast_le.1 _),
   rw [← @dim_fun' F G, ← cardinal.lift_nat_cast.{v (max u v)},
-    cardinal.finset_card, ← cardinal.lift_id (module.dim F (G → F))],
+    cardinal.finset_card, ← cardinal.lift_id (module.rank F (G → F))],
   exact linear_independent_le_dim'.{_ _ _ (max u v)}
     (linear_independent_smul_of_linear_independent G F hs)
 end

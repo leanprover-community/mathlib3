@@ -506,7 +506,7 @@ by apply_instance
 @[simp] lemma findim_fintype_fun_eq_card {ι : Type v} [fintype ι] :
   findim K (ι → K) = fintype.card ι :=
 begin
-  have : module.dim K (ι → K) = fintype.card ι := dim_fun',
+  have : module.rank K (ι → K) = fintype.card ι := dim_fun',
   rwa [← findim_eq_dim, nat_cast_inj] at this,
 end
 
@@ -528,13 +528,13 @@ section zero_dim
 
 open module finite_dimensional
 
-lemma finite_dimensional_of_dim_eq_zero (h : module.dim K V = 0) : finite_dimensional K V :=
+lemma finite_dimensional_of_dim_eq_zero (h : module.rank K V = 0) : finite_dimensional K V :=
 by rw [finite_dimensional_iff_dim_lt_omega, h]; exact cardinal.omega_pos
 
-lemma finite_dimensional_of_dim_eq_one (h : module.dim K V = 1) : finite_dimensional K V :=
+lemma finite_dimensional_of_dim_eq_one (h : module.rank K V = 1) : finite_dimensional K V :=
 by rw [finite_dimensional_iff_dim_lt_omega, h]; exact one_lt_omega
 
-lemma findim_eq_zero_of_dim_eq_zero [finite_dimensional K V] (h : module.dim K V = 0) :
+lemma findim_eq_zero_of_dim_eq_zero [finite_dimensional K V] (h : module.rank K V = 0) :
   findim K V = 0 :=
 begin
   convert findim_eq_dim K V,
@@ -559,7 +559,7 @@ end
 
 variables {K V}
 
-lemma bot_eq_top_of_dim_eq_zero (h : module.dim K V = 0) : (⊥ : submodule K V) = ⊤ :=
+lemma bot_eq_top_of_dim_eq_zero (h : module.rank K V = 0) : (⊥ : submodule K V) = ⊤ :=
 begin
   haveI := finite_dimensional_of_dim_eq_zero h,
   apply eq_top_of_findim_eq,
@@ -997,7 +997,7 @@ lemma findim_add_eq_of_is_compl
   [finite_dimensional K V] {U W : submodule K V} (h : is_compl U W) :
   findim K U + findim K W = findim K V :=
 begin
-  rw [← submodule.dim_sup_add_dim_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1,
+  rw [← submodule.rank_sup_add_dim_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1,
       findim_bot, add_zero],
   exact findim_top
 end

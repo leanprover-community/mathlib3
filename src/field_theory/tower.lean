@@ -19,7 +19,7 @@ but just a vector space over `K`.
 
 ## Implementation notes
 
-We prove two versions, since there are two notions of dimensions: `module.dim` which gives
+We prove two versions, since there are two notions of dimensions: `module.rank` which gives
 the dimension of an arbitrary vector space as a cardinal, and `finite_dimensional.findim` which
 gives the dimension of a finitely-dimensional vector space as a natural number.
 
@@ -43,12 +43,12 @@ variables [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
 theorem dim_mul_dim' :
-  (cardinal.lift.{v w} (module.dim F K) *
-      cardinal.lift.{w v} (module.dim K A) : cardinal.{max w v}) =
-  cardinal.lift.{w v} (module.dim F A) :=
+  (cardinal.lift.{v w} (module.rank F K) *
+      cardinal.lift.{w v} (module.rank K A) : cardinal.{max w v}) =
+  cardinal.lift.{w v} (module.rank F A) :=
 let ⟨b, hb⟩ := exists_is_basis F K, ⟨c, hc⟩ := exists_is_basis K A in
-by rw [← (module.dim F K).lift_id, ← hb.mk_eq_dim,
-    ← (module.dim K A).lift_id, ← hc.mk_eq_dim,
+by rw [← (module.rank F K).lift_id, ← hb.mk_eq_dim,
+    ← (module.rank K A).lift_id, ← hc.mk_eq_dim,
     ← lift_umax.{w v}, ← (hb.smul hc).mk_eq_dim, mk_prod, lift_mul,
     lift_lift, lift_lift, lift_lift, lift_lift, lift_umax]
 
@@ -56,7 +56,7 @@ by rw [← (module.dim F K).lift_id, ← hb.mk_eq_dim,
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
 theorem dim_mul_dim (F : Type u) (K A : Type v) [field F] [field K] [add_comm_group A]
   [algebra F K] [module K A] [module F A] [is_scalar_tower F K A] :
-  module.dim F K * module.dim K A = module.dim F A :=
+  module.rank F K * module.rank K A = module.rank F A :=
 by convert dim_mul_dim' F K A; rw lift_id
 
 namespace finite_dimensional

@@ -443,7 +443,7 @@ by simp [h.constr_apply, h.equiv_fun_apply, finsupp.sum_fintype]
 
 end module
 
-section module
+section vector_space
 
 variables [field K] [add_comm_group V] [add_comm_group V'] [module K V] [module K V']
 variables {v : ι → V} {s t : set V} {x y z : V}
@@ -556,8 +556,8 @@ let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
 open fintype
 variables (K) (V)
 
-theorem module.card_fintype [fintype K] [fintype V] :
+theorem vector_space.card_fintype [fintype K] [fintype V] :
   ∃ n : ℕ, card V = (card K) ^ n :=
 exists.elim (exists_is_basis K V) $ λ b hb, ⟨card b, module.card_fintype hb⟩
 
-end module
+end vector_space

@@ -631,6 +631,24 @@ begin
 end
 
 @[to_additive]
+lemma submonoid.mem_closure_inv (S : set G) (x : G) :
+  x ∈ submonoid.closure S⁻¹ ↔ x⁻¹ ∈ submonoid.closure S :=
+begin
+  suffices : ∀ (S : set G) (x : G), x ∈ submonoid.closure S⁻¹ → x⁻¹ ∈ submonoid.closure S,
+  { refine ⟨this S x, _⟩,
+    have := this S⁻¹ x⁻¹,
+    rw [inv_inv, set.inv_inv] at this,
+    exact this, },
+  intros S x hx,
+  refine submonoid.closure_induction hx (λ x hx, _) _ (λ x y hx hy, _),
+  { exact submonoid.subset_closure (mem_inv.mp hx), },
+  { rw one_inv,
+    exact submonoid.one_mem _ },
+  { rw mul_inv_rev x y,
+    exact submonoid.mul_mem _ hy hx },
+end
+
+@[to_additive]
 lemma closure_to_submonoid (S : set G) :
   (closure S).to_submonoid = submonoid.closure (S ∪ S⁻¹) :=
 begin
@@ -639,18 +657,7 @@ begin
     refine closure_induction hx (λ x hx, submonoid.closure_mono (subset_union_left S S⁻¹)
       (submonoid.subset_closure hx)) (submonoid.one_mem _) (λ x y hx hy, submonoid.mul_mem _ hx hy)
       (λ x hx, _),
-    refine submonoid.closure_induction hx (λ y hy, _) _ (λ y z hy hz, _),
-    { rw [mem_union_eq] at hy,
-      cases hy with mem invmem,
-      { exact submonoid.closure_mono (subset_union_right S S⁻¹) (submonoid.subset_closure
-        (inv_mem_inv.2 mem)) },
-      { have h := inv_mem_inv.2 invmem,
-        rw [set.inv_inv] at h,
-        exact submonoid.closure_mono (subset_union_left S S⁻¹) (submonoid.subset_closure h) } },
-      { rw [one_inv],
-        exact submonoid.one_mem _ },
-      { rw [mul_inv_rev],
-        exact submonoid.mul_mem _ hz hy } },
+    rwa [←submonoid.mem_closure_inv, set.union_inv, set.inv_inv, set.union_comm] },
   { simp only [true_and, coe_to_submonoid, union_subset_iff, subset_closure],
     intros s hs,
     rw [← closure_inv],

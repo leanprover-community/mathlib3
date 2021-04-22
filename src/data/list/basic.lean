@@ -3489,6 +3489,19 @@ theorem suffix_or_suffix_of_suffix {l₁ l₂ l₃ : list α}
 (prefix_or_prefix_of_prefix (reverse_prefix.2 h₁) (reverse_prefix.2 h₂)).imp
   reverse_prefix.1 reverse_prefix.1
 
+theorem suffix_cons_iff {x : α} {l₁ l₂ : list α} :
+  l₁ <:+ x :: l₂ ↔ l₁ = x :: l₂ ∨ l₁ <:+ l₂ :=
+begin
+  split,
+  { rintro ⟨⟨hd, tl⟩, hl₃⟩,
+    { exact or.inl hl₃ },
+    { simp only [cons_append] at hl₃,
+      exact or.inr ⟨_, hl₃.2⟩ } },
+  { rintro (rfl | hl₁),
+    { exact (x :: l₂).suffix_refl },
+    { exact hl₁.trans (l₂.suffix_cons _) } }
+end
+
 theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: join L
 | (_  :: L) l (or.inl rfl) := infix_append [] _ _
 | (l' :: L) l (or.inr h)   :=

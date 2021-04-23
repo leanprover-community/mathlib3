@@ -740,12 +740,14 @@ le_antisymm (span_le.2 h₁) h₂
 @[simp] lemma span_eq : span R (p : set M) = p :=
 span_eq_of_le _ (subset.refl _) subset_span
 
-lemma _root_.linear_map.map_span (f : M →ₗ[R] M₂) (s : set M) :
+lemma map_span (f : M →ₗ[R] M₂) (s : set M) :
   (span R s).map f = span R (f '' s) :=
 eq.symm $ span_eq_of_le _ (set.image_subset f subset_span) $
 map_le_iff_le_comap.2 $ span_le.2 $ λ x hx, subset_span ⟨x, hx, rfl⟩
 
-lemma _root_.linear_map.map_span_le {R M M₂ : Type*} [semiring R] [add_comm_monoid M]
+alias submodule.map_span ← linear_map.map_span
+
+lemma map_span_le {R M M₂ : Type*} [semiring R] [add_comm_monoid M]
   [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] (f : M →ₗ[R] M₂)
   (s : set M) (N : submodule R M₂) : map f (span R s) ≤ N ↔ ∀ m ∈ s, f m ∈ N :=
 begin
@@ -753,10 +755,14 @@ begin
   exact iff.rfl
 end
 
+alias submodule.map_span_le ← linear_map.map_span_le
+
 /- See also `span_preimage_eq` below. -/
 lemma span_preimage_le (f : M →ₗ[R] M₂) (s : set M₂) :
   span R (f ⁻¹' s) ≤ (span R s).comap f :=
 by { rw [span_le, comap_coe], exact preimage_mono (subset_span), }
+
+alias submodule.span_preimage_le  ← linear_map.span_preimage_le
 
 /-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is
 preserved under addition and scalar multiplication, then `p` holds for all elements of the span of

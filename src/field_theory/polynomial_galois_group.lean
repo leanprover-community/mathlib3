@@ -29,7 +29,7 @@ the automorphism group of the splitting field.
 - `restrict_prod_inj`: `gal (p * q)` embeds as a subgroup of `gal p × gal q`.
 -/
 
-lemma complex.conj_eq_self_iff_im_eq_zero (z : ℂ) : z.conj = z ↔ z.im = 0 :=
+lemma complex.conj_eq_self_iff_im_eq_zero' (z : ℂ) : z.conj = z ↔ z.im = 0 :=
 by rw [complex.ext_iff, complex.conj_re, and_iff_right rfl, complex.conj_im,
   neg_eq_iff_add_eq_zero, add_self_eq_zero]
 
@@ -344,24 +344,6 @@ def lem1 {G H : Type*} [group G] [group H] {f : G →* H} (hf : function.injecti
 (mul_equiv.of_bijective (f.cod_restrict f.range (λ x, ⟨x, rfl⟩))
   ⟨λ x y h, hf (subtype.ext_iff.mp h), by { rintros ⟨x, y, rfl⟩, exact ⟨y, rfl⟩ }⟩).symm
 
-def complex.conj_real_alg_equiv : ℂ ≃ₐ[ℝ] ℂ :=
-{ inv_fun := complex.conj,
-  left_inv := complex.conj_conj,
-  right_inv := complex.conj_conj,
-  commutes' := complex.conj_of_real,
-  .. complex.conj }
-
-def complex.conj_rat_alg_equiv : ℂ ≃ₐ[ℚ] ℂ :=
-alg_equiv.restrict_scalars ℚ complex.conj_real_alg_equiv
-
-instance root_set.fintype {R : Type*} [integral_domain R] (p : polynomial R) (S : Type*)
-  [integral_domain S] [algebra R S] : fintype (p.root_set S) :=
-finset_coe.fintype _
-
-lemma root_set.finite {R : Type*} [integral_domain R] (p : polynomial R) (S : Type*)
-  [integral_domain S] [algebra R S] : (p.root_set S).finite :=
-⟨root_set.fintype p S⟩
-
 lemma gal_action_hom_bijective_of_prime_degree_aux {p : polynomial ℚ} :
   (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
     (gal_action_hom p ℂ (restrict p ℂ complex.conj_rat_alg_equiv)).support.card :=
@@ -396,7 +378,9 @@ begin
     gal_action_hom p ℂ (restrict p ℂ complex.conj_rat_alg_equiv) w = w ↔ w.val.im = 0,
   { intro w,
     rw [subtype.ext_iff, gal_action_hom_restrict],
-    exact w.val.conj_eq_self_iff_im_eq_zero },
+    change w.val.conj = w.val ↔ w.val.im = 0,
+    rw [complex.eq_conj_iff_re],
+    sorry },
   have hc : ∀ z : ℂ, z ∈ c ↔ aeval z p = 0 ∧ z.im ≠ 0,
   { intro z,
     simp_rw [finset.mem_image, exists_prop],
@@ -441,9 +425,9 @@ begin
   { rw ← equiv.perm.card_support_eq_two,
     apply nat.add_left_cancel,
     rw ← p_roots,
-    rw ← set.finite.card_to_finset (root_set.finite p ℝ),
-    rw ← set.finite.card_to_finset (root_set.finite p ℂ),
-    convert tada_aux.symm },
+    rw ← set.finite.card_to_finset (root_set_finite p ℝ),
+    rw ← set.finite.card_to_finset (root_set_finite p ℂ),
+    convert gal_action_hom_bijective_of_prime_degree_aux.symm },
 end
 
 end gal

@@ -3,9 +3,9 @@ Copyright (c) 2019 Chris Hughes All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import topology.algebra.polynomial
 import analysis.special_functions.pow
 import field_theory.algebraic_closure
+import topology.algebra.polynomial
 
 /-!
 # The fundamental theorem of algebra

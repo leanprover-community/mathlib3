@@ -8,18 +8,23 @@ import measure_theory.interval_integral
 /-!
 # Integration of specific interval integrals
 
-This file contains proofs of the integrals of various simple functions, including `pow`, `exp`,
-`inv`/`one_div`, `sin`, `cos`, and `λ x, 1 / (1 + x^2)`.
-
-There are also facts about more complicated integrals:
-* `sin x ^ n`: We prove a recursive formula for `sin x ^ (n + 2)` in terms of `sin x ^ n`,
-  along with explicit product formulas for even and odd `n`.
-* `cos x ^ 2 - sin x ^ 2`
+This file contains proofs of the integrals of various specific functions. This includes:
+* Integrals of simple functions, such as `id`, `pow`, `exp`, `inv`
+* Integrals of some trigonometric functions, such as `sin`, `cos`, `1 / (1 + x^2)`
+* The integral of `cos x ^ 2 - sin x ^ 2`
+* The reduction formula for `∫ x in 0..π, sin x ^ n` for `n ≥ 2`
+* The computation of `∫ x in 0..π, sin x ^ n` as a product for even and odd `n`
 
 With these lemmas, many simple integrals can be computed by `simp` or `norm_num`.
 See `test/integration.lean` for specific examples.
 
+This file also contains some facts about the interval integrability of specific functions.
+
 This file is still being developed.
+
+## Tags
+
+integrate, integration, integrable, integrability
 -/
 
 open real nat set finset
@@ -235,7 +240,7 @@ end
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp only [one_div, integral_inv_one_add_sq]
 
-/-! ### Recursive computation of `∫ x in 0..π, sin x ^ n` -/
+/-! ### Reduction of `∫ x in 0..π, sin x ^ n` -/
 
 lemma integral_sin_pow_aux : ∫ x in 0..π, sin x ^ (n + 2) =
   ((n + 1) * ∫ x in 0..π, sin x ^ n) - (n + 1) * ∫ x in 0..π, sin x ^ (n + 2) :=

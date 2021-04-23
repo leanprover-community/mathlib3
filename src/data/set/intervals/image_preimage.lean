@@ -538,7 +538,7 @@ end
 begin
   suffices : (λ x, x + b) '' ((λ x, a * x) '' Icc c d) = Icc (a * c + b) (a * d + b),
   { rwa set.image_image at this,  },
-  rw [image_mul_left_Icc' h, image_add_const_Icc, add_comm b, add_comm b],
+  rw [image_mul_left_Icc' h, image_add_const_Icc],
 end
 
 end linear_ordered_field

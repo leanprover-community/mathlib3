@@ -362,7 +362,7 @@ lemma root_set.finite {R : Type*} [integral_domain R] (p : polynomial R) (S : Ty
   [integral_domain S] [algebra R S] : (p.root_set S).finite :=
 ⟨root_set.fintype p S⟩
 
-lemma tada_aux {p : polynomial ℚ} :
+lemma gal_action_hom_bijective_of_prime_degree_aux {p : polynomial ℚ} :
   (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
     (gal_action_hom p ℂ (restrict p ℂ complex.conj_rat_alg_equiv)).support.card :=
 begin
@@ -417,7 +417,8 @@ begin
   { apply_instance },
 end
 
-lemma tada {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
+lemma gal_action_hom_bijective_of_prime_degree
+  {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
   (p_roots : fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) + 2) :
   function.bijective (gal_action_hom p ℂ) :=
 begin
@@ -443,64 +444,6 @@ begin
     rw ← set.finite.card_to_finset (root_set.finite p ℝ),
     rw ← set.finite.card_to_finset (root_set.finite p ℂ),
     convert tada_aux.symm },
-end
-
-lemma final0_irred (a : ℕ) (b : ℤ) (p : ℕ)
-  (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b)) :
-  irreducible (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) :=
-begin
-  let q : polynomial ℚ := X ^ 5 - C ↑a * X + C ↑b,
-  change irreducible q,
-  let r : polynomial ℤ := X ^ 5 - C ↑a * X + C b,
-  have r_map : r.map (int.cast_ring_hom ℚ) = q,
-  { rw [map_add, map_sub, map_mul, map_pow, map_X, map_C, map_C],
-    refl },
-  have r_degree : r.degree = ↑5 := sorry,
-  have r_leading_coeff : r.leading_coeff = 1 := sorry,
-  have r_monic : r.monic := r_leading_coeff,
-  have r_primitive : r.is_primitive := r_monic.is_primitive,
-  rw [←r_map, ←is_primitive.int.irreducible_iff_irreducible_map_cast r_primitive],
-  have key : (1 : polynomial ℤ) = (2 : ℚ),
-  apply irreducible_of_eisenstein_criterion,
-  { rwa [ideal.span_singleton_prime (int.coe_nat_ne_zero.mpr hp.ne_zero),
-      int.prime_iff_nat_abs_prime], },
-  { rw [r_leading_coeff, ideal.mem_span_singleton],
-    apply mt (int.eq_one_of_dvd_one (int.coe_nat_nonneg p)),
-    rw [←int.coe_nat_one, int.coe_nat_eq_coe_nat_iff],
-    exact hp.ne_one },
-  { intros n hn,
-    rw [r_degree, with_bot.coe_lt_coe] at hn,
-    interval_cases n with hn,
-    all_goals { rw [coeff_add, coeff_sub, coeff_X_pow, coeff_C_mul, coeff_X, coeff_C] },
-    all_goals { rw ideal.mem_span_singleton },
-    all_goals { norm_num },
-    { exact hpb },
-    { exact int.coe_nat_dvd.mpr hpa } },
-  { rw [r_degree, ←with_bot.coe_zero, with_bot.coe_lt_coe],
-    norm_num },
-  { rw [coeff_add, coeff_sub, coeff_X_pow, coeff_C_mul, coeff_X, coeff_C],
-    norm_num,
-    rwa [pow_two, ideal.span_singleton_mul_span_singleton, ←pow_two, ideal.mem_span_singleton] },
-  { exact is_primitive_iff_is_unit_of_C_dvd.mp r_primitive },
-end
-
-lemma final0 (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b < a)
-  (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b)) :
-  function.bijective (gal_action_hom (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) ℂ) :=
-begin
-  let q : polynomial ℚ := X ^ 5 - C ↑a * X + C ↑b,
-  change function.bijective (gal_action_hom q ℂ),
-  have q_nat_degree : q.nat_degree = 5,
-  { sorry },
-  apply tada,
-  { exact final0_irred a b p hp hpa hpb hp2b },
-  { rw q_nat_degree,
-    norm_num },
-  { have h1 : fintype.card (q.root_set ℂ) = 5,
-    { sorry },
-    have h2 : fintype.card (q.root_set ℝ) = 3,
-    { sorry },
-    rw [h1, h2] },
 end
 
 end gal

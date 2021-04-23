@@ -84,6 +84,20 @@ begin
     exact submodule.to_add_submonoid_injective hS }
 end
 
+lemma submodule_fg_iff_add_group.fg {G : Type*} [add_comm_group G] :
+  (⊤ : submodule ℤ G).fg ↔ add_group.fg G :=
+begin
+  split,
+  { rintro ⟨S, hS⟩,
+    refine ⟨S, _⟩,
+    rw [← submodule.span_int_eq_add_subgroup_closure],
+    simpa [hS] },
+  { rintro ⟨S, hS⟩,
+    refine ⟨S, _⟩,
+    rw [← submodule.span_int_eq_add_subgroup_closure] at hS,
+    exact submodule.to_add_subgroup_injective hS }
+end
+
 /-- Nakayama's Lemma. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2, Stacks 00DV -/
 theorem exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul {R : Type*} [comm_ring R]
   {M : Type*} [add_comm_group M] [module R M]

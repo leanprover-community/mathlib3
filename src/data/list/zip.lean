@@ -206,6 +206,9 @@ begin
     { simp [comm, hl] } }
 end
 
+instance (f : α → α → β) [is_symm_op α β f] : is_symm_op (list α) (list β) (zip_with f) :=
+⟨zip_with_comm f is_symm_op.symm_op⟩
+
 @[simp] theorem length_revzip (l : list α) : length (revzip l) = length l :=
 by simp only [revzip, length_zip, length_reverse, min_self]
 
@@ -309,6 +312,8 @@ begin
 end
 
 section distrib
+
+/-! ### Operations that can be applied before or after a `zip_with` -/
 
 variables (f : α → β → γ) (l : list α) (l' : list β) (n : ℕ)
 

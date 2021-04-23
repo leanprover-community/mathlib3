@@ -6,7 +6,8 @@ Authors: Chris Hughes
 import data.list.perm
 import data.list.range
 
-variables {α : Type*}
+universe u
+variables {α : Type u}
 
 open nat
 
@@ -230,15 +231,13 @@ section is_rotated
 
 variables (l l' : list α)
 
+/-- `is_rotated l₁ l₂` or `l₁ ~r l₂` asserts that `l₁` and `l₂` are cyclic permutations
+  of each other. This is defined by claiming that `∃ n, l.rotate n = l'`. -/
 def is_rotated : Prop := ∃ n, l.rotate n = l'
 
 infixr ` ~r `:1000 := is_rotated
 
 variables {l l'}
-
-lemma is_rotated.def (h : l ~r l') : ∃ n, l.rotate n = l' := h
-
-lemma is_rotated_iff : l ~r l' ↔ ∃ n, l.rotate n = l' := iff.rfl
 
 @[refl] lemma is_rotated.refl (l : list α) : l ~r l :=
 ⟨0, by simp⟩
@@ -262,8 +261,8 @@ is_rotated.symm ⟨n, rfl⟩
 @[trans] lemma is_rotated.trans {l'' : list α} (h : l ~r l') (h' : l' ~r l'') :
   l ~r l'' :=
 begin
-  obtain ⟨n, rfl⟩ := h.def,
-  obtain ⟨m, rfl⟩ := h'.def,
+  obtain ⟨n, rfl⟩ := h,
+  obtain ⟨m, rfl⟩ := h',
   rw rotate_rotate,
   use (n + m)
 end
@@ -271,6 +270,7 @@ end
 lemma is_rotated.eqv : equivalence (@is_rotated α) :=
 mk_equivalence _ is_rotated.refl (λ _ _, is_rotated.symm) (λ _ _ _, is_rotated.trans)
 
+/-- The relation `list.is_rotated l l'` forms a `setoid` of cycles. -/
 def is_rotated.setoid (α : Type*) : setoid (list α) :=
 { r := is_rotated, iseqv := is_rotated.eqv }
 
@@ -298,7 +298,6 @@ is_rotated.symm ⟨1, by simp⟩
 
 lemma is_rotated.reverse (h : l ~r l') : l.reverse ~r l'.reverse :=
 begin
-  rw is_rotated_iff at h ⊢,
   obtain ⟨n, rfl⟩ := h,
   exact ⟨_, (reverse_rotate _ _).symm⟩
 end
@@ -318,7 +317,7 @@ by simp [is_rotated_reverse_comm_iff]
 lemma is_rotated_iff_mod : l ~r l' ↔ ∃ n ≤ l.length, l.rotate n = l' :=
 begin
   refine ⟨λ h, _, λ ⟨n, _, h⟩, ⟨n, h⟩⟩,
-  obtain ⟨n, rfl⟩ := h.def,
+  obtain ⟨n, rfl⟩ := h,
   cases l with hd tl,
   { simp },
   { refine ⟨n % (hd :: tl).length, _, rotate_mod _ _⟩,

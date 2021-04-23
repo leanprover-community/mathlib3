@@ -224,15 +224,12 @@ begin
       (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
 end
 
-lemma closure_swaps_eq_top [fintype α] :
-  subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
+lemma closure_is_swap [fintype α] : subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
 begin
-  ext σ,
-  simp only [subgroup.mem_top, iff_true],
-  apply swap_induction_on σ,
-  { exact subgroup.one_mem _ },
-  { intros σ a b ab hσ,
-    refine subgroup.mul_mem _ (subgroup.subset_closure ⟨_, _, ab, rfl⟩) hσ }
+  refine eq_top_iff.mpr (λ x hx, _),
+  obtain ⟨h1, h2⟩ := subtype.mem (trunc_swap_factors x).out,
+  rw ← h1,
+  exact subgroup.list_prod_mem _ (λ y hy, subgroup.subset_closure (h2 y hy)),
 end
 
 /-- Like `swap_induction_on`, but with the composition on the right of `f`.

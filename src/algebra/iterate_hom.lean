@@ -37,7 +37,9 @@ lemma hom_coe_pow {F : Type*} [monoid F] (c : F → M → M) (h1 : c 1 = id)
 
 namespace monoid_hom
 
-variables [monoid M] [monoid N] [group G] [group H]
+section
+
+variables [mul_one_class M] [mul_one_class N]
 
 @[simp, to_additive]
 theorem iterate_map_one (f : M →* M) (n : ℕ) : f^[n] 1 = 1 :=
@@ -47,6 +49,10 @@ iterate_fixed f.map_one n
 theorem iterate_map_mul (f : M →* M) (n : ℕ) (x y) :
   f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
 semiconj₂.iterate f.map_mul n x y
+
+end
+
+variables [monoid M] [monoid N] [group G] [group H]
 
 @[simp, to_additive]
 theorem iterate_map_inv (f : G →* G) (n : ℕ) (x) :

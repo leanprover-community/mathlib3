@@ -475,6 +475,19 @@ begin
 end
 end
 
+variables (R M N)
+
+/-- The simple (aka pure) elements span the tensor product. -/
+lemma span_tmul_eq_top :
+  submodule.span R { t : M ⊗[R] N | ∃ m n, m ⊗ₜ n = t } = ⊤ :=
+begin
+  ext t, simp only [submodule.mem_top, iff_true],
+  apply t.induction_on,
+  { exact submodule.zero_mem _, },
+  { intros m n, apply submodule.subset_span, use [m, n], },
+  { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
+end
+
 end module
 
 section UMP
@@ -579,6 +592,14 @@ def lift.equiv : (M →ₗ N →ₗ P) ≃ₗ (M ⊗ N →ₗ P) :=
   left_inv := λ f, linear_map.ext₂ $ λ m n, lift.tmul _ _,
   right_inv := λ f, ext $ λ m n, lift.tmul _ _,
   .. uncurry R M N P }
+
+@[simp] lemma lift.equiv_apply (f : M →ₗ[R] N →ₗ[R] P) (m : M) (n : N) :
+  lift.equiv R M N P f (m ⊗ₜ n) = f m n :=
+uncurry_apply f m n
+
+@[simp] lemma lift.equiv_symm_apply (f : M ⊗[R] N →ₗ[R] P) (m : M) (n : N) :
+  (lift.equiv R M N P).symm f m n = f (m ⊗ₜ n) :=
+rfl
 
 /-- Given a linear map `M ⊗ N → P`, compose it with the canonical bilinear map `M → N → M ⊗ N` to
 form a bilinear map `M → N → P`. -/
@@ -706,6 +727,17 @@ lift $ comp (compl₂ (mk _ _ _) g) f
 @[simp] theorem map_tmul (f : M →ₗ[R] P) (g : N →ₗ[R] Q) (m : M) (n : N) :
   map f g (m ⊗ₜ n) = f m ⊗ₜ g n :=
 rfl
+
+lemma map_range_eq_span_tmul (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  (map f g).range = submodule.span R { t | ∃ m n, (f m) ⊗ₜ (g n) = t } :=
+begin
+  simp only [← submodule.map_top, ← span_tmul_eq_top, submodule.map_span, set.mem_image,
+    set.mem_set_of_eq],
+  congr, ext t,
+  split,
+  { rintros ⟨_, ⟨⟨m, n, rfl⟩, rfl⟩⟩, use [m, n], simp only [map_tmul], },
+  { rintros ⟨m, n, rfl⟩, use [m ⊗ₜ n, m, n], simp only [map_tmul], },
+end
 
 section
 variables {P' Q' : Type*}

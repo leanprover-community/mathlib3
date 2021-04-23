@@ -540,7 +540,7 @@ finset_coe.fintype _
 
 lemma root_set_finite {R : Type*} [integral_domain R] (p : polynomial R) (S : Type*)
   [integral_domain S] [algebra R S] : (p.root_set S).finite :=
-⟨root_set.fintype p S⟩
+⟨polynomial.root_set_fintype p S⟩
 
 end roots
 

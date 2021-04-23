@@ -149,7 +149,7 @@ def coeff (p : polynomial R) : ℕ → R := @coe_fn (ℕ →₀ R) _ p
 @[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
 
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
-by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }
+finsupp.single_apply
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 := rfl
 

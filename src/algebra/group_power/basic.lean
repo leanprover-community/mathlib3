@@ -462,6 +462,10 @@ begin
   exact zero_pow hn,
 end
 
+lemma pow_ne_zero_iff [monoid_with_zero R] [no_zero_divisors R] {a : R} {n : ℕ} (hn : 0 < n) :
+  a ^ n ≠ 0 ↔ a ≠ 0 :=
+by rwa [not_iff_not, pow_eq_zero_iff]
+
 @[field_simps] theorem pow_ne_zero [monoid_with_zero R] [no_zero_divisors R]
   {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
@@ -690,11 +694,11 @@ by simpa only [sqr_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).suc
 theorem sqr_lt_sqr' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
 sqr_lt_sqr (abs_lt.mpr ⟨h1, h2⟩)
 
-theorem sqr_le_sqr (h : abs x ≤ y) : x ^ 2 ≤ y ^ 2 :=
+theorem sqr_le_sqr (h : abs x ≤ abs y) : x ^ 2 ≤ y ^ 2 :=
 by simpa only [sqr_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
 
 theorem sqr_le_sqr' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
-sqr_le_sqr (abs_le.mpr ⟨h1, h2⟩)
+sqr_le_sqr (le_trans (abs_le.mpr ⟨h1, h2⟩) (le_abs_self _))
 
 theorem abs_lt_abs_of_sqr_lt_sqr (h : x^2 < y^2) : abs x < abs y :=
 lt_of_pow_lt_pow 2 (abs_nonneg y) $ by rwa [← sqr_abs x, ← sqr_abs y] at h

@@ -126,7 +126,7 @@ lemma supr_lsingle_range : (⨆a, (lsingle a : M →ₗ[R] (α →₀ M)).range)
 begin
   refine (eq_top_iff.2 $ set_like.le_def.2 $ assume f _, _),
   rw [← sum_single f],
-  refine sum_mem _ (assume a ha, submodule.mem_supr_of_mem a $ set.mem_image_of_mem _ trivial)
+  exact sum_mem _ (assume a ha, submodule.mem_supr_of_mem a ⟨_, rfl⟩),
 end
 
 lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
@@ -218,11 +218,8 @@ end
 
 theorem range_restrict_dom (s : set α) :
   (restrict_dom M R s).range = ⊤ :=
-begin
-  have := linear_map.range_comp (submodule.subtype _) (restrict_dom M R s),
-  rw [restrict_dom_comp_subtype, linear_map.range_id] at this,
-  exact eq_top_mono (submodule.map_mono le_top) this.symm
-end
+range_eq_top.2 $ function.right_inverse.surjective $
+  linear_map.congr_fun (restrict_dom_comp_subtype s)
 
 theorem supported_mono {s t : set α} (st : s ⊆ t) :
   supported M R s ≤ supported M R t :=
@@ -516,9 +513,11 @@ linear_map.cod_restrict _ ((finsupp.total _ _ _ v).comp (submodule.subtype (supp
 variables {α} {M} {v}
 
 theorem total_on_range (s : set α) : (finsupp.total_on α M R v s).range = ⊤ :=
-by rw [finsupp.total_on, linear_map.range, linear_map.map_cod_restrict,
-  ← linear_map.range_le_iff_comap, range_subtype, map_top, linear_map.range_comp, range_subtype];
-    exact le_of_eq (span_eq_map_total _ _)
+begin
+  rw [finsupp.total_on, linear_map.range_eq_map, linear_map.map_cod_restrict,
+    ← linear_map.range_le_iff_comap, range_subtype, map_top, linear_map.range_comp, range_subtype],
+  exact (span_eq_map_total _ _).le
+end
 
 theorem total_comp (f : α' → α) :
   (finsupp.total α' M R (v ∘ f)) = (finsupp.total α M R v).comp (lmap_domain R R f) :=

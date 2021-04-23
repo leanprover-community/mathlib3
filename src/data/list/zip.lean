@@ -116,6 +116,16 @@ theorem zip_map' (f : α → β) (g : α → γ) : ∀ (l : list α),
 | []     := rfl
 | (a::l) := by simp only [map, zip_cons_cons, zip_map' l]; split; refl
 
+lemma map_zip_with {δ : Type*} (f : α → β) (g : γ → δ → α) (l : list γ) (l' : list δ) :
+  map f (zip_with g l l') = zip_with (λ x y, f (g x y)) l l' :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l',
+    { simp },
+    { simp [hl] } }
+end
+
 theorem mem_zip {a b} : ∀ {l₁ : list α} {l₂ : list β},
    (a, b) ∈ zip l₁ l₂ → a ∈ l₁ ∧ b ∈ l₂
 | (_::l₁) (_::l₂) (or.inl rfl) := ⟨or.inl rfl, or.inl rfl⟩
@@ -195,6 +205,9 @@ begin
     { simp },
     { simp [comm, hl] } }
 end
+
+instance (f : α → α → β) [is_symm_op α β f] : is_symm_op (list α) (list β) (zip_with f) :=
+⟨zip_with_comm f is_symm_op.symm_op⟩
 
 @[simp] theorem length_revzip (l : list α) : length (revzip l) = length l :=
 by simp only [revzip, length_zip, length_reverse, min_self]
@@ -299,6 +312,8 @@ begin
 end
 
 section distrib
+
+/-! ### Operations that can be applied before or after a `zip_with` -/
 
 variables (f : α → β → γ) (l : list α) (l' : list β) (n : ℕ)
 

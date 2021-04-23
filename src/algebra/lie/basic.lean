@@ -159,14 +159,17 @@ instance : lie_ring_module L (M →ₗ[R] N) :=
       simp only [lie_lie, linear_map.coe_mk, linear_map.map_sub, linear_map.add_apply, lie_sub],
       abel, }, }
 
-@[simp] lemma bracket_apply (f : M →ₗ[R] N) (x : L) (m : M) : ⁅x, f⁆ m = ⁅x, f m⁆ - f ⁅x, m⁆ := rfl
+@[simp] lemma lie_hom.lie_apply (f : M →ₗ[R] N) (x : L) (m : M) :
+  ⁅x, f⁆ m = ⁅x, f m⁆ - f ⁅x, m⁆ :=
+rfl
 
 instance : lie_module R L (M →ₗ[R] N) :=
 { smul_lie := λ t x f, by
     { ext n,
-      simp only [smul_sub, smul_lie, linear_map.smul_apply, bracket_apply, linear_map.map_smul], },
+      simp only [smul_sub, smul_lie, linear_map.smul_apply, lie_hom.lie_apply,
+        linear_map.map_smul], },
   lie_smul := λ t x f, by
-    { ext n, simp only [smul_sub, linear_map.smul_apply, bracket_apply, lie_smul], }, }
+    { ext n, simp only [smul_sub, linear_map.smul_apply, lie_hom.lie_apply, lie_smul], }, }
 
 end basic_properties
 
@@ -398,6 +401,10 @@ linear_map.map_neg (f : M →ₗ[R] N) x
 @[simp] lemma map_lie (f : M →ₗ⁅R,L⁆ N) (x : L) (m : M) : f ⁅x, m⁆ = ⁅x, f m⁆ :=
 lie_module_hom.map_lie' f
 
+lemma map_lie₂ (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) (x : L) (m : M) (n : N) :
+  ⁅x, f m n⁆ = f ⁅x, m⁆ n + f m ⁅x, n⁆ :=
+by simp only [sub_add_cancel, map_lie, lie_hom.lie_apply]
+
 @[simp] lemma map_zero (f : M →ₗ⁅R,L⁆ N) : f 0 = 0 :=
 linear_map.map_zero (f : M →ₗ[R] N)
 
@@ -499,8 +506,9 @@ end lie_module_hom
 
 /-- An equivalence of Lie algebra modules is a linear equivalence which is also a morphism of
 Lie algebra modules. -/
-structure lie_module_equiv extends M ≃ₗ[R] N, M →ₗ⁅R,L⁆ N
+structure lie_module_equiv extends M ≃ₗ[R] N, M →ₗ⁅R,L⁆ N, M ≃ N
 
+attribute [nolint doc_blame] lie_module_equiv.to_equiv
 attribute [nolint doc_blame] lie_module_equiv.to_lie_module_hom
 attribute [nolint doc_blame] lie_module_equiv.to_linear_equiv
 
@@ -510,17 +518,27 @@ namespace lie_module_equiv
 
 variables {R L M N P}
 
+instance has_coe_to_equiv : has_coe (M ≃ₗ⁅R,L⁆ N) (M ≃ N) := ⟨to_equiv⟩
 instance has_coe_to_lie_module_hom : has_coe (M ≃ₗ⁅R,L⁆ N) (M →ₗ⁅R,L⁆ N) := ⟨to_lie_module_hom⟩
 instance has_coe_to_linear_equiv : has_coe (M ≃ₗ⁅R,L⁆ N) (M ≃ₗ[R] N) := ⟨to_linear_equiv⟩
 
 /-- see Note [function coercion] -/
 instance : has_coe_to_fun (M ≃ₗ⁅R,L⁆ N) := ⟨_, to_fun⟩
 
+@[simp] lemma coe_mk (f : M → N) (h₁ h₂ F h₃ h₄ h₅) :
+  ((⟨f, h₁, h₂, F, h₃, h₄, h₅⟩ : M ≃ₗ⁅R,L⁆ N) : M → N) = f := rfl
+
 @[simp, norm_cast] lemma coe_to_lie_module_hom (e : M ≃ₗ⁅R,L⁆ N) :
   ((e : M →ₗ⁅R,L⁆ N) : M → N) = e := rfl
 
 @[simp, norm_cast] lemma coe_to_linear_equiv (e : M ≃ₗ⁅R,L⁆ N) : ((e : M ≃ₗ[R] N) : M → N) = e :=
 rfl
+
+lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ⁅R,L⁆ N) → M ≃ N) :=
+λ ⟨_, _, _, _, _, _, _⟩ ⟨_, _, _, _, _, _, _⟩ h, lie_module_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
+
+@[ext] lemma ext (e₁ e₂ : M ≃ₗ⁅R,L⁆ N) (h : ∀ m, e₁ m = e₂ m) : e₁ = e₂ :=
+to_equiv_injective (equiv.ext h)
 
 instance : has_one (M ≃ₗ⁅R,L⁆ M) := ⟨{ map_lie' := λ x m, rfl, ..(1 : M ≃ₗ[R] M) }⟩
 

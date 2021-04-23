@@ -112,7 +112,7 @@ lemma is_basis.repr_ker : hv.repr.ker = ⊥ :=
 linear_map.ker_eq_bot.2 $ left_inverse.injective hv.total_repr
 
 lemma is_basis.repr_range : hv.repr.range = finsupp.supported R R univ :=
-by rw [is_basis.repr, linear_map.range, submodule.map_comp,
+by rw [is_basis.repr, linear_map.range_eq_map, submodule.map_comp,
   linear_map.map_cod_restrict, submodule.map_id, comap_top, map_top, hv.1.repr_range,
   finsupp.supported_univ]
 
@@ -128,7 +128,8 @@ lemma is_basis.repr_eq_single {i} : hv.repr (v i) = finsupp.single i 1 :=
 by apply hv.1.repr_eq_single; simp
 
 @[simp]
-lemma is_basis.repr_self_apply (i j : ι) : hv.repr (v i) j = if i = j then 1 else 0 :=
+lemma is_basis.repr_self_apply (i j : ι) [decidable (i = j)] :
+  hv.repr (v i) j = if i = j then 1 else 0 :=
 by rw [hv.repr_eq_single, finsupp.single_apply]
 
 lemma is_basis.repr_eq_iff {f : M →ₗ[R] (ι →₀ R)} :

@@ -1097,11 +1097,20 @@ def alg_equiv.comap (φ : A ≃ₐ[S] B) : algebra.comap R S A ≃ₐ[R] algebra
 
 end
 
+section nat
+
+variables {R : Type*} [semiring R]
+
 /-- Semiring ⥤ ℕ-Alg -/
-instance algebra_nat {R : Type*} [semiring R] : algebra ℕ R :=
+instance algebra_nat : algebra ℕ R :=
 { commutes' := nat.cast_commute,
   smul_def' := λ _ _, nsmul_eq_mul _ _,
   to_ring_hom := nat.cast_ring_hom R }
+
+instance nat_algebra_subsingleton : subsingleton (algebra ℕ R) :=
+⟨λ P Q, by { ext, simp, }⟩
+
+end nat
 
 namespace ring_hom
 
@@ -1264,9 +1273,7 @@ instance algebra_int : algebra ℤ R :=
 
 variables {R}
 
-variables {S : Type*} [ring S]
-
-instance int_algebra_subsingleton : subsingleton (algebra ℤ S) :=
+instance int_algebra_subsingleton : subsingleton (algebra ℤ R) :=
 ⟨λ P Q, by { ext, simp, }⟩
 
 end int
@@ -1279,23 +1286,32 @@ We couldn't set this up back in `algebra.pi_instances` because this file imports
 namespace pi
 
 variable {I : Type u}     -- The indexing type
+variable {R : Type*}      -- The scalar type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 variables (I f)
 
-instance algebra (α) {r : comm_semiring α}
-  [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] :
-  algebra α (Π i : I, f i) :=
+instance algebra {r : comm_semiring R}
+  [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] :
+  algebra R (Π i : I, f i) :=
 { commutes' := λ a f, begin ext, simp [algebra.commutes], end,
   smul_def' := λ a f, begin ext, simp [algebra.smul_def''], end,
-  ..pi.ring_hom (λ i, algebra_map α (f i)) }
+  ..pi.ring_hom (λ i, algebra_map R (f i)) }
 
-@[simp] lemma algebra_map_apply (α) {r : comm_semiring α}
-  [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] (a : α) (i : I) :
-  algebra_map α (Π i, f i) a i = algebra_map α (f i) a := rfl
+@[simp] lemma algebra_map_apply {r : comm_semiring R}
+  [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] (a : R) (i : I) :
+  algebra_map R (Π i, f i) a i = algebra_map R (f i) a := rfl
 
 -- One could also build a `Π i, R i`-algebra structure on `Π i, A i`,
 -- when each `A i` is an `R i`-algebra, although I'm not sure that it's useful.
+
+variables (R) (f)
+
+/-- `function.eval` as an `alg_hom`. The name matches `ring_hom.apply`, `monoid_hom.apply`, etc. -/
+@[simps]
+def alg_hom.apply {r : comm_semiring R} [Π i, semiring (f i)] [Π i, algebra R (f i)] (i : I) :
+  (Π i, f i) →ₐ[R] f i :=
+{ commutes' := λ r, rfl, .. ring_hom.apply f i}
 
 end pi
 

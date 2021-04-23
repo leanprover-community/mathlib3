@@ -233,9 +233,7 @@ h.to_dual_apply_right i v
   (h.dual_basis_is_basis.to_dual _).comp (h.to_dual B) = eval K V :=
 begin
   refine h.ext (λ i, h.dual_basis_is_basis.ext (λ j, _)),
-  suffices : @ite K _ (classical.prop_decidable _) 1 0 = @ite K _ (de j i) 1 0,
-    by simpa [h.dual_basis_is_basis.to_dual_apply_left, h.dual_basis_repr, h.to_dual_apply_right],
-  split_ifs; refl
+  simp [h.dual_basis_is_basis.to_dual_apply_left, h.dual_basis_repr, h.to_dual_apply_right],
 end
 
 omit de

@@ -153,6 +153,19 @@ end
 
 variable [decidable_eq α]
 
+section fintype
+variable [fintype α]
+
+lemma support_pow_coprime {σ : perm α} {n : ℕ} (h : nat.coprime n (order_of σ)) :
+  (σ ^ n).support = σ.support :=
+begin
+  obtain ⟨m, hm⟩ := exists_pow_eq_self_of_coprime h,
+  exact le_antisymm (support_pow_le σ n) (le_trans (ge_of_eq (congr_arg support hm))
+    (support_pow_le (σ ^ n) m)),
+end
+
+end fintype
+
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/
 def is_swap (f : perm α) : Prop := ∃ x y, x ≠ y ∧ f = swap x y
 
@@ -224,15 +237,12 @@ begin
       (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
 end
 
-lemma closure_swaps_eq_top [fintype α] :
-  subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
+lemma closure_is_swap [fintype α] : subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
 begin
-  ext σ,
-  simp only [subgroup.mem_top, iff_true],
-  apply swap_induction_on σ,
-  { exact subgroup.one_mem _ },
-  { intros σ a b ab hσ,
-    refine subgroup.mul_mem _ (subgroup.subset_closure ⟨_, _, ab, rfl⟩) hσ }
+  refine eq_top_iff.mpr (λ x hx, _),
+  obtain ⟨h1, h2⟩ := subtype.mem (trunc_swap_factors x).out,
+  rw ← h1,
+  exact subgroup.list_prod_mem _ (λ y hy, subgroup.subset_closure (h2 y hy)),
 end
 
 /-- Like `swap_induction_on`, but with the composition on the right of `f`.

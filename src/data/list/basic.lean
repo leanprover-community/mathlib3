@@ -2512,12 +2512,22 @@ end
 
 attribute [simp] join
 
-theorem join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
+@[simp] theorem join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
 | []     := iff_of_true rfl (forall_mem_nil _)
 | (l::L) := by simp only [join, append_eq_nil, join_eq_nil, forall_mem_cons]
 
 @[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; [refl, simp only [*, join, cons_append, append_assoc]]
+
+@[simp] theorem join_filter_empty_eq_ff [decidable_pred (λ l : list α, l.empty = ff)] :
+  ∀ {L : list (list α)}, join (L.filter (λ l, l.empty = ff)) = L.join
+| [] := rfl
+| ([]::L) := by simp [@join_filter_empty_eq_ff L]
+| ((a::l)::L) := by simp [@join_filter_empty_eq_ff L]
+
+@[simp] theorem join_filter_ne_nil [decidable_pred (λ l : list α, l ≠ [])] {L : list (list α)} :
+  join (L.filter (λ l, l ≠ [])) = L.join :=
+by simp [join_filter_empty_eq_ff, ← empty_iff_eq_nil]
 
 lemma join_join (l : list (list (list α))) : l.join.join = (l.map join).join :=
 by { induction l, simp, simp [l_ih] }
@@ -3488,6 +3498,19 @@ theorem suffix_or_suffix_of_suffix {l₁ l₂ l₃ : list α}
  (h₁ : l₁ <:+ l₃) (h₂ : l₂ <:+ l₃) : l₁ <:+ l₂ ∨ l₂ <:+ l₁ :=
 (prefix_or_prefix_of_prefix (reverse_prefix.2 h₁) (reverse_prefix.2 h₂)).imp
   reverse_prefix.1 reverse_prefix.1
+
+theorem suffix_cons_iff {x : α} {l₁ l₂ : list α} :
+  l₁ <:+ x :: l₂ ↔ l₁ = x :: l₂ ∨ l₁ <:+ l₂ :=
+begin
+  split,
+  { rintro ⟨⟨hd, tl⟩, hl₃⟩,
+    { exact or.inl hl₃ },
+    { simp only [cons_append] at hl₃,
+      exact or.inr ⟨_, hl₃.2⟩ } },
+  { rintro (rfl | hl₁),
+    { exact (x :: l₂).suffix_refl },
+    { exact hl₁.trans (l₂.suffix_cons _) } }
+end
 
 theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: join L
 | (_  :: L) l (or.inl rfl) := infix_append [] _ _

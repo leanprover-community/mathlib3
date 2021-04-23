@@ -339,8 +339,8 @@ end
 instance {p : polynomial ℚ} : fact (p.splits (algebra_map ℚ ℂ)) :=
 ⟨is_alg_closed.splits_codomain p⟩
 
-def lem1 {G H : Type*} [group G] [group H] {f : G →* H} (hf : function.injective f) :
-  f.range ≃* G :=
+def range_mul_eq_of_injective {G H : Type*} [group G] [group H] {f : G →* H}
+  (hf : function.injective f) : f.range ≃* G :=
 (mul_equiv.of_bijective (f.cod_restrict f.range (λ x, ⟨x, rfl⟩))
   ⟨λ x y h, hf (subtype.ext_iff.mp h), by { rintros ⟨x, y, rfl⟩, exact ⟨y, rfl⟩ }⟩).symm
 
@@ -375,21 +375,19 @@ begin
     gal_action_hom p ℂ (restrict p ℂ complex.conj_rat_alg_equiv) w = w ↔ w.val.im = 0,
   { intro w,
     rw [subtype.ext_iff, gal_action_hom_restrict],
-    change w.val.conj = w.val ↔ w.val.im = 0,
-    exact w.val.eq_conj_iff_im },
+    exact complex.eq_conj_iff_im },
   have hc : ∀ z : ℂ, z ∈ c ↔ aeval z p = 0 ∧ z.im ≠ 0,
   { intro z,
     simp_rw [finset.mem_image, exists_prop],
     split,
     { rintros ⟨w, hw, rfl⟩,
-      refine ⟨(mem_root_set hp).mp w.2, mt (hc0 w).mpr (equiv.perm.mem_support.mp hw)⟩ },
+      exact ⟨(mem_root_set hp).mp w.2, mt (hc0 w).mpr (equiv.perm.mem_support.mp hw)⟩ },
     { rintros ⟨hz1, hz2⟩,
       exact ⟨⟨z, (mem_root_set hp).mpr hz1⟩,
         equiv.perm.mem_support.mpr (mt (hc0 _).mp hz2), rfl⟩ } },
   rw ← finset.card_disjoint_union,
   { apply congr_arg finset.card,
-    ext z,
-    rw [finset.mem_union, ha, hb, hc],
+    simp_rw [finset.ext_iff, finset.mem_union, ha, hb, hc],
     tauto },
   { intro z,
     rw [finset.inf_eq_inter, finset.mem_inter, hb, hc],
@@ -403,13 +401,12 @@ lemma gal_action_hom_bijective_of_prime_degree
   function.bijective (gal_action_hom p ℂ) :=
 begin
   have h1 : fintype.card (p.root_set ℂ) = p.nat_degree,
-  { simp_rw [root_set_def],
-    convert fintype.card_coe (p.map (algebra_map ℚ ℂ)).roots.to_finset,
+  { simp_rw [root_set_def, fintype.card_coe],
     rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots],
     { exact is_alg_closed.splits_codomain p },
     { exact nodup_roots ((separable_map (algebra_map ℚ ℂ)).mpr p_irr.separable) } },
   have h2 : fintype.card (gal_action_hom p ℂ).range = fintype.card p.gal :=
-  fintype.card_congr (lem1 (gal_action_hom_injective p ℂ)).to_equiv,
+  fintype.card_congr (range_mul_eq_of_injective (gal_action_hom_injective p ℂ)).to_equiv,
   let conj := restrict p ℂ complex.conj_rat_alg_equiv,
   refine ⟨gal_action_hom_injective p ℂ, λ x, (congr_arg (has_mem.mem x)
     (show (gal_action_hom p ℂ).range = ⊤, from _)).mpr (subgroup.mem_top x)⟩,
@@ -420,10 +417,8 @@ begin
   { exact ⟨conj, rfl⟩ },
   { rw ← equiv.perm.card_support_eq_two,
     apply nat.add_left_cancel,
-    rw ← p_roots,
-    rw ← set.finite.card_to_finset (root_set_finite p ℝ),
-    rw ← set.finite.card_to_finset (root_set_finite p ℂ),
-    convert gal_action_hom_bijective_of_prime_degree_aux.symm, },
+    rw [←p_roots, ←set.to_finset_card (root_set p ℝ), ←set.to_finset_card (root_set p ℂ)],
+    exact gal_action_hom_bijective_of_prime_degree_aux.symm },
 end
 
 end gal

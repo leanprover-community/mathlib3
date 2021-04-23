@@ -349,9 +349,9 @@ lemma gal_action_hom_bijective_of_prime_degree_aux {p : polynomial ℚ} :
     (gal_action_hom p ℂ (restrict p ℂ complex.conj_rat_alg_equiv)).support.card :=
 begin
   by_cases hp : p = 0,
-  { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty],
-    rw [zero_add, eq_comm, ←nat.le_zero_iff],
-    refine le_trans (finset.card_le_univ _) (le_of_eq _),
+  { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty, zero_add],
+    refine eq.symm (nat.le_zero_iff.mpr _),
+    refine (finset.card_le_univ _).trans (le_of_eq _),
     simp_rw [hp, root_set_zero, fintype.card_eq_zero_iff],
     exact λ h, (set.mem_empty_eq h.val).mp h.mem },
   have inj : function.injective (is_scalar_tower.to_alg_hom ℚ ℝ ℂ) := (algebra_map ℝ ℂ).injective,
@@ -427,7 +427,7 @@ begin
     rw ← p_roots,
     rw ← set.finite.card_to_finset (root_set_finite p ℝ),
     rw ← set.finite.card_to_finset (root_set_finite p ℂ),
-    convert gal_action_hom_bijective_of_prime_degree_aux.symm },
+    convert gal_action_hom_bijective_of_prime_degree_aux.symm, },
 end
 
 end gal

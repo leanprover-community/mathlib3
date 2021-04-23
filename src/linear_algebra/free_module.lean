@@ -375,7 +375,8 @@ begin
     { rw [linear_map.range_eq_map, ← hs, φ.map_span_le],
       rintros _ ⟨i, rfl⟩, apply this },
     intro i,
-    calc (∏ j, a j) • s i = (∏ j in {i}ᶜ, a j) • a i • s i : by rw [fintype.prod_eq_prod_compl_mul i, mul_smul]
+    calc (∏ j, a j) • s i = (∏ j in {i}ᶜ, a j) • a i • s i :
+                                                 by rw [fintype.prod_eq_prod_compl_mul i, mul_smul]
                       ... ∈ N  : N.smul_mem _ (ha' i) },
   -- Since a submodule of a free `R`-module is free, we get that `A • M` is free
   obtain ⟨n, B : fin n → φ.range, hB : is_basis R B⟩ :=

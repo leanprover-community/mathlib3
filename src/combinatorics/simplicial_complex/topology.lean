@@ -9,7 +9,7 @@ import linear_algebra.finite_dimensional
 import analysis.convex.topology
 import analysis.specific_limits
 import combinatorics.simplicial_complex.dump
-import combinatorics.simplicial_complex.extreme_point
+import combinatorics.simplicial_complex.extreme
 import combinatorics.simplicial_complex.finite
 import combinatorics.simplicial_complex.boundary
 import combinatorics.simplicial_complex.subdivision

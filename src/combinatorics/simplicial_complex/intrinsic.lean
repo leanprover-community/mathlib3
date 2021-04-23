@@ -25,6 +25,34 @@ def intrinsic_interior (A : set E) :
   set E :=
 coe '' (interior {x : affine_span ℝ A | ↑x ∈ A})
 
+def intrinsic_closure (A : set E) :
+  set E :=
+coe '' (closure {x : affine_span ℝ A | ↑x ∈ A})
+
+lemma intrinsic_frontier_empty :
+  intrinsic_frontier (∅ : set E) = ∅ :=
+begin
+  apply subset_empty_iff.1,
+  rintro x ⟨x', hx', hxx'⟩,
+  simp at hx',
+  exact hx',
+end
+
+lemma intrinsic_interior_empty :
+  intrinsic_frontier (∅ : set E) = ∅ :=
+begin
+  apply subset_empty_iff.1,
+  rintro x ⟨x', hx', hxx'⟩,
+  simp at hx',
+  exact hx',
+end
+
+lemma nonempty_intrinsic_interior (hA : A.nonempty) :
+  (intrinsic_interior A).nonempty :=
+begin
+
+end
+
 lemma coe_closure_subset_closure_aux (B : set E) :
   coe '' closure {x : affine_span ℝ A | ↑x ∈ B} ⊆ closure B :=
 begin
@@ -127,14 +155,7 @@ begin
   sorry
 end
 
-lemma intrinsic_frontier_convex_hull_eq (hA : convex_independent (λ p, p : A → E)) :
-  intrinsic_frontier (convex_hull A) =
-  ⋃ (B : set E) (H : affine_span ℝ B < affine_span ℝ A),convex_hull B :=
-begin
-  sorry --angry hard
-end
-
-lemma intrinsic_frontier_convex_hull_eq' (hA : affine_independent ℝ (λ p, p : A → E)) :
+lemma intrinsic_frontier_convex_hull_eq (hA : affine_independent ℝ (λ p, p : A → E)) :
   intrinsic_frontier (convex_hull A) = ⋃ B ⊂ A, convex_hull B :=
 begin
   sorry --damn hard

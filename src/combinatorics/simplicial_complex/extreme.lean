@@ -34,11 +34,54 @@ theorem geometric_hahn_banach_point_open {x : E} {B : set E}
   ∃ (f : E →L[ℝ] ℝ), (∀ b ∈ B, f x < f b) :=
 let ⟨f, hf⟩ := geometric_hahn_banach_open_point hB₁ hB₂ disj in ⟨-f, by simpa⟩
 
+lemma eq_left_end_iff_eq_right_end_aux {x₁ x₂ : E} {a b : ℝ} (ha : a ≠ 0) (hb : b ≠ 0)
+  (hab : a + b = 1) (hx : a • x₁ + b • x₂ = x) :
+    x = x₁ ↔ x = x₂ :=
+begin
+  suffices h : ∀ {a b : ℝ}, a ≠ 0 → b ≠ 0 → ∀ {x₁ x₂ : E}, a + b = 1 → a • x₁ + b • x₂ = x →
+    x =x₁ → x = x₂,
+  { use h ha hb hab hx,
+    rw add_comm at hab hx,
+    exact h hb ha hab hx },
+  rintro a b ha hb x₁ x₂ hab hx rfl,
+  apply smul_injective hb,
+  rw [←add_right_inj (a • x), hx, ←add_smul, hab, one_smul],
+  sorry,
+end
 /--
 A set B is extreme to a set A if no affine combination of points in A \ B is in B. -/
 def is_extreme_set (A B : set E) :
   Prop :=
-B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ segment x₁ x₂ → x₁ ≠ x → x₂ ≠ x → x₁ ∈ B ∧ x₂ ∈ B
+B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ segment x₁ x₂ → x ≠ x₁ → x ≠ x₂ → x₁ ∈ B ∧ x₂ ∈ B
+
+lemma extreme_set_iff :
+  is_extreme_set A B ↔ B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, (∃ a b : ℝ, 0 < a ∧ 0 < b ∧ a + b = 1 ∧
+  a • x₁ + b • x₂ = x) → x₁ ∈ B ∧ x₂ ∈ B :=
+begin
+  split,
+  { rintro hAB,
+    use hAB.1,
+    rintro x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, ha, hb, hab, hx⟩,
+    by_cases hxx₁ : x = x₁,
+    { rw [←hxx₁, ←(eq_left_end_iff_eq_right_end_aux (ne_of_gt ha) (ne_of_gt hb) hab hx).1 hxx₁],
+      exact ⟨hxB, hxB⟩ },
+    exact hAB.2 x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, le_of_lt ha, le_of_lt hb, hab, hx⟩ hxx₁ (λ hxx₂,
+      hxx₁ ((eq_left_end_iff_eq_right_end_aux (ne_of_gt ha) (ne_of_gt hb) hab hx).2 hxx₂)) },
+  rintro ⟨hBA, hAB⟩,
+  use hBA,
+  rintro x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, ha, hb, hab, hx⟩ hxx₁ hxx₂,
+  refine hAB x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, lt_of_le_of_ne ha _, lt_of_le_of_ne hb _, hab, hx⟩,
+  { rintro rfl,
+    rw zero_smul at hx,
+    rw zero_add at hab hx,
+    rw [hab, one_smul] at hx,
+    exact hxx₂ hx.symm },
+  rintro rfl,
+  rw zero_smul at hx,
+  rw add_zero at hab hx,
+  rw [hab, one_smul] at hx,
+  exact hxx₁ hx.symm
+end
 
 lemma is_extreme_set.refl :
   reflexive (is_extreme_set : set E → set E → Prop) :=
@@ -77,10 +120,10 @@ end
 
 def set.extreme_points (A : set E) :
   set E :=
-{x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ segment x₁ x₂ → x₁ = x ∨ x₂ = x}
+{x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ segment x₁ x₂ → x = x₁ ∨ x = x₂}
 
 lemma extreme_point_iff :
-  x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ segment x₁ x₂ → x₁ = x ∨ x₂ = x :=
+  x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ segment x₁ x₂ → x = x₁ ∨ x = x₂ :=
 by refl
 
 lemma extreme_point_iff_extreme_singleton :
@@ -98,7 +141,7 @@ begin
     rintro x₁ x₂ hx₁ hx₂ hxs,
     by_contra,
     push_neg at h,
-    exact h.1 (hx.2 x₁ x₂ hx₁ hx₂ x rfl hxs h.1 h.2).1 }
+    exact h.1 (hx.2 x₁ x₂ hx₁ hx₂ x rfl hxs h.1 h.2).1.symm }
 end
 
 lemma extreme_points_subset :
@@ -189,8 +232,8 @@ begin
     by_contra,
     push_neg at h,
     rw convex_iff_segment_subset at hAx,
-    exact (hAx ⟨hx₁A, λ hx₁, h.1 (mem_singleton_iff.2 hx₁)⟩
-      ⟨hx₂A, λ hx₂, h.2 (mem_singleton_iff.2 hx₂)⟩ hx).2 rfl },
+    exact (hAx ⟨hx₁A, λ hx₁, h.1 (mem_singleton_iff.2 hx₁.symm)⟩
+      ⟨hx₂A, λ hx₂, h.2 (mem_singleton_iff.2 hx₂.symm)⟩ hx).2 rfl },
   exact λ hx, ⟨hx.1, convex_remove_of_extreme hA (extreme_point_iff_extreme_singleton.1 hx)⟩,
 end
 
@@ -303,9 +346,9 @@ begin
       { exact λ t, (t hx).elim } },
     rcases this with (rfl | rfl),
     { simp only [add_zero, one_smul, sub_zero, zero_smul] at hθ₂,
-      apply t.1 hθ₂ },
+      apply t.1 hθ₂.symm },
     { simp only [one_smul, zero_smul, zero_add, sub_self] at hθ₂,
-      apply t.2 hθ₂ } },
+      apply t.2 hθ₂.symm } },
   rw affine_independent_iff_of_fintype at hs,
   let w''' : (s : set E) → ℝ := λ t, w'' (t : E),
   have hw''' : finset.univ.sum w''' = 0,
@@ -382,13 +425,13 @@ begin
   sorry
 end
 
-lemma subset_frontier_of_extreme (hAB : is_extreme_set A B) (hBA : B ⊂ A) :
+lemma subset_frontier_of_extreme (hAB : is_extreme_set A B) (hBA : ¬ A ⊆ B) :
   B ⊆ frontier A :=
 begin
   rintro x hxB,
-  obtain ⟨y, hyA, hyB⟩ := nonempty_of_ssubset hBA,
+  obtain ⟨y, hyA, hyB⟩ := nonempty_of_ssubset ⟨hAB.1, hBA⟩,
   rw frontier_eq_closure_inter_closure,
-  use subset_closure (hBA.1 hxB),
+  use subset_closure (hAB.1 hxB),
   rw mem_closure_iff_seq_limit,
   let z : ℕ → E := λ n, (1 + 1/n.succ : ℝ) • x - (1/n.succ : ℝ) • y,
   use z,
@@ -435,8 +478,9 @@ begin
   {
     nth_rewrite 0 ←one_smul _ x,
     apply filter.tendsto.smul_const,
+    nth_rewrite 0 ←add_zero (1 : ℝ), --weirdly skips the first two `1`. Might break in the future
+    apply filter.tendsto.const_add,
     sorry
-    --nth_rewrite 0 ←add_zero 1,
   },
   rw ←zero_smul _ y,
   apply filter.tendsto.smul_const,

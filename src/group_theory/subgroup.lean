@@ -1182,6 +1182,12 @@ def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →*
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
+/-- The range of an injective group homomorphism is isomorphic to its domain. -/
+def range_mul_eq_of_injective {G H : Type*} [group G] [group H] {f : G →* H}
+  (hf : function.injective f) : f.range ≃* G :=
+(mul_equiv.of_bijective (f.cod_restrict f.range (λ x, ⟨x, rfl⟩))
+  ⟨λ x y h, hf (subtype.ext_iff.mp h), by { rintros ⟨x, y, rfl⟩, exact ⟨y, rfl⟩ }⟩).symm
+
 /-- The multiplicative kernel of a monoid homomorphism is the subgroup of elements `x : G` such that
 `f x = 1` -/
 @[to_additive "The additive kernel of an `add_monoid` homomorphism is the `add_subgroup` of elements

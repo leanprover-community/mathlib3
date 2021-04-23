@@ -339,11 +339,6 @@ end
 instance {p : polynomial ℚ} : fact (p.splits (algebra_map ℚ ℂ)) :=
 ⟨is_alg_closed.splits_codomain p⟩
 
-def range_mul_eq_of_injective {G H : Type*} [group G] [group H] {f : G →* H}
-  (hf : function.injective f) : f.range ≃* G :=
-(mul_equiv.of_bijective (f.cod_restrict f.range (λ x, ⟨x, rfl⟩))
-  ⟨λ x y h, hf (subtype.ext_iff.mp h), by { rintros ⟨x, y, rfl⟩, exact ⟨y, rfl⟩ }⟩).symm
-
 lemma gal_action_hom_bijective_of_prime_degree_aux {p : polynomial ℚ} :
   (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
     (gal_action_hom p ℂ (restrict p ℂ complex.conj_rat_alg_equiv)).support.card :=

@@ -298,7 +298,7 @@ end
 lemma form_perm_eq_of_is_rotated {l l' : list α} (hd : nodup l) (h : l ~r l') :
   form_perm l = form_perm l' :=
 begin
-  obtain ⟨n, rfl⟩ := h.def,
+  obtain ⟨n, rfl⟩ := h,
   exact (form_perm_rotate l hd n).symm
 end
 

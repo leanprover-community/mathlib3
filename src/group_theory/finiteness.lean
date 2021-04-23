@@ -40,7 +40,8 @@ def monoid.fg : Prop := (⊤ : submonoid M).fg
 itself. -/
 add_decl_doc add_monoid.fg
 
-@[to_additive]
+/-- An equivalent expression of `monoid.fg` in terms of `set.finite` instead of `finset`. -/
+@[to_additive "An equivalent expression of `add_monoid.fg` in terms of `set.finite` instead of `finset`."]
 lemma monoid.fg_def : monoid.fg M ↔
   ∃ S : set M, submonoid.closure S = (⊤ : submonoid M) ∧ S.finite :=
 ⟨λ⟨S, hS⟩, ⟨S, hS, finset.finite_to_set S⟩, λ⟨S, hS, hf⟩, ⟨set.finite.to_finset hf, by simp [hS]⟩⟩

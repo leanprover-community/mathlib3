@@ -55,6 +55,14 @@ variables {p q : submodule R M}
 
 @[ext] theorem ext (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
+/-- Copy of a submodule with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (p : submodule R M) (s : set M) (hs : s = ↑p) : submodule R M :=
+{ carrier := s,
+  zero_mem' := hs.symm ▸ p.zero_mem',
+  add_mem' := hs.symm ▸ p.add_mem',
+  smul_mem' := hs.symm ▸ p.smul_mem' }
+
 theorem to_add_submonoid_injective :
   injective (to_add_submonoid : submodule R M → add_submonoid M) :=
 λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)

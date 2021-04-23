@@ -712,7 +712,7 @@ noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
 
 /-- The real part in a `is_R_or_C` field, as a continuous linear map. -/
 noncomputable def re_clm : K →L[ℝ] ℝ :=
-re_lm.mk_continuous 1 $ by
+linear_map.mk_continuous re_lm 1 $ by
 { simp only [norm_eq_abs, re_lm_coe, one_mul, abs_to_real], exact abs_re_le_abs, }
 
 @[simp] lemma re_clm_norm : ∥(re_clm : K →L[ℝ] ℝ)∥ = 1 :=
@@ -736,7 +736,7 @@ noncomputable def im_lm : K →ₗ[ℝ] ℝ :=
 
 /-- The imaginary part in a `is_R_or_C` field, as a continuous linear map. -/
 noncomputable def im_clm : K →L[ℝ] ℝ :=
-im_lm.mk_continuous 1 $ by
+linear_map.mk_continuous im_lm 1 $ by
 { simp only [norm_eq_abs, re_lm_coe, one_mul, abs_to_real], exact abs_im_le_abs, }
 
 @[simp, norm_cast] lemma im_clm_coe : ((im_clm : K →L[ℝ] ℝ) : K →ₗ[ℝ] ℝ) = im_lm := rfl

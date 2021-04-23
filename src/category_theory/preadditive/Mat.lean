@@ -98,7 +98,6 @@ instance : category.{v₁} (Mat_ C) :=
     rw finset.sum_comm,
   end, }.
 
-
 lemma id_def (M : Mat_ C) :
   (𝟙 M : hom M M) = λ i j, if h : i = j then eq_to_hom (congr_arg M.X h) else 0 :=
 rfl
@@ -450,5 +449,61 @@ rfl
 rfl
 
 end Mat_
+
+universe u
+
+/-- A type synonym for `Fintype`, which we will equip with a category structure
+where the morphisms are matrices with components in `R`. -/
+@[nolint unused_arguments, derive [has_coe_to_sort]]
+def Mat (R : Type u) := Fintype
+
+open_locale classical matrix
+
+instance (R : Type u) [semiring R] : category (Mat R) :=
+{ hom := λ X Y, matrix X Y R,
+  id := λ X, 1,
+  comp := λ X Y Z f g, f ⬝ g,
+  assoc' := by { intros, simp [matrix.mul_assoc], }, }
+
+namespace Mat
+
+section
+variables (R : Type u) [semiring R]
+
+lemma id_def (M : Mat R) :
+  𝟙 M = λ i j, if h : i = j then 1 else 0 :=
+rfl
+
+lemma id_apply (M : Mat R) (i j : M) :
+  (𝟙 M : matrix M M R) i j = if h : i = j then 1 else 0 :=
+rfl
+
+@[simp] lemma id_apply_self (M : Mat R) (i : M) :
+  (𝟙 M : matrix M M R) i i = 1 :=
+by simp [id_apply]
+
+@[simp] lemma id_apply_of_ne (M : Mat R) (i j : M) (h : i ≠ j) :
+  (𝟙 M : matrix M M R) i j = 0 :=
+by simp [id_apply, h]
+
+lemma comp_def {M N K : Mat R} (f : M ⟶ N) (g : N ⟶ K) :
+  (f ≫ g) = λ i k, ∑ j : N, f i j * g j k := rfl
+
+@[simp] lemma comp_apply {M N K : Mat R} (f : M ⟶ N) (g : N ⟶ K) (i k) :
+  (f ≫ g) i k = ∑ j : N, f i j * g j k := rfl
+
+instance (M N : Mat R) : inhabited (M ⟶ N) := ⟨λ (i : M) (j : N), (0 : R)⟩
+
+end
+
+variables (R : Type u) [ring R]
+
+def functor_single_obj : Mat R ⥤ Mat_ (single_obj R) :=
+{ obj := λ X, { ι := X, X := λ _, punit.star },
+  map := λ X Y f, f, }
+
+def equivalence_single_obj : Mat R ≌ Mat_ (single_obj R) := sorry
+
+end Mat
 
 end category_theory

@@ -853,7 +853,7 @@ coe_supr_of_directed a a.monotone.directed_le
 
 /-- We can regard `coe_supr_of_chain` as the statement that `coe : (submodule R M) → set M` is
 Scott continuous for the ω-complete partial order induced by the complete lattice structures. -/
-lemma coe_scott_continuous : omega_complete_partial_order.continuous' 
+lemma coe_scott_continuous : omega_complete_partial_order.continuous'
   (coe : submodule R M → set M) :=
 ⟨set_like.coe_mono, coe_supr_of_chain⟩
 
@@ -1341,31 +1341,39 @@ theorem comap_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (hf p') :
 submodule.ext $ λ x, ⟨λ h, ⟨⟨_, hf x⟩, h, rfl⟩, by rintro ⟨⟨_, _⟩, h, ⟨⟩⟩; exact h⟩
 
 /-- The range of a linear map `f : M → M₂` is a submodule of `M₂`. -/
-def range (f : M →ₗ[R] M₂) : submodule R M₂ := map f ⊤
+def range (f : M →ₗ[R] M₂) : submodule R M₂ :=
+(map f ⊤).copy (set.range f) set.image_univ.symm
 
-theorem range_coe (f : M →ₗ[R] M₂) : (range f : set M₂) = set.range f := set.image_univ
+/-- Note that `linear_map.range` is deliberately defined in a way that makes this true by `rfl`,
+as this means the types `↥(set.range f)` and `↥f.mrange` are interchangeable without proof
+obligations. -/
+theorem range_coe (f : M →ₗ[R] M₂) : (range f : set M₂) = set.range f := rfl
 
-@[simp] theorem mem_range {f : M →ₗ[R] M₂} : ∀ {x}, x ∈ range f ↔ ∃ y, f y = x :=
-set.ext_iff.1 (range_coe f)
+@[simp] theorem mem_range {f : M →ₗ[R] M₂} {x} : x ∈ range f ↔ ∃ y, f y = x :=
+iff.rfl
 
-theorem mem_range_self (f : M →ₗ[R] M₂) (x : M) : f x ∈ f.range := mem_range.2 ⟨x, rfl⟩
+lemma range_eq_map (f : M →ₗ[R] M₂) : f.range = map f ⊤ :=
+by { ext, simp }
 
-@[simp] theorem range_id : range (linear_map.id : M →ₗ[R] M) = ⊤ := map_id _
+theorem mem_range_self (f : M →ₗ[R] M₂) (x : M) : f x ∈ f.range := ⟨x, rfl⟩
+
+@[simp] theorem range_id : range (linear_map.id : M →ₗ[R] M) = ⊤ :=
+set_like.coe_injective set.range_id
 
 theorem range_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : range (g.comp f) = map g (range f) :=
-map_comp _ _ _
+set_like.coe_injective (set.range_comp g f)
 
 theorem range_comp_le_range (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : range (g.comp f) ≤ range g :=
-by rw range_comp; exact map_mono le_top
+set_like.coe_mono (set.range_comp_subset_range f g)
 
 theorem range_eq_top {f : M →ₗ[R] M₂} : range f = ⊤ ↔ surjective f :=
 by rw [set_like.ext'_iff, range_coe, top_coe, set.range_iff_surjective]
 
 lemma range_le_iff_comap {f : M →ₗ[R] M₂} {p : submodule R M₂} : range f ≤ p ↔ comap f p = ⊤ :=
-by rw [range, map_le_iff_le_comap, eq_top_iff]
+by rw [range_eq_map, map_le_iff_le_comap, eq_top_iff]
 
 lemma map_le_range {f : M →ₗ[R] M₂} {p : submodule R M} : map f p ≤ range f :=
-map_mono le_top
+set_like.coe_mono (set.image_subset_range f p)
 
 /-- Restrict the codomain of a linear map `f` to `f.range`.
 
@@ -1428,7 +1436,7 @@ by rw [ker, comap_cod_restrict, map_bot]; refl
 
 lemma range_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (hf) :
   range (cod_restrict p f hf) = comap p.subtype f.range :=
-map_cod_restrict _ _ _ _
+by simpa only [range_eq_map] using map_cod_restrict _ _ _ _
 
 lemma ker_restrict {p : submodule R M} {f : M →ₗ[R] M} (hf : ∀ x : M, x ∈ p → f x ∈ p) :
   ker (f.restrict hf) = (f.dom_restrict p).ker :=
@@ -1436,7 +1444,7 @@ by rw [restrict_eq_cod_restrict_dom_restrict, ker_cod_restrict]
 
 lemma map_comap_eq (f : M →ₗ[R] M₂) (q : submodule R M₂) :
   map f (comap f q) = range f ⊓ q :=
-le_antisymm (le_inf (map_mono le_top) (map_comap_le _ _)) $
+le_antisymm (le_inf map_le_range (map_comap_le _ _)) $
 by rintro _ ⟨⟨x, _, rfl⟩, hx⟩; exact ⟨x, hx, rfl⟩
 
 lemma map_comap_eq_self {f : M →ₗ[R] M₂} {q : submodule R M₂} (h : q ≤ range f) :
@@ -1447,7 +1455,7 @@ by rwa [map_comap_eq, inf_eq_right]
 eq_top_iff'.2 $ λ x, by simp
 
 @[simp] theorem range_zero : range (0 : M →ₗ[R] M₂) = ⊥ :=
-submodule.map_zero _
+by simpa only [range_eq_map] using submodule.map_zero _
 
 theorem ker_eq_top {f : M →ₗ[R] M₂} : ker f = ⊤ ↔ f = 0 :=
 ⟨λ h, ext $ λ x, mem_ker.1 $ h.symm ▸ trivial, λ h, h.symm ▸ ker_zero⟩
@@ -1459,8 +1467,8 @@ theorem range_eq_bot {f : M →ₗ[R] M₂} : range f = ⊥ ↔ f = 0 :=
 by rw [← range_le_bot_iff, le_bot_iff]
 
 lemma range_le_ker_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} : range f ≤ ker g ↔ g.comp f = 0 :=
-⟨λ h, ker_eq_top.1 $ eq_top_iff'.2 $ λ x, h $ mem_map_of_mem trivial,
- λ h x hx, mem_ker.2 $ exists.elim hx $ λ y ⟨_, hy⟩, by rw [←hy, ←comp_apply, h, zero_apply]⟩
+⟨λ h, ker_eq_top.1 $ eq_top_iff'.2 $ λ x, h $ ⟨_, rfl⟩,
+ λ h x hx, mem_ker.2 $ exists.elim hx $ λ y hy, by rw [←hy, ←comp_apply, h, zero_apply]⟩
 
 theorem comap_le_comap_iff {f : M →ₗ[R] M₂} (hf : range f = ⊤) {p p'} :
   comap f p ≤ comap f p' ↔ p ≤ p' :=
@@ -1508,7 +1516,7 @@ theorem map_injective {f : M →ₗ[R] M₂} (hf : ker f = ⊥) : injective (map
 
 theorem map_eq_top_iff {f : M →ₗ[R] M₂} (hf : range f = ⊤) {p : submodule R M} :
   p.map f = ⊤ ↔ p ⊔ f.ker = ⊤ :=
-by simp_rw [← top_le_iff, ← hf, range, map_le_map_iff]
+by simp_rw [← top_le_iff, ← hf, range_eq_map, map_le_map_iff]
 
 end add_comm_group
 
@@ -1565,10 +1573,10 @@ lemma ker_smul' (f : V →ₗ[K] V₂) (a : K) : ker (a • f) = ⨅(h : a ≠ 0
 submodule.comap_smul' f _ a
 
 lemma range_smul (f : V →ₗ[K] V₂) (a : K) (h : a ≠ 0) : range (a • f) = range f :=
-submodule.map_smul f _ a h
+by simpa only [range_eq_map] using submodule.map_smul f _ a h
 
 lemma range_smul' (f : V →ₗ[K] V₂) (a : K) : range (a • f) = ⨆(h : a ≠ 0), range f :=
-submodule.map_smul' f _ a
+by simpa only [range_eq_map] using submodule.map_smul' f _ a
 
 lemma span_singleton_sup_ker_eq_top (f : V →ₗ[K] K) {x : V} (hx : f x ≠ 0) :
   (K ∙ x) ⊔ f.ker = ⊤ :=
@@ -1618,7 +1626,7 @@ variables (p p' : submodule R M) (q : submodule R M₂)
 include T
 open linear_map
 
-@[simp] theorem map_top (f : M →ₗ[R] M₂) : map f ⊤ = range f := rfl
+@[simp] theorem map_top (f : M →ₗ[R] M₂) : map f ⊤ = range f := f.range_eq_map.symm
 
 @[simp] theorem comap_bot (f : M →ₗ[R] M₂) : comap f ⊥ = ker f := rfl
 
@@ -1629,7 +1637,7 @@ ker_eq_bot_of_injective $ λ x y, subtype.ext_val
 by simpa using map_comap_subtype p ⊤
 
 lemma map_subtype_le (p' : submodule R p) : map p.subtype p' ≤ p :=
-by simpa using (map_mono le_top : map p.subtype p' ≤ p.subtype.range)
+by simpa using (map_le_range : map p.subtype p' ≤ p.subtype.range)
 
 /-- Under the canonical linear map from a submodule `p` to the ambient space `M`, the image of the
 maximal submodule of `p` is just `p `. -/
@@ -1701,7 +1709,7 @@ def liftq (f : M →ₗ[R] M₂) (h : p ≤ f.ker) : p.quotient →ₗ[R] M₂ :
 by ext; refl
 
 @[simp] theorem range_mkq : p.mkq.range = ⊤ :=
-eq_top_iff'.2 $ by rintro ⟨x⟩; exact ⟨x, trivial, rfl⟩
+eq_top_iff'.2 $ by rintro ⟨x⟩; exact ⟨x, rfl⟩
 
 @[simp] theorem ker_mkq : p.mkq.ker = p :=
 by ext; simp
@@ -1745,7 +1753,8 @@ theorem ker_liftq (f : M →ₗ[R] M₂) (h) :
   ker (p.liftq f h) = (ker f).map (mkq p) := comap_liftq _ _ _ _
 
 theorem range_liftq (f : M →ₗ[R] M₂) (h) :
-  range (p.liftq f h) = range f := map_liftq _ _ _ _
+  range (p.liftq f h) = range f :=
+by simpa only [range_eq_map] using map_liftq _ _ _ _
 
 theorem ker_liftq_eq_bot (f : M →ₗ[R] M₂) (h) (h' : ker f ≤ p) : ker (p.liftq f h) = ⊥ :=
 by rw [ker_liftq, le_antisymm h h', mkq_map_self]
@@ -2426,7 +2435,7 @@ linear_equiv.of_bijective (quotient_inf_to_sup_quotient p p')
   begin
     rw [quotient_inf_to_sup_quotient, range_liftq, eq_top_iff'],
     rintros ⟨x, hx⟩, rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
-    use [⟨y, hy⟩, trivial], apply (submodule.quotient.eq _).2,
+    use [⟨y, hy⟩], apply (submodule.quotient.eq _).2,
     change y - (y + z) ∈ p',
     rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
   end

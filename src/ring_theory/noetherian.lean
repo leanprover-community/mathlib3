@@ -9,6 +9,7 @@ import linear_algebra.linear_independent
 import order.order_iso_nat
 import order.compactly_generated
 import ring_theory.ideal.operations
+import group_theory.finiteness
 
 /-!
 # Noetherian rings and modules
@@ -68,6 +69,20 @@ theorem fg_def {N : submodule R M} :
   rcases finite.exists_finset_coe h with ⟨t, rfl⟩,
   exact ⟨t, rfl⟩
 end⟩
+
+lemma submodule_fg_iff_add_monoid.fg {M : Type*} [add_comm_monoid M] :
+  (⊤ : submodule ℕ M).fg ↔ add_monoid.fg M :=
+begin
+  split,
+  { rintro ⟨S, hS⟩,
+    refine ⟨S, _⟩,
+    rw [← submodule.span_nat_eq_add_submonoid_closure],
+    simp only [hS, submodule.top_to_add_submonoid] },
+  { rintro ⟨S, hS⟩,
+    refine ⟨S, _⟩,
+    rw [← submodule.span_nat_eq_add_submonoid_closure] at hS,
+    exact submodule.to_add_submonoid_injective hS }
+end
 
 /-- Nakayama's Lemma. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2, Stacks 00DV -/
 theorem exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul {R : Type*} [comm_ring R]

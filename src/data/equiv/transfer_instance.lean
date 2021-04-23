@@ -124,6 +124,11 @@ protected def semigroup [semigroup β] : semigroup α :=
 let mul := e.has_mul in
 by resetI; apply e.injective.semigroup _; intros; exact e.apply_symm_apply _
 
+/-- Transfer `semigroup_with_zero` across an `equiv` -/
+protected def semigroup_with_zero [semigroup_with_zero β] : semigroup_with_zero α :=
+let mul := e.has_mul, zero := e.has_zero in
+by resetI; apply e.injective.semigroup_with_zero _; intros; exact e.apply_symm_apply _
+
 /-- Transfer `comm_semigroup` across an `equiv` -/
 @[to_additive "Transfer `add_comm_semigroup` across an `equiv`"]
 protected def comm_semigroup [comm_semigroup β] : comm_semigroup α :=

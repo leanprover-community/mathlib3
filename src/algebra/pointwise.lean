@@ -336,6 +336,9 @@ instance set_semiring.distrib [has_mul α] : distrib (set_semiring α) :=
 instance set_semiring.mul_zero_one_class [mul_one_class α] : mul_zero_one_class (set_semiring α) :=
 { ..set_semiring.mul_zero_class, ..set.mul_one_class }
 
+instance set_semiring.semigroup_with_zero [semigroup α] : semigroup_with_zero (set_semiring α) :=
+{ ..set_semiring.mul_zero_class, ..set.semigroup }
+
 instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
 { ..set_semiring.add_comm_monoid,
   ..set_semiring.distrib,

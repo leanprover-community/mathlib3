@@ -15,7 +15,7 @@ Tensor products of Lie modules carry natural Lie module structures.
 lie module, tensor product, universal property
 -/
 
-universes u v w w₁ w₂
+universes u v w w₁ w₂ w₃
 
 variables {R : Type u} [comm_ring R]
 
@@ -27,11 +27,12 @@ namespace lie_module
 
 open lie_module
 
-variables {L : Type v} {M : Type w} {N : Type w₁} {P : Type w₂}
+variables {L : Type v} {M : Type w} {N : Type w₁} {P : Type w₂} {Q : Type w₃}
 variables [lie_ring L] [lie_algebra R L]
 variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
 variables [add_comm_group N] [module R N] [lie_ring_module L N] [lie_module R L N]
 variables [add_comm_group P] [module R P] [lie_ring_module L P] [lie_module R L P]
+variables [add_comm_group Q] [module R Q] [lie_ring_module L Q] [lie_module R L Q]
 
 /-- It is useful to define the bracket via this auxiliary function so that we have a type-theoretic
 expression of the fact that `L` acts by linear endomorphisms. It simplifies the proofs in
@@ -72,7 +73,7 @@ show has_bracket_aux x (m ⊗ₜ[R] n) = _,
 by simp only [has_bracket_aux, linear_map.rtensor_tmul, to_endomorphism_apply_apply,
   linear_map.add_apply, linear_map.ltensor_tmul]
 
-variables (R L M N P)
+variables (R L M N P Q)
 
 /-- The universal property for tensor product of modules of a Lie algebra: the `R`-linear
 tensor-hom adjunction is equivariant with respect to the `L` action. -/
@@ -111,6 +112,29 @@ lemma lift_lie_apply (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) (m : M) (n : N) :
   lift_lie R L M N P f (m ⊗ₜ n) = f m n :=
 by simp only [coe_lift_lie_eq_lift_coe, lie_module_hom.coe_to_linear_map, lift_apply]
 
+variables {R L M N P Q}
+
+def map (f : M →ₗ⁅R,L⁆ P) (g : N →ₗ⁅R,L⁆ Q) : M ⊗[R] N →ₗ⁅R,L⁆ P ⊗[R] Q :=
+{ map_lie' := λ x t, by
+    { simp only [linear_map.to_fun_eq_coe],
+      apply t.induction_on,
+      { simp only [linear_map.map_zero, lie_zero], },
+      { intros m n, simp only [lie_module_hom.coe_to_linear_map, lie_tensor_right,
+          lie_module_hom.map_lie, map_tmul, linear_map.map_add], },
+      { intros t₁ t₂ ht₁ ht₂, simp only [ht₁, ht₂, lie_add, linear_map.map_add], }, },
+  .. map (f : M →ₗ[R] P) (g : N →ₗ[R] Q), }
+
+@[simp] lemma map_tmul (f : M →ₗ⁅R,L⁆ P) (g : N →ₗ⁅R,L⁆ Q) (m : M) (n : N) :
+  map f g (m ⊗ₜ n) = (f m) ⊗ₜ (g n) :=
+map_tmul f g m n
+
+variables (R L M N)
+
+/-- Foo -/
+def map_incl (M' : lie_submodule R L M) (N' : lie_submodule R L N) :
+  M' ⊗[R] N' →ₗ⁅R,L⁆ M ⊗[R] N :=
+map M'.incl N'.incl
+
 end lie_module
 
 end tensor_product
@@ -135,3 +159,40 @@ by simp only [to_module_hom, tensor_product.lie_module.lift_lie_apply, to_endomo
   lie_hom.coe_to_linear_map, lie_module_hom.coe_mk, linear_map.to_fun_eq_coe]
 
 end lie_module
+
+namespace lie_submodule
+
+open_locale tensor_product
+
+variables {L : Type v} {M : Type w}
+variables [lie_ring L] [lie_algebra R L]
+variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables (I : lie_ideal R L) (N : lie_submodule R L M)
+
+/-- A useful alternative characterisation of Lie ideal operations on Lie submodules.
+
+Given a Lie ideal `I ⊆ L` and a Lie submodule `N ⊆ M`, by tensoring the inclusion maps and then
+applying the action of `L` on `M`, we obtain morphism of Lie modules `f : I ⊗ N → L ⊗ M → M`.
+
+This lemma states that `⁅I, N⁆ = range f`. -/
+lemma lie_ideal_oper_eq_tensor_map_range : ⁅I, N⁆ = ((lie_module.to_module_hom R L M).comp
+  (tensor_product.lie_module.map (incl I) N.incl)).range :=
+-- TODO `(lie_module.to_module_hom R L M).comp (tensor_product.lie_module.map_incl R L L M I N : ↥I ⊗ ↥N →ₗ⁅R,L⁆ L ⊗ M)`
+begin
+  rw [← coe_to_submodule_eq_iff, lie_ideal_oper_eq_linear_span, lie_module_hom.coe_submodule_range],
+  change _ = (linear_map.comp _ (tensor_product.map _ _)).range,
+  rw [linear_map.range_comp, tensor_product.map_range_eq_span_tmul, submodule.map_span],
+  simp only [lie_module_hom.coe_to_linear_map, incl_apply],
+  congr,
+  ext m,
+  simp only [set.mem_set_of_eq],
+  split,
+  { rintros ⟨⟨x, hx⟩, ⟨n, hn⟩, rfl⟩, use x ⊗ₜ n, split,
+    { use [⟨x, hx⟩, ⟨n, hn⟩], refl, },
+    { change lie_module.to_module_hom R L M (x ⊗ₜ n) = _, simp, }, },
+  { rintros ⟨t, ⟨⟨x, hx⟩, ⟨n, hn⟩, rfl⟩, h⟩, rw ← h,
+    use [⟨x, hx⟩, ⟨n, hn⟩],
+    change _ = lie_module.to_module_hom R L M (x ⊗ₜ n), simp, },
+end
+
+end lie_submodule

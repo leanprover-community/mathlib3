@@ -648,9 +648,17 @@ lemma mul_vec_add (A : matrix m n α) (x y : n → α) :
   A.mul_vec (x + y) = A.mul_vec x + A.mul_vec y :=
 by { ext, apply dot_product_add }
 
-lemma add_mul_vec (A : matrix m n α) (x y : m → α) :
+lemma add_mul_vec (A B : matrix m n α) (x : n → α) :
+  (A + B).mul_vec x = A.mul_vec x + B.mul_vec x :=
+by { ext, apply add_dot_product }
+
+lemma vec_mul_add (A : matrix m n α) (x y : m → α) :
   vec_mul (x + y) A = vec_mul x A + vec_mul y A :=
 by { ext, apply add_dot_product }
+
+lemma add_vec_mul (A B : matrix m n α) (x : m → α) :
+  vec_mul x (A + B) = vec_mul x A + vec_mul x B :=
+by { ext, apply dot_product_add }
 
 variables [decidable_eq m] [decidable_eq n]
 

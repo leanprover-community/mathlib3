@@ -184,16 +184,16 @@ conj_bijective.1.eq_iff
 @[simp] lemma conj_eq_zero {z : ℂ} : conj z = 0 ↔ z = 0 :=
 by simpa using @conj_inj z 0
 
+lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
+⟨λ h, ⟨z.re, ext rfl $ eq_zero_of_neg_eq (congr_arg im h)⟩,
+ λ ⟨h, e⟩, by rw [e, conj_of_real]⟩
+
+lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
+eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
+
 lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
 ⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),
   λ h, ext rfl (neg_eq_iff_add_eq_zero.mpr (add_self_eq_zero.mpr h))⟩
-
-lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
-⟨λ h, ext rfl (eq_conj_iff_im.mp h).symm, λ h, eq_conj_iff_im.mpr (congr_arg im h).symm⟩
-
-lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
-⟨λ h, ⟨z.re, (eq_conj_iff_re.mp h).symm⟩,
-  λ h, h.cases_on (λ r hr, ((congr_arg conj hr).trans (conj_of_real r)).trans hr.symm)⟩
 
 instance : star_ring ℂ :=
 { star := λ z, conj z,

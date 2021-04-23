@@ -401,7 +401,7 @@ begin
     { exact is_alg_closed.splits_codomain p },
     { exact nodup_roots ((separable_map (algebra_map ℚ ℂ)).mpr p_irr.separable) } },
   have h2 : fintype.card (gal_action_hom p ℂ).range = fintype.card p.gal :=
-  fintype.card_congr (range_mul_eq_of_injective (gal_action_hom_injective p ℂ)).to_equiv,
+  fintype.card_congr (monoid_hom.injective_range_equiv (gal_action_hom_injective p ℂ)).to_equiv,
   let conj := restrict p ℂ complex.conj_rat_alg_equiv,
   refine ⟨gal_action_hom_injective p ℂ, λ x, (congr_arg (has_mem.mem x)
     (show (gal_action_hom p ℂ).range = ⊤, from _)).mpr (subgroup.mem_top x)⟩,

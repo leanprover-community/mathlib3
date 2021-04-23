@@ -41,7 +41,8 @@ itself. -/
 add_decl_doc add_monoid.fg
 
 /-- An equivalent expression of `monoid.fg` in terms of `set.finite` instead of `finset`. -/
-@[to_additive "An equivalent expression of `add_monoid.fg` in terms of `set.finite` instead of `finset`."]
+@[to_additive "An equivalent expression of `add_monoid.fg` in terms of `set.finite` instead of
+`finset`."]
 lemma monoid.fg_def : monoid.fg M ↔
   ∃ S : set M, submonoid.closure S = (⊤ : submonoid M) ∧ S.finite :=
 ⟨λ⟨S, hS⟩, ⟨S, hS, finset.finite_to_set S⟩, λ⟨S, hS, hf⟩, ⟨set.finite.to_finset hf, by simp [hS]⟩⟩
@@ -56,7 +57,7 @@ begin
   { intro h,
     obtain ⟨T, hT, hf⟩ := (add_monoid.fg_def _).1 h,
     rw [monoid.fg_def],
-    exact ⟨multiplicative.of_add ⁻¹' T, by simpa [← submonoid.of_add_submonoid_closure, hT], hf⟩ }
+    exact ⟨multiplicative.of_add ⁻¹' T, by simpa [← add_submonoid.to_submonoid'_closure, hT], hf⟩ }
 end
 
 lemma add_monoid_fg_iff_mul_fg : add_monoid.fg N ↔ monoid.fg (multiplicative N) :=

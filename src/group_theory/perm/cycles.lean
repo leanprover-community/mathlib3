@@ -512,9 +512,9 @@ begin
       exact H.mul_mem (H.mul_mem (step1 n) ih) (step1 n) } },
   have step3 : ∀ (y : α), swap x y ∈ H,
   { intro y,
-    have hx : x ∈ (⊤ : finset α) := finset.mem_univ x,
+    have hx : x ∈ (⊤ : set α) := set.mem_univ x,
     rw [←h2, mem_support] at hx,
-    have hy : y ∈ (⊤ : finset α) := finset.mem_univ y,
+    have hy : y ∈ (⊤ : set α) := set.mem_univ y,
     rw [←h2, mem_support] at hy,
     cases is_cycle.exists_pow_eq h1 hx hy with n hn,
     rw ← hn,
@@ -534,10 +534,14 @@ begin
 end
 
 lemma closure_cycle_coprime_swap {n : ℕ} {σ : perm α} (h0 : nat.coprime n (fintype.card α))
-  (h1 : is_cycle σ) (h2 : σ.support = finset.univ) (x : α) :
+  (h1 : is_cycle σ) (h2 : σ.support = set.univ) (x : α) :
   closure ({σ, swap x ((σ ^ n) x)} : set (perm α)) = ⊤ :=
 begin
-  rw [←finset.card_univ, ←h2, ←order_of_is_cycle h1] at h0,
+  have hσ : σ.support.finite := set.finite.of_fintype (perm.support σ),
+  have : fintype.card α = fintype.card σ.support,
+    { refine fintype.card_congr (subtype_univ_equiv _).symm,
+      simp [h2] },
+  rw [this, ←set.finite.card_to_finset, ←order_of_is_cycle h1 hσ] at h0,
   cases exists_pow_eq_self_of_coprime h0 with m hm,
   have h2' : (σ ^ n).support = ⊤ := eq.trans (support_pow_coprime h0) h2,
   have h1' : is_cycle ((σ ^ n) ^ (m : ℤ)) := by rwa ← hm at h1,
@@ -549,17 +553,21 @@ begin
 end
 
 lemma closure_prime_cycle_swap {σ τ : perm α} (h0 : (fintype.card α).prime) (h1 : is_cycle σ)
-  (h2 : σ.support = finset.univ) (h3 : is_swap τ) : closure ({σ, τ} : set (perm α)) = ⊤ :=
+  (h2 : σ.support = set.univ) (h3 : is_swap τ) : closure ({σ, τ} : set (perm α)) = ⊤ :=
 begin
   obtain ⟨x, y, h4, h5⟩ := h3,
   obtain ⟨i, hi⟩ := h1.exists_pow_eq (mem_support.mp
-  ((finset.ext_iff.mp h2 x).mpr (finset.mem_univ x)))
-    (mem_support.mp ((finset.ext_iff.mp h2 y).mpr (finset.mem_univ y))),
+  ((set.ext_iff.mp h2 x).mpr (set.mem_univ x)))
+    (mem_support.mp ((set.ext_iff.mp h2 y).mpr (set.mem_univ y))),
+  have hσ : σ.support.finite := set.finite.of_fintype (perm.support σ),
+  have : fintype.card α = fintype.card σ.support,
+    { refine fintype.card_congr (subtype_univ_equiv _).symm,
+      simp [h2] },
   rw [h5, ←hi],
   refine closure_cycle_coprime_swap (nat.coprime.symm
     (h0.coprime_iff_not_dvd.mpr (λ h, h4 _))) h1 h2 x,
   cases h with m hm,
-  rwa [hm, pow_mul, ←finset.card_univ, ←h2, ←order_of_is_cycle h1,
+  rwa [hm, pow_mul, this, ←set.finite.card_to_finset, ←order_of_is_cycle h1 hσ,
     pow_order_of_eq_one, one_pow, one_apply] at hi,
 end
 

@@ -505,25 +505,80 @@ begin
   exact mem_powers_iff_mem_range_order_of
 end
 
+/-- The equivalence between `fin (order_of a)` and `submonoid.powers a`, sending `i` to `a ^ i`. -/
+noncomputable def fin_equiv_powers (x : G) :
+  fin (order_of x) ≃ (submonoid.powers x : set G) :=
+equiv.of_bijective (λ n, ⟨x ^ ↑n, ⟨n, rfl⟩⟩) ⟨λ ⟨i, hi⟩ ⟨j, hj⟩ ij,
+  subtype.mk_eq_mk.2 (pow_injective_of_lt_order_of x hi hj (subtype.mk_eq_mk.1 ij)),
+  λ ⟨_, i, rfl⟩, ⟨⟨i % order_of x, mod_lt i (order_of_pos x)⟩, subtype.eq pow_eq_mod_order_of.symm⟩⟩
+
+/-- The equivalence between `fin (add_order_of a)` and `add_submonoid.multiples a`,
+  sending `i` to `i • a`."-/
+noncomputable def fin_equiv_multiples (a : A) :
+  fin (add_order_of a) ≃ (add_submonoid.multiples a : set A) :=
+fin_equiv_powers (multiplicative.of_add a)
+
+attribute [to_additive fin_equiv_multiples] fin_equiv_powers
+
+@[simp] lemma fin_equiv_powers_apply {x : G} {n : fin (order_of x)} :
+  fin_equiv_powers x n = ⟨x ^ ↑n, n, rfl⟩ := rfl
+
+@[simp] lemma fin_equiv_multiples_apply {a : A} {n : fin (add_order_of a)} :
+  fin_equiv_multiples a n = ⟨nsmul ↑n a, n, rfl⟩ := rfl
+
+attribute [to_additive fin_equiv_multiples_apply] fin_equiv_powers_apply
+
+@[simp] lemma fin_equiv_powers_symm_apply (x : G) (n : ℕ)
+  {hn : ∃ (m : ℕ), x ^ m = x ^ n} :
+  ((fin_equiv_powers x).symm ⟨x ^ n, hn⟩) = ⟨n % order_of x, nat.mod_lt _ (order_of_pos x)⟩ :=
+by rw [equiv.symm_apply_eq, fin_equiv_powers_apply, subtype.mk_eq_mk,
+  pow_eq_mod_order_of, fin.coe_mk]
+
+@[simp] lemma fin_equiv_multiples_symm_apply (a : A) (n : ℕ)
+  {hn : ∃ (m : ℕ), m • a = n • a} :
+  ((fin_equiv_multiples a).symm ⟨n • a, hn⟩) =
+    ⟨n % add_order_of a, nat.mod_lt _ (add_order_of_pos a)⟩ :=
+fin_equiv_powers_symm_apply (multiplicative.of_add a) n
+
+attribute [to_additive fin_equiv_multiples_symm_apply] fin_equiv_powers_symm_apply
+
+/-- The equivalence between `submonoid.powers` of two elements `a, b` of the same order, mapping
+  `a ^ i` to `b ^ i`. -/
+noncomputable def powers_equiv_powers (h : order_of x = order_of y) :
+  (submonoid.powers x : set G) ≃ (submonoid.powers y : set G) :=
+(fin_equiv_powers x).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_powers y))
+
+/-- The equivalence between `submonoid.multiples` of two elements `a, b` of the same additive order,
+  mapping `i • a` to `i • b`. -/
+noncomputable def multiples_equiv_multiples (h : add_order_of a = add_order_of b) :
+  (add_submonoid.multiples a : set A) ≃ (add_submonoid.multiples b : set A) :=
+(fin_equiv_multiples a).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_multiples b))
+
+attribute [to_additive multiples_equiv_multiples] powers_equiv_powers
+
+@[simp]
+lemma powers_equiv_powers_apply (h : order_of x = order_of y)
+  (n : ℕ) : powers_equiv_powers h ⟨x ^ n, n, rfl⟩ = ⟨y ^ n, n, rfl⟩ :=
+begin
+  rw [powers_equiv_powers, equiv.trans_apply, equiv.trans_apply,
+    fin_equiv_powers_symm_apply, ← equiv.eq_symm_apply, fin_equiv_powers_symm_apply],
+  simp [h]
+end
+
+@[simp]
+lemma multiples_equiv_multiples_apply (h : add_order_of a = add_order_of b)
+  (n : ℕ) : multiples_equiv_multiples h ⟨n • a, n, rfl⟩ = ⟨n • b, n, rfl⟩ :=
+powers_equiv_powers_apply h n
+
+attribute [to_additive multiples_equiv_multiples_apply] powers_equiv_powers_apply
+
 lemma order_eq_card_powers [decidable_eq G] :
   order_of x = fintype.card (submonoid.powers x : set G) :=
-begin
-  refine (finset.card_eq_of_bijective _ _ _ _).symm,
-  { exact λn hn, ⟨x ^ n, ⟨n, rfl⟩⟩ },
-  { rintros ⟨_, i, rfl⟩ _,
-    exact ⟨i % order_of x, mod_lt i (order_of_pos x), subtype.eq pow_eq_mod_order_of.symm⟩ },
-  { exact λ _ _, finset.mem_univ _ },
-  { exact λ i j hi hj eq, pow_injective_of_lt_order_of x hi hj (subtype.mk_eq_mk.mp eq) }
-end
+(fintype.card_fin (order_of x)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_powers x⟩)
 
 lemma add_order_of_eq_card_multiples [decidable_eq A] :
   add_order_of a = fintype.card (add_submonoid.multiples a : set A) :=
-begin
-  rw [← order_of_of_add_eq_add_order_of, order_eq_card_powers],
-  apply fintype.card_congr,
-  rw ←of_add_image_multiples_eq_powers_of_add,
-  exact (equiv.set.image _ _ (equiv.injective _)).symm
-end
+(fintype.card_fin (add_order_of a)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_multiples a⟩)
 
 attribute [to_additive add_order_of_eq_card_multiples] order_eq_card_powers
 

@@ -69,6 +69,20 @@ theorem fg_def {N : submodule R M} :
   exact ⟨t, rfl⟩
 end⟩
 
+lemma fg_iff_exists_fin_generating_fam {N : submodule R M} :
+  N.fg ↔ ∃ (n : ℕ) (s : fin n → M), span R (range s) = N :=
+begin
+  classical,
+  rw fg_def,
+  split,
+  { rintros ⟨S, Sfin, hS⟩,
+    rcases Sfin.fin_param with ⟨n, f, -, h⟩,
+    use [n, f],
+    rwa h },
+  { rintros ⟨n, s, hs⟩,
+    refine ⟨range s, finite_range s, hs⟩ },
+end
+
 /-- Nakayama's Lemma. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2, Stacks 00DV -/
 theorem exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul {R : Type*} [comm_ring R]
   {M : Type*} [add_comm_group M] [module R M]

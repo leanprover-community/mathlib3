@@ -17,7 +17,7 @@ a free `R`-module of finite rank, if `R` is a principal ideal domain.
 We express "free `R`-module of finite rank" as a module `M` which has a basis
 `b : ι → R`, where `ι` is a `fintype`.
 We call the cardinality of `ι` the rank of `M` in this file;
-it would be equal to `findim R M` if `R` is a field and `M` is a vector space.
+it would be equal to `finrank R M` if `R` is a field and `M` is a vector space.
 
 ## Main results
 

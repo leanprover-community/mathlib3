@@ -823,10 +823,10 @@ end
 
 open finite_dimensional
 
-lemma is_basis_of_orthonormal_of_card_eq_findim [fintype ι] [nonempty ι] {v : ι → E}
-  (hv : orthonormal 𝕜 v) (card_eq : fintype.card ι = findim 𝕜 E) :
+lemma is_basis_of_orthonormal_of_card_eq_finrank [fintype ι] [nonempty ι] {v : ι → E}
+  (hv : orthonormal 𝕜 v) (card_eq : fintype.card ι = finrank 𝕜 E) :
   is_basis 𝕜 v :=
-is_basis_of_linear_independent_of_card_eq_findim hv.linear_independent card_eq
+is_basis_of_linear_independent_of_card_eq_finrank hv.linear_independent card_eq
 
 end orthonormal_sets
 
@@ -1784,11 +1784,11 @@ variables {ι : Type*} [fintype ι]
 instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
 instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
 
-@[simp] lemma findim_euclidean_space :
-  finite_dimensional.findim 𝕜 (euclidean_space 𝕜 ι) = fintype.card ι := by simp
+@[simp] lemma finrank_euclidean_space :
+  finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 ι) = fintype.card ι := by simp
 
-lemma findim_euclidean_space_fin {n : ℕ} :
-  finite_dimensional.findim 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
+lemma finrank_euclidean_space_fin {n : ℕ} :
+  finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
 
 /-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with
 `euclidean_space 𝕜 ι`. -/
@@ -2607,13 +2607,13 @@ open finite_dimensional
 /-- Given a finite-dimensional subspace `K₂`, and a subspace `K₁`
 containined in it, the dimensions of `K₁` and the intersection of its
 orthogonal subspace with `K₂` add to that of `K₂`. -/
-lemma submodule.findim_add_inf_findim_orthogonal {K₁ K₂ : submodule 𝕜 E}
+lemma submodule.finrank_add_inf_finrank_orthogonal {K₁ K₂ : submodule 𝕜 E}
   [finite_dimensional 𝕜 K₂] (h : K₁ ≤ K₂) :
-  findim 𝕜 K₁ + findim 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = findim 𝕜 K₂ :=
+  finrank 𝕜 K₁ + finrank 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = finrank 𝕜 K₂ :=
 begin
   haveI := submodule.finite_dimensional_of_le h,
   have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁ᗮ ⊓ K₂),
-  rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, findim_bot,
+  rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, finrank_bot,
       submodule.sup_orthogonal_inf_of_is_complete h
         (submodule.complete_of_finite_dimensional _)] at hd,
   rw add_zero at hd,
@@ -2623,36 +2623,36 @@ end
 /-- Given a finite-dimensional subspace `K₂`, and a subspace `K₁`
 containined in it, the dimensions of `K₁` and the intersection of its
 orthogonal subspace with `K₂` add to that of `K₂`. -/
-lemma submodule.findim_add_inf_findim_orthogonal' {K₁ K₂ : submodule 𝕜 E}
-  [finite_dimensional 𝕜 K₂] (h : K₁ ≤ K₂) {n : ℕ} (h_dim : findim 𝕜 K₁ + n = findim 𝕜 K₂) :
-  findim 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = n :=
-by { rw ← add_right_inj (findim 𝕜 K₁), simp [submodule.findim_add_inf_findim_orthogonal h, h_dim] }
+lemma submodule.finrank_add_inf_finrank_orthogonal' {K₁ K₂ : submodule 𝕜 E}
+  [finite_dimensional 𝕜 K₂] (h : K₁ ≤ K₂) {n : ℕ} (h_dim : finrank 𝕜 K₁ + n = finrank 𝕜 K₂) :
+  finrank 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = n :=
+by { rw ← add_right_inj (finrank 𝕜 K₁), simp [submodule.finrank_add_inf_finrank_orthogonal h, h_dim] }
 
 /-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to
 that of `E`. -/
-lemma submodule.findim_add_findim_orthogonal [finite_dimensional 𝕜 E] {K : submodule 𝕜 E} :
-  findim 𝕜 K + findim 𝕜 Kᗮ = findim 𝕜 E :=
+lemma submodule.finrank_add_finrank_orthogonal [finite_dimensional 𝕜 E] {K : submodule 𝕜 E} :
+  finrank 𝕜 K + finrank 𝕜 Kᗮ = finrank 𝕜 E :=
 begin
-  convert submodule.findim_add_inf_findim_orthogonal (le_top : K ≤ ⊤) using 1,
+  convert submodule.finrank_add_inf_finrank_orthogonal (le_top : K ≤ ⊤) using 1,
   { rw inf_top_eq },
   { simp }
 end
 
 /-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to
 that of `E`. -/
-lemma submodule.findim_add_findim_orthogonal' [finite_dimensional 𝕜 E] {K : submodule 𝕜 E} {n : ℕ}
-  (h_dim : findim 𝕜 K + n = findim 𝕜 E) :
-  findim 𝕜 Kᗮ = n :=
-by { rw ← add_right_inj (findim 𝕜 K), simp [submodule.findim_add_findim_orthogonal, h_dim] }
+lemma submodule.finrank_add_finrank_orthogonal' [finite_dimensional 𝕜 E] {K : submodule 𝕜 E} {n : ℕ}
+  (h_dim : finrank 𝕜 K + n = finrank 𝕜 E) :
+  finrank 𝕜 Kᗮ = n :=
+by { rw ← add_right_inj (finrank 𝕜 K), simp [submodule.finrank_add_finrank_orthogonal, h_dim] }
 
-local attribute [instance] finite_dimensional_of_findim_eq_succ
+local attribute [instance] finite_dimensional_of_finrank_eq_succ
 
 /-- In a finite-dimensional inner product space, the dimension of the orthogonal complement of the
 span of a nonzero vector is one less than the dimension of the space. -/
-lemma findim_orthogonal_span_singleton {n : ℕ} [_i : fact (findim 𝕜 E = n + 1)]
+lemma finrank_orthogonal_span_singleton {n : ℕ} [_i : fact (finrank 𝕜 E = n + 1)]
   {v : E} (hv : v ≠ 0) :
-  findim 𝕜 (𝕜 ∙ v)ᗮ = n :=
-submodule.findim_add_findim_orthogonal' $ by simp [findim_span_singleton hv, _i.elim, add_comm]
+  finrank 𝕜 (𝕜 ∙ v)ᗮ = n :=
+submodule.finrank_add_finrank_orthogonal' $ by simp [finrank_span_singleton hv, _i.elim, add_comm]
 
 end orthogonal
 
@@ -2790,9 +2790,9 @@ let ⟨u, hus, hu, hu_max⟩ := exists_subset_is_orthonormal_basis (orthonormal_
 ⟨u, hu, hu_max⟩
 variables {𝕜 E}
 
-/-- Given a natural number `n` equal to the `findim` of a finite-dimensional inner product space,
+/-- Given a natural number `n` equal to the `finrank` of a finite-dimensional inner product space,
 there exists an orthonormal basis for the space indexed by `fin n`. -/
-lemma exists_is_orthonormal_basis' [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n) :
+lemma exists_is_orthonormal_basis' [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) :
   ∃ v : fin n → E, orthonormal 𝕜 v ∧ is_basis 𝕜 v :=
 begin
   obtain ⟨u, hu, hu_basis⟩ := exists_is_orthonormal_basis 𝕜 E,
@@ -2800,22 +2800,22 @@ begin
   exact ⟨coe ∘ g, hu.comp _ g.injective, hg⟩
 end
 
-/-- Given a natural number `n` equal to the `findim` of a finite-dimensional inner product space,
+/-- Given a natural number `n` equal to the `finrank` of a finite-dimensional inner product space,
 there exists an isometry from the space to `euclidean_space 𝕜 (fin n)`. -/
 def linear_isometry_equiv.of_inner_product_space
-  [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n) :
+  [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) :
   E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
 let hv := classical.some_spec (exists_is_orthonormal_basis' hn) in
 hv.2.isometry_euclidean_of_orthonormal hv.1
 
-local attribute [instance] finite_dimensional_of_findim_eq_succ
+local attribute [instance] finite_dimensional_of_finrank_eq_succ
 
-/-- Given a natural number `n` one less than the `findim` of a finite-dimensional inner product
+/-- Given a natural number `n` one less than the `finrank` of a finite-dimensional inner product
 space, there exists an isometry from the orthogonal complement of a nonzero singleton to
 `euclidean_space 𝕜 (fin n)`. -/
 def linear_isometry_equiv.from_orthogonal_span_singleton
-  (n : ℕ) [fact (findim 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
+  (n : ℕ) [fact (finrank 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
-linear_isometry_equiv.of_inner_product_space (findim_orthogonal_span_singleton hv)
+linear_isometry_equiv.of_inner_product_space (finrank_orthogonal_span_singleton hv)
 
 end orthonormal_basis

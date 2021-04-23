@@ -1372,18 +1372,18 @@ variable [finite_dimensional K V]
 
 open finite_dimensional
 
-lemma findim_add_findim_orthogonal
+lemma finrank_add_finrank_orthogonal
   {B : bilin_form K V} {W : subspace K V} (hB₁ : sym_bilin_form.is_sym B) :
-  findim K W + findim K (B.orthogonal W) =
-  findim K V + findim K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
+  finrank K W + finrank K (B.orthogonal W) =
+  finrank K V + finrank K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
   rw [← to_lin_restrict_ker_eq_inf_orthogonal _ _ hB₁,
       ← to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal _ _,
-      findim_map_subtype_eq],
-  conv_rhs { rw [← @subspace.findim_add_findim_dual_annihilator_comap_eq K V _ _ _ _
+      finrank_map_subtype_eq],
+  conv_rhs { rw [← @subspace.finrank_add_finrank_dual_annihilator_comap_eq K V _ _ _ _
                   (B.to_lin.dom_restrict W).range,
-                 add_comm, ← add_assoc, add_comm (findim K ↥((B.to_lin.dom_restrict W).ker)),
-                 linear_map.findim_range_add_findim_ker] },
+                 add_comm, ← add_assoc, add_comm (finrank K ↥((B.to_lin.dom_restrict W).ker)),
+                 linear_map.finrank_range_add_finrank_ker] },
 end
 
 /-- A subspace is complement to its orthogonal complement with respect to some
@@ -1403,11 +1403,11 @@ begin
     exact hx₂ n hn },
   refine ⟨this ▸ le_refl _, _⟩,
   { rw top_le_iff,
-    refine eq_top_of_findim_eq _,
-    refine le_antisymm (submodule.findim_le _) _,
-    conv_rhs { rw ← add_zero (findim K _) },
-    rw [← findim_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
-        findim_add_findim_orthogonal hB₁],
+    refine eq_top_of_finrank_eq _,
+    refine le_antisymm (submodule.finrank_le _) _,
+    conv_rhs { rw ← add_zero (finrank K _) },
+    rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
+        finrank_add_finrank_orthogonal hB₁],
     exact nat.le.intro rfl }
 end
 
@@ -1425,7 +1425,7 @@ the linear equivalence between a vector space and its dual with the underlying l
 noncomputable def to_dual (B : bilin_form K V) (hB : B.nondegenerate) :
   V ≃ₗ[K] module.dual K V :=
 B.to_lin.linear_equiv_of_ker_eq_bot
-  (nondegenerate_iff_ker_eq_bot.mp hB) subspace.dual_findim_eq.symm
+  (nondegenerate_iff_ker_eq_bot.mp hB) subspace.dual_finrank_eq.symm
 
 lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
   B.to_dual hB m n = B m n := rfl

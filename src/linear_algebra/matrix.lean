@@ -873,10 +873,10 @@ linear_equiv.finite_dimensional (linear_equiv.uncurry R m n).symm
 The dimension of the space of finite dimensional matrices
 is the product of the number of rows and columns.
 -/
-@[simp] lemma findim_matrix :
-  finite_dimensional.findim R (matrix m n R) = fintype.card m * fintype.card n :=
-by rw [@linear_equiv.findim_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.uncurry R m n),
-       finite_dimensional.findim_fintype_fun_eq_card, fintype.card_prod]
+@[simp] lemma finrank_matrix :
+  finite_dimensional.finrank R (matrix m n R) = fintype.card m * fintype.card n :=
+by rw [@linear_equiv.finrank_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.uncurry R m n),
+       finite_dimensional.finrank_fintype_fun_eq_card, fintype.card_prod]
 
 end finite_dimensional
 
@@ -1138,15 +1138,15 @@ end
 The dimension of the space of linear transformations is the product of the dimensions of the
 domain and codomain.
 -/
-@[simp] lemma findim_linear_map :
-  finite_dimensional.findim K (V →ₗ[K] W) =
-  (finite_dimensional.findim K V) * (finite_dimensional.findim K W) :=
+@[simp] lemma finrank_linear_map :
+  finite_dimensional.finrank K (V →ₗ[K] W) =
+  (finite_dimensional.finrank K V) * (finite_dimensional.finrank K W) :=
 begin
   classical,
   cases finite_dimensional.exists_is_basis_finset K V with bV hbV,
   cases finite_dimensional.exists_is_basis_finset K W with bW hbW,
-  rw [linear_equiv.findim_eq (linear_map.to_matrix hbV hbW), matrix.findim_matrix,
-    finite_dimensional.findim_eq_card_basis hbV, finite_dimensional.findim_eq_card_basis hbW,
+  rw [linear_equiv.finrank_eq (linear_map.to_matrix hbV hbW), matrix.finrank_matrix,
+    finite_dimensional.finrank_eq_card_basis hbV, finite_dimensional.finrank_eq_card_basis hbW,
     mul_comm],
 end
 

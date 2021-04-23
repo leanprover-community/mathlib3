@@ -20,7 +20,7 @@ but just a vector space over `K`.
 ## Implementation notes
 
 We prove two versions, since there are two notions of dimensions: `module.rank` which gives
-the dimension of an arbitrary vector space as a cardinal, and `finite_dimensional.findim` which
+the dimension of an arbitrary vector space as a cardinal, and `finite_dimensional.finrank` which
 gives the dimension of a finitely-dimensional vector space as a natural number.
 
 ## Tags
@@ -74,16 +74,16 @@ by { rw [submodule.restrict_scalars_top, eq_top_iff, ← hb, submodule.span_le],
 
 /-- Tower law: if `A` is a `K`-algebra and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
-theorem findim_mul_findim [finite_dimensional F K] :
-  findim F K * findim K A = findim F A :=
+theorem finrank_mul_finrank [finite_dimensional F K] :
+  finrank F K * finrank K A = finrank F A :=
 begin
   by_cases hA : finite_dimensional K A,
   { resetI,
     rcases exists_is_basis_finset F K with ⟨b, hb⟩,
     rcases exists_is_basis_finset K A with ⟨c, hc⟩,
-    rw [findim_eq_card_basis hb, findim_eq_card_basis hc,
-      findim_eq_card_basis (hb.smul hc), fintype.card_prod] },
-  { rw [findim_of_infinite_dimensional hA, mul_zero, findim_of_infinite_dimensional],
+    rw [finrank_eq_card_basis hb, finrank_eq_card_basis hc,
+      finrank_eq_card_basis (hb.smul hc), fintype.card_prod] },
+  { rw [finrank_of_infinite_dimensional hA, mul_zero, finrank_of_infinite_dimensional],
     exact mt (@right F K A _ _ _ _ _ _ _) hA }
 end
 
@@ -95,14 +95,14 @@ let ⟨b, hb⟩ := exists_is_basis_finset F V in
 let ⟨c, hc⟩ := exists_is_basis_finset F W in
 (matrix.to_lin hb hc).finite_dimensional
 
-lemma findim_linear_map (F : Type u) (V : Type v) (W : Type w)
+lemma finrank_linear_map (F : Type u) (V : Type v) (W : Type w)
   [field F] [add_comm_group V] [module F V] [add_comm_group W] [module F W]
   [finite_dimensional F V] [finite_dimensional F W] :
-  findim F (V →ₗ[F] W) = findim F V * findim F W :=
+  finrank F (V →ₗ[F] W) = finrank F V * finrank F W :=
 let ⟨b, hb⟩ := exists_is_basis_finset F V in
 let ⟨c, hc⟩ := exists_is_basis_finset F W in
-by rw [linear_equiv.findim_eq (linear_map.to_matrix hb hc), matrix.findim_matrix,
-      findim_eq_card_basis hb, findim_eq_card_basis hc, mul_comm]
+by rw [linear_equiv.finrank_eq (linear_map.to_matrix hb hc), matrix.finrank_matrix,
+      finrank_eq_card_basis hb, finrank_eq_card_basis hc, mul_comm]
 
 -- TODO: generalize by removing [finite_dimensional F K]
 -- V = ⊕F,
@@ -113,15 +113,15 @@ instance linear_map' (F : Type u) (K : Type v) (V : Type w)
   finite_dimensional K (V →ₗ[F] K) :=
 right F _ _
 
-lemma findim_linear_map' (F : Type u) (K : Type v) (V : Type w)
+lemma finrank_linear_map' (F : Type u) (K : Type v) (V : Type w)
   [field F] [field K] [algebra F K] [finite_dimensional F K]
   [add_comm_group V] [module F V] [finite_dimensional F V] :
-  findim K (V →ₗ[F] K) = findim F V :=
-(nat.mul_right_inj $ show 0 < findim F K, from findim_pos).1 $
-calc  findim F K * findim K (V →ₗ[F] K)
-    = findim F (V →ₗ[F] K) : findim_mul_findim _ _ _
-... = findim F V * findim F K : findim_linear_map F V K
-... = findim F K * findim F V : mul_comm _ _
+  finrank K (V →ₗ[F] K) = finrank F V :=
+(nat.mul_right_inj $ show 0 < finrank F K, from finrank_pos).1 $
+calc  finrank F K * finrank K (V →ₗ[F] K)
+    = finrank F (V →ₗ[F] K) : finrank_mul_finrank _ _ _
+... = finrank F V * finrank F K : finrank_linear_map F V K
+... = finrank F K * finrank F V : mul_comm _ _
 
 end finite_dimensional
 

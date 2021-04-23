@@ -182,8 +182,8 @@ instance : finite_dimensional K (R σ K) :=
 finite_dimensional.finite_dimensional_iff_dim_lt_omega.mpr
   (by simpa only [dim_R] using cardinal.nat_lt_omega (fintype.card (σ → K)))
 
-lemma findim_R : finite_dimensional.findim K (R σ K) = fintype.card (σ → K) :=
-finite_dimensional.findim_eq_of_dim_eq (dim_R σ K)
+lemma finrank_R : finite_dimensional.finrank K (R σ K) = fintype.card (σ → K) :=
+finite_dimensional.finrank_eq_of_dim_eq (dim_R σ K)
 
 def evalᵢ : R σ K →ₗ[K] (σ → K) → K :=
 ((evalₗ K σ).comp (restrict_degree σ K (fintype.card K - 1)).subtype)
@@ -196,8 +196,8 @@ end
 
 lemma ker_evalₗ : (evalᵢ σ K).ker = ⊥ :=
 begin
-  refine (ker_eq_bot_iff_range_eq_top_of_findim_eq_findim _).mpr (range_evalᵢ _ _),
-  rw [finite_dimensional.findim_fintype_fun_eq_card, findim_R]
+  refine (ker_eq_bot_iff_range_eq_top_of_finrank_eq_finrank _).mpr (range_evalᵢ _ _),
+  rw [finite_dimensional.finrank_fintype_fun_eq_card, finrank_R]
 end
 
 lemma eq_zero_of_eval_eq_zero (p : mv_polynomial σ K)

@@ -556,11 +556,11 @@ end
 
 variables [finite_dimensional K V] [finite_dimensional K V₁]
 
-@[simp] lemma dual_findim_eq :
-  findim K (module.dual K V) = findim K V :=
+@[simp] lemma dual_finrank_eq :
+  finrank K (module.dual K V) = finrank K V :=
 begin
   obtain ⟨n, hn, hf⟩ := exists_is_basis_finite K V,
-  refine linear_equiv.findim_eq _,
+  refine linear_equiv.finrank_eq _,
   haveI : fintype n := set.finite.fintype hf,
   refine (hn.to_dual_equiv _).symm,
 end
@@ -589,19 +589,19 @@ end
 open finite_dimensional
 
 @[simp]
-lemma findim_dual_annihilator_comap_eq {Φ : subspace K (module.dual K V)} :
-  findim K Φ.dual_annihilator_comap = findim K Φ.dual_annihilator :=
+lemma finrank_dual_annihilator_comap_eq {Φ : subspace K (module.dual K V)} :
+  finrank K Φ.dual_annihilator_comap = finrank K Φ.dual_annihilator :=
 begin
   rw [submodule.dual_annihilator_comap, ← module.eval_equiv_to_linear_map],
-  exact linear_equiv.findim_eq (linear_equiv.of_submodule' _ _),
+  exact linear_equiv.finrank_eq (linear_equiv.of_submodule' _ _),
 end
 
-lemma findim_add_findim_dual_annihilator_comap_eq
+lemma finrank_add_finrank_dual_annihilator_comap_eq
   (W : subspace K (module.dual K V)) :
-  findim K W + findim K W.dual_annihilator_comap = findim K V :=
+  finrank K W + finrank K W.dual_annihilator_comap = finrank K V :=
 begin
-  rw [findim_dual_annihilator_comap_eq, W.quot_equiv_annihilator.findim_eq.symm, add_comm,
-      submodule.findim_quotient_add_findim, subspace.dual_findim_eq],
+  rw [finrank_dual_annihilator_comap_eq, W.quot_equiv_annihilator.finrank_eq.symm, add_comm,
+      submodule.finrank_quotient_add_finrank, subspace.dual_finrank_eq],
 end
 
 end
@@ -700,27 +700,27 @@ open finite_dimensional
 
 variable [finite_dimensional K V₂]
 
-@[simp] lemma findim_range_dual_map_eq_findim_range (f : V₁ →ₗ[K] V₂) :
-  findim K f.dual_map.range = findim K f.range :=
+@[simp] lemma finrank_range_dual_map_eq_finrank_range (f : V₁ →ₗ[K] V₂) :
+  finrank K f.dual_map.range = finrank K f.range :=
 begin
-  have := submodule.findim_quotient_add_findim f.range,
-  rw [(subspace.quot_equiv_annihilator f.range).findim_eq,
+  have := submodule.finrank_quotient_add_finrank f.range,
+  rw [(subspace.quot_equiv_annihilator f.range).finrank_eq,
       ← ker_dual_map_eq_dual_annihilator_range] at this,
-  conv_rhs at this { rw ← subspace.dual_findim_eq },
-  refine add_left_injective (findim K f.dual_map.ker) _,
+  conv_rhs at this { rw ← subspace.dual_finrank_eq },
+  refine add_left_injective (finrank K f.dual_map.ker) _,
   change _ + _ = _ + _,
-  rw [findim_range_add_findim_ker f.dual_map, add_comm, this],
+  rw [finrank_range_add_finrank_ker f.dual_map, add_comm, this],
 end
 
 lemma range_dual_map_eq_dual_annihilator_ker [finite_dimensional K V₁] (f : V₁ →ₗ[K] V₂) :
   f.dual_map.range = f.ker.dual_annihilator :=
 begin
-  refine eq_of_le_of_findim_eq f.range_dual_map_le_dual_annihilator_ker _,
-  have := submodule.findim_quotient_add_findim f.ker,
-  rw (subspace.quot_equiv_annihilator f.ker).findim_eq at this,
-  refine add_left_injective (findim K f.ker) _,
-  simp_rw [this, findim_range_dual_map_eq_findim_range],
-  exact findim_range_add_findim_ker f,
+  refine eq_of_le_of_finrank_eq f.range_dual_map_le_dual_annihilator_ker _,
+  have := submodule.finrank_quotient_add_finrank f.ker,
+  rw (subspace.quot_equiv_annihilator f.ker).finrank_eq at this,
+  refine add_left_injective (finrank K f.ker) _,
+  simp_rw [this, finrank_range_dual_map_eq_finrank_range],
+  exact finrank_range_add_finrank_ker f,
 end
 
 end finite_dimensional

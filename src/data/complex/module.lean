@@ -127,18 +127,18 @@ end
 
 instance : finite_dimensional ℝ ℂ := of_fintype_basis is_basis_one_I
 
-@[simp] lemma findim_real_complex : finite_dimensional.findim ℝ ℂ = 2 :=
-by rw [findim_eq_card_basis is_basis_one_I, fintype.card_fin]
+@[simp] lemma finrank_real_complex : finite_dimensional.finrank ℝ ℂ = 2 :=
+by rw [finrank_eq_card_basis is_basis_one_I, fintype.card_fin]
 
 @[simp] lemma dim_real_complex : module.rank ℝ ℂ = 2 :=
-by simp [← findim_eq_dim, findim_real_complex]
+by simp [← finrank_eq_dim, finrank_real_complex]
 
 lemma {u} dim_real_complex' : cardinal.lift.{0 u} (module.rank ℝ ℂ) = 2 :=
-by simp [← findim_eq_dim, findim_real_complex, bit0]
+by simp [← finrank_eq_dim, finrank_real_complex, bit0]
 
 /-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
 circle. -/
-lemma findim_real_complex_fact : fact (findim ℝ ℂ = 2) := ⟨findim_real_complex⟩
+lemma finrank_real_complex_fact : fact (finrank ℝ ℂ = 2) := ⟨finrank_real_complex⟩
 
 end complex
 
@@ -162,9 +162,9 @@ lemma dim_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
 cardinal.lift_inj.1 $
   by { rw [← dim_mul_dim' ℝ ℂ E, complex.dim_real_complex], simp [bit0] }
 
-lemma findim_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
-  finite_dimensional.findim ℝ E = 2 * finite_dimensional.findim ℂ E :=
-by rw [← finite_dimensional.findim_mul_findim ℝ ℂ E, complex.findim_real_complex]
+lemma finrank_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
+  finite_dimensional.finrank ℝ E = 2 * finite_dimensional.finrank ℂ E :=
+by rw [← finite_dimensional.finrank_mul_finrank ℝ ℂ E, complex.finrank_real_complex]
 
 namespace complex
 

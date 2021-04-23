@@ -159,21 +159,14 @@ end minpoly
 lemma exists_eigenvalue [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
   ∃ (c : K), f.has_eigenvalue c :=
 begin
-  classical,
-  -- Choose a nonzero vector `v`.
-  obtain ⟨v, hv⟩ : ∃ v : V, v ≠ 0 := exists_ne (0 : V),
-  -- The infinitely many vectors v, f v, f (f v), ... cannot be linearly independent
-  -- because the vector space is finite dimensional.
-  have h_lin_dep : ¬ linear_independent K (λ n : ℕ, (f ^ n) v),
-  { apply not_linear_independent_of_infinite, },
-  -- Therefore, there must be a nonzero polynomial `p` such that `p(f) v = 0`.
+  -- Since the vector space is finite dimensional,
+  -- there must be a nonzero polynomial `p` such that `aeval f p = 0` and hence not invertible.
   obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := f.is_integral,
   have h_eval_p_not_unit : aeval f p ∉ is_unit.submonoid (End K V),
-  { rw [is_unit.mem_submonoid_iff, linear_map.is_unit_iff, linear_map.ker_eq_bot'],
-    intro h,
-    apply hv (h v _),
-    rw [aeval_def, h_eval_p, linear_map.zero_apply] },
-  -- Hence, there must be a factor `q` of `p` such that `q(f)` is not invertible.
+  { rw ←aeval_def at h_eval_p,
+    rw [h_eval_p, is_unit.mem_submonoid_iff],
+    exact not_is_unit_zero, },
+  -- Hence, there must be a factor `q` of `p` such that `aeval f q` is not invertible.
   obtain ⟨q, hq_factor, hq_nonunit⟩ : ∃ q, q ∈ factors p ∧ ¬ is_unit (aeval f q),
   { simp only [←not_imp, (is_unit.mem_submonoid_iff _).symm],
     apply not_forall.1 (λ h, h_eval_p_not_unit
@@ -186,10 +179,10 @@ begin
   have h_deg_q : q.degree = 1 := is_alg_closed.degree_eq_one_of_irreducible _
     (ne_zero_of_mem_factors h_mon.ne_zero hq_factor)
     ((factors_spec p h_mon.ne_zero).1 q hq_factor),
-  -- Then the kernel of `q(f)` is an eigenspace.
+  -- Then the kernel of `aeval f q` is an eigenspace.
   have h_eigenspace: eigenspace f (-q.coeff 0 / q.leading_coeff) = (aeval f q).ker,
     from eigenspace_aeval_polynomial_degree_1 f q h_deg_q,
-  -- Since `q(f)` is not invertible, the kernel is not `⊥`, and thus there exists an eigenvalue.
+  -- Since `aeval f q` is not invertible, the kernel is not `⊥`, and thus there exists an eigenvalue.
   show ∃ (c : K), f.has_eigenvalue c,
   { use -q.coeff 0 / q.leading_coeff,
     rw [has_eigenvalue, h_eigenspace],

@@ -358,6 +358,17 @@ instance linear_map_apply_is_add_group_hom (a : M) :
 
 end add_comm_group
 
+section nontrivial
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
+instance [nontrivial M] : nontrivial (module.End R M) :=
+begin
+  obtain ⟨m, ne⟩ := (nontrivial_iff_exists_ne (0 : M)).mp infer_instance,
+  exact nontrivial_of_ne 1 0 (λ p, ne (linear_map.congr_fun p m)),
+end
+
+end nontrivial
+
 section has_scalar
 variables {S : Type*} [semiring R] [monoid S]
   [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]

@@ -68,7 +68,7 @@ begin
   { intro h,
     obtain ⟨T, hT, hf⟩ := (monoid.fg_def _).1 h,
     rw [add_monoid.fg_def],
-    exact ⟨additive.of_mul ⁻¹' T, by simpa [← add_submonoid.of_submonoid_closure, hT], hf⟩ }
+    exact ⟨additive.of_mul ⁻¹' T, by simpa [← submonoid.to_add_submonoid'_closure, hT], hf⟩ }
 end
 
 end monoid

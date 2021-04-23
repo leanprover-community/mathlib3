@@ -18,7 +18,7 @@ proof that all free modules are projective.
 
 ## Main definitions
 
-Let `R` be a ring (or a semiring) and let `M` be an `R`-module (or a module).
+Let `R` be a ring (or a semiring) and let `M` be an `R`-module.
 
 * `is_projective R M` : the proposition saying that `M` is a projective `R`-module.
 
@@ -40,7 +40,7 @@ than certain other definitions which involve quantifying over universes,
 and also universe-polymorphic (the ring and module can be in different universes).
 
 Everything works for semirings and modules except that apparently
-we don't have free modules, so here we stick to rings.
+we don't have free modules over semirings, so here we stick to rings.
 
 ## References
 

@@ -24,7 +24,7 @@ In this file we define
 * We choose to define `ordered_module` as a `Prop`-valued mixin, so that it can be
   used for both modules and algebras
   (the axioms for an "ordered algebra" are exactly that the algebra is ordered as a module).
-* To get ordered modules and ordered vector spaces, it suffices to the replace the
+* To get ordered modules and ordered vector spaces, it suffices to replace the
   `order_add_comm_monoid` and the `ordered_semiring` as desired.
 
 ## References
@@ -41,7 +41,7 @@ ordered module, ordered module, ordered vector space
 An ordered module is an ordered additive commutative monoid
 with a partial order in which the scalar multiplication is compatible with the order.
 -/
-@[protect_proj, ancestor module]
+@[protect_proj]
 class ordered_module (R M : Type*)
   [ordered_semiring R] [ordered_add_comm_monoid M] [module R M] : Prop :=
 (smul_lt_smul_of_pos : ∀ {a b : M}, ∀ {c : R}, a < b → 0 < c → c • a < c • b)

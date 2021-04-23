@@ -13,7 +13,7 @@ import set_theory.cardinal_ordinal
 ## Main definitions
 
 * The rank of a module is defined as `module.rank : cardinal`.
-  This is currently only defined for vector spaces.
+  This is currently only defined for vector spaces, i.e., when the base semiring is a field.
 
 ## Main statements
 

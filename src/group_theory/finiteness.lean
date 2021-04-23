@@ -6,6 +6,7 @@ Authors: Riccardo Brasca
 
 import data.set.finite
 import group_theory.submonoid.operations
+import group_theory.subgroup
 
 /-!
 # Finitely generated monoid.
@@ -72,3 +73,77 @@ begin
 end
 
 end monoid
+
+section group
+
+variables {G H : Type*} [group G] [add_group H]
+
+/-- A subgroup of `G` is finitely generated if it is the closure of a finite subset of `G`. -/
+@[to_additive]
+def subgroup.fg (P : subgroup G) : Prop := ∃ S : finset G, subgroup.closure ↑S = P
+
+/-- An additive subgroup of `H` is finitely generated if it is the closure of a finite subset of
+`H`. -/
+add_decl_doc add_subgroup.fg
+
+variables (G H)
+
+/-- A group is finitely generated if it is finitely generated as a submonoid of itself. -/
+@[to_additive]
+def group.fg : Prop := (⊤ : subgroup G).fg
+
+/-- An additive group is finitely generated if it is finitely generated as an additive submonoid of
+itself. -/
+add_decl_doc add_group.fg
+
+@[to_additive]
+lemma group.fg_def : group.fg G ↔
+  ∃ S : set G, subgroup.closure S = (⊤ : subgroup G) ∧ S.finite :=
+⟨λ⟨S, hS⟩, ⟨S, hS, finset.finite_to_set S⟩, λ⟨S, hS, hf⟩, ⟨set.finite.to_finset hf, by simp [hS]⟩⟩
+
+/-- A group if finitely generated if and only if it is finitely generated as a monoid. -/
+lemma group.fg_iff_monoid.fg : group.fg G ↔ monoid.fg G :=
+begin
+  split,
+  { rintro ⟨S, hS⟩,
+    rw [monoid.fg_def],
+    refine ⟨S ∪ S⁻¹, _, _⟩,
+    { simpa [← subgroup.closure_to_submonoid, hS] },
+    { exact set.finite.union (finset.finite_to_set S) (set.finite.inv (finset.finite_to_set S)) } },
+  { rintro ⟨S, hS⟩,
+    refine ⟨S, le_antisymm le_top _⟩,
+    change (⊤ : submonoid G) ≤ (subgroup.closure ↑S).to_submonoid,
+    rw [← hS, submonoid.closure_le],
+    exact subgroup.subset_closure }
+end
+
+/-- An additive group if finitely generated if and only if it is finitely generated as an additive
+monoid. -/
+lemma add_group.fg_iff_add_monoid.fg : add_group.fg H ↔ add_monoid.fg H :=
+begin
+  split,
+  { rintro ⟨S, hS⟩,
+    rw [add_monoid.fg_def],
+    refine ⟨S ∪ -S, _, _⟩,
+    { simpa [← add_subgroup.closure_to_add_submonoid, hS] },
+    { exact set.finite.union (finset.finite_to_set S) (set.finite.neg (finset.finite_to_set S)) } },
+  { rintro ⟨S, hS⟩,
+    refine ⟨S, le_antisymm le_top _⟩,
+    change (⊤ : add_submonoid H) ≤ (add_subgroup.closure ↑S).to_add_submonoid,
+    rw [← hS, add_submonoid.closure_le],
+    exact add_subgroup.subset_closure }
+end
+
+lemma group_fg_iff_add_fg : group.fg G ↔ add_group.fg (additive G) :=
+begin
+  rw [group.fg_iff_monoid.fg, add_group.fg_iff_add_monoid.fg],
+  exact monoid_fg_iff_add_fg G
+end
+
+lemma add_group_fg_iff_mul_fg : add_group.fg H ↔ group.fg (multiplicative H) :=
+begin
+  rw [group.fg_iff_monoid.fg, add_group.fg_iff_add_monoid.fg],
+  exact add_monoid_fg_iff_mul_fg H
+end
+
+end group

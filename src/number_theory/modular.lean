@@ -376,12 +376,14 @@ instance {α : Type*} [ring α] [metric_space α] {n m : Type*} [fintype n] [fin
 metric_space_pi
 
 
-/- This needs to be added to mathlib!!! There is `preimage_subset_preimage_iff` but it
+/- NOpe it's already there. This needs to be added to mathlib!!! There is `preimage_subset_preimage_iff` but it
     requires `(hs : s ⊆ range f)`, which is only needed in the other direction! -/
-lemma preimage_subset_preimage {α β : Type*} {s t : set α} {f : β → α} :
-  s ⊆ t → f ⁻¹' s ⊆ f ⁻¹' t :=
+lemma preimage_subset_preimage {α β : Type*} {s t : set α} {f : β → α} (h: s ⊆ t) :
+   f ⁻¹' s ⊆ f ⁻¹' t :=
 begin
-  intros h x, apply h
+  exact set.preimage_mono h,
+--  intros  x,
+ -- apply h,
 end
 
 -- for `order.filter.basic`
@@ -418,7 +420,7 @@ begin
   tidy,
 end
 
-/- Is this non-crap? (More elegant phrasing?...) We know that $ℤ$ matrices are discrete in $ℝ$; so intersection of $Z$ matrices is discrete in line -/
+/- This is CRAP. Is this non-crap? (More elegant phrasing?...) We know that $ℤ$ matrices are discrete in $ℝ$; so intersection of $Z$ matrices is discrete in line -/
 lemma tendsto_inverse_image_fun {α β A B : Type*} [topological_space β] [topological_space B]
   {f : α → β} {g : A → B} {mA : A → α} {mB : B → β}
   (hmA : function.injective mA) (hmB : continuous mB) (h : f ∘ mA = mB ∘ g)
@@ -454,9 +456,9 @@ lemma tendsto_inverse_image_fun' {α β : Type*} [topological_space β] (A : set
   {f : α → β} (hf₁ : ∀ x ∈ A, f x ∈ B ) (hf₂ : tendsto f cofinite (cocompact _)) :
   tendsto (subtype.map f (λ x h, set.mem_def.mp (hf₁ x h))) cofinite (cocompact _) :=
 begin
-  refine tendsto_inverse_image_fun subtype.coe_injective continuous_subtype_coe _ hf₂,
-  intros y,
-  simp,
+--  refine tendsto_inverse_image_fun subtype.coe_injective continuous_subtype_coe _ hf₂,
+  refine filter.tendsto.of_tendsto_comp _ (comap_cocompact continuous_subtype_coe),
+  simpa [hf₁] using hf₂.comp subtype.coe_injective.tendsto_cofinite,
 end
 
 /- Non-crap lemma but put it elsewhere ?  Maybe cocompact in discrete is cofinite -/
@@ -571,8 +573,28 @@ begin
 end
 
 
-/- Needed: Conditions on a linear transformation for a given linear functional to be tendsto cocompact cocopmact
-on the kernel of the linear transformation  -/
+/- Needed: Conditions on a linear transformation for a given linear functional to be
+ tendsto cocompact cocompact
+on the kernel of the linear transformation
+
+Answer: Injective on kernel
+
+If funcitonal is injective on the kernel of a linear transformation
+
+Equivalently, f⊕L is injective...
+
+In the application, f= a c + b d, L = (ad -bc, c, d)
+
+a d0 - b c0 = 1, c=c0, d=d0
+L : ad0 - bc0, c, d
+L⁻¹ (1,c0,d0)
+f : a c0 + b d0
+
+f⊕ L = injective?
+
+f⊕ L = yes, injective
+ -/
+
 
 
 lemma tendsto_acbd (cd : coprime_ints):

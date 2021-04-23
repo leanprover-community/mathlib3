@@ -322,6 +322,7 @@ end is_linear_map
 abbreviation module.End (R : Type u) (M : Type v)
   [semiring R] [add_comm_monoid M] [semimodule R M] := M →ₗ[R] M
 
+
 /-- Reinterpret an additive homomorphism as a `ℤ`-linear map. -/
 def add_monoid_hom.to_int_linear_map [add_comm_group M] [add_comm_group M₂] (f : M →+ M₂) :
   M →ₗ[ℤ] M₂ :=

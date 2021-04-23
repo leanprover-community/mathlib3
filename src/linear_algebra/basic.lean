@@ -247,6 +247,17 @@ lemma mul_eq_comp (f g : M →ₗ[R] M) : f * g = f.comp g := rfl
 lemma coe_one : ⇑(1 : M →ₗ[R] M) = _root_.id := rfl
 lemma coe_mul (f g : M →ₗ[R] M) : ⇑(f * g) = f ∘ g := rfl
 
+section nontrivial
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
+instance [nontrivial M] : nontrivial (module.End R M) :=
+begin
+  obtain ⟨m, ne⟩ := (nontrivial_iff_exists_ne (0 : M)).mp infer_instance,
+  exact nontrivial_of_ne 1 0 (λ p, ne (linear_map.congr_fun p m)),
+end
+
+end nontrivial
+
 @[simp] theorem comp_zero : f.comp (0 : M₃ →ₗ[R] M) = 0 :=
 ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, f.map_zero]
 
@@ -357,17 +368,6 @@ instance linear_map_apply_is_add_group_hom (a : M) :
 { map_add := λ f g, linear_map.add_apply f g a }
 
 end add_comm_group
-
-section nontrivial
-variables [semiring R] [add_comm_monoid M] [semimodule R M]
-
-instance [nontrivial M] : nontrivial (module.End R M) :=
-begin
-  obtain ⟨m, ne⟩ := (nontrivial_iff_exists_ne (0 : M)).mp infer_instance,
-  exact nontrivial_of_ne 1 0 (λ p, ne (linear_map.congr_fun p m)),
-end
-
-end nontrivial
 
 section has_scalar
 variables {S : Type*} [semiring R] [monoid S]

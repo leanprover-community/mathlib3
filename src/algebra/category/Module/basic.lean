@@ -229,29 +229,6 @@ instance : preadditive (Module.{v} R) :=
 
 end preadditive
 
-section epi_mono
-variables {M N : Module.{v} R} (f : M ⟶ N)
-
-lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
-linear_map.ker_eq_bot_of_cancel $ λ u v, (@cancel_mono _ _ _ _ _ f _ ↟u ↟v).1
-
-lemma range_eq_top_of_epi [epi f] : f.range = ⊤ :=
-linear_map.range_eq_top_of_cancel $ λ u v, (@cancel_epi _ _ _ _ _ f _ ↟u ↟v).1
-
-lemma mono_of_ker_eq_bot (hf : f.ker = ⊥) : mono f :=
-concrete_category.mono_of_injective _ $ linear_map.ker_eq_bot.1 hf
-
-lemma epi_of_range_eq_top (hf : f.range = ⊤) : epi f :=
-concrete_category.epi_of_surjective _ $ linear_map.range_eq_top.1 hf
-
-instance mono_as_hom'_subtype (U : submodule R M) : mono ↾U.subtype :=
-mono_of_ker_eq_bot _ (submodule.ker_subtype U)
-
-instance epi_as_hom''_mkq (U : submodule R M) : epi ↿U.mkq :=
-epi_of_range_eq_top _ $ submodule.range_mkq _
-
-end epi_mono
-
 end Module
 
 instance (M : Type u) [add_comm_group M] [module R M] : has_coe (submodule R M) (Module R) :=

@@ -167,7 +167,7 @@ end minpoly
 lemma exists_eigenvalue [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
   ∃ (c : K), f.has_eigenvalue c :=
 begin
-  obtain ⟨c, nu⟩ := exists_spectrum_of_noetherian_of_is_alg_closed K f,
+  obtain ⟨c, nu⟩ := exists_spectrum_of_is_alg_closed_of_finite_dimensional K f,
   use c,
   rw linear_map.is_unit_iff at nu,
   exact has_eigenvalue_of_has_eigenvector (exists_mem_ne_zero_of_ne_bot nu).some_spec,

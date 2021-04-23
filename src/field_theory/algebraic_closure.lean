@@ -346,7 +346,7 @@ has non-empty spectrum:
 that is, there is some `c : K` so `f - c • 1` is not invertible.
 -/
 -- We will use this both to show eigenvalues exist, and to prove Schur's lemma.
-lemma exists_spectrum_of_noetherian_of_is_alg_closed (𝕜 : Type*) [field 𝕜] [is_alg_closed 𝕜]
+lemma exists_spectrum_of_is_alg_closed_of_finite_dimensional (𝕜 : Type*) [field 𝕜] [is_alg_closed 𝕜]
   {A : Type*} [nontrivial A] [ring A] [algebra 𝕜 A] [I : finite_dimensional 𝕜 A] (f : A) :
   ∃ c : 𝕜, ¬ is_unit (f - algebra_map 𝕜 A c) :=
 begin

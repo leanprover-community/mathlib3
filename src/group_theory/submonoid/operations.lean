@@ -140,22 +140,6 @@ le_antisymm
 
 end
 
-lemma submonoid.of_add_submonoid_closure {M : Type*} [monoid M] (S : set (additive M)) :
-  submonoid.of_add_submonoid (add_submonoid.closure S) =
-  submonoid.closure (multiplicative.of_add ⁻¹' S) :=
-le_antisymm
-  ((add_submonoid.submonoid_equiv (additive M)).to_galois_connection.l_le $
-    add_submonoid.closure_le.2 submonoid.subset_closure)
-  (submonoid.closure_le.2 add_submonoid.subset_closure)
-
-lemma add_submonoid.of_submonoid_closure {M : Type*} [add_monoid M] (S : set (multiplicative M)) :
-  add_submonoid.of_submonoid (submonoid.closure S) =
-  add_submonoid.closure (additive.of_mul ⁻¹' S) :=
-le_antisymm
-  ((submonoid.add_submonoid_equiv (multiplicative M)).to_galois_connection.l_le $
-    submonoid.closure_le.2 add_submonoid.subset_closure)
-  (add_submonoid.closure_le.2 submonoid.subset_closure)
-
 namespace submonoid
 
 open set

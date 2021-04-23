@@ -48,7 +48,7 @@ begin
 end
 
 @[simp] lemma gold_mul_gold_conj : φ * ψ = -1 :=
-by { field_simp, rw ←pow_two_sub_pow_two, norm_num }
+by {field_simp, rw ← sq_sub_sq, norm_num}
 
 @[simp] lemma gold_conj_mul_gold : ψ * φ = -1 :=
 by {rw mul_comm, exact gold_mul_gold_conj}

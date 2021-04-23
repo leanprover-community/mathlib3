@@ -420,14 +420,15 @@ theorem pow_dvd_pow_of_dvd [comm_monoid R] {a b : R} (h : a ∣ b) : ∀ n : ℕ
 | 0     := dvd_refl _
 | (n+1) := mul_dvd_mul h (pow_dvd_pow_of_dvd n)
 
-lemma pow_two_sub_pow_two {R : Type*} [comm_ring R] (a b : R) :
+lemma sq_sub_sq {R : Type*} [comm_ring R] (a b : R) :
   a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
 by rw [pow_two, pow_two, mul_self_sub_mul_self]
+alias sq_sub_sq ← pow_two_sub_pow_two
 
 lemma eq_or_eq_neg_of_pow_two_eq_pow_two [integral_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
   a = b ∨ a = -b :=
 by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
-        ← pow_two_sub_pow_two a b, sub_eq_zero]
+        ← sq_sub_sq a b, sub_eq_zero]
 
 theorem pow_eq_zero [monoid_with_zero R] [no_zero_divisors R] {x : R} {n : ℕ} (H : x^n = 0) :
   x = 0 :=

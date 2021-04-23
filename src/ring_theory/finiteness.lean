@@ -63,10 +63,7 @@ open submodule set
 variables {R M N}
 
 lemma exists_fin [finite R M] : ∃ (n : ℕ) (s : fin n → M), span R (range s) = ⊤ :=
-begin
-  rw ← submodule.fg_iff_exists_fin_generating_fam,
-  exact module.finite.out
-end
+submodule.fg_iff_exists_fin_generating_fam.mp out
 
 lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
   finite R N :=

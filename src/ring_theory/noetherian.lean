@@ -72,13 +72,11 @@ end⟩
 lemma fg_iff_exists_fin_generating_fam {N : submodule R M} :
   N.fg ↔ ∃ (n : ℕ) (s : fin n → M), span R (range s) = N :=
 begin
-  classical,
   rw fg_def,
   split,
   { rintros ⟨S, Sfin, hS⟩,
-    rcases Sfin.fin_param with ⟨n, f, -, h⟩,
-    use [n, f],
-    rwa h },
+    obtain ⟨n, f, rfl⟩ := Sfin.fin_embedding,
+    exact ⟨n, f, hS⟩, },
   { rintros ⟨n, s, hs⟩,
     refine ⟨range s, finite_range s, hs⟩ },
 end

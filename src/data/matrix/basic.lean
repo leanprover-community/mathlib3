@@ -646,11 +646,11 @@ by { ext, apply smul_dot_product }
 
 lemma mul_vec_add_distrib (A : matrix m n α) (x y : n → α) :
   A.mul_vec (x + y) = A.mul_vec x + A.mul_vec y :=
-by { ext, simp only [mul_vec, pi.add_apply, dot_product_add] }
+by { ext, apply dot_product_add }
 
 lemma vec_mul_add_distrib (A : matrix m n α) (x y : m → α) :
   vec_mul (x + y) A = vec_mul x A + vec_mul y A :=
-by { ext, simp only [vec_mul, pi.add_apply, add_dot_product] }
+by { ext, apply add_dot_product }
 
 variables [decidable_eq m] [decidable_eq n]
 
@@ -752,11 +752,11 @@ by { ext, apply dot_product_smul }
 
 lemma vec_mul_to_mul_vec (A : matrix m n α) (x : m → α) :
   vec_mul x A = mul_vec Aᵀ x :=
-by { ext, simp only [vec_mul, mul_vec, dot_product_comm, transpose] }
+by { ext, apply dot_product_comm }
 
-lemma mul_vec_to_vec_mul (A : matrix m n α) (x : n → α) :
-  mul_vec A x = vec_mul x Aᵀ :=
-by { ext, simp only [vec_mul, mul_vec, dot_product_comm, transpose] }
+lemma vec_mul_transpose (A : matrix m n α) (x : n → α) :
+  vec_mul x Aᵀ = mul_vec A x :=
+by { ext, apply dot_product_comm }
 
 end comm_semiring
 

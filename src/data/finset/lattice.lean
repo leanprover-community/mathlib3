@@ -258,9 +258,9 @@ lemma sup_of_mem {s : finset β} (f : β → α) {b : β} (h : b ∈ s) :
   ∃ (a : α), s.sup (coe ∘ f : β → with_bot α) = ↑a :=
 Exists.imp (λ a, Exists.fst) (@le_sup (with_bot α) _ _ _ _ _ h (f b) rfl)
 
-/-- Given nonempty finset `s` in (possibly unbounded) join-semilattice `α` then `s.sup' H` is its
-supremum in `α` where `H` is a proof of nonemptiness. If `α` has a bottom element you may instead
-use `s.sup` which does not require `s` nonempty. -/
+/-- Given nonempty finset `s` then `s.sup' H f` is the supremum of its image under `f` in (possibly
+unbounded) join-semilattice `α`, where `H` is a proof of nonemptiness. If `α` has a bottom element
+you may instead use `finset.sup` which does not require `s` nonempty. -/
 def sup' (s : finset β) (H : s.nonempty) (f : β → α) : α :=
 option.get $ let ⟨b, hb⟩ := H in option.is_some_iff_exists.2 (sup_of_mem f hb)
 
@@ -363,9 +363,9 @@ lemma inf_of_mem {s : finset β} (f : β → α) {b : β} (h : b ∈ s) :
   ∃ (a : α), s.inf (coe ∘ f : β → with_top α) = ↑a :=
 @sup_of_mem (order_dual α) _ _ _ f _ h
 
-/-- Given nonempty finset `s` in (possibly unbounded) meet-semilattice `α` then `s.inf' H` is its
-infimum in `α` where `H` is a proof of nonemptiness. If `α` has a top element you may instead use
-`s.inf` which does not require `s` nonempty. -/
+/-- Given nonempty finset `s` then `s.inf' H f` is the infimum of its image under `f` in (possibly
+unbounded) meet-semilattice `α`, where `H` is a proof of nonemptiness. If `α` has a top element you
+may instead use `finset.inf` which does not require `s` nonempty. -/
 def inf' (s : finset β) (H : s.nonempty) (f : β → α) : α :=
 @sup' (order_dual α) _ _ s H f
 
@@ -457,6 +457,7 @@ end inf
 section sup
 variables {C : β → Type*} [Π (b : β), semilattice_sup_bot (C b)]
 
+@[simp]
 protected lemma sup_apply (s : finset α) (f : α → Π (b : β), C b) (b : β) :
   s.sup f b = s.sup (λ a, f a b) :=
 comp_sup_eq_sup_comp (λ x : Π b : β, C b, x b) (λ i j, rfl) rfl
@@ -466,6 +467,7 @@ end sup
 section inf
 variables {C : β → Type*} [Π (b : β), semilattice_inf_top (C b)]
 
+@[simp]
 protected lemma inf_apply (s : finset α) (f : α → Π (b : β), C b) (b : β) :
   s.inf f b = s.inf (λ a, f a b) :=
 @finset.sup_apply _ _ (λ b, order_dual (C b)) _ s f b
@@ -475,7 +477,8 @@ end inf
 section sup'
 variables {C : β → Type*} [Π (b : β), semilattice_sup (C b)]
 
-lemma sup'_apply {s : finset α} (H : s.nonempty) (f : α → Π (b : β), C b) (b : β) :
+@[simp]
+protected lemma sup'_apply {s : finset α} (H : s.nonempty) (f : α → Π (b : β), C b) (b : β) :
   s.sup' H f b = s.sup' H (λ a, f a b) :=
 comp_sup'_eq_sup'_comp H (λ x : Π b : β, C b, x b) (λ i j, rfl)
 
@@ -484,9 +487,10 @@ end sup'
 section inf'
 variables {C : β → Type*} [Π (b : β), semilattice_inf (C b)]
 
-lemma inf'_apply {s : finset α} (H : s.nonempty) (f : α → Π (b : β), C b) (b : β) :
+@[simp]
+protected lemma inf'_apply {s : finset α} (H : s.nonempty) (f : α → Π (b : β), C b) (b : β) :
   s.inf' H f b = s.inf' H (λ a, f a b) :=
-@sup'_apply _ _ (λ b, order_dual (C b)) _ _ H f b
+@finset.sup'_apply _ _ (λ b, order_dual (C b)) _ _ H f b
 
 end inf'
 

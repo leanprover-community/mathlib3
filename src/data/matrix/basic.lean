@@ -742,6 +742,14 @@ lemma mul_vec_smul_assoc (A : matrix m n α) (b : n → α) (a : α) :
   A.mul_vec (a • b) = a • (A.mul_vec b) :=
 by { ext, apply dot_product_smul }
 
+lemma vec_mul_to_mul_vec (A : matrix m n α) (x : m → α) :
+  vec_mul x A = mul_vec Aᵀ x :=
+by { ext, simp only [vec_mul, mul_vec, dot_product_comm, transpose] }
+
+lemma mul_vec_to_vec_mul (A : matrix m n α) (x : n → α) :
+  mul_vec A x = vec_mul x Aᵀ :=
+by { ext, simp only [vec_mul, mul_vec, dot_product_comm, transpose] }
+
 end comm_semiring
 
 section transpose

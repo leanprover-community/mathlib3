@@ -251,8 +251,10 @@ begin
   obtain ⟨σ, hσ⟩ := sylow.exists_prime_order_of_dvd_card (fintype.card α) h1,
   have hσ1 : order_of (σ : perm α) = fintype.card α := (order_of_subgroup σ).trans hσ,
   have hσ2 : is_cycle ↑σ := is_cycle_of_prime_order'' h0 hσ1,
-  have hσ3 : (σ : perm α).support = ⊤ :=
-    finset.eq_univ_of_card (σ : perm α).support ((order_of_is_cycle hσ2).symm.trans hσ1),
+  have hσ3 : (σ : perm α).support = ⊤,
+  { have hs : (σ : perm α).support.finite := set.finite.of_fintype _,
+    rw [set.top_eq_univ, ←finset.coe_univ, ←hs.coe_to_finset, finset.coe_inj],
+    exact (finset.eq_univ_of_card (hs.to_finset) ((order_of_is_cycle hσ2 hs).symm.trans hσ1)) },
   have hσ4 : subgroup.closure {↑σ, τ} = ⊤ := closure_prime_cycle_swap h0 hσ2 hσ3 h3,
   rw [eq_top_iff, ←hσ4, subgroup.closure_le, set.insert_subset, set.singleton_subset_iff],
   exact ⟨subtype.mem σ, h2⟩,

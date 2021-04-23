@@ -352,7 +352,7 @@ lemma dim_add_dim_split
 have hf : surjective (coprod db eb),
 begin
   refine (range_eq_top.1 $ top_unique $ _),
-  rwa [← map_top, ← prod_top, map_coprod_prod]
+  rwa [← map_top, ← prod_top, map_coprod_prod, ←range_eq_map, ←range_eq_map]
 end,
 begin
   conv {to_rhs, rw [← dim_prod, dim_eq_of_surjective _ hf] },
@@ -470,7 +470,7 @@ calc rank (f + g) ≤ dim K (f.range ⊔ g.range : submodule K V') :
     refine dim_le_of_submodule _ _ _,
     exact (linear_map.range_le_iff_comap.2 $ eq_top_iff'.2 $
       assume x, show f x + g x ∈ (f.range ⊔ g.range : submodule K V'), from
-        mem_sup.2 ⟨_, mem_image_of_mem _ (mem_univ _), _, mem_image_of_mem _ (mem_univ _), rfl⟩)
+        mem_sup.2 ⟨_, ⟨x, rfl⟩, _, ⟨x, rfl⟩, rfl⟩)
   end
   ... ≤ rank f + rank g : dim_add_le_dim_add_dim _ _
 
@@ -488,7 +488,7 @@ lemma rank_comp_le1 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') : rank (f.comp g
 begin
   refine dim_le_of_submodule _ _ _,
   rw [linear_map.range_comp],
-  exact image_subset _ (subset_univ _)
+  exact linear_map.map_le_range,
 end
 
 variables [add_comm_group V'₁] [vector_space K V'₁]

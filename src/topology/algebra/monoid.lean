@@ -269,7 +269,10 @@ lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 @[continuity]
 lemma continuous.pow {f : X → M} (h : continuous f) (n : ℕ) :
   continuous (λ b, (f b) ^ n) :=
-continuous.comp (continuous_pow n) h
+(continuous_pow n).comp h
+
+lemma continuous_on_pow {s : set M} (n : ℕ) : continuous_on (λ x, x ^ n) s :=
+(continuous_pow n).continuous_on
 
 end has_continuous_mul
 

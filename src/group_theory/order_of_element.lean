@@ -736,10 +736,12 @@ fin_equiv_gpowers (multiplicative.of_add a)
 attribute [to_additive fin_equiv_gmultiples] fin_equiv_gpowers
 
 @[simp] lemma fin_equiv_gpowers_apply {a : α} {n : fin (order_of a)} :
-  fin_equiv_gpowers a n = ⟨a ^ ↑n, n, rfl⟩ := rfl
+  fin_equiv_gpowers a n = ⟨a ^ (n : ℕ), n, gpow_coe_nat a n⟩ :=
+rfl
 
 @[simp] lemma fin_equiv_gmultiples_apply {a : H} {n : fin (add_order_of a)} :
-  fin_equiv_gmultiples a n = ⟨nsmul n a, n, rfl⟩ := rfl
+  fin_equiv_gmultiples a n = ⟨(n : ℕ) • a, n, gsmul_coe_nat a n⟩ :=
+fin_equiv_gpowers_apply
 
 attribute [to_additive fin_equiv_gmultiples_apply] fin_equiv_gpowers_apply
 
@@ -750,7 +752,7 @@ by { rw [fin_equiv_gpowers, equiv.symm_trans_apply, equiv.set.of_eq_symm_apply],
   exact fin_equiv_powers_symm_apply a n }
 
 @[simp] lemma fin_equiv_gmultiples_symm_apply (a : H) (n : ℕ)
-  {hn : ∃ (m : ℤ), m •ℤ a = n •ℤ a} :
+  {hn : ∃ (m : ℤ), m • a = n • a} :
   ((fin_equiv_gmultiples a).symm ⟨n • a, hn⟩) =
     ⟨n % add_order_of a, nat.mod_lt _ (add_order_of_pos a)⟩ :=
 fin_equiv_gpowers_symm_apply (multiplicative.of_add a) n
@@ -773,7 +775,7 @@ attribute [to_additive gmultiples_equiv_gmultiples] gpowers_equiv_gpowers
 
 @[simp]
 lemma gpowers_equiv_gpowers_apply {a b : α} (h : order_of a = order_of b)
-  (n : ℕ) : gpowers_equiv_gpowers h ⟨a ^ n, n, rfl⟩ = ⟨b ^ n, n, rfl⟩ :=
+  (n : ℕ) : gpowers_equiv_gpowers h ⟨a ^ n, n, gpow_coe_nat a n⟩ = ⟨b ^ n, n, gpow_coe_nat b n⟩ :=
 begin
   rw [gpowers_equiv_gpowers, equiv.trans_apply, equiv.trans_apply,
     fin_equiv_gpowers_symm_apply, ← equiv.eq_symm_apply, fin_equiv_gpowers_symm_apply],
@@ -781,9 +783,9 @@ begin
 end
 
 @[simp]
-lemma gmultiples_equiv_gmultiples_apply {a b : H} (h : add_order_of a = add_order_of b)
-  (n : ℕ) : gmultiples_equiv_gmultiples h ⟨n • a, n, rfl⟩ = ⟨n • b, n, rfl⟩ :=
-@gpowers_equiv_gpowers_apply _ _ _ (multiplicative.of_add a) (multiplicative.of_add b) h n
+lemma gmultiples_equiv_gmultiples_apply {a b : H} (h : add_order_of a = add_order_of b) (n : ℕ) :
+  gmultiples_equiv_gmultiples h ⟨n • a, n, gsmul_coe_nat a n⟩ = ⟨n • b, n, gsmul_coe_nat b n⟩ :=
+gpowers_equiv_gpowers_apply h n
 
 attribute [to_additive gmultiples_equiv_gmultiples_apply] gpowers_equiv_gpowers_apply
 

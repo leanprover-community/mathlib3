@@ -93,7 +93,7 @@ minimal_period ((*) x) 1
 attribute [to_additive add_order_of] order_of
 
 @[to_additive]
-lemma commute.order_of_mul_dvd_lcm {y : G} (h : commute x y) :
+lemma commute.order_of_mul_dvd_lcm (h : commute x y) :
   order_of (x * y) ∣ nat.lcm (order_of x) (order_of y) :=
 begin
   convert function.commute.minimal_period_of_comp_dvd_lcm h.function_commute_mul_left,
@@ -475,14 +475,14 @@ automatic in the case of a finite cancellative monoid.-/
 lemma order_of_pow (x : G) :
   order_of (x ^ n) = order_of x / gcd (order_of x) n := order_of_pow'' _ _ (exists_pow_eq_one _)
 
-lemma mem_multiples_iff_mem_range_add_order_of [decidable_eq A] {b : A} :
+lemma mem_multiples_iff_mem_range_add_order_of [decidable_eq A] :
   b ∈ add_submonoid.multiples a ↔
   b ∈ (finset.range (add_order_of a)).image ((• a) : ℕ → A)  :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq' (add_order_of_pos a)
   (assume i, nsmul_eq_mod_add_order_of.symm)
 
 @[to_additive mem_multiples_iff_mem_range_add_order_of]
-lemma mem_powers_iff_mem_range_order_of [decidable_eq G] {y : G} :
+lemma mem_powers_iff_mem_range_order_of [decidable_eq G] :
   y ∈ submonoid.powers x ↔ y ∈ (finset.range (order_of x)).image ((^) x : ℕ → G) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq' (order_of_pos x)
   (assume i, pow_eq_mod_order_of.symm)
@@ -598,7 +598,7 @@ exists_gpow_eq_one (multiplicative.of_add a)
 
 attribute [to_additive exists_gsmul_eq_zero] exists_gpow_eq_one
 
-lemma mem_multiples_iff_mem_gmultiples {b : A} :
+lemma mem_multiples_iff_mem_gmultiples :
   b ∈ add_submonoid.multiples a ↔ b ∈ add_subgroup.gmultiples a :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩, λ ⟨i, hi⟩, ⟨(i % add_order_of a).nat_abs,
   by { simp only [nsmul_eq_smul] at hi ⊢,
@@ -609,7 +609,7 @@ lemma mem_multiples_iff_mem_gmultiples {b : A} :
 open subgroup
 
 @[to_additive mem_multiples_iff_mem_gmultiples]
-lemma mem_powers_iff_mem_gpowers {y : G} : y ∈ submonoid.powers x ↔ y ∈ gpowers x :=
+lemma mem_powers_iff_mem_gpowers : y ∈ submonoid.powers x ↔ y ∈ gpowers x :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
 λ ⟨i, hi⟩, ⟨(i % order_of x).nat_abs,
   by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
@@ -624,12 +624,12 @@ set.ext $ λ y, mem_multiples_iff_mem_gmultiples
 lemma powers_eq_gpowers (x : G) : (submonoid.powers x : set G) = gpowers x :=
 set.ext $ λ x, mem_powers_iff_mem_gpowers
 
-lemma mem_gmultiples_iff_mem_range_add_order_of [decidable_eq A] {b : A} :
+lemma mem_gmultiples_iff_mem_range_add_order_of [decidable_eq A] :
   b ∈ add_subgroup.gmultiples a ↔ b ∈ (finset.range (add_order_of a)).image (• a) :=
 by rw [← mem_multiples_iff_mem_gmultiples, mem_multiples_iff_mem_range_add_order_of]
 
 @[to_additive mem_gmultiples_iff_mem_range_add_order_of]
-lemma mem_gpowers_iff_mem_range_order_of [decidable_eq G] {y : G} :
+lemma mem_gpowers_iff_mem_range_order_of [decidable_eq G] :
   y ∈ subgroup.gpowers x ↔ y ∈ (finset.range (order_of x)).image ((^) x : ℕ → G) :=
 by rw [← mem_powers_iff_mem_gpowers, mem_powers_iff_mem_range_order_of]
 

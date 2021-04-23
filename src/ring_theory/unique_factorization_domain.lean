@@ -465,7 +465,7 @@ begin
 end
 
 @[simp] lemma factors_pow {x : α} (n : ℕ) :
-  factors (x ^ n) = n •ℕ factors x :=
+  factors (x ^ n) = n • factors x :=
 begin
   induction n with n ih,
   { simp },
@@ -1144,7 +1144,7 @@ begin
   exact multiset.prod_zero,
 end
 
-@[simp] theorem pow_factors {a : associates α} {k : ℕ} : (a ^ k).factors = k •ℕ a.factors :=
+@[simp] theorem pow_factors {a : associates α} {k : ℕ} : (a ^ k).factors = k • a.factors :=
 begin
   induction k with n h,
   { rw [zero_nsmul, pow_zero], exact factors_one },

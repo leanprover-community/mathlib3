@@ -136,6 +136,9 @@ def cast_ring_hom (α : Type*) [semiring α] : ℕ →+* α :=
 lemma cast_commute [semiring α] (n : ℕ) (x : α) : commute ↑n x :=
 nat.rec_on n (commute.zero_left x) $ λ n ihn, ihn.add_left $ commute.one_left x
 
+lemma cast_comm [semiring α] (n : ℕ) (x : α) : (n : α) * x = x * n :=
+(cast_commute n x).eq
+
 lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 
@@ -238,6 +241,21 @@ lemma map_nat_cast (f : A →+ B) (h1 : f 1 = 1) (n : ℕ) : f n = n :=
 (f.comp (nat.cast_add_monoid_hom A)).eq_nat_cast (by simp [h1]) _
 
 end add_monoid_hom
+
+namespace monoid_with_zero_hom
+
+variables {A : Type*} [monoid_with_zero A]
+
+/-- If two `monoid_with_zero_hom`s agree on the positive naturals they are equal. -/
+@[ext] theorem ext_nat {f g : monoid_with_zero_hom ℕ A}
+  (h_pos : ∀ {n : ℕ}, 0 < n → f n = g n) : f = g :=
+begin
+  ext (_ | n),
+  { rw [f.map_zero, g.map_zero] },
+  { exact h_pos n.zero_lt_succ, },
+end
+
+end monoid_with_zero_hom
 
 namespace ring_hom
 

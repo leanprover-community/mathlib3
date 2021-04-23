@@ -93,6 +93,16 @@ by simpa only [div_eq_mul_inv] using is_open_map_mul_right (a⁻¹)
 lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
 by simpa only [div_eq_mul_inv] using is_closed_map_mul_right (a⁻¹)
 
+@[to_additive]
+lemma discrete_topology_of_open_singleton_one (h : is_open ({1} : set G)) : discrete_topology G :=
+begin
+  rw ← singletons_open_iff_discrete,
+  intro g,
+  suffices : {g} = (λ (x : G), g⁻¹ * x) ⁻¹' {1},
+  { rw this, exact (continuous_mul_left (g⁻¹)).is_open_preimage _ h, },
+  simp only [mul_one, set.preimage_mul_left_singleton, eq_self_iff_true,
+    inv_inv, set.singleton_eq_singleton_iff],
+end
 end continuous_mul_group
 
 section topological_group
@@ -169,6 +179,11 @@ instance [topological_space H] [group H] [topological_group H] :
   topological_group (G × H) :=
 { continuous_inv := continuous_inv.prod_map continuous_inv }
 
+@[to_additive]
+instance pi.topological_group {C : β → Type*} [∀ b, topological_space (C b)]
+  [∀ b, group (C b)] [∀ b, topological_group (C b)] : topological_group (Π b, C b) :=
+{ continuous_inv := continuous_pi (λ i, (continuous_apply i).inv) }
+
 variable (G)
 
 /-- Inversion in a topological group as a homeomorphism. -/
@@ -205,6 +220,39 @@ variable {G}
 @[to_additive]
 lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
 (homeomorph.inv G).preimage_closure s
+
+/-- The (topological-space) closure of a subgroup of a space `M` with `has_continuous_mul` is
+itself a subgroup. -/
+@[to_additive "The (topological-space) closure of an additive subgroup of a space `M` with
+`has_continuous_add` is itself an additive subgroup."]
+def subgroup.topological_closure (s : subgroup G) : subgroup G :=
+{ carrier := closure (s : set G),
+  inv_mem' := λ g m, by simpa [←mem_inv, inv_closure] using m,
+  ..s.to_submonoid.topological_closure }
+
+@[to_additive]
+instance subgroup.topological_closure_topological_group (s : subgroup G) :
+  topological_group (s.topological_closure) :=
+{ continuous_inv :=
+  begin
+    apply continuous_induced_rng,
+    change continuous (λ p : s.topological_closure, (p : G)⁻¹),
+    continuity,
+  end
+  ..s.to_submonoid.topological_closure_has_continuous_mul}
+
+lemma subgroup.subgroup_topological_closure (s : subgroup G) :
+  s ≤ s.topological_closure :=
+subset_closure
+
+lemma subgroup.is_closed_topological_closure (s : subgroup G) :
+  is_closed (s.topological_closure : set G) :=
+by convert is_closed_closure
+
+lemma subgroup.topological_closure_minimal
+  (s : subgroup G) {t : subgroup G} (h : s ≤ t) (ht : is_closed (t : set G)) :
+  s.topological_closure ≤ t :=
+closure_minimal h ht
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :
@@ -270,7 +318,7 @@ begin
 end
 
 @[to_additive]
-lemma topological_group.of_nhds_one {G : Type*} [group G] [topological_space G]
+lemma topological_group.of_nhds_one {G : Type u} [group G] [topological_space G]
   (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
   (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
   (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1))
@@ -512,8 +560,7 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
    is_open_prod_iff.1 ((is_open_compl_iff.2 hs).preimage hf) a (1:G) (by simpa [f]) in
  begin
    use [s * t₂, ht₂.mul_left, λ x hx, ⟨x, 1, hx, one_mem_t₂, mul_one _⟩],
-   apply inf_principal_eq_bot,
-   rw mem_nhds_sets_iff,
+   rw [nhds_within, inf_principal_eq_bot, mem_nhds_sets_iff],
    refine ⟨t₁, _, ht₁, a_mem_t₁⟩,
    rintros x hx ⟨y, z, hy, hz, yz⟩,
    have : x * z⁻¹ ∈ sᶜ := (prod_subset_iff.1 t_subset) x hx z hz,
@@ -631,3 +678,13 @@ instance additive.topological_add_group {G} [h : topological_space G]
 instance multiplicative.topological_group {G} [h : topological_space G]
   [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
 { continuous_inv := @continuous_neg G _ _ _ }
+
+namespace units
+
+variables [monoid α] [topological_space α] [has_continuous_mul α]
+
+instance : topological_group (units α) :=
+{ continuous_inv := continuous_induced_rng ((continuous_unop.comp (continuous_snd.comp
+    (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
+
+end units

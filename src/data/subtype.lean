@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 import tactic.lint
 import tactic.ext
@@ -13,7 +13,7 @@ namespace subtype
 variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop} {q : α → Prop}
 
 /-- See Note [custom simps projection] -/
-def simps.val (x : subtype p) : α := x
+def simps.coe (x : subtype p) : α := x
 
 initialize_simps_projections subtype (val → coe)
 

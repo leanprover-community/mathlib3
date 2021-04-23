@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 Thomas Browning and Patrick Lutz. All rights reserved.
+Copyright (c) 2020 Thomas Browning, Patrick Lutz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Thomas Browning and Patrick Lutz
+Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.normal
@@ -159,7 +159,7 @@ lemma is_galois_iff_is_galois_top : is_galois F (⊤ : intermediate_field F E) �
 (intermediate_field.top_equiv).transfer_galois
 
 instance is_galois_bot : is_galois F (⊥ : intermediate_field F E) :=
-intermediate_field.bot_equiv.transfer_galois.mpr (is_galois.self F)
+(intermediate_field.bot_equiv F E).transfer_galois.mpr (is_galois.self F)
 
 end is_galois_tower
 
@@ -221,8 +221,9 @@ theorem fixing_subgroup_fixed_field [finite_dimensional F E] :
 begin
   have H_le : H ≤ (fixing_subgroup (fixed_field H)) := (le_iff_le _ _).mp (le_refl _),
   suffices : fintype.card H = fintype.card (fixing_subgroup (fixed_field H)),
-  { exact subgroup.ext' (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
-    (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
+  { exact set_like.coe_injective
+      (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
+        (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
   apply fintype.card_congr,
   refine (fixed_points.to_alg_hom_equiv H E).trans _,
   refine (alg_equiv_equiv_alg_hom (fixed_field H) E).symm.trans _,
@@ -377,9 +378,10 @@ lemma of_separable_splitting_field [sp : p.is_splitting_field F E] (hp : p.separ
 begin
   haveI hFE : finite_dimensional F E := polynomial.is_splitting_field.finite_dimensional E p,
   let s := (p.map (algebra_map F E)).roots.to_finset,
-  have adjoin_root := intermediate_field.ext (subalgebra.ext_iff.mp (eq.trans (top_le_iff.mp
-    (eq.trans_le sp.adjoin_roots.symm (intermediate_field.algebra_adjoin_le_adjoin F ↑s)))
-    intermediate_field.top_to_subalgebra.symm)),
+  have adjoin_root : intermediate_field.adjoin F ↑s = ⊤,
+  { apply intermediate_field.to_subalgebra_injective,
+    rw [intermediate_field.top_to_subalgebra, ←top_le_iff, ←sp.adjoin_roots],
+    apply intermediate_field.algebra_adjoin_le_adjoin, },
   let P : intermediate_field F E → Prop := λ K, fintype.card (K →ₐ[F] E) = findim F K,
   suffices : P (intermediate_field.adjoin F ↑s),
   { rw adjoin_root at this,

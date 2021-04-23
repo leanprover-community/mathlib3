@@ -279,7 +279,7 @@ lemma is_bounded_bilinear_map_smul {𝕜' : Type*} [normed_field 𝕜']
 
 lemma is_bounded_bilinear_map_mul :
   is_bounded_bilinear_map 𝕜 (λ (p : 𝕜 × 𝕜), p.1 * p.2) :=
-is_bounded_bilinear_map_smul
+by simp_rw ← smul_eq_mul; exact is_bounded_bilinear_map_smul
 
 lemma is_bounded_bilinear_map_comp :
   is_bounded_bilinear_map 𝕜 (λ(p : (E →L[𝕜] F) × (F →L[𝕜] G)), p.2.comp p.1) :=

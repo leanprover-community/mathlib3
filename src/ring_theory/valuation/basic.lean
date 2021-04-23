@@ -18,7 +18,7 @@ following T. Wedhorn's unpublished notes “Adic Spaces” ([wedhorn_adic]).
 
 The definition of a valuation we use here is Definition 1.22 of [wedhorn_adic].
 A valuation on a ring `R` is a monoid homomorphism `v` to a linearly ordered
-commutative group with zero, that in addition satisfies the following two axioms:
+commutative monoid with zero, that in addition satisfies the following two axioms:
  * `v 0 = 0`
  * `∀ x y, v (x + y) ≤ max (v x) (v y)`
 
@@ -43,14 +43,18 @@ on R / J = `ideal.quotient J` is `on_quot v h`.
 * `valuation.is_equiv`, the heterogeneous equivalence relation on valuations
 * `valuation.supp`, the support of a valuation
 
+* `add_valuation R Γ₀`, the type of additive valuations on `R` with values in a
+  linearly ordered additive commutative group with a top element, `Γ₀`.
+
+## Implementation Details
+`add_valuation R Γ₀` is implemented as `valuation R (multiplicative (order_dual Γ₀))`.
+
 -/
 
 open_locale classical big_operators
 noncomputable theory
 
 open function ideal
-
--- universes u u₀ u₁ u₂ -- v is used for valuations
 
 variables {R : Type*} -- This will be a ring, assumed commutative in some sections
 
@@ -73,7 +77,7 @@ namespace valuation
 
 variables {Γ₀   : Type*}
 variables {Γ'₀  : Type*}
-variables {Γ''₀ : Type*} [linear_ordered_comm_group_with_zero Γ''₀]
+variables {Γ''₀ : Type*} [linear_ordered_comm_monoid_with_zero Γ''₀]
 
 section basic
 
@@ -409,3 +413,205 @@ by { rw supp_quot, exact ideal.map_quotient_self _ }
 end supp -- end of section
 
 end valuation
+
+section add_monoid
+
+variables (R) [ring R] (Γ₀ : Type*) [linear_ordered_add_comm_monoid_with_top Γ₀]
+
+/-- The type of `Γ₀`-valued additive valuations on `R`. -/
+@[nolint has_inhabited_instance]
+def add_valuation := valuation R (multiplicative (order_dual Γ₀))
+
+end add_monoid
+
+namespace add_valuation
+variables {Γ₀   : Type*} [linear_ordered_add_comm_monoid_with_top Γ₀]
+variables {Γ'₀  : Type*} [linear_ordered_add_comm_monoid_with_top Γ'₀]
+
+section basic
+
+variables (R) (Γ₀) [ring R]
+
+/-- A valuation is coerced to the underlying function `R → Γ₀`. -/
+instance : has_coe_to_fun (add_valuation R Γ₀) := { F := λ _, R → Γ₀, coe := valuation.to_fun }
+
+variables {R} {Γ₀} (v : add_valuation R Γ₀) {x y z : R}
+
+section
+
+variables (f : R → Γ₀) (h0 : f 0 = ⊤) (h1 : f 1 = 0)
+variables (hadd : ∀ x y, min (f x) (f y) ≤ f (x + y)) (hmul : ∀ x y, f (x * y) = f x + f y)
+
+/-- An alternate constructor of `add_valuation`, that doesn't reference
+  `multiplicative (order_dual Γ₀)` -/
+def of : add_valuation R Γ₀ :=
+{ to_fun := f,
+  map_one' := h1,
+  map_zero' := h0,
+  map_add' := hadd,
+  map_mul' := hmul }
+
+variables {h0} {h1} {hadd} {hmul} {r : R}
+
+@[simp]
+theorem of_apply : (of f h0 h1 hadd hmul) r = f r := rfl
+
+end
+
+@[simp] lemma map_zero : v 0 = ⊤ := v.map_zero
+@[simp] lemma map_one  : v 1 = 0 := v.map_one
+@[simp] lemma map_mul  : ∀ x y, v (x * y) = v x + v y := v.map_mul
+@[simp] lemma map_add  : ∀ x y, min (v x) (v y) ≤ v (x + y) := v.map_add
+
+lemma map_le_add {x y g} (hx : g ≤ v x) (hy : g ≤ v y) : g ≤ v (x + y) := v.map_add_le hx hy
+
+lemma map_lt_add {x y g} (hx : g < v x) (hy : g < v y) : g < v (x + y) := v.map_add_lt hx hy
+
+lemma map_le_sum {ι : Type*} {s : finset ι} {f : ι → R} {g : Γ₀} (hf : ∀ i ∈ s, g ≤ v (f i)) :
+  g ≤ v (∑ i in s, f i) := v.map_sum_le hf
+
+lemma map_lt_sum {ι : Type*} {s : finset ι} {f : ι → R} {g : Γ₀} (hg : g ≠ ⊤)
+  (hf : ∀ i ∈ s, g < v (f i)) : g < v (∑ i in s, f i) := v.map_sum_lt hg hf
+
+lemma map_lt_sum' {ι : Type*} {s : finset ι} {f : ι → R} {g : Γ₀} (hg : g < ⊤)
+  (hf : ∀ i ∈ s, g < v (f i)) : g < v (∑ i in s, f i) := v.map_sum_lt' hg hf
+
+@[simp] lemma map_pow  : ∀ x (n:ℕ), v (x^n) = n • (v x) := v.map_pow
+
+@[ext] lemma ext {v₁ v₂ : add_valuation R Γ₀} (h : ∀ r, v₁ r = v₂ r) : v₁ = v₂ :=
+valuation.ext h
+
+lemma ext_iff {v₁ v₂ : add_valuation R Γ₀} : v₁ = v₂ ↔ ∀ r, v₁ r = v₂ r :=
+valuation.ext_iff
+
+-- The following definition is not an instance, because we have more than one `v` on a given `R`.
+-- In addition, type class inference would not be able to infer `v`.
+
+/-- A valuation gives a preorder on the underlying ring. -/
+def to_preorder : preorder R := preorder.lift v
+
+/-- If `v` is an additive valuation on a division ring then `v(x) = ⊤` iff `x = 0`. -/
+@[simp] lemma top_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
+  (v : add_valuation K Γ₀) {x : K} : v x = ⊤ ↔ x = 0 :=
+v.zero_iff
+
+lemma ne_top_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
+  (v : add_valuation K Γ₀) {x : K} : v x ≠ ⊤ ↔ x ≠ 0 := v.ne_zero_iff
+
+/-- A ring homomorphism `S → R` induces a map `add_valuation R Γ₀ → add_valuation S Γ₀`. -/
+def comap {S : Type*} [ring S] (f : S →+* R) (v : add_valuation R Γ₀) :
+  add_valuation S Γ₀ :=
+v.comap f
+
+@[simp] lemma comap_id : v.comap (ring_hom.id R) = v := v.comap_id
+
+lemma comap_comp {S₁ : Type*} {S₂ : Type*} [ring S₁] [ring S₂] (f : S₁ →+* S₂) (g : S₂ →+* R) :
+  v.comap (g.comp f) = (v.comap g).comap f :=
+v.comap_comp f g
+
+/-- A `≤`-preserving, `⊤`-preserving group homomorphism `Γ₀ → Γ'₀` induces a map
+  `add_valuation R Γ₀ → add_valuation R Γ'₀`.
+-/
+def map (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : monotone f) (v : add_valuation R Γ₀) :
+  add_valuation R Γ'₀ :=
+v.map {
+  to_fun := f,
+  map_mul' := f.map_add,
+  map_one' := f.map_zero,
+  map_zero' := ht } (λ x y h, hf h)
+
+/-- Two additive valuations on `R` are defined to be equivalent if they induce the same
+  preorder on `R`. -/
+def is_equiv (v₁ : add_valuation R Γ₀) (v₂ : add_valuation R Γ'₀) : Prop :=
+v₁.is_equiv v₂
+
+end basic
+
+namespace is_equiv
+variables [ring R]
+variables {Γ''₀ : Type*} [linear_ordered_add_comm_monoid_with_top Γ''₀]
+variables {v : add_valuation R Γ₀}
+variables {v₁ : add_valuation R Γ₀} {v₂ : add_valuation R Γ'₀} {v₃ : add_valuation R Γ''₀}
+
+@[refl] lemma refl : v.is_equiv v := valuation.is_equiv.refl
+
+@[symm] lemma symm (h : v₁.is_equiv v₂) : v₂.is_equiv v₁ := h.symm
+
+@[trans] lemma trans (h₁₂ : v₁.is_equiv v₂) (h₂₃ : v₂.is_equiv v₃) : v₁.is_equiv v₃ :=
+h₁₂.trans h₂₃
+
+lemma of_eq {v' : add_valuation R Γ₀} (h : v = v') : v.is_equiv v' :=
+valuation.is_equiv.of_eq h
+
+lemma map {v' : add_valuation R Γ₀} (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : monotone f)
+  (inf : injective f) (h : v.is_equiv v') :
+  (v.map f ht hf).is_equiv (v'.map f ht hf) :=
+h.map {
+  to_fun := f,
+  map_mul' := f.map_add,
+  map_one' := f.map_zero,
+  map_zero' := ht } (λ x y h, hf h) inf
+
+/-- `comap` preserves equivalence. -/
+lemma comap {S : Type*} [ring S] (f : S →+* R) (h : v₁.is_equiv v₂) :
+  (v₁.comap f).is_equiv (v₂.comap f) :=
+h.comap f
+
+lemma val_eq (h : v₁.is_equiv v₂) {r s : R} :
+  v₁ r = v₁ s ↔ v₂ r = v₂ s :=
+h.val_eq
+
+lemma ne_top (h : v₁.is_equiv v₂) {r : R} :
+  v₁ r ≠ ⊤ ↔ v₂ r ≠ ⊤ :=
+h.ne_zero
+
+end is_equiv
+
+section supp
+variables [comm_ring R]
+variables (v : add_valuation R Γ₀)
+
+/-- The support of an additive valuation `v : R → Γ₀` is the ideal of `R` where `v x = ⊤` -/
+def supp : ideal R := v.supp
+
+@[simp] lemma mem_supp_iff (x : R) : x ∈ supp v ↔ v x = ⊤ := v.mem_supp_iff x
+
+lemma map_add_supp (a : R) {s : R} (h : s ∈ supp v) : v (a + s) = v a :=
+v.map_add_supp a h
+
+/-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
+Note: it's just the function; the valuation is `on_quot hJ`. -/
+def on_quot_val {J : ideal R} (hJ : J ≤ supp v) : J.quotient → Γ₀ := v.on_quot_val hJ
+
+/-- The extension of valuation v on R to valuation on R/J if J ⊆ supp v -/
+def on_quot {J : ideal R} (hJ : J ≤ supp v) :
+  add_valuation J.quotient Γ₀ :=
+v.on_quot hJ
+
+@[simp] lemma on_quot_comap_eq {J : ideal R} (hJ : J ≤ supp v) :
+  (v.on_quot hJ).comap (ideal.quotient.mk J) = v :=
+v.on_quot_comap_eq hJ
+
+lemma comap_supp {S : Type*} [comm_ring S] (f : S →+* R) :
+  supp (v.comap f) = ideal.comap f v.supp :=
+v.comap_supp f
+
+lemma self_le_supp_comap (J : ideal R) (v : add_valuation (quotient J) Γ₀) :
+  J ≤ (v.comap (ideal.quotient.mk J)).supp :=
+v.self_le_supp_comap J
+
+@[simp] lemma comap_on_quot_eq (J : ideal R) (v : add_valuation J.quotient Γ₀) :
+  (v.comap (ideal.quotient.mk J)).on_quot (v.self_le_supp_comap J) = v :=
+v.comap_on_quot_eq J
+
+/-- The quotient valuation on R/J has support supp(v)/J if J ⊆ supp v. -/
+lemma supp_quot {J : ideal R} (hJ : J ≤ supp v) :
+  supp (v.on_quot hJ) = (supp v).map (ideal.quotient.mk J) :=
+v.supp_quot hJ
+
+lemma supp_quot_supp : supp (v.on_quot (le_refl _)) = 0 :=
+v.supp_quot_supp
+
+end supp -- end of section
+
+end add_valuation

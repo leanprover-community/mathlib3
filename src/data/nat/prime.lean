@@ -42,7 +42,7 @@ theorem prime.two_le {p : ℕ} : prime p → 2 ≤ p := and.left
 
 theorem prime.one_lt {p : ℕ} : prime p → 1 < p := prime.two_le
 
-instance prime.one_lt' (p : ℕ) [hp : _root_.fact p.prime] : _root_.fact (1 < p) := hp.one_lt
+instance prime.one_lt' (p : ℕ) [hp : _root_.fact p.prime] : _root_.fact (1 < p) := ⟨hp.1.one_lt⟩
 
 lemma prime.ne_one {p : ℕ} (hp : p.prime) : p ≠ 1 :=
 ne.symm $ ne_of_lt hp.one_lt
@@ -370,7 +370,7 @@ def factors : ℕ → list ℕ
   let m := min_fac n in have n / m < n := factors_lemma,
   m :: factors (n / m)
 
-lemma mem_factors : ∀ {n p}, p ∈ factors n → prime p
+lemma prime_of_mem_factors : ∀ {n p}, p ∈ factors n → prime p
 | 0       := λ p, false.elim
 | 1       := λ p, false.elim
 | n@(k+2) := λ p h,
@@ -378,7 +378,7 @@ lemma mem_factors : ∀ {n p}, p ∈ factors n → prime p
   have h₁ : p = m ∨ p ∈ (factors (n / m)) :=
     (list.mem_cons_iff _ _ _).1 h,
   or.cases_on h₁ (λ h₂, h₂.symm ▸ min_fac_prime dec_trivial)
-    mem_factors
+    prime_of_mem_factors
 
 lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
 | 0       := (lt_irrefl _).elim
@@ -403,9 +403,26 @@ begin
   { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
 end
 
+@[simp] lemma factors_zero : (0 : ℕ).factors = [] := rfl
+
+@[simp] lemma factors_one : (1 : ℕ).factors = [] := rfl
+
 /-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
 lemma factors_add_two (n : ℕ) :
   factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) := rfl
+
+@[simp]
+lemma factors_eq_nil (n : ℕ) : n.factors = [] ↔ n = 0 ∨ n = 1 :=
+begin
+  split; intro h,
+  { rcases n with (_ | _ | n),
+    { exact or.inl rfl },
+    { exact or.inr rfl },
+    { injection h }, },
+  { rcases h with (rfl | rfl),
+    { exact factors_zero },
+    { exact factors_one }, }
+end
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
@@ -439,7 +456,7 @@ mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 by induction n with n IH;
    [exact pp.not_dvd_one.elim h,
-    exact (pp.dvd_mul.1 h).elim id IH]
+    by { rw pow_succ at h, exact (pp.dvd_mul.1 h).elim id IH } ]
 
 lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
 λ hp, (hp.2 x $ dvd_trans ⟨x, pow_two _⟩ (pow_dvd_pow _ hn)).elim
@@ -494,7 +511,7 @@ begin
   { cases h with a e, subst e,
     rw [pow_succ, nat.mul_dvd_mul_iff_left pp.pos, IH],
     split; intro h; rcases h with ⟨k, h, e⟩,
-    { exact ⟨succ k, succ_le_succ h, by rw [e]; refl⟩ },
+    { exact ⟨succ k, succ_le_succ h, by rw [e, pow_succ]; refl⟩ },
     cases k with k,
     { apply pp.not_dvd_one.elim,
       simp at e, rw ← e, apply dvd_mul_right },
@@ -538,7 +555,11 @@ lemma mem_list_primes_of_dvd_prod {p : ℕ} (hp : prime p) :
 
 lemma mem_factors_iff_dvd {n p : ℕ} (hn : 0 < n) (hp : prime p) : p ∈ factors n ↔ p ∣ n :=
 ⟨λ h, prod_factors hn ▸ list.dvd_prod h,
- λ h, mem_list_primes_of_dvd_prod hp (@mem_factors n) ((prod_factors hn).symm ▸ h)⟩
+ λ h, mem_list_primes_of_dvd_prod hp (@prime_of_mem_factors n) ((prod_factors hn).symm ▸ h)⟩
+
+lemma mem_factors {n p} (hn : 0 < n) : p ∈ factors n ↔ prime p ∧ p ∣ n :=
+⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
+ λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
 
 lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ →
   (∀ p ∈ l₁, prime p) → (∀ p ∈ l₂, prime p) → l₁ ~ l₂
@@ -570,7 +591,7 @@ have hn : 0 < n := nat.pos_of_ne_zero $ λ h, begin
     exact nat.mul_ne_zero (ne_of_lt (prime.pos (h₂ a (mem_cons_self _ _)))).symm
       (hi (λ p hp, h₂ p (mem_cons_of_mem _ hp))) h₁ }
 end,
-perm_of_prod_eq_prod (by rwa prod_factors hn) h₂ (@mem_factors _)
+perm_of_prod_eq_prod (by rwa prod_factors hn) h₂ (@prime_of_mem_factors _)
 
 end
 
@@ -593,7 +614,7 @@ def primes := {p : ℕ // p.prime}
 namespace primes
 
 instance : has_repr nat.primes := ⟨λ p, repr p.val⟩
-instance : inhabited primes := ⟨⟨2, prime_two⟩⟩
+instance inhabited_primes : inhabited primes := ⟨⟨2, prime_two⟩⟩
 
 instance coe_nat : has_coe nat.primes ℕ := ⟨subtype.val⟩
 

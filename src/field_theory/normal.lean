@@ -1,13 +1,13 @@
 /-
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau
+Authors: Kenny Lau, Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.adjoin
-import field_theory.minpoly
-import field_theory.splitting_field
 import field_theory.tower
+import group_theory.solvable
+import ring_theory.power_basis
 
 /-!
 # Normal field extensions
@@ -99,7 +99,7 @@ lemma alg_hom.normal_bijective [h : normal F E] (ϕ : E →ₐ[F] K) : function.
     { rw [ring_hom.map_zero, aeval_map, ←is_scalar_tower.to_alg_hom_apply F K E,
           ←alg_hom.comp_apply, ←aeval_alg_hom],
       exact minpoly.aeval F (algebra_map K E x) })))) with y hy,
-  exact ⟨y, hy.2⟩ }⟩
+  exact ⟨y, hy⟩ }⟩
 
 variables {F} {E} {E' : Type*} [field E'] [algebra F E']
 
@@ -158,7 +158,7 @@ begin
   haveI : is_scalar_tower F C D := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
   haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
   suffices : nonempty (D →ₐ[C] E),
-  { exact nonempty.map (restrict_base F) this },
+  { exact nonempty.map (alg_hom.restrict_scalars F) this },
   let S : set D := ((p.map (algebra_map F E)).roots.map (algebra_map E D)).to_finset,
   suffices : ⊤ ≤ intermediate_field.adjoin C S,
   { refine intermediate_field.alg_hom_mk_adjoin_splits' (top_le_iff.mp this) (λ y hy, _),
@@ -200,7 +200,7 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
 { to_fun := λ x, ⟨ϕ x, by
   { suffices : (to_alg_hom F E K).range.map ϕ ≤ _,
     { exact this ⟨x, subtype.mem x, rfl⟩ },
-    rintros x ⟨y, ⟨z, -, hy⟩, hx⟩,
+    rintros x ⟨y, ⟨z, hy⟩, hx⟩,
     rw [←hx, ←hy],
     apply minpoly.mem_range_of_degree_eq_one E,
     exact or.resolve_left (h.splits z) (minpoly.ne_zero (h.is_integral z))
@@ -224,7 +224,7 @@ def alg_hom.restrict_normal [normal F E] : E →ₐ[F] E :=
   algebra_map E K (ϕ.restrict_normal E x) = ϕ (algebra_map E K x) :=
 subtype.ext_iff.mp (alg_equiv.apply_symm_apply (alg_equiv.of_injective_field
   (is_scalar_tower.to_alg_hom F E K)) (ϕ.restrict_normal_aux E
-    ⟨is_scalar_tower.to_alg_hom F E K x, ⟨x, ⟨subsemiring.mem_top x, rfl⟩⟩⟩))
+    ⟨is_scalar_tower.to_alg_hom F E K x, x, rfl⟩))
 
 lemma alg_hom.restrict_normal_comp [normal F E] :
   (ϕ.restrict_normal E).comp (ψ.restrict_normal E) = (ϕ.comp ψ).restrict_normal E :=
@@ -257,7 +257,7 @@ variables {F} {K} (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_t
 /-- If `E/K/F` is a tower of fields with `E/F` normal then we can lift
   an algebra homomorphism `ϕ : K →ₐ[F] K` to `ϕ.lift_normal E : E →ₐ[F] E`. -/
 noncomputable def alg_hom.lift_normal [h : normal F E] : E →ₐ[F] E :=
-@restrict_base F K E E _ _ _ _ _ _
+@alg_hom.restrict_scalars F K E E _ _ _ _ _ _
   ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _ _ _ _
   (nonempty.some (@intermediate_field.alg_hom_mk_adjoin_splits' K E E _ _ _ _
   ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra ⊤ rfl
@@ -293,5 +293,22 @@ alg_equiv.ext (λ x, (algebra_map K E).injective
 lemma alg_equiv.restrict_normal_hom_surjective [normal F K] [normal F E] :
   function.surjective (alg_equiv.restrict_normal_hom K : (E ≃ₐ[F] E) → (K ≃ₐ[F] K)) :=
 λ χ, ⟨χ.lift_normal E, χ.restrict_lift_normal E⟩
+
+variables (F) (K) (E)
+
+lemma is_solvable_of_is_scalar_tower [normal F K] [h1 : is_solvable (K ≃ₐ[F] K)]
+  [h2 : is_solvable (E ≃ₐ[K] E)] : is_solvable (E ≃ₐ[F] E) :=
+begin
+  let f : (E ≃ₐ[K] E) →* (E ≃ₐ[F] E) :=
+  { to_fun := λ ϕ, alg_equiv.of_alg_hom (ϕ.to_alg_hom.restrict_scalars F)
+      (ϕ.symm.to_alg_hom.restrict_scalars F)
+      (alg_hom.ext (λ x, ϕ.apply_symm_apply x))
+      (alg_hom.ext (λ x, ϕ.symm_apply_apply x)),
+    map_one' := alg_equiv.ext (λ _, rfl),
+    map_mul' := λ _ _, alg_equiv.ext (λ _, rfl) },
+  refine solvable_of_ker_le_range f (alg_equiv.restrict_normal_hom K)
+    (λ ϕ hϕ, ⟨{commutes' := λ x, _, .. ϕ}, alg_equiv.ext (λ _, rfl)⟩),
+  exact (eq.trans (ϕ.restrict_normal_commutes K x).symm (congr_arg _ (alg_equiv.ext_iff.mp hϕ x))),
+end
 
 end lift

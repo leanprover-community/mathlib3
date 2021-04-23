@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Johannes Hölzl, Sander Dahmen
+Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen
 -/
 import linear_algebra.basis
 import linear_algebra.std_basis
@@ -241,12 +241,7 @@ by simpa using cardinal_lift_le_dim_of_linear_independent hv
 lemma cardinal_le_dim_of_linear_independent'
   {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
   cardinal.mk s ≤ dim K V :=
-begin
-  -- extend s to a basis
-  obtain ⟨b, ss, h⟩ := exists_subset_is_basis hs,
-  rw [←h.mk_range_eq_dim, subtype.range_coe],
-  apply cardinal.mk_le_of_injective (inclusion_injective ss),
-end
+cardinal_le_dim_of_linear_independent hs
 
 lemma dim_span_le (s : set V) : dim K (span K s) ≤ cardinal.mk s :=
 begin
@@ -268,8 +263,6 @@ calc dim K (span K (↑s : set V)) ≤ cardinal.mk (↑s : set V) : dim_span_le 
 
 theorem dim_prod : dim K (V × V₁) = dim K V + dim K V₁ :=
 begin
-  letI := classical.dec_eq V,
-  letI := classical.dec_eq V₁,
   rcases exists_is_basis K V with ⟨b, hb⟩,
   rcases exists_is_basis K V₁ with ⟨c, hc⟩,
   rw [← cardinal.lift_inj,
@@ -307,11 +300,7 @@ begin
 end
 
 lemma dim_range_of_surjective (f : V →ₗ[K] V') (h : surjective f) : dim K f.range = dim K V' :=
-begin
-  refine linear_equiv.dim_eq (linear_equiv.of_bijective (submodule.subtype _) _ _),
-  exact linear_map.ker_eq_bot.2 subtype.val_injective,
-  rwa [range_subtype, linear_map.range_eq_top]
-end
+by rw [linear_map.range_eq_top.2 h, dim_top]
 
 lemma dim_eq_of_surjective (f : V →ₗ[K] V₁) (h : surjective f) : dim K V = dim K V₁ + dim K f.ker :=
 by rw [← dim_range_add_dim_ker f, ← dim_range_of_surjective f h]
@@ -363,7 +352,7 @@ lemma dim_add_dim_split
 have hf : surjective (coprod db eb),
 begin
   refine (range_eq_top.1 $ top_unique $ _),
-  rwa [← map_top, ← prod_top, map_coprod_prod]
+  rwa [← map_top, ← prod_top, map_coprod_prod, ←range_eq_map, ←range_eq_map]
 end,
 begin
   conv {to_rhs, rw [← dim_prod, dim_eq_of_surjective _ hf] },
@@ -379,7 +368,7 @@ begin
   { rw [eq_top_iff, range_cod_restrict, ← map_le_iff_le_comap, map_top, range_subtype],
     rintros ⟨d, e⟩,
     have h := eq₂ d (-e),
-    simp only [add_eq_zero_iff_eq_neg, prod_apply, mem_ker, mem_coe, prod.mk.inj_iff,
+    simp only [add_eq_zero_iff_eq_neg, prod_apply, mem_ker, set_like.mem_coe, prod.mk.inj_iff,
       coprod_apply, map_neg, neg_apply, linear_map.mem_range] at ⊢ h,
     assume hde,
     rcases h hde with ⟨c, h₁, h₂⟩,
@@ -481,7 +470,7 @@ calc rank (f + g) ≤ dim K (f.range ⊔ g.range : submodule K V') :
     refine dim_le_of_submodule _ _ _,
     exact (linear_map.range_le_iff_comap.2 $ eq_top_iff'.2 $
       assume x, show f x + g x ∈ (f.range ⊔ g.range : submodule K V'), from
-        mem_sup.2 ⟨_, mem_image_of_mem _ (mem_univ _), _, mem_image_of_mem _ (mem_univ _), rfl⟩)
+        mem_sup.2 ⟨_, ⟨x, rfl⟩, _, ⟨x, rfl⟩, rfl⟩)
   end
   ... ≤ rank f + rank g : dim_add_le_dim_add_dim _ _
 
@@ -499,7 +488,7 @@ lemma rank_comp_le1 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') : rank (f.comp g
 begin
   refine dim_le_of_submodule _ _ _,
   rw [linear_map.range_comp],
-  exact image_subset _ (subset_univ _)
+  exact linear_map.map_le_range,
 end
 
 variables [add_comm_group V'₁] [vector_space K V'₁]
@@ -544,15 +533,68 @@ begin
 end
 
 lemma dim_pos_iff_nontrivial : 0 < vector_space.dim K V ↔ nontrivial V :=
-begin
-  rw dim_pos_iff_exists_ne_zero,
-  split,
-  { rintros ⟨x, h⟩, exact ⟨⟨x, 0, h⟩⟩ },
-  { introsI, exact exists_ne 0 }
-end
+dim_pos_iff_exists_ne_zero.trans (nontrivial_iff_exists_ne 0).symm
 
 lemma dim_pos [h : nontrivial V] : 0 < vector_space.dim K V :=
 dim_pos_iff_nontrivial.2 h
+
+lemma le_dim_iff_exists_linear_independent {c : cardinal} :
+  c ≤ dim K V ↔ ∃ s : set V, cardinal.mk s = c ∧ linear_independent K (coe : s → V) :=
+begin
+  split,
+  { intro h,
+    rcases exists_is_basis K V with ⟨t, ht⟩,
+    rw [← ht.mk_eq_dim'', cardinal.le_mk_iff_exists_subset] at h,
+    rcases h with ⟨s, hst, hsc⟩,
+    exact ⟨s, hsc, ht.1.mono hst⟩ },
+  { rintro ⟨s, rfl, si⟩,
+    exact cardinal_le_dim_of_linear_independent si }
+end
+
+lemma le_dim_iff_exists_linear_independent_finset {n : ℕ} :
+  ↑n ≤ dim K V ↔ ∃ s : finset V, s.card = n ∧ linear_independent K (coe : (s : set V) → V) :=
+begin
+  simp only [le_dim_iff_exists_linear_independent, cardinal.mk_eq_nat_iff_finset],
+  split,
+  { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
+    exact ⟨t, rfl, si⟩ },
+  { rintro ⟨s, rfl, si⟩,
+    exact ⟨s, ⟨s, rfl, rfl⟩, si⟩ }
+end
+
+lemma le_rank_iff_exists_linear_independent {c : cardinal} {f : V →ₗ[K] V'} :
+  c ≤ rank f ↔
+  ∃ s : set V, cardinal.lift.{v v'} (cardinal.mk s) = cardinal.lift.{v' v} c ∧
+    linear_independent K (λ x : s, f x) :=
+begin
+  rcases f.range_restrict.exists_right_inverse_of_surjective f.range_range_restrict with ⟨g, hg⟩,
+  have fg : left_inverse f.range_restrict g, from linear_map.congr_fun hg,
+  refine ⟨λ h, _, _⟩,
+  { rcases le_dim_iff_exists_linear_independent.1 h with ⟨s, rfl, si⟩,
+    refine ⟨g '' s, cardinal.mk_image_eq_lift _ _ fg.injective, _⟩,
+    replace fg : ∀ x, f (g x) = x, by { intro x, convert congr_arg subtype.val (fg x) },
+    replace si : linear_independent K (λ x : s, f (g x)),
+      by simpa only [fg] using si.map' _ (ker_subtype _),
+    exact si.image_of_comp s g f },
+  { rintro ⟨s, hsc, si⟩,
+    have : linear_independent K (λ x : s, f.range_restrict x),
+      from linear_independent.of_comp (f.range.subtype) (by convert si),
+    convert cardinal_le_dim_of_linear_independent this.image,
+    rw [← cardinal.lift_inj, ← hsc, cardinal.mk_image_eq_of_inj_on_lift],
+    exact inj_on_iff_injective.2 this.injective }
+end
+
+lemma le_rank_iff_exists_linear_independent_finset {n : ℕ} {f : V →ₗ[K] V'} :
+  ↑n ≤ rank f ↔ ∃ s : finset V, s.card = n ∧ linear_independent K (λ x : (s : set V), f x) :=
+begin
+  simp only [le_rank_iff_exists_linear_independent, cardinal.lift_nat_cast,
+    cardinal.lift_eq_nat_iff, cardinal.mk_eq_nat_iff_finset],
+  split,
+  { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
+    exact ⟨t, rfl, si⟩ },
+  { rintro ⟨s, rfl, si⟩,
+    exact ⟨s, ⟨s, rfl, rfl⟩, si⟩ }
+end
 
 /-- A vector space has dimension at most `1` if and only if there is a
 single vector of which all vectors are multiples. -/

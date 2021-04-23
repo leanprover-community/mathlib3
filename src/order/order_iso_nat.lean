@@ -1,12 +1,14 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.nat.basic
 import data.equiv.denumerable
 import data.set.finite
 import order.rel_iso
+import order.preorder_hom
+import order.conditionally_complete_lattice
 import logic.function.iterate
 
 namespace rel_embedding
@@ -88,7 +90,7 @@ begin
     simp },
   { refine ⟨(nat.subtype.order_iso_of_nat s).symm ⟨x, h⟩, _⟩,
     simp only [rel_embedding.coe_trans, rel_embedding.order_embedding_of_lt_embedding_apply,
-      rel_embedding.nat_lt_apply, function.comp_app, order_embedding.coe_subtype],
+      rel_embedding.nat_lt_apply, function.comp_app, order_embedding.subtype_apply],
     rw [← subtype.order_iso_of_nat_apply, order_iso.apply_symm_apply, subtype.coe_mk] }
 end
 
@@ -140,4 +142,50 @@ begin
     { apply is_trans.trans _ _ _ _ (hr _),
       exact ih (lt_of_lt_of_le m.lt_succ_self (nat.le_add_right _ _)) } },
   { exact ⟨g, or.intro_right _ hnr⟩ }
+end
+
+/-- The "monotone chain condition" below is sometimes a convenient form of well foundedness. -/
+lemma well_founded.monotone_chain_condition (α : Type*) [partial_order α] :
+  well_founded ((>) : α → α → Prop) ↔ ∀ (a : ℕ →ₘ α), ∃ n, ∀ m, n ≤ m → a n = a m :=
+begin
+  split; intros h,
+  { rw well_founded.well_founded_iff_has_max' at h,
+    intros a, have hne : (set.range a).nonempty, { use a 0, simp, },
+    obtain ⟨x, ⟨n, hn⟩, range_bounded⟩ := h _ hne,
+    use n, intros m hm, rw ← hn at range_bounded, symmetry,
+    apply range_bounded (a m) (set.mem_range_self _) (a.monotone hm), },
+  { rw rel_embedding.well_founded_iff_no_descending_seq, rintros ⟨a⟩,
+    obtain ⟨n, hn⟩ := h (a.swap : ((<) : ℕ → ℕ → Prop) →r ((<) : α → α → Prop)).to_preorder_hom,
+    exact n.succ_ne_self.symm (rel_embedding.to_preorder_hom_injective _ (hn _ n.le_succ)), },
+end
+
+/-- Given an eventually-constant monotonic sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a partially-ordered
+type, `monotonic_sequence_limit_index a` is the least natural number `n` for which `aₙ` reaches the
+constant value. For sequences that are not eventually constant, `monotonic_sequence_limit_index a`
+is defined, but is a junk value. -/
+noncomputable def monotonic_sequence_limit_index {α : Type*} [partial_order α] (a : ℕ →ₘ α) : ℕ :=
+Inf { n | ∀ m, n ≤ m → a n = a m }
+
+/-- The constant value of an eventually-constant monotonic sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a
+partially-ordered type. -/
+noncomputable def monotonic_sequence_limit {α : Type*} [partial_order α] (a : ℕ →ₘ α) :=
+a (monotonic_sequence_limit_index a)
+
+lemma well_founded.supr_eq_monotonic_sequence_limit {α : Type*} [complete_lattice α]
+  (h : well_founded ((>) : α → α → Prop)) (a : ℕ →ₘ α) :
+  (⨆ m, a m) = monotonic_sequence_limit a :=
+begin
+  suffices : (⨆ (m : ℕ), a m) ≤ monotonic_sequence_limit a,
+  { exact le_antisymm this (le_supr a _), },
+  apply supr_le,
+  intros m,
+  by_cases hm : m ≤ monotonic_sequence_limit_index a,
+  { exact a.monotone hm, },
+  { replace hm := le_of_not_le hm,
+    let S := { n | ∀ m, n ≤ m → a n = a m },
+    have hInf : Inf S ∈ S,
+    { refine nat.Inf_mem _, rw well_founded.monotone_chain_condition at h, exact h a, },
+    change Inf S ≤ m at hm,
+    change a m ≤ a (Inf S),
+    rw hInf m hm, },
 end

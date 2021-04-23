@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Floris van Doorn
+Authors: Floris van Doorn
 -/
 import data.equiv.encodable.basic
 import data.finset.basic

@@ -210,6 +210,9 @@ le_antisymm
 
 instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
 
+lemma sup_left_right_swap (a b c : α) : a ⊔ b ⊔ c = c ⊔ b ⊔ a :=
+by rw [sup_comm, @sup_comm _ _ a, sup_assoc]
+
 @[simp] lemma sup_left_idem : a ⊔ (a ⊔ b) = a ⊔ b :=
 by rw [← sup_assoc, sup_idem]
 
@@ -218,6 +221,9 @@ by rw [sup_assoc, sup_idem]
 
 lemma sup_left_comm (a b c : α) : a ⊔ (b ⊔ c) = b ⊔ (a ⊔ c) :=
 by rw [← sup_assoc, ← sup_assoc, @sup_comm α _ a]
+
+lemma sup_right_comm (a b c : α) : a ⊔ b ⊔ c = a ⊔ c ⊔ b :=
+by rw [sup_assoc, sup_assoc, @sup_comm _ _ b]
 
 lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
@@ -360,6 +366,9 @@ theorem inf_assoc : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) :=
 
 instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
 
+lemma inf_left_right_swap (a b c : α) : a ⊓ b ⊓ c = c ⊓ b ⊓ a :=
+by rw [inf_comm, @inf_comm _ _ a, inf_assoc]
+
 @[simp] lemma inf_left_idem : a ⊓ (a ⊓ b) = a ⊓ b :=
 @sup_left_idem (order_dual α) _ a b
 
@@ -368,6 +377,9 @@ instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
 
 lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
 @sup_left_comm (order_dual α) _ a b c
+
+lemma inf_right_comm (a b c : α) : a ⊓ b ⊓ c = a ⊓ c ⊓ b :=
+@sup_right_comm (order_dual α) _ a b c
 
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
 @forall_le_or_exists_lt_sup (order_dual α) _ a

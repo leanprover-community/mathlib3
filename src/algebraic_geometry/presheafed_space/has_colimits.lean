@@ -75,7 +75,7 @@ begin
   cases U,
   dsimp,
   simp only [PresheafedSpace.congr_app (F.map_comp f g)],
-  dsimp, simp,
+  dsimp, simp, dsimp, simp, -- See note [dsimp, simp]
 end
 
 /--
@@ -215,7 +215,7 @@ begin
   have w := functor.congr_hom (congr_arg opens.map
     (colimit.ι_desc ((PresheafedSpace.forget C).map_cocone s) (unop j))) (i.unop),
   simp only [opens.map_comp_map] at w,
-  replace w := congr_arg has_hom.hom.op w,
+  replace w := congr_arg quiver.hom.op w,
   rw w,
   dsimp, simp,
 end

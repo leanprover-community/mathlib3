@@ -40,15 +40,15 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 
 universes u v w x
 
-open set finite_dimensional topological_space
-open_locale classical big_operators
+open set finite_dimensional topological_space filter
+open_locale classical big_operators filter topological_space
 
 noncomputable theory
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
   {E : Type v}  [add_comm_group E] [vector_space 𝕜 E] [topological_space E]
-  [topological_add_group E] [topological_vector_space 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
+  [topological_add_group E] [has_continuous_smul 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
 begin
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
   -- function.
@@ -66,7 +66,7 @@ variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 {E : Type v} [normed_group E] [normed_space 𝕜 E]
 {F : Type w} [normed_group F] [normed_space 𝕜 F]
 {F' : Type x} [add_comm_group F'] [vector_space 𝕜 F'] [topological_space F']
-[topological_add_group F'] [topological_vector_space 𝕜 F']
+[topological_add_group F'] [has_continuous_smul 𝕜 F']
 [complete_space 𝕜]
 
 /-- In finite dimension over a complete field, the canonical identification (in terms of a basis)
@@ -137,7 +137,7 @@ begin
     have C0_le : ∀i, C0 i ≤ C :=
       λi, finset.single_le_sum (λj hj, (hC0 j).1) (finset.mem_univ _),
     apply linear_map.continuous_of_bound _ C (λx, _),
-    rw pi_norm_le_iff,
+    rw pi_semi_norm_le_iff,
     { exact λi, le_trans ((hC0 i).2 x) (mul_le_mul_of_nonneg_right (C0_le i) (norm_nonneg _)) },
     { exact mul_nonneg C_nonneg (norm_nonneg _) } }
 end
@@ -200,6 +200,49 @@ def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E �
     exact e.symm.to_linear_map.continuous_of_finite_dimensional
   end,
   ..e }
+
+lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F)
+  (hf : f.ker = ⊥) : ∃ K > 0, antilipschitz_with K f :=
+begin
+  cases subsingleton_or_nontrivial E; resetI,
+  { exact ⟨1, zero_lt_one, antilipschitz_with.of_subsingleton⟩ },
+  { let e : E ≃L[𝕜] f.range := (linear_equiv.of_injective f hf).to_continuous_linear_equiv,
+    exact ⟨_, e.nnnorm_symm_pos, e.antilipschitz⟩ }
+end
+
+protected lemma linear_independent.eventually {ι} [fintype ι] {f : ι → E}
+  (hf : linear_independent 𝕜 f) : ∀ᶠ g in 𝓝 f, linear_independent 𝕜 g :=
+begin
+  simp only [fintype.linear_independent_iff'] at hf ⊢,
+  rcases linear_map.exists_antilipschitz_with _ hf with ⟨K, K0, hK⟩,
+  have : tendsto (λ g : ι → E, ∑ i, ∥g i - f i∥) (𝓝 f) (𝓝 $ ∑ i, ∥f i - f i∥),
+    from tendsto_finset_sum _ (λ i hi, tendsto.norm $
+      ((continuous_apply i).tendsto _).sub tendsto_const_nhds),
+  simp only [sub_self, norm_zero, finset.sum_const_zero] at this,
+  refine (this.eventually (gt_mem_nhds $ inv_pos.2 K0)).mono (λ g hg, _),
+  replace hg : ∑ i, nnnorm (g i - f i) < K⁻¹, by { rw ← nnreal.coe_lt_coe, push_cast, exact hg },
+  rw linear_map.ker_eq_bot,
+  refine (hK.add_sub_lipschitz_with (lipschitz_with.of_dist_le_mul $ λ v u, _) hg).injective,
+  simp only [dist_eq_norm, linear_map.lsum_apply, pi.sub_apply, linear_map.sum_apply,
+    linear_map.comp_apply, linear_map.proj_apply, linear_map.smul_right_apply, linear_map.id_apply,
+    ← finset.sum_sub_distrib, ← smul_sub, ← sub_smul, nnreal.coe_sum, coe_nnnorm, finset.sum_mul],
+  refine norm_sum_le_of_le _ (λ i _, _),
+  rw [norm_smul, mul_comm],
+  exact mul_le_mul_of_nonneg_left (norm_le_pi_norm (v - u) i) (norm_nonneg _)
+end
+
+lemma is_open_set_of_linear_independent {ι : Type*} [fintype ι] :
+  is_open {f : ι → E | linear_independent 𝕜 f} :=
+is_open_iff_mem_nhds.2 $ λ f, linear_independent.eventually
+
+lemma is_open_set_of_nat_le_rank (n : ℕ) : is_open {f : E →L[𝕜] F | ↑n ≤ rank (f : E →ₗ[𝕜] F)} :=
+begin
+  simp only [le_rank_iff_exists_linear_independent_finset, set_of_exists, ← exists_prop],
+  refine is_open_bUnion (λ t ht, _),
+  have : continuous (λ f : E →L[𝕜] F, (λ x : (t : set E), f x)),
+    from continuous_pi (λ x, (continuous_linear_map.apply 𝕜 F (x : E)).continuous),
+  exact is_open_set_of_linear_independent.preimage this
+end
 
 /-- Two finite-dimensional normed spaces are continuously linearly equivalent if they have the same
 (finite) dimension. -/

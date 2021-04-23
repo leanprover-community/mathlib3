@@ -27,6 +27,9 @@ of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.  This p
 `to_dual_map` to be upgraded to an (isometric) continuous linear equivalence, `to_dual`, between a
 Hilbert space and its dual.
 
+Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the
+theory for `semi_normed_space` and we specialize to `normed_space` when needed.
+
 ## References
 
 * [M. Einsiedler and T. Ward, *Functional Analysis, Spectral Theory, and Applications*]
@@ -45,12 +48,17 @@ namespace normed_space
 
 section general
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables (E : Type*) [normed_group E] [normed_space 𝕜 E]
+variables (E : Type*) [semi_normed_group E] [semi_normed_space 𝕜 E]
+variables (F : Type*) [normed_group F] [normed_space 𝕜 F]
 
-/-- The topological dual of a normed space `E`. -/
-@[derive [has_coe_to_fun, normed_group, normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
+/-- The topological dual of a seminormed space `E`. -/
+@[derive [has_coe_to_fun, semi_normed_group, semi_normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
 
 instance : inhabited (dual 𝕜 E) := ⟨0⟩
+
+instance : normed_group (dual 𝕜 F) := continuous_linear_map.to_normed_group
+
+instance : normed_space 𝕜 (dual 𝕜 F) := continuous_linear_map.to_normed_space
 
 /-- The inclusion of a normed space in its double (topological) dual. -/
 def inclusion_in_double_dual' (x : E) : (dual 𝕜 (dual 𝕜 E)) :=
@@ -241,7 +249,7 @@ lemma to_dual_map_isometry : isometry (@to_dual_map F _) :=
 add_monoid_hom.isometry_of_norm _ norm_to_dual_map_apply
 
 lemma to_dual_map_injective : function.injective (@to_dual_map F _) :=
-to_dual_map_isometry.injective
+(@to_dual_map_isometry F _).injective
 
 @[simp] lemma ker_to_dual_map : (@to_dual_map F _).ker = ⊥ :=
 linear_map.ker_eq_bot.mpr to_dual_map_injective

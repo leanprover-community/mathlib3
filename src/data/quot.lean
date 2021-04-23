@@ -40,9 +40,9 @@ protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : Π a b, φ ⟦a⟧ �
 quot.hrec_on qa (λ a, quot.hrec_on qb (f a) (λ b₁ b₂ pb, cb pb)) $ λ a₁ a₂ pa,
   quot.induction_on qb $ λ b,
     calc @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₁) (@cb _)
-          == f a₁ b                                     : by simp
+          == f a₁ b                                     : by simp [heq_self_iff_true]
       ... == f a₂ b                                     : ca pa
-      ... == @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₂) (@cb _) : by simp
+      ... == @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₂) (@cb _) : by simp [heq_self_iff_true]
 
 /-- Map a function `f : α → β` such that `ra x y` implies `rb (f x) (f y)`
 to a map `quot ra → quot rb`. -/
@@ -326,18 +326,18 @@ noncomputable def out : trunc α → α := quot.out
 
 @[simp] theorem out_eq (q : trunc α) : mk q.out = q := trunc.eq _ _
 
-end trunc
+protected theorem nonempty (q : trunc α) : nonempty α :=
+nonempty_of_exists q.exists_rep
 
-theorem nonempty_of_trunc (q : trunc α) : nonempty α :=
-let ⟨a, _⟩ := q.exists_rep in ⟨a⟩
+end trunc
 
 namespace quotient
 variables {γ : Sort*} {φ : Sort*}
   {s₁ : setoid α} {s₂ : setoid β} {s₃ : setoid γ}
 
-/- Versions of quotient definitions and lemmas ending in `'` use unification instead
+/-! Versions of quotient definitions and lemmas ending in `'` use unification instead
 of typeclass inference for inferring the `setoid` argument. This is useful when there are
-several different quotient relations on a type, for example quotient groups, rings and modules -/
+several different quotient relations on a type, for example quotient groups, rings and modules. -/
 
 /-- A version of `quotient.mk` taking `{s : setoid α}` as an implicit argument instead of an
 instance argument. -/

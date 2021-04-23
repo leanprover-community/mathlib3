@@ -60,13 +60,15 @@ rfl
 def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
 ⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
 
-@[simp] lemma proj_apply (i : ι) (b : Πi, φ i) : (proj i : (Πi, φ i) →ₗ[R] φ i) b = b i := rfl
+@[simp] lemma coe_proj (i : ι) : ⇑(proj i : (Πi, φ i) →ₗ[R] φ i) = function.eval i := rfl
+
+lemma proj_apply (i : ι) (b : Πi, φ i) : (proj i : (Πi, φ i) →ₗ[R] φ i) b = b i := rfl
 
 lemma proj_pi (f : Πi, M₂ →ₗ[R] φ i) (i : ι) : (proj i).comp (pi f) = f i :=
 ext $ assume c, rfl
 
 lemma infi_ker_proj : (⨅i, ker (proj i) : submodule R (Πi, φ i)) = ⊥ :=
-bot_unique $ submodule.le_def'.2 $ assume a h,
+bot_unique $ set_like.le_def.2 $ assume a h,
 begin
   simp only [mem_infi, mem_ker, proj_apply] at h,
   exact (mem_bot _).2 (funext $ assume i, h i)
@@ -90,7 +92,7 @@ variables (R φ)
 
 /-- The linear equivalence between linear functions on a finite product of modules and
 families of functions on these modules. See note [bundled maps over different rings]. -/
-def lsum (S) [add_comm_monoid M] [semimodule R M] [fintype ι] [decidable_eq ι]
+@[simps] def lsum (S) [add_comm_monoid M] [semimodule R M] [fintype ι] [decidable_eq ι]
   [semiring S] [semimodule S M]  [smul_comm_class R S M] :
   (Π i, φ i →ₗ[R] M) ≃ₗ[S] ((Π i, φ i) →ₗ[R] M) :=
 { to_fun := λ f, ∑ i : ι, (f i).comp (proj i),
@@ -181,6 +183,46 @@ end
 end
 
 end linear_map
+
+namespace submodule
+
+variables [semiring R] {φ : ι → Type*} [∀ i, add_comm_monoid (φ i)] [∀ i, semimodule R (φ i)]
+
+open linear_map
+
+/-- A version of `set.pi` for submodules. Given an index set `I` and a family of submodules
+`p : Π i, submodule R (φ i)`, `pi I s` is the submodule of dependent functions `f : Π i, φ i`
+such that `f i` belongs to `p a` whenever `i ∈ I`. -/
+def pi (I : set ι) (p : Π i, submodule R (φ i)) : submodule R (Π i, φ i) :=
+{ carrier := set.pi I (λ i, p i),
+  zero_mem' := λ i hi, (p i).zero_mem,
+  add_mem' := λ x y hx hy i hi, (p i).add_mem (hx i hi) (hy i hi),
+  smul_mem' := λ c x hx i hi, (p i).smul_mem c (hx i hi) }
+
+variables {I : set ι} {p : Π i, submodule R (φ i)} {x : Π i, φ i}
+
+@[simp] lemma mem_pi : x ∈ pi I p ↔ ∀ i ∈ I, x i ∈ p i := iff.rfl
+
+@[simp, norm_cast] lemma coe_pi : (pi I p : set (Π i, φ i)) = set.pi I (λ i, p i) := rfl
+
+lemma binfi_comap_proj : (⨅ i ∈ I, comap (proj i) (p i)) = pi I p :=
+by { ext x, simp }
+
+lemma infi_comap_proj : (⨅ i, comap (proj i) (p i)) = pi set.univ p :=
+by { ext x, simp }
+
+lemma supr_map_single [decidable_eq ι] [fintype ι] :
+  (⨆ i, map (linear_map.single i) (p i)) = pi set.univ p :=
+begin
+  refine (supr_le $ λ i, _).antisymm _,
+  { rintro _ ⟨x, hx : x ∈ p i, rfl⟩ j -,
+    rcases em (j = i) with rfl|hj; simp * },
+  { intros x hx,
+    rw [← finset.univ_sum_single x],
+    exact sum_mem_supr (λ i, mem_map_of_mem (hx i trivial)) }
+end
+
+end submodule
 
 namespace linear_equiv
 

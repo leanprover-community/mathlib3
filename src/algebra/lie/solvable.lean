@@ -146,7 +146,7 @@ by { rw [derived_series_eq_derived_series_of_ideal_comap, map_comap_incl, inf_eq
 
 lemma derived_series_eq_bot_iff (k : ℕ) :
   derived_series R I k = ⊥ ↔ derived_series_of_ideal R L k I = ⊥ :=
-by rw [← derived_series_eq_derived_series_of_ideal_map, I.incl.map_bot_iff, ker_incl, eq_bot_iff]
+by rw [← derived_series_eq_derived_series_of_ideal_map, map_eq_bot_iff, ker_incl, eq_bot_iff]
 
 lemma derived_series_add_eq_bot {k l : ℕ} {I J : lie_ideal R L}
   (hI : derived_series R I k = ⊥) (hJ : derived_series R J l = ⊥) :
@@ -171,9 +171,10 @@ end
 lemma derived_series_map_eq (k : ℕ) (h : function.surjective f) :
   (derived_series R L' k).map f = derived_series R L k :=
 begin
-  have h' : (⊤ : lie_ideal R L').map f = ⊤, { exact f.ideal_range_eq_top_of_surjective h, },
   induction k with k ih,
-  { exact h', },
+  { change (⊤ : lie_ideal R L').map f = ⊤,
+    rw ←f.ideal_range_eq_map,
+    exact f.ideal_range_eq_top_of_surjective h, },
   { simp only [derived_series_def, map_bracket_eq f h, ih, derived_series_of_ideal_succ], },
 end
 
@@ -220,7 +221,7 @@ begin
   tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
   use k,
   rw [← lie_ideal.derived_series_map_eq k h₂, hk],
-  simp only [lie_hom.map_bot_iff, bot_le],
+  simp only [lie_ideal.map_eq_bot_iff, bot_le],
 end
 
 end function

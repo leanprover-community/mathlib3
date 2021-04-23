@@ -330,7 +330,7 @@ by simp only [volume_pi_Ico, ennreal.to_real_prod, ennreal.to_real_of_real (sub_
 
 lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [measure.map_apply (measurable_add_left a) measurable_set_Ioo, sub_sub_sub_cancel_right]
+  by simp [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]
 
 lemma map_volume_add_right (a : ℝ) : measure.map (+ a) volume = volume :=
 by simpa only [add_comm] using real.map_volume_add_left a
@@ -341,11 +341,11 @@ begin
   refine (real.measure_ext_Ioo_rat $ λ p q, _).symm,
   cases lt_or_gt_of_ne h with h h,
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
-      measure.map_apply (measurable_mul_left a) measurable_set_Ioo, neg_sub_neg,
+      measure.map_apply (measurable_const_mul a) measurable_set_Ioo, neg_sub_neg,
       ← neg_mul_eq_neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub,
       mul_div_cancel' _ (ne_of_lt h)] },
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt h),
-      measure.map_apply (measurable_mul_left a) measurable_set_Ioo, preimage_const_mul_Ioo _ _ h,
+      measure.map_apply (measurable_const_mul a) measurable_set_Ioo, preimage_const_mul_Ioo _ _ h,
       abs_of_pos h, mul_sub, mul_div_cancel' _ (ne_of_gt h)] }
 end
 

@@ -5,15 +5,13 @@ Authors: Johannes Hölzl, Jens Wagemaker
 -/
 import data.multiset.basic
 import algebra.divisibility
+import algebra.invertible
 
 /-!
 # Associated, prime, and irreducible elements.
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-
-lemma is_unit.pow [monoid α] {a : α} (n : ℕ) : is_unit a → is_unit (a ^ n) :=
-λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
 
 theorem is_unit_iff_dvd_one [comm_monoid α] {x : α} : is_unit x ↔ x ∣ 1 :=
 ⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,
@@ -26,10 +24,6 @@ is_unit_iff_dvd_one.trans ⟨λ h y, dvd.trans h (one_dvd _), λ h, h _⟩
 theorem is_unit_of_dvd_unit {α} [comm_monoid α] {x y : α}
   (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
 is_unit_iff_dvd_one.2 $ dvd_trans xy $ is_unit_iff_dvd_one.1 hu
-
-theorem is_unit_int {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
-⟨begin rintro ⟨u, rfl⟩, exact (int.units_eq_one_or u).elim (by simp) (by simp) end,
-  λ h, is_unit_iff_dvd_one.2 ⟨n, by rw [← int.nat_abs_mul_self, h]; refl⟩⟩
 
 lemma is_unit_of_dvd_one [comm_monoid α] : ∀a ∣ 1, is_unit (a:α)
 | a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
@@ -256,7 +250,8 @@ lemma associated_pow_pow [comm_monoid α] {a b : α} {n : ℕ} (h : a ~ᵤ b) :
   a ^ n ~ᵤ b ^ n :=
 begin
   induction n with n ih, { simp [h] },
-  convert associated_mul_mul h ih,
+  convert associated_mul_mul h ih;
+  rw pow_succ
 end
 
 lemma dvd_of_associated [monoid α] {a b : α} : a ~ᵤ b → a ∣ b := λ ⟨u, hu⟩, ⟨u, hu.symm⟩
@@ -317,6 +312,14 @@ lemma prime_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~ᵤ q) (
   let ⟨u, hu⟩ := h in
     ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv, hu.symm]⟩,
       hu ▸ by { simp [units.mul_right_dvd], intros a b, exact hp.div_or_div }⟩⟩
+
+lemma associated_of_irreducible_of_dvd [comm_cancel_monoid_with_zero α] {p q : α}
+  (p_irr : irreducible p) (q_irr : irreducible q) (dvd : p ∣ q) : associated p q :=
+associated_of_dvd_dvd dvd (dvd_symm_of_irreducible p_irr q_irr dvd)
+
+lemma associated_of_prime_of_dvd [comm_cancel_monoid_with_zero α] {p q : α}
+  (p_prime : prime p) (q_prime : prime q) (dvd : p ∣ q) : associated p q :=
+associated_of_irreducible_of_dvd (irreducible_of_prime p_prime) (irreducible_of_prime q_prime) dvd
 
 lemma prime_iff_of_associated [comm_monoid_with_zero α] {p q : α}
   (h : p ~ᵤ q) : prime p ↔ prime q :=
@@ -458,8 +461,7 @@ multiset.induction_on p (by simp; refl) $ assume a s ih, by simp [ih]; refl
 
 theorem rel_associated_iff_map_eq_map {p q : multiset α} :
   multiset.rel associated p q ↔ p.map associates.mk = q.map associates.mk :=
-by rw [← multiset.rel_eq];
-  simp [multiset.rel_map_left, multiset.rel_map_right, mk_eq_mk_iff_associated]
+by { rw [← multiset.rel_eq, multiset.rel_map], simp only [mk_eq_mk_iff_associated] }
 
 theorem mul_eq_one_iff {x y : associates α} : x * y = 1 ↔ (x = 1 ∧ y = 1) :=
 iff.intro

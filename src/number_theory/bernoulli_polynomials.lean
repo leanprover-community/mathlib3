@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Ashvni Narayanan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Ashvni Narayanan
+Authors: Ashvni Narayanan
 -/
 
 import number_theory.bernoulli
@@ -76,6 +76,18 @@ begin
   simp [this],
 end
 
+@[simp] lemma bernoulli_poly_eval_one (n : ℕ) : (bernoulli_poly n).eval 1 = bernoulli' n :=
+begin
+  simp only [bernoulli_poly, polynomial.eval_finset_sum],
+  simp only [←succ_eq_add_one, sum_range_succ, mul_one, cast_one, choose_self,
+    (bernoulli _).mul_comm, sum_bernoulli, one_pow, mul_one, polynomial.eval_C,
+    polynomial.eval_monomial],
+  by_cases h : n = 1,
+  { norm_num [h], },
+  { simp [h],
+    exact bernoulli_eq_bernoulli'_of_ne_one h, }
+end
+
 end examples
 
 @[simp] theorem sum_bernoulli_poly (n : ℕ) :
@@ -92,15 +104,22 @@ begin
         (le.intro rfl), add_comm x x_1, nat.add_sub_cancel, mul_assoc, mul_comm, ←smul_eq_mul,
         ←polynomial.smul_monomial], },
     rw [←sum_smul], },
-  rw sum_range_succ,
+  rw [sum_range_succ_comm],
   simp only [add_right_eq_self, cast_succ, mul_one, cast_one, cast_add, nat.add_sub_cancel_left,
     choose_succ_self_right, one_smul, bernoulli_zero, sum_singleton, zero_add,
     linear_map.map_add, range_one],
-  have f : ∀ x ∈ range n, 2 ≤ n + 1 - x,
-  { rintros x H, rw [mem_range] at H,
-    exact nat.le_sub_left_of_add_le (succ_le_succ H) },
   apply sum_eq_zero (λ x hx, _),
-  rw [sum_bernoulli _ (f x hx), zero_smul],
+  have f : ∀ x ∈ range n, ¬ n + 1 - x = 1,
+  { rintros x H, rw [mem_range] at H,
+    rw [eq_comm],
+    exact ne_of_lt (nat.lt_of_lt_of_le one_lt_two (nat.le_sub_left_of_add_le (succ_le_succ H))),
+  },
+  rw [sum_bernoulli],
+  have g : (ite (n + 1 - x = 1) (1 : ℚ) 0) = 0,
+    { simp only [ite_eq_right_iff, one_ne_zero],
+      intro h₁,
+      exact (f x hx) h₁, },
+  rw [g, zero_smul],
 end
 
 open power_series
@@ -122,9 +141,9 @@ begin
   -- last term plus sum to n+1
   rw [coeff_succ_X_mul, coeff_rescale, coeff_exp, coeff_mul,
     nat.sum_antidiagonal_eq_sum_range_succ_mk, sum_range_succ],
-  -- last term is zero so kill with `zero_add`
+  -- last term is zero so kill with `add_zero`
   simp only [ring_hom.map_sub, nat.sub_self, constant_coeff_one, constant_coeff_exp,
-    coeff_zero_eq_constant_coeff, mul_zero, sub_self, zero_add],
+    coeff_zero_eq_constant_coeff, mul_zero, sub_self, add_zero],
   -- Let's multiply both sides by (n+1)! (OK because it's a unit)
   set u : units ℚ := ⟨(n+1)!, (n+1)!⁻¹,
     mul_inv_cancel (by exact_mod_cast factorial_ne_zero (n+1)),

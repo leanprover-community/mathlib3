@@ -11,7 +11,7 @@ namespace category_theory
 open category
 open category_theory.limits
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 namespace monad
 
@@ -95,6 +95,7 @@ end forget_creates_limits
 
 -- Theorem 5.6.5 from [Riehl][riehl2017]
 /-- The forgetful functor from the Eilenberg-Moore category creates limits. -/
+noncomputable
 instance forget_creates_limits : creates_limits (forget T) :=
 { creates_limits_of_shape := λ J 𝒥, by exactI
   { creates_limit := λ D,
@@ -226,6 +227,7 @@ open forget_creates_colimits
 The forgetful functor from the Eilenberg-Moore category for a monad creates any colimit
 which the monad itself preserves.
 -/
+noncomputable
 instance forget_creates_colimit (D : J ⥤ algebra T)
   [preserves_colimit (D ⋙ forget T) (T : C ⥤ C)]
   [preserves_colimit ((D ⋙ forget T) ⋙ ↑T) (T : C ⥤ C)] :
@@ -239,11 +241,13 @@ creates_colimit_of_reflects_iso $ λ c t,
   valid_lift := cocones.ext (iso.refl _) (by tidy),
   makes_colimit := lifted_cocone_is_colimit _ _ }
 
+noncomputable
 instance forget_creates_colimits_of_shape
   [preserves_colimits_of_shape J (T : C ⥤ C)] :
   creates_colimits_of_shape J (forget T) :=
 { creates_colimit := λ K, by apply_instance }
 
+noncomputable
 instance forget_creates_colimits
   [preserves_colimits (T : C ⥤ C)] :
   creates_colimits (forget T) :=
@@ -275,6 +279,7 @@ instance comp_comparison_has_limit
 monad.has_limit_of_comp_forget_has_limit (F ⋙ monad.comparison (adjunction.of_right_adjoint R))
 
 /-- Any monadic functor creates limits. -/
+noncomputable
 def monadic_creates_limits (R : D ⥤ C) [monadic_right_adjoint R] :
   creates_limits R :=
 creates_limits_of_nat_iso (monad.comparison_forget (adjunction.of_right_adjoint R))
@@ -283,6 +288,7 @@ creates_limits_of_nat_iso (monad.comparison_forget (adjunction.of_right_adjoint 
 The forgetful functor from the Eilenberg-Moore category for a monad creates any colimit
 which the monad itself preserves.
 -/
+noncomputable
 def monadic_creates_colimit_of_preserves_colimit (R : D ⥤ C) (K : J ⥤ D)
   [monadic_right_adjoint R]
   [preserves_colimit (K ⋙ R) (left_adjoint R ⋙ R)]
@@ -303,6 +309,7 @@ begin
 end
 
 /-- A monadic functor creates any colimits of shapes it preserves. -/
+noncomputable
 def monadic_creates_colimits_of_shape_of_preserves_colimits_of_shape (R : D ⥤ C)
   [monadic_right_adjoint R] [preserves_colimits_of_shape J R] : creates_colimits_of_shape J R :=
 begin
@@ -315,6 +322,7 @@ begin
 end
 
 /-- A monadic functor creates colimits if it preserves colimits. -/
+noncomputable
 def monadic_creates_colimits_of_preserves_colimits (R : D ⥤ C) [monadic_right_adjoint R]
   [preserves_colimits R] : creates_colimits R :=
 { creates_colimits_of_shape := λ J 𝒥₁,

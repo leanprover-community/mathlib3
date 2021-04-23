@@ -37,9 +37,9 @@ else with_bot.coe_le_coe.1 $
   ... ≤ _ : sup_le (λ n hn,
     calc degree (C (coeff p n) * q ^ n)
         ≤ degree (C (coeff p n)) + degree (q ^ n) : degree_mul_le _ _
-    ... ≤ nat_degree (C (coeff p n)) + n •ℕ (degree q) :
+    ... ≤ nat_degree (C (coeff p n)) + n • (degree q) :
       add_le_add degree_le_nat_degree (degree_pow_le _ _)
-    ... ≤ nat_degree (C (coeff p n)) + n •ℕ (nat_degree q) :
+    ... ≤ nat_degree (C (coeff p n)) + n • (nat_degree q) :
       add_le_add_left (nsmul_le_nsmul_of_le_right (@degree_le_nat_degree _ _ q) n) _
     ... = (n * nat_degree q : ℕ) :
      by rw [nat_degree_C, with_bot.coe_zero, zero_add, ← with_bot.coe_nsmul,
@@ -145,7 +145,7 @@ lemma nat_degree_mul_C_eq_of_mul_ne_zero (h : p.leading_coeff * a ≠ 0) :
   (p * C a).nat_degree = p.nat_degree :=
 begin
   refine eq_nat_degree_of_le_mem_support (nat_degree_mul_C_le p a) _,
-  refine mem_support_iff_coeff_ne_zero.mpr _,
+  refine mem_support_iff.mpr _,
   rwa coeff_mul_C,
 end
 
@@ -158,7 +158,7 @@ lemma nat_degree_C_mul_eq_of_mul_ne_zero (h : a * p.leading_coeff ≠ 0) :
   (C a * p).nat_degree = p.nat_degree :=
 begin
   refine eq_nat_degree_of_le_mem_support (nat_degree_C_mul_le a p) _,
-  refine mem_support_iff_coeff_ne_zero.mpr _,
+  refine mem_support_iff.mpr _,
   rwa coeff_C_mul,
 end
 

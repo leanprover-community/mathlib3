@@ -204,7 +204,7 @@ instance discrete_topology_bot (α : Type*) : @discrete_topology α ⊥ :=
 
 @[simp] lemma is_closed_discrete [topological_space α] [discrete_topology α] (s : set α) :
   is_closed s :=
-(discrete_topology.eq_bot α).symm ▸ trivial
+is_open_compl_iff.1 $ (discrete_topology.eq_bot α).symm ▸ trivial
 
 lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α]
   [topological_space β] {f : α → β} : continuous f :=
@@ -272,9 +272,11 @@ iff.rfl
 
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ f ⁻¹' t = s) :=
-⟨assume ⟨t, ht, heq⟩, ⟨tᶜ, is_closed_compl_iff.2 ht,
-    by simp only [preimage_compl, heq, compl_compl]⟩,
-  assume ⟨t, ht, heq⟩, ⟨tᶜ, ht, by simp only [preimage_compl, heq.symm]⟩⟩
+begin
+  simp only [← is_open_compl_iff, is_open_induced_iff],
+  exact ⟨λ ⟨t, ht, heq⟩, ⟨tᶜ, by rwa compl_compl, by simp [preimage_compl, heq, compl_compl]⟩,
+         λ ⟨t, ht, heq⟩, ⟨tᶜ, ht, by simp only [preimage_compl, heq.symm]⟩⟩
+end
 
 /-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
   such that `s:set β` is open if the preimage of `s` is open. This is the finest topology that
@@ -348,6 +350,10 @@ lemma induced_compose [tγ : topological_space γ]
 topological_space_eq $ funext $ assume s, propext $
   ⟨assume ⟨s', ⟨s, hs, h₂⟩, h₁⟩, h₁ ▸ h₂ ▸ ⟨s, hs, rfl⟩,
     assume ⟨s, hs, h⟩, ⟨preimage g s, ⟨s, hs, rfl⟩, h ▸ rfl⟩⟩
+
+lemma induced_const [t : topological_space α] {x : α} :
+  t.induced (λ y : β, x) = ⊤ :=
+le_antisymm le_top (@continuous_const β α ⊤ t x).le_induced
 
 lemma coinduced_id [t : topological_space α] : t.coinduced id = t :=
 topological_space_eq rfl
@@ -648,6 +654,6 @@ begin
 end
 
 lemma is_closed_infi_iff {s : set α} : @is_closed _ (⨆ i, t i) s ↔ ∀ i, @is_closed _ (t i) s :=
-is_open_supr_iff
+by simp [← is_open_compl_iff, is_open_supr_iff]
 
 end infi

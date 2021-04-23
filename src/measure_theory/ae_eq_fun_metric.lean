@@ -57,8 +57,11 @@ instance : emetric_space (α →ₘ[μ] γ) :=
       measure_theory.lintegral_mono (λ a, edist_triangle (f a) (g a) (h a))
     ... = ∫⁻ a, edist (f a) (g a) ∂μ + ∫⁻ a, edist (g a) (h a) ∂μ :
       lintegral_add' (hf.edist hg) (hg.edist hh),
-  eq_of_edist_eq_zero := λ f g, induction_on₂ f g $ λ f hf g hg H, mk_eq_mk.2 $
-    ((lintegral_eq_zero_iff' (hf.edist hg)).1 H).mono $ λ x, eq_of_edist_eq_zero }
+  eq_of_edist_eq_zero := λ f g,
+  begin
+    exact induction_on₂ f g (λ f hf g hg H, mk_eq_mk.2 (((lintegral_eq_zero_iff'
+      (hf.edist hg)).1 H).mono (λ x, eq_of_edist_eq_zero)))
+  end }
 
 lemma edist_mk_mk {f g : α → γ} (hf hg) :
   edist (mk f hf : α →ₘ[μ] γ) (mk g hg) = ∫⁻ x, edist (f x) (g x) ∂μ :=
@@ -91,7 +94,7 @@ induction_on₃ f g h $ λ f hf g hg h hh, by simp [edist_mk_mk, edist_dist, dis
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜]
+variables {𝕜 : Type*} [normed_field 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 variables [normed_group γ] [second_countable_topology γ] [normed_space 𝕜 γ] [borel_space γ]
 
 lemma edist_smul (c : 𝕜) (f : α →ₘ[μ] γ) : edist (c • f) 0 = (ennreal.of_real ∥c∥) * edist f 0 :=

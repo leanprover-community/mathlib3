@@ -107,9 +107,9 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
     { dsimp, simp only [id_comp] },  -- See note [dsimp, simp].
     { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, id_comp, map_id, presheaf.pushforward.comp_inv_app],
+      simp only [presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
       dsimp,
-      simp only [comp_id], },
+      simp only [comp_id, comp_id, map_id], },
   end,
   comp_id' := λ X Y f,
   begin
@@ -117,9 +117,9 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
     { dsimp, simp only [comp_id] },
     { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, id_comp, map_id, presheaf.pushforward.comp_inv_app],
+      simp only [presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
       dsimp,
-      simp only [comp_id], }
+      simp only [id_comp, comp_id, map_id], }
   end,
   assoc' := λ W X Y Z f g h,
   begin
@@ -127,9 +127,9 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
      refl,
      { ext U, op_induction, cases U,
        dsimp,
-       simp only [assoc, map_id, comp_id, presheaf.pushforward.comp_inv_app],
+       simp only [assoc, presheaf.pushforward.comp_inv_app, opens.map_iso_inv_app],
        dsimp,
-       simp only [comp_id, id_comp], }
+       simp only [comp_id, id_comp, map_id], }
   end }
 
 end
@@ -197,12 +197,12 @@ subspace.
 -/
 @[simps]
 def to_restrict_top (X : PresheafedSpace C) :
-  X ⟶ X.restrict (opens.inclusion ⊤) (opens.inclusion_open_embedding ⊤) :=
+  X ⟶ X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) :=
 { base := ⟨λ x, ⟨x, trivial⟩, continuous_def.2 $ λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩,
   c := { app := λ U, X.presheaf.map $ (hom_of_le $ λ x hxU, ⟨⟨x, trivial⟩, hxU, rfl⟩ :
       (opens.map (⟨λ x, ⟨x, trivial⟩, continuous_def.2 $ λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩ :
           X.1 ⟶ (opens.to_Top X.1).obj ⊤)).obj (unop U) ⟶
-        (opens.inclusion_open_embedding ⊤).is_open_map.functor.obj (unop U)).op,
+        (opens.open_embedding ⊤).is_open_map.functor.obj (unop U)).op,
     naturality':= λ U V f, show X.presheaf.map _ ≫ _ = _ ≫ X.presheaf.map _,
       by { rw [← map_comp, ← map_comp], refl } } }
 
@@ -211,7 +211,7 @@ The isomorphism from the restriction to the top subspace.
 -/
 @[simps]
 def restrict_top_iso (X : PresheafedSpace C) :
-  X.restrict (opens.inclusion ⊤) (opens.inclusion_open_embedding ⊤) ≅ X :=
+  X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
 { hom := X.of_restrict _ _ _,
   inv := X.to_restrict_top,
   hom_inv_id' := ext _ _ (concrete_category.hom_ext _ _ $ λ ⟨x, _⟩, rfl) $

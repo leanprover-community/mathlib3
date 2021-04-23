@@ -158,6 +158,9 @@ lemma algebra_map_eq_smul_one (r : R) : algebra_map R A r = r • 1 :=
 calc algebra_map R A r = algebra_map R A r * 1 : (mul_one _).symm
                    ... = r • 1                 : (algebra.smul_def r 1).symm
 
+lemma algebra_map_eq_smul_one' : ⇑(algebra_map R A) = λ r, r • (1 : A) :=
+funext algebra_map_eq_smul_one
+
 theorem commutes (r : R) (x : A) : algebra_map R A r * x = x * algebra_map R A r :=
 algebra.commutes' r x
 
@@ -394,6 +397,9 @@ instance matrix_algebra (n : Type u) (R : Type v)
   smul_def' := by { intros, simp [matrix.scalar], },
   ..(matrix.scalar n) }
 
+@[simp] lemma matrix.algebra_map_eq_smul (n : Type u) {R : Type v} [decidable_eq n] [fintype n]
+  [comm_semiring R] (r : R) : (algebra_map R (matrix n n R)) r = r • 1 := rfl
+
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
 @[nolint has_inhabited_instance]
@@ -612,6 +618,10 @@ ring_hom.injective_iff (f : A →+* B)
 
 end alg_hom
 
+@[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
+  m • (1 : A) = ↑m :=
+by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
+
 set_option old_structure_cmd true
 /-- An equivalence of algebras is an equivalence of rings commuting with the actions of scalars. -/
 structure alg_equiv (R : Type u) (A : Type v) (B : Type w)
@@ -720,6 +730,10 @@ instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂
 @[simp, norm_cast] lemma coe_alg_hom : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
 rfl
 
+/-- The two paths coercion can take to a `ring_hom` are equivalent -/
+lemma coe_ring_hom_commutes : ((e : A₁ →ₐ[R] A₂) : A₁ →+* A₂) = ((e : A₁ ≃+* A₂) : A₁ →+* A₂) :=
+rfl
+
 @[simp] lemma map_pow : ∀ (x : A₁) (n : ℕ), e (x ^ n) = (e x) ^ n := e.to_alg_hom.map_pow
 
 lemma injective : function.injective e := e.to_equiv.injective
@@ -747,7 +761,7 @@ def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
   ..e.to_ring_equiv.symm, }
 
 /-- See Note [custom simps projection] -/
-def simps.inv_fun (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
+def simps.symm_apply (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
 
 initialize_simps_projections alg_equiv (to_fun → apply, inv_fun → symm_apply)
 
@@ -908,6 +922,25 @@ instance aut : group (A₁ ≃ₐ[R] A₁) :=
   inv := symm,
   mul_left_inv := λ ϕ, by { ext, exact symm_apply_apply ϕ a } }
 
+@[simp] lemma mul_apply (e₁ e₂ : A₁ ≃ₐ[R] A₁) (x : A₁) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
+
+/-- An algebra isomorphism induces a group isomorphism between automorphism groups -/
+@[simps apply]
+def aut_congr (ϕ : A₁ ≃ₐ[R] A₂) : (A₁ ≃ₐ[R] A₁) ≃* (A₂ ≃ₐ[R] A₂) :=
+{ to_fun := λ ψ, ϕ.symm.trans (ψ.trans ϕ),
+  inv_fun := λ ψ, ϕ.trans (ψ.trans ϕ.symm),
+  left_inv := λ ψ, by { ext, simp_rw [trans_apply, symm_apply_apply] },
+  right_inv := λ ψ, by { ext, simp_rw [trans_apply, apply_symm_apply] },
+  map_mul' := λ ψ χ, by { ext, simp only [mul_apply, trans_apply, symm_apply_apply] } }
+
+@[simp] lemma aut_congr_refl : aut_congr (alg_equiv.refl) = mul_equiv.refl (A₁ ≃ₐ[R] A₁) :=
+by { ext, refl }
+
+@[simp] lemma aut_congr_symm (ϕ : A₁ ≃ₐ[R] A₂) : (aut_congr ϕ).symm = aut_congr ϕ.symm := rfl
+
+@[simp] lemma aut_congr_trans (ϕ : A₁ ≃ₐ[R] A₂) (ψ : A₂ ≃ₐ[R] A₃) :
+  (aut_congr ϕ).trans (aut_congr ψ) = aut_congr (ϕ.trans ψ) := rfl
+
 end semiring
 
 section comm_semiring
@@ -1041,26 +1074,50 @@ theorem to_comap_apply (x) : to_comap R S A x = algebra_map S A x := rfl
 
 end algebra
 
-namespace alg_hom
+section
 
 variables {R : Type u} {S : Type v} {A : Type w} {B : Type u₁}
 variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
-variables [algebra R S] [algebra S A] [algebra S B] (φ : A →ₐ[S] B)
+variables [algebra R S] [algebra S A] [algebra S B]
 include R
 
-/-- R ⟶ S induces S-Alg ⥤ R-Alg -/
-def comap : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
+/-- R ⟶ S induces S-Alg ⥤ R-Alg.
+
+See `alg_hom.restrict_scalars` for the version that uses `is_scalar_tower` instead of `comap`. -/
+def alg_hom.comap (φ : A →ₐ[S] B) : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
 { commutes' := λ r, φ.commutes (algebra_map R S r)
   ..φ }
 
-end alg_hom
+/-- `alg_hom.comap` for `alg_equiv`.
+
+See `alg_equiv.restrict_scalars` for the version that uses `is_scalar_tower` instead of `comap`. -/
+def alg_equiv.comap (φ : A ≃ₐ[S] B) : algebra.comap R S A ≃ₐ[R] algebra.comap R S B :=
+{ commutes' := λ r, φ.commutes (algebra_map R S r)
+  ..φ }
+
+end
+
+section nat
+
+variables {R : Type*} [semiring R]
+
+/-- Semiring ⥤ ℕ-Alg -/
+instance algebra_nat : algebra ℕ R :=
+{ commutes' := nat.cast_commute,
+  smul_def' := λ _ _, nsmul_eq_mul _ _,
+  to_ring_hom := nat.cast_ring_hom R }
+
+instance nat_algebra_subsingleton : subsingleton (algebra ℕ R) :=
+⟨λ P Q, by { ext, simp, }⟩
+
+end nat
 
 namespace ring_hom
 
 variables {R S : Type*}
 
 /-- Reinterpret a `ring_hom` as an `ℕ`-algebra homomorphism. -/
-def to_nat_alg_hom [semiring R] [semiring S] [algebra ℕ R] [algebra ℕ S] (f : R →+* S) :
+def to_nat_alg_hom [semiring R] [semiring S] (f : R →+* S) :
   R →ₐ[ℕ] S :=
 { to_fun := f, commutes' := λ n, by simp, .. f }
 
@@ -1179,31 +1236,30 @@ instance linear_map.semimodule' (R : Type u) [comm_semiring R]
 
 end algebra
 
-section nat
+section ring
 
-variables (R : Type*) [semiring R]
+namespace algebra
 
-/-- Semiring ⥤ ℕ-Alg -/
-instance algebra_nat : algebra ℕ R :=
-{ commutes' := nat.cast_commute,
-  smul_def' := λ _ _, nsmul_eq_mul _ _,
-  to_ring_hom := nat.cast_ring_hom R }
+variables {R A : Type*} [comm_semiring R] [ring A] [algebra R A]
 
-section span_nat
-open submodule
+lemma lmul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (lmul_left R x) :=
+by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+     exact mul_right_injective' hx }
 
-lemma span_nat_eq_add_group_closure (s : set R) :
-  (span ℕ s).to_add_submonoid = add_submonoid.closure s :=
-eq.symm $ add_submonoid.closure_eq_of_le subset_span $ λ x hx, span_induction hx
-  (λ x hx, add_submonoid.subset_closure hx) (add_submonoid.zero_mem _)
-  (λ _ _, add_submonoid.add_mem _) (λ _ _ _, add_submonoid.nsmul_mem _ ‹_› _)
+lemma lmul_right_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (lmul_right R x) :=
+by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+     exact mul_left_injective' hx }
 
-@[simp] lemma span_nat_eq (s : add_submonoid R) : (span ℕ (s : set R)).to_add_submonoid = s :=
-by rw [span_nat_eq_add_group_closure, s.closure_eq]
+lemma lmul_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (lmul R A x) :=
+by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+     exact mul_right_injective' hx }
 
-end span_nat
+end algebra
 
-end nat
+end ring
 
 section int
 
@@ -1217,33 +1273,8 @@ instance algebra_int : algebra ℤ R :=
 
 variables {R}
 
-section
-variables {S : Type*} [ring S]
-
-instance int_algebra_subsingleton : subsingleton (algebra ℤ S) :=
+instance int_algebra_subsingleton : subsingleton (algebra ℤ R) :=
 ⟨λ P Q, by { ext, simp, }⟩
-end
-
-section
-variables {S : Type*} [semiring S]
-
-instance nat_algebra_subsingleton : subsingleton (algebra ℕ S) :=
-⟨λ P Q, by { ext, simp, }⟩
-end
-
-section span_int
-open submodule
-
-lemma span_int_eq_add_group_closure (s : set R) :
-  (span ℤ s).to_add_subgroup = add_subgroup.closure s :=
-eq.symm $ add_subgroup.closure_eq_of_le _ subset_span $ λ x hx, span_induction hx
-  (λ x hx, add_subgroup.subset_closure hx) (add_subgroup.zero_mem _)
-  (λ _ _, add_subgroup.add_mem _) (λ _ _ _, add_subgroup.gsmul_mem _ ‹_› _)
-
-@[simp] lemma span_int_eq (s : add_subgroup R) : (span ℤ (s : set R)).to_add_subgroup = s :=
-by rw [span_int_eq_add_group_closure, s.closure_eq]
-
-end span_int
 
 end int
 
@@ -1255,23 +1286,32 @@ We couldn't set this up back in `algebra.pi_instances` because this file imports
 namespace pi
 
 variable {I : Type u}     -- The indexing type
+variable {R : Type*}      -- The scalar type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 variables (I f)
 
-instance algebra (α) {r : comm_semiring α}
-  [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] :
-  algebra α (Π i : I, f i) :=
+instance algebra {r : comm_semiring R}
+  [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] :
+  algebra R (Π i : I, f i) :=
 { commutes' := λ a f, begin ext, simp [algebra.commutes], end,
   smul_def' := λ a f, begin ext, simp [algebra.smul_def''], end,
-  ..pi.ring_hom (λ i, algebra_map α (f i)) }
+  ..pi.ring_hom (λ i, algebra_map R (f i)) }
 
-@[simp] lemma algebra_map_apply (α) {r : comm_semiring α}
-  [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] (a : α) (i : I) :
-  algebra_map α (Π i, f i) a i = algebra_map α (f i) a := rfl
+@[simp] lemma algebra_map_apply {r : comm_semiring R}
+  [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] (a : R) (i : I) :
+  algebra_map R (Π i, f i) a i = algebra_map R (f i) a := rfl
 
 -- One could also build a `Π i, R i`-algebra structure on `Π i, A i`,
 -- when each `A i` is an `R i`-algebra, although I'm not sure that it's useful.
+
+variables (R) (f)
+
+/-- `function.eval` as an `alg_hom`. The name matches `ring_hom.apply`, `monoid_hom.apply`, etc. -/
+@[simps]
+def alg_hom.apply {r : comm_semiring R} [Π i, semiring (f i)] [Π i, algebra R (f i)] (i : I) :
+  (Π i, f i) →ₐ[R] f i :=
+{ commutes' := λ r, rfl, .. ring_hom.apply f i}
 
 end pi
 
@@ -1365,13 +1405,7 @@ module structure over `R`.
 The preferred way of setting this up is `[module R M] [module A M] [is_scalar_tower R A M]`.
 -/
 instance : semimodule R (restrict_scalars R A M) :=
-{ smul      := λ c x, (algebra_map R A c) • x,
-  one_smul  := by simp,
-  mul_smul  := by simp [mul_smul],
-  smul_add  := by simp [smul_add],
-  smul_zero := by simp [smul_zero],
-  add_smul  := by simp [add_smul],
-  zero_smul := by simp [zero_smul] }
+semimodule.comp_hom M (algebra_map R A)
 
 lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R A M) :
   c • x = ((algebra_map R A c) • x : M) := rfl
@@ -1389,14 +1423,17 @@ restrict_scalars.is_scalar_tower R A V
 
 end type_synonym
 
+/-! TODO: The following lemmas no longer involve `algebra` at all, and could be moved closer
+to `algebra/module/submodule.lean`. Currently this is tricky because `ker`, `range`, `⊤`, and `⊥`
+are all defined in `linear_algebra/basic.lean`. -/
 section semimodule
 open semimodule
 
-variables (R A M N : Type*) [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
-variables [add_comm_monoid N] [semimodule R N] [semimodule A N] [is_scalar_tower R A N]
+variables (R S M N : Type*) [semiring R] [semiring S] [has_scalar R S]
+variables [add_comm_monoid M] [semimodule R M] [semimodule S M] [is_scalar_tower R S M]
+variables [add_comm_monoid N] [semimodule R N] [semimodule S N] [is_scalar_tower R S N]
 
-variables {A M N}
+variables {S M N}
 
 namespace submodule
 
@@ -1405,37 +1442,54 @@ namespace submodule
 corresponding to `V`, an `S`-submodule of the original `S`-module.
 -/
 @[simps]
-def restrict_scalars (V : submodule A M) : submodule R M :=
+def restrict_scalars (V : submodule S M) : submodule R M :=
 { carrier := V.carrier,
   zero_mem' := V.zero_mem,
-  smul_mem' := λ c m h, by { rw algebra_compatible_smul A c m, exact V.smul_mem _ h },
+  smul_mem' := λ c m h, V.smul_of_tower_mem c h,
   add_mem' := λ x y hx hy, V.add_mem hx hy }
 
 @[simp]
-lemma restrict_scalars_mem (V : submodule A M) (m : M) :
+lemma restrict_scalars_mem (V : submodule S M) (m : M) :
   m ∈ V.restrict_scalars R ↔ m ∈ V :=
 iff.refl _
 
-variables (R A M)
+variables (R S M)
 
 lemma restrict_scalars_injective :
-  function.injective (restrict_scalars R : submodule A M → submodule R M) :=
-λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (ext'_iff.1 h); refl
+  function.injective (restrict_scalars R : submodule S M → submodule R M) :=
+λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (set_like.ext'_iff.1 h); refl
 
-@[simp] lemma restrict_scalars_inj {V₁ V₂ : submodule A M} :
+@[simp] lemma restrict_scalars_inj {V₁ V₂ : submodule S M} :
   restrict_scalars R V₁ = restrict_scalars R V₂ ↔ V₁ = V₂ :=
-⟨λ h, restrict_scalars_injective R _ _ h, congr_arg _⟩
+(restrict_scalars_injective R _ _).eq_iff
 
 @[simp]
-lemma restrict_scalars_bot : restrict_scalars R (⊥ : submodule A M) = ⊥ := rfl
+lemma restrict_scalars_bot : restrict_scalars R (⊥ : submodule S M) = ⊥ := rfl
 
 @[simp]
-lemma restrict_scalars_top : restrict_scalars R (⊤ : submodule A M) = ⊤ := rfl
+lemma restrict_scalars_top : restrict_scalars R (⊤ : submodule S M) = ⊤ := rfl
 
-/-- If `A` is an `R`-algebra, then the `R`-module generated by a set `X` is included in the
-`A`-module generated by `X`. -/
-lemma span_le_restrict_scalars (X : set M) : span R (X : set M) ≤ restrict_scalars R (span A X) :=
+/-- If `S` is an `R`-algebra, then the `R`-module generated by a set `X` is included in the
+`S`-module generated by `X`. -/
+lemma span_le_restrict_scalars (X : set M) : span R (X : set M) ≤ restrict_scalars R (span S X) :=
 submodule.span_le.mpr submodule.subset_span
+
+end submodule
+
+@[simp]
+lemma linear_map.ker_restrict_scalars (f : M →ₗ[S] N) :
+  (f.restrict_scalars R).ker = f.ker.restrict_scalars R :=
+rfl
+
+end semimodule
+
+end restrict_scalars
+
+namespace submodule
+
+variables (R A M : Type*)
+variables [comm_semiring R] [semiring A] [algebra R A] [add_comm_monoid M]
+variables [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
 
 /-- If `A` is an `R`-algebra such that the induced morhpsim `R →+* A` is surjective, then the
 `R`-module generated by a set `X` equals the `A`-module generated by `X`. -/
@@ -1449,12 +1503,3 @@ begin
 end
 
 end submodule
-
-@[simp]
-lemma linear_map.ker_restrict_scalars (f : M →ₗ[A] N) :
-  (f.restrict_scalars R).ker = submodule.restrict_scalars R f.ker :=
-rfl
-
-end semimodule
-
-end restrict_scalars

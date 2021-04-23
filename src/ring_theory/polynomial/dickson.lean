@@ -7,7 +7,7 @@ Authors: Julian Kuelshammer
 import ring_theory.polynomial.chebyshev
 import ring_theory.localization
 import data.zmod.basic
-import algebra.invertible
+import algebra.char_p.invertible
 
 
 /-!
@@ -211,8 +211,7 @@ begin
     suffices : (set.univ : set K) =
       {x : K | ∃ (y : K), x = y + y⁻¹ ∧ y ≠ 0} >>= (λ x, {y | x = y + y⁻¹ ∨ y = 0}),
     { rw this, clear this,
-      apply set.finite_bUnion h,
-      rintro x hx,
+      refine h.bUnion (λ x hx, _),
       -- The following quadratic polynomial has as solutions the `y` for which `x = y + y⁻¹`.
       let φ : polynomial K := X ^ 2 - C x * X + 1,
       have hφ : φ ≠ 0,

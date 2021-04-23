@@ -73,28 +73,28 @@ lemma div_nonpos_iff : a / b ≤ 0 ↔ 0 ≤ a ∧ b ≤ 0 ∨ a ≤ 0 ∧ 0 ≤
 by simp [division_def, mul_nonpos_iff]
 
 lemma div_pos (ha : 0 < a) (hb : 0 < b) : 0 < a / b :=
-mul_pos ha (inv_pos.2 hb)
+div_pos_iff.2 $ or.inl ⟨ha, hb⟩
 
 lemma div_pos_of_neg_of_neg (ha : a < 0) (hb : b < 0) : 0 < a / b :=
-mul_pos_of_neg_of_neg ha (inv_lt_zero.2 hb)
+div_pos_iff.2 $ or.inr ⟨ha, hb⟩
 
 lemma div_neg_of_neg_of_pos (ha : a < 0) (hb : 0 < b) : a / b < 0 :=
-mul_neg_of_neg_of_pos ha (inv_pos.2 hb)
+div_neg_iff.2 $ or.inr ⟨ha, hb⟩
 
 lemma div_neg_of_pos_of_neg (ha : 0 < a) (hb : b < 0) : a / b < 0 :=
-mul_neg_of_pos_of_neg ha (inv_lt_zero.2 hb)
+div_neg_iff.2 $ or.inl ⟨ha, hb⟩
 
 lemma div_nonneg (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a / b :=
-mul_nonneg ha (inv_nonneg.2 hb)
+div_nonneg_iff.2 $ or.inl ⟨ha, hb⟩
 
 lemma div_nonneg_of_nonpos (ha : a ≤ 0) (hb : b ≤ 0) : 0 ≤ a / b :=
-mul_nonneg_of_nonpos_of_nonpos ha (inv_nonpos.2 hb)
+div_nonneg_iff.2 $ or.inr ⟨ha, hb⟩
 
 lemma div_nonpos_of_nonpos_of_nonneg (ha : a ≤ 0) (hb : 0 ≤ b) : a / b ≤ 0 :=
-mul_nonpos_of_nonpos_of_nonneg ha (inv_nonneg.2 hb)
+div_nonpos_iff.2 $ or.inr ⟨ha, hb⟩
 
 lemma div_nonpos_of_nonneg_of_nonpos (ha : 0 ≤ a) (hb : b ≤ 0) : a / b ≤ 0 :=
-mul_nonpos_of_nonneg_of_nonpos ha (inv_nonpos.2 hb)
+div_nonpos_iff.2 $ or.inl ⟨ha, hb⟩
 
 /-!
 ### Relating one division with another term.
@@ -342,7 +342,7 @@ lemma div_lt_div_right_of_neg (hc : c < 0) : a / c < b / c ↔ b < a :=
 lt_iff_lt_of_le_iff_le $ div_le_div_right_of_neg hc
 
 lemma div_lt_div_left (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) : a / b < a / c ↔ c < b :=
-(mul_lt_mul_left ha).trans (inv_lt_inv hb hc)
+by simp only [div_eq_mul_inv, mul_lt_mul_left ha, inv_lt_inv hb hc]
 
 lemma div_le_div_left (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) : a / b ≤ a / c ↔ c ≤ b :=
 le_iff_le_iff_lt_iff_lt.2 (div_lt_div_left ha hc hb)
@@ -540,6 +540,14 @@ by { rw [div_lt_iff (@zero_lt_two α _ _)], exact lt_mul_of_one_lt_right h one_l
 
 lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
+lemma half_le_self (ha_nonneg : 0 ≤ a) : a / 2 ≤ a :=
+begin
+  by_cases h0 : a = 0,
+  { simp [h0], },
+  { rw ← ne.def at h0,
+    exact (half_lt_self (lt_of_le_of_ne ha_nonneg h0.symm)).le, },
+end
+
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
 lemma add_sub_div_two_lt (h : a < b) : a + (b - a) / 2 < b :=
@@ -603,12 +611,12 @@ end
 
 lemma monotone.div_const {β : Type*} [preorder β] {f : β → α} (hf : monotone f)
   {c : α} (hc : 0 ≤ c) : monotone (λ x, (f x) / c) :=
-hf.mul_const (inv_nonneg.2 hc)
+by simpa only [div_eq_mul_inv] using hf.mul_const (inv_nonneg.2 hc)
 
 lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : strict_mono f)
   {c : α} (hc : 0 < c) :
   strict_mono (λ x, (f x) / c) :=
-hf.mul_const (inv_pos.2 hc)
+by simpa only [div_eq_mul_inv] using hf.mul_const (inv_pos.2 hc)
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_densely_ordered : densely_ordered α :=

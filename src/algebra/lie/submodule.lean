@@ -337,7 +337,7 @@ def hom_of_le : N →ₗ⁅R,L⁆ N' :=
 lemma hom_of_le_apply (m : N) : hom_of_le h m = ⟨m.1, h m.2⟩ := rfl
 
 lemma hom_of_le_injective : function.injective (hom_of_le h) :=
-λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, submodule.coe_eq_coe,
+λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, set_like.coe_eq_coe,
   subtype.val_eq_coe]
 
 end inclusion_maps
@@ -441,7 +441,7 @@ def comap : lie_ideal R L :=
 
 @[simp] lemma map_coe_submodule (h : ↑(map f I) = f '' I) :
   (map f I : submodule R L') = (I : submodule R L).map f :=
-by { rw [submodule.ext'_iff, lie_submodule.coe_to_submodule, h, submodule.map_coe], refl, }
+by { rw [set_like.ext'_iff, lie_submodule.coe_to_submodule, h, submodule.map_coe], refl, }
 
 @[simp] lemma comap_coe_submodule : (comap f J : submodule R L) = (J : submodule R L').comap f :=
 rfl
@@ -506,10 +506,14 @@ variables (f : L →ₗ⁅R⁆ L') (I : lie_ideal R L) (J : lie_ideal R L')
 def ker : lie_ideal R L := lie_ideal.comap f ⊥
 
 /-- The range of a morphism of Lie algebras as an ideal in the codomain. -/
-def ideal_range : lie_ideal R L' := lie_ideal.map f ⊤
+def ideal_range : lie_ideal R L' := lie_submodule.lie_span R L' f.range
 
 lemma ideal_range_eq_lie_span_range :
   f.ideal_range = lie_submodule.lie_span R L' f.range := rfl
+
+lemma ideal_range_eq_map :
+  f.ideal_range = lie_ideal.map f ⊤ :=
+by { ext, simp only [ideal_range, range_eq_map], refl }
 
 /-- The condition that the image of a morphism of Lie algebras is an ideal. -/
 def is_ideal_morphism : Prop := (f.ideal_range : lie_subalgebra R L') = f.range
@@ -532,7 +536,11 @@ end
 
 lemma range_subset_ideal_range : (f.range : set L') ⊆ f.ideal_range := lie_submodule.subset_lie_span
 
-lemma map_le_ideal_range : I.map f ≤ f.ideal_range := lie_ideal.map_mono le_top
+lemma map_le_ideal_range : I.map f ≤ f.ideal_range :=
+begin
+  rw f.ideal_range_eq_map,
+  exact lie_ideal.map_mono le_top,
+end
 
 lemma ker_le_comap : f.ker ≤ J.comap f := lie_ideal.comap_mono bot_le
 
@@ -542,7 +550,11 @@ lemma ker_le_comap : f.ker ≤ J.comap f := lie_ideal.comap_mono bot_le
 show x ∈ (f.ker : submodule R L) ↔ _,
 by simp only [ker_coe_submodule, linear_map.mem_ker, coe_to_linear_map]
 
-lemma mem_ideal_range {x : L} : f x ∈ ideal_range f := lie_ideal.mem_map (lie_submodule.mem_top x)
+lemma mem_ideal_range {x : L} : f x ∈ ideal_range f :=
+begin
+  rw ideal_range_eq_map,
+  exact lie_ideal.mem_map (lie_submodule.mem_top x)
+end
 
 @[simp] lemma mem_ideal_range_iff (h : is_ideal_morphism f) {y : L'} :
   y ∈ ideal_range f ↔ ∃ (x : L), f x = y :=
@@ -557,9 +569,6 @@ begin
   { specialize h hx, rw mem_ker at h, exact h, },
   { rw mem_ker, apply h x hx, },
 end
-
-@[simp] lemma map_bot_iff : I.map f = ⊥ ↔ I ≤ f.ker :=
-by { rw ← le_bot_iff, exact lie_ideal.map_le_iff_le_comap, }
 
 lemma ker_eq_bot : f.ker = ⊥ ↔ function.injective f :=
 by rw [← lie_submodule.coe_to_submodule_eq_iff, ker_coe_submodule, lie_submodule.bot_coe_submodule,
@@ -594,6 +603,9 @@ namespace lie_ideal
 
 variables {f : L →ₗ⁅R⁆ L'} {I : lie_ideal R L} {J : lie_ideal R L'}
 
+@[simp] lemma map_eq_bot_iff : I.map f = ⊥ ↔ I ≤ f.ker :=
+by { rw ← le_bot_iff, exact lie_ideal.map_le_iff_le_comap }
+
 lemma coe_map_of_surjective (h : function.surjective f) :
   (I.map f : submodule R L') = (I : submodule R L).map f :=
 begin
@@ -603,7 +615,7 @@ begin
       have hy' : ∃ (x : L), x ∈ I ∧ f x = y, { simpa [hy], },
       obtain ⟨z₂, hz₂, rfl⟩ := hy',
       obtain ⟨z₁, rfl⟩ := h x,
-      simp only [lie_hom.coe_to_linear_map, submodule.mem_coe, set.mem_image,
+      simp only [lie_hom.coe_to_linear_map, set_like.mem_coe, set.mem_image,
         lie_submodule.mem_coe_submodule, submodule.mem_carrier, submodule.map_coe],
       use ⁅z₁, z₂⁆,
       exact ⟨I.lie_mem hz₂, f.map_lie z₁ z₂⟩,
@@ -644,7 +656,7 @@ lemma hom_of_le_apply {I₁ I₂ : lie_ideal R L} (h : I₁ ≤ I₂) (x : I₁)
 
 lemma hom_of_le_injective {I₁ I₂ : lie_ideal R L} (h : I₁ ≤ I₂) :
   function.injective (hom_of_le h) :=
-λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, submodule.coe_eq_coe,
+λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, set_like.coe_eq_coe,
   subtype.val_eq_coe]
 
 @[simp] lemma map_sup_ker_eq_map : lie_ideal.map f (I ⊔ f.ker) = lie_ideal.map f I :=
@@ -663,7 +675,7 @@ begin
   { rw le_inf_iff, exact ⟨f.map_le_ideal_range _, map_comap_le⟩, },
   { rw f.is_ideal_morphism_def at h,
     rw [lie_submodule.le_def, lie_submodule.inf_coe, ← coe_to_subalgebra, h],
-    rintros y ⟨⟨x, h₁, h₂⟩, h₃⟩, rw ← h₂ at h₃ ⊢, exact mem_map h₃, },
+    rintros y ⟨⟨x, h₁⟩, h₂⟩, rw ← h₁ at h₂ ⊢, exact mem_map h₂, },
 end
 
 @[simp] lemma comap_map_eq (h : ↑(map f I) = f '' I) : comap f (map f I) = I ⊔ f.ker :=

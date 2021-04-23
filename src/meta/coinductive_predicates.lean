@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl (CMU)
+Authors: Johannes Hölzl (CMU)
 -/
 import tactic.core
 
@@ -9,7 +9,8 @@ section
 universe u
 
 @[user_attribute]
-meta def monotonicity : user_attribute := { name := `monotonicity, descr := "Monotonicity rules for predicates" }
+meta def monotonicity : user_attribute :=
+{ name := `monotonicity, descr := "Monotonicity rules for predicates" }
 
 lemma monotonicity.pi {α : Sort u} {p q : α → Prop} (h : ∀a, implies (p a) (q a)) :
   implies (Πa, p a) (Πa, q a) :=
@@ -73,8 +74,10 @@ private meta def mono_aux (ns : list name) (hs : list expr) : tactic unit := do
         let q' := qb.lower_vars 0 1,
         eapply ((const `monotonicity.imp []: expr) pd p' qd q'),
         skip))) <|>
-  first (hs.map $ λh, apply_core h {md := transparency.none, new_goals := new_goals.non_dep_only} >> skip) <|>
-  first (ns.map $ λn, do c ← mk_const n, apply_core c {md := transparency.none, new_goals := new_goals.non_dep_only}, skip),
+  first (hs.map $ λh,
+    apply_core h {md := transparency.none, new_goals := new_goals.non_dep_only} >> skip) <|>
+  first (ns.map $ λn, do c ← mk_const n,
+    apply_core c {md := transparency.none, new_goals := new_goals.non_dep_only}, skip),
   all_goals' mono_aux
 
 meta def mono (e : expr) (hs : list expr) : tactic unit := do
@@ -112,7 +115,8 @@ where
   def {u} pred_i (A) (a) : Prop :=
   ∃[pred'], (Λi, ∀a, pred_i a → pred_i.functional A [pred] a) ∧ pred'_i a
 
-  lemma {u} pred_i.corec_functional (A) [Λi, C_i : a_i → Prop] [Λi, h : ∀a, C_i a → pred_i.functional A C_i a] :
+  lemma {u} pred_i.corec_functional (A) [Λi, C_i : a_i → Prop]
+    [Λi, h : ∀a, C_i a → pred_i.functional A C_i a] :
     ∀a, C_i a → pred_i A a
 
   lemma {u} pred_i.destruct (A) (a) : pred A a → pred.functional A [pred A] a
@@ -278,7 +282,8 @@ meta def add_coinductive_predicate
       let t := instantiate_local pd.f₂.local_uniq_name (pd.func_g.app_of_list fs₁) r.loc_type,
       return (r.func_nm, r.orig_nm, t.pis $ params ++ fs₁)),
     add_inductive pd.func.const_name u_names
-      (params.length + preds.length) (pd.type.pis $ params ++ fs₁) (func_intros.map $ λ⟨t, _, r⟩, (t, r)),
+      (params.length + preds.length) (pd.type.pis $ params ++ fs₁)
+        (func_intros.map $ λ⟨t, _, r⟩, (t, r)),
 
     /- Prove monotonicity rule -/
     mono_params ← pds.mmap (λpd, do
@@ -292,15 +297,16 @@ meta def add_coinductive_predicate
         [f₁, f₂, h] ← intro_lst [pd.f₁.local_pp_name, pd.f₂.local_pp_name, `h],
         -- the type of h' reduces to h
         let h' := local_const h.local_uniq_name h.local_pp_name h.local_binding_info $
-          (((const `implies [] : expr)
-            (f₁.app_of_list pd.locals) (f₂.app_of_list pd.locals)).pis pd.locals).instantiate_locals $
+          (((const `implies [] : expr) (f₁.app_of_list pd.locals)
+            (f₂.app_of_list pd.locals)).pis pd.locals).instantiate_locals $
           (ps.zip params).map $ λ⟨lv, p⟩, (p.local_uniq_name, lv),
         return (f₂, h')),
       m ← pd.rec',
       eapply $ m.app_of_list ps, -- somehow `induction` / `cases` doesn't work?
       func_intros.mmap' (λ⟨n, pp_n, t⟩, solve1 $ do
         bs ← intros,
-        ms ← apply_core ((const n u_params).app_of_list $ ps ++ fs.map prod.fst) {new_goals := new_goals.all},
+        ms ← apply_core
+          ((const n u_params).app_of_list $ ps ++ fs.map prod.fst) {new_goals := new_goals.all},
         params ← (ms.zip bs).enum.mfilter (λ⟨n, m, d⟩, bnot <$> is_assigned m.2),
         params.mmap' (λ⟨n, m, d⟩, mono d (fs.map prod.snd) <|>
           fail format! "failed to prove montonoicity of {n+1}. parameter of intro-rule {pp_n}")))),
@@ -435,7 +441,8 @@ meta def add_coinductive_predicate
       ps ← intro_lst $ params.map local_pp_name,
       bs ← intros,
       eapply $ pd.construct,
-      exact $ (const r.func_nm u_params).app_of_list $ ps ++ pds.map (λpd, pd.pred.app_of_list ps) ++ bs)),
+      exact $ (const r.func_nm u_params).app_of_list $
+        ps ++ pds.map (λpd, pd.pred.app_of_list ps) ++ bs)),
 
   pds.mmap' (λpd:coind_pred, set_basic_attribute `irreducible pd.pd_name),
 
@@ -445,16 +452,16 @@ open lean.parser
 open interactive
 
 @[user_command]
-meta def coinductive_predicate (meta_info : decl_meta_info) (_ : parse $ tk "coinductive") : lean.parser unit := do
-  decl ← inductive_decl.parse meta_info,
+meta def coinductive_predicate (meta_info : decl_meta_info) (_ : parse $ tk "coinductive") :
+  lean.parser unit := do
+{ decl ← inductive_decl.parse meta_info,
   add_coinductive_predicate decl.u_names decl.params $ decl.decls.map $ λ d, (d.sig, d.intros),
-  decl.decls.mmap' $ λ d, do {
-    get_env >>= λ env, set_env $ env.add_namespace d.name,
+  decl.decls.mmap' $ λ d, do
+  { get_env >>= λ env, set_env $ env.add_namespace d.name,
     meta_info.attrs.apply d.name,
     d.attrs.apply d.name,
     some doc_string ← pure meta_info.doc_string | skip,
-    add_doc_string d.name doc_string
-  }
+    add_doc_string d.name doc_string } }
 
 /-- Prepares coinduction proofs. This tactic constructs the coinduction invariant from
 the quantifiers in the current goal.
@@ -485,7 +492,8 @@ do
     exact (rel.lambdas is)),
   -- prove predicate
   solve1 (do
-    target >>= instantiate_mvars >>= change, -- TODO: bug in existsi & constructor when mvars in hyptohesis
+    target >>= instantiate_mvars >>= change,
+    -- TODO: bug in existsi & constructor when mvars in hyptohesis
     bs.mmap existsi,
     iterate' (econstructor >> skip)),
 

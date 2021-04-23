@@ -74,7 +74,7 @@ begin
   have key := minpoly.aeval A x,
   rw [eq_X_add_C_of_degree_eq_one hx, (minpoly.monic h).leading_coeff, C_1, one_mul, aeval_add,
       aeval_C, aeval_X, ←eq_neg_iff_add_eq_zero, ←ring_hom.map_neg] at key,
-  exact ⟨-(minpoly A x).coeff 0, subring.mem_top (-(minpoly A x).coeff 0), key.symm⟩,
+  exact ⟨-(minpoly A x).coeff 0, key.symm⟩,
 end
 
 /--The defining property of the minimal polynomial of an element x:
@@ -290,11 +290,10 @@ by { refine minpoly.dvd K x _, rw [← is_scalar_tower.aeval_apply, minpoly.aeva
 
 variables {A x}
 
-theorem unique' [nontrivial B] {p : polynomial A} (hx : is_integral A x)
-  (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval x p = 0) (hp3 : p.monic) :
-  p = minpoly A x :=
+theorem unique' [nontrivial B] {p : polynomial A} (hp1 : _root_.irreducible p)
+  (hp2 : polynomial.aeval x p = 0) (hp3 : p.monic) : p = minpoly A x :=
 let ⟨q, hq⟩ := dvd A x hp2 in
-eq_of_monic_of_associated hp3 (monic hx) $
+eq_of_monic_of_associated hp3 (monic ⟨p, ⟨hp3, hp2⟩⟩) $
 mul_one (minpoly A x) ▸ hq.symm ▸ associated_mul_mul (associated.refl _) $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit A x
 
@@ -323,7 +322,7 @@ lemma gcd_domain_eq_field_fractions {A K R : Type*} [integral_domain A]
   [algebra A R] [is_scalar_tower A f.codomain R] {x : R} (hx : is_integral A x) :
   minpoly f.codomain x = (minpoly A x).map (localization_map.to_ring_hom f) :=
 begin
-  refine (unique' (@is_integral_of_is_scalar_tower A f.codomain R _ _ _ _ _ _ _ x hx) _ _ _).symm,
+  refine (unique' _ _ _).symm,
   { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map f
   (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
   { have htower := is_scalar_tower.aeval_apply A f.codomain R x (minpoly A x),
@@ -339,7 +338,7 @@ lemma over_int_eq_over_rat {A : Type*} [integral_domain A] {x : A} [hℚA : alge
   (hx : is_integral ℤ x) :
   minpoly ℚ x = map (int.cast_ring_hom ℚ) (minpoly ℤ x) :=
 begin
-  refine (unique' (@is_integral_of_is_scalar_tower ℤ ℚ A _ _ _ _ _ _ _ x hx) _ _ _).symm,
+  refine (unique' _ _ _).symm,
   { exact (is_primitive.int.irreducible_iff_irreducible_map_cast
   (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
   { have htower := is_scalar_tower.aeval_apply ℤ ℚ A x (minpoly ℤ x),

@@ -614,10 +614,12 @@ by induction l; [refl, simp only [*, reverse_cons, mem_append, mem_singleton, me
 eq_repeat.2 ⟨by simp only [length_reverse, length_repeat],
   λ b h, eq_of_mem_repeat (mem_reverse.1 h)⟩
 
-/-! ### is_nil -/
+/-! ### empty -/
 
-lemma is_nil_iff_eq_nil {l : list α} : l.is_nil ↔ l = [] :=
-list.cases_on l (by simp [is_nil]) (by simp [is_nil])
+attribute [simp] list.empty
+
+lemma empty_iff_eq_nil {l : list α} : l.empty ↔ l = [] :=
+list.cases_on l (by simp) (by simp)
 
 /-! ### init -/
 
@@ -988,7 +990,7 @@ begin
 end
 
 theorem index_of_lt_length {a} {l : list α} : index_of a l < length l ↔ a ∈ l :=
-⟨λh, by_contradiction $ λ al, ne_of_lt h $ index_of_eq_length.2 al,
+⟨λh, decidable.by_contradiction $ λ al, ne_of_lt h $ index_of_eq_length.2 al,
 λal, lt_of_le_of_ne index_of_le_length $ λ h, index_of_eq_length.1 h al⟩
 
 end index_of
@@ -1941,6 +1943,50 @@ begin
     apply hl _ (list.mem_cons_self _ _) }
 end
 
+/-- Induction principle for values produced by a `foldr`: if a property holds
+for the seed element `b : β` and for all incremental `op : α → β → β`
+performed on the elements `(a : α) ∈ l`. The principle is given for
+a `Sort`-valued predicate, i.e., it can also be used to construct data. -/
+def foldr_rec_on {C : β → Sort*} (l : list α) (op : α → β → β) (b : β) (hb : C b)
+  (hl : ∀ (b : β) (hb : C b) (a : α) (ha : a ∈ l), C (op a b)) :
+  C (foldr op b l) :=
+begin
+  induction l with hd tl IH,
+  { exact hb },
+  { refine hl _ _ hd (mem_cons_self hd tl),
+    refine IH _,
+    intros y hy x hx,
+    exact hl y hy x (mem_cons_of_mem hd hx) }
+end
+
+/-- Induction principle for values produced by a `foldl`: if a property holds
+for the seed element `b : β` and for all incremental `op : β → α → β`
+performed on the elements `(a : α) ∈ l`. The principle is given for
+a `Sort`-valued predicate, i.e., it can also be used to construct data. -/
+def foldl_rec_on {C : β → Sort*} (l : list α) (op : β → α → β) (b : β) (hb : C b)
+  (hl : ∀ (b : β) (hb : C b) (a : α) (ha : a ∈ l), C (op b a)) :
+  C (foldl op b l) :=
+begin
+  induction l with hd tl IH generalizing b,
+  { exact hb },
+  { refine IH _ _ _,
+    { intros y hy x hx,
+      exact hl y hy x (mem_cons_of_mem hd hx) },
+    { exact hl b hb hd (mem_cons_self hd tl) } }
+end
+
+@[simp] lemma foldr_rec_on_nil {C : β → Sort*} (op : α → β → β) (b) (hb : C b) (hl) :
+  foldr_rec_on [] op b hb hl = hb := rfl
+
+@[simp] lemma foldr_rec_on_cons {C : β → Sort*} (x : α) (l : list α)
+  (op : α → β → β) (b) (hb : C b)
+  (hl : ∀ (b : β) (hb : C b) (a : α) (ha : a ∈ (x :: l)), C (op a b)) :
+  foldr_rec_on (x :: l) op b hb hl = hl _ (foldr_rec_on l op b hb
+    (λ b hb a ha, hl b hb a (mem_cons_of_mem _ ha))) x (mem_cons_self _ _) := rfl
+
+@[simp] lemma foldl_rec_on_nil {C : β → Sort*} (op : β → α → β) (b) (hb : C b) (hl) :
+  foldl_rec_on [] op b hb hl = hb := rfl
+
 /- scanl -/
 
 section scanl
@@ -2466,12 +2512,22 @@ end
 
 attribute [simp] join
 
-theorem join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
+@[simp] theorem join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
 | []     := iff_of_true rfl (forall_mem_nil _)
 | (l::L) := by simp only [join, append_eq_nil, join_eq_nil, forall_mem_cons]
 
 @[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; [refl, simp only [*, join, cons_append, append_assoc]]
+
+@[simp] theorem join_filter_empty_eq_ff [decidable_pred (λ l : list α, l.empty = ff)] :
+  ∀ {L : list (list α)}, join (L.filter (λ l, l.empty = ff)) = L.join
+| [] := rfl
+| ([]::L) := by simp [@join_filter_empty_eq_ff L]
+| ((a::l)::L) := by simp [@join_filter_empty_eq_ff L]
+
+@[simp] theorem join_filter_ne_nil [decidable_pred (λ l : list α, l ≠ [])] {L : list (list α)} :
+  join (L.filter (λ l, l ≠ [])) = L.join :=
+by simp [join_filter_empty_eq_ff, ← empty_iff_eq_nil]
 
 lemma join_join (l : list (list (list α))) : l.join.join = (l.map join).join :=
 by { induction l, simp, simp [l_ih] }
@@ -3185,7 +3241,8 @@ variable (p)
 theorem filter_sublist_filter {l₁ l₂} (s : l₁ <+ l₂) : filter p l₁ <+ filter p l₂ :=
 filter_map_eq_filter p ▸ s.filter_map _
 
-theorem filter_of_map (f : β → α) (l) : filter p (map f l) = map f (filter (p ∘ f) l) :=
+theorem map_filter (f : β → α) (l : list β) :
+  filter p (map f l) = map f (filter (p ∘ f) l) :=
 by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 
 @[simp] theorem filter_filter (q) [decidable_pred q] : ∀ l,
@@ -3288,7 +3345,7 @@ by simp only [count, countp_pos, exists_prop, exists_eq_right']
 
 @[simp, priority 980]
 theorem count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
-by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
+decidable.by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 
 theorem not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
 λ h', ne_of_gt (count_pos.2 h') h
@@ -3441,6 +3498,19 @@ theorem suffix_or_suffix_of_suffix {l₁ l₂ l₃ : list α}
  (h₁ : l₁ <:+ l₃) (h₂ : l₂ <:+ l₃) : l₁ <:+ l₂ ∨ l₂ <:+ l₁ :=
 (prefix_or_prefix_of_prefix (reverse_prefix.2 h₁) (reverse_prefix.2 h₂)).imp
   reverse_prefix.1 reverse_prefix.1
+
+theorem suffix_cons_iff {x : α} {l₁ l₂ : list α} :
+  l₁ <:+ x :: l₂ ↔ l₁ = x :: l₂ ∨ l₁ <:+ l₂ :=
+begin
+  split,
+  { rintro ⟨⟨hd, tl⟩, hl₃⟩,
+    { exact or.inl hl₃ },
+    { simp only [cons_append] at hl₃,
+      exact or.inr ⟨_, hl₃.2⟩ } },
+  { rintro (rfl | hl₁),
+    { exact (x :: l₂).suffix_refl },
+    { exact hl₁.trans (l₂.suffix_cons _) } }
+end
 
 theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: join L
 | (_  :: L) l (or.inl rfl) := infix_append [] _ _

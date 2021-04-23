@@ -153,6 +153,14 @@ end
 
 variable [decidable_eq α]
 
+lemma support_pow_coprime {σ : perm α} {n : ℕ} (h : nat.coprime n (order_of σ)) :
+  (σ ^ n).support = σ.support :=
+begin
+  obtain ⟨m, hm⟩ := exists_pow_eq_self_of_coprime h,
+  exact le_antisymm (support_pow_le σ n) (le_trans (ge_of_eq (congr_arg support hm))
+    (support_pow_le (σ ^ n) m)),
+end
+
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/
 def is_swap (f : perm α) : Prop := ∃ x y, x ≠ y ∧ f = swap x y
 

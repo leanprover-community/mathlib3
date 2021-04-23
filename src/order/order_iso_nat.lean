@@ -90,7 +90,7 @@ begin
     simp },
   { refine ⟨(nat.subtype.order_iso_of_nat s).symm ⟨x, h⟩, _⟩,
     simp only [rel_embedding.coe_trans, rel_embedding.order_embedding_of_lt_embedding_apply,
-      rel_embedding.nat_lt_apply, function.comp_app, order_embedding.coe_subtype],
+      rel_embedding.nat_lt_apply, function.comp_app, order_embedding.subtype_apply],
     rw [← subtype.order_iso_of_nat_apply, order_iso.apply_symm_apply, subtype.coe_mk] }
 end
 

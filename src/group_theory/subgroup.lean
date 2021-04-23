@@ -151,6 +151,9 @@ lemma mem_carrier {s : subgroup G} {x : G} : x ∈ s.carrier ↔ x ∈ s := iff.
 @[simp, to_additive]
 lemma coe_to_submonoid (K : subgroup G) : (K.to_submonoid : set G) = K := rfl
 
+@[simp, to_additive]
+lemma mem_to_submonoid (K : subgroup G) (x : G) : x ∈ K.to_submonoid ↔ x ∈ K := iff.rfl
+
 @[to_additive]
 instance (K : subgroup G) [d : decidable_pred (∈ K)] [fintype G] : fintype K :=
 show fintype {g : G // g ∈ K}, from infer_instance
@@ -311,7 +314,7 @@ monoid_hom.mk' (λ x, ⟨x, h x.prop⟩) (λ ⟨a, ha⟩  ⟨b, hb⟩, rfl)
 
 @[simp, to_additive]
 lemma coe_inclusion {H K : subgroup G} {h : H ≤ K} (a : H) : (inclusion h a : G) = a :=
-by { cases a, simp only [inclusion, coe_mk, monoid_hom.coe_mk'] }
+by { cases a, simp only [inclusion, coe_mk, monoid_hom.mk'_apply] }
 
 @[simp, to_additive]
 lemma subtype_comp_inclusion {H K : subgroup G} (hH : H ≤ K) :
@@ -619,6 +622,52 @@ end
 lemma closure_singleton_one : closure ({1} : set G) = ⊥ :=
 by simp [eq_bot_iff_forall, mem_closure_singleton]
 
+@[simp, to_additive] lemma inv_subset_closure (S : set G) : S⁻¹ ⊆ closure S :=
+begin
+  intros s hs,
+  rw [set_like.mem_coe, ←subgroup.inv_mem_iff],
+  exact subset_closure (mem_inv.mp hs),
+end
+
+@[simp, to_additive] lemma closure_inv (S : set G) : closure S⁻¹ = closure S :=
+begin
+  refine le_antisymm ((subgroup.closure_le _).2 _) ((subgroup.closure_le _).2 _),
+  { exact inv_subset_closure S },
+  { simpa only [set.inv_inv] using inv_subset_closure S⁻¹ },
+end
+
+@[to_additive]
+lemma closure_to_submonoid (S : set G) :
+  (closure S).to_submonoid = submonoid.closure (S ∪ S⁻¹) :=
+begin
+  refine le_antisymm _ (submonoid.closure_le.2 _),
+  { intros x hx,
+    refine closure_induction hx (λ x hx, submonoid.closure_mono (subset_union_left S S⁻¹)
+      (submonoid.subset_closure hx)) (submonoid.one_mem _) (λ x y hx hy, submonoid.mul_mem _ hx hy)
+      (λ x hx, _),
+    rwa [←submonoid.mem_closure_inv, set.union_inv, set.inv_inv, set.union_comm] },
+  { simp only [true_and, coe_to_submonoid, union_subset_iff, subset_closure, inv_subset_closure] }
+end
+
+/-- An induction principle for closure membership. If `p` holds for `1` and all elements of
+`k` and their inverse, and is preserved under multiplication, then `p` holds for all elements of
+the closure of `k`. -/
+@[to_additive "An induction principle for additive closure membership. If `p` holds for `0` and all
+elements of `k` and their negation, and is preserved under addition, then `p` holds for all
+elements of the additive closure of `k`."]
+lemma closure_induction'' {p : G → Prop} {x} (h : x ∈ closure k)
+  (Hk : ∀ x ∈ k, p x) (Hk_inv : ∀ x ∈ k, p x⁻¹) (H1 : p 1)
+  (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
+begin
+  rw [← mem_to_submonoid, closure_to_submonoid k] at h,
+  refine submonoid.closure_induction h (λ x hx, _) H1 (λ x y hx hy, Hmul x y hx hy),
+  { rw [mem_union, mem_inv] at hx,
+    cases hx with mem invmem,
+    { exact Hk x mem },
+    { rw [← inv_inv x],
+      exact Hk_inv _ invmem } },
+end
+
 @[to_additive]
 lemma mem_supr_of_directed {ι} [hι : nonempty ι] {K : ι → subgroup G} (hK : directed (≤) K)
   {x : G} :
@@ -861,8 +910,8 @@ instance center_normal : (center G).normal :=
 end⟩
 
 variables {G} (H)
-/-- The `normalizer` of `H` is the smallest subgroup of `G` inside which `H` is normal. -/
-@[to_additive "The `normalizer` of `H` is the smallest subgroup of `G` inside which `H` is normal."]
+/-- The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal. -/
+@[to_additive "The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal."]
 def normalizer : subgroup G :=
 { carrier := {g : G | ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H},
   one_mem' := by simp,
@@ -1096,8 +1145,11 @@ by ext; simp
 homomorphism `G →* N`. -/
 @[to_additive "The canonical surjective `add_group` homomorphism `G →+ f(G)` induced by a group
 homomorphism `G →+ N`."]
-def to_range (f : G →* N) : G →* f.range :=
+def range_restrict (f : G →* N) : G →* f.range :=
 monoid_hom.mk' (λ g, ⟨f g, ⟨g, rfl⟩⟩) $ λ a b, by {ext, exact f.map_mul' _ _}
+
+@[simp, to_additive]
+lemma coe_range_restrict (f : G →* N) (g : G) : (f.range_restrict g : N) = f g := rfl
 
 @[to_additive]
 lemma map_range (g : N →* P) (f : G →* N) : f.range.map g = (g.comp f).range :=
@@ -1147,7 +1199,7 @@ instance decidable_mem_ker [decidable_eq N] (f : G →* N) :
 @[to_additive]
 lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl
 
-@[to_additive] lemma to_range_ker (f : G →* N) : ker (to_range f) = ker f :=
+@[to_additive] lemma range_restrict_ker (f : G →* N) : ker (range_restrict f) = ker f :=
 begin
   ext,
   change (⟨f x, _⟩ : range f) = ⟨1, _⟩ ↔ f x = 1,

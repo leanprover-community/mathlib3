@@ -183,6 +183,17 @@ lemma disjoint_prod_perm {l₁ l₂ : list (perm α)} (hl : l₁.pairwise disjoi
   (hp : l₁ ~ l₂) : l₁.prod = l₂.prod :=
 hp.prod_eq' $ hl.imp $ λ f g, disjoint.mul_comm
 
+lemma nodup_of_pairwise_disjoint {l : list (perm α)} (h1 : (1 : perm α) ∉ l)
+  (h2 : l.pairwise disjoint) : l.nodup :=
+begin
+  refine list.pairwise.imp_of_mem _ h2,
+  rintros σ - h_mem - h_disjoint rfl,
+  suffices : σ = 1,
+  { rw this at h_mem,
+    exact h1 h_mem },
+  exact ext (λ a, (or_self _).mp (h_disjoint a)),
+end
+
 lemma pow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) :
   ∀ n : ℕ, (f ^ n) x = x
 | 0     := rfl
@@ -281,6 +292,14 @@ lemma support_pow_le (σ : perm α) (n : ℤ) :
   (σ ^ n).support ≤ σ.support :=
 λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
 
+lemma support_pow_coprime {σ : perm α} {n : ℕ} (h : nat.coprime n (order_of σ)) :
+  (σ ^ n).support = σ.support :=
+begin
+  obtain ⟨m, hm⟩ := exists_pow_eq_self_of_coprime h,
+  exact le_antisymm (support_pow_le σ n) (le_trans (ge_of_eq (congr_arg support hm))
+    (support_pow_le (σ ^ n) m)),
+end
+
 @[simp] lemma support_inv (σ : perm α) : support (σ⁻¹) = σ.support :=
 by simp_rw [finset.ext_iff, mem_support, not_iff_not,
   (inv_eq_iff_eq).trans eq_comm, iff_self, imp_true_iff]
@@ -289,6 +308,24 @@ by simp_rw [finset.ext_iff, mem_support, not_iff_not,
 lemma apply_mem_support {f : perm α} {x : α} :
   f x ∈ f.support ↔ x ∈ f.support :=
 by rw [mem_support, mem_support, ne.def, ne.def, not_iff_not, apply_eq_iff_eq]
+
+@[simp]
+lemma pow_apply_mem_support {f : perm α} {n : ℕ} {x : α} :
+  (f ^ n) x ∈ f.support ↔ x ∈ f.support :=
+begin
+  induction n with n ih,
+  { refl },
+  rw [pow_succ, perm.mul_apply, apply_mem_support, ih]
+end
+
+@[simp]
+lemma gpow_apply_mem_support {f : perm α} {n : ℤ} {x : α} :
+  (f ^ n) x ∈ f.support ↔ x ∈ f.support :=
+begin
+  cases n,
+  { rw [int.of_nat_eq_coe, gpow_coe_nat, pow_apply_mem_support] },
+  { rw [gpow_neg_succ_of_nat, ← support_inv, ← inv_pow, pow_apply_mem_support] }
+end
 
 end fintype
 
@@ -416,15 +453,12 @@ begin
       (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
 end
 
-lemma closure_swaps_eq_top [fintype α] :
-  subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
+lemma closure_is_swap [fintype α] : subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
 begin
-  ext σ,
-  simp only [subgroup.mem_top, iff_true],
-  apply swap_induction_on σ,
-  { exact subgroup.one_mem _ },
-  { intros σ a b ab hσ,
-    refine subgroup.mul_mem _ (subgroup.subset_closure ⟨_, _, ab, rfl⟩) hσ }
+  refine eq_top_iff.mpr (λ x hx, _),
+  obtain ⟨h1, h2⟩ := subtype.mem (trunc_swap_factors x).out,
+  rw ← h1,
+  exact subgroup.list_prod_mem _ (λ y hy, subgroup.subset_closure (h2 y hy)),
 end
 
 /-- Like `swap_induction_on`, but with the composition on the right of `f`.

@@ -126,11 +126,7 @@ lemma mul_def : (p * q) = p.sum (λ m a, q.sum $ λ n b, monomial (m + n) (a * b
 
 /-- `C a` is the constant polynomial with value `a` -/
 def C : R →+* mv_polynomial σ R :=
-{ to_fun := monomial 0,
-  map_zero' := by simp [monomial],
-  map_one' := rfl,
-  map_add' := λ a a', single_add,
-  map_mul' := λ a a', by simp [monomial, single_mul_single] }
+{ to_fun := monomial 0, ..single_zero_ring_hom }
 
 variables (R σ)
 theorem algebra_map_eq : algebra_map R (mv_polynomial σ R) = C := rfl
@@ -181,32 +177,15 @@ infinite.of_injective C (C_injective _ _)
 instance infinite_of_nonempty (σ : Type*) (R : Type*) [nonempty σ] [comm_semiring R]
   [nontrivial R] :
   infinite (mv_polynomial σ R) :=
-infinite.of_injective (λ i : ℕ, monomial (single (classical.arbitrary σ) i) 1)
-begin
-  intros m n h,
-  have := (single_eq_single_iff _ _ _ _).mp h,
-  simp only [and_true, eq_self_iff_true, or_false, one_ne_zero, and_self,
-             single_eq_single_iff, eq_self_iff_true, true_and] at this,
-  rcases this with (rfl|⟨rfl, rfl⟩); refl
-end
+infinite.of_injective ((λ s : σ →₀ ℕ, monomial s 1) ∘ single (classical.arbitrary σ)) $
+  function.injective.comp
+    (λ m n, (finsupp.single_left_inj one_ne_zero).mp) (finsupp.single_injective _)
 
 lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ R) = n :=
 by induction n; simp [nat.succ_eq_add_one, *]
 
 theorem C_mul' : mv_polynomial.C a * p = a • p :=
-begin
-  apply finsupp.induction p,
-  { exact (mul_zero $ mv_polynomial.C a).trans (@smul_zero R (mv_polynomial σ R) _ _ _ a).symm },
-  intros p b f haf hb0 ih,
-  rw [mul_add, ih, @smul_add R (mv_polynomial σ R) _ _ _ a], congr' 1,
-  rw [add_monoid_algebra.mul_def, finsupp.smul_single],
-  simp only [mv_polynomial.C],
-  dsimp [mv_polynomial.monomial],
-  rw [finsupp.sum_single_index, finsupp.sum_single_index, zero_add],
-  { rw [mul_zero, finsupp.single_zero] },
-  { rw finsupp.sum_single_index,
-    all_goals { rw [zero_mul, finsupp.single_zero] }, }
-end
+(algebra.smul_def a p).symm
 
 lemma smul_eq_C_mul (p : mv_polynomial σ R) (a : R) : a • p = C a * p := C_mul'.symm
 
@@ -226,18 +205,18 @@ by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma single_eq_C_mul_X {s : σ} {a : R} {n : ℕ} :
   monomial (single s n) a = C a * (X s)^n :=
-by { rw [← zero_add (single s n), monomial_add_single, C], refl }
+by rw [← zero_add (single s n), monomial_add_single, C_apply]
 
 @[simp] lemma monomial_add {s : σ →₀ ℕ} {a b : R} :
   monomial s a + monomial s b = monomial s (a + b) :=
-by simp [monomial]
+single_add.symm
 
 @[simp] lemma monomial_mul {s s' : σ →₀ ℕ} {a b : R} :
   monomial s a * monomial s' b = monomial (s + s') (a * b) :=
-by rw [monomial, monomial, monomial, add_monoid_algebra.single_mul_single]
+add_monoid_algebra.single_mul_single
 
 @[simp] lemma monomial_zero {s : σ →₀ ℕ}: monomial s (0 : R) = 0 :=
-by rw [monomial, single_zero]; refl
+single_zero
 
 @[simp] lemma sum_monomial  {A : Type*} [add_comm_monoid A]
   {u : σ →₀ ℕ} {r : R} {b : (σ →₀ ℕ) → R → A} (w : b u 0 = 0) :
@@ -324,7 +303,8 @@ The finite set of all `m : σ →₀ ℕ` such that `X^m` has a non-zero coeffic
 def support (p : mv_polynomial σ R) : finset (σ →₀ ℕ) :=
 p.support
 
-lemma support_monomial : (monomial s a).support = if a = 0 then ∅ else {s} := rfl
+lemma support_monomial [decidable (a = 0)] : (monomial s a).support = if a = 0 then ∅ else {s} :=
+by convert rfl
 
 lemma support_monomial_subset : (monomial s a).support ⊆ {s} :=
 support_single_subset
@@ -392,11 +372,11 @@ by simp [monomial_eq]
 
 @[simp] lemma coeff_monomial (m n) (a) :
   coeff m (monomial n a : mv_polynomial σ R) = if n = m then a else 0 :=
-by convert single_apply
+single_apply
 
 @[simp] lemma coeff_C (m) (a) :
   coeff m (C a : mv_polynomial σ R) = if 0 = m then a else 0 :=
-by convert single_apply
+single_apply
 
 lemma coeff_X_pow (i : σ) (m) (k : ℕ) :
   coeff m (X i ^ k : mv_polynomial σ R) = if single i k = m then 1 else 0 :=
@@ -434,7 +414,7 @@ begin
   convert this.symm using 1; clear this,
   { rw [coeff],
     iterate 2 { rw sum_apply, apply finset.sum_congr rfl, intros, dsimp only },
-    convert single_apply },
+    exact single_apply },
   symmetry,
   -- We are now ready to show that both sums are equal using `finset.sum_bij_ne_zero`.
   apply finset.sum_bij_ne_zero (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)) _ _, (x.1, x.2)),

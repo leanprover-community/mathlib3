@@ -307,6 +307,10 @@ def generalized_eigenspace (f : End R M) (μ : R) : ℕ →ₘ submodule R M :=
       ((f - algebra_map R (End R M) μ) ^ k) ((f - algebra_map R (End R M) μ) ^ (m - k)),
   end }
 
+@[simp] lemma mem_generalized_eigenspace (f : End R M) (μ : R) (k : ℕ) (m : M) :
+  m ∈ f.generalized_eigenspace μ k ↔ ((f - μ • 1)^k) m = 0 :=
+iff.rfl
+
 /-- A nonzero element of a generalized eigenspace is a generalized eigenvector.
     (Def 8.9 of [axler2015])-/
 def has_generalized_eigenvector (f : End R M) (μ : R) (k : ℕ) (x : M) : Prop :=
@@ -333,6 +337,15 @@ end
 /-- The union of the kernels of `(f - μ • id) ^ k` over all `k`. -/
 def maximal_generalized_eigenspace (f : End R M) (μ : R) : submodule R M :=
 ⨆ k, f.generalized_eigenspace μ k
+
+lemma generalized_eigenspace_le_maximal (f : End R M) (μ : R) (k : ℕ) :
+  f.generalized_eigenspace μ k ≤ f.maximal_generalized_eigenspace μ :=
+le_supr _ _
+
+@[simp] lemma mem_maximal_generalized_eigenspace (f : End R M) (μ : R) (m : M) :
+  m ∈ f.maximal_generalized_eigenspace μ ↔ ∃ (k : ℕ), ((f - μ • 1)^k) m = 0 :=
+by simp only [maximal_generalized_eigenspace, ← mem_generalized_eigenspace,
+  submodule.mem_supr_of_chain]
 
 /-- If there exists a natural number `k` such that the kernel of `(f - μ • id) ^ k` is the
 maximal generalized eigenspace, then this value is the least such `k`. If not, this value is not
@@ -433,7 +446,7 @@ begin
         by { rw ←pow_add, refl }
   ... = f.generalized_eigenspace μ (findim K V) :
         by { rw generalized_eigenspace_eq_generalized_eigenspace_findim_of_le, linarith },
-  rw [disjoint, generalized_eigenrange, linear_map.range, submodule.map_inf_eq_map_inf_comap,
+  rw [disjoint, generalized_eigenrange, linear_map.range_eq_map, submodule.map_inf_eq_map_inf_comap,
     top_inf_eq, h],
   apply submodule.map_comap_le
 end

@@ -1394,14 +1394,14 @@ by congr
 
 section classical
 open_locale classical
-/-- The following instance allows us to write `{ x ∈ s | p x }` for `finset.filter s p`.
+/-- The following instance allows us to write `{x ∈ s | p x}` for `finset.filter p s`.
   Since the former notation requires us to define this for all propositions `p`, and `finset.filter`
-  only works for decidable propositions, the notation `{ x ∈ s | p x }` is only compatible with
+  only works for decidable propositions, the notation `{x ∈ s | p x}` is only compatible with
   classical logic because it uses `classical.prop_decidable`.
   We don't want to redo all lemmas of `finset.filter` for `has_sep.sep`, so we make sure that `simp`
-  unfolds the notation `{ x ∈ s | p x }` to `finset.filter s p`. If `p` happens to be decidable, the
-  simp-lemma `filter_congr_decidable` will make sure that `finset.filter` uses the right instance
-  for decidability.
+  unfolds the notation `{x ∈ s | p x}` to `finset.filter p s`. If `p` happens to be decidable, the
+  simp-lemma `finset.filter_congr_decidable` will make sure that `finset.filter` uses the right
+  instance for decidability.
 -/
 noncomputable instance {α : Type*} : has_sep α (finset α) := ⟨λ p x, x.filter p⟩
 
@@ -1635,6 +1635,26 @@ end
 theorem to_finset_surjective : surjective (to_finset : list α → finset α) :=
 by { intro s, rcases to_finset_surj_on (set.mem_univ s) with ⟨l, -, hls⟩, exact ⟨l, hls⟩ }
 
+lemma to_finset_eq_iff_perm_erase_dup {l l' : list α} :
+  l.to_finset = l'.to_finset ↔ l.erase_dup ~ l'.erase_dup :=
+by simp [finset.ext_iff, perm_ext (nodup_erase_dup _) (nodup_erase_dup _)]
+
+lemma to_finset_eq_of_perm (l l' : list α) (h : l ~ l') :
+  l.to_finset = l'.to_finset :=
+to_finset_eq_iff_perm_erase_dup.mpr h.erase_dup
+
+@[simp] lemma to_finset_append {l l' : list α} :
+  to_finset (l ++ l') = l.to_finset ∪ l'.to_finset :=
+begin
+  induction l with hd tl hl,
+  { simp },
+  { simp [hl] }
+end
+
+@[simp] lemma to_finset_reverse {l : list α} :
+  to_finset l.reverse = l.to_finset :=
+to_finset_eq_of_perm _ _ (reverse_perm l)
+
 end list
 
 namespace finset
@@ -1667,11 +1687,11 @@ mem_map_of_injective f.2
 theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
 (mem_map' _).2
 
-@[simp, norm_cast] theorem coe_map (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) = f '' ↑s :=
+@[simp, norm_cast] theorem coe_map (f : α ↪ β) (s : finset α) : (s.map f : set β) = f '' s :=
 set.ext $ λ x, mem_map.trans set.mem_image_iff_bex.symm
 
-theorem coe_map_subset_range (f : α ↪ β) (s : finset α) : (↑(s.map f) : set β) ⊆ set.range f :=
-calc ↑(s.map f) = f '' ↑s     : coe_map f s
+theorem coe_map_subset_range (f : α ↪ β) (s : finset α) : (s.map f : set β) ⊆ set.range f :=
+calc ↑(s.map f) = f '' s      : coe_map f s
             ... ⊆ set.range f : set.image_subset_range f ↑s
 
 theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
@@ -1680,6 +1700,10 @@ ext $ λ _, by simp only [mem_map, multiset.mem_map, exists_prop, multiset.mem_t
 
 @[simp] theorem map_refl : s.map (embedding.refl _) = s :=
 ext $ λ _, by simpa only [mem_map, exists_prop] using exists_eq_right
+
+@[simp] theorem map_cast_heq {α β} (h : α = β) (s : finset α) :
+  s.map (equiv.cast h).to_embedding == s :=
+by { subst h, simp }
 
 theorem map_map {g : β ↪ γ} : (s.map f).map g = s.map (f.trans g) :=
 eq_of_veq $ by simp only [map_val, multiset.map_map]; refl
@@ -2066,6 +2090,9 @@ end finset
 
 theorem multiset.to_finset_card_le [decidable_eq α] (m : multiset α) : m.to_finset.card ≤ m.card :=
 card_le_of_le (erase_dup_le _)
+
+lemma list.card_to_finset [decidable_eq α] (l : list α) :
+  finset.card l.to_finset = l.erase_dup.length := rfl
 
 theorem list.to_finset_card_le [decidable_eq α] (l : list α) : l.to_finset.card ≤ l.length :=
 multiset.to_finset_card_le ⟦l⟧

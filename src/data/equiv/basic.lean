@@ -835,6 +835,13 @@ def sum_compl {α : Type*} (p : α → Prop) [decidable_pred p] :
   (a : α) (h : ¬ p a) :
   (sum_compl p).symm a = sum.inr ⟨a, h⟩ := dif_neg h
 
+/-- Combines an `equiv` between two subtypes with an `equiv` between their complements to form a
+  permutation. -/
+def subtype_congr {α : Type*} {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+  (e : {x // p x} ≃ {x // q x}) (f : {x // ¬p x} ≃ {x // ¬q x}) : perm α :=
+(sum_compl p).symm.trans ((sum_congr e f).trans
+  (sum_compl q))
+
 open equiv
 
 variables {ε : Type*} {p : ε → Prop} [decidable_pred p]
@@ -1460,6 +1467,18 @@ lemma subtype_equiv_codomain_symm_apply_ne (f : {x' // x' ≠ x} → Y) (y : Y) 
 dif_pos h
 
 end subtype_equiv_codomain
+
+/--
+A set is equivalent to its image under an equivalence.
+-/
+-- We could construct this using `equiv.set.image e s e.injective`,
+-- but this definition provides an explicit inverse.
+@[simps]
+def image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
+{ to_fun := λ x, ⟨e x.1, by simp⟩,
+  inv_fun := λ y, ⟨e.symm y.1, by { rcases y with ⟨-, ⟨a, ⟨m, rfl⟩⟩⟩, simpa using m, }⟩,
+  left_inv := λ x, by simp,
+  right_inv := λ y, by simp, }.
 
 namespace set
 open set

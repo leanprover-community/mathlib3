@@ -123,13 +123,14 @@ section mul_one_class
 
 variables [semiring k] [mul_one_class G]
 
-instance : mul_one_class (monoid_algebra k G) :=
+instance : mul_zero_one_class (monoid_algebra k G) :=
 { one       := 1,
   mul       := (*),
   one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
     single_zero, sum_zero, zero_add, one_mul, sum_single],
   mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
-    single_zero, sum_zero, add_zero, mul_one, sum_single] }
+    single_zero, sum_zero, add_zero, mul_one, sum_single],
+  ..monoid_algebra.mul_zero_class }
 
 variables {R : Type*} [semiring R]
 
@@ -172,9 +173,8 @@ instance : semiring (monoid_algebra k G) :=
   mul       := (*),
   zero      := 0,
   add       := (+),
-  .. monoid_algebra.mul_one_class,
+  .. monoid_algebra.mul_zero_one_class,
   .. monoid_algebra.semigroup,
-  .. monoid_algebra.mul_zero_class,
   .. monoid_algebra.distrib,
   .. finsupp.add_comm_monoid }
 
@@ -601,6 +601,17 @@ calc (f * g) x = sum g (λ a b, (f * single a b) x) :
 
 end
 
+section span
+
+variables [semiring k] [mul_one_class G]
+
+lemma mem_span_support (f : monoid_algebra k G) :
+  f ∈ submodule.span k (monoid_algebra.of k G '' (f.support : set G)) :=
+by rw [monoid_algebra.of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single,
+  finsupp.mem_supported]
+
+end span
+
 end monoid_algebra
 
 /-! ### Additive monoids -/
@@ -683,13 +694,14 @@ section mul_one_class
 
 variables [semiring k] [add_zero_class G]
 
-instance : mul_one_class (add_monoid_algebra k G) :=
+instance : mul_zero_one_class (add_monoid_algebra k G) :=
 { one       := 1,
   mul       := (*),
   one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
     single_zero, sum_zero, zero_add, one_mul, sum_single],
   mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
-    single_zero, sum_zero, add_zero, mul_one, sum_single] }
+    single_zero, sum_zero, add_zero, mul_one, sum_single],
+  .. add_monoid_algebra.mul_zero_class }
 
 variables {R : Type*} [semiring R]
 
@@ -734,9 +746,8 @@ instance : semiring (add_monoid_algebra k G) :=
   nsmul     := λ n f, n • f,
   nsmul_zero' := by { intros, ext, simp [-nsmul_eq_mul, add_smul] },
   nsmul_succ' := by { intros, ext, simp [-nsmul_eq_mul, nat.succ_eq_one_add, add_smul] },
-  .. add_monoid_algebra.mul_one_class,
+  .. add_monoid_algebra.mul_zero_one_class,
   .. add_monoid_algebra.semigroup,
-  .. add_monoid_algebra.mul_zero_class,
   .. add_monoid_algebra.distrib,
   .. finsupp.add_comm_monoid }
 
@@ -889,6 +900,17 @@ lemma lift_nc_smul {R : Type*} [add_zero_class G] [semiring R] (f : k →+* R)
 @monoid_algebra.lift_nc_smul k (multiplicative G) _ _ _ _ f g c φ
 
 end misc_theorems
+
+section span
+
+variables [semiring k] [add_zero_class G]
+
+lemma mem_span_support (f : add_monoid_algebra k G) :
+  f ∈ submodule.span k (add_monoid_algebra.of k G '' (f.support : set G)) :=
+by rw [add_monoid_algebra.of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single,
+  finsupp.mem_supported]
+
+end span
 
 end add_monoid_algebra
 

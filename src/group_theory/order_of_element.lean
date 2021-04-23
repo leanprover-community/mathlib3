@@ -653,8 +653,8 @@ noncomputable def fin_equiv_gpowers (x : G) :
   fin (order_of x) ≃ (subgroup.gpowers x : set G) :=
 (fin_equiv_powers x).trans (equiv.set.of_eq (powers_eq_gpowers x))
 
-/-- The equivalence between `fin (add_order_of x)` and `subgroup.gmultiples x`,
-  sending `i` to `i • x`. -/
+/-- The equivalence between `fin (add_order_of a)` and `subgroup.gmultiples a`,
+  sending `i` to `i • a`. -/
 noncomputable def fin_equiv_gmultiples (a : A) :
   fin (add_order_of a) ≃ (add_subgroup.gmultiples a : set A) :=
 fin_equiv_gpowers (multiplicative.of_add a)

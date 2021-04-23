@@ -220,8 +220,8 @@ begin
   refine ⟨algebra.adjoin A (↑s : set B), subalgebra.fg_adjoin_finset _, insert 1 y, _⟩,
   refine restrict_scalars_injective A _ _ _,
   rw [restrict_scalars_top, eq_top_iff, ← algebra.coe_top, ← hx, algebra.adjoin_eq_span, span_le],
-  refine λ r hr, monoid.in_closure.rec_on hr hxy (subset_span $ mem_insert_self _ _)
-      (λ p q _ _ hp hq, hyy $ submodule.mul_mem_mul hp hq)
+  refine λ r hr, submonoid.closure_induction hr (λ c hc, hxy c hc)
+    (subset_span $ mem_insert_self _ _) (λ p q hp hq, hyy $ submodule.mul_mem_mul hp hq)
 end
 
 /-- Artin--Tate lemma: if A ⊆ B ⊆ C is a chain of subrings of commutative rings, and

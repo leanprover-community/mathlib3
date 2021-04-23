@@ -2626,7 +2626,8 @@ orthogonal subspace with `K₂` add to that of `K₂`. -/
 lemma submodule.finrank_add_inf_finrank_orthogonal' {K₁ K₂ : submodule 𝕜 E}
   [finite_dimensional 𝕜 K₂] (h : K₁ ≤ K₂) {n : ℕ} (h_dim : finrank 𝕜 K₁ + n = finrank 𝕜 K₂) :
   finrank 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = n :=
-by { rw ← add_right_inj (finrank 𝕜 K₁), simp [submodule.finrank_add_inf_finrank_orthogonal h, h_dim] }
+by { rw ← add_right_inj (finrank 𝕜 K₁),
+     simp [submodule.finrank_add_inf_finrank_orthogonal h, h_dim] }
 
 /-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to
 that of `E`. -/

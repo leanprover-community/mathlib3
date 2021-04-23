@@ -439,9 +439,11 @@ lemma generalized_eigenvec_disjoint_range_ker [finite_dimensional K V] (f : End 
   disjoint (f.generalized_eigenrange μ (finrank K V)) (f.generalized_eigenspace μ (finrank K V))  :=
 begin
   have h := calc
-    submodule.comap ((f - algebra_map _ _ μ) ^ finrank K V) (f.generalized_eigenspace μ (finrank K V))
-      = ((f - algebra_map _ _ μ) ^ finrank K V * (f - algebra_map K (End K V) μ) ^ finrank K V).ker :
-        by { simpa only [generalized_eigenspace, preorder_hom.coe_fun_mk, ← linear_map.ker_comp], }
+    submodule.comap ((f - algebra_map _ _ μ) ^ finrank K V)
+        (f.generalized_eigenspace μ (finrank K V))
+      = ((f - algebra_map _ _ μ) ^ finrank K V *
+          (f - algebra_map K (End K V) μ) ^ finrank K V).ker :
+        by { simpa only [generalized_eigenspace, preorder_hom.coe_fun_mk, ← linear_map.ker_comp] }
   ... = f.generalized_eigenspace μ (finrank K V + finrank K V) :
         by { rw ←pow_add, refl }
   ... = f.generalized_eigenspace μ (finrank K V) :

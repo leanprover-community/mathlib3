@@ -648,8 +648,9 @@ lemma finrank_quotient_le [finite_dimensional K V] (s : submodule K V) :
 by { rw ← s.finrank_quotient_add_finrank, exact nat.le_add_right _ _ }
 
 /-- The sum of the dimensions of s + t and s ∩ t is the sum of the dimensions of s and t -/
-theorem dim_sup_add_dim_inf_eq (s t : submodule K V) [finite_dimensional K s]
-  [finite_dimensional K t] : finrank K ↥(s ⊔ t) + finrank K ↥(s ⊓ t) = finrank K ↥s + finrank K ↥t :=
+theorem dim_sup_add_dim_inf_eq (s t : submodule K V)
+  [finite_dimensional K s] [finite_dimensional K t] :
+  finrank K ↥(s ⊔ t) + finrank K ↥(s ⊓ t) = finrank K ↥s + finrank K ↥t :=
 begin
   have key : module.rank K ↥(s ⊔ t) + module.rank K ↥(s ⊓ t) =
     module.rank K s + module.rank K t := dim_sup_add_dim_inf_eq s t,
@@ -750,7 +751,8 @@ noncomputable def linear_equiv.quot_equiv_of_equiv
 linear_equiv.of_finrank_eq _ _
 begin
   rw [← @add_right_cancel_iff _ _ (finrank K p), submodule.finrank_quotient_add_finrank,
-      linear_equiv.finrank_eq f₁, submodule.finrank_quotient_add_finrank, linear_equiv.finrank_eq f₂],
+      linear_equiv.finrank_eq f₁, submodule.finrank_quotient_add_finrank,
+      linear_equiv.finrank_eq f₂],
 end
 
 /-- Given the subspaces `p q`, if `p.quotient ≃ₗ[K] q`, then `q.quotient ≃ₗ[K] p` -/
@@ -1045,7 +1047,9 @@ end
 
 lemma span_lt_of_subset_of_card_lt_finrank {s : set V} [fintype s] {t : submodule K V}
   (subset : s ⊆ t) (card_lt : s.to_finset.card < finrank K t) : span K s < t :=
-lt_of_le_of_finrank_lt_finrank (span_le.mpr subset) (lt_of_le_of_lt (finrank_span_le_card _) card_lt)
+lt_of_le_of_finrank_lt_finrank
+  (span_le.mpr subset)
+  (lt_of_le_of_lt (finrank_span_le_card _) card_lt)
 
 lemma span_lt_top_of_card_lt_finrank {s : set V} [fintype s]
   (card_lt : s.to_finset.card < finrank K V) : span K s < ⊤ :=

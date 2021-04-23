@@ -182,7 +182,8 @@ begin
   -- Then the kernel of `aeval f q` is an eigenspace.
   have h_eigenspace: eigenspace f (-q.coeff 0 / q.leading_coeff) = (aeval f q).ker,
     from eigenspace_aeval_polynomial_degree_1 f q h_deg_q,
-  -- Since `aeval f q` is not invertible, the kernel is not `⊥`, and thus there exists an eigenvalue.
+  -- Since `aeval f q` is not invertible, the kernel is not `⊥`,
+  -- and thus there exists an eigenvalue.
   show ∃ (c : K), f.has_eigenvalue c,
   { use -q.coeff 0 / q.leading_coeff,
     rw [has_eigenvalue, h_eigenspace],

@@ -9,6 +9,7 @@ import category_theory.groupoid
 universes v u
 
 namespace category_theory
+open monoidal_category
 
 variables {C : Type u}
 
@@ -112,6 +113,24 @@ instance : monoidal_category (F C) :=
   pentagon' := λ W X Y Z, quotient.sound pentagon,
   triangle' := λ X Y, quotient.sound triangle }
 
+@[simp] lemma mk_comp {X Y Z : F C} (f : X ⟶ᵐ Y) (g : Y ⟶ᵐ Z) :
+  ⟦f.comp g⟧ = @category_struct.comp (F C) _ _ _ _ ⟦f⟧ ⟦g⟧ :=
+rfl
+
+@[simp] lemma mk_tensor {X₁ Y₁ X₂ Y₂ : F C} (f : X₁ ⟶ᵐ Y₁) (g : X₂ ⟶ᵐ Y₂) :
+  ⟦f.tensor g⟧ = @monoidal_category.tensor_hom (F C) _ _ _ _ _ _ ⟦f⟧ ⟦g⟧ :=
+rfl
+
+@[simp] lemma mk_id {X : F C} : ⟦hom.id X⟧ = 𝟙 X := rfl
+@[simp] lemma mk_α_hom {X Y Z : F C} : ⟦hom.α_hom X Y Z⟧ = (α_ X Y Z).hom := rfl
+@[simp] lemma mk_α_inv {X Y Z : F C} : ⟦hom.α_inv X Y Z⟧ = (α_ X Y Z).inv := rfl
+@[simp] lemma mk_ρ_hom {X : F C} : ⟦hom.ρ_hom X⟧ = (ρ_ X).hom := rfl
+@[simp] lemma mk_ρ_inv {X : F C} : ⟦hom.ρ_inv X⟧ = (ρ_ X).inv := rfl
+@[simp] lemma mk_l_hom {X : F C} : ⟦hom.l_hom X⟧ = (λ_ X).hom := rfl
+@[simp] lemma mk_l_inv {X : F C} : ⟦hom.l_inv X⟧ = (λ_ X).inv := rfl
+@[simp] lemma tensor_eq_tensor {X Y : F C} : X.tensor Y = X ⊗ Y := rfl
+@[simp] lemma unit_eq_unit : free_monoidal_category.unit = 𝟙_ (F C) := rfl
+
 section
 open hom
 
@@ -128,70 +147,24 @@ open hom
 
 end
 
-@[simp] lemma mk_comp_eq_comp {X Y Z : F C} (f : X ⟶ᵐ Y) (g : Y ⟶ᵐ Z) :
-  ⟦f.comp g⟧ = @category_struct.comp (F C) _ _ _ _ ⟦f⟧ ⟦g⟧ :=
-rfl
-
-@[simp] lemma mk_tensor_eq_tensor {X₁ Y₁ X₂ Y₂ : F C} (f : X₁ ⟶ᵐ Y₁) (g : X₂ ⟶ᵐ Y₂) :
-  ⟦f.tensor g⟧ = @monoidal_category.tensor_hom (F C) _ _ _ _ _ _ ⟦f⟧ ⟦g⟧ :=
-rfl
-
-@[simp] lemma mk_id_eq_id {X : F C} : ⟦hom.id X⟧ = 𝟙 X :=
-rfl
-
-@[simp] lemma tensor_eq_tensor {X Y : F C} : X.tensor Y = X ⊗ Y :=
-rfl
-
-@[simp] lemma mk_α_hom {X Y Z : F C} : ⟦hom.α_hom X Y Z⟧ = (α_ X Y Z).hom :=
-rfl
-
-@[simp] lemma mk_α_inv {X Y Z : F C} : ⟦hom.α_inv X Y Z⟧ = (α_ X Y Z).inv :=
-rfl
-
-@[simp] lemma mk_ρ_hom {X : F C} : ⟦hom.ρ_hom X⟧ = (ρ_ X).hom :=
-rfl
-
-@[simp] lemma mk_ρ_inv {X : F C} : ⟦hom.ρ_inv X⟧ = (ρ_ X).inv :=
-rfl
-
-@[simp] lemma mk_l_hom {X : F C} : ⟦hom.l_hom X⟧ = (λ_ X).hom :=
-rfl
-
-@[simp] lemma mk_l_inv {X : F C} : ⟦hom.l_inv X⟧ = (λ_ X).inv :=
-rfl
-
-@[simp] lemma unit_eq_unit : free_monoidal_category.unit = 𝟙_ (F C) :=
-rfl
-
-@[simp] def inverse {X Y : F C} : (X ⟶ Y) → (Y ⟶ X) :=
+def inverse {X Y : F C} : (X ⟶ Y) → (Y ⟶ X) :=
 quotient.lift (λ f, ⟦inverse' f⟧)
 begin
   intros f g h,
-  dsimp,
+  dsimp only,
   induction h with X f f X Y f h hfg hfg' X Y f g h _ _ hfg hgh X Y Z f f' g g' _ _ hf hg
-    X₁ Y₁ X₂ Y₂ f f' g g' _ _ hf hg
-    X Y f X Y f X Y U V f g h X Y X₁ Y₁ Z₁ X₂ Y₂ Z₂ f₁ f₂ g₁ g₂ X Y Z X Y Z X₁ X₂ X₃ Y₁ Y₂ Y₃ f₁ f₂ f₃,
+    X₁ Y₁ X₂ Y₂ f f' g g' _ _ hf hg,
   { refl },
   { exact hfg'.symm },
   { exact hfg.trans hgh },
-  { simp only [inverse', mk_comp_eq_comp, hf, hg] },
-  { simp only [inverse', mk_tensor_eq_tensor, hf, hg] },
-  { simp only [inverse', mk_comp_eq_comp, mk_id_eq_id, category.id_comp] },
-  { simp only [inverse', mk_comp_eq_comp, mk_id_eq_id, category.comp_id] },
-  { simp only [inverse', mk_comp_eq_comp, category.assoc] },
-  { simp only [inverse', mk_tensor_eq_tensor, mk_id_eq_id, monoidal_category.tensor_id], refl },
-  { simp only [inverse', mk_comp_eq_comp, monoidal_category.tensor_comp, mk_tensor_eq_tensor] },
-  { simp only [inverse', iso.hom_inv_id, mk_comp_eq_comp, mk_α_inv, mk_id_eq_id, mk_α_hom], },
-  { simp only [inverse', mk_comp_eq_comp, mk_α_inv, mk_id_eq_id, mk_α_hom, iso.inv_hom_id], },
-  { simp only [inverse', mk_comp_eq_comp, mk_α_inv, mk_tensor_eq_tensor, monoidal_category.associator_inv_naturality] },
-  { simp only [inverse', iso.hom_inv_id, mk_comp_eq_comp, mk_id_eq_id, mk_ρ_hom, mk_ρ_inv], },
-  { simp only [inverse', mk_comp_eq_comp, mk_id_eq_id, mk_ρ_hom, mk_ρ_inv, iso.inv_hom_id], },
-  { simp only [inverse', mk_comp_eq_comp, mk_id_eq_id, mk_tensor_eq_tensor, mk_ρ_inv, monoidal_category.right_unitor_inv_naturality], refl },
-  { simp only [inverse', iso.hom_inv_id, mk_l_inv, mk_comp_eq_comp, mk_id_eq_id, mk_l_hom] },
-  { simp only [inverse', mk_l_inv, mk_comp_eq_comp, mk_id_eq_id, mk_l_hom, iso.inv_hom_id] },
-  { simp only [inverse', mk_l_inv, mk_comp_eq_comp, mk_id_eq_id, mk_tensor_eq_tensor, monoidal_category.left_unitor_inv_naturality], refl },
-  { simp only [inverse', mk_comp_eq_comp, mk_α_inv, mk_id_eq_id, mk_tensor_eq_tensor, category.assoc], exact monoidal_category.pentagon_inv _ _ _ _ },
-  { simp only [inverse', mk_l_inv, mk_comp_eq_comp, mk_α_inv, mk_id_eq_id, mk_tensor_eq_tensor, mk_ρ_inv], exact monoidal_category.triangle_assoc_comp_left_inv _ _ }
+  { simp only [inverse', mk_comp, hf, hg] },
+  { simp only [inverse', mk_tensor, hf, hg] },
+  all_goals { simp only [inverse', mk_id, mk_comp, mk_α_hom, mk_α_inv, mk_ρ_hom, mk_ρ_inv, mk_l_hom,
+    mk_l_inv, category.id_comp, category.comp_id, category.assoc, iso.hom_inv_id, iso.inv_hom_id,
+      mk_tensor, monoidal_category.tensor_id, monoidal_category.tensor_comp],
+    try { dsimp only [tensor_eq_tensor, unit_eq_unit],
+      simp only [eq_self_iff_true, associator_inv_naturality, right_unitor_inv_naturality,
+        left_unitor_inv_naturality, pentagon_inv, triangle_assoc_comp_left_inv] } }
 end
 
 
@@ -206,6 +179,7 @@ def project_obj : F C → C
 section
 open hom
 
+@[simp]
 def project_hom' : Π {X Y : F C}, (X ⟶ᵐ Y) → (project_obj X ⟶ project_obj Y)
 | _ _ (id _) := 𝟙 _
 | _ _ (α_hom _ _ _) := (α_ _ _ _).hom
@@ -221,7 +195,8 @@ def project_hom {X Y : F C} : (X ⟶ Y) → (project_obj X ⟶ project_obj Y) :=
 quotient.lift project_hom'
 begin
   intros f g h,
-  induction h with X Y f X Y f g hfg hfg' X Y f g h _ _ hfg hgh X Y Z f f' g g' _ _ hf hg W X Y Z f g f' g' _ _ hfg hfg' X Y f X Y f,
+  induction h with X Y f X Y f g hfg hfg' X Y f g h _ _ hfg hgh X Y Z f f' g g' _ _ hf hg
+    W X Y Z f g f' g' _ _ hfg hfg',
   { refl },
   { exact hfg'.symm },
   { exact hfg.trans hgh },
@@ -237,10 +212,12 @@ begin
   { simp only [project_hom', monoidal_category.associator_naturality] },
   { simp only [project_hom', iso.hom_inv_id] },
   { simp only [project_hom', iso.inv_hom_id] },
-  { simp only [project_hom'], dsimp [project_obj], exact monoidal_category.right_unitor_naturality _ },
+  { simp only [project_hom'], dsimp [project_obj],
+    exact monoidal_category.right_unitor_naturality _ },
   { simp only [project_hom', iso.hom_inv_id] },
   { simp only [project_hom', iso.inv_hom_id] },
-  { simp only [project_hom'], dsimp [project_obj], exact monoidal_category.left_unitor_naturality _ },
+  { simp only [project_hom'], dsimp [project_obj],
+    exact monoidal_category.left_unitor_naturality _ },
   { simp only [project_hom'], exact monoidal_category.pentagon _ _ _ _ },
   { simp only [project_hom'], exact monoidal_category.triangle _ _ }
 end

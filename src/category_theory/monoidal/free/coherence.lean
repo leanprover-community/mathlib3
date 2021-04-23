@@ -1,9 +1,17 @@
+/-
+Copyright (c) 2021 Markus Himmel. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Markus Himmel
+-/
 import category_theory.monoidal.free.basic
 import category_theory.discrete_category
 
 universes v u
 
 namespace category_theory
+open monoidal_category
+
+namespace free_monoidal_category
 
 variables {C : Type u}
 
@@ -20,17 +28,17 @@ end
 
 @[simp]
 def inclusion' : normal_monoidal_object C → F C
-| normal_monoidal_object.unit := free_monoidal_category.unit
-| (normal_monoidal_object.tensor n a) := free_monoidal_category.tensor (inclusion' n) (free_monoidal_category.of a)
+| normal_monoidal_object.unit := unit
+| (normal_monoidal_object.tensor n a) := tensor (inclusion' n) (of a)
 
 @[simp]
 def inclusion : (N C) ⥤ F C :=
 discrete.functor inclusion'
 
 @[simp] def normalize_obj : F C → normal_monoidal_object C → normal_monoidal_object C
-| free_monoidal_category.unit n := n
-| (free_monoidal_category.of X) n := normal_monoidal_object.tensor n X
-| (free_monoidal_category.tensor X Y) n := normalize_obj Y (normalize_obj X n)
+| unit n := n
+| (of X) n := normal_monoidal_object.tensor n X
+| (tensor X Y) n := normalize_obj Y (normalize_obj X n)
 
 @[simp] lemma normalize_obj_unitor (n : N C) : normalize_obj (𝟙_ (F C)) n = n :=
 rfl
@@ -39,11 +47,8 @@ rfl
   normalize_obj (X ⊗ Y) n = normalize_obj Y (normalize_obj X n) :=
 rfl
 
-def F_hom_mk {X Y : F C} (f : X ⟶ᵐ Y) : X ⟶ Y :=
-⟦f⟧
-
 section
-open free_monoidal_category.hom
+open hom
 
 @[simp]
 def normalize_map_aux : Π {X Y : F C},
@@ -57,8 +62,9 @@ def normalize_map_aux : Π {X Y : F C},
 | _ _ (ρ_hom _) := ⟨λ X, 𝟙 _⟩
 | _ _ (ρ_inv _) := ⟨λ X, 𝟙 _⟩
 | X Y (@comp _ U V W f g) := normalize_map_aux f ≫ normalize_map_aux g
-| X Y (@tensor _ T U V W f g) :=
-    ⟨λ X, (normalize_map_aux g).app (normalize_obj T X) ≫ (discrete.functor (normalize_obj W) : _ ⥤ N C).map ((normalize_map_aux f).app X), by tidy⟩
+| X Y (@hom.tensor _ T U V W f g) :=
+    ⟨λ X, (normalize_map_aux g).app (normalize_obj T X) ≫
+      (discrete.functor (normalize_obj W) : _ ⥤ N C).map ((normalize_map_aux f).app X), by tidy⟩
 
 end
 
@@ -80,6 +86,10 @@ lemma tensor_func_map_app {X Y : F C} (f : X ⟶ Y) (n) : (tensor_func.map f).ap
   𝟙 _ ⊗ f :=
 rfl
 
+lemma tensor_func_obj_map (Z : F C) {n n' : N C} (f : n ⟶ n') :
+  (tensor_func.obj Z).map f = inclusion.map f ⊗ 𝟙 Z :=
+by tidy
+
 section
 variables (C)
 
@@ -90,10 +100,10 @@ normalize ⋙ (whiskering_right _ _ _).obj inclusion
 @[simp]
 def normalize_iso_app :
   Π (X : F C) (n : N C), (tensor_func.obj X).obj n ≅ ((normalize' C).obj X).obj n
-| (free_monoidal_category.of X) n := iso.refl _
-| free_monoidal_category.unit n := ρ_ _
-| (free_monoidal_category.tensor X Y) n :=
-  (α_ _ _ _).symm ≪≫ tensor_iso (normalize_iso_app X n) (iso.refl _) ≪≫ normalize_iso_app _ _
+| (of X) n := iso.refl _
+| unit n := ρ_ _
+| (tensor X Y) n :=
+    (α_ _ _ _).symm ≪≫ tensor_iso (normalize_iso_app X n) (iso.refl _) ≪≫ normalize_iso_app _ _
 
 @[simp]
 lemma normalize_iso_app_tensor (X Y : F C) (n : N C) :
@@ -109,10 +119,6 @@ rfl
 def normalize_iso_aux (X : F C) : tensor_func.obj X ≅ (normalize' C).obj X :=
 nat_iso.of_components (normalize_iso_app C X) (by tidy)
 
-lemma weird {n n' : N C} (f : n ⟶ n')(Z : F C) :
-  inclusion.map f ⊗ 𝟙 Z = (discrete.functor (λ n, inclusion' n ⊗ Z)).map f :=
-by tidy
-
 def normalize_iso : tensor_func ≅ normalize' C :=
 nat_iso.of_components (normalize_iso_aux C)
 begin
@@ -121,60 +127,51 @@ begin
   intro f,
   ext n,
   induction f generalizing n,
-  { simp only [free_monoidal_category.mk_id_eq_id, functor.map_id, category.id_comp, category.comp_id] },
+  { simp only [mk_id, functor.map_id, category.id_comp, category.comp_id] },
   { dsimp,
-    rw [monoidal_category.id_tensor_associator_inv_naturality_assoc,
-      ←monoidal_category.pentagon_inv_assoc],
-    simp only [monoidal_category.tensor_hom_inv_id_assoc, monoidal_category.tensor_id, category.id_comp, discrete.functor_map_id,
-  monoidal_category.comp_tensor_id, iso.cancel_iso_inv_left, category.assoc],
+    simp only [id_tensor_associator_inv_naturality_assoc, ←pentagon_inv_assoc,
+      tensor_hom_inv_id_assoc, tensor_id, category.id_comp, discrete.functor_map_id, comp_tensor_id,
+      iso.cancel_iso_inv_left, category.assoc],
     dsimp, simp only [category.comp_id] },
   { dsimp,
-    simp only [discrete.functor_map_id, monoidal_category.comp_tensor_id, category.assoc],
-    rw [monoidal_category.pentagon_inv_assoc, ←monoidal_category.associator_inv_naturality_assoc],
-    simp only [monoidal_category.tensor_id, iso.cancel_iso_inv_left],
+    simp only [discrete.functor_map_id, comp_tensor_id, category.assoc, pentagon_inv_assoc,
+      ←associator_inv_naturality_assoc, tensor_id, iso.cancel_iso_inv_left],
     dsimp, simp only [category.comp_id],},
   { dsimp,
-    rw monoidal_category.triangle_assoc_comp_right_assoc,
+    rw triangle_assoc_comp_right_assoc,
     simp only [discrete.functor_map_id, category.assoc],
     dsimp, simp only [category.comp_id] },
   { dsimp,
-    rw monoidal_category.triangle_assoc_comp_left_inv_assoc,
-    simp only [monoidal_category.inv_hom_id_tensor_assoc, monoidal_category.tensor_id, category.id_comp, discrete.functor_map_id],
+    simp only [triangle_assoc_comp_left_inv_assoc, inv_hom_id_tensor_assoc, tensor_id,
+      category.id_comp, discrete.functor_map_id],
     dsimp, simp only [category.comp_id] },
   { dsimp,
-    rw [←(iso.inv_comp_eq _).2 (monoidal_category.right_unitor_tensor _ _),
-      category.assoc, ←monoidal_category.right_unitor_naturality],
+    rw [←(iso.inv_comp_eq _).2 (right_unitor_tensor _ _), category.assoc, ←right_unitor_naturality],
     simp only [discrete.functor_map_id, iso.cancel_iso_inv_left, category.assoc],
     dsimp, simp only [category.comp_id] },
   { dsimp,
-    rw [←(iso.eq_comp_inv _).1 (monoidal_category.right_unitor_tensor_inv _ _)],
-    simp only [iso.hom_inv_id_assoc, monoidal_category.right_unitor_conjugation, discrete.functor_map_id, category.assoc],
+    simp only [←(iso.eq_comp_inv _).1 (right_unitor_tensor_inv _ _), iso.hom_inv_id_assoc,
+      right_unitor_conjugation, discrete.functor_map_id, category.assoc],
     dsimp, simp only [category.comp_id], },
   { dsimp at *,
-    rw [monoidal_category.id_tensor_comp, category.assoc, f_ih_g ⟦f_g⟧, ←category.assoc,
-      f_ih_f ⟦f_f⟧, category.assoc, ←functor.map_comp],
+    rw [id_tensor_comp, category.assoc, f_ih_g ⟦f_g⟧, ←category.assoc, f_ih_f ⟦f_f⟧, category.assoc,
+      ←functor.map_comp],
     congr' 2 },
   { dsimp at *,
-    rw monoidal_category.associator_inv_naturality_assoc,
-    slice_lhs 2 3 { rw [←monoidal_category.tensor_comp, f_ih_f ⟦f_f⟧],
-      congr, skip,
-      rw category.comp_id,
-      rw [←@category.id_comp (F C) _ _ _ ⟦f_g⟧] },
-    rw monoidal_category.tensor_comp,
-    simp only [category.assoc],
+    rw associator_inv_naturality_assoc,
+    slice_lhs 2 3 { rw [←tensor_comp, f_ih_f ⟦f_f⟧] },
+    conv_lhs { rw [←@category.id_comp (F C) _ _ _ ⟦f_g⟧] },
+    simp only [category.comp_id, tensor_comp, category.assoc],
     congr' 2,
-    rw [←free_monoidal_category.mk_tensor_eq_tensor, quotient.lift_mk],
+    rw [←mk_tensor, quotient.lift_mk],
     dsimp,
-    rw [functor.map_comp, ←category.assoc, ←f_ih_g ⟦f_g⟧],
-    rw [←@category.comp_id (F C) _ _ _ ⟦f_g⟧],
-    rw ←category.id_comp ((discrete.functor inclusion').map _),
-    rw monoidal_category.tensor_comp,
+    rw [functor.map_comp, ←category.assoc, ←f_ih_g ⟦f_g⟧, ←@category.comp_id (F C) _ _ _ ⟦f_g⟧,
+      ←category.id_comp ((discrete.functor inclusion').map _), tensor_comp],
     dsimp,
     simp only [category.assoc, category.comp_id],
     congr' 1,
     convert (normalize_iso_aux C f_Z).hom.naturality ((normalize_map_aux f_f).app n),
-    dsimp,
-    exact weird _ _ _, }
+    exact (tensor_func_obj_map _ _).symm }
 end
 
 def full_normalize_iso : 𝟭 (F C) ≅ full_normalize ⋙ inclusion :=
@@ -183,32 +180,23 @@ nat_iso.of_components
   begin
     intros X Y f,
     dsimp,
-    rw [monoidal_category.left_unitor_inv_naturality_assoc, category.assoc],
-    congr' 1,
-    have := nat_iso.naturality_2 (normalize_iso.{u} C) f,
-    erw ←tensor_func_map_app f normal_monoidal_object.unit,
-    rw ←this,
-    dsimp,
-    simp only [category.assoc],
-    congr' 1,
-    slice_lhs 2 3 { rw [←nat_trans.comp_app, ←nat_trans.comp_app], },
-    simp only [nat_trans.id_app, category.comp_id, iso.inv_hom_id],
-    dsimp, simp,
-    congr' 1,
+    rw [left_unitor_inv_naturality_assoc, category.assoc, iso.cancel_iso_inv_left],
+    exact congr_arg (λ f, nat_trans.app f normal_monoidal_object.unit)
+      ((normalize_iso.{u} C).hom.naturality f),
   end
 
 end
 
 instance coherence {X Y : F C} : subsingleton (X ⟶ Y) :=
-begin
-  constructor,
-  intros f g,
+⟨λ f g, have full_normalize.map f = full_normalize.map g, from subsingleton.elim _ _,
+ begin
   rw [←functor.id_map f, ←functor.id_map g],
-  have : full_normalize.map f = full_normalize.map g := subsingleton.elim _ _,
   simp [←nat_iso.naturality_2 (full_normalize_iso.{u} C), this]
-end
+ end⟩
 
 instance : groupoid.{u} (F C) :=
-{ inv := λ X Y, free_monoidal_category.inverse, ..(by apply_instance : category (F C)) }
+{ inv := λ X Y, inverse, ..(infer_instance : category (F C)) }
+
+end free_monoidal_category
 
 end category_theory

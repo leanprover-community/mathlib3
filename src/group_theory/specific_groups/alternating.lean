@@ -77,31 +77,6 @@ instance alternating_group_normal : (alternating_group α).normal := sign.normal
 
 namespace equiv.perm
 
-lemma swap_mul_swap_same_mem_closure_three_cycles {a b c : α} (ab : a ≠ b) (ac : a ≠ c) :
-  (swap a b * swap a c) ∈ closure {σ : perm α | is_three_cycle σ } :=
-begin
-  by_cases bc : b = c,
-  { subst bc,
-    simp [one_mem] },
-  exact subset_closure (is_three_cycle_swap_mul_swap_same ab ac bc)
-end
-
-lemma is_swap.mul_mem_closure_three_cycles {σ τ : perm α}
-  (hσ : is_swap σ) (hτ : is_swap τ) :
-  σ * τ ∈ closure {σ : perm α | is_three_cycle σ } :=
-begin
-  obtain ⟨a, b, ab, rfl⟩ := hσ,
-  obtain ⟨c, d, cd, rfl⟩ := hτ,
-  by_cases ac : a = c,
-  { subst ac,
-    exact swap_mul_swap_same_mem_closure_three_cycles ab cd },
-  have h' : swap a b * swap c d = swap a b * swap a c * (swap c a * swap c d),
-  { simp [swap_comm c a, mul_assoc] },
-  rw h',
-  exact mul_mem _ (swap_mul_swap_same_mem_closure_three_cycles ab ac)
-    (swap_mul_swap_same_mem_closure_three_cycles (ne.symm ac) cd),
-end
-
 @[simp]
 theorem closure_three_cycles_eq_alternating :
   closure {σ : perm α | is_three_cycle σ} = alternating_group α :=

@@ -268,9 +268,11 @@ classical.some (quotient.exists_rep s)
 @[simp] lemma to_list_zero {α : Type*} : (multiset.to_list 0 : list α) = [] :=
 (multiset.coe_eq_zero _).1 (classical.some_spec (quotient.exists_rep multiset.zero))
 
+@[simp]
 lemma coe_to_list {α : Type*} (s : multiset α) : (s.to_list : multiset α) = s :=
 classical.some_spec (quotient.exists_rep _)
 
+@[simp]
 lemma mem_to_list {α : Type*} (a : α) (s : multiset α) : a ∈ s.to_list ↔ a ∈ s :=
 by rw [←multiset.mem_coe, multiset.coe_to_list]
 
@@ -1023,6 +1025,13 @@ multiset.induction_on s (λ _, dvd_zero _)
 
 @[simp] theorem sum_map_singleton (s : multiset α) : (s.map (λ a, a ::ₘ 0)).sum = s :=
 multiset.induction_on s (by simp) (by simp)
+
+@[simp, to_additive] theorem prod_to_list [comm_monoid α] (s : multiset α) :
+  s.to_list.prod = s.prod :=
+begin
+  conv_rhs { rw ←coe_to_list s, },
+  rw coe_prod,
+end
 
 /-! ### Join -/
 

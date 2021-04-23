@@ -2261,6 +2261,15 @@ theorem prod_hom [monoid β] (l : list α) (f : α →* β) :
 by { simp only [prod, foldl_map, f.map_one.symm],
   exact l.foldl_hom _ _ _ 1 f.map_mul }
 
+@[to_additive]
+lemma prod_is_unit [monoid β] : Π {L : list β} (u : ∀ m ∈ L, is_unit m), is_unit L.prod
+| [] _ := by simp
+| (h :: t) u :=
+begin
+  simp only [list.prod_cons],
+  exact is_unit.mul (u h (mem_cons_self h t)) (prod_is_unit (λ m mt, u m (mem_cons_of_mem h mt)))
+end
+
 -- `to_additive` chokes on the next few lemmas, so we do them by hand below
 @[simp]
 lemma prod_take_mul_prod_drop :

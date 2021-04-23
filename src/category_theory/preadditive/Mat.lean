@@ -455,7 +455,7 @@ universe u
 /-- A type synonym for `Fintype`, which we will equip with a category structure
 where the morphisms are matrices with components in `R`. -/
 @[nolint unused_arguments, derive [has_coe_to_sort]]
-def Mat (R : Type u) := Fintype
+def Mat (R : Type u) := Fintype.{u}
 
 open_locale classical matrix
 
@@ -498,11 +498,35 @@ end
 
 variables (R : Type u) [ring R]
 
-def functor_single_obj : Mat R ⥤ Mat_ (single_obj R) :=
-{ obj := λ X, { ι := X, X := λ _, punit.star },
-  map := λ X Y f, f, }
+open opposite
 
-def equivalence_single_obj : Mat R ≌ Mat_ (single_obj R) := sorry
+@[simps]
+def equivalence_single_obj_inverse : Mat_ (single_obj Rᵒᵖ) ⥤ Mat R :=
+{ obj := λ X, Fintype.of X.ι,
+  map := λ X Y f i j, unop (f i j),
+  map_id' := λ X, by { ext i j, simp [id_def, Mat_.id_def], split_ifs; refl, }, }
+
+instance : faithful (equivalence_single_obj_inverse R) :=
+{ map_injective' := λ X Y f g w, begin
+    ext i j,
+    apply_fun unop using unop_injective,
+    exact (congr_fun (congr_fun w i) j),
+  end }
+
+instance : full (equivalence_single_obj_inverse R) :=
+{ preimage := λ X Y f i j, op (f i j), }
+
+instance : ess_surj (equivalence_single_obj_inverse R) :=
+{ mem_ess_image := λ X,
+  ⟨{ ι := X, X := λ _, punit.star }, ⟨eq_to_iso (by { dsimp, cases X, congr, })⟩⟩, }
+
+def equivalence_single_obj : Mat R ≌ Mat_ (single_obj Rᵒᵖ) :=
+begin
+  haveI := equivalence.equivalence_of_fully_faithfully_ess_surj (equivalence_single_obj_inverse R),
+  exact (equivalence_single_obj_inverse R).as_equivalence.symm,
+end
+
+-- TODO show `Mat R` has biproducts, and that `biprod.map` "is" forming a block diagonal matrix.
 
 end Mat
 

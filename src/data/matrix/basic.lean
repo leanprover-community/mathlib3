@@ -644,6 +644,14 @@ lemma smul_mul_vec_assoc (A : matrix m n α) (b : n → α) (a : α) :
   (a • A).mul_vec b = a • (A.mul_vec b) :=
 by { ext, apply smul_dot_product }
 
+lemma mul_vec_add_distrib (A : matrix m n α) (x y : n → α) :
+  A.mul_vec (x + y) = A.mul_vec x + A.mul_vec y :=
+by { ext, simp only [mul_vec, pi.add_apply, dot_product_add] }
+
+lemma vec_mul_add_distrib (A : matrix m n α) (x y : m → α) :
+  vec_mul (x + y) A = vec_mul x A + vec_mul y A :=
+by { ext, simp only [vec_mul, pi.add_apply, add_dot_product] }
+
 variables [decidable_eq m] [decidable_eq n]
 
 /--

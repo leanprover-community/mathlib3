@@ -337,7 +337,7 @@ instance {p : polynomial ℚ} : fact (p.splits (algebra_map ℚ ℂ)) :=
 
 lemma gal_action_hom_bijective_of_prime_degree_aux {p : polynomial ℚ} :
   (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
-    (gal_action_hom p ℂ (restrict p ℂ complex.conj_rat_alg_equiv)).support.card :=
+  (gal_action_hom p ℂ (restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ))).support.card :=
 begin
   by_cases hp : p = 0,
   { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty, zero_add],
@@ -362,8 +362,8 @@ begin
     { rintros ⟨hz1, hz2⟩,
       have key : is_scalar_tower.to_alg_hom ℚ ℝ ℂ z.re = z := by { ext, refl, rw hz2, refl },
       exact ⟨z.re, inj (by rwa [←aeval_alg_hom_apply, key, alg_hom.map_zero]), key⟩ } },
-  have hc0 : ∀ w : p.root_set ℂ,
-    gal_action_hom p ℂ (restrict p ℂ complex.conj_rat_alg_equiv) w = w ↔ w.val.im = 0,
+  have hc0 : ∀ w : p.root_set ℂ, gal_action_hom p ℂ
+    (restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ)) w = w ↔ w.val.im = 0,
   { intro w,
     rw [subtype.ext_iff, gal_action_hom_restrict],
     exact complex.eq_conj_iff_im },
@@ -396,14 +396,14 @@ begin
     rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots],
     { exact is_alg_closed.splits_codomain p },
     { exact nodup_roots ((separable_map (algebra_map ℚ ℂ)).mpr p_irr.separable) } },
-  have h2 : fintype.card (gal_action_hom p ℂ).range = fintype.card p.gal :=
-  fintype.card_congr (monoid_hom.injective_range_equiv (gal_action_hom_injective p ℂ)).to_equiv,
-  let conj := restrict p ℂ complex.conj_rat_alg_equiv,
+  have h2 : fintype.card p.gal = fintype.card (gal_action_hom p ℂ).range :=
+  fintype.card_congr (monoid_hom.of_injective (gal_action_hom_injective p ℂ)).to_equiv,
+  let conj := restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ),
   refine ⟨gal_action_hom_injective p ℂ, λ x, (congr_arg (has_mem.mem x)
     (show (gal_action_hom p ℂ).range = ⊤, from _)).mpr (subgroup.mem_top x)⟩,
   apply equiv.perm.subgroup_eq_top_of_swap_mem,
   { rwa h1 },
-  { rw [h1, h2],
+  { rw [h1, ←h2],
     exact prime_degree_dvd_card p_irr p_deg },
   { exact ⟨conj, rfl⟩ },
   { rw ← equiv.perm.card_support_eq_two,

@@ -1206,7 +1206,7 @@ noncomputable def of_injective {f : G →* N} (hf : function.injective f) : G �
 (mul_equiv.of_bijective (f.cod_restrict f.range (λ x, ⟨x, rfl⟩))
   ⟨λ x y h, hf (subtype.ext_iff.mp h), by { rintros ⟨x, y, rfl⟩, exact ⟨y, rfl⟩ }⟩)
 
-lemma of_injective_apply{f : G →* N} (hf : function.injective f) {x : G} :
+lemma of_injective_apply {f : G →* N} (hf : function.injective f) {x : G} :
   ↑(of_injective hf x) = f x := rfl
 
 /-- The multiplicative kernel of a monoid homomorphism is the subgroup of elements `x : G` such that

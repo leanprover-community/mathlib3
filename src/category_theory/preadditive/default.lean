@@ -6,6 +6,7 @@ Authors: Markus Himmel
 import algebra.group.hom
 import category_theory.limits.shapes.kernels
 import algebra.big_operators.basic
+import category_theory.endomorphism
 
 /-!
 # Preadditive categories
@@ -84,6 +85,12 @@ instance induced_category.category : preadditive.{v} (induced_category C F) :=
   comp_add' := λ P Q R f g g', comp_add' _ _ _ _ _ _, }
 
 end induced_category
+
+instance (X : C) : ring (End X) :=
+{ left_distrib := λ f g h, preadditive.add_comp X X X g h f,
+  right_distrib := λ f g h, preadditive.comp_add X X X h f g,
+  ..(infer_instance : add_comm_group (X ⟶ X)),
+  ..(infer_instance : monoid (End X)) }
 
 /-- Composition by a fixed left argument as a group homomorphism -/
 def left_comp {P Q : C} (R : C) (f : P ⟶ Q) : (Q ⟶ R) →+ (P ⟶ R) :=

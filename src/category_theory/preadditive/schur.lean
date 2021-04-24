@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
 import category_theory.simple
-import category_theory.preadditive
+import category_theory.linear
+import category_theory.endomorphism
+import field_theory.algebraic_closure
 
 /-!
 # Schur's lemma
@@ -49,16 +51,45 @@ end
 As a corollary of Schur's lemma,
 any morphism between simple objects is (exclusively) either an isomorphism or zero.
 -/
-def is_iso_equiv_nonzero {X Y : C} [simple.{v} X] [simple.{v} Y] {f : X ⟶ Y} :
-  is_iso.{v} f ≃ (f ≠ 0) :=
-{ to_fun := λ I,
+lemma is_iso_iff_nonzero {X Y : C} [simple.{v} X] [simple.{v} Y] {f : X ⟶ Y} :
+  is_iso.{v} f ↔ f ≠ 0 :=
+⟨λ I,
   begin
     introI h,
     apply id_nonzero X,
     simp only [←is_iso.hom_inv_id f, h, zero_comp],
   end,
-  inv_fun := λ w, is_iso_of_hom_simple w,
-  left_inv := λ I, subsingleton.elim _ _,
-  right_inv := λ w, rfl }
+  λ w, is_iso_of_hom_simple w⟩
+
+-- TODO move
+lemma is_iso_iff_is_unit {X : C} (f : End X) : is_iso f ↔ is_unit (f : End X) :=
+sorry
+
+open finite_dimensional
+
+variables {𝕜 : Type*} [field 𝕜] [is_alg_closed 𝕜]
+
+/--
+Schur's lemma for `𝕜`-linear categories
+-/
+lemma findim_endomorphism_simple_eq_one
+  [linear 𝕜 C] {X : C} [simple.{v} X] [finite_dimensional 𝕜 (X ⟶ X)] :
+  findim 𝕜 (X ⟶ X) = 1 :=
+begin
+  suffices : ∀ f : X ⟶ X, ∃ c : 𝕜, f = c • 𝟙 X,
+  { sorry, },
+  intro f,
+  obtain ⟨c, nu⟩ := exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 (End.of f),
+  use c,
+  rw ←is_iso_iff_is_unit at nu,
+  rw is_iso_iff_nonzero at nu,
+  sorry,
+end
+
+lemma findim_hom_simple_simple_le_one
+  [linear 𝕜 C] {X Y : C} [finite_dimensional 𝕜 (X ⟶ X)] [simple.{v} X] [simple.{v} Y] :
+  findim 𝕜 (X ⟶ Y) ≤ 1 :=
+sorry
+
 
 end category_theory

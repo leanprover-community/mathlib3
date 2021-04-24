@@ -30,6 +30,12 @@ instance has_mul : has_mul (End X) := ⟨λ x y, y ≫ x⟩
 
 variable {X}
 
+/-- Assist the typechecker by expressing a morphism `X ⟶ X` as a term of `End X`. -/
+def of (f : X ⟶ X) : End X := f
+
+/-- Assist the typechecker by expressing an endomorphism `f : End X` as a term of `X ⟶ X`. -/
+def as_hom (f : End X) : X ⟶ X := f
+
 @[simp] lemma one_def : (1 : End X) = 𝟙 X := rfl
 
 @[simp] lemma mul_def (xs ys : End X) : xs * ys = ys ≫ xs := rfl

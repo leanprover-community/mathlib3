@@ -339,9 +339,27 @@ lemma findim_zero_iff [finite_dimensional K V] :
 iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_zero_iff K V _ _ _)
 
 /-- A finite dimensional space that is a subsingleton has zero `findim`. -/
-lemma findim_zero_of_subsingleton [finite_dimensional K V] [h : subsingleton V] :
+lemma findim_zero_of_subsingleton [h : subsingleton V] :
   findim K V = 0 :=
 findim_zero_iff.2 h
+
+lemma findim_eq_one (v : V) (n : v ≠ 0) (h : ∀ w : V, ∃ c : K, c • v = w) :
+  findim K V = 1 :=
+begin
+  convert findim_eq_card_basis ((is_basis_singleton_iff punit v).mpr _),
+  exact ⟨n, h⟩,
+end
+
+lemma findim_le_one (v : V) (h : ∀ w : V, ∃ c : K, c • v = w) :
+  findim K V ≤ 1 :=
+begin
+  by_cases n : v = 0,
+  { subst n,
+    convert zero_le_one,
+    haveI := subsingleton_of_forall_eq (0 : V) (λ w, by { obtain ⟨c, rfl⟩ := h w, simp, }),
+    exact findim_zero_of_subsingleton, },
+  { exact (findim_eq_one v n h).le, }
+end
 
 section
 open_locale big_operators

@@ -177,7 +177,7 @@ end
 
 section of_tower
 
-variables [comm_semiring S] [algebra S R] [semimodule S M] [is_scalar_tower S R M]
+variables [comm_semiring S] [algebra S R] [module S M] [is_scalar_tower S R M]
 
 @[simp]
 lemma polar_smul_left_of_tower (a : S) (x y : M) :
@@ -284,7 +284,7 @@ instance : has_scalar S (quadratic_form R M) :=
 @[simp] lemma smul_apply (a : S) (Q : quadratic_form R M) (x : M) :
   (a • Q) x = a • Q x := rfl
 
-instance : semimodule S (quadratic_form R M) :=
+instance : module S (quadratic_form R M) :=
 { mul_smul := λ a b Q, ext (λ x, by
     simp only [smul_apply, mul_left_comm, ←smul_eq_mul, smul_assoc]),
   one_smul := λ Q, ext (λ x, by simp),
@@ -710,7 +710,7 @@ end
 
 open finite_dimensional
 
-variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [vector_space K V]
+variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [module K V]
 variable [finite_dimensional K V]
 
 -- We start proving that symmetric nondegenerate bilinear forms are diagonalisable, or equivalently
@@ -718,18 +718,18 @@ variable [finite_dimensional K V]
 
 lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
-  ∃ v : fin (findim K V) → V,
+  ∃ v : fin (finrank K V) → V,
     B.is_Ortho v ∧ is_basis K v ∧ ∀ i, B (v i) (v i) ≠ 0 :=
 begin
   tactic.unfreeze_local_instances,
-  induction hd : findim K V with d ih generalizing V,
-  { exact ⟨λ _, 0, λ _ _ _, zero_left _, is_basis_of_findim_zero' hd, fin.elim0⟩ },
-  { haveI := findim_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < findim K V),
+  induction hd : finrank K V with d ih generalizing V,
+  { exact ⟨λ _, 0, λ _ _ _, zero_left _, is_basis_of_finrank_zero' hd, fin.elim0⟩ },
+  { haveI := finrank_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < finrank K V),
     cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
     { have hd' := hd,
-      rw [← submodule.findim_add_eq_of_is_compl
+      rw [← submodule.finrank_add_eq_of_is_compl
             (is_compl_span_singleton_orthogonal hx).symm,
-          findim_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
+          finrank_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
       rcases @ih (B.orthogonal $ K ∙ x) _ _ _
         (B.restrict _) (B.restrict_orthogonal_span_singleton_nondegenerate hB₁ hB₂ hx)
         (B.restrict_sym hB₂ _) (nat.succ.inj hd) with ⟨v', hv₁, hv₂, hv₃⟩,
@@ -749,7 +749,7 @@ begin
         { simp_rw [dif_pos hi, dif_pos hj],
           rw [is_ortho, hB₂],
           exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
-      { refine is_basis_of_linear_independent_of_card_eq_findim
+      { refine is_basis_of_linear_independent_of_card_eq_finrank
           (@linear_independent_of_is_Ortho _ _ _ _ _ _ B _ _ _)
           (by rw [hd', fintype.card_fin]),
         { intros i j hij,
@@ -784,7 +784,7 @@ end .
   field `K` with invertible `2`, there exists an orthogonal basis with respect to `B`. -/
 theorem exists_orthogonal_basis [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
-  ∃ v : fin (findim K V) → V, B.is_Ortho v ∧ is_basis K v :=
+  ∃ v : fin (finrank K V) → V, B.is_Ortho v ∧ is_basis K v :=
 let ⟨v, hv₁, hv₂, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv₁, hv₂⟩
 
 end bilin_form

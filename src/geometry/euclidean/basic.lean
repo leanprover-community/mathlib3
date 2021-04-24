@@ -418,8 +418,8 @@ open affine_subspace finite_dimensional
 /-- Distances `r₁` `r₂` of `p` from two different points `c₁` `c₂` determine at
 most two points `p₁` `p₂` in a two-dimensional subspace containing those points
 (two circles intersect in at most two points). -/
-lemma eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two {s : affine_subspace ℝ P}
-  [finite_dimensional ℝ s.direction] (hd : findim ℝ s.direction = 2) {c₁ c₂ p₁ p₂ p : P}
+lemma eq_of_dist_eq_of_dist_eq_of_mem_of_finrank_eq_two {s : affine_subspace ℝ P}
+  [finite_dimensional ℝ s.direction] (hd : finrank ℝ s.direction = 2) {c₁ c₂ p₁ p₂ p : P}
   (hc₁s : c₁ ∈ s) (hc₂s : c₂ ∈ s) (hp₁s : p₁ ∈ s) (hp₂s : p₂ ∈ s) (hps : p ∈ s) {r₁ r₂ : ℝ}
   (hc : c₁ ≠ c₂) (hp : p₁ ≠ p₂) (hp₁c₁ : dist p₁ c₁ = r₁) (hp₂c₁ : dist p₂ c₁ = r₁)
   (hpc₁ : dist p c₁ = r₁) (hp₁c₂ : dist p₁ c₂ = r₂) (hp₂c₂ : dist p₂ c₂ = r₂)
@@ -439,13 +439,13 @@ begin
       { exact ho },
       { rw real_inner_comm, exact ho } } },
   have hbs : submodule.span ℝ (set.range b) = s.direction,
-  { refine eq_of_le_of_findim_eq _ _,
+  { refine eq_of_le_of_finrank_eq _ _,
     { rw [submodule.span_le, set.range_subset_iff],
       intro i,
       fin_cases i,
       { exact vsub_mem_direction hc₂s hc₁s },
       { exact vsub_mem_direction hp₂s hp₁s } },
-    { rw [findim_span_eq_card hb, fintype.card_fin, hd] } },
+    { rw [finrank_span_eq_card hb, fintype.card_fin, hd] } },
   have hv : ∀ v ∈ s.direction, ∃ t₁ t₂ : ℝ, v = t₁ • (c₂ -ᵥ c₁) + t₂ • (p₂ -ᵥ p₁),
   { intros v hv,
     have hr : set.range b = {c₂ -ᵥ c₁, p₂ -ᵥ p₁},
@@ -474,15 +474,15 @@ end
 /-- Distances `r₁` `r₂` of `p` from two different points `c₁` `c₂` determine at
 most two points `p₁` `p₂` in two-dimensional space (two circles intersect in at
 most two points). -/
-lemma eq_of_dist_eq_of_dist_eq_of_findim_eq_two [finite_dimensional ℝ V] (hd : findim ℝ V = 2)
+lemma eq_of_dist_eq_of_dist_eq_of_finrank_eq_two [finite_dimensional ℝ V] (hd : finrank ℝ V = 2)
   {c₁ c₂ p₁ p₂ p : P} {r₁ r₂ : ℝ} (hc : c₁ ≠ c₂) (hp : p₁ ≠ p₂) (hp₁c₁ : dist p₁ c₁ = r₁)
   (hp₂c₁ : dist p₂ c₁ = r₁) (hpc₁ : dist p c₁ = r₁) (hp₁c₂ : dist p₁ c₂ = r₂)
   (hp₂c₂ : dist p₂ c₂ = r₂) (hpc₂ : dist p c₂ = r₂) : p = p₁ ∨ p = p₂ :=
 begin
-  have hd' : findim ℝ (⊤ : affine_subspace ℝ P).direction = 2,
-  { rw [direction_top, findim_top],
+  have hd' : finrank ℝ (⊤ : affine_subspace ℝ P).direction = 2,
+  { rw [direction_top, finrank_top],
     exact hd },
-  exact eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two hd'
+  exact eq_of_dist_eq_of_dist_eq_of_mem_of_finrank_eq_two hd'
     (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _)
     hc hp hp₁c₁ hp₂c₁ hpc₁ hp₁c₂ hp₂c₂ hpc₂
 end

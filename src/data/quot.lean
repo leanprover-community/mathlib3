@@ -335,9 +335,9 @@ namespace quotient
 variables {γ : Sort*} {φ : Sort*}
   {s₁ : setoid α} {s₂ : setoid β} {s₃ : setoid γ}
 
-/- Versions of quotient definitions and lemmas ending in `'` use unification instead
+/-! Versions of quotient definitions and lemmas ending in `'` use unification instead
 of typeclass inference for inferring the `setoid` argument. This is useful when there are
-several different quotient relations on a type, for example quotient groups, rings and modules -/
+several different quotient relations on a type, for example quotient groups, rings and modules. -/
 
 /-- A version of `quotient.mk` taking `{s : setoid α}` as an implicit argument instead of an
 instance argument. -/

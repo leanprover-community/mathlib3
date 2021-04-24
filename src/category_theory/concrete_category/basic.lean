@@ -57,6 +57,9 @@ attribute [instance] concrete_category.forget_faithful
 @[reducible] def forget (C : Type v) [category C] [concrete_category.{u} C] : C ⥤ Type u :=
 concrete_category.forget C
 
+instance concrete_category.types : concrete_category (Type u) :=
+{ forget := 𝟭 _ }
+
 /--
 Provide a coercion to `Type u` for a concrete category. This is not marked as an instance
 as it could potentially apply to every type, and so is too expensive in typeclass search.
@@ -132,10 +135,11 @@ lemma concrete_category.epi_of_surjective {X Y : C} (f : X ⟶ Y) (s : function.
   epi f :=
 faithful_reflects_epi (forget C) ((epi_iff_surjective f).2 s)
 
-end
+@[simp] lemma concrete_category.has_coe_to_fun_Type {X Y : Type u} (f : X ⟶ Y) :
+  coe_fn f = f :=
+rfl
 
-instance concrete_category.types : concrete_category (Type u) :=
-{ forget := 𝟭 _ }
+end
 
 /--
 `has_forget₂ C D`, where `C` and `D` are both concrete categories, provides a functor

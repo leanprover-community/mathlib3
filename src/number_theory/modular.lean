@@ -8,7 +8,6 @@ import algebra.ordered_ring
 import ring_theory.int.basic
 import data.real.sqrt
 import linear_algebra.affine_space.affine_subspace
-import number_theory.moduLinear
 
 open complex
 open matrix
@@ -368,10 +367,6 @@ section
 
 open filter
 
---instance {α : Type*} [ring α] [topological_space α] {n m : Type*} [fintype n] [fintype m] :
- -- topological_space (matrix n m α) :=
---Pi.topological_space
-
 instance {α : Type*} [normed_ring α] {n m : Type*} [fintype n] [fintype m] :
   normed_group (matrix n m α) :=
 pi.normed_group
@@ -434,6 +429,45 @@ begin
   { exact Coprod_cocompact.symm }
 end
 
+
+/- generalize to arbitrary matrix index sets and move to matrix file -/
+def matrix.coord (i j : fin 2) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
+(linear_map.proj 0 : (fin 2 → ℝ) →ₗ[ℝ] _).comp (linear_map.proj 0)
+
+
+-- ALEX HOMEWORK
+-- A closed embedding is proper
+-- for `topology.subset_properties`
+lemma closed_embedding.tendsto_cocompact {A B : Type*} [topological_space A] [topological_space B]
+  {f : A → B} (hf : closed_embedding f) : tendsto f (cocompact A) (cocompact B) :=
+begin
+  rw has_basis_cocompact.tendsto_iff has_basis_cocompact,
+  intros K hK,
+  refine ⟨f ⁻¹' (K ∩ (set.range f)), _, λ x hx, by simpa using hx⟩,
+  have : is_compact (K ∩ set.range f) := hK.inter_right hf.closed_range,
+  -- goal: `⊢ is_compact (f ⁻¹' (K ∩ set.range f))`
+  -- this should be true, since `f` restricts to a homeomorphism from `A` onto its image
+  sorry
+end
+
+section
+variables {k U V : Type*} [nondiscrete_normed_field k] [complete_space k]
+  [normed_group U] [normed_group V] [normed_space k U] [normed_space k V]
+  {f : linear_map k U V}
+
+-- for `analysis.normed_space.finite_dimension`
+/-- An injective linear map with finite-dimensional domain is a closed embedding. -/
+lemma linear_equiv.closed_embedding_of_injective (hf : f.ker = ⊥) [finite_dimensional k U] :
+  closed_embedding ⇑f :=
+let g := linear_equiv.of_injective f hf in
+{ closed_range := begin
+    haveI := f.finite_dimensional_range,
+    simpa [f.range_coe] using f.range.closed_of_finite_dimensional
+  end,
+  .. embedding_subtype_coe.comp g.to_continuous_linear_equiv.to_homeomorph.embedding }
+
+end
+
 /- Non-crap lemma: Absolute value function is cocompact -/
 lemma tendsto_at_top_abs :
   tendsto _root_.abs (cocompact ℝ) at_top :=
@@ -446,9 +480,6 @@ begin
 end
 
 
-/- generalize to arbitrary matrix index sets -/
-def matrix.coord (i j : fin 2) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
-(linear_map.proj 0 : (fin 2 → ℝ) →ₗ[ℝ] _).comp (linear_map.proj 0)
 
 def acbd (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
 cd.1.1 • matrix.coord 0 0 + cd.1.2 • matrix.coord 0 1
@@ -460,76 +491,53 @@ def line_map (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] (ℝ
 
 lemma lin_indep_acbd (cd : coprime_ints) : ((acbd cd).prod (line_map cd)).ker = ⊥ :=
 begin
+  -- ALEX HOMEWORK? (but might be hard)
+  -- the nice theorem about the matrix `[c d; -d c]` being invertible
   sorry
 end
 
-def new_line_def (cd : coprime_ints) : set (matrix (fin 2) (fin 2) ℝ) :=
-(line_map cd) ⁻¹' {((1, λ i, if i = 0 then cd.1.1 else cd.1.2) : ℝ × (fin 2 → ℝ))}
-
 /-- Big filter theorem -/
-theorem big_thm' (cd : coprime_ints) (w : ℝ) :
-  tendsto (λ A : bottom_row ⁻¹' {cd}, acbd cd ↑A + w) cofinite (cocompact ℝ) :=
+theorem big_thm (cd : coprime_ints) :
+  tendsto (λ g : bottom_row ⁻¹' {cd}, acbd cd ↑g) cofinite (cocompact ℝ) :=
 begin
   let cd' : fin 2 → ℤ :=  λ i, if i = 0 then cd.1.1 else cd.1.2,
-  let l := bottom_row ⁻¹' {cd},
-  let f : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ := λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
-  have hf : tendsto f cofinite (cocompact _) :=
+  let mB : ℝ → ℝ × (ℝ × (fin 2 → ℝ)) := λ t, (t, (1, coe ∘ cd')),
+  have hmB : continuous mB := continuous_id.prod_mk continuous_const,
+  convert filter.tendsto.of_tendsto_comp _ (comap_cocompact hmB),
+  let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ := λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
+  have hf₁ : tendsto f₁ cofinite (cocompact _) :=
     cocompact_ℝ_to_cofinite_ℤ_matrix.comp subtype.coe_injective.tendsto_cofinite,
-  have hl : ∀ g ∈ l, f g ∈ new_line_def cd,
-  { intros g hg,
-    simp [new_line_def, line_map, matrix.coord, f],
-    split,
-    { norm_cast,
-      convert g.det_coe_matrix using 1,
-      sorry },
-    { sorry } },
-  let f' : l → new_line_def cd := subtype.map f hl,
-  have h₁ : tendsto f' cofinite (cocompact _),
-  { refine filter.tendsto.of_tendsto_comp _ (comap_cocompact continuous_subtype_coe),
-    simpa [hl] using hf.comp subtype.coe_injective.tendsto_cofinite },
-  have h₂ : tendsto (λ A, acbd cd ↑A + w) (cocompact (new_line_def cd)) (cocompact ℝ),
-  { let hf := linear_equiv.closed_embedding_of_injective (lin_indep_acbd cd),
-    let p : ℝ × (fin 2 → ℝ) := (1, λ i, if i = 0 then cd.1.1 else cd.1.2),
-    let hs : is_closed (prod.snd ⁻¹' {p} : set (ℝ × (ℝ × (fin 2 → ℝ)))) :=
-      is_closed_singleton.preimage continuous_snd,
-    have := (hf.comp (closed_embedding_subtype_coe (hs.preimage hf.continuous))).cod_restrict hs (by simp),
-    have := ((fibre_embed_homeomorph p).trans (homeomorph.add_right w)).closed_embedding.comp this,
-    exact this.tendsto_cocompact },
-  have := h₂.comp h₁,
-  convert this,
+  let f₂ : matrix (fin 2) (fin 2) ℝ → ℝ × (ℝ × (fin 2 → ℝ)) := (acbd cd).prod (line_map cd),
+  have hf₂ : tendsto f₂ (cocompact _) (cocompact _) :=
+    (linear_equiv.closed_embedding_of_injective (lin_indep_acbd cd)).tendsto_cocompact,
+  convert hf₂.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
+  funext g,
+  obtain ⟨g, hg⟩ := g,
+  simp [mB, f₁, f₂, cd', line_map, matrix.coord],
+  simp [bottom_row] at hg,
+  split,
+  { norm_cast,
+    rw ← g.det_coe_matrix,
+    sorry }, -- both of these are just algebra: ALEX HOMEWORK
+  { sorry }
 end
 
-
-
-
-def smul_aux' : (matrix (fin 2) (fin 2) ℝ) → ℂ → ℂ := sorry
-
-lemma something1 (cd : coprime_ints) (z : H) (g : line cd) :
-∃ w , (smul_aux' ↑g z).re = (acbd cd g)/(real.sqrt ((cd.1.1)^2+(cd.1.2)^2)) + w :=
+-- ALEX HOMEWORK? (but might be hard): how to relate the above lemma to the `SL(2, ℤ)`-action
+-- probably figure out what the `w` is and write it explicitly, eliminating the existential
+lemma something1 (cd : coprime_ints) (z : H) (g : bottom_row ⁻¹' {cd}) :
+  ∃ w, ((g : SL(2, ℤ)) • z).val.re = (acbd cd ↑g) / (real.sqrt ((cd.1.1)^2+(cd.1.2)^2)) + w :=
 begin
   sorry,
 end
 
-
-/- Non-crap lemma: given the line of cd, the real part of the action of g on z is cocompact -/
-lemma tendsto_action (cd : coprime_ints) (z : H) :
-  tendsto (λ g, (smul_aux' ↑g z).re) (cocompact (line cd)) (cocompact ℝ) :=
-begin
-  -- let g : ℝ → matrix (fin 2) (fin 2) ℝ :=
-
-  have := something1 cd z,
-  sorry
-end
-
-
-
-/- Non-crap lemma but content-free; should be combination of building blocks -/
+/- final filter lemma, deduce from previous two results -/
 lemma something' (z:H) (cd : coprime_ints) :
   tendsto (λ g : bottom_row ⁻¹' {cd}, _root_.abs (((g : SL(2, ℤ)) • z).val.re)) cofinite at_top :=
 begin
-
+  sorry
 end
 
+/- the upshot of all the filter stuff -/
 lemma something (z:H) (cd : coprime_ints) :
   ∃ g : SL(2,ℤ), bottom_row g = cd ∧ (∀ g' : SL(2,ℤ), bottom_row g = bottom_row g' →
   _root_.abs ((g • z).val.re) ≤ _root_.abs ((g' • z).val.re)) :=
@@ -1205,4 +1213,38 @@ end
 -- --  refine tendsto_inverse_image_fun subtype.coe_injective continuous_subtype_coe _ hf₂,
 --   refine filter.tendsto.of_tendsto_comp _ (comap_cocompact continuous_subtype_coe),
 --   simpa [hf₁] using hf₂.comp subtype.coe_injective.tendsto_cofinite,
+-- end
+
+
+-- /-- Big filter theorem -/
+-- theorem big_thm' (cd : coprime_ints) (w : ℝ) :
+--   tendsto (λ A : bottom_row ⁻¹' {cd}, acbd cd ↑A + w) cofinite (cocompact ℝ) :=
+-- begin
+--   let cd' : fin 2 → ℤ :=  λ i, if i = 0 then cd.1.1 else cd.1.2,
+--   let l := bottom_row ⁻¹' {cd},
+--   let f : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ := λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
+--   have hf : tendsto f cofinite (cocompact _) :=
+--     cocompact_ℝ_to_cofinite_ℤ_matrix.comp subtype.coe_injective.tendsto_cofinite,
+--   have hl : ∀ g ∈ l, f g ∈ new_line_def cd,
+--   { intros g hg,
+--     simp [new_line_def, line_map, matrix.coord, f],
+--     split,
+--     { norm_cast,
+--       convert g.det_coe_matrix using 1,
+--       sorry },
+--     { sorry } },
+--   let f' : l → new_line_def cd := subtype.map f hl,
+--   have h₁ : tendsto f' cofinite (cocompact _),
+--   { refine filter.tendsto.of_tendsto_comp _ (comap_cocompact continuous_subtype_coe),
+--     simpa [hl] using hf.comp subtype.coe_injective.tendsto_cofinite },
+--   have h₂ : tendsto (λ A, acbd cd ↑A + w) (cocompact (new_line_def cd)) (cocompact ℝ),
+--   { let hf := linear_equiv.closed_embedding_of_injective (lin_indep_acbd cd),
+--     let p : ℝ × (fin 2 → ℝ) := (1, λ i, if i = 0 then cd.1.1 else cd.1.2),
+--     let hs : is_closed (prod.snd ⁻¹' {p} : set (ℝ × (ℝ × (fin 2 → ℝ)))) :=
+--       is_closed_singleton.preimage continuous_snd,
+--     have := (hf.comp (closed_embedding_subtype_coe (hs.preimage hf.continuous))).cod_restrict hs (by simp),
+--     have := ((fibre_embed_homeomorph p).trans (homeomorph.add_right w)).closed_embedding.comp this,
+--     exact this.tendsto_cocompact },
+--   have := h₂.comp h₁,
+--   convert this,
 -- end

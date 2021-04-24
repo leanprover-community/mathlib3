@@ -294,13 +294,27 @@ def partition (σ : perm α) : partition (fintype.card α) :=
   parts_sum := by rw [sum_add, sum_cycle_type, multiset.sum_repeat, nsmul_eq_mul,
     nat.cast_id, mul_one, nat.add_sub_cancel' σ.support.card_le_univ] }
 
-lemma partition_eq_of_is_conj {σ τ : perm α} (h : is_conj σ τ) :
-  σ.partition = τ.partition :=
+@[simp]
+lemma parts_partition {σ : perm α} :
+  σ.partition.parts = σ.cycle_type + repeat 1 (fintype.card α - σ.support.card) := rfl
+
+lemma filter_parts_partition_eq_cycle_type {σ : perm α} :
+  (partition σ).parts.filter (λ n, 2 ≤ n) = σ.cycle_type :=
 begin
-  obtain ⟨c, rfl⟩ := is_conj_iff.1 h,
-  rw [partition, partition],
-  simp only,
-  rw [cycle_type_conj, card_support_conj],
+  rw [parts_partition, filter_add, multiset.filter_eq_self.2 (λ _, two_le_of_mem_cycle_type),
+    multiset.filter_eq_nil.2 (λ a h, _), add_zero],
+  rw multiset.eq_of_mem_repeat h,
+  dec_trivial
+end
+
+lemma partition_eq_of_is_conj {σ τ : perm α} :
+  is_conj σ τ ↔ σ.partition = τ.partition :=
+begin
+  rw [is_conj_iff_cycle_type_eq],
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw [partition.ext_iff, parts_partition, parts_partition,
+      ← sum_cycle_type, ← sum_cycle_type, h] },
+  { rw [← filter_parts_partition_eq_cycle_type, ← filter_parts_partition_eq_cycle_type, h] }
 end
 
 end partition

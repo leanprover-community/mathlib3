@@ -152,7 +152,7 @@ section add_comm_group
 
 variables (R M) [semiring R] [add_comm_group M]
 
-instance add_comm_group.int_module : semimodule ℤ M :=
+instance add_comm_group.int_module : module ℤ M :=
 { one_smul := one_gsmul,
   mul_smul := λ m n a, mul_gsmul a m n,
   smul_add := λ n a b, gsmul_add a b n,
@@ -312,7 +312,7 @@ by rw [gsmul_eq_smul_cast ℤ n x, int.cast_id]
 should normally have exactly one `ℤ`-module structure by design. -/
 def add_comm_group.int_module.unique : unique (module ℤ M) :=
 { default := by apply_instance,
-  uniq := λ P, semimodule_ext P _ $ λ n, int_smul_eq_gsmul P n }
+  uniq := λ P, module_ext P _ $ λ n, int_smul_eq_gsmul P n }
 
 instance add_comm_group.int_is_scalar_tower : is_scalar_tower ℤ R M :=
 { smul_assoc := λ n x y, int.induction_on n

@@ -10,11 +10,9 @@ import topology.algebra.ring
 open topological_space
 open_locale topological_space
 
-set_option old_structure_cmd true
-
 /-- The type of open subgroups of a topological additive group. -/
 @[ancestor add_subgroup]
-structure open_add_subgroup  (G : Type*) [add_group G] [topological_space G]
+structure open_add_subgroup (G : Type*) [add_group G] [topological_space G]
   extends add_subgroup G :=
 (is_open' : is_open carrier)
 
@@ -59,7 +57,11 @@ attribute [norm_cast] mem_coe mem_coe_opens mem_coe_subgroup open_add_subgroup.m
   open_add_subgroup.mem_coe_opens open_add_subgroup.mem_coe_add_subgroup
 
 @[to_additive] lemma coe_injective : injective (coe : open_subgroup G → set G) :=
-λ U V h, by cases U; cases V; congr; assumption
+begin
+  rintro ⟨⟨U, _, _, _⟩, _⟩ ⟨⟨V, _, _, _⟩, _⟩ h,
+  congr,
+  assumption,
+end
 
 @[ext, to_additive]
 lemma ext (h : ∀ x, x ∈ U ↔ x ∈ V) : (U = V) := coe_injective $ set.ext h

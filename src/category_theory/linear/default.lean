@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.preadditive
 import algebra.module.linear_map
 import algebra.invertible
+import algebra.algebra.basic
 
 /-!
 # Linear categories
@@ -56,7 +57,21 @@ open category_theory
 
 namespace category_theory.linear
 
-variables {R : Type w} [ring R] {C : Type u} [category.{v} C] [preadditive C] [linear R C]
+variables {C : Type u} [category.{v} C] [preadditive C]
+
+section End
+
+variables {R : Type w} [comm_ring R] [linear R C]
+
+@[priority 10] -- Prefer to get the instance via the algebra.
+instance (X : C) : module R (End X) := by { dsimp [End], apply_instance, }
+
+instance (X : C) : algebra R (End X) :=
+algebra.of_semimodule (λ r f g, comp_smul _ _ _ _ _ _) (λ r f g, smul_comp _ _ _ _ _ _)
+
+end End
+
+variables {R : Type w} [ring R] [linear R C]
 
 section induced_category
 universes u'

@@ -65,31 +65,33 @@ begin
     exfalso, apply ne, ext x, exact fin.elim0 x,
 
   let equiv_classes : (fin n ↪ β) → finset (fin n.succ ↪ β) :=
-    λ f : fin n ↪ β, univ.filter (λ g : fin n.succ ↪ β, ∀ k : fin n, f k = g k),
+    λ f : fin n ↪ β, univ.filter (λ g : fin n.succ ↪ β, ∀ k : fin n, f k = g k.succ),
 
-  have all_injf_covered : univ = univ.bUnion equiv_classes, sorry, /-
+  --let add_one : (fin n → β) → β → fin n.succ → β:= λ f : fin n → β, λ b : β, fin.cons _ f b,
+
+  --let equiv_classes' : (fin n ↪ β) → finset (fin n.succ ↪ β) :=
+    --λ f : fin n ↪ β, univ.filter (λ g : fin n.succ ↪ β, ∃ k : β, fin.cons _ f k = g),
+
+  have all_injf_covered : univ = univ.bUnion equiv_classes,
     apply subset.antisymm,
-    { rintros f -, rw mem_bUnion, use (λ x : fin n, f x),
-      { intros a b hab, replace hab := f.inj' hab,
-        simp only [fin.coe_eq_cast_succ, order_embedding.eq_iff_eq] at hab, exact hab },
-      simp only [mem_filter, embedding.coe_fn_mk, mem_univ,
-                 implies_true_iff, eq_self_iff_true, and_self] }, -- check this simp only after
-    { exact subset_univ _ }, -/
+    { rintros f -, rw mem_bUnion,
+      exact ⟨⟨λ x, f x.succ, λ _ _ h, fin.succ_inj.mp $ f.injective h⟩, by simp⟩ },
+    { exact subset_univ _ },
 
   have equiv_class_size : ∀ f : fin n ↪ β, |equiv_classes f| = ‖β‖ - n,
   {
     intro f, let poss_vals := univ \ finset.map ⟨f, f.inj'⟩ univ,
     have num_poss_vals : |poss_vals| = ‖β‖ - n, by simp [poss_vals, card_univ, card_sdiff],
-    apply le_antisymm, /-
-    { by_contra h, push_neg at h, let last := λ g : fin n.succ ↪ β, g (fin.last n),
-      suffices : ∃ x ∈ equiv_classes f, ∃ y ∈ equiv_classes f, x ≠ y ∧ last x = last y,
+    apply le_antisymm,
+    { by_contra h, push_neg at h, let first := λ g : fin n.succ ↪ β, g 0,
+      suffices : ∃ x ∈ equiv_classes f, ∃ y ∈ equiv_classes f, x ≠ y ∧ first x = first y,
       {
         obtain ⟨x, x_equiv, y, y_equiv, x_ne_y, x_y_agree⟩ := this,
         apply x_ne_y,
         simp only [true_and, mem_filter, mem_univ, fin.coe_eq_cast_succ] at x_equiv y_equiv,
 
-        rw ←embedding.ext_iff, intro t,
-        by_cases h : t = fin.last n,
+        ext t,
+        by_cases h : t = 0,
         { subst h, exact x_y_agree },
         { specialize x_equiv (t.cast_ne h), specialize y_equiv (t.cast_ne h),
           rw fin.cast_succ_cast_ne at x_equiv y_equiv,
@@ -103,24 +105,17 @@ begin
       obtain ⟨a, not_inj⟩ := not_inj, rw g_equiv at not_inj,
       have := g.injective not_inj,
       suffices : fin.cast_succ a ≠ fin.last n, by contradiction,
-      exact (fin.cast_succ_lt_last a).ne }, -/
-    sorry,
+      exact (fin.cast_succ_lt_last a).ne },
+    sorry, /-
     {
-      let my_fun : {x // x ∈ poss_vals} ↪ (fin n.succ ↪ β)
-       := ⟨λ val, ⟨λ t, if h : t = fin.last n then val else f (t.cast_ne h), _⟩, _⟩, rotate,
-      { intros a₁ a₂ f_eq, dsimp only at f_eq, split_ifs at f_eq with h₁ h₂ h₂,
-        { substs h₁ h₂ },
-        { sorry }, -- working on making these not `tidy`! but it works for now
-        { sorry }, -- these just unfold stuff about `coe`s basically
-        { have := f.injective f_eq, sorry } },
-      { intros a₁ a₂ f_eq, dsimp only at f_eq,
-        rw ←embedding.ext_iff at f_eq, specialize f_eq (fin.last n),
-        simp only [dif_pos, embedding.coe_fn_mk] at f_eq, ext, assumption },
-      let some_embeds : finset (fin n.succ ↪ β)
-        := finset.map my_fun poss_vals.attach,
-      have : |some_embeds| = ‖β‖ - n, by simpa, rw ←this, apply finset.card_le_of_subset,
-      intros one two, simp at two, simp [two],
-    }
+      let extend : β → fin n.succ → β := λ b, fin.snoc f b, -- if I don't λ, typechecker &$@!?
+      let extender : {x // x ∈ poss_vals} ↪ (fin n.succ ↪ β)
+        := ⟨λ b, ⟨extend b, _⟩, _⟩, rotate,
+      { intros a₁ a₂ f_eqs, sorry,
+      },
+      { sorry },
+      sorry
+    } -/
   },
   rw [←card_univ, all_injf_covered, card_bUnion], simp [equiv_class_size], unfold desc_fac,
   -- use hn and stuff

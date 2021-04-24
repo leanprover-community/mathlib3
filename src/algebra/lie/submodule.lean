@@ -90,9 +90,7 @@ begin
 end
 
 /-- Copy of a lie_submodule with a new `carrier` equal to the old one. Useful to fix definitional
-equalities.
-
-TODO Library note! -/
+equalities. -/
 protected def copy (s : set M) (hs : s = ↑N) : lie_submodule R L M :=
 { carrier := s,
   zero_mem' := hs.symm ▸ N.zero_mem',
@@ -742,15 +740,11 @@ variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L 
 variables [add_comm_group N] [module R N] [lie_ring_module L N] [lie_module R L N]
 variables (f : M →ₗ⁅R,L⁆ N)
 
-/-- The range of a morphism of Lie modules `f : M → N` is a Lie submodule of `N`. -/
+/-- The range of a morphism of Lie modules `f : M → N` is a Lie submodule of `N`.
+See Note [range copy pattern]. -/
 def range : lie_submodule R L N :=
 (lie_submodule.map f ⊤).copy (set.range f) set.image_univ.symm
 
-/-- Note that `lie_module_hom.range` is deliberately defined in a way that makes this true by `rfl`,
-as this means the types `↥(set.range f)` and `↥f.mrange` are interchangeable without proof
-obligations.
-
-TODO Library note. -/
 @[simp] lemma coe_range : (f.range : set N) = set.range f := rfl
 
 @[simp] lemma coe_submodule_range : (f.range : submodule R N) = (f : M →ₗ[R] N).range := rfl

@@ -80,16 +80,12 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   ..complex.of_real.comp (algebra_map R ℝ) }
 
 /-- Complex conjugation as an `ℝ`-algebra isomorphism  -/
-def conj_real_alg_equiv : ℂ ≃ₐ[ℝ] ℂ :=
+def conj_alg_equiv : ℂ ≃ₐ[ℝ] ℂ :=
 { inv_fun := complex.conj,
   left_inv := complex.conj_conj,
   right_inv := complex.conj_conj,
   commutes' := complex.conj_of_real,
   .. complex.conj }
-
-/-- Complex conjugation as an `ℚ`-algebra isomorphism  -/
-def conj_rat_alg_equiv : ℂ ≃ₐ[ℚ] ℂ :=
-alg_equiv.restrict_scalars ℚ complex.conj_real_alg_equiv
 
 section
 open_locale complex_order

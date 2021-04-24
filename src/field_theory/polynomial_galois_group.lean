@@ -29,10 +29,6 @@ the automorphism group of the splitting field.
 - `restrict_prod_inj`: `gal (p * q)` embeds as a subgroup of `gal p × gal q`.
 -/
 
-lemma complex.conj_eq_self_iff_im_eq_zero' (z : ℂ) : z.conj = z ↔ z.im = 0 :=
-by rw [complex.ext_iff, complex.conj_re, and_iff_right rfl, complex.conj_im,
-  neg_eq_iff_add_eq_zero, add_self_eq_zero]
-
 noncomputable theory
 open_locale classical
 

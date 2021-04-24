@@ -1182,11 +1182,32 @@ def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →*
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
+/-- Computable alternative to `monoid_hom.of_injective`. -/
+def of_left_inverse {f : G →* N} {g : N →* G} (h : function.left_inverse g f) : G ≃* f.range :=
+{ to_fun := f.range_restrict,
+  inv_fun := g ∘ f.range.subtype,
+  left_inv := h,
+  right_inv := by
+  { rintros ⟨x, y, rfl⟩,
+    apply subtype.ext,
+    rw [coe_range_restrict, function.comp_apply, subgroup.coe_subtype, subtype.coe_mk, h] },
+  .. f.range_restrict }
+
+@[simp] lemma of_left_inverse_apply {f : G →* N} {g : N →* G}
+  (h : function.left_inverse g f) (x : G) :
+  ↑(of_left_inverse h x) = f x := rfl
+
+@[simp] lemma of_left_inverse_symm_apply {f : G →* N} {g : N →* G}
+  (h : function.left_inverse g f) (x : f.range) :
+  (of_left_inverse h).symm x = g x := rfl
+
 /-- The range of an injective group homomorphism is isomorphic to its domain. -/
-noncomputable def injective_range_equiv {G H : Type*} [group G] [group H] {f : G →* H}
-  (hf : function.injective f) : f.range ≃* G :=
+noncomputable def of_injective {f : G →* N} (hf : function.injective f) : G ≃* f.range :=
 (mul_equiv.of_bijective (f.cod_restrict f.range (λ x, ⟨x, rfl⟩))
-  ⟨λ x y h, hf (subtype.ext_iff.mp h), by { rintros ⟨x, y, rfl⟩, exact ⟨y, rfl⟩ }⟩).symm
+  ⟨λ x y h, hf (subtype.ext_iff.mp h), by { rintros ⟨x, y, rfl⟩, exact ⟨y, rfl⟩ }⟩)
+
+lemma of_injective_apply{f : G →* N} (hf : function.injective f) {x : G} :
+  ↑(of_injective hf x) = f x := rfl
 
 /-- The multiplicative kernel of a monoid homomorphism is the subgroup of elements `x : G` such that
 `f x = 1` -/

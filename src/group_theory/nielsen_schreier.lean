@@ -77,7 +77,7 @@ namespace is_free_groupoid
 
 attribute [instance] quiver_generators
 
-/-- Two functors from a free groupiod to a group are equal when they agree on the generating
+/-- Two functors from a free groupoid to a group are equal when they agree on the generating
 quiver. -/
 @[ext]
 lemma ext_functor {G} [groupoid.{v} G] [is_free_groupoid G] {X : Type v} [group X]

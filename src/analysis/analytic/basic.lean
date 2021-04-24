@@ -182,6 +182,18 @@ lemma nnnorm_mul_pow_le_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r
 let ⟨C, hC, hp⟩ := p.norm_mul_pow_le_of_lt_radius h
 in ⟨⟨C, hC.lt.le⟩, hC, by exact_mod_cast hp⟩
 
+lemma le_radius_of_summable (p : formal_multilinear_series 𝕜 E F)
+  (hs : summable (λ n, ∥p n∥ * r^n)) : ↑r ≤ p.radius :=
+begin
+  suffices : tendsto (λ n, ∥p n∥ * r ^ n) at_top (𝓝 0),
+  { exact le_radius_of_is_O p (is_O_one_of_tendsto _ this) },
+  exact hs.tendsto_at_top_zero
+end
+
+lemma not_summable_of_radius_lt_nnnorm (p : formal_multilinear_series 𝕜 E F) {x : E}
+  (h : p.radius < nnnorm x) : ¬ summable (λ n, ∥p n∥ * ∥x∥^n) :=
+λ hs, not_le_of_lt h (le_radius_of_summable p hs)
+
 /-- If the radius of `p` is positive, then `∥pₙ∥` grows at most geometrically. -/
 lemma le_mul_pow_of_radius_pos (p : formal_multilinear_series 𝕜 E F) (h : 0 < p.radius) :
   ∃ C r (hC : 0 < C) (hr : 0 < r), ∀ n, ∥p n∥ ≤ C * r ^ n :=

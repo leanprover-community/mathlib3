@@ -518,8 +518,10 @@ in such a way that the underlying carrier set of the range subobject is definiti
 `set.range f`. In particular this means that the types `↥(set.range f)` and `↥f.range` are
 interchangeable without proof obligations.
 
-Sometimes one has a convenient candidate definition for range, which is mathematically correct, but
-which lacks the desired definitional convenience. In such a case one may resort to the `copy`
+A convenient candidate definition for range which is mathematically correct is `map ⊤ f`, just as
+`set.range` could have been defined as `f '' set.univ`. However, this lacks the desired definitional
+convenience, in that it both does not match `set.range`, and that it introduces a redudant `x ∈ ⊤`
+term which clutters proofs. In such a case one may resort to the `copy`
 pattern. A `copy` function converts the definitional problem for the carrier set of a subobject
 into a one-off propositional proof obligation which one discharges while writing the definition of
 the definitionally convenient range (the parameter `hs` in the example below).

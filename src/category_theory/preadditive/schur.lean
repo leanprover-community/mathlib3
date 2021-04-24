@@ -61,24 +61,30 @@ lemma is_iso_iff_nonzero {X Y : C} [simple.{v} X] [simple.{v} Y] {f : X ⟶ Y} :
   end,
   λ w, is_iso_of_hom_simple w⟩
 
--- TODO move
+-- TODO move to `category_theory.endomorphism`
 lemma is_iso_iff_is_unit {X : C} (f : End X) : is_iso f ↔ is_unit (f : End X) :=
 sorry
+
+instance (X : C) [simple.{v} X] : nontrivial (End X) :=
+nontrivial_of_ne 1 0 (id_nonzero X)
 
 open finite_dimensional
 
 variables {𝕜 : Type*} [field 𝕜] [is_alg_closed 𝕜]
 
+-- set_option pp.all true
+
 /--
 Schur's lemma for `𝕜`-linear categories
 -/
 lemma findim_endomorphism_simple_eq_one
-  [linear 𝕜 C] {X : C} [simple.{v} X] [finite_dimensional 𝕜 (X ⟶ X)] :
+  [linear 𝕜 C] {X : C} [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] :
   findim 𝕜 (X ⟶ X) = 1 :=
 begin
   suffices : ∀ f : X ⟶ X, ∃ c : 𝕜, f = c • 𝟙 X,
   { sorry, },
   intro f,
+  haveI : finite_dimensional 𝕜 (End X) := {..I},
   obtain ⟨c, nu⟩ := exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 (End.of f),
   use c,
   rw ←is_iso_iff_is_unit at nu,

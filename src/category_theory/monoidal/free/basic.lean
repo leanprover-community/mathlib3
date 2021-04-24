@@ -23,7 +23,7 @@ inductive free_monoidal_category : Type u
 
 end
 
-notation `F` := free_monoidal_category
+local notation `F` := free_monoidal_category
 
 namespace free_monoidal_category
 

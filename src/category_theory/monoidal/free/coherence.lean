@@ -13,6 +13,7 @@ open monoidal_category
 
 namespace free_monoidal_category
 
+
 variables {C : Type u}
 
 section
@@ -22,9 +23,11 @@ inductive normal_monoidal_object : Type u
 | unit : normal_monoidal_object
 | tensor : normal_monoidal_object → C → normal_monoidal_object
 
-notation `N` C := discrete (normal_monoidal_object C)
-
 end
+
+local notation `F` := free_monoidal_category
+local notation `N` := discrete ∘ normal_monoidal_object
+
 
 @[simp]
 def inclusion' : normal_monoidal_object C → F C
@@ -32,7 +35,7 @@ def inclusion' : normal_monoidal_object C → F C
 | (normal_monoidal_object.tensor n a) := tensor (inclusion' n) (of a)
 
 @[simp]
-def inclusion : (N C) ⥤ F C :=
+def inclusion : N C ⥤ F C :=
 discrete.functor inclusion'
 
 @[simp] def normalize_obj : F C → normal_monoidal_object C → normal_monoidal_object C
@@ -53,7 +56,7 @@ open hom
 @[simp]
 def normalize_map_aux : Π {X Y : F C},
   (X ⟶ᵐ Y) →
-    ((discrete.functor (normalize_obj X) : _ ⥤ (N C)) ⟶ discrete.functor (normalize_obj Y))
+    ((discrete.functor (normalize_obj X) : _ ⥤ N C) ⟶ discrete.functor (normalize_obj Y))
 | _ _ (id _) := 𝟙 _
 | _ _ (α_hom _ _ _) := ⟨λ X, 𝟙 _⟩
 | _ _ (α_inv _ _ _) := ⟨λ X, 𝟙 _⟩
@@ -69,7 +72,7 @@ def normalize_map_aux : Π {X Y : F C},
 end
 
 @[simp]
-def normalize : F C ⥤ ((N C) ⥤ N C) :=
+def normalize : F C ⥤ N C ⥤ N C :=
 { obj := λ X, discrete.functor (normalize_obj X),
   map := λ X Y, quotient.lift normalize_map_aux (by tidy) }
 
@@ -78,7 +81,7 @@ def full_normalize : F C ⥤ N C :=
   map := λ X Y f, (normalize.map f).app normal_monoidal_object.unit }
 
 @[simp]
-def tensor_func : F C ⥤ ((N C) ⥤ F C) :=
+def tensor_func : F C ⥤ N C ⥤ F C :=
 { obj := λ X, discrete.functor (λ n, (inclusion.obj n) ⊗ X),
   map := λ X Y f, ⟨λ n, 𝟙 _ ⊗ f, by tidy⟩ }
 
@@ -94,7 +97,7 @@ section
 variables (C)
 
 @[simp]
-def normalize' : F C ⥤ ((N C) ⥤ F C) :=
+def normalize' : F C ⥤ N C ⥤ F C :=
 normalize ⋙ (whiskering_right _ _ _).obj inclusion
 
 @[simp]

@@ -540,8 +540,10 @@ begin
   exact ⟨r.1, hr, r.2⟩
 end
 
--- Auxiliary lemma for surjectivity of `to_basic_open`.
--- Every section can locally be represented on basic opens `basic_opens g` as a fraction `f/g`
+/-
+Auxiliary lemma for surjectivity of `to_basic_open`.
+Every section can locally be represented on basic opens `basic_opens g` as a fraction `f/g`
+-/
 lemma locally_const_basic_open (U : opens (Spec.Top R))
   (s : (structure_sheaf R).presheaf.obj (op U)) (x : U) :
   ∃ (f g : R) (i : basic_open g ⟶ U), x.1 ∈ basic_open g ∧
@@ -562,12 +564,12 @@ begin
     replace hDhDg := vanishing_ideal_anti_mono hDhDg,
     rw [← vanishing_ideal_zero_locus_eq_radical, zero_locus_span],
     exact hDhDg (subset_vanishing_ideal_zero_locus {h} (set.mem_singleton h)) },
-  -- For technical reasons, we willneed a *nonzero* power of `h`.
+  -- Actually, we will need a *nonzero* power of `h`.
   -- This is because we will need the equality `basic_open (h ^ n) = basic_open h`, which only
   -- holds for a nonzero power `n`
   replace hn := ideal.mul_mem_left (ideal.span {g}) h hn,
   rw [← pow_succ, ideal.mem_span_singleton'] at hn,
-  obtain ⟨c, hc⟩ := hn,
+  rcases hn with ⟨c, hc⟩,
   have basic_opens_eq := basic_open_pow h (n+1) (by linarith),
   have res_basic_open := eq_to_hom basic_opens_eq ≫ hom_of_le hDhV,
   -- Now we have all the ingredients we nned
@@ -582,6 +584,165 @@ begin
   -- All that is left is a simple calculation
   apply const_ext,
   rw [mul_assoc f c g, hc],
+end
+
+/-
+Auxiliary lemma for surjectivity of `to_basic_open`.
+A local representation of a section `s` as fractions `a i / h i` on finitely many basic opens
+`basic_open (h i)` can be "normalized" in such a way that `a i * h j = h i * a j` for all `i, j`
+-/
+lemma normalize_finite_fraction_representation (U : opens (Spec.Top R))
+  (s : (structure_sheaf R).presheaf.obj (op U)) {ι : Type*} (t : finset ι) (ht : t.nonempty)
+  (a h : ι → R) (iDh : Π i : ι, basic_open (h i) ⟶ U)
+  (h_cover : U.1 ⊆ ⋃ i ∈ t, (basic_open (h i)).1)
+  (hs : ∀ i : ι, const R (a i) (h i) (basic_open (h i)) (λ y hy, hy) =
+    (structure_sheaf R).presheaf.map (iDh i).op s) :
+  ∃ (a' h' : ι → R) (iDh' : Π i : ι, (basic_open (h' i)) ⟶ U),
+    (U.1 ⊆ ⋃ i ∈ t, (basic_open (h' i)).1) ∧
+    (∀ i j ∈ t, h' i * a' j = a' i * h' j) ∧
+    (∀ i ∈ t, (structure_sheaf R).presheaf.map (iDh' i).op s =
+      const R (a' i) (h' i) (basic_open (h' i)) (λ y hy, hy)) :=
+begin
+  -- First we show that the fractions `(a i * h j) / (h i * h j)` and `(h i * a j) / (h i * h j)`
+  -- coincide in the localization of `R`
+  have fractions_eq : ∀ (i j : ι),
+    (localization.of _).mk' (a i * h j) ⟨h i * h j, submonoid.mem_powers _⟩ =
+    (localization.of _).mk' (h i * a j) ⟨h i * h j, submonoid.mem_powers _⟩,
+  { intros i j,
+    let D := basic_open (h i * h j),
+    let iDi : D ⟶ basic_open (h i) := hom_of_le (basic_open_mul_le_left _ _),
+    let iDj : D ⟶ basic_open (h j) := hom_of_le (basic_open_mul_le_right _ _),
+    -- Crucially, we need injectivity of `to_basic_open`
+    apply to_basic_open_injective R (h i * h j),
+    simp only [set_like.coe_mk, to_basic_open_mk'],
+    -- Here, both sides of the equation are equal to a restriction of `s`
+    transitivity,
+    convert congr_arg ((structure_sheaf R).presheaf.map iDi.op) (hs i) using 1, swap,
+    convert congr_arg ((structure_sheaf R).presheaf.map iDj.op) (hs j).symm using 1,
+    all_goals { rw res_const, apply const_ext, ring },
+    -- The remaining two goals were generated during the rewrite of `res_const`
+    -- These can be solved immediately
+    exacts [basic_open_mul_le_right _ _, basic_open_mul_le_left _ _] },
+
+  -- From the equality in the localization, we obtain for each `i j` some power `(h i * h j) ^ n`
+  -- which equalizes `a i * h j` and `h i * a j`
+  have exists_power : ∀ (i j : ι), ∃ n : ℕ,
+    a i * h j * (h i * h j) ^ n = h i * a j * (h i * h j) ^ n,
+  { intros i j,
+    obtain ⟨⟨c,n,rfl⟩,hc⟩ := (localization_map.eq _).mp (fractions_eq i j),
+    use (n+1),
+    rw pow_succ,
+    dsimp at hc,
+    convert hc using 1 ; ring },
+  let n := λ (p : ι × ι), (exists_power p.1 p.2).some,
+  have n_spec := λ (p : ι × ι), (exists_power p.fst p.snd).some_spec,
+  -- We need one power `(h i * h j) ^ N` that works for *all* pairs `(i,j)`
+  -- Since there are only finitely many indices involved, we can pick the maximum.
+  -- TODO: Extract this into a lemma about finsets
+  have htt : (t.product t).nonempty,
+    { obtain ⟨i,hi⟩ := ht,
+      refine ⟨(i,i), finset.mem_product.mpr ⟨hi, hi⟩⟩ },
+  choose arg_max h_mem h_max using (t.product t).exists_max_image n htt,
+  let N := n arg_max,
+  have basic_opens_eq : ∀ i : ι, basic_open ((h i) ^ (N+1)) = basic_open (h i) :=
+    λ i, basic_open_pow _ _ (by linarith),
+  -- Expanding the fraction `a i / h i` by the power `(h i) ^ N` gives the desired "normalization"
+  refine ⟨(λ i, a i * (h i) ^ N), (λ i, (h i) ^ (N + 1)),
+    (λ i, eq_to_hom (basic_opens_eq i) ≫ iDh i), _, _, _⟩,
+  { simpa only [basic_opens_eq] using h_cover },
+  { intros i j hi hj,
+    -- Here we need to show that our new fractions `a i / h i` satisfy the normalization condition
+    -- Of course, the power `N` we used to expand the fractions might be bigger than the power
+    -- `n (i, j)` which was originally chosen. We denote their difference by `k`
+    obtain ⟨k, (hk : n (i, j) + k = N)⟩ := nat.le.dest (h_max ⟨i,j⟩ (finset.mem_product.mpr ⟨hi,hj⟩)),
+    simp only [← hk, pow_add, pow_one],
+    -- To accommodate for the difference `k`, we multiply both sides of the equation `n_spec (i, j)`
+    -- by `(h i * h j) ^ k`
+    convert congr_arg (λ z, z * (h i * h j) ^ k) (n_spec (i, j)).symm using 1 ;
+    { simp only [n, mul_pow], ring } },
+
+  -- Lastly, we need to show that the new fractions still represent our original `s`
+  intros i hi,
+  rw [op_comp, functor.map_comp, coe_comp, ← hs, res_const],
+  -- additional goal spit out by `res_const`
+  swap, exact (basic_opens_eq i).le,
+  apply const_ext,
+  rw pow_succ,
+  ring
+end
+
+open_locale classical
+open_locale big_operators
+
+lemma to_basic_open_surjective (f : R) : function.surjective (to_basic_open R f) :=
+begin
+  intro s,
+  -- In this proof, `basic_open f` will play two distinct roles: Firstly, it is an open set in the
+  -- prime spectrum. Secondly, it is an indexing type for various families of objects (open sets,
+  -- ring elements, ...).
+  -- In order to make the distinction clear, we introduce a type alias `ι` that is used whenever
+  -- we want think of it as an indexing type.
+  let ι : Type u := basic_open f,
+  choose a' h' iDh' hxDh' s_eq' using locally_const_basic_open R (basic_open f) s,
+  obtain ⟨t, ht_cover'⟩ := (is_compact_basic_open f).elim_finite_subcover
+   (λ (i : ι), (basic_open (h' i)).1) (λ i, is_open_basic_open) (λ x hx, _),
+  swap,
+  { rw set.mem_Union,
+    exact ⟨⟨x,hx⟩, hxDh' ⟨x, hx⟩⟩ },
+  obtain ⟨a, h, iDh, ht_cover, ha_ah, s_eq⟩ := normalize_finite_fraction_representation R
+    (basic_open f) s t _ a' h' iDh' ht_cover' s_eq',
+  clear s_eq' iDh' hxDh' ht_cover' a' h',
+  swap,
+  -- TODO: Show that `t` is nonempty
+  { sorry },
+
+  -- Next we show that some power of `f` is a linear combination of the `h i`
+  obtain ⟨n, hn⟩ : f ∈ (ideal.span (finset.image h t : set R)).radical,
+  { rw [← vanishing_ideal_zero_locus_eq_radical, zero_locus_span, finset.coe_image],
+    simp_rw [subtype.val_eq_coe, basic_open_eq_zero_locus_compl] at ht_cover,
+    rw set.compl_subset_comm at ht_cover, -- Why doesn't `simp_rw` do this?
+    simp_rw [set.compl_Union, compl_compl, ← zero_locus_Union, ← finset.set_bUnion_coe,
+             ← set.image_eq_Union] at ht_cover,
+    apply vanishing_ideal_anti_mono ht_cover,
+    exact subset_vanishing_ideal_zero_locus {f} (set.mem_singleton f) },
+
+  --dsimp [ideal.span] at hn,
+  erw mem_span_finset at hn,
+  obtain ⟨b, hb⟩ := hn,
+  rw finset.sum_image at hb,
+  -- TODO: Make `h` injective somehow...
+  -- Alternative: Use `finset.sum_image'` and modify `b` accordingly
+  swap,
+  { sorry },
+  use (localization.of (submonoid.powers f)).mk' (∑ (i : ι) in t, b (h i) * a i) ⟨f ^ n, n, rfl⟩,
+  rw to_basic_open_mk',
+  let tt := ((t : set (basic_open f)) : Type u),
+  -- The rest of this proof would be much nicer if we could write
+  -- `(structure_sheaf R).eq_of_locally_eq'`. For that, the API on unique gluings should be
+  -- extended to more general (algebraic?) categories, rather than only work with sheaves of types
+  apply (structure_sheaf_in_Type R).eq_of_locally_eq'
+    (λ i : tt, basic_open (h i)) (basic_open f) (λ i : tt, iDh i),
+  { intros x hx,
+    simp only [set.mem_Union, set_coe.exists, topological_space.opens.supr_s, subtype.val_eq_coe],
+    have := ht_cover hx,
+    dsimp at this,
+    rw [← finset.set_bUnion_coe, set.mem_bUnion_iff] at this,
+    obtain ⟨i, i_mem, x_mem⟩ := this,
+    use [i, i_mem] },
+
+  rintro ⟨i, i_mem⟩,
+  dsimp,
+  change (structure_sheaf R).presheaf.map (iDh i).op _ =
+         (structure_sheaf R).presheaf.map (iDh i).op _,
+  rw [s_eq i i_mem, res_const],
+  swap,
+  { sorry }, --easy?
+  apply const_ext,
+  rw [← hb, finset.sum_mul, finset.mul_sum],
+  apply finset.sum_congr rfl,
+  intros j hj, dsimp,
+  rw [mul_assoc, ← ha_ah j i hj i_mem],
+  ring,
 end
 
 lemma is_unit_to_stalk (x : Spec.Top R) (f : x.as_ideal.prime_compl) :

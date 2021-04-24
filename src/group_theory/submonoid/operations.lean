@@ -528,7 +528,7 @@ the definitionally convenient range (the parameter `hs` in the example below).
 
 A good example is the case of a morphism of monoids. A convenient definition for `monoid_hom.mrange` would be
 `(⊤ : submonoid M).map f`. However since this lacks the required definitional convenience, we
-first define `copy` as follows:
+first define `submonoid.copy` as follows:
 ```lean
 protected def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
 { carrier  := s,

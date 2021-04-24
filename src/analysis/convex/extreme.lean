@@ -13,8 +13,6 @@ This file defines extreme sets and extreme points for set in a real normed space
 ## References
 See chapter 8 of [Convexity][simon2011]
 TODO:
-- generalise this to Locally Convex Topological Vector Spaces once mathlib knows about them.
-  (see analysis/seminorm.lean)
 - add exposed sets to this file.
 - define convex independence and prove lemmas related to extreme points.
 -/
@@ -22,8 +20,7 @@ TODO:
 open_locale classical affine
 open set
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
-  {X : finset E}
+variables {E : Type*} [add_comm_group E] [vector_space ℝ E] {x : E} {A B C : set E}
 
 /--
 A set B is extreme to a set A if B ⊆ A and all points of B only belong to (intrinsic) interiors of

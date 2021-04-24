@@ -105,6 +105,13 @@ begin
   exact is_o_zero_right_iff
 end
 
+lemma is_equivalent_zero_iff_is_O_zero : u ~[l] 0 ↔ is_O u (0 : α → β) l :=
+begin
+  refine ⟨is_equivalent.is_O, λ h, _⟩,
+  rw [is_equivalent_zero_iff_eventually_zero, eventually_eq_iff_exists_mem],
+  exact ⟨{x : α | u x = 0}, is_O_zero_right_iff.mp h, λ x hx, hx⟩,
+end
+
 lemma is_equivalent_const_iff_tendsto {c : β} (h : c ≠ 0) : u ~[l] const _ c ↔ tendsto u l (𝓝 c) :=
 begin
   rw [is_equivalent, is_o_const_iff h],

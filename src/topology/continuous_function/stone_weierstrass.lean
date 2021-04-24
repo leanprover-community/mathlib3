@@ -130,7 +130,7 @@ theorem inf_mem_closed_subalgebra (A : subalgebra ℝ C(X, ℝ)) (h : is_closed 
   (f g : A) : (f : C(X, ℝ)) ⊓ (g : C(X, ℝ)) ∈ A :=
 begin
   convert inf_mem_subalgebra_closure A f g,
-  apply subalgebra.ext_set,
+  apply set_like.ext',
   symmetry,
   erw closure_eq_iff_is_closed,
   exact h,
@@ -151,7 +151,7 @@ theorem sup_mem_closed_subalgebra (A : subalgebra ℝ C(X, ℝ)) (h : is_closed 
   (f g : A) : (f : C(X, ℝ)) ⊔ (g : C(X, ℝ)) ∈ A :=
 begin
   convert sup_mem_subalgebra_closure A f g,
-  apply subalgebra.ext_set,
+  apply set_like.ext',
   symmetry,
   erw closure_eq_iff_is_closed,
   exact h,
@@ -302,7 +302,7 @@ begin
   -- The closure of `A` is closed under taking `sup` and `inf`,
   -- and separates points strongly (since `A` does),
   -- so we can apply `sublattice_closure_eq_top`.
-  apply subalgebra.ext_set,
+  apply set_like.ext',
   let L := A.topological_closure,
   have n : set.nonempty (L : set C(X, ℝ)) :=
     ⟨(1 : C(X, ℝ)), A.subalgebra_topological_closure A.one_mem⟩,

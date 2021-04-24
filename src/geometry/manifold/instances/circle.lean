@@ -76,6 +76,9 @@ instance : topological_group circle :=
 follows by definition from the corresponding result for `metric.sphere`. -/
 instance : charted_space (euclidean_space ℝ (fin 1)) circle := metric.sphere.charted_space
 
+instance : smooth_manifold_with_corners (𝓡 1) circle :=
+metric.sphere.smooth_manifold_with_corners
+
 /-- The unit circle in `ℂ` is a Lie group. -/
 instance : lie_group (𝓡 1) circle :=
 { smooth_mul := begin
@@ -85,10 +88,7 @@ instance : lie_group (𝓡 1) circle :=
     have h₂ : times_cont_mdiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, ℂ) ∞ (λ (z : ℂ × ℂ), z.fst * z.snd),
     { rw times_cont_mdiff_iff,
       exact ⟨continuous_mul, λ x y, (times_cont_diff_mul.restrict_scalars ℝ).times_cont_diff_on⟩ },
-    convert (h₂.comp h₁).cod_restrict_sphere _,
-    convert smooth_manifold_with_corners.prod circle circle,
-    { exact metric.sphere.smooth_manifold_with_corners },
-    { exact metric.sphere.smooth_manifold_with_corners }
+    exact (h₂.comp h₁).cod_restrict_sphere _,
   end,
   smooth_inv := (complex.conj_clm.times_cont_diff.times_cont_mdiff.comp
     times_cont_mdiff_coe_sphere).cod_restrict_sphere _,

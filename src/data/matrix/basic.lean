@@ -640,6 +640,10 @@ lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
   vec_mul_vec w v = (col w) ⬝ (row v) :=
 by { ext i j, simp [vec_mul_vec, mul_apply], refl }
 
+lemma smul_mul_vec_assoc (A : matrix m n α) (b : n → α) (a : α) :
+  (a • A).mul_vec b = a • (A.mul_vec b) :=
+by { ext, apply smul_dot_product }
+
 variables [decidable_eq m] [decidable_eq n]
 
 /--
@@ -728,14 +732,17 @@ by { ext, apply neg_dot_product }
 lemma mul_vec_neg (v : n → α) (A : matrix m n α) : mul_vec A (-v) = - mul_vec A v :=
 by { ext, apply dot_product_neg }
 
-lemma smul_mul_vec_assoc (A : matrix n n α) (b : n → α) (a : α) :
-  (a • A).mul_vec b = a • (A.mul_vec b) :=
-begin
-  ext i, change dot_product ((a • A) i) b = _,
-  simp only [mul_vec, smul_eq_mul, pi.smul_apply, smul_dot_product],
-end
-
 end ring
+
+section comm_semiring
+
+variables [comm_semiring α]
+
+lemma mul_vec_smul_assoc (A : matrix m n α) (b : n → α) (a : α) :
+  A.mul_vec (a • b) = a • (A.mul_vec b) :=
+by { ext, apply dot_product_smul }
+
+end comm_semiring
 
 section transpose
 

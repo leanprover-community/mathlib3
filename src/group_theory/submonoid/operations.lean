@@ -526,9 +526,9 @@ pattern. A `copy` function converts the definitional problem for the carrier set
 into a one-off propositional proof obligation which one discharges while writing the definition of
 the definitionally convenient range (the parameter `hs` in the example below).
 
-A good example is the case of a morphism of monoids. A convenient definition for `monoid_hom.mrange` would be
-`(⊤ : submonoid M).map f`. However since this lacks the required definitional convenience, we
-first define `submonoid.copy` as follows:
+A good example is the case of a morphism of monoids. A convenient definition for
+`monoid_hom.mrange` would be `(⊤ : submonoid M).map f`. However since this lacks the required
+definitional convenience, we first define `submonoid.copy` as follows:
 ```lean
 protected def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
 { carrier  := s,
